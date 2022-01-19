@@ -62,8 +62,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 	${GEODE_INCLUDE_DIR}/base
 	${GEODE_INCLUDE_DIR}/old_stl
 	${GEODE_INCLUDE_DIR}/hook
-	${GEODE_INCLUDE_DIR}/lilac
-	${GEODE_INCLUDE_DIR}/lilac/core/include/lilac/core
+	${GEODE_INCLUDE_DIR}/loader
+	${GEODE_INCLUDE_DIR}/loader/core/include/geode/core
 	${GEODE_INCLUDE_DIR}/cocos/
 	${GEODE_INCLUDE_DIR}/cocos/cocos2dx
 	${GEODE_INCLUDE_DIR}/cocos/cocos2dx/include
@@ -76,12 +76,12 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 	${INCLUDE_DIRECTORIES}
 )
 
+if (DEFINED "${LINK_DIRECTORIES}")
 target_link_directories(${PROJECT_NAME} 
-	PRIVATE GeodeCore
 	${LINK_DIRECTORIES}
 )
+endif()
 target_link_libraries(${PROJECT_NAME} 
-	GeodeCore
 	fmt
 	${LINK_LIBRARIES}
 )

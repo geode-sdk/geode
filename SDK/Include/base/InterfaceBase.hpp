@@ -6,12 +6,13 @@
 
 #include <Gen/Header.hpp>
 #include <Geode.hpp>
-#include <lilac.hpp>
 
 #include <FunctionBase.hpp>
 #include <unordered_map>
 
 #include <type_traits>
+#include <platform/platform.hpp>
+#include <Mod.hpp>
 
 struct TmpModInfo {
     uintptr_t hookAddr;
@@ -92,9 +93,9 @@ inline T base_cast(F obj) {
  */
 #define inject() $inject(); static int const _inject = ($inject(), 0); void $inject()
 
-inline lilac::Mod* MyMod;
+inline geode::Mod* MyMod;
 
-LILAC_API bool LILAC_CALL lilac_load(lilac::Mod* mod) {
+GEODE_API bool GEODE_CALL geode_load(geode::Mod* mod) {
     MyMod = mod;
     for (auto i : modContainer.m_mods) {
         mod->addHook(
@@ -105,7 +106,7 @@ LILAC_API bool LILAC_CALL lilac_load(lilac::Mod* mod) {
     return true;
 }
 
-LILAC_API void LILAC_CALL lilac_unload() {
+GEODE_API void GEODE_CALL geode_unload() {
 
 }
 

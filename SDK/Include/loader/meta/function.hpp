@@ -1,5 +1,5 @@
-#ifndef LILAC_CORE_META_FUNCTION_HPP
-#define LILAC_CORE_META_FUNCTION_HPP
+#ifndef GEODE_CORE_META_FUNCTION_HPP
+#define GEODE_CORE_META_FUNCTION_HPP
 
 #include "tuple.hpp"
 #include "common.hpp"
@@ -7,8 +7,8 @@
 
 #include <type_traits>
 
-namespace lilac::core::meta {
-    /* The Lilac Function class wraps functions with unconventional
+namespace geode::core::meta {
+    /* The Geode Function class wraps functions with unconventional
     *  calling conventions (how ironic).
     */
     template<
@@ -45,4 +45,4 @@ namespace lilac::core::meta {
     };
 }
 
-#endif /* LILAC_CORE_META_FUNCTION_HPP */
+#endif /* GEODE_CORE_META_FUNCTION_HPP */

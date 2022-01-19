@@ -3,7 +3,7 @@
 //#include <Macros.hpp>
 #include <string_view>
 
-namespace lilac {
+namespace geode {
     /**
      * @struct no_result
      * The default value of a Result.

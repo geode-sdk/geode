@@ -1,7 +1,7 @@
-#ifndef LILAC_CORE_META_X86_HPP
-#define LILAC_CORE_META_X86_HPP
+#ifndef GEODE_CORE_META_X86_HPP
+#define GEODE_CORE_META_X86_HPP
 
-namespace lilac::core::meta::x86 {
+namespace geode::core::meta::x86 {
     // Logic needed by x86 calling conventions for stack fixing / filtering.
     template<class Class>
     struct gpr_passable {
@@ -39,4 +39,4 @@ namespace lilac::core::meta::x86 {
     static constexpr size_t stack_fix<void> = 0;
 }
 
-#endif /* LILAC_CORE_META_X86_HPP */
+#endif /* GEODE_CORE_META_X86_HPP */

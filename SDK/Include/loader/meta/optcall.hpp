@@ -1,12 +1,12 @@
-#ifndef LILAC_CORE_META_OPTCALL_HPP
-#define LILAC_CORE_META_OPTCALL_HPP
+#ifndef GEODE_CORE_META_OPTCALL_HPP
+#define GEODE_CORE_META_OPTCALL_HPP
 
 #include "function.hpp"
 #include "hook.hpp"
 #include "tuple.hpp"
 #include "x86.hpp"
 
-namespace lilac::core::meta::x86 {
+namespace geode::core::meta::x86 {
     template<class Ret, class... Args>
     class Optcall : public CallConv<Optcall, Ret, Args...> {
     private:
@@ -43,7 +43,7 @@ namespace lilac::core::meta::x86 {
         template<class Class, class>
         class Impl {
             static_assert(always_false<Class>, 
-                "Please report a bug to the Lilac developers! This should never be reached.");
+                "Please report a bug to the Geode developers! This should never be reached.");
         };
 
         template<size_t... to, size_t... from>
@@ -167,4 +167,4 @@ namespace lilac::core::meta::x86 {
     };
 }
 
-#endif /* LILAC_CORE_META_OPTCALL_HPP */
+#endif /* GEODE_CORE_META_OPTCALL_HPP */

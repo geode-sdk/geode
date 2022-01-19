@@ -8,16 +8,16 @@
 #include <unordered_map>
 #include <helpers/Result.hpp>
 
-class Lilac;
+class Geode;
 
-namespace lilac {
+namespace geode {
     #pragma warning(disable: 4251)
 
-    static constexpr const std::string_view lilac_directory          = "lilac";
-    static constexpr const std::string_view lilac_mod_directory      = "mods";
-    static constexpr const std::string_view lilac_resource_directory = "resources";
-    static constexpr const std::string_view lilac_temp_directory     = "temp";
-    static constexpr const std::string_view lilac_mod_extension      = ".lilac";
+    static constexpr const std::string_view geode_directory          = "geode";
+    static constexpr const std::string_view geode_mod_directory      = "mods";
+    static constexpr const std::string_view geode_resource_directory = "resources";
+    static constexpr const std::string_view geode_temp_directory     = "temp";
+    static constexpr const std::string_view geode_mod_extension      = ".geode";
 
     class Mod;
     class Hook;
@@ -25,7 +25,7 @@ namespace lilac {
     class LogMessage;
     struct ModInfo;
 
-    class LILAC_DLL Loader {
+    class GEODE_DLL Loader {
     protected:
         std::unordered_map<std::string, Mod*> m_mods;
         std::vector<LogMessage*> m_logs;
@@ -34,17 +34,17 @@ namespace lilac {
 
         /**
          * Lowest supported mod version.
-         * Any mod targeting a lilac version 
+         * Any mod targeting a geode version 
          * lower than this will not be loaded, 
          * as they will be considered out-of-date.
          */
         static constexpr const int s_supportedSchemaMin = 1;
         /**
          * Highest support mod version.
-         * Any mod targeting a lilac version 
+         * Any mod targeting a geode version 
          * higher than this will not be loaded, 
          * as a higher version means that 
-         * the user's lilac is out-of-date, 
+         * the user's geode is out-of-date, 
          * or that the user is a time traveller 
          * and has downloaded a mod from the 
          * future.
@@ -57,7 +57,7 @@ namespace lilac {
          * 
          * The json parameter is void* because 
          * I don't want to force-include json 
-         * for every lilac user and forward-
+         * for every geode user and forward-
          * declaring the template-full basic_json 
          * class looks horrifying
          * 
@@ -76,7 +76,7 @@ namespace lilac {
 
         friend class Mod;
         friend class CustomLoader;
-        friend class Lilac;
+        friend class Geode;
         friend struct ModInfo;
         
     public:

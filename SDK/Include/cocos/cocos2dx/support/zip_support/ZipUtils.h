@@ -205,13 +205,13 @@ namespace cocos2d
         virtual ~ZipFile();
 
         /**
-         * Custom function added for lilac; returns if the 
+         * Custom function added for geode; returns if the 
          * zip file was succesfully decoded.
          * 
          * @return true if the zip was succesfully loaded, 
          *         false otherwise.
          * 
-         * @since lilac v1.0.0
+         * @since geode v1.0.0
          */
         bool isLoaded() const;
 

@@ -1,9 +1,9 @@
-#ifndef LILAC_CORE_META_COMMON_HPP
-#define LILAC_CORE_META_COMMON_HPP
+#ifndef GEODE_CORE_META_COMMON_HPP
+#define GEODE_CORE_META_COMMON_HPP
 
 #include <type_traits>
 
-namespace lilac::core::meta {
+namespace geode::core::meta {
     template<bool cond>
     class ternary {
     public:
@@ -37,4 +37,4 @@ namespace lilac::core::meta {
     static constexpr bool always_false = false;
 }
 
-#endif /* LILAC_CORE_META_COMMON_HPP */
+#endif /* GEODE_CORE_META_COMMON_HPP */

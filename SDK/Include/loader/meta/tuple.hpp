@@ -1,11 +1,11 @@
-#ifndef LILAC_CORE_META_TUPLE_HPP
-#define LILAC_CORE_META_TUPLE_HPP
+#ifndef GEODE_CORE_META_TUPLE_HPP
+#define GEODE_CORE_META_TUPLE_HPP
 
 #include "common.hpp"
 
 #include <type_traits>
 
-namespace lilac::core::meta {
+namespace geode::core::meta {
     /* The Tuple class presents a nicer way to interact with parameter packs. 
     * While this container is technically usable in other code, this is mostly
     * used for static reflection in function wrapping. Other applications will
@@ -117,4 +117,4 @@ namespace lilac::core::meta {
     };
 }
 
-#endif /* LILAC_CORE_META_TUPLE_HPP */
+#endif /* GEODE_CORE_META_TUPLE_HPP */

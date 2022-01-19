@@ -14,7 +14,7 @@ namespace cocos2d {
     class CCRect;
 }
 
-namespace lilac {
+namespace geode {
     #pragma warning(disable: 4251)
 
     class Mod;
@@ -22,7 +22,7 @@ namespace lilac {
 
     using log_clock = std::chrono::system_clock;
 
-    class LILAC_DLL Log {
+    class GEODE_DLL Log {
         protected:
             friend class LogStream;
 
@@ -32,7 +32,7 @@ namespace lilac {
             virtual ~Log();
     };
 
-    class LILAC_DLL LogMod : public Log {
+    class GEODE_DLL LogMod : public Log {
         protected:
             Mod* m_mod;
 
@@ -46,7 +46,7 @@ namespace lilac {
             std::string toString() const override;
     };
 
-    class LILAC_DLL LogString : public Log {
+    class GEODE_DLL LogString : public Log {
         protected:
             std::string m_string;
 
@@ -61,7 +61,7 @@ namespace lilac {
             ) : m_string(str) {}
     };
 
-    class LILAC_DLL LogCCObject : public Log {
+    class GEODE_DLL LogCCObject : public Log {
         protected:
             cocos2d::CCObject* m_obj;
         
@@ -77,7 +77,7 @@ namespace lilac {
             std::string toString() const override;
     };
 
-    class LILAC_DLL LogMessage {
+    class GEODE_DLL LogMessage {
         protected:
             Mod* m_sender                = nullptr;
             log_clock::time_point m_time = log_clock::now();
@@ -144,7 +144,7 @@ namespace lilac {
     };
     constexpr const auto conl = continue_type();
 
-    class LILAC_DLL LogStream {
+    class GEODE_DLL LogStream {
         protected:
             LogMessage* m_log = nullptr;
             std::stringstream m_stream;

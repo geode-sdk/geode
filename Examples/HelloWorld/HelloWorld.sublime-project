@@ -37,8 +37,8 @@
 					"shell_cmd": "make -j4 HelloWorld",
 				},
 				{
-					"name": "LilacHook",
-					"shell_cmd": "make -j4 LilacHook",
+					"name": "GeodeHook",
+					"shell_cmd": "make -j4 GeodeHook",
 				},
 				{
 					"name": "custom-layer.o",

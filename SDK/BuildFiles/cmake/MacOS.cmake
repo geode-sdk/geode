@@ -9,8 +9,8 @@ include_directories(
 	${GEODE_INCLUDE_DIR}/cocos/cocos2dx/platform/third_party/mac/OGLES
 )
 
-target_link_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/Geode/Extern/MacOS/)
-target_link_libraries(${PROJECT_NAME} libGeode.dylib)
+# target_link_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/Geode/Extern/MacOS/)
+# target_link_libraries(${PROJECT_NAME} libGeode.dylib)
 
 find_program(OSXinj "osxinj")
 if (OSXinj)
