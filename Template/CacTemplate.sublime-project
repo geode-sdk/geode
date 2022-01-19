@@ -1,0 +1,64 @@
+{
+	"build_systems":
+	[
+		{
+			"file_regex": "(.+[^:]):(\\d+):(\\d+): (?:fatal )?((?:error|warning): .+)$",
+			"name": "CacTemplate (OSX)",
+			"shell_cmd": "make -j4",
+			"syntax": "Packages/CMakeBuilder/Syntax/Make.sublime-syntax",
+			"variants":
+			[
+				{
+					"name": "clean",
+					"shell_cmd": "make -j4 clean",
+				},
+				{
+					"name": "rebuild_cache",
+					"shell_cmd": "make -j4 rebuild_cache",
+				},
+				{
+					"name": "Cackit",
+					"shell_cmd": "make -j4 Cackit",
+				},
+				{
+					"name": "CacTemplate",
+					"shell_cmd": "make -j4 CacTemplate",
+				},
+				{
+					"name": "Cacao",
+					"shell_cmd": "make -j4 Cacao",
+				},
+				{
+					"name": "Core",
+					"shell_cmd": "make -j4 Core",
+				},
+				{
+					"name": "main.o",
+					"shell_cmd": "make -j4 main.o",
+				},
+				{
+					"name": "main.i",
+					"shell_cmd": "make -j4 main.i",
+				},
+				{
+					"name": "main.s",
+					"shell_cmd": "make -j4 main.s"
+				},
+			],
+			"working_dir": "${project_path}/build",
+		},
+	],
+	"folders":
+	[
+		{
+			"path": ".",
+		}
+	],
+	"settings":
+	{
+		"cmake":
+		{
+			"build_folder": "${project_path}/build",
+		},
+	},
+}

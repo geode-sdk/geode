@@ -1,0 +1,1 @@
+Broma (pronounced bro-ma) is a configuration language that is used for binding C++ code to executables. It is used internally by Cacao for generating the bindings and headers. NOTE: requires at least c++17

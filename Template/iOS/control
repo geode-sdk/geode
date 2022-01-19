@@ -1,0 +1,8 @@
+Name: %name
+Architecture: iphoneos-arm
+Description: %desc
+Maintainer: %author
+Package: %bundle
+Priority: optional
+Section: Tweaks
+Version: 0.1.0
