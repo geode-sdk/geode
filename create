@@ -12,8 +12,8 @@ print_usage() {
 
 	projectName               Name of the project
 	-d destinationPath        The destination path of the project, Projects/projectName if omitted
-	-l                        To relink the Cacao directory if it is broken
-	-u                        To update the old Cacao project to new
+	-l                        To relink the Geode directory if it is broken
+	-u                        To update the old Geode project to new
     -i                        To add support for ios project
     -a                        To add support for android project
 
@@ -27,12 +27,12 @@ print_usage() {
 }
 
 fix_link() {
-	if [ -L "$copypath/Cacao" ]; then
-		rm "$copypath/Cacao"
+	if [ -L "$copypath/Geode" ]; then
+		rm "$copypath/Geode"
 	fi
 	relpath=`python -c "import os.path; print(os.path.relpath('$srcpath/SDK', '$copypath'))"`
 	cd "$copypath"
-	ln -s $relpath Cacao
+	ln -s $relpath Geode
 }
 
 copy_files() {
@@ -52,26 +52,26 @@ copy_not_custom() {
 
 copy_android() {
     cp "$srcpath/Template/Android/CMakeLists.txt" "$copypath"
-    if [ -z ${CACAO_ANDROID_NDK+x} ]; then
-        echo "Note: set the \$CACAO_ANDROID_NDK environment variable to remove this prompt"
-        read -p "Android NDK Location (required) " CACAO_ANDROID_NDK
+    if [ -z ${GEODE_ANDROID_NDK+x} ]; then
+        echo "Note: set the \$GEODE_ANDROID_NDK environment variable to remove this prompt"
+        read -p "Android NDK Location (required) " GEODE_ANDROID_NDK
     fi
 
-    if [ -z ${CACAO_GD_APK_FILE+x} ]; then
-        echo "Note: set the \$CACAO_GD_APK_FILE environment variable to remove this prompt"
-        read -p "Geometry Dash APK Location (required) " CACAO_GD_APK_FILE
+    if [ -z ${GEODE_GD_APK_FILE+x} ]; then
+        echo "Note: set the \$GEODE_GD_APK_FILE environment variable to remove this prompt"
+        read -p "Geometry Dash APK Location (required) " GEODE_GD_APK_FILE
     fi
 
-    sed -i '' "s/_ndk/$CACAO_ANDROID_NDK/g" "$copypath/CMakeLists.txt"
-    sed -i '' "s/_apk/$CACAO_GD_APK_FILE/g" "$copypath/CMakeLists.txt"
+    sed -i '' "s/_ndk/$GEODE_ANDROID_NDK/g" "$copypath/CMakeLists.txt"
+    sed -i '' "s/_apk/$GEODE_GD_APK_FILE/g" "$copypath/CMakeLists.txt"
 }
 
 copy_ios() {
     cp "$srcpath/Template/iOS/CMakeLists.txt" "$copypath"
     cp "$srcpath/Template/iOS/control"  "$copypath"
-	if [ -z ${CACAO_IOS_SDK+x} ]; then
-		echo "Note: set the \$CACAO_IOS_SDK environment variable to remove this prompt"
-		read -p "iPhoneOS SDK Location (required) " CACAO_IOS_SDK
+	if [ -z ${GEODE_IOS_SDK+x} ]; then
+		echo "Note: set the \$GEODE_IOS_SDK environment variable to remove this prompt"
+		read -p "iPhoneOS SDK Location (required) " GEODE_IOS_SDK
 	fi
 
 	bundle=""
@@ -85,7 +85,7 @@ copy_ios() {
 	desc=""
 	read -p "Description [My cool gd mod] " desc
 	desc=${desc:-"My cool gd mod"}
-	sed -i '' "s&_sdk&$CACAO_IOS_SDK&g" "$copypath/CMakeLists.txt"
+	sed -i '' "s&_sdk&$GEODE_IOS_SDK&g" "$copypath/CMakeLists.txt"
 
 	sed -i '' "s/%name/$projname/g" "$copypath/control"
 	sed -i '' "s/%author/$author/g" "$copypath/control"
@@ -111,10 +111,10 @@ shift $((OPTIND-1))
 
 projname="${1:-Default Project}"
 if [ -z "$copypath" ]; then
-	if [[ -z "${CACAO_PROJECT_FOLDER}" ]]; then
+	if [[ -z "${GEODE_PROJECT_FOLDER}" ]]; then
 		copypath="$projname"
 	else
-		copypath="${CACAO_PROJECT_FOLDER}/$projname"
+		copypath="${GEODE_PROJECT_FOLDER}/$projname"
 	fi
 fi
 

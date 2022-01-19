@@ -1,4 +1,4 @@
-#include <Cacao>
+#include <Geode>
 
 #include "custom-layer.hpp"
 
@@ -27,7 +27,7 @@ class $(MenuLayer, CustomLayerAdd) {
 	}
 
 	void onMoreGames(CCObject* ob) {
-		// FLAlertLayer::create("Cacao", "Hello from custom mod!", "OK")->show();
+		// FLAlertLayer::create("Geode", "Hello from custom mod!", "OK")->show();
 		onCustomLayer(nullptr);
 	} 
 

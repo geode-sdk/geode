@@ -3,12 +3,8 @@
 
 namespace format_strings {
     char const* source_start = R"CAC(
-// 
-// Copyright camila314 & alk1m123 2022. 
-// Automatically generated file
-//
 #include <InterfaceBase.hpp>
-using namespace Cacao;
+using namespace geode;
 )CAC";
 
 	char const* declare_using = "\n\nusing _{unqualified_name} = interfaces::${unqualified_name}<>;";

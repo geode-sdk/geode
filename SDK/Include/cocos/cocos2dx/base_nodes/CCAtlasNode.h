@@ -50,7 +50,7 @@ All features from CCNode are valid, plus the following features:
 */
 class CC_DLL CCAtlasNode : public CCNodeRGBA, public CCTextureProtocol
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 protected:
 
 

@@ -1,6 +1,3 @@
-// 
-// Copyright camila314 & alk1m123 2022. 
-//
 #pragma once 
 
 /**
@@ -12,10 +9,10 @@
 #define STR_(...) #__VA_ARGS__
 #define STR(...) STR_(__VA_ARGS__)
 
-#if defined(CACAO_DEBUG)
-	#define CacaoDebug(format, ...) CacaoLog(format, ##__VA_ARGS__)
+#if defined(GEODE_DEBUG)
+	#define GeodeDebug(format, ...) GeodeLog(format, ##__VA_ARGS__)
 #else
-    #define CacaoDebug(format, ...)
+    #define GeodeDebug(format, ...)
 #endif
 
 

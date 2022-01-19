@@ -41,7 +41,7 @@ Projects/
 *.sublime-workspace
 
 # I need to find a way to automatically remove this
-Source/Cacao/pkg/uber-apk-signer.jar
+Source/Geode/pkg/uber-apk-signer.jar
 
 # Ignore build folders
 **/build
@@ -51,5 +51,5 @@ scripts/
 Scratch/
 
 # Ignore data stuff
-Source/Cacao/gen/data/todo/
-Source/Cacao/gen/data/Backup/
+Source/Geode/gen/data/todo/
+Source/Geode/gen/data/Backup/

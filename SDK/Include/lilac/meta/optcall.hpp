@@ -118,7 +118,7 @@ namespace lilac::core::meta::x86 {
                     typename MyConv::template type_if<1, gpr_passable, int>,
                     typename MyTuple::template type_at<to>...
                 ) = 
-                    // Cacao be like:
+                    // Geode be like:
                     [](
                         auto f0, auto f1, auto f2, auto f3,
                         float, float,

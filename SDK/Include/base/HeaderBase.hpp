@@ -1,6 +1,3 @@
-// 
-// Copyright camila314 & alk1m123 2022. 
-//
 #pragma once 
 
 #include <Base.hpp>
@@ -11,7 +8,7 @@
 #include <fmod.hpp>
 #include <cocos-ext.h>
 #include <unordered_map>
-// #include <Cacao.hpp>
+// #include <Geode.hpp>
 
 inline std::unordered_map<void*, bool> destructorLock;
 

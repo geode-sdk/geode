@@ -1,6 +1,3 @@
-// 
-// Copyright camila314 & alk1m123 2022. 
-//
 #pragma once 
 
 #if defined(_MSC_VER)
@@ -28,7 +25,7 @@
 	#include <dlfcn.h>
 	#include <android/log.h>
 
-	#define CacaoLog(format, ...) __android_log_print(ANDROID_LOG_DEBUG, "Cacao", "%s:%d:\n" format"\n", __FILE__, __LINE__, ##__VA_ARGS__);
+	#define GeodeLog(format, ...) __android_log_print(ANDROID_LOG_DEBUG, "Geode", "%s:%d:\n" format"\n", __FILE__, __LINE__, ##__VA_ARGS__);
 
 #elif defined(CC_TARGET_OS_WIN32)
 
@@ -38,16 +35,16 @@
 	#include <x86/thiscall.hpp>
 	#include <stdio.h>
 
-	#define CacaoLog(format, ...) printf("Cacao %s:%d:\n" format"\n", __FILE__, __LINE__, ##__VA_ARGS__)
+	#define GeodeLog(format, ...) printf("Geode %s:%d:\n" format"\n", __FILE__, __LINE__, ##__VA_ARGS__)
 
 #elif defined(CC_TARGET_OS_MAC)
 
 	#include <stdio.h>
 
-	#define CacaoLog(format, ...) printf("Cacao %s:%d:\n" format"\n", __FILE__, __LINE__, ##__VA_ARGS__)
+	#define GeodeLog(format, ...) printf("Geode %s:%d:\n" format"\n", __FILE__, __LINE__, ##__VA_ARGS__)
 
 #elif defined(CC_TARGET_OS_IPHONE)
 	
-	#define CacaoLog(format, ...)
+	#define GeodeLog(format, ...)
 
 #endif

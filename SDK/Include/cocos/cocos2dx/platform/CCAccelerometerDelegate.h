@@ -50,7 +50,7 @@ receiving acceleration-related data from the system.
 */
 class CC_DLL CCAccelerometerDelegate
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     virtual void didAccelerate(CCAcceleration* pAccelerationValue) {CC_UNUSED_PARAM(pAccelerationValue);}
 };

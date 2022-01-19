@@ -1,7 +1,7 @@
-#include <Cacao>
+#include <Geode>
 
 class $(MenuLayer) {
 	void onMoreGames(cocos2d::CCObject*) {
-		FLAlertLayer::create("Cacao", "Hello from custom mod!", "OK")->show(); 
+		FLAlertLayer::create("Geode", "Hello from custom mod!", "OK")->show(); 
 	} 
 };

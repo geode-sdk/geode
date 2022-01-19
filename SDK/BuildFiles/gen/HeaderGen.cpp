@@ -6,10 +6,6 @@ using std::set;
 
 namespace format_strings {
     char const* header_start = R"CAC(
-// 
-// Copyright camila314 & alk1m123 2022. 
-// Automatically generated file
-//
 #pragma once
 #include <HeaderBase.hpp>
 )CAC";

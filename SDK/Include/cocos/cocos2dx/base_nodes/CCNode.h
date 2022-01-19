@@ -127,7 +127,7 @@ enum {
 
 class CC_DLL CCNode : public CCObject
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     /// @{
     /// @name Constructor, Distructor and Initializers
@@ -1493,7 +1493,7 @@ public:
  */
 class CC_DLL CCNodeRGBA : public CCNode, public CCRGBAProtocol
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     /**
      *  @js ctor

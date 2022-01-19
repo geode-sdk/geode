@@ -18,17 +18,17 @@
 
 	invoke-static {v0}, Ljava/lang/System;->loadLibrary(Ljava/lang/String;)V
 
-	# Cacao mods
+	# Geode mods
 
 		.line 71
-		# const-string v0, "Cacao"
+		# const-string v0, "Geode"
 		# invoke-static {v0}, Ljava/lang/System;->loadLibrary(Ljava/lang/String;)V
 
 		# .line 72
 		const-string v0, "CacTemplate"
 		invoke-static {v0}, Ljava/lang/System;->loadLibrary(Ljava/lang/String;)V
 
-	# End Cacao mods
+	# End Geode mods
 
 	.line 85
 	return-void

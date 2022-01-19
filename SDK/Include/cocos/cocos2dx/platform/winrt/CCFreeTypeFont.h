@@ -75,7 +75,7 @@ typedef struct FTLineInfo
 
 class CC_DLL CCFreeTypeFont
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     CCFreeTypeFont();
     ~CCFreeTypeFont();

@@ -2,7 +2,7 @@
 
 #include "Macros.hpp"
 #include "Types.hpp"
-#include <Base.hpp> // Cacao
+#include <Base.hpp> // Geode
 #include <ccTypes.h>
 #include <string>
 #undef snprintf

@@ -1,7 +1,4 @@
-// 
-// Copyright camila314 & alk1m123 2022. 
-//
-#include <Cacao.hpp>
+#include <Geode.hpp>
 #include <stdexcept>
 #include <set>
 #include <iostream>
@@ -10,7 +7,7 @@ cocos2d::CCDestructor::~CCDestructor() {
 	destructorLock.erase(this);
 };
 
-namespace Cacao {
+namespace geode {
 using namespace cocos2d;
 
 CCPoint anchorPosition(double x, double y, double ax, double ay) {
@@ -70,8 +67,8 @@ CCPoint touchToView(CCPoint p) {
 	auto bar = cocos2d::CCDirector::sharedDirector()->getWinSize()/2;
 	p = p - bar;
 
-	Cacao::printGeometry(p);
-	Cacao::printGeometry(bar);
+	geode::printGeometry(p);
+	geode::printGeometry(bar);
 	printf("----\n");
 
     return ccp(p.x, -p.y);
@@ -100,7 +97,7 @@ CCPoint touchToView(CCPoint p) {
 //     return FLDialogHelper::create(del, title, "Submit");
 // }
 // FLDialogHelper* FLDialogHelper::create(FLDialogDelegate* del) {
-//     return FLDialogHelper::create(del, "Cacao Prompt");
+//     return FLDialogHelper::create(del, "Geode Prompt");
 // }
 // FLDialogHelper* FLDialogHelper::create() {
 //     return FLDialogHelper::create(NULL);
@@ -228,7 +225,7 @@ CCPoint touchToView(CCPoint p) {
 
 //         auto scale9 = extension::CCScale9Sprite::create("GJ_square01.png");
 //         scale9->setContentSize(size);
-//         scale9->setPosition(Cacao::relativePosition(50,50));
+//         scale9->setPosition(geode::relativePosition(50,50));
 //         m_mainLayer->addChild(scale9, -2);
 
 
@@ -240,7 +237,7 @@ CCPoint touchToView(CCPoint p) {
 
 
 //         m_title->limitLabelWidth(size.width*4, .75f, .2f);
-//         m_title->setPosition(Cacao::addedPosition(0, size.height/2 - 25));
+//         m_title->setPosition(geode::addedPosition(0, size.height/2 - 25));
 //         m_mainLayer->addChild(m_title);
 
 //         alertInit();
@@ -289,4 +286,4 @@ CCPoint touchToView(CCPoint p) {
 //     }
 //     return false;
 // }
-}  // namespace Cacao
+}  // namespace geode

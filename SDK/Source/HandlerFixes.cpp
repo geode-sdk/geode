@@ -1,10 +1,10 @@
 // 
 // Copyright camila314 & alk1m123 2022. 
 //
-#include <Cacao>
+#include <Geode>
 // this is the fix for the dynamic_cast problems
 
-namespace Cacao::fixes {
+namespace geode::fixes {
 
 #define HandlerFixFor(CCUtility)                                                                        \
 class $(CCUtility##Handler, CCUtility##HandlerTypeinfoFix) {                                            \
@@ -144,4 +144,4 @@ class $(CCStandardTouchHandler, CCStandardTouchHandlerTypeinfoFix) {
 	}
 };
 
-} // Cacao::fixes
+} // geode::fixes

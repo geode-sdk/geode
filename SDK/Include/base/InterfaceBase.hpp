@@ -1,6 +1,3 @@
-// 
-// Copyright camila314 & alk1m123 2022. 
-//
 #pragma once
 
 #include <Base.hpp>
@@ -8,7 +5,7 @@
 #include <PlatformBase.hpp>
 
 #include <Gen/Header.hpp>
-#include <Cacao.hpp>
+#include <Geode.hpp>
 #include <lilac.hpp>
 
 #include <FunctionBase.hpp>
@@ -120,11 +117,11 @@ LILAC_API void LILAC_CALL lilac_unload() {
  * struct _hook0 {};
  * namespace {
  *     struct hook0Unique {};
- *     bool hook0Apply = Cacao::interfaces::$MenuLayer<_hook0<hook0Unique>>::_apply();
+ *     bool hook0Apply = geode::interfaces::$MenuLayer<_hook0<hook0Unique>>::_apply();
  * }
  * using hook0 = _hook0<hook0Unique>;
  * template<>
- * struct hidden _hook0<hook0Unique>: public Cacao::interfaces::$MenuLayer<_hook0<hook0Unique>> {
+ * struct hidden _hook0<hook0Unique>: public geode::interfaces::$MenuLayer<_hook0<hook0Unique>> {
  *     // code stuff idk
  * };
  * 
@@ -137,7 +134,7 @@ LILAC_API void LILAC_CALL lilac_unload() {
 #define DECLARE(base, derived) using derived = _##derived<derived##UUID, 0>; template <auto _orig> struct hidden _##derived<derived##UUID, _orig>: public base<derived##UUID, _##derived>
 
 #define REDIRECT___(base, derived) PREDECLARE(derived) APPLY(base, derived) DECLARE(base, derived)
-#define REDIRECT__(base, derived) REDIRECT___(Cacao::interfaces::$##base, derived)
+#define REDIRECT__(base, derived) REDIRECT___(geode::interfaces::$##base, derived)
 #define REDIRECT_(base) REDIRECT__(base, CONCAT(hook, __COUNTER__))
 #define REDIRECT(base) REDIRECT_(base)
 
@@ -160,7 +157,7 @@ LILAC_API void LILAC_CALL lilac_unload() {
 #define CRTP2(base, derived) $implement(base, derived)
 #define $(...) CONCAT(CRTP, NUMBER_OF_ARGS(__VA_ARGS__))(__VA_ARGS__)
 
-namespace Cacao {
+namespace geode {
     using namespace cocos2d;
     using namespace cocos2d::extension;
     using std::declval;

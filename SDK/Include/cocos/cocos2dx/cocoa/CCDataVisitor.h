@@ -63,7 +63,7 @@ class CCSet;
  */
 class CC_DLL CCDataVisitor
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     virtual ~CCDataVisitor() {}
 
@@ -86,7 +86,7 @@ public:
  */
 class CC_DLL CCPrettyPrinter : public CCDataVisitor
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     CCPrettyPrinter(int indentLevel = 0);
     

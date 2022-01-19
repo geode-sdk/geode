@@ -57,7 +57,7 @@ class CCSprite;
  */
 class CC_DLL CCSpriteFrameCache : public CCObject
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 protected:
 
     // MARMALADE: Made this protected not private, as deriving from this class is pretty useful

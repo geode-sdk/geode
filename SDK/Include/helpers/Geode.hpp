@@ -1,9 +1,6 @@
-// 
-// Copyright camila314 & alk1m123 2022. 
-//
 #pragma once
 
-#include <Cacao>
+#include <Geode>
 #include <map>
 #include <vector>
 #include <type_traits>
@@ -21,7 +18,7 @@
 
 #define offsetOf(member) (uintptr_t)&member - (uintptr_t)this
 
-namespace Cacao {
+namespace geode {
 	using namespace cocos2d;
 
 	inline void printGeometry(CCPoint p) {
@@ -152,4 +149,4 @@ namespace Cacao {
 	//     CCTextInputNode* m_textInputNode;
 
 	// };
-}  // namespace Cacao
+}  // namespace geode

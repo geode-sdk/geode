@@ -113,7 +113,7 @@ NS_CC_BEGIN
  */
 class CC_DLL CCArray : public CCObject
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     /**
      * @lua NA

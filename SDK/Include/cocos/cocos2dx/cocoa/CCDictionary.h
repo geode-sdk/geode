@@ -62,7 +62,7 @@ class CCDictionary;
  */
 class CC_DLL CCDictElement
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 private:
 
     /**
@@ -175,7 +175,7 @@ public:
 
 class CC_DLL CCDictionary : public CCObject
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     /** 
      * The constructor of CCDictionary.

@@ -48,7 +48,7 @@ enum {
  */
 class CC_DLL CCAction : public CCObject 
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     /**
      * @js ctor
@@ -139,7 +139,7 @@ public:
  */
 class CC_DLL CCFiniteTimeAction : public CCAction
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     /**
      *  @js ctor
@@ -175,7 +175,7 @@ class CCRepeatForever;
  */
 class CC_DLL CCSpeed : public CCAction
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     /**
      *  @js ctor
@@ -233,7 +233,7 @@ Instead of using CCCamera as a "follower", use this action instead.
 */
 class CC_DLL CCFollow : public CCAction
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     /**
      *  @js ctor

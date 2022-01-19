@@ -1,21 +1,21 @@
-# CacaoSDK
-Cacao is a revolutionary Geometry Dash modding framework for MacOS users. Cacao requires CMake so make sure you have that. To start, run the `create` file and specify a location
+# GeodeSDK
+Geode is a revolutionary Geometry Dash modding framework for MacOS users. Geode requires CMake so make sure you have that. To start, run the `create` file and specify a location
 
-Cacao uses [a modified version of Lilac Core](https://github.com/altalk23/lilac-core/) for function hooking.
+Geode uses [a modified version of Lilac Core](https://github.com/altalk23/lilac-core/) for function hooking.
 
 ## Prerequisites
 
-The projects created with the `./create` are normally in the current working directory. To override this you can add a `CACAO_PROJECT_FOLDER` environment variable. You can do this by adding `export CACAO_PROJECT_FOLDER="path/to/project/folder"` to your .bash_profile file.
+The projects created with the `./create` are normally in the current working directory. To override this you can add a `GEODE_PROJECT_FOLDER` environment variable. You can do this by adding `export GEODE_PROJECT_FOLDER="path/to/project/folder"` to your .bash_profile file.
 
 ## How to use
 
 TODO: Make this properly documented  
 
-### Cacao
+### Geode
 
-Cacao comes with a neat little way to hook very quickly. This let's you automatically hook functions without needing to manually find the address each time. It works by subclassing some of the Cacao classes and overriding some of the methods. Cacao classes are just like normal GD classes but prefixed with a `$`. To easily subclass these classes there is a macro called `$()`. To use it I give the macro the class I want to hook. Example:
+Geode comes with a neat little way to hook very quickly. This let's you automatically hook functions without needing to manually find the address each time. It works by subclassing some of the Geode classes and overriding some of the methods. Geode classes are just like normal GD classes but prefixed with a `$`. To easily subclass these classes there is a macro called `$()`. To use it I give the macro the class I want to hook. Example:
 ```cpp
-#include <Cacao>
+#include <Geode>
 #include <iostream>
 
 class $(EditorUI) {
@@ -27,7 +27,7 @@ class $(EditorUI) {
 
 If you want to call the original function, there is also an easy way to do that as well:
 ```cpp
-#include <Cacao>
+#include <Geode>
 #include <iostream>
 
 class $(EditorUI) {
@@ -40,7 +40,7 @@ class $(EditorUI) {
 
 If you need the name of the hook class you can use the `$()` macro with 2 parameters:
 ```cpp
-#include <Cacao>
+#include <Geode>
 #include <iostream>
 
 class $(EditorUI, EditorUIHook) {
@@ -55,9 +55,9 @@ class $(EditorUI, EditorUIHook) {
 };
 ```
 
-Since the Cacao classes subclass the GD classes, we can use the members and functions like we would in a normal class.
+Since the Geode classes subclass the GD classes, we can use the members and functions like we would in a normal class.
 ```cpp
-#include <Cacao>
+#include <Geode>
 #include <iostream>
 
 class $(EditorUI) {
@@ -70,7 +70,7 @@ class $(EditorUI) {
 
 If you want, you can also use a function with the name `inject` to run code after the mod is loaded.
 ```cpp
-#include <Cacao>
+#include <Geode>
 #include <iostream>
 
 class $(EditorUI) {
@@ -85,8 +85,8 @@ void inject() {
 }
 ```
 
-If there's a function, class, or member you want to be added to the Cacao catalog consider creating a pull request on [CacaoData](https://github.com/altalk23/CacaoData/).
+If there's a function, class, or member you want to be added to the Geode catalog consider creating a pull request on [GeodeData](https://github.com/altalk23/GeodeData/).
 
-For Cacao, (almost) all class variables are accessed via functions and prefixed with an underscore, e.g `GameManager::sharedState()->_playLayer()`. You can find a full list of these inside the Header.hpp header file.
+For Geode, (almost) all class variables are accessed via functions and prefixed with an underscore, e.g `GameManager::sharedState()->_playLayer()`. You can find a full list of these inside the Header.hpp header file.
 
-For a full list of helper functions, look at the helpers/Cacao.hpp header file.
+For a full list of helper functions, look at the helpers/Geode.hpp header file.

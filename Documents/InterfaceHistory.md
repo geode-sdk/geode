@@ -93,7 +93,7 @@ APPLY_HOOKS();
 ```
 
 ### f18c2f73ae1e1cc1662dbcbe54f36e657a699723
-This version renamed the macros to the more Cacao familiar syntax with the $ prefixes
+This version renamed the macros to the more Geode familiar syntax with the $ prefixes
 ```cpp
 class $redirect(EditorUI) {
 public:
