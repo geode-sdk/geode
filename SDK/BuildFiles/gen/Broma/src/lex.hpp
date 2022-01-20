@@ -42,7 +42,8 @@ enum TokenType {
 	kStatic,
 	kVirtual,
 	kConst,
-	kInlineExpr
+	kInlineExpr,
+	kFunDefinition,
 };
 
 struct Token {
@@ -83,17 +84,10 @@ void parseString(stringstream& stream, string& slice, char start) {
 	slice.shrink_to_fit();
 }
 
-void parseInline(stringstream& stream, string& slice) {
+void parseDefined(stringstream& stream, string& slice) {
 	slice.clear();
 	slice.reserve(256);
-	while (stream.peek() != '{' && stream.peek() != '\n') {
-		slice += stream.get();
-	}
-	if (stream.peek() == '\n') {
-		slice.shrink_to_fit();
-		return;
-	}
-	slice += stream.get();
+	slice += "{";
 	int brace_nest = 1;
 	char quote = '\0';
 	bool comment_multi = false;
@@ -196,7 +190,7 @@ void parsePreproc(stringstream& stream) {
 
 vector<Token> lexStream(stringstream& stream) {
 	vector<Token> ts;
-
+	bool class_mode = false;
 
 	while ((stream).peek() != -1) {
 		Token t = parseIdent(stream);
@@ -228,8 +222,11 @@ vector<Token> lexStream(stringstream& stream) {
 
 			if (slice == "inline") {
 				t.type = kInlineExpr;
-				parseInline(stream, t.slice);
-				// insane
+				t.slice.clear();
+				while (stream.peek() != '\n') {
+					t.slice += stream.get();
+				}
+				printf("inline lex %s\n", slice.c_str());
 				ts.push_back(t);
 				continue;
 			}
@@ -258,10 +255,18 @@ vector<Token> lexStream(stringstream& stream) {
 					sp = kEqual;
 					break;
 				case '{':
-					sp = kBraceL;
-					break;
+					if (!class_mode) {
+						class_mode = true;
+						sp = kBraceL;
+						break;
+					} else {
+						sp = kFunDefinition;
+						parseDefined(stream, slice);
+						break;
+					}
 				case '}':
 					sp = kBraceR;
+					class_mode = false;
 					break;
 				case '(':
 					sp = kParenL;

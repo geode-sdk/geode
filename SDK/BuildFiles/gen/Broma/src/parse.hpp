@@ -90,8 +90,11 @@ void parseFunction(ClassDefinition& c, Function myFunction, Tokens& tokens) {
 	if (!next_if_type(kConst, tokens))
 		myFunction.is_const = true;
 	// next_expect(tokens, kEqual, "=");
-
-	if (!next_if_type(kEqual, tokens)) {
+	if (peek(tokens).type == kFunDefinition) {
+		string contents = next(tokens).slice; 
+		myFunction.is_defined = true;
+		myFunction.definition = contents;
+	} else if (!next_if_type(kEqual, tokens)) {
 		for (int k = 0; k < 4; ++k) {
 			if (k == 3)
 				cacerr("Maximum of 3 binds allowed\n");
@@ -141,6 +144,7 @@ void parseMember(ClassDefinition& c, string type, string varName, Tokens& tokens
 
 		next_expect(tokens, kBrackR, "]");
 	}
+
 
 	if (!next_if_type(kEqual, tokens)) {
 		if (myMember.member_type != MemberType::kPad)
@@ -202,8 +206,8 @@ void parseField(ClassDefinition& c, Tokens& tokens) {
 		Inline i;
 		// i.parent_class = &c;
 		// i.index = c.in_order.size();
-		string inlined = next(tokens).slice;
-		i.inlined = inlined.substr(1, inlined.size());
+		// string inlined = next(tokens).slice;
+		i.inlined = next(tokens).slice;//inlined.substr(1, inlined.size());
 		c.addField(i);
 		return;
 	}

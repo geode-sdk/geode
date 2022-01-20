@@ -58,7 +58,7 @@ enum MemberType {
 };
 
 struct Function : ClassField {
-	Function() : is_const(), return_type(), name(), args(), binds(), android_mangle(), index() {}
+	Function() : is_const(), return_type(), name(), args(), binds(), android_mangle(), index(), is_defined(), definition() {}
 	bool is_const;
 	FunctionType function_type;
 
@@ -69,6 +69,9 @@ struct Function : ClassField {
 	string binds[3]; // mac, windows, ios (android has all symbols included). No binding = no string. Stored as a string because no math is done on it
 	string android_mangle; // only sometimes matters. empty if irrelevant
 	size_t index;
+
+	bool is_defined;
+	string definition;
 	bool same(Function const& other) {
 		if (name != other.name) return false;
 		if (return_type != other.return_type) return false;
