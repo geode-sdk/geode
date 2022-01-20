@@ -75,7 +75,7 @@ struct Function : ClassField {
 		// if (is_const != other.is_const) return false;
 		// if (function_type != other.function_type) return false;
 		if (args.size() != other.args.size()) return false;
-		for (int i = 0; i < args.size(); ++i) if (args[i] != other.args[i]) return false;
+		for (auto i = 0u; i < args.size(); ++i) if (args[i] != other.args[i]) return false;
 		return true;
 	}
 	void merge(Function const& other) {

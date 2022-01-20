@@ -101,8 +101,8 @@ int main(int argc, char** argv) {
             );
         }
         for (auto m : cd.members) {
-            if (m.member_type != kDefault and CacShare::getHardcode(m).size() == 0)
-                    continue; // Not Implemented on platform
+            if (m.member_type != kDefault && CacShare::getHardcode(m).size() == 0)
+                continue; // Not Implemented on platform
 
         	char const* used_format;
         	switch (m.member_type) {
