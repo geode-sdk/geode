@@ -67,13 +67,15 @@ class AnimatedGameObject {
 	void updateChildSpriteColor(cocos2d::_ccColor3B) = mac 0xc8450;
 }
 
-class AppDelegate : cocos2d::CCApplication, cocos2d::CCSceneDelegate {
+class AppDelegate : cocos2d::CCApplication
+// , cocos2d::CCSceneDelegate 
+ {
 	void bgScale() = mac 0x3aaab0;
 	virtual bool applicationDidFinishLaunching() = mac 0x3aa900;
 	virtual void applicationDidEnterBackground() = mac 0x3aabe0;
 	virtual void applicationWillEnterForeground() = mac 0x3aac80;
-	virtual bool applicationWillBecomeActive() = mac 0x3aab30;
-	virtual bool applicationWillResignActive() = mac 0x3aab50;
+	virtual void applicationWillBecomeActive() = mac 0x3aab30;
+	virtual void applicationWillResignActive() = mac 0x3aab50;
 	virtual void trySaveGame() = mac 0x3aaf10;
 	virtual void willSwitchToScene(cocos2d::CCScene*) = mac 0x3aaf40;
 	static AppDelegate* get() = mac 0x3aab10;
@@ -105,7 +107,7 @@ class BoomListView : cocos2d::CCLayer, TableViewDataSource, TableViewDelegate {
 	virtual void setupList() = mac 0x18ef90;
 	virtual void TableViewWillDisplayCellForRowAtIndexPath(CCIndexPath&, TableViewCell*, TableView*) = mac 0x18f030;
 	virtual void cellHeightForRowAtIndexPath(CCIndexPath&, TableView*) = mac 0x18f070;
-	virtual inline void didSelectRowAtIndexPath(CCIndexPath&, TableView*) {}
+	inline virtual void didSelectRowAtIndexPath(CCIndexPath&, TableView*) {}
 	virtual int numberOfRowsInSection(unsigned int, TableView*) = mac 0x18f0b0;
 	virtual void numberOfSectionsInTableView(TableView*) = mac 0x18f0e0;
 	virtual void cellForRowAtIndexPath(CCIndexPath&, TableView*) = mac 0x18f100;
@@ -194,10 +196,6 @@ class GhostTrailEffect {
 	
 }
 
-class CCCircleWaveDelegate {
-	inline void circleWaveWillBeRemoved(CCCircleWave* wave) {}
-}
-
 class CCLightFlash {
 	static CCLightFlash* create() = mac 0x295870;
 	void playEffect(cocos2d::CCPoint, cocos2d::_ccColor3B, float, float, float, float, float, float, float, float, float, float, float, float, float, float, int, bool, bool, float) = mac 0x295900;
@@ -283,11 +281,11 @@ class CCSpritePlus : cocos2d::CCSprite {
 class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTextFieldDelegate {
 	static CCTextInputNode* create(float, float, char const*, char const*, int, char const*) = mac 0x5cfb0;
 
-	inline void setLabelNormalColor(ccColor3B color) {
-	    m_normalColor = color;
+	inline void setLabelNormalColor(cocos2d::ccColor3B color) {
+	    m_textColor = color;
 	    this->refreshLabel();
 	}
-	inline void setLabelPlaceholderColor(ccColor3B color) {
+	inline void setLabelPlaceholderColor(cocos2d::ccColor3B color) {
 	    m_placeholderColor = color;
 	    this->refreshLabel();
 	}
@@ -304,7 +302,7 @@ class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTex
 	    this->refreshLabel();
 	}
 	inline void setAllowedChars(gd::string filter) {
-	    m_filter = filter;
+	    m_allowedChars = filter;
 	}
 	inline void forceOffset() {
 	    m_forceOffset = true;
@@ -315,10 +313,10 @@ class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTex
 	inline const char* getString() {
 	    return m_textField->getString();
 	}
-	inline CCTextFieldTTF* getTextField() {
+	inline cocos2d::CCTextFieldTTF* getTextField() {
 	    return m_textField;
 	}
-	inline CCLabelBMFont* getPlaceholderLabel() {
+	inline cocos2d::CCLabelBMFont* getPlaceholderLabel() {
 	    return m_placeholderLabel;
 	}
 	inline void setDelegate(TextInputDelegate* delegate) {
@@ -711,14 +709,6 @@ class GJAccountSyncDelegate {
 class GJRotationControl : cocos2d::CCLayer {
 	virtual bool init() = mac 0x31510, win 0x93f10;
 	void updateSliderPosition(cocos2d::CCPoint) = mac 0x316a0, win 0x94020;
-
-	float m_unknown0;
-	float m_unknown1;
-	cocos2d::CCPoint m_sliderPosition;
-	cocos2d::CCSprite* m_sliderThumb;
-	float m_objAngle;
-	float m_angle;
-	int m_touchID;
 }
 
 class GJBaseGameLayer : cocos2d::CCLayer {
@@ -1067,9 +1057,6 @@ class GManager : cocos2d::CCNode {
 	void saveData(DS_Dictionary*, gd::string) = mac 0x26f4b0;
 	void saveGMTo(gd::string) = mac 0x26f3b0;
 
-	gd::string m_fileName;
-	bool m_setup;
-	bool m_saved;
 }
 
 class GameLevelManager {
@@ -1532,7 +1519,7 @@ class LevelEditorLayer : GJBaseGameLayer {
 	void resetUnusedColorChannels() = mac 0x9a870;
 	void rotationForSlopeNearObject(GameObject*) = mac 0x95cd0;
 	void runColorEffect(EffectGameObject*, int, float, float, bool) = mac 0x9bd30;
-	void scene(GJGameLevel*) = mac 0x90f20;
+	// void scene(GJGameLevel*) = mac 0x90f20;
 	void setupLevelStart(LevelSettingsObject*) = mac 0xa0ca0;
 	void sortStickyGroups() = mac 0x92b10;
 	void stopTriggersInGroup(int, float) = mac 0x9c030;
@@ -1651,7 +1638,7 @@ class OBB2D : cocos2d::CCNode  {
 	cocos2d::CCPoint m_center;
 }
 
-class ObjectToolbox {
+class ObjectToolbox : cocos2d::CCNode {
 	bool init() = mac 0x3b2d80;
 	inline cocos2d::CCArray* allKeys() {
 	    return m_frameToKeyDict->allKeys();
@@ -1660,15 +1647,15 @@ class ObjectToolbox {
 	    return reinterpret_cast<cocos2d::CCString*>(m_frameToKeyDict->objectForKey(frame))->getCString();
 	}
 	inline const char* intKeyToFrame(int key) {
-	    return reinterpret_cast<cocos2d::CCString*>(m_feyToFrameDict->objectForKey(key))->getCString();
+	    return reinterpret_cast<cocos2d::CCString*>(m_keyToFrameDict->objectForKey(key))->getCString();
 	}
 	inline const char* keyToFrame(const char* key) {
 	    return intKeyToFrame(atoi(key));
 	}
 	static ObjectToolbox* sharedState() = mac 0x3b2bc0;
 
-	cocos2d::CCDictionary* m_strKeyObjects = mac 0x120;
-	cocos2d::CCDictionary* m_intKeyObjects = mac 0x128;
+	cocos2d::CCDictionary* m_frameToKeyDict;
+	cocos2d::CCDictionary* m_keyToFrameDict;
 }
 
 class OpacityEffectAction : cocos2d::CCNode {
@@ -2228,7 +2215,6 @@ class SetupTouchTogglePopup : FLAlertLayer {
 
 class SimplePlayer {
 	static SimplePlayer* create(int) = mac 0x1b6140;
-	void setSecondColor(cocos2d::_ccColor3B const&) = mac 0x1bace0;
 	void updateColors() = mac 0x1ba1f0;
 	void updatePlayerFrame(int, IconType) = mac 0x1b62f0;
 }
@@ -2246,9 +2232,9 @@ class SliderTouchLogic {
 }
 
 class Slider {
-	inline void setValue(float val) {
-	    this->m_touchLogic->getThumb()->setValue(val);
-	}
+	// inline void setValue(float val) {
+	//     this->m_touchLogic->getThumb()->setValue(val);
+	// }
 	float getValue() = mac 0x18e0c0, win 0x2e970;
 	inline void setBarVisibility(bool v) {
 	    this->m_sliderBar->setVisible(v);
@@ -2298,6 +2284,13 @@ class TableView : CCScrollLayerExt, CCScrollLayerExtDelegate {
 	void reloadData() = mac 0x37f970;
 
 	float m_unknown = mac 0x1c8;
+}
+
+class CCIndexPath : cocos2d::CCObject {
+	static CCIndexPath* create(unsigned int idk1, int idk2) = win 0x30e40;
+
+	int m_unknown1;
+	int m_unknown2;
 }
 
 class TableViewCell : cocos2d::CCLayer {
@@ -2419,14 +2412,14 @@ class UndoObject {
 //Fod's stuff
 //
 
-class AchievementBar {
+class AchievementBar : cocos2d::CCNodeRGBA {
 	PAD = win 0x24;
-	static AchievementBar* create(const char* title, const char* desc, const char* icon, bool quest) = win 0x3b120;
+	static AchievementBar* create(const char* title, const char* desc, const char* icon, bool quest) = mac 0x379f80, win 0x3b120;
 }
 
 class AchievementNotifier {
 	static AchievementNotifier* sharedState() = win 0xfc90;
-	void showNextAchievement() = win 0xfd60;
+	void showNextAchievement() = mac 0x464f10, win 0xfd60;
 	inline void notifyAchievement(const char* title, const char* desc, const char* icon, bool quest) {
 	    m_queue->addObject(AchievementBar::create(title, desc, icon, quest));
 	    if (!m_currentAchievement) {
@@ -2481,7 +2474,7 @@ class StatsCell {
 }
 
 class GJComment {
-	static GJComment* create(CCDictionary* dict) = win 0xc3740;
+	static GJComment* create(cocos2d::CCDictionary* dict) = win 0xc3740;
 }
 
 class CCTextInputNode {
@@ -2495,12 +2488,12 @@ class CCTextInputNode {
 
 class GJRotationControl {
 	inline void setAngle(float angle) {
-	    this->m_sliderPosition = CCPoint { sinf(angle) * 60.0f, cosf(angle) * 60.0f };
+	    this->m_sliderPosition = cocos2d::CCPointMake(sinf(angle) * 60.0f, cosf(angle) * 60.0f);
 	    this->m_angle = angle;
 	
 	    this->m_sliderThumb->setPosition(this->m_sliderPosition);
 	}
-	void updateSliderPosition(CCPoint const& pos) = win 0x94020;
+	void updateSliderPosition(cocos2d::CCPoint const& pos) = win 0x94020;
 	float m_unknown0;
     float m_unknown1;
     cocos2d::CCPoint m_sliderPosition;
@@ -2641,26 +2634,16 @@ class CCMenuItemSpriteExtra {
 	    this->m_startPosition = this->getNormalImage()->getPosition();
 	    this->m_animationType = type;
 	}
-	inline void setDestination(CCPoint const& pos) {
+	inline void setDestination(cocos2d::CCPoint const& pos) {
 	    this->m_destPosition = pos;
 	}
-	inline void setOffset(CCPoint const& pos) {
+	inline void setOffset(cocos2d::CCPoint const& pos) {
 	    this->m_offset = pos;
 	}
 	inline void setScale(float scale) {
 	    this->CCMenuItemSprite::setScale(scale);
 	    this->m_baseScale = scale;
 	}
-	float m_scaleMultiplier;	// 0x118
-	float m_baseScale;			// 0x11c
-	bool m_animationEnabled;	// 0x120
-	bool m_colorEnabled;		// 0x121
-	PAD = win 0x54;
-	float m_fColorDip;			// 0x158
-	cocos2d::CCPoint m_obDestPosition;	// 0x15c
-	cocos2d::CCPoint m_obOffset;	// 0x164
-	MenuAnimationType m_nAnimationType;	// 0x16c
-	cocos2d::CCPoint m_obStartPosition;	// 0x170
 }
 
 class CCMenuItemToggler {
@@ -2801,11 +2784,11 @@ class BoomScrollLayer {
 }
 
 class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJRotationControlDelegate, GJScaleControlDelegate, MusicDownloadDelegate {
-	inline static EditorUI* get() {
-	    auto lel = LevelEditorLayer::get();
-	    if (!lel) return nullptr;
-	    return lel->m_editorUI;
-	}
+	// inline static EditorUI* get() {
+	//     auto lel = LevelEditorLayer::get();
+	//     if (!lel) return nullptr;
+	//     return lel->m_editorUI;
+	// }
 	cocos2d::CCArray* pasteObjects(gd::string const& _str) = win 0x88240;
 	void deselectAll() = win 0x86af0;
 	void selectObject(GameObject* obj, bool idk) = win 0x86250;
@@ -3053,7 +3036,7 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
 }
 
 class GJSpecialColorSelect {
-	const char* textForColorIdx(int id) = win 0x14e1d0;
+	static const char* textForColorIdx(int id) = mac 0x383a50, win 0x14e1d0;
 }
 
 class SetGroupIDLayer : FLAlertLayer, TextInputDelegate {
@@ -3086,7 +3069,7 @@ class SetGroupIDLayer : FLAlertLayer, TextInputDelegate {
 	int m_unknown;             
 }
 
-class SetupPulsePopup : FLAlertLayer, ColorPickerDelegate, TextInputDelegate, GJSpecialColorSelectDelegate {
+class SetupPulsePopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, TextInputDelegate, GJSpecialColorSelectDelegate {
     cocos2d::extension::CCControlColourPicker* m_colorPicker;
     PAD = win 0x30;
     cocos2d::CCSprite* m_currentColorSpr;
@@ -3111,7 +3094,7 @@ class UndoObject : cocos2d::CCObject {
 class GaragePage : cocos2d::CCLayer, ListButtonBarDelegate {
 	void listButtonBarSwitchedPage(ListButtonBar* bar, int idk) = win 0x12bb40;
 	GaragePage() = win 0x1252f0;
-	bool init(IconType type, GJGarageLayer* pGarage, cocos2d::SEL_MenuHandler pSelectCallback) = win 0x12af70;
+	bool init(IconType type, GJGarageLayer* pGarage, cocos2d::SEL_MenuHandler pSelectCallback) = win 0x12af70, mac 0x1bb710;
 	inline static GaragePage* create(IconType type, GJGarageLayer* pGarage, cocos2d::SEL_MenuHandler pSelectCallback) {
 	    auto pRet = new GaragePage();
 	
@@ -3248,7 +3231,7 @@ class GJBaseGameLayer : cocos2d::CCLayer, TriggerEffectDelegate {
 	int m_attemptClickCount; 
 	int m_currentSection; 
 	int m_oldSection; 
-	bool m_disabledObjects; 
+	bool m_objectsAreDisabled; 
 	bool m_blending; 
 	PAD = win 0x8;
 }
@@ -3258,7 +3241,7 @@ class GJListLayer {
 }
 
 class GJGameLevel {
-	void dataLoaded(DS_Dictionary* dict) = win 0xbded0;
+	void dataLoaded(DS_Dictionary* dict) = mac 0x2922f0, win 0xbded0;
 	static GJGameLevel* create() = win 0xbd2b0;
 	inline static GJGameLevel* createWithCoder(DS_Dictionary* dict) {
 	    auto ret = GJGameLevel::create();
@@ -3266,24 +3249,24 @@ class GJGameLevel {
 	    return ret;
 	}
 	gd::string getAudioFileName() = win 0xbdc70;
-	inline void setLevelData(const char* data) {
-	    auto len = strlen(data);
-	    auto addedLvlStr = reinterpret_cast<uintptr_t>(this) + 0x12c;
+	// inline void setLevelData(const char* data) {
+	//     auto len = strlen(data);
+	//     auto addedLvlStr = reinterpret_cast<uintptr_t>(this) + 0x12c;
 	
-	    *reinterpret_cast<size_t*>(addedLvlStr + 16) = len;   
-	    *reinterpret_cast<size_t*>(addedLvlStr + 20) = max(len, 15); 
+	//     *reinterpret_cast<size_t*>(addedLvlStr + 16) = len;   
+	//     *reinterpret_cast<size_t*>(addedLvlStr + 20) = std::max(len, 15); 
 	
-	    if (len <= 15)
-	        memcpy(reinterpret_cast<char*>(addedLvlStr), data, len + 1);
-	    else {
-	        void* newb = malloc(len + 1);
-	        memcpy(newb, data, len + 1);
-	        *reinterpret_cast<void**>(addedLvlStr) = newb;
-	    }
-	}
-	inline void setLevelData(gd::string const& data) {
-	    this->setLevelData(data.c_str());
-	}
+	//     if (len <= 15)
+	//         memcpy(reinterpret_cast<char*>(addedLvlStr), data, len + 1);
+	//     else {
+	//         void* newb = malloc(len + 1);
+	//         memcpy(newb, data, len + 1);
+	//         *reinterpret_cast<void**>(addedLvlStr) = newb;
+	//     }
+	// }
+	// inline void setLevelData(gd::string const& data) {
+	//     this->setLevelData(data.c_str());
+	// }
 	GJDifficulty getAverageDifficulty() = win 0xbd9b0;
 	void levelWasAltered() = win 0xbd550;
 	
@@ -3613,9 +3596,9 @@ class GJGroundLayer {
 }
 
 class PlayLayer {
-	inline static PlayLayer* get() {
-	    return GameManager::sharedState()->getPlayLayer();
-	}
+	// inline static PlayLayer* get() {
+	//     return GameManager::sharedState()->getPlayLayer();
+	// }
 	static PlayLayer* create(GJGameLevel* lvl) = win 0x1fb6d0;
 	static cocos2d::CCScene* scene(GJGameLevel* lvl) = win 0x1fb690;
 	void togglePracticeMode(bool on) = win 0x20d0d0;
@@ -3947,13 +3930,13 @@ class GameManager {
 	    return m_levelEditorLayer;
 	}
 	inline bool getGameVariableDefault(const char* key, bool defaultValue) {
-	    auto object = reinterpret_cast<cocos2d::CCString*>(m_valueKeeper->objectForKey(gd::string("gv_") + key));
+	    auto object = reinterpret_cast<cocos2d::CCString*>(m_valueKeeper->objectForKey(std::string("gv_") + key));
 	    if (object == nullptr)
 	        return defaultValue;
 	    return object->boolValue();
 	}
 	inline int getIntGameVariableDefault(const char* key, int defaultValue) {
-	    auto object = reinterpret_cast<cocos2d::CCString*>(m_valueKeeper->objectForKey(gd::string("gv_") + key));
+	    auto object = reinterpret_cast<cocos2d::CCString*>(m_valueKeeper->objectForKey(std::string("gv_") + key));
 	    if (object == nullptr)
 	        return defaultValue;
 	    return object->intValue();
@@ -3969,12 +3952,12 @@ class GameManager {
 	cocos2d::CCDictionary* m_unlockValueKeeper;
 	cocos2d::CCDictionary* m_customObjectDict;
 	PAD = win 0x4;
-	double m_unknown;
+	double m_unknownDouble;
 	PAD = win 0x10;
-	double m_unknown2;
+	double m_unknown2Double;
 	PAD = win 0x8;
 	bool m_loaded; 
-	gd::string m_unknown;     
+	gd::string m_unknownString;     
 	PlayLayer* m_playLayer;    
 	LevelEditorLayer* m_levelEditorLayer;  
 	PAD = win 0x14;
@@ -4203,7 +4186,6 @@ class GJUserScore {
 
 class GManager {
 	void save() = win 0x29250;
-	void setup() = win 0x28f60;
 	inline void encodeDataTo(DS_Dictionary* data) {}
 	inline void dataLoaded(DS_Dictionary* data) {}
 	inline void firstLoad() {}
@@ -4228,7 +4210,7 @@ class ObjectToolbox {
 	const char* perspectiveBlockFrame(int key) = win 0x1dcd00;
 	inline void addObject(int id, const char* frame) {
 	    m_frameToKeyDict->setObject(cocos2d::CCString::createWithFormat("%i", id), frame);
-	    m_feyToFrameDict->setObject(cocos2d::CCString::create(frame), id);
+	    m_keyToFrameDict->setObject(cocos2d::CCString::create(frame), id);
 	}
 }
 
@@ -4573,7 +4555,7 @@ class ConfigureHSVWidget : cocos2d::CCNode {
 	cocos2d::ccHSVValue m_value;
 }
 
-class ColorSelectPopup : FLAlertLayer, ColorPickerDelegate, TextInputDelegate, GJSpecialColorSelectDelegate {
+class ColorSelectPopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, TextInputDelegate, GJSpecialColorSelectDelegate {
     cocos2d::extension::CCControlColourPicker* m_colorPicker; 
     cocos2d::CCLabelBMFont* m_unk1DC;
     cocos2d::CCLabelBMFont* m_label; 
@@ -4745,10 +4727,10 @@ class LeaderboardsLayer {
 	static LeaderboardsLayer* create(LeaderboardState state) = win 0x158710;
 }
 
-class LevelBrowserLayer {
+class LevelBrowserLayer : cocos2d::CCLayer { // TODO: and 4 more delegates im lazy rn
 	bool init(GJSearchObject* pSearch) = win 0x15a040;
 	void setupLevelBrowser(cocos2d::CCArray* levels) = win 0x15bb40;
-	static LevelBrowserLayer* create(GJSearchObject* pSearch) = win 0x159fa0;
+	static LevelBrowserLayer* create(GJSearchObject* pSearch) = win 0x159fa0, mac 0x251210;
 	inline static void scene(GJSearchObject* pSearch) {
 	    auto pScene = cocos2d::CCScene::create();
 	
@@ -4794,12 +4776,12 @@ class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDeleg
     PAD = win 0x4;
 }
 
-class EditLevelLayer {
-	static EditLevelLayer* create(GJGameLevel* level) = win 0x6f530;
+class EditLevelLayer : cocos2d::CCLayer { //TODO: add 5 delegates
+	static EditLevelLayer* create(GJGameLevel* level) = win 0x6f530, mac 0xe1e50;
 	inline static void scene(GJGameLevel* level) {
 	    auto pScene = cocos2d::CCScene::create();
 	
-	    pScene->addChild(EditLevelLayer::create(level));
+	    pScene->addChild(reinterpret_cast<cocos2d::CCNode*>(EditLevelLayer::create(level)));
 	
 	    cocos2d::CCDirector::sharedDirector()->replaceScene(
 	        cocos2d::CCTransitionFade::create(.5f, pScene)
@@ -4839,6 +4821,10 @@ class LoadingLayer : cocos2d::CCLayer {
 	int m_loadIndex;
 	cocos2d::CCLabelBMFont* m_caption;
 	PAD = win 0x4;
+	cocos2d::CCSprite* m_sliderBar;
+	float m_sliderGrooveXPos;
+	PAD = win 0x4;
+	bool m_fromRefresh;
 }
 
 class MenuLayer {
@@ -4875,32 +4861,16 @@ class BoomListView {
 	unsigned int numberOfRowsInSection(unsigned int section, TableView* view) = win 0x10e60;
 	TableViewCell* cellForRowAtIndexPath(CCIndexPath& path, TableView* view) = win 0x10e70;
 	inline ~BoomListView() {
-	    CC_SAFE_RELEASE(m_entries);
+	    CC_SAFE_RELEASE(m_content);
 	}
 	bool init(cocos2d::CCArray* entries, BoomListType btype, float width, float height) = win 0x10c20;
 	void setupList() = win 0x10dc0;
 	TableViewCell* getListCell(const char* key) = win 0x10ed0;
 	void loadCell(TableViewCell* cell, unsigned int index) = win 0x10ff0;
-	inline void didSelectRowAtIndexPath(CCIndexPath&, TableView*) {}
-
-	TableView* m_tableView;		
-	cocos2d::CCArray* m_entries;	
-	BoomListType m_type; 			
-	float m_height;				
-	float m_width;					
-	float m_itemSeparation;		
-	PAD = win 0x4;
 }
 
 class CCContentLayer {
 	static CCContentLayer* create(cocos2d::ccColor4B const& color, float width, float height) = win 0x172a0;
-}
-
-class CCIndexPath : cocos2d::CCObject {
-	static CCIndexPath* create(unsigned int idk1, int idk2) = win 0x30e40;
-
-	int m_unknown1;
-	int m_unknown2;
 }
 
 class CCScrollLayerExt : cocos2d::CCLayer {
@@ -5049,7 +5019,7 @@ class ColorChannelSprite {
 }
 
 class GJItemIcon {
-	static GJItemIcon* create(UnlockType _type, int _id, cocos2d::ccColor3B _col1, cocos2d::ccColor3B _col2, bool _un0, bool _un1, bool _un2, cocos2d::ccColor3B _col3) = win 0x12cbf0;
+	static GJItemIcon* create(UnlockType _type, int _id, cocos2d::ccColor3B _col1, cocos2d::ccColor3B _col2, bool _un0, bool _un1, bool _un2, cocos2d::ccColor3B _col3) = win 0x12cbf0, mac 0x1bb330;
 	inline GJItemIcon* createBrowserIcon(UnlockType _type, int _id) {
 	    return GJItemIcon::create(_type, _id,
 	        { 0xaf, 0xaf, 0xaf }, { 0xff, 0xff, 0xff },
@@ -5099,7 +5069,6 @@ class GameToolbox {
 
 class LevelCommentDelegate {}
 class CommentUploadDelegate {}
-class ColorPickerDelegate {}
 class LevelDownloadDelegate {}
 class LevelUpdateDelegate {}
 class RateLevelDelegate {}
@@ -5123,3 +5092,7 @@ class GJScaleControlDelegate {}
 class MusicDownloadDelegate {}
 class ListButtonBarDelegate {}
 class LevelSettingsDelegate {}
+
+class GhostTrailEffect {}
+class StartPosObject {}
+class ExtendedLayer {}
