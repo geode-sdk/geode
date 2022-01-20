@@ -4926,12 +4926,12 @@ class CCScrollLayerExt : cocos2d::CCLayer {
 	void scrollLayer(float scroll) = win 0x1be20;
 	void moveToTop() = win 0x1b4a0;
 	void moveToTopWithOffset(float fOffset) = win 0x1b420;
-	inline float getMinY();
-	outofline float CCScrollLayerExt::getMinY() {
-	    return this->getContentSize().height -
-	        this->m_contentLayer->getContentSize().height -
-	        this->m_scrollLimitTop;
-	}
+	// inline float getMinY();
+	// outofline float CCScrollLayerExt::getMinY() {
+	//     return this->getContentSize().height -
+	//         this->m_contentLayer->getContentSize().height -
+	//         this->m_scrollLimitTop;
+	// }
 	inline float getMaxY() {
 	    return this->m_scrollLimitBottom;
 	}
