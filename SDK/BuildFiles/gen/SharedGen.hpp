@@ -6,6 +6,10 @@
 
 using std::istreambuf_iterator;
 
+#ifdef _MSC_VER
+#pragma warning(disable: 4996)
+#endif
+
 #if _WIN32
     #include <direct.h>
 #else
@@ -65,6 +69,7 @@ struct CacShare {
                         return fmt::format("FunctionScrapper::addressOfNonVirtual((mem{})(&{}::{}))", f.index, f.parent_class->name, f.name);
                 }
         }
+        return "";
     }
 
     static string getHardcode(Member const& m) {
@@ -105,7 +110,7 @@ struct CacShare {
     static string formatParameters(size_t paramCount) {
         if (paramCount) {
             vector<string> c;
-            for (int i=0; i<paramCount; ++i)
+            for (auto i = 0u; i < paramCount; ++i)
                 c.push_back(fmt::format("p{}", i));
             return fmt::format(", {}", fmt::join(c, ", "));
         } else {
@@ -116,7 +121,7 @@ struct CacShare {
     static string formatRawParameters(size_t paramCount) {
         if (paramCount) {
             vector<string> c;
-            for (int i=0; i<paramCount; ++i)
+            for (auto i = 0u; i<paramCount; ++i)
                 c.push_back(fmt::format("p{}", i));
             return fmt::format("{}", fmt::join(c, ", "));
         } else {
@@ -129,12 +134,13 @@ struct CacShare {
             case kConstructor:
             case kDestructor:
             case kRegularFunction:
-                // return "Membercall";
+                return "Membercall";
             case kVirtualFunction:
                 return "Thiscall";
             case kStaticFunction:
                 return "Optcall";
         }
+        return "Membercall";
     }
 
     static string getReturn(Function const& f) {
@@ -173,3 +179,7 @@ struct CacShare {
     	}
     }
 };
+
+#ifdef _MSC_VER
+#pragma warning(default: 4996)
+#endif
