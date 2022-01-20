@@ -16,8 +16,11 @@
 #endif
 
 
-#define NUMBER_OF_ARGS(...) NUMBER_OF_ARGS_(__VA_ARGS__, NUMBER_SEQUENCE(),)
-#define NUMBER_OF_ARGS_(...) NUMBER_OF_ARGS_N(__VA_ARGS__)
+#define EXPAND(x) x
+#define INVOKE(macro, ...) EXPAND(macro(__VA_ARGS__))
+
+#define NUMBER_OF_ARGS(...) EXPAND(NUMBER_OF_ARGS_(__VA_ARGS__, NUMBER_SEQUENCE(),))
+#define NUMBER_OF_ARGS_(...) EXPAND(NUMBER_OF_ARGS_N(__VA_ARGS__))
 #define NUMBER_OF_ARGS_N( 					\
 _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, 	\
 _11,_12,_13,_14,_15,_16,_17,_18,_19,_20, 	\
@@ -62,7 +65,7 @@ _61,_62,_63,N,...) N
 #define EVAL(arg, i) arg PARAMETER(arg, i)
 #define DECLVAL(arg, i) std::declval<arg>()
 
-#define GETREPEAT(...) CONCAT(REPEAT, NUMBER_OF_ARGS(__VA_ARGS__))
+#define GETREPEAT(...) EXPAND(CONCAT(REPEAT, NUMBER_OF_ARGS(__VA_ARGS__)))
 #define REPEAT0( macro, i, ...)
 #define REPEAT1( macro, i, arg, ...) macro(arg, i)
 #define REPEAT2( macro, i, arg, ...) macro(arg, i), REPEAT1( macro, NUMBER_AFTER(i), __VA_ARGS__)
