@@ -3,6 +3,13 @@
 #define GEODE_C_DLL
 #define GEODE_C_API
 
+#ifdef _MSC_VER
+#pragma warning(disable: 4099) // type first seen as class
+#pragma warning(default: 4067)
+#pragma warning(disable: 4251) // dll-interface
+#pragma warning(disable: 4244) // narrowing conversion
+#endif
+
 
 // Set dllexport/dllimport to geode classes & functions
 
@@ -15,10 +22,13 @@
 	#define GEODE_PLATFORM_EXTENSION ".dll"
 	
 	#ifdef GEODE_EXPORTING
+		#undef GEODE_C_DLL
 	    #define GEODE_C_DLL  __declspec(dllexport)
 	#else
+		#undef GEODE_C_DLL
 	    #define GEODE_C_DLL  __declspec(dllimport)
 	#endif
+	#undef GEODE_C_API
 	#define GEODE_C_API __declspec(dllexport) __stdcall
 #else
 	#define GEODE_WINDOWS(...)

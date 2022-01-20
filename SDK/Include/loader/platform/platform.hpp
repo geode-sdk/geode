@@ -4,6 +4,13 @@
 	#undef GEODE_CALL
 #endif
 
+#ifdef _MSC_VER
+#pragma warning(default: 4099) // type first seen as class
+#pragma warning(default: 4067)
+#pragma warning(disable: 4251) // dll-interface
+#pragma warning(disable: 4244) // narrowing conversion
+#endif
+
 namespace geode {
 	class PlatformID {
 	public:
@@ -55,7 +62,7 @@ namespace geode {
 	#define GEODE_CALL __stdcall
 	#define GEODE_PLATFORM_EXTENSION ".dll"
 	
-	#include <platform/windows.hpp>
+	#include "platform/windows.hpp"
 #else
 	#define GEODE_WINDOWS(...)
 #endif
