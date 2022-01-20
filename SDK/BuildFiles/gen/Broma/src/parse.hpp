@@ -135,7 +135,7 @@ void parseMember(ClassDefinition& c, string type, string varName, Tokens& tokens
 		if (num_maybe.find_first_not_of("0123456789") != string::npos) {
 			cacerr("Expected number, found %s\n", num_maybe.c_str());
 		}
-		myMember.count = strtoll(num_maybe.c_str(), NULL, 10);
+		myMember.count = static_cast<size_t>(strtoll(num_maybe.c_str(), NULL, 10));
 
 		next_expect(tokens, kBrackR, "]");
 	}
