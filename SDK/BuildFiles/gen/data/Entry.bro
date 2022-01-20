@@ -1,2 +1,2 @@
-#include <Cocos2d.mm>
-#include <GeometryDash.mm>
+#include <Cocos2d.bro>
+#include <GeometryDash.bro>
