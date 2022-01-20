@@ -97,11 +97,17 @@ void parseFunction(ClassDefinition& c, Function myFunction, Tokens& tokens) {
 			auto t = peek(tokens);
 			if (t.type == kComma)
 				myFunction.binds[k] = "";
-			else if (t.type == kAddress) {
+			else if (t.type == kIdent) {
 				next(tokens);
-				myFunction.binds[k] = t.slice;
+				auto platform = t.slice;
+				t = next(tokens);
+				if (t.type != kAddress) cacerr("Expected address, found %s\n", t.slice.c_str());
+				if (platform == "mac") myFunction.binds[kMacFunction] = t.slice;
+				else if (platform == "win") myFunction.binds[kWindowsFunction] = t.slice;
+				else if (platform == "ios") myFunction.binds[kIosFunction] = t.slice;
+				else cacerr("Unknown identifier, found %s\n", t.slice.c_str());
 			} else 
-				cacerr("Expected address, found %s\n", t.slice.c_str());
+				cacerr("Expected platform identifier, found %s\n", t.slice.c_str());
 
 			t = next(tokens);
 			if (t.type == kSemi)
@@ -121,6 +127,7 @@ void parseMember(ClassDefinition& c, string type, string varName, Tokens& tokens
 	Member myMember;
 	myMember.type = type;
 	myMember.name = varName;
+
 	if (varName == "PAD") myMember.member_type = MemberType::kPad;
 
 	if (!next_if_type(kBrackL, tokens)) {
@@ -136,17 +143,27 @@ void parseMember(ClassDefinition& c, string type, string varName, Tokens& tokens
 	if (!next_if_type(kEqual, tokens)) {
 		if (myMember.member_type != MemberType::kPad)
 			myMember.member_type = MemberType::kHardcode;
-		for (int k = 0; k < 4; ++k) {
-			if (k == 3)
-				cacerr("Maximum of 3 hardcodes allowed\n");
+		for (int k = 0; k < 5; ++k) {
+			if (k == 4)
+				cacerr("Maximum of 4 hardcodes allowed\n");
 
 			auto t = next(tokens);
 			if (t.type == kComma)
 				myMember.hardcodes[k] = "";
+			else if (t.type == kIdent) {
+				auto platform = t.slice;
+				t = next(tokens);
+				if (t.type != kAddress) cacerr("Expected address, found %s\n", t.slice.c_str());
+				if (platform == "mac") myMember.hardcodes[kMacMember] = t.slice;
+				else if (platform == "win") myMember.hardcodes[kWindowsMember] = t.slice;
+				else if (platform == "ios") myMember.hardcodes[kIosMember] = t.slice;
+				else if (platform == "android") myMember.hardcodes[kAndroidMember] = t.slice;
+				else cacerr("Unknown identifier, found %s\n", t.slice.c_str());
+			}
 			else if (t.type == kAddress)
 				myMember.hardcodes[k] = t.slice;
 			else 
-				cacerr("Expected address, found %s\n", t.slice.c_str());
+				cacerr("Expected platform identifier, found %s\n", t.slice.c_str());
 
 			t = next(tokens);
 			if (t.type == kSemi)

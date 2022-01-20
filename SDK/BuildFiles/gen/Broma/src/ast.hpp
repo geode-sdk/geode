@@ -10,6 +10,27 @@ using std::vector, std::unordered_map, std::string, std::is_same_v, std::cout, s
 
 struct ClassDefinition;
 
+enum Platform {
+    kMac=0,
+    kWindows=1,
+    kIos=2,
+    kAndroid=3
+};
+
+enum PlatformMember {
+    kMacMember=0,
+    kWindowsMember=1,
+    kIosMember=0,
+    kAndroidMember=2
+};
+
+enum PlatformFunction {
+    kMacFunction=0,
+    kWindowsFunction=1,
+    kIosFunction=2,
+    kAndroidFunction=-1
+};
+
 enum FieldType {
 	kFunction=0,
 	kMember=1,
