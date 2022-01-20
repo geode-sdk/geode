@@ -5078,7 +5078,7 @@ class SimplePlayer : cocos2d::CCSprite {
 }
 
 class GameToolbox {
-	CCMenuItemToggler* createToggleButton(cocos2d::SEL_MenuHandler onToggle, bool bToggled, cocos2d::CCMenu* pToggleMenu, cocos2d::CCNode* pTarget, cocos2d::CCNode* pLabelParent, float fCheckboxScale, float fLabelSize, float fMaxWidth, const char* sIdk, bool bIdk, int nTag, cocos2d::CCArray* pToggleArray, gd::string sText, cocos2d::CCPoint obPosition, cocos2d::CCPoint obLabelOffset) = win 0x25fe0;
-	void transformColor(cocos2d::ccColor3B const& src, cocos2d::ccColor3B & dest, cocos2d::ccHSVValue hsv) = win 0x26a60;
-	void alignItemsHorisontally(cocos2d::CCArray* array, bool idk, cocos2d::CCPoint start, float pad) = win 0x25b20;
+	static CCMenuItemToggler* createToggleButton(cocos2d::SEL_MenuHandler onToggle, bool bToggled, cocos2d::CCMenu* pToggleMenu, cocos2d::CCNode* pTarget, cocos2d::CCNode* pLabelParent, float fCheckboxScale, float fLabelSize, float fMaxWidth, const char* sIdk, bool bIdk, int nTag, cocos2d::CCArray* pToggleArray, gd::string sText, cocos2d::CCPoint obPosition, cocos2d::CCPoint obLabelOffset) = win 0x25fe0;
+	static void transformColor(cocos2d::ccColor3B const& src, cocos2d::ccColor3B & dest, cocos2d::ccHSVValue hsv) = win 0x26a60;
+	static void alignItemsHorisontally(cocos2d::CCArray* array, bool idk, cocos2d::CCPoint start, float pad) = win 0x25b20;
 }
