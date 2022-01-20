@@ -107,6 +107,19 @@ It's new in cocos2d-x since v0.99.5
 #if defined(GEODE_VERSION)
     #define GEODE_ADD(...) __VA_ARGS__
 	#define NOT_GEODE_ADD(...) 
+
+    /**
+     * For CCDestructor
+     */
+    #if CC_TARGET_PLATFORM == CC_PLATFORM_WIN32
+        #ifdef GEODE_EXPORTING
+            #define GEODE_CC_DLL __declspec(dllexport)
+        #else
+            #define GEODE_CC_DLL __declspec(dllimport)
+        #endif
+    #else
+        #define GEODE_CC_DLL
+    #endif
 #else
 	#define GEODE_ADD(...)
 	#define NOT_GEODE_ADD(...) __VA_ARGS__

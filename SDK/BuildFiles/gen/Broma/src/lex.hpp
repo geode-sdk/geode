@@ -11,6 +11,10 @@
 using std::stringstream;
 using std::string;
 
+#ifdef _MSC_VER
+#pragma warning(disable: 4996)
+#endif
+
 enum TokenType {
 	kIdent,
 	kParenR,
@@ -359,3 +363,7 @@ vector<Token> lexStream(stringstream& stream) {
 
 	return ts;
 }
+
+#ifdef _MSC_VER
+#pragma warning(default: 4996)
+#endif

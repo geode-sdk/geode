@@ -60,7 +60,7 @@ class CCEvent;
  * This class is used to fix the problem of destructor recursion.
  */
 GEODE_ADD(
-	class CC_DLL CCDestructor {
+	class GEODE_CC_DLL CCDestructor {
 	public:
 		~CCDestructor();
 	};
