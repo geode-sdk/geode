@@ -479,7 +479,7 @@ class FLAlertLayer : cocos2d::CCLayerColor {
     
     inline static FLAlertLayer* create(char const* title, const gd::string &desc, char const* btn) {
         return FLAlertLayer::create(nullptr, title, desc, btn, nullptr, 300.0);
-    };
+    }
 
     cocos2d::CCMenu* m_buttonMenu;                      // mac 0x1f8
     int m_controlConnected;                             // mac 0x200
@@ -500,7 +500,7 @@ class FLAlertLayer : cocos2d::CCLayerColor {
 }
 
 class FLAlertLayerProtocol {
-	inline virtual void FLAlert_Clicked(FLAlertLayer*, bool) {};
+	inline virtual void FLAlert_Clicked(FLAlertLayer*, bool) {}
 }
 
 class GameToolbox {
@@ -860,7 +860,7 @@ class GJSpiderSprite {
 }
 
 class GManager : cocos2d::CCNode {
-	inline virtual void setup() {};
+	inline virtual void setup() {}
 
 	void save() = mac 0x26f300;
 	void saveData(DS_Dictionary*, gd::string) = mac 0x26f4b0;
@@ -1989,20 +1989,20 @@ class TableViewCell : cocos2d::CCLayer {
 }
 
 class TableViewDataSource {
-	inline virtual void willTweenToIndexPath(CCIndexPath&, TableViewCell*, TableView*) {};
-	inline virtual void didEndTweenToIndexPath(CCIndexPath&, TableView*) {};
-	inline virtual void TableViewWillDisplayCellForRowAtIndexPath(CCIndexPath&, TableViewCell*, TableView*) {};
-	inline virtual void TableViewDidDisplayCellForRowAtIndexPath(CCIndexPath&, TableViewCell*, TableView*) {};
-	inline virtual void TableViewWillReloadCellForRowAtIndexPath(CCIndexPath&, TableViewCell*, TableView*) {};
-	inline virtual void cellHeightForRowAtIndexPath(CCIndexPath&, TableView*) {};
-	inline virtual void didSelectRowAtIndexPath(CCIndexPath&, TableView*) {};
+	inline virtual void willTweenToIndexPath(CCIndexPath&, TableViewCell*, TableView*) {}
+	inline virtual void didEndTweenToIndexPath(CCIndexPath&, TableView*) {}
+	inline virtual void TableViewWillDisplayCellForRowAtIndexPath(CCIndexPath&, TableViewCell*, TableView*) {}
+	inline virtual void TableViewDidDisplayCellForRowAtIndexPath(CCIndexPath&, TableViewCell*, TableView*) {}
+	inline virtual void TableViewWillReloadCellForRowAtIndexPath(CCIndexPath&, TableViewCell*, TableView*) {}
+	inline virtual void cellHeightForRowAtIndexPath(CCIndexPath&, TableView*) {}
+	inline virtual void didSelectRowAtIndexPath(CCIndexPath&, TableView*) {}
 }
 
 class TableViewDelegate {
-	inline virtual int numberOfRowsInSection(unsigned int, TableView*) {return 0;};
-	inline virtual void numberOfSectionsInTableView(TableView*) {};
-	inline virtual void TableViewCommitCellEditingStyleForRowAtIndexPath(TableView*, TableViewCellEditingStyle, CCIndexPath&) {};
-	inline virtual void cellForRowAtIndexPath(CCIndexPath&, TableView*) {};
+	inline virtual int numberOfRowsInSection(unsigned int, TableView*) {return 0;}
+	inline virtual void numberOfSectionsInTableView(TableView*) {}
+	inline virtual void TableViewCommitCellEditingStyleForRowAtIndexPath(TableView*, TableViewCellEditingStyle, CCIndexPath&) {}
+	inline virtual void cellForRowAtIndexPath(CCIndexPath&, TableView*) {}
 }
 
 class TextArea : ButtonSprite {
@@ -2014,12 +2014,12 @@ class TextArea : ButtonSprite {
 }
 
 class TextInputDelegate {
-	inline virtual void textChanged(CCTextInputNode*) {};
-	inline virtual void textInputOpened(CCTextInputNode*) {};
-	inline virtual void textInputClosed(CCTextInputNode*) {};
-	inline virtual void textInputShouldOffset(CCTextInputNode*, float) {};
-	inline virtual void textInputReturn(CCTextInputNode*) {};
-	inline virtual bool allowTextInput(CCTextInputNode*) {return true;};
+	inline virtual void textChanged(CCTextInputNode*) {}
+	inline virtual void textInputOpened(CCTextInputNode*) {}
+	inline virtual void textInputClosed(CCTextInputNode*) {}
+	inline virtual void textInputShouldOffset(CCTextInputNode*, float) {}
+	inline virtual void textInputReturn(CCTextInputNode*) {}
+	inline virtual bool allowTextInput(CCTextInputNode*) {return true;}
 }
 
 class ToggleTriggerAction : cocos2d::CCNode {
