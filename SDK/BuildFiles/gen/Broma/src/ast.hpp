@@ -69,6 +69,19 @@ struct Function : ClassField {
 	string binds[3]; // mac, windows, ios (android has all symbols included). No binding = no string. Stored as a string because no math is done on it
 	string android_mangle; // only sometimes matters. empty if irrelevant
 	size_t index;
+	bool same(Function const& other) {
+		if (name != other.name) return false;
+		if (return_type != other.return_type) return false;
+		// if (is_const != other.is_const) return false;
+		// if (function_type != other.function_type) return false;
+		if (args.size() != other.args.size()) return false;
+		for (int i = 0; i < args.size(); ++i) if (args[i] != other.args[i]) return false;
+		return true;
+	}
+	void merge(Function const& other) {
+		for (int i = 0; i < 3; ++i)
+			if (binds[i] == "") binds[i] = other.binds[i];
+	}
 };
 
 struct Member : ClassField {
@@ -78,6 +91,7 @@ struct Member : ClassField {
 	MemberType member_type;
 	string hardcodes[3]; // mac/ios, windows, android
 	size_t count; // for arrays
+	
 };
 
 struct Inline : ClassField {
@@ -107,6 +121,12 @@ struct ClassDefinition {
 		field.parent_class = this;
 		if constexpr (is_same_v<Function, T>) {
 			field.index = functions.size();
+			for (auto& f : functions) {
+				if (f.same(field)) {
+					f.merge(field);
+					return;
+				}
+			}
 			field.field_type = FieldType::kFunction;
 			functions.push_back(field);
 		}

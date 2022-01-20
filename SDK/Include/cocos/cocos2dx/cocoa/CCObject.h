@@ -74,7 +74,7 @@ class CC_DLL CCCopying GEODE_ADD(: CCDestructor)
 {
     GEODE_ADD(friend struct geode::interfaces;)
 public:
-    virtual CCObject* copyWithZone(CCZone* pZone) {}
+    virtual CCObject* copyWithZone(CCZone* pZone) { return 0; }
 };
 
 /**

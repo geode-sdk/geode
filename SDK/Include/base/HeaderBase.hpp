@@ -118,7 +118,6 @@ enum GhostType {};
 enum IconType {};
 enum BoomListType {};
 enum TableViewCellEditingStyle {};
-enum CCIndexPath {};
 enum UserListType {};
 enum GJErrorCode {};
 enum AccountError {};
