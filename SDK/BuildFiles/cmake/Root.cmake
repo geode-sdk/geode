@@ -49,6 +49,7 @@ else()
 endif()
 
 add_subdirectory(${GEODE_SDK_DIR}/BuildFiles/gen)
+add_subdirectory(${GEODE_SDK_DIR}/Include/core)
 
 target_compile_definitions(${PROJECT_NAME}
 	PRIVATE -DPROJECT_NAME=${PROJECT_NAME}
@@ -63,13 +64,12 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 	${GEODE_INCLUDE_DIR}/old_stl
 	${GEODE_INCLUDE_DIR}/hook
 	${GEODE_INCLUDE_DIR}/loader
-	${GEODE_INCLUDE_DIR}/loader/core/include/geode/core
+	${GEODE_INCLUDE_DIR}/core/include/geode/core
 	${GEODE_INCLUDE_DIR}/cocos/
 	${GEODE_INCLUDE_DIR}/cocos/cocos2dx
 	${GEODE_INCLUDE_DIR}/cocos/cocos2dx/include
 	${GEODE_INCLUDE_DIR}/cocos/cocos2dx/support/zip_support
 	${GEODE_INCLUDE_DIR}/cocos/cocos2dx/kazmath/include
-
 	${GEODE_INCLUDE_DIR}/cocos/extensions
 	${GEODE_INCLUDE_DIR}/fmod
 	${GEODE_INCLUDE_DIR}/gen/fmt/include

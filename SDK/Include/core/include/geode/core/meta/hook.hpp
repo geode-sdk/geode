@@ -10,22 +10,23 @@
 #include <type_traits>
 
 namespace geode::core::meta {
-    template<
+    template <
         auto address,
         auto detour,
-        template<class, class...> class Conv
+        template <class, class...> class Conv
     >
     class Hook {
         static_assert(always_false<decltype(address)>, 
             "Not a valid function pointer, or hook and detour aren't compatible!");
     };
     
-    template<
+    template <
         class Ret,
         class... Args,
-        Ret(* address)(Args...),
+        // TODO: Fix this!!! I hate type qualifiers.
+        auto address,
         Ret(* detour)(Args...),
-        template<class, class...> class Conv
+        template <class, class...> class Conv
     >
     class Hook<address, detour, Conv> {
     private:
@@ -37,17 +38,21 @@ namespace geode::core::meta {
 
     public:
         Hook() {
-            auto wrapper = MyConv::get_wrapper<detour>();
-            this->handle = geode::core::hook::add(address, wrapper);
+            auto wrapper = MyConv::template get_wrapper<detour>();
+            this->handle = geode::core::hook::add(reinterpret_cast<void*>(address), reinterpret_cast<void*>(wrapper));
+        }
+
+        static auto get_wrapper() {
+            return MyConv::template get_wrapper<detour>();
         }
     };
 
     // member functions.
-    template<
+    template <
         class Ret, class Parent, class... Args,
         Ret(Parent::* address)(Args...),
         Ret(Parent::* detour)(Args...),
-        template<class, class...> class Conv
+        template <class, class...> class Conv
     >
     class Hook<address, detour, Conv> {
         // deal with this later lol

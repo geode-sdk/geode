@@ -222,12 +222,6 @@ class CCScrollLayerExtDelegate {
 
 class CCSpritePlus : cocos2d::CCSprite {
 	bool initWithSpriteFrameName(char const*) = 0x248670;
-	inline inline CCSpritePlus* getFollowingSprite() {
-		return m_followingSprite;
-	};
-	inline inline void setFollowingSprite(CCSpritePlus* setter) {
-		m_followingSprite = setter;
-	};
 
 	cocos2d::CCArray* m_followers;
 	CCSpritePlus* m_followingSprite;

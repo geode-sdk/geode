@@ -74,7 +74,11 @@ int main(int argc, char** argv) {
         	output += "\t" + i.inlined + "\n";
         }
 
+
         for (auto f : cd.functions) {
+            if (f.binds[CacShare::platform].size() == 0)
+                continue; // Function not supported for this platform, skip it
+                
         	char const* used_format;
         	switch (f.function_type) {
                 case kDestructor:
@@ -95,6 +99,9 @@ int main(int argc, char** argv) {
             );
         }
         for (auto m : cd.members) {
+            if (CacShare::getHardcode(m).size() == 0)
+                    continue; // Not Implemented on platform
+
         	char const* used_format;
         	if (m.hardcode) used_format = format_strings::hardcode_definition;
         	else used_format = format_strings::member_definition;
