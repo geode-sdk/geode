@@ -44,6 +44,14 @@ namespace geode::cocos {
         return res;
     }
 
+    template<typename T, class T2>
+    static cocos2d::CCArray* vectorToCCArray(std::vector<T> const& vec, std::function<T2(T)> convFunc) {
+        auto res = cocos2d::CCArray::createWithCapacity(vec.size());
+        for (auto const& item : vec)
+            res->addObject(convFunc(item));
+        return res;
+    }
+
     template <typename T>
 	std::vector<T> ccArrayToVector(CCArray* arr) {
 		return std::vector<T>(reinterpret_cast<T*>(arr->data->arr), reinterpret_cast<T*>(arr->data->arr) + arr->data->num);
