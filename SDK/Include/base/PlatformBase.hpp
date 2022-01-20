@@ -4,9 +4,8 @@
 	/**
 	 * MSVC exports with hidden by default so there is no need for hidden
 	 */
-	#define hidden
-	#define dllexport __declspec(dllexport)
-	#define dupable __forceinline
+	#define GEODE_HIDDEN
+	#define GEODE_DUPABLE __forceinline
 
 #else
 	/**
@@ -14,9 +13,8 @@
 	 * since they have the same name in different executables their
 	 * global offset tables can override
 	 */
-	#define hidden __attribute__((visibility("hidden")))
-	#define dllexport 
-	#define dupable __attribute__((always_inline))
+	#define GEODE_HIDDEN __attribute__((visibility("hidden")))
+	#define GEODE_DUPABLE __attribute__((always_inline))
 #endif
 
 

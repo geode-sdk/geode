@@ -4,6 +4,9 @@
 #include <Geode>
 // this is the fix for the dynamic_cast problems
 
+
+
+#if defined(CC_TARGET_OS_IPHONE) || defined(CC_TARGET_OS_MAC)
 namespace geode::fixes {
 
 #define HandlerFixFor(CCUtility)                                                                        \
@@ -145,3 +148,5 @@ class $(CCStandardTouchHandler, CCStandardTouchHandlerTypeinfoFix) {
 };
 
 } // geode::fixes
+
+#endif
