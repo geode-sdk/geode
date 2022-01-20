@@ -1,7 +1,5 @@
 # GeodeSDK
-Geode is a revolutionary Geometry Dash modding framework for MacOS users. Geode requires CMake so make sure you have that. To start, run the `create` file and specify a location
-
-Geode uses [a modified version of Geode Core](https://github.com/altalk23/geode-core/) for function hooking.
+Geode is a revolutionary Geometry Dash modding framework. Geode is built using CMake so make sure it is installed before building. To start, run the `create` file and specify a location
 
 ## Prerequisites
 
