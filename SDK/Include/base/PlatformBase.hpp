@@ -27,10 +27,10 @@
 
 #elif defined(CC_TARGET_OS_WIN32)
 
-	#include <function.hpp>
-	#include <x86/optcall.hpp>
-	#include <x86/membercall.hpp>
-	#include <x86/thiscall.hpp>
+	#include <meta/function.hpp>
+	#include <meta/optcall.hpp>
+	#include <meta/membercall.hpp>
+	#include <meta/thiscall.hpp>
 	#include <stdio.h>
 
 	#define GeodeLog(format, ...) printf("Geode %s:%d:\n" format"\n", __FILE__, __LINE__, ##__VA_ARGS__)

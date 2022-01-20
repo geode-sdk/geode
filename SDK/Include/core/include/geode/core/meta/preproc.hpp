@@ -1,7 +1,7 @@
 #ifndef GEODE_CORE_META_PREPROC_HPP
 #define GEODE_CORE_META_PREPROC_HPP
 
-#include <platform/platform.hpp>
+#include "../macros/platform.hpp"
 
 namespace geode::core::meta {
     #if defined(NDEBUG)

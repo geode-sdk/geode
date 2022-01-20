@@ -320,8 +320,7 @@ vector<Token> lexStream(stringstream& stream) {
 					sp = kIgnore;
 					break;
 				case '\n':
-					sp = kIgnore;
-					break;
+				case '\r':
 				case '\t':
 					sp = kIgnore;
 					break;

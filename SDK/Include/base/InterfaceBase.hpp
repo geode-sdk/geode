@@ -132,7 +132,7 @@ GEODE_API void GEODE_CALL geode_unload() {
 
 #define PREDECLARE(derived) derived##__; template<typename T, auto _orig> struct _##derived {};
 #define APPLY(base, derived) namespace { struct derived##UUID{}; bool derived##Apply = base<derived##UUID, _##derived>::_apply();  }
-#define DECLARE(base, derived) using derived = _##derived<derived##UUID, 0>; template <auto _orig> struct hidden _##derived<derived##UUID, _orig>: public base<derived##UUID, _##derived>
+#define DECLARE(base, derived) using derived = _##derived<derived##UUID, 0>; template <auto _orig> struct GEODE_HIDDEN _##derived<derived##UUID, _orig>: public base<derived##UUID, _##derived>
 
 #define REDIRECT___(base, derived) PREDECLARE(derived) APPLY(base, derived) DECLARE(base, derived)
 #define REDIRECT__(base, derived) REDIRECT___(geode::interfaces::$##base, derived)

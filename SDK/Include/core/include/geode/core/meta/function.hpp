@@ -11,17 +11,17 @@ namespace geode::core::meta {
     /* The Geode Function class wraps functions with unconventional
     *  calling conventions (how ironic).
     */
-    template<
+    template <
         class Func,
-        template<class, class...> class Conv
+        template <class, class...> class Conv
     >
     class Function {
         static_assert(always_false<Func>, "Not a valid function pointer!");
     };
 
-    template<
+    template <
         class Ret, class... Args,
-        template<class, class...> class Conv
+        template <class, class...> class Conv
     >
     class Function<Ret(Args...), Conv> {
     private:
@@ -32,14 +32,14 @@ namespace geode::core::meta {
         void* addr;
 
     public:
-        template<class T>
+        template <class T>
         Function(const T& addr)
             : addr(reinterpret_cast<void*>(addr)) {}
 
         decltype(auto) operator()(Args... all) const {
             return MyConv::invoke(
                 addr,
-                { all... }
+                all...
             );
         }
     };
