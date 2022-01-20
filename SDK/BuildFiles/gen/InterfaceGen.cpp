@@ -56,21 +56,21 @@ struct ${class_name} : {class_name}, InterfaceBase {{
     // requires: class_name, function_name, const, index, raw_args, arg_types, parameters, convention
     char const* declare_meta_member = R"CAC(
     dupable ret{index} {function_name}({raw_args}) {const}{{
-        return geode::meta::Function<ret{index}(decltype(this){arg_types}), geode::meta::x86::{convention}>(address{index})(this{parameters});
+        return geode::core::meta::Function<ret{index}(decltype(this){arg_types}), geode::core::meta::x86::{convention}>(address{index})(this{parameters});
     }}
 )CAC";
 
     // requires: class_name, function_name, const, index, arg_types, raw_parameters, raw_args, convention
     char const* declare_meta_static = R"CAC(
-    static geode ret{index} {function_name}({raw_args}) {const}{{
-        geode lilac::meta::Function<ret{index}({raw_arg_types}), geode::meta::x86::{convention}>(address{index})({raw_parameters});
+    static dupable ret{index} {function_name}({raw_args}) {const}{{
+        return geode::core::meta::Function<ret{index}({raw_arg_types}), geode::core::meta::x86::{convention}>(address{index})({raw_parameters});
     }}
 )CAC";
 
     // requires: function_name, raw_args, arg_types, index, parameters, convention
     char const* declare_meta_structor = R"CAC(
     dupable void {function_name}({raw_args}) {{
-        return geode::meta::Function<void(decltype(this){arg_types}), geode::meta::x86::{convention}>(address{index})(this{parameters});
+        return geode::core::meta::Function<void(decltype(this){arg_types}), geode::core::meta::x86::{convention}>(address{index})(this{parameters});
     }}
 )CAC";
 

@@ -7,17 +7,14 @@ namespace geode::core::meta {
     * some wrappers to require the custom calling convention to supply an
     * invoker and a way to get a wrapper for hooks.
     */
-    template<template<class, class...> class Inherit, class Ret, class... Args>
+    template <class Ret, class... Args>
     class CallConv {
-    private:
-        using MyInherit = Inherit<Ret, Args...>;
-
     protected:
         using MyTuple = Tuple<Args...>;
 
-        template<
+        template <
             size_t i,
-            template<class> class Pred,
+            template <class> class Pred,
             class Else
         >
         using type_if = 
@@ -29,9 +26,9 @@ namespace geode::core::meta {
                         Else
                     >;
 
-        template<
+        template <
             size_t i,
-            template<class> class Pred,
+            template <class> class Pred,
             class Else
         >
         static decltype(auto) value_if(const MyTuple& tuple, const Else e) {
@@ -41,23 +38,16 @@ namespace geode::core::meta {
                 >::val(tuple.template at<i>(), e);
         }
 
-    /* TODO: REMOVE THIS!!
-    public:
-        template<size_t... indices>
-        static Ret invoke(
-            Ret(* address)(Args...), 
-            const MyTuple&& tuple,
-            const std::index_sequence<indices...>&&
-        ) {
-            return MyInherit::invoke<indices...>(address, tuple);
-        }
+        // Why is this here. Stop.
+        template <template <class, class...> class Convention, auto Func> 
+        struct ConventionFrom {
+            using type = Convention<void>;
+        };
 
-        template<Ret(* detour)(Args...), size_t... indices>
-        static decltype(auto) get_wrapper(
-            const std::index_sequence<indices...>&&
-        ) {
-            return MyInherit::get_wrapper<detour, indices...>();
-        }*/
+        template <template <class, class...> class Convention, class Ret, class ...Args, Ret(* Func)(Args...)> 
+        struct ConventionFrom<Convention, Func> {
+            using type = Convention<Ret, Args...>;
+        };
     };
 }
 

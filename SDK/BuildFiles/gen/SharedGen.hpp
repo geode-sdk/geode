@@ -136,7 +136,7 @@ struct CacShare {
             case kConstructor:
             case kDestructor:
             case kRegularFunction:
-                return "Membercall";
+                // return "Membercall";
             case kVirtualFunction:
                 return "Thiscall";
             case kStaticFunction:
