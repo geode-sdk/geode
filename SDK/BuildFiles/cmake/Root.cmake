@@ -7,6 +7,26 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(GEODE_SDK_DIR ${CMAKE_SOURCE_DIR}/sdk/SDK)
 set(GEODE_INCLUDE_DIR ${GEODE_SDK_DIR}/Include)
 
+function(create_geode_file proname)
+	add_custom_command(
+		TARGET ${proname} POST_BUILD
+		COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+			"${CMAKE_CURRENT_SOURCE_DIR}/mod.json"
+			"${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/mod.json"
+			"${srcs}"
+	)
+	add_custom_command(
+		TARGET ${proname}
+		COMMAND ${CMAKE_COMMAND} -E tar "cf" 
+			"${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${proname}.geode" --format=zip -- 
+			"${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/mod.json"
+			"${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${proname}.dll"
+			"${srcs}"
+		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>"
+		COMMAND ${CMAKE_COMMAND} -E echo "Creating zip file -> ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${proname}.geode"
+	)
+endfunction()
+
 if (NOT DEFINED GEODE_TARGET_PLATFORM)
 	if(APPLE)
 		set(GEODE_TARGET_PLATFORM "MacOS")
@@ -84,3 +104,7 @@ target_link_libraries(${PROJECT_NAME}
 	fmt
 	${LINK_LIBRARIES}
 )
+
+if (NOT DEFINED GEODE_NO_GEODE_FILE)
+	create_geode_file(${PROJECT_NAME})
+endif()
