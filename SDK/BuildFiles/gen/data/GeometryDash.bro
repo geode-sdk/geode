@@ -2704,7 +2704,7 @@ class DrawGridLayer : cocos2d::CCLayer {
 	void draw() = win 0x16ce90;
 
 	inline using CCPointArray400 = cocos2d::CCPoint(*)[400];
-	inline using CCPointArray200 = cocos2d::CCPoint(*)[400];
+	inline using CCPointArray200 = cocos2d::CCPoint(*)[200];
 
 	CCPointArray400 m_commonLines; 	
 	CCPointArray200 m_yellowGuidelines;  				
@@ -4926,11 +4926,11 @@ class CCScrollLayerExt : cocos2d::CCLayer {
 	void scrollLayer(float scroll) = win 0x1be20;
 	void moveToTop() = win 0x1b4a0;
 	void moveToTopWithOffset(float fOffset) = win 0x1b420;
-	inline float getMinY() {
-		//TODO: fix this
-	    // return this->getContentSize().height -
-	    //     this->m_contentLayer->getContentSize().height -
-	    //     this->m_scrollLimitTop;
+	inline float getMinY();
+	outofline float CCScrollLayerExt::getMinY() {
+	    return this->getContentSize().height -
+	        this->m_contentLayer->getContentSize().height -
+	        this->m_scrollLimitTop;
 	}
 	inline float getMaxY() {
 	    return this->m_scrollLimitBottom;
