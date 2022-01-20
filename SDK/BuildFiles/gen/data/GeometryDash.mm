@@ -2404,9 +2404,6 @@ class FMODAudioEngine : cocos2d::CCNode {
 
 }
 
-class UndoCommand {
-}
-
 class UndoObject {
 	virtual ~UndoObject() = mac 0xa2fd0;
 

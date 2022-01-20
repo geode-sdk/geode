@@ -8,3 +8,4 @@
 #include "platform.hpp"
 #include "timer.hpp"
 #include "ext.hpp"
+#include "convert.hpp"
