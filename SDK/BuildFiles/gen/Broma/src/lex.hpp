@@ -131,6 +131,61 @@ void parseDefined(stringstream& stream, string& slice) {
 	slice.shrink_to_fit();
 }
 
+void parseInline(stringstream& stream, string& slice) {
+	slice.clear();
+	slice.reserve(256);
+	while (stream.peek() != '{' && stream.peek() != '\n') {
+		slice += stream.get();
+	}
+	if (stream.peek() == '\n') {
+		slice.shrink_to_fit();
+		return;
+	}
+	slice += stream.get();
+	int brace_nest = 1;
+	char quote = '\0';
+	bool comment_multi = false;
+	while (brace_nest > 0) {
+		char p = stream.get();
+
+		if (comment_multi) {
+			slice += p;
+			if (p == '*' && stream.peek() == '/') {
+				comment_multi = false;
+				slice += stream.get();
+			}
+		} else if (quote) {
+			slice += p;
+			if (p == '\\' && stream.peek() == quote) {
+				slice += stream.get();
+			} else if (p == quote) {
+				quote = '\0';
+			}
+		} else {
+			slice += p;
+			if (p == '}')
+				--brace_nest;
+			if (p == '{')
+				++brace_nest;
+			if (p == '\'' || p == '"')
+				quote = p;
+			if (p == '/') {
+				if (stream.peek() == '*') {
+					slice += stream.get();
+					comment_multi = true;
+				} else if (stream.peek() == '/') {
+					while (stream.peek() != '\n') {
+						slice += stream.get();
+					}
+				}
+			}
+		}
+	}
+	stream.get();
+	slice.shrink_to_fit();
+}
+
+
 void parseTemplate(stringstream& stream, string& slice) {
 	slice.clear();
 	slice.reserve(64);
@@ -195,6 +250,7 @@ vector<Token> lexStream(stringstream& stream) {
 	while ((stream).peek() != -1) {
 		Token t = parseIdent(stream);
 		string slice = t.slice;
+		// std::cout << slice << std::endl;
 		if (slice.size() != 0) {
 			if (slice == "class") {
 				t.type = kClass;
@@ -222,11 +278,12 @@ vector<Token> lexStream(stringstream& stream) {
 
 			if (slice == "inline") {
 				t.type = kInlineExpr;
-				t.slice.clear();
-				while (stream.peek() != '\n') {
-					t.slice += stream.get();
-				}
-				printf("inline lex %s\n", slice.c_str());
+				// t.slice.clear();
+				// while (stream.peek() != '\n') {
+				// 	t.slice += stream.get();
+				// }
+				parseInline(stream, t.slice);
+				// printf("inline lex %s\n", slice.c_str());
 				ts.push_back(t);
 				continue;
 			}
@@ -248,7 +305,6 @@ vector<Token> lexStream(stringstream& stream) {
 			TokenType sp = kIdent;
 			char b = (stream).peek();
 			string slice = std::string(&b, 1);
-
 
 			switch (stream.get()) {
 				case '=':

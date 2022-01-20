@@ -186,10 +186,10 @@ class cocos2d::CCImage {
 }
 
 class cocos2d::CCKeyboardDelegate {
-	inline void cocos2d::CCKeyboardDelegate::keyDown(cocos2d::enumKeyCodes) {}
-	inline void cocos2d::CCKeyboardDelegate::keyUp(cocos2d::enumKeyCodes) {}
+	void cocos2d::CCKeyboardDelegate::keyDown(cocos2d::enumKeyCodes) {}
+	void cocos2d::CCKeyboardDelegate::keyUp(cocos2d::enumKeyCodes) {}
 
-	inline cocos2d::CCKeyboardDelegate::CCKeyboardDelegate() {}
+	cocos2d::CCKeyboardDelegate::CCKeyboardDelegate() {}
 }
 
 class cocos2d::CCKeyboardDispatcher {
@@ -361,9 +361,9 @@ class cocos2d::CCMotionStreak {
 
 class cocos2d::CCMouseDelegate {
 	inline cocos2d::CCMouseDelegate::CCMouseDelegate() {}
-	inline void cocos2d::CCMouseDelegate::rightKeyDown() {}
-	inline void cocos2d::CCMouseDelegate::rightKeyUp() {}
-	inline void cocos2d::CCMouseDelegate::scrollWheel(float, float) {}
+	void cocos2d::CCMouseDelegate::rightKeyDown() {}
+	void cocos2d::CCMouseDelegate::rightKeyUp() {}
+	void cocos2d::CCMouseDelegate::scrollWheel(float, float) {}
 }
 
 class cocos2d::CCMouseHandler {
