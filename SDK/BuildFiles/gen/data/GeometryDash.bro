@@ -190,6 +190,10 @@ class CCCircleWave : cocos2d::CCNode {
 	CCCircleWaveDelegate* m_delegate = mac 0x150;
 }
 
+class GhostTrailEffect {
+	
+}
+
 class CCCircleWaveDelegate {
 	inline void circleWaveWillBeRemoved(CCCircleWave* wave) {}
 }
