@@ -6,6 +6,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <string.h>
+#include <fstream>
 #include "err.hpp"
 using std::stringstream;
 using std::string;
@@ -175,17 +176,12 @@ void parsePreproc(stringstream& stream) {
 			cout << fname << endl;
 			cacerr("Could not include file %s\n", fname.c_str());
 		}
-		// why c file reading
 
-		fseek(fptr, 0, SEEK_END);
-		long fsize = ftell(fptr);
-		fseek(fptr, 0, SEEK_SET);
-		char* contents = new char[fsize + 1];
-		fread(contents, fsize, 1, fptr);
 		fclose(fptr);
-		contents[fsize] = 0;
 
-		stream << contents;
+		std::ifstream t(fname);
+
+		stream << t.rdbuf();
 
 		//slice = stream.str();
 		//cout << stream.str().erase(0, stream.tellp()) << endl;
@@ -196,6 +192,7 @@ void parsePreproc(stringstream& stream) {
 
 vector<Token> lexStream(stringstream& stream) {
 	vector<Token> ts;
+
 
 	while ((stream).peek() != -1) {
 		Token t = parseIdent(stream);
@@ -312,17 +309,14 @@ vector<Token> lexStream(stringstream& stream) {
 						sp = kColon;
 						break;
 					}
-				case ' ':
-					sp = kIgnore;
-					break;
 				case '#':
 					parsePreproc(stream);
 					sp = kIgnore;
 					break;
 				case '\n':
-					sp = kIgnore;
-					break;
 				case '\t':
+				case '\r':
+				case ' ':
 					sp = kIgnore;
 					break;
 				case '/':
@@ -352,6 +346,7 @@ vector<Token> lexStream(stringstream& stream) {
 					sp = kString;
 					break;
 				default:
+					std::streamoff pos = stream.tellg();
 					cacerr("Invalid token \"%s\"", slice.c_str());
 			}
 

@@ -95,21 +95,6 @@ inline T base_cast(F obj) {
 
 inline geode::Mod* MyMod;
 
-GEODE_API bool GEODE_CALL geode_load(geode::Mod* mod) {
-    MyMod = mod;
-    for (auto i : modContainer.m_mods) {
-        mod->addHook(
-            (void*)i.hookAddr,
-            (void*)i.funcLocation
-        );
-    }
-    return true;
-}
-
-GEODE_API void GEODE_CALL geode_unload() {
-
-}
-
 /**
  * Main class implementation, it has the structure
  * 
@@ -132,7 +117,7 @@ GEODE_API void GEODE_CALL geode_unload() {
 
 #define PREDECLARE(derived) derived##__; template<typename T, auto _orig> struct _##derived {};
 #define APPLY(base, derived) namespace { struct derived##UUID{}; bool derived##Apply = base<derived##UUID, _##derived>::_apply();  }
-#define DECLARE(base, derived) using derived = _##derived<derived##UUID, 0>; template <auto _orig> struct hidden _##derived<derived##UUID, _orig>: public base<derived##UUID, _##derived>
+#define DECLARE(base, derived) using derived = _##derived<derived##UUID, 0>; template <auto _orig> struct GEODE_HIDDEN _##derived<derived##UUID, _orig>: public base<derived##UUID, _##derived>
 
 #define REDIRECT___(base, derived) PREDECLARE(derived) APPLY(base, derived) DECLARE(base, derived)
 #define REDIRECT__(base, derived) REDIRECT___(geode::interfaces::$##base, derived)
@@ -156,7 +141,7 @@ GEODE_API void GEODE_CALL geode_unload() {
  */
 #define CRTP1(base) $redirect(base)
 #define CRTP2(base, derived) $implement(base, derived)
-#define $(...) CONCAT(CRTP, NUMBER_OF_ARGS(__VA_ARGS__))(__VA_ARGS__)
+#define $(...) INVOKE(CONCAT(CRTP, NUMBER_OF_ARGS(__VA_ARGS__)), __VA_ARGS__)
 
 namespace geode {
     using namespace cocos2d;

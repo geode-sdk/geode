@@ -7,6 +7,7 @@
 #include <string>
 #include <unordered_map>
 #include <helpers/Result.hpp>
+#include <functional>
 
 class Geode;
 

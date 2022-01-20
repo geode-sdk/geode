@@ -1,0 +1,3 @@
+[submodule "SDK/Include/core"]
+	path = SDK/Include/core
+	url = https://github.com/geode-sdk/core
