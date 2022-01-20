@@ -1,5 +1,9 @@
 #pragma once 
 
+#ifdef _MSC_VER
+#pragma warning(disable: 4251) // dll-interface
+#endif
+
 #include <Base.hpp>
 #include <MacroBase.hpp>
 #include <PlatformBase.hpp>

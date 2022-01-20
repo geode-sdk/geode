@@ -1,6 +1,6 @@
 #pragma once
 
-#include <platform/platform.hpp>
+#include "platform/platform.hpp"
 
 // Because C++ doesn't like using a
 // namespace that doesn't exist
