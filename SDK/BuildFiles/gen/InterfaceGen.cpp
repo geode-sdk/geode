@@ -5,7 +5,7 @@ namespace format_strings {
     // requires: class_name
     char const* interface_start = R"CAC(
 template<typename U=void, template <typename T, auto orig> class D = __unitSpec>
-struct ${class_name} : {class_name}, InterfaceBase {{
+struct ${class_name} : {raw_class_name}, InterfaceBase {{
     ${class_name}(const ${class_name}& c) : {class_name}(c) {{}}
     ${class_name}() = delete;
 
@@ -112,7 +112,7 @@ int main(int argc, char** argv) {
     for (auto& [name, c] : root.classes) {
         string unqualifiedName = CacShare::toUnqualified(name);
 
-        output += fmt::format(format_strings::interface_start, fmt::arg("class_name", unqualifiedName));
+        output += fmt::format(format_strings::interface_start, fmt::arg("class_name", unqualifiedName), fmt::arg("raw_class_name", name));
 
         for (auto& f : c.functions) {
             if (f.binds[CacShare::platform].size() == 0)

@@ -60,7 +60,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 	${GEODE_INCLUDE_DIR}/
 	${GEODE_INCLUDE_DIR}/helpers
 	${GEODE_INCLUDE_DIR}/base
-	${GEODE_INCLUDE_DIR}/old_stl
+	${GEODE_INCLUDE_DIR}/c++stl
 	${GEODE_INCLUDE_DIR}/hook
 	${GEODE_INCLUDE_DIR}/loader
 	${GEODE_INCLUDE_DIR}/core/include/geode/core

@@ -5,7 +5,6 @@
 #include <PlatformBase.hpp>
 
 #include <Gen/Header.hpp>
-#include <Geode.hpp>
 
 #include <FunctionBase.hpp>
 #include <unordered_map>
@@ -144,9 +143,7 @@ inline geode::Mod* MyMod;
 #define $(...) INVOKE(CONCAT(CRTP, NUMBER_OF_ARGS(__VA_ARGS__)), __VA_ARGS__)
 
 namespace geode {
-    using namespace cocos2d;
-    using namespace cocos2d::extension;
-    using std::declval;
+	using std::declval;
     struct interfaces { // i find this really funny
         #include <Gen/Interface.hpp>
     };
