@@ -10,10 +10,31 @@ using std::vector, std::unordered_map, std::string, std::is_same_v, std::cout, s
 
 struct ClassDefinition;
 
+enum Platform {
+    kMac=0,
+    kWindows=1,
+    kIos=2,
+    kAndroid=3
+};
+
+enum PlatformMember {
+    kMacMember=0,
+    kWindowsMember=1,
+    kIosMember=0,
+    kAndroidMember=2
+};
+
+enum PlatformFunction {
+    kMacFunction=0,
+    kWindowsFunction=1,
+    kIosFunction=2,
+    kAndroidFunction=-1
+};
+
 enum FieldType {
 	kFunction=0,
 	kMember=1,
-	kInline=2
+	kInline=2,
 };
 
 struct ClassField {
@@ -28,6 +49,12 @@ enum FunctionType {
 	//kStructorCutoff=10, // used for comparisons
 	kConstructor=11,
 	kDestructor=12
+};
+
+enum MemberType {
+	kDefault=0,
+	kHardcode=1,
+	kPad=2
 };
 
 struct Function : ClassField {
@@ -45,10 +72,10 @@ struct Function : ClassField {
 };
 
 struct Member : ClassField {
-	Member() : type(), name(), hardcode(), hardcodes(), count() {}
+	Member() : type(), name(), hardcodes(), count() {}
 	string type;
 	string name;
-	bool hardcode;
+	MemberType member_type;
 	string hardcodes[3]; // mac/ios, windows, android
 	size_t count; // for arrays
 };

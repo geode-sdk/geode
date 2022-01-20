@@ -53,8 +53,7 @@ class CC_DLL CCPoint
 public:
     float x;
     float y;
-    // alk modifications: all defined
-
+    
     inline CCPoint() : x(0), y(0) {}
     inline CCPoint(float x, float y) : x(x), y(y) {}
     /**

@@ -16,15 +16,8 @@ using std::istreambuf_iterator;
     #include <unistd.h>
 #endif
 
-enum CacPlatform {
-    kMac,
-    kWindows,
-    kIos,
-    kAndroid,
-};
-
 struct CacShare {
-    inline static CacPlatform platform;
+    inline static Platform platform;
     inline static string writePath;
 
     static Root init(int argc, char** argv) {
