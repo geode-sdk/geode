@@ -24,6 +24,8 @@ struct {class_name}{base_classes} {{
     // requires: type, member_name, array
     char const* member_definition = "\t{type} {member_name}{array};\n";
 
+    char const* pad_definition = "\tGEODE_PAD({hardcode});\n";
+
     // requires: hardcode_macro, type, member_name, hardcode
     char const* hardcode_definition = "\tCLASSPARAM({type}, {member_name}, {hardcode});\n";
 
@@ -99,15 +101,24 @@ int main(int argc, char** argv) {
             );
         }
         for (auto m : cd.members) {
-            if (CacShare::getHardcode(m).size() == 0)
+            if (m.member_type != kDefault and CacShare::getHardcode(m).size() == 0)
                     continue; // Not Implemented on platform
 
         	char const* used_format;
-        	if (m.hardcode) used_format = format_strings::hardcode_definition;
-        	else used_format = format_strings::member_definition;
+        	switch (m.member_type) {
+                case kDefault:
+                	used_format = format_strings::member_definition;
+                	break;
+                case kHardcode:
+                	used_format = format_strings::hardcode_definition;
+                	break;
+                case kPad:
+                	used_format = format_strings::pad_definition;
+                	break;
+            }
         	output += fmt::format(used_format,
                 fmt::arg("type", m.type),
-                fmt::arg("member_name", m.name.substr(m.hardcode ? 2 : 0, m.name.size())),
+                fmt::arg("member_name", m.name.substr(m.member_type == kHardcode ? 2 : 0, m.name.size())),
                 fmt::arg("hardcode", CacShare::getHardcode(m)),
                 fmt::arg("array", CacShare::getArray(m.count)) //why is this not tied to member
             );

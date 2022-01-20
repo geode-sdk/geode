@@ -13,7 +13,7 @@ struct ClassDefinition;
 enum FieldType {
 	kFunction=0,
 	kMember=1,
-	kInline=2
+	kInline=2,
 };
 
 struct ClassField {
@@ -28,6 +28,12 @@ enum FunctionType {
 	//kStructorCutoff=10, // used for comparisons
 	kConstructor=11,
 	kDestructor=12
+};
+
+enum MemberType {
+	kDefault=0,
+	kHardcode=1,
+	kPad=2
 };
 
 struct Function : ClassField {
@@ -45,10 +51,10 @@ struct Function : ClassField {
 };
 
 struct Member : ClassField {
-	Member() : type(), name(), hardcode(), hardcodes(), count() {}
+	Member() : type(), name(), hardcodes(), count() {}
 	string type;
 	string name;
-	bool hardcode;
+	MemberType member_type;
 	string hardcodes[3]; // mac/ios, windows, android
 	size_t count; // for arrays
 };

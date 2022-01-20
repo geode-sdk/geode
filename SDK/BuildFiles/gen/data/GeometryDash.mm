@@ -74,7 +74,7 @@ class AppDelegate : cocos2d::CCObject {
 	virtual void willSwitchToScene(cocos2d::CCScene*) = 0x3aaf40;
 	static AppDelegate* get() = 0x3aab10;
 
-	void* m_pad;
+	PAD = 0x8, 0x4, 0x4;
 	cocos2d::CCScene* m_runningScene;
 }
 

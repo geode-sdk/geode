@@ -121,6 +121,8 @@ void parseMember(ClassDefinition& c, string type, string varName, Tokens& tokens
 	Member myMember;
 	myMember.type = type;
 	myMember.name = varName;
+	if (varName == "PAD") myMember.member_type = MemberType::kPad;
+
 	if (!next_if_type(kBrackL, tokens)) {
 		auto num_maybe = next_expect(tokens, kIdent, "number").slice;
 		if (num_maybe.find_first_not_of("0123456789") != string::npos) {
@@ -132,7 +134,8 @@ void parseMember(ClassDefinition& c, string type, string varName, Tokens& tokens
 	}
 
 	if (!next_if_type(kEqual, tokens)) {
-		myMember.hardcode = true;
+		if (myMember.member_type != MemberType::kPad)
+			myMember.member_type = MemberType::kHardcode;
 		for (int k = 0; k < 4; ++k) {
 			if (k == 3)
 				cacerr("Maximum of 3 hardcodes allowed\n");
@@ -151,7 +154,11 @@ void parseMember(ClassDefinition& c, string type, string varName, Tokens& tokens
 			if (t.type != kComma)
 				cacerr("Expected comma, found %s.\n", t.slice.c_str());
 		}
-	} else next_expect(tokens, kSemi, ";");
+	} else {
+		if (myMember.member_type != MemberType::kPad)
+			myMember.member_type = MemberType::kDefault;
+		next_expect(tokens, kSemi, ";");
+	}
 
 	// myMember.parent_class = &c;
 	// myMember.index = c.in_order.size();
