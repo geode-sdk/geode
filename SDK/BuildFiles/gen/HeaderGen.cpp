@@ -41,7 +41,14 @@ void sortClass(Root& r, ClassDefinition* c, set<ClassDefinition*>& looked, vecto
         	if (r.classes.count(c->name) == 0) {
 		        cacerr("Expected class definition for %s\n", c->name.c_str());
 		    }
-		    else sortClass(r, &r.classes.at(j), looked, ordered);    
+		    else {
+		    	if (r.classes.find(j) == r.classes.end()) {
+		    		auto newcl = new ClassDefinition();
+		    		newcl->name = j;
+		    		ordered.push_back(newcl);
+		    	}
+		    	else sortClass(r, &r.classes.at(j), looked, ordered);
+		    }    
         }
         ordered.push_back(c);
     }

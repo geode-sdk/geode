@@ -213,7 +213,7 @@ class CCMenuItemSpriteExtra : cocos2d::CCMenuItemSprite {
 	float m_colorDip;			
 	cocos2d::CCPoint m_destPosition;	
 	cocos2d::CCPoint m_offset;	
-	MenuAnimationType m_animationType = kMenuAnimationTypeScale;	
+	MenuAnimationType m_animationType;	
 	cocos2d::CCPoint m_startPosition;	
 	PAD = win 0xc;
 }
@@ -1612,7 +1612,7 @@ class VideoOptionsLayer : public FLAlertLayer {
 	cocos2d::CCArray* m_resolutions;   
 	PAD = win 0x4;
 	int m_currentResolution;   
-};
+}
 
 class MusicDownloadManager {
 	void incrementPriorityForSong(int) = mac 0x2ef750;
@@ -2184,14 +2184,14 @@ class DialogObject : cocos2d::CCObject {
 	cocos2d::ccColor3B m_colour;
 	float m_textWidth;
 	bool m_canSkip;
-};
+}
 
 class GJRewardObject : cocos2d::CCObject {
 	SpecialRewardItem m_specialRewardItem;
 	UnlockType m_unlockType;
 	int m_itemID;
 	int m_total;
-};
+}
 
 class TeleportPortalObject : GameObject {
     PAD = win 0x4;
@@ -2199,7 +2199,7 @@ class TeleportPortalObject : GameObject {
     bool m_unk470;
     float m_unk474;
     bool m_unk478;
-};
+}
 
 class SetupShakePopup : FLAlertLayer {
 	static SetupShakePopup* create(EffectGameObject*, cocos2d::CCArray*) = mac 0x3adc00;
@@ -2555,7 +2555,7 @@ class CustomizeObjectLayer : FLAlertLayer, TextInputDelegate, HSVWidgetPopupDele
 class HSVWidgetPopup : public FLAlertLayer {
 	ConfigureHSVWidget* m_configureWidget;
 	HSVWidgetPopupDelegate* m_delegate;
-};
+}
 
 class GJDropDownLayer : cocos2d::CCLayerColor {
 	void registerWithTouchDispatcher() = win 0x16990;
@@ -2703,9 +2703,12 @@ class CCMenuItemToggler {
 class DrawGridLayer : cocos2d::CCLayer {
 	void draw() = win 0x16ce90;
 
-	cocos2d::CCPoint(*m_commonLines)[400]; 	
-	void* m_yellowGuidelines;  				
-	cocos2d::CCPoint(*m_greenGuidelines)[200]; 
+	inline using cocos2d::CCPoint(*CCPointArray400)[400];
+	inline using cocos2d::CCPoint(*CCPointArray200)[400];
+
+	CCPointArray400 m_commonLines; 	
+	CCPointArray200 m_yellowGuidelines;  				
+	CCPointArray200 m_greenGuidelines; 
 	float m_songOffset1;       
 	float m_songOffset2;       
 	float m_lastMusicXPosition;
@@ -2879,7 +2882,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
 	cocos2d::CCArray* m_hideableUIElementArray; 
 	PAD = win 0x4;
 	float m_gridSize; 
-	PAD = win 0x14
+	PAD = win 0x14;
 	bool m_moveModifier; 
 	int m_rotationTouchID; 
 	int m_scaleTouchID; 
@@ -3086,7 +3089,7 @@ class SetupPulsePopup : FLAlertLayer, ColorPickerDelegate, TextInputDelegate, GJ
     PAD = win 0x64;
     int m_pulseMode;
 
-    virtual void colorValueChanged(cocos2d::ccColor3B color) {}
+    inline virtual void colorValueChanged(cocos2d::ccColor3B color) {}
 }
 
 class UndoObject : cocos2d::CCObject {
@@ -3424,7 +3427,7 @@ class GJMapPack : cocos2d::CCNode {
 	cocos2d::ccColor3B m_barColour;
 	int m_MId;
 	bool m_isGauntlet;
-};
+}
 
 class GJSearchObject : cocos2d::CCNode {
 	static GJSearchObject* create(SearchType nID) = win 0xc2b90;
@@ -4449,7 +4452,7 @@ class GJSpriteColor : public cocos2d::CCNode {
     bool unk_108;
     float unk_10C;
     bool unk_110;
-};
+}
 
 class EffectGameObject {
 	static EffectGameObject* create(const char* sprName) = win 0x253c30;
@@ -4563,7 +4566,7 @@ class ConfigureHSVWidget : public cocos2d::CCNode {
 	Slider* m_brightnessSlider;
 
 	cocos2d::ccHSVValue m_value;
-};
+}
 
 class ColorSelectPopup : FLAlertLayer, ColorPickerDelegate, TextInputDelegate, GJSpecialColorSelectDelegate {
     cocos2d::extension::CCControlColourPicker* m_colorPicker; 

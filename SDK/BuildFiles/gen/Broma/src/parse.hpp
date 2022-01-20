@@ -14,6 +14,8 @@ Token next(Tokens& tokens) {
 		cacerr("Unexpected EOF while parsing\n");
 	}
 	Token p = tokens.front();
+	// epic debugger
+	// std::cout << p.slice << std::endl;
 	tokens.pop();
 	return p;
 }
