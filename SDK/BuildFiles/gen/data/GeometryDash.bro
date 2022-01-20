@@ -4716,7 +4716,7 @@ class MoreOptionsLayer {
 	void addToggle(const char* name, const char* key, const char* info) = win 0x1df6b0;
 }
 
-class OptionsLayer {
+class OptionsLayer : cocos2d::CCLayerColor {
 	static OptionsLayer* create() = win 0x1dd310;
 	inline static OptionsLayer* addToCurrentScene(bool noTransition) {
 	    auto layer = OptionsLayer::create();
