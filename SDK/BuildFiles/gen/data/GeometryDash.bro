@@ -631,11 +631,11 @@ class FLAlertLayer : cocos2d::CCLayerColor {
     virtual void keyDown(cocos2d::enumKeyCodes) = mac 0x25ece0, win 0x23250;
     virtual void show() = mac 0x25f120, win 0x23560, ios 0x1feff4;
 
-    bool init(FLAlertLayerProtocol*, char const*, gd::string, char const*, char const*, float, bool, float) =                   mac 0x25e1b0;
+    bool init(FLAlertLayerProtocol*, char const*, gd::string, char const*, char const*, float, bool, float) = mac 0x25e1b0;
 
-    static FLAlertLayer* create(FLAlertLayerProtocol*, char const*, gd::string, char const*, char const*) =                                   win 0x22680;
+    static FLAlertLayer* create(FLAlertLayerProtocol*, char const*, gd::string, char const*, char const*) =mac 0x25de00, win 0x22680;
     [[mangle('_ZN12FLAlertLayer6createEP20FLAlertLayerProtocolPKcSsS3_S3_f')]]
-    static FLAlertLayer* create(FLAlertLayerProtocol*, char const*, gd::string, char const*, char const*, float) =              mac 0x25e0e0, win 0x22730, ios 0x1fe374;
+    static FLAlertLayer* create(FLAlertLayerProtocol*, char const*, gd::string, char const*, char const*, float) = mac 0x25e0e0, win 0x22730, ios 0x1fe374;
     static FLAlertLayer* create(FLAlertLayerProtocol*, char const*, gd::string, char const*, char const*, float, bool, float) = mac 0x25dec0;
     
     static FLAlertLayer* create(char const* title, const gd::string &desc, char const* btn) {
@@ -2575,7 +2575,7 @@ class CCTextInputNode {
 	bool ccTouchBegan(cocos2d::CCTouch* pTouch, cocos2d::CCEvent* pEvent) = win 0x1f20;
 	void onClickTrackNode(bool unk) = win 0x216b0;
 	bool init(const char* sCaption, cocos2d::CCObject* pTarget, const char* sFontFile, float fWidth, float fHeight) = win 0x20e50;
-	static CCTextInputNode* create(const char* caption, cocos2d::CCObject* target, const char* fntFile, float width, float height) = win 0x20d90;
+	static CCTextInputNode* create(float width, float height, const char* caption, cocos2d::CCObject* target, const char* fntFile) = win 0x20d90;
 }
 
 class GJRotationControl {
@@ -2720,7 +2720,7 @@ class CCMenuItemSpriteExtra {
 	void activate() = win 0x191c0;
 	void selected() = win 0x19270;
 	void unselected() = win 0x19430;
-	static CCMenuItemSpriteExtra* create(cocos2d::CCNode sprite, cocos2d::CCObject* target, cocos2d::SEL_MenuHandler callback) = win 0x18ee0;
+	static CCMenuItemSpriteExtra* create(cocos2d::CCNode* sprite, cocos2d::CCNode*, cocos2d::CCObject* target, cocos2d::SEL_MenuHandler callback) = win 0x18ee0;
 	void setSizeMult(float mult) = win 0x19080;
 	void useAnimationType(MenuAnimationType type) {
 	    this->m_startPosition = this->getNormalImage()->getPosition();
@@ -5018,9 +5018,9 @@ class GJItemIcon {
 }
 
 class GameToolbox {
-	CCMenuItemToggler* createToggleButton(cocos2d::SEL_MenuHandler onToggle, bool bToggled, cocos2d::CCMenu* pToggleMenu, cocos2d::CCNode* pTarget, cocos2d::CCNode* pLabelParent, float fCheckboxScale, float fLabelSize, float fMaxWidth, const char* sIdk, bool bIdk, int nTag, cocos2d::CCArray* pToggleArray, gd::string sText, cocos2d::CCPoint obPosition, cocos2d::CCPoint obLabelOffset) = win 0x25fe0;
-	void transformColor(cocos2d::ccColor3B const& src, cocos2d::ccColor3B & dest, cocos2d::ccHSVValue hsv) = win 0x26a60;
-	void alignItemsHorisontally(cocos2d::CCArray* array, bool idk, cocos2d::CCPoint start, float pad) = win 0x25b20;
+	static CCMenuItemToggler* createToggleButton(cocos2d::SEL_MenuHandler onToggle, bool bToggled, cocos2d::CCMenu* pToggleMenu, cocos2d::CCNode* pTarget, cocos2d::CCNode* pLabelParent, float fCheckboxScale, float fLabelSize, float fMaxWidth, const char* sIdk, bool bIdk, int nTag, cocos2d::CCArray* pToggleArray, gd::string sText, cocos2d::CCPoint obPosition, cocos2d::CCPoint obLabelOffset) = win 0x25fe0, mac 0x28bdd0;
+	static void transformColor(cocos2d::ccColor3B const& src, cocos2d::ccColor3B & dest, cocos2d::ccHSVValue hsv) = win 0x26a60;
+	static void alignItemsHorisontally(cocos2d::CCArray* array, bool idk, cocos2d::CCPoint start, float pad) = win 0x25b20;
 }
 
 class LevelCommentDelegate {}
