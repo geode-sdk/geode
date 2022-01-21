@@ -148,6 +148,7 @@ void parseFunction(ClassDefinition& c, Function myFunction, Tokens& tokens) {
 				next(tokens);
 				auto platform = t.slice;
 				t = next(tokens);
+				if (t.slice == "0x0") t.slice = "";
 				if (t.type != kAddress) cacerr("Expected address, found %s\n", t.slice.c_str());
 				if (platform == "mac") myFunction.binds[kMacFunction] = t.slice;
 				else if (platform == "win") myFunction.binds[kWindowsFunction] = t.slice;
@@ -201,6 +202,7 @@ void parseMember(ClassDefinition& c, string type, string varName, Tokens& tokens
 			else if (t.type == kIdent) {
 				auto platform = t.slice;
 				t = next(tokens);
+				if (t.slice == "0x0") t.slice = "";
 				if (t.type != kAddress) cacerr("Expected address, found %s\n", t.slice.c_str());
 				if (platform == "mac") myMember.hardcodes[kMacMember] = t.slice;
 				else if (platform == "win") myMember.hardcodes[kWindowsMember] = t.slice;

@@ -117,7 +117,6 @@ int main(int argc, char** argv) {
             );
         }
         for (auto m : cd.members) {
-        	if (CacShare::getHardcode(m).size() == 0x0) CacShare::getHardcode(m) = "0x0";
             // if (m.member_type != kDefault && CacShare::getHardcode(m) == )
             //     continue; // Not Implemented on platform
 
@@ -130,8 +129,8 @@ int main(int argc, char** argv) {
                 	used_format = format_strings::hardcode_definition;
                 	break;
                 case kPad:
-                	if (CacShare::getHardcode(m) == "0x0") used_format = format_strings::unimplemented_definition;
                 	used_format = format_strings::pad_definition;
+                	if (CacShare::getHardcode(m).size() == 0) used_format = format_strings::unimplemented_definition;
                 	break;
             }
         	output += fmt::format(used_format,
