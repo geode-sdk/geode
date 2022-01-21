@@ -4367,21 +4367,24 @@ class TableView : CCScrollLayerExt, CCScrollLayerExtDelegate {
 	static TableView* create(TableViewDelegate*, TableViewDataSource*, cocos2d::CCRect) = mac 0x37eb30, win 0x30ed0, ios 0x0;
 	void reloadData() = mac 0x37f970, win 0x317e0, ios 0x0;
 
-	bool m_touchDown2;
+	bool m_touchOutOfBoundary;
 	cocos2d::CCTouch* m_touchStart;
 	cocos2d::CCPoint m_touchStartPosition2;
 	cocos2d::CCPoint m_unknown2;
 	cocos2d::CCPoint m_touchPosition2;
-	PAD = mac 0x0, win 0x4, android 0x0;
+	void* m_idk;
 	bool m_touchMoved;
 	cocos2d::CCArray* m_cellArray;
 	cocos2d::CCArray* m_array2;
 	cocos2d::CCArray* m_array3;
 	TableViewDelegate* m_delegate;
 	TableViewDataSource* m_dataSource;
-	PAD = mac 0x0, win 0x10, android 0x0;
-	float m_touchOutOfBoundary;
-	PAD = mac 0x0, win 0x4, android 0x0;
+	int m_unused1;
+	int m_unused2;
+	void* m_unused3;
+	int m_unused4;
+	float m_touchLastY;
+	bool m_cancellingTouches;
 }
 
 [[depends(CCIndexPath)]]
