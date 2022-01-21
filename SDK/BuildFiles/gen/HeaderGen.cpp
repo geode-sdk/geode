@@ -28,6 +28,7 @@ struct {class_name}{base_classes} {{
     char const* member_definition = "\t{type} {member_name}{array};\n";
 
     char const* pad_definition = "\tGEODE_PAD({hardcode});\n";
+    char const* unimplemented_definition = "\tGEODE_UNIMPLEMENTED_PAD();\n";
 
     // requires: hardcode_macro, type, member_name, hardcode
     char const* hardcode_definition = "\tCLASSPARAM({type}, {member_name}, {hardcode});\n";
@@ -39,7 +40,7 @@ void sortClass(Root& r, ClassDefinition* c, set<ClassDefinition*>& looked, vecto
 	if (c->name.find("cocos2d::") != string::npos) return; // cocos headers exist already
     if (looked.find(c) == looked.end()) {
     	looked.insert(c);
-        for (string j : c->superclasses) {
+        for (string j : c->depends) {
         	if (j.find("cocos2d::") != string::npos) continue;
         	if (r.classes.count(c->name) == 0) {
 		        cacerr("Expected class definition for %s\n", c->name.c_str());
@@ -116,8 +117,9 @@ int main(int argc, char** argv) {
             );
         }
         for (auto m : cd.members) {
-            if (m.member_type != kDefault && CacShare::getHardcode(m).size() == 0)
-                continue; // Not Implemented on platform
+        	if (CacShare::getHardcode(m).size() == 0x0) CacShare::getHardcode(m) = "0x0";
+            // if (m.member_type != kDefault && CacShare::getHardcode(m) == )
+            //     continue; // Not Implemented on platform
 
         	char const* used_format;
         	switch (m.member_type) {
@@ -128,12 +130,13 @@ int main(int argc, char** argv) {
                 	used_format = format_strings::hardcode_definition;
                 	break;
                 case kPad:
+                	if (CacShare::getHardcode(m) == "0x0") used_format = format_strings::unimplemented_definition;
                 	used_format = format_strings::pad_definition;
                 	break;
             }
         	output += fmt::format(used_format,
                 fmt::arg("type", m.type),
-                fmt::arg("member_name", m.name.substr(m.member_type == kHardcode ? 2 : 0, m.name.size())),
+                fmt::arg("member_name", m.name.substr(m.member_type == kHardcode && m.name.substr(0, 2) == "m_" ? 2 : 0, m.name.size())),
                 fmt::arg("hardcode", CacShare::getHardcode(m)),
                 fmt::arg("array", CacShare::getArray(m.count)) //why is this not tied to member
             );

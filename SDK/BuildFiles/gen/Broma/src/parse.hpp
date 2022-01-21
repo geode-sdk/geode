@@ -44,21 +44,27 @@ bool next_if_type(TokenType type, Tokens& tokens) {
 	return true;
 }
 string parseQualifiedName(Tokens& tokens);
+
+inline bool checkEndOfType(bool qualifiedUsed, Tokens& tokens) {
+	return (!qualifiedUsed || peek(tokens).type != kIdent) && 
+		peek(tokens).type != kComma && peek(tokens).type != kParenR;
+}
 string parseReturn(Tokens& tokens) {
 	string ret;
 	bool qualifiedUsed = false;
-	while ((!qualifiedUsed || peek(tokens).type != kIdent) && 
-		peek(tokens).type != kComma && peek(tokens).type != kParenR) {
+	while (checkEndOfType(qualifiedUsed, tokens)) {
 		if (peek(tokens).type == kIdent) {
 			qualifiedUsed = true;
 			ret += parseQualifiedName(tokens);
-			if (peek(tokens).type == kIdent || peek(tokens).type == kConst || peek(tokens).type == kUnsigned) ret += " ";
+			if ((peek(tokens).type == kIdent || peek(tokens).type == kConst || peek(tokens).type == kUnsigned) && 
+				checkEndOfType(qualifiedUsed, tokens)) ret += " ";
 		}
 		else {
 			auto t = next(tokens);
 			ret += t.slice;
 			if ((t.type == kIdent || t.type == kConst|| t.type == kUnsigned) && 
-				(peek(tokens).type == kIdent || peek(tokens).type == kConst || peek(tokens).type == kUnsigned)) ret += " ";
+				(peek(tokens).type == kIdent || peek(tokens).type == kConst || peek(tokens).type == kUnsigned)
+				&& checkEndOfType(qualifiedUsed, tokens)) ret += " ";
 		}
 	}
 	// std::cout << ret << std::endl;
@@ -87,6 +93,14 @@ string parseAttribute(Tokens& tokens) { // if attributes are expanded we will ne
 		next_expect(tokens, kParenR, ")");
 		next_expect(tokens, kAttrR, "]]");
 		return mangle;
+	} else if (attrib_name == "depends") {
+		next_expect(tokens, kParenL, "(");
+		string depends;
+		while (next_if_type(kParenR, tokens)) {
+			depends += next(tokens).slice;
+		}
+		next_expect(tokens, kAttrR, "]]");
+		return depends;
 	} else {
 		// we can add more later
 		cacerr("Invalid attribute %s\n", attrib_name.c_str());
@@ -316,9 +330,19 @@ void parseField(ClassDefinition& c, Tokens& tokens) {
 }
 
 void parseClass(Root& r, Tokens& tokens) {
+	string attrib;
+	if (!next_if_type(kAttrL, tokens)) {
+		attrib = parseAttribute(tokens);
+	}
 	next_expect(tokens, kClass, "'class'");
 	string name = parseQualifiedName(tokens);
 	ClassDefinition& myClass = r.addClass(name);
+
+    stringstream f(attrib);
+    string s;    
+    while (getline(f, s, ',')) {
+        myClass.depends.push_back(s);
+    }
 
 	if (!next_if_type(kColon, tokens)) {
 		loop {

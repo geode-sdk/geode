@@ -75,16 +75,18 @@ struct Function : ClassField {
 	string definition;
 	bool same(Function const& other) {
 		if (name != other.name) return false;
-		if (return_type != other.return_type) return false;
+		// if (return_type != other.return_type) return false;
 		// if (is_const != other.is_const) return false;
 		// if (function_type != other.function_type) return false;
 		if (args.size() != other.args.size()) return false;
-		for (auto i = 0u; i < args.size(); ++i) if (args[i] != other.args[i]) return false;
+		// for (auto i = 0u; i < args.size(); ++i) if (args[i] != other.args[i]) return false;
 		return true;
 	}
 	void merge(Function const& other) {
 		for (int i = 0; i < 3; ++i)
 			if (binds[i] == "") binds[i] = other.binds[i];
+		if (return_type == "void") return_type = other.return_type;
+		for (auto i = 0u; i < args.size(); ++i) args[i] = other.args[i];
 	}
 };
 
@@ -106,6 +108,7 @@ struct Inline : ClassField {
 struct Root;
 struct ClassDefinition {
 	string name;
+	vector<string> depends;
 	vector<string> superclasses;
 	vector<Function> functions;
 	vector<Member> members;
@@ -115,6 +118,7 @@ struct ClassDefinition {
 	void addSuperclass(string sclass) {
 		if (std::find(superclasses.begin(), superclasses.end(), sclass) == superclasses.end()) {
 			superclasses.push_back(sclass);	
+			depends.push_back(sclass);	
 		}
 		// intentional
 		// else cacerr("Duplicate superclass %s for class %s\n", sclass.c_str(), name.c_str());

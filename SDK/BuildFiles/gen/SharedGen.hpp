@@ -72,7 +72,7 @@ struct CacShare {
         return "";
     }
 
-    static string getHardcode(Member const& m) {
+    static string& getHardcode(Member & m) {
         return m.hardcodes[(std::array<size_t, 4> {0, 1, 0, 2})[CacShare::platform]];
     }
 
@@ -107,7 +107,8 @@ struct CacShare {
         string out = "";
         size_t c = 0;
         for (auto& i : args) {
-            out += fmt::format("{} {}, ", i, argnames[c]);
+            if (argnames[c] == "") out += fmt::format("{}, ", i); 
+            else out += fmt::format("{} {}, ", i, argnames[c]); 
             ++c;
         }
         return out.substr(0, out.size()-2);

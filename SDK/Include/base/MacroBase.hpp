@@ -16,6 +16,7 @@
 #endif
 
 #define GEODE_PAD(size) uint8_t CONCAT(__pad, __LINE__)[size]
+#define GEODE_UNIMPLEMENTED_PAD() private:
 
 #define EXPAND(x) x
 #define INVOKE(macro, ...) EXPAND(macro(__VA_ARGS__))
