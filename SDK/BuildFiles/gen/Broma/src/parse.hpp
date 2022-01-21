@@ -43,12 +43,36 @@ bool next_if_type(TokenType type, Tokens& tokens) {
 	}
 	return true;
 }
+string parseQualifiedName(Tokens& tokens);
+string parseReturn(Tokens& tokens) {
+	string ret;
+	bool qualifiedUsed = false;
+	while ((!qualifiedUsed || peek(tokens).type != kIdent) && 
+		peek(tokens).type != kComma && peek(tokens).type != kParenR) {
+		if (peek(tokens).type == kIdent) {
+			qualifiedUsed = true;
+			ret += parseQualifiedName(tokens);
+			if (peek(tokens).type == kIdent || peek(tokens).type == kConst || peek(tokens).type == kUnsigned) ret += " ";
+		}
+		else {
+			auto t = next(tokens);
+			ret += t.slice;
+			if ((t.type == kIdent || t.type == kConst|| t.type == kUnsigned) && 
+				(peek(tokens).type == kIdent || peek(tokens).type == kConst || peek(tokens).type == kUnsigned)) ret += " ";
+		}
+	}
+	// std::cout << ret << std::endl;
+
+	return ret;
+}
 
 string parseQualifiedName(Tokens& tokens) {
 	string qual;
-	while (peek(tokens).type == kIdent || peek(tokens).type == kQualifier) {
-		qual += next(tokens).slice;
-	}
+	Token t;
+	do {
+		t = next(tokens);
+		qual += t.slice;
+	} while ((t.type == kQualifier && peek(tokens).type == kIdent) || (t.type == kIdent && peek(tokens).type == kQualifier));
 	if (qual.size() == 0)
 		cacerr("Expected identifier, found %s\n", next(tokens).slice.c_str());
 
@@ -73,18 +97,22 @@ string parseAttribute(Tokens& tokens) { // if attributes are expanded we will ne
 void parseFunction(ClassDefinition& c, Function myFunction, Tokens& tokens) {
 	next_expect(tokens, kParenL, "(");
 
+	// std::cout << "func: " << myFunction.name << std::endl;
 	while (next_if_type(kParenR, tokens)) {
 		string args;
-		while (next_if_type(kComma, tokens) && peek(tokens).type != kParenR) {
-			auto t = next(tokens);
-			args += t.slice;
-			if ((t.type == kIdent || t.type == kConst) && (peek(tokens).type == kIdent || peek(tokens).type == kConst))
-				args += " ";
+		string name;
+		args = parseReturn(tokens);
+		// std::cout << peek(tokens).slice << std::endl;
+		// std::cout << "args: " << args << std::endl;
+		if (next_if_type(kComma, tokens) && peek(tokens).type != kParenR) {
+			name = next(tokens).slice;
 		}
+		// std::cout << "name: " << name << std::endl;
 		if (args.size() == 0)
 			continue;
 
 		myFunction.args.push_back(args);
+		myFunction.argnames.push_back(name);
 	}
 
 	if (!next_if_type(kConst, tokens))
@@ -220,6 +248,7 @@ void parseField(ClassDefinition& c, Tokens& tokens) {
 			case kStar:
 			case kAmp:
 			case kIdent:
+			case kUnsigned:
 			case kConst:
 			case kTemplateExpr:
 			case kQualifier:
@@ -262,9 +291,10 @@ void parseField(ClassDefinition& c, Tokens& tokens) {
 		return_type += t.slice;
 		if (i+1 < return_name.size()) {
 			auto& p = return_name[i+1];
-			if ((t.type == kIdent || t.type == kConst) && (p.type == kIdent || p.type == kConst))
+			if ((t.type == kIdent || t.type == kConst || t.type == kUnsigned) && (p.type == kIdent || p.type == kConst || p.type == kUnsigned))
 				return_type += " ";
 		}
+
 		
 	}
 		

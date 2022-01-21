@@ -100,7 +100,7 @@ class AudioEffectsLayer {
 }
 
 class BoomListView : cocos2d::CCLayer, TableViewDataSource, TableViewDelegate {
-	~BoomListView() {
+	inline ~BoomListView() {
 	    CC_SAFE_RELEASE(m_entries);
 	}
 
@@ -491,9 +491,9 @@ class CurrencyRewardLayer {
 
 class CustomListView : cocos2d::CCLayerColor {
 	static CustomListView* create(cocos2d::CCArray*, float, float, int, BoomListType) = mac 0x10d410;
-	void getListCell(char const*) = mac 0x10d560;
-	void loadCell(TableViewCell*, int) = mac 0x10e610;
-	void setupList() = mac 0x116e70;
+	virtual TableViewCell* getListCell(char const*) = mac 0x10d560;
+	virtual void loadCell(TableViewCell*, unsigned int) = mac 0x10e610;
+	virtual void setupList() = mac 0x116e70;
 }
 
 class CustomSongCell : TableViewCell {
@@ -1490,6 +1490,10 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate  {
 	virtual void timeForXPos(float) = mac 0x9c7d0;
 	virtual void xPosForTime(float) = mac 0x9c800;
 	virtual void levelSettingsUpdated() = mac 0x93f30;
+
+	static LevelEditorLayer* get() {
+		return GameManager::sharedState()->m_levelEditorLayer;
+	}
 
 	static LevelEditorLayer* create(GJGameLevel* level) = win 0x15ed60;
 	static cocos2d::CCScene* scene(GJGameLevel* level) {
@@ -4847,16 +4851,13 @@ class BoomListView {
 	float cellHeightForRowAtIndexPath(CCIndexPath& path, TableView* view) = win 0x10e50;
 	unsigned int numberOfRowsInSection(unsigned int section, TableView* view) = win 0x10e60;
 	TableViewCell* cellForRowAtIndexPath(CCIndexPath& path, TableView* view) = win 0x10e70;
-	inline ~BoomListView() {
-	    CC_SAFE_RELEASE(m_content);
-	}
 	bool init(cocos2d::CCArray* entries, BoomListType btype, float width, float height) = win 0x10c20;
 	void setupList() = win 0x10dc0;
 	TableViewCell* getListCell(const char* key) = win 0x10ed0;
 	void loadCell(TableViewCell* cell, unsigned int index) = win 0x10ff0;
 }
 
-class CCContentLayer {
+class CCContentLayer : cocos2d::CCLayerColor {
 	static CCContentLayer* create(cocos2d::ccColor4B const& color, float width, float height) = win 0x172a0;
 }
 
@@ -4889,9 +4890,9 @@ class CCScrollLayerExt : cocos2d::CCLayer {
 	void moveToTopWithOffset(float fOffset) = win 0x1b420;
 	float getMinY() {
 		//TODO: fix this
-	    // return this->getContentSize().height -
-	    //     this->m_contentLayer->getContentSize().height -
-	    //     this->m_scrollLimitTop;
+	    return this->getContentSize().height -
+	        this->m_contentLayer->getContentSize().height -
+	        this->m_scrollLimitTop;
 	}
 	float getMaxY() {
 	    return this->m_scrollLimitBottom;

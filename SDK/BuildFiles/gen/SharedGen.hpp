@@ -103,6 +103,16 @@ struct CacShare {
         return out.substr(0, out.size()-2);
     }
 
+    static string formatRawParams(vector<string> args, vector<string> argnames) {
+        string out = "";
+        size_t c = 0;
+        for (auto& i : args) {
+            out += fmt::format("{} {}, ", i, argnames[c]);
+            ++c;
+        }
+        return out.substr(0, out.size()-2);
+    }
+
     static string formatBases(vector<string> args) {
         return args.size() > 0 ? " : " + fmt::format("{}", fmt::join(args, ", ")) : string("");
     }

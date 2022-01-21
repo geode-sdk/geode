@@ -65,6 +65,7 @@ struct Function : ClassField {
 	string return_type;
 	string name;
 	vector<string> args;
+	vector<string> argnames;
 
 	string binds[3]; // mac, windows, ios (android has all symbols included). No binding = no string. Stored as a string because no math is done on it
 	string android_mangle; // only sometimes matters. empty if irrelevant

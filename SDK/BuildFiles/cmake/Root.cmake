@@ -36,7 +36,6 @@ if (NOT DEFINED GEODE_TARGET_PLATFORM)
 		message(FATAL_ERROR "Unable to detect platform, please set GEODE_TARGET_PLATFORM in the root CMake file.")
 	endif()
 endif()
-
 set(GEODE_CODEGEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/Gen)
 
 file(MAKE_DIRECTORY ${GEODE_CODEGEN_DIR})

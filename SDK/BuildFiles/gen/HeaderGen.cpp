@@ -20,7 +20,7 @@ struct {class_name}{base_classes} {{
     char const* function_definition = "\t{static}{virtual}{return_type} {function_name}({raw_arg_types}){const};\n";
 
     // requires: static, return_type, function_name, raw_parameters, const, class_name, definition
-    char const* ool_function_definition = "{return_type} {class_name}::{function_name}({raw_arg_types}){const} {definition}\n";
+    char const* ool_function_definition = "{return_type} {class_name}::{function_name}({raw_params}){const} {definition}\n";
 
     char const* structor_definition = "\t{function_name}({raw_arg_types});\n";
     
@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
         );
 
         for (auto i : cd.inlines) {
-            printf("inline %s\n", i.inlined.c_str());
+            // printf("inline %s\n", i.inlined.c_str());
         	output += "\t" + i.inlined + "\n";
         }
 
@@ -148,7 +148,7 @@ int main(int argc, char** argv) {
         output += fmt::format(format_strings::ool_function_definition,
                 fmt::arg("return_type", CacShare::getReturn(f)),
                 fmt::arg("function_name", f.name),
-                fmt::arg("raw_arg_types", CacShare::formatRawArgTypes(f.args)),
+                fmt::arg("raw_params", CacShare::formatRawParams(f.args, f.argnames)),
                 fmt::arg("const", f.is_const ? " const" : ""),
                 fmt::arg("class_name", f.parent_class->name),
                 fmt::arg("definition", f.definition)
