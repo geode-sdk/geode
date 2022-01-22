@@ -47,6 +47,12 @@ namespace geode {
 		std::vector<LogMessage*> m_scheduledLogs;
 	
 	public:
+
+		static Interface* get() {
+			static Interface ret;
+			return &ret;
+		}
+
 		void init(Mod*);
 
         /**

@@ -84,7 +84,7 @@ struct ${class_name} : {raw_class_name}, InterfaceBase {{
 		using derivedType{index} = ret{index}(D<U, baseAddress{index}>::*)({raw_arg_types}) {const};
 		constexpr auto derivedAddress{index} = (derivedType{index})(&D<U, baseAddress{index}>::{function_name});
         if (baseAddress{index} != derivedAddress{index}) {{
-            modContainer.registerHook(address{index}, FunctionScrapper::addressOf{non_virtual}Virtual(derivedAddress{index}));
+            Interface::get()->addHook((void*)address{index}, (void*)FunctionScrapper::addressOf{non_virtual}Virtual(derivedAddress{index}));
         }}
 )CAC";
 
@@ -94,7 +94,7 @@ struct ${class_name} : {raw_class_name}, InterfaceBase {{
 		using derivedType{index} = ret{index}(*)({raw_arg_types});
 		constexpr auto derivedAddress{index} = (derivedType{index})(&D<U, baseAddress{index}>::{function_name});
         if (baseAddress{index} != derivedAddress{index}) {{
-            modContainer.registerHook(address{index}, FunctionScrapper::addressOfNonVirtual(derivedAddress{index}));
+            Interface::get()->addHook((void*)address{index}, (void*)FunctionScrapper::addressOfNonVirtual(derivedAddress{index}));
         }}
 )CAC";
 
@@ -115,7 +115,7 @@ int main(int argc, char** argv) {
         output += fmt::format(format_strings::interface_start, fmt::arg("class_name", unqualifiedName), fmt::arg("raw_class_name", name));
 
         for (auto& f : c.functions) {
-            if (f.binds[CacShare::platform].size() == 0)
+            if (!CacShare::functionExists(f))
                 continue; // Function not supported for this platform, skip it
 
             output += fmt::format(format_strings::predefine_return,
@@ -163,7 +163,7 @@ int main(int argc, char** argv) {
         output += format_strings::apply_start;
 
         for (auto& f : c.functions) {
-            if (f.binds[CacShare::platform].size() == 0)
+            if (!CacShare::functionExists(f))
                 continue; // Function not supported for this platform, skip it
 
             char const* used_format;

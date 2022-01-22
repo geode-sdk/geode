@@ -14,8 +14,6 @@
 #include <unordered_map>
 // #include <Geode.hpp>
 
-inline std::unordered_map<void*, bool> destructorLock;
-
 #define GM (GameManager::sharedState())
 #define LEL (GM->_editorLayer())
 #define PL (GM->_playLayer())

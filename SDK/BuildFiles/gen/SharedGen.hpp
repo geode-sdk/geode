@@ -72,6 +72,10 @@ struct CacShare {
         return "";
     }
 
+    static bool functionExists(Function const& f) {
+    	return getAddress(f) != "getBase()+";
+    }
+
     static string& getHardcode(Member & m) {
         return m.hardcodes[(std::array<size_t, 4> {0, 1, 0, 2})[CacShare::platform]];
     }
