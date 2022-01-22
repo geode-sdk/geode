@@ -115,7 +115,7 @@ struct CacShare {
     }
 
     static string formatBases(vector<string> args) {
-        return args.size() > 0 ? " : " + fmt::format("{}", fmt::join(args, ", ")) : string(""); //string(" GEODE_NONINHERITED_CLASS");
+        return args.size() > 0 ? " : " + fmt::format("{}", fmt::join(args, ", ")) : string(""); 
     }
 
     static string formatParameters(size_t paramCount) {

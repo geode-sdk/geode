@@ -13,7 +13,7 @@ namespace format_strings {
 	char const* class_predeclare = "struct {class_name};\n";
     // requires: base_classes, class_name
     char const* class_start = R"CAC(
-struct {class_name}{base_classes} {{
+struct {class_name}{base_classes}{final} {{
 )CAC";
     
     // requires: static, virtual, return_type, function_name, raw_parameters, const
@@ -78,10 +78,20 @@ int main(int argc, char** argv) {
    	for (auto& cp : ordered) {
    		auto& cd = *cp;
 
+   		bool finalClass = false;
+   		for (auto m : cd.members) {
+	        if (m.member_type != kDefault && CacShare::getHardcode(m).size() == 0) continue; // Not Implemented on platform
+        	if (cd.superclasses.size() == 0)  {
+	        	finalClass = true;
+	        	break;
+	        }
+        }
+
 
         output += fmt::format(format_strings::class_start,
             fmt::arg("class_name", cd.name),
-            fmt::arg("base_classes", CacShare::formatBases(cd.superclasses))
+            fmt::arg("base_classes", CacShare::formatBases(cd.superclasses)),
+            fmt::arg("final", finalClass ? " final" : "")
         );
 
         for (auto i : cd.inlines) {
@@ -117,17 +127,13 @@ int main(int argc, char** argv) {
             );
         }
 
-        bool memberUninherited = false;
+    	if (finalClass) {
+       		output += "\tGEODE_NONINHERITED_MEMBERS\n";
+    	}
         
         for (auto m : cd.members) {
             if (m.member_type != kDefault && CacShare::getHardcode(m).size() == 0)
                 continue; // Not Implemented on platform
-
-            if (!memberUninherited && (memberUninherited = true)) {
-            	if (cd.superclasses.size() == 0)  {
-		        	output += "\tGEODE_NONINHERITED_MEMBERS\n";
-		        }
-            }
 
         	char const* used_format;
         	switch (m.member_type) {
