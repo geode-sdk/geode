@@ -186,13 +186,6 @@ class cocos2d::CCImage {
 	auto initWithImageData(void*, int, cocos2d::CCImage::EImageFormat, int, int, int) = mac 0x24fcb0;
 }
 
-class cocos2d::CCKeyboardDelegate {
-	inline void cocos2d::CCKeyboardDelegate::keyDown(cocos2d::enumKeyCodes) {}
-	inline void cocos2d::CCKeyboardDelegate::keyUp(cocos2d::enumKeyCodes) {}
-
-	cocos2d::CCKeyboardDelegate::CCKeyboardDelegate() {}
-}
-
 class cocos2d::CCKeyboardDispatcher {
 	auto dispatchKeyboardMSG(cocos2d::enumKeyCodes, bool) = mac 0xe8190;
 }
@@ -358,13 +351,6 @@ class cocos2d::CCMotionStreak {
 	auto reset() = mac 0x2ee190;
 	auto resumeStroke() = mac 0x2edb30;
 	auto stopStroke() = mac 0x2edb20;
-}
-
-class cocos2d::CCMouseDelegate {
-	inline cocos2d::CCMouseDelegate::CCMouseDelegate() {}
-	inline void cocos2d::CCMouseDelegate::rightKeyDown() {}
-	inline void cocos2d::CCMouseDelegate::rightKeyUp() {}
-	inline void cocos2d::CCMouseDelegate::scrollWheel(float, float) {}
 }
 
 class cocos2d::CCMouseHandler {
