@@ -1,5 +1,4 @@
 #include "SharedGen.hpp"
-#include <iostream>
 
 namespace format_strings {
     char const* source_start = R"CAC(
@@ -13,7 +12,7 @@ using cocos2d::CCDestructor;
 	char const* declare_member = R"CAC(
 template<>
 struct address_of_t<(_{unqualified_name}::ret{index}({class_name}::*)({raw_arg_types}){const})(&{class_name}::{function_name})> {{
-	static inline auto value = _{unqualified_name}::address{index};
+	static constexpr inline auto value = _{unqualified_name}::address{index};
 }};
 _{unqualified_name}::ret{index} {class_name}::{function_name}({raw_args}) {const}{{
     return ((_{unqualified_name}*)this)->_{unqualified_name}::{function_name}({raw_parameters});
@@ -49,7 +48,6 @@ int main(int argc, char** argv) {
     string output(format_strings::source_start);
     Root root = CacShare::init(argc, argv);
 
-
     vector<Function> outofline;
 
     for (auto& [name, c] : root.classes) {
@@ -57,7 +55,6 @@ int main(int argc, char** argv) {
         output += fmt::format(format_strings::declare_using,
             fmt::arg("unqualified_name", unqualifiedName)
         );
-
 
         for (auto& f : c.functions) {
         	if (f.is_defined) {
