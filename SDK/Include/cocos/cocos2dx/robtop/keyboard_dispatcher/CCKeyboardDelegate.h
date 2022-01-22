@@ -180,11 +180,9 @@ RT_ADD(
 	class CC_DLL CCKeyboardDelegate
 	{
 	public:
-		CCKeyboardDelegate();
+		virtual void keyDown(enumKeyCodes key) {}
 
-		virtual void keyDown(enumKeyCodes key);
-
-		virtual void keyUp(enumKeyCodes key);
+		virtual void keyUp(enumKeyCodes key) {}
 
 		//pretty certain there's no fields, based on initializer
 	};

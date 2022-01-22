@@ -56,8 +56,11 @@ class CCObject;
 class CCNode;
 class CCEvent;
 
+/**
+ * This class is used to fix the problem of destructor recursion.
+ */
 GEODE_ADD(
-	class CC_DLL CCDestructor {
+	class GEODE_CC_DLL CCDestructor {
 	public:
 		~CCDestructor();
 	};
@@ -71,7 +74,7 @@ class CC_DLL CCCopying GEODE_ADD(: CCDestructor)
 {
     GEODE_ADD(friend struct geode::interfaces;)
 public:
-    virtual CCObject* copyWithZone(CCZone* pZone);
+    virtual CCObject* copyWithZone(CCZone* pZone)  { return 0; }
 };
 
 /**
@@ -94,7 +97,7 @@ protected:
     unsigned int        m_uAutoReleaseCount;
 
     RT_ADD(
-        int m_eObjType;
+        CCObjectType m_eObjType;
         int m_nUnknown;
     )
 public:
@@ -129,7 +132,9 @@ public:
 
         virtual void setTag(int nTag);
        
-        void setObjType(CCObjectType);
+        inline void setObjType(CCObjectType type) {
+        	m_eObjType = type;
+        }
     
         //i have no idea if vtable function order matters so 
     )

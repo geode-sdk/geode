@@ -77,10 +77,10 @@ public:
     virtual void applicationWillEnterForeground() = 0;
 
     RT_ADD(
-        virtual void applicationWillBecomeActive();
-        virtual void applicationWillResignActive();
-        virtual void trySaveGame();
-        virtual bool gameDidSave();
+        virtual void applicationWillBecomeActive() {}
+        virtual void applicationWillResignActive() {}
+        virtual void trySaveGame() {}
+        virtual bool gameDidSave() { return false; }
     )
 
     /**
@@ -100,7 +100,7 @@ public:
      */
     virtual TargetPlatform getTargetPlatform() = 0;
 
-    RT_ADD( virtual void openURL(const char* url)   );
+    RT_ADD( virtual void openURL(const char* url) {} )
 };
 
 // end of platform group

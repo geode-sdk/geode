@@ -10,7 +10,7 @@
 namespace geode::fixes {
 
 #define HandlerFixFor(CCUtility)                                                                        \
-class $(CCUtility##Handler, CCUtility##HandlerTypeinfoFix) {                                            \
+class $(CCUtility##HandlerTypeinfoFix, CCUtility##Handler) {                                            \
 	void destructor() {                                                                                 \
 		if (m_pDelegate) {                                                                              \
 			cocos2d::CCObject* pObject = base_cast<cocos2d::CCObject*>(m_pDelegate);                    \
@@ -54,7 +54,7 @@ HandlerFixFor(CCKeypad);
 HandlerFixFor(CCKeyboard);
 HandlerFixFor(CCMouse);
 
-class $(CCTargetedTouchHandler, CCTargetedTouchHandlerTypeinfoFix) {
+class $(CCTargetedTouchHandlerTypeinfoFix, CCTargetedTouchHandler) {
 	void destructor() {
 		if (m_pDelegate) {
 			cocos2d::CCObject* pObject = base_cast<cocos2d::CCObject*>(m_pDelegate);
@@ -103,7 +103,7 @@ class $(CCTargetedTouchHandler, CCTargetedTouchHandlerTypeinfoFix) {
 	}
 };
 
-class $(CCStandardTouchHandler, CCStandardTouchHandlerTypeinfoFix) {
+class $(CCStandardTouchHandlerTypeinfoFix, CCStandardTouchHandler) {
 	void destructor() {
 		if (m_pDelegate) {
 			cocos2d::CCObject* pObject = base_cast<cocos2d::CCObject*>(m_pDelegate);

@@ -10,13 +10,11 @@ RT_ADD(
 	class CC_DLL CCMouseDelegate 
 	{
 	public:
-		CCMouseDelegate();
+		virtual void rightKeyDown() {}
 
-		virtual void rightKeyDown();
+		virtual void rightKeyUp() {}
 
-		virtual void rightKeyUp();
-
-		virtual void scrollWheel(float x, float y);
+		virtual void scrollWheel(float x, float y) {}
 
 		//pretty certain there's no fields, based on initializer
 	};

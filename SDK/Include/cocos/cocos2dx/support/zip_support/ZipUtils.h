@@ -148,19 +148,19 @@ namespace cocos2d
         static void ccSetPvrEncryptionKey(unsigned int keyPart1, unsigned int keyPart2, unsigned int keyPart3, unsigned int keyPart4);
 
         RT_ADD(
-            static gd::string base64DecodeEnc(gd::string, gd::string);
-            static gd::string base64EncodeEnc(gd::string, gd::string);
-            static gd::string base64URLDecode(gd::string);
-            static gd::string base64URLEncode(gd::string);
+            static std::string base64DecodeEnc(std::string, std::string);
+            static std::string base64EncodeEnc(std::string, std::string);
+            static std::string base64URLDecode(std::string);
+            static std::string base64URLEncode(std::string);
             static int ccDeflateMemory(unsigned char*, unsigned int, unsigned char**);
             static int ccDeflateMemoryWithHint(unsigned char*, unsigned int, unsigned char**, unsigned int);
-            static gd::string compressString(gd::string, bool, int);
-            static gd::string decompressString(gd::string, bool, int);
-            static gd::string decompressString2(unsigned char*, bool, int, int);
-            static gd::string encryptDecrypt(gd::string, int);
-            static gd::string encryptDecryptWKey(gd::string, gd::string);
-            static unsigned char hexToChar(const gd::string&);
-            static gd::string urlDecode(const gd::string&);
+            static std::string compressString(std::string, bool, int);
+            static std::string decompressString(std::string, bool, int);
+            static std::string decompressString2(unsigned char*, bool, int, int);
+            static std::string encryptDecrypt(std::string, int);
+            static std::string encryptDecryptWKey(std::string, std::string);
+            static unsigned char hexToChar(const std::string&);
+            static std::string urlDecode(const std::string&);
         )
 
     private:
@@ -201,17 +201,17 @@ namespace cocos2d
         *
         * @since v2.0.5
         */
-        ZipFile(const gd::string &zipFile, const gd::string &filter = gd::string());
+        ZipFile(const std::string &zipFile, const std::string &filter = std::string());
         virtual ~ZipFile();
 
         /**
-         * Custom function added for lilac; returns if the 
+         * Custom function added for geode; returns if the 
          * zip file was succesfully decoded.
          * 
          * @return true if the zip was succesfully loaded, 
          *         false otherwise.
          * 
-         * @since lilac v1.0.0
+         * @since geode v1.0.0
          */
         bool isLoaded() const;
 
@@ -224,7 +224,7 @@ namespace cocos2d
         *
         * @since v2.0.5
         */
-        bool setFilter(const gd::string &filter);
+        bool setFilter(const std::string &filter);
 
         /**
         * Check does a file exists or not in zip file
@@ -234,7 +234,7 @@ namespace cocos2d
         *
         * @since v2.0.5
         */
-        bool fileExists(const gd::string &fileName) const;
+        bool fileExists(const std::string &fileName) const;
 
         /**
         * Get resource file data from a zip file.
@@ -245,11 +245,11 @@ namespace cocos2d
         *
         * @since v2.0.5
         */
-        unsigned char *getFileData(const gd::string &fileName, unsigned long *pSize);
+        unsigned char *getFileData(const std::string &fileName, unsigned long *pSize);
 
     private:
-        bool setFilter(const gd::string &filer, ZipFilePrivate *data);
-        unsigned char *getFileData(const gd::string &fileName, unsigned long *pSize, ZipFilePrivate *data);
+        bool setFilter(const std::string &filer, ZipFilePrivate *data);
+        unsigned char *getFileData(const std::string &fileName, unsigned long *pSize, ZipFilePrivate *data);
         
         /** Internal data like zip file pointer / file list array and so on */
         ZipFilePrivate *_data;
