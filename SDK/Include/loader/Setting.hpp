@@ -17,18 +17,17 @@ namespace cocos2d {
 	class CCNode;
 }
 
-class BoolSettingNode;
-class IntSettingNode;
-class FloatSettingNode;
-class StringSettingNode;
-class ColorSettingNode;
-class ColorAlphaSettingNode;
-class PathSettingNode;
-class StringSelectSettingNode;
-
 class TableViewCell;
 
 namespace geode {
+	class BoolSettingNode;
+	class IntSettingNode;
+	class FloatSettingNode;
+	class StringSettingNode;
+	class ColorSettingNode;
+	class ColorAlphaSettingNode;
+	class PathSettingNode;
+	class StringSelectSettingNode;
 
 	class BoolSetting;
 	class IntSetting;
@@ -92,7 +91,7 @@ namespace geode {
 
 	template<typename T, class SettingClass>
 	class SingleSetting : public GeodeSetting<SettingClass> {
-	public: //TODO: fix friendship and change this back to protected
+	protected: 
 		T m_value;
 		T m_default;
 
