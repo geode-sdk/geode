@@ -175,6 +175,10 @@ struct CacShare {
         return f.return_type;
     }
 
+    static string getDocs(string docs) {
+    	return docs.size() > 0 ? fmt::format("{}", docs) : string("");
+    }
+
     static void writeFile(string& output) {
     	ifstream readfile;
     	readfile >> std::noskipws;

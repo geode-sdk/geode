@@ -17,12 +17,12 @@ struct {class_name}{base_classes}{final} {{
 )CAC";
     
     // requires: static, virtual, return_type, function_name, raw_parameters, const
-    char const* function_definition = "\t{static}{virtual}{return_type} {function_name}({raw_arg_types}){const};\n";
+    char const* function_definition = "\t{docs}{static}{virtual}{return_type} {function_name}({raw_params}){const};\n";
 
     // requires: static, return_type, function_name, raw_parameters, const, class_name, definition
     char const* ool_function_definition = "{return_type} {class_name}::{function_name}({raw_params}){const} {definition}\n";
 
-    char const* structor_definition = "\t{function_name}({raw_arg_types});\n";
+    char const* structor_definition = "\t{function_name}({raw_params});\n";
     
     // requires: type, member_name, array
     char const* member_definition = "\t{type} {member_name}{array};\n";
@@ -122,7 +122,8 @@ int main(int argc, char** argv) {
                 fmt::arg("static", f.function_type == kStaticFunction ? "static " : ""),
                 fmt::arg("return_type", CacShare::getReturn(f)),
                 fmt::arg("function_name", f.name),
-                fmt::arg("raw_arg_types", CacShare::formatRawArgTypes(f.args)),
+                fmt::arg("docs", CacShare::getDocs(f.docs)),
+                fmt::arg("raw_params", CacShare::formatRawParams(f.args, f.argnames)),
                 fmt::arg("const", f.is_const ? " const" : "")
             );
         }

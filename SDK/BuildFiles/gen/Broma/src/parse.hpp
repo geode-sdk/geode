@@ -101,6 +101,12 @@ string parseAttribute(Tokens& tokens) { // if attributes are expanded we will ne
 		}
 		next_expect(tokens, kAttrR, "]]");
 		return depends;
+	} else if (attrib_name == "docs") {
+		next_expect(tokens, kParenL, "(");
+		string docs = next_expect(tokens, kString, "string").slice;
+		next_expect(tokens, kParenR, ")");
+		next_expect(tokens, kAttrR, "]]");
+		return docs;
 	} else {
 		// we can add more later
 		cacerr("Invalid attribute %s\n", attrib_name.c_str());
@@ -317,7 +323,10 @@ void parseField(ClassDefinition& c, Tokens& tokens) {
 	if (peek(tokens).type == kParenL) {
 		Function myFunction;
 		myFunction.return_type = return_type;
-		myFunction.android_mangle = attrib;
+		if (attrib.find("/*") != string::npos) 
+			myFunction.docs = attrib;
+		else 
+			myFunction.android_mangle = attrib;
 		myFunction.function_type = fn_type;
 		myFunction.name = varName;
 		if (fn_type == kDestructor) myFunction.name = "~" + myFunction.name;

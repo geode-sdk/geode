@@ -92,7 +92,7 @@ namespace geode {
 
 	template<typename T, class SettingClass>
 	class SingleSetting : public GeodeSetting<SettingClass> {
-	protected:
+	public: //TODO: fix friendship and change this back to protected
 		T m_value;
 		T m_default;
 

@@ -172,12 +172,19 @@ class BoomScrollLayer : cocos2d::CCLayer {
 }
 
 class ButtonSprite : cocos2d::CCSprite {
+	static ButtonSprite* create(const char* why1, int width, int why3, float height, float scale, bool why6, const char* font, bool why8) {
+		return create((cocos2d::CCNode*)why1, width, why3, height, scale, why6, font, why8);
+	}
+
+	static ButtonSprite* create(const char* caption, int width, bool absolute, const char* font, const char* texture, float height, float scale) {
+		return create(caption, width, 0, height, scale, absolute, font, false);
+	}
+
 	static ButtonSprite* create(char const*) = mac 0x4fa10, win 0x0, ios 0x0;
 	static ButtonSprite* create(char const*, int, int, float, bool) = mac 0x4fa40, win 0x0, ios 0x0;
 	void updateBGImage(const char*) = mac 0x502d0, win 0x13af0, ios 0x0;
 	static ButtonSprite* create(char const*, float) = mac 0x4fa60, win 0x0, ios 0x0;
-	static ButtonSprite* create(cocos2d::CCNode*, int, bool, float, int, const char*, bool, float) = mac 0x4fa90, win 0x134b0, ios 0x0;
-	static ButtonSprite* create(const char* caption, int width, bool absolute, const char* font, const char* texture, float height, float scale) = mac 0x0, win 0x137d0, ios 0x0;
+	static ButtonSprite* create(cocos2d::CCNode*, int, int, float, float, bool, const char*, bool) = mac 0x4fa90, win 0x134b0, ios 0x0;
 	void setString(const char* txt) = mac 0x0, win 0x14030, ios 0x0;
 	void updateSpriteBGSize(cocos2d::CCPoint const& offset) = mac 0x0, win 0x13c00, ios 0x0;
 
@@ -370,6 +377,11 @@ class CCNodeContainer : cocos2d::CCNode {
 class CCScrollLayerExt : cocos2d::CCLayer {
 	inline CCScrollLayerExt() {}
 
+	[[docs("
+	/*
+	 * IDK
+	 */
+	")]]
 	static CCScrollLayerExt* create(cocos2d::CCRect rect, bool vertical) {
 	    auto pRet = new CCScrollLayerExt(rect);
 	
@@ -405,7 +417,7 @@ class CCScrollLayerExt : cocos2d::CCLayer {
 	void moveToTop() = mac 0x235870, win 0x1b4a0, ios 0x0;
 	void moveToTopWithOffset(float) = mac 0x2357d0, win 0x1b420, ios 0x0;
 	CCScrollLayerExt(cocos2d::CCRect rect) = mac 0x235130, win 0x1b020, ios 0x0;
-	void scrollLayer(float scroll) = mac 0x0, win 0x1be20, ios 0x0;
+	void scrollLayer(float scroll) = mac 0x236490, win 0x1be20, ios 0x0;
 
 	cocos2d::CCTouch* m_touch;
 	cocos2d::CCPoint m_touchPosition;
@@ -499,8 +511,11 @@ class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTex
 	void setDelegate(TextInputDelegate* delegate) {
 	    m_delegate = delegate;
 	}
+	static CCTextInputNode* create(float width, float height, char const* placeholder, char const* fontPath) {
+		return create(width, height, placeholder, "Thonburi", 0x18, fontPath);
+	}
 
-	static CCTextInputNode* create(float, float, char const*, char const*, int, char const*) = mac 0x5cfb0, win 0x0, ios 0x0;
+	static CCTextInputNode* create(float, float, char const*, char const*, int maxCharCount, char const*) = mac 0x5cfb0, win 0x20d90, ios 0x0;
 	void refreshLabel() = mac 0x5d730, win 0x21330, ios 0x0;
 	void updateLabel(gd::string) = mac 0x5d4a0, win 0x0, ios 0x0;
 	virtual void registerWithTouchDispatcher() = mac 0x5eec0, win 0x220e0, ios 0x0;
@@ -519,7 +534,6 @@ class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTex
 	virtual bool onTextFieldAttachWithIME(cocos2d::CCTextFieldTTF*) = mac 0x5e2c0, win 0x0, ios 0x0;
 	virtual bool onTextFieldDetachWithIME(cocos2d::CCTextFieldTTF*) = mac 0x5e610, win 0x0, ios 0x0;
 	bool init(const char* sCaption, cocos2d::CCObject* pTarget, const char* sFontFile, float fWidth, float fHeight) = mac 0x0, win 0x20e50, ios 0x0;
-	static CCTextInputNode* create(float width, float height, const char* caption, cocos2d::CCObject* target, const char* fntFile) = mac 0x0, win 0x20d90, ios 0x0;
 
 	void* m_unknown0;
 	gd::string m_caption;
@@ -2026,7 +2040,7 @@ class GJItemIcon {
 
 class GJListLayer : cocos2d::CCLayerColor {
 	~GJListLayer() = mac 0x344350, win 0x0, ios 0x0;
-	static GJListLayer* create(cocos2d::CCObject* target, const char* title, cocos2d::ccColor4B color, float width, float height) = mac 0x0, win 0x12e000, ios 0x0;
+	static GJListLayer* create(cocos2d::CCObject* target, const char* title, cocos2d::ccColor4B color, float width, float height) = mac 0x343e10, win 0x12e000, ios 0x0;
 
 	BoomListView* m_listView;
 }
@@ -2916,7 +2930,7 @@ class GameStatsManager : cocos2d::CCNode {
 
 class GameToolbox {
 	static CCMenuItemToggler createToggleButton(gd::string, cocos2d::SEL_MenuHandler, bool, cocos2d::CCMenu*, cocos2d::CCPoint, cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCArray*) = mac 0x0, win 0x0, ios 0x0;
-	static CCMenuItemToggler createToggleButton(cocos2d::SEL_MenuHandler, bool, cocos2d::CCMenu*, cocos2d::CCNode*, cocos2d::CCNode*, float, float, float, const char*, bool, int, cocos2d::CCArray*, gd::string, cocos2d::CCPoint, cocos2d::CCPoint) = mac 0x0, win 0x25fe0, ios 0x0;
+	static CCMenuItemToggler createToggleButton(cocos2d::SEL_MenuHandler, bool, cocos2d::CCMenu*, cocos2d::CCNode*, cocos2d::CCNode*, float, float, float, const char*, bool, int, cocos2d::CCArray*, gd::string, cocos2d::CCPoint, cocos2d::CCPoint) = mac 0x28bdd0, win 0x25fe0, ios 0x0;
 	static void transformColor(cocos2d::ccColor3B const& src, cocos2d::ccColor3B& dest, cocos2d::ccHSVValue hsv) = mac 0x0, win 0x26a60, ios 0x0;
 	static void alignItemsHorisontally(cocos2d::CCArray* array, bool idk, cocos2d::CCPoint start, float pad) = mac 0x0, win 0x25b20, ios 0x0;
 }
@@ -4366,7 +4380,7 @@ class StartPosObject {}
 
 class StatsCell {
 	void updateBGColor(unsigned int index) = mac 0x0, win 0x59cf0, ios 0x0;
-	void draw() = mac 0x0, win 0x59d40, ios 0x0;
+	void draw() = mac 0x11bf80, win 0x59d40, ios 0x0;
 }
 
 class TableView : CCScrollLayerExt, CCScrollLayerExtDelegate {
@@ -4406,10 +4420,9 @@ class TableViewCell : cocos2d::CCLayer {
 	TableView* m_tableView;
 	CCIndexPath m_indexPath;
 	gd::string m_unknownString;
-	PAD = mac 0x0, win 0x4, android 0x0;
 	float m_width;
 	float m_height;
-	cocos2d::CCLayerColor* m_BGLayer;
+	cocos2d::CCLayerColor* m_backgroundLayer;
 	cocos2d::CCLayer* m_mainLayer;
 	PAD = mac 0x0, win 0x4, android 0x0;
 }

@@ -58,12 +58,13 @@ enum MemberType {
 };
 
 struct Function : ClassField {
-	Function() : is_const(), return_type(), name(), args(), binds(), android_mangle(), index(), is_defined(), definition() {}
+	Function() : is_const(), return_type(), name(), args(), binds(), android_mangle(), index(), is_defined(), definition(), docs() {}
 	bool is_const;
 	FunctionType function_type;
 
 	string return_type;
 	string name;
+	string docs;
 	vector<string> args;
 	vector<string> argnames;
 
@@ -79,7 +80,7 @@ struct Function : ClassField {
 		// if (is_const != other.is_const) return false;
 		// if (function_type != other.function_type) return false;
 		if (args.size() != other.args.size()) return false;
-		// for (auto i = 0u; i < args.size(); ++i) if (args[i] != other.args[i]) return false;
+		for (auto i = 0u; i < args.size(); ++i) if (args[i] != other.args[i]) return false;
 		return true;
 	}
 	void merge(Function const& other) {
