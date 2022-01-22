@@ -10,14 +10,20 @@ using namespace geode;
 	char const* declare_using = "\n\nusing _{unqualified_name} = interfaces::${unqualified_name}<>;";
 
 	char const* declare_member = R"CAC(
-_{unqualified_name}::ret{index}
-{class_name}::{function_name}({raw_args}) {const}{{
+template<>
+struct address_of_t<(_{unqualified_name}::ret{index}({class_name}::*)({raw_arg_types}){const})(&{class_name}::{function_name})> {{
+	static inline auto value = _{unqualified_name}::address{index};
+}};
+_{unqualified_name}::ret{index} {class_name}::{function_name}({raw_args}) {const}{{
     return ((_{unqualified_name}*)this)->_{unqualified_name}::{function_name}({raw_parameters});
 }})CAC";
 
 	char const* declare_static = R"CAC(
-_{unqualified_name}::ret{index}
-{class_name}::{function_name}({raw_args}) {const}{{
+template<>
+struct address_of_t<(_{unqualified_name}::ret{index}(*)({raw_arg_types}){const})(&{class_name}::{function_name})> {{
+	static inline auto value = _{unqualified_name}::address{index};
+}};
+_{unqualified_name}::ret{index} {class_name}::{function_name}({raw_args}) {const}{{
     return _{unqualified_name}::{function_name}({raw_parameters});
 }})CAC";
 

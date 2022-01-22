@@ -26,10 +26,19 @@ struct ModStorage {
         return *a;
     }
     inline void registerHook(uintptr_t address, uintptr_t function) {
+    	std::cout << "added hook " << address << " " << function << std::endl;
         m_mods.push_back({address, function});
     }
 };
 inline auto& modContainer = ModStorage::create();
+
+template<auto F>
+struct address_of_t {
+	static inline auto value = base;
+};
+
+template<auto F>
+inline auto address_of = address_of_t<F>::value;
 
 template<typename T>
 struct field_t {
