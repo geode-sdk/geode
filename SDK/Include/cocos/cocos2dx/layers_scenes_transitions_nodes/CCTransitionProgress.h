@@ -41,7 +41,7 @@ class CCRenderTexture;
 
 class CC_DLL CCTransitionProgress : public CCTransitionScene
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     static CCTransitionProgress* create(float t, CCScene* scene);
     /**
@@ -58,7 +58,7 @@ public:
      *  @lua NA
      */
     virtual void onExit();
-public:
+protected:
     virtual CCProgressTimer* progressTimerNodeWithRenderTexture(CCRenderTexture* texture);
     virtual void setupTransition();
     virtual void sceneOrder();
@@ -73,10 +73,10 @@ public:
  */
 class CC_DLL CCTransitionProgressRadialCCW : public CCTransitionProgress
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     static CCTransitionProgressRadialCCW* create(float t, CCScene* scene);
-public:
+protected:
     virtual CCProgressTimer* progressTimerNodeWithRenderTexture(CCRenderTexture* texture);
   
 };
@@ -87,10 +87,10 @@ public:
 */
 class CC_DLL CCTransitionProgressRadialCW : public CCTransitionProgress
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     static CCTransitionProgressRadialCW* create(float t, CCScene* scene);
-public:
+protected:
     virtual CCProgressTimer* progressTimerNodeWithRenderTexture(CCRenderTexture* texture);
 
 };
@@ -100,33 +100,33 @@ public:
  */
 class CC_DLL CCTransitionProgressHorizontal : public CCTransitionProgress
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
 
     static CCTransitionProgressHorizontal* create(float t, CCScene* scene);
-public:
+protected:
     virtual CCProgressTimer* progressTimerNodeWithRenderTexture(CCRenderTexture* texture);
 
 };
 
 class CC_DLL CCTransitionProgressVertical : public CCTransitionProgress
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
 
     static CCTransitionProgressVertical* create(float t, CCScene* scene);
-public:
+protected:
     virtual CCProgressTimer* progressTimerNodeWithRenderTexture(CCRenderTexture* texture);
 
 };
 
 class CC_DLL CCTransitionProgressInOut : public CCTransitionProgress
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
 
     static CCTransitionProgressInOut* create(float t, CCScene* scene);
-public:
+protected:
     virtual CCProgressTimer* progressTimerNodeWithRenderTexture(CCRenderTexture* texture);
     virtual void sceneOrder();
     virtual void setupTransition();
@@ -134,11 +134,11 @@ public:
 
 class CC_DLL CCTransitionProgressOutIn : public CCTransitionProgress
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
 
     static CCTransitionProgressOutIn* create(float t, CCScene* scene);
-public:
+protected:
     virtual CCProgressTimer* progressTimerNodeWithRenderTexture(CCRenderTexture* texture);
 
 };

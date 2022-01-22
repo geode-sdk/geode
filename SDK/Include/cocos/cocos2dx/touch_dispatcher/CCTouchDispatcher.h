@@ -71,7 +71,7 @@ struct ccTouchHandlerHelperData {
  */
 class CC_DLL EGLTouchDelegate
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      * @lua NA
@@ -116,7 +116,7 @@ struct _ccCArray;
  */
 class CC_DLL CCTouchDispatcher : public CCObject, public EGLTouchDelegate
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      * @lua NA
@@ -203,14 +203,14 @@ public:
         void incrementForcePrio(int priority);
         void decrementForcePrio(int priority);
     )
-public:
+protected:
     void forceRemoveDelegate(CCTouchDelegate *pDelegate);
     void forceAddHandler(CCTouchHandler *pHandler, CCArray* pArray);
     void forceRemoveAllDelegates(void);
     void rearrangeHandlers(CCArray* pArray);
     CCTouchHandler* findHandler(CCArray* pArray, CCTouchDelegate *pDelegate);
 
-public:
+protected:
      CCArray* m_pTargetedHandlers;
      CCArray* m_pStandardHandlers;
 

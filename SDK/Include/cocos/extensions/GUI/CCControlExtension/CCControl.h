@@ -95,7 +95,7 @@ class CCControl : public CCLayerRGBA
     CC_SYNTHESIZE_READONLY(CCControlState, m_eState, State);
 
     /** True if all of the controls parents are visible */
-public:
+protected:
     bool m_hasVisibleParents;
 
 public:
@@ -117,7 +117,7 @@ public:
     virtual bool isOpacityModifyRGB();
     virtual void setOpacityModifyRGB(bool bOpacityModifyRGB);
 
-public:
+protected:
     bool m_bEnabled;
     bool m_bSelected;
     bool m_bHighlighted;
@@ -209,7 +209,7 @@ public:
     virtual bool isTouchInside(CCTouch * touch);
 
 
-public:
+protected:
     /**
      * Returns an CCInvocation object able to construct messages using a given 
      * target-action pair. (The invocation may optionnaly include the sender and
@@ -277,9 +277,9 @@ public:
      *  @js NA
      */
     void removeHandleOfControlEvent(CCControlEvent controlEvent);
-public:
+private:
     int  getHandleOfControlEvent(CCControlEvent controlEvent);
-public:
+private:
     gd::map<int,int> m_mapHandleOfControlEvent;
 };
 

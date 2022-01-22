@@ -84,7 +84,7 @@ class CC_DLL CCSprite : public CCNodeRGBA, public CCTextureProtocol
 , public CCGLBufferedNode
 #endif // EMSCRIPTEN
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /// @{
     /// @name Creators
@@ -510,7 +510,7 @@ public:
     
     /// @} End of Sprite properties getter/setters
     
-public:
+protected:
     void updateColor(void);
     RT_REMOVE(  virtual void setTextureCoords(CCRect rect);         )
     RT_ADD(     virtual void setTextureCoords(const CCRect& rect);  )

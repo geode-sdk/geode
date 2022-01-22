@@ -48,14 +48,14 @@ typedef struct
 */
 class CC_DLL CCIMEDelegate
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual ~CCIMEDelegate();
 
     virtual bool attachWithIME();
     virtual bool detachWithIME();
 
-public:
+protected:
     friend class CCIMEDispatcher;
 
     /**
@@ -102,7 +102,7 @@ public:
     virtual void keyboardWillHide(CCIMEKeyboardNotificationInfo& info)   {CC_UNUSED_PARAM(info);}
     virtual void keyboardDidHide(CCIMEKeyboardNotificationInfo& info)    {CC_UNUSED_PARAM(info);}
 
-public:
+protected:
     CCIMEDelegate();
 };
 

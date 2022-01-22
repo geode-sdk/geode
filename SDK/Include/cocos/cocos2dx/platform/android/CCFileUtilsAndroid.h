@@ -41,7 +41,7 @@ NS_CC_BEGIN
 //! @brief  Helper class to handle file operations
 class CC_DLL CCFileUtilsAndroid : public CCFileUtils
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
     friend class CCFileUtils;
     CCFileUtilsAndroid();
 public:
@@ -59,7 +59,7 @@ public:
      */
     unsigned char* getFileDataForAsync(const char* pszFileName, const char* pszMode, unsigned long * pSize);
     
-public:
+private:
     unsigned char* doGetFileData(const char* pszFileName, const char* pszMode, unsigned long * pSize, bool forAsync);
 };
 

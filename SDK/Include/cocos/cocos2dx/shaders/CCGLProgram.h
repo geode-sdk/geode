@@ -100,7 +100,7 @@ typedef void (*GLLogFunction) (GLuint program, GLsizei bufsize, GLsizei* length,
  */
 class CC_DLL CCGLProgram : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      * @js  ctor
@@ -271,13 +271,13 @@ public:
      */
     inline const GLuint getProgram() { return m_uProgram; }
 
-public:
+protected:
     bool updateUniformLocation(GLint location, GLvoid* data, unsigned int bytes);
     const char* description();
     bool compileShader(GLuint * shader, GLenum type, const GLchar* source);
     const char* logForOpenGLObject(GLuint object, GLInfoFunction infoFunc, GLLogFunction logFunc);
 
-public:
+protected:
     GLuint            m_uProgram;
     GLuint            m_uVertShader;
     GLuint            m_uFragShader;

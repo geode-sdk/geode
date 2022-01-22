@@ -35,8 +35,6 @@ THE SOFTWARE.
 
 NS_CC_BEGIN
 
-#define kMaxStringLen (1024*100)
-
 /**
  * @addtogroup data_structures
  * @{
@@ -45,20 +43,20 @@ NS_CC_BEGIN
 
 class CC_DLL CCString : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      * @lua NA
      */
-    CCString() : m_sString("") {}
+    CCString();
     /**
      * @lua NA
      */
-    CCString(const char* str) : m_sString(str) {}
+    CCString(const char* str);
     /**
      * @lua NA
      */
-    CCString(const gd::string& str) : m_sString(str) {}
+    CCString(const gd::string& str);
     /**
      * @lua NA
      */
@@ -113,11 +111,7 @@ public:
      *  @return A CCString pointer which is an autorelease object pointer,
      *          it means that you needn't do a release operation unless you retain it.
      */
-    static CCString* create(const gd::string& str) {
-    	CCString* pRet = new CCString(str);
-	    pRet->autorelease();
-	    return pRet;
-    }
+    static CCString* create(const gd::string& str);
 
     /** create a string with format, it's similar with the c function 'sprintf', the default buffer size is (1024*100) bytes,
      *  if you want to change it, you should modify the kMaxStringLen macro in CCString.cpp file.
@@ -125,15 +119,7 @@ public:
      *          it means that you needn't do a release operation unless you retain it.
      *  @lua NA
      */ 
-    static CCString* createWithFormat(const char* format, ...) CC_FORMAT_PRINTF(1, 2) {
-    	CCString* pRet = CCString::create("");
-	    va_list ap;
-	    va_start(ap, format);
-	    pRet->initWithFormatAndValist(format, ap);
-	    va_end(ap);
-
-	    return pRet;
-    }
+    static CCString* createWithFormat(const char* format, ...) CC_FORMAT_PRINTF(1, 2);
 
     /** create a string with binary data 
      *  @return A CCString pointer which is an autorelease object pointer,
@@ -151,21 +137,10 @@ public:
      */
     virtual void acceptVisitor(CCDataVisitor &visitor);
 
-public:
+private:
 
     /** only for internal use */
-    bool initWithFormatAndValist(const char* format, va_list ap) {
-    	bool bRet = false;
-		char* pBuf = (char*)malloc(kMaxStringLen);
-		if (pBuf != NULL)
-		{
-		    vsnprintf(pBuf, kMaxStringLen, format, ap);
-		    m_sString = pBuf;
-		    free(pBuf);
-		    bRet = true;
-		}
-		return bRet;
-    }
+    bool initWithFormatAndValist(const char* format, va_list ap);
 
 public:
     gd::string m_sString;

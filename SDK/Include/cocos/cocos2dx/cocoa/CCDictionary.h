@@ -62,9 +62,8 @@ class CCDictionary;
  */
 class CC_DLL CCDictElement
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 private:
-
     /**
      *  Constructor of CCDictElement. It's only for internal usage. CCDictionary is its friend class.
      *  
@@ -122,7 +121,7 @@ public:
      */
     inline CCObject* getObject() const { return m_pObject; }
 
-public:
+private:
     // The max length of string key.
     #define   MAX_KEY_LEN   256
     // char array is needed for HASH_ADD_STR in UT_HASH.
@@ -175,7 +174,7 @@ public:
 
 class CC_DLL CCDictionary : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** 
      * The constructor of CCDictionary.
@@ -401,7 +400,7 @@ public:
      */
     virtual void acceptVisitor(CCDataVisitor &visitor);
 
-public:
+private:
     /** 
      *  For internal usage, invoked by setObject.
      */
@@ -415,7 +414,7 @@ public:
      *  @note For internal usage, we need to declare this member variable as public since it's used in UT_HASH.
      */
     CCDictElement* m_pElements;
-public:
+private:
     
     /** The support type of dictionary, it's confirmed when setObject is invoked. */
     enum CCDictType

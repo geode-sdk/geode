@@ -40,7 +40,7 @@ class CCFreeTypeFont;
 
 class CC_DLL CCImage : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      @js ctor
@@ -177,7 +177,7 @@ public:
     CC_SYNTHESIZE_READONLY_NV(unsigned short,   m_nHeight,      Height);
     CC_SYNTHESIZE_READONLY_NV(int,     m_nBitsPerComponent,   BitsPerComponent);
 
-public:
+protected:
     bool _initWithJpgData(void *pData, int nDatalen);
     bool _initWithPngData(void *pData, int nDatalen);
     bool _initWithTiffData(void *pData, int nDataLen);
@@ -196,7 +196,7 @@ public:
     CCFreeTypeFont* m_ft;
 #endif
 
-public:
+private:
     // noncopyable
     // CCImage(const CCImage&    rImg);
     // CCImage & operator=(const CCImage&);

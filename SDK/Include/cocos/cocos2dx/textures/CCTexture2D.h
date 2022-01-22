@@ -111,7 +111,7 @@ class CC_DLL CCTexture2D : public CCObject
 , public CCGLBufferedNode
 #endif // EMSCRIPTEN
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      * @js ctor
@@ -268,7 +268,7 @@ public:
     
     bool hasPremultipliedAlpha();
     bool hasMipmaps();
-public:
+private:
     bool initPremultipliedATextureWithImage(CCImage * image, unsigned int pixelsWide, unsigned int pixelsHigh);
     
     // By default PVR images are treated as if they don't have the alpha channel premultiplied

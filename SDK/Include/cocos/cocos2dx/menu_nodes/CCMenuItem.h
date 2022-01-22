@@ -52,8 +52,9 @@ class CCSpriteFrame;
  */
 class CC_DLL CCMenuItem : public CCNodeRGBA
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 protected:
+
 
     /** whether or not the item is selected
      @since v0.8.2
@@ -111,7 +112,7 @@ public:
     /** set the target/selector of the menu item*/
     void setTarget(CCObject *rec, SEL_MenuHandler selector);
 
-public:
+protected:
     CCObject*       m_pListener;
     SEL_MenuHandler    m_pfnSelector;
     int             m_nScriptTapHandler;
@@ -126,7 +127,7 @@ public:
  */
 class CC_DLL CCMenuItemLabel : public CCMenuItem
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
     /** the color that will be used to disable the item */
     CC_PROPERTY_PASS_BY_REF(ccColor3B, m_tDisabledColor, DisabledColor);
     /** Label that is rendered. It can be any CCNode that implements the CCLabelProtocol */
@@ -165,7 +166,7 @@ public:
      */
     virtual void setEnabled(bool enabled);
     
-public:
+protected:
     ccColor3B    m_tColorBackup;
     float        m_fOriginalScale;
 };
@@ -176,7 +177,7 @@ public:
  */
 class CC_DLL CCMenuItemAtlasFont : public CCMenuItemLabel
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js ctor
@@ -204,7 +205,7 @@ public:
  */
 class CC_DLL CCMenuItemFont : public CCMenuItemLabel
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js ctor
@@ -257,7 +258,7 @@ public:
      */
     const char* fontNameObj();
     
-public:
+protected:
     void recreateLabel();
     
     unsigned int m_uFontSize;
@@ -275,7 +276,7 @@ public:
  */
 class CC_DLL CCMenuItemSprite : public CCMenuItem
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
     /** the image used when the item is not selected */
     CC_PROPERTY(CCNode*, m_pNormalImage, NormalImage);
     /** the image used when the item is selected */
@@ -313,7 +314,7 @@ public:
     virtual void unselected();
     virtual void setEnabled(bool bEnabled);
     
-public:
+protected:
     virtual void updateImagesVisibility();
 };
 
@@ -328,7 +329,7 @@ public:
  */
 class CC_DLL CCMenuItemImage : public CCMenuItemSprite
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      * @js ctor
@@ -377,7 +378,7 @@ public:
  */
 class CC_DLL CCMenuItemToggle : public CCMenuItem
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
     /** returns the selected item */
     CC_PROPERTY(unsigned int, m_uSelectedIndex, SelectedIndex);
     /** CCMutableArray that contains the subitems. You can add/remove items in runtime, and you can replace the array with a new one.

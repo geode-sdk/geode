@@ -57,7 +57,7 @@ NS_CC_BEGIN;
  */
 class CC_DLL CCPointArray : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     
     /** creates and initializes a Points array with capacity 
@@ -108,7 +108,7 @@ public:
     const gd::vector<CCPoint*>* getControlPoints();
 
     void setControlPoints(gd::vector<CCPoint*> *controlPoints);
-public:
+private:
     /** Array that contains the control points */
     gd::vector<CCPoint*> *m_pControlPoints;
 };
@@ -119,7 +119,7 @@ public:
  */
 class CC_DLL CCCardinalSplineTo : public CCActionInterval
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
 
     /** creates an action with a Cardinal Spline array of points and tension 
@@ -176,7 +176,7 @@ public:
         m_pPoints = points;
     }
     
-public:
+protected:
     /** Array of control points */
     CCPointArray *m_pPoints;
     float m_fDeltaT;
@@ -191,7 +191,7 @@ public:
  */
 class CC_DLL CCCardinalSplineBy : public CCCardinalSplineTo 
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     
     /** creates an action with a Cardinal Spline array of points and tension 
@@ -215,7 +215,7 @@ public:
      *  @lua NA
      */
     virtual void updatePosition(CCPoint &newPos);
-public:
+protected:
     CCPoint m_startPosition;
 };
 
@@ -226,7 +226,7 @@ public:
  */
 class CC_DLL CCCatmullRomTo : public CCCardinalSplineTo
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     
     /** creates an action with a Cardinal Spline array of points and tension 
@@ -251,7 +251,7 @@ public:
  */
 class CC_DLL CCCatmullRomBy : public CCCardinalSplineBy
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     
     /** creates an action with a Cardinal Spline array of points and tension 

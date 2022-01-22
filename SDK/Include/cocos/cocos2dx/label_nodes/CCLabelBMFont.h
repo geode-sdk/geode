@@ -109,7 +109,7 @@ typedef struct _KerningHashElement
 */
 class CC_DLL CCBMFontConfiguration : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
     // XXX: Creating a public interface so that the bitmapFontArray[] is accessible
 public://@public
     // BMFont definitions
@@ -149,7 +149,7 @@ public:
     inline void setAtlasName(const char* atlasName) { m_sAtlasName = atlasName; }
     
     std::set<unsigned int>* getCharacterSet() const;
-public:
+private:
     std::set<unsigned int>* parseConfigFile(const char *controlFile);
     void parseCharacterDefinition(gd::string line, ccBMFontDef *characterDefinition);
     void parseInfoArguments(gd::string line);
@@ -192,7 +192,7 @@ http://www.angelcode.com/products/bmfont/ (Free, Windows only)
 
 class CC_DLL CCLabelBMFont : public CCSpriteBatchNode, public CCLabelProtocol, public CCRGBAProtocol
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js ctor
@@ -270,13 +270,13 @@ public:
         void limitLabelWidth(float width, float defaultScale, float minScale);
     )
 
-public:
+private:
     char * atlasNameFromFntFile(const char *fntFile);
     int kerningAmountForFirst(unsigned short first, unsigned short second);
     float getLetterPosXLeft( CCSprite* characterSprite );
     float getLetterPosXRight( CCSprite* characterSprite );
     
-public:
+protected:
     virtual void setString(unsigned short *newString, bool needUpdateLabel);
     // string to render
     unsigned short* m_sString;

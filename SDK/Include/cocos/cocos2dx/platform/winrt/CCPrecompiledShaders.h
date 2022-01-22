@@ -59,7 +59,7 @@ PrecompiledShader shaders[]  = {gFoo, gFoo};
 
 class CC_DLL CCPrecompiledShaders
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     CCPrecompiledShaders();
     virtual ~CCPrecompiledShaders();
@@ -81,7 +81,7 @@ public:
     void savePrecompiledShaders();
 #endif
 
-public:
+protected:
     void savePrecompiledPrograms(Windows::Storage::StorageFolder^ folder);
     void loadPrecompiledPrograms();
 

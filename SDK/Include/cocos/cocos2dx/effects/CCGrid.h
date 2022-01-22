@@ -51,7 +51,7 @@ class CCGLProgram;
 */
 class CC_DLL CCGridBase : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js NA
@@ -147,7 +147,7 @@ public:
      */
     void set2DProjection(void);
 
-public:
+protected:
     bool m_bActive;
     int  m_nReuseGrid;
     CCSize m_sGridSize;
@@ -190,7 +190,7 @@ public:
     /** create one Grid */
     static CCGrid3D* create(const CCSize& gridSize);
     
-public:
+protected:
     GLvoid *m_pTexCoordinates;
     GLvoid *m_pVertices;
     GLvoid *m_pOriginalVertices;
@@ -230,7 +230,7 @@ public:
     /** create one Grid */
     static CCTiledGrid3D* create(const CCSize& gridSize);
     
-public:
+protected:
     GLvoid *m_pTexCoordinates;
     GLvoid *m_pVertices;
     GLvoid *m_pOriginalVertices;

@@ -126,7 +126,7 @@ class XMLPrinter;
 */
 class CC_DLL StrPair
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     enum {
         NEEDS_ENTITY_PROCESSING			= 0x01,
@@ -167,7 +167,7 @@ public:
     char* ParseText( char* in, const char* endTag, int strFlags );
     char* ParseName( char* in );
 
-public:
+private:
     void Reset();
     void CollapseWhitespace();
 
@@ -191,7 +191,7 @@ public:
 template <class T, int INIT>
 class CC_DLL DynArray
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     DynArray< T, INIT >() {
         _mem = _pool;
@@ -256,7 +256,7 @@ public:
         return _mem;
     }
 
-public:
+private:
     void EnsureCapacity( int cap ) {
         if ( cap > _allocated ) {
             int newAllocated = cap * 2;
@@ -283,7 +283,7 @@ public:
 */
 class CC_DLL MemPool
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     MemPool() {}
     virtual ~MemPool() {}
@@ -301,7 +301,7 @@ public:
 template< int SIZE >
 class CC_DLL MemPoolT : public MemPool
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     MemPoolT() : _root(0), _currentAllocs(0), _nAllocs(0), _maxAllocs(0), _nUntracked(0)	{}
     ~MemPoolT() {
@@ -368,7 +368,7 @@ public:
 
     enum { COUNT = 1024/SIZE }; // Some compilers do not accept to use COUNT in private part if COUNT is private
 
-public:
+private:
     union Chunk {
         Chunk*  next;
         char    mem[SIZE];
@@ -408,7 +408,7 @@ public:
 */
 class CC_DLL XMLVisitor
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual ~XMLVisitor() {}
 
@@ -454,7 +454,7 @@ public:
 */
 class CC_DLL XMLUtil
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     // Anything in the high order range of UTF-8 is assumed to not be whitespace. This isn't
     // correct, but simple, and usually works.
@@ -548,7 +548,7 @@ public:
 */
 class CC_DLL XMLNode
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
     friend class XMLDocument;
     friend class XMLElement;
 public:
@@ -779,7 +779,7 @@ public:
     // internal
     virtual char* ParseDeep( char*, StrPair* );
 
-public:
+protected:
     XMLNode( XMLDocument* );
     virtual ~XMLNode();
     XMLNode( const XMLNode& );	// not supported
@@ -795,7 +795,7 @@ public:
     XMLNode*		_prev;
     XMLNode*		_next;
 
-public:
+private:
     MemPool*		_memPool;
     void Unlink( XMLNode* child );
 };
@@ -815,7 +815,7 @@ public:
 */
 class CC_DLL XMLText : public XMLNode
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
     friend class XMLBase;
     friend class XMLDocument;
 public:
@@ -841,13 +841,13 @@ public:
     virtual XMLNode* ShallowClone( XMLDocument* document ) const;
     virtual bool ShallowEqual( const XMLNode* compare ) const;
 
-public:
+protected:
     XMLText( XMLDocument* doc )	: XMLNode( doc ), _isCData( false )	{}
     virtual ~XMLText()												{}
     XMLText( const XMLText& );	// not supported
     XMLText& operator=( const XMLText& );	// not supported
 
-public:
+private:
     bool _isCData;
 };
 
@@ -855,7 +855,7 @@ public:
 /** An XML Comment. */
 class CC_DLL XMLComment : public XMLNode
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
     friend class XMLDocument;
 public:
     virtual XMLComment*	ToComment()					{
@@ -871,13 +871,13 @@ public:
     virtual XMLNode* ShallowClone( XMLDocument* document ) const;
     virtual bool ShallowEqual( const XMLNode* compare ) const;
 
-public:
+protected:
     XMLComment( XMLDocument* doc );
     virtual ~XMLComment();
     XMLComment( const XMLComment& );	// not supported
     XMLComment& operator=( const XMLComment& );	// not supported
 
-public:
+private:
 };
 
 
@@ -894,7 +894,7 @@ public:
 */
 class CC_DLL XMLDeclaration : public XMLNode
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
     friend class XMLDocument;
 public:
     virtual XMLDeclaration*	ToDeclaration()					{
@@ -910,7 +910,7 @@ public:
     virtual XMLNode* ShallowClone( XMLDocument* document ) const;
     virtual bool ShallowEqual( const XMLNode* compare ) const;
 
-public:
+protected:
     XMLDeclaration( XMLDocument* doc );
     virtual ~XMLDeclaration();
     XMLDeclaration( const XMLDeclaration& );	// not supported
@@ -927,7 +927,7 @@ public:
 */
 class CC_DLL XMLUnknown : public XMLNode
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
     friend class XMLDocument;
 public:
     virtual XMLUnknown*	ToUnknown()					{
@@ -943,7 +943,7 @@ public:
     virtual XMLNode* ShallowClone( XMLDocument* document ) const;
     virtual bool ShallowEqual( const XMLNode* compare ) const;
 
-public:
+protected:
     XMLUnknown( XMLDocument* doc );
     virtual ~XMLUnknown();
     XMLUnknown( const XMLUnknown& );	// not supported
@@ -987,7 +987,7 @@ enum XMLError {
 */
 class CC_DLL XMLAttribute
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
     friend class XMLElement;
 public:
     /// The name of the attribute.
@@ -1064,7 +1064,7 @@ public:
     /// Set the attribute to value.
     void SetAttribute( float value );
 
-public:
+private:
     enum { BUF_SIZE = 200 };
 
     XMLAttribute() : _next( 0 ) {}
@@ -1089,7 +1089,7 @@ public:
 */
 class CC_DLL XMLElement : public XMLNode
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
     friend class XMLBase;
     friend class XMLDocument;
 public:
@@ -1340,7 +1340,7 @@ public:
     virtual XMLNode* ShallowClone( XMLDocument* document ) const;
     virtual bool ShallowEqual( const XMLNode* compare ) const;
 
-public:
+private:
     XMLElement( XMLDocument* doc );
     virtual ~XMLElement();
     XMLElement( const XMLElement& );	// not supported
@@ -1372,7 +1372,7 @@ enum Whitespace {
 */
 class CC_DLL XMLDocument : public XMLNode
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
     friend class XMLElement;
 public:
     /// constructor
@@ -1552,7 +1552,7 @@ public:
         return false;
     }
 
-public:
+private:
     XMLDocument( const XMLDocument& );	// not supported
     void operator=( const XMLDocument& );	// not supported
     void InitDocument();
@@ -1629,7 +1629,7 @@ public:
 */
 class CC_DLL XMLHandle
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /// Create a handle from any node (at any depth of the tree.) This can be a null pointer.
     XMLHandle( XMLNode* node )												{
@@ -1703,7 +1703,7 @@ public:
         return ( ( _node && _node->ToDeclaration() ) ? _node->ToDeclaration() : 0 );
     }
 
-public:
+private:
     XMLNode* _node;
 };
 
@@ -1714,7 +1714,7 @@ public:
 */
 class CC_DLL XMLConstHandle
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     XMLConstHandle( const XMLNode* node )											{
         _node = node;
@@ -1773,7 +1773,7 @@ public:
         return ( ( _node && _node->ToDeclaration() ) ? _node->ToDeclaration() : 0 );
     }
 
-public:
+private:
     const XMLNode* _node;
 };
 
@@ -1822,7 +1822,7 @@ public:
 */
 class CC_DLL XMLPrinter : public XMLVisitor
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** Construct the printer. If the FILE* is specified,
     	this will print to the FILE. Else it will print
@@ -1896,7 +1896,7 @@ public:
         return _buffer.Size();
     }
 
-public:
+private:
     void SealElement();
     void PrintSpace( int depth );
     void PrintString( const char*, bool restrictedEntitySet );	// prints out, after detecting entities.

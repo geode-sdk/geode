@@ -32,14 +32,14 @@ NS_CC_BEGIN
 
 class CC_DLL CCAccelerometer
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     CCAccelerometer();
     ~CCAccelerometer();
 
     void setDelegate(CCAccelerometerDelegate* pDelegate);
     void setAccelerometerInterval(float interval);
-public:
+private:
     CCAcceleration m_obAccelerationValue;
     CCAccelerometerDelegate* m_pAccelDelegate;
 	Windows::Devices::Sensors::Accelerometer^ m_accelerometer;

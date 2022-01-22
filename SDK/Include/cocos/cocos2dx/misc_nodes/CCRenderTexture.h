@@ -53,7 +53,7 @@ There are also functions for saving the render texture to disk in PNG or JPG for
 */
 class CC_DLL CCRenderTexture : public CCNode 
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
     /** The CCSprite being used.
     The sprite, by default, will use the following blending function: GL_ONE, GL_ONE_MINUS_SRC_ALPHA.
     The blending function can be changed in runtime by calling:
@@ -165,10 +165,10 @@ public:
     bool isAutoDraw() const;
     void setAutoDraw(bool bAutoDraw);
 
-public:
+private:
     void beginWithClear(float r, float g, float b, float a, float depthValue, int stencilValue, GLbitfield flags);
 
-public:
+protected:
     GLuint       m_uFBO;
     GLuint       m_uDepthRenderBufffer;
     GLint        m_nOldFBO;

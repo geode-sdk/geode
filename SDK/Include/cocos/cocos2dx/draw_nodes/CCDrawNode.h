@@ -44,7 +44,7 @@ NS_CC_BEGIN
  */
 class CC_DLL CCDrawNode : public CCNodeRGBA
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 protected:
 
     GLuint      m_uVao;
@@ -99,7 +99,7 @@ public:
      * @js NA
      */
     void listenBackToForeground(CCObject *obj);
-public:
+private:
     void ensureCapacity(unsigned int count);
     void render();
 };

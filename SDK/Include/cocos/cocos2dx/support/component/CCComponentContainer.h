@@ -37,8 +37,9 @@ class CCNode;
  */
 class CC_DLL CCComponentContainer
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 protected:
+
 
     CCComponentContainer(CCNode *pNode);
     
@@ -53,10 +54,10 @@ public:
 public:
     bool isEmpty() const;
     
-public:
+private:
     void alloc(void);
     
-public:
+private:
     CCDictionary *m_pComponents;        ///< Dictionary of components
     CCNode *m_pOwner;
     

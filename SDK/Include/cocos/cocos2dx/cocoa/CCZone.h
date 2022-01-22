@@ -42,7 +42,7 @@ class CCObject;
  */
 class CC_DLL CCZone
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     CCZone(CCObject *pObject = NULL);
 

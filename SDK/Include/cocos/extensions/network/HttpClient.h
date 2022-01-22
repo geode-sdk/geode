@@ -92,7 +92,7 @@ public:
      */
     inline int getTimeoutForRead() {return _timeoutForRead;};
         
-public:
+private:
     CCHttpClient();
     virtual ~CCHttpClient();
     bool init(void);
@@ -105,7 +105,7 @@ public:
     /** Poll function called from main thread to dispatch callbacks when http requests finished **/
     void dispatchResponseCallbacks(float delta);
     
-public:
+private:
     int _timeoutForConnect;
     int _timeoutForRead;
     

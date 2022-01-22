@@ -34,7 +34,7 @@ NS_CC_BEGIN
  */
 class CC_DLL CCNotificationCenter : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** CCNotificationCenter constructor */
     CCNotificationCenter();
@@ -102,7 +102,7 @@ public:
      *  @return The observer script handle.
      */
     int getObserverHandlerByName(const char* name);
-public:
+private:
     // internal functions
 
     // Check whether the observer exists by the specified target and name.
@@ -120,7 +120,7 @@ public:
  */
 class CC_DLL CCNotificationObserver : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** @brief CCNotificationObserver constructor
      *  @param target The target which wants to observer notification events.
@@ -138,7 +138,7 @@ public:
     
     /** Invokes the callback function of this observer */
     void performSelector(CCObject *obj);
-public:
+private:
     CC_PROPERTY_READONLY(CCObject *, m_target, Target);
     CC_PROPERTY_READONLY(SEL_CallFuncO, m_selector, Selector);
     CC_PROPERTY_READONLY(char *, m_name, Name);

@@ -43,7 +43,7 @@ class CCCamera;
 */
 class CC_DLL CCActionCamera : public CCActionInterval //<NSCopying> 
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js ctor
@@ -67,7 +67,7 @@ public:
     // super methods
     virtual void startWithTarget(CCNode *pTarget);
     virtual CCActionInterval * reverse();
-public:
+protected:
     float m_fCenterXOrig;
     float m_fCenterYOrig;
     float m_fCenterZOrig;
@@ -88,7 +88,7 @@ Orbits the camera around the center of the screen using spherical coordinates
 */
 class CC_DLL CCOrbitCamera : public CCActionCamera //<NSCopying> 
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js ctor
@@ -127,7 +127,7 @@ public:
     virtual void startWithTarget(CCNode *pTarget);
     virtual void update(float time);
 
-public:
+protected:
     float m_fRadius;
     float m_fDeltaRadius;
     float m_fAngleZ;

@@ -50,7 +50,7 @@ struct _ccCArray;
 */
 class CC_DLL CCKeypadDispatcher : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     CCKeypadDispatcher();
     ~CCKeypadDispatcher();
@@ -80,7 +80,7 @@ public:
     */
     bool dispatchKeypadMSG(ccKeypadMSGType nMsgType);
 
-public:
+protected:
 
     CCArray* m_pDelegates;
     bool m_bLocked;

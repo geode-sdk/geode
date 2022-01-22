@@ -48,8 +48,9 @@ is turned on in CCDirector using:
 */
 class CC_DLL CCTransitionPageTurn : public CCTransitionScene
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 protected:
+
 
     bool    m_bBack;
     
@@ -85,7 +86,7 @@ public:
      */
     virtual void onEnter();
 
-public:
+protected:
     virtual void sceneOrder();
 };
 

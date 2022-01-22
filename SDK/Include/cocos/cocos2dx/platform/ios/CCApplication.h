@@ -34,7 +34,7 @@ class CCRect;
 
 class CC_DLL CCApplication : public CCApplicationProtocol
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     CCApplication();
     /**
@@ -78,7 +78,7 @@ public:
     //Robtop modification
     virtual void openURL(char const* link);
 
-public:
+protected:
     static CCApplication * sm_pSharedApplication;
 };
 

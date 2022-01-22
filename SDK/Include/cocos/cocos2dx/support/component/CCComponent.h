@@ -32,8 +32,9 @@ NS_CC_BEGIN
 
 class CC_DLL CCComponent : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 protected:
+
 
     CCComponent(void);
 public:
@@ -65,7 +66,7 @@ public:
     void setOwner(CCNode *pOwner);
     CCNode* getOwner() const;
     
-public:
+protected:
     CCNode *m_pOwner;
     gd::string m_strName;
     bool m_bEnabled;

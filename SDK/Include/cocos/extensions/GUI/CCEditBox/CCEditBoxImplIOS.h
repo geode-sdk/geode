@@ -104,7 +104,7 @@ public:
 	
 	virtual void onEndEditing();
     
-public:
+private:
 	void			initInactiveLabels(const CCSize& size);
 	void			setInactiveText(const char* pText);
 	void			adjustTextFieldPosition();

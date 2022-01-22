@@ -38,7 +38,7 @@ NS_CC_BEGIN
 
 class CC_DLL CCFloat : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     CCFloat(float v)
         : m_fValue(v) {}
@@ -53,11 +53,11 @@ public:
         }
         return pRet;
     }
-    
+
     /* override functions */
     virtual void acceptVisitor(CCDataVisitor &visitor) { visitor.visit(this); }
 
-public:
+private:
     float m_fValue;
 };
 

@@ -48,7 +48,7 @@ It is a good practice to use and CCScene as the parent of all your nodes.
 */
 class CC_DLL CCScene : public CCNode
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js ctor
@@ -70,7 +70,7 @@ public:
 
         int getHighestChildZ(void);
 
-    public:
+    protected:
         void* m_pIDK;
     )
 };

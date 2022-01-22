@@ -54,7 +54,7 @@ class CCZone;
  */
 class CC_DLL CCSpriteFrame : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     // attributes
 
@@ -148,7 +148,7 @@ public:
     bool initWithTextureFilename(const char* filename, const CCRect& rect, bool rotated, const CCPoint& offset, const CCSize& originalSize);
 
 
-public:
+protected:
     CCPoint m_obOffset;
     CCSize m_obOriginalSize;
     CCRect m_obRectInPixels;

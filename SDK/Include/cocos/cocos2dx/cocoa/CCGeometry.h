@@ -49,11 +49,12 @@ class CCSize;
  */
 class CC_DLL CCPoint
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     float x;
     float y;
-    
+    // alk modifications: all defined
+
     inline CCPoint() : x(0), y(0) {}
     inline CCPoint(float x, float y) : x(x), y(y) {}
     /**
@@ -292,7 +293,7 @@ public:
  */
 class CC_DLL CCSize
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     float width;
     float height;
@@ -376,7 +377,7 @@ CCPoint& CCPoint::operator= (const CCSize& size) {
  */
 class CC_DLL CCRect
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     CCPoint origin;
     CCSize  size;

@@ -40,7 +40,7 @@ class CCEGL;
 
 class CC_DLL CCEGLView : public CCEGLViewProtocol RT_ADD(, public CCObject)
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     CCEGLView();
     RT_REMOVE(  virtual ~CCEGLView();   )
@@ -56,7 +56,7 @@ public:
     void setMenuResource(LPCWSTR menu);
     void setWndProc(CUSTOM_WND_PROC proc);
 
-public:
+protected:
     RT_REMOVE(  virtual bool Create();  )
 public:
     bool initGL();
@@ -102,7 +102,7 @@ public:
         GLFWwindow* getWindow(void) const;
     )
 
-public:
+protected:
 	static CCEGLView* s_pEglView;
     bool m_bCaptured;
     RT_REMOVE(

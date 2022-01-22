@@ -46,7 +46,7 @@ NS_CC_BEGIN
 */
 class CC_DLL  CCTouchHandler : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual ~CCTouchHandler(void);
 
@@ -69,7 +69,7 @@ public:
     /** allocates a TouchHandler with a delegate and a priority */
     static CCTouchHandler* handlerWithDelegate(CCTouchDelegate *pDelegate, int nPriority);
 
-public:
+protected:
     CCTouchDelegate *m_pDelegate;
     int m_nPriority;
     int m_nEnabledSelectors;
@@ -82,7 +82,7 @@ public:
  */
 class CC_DLL  CCStandardTouchHandler : public CCTouchHandler
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     ~CCStandardTouchHandler(void);
     
@@ -103,7 +103,7 @@ public:
  */
 class CC_DLL  CCTargetedTouchHandler : public CCTouchHandler
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     ~CCTargetedTouchHandler(void);
 
@@ -121,7 +121,7 @@ public:
     /** allocates a TargetedTouchHandler with a delegate, a priority and whether or not it swallows touches or not */
     static CCTargetedTouchHandler* handlerWithDelegate(CCTouchDelegate *pDelegate, int nPriority, bool bSwallow);
 
-public:
+protected:
     bool m_bSwallowsTouches;
     CCSet *m_pClaimedTouches;
 };

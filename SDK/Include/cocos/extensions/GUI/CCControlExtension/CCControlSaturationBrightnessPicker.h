@@ -59,7 +59,7 @@ class CCControlSaturationBrightnessPicker : public CCControl
     CC_SYNTHESIZE_READONLY(CCSprite*, m_slider, Slider);
     CC_SYNTHESIZE_READONLY(CCPoint, m_startPos, StartPos);
 
-public:
+protected:
     int         boxPos;
     int         boxSize;
     
@@ -74,7 +74,7 @@ public:
     virtual void updateWithHSV(HSV hsv);
     virtual void updateDraggerWithHSV(HSV hsv);
 
-public:    
+protected:    
     void updateSliderPosition(CCPoint location);
     bool checkSliderPosition(CCPoint location);
 

@@ -50,7 +50,7 @@ NS_CC_EXT_BEGIN
  */
 class CCPhysicsSprite : public CCSprite
 {
-public:
+protected:
     bool    m_bIgnoreBodyRotation;
 #if CC_ENABLE_CHIPMUNK_INTEGRATION
     cpBody  *m_pCPBody;
@@ -125,7 +125,7 @@ public:
     void setPTMRatio(float fPTMRatio);
 #endif // CC_ENABLE_BOX2D_INTEGRATION
 
-public:
+protected:
     void updatePosFromPhysics();
 };
 

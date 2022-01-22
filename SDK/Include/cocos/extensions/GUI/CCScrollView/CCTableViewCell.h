@@ -51,7 +51,7 @@ public:
 
     void setObjectID(unsigned int uIdx);
     unsigned int getObjectID();
-public:
+private:
     unsigned int m_uIdx;
 };
 

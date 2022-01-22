@@ -49,7 +49,7 @@ Before v0.99.5, the recommend way was to save them on the CCSprite. Since v0.99.
 */
 class CC_DLL CCAnimationCache : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      * @js ctor
@@ -101,10 +101,10 @@ public:
 
     bool init(void);
 
-public:
+private:
     void parseVersion1(CCDictionary* animations);
     void parseVersion2(CCDictionary* animations);
-public:
+private:
     CCDictionary* m_pAnimations;
     static CCAnimationCache* s_pSharedAnimationCache;
 };

@@ -45,7 +45,7 @@ NS_CC_EXT_BEGIN
  */
 
 class ColorPickerDelegate {
-    virtual void colorValueChanged(ccColor3B) {}
+    virtual void colorValueChanged(ccColor3B);
 };
 
 // end of GUI group

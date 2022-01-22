@@ -42,7 +42,7 @@ class CCTextFieldTTF;
 
 class CC_DLL CCTextFieldDelegate
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
     @brief    If the sender doesn't want to attach to the IME, return true;
@@ -100,7 +100,7 @@ public:
 */
 class CC_DLL CCTextFieldTTF : public CCLabelTTF, public CCIMEDelegate
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @lua NA
@@ -145,7 +145,7 @@ public:
 public:
     virtual void setString(const char *text);
     virtual const char* getString(void);
-public:
+protected:
     gd::string * m_pInputText;
 
     // place holder text property
@@ -153,15 +153,15 @@ public:
 public:
     virtual void setPlaceHolder(const char * text);
     virtual const char * getPlaceHolder(void);
-public:
+protected:
     gd::string * m_pPlaceHolder;
     ccColor3B m_ColorSpaceHolder;
 public:
     virtual void setSecureTextEntry(bool value);
     virtual bool isSecureTextEntry();
-public:
+protected:
     bool m_bSecureTextEntry;
-public:
+protected:
 
     virtual void draw();
 
@@ -174,7 +174,7 @@ public:
     virtual void insertText(const char * text, int len);
     virtual void deleteBackward();
     virtual const char * getContentText();
-public:
+private:
     class LengthStack;
     LengthStack * m_pLens;
 };

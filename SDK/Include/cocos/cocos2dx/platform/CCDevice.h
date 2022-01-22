@@ -10,8 +10,9 @@ NS_CC_BEGIN
  */
 class CC_DLL CCDevice
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 private:
+
 
     CCDevice();
 public:

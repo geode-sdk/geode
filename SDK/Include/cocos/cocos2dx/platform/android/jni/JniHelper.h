@@ -39,7 +39,7 @@ typedef struct JniMethodInfo_
 
 class CC_DLL JniHelper
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     static JavaVM* getJavaVM();
     static void setJavaVM(JavaVM *javaVM);
@@ -48,7 +48,7 @@ public:
     static bool getMethodInfo(JniMethodInfo &methodinfo, const char *className, const char *methodName, const char *paramCode);
     static gd::string jstring2string(jstring str);
 
-public:
+private:
     static JavaVM *m_psJavaVM;
 };
 

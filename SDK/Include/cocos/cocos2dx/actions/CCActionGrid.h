@@ -40,7 +40,7 @@ class CCGridBase;
 /** @brief Base class for Grid actions */
 class CC_DLL CCGridAction : public CCActionInterval
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js NA
@@ -64,7 +64,7 @@ public:
 
     /** creates the action with size and duration */
     static CCGridAction* create(float duration, const CCSize& gridSize);
-public:
+protected:
     CCSize m_sGridSize;
 };
 
@@ -74,7 +74,7 @@ public:
  */
 class CC_DLL CCGrid3DAction : public CCGridAction
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** returns the grid */
     virtual CCGridBase* getGrid(void);
@@ -96,7 +96,7 @@ public:
 /** @brief Base class for CCTiledGrid3D actions */
 class CC_DLL CCTiledGrid3DAction : public CCGridAction
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** returns the tile that belongs to a certain position of the grid */
     ccQuad3 tile(const CCPoint& position);
@@ -119,7 +119,7 @@ public:
 /** @brief CCAccelDeccelAmplitude action */
 class CC_DLL CCAccelDeccelAmplitude : public CCActionInterval
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js NA
@@ -142,7 +142,7 @@ public:
     /** creates the action with an inner action that has the amplitude property, and a duration time */
     static CCAccelDeccelAmplitude* create(CCAction *pAction, float duration);
 
-public:
+protected:
     float m_fRate;
     CCActionInterval *m_pOther;
 };
@@ -150,7 +150,7 @@ public:
 /** @brief CCAccelAmplitude action */
 class CC_DLL CCAccelAmplitude : public CCActionInterval
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js NA
@@ -172,7 +172,7 @@ public:
 public:
     /** creates the action with an inner action that has the amplitude property, and a duration time */
     static CCAccelAmplitude* create(CCAction *pAction, float duration);
-public:
+protected:
     float m_fRate;
     CCActionInterval *m_pOther;
 };
@@ -180,7 +180,7 @@ public:
 /** @brief CCDeccelAmplitude action */
 class CC_DLL CCDeccelAmplitude : public CCActionInterval
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js NA
@@ -203,7 +203,7 @@ public:
     /** creates the action with an inner action that has the amplitude property, and a duration time */
     static CCDeccelAmplitude* create(CCAction *pAction, float duration);
 
-public:
+protected:
     float m_fRate;
     CCActionInterval *m_pOther;
 };
@@ -215,7 +215,7 @@ public:
  */
 class CC_DLL CCStopGrid : public CCActionInstant
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual void startWithTarget(CCNode *pTarget);
 
@@ -227,7 +227,7 @@ public:
 /** @brief CCReuseGrid action */
 class CC_DLL CCReuseGrid : public CCActionInstant
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** initializes an action with the number of times that the current grid will be reused */
     bool initWithTimes(int times);
@@ -237,7 +237,7 @@ public:
 public:
     /** creates an action with the number of times that the current grid will be reused */
     static CCReuseGrid* create(int times);
-public:
+protected:
     int m_nTimes;
 };
 

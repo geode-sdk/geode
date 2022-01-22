@@ -36,7 +36,7 @@ class CCSize;
 
 class CC_DLL CCEGLView : public CCEGLViewProtocol
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     static CCEGLView* sharedOpenGLView(void);
     
@@ -55,7 +55,7 @@ public:
     virtual void setIMEKeyboardState(bool bOpen);
 	virtual void setMultiTouchMask(bool mask);
     
-public:
+private:
     static CCEGLView* s_sharedView;
     
     CCEGLView(void);

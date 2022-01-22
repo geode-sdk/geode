@@ -108,7 +108,7 @@ object->propertyNamed(name_of_the_property);
 */
 class CC_DLL CCTMXTiledMap : public CCNode
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
     /** the map's size property measured in tiles */
     CC_SYNTHESIZE_PASS_BY_REF(CCSize, m_tMapSize, MapSize);
     /** the tiles's size property measured in pixels */
@@ -160,11 +160,11 @@ public:
     /** return properties dictionary for tile GID */
     CCDictionary* propertiesForGID(int GID);
 
-public:
+private:
     CCTMXLayer * parseLayer(CCTMXLayerInfo *layerInfo, CCTMXMapInfo *mapInfo);
     CCTMXTilesetInfo * tilesetForLayer(CCTMXLayerInfo *layerInfo, CCTMXMapInfo *mapInfo);
     void buildWithMapInfo(CCTMXMapInfo* mapInfo);
-public:
+protected:
     //! tile properties
     CCDictionary* m_pTileProperties;
 

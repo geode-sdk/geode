@@ -99,34 +99,21 @@ It's new in cocos2d-x since v0.99.5
 
 // namespace cocos2d {}
 /**
- * Geode specific:
- * Since Geode uses gd namespace for stl support, this needs to be reflected for
+ * Cacao specific:
+ * Since Cacao uses gd namespace for stl support, this needs to be reflected for
  * classes using stl containers. Easiest way to hijack this is redefining the NS_CC_BEGIN
  * macro.
  */
-#if defined(GEODE_VERSION)
-    #define GEODE_ADD(...) __VA_ARGS__
-	#define NOT_GEODE_ADD(...) 
-
-    /**
-     * For CCDestructor
-     */
-    #if CC_TARGET_PLATFORM == CC_PLATFORM_WIN32
-        #ifdef GEODE_EXPORTING
-            #define GEODE_CC_DLL __declspec(dllexport)
-        #else
-            #define GEODE_CC_DLL __declspec(dllimport)
-        #endif
-    #else
-        #define GEODE_CC_DLL
-    #endif
+#if defined(CACAO_VERSION)
+    #define CACAO_ADD(...) __VA_ARGS__
+	#define NOT_CACAO_ADD(...) 
 #else
-	#define GEODE_ADD(...)
-	#define NOT_GEODE_ADD(...) __VA_ARGS__
+	#define CACAO_ADD(...)
+	#define NOT_CACAO_ADD(...) __VA_ARGS__
 #endif
 
 #ifdef __cplusplus
-    #define NS_CC_BEGIN                     GEODE_ADD(namespace geode { struct interfaces; }) NOT_GEODE_ADD(namespace gd = std;) namespace cocos2d {
+    #define NS_CC_BEGIN                     CACAO_ADD(namespace Cacao { struct interfaces; }) NOT_CACAO_ADD(namespace gd = std;) namespace cocos2d {
     #define NS_CC_END                       }
     #define USING_NS_CC                     using namespace cocos2d
 #else
@@ -147,11 +134,11 @@ It's new in cocos2d-x since v0.99.5
  If you need protected or private, please declare.
  */
 #define CC_PROPERTY_READONLY(varType, varName, funName)\
-public: varType varName;\
+protected: varType varName;\
 public: virtual varType get##funName(void);
 
 #define CC_PROPERTY_READONLY_PASS_BY_REF(varType, varName, funName)\
-public: varType varName;\
+protected: varType varName;\
 public: virtual const varType& get##funName(void);
 
 /** CC_PROPERTY is used to declare a protected variable.
@@ -165,12 +152,12 @@ public: virtual const varType& get##funName(void);
  If you need protected or private, please declare.
  */
 #define CC_PROPERTY(varType, varName, funName)\
-public: varType varName;\
+protected: varType varName;\
 public: virtual varType get##funName(void);\
 public: virtual void set##funName(varType var);
 
 #define CC_PROPERTY_PASS_BY_REF(varType, varName, funName)\
-public: varType varName;\
+protected: varType varName;\
 public: virtual const varType& get##funName(void);\
 public: virtual void set##funName(const varType& var);
 
@@ -184,16 +171,16 @@ public: virtual void set##funName(const varType& var);
  If you need protected or private, please declare.
  */
 #define CC_SYNTHESIZE_READONLY(varType, varName, funName)\
-public: varType varName;\
+protected: varType varName;\
 public: virtual varType get##funName(void) const { return varName; }
 
 #define CC_SYNTHESIZE_READONLY_NC(varType, varName, funName)\
-public: varType varName;\
+protected: varType varName;\
 public: virtual varType get##funName(void) { return varName; }
 
 
 #define CC_SYNTHESIZE_READONLY_PASS_BY_REF(varType, varName, funName)\
-public: varType varName;\
+protected: varType varName;\
 public: virtual const varType& get##funName(void) const { return varName; }
 
 /** CC_SYNTHESIZE is used to declare a protected variable.
@@ -207,17 +194,17 @@ public: virtual const varType& get##funName(void) const { return varName; }
  If you need protected or private, please declare.
  */
 #define CC_SYNTHESIZE(varType, varName, funName)\
-public: varType varName;\
+protected: varType varName;\
 public: virtual varType get##funName(void) const { return varName; }\
 public: virtual void set##funName(varType var){ varName = var; }
 
 #define CC_SYNTHESIZE_PASS_BY_REF(varType, varName, funName)\
-public: varType varName;\
+protected: varType varName;\
 public: virtual const varType& get##funName(void) const { return varName; }\
 public: virtual void set##funName(const varType& var){ varName = var; }
 
 #define CC_SYNTHESIZE_RETAIN(varType, varName, funName)    \
-public: varType varName; \
+private: varType varName; \
 public: virtual varType get##funName(void) const { return varName; } \
 public: virtual void set##funName(varType var)   \
 { \
@@ -270,12 +257,12 @@ public: virtual void set##funName(varType var)   \
 #if defined(__GNUC__) && ((__GNUC__ >= 5) || ((__GNUG__ == 4) && (__GNUC_MINOR__ >= 4))) \
     || (defined(__clang__) && (__clang_major__ >= 3))
 #define CC_DISABLE_COPY(Class) \
-public: \
+private: \
     Class(const Class &) = delete; \
     Class &operator =(const Class &) = delete;
 #else
 #define CC_DISABLE_COPY(Class) \
-public: \
+private: \
     Class(const Class &); \
     Class &operator =(const Class &);
 #endif
@@ -327,18 +314,18 @@ public: \
 * CC_PROPERTY, but getters and setters are not virtual functions.
 */
 #define CC_SYNTHESIZE_NV(varType, varName, funName)\
-public: varType varName;\
+protected: varType varName;\
 public: varType get##funName(void) const { return varName; }\
 public: void set##funName(varType var){ varName = var; }
 
 /** 
 */
 #define CC_SYNTHESIZE_READONLY_NV(varType, varName, funName)\
-public: varType varName;\
+protected: varType varName;\
 public: varType get##funName(void) const { return varName; }\
 
 #define CC_SYNTHESIZE_READONLY_NV_NC(varType, varName, funName)\
-public: varType varName;\
+protected: varType varName;\
 public: varType get##funName(void) { return varName; }\
 
 #endif // __CC_PLATFORM_MACROS_H__

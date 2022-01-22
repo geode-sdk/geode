@@ -40,8 +40,9 @@ NS_CC_BEGIN
  */
 class CC_DLL CCClippingNode : public CCNode
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 protected:
+
 
     CCNode* m_pStencil;
     GLfloat m_fAlphaThreshold;
@@ -114,7 +115,7 @@ public:
     bool isInverted() const;
     void setInverted(bool bInverted);
     
-public:
+protected:
     CCClippingNode();
 };
 

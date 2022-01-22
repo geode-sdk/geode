@@ -86,7 +86,7 @@ public:
     virtual void ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent);
     virtual void ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent);
 
-public:
+protected:
     /** Sprite which represents the view. */
     CCControlSwitchSprite* m_pSwitchSprite;
     float m_fInitialTouchXPosition;

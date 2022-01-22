@@ -127,7 +127,7 @@ enum {
 
 class CC_DLL CCNode : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /// @{
     /// @name Constructor, Distructor and Initializers
@@ -1394,7 +1394,7 @@ public:
         CCNode& operator=(const CCNode&);
     )
 
-public:
+private:
     /// lazy allocs
     void childrenAlloc(void);
     
@@ -1410,7 +1410,7 @@ public:
      */
     CCPoint convertToWindowSpace(const CCPoint& nodePoint);
 
-public:
+protected:
     float m_fRotationX;                 ///< rotation angle on x-axis
     float m_fRotationY;                 ///< rotation angle on y-axis
     
@@ -1493,7 +1493,7 @@ public:
  */
 class CC_DLL CCNodeRGBA : public CCNode, public CCRGBAProtocol
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js ctor
@@ -1530,7 +1530,7 @@ public:
     virtual void setOpacityModifyRGB(bool bValue) {CC_UNUSED_PARAM(bValue);};
     virtual bool isOpacityModifyRGB() { return false; };
 
-public:
+protected:
 	GLubyte		_displayedOpacity;
     GLubyte     _realOpacity;
 	ccColor3B	_displayedColor;

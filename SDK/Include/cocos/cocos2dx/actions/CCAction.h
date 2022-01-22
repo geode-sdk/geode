@@ -48,7 +48,7 @@ enum {
  */
 class CC_DLL CCAction : public CCObject 
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      * @js ctor
@@ -115,7 +115,7 @@ public:
 public:
     /** Create an action */
     static CCAction* create();
-public:
+protected:
     CCNode    *m_pOriginalTarget;
     /** The "target".
     The target will be set with the 'startWithTarget' method.
@@ -139,7 +139,7 @@ public:
  */
 class CC_DLL CCFiniteTimeAction : public CCAction
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js ctor
@@ -159,7 +159,7 @@ public:
 
     /** returns a reversed action */
     virtual CCFiniteTimeAction* reverse(void);
-public:
+protected:
     //! duration in seconds
     float m_fDuration;
 };
@@ -175,7 +175,7 @@ class CCRepeatForever;
  */
 class CC_DLL CCSpeed : public CCAction
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js ctor
@@ -217,7 +217,7 @@ public:
 public:
     /** create the action */
     static CCSpeed* create(CCActionInterval* pAction, float fSpeed);
-public:
+protected:
     float m_fSpeed;
     CCActionInterval *m_pInnerAction;
 };
@@ -233,7 +233,7 @@ Instead of using CCCamera as a "follower", use this action instead.
 */
 class CC_DLL CCFollow : public CCAction
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js ctor
@@ -273,7 +273,7 @@ public:
     It will work with no boundary if @param rect is equal to CCRectZero.
     */
     static CCFollow* create(CCNode *pFollowedNode, const CCRect& rect = CCRectZero);
-public:
+protected:
     // node to follow
     CCNode *m_pobFollowedNode;
 

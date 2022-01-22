@@ -63,7 +63,7 @@ class CCSet;
  */
 class CC_DLL CCDataVisitor
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual ~CCDataVisitor() {}
 
@@ -86,7 +86,7 @@ public:
  */
 class CC_DLL CCPrettyPrinter : public CCDataVisitor
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     CCPrettyPrinter(int indentLevel = 0);
     
@@ -102,7 +102,7 @@ public:
     virtual void visit(const CCArray *p);
     virtual void visit(const CCDictionary *p);
     virtual void visit(const CCSet *p);
-public:
+private:
     void setIndentLevel(int indentLevel);
     int _indentLevel;
     gd::string _indentStr;

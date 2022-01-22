@@ -43,7 +43,7 @@ class CCArray;
 //! @brief  Helper class to handle file operations
 class CC_DLL CCFileUtils : public TypeInfo
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
     friend class CCArray;
     friend class CCDictionary;
 public:
@@ -335,7 +335,7 @@ public:
     virtual void setPopupNotify(bool bNotify);
     virtual bool isPopupNotify();
 
-public:
+protected:
     /**
      *  The default constructor.
      */

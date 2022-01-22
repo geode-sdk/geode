@@ -39,13 +39,13 @@ NS_CC_BEGIN
 
 class CC_DLL CCKeypadDelegate
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     // The back key clicked
     virtual void keyBackClicked() {}
 
     // The menu key clicked. only available on wophone & android
-    virtual void keyMenuClicked() {}
+    virtual void keyMenuClicked() {};
 };
 
 /**
@@ -57,7 +57,7 @@ public:
  */
 class CC_DLL CCKeypadHandler : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual ~CCKeypadHandler(void);
 
@@ -72,7 +72,7 @@ public:
     /** allocates a CCKeypadHandler with a delegate */
     static CCKeypadHandler* handlerWithDelegate(CCKeypadDelegate *pDelegate);
 
-public:
+protected:
     CCKeypadDelegate* m_pDelegate;
 };
 

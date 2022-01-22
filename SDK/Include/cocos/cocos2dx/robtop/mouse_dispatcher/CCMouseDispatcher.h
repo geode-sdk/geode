@@ -23,7 +23,7 @@ RT_ADD(
 
 		bool dispatchScrollMSG(float x, float y);
 
-	public:
+	protected:
 		CCArray* m_pDelegates;
 		//there's more here, check the initializer
 	};

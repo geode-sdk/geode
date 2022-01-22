@@ -39,7 +39,7 @@ typedef std::set<CCObject *>::iterator CCSetIterator;
 
 class CC_DLL CCSet : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      * @js  ctor
@@ -113,7 +113,7 @@ public:
      */
     virtual void acceptVisitor(CCDataVisitor &visitor);
 
-public:
+private:
     std::set<CCObject *> *m_pSet;
 };
 

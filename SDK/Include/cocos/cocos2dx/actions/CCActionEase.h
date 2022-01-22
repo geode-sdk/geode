@@ -44,7 +44,7 @@ class CCZone;
  */
 class CC_DLL CCActionEase : public CCActionInterval
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js NA
@@ -70,7 +70,7 @@ public:
     /** creates the action */
     static CCActionEase* create(CCActionInterval *pAction);
 
-public:
+protected:
     /** The inner action */
     CCActionInterval *m_pInner;
 };
@@ -81,7 +81,7 @@ public:
  */
 class CC_DLL CCEaseRateAction : public CCActionEase
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js NA
@@ -108,7 +108,7 @@ public:
     /** Creates the action with the inner action and the rate parameter */
     static CCEaseRateAction* create(CCActionInterval* pAction, float fRate);
 
-public:
+protected:
     float m_fRate;
 };
 
@@ -118,7 +118,7 @@ public:
  */
 class CC_DLL CCEaseIn : public CCEaseRateAction
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
@@ -139,7 +139,7 @@ public:
  */
 class CC_DLL CCEaseOut : public CCEaseRateAction
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual void update(float time);
     virtual CCActionInterval* reverse();
@@ -161,7 +161,7 @@ public:
  */
 class CC_DLL CCEaseInOut : public CCEaseRateAction
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual void update(float time);
     /**
@@ -183,7 +183,7 @@ public:
  */
 class CC_DLL CCEaseExponentialIn : public CCActionEase
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
@@ -204,7 +204,7 @@ public:
  */
 class CC_DLL CCEaseExponentialOut : public CCActionEase
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
@@ -225,7 +225,7 @@ public:
  */
 class CC_DLL CCEaseExponentialInOut : public CCActionEase
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual void update(float time);
     /**
@@ -247,7 +247,7 @@ public:
  */
 class CC_DLL CCEaseSineIn : public CCActionEase
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
@@ -268,7 +268,7 @@ public:
  */
 class CC_DLL CCEaseSineOut : public CCActionEase
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
@@ -290,7 +290,7 @@ public:
  */
 class CC_DLL CCEaseSineInOut : public CCActionEase
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual void update(float time);
     /**
@@ -313,7 +313,7 @@ public:
  */
 class CC_DLL CCEaseElastic : public CCActionEase
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** get period of the wave in radians. default is 0.3 */
     inline float getPeriod(void) { return m_fPeriod; }
@@ -335,7 +335,7 @@ public:
     /** Creates the action with the inner action and the period in radians (default is 0.3) */
     static CCEaseElastic* create(CCActionInterval *pAction, float fPeriod);
     static CCEaseElastic* create(CCActionInterval *pAction);
-public:
+protected:
     float m_fPeriod;
 };
 
@@ -347,7 +347,7 @@ public:
  */
 class CC_DLL CCEaseElasticIn : public CCEaseElastic
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
@@ -372,7 +372,7 @@ public:
  */
 class CC_DLL CCEaseElasticOut : public CCEaseElastic
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
@@ -397,7 +397,7 @@ public:
  */
 class CC_DLL CCEaseElasticInOut : public CCEaseElastic
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
@@ -421,7 +421,7 @@ public:
 */
 class CC_DLL CCEaseBounce : public CCActionEase
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     float bounceTime(float time);
     /**
@@ -445,7 +445,7 @@ public:
 */
 class CC_DLL CCEaseBounceIn : public CCEaseBounce
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
@@ -469,7 +469,7 @@ public:
  */
 class CC_DLL CCEaseBounceOut : public CCEaseBounce
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
@@ -493,7 +493,7 @@ public:
  */
 class CC_DLL CCEaseBounceInOut : public CCEaseBounce
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual void update(float time);
     /**
@@ -517,7 +517,7 @@ public:
  */
 class CC_DLL CCEaseBackIn : public CCActionEase
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
@@ -541,7 +541,7 @@ public:
  */
 class CC_DLL CCEaseBackOut : public CCActionEase
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
@@ -565,7 +565,7 @@ public:
  */
 class CC_DLL CCEaseBackInOut : public CCActionEase
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual void update(float time);
     /**

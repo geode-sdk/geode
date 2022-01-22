@@ -45,7 +45,7 @@ The children will be moved faster / slower than the parent according the the par
 */
 class CC_DLL CCParallaxNode : public CCNode 
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
     /** array that holds the offset / ratio of the children */
     CC_SYNTHESIZE(struct _ccArray *, m_pParallaxArray, ParallaxArray)
 
@@ -69,9 +69,9 @@ public:
     virtual void removeChild(CCNode* child, bool cleanup);
     virtual void removeAllChildrenWithCleanup(bool cleanup);
     virtual void visit(void);
-public:
+private:
     CCPoint absolutePosition();
-public:
+protected:
     CCPoint    m_tLastPosition;
 };
 

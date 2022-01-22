@@ -45,7 +45,7 @@ NS_CC_BEGIN
  */
 class CC_DLL CCPageTurn3D : public CCGrid3DAction
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual void update(float time);
 

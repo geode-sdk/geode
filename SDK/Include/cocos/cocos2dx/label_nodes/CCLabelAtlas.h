@@ -50,7 +50,7 @@ A more flexible class is CCLabelBMFont. It supports variable width characters an
 */
 class CC_DLL CCLabelAtlas : public CCAtlasNode, public CCLabelProtocol
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js ctor
@@ -97,7 +97,7 @@ public:
     virtual void draw();
 #endif
 
-public:
+protected:
     // string to render
     gd::string m_sString;
     // the first char in the charmap

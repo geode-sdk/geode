@@ -44,7 +44,7 @@ NS_CC_BEGIN
  */
 class CC_DLL CCUserDefault
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     ~CCUserDefault();
 
@@ -113,7 +113,7 @@ public:
     const static gd::string& getXMLFilePath();
     static bool isXMLFileExist();
 
-public:
+private:
     CCUserDefault();
     static bool createXMLFile();
     static void initXMLFilePath();

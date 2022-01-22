@@ -52,7 +52,7 @@ public:
     void beforeRender(CCTexture2D *pTexture);
     void afterRender(CCTexture2D *pTexture);
 
-public:
+protected:
     GLuint m_FBO;
     GLint m_oldFBO;
     GLfloat    m_oldClearColor[4];

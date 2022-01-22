@@ -88,7 +88,7 @@ This information is obtained from the TMX file.
 */
 class CC_DLL CCTMXLayerInfo : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
     CC_PROPERTY(CCDictionary*, m_pProperties, Properties);
 public:
     gd::string         m_sName;
@@ -117,7 +117,7 @@ This information is obtained from the TMX file.
 */
 class CC_DLL CCTMXTilesetInfo : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     gd::string     m_sName;
     unsigned int    m_uFirstGid;
@@ -220,9 +220,9 @@ public:
     inline void setCurrentString(const char *currentString){ m_sCurrentString = currentString; }
     inline const char* getTMXFileName(){ return m_sTMXFileName.c_str(); }
     inline void setTMXFileName(const char *fileName){ m_sTMXFileName = fileName; }
-public:
+private:
     void internalInit(const char* tmxFileName, const char* resourcePath);
-public:
+protected:
     //! tmx filename
     gd::string m_sTMXFileName;
     // tmx resource path

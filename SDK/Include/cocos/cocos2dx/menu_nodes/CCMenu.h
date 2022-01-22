@@ -55,7 +55,7 @@ enum {
 */
 class CC_DLL CCMenu : public CCLayerRGBA
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
     /** whether or not the menu will receive events */
     bool m_bEnabled;
     
@@ -186,7 +186,7 @@ public:
     virtual bool isEnabled() { return m_bEnabled; }
     virtual void setEnabled(bool value) { m_bEnabled = value; };
 
-public:
+protected:
     CCMenuItem* itemForTouch(CCTouch * touch);
     tCCMenuState m_eState;
     CCMenuItem *m_pSelectedItem;

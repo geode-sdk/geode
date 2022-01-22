@@ -47,7 +47,7 @@ struct CC_DLL cc_timeval
 
 class CC_DLL CCTime
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     static int gettimeofdayCocos2d(struct cc_timeval *tp, void *tzp);
     static double timersubCocos2d(struct cc_timeval *start, struct cc_timeval *end);

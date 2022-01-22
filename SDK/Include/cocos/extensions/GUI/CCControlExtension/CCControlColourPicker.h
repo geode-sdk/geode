@@ -56,7 +56,7 @@ public:
     virtual void setColor(const ccColor3B& colorValue);
     virtual void setEnabled(bool bEnabled);
 
-public:
+protected:
     HSV m_hsv;
     CC_SYNTHESIZE_RETAIN(CCControlSaturationBrightnessPicker*, m_colourPicker, colourPicker)
     
@@ -85,7 +85,7 @@ public:
     void hueSliderValueChanged(CCObject * sender, CCControlEvent controlEvent);
     void colourSliderValueChanged(CCObject * sender, CCControlEvent controlEvent);
 
-public:    
+protected:    
     void updateControlPicker();
     void updateHueAndControlPicker();
     virtual bool ccTouchBegan(CCTouch* touch, CCEvent* pEvent);

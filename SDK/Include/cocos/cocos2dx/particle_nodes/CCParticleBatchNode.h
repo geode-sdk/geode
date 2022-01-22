@@ -66,7 +66,7 @@ class CCParticleSystem;
 
 class CC_DLL CCParticleBatchNode : public CCNode, public CCTextureProtocol
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      * @js ctor
@@ -118,7 +118,7 @@ public:
 
     void visit();
 
-public:
+private:
     void updateAllAtlasIndexes();
     void increaseAtlasCapacityTo(unsigned int quantity);
     unsigned int searchNewPositionInChildrenForZ(int z);
@@ -127,7 +127,7 @@ public:
     void updateBlendFunc(void);
     /** the texture atlas used for drawing the quads */
     CC_SYNTHESIZE(CCTextureAtlas*, m_pTextureAtlas, TextureAtlas);
-public:
+private:
     /** the blend function used for drawing the quads */
     ccBlendFunc m_tBlendFunc;
 };

@@ -60,7 +60,7 @@ public:
     virtual void setEnabled(bool enabled);
     virtual void setSelected(bool enabled);
     virtual void setHighlighted(bool enabled);
-public:
+protected:
     // CCRGBAProtocol
     //bool m_bIsOpacityModifyRGB;
 
@@ -97,7 +97,7 @@ public:
 	virtual void setColor(const ccColor3B&);
     
     /** Flag to know if the button is currently pushed.  */
-public:
+protected:
     bool m_isPushed;
     bool m_bParentInited;
 public:

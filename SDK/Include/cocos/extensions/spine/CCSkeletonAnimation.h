@@ -58,10 +58,10 @@ public:
 	void addAnimation (const char* name, bool loop, float delay = 0, int stateIndex = 0);
 	void clearAnimation (int stateIndex = 0);
 
-public:
+protected:
 	CCSkeletonAnimation ();
 
-public:
+private:
 	typedef CCSkeleton super;
 	gd::vector<AnimationStateData*> stateDatas;
 

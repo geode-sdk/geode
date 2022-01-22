@@ -194,7 +194,7 @@ public:
         ~_prxy(){};
         operator SEL_HttpResponse() const { return _cb; }
         CC_DEPRECATED_ATTRIBUTE operator SEL_CallFuncND()   const { return (SEL_CallFuncND) _cb; }
-    public:
+    protected:
         SEL_HttpResponse _cb;
     };
     
@@ -217,7 +217,7 @@ public:
    	}
 
 
-public:
+protected:
     // properties
     HttpRequestType             _requestType;    /// kHttpRequestGet, kHttpRequestPost or other enums
     gd::string                 _url;            /// target url that this request is sent to

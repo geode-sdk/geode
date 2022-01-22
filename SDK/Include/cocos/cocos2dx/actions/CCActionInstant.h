@@ -44,7 +44,7 @@ the CCIntervalAction actions.
 */ 
 class CC_DLL CCActionInstant : public CCFiniteTimeAction //<NSCopying>
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js ctor
@@ -72,7 +72,7 @@ public:
 */
 class CC_DLL CCShow : public CCActionInstant
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js ctor
@@ -105,7 +105,7 @@ public:
 */
 class CC_DLL CCHide : public CCActionInstant
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js ctor
@@ -138,7 +138,7 @@ public:
 */
 class CC_DLL CCToggleVisibility : public CCActionInstant
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js ctor
@@ -169,7 +169,7 @@ public:
  */
 class CC_DLL CCRemoveSelf : public CCActionInstant
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
 	CCRemoveSelf(){}
 	virtual ~CCRemoveSelf(){}
@@ -182,7 +182,7 @@ public:
 	static CCRemoveSelf * create(bool isNeedCleanUp = true);
 	/** init the action */
 	bool init(bool isNeedCleanUp);
-public:
+protected:
 	bool m_bIsNeedCleanUp;
 };
 
@@ -193,7 +193,7 @@ public:
 */
 class CC_DLL CCFlipX : public CCActionInstant
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js ctor
@@ -220,7 +220,7 @@ public:
      */
     virtual CCObject* copyWithZone(CCZone *pZone);
 
-public:
+protected:
     bool    m_bFlipX;
 };
 
@@ -231,7 +231,7 @@ public:
 */
 class CC_DLL CCFlipY : public CCActionInstant
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js ctor
@@ -258,7 +258,7 @@ public:
      */
     virtual CCObject* copyWithZone(CCZone *pZone);
 
-public:
+protected:
     bool    m_bFlipY;
 };
 
@@ -266,7 +266,7 @@ public:
 */
 class CC_DLL CCPlace : public CCActionInstant //<NSCopying>
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js ctor
@@ -289,7 +289,7 @@ public:
      *  @lua NA
      */
     virtual CCObject* copyWithZone(CCZone *pZone);
-public:
+protected:
     CCPoint m_tPosition;
 };
 
@@ -297,7 +297,7 @@ public:
 */
 class CC_DLL CCCallFunc : public CCActionInstant //<NSCopying>
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js ctor
@@ -368,7 +368,7 @@ public:
      * @lua NA
      */
     inline int getScriptHandler() { return m_nScriptHandler; };
-public:
+protected:
     /** Target that will be called */
     CCObject*   m_pSelectorTarget;
 
@@ -390,7 +390,7 @@ N means Node
 */
 class CC_DLL CCCallFuncN : public CCCallFunc, public TypeInfo
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      * @js ctor
@@ -446,7 +446,7 @@ public:
 */
 class CC_DLL CCCallFuncND : public CCCallFuncN
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual long getClassTypeInfo() {
         static const long id = cocos2d::getHashCodeByString(typeid(cocos2d::CCCallFunc).name());
@@ -466,7 +466,7 @@ public:
     virtual CCObject* copyWithZone(CCZone *pZone);
     virtual void execute();
 
-public:
+protected:
     void            *m_pData;
 };
 
@@ -481,7 +481,7 @@ O means Object.
 
 class CC_DLL CCCallFuncO : public CCCallFunc, public TypeInfo
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     CCCallFuncO();
     virtual ~CCCallFuncO();
@@ -525,7 +525,7 @@ public:
         }
     }
 
-public:
+protected:
     /** object to be passed as argument */
     CCObject* m_pObject;
 };

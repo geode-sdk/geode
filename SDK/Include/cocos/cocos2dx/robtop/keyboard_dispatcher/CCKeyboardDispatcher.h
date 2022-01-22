@@ -37,7 +37,7 @@ RT_ADD(
 
 		void updateModifierKeys(bool shft, bool ctrl, bool alt, bool cmd);
 
-	public:
+	protected:
 		CCArray* m_pDelegates;		// 0x20
 		bool m_bUnknown24;			// 0x24
 		bool m_bUnknown25;			// 0x25

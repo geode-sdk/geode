@@ -66,7 +66,7 @@ public:
 
     static CCControlHuePicker* create(CCNode* target, CCPoint pos);
     virtual void setEnabled(bool enabled);
-public:    
+protected:    
     void updateSliderPosition(CCPoint location);
     bool checkSliderPosition(CCPoint location);
 

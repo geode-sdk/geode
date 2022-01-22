@@ -41,7 +41,7 @@ NS_CC_BEGIN
 */
 class CC_DLL CCIMEDispatcher
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     ~CCIMEDispatcher();
 
@@ -78,7 +78,7 @@ public:
     void dispatchKeyboardWillHide(CCIMEKeyboardNotificationInfo& info);
     void dispatchKeyboardDidHide(CCIMEKeyboardNotificationInfo& info);
 
-public:
+protected:
     friend class CCIMEDelegate;
 
     /**
@@ -99,7 +99,7 @@ public:
     */
     void removeDelegate(CCIMEDelegate * pDelegate);
 
-public:
+private:
     CCIMEDispatcher();
     
     class Impl;

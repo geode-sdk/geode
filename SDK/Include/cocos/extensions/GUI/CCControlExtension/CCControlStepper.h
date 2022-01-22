@@ -70,7 +70,7 @@ public:
     virtual void ccTouchMoved(CCTouch *pTouch, CCEvent *pEvent);
     virtual void ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent);
 
-public:
+protected:
     // Weak links to children
 	CC_SYNTHESIZE_RETAIN(CCSprite*, m_pMinusSprite, MinusSprite)
     CC_SYNTHESIZE_RETAIN(CCSprite*, m_pPlusSprite, PlusSprite)

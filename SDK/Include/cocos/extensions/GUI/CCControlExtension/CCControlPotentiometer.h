@@ -73,7 +73,7 @@ public:
     virtual void ccTouchMoved(CCTouch *pTouch, CCEvent *pEvent);
     virtual void ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent);
 
-public:
+protected:
     CC_SYNTHESIZE_RETAIN(CCSprite*, m_pThumbSprite, ThumbSprite)
     CC_SYNTHESIZE_RETAIN(CCProgressTimer*, m_pProgressTimer, ProgressTimer)
     CC_SYNTHESIZE(CCPoint, m_tPreviousLocation, PreviousLocation)

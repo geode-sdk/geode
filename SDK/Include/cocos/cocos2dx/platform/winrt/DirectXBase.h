@@ -47,7 +47,7 @@ public:
    virtual void Present();
    virtual float ConvertDipsToPixels(float dips);
 
-protected public:
+protected private:
 
    Platform::Agile<Windows::UI::Core::CoreWindow>         m_window;
    Windows::UI::Xaml::Controls::SwapChainBackgroundPanel^ m_panel;

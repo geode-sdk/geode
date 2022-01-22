@@ -227,7 +227,7 @@ namespace pugi
 		It begin() const { return _begin; }
 		It end() const { return _end; }
 
-	public:
+	private:
 		It _begin, _end;
 	};
 
@@ -250,7 +250,7 @@ namespace pugi
 
 		virtual void write(const void* data, size_t size);
 
-	public:
+	private:
 		void* file;
 	};
 
@@ -265,7 +265,7 @@ namespace pugi
 
 		virtual void write(const void* data, size_t size);
 
-	public:
+	private:
 		std::basic_ostream<char, std::char_traits<char> >* narrow_stream;
 		std::basic_ostream<wchar_t, std::char_traits<wchar_t> >* wide_stream;
 	};
@@ -277,7 +277,7 @@ namespace pugi
 		friend class xml_attribute_iterator;
 		friend class xml_node;
 
-	public:
+	private:
 		xml_attribute_struct* _attr;
 	
 		typedef void (*unspecified_bool_type)(xml_attribute***);
@@ -363,7 +363,7 @@ namespace pugi
 		friend class xml_node_iterator;
 		friend class xml_named_node_iterator;
 
-	public:
+	protected:
 		xml_node_struct* _root;
 
 		typedef void (*unspecified_bool_type)(xml_node***);
@@ -662,7 +662,7 @@ namespace pugi
 	{
 		friend class xml_node;
 
-	public:
+	private:
 		mutable xml_node _wrap;
 		xml_node _parent;
 
@@ -704,7 +704,7 @@ namespace pugi
 	{
 		friend class xml_node;
 
-	public:
+	private:
 		mutable xml_attribute _wrap;
 		xml_node _parent;
 
@@ -771,7 +771,7 @@ namespace pugi
 		const xml_named_node_iterator& operator++();
 		xml_named_node_iterator operator++(int);
 
-	public:
+	private:
 		mutable xml_node _node;
 		const char_t* _name;
 	};
@@ -781,10 +781,10 @@ namespace pugi
 	{
 		friend class xml_node;
 
-	public:
+	private:
 		int _depth;
 	
-	public:
+	protected:
 		// Get current traversal depth
 		int depth() const;
 	
@@ -850,7 +850,7 @@ namespace pugi
 	// Document class (DOM tree root)
 	class PUGIXML_CLASS xml_document: public xml_node
 	{
-	public:
+	private:
 		char_t* _buffer;
 
 		char _memory[192];
@@ -953,7 +953,7 @@ namespace pugi
 	{
 		friend class xpath_variable_set;
 
-	public:
+	protected:
 		xpath_value_type _type;
 		xpath_variable* _next;
 
@@ -986,7 +986,7 @@ namespace pugi
 	// A set of XPath variables
 	class PUGIXML_CLASS xpath_variable_set
 	{
-	public:
+	private:
 		xpath_variable* _data[64];
 
 		// Non-copyable semantics
@@ -1017,7 +1017,7 @@ namespace pugi
 	// A compiled XPath query object
 	class PUGIXML_CLASS xpath_query
 	{
-	public:
+	private:
 		void* _impl;
 		xpath_parse_result _result;
 
@@ -1077,7 +1077,7 @@ namespace pugi
 	// XPath exception class
 	class PUGIXML_CLASS xpath_exception: public std::exception
 	{
-	public:
+	private:
 		xpath_parse_result _result;
 
 	public:
@@ -1095,7 +1095,7 @@ namespace pugi
 	// XPath node class (either xml_node or xml_attribute)
 	class PUGIXML_CLASS xpath_node
 	{
-	public:
+	private:
 		xml_node _node;
 		xml_attribute _attribute;
 	
@@ -1183,7 +1183,7 @@ namespace pugi
 		// Check if collection is empty
 		bool empty() const;
 	
-	public:
+	private:
 		type_t _type;
 		
 		xpath_node _storage;

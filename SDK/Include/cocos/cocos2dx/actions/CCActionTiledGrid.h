@@ -37,7 +37,7 @@ NS_CC_BEGIN
 /** @brief CCShakyTiles3D action */
 class CC_DLL CCShakyTiles3D : public CCTiledGrid3DAction
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** initializes the action with a range, whether or not to shake Z vertices, a grid size, and duration */
     virtual bool initWithDuration(float duration, const CCSize& gridSize, int nRange, bool bShakeZ);
@@ -53,7 +53,7 @@ public:
     /** creates the action with a range, whether or not to shake Z vertices, a grid size, and duration */
     static CCShakyTiles3D* create(float duration, const CCSize& gridSize, int nRange, bool bShakeZ);
 
-public:
+protected:
     int m_nRandrange;
     bool m_bShakeZ;
 };
@@ -61,7 +61,7 @@ public:
 /** @brief CCShatteredTiles3D action */
 class CC_DLL CCShatteredTiles3D : public CCTiledGrid3DAction
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** initializes the action with a range, whether or not to shatter Z vertices, a grid size and duration */
     virtual bool initWithDuration(float duration, const CCSize& gridSize, int nRange, bool bShatterZ);
@@ -76,7 +76,7 @@ public:
 
     /** creates the action with a range, whether of not to shatter Z vertices, a grid size and duration */
     static CCShatteredTiles3D* create(float duration, const CCSize& gridSize, int nRange, bool bShatterZ);
-public:
+protected:
     int m_nRandrange;
     bool m_bOnce;
     bool m_bShatterZ;
@@ -88,7 +88,7 @@ struct Tile;
  */
 class CC_DLL CCShuffleTiles : public CCTiledGrid3DAction
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js NA
@@ -112,7 +112,7 @@ public:
 public:
     /** creates the action with a random seed, the grid size and the duration */
     static CCShuffleTiles* create(float duration, const CCSize& gridSize, unsigned int seed);
-public:
+protected:
     unsigned int m_nSeed;
     unsigned int m_nTilesCount;
     unsigned int* m_pTilesOrder;
@@ -124,7 +124,7 @@ public:
  */
 class CC_DLL CCFadeOutTRTiles : public CCTiledGrid3DAction
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual float testFunc(const CCSize& pos, float time);
     void turnOnTile(const CCPoint& pos);
@@ -143,7 +143,7 @@ public:
  */
 class CC_DLL CCFadeOutBLTiles : public CCFadeOutTRTiles
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual float testFunc(const CCSize& pos, float time);
 
@@ -158,7 +158,7 @@ public:
  */
 class CC_DLL CCFadeOutUpTiles : public CCFadeOutTRTiles
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual float testFunc(const CCSize& pos, float time);
     virtual void transformTile(const CCPoint& pos, float distance);
@@ -174,7 +174,7 @@ public:
  */
 class CC_DLL CCFadeOutDownTiles : public CCFadeOutUpTiles
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual float testFunc(const CCSize& pos, float time);
 
@@ -189,7 +189,7 @@ public:
  */
 class CC_DLL CCTurnOffTiles : public CCTiledGrid3DAction
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js NA
@@ -216,7 +216,7 @@ public:
     /** creates the action with a random seed, the grid size and the duration */
     static CCTurnOffTiles* create(float duration, const CCSize& gridSize, unsigned int seed);
 
-public:
+protected:
     unsigned int    m_nSeed;
     unsigned int    m_nTilesCount;
     unsigned int*   m_pTilesOrder;
@@ -225,7 +225,7 @@ public:
 /** @brief CCWavesTiles3D action. */
 class CC_DLL CCWavesTiles3D : public CCTiledGrid3DAction
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** waves amplitude */
     inline float getAmplitude(void) { return m_fAmplitude; }
@@ -247,7 +247,7 @@ public:
 public:
     /** creates the action with a number of waves, the waves amplitude, the grid size and the duration */
     static CCWavesTiles3D* create(float duration, const CCSize& gridSize, unsigned int waves, float amplitude);
-public:
+protected:
     unsigned int m_nWaves;
     float m_fAmplitude;
     float m_fAmplitudeRate;
@@ -258,7 +258,7 @@ public:
  */
 class CC_DLL CCJumpTiles3D : public CCTiledGrid3DAction
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** amplitude of the sin*/
     inline float getAmplitude(void) { return m_fAmplitude; }
@@ -281,7 +281,7 @@ public:
 
     /** creates the action with the number of jumps, the sin amplitude, the grid size and the duration */
     static CCJumpTiles3D* create(float duration, const CCSize& gridSize, unsigned int numberOfJumps, float amplitude);
-public:
+protected:
     unsigned int m_nJumps;
     float m_fAmplitude;
     float m_fAmplitudeRate;
@@ -290,7 +290,7 @@ public:
 /** @brief CCSplitRows action */
 class CC_DLL CCSplitRows : public CCTiledGrid3DAction
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public :
     /** initializes the action with the number of rows to split and the duration */
     virtual bool initWithDuration(float duration, unsigned int nRows);
@@ -306,7 +306,7 @@ public:
 
     /** creates the action with the number of rows to split and the duration */
     static CCSplitRows* create(float duration, unsigned int nRows);
-public:
+protected:
     unsigned int m_nRows;
     CCSize m_winSize;
 };
@@ -314,7 +314,7 @@ public:
 /** @brief CCSplitCols action */
 class CC_DLL CCSplitCols : public CCTiledGrid3DAction
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** initializes the action with the number of columns to split and the duration */
     virtual bool initWithDuration(float duration, unsigned int nCols);
@@ -329,7 +329,7 @@ public:
 public:
     /** creates the action with the number of columns to split and the duration */
     static CCSplitCols* create(float duration, unsigned int nCols);
-public:
+protected:
     unsigned int m_nCols;
     CCSize m_winSize;
 };

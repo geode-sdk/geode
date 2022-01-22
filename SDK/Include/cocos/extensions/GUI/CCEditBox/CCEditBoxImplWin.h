@@ -70,7 +70,7 @@ public:
     virtual void openKeyboard();
     virtual void closeKeyboard();
     virtual void onEnter(void);
-public:
+private:
 
     CCLabelTTF* m_pLabel;
     CCLabelTTF* m_pLabelPlaceHolder;

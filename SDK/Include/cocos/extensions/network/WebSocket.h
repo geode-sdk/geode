@@ -132,7 +132,7 @@ public:
      *  @brief Gets current state of connection.
      */
     State getReadyState();
-public:
+private:
     virtual void onSubThreadStarted();
     virtual int onSubThreadLoop();
     virtual void onSubThreadEnded();
@@ -145,7 +145,7 @@ public:
                          enum libwebsocket_callback_reasons reason,
                          void *user, void *in, size_t len);
     
-public:
+private:
 	State        _readyState;
     gd::string  _host;
     unsigned int _port;

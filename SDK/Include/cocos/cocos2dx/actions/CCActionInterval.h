@@ -60,7 +60,7 @@ CCAction *pingPongAction = CCSequence::actions(action, action->reverse(), NULL);
 */
 class CC_DLL CCActionInterval : public CCFiniteTimeAction
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** how many seconds had elapsed since the actions started to run. */
     inline float getElapsed(void) { return m_elapsed; }
@@ -90,7 +90,7 @@ public:
     void setAmplitudeRate(float amp);
     float getAmplitudeRate(void);
 
-public:
+protected:
     float m_elapsed;
     bool   m_bFirstTick;
 };
@@ -99,7 +99,7 @@ public:
  */
 class CC_DLL CCSequence : public CCActionInterval
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      * @js NA
@@ -150,7 +150,7 @@ public:
      */
     static CCSequence* createWithTwoActions(CCFiniteTimeAction *pActionOne, CCFiniteTimeAction *pActionTwo);
 
-public:
+protected:
     CCFiniteTimeAction *m_pActions[2];
     float m_split;
     int m_last;
@@ -161,7 +161,7 @@ public:
  */
 class CC_DLL CCRepeat : public CCActionInterval
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js NA
@@ -201,7 +201,7 @@ public:
 
     /** creates a CCRepeat action. Times is an unsigned integer between 1 and pow(2,30) */
     static CCRepeat* create(CCFiniteTimeAction *pAction, unsigned int times);
-public:
+protected:
     unsigned int m_uTimes;
     unsigned int m_uTotal;
     float m_fNextDt;
@@ -216,7 +216,7 @@ To repeat the an action for a limited number of times use the Repeat action.
 */
 class CC_DLL CCRepeatForever : public CCActionInterval
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js ctor
@@ -261,7 +261,7 @@ public:
 
     /** creates the action */
     static CCRepeatForever* create(CCActionInterval *pAction);
-public:
+protected:
     /** Inner action */
     CCActionInterval *m_pInnerAction;
 };
@@ -270,7 +270,7 @@ public:
  */
 class CC_DLL CCSpawn : public CCActionInterval
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      * @js NA
@@ -324,7 +324,7 @@ public:
      */
     static CCSpawn* createWithTwoActions(CCFiniteTimeAction *pAction1, CCFiniteTimeAction *pAction2);
 
-public:
+protected:
     CCFiniteTimeAction *m_pOne;
     CCFiniteTimeAction *m_pTwo;
 };
@@ -335,7 +335,7 @@ public:
 */ 
 class CC_DLL CCRotateTo : public CCActionInterval
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** creates the action */
     static CCRotateTo* create(float fDuration, float fDeltaAngle);
@@ -353,7 +353,7 @@ public:
     virtual void startWithTarget(CCNode *pTarget);
     virtual void update(float time);
     
-public:
+protected:
     float m_fDstAngleX;
     float m_fStartAngleX;
     float m_fDiffAngleX;
@@ -367,7 +367,7 @@ public:
 */
 class CC_DLL CCRotateBy : public CCActionInterval
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** creates the action */
     static CCRotateBy* create(float fDuration, float fDeltaAngle);
@@ -385,7 +385,7 @@ public:
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
     
-public:
+protected:
     float m_fAngleX;
     float m_fStartAngleX;
     float m_fAngleY;
@@ -400,7 +400,7 @@ public:
  */
 class CC_DLL CCMoveBy : public CCActionInterval
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** initializes the action */
     bool initWithDuration(float duration, const CCPoint& deltaPosition);
@@ -416,7 +416,7 @@ public:
 public:
     /** creates the action */
     static CCMoveBy* create(float duration, const CCPoint& deltaPosition);
-public:
+protected:
     CCPoint m_positionDelta;
     CCPoint m_startPosition;
     CCPoint m_previousPosition;
@@ -429,7 +429,7 @@ public:
  */
 class CC_DLL CCMoveTo : public CCMoveBy
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** initializes the action */
     bool initWithDuration(float duration, const CCPoint& position);
@@ -443,7 +443,7 @@ public:
 public:
     /** creates the action */
     static CCMoveTo* create(float duration, const CCPoint& position);
-public:
+protected:
     CCPoint m_endPosition;
 };
 
@@ -452,7 +452,7 @@ public:
 */
 class CC_DLL CCSkewTo : public CCActionInterval
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js ctor
@@ -471,7 +471,7 @@ public:
 
     /** creates the action */
     static CCSkewTo* create(float t, float sx, float sy);
-public:
+protected:
     float m_fSkewX;
     float m_fSkewY;
     float m_fStartSkewX;
@@ -487,7 +487,7 @@ public:
 */
 class CC_DLL CCSkewBy : public CCSkewTo
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual bool initWithDuration(float t, float sx, float sy);
     virtual void startWithTarget(CCNode *pTarget);
@@ -503,7 +503,7 @@ public:
 */
 class CC_DLL CCJumpBy : public CCActionInterval
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** initializes the action */
     bool initWithDuration(float duration, const CCPoint& position, float height, unsigned int jumps);
@@ -519,7 +519,7 @@ public:
 public:
     /** creates the action */
     static CCJumpBy* create(float duration, const CCPoint& position, float height, unsigned int jumps);
-public:
+protected:
     CCPoint         m_startPosition;
     CCPoint         m_delta;
     float           m_height;
@@ -531,7 +531,7 @@ public:
 */ 
 class CC_DLL CCJumpTo : public CCJumpBy
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual void startWithTarget(CCNode *pTarget);
     /**
@@ -560,7 +560,7 @@ typedef struct _ccBezierConfig {
  */
 class CC_DLL CCBezierBy : public CCActionInterval
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** initializes the action with a duration and a bezier configuration 
      *  @lua NA
@@ -589,7 +589,7 @@ public:
      *  @endcode
      */
     static CCBezierBy* create(float t, const ccBezierConfig& c);
-public:
+protected:
     ccBezierConfig m_sConfig;
     CCPoint m_startPosition;
     CCPoint m_previousPosition;
@@ -600,7 +600,7 @@ public:
  */
 class CC_DLL CCBezierTo : public CCBezierBy
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @lua NA
@@ -626,7 +626,7 @@ public:
      */
     bool initWithDuration(float t, const ccBezierConfig &c);
     
-public:
+protected:
     ccBezierConfig m_sToConfig;
 };
 
@@ -635,7 +635,7 @@ public:
  */
 class CC_DLL CCScaleTo : public CCActionInterval
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** initializes the action with the same scale factor for X and Y */
     bool initWithDuration(float duration, float s);
@@ -657,7 +657,7 @@ public:
 
     /** creates the action with and X factor and a Y factor */
     static CCScaleTo* create(float duration, float sx, float sy);
-public:
+protected:
     float m_fScaleX;
     float m_fScaleY;
     float m_fStartScaleX;
@@ -672,7 +672,7 @@ public:
 */
 class CC_DLL CCScaleBy : public CCScaleTo
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual void startWithTarget(CCNode *pTarget);
     virtual CCActionInterval* reverse(void);
@@ -695,7 +695,7 @@ public:
 */
 class CC_DLL CCBlink : public CCActionInterval
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** initializes the action */
     bool initWithDuration(float duration, unsigned int uBlinks);
@@ -715,7 +715,7 @@ public:
     virtual void startWithTarget(CCNode *pTarget);
     virtual void stop();
     
-public:
+protected:
     unsigned int m_nTimes;
     bool m_bOriginalState;
 };
@@ -725,7 +725,7 @@ public:
  */
 class CC_DLL CCFadeIn : public CCActionInterval
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
@@ -745,7 +745,7 @@ public:
 */
 class CC_DLL CCFadeOut : public CCActionInterval
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
@@ -766,7 +766,7 @@ public:
  */
 class CC_DLL CCFadeTo : public CCActionInterval
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** initializes the action with duration and opacity */
     bool initWithDuration(float duration, GLubyte opacity);
@@ -781,7 +781,7 @@ public:
 public:
     /** creates an action with duration and opacity */
     static CCFadeTo* create(float duration, GLubyte opacity);
-public:
+protected:
     GLubyte m_toOpacity;
     GLubyte m_fromOpacity;
 };
@@ -792,7 +792,7 @@ public:
 */
 class CC_DLL CCTintTo : public CCActionInterval
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** initializes the action with duration and color */
     bool initWithDuration(float duration, GLubyte red, GLubyte green, GLubyte blue);
@@ -807,7 +807,7 @@ public:
 public:
     /** creates an action with duration and color */
     static CCTintTo* create(float duration, GLubyte red, GLubyte green, GLubyte blue);
-public:
+protected:
     ccColor3B m_to;
     ccColor3B m_from;
 };
@@ -817,7 +817,7 @@ public:
  */
 class CC_DLL CCTintBy : public CCActionInterval
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** initializes the action with duration and color */
     bool initWithDuration(float duration, GLshort deltaRed, GLshort deltaGreen, GLshort deltaBlue);
@@ -833,7 +833,7 @@ public:
 public:
     /** creates an action with duration and color */
     static CCTintBy* create(float duration, GLshort deltaRed, GLshort deltaGreen, GLshort deltaBlue);
-public:
+protected:
     GLshort m_deltaR;
     GLshort m_deltaG;
     GLshort m_deltaB;
@@ -847,7 +847,7 @@ public:
 */
 class CC_DLL CCDelayTime : public CCActionInterval
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual void update(float time);
     virtual CCActionInterval* reverse(void);
@@ -872,7 +872,7 @@ public:
 */
 class CC_DLL CCReverseTime : public CCActionInterval
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js ctor
@@ -899,7 +899,7 @@ public:
 public:
     /** creates the action */
     static CCReverseTime* create(CCFiniteTimeAction *pAction);
-public:
+protected:
     CCFiniteTimeAction *m_pOther;
 };
 
@@ -907,7 +907,7 @@ class CCTexture2D;
 /** @brief Animates a sprite given the name of an Animation */
 class CC_DLL CCAnimate : public CCActionInterval
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js ctor
@@ -936,7 +936,7 @@ public:
     /** creates the action with an Animation and will restore the original frame when the animation is over */
     static CCAnimate* create(CCAnimation *pAnimation);
     CC_SYNTHESIZE_RETAIN(CCAnimation*, m_pAnimation, Animation)
-public:
+protected:
     gd::vector<float>* m_pSplitTimes;
     int                m_nNextFrame;
     CCSpriteFrame*  m_pOrigFrame;
@@ -948,7 +948,7 @@ public:
  */
 class CC_DLL CCTargetedAction : public CCActionInterval
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js ctor
@@ -976,7 +976,7 @@ public:
 
     /** This is the target that the action will be forced to run with */
     CC_SYNTHESIZE_RETAIN(CCNode*, m_pForcedTarget, ForcedTarget);
-public:
+private:
     CCFiniteTimeAction* m_pAction;
 };
 

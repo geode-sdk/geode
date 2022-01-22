@@ -36,7 +36,7 @@ NS_CC_BEGIN
  */
 class CC_DLL CCTextureETC : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     CCTextureETC();
     virtual ~CCTextureETC();
@@ -47,10 +47,10 @@ public:
     unsigned int getWidth() const;
     unsigned int getHeight() const;
     
-public:
+private:
     bool loadTexture(const char* file);
 
-public:
+private:
     GLuint _name;
     unsigned int _width;
     unsigned int _height;

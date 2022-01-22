@@ -36,7 +36,7 @@ class CCRect;
 
 class CC_DLL CCApplication : public CCApplicationProtocol
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     CCApplication();
     virtual ~CCApplication();
@@ -80,7 +80,7 @@ public:
         return m_startupScriptFilename;
     }
 
-public:
+protected:
     LARGE_INTEGER       m_nAnimationInterval;
     gd::string         m_resourceRootPath;
     gd::string         m_startupScriptFilename;

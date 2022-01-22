@@ -37,7 +37,7 @@ NS_CC_BEGIN
 
 class CC_DLL CCTouch : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      * @js ctor
@@ -92,7 +92,7 @@ public:
 
 class CC_DLL CCEvent : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 };
 
 // end of input group

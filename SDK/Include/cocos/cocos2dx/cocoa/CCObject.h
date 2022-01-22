@@ -56,11 +56,11 @@ class CCObject;
 class CCNode;
 class CCEvent;
 
-/**
- * This class is used to fix the problem of destructor recursion.
- */
-GEODE_ADD(
-	class GEODE_CC_DLL CCDestructor {
+/*
+	Alk edits for cacao
+*/
+CACAO_ADD(
+	class CC_DLL CCDestructor {
 	public:
 		~CCDestructor();
 	};
@@ -70,11 +70,11 @@ GEODE_ADD(
  * @js NA
  * @lua NA
  */
-class CC_DLL CCCopying GEODE_ADD(: CCDestructor)
+class CC_DLL CCCopying CACAO_ADD(: CCDestructor)
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
-    virtual CCObject* copyWithZone(CCZone* pZone) { return 0; }
+    virtual CCObject* copyWithZone(CCZone* pZone);
 };
 
 /**
@@ -82,13 +82,13 @@ public:
  */
 class CC_DLL CCObject : public CCCopying
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     // object id, CCScriptSupport need public m_uID
     unsigned int        m_uID;
     // Lua reference id
     int                 m_nLuaID;
-public:
+protected:
     // the object's tag
     RT_ADD( int m_nTag; )
     // count of references
@@ -97,7 +97,7 @@ public:
     unsigned int        m_uAutoReleaseCount;
 
     RT_ADD(
-        CCObjectType m_eObjType;
+        int m_eObjType;
         int m_nUnknown;
     )
 public:
@@ -132,9 +132,7 @@ public:
 
         virtual void setTag(int nTag);
        
-        inline void setObjType(CCObjectType type) {
-        	m_eObjType = type;
-        }
+        void setObjType(CCObjectType);
     
         //i have no idea if vtable function order matters so 
     )

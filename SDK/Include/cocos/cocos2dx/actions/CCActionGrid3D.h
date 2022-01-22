@@ -39,7 +39,7 @@ NS_CC_BEGIN
 */
 class CC_DLL CCWaves3D : public CCGrid3DAction
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     inline float getAmplitude(void) { return m_fAmplitude; }
     inline void setAmplitude(float fAmplitude) { m_fAmplitude = fAmplitude; }
@@ -59,7 +59,7 @@ public:
 public:
     /** creates an action with duration, grid size, waves and amplitude */
     static CCWaves3D* create(float duration, const CCSize& gridSize, unsigned int waves, float amplitude);
-public:
+protected:
     unsigned int m_nWaves;
     float m_fAmplitude;
     float m_fAmplitudeRate;
@@ -68,7 +68,7 @@ public:
 /** @brief CCFlipX3D action */
 class CC_DLL CCFlipX3D : public CCGrid3DAction
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** initializes the action with duration */
     virtual bool initWithDuration(float duration);
@@ -88,7 +88,7 @@ public:
 /** @brief CCFlipY3D action */
 class CC_DLL CCFlipY3D : public CCFlipX3D
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual void update(float time);
     /**
@@ -105,7 +105,7 @@ public:
 /** @brief CCLens3D action */
 class CC_DLL CCLens3D : public CCGrid3DAction
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** Get lens center position */
     inline float getLensEffect(void) { return m_fLensEffect; }
@@ -129,7 +129,7 @@ public:
 public:
     /** creates the action with center position, radius, a grid size and duration */
     static CCLens3D* create(float duration, const CCSize& gridSize, const CCPoint& position, float radius);
-public:
+protected:
     /* lens center position */
     CCPoint m_position;
     float m_fRadius;
@@ -144,7 +144,7 @@ public:
 /** @brief CCRipple3D action */
 class CC_DLL CCRipple3D : public CCGrid3DAction
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** get center position */
     inline const CCPoint& getPosition(void) { return m_position; }
@@ -169,7 +169,7 @@ public:
 public:
     /** creates the action with radius, number of waves, amplitude, a grid size and duration */
     static CCRipple3D* create(float duration, const CCSize& gridSize, const CCPoint& position, float radius, unsigned int waves, float amplitude);
-public:
+protected:
     /* center position */
     CCPoint m_position;
     float m_fRadius;
@@ -181,7 +181,7 @@ public:
 /** @brief CCShaky3D action */
 class CC_DLL CCShaky3D : public CCGrid3DAction
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** initializes the action with a range, shake Z vertices, a grid and duration */
     bool initWithDuration(float duration, const CCSize& gridSize, int range, bool shakeZ);
@@ -195,7 +195,7 @@ public:
 public:
     /** creates the action with a range, shake Z vertices, a grid and duration */
     static CCShaky3D* create(float duration, const CCSize& gridSize, int range, bool shakeZ);
-public:
+protected:
     int m_nRandrange;
     bool m_bShakeZ;
 };
@@ -203,7 +203,7 @@ public:
 /** @brief CCLiquid action */
 class CC_DLL CCLiquid : public CCGrid3DAction
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     inline float getAmplitude(void) { return m_fAmplitude; }
     inline void setAmplitude(float fAmplitude) { m_fAmplitude = fAmplitude; }
@@ -223,7 +223,7 @@ public:
 public:
     /** creates the action with amplitude, a grid and duration */
     static CCLiquid* create(float duration, const CCSize& gridSize, unsigned int waves, float amplitude);
-public:
+protected:
     unsigned int m_nWaves;
     float m_fAmplitude;
     float m_fAmplitudeRate;
@@ -232,7 +232,7 @@ public:
 /** @brief CCWaves action */
 class CC_DLL CCWaves : public CCGrid3DAction
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     inline float getAmplitude(void) { return m_fAmplitude; }
     inline void setAmplitude(float fAmplitude) { m_fAmplitude = fAmplitude; }
@@ -253,7 +253,7 @@ public:
 
     /** initializes the action with amplitude, horizontal sin, vertical sin, a grid and duration */
     static CCWaves* create(float duration, const CCSize& gridSize, unsigned int waves, float amplitude, bool horizontal, bool vertical);
-public:
+protected:
     unsigned int m_nWaves;
     float m_fAmplitude;
     float m_fAmplitudeRate;
@@ -264,7 +264,7 @@ public:
 /** @brief CCTwirl action */
 class CC_DLL CCTwirl : public CCGrid3DAction
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** get twirl center */
     inline const CCPoint& getPosition(void) { return m_position; }
@@ -289,7 +289,7 @@ public:
 public:
     /** creates the action with center position, number of twirls, amplitude, a grid size and duration */
     static CCTwirl* create(float duration, const CCSize& gridSize, CCPoint position, unsigned int twirls, float amplitude);
-public:
+protected:
     /* twirl center */
     CCPoint m_position;
     unsigned int m_nTwirls;

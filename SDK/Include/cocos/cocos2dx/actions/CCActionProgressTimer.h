@@ -40,7 +40,7 @@ NS_CC_BEGIN
 */
 class CC_DLL CCProgressTo : public CCActionInterval
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** Initializes with a duration and a percent */
     bool initWithDuration(float duration, float fPercent);
@@ -55,7 +55,7 @@ public:
 public:
     /** Creates and initializes with a duration and a percent */
     static CCProgressTo* create(float duration, float fPercent);
-public:
+protected:
     float m_fTo;
     float m_fFrom;
 };
@@ -66,7 +66,7 @@ public:
 */
 class CC_DLL CCProgressFromTo : public CCActionInterval
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** Initializes the action with a duration, a "from" percentage and a "to" percentage */
     bool initWithDuration(float duration, float fFromPercentage, float fToPercentage);
@@ -83,7 +83,7 @@ public:
 
     /** Creates and initializes the action with a duration, a "from" percentage and a "to" percentage */
     static CCProgressFromTo* create(float duration, float fFromPercentage, float fToPercentage);
-public:
+protected:
     float m_fTo;
     float m_fFrom;
 };

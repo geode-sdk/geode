@@ -54,7 +54,7 @@ typedef enum _ccConfigurationType {
  */
 class CC_DLL CCConfiguration : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /** returns a shared instance of CCConfiguration */
     static CCConfiguration *sharedConfiguration(void);
@@ -137,12 +137,12 @@ public:
 	/** Loads a config file. If the keys are already present, then they are going to be replaced. Otherwise the new keys are added. */
 	void loadConfigFile( const char *filename );
 
-public:
+private:
     CCConfiguration(void);
     static CCConfiguration *s_gSharedConfiguration;
 	static gd::string		s_sConfigfile;
     
-public:
+protected:
     GLint           m_nMaxTextureSize;
     GLint           m_nMaxModelviewStackDepth;
     bool            m_bSupportsPVRTC;

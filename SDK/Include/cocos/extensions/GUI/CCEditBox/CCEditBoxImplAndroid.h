@@ -71,7 +71,7 @@ public:
     virtual void openKeyboard();
     virtual void closeKeyboard();
     
-public:
+private:
     CCLabelTTF* m_pLabel;
     CCLabelTTF* m_pLabelPlaceHolder;
     EditBoxInputMode    m_eEditBoxInputMode;

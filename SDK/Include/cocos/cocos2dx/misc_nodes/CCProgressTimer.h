@@ -103,7 +103,7 @@ public:
 public:
     /** Creates a progress timer with the sprite as the shape the timer goes through */
     static CCProgressTimer* create(CCSprite* sp);
-public:
+protected:
     ccTex2F textureCoordFromAlphaPoint(CCPoint alpha);
     ccVertex2F vertexFromAlphaPoint(CCPoint alpha);
     void updateProgress(void);
@@ -112,7 +112,7 @@ public:
     void updateColor(void);
     CCPoint boundaryTexCoord(char index);
 
-public:
+protected:
     CCProgressTimerType m_eType;
     float m_fPercentage;
     CCSprite *m_pSprite;

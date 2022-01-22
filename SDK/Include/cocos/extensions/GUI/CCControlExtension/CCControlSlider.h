@@ -97,7 +97,7 @@ public:
     static CCControlSlider* create(CCSprite * backgroundSprite, CCSprite* pogressSprite, CCSprite* thumbSprite);
 
     virtual void needsLayout();
-public:
+protected:
     void sliderBegan(CCPoint location);
     void sliderMoved(CCPoint location);
     void sliderEnded(CCPoint location);

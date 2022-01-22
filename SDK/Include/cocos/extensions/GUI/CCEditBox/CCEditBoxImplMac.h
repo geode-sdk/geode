@@ -100,7 +100,7 @@ public:
     virtual void openKeyboard();
     virtual void closeKeyboard();
     virtual void onEnter(void);
-public:
+private:
     NSPoint    convertDesignCoordToScreenCoord(const CCPoint& designCoord, bool bInRetinaMode);
     void       adjustTextFieldPosition();
     CCSize     m_tContentSize;

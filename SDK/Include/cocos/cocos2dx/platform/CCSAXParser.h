@@ -42,7 +42,7 @@ typedef unsigned char CC_XML_CHAR;
  */
 class CC_DLL CCSAXDelegator
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     virtual void startElement(void *ctx, const char *name, const char **atts) = 0;
     virtual void endElement(void *ctx, const char *name) = 0;
@@ -55,7 +55,7 @@ public:
  */
 class CC_DLL CCSAXParser
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
     CCSAXDelegator*    m_pDelegator;
 public:
 

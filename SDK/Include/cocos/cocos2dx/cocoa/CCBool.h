@@ -38,7 +38,7 @@ NS_CC_BEGIN
 
 class CC_DLL CCBool : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     CCBool(bool v)
         : m_bValue(v) {}
@@ -57,7 +57,7 @@ public:
     /* override functions */
     virtual void acceptVisitor(CCDataVisitor &visitor) { visitor.visit(this); }
 
-public:
+private:
     bool m_bValue;
 };
 

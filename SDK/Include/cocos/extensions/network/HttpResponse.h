@@ -164,7 +164,7 @@ public:
         _errorBuffer = gd::string(value);
     };
     
-public:
+protected:
     bool initWithRequest(CCHttpRequest* request);
     
     // properties

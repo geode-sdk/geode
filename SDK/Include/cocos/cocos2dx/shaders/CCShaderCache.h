@@ -44,7 +44,7 @@ class CCGLProgram;
  */
 class CC_DLL CCShaderCache : public CCObject 
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      * @js ctor
@@ -79,7 +79,7 @@ public:
     /** adds a CCGLProgram to the cache for a given name */
     void addProgram(CCGLProgram* program, const char* key);
 
-public:
+private:
     bool init();
     void loadDefaultShader(CCGLProgram *program, int type);
 

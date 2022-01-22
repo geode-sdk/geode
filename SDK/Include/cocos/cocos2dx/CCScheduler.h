@@ -51,7 +51,7 @@ class CCSet;
 //
 class CC_DLL CCTimer : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     /**
      *  @js  ctor
@@ -102,7 +102,7 @@ public:
      */
     inline int getScriptHandler() { return m_nScriptHandler; };
 
-public:
+protected:
     CCObject *m_pTarget;
     float m_fElapsed;
     bool m_bRunForever;
@@ -138,7 +138,7 @@ The 'custom selectors' should be avoided when possible. It is faster, and consum
 */
 class CC_DLL CCScheduler : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     CCScheduler();
     /**
@@ -284,7 +284,7 @@ public:
      */
     void resumeTargets(CCSet* targetsToResume);
 
-public:
+private:
     void removeHashElement(struct _hashSelectorEntry *pElement);
     void removeUpdateFromHash(struct _listEntry *entry);
 
@@ -293,7 +293,7 @@ public:
     void priorityIn(struct _listEntry **ppList, CCObject *pTarget, int nPriority, bool bPaused);
     void appendIn(struct _listEntry **ppList, CCObject *pTarget, bool bPaused);
 
-public:
+protected:
     float m_fTimeScale;
 
     //

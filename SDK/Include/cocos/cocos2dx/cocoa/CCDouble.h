@@ -38,7 +38,7 @@ NS_CC_BEGIN
 
 class CC_DLL CCDouble : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    CACAO_ADD(friend struct Cacao::interfaces;)
 public:
     CCDouble(double v)
         : m_dValue(v) {}
@@ -57,7 +57,7 @@ public:
     /* override functions */
     virtual void acceptVisitor(CCDataVisitor &visitor) { visitor.visit(this); }
 
-public:
+private:
     double m_dValue;
 };
 
