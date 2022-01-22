@@ -148,8 +148,9 @@ inline geode::Mod* MyMod;
  * Or just use this lol
  */
 #define CRTP1(base) $redirect(base)
-#define CRTP2(base, derived) $implement(base, derived)
-#define $(...) INVOKE(CONCAT(CRTP, NUMBER_OF_ARGS(__VA_ARGS__)), __VA_ARGS__)
+#define CRTP2(base, derived) $implement(derived, base)
+#define $modify(...) INVOKE(CONCAT(CRTP, NUMBER_OF_ARGS(__VA_ARGS__)), __VA_ARGS__)
+#define $(...) $modify(__VA_ARGS__)
 
 namespace geode {
 	using std::declval;
