@@ -177,6 +177,19 @@ class ButtonSprite : cocos2d::CCSprite {
 	void updateBGImage(const char*) = mac 0x502d0, win 0x13af0, ios 0x0;
 	static ButtonSprite* create(char const*, float) = mac 0x4fa60, win 0x0, ios 0x0;
 	static ButtonSprite* create(cocos2d::CCNode*, int, bool, float, int, const char*, bool, float) = mac 0x4fa90, win 0x134b0, ios 0x0;
+	[[docs("
+		/**
+		* Create a ButtonSprite with text, a font and a texture.
+		* @param caption The text of the ButtonSprite
+		* @param width Sprite width; ignored if `absolute` is false
+		* @param absolute Whether to use absolute width or not
+		* @param font The name of the BM font file to use
+		* @param texture The name of the background sprite file (can't be in a spritesheet)
+		* @param height The height of the button, leave 0 for automatic
+		* @param scale Scale of text
+		* @returns Pointer to the created ButtonSprite, or nullptr on error
+		*/
+	")]]
 	static ButtonSprite* create(const char* caption, int width, bool absolute, const char* font, const char* texture, float height, float scale) = mac 0x0, win 0x137d0, ios 0x0;
 	void setString(const char* txt) = mac 0x0, win 0x14030, ios 0x0;
 	void updateSpriteBGSize(cocos2d::CCPoint const& offset) = mac 0x0, win 0x13c00, ios 0x0;
