@@ -47,12 +47,7 @@ class CC_DLL CCTouchDelegate
 {
     GEODE_ADD(friend struct geode::interfaces;)
 public:
-
-    CCTouchDelegate() {}
-
-    virtual ~CCTouchDelegate()
-    {
-    }
+	
 
     virtual bool ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent) {CC_UNUSED_PARAM(pTouch); CC_UNUSED_PARAM(pEvent); return false;};
     // optional

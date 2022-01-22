@@ -15,6 +15,7 @@ class cocos2d::CCApplication {
 	auto getTargetPlatform() = mac 0x1a3f20;
 	auto openURL(char const*) = mac 0x1a4550;
 	auto setAnimationInterval(double) = mac 0x1a3ee0;
+	~CCApplication() = mac 0x1a3d10;
 }
 
 class cocos2d::CCApplicationProtocol {
@@ -156,6 +157,10 @@ class cocos2d::CCFadeTo {
 	static cocos2d::CCFadeTo* create(float, unsigned char) = mac 0x1f7ff0;
 }
 
+class cocos2d::CCFileUtils : cocos2d::TypeInfo {
+	static cocos2d::CCFileUtils* sharedFileUtils() = mac 0x377030;
+}
+
 class cocos2d::CCHide {
 	static cocos2d::CCHide* create() = mac 0x4543e0;
 }
@@ -185,12 +190,6 @@ class cocos2d::CCImage {
 	auto initWithImageData(void*, int, cocos2d::CCImage::EImageFormat, int, int, int) = mac 0x24fcb0;
 }
 
-class cocos2d::CCKeyboardDelegate {
-	void cocos2d::CCKeyboardDelegate::keyDown(cocos2d::enumKeyCodes) {}
-	void cocos2d::CCKeyboardDelegate::keyUp(cocos2d::enumKeyCodes) {}
-
-	cocos2d::CCKeyboardDelegate::CCKeyboardDelegate() {}
-}
 
 class cocos2d::CCKeyboardDispatcher {
 	auto dispatchKeyboardMSG(cocos2d::enumKeyCodes, bool) = mac 0xe8190;
@@ -359,12 +358,6 @@ class cocos2d::CCMotionStreak {
 	auto stopStroke() = mac 0x2edb20;
 }
 
-class cocos2d::CCMouseDelegate {
-	inline cocos2d::CCMouseDelegate::CCMouseDelegate() {}
-	void cocos2d::CCMouseDelegate::rightKeyDown() {}
-	void cocos2d::CCMouseDelegate::rightKeyUp() {}
-	void cocos2d::CCMouseDelegate::scrollWheel(float, float) {}
-}
 
 class cocos2d::CCMouseHandler {
     static cocos2d::CCMouseHandler* handlerWithDelegate(cocos2d::CCMouseDelegate*) = mac 0x12ef80;
@@ -653,6 +646,9 @@ class cocos2d::CCSprite {
 	static cocos2d::CCSprite* createWithSpriteFrame(cocos2d::CCSpriteFrame*) = mac 0x132cb0;
 	static cocos2d::CCSprite* createWithSpriteFrameName(char const*) = mac 0x132dc0;
 	static cocos2d::CCSprite* createWithTexture(cocos2d::CCTexture2D*) = mac 0x132790;
+
+	void setFlipX(bool) = mac 0x134be0;
+	void setFlipY(bool) = mac 0x134c30;
 }
 
 class cocos2d::CCSpriteBatchNode {
@@ -679,6 +675,7 @@ class cocos2d::CCString {
 	virtual auto isEqual(cocos2d::CCObject const*) = mac 0x44c8f0;
 	virtual auto acceptVisitor(cocos2d::CCDataVisitor&) = mac 0x44ccb0;
 	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) = mac 0x44c870;
+	// cocos2d::CCString::create(gd::string const&) = mac 0x44c960;
 	// CCString(gd::string const&) = mac 0x44c310;
 	auto boolValue() const = mac 0x44c810;
 	auto doubleValue() const = mac 0x44c7f0;
@@ -753,6 +750,7 @@ class cocos2d::ZipUtils {
 	static auto compressString(gd::string, bool, int) = mac 0xe9a50;
 	static auto decompressString(gd::string, bool, int) = mac 0xea380;
 }
+
 
 class cocos2d::extension::CCControlColourPicker {
 	auto setColorValue(cocos2d::_ccColor3B const&) = mac 0x1aac10;
