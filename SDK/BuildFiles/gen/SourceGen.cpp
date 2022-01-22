@@ -5,6 +5,7 @@ namespace format_strings {
     char const* source_start = R"CAC(
 #include <InterfaceBase.hpp>
 using namespace geode;
+using cocos2d::CCDestructor;
 )CAC";
 
 	char const* declare_using = "\n\nusing _{unqualified_name} = interfaces::${unqualified_name}<>;";
@@ -29,8 +30,8 @@ _{unqualified_name}::ret{index} {class_name}::{function_name}({raw_args}) {const
 
 	char const* declare_destructor = R"CAC(
 {class_name}::{function_name}() {{
-    if (destructorLock[this]) return;
-	destructorLock[this] = true;
+    if (CCDestructor::lock(this)) return;
+	CCDestructor::lock(this) = true;
 	((_{unqualified_name}*)this)->destructor({raw_parameters});
 }})CAC";
 

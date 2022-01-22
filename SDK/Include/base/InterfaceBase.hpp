@@ -11,26 +11,7 @@
 
 #include <type_traits>
 #include <platform/platform.hpp>
-#include <Mod.hpp>
-
-struct TmpModInfo {
-    uintptr_t hookAddr;
-    uintptr_t funcLocation;
-};
-
-struct ModStorage {
-    std::vector<TmpModInfo> m_mods;
-
-    static inline ModStorage& create() {
-        auto a = new ModStorage;
-        return *a;
-    }
-    inline void registerHook(uintptr_t address, uintptr_t function) {
-    	std::cout << "added hook " << address << " " << function << std::endl;
-        m_mods.push_back({address, function});
-    }
-};
-inline auto& modContainer = ModStorage::create();
+#include <Interface.hpp>
 
 template<auto F>
 struct address_of_t {

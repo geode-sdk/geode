@@ -27,6 +27,7 @@ THE SOFTWARE.
 
 #include "CCDataVisitor.h"
 #include "ccMacros.h"
+#include <unordered_map>
 
 #ifdef EMSCRIPTEN
 #include <GLES2/gl2.h>
@@ -61,8 +62,15 @@ class CCEvent;
  */
 GEODE_ADD(
 	class GEODE_CC_DLL CCDestructor {
+	private:
+		static inline std::unordered_map<void*, bool> destructorLock;
 	public:
-		~CCDestructor();
+		static inline bool& lock(void* self) {
+			return destructorLock[self];
+		}
+		inline ~CCDestructor() {
+			destructorLock.erase(this);
+		}
 	};
 )
 
@@ -70,7 +78,7 @@ GEODE_ADD(
  * @js NA
  * @lua NA
  */
-class CC_DLL CCCopying GEODE_ADD(: CCDestructor)
+class CC_DLL CCCopying GEODE_ADD(: public CCDestructor)
 {
     GEODE_ADD(friend struct geode::interfaces;)
 public:
