@@ -27,6 +27,7 @@
 
 #elif defined(CC_TARGET_OS_WIN32)
 
+	#include <meta/cdecl.hpp>
 	#include <meta/function.hpp>
 	#include <meta/optcall.hpp>
 	#include <meta/membercall.hpp>
