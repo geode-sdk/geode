@@ -62,7 +62,7 @@ T& operator->*(A* self, field_t<T>& member) {
     return reinterpret_cast<container_t<T>*>(field)->field;
 }
 
-template <typename t = void, auto orig = 0>
+template <auto orig = 0>
 class __unitSpec {};
 
 class InterfaceBase {
@@ -104,9 +104,9 @@ inline geode::Mod* MyMod;
  * I am bad at this stuff
  */
 
-#define PREDECLARE(derived) derived##__; template<typename T, auto _orig> struct _##derived {};
-#define APPLY(base, derived) namespace { struct derived##UUID{}; bool derived##Apply = base<derived##UUID, _##derived>::_apply();  }
-#define DECLARE(base, derived) using derived = _##derived<derived##UUID, 0>; template <auto _orig> struct GEODE_HIDDEN _##derived<derived##UUID, _orig>: public base<derived##UUID, _##derived>
+#define PREDECLARE(derived) derived##__; template<auto> struct _##derived;
+#define APPLY(base, derived) namespace { bool derived##Apply = base<_##derived>::_apply();  }
+#define DECLARE(base, derived) using derived = _##derived<0>; template <auto _orig> struct GEODE_HIDDEN _##derived : public base<_##derived>
 
 #define REDIRECT___(base, derived) PREDECLARE(derived) APPLY(base, derived) DECLARE(base, derived)
 #define REDIRECT__(base, derived) REDIRECT___(geode::interfaces::$##base, derived)
