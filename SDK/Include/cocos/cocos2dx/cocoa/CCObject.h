@@ -97,7 +97,7 @@ public:
     unsigned int        m_uAutoReleaseCount;
 
     RT_ADD(
-        int m_eObjType;
+        CCObjectType m_eObjType;
         int m_nUnknown;
     )
 public:
@@ -132,7 +132,9 @@ public:
 
         virtual void setTag(int nTag);
        
-        void setObjType(CCObjectType);
+        inline void setObjType(CCObjectType type) {
+        	m_eObjType = type;
+        }
     
         //i have no idea if vtable function order matters so 
     )

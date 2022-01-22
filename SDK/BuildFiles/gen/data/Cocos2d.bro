@@ -15,7 +15,7 @@ class cocos2d::CCApplication {
 	auto getTargetPlatform() = mac 0x1a3f20;
 	auto openURL(char const*) = mac 0x1a4550;
 	auto setAnimationInterval(double) = mac 0x1a3ee0;
-	~CCApplication() = mac 0x1a3d90;
+	~CCApplication() = mac 0x1a3d10;
 }
 
 class cocos2d::CCApplicationProtocol {
@@ -157,7 +157,7 @@ class cocos2d::CCFadeTo {
 	static cocos2d::CCFadeTo* create(float, unsigned char) = mac 0x1f7ff0;
 }
 
-class cocos2d::CCFileUtils {
+class cocos2d::CCFileUtils : cocos2d::TypeInfo {
 	static cocos2d::CCFileUtils* sharedFileUtils() = mac 0x377030;
 }
 
@@ -658,6 +658,9 @@ class cocos2d::CCSprite {
 	static cocos2d::CCSprite* createWithSpriteFrame(cocos2d::CCSpriteFrame*) = mac 0x132cb0;
 	static cocos2d::CCSprite* createWithSpriteFrameName(char const*) = mac 0x132dc0;
 	static cocos2d::CCSprite* createWithTexture(cocos2d::CCTexture2D*) = mac 0x132790;
+
+	void setFlipX(bool) = mac 0x134be0;
+	void setFlipY(bool) = mac 0x134c30;
 }
 
 class cocos2d::CCSpriteBatchNode {
@@ -684,6 +687,7 @@ class cocos2d::CCString {
 	virtual auto isEqual(cocos2d::CCObject const*) = mac 0x44c8f0;
 	virtual auto acceptVisitor(cocos2d::CCDataVisitor&) = mac 0x44ccb0;
 	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) = mac 0x44c870;
+	// cocos2d::CCString::create(gd::string const&) = mac 0x44c960;
 	// CCString(gd::string const&) = mac 0x44c310;
 	auto boolValue() const = mac 0x44c810;
 	auto doubleValue() const = mac 0x44c7f0;
@@ -758,6 +762,7 @@ class cocos2d::ZipUtils {
 	static auto compressString(gd::string, bool, int) = mac 0xe9a50;
 	static auto decompressString(gd::string, bool, int) = mac 0xea380;
 }
+
 
 class cocos2d::extension::CCControlColourPicker {
 	auto setColorValue(cocos2d::_ccColor3B const&) = mac 0x1aac10;
