@@ -99,21 +99,21 @@ It's new in cocos2d-x since v0.99.5
 
 // namespace cocos2d {}
 /**
- * Cacao specific:
- * Since Cacao uses gd namespace for stl support, this needs to be reflected for
+ * Geode specific:
+ * Since Geode uses gd namespace for stl support, this needs to be reflected for
  * classes using stl containers. Easiest way to hijack this is redefining the NS_CC_BEGIN
  * macro.
  */
-#if defined(CACAO_VERSION)
-    #define CACAO_ADD(...) __VA_ARGS__
-	#define NOT_CACAO_ADD(...) 
+#if defined(GEODE_VERSION)
+    #define GEODE_ADD(...) __VA_ARGS__
+	#define NOT_GEODE_ADD(...) 
 #else
-	#define CACAO_ADD(...)
-	#define NOT_CACAO_ADD(...) __VA_ARGS__
+	#define GEODE_ADD(...)
+	#define NOT_GEODE_ADD(...) __VA_ARGS__
 #endif
 
 #ifdef __cplusplus
-    #define NS_CC_BEGIN                     CACAO_ADD(namespace Cacao { struct interfaces; }) NOT_CACAO_ADD(namespace gd = std;) namespace cocos2d {
+    #define NS_CC_BEGIN                     GEODE_ADD(namespace Geode { struct interfaces; }) NOT_GEODE_ADD(namespace gd = std;) namespace cocos2d {
     #define NS_CC_END                       }
     #define USING_NS_CC                     using namespace cocos2d
 #else

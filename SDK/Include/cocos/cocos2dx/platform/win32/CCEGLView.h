@@ -40,7 +40,7 @@ class CCEGL;
 
 class CC_DLL CCEGLView : public CCEGLViewProtocol RT_ADD(, public CCObject)
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     CCEGLView();
     RT_REMOVE(  virtual ~CCEGLView();   )

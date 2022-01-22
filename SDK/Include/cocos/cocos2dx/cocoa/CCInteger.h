@@ -13,7 +13,7 @@ NS_CC_BEGIN
 
 class CC_DLL CCInteger : public CCObject
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     CCInteger(int v)
         : m_nValue(v) {}

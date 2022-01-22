@@ -38,7 +38,7 @@ NS_CC_BEGIN
  */
 class CC_DLL CCRGBAProtocol
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     /** 
      * Changes the color with R,G,B bytes
@@ -136,7 +136,7 @@ public:
  */
 class CC_DLL CCBlendProtocol
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     /**
      * Sets the source blending function.
@@ -167,7 +167,7 @@ public:
  */
 class CC_DLL CCTextureProtocol : public CCBlendProtocol
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     /**
      * Returns the currently used texture
@@ -193,7 +193,7 @@ public:
  */
 class CC_DLL CCLabelProtocol
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     /**
      * Sets a new label using an string
@@ -217,7 +217,7 @@ public:
  */
 class CC_DLL CCDirectorDelegate
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     /** 
      * Will be called by CCDirector when the projection is updated, and "custom" projection is used

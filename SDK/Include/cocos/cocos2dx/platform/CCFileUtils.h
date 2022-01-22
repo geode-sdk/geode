@@ -43,7 +43,7 @@ class CCArray;
 //! @brief  Helper class to handle file operations
 class CC_DLL CCFileUtils : public TypeInfo
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
     friend class CCArray;
     friend class CCDictionary;
 public:

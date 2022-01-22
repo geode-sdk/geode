@@ -63,7 +63,7 @@ using the camera.
 */
 class CC_DLL CCCamera : public CCObject
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 protected:
     float m_fEyeX;
     float m_fEyeY;

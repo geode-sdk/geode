@@ -50,7 +50,7 @@ class CCProfilingTimer;
 
 class CC_DLL CCProfiler : public CCObject
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     ~CCProfiler(void);
     /** display the timers */

@@ -50,7 +50,7 @@ struct _ccCArray;
 */
 class CC_DLL CCKeypadDispatcher : public CCObject
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     CCKeypadDispatcher();
     ~CCKeypadDispatcher();

@@ -174,7 +174,7 @@ private:
  */
 class CC_DLL CCScriptEngineProtocol
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     virtual ~CCScriptEngineProtocol() {};
     
@@ -270,7 +270,7 @@ public:
  */
 class CC_DLL CCScriptEngineManager
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     ~CCScriptEngineManager(void);
     

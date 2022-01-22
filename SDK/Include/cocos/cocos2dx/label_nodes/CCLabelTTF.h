@@ -57,8 +57,8 @@ NS_CC_BEGIN
 
 class CC_DLL CCLabelTTF : public CCSprite, public CCLabelProtocol
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
-	CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
+	GEODE_ADD(friend struct geode::interfaces;)
 public:
     /**
      *  @js ctor

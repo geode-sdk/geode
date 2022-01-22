@@ -52,7 +52,7 @@ enum TargetPlatform
 
 class CC_DLL CCApplicationProtocol
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
 
     virtual ~CCApplicationProtocol() {}

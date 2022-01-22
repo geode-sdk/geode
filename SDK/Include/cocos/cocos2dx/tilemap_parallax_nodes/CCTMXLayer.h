@@ -73,7 +73,7 @@ Tiles can have tile flags for additional properties. At the moment only flip hor
 
 class CC_DLL CCTMXLayer : public CCSpriteBatchNode
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
     /** size of the layer in tiles */
     CC_SYNTHESIZE_PASS_BY_REF(CCSize, m_tLayerSize, LayerSize);
     /** size of the map's tile (could be different from the tile's size) */

@@ -115,7 +115,7 @@ and when to execute the Scenes.
 */
 class CC_DLL CCDirector : public CCObject, public TypeInfo
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     /**
      *  @js ctor

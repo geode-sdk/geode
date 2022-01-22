@@ -56,10 +56,7 @@ class CCObject;
 class CCNode;
 class CCEvent;
 
-/*
-	Alk edits for cacao
-*/
-CACAO_ADD(
+GEODE_ADD(
 	class CC_DLL CCDestructor {
 	public:
 		~CCDestructor();
@@ -70,9 +67,9 @@ CACAO_ADD(
  * @js NA
  * @lua NA
  */
-class CC_DLL CCCopying CACAO_ADD(: CCDestructor)
+class CC_DLL CCCopying GEODE_ADD(: CCDestructor)
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     virtual CCObject* copyWithZone(CCZone* pZone);
 };
@@ -82,7 +79,7 @@ public:
  */
 class CC_DLL CCObject : public CCCopying
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     // object id, CCScriptSupport need public m_uID
     unsigned int        m_uID;

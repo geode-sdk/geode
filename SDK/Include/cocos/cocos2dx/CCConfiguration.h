@@ -54,7 +54,7 @@ typedef enum _ccConfigurationType {
  */
 class CC_DLL CCConfiguration : public CCObject
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     /** returns a shared instance of CCConfiguration */
     static CCConfiguration *sharedConfiguration(void);

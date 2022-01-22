@@ -42,7 +42,7 @@ NS_CC_BEGIN
  */
 class CC_DLL CCThread
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     CCThread() : m_pAutoreasePool(0) {}
     ~CCThread();

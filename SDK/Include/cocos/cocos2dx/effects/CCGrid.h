@@ -51,7 +51,7 @@ class CCGLProgram;
 */
 class CC_DLL CCGridBase : public CCObject
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     /**
      *  @js NA

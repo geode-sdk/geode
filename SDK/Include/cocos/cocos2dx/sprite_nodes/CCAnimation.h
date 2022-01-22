@@ -54,7 +54,7 @@ class CCSpriteFrame;
  */
 class CC_DLL CCAnimationFrame : public CCObject
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     /**
      * @js ctor
@@ -96,7 +96,7 @@ You can animate a CCAnimation object by using the CCAnimate action. Example:
 */
 class CC_DLL CCAnimation : public CCObject
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     /**
      * @js ctor

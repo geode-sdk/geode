@@ -34,7 +34,7 @@ NS_CC_BEGIN
  */
 class CC_DLL CCNotificationCenter : public CCObject
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     /** CCNotificationCenter constructor */
     CCNotificationCenter();
@@ -120,7 +120,7 @@ private:
  */
 class CC_DLL CCNotificationObserver : public CCObject
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     /** @brief CCNotificationObserver constructor
      *  @param target The target which wants to observer notification events.

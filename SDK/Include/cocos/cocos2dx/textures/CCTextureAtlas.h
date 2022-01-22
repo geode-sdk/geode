@@ -55,7 +55,7 @@ To render the quads using an interleaved vertex array list, you should modify th
 */
 class CC_DLL CCTextureAtlas : public CCObject 
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 protected:
 
 

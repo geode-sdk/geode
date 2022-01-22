@@ -126,7 +126,7 @@ class XMLPrinter;
 */
 class CC_DLL StrPair
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     enum {
         NEEDS_ENTITY_PROCESSING			= 0x01,
@@ -191,7 +191,7 @@ private:
 template <class T, int INIT>
 class CC_DLL DynArray
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     DynArray< T, INIT >() {
         _mem = _pool;
@@ -283,7 +283,7 @@ private:
 */
 class CC_DLL MemPool
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     MemPool() {}
     virtual ~MemPool() {}
@@ -301,7 +301,7 @@ public:
 template< int SIZE >
 class CC_DLL MemPoolT : public MemPool
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     MemPoolT() : _root(0), _currentAllocs(0), _nAllocs(0), _maxAllocs(0), _nUntracked(0)	{}
     ~MemPoolT() {
@@ -408,7 +408,7 @@ private:
 */
 class CC_DLL XMLVisitor
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     virtual ~XMLVisitor() {}
 
@@ -454,7 +454,7 @@ public:
 */
 class CC_DLL XMLUtil
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     // Anything in the high order range of UTF-8 is assumed to not be whitespace. This isn't
     // correct, but simple, and usually works.
@@ -548,7 +548,7 @@ public:
 */
 class CC_DLL XMLNode
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
     friend class XMLDocument;
     friend class XMLElement;
 public:
@@ -815,7 +815,7 @@ private:
 */
 class CC_DLL XMLText : public XMLNode
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
     friend class XMLBase;
     friend class XMLDocument;
 public:
@@ -855,7 +855,7 @@ private:
 /** An XML Comment. */
 class CC_DLL XMLComment : public XMLNode
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
     friend class XMLDocument;
 public:
     virtual XMLComment*	ToComment()					{
@@ -894,7 +894,7 @@ private:
 */
 class CC_DLL XMLDeclaration : public XMLNode
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
     friend class XMLDocument;
 public:
     virtual XMLDeclaration*	ToDeclaration()					{
@@ -927,7 +927,7 @@ protected:
 */
 class CC_DLL XMLUnknown : public XMLNode
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
     friend class XMLDocument;
 public:
     virtual XMLUnknown*	ToUnknown()					{
@@ -987,7 +987,7 @@ enum XMLError {
 */
 class CC_DLL XMLAttribute
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
     friend class XMLElement;
 public:
     /// The name of the attribute.
@@ -1089,7 +1089,7 @@ private:
 */
 class CC_DLL XMLElement : public XMLNode
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
     friend class XMLBase;
     friend class XMLDocument;
 public:
@@ -1372,7 +1372,7 @@ enum Whitespace {
 */
 class CC_DLL XMLDocument : public XMLNode
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
     friend class XMLElement;
 public:
     /// constructor
@@ -1629,7 +1629,7 @@ private:
 */
 class CC_DLL XMLHandle
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     /// Create a handle from any node (at any depth of the tree.) This can be a null pointer.
     XMLHandle( XMLNode* node )												{
@@ -1714,7 +1714,7 @@ private:
 */
 class CC_DLL XMLConstHandle
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     XMLConstHandle( const XMLNode* node )											{
         _node = node;
@@ -1822,7 +1822,7 @@ private:
 */
 class CC_DLL XMLPrinter : public XMLVisitor
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     /** Construct the printer. If the FILE* is specified,
     	this will print to the FILE. Else it will print

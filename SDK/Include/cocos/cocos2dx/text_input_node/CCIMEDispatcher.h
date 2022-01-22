@@ -41,7 +41,7 @@ NS_CC_BEGIN
 */
 class CC_DLL CCIMEDispatcher
 {
-    CACAO_ADD(friend struct Cacao::interfaces;)
+    GEODE_ADD(friend struct geode::interfaces;)
 public:
     ~CCIMEDispatcher();
 
