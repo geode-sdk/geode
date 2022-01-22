@@ -17,7 +17,7 @@ namespace cocos2d {
 	class CCNode;
 }
 
-class TableViewCell;
+struct TableViewCell;
 
 namespace geode {
 	class BoolSettingNode;
