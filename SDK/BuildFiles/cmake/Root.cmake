@@ -82,6 +82,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 	${GEODE_INCLUDE_DIR}/c++stl
 	${GEODE_INCLUDE_DIR}/hook
 	${GEODE_INCLUDE_DIR}/loader
+	${GEODE_INCLUDE_DIR}/keybinds
 	${GEODE_INCLUDE_DIR}/core/include/geode/core
 	${GEODE_INCLUDE_DIR}/cocos/
 	${GEODE_INCLUDE_DIR}/cocos/cocos2dx

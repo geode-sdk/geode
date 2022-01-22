@@ -145,6 +145,10 @@ class cocos2d::CCEaseOut {
 	static cocos2d::CCEaseOut* create(cocos2d::CCActionInterval*, float) = mac 0x2a1b70;
 }
 
+class cocos2d::CCEGLView {
+	
+}
+
 class cocos2d::CCFadeOut {
 	static cocos2d::CCFadeOut* create(float) = mac 0x1f7d80;
 }
