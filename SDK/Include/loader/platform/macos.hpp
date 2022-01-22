@@ -4,5 +4,8 @@
 #define GEODE_DLL 
 
 namespace geode {
-    struct PlatformInfo {};
+	using dylib_t = void*;
+    struct PlatformInfo {
+    	dylib_t m_dylib;
+    };
 }
