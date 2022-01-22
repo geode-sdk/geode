@@ -18,10 +18,6 @@ class cocos2d::CCApplication {
 	~CCApplication() = mac 0x1a3d10;
 }
 
-class cocos2d::CCApplicationProtocol {
-	auto gameDidSave() = mac 0x1a45f0;
-}
-
 class cocos2d::CCArray {
 	auto addObject(cocos2d::CCObject*) = mac 0x419f90;
 	auto addObjectNew(cocos2d::CCObject*) = mac 0x41a450;
