@@ -19,9 +19,6 @@ struct {class_name}{base_classes}{final} {{
     // requires: static, virtual, return_type, function_name, raw_parameters, const
     char const* function_definition = "\t{docs}{static}{virtual}{return_type} {function_name}({raw_params}){const};\n";
 
-    // requires: static, return_type, function_name, raw_parameters, const, class_name, definition
-    char const* ool_function_definition = "{return_type} {class_name}::{function_name}({raw_params}){const} {definition}\n";
-
     char const* structor_definition = "\t{function_name}({raw_params});\n";
     
     // requires: type, member_name, array
@@ -73,7 +70,6 @@ int main(int argc, char** argv) {
         );
     }
 
-    vector<Function> outofline;
 
    	for (auto& cp : ordered) {
    		auto& cd = *cp;
@@ -101,8 +97,6 @@ int main(int argc, char** argv) {
 
 
         for (auto f : cd.functions) {
-            if (f.is_defined)
-                outofline.push_back(f);
 
             if (f.binds[CacShare::platform].size() == 0 && !f.is_defined)
                 continue; // Function not supported for this platform, skip it
@@ -160,17 +154,6 @@ int main(int argc, char** argv) {
         output += format_strings::class_end;
 
         // queued.pop_front();
-    }
-
-    for (auto f : outofline) {
-        output += fmt::format(format_strings::ool_function_definition,
-                fmt::arg("return_type", CacShare::getReturn(f)),
-                fmt::arg("function_name", f.name),
-                fmt::arg("raw_params", CacShare::formatRawParams(f.args, f.argnames)),
-                fmt::arg("const", f.is_const ? " const" : ""),
-                fmt::arg("class_name", f.parent_class->name),
-                fmt::arg("definition", f.definition)
-        );
     }
 
     CacShare::writeFile(output);

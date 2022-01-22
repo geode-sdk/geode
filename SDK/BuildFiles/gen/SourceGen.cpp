@@ -32,12 +32,18 @@ _{unqualified_name}::ret{index}
 {class_name}::{function_name}({raw_args}) : {class_name}(*this) {{
 	((_{unqualified_name}*)this)->constructor({raw_parameters});
 }})CAC";
+
+	// requires: static, return_type, function_name, raw_parameters, const, class_name, definition
+    char const* ool_function_definition = "{return_type} {class_name}::{function_name}({raw_params}){const} {definition}\n";
 }
 
 int main(int argc, char** argv) {
     vector<ClassDefinition*> in_order;
     string output(format_strings::source_start);
     Root root = CacShare::init(argc, argv);
+
+
+    vector<Function> outofline;
 
     for (auto& [name, c] : root.classes) {
         string unqualifiedName = CacShare::toUnqualified(name);
@@ -47,6 +53,17 @@ int main(int argc, char** argv) {
 
 
         for (auto& f : c.functions) {
+        	if (f.is_defined) {
+        		output += fmt::format(format_strings::ool_function_definition,
+	                fmt::arg("return_type", CacShare::getReturn(f)),
+	                fmt::arg("function_name", f.name),
+	                fmt::arg("raw_params", CacShare::formatRawParams(f.args, f.argnames)),
+	                fmt::arg("const", f.is_const ? " const" : ""),
+	                fmt::arg("class_name", f.parent_class->name),
+	                fmt::arg("definition", f.definition)
+	        	);
+	        	continue;
+        	}
             if (f.binds[CacShare::platform].size() == 0) continue; // Function not supported for this platform, skip it
 
             char const* used_format;
