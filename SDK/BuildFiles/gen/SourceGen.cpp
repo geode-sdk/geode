@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
 	        	);
 	        	continue;
         	}
-            if (f.binds[CacShare::platform].size() == 0) continue; // Function not supported for this platform, skip it
+            if (f.binds[CacShare::platform].size() == 0) continue; // Function not implemented, skip
 
             char const* used_format;
 

@@ -115,7 +115,7 @@ int main(int argc, char** argv) {
         output += fmt::format(format_strings::interface_start, fmt::arg("class_name", unqualifiedName), fmt::arg("raw_class_name", name));
 
         for (auto& f : c.functions) {
-            if (f.binds[CacShare::platform].size() == 0)
+            if (!CacShare::functionExists(f))
                 continue; // Function not supported for this platform, skip it
 
             output += fmt::format(format_strings::predefine_return,
@@ -163,7 +163,7 @@ int main(int argc, char** argv) {
         output += format_strings::apply_start;
 
         for (auto& f : c.functions) {
-            if (f.binds[CacShare::platform].size() == 0)
+            if (!CacShare::functionExists(f))
                 continue; // Function not supported for this platform, skip it
 
             char const* used_format;
