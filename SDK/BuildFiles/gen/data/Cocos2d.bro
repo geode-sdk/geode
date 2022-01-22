@@ -15,6 +15,7 @@ class cocos2d::CCApplication {
 	auto getTargetPlatform() = mac 0x1a3f20;
 	auto openURL(char const*) = mac 0x1a4550;
 	auto setAnimationInterval(double) = mac 0x1a3ee0;
+	~CCApplication() = mac 0x1a3d90;
 }
 
 class cocos2d::CCApplicationProtocol {
@@ -156,6 +157,10 @@ class cocos2d::CCFadeTo {
 	static cocos2d::CCFadeTo* create(float, unsigned char) = mac 0x1f7ff0;
 }
 
+class cocos2d::CCFileUtils {
+	static cocos2d::CCFileUtils* sharedFileUtils() = mac 0x377030;
+}
+
 class cocos2d::CCHide {
 	static cocos2d::CCHide* create() = mac 0x4543e0;
 }
@@ -186,8 +191,8 @@ class cocos2d::CCImage {
 }
 
 class cocos2d::CCKeyboardDelegate {
-	void cocos2d::CCKeyboardDelegate::keyDown(cocos2d::enumKeyCodes) {}
-	void cocos2d::CCKeyboardDelegate::keyUp(cocos2d::enumKeyCodes) {}
+	inline void cocos2d::CCKeyboardDelegate::keyDown(cocos2d::enumKeyCodes) {}
+	inline void cocos2d::CCKeyboardDelegate::keyUp(cocos2d::enumKeyCodes) {}
 
 	cocos2d::CCKeyboardDelegate::CCKeyboardDelegate() {}
 }
@@ -361,9 +366,9 @@ class cocos2d::CCMotionStreak {
 
 class cocos2d::CCMouseDelegate {
 	inline cocos2d::CCMouseDelegate::CCMouseDelegate() {}
-	void cocos2d::CCMouseDelegate::rightKeyDown() {}
-	void cocos2d::CCMouseDelegate::rightKeyUp() {}
-	void cocos2d::CCMouseDelegate::scrollWheel(float, float) {}
+	inline void cocos2d::CCMouseDelegate::rightKeyDown() {}
+	inline void cocos2d::CCMouseDelegate::rightKeyUp() {}
+	inline void cocos2d::CCMouseDelegate::scrollWheel(float, float) {}
 }
 
 class cocos2d::CCMouseHandler {
