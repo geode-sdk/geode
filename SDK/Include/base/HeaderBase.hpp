@@ -37,15 +37,18 @@ struct LevelDifficulty {
 	int32_t numerator;  
 };
 
-#define CLASSPARAM(type, getter, offset)        		\
-	inline type& _##getter() {                      	\
-		return *((type*)((uintptr_t)this + offset));	\
-	}
+// #define CLASSPARAM(type, getter, offset)        		\
+// 	inline type& _##getter() {                      	\
+// 		return *((type*)((uintptr_t)this + offset));	\
+// 	}
 
-#define STRUCTPARAM(type, getter, offset)       		\
-	inline type _##getter() {                       	\
-		return *(type*)((uintptr_t)this+offset);		\
-	}
+// #define STRUCTPARAM(type, getter, offset)       		\
+// 	inline type _##getter() {                       	\
+// 		return *(type*)((uintptr_t)this+offset);		\
+// 	}
+
+#define CLASSPARAM(...)
+#define STRUCTPARAM(...)
 
 //thanks pie
 enum SearchType {

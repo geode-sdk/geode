@@ -176,7 +176,7 @@ class ButtonSprite : cocos2d::CCSprite {
 	static ButtonSprite* create(char const*, int, int, float, bool) = mac 0x4fa40, win 0x0, ios 0x0;
 	void updateBGImage(const char*) = mac 0x502d0, win 0x13af0, ios 0x0;
 	static ButtonSprite* create(char const*, float) = mac 0x4fa60, win 0x0, ios 0x0;
-	static ButtonSprite* create(cocos2d::CCNode, int, bool, float, int, const char*, bool, float) = mac 0x4fa90, win 0x134b0, ios 0x0;
+	static ButtonSprite* create(cocos2d::CCNode*, int, bool, float, int, const char*, bool, float) = mac 0x4fa90, win 0x134b0, ios 0x0;
 	static ButtonSprite* create(const char* caption, int width, bool absolute, const char* font, const char* texture, float height, float scale) = mac 0x0, win 0x137d0, ios 0x0;
 	void setString(const char* txt) = mac 0x0, win 0x14030, ios 0x0;
 	void updateSpriteBGSize(cocos2d::CCPoint const& offset) = mac 0x0, win 0x13c00, ios 0x0;
@@ -281,6 +281,9 @@ class CCMenuItemSpriteExtra : cocos2d::CCMenuItemSprite {
 	}
 
 	static CCMenuItemSpriteExtra* create(cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCObject*, cocos2d::SEL_MenuHandler) = mac 0x1253c0, win 0x18ee0, ios 0x0;
+	inline static CCMenuItemSpriteExtra* create(cocos2d::CCNode* sprite, cocos2d::CCObject* target, cocos2d::SEL_MenuHandler callback) {
+		return CCMenuItemSpriteExtra::create(sprite, nullptr, target, callback);
+	}
 	void setSizeMult(float) = mac 0x1255e0, win 0x19080, ios 0x0;
 	CCMenuItemSpriteExtra() = mac 0x32670, win 0x18db0, ios 0x0;
 	CCMenuItemSpriteExtra* destructor(bool rel) = mac 0x0, win 0x18eb0, ios 0x0;
@@ -4398,7 +4401,7 @@ class TableViewCell : cocos2d::CCLayer {
 	CCIndexPath m_indexPath;
 	gd::string m_unknownString;
 	PAD = mac 0x0, win 0x4, android 0x0;
-	float m_parentHeight;
+	float m_width;
 	float m_height;
 	cocos2d::CCLayerColor* m_BGLayer;
 	cocos2d::CCLayer* m_mainLayer;

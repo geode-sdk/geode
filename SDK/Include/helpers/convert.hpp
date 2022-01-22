@@ -53,7 +53,7 @@ namespace geode::cocos {
     }
 
     template <typename T>
-	std::vector<T> ccArrayToVector(CCArray* arr) {
+	std::vector<T> ccArrayToVector(cocos2d::CCArray* arr) {
 		return std::vector<T>(reinterpret_cast<T*>(arr->data->arr), reinterpret_cast<T*>(arr->data->arr) + arr->data->num);
 	}
 }
