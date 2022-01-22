@@ -51,11 +51,27 @@ struct CacShare {
             case kIos:
                 return "getBase()+" + f.binds[kIos];
             case kWindows:
-                if (f.name.rfind("cocos2d", 0) == 0) {
+                if (f.parent_class->name.rfind("cocos2d", 0) == 0) {
+                	if (f.function_type == kConstructor || f.function_type == kDestructor) {
+                		return "getBase()+" + f.binds[kWindows];
+                	}
+                	string type;
+                	if (f.function_type == kStaticFunction) type = fmt::format("ret{index}(*)({raw_arg_types}) {const}",
+						fmt::arg("index",f.index),
+                		fmt::arg("class_name", f.parent_class->name),
+                		fmt::arg("raw_arg_types", CacShare::formatRawArgTypes(f.args)),
+                		fmt::arg("const", f.is_const ? "const " : "")
+                	);
+                	else type = fmt::format("ret{index}({class_name}::*)({raw_arg_types}) {const}",
+                		fmt::arg("index",f.index),
+                		fmt::arg("class_name", f.parent_class->name),
+                		fmt::arg("raw_arg_types", CacShare::formatRawArgTypes(f.args)),
+                		fmt::arg("const", f.is_const ? "const " : "")
+                	);
                     if (f.function_type == kVirtualFunction)
-                        return fmt::format("FunctionScrapper::addressOfVirtual((mem{})(&{}::{}))", f.index, f.parent_class->name, f.name);
+                        return fmt::format("FunctionScrapper::addressOfVirtual(({})(&{}::{}))", type, f.parent_class->name, f.name);
                     else
-                        return fmt::format("FunctionScrapper::addressOfNonVirtual((mem{})(&{}::{}))", f.index, f.parent_class->name, f.name);
+                        return fmt::format("FunctionScrapper::addressOfNonVirtual(({})(&{}::{}))", type, f.parent_class->name, f.name);
                 } else {
                     return "getBase()+" + f.binds[kWindows];
                 }
@@ -149,10 +165,12 @@ struct CacShare {
             case kConstructor:
             case kDestructor:
             case kRegularFunction:
+            	if (f.args.size() == 0) return "Cdecl";
                 return "Membercall";
             case kVirtualFunction:
                 return "Thiscall";
             case kStaticFunction:
+            	if (f.args.size() == 0) return "Cdecl";
                 return "Optcall";
         }
         return "Membercall";
