@@ -4,7 +4,7 @@
 namespace format_strings {
     // requires: class_name
     char const* interface_start = R"CAC(
-template<typename U=void, template <typename T, auto orig> class D = __unitSpec>
+template<template <auto orig> class D = __unitSpec>
 struct ${class_name} : {raw_class_name}, InterfaceBase {{
     ${class_name}(const ${class_name}& c) : {class_name}(c) {{}}
     ${class_name}() = delete;
@@ -13,7 +13,7 @@ struct ${class_name} : {raw_class_name}, InterfaceBase {{
     static inline size_t originalDestructor;
     static void fieldCleanup(size_t self) {{
     	const size_t begin = self + sizeof(${class_name});
-    	const size_t end = self + sizeof(D<U, 0>);
+    	const size_t end = self + sizeof(D<0>);
     	for (size_t i = begin; i < end; ++i) {{
     		if (fields.find(i) != fields.end()) {{
     			delete fields.at(i);
@@ -81,8 +81,8 @@ struct ${class_name} : {raw_class_name}, InterfaceBase {{
     char const* apply_function_member = R"CAC(
     	using baseType{index} = ret{index}(${class_name}::*)({raw_arg_types}) {const};
 		constexpr auto baseAddress{index} = (baseType{index})(&${class_name}::{function_name});
-		using derivedType{index} = ret{index}(D<U, baseAddress{index}>::*)({raw_arg_types}) {const};
-		constexpr auto derivedAddress{index} = (derivedType{index})(&D<U, baseAddress{index}>::{function_name});
+		using derivedType{index} = ret{index}(D<baseAddress{index}>::*)({raw_arg_types}) {const};
+		constexpr auto derivedAddress{index} = (derivedType{index})(&D<baseAddress{index}>::{function_name});
         if (baseAddress{index} != derivedAddress{index}) {{
             Interface::get()->addHook((void*)address{index}, (void*)FunctionScrapper::addressOf{non_virtual}Virtual(derivedAddress{index}));
         }}
@@ -92,7 +92,7 @@ struct ${class_name} : {raw_class_name}, InterfaceBase {{
 		using baseType{index} = ret{index}(*)({raw_arg_types});
 		constexpr auto baseAddress{index} = (baseType{index})(&${class_name}::{function_name});
 		using derivedType{index} = ret{index}(*)({raw_arg_types});
-		constexpr auto derivedAddress{index} = (derivedType{index})(&D<U, baseAddress{index}>::{function_name});
+		constexpr auto derivedAddress{index} = (derivedType{index})(&D<baseAddress{index}>::{function_name});
         if (baseAddress{index} != derivedAddress{index}) {{
             Interface::get()->addHook((void*)address{index}, (void*)FunctionScrapper::addressOfNonVirtual(derivedAddress{index}));
         }}

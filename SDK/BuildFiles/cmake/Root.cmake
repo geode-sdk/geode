@@ -40,12 +40,7 @@ set(GEODE_CODEGEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/Gen)
 
 file(MAKE_DIRECTORY ${GEODE_CODEGEN_DIR})
 
-if (DEFINED SOURCE_FILES)
-	file(WRITE ${GEODE_CODEGEN_DIR}/Source.cpp "// this text shouldn't be visible") 
-	add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES} 	${GEODE_CODEGEN_DIR}/Source.cpp)
-else()
-	message(FATAL_ERROR "Please set SOURCE_FILES in the root CMake file.")
-endif()
+add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES} 	${GEODE_CODEGEN_DIR}/Source.cpp)
 
 if("${GEODE_TARGET_PLATFORM}" STREQUAL "MacOS")
 	include(${CMAKE_CURRENT_LIST_DIR}/MacOS.cmake)
