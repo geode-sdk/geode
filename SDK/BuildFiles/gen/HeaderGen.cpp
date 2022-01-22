@@ -28,7 +28,7 @@ struct {class_name}{base_classes} {{
     char const* member_definition = "\t{type} {member_name}{array};\n";
 
     char const* pad_definition = "\tGEODE_PAD({hardcode});\n";
-    char const* unimplemented_definition = "\tGEODE_UNIMPLEMENTED_PAD();\n";
+    char const* unimplemented_definition = "\tGEODE_UNIMPLEMENTED_PAD\n";
 
     // requires: hardcode_macro, type, member_name, hardcode
     char const* hardcode_definition = "\tCLASSPARAM({type}, {member_name}, {hardcode});\n";
@@ -116,9 +116,18 @@ int main(int argc, char** argv) {
                 fmt::arg("const", f.is_const ? " const" : "")
             );
         }
+
+        bool memberUninherited = false;
+        
         for (auto m : cd.members) {
-            // if (m.member_type != kDefault && CacShare::getHardcode(m) == )
-            //     continue; // Not Implemented on platform
+            if (m.member_type != kDefault && CacShare::getHardcode(m).size() == 0)
+                continue; // Not Implemented on platform
+
+            if (!memberUninherited && (memberUninherited = true)) {
+            	if (cd.superclasses.size() == 0)  {
+		        	output += "\tGEODE_NONINHERITED_MEMBERS\n";
+		        }
+            }
 
         	char const* used_format;
         	switch (m.member_type) {
