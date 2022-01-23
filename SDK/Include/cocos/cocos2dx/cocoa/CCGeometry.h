@@ -461,13 +461,16 @@ public:
 #define CCRectMake(x, y, width, height) CCRect((float)(x), (float)(y), (float)(width), (float)(height))
 
 
-const CCPoint CCPointZero = CCPointMake(0,0);
+// const CCPoint CCPointZero = CCPointMake(0,0);
+#define CCPointZero CCPointMake(0,0)
 
 /* The "zero" size -- equivalent to CCSizeMake(0, 0). */ 
-const CCSize CCSizeZero = CCSizeMake(0,0);
+// const CCSize CCSizeZero = CCSizeMake(0,0);
+#define CCSizeZero CCSizeMake(0,0)
 
 /* The "zero" rectangle -- equivalent to CCRectMake(0, 0, 0, 0). */ 
-const CCRect CCRectZero = CCRectMake(0,0,0,0);
+// const CCRect CCRectZero = CCRectMake(0,0,0,0);
+#define CCRectZero CCRectMake(0,0)
 
 // end of data_structure group
 /// @}
