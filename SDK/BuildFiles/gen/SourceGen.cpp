@@ -41,8 +41,8 @@ struct address_of_t<(member{global_index})(&{class_name}::{function_name})> {{
 
 	char const* declare_member_function = "reinterpret_cast<func{global_index}>(address{global_index}())(this{parameters})";
 	char const* declare_static_function = "reinterpret_cast<func{global_index}>(address{global_index}())({raw_parameters})";
-	char const* declare_meta_member_function = "geode::core::meta::Function<pure{global_index}, geode::core::meta::x86::{convention}>(address{global_index}())(this{parameters})";
-	char const* declare_meta_static_function = "geode::core::meta::Function<pure{global_index}, geode::core::meta::x86::{convention}>(address{global_index}())({raw_parameters})";
+	char const* declare_meta_member_function = "geode::core::meta::Function<pure{global_index}, geode::core::meta::x86::{convention}>({{address{global_index}()}})(this{parameters})";
+	char const* declare_meta_static_function = "geode::core::meta::Function<pure{global_index}, geode::core::meta::x86::{convention}>({{address{global_index}()}})({raw_parameters})";
 
 	char const* declare_member = R"CAC(
 ret{global_index} {class_name}::{function_name}({raw_args}){constw}{const} {{

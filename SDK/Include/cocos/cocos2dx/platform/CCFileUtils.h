@@ -360,7 +360,7 @@ protected:
     virtual gd::string getNewFilename(const char* pszFileName);
 
     RT_ADD(virtual bool shouldUseHD();)
-    RT_ADD(virtual bool addSufix(gd::string, gd::string);)
+    RT_ADD(virtual gd::string addSuffix(gd::string, gd::string);)
     
     /**
      *  Gets full path for filename, resolution directory and search path.
