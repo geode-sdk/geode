@@ -12,7 +12,7 @@ using cocos2d::CCDestructor;
 	char const* declare_member = R"CAC(
 template<>
 struct address_of_t<(_{unqualified_name}::ret{index}({class_name}::*)({raw_arg_types}){const})(&{class_name}::{function_name})> {{
-	static constexpr inline auto value = _{unqualified_name}::address{index};
+	static inline auto value = _{unqualified_name}::address{index};
 }};
 _{unqualified_name}::ret{index} {class_name}::{function_name}({raw_args}) {const}{{
     return ((_{unqualified_name}*)this)->_{unqualified_name}::{function_name}({raw_parameters});
