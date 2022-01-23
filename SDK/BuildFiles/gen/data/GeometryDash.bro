@@ -148,7 +148,9 @@ class BoomListView : cocos2d::CCLayer, TableViewDataSource, TableViewDelegate {
 	virtual void TableViewWillReloadCellForRowAtIndexPath(CCIndexPath&, TableViewCell*, TableView*) = mac 0x18f050, win 0x0, ios 0x0;
 	virtual TableViewCell* getListCell(const char*) = mac 0x18f200, win 0x10ed0, ios 0x0;
 	virtual void loadCell(TableViewCell*, unsigned int) = mac 0x18f4a0, win 0x10ff0, ios 0x0;
-	bool init(cocos2d::CCArray* entries, BoomListType btype, float width, float height) = mac 0x0, win 0x10c20, ios 0x0;
+	inline bool init(cocos2d::CCArray* entries, BoomListType type, float width, float height) {
+		return this->init(entries, width, height, 0, type);
+	}
 
 	TableView* m_tableView;
 	cocos2d::CCArray* m_entries;
@@ -758,12 +760,14 @@ class CurrencyRewardLayer {
 }
 
 class CustomListView : BoomListView {
-	static CustomListView* create(cocos2d::CCArray*, float, float, int, BoomListType) = mac 0x10d410, win 0x0, ios 0x0;
+	static CustomListView* create(cocos2d::CCArray*, float, float, int, BoomListType) = mac 0x10d410, win 0x57f90, ios 0x0;
+	inline static CustomListView* create(cocos2d::CCArray* entries, BoomListType type, float width, float height) {
+		return CustomListView::create(entries, width, height, 0, type);
+	}
 	virtual TableViewCell* getListCell(const char*) = mac 0x10d560, win 0x58050, ios 0x0;
 	virtual void loadCell(TableViewCell*, unsigned int) = mac 0x10e610, win 0x585c0, ios 0x0;
 	virtual void setupList() = mac 0x116e70, win 0x58870, ios 0x0;
 	CustomListView() = mac 0x0, win 0x57e60, ios 0x0;
-	static CustomListView* create(cocos2d::CCArray* entries, BoomListType type, float width, float height) = mac 0x0, win 0x57f90, ios 0x0;
 }
 
 class CustomSongCell : TableViewCell {
@@ -2000,6 +2004,7 @@ class GJGarageLayer : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol,
 	void onPlayerColor1(cocos2d::CCObject*) = mac 0x1ba640, win 0x0, ios 0x22531c;
 	void onPlayerColor2(cocos2d::CCObject*) = mac 0x1ba8c0, win 0x0, ios 0x225408;
 	static GJGarageLayer* create() = mac 0x0, win 0x125220, ios 0x0;
+	bool init() = win 0x1255d0;
 	void onSelectTab(cocos2d::CCObject* pSender) = mac 0x0, win 0x127c30, ios 0x0;
 	void onPlayerIcon(cocos2d::CCObject* pSender) = mac 0x0, win 0x127f30, ios 0x0;
 	void onShipIcon(cocos2d::CCObject* pSender) = mac 0x0, win 0x1281e0, ios 0x0;
