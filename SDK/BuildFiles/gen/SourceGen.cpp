@@ -3,7 +3,7 @@
 
 namespace format_strings {
     char const* source_start = R"CAC(
-#include <InterfaceBase.hpp>
+//#include <InterfaceBase.hpp>
 using namespace geode;
 using cocos2d::CCDestructor;
 )CAC";
@@ -11,29 +11,29 @@ using cocos2d::CCDestructor;
 	char const* declare_using = "\n\nusing _{unqualified_name} = interfaces::${unqualified_name}<>;";
 
 	char const* declare_member = R"CAC(
-_{unqualified_name}::ret{index} {class_name}::{function_name}({raw_args}) {const}{{
+inline _{unqualified_name}::ret{index} {class_name}::{function_name}({raw_args}) {const}{{
     return ((_{unqualified_name}*)this)->_{unqualified_name}::{function_name}({raw_parameters});
 }})CAC";
 
 	char const* declare_static = R"CAC(
-_{unqualified_name}::ret{index} {class_name}::{function_name}({raw_args}) {const}{{
+inline _{unqualified_name}::ret{index} {class_name}::{function_name}({raw_args}) {const}{{
     return _{unqualified_name}::{function_name}({raw_parameters});
 }})CAC";
 
 	char const* declare_destructor = R"CAC(
-{class_name}::{function_name}() {{
+inline {class_name}::{function_name}() {{
     if (CCDestructor::lock(this)) return;
 	CCDestructor::lock(this) = true;
 	((_{unqualified_name}*)this)->destructor({raw_parameters});
 }})CAC";
 
 	char const* declare_constructor = R"CAC(
-{class_name}::{function_name}({raw_args}) : {class_name}(*this) {{
+inline {class_name}::{function_name}({raw_args}) : {class_name}(*this) {{
 	((_{unqualified_name}*)this)->constructor({raw_parameters});
 }})CAC";
 
 	// requires: static, return_type, function_name, raw_parameters, const, class_name, definition
-    char const* ool_function_definition = "{return_type} {class_name}::{function_name}({raw_params}){const} {definition}\n";
+    char const* ool_function_definition = "inline {return_type} {class_name}::{function_name}({raw_params}){const} {definition}\n";
 }
 
 int main(int argc, char** argv) {

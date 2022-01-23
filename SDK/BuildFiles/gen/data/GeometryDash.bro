@@ -4413,7 +4413,7 @@ class TableView : CCScrollLayerExt, CCScrollLayerExtDelegate {
 	cocos2d::CCArray* m_cellArray;
 	cocos2d::CCArray* m_array2;
 	cocos2d::CCArray* m_array3;
-	TableViewDelegate* m_delegate;
+	TableViewDelegate* m_tableDelegate;
 	TableViewDataSource* m_dataSource;
 	int m_unused1;
 	int m_unused2;

@@ -228,8 +228,7 @@ void parseMember(ClassDefinition& c, string type, string varName, Tokens& tokens
 				cacerr("Expected comma, found %s.\n", t.slice.c_str());
 		}
 	} else {
-		if (myMember.member_type != MemberType::kPad)
-			myMember.member_type = MemberType::kDefault;
+		myMember.member_type = MemberType::kDefault;
 		next_expect(tokens, kSemi, ";");
 	}
 

@@ -5,7 +5,7 @@ namespace format_strings {
     // requires: class_name
     char const* interface_start = R"CAC(
 template<template <auto orig> class D = __unitSpec>
-struct ${class_name} : {raw_class_name}, InterfaceBase {{
+struct ${class_name} : {raw_class_name}Dummy {{
     ${class_name}(const ${class_name}& c) : {class_name}(c) {{}}
     ${class_name}() = delete;
 
