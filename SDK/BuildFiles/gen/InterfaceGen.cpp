@@ -9,11 +9,11 @@ struct ${class_name} : {raw_class_name}, InterfaceBase {{
     ${class_name}(const ${class_name}& c) : {class_name}(c) {{}}
     ${class_name}() = delete;
 
-    GEODE_DUPABLE static inline auto& getAdditionalFields() {{
+    GEODE_NOINLINE static inline auto& getAdditionalFields() {{
     	static std::unordered_map<size_t, container_t<>*> ret;
     	return ret;
     }}
-    GEODE_DUPABLE static inline auto& getOriginalDestructor() {{
+    GEODE_NOINLINE static inline auto& getOriginalDestructor() {{
     	static size_t ret;
     	return ret;
     }}
@@ -32,7 +32,7 @@ struct ${class_name} : {raw_class_name}, InterfaceBase {{
 
     // requires: index, address
     char const* predefine_address = R"CAC(
-	GEODE_DUPABLE static inline auto address{index}() {{
+	GEODE_NOINLINE static inline auto address{index}() {{
 		static auto ret = {address};
 		return ret;
 	}})CAC";

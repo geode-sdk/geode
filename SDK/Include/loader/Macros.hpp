@@ -26,4 +26,17 @@ namespace cocos2d::extension {}
     using namespace cocos2d;            \
     using namespace cocos2d::extension; \
 
+#define GEODE_STATIC_PTR(type, name)        \
+static type* s_##name;                      \
+inline type* name() {                       \
+	if (!s_##name) s_##name = new type();   \
+	return s_##name;                        \
+}
+
+#define GEODE_STATIC_VAR(type, name)        \
+inline type& name() {                       \
+	static type s_##name;                   \
+	return s_##name;                        \
+}
+
 

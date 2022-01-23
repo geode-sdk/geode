@@ -8,10 +8,12 @@ using cocos2d::CCDestructor;
 )CAC";
 
 	char const* declare_address = R"CAC(
-/*GEODE_DUPABLE inline auto address{global_index}() {{
-	static auto ret = interfaces::${unqualified_name}<>::address{index}();
-	return ret;
-}}*/)CAC";
+static uintptr_t _address{global_index};
+GEODE_NOINLINE inline auto address{global_index}() {{
+	if (!_address{global_index})
+		_address{global_index} = interfaces::${unqualified_name}<>::address{index}();
+	return _address{global_index};
+}})CAC";
 
 	char const* declare_member_type = R"CAC(
 using ret{global_index} = interfaces::${unqualified_name}<>::ret{index};
@@ -34,13 +36,13 @@ using member{global_index} = func{global_index};)CAC";
 	char const* declare_address_of = R"CAC(
 template<>
 struct address_of_t<(member{global_index})(&{class_name}::{function_name})> {{
-	static inline auto value = interfaces::${unqualified_name}<>::address{index}();
+	static inline auto value = address{global_index}();
 }};)CAC";
 
-	char const* declare_member_function = "reinterpret_cast<func{global_index}>(interfaces::${unqualified_name}<>::address{index}())(this{parameters})";
-	char const* declare_static_function = "reinterpret_cast<func{global_index}>(interfaces::${unqualified_name}<>::address{index}())({raw_parameters})";
-	char const* declare_meta_member_function = "geode::core::meta::Function<pure{global_index}, geode::core::meta::x86::{convention}>(interfaces::${unqualified_name}<>::address{index}())(this{parameters})";
-	char const* declare_meta_static_function = "geode::core::meta::Function<pure{global_index}, geode::core::meta::x86::{convention}>(interfaces::${unqualified_name}<>::address{index}())({raw_parameters})";
+	char const* declare_member_function = "reinterpret_cast<func{global_index}>(address{global_index}())(this{parameters})";
+	char const* declare_static_function = "reinterpret_cast<func{global_index}>(address{global_index}())({raw_parameters})";
+	char const* declare_meta_member_function = "geode::core::meta::Function<pure{global_index}, geode::core::meta::x86::{convention}>(address{global_index}())(this{parameters})";
+	char const* declare_meta_static_function = "geode::core::meta::Function<pure{global_index}, geode::core::meta::x86::{convention}>(address{global_index}())({raw_parameters})";
 
 	char const* declare_member = R"CAC(
 ret{global_index} {class_name}::{function_name}({raw_args}){constw}{const} {{

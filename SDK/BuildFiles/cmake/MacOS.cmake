@@ -1,7 +1,7 @@
 add_definitions(-DCC_TARGET_OS_MAC)
 set(CMAKE_SYSTEM_NAME MacOS)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fms-extensions -Wno-deprecated -ferror-limit=200 -O2 -Os")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fms-extensions -Wno-deprecated -ferror-limit=200 -O2 -Os -fdata-sections -ffunction-sections")
 
 include_directories(
 	${GEODE_INCLUDE_DIR}/cocos/cocos2dx/platform/mac

@@ -6,6 +6,7 @@
 	 */
 	#define GEODE_HIDDEN
 	#define GEODE_DUPABLE __forceinline
+	#define GEODE_NOINLINE __declspec(noinline)
 
 #else
 	/**
@@ -15,6 +16,7 @@
 	 */
 	#define GEODE_HIDDEN __attribute__((visibility("hidden")))
 	#define GEODE_DUPABLE __attribute__((always_inline))
+	#define GEODE_NOINLINE __attribute__((noinline))
 #endif
 
 

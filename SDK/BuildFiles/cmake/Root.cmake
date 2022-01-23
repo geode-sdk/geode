@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.9.4)
+cmake_minimum_required(VERSION 3.13.4)
 
 set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_STANDARD 17)
@@ -48,6 +48,7 @@ check_ipo_supported(RESULT supported OUTPUT error)
 set_source_files_properties(${GEODE_CODEGEN_DIR}/Source.cpp PROPERTIES GENERATED 1)
 add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES}	${GEODE_CODEGEN_DIR}/Source.cpp)
 set_property(TARGET ${PROJECT_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+target_link_options(${PROJECT_NAME} PUBLIC -dead_strip)
 
 
 if("${GEODE_TARGET_PLATFORM}" STREQUAL "MacOS")
