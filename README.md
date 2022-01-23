@@ -7,7 +7,9 @@ The projects created with the `./create` are normally in the current working dir
 
 ## How to use
 
-TODO: Make this properly documented  
+TODO: Make this properly documented
+
+Make sure you include the flag `-T host=x64` if you are building for Windows, that way you avoid out of heap space errors.
 
 ### Geode
 

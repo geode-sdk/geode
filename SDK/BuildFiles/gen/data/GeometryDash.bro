@@ -2944,7 +2944,7 @@ class GameStatsManager : cocos2d::CCNode {
 class GameToolbox {
 	static CCMenuItemToggler createToggleButton(gd::string, cocos2d::SEL_MenuHandler, bool, cocos2d::CCMenu*, cocos2d::CCPoint, cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCArray*) = mac 0x0, win 0x0, ios 0x0;
 	static CCMenuItemToggler createToggleButton(cocos2d::SEL_MenuHandler, bool, cocos2d::CCMenu*, cocos2d::CCNode*, cocos2d::CCNode*, float, float, float, const char*, bool, int, cocos2d::CCArray*, gd::string, cocos2d::CCPoint, cocos2d::CCPoint) = mac 0x28bdd0, win 0x25fe0, ios 0x0;
-	static void transformColor(cocos2d::ccColor3B const& src, cocos2d::ccColor3B& dest, cocos2d::ccHSVValue hsv) = mac 0x0, win 0x26a60, ios 0x0;
+	static void transformColor(cocos2d::ccColor3B* src, cocos2d::ccColor3B* dest, cocos2d::ccHSVValue hsv) = mac 0x0, win 0x26a60, ios 0x0;
 	static void alignItemsHorisontally(cocos2d::CCArray* array, bool idk, cocos2d::CCPoint start, float pad) = mac 0x0, win 0x25b20, ios 0x0;
 }
 
