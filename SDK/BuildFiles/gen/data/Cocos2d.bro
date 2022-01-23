@@ -192,6 +192,7 @@ class cocos2d::CCImage {
 
 class cocos2d::CCKeyboardDispatcher {
 	auto dispatchKeyboardMSG(cocos2d::enumKeyCodes, bool) = mac 0xe8190;
+	auto keyToString(cocos2d::enumKeyCodes) = mac 0xe8450;
 }
 
 class cocos2d::CCKeyboardHandler {
@@ -818,3 +819,9 @@ class cocos2d::extension::CCScrollView {
 	virtual auto registerWithTouchDispatcher() = mac 0x214ff0;
 	virtual auto setTouchEnabled(bool) = mac 0x215250;
 }
+
+// class DS_Dictionary {
+// 	DS_Dictionary() = mac 0xbe9a0;
+// 	int getIntegerForKey(char const*) = mac 0xc1610;
+// 	void setIntegerForKey(char const*, int) = mac 0xc26b0;
+// }

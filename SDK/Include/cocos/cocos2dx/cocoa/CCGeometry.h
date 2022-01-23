@@ -470,7 +470,7 @@ public:
 
 /* The "zero" rectangle -- equivalent to CCRectMake(0, 0, 0, 0). */ 
 // const CCRect CCRectZero = CCRectMake(0,0,0,0);
-#define CCRectZero CCRectMake(0,0)
+#define CCRectZero CCRectMake(0,0,0,0)
 
 // end of data_structure group
 /// @}

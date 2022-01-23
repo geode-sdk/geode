@@ -6,9 +6,6 @@ set(CMAKE_CXX_STANDARD 17)
 add_subdirectory(fmt)
 
 macro(add_gen project file)
-	if (NOT EXISTS ${GEODE_CODEGEN_DIR}/${file})
-		file(WRITE ${GEODE_CODEGEN_DIR}/${file} "// this text should only be visible before the first build")
-	endif()
 	add_executable(${project}Gen ${project}Gen.cpp)
 	target_link_libraries(${project}Gen PUBLIC fmt)
 	target_include_directories(${project}Gen PUBLIC 

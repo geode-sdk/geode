@@ -34,6 +34,7 @@ struct {class_name}{base_classes}{final} {{
 }
 
 void sortClass(Root& r, ClassDefinition* c, set<ClassDefinition*>& looked, vector<ClassDefinition*>& ordered) {
+	if (c->name.find("DS_Dictionary") != string::npos) return;
 	if (c->name.find("cocos2d::") != string::npos) return; // cocos headers exist already
     if (looked.find(c) == looked.end()) {
     	looked.insert(c);
