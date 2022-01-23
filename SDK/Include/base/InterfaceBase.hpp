@@ -49,14 +49,14 @@ template <typename T, typename A>
 T& operator->*(A* self, field_t<T>& member) {
     // this replaces the destructor in the vtable
     // only done this way to be performant
-    if (A::originalDestructor == 0) {
+    if (A::getOriginalDestructor() == 0) {
         auto& dtor = 2[*(size_t**)self]; // i love this
-        A::originalDestructor = dtor;
+        A::getOriginalDestructor() = dtor;
         dtor = (size_t)&A::fieldCleanup;
     }
 
     // gets the respective field
-    container_t<>*& field = A::fields[(size_t)&member];
+    container_t<>*& field = A::getAdditionalFields()[(size_t)&member];
     // create the container on first use
     if (!field) field = reinterpret_cast<container_t<>*>(new container_t<T>());
     return reinterpret_cast<container_t<T>*>(field)->field;

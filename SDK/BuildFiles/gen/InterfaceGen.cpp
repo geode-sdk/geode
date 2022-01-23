@@ -9,92 +9,75 @@ struct ${class_name} : {raw_class_name}, InterfaceBase {{
     ${class_name}(const ${class_name}& c) : {class_name}(c) {{}}
     ${class_name}() = delete;
 
-    static inline std::unordered_map<size_t, container_t<>*> fields;
-    static inline size_t originalDestructor;
+    GEODE_DUPABLE static inline auto& getAdditionalFields() {{
+    	static std::unordered_map<size_t, container_t<>*> ret;
+    	return ret;
+    }}
+    GEODE_DUPABLE static inline auto& getOriginalDestructor() {{
+    	static size_t ret;
+    	return ret;
+    }}
     static void fieldCleanup(size_t self) {{
     	const size_t begin = self + sizeof(${class_name});
     	const size_t end = self + sizeof(D<0>);
     	for (size_t i = begin; i < end; ++i) {{
-    		if (fields.find(i) != fields.end()) {{
-    			delete fields.at(i);
-    			fields.erase(i);
+    		if (getAdditionalFields().find(i) != getAdditionalFields().end()) {{
+    			delete getAdditionalFields().at(i);
+    			getAdditionalFields().erase(i);
     		}}
     	}}
-    	reinterpret_cast<void(*)(size_t)>(originalDestructor)(self);
+    	reinterpret_cast<void(*)(size_t)>(getOriginalDestructor())(self);
     }}
 )CAC";
 
     // requires: index, address
-    char const* predefine_address = "    static inline auto address{index} = {address};";
+    char const* predefine_address = R"CAC(
+	GEODE_DUPABLE static inline auto address{index}() {{
+		static auto ret = {address};
+		return ret;
+	}})CAC";
 
     // requires: index, return
     char const* predefine_return = R"CAC(
-    using ret{index} = {return};
-)CAC";
+    using ret{index} = {return};)CAC";
 
-    // requires: class_name, function_name, const, index, count, arg_types, parameters
-    char const* declare_member = R"CAC(
-    GEODE_DUPABLE ret{index} {function_name}({raw_args}) {const}{{
-        return reinterpret_cast<ret{index}(*)(decltype(this){arg_types})>(address{index})(this{parameters});
-    }}
-)CAC";
 
-    // requires: class_name, function_name, const, index, raw_args, arg_types, raw_parameters
-    char const* declare_static = R"CAC(
-    GEODE_DUPABLE static ret{index} {function_name}({raw_args}) {const}{{
-        return reinterpret_cast<ret{index}(*)({raw_arg_types})>(address{index})({raw_parameters});
-    }}
-)CAC";
-
-    // requires: function_name, raw_args, arg_types, index, parameters
     char const* declare_structor = R"CAC(
     GEODE_DUPABLE void {function_name}({raw_args}) {{
         reinterpret_cast<void(*)(decltype(this){arg_types})>(address{index})(this{parameters});
-    }}
-)CAC";
-
-    // requires: class_name, function_name, const, index, raw_args, arg_types, parameters, convention
-    char const* declare_meta_member = R"CAC(
-    GEODE_DUPABLE ret{index} {function_name}({raw_args}) {const}{{
-        return geode::core::meta::Function<ret{index}(decltype(this){arg_types}), geode::core::meta::x86::{convention}>(address{index})(this{parameters});
-    }}
-)CAC";
-
-    // requires: class_name, function_name, const, index, arg_types, raw_parameters, raw_args, convention
-    char const* declare_meta_static = R"CAC(
-    static GEODE_DUPABLE ret{index} {function_name}({raw_args}) {const}{{
-        return geode::core::meta::Function<ret{index}({raw_arg_types}), geode::core::meta::x86::{convention}>(address{index})({raw_parameters});
-    }}
-)CAC";
-
-    // requires: function_name, raw_args, arg_types, index, parameters, convention
-    char const* declare_meta_structor = R"CAC(
-    GEODE_DUPABLE void {function_name}({raw_args}) {{
-        return geode::core::meta::Function<void(decltype(this){arg_types}), geode::core::meta::x86::{convention}>(address{index})(this{parameters});
-    }}
-)CAC";
+    }})CAC";
 
     char const* apply_start = R"CAC(
     static bool _apply() {
 )CAC";
     // requires: index, class_name, arg_types, function_name, raw_arg_types, non_virtual
     char const* apply_function_member = R"CAC(
+    	using baseType{index} = ret{index}({class_name}::*)({raw_arg_types}) {const};
+		constexpr auto baseAddress{index} = (baseType{index})(&{class_name}::{function_name});
+		using derivedType{index} = ret{index}(D<baseAddress{index}>::*)({raw_arg_types}) {const};
+		constexpr auto derivedAddress{index} = (derivedType{index})(&D<baseAddress{index}>::{function_name});
+        if (baseAddress{index} != derivedAddress{index}) {{
+            Interface::get()->addHook((void*)address{index}(), (void*)FunctionScrapper::addressOf{non_virtual}Virtual(derivedAddress{index}));
+        }}
+)CAC";
+
+	char const* apply_function_structor = R"CAC(
     	using baseType{index} = ret{index}(${class_name}::*)({raw_arg_types}) {const};
 		constexpr auto baseAddress{index} = (baseType{index})(&${class_name}::{function_name});
 		using derivedType{index} = ret{index}(D<baseAddress{index}>::*)({raw_arg_types}) {const};
 		constexpr auto derivedAddress{index} = (derivedType{index})(&D<baseAddress{index}>::{function_name});
         if (baseAddress{index} != derivedAddress{index}) {{
-            Interface::get()->addHook((void*)address{index}, (void*)FunctionScrapper::addressOf{non_virtual}Virtual(derivedAddress{index}));
+            Interface::get()->addHook((void*)address{index}(), (void*)FunctionScrapper::addressOf{non_virtual}Virtual(derivedAddress{index}));
         }}
 )CAC";
 
 	char const* apply_function_static = R"CAC(
 		using baseType{index} = ret{index}(*)({raw_arg_types});
-		constexpr auto baseAddress{index} = (baseType{index})(&${class_name}::{function_name});
+		constexpr auto baseAddress{index} = (baseType{index})(&{class_name}::{function_name});
 		using derivedType{index} = ret{index}(*)({raw_arg_types});
 		constexpr auto derivedAddress{index} = (derivedType{index})(&D<baseAddress{index}>::{function_name});
         if (baseAddress{index} != derivedAddress{index}) {{
-            Interface::get()->addHook((void*)address{index}, (void*)FunctionScrapper::addressOfNonVirtual(derivedAddress{index}));
+            Interface::get()->addHook((void*)address{index}(), (void*)FunctionScrapper::addressOfNonVirtual(derivedAddress{index}));
         }}
 )CAC";
 
@@ -128,36 +111,26 @@ int main(int argc, char** argv) {
                 fmt::arg("address", CacShare::getAddress(f))
             );
 
-            char const* used_format;
-
             switch (f.function_type) {
-                case kVirtualFunction:
-                case kRegularFunction:
-                    used_format = CacShare::platform == kWindows ? format_strings::declare_meta_member : format_strings::declare_member;
-                    break;
-                case kStaticFunction:
-                    used_format = CacShare::platform == kWindows ? format_strings::declare_meta_static : format_strings::declare_static;
-                    break;
-                case kDestructor:
-               		f.name = "destructor";
-                case kConstructor:
-                	if (f.name != "destructor") f.name = "constructor";
-                    used_format = CacShare::platform == kWindows ? format_strings::declare_meta_structor : format_strings::declare_structor;
-                    break;
+            	case kDestructor:
+            		f.name = "destructor";
+            	case kConstructor:
+            		if (f.name != "destructor") f.name = "constructor";
+            		output += fmt::format(format_strings::declare_structor,
+				        fmt::arg("arg_types", CacShare::formatArgTypes(f.args)),
+				        fmt::arg("raw_arg_types", CacShare::formatRawArgTypes(f.args)),
+				        fmt::arg("class_name", unqualifiedName),
+				        fmt::arg("const", f.is_const ? "const " : ""),
+				        fmt::arg("convention", CacShare::getConvention(f)),
+				        fmt::arg("function_name",f.name),
+				        fmt::arg("index",f.index),
+				        fmt::arg("parameters", CacShare::formatParameters(f.args.size())),
+				        fmt::arg("raw_args", CacShare::formatRawArgs(f.args)),
+				        fmt::arg("raw_parameters", CacShare::formatRawParameters(f.args.size()))
+				    );
+            	default:
+            		break;
             }
-
-            output += fmt::format(used_format,
-                fmt::arg("arg_types", CacShare::formatArgTypes(f.args)),
-                fmt::arg("raw_arg_types", CacShare::formatRawArgTypes(f.args)),
-                fmt::arg("class_name", unqualifiedName),
-                fmt::arg("const", f.is_const ? "const " : ""),
-                fmt::arg("convention", CacShare::getConvention(f)),
-                fmt::arg("function_name",f.name),
-                fmt::arg("index",f.index),
-                fmt::arg("parameters", CacShare::formatParameters(f.args.size())),
-                fmt::arg("raw_args", CacShare::formatRawArgs(f.args)),
-                fmt::arg("raw_parameters", CacShare::formatRawParameters(f.args.size()))
-            );
         }
 
         output += format_strings::apply_start;
@@ -170,6 +143,10 @@ int main(int argc, char** argv) {
             switch (f.function_type) {
                 case kStaticFunction:
                     used_format = format_strings::apply_function_static;
+                    break;
+                case kConstructor:
+                case kDestructor:
+                    used_format = format_strings::apply_function_structor;
                     break;
                 default:
                		used_format = format_strings::apply_function_member;

@@ -63,13 +63,16 @@ class CCEvent;
 GEODE_ADD(
 	class GEODE_CC_DLL CCDestructor {
 	private:
-		static inline std::unordered_map<void*, bool> destructorLock;
+		static inline auto& destructorLock() {
+			static std::unordered_map<void*, bool> ret;
+			return ret;
+		}
 	public:
 		static inline bool& lock(void* self) {
-			return destructorLock[self];
+			return destructorLock()[self];
 		}
 		inline ~CCDestructor() {
-			destructorLock.erase(this);
+			destructorLock().erase(this);
 		}
 	};
 )
