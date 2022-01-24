@@ -101,8 +101,6 @@ int main(int argc, char** argv) {
             if (!CacShare::functionExists(f))
                 continue; // Function not supported for this platform, skip it
 
-            CacShare::reorderStructs(f);
-
             output += fmt::format(format_strings::predefine_return,
                 fmt::arg("index", f.index),
                 fmt::arg("return", CacShare::getReturn(f))
