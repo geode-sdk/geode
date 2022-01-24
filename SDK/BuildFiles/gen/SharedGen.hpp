@@ -212,6 +212,7 @@ struct CacShare {
         switch (f.function_type) {
             case kConstructor:
             case kDestructor:
+                return "Membercall";
             case kRegularFunction:
             	if (f.args.size() == 0) return "Cdecl";
                 return "Membercall";
