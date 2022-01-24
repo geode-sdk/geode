@@ -105,25 +105,37 @@ struct CacShare {
         return qualifiedName.substr(qualifiedName.rfind("::")+2);
     }
 
-    static std::pair<bool, vector<string>> reorderStructs(Function const& f) {
+    static std::pair<vector<int>, vector<string>> reorderStructs(Function const& f) {
         auto cc = CacShare::getConvention(f);
         vector<string> out;
-        vector<string> structs;
+        vector<int> params;
+        vector<std::pair<int, string>> structs;
+        int ix = 0;
         for (auto i : f.args) {
             if (i.rfind("struct ", 0) == 0) {
-                if (cc == "Optcall" || cc == "Membercall")
-                    structs.push_back(i);
-                else 
+                if (cc == "Optcall" || cc == "Membercall") {
+                    structs.push_back({ ix, i });
+                } else {
                     out.push_back(i);
+                    params.push_back(ix);
+                }
             } else {
                 out.push_back(i);
+                params.push_back(ix);
             }
+            ix++;
         }
         
-        for (auto s : structs)
-            out.push_back(s);
+        for (auto s : structs) {
+            out.push_back(std::get<1>(s));
+            params.push_back(std::get<0>(s));
+        }
 
-        return {structs.size() > 0, out};
+        if (!structs.size()) {
+            params = {};
+        }
+
+        return { params, out };
     }
 
     static string formatArgTypes(vector<string> args) {
@@ -169,6 +181,17 @@ struct CacShare {
             for (auto i = 0u; i < paramCount; ++i)
                 c.push_back(fmt::format("p{}", i));
             return fmt::format(", {}", fmt::join(c, ", "));
+        } else {
+            return "";
+        }
+    }
+
+    static string formatRawParameters(vector<int> const& params) {
+        if (params.size()) {
+            vector<string> c;
+            for (auto i : params)
+                c.push_back(fmt::format("p{}", i));
+            return fmt::format("{}", fmt::join(c, ", "));
         } else {
             return "";
         }

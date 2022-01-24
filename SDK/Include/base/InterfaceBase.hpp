@@ -3,6 +3,7 @@
 #include <Base.hpp>
 #include <MacroBase.hpp>
 #include <PlatformBase.hpp>
+#include <platform/platform.hpp>
 
 #include <Gen/Header.hpp>
 
@@ -10,7 +11,6 @@
 #include <unordered_map>
 
 #include <type_traits>
-#include <platform/platform.hpp>
 #include <Interface.hpp>
 
 template<auto F>

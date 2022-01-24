@@ -2,6 +2,7 @@
 
 #ifdef _MSC_VER
 #pragma warning(disable: 4251) // dll-interface
+#pragma warning(disable: 4099) // type first seen as 'class'
 #endif
 
 #include <Base.hpp>

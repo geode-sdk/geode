@@ -24,7 +24,7 @@ struct {class_name}{base_classes}{final} {{
     {docs}{static}{virtual}{return_type} _{function_name}({fixed_raw_args}){const};
  public:
     #ifdef GEODE_IS_WINDOWS
-    {docs}{static}{virtual}{return_type} {function_name}({raw_args}){const} {{
+    {docs}inline {static}{virtual}{return_type} {function_name}({raw_args}){const} {{
         return _{function_name}({fixed_raw_params});
     }}
     #else
@@ -126,9 +126,9 @@ int main(int argc, char** argv) {
                     break;
             }
 
-            auto [fix, fix_args] = CacShare::reorderStructs(f);
+            auto [reordered_args, fix_args] = CacShare::reorderStructs(f);
 
-            if (fix) {
+            if (reordered_args.size()) {
                 used_format = format_strings::platform_function_definition;
             }
         	output += fmt::format(used_format,
@@ -140,8 +140,8 @@ int main(int argc, char** argv) {
                 fmt::arg("raw_args", CacShare::formatRawArgs(f.args, f.argnames)),
                 fmt::arg("const", f.is_const ? " const" : ""),
                 fmt::arg("fixed_raw_args", CacShare::formatRawArgs(fix_args)),
-                fmt::arg("fixed_raw_params", CacShare::formatRawParameters(fix_args.size()))
-
+                fmt::arg("fixed_raw_params", CacShare::formatRawParameters(reordered_args)
+                )
             );
         }
 
