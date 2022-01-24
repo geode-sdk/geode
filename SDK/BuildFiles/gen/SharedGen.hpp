@@ -105,6 +105,27 @@ struct CacShare {
         return qualifiedName.substr(qualifiedName.rfind("::")+2);
     }
 
+    static std::pair<bool, vector<string>> reorderStructs(Function const& f) {
+        auto cc = CacShare::getConvention(f);
+        vector<string> out;
+        vector<string> structs;
+        for (auto i : f.args) {
+            if (i.rfind("struct ", 0) == 0) {
+                if (cc == "Optcall" || cc == "Membercall")
+                    structs.push_back(i);
+                else 
+                    out.push_back(i);
+            } else {
+                out.push_back(i);
+            }
+        }
+        
+        for (auto s : structs)
+            out.push_back(s);
+
+        return {structs.size() > 0, out};
+    }
+
     static string formatArgTypes(vector<string> args) {
         return args.size() > 0 ? fmt::format(", {}", fmt::join(args, ", ")) : string("");
     }
@@ -116,6 +137,8 @@ struct CacShare {
     static string formatRawArgs(vector<string> args) {
         string out = "";
         size_t c = 0;
+        if (args.size() == 1 && args[0] == "void")
+            return "";
         for (auto& i : args) {
             out += fmt::format("{} p{}, ", i, c);
             ++c;
@@ -123,11 +146,13 @@ struct CacShare {
         return out.substr(0, out.size()-2);
     }
 
-    static string formatRawParams(vector<string> args, vector<string> argnames) {
+    static string formatRawArgs(vector<string> args, vector<string> argnames) {
         string out = "";
         size_t c = 0;
+        if (args.size() == 1 && args[0] == "void")
+            return "";
         for (auto& i : args) {
-            if (argnames[c] == "") out += fmt::format("{}, ", i); 
+            if (argnames[c] == "") out += fmt::format("{} p{}, ", i, c); 
             else out += fmt::format("{} {}, ", i, argnames[c]); 
             ++c;
         }

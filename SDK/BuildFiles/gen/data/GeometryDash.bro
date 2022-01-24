@@ -214,7 +214,7 @@ class ButtonSprite : cocos2d::CCSprite {
 
 class CCAnimatedSprite : cocos2d::CCSprite {
 	void runAnimation(gd::string) = mac 0x1a6430, win 0x14f60, ios 0x0;
-	void tweenToAnimation(gd::string, float) = mac 0x1a65b0, win 0x0, ios 0x0;
+	void tweenToAnimation(struct gd::string, float) = mac 0x1a65b0, win 0x0, ios 0x0;
 	static CCAnimatedSprite* create(const char* file) = mac 0x0, win 0x14540, ios 0x0;
 
 	gd::string m_unknown1;
@@ -1333,10 +1333,10 @@ class FLAlertLayer : cocos2d::CCLayerColor {
 	virtual void keyBackClicked() = mac 0x25ed90, win 0x232c0, ios 0x0;
 	virtual void keyDown(cocos2d::enumKeyCodes) = mac 0x25ece0, win 0x23250, ios 0x0;
 	virtual void show() = mac 0x25f120, win 0x23560, ios 0x1feff4;
-	bool init(FLAlertLayerProtocol*, char const*, gd::string, char const*, char const*, float, bool, float) = mac 0x25e1b0, win 0x0, ios 0x0;
-	static FLAlertLayer* create(FLAlertLayerProtocol*, char const*, gd::string, char const*, char const*) = mac 0x25de00, win 0x22680, ios 0x0;
-	static FLAlertLayer* create(FLAlertLayerProtocol*, char const*, gd::string, char const*, char const*, float) = mac 0x25e0e0, win 0x22730, ios 0x1fe374;
-	static FLAlertLayer* create(FLAlertLayerProtocol*, char const*, gd::string, char const*, char const*, float, bool, float) = mac 0x25dec0, win 0x0, ios 0x0;
+	bool init(FLAlertLayerProtocol*, char const*, struct gd::string, char const*, char const*, float, bool, float) = mac 0x25e1b0, win 0x0, ios 0x0;
+	static FLAlertLayer* create(FLAlertLayerProtocol*, char const*, struct gd::string, char const*, char const*) = mac 0x25de00, win 0x22680, ios 0x0;
+	static FLAlertLayer* create(FLAlertLayerProtocol*, char const*, struct gd::string, char const*, char const*, float) = mac 0x25e0e0, win 0x22730, ios 0x1fe374;
+	static FLAlertLayer* create(FLAlertLayerProtocol*, char const*, struct gd::string, char const*, char const*, float, bool, float) = mac 0x25dec0, win 0x0, ios 0x0;
 	void onBtn1(cocos2d::CCObject*) = mac 0x25ec20, win 0x23340, ios 0x0;
 	void onBtn2(cocos2d::CCObject*) = mac 0x25ec80, win 0x23380, ios 0x0;
 
@@ -2707,7 +2707,7 @@ class GameObject : CCSpritePlus {
 	void isColorTrigger() = mac 0x343b40, win 0x0, ios 0x0;
 	void isSpawnableTrigger() = mac 0x343a60, win 0x0, ios 0x0;
 	void isSpecialObject() = mac 0x343c40, win 0x0, ios 0x0;
-	static GameObject* objectFromString(gd::string, bool) = mac 0x33b720, win 0xebe50, ios 0x0;
+	static GameObject* objectFromString(struct gd::string, bool) = mac 0x33b720, win 0xebe50, ios 0x0;
 	void playShineEffect() = mac 0x2fa9d0, win 0x0, ios 0x0;
 	void quickUpdatePosition() = mac 0x335790, win 0x0, ios 0x0;
 	void removeGlow() = mac 0x2f7f70, win 0x0, ios 0x0;
@@ -2884,8 +2884,8 @@ class GameSoundManager : cocos2d::CCNode {
 	void disableMetering() = mac 0x362d80, win 0x0, ios 0x0;
 	void enableMetering() = mac 0x362d00, win 0x0, ios 0x0;
 	void getMeteringValue() = mac 0x362db0, win 0x0, ios 0x0;
-	void playBackgroundMusic(gd::string, bool, bool) = mac 0x362070, win 0x0, ios 0x0;
-	void playEffect(gd::string, float, float, float) = mac 0x3623d0, win 0x0, ios 0x0;
+	void playBackgroundMusic(struct gd::string, bool, bool) = mac 0x362070, win 0x0, ios 0x0;
+	void playEffect(struct gd::string, float, float, float) = mac 0x3623d0, win 0x0, ios 0x0;
 	void sharedManager() = mac 0x3610f0, win 0x0, ios 0x0;
 	void stopBackgroundMusic() = mac 0x362130, win 0x0, ios 0x0;
 	~GameSoundManager() = mac 0x362c00, win 0x0, ios 0x0;
@@ -2947,8 +2947,8 @@ class GameStatsManager : cocos2d::CCNode {
 }
 
 class GameToolbox {
-	static CCMenuItemToggler createToggleButton(gd::string, cocos2d::SEL_MenuHandler, bool, cocos2d::CCMenu*, cocos2d::CCPoint, cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCArray*) = mac 0x0, win 0x0, ios 0x0;
-	static CCMenuItemToggler createToggleButton(cocos2d::SEL_MenuHandler, bool, cocos2d::CCMenu*, cocos2d::CCNode*, cocos2d::CCNode*, float, float, float, const char*, bool, int, cocos2d::CCArray*, gd::string, cocos2d::CCPoint, cocos2d::CCPoint) = mac 0x28bdd0, win 0x25fe0, ios 0x0;
+	static CCMenuItemToggler createToggleButton(struct gd::string, cocos2d::SEL_MenuHandler, bool, cocos2d::CCMenu*, cocos2d::CCPoint, cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCArray*) = mac 0x0, win 0x0, ios 0x0;
+	static CCMenuItemToggler createToggleButton(cocos2d::SEL_MenuHandler, bool, cocos2d::CCMenu*, cocos2d::CCNode*, cocos2d::CCNode*, float, float, float, const char*, bool, int, cocos2d::CCArray*, struct gd::string, cocos2d::CCPoint, cocos2d::CCPoint) = mac 0x28bdd0, win 0x25fe0, ios 0x0;
 	static void transformColor(cocos2d::ccColor3B* src, cocos2d::ccColor3B* dest, cocos2d::ccHSVValue hsv) = mac 0x0, win 0x26a60, ios 0x0;
 	static void alignItemsHorisontally(cocos2d::CCArray* array, bool idk, cocos2d::CCPoint start, float pad) = mac 0x0, win 0x25b20, ios 0x0;
 }
@@ -3114,7 +3114,7 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
 	void createGroundLayer() = mac 0x92840, win 0x0, ios 0x0;
 	GameObject* createObject(int, cocos2d::CCPoint, bool) = mac 0x957c0, win 0x160d70, ios 0x0;
 	void createObjectsFromSetup(gd::string) = mac 0x92230, win 0x0, ios 0x0;
-	void createObjectsFromString(gd::string, bool) = mac 0x94730, win 0x0, ios 0x0;
+	void createObjectsFromString(struct gd::string, bool) = mac 0x94730, win 0x0, ios 0x0;
 	void getLastObjectX() = mac 0x9c860, win 0x167290, ios 0x0;
 	void getLevelString() = mac 0x97790, win 0x162480, ios 0x0;
 	void getNextColorChannel() = mac 0x9a610, win 0x0, ios 0x0;
@@ -4266,7 +4266,7 @@ class SetupShakePopup : FLAlertLayer {
 
 class SetupSpawnPopup : FLAlertLayer {
 	static SetupSpawnPopup* create(EffectGameObject*, cocos2d::CCArray*) = mac 0x139790, win 0x0, ios 0x0;
-	void createToggleButton(gd::string, cocos2d::SEL_MenuHandler, bool, cocos2d::CCMenu*, cocos2d::CCPoint, cocos2d::CCArray*) = mac 0x13b0e0, win 0x0, ios 0x0;
+	void createToggleButton(struct gd::string, cocos2d::SEL_MenuHandler, bool, cocos2d::CCMenu*, cocos2d::CCPoint, cocos2d::CCArray*) = mac 0x13b0e0, win 0x0, ios 0x0;
 	void onTargetIDArrow(cocos2d::CCObject*) = mac 0x13ad80, win 0x0, ios 0x0;
 	void textChanged(CCTextInputNode*) = mac 0x13b990, win 0x0, ios 0x0;
 	void updateTargetID() = mac 0x13b770, win 0x0, ios 0x0;
@@ -4478,7 +4478,7 @@ class TextArea : cocos2d::CCSprite {
 	~TextArea() = mac 0x19faa0, win 0x0, ios 0x0;
 	virtual void draw() = mac 0x19f890, win 0x0, ios 0x0;
 	virtual void setOpacity(unsigned char) = mac 0x19f760, win 0x0, ios 0x0;
-	static TextArea* create(const char*, bool, gd::string, float, float, float, cocos2d::CCPoint const&) = mac 0x19eb40, win 0x33270, ios 0x0;
+	static TextArea* create(const char*, bool, struct gd::string, float, float, float, cocos2d::CCPoint const&) = mac 0x19eb40, win 0x33270, ios 0x0;
 	void colorAllCharactersTo(cocos2d::ccColor3B color) = mac 0x0, win 0x33830, ios 0x0;
 	void setString(gd::string const& str) = mac 0x0, win 0x33480, ios 0x0;
 }
@@ -4501,7 +4501,7 @@ class TopArtistsLayer : FLAlertLayer {
 	void setupLeaderboard(cocos2d::CCArray*) = mac 0x193420, win 0x0, ios 0x0;
 	virtual bool init() = mac 0x192c30, win 0x0, ios 0x0;
 	void loadPage(int) = mac 0x193b60, win 0x0, ios 0x0;
-	void setupPageInfo(gd::string, char const*) = mac 0x193730, win 0x0, ios 0x0;
+	void setupPageInfo(struct gd::string, char const*) = mac 0x193730, win 0x0, ios 0x0;
 
 	cocos2d::CCNode* unknown = mac 0x220, win 0x0, android 0x0;
 	GJCommentListLayer* commentLayer = mac 0x260, win 0x0, android 0x0;

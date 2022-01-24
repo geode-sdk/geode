@@ -85,11 +85,14 @@ int main(int argc, char** argv) {
 		string unqualifiedName = CacShare::toUnqualified(name);
 
 		for (auto& f : c.functions) {
+
+			CacShare::reorderStructs(f);
+
 			if (f.is_defined) {
 				output += fmt::format(format_strings::ool_function_definition,
 					fmt::arg("return_type", CacShare::getReturn(f)),
 					fmt::arg("function_name", f.name),
-					fmt::arg("raw_params", CacShare::formatRawParams(f.args, f.argnames)),
+					fmt::arg("raw_params", CacShare::formatRawArgs(f.args, f.argnames)),
 					fmt::arg("const", f.is_const ? "const" : ""),
 					fmt::arg("constw", f.is_const ? " " : ""),
 					fmt::arg("class_name", f.parent_class->name),
