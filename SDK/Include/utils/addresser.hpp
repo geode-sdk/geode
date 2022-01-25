@@ -69,7 +69,7 @@ namespace geode::addresser {
 			return address;
 		}
 
-		template <typename R, typename T, typename ...Ps, , typename = std::enable_if<std::is_copy_constructible_v<T> >>
+		template <typename R, typename T, typename ...Ps, typename = std::enable_if<std::is_copy_constructible_v<T> >>
 		static intptr_t addressOfVirtual(R(T::*func)(Ps...) const) {
 			return addressOfVirtual(func);
 		}
