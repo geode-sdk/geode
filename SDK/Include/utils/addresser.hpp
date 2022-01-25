@@ -88,7 +88,7 @@ namespace geode::addresser {
 
 		template <typename R, typename T, typename ...Ps>
 		static intptr_t addressOfNonVirtual(R(T::*func)(Ps...) const) {
-			return addressOfNonVirtual(func);
+			return addressOfNonVirtual(reinterpret_cast<R(T::*)(Ps...)>(func));
 		}
 
 		template <typename R, typename T, typename ...Ps>
