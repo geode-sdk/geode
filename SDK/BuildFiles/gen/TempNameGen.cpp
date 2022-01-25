@@ -38,7 +38,6 @@ int main(int argc, char** argv) {
 
 		for (auto& f : c.functions) {
 			++global_index;
-			if (f.name == "colorAllCharactersTo") cout << "colorAllCharactersTo " << CacShare::getAddress(f) << endl;
 			if (!CacShare::functionDefined(f))
                 continue; // Function not supported, skip
 
