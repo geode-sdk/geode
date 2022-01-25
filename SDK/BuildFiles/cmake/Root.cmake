@@ -16,7 +16,7 @@ function(create_geode_file proname)
 			"${CMAKE_CURRENT_SOURCE_DIR}/mod.json"
 			"$<TARGET_FILE_DIR:${proname}>/mod.json"
 			"${srcs}"
-		OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/Geode_prereqs"
+		OUTPUT "$<TARGET_FILE_DIR:${proname}>/mod.json"
 	)
 	if (GEODE_TARGET_PLATFORM STREQUAL "MacOS" OR GEODE_TARGET_PLATFORM STREQUAL "iOS")
 		set(GEODE_OUT_EXTENSION "${proname}.dylib")
@@ -33,8 +33,8 @@ function(create_geode_file proname)
 			"$<TARGET_FILE_NAME:${proname}>"
 			"${srcs}"
 		WORKING_DIRECTORY "$<TARGET_FILE_DIR:${proname}>"
-		OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/Geode_file"
-		COMMAND ${CMAKE_COMMAND} -E echo "Creating zip file \\-\\> ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${proname}.geode"
+		OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${proname}.geode"
+		COMMAND ${CMAKE_COMMAND} -E echo "Creating zip file -> ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${proname}.geode"
 	)
 
 	add_custom_target(${proname}_package ALL
@@ -65,7 +65,6 @@ set_source_files_properties(${GEODE_CODEGEN_DIR}/Source.cpp PROPERTIES GENERATED
 add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES}	${GEODE_CODEGEN_DIR}/Source.cpp)
 # set_property(TARGET ${PROJECT_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 # target_link_options(${PROJECT_NAME} PUBLIC -dead_strip)
-
 
 if("${GEODE_TARGET_PLATFORM}" STREQUAL "MacOS")
 	include(${CMAKE_CURRENT_LIST_DIR}/MacOS.cmake)
