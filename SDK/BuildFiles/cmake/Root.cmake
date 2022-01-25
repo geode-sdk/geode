@@ -11,22 +11,38 @@ set(GEODE_INCLUDE_DIR ${GEODE_SDK_DIR}/Include)
 
 function(create_geode_file proname)
 	add_custom_command(
-		TARGET ${proname} POST_BUILD
-		COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+		POST_BUILD
+		COMMAND "${CMAKE_COMMAND}" -E copy_if_different 
 			"${CMAKE_CURRENT_SOURCE_DIR}/mod.json"
-			"${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/mod.json"
+			"$<TARGET_FILE_DIR:${proname}>/mod.json"
 			"${srcs}"
+		OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/Geode_prereqs"
 	)
+	if (GEODE_TARGET_PLATFORM STREQUAL "MacOS" OR GEODE_TARGET_PLATFORM STREQUAL "iOS")
+		set(GEODE_OUT_EXTENSION "${proname}.dylib")
+	elseif (GEODE_TARGET_PLATFORM STREQUAL "Win32")
+		set(GEODE_OUT_EXTENSION "${proname}.dll")
+	else()
+		set(GEODE_OUT_EXTENSION "${proname}.so")
+	endif()
+
 	add_custom_command(
-		TARGET ${proname}
 		COMMAND ${CMAKE_COMMAND} -E tar "cf" 
-			"${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${proname}.geode" --format=zip -- 
-			"${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/mod.json"
-			"${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${proname}.dll"
+			"${proname}.geode" --format=zip -- 
+			"mod.json"
+			"$<TARGET_FILE_NAME:${proname}>"
 			"${srcs}"
-		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>"
-		COMMAND ${CMAKE_COMMAND} -E echo "Creating zip file -> ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${proname}.geode"
+		WORKING_DIRECTORY "$<TARGET_FILE_DIR:${proname}>"
+		OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/Geode_file"
+		COMMAND ${CMAKE_COMMAND} -E echo "Creating zip file \\-\\> ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${proname}.geode"
 	)
+
+	add_custom_target(${proname}_package ALL
+	    DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/Geode_prereqs"
+	    DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/Geode_file"
+	)
+
+	unset(GEODE_OUT_EXTENSION)
 endfunction()
 
 if (NOT DEFINED GEODE_TARGET_PLATFORM)
