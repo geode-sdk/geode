@@ -144,6 +144,16 @@ namespace geode {
     };
     constexpr const auto conl = continue_type();
 
+    struct decimal_type {
+        constexpr decimal_type() {}
+    };
+    constexpr const auto dec = decimal_type();
+
+    struct hexadecimal_type {
+        constexpr hexadecimal_type() {}
+    };
+    constexpr const auto hex = hexadecimal_type();
+
     class GEODE_DLL LogStream {
         protected:
             LogMessage* m_log = nullptr;
@@ -173,6 +183,8 @@ namespace geode {
             LogStream& operator<<(cocos2d::CCRect const&);
             LogStream& operator<<(endl_type);
             LogStream& operator<<(continue_type);
+            LogStream& operator<<(decimal_type);
+            LogStream& operator<<(hexadecimal_type);
 
             ~LogStream();
     };

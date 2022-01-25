@@ -227,14 +227,14 @@ namespace geode {
         LogStream& log();
 
         /**
-         * Throw an error. Equivalent to 
+         * Log an information. Equivalent to 
          * ```
          * Mod::log() << Severity::severity << info << geode::endl.
          * ```
-         * @param info Error infomration
-         * @param severity Error severity
+         * @param info Log infomration
+         * @param severity Log severity
          */
-        void throwError(
+        void logInfo(
             std::string const& info,
             Severity severity
         );

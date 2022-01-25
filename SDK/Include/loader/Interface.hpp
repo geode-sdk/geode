@@ -42,18 +42,23 @@ namespace geode {
 			void* m_detour;
 		};
 
+		struct ScheduledLog {
+			std::string m_info;
+			Severity m_severity;
+		};
+
 		Mod* m_mod = nullptr;
 		std::vector<ScheduledHook> m_scheduledHooks;
-		std::vector<LogMessage*> m_scheduledLogs;
+		std::vector<ScheduledLog> m_scheduledLogs;
 	
 	public:
 
-		static Interface* get() {
+		static inline GEODE_HIDDEN Interface* get() {
 			static Interface ret;
 			return &ret;
 		}
 
-		static inline Mod* mod() {
+		static inline GEODE_HIDDEN Mod* mod() {
 			return Interface::get()->m_mod;
 		}
 
@@ -76,16 +81,13 @@ namespace geode {
         Result<Hook*> addHook(void* address, void* detour);
 
         /**
-         * Throw an error. Equivalent to 
+         * Log an information. Equivalent to 
          * ```
          * Mod::log() << Severity::severity << info << geode::endl.
          * ```
-         * @param info Error infomration
-         * @param severity Error severity
+         * @param info Log information
+         * @param severity Log severity
          */
-        void throwError(
-            std::string const& info,
-            Severity severity
-        );
+        void logInfo(std::string const& info, Severity severity);
 	};
 }
