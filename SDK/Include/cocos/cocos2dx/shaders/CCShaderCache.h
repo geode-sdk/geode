@@ -44,7 +44,7 @@ class CCGLProgram;
  */
 class CC_DLL CCShaderCache : public CCObject 
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     /**
      * @js ctor

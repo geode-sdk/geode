@@ -39,7 +39,7 @@ NS_CC_BEGIN
 
 class CC_DLL CCKeypadDelegate
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     // The back key clicked
     virtual void keyBackClicked() {}
@@ -57,7 +57,7 @@ public:
  */
 class CC_DLL CCKeypadHandler : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     virtual ~CCKeypadHandler(void);
 

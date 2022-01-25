@@ -2,8 +2,8 @@
 
 #pragma warning(disable: 4251)
 
-#include "../helpers/general.hpp"
-#include "../helpers/casts.hpp"
+#include "../utils/general.hpp"
+#include "../utils/casts.hpp"
 #include <cocos2d.h>
 #include <string>
 

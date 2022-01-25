@@ -47,8 +47,8 @@ check_ipo_supported(RESULT supported OUTPUT error)
 
 set_source_files_properties(${GEODE_CODEGEN_DIR}/Source.cpp PROPERTIES GENERATED 1)
 add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES}	${GEODE_CODEGEN_DIR}/Source.cpp)
-set_property(TARGET ${PROJECT_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-target_link_options(${PROJECT_NAME} PUBLIC -dead_strip)
+# set_property(TARGET ${PROJECT_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+# target_link_options(${PROJECT_NAME} PUBLIC -dead_strip)
 
 
 if("${GEODE_TARGET_PLATFORM}" STREQUAL "MacOS")
@@ -79,7 +79,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 	${GEODE_INCLUDE_DIR}/hook
 	${GEODE_INCLUDE_DIR}/loader
 	${GEODE_INCLUDE_DIR}/keybinds
-	${GEODE_INCLUDE_DIR}/core/include/geode/core
+	${GEODE_INCLUDE_DIR}/meta
 	${GEODE_INCLUDE_DIR}/cocos/
 	${GEODE_INCLUDE_DIR}/cocos/cocos2dx
 	${GEODE_INCLUDE_DIR}/cocos/cocos2dx/include

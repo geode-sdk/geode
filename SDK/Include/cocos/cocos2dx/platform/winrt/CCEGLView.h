@@ -92,7 +92,7 @@ private:
 
 class CC_DLL CCEGLView : public CCEGLViewProtocol
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     CCEGLView();
     virtual ~CCEGLView();

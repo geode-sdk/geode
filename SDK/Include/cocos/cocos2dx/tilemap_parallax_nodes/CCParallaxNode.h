@@ -45,7 +45,7 @@ The children will be moved faster / slower than the parent according the the par
 */
 class CC_DLL CCParallaxNode : public CCNode 
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
     /** array that holds the offset / ratio of the children */
     CC_SYNTHESIZE(struct _ccArray *, m_pParallaxArray, ParallaxArray)
 

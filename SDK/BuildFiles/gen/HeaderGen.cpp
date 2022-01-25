@@ -118,7 +118,7 @@ int main(int argc, char** argv) {
                 fmt::arg("return_type", CacShare::getReturn(f)),
                 fmt::arg("function_name", f.name),
                 fmt::arg("docs", CacShare::getDocs(f.docs)),
-                fmt::arg("raw_params", CacShare::formatRawParams(f.args, f.argnames)),
+                fmt::arg("raw_params", CacShare::formatArgs(f.args, f.argnames)),
                 fmt::arg("const", f.is_const ? " const" : "")
             );
         }

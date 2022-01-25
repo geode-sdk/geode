@@ -37,7 +37,7 @@ class CCNode;
  */
 class CC_DLL CCComponentContainer
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 protected:
 
 

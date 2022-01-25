@@ -56,7 +56,7 @@ struct _hashElement;
  */
 class CC_DLL CCActionManager : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     /**
      *  @js ctor

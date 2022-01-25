@@ -44,7 +44,7 @@ NS_CC_BEGIN
 */
 class CC_DLL CCTMXObjectGroup : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
     /** offset position of child objects */
     CC_SYNTHESIZE_PASS_BY_REF(CCPoint, m_tPositionOffset, PositionOffset);
     /** list of properties stored in a dictionary */

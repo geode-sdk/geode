@@ -52,7 +52,7 @@ enum TargetPlatform
 
 class CC_DLL CCApplicationProtocol
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
 
     virtual ~CCApplicationProtocol() {}

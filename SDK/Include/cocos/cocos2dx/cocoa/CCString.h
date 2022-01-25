@@ -45,7 +45,7 @@ NS_CC_BEGIN
 
 class CC_DLL CCString : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     /**
      * @lua NA

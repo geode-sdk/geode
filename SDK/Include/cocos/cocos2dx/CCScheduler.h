@@ -51,7 +51,7 @@ class CCSet;
 //
 class CC_DLL CCTimer : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     /**
      *  @js  ctor
@@ -138,7 +138,7 @@ The 'custom selectors' should be avoided when possible. It is faster, and consum
 */
 class CC_DLL CCScheduler : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     CCScheduler();
     /**

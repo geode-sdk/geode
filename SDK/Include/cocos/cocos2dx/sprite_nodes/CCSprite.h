@@ -84,7 +84,7 @@ class CC_DLL CCSprite : public CCNodeRGBA, public CCTextureProtocol
 , public CCGLBufferedNode
 #endif // EMSCRIPTEN
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     /// @{
     /// @name Creators

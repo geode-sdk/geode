@@ -44,7 +44,7 @@ NS_CC_BEGIN
  */
 class CC_DLL CCUserDefault
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     ~CCUserDefault();
 

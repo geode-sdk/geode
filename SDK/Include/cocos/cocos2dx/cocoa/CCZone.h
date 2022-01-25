@@ -42,7 +42,7 @@ class CCObject;
  */
 class CC_DLL CCZone
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     CCZone(CCObject *pObject = NULL);
 

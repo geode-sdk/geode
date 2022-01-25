@@ -57,7 +57,7 @@ class CCSprite;
  */
 class CC_DLL CCSpriteFrameCache : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 protected:
 
 

@@ -71,7 +71,7 @@ struct ccTouchHandlerHelperData {
  */
 class CC_DLL EGLTouchDelegate
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     /**
      * @lua NA
@@ -116,7 +116,7 @@ struct _ccCArray;
  */
 class CC_DLL CCTouchDispatcher : public CCObject, public EGLTouchDelegate
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     /**
      * @lua NA

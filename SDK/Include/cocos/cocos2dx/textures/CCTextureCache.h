@@ -55,7 +55,7 @@ class CCImage;
 */
 class CC_DLL CCTextureCache : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 protected:
 
 

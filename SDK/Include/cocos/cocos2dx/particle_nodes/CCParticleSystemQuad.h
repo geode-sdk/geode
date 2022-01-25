@@ -52,7 +52,7 @@ Special features and Limitations:
 */
 class CC_DLL CCParticleSystemQuad : public CCParticleSystem
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 protected:
 
 

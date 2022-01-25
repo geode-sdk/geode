@@ -55,7 +55,7 @@ enum {
 */
 class CC_DLL CCMenu : public CCLayerRGBA
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
     /** whether or not the menu will receive events */
     bool m_bEnabled;
     

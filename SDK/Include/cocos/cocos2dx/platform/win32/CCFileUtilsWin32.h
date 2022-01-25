@@ -41,7 +41,7 @@ NS_CC_BEGIN
 //! @brief  Helper class to handle file operations
 class CC_DLL CCFileUtilsWin32 : public CCFileUtils
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
     friend class CCFileUtils;
     CCFileUtilsWin32();
 public:

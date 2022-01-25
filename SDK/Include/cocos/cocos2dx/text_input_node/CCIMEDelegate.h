@@ -48,7 +48,7 @@ typedef struct
 */
 class CC_DLL CCIMEDelegate
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     virtual ~CCIMEDelegate();
 

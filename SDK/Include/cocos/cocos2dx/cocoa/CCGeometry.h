@@ -49,7 +49,7 @@ class CCSize;
  */
 class CC_DLL CCPoint
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     float x;
     float y;
@@ -293,7 +293,7 @@ public:
  */
 class CC_DLL CCSize
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     float width;
     float height;
@@ -377,7 +377,7 @@ CCPoint& CCPoint::operator= (const CCSize& size) {
  */
 class CC_DLL CCRect
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     CCPoint origin;
     CCSize  size;

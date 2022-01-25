@@ -48,7 +48,7 @@ It is a good practice to use and CCScene as the parent of all your nodes.
 */
 class CC_DLL CCScene : public CCNode
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     /**
      *  @js ctor

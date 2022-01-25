@@ -13,7 +13,7 @@ NS_CC_BEGIN
 
 class CC_DLL CCInteger : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     CCInteger(int v)
         : m_nValue(v) {}

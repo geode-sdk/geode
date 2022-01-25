@@ -104,30 +104,25 @@ It's new in cocos2d-x since v0.99.5
  * classes using stl containers. Easiest way to hijack this is redefining the NS_CC_BEGIN
  * macro.
  */
-#if defined(GEODE_VERSION)
-    #define GEODE_ADD(...) __VA_ARGS__
-	#define NOT_GEODE_ADD(...) 
-	
-    /**
-     * For CCDestructor
-     */
-    #if CC_TARGET_PLATFORM == CC_PLATFORM_WIN32
-        #ifdef GEODE_EXPORTING
-            #define GEODE_CC_DLL __declspec(dllexport)
-        #else
-            #define GEODE_CC_DLL __declspec(dllimport)
-        #endif
-    #else
-        #define GEODE_CC_DLL
-    #endif
+namespace geode { struct modify; struct temp_name_find_better; }
+#define GEODE_FRIEND_MODIFY GEODE_ADD(friend struct geode::modify; friend struct geode::temp_name_find_better;)
+#define GEODE_ADD(...) __VA_ARGS__
 
+/**
+ * For CCDestructor
+ */
+#if CC_TARGET_PLATFORM == CC_PLATFORM_WIN32
+    #ifdef GEODE_EXPORTING
+        #define GEODE_CC_DLL __declspec(dllexport)
+    #else
+        #define GEODE_CC_DLL __declspec(dllimport)
+    #endif
 #else
-	#define GEODE_ADD(...)
-	#define NOT_GEODE_ADD(...) __VA_ARGS__
+    #define GEODE_CC_DLL
 #endif
 
 #ifdef __cplusplus
-    #define NS_CC_BEGIN                     GEODE_ADD(namespace geode { struct interfaces; }) NOT_GEODE_ADD(namespace gd = std;) namespace cocos2d {
+    #define NS_CC_BEGIN                     namespace cocos2d {
     #define NS_CC_END                       }
     #define USING_NS_CC                     using namespace cocos2d
 #else

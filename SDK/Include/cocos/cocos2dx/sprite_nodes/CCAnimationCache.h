@@ -49,7 +49,7 @@ Before v0.99.5, the recommend way was to save them on the CCSprite. Since v0.99.
 */
 class CC_DLL CCAnimationCache : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     /**
      * @js ctor

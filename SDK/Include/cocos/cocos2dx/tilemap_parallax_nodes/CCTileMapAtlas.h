@@ -56,7 +56,7 @@ Instead, use the newer TMX file format: CCTMXTiledMap
 */
 class CC_DLL CCTileMapAtlas : public CCAtlasNode 
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
     /** TileMap info */
     CC_PROPERTY(struct sImageTGA*, m_pTGAInfo, TGAInfo);
 public:

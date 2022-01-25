@@ -40,7 +40,7 @@ class CCFreeTypeFont;
 
 class CC_DLL CCImage : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     /**
      @js ctor

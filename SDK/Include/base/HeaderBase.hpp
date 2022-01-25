@@ -4,36 +4,13 @@
 #pragma warning(disable: 4251) // dll-interface
 #endif
 
-#include <Base.hpp>
-#include <MacroBase.hpp>
-#include <PlatformBase.hpp>
+#include <Macros.hpp>
 
+#include <gdstdlib.hpp>
 #include <cocos2d.h>
 #include <fmod.hpp>
 #include <cocos-ext.h>
 #include <unordered_map>
-// #include <Geode.hpp>
-
-#define GM (GameManager::sharedState())
-#define LEL (GM->_editorLayer())
-#define PL (GM->_playLayer())
-#define GJBL (LEL ? static_cast<GJBaseGameLayer*>(LEL) : static_cast<GJBaseGameLayer*>(PL))
-#define WINSIZE (CCDirector::sharedDirector()->getWinSize())
-
-struct GameModes {
-	bool cube;
-	bool ship;
-	bool ufo;
-	bool ball;
-	bool wave;
-	bool robot;
-	bool spider;
-};
-
-struct LevelDifficulty {
-	int32_t denominator;
-	int32_t numerator;  
-};
 
 // #define CLASSPARAM(type, getter, offset)        		\
 // 	inline type& _##getter() {                      	\
@@ -49,300 +26,301 @@ struct LevelDifficulty {
 #define STRUCTPARAM(...)
 
 //thanks pie
-enum SearchType {
-    kGJSearchTypeSearch = 0,
-    kGJSearchTypeDownloaded = 1,
-    kGJSearchTypeMostLiked = 2,
-    kGJSearchTypeTrending = 3,
-    kGJSearchTypeRecent = 4,
-    kGJSearchTypeUsersLevels = 5,
-    kGJSearchTypeFeatured = 6,
-    kGJSearchTypeMagic = 7,
-    kGJSearchTypeSends = 8,
-    kGJSearchTypeMapPack = 9,
-    kGJSearchTypeMapPackOnClick = 10,
-    kGJSearchTypeAwarded = 11,
-    kGJSearchTypeFollowed = 12,
-    kGJSearchTypeFriends = 13,
-    kGJSearchTypeUsers = 14,
-    kGJSearchTypeLikedGDW = 15,
-    kGJSearchTypeHallOfFame = 16,
-    kGJSearchTypeFeaturedGDW = 17,
-    kGJSearchTypeSimilar = 18,
-    kGJSearchTypeMyLevels = 98,
-    kGJSearchTypeSavedLevels = 99,
-    kGJSearchTypeFavouriteLevels = 100
+enum class SearchType {
+    Search = 0,
+    Downloaded = 1,
+    MostLiked = 2,
+    Trending = 3,
+    Recent = 4,
+    UsersLevels = 5,
+    Featured = 6,
+    Magic = 7,
+    Sends = 8,
+    MapPack = 9,
+    MapPackOnClick = 10,
+    Awarded = 11,
+    Followed = 12,
+    Friends = 13,
+    Users = 14,
+    LikedGDW = 15,
+    HallOfFame = 16,
+    FeaturedGDW = 17,
+    Similar = 18,
+    MyLevels = 98,
+    SavedLevels = 99,
+    FavouriteLevels = 100
 };
 
 // jesus fucking christ (painfully written by @hjfod)
-enum GameObjectType {
-	kGameObjectTypeSolid = 0,
-	kGameObjectTypeHazard = 2,
-	kGameObjectTypeInverseGravityPortal = 3,
-	kGameObjectTypeNormalGravityPortal = 4,
-	kGameObjectTypeShipPortal = 5,
-	kGameObjectTypeCubePortal = 6,
-	kGameObjectTypeDecoration = 7,
-	kGameObjectTypeYellowJumpPad = 8,
-	kGameObjectTypePinkJumpPad = 9,
-	kGameObjectTypeGravityPad = 10,
-	kGameObjectTypeYellowJumpRing = 11,
-	kGameObjectTypePinkJumpRing = 12,
-	kGameObjectTypeGravityRing = 13,
-	kGameObjectTypeInverseMirrorPortal = 14,
-	kGameObjectTypeNormalMirrorPortal = 15,
-	kGameObjectTypeBallPortal = 16,
-	kGameObjectTypeRegularSizePortal = 17,
-	kGameObjectTypeMiniSizePortal = 18,
-	kGameObjectTypeUfoPortal = 19,
-	kGameObjectTypeModifier = 20,
-	// kGameObjectTypeTest = 21,
-	kGameObjectTypeSecretCoin = 22,
-	kGameObjectTypeDualPortal = 23,
-	kGameObjectTypeSoloPortal = 24,
-	kGameObjectTypeSlope = 25,
-	kGameObjectTypeWavePortal = 26,
-	kGameObjectTypeRobotPortal = 27,
-	kGameObjectTypeTeleportPortal = 28,
-	kGameObjectTypeGreenRing = 29,
-	kGameObjectTypeCollectible = 30,
-	kGameObjectTypeUserCoin = 31,
-	kGameObjectTypeDropRing = 32,
-	kGameObjectTypeSpiderPortal = 33,
-	kGameObjectTypeRedJumpPad = 34,
-	kGameObjectTypeRedJumpRing = 35,
-	kGameObjectTypeCustomRing = 36,
-	kGameObjectTypeDashRing = 37,
-	kGameObjectTypeGravityDashRing = 38,
-	kGameObjectTypeCollisionObject = 39,
-	kGameObjectTypeSpecial = 40,
+enum class GameObjectType {
+	Solid = 0,
+	Hazard = 2,
+	InverseGravityPortal = 3,
+	NormalGravityPortal = 4,
+	ShipPortal = 5,
+	CubePortal = 6,
+	Decoration = 7,
+	YellowJumpPad = 8,
+	PinkJumpPad = 9,
+	GravityPad = 10,
+	YellowJumpRing = 11,
+	PinkJumpRing = 12,
+	GravityRing = 13,
+	InverseMirrorPortal = 14,
+	NormalMirrorPortal = 15,
+	BallPortal = 16,
+	RegularSizePortal = 17,
+	MiniSizePortal = 18,
+	UfoPortal = 19,
+	Modifier = 20,
+	SecretCoin = 22,
+	DualPortal = 23,
+	SoloPortal = 24,
+	Slope = 25,
+	WavePortal = 26,
+	RobotPortal = 27,
+	TeleportPortal = 28,
+	GreenRing = 29,
+	Collectible = 30,
+	UserCoin = 31,
+	DropRing = 32,
+	SpiderPortal = 33,
+	RedJumpPad = 34,
+	RedJumpRing = 35,
+	CustomRing = 36,
+	DashRing = 37,
+	GravityDashRing = 38,
+	CollisionObject = 39,
+	Special = 40,
 };
 
-enum PulseEffectType {};
-enum TouchTriggerType {};
-enum PlayerButton {};
-enum GhostType {};
-enum TableViewCellEditingStyle {};
-enum UserListType {};
-enum GJErrorCode {};
-enum AccountError {};
-enum GJSongError {};
-enum LikeItemType {};
-enum GJStoreItem {};
-enum CommentError {};
-enum BackupAccountError {};
+enum class PulseEffectType {};
+enum class TouchTriggerType {};
+enum class PlayerButton {};
+enum class GhostType {};
+enum class TableViewCellEditingStyle {};
+enum class UserListType {};
+enum class GJErrorCode {};
+enum class AccountError {};
+enum class GJSongError {};
+enum class LikeItemType {};
+enum class GJStoreItem {};
+enum class CommentError {};
+enum class BackupAccountError {};
 
-enum BoomListType {
-	kBoomListTypeDefault 		= 0x0,
-	kBoomListTypeUser 			= 0x2,
-	kBoomListTypeStats 			= 0x3,
-	kBoomListTypeAchievement    = 0x4,
-	kBoomListTypeLevel 		    = 0x5,
-	kBoomListTypeLevel2 	    = 0x6,
-	kBoomListTypeComment 	    = 0x7,
-	kBoomListTypeComment2 	    = 0x8,
-	kBoomListTypeSong 		    = 0xb,
-	kBoomListTypeScore 		    = 0xc,
-	kBoomListTypeMapPack 	    = 0xd,
-	kBoomListTypeCustomSong     = 0xe,
-	kBoomListTypeComment3 	    = 0xf,
-	kBoomListTypeUser2 		    = 0x10,
-	kBoomListTypeRequest 	    = 0x11,
-	kBoomListTypeMessage 	    = 0x12,
-	kBoomListTypeLevelScore     = 0x13,
-	kBoomListTypeArtist		    = 0x14,
+enum class BoomListType {
+	Default 		= 0x0,
+	User 			= 0x2,
+	Stats 			= 0x3,
+	Achievement    = 0x4,
+	Level 		    = 0x5,
+	Level2 	    = 0x6,
+	Comment 	    = 0x7,
+	Comment2 	    = 0x8,
+	Song 		    = 0xb,
+	Score 		    = 0xc,
+	MapPack 	    = 0xd,
+	CustomSong     = 0xe,
+	Comment3 	    = 0xf,
+	User2 		    = 0x10,
+	Request 	    = 0x11,
+	Message 	    = 0x12,
+	LevelScore     = 0x13,
+	Artist		    = 0x14,
 };
 
-enum MenuAnimationType {
-	kMenuAnimationTypeScale	= 0,
-	kMenuAnimationTypeMove 	= 1,
+enum class MenuAnimationType {
+	Scale	= 0,
+	Move 	= 1,
 };
 
-enum ShopType {
-	kShopTypeNormal,
-	kShopTypeSecret,
-	kShopTypeCommunity
+enum class ShopType {
+	Normal,
+	Secret,
+	Community
 };
 
 // Geode Addition
-enum ZLayer {
-	kZLayerB4 = -3,
-	kZLayerB3 = -1,
-	kZLayerB2 = 1,
-	kZLayerB1 = 3,
-	kZLayerDefault = 0,
-	kZLayerT1 = 5,
-	kZLayerT2 = 7,
-	kZLayerT3 = 9,
+enum class ZLayer {
+	B4 = -3,
+	B3 = -1,
+	B2 = 1,
+	B1 = 3,
+	Default = 0,
+	T1 = 5,
+	T2 = 7,
+	T3 = 9,
 };
 
-enum UpdateResponse {
-    kUpdateResponseUnknown,
-    kUpdateResponseUpToDate,
-    kUpdateResponseGameVerOutOfDate,
-    kUpdateResponseUpdateSuccess,
+enum class UpdateResponse {
+    Unknown,
+    UpToDate,
+    GameVerOutOfDate,
+    UpdateSuccess,
 };
 
-enum UnlockType {
-	kItemTypeCube = 0x1,
-	kItemTypeCol1 = 0x2,
-	kItemTypeCol2 = 0x3,
-	kItemTypeShip = 0x4,
-	kItemTypeBall = 0x5,
-	kItemTypeBird = 0x6,
-	kItemTypeDart = 0x7,
-	kItemTypeRobot = 0x8,
-	kItemTypeSpider = 0x9,
-	kItemTypeStreak = 0xA,
-	kItemTypeDeath = 0xB,
-	kItemTypeGJItem = 0xC,
+enum class UnlockType {
+	Cube = 0x1,
+	Col1 = 0x2,
+	Col2 = 0x3,
+	Ship = 0x4,
+	Ball = 0x5,
+	Bird = 0x6,
+	Dart = 0x7,
+	Robot = 0x8,
+	Spider = 0x9,
+	Streak = 0xA,
+	Death = 0xB,
+	GJItem = 0xC,
 };
 
-enum SpecialRewardItem {
-	kSpecialRewardItemFireShard = 0x1,
-	kSpecialRewardItemIceShard = 0x2,
-	kSpecialRewardItemPoisonShard = 0x3,
-	kSpecialRewardItemShadowShard = 0x4,
-	kSpecialRewardItemLavaShard = 0x5,
-	kSpecialRewardItemBonusKey = 0x6,
-	kSpecialRewardItemOrbs = 0x7,
-	kSpecialRewardItemDiamonds = 0x8,
-	kSpecialRewardItemCustomItem = 0x9,
+enum class SpecialRewardItem {
+	FireShard = 0x1,
+	IceShard = 0x2,
+	PoisonShard = 0x3,
+	ShadowShard = 0x4,
+	LavaShard = 0x5,
+	BonusKey = 0x6,
+	Orbs = 0x7,
+	Diamonds = 0x8,
+	CustomItem = 0x9,
 };  
 
-enum EditCommand {
-    kEditCommandSmallLeft   = 1,
-    kEditCommandSmallRight  = 2,
-    kEditCommandSmallUp     = 3,
-    kEditCommandSmallDown   = 4,
+enum class EditCommand {
+    SmallLeft   = 1,
+    SmallRight  = 2,
+    SmallUp     = 3,
+    SmallDown   = 4,
 
-    kEditCommandLeft        = 5,
-    kEditCommandRight       = 6,
-    kEditCommandUp          = 7,
-    kEditCommandDown        = 8,
+    Left        = 5,
+    Right       = 6,
+    Up          = 7,
+    Down        = 8,
 
-    kEditCommandBigLeft     = 9,
-    kEditCommandBigRight    = 10,
-    kEditCommandBigUp       = 11,
-    kEditCommandBigDown     = 12,
+    BigLeft     = 9,
+    BigRight    = 10,
+    BigUp       = 11,
+    BigDown     = 12,
 
-    kEditCommandTinyLeft    = 13,
-    kEditCommandTinyRight   = 14,
-    kEditCommandTinyUp      = 15,
-    kEditCommandTinyDown    = 16,
+    TinyLeft    = 13,
+    TinyRight   = 14,
+    TinyUp      = 15,
+    TinyDown    = 16,
 
-    kEditCommandFlipX       = 17,
-    kEditCommandFlipY       = 18,
-    kEditCommandRotateCW    = 19,
-    kEditCommandRotateCCW   = 20,
-    kEditCommandRotateCW45  = 21,
-    kEditCommandRotateCCW45 = 22,
-    kEditCommandRotateFree  = 23,
-    kEditCommandRotateSnap  = 24,
+    FlipX       = 17,
+    FlipY       = 18,
+    RotateCW    = 19,
+    RotateCCW   = 20,
+    RotateCW45  = 21,
+    RotateCCW45 = 22,
+    RotateFree  = 23,
+    RotateSnap  = 24,
     
-    kEditCommandScale       = 25,
+    Scale       = 25,
 };
 
 // Geode Addition
-enum PlaybackMode {
-	kPlaybackModeNot        = 0,
-	kPlaybackModePlaying    = 1,
-	kPlaybackModePaused     = 2,
+enum class PlaybackMode {
+	Not        = 0,
+	Playing    = 1,
+	Paused     = 2,
 };
 
-enum SelectArtType {
-    kSelectArtTypeBackground    = 0,
-    kSelectArtTypeGround        = 1,
+enum class SelectArtType {
+    Background    = 0,
+    Ground        = 1,
 };
 
-enum UndoCommand {
-    kUndoCommandDelete = 1,
-    kUndoCommandNew = 2,
-    kUndoCommandPaste = 3,
-    kUndoCommandDeleteMulti = 4,
-    kUndoCommandTransform = 5,
-    kUndoCommandSelect = 6,
+enum class UndoCommand {
+    Delete = 1,
+    New = 2,
+    Paste = 3,
+    DeleteMulti = 4,
+    Transform = 5,
+    Select = 6,
 };
 
-enum EasingType {
-    kEasingTypeNone = 0,
-    kEasingTypeEaseInOut = 1,
-    kEasingTypeEaseIn = 2,
-    kEasingTypeEaseOut = 3,
-    kEasingTypeElasticInOut = 4,
-    kEasingTypeElasticIn = 5,
-    kEasingTypeElasticOut = 6,
-    kEasingTypeBounceInOut = 7,
-    kEasingTypeBounceIn = 8,
-    kEasingTypeBounceOut = 9,
-    kEasingTypeExponentialInOut = 10,
-    kEasingTypeExponentialIn = 11,
-    kEasingTypeExponentialOut = 12,
-    kEasingTypeSineInOut = 13,
-    kEasingTypeSineIn = 14,
-    kEasingTypeSineOut = 15,
-    kEasingTypeBackInOut = 16,
-    kEasingTypeBackIn = 17,
-    kEasingTypeBackOut = 18,
+enum class EasingType {
+    None = 0,
+    EaseInOut = 1,
+    EaseIn = 2,
+    EaseOut = 3,
+    ElasticInOut = 4,
+    ElasticIn = 5,
+    ElasticOut = 6,
+    BounceInOut = 7,
+    BounceIn = 8,
+    BounceOut = 9,
+    ExponentialInOut = 10,
+    ExponentialIn = 11,
+    ExponentialOut = 12,
+    SineInOut = 13,
+    SineIn = 14,
+    SineOut = 15,
+    BackInOut = 16,
+    BackIn = 17,
+    BackOut = 18,
 };
 
-enum GJDifficulty {
-	kGJDifficultyAuto = 0,
-	kGJDifficultyEasy = 1,
-	kGJDifficultyNormal = 2,
-	kGJDifficultyHard = 3,
-	kGJDifficultyHarder = 4,
-	kGJDifficultyInsane = 5,
-	kGJDifficultyDemon = 6,
-	kGJDifficultyDemonEasy = 7,
-	kGJDifficultyDemonMedium = 8,
-	kGJDifficultyDemonInsane = 9,
-	kGJDifficultyDemonExtreme = 10
+enum class GJDifficulty {
+	Auto = 0,
+	Easy = 1,
+	Normal = 2,
+	Hard = 3,
+	Harder = 4,
+	Insane = 5,
+	Demon = 6,
+	DemonEasy = 7,
+	DemonMedium = 8,
+	DemonInsane = 9,
+	DemonExtreme = 10
 };
 
-enum GJLevelType {
-	kGJLevelTypeLocal = 1,
-	kGJLevelTypeEditor = 2,
-	kGJLevelTypeSaved = 3
+enum class GJLevelType {
+	Local = 1,
+	Editor = 2,
+	Saved = 3
 };
 
-enum IconType {
-	kIconTypeCube           = 0,
-	kIconTypeShip           = 1,
-	kIconTypeBall           = 2,
-	kIconTypeUfo            = 3,
-	kIconTypeWave           = 4,
-	kIconTypeRobot          = 5,
-	kIconTypeSpider         = 6,
-	kIconTypeDeathEffect    = 98,
-	kIconTypeSpecial        = 99,
-};
-
-// Geode Addition
-enum ComparisonType {
-    kComparisonTypeEquals = 0,
-    kComparisonTypeLarger = 1,
-    kComparisonTypeSmaller = 2,
+enum class IconType {
+	Cube           = 0,
+	Ship           = 1,
+	Ball           = 2,
+	Ufo            = 3,
+	Wave           = 4,
+	Robot          = 5,
+	Spider         = 6,
+	DeathEffect    = 98,
+	Special        = 99,
 };
 
 // Geode Addition
-enum MoveTargetType {
-    kMoveTargetTypeBoth = 0,
-    kMoveTargetTypeXOnly = 1,
-    kMoveTargetTypeYOnly = 2,
+enum class ComparisonType {
+    Equals = 0,
+    Larger = 1,
+    Smaller = 2,
 };
 
 // Geode Addition
-enum TouchToggleMode {
-    kTouchToggleModeNormal = 0,
-    kTouchToggleModeToggleOn = 1,
-    kTouchToggleModeToggleOff = 2,
+enum class MoveTargetType {
+    Both = 0,
+    XOnly = 1,
+    YOnly = 2,
 };
 
 // Geode Addition
-enum LeaderboardState {
-    kLeaderboardStateTop100     = 1,
-    kLeaderboardStateGlobal     = 2,
-    kLeaderboardStateCreator    = 3,
-    kLeaderboardStateFriends    = 4,
+enum class TouchToggleMode {
+    Normal = 0,
+    ToggleOn = 1,
+    ToggleOff = 2,
 };
+
+// Geode Addition
+enum class LeaderboardState {
+    Top100     = 1,
+    Global     = 2,
+    Creator    = 3,
+    Friends    = 4,
+};
+
+#include <Gen/Header.hpp>

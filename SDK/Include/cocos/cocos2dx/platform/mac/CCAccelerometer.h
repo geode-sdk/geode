@@ -31,7 +31,7 @@ NS_CC_BEGIN
 
 class CC_DLL CCAccelerometer
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     CCAccelerometer() {}
     ~CCAccelerometer() {}

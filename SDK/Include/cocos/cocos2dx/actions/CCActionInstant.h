@@ -44,7 +44,7 @@ the CCIntervalAction actions.
 */ 
 class CC_DLL CCActionInstant : public CCFiniteTimeAction //<NSCopying>
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     /**
      *  @js ctor
@@ -72,7 +72,7 @@ public:
 */
 class CC_DLL CCShow : public CCActionInstant
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     /**
      *  @js ctor
@@ -105,7 +105,7 @@ public:
 */
 class CC_DLL CCHide : public CCActionInstant
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     /**
      *  @js ctor
@@ -138,7 +138,7 @@ public:
 */
 class CC_DLL CCToggleVisibility : public CCActionInstant
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     /**
      *  @js ctor
@@ -169,7 +169,7 @@ public:
  */
 class CC_DLL CCRemoveSelf : public CCActionInstant
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
 	CCRemoveSelf(){}
 	virtual ~CCRemoveSelf(){}
@@ -193,7 +193,7 @@ protected:
 */
 class CC_DLL CCFlipX : public CCActionInstant
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     /**
      *  @js ctor
@@ -231,7 +231,7 @@ protected:
 */
 class CC_DLL CCFlipY : public CCActionInstant
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     /**
      *  @js ctor
@@ -266,7 +266,7 @@ protected:
 */
 class CC_DLL CCPlace : public CCActionInstant //<NSCopying>
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     /**
      *  @js ctor
@@ -297,7 +297,7 @@ protected:
 */
 class CC_DLL CCCallFunc : public CCActionInstant //<NSCopying>
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     /**
      *  @js ctor
@@ -390,7 +390,7 @@ N means Node
 */
 class CC_DLL CCCallFuncN : public CCCallFunc, public TypeInfo
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     /**
      * @js ctor
@@ -446,7 +446,7 @@ public:
 */
 class CC_DLL CCCallFuncND : public CCCallFuncN
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     virtual long getClassTypeInfo() {
         static const long id = cocos2d::getHashCodeByString(typeid(cocos2d::CCCallFunc).name());
@@ -481,7 +481,7 @@ O means Object.
 
 class CC_DLL CCCallFuncO : public CCCallFunc, public TypeInfo
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     CCCallFuncO();
     virtual ~CCCallFuncO();

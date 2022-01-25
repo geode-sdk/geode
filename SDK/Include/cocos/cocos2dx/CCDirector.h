@@ -115,7 +115,7 @@ and when to execute the Scenes.
 */
 class CC_DLL CCDirector : public CCObject, public TypeInfo
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     /**
      *  @js ctor

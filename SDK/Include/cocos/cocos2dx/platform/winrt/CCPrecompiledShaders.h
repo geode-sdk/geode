@@ -59,7 +59,7 @@ PrecompiledShader shaders[]  = {gFoo, gFoo};
 
 class CC_DLL CCPrecompiledShaders
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     CCPrecompiledShaders();
     virtual ~CCPrecompiledShaders();

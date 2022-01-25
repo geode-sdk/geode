@@ -83,7 +83,7 @@ GEODE_ADD(
  */
 class CC_DLL CCCopying GEODE_ADD(: public CCDestructor)
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     virtual CCObject* copyWithZone(CCZone* pZone)  { return 0; }
 };
@@ -93,7 +93,7 @@ public:
  */
 class CC_DLL CCObject : public CCCopying
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     // object id, CCScriptSupport need public m_uID
     unsigned int        m_uID;

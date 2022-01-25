@@ -13,7 +13,7 @@ class CCRect;
 
 class CC_DLL CCApplication : public CCApplicationProtocol
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     CCApplication();
     virtual ~CCApplication();

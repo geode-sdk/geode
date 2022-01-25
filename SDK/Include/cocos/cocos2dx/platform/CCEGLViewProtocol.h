@@ -43,7 +43,7 @@ class CCSet;
 
 class CC_DLL CCEGLViewProtocol
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     /**
      * @lua NA

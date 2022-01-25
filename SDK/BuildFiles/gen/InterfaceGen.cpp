@@ -4,8 +4,8 @@
 namespace format_strings {
     // requires: class_name
     char const* interface_start = R"CAC(
-template<template <auto orig> class D = __unitSpec>
-struct ${class_name} : {raw_class_name}, InterfaceBase {{
+template<template <auto, typename> class D = BlankBase, typename UUID = void>
+struct ${class_name} : {raw_class_name}, ModifierBase {{
     ${class_name}(const ${class_name}& c) : {class_name}(c) {{}}
     ${class_name}() = delete;
 
@@ -19,7 +19,7 @@ struct ${class_name} : {raw_class_name}, InterfaceBase {{
     }}
     static void fieldCleanup(size_t self) {{
     	const size_t begin = self + sizeof(${class_name});
-    	const size_t end = self + sizeof(D<0>);
+    	const size_t end = self + sizeof(D<0, UUID>);
     	for (size_t i = begin; i < end; ++i) {{
     		if (getAdditionalFields().find(i) != getAdditionalFields().end()) {{
     			delete getAdditionalFields().at(i);
@@ -30,21 +30,9 @@ struct ${class_name} : {raw_class_name}, InterfaceBase {{
     }}
 )CAC";
 
-    // requires: index, address
-    char const* predefine_address = R"CAC(
-	GEODE_NOINLINE static inline auto address{index}() {{
-		static auto ret = {address};
-		return ret;
-	}})CAC";
-
-    // requires: index, return
-    char const* predefine_return = R"CAC(
-    using ret{index} = {return};)CAC";
-
-
     char const* declare_structor = R"CAC(
     GEODE_DUPABLE void {function_name}({raw_args}) {{
-        reinterpret_cast<void(*)(decltype(this){arg_types})>(address{index})(this{parameters});
+        reinterpret_cast<void(*)(decltype(this){arg_types})>(temp_name_find_better::address{global_index})(this{parameters});
     }})CAC";
 
     char const* apply_start = R"CAC(
@@ -52,32 +40,32 @@ struct ${class_name} : {raw_class_name}, InterfaceBase {{
 )CAC";
     // requires: index, class_name, arg_types, function_name, raw_arg_types, non_virtual
     char const* apply_function_member = R"CAC(
-    	using baseType{index} = ret{index}({class_name}::*)({raw_arg_types}) {const};
-		constexpr auto baseAddress{index} = (baseType{index})(&{class_name}::{function_name});
-		using derivedType{index} = ret{index}(D<baseAddress{index}>::*)({raw_arg_types}) {const};
-		constexpr auto derivedAddress{index} = (derivedType{index})(&D<baseAddress{index}>::{function_name});
-        if (baseAddress{index} != derivedAddress{index}) {{
-            Interface::get()->addHook((void*)address{index}(), (void*)FunctionScrapper::addressOf{non_virtual}Virtual(derivedAddress{index}));
+    	using baseType{global_index} = temp_name_find_better::ret{global_index}({class_name}::*)({raw_arg_types}) {const};
+		constexpr auto baseAddress{global_index} = (baseType{global_index})(&{class_name}::{function_name});
+		using derivedType{global_index} = temp_name_find_better::ret{global_index}(D<baseAddress{global_index}, UUID>::*)({raw_arg_types}) {const};
+		constexpr auto derivedAddress{global_index} = (derivedType{global_index})(&D<baseAddress{global_index}, UUID>::{function_name});
+        if (baseAddress{global_index} != derivedAddress{global_index}) {{
+            Interface::get()->addHook((void*)temp_name_find_better::address{global_index}(), (void*)addresser::get{non_virtual}Virtual(derivedAddress{global_index}));
         }}
 )CAC";
 
 	char const* apply_function_structor = R"CAC(
-    	using baseType{index} = ret{index}(${class_name}::*)({raw_arg_types}) {const};
-		constexpr auto baseAddress{index} = (baseType{index})(&${class_name}::{function_name});
-		using derivedType{index} = ret{index}(D<baseAddress{index}>::*)({raw_arg_types}) {const};
-		constexpr auto derivedAddress{index} = (derivedType{index})(&D<baseAddress{index}>::{function_name});
-        if (baseAddress{index} != derivedAddress{index}) {{
-            Interface::get()->addHook((void*)address{index}(), (void*)FunctionScrapper::addressOf{non_virtual}Virtual(derivedAddress{index}));
+    	using baseType{global_index} = temp_name_find_better::ret{global_index}(${class_name}::*)({raw_arg_types}) {const};
+		constexpr auto baseAddress{global_index} = (baseType{global_index})(&${class_name}::{function_name});
+		using derivedType{global_index} = temp_name_find_better::ret{global_index}(D<baseAddress{global_index}, UUID>::*)({raw_arg_types}) {const};
+		constexpr auto derivedAddress{global_index} = (derivedType{global_index})(&D<baseAddress{global_index}, UUID>::{function_name});
+        if (baseAddress{global_index} != derivedAddress{global_index}) {{
+            Interface::get()->addHook((void*)temp_name_find_better::address{global_index}(), (void*)addresser::get{non_virtual}Virtual(derivedAddress{global_index}));
         }}
 )CAC";
 
 	char const* apply_function_static = R"CAC(
-		using baseType{index} = ret{index}(*)({raw_arg_types});
-		constexpr auto baseAddress{index} = (baseType{index})(&{class_name}::{function_name});
-		using derivedType{index} = ret{index}(*)({raw_arg_types});
-		constexpr auto derivedAddress{index} = (derivedType{index})(&D<baseAddress{index}>::{function_name});
-        if (baseAddress{index} != derivedAddress{index}) {{
-            Interface::get()->addHook((void*)address{index}(), (void*)FunctionScrapper::addressOfNonVirtual(derivedAddress{index}));
+		using baseType{global_index} = temp_name_find_better::ret{global_index}(*)({raw_arg_types});
+		constexpr auto baseAddress{global_index} = (baseType{global_index})(&{class_name}::{function_name});
+		using derivedType{global_index} = temp_name_find_better::ret{global_index}(*)({raw_arg_types});
+		constexpr auto derivedAddress{global_index} = (derivedType{global_index})(&D<baseAddress{global_index}, UUID>::{function_name});
+        if (baseAddress{global_index} != derivedAddress{global_index}) {{
+            Interface::get()->addHook((void*)temp_name_find_better::address{global_index}(), (void*)addresser::getNonVirtual(derivedAddress{global_index}));
         }}
 )CAC";
 
@@ -92,24 +80,18 @@ int main(int argc, char** argv) {
     auto root = CacShare::init(argc, argv);
     string output;
 
+    int global_index = 0;
+    int global_index2 = 0;
     for (auto& [name, c] : root.classes) {
         string unqualifiedName = CacShare::toUnqualified(name);
 
         output += fmt::format(format_strings::interface_start, fmt::arg("class_name", unqualifiedName), fmt::arg("raw_class_name", name));
 
         for (auto& f : c.functions) {
-            if (!CacShare::functionExists(f))
+        	++global_index;
+        	if (f.name == "colorAllCharactersTo") cout << "colorAllCharactersTo " << CacShare::functionDefined(f) << endl;
+            if (!CacShare::functionDefined(f))
                 continue; // Function not supported for this platform, skip it
-
-            output += fmt::format(format_strings::predefine_return,
-                fmt::arg("index", f.index),
-                fmt::arg("return", CacShare::getReturn(f))
-            );
-
-            output += fmt::format(format_strings::predefine_address, 
-                fmt::arg("index",f.index),
-                fmt::arg("address", CacShare::getAddress(f))
-            );
 
             switch (f.function_type) {
             	case kDestructor:
@@ -123,7 +105,7 @@ int main(int argc, char** argv) {
 				        fmt::arg("const", f.is_const ? "const " : ""),
 				        fmt::arg("convention", CacShare::getConvention(f)),
 				        fmt::arg("function_name",f.name),
-				        fmt::arg("index",f.index),
+				        fmt::arg("global_index",global_index),
 				        fmt::arg("parameters", CacShare::formatParameters(f.args.size())),
 				        fmt::arg("raw_args", CacShare::formatRawArgs(f.args)),
 				        fmt::arg("raw_parameters", CacShare::formatRawParameters(f.args.size()))
@@ -136,7 +118,8 @@ int main(int argc, char** argv) {
         output += format_strings::apply_start;
 
         for (auto& f : c.functions) {
-            if (!CacShare::functionExists(f))
+        	++global_index2;
+            if (!CacShare::functionDefined(f))
                 continue; // Function not supported for this platform, skip it
 
             char const* used_format;
@@ -154,7 +137,7 @@ int main(int argc, char** argv) {
             }
 
             output += fmt::format(used_format,
-                fmt::arg("index", f.index),
+                fmt::arg("global_index",global_index2),
                 fmt::arg("class_name", unqualifiedName),
                 fmt::arg("arg_types", CacShare::formatArgTypes(f.args)),
                 fmt::arg("function_name", f.name),

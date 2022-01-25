@@ -128,7 +128,7 @@ class AudioEffectsLayer {
 	void resetAudioVars() = mac 0x271ee0, win 0x0, ios 0x0;
 }
 
-class BoomListView : cocos2d::CCLayer, TableViewDataSource, TableViewDelegate {
+class BoomListView : cocos2d::CCLayer, TableViewDelegate, TableViewDataSource {
 	inline ~BoomListView() {
 	    CC_SAFE_RELEASE(m_entries);
 	}
@@ -1330,9 +1330,10 @@ class FLAlertLayer : cocos2d::CCLayerColor {
 	virtual void keyDown(cocos2d::enumKeyCodes) = mac 0x25ece0, win 0x23250, ios 0x0;
 	virtual void show() = mac 0x25f120, win 0x23560, ios 0x1feff4;
 	bool init(FLAlertLayerProtocol*, char const*, gd::string, char const*, char const*, float, bool, float) = mac 0x25e1b0, win 0x0, ios 0x0;
-	static FLAlertLayer* create(FLAlertLayerProtocol*, char const*, gd::string, char const*, char const*) = mac 0x25de00, win 0x22680, ios 0x0;
-	static FLAlertLayer* create(FLAlertLayerProtocol*, char const*, gd::string, char const*, char const*, float) = mac 0x25e0e0, win 0x22730, ios 0x1fe374;
-	static FLAlertLayer* create(FLAlertLayerProtocol*, char const*, gd::string, char const*, char const*, float, bool, float) = mac 0x25dec0, win 0x0, ios 0x0;
+	static FLAlertLayer* create(FLAlertLayerProtocol*, char const*, gd::string, char const*, char const*) = mac 0x25de00, ios 0x1fe1cc, win 0x22680;
+	static FLAlertLayer* create(FLAlertLayerProtocol*, char const*, gd::string, char const*, char const*, float) = mac 0x25e0e0, ios 0x1fe374, win 0x22730;
+	static FLAlertLayer* create(FLAlertLayerProtocol*, char const*, gd::string, char const*, char const*, float, bool, float) = mac 0x25dec0, ios 0x1fe26c, win 0x227e0;
+
 	void onBtn1(cocos2d::CCObject*) = mac 0x25ec20, win 0x23340, ios 0x0;
 	void onBtn2(cocos2d::CCObject*) = mac 0x25ec80, win 0x23380, ios 0x0;
 
@@ -1398,13 +1399,13 @@ class GJAccountBackupDelegate {
 	virtual bool backupAccountFailed(BackupAccountError) {
 		return false;
 	}
-	virtual bool backupAccountFinished(void) {
+	virtual bool backupAccountFinished() {
 		return false;
 	}
 }
 
 class GJAccountDelegate {
-	virtual bool accountStatusChanged(void) {
+	virtual bool accountStatusChanged() {
 		return false;
 	}
 }
@@ -1430,7 +1431,7 @@ class GJAccountSyncDelegate {
 	virtual bool syncAccountFailed(BackupAccountError) {
 		return false;
 	}
-	virtual bool syncAccountFinished(void) {
+	virtual bool syncAccountFinished() {
 		return false;
 	}
 }
@@ -4473,7 +4474,16 @@ class TextArea : cocos2d::CCSprite {
 	~TextArea() = mac 0x19faa0, win 0x0, ios 0x0;
 	virtual void draw() = mac 0x19f890, win 0x0, ios 0x0;
 	virtual void setOpacity(unsigned char) = mac 0x19f760, win 0x0, ios 0x0;
-	static TextArea* create(const char*, bool, gd::string, float, float, float, cocos2d::CCPoint const&) = mac 0x19eb40, win 0x33270, ios 0x0;
+	bool init(gd::string p0, char const* p1, float p2, float p3, cocos2d::CCPoint p4, float p5, bool p6) = mac 0x19ec70;
+	static TextArea* create(gd::string p0, char const* p1, float p2, float p3, cocos2d::CCPoint p4, float p5, bool p6) {
+		auto ret = new TextArea();
+	    if (ret->init(p0, p1, p2, p3, p4, p5, p6)) {
+	        ret->autorelease();
+	        return ret;
+	    }
+	    CC_SAFE_DELETE(ret);
+	    return nullptr;
+	}
 	void colorAllCharactersTo(cocos2d::ccColor3B color) = mac 0x0, win 0x33830, ios 0x0;
 	void setString(gd::string const& str) = mac 0x0, win 0x33480, ios 0x0;
 }

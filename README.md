@@ -89,4 +89,4 @@ If there's a function, class, or member you want to be added to the Geode catalo
 
 For Geode, (almost) all class variables are accessed via functions and prefixed with an underscore, e.g `GameManager::sharedState()->_playLayer()`. You can find a full list of these inside the Header.hpp header file.
 
-For a full list of helper functions, look at the helpers/Geode.hpp header file.
+For a full list of helper functions, look at the utils/Geode.hpp header file.

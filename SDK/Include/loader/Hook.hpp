@@ -2,7 +2,7 @@
 
 #include "Macros.hpp"
 #include <inttypes.h>
-#include <helpers/types.hpp>
+#include <utils/types.hpp>
 
 namespace geode {
     class Mod;

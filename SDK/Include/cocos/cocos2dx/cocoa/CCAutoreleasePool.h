@@ -38,7 +38,7 @@ NS_CC_BEGIN
 
 class CC_DLL CCAutoreleasePool : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
     CCArray*    m_pManagedObjectArray;    
 public:
     CCAutoreleasePool(void);
@@ -56,7 +56,7 @@ public:
  */
 class CC_DLL CCPoolManager
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
     CCArray*    m_pReleasePoolStack;    
     CCAutoreleasePool*                    m_pCurReleasePool;
 

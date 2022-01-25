@@ -127,7 +127,7 @@ enum {
 
 class CC_DLL CCNode : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     /// @{
     /// @name Constructor, Distructor and Initializers
@@ -1493,7 +1493,7 @@ protected:
  */
 class CC_DLL CCNodeRGBA : public CCNode, public CCRGBAProtocol
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     /**
      *  @js ctor

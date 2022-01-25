@@ -6,7 +6,7 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
-#include <helpers/Result.hpp>
+#include <utils/Result.hpp>
 #include <functional>
 
 class Geode;

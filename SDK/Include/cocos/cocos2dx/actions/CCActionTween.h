@@ -36,7 +36,7 @@ NS_CC_BEGIN
 
 class CC_DLL CCActionTweenDelegate
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     /**
      *  @js NA
@@ -66,7 +66,7 @@ public:
  */
 class CC_DLL CCActionTween : public CCActionInterval
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     /** creates an initializes the action with the property name (key), and the from and to parameters. */
     static CCActionTween* create(float aDuration, const char* key, float from, float to);

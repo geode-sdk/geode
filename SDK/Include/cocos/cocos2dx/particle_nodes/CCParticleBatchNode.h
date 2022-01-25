@@ -66,7 +66,7 @@ class CCParticleSystem;
 
 class CC_DLL CCParticleBatchNode : public CCNode, public CCTextureProtocol
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     /**
      * @js ctor

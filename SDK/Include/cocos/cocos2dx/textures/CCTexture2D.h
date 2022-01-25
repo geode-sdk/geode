@@ -111,7 +111,7 @@ class CC_DLL CCTexture2D : public CCObject
 , public CCGLBufferedNode
 #endif // EMSCRIPTEN
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     /**
      * @js ctor

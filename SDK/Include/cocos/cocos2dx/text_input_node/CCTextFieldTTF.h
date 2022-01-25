@@ -42,7 +42,7 @@ class CCTextFieldTTF;
 
 class CC_DLL CCTextFieldDelegate
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     /**
     @brief    If the sender doesn't want to attach to the IME, return true;
@@ -100,7 +100,7 @@ public:
 */
 class CC_DLL CCTextFieldTTF : public CCLabelTTF, public CCIMEDelegate
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     /**
      *  @lua NA

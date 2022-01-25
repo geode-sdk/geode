@@ -2,13 +2,13 @@
 
 #include "Macros.hpp"
 #include "Types.hpp"
-#include <helpers/Result.hpp>
-#include <helpers/VersionInfo.hpp>
+#include <utils/Result.hpp>
+#include <utils/VersionInfo.hpp>
 #include <string_view>
 #include <vector>
 #include <unordered_map>
 #include "Setting.hpp"
-#include <helpers/types.hpp>
+#include <utils/types.hpp>
 #include "../keybinds/KeybindManager.hpp"
 
 class Geode;

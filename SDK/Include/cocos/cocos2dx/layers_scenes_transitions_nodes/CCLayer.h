@@ -69,7 +69,7 @@ All features from CCNode are valid, plus the following new features:
 class CC_DLL CCLayer : public CCNode, public CCTouchDelegate, public CCAccelerometerDelegate, public CCKeypadDelegate
     RT_ADD(, public CCKeyboardDelegate, public CCMouseDelegate)
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     /**
      *  @js ctor
@@ -225,7 +225,7 @@ private:
  */
 class CC_DLL CCLayerRGBA : public CCLayer, public CCRGBAProtocol
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     CREATE_FUNC(CCLayerRGBA);
     /**
@@ -276,7 +276,7 @@ class CC_DLL CCLayerColor : public CCLayerRGBA, public CCBlendProtocol
 , public CCGLBufferedNode
 #endif // EMSCRIPTEN
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 protected:
 
 
@@ -353,7 +353,7 @@ If ' compressedInterpolation' is enabled (default mode) you will see both the st
 */
 class CC_DLL CCLayerGradient : public CCLayerColor
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
 
     /** Creates a full-screen CCLayer with a gradient between start and end. */
@@ -402,7 +402,7 @@ Features:
 */
 class CC_DLL CCLayerMultiplex : public CCLayer
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 protected:
 
 

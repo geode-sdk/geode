@@ -174,7 +174,7 @@ private:
  */
 class CC_DLL CCScriptEngineProtocol
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     virtual ~CCScriptEngineProtocol() {};
     
@@ -270,7 +270,7 @@ public:
  */
 class CC_DLL CCScriptEngineManager
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     ~CCScriptEngineManager(void);
     

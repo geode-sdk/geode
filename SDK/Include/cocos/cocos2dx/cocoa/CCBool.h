@@ -38,7 +38,7 @@ NS_CC_BEGIN
 
 class CC_DLL CCBool : public CCObject
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     CCBool(bool v)
         : m_bValue(v) {}

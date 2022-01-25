@@ -41,7 +41,7 @@ NS_CC_BEGIN
 */
 class CC_DLL CCIMEDispatcher
 {
-    GEODE_ADD(friend struct geode::interfaces;)
+    GEODE_FRIEND_MODIFY
 public:
     ~CCIMEDispatcher();
 

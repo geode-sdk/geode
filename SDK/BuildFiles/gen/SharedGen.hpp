@@ -47,13 +47,13 @@ struct CacShare {
     static string getAddress(Function const& f) {
         switch (CacShare::platform) {
             case kMac:
-                return "getBase()+" + f.binds[kMac];
+                return "base::get()+" + f.binds[kMac];
             case kIos:
-                return "getBase()+" + f.binds[kIos];
+                return "base::get()+" + f.binds[kIos];
             case kWindows:
                 if (f.parent_class->name.rfind("cocos2d", 0) == 0) {
                 	if (f.function_type == kConstructor || f.function_type == kDestructor) {
-                		return "getBase()+" + f.binds[kWindows];
+                		return "base::get()+" + f.binds[kWindows];
                 	}
                 	string type;
                 	if (f.function_type == kStaticFunction) type = fmt::format("ret{index}(*)({raw_arg_types}) {const}",
@@ -69,27 +69,27 @@ struct CacShare {
                 		fmt::arg("const", f.is_const ? "const " : "")
                 	);
                     if (f.function_type == kVirtualFunction)
-                        return fmt::format("FunctionScrapper::addressOfVirtual(({})(&{}::{}))", type, f.parent_class->name, f.name);
+                        return fmt::format("addresser::getVirtual(({})(&{}::{}))", type, f.parent_class->name, f.name);
                     else
-                        return fmt::format("FunctionScrapper::addressOfNonVirtual(({})(&{}::{}))", type, f.parent_class->name, f.name);
+                        return fmt::format("addresser::getNonVirtual(({})(&{}::{}))", type, f.parent_class->name, f.name);
                 } else {
-                    return "getBase()+" + f.binds[kWindows];
+                    return "base::get()+" + f.binds[kWindows];
                 }
             case kAndroid:
                 if (any_of(f.args.begin(), f.args.end(), [](string a) {return a.find("gd::") != string::npos;}))
-                    return fmt::format("(uintptr_t)dlsym((void*)getBase(), \"{}\")", f.android_mangle);
+                    return fmt::format("(uintptr_t)dlsym((void*)base::get(), \"{}\")", f.android_mangle);
                 else {
                     if (f.function_type == kVirtualFunction)
-                        return fmt::format("FunctionScrapper::addressOfVirtual((mem{})(&{}::{}))", f.index, f.parent_class->name, f.name);
+                        return fmt::format("addresser::getVirtual((mem{})(&{}::{}))", f.index, f.parent_class->name, f.name);
                     else
-                        return fmt::format("FunctionScrapper::addressOfNonVirtual((mem{})(&{}::{}))", f.index, f.parent_class->name, f.name);
+                        return fmt::format("addresser::getNonVirtual((mem{})(&{}::{}))", f.index, f.parent_class->name, f.name);
                 }
         }
         return "";
     }
 
-    static bool functionExists(Function const& f) {
-    	return getAddress(f) != "getBase()+";
+    static bool functionDefined(Function const& f) {
+    	return getAddress(f) != "base::get()+";
     }
 
     static string& getHardcode(Member & m) {
@@ -123,7 +123,7 @@ struct CacShare {
         return out.substr(0, out.size()-2);
     }
 
-    static string formatRawParams(vector<string> args, vector<string> argnames) {
+    static string formatArgs(vector<string> args, vector<string> argnames) {
         string out = "";
         size_t c = 0;
         for (auto& i : args) {
@@ -138,17 +138,6 @@ struct CacShare {
         return args.size() > 0 ? " : " + fmt::format("{}", fmt::join(args, ", ")) : string(""); 
     }
 
-    static string formatParameters(size_t paramCount) {
-        if (paramCount) {
-            vector<string> c;
-            for (auto i = 0u; i < paramCount; ++i)
-                c.push_back(fmt::format("p{}", i));
-            return fmt::format(", {}", fmt::join(c, ", "));
-        } else {
-            return "";
-        }
-    }
-
     static string formatRawParameters(size_t paramCount) {
         if (paramCount) {
             vector<string> c;
@@ -158,6 +147,20 @@ struct CacShare {
         } else {
             return "";
         }
+    }
+
+    static string formatParameters(size_t paramCount) {
+        if (paramCount) {
+            return fmt::format(", {}", formatRawParameters(paramCount));
+        } else {
+            return "";
+        }
+    }
+
+    
+
+    static void formatWinParameters(Function const& f) {
+
     }
 
     static string getConvention(Function const& f) {
@@ -185,10 +188,10 @@ struct CacShare {
     			break;
     	}
         if (f.return_type == "auto") {
-            string out = fmt::format("decltype(declval<{}>().{}(", f.parent_class->name, f.name);
+            string out = fmt::format("decltype(std::declval<{}>().{}(", f.parent_class->name, f.name);
             vector<string> args;
             for (string i : f.args) {
-                args.push_back(fmt::format("declval<{}>()", i));
+                args.push_back(fmt::format("std::declval<{}>()", i));
             }
 
             out += fmt::format("{}))", fmt::join(args, ", "));

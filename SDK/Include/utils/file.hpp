@@ -1,9 +1,9 @@
 #pragma once
 
 #include <Macros.hpp>
-#include <helpers/Result.hpp>
+#include <utils/Result.hpp>
 #include <string>
-#include <helpers/types.hpp>
+#include <utils/types.hpp>
 #include <fs/filesystem.hpp>
 
 namespace geode::file_utils {
