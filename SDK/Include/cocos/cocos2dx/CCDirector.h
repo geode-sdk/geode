@@ -299,6 +299,7 @@ public:
      */
     void resume(void);
 
+protected:
     /** Stops the animation. Nothing will be drawn. The main loop won't be triggered anymore.
      If you don't want to pause your animation call [pause] instead.
      */
@@ -310,6 +311,7 @@ public:
      */
     virtual void startAnimation(void) { }
 
+public:
     /** Draw the scene.
     This method is called every frame. Don't call it manually.
     */
@@ -337,6 +339,7 @@ public:
     /** enables/disables OpenGL depth test */
     void setDepthTest(bool bOn);
 
+protected:
     virtual void mainLoop(void) { }
 
     /** The size in pixels of the surface. It could be different than the screen size.
