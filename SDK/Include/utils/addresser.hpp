@@ -46,7 +46,11 @@ namespace geode::addresser {
 		/**
 		 * Specialized functionss
 		 */
-		template <typename R, typename T, typename ...Ps, typename = std::enable_if<std::is_copy_constructible_v<T> > >
+		template <typename R, typename T, typename ...Ps, 
+			typename = std::enable_if<
+				std::is_copy_constructible_v<T> && !std::is_abstract_v<T>
+			>
+		>
 		static intptr_t addressOfVirtual(R(T::*func)(Ps...)) {
 			// Create a random memory block with the size of T
 			// Assign a pointer to that block and cast it to type T*
@@ -69,9 +73,31 @@ namespace geode::addresser {
 			return address;
 		}
 
-		template <typename R, typename T, typename ...Ps, typename = std::enable_if<std::is_copy_constructible_v<T> >>
+		template <typename R, typename T, typename ...Ps, 
+			typename = std::enable_if<
+				std::is_copy_constructible_v<T> && !std::is_abstract_v<T>
+			>
+		>
 		static intptr_t addressOfVirtual(R(T::*func)(Ps...) const) {
 			return addressOfVirtual(func);
+		}
+
+		template <typename R, typename T, typename ...Ps, 
+			typename = std::enable_if<
+				std::is_abstract_v<T>
+			>
+		>
+		static intptr_t addressOfVirtual(R(T::*func)(Ps...)) {
+			return 0;
+		}
+
+		template <typename R, typename T, typename ...Ps, 
+			typename = std::enable_if<
+				std::is_abstract_v<T>
+			>
+		>
+		static intptr_t addressOfVirtual(R(T::*func)(Ps...) const) {
+			return 0;
 		}
 
 		template <typename R, typename T, typename ...Ps>
