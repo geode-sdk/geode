@@ -46,11 +46,8 @@ namespace geode::addresser {
 		/**
 		 * Specialized functionss
 		 */
-		template <typename R, typename T, typename ...Ps>
+		template <typename R, typename T, typename ...Ps, typename = std::enable_if<std::is_copy_constructible_v<T> > >
 		static intptr_t addressOfVirtual(R(T::*func)(Ps...)) {
-			// static_assert(std::is_copy_constructible<T>::value, "must be copy constructable");
-			// TODO: revert this
-
 			// Create a random memory block with the size of T
 			// Assign a pointer to that block and cast it to type T*
 			uint8_t dum[sizeof(T)] {};
@@ -72,7 +69,7 @@ namespace geode::addresser {
 			return address;
 		}
 
-		template <typename R, typename T, typename ...Ps>
+		template <typename R, typename T, typename ...Ps, , typename = std::enable_if<std::is_copy_constructible_v<T> >>
 		static intptr_t addressOfVirtual(R(T::*func)(Ps...) const) {
 			return addressOfVirtual(func);
 		}
