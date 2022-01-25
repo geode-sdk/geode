@@ -195,7 +195,9 @@ class ButtonSprite : cocos2d::CCSprite {
 		return create(caption, width, 0, height, scale, absolute, font, false);
 	}
 
-	static ButtonSprite* create(char const*) = mac 0x4fa10, win 0x0, ios 0x0;
+	inline static ButtonSprite* create(char const* caption) {
+		return ButtonSprite::create(caption, 0, 0, "goldFont.fnt", "GJ_button_01.png", .0f, 1.f);
+	}
 	static ButtonSprite* create(char const*, int, int, float, bool) = mac 0x4fa40, win 0x0, ios 0x0;
 	void updateBGImage(const char*) = mac 0x502d0, win 0x13af0, ios 0x0;
 	static ButtonSprite* create(char const*, float) = mac 0x4fa60, win 0x0, ios 0x0;
@@ -4479,7 +4481,7 @@ class TextArea : cocos2d::CCSprite {
 	~TextArea() = mac 0x19faa0, win 0x0, ios 0x0;
 	virtual void draw() = mac 0x19f890, win 0x0, ios 0x0;
 	virtual void setOpacity(unsigned char) = mac 0x19f760, win 0x0, ios 0x0;
-	bool init(gd::string p0, char const* p1, float p2, float p3, cocos2d::CCPoint p4, float p5, bool p6) = mac 0x19ec70;
+	bool init(gd::string p0, char const* p1, float p2, float p3, cocos2d::CCPoint p4, float p5, bool p6) = mac 0x19ec70, win 0x33370;
 	static TextArea* create(gd::string p0, char const* p1, float p2, float p3, cocos2d::CCPoint p4, float p5, bool p6) {
 		auto ret = new TextArea();
 	    if (ret->init(p0, p1, p2, p3, p4, p5, p6)) {

@@ -1,6 +1,5 @@
 #pragma once
 
-#pragma warning(default: 4099) // type first seen as class
 #pragma warning(default: 4067)
 #pragma warning(disable: 4251) // dll-interface
 #pragma warning(disable: 4244) // narrowing conversion
