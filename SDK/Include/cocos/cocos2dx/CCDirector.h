@@ -144,7 +144,7 @@ public:
     /** Get the FPS value */
     inline double getAnimationInterval(void) { return m_dAnimationInterval; }
     /** Set the FPS value. */
-    virtual void setAnimationInterval(double dValue) = 0;
+    virtual void setAnimationInterval(double dValue) { }
 
     /** Whether or not to display the FPS on the bottom-left corner */
     inline bool isDisplayStats(void) { return m_bDisplayStats; }
@@ -302,13 +302,13 @@ public:
     /** Stops the animation. Nothing will be drawn. The main loop won't be triggered anymore.
      If you don't want to pause your animation call [pause] instead.
      */
-    virtual void stopAnimation(void) = 0;
+    virtual void stopAnimation(void) { }
 
     /** The main loop is triggered again.
      Call this function only if [stopAnimation] was called earlier
      @warning Don't call this function to start the main loop. To run the main loop call runWithScene
      */
-    virtual void startAnimation(void) = 0;
+    virtual void startAnimation(void) { }
 
     /** Draw the scene.
     This method is called every frame. Don't call it manually.
@@ -337,7 +337,7 @@ public:
     /** enables/disables OpenGL depth test */
     void setDepthTest(bool bOn);
 
-    virtual void mainLoop(void) = 0;
+    virtual void mainLoop(void) { }
 
     /** The size in pixels of the surface. It could be different than the screen size.
     High-res devices might have a higher surface size than the screen size.
