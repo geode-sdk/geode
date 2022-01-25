@@ -285,7 +285,7 @@ class CCIndexPath : cocos2d::CCObject {
 
 class CCLightFlash {
 	static CCLightFlash* create() = mac 0x295870, win 0x0, ios 0x0;
-	void playEffect(cocos2d::CCPoint, cocos2d::_ccColor3B, float, float, float, float, float, float, float, float, float, float, float, float, float, float, int, bool, bool, float) = mac 0x295900, win 0x0, ios 0x0;
+	void playEffect(cocos2d::CCPoint, cocos2d::_ccColor3B, float, float, float, float, float, float, float, float, float, float, float, float, float, float, int, bool, bool, float) = mac 0x295900, win 0x179f0;
 }
 
 class CCMenuItemSpriteExtra : cocos2d::CCMenuItemSprite {
