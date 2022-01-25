@@ -30,6 +30,9 @@ Projects/
 # Macos be like
 **/.DS_Store
 
+# uwu
+.gitmodules
+
 # Camila likes leaving sublime stuff in the repo so yeah
 
 # Cache files for Sublime Text
