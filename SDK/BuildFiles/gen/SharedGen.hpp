@@ -46,21 +46,21 @@ struct CacShare {
 
     static string getAddress(Function const& f, int const global_index) {
         switch (CacShare::platform) {
-            case kWindows:
+            case kMac:
                 return "base::get()+" + f.binds[kMac];
             case kIos:
                 return "base::get()+" + f.binds[kIos];
-            case kMac:
+            case kWindows:
                 if (f.parent_class->name.rfind("cocos2d", 0) == 0) {
                 	if (f.function_type == kConstructor || f.function_type == kDestructor) {
-                		return "base::get()+" + f.binds[kMac];
+                		return "base::get()+" + f.binds[kWindows];
                 	}
                     if (f.function_type == kVirtualFunction)
                         return fmt::format("addresser::getVirtual((temp_name_find_better::member{})(&{}::{}))", global_index, f.parent_class->name, f.name);
                     else
                         return fmt::format("addresser::getNonVirtual((temp_name_find_better::member{})(&{}::{}))", global_index, f.parent_class->name, f.name);
                 } else {
-                    return "base::get()+" + f.binds[kMac];
+                    return "base::get()+" + f.binds[kWindows];
                 }
             case kAndroid:
                 if (any_of(f.args.begin(), f.args.end(), [](string a) {return a.find("gd::") != string::npos;}))
