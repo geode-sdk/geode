@@ -116,7 +116,7 @@ int main(int argc, char** argv) {
 
             auto [reordered_args, fix_args] = CacShare::reorderStructs(f);
 
-            if (reordered_args.size()) {
+            if (reordered_args.size() && CacShare::platform == kWindows) {
 				function_name = "_" + f.name;
 				raw_args = CacShare::formatRawArgs(fix_args);
 				raw_arg_types = CacShare::formatRawArgTypes(fix_args);
