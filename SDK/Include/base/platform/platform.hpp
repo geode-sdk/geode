@@ -64,6 +64,8 @@ namespace geode {
 	#else
 	    #define GEODE_DLL    __declspec(dllimport)
 	#endif
+	#define GEODE_API extern "C" __declspec(dllexport)
+	#define GEODE_EXPORT __declspec(dllexport)
 	
 	#include "platform/windows.hpp"
 
@@ -89,6 +91,8 @@ namespace geode {
 	#define GEODE_PLATFORM_EXTENSION ".dylib"
 
 	#define GEODE_DLL
+	#define GEODE_API extern "C" __attribute__((visibility("default")))
+	#define GEODE_EXPORT __attribute__((visibility("default")))
 
 	#include <platform/macos.hpp>
 
@@ -110,6 +114,8 @@ namespace geode {
 	#define GEODE_PLATFORM_EXTENSION ".dylib"
 
 	#define GEODE_DLL
+	#define GEODE_API extern "C" __attribute__((visibility("default")))
+	#define GEODE_EXPORT __attribute__((visibility("default")))
 
 	#error "Implement platform/ios.hpp please"
 
@@ -134,6 +140,8 @@ namespace geode {
 	#define GEODE_PLATFORM_EXTENSION ".so"
 
 	#define GEODE_DLL
+	#define GEODE_API extern "C" __attribute__((visibility("default")))
+	#define GEODE_EXPORT __attribute__((visibility("default")))
 
 	#error "Implement platform/android.hpp please"
 

@@ -9,7 +9,7 @@ using cocos2d::CCDestructor;
 
 	char const* declare_address = R"CAC(
 static uintptr_t _address{global_index};
-GEODE_NOINLINE inline uintptr_t temp_name_find_better::address{global_index}() {{
+GEODE_NOINLINE GEODE_EXPORT inline uintptr_t temp_name_find_better::address{global_index}() {{
 	if (!_address{global_index})
 		_address{global_index} = {address};
 	return _address{global_index};
