@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <type_traits>
 #include <Interface.hpp>
+#include <stdint.h>
 
 template<auto F>
 struct address_of_t {
@@ -129,7 +130,7 @@ T& operator->*(A* self, field_t<T>& member) {
     // }
 
     // gets the respective field
-    geode::modify::container_t<>*& field = A::getAdditionalFields()[(size_t)&member];
+    geode::modify::container_t<>*& field = A::getAdditionalFields()[(uintptr_t)&member];
     // create the container on first use
     if (!field) field = reinterpret_cast<geode::modify::container_t<>*>(new geode::modify::container_t<T>());
     return reinterpret_cast<geode::modify::container_t<T>*>(field)->field;

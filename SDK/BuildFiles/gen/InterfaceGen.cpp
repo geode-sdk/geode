@@ -10,23 +10,23 @@ struct ${class_name} : {raw_class_name}, ModifierBase {{
     ${class_name}() = delete;
 
     GEODE_NOINLINE static inline auto& getAdditionalFields() {{
-    	static std::unordered_map<size_t, container_t<>*> ret;
+    	static std::unordered_map<uintptr_t, container_t<>*> ret;
     	return ret;
     }}
     GEODE_NOINLINE static inline auto& getOriginalDestructor() {{
-    	static size_t ret;
+    	static uintptr_t ret;
     	return ret;
     }}
-    static void fieldCleanup(size_t self) {{
-    	const size_t begin = self + sizeof(${class_name});
-    	const size_t end = self + sizeof(D<0, UUID>);
-    	for (size_t i = begin; i < end; ++i) {{
+    static void fieldCleanup(uintptr_t self) {{
+    	const uintptr_t begin = self + sizeof(${class_name});
+    	const uintptr_t end = self + sizeof(D<0, UUID>);
+    	for (uintptr_t i = begin; i < end; ++i) {{
     		if (getAdditionalFields().find(i) != getAdditionalFields().end()) {{
     			delete getAdditionalFields().at(i);
     			getAdditionalFields().erase(i);
     		}}
     	}}
-    	reinterpret_cast<void(*)(size_t)>(getOriginalDestructor())(self);
+    	reinterpret_cast<void(*)(uintptr_t)>(getOriginalDestructor())(self);
     }}
 )CAC";
 
