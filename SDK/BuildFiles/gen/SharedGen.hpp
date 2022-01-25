@@ -56,9 +56,9 @@ struct CacShare {
                 		return "base::get()+" + f.binds[kWindows];
                 	}
                     if (f.function_type == kVirtualFunction)
-                        return fmt::format("addresser::getVirtual((member{global_index})(&{}::{}))", global_index, f.parent_class->name, f.name);
+                        return fmt::format("addresser::getVirtual((temp_name_find_better::member{global_index})(&{}::{}))", global_index, f.parent_class->name, f.name);
                     else
-                        return fmt::format("addresser::getNonVirtual((member{global_index})(&{}::{}))", global_index, f.parent_class->name, f.name);
+                        return fmt::format("addresser::getNonVirtual((temp_name_find_better::member{global_index})(&{}::{}))", global_index, f.parent_class->name, f.name);
                 } else {
                     return "base::get()+" + f.binds[kWindows];
                 }
@@ -67,9 +67,9 @@ struct CacShare {
                     return fmt::format("(uintptr_t)dlsym((void*)base::get(), \"{}\")", f.android_mangle);
                 else {
                     if (f.function_type == kVirtualFunction)
-                        return fmt::format("addresser::getVirtual((member{global_index})(&{}::{}))", global_index, f.parent_class->name, f.name);
+                        return fmt::format("addresser::getVirtual((temp_name_find_better::member{global_index})(&{}::{}))", global_index, f.parent_class->name, f.name);
                     else
-                        return fmt::format("addresser::getNonVirtual((member{global_index})(&{}::{}))", global_index, f.parent_class->name, f.name);
+                        return fmt::format("addresser::getNonVirtual((temp_name_find_better::member{global_index})(&{}::{}))", global_index, f.parent_class->name, f.name);
                 }
         }
         return "";
