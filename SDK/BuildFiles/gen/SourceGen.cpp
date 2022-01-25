@@ -137,6 +137,12 @@ int main(int argc, char** argv) {
 				);
 				continue;
 			}
+			if (CacShare::functionDefined(f)) {
+				output += fmt::format(format_strings::declare_address, 
+					fmt::arg("global_index",global_index),
+					fmt::arg("address", CacShare::getAddress(f))
+				);
+			}
 			if (f.binds[CacShare::platform].size() == 0) continue; // Function not implemented, skip
 
 			char const* used_declare_format;
@@ -192,11 +198,6 @@ int main(int argc, char** argv) {
 			}
 		
 			// cout << "352947u" << endl;
-
-			output += fmt::format(format_strings::declare_address, 
-				fmt::arg("global_index",global_index),
-				fmt::arg("address", CacShare::getAddress(f))
-			);
 
 			output += fmt::format(used_type_format,
 				fmt::arg("arg_types", arg_types),

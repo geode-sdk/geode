@@ -1,7 +1,9 @@
 #pragma once
 
 #include <string>
+#include <sstream>
 #include <chrono>
+#include <iomanip>
 
 #include <Macros.hpp>
 #include "Result.hpp"
@@ -50,6 +52,13 @@ namespace geode::utils {
         strcpy_s(ptr, str.c_str());
         return ptr;
     }
+
+    template<typename T>
+	std::string intToHex(T i) {
+		std::stringstream stream;
+		stream << std::showbase << std::setbase(16) << i;
+		return stream.str();
+	}
 
     GEODE_DLL std::string timePointAsString(const std::chrono::system_clock::time_point& tp);
 }
