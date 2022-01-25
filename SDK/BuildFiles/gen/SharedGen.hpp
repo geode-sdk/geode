@@ -76,7 +76,7 @@ struct CacShare {
     }
 
     static bool functionDefined(Function const& f) {
-    	return getAddress(f) != "base::get()+";
+    	return getAddress(f, 0) != "base::get()+";
     }
 
     static string& getHardcode(Member & m) {
