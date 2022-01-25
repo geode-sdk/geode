@@ -53,6 +53,10 @@ namespace geode {
 			return &ret;
 		}
 
+		static inline Mod* mod() {
+			return Interface::get()->m_mod;
+		}
+
 		void init(Mod*);
 
         /**

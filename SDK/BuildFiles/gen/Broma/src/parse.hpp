@@ -56,13 +56,13 @@ string parseReturn(Tokens& tokens) {
 		if (peek(tokens).type == kIdent) {
 			qualifiedUsed = true;
 			ret += parseQualifiedName(tokens);
-			if ((peek(tokens).type == kIdent || peek(tokens).type == kConst || peek(tokens).type == kUnsigned) && 
+			if ((peek(tokens).type == kIdent || peek(tokens).type == kStruct || peek(tokens).type == kConst || peek(tokens).type == kUnsigned) && 
 				checkEndOfType(qualifiedUsed, tokens)) ret += " ";
 		}
 		else {
 			auto t = next(tokens);
 			ret += t.slice;
-			if ((t.type == kIdent || t.type == kConst|| t.type == kUnsigned) && 
+			if ((t.type == kIdent || t.type == kStruct || t.type == kConst|| t.type == kUnsigned) && 
 				(peek(tokens).type == kIdent || peek(tokens).type == kConst || peek(tokens).type == kUnsigned)
 				&& checkEndOfType(qualifiedUsed, tokens)) ret += " ";
 		}

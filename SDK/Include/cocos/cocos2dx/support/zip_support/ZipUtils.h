@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include "CCPlatformDefine.h"
 #include "platform/CCPlatformConfig.h"
 #include "ccMacros.h"
+#include "zipMacro.h"
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
 #include "platform/android/CCFileUtilsAndroid.h"
@@ -53,7 +54,7 @@ namespace cocos2d
         CCZ_COMPRESSION_NONE,               // plain (not supported yet)
     };
 
-    class CC_DLL ZipUtils
+    class CC_ZIP_DLL ZipUtils
     {
     public:
         /** 

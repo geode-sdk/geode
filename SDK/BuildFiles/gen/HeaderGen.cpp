@@ -16,10 +16,23 @@ namespace format_strings {
 struct {class_name}{base_classes}{final} {{
 )CAC";
     
-    // requires: static, virtual, return_type, function_name, raw_parameters, const
-    char const* function_definition = "\t{docs}{static}{virtual}{return_type} {function_name}({raw_params}){const};\n";
+    // requires: static, virtual, return_type, function_name, raw_args, const
+    char const* function_definition = "\t{docs}{static}{virtual}{return_type} {function_name}({raw_args}){const};\n";
 
-    char const* structor_definition = "\t{function_name}({raw_params});\n";
+    char const* platform_function_definition = R"CAC(
+ private:
+    {docs}{static}{virtual}{return_type} _{function_name}({fixed_raw_args}){const};
+ public:
+    #ifdef GEODE_IS_WINDOWS
+    {docs}inline {static}{virtual}{return_type} {function_name}({raw_args}){const} {{
+        return _{function_name}({fixed_raw_params});
+    }}
+    #else
+    {docs}{static}{virtual}{return_type} {function_name}({raw_args}){const};
+    #endif
+)CAC";
+
+    char const* structor_definition = "\t{function_name}({raw_args});\n";
     
     // requires: type, member_name, array
     char const* member_definition = "\t{type} {member_name}{array};\n";
@@ -101,7 +114,7 @@ int main(int argc, char** argv) {
 
             if (f.binds[CacShare::platform].size() == 0 && !f.is_defined)
                 continue; // Function not supported for this platform, skip it
-                
+
         	char const* used_format;
         	switch (f.function_type) {
                 case kDestructor:
@@ -112,14 +125,22 @@ int main(int argc, char** argv) {
                		used_format = format_strings::function_definition;
                     break;
             }
+
+            auto [reordered_args, fix_args] = CacShare::reorderStructs(f);
+
+            if (reordered_args.size()) {
+                used_format = format_strings::platform_function_definition;
+            }
         	output += fmt::format(used_format,
                 fmt::arg("virtual", f.function_type == kVirtualFunction ? "virtual " : ""),
                 fmt::arg("static", f.function_type == kStaticFunction ? "static " : ""),
                 fmt::arg("return_type", CacShare::getReturn(f)),
                 fmt::arg("function_name", f.name),
                 fmt::arg("docs", CacShare::getDocs(f.docs)),
-                fmt::arg("raw_params", CacShare::formatArgs(f.args, f.argnames)),
-                fmt::arg("const", f.is_const ? " const" : "")
+                fmt::arg("raw_args", CacShare::formatRawArgs(f.args, f.argnames)),
+                fmt::arg("const", f.is_const ? " const" : ""),
+                fmt::arg("fixed_raw_args", CacShare::formatRawArgs(fix_args)),
+                fmt::arg("fixed_raw_params", CacShare::formatRawParameters(reordered_args))
             );
         }
 

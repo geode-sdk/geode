@@ -21,11 +21,21 @@ using func{global_index} = ret{global_index}(*)({const}{constw}{class_name}*{arg
 using pure{global_index} = ret{global_index}({class_name}*{arg_types}){constw}{const};
 using member{global_index} = ret{global_index}({class_name}::*)({raw_arg_types}){const};)CAC";
 
+	char const* declare_member_type_fixed_orig = R"CAC(
+using fixori_func{global_index} = ret{global_index}(*)({const}{constw}{class_name}*{arg_types});
+using fixori_member{global_index} = ret{global_index}({class_name}::*)({raw_arg_types}){const};
+)CAC";
+
 	char const* declare_static_type = R"CAC(
 using ret{global_index} = temp_name_find_better::ret{global_index};
 using func{global_index} = ret{global_index}(*)({raw_arg_types});
 using pure{global_index} = ret{global_index}({raw_arg_types});
 using member{global_index} = func{global_index};)CAC";
+
+	char const* declare_static_type_fixed_orig = R"CAC(
+using fixori_func{global_index} = ret{global_index}(*)({raw_arg_types});
+using fixori_member{global_index} = fixori_func{global_index};
+)CAC";
 
 	char const* declare_structor_type = R"CAC(
 using ret{global_index} = void;
@@ -33,16 +43,27 @@ using func{global_index} = ret{global_index}(*)({class_name}*{arg_types});
 using pure{global_index} = ret{global_index}({class_name}*{arg_types});
 using member{global_index} = func{global_index};)CAC";
 
+	char const* declare_structor_type_fixed_orig = R"CAC(
+using func{global_index} = ret{global_index}(*)({class_name}*{arg_types});	
+using fixori_member{global_index} = fixori_func{global_index};
+)CAC";
+
 	char const* declare_address_of = R"CAC(
 template<>
 struct address_of_t<(member{global_index})(&{class_name}::{function_name})> {{
 	static inline auto value = temp_name_find_better::address{global_index}();
 }};)CAC";
 
+	char const* declare_address_of_fixed = R"CAC(
+template<>
+struct address_of_t<(fixori_member{global_index})(&{class_name}::{function_name})> {{
+	static inline auto value = temp_name_find_better::address{global_index}();
+}};)CAC";
+
 	char const* declare_member_function = "reinterpret_cast<func{global_index}>(temp_name_find_better::address{global_index}())(this{parameters})";
 	char const* declare_static_function = "reinterpret_cast<func{global_index}>(temp_name_find_better::address{global_index}())({raw_parameters})";
-	char const* declare_win_member_function = "(geode::core::meta::Function<pure{global_index}, geode::core::meta::x86::{convention}>)({{temp_name_find_better::address{global_index}()}})(this{parameters})";
-	char const* declare_win_static_function = "(geode::core::meta::Function<pure{global_index}, geode::core::meta::x86::{convention}>)({{temp_name_find_better::address{global_index}()}})({raw_parameters})";
+	char const* declare_meta_member_function = "geode::core::meta::Function<pure{global_index}, geode::core::meta::x86::{convention}>({{temp_name_find_better::address{global_index}()}})(this{parameters})";
+	char const* declare_meta_static_function = "geode::core::meta::Function<pure{global_index}, geode::core::meta::x86::{convention}>({{temp_name_find_better::address{global_index}()}})({raw_parameters})";
 
 	char const* declare_member = R"CAC(
 ret{global_index} {class_name}::{function_name}({raw_args}){constw}{const} {{
@@ -85,11 +106,30 @@ int main(int argc, char** argv) {
 
 		for (auto& f : c.functions) {
 			++global_index;
+
+			auto function_name = f.name;
+			auto raw_args = CacShare::formatRawArgs(f.args);
+			auto raw_arg_types = CacShare::formatRawArgTypes(f.args);
+			auto arg_types = CacShare::formatArgTypes(f.args);
+			auto raw_parameters = CacShare::formatRawParameters(f.args.size());
+			auto parameters = CacShare::formatParameters(f.args.size());
+
+            auto [reordered_args, fix_args] = CacShare::reorderStructs(f);
+
+            if (reordered_args.size() && CacShare::platform == kWindows) {
+				function_name = "_" + f.name;
+				raw_args = CacShare::formatRawArgs(fix_args);
+				raw_arg_types = CacShare::formatRawArgTypes(fix_args);
+				arg_types = CacShare::formatArgTypes(fix_args);
+				raw_parameters = CacShare::formatRawParameters(fix_args.size());
+				parameters = CacShare::formatParameters(fix_args.size());
+			}
+
 			if (f.is_defined) {
 				output += fmt::format(format_strings::ool_function_definition,
 					fmt::arg("return_type", CacShare::getReturn(f)),
-					fmt::arg("function_name", f.name),
-					fmt::arg("raw_params", CacShare::formatArgs(f.args, f.argnames)),
+					fmt::arg("function_name", function_name),
+					fmt::arg("raw_params", CacShare::formatRawArgs(f.args, f.argnames)),
 					fmt::arg("const", f.is_const ? "const" : ""),
 					fmt::arg("constw", f.is_const ? " " : ""),
 					fmt::arg("class_name", f.parent_class->name),
@@ -102,6 +142,7 @@ int main(int argc, char** argv) {
 			char const* used_declare_format;
 			char const* used_function_format;
 			char const* used_type_format;
+			char const* used_type_format_fixed_orig;
 
 			switch (f.function_type) {
 				case kVirtualFunction:
@@ -124,12 +165,12 @@ int main(int argc, char** argv) {
 				case kDestructor:
 				case kConstructor:
 					used_function_format = CacShare::platform == kWindows ? 
-						format_strings::declare_win_member_function :
+						format_strings::declare_meta_member_function :
 						format_strings::declare_member_function;
 					break;
 				case kStaticFunction:
 					used_function_format = CacShare::platform == kWindows ? 
-						format_strings::declare_win_static_function :
+						format_strings::declare_meta_static_function :
 						format_strings::declare_static_function;
 					break;
 			}
@@ -137,13 +178,16 @@ int main(int argc, char** argv) {
 				case kVirtualFunction:
 				case kRegularFunction:
 					used_type_format = format_strings::declare_member_type;
+					used_type_format_fixed_orig = format_strings::declare_member_type_fixed_orig;
 					break;
 				case kStaticFunction:
 					used_type_format = format_strings::declare_static_type;
+					used_type_format_fixed_orig = format_strings::declare_static_type_fixed_orig;
 					break;
 				case kDestructor:
 				case kConstructor:
 					used_type_format = format_strings::declare_structor_type;
+					used_type_format_fixed_orig = format_strings::declare_structor_type_fixed_orig;
 					break;
 			}
 		
@@ -155,28 +199,58 @@ int main(int argc, char** argv) {
 			);
 
 			output += fmt::format(used_type_format,
-				fmt::arg("arg_types", CacShare::formatArgTypes(f.args)),
-				fmt::arg("raw_arg_types", CacShare::formatRawArgTypes(f.args)),
+				fmt::arg("arg_types", arg_types),
+				fmt::arg("raw_arg_types", raw_arg_types),
 				fmt::arg("class_name", name),
 				fmt::arg("unqualified_name", unqualifiedName),
 				fmt::arg("const", f.is_const ? "const " : ""),
 				fmt::arg("constw", f.is_const ? " " : ""),
 				fmt::arg("convention", CacShare::getConvention(f)),
-				fmt::arg("function_name", f.name),
+				fmt::arg("function_name", function_name),
 				fmt::arg("index",f.index),
 				fmt::arg("global_index", global_index),
-				fmt::arg("raw_args", CacShare::formatRawArgs(f.args)),
-				fmt::arg("raw_parameters", CacShare::formatRawParameters(f.args.size())),
-				fmt::arg("parameters", CacShare::formatParameters(f.args.size())),
+				fmt::arg("raw_args", raw_args),
+				fmt::arg("raw_parameters", raw_parameters),
+				fmt::arg("parameters", parameters),
 				fmt::arg("return", CacShare::getReturn(f))
 			);
+
+			// address_of doesn't make sense to be defined 
+			// for the platform _function version (since 
+			// that's private so the user can't access that;
+			// however address_of also needs some type info, 
+			// so this is providing the bare minimum so you 
+			// can get the address of the function using 
+			// address_of through the "overload" (i.e. 
+			// android sig version)
+
+			const char* address_of = format_strings::declare_address_of;
+			if (reordered_args.size()) {
+				output += fmt::format(used_type_format_fixed_orig,
+					fmt::arg("arg_types", CacShare::formatArgTypes(f.args)),
+					fmt::arg("raw_arg_types", CacShare::formatRawArgTypes(f.args)),
+					fmt::arg("class_name", name),
+					fmt::arg("unqualified_name", unqualifiedName),
+					fmt::arg("const", f.is_const ? "const " : ""),
+					fmt::arg("constw", f.is_const ? " " : ""),
+					fmt::arg("convention", CacShare::getConvention(f)),
+					fmt::arg("function_name", f.name),
+					fmt::arg("index",f.index),
+					fmt::arg("global_index", global_index),
+					fmt::arg("raw_args", CacShare::formatRawArgs(f.args)),
+					fmt::arg("raw_parameters", CacShare::formatRawParameters(f.args.size())),
+					fmt::arg("parameters", CacShare::formatParameters(f.args.size())),
+					fmt::arg("return", CacShare::getReturn(f))
+				);
+				address_of = format_strings::declare_address_of_fixed;
+			}
 			// cout << "4tter" << endl;
 
 			switch (f.function_type) {
 				case kVirtualFunction:
 				case kRegularFunction:
 				case kStaticFunction:
-					output += fmt::format(format_strings::declare_address_of, 
+					output += fmt::format(address_of, 
 						fmt::arg("global_index",global_index),
 						fmt::arg("class_name", name),
 						fmt::arg("index",f.index),
@@ -190,36 +264,36 @@ int main(int argc, char** argv) {
 			// cout << "rwerwe" << endl;
 
 			auto function_implementation = fmt::format(used_function_format,
-				fmt::arg("arg_types", CacShare::formatArgTypes(f.args)),
-				fmt::arg("raw_arg_types", CacShare::formatRawArgTypes(f.args)),
+				fmt::arg("arg_types", arg_types),
+				fmt::arg("raw_arg_types", raw_arg_types),
 				fmt::arg("class_name", name),
 				fmt::arg("unqualified_name", unqualifiedName),
 				fmt::arg("const", f.is_const ? "const " : ""),
 				fmt::arg("constw", f.is_const ? " " : ""),
 				fmt::arg("convention", CacShare::getConvention(f)),
-				fmt::arg("function_name", f.name),
+				fmt::arg("function_name", function_name),
 				fmt::arg("index",f.index),
 				fmt::arg("global_index", global_index),
-				fmt::arg("raw_args", CacShare::formatRawArgs(f.args)),
-				fmt::arg("raw_parameters", CacShare::formatRawParameters(f.args.size())),
-				fmt::arg("parameters", CacShare::formatParameters(f.args.size())),
+				fmt::arg("raw_args", raw_args),
+				fmt::arg("raw_parameters", raw_parameters),
+				fmt::arg("parameters", parameters),
 				fmt::arg("return", CacShare::getReturn(f))
 			);
 
 			// cout << "dsffdssd" << endl;
 			output += fmt::format(used_declare_format,
-				fmt::arg("arg_types", CacShare::formatArgTypes(f.args)),
-				fmt::arg("raw_arg_types", CacShare::formatRawArgTypes(f.args)),
+				fmt::arg("arg_types", arg_types),
+				fmt::arg("raw_arg_types", raw_arg_types),
 				fmt::arg("class_name", name),
 				fmt::arg("unqualified_name", unqualifiedName),
 				fmt::arg("const", f.is_const ? "const " : ""),
 				fmt::arg("constw", f.is_const ? " " : ""),
 				fmt::arg("convention", CacShare::getConvention(f)),
-				fmt::arg("function_name",f.name),
+				fmt::arg("function_name",function_name),
 				fmt::arg("index",f.index),
 				fmt::arg("global_index", global_index),
-				fmt::arg("raw_args", CacShare::formatRawArgs(f.args)),
-				fmt::arg("raw_parameters", CacShare::formatRawParameters(f.args.size())),
+				fmt::arg("raw_args", raw_args),
+				fmt::arg("raw_parameters", raw_parameters),
 				fmt::arg("function_implementation", function_implementation)
 			);
 		}

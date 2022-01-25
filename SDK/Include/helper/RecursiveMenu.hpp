@@ -22,13 +22,13 @@ namespace geode::helper {
 	class RecursiveMenu : cocos2d::CCMenu {
 	public:
 		static RecursiveMenu* create();
-		static RecursiveMenu* createWithArray(CCArray* arrayOfItems);
+		static RecursiveMenu* createWithArray(cocos2d::CCArray* arrayOfItems);
 
 	protected:
-		virtual bool ccTouchBegan(CCTouch* touch, CCEvent* event) override;
-		virtual void ccTouchMoved(CCTouch* touch, CCEvent* event) override;
+		virtual bool ccTouchBegan(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
+		virtual void ccTouchMoved(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
 
-		CCMenuItem* itemForTouch(CCTouch* touch);
-		CCMenuItem* itemForTouch(CCTouch* touch, CCNode* child);
+		cocos2d::CCMenuItem* itemForTouch(cocos2d::CCTouch* touch);
+		cocos2d::CCMenuItem* itemForTouch(cocos2d::CCTouch* touch, cocos2d::CCNode* child);
 	};
 }

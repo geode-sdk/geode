@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
                 fmt::arg("static", f.function_type == kStaticFunction ? "static " : ""),
                 fmt::arg("return_type", CacShare::getReturn(f)),
                 fmt::arg("function_name", f.name),
-                fmt::arg("raw_params", CacShare::formatArgs(f.args, f.argnames)),
+                fmt::arg("raw_params", CacShare::formatRawArgs(f.args, f.argnames)),
                 fmt::arg("const", f.is_const ? " const" : ""),
                 fmt::arg("definition", f.definition)
         	);
@@ -99,7 +99,7 @@ int main(int argc, char** argv) {
                 fmt::arg("static", f.function_type == kStaticFunction ? "static " : ""),
                 fmt::arg("return_type", f.return_type),
                 fmt::arg("function_name", f.name),
-                fmt::arg("raw_params", CacShare::formatArgs(f.args, f.argnames)),
+                fmt::arg("raw_params", CacShare::formatRawArgs(f.args, f.argnames)),
                 fmt::arg("const", f.is_const ? " const" : ""),
                 fmt::arg("address", address)
             );

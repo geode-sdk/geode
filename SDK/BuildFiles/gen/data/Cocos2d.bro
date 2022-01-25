@@ -303,6 +303,19 @@ class cocos2d::CCMenu {
 	static cocos2d::CCMenu* create() = mac 0x438720;
 	static cocos2d::CCMenu* createWithArray(cocos2d::CCArray*) = mac 0x4387e0;
 	static cocos2d::CCMenu* createWithItem(cocos2d::CCMenuItem*) = mac 0x438b80;
+
+	virtual auto ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x438d20;
+    virtual auto ccTouchCancelled(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x439050;
+    virtual auto ccTouchEnded(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x438fd0;
+    virtual auto ccTouchMoved(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x4390b0;
+    virtual auto init() = mac 0x438b90;
+    virtual auto registerWithTouchDispatcher() = mac 0x438cd0;
+    virtual auto onExit() = mac 0x438bd0;
+    virtual auto addChild(cocos2d::CCNode*) = mac 0x438ba0;
+    virtual auto addChild(cocos2d::CCNode*, int) = mac 0x438bb0;
+    virtual auto addChild(cocos2d::CCNode*, int, int) = mac 0x438bc0;
+    virtual auto removeChild(cocos2d::CCNode*, bool) = mac 0x438c20;
+    auto initWithArray(cocos2d::CCArray*) = mac 0x4389f0;
 }
 
 class cocos2d::CCMenuItem {
@@ -315,6 +328,7 @@ class cocos2d::CCMenuItem {
 	virtual auto isEnabled() = mac 0x1fbaf0;
 	virtual auto setEnabled(bool) = mac 0x1fbae0;
 	virtual auto isSelected() = mac 0x1fbb50;
+	auto rect() = mac 0x1fbb00;
 }
 
 class cocos2d::CCMenuItemImage {
@@ -729,6 +743,7 @@ class cocos2d::CCTouch {
 	auto getDelta() const = mac 0x38340;
 	auto getLocationInView() const = mac 0x38250;
 	auto getPreviousLocationInView() const = mac 0x38270;
+	auto getLocation() const = mac 0x382b0;
 }
 
 class cocos2d::CCTouchDispatcher {

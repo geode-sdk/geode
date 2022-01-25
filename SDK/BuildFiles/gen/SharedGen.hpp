@@ -105,6 +105,39 @@ struct CacShare {
         return qualifiedName.substr(qualifiedName.rfind("::")+2);
     }
 
+    static std::pair<vector<int>, vector<string>> reorderStructs(Function const& f) {
+        auto cc = CacShare::getConvention(f);
+        vector<string> out;
+        vector<int> params;
+        vector<std::pair<int, string>> structs;
+        int ix = 0;
+        for (auto i : f.args) {
+            if (i.rfind("struct ", 0) == 0) {
+                if (cc == "Optcall" || cc == "Membercall") {
+                    structs.push_back({ ix, i });
+                } else {
+                    out.push_back(i);
+                    params.push_back(ix);
+                }
+            } else {
+                out.push_back(i);
+                params.push_back(ix);
+            }
+            ix++;
+        }
+        
+        for (auto s : structs) {
+            out.push_back(std::get<1>(s));
+            params.push_back(std::get<0>(s));
+        }
+
+        if (!structs.size()) {
+            params = {};
+        }
+
+        return { params, out };
+    }
+
     static string formatArgTypes(vector<string> args) {
         return args.size() > 0 ? fmt::format(", {}", fmt::join(args, ", ")) : string("");
     }
@@ -116,6 +149,8 @@ struct CacShare {
     static string formatRawArgs(vector<string> args) {
         string out = "";
         size_t c = 0;
+        if (args.size() == 1 && args[0] == "void")
+            return "";
         for (auto& i : args) {
             out += fmt::format("{} p{}, ", i, c);
             ++c;
@@ -123,11 +158,13 @@ struct CacShare {
         return out.substr(0, out.size()-2);
     }
 
-    static string formatArgs(vector<string> args, vector<string> argnames) {
+    static string formatRawArgs(vector<string> args, vector<string> argnames) {
         string out = "";
         size_t c = 0;
+        if (args.size() == 1 && args[0] == "void")
+            return "";
         for (auto& i : args) {
-            if (argnames[c] == "") out += fmt::format("{}, ", i); 
+            if (argnames[c] == "") out += fmt::format("{} p{}, ", i, c); 
             else out += fmt::format("{} {}, ", i, argnames[c]); 
             ++c;
         }
@@ -149,6 +186,17 @@ struct CacShare {
         }
     }
 
+    static string formatRawParameters(vector<int> const& params) {
+        if (params.size()) {
+            vector<string> c;
+            for (auto i : params)
+                c.push_back(fmt::format("p{}", i));
+            return fmt::format("{}", fmt::join(c, ", "));
+        } else {
+            return "";
+        }
+    }
+
     static string formatParameters(size_t paramCount) {
         if (paramCount) {
             return fmt::format(", {}", formatRawParameters(paramCount));
@@ -157,18 +205,12 @@ struct CacShare {
         }
     }
 
-    
-
-    static void formatWinParameters(Function const& f) {
-
-    }
-
     static string getConvention(Function const& f) {
         switch (f.function_type) {
             case kConstructor:
             case kDestructor:
             case kRegularFunction:
-            	if (f.args.size() == 0) return "Cdecl";
+            	if (f.args.size() == 0) return "Thiscall";
                 return "Membercall";
             case kVirtualFunction:
                 return "Thiscall";

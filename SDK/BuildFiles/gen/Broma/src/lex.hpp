@@ -42,6 +42,7 @@ enum TokenType {
 	kStatic,
 	kVirtual,
 	kConst,
+	kStruct,
 	kUnsigned,
 	kInlineExpr,
 	kFunDefinition,
@@ -267,6 +268,12 @@ vector<Token> lexStream(stringstream& stream) {
 
 			if (slice == "const") {
 				t.type = kConst;
+				ts.push_back(t);
+				continue;
+			}
+
+			if (slice == "struct") {
+				t.type = kStruct;
 				ts.push_back(t);
 				continue;
 			}
