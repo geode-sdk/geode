@@ -6,100 +6,10 @@
 
 #include <cstdlib>
 #include <stddef.h>
-#include <Macros.hpp>
 #include <loader/Interface.hpp>
 #include <loader/Mod.hpp>
 #include <loader/Log.hpp>
 #include <utils/general.hpp>
-
-#if INT64_MAX == INTPTR_MAX
-	#define GEODE_ADDRESSER_NEST1(macro, begin)       \
-	macro(GEODE_CONCAT(begin, 0))                     \
-	macro(GEODE_CONCAT(begin, 8))         
-#else
-	#define GEODE_ADDRESSER_NEST1(macro, begin)       \
-	macro(GEODE_CONCAT(begin, 0))                     \
-	macro(GEODE_CONCAT(begin, 4))                     \
-	macro(GEODE_CONCAT(begin, 8))                     \
-	macro(GEODE_CONCAT(begin, c))         
-#endif
-
-#define GEODE_ADDRESSER_NEST2(macro, begin)           \
-GEODE_ADDRESSER_NEST1(macro, GEODE_CONCAT(begin, 0))  \
-GEODE_ADDRESSER_NEST1(macro, GEODE_CONCAT(begin, 1))  \
-GEODE_ADDRESSER_NEST1(macro, GEODE_CONCAT(begin, 2))  \
-GEODE_ADDRESSER_NEST1(macro, GEODE_CONCAT(begin, 3))  \
-GEODE_ADDRESSER_NEST1(macro, GEODE_CONCAT(begin, 4))  \
-GEODE_ADDRESSER_NEST1(macro, GEODE_CONCAT(begin, 5))  \
-GEODE_ADDRESSER_NEST1(macro, GEODE_CONCAT(begin, 6))  \
-GEODE_ADDRESSER_NEST1(macro, GEODE_CONCAT(begin, 7))  \
-GEODE_ADDRESSER_NEST1(macro, GEODE_CONCAT(begin, 8))  \
-GEODE_ADDRESSER_NEST1(macro, GEODE_CONCAT(begin, 9))  \
-GEODE_ADDRESSER_NEST1(macro, GEODE_CONCAT(begin, a))  \
-GEODE_ADDRESSER_NEST1(macro, GEODE_CONCAT(begin, b))  \
-GEODE_ADDRESSER_NEST1(macro, GEODE_CONCAT(begin, c))  \
-GEODE_ADDRESSER_NEST1(macro, GEODE_CONCAT(begin, d))  \
-GEODE_ADDRESSER_NEST1(macro, GEODE_CONCAT(begin, e))  \
-GEODE_ADDRESSER_NEST1(macro, GEODE_CONCAT(begin, f))  
-
-#define GEODE_ADDRESSER_NEST3(macro, begin)           \
-GEODE_ADDRESSER_NEST2(macro, GEODE_CONCAT(begin, 0))  \
-GEODE_ADDRESSER_NEST2(macro, GEODE_CONCAT(begin, 1))  \
-GEODE_ADDRESSER_NEST2(macro, GEODE_CONCAT(begin, 2))  \
-GEODE_ADDRESSER_NEST2(macro, GEODE_CONCAT(begin, 3))  \
-GEODE_ADDRESSER_NEST2(macro, GEODE_CONCAT(begin, 4))  \
-GEODE_ADDRESSER_NEST2(macro, GEODE_CONCAT(begin, 5))  \
-GEODE_ADDRESSER_NEST2(macro, GEODE_CONCAT(begin, 6))  \
-GEODE_ADDRESSER_NEST2(macro, GEODE_CONCAT(begin, 7))  \
-GEODE_ADDRESSER_NEST2(macro, GEODE_CONCAT(begin, 8))  \
-GEODE_ADDRESSER_NEST2(macro, GEODE_CONCAT(begin, 9))  \
-GEODE_ADDRESSER_NEST2(macro, GEODE_CONCAT(begin, a))  \
-GEODE_ADDRESSER_NEST2(macro, GEODE_CONCAT(begin, b))  \
-GEODE_ADDRESSER_NEST2(macro, GEODE_CONCAT(begin, c))  \
-GEODE_ADDRESSER_NEST2(macro, GEODE_CONCAT(begin, d))  \
-GEODE_ADDRESSER_NEST2(macro, GEODE_CONCAT(begin, e))  \
-GEODE_ADDRESSER_NEST2(macro, GEODE_CONCAT(begin, f))  
-
-/**
- * static ptrdiff_t f000() {return 0x000;}
- * static ptrdiff_t f004() {return 0x004;}
- * static ptrdiff_t f008() {return 0x008;}
- * ...
- */
-#define GEODE_ADDRESSER_METHOD_DEFINE(hex)           \
-static ptrdiff_t GEODE_CONCAT(f, hex)() {return GEODE_CONCAT(0x, hex);}
-
-/**
- * virtual ptrdiff_t v000() {}
- * virtual ptrdiff_t v004() {}
- * virtual ptrdiff_t v008() {}
- * ...
- */
-#define GEODE_ADDRESSER_VMETHOD_DEFINE(hex)          \
-virtual void GEODE_CONCAT(v, hex)() {}
-
-/**
- * (intptr_t)Addresser::f000,
- * (intptr_t)Addresser::f004,
- * (intptr_t)Addresser::f008,
- * ...
- */
-#define GEODE_ADDRESSER_TABLE_DEFINE(hex)            \
-(intptr_t)GEODE_CONCAT(Addresser::f, hex),
-
-/**
- * &Addresser::v000,
- * &Addresser::v004,
- * &Addresser::v008,
- * ...
- */
-#define GEODE_ADDRESSER_VTABLE_DEFINE(hex)          \
-&GEODE_CONCAT(Addresser::v, hex),
-
-#define GEODE_ADDRESSER_METHOD_SET() GEODE_ADDRESSER_NEST3(GEODE_ADDRESSER_METHOD_DEFINE, )
-#define GEODE_ADDRESSER_VMETHOD_SET() GEODE_ADDRESSER_NEST3(GEODE_ADDRESSER_VMETHOD_DEFINE, )
-#define GEODE_ADDRESSER_TABLE_SET() GEODE_ADDRESSER_NEST3(GEODE_ADDRESSER_TABLE_DEFINE, )
-#define GEODE_ADDRESSER_VTABLE_SET() GEODE_ADDRESSER_NEST3(GEODE_ADDRESSER_VTABLE_DEFINE, )
 
 namespace geode::addresser {
 
@@ -110,21 +20,14 @@ namespace geode::addresser {
 	inline intptr_t getNonVirtual(T func);
 
 	class Addresser final {
-		static constexpr ptrdiff_t table_size = 0x1000 / sizeof(intptr_t);
-
 		using tablemethodptr_t = ptrdiff_t(Addresser::*)();
-		using methodptr_t = void(Addresser::*)();
-		using table_t = intptr_t[table_size + 0x1]; 
-		using tableptr_t = table_t*; 
-		using vtable_t = methodptr_t[table_size + 0x1]; 
-		using vtableptr_t = vtable_t*; 
 
-		
+		static Addresser* instance();
 
 		template<typename T>
 		static ptrdiff_t indexOf(T ptr) { 
 			auto func = reinterpret_cast<tablemethodptr_t&>(ptr);
-			return (instance->*func)(); 
+			return (instance()->*func)(); 
 		}
 
 		template<typename T>
@@ -189,23 +92,6 @@ namespace geode::addresser {
 			return pointerOf(func);
 		}
 
-		GEODE_ADDRESSER_VMETHOD_SET()
-		GEODE_ADDRESSER_METHOD_SET()
-		static ptrdiff_t f() {return -1;} //because c++ cries when there is a trailing comma 
-		virtual void v() {}
-
-		inline static table_t table = {
-			GEODE_ADDRESSER_TABLE_SET()
-			(intptr_t)Addresser::f
-		};
-		inline static tableptr_t tableptr = &table;
-		inline static Addresser* instance = reinterpret_cast<Addresser*>(&tableptr);
-
-		inline static vtable_t vtable = {
-			GEODE_ADDRESSER_VTABLE_SET()
-			&Addresser::v
-		};
-
 		template<typename T>
 		friend intptr_t getVirtual(T func);
 
@@ -225,18 +111,3 @@ namespace geode::addresser {
 		return Addresser::addressOfNonVirtual(func);
 	}
 }
-
-/**
- * Cleanup
- */
-#undef GEODE_ADDRESSER_NEST1
-#undef GEODE_ADDRESSER_NEST2
-#undef GEODE_ADDRESSER_NEST3
-#undef GEODE_ADDRESSER_METHOD_DEFINE
-#undef GEODE_ADDRESSER_TABLE_DEFINE
-#undef GEODE_ADDRESSER_VMETHOD_DEFINE
-#undef GEODE_ADDRESSER_VTABLE_DEFINE
-#undef GEODE_ADDRESSER_METHOD_SET
-#undef GEODE_ADDRESSER_TABLE_SET
-#undef GEODE_ADDRESSER_VMETHOD_SET
-#undef GEODE_ADDRESSER_VTABLE_SET
