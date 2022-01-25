@@ -111,6 +111,7 @@ class cocos2d::CCDirector {
 	auto calculateMPF() = mac 0x19eac0;
 	auto convertToGL(cocos2d::CCPoint const&) = mac 0x24a210;
 	auto drawScene() = mac 0x249690;
+
 	auto setNextScene() = mac 0x2498d0;
 	auto showStats() = mac 0x2499e0;
 	auto updateContentScale(cocos2d::TextureQuality) = mac 0x249ff0;

@@ -443,7 +443,8 @@ protected:
     )
 
     bool m_bPurgeDirecotorInNextLoop; // this flag will be set to true in end()
-    
+
+protected:
     void setNextScene(void);
     
     void showStats();
