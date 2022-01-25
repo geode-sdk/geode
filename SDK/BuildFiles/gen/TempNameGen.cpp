@@ -3,7 +3,7 @@
 namespace format_strings {
 
 	char const* declare_member_type = R"CAC(
-GEODE_NOINLINE GEODE_EXPORT static uintptr_t address{global_index}();
+GEODE_NOINLINE static uintptr_t address{global_index}();
 using ret{global_index} = {return};
 using func{global_index} = ret{global_index}(*)({const}{constw}{class_name}*{arg_types});
 using pure{global_index} = ret{global_index}({class_name}*{arg_types}){constw}{const};
@@ -11,7 +11,7 @@ using member{global_index} = ret{global_index}({class_name}::*)({raw_arg_types})
 )CAC";
 
 	char const* declare_static_type = R"CAC(
-GEODE_NOINLINE GEODE_EXPORT static uintptr_t address{global_index}();
+GEODE_NOINLINE static uintptr_t address{global_index}();
 using ret{global_index} = {return};
 using func{global_index} = ret{global_index}(*)({raw_arg_types});
 using pure{global_index} = ret{global_index}({raw_arg_types}){constw}{const};
@@ -19,7 +19,7 @@ using member{global_index} = func{global_index};
 )CAC";
 
 	char const* declare_structor_type = R"CAC(
-GEODE_NOINLINE GEODE_EXPORT static uintptr_t address{global_index}();
+GEODE_NOINLINE static uintptr_t address{global_index}();
 using ret{global_index} = void;
 using func{global_index} = ret{global_index}(*)({class_name}*{arg_types});
 using pure{global_index} = ret{global_index}({class_name}*{arg_types});

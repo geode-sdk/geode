@@ -7,6 +7,9 @@
 #include <cstdlib>
 #include <stddef.h>
 #include <Macros.hpp>
+#include <loader/Interface.hpp>
+#include <loader/Mod.hpp>
+#include <loader/Log.hpp>
 
 #if INT64_MAX == INTPTR_MAX
 	#define GEODE_ADDRESSER_NEST1(macro, begin)       \
@@ -210,11 +213,13 @@ namespace geode::addresser {
 
 	template<typename T>
 	inline intptr_t getVirtual(T func) {
+		Interface::get()->mod()->log() << Severity::Debug << "Get virtual function address from " << (void*)Addresser::pointerOf(func) << geode::endl;
 		return Addresser::addressOfVirtual(func);
 	}
 
 	template<typename T>
 	inline intptr_t getNonVirtual(T func) {
+		Interface::get()->mod()->log() << Severity::Debug << "Get non virtual function address from " << (void*)Addresser::pointerOf(func) << geode::endl;
 		return Addresser::addressOfNonVirtual(func);
 	}
 }
