@@ -114,7 +114,7 @@ class AppDelegate : cocos2d::CCApplication {
 
 class ArtistCell : TableViewCell {
 	void draw() = mac 0x11c980, win 0x0, ios 0x0;
-	bool init() = mac 0x11c7c0, win 0x0, ios 0x0;
+	virtual bool init() = mac 0x11c7c0, win 0x0, ios 0x0;
 	void loadFromObject(SongInfoObject*) = mac 0x1118b0, win 0x0, ios 0x0;
 	void onNewgrounds(cocos2d::CCObject*) = mac 0x11c7e0, win 0x0, ios 0x0;
 	void updateBGColor(int) = mac 0x110460, win 0x0, ios 0x0;
@@ -234,7 +234,7 @@ class CCBlockLayer : cocos2d::CCLayerColor {
 	void enterLayer() = mac 0x2a5aa0, win 0x0, ios 0x0;
 	void exitLayer() = mac 0x2a5b40, win 0x0, ios 0x0;
 	void hideLayer(bool) = mac 0x2a5ba0, win 0x0, ios 0x0;
-	bool init() = mac 0x2a59c0, win 0x0, ios 0x0;
+	virtual bool init() = mac 0x2a59c0, win 0x0, ios 0x0;
 	void layerHidden() = mac 0x2a5be0, win 0x0, ios 0x0;
 	void layerVisible() = mac 0x2a5bc0, win 0x0, ios 0x0;
 	void registerWithTouchDispatcher() = mac 0x2a5ad0, win 0x0, ios 0x0;
@@ -381,13 +381,13 @@ class CCMenuItemToggler : cocos2d::CCMenuItem {
 
 class CCMoveCNode : cocos2d::CCNode {
 	static CCMoveCNode* create() = mac 0x1842a0, win 0x0, ios 0x0;
-	bool init() = mac 0x18b3d0, win 0x0, ios 0x0;
+	virtual bool init() = mac 0x18b3d0, win 0x0, ios 0x0;
 	~CCMoveCNode() = mac 0x18b2c0, win 0x0, ios 0x0;
 }
 
 class CCNodeContainer : cocos2d::CCNode {
 	static CCNodeContainer* create() = mac 0xb1090, win 0x112370, ios 0x0;
-	bool init() = mac 0xba950, win 0x33b40, ios 0x0;
+	virtual bool init() = mac 0xba950, win 0x33b40, ios 0x0;
 	void visit() = mac 0xba960, win 0x112420, ios 0x0;
 }
 
@@ -1086,7 +1086,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
 	void onGoToBaseLayer(cocos2d::CCObject* pSender) = mac 0x0, win 0x88790, ios 0x0;
 	void editColor(cocos2d::CCObject* pSender) = mac 0x0, win 0x8d3c0, ios 0x0;
 	void alignObjects(cocos2d::CCArray* objs, bool alignY) = mac 0x0, win 0x8f320, ios 0x0;
-	void keyUp(cocos2d::enumKeyCodes key) = mac 0x312b0, win 0x92180, ios 0x0;
+	virtual void keyUp(cocos2d::enumKeyCodes key) = mac 0x312b0, win 0x92180, ios 0x0;
 
 	LevelEditorLayer* editorLayer = mac 0x408, win 0x0, android 0x0;
 	cocos2d::CCArray* editBars = mac 0x358, win 0x0, android 0x0;
@@ -2007,7 +2007,7 @@ class GJGarageLayer : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol,
 	void onPlayerColor1(cocos2d::CCObject*) = mac 0x1ba640, win 0x0, ios 0x22531c;
 	void onPlayerColor2(cocos2d::CCObject*) = mac 0x1ba8c0, win 0x0, ios 0x225408;
 	static GJGarageLayer* create() = mac 0x0, win 0x125220, ios 0x0;
-	bool init() = mac 0x1b4980, win 0x1255d0;
+	virtual bool init() = mac 0x1b4980, win 0x1255d0;
 	void onSelectTab(cocos2d::CCObject* pSender) = mac 0x0, win 0x127c30, ios 0x0;
 	void onPlayerIcon(cocos2d::CCObject* pSender) = mac 0x0, win 0x127f30, ios 0x0;
 	void onShipIcon(cocos2d::CCObject* pSender) = mac 0x0, win 0x1281e0, ios 0x0;
@@ -2475,7 +2475,7 @@ class GameManager : cocos2d::CCNode {
 	static GameManager* sharedState() = mac 0x1c2b30, win 0xc4a50, ios 0x2321b8;
 	~GameManager() = mac 0x1d0e00, win 0x0, ios 0x0;
 	void getGTexture(int) = mac 0x1cca40, win 0x0, ios 0x0;
-	bool init() = mac 0x1c2ec0, win 0x0, ios 0x0;
+	virtual bool init() = mac 0x1c2ec0, win 0x0, ios 0x0;
 	void reportAchievementWithID(char const*, int, bool) = mac 0x1c6460, win 0x0, ios 0x0;
 	void resolutionForKey(int) = mac 0x1d0b40, win 0x0, ios 0x0;
 	void update(float) = mac 0x1d0270, win 0x0, ios 0x0;
@@ -3043,7 +3043,7 @@ class KeybindingsLayer : FLAlertLayer {
 }
 
 class LabelGameObject : GameObject {
-	bool init() = mac 0x2f5520, win 0x0, ios 0x0;
+	virtual bool init() = mac 0x2f5520, win 0x0, ios 0x0;
 	void setObjectColor(cocos2d::_ccColor3B const&) = mac 0xdbca0, win 0x0, ios 0x0;
 }
 
@@ -3341,7 +3341,7 @@ class MoreOptionsLayer {
 
 class MoreVideoOptionsLayer : FLAlertLayer {
 	static MoreVideoOptionsLayer* create() = mac 0x443c10, win 0x0, ios 0x0;
-	bool init() = mac 0x444150, win 0x0, ios 0x0;
+	virtual bool init() = mac 0x444150, win 0x0, ios 0x0;
 }
 
 class MusicDownloadDelegate {}
@@ -3403,7 +3403,7 @@ class ObjectToolbox : cocos2d::CCNode {
 	    m_keyToFrameDict->setObject(cocos2d::CCString::create(frame), id);
 	}
 
-	bool init() = mac 0x3b2d80, win 0x0, ios 0x0;
+	virtual bool init() = mac 0x3b2d80, win 0x0, ios 0x0;
 	static ObjectToolbox* sharedState() = mac 0x3b2bc0, win 0x198a80, ios 0x0;
 	float gridNodeSizeForKey(int key) = mac 0x0, win 0x1dc920, ios 0x0;
 	const char* perspectiveBlockFrame(int key) = mac 0x0, win 0x1dcd00, ios 0x0;
@@ -4534,8 +4534,8 @@ class UILayer : cocos2d::CCLayerColor { //, cocos2d::CCKeyboardDelegate {
 	void onCheck(cocos2d::CCObject* pSender) = mac 0x2803e0, win 0x25fb60, ios 0x0;
 	void onDeleteCheck(cocos2d::CCObject* pSender) = mac 0x280410, win 0x25fc90, ios 0x0;
 	void onPause(cocos2d::CCObject* pSender) = mac 0x2803c0, win 0x25fad0, ios 0x0;
-	void keyDown(cocos2d::enumKeyCodes key) = mac 0x280470, win 0x25f890, ios 0x0;
-	void keyUp(cocos2d::enumKeyCodes key) = mac 0x280600, win 0x25fa10, ios 0x0;
+	virtual void keyDown(cocos2d::enumKeyCodes key) = mac 0x280470, win 0x25f890, ios 0x0;
+	virtual void keyUp(cocos2d::enumKeyCodes key) = mac 0x280600, win 0x25fa10, ios 0x0;
 
 	PAD = mac 0x16, win 0x8, android 0x8;
 	cocos2d::CCMenu* m_checkPointMenu;
