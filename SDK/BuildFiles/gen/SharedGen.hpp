@@ -44,7 +44,7 @@ struct CacShare {
         return parseTokens(lexStream(s));
     }
 
-    static string getAddress(Function const& f) {
+    static string getAddress(Function const& f, int const global_index) {
         switch (CacShare::platform) {
             case kMac:
                 return "base::get()+" + f.binds[kMac];
@@ -55,23 +55,10 @@ struct CacShare {
                 	if (f.function_type == kConstructor || f.function_type == kDestructor) {
                 		return "base::get()+" + f.binds[kWindows];
                 	}
-                	string type;
-                	if (f.function_type == kStaticFunction) type = fmt::format("ret{index}(*)({raw_arg_types}) {const}",
-						fmt::arg("index",f.index),
-                		fmt::arg("class_name", f.parent_class->name),
-                		fmt::arg("raw_arg_types", CacShare::formatRawArgTypes(f.args)),
-                		fmt::arg("const", f.is_const ? "const " : "")
-                	);
-                	else type = fmt::format("ret{index}({class_name}::*)({raw_arg_types}) {const}",
-                		fmt::arg("index",f.index),
-                		fmt::arg("class_name", f.parent_class->name),
-                		fmt::arg("raw_arg_types", CacShare::formatRawArgTypes(f.args)),
-                		fmt::arg("const", f.is_const ? "const " : "")
-                	);
                     if (f.function_type == kVirtualFunction)
-                        return fmt::format("addresser::getVirtual(({})(&{}::{}))", type, f.parent_class->name, f.name);
+                        return fmt::format("addresser::getVirtual((member{global_index})(&{}::{}))", global_index, f.parent_class->name, f.name);
                     else
-                        return fmt::format("addresser::getNonVirtual(({})(&{}::{}))", type, f.parent_class->name, f.name);
+                        return fmt::format("addresser::getNonVirtual((member{global_index})(&{}::{}))", global_index, f.parent_class->name, f.name);
                 } else {
                     return "base::get()+" + f.binds[kWindows];
                 }
@@ -80,9 +67,9 @@ struct CacShare {
                     return fmt::format("(uintptr_t)dlsym((void*)base::get(), \"{}\")", f.android_mangle);
                 else {
                     if (f.function_type == kVirtualFunction)
-                        return fmt::format("addresser::getVirtual((mem{})(&{}::{}))", f.index, f.parent_class->name, f.name);
+                        return fmt::format("addresser::getVirtual((member{global_index})(&{}::{}))", global_index, f.parent_class->name, f.name);
                     else
-                        return fmt::format("addresser::getNonVirtual((mem{})(&{}::{}))", f.index, f.parent_class->name, f.name);
+                        return fmt::format("addresser::getNonVirtual((member{global_index})(&{}::{}))", global_index, f.parent_class->name, f.name);
                 }
         }
         return "";

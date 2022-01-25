@@ -140,7 +140,7 @@ int main(int argc, char** argv) {
 			if (CacShare::functionDefined(f)) {
 				output += fmt::format(format_strings::declare_address, 
 					fmt::arg("global_index",global_index),
-					fmt::arg("address", CacShare::getAddress(f))
+					fmt::arg("address", CacShare::getAddress(f, global_index))
 				);
 			}
 			if (f.binds[CacShare::platform].size() == 0) continue; // Function not implemented, skip
