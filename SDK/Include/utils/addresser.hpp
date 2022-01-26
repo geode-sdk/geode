@@ -19,7 +19,7 @@ namespace geode::addresser {
 	template<typename T>
 	inline intptr_t getNonVirtual(T func);
 
-	class Addresser final {
+	class GEODE_DLL Addresser final {
 		using tablemethodptr_t = ptrdiff_t(Addresser::*)();
 
 		static Addresser* instance();

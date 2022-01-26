@@ -17,7 +17,7 @@ struct {class_name}{base_classes}{final} {{
 )CAC";
     
     // requires: static, virtual, return_type, function_name, raw_args, const
-    char const* function_definition = "\t{docs}{static}{virtual}{return_type} {function_name}({raw_args}){const};\n";
+    char const* function_definition = "\t{docs}GEODE_DLL {static}{virtual}{return_type} {function_name}({raw_args}){const};\n";
 
     char const* platform_function_definition = R"CAC(
  private:

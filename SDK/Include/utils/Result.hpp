@@ -69,14 +69,14 @@ namespace geode {
          */
         template<class T2, class E2>
         Result(Result<T2, E2> const& other) {
-            if (other) {
+            if (other.is_value()) {
                 this->success = true;
                 if constexpr (!std::is_same<T, no_result>::value) {
-                    this->my_value = other.value();
+                    new (&this->my_value) T(other.value());
                 }
             } else {
                 this->success = false;
-                this->error_msg = other.error();
+                new (&this->error_msg) E(other.error());
             }
         }
 

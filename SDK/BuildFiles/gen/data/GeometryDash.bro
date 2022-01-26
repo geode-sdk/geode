@@ -4464,6 +4464,13 @@ class TableViewCell : cocos2d::CCLayer {
 }
 
 class TableViewDataSource {
+	virtual int numberOfRowsInSection(unsigned int, TableView*) { return 0; }
+	virtual void numberOfSectionsInTableView(TableView*) {}
+	virtual void TableViewCommitCellEditingStyleForRowAtIndexPath(TableView*, TableViewCellEditingStyle, CCIndexPath&) {}
+	virtual TableViewCell* cellForRowAtIndexPath(CCIndexPath&, TableView*) { return nullptr; }
+}
+
+class TableViewDelegate {
 	virtual void willTweenToIndexPath(CCIndexPath&, TableViewCell*, TableView*) {}
 	virtual void didEndTweenToIndexPath(CCIndexPath&, TableView*) {}
 	virtual void TableViewWillDisplayCellForRowAtIndexPath(CCIndexPath&, TableViewCell*, TableView*) {}
@@ -4471,13 +4478,6 @@ class TableViewDataSource {
 	virtual void TableViewWillReloadCellForRowAtIndexPath(CCIndexPath&, TableViewCell*, TableView*) {}
 	virtual float cellHeightForRowAtIndexPath(CCIndexPath&, TableView*) { return 0.0; }
 	virtual void didSelectRowAtIndexPath(CCIndexPath&, TableView*) {}
-}
-
-class TableViewDelegate {
-	virtual int numberOfRowsInSection(unsigned int, TableView*) { return 0; }
-	virtual void numberOfSectionsInTableView(TableView*) {}
-	virtual void TableViewCommitCellEditingStyleForRowAtIndexPath(TableView*, TableViewCellEditingStyle, CCIndexPath&) {}
-	virtual TableViewCell* cellForRowAtIndexPath(CCIndexPath&, TableView*) { return nullptr; }
 }
 
 class TeleportPortalObject : GameObject {
