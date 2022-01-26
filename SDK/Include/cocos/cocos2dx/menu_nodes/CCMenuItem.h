@@ -38,7 +38,7 @@ class CCLabelAtlas;
 class CCSprite;
 class CCSpriteFrame;
 #define kCCItemSize 32
-    
+
 /**
  * @addtogroup GUI
  * @{
@@ -53,9 +53,7 @@ class CCSpriteFrame;
 class CC_DLL CCMenuItem : public CCNodeRGBA
 {
     GEODE_FRIEND_MODIFY
-protected:
-
-
+public:
     /** whether or not the item is selected
      @since v0.8.2
      */
@@ -112,9 +110,9 @@ public:
     /** set the target/selector of the menu item*/
     void setTarget(CCObject *rec, SEL_MenuHandler selector);
 
-protected:
+public:
     CCObject*       m_pListener;
-    SEL_MenuHandler    m_pfnSelector;
+    Fixed_MenuHandler    m_pfnSelector;
     int             m_nScriptTapHandler;
 };
 

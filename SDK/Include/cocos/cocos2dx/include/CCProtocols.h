@@ -38,7 +38,7 @@ NS_CC_BEGIN
  */
 class CC_DLL CCRGBAProtocol
 {
-    GEODE_FRIEND_MODIFY
+    // GEODE_FRIEND_MODIFY
 public:
     /** 
      * Changes the color with R,G,B bytes

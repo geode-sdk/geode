@@ -44,7 +44,7 @@ NS_CC_EXT_BEGIN
  * @{
  */
 
-class ColorPickerDelegate {
+class GEODE_DLL ColorPickerDelegate {
     virtual void colorValueChanged(ccColor3B) {}
 };
 

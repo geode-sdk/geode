@@ -174,9 +174,8 @@ class BoomScrollLayer : cocos2d::CCLayer {
 }
 
 class ButtonSprite : cocos2d::CCSprite {
-	static ButtonSprite* create(const char* why1, int width, int why3, float height, float scale, bool why6, const char* font, bool why8) {
-		return create((cocos2d::CCNode*)why1, width, why3, height, scale, why6, font, why8);
-	}
+	// you really should find this function or a higher overload on mac
+	static ButtonSprite* create(const char* caption, int width, int unknown, float scale, bool absoluteWidth, const char* font, const char* texture, float height) = win 0x137d0;
 
 	[[docs("
 	/**
@@ -192,7 +191,7 @@ class ButtonSprite : cocos2d::CCSprite {
 	*/
 	")]]
 	static ButtonSprite* create(const char* caption, int width, bool absolute, const char* font, const char* texture, float height, float scale) {
-		return create(caption, width, 0, height, scale, absolute, font, false);
+		return create(caption, width, 0, scale, absolute, font, texture, height);
 	}
 
 	inline static ButtonSprite* create(char const* caption) {
@@ -364,7 +363,7 @@ class CCMenuItemToggler : cocos2d::CCMenuItem {
 	    this->toggle(on);
 	}
 
-	static CCMenuItemToggler* create(cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCObject*, cocos2d::SEL_MenuHandler) = mac 0x38400, win 0x19600, ios 0xf5594;
+	static CCMenuItemToggler* create(cocos2d::CCNode* offSpr, cocos2d::CCNode* onSpr, cocos2d::CCObject* target, cocos2d::SEL_MenuHandler callback) = mac 0x38400, win 0x19600, ios 0xf5594;
 	void setSizeMult(float) = mac 0x38a40, win 0x19850, ios 0x0;
 	void toggle(bool) = mac 0x38950, win 0x199b0, ios 0x0;
 	bool init(cocos2d::CCNode off, cocos2d::CCNode on, cocos2d::CCObject* target, cocos2d::SEL_MenuHandler handler) = mac 0x0, win 0x196e0, ios 0x0;
@@ -4456,6 +4455,7 @@ class TableViewCell : cocos2d::CCLayer {
 	TableView* m_tableView;
 	CCIndexPath m_indexPath;
 	gd::string m_unknownString;
+	int m_unknownInt;
 	float m_width;
 	float m_height;
 	cocos2d::CCLayerColor* m_backgroundLayer;
@@ -4464,6 +4464,13 @@ class TableViewCell : cocos2d::CCLayer {
 }
 
 class TableViewDataSource {
+	virtual int numberOfRowsInSection(unsigned int, TableView*) { return 0; }
+	virtual void numberOfSectionsInTableView(TableView*) {}
+	virtual void TableViewCommitCellEditingStyleForRowAtIndexPath(TableView*, TableViewCellEditingStyle, CCIndexPath&) {}
+	virtual TableViewCell* cellForRowAtIndexPath(CCIndexPath&, TableView*) { return nullptr; }
+}
+
+class TableViewDelegate {
 	virtual void willTweenToIndexPath(CCIndexPath&, TableViewCell*, TableView*) {}
 	virtual void didEndTweenToIndexPath(CCIndexPath&, TableView*) {}
 	virtual void TableViewWillDisplayCellForRowAtIndexPath(CCIndexPath&, TableViewCell*, TableView*) {}
@@ -4471,13 +4478,6 @@ class TableViewDataSource {
 	virtual void TableViewWillReloadCellForRowAtIndexPath(CCIndexPath&, TableViewCell*, TableView*) {}
 	virtual float cellHeightForRowAtIndexPath(CCIndexPath&, TableView*) { return 0.0; }
 	virtual void didSelectRowAtIndexPath(CCIndexPath&, TableView*) {}
-}
-
-class TableViewDelegate {
-	virtual int numberOfRowsInSection(unsigned int, TableView*) { return 0; }
-	virtual void numberOfSectionsInTableView(TableView*) {}
-	virtual void TableViewCommitCellEditingStyleForRowAtIndexPath(TableView*, TableViewCellEditingStyle, CCIndexPath&) {}
-	virtual TableViewCell* cellForRowAtIndexPath(CCIndexPath&, TableView*) { return nullptr; }
 }
 
 class TeleportPortalObject : GameObject {
