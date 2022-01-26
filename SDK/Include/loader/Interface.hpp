@@ -38,6 +38,7 @@ namespace geode {
 	class GEODE_DLL Interface {
 	protected:
 		struct ScheduledHook {
+			std::string_view m_displayName;
 			void* m_address;
 			void* m_detour;
 		};
@@ -79,6 +80,14 @@ namespace geode {
 		 * yet), errorful result with info on error
          */
         Result<Hook*> addHook(void* address, void* detour);
+
+        /**
+         * The same as addHook(void*, void*), but also provides 
+         * a display name to show it in the list of the loader.
+         * Mostly for internal use but if you don't like your
+         * hooks showing up like base + 0x123456 it can be useful
+         */
+        Result<Hook*> addHook(std::string_view displayName, void* address, void* detour);
 
         /**
          * Log an information. Equivalent to 

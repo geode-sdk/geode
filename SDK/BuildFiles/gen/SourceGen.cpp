@@ -100,13 +100,10 @@ int main(int argc, char** argv) {
 	string output(format_strings::source_start);
 	Root root = CacShare::init(argc, argv);
 
-	int global_index = 0;
 	for (auto& [name, c] : root.classes) {
 		string unqualifiedName = CacShare::toUnqualified(name);
 
 		for (auto& f : c.functions) {
-			++global_index;
-
 			auto function_name = f.name;
 			auto raw_args = CacShare::formatRawArgs(f.args);
 			auto raw_arg_types = CacShare::formatRawArgTypes(f.args);
@@ -139,8 +136,8 @@ int main(int argc, char** argv) {
 			}
 			if (CacShare::functionDefined(f)) {
 				output += fmt::format(format_strings::declare_address, 
-					fmt::arg("global_index",global_index),
-					fmt::arg("address", CacShare::getAddress(f, global_index))
+					fmt::arg("global_index",f.hash()),
+					fmt::arg("address", CacShare::getAddress(f))
 				);
 			}
 			if (f.binds[CacShare::platform].size() == 0) continue; // Function not implemented, skip
@@ -209,7 +206,7 @@ int main(int argc, char** argv) {
 				fmt::arg("convention", CacShare::getConvention(f)),
 				fmt::arg("function_name", function_name),
 				fmt::arg("index",f.index),
-				fmt::arg("global_index", global_index),
+				fmt::arg("global_index", f.hash()),
 				fmt::arg("raw_args", raw_args),
 				fmt::arg("raw_parameters", raw_parameters),
 				fmt::arg("parameters", parameters),
@@ -237,7 +234,7 @@ int main(int argc, char** argv) {
 					fmt::arg("convention", CacShare::getConvention(f)),
 					fmt::arg("function_name", f.name),
 					fmt::arg("index",f.index),
-					fmt::arg("global_index", global_index),
+					fmt::arg("global_index", f.hash()),
 					fmt::arg("raw_args", CacShare::formatRawArgs(f.args)),
 					fmt::arg("raw_parameters", CacShare::formatRawParameters(f.args.size())),
 					fmt::arg("parameters", CacShare::formatParameters(f.args.size())),
@@ -252,7 +249,7 @@ int main(int argc, char** argv) {
 				case kRegularFunction:
 				case kStaticFunction:
 					output += fmt::format(address_of, 
-						fmt::arg("global_index",global_index),
+						fmt::arg("global_index",f.hash()),
 						fmt::arg("class_name", name),
 						fmt::arg("index",f.index),
 						fmt::arg("unqualified_name", unqualifiedName),
@@ -274,7 +271,7 @@ int main(int argc, char** argv) {
 				fmt::arg("convention", CacShare::getConvention(f)),
 				fmt::arg("function_name", function_name),
 				fmt::arg("index",f.index),
-				fmt::arg("global_index", global_index),
+				fmt::arg("global_index", f.hash()),
 				fmt::arg("raw_args", raw_args),
 				fmt::arg("raw_parameters", raw_parameters),
 				fmt::arg("parameters", parameters),
@@ -292,7 +289,7 @@ int main(int argc, char** argv) {
 				fmt::arg("convention", CacShare::getConvention(f)),
 				fmt::arg("function_name",function_name),
 				fmt::arg("index",f.index),
-				fmt::arg("global_index", global_index),
+				fmt::arg("global_index", f.hash()),
 				fmt::arg("raw_args", raw_args),
 				fmt::arg("raw_parameters", raw_parameters),
 				fmt::arg("function_implementation", function_implementation)

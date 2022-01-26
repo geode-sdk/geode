@@ -44,7 +44,7 @@ struct CacShare {
         return parseTokens(lexStream(s));
     }
 
-    static string getAddress(Function const& f, int const global_index) {
+    static string getAddress(Function const& f) {
         switch (CacShare::platform) {
             case kMac:
                 return "base::get()+" + f.binds[kMac];
@@ -56,9 +56,9 @@ struct CacShare {
                 		return "base::get()+" + f.binds[kWindows];
                 	}
                     if (f.function_type == kVirtualFunction)
-                        return fmt::format("addresser::getVirtual((temp_name_find_better::member{})(&{}::{}))", global_index, f.parent_class->name, f.name);
+                        return fmt::format("addresser::getVirtual((temp_name_find_better::member{})(&{}::{}))", f.hash(), f.parent_class->name, f.name);
                     else
-                        return fmt::format("addresser::getNonVirtual((temp_name_find_better::member{})(&{}::{}))", global_index, f.parent_class->name, f.name);
+                        return fmt::format("addresser::getNonVirtual((temp_name_find_better::member{})(&{}::{}))", f.hash(), f.parent_class->name, f.name);
                 } else {
                     return "base::get()+" + f.binds[kWindows];
                 }
@@ -67,16 +67,16 @@ struct CacShare {
                     return fmt::format("(uintptr_t)dlsym((void*)base::get(), \"{}\")", f.android_mangle);
                 else {
                     if (f.function_type == kVirtualFunction)
-                        return fmt::format("addresser::getVirtual((temp_name_find_better::member{})(&{}::{}))", global_index, f.parent_class->name, f.name);
+                        return fmt::format("addresser::getVirtual((temp_name_find_better::member{})(&{}::{}))", f.hash(), f.parent_class->name, f.name);
                     else
-                        return fmt::format("addresser::getNonVirtual((temp_name_find_better::member{})(&{}::{}))", global_index, f.parent_class->name, f.name);
+                        return fmt::format("addresser::getNonVirtual((temp_name_find_better::member{})(&{}::{}))", f.hash(), f.parent_class->name, f.name);
                 }
         }
         return "";
     }
 
     static bool functionDefined(Function const& f) {
-    	return getAddress(f, 0) != "base::get()+";
+    	return getAddress(f) != "base::get()+";
     }
 
     static string& getHardcode(Member & m) {

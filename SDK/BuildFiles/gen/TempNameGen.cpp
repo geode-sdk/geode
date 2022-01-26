@@ -32,12 +32,10 @@ int main(int argc, char** argv) {
 	string output("");
 	Root root = CacShare::init(argc, argv);
 
-	int global_index = 0;
 	for (auto& [name, c] : root.classes) {
 		string unqualifiedName = CacShare::toUnqualified(name);
 
 		for (auto& f : c.functions) {
-			++global_index;
 			if (!CacShare::functionDefined(f))
                 continue; // Function not supported, skip
 
@@ -63,7 +61,7 @@ int main(int argc, char** argv) {
 				fmt::arg("class_name", name),
 				fmt::arg("const", f.is_const ? "const " : ""),
 				fmt::arg("constw", f.is_const ? " " : ""),
-				fmt::arg("global_index", global_index),
+				fmt::arg("global_index", f.hash()),
 				fmt::arg("return", CacShare::getReturn(f))
 			);
 		}

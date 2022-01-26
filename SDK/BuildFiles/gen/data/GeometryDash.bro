@@ -840,7 +840,19 @@ class DailyLevelPage {
 	static DailyLevelPage* create(bool weekly) = mac 0x0, win 0x6a860, ios 0x0;
 }
 
-class DialogLayer {
+class DialogLayer : cocos2d::CCLayerColor {
+	static DialogLayer* create(DialogObject* dialog, int color) {
+		return DialogLayer::create(dialog, nullptr, color);
+	}
+
+	static DialogLayer* create(cocos2d::CCArray* dialogs, int color) {
+		return DialogLayer::create(nullptr, dialogs, color);
+	}
+
+	static DialogLayer* create(DialogObject*, cocos2d::CCArray*, int) = mac 0x0, win 0x6D470, ios 0x0;
+	void init(DialogLayer*, DialogObject*, cocos2d::CCArray*, int) = mac 0x0, win 0x6D520, ios 0x0;
+	cocos2d::CCAction* animateIn(int location) = mac 0x0, win 0x6E130, ios 0x0;
+
 	~DialogLayer() = mac 0x204720, win 0x0, ios 0x0;
 	virtual void onEnter() = mac 0x205900, win 0x0, ios 0x0;
 	virtual bool ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x205790, win 0x0, ios 0x0;
@@ -856,6 +868,9 @@ class DialogLayer {
 class DialogDelegate {}
 
 class DialogObject : cocos2d::CCObject {
+	static DialogObject* create(gd::string title, gd::string text, int portrait, float text_scale, bool is_unskippable, cocos2d::ccColor3B text_color) = mac 0x0, win 0x6D160, ios 0x0;
+	bool init(DialogObject*, gd::string title, gd::string text, int portrait, float text_scale, bool is_unskippable, cocos2d::ccColor3B text_color) = mac 0x0, win 0x6D2E0, ios 0x0;
+
 	gd::string m_text;
 	gd::string m_title;
 	int m_dialogType;
