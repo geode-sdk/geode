@@ -30,6 +30,7 @@ namespace geode::addresser {
 			return (instance()->*func)(); 
 		}
 
+	public:
 		template<typename T>
 		static ptrdiff_t thunkOf(T ptr) {
 			if (sizeof(T) == sizeof(ptrdiff_t)) return 0;
@@ -37,6 +38,7 @@ namespace geode::addresser {
 			if (thunk & 1) thunk >>= 1;
 			return thunk;
 		}
+	private:
 
 		template<typename T>
 		static intptr_t pointerOf(T func) {

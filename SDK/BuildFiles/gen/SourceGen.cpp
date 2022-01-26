@@ -60,9 +60,11 @@ struct address_of_t<(fixori_member{global_index})(&{class_name}::{function_name}
 	static inline auto value = temp_name_find_better::address{global_index}();
 }};)CAC";
 
+	char const* thunk_adjust = "addresser::thunkAdjust(({is_fixori}member{global_index})(&{class_name}::{function_name}), this)";
+
 	char const* declare_member_function = "reinterpret_cast<func{global_index}>(temp_name_find_better::address{global_index}())(this{parameters})";
 	char const* declare_static_function = "reinterpret_cast<func{global_index}>(temp_name_find_better::address{global_index}())({raw_parameters})";
-	char const* declare_meta_member_function = "geode::core::meta::Function<pure{global_index}, geode::core::meta::x86::{convention}>({{temp_name_find_better::address{global_index}()}})(addresser::thunkAdjust((fixori_member{global_index})(&{class_name}::{function_name}), this){parameters})";
+	char const* declare_meta_member_function = "geode::core::meta::Function<pure{global_index}, geode::core::meta::x86::{convention}>({{temp_name_find_better::address{global_index}()}})({thunk_adjusted_this}{parameters})";
 	char const* declare_meta_static_function = "geode::core::meta::Function<pure{global_index}, geode::core::meta::x86::{convention}>({{temp_name_find_better::address{global_index}()}})({raw_parameters})";
 
 	char const* declare_member = R"CAC(
@@ -259,7 +261,18 @@ int main(int argc, char** argv) {
 					break;
 			}
 			
-			// cout << "rwerwe" << endl;
+			// cout << "rwerwe" << endl
+			
+			std::string this_thunked = "this";
+
+			if (f.function_type != kConstructor && f.function_type != kDestructor) {
+				this_thunked = fmt::format(format_strings::thunk_adjust,
+					fmt::arg("class_name", name),
+					fmt::arg("function_name", function_name),
+					fmt::arg("global_index", f.hash()),
+					fmt::arg("is_fixori", reordered_args.size() ? "fixori_" : "")
+				);
+			}
 
 			auto function_implementation = fmt::format(used_function_format,
 				fmt::arg("arg_types", arg_types),
@@ -275,7 +288,8 @@ int main(int argc, char** argv) {
 				fmt::arg("raw_args", raw_args),
 				fmt::arg("raw_parameters", raw_parameters),
 				fmt::arg("parameters", parameters),
-				fmt::arg("return", CacShare::getReturn(f))
+				fmt::arg("return", CacShare::getReturn(f)),
+				fmt::arg("thunk_adjusted_this", this_thunked)
 			);
 
 			// cout << "dsffdssd" << endl;
