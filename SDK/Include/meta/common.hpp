@@ -31,7 +31,7 @@ namespace geode::core::meta {
     };
 
     template <class Class, class... Compare>
-    static constexpr bool any_of = std::disjunction_v<std::is_same<Class, Compare>...>;
+    static constexpr bool any_of = (std::is_same_v<Class, Compare> || ...);
 
     template <class... Classes>
     static constexpr bool always_false = false;

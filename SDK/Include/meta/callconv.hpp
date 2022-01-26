@@ -12,6 +12,29 @@ namespace geode::core::meta {
     protected:
         using MyTuple = Tuple<Args...>;
 
+        template <bool, size_t i>
+        struct type_at_wrap_impl {
+            using result = void;
+        };
+
+        template <size_t i>
+        struct type_at_wrap_impl<true, i> {
+            using result = typename MyTuple::template type_at<i>;
+        };
+
+        template <size_t i>
+        using type_at_wrap = typename type_at_wrap_impl<i < MyTuple::size, i>::result;
+
+        template <size_t i>
+        static constexpr decltype(auto) at_wrap(const MyTuple& tuple) {
+            if constexpr (i < MyTuple::size) {
+                return tuple.template at<i>();
+            }
+            else {
+                return 0;
+            }
+        }
+
         template <
             size_t i,
             template <class> class Pred,
@@ -19,10 +42,10 @@ namespace geode::core::meta {
         >
         using type_if = 
             typename ternary<
-                (MyTuple::size > i) &&
-                Pred<typename MyTuple::template type_at<i>>::value
+                    (MyTuple::size > i) &&
+                    Pred<type_at_wrap<i>>::value
                 >::template type<
-                        typename MyTuple::template type_at<i>,
+                        type_at_wrap<i>,
                         Else
                     >;
 
@@ -31,23 +54,12 @@ namespace geode::core::meta {
             template <class> class Pred,
             class Else
         >
-        static decltype(auto) value_if(const MyTuple& tuple, const Else e) {
+        static constexpr decltype(auto) value_if(const MyTuple& tuple, const Else e) {
             return ternary<
                     (MyTuple::size > i) &&
-                    Pred<typename MyTuple::template type_at<i>>::value
-                >::val(tuple.template at<i>(), e);
+                    Pred<type_at_wrap<i>>::value
+                >::val(at_wrap<i>(tuple), e);
         }
-
-        // Why is this here. Stop.
-        template <template <class, class...> class Convention, auto Func> 
-        struct ConventionFrom {
-            using type = Convention<void>;
-        };
-
-        template <template <class, class...> class Convention, class Ret, class ...Args, Ret(* Func)(Args...)> 
-        struct ConventionFrom<Convention, Func> {
-            using type = Convention<Ret, Args...>;
-        };
     };
 }
 

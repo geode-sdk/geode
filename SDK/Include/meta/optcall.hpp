@@ -118,7 +118,8 @@ namespace geode::core::meta::x86 {
 
             template <Ret(* detour)(Args...)>
             static Ret __cdecl wrapper(
-                typename MyTuple::template type_at<to>... rest
+                // Not sure why this doesn't work otherwise, but oh well...
+                typename MyConv::template type_at_wrap<to>... rest
             ) {
                 Register<double, typename MyConv::template type_if<0, sse_passable, float>> f0;
                 Register<double, typename MyConv::template type_if<1, sse_passable, float>> f1;
@@ -162,7 +163,7 @@ namespace geode::core::meta::x86 {
         }
 
         template <Ret(* detour)(Args...)>
-        static decltype(auto) get_wrapper() {
+        static constexpr decltype(auto) get_wrapper() {
             return &MyImpl::template wrapper<detour>;
         }
     };

@@ -17,7 +17,7 @@ namespace geode::core::meta::x86 {
         }
 
         template <Ret(* detour)(Args...)>
-        static decltype(auto) get_wrapper() {
+        static constexpr decltype(auto) get_wrapper() {
             return &wrapper<detour>;
         }
     };

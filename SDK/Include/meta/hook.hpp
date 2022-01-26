@@ -41,10 +41,6 @@ namespace geode::core::meta {
             auto wrapper = MyConv::template get_wrapper<detour>();
             this->handle = geode::core::hook::add(reinterpret_cast<void*>(address), reinterpret_cast<void*>(wrapper));
         }
-
-        static auto get_wrapper() {
-            return MyConv::template get_wrapper<detour>();
-        }
     };
 
     // member functions.

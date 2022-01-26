@@ -12,102 +12,130 @@ namespace geode::core::meta {
     * used for static reflection in function wrapping. Other applications will
     * usually be better covered by std::tuple.
     */
-    template <class... Classes>
+    template <class...>
     class Tuple;
 
     template <>
     class Tuple<> {
-    protected:
-        // Haskell
-        template <
-            template <size_t, class, size_t> class,
-            size_t, size_t, size_t... seq
-        >
-        class filter_impl {
+    private:
+        template <class T, size_t i>
+        class Element {
+        private:
+            T value;
+
+        protected:
+            constexpr T at(std::integral_constant<size_t, i>&&) const {
+                return this->value;
+            }
+        
         public:
-            using result = std::index_sequence<seq...>;
+            constexpr Element(T value) : value(value) {}
+        };
+
+        template <class... Parents>
+        class Elements : public Parents... {
+        private:
+            using Parents::at...;
+
+        public:
+            static constexpr size_t size = sizeof...(Parents);
+            template <size_t i>
+            constexpr decltype(auto) at() const {
+                static_assert(i < size, "Out of range access!");
+                return this->at(std::integral_constant<size_t, i>());
+            }
+        };
+
+        template <class, class...>
+        struct elements_for_impl;
+
+        template <size_t... indices, class... Classes>
+        struct elements_for_impl<std::index_sequence<indices...>, Classes...> {
+            using result = Elements<Element<Classes, indices>...>;
         };
 
     public:
-        static constexpr size_t size = 0;
+        template <class... Classes>
+        using elements_for = typename elements_for_impl<
+                std::make_index_sequence<sizeof...(Classes)>,
+                Classes...
+            >::result;
 
-        template <size_t>
-        using type_at = void;
-
-        template <size_t>
-        constexpr decltype(auto) at() const {
-            return 0;
-        }
-
-    public:
         template <class... Classes>
         static auto make(Classes&&... values) {
             return Tuple<Classes...> { values... };
         }
-
-        template <class T>
-        auto append(T&& value) const {
-            return Tuple<T>(value);
-        }
     };
 
     template <class Current, class... Rest>
-    class Tuple<Current, Rest...> : public Tuple<Rest...> {
+    class Tuple<Current, Rest...> : public Tuple<>::elements_for<Current, Rest...> {
     private:
-        using ThisType = Tuple<Current, Rest...>;
-        using NextType = Tuple<Rest...>;
+        using MyElements = Tuple<>::elements_for<Current, Rest...>;
 
-        Current value;
+    public:
+        template <size_t i>
+        using type_at = decltype(std::declval<MyElements>().template at<i>());
 
     protected:
-        // Haskell
+        // Haskell (false case)
+        template <
+            template <size_t, class, size_t> class Pred, 
+            bool, size_t i, size_t counter, size_t... seq
+        >
+        class filter_impl {
+        private:
+            using NextPred = Pred<i + 1, type_at<i + 1>, counter>;
+        
+        public:
+            using result = typename filter_impl<
+                    Pred, NextPred::result, i + 1, counter, seq...
+                >::result;
+        };
+
+        // Haskell (true case)
         template <
             template <size_t, class, size_t> class Pred, 
             size_t i, size_t counter, size_t... seq
         >
-        class filter_impl {
+        class filter_impl<Pred, true, i, counter, seq...> {
         private:
-            using MyPred = Pred<i, Current, counter>;
+            using MyPred = Pred<i, type_at<i>, counter>;
+            using NextPred = Pred<i + 1, type_at<i + 1>, counter>;
         
         public:
-            using result = typename ternary<MyPred::result>
-                ::template type<
-                    typename NextType::template filter_impl<
-                        Pred, i + 1, MyPred::counter, seq..., MyPred::index
-                    >::result,
-                    typename NextType::template filter_impl<
-                        Pred, i + 1, counter, seq...
-                    >::result
-                >;
+            using result = typename filter_impl<
+                    Pred, NextPred::result, i + 1, 
+                    MyPred::counter, seq..., MyPred::index
+                >::result;
+        };
+
+        // Haskell (final case, if true)
+        template <
+            template <size_t, class, size_t> class Pred, 
+            size_t counter, size_t... seq
+        >
+        class filter_impl<Pred, false, sizeof...(Rest), counter, seq...> {
+        public:
+            using result = std::index_sequence<seq...>;
+        };
+
+        // Haskell (final case, if false)
+        template <
+            template <size_t, class, size_t> class Pred, 
+            size_t counter, size_t... seq
+        >
+        class filter_impl<Pred, true, sizeof...(Rest), counter, seq...> {
+        private:
+            static constexpr size_t i = sizeof...(Rest);
+            using MyPred = Pred<i, type_at<i>, counter>;
+            
+        public:
+            using result = std::index_sequence<seq..., MyPred::index>;
         };
         
     public:
         template <template <size_t, class, size_t> class Pred>
-        using filter = typename filter_impl<Pred, 0, 0>::result;
-
-        static constexpr size_t size = sizeof...(Rest) + 1;
-
-        template <size_t i>
-        using type_at = typename ternary<i == 0>
-            ::template type<
-                Current,
-                typename NextType::template type_at<i - 1>
-            >;
-
-    public:
-        constexpr Tuple(Current value, Rest... rest) :
-            NextType(rest...),
-            value(value) {}
-
-        template <size_t i>
-        constexpr decltype(auto) at() const {
-            if constexpr (i == 0) {
-                return value;
-            }
-            else {
-                return this->NextType::template at<i - 1>();
-            }
-        }
+        using filter = typename filter_impl<Pred, Pred<0, Current, 0>::result, 0, 0>::result;
     };
 }
 

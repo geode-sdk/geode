@@ -94,7 +94,8 @@ namespace geode::core::meta::x86 {
                 float,
                 typename MyConv::template type_if<0, gpr_passable, int> i0,
                 int,
-                typename MyTuple::template type_at<to>... rest
+                // Not sure why this doesn't work otherwise, but oh well...
+                typename MyConv::template type_at_wrap<to>... rest
             ) {
                 auto all = Tuple<>::make(i0, f1, f2, f3, rest...);
                 return detour(all.template at<from>()...);
@@ -116,7 +117,7 @@ namespace geode::core::meta::x86 {
         }
 
         template <Ret(* detour)(Args...)>
-        static decltype(auto) get_wrapper() {
+        static constexpr decltype(auto) get_wrapper() {
             return &MyImpl::template wrapper<detour>;
         }
     };
