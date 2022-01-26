@@ -57,11 +57,24 @@ class CCObject;
 class CCNode;
 class CCEvent;
 
+
+
+/**
+ * @js NA
+ * @lua NA
+ */
+class CC_DLL CCCopying
+{
+    GEODE_FRIEND_MODIFY
+public:
+    virtual CCObject* copyWithZone(CCZone* pZone)  { return 0; }
+};
+
 /**
  * This class is used to fix the problem of destructor recursion.
  */
 GEODE_ADD(
-	class GEODE_CC_DLL CCDestructor {
+	class GEODE_CC_DLL CCDestructor : public CCCopying {
 	private:
 		static inline auto& destructorLock() {
 			static std::unordered_map<void*, bool> ret;
@@ -79,19 +92,8 @@ GEODE_ADD(
 
 /**
  * @js NA
- * @lua NA
  */
-class CC_DLL CCCopying GEODE_ADD(: public CCDestructor)
-{
-    GEODE_FRIEND_MODIFY
-public:
-    virtual CCObject* copyWithZone(CCZone* pZone)  { return 0; }
-};
-
-/**
- * @js NA
- */
-class CC_DLL CCObject : public CCCopying
+class CC_DLL CCObject : public CCDestructor
 {
     GEODE_FRIEND_MODIFY
 public:
