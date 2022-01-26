@@ -175,6 +175,7 @@ namespace geode {
          * Low-level add hook
          */
         Result<Hook*> addHookBase(
+        	std::string_view displayName,
             void* addr,
             void* detour,
             Hook* hook = nullptr
@@ -257,6 +258,11 @@ namespace geode {
          * error
          */
         Result<Hook*> addHook(void* address, void* detour);
+
+        /**
+         * IDK too lazy to add documentation for ths
+         */
+        Result<Hook*> addHook(std::string_view displayName, void* address, void* detour);
 
         /**
          * Create a hook at an address with a detour

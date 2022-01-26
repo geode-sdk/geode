@@ -46,7 +46,7 @@ struct ${class_name} : {raw_class_name}, ModifierBase {{
 		constexpr auto derivedAddress{global_index} = (derivedType{global_index})(&D<baseAddress{global_index}, UUID>::{function_name});
         if (baseAddress{global_index} != derivedAddress{global_index}) {{
         	Interface::get()->logInfo("Adding hook at function {class_name}::{function_name}", Severity::Debug);
-            Interface::get()->addHook((void*)temp_name_find_better::address{global_index}(), (void*)addresser::get{non_virtual}Virtual(derivedAddress{global_index}));
+            Interface::get()->addHook("{class_name}::{function_name}", (void*)temp_name_find_better::address{global_index}(), (void*)addresser::get{non_virtual}Virtual(derivedAddress{global_index}));
         }}
 )CAC";
 
@@ -57,7 +57,7 @@ struct ${class_name} : {raw_class_name}, ModifierBase {{
 		constexpr auto derivedAddress{global_index} = (derivedType{global_index})(&D<baseAddress{global_index}, UUID>::{function_name});
         if (baseAddress{global_index} != derivedAddress{global_index}) {{
         	Interface::get()->logInfo("Adding hook at function {class_name}::{function_name}", Severity::Debug);
-            Interface::get()->addHook((void*)temp_name_find_better::address{global_index}(), (void*)addresser::get{non_virtual}Virtual(derivedAddress{global_index}));
+            Interface::get()->addHook("{class_name}::{function_name}", (void*)temp_name_find_better::address{global_index}(), (void*)addresser::get{non_virtual}Virtual(derivedAddress{global_index}));
         }}
 )CAC";
 
@@ -68,7 +68,7 @@ struct ${class_name} : {raw_class_name}, ModifierBase {{
 		constexpr auto derivedAddress{global_index} = (derivedType{global_index})(&D<baseAddress{global_index}, UUID>::{function_name});
         if (baseAddress{global_index} != derivedAddress{global_index}) {{
         	Interface::get()->logInfo("Adding hook at function {class_name}::{function_name}", Severity::Debug);
-            Interface::get()->addHook((void*)temp_name_find_better::address{global_index}(), (void*)addresser::getNonVirtual(derivedAddress{global_index}));
+            Interface::get()->addHook("{class_name}::{function_name}", (void*)temp_name_find_better::address{global_index}(), (void*)addresser::getNonVirtual(derivedAddress{global_index}));
         }}
 )CAC";
 

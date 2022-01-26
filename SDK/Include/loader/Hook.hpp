@@ -3,6 +3,7 @@
 #include "Macros.hpp"
 #include <inttypes.h>
 #include <utils/types.hpp>
+#include <string_view>
 
 namespace geode {
     class Mod;
@@ -11,6 +12,7 @@ namespace geode {
     class GEODE_DLL Hook {
     protected:
         Mod*  m_owner;
+        std::string_view m_displayName;
         void* m_address;
         void* m_detour;
         void* m_handle = nullptr;
