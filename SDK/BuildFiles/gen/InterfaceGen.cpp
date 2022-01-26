@@ -83,32 +83,29 @@ int main(int argc, char** argv) {
     auto root = CacShare::init(argc, argv);
     string output;
 
-    int global_index = 0;
-    int global_index2 = 0;
     for (auto& [name, c] : root.classes) {
         string unqualifiedName = CacShare::toUnqualified(name);
 
         output += fmt::format(format_strings::interface_start, fmt::arg("class_name", unqualifiedName), fmt::arg("raw_class_name", name));
 
         for (auto& f : c.functions) {
-        	++global_index;
         	if (f.name == "colorAllCharactersTo") cout << "colorAllCharactersTo " << CacShare::functionDefined(f) << endl;
             if (!CacShare::functionDefined(f))
                 continue; // Function not supported for this platform, skip it
-
+            string name;
             switch (f.function_type) {
             	case kDestructor:
-            		f.name = "destructor";
+            		name = "destructor";
             	case kConstructor:
-            		if (f.name != "destructor") f.name = "constructor";
+            		if (name != "destructor") name = "constructor";
             		output += fmt::format(format_strings::declare_structor,
 				        fmt::arg("arg_types", CacShare::formatArgTypes(f.args)),
 				        fmt::arg("raw_arg_types", CacShare::formatRawArgTypes(f.args)),
 				        fmt::arg("class_name", unqualifiedName),
 				        fmt::arg("const", f.is_const ? "const " : ""),
 				        fmt::arg("convention", CacShare::getConvention(f)),
-				        fmt::arg("function_name",f.name),
-				        fmt::arg("global_index",global_index),
+				        fmt::arg("function_name",name),
+				        fmt::arg("global_index",f.hash()),
 				        fmt::arg("parameters", CacShare::formatParameters(f.args.size())),
 				        fmt::arg("raw_args", CacShare::formatRawArgs(f.args)),
 				        fmt::arg("raw_parameters", CacShare::formatRawParameters(f.args.size()))
@@ -121,17 +118,19 @@ int main(int argc, char** argv) {
         output += format_strings::apply_start;
 
         for (auto& f : c.functions) {
-        	++global_index2;
             if (!CacShare::functionDefined(f))
                 continue; // Function not supported for this platform, skip it
 
             char const* used_format;
+            string name = f.name;
             switch (f.function_type) {
                 case kStaticFunction:
                     used_format = format_strings::apply_function_static;
                     break;
-                case kConstructor:
                 case kDestructor:
+            		name = "destructor";
+            	case kConstructor:
+            		if (name != "destructor") name = "constructor";
                     used_format = format_strings::apply_function_structor;
                     break;
                 default:
@@ -140,10 +139,10 @@ int main(int argc, char** argv) {
             }
 
             output += fmt::format(used_format,
-                fmt::arg("global_index",global_index2),
+                fmt::arg("global_index",f.hash()),
                 fmt::arg("class_name", unqualifiedName),
                 fmt::arg("arg_types", CacShare::formatArgTypes(f.args)),
-                fmt::arg("function_name", f.name),
+                fmt::arg("function_name", name),
                 fmt::arg("raw_arg_types", CacShare::formatRawArgTypes(f.args)),
                 fmt::arg("non_virtual", f.function_type == kVirtualFunction ? "" : "Non"),
                 fmt::arg("const", f.is_const ? "const " : "")

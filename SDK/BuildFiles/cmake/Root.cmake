@@ -16,7 +16,7 @@ function(create_geode_file proname)
 			"${CMAKE_CURRENT_SOURCE_DIR}/mod.json"
 			"$<TARGET_FILE_DIR:${proname}>/mod.json"
 			"${srcs}"
-		OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/modjsonbdf"
+		OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/Geode_prereqs"
 	)
 	if (GEODE_TARGET_PLATFORM STREQUAL "MacOS" OR GEODE_TARGET_PLATFORM STREQUAL "iOS")
 		set(GEODE_OUT_EXTENSION "${proname}.dylib")
@@ -33,7 +33,7 @@ function(create_geode_file proname)
 			"$<TARGET_FILE_NAME:${proname}>"
 			"${srcs}"
 		WORKING_DIRECTORY "$<TARGET_FILE_DIR:${proname}>"
-		OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/GeodeFile"
+		OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/Geode_file"
 		COMMAND ${CMAKE_COMMAND} -E echo "Creating zip file -> ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${proname}.geode"
 	)
 

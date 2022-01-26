@@ -123,15 +123,18 @@ template <typename T, typename A>
 T& operator->*(A* self, field_t<T>& member) {
     // this replaces the destructor in the vtable
     // only done this way to be performant
-    // if (A::getOriginalDestructor() == 0) {
-    //     auto& dtor = 2[*(size_t**)self]; // i love this
-    //     A::getOriginalDestructor() = dtor;
-    //     dtor = (size_t)&A::fieldCleanup;
-    // }
+    if (A::getOriginalDestructor() == 0) {
+        auto& dtor = 2[*(size_t**)self]; // i love this
+        A::getOriginalDestructor() = dtor;
+        dtor = (size_t)&A::fieldCleanup;
+    }
+
+    using container_t = geode::modify::container_t<T>;
+    using containervoid_t = geode::modify::container_t<void*>;
 
     // gets the respective field
-    geode::modify::container_t<>*& field = A::getAdditionalFields()[(uintptr_t)&member];
+    containervoid_t*& field = A::getAdditionalFields()[(uintptr_t)&member];
     // create the container on first use
-    if (!field) field = reinterpret_cast<geode::modify::container_t<>*>(new geode::modify::container_t<T>());
-    return reinterpret_cast<geode::modify::container_t<T>*>(field)->field;
+    if (!field) field = reinterpret_cast<containervoid_t*>(new container_t());
+    return reinterpret_cast<container_t*>(field)->field;
 }

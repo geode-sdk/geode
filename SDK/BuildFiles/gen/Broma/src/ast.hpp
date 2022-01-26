@@ -5,8 +5,11 @@
 #include <unordered_map>
 #include <algorithm>
 #include <iostream>
+#include <functional>
+#include <sstream>
+#include <iomanip>
 
-using std::vector, std::unordered_map, std::string, std::is_same_v, std::cout, std::cin, std::endl;
+using std::vector, std::unordered_map, std::string, std::is_same_v, std::cout, std::cin, std::endl, std::stringstream;
 
 struct ClassDefinition;
 
@@ -74,7 +77,7 @@ struct Function : ClassField {
 
 	bool is_defined;
 	string definition;
-	bool same(Function const& other) {
+	bool same(Function const& other) const {
 		if (name != other.name) return false;
 		// if (return_type != other.return_type) return false;
 		// if (is_const != other.is_const) return false;
@@ -89,6 +92,7 @@ struct Function : ClassField {
 		if (return_type == "void") return_type = other.return_type;
 		for (auto i = 0u; i < args.size(); ++i) args[i] = other.args[i];
 	}
+	inline string hash() const;
 };
 
 struct Member : ClassField {
@@ -161,3 +165,12 @@ struct Root {
 		return classes[name];
 	}
 };
+
+inline string Function::hash() const {
+	string argstring;
+	for (auto& s : args) argstring += s;
+	uint32_t hash = std::hash<std::string>{}(argstring + name + parent_class->name);
+	stringstream stream;
+	stream << std::setbase(16) << hash;
+	return stream.str();
+}
