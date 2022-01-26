@@ -153,6 +153,11 @@ public:
     friend class CCAutoreleasePool;
 };
 
+#define GEODE_DECL_FIXED_SIZE_HANDLER(name)     \
+    using Fixed_##name = std::conditional_t<    \
+        sizeof(SEL_##name) != sizeof(void*),    \
+        void*, SEL_##name                       \
+    >;
 
 typedef void (CCObject::*SEL_SCHEDULE)(float);
 typedef void (CCObject::*SEL_CallFunc)();
@@ -162,6 +167,15 @@ typedef void (CCObject::*SEL_CallFuncO)(CCObject*);
 typedef void (CCObject::*SEL_MenuHandler)(CCObject*);
 typedef void (CCObject::*SEL_EventHandler)(CCEvent*);
 typedef int (CCObject::*SEL_Compare)(CCObject*);
+
+GEODE_DECL_FIXED_SIZE_HANDLER(SCHEDULE);
+GEODE_DECL_FIXED_SIZE_HANDLER(CallFunc);
+GEODE_DECL_FIXED_SIZE_HANDLER(CallFuncN);
+GEODE_DECL_FIXED_SIZE_HANDLER(CallFuncND);
+GEODE_DECL_FIXED_SIZE_HANDLER(CallFuncO);
+GEODE_DECL_FIXED_SIZE_HANDLER(MenuHandler);
+GEODE_DECL_FIXED_SIZE_HANDLER(EventHandler);
+GEODE_DECL_FIXED_SIZE_HANDLER(Compare);
 
 #define schedule_selector(_SELECTOR) (SEL_SCHEDULE)(&_SELECTOR)
 #define callfunc_selector(_SELECTOR) (SEL_CallFunc)(&_SELECTOR)
