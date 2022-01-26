@@ -119,4 +119,9 @@ namespace geode::addresser {
 		Interface::get()->logInfo("Get non virtual function address from " + utils::intToHex(Addresser::pointerOf(func)), Severity::Debug);
 		return Addresser::addressOfNonVirtual(func);
 	}
+
+	template<typename T, typename F>
+	inline F thunkAdjust(T func, F self) {
+		return (F)((intptr_t)self + Addresser::thunkOf(func));
+	}
 }
