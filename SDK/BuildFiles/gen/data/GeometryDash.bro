@@ -485,6 +485,8 @@ class CCSpritePlus : cocos2d::CCSprite {
 }
 
 class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTextFieldDelegate {
+	inline CCTextInputNode() {}
+	inline ~CCTextInputNode() {}
 	void setLabelNormalColor(cocos2d::ccColor3B color) {
 	    m_textColor = color;
 	    this->refreshLabel();
@@ -546,7 +548,6 @@ class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTex
 	void updateLabel(struct gd::string) = mac 0x5d4a0, win 0x0, ios 0x0;
 	virtual void registerWithTouchDispatcher() = mac 0x5eec0, win 0x220e0, ios 0x0;
 	bool init(float, float, char const*, char const*, int, char const*) = mac 0x5d180, win 0x0, ios 0x0;
-	~CCTextInputNode() = mac 0x5ceb0, win 0x0, ios 0x0;
 	virtual void visit() = mac 0x5d380, win 0x21000, ios 0x0;
 	virtual bool ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x5ec80, win 0x1f20, ios 0x0;
 	virtual void ccTouchCancelled(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x5ee80, win 0x0, ios 0x0;
@@ -4514,6 +4515,7 @@ class TextAlertPopup {
 
 class TextArea : cocos2d::CCSprite {
 	TextArea() = mac 0x19fba0, win 0x33110;
+	inline TextArea(TextArea const&) : m_fontFile(nullptr) {}
 	inline ~TextArea() {}
 	virtual void draw() = mac 0x19f890, win 0x0, ios 0x0;
 	virtual void setOpacity(unsigned char) = mac 0x19f760, win 0x0, ios 0x0;

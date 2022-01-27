@@ -41,6 +41,13 @@ namespace geode {
         uintptr_t getAddress() const { return reinterpret_cast<uintptr_t>(m_address); }
 
         /**
+         * Get the display name of the function hooked.
+         * @returns Display name
+         * @author Alk, why is this here bruh
+         */
+        std::string_view getDisplayName() const { return m_displayName; }
+
+        /**
          * Get whether the hook is enabled or not.
          * @returns True if enabled, false if not.
          * @author HJfod
