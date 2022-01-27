@@ -142,14 +142,14 @@ class BoomListView : cocos2d::CCLayer, TableViewDelegate, TableViewDataSource {
 	virtual void TableViewWillDisplayCellForRowAtIndexPath(CCIndexPath&, TableViewCell*, TableView*) = mac 0x18f030, win 0x0, ios 0x0;
 	virtual float cellHeightForRowAtIndexPath(CCIndexPath&, TableView*) = mac 0x18f070, win 0x10e50, ios 0x0;
 	virtual int numberOfRowsInSection(unsigned int, TableView*) = mac 0x18f0b0, win 0x10e60, ios 0x0;
-	virtual void numberOfSectionsInTableView(TableView*) = mac 0x18f0e0, win 0x0, ios 0x0;
+	virtual unsigned int numberOfSectionsInTableView(TableView*) = mac 0x18f0e0, win 0x10a70, ios 0x0;
 	virtual TableViewCell* cellForRowAtIndexPath(CCIndexPath&, TableView*) = mac 0x18f100, win 0x10e70, ios 0x0;
 	virtual void TableViewCommitCellEditingStyleForRowAtIndexPath(TableView*, TableViewCellEditingStyle, CCIndexPath&) = mac 0x18f770, win 0x0, ios 0x0;
 	virtual void TableViewWillReloadCellForRowAtIndexPath(CCIndexPath&, TableViewCell*, TableView*) = mac 0x18f050, win 0x0, ios 0x0;
 	virtual TableViewCell* getListCell(const char*) = mac 0x18f200, win 0x10ed0, ios 0x0;
 	virtual void loadCell(TableViewCell*, unsigned int) = mac 0x18f4a0, win 0x10ff0, ios 0x0;
 	inline bool init(cocos2d::CCArray* entries, BoomListType type, float width, float height) {
-		return this->init(entries, width, height, 0, type);
+		return this->init(entries, height, width, 0, type);
 	}
 
 	TableView* m_tableView;
@@ -4465,7 +4465,7 @@ class TableViewCell : cocos2d::CCLayer {
 
 class TableViewDataSource {
 	virtual int numberOfRowsInSection(unsigned int, TableView*) { return 0; }
-	virtual void numberOfSectionsInTableView(TableView*) {}
+	virtual unsigned int numberOfSectionsInTableView(TableView*) { return 0; }
 	virtual void TableViewCommitCellEditingStyleForRowAtIndexPath(TableView*, TableViewCellEditingStyle, CCIndexPath&) {}
 	virtual TableViewCell* cellForRowAtIndexPath(CCIndexPath&, TableView*) { return nullptr; }
 }
@@ -4497,7 +4497,7 @@ class TextArea : cocos2d::CCSprite {
 	virtual void draw() = mac 0x19f890, win 0x0, ios 0x0;
 	virtual void setOpacity(unsigned char) = mac 0x19f760, win 0x0, ios 0x0;
 	bool init(gd::string p0, char const* p1, float p2, float p3, cocos2d::CCPoint p4, float p5, bool p6) = mac 0x19ec70, win 0x33370;
-	static TextArea* create(gd::string p0, char const* p1, float p2, float p3, cocos2d::CCPoint p4, float p5, bool p6) {
+	static TextArea* create(gd::string const& p0, char const* p1, float p2, float p3, cocos2d::CCPoint const& p4, float p5, bool p6) {
 		auto ret = new TextArea();
 	    if (ret->init(p0, p1, p2, p3, p4, p5, p6)) {
 	        ret->autorelease();
