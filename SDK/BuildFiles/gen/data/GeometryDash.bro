@@ -397,7 +397,7 @@ class CCScrollLayerExt : cocos2d::CCLayer {
 	 * IDK
 	 */
 	")]]
-	static CCScrollLayerExt* create(struct cocos2d::CCRect rect, bool vertical) {
+	static CCScrollLayerExt* create(cocos2d::CCRect rect, bool vertical) {
 	    auto pRet = new CCScrollLayerExt(rect);
 	
 	    if (pRet) {
@@ -4502,7 +4502,7 @@ class TextAlertPopup {
 }
 
 class TextArea : cocos2d::CCSprite {
-	inline TextArea() {}
+	TextArea() = mac 0x19fba0, win 0x33110;
 	inline ~TextArea() {}
 	virtual void draw() = mac 0x19f890, win 0x0, ios 0x0;
 	virtual void setOpacity(unsigned char) = mac 0x19f760, win 0x0, ios 0x0;
