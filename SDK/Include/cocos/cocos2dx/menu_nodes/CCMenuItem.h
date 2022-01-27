@@ -112,7 +112,7 @@ public:
 
 public:
     CCObject*       m_pListener;
-    Fixed_MenuHandler    m_pfnSelector;
+    SEL_MenuHandler m_pfnSelector;
     int             m_nScriptTapHandler;
 };
 

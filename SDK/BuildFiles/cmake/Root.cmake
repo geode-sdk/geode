@@ -34,7 +34,7 @@ function(create_geode_file proname)
 			"${srcs}"
 		WORKING_DIRECTORY "$<TARGET_FILE_DIR:${proname}>"
 		OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/Geode_file"
-		COMMAND ${CMAKE_COMMAND} -E echo "Creating zip file -> ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${proname}.geode"
+		#COMMAND ${CMAKE_COMMAND} -E echo "Creating zip file -> ${CMAKE_CURRENT_BINARY_DIR}/${proname}.geode"
 	)
 
 	add_custom_target(${proname}_package ALL
