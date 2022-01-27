@@ -397,7 +397,7 @@ class CCScrollLayerExt : cocos2d::CCLayer {
 	 * IDK
 	 */
 	")]]
-	static CCScrollLayerExt* create(struct cocos2d::CCRect rect, bool vertical) {
+	static CCScrollLayerExt* create(cocos2d::CCRect rect, bool vertical) {
 	    auto pRet = new CCScrollLayerExt(rect);
 	
 	    if (pRet) {
@@ -1667,7 +1667,16 @@ class GJCommentListLayer : cocos2d::CCLayerColor {
 
 class GJDropDownLayer : cocos2d::CCLayerColor {
 	virtual void customSetup() {}
+	virtual void enterLayer() = mac 0x3525c0, win 0x16970, ios 0x0;
+	virtual void exitLayer(cocos2d::CCObject*) = mac 0x352670, win 0x113980, ios 0x0;
+	virtual void showLayer(bool) = mac 0x3526c0, win 0x1139c0, ios 0x0;
+	virtual void hideLayer(bool) = mac 0x3527b0, win 0x113a90, ios 0x0;
+	virtual void layerVisible() = mac 0x3528b0, win 0x16a40, ios 0x0;
+	virtual void layerHidden() = mac 0x3528d0, win 0x113b60, ios 0x0;
 	virtual void enterAnimFinished() {}
+	virtual void disableUI() = mac 0x352580, win 0x113920, ios 0x0;
+	virtual void enableUI() = mac 0x3525a0, win 0x113940, ios 0x0;
+
 	static GJDropDownLayer* create(const char* title, float height) {
 	    GJDropDownLayer* pRet = new GJDropDownLayer();
 	    if (pRet && pRet->init(title, height)) {
@@ -1677,26 +1686,19 @@ class GJDropDownLayer : cocos2d::CCLayerColor {
 		CC_SAFE_DELETE(pRet);
 		return nullptr;
 	}
-	bool ccTouchBegan(cocos2d::CCTouch* pTouch, cocos2d::CCEvent* pEvent) {
+	
+	virtual bool ccTouchBegan(cocos2d::CCTouch* pTouch, cocos2d::CCEvent* pEvent) {
 	    return true;
 	}
-	void ccTouchMoved(cocos2d::CCTouch* pTouch, cocos2d::CCEvent* pEvent) {}
-	void ccTouchEnded(cocos2d::CCTouch* pTouch, cocos2d::CCEvent* pEvent) {}
-	void ccTouchCancelled(cocos2d::CCTouch* pTouch, cocos2d::CCEvent* pEvent) {}
+	virtual void ccTouchMoved(cocos2d::CCTouch* pTouch, cocos2d::CCEvent* pEvent) {}
+	virtual void ccTouchEnded(cocos2d::CCTouch* pTouch, cocos2d::CCEvent* pEvent) {}
+	virtual void ccTouchCancelled(cocos2d::CCTouch* pTouch, cocos2d::CCEvent* pEvent) {}
 
-	virtual void enterLayer() = mac 0x3525c0, win 0x16970, ios 0x0;
-	virtual void exitLayer(cocos2d::CCObject*) = mac 0x352670, win 0x113980, ios 0x0;
-	virtual void showLayer(bool) = mac 0x3526c0, win 0x1139c0, ios 0x0;
-	virtual void hideLayer(bool) = mac 0x3527b0, win 0x113a90, ios 0x0;
-	virtual void layerVisible() = mac 0x3528b0, win 0x16a40, ios 0x0;
-	virtual void layerHidden() = mac 0x3528d0, win 0x113b60, ios 0x0;
-	virtual void disableUI() = mac 0x352580, win 0x113920, ios 0x0;
-	virtual void enableUI() = mac 0x3525a0, win 0x113940, ios 0x0;
 	virtual void draw() = mac 0x352910, win 0x16a80, ios 0x0;
 	bool init(const char* title, float height) = mac 0x352100, win 0x113530, ios 0x0;
 	virtual void registerWithTouchDispatcher() = mac 0x3525f0, win 0x16990, ios 0x0;
 	virtual void keyBackClicked() = mac 0x352630, win 0x113960, ios 0x0;
-	GJDropDownLayer() = mac 0x0, win 0x038470, ios 0x0;
+	GJDropDownLayer() = mac 0x0, win 0x38470, ios 0x0;
 
 	cocos2d::CCPoint m_endPosition;
 	cocos2d::CCPoint m_startPosition;
@@ -2961,8 +2963,8 @@ class GameStatsManager : cocos2d::CCNode {
 }
 
 class GameToolbox {
-	static CCMenuItemToggler createToggleButton(struct gd::string, cocos2d::SEL_MenuHandler, bool, cocos2d::CCMenu*, struct cocos2d::CCPoint, cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCArray*) = mac 0x0, win 0x0, ios 0x0;
-	static CCMenuItemToggler createToggleButton(struct gd::string, cocos2d::SEL_MenuHandler, bool, cocos2d::CCMenu*, struct cocos2d::CCPoint, cocos2d::CCNode*, cocos2d::CCNode*, float, float, float, struct cocos2d::CCPoint, const char*, bool, int, cocos2d::CCArray*) = mac 0x28bdd0, win 0x25fe0, ios 0x0;
+	static CCMenuItemToggler createToggleButton(struct gd::string text, cocos2d::SEL_MenuHandler onToggled, bool isToggled, cocos2d::CCMenu* toggleMenu, struct cocos2d::CCPoint position, cocos2d::CCNode* callbackTarget, cocos2d::CCNode* labelParent, cocos2d::CCArray* toggleArray) = mac 0x0, win 0x0, ios 0x0;
+	static CCMenuItemToggler createToggleButton(cocos2d::SEL_MenuHandler onToggled, bool isToggled, cocos2d::CCMenu* toggleMenu, cocos2d::CCNode* callbackTarget, cocos2d::CCNode* labelParent, float checkboxScale, float labelSize, float maxWidth, const char* unknown, bool unknownBool, int toggleTag, cocos2d::CCArray* toggleArray, struct gd::string text, struct cocos2d::CCPoint position, struct cocos2d::CCPoint labelOffset) = mac 0x28bdd0, win 0x25fe0, ios 0x0;
 	static void transformColor(cocos2d::ccColor3B* src, cocos2d::ccColor3B* dest, cocos2d::ccHSVValue hsv) = mac 0x0, win 0x26a60, ios 0x0;
 	static void alignItemsHorisontally(cocos2d::CCArray* array, bool idk, struct cocos2d::CCPoint start, float pad) = mac 0x0, win 0x25b20, ios 0x0;
 }
@@ -4500,7 +4502,7 @@ class TextAlertPopup {
 }
 
 class TextArea : cocos2d::CCSprite {
-	inline TextArea() {}
+	TextArea() = mac 0x19fba0, win 0x33110;
 	inline ~TextArea() {}
 	// this is temporary
 	void constructor() = mac 0x19fba0, win 0x0, ios 0x0;
