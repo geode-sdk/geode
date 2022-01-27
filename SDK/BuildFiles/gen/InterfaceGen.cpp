@@ -89,7 +89,6 @@ int main(int argc, char** argv) {
         output += fmt::format(format_strings::interface_start, fmt::arg("class_name", unqualifiedName), fmt::arg("raw_class_name", name));
 
         for (auto& f : c.functions) {
-        	if (f.name == "colorAllCharactersTo") cout << "colorAllCharactersTo " << CacShare::functionDefined(f) << endl;
             if (!CacShare::functionDefined(f))
                 continue; // Function not supported for this platform, skip it
             string name;

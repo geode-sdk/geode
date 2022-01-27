@@ -16,6 +16,7 @@ namespace geode {
 
     static constexpr const std::string_view geode_directory          = "geode";
     static constexpr const std::string_view geode_mod_directory      = "mods";
+    static constexpr const std::string_view geode_api_mod_directory  = "api";
     static constexpr const std::string_view geode_resource_directory = "resources";
     static constexpr const std::string_view geode_temp_directory     = "temp";
     static constexpr const std::string_view geode_mod_extension      = ".geode";
