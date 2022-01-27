@@ -4467,7 +4467,7 @@ class TableViewCell : cocos2d::CCLayer {
 	float m_height;
 	cocos2d::CCLayerColor* m_backgroundLayer;
 	cocos2d::CCLayer* m_mainLayer;
-	PAD = mac 0x0, win 0x4, android 0x0;
+	PAD = mac 0x30, win 0x4, android 0x0;
 }
 
 class TableViewDataSource {
@@ -4502,11 +4502,15 @@ class TextAlertPopup {
 class TextArea : cocos2d::CCSprite {
 	inline TextArea() {}
 	inline ~TextArea() {}
+	// this is temporary
+	void constructor() = mac 0x19fba0, win 0x0, ios 0x0;
 	virtual void draw() = mac 0x19f890, win 0x0, ios 0x0;
 	virtual void setOpacity(unsigned char) = mac 0x19f760, win 0x0, ios 0x0;
 	bool init(struct gd::string str, char const* font, float width, float height, struct cocos2d::CCPoint anchor, float scale, bool disableColor) = mac 0x19ec70, win 0x33370;
 	static TextArea* create(gd::string const& str, char const* font, float width, float height, cocos2d::CCPoint const& anchor, float scale, bool disableColor) {
-		auto ret = new TextArea();
+		auto ret = new TextArea;
+		// this is temporary
+		ret->constructor();
 	    if (ret->init(str, font, width, height, anchor, scale, disableColor)) {
 	        ret->autorelease();
 	        return ret;
@@ -4523,6 +4527,7 @@ class TextArea : cocos2d::CCSprite {
 	int m_unknown;					// 0x1f0
 	gd::string m_fontFile;			// 0x1f4
 	float m_height;					// 0x20c
+	PAD = mac 0x30;
 }
 
 class TextInputDelegate {

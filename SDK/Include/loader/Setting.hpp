@@ -92,8 +92,8 @@ namespace geode {
 	template<typename T, class SettingClass>
 	class SingleSetting : public GeodeSetting<SettingClass> {
 	protected: 
-		T m_value;
-		T m_default;
+		T m_value = T();
+		T m_default = T();
 
 	public:
 		T getValue() const { return m_value; }
