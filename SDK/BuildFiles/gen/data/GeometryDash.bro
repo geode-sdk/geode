@@ -1675,10 +1675,8 @@ class GJDropDownLayer : cocos2d::CCLayerColor {
 	        pRet->autorelease();
 	        return pRet;
 	    }
-	    else {
-	        CC_SAFE_DELETE(pRet);
-	        return nullptr;
-	    }
+		CC_SAFE_DELETE(pRet);
+		return nullptr;
 	}
 	bool ccTouchBegan(cocos2d::CCTouch* pTouch, cocos2d::CCEvent* pEvent) {
 	    return true;
@@ -1696,7 +1694,7 @@ class GJDropDownLayer : cocos2d::CCLayerColor {
 	virtual void disableUI() = mac 0x352580, win 0x113920, ios 0x0;
 	virtual void enableUI() = mac 0x3525a0, win 0x113940, ios 0x0;
 	virtual void draw() = mac 0x352910, win 0x16a80, ios 0x0;
-	bool init(const char*, float) = mac 0x352100, win 0x113530, ios 0x0;
+	bool init(const char* title, float height) = mac 0x352100, win 0x113530, ios 0x0;
 	virtual void registerWithTouchDispatcher() = mac 0x3525f0, win 0x16990, ios 0x0;
 	virtual void keyBackClicked() = mac 0x352630, win 0x113960, ios 0x0;
 	GJDropDownLayer() = mac 0x0, win 0x038470, ios 0x0;
@@ -3358,6 +3356,8 @@ class MoreVideoOptionsLayer : FLAlertLayer {
 	virtual bool init() = mac 0x444150, win 0x0, ios 0x0;
 }
 
+class MultilineBitmapFont : cocos2d::CCSprite {}
+
 class MusicDownloadDelegate {}
 
 class MusicDownloadManager : cocos2d::CCNode, PlatformDownloadDelegate {
@@ -4494,12 +4494,13 @@ class TextAlertPopup {
 
 class TextArea : cocos2d::CCSprite {
 	~TextArea() = mac 0x19faa0, win 0x0, ios 0x0;
+	TextArea() = mac 0x0, win 0x33110, ios 0x0;
 	virtual void draw() = mac 0x19f890, win 0x0, ios 0x0;
 	virtual void setOpacity(unsigned char) = mac 0x19f760, win 0x0, ios 0x0;
-	bool init(gd::string p0, char const* p1, float p2, float p3, cocos2d::CCPoint p4, float p5, bool p6) = mac 0x19ec70, win 0x33370;
-	static TextArea* create(gd::string const& p0, char const* p1, float p2, float p3, cocos2d::CCPoint const& p4, float p5, bool p6) {
+	bool init(struct gd::string str, char const* font, float width, float height, struct cocos2d::CCPoint anchor, float scale, bool disableColor) = mac 0x19ec70, win 0x33370;
+	static TextArea* create(gd::string const& str, char const* font, float width, float height, cocos2d::CCPoint const& anchor, float scale, bool disableColor) {
 		auto ret = new TextArea();
-	    if (ret->init(p0, p1, p2, p3, p4, p5, p6)) {
+	    if (ret->init(str, font, width, height, anchor, scale, disableColor)) {
 	        ret->autorelease();
 	        return ret;
 	    }
@@ -4508,6 +4509,13 @@ class TextArea : cocos2d::CCSprite {
 	}
 	void colorAllCharactersTo(cocos2d::ccColor3B color) = mac 0x0, win 0x33830, ios 0x0;
 	void setString(gd::string const& str) = mac 0x0, win 0x33480, ios 0x0;
+
+	bool m_disableColor;			// 0x1e4
+	MultilineBitmapFont* m_label;	// 0x1e8
+	float m_width;					// 0x1ec
+	int m_unknown;					// 0x1f0
+	std::string m_fontFile;			// 0x1f4
+	float m_height;					// 0x20c
 }
 
 class TextInputDelegate {

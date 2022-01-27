@@ -173,6 +173,24 @@ struct CacShare {
         }
     }
 
+    static string formatParameters(vector<int> const& params, vector<string> const& names) {
+        if (params.size()) {
+            vector<string> c;
+            for (auto i : params) {
+                if (i < static_cast<int>(names.size())) {
+                    if (names[i] != "") {
+                        c.push_back(names[i]);
+                        continue;
+                    }
+                }
+                c.push_back(fmt::format("p{}", i));
+            }
+            return fmt::format("{}", fmt::join(c, ", "));
+        } else {
+            return "";
+        }
+    }
+
     static string formatRawParameters(vector<int> const& params) {
         if (params.size()) {
             vector<string> c;
