@@ -66,6 +66,15 @@ namespace geode {
 	#endif
 	#define GEODE_API extern "C" __declspec(dllexport)
 	#define GEODE_EXPORT __declspec(dllexport)
+
+	#define GEODE_INIT() \
+	void geode_main(Mod* mod); \
+	extern "C" __declspec(dllexport) bool __stdcall geode_load(Mod* mod) { \
+		Interface::get()->init(mod); \
+		geode_main(mod); \
+		return true; \
+	} \
+	extern "C" __declspec(dllexport) void __stdcall geode_unload() {}
 	
 	#include "platform/windows.hpp"
 
@@ -94,6 +103,15 @@ namespace geode {
 	#define GEODE_API extern "C" __attribute__((visibility("default")))
 	#define GEODE_EXPORT __attribute__((visibility("default")))
 
+	#define GEODE_INIT() \
+	void geode_main(Mod* mod); \
+	extern "C" __attribute__((visibility("default"))) bool /*__stdcall?*/ geode_load(Mod* mod) { \
+		Interface::get()->init(mod); \
+		geode_main(mod); \
+		return true; \
+	} \
+	extern "C" __attribute__((visibility("default"))) void /*__stdcall?*/ geode_unload() {}
+
 	#include <platform/macos.hpp>
 
 #else
@@ -116,6 +134,15 @@ namespace geode {
 	#define GEODE_DLL
 	#define GEODE_API extern "C" __attribute__((visibility("default")))
 	#define GEODE_EXPORT __attribute__((visibility("default")))
+
+	#define GEODE_INIT() \
+	void geode_main(Mod* mod); \
+	extern "C" __attribute__((visibility("default"))) bool /*__stdcall?*/ geode_load(Mod* mod) { \
+		Interface::get()->init(mod); \
+		geode_main(mod); \
+		return true; \
+	} \
+	extern "C" __attribute__((visibility("default"))) void /*__stdcall?*/ geode_unload() {}
 
 	#error "Implement platform/ios.hpp please"
 
@@ -142,6 +169,15 @@ namespace geode {
 	#define GEODE_DLL
 	#define GEODE_API extern "C" __attribute__((visibility("default")))
 	#define GEODE_EXPORT __attribute__((visibility("default")))
+
+	#define GEODE_INIT() \
+	void geode_main(Mod* mod); \
+	extern "C" __attribute__((visibility("default"))) bool /*__stdcall?*/ geode_load(Mod* mod) { \
+		Interface::get()->init(mod); \
+		geode_main(mod); \
+		return true; \
+	} \
+	extern "C" __attribute__((visibility("default"))) void /*__stdcall?*/ geode_unload() {}
 
 	#error "Implement platform/android.hpp please"
 
