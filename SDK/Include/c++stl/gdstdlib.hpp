@@ -10,6 +10,10 @@
 
 // my girl recreating the entirety of 10.7 stl
 
+namespace geode::base {
+	uintptr_t get();
+}
+
 #if defined(CC_TARGET_OS_MAC) || defined(CC_TARGET_OS_ANDROID)
 namespace gd {
 	struct _internal_string {
@@ -19,18 +23,28 @@ namespace gd {
 	};
 
 	class string {
-	 public:
-		string() : string("") {}
+	public:
+ 	#if defined(CC_TARGET_OS_MAC) 
+		static inline auto _S_empty_rep_storage = (_internal_string*)(geode::base::get() + 0x6030d0);
+		static inline auto _M_destroy = (void(*)(string* , _internal_string*))(geode::base::get() + 0x48b03c);
+		static inline auto _ZNSsC1ERKSs = (void(*)(string* , string const&))(geode::base::get() + 0x48b0c8);
+		static inline auto _ZNSsC1EPKcRKSaIcE = (void(*)(string* , char const*))(geode::base::get() + 0x48b0b4);
+ 	#endif
+
+		string() {
+			m_data = &_S_empty_rep_storage[1];
+		}
 		string(char const* ok) {
 			if (!ok) return; // lol
-			std::string stub = std::string(ok);
+			_ZNSsC1EPKcRKSaIcE(this, ok);
+			// std::string stub = std::string(ok);
 
-			// +1 is because our camila friend forgot the null terminator
-			m_data = reinterpret_cast<_internal_string*>((long)::operator new(sizeof(_internal_string) + stub.capacity()) + sizeof(_internal_string));
-			m_data[-1].m_len = stub.size();
-			m_data[-1].m_capacity = stub.capacity();
-			m_data[-1].m_refcount = 0;
-			strncpy((char*)m_data, ok, stub.capacity());
+			// // +1 is because our camila friend forgot the null terminator
+			// m_data = reinterpret_cast<_internal_string*>((long)::operator new(sizeof(_internal_string) + stub.capacity()) + sizeof(_internal_string));
+			// m_data[-1].m_len = stub.size();
+			// m_data[-1].m_capacity = stub.capacity();
+			// m_data[-1].m_refcount = 0;
+			// strncpy((char*)m_data, ok, stub.capacity());
 		}
 		string(std::string ok) : string(ok.c_str()) {}
 		operator std::string() {
@@ -39,11 +53,14 @@ namespace gd {
 		operator std::string() const {
 			return std::string((char*)m_data, m_data[-1].m_len);
 		}
-		string(string const& lol) : string(const_cast<string&>(lol).c_str()) {}
+		string(string const& ok) {
+			_ZNSsC1ERKSs(this, ok);
+		}
 		__attribute__((noinline)) ~string() {
+			if (m_data == &_S_empty_rep_storage[1]) return;
 			--m_data[-1].m_refcount;
-			if (m_data[-1].m_refcount <= 0 && m_data[-1].m_capacity > 0) {
-				::operator delete(&m_data[-1]);
+			if (m_data[-1].m_refcount < 1) {
+				_M_destroy(this, &m_data[-1]);
 			}
 		}
 		char const* c_str() {return (char const*)m_data; }

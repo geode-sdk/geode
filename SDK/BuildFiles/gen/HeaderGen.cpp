@@ -140,7 +140,7 @@ int main(int argc, char** argv) {
                 fmt::arg("raw_args", CacShare::formatRawArgs(f.args, f.argnames)),
                 fmt::arg("const", f.is_const ? " const" : ""),
                 fmt::arg("fixed_raw_args", CacShare::formatRawArgs(fix_args)),
-                fmt::arg("fixed_raw_params", CacShare::formatRawParameters(reordered_args))
+                fmt::arg("fixed_raw_params", CacShare::formatParameters(reordered_args, f.argnames))
             );
         }
 

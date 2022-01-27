@@ -142,14 +142,14 @@ class BoomListView : cocos2d::CCLayer, TableViewDelegate, TableViewDataSource {
 	virtual float cellHeightForRowAtIndexPath(CCIndexPath&, TableView*) = mac 0x18f070, win 0x10e50, ios 0x0;
 	virtual void didSelectRowAtIndexPath(CCIndexPath&, TableView*) {}
 	virtual int numberOfRowsInSection(unsigned int, TableView*) = mac 0x18f0b0, win 0x10e60, ios 0x0;
-	virtual void numberOfSectionsInTableView(TableView*) = mac 0x18f0e0, win 0x0, ios 0x0;
+	virtual unsigned int numberOfSectionsInTableView(TableView*) = mac 0x18f0e0, win 0x10a70, ios 0x0;
 	virtual TableViewCell* cellForRowAtIndexPath(CCIndexPath&, TableView*) = mac 0x18f100, win 0x10e70, ios 0x0;
 	virtual void TableViewCommitCellEditingStyleForRowAtIndexPath(TableView*, TableViewCellEditingStyle, CCIndexPath&) = mac 0x18f770, win 0x0, ios 0x0;
 	virtual void TableViewWillReloadCellForRowAtIndexPath(CCIndexPath&, TableViewCell*, TableView*) = mac 0x18f050, win 0x0, ios 0x0;
 	virtual TableViewCell* getListCell(const char*) = mac 0x18f200, win 0x10ed0, ios 0x0;
 	virtual void loadCell(TableViewCell*, unsigned int) = mac 0x18f4a0, win 0x10ff0, ios 0x0;
 	inline bool init(cocos2d::CCArray* entries, BoomListType type, float width, float height) {
-		return this->init(entries, width, height, 0, type);
+		return this->init(entries, height, width, 0, type);
 	}
 
 	TableView* m_tableView;
@@ -1674,10 +1674,8 @@ class GJDropDownLayer : cocos2d::CCLayerColor {
 	        pRet->autorelease();
 	        return pRet;
 	    }
-	    else {
-	        CC_SAFE_DELETE(pRet);
-	        return nullptr;
-	    }
+		CC_SAFE_DELETE(pRet);
+		return nullptr;
 	}
 	bool ccTouchBegan(cocos2d::CCTouch* pTouch, cocos2d::CCEvent* pEvent) {
 	    return true;
@@ -1695,7 +1693,7 @@ class GJDropDownLayer : cocos2d::CCLayerColor {
 	virtual void disableUI() = mac 0x352580, win 0x113920, ios 0x0;
 	virtual void enableUI() = mac 0x3525a0, win 0x113940, ios 0x0;
 	virtual void draw() = mac 0x352910, win 0x16a80, ios 0x0;
-	bool init(const char*, float) = mac 0x352100, win 0x113530, ios 0x0;
+	bool init(const char* title, float height) = mac 0x352100, win 0x113530, ios 0x0;
 	virtual void registerWithTouchDispatcher() = mac 0x3525f0, win 0x16990, ios 0x0;
 	virtual void keyBackClicked() = mac 0x352630, win 0x113960, ios 0x0;
 	GJDropDownLayer() = mac 0x0, win 0x038470, ios 0x0;
@@ -2663,7 +2661,7 @@ class GameObject : CCSpritePlus {
 	virtual void setStartPos(struct cocos2d::CCPoint) = mac 0x2fa520, win 0x0, ios 0x0;
 	virtual void updateStartValues() = mac 0x2fa800, win 0x0, ios 0x0;
 	virtual void customObjectSetup() = mac 0xdc1a0, win 0x0, ios 0x0;
-	virtual struct gd::string getSaveString() = mac 0x33d3d0, win 0xed0c0, ios 0x0;
+	virtual gd::string getSaveString() = mac 0x33d3d0, win 0xed0c0, ios 0x0;
 	virtual bool isFlipX() = mac 0x335a40, win 0x0, ios 0x0;
 	virtual bool isFlipY() = mac 0x335a50, win 0x0, ios 0x0;
 	virtual void setRScaleX(float) = mac 0x335cb0, win 0x0, ios 0x0;
@@ -3356,6 +3354,8 @@ class MoreVideoOptionsLayer : FLAlertLayer {
 	static MoreVideoOptionsLayer* create() = mac 0x443c10, win 0x0, ios 0x0;
 	virtual bool init() = mac 0x444150, win 0x0, ios 0x0;
 }
+
+class MultilineBitmapFont : cocos2d::CCSprite {}
 
 class MusicDownloadDelegate {}
 
@@ -4472,7 +4472,7 @@ class TableViewCell : cocos2d::CCLayer {
 
 class TableViewDataSource {
 	virtual int numberOfRowsInSection(unsigned int, TableView*) { return 0; }
-	virtual void numberOfSectionsInTableView(TableView*) {}
+	virtual unsigned int numberOfSectionsInTableView(TableView*) { return 0; }
 	virtual void TableViewCommitCellEditingStyleForRowAtIndexPath(TableView*, TableViewCellEditingStyle, CCIndexPath&) {}
 	virtual TableViewCell* cellForRowAtIndexPath(CCIndexPath&, TableView*) { return nullptr; }
 }
@@ -4500,14 +4500,14 @@ class TextAlertPopup {
 }
 
 class TextArea : cocos2d::CCSprite {
-	TextArea() = mac 0x19fba0, win 0x0, ios 0x0;
-	~TextArea() = mac 0x19faa0, win 0x0, ios 0x0;
+	inline TextArea() {}
+	inline ~TextArea() {}
 	virtual void draw() = mac 0x19f890, win 0x0, ios 0x0;
 	virtual void setOpacity(unsigned char) = mac 0x19f760, win 0x0, ios 0x0;
-	bool init(struct gd::string p0, char const* p1, float p2, float p3, struct cocos2d::CCPoint p4, float p5, bool p6) = mac 0x19ec70, win 0x33370;
-	static TextArea* create(gd::string const& p0, char const* p1, float p2, float p3, cocos2d::CCPoint const& p4, float p5, bool p6) {
+	bool init(struct gd::string str, char const* font, float width, float height, struct cocos2d::CCPoint anchor, float scale, bool disableColor) = mac 0x19ec70, win 0x33370;
+	static TextArea* create(gd::string const& str, char const* font, float width, float height, cocos2d::CCPoint const& anchor, float scale, bool disableColor) {
 		auto ret = new TextArea();
-	    if (ret->init(p0, p1, p2, p3, p4, p5, p6)) {
+	    if (ret->init(str, font, width, height, anchor, scale, disableColor)) {
 	        ret->autorelease();
 	        return ret;
 	    }
@@ -4515,7 +4515,14 @@ class TextArea : cocos2d::CCSprite {
 	    return nullptr;
 	}
 	void colorAllCharactersTo(cocos2d::ccColor3B color) = mac 0x0, win 0x33830, ios 0x0;
-	void setString(gd::string const& str) = mac 0x0, win 0x33480, ios 0x0;
+	void setString(gd::string str) = mac 0x19eda0, win 0x33480, ios 0x0;
+
+	bool m_disableColor;			// 0x1e4
+	MultilineBitmapFont* m_label;	// 0x1e8
+	float m_width;					// 0x1ec
+	int m_unknown;					// 0x1f0
+	gd::string m_fontFile;			// 0x1f4
+	float m_height;					// 0x20c
 }
 
 class TextInputDelegate {
