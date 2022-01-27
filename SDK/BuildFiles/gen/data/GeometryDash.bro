@@ -485,6 +485,8 @@ class CCSpritePlus : cocos2d::CCSprite {
 }
 
 class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTextFieldDelegate {
+	inline CCTextInputNode() {}
+	inline ~CCTextInputNode() {}
 	void setLabelNormalColor(cocos2d::ccColor3B color) {
 	    m_textColor = color;
 	    this->refreshLabel();
@@ -527,15 +529,18 @@ class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTex
 	    m_delegate = delegate;
 	}
 	static CCTextInputNode* create(float width, float height, char const* placeholder, char const* fontPath) {
-		return create(width, height, placeholder, "Thonburi", 0x18, fontPath);
+		auto ret = new CCTextInputNode();
+	    if (ret->init(width, height, placeholder, "Thonburi", 0x18, fontPath)) {
+	        ret->autorelease();
+	        return ret;
+	    }
+	    CC_SAFE_DELETE(ret);
+	    return nullptr;
 	}
-
-	static CCTextInputNode* create(float, float, char const*, char const*, int maxCharCount, char const*) = mac 0x5cfb0, win 0x20d90, ios 0x0;
 	void refreshLabel() = mac 0x5d730, win 0x21330, ios 0x0;
 	void updateLabel(struct gd::string) = mac 0x5d4a0, win 0x0, ios 0x0;
 	virtual void registerWithTouchDispatcher() = mac 0x5eec0, win 0x220e0, ios 0x0;
 	bool init(float, float, char const*, char const*, int, char const*) = mac 0x5d180, win 0x0, ios 0x0;
-	~CCTextInputNode() = mac 0x5ceb0, win 0x0, ios 0x0;
 	virtual void visit() = mac 0x5d380, win 0x21000, ios 0x0;
 	virtual bool ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x5ec80, win 0x1f20, ios 0x0;
 	virtual void ccTouchCancelled(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x5ee80, win 0x0, ios 0x0;
@@ -4503,16 +4508,13 @@ class TextAlertPopup {
 
 class TextArea : cocos2d::CCSprite {
 	TextArea() = mac 0x19fba0, win 0x33110;
+	inline TextArea(TextArea const&) : m_fontFile(nullptr) {}
 	inline ~TextArea() {}
-	// this is temporary
-	void constructor() = mac 0x19fba0, win 0x0, ios 0x0;
 	virtual void draw() = mac 0x19f890, win 0x0, ios 0x0;
 	virtual void setOpacity(unsigned char) = mac 0x19f760, win 0x0, ios 0x0;
 	bool init(struct gd::string str, char const* font, float width, float height, struct cocos2d::CCPoint anchor, float scale, bool disableColor) = mac 0x19ec70, win 0x33370;
 	static TextArea* create(gd::string const& str, char const* font, float width, float height, cocos2d::CCPoint const& anchor, float scale, bool disableColor) {
-		auto ret = new TextArea;
-		// this is temporary
-		ret->constructor();
+		auto ret = new TextArea();
 	    if (ret->init(str, font, width, height, anchor, scale, disableColor)) {
 	        ret->autorelease();
 	        return ret;
