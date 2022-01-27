@@ -526,11 +526,22 @@ class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTex
 	void setDelegate(TextInputDelegate* delegate) {
 	    m_delegate = delegate;
 	}
-	static CCTextInputNode* create(float width, float height, char const* placeholder, char const* fontPath) {
-		return create(width, height, placeholder, "Thonburi", 0x18, fontPath);
+
+	inline static CCTextInputNode* create(float width, float height, char const* placeholder, char const* fontPath) {
+		return CCTextInputNode::create(width, height, placeholder, 0x18, fontPath);
+	}
+	inline static CCTextInputNode* create(float width, float height, char const* placeholder, int maxCharCount, char const* fontPath) {
+		auto ret = new CCTextInputNode;
+		if (ret && ret->init(width, height, placeholder, "Thonburi", maxCharCount, fontPath)) {
+			ret->autorelease();
+			return ret;
+		}
+		CC_SAFE_DELETE(ret);
+		return nullptr;
 	}
 
-	static CCTextInputNode* create(float, float, char const*, char const*, int maxCharCount, char const*) = mac 0x5cfb0, win 0x20d90, ios 0x0;
+	CCTextInputNode() = win 0x1c930;
+
 	void refreshLabel() = mac 0x5d730, win 0x21330, ios 0x0;
 	void updateLabel(struct gd::string) = mac 0x5d4a0, win 0x0, ios 0x0;
 	virtual void registerWithTouchDispatcher() = mac 0x5eec0, win 0x220e0, ios 0x0;
@@ -548,7 +559,7 @@ class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTex
 	virtual bool onTextFieldInsertText(cocos2d::CCTextFieldTTF*, char const*, int) = mac 0x5de50, win 0x0, ios 0x0;
 	virtual bool onTextFieldAttachWithIME(cocos2d::CCTextFieldTTF*) = mac 0x5e2c0, win 0x0, ios 0x0;
 	virtual bool onTextFieldDetachWithIME(cocos2d::CCTextFieldTTF*) = mac 0x5e610, win 0x0, ios 0x0;
-	bool init(const char* sCaption, cocos2d::CCObject* pTarget, const char* sFontFile, float fWidth, float fHeight) = mac 0x0, win 0x20e50, ios 0x0;
+	bool init(float width, float height, const char* caption, const char* thonburi, int maxCharCount, const char* font) = mac 0x0, win 0x20e50, ios 0x0;
 
 	void* m_unknown0;
 	gd::string m_caption;
@@ -2963,8 +2974,8 @@ class GameStatsManager : cocos2d::CCNode {
 }
 
 class GameToolbox {
-	static CCMenuItemToggler createToggleButton(struct gd::string text, cocos2d::SEL_MenuHandler onToggled, bool isToggled, cocos2d::CCMenu* toggleMenu, struct cocos2d::CCPoint position, cocos2d::CCNode* callbackTarget, cocos2d::CCNode* labelParent, cocos2d::CCArray* toggleArray) = mac 0x0, win 0x0, ios 0x0;
-	static CCMenuItemToggler createToggleButton(struct gd::string text, cocos2d::SEL_MenuHandler onToggled, bool isToggled, cocos2d::CCMenu* toggleMenu, struct cocos2d::CCPoint position, cocos2d::CCNode* callbackTarget, cocos2d::CCNode* labelParent, float checkboxScale, float labelSize, float maxWidth, struct cocos2d::CCPoint labelOffset, const char* unknown, bool unknownBool, int toggleTag, cocos2d::CCArray* toggleArray) = mac 0x28bdd0, win 0x25fe0, ios 0x0;
+	static CCMenuItemToggler* createToggleButton(struct gd::string text, cocos2d::SEL_MenuHandler onToggled, bool isToggled, cocos2d::CCMenu* toggleMenu, struct cocos2d::CCPoint position, cocos2d::CCNode* callbackTarget, cocos2d::CCNode* labelParent, cocos2d::CCArray* toggleArray) = mac 0x0, win 0x0, ios 0x0;
+	static CCMenuItemToggler* createToggleButton(struct gd::string text, cocos2d::SEL_MenuHandler onToggled, bool isToggled, cocos2d::CCMenu* toggleMenu, struct cocos2d::CCPoint position, cocos2d::CCNode* callbackTarget, cocos2d::CCNode* labelParent, float checkboxScale, float labelSize, float maxWidth, struct cocos2d::CCPoint labelOffset, const char* unknown, bool unknownBool, int toggleTag, cocos2d::CCArray* toggleArray) = mac 0x28bdd0, win 0x25fe0, ios 0x0;
 	static void transformColor(cocos2d::ccColor3B* src, cocos2d::ccColor3B* dest, cocos2d::ccHSVValue hsv) = mac 0x0, win 0x26a60, ios 0x0;
 	static void alignItemsHorisontally(cocos2d::CCArray* array, bool idk, struct cocos2d::CCPoint start, float pad) = mac 0x0, win 0x25b20, ios 0x0;
 }
@@ -4504,15 +4515,11 @@ class TextAlertPopup {
 class TextArea : cocos2d::CCSprite {
 	TextArea() = mac 0x19fba0, win 0x33110;
 	inline ~TextArea() {}
-	// this is temporary
-	void constructor() = mac 0x19fba0, win 0x0, ios 0x0;
 	virtual void draw() = mac 0x19f890, win 0x0, ios 0x0;
 	virtual void setOpacity(unsigned char) = mac 0x19f760, win 0x0, ios 0x0;
 	bool init(struct gd::string str, char const* font, float width, float height, struct cocos2d::CCPoint anchor, float scale, bool disableColor) = mac 0x19ec70, win 0x33370;
 	static TextArea* create(gd::string const& str, char const* font, float width, float height, cocos2d::CCPoint const& anchor, float scale, bool disableColor) {
 		auto ret = new TextArea;
-		// this is temporary
-		ret->constructor();
 	    if (ret->init(str, font, width, height, anchor, scale, disableColor)) {
 	        ret->autorelease();
 	        return ret;

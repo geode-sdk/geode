@@ -13,7 +13,8 @@ namespace geode::core::meta::x86 {
                 char, short, int, long
             > || 
             std::is_pointer_v<Class> || 
-            std::is_reference_v<Class>;
+            std::is_reference_v<Class> ||
+            std::is_member_function_pointer_v<Class>;
     };
 
     template <class Class>
