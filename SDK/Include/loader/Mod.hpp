@@ -141,6 +141,10 @@ namespace geode {
          */
         bool m_resolved = false;
         /**
+         * Whether the mod can be disabled or not
+         */
+        bool m_supportsDisabling = true;
+        /**
          * Mod temp directory name
          */
         ghc::filesystem::path m_tempDirName;
@@ -218,6 +222,7 @@ namespace geode {
         VersionInfo getVersion()    const;
         bool        isEnabled()     const;
         bool        isLoaded()      const;
+        bool        supportsDisabling() const;
 
         /**
          * Log to geode's integrated console / 

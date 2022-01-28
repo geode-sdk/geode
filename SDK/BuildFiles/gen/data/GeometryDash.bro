@@ -528,15 +528,22 @@ class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTex
 	void setDelegate(TextInputDelegate* delegate) {
 	    m_delegate = delegate;
 	}
-	static CCTextInputNode* create(float width, float height, char const* placeholder, char const* fontPath) {
-		auto ret = new CCTextInputNode();
-	    if (ret->init(width, height, placeholder, "Thonburi", 0x18, fontPath)) {
-	        ret->autorelease();
-	        return ret;
-	    }
-	    CC_SAFE_DELETE(ret);
-	    return nullptr;
+
+	inline static CCTextInputNode* create(float width, float height, char const* placeholder, char const* fontPath) {
+		return CCTextInputNode::create(width, height, placeholder, 0x18, fontPath);
 	}
+	inline static CCTextInputNode* create(float width, float height, char const* placeholder, int maxCharCount, char const* fontPath) {
+		auto ret = new CCTextInputNode;
+		if (ret && ret->init(width, height, placeholder, "Thonburi", maxCharCount, fontPath)) {
+			ret->autorelease();
+			return ret;
+		}
+		CC_SAFE_DELETE(ret);
+		return nullptr;
+	}
+
+	CCTextInputNode() = win 0x1c930;
+
 	void refreshLabel() = mac 0x5d730, win 0x21330, ios 0x0;
 	void updateLabel(struct gd::string) = mac 0x5d4a0, win 0x0, ios 0x0;
 	virtual void registerWithTouchDispatcher() = mac 0x5eec0, win 0x220e0, ios 0x0;
@@ -553,7 +560,7 @@ class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTex
 	virtual bool onTextFieldInsertText(cocos2d::CCTextFieldTTF*, char const*, int) = mac 0x5de50, win 0x0, ios 0x0;
 	virtual bool onTextFieldAttachWithIME(cocos2d::CCTextFieldTTF*) = mac 0x5e2c0, win 0x0, ios 0x0;
 	virtual bool onTextFieldDetachWithIME(cocos2d::CCTextFieldTTF*) = mac 0x5e610, win 0x0, ios 0x0;
-	bool init(const char* sCaption, cocos2d::CCObject* pTarget, const char* sFontFile, float fWidth, float fHeight) = mac 0x0, win 0x20e50, ios 0x0;
+	bool init(float width, float height, const char* caption, const char* thonburi, int maxCharCount, const char* font) = mac 0x0, win 0x20e50, ios 0x0;
 
 	void* m_unknown0;
 	gd::string m_caption;
@@ -4523,7 +4530,7 @@ class TextArea : cocos2d::CCSprite {
 	virtual void setOpacity(unsigned char) = mac 0x19f760, win 0x0, ios 0x0;
 	bool init(struct gd::string str, char const* font, float width, float height, struct cocos2d::CCPoint anchor, float scale, bool disableColor) = mac 0x19ec70, win 0x33370;
 	static TextArea* create(gd::string const& str, char const* font, float width, float height, cocos2d::CCPoint const& anchor, float scale, bool disableColor) {
-		auto ret = new TextArea();
+		auto ret = new TextArea;
 	    if (ret->init(str, font, width, height, anchor, scale, disableColor)) {
 	        ret->autorelease();
 	        return ret;
