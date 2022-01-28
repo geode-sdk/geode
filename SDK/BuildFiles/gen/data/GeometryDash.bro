@@ -1703,7 +1703,16 @@ class GJDropDownLayer : cocos2d::CCLayerColor {
 	bool init(const char* title, float height) = mac 0x352100, win 0x113530, ios 0x0;
 	virtual void registerWithTouchDispatcher() = mac 0x3525f0, win 0x16990, ios 0x0;
 	virtual void keyBackClicked() = mac 0x352630, win 0x113960, ios 0x0;
-	GJDropDownLayer() = mac 0x0, win 0x38470, ios 0x0;
+	inline GJDropDownLayer() {
+		m_endPosition = cocos2d::CCPointMake(0.f, 0.f);
+		m_startPosition = cocos2d::CCPointMake(0.f, 0.f);
+		m_buttonMenu = nullptr;
+		m_listLayer = nullptr;
+		m_controllerEnabled = false;
+		m_mainLayer = nullptr;
+		m_hidden = false;
+		m_unknown = nullptr;
+	}
 
 	cocos2d::CCPoint m_endPosition;
 	cocos2d::CCPoint m_startPosition;
@@ -2968,8 +2977,8 @@ class GameStatsManager : cocos2d::CCNode {
 }
 
 class GameToolbox {
-	static CCMenuItemToggler createToggleButton(struct gd::string text, cocos2d::SEL_MenuHandler onToggled, bool isToggled, cocos2d::CCMenu* toggleMenu, struct cocos2d::CCPoint position, cocos2d::CCNode* callbackTarget, cocos2d::CCNode* labelParent, cocos2d::CCArray* toggleArray) = mac 0x0, win 0x0, ios 0x0;
-	static CCMenuItemToggler createToggleButton(struct gd::string text, cocos2d::SEL_MenuHandler onToggled, bool isToggled, cocos2d::CCMenu* toggleMenu, struct cocos2d::CCPoint position, cocos2d::CCNode* callbackTarget, cocos2d::CCNode* labelParent, float checkboxScale, float labelSize, float maxWidth, struct cocos2d::CCPoint labelOffset, const char* unknown, bool unknownBool, int toggleTag, cocos2d::CCArray* toggleArray) = mac 0x28bdd0, win 0x25fe0, ios 0x0;
+	static CCMenuItemToggler* createToggleButton(struct gd::string text, cocos2d::SEL_MenuHandler onToggled, bool isToggled, cocos2d::CCMenu* toggleMenu, struct cocos2d::CCPoint position, cocos2d::CCNode* callbackTarget, cocos2d::CCNode* labelParent, cocos2d::CCArray* toggleArray) = mac 0x0, win 0x0, ios 0x0;
+	static CCMenuItemToggler* createToggleButton(struct gd::string text, cocos2d::SEL_MenuHandler onToggled, bool isToggled, cocos2d::CCMenu* toggleMenu, struct cocos2d::CCPoint position, cocos2d::CCNode* callbackTarget, cocos2d::CCNode* labelParent, float checkboxScale, float labelSize, float maxWidth, struct cocos2d::CCPoint labelOffset, const char* unknown, bool anchorHorizontally, int toggleTag, cocos2d::CCArray* toggleArray) = mac 0x28bdd0, win 0x25fe0, ios 0x0;
 	static void transformColor(cocos2d::ccColor3B* src, cocos2d::ccColor3B* dest, cocos2d::ccHSVValue hsv) = mac 0x0, win 0x26a60, ios 0x0;
 	static void alignItemsHorisontally(cocos2d::CCArray* array, bool idk, struct cocos2d::CCPoint start, float pad) = mac 0x0, win 0x25b20, ios 0x0;
 }
