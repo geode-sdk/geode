@@ -560,8 +560,6 @@ class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTex
 		return nullptr;
 	}
 
-	CCTextInputNode() = win 0x1c930;
-
 	void refreshLabel() = mac 0x5d730, win 0x21330, ios 0x0;
 	void updateLabel(struct gd::string) = mac 0x5d4a0, win 0x0, ios 0x0;
 	virtual void registerWithTouchDispatcher() = mac 0x5eec0, win 0x220e0, ios 0x0;
@@ -1001,13 +999,11 @@ class EditorOptionsLayer {
 
 class EditorPauseLayer : CCBlockLayer, FLAlertLayerProtocol {
 	static EditorPauseLayer* create(LevelEditorLayer* editor) {
-	    auto pRet = new EditorPauseLayer;
-	
+	    auto pRet = new EditorPauseLayer();
 	    if (pRet && pRet->init(editor)) {
 	        pRet->autorelease();
 	        return pRet;
 	    }
-	
 	    CC_SAFE_DELETE(pRet);
 	    return nullptr;
 	}
@@ -4547,7 +4543,7 @@ class TextArea : cocos2d::CCSprite {
 	virtual void setOpacity(unsigned char) = mac 0x19f760, win 0x0, ios 0x0;
 	bool init(struct gd::string str, char const* font, float width, float height, struct cocos2d::CCPoint anchor, float scale, bool disableColor) = mac 0x19ec70, win 0x33370;
 	static TextArea* create(gd::string const& str, char const* font, float width, float height, cocos2d::CCPoint const& anchor, float scale, bool disableColor) {
-		auto ret = new TextArea;
+		auto ret = new TextArea();
 	    if (ret->init(str, font, width, height, anchor, scale, disableColor)) {
 	        ret->autorelease();
 	        return ret;
