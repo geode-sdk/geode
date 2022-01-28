@@ -146,20 +146,17 @@ template <typename T, typename A>
 T& operator->*(A* self, field_t<T>& member) {
     // this replaces the destructor in the vtable
     // only done this way to be performant
-    auto& destructor = A::getOriginalDestructor();
-    if (destructor == 0) {
-        auto& dtor = 2[*(size_t**)self]; // i love this
-        destructor = dtor;
-        dtor = (size_t)&A::fieldCleanup;
-    }
-
     using container_t = geode::modify::container_t<T>;
-
     auto& fields = A::getAdditionalFields();
+    auto& destructor = A::getOriginalDestructor();
 
-    // set the default values on first use
-    if (fields.find(member) == fields.end()) {
-    	// add the default values to queue
+    // on first use
+    if (destructor == 0) {
+        auto& dtor = 2[*(uintptr_t**)self]; // i love this
+        destructor = dtor;
+        dtor = (uintptr_t)&A::fieldCleanup;
+
+        // add the default values to queue
     	auto dummy = A();
     	auto& queue = geode::modify::fieldQueue();
 
@@ -171,6 +168,7 @@ T& operator->*(A* self, field_t<T>& member) {
     	// unused variables, if there is any
     	(void)dummy;
     }
+
     // gets the respective field
     return reinterpret_cast<container_t*>(fields[member])->field;
 }
