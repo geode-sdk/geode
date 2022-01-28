@@ -485,7 +485,27 @@ class CCSpritePlus : cocos2d::CCSprite {
 }
 
 class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTextFieldDelegate {
-	inline CCTextInputNode() {}
+	inline CCTextInputNode() {
+		m_unknown0 = nullptr;
+		m_caption = nullptr;
+		m_unknown1 = 0;
+		m_selected = false;
+		m_unknown2 = false;
+		m_allowedChars = nullptr;
+		m_maxLabelWidth = 0.f;
+		m_maxLabelScale = 0.f;
+		m_placeholderScale = 0.f;
+		m_placeholderColor = cocos2d::ccc3(0,0,0);
+		m_textColor = cocos2d::ccc3(0,0,0);
+		m_cursor = nullptr;
+		m_textField = nullptr;
+		m_delegate = nullptr;
+		m_maxLabelLength = 0;
+		m_placeholderLabel = nullptr;
+		m_unknown3 = false;
+		m_usePasswordChar = false;
+		m_forceOffset = false;
+	}
 	inline ~CCTextInputNode() {}
 	void setLabelNormalColor(cocos2d::ccColor3B color) {
 	    m_textColor = color;
@@ -513,9 +533,7 @@ class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTex
 	void forceOffset() {
 	    m_forceOffset = true;
 	}
-	void setString(const char* text) {
-	    m_textField->setString(text);
-	}
+	void setString(gd::string text) = mac 0x5d3e0, win 0x21070;
 	const char* getString() {
 	    return m_textField->getString();
 	}
@@ -532,9 +550,9 @@ class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTex
 	inline static CCTextInputNode* create(float width, float height, char const* placeholder, char const* fontPath) {
 		return CCTextInputNode::create(width, height, placeholder, 0x18, fontPath);
 	}
-	inline static CCTextInputNode* create(float width, float height, char const* placeholder, int maxCharCount, char const* fontPath) {
-		auto ret = new CCTextInputNode;
-		if (ret && ret->init(width, height, placeholder, "Thonburi", maxCharCount, fontPath)) {
+	inline static CCTextInputNode* create(float width, float height, char const* placeholder, int fontSize, char const* fontPath) {
+		auto ret = new CCTextInputNode();
+		if (ret && ret->init(width, height, placeholder, "Thonburi", fontSize, fontPath)) {
 			ret->autorelease();
 			return ret;
 		}
@@ -547,7 +565,6 @@ class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTex
 	void refreshLabel() = mac 0x5d730, win 0x21330, ios 0x0;
 	void updateLabel(struct gd::string) = mac 0x5d4a0, win 0x0, ios 0x0;
 	virtual void registerWithTouchDispatcher() = mac 0x5eec0, win 0x220e0, ios 0x0;
-	bool init(float, float, char const*, char const*, int, char const*) = mac 0x5d180, win 0x0, ios 0x0;
 	virtual void visit() = mac 0x5d380, win 0x21000, ios 0x0;
 	virtual bool ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x5ec80, win 0x1f20, ios 0x0;
 	virtual void ccTouchCancelled(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x5ee80, win 0x0, ios 0x0;
@@ -560,7 +577,7 @@ class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTex
 	virtual bool onTextFieldInsertText(cocos2d::CCTextFieldTTF*, char const*, int) = mac 0x5de50, win 0x0, ios 0x0;
 	virtual bool onTextFieldAttachWithIME(cocos2d::CCTextFieldTTF*) = mac 0x5e2c0, win 0x0, ios 0x0;
 	virtual bool onTextFieldDetachWithIME(cocos2d::CCTextFieldTTF*) = mac 0x5e610, win 0x0, ios 0x0;
-	bool init(float width, float height, const char* caption, const char* thonburi, int maxCharCount, const char* font) = mac 0x0, win 0x20e50, ios 0x0;
+	bool init(float width, float height, const char* caption, const char* thonburi, int fontSize, const char* font) = mac 0x5d180, win 0x20e50, ios 0x0;
 
 	void* m_unknown0;
 	gd::string m_caption;

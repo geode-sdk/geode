@@ -220,6 +220,7 @@ class cocos2d::CCLabelBMFont {
 
 class cocos2d::CCLabelTTF {
 	auto updateTexture() = mac 0x1fadc0;
+	virtual auto setString(char const*) = mac 0x1fad70;
 }
 
 class cocos2d::CCLayer {
