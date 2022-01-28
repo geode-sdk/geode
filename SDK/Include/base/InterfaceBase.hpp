@@ -91,11 +91,18 @@ namespace geode {
 
 		template<typename T = void*>
 		struct container_t {
+			GEODE_NOINLINE container_t(T value) : field(value) {}
+
 		    virtual ~container_t() {
 		        field.~T();
 		    }
 		    T field;
 		};
+
+		GEODE_NOINLINE static inline auto& fieldQueue() {
+			static std::unordered_map<uintptr_t, container_t<>*> ret;
+			return ret;
+		}
 
         #include <Gen/Interface.hpp>
     };
@@ -103,6 +110,18 @@ namespace geode {
 
 template<typename T>
 struct field_t {
+	uint64_t padding;
+	GEODE_NOINLINE field_t() {
+		geode::modify::fieldQueue()[(uintptr_t)this] = 
+			new geode::modify::container_t(T());
+	}
+
+	GEODE_NOINLINE field_t(T value) {
+		geode::modify::fieldQueue()[(uintptr_t)this] = 
+			reinterpret_cast<geode::modify::container_t<>*>
+			(new geode::modify::container_t(value));
+	}
+
     template<typename Q>
     void operator=(Q) {
         static_assert(!std::is_same_v<T, T>, "field_t shouldn't be used directly. it should be used with this->*myMember.");
@@ -115,6 +134,10 @@ struct field_t {
     void operator*() {
         static_assert(!std::is_same_v<T, T>, "field_t shouldn't be used directly. it should be used with this->*myMember.");
     } 
+
+    operator uintptr_t() {
+    	return reinterpret_cast<uintptr_t>(this);
+    }
 };
 
 
@@ -123,18 +146,31 @@ template <typename T, typename A>
 T& operator->*(A* self, field_t<T>& member) {
     // this replaces the destructor in the vtable
     // only done this way to be performant
-    if (A::getOriginalDestructor() == 0) {
+    auto& destructor = A::getOriginalDestructor();
+    if (destructor == 0) {
         auto& dtor = 2[*(size_t**)self]; // i love this
-        A::getOriginalDestructor() = dtor;
+        destructor = dtor;
         dtor = (size_t)&A::fieldCleanup;
     }
 
     using container_t = geode::modify::container_t<T>;
-    using containervoid_t = geode::modify::container_t<void*>;
 
+    auto& fields = A::getAdditionalFields();
+
+    // set the default values on first use
+    if (fields.find(member) == fields.end()) {
+    	// add the default values to queue
+    	auto dummy = A();
+    	auto& queue = geode::modify::fieldQueue();
+
+    	for (auto& [k, v] : queue) {
+    		fields[k - (uintptr_t)&dummy + (uintptr_t)self] = v;
+    	}
+    	queue.clear();
+    	// this is here to silence the warnings about 
+    	// unused variables, if there is any
+    	(void)dummy;
+    }
     // gets the respective field
-    containervoid_t*& field = A::getAdditionalFields()[(uintptr_t)&member];
-    // create the container on first use
-    if (!field) field = reinterpret_cast<containervoid_t*>(new container_t());
-    return reinterpret_cast<container_t*>(field)->field;
+    return reinterpret_cast<container_t*>(fields[member])->field;
 }

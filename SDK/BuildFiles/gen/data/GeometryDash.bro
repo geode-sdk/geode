@@ -2051,6 +2051,25 @@ class GJGameLevel : cocos2d::CCNode {
 }
 
 class GJGarageLayer : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol, GameRateDelegate, ListButtonBarDelegate, DialogDelegate {
+	inline GJGarageLayer() {
+		m_nameInput = nullptr;
+		m_playerPreview = nullptr;
+		m_unkSprite0x140 = nullptr;
+		m_unkSprite0x144 = nullptr;
+		m_unkButton0x148 = nullptr;
+		m_unkButton0x14c = nullptr;
+		m_pagesArray = nullptr;
+		m_tabToggleCube = nullptr;
+		m_tabToggleShip = nullptr;
+		m_tabToggleBall = nullptr;
+		m_tabToggleUfo = nullptr;
+		m_tabToggleWave = nullptr;
+		m_tabToggleRobot = nullptr;
+		m_tabToggleSpider = nullptr;
+		m_tabToggleSpecial = nullptr;
+		m_tabToggleDeathEffect = nullptr;
+		m_updateSelector = false;
+	}
 	void onPlayerColor1(cocos2d::CCObject*) = mac 0x1ba640, win 0x0, ios 0x22531c;
 	void onPlayerColor2(cocos2d::CCObject*) = mac 0x1ba8c0, win 0x0, ios 0x225408;
 	static GJGarageLayer* create() = mac 0x0, win 0x125220, ios 0x0;
