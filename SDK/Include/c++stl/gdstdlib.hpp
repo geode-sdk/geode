@@ -10,6 +10,10 @@
 
 // my girl recreating the entirety of 10.7 stl
 
+namespace geode::base {
+	uintptr_t get();
+}
+
 #if defined(CC_TARGET_OS_MAC) || defined(CC_TARGET_OS_ANDROID)
 namespace gd {
 	struct _internal_string {
@@ -19,19 +23,9 @@ namespace gd {
 	};
 
 	class string {
-	 public:
-		string() : string("") {}
-		string(char const* ok) {
-			if (!ok) return; // lol
-			std::string stub = std::string(ok);
-
-			// +1 is because our camila friend forgot the null terminator
-			m_data = reinterpret_cast<_internal_string*>((long)::operator new(sizeof(_internal_string) + stub.capacity()) + sizeof(_internal_string));
-			m_data[-1].m_len = stub.size();
-			m_data[-1].m_capacity = stub.capacity();
-			m_data[-1].m_refcount = 0;
-			strncpy((char*)m_data, ok, stub.capacity());
-		}
+	public:
+		string();
+		string(char const* ok);
 		string(std::string ok) : string(ok.c_str()) {}
 		operator std::string() {
 			return std::string((char*)m_data, m_data[-1].m_len);
@@ -39,13 +33,10 @@ namespace gd {
 		operator std::string() const {
 			return std::string((char*)m_data, m_data[-1].m_len);
 		}
-		string(string const& lol) : string(const_cast<string&>(lol).c_str()) {}
-		__attribute__((noinline)) ~string() {
-			--m_data[-1].m_refcount;
-			if (m_data[-1].m_refcount <= 0 && m_data[-1].m_capacity > 0) {
-				::operator delete(&m_data[-1]);
-			}
-		}
+		string(string const& ok);
+		string& operator=(char const* ok);
+		string& operator=(string const& ok);
+		__attribute__((noinline)) ~string();
 		char const* c_str() {return (char const*)m_data; }
 	 protected: 
 		_internal_string*       m_data;

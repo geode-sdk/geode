@@ -92,6 +92,10 @@ public:
         CC_UNUSED_PARAM(sender);
         return false;
     }
+
+    RT_ADD(
+    	virtual void textChanged() { }
+    )
 };
 
 /**

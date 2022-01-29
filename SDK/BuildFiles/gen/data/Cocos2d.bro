@@ -167,21 +167,9 @@ class cocos2d::CCHide {
 }
 
 class cocos2d::CCIMEDelegate {
-	virtual ~CCIMEDelegate() = mac 0x277670;
+	virtual ~CCIMEDelegate() = mac 0x277500;
 	virtual auto attachWithIME() = mac 0x2776a0;
 	virtual auto detachWithIME() = mac 0x277880;
-	// virtual auto canAttachWithIME() = mac 0x5ef30;
-	// virtual auto didAttachWithIME() = mac 0x5ef40;
-	// virtual auto canDetachWithIME() = mac 0x5ef50;
-	// virtual auto didDetachWithIME() = mac 0x5ef60;
-	// virtual auto insertText(char const*, int) = mac 0x5ef70;
-	// virtual auto deleteBackward() = mac 0x5ef80;
-	// virtual auto getContentText() = mac 0x5ef90;
-	// virtual auto keyboardWillShow(cocos2d::CCIMEKeyboardNotificationInfo&) = mac 0x126e80;
-	// virtual auto keyboardDidShow(cocos2d::CCIMEKeyboardNotificationInfo&) = mac 0x5efa0;
-	// virtual auto keyboardWillHide(cocos2d::CCIMEKeyboardNotificationInfo&) = mac 0x126e90;
-	// virtual auto keyboardDidHide(cocos2d::CCIMEKeyboardNotificationInfo&) = mac 0x5efb0;
-
 	CCIMEDelegate() = mac 0x277310;
 }
 

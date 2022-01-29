@@ -485,13 +485,11 @@ class CCSpritePlus : cocos2d::CCSprite {
 }
 
 class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTextFieldDelegate {
-	inline CCTextInputNode() {
+	inline CCTextInputNode() : cocos2d::CCLayer(), cocos2d::CCIMEDelegate(), cocos2d::CCTextFieldDelegate(), m_caption(), m_allowedChars() {
 		m_unknown0 = nullptr;
-		m_caption = nullptr;
 		m_unknown1 = 0;
 		m_selected = false;
 		m_unknown2 = false;
-		m_allowedChars = nullptr;
 		m_maxLabelWidth = 0.f;
 		m_maxLabelScale = 0.f;
 		m_placeholderScale = 0.f;
@@ -506,7 +504,9 @@ class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTex
 		m_usePasswordChar = false;
 		m_forceOffset = false;
 	}
-	inline ~CCTextInputNode() {}
+	inline ~CCTextInputNode() {
+		if (m_selected) m_textField->detachWithIME();
+	}
 	void setLabelNormalColor(cocos2d::ccColor3B color) {
 	    m_textColor = color;
 	    this->refreshLabel();
@@ -2941,8 +2941,8 @@ class GameObject : CCSpritePlus {
 	PAD = mac 0x0, win 0x10, android 0x0;
 }
 
-class GameObjectCopy {
-	~GameObjectCopy() = mac 0xa3290, win 0x0, ios 0x0;
+class GameObjectCopy : cocos2d::CCObject {
+	virtual ~GameObjectCopy() = mac 0xa3290, win 0x0, ios 0x0;
 	static GameObjectCopy* create(GameObject*) = mac 0x975a0, win 0x0, ios 0x0;
 	void resetObject() = mac 0x976a0, win 0x0, ios 0x0;
 }
@@ -4556,7 +4556,7 @@ class TextAlertPopup {
 
 class TextArea : cocos2d::CCSprite {
 	TextArea() = mac 0x19fba0, win 0x33110;
-	inline TextArea(TextArea const&) : m_fontFile(nullptr) {}
+	inline TextArea(TextArea const&) : m_fontFile() {}
 	inline ~TextArea() {}
 	virtual void draw() = mac 0x19f890, win 0x0, ios 0x0;
 	virtual void setOpacity(unsigned char) = mac 0x19f760, win 0x0, ios 0x0;

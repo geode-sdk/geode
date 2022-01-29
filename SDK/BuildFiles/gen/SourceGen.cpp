@@ -4,6 +4,7 @@ namespace format_strings {
 	char const* source_start = R"CAC(
 #include <InterfaceBase.hpp>
 using namespace geode;
+using namespace geode::cast;
 using cocos2d::CCDestructor;
 )CAC";
 
@@ -81,8 +82,10 @@ ret{global_index} {class_name}::{function_name}({raw_args}){constw}{const} {{
 
 	char const* declare_destructor = R"CAC(
 {class_name}::{function_name}() {{
-	if (CCDestructor::lock(this)) return;
-	CCDestructor::lock(this) = true;
+	if (base_cast<decltype(this)>(this) == this) {{
+		if (CCDestructor::lock(this)) return;
+		CCDestructor::lock(this) = true;
+	}}
 	{function_implementation};
 }}
 )CAC";
