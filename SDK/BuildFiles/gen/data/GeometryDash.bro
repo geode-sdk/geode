@@ -485,7 +485,27 @@ class CCSpritePlus : cocos2d::CCSprite {
 }
 
 class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTextFieldDelegate {
-	inline CCTextInputNode() : m_unknown0(nullptr), m_cursor(nullptr), m_textField(nullptr), m_delegate(nullptr), m_placeholderLabel(nullptr), m_maxLabelLength(0), m_caption(""), m_allowedChars("") {}
+	inline CCTextInputNode() {
+		m_unknown0 = nullptr;
+		m_caption = nullptr;
+		m_unknown1 = 0;
+		m_selected = false;
+		m_unknown2 = false;
+		m_allowedChars = nullptr;
+		m_maxLabelWidth = 0.f;
+		m_maxLabelScale = 0.f;
+		m_placeholderScale = 0.f;
+		m_placeholderColor = cocos2d::ccc3(0,0,0);
+		m_textColor = cocos2d::ccc3(0,0,0);
+		m_cursor = nullptr;
+		m_textField = nullptr;
+		m_delegate = nullptr;
+		m_maxLabelLength = 0;
+		m_placeholderLabel = nullptr;
+		m_unknown3 = false;
+		m_usePasswordChar = false;
+		m_forceOffset = false;
+	}
 	inline ~CCTextInputNode() {}
 	void setLabelNormalColor(cocos2d::ccColor3B color) {
 	    m_textColor = color;
@@ -513,9 +533,7 @@ class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTex
 	void forceOffset() {
 	    m_forceOffset = true;
 	}
-	void setString(const char* text) {
-	    m_textField->setString(text);
-	}
+	void setString(gd::string text) = mac 0x5d3e0, win 0x21070;
 	const char* getString() {
 	    return m_textField->getString();
 	}
@@ -532,9 +550,9 @@ class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTex
 	inline static CCTextInputNode* create(float width, float height, char const* placeholder, char const* fontPath) {
 		return CCTextInputNode::create(width, height, placeholder, 0x18, fontPath);
 	}
-	inline static CCTextInputNode* create(float width, float height, char const* placeholder, int maxCharCount, char const* fontPath) {
+	inline static CCTextInputNode* create(float width, float height, char const* placeholder, int fontSize, char const* fontPath) {
 		auto ret = new CCTextInputNode();
-		if (ret && ret->init(width, height, placeholder, "Thonburi", maxCharCount, fontPath)) {
+		if (ret && ret->init(width, height, placeholder, "Thonburi", fontSize, fontPath)) {
 			ret->autorelease();
 			return ret;
 		}
@@ -2033,6 +2051,25 @@ class GJGameLevel : cocos2d::CCNode {
 }
 
 class GJGarageLayer : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol, GameRateDelegate, ListButtonBarDelegate, DialogDelegate {
+	inline GJGarageLayer() {
+		m_nameInput = nullptr;
+		m_playerPreview = nullptr;
+		m_unkSprite0x140 = nullptr;
+		m_unkSprite0x144 = nullptr;
+		m_unkButton0x148 = nullptr;
+		m_unkButton0x14c = nullptr;
+		m_pagesArray = nullptr;
+		m_tabToggleCube = nullptr;
+		m_tabToggleShip = nullptr;
+		m_tabToggleBall = nullptr;
+		m_tabToggleUfo = nullptr;
+		m_tabToggleWave = nullptr;
+		m_tabToggleRobot = nullptr;
+		m_tabToggleSpider = nullptr;
+		m_tabToggleSpecial = nullptr;
+		m_tabToggleDeathEffect = nullptr;
+		m_updateSelector = false;
+	}
 	void onPlayerColor1(cocos2d::CCObject*) = mac 0x1ba640, win 0x0, ios 0x22531c;
 	void onPlayerColor2(cocos2d::CCObject*) = mac 0x1ba8c0, win 0x0, ios 0x225408;
 	static GJGarageLayer* create() = mac 0x0, win 0x125220, ios 0x0;
