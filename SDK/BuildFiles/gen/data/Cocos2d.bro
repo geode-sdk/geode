@@ -739,6 +739,7 @@ class cocos2d::CCTouch {
 class cocos2d::CCTouchDispatcher {
 	auto decrementForcePrio(int) = mac 0x280f70;
 	auto incrementForcePrio(int) = mac 0x280f60;
+	void touches(cocos2d::CCSet*, cocos2d::CCEvent*, unsigned int);
 }
 
 class cocos2d::CCTouchHandler {

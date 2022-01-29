@@ -94,7 +94,7 @@ public:
     }
 
     RT_ADD(
-    	virtual void textChanged() { }
+    	virtual void textChanged() {}
     )
 };
 
