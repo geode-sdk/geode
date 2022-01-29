@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <utils/Result.hpp>
 #include <functional>
+#include <unordered_set>
 
 class Geode;
 
@@ -31,8 +32,10 @@ namespace geode {
     protected:
         std::unordered_map<std::string, Mod*> m_mods;
         std::vector<LogMessage*> m_logs;
+        std::unordered_set<std::string> m_modDirectories;
         LogStream* m_logStream;
         bool m_isSetup = false;
+        static bool s_unloading;
 
         /**
          * Lowest supported mod version.
@@ -85,9 +88,34 @@ namespace geode {
         Loader();
         virtual ~Loader();
 
+        /**
+         * Get the shared Loader instance
+         * @returns Shared loader instance
+         */
         static Loader* get();
+
+        /**
+         * Set up the Loader.
+         * @returns True if setup was succesful or 
+         * has been done before, false if an error 
+         * occurred
+         */
         bool setup();
-        size_t updateMods();
+        /**
+         * Refresh the mods list. Scans all search 
+         * directories again for unloaded mods
+         * @returns Amount of new mods loaded
+         */
+        size_t refreshMods();
+
+        /**
+         * Returns true if the Loader is unloading / 
+         * currently unloaded. Used for threading; 
+         * should be thread-safe
+         * @returns True if the loader is unloading / 
+         * unloaded, false otherwise
+         */
+        static bool isUnloading();
 
         LogStream& logStream();
         void log(LogMessage* log);
@@ -96,12 +124,63 @@ namespace geode {
         std::vector<LogMessage*> getLogs(
             std::initializer_list<Severity> severityFilter
         );
+        
+        void addResourceSearchPaths();
 
+        /**
+         * Check if a mod with an ID has been loaded
+         * @param id The ID of the mod
+         * @param resolved Whether the mod's dependencies have to 
+         * be resolved to be returned. If set to true and the mod 
+         * is unresolved, this function returns false
+         * @returns True if the mod was found, or false if 
+         * the mod is not loaded or it was unresolved and the `resolved` 
+         * parameter was set to true
+         */
         bool isModLoaded(std::string const& id, bool resolved = true) const;
+        /**
+         * Get a loaded mod by its ID
+         * @param id The ID of the mod
+         * @param resolved Whether the mod's dependencies have to 
+         * be resolved to be returned. If set to true and the mod 
+         * is unresolved, this function returns nullptr
+         * @returns Pointer to Mod if it was found, or nullptr if 
+         * the mod is not loaded or it was unresolved and the `resolved` 
+         * parameter was set to true
+         */
         Mod* getLoadedMod(std::string const& id, bool resolved = true) const;
+        /**
+         * Get a list of all loaded mods
+         * @returns List of all loaded mods
+         */
         std::vector<Mod*> getLoadedMods() const;
+        /**
+         * Get the count of loaded mods
+         * @returns Tuple where the first element is the count of 
+         * all loaded mods and second element is the count of 
+         * unresolved mods
+         */
+        std::tuple<size_t, size_t> getLoadedModCount() const;
+        /**
+         * Unload a mod fully. This will remove it 
+         * from the mods list and delete the Mod. Use 
+         * with caution!
+         */
         void unloadMod(Mod* mod);
+        /**
+         * Get Geode's internal representation. Use with 
+         * caution!
+         * @returns Pointer to InternalMod
+         */
+        static Mod* getInternalMod();
 
+        /**
+         * Run a function in the GD thread. Useful if you're 
+         * doing logic in another thread and need to interact 
+         * with GUI. The function will be run the next time 
+         * `CCScheduler::update` is called
+         * @param func Function to run
+         */
         void queueInGDThread(std::function<void(void)> func);
     };
 

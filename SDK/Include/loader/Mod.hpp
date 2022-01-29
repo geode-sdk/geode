@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include "Setting.hpp"
 #include <utils/types.hpp>
-#include "../keybinds/KeybindManager.hpp"
+#include <type_traits>
 
 class Geode;
 class InternalMod;
@@ -22,6 +22,7 @@ namespace geode {
     class Loader;
     class LogStream;
     class Mod;
+    class APIMod;
 
     struct Dependency {
         std::string m_id;
@@ -117,6 +118,10 @@ namespace geode {
     class GEODE_DLL Mod {
     protected:
         /**
+         * Mod info
+         */
+        ModInfo m_info;
+        /**
          * Platform-specific info
          */
         PlatformInfo* m_platformInfo = nullptr;
@@ -174,7 +179,6 @@ namespace geode {
         Result<> loadPlatformBinary();
         Result<> unloadPlatformBinary();
 
- public:    // Quick fix, fod pls make it work
         /**
          * Low-level add hook
          */
@@ -187,12 +191,6 @@ namespace geode {
         Result<Hook*> addHookBase(Hook* hook);
 
         Result<> createTempDir();
-
-        /**
-         * Mod info
-         */
-        ModInfo m_info; // pain
- protected:
 
         static bool validateID(std::string const& id);
         // no copying
@@ -430,35 +428,10 @@ namespace geode {
          */
         std::vector<Dependency> getUnresolvedDependencies();
 
-        /**
-         * Add a new keybind action, i.e. a 
-         * function that can be bound to a keybind.
-         * @param action A KeybindAction; either 
-         * TriggerableAction, ModifierAction or 
-         * RepeatableAction.
-         * @param defaults Default keybinds for 
-         * this action.
-         * @param insertAfter Where to insert 
-         * this action in the in-game list. 
-         * `nullptr` means to insert at the end.
-         * @returns True if the action was added, 
-         * false if not. If the function returns 
-         * false, it's probably the action's ID 
-         * being invalid / colliding with another 
-         * action's ID.
-         */
-        bool addKeybindAction(
-            KeybindAction     const& action,
-            KeybindList       const& defaults,
-            keybind_action_id const& insertAfter = nullptr
-        );
-        
-        /**
-         * Remove a keybind action.
-         * @param id ID of the action.
-         * @returns True if the action was 
-         * removed, false if not.
-         */
-        bool removeKeybindAction(keybind_action_id const& id);
+        template<class T>
+        T* with() {
+            static_assert(std::is_base_of_v<T, APIMod>, "`with` may only be used with classes that inherit from APIMod");
+            return reinterpret_cast<T*>(this);
+        }
     };
 }
