@@ -3,6 +3,7 @@
 namespace format_strings {
 	char const* source_start = R"CAC(
 #include <InterfaceBase.hpp>
+#include <utils/casts.hpp>
 using namespace geode;
 using namespace geode::cast;
 using cocos2d::CCDestructor;

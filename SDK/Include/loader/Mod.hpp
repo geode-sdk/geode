@@ -204,9 +204,9 @@ namespace geode {
         Mod(ModInfo const& info);
         virtual ~Mod();
 
-        friend class InternalMod;
+        friend class ::InternalMod;
         friend class Loader;
-        friend class Geode;
+        friend class ::Geode;
         friend struct ModInfo;
 
     public:
