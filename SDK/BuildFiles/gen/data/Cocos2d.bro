@@ -661,6 +661,10 @@ class cocos2d::CCSpriteBatchNode {
 	auto increaseAtlasCapacity(unsigned int) = mac 0xbc670;
 }
 
+class cocos2d::CCSpriteFrame {
+	static auto createWithTexture(cocos2d::CCTexture2D*, cocos2d::CCRect const&, bool, cocos2d::CCPoint const&, cocos2d::CCSize const&) = mac 0x1ac7f0;
+}
+
 class cocos2d::CCSpriteFrameCache {
 	auto addSpriteFramesWithFile(char const*) = mac 0x199a10;
 	static cocos2d::CCSpriteFrameCache* sharedSpriteFrameCache() = mac 0x198970;

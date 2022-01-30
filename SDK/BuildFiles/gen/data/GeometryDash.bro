@@ -2533,7 +2533,7 @@ class GameManager : cocos2d::CCNode {
 	void loadDeathEffect(int) = mac 0x1cc690, win 0x0, ios 0x0;
 	void loadFont(int) = mac 0x1cc550, win 0x0, ios 0x0;
 	void reloadAll(bool, bool, bool) = mac 0x1d08a0, win 0xce950, ios 0x0;
-	void reloadAllStep2() = mac 0x0, win 0xce9e0, ios 0x0;
+	void reloadAllStep2() = mac 0x1d0940, win 0xce9e0, ios 0x0;
 	void reloadAllStep5() = mac 0x1d0b00, win 0x0, ios 0x0;
 	void reportPercentageForLevel(int, int, bool) = mac 0x1c5b00, win 0x0, ios 0x0;
 	void setGameVariable(const char*, bool) = mac 0x1cca80, win 0xc9b50, ios 0x0;
@@ -3361,7 +3361,7 @@ class LoadingLayer : cocos2d::CCLayer {
 	    m_fromRefresh = value;
 	}
 
-	static LoadingLayer* create(bool fromReload) = mac 0x0, win 0x18bfe0, ios 0x0;
+	static LoadingLayer* create(bool fromReload) = mac 0x1df2f0, win 0x18bfe0, ios 0x0;
 	bool init(bool fromReload) = mac 0x0, win 0x18c080, ios 0x0;
 	const char* getLoadingString() = mac 0x0, win 0x18cf40, ios 0x0;
 	void loadAssets() = mac 0x0, win 0x18c8e0, ios 0x0;
