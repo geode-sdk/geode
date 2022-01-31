@@ -2,15 +2,15 @@ cmake_minimum_required(VERSION 3.13.4)
 
 find_program(GEODE_CLI NAMES geode.exe geode-cli.exe geode geode-cli)
 
-if(GEODE_CLI-NOTFOUND)
-    message(WARNING "Unable to find Geode CLI - You will need to manually package the .geode files")
+if(NOT GEODE_CLI)
+    message(STATUS "Unable to find Geode CLI - You will need to manually package the .geode files")
 else()
     message(STATUS "Found Geode CLI: ${GEODE_CLI}")
 endif()
     
 function(create_geode_file proname)
 
-    if(GEODE_CLI-NOTFOUND)
+    if(NOT GEODE_CLI)
         message(WARNING "create_geode_file called, but Geode CLI was not found - You will need to manually package the .geode files")
     else()
         add_custom_command(
