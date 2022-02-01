@@ -122,7 +122,7 @@ namespace geode {
 		friend class GeodeSetting<BoolSetting>;
 	
 	public:
-		inline virtual SettingType getType() override { SettingType::Bool; }
+		inline virtual SettingType getType() override { return SettingType::Bool; }
 	};
 
 	class IntSetting : public SingleSetting<int, IntSetting> {
@@ -136,7 +136,7 @@ namespace geode {
 		friend class GeodeSetting<IntSetting>;
 	
 	public:
-		inline virtual SettingType getType() override { SettingType::Int; }
+		inline virtual SettingType getType() override { return SettingType::Int; }
 	};
 
 	class FloatSetting : public SingleSetting<float, FloatSetting> {
@@ -150,7 +150,7 @@ namespace geode {
 		friend class GeodeSetting<FloatSetting>;
 	
 	public:
-		inline virtual SettingType getType() override { SettingType::Float; }
+		inline virtual SettingType getType() override { return SettingType::Float; }
 	};
 
 	class StringSetting : public SingleSetting<std::string, StringSetting> {
@@ -161,7 +161,7 @@ namespace geode {
 
 	public:
 		static bool replaceWithBuiltInFilter(std::string& filter);
-		inline virtual SettingType getType() override { SettingType::String; }
+		inline virtual SettingType getType() override { return SettingType::String; }
 	};
 
 	class ColorSetting : public SingleSetting<cocos2d::ccColor3B, ColorSetting> {
@@ -171,7 +171,7 @@ namespace geode {
 		friend class GeodeSetting<ColorSetting>;
 	
 	public:
-		inline virtual SettingType getType() override { SettingType::Color; }
+		inline virtual SettingType getType() override { return SettingType::Color; }
 	};
 
 	class ColorAlphaSetting : public SingleSetting<cocos2d::ccColor4B, ColorAlphaSetting> {
@@ -181,7 +181,7 @@ namespace geode {
 		friend class GeodeSetting<ColorAlphaSetting>;
 	
 	public:
-		inline virtual SettingType getType() override { SettingType::ColorAlpha; }
+		inline virtual SettingType getType() override { return SettingType::ColorAlpha; }
 	};
 
 	class PathSetting : public SingleSetting<ghc::filesystem::path, PathSetting> {
@@ -189,7 +189,7 @@ namespace geode {
 		friend class GeodeSetting<PathSetting>;
 	
 	public:
-		inline virtual SettingType getType() override { SettingType::Path; }
+		inline virtual SettingType getType() override { return SettingType::Path; }
 	};
 
 	class StringSelectSetting : public SelectSetting<std::string, StringSelectSetting> {
@@ -197,12 +197,12 @@ namespace geode {
 		friend class GeodeSetting<StringSelectSetting>;
 	
 	public:
-		inline virtual SettingType getType() override { SettingType::StringSelect; }
+		inline virtual SettingType getType() override { return SettingType::StringSelect; }
 	};
 
 	class CustomSettingPlaceHolder : public Setting {
 	public:
-		inline virtual SettingType getType() override { SettingType::Custom; }
+		inline virtual SettingType getType() override { return SettingType::Custom; }
 	};
 
 	template<typename T>
