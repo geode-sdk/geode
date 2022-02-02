@@ -32,7 +32,7 @@ namespace geode {
     protected:
         std::unordered_map<std::string, Mod*> m_mods;
         std::vector<LogMessage*> m_logs;
-        std::unordered_set<std::string> m_modDirectories;
+        std::vector<std::string> m_modDirectories;
         LogStream* m_logStream;
         bool m_isSetup = false;
         static bool s_unloading;
