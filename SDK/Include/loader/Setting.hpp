@@ -41,25 +41,6 @@ namespace geode {
 		Custom,
 	};
 
-	template<typename T, class Friend, bool Slider, bool Input, bool Arrows>
-	class INumericSetting {
-	protected:
-		T m_min = std::numeric_limits<T>::min();
-		T m_max = std::numeric_limits<T>::max();
-		bool m_slider = Slider;
-		bool m_input = Input;
-		bool m_arrows = Arrows;
-
-		friend class GeodeSetting<Friend>;
-	
-	public:
-		T getMin() { return m_min; }
-		T getMax() { return m_max; }
-		bool hasSlider() { return m_slider; }
-		bool hasInput() { return m_input; }
-		bool hasArrows() { return m_arrows; }
-	};
-
 	class Setting {
 	protected:
 		std::string m_key;
@@ -111,6 +92,25 @@ namespace geode {
 		static Result<SettingClass*> parse(nlohmann::json const& json);
 	};
 
+	template<typename T, class Friend, bool Slider, bool Input, bool Arrows>
+	class INumericSetting {
+	protected:
+		T m_min = std::numeric_limits<T>::min();
+		T m_max = std::numeric_limits<T>::max();
+		bool m_slider = Slider;
+		bool m_input = Input;
+		bool m_arrows = Arrows;
+
+		friend class GeodeSetting<Friend>;
+	
+	public:
+		T getMin() { return m_min; }
+		T getMax() { return m_max; }
+		bool hasSlider() { return m_slider; }
+		bool hasInput() { return m_input; }
+		bool hasArrows() { return m_arrows; }
+	};
+
 	template<typename T, class SettingClass>
 	class SingleSetting : public GeodeSetting<SettingClass> {
 	protected: 
@@ -146,7 +146,7 @@ namespace geode {
 		inline virtual SettingType getType() override { return SettingType::Bool; }
 	};
 
-	class IntSetting : public SingleSetting<int, IntSetting>, public INumericSetting<int, false, true, true> {
+	class IntSetting : public SingleSetting<int, IntSetting>, public INumericSetting<int, IntSetting, false, true, true> {
 	protected:
 		friend class GeodeSetting<IntSetting>;
 	
@@ -154,7 +154,7 @@ namespace geode {
 		inline virtual SettingType getType() override { return SettingType::Int; }
 	};
 
-	class FloatSetting : public SingleSetting<float, FloatSetting>, public INumericSetting<int, true, true, true> {
+	class FloatSetting : public SingleSetting<float, FloatSetting>, public INumericSetting<int, FloatSetting, true, true, true> {
 	protected:
 		friend class GeodeSetting<FloatSetting>;
 	
