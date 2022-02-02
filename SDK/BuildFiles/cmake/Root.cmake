@@ -93,8 +93,14 @@ target_link_directories(${PROJECT_NAME}
 	${LINK_DIRECTORIES}
 )
 endif()
-target_link_libraries(${PROJECT_NAME} 
-	fmt
+
+if (GEODE_BUILD_CODEGEN)
+	target_link_libraries(${PROJECT_NAME} 
+		fmt
+	)
+endif()
+
+target_link_libraries(${PROJECT_NAME}
 	${LINK_LIBRARIES}
 )
 

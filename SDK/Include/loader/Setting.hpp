@@ -121,7 +121,7 @@ namespace geode {
 		T getValue() const { return m_value; }
 		T getDefault() const { return m_default; }
 
-		void setValue(T) { m_value = T; }
+		void setValue(T val) { m_value = val; }
 	};
 
 	template<typename T, class SettingClass>
