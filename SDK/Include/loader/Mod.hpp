@@ -172,6 +172,10 @@ namespace geode {
          * Pointer to the Mod's unload function
          */
         geode_unload m_unloadFunc = nullptr;
+        /**
+         * Path to the mod's build directory
+         */
+        ghc::filesystem::path m_hotReloadPath;
 
         /**
          * Load the platform binary
@@ -221,6 +225,11 @@ namespace geode {
         bool        isEnabled()     const;
         bool        isLoaded()      const;
         bool        supportsDisabling() const;
+
+        ghc::filesystem::path getHotReloadPath() const;
+        Result<> enableHotReload();
+        void disableHotReload();
+        bool isHotReloadEnabled() const;
 
         /**
          * Log to geode's integrated console / 
