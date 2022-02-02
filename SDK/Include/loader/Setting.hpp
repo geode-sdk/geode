@@ -41,6 +41,25 @@ namespace geode {
 		Custom,
 	};
 
+	template<typename T, class Friend, bool Slider, bool Input, bool Arrows>
+	class INumericSetting {
+	protected:
+		T m_min = std::numeric_limits<T>::min();
+		T m_max = std::numeric_limits<T>::max();
+		bool m_slider = Slider;
+		bool m_input = Input;
+		bool m_arrows = Arrows;
+
+		friend class GeodeSetting<Friend>;
+	
+	public:
+		T getMin() { return m_min; }
+		T getMax() { return m_max; }
+		bool hasSlider() { return m_slider; }
+		bool hasInput() { return m_input; }
+		bool hasArrows() { return m_arrows; }
+	};
+
 	class Setting {
 	protected:
 		std::string m_key;
@@ -101,6 +120,8 @@ namespace geode {
 	public:
 		T getValue() const { return m_value; }
 		T getDefault() const { return m_default; }
+
+		void setValue(T) { m_value = T; }
 	};
 
 	template<typename T, class SettingClass>
@@ -125,28 +146,16 @@ namespace geode {
 		inline virtual SettingType getType() override { return SettingType::Bool; }
 	};
 
-	class IntSetting : public SingleSetting<int, IntSetting> {
+	class IntSetting : public SingleSetting<int, IntSetting>, public INumericSetting<int, false, true, true> {
 	protected:
-		int m_min = std::numeric_limits<int>::min();
-		int m_max = std::numeric_limits<int>::max();
-		bool m_slider = false;
-		bool m_input = true;
-		bool m_arrows = true;
-
 		friend class GeodeSetting<IntSetting>;
 	
 	public:
 		inline virtual SettingType getType() override { return SettingType::Int; }
 	};
 
-	class FloatSetting : public SingleSetting<float, FloatSetting> {
+	class FloatSetting : public SingleSetting<float, FloatSetting>, public INumericSetting<int, true, true, true> {
 	protected:
-		float m_min = std::numeric_limits<float>::min();
-		float m_max = std::numeric_limits<float>::max();
-		bool m_slider = true;
-		bool m_input = true;
-		bool m_arrows = true;
-
 		friend class GeodeSetting<FloatSetting>;
 	
 	public:

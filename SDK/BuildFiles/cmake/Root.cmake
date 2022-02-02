@@ -56,6 +56,10 @@ endif()
 
 if (GEODE_BUILD_CODEGEN)
 	add_subdirectory(${GEODE_SDK_DIR}/BuildFiles/gen)
+	
+	target_include_directories(${PROJECT_NAME} PUBLIC
+		${CMAKE_BINARY_DIR}/
+	)
 endif()
 
 target_compile_definitions(${PROJECT_NAME}
@@ -64,7 +68,6 @@ target_compile_definitions(${PROJECT_NAME}
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
-	${CMAKE_BINARY_DIR}/
 	${GEODE_INCLUDE_DIR}/
 	${GEODE_INCLUDE_DIR}/helpers
 	${GEODE_INCLUDE_DIR}/base
