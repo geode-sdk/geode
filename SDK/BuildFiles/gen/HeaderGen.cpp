@@ -17,22 +17,22 @@ struct {class_name}{base_classes}{final} {{
 )CAC";
     
     // requires: static, virtual, return_type, function_name, raw_args, const
-    char const* function_definition = "\t{docs}GEODE_DLL {static}{virtual}{return_type} {function_name}({raw_args}){const};\n";
+    char const* function_definition = "\t{docs}GEODE_CODEGEN_DLL {static}{virtual}{return_type} {function_name}({raw_args}){const};\n";
 
     char const* platform_function_definition = R"CAC(
  private:
-    {docs}GEODE_DLL {static}{virtual}{return_type} _{function_name}({fixed_raw_args}){const};
+    {docs}GEODE_CODEGEN_DLL {static}{virtual}{return_type} _{function_name}({fixed_raw_args}){const};
  public:
     #ifdef GEODE_IS_WINDOWS
     {docs}inline {static}{virtual}{return_type} {function_name}({raw_args}){const} {{
         return _{function_name}({fixed_raw_params});
     }}
     #else
-    {docs}GEODE_DLL {static}{virtual}{return_type} {function_name}({raw_args}){const};
+    {docs}GEODE_CODEGEN_DLL {static}{virtual}{return_type} {function_name}({raw_args}){const};
     #endif
 )CAC";
 
-    char const* structor_definition = "\tGEODE_DLL {function_name}({raw_args});\n";
+    char const* structor_definition = "\tGEODE_CODEGEN_DLL {function_name}({raw_args});\n";
     
     // requires: type, member_name, array
     char const* member_definition = "\t{type} {member_name}{array};\n";
