@@ -3364,7 +3364,7 @@ class LoadingLayer : cocos2d::CCLayer {
 	static LoadingLayer* create(bool fromReload) = mac 0x1df2f0, win 0x18bfe0, ios 0x0;
 	bool init(bool fromReload) = mac 0x0, win 0x18c080, ios 0x0;
 	const char* getLoadingString() = mac 0x0, win 0x18cf40, ios 0x0;
-	void loadAssets() = mac 0x0, win 0x18c8e0, ios 0x0;
+	void loadAssets() = mac 0x1dfb20, win 0x18c8e0, ios 0x0;
 	void loadingFinished() = mac 0x0, win 0x18c790, ios 0x0;
 
 	static cocos2d::CCScene* scene(bool fromReload) {
