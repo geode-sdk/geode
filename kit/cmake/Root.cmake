@@ -68,7 +68,20 @@ target_compile_definitions(${PROJECT_NAME}
 )
 
 if (NOT DEFINED GEODE_NO_LINK_LOADER)
-	geode_link_bin(${PROJECT_NAME} "${CMAKE_SOURCE_DIR}/sdk/bin")
+	set(GEODE_BIN_REPO_DIRECTORY ${GEODE_SDK_DIR}/bin)
+	if(WIN32)
+		target_link_libraries(
+			${PROJECT_NAME}
+			"${GEODE_BIN_REPO_DIRECTORY}/windows/geode.lib"
+			"${GEODE_BIN_REPO_DIRECTORY}/windows/CCZipUtils.lib"
+		)
+		target_include_directories(
+			${PROJECT_NAME} PUBLIC
+			${GEODE_BIN_REPO_DIRECTORY}/windows
+		)
+	else()
+		message(FATAL_ERROR "geode_link_bin is unimplemented for this platform!")
+	endif()
 endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC

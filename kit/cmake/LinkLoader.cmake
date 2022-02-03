@@ -10,7 +10,7 @@ cmake_minimum_required(VERSION 3.13.4)
 #         )
 #         target_include_directories(
 #             ${proname} PUBLIC
-#             "${bin_repo_directory}"
+#             ${bin_repo_directory}
 #         )
 #     else()
 #         message(FATAL_ERROR "geode_link_bin is unimplemented for this platform!")
