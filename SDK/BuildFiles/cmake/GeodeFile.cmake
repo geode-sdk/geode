@@ -29,7 +29,7 @@ function(create_geode_file proname)
 
         add_custom_command(
             TARGET ${proname} POST_BUILD
-            COMMAND ${GEODE_CLI} pkg ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG> ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${proname}.geode ${INSTALL_FLAGS}
+            COMMAND ${GEODE_CLI} pkg ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG> ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${proname}.geode ${INSTALL_FLAGS} --cached
             VERBATIM USES_TERMINAL
         )
     endif()
