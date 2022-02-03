@@ -663,6 +663,7 @@ class cocos2d::CCSpriteBatchNode {
 
 class cocos2d::CCSpriteFrame {
 	static auto createWithTexture(cocos2d::CCTexture2D*, cocos2d::CCRect const&, bool, cocos2d::CCPoint const&, cocos2d::CCSize const&) = mac 0x1ac7f0;
+	static auto createWithTexture(cocos2d::CCTexture2D*, cocos2d::CCRect const&) = mac 0x1ac5c0;
 }
 
 class cocos2d::CCSpriteFrameCache {

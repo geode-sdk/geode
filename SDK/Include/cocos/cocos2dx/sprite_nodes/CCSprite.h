@@ -264,11 +264,7 @@ public:
     virtual bool initWithFile(const char *pszFilename, const CCRect& rect);
     
     /// @} end of initializers
-    
-    RT_ADD(
-        virtual void setChildColor(const ccColor3B&);
-        virtual void setChildOpacity(GLubyte);
-    )
+
 
     /// @{
     /// @name Functions inherited from CCTextureProtocol
@@ -280,6 +276,11 @@ public:
      */
     inline ccBlendFunc getBlendFunc(void) { return m_sBlendFunc; }
     /// @}
+
+    RT_ADD(
+        virtual void setChildColor(const ccColor3B&);
+        virtual void setChildOpacity(GLubyte);
+    )
 
     /// @{
     /// @name Functions inherited from CCNode
