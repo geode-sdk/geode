@@ -27,5 +27,14 @@ if (OSXinj)
 	add_dependencies(Inject ${PROJECT_NAME})
 endif()
 
-macro(link_prebuilts project)
-endmacro()
+function(geode_link_bin proname bin_repo_directory)
+	target_link_libraries(
+	    ${proname}
+	    "${bin_repo_directory}/windows/geode.dylib"
+	    "${bin_repo_directory}/windows/CCZipUtils.a"
+	)
+	target_include_directories(
+	    ${proname} PUBLIC
+	    "${bin_repo_directory}"
+	)
+endfunction()
