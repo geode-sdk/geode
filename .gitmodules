@@ -1,3 +1,0 @@
-[submodule "bin"]
-	path = bin
-	url = https://github.com/geode-sdk/bin
