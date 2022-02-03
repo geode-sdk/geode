@@ -1130,11 +1130,6 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
 	void alignObjects(cocos2d::CCArray* objs, bool alignY) = mac 0x0, win 0x8f320, ios 0x0;
 	virtual void keyUp(cocos2d::enumKeyCodes key) = mac 0x312b0, win 0x92180, ios 0x0;
 
-	LevelEditorLayer* editorLayer = mac 0x408, win 0x0, android 0x0;
-	cocos2d::CCArray* editBars = mac 0x358, win 0x0, android 0x0;
-	cocos2d::CCNode* locationSlider = mac 0x228, win 0x0, android 0x0;
-	GameObject* lastSelectedObject = mac 0x440, win 0x0, android 0x0;
-	gd::string clipboard = mac 0x458, win 0x0, android 0x0;
 	EditButtonBar* m_buttonBar;
 	PAD = mac 0x8, win 0x4, android 0x0;
 	cocos2d::CCArray* m_hideableUIElementArray;
@@ -2555,10 +2550,6 @@ class GameManager : GManager {
 	void toggleGameVariable(const char* key) = mac 0x0, win 0xc9e90, ios 0x0;
 	static void returnToLastScene(GJGameLevel* level) = mac 0x0, win 0xce6a0, ios 0x0;
 
-	PlayLayer* playLayer = mac 0x180, win 0x0, android 0x0;
-	LevelEditorLayer* editorLayer = mac 0x188, win 0x0, android 0x0;
-	int scene = mac 0x1f4, win 0x0, android 0x0;
-	bool ldm = mac 0x2a1, win 0x0, android 0x0;
 	bool m_switchModes;
 	bool m_toFullscreen;
 	bool m_reloading;
