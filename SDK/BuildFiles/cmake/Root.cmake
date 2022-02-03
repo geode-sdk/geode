@@ -9,41 +9,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(GEODE_SDK_DIR ${CMAKE_SOURCE_DIR}/sdk/SDK)
 set(GEODE_INCLUDE_DIR ${GEODE_SDK_DIR}/Include)
 
-function(create_geode_file proname)
-	add_custom_command(
-		POST_BUILD
-		COMMAND "${CMAKE_COMMAND}" -E copy_if_different 
-			"${CMAKE_CURRENT_SOURCE_DIR}/mod.json"
-			"$<TARGET_FILE_DIR:${proname}>/mod.json"
-			"${srcs}"
-		OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/Geode_prereqs"
-	)
-	if (GEODE_TARGET_PLATFORM STREQUAL "MacOS" OR GEODE_TARGET_PLATFORM STREQUAL "iOS")
-		set(GEODE_OUT_EXTENSION "${proname}.dylib")
-	elseif (GEODE_TARGET_PLATFORM STREQUAL "Win32")
-		set(GEODE_OUT_EXTENSION "${proname}.dll")
-	else()
-		set(GEODE_OUT_EXTENSION "${proname}.so")
-	endif()
-
-	add_custom_command(
-		COMMAND ${CMAKE_COMMAND} -E tar "cf" 
-			"${proname}.geode" --format=zip -- 
-			"mod.json"
-			"$<TARGET_FILE_NAME:${proname}>"
-			"${srcs}"
-		WORKING_DIRECTORY "$<TARGET_FILE_DIR:${proname}>"
-		OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/Geode_file"
-		#COMMAND ${CMAKE_COMMAND} -E echo "Creating zip file -> ${CMAKE_CURRENT_BINARY_DIR}/${proname}.geode"
-	)
-
-	add_custom_target(${proname}_package ALL
-	    DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/Geode_prereqs"
-	    DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/Geode_file"
-	)
-
-	unset(GEODE_OUT_EXTENSION)
-endfunction()
+include(${CMAKE_CURRENT_LIST_DIR}/GeodeFile.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/LinkLoader.cmake)
 
 if (NOT DEFINED GEODE_TARGET_PLATFORM)
 	if(APPLE)
@@ -54,17 +21,26 @@ if (NOT DEFINED GEODE_TARGET_PLATFORM)
 		message(FATAL_ERROR "Unable to detect platform, please set GEODE_TARGET_PLATFORM in the root CMake file.")
 	endif()
 endif()
-set(GEODE_CODEGEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/Gen)
 
-file(MAKE_DIRECTORY ${GEODE_CODEGEN_DIR})
+if (GEODE_BUILD_CODEGEN)
+	add_definitions(-DGEODE_EXPORTING_CODEGEN)
+
+	set(GEODE_CODEGEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/Gen)
+
+	file(MAKE_DIRECTORY ${GEODE_CODEGEN_DIR})
+endif()
 
 include(CheckIPOSupported)
 check_ipo_supported(RESULT supported OUTPUT error)
 
-set_source_files_properties(${GEODE_CODEGEN_DIR}/Source.cpp PROPERTIES GENERATED 1)
-add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES}	${GEODE_CODEGEN_DIR}/Source.cpp)
-# set_property(TARGET ${PROJECT_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-# target_link_options(${PROJECT_NAME} PUBLIC -dead_strip)
+if (GEODE_BUILD_CODEGEN)
+	set_source_files_properties(${GEODE_CODEGEN_DIR}/Source.cpp PROPERTIES GENERATED 1)
+	add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES}	${GEODE_CODEGEN_DIR}/Source.cpp)
+	# set_property(TARGET ${PROJECT_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+	# target_link_options(${PROJECT_NAME} PUBLIC -dead_strip)
+else()
+	add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
+endif()
 
 if("${GEODE_TARGET_PLATFORM}" STREQUAL "MacOS")
 	include(${CMAKE_CURRENT_LIST_DIR}/MacOS.cmake)
@@ -78,7 +54,13 @@ else()
 	message(FATAL_ERROR "Not supported platform, please specify from the following: MacOS, Win32, iOS, Android.")
 endif()
 
-add_subdirectory(${GEODE_SDK_DIR}/BuildFiles/gen)
+if (GEODE_BUILD_CODEGEN)
+	add_subdirectory(${GEODE_SDK_DIR}/BuildFiles/gen)
+	
+	target_include_directories(${PROJECT_NAME} PUBLIC
+		${CMAKE_BINARY_DIR}/
+	)
+endif()
 
 target_compile_definitions(${PROJECT_NAME}
 	PRIVATE -DPROJECT_NAME=${PROJECT_NAME}
@@ -86,7 +68,6 @@ target_compile_definitions(${PROJECT_NAME}
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
-	${CMAKE_BINARY_DIR}/
 	${GEODE_INCLUDE_DIR}/
 	${GEODE_INCLUDE_DIR}/helpers
 	${GEODE_INCLUDE_DIR}/base
@@ -112,8 +93,14 @@ target_link_directories(${PROJECT_NAME}
 	${LINK_DIRECTORIES}
 )
 endif()
-target_link_libraries(${PROJECT_NAME} 
-	fmt
+
+if (GEODE_BUILD_CODEGEN)
+	target_link_libraries(${PROJECT_NAME} 
+		fmt
+	)
+endif()
+
+target_link_libraries(${PROJECT_NAME}
 	${LINK_LIBRARIES}
 )
 

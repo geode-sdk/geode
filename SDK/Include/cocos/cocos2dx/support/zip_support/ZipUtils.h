@@ -204,7 +204,8 @@ namespace cocos2d
         */
         ZipFile(const std::string &zipFile, const std::string &filter = std::string());
         virtual ~ZipFile();
-
+    
+    GEODE_ADD(
         /**
          * Custom function added for geode; returns if the 
          * zip file was succesfully decoded.
@@ -215,6 +216,7 @@ namespace cocos2d
          * @since geode v1.0.0
          */
         bool isLoaded() const;
+    )
 
         /**
         * Regenerate accessible file list based on a new filter string.
@@ -247,6 +249,18 @@ namespace cocos2d
         * @since v2.0.5
         */
         unsigned char *getFileData(const std::string &fileName, unsigned long *pSize);
+
+    GEODE_ADD(
+        /**
+         * Custom function added for geode; returns all of 
+         * the files in the zip that match the current filter.
+         * 
+         * @return Vector of filenames
+         * 
+         * @since geode v1.0.0
+         */
+        std::vector<std::string> getAllFiles() const;
+    )
 
     private:
         bool setFilter(const std::string &filer, ZipFilePrivate *data);

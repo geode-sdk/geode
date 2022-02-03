@@ -20,15 +20,6 @@ namespace cocos2d {
 struct TableViewCell;
 
 namespace geode {
-	class BoolSettingNode;
-	class IntSettingNode;
-	class FloatSettingNode;
-	class StringSettingNode;
-	class ColorSettingNode;
-	class ColorAlphaSettingNode;
-	class PathSettingNode;
-	class StringSelectSettingNode;
-
 	class BoolSetting;
 	class IntSetting;
 	class FloatSetting;
@@ -38,6 +29,18 @@ namespace geode {
 	class PathSetting;
 	class StringSelectSetting;
 
+	enum class SettingType {
+		Bool,
+		Int,
+		Float,
+		String,
+		Color,
+		ColorAlpha,
+		Path,
+		StringSelect,
+		Custom,
+	};
+
 	class Setting {
 	protected:
 		std::string m_key;
@@ -45,7 +48,7 @@ namespace geode {
 		friend class Loader;
 
 	public:
-		virtual TableViewCell* generate(float width) = 0;
+		virtual SettingType getType() = 0;
 		virtual ~Setting() = default;
 
 		std::string getKey() const { return m_key; }
@@ -89,6 +92,25 @@ namespace geode {
 		static Result<SettingClass*> parse(nlohmann::json const& json);
 	};
 
+	template<typename T, class Friend, bool Slider, bool Input, bool Arrows>
+	class INumericSetting {
+	protected:
+		T m_min = std::numeric_limits<T>::min();
+		T m_max = std::numeric_limits<T>::max();
+		bool m_slider = Slider;
+		bool m_input = Input;
+		bool m_arrows = Arrows;
+
+		friend class GeodeSetting<Friend>;
+	
+	public:
+		T getMin() { return m_min; }
+		T getMax() { return m_max; }
+		bool hasSlider() { return m_slider; }
+		bool hasInput() { return m_input; }
+		bool hasArrows() { return m_arrows; }
+	};
+
 	template<typename T, class SettingClass>
 	class SingleSetting : public GeodeSetting<SettingClass> {
 	protected: 
@@ -98,6 +120,8 @@ namespace geode {
 	public:
 		T getValue() const { return m_value; }
 		T getDefault() const { return m_default; }
+
+		void setValue(T val) { m_value = val; }
 	};
 
 	template<typename T, class SettingClass>
@@ -117,40 +141,25 @@ namespace geode {
 	class BoolSetting : public SingleSetting<bool, BoolSetting> {
 	protected:
 		friend class GeodeSetting<BoolSetting>;
-		friend class BoolSettingNode;
-
+	
 	public:
-		TableViewCell* generate(float width) override;
+		inline virtual SettingType getType() override { return SettingType::Bool; }
 	};
 
-	class IntSetting : public SingleSetting<int, IntSetting> {
+	class IntSetting : public SingleSetting<int, IntSetting>, public INumericSetting<int, IntSetting, false, true, true> {
 	protected:
-		int m_min = std::numeric_limits<int>::min();
-		int m_max = std::numeric_limits<int>::max();
-		bool m_slider = false;
-		bool m_input = true;
-		bool m_arrows = true;
-
 		friend class GeodeSetting<IntSetting>;
-		friend class IntSettingNode;
-
+	
 	public:
-		TableViewCell* generate(float width) override;
+		inline virtual SettingType getType() override { return SettingType::Int; }
 	};
 
-	class FloatSetting : public SingleSetting<float, FloatSetting> {
+	class FloatSetting : public SingleSetting<float, FloatSetting>, public INumericSetting<int, FloatSetting, true, true, true> {
 	protected:
-		float m_min = std::numeric_limits<float>::min();
-		float m_max = std::numeric_limits<float>::max();
-		bool m_slider = true;
-		bool m_input = true;
-		bool m_arrows = true;
-
 		friend class GeodeSetting<FloatSetting>;
-		friend class FloatSettingNode;
-
+	
 	public:
-		TableViewCell* generate(float width) override;
+		inline virtual SettingType getType() override { return SettingType::Float; }
 	};
 
 	class StringSetting : public SingleSetting<std::string, StringSetting> {
@@ -158,12 +167,10 @@ namespace geode {
 		std::string m_filter;
 
 		friend class GeodeSetting<StringSetting>;
-		friend class StringSettingNode;
 
 	public:
 		static bool replaceWithBuiltInFilter(std::string& filter);
-
-		TableViewCell* generate(float width) override;
+		inline virtual SettingType getType() override { return SettingType::String; }
 	};
 
 	class ColorSetting : public SingleSetting<cocos2d::ccColor3B, ColorSetting> {
@@ -171,10 +178,9 @@ namespace geode {
 		Result<cocos2d::ccColor3B> parseColor(nlohmann::json const& json);
 
 		friend class GeodeSetting<ColorSetting>;
-		friend class ColorSettingNode;
-
+	
 	public:
-		TableViewCell* generate(float width) override;
+		inline virtual SettingType getType() override { return SettingType::Color; }
 	};
 
 	class ColorAlphaSetting : public SingleSetting<cocos2d::ccColor4B, ColorAlphaSetting> {
@@ -182,33 +188,30 @@ namespace geode {
 		Result<cocos2d::ccColor4B> parseColor(nlohmann::json const& json);
 
 		friend class GeodeSetting<ColorAlphaSetting>;
-		friend class ColorAlphaSettingNode;
-
+	
 	public:
-		TableViewCell* generate(float width) override;
+		inline virtual SettingType getType() override { return SettingType::ColorAlpha; }
 	};
 
 	class PathSetting : public SingleSetting<ghc::filesystem::path, PathSetting> {
 	protected:
 		friend class GeodeSetting<PathSetting>;
-		friend class PathSettingNode;
-
+	
 	public:
-		TableViewCell* generate(float width) override;
+		inline virtual SettingType getType() override { return SettingType::Path; }
 	};
 
 	class StringSelectSetting : public SelectSetting<std::string, StringSelectSetting> {
 	protected:
 		friend class GeodeSetting<StringSelectSetting>;
-		friend class StringSelectSettingNode;
-
+	
 	public:
-		TableViewCell* generate(float width) override;
+		inline virtual SettingType getType() override { return SettingType::StringSelect; }
 	};
 
 	class CustomSettingPlaceHolder : public Setting {
 	public:
-		TableViewCell* generate(float width) override;
+		inline virtual SettingType getType() override { return SettingType::Custom; }
 	};
 
 	template<typename T>

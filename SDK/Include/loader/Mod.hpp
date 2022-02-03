@@ -34,6 +34,27 @@ namespace geode {
         bool isUnresolved() const;
     };
 
+    struct Credits {
+        struct Person {
+            std::string m_name;
+            std::string m_reason = "";
+            int m_gdAccountID = 0;
+            std::string m_gdAccountName = "";
+            std::unordered_map<std::string, std::string> m_links;
+
+            static std::string expandKnownLink(std::string const& link);
+        };
+
+        struct Library {
+            std::string m_name = "";
+            std::string m_repo = "";
+        };
+
+        std::vector<Person> m_people;
+        std::vector<std::string> m_thanks;
+        std::vector<Library> m_libraries;
+    };
+
     /**
      * Represents all the data gatherable 
      * from mod.json
@@ -42,7 +63,7 @@ namespace geode {
         /**
          * Path to the mod file
          */
-        std::string m_path;
+        ghc::filesystem::path m_path;
         /**
          * Name of the platform binary within 
          * the mod zip
@@ -97,11 +118,23 @@ namespace geode {
         /**
          * Free-form list of credits.
          */
-        std::string m_credits = "";
+        std::string m_creditsString = "";
+        /**
+         * List of credits.
+         */
+        Credits m_credits;
+        /**
+         * Git Repository of the mod.
+         */
+        std::string m_repository = "";
         /**
          * Dependencies
          */
         std::vector<Dependency> m_dependencies;
+        /**
+         * Mod spritesheet names
+         */
+        std::vector<std::string> m_spritesheets;
         /**
          * Settings
          */
@@ -172,6 +205,15 @@ namespace geode {
          * Pointer to the Mod's unload function
          */
         geode_unload m_unloadFunc = nullptr;
+        /**
+         * Path to the mod's build directory
+         */
+        ghc::filesystem::path m_hotReloadPath;
+        /**
+         * Whether temp/<mod id>/resources should be 
+         * added to CCFileUtils search paths
+         */
+        bool m_addResourcesToSearchPath = false;
 
         /**
          * Load the platform binary
@@ -221,6 +263,11 @@ namespace geode {
         bool        isEnabled()     const;
         bool        isLoaded()      const;
         bool        supportsDisabling() const;
+
+        ghc::filesystem::path getHotReloadPath() const;
+        Result<> enableHotReload();
+        void disableHotReload();
+        bool isHotReloadEnabled() const;
 
         /**
          * Log to geode's integrated console / 

@@ -32,7 +32,7 @@ namespace geode {
     protected:
         std::unordered_map<std::string, Mod*> m_mods;
         std::vector<LogMessage*> m_logs;
-        std::unordered_set<std::string> m_modDirectories;
+        std::vector<std::string> m_modDirectories;
         LogStream* m_logStream;
         bool m_isSetup = false;
         static bool s_unloading;
@@ -125,7 +125,16 @@ namespace geode {
             std::initializer_list<Severity> severityFilter
         );
         
-        void addResourceSearchPaths();
+        /**
+         * You shouldn't be calling this manually, 
+         * but if you are, make sure to set 
+         * Mod::m_addResourcesToSearchPath to true 
+         * first
+         */
+        void addModResourcesPath(Mod* mod);
+        void updateResourcePaths();
+        void updateModResources(Mod* mod);
+        void updateResources();
 
         /**
          * Check if a mod with an ID has been loaded
@@ -181,7 +190,7 @@ namespace geode {
          * `CCScheduler::update` is called
          * @param func Function to run
          */
-        void queueInGDThread(std::function<void(void)> func);
+        void queueInGDThread(std::function<void GEODE_CALL(void)> func);
     };
 
 }
