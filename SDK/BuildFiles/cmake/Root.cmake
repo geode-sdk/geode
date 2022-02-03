@@ -67,6 +67,10 @@ target_compile_definitions(${PROJECT_NAME}
 	# PRIVATE "-D__FILENAME__='\"$(subst${CMAKE_SOURCE_DIR}/,,$(abspath $<))\"'"
 )
 
+if (NOT DEFINED GEODE_NO_LINK_LOADER)
+	geode_link_bin(${PROJECT_NAME} "${CMAKE_SOURCE_DIR}/sdk/bin")
+endif()
+
 target_include_directories(${PROJECT_NAME} PUBLIC
 	${GEODE_INCLUDE_DIR}/
 	${GEODE_INCLUDE_DIR}/helpers
