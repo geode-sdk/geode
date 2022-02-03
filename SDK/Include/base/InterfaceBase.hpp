@@ -127,8 +127,9 @@ struct field_t {
         static_assert(!std::is_same_v<T, T>, "field_t shouldn't be used directly. it should be used with this->*myMember.");
     }
 
-    void operator->() {
+    field_t<T>* operator->() {
         static_assert(!std::is_same_v<T, T>, "field_t shouldn't be used directly. it should be used with this->*myMember.");
+		return nullptr;
     }
 
     void operator*() {
