@@ -59,10 +59,6 @@ public:
      * @lua NA
      */
     inline CCString(const gd::string& str) : m_sString(str.c_str()) {}
-     /**
-     * @lua NA
-     */
-    inline CCString(const std::string& str) : m_sString(str.c_str()) {}
     /**
      * @lua NA
      */
