@@ -33,7 +33,7 @@ namespace gd {
 		string& operator=(char const* ok);
 		string& operator=(string const& ok);
 		__attribute__((noinline)) ~string();
-		char const* c_str() {return (char const*)m_data; }
+		char const* c_str() const {return (char const*)m_data; }
 	 protected: 
 		_internal_string*       m_data;
 	};
