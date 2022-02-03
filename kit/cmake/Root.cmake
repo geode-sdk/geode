@@ -68,7 +68,7 @@ target_compile_definitions(${PROJECT_NAME}
 )
 
 if (NOT DEFINED GEODE_NO_LINK_LOADER)
-	geode_link_bin(${PROJECT_NAME} "${CMAKE_SOURCE_DIR}/sdk/Bin")
+	geode_link_bin(${PROJECT_NAME} "${GEODE_SDK_DIR}/bin")
 endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC
