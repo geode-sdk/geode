@@ -50,23 +50,27 @@ public:
     /**
      * @lua NA
      */
-    CCString() : m_sString("") {}
+    inline CCString() : m_sString("") {}
     /**
      * @lua NA
      */
-    CCString(const char* str) : m_sString(str) {}
+    inline CCString(const char* str) : m_sString(str) {}
     /**
      * @lua NA
      */
-    CCString(const gd::string& str) : m_sString(str) {}
+    inline CCString(const gd::string& str) : m_sString(str) {}
+     /**
+     * @lua NA
+     */
+    inline CCString(const std::string& str) : m_sString(str) {}
     /**
      * @lua NA
      */
-    CCString(const CCString& str) {}
+    inline CCString(const CCString& str) {}
     /**
      * @lua NA
      */
-    virtual ~CCString() {}
+    virtual inline ~CCString() {}
     
     /* override assignment operator
      * @lua NA
@@ -113,7 +117,7 @@ public:
      *  @return A CCString pointer which is an autorelease object pointer,
      *          it means that you needn't do a release operation unless you retain it.
      */
-    static CCString* create(const gd::string& str) {
+    static inline CCString* create(const gd::string& str) {
     	CCString* pRet = new CCString(str);
 	    pRet->autorelease();
 	    return pRet;
@@ -125,7 +129,7 @@ public:
      *          it means that you needn't do a release operation unless you retain it.
      *  @lua NA
      */ 
-    static CCString* createWithFormat(const char* format, ...) CC_FORMAT_PRINTF(1, 2) {
+    static inline CCString* createWithFormat(const char* format, ...) CC_FORMAT_PRINTF(1, 2) {
     	CCString* pRet = CCString::create("");
 	    va_list ap;
 	    va_start(ap, format);
