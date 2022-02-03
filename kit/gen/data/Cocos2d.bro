@@ -679,7 +679,7 @@ class cocos2d::CCStandardTouchHandler {
 }
 
 class cocos2d::CCString {
-	virtual ~CCString() = mac 0x44c590;
+	// virtual ~CCString() = mac 0x44c590;
 	virtual auto isEqual(cocos2d::CCObject const*) = mac 0x44c8f0;
 	virtual auto acceptVisitor(cocos2d::CCDataVisitor&) = mac 0x44ccb0;
 	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) = mac 0x44c870;

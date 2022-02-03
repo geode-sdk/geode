@@ -88,7 +88,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 	${GEODE_INCLUDE_DIR}/cocos/cocos2dx/kazmath/include
 	${GEODE_INCLUDE_DIR}/cocos/extensions
 	${GEODE_INCLUDE_DIR}/fmod
-	${GEODE_INCLUDE_DIR}/gen/fmt/include
+	${GEODE_SDK_DIR}/kit/gen/fmt/include
 	${INCLUDE_DIRECTORIES}
 )
 
