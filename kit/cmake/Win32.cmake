@@ -38,6 +38,7 @@ function(geode_link_bin proname bin_repo_directory)
     target_include_directories(
         ${proname} PUBLIC
         "${bin_repo_directory}"
+        "${bin_repo_directory}/windows"
     )
 
 endfunction()

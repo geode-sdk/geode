@@ -1036,7 +1036,11 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
 	static EditorUI* get() {
 	    auto lel = LevelEditorLayer::get();
 	    if (!lel) return nullptr;
+	    #ifdef GEODE_IS_WINDOWS
 	    return lel->m_editorUI;
+	    #else
+	    return nullptr;
+	    #endif
 	}
 
 	void constrainGameLayerPosition() = mac 0x1c6d0, win 0x0, ios 0x0;
@@ -2408,7 +2412,7 @@ class GameLevelManager : cocos2d::CCNode {
 	cocos2d::CCString* m_unkStr4;
 }
 
-class GameManager : cocos2d::CCNode {
+class GameManager : GManager {
 	int getPlayerFrame() {
 	    return m_playerFrame;
 	}
@@ -2559,15 +2563,15 @@ class GameManager : cocos2d::CCNode {
 	bool m_toFullscreen;
 	bool m_reloading;
 	bool m_unknown0;
-	PAD = mac 0x0, win 0x4, android 0x0;
+	PAD = mac 0x8, win 0x4, android 0x0;
 	cocos2d::CCDictionary* m_valueKeeper;
 	cocos2d::CCDictionary* m_unlockValueKeeper;
 	cocos2d::CCDictionary* m_customObjectDict;
-	PAD = mac 0x0, win 0x4, android 0x0;
+	PAD = mac 0x8, win 0x4, android 0x0;
 	double m_unknownDouble;
-	PAD = mac 0x0, win 0x10, android 0x0;
+	PAD = mac 0x10, win 0x10, android 0x0;
 	double m_unknown2Double;
-	PAD = mac 0x0, win 0x8, android 0x0;
+	PAD = mac 0x8, win 0x8, android 0x0;
 	bool m_loaded;
 	gd::string m_unknownString;
 	PlayLayer* m_playLayer;
@@ -2873,11 +2877,11 @@ class GameObject : CCSpritePlus {
 	bool m_isOrientedRectDirty;
 	bool m_hasBeenActivated;
 	bool m_hasBeenActivatedP2;
-	PAD = mac 0x0, win 0x10, android 0x0;
+	PAD = mac 0x10, win 0x10, android 0x0;
 	bool m_sawIsDisabled;
-	PAD = mac 0x0, win 0x4, android 0x0;
+	PAD = mac 0x4, win 0x4, android 0x0;
 	cocos2d::CCSprite* m_detailSprite;
-	PAD = mac 0x0, win 0x8, android 0x0;
+	PAD = mac 0x8, win 0x8, android 0x0;
 	bool m_isRotatedSide;
 	float m_unk2F4;
 	float m_unk2F8;
@@ -2890,10 +2894,10 @@ class GameObject : CCSpritePlus {
 	gd::string m_textureName;
 	bool m_unk32C;
 	bool m_unk32D;
-	PAD = mac 0x0, win 0xc, android 0x0;
+	PAD = mac 0xc, win 0xc, android 0x0;
 	float m_unk33C;
 	float m_unk340;
-	PAD = mac 0x0, win 0x10, android 0x0;
+	PAD = mac 0x10, win 0x10, android 0x0;
 	bool m_isGlowDisabled;
 	int m_targetColorID;
 	float m_scale;
@@ -3361,8 +3365,8 @@ class LoadingLayer : cocos2d::CCLayer {
 	    m_fromRefresh = value;
 	}
 
-	static LoadingLayer* create(bool fromReload) = mac 0x1df2f0, win 0x18bfe0, ios 0x0;
-	bool init(bool fromReload) = mac 0x0, win 0x18c080, ios 0x0;
+	static LoadingLayer* create(bool fromReload) = mac 0x1df1f0, win 0x18bfe0, ios 0x0;
+	bool init(bool fromReload) = mac 0x1df2f0, win 0x18c080, ios 0x0;
 	const char* getLoadingString() = mac 0x0, win 0x18cf40, ios 0x0;
 	void loadAssets() = mac 0x1dfb20, win 0x18c8e0, ios 0x0;
 	void loadingFinished() = mac 0x0, win 0x18c790, ios 0x0;
@@ -3373,13 +3377,14 @@ class LoadingLayer : cocos2d::CCLayer {
 		return scene;
 	}
 
-	PAD = mac 0x0, win 0x4, android 0x0;
+	bool m_unknown;
+	bool m_unknown2;
 	int m_loadStep;
 	cocos2d::CCLabelBMFont* m_caption;
-	PAD = mac 0x0, win 0x4, android 0x0;
+	TextArea* m_textArea;
 	cocos2d::CCSprite* m_sliderBar;
 	float m_sliderGrooveXPos;
-	PAD = mac 0x0, win 0x4, android 0x0;
+	float m_unknown3;
 	bool m_fromRefresh;
 }
 

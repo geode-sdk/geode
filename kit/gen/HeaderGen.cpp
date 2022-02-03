@@ -149,7 +149,7 @@ int main(int argc, char** argv) {
     	}
         
         for (auto m : cd.members) {
-            if (m.member_type != kDefault && CacShare::getHardcode(m).size() == 0)
+            if (m.member_type == kHardcode && CacShare::getHardcode(m).size() == 0)
                 continue; // Not Implemented on platform
 
         	char const* used_format;
