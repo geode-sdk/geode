@@ -66,7 +66,7 @@ public:
     /**
      * @lua NA
      */
-    virtual ~CCString();
+    virtual ~CCString() {}
     
     /* override assignment operator
      * @lua NA
