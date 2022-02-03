@@ -11,7 +11,7 @@ include_directories(
 
 macro(link_prebuilts project)
 	target_link_libraries(${project} 
-		${CMAKE_SOURCE_DIR}/Extern/Android/libcocos2dcpp.so
+		${CMAKE_SOURCE_DIR}/lib/android/libcocos2dcpp.so
 	)
 endmacro()
 
@@ -27,7 +27,7 @@ set(PACKAGE_DIR ${CMAKE_CURRENT_BINARY_DIR}/AndroidBuild)
 set(OUT_FILE "${PROJECT_NAME}_${CMAKE_PROJECT_VERSION}-3.apk")
 
 add_custom_command(
-	COMMAND python3 ${CMAKE_SOURCE_DIR}/BuildFiles/pkg/Android.py "${PACKAGE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}"  "${PROJECT_NAME}" "${GEODE_APK_FILE}" "${OUT_FILE}"
+	COMMAND python3 ${CMAKE_SOURCE_DIR}/kit/pkg/Android.py "${PACKAGE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}"  "${PROJECT_NAME}" "${GEODE_APK_FILE}" "${OUT_FILE}"
 	DEPENDS ${GEODE_ANDROID_CONTROL}
 	OUTPUT  ${PACKAGE_DIR}/_
 	COMMENT "Packaging ${PROJECT_NAME}"

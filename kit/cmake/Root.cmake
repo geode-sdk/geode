@@ -6,8 +6,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(GEODE_SDK_DIR ${CMAKE_SOURCE_DIR}/sdk/SDK)
-set(GEODE_INCLUDE_DIR ${GEODE_SDK_DIR}/Include)
+set(GEODE_SDK_DIR ${CMAKE_CURRENT_LIST_DIR}/../..)
+set(GEODE_INCLUDE_DIR ${GEODE_SDK_DIR}/include)
 
 include(${CMAKE_CURRENT_LIST_DIR}/GeodeFile.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/LinkLoader.cmake)
@@ -55,7 +55,7 @@ else()
 endif()
 
 if (GEODE_BUILD_CODEGEN)
-	add_subdirectory(${GEODE_SDK_DIR}/BuildFiles/gen)
+	add_subdirectory(${GEODE_SDK_DIR}/kit/gen)
 	
 	target_include_directories(${PROJECT_NAME} PUBLIC
 		${CMAKE_BINARY_DIR}/

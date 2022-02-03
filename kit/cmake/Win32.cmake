@@ -12,8 +12,8 @@ include_directories(
 
 macro(link_prebuilts project)
 	target_link_libraries(${project} 
-		${GEODE_SDK_DIR}/Extern/Win32/libcocos2d.lib
-		${GEODE_SDK_DIR}/Extern/Win32/libExtensions.lib
+		${GEODE_SDK_DIR}/lib/windows/libcocos2d.lib
+		${GEODE_SDK_DIR}/lib/windows/libExtensions.lib
 	)
 endmacro()
 
