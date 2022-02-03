@@ -132,6 +132,10 @@ namespace geode {
          */
         std::vector<Dependency> m_dependencies;
         /**
+         * Mod spritesheet names
+         */
+        std::vector<std::string> m_spritesheets;
+        /**
          * Settings
          */
         std::unordered_map<std::string, Setting*> m_settings;
