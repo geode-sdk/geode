@@ -30,8 +30,7 @@ endif()
 function(geode_link_bin proname bin_repo_directory)
 	target_link_libraries(
 	    ${proname}
-	    "${bin_repo_directory}/windows/geode.dylib"
-	    "${bin_repo_directory}/windows/CCZipUtils.a"
+	    "${bin_repo_directory}/macos/geode.dylib"
 	)
 	target_include_directories(
 	    ${proname} PUBLIC
