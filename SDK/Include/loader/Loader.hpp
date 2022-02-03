@@ -131,7 +131,9 @@ namespace geode {
          * Mod::m_addResourcesToSearchPath to true 
          * first
          */
-        void addModResources(Mod* mod);
+        void addModResourcesPath(Mod* mod);
+        void updateResourcePaths();
+        void updateModResources(Mod* mod);
         void updateResources();
 
         /**
@@ -188,7 +190,7 @@ namespace geode {
          * `CCScheduler::update` is called
          * @param func Function to run
          */
-        void queueInGDThread(std::function<void(void)> func);
+        void queueInGDThread(std::function<void GEODE_CALL(void)> func);
     };
 
 }
