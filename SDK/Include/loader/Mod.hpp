@@ -205,6 +205,11 @@ namespace geode {
          * Path to the mod's build directory
          */
         ghc::filesystem::path m_hotReloadPath;
+        /**
+         * Whether temp/<mod id>/resources should be 
+         * added to CCFileUtils search paths
+         */
+        bool m_addResourcesToSearchPath = false;
 
         /**
          * Load the platform binary

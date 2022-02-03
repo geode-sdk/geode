@@ -125,7 +125,8 @@ namespace geode {
             std::initializer_list<Severity> severityFilter
         );
         
-        void addResourceSearchPaths();
+        void addModSearchPath(Mod* mod);
+        void updateResourceSearchPaths();
 
         /**
          * Check if a mod with an ID has been loaded
