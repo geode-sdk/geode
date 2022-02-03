@@ -1,20 +1,16 @@
-// 
-// Copyright camila314 & alk1m123 2022. 
-//
 #pragma once
 
 #include <string>
 #include <map>
 #include <vector>
 #include <iostream>
-
-// my girl recreating the entirety of 10.7 stl
+#include <utils/platform.hpp>
 
 namespace geode::base {
 	uintptr_t get();
 }
 
-#if defined(CC_TARGET_OS_MAC) || defined(CC_TARGET_OS_ANDROID)
+#if defined(GEODE_IS_MACOS) || defined(GEODE_IS_ANDROID)
 namespace gd {
 	struct _internal_string {
 		uintptr_t      m_len;
