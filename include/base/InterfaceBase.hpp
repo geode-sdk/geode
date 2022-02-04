@@ -71,7 +71,6 @@ struct GEODE_HIDDEN _##derived<_orig, derived##UUID> final 				\
 #define $modify(...) GEODE_INVOKE(GEODE_CONCAT(GEODE_CRTP, GEODE_NUMBER_OF_ARGS(__VA_ARGS__)), __VA_ARGS__)
 #define $(...) $modify(__VA_ARGS__)
 
-
 namespace geode {
 	struct GEODE_CODEGEN_DLL temp_name_find_better {
         #include <gen/TempName.hpp>
@@ -106,7 +105,11 @@ namespace geode {
 
         #include <gen/Interface.hpp>
     };
+
+    bool(*entrypoint)(Mod*) = nullptr;
+    void(*exitpoint)() = nullptr;
 }
+
 
 template<typename T>
 struct field_t {
@@ -172,4 +175,19 @@ T& operator->*(A* self, field_t<T>& member) {
 
     // gets the respective field
     return reinterpret_cast<container_t*>(fields[member])->field;
+}
+
+
+
+GEODE_API bool GEODE_CALL geode_load(geode::Mod* mod) {
+    geode::Interface::get()->init(mod);
+
+    if (geode::entrypoint)
+        return geode::entrypoint(mod);
+    return true;
+}
+
+GEODE_API void GEODE_CALL geode_unload() {
+    if (geode::exitpoint)
+        geode::exitpoint();
 }
