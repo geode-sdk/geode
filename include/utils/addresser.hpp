@@ -62,8 +62,11 @@ namespace geode::addresser {
 			auto ins = new T(*ptr);
 			// this is how the first human was made
 
+			auto thunk = thunkOf(func);
+			std::cout << "thunkOf(func) = " << thunk << "\n";
+
 			// [[this + thunk] + offset] is the f we want
-			auto address = *(intptr_t*)(*(intptr_t*)(pointerOf(ins) + thunkOf(func)) + indexOf(func));
+			auto address = *(intptr_t*)(*(intptr_t*)(pointerOf(ins) + thunk) + indexOf(func));
 
 			// And we delete the new instance because we are good girls
 			// and we don't leak memories
@@ -113,13 +116,17 @@ namespace geode::addresser {
 	template<typename T>
 	inline intptr_t getVirtual(T func) {
 		Interface::get()->logInfo("Get virtual function address from " + utils::intToHex(Addresser::pointerOf(func)), Severity::Debug);
-		return Addresser::addressOfVirtual(func);
+		auto addr = Addresser::addressOfVirtual(func);
+		Interface::get()->logInfo("The address is: " + utils::intToHex(addr), Severity::Debug);
+		return addr;
 	}
 
 	template<typename T>
 	inline intptr_t getNonVirtual(T func) {
 		Interface::get()->logInfo("Get non virtual function address from " + utils::intToHex(Addresser::pointerOf(func)), Severity::Debug);
-		return Addresser::addressOfNonVirtual(func);
+		auto addr = Addresser::addressOfNonVirtual(func);
+		Interface::get()->logInfo("The address is: " + utils::intToHex(addr), Severity::Debug);
+		return addr;
 	}
 
 	template<typename T, typename F>

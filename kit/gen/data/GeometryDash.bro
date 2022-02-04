@@ -4620,8 +4620,8 @@ class TouchToggleAction : cocos2d::CCNode {
 
 class TriggerEffectDelegate {}
 
-class UILayer : cocos2d::CCLayerColor { //, cocos2d::CCKeyboardDelegate {
-	static UILayer* create() = mac 0x27fd10, win 0x0, ios 0x0;
+class UILayer : cocos2d::CCLayerColor {
+	static UILayer* create() = mac 0x27fd10, win 0x25f310, ios 0x0;
 	void disableMenu() = mac 0x280960, win 0x0, ios 0x0;
 	void enableMenu() = mac 0x280940, win 0x0, ios 0x0;
 	void pCommand(cocos2d::CCNode*) = mac 0x280830, win 0x0, ios 0x0;
@@ -4631,6 +4631,8 @@ class UILayer : cocos2d::CCLayerColor { //, cocos2d::CCKeyboardDelegate {
 	void onPause(cocos2d::CCObject* pSender) = mac 0x2803c0, win 0x25fad0, ios 0x0;
 	virtual void keyDown(cocos2d::enumKeyCodes key) = mac 0x280470, win 0x25f890, ios 0x0;
 	virtual void keyUp(cocos2d::enumKeyCodes key) = mac 0x280600, win 0x25fa10, ios 0x0;
+	UILayer() = win 0x25f230;
+	~UILayer() = win 0x25fef0;
 
 	PAD = mac 0x16, win 0x8, android 0x8;
 	cocos2d::CCMenu* m_checkPointMenu;

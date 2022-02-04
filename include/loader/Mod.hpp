@@ -477,7 +477,7 @@ namespace geode {
 
         template<class T>
         T* with() {
-            static_assert(std::is_base_of_v<T, APIMod>, "`with` may only be used with classes that inherit from APIMod");
+            static_assert(!std::is_base_of_v<T, APIMod>, "`with` may only be used with classes that inherit from APIMod");
             return reinterpret_cast<T*>(this);
         }
     };
