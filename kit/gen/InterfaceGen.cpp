@@ -46,7 +46,7 @@ struct ${class_name} : {raw_class_name}, ModifierBase {{
     	using baseType{global_index} = temp_name_find_better::ret{global_index}({class_name}::*)({raw_arg_types}) {const};
 		constexpr auto baseAddress{global_index} = (baseType{global_index})(&{class_name}::{function_name});
 		using derivedType{global_index} = temp_name_find_better::ret{global_index}(D<baseAddress{global_index}, UUID>::*)({raw_arg_types}) {const};
-		constexpr auto derivedAddress{global_index} = (derivedType{global_index})(&D<baseAddress{global_index}, UUID>::{function_name});
+		auto derivedAddress{global_index} = (derivedType{global_index})(&D<baseAddress{global_index}, UUID>::{function_name});
         if (baseAddress{global_index} != derivedAddress{global_index}) {{
         	Interface::get()->logInfo("Adding hook at function {class_name}::{function_name}", Severity::Debug);
             Interface::get()->addHook("{class_name}::{function_name}", (void*)temp_name_find_better::address{global_index}(), (void*)addresser::get{non_virtual}Virtual(derivedAddress{global_index}));
@@ -57,7 +57,7 @@ struct ${class_name} : {raw_class_name}, ModifierBase {{
     	using baseType{global_index} = temp_name_find_better::ret{global_index}(${class_name}::*)({raw_arg_types}) {const};
 		constexpr auto baseAddress{global_index} = (baseType{global_index})(&${class_name}::{function_name});
 		using derivedType{global_index} = temp_name_find_better::ret{global_index}(D<baseAddress{global_index}, UUID>::*)({raw_arg_types}) {const};
-		constexpr auto derivedAddress{global_index} = (derivedType{global_index})(&D<baseAddress{global_index}, UUID>::{function_name});
+		auto derivedAddress{global_index} = (derivedType{global_index})(&D<baseAddress{global_index}, UUID>::{function_name});
         if (baseAddress{global_index} != derivedAddress{global_index}) {{
         	Interface::get()->logInfo("Adding hook at function {class_name}::{function_name}", Severity::Debug);
             Interface::get()->addHook("{class_name}::{function_name}", (void*)temp_name_find_better::address{global_index}(), (void*)addresser::get{non_virtual}Virtual(derivedAddress{global_index}));
@@ -68,7 +68,7 @@ struct ${class_name} : {raw_class_name}, ModifierBase {{
 		using baseType{global_index} = temp_name_find_better::ret{global_index}(*)({raw_arg_types});
 		constexpr auto baseAddress{global_index} = (baseType{global_index})(&{class_name}::{function_name});
 		using derivedType{global_index} = temp_name_find_better::ret{global_index}(*)({raw_arg_types});
-		constexpr auto derivedAddress{global_index} = (derivedType{global_index})(&D<baseAddress{global_index}, UUID>::{function_name});
+		auto derivedAddress{global_index} = (derivedType{global_index})(&D<baseAddress{global_index}, UUID>::{function_name});
         if (baseAddress{global_index} != derivedAddress{global_index}) {{
         	Interface::get()->logInfo("Adding hook at function {class_name}::{function_name}", Severity::Debug);
             Interface::get()->addHook("{class_name}::{function_name}", (void*)temp_name_find_better::address{global_index}(), (void*)addresser::getNonVirtual(derivedAddress{global_index}));
