@@ -162,6 +162,8 @@ namespace geode {
 
 	class FloatSetting : public SingleSetting<float, FloatSetting>, public INumericSetting<int, FloatSetting, true, true, true> {
 	protected:
+		size_t m_precision = 0;
+
 		friend class GeodeSetting<FloatSetting>;
 	
 		Result<> save(nlohmann::json& json) const override;
