@@ -1,5 +1,6 @@
 #include "SharedGen.hpp"
 #include <iostream>
+#include <filesystem>
 
 namespace format_strings {
     // requires: class_name
@@ -84,7 +85,10 @@ struct ${class_name} : {raw_class_name}, ModifierBase {{
 int main(int argc, char** argv) {
     auto root = CacShare::init(argc, argv);
     string output;
+    int files = 0;
+    auto origPath = CacShare::writePath;
 
+    size_t ix = 0;
     for (auto& [name, c] : root.classes) {
         string unqualifiedName = CacShare::toUnqualified(name);
 
@@ -152,8 +156,27 @@ int main(int argc, char** argv) {
 
         output += format_strings::apply_end;
         output += "};\n";
+
+        if (output.size() > 80000 || ix == root.classes.size() - 1) {
+            auto path = std::filesystem::path(origPath);
+            path.replace_filename(path.stem().string() + std::to_string(files));
+            path.replace_extension("hpp");
+            files++;
+            CacShare::writePath = path.string();
+            CacShare::writeFile(output);
+            output = "";
+        }
     }
 
+    std::string fullRes = "";
+    for (auto i = 0; i < files; i++) {
+        auto path = std::filesystem::path(origPath);
+        path.replace_filename(path.stem().string() + std::to_string(i));
+        path.replace_extension("hpp");
+        fullRes += "#include \"" + path.filename().string() + "\"\n";
+    }
+
+    CacShare::writePath = origPath;
     // fmt::print("{}", output);
-    CacShare::writeFile(output);
+    CacShare::writeFile(fullRes);
 }

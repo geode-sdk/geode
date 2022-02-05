@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Geode>
+#include <Geode.hpp>
 
 namespace geode::cocos {
     /**

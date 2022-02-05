@@ -105,9 +105,6 @@ namespace geode {
 
         #include <gen/Interface.hpp>
     };
-
-    bool(*entrypoint)(Mod*) = nullptr;
-    void(*exitpoint)() = nullptr;
 }
 
 
@@ -175,19 +172,4 @@ T& operator->*(A* self, field_t<T>& member) {
 
     // gets the respective field
     return reinterpret_cast<container_t*>(fields[member])->field;
-}
-
-
-
-GEODE_API bool GEODE_CALL geode_load(geode::Mod* mod) {
-    geode::Interface::get()->init(mod);
-
-    if (geode::entrypoint)
-        return geode::entrypoint(mod);
-    return true;
-}
-
-GEODE_API void GEODE_CALL geode_unload() {
-    if (geode::exitpoint)
-        geode::exitpoint();
 }

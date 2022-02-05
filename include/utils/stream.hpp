@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Geode>
+#include <Geode.hpp>
 
 namespace geode::stream {
     std::ostream& operator<<(std::ostream& stream, cocos2d::CCPoint const& pos);

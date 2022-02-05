@@ -34,8 +34,16 @@ include(CheckIPOSupported)
 check_ipo_supported(RESULT supported OUTPUT error)
 
 if (GEODE_BUILD_CODEGEN)
+	if (GEODE_IMPLICIT_ENTRY)
+		set(IMPLICIT_PATH ${GEODE_INCLUDE_DIR}/implicitEntry.cpp)
+	else()
+		set(IMPLICIT_PATH "")
+	endif()
 	set_source_files_properties(${GEODE_CODEGEN_DIR}/Source.cpp PROPERTIES GENERATED 1)
-	add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES}	${GEODE_CODEGEN_DIR}/Source.cpp)
+	add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES}
+		${GEODE_CODEGEN_DIR}/Source.cpp
+		${IMPLICIT_PATH}
+	)
 	# set_property(TARGET ${PROJECT_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 	# target_link_options(${PROJECT_NAME} PUBLIC -dead_strip)
 else()
@@ -87,7 +95,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 	${GEODE_INCLUDE_DIR}/cocos/cocos2dx/kazmath/include
 	${GEODE_INCLUDE_DIR}/cocos/extensions
 	${GEODE_INCLUDE_DIR}/fmod
-	${GEODE_SDK_DIR}/kit/gen/fmt/include
+	${GEODE_INCLUDE_DIR}/fmt/include
 	${INCLUDE_DIRECTORIES}
 )
 

@@ -15,7 +15,7 @@ Make sure you include the flag `-T host=x64` if you are building for Windows, th
 
 Geode comes with a neat little way to hook very quickly. This let's you automatically hook functions without needing to manually find the address each time. It works by subclassing some of the Geode classes and overriding some of the methods. Geode classes are just like normal GD classes but prefixed with a `$`. To easily subclass these classes there is a macro called `$()`. To use it I give the macro the class I want to hook. Example:
 ```cpp
-#include <Geode>
+#include <Geode.hpp>
 #include <iostream>
 
 class $(EditorUI) {
@@ -27,7 +27,7 @@ class $(EditorUI) {
 
 If you want to call the original function, there is also an easy way to do that as well:
 ```cpp
-#include <Geode>
+#include <Geode.hpp>
 #include <iostream>
 
 class $(EditorUI) {
@@ -40,7 +40,7 @@ class $(EditorUI) {
 
 If you need the name of the hook class you can use the `$()` macro with 2 parameters:
 ```cpp
-#include <Geode>
+#include <Geode.hpp>
 #include <iostream>
 
 class $(EditorUI, EditorUIHook) {
@@ -57,7 +57,7 @@ class $(EditorUI, EditorUIHook) {
 
 Since the Geode classes subclass the GD classes, we can use the members and functions like we would in a normal class.
 ```cpp
-#include <Geode>
+#include <Geode.hpp>
 #include <iostream>
 
 class $(EditorUI) {
@@ -70,7 +70,7 @@ class $(EditorUI) {
 
 If you want, you can also use a function with the name `inject` to run code after the mod is loaded.
 ```cpp
-#include <Geode>
+#include <Geode.hpp>
 #include <iostream>
 
 class $(EditorUI) {

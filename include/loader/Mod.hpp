@@ -198,9 +198,13 @@ namespace geode {
          */
         std::vector<Mod*> m_parentDependencies;
         /**
+         * Pointer to the Mod's implicit load function
+         */
+        geode_load m_implicitLoadFunc = nullptr;
+        /**
          * Pointer to the Mod's load function
          */
-        geode_load   m_loadFunc   = nullptr;
+        geode_load m_loadFunc = nullptr;
         /**
          * Pointer to the Mod's unload function
          */
