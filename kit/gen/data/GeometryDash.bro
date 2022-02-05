@@ -105,7 +105,7 @@ class AppDelegate : cocos2d::CCApplication {
 	virtual void applicationWillEnterForeground() = mac 0x3aac80, win 0x0, ios 0x0;
 	virtual void applicationWillBecomeActive() = mac 0x3aab30, win 0x0, ios 0x0;
 	virtual void applicationWillResignActive() = mac 0x3aab50, win 0x0, ios 0x0;
-	virtual void trySaveGame() = mac 0x3aaf10, win 0x0, ios 0x0;
+	virtual void trySaveGame() = mac 0x3aaf10, win 0x3d5e0, ios 0x0;
 	virtual void willSwitchToScene(cocos2d::CCScene*) = mac 0x3aaf40, win 0x0, ios 0x0;
 	static AppDelegate* get() = mac 0x3aab10, win 0x0, ios 0x0;
 

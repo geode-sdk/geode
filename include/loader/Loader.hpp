@@ -162,7 +162,7 @@ namespace geode {
          * Get a list of all loaded mods
          * @returns List of all loaded mods
          */
-        std::vector<Mod*> getLoadedMods() const;
+        std::vector<Mod*> getLoadedMods(bool resolved = false) const;
         /**
          * Get the count of loaded mods
          * @returns Tuple where the first element is the count of 

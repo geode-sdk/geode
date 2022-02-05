@@ -53,8 +53,8 @@ namespace geode {
 
 		std::string getKey() const { return m_key; }
 
-		virtual void save(nlohmann::json& json) const;
-		virtual void load(nlohmann::json const& json);
+		virtual Result<> save(nlohmann::json& json) const = 0;
+		virtual Result<> load(nlohmann::json const& json) = 0;
 
 		static Result<Setting*> parseFromJSON(nlohmann::json const& json);
 
@@ -142,6 +142,9 @@ namespace geode {
 	protected:
 		friend class GeodeSetting<BoolSetting>;
 	
+		Result<> save(nlohmann::json& json) const override;
+		Result<> load(nlohmann::json const& json) override;
+		
 	public:
 		inline virtual SettingType getType() override { return SettingType::Bool; }
 	};
@@ -149,6 +152,9 @@ namespace geode {
 	class IntSetting : public SingleSetting<int, IntSetting>, public INumericSetting<int, IntSetting, false, true, true> {
 	protected:
 		friend class GeodeSetting<IntSetting>;
+
+		Result<> save(nlohmann::json& json) const override;
+		Result<> load(nlohmann::json const& json) override;
 	
 	public:
 		inline virtual SettingType getType() override { return SettingType::Int; }
@@ -158,6 +164,9 @@ namespace geode {
 	protected:
 		friend class GeodeSetting<FloatSetting>;
 	
+		Result<> save(nlohmann::json& json) const override;
+		Result<> load(nlohmann::json const& json) override;
+		
 	public:
 		inline virtual SettingType getType() override { return SettingType::Float; }
 	};
@@ -168,6 +177,9 @@ namespace geode {
 
 		friend class GeodeSetting<StringSetting>;
 
+		Result<> save(nlohmann::json& json) const override;
+		Result<> load(nlohmann::json const& json) override;
+		
 	public:
 		static bool replaceWithBuiltInFilter(std::string& filter);
 		inline virtual SettingType getType() override { return SettingType::String; }
@@ -179,6 +191,9 @@ namespace geode {
 
 		friend class GeodeSetting<ColorSetting>;
 	
+		Result<> save(nlohmann::json& json) const override;
+		Result<> load(nlohmann::json const& json) override;
+		
 	public:
 		inline virtual SettingType getType() override { return SettingType::Color; }
 	};
@@ -189,6 +204,9 @@ namespace geode {
 
 		friend class GeodeSetting<ColorAlphaSetting>;
 	
+		Result<> save(nlohmann::json& json) const override;
+		Result<> load(nlohmann::json const& json) override;
+		
 	public:
 		inline virtual SettingType getType() override { return SettingType::ColorAlpha; }
 	};
@@ -197,6 +215,9 @@ namespace geode {
 	protected:
 		friend class GeodeSetting<PathSetting>;
 	
+		Result<> save(nlohmann::json& json) const override;
+		Result<> load(nlohmann::json const& json) override;
+		
 	public:
 		inline virtual SettingType getType() override { return SettingType::Path; }
 	};
@@ -205,11 +226,18 @@ namespace geode {
 	protected:
 		friend class GeodeSetting<StringSelectSetting>;
 	
+		Result<> save(nlohmann::json& json) const override;
+		Result<> load(nlohmann::json const& json) override;
+		
 	public:
 		inline virtual SettingType getType() override { return SettingType::StringSelect; }
 	};
 
 	class CustomSettingPlaceHolder : public Setting {
+	protected:
+		Result<> save(nlohmann::json& json) const override;
+		Result<> load(nlohmann::json const& json) override;
+		
 	public:
 		inline virtual SettingType getType() override { return SettingType::Custom; }
 	};

@@ -139,6 +139,10 @@ namespace geode {
          * Settings
          */
         std::unordered_map<std::string, Setting*> m_settings;
+        /**
+         * Whether the mod can be disabled or not
+         */
+        bool m_supportsDisabling = true;
     };
 
     /**
@@ -179,17 +183,13 @@ namespace geode {
          */
         bool m_resolved = false;
         /**
-         * Whether the mod can be disabled or not
-         */
-        bool m_supportsDisabling = true;
-        /**
          * Mod temp directory name
          */
         ghc::filesystem::path m_tempDirName;
         /**
          * Mod save directory name
          */
-        ghc::filesystem::path m_saveDirName;
+        ghc::filesystem::path m_saveDirPath;
         /**
          * Pointers to mods that depend on 
          * this Mod. Makes it possible to 
@@ -400,6 +400,9 @@ namespace geode {
          * errorful result with info on error
          */
         Result<> disable();
+
+        Result<> saveData();
+        Result<> loadData();
 
         /**
          * Get the value of a setting
