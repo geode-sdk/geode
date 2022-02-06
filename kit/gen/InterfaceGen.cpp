@@ -1,6 +1,5 @@
 #include "SharedGen.hpp"
 #include <iostream>
-#include <filesystem>
 
 namespace format_strings {
     // requires: class_name
@@ -158,11 +157,8 @@ int main(int argc, char** argv) {
         output += "};\n";
 
         if (output.size() > 80000 || ix == root.classes.size() - 1) {
-            auto path = std::filesystem::path(origPath);
-            path.replace_filename(path.stem().string() + std::to_string(files));
-            path.replace_extension("hpp");
             files++;
-            CacShare::writePath = path.string();
+            CacShare::writePath =  origPath + "." + std::to_string(files);
             CacShare::writeFile(output);
             output = "";
         }
@@ -170,10 +166,8 @@ int main(int argc, char** argv) {
 
     std::string fullRes = "";
     for (auto i = 0; i < files; i++) {
-        auto path = std::filesystem::path(origPath);
-        path.replace_filename(path.stem().string() + std::to_string(i));
-        path.replace_extension("hpp");
-        fullRes += "#include \"" + path.filename().string() + "\"\n";
+        auto path = origPath + "." + std::to_string(i+1);
+        fullRes += "#include \"" + path + "\"\n";
     }
 
     CacShare::writePath = origPath;
