@@ -3,7 +3,7 @@
 
 #include "android/log.h"
 
-#define CC_DLL
+#define CC_DLL __attribute__((visibility("default")))
 
 #define CC_NO_MESSAGE_PSEUDOASSERT(cond)                        \
     if (!(cond)) {                                              \

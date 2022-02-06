@@ -13,32 +13,30 @@
 
 namespace geode::addresser {
 
+	struct virtual_meta_t {
+		ptrdiff_t index;
+		ptrdiff_t thunk;
+	};
+
 	template<typename T>
 	inline intptr_t getVirtual(T func);
 
 	template<typename T>
 	inline intptr_t getNonVirtual(T func);
 
+	template<typename T, typename F>
+	inline F thunkAdjust(T func, F self);
+
 	class GEODE_DLL Addresser final {
-		using tablemethodptr_t = ptrdiff_t(Addresser::*)();
+		using tablemethodptr_t = virtual_meta_t(Addresser::*)();
 
 		static Addresser* instance();
 
 		template<typename T>
-		static ptrdiff_t indexOf(T ptr) { 
+		static virtual_meta_t metaOf(T ptr) { 
 			auto func = reinterpret_cast<tablemethodptr_t&>(ptr);
 			return (instance()->*func)(); 
 		}
-
-	public:
-		template<typename T>
-		static ptrdiff_t thunkOf(T ptr) {
-			if (sizeof(T) == sizeof(ptrdiff_t)) return 0;
-			auto thunk = *(reinterpret_cast<ptrdiff_t*>(&ptr)+1);
-			if (thunk & 1) thunk >>= 1;
-			return thunk;
-		}
-	private:
 
 		template<typename T>
 		static intptr_t pointerOf(T func) {
@@ -62,11 +60,13 @@ namespace geode::addresser {
 			auto ins = new T(*ptr);
 			// this is how the first human was made
 
-			auto thunk = thunkOf(func);
-			std::cout << "thunkOf(func) = " << thunk << "\n";
+			// metadata of the virtual function
+			// LOL!
+			auto meta = metaOf(func);
+			std::cout << "thunk: " << meta.thunk << " index: " << meta.index << std::endl;
 
 			// [[this + thunk] + offset] is the f we want
-			auto address = *(intptr_t*)(*(intptr_t*)(pointerOf(ins) + thunk) + indexOf(func));
+			auto address = *(intptr_t*)(*(intptr_t*)(pointerOf(ins) + meta.thunk) + meta.index);
 
 			// And we delete the new instance because we are good girls
 			// and we don't leak memories
@@ -111,6 +111,9 @@ namespace geode::addresser {
 
 		template<typename T>
 		friend intptr_t getNonVirtual(T func);
+
+		template<typename T, typename F>
+		friend F thunkAdjust(T func, F self);
 	};
 
 	template<typename T>
@@ -131,6 +134,6 @@ namespace geode::addresser {
 
 	template<typename T, typename F>
 	inline F thunkAdjust(T func, F self) {
-		return (F)((intptr_t)self + Addresser::thunkOf(func));
+		return (F)((intptr_t)self + Addresser::metaOf(func).thunk);
 	}
 }

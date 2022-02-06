@@ -118,7 +118,7 @@ namespace geode { struct modify; struct temp_name_find_better; }
         #define GEODE_CC_DLL __declspec(dllimport)
     #endif
 #else
-    #define GEODE_CC_DLL
+    #define GEODE_CC_DLL __attribute__((visibility("default")))
 #endif
 
 #ifdef __cplusplus

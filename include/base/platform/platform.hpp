@@ -99,8 +99,18 @@ namespace geode {
 	#define GEODE_NOINLINE __attribute__((noinline))
 	#define GEODE_PLATFORM_EXTENSION ".dylib"
 
-	#define GEODE_DLL
-	#define GEODE_CODEGEN_DLL
+	#ifdef GEODE_EXPORTING
+	    #define GEODE_DLL    __attribute__((visibility("default")))
+	#else
+	    #define GEODE_DLL    
+	#endif
+
+	#ifdef GEODE_EXPORTING_CODEGEN
+	    #define GEODE_CODEGEN_DLL __attribute__((visibility("default")))
+	#else
+	    #define GEODE_CODEGEN_DLL 
+	#endif
+
 	#define GEODE_API extern "C" __attribute__((visibility("default")))
 	#define GEODE_EXPORT __attribute__((visibility("default")))
 
@@ -124,8 +134,18 @@ namespace geode {
 	#define GEODE_NOINLINE __attribute__((noinline))
 	#define GEODE_PLATFORM_EXTENSION ".dylib"
 
-	#define GEODE_DLL
-	#define GEODE_CODEGEN_DLL
+	#ifdef GEODE_EXPORTING
+	    #define GEODE_DLL    __attribute__((visibility("default")))
+	#else
+	    #define GEODE_DLL    
+	#endif
+
+	#ifdef GEODE_EXPORTING_CODEGEN
+	    #define GEODE_CODEGEN_DLL __attribute__((visibility("default")))
+	#else
+	    #define GEODE_CODEGEN_DLL 
+	#endif
+
 	#define GEODE_API extern "C" __attribute__((visibility("default")))
 	#define GEODE_EXPORT __attribute__((visibility("default")))
 
@@ -152,8 +172,18 @@ namespace geode {
 	#define GEODE_NOINLINE __attribute__((noinline))
 	#define GEODE_PLATFORM_EXTENSION ".so"
 
-	#define GEODE_DLL
-	#define GEODE_CODEGEN_DLL
+	#ifdef GEODE_EXPORTING
+	    #define GEODE_DLL    __attribute__((visibility("default")))
+	#else
+	    #define GEODE_DLL    
+	#endif
+
+	#ifdef GEODE_EXPORTING_CODEGEN
+	    #define GEODE_CODEGEN_DLL __attribute__((visibility("default")))
+	#else
+	    #define GEODE_CODEGEN_DLL 
+	#endif
+
 	#define GEODE_API extern "C" __attribute__((visibility("default")))
 	#define GEODE_EXPORT __attribute__((visibility("default")))
 
