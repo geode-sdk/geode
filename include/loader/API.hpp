@@ -3,7 +3,7 @@
 #include "Mod.hpp"
 
 namespace geode {
-    class APIMod {
+    class APIMod : public Mod {
     	
     };
 }
