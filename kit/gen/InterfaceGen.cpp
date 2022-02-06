@@ -43,9 +43,9 @@ struct ${class_name} : {raw_class_name}, ModifierBase {{
     // requires: index, class_name, arg_types, function_name, raw_arg_types, non_virtual
     char const* apply_function_member = R"CAC(
     	using baseType{global_index} = temp_name_find_better::ret{global_index}({class_name}::*)({raw_arg_types}) {const};
-		constexpr auto baseAddress{global_index} = (baseType{global_index})(&{class_name}::{function_name});
+		GEODE_VIRTUAL_CONSTEXPR auto baseAddress{global_index} = (baseType{global_index})(&{class_name}::{function_name});
 		using derivedType{global_index} = temp_name_find_better::ret{global_index}(D<baseAddress{global_index}, UUID>::*)({raw_arg_types}) {const};
-		auto derivedAddress{global_index} = (derivedType{global_index})(&D<baseAddress{global_index}, UUID>::{function_name});
+		GEODE_VIRTUAL_CONSTEXPR auto derivedAddress{global_index} = (derivedType{global_index})(&D<baseAddress{global_index}, UUID>::{function_name});
         if (baseAddress{global_index} != derivedAddress{global_index}) {{
         	Interface::get()->logInfo("Adding hook at function {class_name}::{function_name}", Severity::Debug);
             Interface::get()->addHook("{class_name}::{function_name}", (void*)temp_name_find_better::address{global_index}(), (void*)addresser::get{non_virtual}Virtual(derivedAddress{global_index}));
@@ -54,9 +54,9 @@ struct ${class_name} : {raw_class_name}, ModifierBase {{
 
 	char const* apply_function_structor = R"CAC(
     	using baseType{global_index} = temp_name_find_better::ret{global_index}(${class_name}::*)({raw_arg_types}) {const};
-		constexpr auto baseAddress{global_index} = (baseType{global_index})(&${class_name}::{function_name});
+		GEODE_VIRTUAL_CONSTEXPR auto baseAddress{global_index} = (baseType{global_index})(&${class_name}::{function_name});
 		using derivedType{global_index} = temp_name_find_better::ret{global_index}(D<baseAddress{global_index}, UUID>::*)({raw_arg_types}) {const};
-		auto derivedAddress{global_index} = (derivedType{global_index})(&D<baseAddress{global_index}, UUID>::{function_name});
+		GEODE_VIRTUAL_CONSTEXPR auto derivedAddress{global_index} = (derivedType{global_index})(&D<baseAddress{global_index}, UUID>::{function_name});
         if (baseAddress{global_index} != derivedAddress{global_index}) {{
         	Interface::get()->logInfo("Adding hook at function {class_name}::{function_name}", Severity::Debug);
             Interface::get()->addHook("{class_name}::{function_name}", (void*)temp_name_find_better::address{global_index}(), (void*)addresser::get{non_virtual}Virtual(derivedAddress{global_index}));
@@ -65,9 +65,9 @@ struct ${class_name} : {raw_class_name}, ModifierBase {{
 
 	char const* apply_function_static = R"CAC(
 		using baseType{global_index} = temp_name_find_better::ret{global_index}(*)({raw_arg_types});
-		constexpr auto baseAddress{global_index} = (baseType{global_index})(&{class_name}::{function_name});
+		GEODE_VIRTUAL_CONSTEXPR auto baseAddress{global_index} = (baseType{global_index})(&{class_name}::{function_name});
 		using derivedType{global_index} = temp_name_find_better::ret{global_index}(*)({raw_arg_types});
-		auto derivedAddress{global_index} = (derivedType{global_index})(&D<baseAddress{global_index}, UUID>::{function_name});
+		GEODE_VIRTUAL_CONSTEXPR auto derivedAddress{global_index} = (derivedType{global_index})(&D<baseAddress{global_index}, UUID>::{function_name});
         if (baseAddress{global_index} != derivedAddress{global_index}) {{
         	Interface::get()->logInfo("Adding hook at function {class_name}::{function_name}", Severity::Debug);
             Interface::get()->addHook("{class_name}::{function_name}", (void*)temp_name_find_better::address{global_index}(), (void*)addresser::getNonVirtual(derivedAddress{global_index}));

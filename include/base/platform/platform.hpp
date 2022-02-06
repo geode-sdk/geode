@@ -56,6 +56,7 @@ namespace geode {
 	#define GEODE_CALL __stdcall
 	#define GEODE_HIDDEN
 	#define GEODE_DUPABLE __forceinline
+	#define GEODE_VIRTUAL_CONSTEXPR 
 	#define GEODE_NOINLINE __declspec(noinline)
 	#define GEODE_PLATFORM_EXTENSION ".dll"
 
@@ -94,6 +95,7 @@ namespace geode {
 	#define GEODE_CALL
 	#define GEODE_HIDDEN __attribute__((visibility("hidden")))
 	#define GEODE_DUPABLE __attribute__((always_inline))
+	#define GEODE_VIRTUAL_CONSTEXPR constexpr
 	#define GEODE_NOINLINE __attribute__((noinline))
 	#define GEODE_PLATFORM_EXTENSION ".dylib"
 
@@ -118,6 +120,7 @@ namespace geode {
 	#define GEODE_CALL
 	#define GEODE_HIDDEN __attribute__((visibility("hidden")))
 	#define GEODE_DUPABLE __attribute__((always_inline))
+	#define GEODE_VIRTUAL_CONSTEXPR constexpr
 	#define GEODE_NOINLINE __attribute__((noinline))
 	#define GEODE_PLATFORM_EXTENSION ".dylib"
 
@@ -145,6 +148,7 @@ namespace geode {
 	#define GEODE_CALL
 	#define GEODE_HIDDEN __attribute__((visibility("hidden")))
 	#define GEODE_DUPABLE __attribute__((always_inline))
+	#define GEODE_VIRTUAL_CONSTEXPR constexpr
 	#define GEODE_NOINLINE __attribute__((noinline))
 	#define GEODE_PLATFORM_EXTENSION ".so"
 
