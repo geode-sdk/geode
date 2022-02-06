@@ -90,6 +90,8 @@ int main(int argc, char** argv) {
     size_t ix = 0;
     for (auto& [name, c] : root.classes) {
         string unqualifiedName = CacShare::toUnqualified(name);
+        if (unqualifiedName == "AppDelegate")
+            printf("what the fuck %d\n", files);
 
         output += fmt::format(format_strings::interface_start, fmt::arg("class_name", unqualifiedName), fmt::arg("raw_class_name", name));
 
@@ -156,7 +158,8 @@ int main(int argc, char** argv) {
         output += format_strings::apply_end;
         output += "};\n";
 
-        if (output.size() > 80000 || ix == root.classes.size() - 1) {
+        ++ix;
+        if (output.size() > 80000 || ix == root.classes.size()) {
             files++;
             CacShare::writePath =  origPath + "." + std::to_string(files);
             CacShare::writeFile(output);
