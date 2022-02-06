@@ -105,7 +105,8 @@ class AppDelegate : cocos2d::CCApplication {
 	virtual void applicationWillEnterForeground() = mac 0x3aac80, win 0x0, ios 0x0;
 	virtual void applicationWillBecomeActive() = mac 0x3aab30, win 0x0, ios 0x0;
 	virtual void applicationWillResignActive() = mac 0x3aab50, win 0x0, ios 0x0;
-	virtual void trySaveGame() = mac 0x3aaf10, win 0x0, ios 0x0;
+	virtual void trySaveGame() = mac 0x3aaf10, win 0x3d5e0, ios 0x0;
+	void trySaveGame_() = mac 0x3aaf10, win 0x3d5e0, ios 0x0;
 	virtual void willSwitchToScene(cocos2d::CCScene*) = mac 0x3aaf40, win 0x0, ios 0x0;
 	static AppDelegate* get() = mac 0x3aab10, win 0x0, ios 0x0;
 
@@ -1130,11 +1131,6 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
 	void alignObjects(cocos2d::CCArray* objs, bool alignY) = mac 0x0, win 0x8f320, ios 0x0;
 	virtual void keyUp(cocos2d::enumKeyCodes key) = mac 0x312b0, win 0x92180, ios 0x0;
 
-	LevelEditorLayer* editorLayer = mac 0x408, win 0x0, android 0x0;
-	cocos2d::CCArray* editBars = mac 0x358, win 0x0, android 0x0;
-	cocos2d::CCNode* locationSlider = mac 0x228, win 0x0, android 0x0;
-	GameObject* lastSelectedObject = mac 0x440, win 0x0, android 0x0;
-	gd::string clipboard = mac 0x458, win 0x0, android 0x0;
 	EditButtonBar* m_buttonBar;
 	PAD = mac 0x8, win 0x4, android 0x0;
 	cocos2d::CCArray* m_hideableUIElementArray;
@@ -2555,10 +2551,6 @@ class GameManager : GManager {
 	void toggleGameVariable(const char* key) = mac 0x0, win 0xc9e90, ios 0x0;
 	static void returnToLastScene(GJGameLevel* level) = mac 0x0, win 0xce6a0, ios 0x0;
 
-	PlayLayer* playLayer = mac 0x180, win 0x0, android 0x0;
-	LevelEditorLayer* editorLayer = mac 0x188, win 0x0, android 0x0;
-	int scene = mac 0x1f4, win 0x0, android 0x0;
-	bool ldm = mac 0x2a1, win 0x0, android 0x0;
 	bool m_switchModes;
 	bool m_toFullscreen;
 	bool m_reloading;
@@ -4629,8 +4621,8 @@ class TouchToggleAction : cocos2d::CCNode {
 
 class TriggerEffectDelegate {}
 
-class UILayer : cocos2d::CCLayerColor { //, cocos2d::CCKeyboardDelegate {
-	static UILayer* create() = mac 0x27fd10, win 0x0, ios 0x0;
+class UILayer : cocos2d::CCLayerColor {
+	static UILayer* create() = mac 0x27fd10, win 0x25f310, ios 0x0;
 	void disableMenu() = mac 0x280960, win 0x0, ios 0x0;
 	void enableMenu() = mac 0x280940, win 0x0, ios 0x0;
 	void pCommand(cocos2d::CCNode*) = mac 0x280830, win 0x0, ios 0x0;
@@ -4640,6 +4632,8 @@ class UILayer : cocos2d::CCLayerColor { //, cocos2d::CCKeyboardDelegate {
 	void onPause(cocos2d::CCObject* pSender) = mac 0x2803c0, win 0x25fad0, ios 0x0;
 	virtual void keyDown(cocos2d::enumKeyCodes key) = mac 0x280470, win 0x25f890, ios 0x0;
 	virtual void keyUp(cocos2d::enumKeyCodes key) = mac 0x280600, win 0x25fa10, ios 0x0;
+	UILayer() = win 0x25f230;
+	~UILayer() = win 0x25fef0;
 
 	PAD = mac 0x16, win 0x8, android 0x8;
 	cocos2d::CCMenu* m_checkPointMenu;

@@ -45,7 +45,7 @@ struct ${class_name} : {raw_class_name}, ModifierBase {{
     	using baseType{global_index} = temp_name_find_better::ret{global_index}({class_name}::*)({raw_arg_types}) {const};
 		constexpr auto baseAddress{global_index} = (baseType{global_index})(&{class_name}::{function_name});
 		using derivedType{global_index} = temp_name_find_better::ret{global_index}(D<baseAddress{global_index}, UUID>::*)({raw_arg_types}) {const};
-		constexpr auto derivedAddress{global_index} = (derivedType{global_index})(&D<baseAddress{global_index}, UUID>::{function_name});
+		auto derivedAddress{global_index} = (derivedType{global_index})(&D<baseAddress{global_index}, UUID>::{function_name});
         if (baseAddress{global_index} != derivedAddress{global_index}) {{
         	Interface::get()->logInfo("Adding hook at function {class_name}::{function_name}", Severity::Debug);
             Interface::get()->addHook("{class_name}::{function_name}", (void*)temp_name_find_better::address{global_index}(), (void*)addresser::get{non_virtual}Virtual(derivedAddress{global_index}));
@@ -56,7 +56,7 @@ struct ${class_name} : {raw_class_name}, ModifierBase {{
     	using baseType{global_index} = temp_name_find_better::ret{global_index}(${class_name}::*)({raw_arg_types}) {const};
 		constexpr auto baseAddress{global_index} = (baseType{global_index})(&${class_name}::{function_name});
 		using derivedType{global_index} = temp_name_find_better::ret{global_index}(D<baseAddress{global_index}, UUID>::*)({raw_arg_types}) {const};
-		constexpr auto derivedAddress{global_index} = (derivedType{global_index})(&D<baseAddress{global_index}, UUID>::{function_name});
+		auto derivedAddress{global_index} = (derivedType{global_index})(&D<baseAddress{global_index}, UUID>::{function_name});
         if (baseAddress{global_index} != derivedAddress{global_index}) {{
         	Interface::get()->logInfo("Adding hook at function {class_name}::{function_name}", Severity::Debug);
             Interface::get()->addHook("{class_name}::{function_name}", (void*)temp_name_find_better::address{global_index}(), (void*)addresser::get{non_virtual}Virtual(derivedAddress{global_index}));
@@ -67,7 +67,7 @@ struct ${class_name} : {raw_class_name}, ModifierBase {{
 		using baseType{global_index} = temp_name_find_better::ret{global_index}(*)({raw_arg_types});
 		constexpr auto baseAddress{global_index} = (baseType{global_index})(&{class_name}::{function_name});
 		using derivedType{global_index} = temp_name_find_better::ret{global_index}(*)({raw_arg_types});
-		constexpr auto derivedAddress{global_index} = (derivedType{global_index})(&D<baseAddress{global_index}, UUID>::{function_name});
+		auto derivedAddress{global_index} = (derivedType{global_index})(&D<baseAddress{global_index}, UUID>::{function_name});
         if (baseAddress{global_index} != derivedAddress{global_index}) {{
         	Interface::get()->logInfo("Adding hook at function {class_name}::{function_name}", Severity::Debug);
             Interface::get()->addHook("{class_name}::{function_name}", (void*)temp_name_find_better::address{global_index}(), (void*)addresser::getNonVirtual(derivedAddress{global_index}));
@@ -84,9 +84,14 @@ struct ${class_name} : {raw_class_name}, ModifierBase {{
 int main(int argc, char** argv) {
     auto root = CacShare::init(argc, argv);
     string output;
+    int files = 0;
+    auto origPath = CacShare::writePath;
 
+    size_t ix = 0;
     for (auto& [name, c] : root.classes) {
         string unqualifiedName = CacShare::toUnqualified(name);
+        if (unqualifiedName == "AppDelegate")
+            printf("what the fuck %d\n", files);
 
         output += fmt::format(format_strings::interface_start, fmt::arg("class_name", unqualifiedName), fmt::arg("raw_class_name", name));
 
@@ -152,8 +157,23 @@ int main(int argc, char** argv) {
 
         output += format_strings::apply_end;
         output += "};\n";
+
+        ++ix;
+        if (output.size() > 80000 || ix == root.classes.size()) {
+            files++;
+            CacShare::writePath =  origPath + "." + std::to_string(files);
+            CacShare::writeFile(output);
+            output = "";
+        }
     }
 
+    std::string fullRes = "";
+    for (auto i = 0; i < files; i++) {
+        auto path = origPath + "." + std::to_string(i+1);
+        fullRes += "#include \"" + path + "\"\n";
+    }
+
+    CacShare::writePath = origPath;
     // fmt::print("{}", output);
-    CacShare::writeFile(output);
+    CacShare::writeFile(fullRes);
 }

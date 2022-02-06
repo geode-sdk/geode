@@ -71,7 +71,6 @@ struct GEODE_HIDDEN _##derived<_orig, derived##UUID> final 				\
 #define $modify(...) GEODE_INVOKE(GEODE_CONCAT(GEODE_CRTP, GEODE_NUMBER_OF_ARGS(__VA_ARGS__)), __VA_ARGS__)
 #define $(...) $modify(__VA_ARGS__)
 
-
 namespace geode {
 	struct GEODE_CODEGEN_DLL temp_name_find_better {
         #include <gen/TempName.hpp>
@@ -107,6 +106,7 @@ namespace geode {
         #include <gen/Interface.hpp>
     };
 }
+
 
 template<typename T>
 struct field_t {

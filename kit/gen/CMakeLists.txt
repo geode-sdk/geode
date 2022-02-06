@@ -3,7 +3,7 @@ project(Codegen LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_subdirectory(fmt)
+add_subdirectory(../../include/fmt ${CMAKE_BINARY_DIR}/fmt)
 
 macro(add_gen project file)
 	add_executable(${project}Gen ${project}Gen.cpp)

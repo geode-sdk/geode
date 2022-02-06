@@ -1,3 +1,3 @@
 #include <InterfaceBase.hpp>
 #include "utils/include.hpp"
-#include "loader/GeodeLoader"
+#include "loader/GeodeLoader.hpp"

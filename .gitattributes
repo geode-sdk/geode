@@ -1,2 +1,2 @@
-Source/Geode/fmod/** linguist-vendored
-Source/Geode/gen/data/** linguist-vendored
+include/fmod/** linguist-vendored
+*.bro linguist-language=C++

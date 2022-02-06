@@ -3,6 +3,7 @@
 #ifdef _MSC_VER
 #pragma warning(disable: 4251) // dll-interface
 #pragma warning(disable: 4099) // type first seen as 'class'
+#pragma warning(disable: 4584) // CCKeyboardDelegate included twice in UILayer
 #endif
 
 #include <Macros.hpp>

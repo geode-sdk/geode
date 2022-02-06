@@ -1,4 +1,4 @@
-#include <Geode>
+#include <Geode.hpp>
 
 #include "custom-layer.hpp"
 
