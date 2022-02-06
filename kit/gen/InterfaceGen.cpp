@@ -43,7 +43,7 @@ struct ${class_name} : {raw_class_name}, ModifierBase {{
     // requires: index, class_name, arg_types, function_name, raw_arg_types, non_virtual
     char const* apply_function_member = R"CAC(
     	using baseType{global_index} = temp_name_find_better::ret{global_index}({class_name}::*)({raw_arg_types}) {const};
-		GEODE_VIRTUAL_CONSTEXPR auto baseAddress{global_index} = (baseType{global_index})(&{class_name}::{function_name});
+		constexpr auto baseAddress{global_index} = (baseType{global_index})(&{class_name}::{function_name});
 		using derivedType{global_index} = temp_name_find_better::ret{global_index}(D<baseAddress{global_index}, UUID>::*)({raw_arg_types}) {const};
 		GEODE_VIRTUAL_CONSTEXPR auto derivedAddress{global_index} = (derivedType{global_index})(&D<baseAddress{global_index}, UUID>::{function_name});
         if (baseAddress{global_index} != derivedAddress{global_index}) {{
@@ -54,7 +54,7 @@ struct ${class_name} : {raw_class_name}, ModifierBase {{
 
 	char const* apply_function_structor = R"CAC(
     	using baseType{global_index} = temp_name_find_better::ret{global_index}(${class_name}::*)({raw_arg_types}) {const};
-		GEODE_VIRTUAL_CONSTEXPR auto baseAddress{global_index} = (baseType{global_index})(&${class_name}::{function_name});
+		constexpr auto baseAddress{global_index} = (baseType{global_index})(&${class_name}::{function_name});
 		using derivedType{global_index} = temp_name_find_better::ret{global_index}(D<baseAddress{global_index}, UUID>::*)({raw_arg_types}) {const};
 		GEODE_VIRTUAL_CONSTEXPR auto derivedAddress{global_index} = (derivedType{global_index})(&D<baseAddress{global_index}, UUID>::{function_name});
         if (baseAddress{global_index} != derivedAddress{global_index}) {{
@@ -65,7 +65,7 @@ struct ${class_name} : {raw_class_name}, ModifierBase {{
 
 	char const* apply_function_static = R"CAC(
 		using baseType{global_index} = temp_name_find_better::ret{global_index}(*)({raw_arg_types});
-		GEODE_VIRTUAL_CONSTEXPR auto baseAddress{global_index} = (baseType{global_index})(&{class_name}::{function_name});
+		constexpr auto baseAddress{global_index} = (baseType{global_index})(&{class_name}::{function_name});
 		using derivedType{global_index} = temp_name_find_better::ret{global_index}(*)({raw_arg_types});
 		GEODE_VIRTUAL_CONSTEXPR auto derivedAddress{global_index} = (derivedType{global_index})(&D<baseAddress{global_index}, UUID>::{function_name});
         if (baseAddress{global_index} != derivedAddress{global_index}) {{
