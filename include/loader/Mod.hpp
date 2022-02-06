@@ -475,10 +475,9 @@ namespace geode {
          */
         std::vector<Dependency> getUnresolvedDependencies();
 
-        template<class T>
-        T* with() {
-            static_assert(std::is_base_of_v<T, APIMod>, "`with` may only be used with classes that inherit from APIMod");
-            return reinterpret_cast<T*>(this);
+        template<class T, typename = std::enable_if_t<std::is_constructible_v<T, Mod*> && std::is_base_of_v<T, APIMod>>>
+        T with() {
+            return T(this);
         }
     };
 }
