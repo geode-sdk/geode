@@ -325,4 +325,4 @@ enum class LeaderboardState {
     Friends    = 4,
 };
 
-#include <gen/Header.hpp>
+#include <Gen/Header.hpp>

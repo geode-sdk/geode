@@ -73,7 +73,7 @@ struct GEODE_HIDDEN _##derived<_orig, derived##UUID> final 				\
 
 namespace geode {
 	struct GEODE_CODEGEN_DLL temp_name_find_better {
-        #include <gen/TempName.hpp>
+        #include <Gen/TempName.hpp>
     };
 
     struct modify {
