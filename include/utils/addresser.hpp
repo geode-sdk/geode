@@ -43,11 +43,10 @@ namespace geode::addresser {
 
 		static MultipleInheritance* instance();
 
-		template<typename T>
-		static virtual_meta_t* metaOf(T ptr) { 
-			static_assert(sizeof(tablemethodptr_t) == sizeof(intptr_t) * 2);
-			auto func = reinterpret_cast<tablemethodptr_t&>(ptr);
-			return (instance()->*func)(); 
+		template <typename R, typename T, typename ...Ps>
+		static virtual_meta_t* metaOf(R(T::*func)(Ps...)) { 
+			using method_t = virtual_meta_t*(T::*)();
+			return (reinterpret_cast<T*>(instance())->*reinterpret_cast<method_t>(func))(); 
 		}
 
 		template<typename T>
