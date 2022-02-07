@@ -16,6 +16,7 @@ namespace geode::addresser {
 	struct virtual_meta_t {
 		ptrdiff_t index;
 		ptrdiff_t thunk;
+		virtual_meta_t(ptrdiff_t index, ptrdiff_t thunk) : index(index), thunk(thunk) {}
 	};
 
 	template<typename T>
@@ -38,12 +39,12 @@ namespace geode::addresser {
 			virtual ~MultipleInheritance() {}
 		};
 
-		using tablemethodptr_t = virtual_meta_t(MultipleInheritance::*)();
+		using tablemethodptr_t = virtual_meta_t*(MultipleInheritance::*)();
 
 		static MultipleInheritance* instance();
 
 		template<typename T>
-		static virtual_meta_t metaOf(T ptr) { 
+		static virtual_meta_t* metaOf(T ptr) { 
 			static_assert(sizeof(tablemethodptr_t) == sizeof(intptr_t) * 2);
 			auto func = reinterpret_cast<tablemethodptr_t&>(ptr);
 			return (instance()->*func)(); 
@@ -74,14 +75,15 @@ namespace geode::addresser {
 			// metadata of the virtual function
 			// LOL!
 			auto meta = metaOf(func);
-			std::cout << "thunk: " << meta.thunk << " index: " << meta.index << std::endl;
+			std::cout << "thunk: " << meta->thunk << " index: " << meta->index << std::endl;
 
 			// [[this + thunk] + offset] is the f we want
-			auto address = *(intptr_t*)(*(intptr_t*)(pointerOf(ins) + meta.thunk) + meta.index);
+			auto address = *(intptr_t*)(*(intptr_t*)(pointerOf(ins) + meta->thunk) + meta->index);
 
 			// And we delete the new instance because we are good girls
 			// and we don't leak memories
 			operator delete(ins);
+			delete meta;
 
 			return address;
 		}
@@ -145,6 +147,9 @@ namespace geode::addresser {
 
 	template<typename T, typename F>
 	inline F thunkAdjust(T func, F self) {
-		return (F)((intptr_t)self + Addresser::metaOf(func).thunk);
+		auto meta = Addresser::metaOf(func);
+		auto ret = (intptr_t)self + meta->thunk;
+		delete meta;
+		return (F)(ret);
 	}
 }
