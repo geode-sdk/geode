@@ -115,6 +115,8 @@ target_link_libraries(${PROJECT_NAME}
 	${LINK_LIBRARIES}
 )
 
+target_precompile_headers(${PROJECT_NAME} PUBLIC ${GEODE_INCLUDE_DIR}/Geode.hpp)
+
 if (NOT DEFINED GEODE_NO_GEODE_FILE)
 	create_geode_file(${PROJECT_NAME})
 endif()
