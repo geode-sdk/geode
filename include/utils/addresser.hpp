@@ -49,6 +49,11 @@ namespace geode::addresser {
 			return (reinterpret_cast<T*>(instance())->*reinterpret_cast<method_t>(func))(); 
 		}
 
+		template <typename R, typename T, typename ...Ps>
+		static virtual_meta_t* metaOf(R(T::*func)(Ps...) const) { 
+			return metaOf(reinterpret_cast<R(T::*)(Ps...)>(func));
+		}
+
 		template<typename T>
 		static intptr_t pointerOf(T func) {
 			return reinterpret_cast<intptr_t&>(func);

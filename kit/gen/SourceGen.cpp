@@ -65,8 +65,10 @@ struct address_of_t<(fixori_member{global_index})(&{class_name}::{function_name}
 	char const* thunk_adjust = "addresser::thunkAdjust(({is_fixori}member{global_index})(&{class_name}::{function_name}), this)";
 
 	char const* declare_member_function = "reinterpret_cast<func{global_index}>(temp_name_find_better::address{global_index}())(this{parameters})";
+	char const* declare_virtual_function = "reinterpret_cast<func{global_index}>(temp_name_find_better::address{global_index}())(this{parameters})";
 	char const* declare_static_function = "reinterpret_cast<func{global_index}>(temp_name_find_better::address{global_index}())({raw_parameters})";
-	char const* declare_meta_member_function = "geode::core::meta::Function<pure{global_index}, geode::core::meta::x86::{convention}>({{temp_name_find_better::address{global_index}()}})({thunk_adjusted_this}{parameters})";
+	char const* declare_meta_member_function = "geode::core::meta::Function<pure{global_index}, geode::core::meta::x86::{convention}>({{temp_name_find_better::address{global_index}()}})(this{parameters})";
+	char const* declare_meta_virtual_function = "geode::core::meta::Function<pure{global_index}, geode::core::meta::x86::{convention}>({{temp_name_find_better::address{global_index}()}})({thunk_adjusted_this}{parameters})";
 	char const* declare_meta_static_function = "geode::core::meta::Function<pure{global_index}, geode::core::meta::x86::{convention}>({{temp_name_find_better::address{global_index}()}})({raw_parameters})";
 
 	char const* declare_member = R"CAC(
@@ -170,6 +172,10 @@ int main(int argc, char** argv) {
 			}
 			switch (f.function_type) {
 				case kVirtualFunction:
+					used_function_format = CacShare::platform == kWindows ? 
+						format_strings::declare_meta_virtual_function :
+						format_strings::declare_virtual_function;
+					break;
 				case kRegularFunction:
 				case kDestructor:
 				case kConstructor:
