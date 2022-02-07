@@ -115,6 +115,12 @@ target_link_libraries(${PROJECT_NAME}
 	${LINK_LIBRARIES}
 )
 
+file(GLOB_RECURSE GEODE_NO_PCH ${CMAKE_SOURCE_DIR}/**/*.mm )
+set_source_files_properties(${GEODE_NO_PCH} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+target_precompile_headers(${PROJECT_NAME} PUBLIC
+	"$<$<COMPILE_LANGUAGE:CXX>:${GEODE_INCLUDE_DIR}/Geode.hpp>"
+)
+
 if (NOT DEFINED GEODE_NO_GEODE_FILE)
 	create_geode_file(${PROJECT_NAME})
 endif()
