@@ -28,12 +28,23 @@ namespace geode::addresser {
 	inline F thunkAdjust(T func, F self);
 
 	class GEODE_DLL Addresser final {
-		using tablemethodptr_t = virtual_meta_t(Addresser::*)();
+		template <char C>
+		struct SingleInheritance {
+			virtual ~SingleInheritance() {}
+		};
+		struct MultipleInheritance : 
+			SingleInheritance<'L'>, 
+			SingleInheritance<'F'> {
+			virtual ~MultipleInheritance() {}
+		};
 
-		static Addresser* instance();
+		using tablemethodptr_t = virtual_meta_t(MultipleInheritance::*)();
+
+		static MultipleInheritance* instance();
 
 		template<typename T>
 		static virtual_meta_t metaOf(T ptr) { 
+			static_assert(sizeof(tablemethodptr_t) == sizeof(intptr_t) * 2);
 			auto func = reinterpret_cast<tablemethodptr_t&>(ptr);
 			return (instance()->*func)(); 
 		}
