@@ -79,7 +79,6 @@ namespace geode::addresser {
 			// metadata of the virtual function
 			// LOL!
 			auto meta = metaOf(func);
-			std::cout << "thunk: " << meta->thunk << " index: " << meta->index << std::endl;
 
 			// [[this + thunk] + offset] is the f we want
 			auto address = *(intptr_t*)(*(intptr_t*)(pointerOf(ins) + meta->thunk) + meta->index);
