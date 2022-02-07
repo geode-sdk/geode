@@ -1,15 +1,5 @@
 # GeodeSDK
-Geode is a revolutionary Geometry Dash modding framework. Geode is built using CMake so make sure it is installed before building. To start, run the `create` file and specify a location
-
-## Prerequisites
-
-The projects created with the `./create` are normally in the current working directory. To override this you can add a `GEODE_PROJECT_FOLDER` environment variable. You can do this by adding `export GEODE_PROJECT_FOLDER="path/to/project/folder"` to your .bash_profile file.
-
-## How to use
-
-TODO: Make this properly documented
-
-Make sure you include the flag `-T host=x64` if you are building for Windows, that way you avoid out of heap space errors.
+Geode is a revolutionary Geometry Dash modding framework. Documentation on using the Geode SDK can be found on the [Geode Documentation](https://geode-sdk.github.io/docs/).
 
 ### Geode
 
