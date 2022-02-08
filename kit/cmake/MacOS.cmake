@@ -23,6 +23,6 @@ endfunction()
 
 add_custom_command(
     TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND strip $<TARGET_FILE:${PROJECT_NAME}>
+    COMMAND strip -x $<TARGET_FILE:${PROJECT_NAME}>
     VERBATIM USES_TERMINAL
 )
