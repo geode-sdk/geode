@@ -18,7 +18,7 @@ namespace geode::cast {
     template<typename T, typename F>
     static constexpr T union_cast(F v) {
         static_assert(sizeof(F) == sizeof(T), "union_cast: R and T don't match in size!");
-        constexpr union {
+        union {
             T t;
             F f;
         } x;
