@@ -365,7 +365,7 @@ class CCMenuItemToggler : cocos2d::CCMenuItem {
 
 	static CCMenuItemToggler* create(cocos2d::CCNode* offSpr, cocos2d::CCNode* onSpr, cocos2d::CCObject* target, cocos2d::SEL_MenuHandler callback) = mac 0x38400, win 0x19600, ios 0xf5594;
 	void setSizeMult(float) = mac 0x38a40, win 0x19850, ios 0x0;
-	void toggle(bool) = mac 0x38950, win 0x199b0, ios 0x0;
+	void toggle(bool) = mac 0x38950, win 0x199b0, ios 0xf5848;
 	bool init(cocos2d::CCNode off, cocos2d::CCNode on, cocos2d::CCObject* target, cocos2d::SEL_MenuHandler handler) = mac 0x0, win 0x196e0, ios 0x0;
 	void activate() = mac 0x0, win 0x198d0, ios 0x0;
 	void selected() = mac 0x0, win 0x198a0, ios 0x0;
@@ -562,7 +562,7 @@ class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTex
 	}
 	bool init(float width, float height, const char* caption, const char* thonburi, int maxCharCount, const char* font) = mac 0x5d180, win 0x20e50, ios 0xe261c;
 
-	void refreshLabel() = mac 0x5d730, win 0x21330, ios 0x0;
+	void refreshLabel() = mac 0x5d730, win 0x21330, ios 0xe2af4;
 	void updateLabel(struct gd::string) = mac 0x5d4a0, win 0x0, ios 0x0;
 	virtual void registerWithTouchDispatcher() = mac 0x5eec0, win 0x220e0, ios 0x0;
 	virtual void visit() = mac 0x5d380, win 0x21000, ios 0x0;
@@ -985,7 +985,7 @@ class EditLevelLayer : cocos2d::CCLayer {
 	    );
 	}
 
-	static EditLevelLayer* create(GJGameLevel* level) = mac 0xe1e50, win 0x6f530, ios 0x0;
+	static EditLevelLayer* create(GJGameLevel* level) = mac 0xe1e50, win 0x6f530, ios 0x82420;
 
 	cocos2d::CCMenu* m_buttonMenu;
 	GJGameLevel* m_level;
@@ -1015,7 +1015,7 @@ class EditorPauseLayer : CCBlockLayer, FLAlertLayerProtocol {
 	virtual void customSetup() = mac 0x13cc00, win 0x0, ios 0x0;
 	virtual void FLAlert_Clicked(FLAlertLayer*, bool) = mac 0x13f1b0, win 0x75780, ios 0x0;
 	void saveLevel() = mac 0x13ebd0, win 0x75010, ios 0x0;
-	bool init(LevelEditorLayer*) = mac 0x13c7a0, win 0x730e0, ios 0x0;
+	bool init(LevelEditorLayer*) = mac 0x13c7a0, win 0x730e0, ios 0x280cb8;
 	void onExitEditor(cocos2d::CCObject* pSender) = mac 0x0, win 0x75660, ios 0x0;
 	void playStep2() = mac 0x0, win 0x75440, ios 0x0;
 	void onResume(cocos2d::CCObject* pSender) = mac 0x0, win 0x74fe0, ios 0x0;
@@ -1720,7 +1720,7 @@ class GJDropDownLayer : cocos2d::CCLayerColor {
 	virtual void ccTouchCancelled(cocos2d::CCTouch* pTouch, cocos2d::CCEvent* pEvent) {}
 
 	virtual void draw() = mac 0x352910, win 0x16a80, ios 0x0;
-	bool init(const char* title, float height) = mac 0x352100, win 0x113530, ios 0x0;
+	bool init(const char* title, float height) = mac 0x352100, win 0x113530, ios 0x297afc;
 	virtual void registerWithTouchDispatcher() = mac 0x3525f0, win 0x16990, ios 0x0;
 	virtual void keyBackClicked() = mac 0x352630, win 0x113960, ios 0x0;
 	inline GJDropDownLayer() {
@@ -1897,7 +1897,7 @@ class GJGameLevel : cocos2d::CCNode {
 	void getNormalPercent() = mac 0x2b8b20, win 0x0, ios 0x0;
 	void levelWasAltered() = mac 0x2db530, win 0xbd550, ios 0x0;
 	void savePercentage(int, bool, int, int, bool) = mac 0x2db700, win 0x0, ios 0x0;
-	void dataLoaded(DS_Dictionary* dict) = mac 0x2922f0, win 0xbded0, ios 0x0;
+	void dataLoaded(DS_Dictionary* dict) = mac 0x0, win 0xbded0, ios 0x6fca4;
 	GJDifficulty getAverageDifficulty() = mac 0x0, win 0xbd9b0, ios 0x0;
 
 	int levelId = mac 0x130, win 0x0, android 0x0;
@@ -3034,7 +3034,7 @@ class GaragePage : cocos2d::CCLayer, ListButtonBarDelegate {
 
 	void listButtonBarSwitchedPage(ListButtonBar* bar, int idk) = mac 0x0, win 0x12bb40, ios 0x0;
 	GaragePage() = mac 0x0, win 0x1252f0, ios 0x0;
-	bool init(IconType type, GJGarageLayer* pGarage, cocos2d::SEL_MenuHandler pSelectCallback) = mac 0x1bb710, win 0x12af70, ios 0x0;
+	bool init(IconType type, GJGarageLayer* pGarage, cocos2d::SEL_MenuHandler pSelectCallback) = mac 0x1bb710, win 0x12af70, ios 0x225d5c;
 
 	GJGarageLayer* m_garage;
 	cocos2d::SEL_MenuHandler m_handler;
@@ -3168,7 +3168,7 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
 	virtual void timeForXPos(float) = mac 0x9c7d0, win 0x0, ios 0x0;
 	virtual void xPosForTime(float) = mac 0x9c800, win 0x0, ios 0x0;
 	virtual void levelSettingsUpdated() = mac 0x93f30, win 0x0, ios 0x0;
-	static LevelEditorLayer* create(GJGameLevel* level) = mac 0x90fb0, win 0x15ed60, ios 0x0;
+	static LevelEditorLayer* create(GJGameLevel* level) = mac 0x90fb0, win 0x15ed60, ios 0x261628;
 	void activateTriggerEffect(EffectGameObject*, float, float, float) = mac 0x9b520, win 0x0, ios 0x0;
 	GameObject* addObjectFromString(struct gd::string) = mac 0x94640, win 0x160c80, ios 0x0;
 	void addSpecial(GameObject*) = mac 0x94f30, win 0x162650, ios 0x0;
@@ -3513,7 +3513,7 @@ class OptionsLayer : GJDropDownLayer, FLAlertLayerProtocol {
 	    return layer;
 	}
 
-	static OptionsLayer* create() = mac 0x43db60, win 0x1dd310, ios 0x0;
+	static OptionsLayer* create() = mac 0x43db60, win 0x1dd310, ios 0x86314;
 }
 
 class PauseLayer : CCBlockLayer {
@@ -4378,7 +4378,7 @@ class SimplePlayer : cocos2d::CCSprite {
 	bool init(int iconID) = mac 0x0, win 0x12be20, ios 0x0;
 	static SimplePlayer* create(int iconID) = mac 0x1b6140, win 0x12bd80, ios 0x0;
 	void updatePlayerFrame(int iconID, IconType iconType) = mac 0x1b62f0, win 0x12c650, ios 0x0;
-	void updateColors() = mac 0x1ba1f0, win 0x12c440, ios 0x0;
+	void updateColors() = mac 0x1ba1f0, win 0x12c440, ios 0x224f2c;
 	void setFrames(const char* firstLayer, const char* secondLayer, const char* birdDome, const char* outlineSprite, const char* detailSprite) = mac 0x0, win 0x12c9e0, ios 0x0;
 	void setColor(const cocos2d::ccColor3B& color) = mac 0x0, win 0x12c410, ios 0x0;
 	void setOpacity(unsigned char opacity) = mac 0x0, win 0x12cb90, ios 0x0;
@@ -4569,7 +4569,7 @@ class TextArea : cocos2d::CCSprite {
 	inline ~TextArea() {}
 	virtual void draw() = mac 0x19f890, win 0x0, ios 0x0;
 	virtual void setOpacity(unsigned char) = mac 0x19f760, win 0x0, ios 0x0;
-	bool init(struct gd::string str, char const* font, float width, float height, struct cocos2d::CCPoint anchor, float scale, bool disableColor) = mac 0x19ec70, win 0x33370;
+	bool init(struct gd::string str, char const* font, float width, float height, struct cocos2d::CCPoint anchor, float scale, bool disableColor) = mac 0x19ec70, win 0x33370, ios 0x92444;
 	static TextArea* create(gd::string const& str, char const* font, float width, float height, cocos2d::CCPoint const& anchor, float scale, bool disableColor) {
 		auto ret = new TextArea();
 	    if (ret->init(str, font, width, height, anchor, scale, disableColor)) {
