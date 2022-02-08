@@ -3,7 +3,5 @@
 #include "Mod.hpp"
 
 namespace geode {
-    class APIMod : public Mod {
-    	
-    };
+    class GEODE_DLL APIMod : public Mod {};
 }
