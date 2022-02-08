@@ -105,8 +105,8 @@ class AppDelegate : cocos2d::CCApplication {
 	virtual void applicationWillEnterForeground() = mac 0x3aac80, win 0x0, ios 0x0;
 	virtual void applicationWillBecomeActive() = mac 0x3aab30, win 0x0, ios 0x0;
 	virtual void applicationWillResignActive() = mac 0x3aab50, win 0x0, ios 0x0;
-	virtual void trySaveGame() = mac 0x3aaf10, win 0x3d5e0, ios 0x0;
-	void trySaveGame_() = mac 0x3aaf10, win 0x3d5e0, ios 0x0;
+	virtual void trySaveGame() = mac 0x3aaf10, win 0x3d5e0, ios 0x1a28f0;
+	void trySaveGame_() = mac 0x3aaf10, win 0x3d5e0, ios 0x1a28f0;
 	virtual void willSwitchToScene(cocos2d::CCScene*) = mac 0x3aaf40, win 0x0, ios 0x0;
 	static AppDelegate* get() = mac 0x3aab10, win 0x0, ios 0x0;
 
@@ -135,7 +135,7 @@ class BoomListView : cocos2d::CCLayer, TableViewDelegate, TableViewDataSource {
 	}
 
 	static BoomListView* create(cocos2d::CCArray*, float, float, int, BoomListType) = mac 0x18ecb0, win 0x0, ios 0x0;
-	bool init(cocos2d::CCArray*, float, float, int, BoomListType) = mac 0x18ee00, win 0x10c20, ios 0x0;
+	bool init(cocos2d::CCArray*, float, float, int, BoomListType) = mac 0x18ee00, win 0x10c20, ios 0x12c5a8;
 	virtual void draw() = mac 0x18f790, win 0x0, ios 0x0;
 
 	virtual void setupList() = mac 0x18ef90, win 0x10dc0, ios 0x0;
@@ -303,7 +303,7 @@ class CCMenuItemSpriteExtra : cocos2d::CCMenuItemSprite {
 	    this->m_baseScale = scale;
 	}
 
-	static CCMenuItemSpriteExtra* create(cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCObject*, cocos2d::SEL_MenuHandler) = mac 0x1253c0, win 0x18ee0, ios 0x0;
+	static CCMenuItemSpriteExtra* create(cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCObject*, cocos2d::SEL_MenuHandler) = mac 0x1253c0, win 0x18ee0, ios 0xe0740;
 	inline static CCMenuItemSpriteExtra* create(cocos2d::CCNode* sprite, cocos2d::CCObject* target, cocos2d::SEL_MenuHandler callback) {
 		return CCMenuItemSpriteExtra::create(sprite, nullptr, target, callback);
 	}
@@ -432,7 +432,7 @@ class CCScrollLayerExt : cocos2d::CCLayer {
 	virtual void postVisit() = mac 0x236720, win 0x1c090, ios 0x0;
 	void moveToTop() = mac 0x235870, win 0x1b4a0, ios 0x0;
 	void moveToTopWithOffset(float) = mac 0x2357d0, win 0x1b420, ios 0x0;
-	CCScrollLayerExt(cocos2d::CCRect rect) = mac 0x235130, win 0x1b020, ios 0x0;
+	CCScrollLayerExt(cocos2d::CCRect rect) = mac 0x235130, win 0x1b020, ios 0x21f05c;
 	void scrollLayer(float scroll) = mac 0x236490, win 0x1be20, ios 0x0;
 
 	cocos2d::CCTouch* m_touch;
@@ -560,7 +560,7 @@ class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTex
 		CC_SAFE_DELETE(ret);
 		return nullptr;
 	}
-	bool init(float width, float height, const char* caption, const char* thonburi, int maxCharCount, const char* font) = mac 0x5d180, win 0x20e50, ios 0x0;
+	bool init(float width, float height, const char* caption, const char* thonburi, int maxCharCount, const char* font) = mac 0x5d180, win 0x20e50, ios 0xe261c;
 
 	void refreshLabel() = mac 0x5d730, win 0x21330, ios 0x0;
 	void updateLabel(struct gd::string) = mac 0x5d4a0, win 0x0, ios 0x0;
@@ -788,7 +788,7 @@ class CurrencyRewardLayer {
 }
 
 class CustomListView : BoomListView {
-	static CustomListView* create(cocos2d::CCArray*, float, float, int, BoomListType) = mac 0x10d410, win 0x57f90, ios 0x0;
+	static CustomListView* create(cocos2d::CCArray*, float, float, int, BoomListType) = mac 0x10d410, win 0x57f90, ios 0x99154;
 	inline static CustomListView* create(cocos2d::CCArray* entries, BoomListType type, float width, float height) {
 		return CustomListView::create(entries, width, height, 0, type);
 	}
@@ -2533,7 +2533,7 @@ class GameManager : GManager {
 	void loadDeathEffect(int) = mac 0x1cc690, win 0x0, ios 0x0;
 	void loadFont(int) = mac 0x1cc550, win 0x0, ios 0x0;
 	void reloadAll(bool, bool, bool) = mac 0x1d08a0, win 0xce950, ios 0x0;
-	void reloadAllStep2() = mac 0x1d0940, win 0xce9e0, ios 0x0;
+	void reloadAllStep2() = mac 0x1d0940, win 0xce9e0, ios 0x23b1f4;
 	void reloadAllStep5() = mac 0x1d0b00, win 0x0, ios 0x0;
 	void reportPercentageForLevel(int, int, bool) = mac 0x1c5b00, win 0x0, ios 0x0;
 	void setGameVariable(const char*, bool) = mac 0x1cca80, win 0xc9b50, ios 0x0;
@@ -3357,10 +3357,10 @@ class LoadingLayer : cocos2d::CCLayer {
 	    m_fromRefresh = value;
 	}
 
-	static LoadingLayer* create(bool fromReload) = mac 0x1df1f0, win 0x18bfe0, ios 0x0;
+	static LoadingLayer* create(bool fromReload) = mac 0x1df1f0, win 0x18bfe0, ios 0x130278;
 	bool init(bool fromReload) = mac 0x1df2f0, win 0x18c080, ios 0x0;
 	const char* getLoadingString() = mac 0x0, win 0x18cf40, ios 0x0;
-	void loadAssets() = mac 0x1dfb20, win 0x18c8e0, ios 0x0;
+	void loadAssets() = mac 0x1dfb20, win 0x18c8e0, ios 0x130278;
 	void loadingFinished() = mac 0x0, win 0x18c790, ios 0x0;
 
 	static cocos2d::CCScene* scene(bool fromReload) {
@@ -3404,7 +3404,7 @@ class MenuLayer : cocos2d::CCLayer, FLAlertLayerProtocol {
 	void onMoreGames(cocos2d::CCObject*) = mac 0x1d2ad0, win 0x1919c0, ios 0x19fbb4;
 	void onGarage(cocos2d::CCObject*) = mac 0x0, win 0x0, ios 0x0;
 	void onQuit(cocos2d::CCObject*) = mac 0x1d2b40, win 0x0, ios 0x0;
-	static cocos2d::CCScene* scene(bool) = mac 0x1d12d0, win 0x190720, ios 0x0;
+	static cocos2d::CCScene* scene(bool) = mac 0x1d12d0, win 0x190720, ios 0x19e57c;
 	MenuLayer* node() = mac 0x0, win 0x190550, ios 0x0;
 }
 
@@ -4564,7 +4564,7 @@ class TextAlertPopup {
 
 class TextArea : cocos2d::CCSprite {
 	// https://www.youtube.com/watch?v=1LVW7IUyKMg
-	TextArea() = mac 0x19fba0, win 0x33110;
+	TextArea() = mac 0x19fba0, win 0x33110, ios 0x92c28;
 	inline TextArea(TextArea const&) : m_fontFile() {}
 	inline ~TextArea() {}
 	virtual void draw() = mac 0x19f890, win 0x0, ios 0x0;
