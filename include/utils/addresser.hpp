@@ -64,7 +64,7 @@ namespace geode::addresser {
 		 */
 		template <typename R, typename T, typename ...Ps>
 		static intptr_t addressOfVirtual(R(T::*func)(Ps...), 
-			typename std::enable_if_t<std::is_copy_constructible_v<T> && !std::is_abstract_v<T>>* = 0) {
+			typename std::enable_if_t<!std::is_abstract_v<T>>* = 0) {
 			// Create a random memory block with the size of T
 			// Assign a pointer to that block and cast it to type T*
 			uint8_t dum[sizeof(T)] {};
@@ -82,6 +82,16 @@ namespace geode::addresser {
 
 			// [[this + thunk] + offset] is the f we want
 			auto address = *(intptr_t*)(*(intptr_t*)(pointerOf(ins) + meta->thunk) + meta->index);
+
+			#ifdef GEODE_IS_WINDOWS
+				// check if first instruction is a jmp, i.e. if the func is a thunk
+				if (*reference_cast<uint16_t*>(address) == 0x25ff) {
+					// read where the jmp points to and jump there
+					address = *reinterpret_cast<uintptr_t*>(address + 2);
+					// that then contains the actual address of the func
+					address = *reinterpret_cast<uintptr_t*>(address);
+				}
+			#endif
 
 			// And we delete the new instance because we are good girls
 			// and we don't leak memories

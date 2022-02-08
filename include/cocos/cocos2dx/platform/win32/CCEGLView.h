@@ -41,6 +41,8 @@ class CCEGL;
 class CC_DLL CCEGLView : public CCEGLViewProtocol RT_ADD(, public CCObject)
 {
     GEODE_FRIEND_MODIFY
+protected:
+    RT_ADD( virtual ~CCEGLView(); )
 public:
     CCEGLView();
     RT_REMOVE(  virtual ~CCEGLView();   )

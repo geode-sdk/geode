@@ -148,7 +148,7 @@ class cocos2d::CCEaseOut {
 
 class cocos2d::CCEGLView {
 	void onGLFWMouseCallBack(GLFWwindow* wnd, int btn, int pressed, int z);
-	void swapBuffers();
+	virtual void swapBuffers();
 	void updateWindow(int width, int height);
 	void pollEvents();
 }
