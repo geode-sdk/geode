@@ -45,6 +45,10 @@ if (GEODE_BUILD_CODEGEN)
 	add_subdirectory(${GEODE_SDK_DIR}/kit/gen)
 endif()
 
+target_link_libraries(${PROJECT_NAME}
+	${LINK_LIBRARIES}
+)
+
 if (NOT DEFINED GEODE_NO_LINK_LOADER)
 	geode_link_bin(${PROJECT_NAME} "${GEODE_SDK_DIR}/bin")
 endif()
@@ -72,10 +76,13 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 
 file(GLOB_RECURSE GEODE_NO_PCH ${CMAKE_SOURCE_DIR}/**/*.mm ${CMAKE_SOURCE_DIR}/**/*.m)
 set_source_files_properties(${GEODE_NO_PCH} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
-target_precompile_headers(${PROJECT_NAME} PUBLIC
-	"$<$<COMPILE_LANGUAGE:CXX>:${GEODE_INCLUDE_DIR}/Geode.hpp>"
-)
+if (NOT GEODE_NO_PRECOMPILED_HEADERS)
+	target_precompile_headers(${PROJECT_NAME} PUBLIC
+		"$<$<COMPILE_LANGUAGE:CXX>:${GEODE_INCLUDE_DIR}/Geode.hpp>"
+	)
+endif()
 
 if (NOT DEFINED GEODE_NO_GEODE_FILE)
 	create_geode_file(${PROJECT_NAME})
 endif()
+
