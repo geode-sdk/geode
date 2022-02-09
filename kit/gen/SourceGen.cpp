@@ -9,14 +9,6 @@ using namespace geode::cast;
 using cocos2d::CCDestructor;
 )CAC";
 
-	char const* declare_address = R"CAC(
-static uintptr_t _address{global_index};
-GEODE_NOINLINE uintptr_t temp_name_find_better::address{global_index}() {{
-	if (!_address{global_index})
-		_address{global_index} = {address};
-	return _address{global_index};
-}})CAC";
-
 	char const* declare_member_type = R"CAC(
 using ret{global_index} = temp_name_find_better::ret{global_index};
 using func{global_index} = ret{global_index}(*)({const}{constw}{class_name}*{arg_types});
@@ -141,12 +133,6 @@ int main(int argc, char** argv) {
 					fmt::arg("definition", f.definition)
 				);
 				continue;
-			}
-			if (CacShare::functionDefined(f)) {
-				output += fmt::format(format_strings::declare_address, 
-					fmt::arg("global_index",f.hash()),
-					fmt::arg("address", CacShare::getAddress(f))
-				);
 			}
 			if (f.binds[CacShare::platform].size() == 0) continue; // Function not implemented, skip
 

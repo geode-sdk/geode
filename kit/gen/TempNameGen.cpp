@@ -3,7 +3,10 @@
 namespace format_strings {
 
 	char const* declare_member_type = R"CAC(
-GEODE_NOINLINE static uintptr_t address{global_index}();
+GEODE_NOINLINE GEODE_HIDDEN inline static uintptr_t address{global_index}() {{
+	static uintptr_t _address{global_index} = {address};
+	return _address{global_index};
+}}
 using ret{global_index} = {return};
 using func{global_index} = ret{global_index}(*)({const}{constw}{class_name}*{arg_types});
 using pure{global_index} = ret{global_index}({class_name}*{arg_types}){constw}{const};
@@ -11,7 +14,10 @@ using member{global_index} = ret{global_index}({class_name}::*)({raw_arg_types})
 )CAC";
 
 	char const* declare_static_type = R"CAC(
-GEODE_NOINLINE static uintptr_t address{global_index}();
+GEODE_NOINLINE GEODE_HIDDEN inline static uintptr_t address{global_index}() {{
+	static uintptr_t _address{global_index} = {address};
+	return _address{global_index};
+}}
 using ret{global_index} = {return};
 using func{global_index} = ret{global_index}(*)({raw_arg_types});
 using pure{global_index} = ret{global_index}({raw_arg_types}){constw}{const};
@@ -19,7 +25,10 @@ using member{global_index} = func{global_index};
 )CAC";
 
 	char const* declare_structor_type = R"CAC(
-GEODE_NOINLINE static uintptr_t address{global_index}();
+GEODE_NOINLINE GEODE_HIDDEN inline static uintptr_t address{global_index}() {{
+	static uintptr_t _address{global_index} = {address};
+	return _address{global_index};
+}}
 using ret{global_index} = void;
 using func{global_index} = ret{global_index}(*)({class_name}*{arg_types});
 using pure{global_index} = ret{global_index}({class_name}*{arg_types});
@@ -56,6 +65,7 @@ int main(int argc, char** argv) {
 			}
 
 			output += fmt::format(used_format,
+				fmt::arg("address", CacShare::getAddress(f)),
 				fmt::arg("arg_types", CacShare::formatArgTypes(f.args)),
 				fmt::arg("raw_arg_types", CacShare::formatRawArgTypes(f.args)),
 				fmt::arg("class_name", name),
