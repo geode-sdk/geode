@@ -1558,14 +1558,14 @@ class GJBaseGameLayer : cocos2d::CCLayer, TriggerEffectDelegate {
 	void updateQueuedLabels() = mac 0xb9f30, win 0x0, ios 0x0;
 	~GJBaseGameLayer() = mac 0xaf990, win 0x0, ios 0x0;
 
-	GJEffectManager* effectManager = mac 0x180, win 0x0, android 0x0;
-	cocos2d::CCLayer* objectLayer = mac 0x188, win 0x0, android 0x0;
-	cocos2d::CCArray* objects = mac 0x3a0, win 0x0, android 0x0;
-	cocos2d::CCArray* sections = mac 0x3a8, win 0x0, android 0x0;
-	PlayerObject* player1 = mac 0x380, win 0x0, android 0x0;
-	PlayerObject* player2 = mac 0x388, win 0x0, android 0x0;
-	LevelSettingsObject* levelSettings = mac 0x390, win 0x0, android 0x0;
-	cocos2d::CCDictionary* unknownDict = mac 0x398, win 0x0, android 0x0;
+	// GJEffectManager* effectManager = mac 0x180, win 0x0, android 0x0;
+	// cocos2d::CCLayer* objectLayer = mac 0x188, win 0x0, android 0x0;
+	// cocos2d::CCArray* objects = mac 0x3a0, win 0x0, android 0x0;
+	// cocos2d::CCArray* sections = mac 0x3a8, win 0x0, android 0x0;
+	// PlayerObject* player1 = mac 0x380, win 0x0, android 0x0;
+	// PlayerObject* player2 = mac 0x388, win 0x0, android 0x0;
+	// LevelSettingsObject* levelSettings = mac 0x390, win 0x0, android 0x0;
+	// cocos2d::CCDictionary* unknownDict = mac 0x398, win 0x0, android 0x0;
 	OBB2D* m_boundingBox;
 	GJEffectManager* m_effectManager;
 	cocos2d::CCLayer* m_objectLayer;
