@@ -81,6 +81,8 @@ namespace geode::addresser {
 			// LOL!
 			auto meta = metaOf(func);
 
+			std::cout << "[[" << ins << " + " << meta->thunk << "] + " << meta->index << "]"<< std::endl;
+
 			// [[this + thunk] + offset] is the f we want
 			auto address = *(intptr_t*)(*(intptr_t*)(pointerOf(ins) + meta->thunk) + meta->index);
 
