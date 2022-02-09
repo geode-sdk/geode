@@ -10,6 +10,7 @@
 #include <loader/Mod.hpp>
 #include <loader/Log.hpp>
 #include <utils/general.hpp>
+#include <utils/casts.hpp>
 
 namespace geode::addresser {
 
@@ -85,7 +86,7 @@ namespace geode::addresser {
 
 			#ifdef GEODE_IS_WINDOWS
 				// check if first instruction is a jmp, i.e. if the func is a thunk
-				if (*reference_cast<uint16_t*>(address) == 0x25ff) {
+				if (*geode::cast::reference_cast<uint16_t*>(address) == 0x25ff) {
 					// read where the jmp points to and jump there
 					address = *reinterpret_cast<uintptr_t*>(address + 2);
 					// that then contains the actual address of the func
