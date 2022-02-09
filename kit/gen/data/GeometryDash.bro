@@ -1558,14 +1558,14 @@ class GJBaseGameLayer : cocos2d::CCLayer, TriggerEffectDelegate {
 	void updateQueuedLabels() = mac 0xb9f30, win 0x0, ios 0x0;
 	~GJBaseGameLayer() = mac 0xaf990, win 0x0, ios 0x0;
 
-	GJEffectManager* effectManager = mac 0x180, win 0x0, android 0x0;
-	cocos2d::CCLayer* objectLayer = mac 0x188, win 0x0, android 0x0;
-	cocos2d::CCArray* objects = mac 0x3a0, win 0x0, android 0x0;
-	cocos2d::CCArray* sections = mac 0x3a8, win 0x0, android 0x0;
-	PlayerObject* player1 = mac 0x380, win 0x0, android 0x0;
-	PlayerObject* player2 = mac 0x388, win 0x0, android 0x0;
-	LevelSettingsObject* levelSettings = mac 0x390, win 0x0, android 0x0;
-	cocos2d::CCDictionary* unknownDict = mac 0x398, win 0x0, android 0x0;
+	// GJEffectManager* effectManager = mac 0x180, win 0x0, android 0x0;
+	// cocos2d::CCLayer* objectLayer = mac 0x188, win 0x0, android 0x0;
+	// cocos2d::CCArray* objects = mac 0x3a0, win 0x0, android 0x0;
+	// cocos2d::CCArray* sections = mac 0x3a8, win 0x0, android 0x0;
+	// PlayerObject* player1 = mac 0x380, win 0x0, android 0x0;
+	// PlayerObject* player2 = mac 0x388, win 0x0, android 0x0;
+	// LevelSettingsObject* levelSettings = mac 0x390, win 0x0, android 0x0;
+	// cocos2d::CCDictionary* unknownDict = mac 0x398, win 0x0, android 0x0;
 	OBB2D* m_boundingBox;
 	GJEffectManager* m_effectManager;
 	cocos2d::CCLayer* m_objectLayer;
@@ -2703,7 +2703,7 @@ class GameObject : CCSpritePlus {
 	virtual void addMainSpriteToParent(bool) = mac 0x33a5b0, win 0x0, ios 0x0;
 	virtual void resetObject() = mac 0x2fa620, win 0x0, ios 0x0;
 	virtual void triggerObject(GJBaseGameLayer*) = mac 0x2fa8f0, win 0x0, ios 0x0;
-	virtual void activateObject() = mac 0x2faf60, win 0x0, ios 0x0;
+	virtual void activateObject() = mac 0x2faf60, win 0xEF0E0, ios 0x0;
 	virtual void deactivateObject(bool) = mac 0x2fb8f0, win 0x0, ios 0x0;
 	virtual cocos2d::CCRect* getObjectRect() = mac 0x3352b0, win 0x0, ios 0x0;
 	virtual cocos2d::CCRect* getObjectRect(float, float) = mac 0x3352d0, win 0x0, ios 0x0;
@@ -3557,7 +3557,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate {
 	void colorObject(int, cocos2d::_ccColor3B) = mac 0x77810, win 0x0, ios 0x0;
 	void commitJumps() = mac 0x737e0, win 0x0, ios 0x0;
 	static PlayLayer* create(GJGameLevel*) = mac 0x6b590, win 0x1fb6d0, ios 0x0;
-	void createCheckpoint() = mac 0x7e470, win 0x0, ios 0x0;
+	void createCheckpoint() = mac 0x7e470, win 0x20B050, ios 0x0;
 	void createObjectsFromSetup(struct gd::string) = mac 0x6d130, win 0x0, ios 0x0;
 	void createParticle(int, char const*, int, cocos2d::tCCPositionType) = mac 0x76800, win 0x0, ios 0x0;
 	void currencyWillExit(CurrencyRewardLayer*) = mac 0x7e070, win 0x0, ios 0x0;
@@ -3590,7 +3590,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate {
 	void hasItem(int) = mac 0x7cee0, win 0x0, ios 0x0;
 	void hasUniqueCoin(GameObject*) = mac 0x77510, win 0x0, ios 0x0;
 	void incrementJumps() = mac 0x7ff40, win 0x0, ios 0x0;
-	bool init(GJGameLevel*) = mac 0x6b5f0, win 0x0, ios 0x0;
+	bool init(GJGameLevel*) = mac 0x6b5f0, win 0x01FB780, ios 0x0;
 	void isFlipping() = mac 0x76100, win 0x0, ios 0x0;
 	void levelComplete() = mac 0x72b80, win 0x0, ios 0x0;
 	void lightningFlash(struct cocos2d::CCPoint, struct cocos2d::CCPoint, cocos2d::_ccColor3B, float, float, int, bool, float) = mac 0x75cc0, win 0x0, ios 0x0;
@@ -3602,7 +3602,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate {
 	void markCheckpoint() = mac 0x7ef60, win 0x0, ios 0x0;
 	void moveCameraToPos(struct cocos2d::CCPoint) = mac 0x7c980, win 0x0, ios 0x0;
 	virtual void onEnterTransitionDidFinish() = mac 0x806e0, win 0x0, ios 0x0;
-	virtual void onExit() = mac 0x80710, win 0x0, ios 0x0;
+	virtual void onExit() = mac 0x80710, win 0x020D810, ios 0x0;
 	void onQuit() = mac 0x72710, win 0x0, ios 0x0;
 	void optimizeColorGroups() = mac 0x6dad0, win 0x0, ios 0x0;
 	void optimizeOpacityGroups() = mac 0x6dc20, win 0x0, ios 0x0;
@@ -3624,9 +3624,9 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate {
 	void registerStateObject(GameObject*) = mac 0x777b0, win 0x0, ios 0x0;
 	void removeAllObjects() = mac 0x727b0, win 0x0, ios 0x0;
 	void removeFromGroupOld(GameObject*) = mac 0x77750, win 0x0, ios 0x0;
-	void removeLastCheckpoint() = mac 0x7f870, win 0x0, ios 0x0;
+	void removeLastCheckpoint() = mac 0x7f870, win 0x20B830, ios 0x0;
 	void removePlayer2() = mac 0x7d630, win 0x0, ios 0x0;
-	void resetLevel() = mac 0x71c50, win 0x0, ios 0x0;
+	void resetLevel() = mac 0x71c50, win 0x20BF00, ios 0x0;
 	void resume() = mac 0x80480, win 0x0, ios 0x0;
 	void resumeAndRestart() = mac 0x80400, win 0x0, ios 0x0;
 	void saveRecordAction(bool, PlayerObject*) = mac 0x78750, win 0x0, ios 0x0;
@@ -3671,7 +3671,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate {
 	void unclaimParticle(char const*, cocos2d::CCParticleSystemQuad*) = mac 0x76e00, win 0x0, ios 0x0;
 	void unregisterActiveObject(GameObject*) = mac 0x77660, win 0x0, ios 0x0;
 	void unregisterStateObject(GameObject*) = mac 0x777f0, win 0x0, ios 0x0;
-	virtual void update(float) = mac 0x77900, win 0x0, ios 0x0;
+	virtual void update(float) = mac 0x77900, win 0x2029C0, ios 0x0;
 	void updateAttempts() = mac 0x7fcd0, win 0x0, ios 0x0;
 	void updateCamera(float) = mac 0x6e2b0, win 0x0, ios 0x0;
 	virtual void updateColor(cocos2d::_ccColor3B, float, int, bool, float, cocos2d::_ccHSVValue, int, bool, int, EffectGameObject*) = mac 0x7c7f0, win 0x0, ios 0x0;
@@ -3683,7 +3683,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate {
 	void updateReplay(float) = mac 0x78b60, win 0x0, ios 0x0;
 	void updateTimeMod(float, bool) = mac 0x786f0, win 0x0, ios 0x0;
 	virtual void updateTweenAction(float, char const*) = mac 0x7ffb0, win 0x0, ios 0x0;
-	void updateVisibility() = mac 0x6fb90, win 0x0, ios 0x0;
+	void updateVisibility() = mac 0x6fb90, win 0x205460, ios 0x0;
 	void vfDChk() = mac 0x7fcb0, win 0x0, ios 0x0;
 	virtual void visit() = mac 0x75ef0, win 0x0, ios 0x0;
 	void visitWithColorFlash() = mac 0x761f0, win 0x0, ios 0x0;
@@ -3966,7 +3966,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
 	void resetPlayerIcon() = mac 0x22be00, win 0x0, ios 0x0;
 	void resetStateVariables() = mac 0x223760, win 0x0, ios 0x0;
 	void resetStreak() = mac 0x21ae10, win 0x0, ios 0x0;
-	void ringJump(GameObject*) = mac 0x22abf0, win 0x0, ios 0x0;
+	void ringJump(GameObject*) = mac 0x22abf0, win 0x1f4ff0, ios 0x0;
 	void runBallRotation(float) = mac 0x21ca10, win 0x0, ios 0x0;
 	void runBallRotation2() = mac 0x21cb10, win 0x0, ios 0x0;
 	void runNormalRotation() = mac 0x21c960, win 0x1e9c50, ios 0x0;
@@ -4074,7 +4074,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
 	PAD = mac 0x0, win 0x20, android 0x0;
 	bool m_unk4B0;
 	cocos2d::CCSprite* m_unk4B4;
-	PAD = mac 0x1c, win 0x0, android 0x0;
+	PAD = mac 0x0, win 0x1c, android 0x0;
 	bool m_unk4D4;
 	cocos2d::CCArray* m_particleSystems;
 	bool m_unk4DC;

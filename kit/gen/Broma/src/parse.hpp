@@ -182,7 +182,7 @@ void parseMember(ClassDefinition& c, string type, string varName, Tokens& tokens
 	myMember.type = type;
 	myMember.name = varName;
 
-	if (varName == "PAD") myMember.member_type = MemberType::kPad;
+	if (varName == "PAD" && type == "void") myMember.member_type = MemberType::kPad;
 
 	if (!next_if_type(kBrackL, tokens)) {
 		auto num_maybe = next_expect(tokens, kIdent, "number").slice;
