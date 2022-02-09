@@ -14,12 +14,6 @@
 
 namespace geode::addresser {
 
-	struct virtual_meta_t {
-		ptrdiff_t index;
-		ptrdiff_t thunk;
-		virtual_meta_t(ptrdiff_t index, ptrdiff_t thunk) : index(index), thunk(thunk) {}
-	};
-
 	template<typename T>
 	inline intptr_t getVirtual(T func);
 
