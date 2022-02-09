@@ -40,24 +40,30 @@ namespace geode::addresser {
 			virtual ~MultipleInheritance() {}
 		};
 
-		using tablemethodptr_t = virtual_meta_t*(MultipleInheritance::*)();
-
 		static MultipleInheritance* instance();
 
 		template <typename R, typename T, typename ...Ps>
-		static virtual_meta_t* metaOf(R(T::*func)(Ps...)) { 
-			using method_t = virtual_meta_t*(T::*)();
+		static ptrdiff_t indexOf(R(T::*func)(Ps...)) { 
+			using method_t = ptrdiff_t(T::*)();
 			return (reinterpret_cast<T*>(instance())->*reinterpret_cast<method_t>(func))(); 
 		}
 
 		template <typename R, typename T, typename ...Ps>
-		static virtual_meta_t* metaOf(R(T::*func)(Ps...) const) { 
-			return metaOf(reinterpret_cast<R(T::*)(Ps...)>(func));
+		static ptrdiff_t indexOf(R(T::*func)(Ps...) const) { 
+			return indexOf(reinterpret_cast<R(T::*)(Ps...)>(func));
 		}
 
 		template<typename T>
-		static intptr_t pointerOf(T func) {
-			return reinterpret_cast<intptr_t&>(func);
+		static ptrdiff_t thunkOf(T ptr) {
+			// msvc
+			if (sizeof(T) == sizeof(ptrdiff_t)) return 0;
+
+			// all
+			auto thunk = *(reinterpret_cast<ptrdiff_t*>(&ptr)+1);
+
+			// arm
+			if (thunk & 1) thunk >>= 1;
+			return thunk;
 		}
 
 		/**
@@ -66,6 +72,8 @@ namespace geode::addresser {
 		template <typename R, typename T, typename ...Ps>
 		static intptr_t addressOfVirtual(R(T::*func)(Ps...), 
 			typename std::enable_if_t<!std::is_abstract_v<T>>* = 0) {
+			using geode::cast::reference_cast;
+
 			// Create a random memory block with the size of T
 			// Assign a pointer to that block and cast it to type T*
 			uint8_t dum[sizeof(T)] {};
@@ -77,18 +85,18 @@ namespace geode::addresser {
 			auto ins = new T(*ptr);
 			// this is how the first human was made
 
-			// metadata of the virtual function
-			// LOL!
-			auto meta = metaOf(func);
 
-			std::cout << "[[" << ins << " + " << meta->thunk << "] + " << meta->index << "]"<< std::endl;
+			auto index = indexOf(func);
+			auto thunk = thunkOf(func);
+
+			Interface::get()->logInfo("[[" + utils::intToHex(ins) + " + " + utils::intToHex(thunk) + "] + " + utils::intToHex(index) + "]", Severity::Debug);
 
 			// [[this + thunk] + offset] is the f we want
-			auto address = *(intptr_t*)(*(intptr_t*)(pointerOf(ins) + meta->thunk) + meta->index);
+			auto address = *(intptr_t*)(*(intptr_t*)(reference_cast<intptr_t>(ins) + thunk) + index);
 
 			#ifdef GEODE_IS_WINDOWS
 				// check if first instruction is a jmp, i.e. if the func is a thunk
-				if (*geode::cast::reference_cast<uint16_t*>(address) == 0x25ff) {
+				if (*reinterpret_cast<uint16_t*>(address) == 0x25ff) {
 					// read where the jmp points to and jump there
 					address = *reinterpret_cast<uintptr_t*>(address + 2);
 					// that then contains the actual address of the func
@@ -99,7 +107,6 @@ namespace geode::addresser {
 			// And we delete the new instance because we are good girls
 			// and we don't leak memories
 			operator delete(ins);
-			delete meta;
 
 			return address;
 		}
@@ -127,12 +134,14 @@ namespace geode::addresser {
 
 		template <typename R, typename T, typename ...Ps>
 		static intptr_t addressOfNonVirtual(R(T::*func)(Ps...)) {
-			return pointerOf(func);
+			std::cout << geode::cast::reference_cast<intptr_t>(func) << std::endl;
+			return geode::cast::reference_cast<intptr_t>(func);
 		}
 
 		template <typename R, typename ...Ps>
 		static intptr_t addressOfNonVirtual(R(*func)(Ps...)) {
-			return pointerOf(func);
+			std::cout << geode::cast::reference_cast<intptr_t>(func) << std::endl;
+			return geode::cast::reference_cast<intptr_t>(func);
 		}
 
 		template<typename T>
@@ -147,7 +156,7 @@ namespace geode::addresser {
 
 	template<typename T>
 	inline intptr_t getVirtual(T func) {
-		Interface::get()->logInfo("Get virtual function address from " + utils::intToHex(Addresser::pointerOf(func)), Severity::Debug);
+		Interface::get()->logInfo("Get virtual function address from " + utils::intToHex(geode::cast::reference_cast<intptr_t>(func)), Severity::Debug);
 		auto addr = Addresser::addressOfVirtual(func);
 		Interface::get()->logInfo("The address is: " + utils::intToHex(addr), Severity::Debug);
 		return addr;
@@ -155,7 +164,7 @@ namespace geode::addresser {
 
 	template<typename T>
 	inline intptr_t getNonVirtual(T func) {
-		Interface::get()->logInfo("Get non virtual function address from " + utils::intToHex(Addresser::pointerOf(func)), Severity::Debug);
+		Interface::get()->logInfo("Get non-virtual function address from " + utils::intToHex(geode::cast::reference_cast<intptr_t>(func)), Severity::Debug);
 		auto addr = Addresser::addressOfNonVirtual(func);
 		Interface::get()->logInfo("The address is: " + utils::intToHex(addr), Severity::Debug);
 		return addr;
@@ -163,9 +172,6 @@ namespace geode::addresser {
 
 	template<typename T, typename F>
 	inline F thunkAdjust(T func, F self) {
-		auto meta = Addresser::metaOf(func);
-		auto ret = (intptr_t)self + meta->thunk;
-		delete meta;
-		return (F)(ret);
+		return (F)((intptr_t)self + thunkOf(func));
 	}
 }

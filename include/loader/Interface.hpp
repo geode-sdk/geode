@@ -4,6 +4,7 @@
 #include "Types.hpp"
 #include <vector>
 #include <utils/Result.hpp>
+#include "Log.hpp"
 
 namespace geode {
 	class Mod;
