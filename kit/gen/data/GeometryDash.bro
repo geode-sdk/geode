@@ -2703,7 +2703,7 @@ class GameObject : CCSpritePlus {
 	virtual void addMainSpriteToParent(bool) = mac 0x33a5b0, win 0x0, ios 0x0;
 	virtual void resetObject() = mac 0x2fa620, win 0x0, ios 0x0;
 	virtual void triggerObject(GJBaseGameLayer*) = mac 0x2fa8f0, win 0x0, ios 0x0;
-	virtual void activateObject() = mac 0x2faf60, win 0x0, ios 0x0;
+	virtual void activateObject() = mac 0x2faf60, win 0xEF0E0, ios 0x0;
 	virtual void deactivateObject(bool) = mac 0x2fb8f0, win 0x0, ios 0x0;
 	virtual cocos2d::CCRect* getObjectRect() = mac 0x3352b0, win 0x0, ios 0x0;
 	virtual cocos2d::CCRect* getObjectRect(float, float) = mac 0x3352d0, win 0x0, ios 0x0;
@@ -3966,7 +3966,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
 	void resetPlayerIcon() = mac 0x22be00, win 0x0, ios 0x0;
 	void resetStateVariables() = mac 0x223760, win 0x0, ios 0x0;
 	void resetStreak() = mac 0x21ae10, win 0x0, ios 0x0;
-	void ringJump(GameObject*) = mac 0x22abf0, win 0x0, ios 0x0;
+	void ringJump(GameObject*) = mac 0x22abf0, win 0x1f4ff0, ios 0x0;
 	void runBallRotation(float) = mac 0x21ca10, win 0x0, ios 0x0;
 	void runBallRotation2() = mac 0x21cb10, win 0x0, ios 0x0;
 	void runNormalRotation() = mac 0x21c960, win 0x1e9c50, ios 0x0;
