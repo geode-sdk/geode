@@ -4074,7 +4074,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
 	PAD = mac 0x0, win 0x20, android 0x0;
 	bool m_unk4B0;
 	cocos2d::CCSprite* m_unk4B4;
-	PAD = mac 0x1c, win 0x0, android 0x0;
+	PAD = mac 0x0, win 0x1c, android 0x0;
 	bool m_unk4D4;
 	cocos2d::CCArray* m_particleSystems;
 	bool m_unk4DC;
