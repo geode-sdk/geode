@@ -166,6 +166,6 @@ namespace geode::addresser {
 
 	template<typename T, typename F>
 	inline F thunkAdjust(T func, F self) {
-		return (F)((intptr_t)self + thunkOf(func));
+		return (F)((intptr_t)self + Addresser::thunkOf(func));
 	}
 }
