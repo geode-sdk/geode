@@ -47,22 +47,22 @@ namespace geode::modifier {
 	 * Macro for creating a comparer a specified function name,
 	 * since it is impossible to supply this value with templates.
 	 */
-	#define GEODE_CREATE_COMPARER_FOR_NAME(name)                                                        \
+	#define GEODE_CREATE_COMPARER_FOR_NAME(NAME)                                                        \
 	template <class, class, class, class = void>                                                        \
-	struct name##Exists {                                                                               \
+	struct NAME##Exists {                                                                               \
 		constexpr static inline bool value = false;                                                     \
 	};                                                                                                  \
 	template <class Derived, class Base, class Ret, class ...Parameters>                                \
-	struct name##Exists<Derived, Base, Ret(Parameters...), std::void_t<                                 \
-		decltype(substitute<Ret, Base, Derived, Parameters...>(&Base::init)),                           \
-		decltype(substitute<Ret, Base, Derived, Parameters...>(&Derived::init))                         \
+	struct NAME##Exists<Derived, Base, Ret(Parameters...), std::void_t<                                 \
+		decltype(substitute<Ret, Base, Derived, Parameters...>(&Base::NAME)),                           \
+		decltype(substitute<Ret, Base, Derived, Parameters...>(&Derived::NAME))                         \
 	>> {                                                                                                \
 	private:                                                                                            \
-		using base_type = decltype(substitute<Ret, Base, Derived, Parameters...>(&Base::init));         \
-		using derived_type = decltype(substitute<Ret, Base, Derived, Parameters...>(&Derived::init));   \
+		using base_type = decltype(substitute<Ret, Base, Derived, Parameters...>(&Base::NAME));         \
+		using derived_type = decltype(substitute<Ret, Base, Derived, Parameters...>(&Derived::NAME));   \
 	public:                                                                                             \
 		constexpr static inline bool value =                                                            \
-			function_uuid<(derived_type)&Derived::init>::value !=                                       \
-			function_uuid<(base_type)&Base::init>::value;                                               \
+			function_uuid<(derived_type)&Derived::NAME>::value !=                                       \
+			function_uuid<(base_type)&Base::NAME>::value;                                               \
 	};
 }
