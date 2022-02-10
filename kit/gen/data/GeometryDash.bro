@@ -198,6 +198,9 @@ class ButtonSprite : cocos2d::CCSprite {
 	inline static ButtonSprite* create(char const* caption) {
 		return ButtonSprite::create(caption, 0, 0, "goldFont.fnt", "GJ_button_01.png", .0f, 1.f);
 	}
+	inline static ButtonSprite* create(char const* caption, const char* font, const char* texture, float scale = 1.f) {
+		return ButtonSprite::create(caption, 0, 0, font, texture, .0f, scale);
+	}
 	static ButtonSprite* create(char const*, int, int, float, bool) = mac 0x4fa40, win 0x0, ios 0x0;
 	void updateBGImage(const char*) = mac 0x502d0, win 0x13af0, ios 0x0;
 	static ButtonSprite* create(char const*, float) = mac 0x4fa60, win 0x0, ios 0x0;
@@ -320,7 +323,7 @@ class CCMenuItemSpriteExtra : cocos2d::CCMenuItemSprite {
 	float m_baseScale;
 	bool m_animationEnabled;
 	bool m_colorEnabled;
-	PAD = mac 0x0, win 0x54, android 0x0;
+	PAD = mac 0x0, win 0x52, android 0x0;
 	float m_colorDip;
 	cocos2d::CCPoint m_destPosition;
 	cocos2d::CCPoint m_offset;
@@ -372,8 +375,8 @@ class CCMenuItemToggler : cocos2d::CCMenuItem {
 	void unselected() = mac 0x0, win 0x19900, ios 0x0;
 	void setEnabled(bool enabled) = mac 0x0, win 0x19930, ios 0x0;
 
-	CCMenuItemSpriteExtra* m_onButton;
 	CCMenuItemSpriteExtra* m_offButton;
+	CCMenuItemSpriteExtra* m_onButton;
 	bool m_toggled;
 	bool m_notClickable;
 }
