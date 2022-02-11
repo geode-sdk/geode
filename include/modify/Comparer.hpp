@@ -44,7 +44,7 @@ namespace geode::modifier {
 	};
 
 	/**
-	 * Macro for creating a comparer a specified function name,
+	 * Macro for creating a comparer with a specified function name,
 	 * since it is impossible to supply this value with templates.
 	 */
 	#define GEODE_CREATE_COMPARER_FOR_NAME(NAME)                                                        \
@@ -65,4 +65,8 @@ namespace geode::modifier {
 			function_uuid<(derived_type)&Derived::NAME>::value !=                                       \
 			function_uuid<(base_type)&Base::NAME>::value;                                               \
 	};
+
+	struct compare {
+		#include <gen/Compare.hpp>
+	}
 }
