@@ -40,7 +40,7 @@ class AccountLayer : GJDropDownLayer, GJAccountDelegate, GJAccountBackupDelegate
 }
 
 class AchievementBar : cocos2d::CCNodeRGBA {
-	static AchievementBar* create(const char* title, const char* desc, const char* icon, bool quest) = mac 0x379f80, win 0x3b120, ios 0x0;
+	static AchievementBar* create(const char* title, const char* desc, const char* icon, bool quest) = mac 0x379f80, win 0x3b120, ios 0x1a4784;
 
 	PAD = mac 0x0, win 0x24, android 0x0;
 }
@@ -68,7 +68,7 @@ class AchievementNotifier : cocos2d::CCNode {
 
 	AchievementNotifier* sharedState() = mac 0x464e00, win 0xfc90, ios 0x0;
 	void willSwitchToScene(cocos2d::CCScene*) = mac 0x4650b0, win 0x0, ios 0x0;
-	void showNextAchievement() = mac 0x464f10, win 0xfd60, ios 0x0;
+	void showNextAchievement() = mac 0x464f10, win 0xfd60, ios 0x13f508;
 
 	cocos2d::CCScene* m_currentScene;
 	cocos2d::CCArray* m_queue;
@@ -176,7 +176,7 @@ class BoomScrollLayer : cocos2d::CCLayer {
 
 class ButtonSprite : cocos2d::CCSprite {
 	// you really should find this function or a higher overload on mac
-	static ButtonSprite* create(const char* caption, int width, int unknown, float scale, bool absoluteWidth, const char* font, const char* texture, float height) = win 0x137d0, mac 0x4fa90;
+	static ButtonSprite* create(const char* caption, int width, int unknown, float scale, bool absoluteWidth, const char* font, const char* texture, float height) = win 0x137d0, mac 0x4fa90, ios 0x38c7c;
 
 	[[docs("
 	/**
@@ -367,7 +367,7 @@ class CCMenuItemToggler : cocos2d::CCMenuItem {
 	void setSizeMult(float) = mac 0x38a40, win 0x19850, ios 0x0;
 	void toggle(bool) = mac 0x38950, win 0x199b0, ios 0xf5848;
 	bool init(cocos2d::CCNode* off, cocos2d::CCNode* on, cocos2d::CCObject* target, cocos2d::SEL_MenuHandler handler) = mac 0x0, win 0x196e0, ios 0x0;
-	void activate() = mac 0x0, win 0x198d0, ios 0x0;
+	void activate() = mac 0x0, win 0x198d0, ios 0xf59ac;
 	void selected() = mac 0x0, win 0x198a0, ios 0x0;
 	void unselected() = mac 0x0, win 0x19900, ios 0x0;
 	void setEnabled(bool enabled) = mac 0x0, win 0x19930, ios 0x0;
@@ -875,7 +875,7 @@ class DialogLayer : cocos2d::CCLayerColor {
 		return DialogLayer::createDialogLayer(nullptr, dialogs, color);
 	}
 
-	static DialogLayer* createDialogLayer(DialogObject*, cocos2d::CCArray*, int) = mac 0x2047d0, win 0x6D470, ios 0x0;
+	static DialogLayer* createDialogLayer(DialogObject*, cocos2d::CCArray*, int) = mac 0x2047d0, win 0x6D470, ios 0x459d0;
 	void init(DialogLayer*, DialogObject*, cocos2d::CCArray*, int) = mac 0x0, win 0x6D520, ios 0x0;
 	cocos2d::CCAction* animateIn(int location) = mac 0x0, win 0x6E130, ios 0x0;
 
@@ -964,7 +964,7 @@ class EditButtonBar : cocos2d::CCNode {
 	        this->reloadItemsInNormalSize();
 	}
 
-	void loadFromItems(cocos2d::CCArray* buttons, int rowCount, int columnCount, bool idk) = mac 0x351010, win 0x6e5e0, ios 0x0;
+	void loadFromItems(cocos2d::CCArray* buttons, int rowCount, int columnCount, bool idk) = mac 0x351010, win 0x6e5e0, ios 0x2dd060;
 
 	cocos2d::CCPoint m_position;
 	int m_unknown;
@@ -1694,7 +1694,7 @@ class GJDropDownLayer : cocos2d::CCLayerColor {
 	virtual void customSetup() {}
 	virtual void enterLayer() = mac 0x3525c0, win 0x16970, ios 0x0;
 	virtual void exitLayer(cocos2d::CCObject*) = mac 0x352670, win 0x113980, ios 0x0;
-	virtual void showLayer(bool) = mac 0x3526c0, win 0x1139c0, ios 0x0;
+	virtual void showLayer(bool) = mac 0x3526c0, win 0x1139c0, ios 0x29801c;
 	virtual void hideLayer(bool) = mac 0x3527b0, win 0x113a90, ios 0x0;
 	virtual void layerVisible() = mac 0x3528b0, win 0x16a40, ios 0x0;
 	virtual void layerHidden() = mac 0x3528d0, win 0x113b60, ios 0x0;
@@ -1890,7 +1890,7 @@ class GJGameLevel : cocos2d::CCNode {
 	virtual void encodeWithCoder(DS_Dictionary*) = mac 0x2dd1c0, win 0x0, ios 0x0;
 	virtual bool canEncode() = mac 0x2ddae0, win 0x0, ios 0x0;
 	virtual bool init() = mac 0x2db310, win 0x0, ios 0x0;
-	static GJGameLevel* create() = mac 0x2b83e0, win 0xbd2b0, ios 0x0;
+	static GJGameLevel* create() = mac 0x2b83e0, win 0xbd2b0, ios 0x51fe8;
 	gd::string getAudioFileName() = mac 0x2dbe70, win 0xbdc70, ios 0x0;
 	void getCoinKey(int) = mac 0x2ce360, win 0x0, ios 0x0;
 	void getLengthKey(int) = mac 0x2dbba0, win 0x0, ios 0x0;
@@ -2122,7 +2122,7 @@ class GJItemIcon {
 	    );
 	}
 
-	static GJItemIcon* create(UnlockType _type, int _id, cocos2d::ccColor3B _col1, cocos2d::ccColor3B _col2, bool _un0, bool _un1, bool _un2, cocos2d::ccColor3B _col3) = mac 0x1bb330, win 0x12cbf0, ios 0x0;
+	static GJItemIcon* create(UnlockType _type, int _id, cocos2d::ccColor3B _col1, cocos2d::ccColor3B _col2, bool _un0, bool _un1, bool _un2, cocos2d::ccColor3B _col3) = mac 0x1bb330, win 0x12cbf0, ios 0x227188;
 }
 
 class GJListLayer : cocos2d::CCLayerColor {
@@ -2231,7 +2231,7 @@ class GJSearchObject : cocos2d::CCNode {
 }
 
 class GJSpecialColorSelect {
-	static const char* textForColorIdx(int id) = mac 0x383a50, win 0x14e1d0, ios 0x0;
+	static const char* textForColorIdx(int id) = mac 0x383a50, win 0x14e1d0, ios 0x113f6c;
 }
 
 class GJSpecialColorSelectDelegate {}
@@ -3129,7 +3129,7 @@ class LevelBrowserLayer : cocos2d::CCLayer {
 
 	bool init(GJSearchObject* pSearch) = mac 0x0, win 0x15a040, ios 0x0;
 	void setupLevelBrowser(cocos2d::CCArray* levels) = mac 0x0, win 0x15bb40, ios 0x0;
-	static LevelBrowserLayer* create(GJSearchObject* pSearch) = mac 0x251210, win 0x159fa0, ios 0x0;
+	static LevelBrowserLayer* create(GJSearchObject* pSearch) = mac 0x251210, win 0x159fa0, ios 0x2d0a00;
 
 	PAD = mac 0x0, win 0x18, android 0x0;
 	GJListLayer* m_list;
@@ -4407,7 +4407,7 @@ class Slider : cocos2d::CCLayer {
 
 	float getValue() = mac 0x18e0c0, win 0x2e970, ios 0x0;
 	void updateBar() = mac 0x0, win 0x2ea10, ios 0x0;
-	static Slider* create(cocos2d::CCNode target, cocos2d::SEL_MenuHandler click, const char* grooveSpr, const char* thumbSpr, const char* thumbSprSel, float scale) = mac 0x18dd80, win 0x2e6e0, ios 0x0;
+	static Slider* create(cocos2d::CCNode target, cocos2d::SEL_MenuHandler click, const char* grooveSpr, const char* thumbSpr, const char* thumbSprSel, float scale) = mac 0x18dd80, win 0x2e6e0, ios 0x2113f4;
 
 	SliderTouchLogic* m_touchLogic;
 	cocos2d::CCSprite* m_sliderBar;
@@ -4417,7 +4417,7 @@ class Slider : cocos2d::CCLayer {
 }
 
 class SliderThumb : cocos2d::CCMenuItemImage {
-	void setValue(float val) = mac 0x18ce80, win 0x2e1b0, ios 0x0;
+	void setValue(float val) = mac 0x18ce80, win 0x2e1b0, ios 0x210db4;
 
 	float m_length;
 	bool m_vertical;
