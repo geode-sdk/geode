@@ -210,6 +210,14 @@ namespace geode {
          */
         geode_unload m_unloadFunc = nullptr;
         /**
+         * Pointer to the Mod's enable function
+         */
+        geode_enable m_enableFunc = nullptr;
+        /**
+         * Pointer to the Mod's enable function
+         */
+        geode_disable m_disableFunc = nullptr;
+        /**
          * Path to the mod's build directory
          */
         ghc::filesystem::path m_hotReloadPath;
@@ -386,16 +394,14 @@ namespace geode {
         Result<> unload();
 
         /**
-         * Enable & load this mod
+         * Enable this mod
          * @returns Successful result on success, 
          * errorful result with info on error
          */
         Result<> enable();
         
         /**
-         * Disable & unload this mod
-         * @warning May crash if the mod doesn't 
-         * properly handle unloading!
+         * Disable this mod if it supports doing so
          * @returns Successful result on success, 
          * errorful result with info on error
          */
