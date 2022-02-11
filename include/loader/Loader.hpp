@@ -30,10 +30,18 @@ namespace geode {
 
     class GEODE_DLL Loader {
     protected:
+        struct LoaderSettings {
+            struct ModSettings {
+                bool m_enabled = true;
+            };
+            std::unordered_map<std::string, ModSettings> m_mods;
+        };
+        
         std::unordered_map<std::string, Mod*> m_mods;
         std::vector<LogMessage*> m_logs;
         std::vector<std::string> m_modDirectories;
         LogStream* m_logStream;
+        LoaderSettings m_loadedSettings;
         bool m_isSetup = false;
         static bool s_unloading;
 
@@ -87,6 +95,11 @@ namespace geode {
     public:
         Loader();
         virtual ~Loader();
+
+        Result<> saveSettings();
+        Result<> loadSettings();
+
+        bool shouldLoadMod(std::string const& id) const;
 
         /**
          * Get the shared Loader instance

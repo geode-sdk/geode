@@ -100,13 +100,12 @@ class AnimatedSpriteDelegate {}
 
 class AppDelegate : cocos2d::CCApplication {
 	void bgScale() = mac 0x3aaab0, win 0x0, ios 0x0;
-	virtual bool applicationDidFinishLaunching() = mac 0x3aa900, win 0x0, ios 0x0;
-	virtual void applicationDidEnterBackground() = mac 0x3aabe0, win 0x0, ios 0x0;
-	virtual void applicationWillEnterForeground() = mac 0x3aac80, win 0x0, ios 0x0;
-	virtual void applicationWillBecomeActive() = mac 0x3aab30, win 0x0, ios 0x0;
-	virtual void applicationWillResignActive() = mac 0x3aab50, win 0x0, ios 0x0;
+	virtual bool applicationDidFinishLaunching() = mac 0x3aa900, win 0x3cbb0, ios 0x0;
+	virtual void applicationDidEnterBackground() = mac 0x3aabe0, win 0x3cf40, ios 0x0;
+	virtual void applicationWillEnterForeground() = mac 0x3aac80, win 0x3d130, ios 0x0;
+	virtual void applicationWillBecomeActive() = mac 0x3aab30, win 0x3ce90, ios 0x0;
+	virtual void applicationWillResignActive() = mac 0x3aab50, win 0x3d3e0, ios 0x0;
 	virtual void trySaveGame() = mac 0x3aaf10, win 0x3d5e0, ios 0x1a28f0;
-	void trySaveGame_() = mac 0x3aaf10, win 0x3d5e0, ios 0x1a28f0;
 	virtual void willSwitchToScene(cocos2d::CCScene*) = mac 0x3aaf40, win 0x0, ios 0x0;
 	static AppDelegate* get() = mac 0x3aab10, win 0x0, ios 0x0;
 
