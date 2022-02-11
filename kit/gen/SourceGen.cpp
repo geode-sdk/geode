@@ -7,12 +7,13 @@ namespace format_strings {
 using namespace geode;
 using namespace geode::cast;
 using cocos2d::CCDestructor;
+using namespace geode::core::meta;
 )CAC";
 
 	char const* declare_member_type = R"CAC(
 using ret{global_index} = temp_name_find_better::ret{global_index};
 using func{global_index} = ret{global_index}(*)({const}{constw}{class_name}*{arg_types});
-using pure{global_index} = ret{global_index}({class_name}*{arg_types}){constw}{const};
+using pure{global_index} = ret{global_index}({class_name}*{arg_types});
 using member{global_index} = ret{global_index}({class_name}::*)({raw_arg_types}){const};)CAC";
 
 	char const* declare_member_type_fixed_orig = R"CAC(
@@ -59,9 +60,9 @@ struct address_of_t<(fixori_member{global_index})(&{class_name}::{function_name}
 	char const* declare_member_function = "reinterpret_cast<func{global_index}>(temp_name_find_better::address{global_index}())(this{parameters})";
 	char const* declare_virtual_function = "reinterpret_cast<func{global_index}>(temp_name_find_better::address{global_index}())(this{parameters})";
 	char const* declare_static_function = "reinterpret_cast<func{global_index}>(temp_name_find_better::address{global_index}())({raw_parameters})";
-	char const* declare_meta_member_function = "geode::core::meta::Function<pure{global_index}, geode::core::meta::x86::{convention}>({{temp_name_find_better::address{global_index}()}})(this{parameters})";
-	char const* declare_meta_virtual_function = "geode::core::meta::Function<pure{global_index}, geode::core::meta::x86::{convention}>({{temp_name_find_better::address{global_index}()}})({thunk_adjusted_this}{parameters})";
-	char const* declare_meta_static_function = "geode::core::meta::Function<pure{global_index}, geode::core::meta::x86::{convention}>({{temp_name_find_better::address{global_index}()}})({raw_parameters})";
+	char const* declare_meta_member_function = "Function<pure{global_index}, x86::{convention}>({{temp_name_find_better::address{global_index}()}})({const_cast}(this){parameters})";
+	char const* declare_meta_virtual_function = "Function<pure{global_index}, x86::{convention}>({{temp_name_find_better::address{global_index}()}})({const_cast}({thunk_adjusted_this}){parameters})";
+	char const* declare_meta_static_function = "Function<pure{global_index}, x86::{convention}>({{temp_name_find_better::address{global_index}()}})({raw_parameters})";
 
 	char const* declare_member = R"CAC(
 ret{global_index} {class_name}::{function_name}({raw_args}){constw}{const} {{
@@ -277,6 +278,7 @@ int main(int argc, char** argv) {
 				fmt::arg("unqualified_name", unqualifiedName),
 				fmt::arg("const", f.is_const ? "const " : ""),
 				fmt::arg("constw", f.is_const ? " " : ""),
+				fmt::arg("const_cast", f.is_const ? "const_cast<" + name + "*>" : ""),
 				fmt::arg("convention", CacShare::getConvention(f)),
 				fmt::arg("function_name", function_name),
 				fmt::arg("index",f.index),

@@ -298,6 +298,10 @@ class cocos2d::CCMenu {
 	static cocos2d::CCMenu* createWithArray(cocos2d::CCArray*) = mac 0x4387e0;
 	static cocos2d::CCMenu* createWithItem(cocos2d::CCMenuItem*) = mac 0x438b80;
 
+	virtual auto addChild(cocos2d::CCNode*) = mac 0x438ba0;
+    virtual auto addChild(cocos2d::CCNode*, int) = mac 0x438bb0;
+    virtual auto addChild(cocos2d::CCNode*, int, int) = mac 0x438bc0;
+
 	virtual auto ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x438d20, ios 0x131fe8;
 	virtual auto ccTouchMoved(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x4390b0, ios 0x1322ac;
     virtual auto ccTouchEnded(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x438fd0, ios 0x1321bc;
