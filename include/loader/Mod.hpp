@@ -41,8 +41,6 @@ namespace geode {
             int m_gdAccountID = 0;
             std::string m_gdAccountName = "";
             std::unordered_map<std::string, std::string> m_links;
-
-            static std::string expandKnownLink(std::string const& link);
         };
 
         struct Library {
