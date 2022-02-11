@@ -1373,7 +1373,7 @@ class FLAlertLayer : cocos2d::CCLayerColor {
 	virtual void ccTouchEnded(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x25ef60, win 0x23450, ios 0x0;
 	virtual void ccTouchCancelled(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x25f020, win 0x234c0, ios 0x0;
 	virtual void registerWithTouchDispatcher() = mac 0x25f2e0, win 0x236f0, ios 0x0;
-	virtual void keyBackClicked() = mac 0x25ed90, win 0x232c0, ios 0x0;f
+	virtual void keyBackClicked() = mac 0x25ed90, win 0x232c0, ios 0x0;
 	virtual void keyDown(cocos2d::enumKeyCodes) = mac 0x25ece0, win 0x23250, ios 0x0;
 	virtual void show() = mac 0x25f120, win 0x23560, ios 0x1feff4;
 
@@ -3296,7 +3296,7 @@ class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDeleg
 class LevelSearchLayer {
 	static LevelSearchLayer* create() = mac 0x0, win 0x17d9c0, ios 0x0;
 }
-f
+
 class LevelSelectLayer : cocos2d::CCLayer {
 	static LevelSelectLayer* create(int lvl) = mac 0x0, win 0x185500, ios 0x0;
 
