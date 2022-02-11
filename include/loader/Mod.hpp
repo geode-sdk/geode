@@ -217,6 +217,8 @@ namespace geode {
          * Pointer to the Mod's enable function
          */
         geode_disable m_disableFunc = nullptr;
+        geode_load_data m_loadDataFunc = nullptr;
+        geode_save_data m_saveDataFunc = nullptr;
         /**
          * Path to the mod's build directory
          */

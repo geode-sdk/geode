@@ -143,4 +143,6 @@ namespace geode {
 	typedef void(GEODE_CALL* geode_unload)();
 	typedef bool(GEODE_CALL* geode_enable)();
 	typedef bool(GEODE_CALL* geode_disable)();
+	typedef bool(GEODE_CALL* geode_save_data)(const char*);
+	typedef bool(GEODE_CALL* geode_load_data)(const char*);
 }
