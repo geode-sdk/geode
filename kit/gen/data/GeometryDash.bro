@@ -4527,12 +4527,12 @@ class TableViewCell : cocos2d::CCLayer {
 	bool m_unknown;
 	TableView* m_tableView;
 	CCIndexPath m_indexPath;
+	int m_unknownThing; // don't even know if this is an int, it's always set to 0
 	gd::string m_unknownString;
 	float m_width;
 	float m_height;
 	cocos2d::CCLayerColor* m_backgroundLayer;
 	cocos2d::CCLayer* m_mainLayer;
-	PAD = mac 0x30, win 0x4, android 0x0;
 }
 
 class TableViewDataSource {
