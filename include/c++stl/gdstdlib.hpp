@@ -431,7 +431,7 @@ namespace gd {
 	};
 };
 
-#else 
+#elif defined(GEODE_IS_IOS)
 namespace gd {
 	class string {
 	public:
@@ -447,7 +447,7 @@ namespace gd {
 		string(string const& ok) : m_internal(ok) {}
 		string& operator=(char const* ok) {m_internal = ok; return *this;}
 		string& operator=(string const& ok) {m_internal = ok; return *this;}
-		__attribute__((noinline)) ~string() {}
+		~string() {}
 		char const* c_str() const {return m_internal.c_str(); }
 	 protected: 
 		std::string       m_internal;
@@ -496,4 +496,6 @@ namespace gd {
 		~map() {}
 	};
 }
+#else
+namespace gd = std;
 #endif 
