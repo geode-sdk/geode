@@ -15,7 +15,7 @@ class cocos2d::CCApplication {
 	virtual auto getTargetPlatform() = mac 0x1a3f20, ios 0x10e57c;
 	virtual auto openURL(char const*) = mac 0x1a4550, ios 0x10e7a4;
 	virtual auto setAnimationInterval(double) = mac 0x1a3ee0, ios 0x10e494;
-	~CCApplication() = mac 0x1a3d10;
+	~CCApplication() = mac 0x1a3d10, ios 0x10e384;
 }
 
 class cocos2d::CCArray {
@@ -307,6 +307,9 @@ class cocos2d::CCMenu {
     virtual auto onExit() = mac 0x438bd0, ios 0x131ed4;
     virtual auto removeChild(cocos2d::CCNode*, bool) = mac 0x438c20, ios 0x15e630;
     auto initWithArray(cocos2d::CCArray*) = mac 0x4389f0, ios 0x131d04;
+    auto addChild(cocos2d::CCNode*, int, int) = mac 0x438bc0, ios 0x131ed0;
+    auto addChild(cocos2d::CCNode*, int) = mac 0xbbb50, ios 0x131ecc;
+    auto addChild(cocos2d::CCNode*) = mac 0xbbb40, ios 0x131ec8;
 }
 
 class cocos2d::CCMenuItem {
@@ -497,7 +500,7 @@ class cocos2d::CCNode {
 
 class cocos2d::CCNodeRGBA {
 	CCNodeRGBA() = mac 0x124b30;
-	virtual ~CCNodeRGBA() = mac 0x124bb0;
+	virtual ~CCNodeRGBA() = mac 0x124bb0, ios 0x15f748;
 	virtual auto init() = mac 0x124bf0, ios 0x15f780;
 	virtual auto getOpacity() = mac 0x124cd0, ios 0x15f7b8;
 	virtual auto getDisplayedOpacity() = mac 0x124cf0, ios 0x15f7c8;
@@ -579,8 +582,8 @@ class cocos2d::CCSequence {
 
 class cocos2d::CCSet {
 	CCSet() = mac 0x45ad80, ios 0x10e870;
-	virtual ~CCSet() = mac 0x45b050;
-	virtual auto acceptVisitor(cocos2d::CCDataVisitor&) = mac 0x45b090;
+	virtual ~CCSet() = mac 0x45b050, ios 0x10ebcc;
+	virtual auto acceptVisitor(cocos2d::CCDataVisitor&) = mac 0x45b090, ios 0x10ec04;
 }
 
 class cocos2d::CCSprite {
@@ -644,12 +647,12 @@ class cocos2d::CCSprite {
     virtual auto setReorderChildDirtyRecursively() = mac 0x134550, ios 0x15c764;
     virtual auto setDirtyRecursively(bool) = mac 0x1345b0, ios 0x15c7cc;
 
-	CCSprite() = mac 0x133300;
+	CCSprite() = mac 0x133300, ios 0x15b82c;
 
 	static cocos2d::CCSprite* create() = mac 0x132df0;
 	static cocos2d::CCSprite* create(char const*) = mac 0x132a80;
 	static cocos2d::CCSprite* createWithSpriteFrame(cocos2d::CCSpriteFrame*) = mac 0x132cb0;
-	static cocos2d::CCSprite* createWithSpriteFrameName(char const*) = mac 0x132dc0;
+	static cocos2d::CCSprite* createWithSpriteFrameName(char const*) = mac 0x132dc0, ios 0x15b3ec;
 	static cocos2d::CCSprite* createWithTexture(cocos2d::CCTexture2D*) = mac 0x132790;
 
 	void setFlipX(bool) = mac 0x134be0;
@@ -682,9 +685,9 @@ class cocos2d::CCStandardTouchHandler {
 
 class cocos2d::CCString {
 	// virtual ~CCString() = mac 0x44c590;
-	virtual auto isEqual(cocos2d::CCObject const*) = mac 0x44c8f0;
-	virtual auto acceptVisitor(cocos2d::CCDataVisitor&) = mac 0x44ccb0;
-	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) = mac 0x44c870;
+	virtual auto isEqual(cocos2d::CCObject const*) = mac 0x44c8f0, ios 0x1a1e6c;
+	virtual auto acceptVisitor(cocos2d::CCDataVisitor&) = mac 0x44ccb0, ios 0x1a2168;
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) = mac 0x44c870, ios 0x1a1e14;
 	// cocos2d::CCString::create(gd::string const&) = mac 0x44c960;
 	// CCString(gd::string const&) = mac 0x44c310;
 	auto boolValue() const = mac 0x44c810, ios 0x1a1d88;

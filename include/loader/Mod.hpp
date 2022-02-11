@@ -70,6 +70,7 @@ namespace geode {
          */
         std::string m_binaryName = GEODE_WINDOWS("mod.dll")
                                    GEODE_MACOS("mod.dylib")
+                                   GEODE_IOS("mod.dylib")
                                    GEODE_ANDROID("mod.so");
         /**
          * Mod Version. Should follow semver.

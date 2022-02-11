@@ -85,42 +85,8 @@ namespace geode {
 #if defined(__APPLE__)
 #include <TargetConditionals.h>
 
-#if TARGET_OS_MAC
-
-	#define GEODE_MACOS(...) __VA_ARGS__
-	#define GEODE_IS_MACOS
-	#define GEODE_IS_DESKTOP
-	#define GEODE_PLATFORM_NAME "MacOS"
-	#define GEODE_PLATFORM_TARGET PlatformID::MacOS
-	#define GEODE_CALL
-	#define GEODE_HIDDEN __attribute__((visibility("hidden")))
-	#define GEODE_DUPABLE __attribute__((always_inline))
-	#define GEODE_VIRTUAL_CONSTEXPR constexpr
-	#define GEODE_NOINLINE __attribute__((noinline))
-	#define GEODE_PLATFORM_EXTENSION ".dylib"
-
-	#ifdef GEODE_EXPORTING
-	    #define GEODE_DLL    __attribute__((visibility("default")))
-	#else
-	    #define GEODE_DLL    
-	#endif
-
-	#ifdef GEODE_EXPORTING_CODEGEN
-	    #define GEODE_CODEGEN_DLL __attribute__((visibility("default")))
-	#else
-	    #define GEODE_CODEGEN_DLL 
-	#endif
-
-	#define GEODE_API extern "C" __attribute__((visibility("default")))
-	#define GEODE_EXPORT __attribute__((visibility("default")))
-
-	#include "macos.hpp"
-
-#else
-	#define GEODE_MACOS(...)
-#endif
-
 #if TARGET_OS_IPHONE
+	#define GEODE_MACOS(...)
 
 	#define GEODE_IOS(...) __VA_ARGS__
 	#define GEODE_IS_IOS
@@ -153,13 +119,41 @@ namespace geode {
 
 #else
 	#define GEODE_IOS(...)
+
+	#define GEODE_MACOS(...) __VA_ARGS__
+	#define GEODE_IS_MACOS
+	#define GEODE_IS_DESKTOP
+	#define GEODE_PLATFORM_NAME "MacOS"
+	#define GEODE_PLATFORM_TARGET PlatformID::MacOS
+	#define GEODE_CALL
+	#define GEODE_HIDDEN __attribute__((visibility("hidden")))
+	#define GEODE_DUPABLE __attribute__((always_inline))
+	#define GEODE_VIRTUAL_CONSTEXPR constexpr
+	#define GEODE_NOINLINE __attribute__((noinline))
+	#define GEODE_PLATFORM_EXTENSION ".dylib"
+
+	#ifdef GEODE_EXPORTING
+	    #define GEODE_DLL    __attribute__((visibility("default")))
+	#else
+	    #define GEODE_DLL    
+	#endif
+
+	#ifdef GEODE_EXPORTING_CODEGEN
+	    #define GEODE_CODEGEN_DLL __attribute__((visibility("default")))
+	#else
+	    #define GEODE_CODEGEN_DLL 
+	#endif
+
+	#define GEODE_API extern "C" __attribute__((visibility("default")))
+	#define GEODE_EXPORT __attribute__((visibility("default")))
+
+	#include "macos.hpp"
 #endif
 
 #endif
 
 // Android
 #if defined(__ANDROID__)
-
 	#define GEODE_ANDROID(...) __VA_ARGS__
 	#define GEODE_IS_ANDROID
 	#define GEODE_IS_MOBILE
