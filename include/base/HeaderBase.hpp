@@ -319,6 +319,7 @@ enum class TouchToggleMode {
 
 // Geode Addition
 enum class LeaderboardState {
+	Default    = 0,
     Top100     = 1,
     Global     = 2,
     Creator    = 3,
