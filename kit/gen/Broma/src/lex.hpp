@@ -307,9 +307,11 @@ vector<Token> lexStream(stringstream& stream) {
 				char* startpos = new char[slice.size()];
 				strncpy(startpos, slice.c_str(), slice.size());
 				char* endpos = startpos+slice.size();
-				strtoul(startpos, &endpos, 16);
-				if (errno != 0) {
+				auto val = strtoul(startpos, &endpos, 16);
+				if (val == 0) {
 					cacerr("Invalid hex %s\n", slice.c_str());
+				} else if (val == ULONG_MAX) {
+					cacerr("Too large hex %s\n", slice.c_str());
 				}
 				delete[] startpos;
 			}
