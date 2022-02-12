@@ -496,5 +496,7 @@ namespace geode {
         T* with() {
             return reinterpret_cast<T*>(this);
         }
+
+		const char* expandSpriteName(const char* name);
     };
 }
