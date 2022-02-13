@@ -304,14 +304,12 @@ vector<Token> lexStream(stringstream& stream) {
 
 			if (slice.rfind("0x", 0) == 0) {
 				t.type = kAddress;
-				char* startpos = new char[slice.size()];
-				strncpy(startpos, slice.c_str(), slice.size());
-				char* endpos = startpos+slice.size();
-				strtoul(startpos, &endpos, 16);
-				if (errno != 0) {
-					cacerr("Invalid hex %s\n", slice.c_str());
+				int tn;
+				std::istringstream ss(slice);
+				ss >> std::setbase(16) >> tn;
+				if (ss.fail()) {
+					cacerr("Invalid hex %s", slice.c_str());
 				}
-				delete[] startpos;
 			}
 
 			ts.push_back(t);

@@ -29,6 +29,12 @@ namespace geode {
     struct ModInfo;
 
     class GEODE_DLL Loader {
+    public:
+        struct UnloadedModInfo {
+            std::string m_file;
+            std::string m_reason;
+        };
+
     protected:
         struct LoaderSettings {
             struct ModSettings {
@@ -40,6 +46,7 @@ namespace geode {
         std::unordered_map<std::string, Mod*> m_mods;
         std::vector<LogMessage*> m_logs;
         std::vector<std::string> m_modDirectories;
+        std::vector<UnloadedModInfo> m_erroredMods;
         LogStream* m_logStream;
         LoaderSettings m_loadedSettings;
         bool m_isSetup = false;
@@ -100,6 +107,8 @@ namespace geode {
         Result<> loadSettings();
 
         bool shouldLoadMod(std::string const& id) const;
+
+        std::vector<UnloadedModInfo> const& getFailedMods() const;
 
         /**
          * Get the shared Loader instance

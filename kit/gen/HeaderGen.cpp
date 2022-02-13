@@ -34,7 +34,7 @@ struct {class_name}{base_classes}{final} {{
 
     char const* error_definition = R"CAC(
     template <bool T=false>
-    {docs}GEODE_CODEGEN_DLL {static}{return_type} {function_name}({raw_args}){const} {{
+    {docs} {static}{return_type} {function_name}({raw_args}){const} {{
         static_assert(T, "Implement {class_name}::{function_name}");
     }}
 )CAC";
