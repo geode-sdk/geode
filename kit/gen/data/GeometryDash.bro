@@ -322,7 +322,9 @@ class CCMenuItemSpriteExtra : cocos2d::CCMenuItemSprite {
 	float m_baseScale;
 	bool m_animationEnabled;
 	bool m_colorEnabled;
-	PAD = mac 0x0, win 0x52, android 0x0;
+	float m_unknown;
+	gd::string m_unknown2;
+	gd::string m_unknown3;
 	float m_colorDip;
 	cocos2d::CCPoint m_destPosition;
 	cocos2d::CCPoint m_offset;
