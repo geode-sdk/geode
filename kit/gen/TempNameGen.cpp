@@ -9,7 +9,7 @@ GEODE_NOINLINE GEODE_HIDDEN inline static uintptr_t address{global_index}() {{
 }}
 using ret{global_index} = {return};
 using func{global_index} = ret{global_index}(*)({const}{constw}{class_name}*{arg_types});
-using pure{global_index} = ret{global_index}({class_name}*{arg_types}){constw}{const};
+using pure{global_index} = ret{global_index}({class_name}*{arg_types});
 using member{global_index} = ret{global_index}({class_name}::*)({raw_arg_types}){const};
 )CAC";
 
@@ -20,7 +20,7 @@ GEODE_NOINLINE GEODE_HIDDEN inline static uintptr_t address{global_index}() {{
 }}
 using ret{global_index} = {return};
 using func{global_index} = ret{global_index}(*)({raw_arg_types});
-using pure{global_index} = ret{global_index}({raw_arg_types}){constw}{const};
+using pure{global_index} = ret{global_index}({raw_arg_types});
 using member{global_index} = func{global_index};
 )CAC";
 
@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
 				fmt::arg("class_name", name),
 				fmt::arg("const", f.is_const ? "const " : ""),
 				fmt::arg("constw", f.is_const ? " " : ""),
-				fmt::arg("global_index", f.hash()),
+				fmt::arg("global_index", f.global_index),
 				fmt::arg("return", CacShare::getReturn(f))
 			);
 		}

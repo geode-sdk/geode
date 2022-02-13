@@ -74,6 +74,7 @@ struct Function : ClassField {
 	string binds[3]; // mac, windows, ios (android has all symbols included). No binding = no string. Stored as a string because no math is done on it
 	string android_mangle; // only sometimes matters. empty if irrelevant
 	size_t index;
+	size_t global_index;
 
 	bool is_defined;
 	string definition;
@@ -133,6 +134,8 @@ struct ClassDefinition {
 	void addField(T& field) {
 		field.parent_class = this;
 		if constexpr (is_same_v<Function, T>) {
+			static global_index = 0;
+			field.global_index = ++global_index;
 			field.index = functions.size();
 			for (auto& f : functions) {
 				if (f.same(field)) {
@@ -167,10 +170,10 @@ struct Root {
 };
 
 inline string Function::hash() const {
-	string argstring;
-	for (auto& s : args) argstring += s;
-	uint32_t hash = std::hash<std::string>{}(argstring + name + parent_class->name);
+	// string argstring;
+	// for (auto& s : args) argstring += s;
+	// uint32_t hash = std::hash<std::string>{}(argstring + name + parent_class->name);
 	stringstream stream;
-	stream << std::setbase(16) << hash;
+	stream << global_index;
 	return stream.str();
 }
