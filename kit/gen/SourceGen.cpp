@@ -78,10 +78,8 @@ ret{global_index} {class_name}::{function_name}({raw_args}){constw}{const} {{
 
 	char const* declare_destructor = R"CAC(
 {class_name}::{function_name}() {{
-	if (base_cast<decltype(this)>(this) == this) {{
-		if (CCDestructor::lock(this)) return;
-		CCDestructor::lock(this) = true;
-	}}
+	if (CCDestructor::lock(this)) return;
+	CCDestructor::lock(this) = true;
 	{function_implementation};
 }}
 )CAC";

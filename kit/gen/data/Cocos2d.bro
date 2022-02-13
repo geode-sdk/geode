@@ -171,10 +171,20 @@ class cocos2d::CCHide {
 }
 
 class cocos2d::CCIMEDelegate {
-	virtual ~CCIMEDelegate() = mac 0x277500;
+	inline cocos2d::CCIMEDelegate::~CCIMEDelegate() {
+	    CCIMEDispatcher::sharedDispatcher()->removeDelegate(this);
+	}
 	virtual auto attachWithIME() = mac 0x2776a0;
 	virtual auto detachWithIME() = mac 0x277880;
-	CCIMEDelegate() = mac 0x277310;
+	inline cocos2d::CCIMEDelegate::CCIMEDelegate() {
+		CCIMEDispatcher::sharedDispatcher()->addDelegate(this);
+	}
+}
+
+class cocos2d::CCIMEDispatcher {
+	static auto sharedDispatcher() = mac 0x2773f0;
+	auto addDelegate(cocos2d::CCIMEDelegate*) = mac 0x277480;
+	auto removeDelegate(cocos2d::CCIMEDelegate*) = mac 0x2775f0;
 }
 
 class cocos2d::CCImage {
