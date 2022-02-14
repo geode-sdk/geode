@@ -93,6 +93,7 @@ struct CacShare {
     }
 
     static std::pair<vector<int>, vector<string>> reorderStructs(Function const& f) {
+    	if (platform != kWindows) return {};
         auto cc = CacShare::getConvention(f);
         vector<string> out;
         vector<int> params;
@@ -125,12 +126,23 @@ struct CacShare {
         return { params, out };
     }
 
+    static string removeStruct(string type) {
+    	return type.find("struct") != string::npos ? type.substr(7) : type;
+    }
+
+    static vector<string> removeStruct(vector<string> types) {
+    	for (string& type : types) {
+			type = type.find("struct") != string::npos ? type.substr(7) : type;
+    	}
+    	return types;
+    }
+
     static string formatArgTypes(vector<string> args) {
-        return args.size() > 0 ? fmt::format(", {}", fmt::join(args, ", ")) : string("");
+        return args.size() > 0 ? fmt::format(", {}", fmt::join(removeStruct(args), ", ")) : string("");
     }
 
     static string formatRawArgTypes(vector<string> args) {
-        return args.size() > 0 ? fmt::format("{}", fmt::join(args, ", ")) : string("");
+        return args.size() > 0 ? fmt::format("{}", fmt::join(removeStruct(args), ", ")) : string("");
     }
 
     static string formatRawArgs(vector<string> args) {
@@ -139,7 +151,7 @@ struct CacShare {
         if (args.size() == 1 && args[0] == "void")
             return "";
         for (auto& i : args) {
-            out += fmt::format("{} p{}, ", i, c);
+            out += fmt::format("{} p{}, ", removeStruct(i), c);
             ++c;
         }
         return out.substr(0, out.size()-2);
@@ -151,7 +163,7 @@ struct CacShare {
         if (args.size() == 1 && args[0] == "void")
             return "";
         for (auto& i : args) {
-            if (argnames[c] == "") out += fmt::format("{} p{}, ", i, c); 
+            if (argnames[c] == "") out += fmt::format("{} p{}, ", removeStruct(i), c); 
             else out += fmt::format("{} {}, ", i, argnames[c]); 
             ++c;
         }
