@@ -12,7 +12,7 @@ struct Modify<Derived, {class_name}> : ModifyBase<Derived, {class_name}> {{
 )RAW";
 
     // requires: index, class_name, arg_types, function_name, raw_arg_types, non_virtual
-    char const* apply_function_member = R"RAW(
+    char const* apply_function = R"RAW(
     	if (compare::init<Derived, Base, types::pure{global_index}>::value) {{
     		Interface::get()->logInfo(
     			"Adding hook at function {class_name}::{function_name}", 

@@ -134,7 +134,7 @@ struct ClassDefinition {
 	void addField(T& field) {
 		field.parent_class = this;
 		if constexpr (is_same_v<Function, T>) {
-			static global_index = 0;
+			static size_t global_index = 0;
 			field.global_index = ++global_index;
 			field.index = functions.size();
 			for (auto& f : functions) {
