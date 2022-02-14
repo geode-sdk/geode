@@ -5,6 +5,7 @@
 #include <chrono>
 #include <sstream>
 #include <vector>
+#include "../fs/filesystem.hpp"
 
 namespace cocos2d {
     class CCObject;
@@ -172,6 +173,7 @@ namespace geode {
             LogStream& operator<<(cocos2d::CCObject*);
             LogStream& operator<<(std::string const&);
             LogStream& operator<<(std::string_view const&);
+            LogStream& operator<<(ghc::filesystem::path const&);
             LogStream& operator<<(const char*);
             LogStream& operator<<(uintptr_t);
             LogStream& operator<<(int);
