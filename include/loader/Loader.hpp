@@ -9,6 +9,7 @@
 #include <utils/Result.hpp>
 #include <functional>
 #include <unordered_set>
+#include <fs/filesystem.hpp>
 
 class Geode;
 
@@ -45,7 +46,7 @@ namespace geode {
         
         std::unordered_map<std::string, Mod*> m_mods;
         std::vector<LogMessage*> m_logs;
-        std::vector<std::string> m_modDirectories;
+        std::vector<ghc::filesystem::path> m_modDirectories;
         std::vector<UnloadedModInfo> m_erroredMods;
         LogStream* m_logStream;
         LoaderSettings m_loadedSettings;
@@ -107,8 +108,24 @@ namespace geode {
         Result<> loadSettings();
 
         bool shouldLoadMod(std::string const& id) const;
-
         std::vector<UnloadedModInfo> const& getFailedMods() const;
+
+        /**
+         * Directory where Geometry Dash is
+         */
+        ghc::filesystem::path getGameDirectory() const;
+        /**
+         * Directory where GD saves its files
+         */
+        ghc::filesystem::path getSaveDirectory() const;
+        /**
+         * Directory where Geode is
+         */
+        ghc::filesystem::path getGeodeDirectory() const;
+        /**
+         * Directory where Geode saves its files
+         */
+        ghc::filesystem::path getGeodeSaveDirectory() const;
 
         /**
          * Get the shared Loader instance
