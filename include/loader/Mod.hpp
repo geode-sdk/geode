@@ -276,6 +276,7 @@ namespace geode {
         bool        isEnabled()     const;
         bool        isLoaded()      const;
         bool        supportsDisabling() const;
+        bool        wasSuccesfullyLoaded() const;
 
         ghc::filesystem::path getHotReloadPath() const;
         Result<> enableHotReload();
