@@ -22,7 +22,9 @@ namespace geode::modifier {
 
 	template <class Derived, class Base>
 	class Modify {
-		void apply() {}
+		Modify() {
+			static_assert(std::is_same_v<Derived, Derived>, "Custom Modify not implemented.");
+		}
 	};
 
 	#include <gen/Modify.hpp>
