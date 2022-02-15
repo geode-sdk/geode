@@ -8,6 +8,7 @@ using namespace geode;
 using namespace geode::cast;
 using cocos2d::CCDestructor;
 using namespace geode::core::meta;
+//using namespace geode::modifier::types;
 )CAC";
 
 	char const* declare_member_type = R"CAC(

@@ -1,5 +1,8 @@
+#pragma once
 #include <base/HeaderBase.hpp>
 
-namespace geode::modify::types {
-	#include <gen/Types.hpp>
+namespace geode::modifier {
+	struct types {
+		#include <gen/Type.hpp>
+	};
 }

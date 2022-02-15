@@ -18,8 +18,8 @@ private:
 	using base_type = decltype(substitute<Ret, Base, Derived, Parameters...>(&Base::{function_name}));         
 	using derived_type = decltype(substitute<Ret, Base, Derived, Parameters...>(&Derived::{function_name}));   
 public:
-	constexpr static inline bool value =
-		function_uuid<(derived_type)&Derived::{function_name}>::value !=
+	constexpr static inline bool value = 
+		function_uuid<(derived_type)&Derived::{function_name}>::value != 
 		function_uuid<(base_type)&Base::{function_name}>::value;
 }};
 
@@ -35,7 +35,13 @@ int main(int argc, char** argv) {
 
 	for (auto& [name, c] : root.classes) {
 		for (auto& f : c.functions) {
+			switch (f.function_type) {
+				case kConstructor: [[fallthrough]];
+				case kDestructor: continue;
+				default: break;
+			}
 			if (used.find(f.name) != used.end()) continue;
+			
 			output += fmt::format(format_strings::declare_member_type,
 				fmt::arg("function_name", f.name)
 			);

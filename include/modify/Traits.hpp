@@ -1,3 +1,4 @@
+#pragma once
 #include <type_traits>
 
 namespace geode::modifier {
@@ -40,7 +41,7 @@ namespace geode::modifier {
 	private:
 		constexpr static void function() {}
 	public:
-		constexpr static inline void(*value)() = &function_id::function;
+		constexpr static inline void(*value)() = &function_uuid::function;
 	};
 
 	template<class Type>

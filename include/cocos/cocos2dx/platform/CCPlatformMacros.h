@@ -104,8 +104,15 @@ It's new in cocos2d-x since v0.99.5
  * classes using stl containers. Easiest way to hijack this is redefining the NS_CC_BEGIN
  * macro.
  */
-namespace geode { struct modify; struct temp_name_find_better; }
-#define GEODE_FRIEND_MODIFY GEODE_ADD(friend struct geode::modify; friend struct geode::temp_name_find_better;)
+namespace geode { 
+	struct modify; 
+	struct temp_name_find_better; 
+	namespace modifier {
+		struct addresses;
+		struct types;
+	}
+}
+#define GEODE_FRIEND_MODIFY GEODE_ADD(friend struct geode::modify; friend struct geode::modifier::addresses; friend struct geode::modifier::types; friend struct geode::temp_name_find_better;)
 #define GEODE_ADD(...) __VA_ARGS__
 
 /**

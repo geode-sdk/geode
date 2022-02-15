@@ -7,7 +7,7 @@ namespace format_strings {
 template <class, class, class, class = void>
 struct {function_name} {{
 private:
-	static void wrapper(...) {}
+	static void wrapper(...) {{}}
 public:
 	constexpr static inline auto value = &wrapper;
 }};
@@ -48,11 +48,17 @@ int main(int argc, char** argv) {
 
 	for (auto& [name, c] : root.classes) {
 		for (auto& f : c.functions) {
-			if (used.find(f.name) != used.end()) continue;
+			auto name = f.name;
+			switch (f.function_type) {
+				case kConstructor: name = "constructor";
+				case kDestructor: name = "destructor";
+				default: break;
+			}
+			if (used.find(name) != used.end()) continue;
 			output += fmt::format(format_strings::declare_member_type,
-				fmt::arg("function_name", f.name)
+				fmt::arg("function_name", name)
 			);
-			used.insert(f.name);
+			used.insert(name);
 		}
 	}
 

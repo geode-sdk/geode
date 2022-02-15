@@ -1,3 +1,7 @@
-namespace geode::modify::addresses {
-	#include <gen/Addresses.hpp>
+#pragma once
+
+namespace geode::modifier {
+	struct addresses {
+		#include <gen/Address.hpp>
+	};
 }

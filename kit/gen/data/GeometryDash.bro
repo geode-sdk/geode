@@ -311,7 +311,7 @@ class CCMenuItemSpriteExtra : cocos2d::CCMenuItemSprite {
 	}
 	void setSizeMult(float) = mac 0x1255e0, win 0x19080, ios 0x0;
 	CCMenuItemSpriteExtra() = mac 0x32670, win 0x18db0, ios 0x0;
-	CCMenuItemSpriteExtra* destructor(bool rel) = mac 0x0, win 0x18eb0, ios 0x0;
+	~CCMenuItemSpriteExtra() = mac 0x0, win 0x18eb0, ios 0x0;
 	bool init(cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCObject*, cocos2d::SEL_MenuHandler) = mac 0x125450, win 0x18fa0, ios 0x0;
 	bool init(cocos2d::CCNode spr) = mac 0x0, win 0x18fa0, ios 0x0;
 	void activate() = mac 0x0, win 0x191c0, ios 0x0;

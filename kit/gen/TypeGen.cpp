@@ -6,7 +6,7 @@ namespace format_strings {
 	char const* declare_member_type = R"RAW(
 using ret{global_index} = {return};
 using func{global_index} = ret{global_index}(*)({const}{constw}{class_name}*{arg_types});
-using pure{global_index} = ret{global_index}({class_name}*{arg_types});
+using pure{global_index} = ret{global_index}({raw_arg_types});
 using member{global_index} = ret{global_index}({class_name}::*)({raw_arg_types}){const};
 )RAW";
 
@@ -20,7 +20,7 @@ using member{global_index} = func{global_index};
 	char const* declare_structor_type = R"RAW(
 using ret{global_index} = void;
 using func{global_index} = ret{global_index}(*)({class_name}*{arg_types});
-using pure{global_index} = ret{global_index}({class_name}*{arg_types});
+using pure{global_index} = ret{global_index}({raw_arg_types});
 using member{global_index} = func{global_index};
 )RAW";
 
