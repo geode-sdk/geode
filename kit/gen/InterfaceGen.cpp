@@ -34,7 +34,7 @@ struct ${class_name} : {raw_class_name}, ModifierBase {{
 
     char const* declare_structor = R"CAC(
     GEODE_DUPABLE void {function_name}({raw_args}) {{
-        reinterpret_cast<void(*)(decltype(this){arg_types})>(temp_name_find_better::address{global_index})(this{parameters});
+        reinterpret_cast<void(*)(decltype(this){arg_types})>(addresser::address{global_index})(this{parameters});
     }})CAC";
 
     char const* apply_start = R"CAC(
@@ -48,7 +48,7 @@ struct ${class_name} : {raw_class_name}, ModifierBase {{
 		GEODE_VIRTUAL_CONSTEXPR auto derivedAddress{global_index} = (derivedType{global_index})(&D<baseAddress{global_index}, UUID>::{function_name});
         if (baseAddress{global_index} != derivedAddress{global_index}) {{
         	Interface::get()->logInfo("Adding hook at function {class_name}::{function_name}", Severity::Debug);
-            Interface::get()->addHook("{class_name}::{function_name}", (void*)temp_name_find_better::address{global_index}(), (void*)addresser::get{non_virtual}Virtual(derivedAddress{global_index}));
+            Interface::get()->addHook("{class_name}::{function_name}", (void*)addresser::address{global_index}(), (void*)addresser::get{non_virtual}Virtual(derivedAddress{global_index}));
         }}
 )CAC";
 
@@ -59,7 +59,7 @@ struct ${class_name} : {raw_class_name}, ModifierBase {{
 		GEODE_VIRTUAL_CONSTEXPR auto derivedAddress{global_index} = (derivedType{global_index})(&D<baseAddress{global_index}, UUID>::{function_name});
         if (baseAddress{global_index} != derivedAddress{global_index}) {{
         	Interface::get()->logInfo("Adding hook at function {class_name}::{function_name}", Severity::Debug);
-            Interface::get()->addHook("{class_name}::{function_name}", (void*)temp_name_find_better::address{global_index}(), (void*)addresser::get{non_virtual}Virtual(derivedAddress{global_index}));
+            Interface::get()->addHook("{class_name}::{function_name}", (void*)addresser::address{global_index}(), (void*)addresser::get{non_virtual}Virtual(derivedAddress{global_index}));
         }}
 )CAC";
 

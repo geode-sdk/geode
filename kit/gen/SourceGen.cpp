@@ -4,15 +4,17 @@ namespace format_strings {
 	char const* source_start = R"CAC(
 #include <InterfaceBase.hpp>
 #include <utils/casts.hpp>
+#include <modify/Addresses.hpp>
+#include <modify/Types.hpp>
 using namespace geode;
 using namespace geode::cast;
 using cocos2d::CCDestructor;
 using namespace geode::core::meta;
-//using namespace geode::modifier::types;
+using namespace geode::modifier;
 )CAC";
 
 	char const* declare_member_type = R"CAC(
-using ret{global_index} = temp_name_find_better::ret{global_index};
+using ret{global_index} = types::ret{global_index};
 using func{global_index} = ret{global_index}(*)({const}{constw}{class_name}*{arg_types});
 using pure{global_index} = ret{global_index}({class_name}*{arg_types});
 using member{global_index} = ret{global_index}({class_name}::*)({raw_arg_types}){const};)CAC";
@@ -23,7 +25,7 @@ using fixori_member{global_index} = ret{global_index}({class_name}::*)({raw_arg_
 )CAC";
 
 	char const* declare_static_type = R"CAC(
-using ret{global_index} = temp_name_find_better::ret{global_index};
+using ret{global_index} = types::ret{global_index};
 using func{global_index} = ret{global_index}(*)({raw_arg_types});
 using pure{global_index} = ret{global_index}({raw_arg_types});
 using member{global_index} = func{global_index};)CAC";
@@ -47,23 +49,23 @@ using fixori_member{global_index} = fixori_func{global_index};
 	char const* declare_address_of = R"CAC(
 template<>
 struct address_of_t<(member{global_index})(&{class_name}::{function_name})> {{
-	static inline auto value = temp_name_find_better::address{global_index}();
+	static inline auto value = addresses::address{global_index}();
 }};)CAC";
 
 	char const* declare_address_of_fixed = R"CAC(
 template<>
 struct address_of_t<(fixori_member{global_index})(&{class_name}::{function_name})> {{
-	static inline auto value = temp_name_find_better::address{global_index}();
+	static inline auto value = addresses::address{global_index}();
 }};)CAC";
 
 	char const* thunk_adjust = "addresser::thunkAdjust(({is_fixori}member{global_index})(&{class_name}::{function_name}), this)";
 
-	char const* declare_member_function = "reinterpret_cast<func{global_index}>(temp_name_find_better::address{global_index}())(this{parameters})";
-	char const* declare_virtual_function = "reinterpret_cast<func{global_index}>(temp_name_find_better::address{global_index}())(this{parameters})";
-	char const* declare_static_function = "reinterpret_cast<func{global_index}>(temp_name_find_better::address{global_index}())({raw_parameters})";
-	char const* declare_meta_member_function = "Function<pure{global_index}, x86::{convention}>({{temp_name_find_better::address{global_index}()}})({const_cast}(this){parameters})";
-	char const* declare_meta_virtual_function = "Function<pure{global_index}, x86::{convention}>({{temp_name_find_better::address{global_index}()}})({const_cast}({thunk_adjusted_this}){parameters})";
-	char const* declare_meta_static_function = "Function<pure{global_index}, x86::{convention}>({{temp_name_find_better::address{global_index}()}})({raw_parameters})";
+	char const* declare_member_function = "reinterpret_cast<func{global_index}>(addresses::address{global_index}())(this{parameters})";
+	char const* declare_virtual_function = "reinterpret_cast<func{global_index}>(addresses::address{global_index}())(this{parameters})";
+	char const* declare_static_function = "reinterpret_cast<func{global_index}>(addresses::address{global_index}())({raw_parameters})";
+	char const* declare_meta_member_function = "Function<pure{global_index}, x86::{convention}>({{addresses::address{global_index}()}})({const_cast}(this){parameters})";
+	char const* declare_meta_virtual_function = "Function<pure{global_index}, x86::{convention}>({{addresses::address{global_index}()}})({const_cast}({thunk_adjusted_this}){parameters})";
+	char const* declare_meta_static_function = "Function<pure{global_index}, x86::{convention}>({{addresses::address{global_index}()}})({raw_parameters})";
 
 	char const* declare_member = R"CAC(
 ret{global_index} {class_name}::{function_name}({raw_args}){constw}{const} {{

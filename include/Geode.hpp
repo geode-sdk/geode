@@ -1,3 +1,6 @@
 #include <InterfaceBase.hpp>
+#include <modify/Modify.hpp>
 #include "utils/include.hpp"
 #include "loader/GeodeLoader.hpp"
+
+using namespace geode::modifier;

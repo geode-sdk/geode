@@ -45,17 +45,21 @@ int main(int argc, char** argv) {
 		for (auto& f : c.functions) {
 			if (!CacShare::functionDefined(f))
 				continue; // Function not supported for this platform, skip it
-
+			string function_name = f.name;
 			switch (f.function_type) {
-				case kConstructor: [[fallthrough]];
-				case kDestructor: continue;
+				case kConstructor: 
+					function_name = "constructor";
+					break;
+				case kDestructor: 
+					function_name = "destructor";
+					break;
 				default: break;
 			}
 
 			output += fmt::format(format_strings::apply_function,
 				fmt::arg("global_index",f.hash()),
 				fmt::arg("class_name", name),
-				fmt::arg("function_name", f.name)
+				fmt::arg("function_name", function_name)
 			);
 		}
 

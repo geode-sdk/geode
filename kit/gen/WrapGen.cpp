@@ -48,17 +48,16 @@ int main(int argc, char** argv) {
 
 	for (auto& [name, c] : root.classes) {
 		for (auto& f : c.functions) {
-			auto name = f.name;
 			switch (f.function_type) {
-				case kConstructor: name = "constructor";
-				case kDestructor: name = "destructor";
+				case kConstructor: [[fallthrough]];
+				case kDestructor: continue;
 				default: break;
 			}
-			if (used.find(name) != used.end()) continue;
+			if (used.find(f.name) != used.end()) continue;
 			output += fmt::format(format_strings::declare_member_type,
-				fmt::arg("function_name", name)
+				fmt::arg("function_name", f.name)
 			);
-			used.insert(name);
+			used.insert(f.name);
 		}
 	}
 
