@@ -3695,24 +3695,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate {
 	void xPosForTime(float) = mac 0x7d140, win 0x0, ios 0x0;
 	~PlayLayer() = mac 0x6b090, win 0x1fafc0, ios 0x0;
 
-	bool gameStarted = mac 0x4dc, win 0x0, android 0x0;
-	EndPortalObject* endPortal = mac 0x530, win 0x0, android 0x0;
-	float length = mac 0x5f8, win 0x0, android 0x0;
-	float trueLength = mac 0x5fc, win 0x0, android 0x0;
-	UILayer* uiLayer = mac 0x720, win 0x0, android 0x0;
-	GJGameLevel* level = mac 0x728, win 0x0, android 0x0;
-	int attempt = mac 0x754, win 0x0, android 0x0;
-	bool testMode = mac 0x738, win 0x0, android 0x0;
-	bool practiceMode = mac 0x739, win 0x0, android 0x0;
-	float time = mac 0x760, win 0x0, android 0x0;
-	bool cube = mac 0x76f, win 0x0, android 0x0;
-	bool ship = mac 0x770, win 0x0, android 0x0;
-	bool ufo = mac 0x771, win 0x0, android 0x0;
-	bool ball = mac 0x772, win 0x0, android 0x0;
-	bool wave = mac 0x773, win 0x0, android 0x0;
-	bool robot = mac 0x774, win 0x0, android 0x0;
-	bool spider = mac 0x775, win 0x0, android 0x0;
-	PAD = mac 0x0, win 0x4, android 0x0;
+	PAD = mac 0x8, win 0x4, android 0x0;
 	bool unk2DC;
 	bool m_hasCheated;
 	int unk2E0;
@@ -3721,7 +3704,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate {
 	bool unk2EC;
 	bool unk2ED;
 	float unk2F0;
-	PAD = mac 0x0, win 0x4, android 0x0;
+	PAD = mac 0x8, win 0x4, android 0x0;
 	cocos2d::CCDrawNode* unk2F8;
 	float unk2FC;
 	float unk300;
@@ -3731,7 +3714,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate {
 	bool unk310;
 	bool unk311;
 	bool unk312;
-	PAD = mac 0x0, win 0x19, android 0x0;
+	PAD = mac 0x21, win 0x19, android 0x0;
 	StartPosObject* m_startPos;
 	CheckpointObject* unk330;
 	EndPortalObject* m_endPortal;
@@ -3760,10 +3743,10 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate {
 	cocos2d::CCArray* m_circleWaves;
 	cocos2d::CCArray* unk37C;
 	AudioEffectsLayer* m_audioEffectsLayer;
-	PAD = mac 0x0, win 0x8, android 0x0;
+	PAD = mac 0x16, win 0x8, android 0x0;
 	GJGroundLayer* m_bottomGround;
 	GJGroundLayer* m_topGround;
-	PAD = mac 0x0, win 0x8, android 0x0;
+	PAD = mac 0x16, win 0x8, android 0x0;
 	bool m_isDead;
 	bool unk39D;
 	bool unk39E;
@@ -3775,7 +3758,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate {
 	bool unk3AD;
 	bool unk3AE;
 	bool unk3AF;
-	PAD = mac 0x0, win 0x4, android 0x0;
+	PAD = mac 0x8, win 0x4, android 0x0;
 	float m_levelLength;
 	float unk3B8;
 	cocos2d::CCLabelBMFont* m_attemptLabel;
