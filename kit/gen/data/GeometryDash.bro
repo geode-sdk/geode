@@ -2804,18 +2804,6 @@ class GameObject : CCSpritePlus {
 	cocos2d::CCRepeatForever* createRotateAction(float f, int n) = mac 0x0, win 0xe49b0, ios 0x0;
 	void setMyAction(cocos2d::CCAction* pAction) = mac 0x0, win 0xd1b90, ios 0x0;
 
-	int type = mac 0x370, win 0x0, android 0x0;
-	int id = mac 0x3c4, win 0x0, android 0x0;
-	cocos2d::CCPoint startPos = mac 0x37c, win 0x0, android 0x0;
-	bool touchTriggered = mac 0x378, win 0x0, android 0x0;
-	bool spawnTriggered = mac 0x379, win 0x0, android 0x0;
-	int uuid = mac 0x36c, win 0x0, android 0x0;
-	int colorID = mac 0x3bc, win 0x0, android 0x0;
-	int zOrder = mac 0x42c, win 0x0, android 0x0;
-	int unknownType = mac 0x3d4, win 0x0, android 0x0;
-	int coinID = mac 0x3e8, win 0x0, android 0x0;
-	float scale = mac 0x3c0, win 0x0, android 0x0;
-	float multiScaleMultiplier = mac 0x44c, win 0x0, android 0x0;
 	bool m_unk3;
 	bool m_isBlueMaybe;
 	float m_unk2;
