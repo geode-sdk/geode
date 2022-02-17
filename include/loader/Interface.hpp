@@ -97,7 +97,7 @@ namespace geode {
         /**
          * Log an information. Equivalent to 
          * ```
-         * Mod::log() << Severity::severity << info << geode::endl.
+         * Mod::log() << Severity::severity << info.
          * ```
          * @param info Log information
          * @param severity Log severity
