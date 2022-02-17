@@ -20,16 +20,23 @@ struct {class_name}{base_classes}{final} {{
     char const* function_definition = "\t{docs}GEODE_CODEGEN_DLL {static}{virtual}{return_type} {function_name}({raw_args}){const};\n";
 
     char const* platform_function_definition = R"CAC(
+    #ifdef GEODE_IS_WINDOWS
  private:
     {docs}GEODE_CODEGEN_DLL {static}{virtual}{return_type} _{function_name}({fixed_raw_args}){const};
  public:
-    #ifdef GEODE_IS_WINDOWS
     {docs}inline {static}{virtual}{return_type} {function_name}({raw_args}){const} {{
         return _{function_name}({fixed_raw_params});
     }}
     #else
     {docs}GEODE_CODEGEN_DLL {static}{virtual}{return_type} {function_name}({raw_args}){const};
     #endif
+)CAC";
+
+    char const* error_definition = R"CAC(
+    template <bool T=false>
+    {docs} {static}{return_type} {function_name}({raw_args}){const} {{
+        static_assert(T, "Implement {class_name}::{function_name}");
+    }}
 )CAC";
 
     char const* structor_definition = "\tGEODE_CODEGEN_DLL {function_name}({raw_args});\n";
@@ -112,9 +119,6 @@ int main(int argc, char** argv) {
 
         for (auto f : cd.functions) {
 
-            if (f.binds[CacShare::platform].size() == 0 && !f.is_defined)
-                continue; // Function not supported for this platform, skip it
-
         	char const* used_format;
         	switch (f.function_type) {
                 case kDestructor:
@@ -131,6 +135,16 @@ int main(int argc, char** argv) {
             if (reordered_args.size()) {
                 used_format = format_strings::platform_function_definition;
             }
+
+            if (f.binds[CacShare::platform].size() == 0 && !f.is_defined) {
+                //continue;
+                // ok new idea
+
+                if (f.function_type == kDestructor || f.function_type == kConstructor)
+                    continue;
+                used_format = format_strings::error_definition;
+            }
+
         	output += fmt::format(used_format,
                 fmt::arg("virtual", f.function_type == kVirtualFunction ? "virtual " : ""),
                 fmt::arg("static", f.function_type == kStaticFunction ? "static " : ""),
@@ -140,7 +154,8 @@ int main(int argc, char** argv) {
                 fmt::arg("raw_args", CacShare::formatRawArgs(f.args, f.argnames)),
                 fmt::arg("const", f.is_const ? " const" : ""),
                 fmt::arg("fixed_raw_args", CacShare::formatRawArgs(fix_args)),
-                fmt::arg("fixed_raw_params", CacShare::formatParameters(reordered_args, f.argnames))
+                fmt::arg("fixed_raw_params", CacShare::formatParameters(reordered_args, f.argnames)),
+                fmt::arg("class_name", cd.name)
             );
         }
 

@@ -5,6 +5,7 @@
 #include <vector>
 #include <utils/Result.hpp>
 #include "Log.hpp"
+#include "Mod.hpp"
 
 namespace geode {
 	class Mod;
@@ -36,7 +37,7 @@ namespace geode {
 	 * 
 	 * @class Interface
 	 */
-	class GEODE_DLL Interface {
+	class Interface {
 	protected:
 		struct ScheduledHook {
 			std::string_view m_displayName;
@@ -64,7 +65,7 @@ namespace geode {
 			return Interface::get()->m_mod;
 		}
 
-		void init(Mod*);
+		GEODE_DLL void init(Mod*);
 
         /**
          * Create a hook at an address. This function can 
@@ -80,7 +81,7 @@ namespace geode {
          * Hook handle (or nullptr if Mod* is not loaded 
 		 * yet), errorful result with info on error
          */
-        Result<Hook*> addHook(void* address, void* detour);
+        GEODE_DLL Result<Hook*> addHook(void* address, void* detour);
 
         /**
          * The same as addHook(void*, void*), but also provides 
@@ -88,7 +89,7 @@ namespace geode {
          * Mostly for internal use but if you don't like your
          * hooks showing up like base + 0x123456 it can be useful
          */
-        Result<Hook*> addHook(std::string_view displayName, void* address, void* detour);
+        GEODE_DLL Result<Hook*> addHook(std::string_view displayName, void* address, void* detour);
 
         /**
          * Log an information. Equivalent to 
@@ -98,6 +99,10 @@ namespace geode {
          * @param info Log information
          * @param severity Log severity
          */
-        void logInfo(std::string const& info, Severity severity);
+        GEODE_DLL void logInfo(std::string const& info, Severity severity);
 	};
+
+    inline const char* operator"" _sprite(const char* str, size_t) {
+        return Interface::mod()->expandSpriteName(str);
+    }
 }

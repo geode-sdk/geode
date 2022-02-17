@@ -9,6 +9,8 @@
 #include <Interface.hpp>
 #include <stdint.h>
 
+namespace geode::core::meta {}
+
 template<auto F>
 struct address_of_t {
 	static inline auto value = geode::base::get();
@@ -39,20 +41,20 @@ inline auto address_of = address_of_t<F>::value;
 
 #define GEODE_MODIFY_PREDECLARE(derived) 								\
 derived##Dummy; 														\
-template<auto, typename> struct _##derived final {};
+template<typename> struct _##derived final {};
 #define GEODE_MODIFY_APPLY(base, derived) 								\
 namespace { 															\
 	struct derived##UUID {}; 											\
-	bool derived##Apply = base<_##derived, derived##UUID>::_apply();  	\
+	Modify<_##derived<derived##UUID>, base> derived##Apply;             \
 }
 #define GEODE_MODIFY_DECLARE(base, derived) 							\
-using derived = _##derived<0, derived##UUID>; 							\
-template <auto _orig> 													\
-struct GEODE_HIDDEN _##derived<_orig, derived##UUID> final 				\
-	: public base<_##derived, derived##UUID> 								
+using derived = _##derived<derived##UUID>; 							    \
+template <> 													        \
+struct GEODE_HIDDEN _##derived<derived##UUID> final 				    \
+	: public base
 
 #define GEODE_MODIFY_REDIRECT4(base, derived) GEODE_MODIFY_PREDECLARE(derived) GEODE_MODIFY_APPLY(base, derived) GEODE_MODIFY_DECLARE(base, derived)
-#define GEODE_MODIFY_REDIRECT3(base, derived) GEODE_MODIFY_REDIRECT4(geode::modify::$##base, derived)
+#define GEODE_MODIFY_REDIRECT3(base, derived) GEODE_MODIFY_REDIRECT4(base, derived)
 #define GEODE_MODIFY_REDIRECT2(base) GEODE_MODIFY_REDIRECT3(base, GEODE_CONCAT(hook, __COUNTER__))
 #define GEODE_MODIFY_REDIRECT1(base) GEODE_MODIFY_REDIRECT2(base)
 
@@ -71,10 +73,9 @@ struct GEODE_HIDDEN _##derived<_orig, derived##UUID> final 				\
 #define $modify(...) GEODE_INVOKE(GEODE_CONCAT(GEODE_CRTP, GEODE_NUMBER_OF_ARGS(__VA_ARGS__)), __VA_ARGS__)
 #define $(...) $modify(__VA_ARGS__)
 
+//#define $modify(...)
+
 namespace geode {
-	struct GEODE_CODEGEN_DLL temp_name_find_better {
-        #include <gen/TempName.hpp>
-    };
 
     struct modify {
     	template <auto orig = 0, typename uuid = void>
@@ -103,7 +104,7 @@ namespace geode {
 			return ret;
 		}
 
-        #include <gen/Interface.hpp>
+        // #include <gen/Interface.hpp>
     };
 }
 

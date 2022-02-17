@@ -36,19 +36,19 @@
 
 #if defined(__APPLE__)
 	#include <TargetConditionals.h>
-	#if TARGET_OS_MAC
-		#define GEODE_IOS(...)
-		#define GEODE_MACOS(...) __VA_ARGS__
-		#define GEODE_IS_MACOS
-		#define GEODE_IS_DESKTOP
-		#define GEODE_PLATFORM_NAME "MacOS"
-		#define GEODE_PLATFORM_EXTENSION ".dylib"
-	#elif TARGET_OS_IPHONE
+	#if TARGET_OS_IPHONE
 		#define GEODE_MACOS(...)
 		#define GEODE_IOS(...) __VA_ARGS__
 		#define GEODE_IS_IOS
 		#define GEODE_IS_MOBILE
 		#define GEODE_PLATFORM_NAME "iOS"
+		#define GEODE_PLATFORM_EXTENSION ".dylib"
+	#else
+		#define GEODE_IOS(...)
+		#define GEODE_MACOS(...) __VA_ARGS__
+		#define GEODE_IS_MACOS
+		#define GEODE_IS_DESKTOP
+		#define GEODE_PLATFORM_NAME "MacOS"
 		#define GEODE_PLATFORM_EXTENSION ".dylib"
 	#endif
 	#define GEODE_CALL

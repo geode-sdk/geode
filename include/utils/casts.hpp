@@ -40,6 +40,6 @@ namespace geode::cast {
      */
 	template <typename T, typename F>
 	static constexpr T base_cast(F obj) {
-	    return static_cast<T>(dynamic_cast<void*>(obj));
+	    return reinterpret_cast<T>(dynamic_cast<void*>(obj));
 	}
 }

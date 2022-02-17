@@ -79,7 +79,7 @@ public:
     RT_ADD(
         virtual void applicationWillBecomeActive() {}
         virtual void applicationWillResignActive() {}
-        virtual void trySaveGame() {}
+        virtual void trySaveGame() = 0;
         virtual void gameDidSave() {}
     )
 

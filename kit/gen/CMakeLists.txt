@@ -3,6 +3,11 @@ project(Codegen LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
+if (NOT DEFINED GEODE_HOST_ARM AND APPLE)
+	set(CMAKE_OSX_ARCHITECTURES x86_64)
+	set(CMAKE_OSX_SYSROOT )
+endif()
+
 add_subdirectory(../../include/fmt ${CMAKE_BINARY_DIR}/fmt)
 
 macro(add_gen project file)
@@ -21,8 +26,13 @@ macro(add_gen project file)
 endmacro()
 
 
-add_gen(Interface Interface.hpp)
+# add_gen(Interface Interface.hpp)
 add_gen(Source Source.cpp)
 add_gen(Header Header.hpp)
-add_gen(TempName TempName.hpp)
+# add_gen(TempName TempName.hpp)
 add_gen(Tidy Tidy.bro)
+add_gen(Compare Compare.hpp)
+add_gen(Wrap Wrap.hpp)
+add_gen(Modify Modify.hpp)
+add_gen(Type Type.hpp)
+add_gen(Address Address.hpp)

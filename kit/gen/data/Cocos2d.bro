@@ -11,27 +11,27 @@ class cocos2d::CCAnimation {
 }
 
 class cocos2d::CCApplication {
-	auto getCurrentLanguage() = mac 0x1a3f40;
-	auto getTargetPlatform() = mac 0x1a3f20;
-	auto openURL(char const*) = mac 0x1a4550;
-	auto setAnimationInterval(double) = mac 0x1a3ee0;
-	~CCApplication() = mac 0x1a3d10;
+	virtual auto getCurrentLanguage() = mac 0x1a3f40, ios 0x10e508;
+	virtual auto getTargetPlatform() = mac 0x1a3f20, ios 0x10e57c;
+	virtual auto openURL(char const*) = mac 0x1a4550, ios 0x10e7a4;
+	virtual auto setAnimationInterval(double) = mac 0x1a3ee0, ios 0x10e494;
+	~CCApplication() = mac 0x1a3d10, ios 0x10e384;
 }
 
 class cocos2d::CCArray {
-	auto addObject(cocos2d::CCObject*) = mac 0x419f90;
+	auto addObject(cocos2d::CCObject*) = mac 0x419f90, ios 0x16504c;
 	auto addObjectNew(cocos2d::CCObject*) = mac 0x41a450;
 	auto addObjectsFromArray(cocos2d::CCArray*) = mac 0x41a2d0;
 	auto containsObject(cocos2d::CCObject*) const = mac 0x41a3e0;
-	auto count() const = mac 0x41a2f0;
-	static cocos2d::CCArray* create() = mac 0x419cb0;
+	auto count() const = mac 0x41a2f0, ios 0x1650e8;
+	static cocos2d::CCArray* create() = mac 0x419cb0, ios 0x164ec8;
 	static auto createWithObject(cocos2d::CCObject*) = mac 0x419d50;
 	auto fastRemoveObject(cocos2d::CCObject*) = mac 0x41a520;
 	auto fastRemoveObjectAtIndex(unsigned int) = mac 0x41a500;
 	auto fastRemoveObjectAtIndexNew(unsigned int) = mac 0x41a510;
 	auto lastObject() = mac 0x41a360;
 	auto objectAtIndex(unsigned int) = mac 0x41a340;
-	auto removeAllObjects() = mac 0x41a4f0;
+	auto removeAllObjects() = mac 0x41a4f0, ios 0x1651f0;
 	auto removeLastObject(bool) = mac 0x41a470;
 	auto removeObject(cocos2d::CCObject*, bool) = mac 0x41a490;
 	auto removeObjectAtIndex(unsigned int, bool) = mac 0x41a4b0;
@@ -67,15 +67,15 @@ class cocos2d::CCDelayTime {
 }
 
 class cocos2d::CCDictionary {
-	auto allKeys() = mac 0x190450;
+	auto allKeys() = mac 0x190450, ios 0x2de774;
 	auto count() = mac 0x190430;
 	static cocos2d::CCDictionary* create() = mac 0x192650;
-	auto objectForKey(intptr_t) = mac 0x190bb0;
-	auto objectForKey(gd::string const&) = mac 0x190870;
+	auto objectForKey(intptr_t) = mac 0x190bb0, ios 0x2decc0;
+	auto objectForKey(gd::string const&) = mac 0x190870, ios 0x2de988;
 	auto removeAllObjects() = mac 0x190220;
 	auto removeObjectForKey(intptr_t) = mac 0x1921d0;
-	auto setObject(cocos2d::CCObject*, intptr_t) = mac 0x191790;
-	auto setObject(cocos2d::CCObject*, gd::string const&) = mac 0x190dc0;
+	auto setObject(cocos2d::CCObject*, intptr_t) = mac 0x191790, ios 0x2df734;
+	auto setObject(cocos2d::CCObject*, gd::string const&) = mac 0x190dc0, ios 0x2dee7c;
 	auto valueForKey(intptr_t) = mac 0x190cf0;
 	auto valueForKey(gd::string const&) = mac 0x1907a0;
 }
@@ -102,11 +102,11 @@ class cocos2d::CCDirector {
 	virtual auto setSceneDelegate(cocos2d::CCSceneDelegate*) = mac 0x24b330;
 
 
-	auto getWinSize() = mac 0x24a0f0;
+	auto getWinSize() = mac 0x24a0f0, ios 0xece34;
 	auto pushScene(cocos2d::CCScene*) = mac 0x24a620;
-	auto replaceScene(cocos2d::CCScene*) = mac 0x24a6d0;
+	auto replaceScene(cocos2d::CCScene*) = mac 0x24a6d0, ios 0xed08c;
 	auto resetSmoothFixCounter() = mac 0x249bc0;
-	static auto sharedDirector() = mac 0x248cb0;
+	static auto sharedDirector() = mac 0x248cb0, ios 0xebf84;
 	auto calculateDeltaTime() = mac 0x2497a0;
 	auto calculateMPF() = mac 0x19eac0;
 	auto convertToGL(cocos2d::CCPoint const&) = mac 0x24a210;
@@ -163,7 +163,7 @@ class cocos2d::CCFadeTo {
 }
 
 class cocos2d::CCFileUtils : cocos2d::TypeInfo {
-	static cocos2d::CCFileUtils* sharedFileUtils() = mac 0x377030;
+	static cocos2d::CCFileUtils* sharedFileUtils() = mac 0x377030, ios 0x159450;
 }
 
 class cocos2d::CCHide {
@@ -171,10 +171,20 @@ class cocos2d::CCHide {
 }
 
 class cocos2d::CCIMEDelegate {
-	virtual ~CCIMEDelegate() = mac 0x277500;
+	inline cocos2d::CCIMEDelegate::~CCIMEDelegate() {
+	    CCIMEDispatcher::sharedDispatcher()->removeDelegate(this);
+	}
 	virtual auto attachWithIME() = mac 0x2776a0;
 	virtual auto detachWithIME() = mac 0x277880;
-	CCIMEDelegate() = mac 0x277310;
+	inline cocos2d::CCIMEDelegate::CCIMEDelegate() {
+		CCIMEDispatcher::sharedDispatcher()->addDelegate(this);
+	}
+}
+
+class cocos2d::CCIMEDispatcher {
+	static auto sharedDispatcher() = mac 0x2773f0;
+	auto addDelegate(cocos2d::CCIMEDelegate*) = mac 0x277480;
+	auto removeDelegate(cocos2d::CCIMEDelegate*) = mac 0x2775f0;
 }
 
 class cocos2d::CCImage {
@@ -204,7 +214,7 @@ class cocos2d::CCKeypadHandler {
 
 class cocos2d::CCLabelBMFont {
 	static cocos2d::CCLabelBMFont* create(char const*, char const*) = mac 0x347660;
-	auto limitLabelWidth(float, float, float) = mac 0x34a6e0;
+	auto limitLabelWidth(float, float, float) = mac 0x34a6e0, ios 0x21b740;
 	auto setScale(float) = mac 0x34a5d0;
 	auto setString(char const*, bool) = mac 0x3489e0;
 	auto setAnchorPoint(cocos2d::CCPoint const&) = mac 0x349440;
@@ -216,7 +226,7 @@ class cocos2d::CCLabelTTF {
 }
 
 class cocos2d::CCLayer {
-    CCLayer() = mac 0x2725b0;
+    CCLayer() = mac 0x2725b0, ios 0xc7708;
     virtual auto ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x2734d0, , ios 0xc810c;
     virtual auto ccTouchCancelled(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x273650, , ios 0xc82ac;
     virtual auto ccTouchEnded(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x2735d0, , ios 0xc820c;
@@ -256,7 +266,7 @@ class cocos2d::CCLayer {
 }
 
 class cocos2d::CCLayerColor {
-    CCLayerColor() = mac 0x274320;
+    CCLayerColor() = mac 0x274320, ios 0xc8aec;
     static cocos2d::CCLayerColor* create(cocos2d::_ccColor4B const&, float, float) = mac 0x2745e0;
     auto draw() = mac 0x274b50, , ios 0xc8fe0;
     auto getBlendFunc() = mac 0x274480, , ios 0xc8bcc;
@@ -272,8 +282,8 @@ class cocos2d::CCLayerColor {
 }
 
 class cocos2d::CCLayerRGBA {
-    CCLayerRGBA() = mac 0x2738d0;
-    virtual auto init() = mac 0x273b40, , ios 0xc8de8; // ios version is not real. any errors can be traced back to this
+    CCLayerRGBA() = mac 0x2738d0, ios 0xc85cc;
+    virtual auto init() = mac 0x273b40, , ios 0xc8de8;
     virtual auto getOpacity() = mac 0x273be0, , ios 0xc8698;
     virtual auto getDisplayedOpacity() = mac 0x273c00, , ios 0xc8724;
     virtual auto setOpacity(unsigned char) = mac 0x273c20, , ios 0xc8734;
@@ -292,37 +302,41 @@ class cocos2d::CCLayerRGBA {
 }
 
 class cocos2d::CCMenu {
-	auto alignItemsHorizontallyWithPadding(float) = mac 0x4393e0;
+	auto alignItemsHorizontallyWithPadding(float) = mac 0x4393e0, ios 0x132508;
 	auto alignItemsVerticallyWithPadding(float) = mac 0x439190;
-	static cocos2d::CCMenu* create() = mac 0x438720;
+	static cocos2d::CCMenu* create() = mac 0x438720, ios 0x131ba4;
 	static cocos2d::CCMenu* createWithArray(cocos2d::CCArray*) = mac 0x4387e0;
 	static cocos2d::CCMenu* createWithItem(cocos2d::CCMenuItem*) = mac 0x438b80;
 
-	virtual auto ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x438d20;
-    virtual auto ccTouchCancelled(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x439050;
-    virtual auto ccTouchEnded(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x438fd0;
-    virtual auto ccTouchMoved(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x4390b0;
-    virtual auto init() = mac 0x438b90;
-    virtual auto registerWithTouchDispatcher() = mac 0x438cd0;
-    virtual auto onExit() = mac 0x438bd0;
-    virtual auto addChild(cocos2d::CCNode*) = mac 0x438ba0;
+	virtual auto addChild(cocos2d::CCNode*) = mac 0x438ba0;
     virtual auto addChild(cocos2d::CCNode*, int) = mac 0x438bb0;
     virtual auto addChild(cocos2d::CCNode*, int, int) = mac 0x438bc0;
-    virtual auto removeChild(cocos2d::CCNode*, bool) = mac 0x438c20;
-    auto initWithArray(cocos2d::CCArray*) = mac 0x4389f0;
+
+	virtual auto ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x438d20, ios 0x131fe8;
+	virtual auto ccTouchMoved(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x4390b0, ios 0x1322ac;
+    virtual auto ccTouchEnded(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x438fd0, ios 0x1321bc;
+    virtual auto ccTouchCancelled(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x439050, ios 0x132244;
+    virtual auto init() = mac 0x438b90, ios 0x131ec0;
+    virtual auto registerWithTouchDispatcher() = mac 0x438cd0, ios 0x131f8c;
+    virtual auto onExit() = mac 0x438bd0, ios 0x131ed4;
+    virtual auto removeChild(cocos2d::CCNode*, bool) = mac 0x438c20, ios 0x15e630;
+    auto initWithArray(cocos2d::CCArray*) = mac 0x4389f0, ios 0x131d04;
+    auto addChild(cocos2d::CCNode*, int, int) = mac 0x438bc0, ios 0x131ed0;
+    auto addChild(cocos2d::CCNode*, int) = mac 0xbbb50, ios 0x131ecc;
+    auto addChild(cocos2d::CCNode*) = mac 0xbbb40, ios 0x131ec8;
 }
 
 class cocos2d::CCMenuItem {
-	virtual ~CCMenuItem() = mac 0x1fb8e0;
-	virtual auto activate() = mac 0x1fba70;
-	virtual auto selected() = mac 0x1fb9e0;
-	virtual auto unselected() = mac 0x1fb9f0;
-	virtual auto registerScriptTapHandler(int) = mac 0x1fba00;
-	virtual auto unregisterScriptTapHandler() = mac 0x1fba30;
-	virtual auto isEnabled() = mac 0x1fbaf0;
-	virtual auto setEnabled(bool) = mac 0x1fbae0;
-	virtual auto isSelected() = mac 0x1fbb50;
-	auto rect() = mac 0x1fbb00;
+	virtual ~CCMenuItem() = mac 0x1fb8e0, ios 0x2cdf4;
+	virtual auto activate() = mac 0x1fba70, ios 0x2ceb0;
+	virtual auto selected() = mac 0x1fb9e0, ios 0x2ce2e;
+	virtual auto unselected() = mac 0x1fb9f0, ios 0x2ce38;
+	virtual auto registerScriptTapHandler(int) = mac 0x1fba00, ios 0x2ce40;
+	virtual auto unregisterScriptTapHandler() = mac 0x1fba30, ios 0x2ce70;
+	virtual auto isEnabled() = mac 0x1fbaf0, ios 0x2cf34;
+	virtual auto setEnabled(bool) = mac 0x1fbae0, ios 0x2cf2c;
+	virtual auto isSelected() = mac 0x1fbb50, ios 0x2cf60;
+	auto rect() = mac 0x1fbb00, ios 0x2cf3c;
 }
 
 class cocos2d::CCMenuItemImage {
@@ -344,16 +358,16 @@ class cocos2d::CCMenuItemLabel {
 
 class cocos2d::CCMenuItemSprite {
 	// virtual ~CCMenuItemSprite() = mac 0x1feab0;
-	virtual auto selected() = mac 0x1fd3f0;
-	virtual auto unselected() = mac 0x1fd470;
-	virtual auto setEnabled(bool) = mac 0x1fd4e0;
-	virtual auto getNormalImage() = mac 0x1fcee0;
-	virtual auto setNormalImage(cocos2d::CCNode*) = mac 0x1fcef0;
-	virtual auto getSelectedImage() = mac 0x1fcfc0;
-	virtual auto setSelectedImage(cocos2d::CCNode*) = mac 0x1fcfd0;
-	virtual auto getDisabledImage() = mac 0x1fd070;
-	virtual auto setDisabledImage(cocos2d::CCNode*) = mac 0x1fd080;
-	virtual auto updateImagesVisibility() = mac 0x1fd510;
+	virtual auto selected() = mac 0x1fd3f0, ios 0x02d2cc;
+	virtual auto unselected() = mac 0x1fd470, ios 0x2d34c;
+	virtual auto setEnabled(bool) = mac 0x1fd4e0, ios 0x2d3bc;
+	virtual auto getNormalImage() = mac 0x1fcee0, ios 0x2cf68;
+	virtual auto setNormalImage(cocos2d::CCNode*) = mac 0x1fcef0, ios 0x2cf70;
+	virtual auto getSelectedImage() = mac 0x1fcfc0, ios 0x2d044;
+	virtual auto setSelectedImage(cocos2d::CCNode*) = mac 0x1fcfd0, ios 0x2d04;
+	virtual auto getDisabledImage() = mac 0x1fd070, ios 0x2d0fc;
+	virtual auto setDisabledImage(cocos2d::CCNode*) = mac 0x1fd080, ios 0x2d104;
+	virtual auto updateImagesVisibility() = mac 0x1fd510, ios 0x2d3dc;
 
 	static auto create(cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCNode*) = mac 0x1fd120;
 	static auto create(cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCObject*, cocos2d::SEL_MenuHandler) = mac 0x1fd140;
@@ -388,7 +402,7 @@ class cocos2d::CCNode {
     auto addChild(cocos2d::CCNode*, int, int) = mac 0x1232a0, , ios 0x15e4e4;
     auto addComponent(cocos2d::CCComponent*) = mac 0x124a40, , ios 0x15f6a4;
     auto cleanup() = mac 0x123100, , ios 0x15e3a4;
-    auto convertToNodeSpace(cocos2d::CCPoint const&) = mac 0x124750;
+    auto convertToNodeSpace(cocos2d::CCPoint const&) = mac 0x124750, ios 0x15f55c;
     auto convertToWorldSpace(cocos2d::CCPoint const&) = mac 0x124790;
     static cocos2d::CCNode* create() = mac 0x1230a0;
     auto draw() = mac 0x123840, , ios 0x15e974;
@@ -500,32 +514,32 @@ class cocos2d::CCNode {
 
 class cocos2d::CCNodeRGBA {
 	CCNodeRGBA() = mac 0x124b30;
-	virtual ~CCNodeRGBA() = mac 0x124bb0;
-	virtual auto init() = mac 0x124bf0;
-	virtual auto getOpacity() = mac 0x124cd0;
-	virtual auto getDisplayedOpacity() = mac 0x124cf0;
-	virtual auto setOpacity(GLubyte) = mac 0x124d10;
-	virtual auto updateDisplayedOpacity(GLubyte) = mac 0x124e50;
-	virtual auto isCascadeOpacityEnabled() = mac 0x124fe0;
-	virtual auto setCascadeOpacityEnabled(bool) = mac 0x125000;
-	virtual auto getColor() = mac 0x125020;
-	virtual auto getDisplayedColor() = mac 0x125040;
-	virtual auto setColor(cocos2d::_ccColor3B const&) = mac 0x125060;
-	virtual auto updateDisplayedColor(cocos2d::_ccColor3B const&) = mac 0x1251e0;
-	virtual auto isCascadeColorEnabled() = mac 0x125320;
-	virtual auto setCascadeColorEnabled(bool) = mac 0x125340;
+	virtual ~CCNodeRGBA() = mac 0x124bb0, ios 0x15f748;
+	virtual auto init() = mac 0x124bf0, ios 0x15f780;
+	virtual auto getOpacity() = mac 0x124cd0, ios 0x15f7b8;
+	virtual auto getDisplayedOpacity() = mac 0x124cf0, ios 0x15f7c8;
+	virtual auto setOpacity(GLubyte) = mac 0x124d10, ios 0x15f7d8;
+	virtual auto updateDisplayedOpacity(GLubyte) = mac 0x124e50, ios 0x15f87c;
+	virtual auto isCascadeOpacityEnabled() = mac 0x124fe0, ios 0x15f948;
+	virtual auto setCascadeOpacityEnabled(bool) = mac 0x125000, ios 0x15f958;
+	virtual auto getColor() = mac 0x125020, ios 0x15f968;
+	virtual auto getDisplayedColor() = mac 0x125040, ios 0x15f978;
+	virtual auto setColor(cocos2d::_ccColor3B const&) = mac 0x125060, ios 0x15f9888;
+	virtual auto updateDisplayedColor(cocos2d::_ccColor3B const&) = mac 0x1251e0, ios 0x15fa68;
+	virtual auto isCascadeColorEnabled() = mac 0x125320, ios 0x15fb70;
+	virtual auto setCascadeColorEnabled(bool) = mac 0x125340, ios 0x15fb80;
 }
 
 class cocos2d::CCObject {
-    CCObject() = mac 0x250ca0;
+    CCObject() = mac 0x250ca0, ios 0x43864;
     auto acceptVisitor(cocos2d::CCDataVisitor&) = mac 0x250f30, , ios 0x439f0;
-    auto autorelease() = mac 0x250ed0;
+    auto autorelease() = mac 0x250ed0, ios 0x439b8;
     auto canEncode() = mac 0x250f90, , ios 0x43a24;
     auto encodeWithCoder(DS_Dictionary*) = mac 0x250f70, , ios 0x43a18;
     virtual auto getTag() const = mac 0x250f50, , ios 0x43a08;
     auto isEqual(cocos2d::CCObject const*) = mac 0x250f20, , ios 0x439e4;
-    auto release() = mac 0x250ea0;
-    auto retain() = mac 0x250ec0;
+    auto release() = mac 0x250ea0, ios 0x43984;
+    auto retain() = mac 0x250ec0, ios 0x439a8;
     virtual auto setTag(int) = mac 0x250f60, , ios 0x43a10;
     ~CCObject() = mac 0x250d20, , ios 0x6ac0;
 }
@@ -566,93 +580,93 @@ class cocos2d::CCScaleTo {
 }
 
 class cocos2d::CCScene {
-	static cocos2d::CCScene* create() = mac 0x13c140;
-	auto getHighestChildZ() = mac 0x13c200;
+	static cocos2d::CCScene* create() = mac 0x13c140, ios 0x163070;
+	auto getHighestChildZ() = mac 0x13c200, ios 0x1630e4;
 }
 
 class cocos2d::CCScheduler {
 	auto scheduleSelector(cocos2d::SEL_SCHEDULE, cocos2d::CCObject*, float, unsigned int, float, bool) = mac 0x242b20;
 	auto scheduleUpdateForTarget(cocos2d::CCObject*, int, bool) = mac 0x2438d0;
 	auto unscheduleAllForTarget(cocos2d::CCObject*) = mac 0x243e40;
-	auto update(float delta);
+	auto update(float delta) = mac 0x2446d0;
 }
 
 class cocos2d::CCSequence {
 }
 
 class cocos2d::CCSet {
-	CCSet() = mac 0x45ad80;
-	virtual ~CCSet() = mac 0x45b050;
-	virtual auto acceptVisitor(cocos2d::CCDataVisitor&) = mac 0x45b090;
+	CCSet() = mac 0x45ad80, ios 0x10e870;
+	virtual ~CCSet() = mac 0x45b050, ios 0x10ebcc;
+	virtual auto acceptVisitor(cocos2d::CCDataVisitor&) = mac 0x45b090, ios 0x10ec04;
 }
 
 class cocos2d::CCSprite {
-	virtual ~CCSprite() = mac 0x133430;
-	virtual auto init() = mac 0x132ef0;
-	virtual auto setVertexZ(float) = mac 0x134a80;
-	virtual auto setScaleX(float) = mac 0x134900;
-	virtual auto setScaleY(float) = mac 0x134980;
-	virtual auto setScale(float) = mac 0x134a00;
-	virtual auto setPosition(cocos2d::CCPoint const&) = mac 0x134650;
-	virtual auto setSkewX(float) = mac 0x134820;
-	virtual auto setSkewY(float) = mac 0x134890;
-	virtual auto setAnchorPoint(cocos2d::CCPoint const&) = mac 0x134af0;
-	virtual auto setVisible(bool) = mac 0x134b70;
-	virtual auto setRotation(float) = mac 0x1346d0;
-	virtual auto setRotationX(float) = mac 0x134740;
-	virtual auto setRotationY(float) = mac 0x1347b0;
-	virtual auto ignoreAnchorPointForPosition(bool) = mac 0x134b60;
-	virtual auto addChild(cocos2d::CCNode*) = mac 0x134190;
-	virtual auto addChild(cocos2d::CCNode*, int) = mac 0x1341a0;
-	virtual auto addChild(cocos2d::CCNode*, int, int) = mac 0x1341b0;
-	virtual auto removeChild(cocos2d::CCNode*, bool) = mac 0x134300;
-	virtual auto removeAllChildrenWithCleanup(bool) = mac 0x134340;
-	virtual auto reorderChild(cocos2d::CCNode*, int) = mac 0x134270;
-	virtual auto sortAllChildren() = mac 0x1343f0;
-	virtual auto draw() = mac 0x134070;
-	virtual auto updateTransform() = mac 0x133b70;
-	virtual auto setOpacity(unsigned char) = mac 0x134da0;
-	virtual auto updateDisplayedOpacity(unsigned char) = mac 0x1354c0;
-	virtual auto setColor(cocos2d::_ccColor3B const&) = mac 0x134ff0;
-	virtual auto updateDisplayedColor(cocos2d::_ccColor3B const&) = mac 0x135370;
-	virtual auto setOpacityModifyRGB(bool) = mac 0x135200;
-	virtual auto isOpacityModifyRGB() = mac 0x135350;
-	virtual auto initWithTexture(cocos2d::CCTexture2D*) = mac 0x133110;
-	virtual auto initWithTexture(cocos2d::CCTexture2D*, cocos2d::CCRect const&) = mac 0x1330f0;
-	virtual auto initWithTexture(cocos2d::CCTexture2D*, cocos2d::CCRect const&, bool) = mac 0x132f10;
-	virtual auto initWithSpriteFrame(cocos2d::CCSpriteFrame*) = mac 0x133270;
-	virtual auto initWithSpriteFrameName(char const*) = mac 0x1332c0;
-	virtual auto initWithFile(char const*) = mac 0x133180;
-	virtual auto initWithFile(char const*, cocos2d::CCRect const&) = mac 0x133210;
-	virtual auto setTexture(cocos2d::CCTexture2D*) = mac 0x135a90;
-	virtual auto getTexture() = mac 0x135c00;
-	// virtual auto setBlendFunc(cocos2d::_ccBlendFunc) = mac 0x50590;
-	// virtual cocos2d::_ccBlendFunc getBlendFunc() = mac 0x505a0;
-	virtual auto setChildColor(cocos2d::_ccColor3B const&) = mac 0x135160;
-	virtual auto setChildOpacity(unsigned char) = mac 0x134f50;
-	virtual auto getBatchNode() = mac 0x135910;
-	virtual auto setBatchNode(cocos2d::CCSpriteBatchNode*) = mac 0x135920;
-	virtual auto refreshTextureRect() = mac 0x133520;
-	virtual auto setTextureRect(cocos2d::CCRect const&) = mac 0x133560;
-	virtual auto setTextureRect(cocos2d::CCRect const&, bool, cocos2d::CCSize const&) = mac 0x133580;
-	virtual auto setVertexRect(cocos2d::CCRect const&) = mac 0x1338f0;
-	virtual auto setDisplayFrame(cocos2d::CCSpriteFrame*) = mac 0x135610;
-	virtual auto isFrameDisplayed(cocos2d::CCSpriteFrame*) = mac 0x1356d0;
-	virtual auto displayFrame() = mac 0x135760;
-	virtual auto setDisplayFrameWithAnimationName(char const*, int) = mac 0x135680;
-	// virtual auto isDirty() = mac 0x505b0;
-	// virtual auto setDirty(bool) = mac 0x505c0;
-	virtual auto setTextureCoords(cocos2d::CCRect const&) = mac 0x133910;
-	virtual auto updateBlendFunc() = mac 0x135a20;
-	virtual auto setReorderChildDirtyRecursively() = mac 0x134550;
-	virtual auto setDirtyRecursively(bool) = mac 0x1345b0;
+	virtual ~CCSprite() = mac 0x133430, ios 0x15b92c;
+    virtual auto init() = mac 0x132ef0, ios 0x15b488;
+    virtual auto setVertexZ(float) = mac 0x134a80, ios 0x15ccc8;
+    virtual auto setScaleX(float) = mac 0x134900, ios 0x15cb3c;
+    virtual auto setScaleY(float) = mac 0x134980, ios 0x15cbbc;
+    virtual auto setScale(float) = mac 0x134a00, ios 0x15cc3c;
+    virtual auto setPosition(cocos2d::CCPoint const&) = mac 0x134650, ios 0x15c878;
+    virtual auto setSkewX(float) = mac 0x134820, ios 0x15ca5c;
+    virtual auto setSkewY(float) = mac 0x134890, ios 0x15cacc;
+    virtual auto setAnchorPoint(cocos2d::CCPoint const&) = mac 0x134af0, ios 0x15cd38;
+    virtual auto setVisible(bool) = mac 0x134b70, ios 0x15cdac;
+    virtual auto setRotation(float) = mac 0x1346d0, ios 0x15c90c;
+    virtual auto setRotationX(float) = mac 0x134740, ios 0x15c97c;
+    virtual auto setRotationY(float) = mac 0x1347b0, ios 0x15c9ec;
+    virtual auto ignoreAnchorPointForPosition(bool) = mac 0x134b60, ios 0x15cda8;
+    virtual auto addChild(cocos2d::CCNode*) = mac 0x134190, ios 0x15c34c;
+    virtual auto addChild(cocos2d::CCNode*, int) = mac 0x1341a0, ios 0x15c350;
+    virtual auto addChild(cocos2d::CCNode*, int, int) = mac 0x1341b0, ios 0x15c354;
+    virtual auto removeChild(cocos2d::CCNode*, bool) = mac 0x134300, ios 0x15c4cc;
+    virtual auto removeAllChildrenWithCleanup(bool) = mac 0x134340, ios 0x15c514;
+    virtual auto reorderChild(cocos2d::CCNode*, int) = mac 0x134270, ios 0x15c438;
+    virtual auto sortAllChildren() = mac 0x1343f0, ios 0x15c5cc;
+    virtual auto draw() = mac 0x134070, ios 0x15c240;
+    virtual auto updateTransform() = mac 0x133b70, ios 0x15be0c;
+    virtual auto setOpacity(unsigned char) = mac 0x134da0, ios 0x15cf48;
+    virtual auto updateDisplayedOpacity(unsigned char) = mac 0x1354c0, ios 0x15d228;
+    virtual auto setColor(cocos2d::_ccColor3B const&) = mac 0x134ff0, ios 0x15d088;
+    virtual auto updateDisplayedColor(cocos2d::_ccColor3B const&) = mac 0x135370, ios 0x15d1dc;
+    virtual auto setOpacityModifyRGB(bool) = mac 0x135200, ios 0x15d198;
+    virtual auto isOpacityModifyRGB() = mac 0x135350, ios 0x15d1cc;
+    virtual auto initWithTexture(cocos2d::CCTexture2D*) = mac 0x133110, ios 0x15b608;
+    virtual auto initWithTexture(cocos2d::CCTexture2D*, cocos2d::CCRect const&) = mac 0x1330f0, ios 0x15b5f8;
+    virtual auto initWithTexture(cocos2d::CCTexture2D*, cocos2d::CCRect const&, bool) = mac 0x132f10, ios 0x15b4a0;
+    virtual auto initWithSpriteFrame(cocos2d::CCSpriteFrame*) = mac 0x133270, ios 0x15b78c;
+    virtual auto initWithSpriteFrameName(char const*) = mac 0x1332c0, ios 0x15b7f0;
+    virtual auto initWithFile(char const*) = mac 0x133180, ios 0x15b684;
+    virtual auto initWithFile(char const*, cocos2d::CCRect const&) = mac 0x133210, ios 0x15b720;
+    virtual auto setTexture(cocos2d::CCTexture2D*) = mac 0x135a90, ios 0x15d610;
+    virtual auto getTexture() = mac 0x135c00, ios 0x15d748;
+    // virtual auto setBlendFunc(cocos2d::_ccBlendFunc) = mac 0x50590, ios 0x14c7c;
+    // virtual cocos2d::_ccBlendFunc getBlendFunc() = mac 0x505a0, ios 0x14c88;
+    virtual auto setChildColor(cocos2d::_ccColor3B const&) = mac 0x135160, ios 0x15d0f4;
+    virtual auto setChildOpacity(unsigned char) = mac 0x134f50, ios 0x15cfe4;
+    virtual auto getBatchNode() = mac 0x135910, ios 0x15d4e0;
+    virtual auto setBatchNode(cocos2d::CCSpriteBatchNode*) = mac 0x135920, ios 0x15d4e8;
+    virtual auto refreshTextureRect() = mac 0x133520, ios 0x15b964;
+    virtual auto setTextureRect(cocos2d::CCRect const&) = mac 0x133560, ios 0x15b9a8;
+    virtual auto setTextureRect(cocos2d::CCRect const&, bool, cocos2d::CCSize const&) = mac 0x133580, ios 0x15b9bc;
+    virtual auto setVertexRect(cocos2d::CCRect const&) = mac 0x1338f0, ios 0x15bc5c;
+    virtual auto setDisplayFrame(cocos2d::CCSpriteFrame*) = mac 0x135610, ios 0x15d274;
+    virtual auto isFrameDisplayed(cocos2d::CCSpriteFrame*) = mac 0x1356d0, ios 0x15d344;
+    virtual auto displayFrame() = mac 0x135760, ios 0x15d3d8;
+    virtual auto setDisplayFrameWithAnimationName(char const*, int) = mac 0x135680, ios 0x15d2f0;
+    // virtual auto isDirty() = mac 0x505b0, ios 0x14c94;
+    // virtual auto setDirty(bool) = mac 0x505c0, ios 0x14c9c;
+    virtual auto setTextureCoords(cocos2d::CCRect const&) = mac 0x133910, ios 0x15bc64;
+    virtual auto updateBlendFunc() = mac 0x135a20, ios 0x15d5a0;
+    virtual auto setReorderChildDirtyRecursively() = mac 0x134550, ios 0x15c764;
+    virtual auto setDirtyRecursively(bool) = mac 0x1345b0, ios 0x15c7cc;
 
-	CCSprite() = mac 0x133300;
+	CCSprite() = mac 0x133300, ios 0x15b82c;
 
 	static cocos2d::CCSprite* create() = mac 0x132df0;
 	static cocos2d::CCSprite* create(char const*) = mac 0x132a80;
 	static cocos2d::CCSprite* createWithSpriteFrame(cocos2d::CCSpriteFrame*) = mac 0x132cb0;
-	static cocos2d::CCSprite* createWithSpriteFrameName(char const*) = mac 0x132dc0;
+	static cocos2d::CCSprite* createWithSpriteFrameName(char const*) = mac 0x132dc0, ios 0x15b3ec;
 	static cocos2d::CCSprite* createWithTexture(cocos2d::CCTexture2D*) = mac 0x132790;
 
 	void setFlipX(bool) = mac 0x134be0;
@@ -672,8 +686,8 @@ class cocos2d::CCSpriteFrame {
 }
 
 class cocos2d::CCSpriteFrameCache {
-	auto addSpriteFramesWithFile(char const*) = mac 0x199a10;
-	static cocos2d::CCSpriteFrameCache* sharedSpriteFrameCache() = mac 0x198970;
+	auto addSpriteFramesWithFile(char const*) = mac 0x199a10, ios 0x29e818;
+	static cocos2d::CCSpriteFrameCache* sharedSpriteFrameCache() = mac 0x198970, ios 0x29dc4c;
 	auto spriteFrameByName(char const*) = mac 0x19a7e0;
 }
 
@@ -685,16 +699,16 @@ class cocos2d::CCStandardTouchHandler {
 
 class cocos2d::CCString {
 	// virtual ~CCString() = mac 0x44c590;
-	virtual auto isEqual(cocos2d::CCObject const*) = mac 0x44c8f0;
-	virtual auto acceptVisitor(cocos2d::CCDataVisitor&) = mac 0x44ccb0;
-	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) = mac 0x44c870;
+	virtual auto isEqual(cocos2d::CCObject const*) = mac 0x44c8f0, ios 0x1a1e6c;
+	virtual auto acceptVisitor(cocos2d::CCDataVisitor&) = mac 0x44ccb0, ios 0x1a2168;
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) = mac 0x44c870, ios 0x1a1e14;
 	// cocos2d::CCString::create(gd::string const&) = mac 0x44c960;
 	// CCString(gd::string const&) = mac 0x44c310;
-	auto boolValue() const = mac 0x44c810;
+	auto boolValue() const = mac 0x44c810, ios 0x1a1d88;
 	auto doubleValue() const = mac 0x44c7f0;
 	auto floatValue() const = mac 0x44c7d0;
-	auto getCString() const = mac 0x44c470;
-	auto intValue() const = mac 0x44c780;
+	auto getCString() const = mac 0x44c470, ios 0x1a1b7c;
+	auto intValue() const = mac 0x44c780, ios 0x1a1ca8;
 }
 
 class cocos2d::CCTargetedTouchHandler {
@@ -731,8 +745,8 @@ class cocos2d::CCTextFieldDelegate {
 }
 
 class cocos2d::CCTextureCache {
-	auto addImage(char const*, bool) = mac 0x358120;
-	static cocos2d::CCTextureCache* sharedTextureCache() = mac 0x356e00;
+	auto addImage(char const*, bool) = mac 0x358120, ios 0xa8388;
+	static cocos2d::CCTextureCache* sharedTextureCache() = mac 0x356e00, ios 0xa81ec;
 }
 
 class cocos2d::CCTintTo {
@@ -743,12 +757,12 @@ class cocos2d::CCTouch {
 	auto getDelta() const = mac 0x38340;
 	auto getLocationInView() const = mac 0x38250;
 	auto getPreviousLocationInView() const = mac 0x38270;
-	auto getLocation() const = mac 0x382b0;
+	auto getLocation() const = mac 0x382b0, ios 0x21ce78;
 }
 
 class cocos2d::CCTouchDispatcher {
-	auto decrementForcePrio(int) = mac 0x280f70;
-	auto incrementForcePrio(int) = mac 0x280f60;
+	auto decrementForcePrio(int) = mac 0x280f70, ios 0xcc280;
+	auto incrementForcePrio(int) = mac 0x280f60, ios 0xcc268;
 	void touches(cocos2d::CCSet*, cocos2d::CCEvent*, unsigned int);
 }
 
@@ -758,7 +772,7 @@ class cocos2d::CCTouchHandler {
 }
 
 class cocos2d::CCTransitionFade {
-	static cocos2d::CCTransitionFade* create(float, cocos2d::CCScene*) = mac 0x8ea30;
+	static cocos2d::CCTransitionFade* create(float, cocos2d::CCScene*) = mac 0x8ea30, ios 0x12c244;
 }
 
 // class cocos2d::ZipUtils {

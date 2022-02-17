@@ -41,8 +41,6 @@ namespace geode {
             int m_gdAccountID = 0;
             std::string m_gdAccountName = "";
             std::unordered_map<std::string, std::string> m_links;
-
-            static std::string expandKnownLink(std::string const& link);
         };
 
         struct Library {
@@ -70,6 +68,7 @@ namespace geode {
          */
         std::string m_binaryName = GEODE_WINDOWS("mod.dll")
                                    GEODE_MACOS("mod.dylib")
+                                   GEODE_IOS("mod.dylib")
                                    GEODE_ANDROID("mod.so");
         /**
          * Mod Version. Should follow semver.
@@ -210,6 +209,16 @@ namespace geode {
          */
         geode_unload m_unloadFunc = nullptr;
         /**
+         * Pointer to the Mod's enable function
+         */
+        geode_enable m_enableFunc = nullptr;
+        /**
+         * Pointer to the Mod's enable function
+         */
+        geode_disable m_disableFunc = nullptr;
+        geode_load_data m_loadDataFunc = nullptr;
+        geode_save_data m_saveDataFunc = nullptr;
+        /**
          * Path to the mod's build directory
          */
         ghc::filesystem::path m_hotReloadPath;
@@ -267,6 +276,7 @@ namespace geode {
         bool        isEnabled()     const;
         bool        isLoaded()      const;
         bool        supportsDisabling() const;
+        bool        wasSuccesfullyLoaded() const;
 
         ghc::filesystem::path getHotReloadPath() const;
         Result<> enableHotReload();
@@ -386,16 +396,14 @@ namespace geode {
         Result<> unload();
 
         /**
-         * Enable & load this mod
+         * Enable this mod
          * @returns Successful result on success, 
          * errorful result with info on error
          */
         Result<> enable();
         
         /**
-         * Disable & unload this mod
-         * @warning May crash if the mod doesn't 
-         * properly handle unloading!
+         * Disable this mod if it supports doing so
          * @returns Successful result on success, 
          * errorful result with info on error
          */
@@ -489,5 +497,7 @@ namespace geode {
         T* with() {
             return reinterpret_cast<T*>(this);
         }
+
+		const char* expandSpriteName(const char* name);
     };
 }

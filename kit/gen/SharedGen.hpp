@@ -56,9 +56,9 @@ struct CacShare {
                 		return "base::get()+" + f.binds[kWindows];
                 	}
                     if (f.function_type == kVirtualFunction)
-                        return fmt::format("addresser::getVirtual((temp_name_find_better::member{})(&{}::{}))", f.hash(), f.parent_class->name, f.name);
+                        return fmt::format("addresser::getVirtual((types::member{})(&{}::{}))", f.global_index, f.parent_class->name, f.name);
                     else
-                        return fmt::format("addresser::getNonVirtual((temp_name_find_better::member{})(&{}::{}))", f.hash(), f.parent_class->name, f.name);
+                        return fmt::format("addresser::getNonVirtual((types::member{})(&{}::{}))", f.global_index, f.parent_class->name, f.name);
                 } else {
                     return "base::get()+" + f.binds[kWindows];
                 }
@@ -67,9 +67,9 @@ struct CacShare {
                     return fmt::format("(uintptr_t)dlsym((void*)base::get(), \"{}\")", f.android_mangle);
                 else {
                     if (f.function_type == kVirtualFunction)
-                        return fmt::format("addresser::getVirtual((temp_name_find_better::member{})(&{}::{}))", f.hash(), f.parent_class->name, f.name);
+                        return fmt::format("addresser::getVirtual((types::member{})(&{}::{}))", f.global_index, f.parent_class->name, f.name);
                     else
-                        return fmt::format("addresser::getNonVirtual((temp_name_find_better::member{})(&{}::{}))", f.hash(), f.parent_class->name, f.name);
+                        return fmt::format("addresser::getNonVirtual((types::member{})(&{}::{}))", f.global_index, f.parent_class->name, f.name);
                 }
         }
         return "";
@@ -93,6 +93,7 @@ struct CacShare {
     }
 
     static std::pair<vector<int>, vector<string>> reorderStructs(Function const& f) {
+    	if (platform != kWindows) return {};
         auto cc = CacShare::getConvention(f);
         vector<string> out;
         vector<int> params;
@@ -125,12 +126,23 @@ struct CacShare {
         return { params, out };
     }
 
+    static string removeStruct(string type) {
+    	return type.find("struct") != string::npos ? type.substr(7) : type;
+    }
+
+    static vector<string> removeStruct(vector<string> types) {
+    	for (string& type : types) {
+			type = type.find("struct") != string::npos ? type.substr(7) : type;
+    	}
+    	return types;
+    }
+
     static string formatArgTypes(vector<string> args) {
-        return args.size() > 0 ? fmt::format(", {}", fmt::join(args, ", ")) : string("");
+        return args.size() > 0 ? fmt::format(", {}", fmt::join(removeStruct(args), ", ")) : string("");
     }
 
     static string formatRawArgTypes(vector<string> args) {
-        return args.size() > 0 ? fmt::format("{}", fmt::join(args, ", ")) : string("");
+        return args.size() > 0 ? fmt::format("{}", fmt::join(removeStruct(args), ", ")) : string("");
     }
 
     static string formatRawArgs(vector<string> args) {
@@ -139,7 +151,7 @@ struct CacShare {
         if (args.size() == 1 && args[0] == "void")
             return "";
         for (auto& i : args) {
-            out += fmt::format("{} p{}, ", i, c);
+            out += fmt::format("{} p{}, ", removeStruct(i), c);
             ++c;
         }
         return out.substr(0, out.size()-2);
@@ -151,7 +163,7 @@ struct CacShare {
         if (args.size() == 1 && args[0] == "void")
             return "";
         for (auto& i : args) {
-            if (argnames[c] == "") out += fmt::format("{} p{}, ", i, c); 
+            if (argnames[c] == "") out += fmt::format("{} p{}, ", removeStruct(i), c); 
             else out += fmt::format("{} {}, ", i, argnames[c]); 
             ++c;
         }
@@ -212,8 +224,8 @@ struct CacShare {
 
     static string getConvention(Function const& f) {
         switch (f.function_type) {
-            case kConstructor:
-            case kDestructor:
+            case kConstructor: [[fallthrough]];
+            case kDestructor: [[fallthrough]];
             case kRegularFunction:
             	if (f.args.size() == 0) return "Thiscall";
                 return "Membercall";
@@ -228,11 +240,10 @@ struct CacShare {
 
     static string getReturn(Function const& f) {
     	switch (f.function_type) {
-    		case kConstructor:
+    		case kConstructor: [[fallthrough]];
     		case kDestructor:
     			return "void";
-    		default:
-    			break;
+    		default: break;
     	}
         if (f.return_type == "auto") {
             string out = fmt::format("decltype(std::declval<{}>().{}(", f.parent_class->name, f.name);

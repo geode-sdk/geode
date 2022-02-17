@@ -1,49 +1,38 @@
 #include "SharedGen.hpp"
+#include <set>
 
 namespace format_strings {
 
-	char const* declare_member_type = R"CAC(
-GEODE_NOINLINE GEODE_HIDDEN inline static uintptr_t address{global_index}() {{
-	static uintptr_t _address{global_index} = {address};
-	return _address{global_index};
-}}
+	char const* declare_member_type = R"RAW(
 using ret{global_index} = {return};
 using func{global_index} = ret{global_index}(*)({const}{constw}{class_name}*{arg_types});
-using pure{global_index} = ret{global_index}({class_name}*{arg_types}){constw}{const};
+using pure{global_index} = ret{global_index}({raw_arg_types});
 using member{global_index} = ret{global_index}({class_name}::*)({raw_arg_types}){const};
-)CAC";
+)RAW";
 
-	char const* declare_static_type = R"CAC(
-GEODE_NOINLINE GEODE_HIDDEN inline static uintptr_t address{global_index}() {{
-	static uintptr_t _address{global_index} = {address};
-	return _address{global_index};
-}}
+	char const* declare_static_type = R"RAW(
 using ret{global_index} = {return};
 using func{global_index} = ret{global_index}(*)({raw_arg_types});
-using pure{global_index} = ret{global_index}({raw_arg_types}){constw}{const};
+using pure{global_index} = ret{global_index}({raw_arg_types});
 using member{global_index} = func{global_index};
-)CAC";
+)RAW";
 
-	char const* declare_structor_type = R"CAC(
-GEODE_NOINLINE GEODE_HIDDEN inline static uintptr_t address{global_index}() {{
-	static uintptr_t _address{global_index} = {address};
-	return _address{global_index};
-}}
+	char const* declare_structor_type = R"RAW(
 using ret{global_index} = void;
 using func{global_index} = ret{global_index}(*)({class_name}*{arg_types});
-using pure{global_index} = ret{global_index}({class_name}*{arg_types});
+using pure{global_index} = ret{global_index}({raw_arg_types});
 using member{global_index} = func{global_index};
-)CAC";
+)RAW";
 
 }
+
+using std::set;
 
 int main(int argc, char** argv) {
 	string output("");
 	Root root = CacShare::init(argc, argv);
 
 	for (auto& [name, c] : root.classes) {
-		string unqualifiedName = CacShare::toUnqualified(name);
-
 		for (auto& f : c.functions) {
 			if (!CacShare::functionDefined(f))
                 continue; // Function not supported, skip
@@ -71,7 +60,7 @@ int main(int argc, char** argv) {
 				fmt::arg("class_name", name),
 				fmt::arg("const", f.is_const ? "const " : ""),
 				fmt::arg("constw", f.is_const ? " " : ""),
-				fmt::arg("global_index", f.hash()),
+				fmt::arg("global_index", f.global_index),
 				fmt::arg("return", CacShare::getReturn(f))
 			);
 		}

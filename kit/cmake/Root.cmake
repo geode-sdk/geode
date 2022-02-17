@@ -10,12 +10,26 @@ set(GEODE_INCLUDE_DIR ${GEODE_SDK_DIR}/include)
 
 if (NOT DEFINED GEODE_TARGET_PLATFORM)
 	if(APPLE)
-		set(GEODE_TARGET_PLATFORM "MacOS")
+		if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm")
+			set(GEODE_TARGET_PLATFORM "iOS")
+		else()
+			set(GEODE_TARGET_PLATFORM "MacOS")
+		endif()
 	elseif(WIN32)
 		set(GEODE_TARGET_PLATFORM "Win32")
 	else()
 		message(FATAL_ERROR "Unable to detect platform, please set GEODE_TARGET_PLATFORM in the root CMake file.")
 	endif()
+endif()
+
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm")
+	set(GEODE_HOST_ARM 1)
+endif()
+
+if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
+	set(CMAKE_OSX_ARCHITECTURES arm64)
+	set(CMAKE_OSX_SYSROOT ${GEODE_IOS_SDK})
+	# needs to be put here so things dont mess up
 endif()
 
 add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
@@ -74,13 +88,13 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 	${INCLUDE_DIRECTORIES}
 )
 
-file(GLOB_RECURSE GEODE_NO_PCH ${CMAKE_SOURCE_DIR}/**/*.mm ${CMAKE_SOURCE_DIR}/**/*.m)
-set_source_files_properties(${GEODE_NO_PCH} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
-if (NOT GEODE_NO_PRECOMPILED_HEADERS)
-	target_precompile_headers(${PROJECT_NAME} PUBLIC
-		"$<$<COMPILE_LANGUAGE:CXX>:${GEODE_INCLUDE_DIR}/Geode.hpp>"
-	)
-endif()
+#file(GLOB_RECURSE GEODE_NO_PCH ${CMAKE_SOURCE_DIR}/**/*.mm ${CMAKE_SOURCE_DIR}/**/*.m ${CMAKE_SOURCE_DIR}/*.m ${CMAKE_SOURCE_DIR}/*.mm)
+#set_source_files_properties(${GEODE_NO_PCH} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+#if (NOT GEODE_NO_PRECOMPILED_HEADERS)
+#	target_precompile_headers(${PROJECT_NAME} PUBLIC
+#		"$<$<COMPILE_LANGUAGE:CXX>:${GEODE_INCLUDE_DIR}/Geode.hpp>"
+#	)
+#endif()
 
 if (NOT DEFINED GEODE_NO_GEODE_FILE)
 	create_geode_file(${PROJECT_NAME})
