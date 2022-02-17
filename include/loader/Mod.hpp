@@ -20,7 +20,9 @@ namespace geode {
     class Hook;
     class Patch;
     class Loader;
-    class LogStream;
+    namespace log {
+        class Log;
+    }
     class Mod;
     class APIMod;
 
@@ -289,7 +291,7 @@ namespace geode {
          * @returns Reference to log stream. Make sure 
          * to end your logging with geode::endl.
          */
-        LogStream& log();
+        log::Log log();
 
         /**
          * Log an information. Equivalent to 

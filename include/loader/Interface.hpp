@@ -10,7 +10,10 @@
 namespace geode {
 	class Mod;
 	class Hook;
-	class LogMessage;
+
+	namespace log {
+		class LogPtr;
+	}
 
 	/**
 	 * For developing your own mods, it is 

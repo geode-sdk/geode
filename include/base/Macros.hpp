@@ -14,6 +14,7 @@ namespace geode::helper {}
 namespace geode::node {}
 namespace geode::op {}
 namespace geode::stream {}
+namespace geode::log {}
 namespace cocos2d {}
 namespace cocos2d::extension {}
 
@@ -27,6 +28,7 @@ namespace cocos2d::extension {}
     using namespace geode::node;        \
     using namespace geode::op;          \
     using namespace geode::stream;      \
+    using namespace geode::log;         \
     using namespace cocos2d;            \
     using namespace cocos2d::extension; \
 

@@ -16,178 +16,112 @@ namespace cocos2d {
 }
 
 namespace geode {
-    #pragma warning(disable: 4251)
-
     class Mod;
-    class LogStream;
+}
+
+namespace geode::log {
+    #pragma warning(disable: 4251)
 
     using log_clock = std::chrono::system_clock;
 
-    class GEODE_DLL Log {
-        protected:
-            friend class LogStream;
-
-        public:
-            virtual std::string toString() const = 0;
-
-            virtual ~Log();
+    struct LogMetadata {
+        std::string m_repr;
+        LogMetadata(std::string const& r) : m_repr(r) {}
+        LogMetadata() {}
+        virtual ~LogMetadata() {}
     };
+    using NoMetadata = LogMetadata;
 
-    class GEODE_DLL LogMod : public Log {
+    class Log;
+
+    class GEODE_DLL LogPtr {
         protected:
-            Mod* m_mod;
-
-            friend class LogStream;
-        
-        public:
-            LogMod(Mod* Mod) : m_mod(Mod) {}
-            
-            Mod* getMod() const;
-
-            std::string toString() const override;
-    };
-
-    class GEODE_DLL LogString : public Log {
-        protected:
-            std::string m_string;
-
-            friend class LogStream;
-
-        public:
-            std::string toString() const override;
-
-            LogString() = default;
-            LogString(
-                std::string const& str
-            ) : m_string(str) {}
-    };
-
-    class GEODE_DLL LogCCObject : public Log {
-        protected:
-            cocos2d::CCObject* m_obj;
-        
-            friend class LogStream;
-
-        public:
-            LogCCObject() = default;
-            LogCCObject(cocos2d::CCObject* obj);
-            ~LogCCObject();
-
-            cocos2d::CCObject* getObject() const;
-            
-            std::string toString() const override;
-    };
-
-    class GEODE_DLL LogMessage {
-        protected:
-            Mod* m_sender                = nullptr;
+            Mod* m_sender = nullptr;
             log_clock::time_point m_time = log_clock::now();
-            std::vector<Log*> m_data     = {};
-            Severity m_severity          = Severity::Debug;
+            std::vector<LogMetadata*> m_data;
+            Severity m_severity = Severity::Debug;
 
-            friend class LogStream;
+            friend class Log;
         
         public:
-            LogMessage() = default;
+            LogPtr(Mod* Mod) : m_sender(Mod) {}
 
-            LogMessage(
-                Mod* Mod
-            ) : m_sender(Mod) {}
+            ~LogPtr();
 
-            LogMessage(
-                std::string data,
-                Mod* Mod
-            ) : m_data({ new LogString(data) }),
-                m_sender(Mod) {}
-
-            LogMessage(
-                std::string data,
-                Severity severity,
-                Mod* Mod
-            ) : m_sender(Mod),
-                m_data({ new LogString(data) }),
-                m_severity(severity) {}
-
-            LogMessage(
-                std::initializer_list<Log*> data,
-                Mod* Mod
-            ) : m_sender(Mod),
-                m_data(data) {}
-
-            ~LogMessage();
-
-            void add(Log* msg);
+            std::string toString(bool logTime = true) const;
 
             log_clock::time_point getTime() const;
             std::string getTimeString() const;
             Mod* getSender() const;
             Severity getSeverity() const;
-            std::vector<Log*> const& getData() const;
 
-            std::string toString(bool logTime = true) const;
     };
 
-    /**
-     * End logging and print message to 
-     * the console.
-     */
-    struct endl_type {
-        constexpr endl_type() {}
-    };
-    constexpr const auto endl = endl_type();
+    using ostream_fn_type = std::ostream&(*)(std::ostream&);
 
-    /**
-     * Print message to the console without 
-     * a newline and continue logging to it.
-     */
-    struct continue_type {
-        constexpr continue_type() {}
-    };
-    constexpr const auto conl = continue_type();
-
-    struct decimal_type {
-        constexpr decimal_type() {}
-    };
-    constexpr const auto dec = decimal_type();
-
-    struct hexadecimal_type {
-        constexpr hexadecimal_type() {}
-    };
-    constexpr const auto hex = hexadecimal_type();
-
-    class GEODE_DLL LogStream {
+    class GEODE_DLL Log {
         protected:
-            LogMessage* m_log = nullptr;
+            LogPtr* m_logptr = nullptr;
             std::stringstream m_stream;
-
-            void init();
-            void save();
-            void finish();
-            void log();
+            void flush();
 
         public:
-            LogStream& operator<<(Mod*);
-            LogStream& operator<<(void*);
-            LogStream& operator<<(Severity);
-            LogStream& operator<<(Severity::type);
-            LogStream& operator<<(cocos2d::CCObject*);
-            LogStream& operator<<(std::string const&);
-            LogStream& operator<<(std::string_view const&);
-            LogStream& operator<<(ghc::filesystem::path const&);
-            LogStream& operator<<(const char*);
-            LogStream& operator<<(uintptr_t);
-            LogStream& operator<<(int);
-            LogStream& operator<<(long);
-            LogStream& operator<<(float);
-            LogStream& operator<<(double);
-            LogStream& operator<<(cocos2d::CCPoint const&);
-            LogStream& operator<<(cocos2d::CCSize const&);
-            LogStream& operator<<(cocos2d::CCRect const&);
-            LogStream& operator<<(endl_type);
-            LogStream& operator<<(continue_type);
-            LogStream& operator<<(decimal_type);
-            LogStream& operator<<(hexadecimal_type);
+            Log(Mod* m) : m_logptr(new LogPtr(m)) {}
+            Log() : Log(nullptr) {}
 
-            ~LogStream();
+            Log& operator<<(ostream_fn_type);
+
+            Log& operator<<(Severity::type s);
+            Log& operator<<(Severity s);
+
+
+            template <typename T>
+            Log& operator<<(T item) {
+                this->m_stream << item;
+                //static_assert(!std::is_same<Severity, T>::value, "didnt work :(");
+                return *this;
+            }
+
+            template <typename U, typename T>
+            Log& streamMeta(T t) {
+                static_assert(std::is_base_of<NoMetadata, U>::value, "Metadata class must derive from geode::log::NoMetadata");
+
+                auto md = new NoMetadata;
+                md->m_repr = this->m_stream.str();
+                this->m_logptr->m_data.push_back(md);
+                m_stream.str("");
+
+                md = new U(t);
+                m_stream << t;
+                md->m_repr = m_stream.str();
+                this->m_logptr->m_data.push_back(md);
+                m_stream.str("");
+
+                return *this;
+            }
+
+            ~Log();
+    };
+
+    // geode-defined metadata functions
+
+    struct ModMeta : public NoMetadata {
+        Mod* m_mod;
+        ModMeta(Mod* m) : m_mod(m) {}
+        ModMeta(std::string const& r, Mod* m) : m_mod(m), NoMetadata(r) {}
+    };
+    struct CCObjectMeta : public NoMetadata {
+        cocos2d::CCObject* m_obj;
+        CCObjectMeta(cocos2d::CCObject* obj);
+        CCObjectMeta(std::string const& r, cocos2d::CCObject* obj);
+        ~CCObjectMeta();
     };
 }
+geode::log::Log& operator<<(geode::log::Log&, geode::Mod*);
+geode::log::Log& operator<<(geode::log::Log&, cocos2d::CCObject*);
+
+std::ostream& operator<<(std::ostream& os, geode::Mod* mod);
+std::ostream& operator<<(std::ostream& os, cocos2d::CCObject* obj);
+std::ostream& operator<<(std::ostream& os, cocos2d::CCPoint const& pos);
+std::ostream& operator<<(std::ostream& os, cocos2d::CCSize const& size);
+std::ostream& operator<<(std::ostream& os, cocos2d::CCRect const& rect);

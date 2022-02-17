@@ -10,6 +10,7 @@
 #include <functional>
 #include <unordered_set>
 #include <fs/filesystem.hpp>
+#include <Log.hpp>
 
 class Geode;
 
@@ -18,15 +19,19 @@ namespace geode {
 
     static constexpr const std::string_view geode_directory          = "geode";
     static constexpr const std::string_view geode_mod_directory      = "mods";
+    static constexpr const std::string_view geode_log_directory      = "log";
     static constexpr const std::string_view geode_resource_directory = "resources";
     static constexpr const std::string_view geode_temp_directory     = "temp";
     static constexpr const std::string_view geode_mod_extension      = ".geode";
 
     class Mod;
     class Hook;
-    class LogStream;
-    class LogMessage;
     struct ModInfo;
+
+    namespace log {
+        class Log;
+        class LogPtr;
+    }
 
     class GEODE_DLL Loader {
     public:
@@ -44,10 +49,10 @@ namespace geode {
         };
         
         std::unordered_map<std::string, Mod*> m_mods;
-        std::vector<LogMessage*> m_logs;
+        std::vector<log::LogPtr*> m_logs;
         std::vector<ghc::filesystem::path> m_modDirectories;
         std::vector<UnloadedModInfo> m_erroredMods;
-        LogStream* m_logStream;
+        log::Log m_logStream;
         LoaderSettings m_loadedSettings;
         bool m_isSetup = false;
         static bool s_unloading;
@@ -155,11 +160,11 @@ namespace geode {
          */
         static bool isUnloading();
 
-        LogStream& logStream();
-        void log(LogMessage* log);
-        void deleteLog(LogMessage* log);
-        std::vector<LogMessage*> const& getLogs() const;
-        std::vector<LogMessage*> getLogs(
+        log::Log& logStream();
+        void pushLog(log::LogPtr* log);
+        void popLog(log::LogPtr* log);
+        std::vector<log::LogPtr*> const& getLogs() const;
+        std::vector<log::LogPtr*> getLogs(
             std::initializer_list<Severity> severityFilter
         );
         
