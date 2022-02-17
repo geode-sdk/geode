@@ -370,19 +370,11 @@ class CCMenuItemToggler : cocos2d::CCMenuItem {
 	static CCMenuItemToggler* create(cocos2d::CCNode* offSpr, cocos2d::CCNode* onSpr, cocos2d::CCObject* target, cocos2d::SEL_MenuHandler callback) = mac 0x38400, win 0x19600, ios 0xf5594;
 	void setSizeMult(float) = mac 0x38a40, win 0x19850, ios 0x0;
 	void toggle(bool) = mac 0x38950, win 0x199b0, ios 0xf5848;
-<<<<<<< HEAD
-	bool init(cocos2d::CCNode* off, cocos2d::CCNode* on, cocos2d::CCObject* target, cocos2d::SEL_MenuHandler handler) = mac 0x125450, win 0x196e0, ios 0x0;
-	void activate() = mac 0x0, win 0x198d0, ios 0x0;
-	void selected() = mac 0x0, win 0x198a0, ios 0x0;
-	void unselected() = mac 0x0, win 0x19900, ios 0x0;
-	void setEnabled(bool enabled) = mac 0x0, win 0x19930, ios 0x0;
-=======
 	bool init(cocos2d::CCNode* off, cocos2d::CCNode* on, cocos2d::CCObject* target, cocos2d::SEL_MenuHandler handler) = mac 0x38500, win 0x196e0, ios 0x0;
 	void activate() = mac 0x38bc0, win 0x198d0, ios 0xf59ac;
 	void selected() = mac 0x38b80, win 0x198a0, ios 0x0;
 	void unselected() = mac 0x38c00, win 0x19900, ios 0x0;
 	void setEnabled(bool enabled) = mac 0x38c40, win 0x19930, ios 0x0;
->>>>>>> 089d138e74f469def23d9ddf3d4483077204ee51
 
 	CCMenuItemSpriteExtra* m_offButton;
 	CCMenuItemSpriteExtra* m_onButton;
