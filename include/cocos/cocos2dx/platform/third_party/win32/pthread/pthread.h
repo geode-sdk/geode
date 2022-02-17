@@ -285,7 +285,7 @@ enum {
 #  endif
 #endif
 
-#include <sched.h>
+#include <../pthread/sched.h>
 
 /*
  * To avoid including windows.h we define only those things that we
@@ -302,6 +302,7 @@ enum {
 #endif
 #endif
 
+#ifndef _INC_TIME
 #ifndef HAVE_STRUCT_TIMESPEC
 #define HAVE_STRUCT_TIMESPEC 1
 struct timespec {
@@ -309,6 +310,7 @@ struct timespec {
         long tv_nsec;
 };
 #endif /* HAVE_STRUCT_TIMESPEC */
+#endif /* _INC_TIME */
 
 #ifndef SIG_BLOCK
 #define SIG_BLOCK 0
