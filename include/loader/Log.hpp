@@ -29,11 +29,11 @@ namespace geode::log {
         LogMetadata(std::string const& r) : m_repr(r) {}
         LogMetadata() {}
         virtual ~LogMetadata() {}
-    };
-    using NoMetadata = LogMetadata;
+    }; using NoMetadata = LogMetadata;
+
+    std::string generateLogName();
 
     class Log;
-
     class GEODE_DLL LogPtr {
         protected:
             Mod* m_sender = nullptr;

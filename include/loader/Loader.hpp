@@ -50,9 +50,9 @@ namespace geode {
         
         std::unordered_map<std::string, Mod*> m_mods;
         std::vector<log::LogPtr*> m_logs;
+        std::ofstream m_logStream;
         std::vector<ghc::filesystem::path> m_modDirectories;
         std::vector<UnloadedModInfo> m_erroredMods;
-        log::Log m_logStream;
         LoaderSettings m_loadedSettings;
         bool m_isSetup = false;
         static bool s_unloading;
@@ -160,7 +160,6 @@ namespace geode {
          */
         static bool isUnloading();
 
-        log::Log& logStream();
         void pushLog(log::LogPtr* log);
         void popLog(log::LogPtr* log);
         std::vector<log::LogPtr*> const& getLogs() const;
