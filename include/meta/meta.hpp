@@ -9,7 +9,7 @@ namespace geode::core::meta {
 
 #ifdef GEODE_IS_WINDOWS
 	#include "function.hpp"
-	#include "hook.hpp"
+	// #include "hook.hpp"
 	#include "cdecl.hpp"
 	#include "optcall.hpp"
 	#include "thiscall.hpp"
