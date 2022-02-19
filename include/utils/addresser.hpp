@@ -89,7 +89,7 @@ namespace geode::addresser {
 
 			// i need something better than this
 			#ifndef GEODE_ADDRESSER_TEST
-				Interface::get()->logInfo("[[" + utils::intToHex(ins) + " + " + utils::intToHex(thunk) + "] + " + utils::intToHex(index) + "]", Severity::Debug);
+				Interface::get()->logInfo("[[" + utils::intToHex((void*)ins) + " + " + utils::intToHex(thunk) + "] + " + utils::intToHex(index) + "]", Severity::Debug);
 			#endif
 
 			// [[this + thunk] + offset] is the f we want
