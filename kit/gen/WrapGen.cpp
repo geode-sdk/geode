@@ -17,11 +17,15 @@ struct {function_name}<Derived, Base, Ret(Parameters...), std::enable_if_t<
 	std::is_member_function_pointer_v<decltype(substitute<Ret, Base, Derived, Parameters...>(&Derived::{function_name}))>
 >> {{
 private:
-	static Ret __fastcall wrapper(Derived* self, Parameters... ps) {{
+	static Ret wrapper(Derived* self, Parameters... ps) {{
 		return self->Derived::{function_name}(ps...);
 	}}
 public:
-	constexpr static inline auto value = &wrapper;
+	#ifdef GEODE_IS_WINDOWS
+		constexpr static inline auto value = MyConv::template get_wrapper<&wrapper>();
+	#else
+		constexpr static inline auto value = &wrapper;
+	#endif
 }};
 
 template <class Derived, class Base, class Ret, class ...Parameters>
@@ -29,11 +33,15 @@ struct {function_name}<Derived, Base, Ret(Parameters...), std::enable_if_t<
 	is_function_pointer_v<decltype(substitute<Ret, Base, Derived, Parameters...>(&Derived::{function_name}))>
 >> {{
 private:
-	static Ret __fastcall wrapper(Parameters... ps) {{
+	static Ret wrapper(Parameters... ps) {{
 		return Derived::{function_name}(ps...);
 	}}
 public:
-	constexpr static inline auto value = &wrapper;
+	#ifdef GEODE_IS_WINDOWS
+		constexpr static inline auto value = MyConv::template get_wrapper<&wrapper>();
+	#else
+		constexpr static inline auto value = &wrapper;
+	#endif
 }};
 
 )RAW";

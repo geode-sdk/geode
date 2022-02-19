@@ -1,5 +1,8 @@
 #pragma once
 #include "Traits.hpp"
+#ifdef GEODE_IS_WINDOWS
+	#include <meta/meta.hpp>
+#endif
 
 namespace geode::modifier {
 	struct wrap {
@@ -20,7 +23,11 @@ namespace geode::modifier {
 				return self->Derived::constructor(ps...);
 			}
 		public:
-			constexpr static inline auto value = &wrapper;
+			#ifdef GEODE_IS_WINDOWS
+				constexpr static inline auto value = MyConv::template get_wrapper<&wrapper>();
+			#else
+				constexpr static inline auto value = &wrapper;
+			#endif
 		};
 
 		template <class, class, class, class = void>
@@ -40,7 +47,11 @@ namespace geode::modifier {
 				return self->Derived::destructor(ps...);
 			}
 		public:
+		#ifdef GEODE_IS_WINDOWS
+			constexpr static inline auto value = MyConv::template get_wrapper<&wrapper>();
+		#else
 			constexpr static inline auto value = &wrapper;
+		#endif
 		};
 		
 		#include <gen/Wrap.hpp>
