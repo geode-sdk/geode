@@ -9,6 +9,8 @@ struct Modify<Derived, {class_name}> : ModifyBase<Modify<Derived, {class_name}>>
 	using ModifyBase<Modify<Derived, {class_name}>>::ModifyBase;
 	using Base = {class_name};
 	static void apply() {{
+		using namespace geode::core::meta;
+		using namespace geode::core::meta::x86;
 )RAW";
 
 	// requires: index, class_name, arg_types, function_name, raw_arg_types, non_virtual

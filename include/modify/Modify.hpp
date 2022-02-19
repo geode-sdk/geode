@@ -5,6 +5,12 @@
 #include "Addresses.hpp"
 #include <iostream>
 
+namespace geode::core::meta {
+	namespace x86 {
+		
+	}
+}
+
 namespace geode::modifier {
 
 	template <class Derived, class Base>
