@@ -1,19 +1,7 @@
 #pragma once
 #include "Traits.hpp"
-#ifdef GEODE_IS_WINDOWS
-	#include <meta/meta.hpp>
-#endif
 
 namespace geode::modifier {
-
-	template <class Ret, class... Args>
-    class DefaultConv {
-    public:
-    	template <Ret(*detour)(Args...)>
-        static constexpr decltype(auto) get_wrapper() {
-            return detour;
-        }
-    };
 
 	struct wrap {
 		template <template <class, class...> class, class, class, class, class = void>

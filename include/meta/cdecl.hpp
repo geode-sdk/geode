@@ -23,4 +23,4 @@ namespace geode::core::meta::x86 {
     };
 }
 
-#endif /* GEODE_CORE_META_THISCALL_HPP */
+#endif /* GEODE_CORE_META_CDECL_HPP */
