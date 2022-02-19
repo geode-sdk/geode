@@ -5,8 +5,18 @@
 #endif
 
 namespace geode::modifier {
+
+	template <class Ret, class... Args>
+    class DefaultConv {
+    public:
+    	template <Ret(*detour)(Args...)>
+        static constexpr decltype(auto) get_wrapper() {
+            return detour;
+        }
+    };
+
 	struct wrap {
-		template <class, class, class, class = void>
+		template <template <class, class...> class, class, class, class, class = void>
 		struct constructor {
 		private:
 			static void wrapper(...) {}
@@ -14,8 +24,8 @@ namespace geode::modifier {
 			constexpr static inline auto value = &wrapper;
 		};
 
-		template <class Derived, class Base, class Ret, class ...Parameters>
-		struct constructor<Derived, Base, Ret(Parameters...), std::enable_if_t<
+		template <template <class, class...> class Conv, class Derived, class Base, class Ret, class ...Parameters>
+		struct constructor<Conv, Derived, Base, Ret(Parameters...), std::enable_if_t<
 			std::is_member_function_pointer_v<decltype(substitute<Ret, Base, Derived, Parameters...>(&Derived::constructor))>
 		>> {
 		private:
@@ -23,14 +33,11 @@ namespace geode::modifier {
 				return self->Derived::constructor(ps...);
 			}
 		public:
-			#ifdef GEODE_IS_WINDOWS
-				constexpr static inline auto value = MyConv::template get_wrapper<&wrapper>();
-			#else
-				constexpr static inline auto value = &wrapper;
-			#endif
+			using MyConv = Conv<Ret, Derived*, Parameters...>;
+			constexpr static inline auto value = MyConv::template get_wrapper<&wrapper>();
 		};
 
-		template <class, class, class, class = void>
+		template <template <class, class...> class, class, class, class, class = void>
 		struct destructor {
 		private:
 			static void wrapper(...) {}
@@ -38,8 +45,8 @@ namespace geode::modifier {
 			constexpr static inline auto value = &wrapper;
 		};
 
-		template <class Derived, class Base, class Ret, class ...Parameters>
-		struct destructor<Derived, Base, Ret(Parameters...), std::enable_if_t<
+		template <template <class, class...> class Conv, class Derived, class Base, class Ret, class ...Parameters>
+		struct destructor<Conv, Derived, Base, Ret(Parameters...), std::enable_if_t<
 			std::is_member_function_pointer_v<decltype(substitute<Ret, Base, Derived, Parameters...>(&Derived::destructor))>
 		>> {
 		private:
@@ -47,11 +54,8 @@ namespace geode::modifier {
 				return self->Derived::destructor(ps...);
 			}
 		public:
-		#ifdef GEODE_IS_WINDOWS
+			using MyConv = Conv<Ret, Derived*, Parameters...>;
 			constexpr static inline auto value = MyConv::template get_wrapper<&wrapper>();
-		#else
-			constexpr static inline auto value = &wrapper;
-		#endif
 		};
 		
 		#include <gen/Wrap.hpp>

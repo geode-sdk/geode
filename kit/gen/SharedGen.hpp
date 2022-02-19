@@ -223,6 +223,7 @@ struct CacShare {
     }
 
     static string getConvention(Function const& f) {
+    	if (platform != kWindows) return "DefaultConv";
         switch (f.function_type) {
             case kConstructor: [[fallthrough]];
             case kDestructor: [[fallthrough]];

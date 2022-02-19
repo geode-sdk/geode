@@ -21,7 +21,7 @@ struct Modify<Derived, {class_name}> : ModifyBase<Modify<Derived, {class_name}>>
 			Interface::get()->addHook(
 				"{class_name}::{function_name}", 
 				(void*)addresses::address{global_index}(), 
-				(void*)wrap::{function_name}<Derived, Base, types::pure{global_index}>::value
+				(void*)wrap::{function_name}<{function_convention}, Derived, Base, types::pure{global_index}>::value
 			);
 		}}
 )RAW";
@@ -59,7 +59,8 @@ int main(int argc, char** argv) {
 			output += fmt::format(format_strings::apply_function,
 				fmt::arg("global_index",f.hash()),
 				fmt::arg("class_name", name),
-				fmt::arg("function_name", function_name)
+				fmt::arg("function_name", function_name),
+				fmt::arg("function_convention", CacShare::getConvention(f))
 			);
 		}
 

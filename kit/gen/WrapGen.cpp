@@ -4,7 +4,7 @@
 namespace format_strings {
 
 	char const* declare_member_type = R"RAW(
-template <class, class, class, class = void>
+template <template <class, class...> class, class, class, class, class = void>
 struct {function_name} {{
 private:
 	static void wrapper(...) {{}}
@@ -12,8 +12,8 @@ public:
 	constexpr static inline auto value = &wrapper;
 }};
 
-template <class Derived, class Base, class Ret, class ...Parameters>
-struct {function_name}<Derived, Base, Ret(Parameters...), std::enable_if_t<
+template <template <class, class...> class Conv, class Derived, class Base, class Ret, class ...Parameters>
+struct {function_name}<Conv, Derived, Base, Ret(Parameters...), std::enable_if_t<
 	std::is_member_function_pointer_v<decltype(substitute<Ret, Base, Derived, Parameters...>(&Derived::{function_name}))>
 >> {{
 private:
@@ -21,15 +21,12 @@ private:
 		return self->Derived::{function_name}(ps...);
 	}}
 public:
-	#ifdef GEODE_IS_WINDOWS
-		constexpr static inline auto value = MyConv::template get_wrapper<&wrapper>();
-	#else
-		constexpr static inline auto value = &wrapper;
-	#endif
+	using MyConv = Conv<Ret, Derived*, Parameters...>;
+	constexpr static inline auto value = MyConv::template get_wrapper<&wrapper>();
 }};
 
-template <class Derived, class Base, class Ret, class ...Parameters>
-struct {function_name}<Derived, Base, Ret(Parameters...), std::enable_if_t<
+template <template <class, class...> class Conv, class Derived, class Base, class Ret, class ...Parameters>
+struct {function_name}<Conv, Derived, Base, Ret(Parameters...), std::enable_if_t<
 	is_function_pointer_v<decltype(substitute<Ret, Base, Derived, Parameters...>(&Derived::{function_name}))>
 >> {{
 private:
@@ -37,11 +34,8 @@ private:
 		return Derived::{function_name}(ps...);
 	}}
 public:
-	#ifdef GEODE_IS_WINDOWS
-		constexpr static inline auto value = MyConv::template get_wrapper<&wrapper>();
-	#else
-		constexpr static inline auto value = &wrapper;
-	#endif
+	using MyConv = Conv<Ret, Parameters...>;
+	constexpr static inline auto value = MyConv::template get_wrapper<&wrapper>();
 }};
 
 )RAW";
@@ -63,8 +57,7 @@ int main(int argc, char** argv) {
 			}
 			if (used.find(f.name) != used.end()) continue;
 			output += fmt::format(format_strings::declare_member_type,
-				fmt::arg("function_name", f.name),
-				fmt::arg("function_cconv", CacShare::getConvention(f))
+				fmt::arg("function_name", f.name)
 			);
 			used.insert(f.name);
 		}
