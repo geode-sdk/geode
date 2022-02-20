@@ -23,6 +23,8 @@ namespace geode::modifier {
 	    operator void*() {
 	    	return reinterpret_cast<void*>(this);
 	    }
+
+	    using type = T;
 	};
 
 	template<typename T = void*>
