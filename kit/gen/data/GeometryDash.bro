@@ -3767,8 +3767,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate {
 	cocos2d::CCNode* unk400;
 	cocos2d::CCSprite* m_sliderGrooveSprite;
 	cocos2d::CCSprite* m_sliderBarSprite;
-	float m_sliderWidth;
-	float unk410;
+	cocos2d::CCSize m_sliderSize;
 	PAD = mac 0x8, win 0x4, android 0x0;
 	int unk418;
 	PAD = mac 0x16, win 0x8, android 0x0;
@@ -3787,9 +3786,10 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate {
 	bool unk461;
 	cocos2d::CCDictionary* unk464;
 	gd::map<short, bool> unk468;
-	bool m_isPlaybackMode;
-	GameObject* unk474;
-	PAD = mac 0x8, win 0x4, android 0x0;
+	bool m_collisionDisabled;
+	bool unknown701;
+	GameObject* m_latestVehicle;
+	GameObject* m_dualObject;
 	bool m_isFlipped;
 	float m_mirrorTransition;
 	UILayer* m_UILayer;
