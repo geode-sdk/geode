@@ -1,34 +1,36 @@
 #pragma once
 #include <type_traits>
+#include <meta/common.hpp>
 
 namespace geode::modifier {
+	using geode::core::meta::always_false;
 	/**
 	 * The unevaluated function that gets the appropriate 
 	 * version of a function type from its return, parameters, and classes.
 	 */
 	template <class Ret, class Base, class Derived, class ...Parameters>
 	auto substitute(Ret(Base::*)(Parameters...)) -> Ret(Base::*)(Parameters...) {
-		static_assert(!std::is_same_v<Ret, Ret>, "This function is for unevaluated context");
+		static_assert(always_false<Ret>, "This function is for unevaluated context");
 	}
 
 	template <class Ret, class Base, class Derived, class ...Parameters>
 	auto substitute(Ret(Derived::*)(Parameters...)) -> Ret(Derived::*)(Parameters...) {
-		static_assert(!std::is_same_v<Ret, Ret>, "This function is for unevaluated context");
+		static_assert(always_false<Ret>, "This function is for unevaluated context");
 	}
 
 	template <class Ret, class Base, class Derived, class ...Parameters>
 	auto substitute(Ret(Base::*)(Parameters...) const) -> Ret(Base::*)(Parameters...) const {
-		static_assert(!std::is_same_v<Ret, Ret>, "This function is for unevaluated context");
+		static_assert(always_false<Ret>, "This function is for unevaluated context");
 	}
 
 	template <class Ret, class Base, class Derived, class ...Parameters>
 	auto substitute(Ret(Derived::*)(Parameters...) const) -> Ret(Derived::*)(Parameters...) const {
-		static_assert(!std::is_same_v<Ret, Ret>, "This function is for unevaluated context");
+		static_assert(always_false<Ret>, "This function is for unevaluated context");
 	}
 
 	template <class Ret, class Base, class Derived, class ...Parameters>
 	auto substitute(Ret(*)(Parameters...)) -> Ret(*)(Parameters...) {
-		static_assert(!std::is_same_v<Ret, Ret>, "This function is for unevaluated context");
+		static_assert(always_false<Ret>, "This function is for unevaluated context");
 	}
 
 	/**

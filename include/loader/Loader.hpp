@@ -17,12 +17,12 @@ class Geode;
 namespace geode {
     #pragma warning(disable: 4251)
 
-    static constexpr const std::string_view geode_directory          = "geode";
-    static constexpr const std::string_view geode_mod_directory      = "mods";
-    static constexpr const std::string_view geode_log_directory      = "log";
-    static constexpr const std::string_view geode_resource_directory = "resources";
-    static constexpr const std::string_view geode_temp_directory     = "temp";
-    static constexpr const std::string_view geode_mod_extension      = ".geode";
+    static constexpr const std::string_view geodeDirectory          = "geode";
+    static constexpr const std::string_view geodeModDirectory      = "mods";
+    static constexpr const std::string_view geodeLogDirectory      = "log";
+    static constexpr const std::string_view geodeResourceDirectory = "resources";
+    static constexpr const std::string_view geodeTempDirectory     = "temp";
+    static constexpr const std::string_view geodeModExtension      = ".geode";
 
     class Mod;
     class Hook;
