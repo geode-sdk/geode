@@ -66,6 +66,8 @@ namespace geode::log {
             void flush();
 
         public:
+            static Log get();
+            
             Log(Mod* m) : m_logptr(new LogPtr(m)) {}
             Log() : Log(nullptr) {}
 
