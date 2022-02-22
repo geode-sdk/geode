@@ -3734,7 +3734,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate {
 	PAD = mac 0x16, win 0x8, android 0x0;
 	GJGroundLayer* m_bottomGround;
 	GJGroundLayer* m_topGround;
-	PAD = mac 0x16, win 0x8, android 0x0;
+	PAD = mac 0x12, win 0x8, android 0x0;
 	bool m_isDead;
 	bool unk39D;
 	bool unk39E;
@@ -3746,7 +3746,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate {
 	bool unk3AD;
 	bool unk3AE;
 	bool unk3AF;
-	PAD = mac 0x8, win 0x4, android 0x0;
+	float unknown_5f4;
 	float m_levelLength;
 	float unk3B8;
 	cocos2d::CCLabelBMFont* m_attemptLabel;
@@ -3768,9 +3768,9 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate {
 	cocos2d::CCSprite* m_sliderGrooveSprite;
 	cocos2d::CCSprite* m_sliderBarSprite;
 	cocos2d::CCSize m_sliderSize;
-	PAD = mac 0x8, win 0x4, android 0x0;
-	int unk418;
-	PAD = mac 0x16, win 0x8, android 0x0;
+	void* unknown680;
+	void* unk418;
+	PAD = mac 0x8, win 0x8, android 0x0;
 	cocos2d::CCArray* m_gravitySprites;
 	bool unk428;
 	bool m_shouldRecordActions;
@@ -3779,9 +3779,10 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate {
 	bool unk42C;
 	bool m_isPlayer2Frozen;
 	gd::string m_previousRecords;
-	PAD = mac 0x8, win 0x8, android 0x0;
+	void* unknown6a8;
 	double m_time;
-	PAD = mac 0x8, win 0x8, android 0x0;
+	int unknown6b8;
+	int unknown6bc;
 	bool unk460;
 	bool unk461;
 	cocos2d::CCDictionary* unk464;
