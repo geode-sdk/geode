@@ -36,7 +36,8 @@ namespace geode::cocos {
             };
     }
 
-    template<typename T>
+    template<typename T,
+    	typename = std::enable_if_t<std::is_pointer_v<T>> >
     static cocos2d::CCArray* vectorToCCArray(std::vector<T> const& vec) {
         auto res = cocos2d::CCArray::createWithCapacity(vec.size());
         for (auto const& item : vec)
@@ -44,16 +45,50 @@ namespace geode::cocos {
         return res;
     }
 
-    template<typename T, class T2>
-    static cocos2d::CCArray* vectorToCCArray(std::vector<T> const& vec, std::function<T2(T)> convFunc) {
+    template<typename T, typename C,
+    	typename = std::enable_if_t<std::is_pointer_v<C>> >
+    static cocos2d::CCArray* vectorToCCArray(std::vector<T> const& vec, std::function<C(T)> convFunc) {
         auto res = cocos2d::CCArray::createWithCapacity(vec.size());
         for (auto const& item : vec)
             res->addObject(convFunc(item));
         return res;
     }
 
-    template <typename T>
+    template <typename T,
+    	typename = std::enable_if_t<std::is_pointer_v<T>> >
 	std::vector<T> ccArrayToVector(cocos2d::CCArray* arr) {
 		return std::vector<T>(reinterpret_cast<T*>(arr->data->arr), reinterpret_cast<T*>(arr->data->arr) + arr->data->num);
 	}
+
+	template<typename K, typename V, 
+		typename = std::enable_if_t<std::is_same_v<K, std::string> || std::is_same_v<K, intptr_t>> >
+    static cocos2d::CCDictionary* mapToCCDict(std::map<K, V> const& map) {
+        auto res = cocos2d::CCDictionary::create();
+        for (auto const& [key, value] : map)
+            res->setObject(value, key);
+        return res;
+    }
+
+    template<typename K, typename V, typename C, 
+    	typename = std::enable_if_t<std::is_same_v<C, std::string> || std::is_same_v<C, intptr_t>> >
+    static cocos2d::CCDictionary* mapToCCDict(std::map<K, V> const& map, std::function<C(K)> convFunc) {
+        auto res = cocos2d::CCDictionary::create();
+        for (auto const& [key, value] : map)
+            res->setObject(value, convFunc(key));
+        return res;
+    }
+
+  //   template<typename K, typename V, 
+		// typename = std::enable_if_t<std::is_same_v<K, std::string> || std::is_same_v<K, intptr_t>> >
+  //   static std::map<K, V> ccDictToMap(cocos2d::CCDictionary* dict) {
+  //       auto res = std::map<K, V>();
+  //       cocos2d::CCDictElement* element = nullptr;
+  //       CCDICT_FOREACH(dict, element) {
+  //       	if constexpr (std::is_same_v<K, std::string>) 
+  //       		res[element->getStrKey()] = element->getObject();
+  //       	if constexpr (std::is_same_v<K, intptr_t>) 
+  //       		res[element->getIntKey()] = element->getObject();
+  //       }
+  //       return res;
+  //   }
 }
