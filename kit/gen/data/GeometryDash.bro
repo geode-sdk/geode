@@ -1486,7 +1486,7 @@ class GJAccountSyncDelegate {
 
 class GJBaseGameLayer : cocos2d::CCLayer, TriggerEffectDelegate {
 	cocos2d::CCLayer* getObjectLayer() {
-	    return m_objectLayer; 
+	    return m_objectLayer;
 	}
 	cocos2d::CCArray* getAllObjects() {
 	    return this->m_objects;

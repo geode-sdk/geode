@@ -166,9 +166,6 @@ public:
     /** Whether or not the Director is paused */
     inline bool isPaused(void) { return m_bPaused; }
 
-    //camila314 addition
-    inline void setPaused(bool paused) { m_bPaused = paused; }
-
     /** How many frames were called since the director started */
     inline unsigned int getTotalFrames(void) { return m_uTotalFrames; }
     
