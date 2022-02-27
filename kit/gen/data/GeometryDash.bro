@@ -2944,10 +2944,9 @@ class GameSoundManager : cocos2d::CCNode {
 	void getMeteringValue() = mac 0x362db0, win 0x0, ios 0x0;
 	void playBackgroundMusic(struct gd::string, bool, bool) = mac 0x362070, win 0x0, ios 0x0;
 	void playEffect(struct gd::string, float, float, float) = mac 0x3623d0, win 0x25450, ios 0x0;
-	void sharedManager() = mac 0x3610f0, win 0x0, ios 0x0;
 	void stopBackgroundMusic() = mac 0x362130, win 0x0, ios 0x0;
 	~GameSoundManager() = mac 0x362c00, win 0x0, ios 0x0;
-	static GameSoundManager* sharedState() = mac 0x0, win 0x24800, ios 0x0;
+	static GameSoundManager* sharedManager() = mac 0x3610f0, win 0x24800, ios 0x0;
 
 	cocos2d::CCDictionary* m_dictionary1;
 	cocos2d::CCDictionary* m_dictionary2;
@@ -3408,6 +3407,7 @@ class MoreOptionsLayer {
 class MoreVideoOptionsLayer : FLAlertLayer {
 	static MoreVideoOptionsLayer* create() = mac 0x443c10, win 0x0, ios 0x0;
 	virtual bool init() = mac 0x444150, win 0x0, ios 0x0;
+	void onClose(cocos2d::CCObject*) = mac 0x444aa0;
 }
 
 class MultilineBitmapFont : cocos2d::CCSprite {}
@@ -4042,12 +4042,12 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
 	cocos2d::_ccColor3B col2 = mac 0x7c5, win 0x0, android 0x0;
 	float xPos = mac 0x7c8, win 0x0, android 0x0;
 	float yPos = mac 0x7cc, win 0x0, android 0x0;
-	PAD = mac 0x0, win 0x18, android 0x0;
+	PAD = mac 0x18, win 0x18, android 0x0;
 	bool m_unk480;
 	cocos2d::CCNode* m_unk484;
 	cocos2d::CCDictionary* m_collisionLog;
 	cocos2d::CCDictionary* m_collisionLog1;
-	PAD = mac 0x0, win 0x20, android 0x0;
+	PAD = mac 0x40, win 0x20, android 0x0;
 	bool m_unk4B0;
 	cocos2d::CCSprite* m_unk4B4;
 	PAD = mac 0x0, win 0x1c, android 0x0;
@@ -4072,7 +4072,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
 	double m_xAccel;
 	double m_jumpAccel;
 	double m_gravity;
-	PAD = mac 0x0, win 0x10, android 0x0;
+	PAD = mac 0x10, win 0x10, android 0x0;
 	bool m_unk538;
 	bool m_unk539;
 	bool m_unk53A;
