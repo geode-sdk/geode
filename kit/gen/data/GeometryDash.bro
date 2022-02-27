@@ -2074,8 +2074,8 @@ class GJGarageLayer : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol,
 		m_tabToggleDeathEffect = nullptr;
 		m_updateSelector = false;
 	}
-	void onPlayerColor1(cocos2d::CCObject*) = mac 0x1ba640, win 0x0, ios 0x22531c;
-	void onPlayerColor2(cocos2d::CCObject*) = mac 0x1ba8c0, win 0x0, ios 0x225408;
+	void onPlayerColor1(cocos2d::CCObject*) = mac 0x1ba640, win 0x129470, ios 0x22531c;
+	void onPlayerColor2(cocos2d::CCObject*) = mac 0x1ba8c0, win 0x129590, ios 0x225408;
 	static GJGarageLayer* create() = mac 0x0, win 0x125220, ios 0x0;
 	virtual bool init() = mac 0x1b4980, win 0x1255d0;
 	void onSelectTab(cocos2d::CCObject* pSender) = mac 0x0, win 0x127c30, ios 0x0;
