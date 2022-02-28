@@ -4326,8 +4326,22 @@ class SetupSpawnPopup : FLAlertLayer {
 	void textChanged(CCTextInputNode*) = mac 0x13b990, win 0x0, ios 0x0;
 	void updateTargetID() = mac 0x13b770, win 0x0, ios 0x0;
 
-	EffectGameObject* ject = mac 0x258, win 0x0, android 0x0;
-	CCTextInputNode* mInput = mac 0x290, win 0x0, android 0x0;
+	EffectGameObject* m_selectedObject;
+    cocos2d::CCArray* m_selectedArray;
+    CCTextInputNode* m_delayTextNode;
+    Slider* m_delaySlider;
+    float m_delay;
+    bool m_touchTriggered;
+    bool m_spawnTriggered;
+    CCMenuItemToggler* m_touchTriggeredToggle;
+    CCMenuItemToggler* m_spawnTriggeredToggle;
+    CCTextInputNode* m_targetIDTextNode;
+    int m_targetIDValue;
+    bool m_textUpdateLock;
+    // the toggle is inside the array for some obscure reason
+    cocos2d::CCArray* m_multiTriggerToggle;
+    bool m_multiTrigger;
+    bool m_editorDisable;
 }
 
 class SetupTouchTogglePopup : FLAlertLayer {
@@ -4564,7 +4578,6 @@ class TextArea : cocos2d::CCSprite {
 	int m_unknown;					// 0x1f0
 	gd::string m_fontFile;			// 0x1f4
 	float m_height;					// 0x20c
-	PAD = mac 0x30;
 }
 
 class TextInputDelegate {
