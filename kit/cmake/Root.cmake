@@ -45,14 +45,8 @@ if (GEODE_BUILD_CODEGEN)
 	set(GEODE_CODEGEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/gen)
 	file(MAKE_DIRECTORY ${GEODE_CODEGEN_DIR})
 
-	if (GEODE_IMPLICIT_ENTRY)
-		set(IMPLICIT_PATH ${GEODE_INCLUDE_DIR}/implicitEntry.cpp)
-	else()
-		set(IMPLICIT_PATH "")
-	endif()
-
 	set_source_files_properties(${GEODE_CODEGEN_DIR}/Source.cpp PROPERTIES GENERATED 1)
-	target_sources(${PROJECT_NAME} PRIVATE ${GEODE_CODEGEN_DIR}/Source.cpp ${IMPLICIT_PATH})
+	target_sources(${PROJECT_NAME} PRIVATE ${GEODE_CODEGEN_DIR}/Source.cpp ${GEODE_INCLUDE_DIR}/implicitEntry.cpp)
 	target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR})
 	target_link_libraries(${PROJECT_NAME} fmt)
 
