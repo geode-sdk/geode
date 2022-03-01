@@ -749,6 +749,10 @@ class cocos2d::CCTextureCache {
 	static cocos2d::CCTextureCache* sharedTextureCache() = mac 0x356e00, ios 0xa81ec;
 }
 
+class cocos2d::CCTime {
+	static auto gettimeofdayCocos2d(cocos2d::cc_timeval*, void*) = mac 0x19eac0;
+}
+
 class cocos2d::CCTintTo {
 	static cocos2d::CCTintTo* create(float, unsigned char, unsigned char, unsigned char) = mac 0x1f82a0;
 }
