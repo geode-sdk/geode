@@ -911,7 +911,7 @@ class DialogObject : cocos2d::CCObject {
 
 class DrawGridLayer : cocos2d::CCLayer {
 	inline using CCPointArray400 = struct cocos2d::CCPoint(*)[400];
-	inline using CCPointArray200 = struct cocos2d::CCPoint(*)[400];
+	inline using CCPointArray200 = struct cocos2d::CCPoint(*)[200];
 
 	void draw() = mac 0x0, win 0x16ce90, ios 0x0;
 
@@ -1837,7 +1837,7 @@ class GJEffectManager : cocos2d::CCNode {
 	void wouldCreateLoop(InheritanceNode*, int) = mac 0x181820, win 0x0, ios 0x0;
 	~GJEffectManager() = mac 0x17fe00, win 0x0, ios 0x0;
 
-	GJBaseGameLayer* m_gameLayer;
+	TriggerEffectDelegate* m_effectDelegate;
 	cocos2d::CCDictionary* m_colorActions;
 	cocos2d::CCDictionary* m_colorSprites;
 	cocos2d::CCDictionary* m_pulseActionsForGroup;
@@ -2523,6 +2523,9 @@ class GameManager : GManager {
 	        return defaultValue;
 	    return object->intValue();
 	}
+	static GameManager* get() {
+		return GameManager::sharedState();
+	}
 
 	void accountStatusChanged() = mac 0x1cdad0, win 0x0, ios 0x0;
 	const cocos2d::_ccColor3B& colorForIdx(int) = mac 0x1cbc80, win 0xc8d10, ios 0x237488;
@@ -2558,12 +2561,12 @@ class GameManager : GManager {
 	bool m_switchModes;
 	bool m_toFullscreen;
 	bool m_reloading;
-	bool m_unknown0;
-	PAD = mac 0x8, win 0x4, android 0x0;
+	bool m_unknown0;//0x7fa302533960+0x120
+	// PAD = mac 0x4, win 0x4, android 0x0;
 	cocos2d::CCDictionary* m_valueKeeper;
 	cocos2d::CCDictionary* m_unlockValueKeeper;
 	cocos2d::CCDictionary* m_customObjectDict;
-	PAD = mac 0x8, win 0x4, android 0x0;
+	// PAD = mac 0x4, win 0x4, android 0x0;
 	double m_unknownDouble;
 	PAD = mac 0x10, win 0x10, android 0x0;
 	double m_unknown2Double;
@@ -4608,7 +4611,10 @@ class TouchToggleAction : cocos2d::CCNode {
 	static TouchToggleAction* createFromString(struct gd::string) = mac 0x177e10, win 0x0, ios 0x0;
 }
 
-class TriggerEffectDelegate {}
+class TriggerEffectDelegate {
+	virtual void toggleGroupTriggered(int, bool) {}
+	virtual void spawnGroup(int) {}
+}
 
 class UILayer : cocos2d::CCLayerColor {
 	static UILayer* create() = mac 0x27fd10, win 0x25f310, ios 0x0;
