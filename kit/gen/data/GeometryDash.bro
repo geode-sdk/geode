@@ -1492,6 +1492,10 @@ class GJBaseGameLayer : cocos2d::CCLayer, TriggerEffectDelegate {
 	    return this->m_objects;
 	}
 
+	static GJBaseGameLayer* get() {
+		return PlayLayer::get() ? static_cast<GJBaseGameLayer*>(PlayLayer::get()) : static_cast<GJBaseGameLayer*>(LevelEditorLayer::get());
+	}
+
 	virtual void objectsCollided(int, int) = mac 0xb6d90, win 0x0, ios 0x0;
 	virtual void createMoveCommand(struct cocos2d::CCPoint, int, float, int, float, bool, bool, int) = mac 0xb73a0, win 0x0, ios 0x0;
 	virtual void updateColor(cocos2d::_ccColor3B, float, int, bool, float, cocos2d::_ccHSVValue, int, bool, int, EffectGameObject*) = mac 0xb7420, win 0x0, ios 0x0;
