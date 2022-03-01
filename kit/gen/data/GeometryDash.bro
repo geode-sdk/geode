@@ -1574,7 +1574,6 @@ class GJBaseGameLayer : cocos2d::CCLayer, TriggerEffectDelegate {
 	// PlayerObject* player2 = mac 0x388, win 0x0, android 0x0;
 	// LevelSettingsObject* levelSettings = mac 0x390, win 0x0, android 0x0;
 	// cocos2d::CCDictionary* unknownDict = mac 0x398, win 0x0, android 0x0;
-	void* m_dontquestionit;
 	OBB2D* m_boundingBox;
 	GJEffectManager* m_effectManager;
 	cocos2d::CCLayer* m_objectLayer;
