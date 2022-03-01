@@ -166,6 +166,9 @@ public:
     /** Whether or not the Director is paused */
     inline bool isPaused(void) { return m_bPaused; }
 
+    // geode addition
+    inline void setPaused(bool p) { m_bPaused = p; }
+
     /** How many frames were called since the director started */
     inline unsigned int getTotalFrames(void) { return m_uTotalFrames; }
     

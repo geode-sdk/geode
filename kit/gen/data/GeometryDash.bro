@@ -1574,6 +1574,7 @@ class GJBaseGameLayer : cocos2d::CCLayer, TriggerEffectDelegate {
 	// PlayerObject* player2 = mac 0x388, win 0x0, android 0x0;
 	// LevelSettingsObject* levelSettings = mac 0x390, win 0x0, android 0x0;
 	// cocos2d::CCDictionary* unknownDict = mac 0x398, win 0x0, android 0x0;
+	void* m_dontquestionit;
 	OBB2D* m_boundingBox;
 	GJEffectManager* m_effectManager;
 	cocos2d::CCLayer* m_objectLayer;
@@ -3266,7 +3267,7 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
 }
 
 class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDelegate, RateLevelDelegate, LikeItemDelegate, FLAlertLayerProtocol, LevelDeleteDelegate, NumberInputDelegate, SetIDPopupDelegate {
-	static LevelInfoLayer* create(GJGameLevel* level) = mac 0x0, win 0x175d50, ios 0x0;
+	static LevelInfoLayer* create(GJGameLevel* level) = mac 0x15f290, win 0x175d50, ios 0x0;
 	void onGarage(cocos2d::CCObject* pSender) = mac 0x0, win 0x177c10, ios 0x0;
 
 	PAD = mac 0x0, win 0x4, android 0x0;
@@ -3754,8 +3755,8 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate {
 	bool unk3AE;
 	bool unk3AF;
 	float unknown_5f4;
-	float m_levelLength;
 	float unk3B8;
+	float m_levelLength;
 	cocos2d::CCLabelBMFont* m_attemptLabel;
 	cocos2d::CCLabelBMFont* m_percentLabel;
 	bool m_isCameraShaking;

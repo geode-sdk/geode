@@ -19,6 +19,12 @@ namespace geode {
     class Mod;
 }
 
+std::ostream& operator<<(std::ostream& os, geode::Mod* mod);
+std::ostream& operator<<(std::ostream& os, cocos2d::CCObject* obj);
+std::ostream& operator<<(std::ostream& os, cocos2d::CCPoint const& pos);
+std::ostream& operator<<(std::ostream& os, cocos2d::CCSize const& size);
+std::ostream& operator<<(std::ostream& os, cocos2d::CCRect const& rect);
+
 namespace geode::log {
     #pragma warning(disable: 4251)
 
@@ -121,9 +127,3 @@ namespace geode::log {
 }
 geode::log::Log& operator<<(geode::log::Log&, geode::Mod*);
 geode::log::Log& operator<<(geode::log::Log&, cocos2d::CCObject*);
-
-std::ostream& operator<<(std::ostream& os, geode::Mod* mod);
-std::ostream& operator<<(std::ostream& os, cocos2d::CCObject* obj);
-std::ostream& operator<<(std::ostream& os, cocos2d::CCPoint const& pos);
-std::ostream& operator<<(std::ostream& os, cocos2d::CCSize const& size);
-std::ostream& operator<<(std::ostream& os, cocos2d::CCRect const& rect);
