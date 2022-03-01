@@ -15,12 +15,14 @@
 #include <unordered_map>
 
 // #define CLASSPARAM(type, getter, offset)        		\
-// 	inline type& _##getter() {                      	\
+// 	[[deprecated]]                                      \
+// 	inline type& __##getter() {                      	\
 // 		return *((type*)((uintptr_t)this + offset));	\
 // 	}
 
 // #define STRUCTPARAM(type, getter, offset)       		\
-// 	inline type _##getter() {                       	\
+// 	[[deprecated]]                                      \
+// 	inline type __##getter() {                       	\
 // 		return *(type*)((uintptr_t)this+offset);		\
 // 	}
 

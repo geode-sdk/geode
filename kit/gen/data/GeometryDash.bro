@@ -911,7 +911,7 @@ class DialogObject : cocos2d::CCObject {
 
 class DrawGridLayer : cocos2d::CCLayer {
 	inline using CCPointArray400 = struct cocos2d::CCPoint(*)[400];
-	inline using CCPointArray200 = struct cocos2d::CCPoint(*)[400];
+	inline using CCPointArray200 = struct cocos2d::CCPoint(*)[200];
 
 	void draw() = mac 0x0, win 0x16ce90, ios 0x0;
 
@@ -1838,7 +1838,7 @@ class GJEffectManager : cocos2d::CCNode {
 	void wouldCreateLoop(InheritanceNode*, int) = mac 0x181820, win 0x0, ios 0x0;
 	~GJEffectManager() = mac 0x17fe00, win 0x0, ios 0x0;
 
-	GJBaseGameLayer* m_gameLayer;
+	TriggerEffectDelegate* m_effectDelegate;
 	cocos2d::CCDictionary* m_colorActions;
 	cocos2d::CCDictionary* m_colorSprites;
 	cocos2d::CCDictionary* m_pulseActionsForGroup;
@@ -2075,8 +2075,8 @@ class GJGarageLayer : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol,
 		m_tabToggleDeathEffect = nullptr;
 		m_updateSelector = false;
 	}
-	void onPlayerColor1(cocos2d::CCObject*) = mac 0x1ba640, win 0x0, ios 0x22531c;
-	void onPlayerColor2(cocos2d::CCObject*) = mac 0x1ba8c0, win 0x0, ios 0x225408;
+	void onPlayerColor1(cocos2d::CCObject*) = mac 0x1ba640, win 0x129470, ios 0x22531c;
+	void onPlayerColor2(cocos2d::CCObject*) = mac 0x1ba8c0, win 0x129590, ios 0x225408;
 	static GJGarageLayer* create() = mac 0x0, win 0x125220, ios 0x0;
 	virtual bool init() = mac 0x1b4980, win 0x1255d0;
 	void onSelectTab(cocos2d::CCObject* pSender) = mac 0x0, win 0x127c30, ios 0x0;
@@ -2524,6 +2524,9 @@ class GameManager : GManager {
 	        return defaultValue;
 	    return object->intValue();
 	}
+	static GameManager* get() {
+		return GameManager::sharedState();
+	}
 
 	void accountStatusChanged() = mac 0x1cdad0, win 0x0, ios 0x0;
 	const cocos2d::_ccColor3B& colorForIdx(int) = mac 0x1cbc80, win 0xc8d10, ios 0x237488;
@@ -2559,12 +2562,12 @@ class GameManager : GManager {
 	bool m_switchModes;
 	bool m_toFullscreen;
 	bool m_reloading;
-	bool m_unknown0;
-	PAD = mac 0x8, win 0x4, android 0x0;
+	bool m_unknown0;//0x7fa302533960+0x120
+	// PAD = mac 0x4, win 0x4, android 0x0;
 	cocos2d::CCDictionary* m_valueKeeper;
 	cocos2d::CCDictionary* m_unlockValueKeeper;
 	cocos2d::CCDictionary* m_customObjectDict;
-	PAD = mac 0x8, win 0x4, android 0x0;
+	// PAD = mac 0x4, win 0x4, android 0x0;
 	double m_unknownDouble;
 	PAD = mac 0x10, win 0x10, android 0x0;
 	double m_unknown2Double;
@@ -4327,8 +4330,22 @@ class SetupSpawnPopup : FLAlertLayer {
 	void textChanged(CCTextInputNode*) = mac 0x13b990, win 0x0, ios 0x0;
 	void updateTargetID() = mac 0x13b770, win 0x0, ios 0x0;
 
-	EffectGameObject* ject = mac 0x258, win 0x0, android 0x0;
-	CCTextInputNode* mInput = mac 0x290, win 0x0, android 0x0;
+	EffectGameObject* m_selectedObject;
+    cocos2d::CCArray* m_selectedArray;
+    CCTextInputNode* m_delayTextNode;
+    Slider* m_delaySlider;
+    float m_delay;
+    bool m_touchTriggered;
+    bool m_spawnTriggered;
+    CCMenuItemToggler* m_touchTriggeredToggle;
+    CCMenuItemToggler* m_spawnTriggeredToggle;
+    CCTextInputNode* m_targetIDTextNode;
+    int m_targetIDValue;
+    bool m_textUpdateLock;
+    // the toggle is inside the array for some obscure reason
+    cocos2d::CCArray* m_multiTriggerToggle;
+    bool m_multiTrigger;
+    bool m_editorDisable;
 }
 
 class SetupTouchTogglePopup : FLAlertLayer {
@@ -4565,7 +4582,6 @@ class TextArea : cocos2d::CCSprite {
 	int m_unknown;					// 0x1f0
 	gd::string m_fontFile;			// 0x1f4
 	float m_height;					// 0x20c
-	PAD = mac 0x30;
 }
 
 class TextInputDelegate {
@@ -4596,7 +4612,10 @@ class TouchToggleAction : cocos2d::CCNode {
 	static TouchToggleAction* createFromString(struct gd::string) = mac 0x177e10, win 0x0, ios 0x0;
 }
 
-class TriggerEffectDelegate {}
+class TriggerEffectDelegate {
+	virtual void toggleGroupTriggered(int, bool) {}
+	virtual void spawnGroup(int) {}
+}
 
 class UILayer : cocos2d::CCLayerColor {
 	static UILayer* create() = mac 0x27fd10, win 0x25f310, ios 0x0;
