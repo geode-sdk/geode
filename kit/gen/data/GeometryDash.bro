@@ -3765,7 +3765,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, DialogDelegate {
 	bool unknown5e4;
 	int m_ballFrameSeed;
 	float unknown5ec;
-	float unknown5f0
+	float unknown5f0;
 	float unknown5f4;
 	float m_levelLength;
 	float m_realLevelLength;
