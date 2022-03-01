@@ -3430,14 +3430,14 @@ class MusicDownloadDelegate {}
 class MusicDownloadManager : cocos2d::CCNode, PlatformDownloadDelegate {
 	void incrementPriorityForSong(int) = mac 0x2ef750, win 0x0, ios 0x0;
 	static MusicDownloadManager* sharedState() = mac 0x2ee4c0, win 0x1945b0, ios 0x0;
-	gd::string pathForSong(int id) = mac 0x0, win 0x1960e0, ios 0x0;
+	gd::string pathForSong(int id) = mac 0x2f1140, win 0x1960e0, ios 0x0;
 	cocos2d::CCArray* getDownloadedSongs() = mac 0x0, win 0x195640, ios 0x0;
 	void songStateChanged() = mac 0x0, win 0x194d90, ios 0x0;
 
-	PAD = mac 0x0, win 0x4, android 0x0;
 	cocos2d::CCDictionary* m_unknownDict;
 	cocos2d::CCArray* m_handlers;
 	cocos2d::CCDictionary* m_songsDict;
+	int m_unknown;
 }
 
 class NumberInputDelegate {}
@@ -3530,7 +3530,10 @@ class PauseLayer : CCBlockLayer {
 	bool m_unknown2;
 }
 
-class PlatformDownloadDelegate {}
+class PlatformDownloadDelegate {
+	virtual void downloadFinished(char const*) {}
+	virtual void downloadFailed(char const*) {}
+}
 
 class PlatformToolbox {
 	static void hideCursor() = mac 0x27c340, win 0x0, ios 0x0;
