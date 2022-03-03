@@ -270,7 +270,7 @@ class CCCircleWave : cocos2d::CCNode {
 }
 
 class CCCircleWaveDelegate {
-	void circleWaveWillBeRemoved(CCCircleWave* wave) {}
+	virtual void circleWaveWillBeRemoved(CCCircleWave* wave) {}
 }
 
 class CCContentLayer : cocos2d::CCLayerColor {
@@ -791,6 +791,10 @@ class CurrencyRewardLayer {
 	virtual void update(float) = mac 0x44a5c0, win 0x0, ios 0x0;
 }
 
+class CurrencyRewardDelegate {
+	virtual void currencyWillExit(CurrencyRewardLayer*) {}
+}
+
 class CustomListView : BoomListView {
 	static CustomListView* create(cocos2d::CCArray*, float, float, int, BoomListType) = mac 0x10d410, win 0x57f90, ios 0x99154;
 	inline static CustomListView* create(cocos2d::CCArray* entries, BoomListType type, float width, float height) {
@@ -895,7 +899,9 @@ class DialogLayer : cocos2d::CCLayerColor {
 	virtual void fadeInTextFinished(TextArea*) = mac 0x205930, win 0x0, ios 0x0;
 }
 
-class DialogDelegate {}
+class DialogDelegate {
+	virtual void dialogClosed(DialogLayer*) {}
+}
 
 class DialogObject : cocos2d::CCObject {
 	static DialogObject* create(struct gd::string title, struct gd::string text, int portrait, float text_scale, bool is_unskippable, cocos2d::ccColor3B text_color) = mac 0x0, win 0x6D160, ios 0x0;
@@ -1671,7 +1677,7 @@ class GJBaseGameLayer : cocos2d::CCLayer, TriggerEffectDelegate {
 	int m_oldSection;
 	bool m_objectsAreDisabled;
 	bool m_blending;
-	PAD = mac 0x0, win 0x8, android 0x0;
+	PAD = mac 0x16, win 0x8, android 0x0;
 }
 
 class GJColorSetupLayer {}
@@ -3535,7 +3541,7 @@ class PlatformToolbox {
 	static bool isControllerConnected() = mac 0x27d1b0, win 0x0, ios 0x0;
 }
 
-class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate {
+class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, DialogDelegate {
 	static PlayLayer* get() {
 	    return GameManager::sharedState()->getPlayLayer();
 	}
@@ -3693,26 +3699,29 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate {
 	void xPosForTime(float) = mac 0x7d140, win 0x0, ios 0x0;
 	~PlayLayer() = mac 0x6b090, win 0x1fafc0, ios 0x0;
 
-	PAD = mac 0x8, win 0x4, android 0x0;
-	bool unk2DC;
+	float unused4c8;
+	bool unused4cc;
 	bool m_hasCheated;
-	int unk2E0;
-	int unk2E4;
-	int unk2E8;
-	bool unk2EC;
-	bool unk2ED;
-	float unk2F0;
-	PAD = mac 0x8, win 0x4, android 0x0;
-	cocos2d::CCDrawNode* unk2F8;
-	float unk2FC;
-	float unk300;
-	float unk304;
-	float unk308;
-	float unk30C;
-	bool unk310;
-	bool unk311;
-	bool unk312;
-	PAD = mac 0x21, win 0x19, android 0x0;
+	int m_dontSaveRand;
+	int m_dontSaveSeed;
+	int unknown4d8;
+	bool unknown4dc;
+	bool m_shouldSmoothCamera;
+	float unused_4e0;
+	cocos2d::CCObject* unknown4e8;
+	float m_camera4f0;
+	int unused4f4;
+	float m_somegroup4f8;
+	float m_groundRestriction;
+	float m_ceilRestriction;
+	bool unknown504;
+	bool unknown505;
+	float unknown508;
+	float unknown50c;
+	float unknown510;
+	float unknown514;
+	float unknown518;
+	//PAD = mac 0x19, win 0x19, android 0x0;
 	StartPosObject* m_startPos;
 	CheckpointObject* unk330;
 	EndPortalObject* m_endPortal;
@@ -3741,24 +3750,25 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate {
 	cocos2d::CCArray* m_circleWaves;
 	cocos2d::CCArray* unk37C;
 	AudioEffectsLayer* m_audioEffectsLayer;
-	PAD = mac 0x16, win 0x8, android 0x0;
+	float unknown5c0;
+	float unknown5c4;
 	GJGroundLayer* m_bottomGround;
 	GJGroundLayer* m_topGround;
-	PAD = mac 0x12, win 0x8, android 0x0;
+
+	// this is literaly garbage data
+	PAD = mac 0x8, win 0x8, android 0x0;
+
 	bool m_isDead;
-	bool unk39D;
-	bool unk39E;
-	bool unk39F;
-	bool unk3A0;
-	int unk3A4;
-	float unk3A8;
-	bool unk3AC;
-	bool unk3AD;
-	bool unk3AE;
-	bool unk3AF;
-	float unknown_5f4;
-	float unk3B8;
+	bool m_startCameraAtCorner;
+	bool m_cameraYLocked;
+	bool m_cameraXLocked;
+	bool unknown5e4;
+	int m_ballFrameSeed;
+	float unknown5ec;
+	float unknown5f0;
+	float unknown5f4;
 	float m_levelLength;
+	float m_realLevelLength;
 	cocos2d::CCLabelBMFont* m_attemptLabel;
 	cocos2d::CCLabelBMFont* m_percentLabel;
 	bool m_isCameraShaking;
@@ -3779,8 +3789,8 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate {
 	cocos2d::CCSprite* m_sliderBarSprite;
 	cocos2d::CCSize m_sliderSize;
 	void* unknown680;
-	void* unk418;
-	PAD = mac 0x8, win 0x8, android 0x0;
+	int m_activeGravityEffects;
+	int m_gravityEffectStatus; // ??
 	cocos2d::CCArray* m_gravitySprites;
 	bool unk428;
 	bool m_shouldRecordActions;
