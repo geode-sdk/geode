@@ -16,13 +16,13 @@
 
 // #define CLASSPARAM(type, getter, offset)        		\
 // 	[[deprecated]]                                      \
-// 	inline type& __##getter() {                      	\
+// 	inline type& _##getter() {                      	\
 // 		return *((type*)((uintptr_t)this + offset));	\
 // 	}
 
 // #define STRUCTPARAM(type, getter, offset)       		\
 // 	[[deprecated]]                                      \
-// 	inline type __##getter() {                       	\
+// 	inline type _##getter() {                       	\
 // 		return *(type*)((uintptr_t)this+offset);		\
 // 	}
 
