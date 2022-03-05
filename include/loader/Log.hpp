@@ -13,6 +13,7 @@ namespace cocos2d {
     class CCPoint;
     class CCSize;
     class CCRect;
+    class CCArray;
 }
 
 namespace geode {
@@ -21,6 +22,7 @@ namespace geode {
 
 std::ostream& operator<<(std::ostream& os, geode::Mod* mod);
 std::ostream& operator<<(std::ostream& os, cocos2d::CCObject* obj);
+std::ostream& operator<<(std::ostream& os, cocos2d::CCArray* obj);
 std::ostream& operator<<(std::ostream& os, cocos2d::CCPoint const& pos);
 std::ostream& operator<<(std::ostream& os, cocos2d::CCSize const& size);
 std::ostream& operator<<(std::ostream& os, cocos2d::CCRect const& rect);
@@ -124,6 +126,13 @@ namespace geode::log {
         CCObjectMeta(std::string const& r, cocos2d::CCObject* obj);
         ~CCObjectMeta();
     };
+    struct CCArrayMeta : public NoMetadata {
+        cocos2d::CCArray* m_arr;
+        CCArrayMeta(cocos2d::CCArray* arr);
+        CCArrayMeta(std::string const& r, cocos2d::CCArray* arr);
+        ~CCArrayMeta();
+    };
 }
 geode::log::Log& operator<<(geode::log::Log&, geode::Mod*);
 geode::log::Log& operator<<(geode::log::Log&, cocos2d::CCObject*);
+geode::log::Log& operator<<(geode::log::Log&, cocos2d::CCArray*);
