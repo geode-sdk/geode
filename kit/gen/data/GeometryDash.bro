@@ -3325,13 +3325,21 @@ class LevelSettingsObject : cocos2d::CCNode {
 	static LevelSettingsObject* objectFromString(struct gd::string) = mac 0x945a0, win 0x0, ios 0x0;
 	void setupColorsFromLegacyMode(cocos2d::CCDictionary*) = mac 0xa6a30, win 0x0, ios 0x0;
 
-	GJEffectManager* effectManager = mac 0x120, win 0x0, android 0x0;
-	PAD = mac 0x0, win 0x9, android 0x0;
-	bool isTwoPlayer = mac 0x132, win 0x0, android 0x0;
-	PAD = mac 0x0, win 0x10, android 0x0;
-	int fontType = mac 0x144, win 0x0, android 0x0;
-	PAD = mac 0x0, win 0x8, android 0x0;
-	GJGameLevel* level = mac 0x150, win 0x0, android 0x0;
+	GJEffectManager* m_effectManager;
+	// TODO: make enums for these
+	int m_startMode;
+	int m_startSpeed;
+	bool m_startMini;
+	bool m_startDual;
+	bool m_twoPlayerMode;
+	float m_songOffset;
+	bool m_fadeIn;
+	bool m_fadeOut;
+	int m_backgroundIndex;
+	int m_groundIndex;
+	int m_fontIndex;
+	PAD = mac 0x0, win = 0x4
+	GJGameLevel* m_level;
 	gd::string m_unknownStr;
 }
 
