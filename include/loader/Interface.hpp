@@ -3,12 +3,14 @@
 #include "Macros.hpp"
 #include "Types.hpp"
 #include <vector>
+#include <variant>
 #include <utils/Result.hpp>
 #include "Log.hpp"
+#include "Mod.hpp"
 
 namespace geode {
-	class Mod;
 	class Hook;
+
 
 	namespace log {
 		class LogPtr;
@@ -41,6 +43,8 @@ namespace geode {
 	 */
 	class Interface {
 	protected:
+		
+
 		struct ScheduledHook {
 			std::string_view m_displayName;
 			void* m_address;
@@ -52,9 +56,19 @@ namespace geode {
 			Severity m_severity;
 		};
 
+		using exportmemfn_t = void(Mod::*)(std::string const&, unknownmemfn_t);
+		using exportfn_t = void(Mod::*)(std::string const&, unknownfn_t);
+
+		struct ScheduledExport {
+			std::string m_selector;
+			std::variant<unknownmemfn_t, unknownfn_t> m_func;
+			std::variant<exportmemfn_t, exportfn_t> m_export;
+		};
+
 		Mod* m_mod = nullptr;
 		std::vector<ScheduledHook> m_scheduledHooks;
 		std::vector<ScheduledLog> m_scheduledLogs;
+		std::vector<ScheduledExport> m_scheduledExports;
 	
 	public:
 
@@ -102,6 +116,21 @@ namespace geode {
          * @param severity Log severity
          */
         GEODE_DLL void logInfo(std::string const& info, Severity severity);
+
+    protected:
+        GEODE_DLL void exportAPIFunctionInternal(std::string const& selector, unknownmemfn_t fn, exportmemfn_t exportfn);
+        GEODE_DLL void exportAPIFunctionInternal(std::string const& selector, unknownfn_t fn, exportfn_t exportfn);
+
+    public:
+        template <typename T>
+        inline void exportAPIFunction(std::string const& selector, T ptr) {
+        	if constexpr (std::is_member_function_pointer_v<decltype(ptr)>) {
+        		exportAPIFunctionInternal(selector, reinterpret_cast<unknownmemfn_t>(ptr), &Mod::exportAPIFunction<unknownmemfn_t>);
+        	}
+        	else {
+        		exportAPIFunctionInternal(selector, reinterpret_cast<unknownfn_t>(ptr), &Mod::exportAPIFunction<unknownfn_t>);
+        	}
+        }
 	};
 
     const char* operator"" _sprite(const char* str, size_t);

@@ -27,6 +27,10 @@ namespace geode {
     class Mod;
     class APIMod;
 
+    class Unknown;
+	using unknownmemfn_t = void(Unknown::*)();
+	using unknownfn_t = void(*)();
+
     struct Dependency {
         std::string m_id;
         // todo: Dynamic versions (1.*.*)
@@ -316,8 +320,8 @@ namespace geode {
          */
         template <typename T>
         void exportAPIFunction(std::string const& selector, T ptr) {
-            NotificationCenter::get()->registerObserver(selector, [ptr](Notification const& n) {
-                *n.object<void**>() = (void*)ptr;
+        	NotificationCenter::get()->registerObserver(this, selector, [ptr](Notification const& n) {
+                *reinterpret_cast<T*>(n.object<void*>()) = ptr;
             });
         }
 
@@ -330,9 +334,9 @@ namespace geode {
          */
         template <typename T>
         T importAPIFunction(std::string const& selector) {
-            void* out;
-            NotificationCenter::get()->send(Notification(selector, &out, nullptr), this);
-            return (T)out;
+        	T out;
+            NotificationCenter::get()->broadcast(Notification(selector, reinterpret_cast<void*>(&out), nullptr));
+            return out;
         }
 
         /**

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Interface.hpp>
 #include <string>
 #include <typeinfo>
 #include <memory>
@@ -38,7 +37,7 @@ namespace geode {
             m_sender(sender) {}
 
         Notification(std::string sel, Mod* sender) : Notification(sel, nullptr, sender) {}
-        Notification(std::string sel) : Notification(sel, Interface::get()->mod()) {}
+        // Notification(std::string sel) : Notification(sel, Interface::get()->mod()) {}
 
         Notification(Notification&& a) : m_selector(a.m_selector), m_sender(a.m_sender), m_object(std::move(a.m_object)) {}
 
@@ -65,9 +64,9 @@ namespace geode {
         void broadcast(Notification n);
 
         Observer* registerObserver(Mod* m, std::string selector, callback_t cb);
-        inline Observer* registerObserver(std::string selector, callback_t cb) {
-            return registerObserver(Interface::get()->mod(), selector, cb);
-        }
+        // inline Observer* registerObserver(std::string selector, callback_t cb) {
+        //     return registerObserver(Interface::get()->mod(), selector, cb);
+        // }
         void unregisterObserver(Observer* ob);
         std::vector<Observer*> getObservers(std::string selector, Mod* m);
     };
