@@ -20,12 +20,12 @@ namespace geode {
     class GEODE_DLL Notification {
     protected:
         std::string m_selector;
-        mutable std::any m_object;
+        std::any m_object;
         Mod* m_sender;
     public:
         template <typename T>
-        T& object() const {
-        	return std::any_cast<T&>(m_object);
+        T const& object() const {
+        	return std::any_cast<T const&>(m_object);
         }
 
         inline std::string const& selector() const { return m_selector; }
