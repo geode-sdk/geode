@@ -56,7 +56,7 @@ namespace geode::utils {
     template<typename T>
 	std::string intToHex(T i) {
 		std::stringstream stream;
-		stream << std::showbase << std::setbase(16) << (void*)i;
+		stream << std::showbase << std::setbase(16) << (uint64_t)i;
 		return stream.str();
 	}
 
