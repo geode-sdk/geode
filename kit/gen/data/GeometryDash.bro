@@ -3338,7 +3338,7 @@ class LevelSettingsObject : cocos2d::CCNode {
 	int m_backgroundIndex;
 	int m_groundIndex;
 	int m_fontIndex;
-	PAD = mac 0x0, win = 0x4
+	PAD = mac 0x0, win 0x4;
 	GJGameLevel* m_level;
 	gd::string m_unknownStr;
 }
