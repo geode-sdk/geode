@@ -316,8 +316,8 @@ namespace geode {
          */
         template <typename T>
         void exportAPIFunction(std::string const& selector, T ptr) {
-            NotificationCenter::get()->registerObserver(selector, [ptr](Notification& n) {
-                *n.object<uintptr_t*>() = (uintptr_t)ptr;
+            NotificationCenter::get()->registerObserver(selector, [ptr](Notification const& n) {
+                *n.object<void**>() = (void*)ptr;
             });
         }
 
@@ -329,10 +329,10 @@ namespace geode {
          * @returns Pointer to the external function
          */
         template <typename T>
-        T* importAPIFunction(std::string const& selector) {
-            uintptr_t out;
+        T importAPIFunction(std::string const& selector) {
+            void* out;
             NotificationCenter::get()->send(Notification(selector, &out, nullptr), this);
-            return (T*)out;
+            return (T)out;
         }
 
         /**

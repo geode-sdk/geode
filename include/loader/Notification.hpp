@@ -20,11 +20,11 @@ namespace geode {
     class GEODE_DLL Notification {
     protected:
         std::string m_selector;
-        std::any m_object;
+        mutable std::any m_object;
         Mod* m_sender;
     public:
         template <typename T>
-        T& object() {
+        T& object() const {
         	return std::any_cast<T&>(m_object);
         }
 
@@ -52,10 +52,10 @@ namespace geode {
     };
 
     class GEODE_DLL NotificationCenter {
-     protected:
-        std::unordered_map<Mod*, std::unordered_map<std::string, std::vector<Observer*>>> m_observers;
+    protected:
+        std::map<Mod*, std::map<std::string, std::vector<Observer*>>> m_observers;
         static NotificationCenter* shared;
-     public:
+    public:
         using callback_t = std::function<void(Notification const&)>;
 
         NotificationCenter();
