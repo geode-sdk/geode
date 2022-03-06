@@ -5,7 +5,6 @@
 #include <vector>
 #include <utils/Result.hpp>
 #include "Log.hpp"
-#include "Mod.hpp"
 
 namespace geode {
 	class Mod;
@@ -105,7 +104,5 @@ namespace geode {
         GEODE_DLL void logInfo(std::string const& info, Severity severity);
 	};
 
-    inline const char* operator"" _sprite(const char* str, size_t) {
-        return Interface::mod()->expandSpriteName(str);
-    }
+    const char* operator"" _sprite(const char* str, size_t);
 }

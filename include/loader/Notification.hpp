@@ -1,4 +1,5 @@
-#include <Mod.hpp>
+#pragma once
+
 #include <Interface.hpp>
 #include <string>
 #include <typeinfo>
@@ -13,6 +14,7 @@
 
 namespace geode {
     class NotificationCenter;
+    class Mod;
 
     class GEODE_DLL Notification {
      protected:
