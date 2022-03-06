@@ -10,6 +10,7 @@
 #include "Setting.hpp"
 #include <utils/types.hpp>
 #include <type_traits>
+#include <Notification.hpp>
 
 class Geode;
 class InternalMod;
@@ -305,6 +306,34 @@ namespace geode {
             std::string const& info,
             Severity severity
         );
+
+        /**
+         * Exports an internal function. You can use this
+         * for mod interoperability.
+         * @param selector mod-specific string identifier
+         * for your function
+         * @param ptr pointer to your exported function
+         */
+        template <typename T>
+        void exportAPIFunction(std::string selector const&, T ptr) {
+            NotificationCenter::get()->registerObserver(selector, [ptr](Notification& n) {
+                *n.unwrap_object<uintptr_t*>() = (uintptr_t)ptr;
+            });
+        }
+
+        /**
+         * Imports an internal function. You can use this
+         * for mod interoperability.
+         * @param selector Mod-specific string identifier
+         * for your function
+         * @returns Pointer to the external function
+         */
+        template <typename T>
+        T* importAPIFunction(std::string selector const&) {
+            uintptr_t out;
+            NotificationCenter()::get()->sendSync(Notification(selector, &out, nullptr), this);
+            return (T*)out;
+        }
 
         /**
          * Get all hooks owned by this Mod
