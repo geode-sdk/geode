@@ -7,6 +7,7 @@
 #include <exception>
 #include <unordered_map>
 #include <gen/Header.hpp>
+#include <any>
 
 #ifndef GEODE_DLL
 #define GEODE_DLL
@@ -17,40 +18,29 @@ namespace geode {
     class Mod;
 
     class GEODE_DLL Notification {
-     protected:
+    protected:
         std::string m_selector;
-        std::unique_ptr<char> m_object;
-        std::string m_object_type;
+        std::any m_object;
         Mod* m_sender;
-     public:
+    public:
         template <typename T>
-        bool is_type() const {
-            return m_object_type == typeid(T).name();
-        }
-
-        template <typename T>
-        T& unwrap_object() {
-            if (is_type<T>()) {
-                return reinterpret_cast<T&>(m_object.get());
-            } else {
-                throw std::exception();
-            }
+        T& object() {
+        	return std::any_cast<T&>(m_object);
         }
 
         inline std::string const& selector() const { return m_selector; }
         inline Mod* sender() const { return m_sender; }
 
         template <typename T>
-        Notification(std::string sel, T obj, Mod* sender) : 
+        Notification(std::string sel, T&& obj, Mod* sender) : 
             m_selector(sel),
-            m_object(reinterpret_cast<char*>(&obj)),
-            m_object_type(typeid(T).name()),
+            m_object(std::forward<T>(obj)),
             m_sender(sender) {}
 
         Notification(std::string sel, Mod* sender) : Notification(sel, nullptr, sender) {}
         Notification(std::string sel) : Notification(sel, Interface::get()->mod()) {}
 
-        Notification(Notification&& a) : m_selector(a.m_selector), m_object_type(a.m_object_type), m_sender(a.m_sender), m_object(std::move(a.m_object)) {}
+        Notification(Notification&& a) : m_selector(a.m_selector), m_sender(a.m_sender), m_object(std::move(a.m_object)) {}
 
         friend class NotificationCenter;
     };

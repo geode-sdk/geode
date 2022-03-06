@@ -317,7 +317,7 @@ namespace geode {
         template <typename T>
         void exportAPIFunction(std::string const& selector, T ptr) {
             NotificationCenter::get()->registerObserver(selector, [ptr](Notification& n) {
-                *n.unwrap_object<uintptr_t*>() = (uintptr_t)ptr;
+                *n.object<uintptr_t*>() = (uintptr_t)ptr;
             });
         }
 
