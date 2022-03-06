@@ -5,7 +5,7 @@
 #include <typeinfo>
 #include <memory>
 #include <exception>
-#include <queue>
+#include <unordered_map>
 #include <gen/Header.hpp>
 
 #ifndef GEODE_DLL
@@ -61,10 +61,9 @@ namespace geode {
         std::function<void(Notification const&)> m_callback;
     };
 
-    class GEODE_DLL NotificationCenter : public cocos2d::CCObject {
+    class GEODE_DLL NotificationCenter {
      protected:
-        std::queue<std::pair<Mod*, Notification>> m_queue;
-        std::vector<Observer> m_observers;
+        std::unordered_map<Mod*, std::unordered_map<std::string, std::vector<Observer*>>> m_observers;
         static NotificationCenter* shared;
      public:
         using callback_t = std::function<void(Notification const&)>;
@@ -72,8 +71,6 @@ namespace geode {
         NotificationCenter();
         static NotificationCenter* get();
 
-        void sendSync(Notification n, Mod* m);
-        void broadcastSync(Notification n);
         void send(Notification n, Mod* m);
         void broadcast(Notification n);
 
@@ -83,7 +80,5 @@ namespace geode {
         }
         void unregisterObserver(Observer* ob);
         std::vector<Observer*> getObservers(std::string selector, Mod* m);
-     protected:
-        void update(float dt);
     };
 }

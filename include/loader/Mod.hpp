@@ -331,7 +331,7 @@ namespace geode {
         template <typename T>
         T* importAPIFunction(std::string const& selector) {
             uintptr_t out;
-            NotificationCenter::get()->sendSync(Notification(selector, &out, nullptr), this);
+            NotificationCenter::get()->send(Notification(selector, &out, nullptr), this);
             return (T*)out;
         }
 
