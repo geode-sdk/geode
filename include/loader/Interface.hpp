@@ -62,7 +62,6 @@ namespace geode {
 		struct ScheduledExport {
 			std::string m_selector;
 			std::variant<unknownmemfn_t, unknownfn_t> m_func;
-			std::variant<exportmemfn_t, exportfn_t> m_export;
 		};
 
 		Mod* m_mod = nullptr;
@@ -118,17 +117,17 @@ namespace geode {
         GEODE_DLL void logInfo(std::string const& info, Severity severity);
 
     protected:
-        GEODE_DLL void exportAPIFunctionInternal(std::string const& selector, unknownmemfn_t fn, exportmemfn_t exportfn);
-        GEODE_DLL void exportAPIFunctionInternal(std::string const& selector, unknownfn_t fn, exportfn_t exportfn);
+        GEODE_DLL void exportAPIFunctionInternal(std::string const& selector, unknownmemfn_t fn);
+        GEODE_DLL void exportAPIFunctionInternal(std::string const& selector, unknownfn_t fn);
 
     public:
         template <typename T>
         inline void exportAPIFunction(std::string const& selector, T ptr) {
         	if constexpr (std::is_member_function_pointer_v<decltype(ptr)>) {
-        		exportAPIFunctionInternal(selector, reinterpret_cast<unknownmemfn_t>(ptr), &Mod::exportAPIFunction<unknownmemfn_t>);
+        		exportAPIFunctionInternal(selector, reinterpret_cast<unknownmemfn_t>(ptr));
         	}
         	else {
-        		exportAPIFunctionInternal(selector, reinterpret_cast<unknownfn_t>(ptr), &Mod::exportAPIFunction<unknownfn_t>);
+        		exportAPIFunctionInternal(selector, reinterpret_cast<unknownfn_t>(ptr));
         	}
         }
 	};
