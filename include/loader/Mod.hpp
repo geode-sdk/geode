@@ -25,7 +25,6 @@ namespace geode {
         class Log;
     }
     class Mod;
-    class APIMod;
 
     class Unknown;
 	using unknownmemfn_t = void(Unknown::*)();
@@ -527,10 +526,7 @@ namespace geode {
          */
         std::vector<Dependency> getUnresolvedDependencies();
 
-        template<class T, typename = std::enable_if_t<
-        	// std::is_constructible_v<T, Mod*> && 
-        	std::is_base_of_v<APIMod, T>
-        >>
+        template<class T>
         T* with() {
             return reinterpret_cast<T*>(this);
         }
