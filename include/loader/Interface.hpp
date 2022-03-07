@@ -43,7 +43,7 @@ namespace geode {
 	 */
 	class Interface {
 	protected:
-		static Interface* create();
+		static GEODE_DLL Interface* create();
 		
 
 		struct ScheduledHook {
