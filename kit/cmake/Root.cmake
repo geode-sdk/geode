@@ -61,7 +61,7 @@ if (NOT DEFINED GEODE_NO_LINK_LOADER)
 	geode_link_bin(${PROJECT_NAME} "${GEODE_SDK_DIR}/bin")
 endif()
 
-target_compile_definitions(${PROJECT_NAME} PRIVATE -DPROJECT_NAME=${PROJECT_NAME})
+target_compile_definitions(${PROJECT_NAME} PUBLIC -DPROJECT_NAME=${PROJECT_NAME} -DEXPORT_${PROJECT_NAME}=1)
 target_include_directories(${PROJECT_NAME} PUBLIC
 	${GEODE_INCLUDE_DIR}
 	${GEODE_INCLUDE_DIR}/helpers

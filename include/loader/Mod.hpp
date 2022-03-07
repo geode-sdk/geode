@@ -330,12 +330,14 @@ namespace geode {
          * for mod interoperability.
          * @param selector Mod-specific string identifier
          * for your function
+         * @param source Mod that the API function originates
+         * from
          * @returns Pointer to the external function
          */
         template <typename T>
-        T importAPIFunction(std::string const& selector) {
+        T importAPIFunction(std::string const& selector, Mod* source) {
         	T out;
-            NotificationCenter::get()->broadcast(Notification(selector, reinterpret_cast<void*>(&out), nullptr));
+            NotificationCenter::get()->send(Notification(selector, reinterpret_cast<void*>(&out), nullptr), source);
             return out;
         }
 
