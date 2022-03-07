@@ -32,7 +32,13 @@ if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
 	# needs to be put here so things dont mess up
 endif()
 
+
 add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
+
+if(DEFINED BINARY_NAME)
+	set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" OUTPUT_NAME BINARY_NAME)
+endif()
+
 
 include(${CMAKE_CURRENT_LIST_DIR}/GeodeFile.cmake)
 include(CheckIPOSupported)
