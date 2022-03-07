@@ -36,7 +36,7 @@ endif()
 add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
 
 if(DEFINED BINARY_NAME)
-	set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" OUTPUT_NAME BINARY_NAME)
+	set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" OUTPUT_NAME ${BINARY_NAME})
 endif()
 
 
