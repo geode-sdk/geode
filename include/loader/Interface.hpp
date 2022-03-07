@@ -43,6 +43,7 @@ namespace geode {
 	 */
 	class Interface {
 	protected:
+		static Interface* create();
 		
 
 		struct ScheduledHook {
@@ -72,8 +73,8 @@ namespace geode {
 	public:
 
 		static inline GEODE_HIDDEN Interface* get() {
-			static Interface ret;
-			return &ret;
+			static Interface* ret = create();
+			return ret;
 		}
 
 		static inline GEODE_HIDDEN Mod* mod() {
@@ -132,5 +133,7 @@ namespace geode {
         }
 	};
 
-    const char* operator"" _sprite(const char* str, size_t);
+    
 }
+
+const char* operator"" _sprite(const char* str, size_t);
