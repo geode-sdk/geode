@@ -4,6 +4,7 @@
 #include "Types.hpp"
 #include <vector>
 #include <variant>
+#include <utils/convert.hpp>
 #include <utils/Result.hpp>
 #include "Log.hpp"
 #include "Mod.hpp"
@@ -125,7 +126,14 @@ namespace geode {
         template <typename T>
         inline void exportAPIFunction(std::string const& selector, T ptr) {
         	if constexpr (std::is_member_function_pointer_v<decltype(ptr)>) {
-        		exportAPIFunctionInternal(selector, reinterpret_cast<unknownmemfn_t>(ptr));
+        		// why does this need reference cast
+        		// aaaaaaaa i hate you msvc
+        		// why did you need to make member function
+        		// pointers all different sizes everyone
+        		// hates you stop with this quirkiness
+        		// please i beg you im a cute girl
+        		// listen to me
+        		exportAPIFunctionInternal(selector, utils::reference_cast<unknownmemfn_t>(ptr));
         	}
         	else {
         		exportAPIFunctionInternal(selector, reinterpret_cast<unknownfn_t>(ptr));
