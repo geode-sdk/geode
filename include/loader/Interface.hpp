@@ -4,7 +4,7 @@
 #include "Types.hpp"
 #include <vector>
 #include <variant>
-#include <utils/convert.hpp>
+#include <utils/casts.hpp>
 #include <utils/Result.hpp>
 #include "Log.hpp"
 #include "Mod.hpp"
@@ -133,7 +133,7 @@ namespace geode {
         		// hates you stop with this quirkiness
         		// please i beg you im a cute girl
         		// listen to me
-        		exportAPIFunctionInternal(selector, utils::reference_cast<unknownmemfn_t>(ptr));
+        		exportAPIFunctionInternal(selector, cast::reference_cast<unknownmemfn_t>(ptr));
         	}
         	else {
         		exportAPIFunctionInternal(selector, reinterpret_cast<unknownfn_t>(ptr));

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Geode.hpp>
+#include <cocos2d.h>
 
 namespace geode::cocos {
     void ccDrawColor4B(cocos2d::ccColor4B const& color);
