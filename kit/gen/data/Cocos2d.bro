@@ -378,6 +378,7 @@ class cocos2d::CCMotionStreak {
 	auto reset() = mac 0x2ee190;
 	auto resumeStroke() = mac 0x2edb30;
 	auto stopStroke() = mac 0x2edb20;
+	bool initWithFade(float fade, float minSeg, float stroke, cocos2d::ccColor3B const& color, cocos2d::CCTexture2D* texture) = mac 0x2ed6f0;
 }
 
 class cocos2d::CCMouseHandler {

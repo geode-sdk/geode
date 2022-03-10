@@ -290,6 +290,13 @@ namespace geode {
         bool isHotReloadEnabled() const;
 
         /**
+         * Get the mod container stored in the Interface
+         * @returns nullptr if Interface is not initialized,
+         * the mod pointer if it is initialized
+         */
+        static inline Mod* get();
+
+        /**
          * Log to geode's integrated console / 
          * the platform debug console.
          * @returns Reference to log stream. Make sure 

@@ -73,13 +73,20 @@ namespace geode {
 	
 	public:
 
+
 		static inline GEODE_HIDDEN Interface* get() {
 			static Interface* ret = create();
 			return ret;
 		}
 
+		[[deprecated("Use Mod::get instead")]]
 		static inline GEODE_HIDDEN Mod* mod() {
 			return Interface::get()->m_mod;
+		}
+
+		[[deprecated("Use Log::get instead")]]
+		static inline GEODE_HIDDEN log::Log log() {
+			return Interface::get()->m_mod->log();
 		}
 
 		GEODE_DLL void init(Mod*);
@@ -132,8 +139,17 @@ namespace geode {
         		exportAPIFunctionInternal(selector, reinterpret_cast<unknownfn_t>(ptr));
         	}
         }
+
+        friend Mod* Mod::get();
 	};
 
+	inline Mod* Mod::get() {
+		return Interface::get()->m_mod;
+	}
+
+	inline log::Log log::Log::get() {
+		return Mod::get()->log();
+	}
     
 }
 
