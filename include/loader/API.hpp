@@ -13,7 +13,7 @@
     #define API_DECL(func, ...) \
     {\
         static geode::Mod* src = geode::Loader::get()->getLoadedMod(_source);\
-    	static auto ptr = geode::Interface::mod()->importAPIFunction<decltype(func)>(GEODE_STR(func), src);\
+    	static auto ptr = geode::Mod::get()->importAPIFunction<decltype(func)>(GEODE_STR(func), src);\
     	return std::invoke(ptr, __VA_ARGS__);\
     }
 #endif

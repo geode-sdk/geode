@@ -154,5 +154,5 @@ namespace geode {
 }
 
 inline const char* operator"" _sprite(const char* str, size_t) {
-    return geode::Interface::mod()->expandSpriteName(str);
+    return Mod::get()->expandSpriteName(str);
 }
