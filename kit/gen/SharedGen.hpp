@@ -44,6 +44,10 @@ struct CacShare {
         return parseTokens(lexStream(s));
     }
 
+    static bool isCocos(Function const& f) {
+    	return f.parent_class->name.rfind("cocos2d", 0) != 0;
+    }
+
     static string getAddress(Function const& f) {
         switch (CacShare::platform) {
             case kMac:
@@ -228,11 +232,14 @@ struct CacShare {
             case kConstructor: [[fallthrough]];
             case kDestructor: [[fallthrough]];
             case kRegularFunction:
+            	if (isCocos(f)) return "Thiscall";
             	if (f.args.size() == 0) return "Thiscall";
                 return "Membercall";
             case kVirtualFunction:
+            	if (isCocos(f)) return "Thiscall";
                 return "Thiscall";
             case kStaticFunction:
+            	if (isCocos(f)) return "Cdecl";
             	if (f.args.size() == 0) return "Cdecl";
                 return "Optcall";
         }

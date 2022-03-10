@@ -10,6 +10,7 @@
 #include "Setting.hpp"
 #include <utils/types.hpp>
 #include <type_traits>
+#include <Notification.hpp>
 
 class Geode;
 class InternalMod;
@@ -24,7 +25,10 @@ namespace geode {
         class Log;
     }
     class Mod;
-    class APIMod;
+
+    class Unknown;
+	using unknownmemfn_t = void(Unknown::*)();
+	using unknownfn_t = void(*)();
 
     struct Dependency {
         std::string m_id;
@@ -286,6 +290,13 @@ namespace geode {
         bool isHotReloadEnabled() const;
 
         /**
+         * Get the mod container stored in the Interface
+         * @returns nullptr if Interface is not initialized,
+         * the mod pointer if it is initialized
+         */
+        static inline Mod* get();
+
+        /**
          * Log to geode's integrated console / 
          * the platform debug console.
          * @returns Reference to log stream. Make sure 
@@ -305,6 +316,36 @@ namespace geode {
             std::string const& info,
             Severity severity
         );
+
+        /**
+         * Exports an internal function. You can use this
+         * for mod interoperability.
+         * @param selector mod-specific string identifier
+         * for your function
+         * @param ptr pointer to your exported function
+         */
+        template <typename T>
+        void exportAPIFunction(std::string const& selector, T ptr) {
+        	NotificationCenter::get()->registerObserver(this, selector, [ptr](Notification const& n) {
+                *reinterpret_cast<T*>(n.object<void*>()) = ptr;
+            });
+        }
+
+        /**
+         * Imports an internal function. You can use this
+         * for mod interoperability.
+         * @param selector Mod-specific string identifier
+         * for your function
+         * @param source Mod that the API function originates
+         * from
+         * @returns Pointer to the external function
+         */
+        template <typename T>
+        T importAPIFunction(std::string const& selector, Mod* source) {
+        	T out;
+            NotificationCenter::get()->send(Notification(selector, reinterpret_cast<void*>(&out), nullptr), source);
+            return out;
+        }
 
         /**
          * Get all hooks owned by this Mod
@@ -492,10 +533,7 @@ namespace geode {
          */
         std::vector<Dependency> getUnresolvedDependencies();
 
-        template<class T, typename = std::enable_if_t<
-        	// std::is_constructible_v<T, Mod*> && 
-        	std::is_base_of_v<APIMod, T>
-        >>
+        template<class T>
         T* with() {
             return reinterpret_cast<T*>(this);
         }

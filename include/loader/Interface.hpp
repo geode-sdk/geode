@@ -3,13 +3,15 @@
 #include "Macros.hpp"
 #include "Types.hpp"
 #include <vector>
+#include <variant>
+#include <utils/casts.hpp>
 #include <utils/Result.hpp>
 #include "Log.hpp"
 #include "Mod.hpp"
 
 namespace geode {
-	class Mod;
 	class Hook;
+
 
 	namespace log {
 		class LogPtr;
@@ -42,6 +44,9 @@ namespace geode {
 	 */
 	class Interface {
 	protected:
+		static GEODE_DLL Interface* create();
+		
+
 		struct ScheduledHook {
 			std::string_view m_displayName;
 			void* m_address;
@@ -53,19 +58,35 @@ namespace geode {
 			Severity m_severity;
 		};
 
+		using exportmemfn_t = void(Mod::*)(std::string const&, unknownmemfn_t);
+		using exportfn_t = void(Mod::*)(std::string const&, unknownfn_t);
+
+		struct ScheduledExport {
+			std::string m_selector;
+			std::variant<unknownmemfn_t, unknownfn_t> m_func;
+		};
+
 		Mod* m_mod = nullptr;
 		std::vector<ScheduledHook> m_scheduledHooks;
 		std::vector<ScheduledLog> m_scheduledLogs;
+		std::vector<ScheduledExport> m_scheduledExports;
 	
 	public:
 
+
 		static inline GEODE_HIDDEN Interface* get() {
-			static Interface ret;
-			return &ret;
+			static Interface* ret = create();
+			return ret;
 		}
 
+		[[deprecated("Use Mod::get instead")]]
 		static inline GEODE_HIDDEN Mod* mod() {
 			return Interface::get()->m_mod;
+		}
+
+		[[deprecated("Use Log::get instead")]]
+		static inline GEODE_HIDDEN log::Log log() {
+			return Interface::get()->m_mod->log();
 		}
 
 		GEODE_DLL void init(Mod*);
@@ -103,9 +124,35 @@ namespace geode {
          * @param severity Log severity
          */
         GEODE_DLL void logInfo(std::string const& info, Severity severity);
+
+    protected:
+        GEODE_DLL void exportAPIFunctionInternal(std::string const& selector, unknownmemfn_t fn);
+        GEODE_DLL void exportAPIFunctionInternal(std::string const& selector, unknownfn_t fn);
+
+    public:
+        template <typename T>
+        inline void exportAPIFunction(std::string const& selector, T ptr) {
+        	if constexpr (std::is_member_function_pointer_v<decltype(ptr)>) {
+        		exportAPIFunctionInternal(selector, cast::reference_cast<unknownmemfn_t>(ptr));
+        	}
+        	else {
+        		exportAPIFunctionInternal(selector, reinterpret_cast<unknownfn_t>(ptr));
+        	}
+        }
+
+        friend Mod* Mod::get();
 	};
 
-    inline const char* operator"" _sprite(const char* str, size_t) {
-        return Interface::mod()->expandSpriteName(str);
-    }
+	inline Mod* Mod::get() {
+		return Interface::get()->m_mod;
+	}
+
+	inline log::Log log::Log::get() {
+		return Mod::get()->log();
+	}
+    
+}
+
+inline const char* operator"" _sprite(const char* str, size_t) {
+    return geode::Mod::get()->expandSpriteName(str);
 }

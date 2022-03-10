@@ -32,7 +32,14 @@ if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
 	# needs to be put here so things dont mess up
 endif()
 
-add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
+if (NOT TARGET ${PROJECT_NAME})
+	add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
+endif()
+
+if(DEFINED BINARY_NAME)
+	set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" OUTPUT_NAME ${BINARY_NAME})
+endif()
+
 
 include(${CMAKE_CURRENT_LIST_DIR}/GeodeFile.cmake)
 include(CheckIPOSupported)
@@ -61,7 +68,7 @@ if (NOT DEFINED GEODE_NO_LINK_LOADER)
 	geode_link_bin(${PROJECT_NAME} "${GEODE_SDK_DIR}/bin")
 endif()
 
-target_compile_definitions(${PROJECT_NAME} PRIVATE -DPROJECT_NAME=${PROJECT_NAME})
+target_compile_definitions(${PROJECT_NAME} PUBLIC -DPROJECT_NAME=${PROJECT_NAME} -DEXPORT_${PROJECT_NAME}=1)
 target_include_directories(${PROJECT_NAME} PUBLIC
 	${GEODE_INCLUDE_DIR}
 	${GEODE_INCLUDE_DIR}/helpers
