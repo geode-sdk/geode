@@ -143,7 +143,8 @@ namespace geode {
         friend Mod* Mod::get();
 	};
 
-	inline Mod* Mod::get() {
+	template<>
+	inline Mod* Mod::get<void>() {
 		return Interface::get()->m_mod;
 	}
 

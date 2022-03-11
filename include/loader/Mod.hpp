@@ -294,6 +294,7 @@ namespace geode {
          * @returns nullptr if Interface is not initialized,
          * the mod pointer if it is initialized
          */
+        template<class = void>
         static inline Mod* get();
 
         /**

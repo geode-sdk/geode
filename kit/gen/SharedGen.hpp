@@ -45,7 +45,7 @@ struct CacShare {
     }
 
     static bool isCocos(Function const& f) {
-    	return f.parent_class->name.rfind("cocos2d", 0) != 0;
+    	return f.parent_class->name.rfind("cocos2d", 0) == 0;
     }
 
     static string getAddress(Function const& f) {
