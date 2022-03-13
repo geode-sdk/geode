@@ -233,6 +233,10 @@ namespace geode {
          * added to CCFileUtils search paths
          */
         bool m_addResourcesToSearchPath = false;
+        /**
+         * Error info in case loading failed
+         */
+        std::string m_loadErrorInfo = "";
 
         /**
          * Load the platform binary
@@ -283,6 +287,7 @@ namespace geode {
         bool        isLoaded()      const;
         bool        supportsDisabling() const;
         bool        wasSuccesfullyLoaded() const;
+        std::string getLoadErrorInfo() const;
 
         ghc::filesystem::path getHotReloadPath() const;
         Result<> enableHotReload();
@@ -294,6 +299,7 @@ namespace geode {
          * @returns nullptr if Interface is not initialized,
          * the mod pointer if it is initialized
          */
+        template<class = void>
         static inline Mod* get();
 
         /**
