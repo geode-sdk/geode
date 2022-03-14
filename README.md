@@ -1,82 +1,61 @@
-# GeodeSDK
+# Geode SDK
 Geode is a revolutionary Geometry Dash modding framework. Documentation on using the Geode SDK can be found on the [Geode Documentation](https://geode-sdk.github.io/docs/).
 
-### Geode
+## SDK
 
-Geode comes with a neat little way to hook very quickly. This let's you automatically hook functions without needing to manually find the address each time. It works by subclassing some of the Geode classes and overriding some of the methods. Geode classes are just like normal GD classes but prefixed with a `$`. To easily subclass these classes there is a macro called `$()`. To use it I give the macro the class I want to hook. Example:
+The SDK repo contains headers for Geometry Dash, Cocos2d-x, and the Geode framework itself. The Geometry Dash headers are generated using codegen, although pre-genned headers can be found through the [bin](https://github.com/geode-sdk/bin) submodule.
+
+## Basic Usage
+
+While traditional modding techniques involve convoluted setups using hooking libraries and calling conventions, Geode simplifies the development of mods to a single macro: `$modify`. Using it, you can hook functions in any class as long as the addresses of those functions is defined in the codegenned bindings.
+
+For example, to alter the behaviour of the "More Games" button in GD, all you have to do is this:
+
 ```cpp
-#include <Geode.hpp>
-#include <iostream>
-
-class $(EditorUI) {
-    void undoLastAction(CCObject* p0) {
-        std::cout << "Undo!" << std::endl;
+class $modify(MenuLayer) {
+    void onMoreGames(CCObject*) {
+		FLAlertLayer::create(
+            "Geode",
+            "Hello World from my Custom Mod!",´
+            "OK"
+        )->show(); 
     }
 };
 ```
 
-If you want to call the original function, there is also an easy way to do that as well:
-```cpp
-#include <Geode.hpp>
-#include <iostream>
+> :warning: Make sure that your overridden funcion's signature matches the original's. Emitting parameters / the `virtual` keyword may cause issues.
 
-class $(EditorUI) {
-    void undoLastAction(CCObject* p0) {
-        std::cout << "Undo!" << std::endl;
-        $EditorUI::undoLastAction(p0);
+If you want to call the original function, all you need to do is the base class name and the function name, in the same way you would call the base of a virtual function.
+
+```cpp
+class $modify(MenuLayer) {
+    bool init() {
+        if (!MenuLayer::init())
+            return false;
+
+        auto label = CCLabelBMFont::create("Hello world!", "bigFont.fnt");
+        label->setPosition(100, 100);
+        this->addChild(label);
+
+        return true;
     }
 };
 ```
 
-If you need the name of the hook class you can use the `$()` macro with 2 parameters:
-```cpp
-#include <Geode.hpp>
-#include <iostream>
+If you to give a name to your modified class, specify it as the first parameter to `$modify`:
 
-class $(EditorUI, EditorUIHook) {
-	void callback(CCObject*) {
-		std::cout << "Called from EditorUIHook!" << std::endl;
-	}
-    void undoLastAction(CCObject* p0) {
-    	auto func = &EditorUIHook::callback;
-        (this->*func)(p0); // c++ syntax moment
-        $EditorUI::undoLastAction(p0);
+```cpp
+class $modify(CustomMenuLayer, MenuLayer) {
+    void onMoreGames(CCObject*) {
+		FLAlertLayer::create(
+            "Geode",
+            "Hello World from my Custom Mod!",´
+            "OK"
+        )->show(); 
     }
 };
 ```
 
-Since the Geode classes subclass the GD classes, we can use the members and functions like we would in a normal class.
-```cpp
-#include <Geode.hpp>
-#include <iostream>
+## Documentation
 
-class $(EditorUI) {
-    void undoLastAction(CCObject* p0) {
-        std::cout << "We have " << getSelectedObjects()->count() << " objects selected" << std::endl;
-        $EditorUI::undoLastAction(p0);
-    }
-};
-```
-
-If you want, you can also use a function with the name `inject` to run code after the mod is loaded.
-```cpp
-#include <Geode.hpp>
-#include <iostream>
-
-class $(EditorUI) {
-    void undoLastAction(CCObject* p0) {
-        std::cout << "We have " << getSelectedObjects()->count() << " objects selected" << std::endl;
-        $EditorUI::undoLastAction(p0);
-    }
-};
-
-void inject() {
-    std::cout << "Hello!" << std::endl;
-}
-```
-
-If there's a function, class, or member you want to be added to the Geode catalog consider creating a pull request on [GeodeData](https://github.com/altalk23/GeodeData/).
-
-For Geode, (almost) all class variables are accessed via functions and prefixed with an underscore, e.g `GameManager::sharedState()->_playLayer()`. You can find a full list of these inside the Header.hpp header file.
-
-For a full list of helper functions, look at the utils/Geode.hpp header file.
+Documentation on using the Geode SDK can be found on the [Geode Documentation](https://geode-sdk.github.io/docs/).
