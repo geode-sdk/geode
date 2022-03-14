@@ -3112,6 +3112,8 @@ class InfoAlertButton {
 class InfoLayer : FLAlertLayer, LevelCommentDelegate, CommentUploadDelegate, FLAlertLayerProtocol {
 	bool init(GJGameLevel* level, GJUserScore* score) = mac 0x0, win 0x14f5a0, ios 0x0;
 	void setupCommentsBrowser(cocos2d::CCArray* comments) = mac 0x0, win 0x152270, ios 0x0;
+	void onMore(cocos2d::CCObject* pSender) = mac 0x0, win 0x151500, ios 0x0;
+	void onLevelInfo(cocos2d::CCObject* pSender) = mac 0x0, win 0x151850, ios 0x0;
 
 	PAD = mac 0x0, win 0x2c, android 0x0;
 	GJCommentListLayer* m_list;
@@ -3299,6 +3301,8 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
 class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDelegate, RateLevelDelegate, LikeItemDelegate, FLAlertLayerProtocol, LevelDeleteDelegate, NumberInputDelegate, SetIDPopupDelegate {
 	static LevelInfoLayer* create(GJGameLevel* level) = mac 0x15f290, win 0x175d50, ios 0x0;
 	void onGarage(cocos2d::CCObject* pSender) = mac 0x0, win 0x177c10, ios 0x0;
+	void onViewProfile(cocos2d::CCObject* pSender) = mac 0x0, win 0x17ac90, ios 0x0;
+	void onLevelInfo(cocos2d::CCObject* pSender) = mac 0x0, win 0x17acf0, ios 0x0;
 
 	PAD = mac 0x0, win 0x4, android 0x0;
 	cocos2d::CCMenu* m_playBtnMenu;
