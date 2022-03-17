@@ -53,7 +53,7 @@ namespace geode {
 
     class GEODE_DLL NotificationCenter {
     protected:
-        std::map<Mod*, std::map<std::string, std::vector<Observer*>>> m_observers;
+        std::unordered_map<Mod*, std::unordered_map<std::string, std::vector<Observer*>>> m_observers;
         static NotificationCenter* shared;
     public:
         using callback_t = std::function<void(Notification const&)>;
