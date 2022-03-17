@@ -6,6 +6,7 @@
 #include <exception>
 #include <unordered_map>
 #include <gen/Header.hpp>
+#include <base/Macros.hpp>
 #include <any>
 
 #ifndef GEODE_DLL
@@ -71,3 +72,16 @@ namespace geode {
         std::vector<Observer*> getObservers(std::string selector, Mod* m);
     };
 }
+#define _$observe2(sel, data, ctr) \
+    void $_observer##ctr(geode::Notification const&); \
+    static auto $_throw##ctr = (([](){ \
+        geode::NotificationCenter::get()->registerObserver( \
+            geode::Mod::get(), sel, $_observer##ctr \
+        ); \
+    })(), 0); \
+    void $_observer##ctr(geode::Notification const& data)
+
+#define _$observe1(sel, ctr) _$observe2(sel, , ctr)
+
+#define $observe(...) GEODE_INVOKE(GEODE_CONCAT(_$observe, GEODE_NUMBER_OF_ARGS(__VA_ARGS__)), __VA_ARGS__, __COUNTER__)
+
