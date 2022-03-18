@@ -51,7 +51,7 @@ class AchievementCell {
 
 class AchievementManager : cocos2d::CCNode {
 	void getAllAchievements() = mac 0x434d60, win 0x0, ios 0x0;
-	AchievementManager* sharedState() = mac 0x424420, win 0x7b10, ios 0x0;
+	static AchievementManager* sharedState() = mac 0x424420, win 0x7b10, ios 0x0;
 
 	PAD = mac 0x0, win 0x10, android 0x0;
 	cocos2d::CCDictionary* m_achievements;
@@ -66,7 +66,7 @@ class AchievementNotifier : cocos2d::CCNode {
 	    }
 	}
 
-	AchievementNotifier* sharedState() = mac 0x464e00, win 0xfc90, ios 0x0;
+	static AchievementNotifier* sharedState() = mac 0x464e00, win 0xfc90, ios 0x0;
 	void willSwitchToScene(cocos2d::CCScene*) = mac 0x4650b0, win 0x0, ios 0x0;
 	void showNextAchievement() = mac 0x464f10, win 0xfd60, ios 0x13f508;
 
@@ -2999,7 +2999,7 @@ class GameStatsManager : cocos2d::CCNode {
 	void hasUserCoin(char const*) = mac 0x427e0, win 0x0, ios 0x0;
 	void incrementStat(char const*) = mac 0x3d6d0, win 0x0, ios 0x0;
 	void incrementStat(char const*, int) = mac 0x3d6e0, win 0x0, ios 0x0;
-	GameStatsManager* sharedState() = mac 0x38f20, win 0xf1e50, ios 0x0;
+	static GameStatsManager* sharedState() = mac 0x38f20, win 0xf1e50, ios 0x0;
 	void storePendingUserCoin(char const*) = mac 0x42940, win 0x0, ios 0x0;
 	void storeSecretCoin(char const*) = mac 0x42a10, win 0x0, ios 0x0;
 	void storeUserCoin(char const*) = mac 0x42890, win 0x0, ios 0x0;
@@ -3112,6 +3112,8 @@ class InfoAlertButton {
 class InfoLayer : FLAlertLayer, LevelCommentDelegate, CommentUploadDelegate, FLAlertLayerProtocol {
 	bool init(GJGameLevel* level, GJUserScore* score) = mac 0x0, win 0x14f5a0, ios 0x0;
 	void setupCommentsBrowser(cocos2d::CCArray* comments) = mac 0x0, win 0x152270, ios 0x0;
+	void onMore(cocos2d::CCObject* pSender) = mac 0x0, win 0x151500, ios 0x0;
+	void onLevelInfo(cocos2d::CCObject* pSender) = mac 0x0, win 0x151850, ios 0x0;
 
 	PAD = mac 0x0, win 0x2c, android 0x0;
 	GJCommentListLayer* m_list;
@@ -3299,6 +3301,8 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
 class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDelegate, RateLevelDelegate, LikeItemDelegate, FLAlertLayerProtocol, LevelDeleteDelegate, NumberInputDelegate, SetIDPopupDelegate {
 	static LevelInfoLayer* create(GJGameLevel* level) = mac 0x15f290, win 0x175d50, ios 0x0;
 	void onGarage(cocos2d::CCObject* pSender) = mac 0x0, win 0x177c10, ios 0x0;
+	void onViewProfile(cocos2d::CCObject* pSender) = mac 0x0, win 0x17ac90, ios 0x0;
+	void onLevelInfo(cocos2d::CCObject* pSender) = mac 0x0, win 0x17acf0, ios 0x0;
 
 	PAD = mac 0x0, win 0x4, android 0x0;
 	cocos2d::CCMenu* m_playBtnMenu;

@@ -140,7 +140,7 @@ namespace geode {
         	}
         }
 
-        friend Mod* Mod::get();
+        friend Mod* Mod::get<void>();
 	};
 
 	template<>
