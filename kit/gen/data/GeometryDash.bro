@@ -3441,6 +3441,7 @@ class MenuLayer : cocos2d::CCLayer, FLAlertLayerProtocol {
 	void onMoreGames(cocos2d::CCObject*) = mac 0x1d2ad0, win 0x1919c0, ios 0x19fbb4;
 	void onGarage(cocos2d::CCObject*) = mac 0x0, win 0x191dc0, ios 0x0;
 	void onQuit(cocos2d::CCObject*) = mac 0x1d2b40, win 0x0, ios 0x0;
+	void onMyProfile(cocos2d::CCObject*) = mac 0x1d2c20, win 0x0, ios 0x0;
 	static cocos2d::CCScene* scene(bool) = mac 0x1d12d0, win 0x190720, ios 0x19e57c;
 	MenuLayer* node() = mac 0x0, win 0x190550, ios 0x0;
 }
