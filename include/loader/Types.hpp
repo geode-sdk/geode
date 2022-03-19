@@ -134,7 +134,7 @@ namespace geode {
 
 	/**
 	 * Default Geode load method for C++ 
-	 * mods: The mod receivse a pointer to 
+	 * mods: The mod receive a pointer to 
 	 * its allocated Mod instance. Return 
 	 * true on a succesful load, 
 	 * return false on error.
