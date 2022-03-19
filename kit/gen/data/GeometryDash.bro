@@ -3448,6 +3448,15 @@ class MenuLayer : cocos2d::CCLayer, FLAlertLayerProtocol {
 	void onMyProfile(cocos2d::CCObject*) = mac 0x1d2c20, win 0x0, ios 0x0;
 	void onPlay(cocos2d::CCObject*) = mac 0x0, win 0x191b50, ios 0x0;
 	void onCreator(cocos2d::CCObject*) = mac 0x0, win 0x191cd0, ios 0x0;
+	void onRobTop(cocos2d::CCObject*) = mac 0x0, win 0x191940, ios 0x0;
+        void onNewgrounds(cocos2d::CCObject*) = mac 0x0, win 0x191e90, ios 0x0;
+        void onDaily(cocos2d::CCObject*) = mac 0x0, win 0x1916e0, ios 0x0;
+        void onOptions(cocos2d::CCObject*) = mac 0x0, win 0x191c30, ios 0x0;
+        void onAchievements(cocos2d::CCObject*) = mac 0x0, win 0x191af0, ios 0x0;
+        void onStats(cocos2d::CCObject*) = mac 0x0, win 0x191ca0, ios 0x0;
+        void onFacebook(cocos2d::CCObject*) = mac 0x0, win 0x191960, ios 0x0;
+        void onTwitter(cocos2d::CCObject*) = mac 0x0, win 0x191980, ios 0x0;
+        void onYouTube(cocos2d::CCObject*) = mac 0x0, win 0x1919A0, ios 0x0;
 	static cocos2d::CCScene* scene(bool) = mac 0x1d12d0, win 0x190720, ios 0x19e57c;
 	MenuLayer* node() = mac 0x0, win 0x190550, ios 0x0;
 }
