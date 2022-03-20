@@ -3444,7 +3444,7 @@ class MenuLayer : cocos2d::CCLayer, FLAlertLayerProtocol {
 	virtual void FLAlert_Clicked(FLAlertLayer*, bool) = mac 0x1d3190, win 0x0, ios 0x0;
 	void onMoreGames(cocos2d::CCObject*) = mac 0x1d2ad0, win 0x1919c0, ios 0x19fbb4;
 	void onGarage(cocos2d::CCObject*) = mac 0x0, win 0x191dc0, ios 0x0;
-	void onQuit(cocos2d::CCObject*) = mac 0x1d2b40, win 0x0, ios 0x0;
+	void onQuit(cocos2d::CCObject*) = mac 0x1d2b40, win 0x191fa0, ios 0x0;
 	void onMyProfile(cocos2d::CCObject*) = mac 0x1d2c20, win 0x1e0950, ios 0x0;
 	void onPlay(cocos2d::CCObject*) = mac 0x0, win 0x191b50, ios 0x0;
 	void onCreator(cocos2d::CCObject*) = mac 0x0, win 0x191cd0, ios 0x0;
