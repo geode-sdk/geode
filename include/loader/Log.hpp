@@ -20,19 +20,19 @@ namespace geode {
     class Mod;
 }
 
-std::ostream& operator<<(std::ostream& os, geode::Mod* mod);
-std::ostream& operator<<(std::ostream& os, cocos2d::CCObject* obj);
-std::ostream& operator<<(std::ostream& os, cocos2d::CCArray* obj);
-std::ostream& operator<<(std::ostream& os, cocos2d::CCPoint const& pos);
-std::ostream& operator<<(std::ostream& os, cocos2d::CCSize const& size);
-std::ostream& operator<<(std::ostream& os, cocos2d::CCRect const& rect);
+GEODE_DLL std::ostream& operator<<(std::ostream& os, geode::Mod* mod);
+GEODE_DLL std::ostream& operator<<(std::ostream& os, cocos2d::CCObject* obj);
+GEODE_DLL std::ostream& operator<<(std::ostream& os, cocos2d::CCArray* obj);
+GEODE_DLL std::ostream& operator<<(std::ostream& os, cocos2d::CCPoint const& pos);
+GEODE_DLL std::ostream& operator<<(std::ostream& os, cocos2d::CCSize const& size);
+GEODE_DLL std::ostream& operator<<(std::ostream& os, cocos2d::CCRect const& rect);
 
 namespace geode::log {
     #pragma warning(disable: 4251)
 
     using log_clock = std::chrono::system_clock;
 
-    struct LogMetadata {
+    struct GEODE_DLL LogMetadata {
         std::string m_repr;
         LogMetadata(std::string const& r) : m_repr(r) {}
         LogMetadata() {}
@@ -120,19 +120,19 @@ namespace geode::log {
         ModMeta(Mod* m) : m_mod(m) {}
         ModMeta(std::string const& r, Mod* m) : m_mod(m), NoMetadata(r) {}
     };
-    struct CCObjectMeta : public NoMetadata {
+    struct GEODE_DLL CCObjectMeta : public NoMetadata {
         cocos2d::CCObject* m_obj;
         CCObjectMeta(cocos2d::CCObject* obj);
         CCObjectMeta(std::string const& r, cocos2d::CCObject* obj);
         ~CCObjectMeta();
     };
-    struct CCArrayMeta : public NoMetadata {
+    struct GEODE_DLL CCArrayMeta : public NoMetadata {
         cocos2d::CCArray* m_arr;
         CCArrayMeta(cocos2d::CCArray* arr);
         CCArrayMeta(std::string const& r, cocos2d::CCArray* arr);
         ~CCArrayMeta();
     };
 }
-geode::log::Log& operator<<(geode::log::Log&, geode::Mod*);
-geode::log::Log& operator<<(geode::log::Log&, cocos2d::CCObject*);
-geode::log::Log& operator<<(geode::log::Log&, cocos2d::CCArray*);
+GEODE_DLL geode::log::Log& operator<<(geode::log::Log&, geode::Mod*);
+GEODE_DLL geode::log::Log& operator<<(geode::log::Log&, cocos2d::CCObject*);
+GEODE_DLL geode::log::Log& operator<<(geode::log::Log&, cocos2d::CCArray*);
