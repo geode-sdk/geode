@@ -310,7 +310,7 @@ int main(int argc, char** argv) {
 		}
 		if (CacShare::platform == kMac || CacShare::platform == kIos) {
 			for (auto& i : c.inlines) {
-				if (c.name.find("cocos2d::") == string::npos) continue; // cocos inlines
+				if (c.name.find("cocos2d") == string::npos) continue; // cocos inlines
 				output += i.inlined + "\n";
 			}
 		}
