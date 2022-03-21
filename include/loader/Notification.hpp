@@ -76,7 +76,7 @@ namespace geode {
         template <typename T>
         void send(Notification<T> n, Mod* m) {
             for (auto& obs : m_observers[m][n.selector()]) {
-                obs->into<T>()->m_callback(n);
+                obs->template into<T>()->m_callback(n);
             }
         }
 
@@ -84,7 +84,7 @@ namespace geode {
         void broadcast(Notification<T> n) {
             for (auto& [k, v] : m_observers) {
                 for (auto& obs : v[n.selector()]) {
-                    obs->into<T>()->m_callback(n);
+                    obs->template into<T>()->m_callback(n);
                 }
             }
         }

@@ -148,7 +148,7 @@ public:
     inline const char* getAtlasName(){ return m_sAtlasName.c_str(); }
     inline void setAtlasName(const char* atlasName) { m_sAtlasName = atlasName; }
     
-    std::set<unsigned int>* getCharacterSet() const;
+    inline std::set<unsigned int>* getCharacterSet() const { return m_pCharacterSet; }
 private:
     std::set<unsigned int>* parseConfigFile(const char *controlFile);
     void parseCharacterDefinition(gd::string line, ccBMFontDef *characterDefinition);

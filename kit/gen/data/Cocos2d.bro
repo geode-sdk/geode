@@ -669,6 +669,7 @@ class cocos2d::CCSprite {
 	static cocos2d::CCSprite* createWithSpriteFrame(cocos2d::CCSpriteFrame*) = mac 0x132cb0;
 	static cocos2d::CCSprite* createWithSpriteFrameName(char const*) = mac 0x132dc0, ios 0x15b3ec;
 	static cocos2d::CCSprite* createWithTexture(cocos2d::CCTexture2D*) = mac 0x132790;
+	static cocos2d::CCSprite* createWithTexture(cocos2d::CCTexture2D*, cocos2d::CCRect const&) = mac 0x132960;
 
 	void setFlipX(bool) = mac 0x134be0;
 	void setFlipY(bool) = mac 0x134c30;
