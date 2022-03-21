@@ -130,7 +130,7 @@ namespace geode {
         ~CCArrayMeta();
     };
 
-    struct {
+    inline struct {
         template <typename T>
         geode::Log& operator<<(T& a) {
             return geode::Log::get() << a;
