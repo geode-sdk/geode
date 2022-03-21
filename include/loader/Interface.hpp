@@ -11,11 +11,7 @@
 
 namespace geode {
 	class Hook;
-
-
-	namespace log {
-		class LogPtr;
-	}
+	class LogPtr;
 
 	/**
 	 * For developing your own mods, it is 
@@ -85,7 +81,7 @@ namespace geode {
 		}
 
 		[[deprecated("Use Log::get instead")]]
-		static inline GEODE_HIDDEN log::Log log() {
+		static inline GEODE_HIDDEN Log log() {
 			return Interface::get()->m_mod->log();
 		}
 
@@ -148,7 +144,7 @@ namespace geode {
 		return Interface::get()->m_mod;
 	}
 
-	inline log::Log log::Log::get() {
+	inline Log Log::get() {
 		return Mod::get()->log();
 	}
     
