@@ -42,6 +42,10 @@ class cocos2d::CCBezierTo {
 	static cocos2d::CCBezierTo* create(float, cocos2d::_ccBezierConfig const&) = mac 0x1f6c10;
 }
 
+class cocos2d::CCBMFontConfiguration {
+	static cocos2d::CCBMFontConfiguration* create(char const*) = mac 0x3450f0;
+}
+
 class cocos2d::CCCallFunc {
 	static cocos2d::CCCallFunc* create(int) = mac 0x454d90;
 }
