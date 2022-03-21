@@ -21,9 +21,7 @@ namespace geode {
     class Hook;
     class Patch;
     class Loader;
-    namespace log {
-        class Log;
-    }
+    class Log;
     class Mod;
 
     class Unknown;
@@ -308,7 +306,7 @@ namespace geode {
          * @returns Reference to log stream. Make sure 
          * to end your logging with geode::endl.
          */
-        log::Log log();
+        Log log();
 
         /**
          * Log an information. Equivalent to 
