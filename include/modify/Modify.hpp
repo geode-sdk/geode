@@ -3,7 +3,7 @@
 #include "Wrapper.hpp"
 #include "Types.hpp"
 #include "Addresses.hpp"
-#include <meta/meta.hpp>
+#include "../meta/meta.hpp"
 #include <iostream>
 
 namespace geode::modifier {

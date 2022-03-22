@@ -5,6 +5,8 @@
 #include <utils/types.hpp>
 #include <string_view>
 
+#include "../core/Hook.hpp"
+
 namespace geode {
     class Mod;
     class Loader;
@@ -15,7 +17,7 @@ namespace geode {
         std::string_view m_displayName;
         void* m_address;
         void* m_detour;
-        void* m_handle = nullptr;
+        core::HookHandle m_handle;
         bool  m_enabled;
 
         // Only allow friend classes to create
