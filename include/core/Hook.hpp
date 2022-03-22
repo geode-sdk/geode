@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Handler.hpp"
+#include "../utils/Result.hpp"
 #include <vector>
 
 namespace geode::core {
@@ -26,12 +27,12 @@ namespace geode::core {
 			void* generatedTrampoline
 		);
 
-		void removeHook(Handle const& handle);
+		void removeHook(HookHandle const& handle);
 	}
 
 	namespace hook {
 		template <auto Detour, template <class, class...> class Conv, class Ret, class ...Args>
-		HookHandle add(Ret(*address)(Args...)) {
+		Result<HookHandle> add(Ret(*address)(Args...)) {
 		    using FunctionType = decltype(Detour);
 		    using MyConv = Conv<Ret, Args...>;
 
@@ -50,11 +51,17 @@ namespace geode::core {
 		    	(void*)generatedTrampoline
 		    );
 
-		    return {(void*)generatedHandler, (void*)address, (void*)Detour, (void*)generatedTrampoline};
+		    return Ok<HookHandle>({
+		    	(void*)generatedHandler, 
+		    	(void*)address, 
+		    	(void*)Detour, 
+		    	(void*)generatedTrampoline
+		   	});
 		}
 
-		void remove(HookHandle const& handle) {
-			return impl::removeHook(handle);
+		Result<> remove(HookHandle const& handle) {
+			impl::removeHook(handle);
+			return Ok<>();
 		}
 	}
 }
