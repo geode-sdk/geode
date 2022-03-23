@@ -19,7 +19,7 @@ namespace geode {
         void* m_detour;
         core::HookHandle m_handle;
         bool  m_enabled;
-        std::function<Result<core::HookHandle>(void*)> m_addFunction;
+        Result<core::HookHandle>(*m_addFunction)(void*);
 
         // Only allow friend classes to create
         // hooks. Whatever method created the
@@ -30,11 +30,11 @@ namespace geode {
         template <auto Detour, template <class, class...> class Conv, class Ret, class ...Args>
         static Hook* create(Ret(*address)(Args...), std::string const& displayName, Mod* owner) {
         	auto ret = new Hook;
-        	ret->m_address = address;
-        	ret->m_detour = Detour;
+        	ret->m_address = (void*)address;
+        	ret->m_detour = (void*)Detour;
         	ret->m_owner = owner;
         	ret->m_displayName = displayName;
-        	ret->m_addFunction = &core::hook::add<Detour, Conv, Ret, Args...>;
+        	ret->m_addFunction = (Result<core::HookHandle>(*)(void*))&core::hook::add<Detour, Conv, Ret, Args...>;
         	return ret;
         }
 

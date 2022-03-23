@@ -378,7 +378,7 @@ namespace geode {
          */
 		template<auto Detour, template <class, class...> class Convention>
         Result<Hook*> addHook(std::string const& displayName, void* address) {
-		    auto hook = Hook::create<Detour, Convention>(address, displayName, this);
+		    auto hook = Hook::create<Detour, Convention>((decltype(Detour))address, displayName, this);
 	        return this->addHook(hook);
 		}
 
