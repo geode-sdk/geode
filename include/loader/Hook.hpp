@@ -12,7 +12,7 @@ namespace geode {
     class Loader;
 
     class GEODE_DLL Hook {
-    protected:
+    private:
         Mod*  m_owner;
         std::string m_displayName;
         void* m_address;

@@ -59,7 +59,7 @@ namespace geode::core {
 		   	});
 		}
 
-		Result<> remove(HookHandle const& handle) {
+		inline Result<> remove(HookHandle const& handle) {
 			impl::removeHook(handle);
 			return Ok<>();
 		}
