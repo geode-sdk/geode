@@ -29,6 +29,12 @@ namespace geode {
         GEODE_DLL std::string  toLower(std::string  const& str);
         GEODE_DLL std::wstring toLower(std::wstring const& str);
 
+        GEODE_DLL std::string & toUpperIP(std::string & str);
+        GEODE_DLL std::wstring& toUpperIP(std::wstring& str);
+
+        GEODE_DLL std::string  toUpper(std::string  const& str);
+        GEODE_DLL std::wstring toUpper(std::wstring const& str);
+
         GEODE_DLL std::string& replaceIP(
             std::string & str,
             std::string const& orig,
