@@ -20,9 +20,6 @@ namespace geode {
          */
         GEODE_DLL std::wstring utf8ToWide(std::string  const& str);
 
-        GEODE_DLL bool endsWith(std::string  const& str, std::string  const& substr);
-        GEODE_DLL bool endsWith(std::wstring const& str, std::wstring const& substr);
-
         GEODE_DLL std::string & toLowerIP(std::string & str);
         GEODE_DLL std::wstring& toLowerIP(std::wstring& str);
 
@@ -114,6 +111,11 @@ namespace geode {
         GEODE_DLL std::wstring& normalizeIP(std::wstring & str);
         GEODE_DLL std::string   normalize(std::string  const& str);
         GEODE_DLL std::wstring  normalize(std::wstring const& str);
+
+        GEODE_DLL bool startsWith(std::string const& str, std::string const& prefix);
+        GEODE_DLL bool startsWith(std::wstring const& str, std::wstring const& prefix);
+        GEODE_DLL bool endsWith(std::string const& str, std::string const& suffix);
+        GEODE_DLL bool endsWith(std::wstring const& str, std::wstring const& suffix);
     }
 }
 
