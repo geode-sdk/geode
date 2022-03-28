@@ -225,6 +225,8 @@ class cocos2d::CCLabelBMFont {
 }
 
 class cocos2d::CCLabelTTF {
+	static cocos2d::CCLabelTTF* create() = mac 0x1fa7e0;
+	static cocos2d::CCLabelTTF* create(char const*, char const*, float) = mac 0x1fa840;
 	auto updateTexture() = mac 0x1fadc0;
 	virtual auto setString(char const*) = mac 0x1fad70;
 }
