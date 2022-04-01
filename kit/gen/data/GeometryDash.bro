@@ -4237,7 +4237,7 @@ class PointNode : cocos2d::CCObject {
 }
 
 class ProfilePage : FLAlertLayer, FLAlertLayerProtocol, LevelCommentDelegate, CommentUploadDelegate, UserInfoDelegate, UploadActionDelegate, UploadPopupDelegate, LeaderboardManagerDelegate {
-	static ProfilePage* create(int accountID, bool idk) = mac 0x0, win 0x20ee50, ios 0x0;
+	static ProfilePage* create(int accountID, bool idk) = mac 0x45eed0, win 0x20ee50, ios 0x0;
 
 	PAD = mac 0x0, win 0x4, android 0x0;
 	int m_accountID;
