@@ -2829,12 +2829,15 @@ class GameObject : CCSpritePlus {
 	bool m_editor;
 	bool m_groupDisabled;
 	bool m_colourOnTop;
-	GJSpriteColor* m_mainColourMode;
-	GJSpriteColor* m_secondaryColourMode;
-	bool m_col1;
-	bool m_col2;
+	//GJSpriteColor* m_mainColourMode;
+	//GJSpriteColor* m_secondaryColourMode;
+	//bool m_col1;
+	//bool m_col2;
+	float m_unknown27c;
+	float m_unknown280;
+	float m_unknown284;
 	cocos2d::CCPoint m_startPosOffset;
-	float m_unkRotationField;
+	float m_rotateOffset;
 	bool m_tintTrigger;
 	bool m_isFlippedX;
 	bool m_isFlippedY;
@@ -2850,7 +2853,7 @@ class GameObject : CCSpritePlus {
 	bool m_runActionWithTag;
 	bool m_objectPoweredOn;
 	cocos2d::CCSize m_objectSize;
-	bool m_trigger;
+	bool m_modifier;
 	bool m_active;
 	bool m_animationFinished;
 	cocos2d::CCParticleSystemQuad* m_particleSystem;
@@ -2868,7 +2871,11 @@ class GameObject : CCSpritePlus {
 	bool m_isOrientedRectDirty;
 	bool m_hasBeenActivated;
 	bool m_hasBeenActivatedP2;
-	PAD = mac 0x10, win 0x10, android 0x0;
+	bool m_hasDetailColor;
+	bool m_isPulseStick;
+	int m_linkedGroup;
+	bool m_isSaw;
+	int m_customRotateSpeed;
 	bool m_sawIsDisabled;
 	PAD = mac 0x4, win 0x4, android 0x0;
 	cocos2d::CCSprite* m_detailSprite;
@@ -2899,14 +2906,17 @@ class GameObject : CCSpritePlus {
 	int m_targetColorID;
 	float m_scale;
 	int m_objectID;
-	PAD = mac 0x0, win 0x4, android 0x0;
+	PAD = mac 0x4, win 0x4, android 0x0;
 	bool m_unk368;
 	bool m_unk369;
 	bool m_unk36A;
 	bool m_isDontEnter;
 	bool m_isDontFade;
 	int m_defaultZOrder;
-	PAD = mac 0x0, win 0x17, android 0x0;
+	bool m_useSecondSheet;
+	bool m_unknown3d9;
+
+	//PAD = mac 0x17, win 0x17, android 0x0;
 	bool m_isPortal;
 	bool m_lockColourAsChild;
 	bool m_customAudioScale;
@@ -2927,7 +2937,7 @@ class GameObject : CCSpritePlus {
 	float m_unkWin18C;
 	GJSpriteColor* m_baseColor;
 	GJSpriteColor* m_detailColor;
-	PAD = mac 0x0, win 0x4, android 0x0;
+	int m_unknown420;																																																				
 	ZLayer m_defaultZLayer;
 	ZLayer m_zLayer;
 	int m_gameZOrder;
@@ -2936,24 +2946,24 @@ class GameObject : CCSpritePlus {
 	bool m_unk3D9;
 	bool m_isSelected;
 	int m_globalClickCounter;
-	PAD = mac 0x0, win 0x8, android 0x0;
+	PAD = mac 0x8, win 0x8, android 0x0;
 	bool m_unknownLayerRelated;
 	float m_multiScaleMultiplier;
 	bool m_isGroupParent;
 	short* m_groups;
 	short m_groupCount;
-	PAD = mac 0x0, win 0x12, android 0x0;
+	PAD = mac 0x22, win 0x12, android 0x0;
 	int m_editorLayer;
 	int m_editorLayer2;
 	int m_unk414;
-	PAD = mac 0x0, win 0xc, android 0x0;
+	PAD = mac 0xc, win 0xc, android 0x0;
 	cocos2d::CCPoint m_firstPosition;
-	PAD = mac 0x0, win 0x1c, android 0x0;
+	PAD = mac 0x1c, win 0x1c, android 0x0;
 	bool m_highDetail;
 	ColorActionSprite* m_colorActionSprite1;
 	ColorActionSprite* m_colorActionSprite2;
 	GJEffectManager* m_effectManager;
-	PAD = mac 0x0, win 0x10, android 0x0;
+	PAD = mac 0x10, win 0x10, android 0x0;
 }
 
 class GameObjectCopy : cocos2d::CCObject {
@@ -4110,10 +4120,10 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
 	cocos2d::CCNode* m_unk484;
 	cocos2d::CCDictionary* m_collisionLog;
 	cocos2d::CCDictionary* m_collisionLog1;
-	PAD = mac 0x40, win 0x20, android 0x0;
+	PAD = mac 0x38, win 0x20, android 0x0;
 	bool m_unk4B0;
 	cocos2d::CCSprite* m_unk4B4;
-	PAD = mac 0x0, win 0x1c, android 0x0;
+	PAD = mac 0x1c, win 0x1c, android 0x0;
 	bool m_unk4D4;
 	cocos2d::CCArray* m_particleSystems;
 	bool m_unk4DC;
