@@ -332,8 +332,9 @@ namespace geode {
          */
         template <typename T>
         void exportAPIFunction(std::string const& selector, T ptr) {
-        	NotificationCenter::get()->registerObserver(this, selector, [ptr](Notification const& n) {
-                *reinterpret_cast<T*>(n.object<void*>()) = ptr;
+        	NotificationCenter::get()->registerObserver<T*>(this, selector, [ptr](Notification<T*> const& n) {
+                //*reinterpret_cast<T*>(n.object<void*>()) = ptr;
+                *n.object() = ptr;
             });
         }
 
@@ -349,7 +350,7 @@ namespace geode {
         template <typename T>
         T importAPIFunction(std::string const& selector, Mod* source) {
         	T out;
-            NotificationCenter::get()->send(Notification(selector, reinterpret_cast<void*>(&out), nullptr), source);
+            NotificationCenter::get()->send(Notification(selector, &out, nullptr), source);
             return out;
         }
 

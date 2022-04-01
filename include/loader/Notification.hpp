@@ -8,6 +8,7 @@
 #include <gen/Header.hpp>
 #include <base/Macros.hpp>
 #include <any>
+#include <variant>
 
 #ifndef GEODE_DLL
 #define GEODE_DLL
@@ -17,71 +18,126 @@ namespace geode {
     class NotificationCenter;
     class Mod;
 
+    template <typename T = std::monostate>
+    struct GEODE_DLL NotifInfo {
+        std::string selector;
+        NotifInfo(std::string sel) : selector(sel) {}
+        NotifInfo() {}
+    };
+
+    template <typename T = std::monostate>
+    struct GEODE_DLL ConstNotifInfo {
+        char const* selector;
+        constexpr ConstNotifInfo(char const* sel) : selector(sel) {}
+        constexpr ConstNotifInfo() {}
+
+        operator NotifInfo<T>() {
+            return NotifInfo<T>(selector);
+        }
+    };
+
+    template <typename T = std::monostate>
     class GEODE_DLL Notification {
     protected:
-        std::string m_selector;
-        std::any m_object;
+        NotifInfo<T> m_info;
+        T m_object;
         Mod* m_sender;
     public:
-        template <typename T>
         T const& object() const {
-        	return std::any_cast<T const&>(m_object);
+        	return m_object;
         }
 
-        inline std::string const& selector() const { return m_selector; }
+        inline std::string const& selector() const { return m_info.selector; }
         inline Mod* sender() const { return m_sender; }
 
-        template <typename T>
-        Notification(std::string sel, T&& obj, Mod* sender) : 
-            m_selector(sel),
-            m_object(std::forward<T>(obj)),
+        Notification(NotifInfo<T> inf, T obj, Mod* sender) :
+            m_info(inf),
+            m_object(obj),
             m_sender(sender) {}
 
-        Notification(std::string sel, Mod* sender) : Notification(sel, nullptr, sender) {}
+        Notification(std::string sel, T obj, Mod* sender) : Notification(NotifInfo<T>(sel), obj, sender) {}
+
+        Notification(std::string sel, Mod* sender) : Notification(sel, T(), sender) {}
+        Notification(NotifInfo<T> inf, Mod* sender) : Notification(inf, T(), sender) {}
         // Notification(std::string sel) : Notification(sel, Interface::get()->mod()) {}
 
-        Notification(Notification&& a) : m_selector(a.m_selector), m_sender(a.m_sender), m_object(std::move(a.m_object)) {}
+        Notification(Notification&& a) : m_info(a.m_info), m_sender(a.m_sender), m_object(std::move(a.m_object)) {}
 
         friend class NotificationCenter;
     };
 
+    template <typename T = std::monostate>
     struct Observer {
-        std::string m_selector;
+        NotifInfo<T> m_info;
         Mod* m_mod;
-        std::function<void(Notification const&)> m_callback;
+        std::function<void(Notification<T> const&)> m_callback;
+
+        template <typename U = std::monostate>
+        Observer<U>* into() {return reinterpret_cast<Observer<U>*>(this);}
     };
 
     class GEODE_DLL NotificationCenter {
     protected:
-        std::unordered_map<Mod*, std::unordered_map<std::string, std::vector<Observer*>>> m_observers;
+        std::map<Mod*, std::map<std::string, std::vector<Observer<std::monostate>*>>> m_observers;
         static NotificationCenter* shared;
     public:
-        using callback_t = std::function<void(Notification const&)>;
 
         NotificationCenter();
         static NotificationCenter* get();
 
-        void send(Notification n, Mod* m);
-        void broadcast(Notification n);
+        template <typename T>
+        void send(Notification<T> n, Mod* m) {
+            for (auto& obs : m_observers[m][n.selector()]) {
+                obs->into<T>()->m_callback(n);
+            }
+        }
 
-        Observer* registerObserver(Mod* m, std::string selector, callback_t cb);
-        // inline Observer* registerObserver(std::string selector, callback_t cb) {
-        //     return registerObserver(Interface::get()->mod(), selector, cb);
-        // }
-        void unregisterObserver(Observer* ob);
-        std::vector<Observer*> getObservers(std::string selector, Mod* m);
+        template <typename T>
+        void broadcast(Notification<T> n) {
+            for (auto& [k, v] : m_observers) {
+                for (auto& obs : v[n.selector()]) {
+                    obs->into<T>()->m_callback(n);
+                }
+            }
+        }
+
+        template <typename T = std::monostate>
+        Observer<std::monostate>* registerObserver(Mod* m, NotifInfo<T> info, std::function<void(Notification<T> const&)> cb) {
+            Observer<T>* ob = new Observer<T>;
+            ob->m_info = info;
+            ob->m_callback = cb;
+            ob->m_mod = m;
+
+            m_observers[m][info.selector].push_back(ob->into());
+
+            return ob->into();
+        }
+
+        template <typename T = std::monostate>
+        Observer<std::monostate>* registerObserver(Mod* m, std::string sel, std::function<void(Notification<T> const&)> cb) {
+            return registerObserver(m, NotifInfo<T>(sel), cb);
+        }
+
+        template <typename T = std::monostate>
+        inline Observer<std::monostate>* registerObserver(std::string sel, std::function<void(Notification<T> const&)> cb);
+
+        template <typename T = std::monostate>
+        inline Observer<std::monostate>* registerObserver(NotifInfo<T> info, std::function<void(Notification<T> const&)> cb);
+
+        void unregisterObserver(Observer<std::monostate>* ob);
+        std::vector<Observer<std::monostate>*> getObservers(std::string selector, Mod* m);
     };
 }
-#define _$observe2(sel, data, ctr) \
-    void $_observer##ctr(geode::Notification const&); \
+#define _$observe3(sel, T, data, ctr) \
+    void $_observer##ctr(geode::Notification<T> const&); \
     static auto $_throw##ctr = (([](){ \
-        geode::NotificationCenter::get()->registerObserver( \
-            geode::Mod::get(), sel, $_observer##ctr \
+        geode::NotificationCenter::get()->registerObserver<T>( \
+            sel, $_observer##ctr \
         ); \
     })(), 0); \
-    void $_observer##ctr(geode::Notification const& data)
+    void $_observer##ctr(geode::Notification<T> const& data)
 
-#define _$observe1(sel, ctr) _$observe2(sel, , ctr)
+#define _$observe1(sel, ctr) _$observe3(sel, std::monostate, , ctr)
 
 #define $observe(...) GEODE_INVOKE(GEODE_CONCAT(_$observe, GEODE_NUMBER_OF_ARGS(__VA_ARGS__)), __VA_ARGS__, __COUNTER__)
 

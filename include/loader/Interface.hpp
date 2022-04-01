@@ -151,6 +151,16 @@ namespace geode {
 	inline log::Log log::Log::get() {
 		return Mod::get()->log();
 	}
+
+	template <typename T>
+	inline Observer<std::monostate>* NotificationCenter::registerObserver(std::string sel, std::function<void(Notification<T> const&)> cb) {
+	    return registerObserver(Mod::get(), NotifInfo<T>(sel), cb);
+	}
+
+	template <typename T>
+	inline Observer<std::monostate>* NotificationCenter::registerObserver(NotifInfo<T> info, std::function<void(Notification<T> const&)> cb) {
+	    return registerObserver(Mod::get(), info, cb);
+	}
     
 }
 
