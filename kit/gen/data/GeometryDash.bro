@@ -249,7 +249,7 @@ class CCCircleWave : cocos2d::CCNode {
 	static CCCircleWave* create(float, float, float, bool) = mac 0xbd270, win 0x0, ios 0x0;
 	static CCCircleWave* create(float, float, float, bool, bool) = mac 0xbd290, win 0x16c00, ios 0x0;
 	bool init(float, float, float, bool, bool) = mac 0xbd380, win 0x0, ios 0x0;
-	void followObject(cocos2d::CCNode, bool) = mac 0xbd670, win 0x16f20, ios 0x0;
+	void followObject(cocos2d::CCNode*, bool) = mac 0xbd670, win 0x16f20, ios 0x0;
 	void updatePosition(float) = mac 0xbd630, win 0x16f00, ios 0x0;
 	void setPosition(cocos2d::CCPoint const& pos) = mac 0x0, win 0x16ed0, ios 0x0;
 	void removeMeAndCleanup() = mac 0x0, win 0x17280, ios 0x0;
@@ -275,6 +275,7 @@ class CCCircleWaveDelegate {
 
 class CCContentLayer : cocos2d::CCLayerColor {
 	static CCContentLayer* create(cocos2d::ccColor4B const& color, float width, float height) = mac 0x0, win 0x172a0, ios 0x0;
+	virtual void setPosition(cocos2d::CCPoint const& pos) = mac 0x0, win 0x17400, ios 0x0;
 }
 
 class CCIndexPath : cocos2d::CCObject {
@@ -313,7 +314,7 @@ class CCMenuItemSpriteExtra : cocos2d::CCMenuItemSprite {
 	CCMenuItemSpriteExtra() = mac 0x32670, win 0x18db0, ios 0x0;
 	~CCMenuItemSpriteExtra() = mac 0x0, win 0x18eb0, ios 0x0;
 	bool init(cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCObject*, cocos2d::SEL_MenuHandler) = mac 0x125450, win 0x18fa0, ios 0x0;
-	bool init(cocos2d::CCNode spr) = mac 0x0, win 0x18fa0, ios 0x0;
+	bool init(cocos2d::CCNode* spr) = mac 0x0, win 0x18fa0, ios 0x0;
 	void activate() = mac 0x0, win 0x191c0, ios 0x0;
 	void selected() = mac 0x0, win 0x19270, ios 0x0;
 	void unselected() = mac 0x0, win 0x19430, ios 0x0;
@@ -397,14 +398,8 @@ class CCNodeContainer : cocos2d::CCNode {
 class CCScrollLayerExt : cocos2d::CCLayer {
 	inline CCScrollLayerExt() {}
 
-	[[docs("
-	/*
-	 * IDK
-	 */
-	")]]
 	static CCScrollLayerExt* create(cocos2d::CCRect rect, bool vertical) {
 	    auto pRet = new CCScrollLayerExt(rect);
-	
 	    if (pRet) {
 	        pRet->autorelease();
 	        pRet->m_disableVertical = !vertical;
@@ -412,7 +407,6 @@ class CCScrollLayerExt : cocos2d::CCLayer {
 	        pRet->m_cutContent = true;
 	        return pRet;
 	    }
-	
 	    CC_SAFE_DELETE(pRet);
 	    return nullptr;
 	}
@@ -425,7 +419,7 @@ class CCScrollLayerExt : cocos2d::CCLayer {
 	    return this->m_scrollLimitBottom;
 	}
 
-	~CCScrollLayerExt() = mac 0x2359b0, win 0x0, ios 0x0;
+	~CCScrollLayerExt() = mac 0x2359b0, win 0x1b3f0, ios 0x0;
 	virtual void visit() = mac 0x236550, win 0x1bed0, ios 0x0;
 	virtual bool ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x235ef0, win 0x1b9b0, ios 0x0;
 	virtual void ccTouchMoved(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x236300, win 0x1bcc0, ios 0x0;
@@ -4460,13 +4454,13 @@ class Slider : cocos2d::CCLayer {
 	void setBarVisibility(bool v) {
 	    this->m_sliderBar->setVisible(v);
 	}
-	static Slider* create(cocos2d::CCNode target, cocos2d::SEL_MenuHandler click, float scale) {
+	static Slider* create(cocos2d::CCNode* target, cocos2d::SEL_MenuHandler click, float scale) {
 	    return create(target, click, "slidergroove.png", "sliderthumb.png", "sliderthumbsel.png", scale);
 	}
 
 	float getValue() = mac 0x18e0c0, win 0x2e970, ios 0x0;
 	void updateBar() = mac 0x0, win 0x2ea10, ios 0x0;
-	static Slider* create(cocos2d::CCNode target, cocos2d::SEL_MenuHandler click, const char* grooveSpr, const char* thumbSpr, const char* thumbSprSel, float scale) = mac 0x18dd80, win 0x2e6e0, ios 0x2113f4;
+	static Slider* create(cocos2d::CCNode* target, cocos2d::SEL_MenuHandler click, const char* grooveSpr, const char* thumbSpr, const char* thumbSprSel, float scale) = mac 0x18dd80, win 0x2e6e0, ios 0x2113f4;
 
 	SliderTouchLogic* m_touchLogic;
 	cocos2d::CCSprite* m_sliderBar;

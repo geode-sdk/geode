@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cocos2d.h>
+#include "general.hpp"
 
 namespace geode::cocos {
     inline void ccDrawColor4B(cocos2d::ccColor4B const& color) {
@@ -22,6 +23,18 @@ namespace geode::cocos {
             static_cast<GLubyte>(255 - color.g),
             static_cast<GLubyte>(255 - color.b)
         };
+    }
+
+    inline cocos2d::ccColor3B lighten3B(cocos2d::ccColor3B const& color, int amount) {
+        return {
+            static_cast<GLubyte>(utils::clamp(color.r + amount, 0, 255)),
+            static_cast<GLubyte>(utils::clamp(color.g + amount, 0, 255)),
+            static_cast<GLubyte>(utils::clamp(color.b + amount, 0, 255)),
+        };
+    }
+
+    inline cocos2d::ccColor3B darken3B(cocos2d::ccColor3B const& color, int amount) {
+        return lighten3B(color, -amount);
     }
     
     inline cocos2d::ccColor3B to3B(cocos2d::ccColor4B const& color) {
