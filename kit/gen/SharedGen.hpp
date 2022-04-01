@@ -168,7 +168,7 @@ struct CacShare {
             return "";
         for (auto& i : args) {
             if (argnames[c] == "") out += fmt::format("{} p{}, ", removeStruct(i), c); 
-            else out += fmt::format("{} {}, ", i, argnames[c]); 
+            else out += fmt::format("{} {}, ", removeStruct(i), argnames[c]); 
             ++c;
         }
         return out.substr(0, out.size()-2);

@@ -3,12 +3,44 @@
 #include <cocos2d.h>
 
 namespace geode::cocos {
-    void ccDrawColor4B(cocos2d::ccColor4B const& color);
-    cocos2d::ccColor4B invert4B(cocos2d::ccColor4B const& color);
-    cocos2d::ccColor3B invert3B(cocos2d::ccColor3B const& color);
-    cocos2d::ccColor3B to3B(cocos2d::ccColor4B const& color);
-    cocos2d::ccColor4B to4B(cocos2d::ccColor3B const& color, GLubyte alpha = 255);
-    cocos2d::ccColor4F to4F(cocos2d::ccColor4B const& color);
+    inline void ccDrawColor4B(cocos2d::ccColor4B const& color) {
+        cocos2d::ccDrawColor4B(color.r, color.g, color.b, color.a);
+    }
+
+    inline cocos2d::ccColor4B invert4B(cocos2d::ccColor4B const& color) {
+        return {
+            static_cast<GLubyte>(255 - color.r),
+            static_cast<GLubyte>(255 - color.g),
+            static_cast<GLubyte>(255 - color.b),
+            color.a
+        };
+    }
+    
+    inline cocos2d::ccColor3B invert3B(cocos2d::ccColor3B const& color) {
+        return {
+            static_cast<GLubyte>(255 - color.r),
+            static_cast<GLubyte>(255 - color.g),
+            static_cast<GLubyte>(255 - color.b)
+        };
+    }
+    
+    inline cocos2d::ccColor3B to3B(cocos2d::ccColor4B const& color) {
+        return { color.r, color.g, color.b };
+    }
+
+    inline cocos2d::ccColor4B to4B(cocos2d::ccColor3B const& color, GLubyte alpha = 255) {
+        return { color.r, color.g, color.b, 255 };
+    }
+    
+    inline cocos2d::ccColor4F to4F(cocos2d::ccColor4B const& color) {
+        return {
+            color.r / 255.f,
+            color.g / 255.f,
+            color.b / 255.f,
+            color.a / 255.f
+        };
+    }
+
     constexpr cocos2d::ccColor3B cc3x(int hexValue) {
         if (hexValue <= 0xf)
             return cocos2d::ccColor3B {

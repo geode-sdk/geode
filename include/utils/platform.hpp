@@ -15,3 +15,7 @@ namespace geode::utils::clipboard {
 namespace geode::utils::dirs {
     GEODE_DLL ghc::filesystem::path geode_root();
 }
+
+namespace geode::utils::web {
+    GEODE_DLL void openLinkInBrowser(std::string const& url);
+}

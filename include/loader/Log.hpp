@@ -16,28 +16,25 @@ namespace cocos2d {
     class CCArray;
 }
 
+GEODE_DLL std::ostream& operator<<(std::ostream& os, geode::Mod* mod);
+GEODE_DLL std::ostream& operator<<(std::ostream& os, cocos2d::CCObject* obj);
+GEODE_DLL std::ostream& operator<<(std::ostream& os, cocos2d::CCArray* obj);
+GEODE_DLL std::ostream& operator<<(std::ostream& os, cocos2d::CCPoint const& pos);
+GEODE_DLL std::ostream& operator<<(std::ostream& os, cocos2d::CCSize const& size);
+GEODE_DLL std::ostream& operator<<(std::ostream& os, cocos2d::CCRect const& rect);
+
 namespace geode {
     class Mod;
-}
-
-std::ostream& operator<<(std::ostream& os, geode::Mod* mod);
-std::ostream& operator<<(std::ostream& os, cocos2d::CCObject* obj);
-std::ostream& operator<<(std::ostream& os, cocos2d::CCArray* obj);
-std::ostream& operator<<(std::ostream& os, cocos2d::CCPoint const& pos);
-std::ostream& operator<<(std::ostream& os, cocos2d::CCSize const& size);
-std::ostream& operator<<(std::ostream& os, cocos2d::CCRect const& rect);
-
-namespace geode::log {
     #pragma warning(disable: 4251)
 
     using log_clock = std::chrono::system_clock;
 
-    struct LogMetadata {
+    struct GEODE_DLL LogMetadata {
         std::string m_repr;
         LogMetadata(std::string const& r) : m_repr(r) {}
         LogMetadata() {}
         virtual ~LogMetadata() {}
-    }; using NoMetadata = LogMetadata;
+    };
 
     std::string generateLogName();
 
@@ -76,8 +73,8 @@ namespace geode::log {
         public:
             static inline Log get();
             
-            Log(Mod* m) : m_logptr(new LogPtr(m)) {}
-            Log() : Log(nullptr) {}
+            inline Log(Mod* m) : m_logptr(new LogPtr(m)) {}
+            inline Log() : Log(nullptr) {}
 
             Log& operator<<(ostream_fn_type);
 
@@ -94,9 +91,9 @@ namespace geode::log {
 
             template <typename U, typename T>
             Log& streamMeta(T t) {
-                static_assert(std::is_base_of<NoMetadata, U>::value, "Metadata class must derive from geode::log::NoMetadata");
+                static_assert(std::is_base_of<LogMetadata, U>::value, "Metadata class must derive from geode::LogMetadata");
 
-                auto md = new NoMetadata;
+                auto md = new LogMetadata;
                 md->m_repr = this->m_stream.str();
                 this->m_logptr->m_data.push_back(md);
                 m_stream.str("");
@@ -115,24 +112,31 @@ namespace geode::log {
 
     // geode-defined metadata functions
 
-    struct ModMeta : public NoMetadata {
+    struct ModMeta : public LogMetadata {
         Mod* m_mod;
         ModMeta(Mod* m) : m_mod(m) {}
-        ModMeta(std::string const& r, Mod* m) : m_mod(m), NoMetadata(r) {}
+        ModMeta(std::string const& r, Mod* m) : m_mod(m), LogMetadata(r) {}
     };
-    struct CCObjectMeta : public NoMetadata {
+    struct GEODE_DLL CCObjectMeta : public LogMetadata {
         cocos2d::CCObject* m_obj;
         CCObjectMeta(cocos2d::CCObject* obj);
         CCObjectMeta(std::string const& r, cocos2d::CCObject* obj);
         ~CCObjectMeta();
     };
-    struct CCArrayMeta : public NoMetadata {
+    struct GEODE_DLL CCArrayMeta : public LogMetadata {
         cocos2d::CCArray* m_arr;
         CCArrayMeta(cocos2d::CCArray* arr);
         CCArrayMeta(std::string const& r, cocos2d::CCArray* arr);
         ~CCArrayMeta();
     };
+
+    inline struct {
+        template <typename T>
+        geode::Log& operator<<(T& a) {
+            return geode::Log::get() << a;
+        }
+    } log;
 }
-geode::log::Log& operator<<(geode::log::Log&, geode::Mod*);
-geode::log::Log& operator<<(geode::log::Log&, cocos2d::CCObject*);
-geode::log::Log& operator<<(geode::log::Log&, cocos2d::CCArray*);
+GEODE_DLL geode::Log& operator<<(geode::Log&, geode::Mod*);
+GEODE_DLL geode::Log& operator<<(geode::Log&, cocos2d::CCObject*);
+GEODE_DLL geode::Log& operator<<(geode::Log&, cocos2d::CCArray*);

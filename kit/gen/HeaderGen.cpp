@@ -55,11 +55,11 @@ struct {class_name}{base_classes}{final} {{
 
 void sortClass(Root& r, ClassDefinition* c, set<ClassDefinition*>& looked, vector<ClassDefinition*>& ordered) {
 	if (c->name.find("DS_Dictionary") != string::npos) return;
-	if (c->name.find("cocos2d::") != string::npos) return; // cocos headers exist already
+	if (c->name.find("cocos2d") != string::npos) return; // cocos headers exist already
     if (looked.find(c) == looked.end()) {
     	looked.insert(c);
         for (string j : c->depends) {
-        	if (j.find("cocos2d::") != string::npos) continue;
+        	if (j.find("cocos2d") != string::npos) continue;
         	if (r.classes.count(c->name) == 0) {
 		        cacerr("Expected class definition for %s\n", c->name.c_str());
 		    }

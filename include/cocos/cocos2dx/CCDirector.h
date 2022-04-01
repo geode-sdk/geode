@@ -351,7 +351,8 @@ protected:
     @since v0.99.4
     */
     void setContentScaleFactor(float scaleFactor);
-    float getContentScaleFactor(void);
+public:
+    inline float getContentScaleFactor(void) { return m_fContentScaleFactor; }
 
     RT_ADD(
     public:

@@ -42,6 +42,10 @@ class cocos2d::CCBezierTo {
 	static cocos2d::CCBezierTo* create(float, cocos2d::_ccBezierConfig const&) = mac 0x1f6c10;
 }
 
+class cocos2d::CCBMFontConfiguration {
+	static cocos2d::CCBMFontConfiguration* create(char const*) = mac 0x3450f0;
+}
+
 class cocos2d::CCCallFunc {
 	static cocos2d::CCCallFunc* create(int) = mac 0x454d90;
 }
@@ -221,6 +225,8 @@ class cocos2d::CCLabelBMFont {
 }
 
 class cocos2d::CCLabelTTF {
+	static cocos2d::CCLabelTTF* create() = mac 0x1fa7e0;
+	static cocos2d::CCLabelTTF* create(char const*, char const*, float) = mac 0x1fa840;
 	auto updateTexture() = mac 0x1fadc0;
 	virtual auto setString(char const*) = mac 0x1fad70;
 }
@@ -669,6 +675,7 @@ class cocos2d::CCSprite {
 	static cocos2d::CCSprite* createWithSpriteFrame(cocos2d::CCSpriteFrame*) = mac 0x132cb0;
 	static cocos2d::CCSprite* createWithSpriteFrameName(char const*) = mac 0x132dc0, ios 0x15b3ec;
 	static cocos2d::CCSprite* createWithTexture(cocos2d::CCTexture2D*) = mac 0x132790;
+	static cocos2d::CCSprite* createWithTexture(cocos2d::CCTexture2D*, cocos2d::CCRect const&) = mac 0x132960;
 
 	void setFlipX(bool) = mac 0x134be0;
 	void setFlipY(bool) = mac 0x134c30;
