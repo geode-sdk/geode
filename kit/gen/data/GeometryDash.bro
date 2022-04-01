@@ -249,7 +249,7 @@ class CCCircleWave : cocos2d::CCNode {
 	static CCCircleWave* create(float, float, float, bool) = mac 0xbd270, win 0x0, ios 0x0;
 	static CCCircleWave* create(float, float, float, bool, bool) = mac 0xbd290, win 0x16c00, ios 0x0;
 	bool init(float, float, float, bool, bool) = mac 0xbd380, win 0x0, ios 0x0;
-	void followObject(cocos2d::CCNode, bool) = mac 0xbd670, win 0x16f20, ios 0x0;
+	void followObject(cocos2d::CCNode*, bool) = mac 0xbd670, win 0x16f20, ios 0x0;
 	void updatePosition(float) = mac 0xbd630, win 0x16f00, ios 0x0;
 	void setPosition(cocos2d::CCPoint const& pos) = mac 0x0, win 0x16ed0, ios 0x0;
 	void removeMeAndCleanup() = mac 0x0, win 0x17280, ios 0x0;
@@ -275,6 +275,7 @@ class CCCircleWaveDelegate {
 
 class CCContentLayer : cocos2d::CCLayerColor {
 	static CCContentLayer* create(cocos2d::ccColor4B const& color, float width, float height) = mac 0x0, win 0x172a0, ios 0x0;
+	virtual void setPosition(cocos2d::CCPoint const& pos) = mac 0x0, win 0x17400, ios 0x0;
 }
 
 class CCIndexPath : cocos2d::CCObject {
@@ -313,7 +314,7 @@ class CCMenuItemSpriteExtra : cocos2d::CCMenuItemSprite {
 	CCMenuItemSpriteExtra() = mac 0x32670, win 0x18db0, ios 0x0;
 	~CCMenuItemSpriteExtra() = mac 0x0, win 0x18eb0, ios 0x0;
 	bool init(cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCObject*, cocos2d::SEL_MenuHandler) = mac 0x125450, win 0x18fa0, ios 0x0;
-	bool init(cocos2d::CCNode spr) = mac 0x0, win 0x18fa0, ios 0x0;
+	bool init(cocos2d::CCNode* spr) = mac 0x0, win 0x18fa0, ios 0x0;
 	void activate() = mac 0x0, win 0x191c0, ios 0x0;
 	void selected() = mac 0x0, win 0x19270, ios 0x0;
 	void unselected() = mac 0x0, win 0x19430, ios 0x0;
@@ -397,14 +398,8 @@ class CCNodeContainer : cocos2d::CCNode {
 class CCScrollLayerExt : cocos2d::CCLayer {
 	inline CCScrollLayerExt() {}
 
-	[[docs("
-	/*
-	 * IDK
-	 */
-	")]]
 	static CCScrollLayerExt* create(cocos2d::CCRect rect, bool vertical) {
 	    auto pRet = new CCScrollLayerExt(rect);
-	
 	    if (pRet) {
 	        pRet->autorelease();
 	        pRet->m_disableVertical = !vertical;
@@ -412,7 +407,6 @@ class CCScrollLayerExt : cocos2d::CCLayer {
 	        pRet->m_cutContent = true;
 	        return pRet;
 	    }
-	
 	    CC_SAFE_DELETE(pRet);
 	    return nullptr;
 	}
@@ -425,7 +419,7 @@ class CCScrollLayerExt : cocos2d::CCLayer {
 	    return this->m_scrollLimitBottom;
 	}
 
-	~CCScrollLayerExt() = mac 0x2359b0, win 0x0, ios 0x0;
+	~CCScrollLayerExt() = mac 0x2359b0, win 0x1b3f0, ios 0x0;
 	virtual void visit() = mac 0x236550, win 0x1bed0, ios 0x0;
 	virtual bool ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x235ef0, win 0x1b9b0, ios 0x0;
 	virtual void ccTouchMoved(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x236300, win 0x1bcc0, ios 0x0;
@@ -2835,12 +2829,15 @@ class GameObject : CCSpritePlus {
 	bool m_editor;
 	bool m_groupDisabled;
 	bool m_colourOnTop;
-	GJSpriteColor* m_mainColourMode;
-	GJSpriteColor* m_secondaryColourMode;
-	bool m_col1;
-	bool m_col2;
+	//GJSpriteColor* m_mainColourMode;
+	//GJSpriteColor* m_secondaryColourMode;
+	//bool m_col1;
+	//bool m_col2;
+	float m_unknown27c;
+	float m_unknown280;
+	float m_unknown284;
 	cocos2d::CCPoint m_startPosOffset;
-	float m_unkRotationField;
+	float m_rotateOffset;
 	bool m_tintTrigger;
 	bool m_isFlippedX;
 	bool m_isFlippedY;
@@ -2856,7 +2853,7 @@ class GameObject : CCSpritePlus {
 	bool m_runActionWithTag;
 	bool m_objectPoweredOn;
 	cocos2d::CCSize m_objectSize;
-	bool m_trigger;
+	bool m_modifier;
 	bool m_active;
 	bool m_animationFinished;
 	cocos2d::CCParticleSystemQuad* m_particleSystem;
@@ -2874,7 +2871,11 @@ class GameObject : CCSpritePlus {
 	bool m_isOrientedRectDirty;
 	bool m_hasBeenActivated;
 	bool m_hasBeenActivatedP2;
-	PAD = mac 0x10, win 0x10, android 0x0;
+	bool m_hasDetailColor;
+	bool m_isPulseStick;
+	int m_linkedGroup;
+	bool m_isSaw;
+	int m_customRotateSpeed;
 	bool m_sawIsDisabled;
 	PAD = mac 0x4, win 0x4, android 0x0;
 	cocos2d::CCSprite* m_detailSprite;
@@ -2905,14 +2906,17 @@ class GameObject : CCSpritePlus {
 	int m_targetColorID;
 	float m_scale;
 	int m_objectID;
-	PAD = mac 0x0, win 0x4, android 0x0;
+	PAD = mac 0x4, win 0x4, android 0x0;
 	bool m_unk368;
 	bool m_unk369;
 	bool m_unk36A;
 	bool m_isDontEnter;
 	bool m_isDontFade;
 	int m_defaultZOrder;
-	PAD = mac 0x0, win 0x17, android 0x0;
+	bool m_useSecondSheet;
+	bool m_unknown3d9;
+
+	//PAD = mac 0x17, win 0x17, android 0x0;
 	bool m_isPortal;
 	bool m_lockColourAsChild;
 	bool m_customAudioScale;
@@ -2933,7 +2937,7 @@ class GameObject : CCSpritePlus {
 	float m_unkWin18C;
 	GJSpriteColor* m_baseColor;
 	GJSpriteColor* m_detailColor;
-	PAD = mac 0x0, win 0x4, android 0x0;
+	int m_unknown420;																																																				
 	ZLayer m_defaultZLayer;
 	ZLayer m_zLayer;
 	int m_gameZOrder;
@@ -2942,24 +2946,24 @@ class GameObject : CCSpritePlus {
 	bool m_unk3D9;
 	bool m_isSelected;
 	int m_globalClickCounter;
-	PAD = mac 0x0, win 0x8, android 0x0;
+	PAD = mac 0x8, win 0x8, android 0x0;
 	bool m_unknownLayerRelated;
 	float m_multiScaleMultiplier;
 	bool m_isGroupParent;
 	short* m_groups;
 	short m_groupCount;
-	PAD = mac 0x0, win 0x12, android 0x0;
+	PAD = mac 0x22, win 0x12, android 0x0;
 	int m_editorLayer;
 	int m_editorLayer2;
 	int m_unk414;
-	PAD = mac 0x0, win 0xc, android 0x0;
+	PAD = mac 0xc, win 0xc, android 0x0;
 	cocos2d::CCPoint m_firstPosition;
-	PAD = mac 0x0, win 0x1c, android 0x0;
+	PAD = mac 0x1c, win 0x1c, android 0x0;
 	bool m_highDetail;
 	ColorActionSprite* m_colorActionSprite1;
 	ColorActionSprite* m_colorActionSprite2;
 	GJEffectManager* m_effectManager;
-	PAD = mac 0x0, win 0x10, android 0x0;
+	PAD = mac 0x10, win 0x10, android 0x0;
 }
 
 class GameObjectCopy : cocos2d::CCObject {
@@ -4116,10 +4120,10 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
 	cocos2d::CCNode* m_unk484;
 	cocos2d::CCDictionary* m_collisionLog;
 	cocos2d::CCDictionary* m_collisionLog1;
-	PAD = mac 0x40, win 0x20, android 0x0;
+	PAD = mac 0x38, win 0x20, android 0x0;
 	bool m_unk4B0;
 	cocos2d::CCSprite* m_unk4B4;
-	PAD = mac 0x0, win 0x1c, android 0x0;
+	PAD = mac 0x1c, win 0x1c, android 0x0;
 	bool m_unk4D4;
 	cocos2d::CCArray* m_particleSystems;
 	bool m_unk4DC;
@@ -4460,13 +4464,13 @@ class Slider : cocos2d::CCLayer {
 	void setBarVisibility(bool v) {
 	    this->m_sliderBar->setVisible(v);
 	}
-	static Slider* create(cocos2d::CCNode target, cocos2d::SEL_MenuHandler click, float scale) {
+	static Slider* create(cocos2d::CCNode* target, cocos2d::SEL_MenuHandler click, float scale) {
 	    return create(target, click, "slidergroove.png", "sliderthumb.png", "sliderthumbsel.png", scale);
 	}
 
 	float getValue() = mac 0x18e0c0, win 0x2e970, ios 0x0;
 	void updateBar() = mac 0x0, win 0x2ea10, ios 0x0;
-	static Slider* create(cocos2d::CCNode target, cocos2d::SEL_MenuHandler click, const char* grooveSpr, const char* thumbSpr, const char* thumbSprSel, float scale) = mac 0x18dd80, win 0x2e6e0, ios 0x2113f4;
+	static Slider* create(cocos2d::CCNode* target, cocos2d::SEL_MenuHandler click, const char* grooveSpr, const char* thumbSpr, const char* thumbSprSel, float scale) = mac 0x18dd80, win 0x2e6e0, ios 0x2113f4;
 
 	SliderTouchLogic* m_touchLogic;
 	cocos2d::CCSprite* m_sliderBar;
