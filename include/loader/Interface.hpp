@@ -57,6 +57,8 @@ namespace geode {
 		using exportmemfn_t = void(Mod::*)(std::string const&, unknownmemfn_t);
 		using exportfn_t = void(Mod::*)(std::string const&, unknownfn_t);
 
+		using loadfn_t = void(*)(Mod*);
+
 		struct ScheduledExport {
 			std::string m_selector;
 			std::variant<unknownmemfn_t, unknownfn_t> m_func;
@@ -66,7 +68,7 @@ namespace geode {
 		std::vector<ScheduledHook> m_scheduledHooks;
 		std::vector<ScheduledLog> m_scheduledLogs;
 		std::vector<ScheduledExport> m_scheduledExports;
-	
+		std::vector<loadfn_t> m_scheduledFunctions;
 	public:
 
 
@@ -120,6 +122,8 @@ namespace geode {
          * @param severity Log severity
          */
         GEODE_DLL void logInfo(std::string const& info, Severity severity);
+
+        GEODE_DLL void scheduleOnLoad(loadfn_t fn);
 
     protected:
         GEODE_DLL void exportAPIFunctionInternal(std::string const& selector, unknownmemfn_t fn);

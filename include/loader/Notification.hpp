@@ -77,7 +77,7 @@ namespace geode {
     };
 
     class GEODE_DLL NotificationCenter {
-    protected:
+    public:
         std::map<Mod*, std::map<std::string, std::vector<Observer<std::monostate>*>>> m_observers;
         static NotificationCenter* shared;
     public:
@@ -131,9 +131,11 @@ namespace geode {
 #define _$observe3(sel, T, data, ctr) \
     void $_observer##ctr(geode::Notification<T> const&); \
     static auto $_throw##ctr = (([](){ \
-        geode::NotificationCenter::get()->registerObserver<T>( \
-            sel, $_observer##ctr \
-        ); \
+        geode::Interface::get()->scheduleOnLoad(+[](Mod* m) { \
+            geode::NotificationCenter::get()->registerObserver<T>( \
+                m, sel, $_observer##ctr \
+            ); \
+        }); \
     })(), 0); \
     void $_observer##ctr(geode::Notification<T> const& data)
 
