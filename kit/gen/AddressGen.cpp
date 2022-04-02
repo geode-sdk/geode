@@ -28,6 +28,6 @@ int main(int argc, char** argv) {
 			);
 		}
 	}
-    cout << output << enld;
+    cout << output << endl;
 	CacShare::writeFile(output);
 }
