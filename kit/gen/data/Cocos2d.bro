@@ -375,6 +375,7 @@ class cocos2d::CCMenuItemSprite {
 	virtual auto setDisabledImage(cocos2d::CCNode*) = mac 0x1fd080, ios 0x2d104;
 	virtual auto updateImagesVisibility() = mac 0x1fd510, ios 0x2d3dc;
 
+	bool initWithNormalSprite(cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCObject*, cocos2d::SEL_MenuHandler) = mac 0x125450;
 	static auto create(cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCNode*) = mac 0x1fd120;
 	static auto create(cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCObject*, cocos2d::SEL_MenuHandler) = mac 0x1fd140;
 	static auto create(cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCObject*, cocos2d::SEL_MenuHandler) = mac 0x1fd2d0;
@@ -862,8 +863,9 @@ class cocos2d::extension::CCScrollView {
 	virtual auto setTouchEnabled(bool) = mac 0x215250;
 }
 
-class cocos2d {
+class cocos2d:: {
 	void ccGLBlendFunc(GLenum, GLenum) = mac 0x1ae560;
+	void ccDrawSolidRect(cocos2d::CCPoint, cocos2d::CCPoint, cocos2d::_ccColor4F) = mac 0xecf00;
 }
 
 // class DS_Dictionary {

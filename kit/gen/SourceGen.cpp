@@ -48,7 +48,7 @@ using fixori_member{global_index} = fixori_func{global_index};
 
 	char const* declare_address_of = R"CAC(
 template<>
-struct address_of_t<(member{global_index})(&{class_name}::{function_name})> {{
+struct address_of_t<(member{global_index})(&{class_name}{in_class}{function_name})> {{
 	static inline auto value = addresses::address{global_index}();
 }};)CAC";
 
@@ -194,7 +194,7 @@ int main(int argc, char** argv) {
 					break;
 			}
 
-			if (name == "" || name == "cocos2d") {
+			if (name == "" || name == "cocos2d::") {
 				used_type_format = format_strings::declare_static_type;
 				used_type_format_fixed_orig = format_strings::declare_static_type_fixed_orig;
 				used_function_format = CacShare::platform == kWindows ? 
@@ -260,6 +260,7 @@ int main(int argc, char** argv) {
 					output += fmt::format(address_of, 
 						fmt::arg("global_index",f.hash()),
 						fmt::arg("class_name", name),
+						fmt::arg("in_class", name == "" || name == "cocos2d::" ? "" : "::"),
 						fmt::arg("index",f.index),
 						fmt::arg("unqualified_name", unqualifiedName),
 						fmt::arg("function_name", f.name)
@@ -305,7 +306,7 @@ int main(int argc, char** argv) {
 				fmt::arg("arg_types", arg_types),
 				fmt::arg("raw_arg_types", raw_arg_types),
 				fmt::arg("class_name", name),
-				fmt::arg("in_class", name == "" || name == "cocos2d" ? "" : "::"),
+				fmt::arg("in_class", name == "" || name == "cocos2d::" ? "" : "::"),
 				fmt::arg("unqualified_name", unqualifiedName),
 				fmt::arg("const", f.is_const ? "const " : ""),
 				fmt::arg("constw", f.is_const ? " " : ""),
