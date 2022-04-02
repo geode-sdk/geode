@@ -863,7 +863,7 @@ class cocos2d::extension::CCScrollView {
 	virtual auto setTouchEnabled(bool) = mac 0x215250;
 }
 
-class cocos2d:: {
+class cocos2d {
 	static void ccGLBlendFunc(GLenum, GLenum) = mac 0x1ae560;
 	static void ccDrawSolidRect(cocos2d::CCPoint, cocos2d::CCPoint, cocos2d::_ccColor4F) = mac 0xecf00;
 }
