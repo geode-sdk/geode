@@ -131,9 +131,9 @@ namespace geode {
 #define _$observe3(sel, T, data, ctr) \
     void $_observer##ctr(geode::Notification<T> const&); \
     static auto $_throw##ctr = (([](){ \
-        geode::Interface::get()->scheduleOnLoad(+[]() { \
+        geode::Interface::get()->scheduleOnLoad(+[](Mod* m) { \
             geode::NotificationCenter::get()->registerObserver<T>( \
-                sel, $_observer##ctr \
+                m, sel, $_observer##ctr \
             ); \
         }); \
     })(), 0); \
