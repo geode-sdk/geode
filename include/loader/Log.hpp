@@ -73,8 +73,8 @@ namespace geode {
         public:
             static inline Log get();
             
-            Log(Mod* m) : m_logptr(new LogPtr(m)) {}
-            Log() : Log(nullptr) {}
+            inline Log(Mod* m) : m_logptr(new LogPtr(m)) {}
+            inline Log() : Log(nullptr) {}
 
             Log& operator<<(ostream_fn_type);
 
