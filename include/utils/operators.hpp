@@ -3,15 +3,21 @@
 #include <Geode.hpp>
 
 namespace geode {
-    static cocos2d::CCPoint operator*=(cocos2d::CCPoint & pos,  float mul) {
+    static cocos2d::CCPoint& operator*=(cocos2d::CCPoint & pos,  float mul) {
         pos.x *= mul;
         pos.y *= mul;
         return pos;
     }
-    static cocos2d::CCSize  operator*=(cocos2d::CCSize  & size, float mul) {
+    static cocos2d::CCSize&  operator*=(cocos2d::CCSize  & size, float mul) {
         size.width  *= mul;
         size.height *= mul;
         return size;
+    }
+    static cocos2d::CCSize  operator*(cocos2d::CCSize const& size, cocos2d::CCPoint const& point) {
+        return {
+            size.width * point.x,
+            size.height * point.y,
+        };
     }
     static cocos2d::CCRect  operator*=(cocos2d::CCRect  & rect, float mul) {
         rect.origin *= mul;

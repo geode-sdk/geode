@@ -57,6 +57,8 @@ namespace geode {
 		using exportmemfn_t = void(Mod::*)(std::string const&, unknownmemfn_t);
 		using exportfn_t = void(Mod::*)(std::string const&, unknownfn_t);
 
+		using loadfn_t = void(*)(Mod*);
+
 		struct ScheduledExport {
 			std::string m_selector;
 			std::variant<unknownmemfn_t, unknownfn_t> m_func;
@@ -66,7 +68,7 @@ namespace geode {
 		std::vector<ScheduledHook> m_scheduledHooks;
 		std::vector<ScheduledLog> m_scheduledLogs;
 		std::vector<ScheduledExport> m_scheduledExports;
-	
+		std::vector<loadfn_t> m_scheduledFunctions;
 	public:
 
 
@@ -128,6 +130,8 @@ namespace geode {
          */
         GEODE_DLL void logInfo(std::string const& info, Severity severity);
 
+        GEODE_DLL void scheduleOnLoad(loadfn_t fn);
+
     protected:
         GEODE_DLL void exportAPIFunctionInternal(std::string const& selector, unknownmemfn_t fn);
         GEODE_DLL void exportAPIFunctionInternal(std::string const& selector, unknownfn_t fn);
@@ -153,6 +157,16 @@ namespace geode {
 
 	inline Log Log::get() {
 		return Mod::get()->log();
+	}
+
+	template <typename T>
+	inline Observer<std::monostate>* NotificationCenter::registerObserver(std::string sel, std::function<void(Notification<T> const&)> cb) {
+	    return registerObserver(Mod::get(), NotifInfo<T>(sel), cb);
+	}
+
+	template <typename T>
+	inline Observer<std::monostate>* NotificationCenter::registerObserver(NotifInfo<T> info, std::function<void(Notification<T> const&)> cb) {
+	    return registerObserver(Mod::get(), info, cb);
 	}
     
 }

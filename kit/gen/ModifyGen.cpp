@@ -39,6 +39,9 @@ int main(int argc, char** argv) {
 	string output;
 
 	for (auto& [name, c] : root.classes) {
+		if (name == "" || name == "cocos2d::")
+			continue;
+
 		output += fmt::format(format_strings::modify_start, 
 			fmt::arg("class_name", name)
 		);

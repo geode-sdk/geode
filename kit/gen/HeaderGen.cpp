@@ -86,14 +86,18 @@ int main(int argc, char** argv) {
     }
 
     for (auto& cp : ordered) {
-    	output += fmt::format(format_strings::class_predeclare,
-            fmt::arg("class_name", cp->name)
-        );
+        if (cp->name != "") {
+            output += fmt::format(format_strings::class_predeclare,
+                fmt::arg("class_name", cp->name)
+            );
+        }
     }
 
 
    	for (auto& cp : ordered) {
    		auto& cd = *cp;
+
+        bool hasClass = cd.name != "";
 
    		bool finalClass = false;
    		for (auto m : cd.members) {
@@ -104,15 +108,15 @@ int main(int argc, char** argv) {
 	        }
         }
 
-
-        output += fmt::format(format_strings::class_start,
-            fmt::arg("class_name", cd.name),
-            fmt::arg("base_classes", CacShare::formatBases(cd.superclasses)),
-            fmt::arg("final", finalClass ? " final" : "")
-        );
+        if (hasClass) {
+            output += fmt::format(format_strings::class_start,
+                fmt::arg("class_name", cd.name),
+                fmt::arg("base_classes", CacShare::formatBases(cd.superclasses)),
+                fmt::arg("final", finalClass ? " final" : "")
+            );
+        } 
 
         for (auto i : cd.inlines) {
-            // printf("inline %s\n", i.inlined.c_str());
         	output += "\t" + i.inlined + "\n";
         }
 
@@ -188,7 +192,8 @@ int main(int argc, char** argv) {
             );
         }
 
-        output += format_strings::class_end;
+        if (hasClass)
+            output += format_strings::class_end;
 
         // queued.pop_front();
     }
