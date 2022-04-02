@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
 					break;
 			}
 
-			if (name == "")
+			if (name == "" || name == "cocos2d")
 				used_format = format_strings::declare_static_type;
 
 			output += fmt::format(used_format,
