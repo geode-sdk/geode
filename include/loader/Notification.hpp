@@ -77,7 +77,7 @@ namespace geode {
     };
 
     class GEODE_DLL NotificationCenter {
-    protected:
+    public:
         std::map<Mod*, std::map<std::string, std::vector<Observer<std::monostate>*>>> m_observers;
         static NotificationCenter* shared;
     public:
