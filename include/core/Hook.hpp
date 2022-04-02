@@ -34,7 +34,7 @@ namespace geode::core {
 		template <auto Detour, template <class, class...> class Conv, class Ret, class ...Args>
 		Result<HookHandle> add(Ret(*address)(Args...)) {
 
-		    static std::vector<FunctionType>* detourVector;
+		    static std::vector<decltype(Detour)>* detourVector;
 		    static decltype(Detour) originalTrampoline;
 
 		    void* generatedHandler = (void*)handler<Conv, detourVector, Ret, Args...>;
