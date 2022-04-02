@@ -53,7 +53,7 @@ if (GEODE_BUILD_CODEGEN)
 	file(MAKE_DIRECTORY ${GEODE_CODEGEN_DIR})
 
 	set_source_files_properties(${GEODE_CODEGEN_DIR}/Source.cpp PROPERTIES GENERATED 1)
-	target_sources(${PROJECT_NAME} PRIVATE ${GEODE_CODEGEN_DIR}/Source.cpp ${GEODE_INCLUDE_DIR}/implicitEntry.cpp)
+	target_sources(${PROJECT_NAME} PRIVATE ${GEODE_CODEGEN_DIR}/Source.cpp)
 	target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR})
 	target_link_libraries(${PROJECT_NAME} fmt)
 
@@ -63,6 +63,10 @@ endif()
 target_link_libraries(${PROJECT_NAME}
 	${LINK_LIBRARIES}
 )
+
+if (NOT DEFINED GEODE_NO_IMPLICIT_ENTRY)
+    set(SOURCE_FILES ${SOURCE_FILES} ${GEODE_INCLUDE_DIR}/implicitEntry.cpp)
+endif()
 
 if (NOT DEFINED GEODE_NO_LINK_LOADER)
 	geode_link_bin(${PROJECT_NAME} "${GEODE_SDK_DIR}/bin")
