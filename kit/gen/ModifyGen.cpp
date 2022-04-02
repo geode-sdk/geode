@@ -40,6 +40,9 @@ int main(int argc, char** argv) {
 	string output;
 
 	for (auto& [name, c] : root.classes) {
+		if (name == "")
+			continue;
+
 		output += fmt::format(format_strings::modify_start, 
 			fmt::arg("class_name", name)
 		);

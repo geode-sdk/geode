@@ -53,6 +53,9 @@ int main(int argc, char** argv) {
 					break;
 			}
 
+			if (name == "")
+				used_format = format_strings::declare_static_type;
+
 			output += fmt::format(used_format,
 				fmt::arg("address", CacShare::getAddress(f)),
 				fmt::arg("arg_types", CacShare::formatArgTypes(f.args)),

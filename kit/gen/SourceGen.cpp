@@ -74,7 +74,7 @@ ret{global_index} {class_name}::{function_name}({raw_args}){constw}{const} {{
 )CAC";
 
 	char const* declare_static = R"CAC(
-ret{global_index} {class_name}::{function_name}({raw_args}){constw}{const} {{
+ret{global_index} {class_name}{in_class}{function_name}({raw_args}){constw}{const} {{
 	return {function_implementation};
 }}
 )CAC";
@@ -193,6 +193,15 @@ int main(int argc, char** argv) {
 					used_type_format_fixed_orig = format_strings::declare_structor_type_fixed_orig;
 					break;
 			}
+
+			if (name == "") {
+				used_type_format = format_strings::declare_static_type;
+				used_type_format_fixed_orig = format_strings::declare_static_type_fixed_orig;
+				used_function_format = CacShare::platform == kWindows ? 
+					format_strings::declare_meta_static_function :
+					format_strings::declare_static_function;
+				used_declare_format = format_strings::declare_static;
+			}
 		
 			// cout << "352947u" << endl;
 
@@ -296,6 +305,7 @@ int main(int argc, char** argv) {
 				fmt::arg("arg_types", arg_types),
 				fmt::arg("raw_arg_types", raw_arg_types),
 				fmt::arg("class_name", name),
+				fmt::arg("in_class", name == "" ? "" : "::"),
 				fmt::arg("unqualified_name", unqualifiedName),
 				fmt::arg("const", f.is_const ? "const " : ""),
 				fmt::arg("constw", f.is_const ? " " : ""),

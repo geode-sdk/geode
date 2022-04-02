@@ -345,32 +345,41 @@ void parseClass(Root& r, Tokens& tokens) {
 		attrib = parseAttribute(tokens);
 	}
 	next_expect(tokens, kClass, "'class'");
-	string name = parseQualifiedName(tokens);
-	ClassDefinition& myClass = r.addClass(name);
 
-    stringstream f(attrib);
-    string s;    
-    while (getline(f, s, ',')) {
-        myClass.depends.push_back(s);
-    }
 
-	if (!next_if_type(kColon, tokens)) {
-		loop {
-			auto sc = parseQualifiedName(tokens);
-			myClass.addSuperclass(sc);
-			//auto t = next(tokens);
-			if (!next_if_type(kBraceL, tokens)) 
-				break;
-			next_expect(tokens, kComma, "comma");
+
+	if (!next_if_type(kBraceL, tokens)) {
+		ClassDefinition& myClass = r.addClass("");
+		while (next_if_type(kBraceR, tokens)) {
+			parseField(myClass, tokens);
 		}
 	} else {
-		next_expect(tokens, kBraceL, "{");
-	}
+		string name = parseQualifiedName(tokens);
+		ClassDefinition& myClass = r.addClass(name);
 
-	while (next_if_type(kBraceR, tokens)) {
-		parseField(myClass, tokens);
-	}
+	    stringstream f(attrib);
+	    string s;    
+	    while (getline(f, s, ',')) {
+	        myClass.depends.push_back(s);
+	    }
 
+		if (!next_if_type(kColon, tokens)) {
+			loop {
+				auto sc = parseQualifiedName(tokens);
+				myClass.addSuperclass(sc);
+				//auto t = next(tokens);
+				if (!next_if_type(kBraceL, tokens)) 
+					break;
+				next_expect(tokens, kComma, "comma");
+			}
+		} else {
+			next_expect(tokens, kBraceL, "{");
+		}
+
+		while (next_if_type(kBraceR, tokens)) {
+			parseField(myClass, tokens);
+		}
+	}
 }
 
 Root parseTokens(vector<Token> ts) {

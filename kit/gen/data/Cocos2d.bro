@@ -862,6 +862,10 @@ class cocos2d::extension::CCScrollView {
 	virtual auto setTouchEnabled(bool) = mac 0x215250;
 }
 
+class {
+	void ccGLBlendFunc(unsigned int, unsigned int) = mac 0x1ae560;
+}
+
 // class DS_Dictionary {
 // 	DS_Dictionary() = mac 0xbe9a0;
 // 	int getIntegerForKey(char const*) = mac 0xc1610;
