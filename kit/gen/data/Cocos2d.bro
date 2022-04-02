@@ -595,7 +595,7 @@ class cocos2d::CCScheduler {
 	auto scheduleSelector(cocos2d::SEL_SCHEDULE, cocos2d::CCObject*, float, unsigned int, float, bool) = mac 0x242b20;
 	auto scheduleUpdateForTarget(cocos2d::CCObject*, int, bool) = mac 0x2438d0;
 	auto unscheduleAllForTarget(cocos2d::CCObject*) = mac 0x243e40;
-	auto update(float delta) = mac 0x2446d0;
+	virtual auto update(float delta) = mac 0x2446d0;
 }
 
 class cocos2d::CCSequence {
