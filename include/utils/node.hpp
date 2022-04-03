@@ -27,7 +27,7 @@ namespace geode::cocos {
      * @returns Rectangle fitting all nodes. Origin 
      * will be <= 0 and size will be >= 0
      */
-    cocos2d::CCRect calculateNodeCoverage(std::vector<cocos2d::CCNode*> const& nodes);
+    GEODE_DLL cocos2d::CCRect calculateNodeCoverage(std::vector<cocos2d::CCNode*> const& nodes);
     /**
      * Get bounds for a set of nodes. Based on content 
      * size
@@ -35,7 +35,7 @@ namespace geode::cocos {
      * @returns Rectangle fitting all nodes. Origin 
      * will be <= 0 and size will be >= 0
      */
-    cocos2d::CCRect calculateNodeCoverage(cocos2d::CCArray* nodes);
+    GEODE_DLL cocos2d::CCRect calculateNodeCoverage(cocos2d::CCArray* nodes);
     /**
      * Get bounds for a set of nodes. Based on content 
      * size
@@ -44,5 +44,5 @@ namespace geode::cocos {
      * @returns Rectangle fitting all the parent's children.
      * Origin will be <= 0 and size will be >= 0
      */
-    cocos2d::CCRect calculateChildCoverage(cocos2d::CCNode* parent);
+    GEODE_DLL cocos2d::CCRect calculateChildCoverage(cocos2d::CCNode* parent);
 }
