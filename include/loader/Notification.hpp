@@ -19,49 +19,49 @@ namespace geode {
     class Mod;
 
     template <typename T = std::monostate>
-    struct GEODE_DLL NotifInfo {
+    struct NotifInfo {
         std::string selector;
-        NotifInfo(std::string sel) : selector(sel) {}
-        NotifInfo() {}
+        inline NotifInfo(std::string sel) : selector(sel) {}
+        inline NotifInfo() {}
     };
 
     template <typename T = std::monostate>
-    struct GEODE_DLL ConstNotifInfo {
+    struct ConstNotifInfo {
         char const* selector;
-        constexpr ConstNotifInfo(char const* sel) : selector(sel) {}
-        constexpr ConstNotifInfo() {}
+        inline constexpr ConstNotifInfo(char const* sel) : selector(sel) {}
+        inline constexpr ConstNotifInfo() {}
 
-        operator NotifInfo<T>() {
+        inline operator NotifInfo<T>() {
             return NotifInfo<T>(selector);
         }
     };
 
     template <typename T = std::monostate>
-    class GEODE_DLL Notification {
+    class Notification {
     protected:
         NotifInfo<T> m_info;
         T m_object;
         Mod* m_sender;
     public:
-        T const& object() const {
+        inline T const& object() const {
         	return m_object;
         }
 
         inline std::string const& selector() const { return m_info.selector; }
         inline Mod* sender() const { return m_sender; }
 
-        Notification(NotifInfo<T> inf, T obj, Mod* sender) :
+        inline Notification(NotifInfo<T> inf, T obj, Mod* sender) :
             m_info(inf),
             m_object(obj),
             m_sender(sender) {}
 
-        Notification(std::string sel, T obj, Mod* sender) : Notification(NotifInfo<T>(sel), obj, sender) {}
+        inline Notification(std::string sel, T obj, Mod* sender) : Notification(NotifInfo<T>(sel), obj, sender) {}
 
-        Notification(std::string sel, Mod* sender) : Notification(sel, T(), sender) {}
-        Notification(NotifInfo<T> inf, Mod* sender) : Notification(inf, T(), sender) {}
+        inline Notification(std::string sel, Mod* sender) : Notification(sel, T(), sender) {}
+        inline Notification(NotifInfo<T> inf, Mod* sender) : Notification(inf, T(), sender) {}
         // Notification(std::string sel) : Notification(sel, Interface::get()->mod()) {}
 
-        Notification(Notification&& a) : m_info(a.m_info), m_sender(a.m_sender), m_object(std::move(a.m_object)) {}
+        inline Notification(Notification&& a) : m_info(a.m_info), m_sender(a.m_sender), m_object(std::move(a.m_object)) {}
 
         friend class NotificationCenter;
     };
@@ -73,7 +73,9 @@ namespace geode {
         std::function<void(Notification<T> const&)> m_callback;
 
         template <typename U = std::monostate>
-        Observer<U>* into() {return reinterpret_cast<Observer<U>*>(this);}
+        inline Observer<U>* into() {
+            return reinterpret_cast<Observer<U>*>(this);
+        }
     };
 
     class GEODE_DLL NotificationCenter {
