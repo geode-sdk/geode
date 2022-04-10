@@ -17,3 +17,8 @@ namespace geode::base {
 		return base;
 	}
 }
+
+
+extern "C" inline uintptr_t _geode_ios_base() {
+	return geode::base::get();
+}
