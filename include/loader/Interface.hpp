@@ -103,8 +103,8 @@ namespace geode {
          * Hook handle (or nullptr if Mod* is not loaded 
 		 * yet), errorful result with info on error
          */
-		template<auto Detour, template <class, class...> class Convention>
-        GEODE_DLL Result<Hook*> addHook(void* address) {
+        template<auto Detour, template <class, class...> class Convention>
+        Result<Hook*> addHook(void* address) {
         	return Interface::addHook<Detour, Convention>("", address);
         }
 
@@ -115,7 +115,7 @@ namespace geode {
          * hooks showing up like base + 0x123456 it can be useful
          */
         template<auto Detour, template <class, class...> class Convention>
-        GEODE_DLL Result<Hook*> addHook(std::string const& displayName, void* address) {
+        Result<Hook*> addHook(std::string const& displayName, void* address) {
         	this->m_scheduledHooks.push_back({ displayName, address, &Mod::addHook<Detour, Convention> });
 			return Ok<Hook*>(nullptr);
         }
