@@ -8,7 +8,7 @@ namespace geode::core {
 	namespace impl {
 		/* the handler itself */
 		template <auto& Det, class Ret, class ...Args>
-		Ret handler(Args... args) {
+		GEODE_DLL Ret handler(Args... args) {
 			static thread_local int counter = 0;
 			std::cout << "detour size: " << Det->size() << std::endl;
 		    
@@ -39,7 +39,7 @@ namespace geode::core {
 		}
 
 		template <template <class, class...> class Conv, auto& Func, class Ret, class ...Args>
-		Ret trampoline(Args... args) {
+		GEODE_DLL Ret trampoline(Args... args) {
 			return meta::Function<Ret(Args...), Conv>(Func)(args...);
 		}
 	}
