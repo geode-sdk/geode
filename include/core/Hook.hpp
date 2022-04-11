@@ -18,7 +18,7 @@ namespace geode::core {
 		// a type alias for convenience and for clear type differentiation inside the source file
 		using VectorPointer = std::vector<void*>*;
 
-		void addHook(
+		GEODE_DLL void addHook(
 			void* address, 
 			void* detour, 
 			VectorPointer* detourVectorAddress, 
@@ -27,7 +27,7 @@ namespace geode::core {
 			void* generatedTrampoline
 		);
 
-		void removeHook(HookHandle const& handle);
+		GEODE_DLL void removeHook(HookHandle const& handle);
 	}
 
 	namespace hook {
