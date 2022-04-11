@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iostream>
 #include "../meta/meta.hpp"
 
 namespace geode::core {
@@ -8,17 +7,13 @@ namespace geode::core {
 	namespace impl {
 		/* the handler itself */
 		template <auto& Det, class Ret, class ...Args>
-		GEODE_DLL Ret handler(Args... args) {
+		Ret handler(Args... args) {
 			static thread_local int counter = 0;
-			std::cout << "detour size: " << Det->size() << std::endl;
 		    
 		    if constexpr (std::is_same_v<Ret, void>) {
 		    	if (counter == Det->size()) counter = 0;
 
-		    	std::cout << "detour index: " << counter << std::endl;
-
 				if (counter < Det->size()) {
-					std::cout << "calling " << (void*)Det->at(counter) << std::endl;
 					Det->at(counter++)(args...);
 			    }
 
@@ -39,7 +34,7 @@ namespace geode::core {
 		}
 
 		template <template <class, class...> class Conv, auto& Func, class Ret, class ...Args>
-		GEODE_DLL Ret trampoline(Args... args) {
+		Ret trampoline(Args... args) {
 			return meta::Function<Ret(Args...), Conv>(Func)(args...);
 		}
 	}
