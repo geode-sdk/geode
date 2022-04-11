@@ -44,9 +44,9 @@ namespace geode {
 		
 
 		struct ScheduledHook {
-			std::string_view m_displayName;
+			std::string m_displayName;
 			void* m_address;
-			void* m_detour;
+			Result<Hook*>(Mod::*m_addFunction)(std::string const&, void*);
 		};
 
 		struct ScheduledLog {
@@ -103,7 +103,10 @@ namespace geode {
          * Hook handle (or nullptr if Mod* is not loaded 
 		 * yet), errorful result with info on error
          */
-        GEODE_DLL Result<Hook*> addHook(void* address, void* detour);
+		template<auto Detour, template <class, class...> class Convention>
+        GEODE_DLL Result<Hook*> addHook(void* address) {
+        	return Interface::addHook<Detour, Convention>("", address);
+        }
 
         /**
          * The same as addHook(void*, void*), but also provides 
@@ -111,7 +114,11 @@ namespace geode {
          * Mostly for internal use but if you don't like your
          * hooks showing up like base + 0x123456 it can be useful
          */
-        GEODE_DLL Result<Hook*> addHook(std::string_view displayName, void* address, void* detour);
+        template<auto Detour, template <class, class...> class Convention>
+        GEODE_DLL Result<Hook*> addHook(std::string const& displayName, void* address) {
+        	this->m_scheduledHooks.push_back({ displayName, address, &Mod::addHook<Detour, Convention> });
+			return Ok<Hook*>(nullptr);
+        }
 
         /**
          * Log an information. Equivalent to 

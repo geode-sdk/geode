@@ -20,10 +20,9 @@ struct Modify<Derived, {class_name}> : ModifyBase<Modify<Derived, {class_name}>>
 				"Adding hook at function {class_name}::{function_name}", 
 				Severity::Debug
 			);
-			Interface::get()->addHook(
+			Interface::get()->addHook<wrap::{function_name}<DefaultConv, Derived, Base, types::pure{global_index}>::value, {function_convention}>(
 				"{class_name}::{function_name}", 
-				(void*)addresses::address{global_index}(), 
-				(void*)wrap::{function_name}<{function_convention}, Derived, Base, types::pure{global_index}>::value
+				(void*)addresses::address{global_index}()
 			);
 		}}
 )RAW";
