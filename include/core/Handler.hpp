@@ -18,7 +18,7 @@ namespace geode::core {
 		    	std::cout << "detour index: " << counter << std::endl;
 
 				if (counter < Det->size()) {
-					std::cout << "calling " << (void*)Det->at(counter + 1) << std::endl;
+					std::cout << "calling " << (void*)Det->at(counter) << std::endl;
 					Det->at(counter++)(args...);
 			    }
 
