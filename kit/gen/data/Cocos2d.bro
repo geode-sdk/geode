@@ -30,7 +30,7 @@ class cocos2d::CCArray {
 	auto fastRemoveObjectAtIndex(unsigned int) = mac 0x41a500;
 	auto fastRemoveObjectAtIndexNew(unsigned int) = mac 0x41a510;
 	auto lastObject() = mac 0x41a360;
-	auto objectAtIndex(unsigned int) = mac 0x41a340;
+	auto objectAtIndex(unsigned int) = mac 0x41a340, ios 0x16510c;
 	auto removeAllObjects() = mac 0x41a4f0, ios 0x1651f0;
 	auto removeLastObject(bool) = mac 0x41a470;
 	auto removeObject(cocos2d::CCObject*, bool) = mac 0x41a490;
@@ -178,17 +178,17 @@ class cocos2d::CCIMEDelegate {
 	inline cocos2d::CCIMEDelegate::~CCIMEDelegate() {
 	    CCIMEDispatcher::sharedDispatcher()->removeDelegate(this);
 	}
-	virtual auto attachWithIME() = mac 0x2776a0;
-	virtual auto detachWithIME() = mac 0x277880;
+	virtual auto attachWithIME() = mac 0x2776a0, ios 0x12d3d4;
+	virtual auto detachWithIME() = mac 0x277880, ios 0x12d4e8;
 	inline cocos2d::CCIMEDelegate::CCIMEDelegate() {
 		CCIMEDispatcher::sharedDispatcher()->addDelegate(this);
 	}
 }
 
 class cocos2d::CCIMEDispatcher {
-	static auto sharedDispatcher() = mac 0x2773f0;
-	auto addDelegate(cocos2d::CCIMEDelegate*) = mac 0x277480;
-	auto removeDelegate(cocos2d::CCIMEDelegate*) = mac 0x2775f0;
+	static auto sharedDispatcher() = mac 0x2773f0, ios 0x12d170;
+	auto addDelegate(cocos2d::CCIMEDelegate*) = mac 0x277480, ios 0x12d204;
+	auto removeDelegate(cocos2d::CCIMEDelegate*) = mac 0x2775f0, ios 0x12d2c4;
 }
 
 class cocos2d::CCImage {
@@ -596,7 +596,7 @@ class cocos2d::CCScheduler {
 	auto scheduleSelector(cocos2d::SEL_SCHEDULE, cocos2d::CCObject*, float, unsigned int, float, bool) = mac 0x242b20;
 	auto scheduleUpdateForTarget(cocos2d::CCObject*, int, bool) = mac 0x2438d0;
 	auto unscheduleAllForTarget(cocos2d::CCObject*) = mac 0x243e40;
-	auto update(float delta) = mac 0x2446d0;
+	virtual auto update(float delta) = mac 0x2446d0;
 }
 
 class cocos2d::CCSequence {
