@@ -3732,7 +3732,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, DialogDelegate {
 	void unclaimParticle(char const*, cocos2d::CCParticleSystemQuad*) = mac 0x76e00, win 0x0, ios 0x0;
 	void unregisterActiveObject(GameObject*) = mac 0x77660, win 0x0, ios 0x0;
 	void unregisterStateObject(GameObject*) = mac 0x777f0, win 0x0, ios 0x0;
-	virtual void update(float) = mac 0x77900, win 0x2029C0, ios 0x0;
+	virtual void update(float) = mac 0x77900, win 0x2029C0, ios 0xb2f08;
 	void updateAttempts() = mac 0x7fcd0, win 0x20ced0, ios 0x0;
 	void updateCamera(float) = mac 0x6e2b0, win 0x0, ios 0x0;
 	virtual void updateColor(cocos2d::_ccColor3B, float, int, bool, float, cocos2d::_ccHSVValue, int, bool, int, EffectGameObject*) = mac 0x7c7f0, win 0x0, ios 0x0;

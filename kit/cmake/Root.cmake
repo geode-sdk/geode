@@ -89,13 +89,15 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 	${INCLUDE_DIRECTORIES}
 )
 
-#file(GLOB_RECURSE GEODE_NO_PCH ${CMAKE_SOURCE_DIR}/**/*.mm ${CMAKE_SOURCE_DIR}/**/*.m ${CMAKE_SOURCE_DIR}/*.m ${CMAKE_SOURCE_DIR}/*.mm)
-#set_source_files_properties(${GEODE_NO_PCH} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
-#if (NOT GEODE_NO_PRECOMPILED_HEADERS)
-#	target_precompile_headers(${PROJECT_NAME} PUBLIC
-#		"$<$<COMPILE_LANGUAGE:CXX>:${GEODE_INCLUDE_DIR}/Geode.hpp>"
-#	)
-#endif()
+if (APPLE)
+	file(GLOB_RECURSE GEODE_NO_PCH ${CMAKE_SOURCE_DIR}/**/*.mm ${CMAKE_SOURCE_DIR}/**/*.m ${CMAKE_SOURCE_DIR}/*.m ${CMAKE_SOURCE_DIR}/*.mm)
+	set_source_files_properties(${GEODE_NO_PCH} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+	if (NOT GEODE_NO_PRECOMPILED_HEADERS)
+		target_precompile_headers(${PROJECT_NAME} PUBLIC
+			"$<$<COMPILE_LANGUAGE:CXX>:${GEODE_INCLUDE_DIR}/Geode.hpp>"
+		)
+	endif()
+endif()
 
 if (NOT DEFINED GEODE_NO_GEODE_FILE)
 	create_geode_file(${PROJECT_NAME})
