@@ -254,7 +254,13 @@ struct CacShare {
     		default: break;
     	}
         if (f.return_type == "auto") {
-            string out = fmt::format("decltype(std::declval<{}>().{}(", f.parent_class->name, f.name);
+            string out;
+            if (f.function_type != kStaticFunction) {
+                out = fmt::format("decltype(std::declval<{}>().{}(", f.parent_class->name, f.name);
+            }
+            else {
+                out = fmt::format("decltype({}::{}(", f.parent_class->name, f.name);
+            }
             vector<string> args;
             for (string i : f.args) {
                 args.push_back(fmt::format("std::declval<{}>()", i));

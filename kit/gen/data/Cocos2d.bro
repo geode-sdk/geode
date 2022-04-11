@@ -864,8 +864,8 @@ class cocos2d::extension::CCScrollView {
 }
 
 class cocos2d {
-	static void ccGLBlendFunc(GLenum, GLenum) = mac 0x1ae560;
-	static void ccDrawSolidRect(cocos2d::CCPoint, cocos2d::CCPoint, cocos2d::_ccColor4F) = mac 0xecf00;
+	static auto ccGLBlendFunc(GLenum, GLenum) = mac 0x1ae560;
+	static auto ccDrawSolidRect(cocos2d::CCPoint, cocos2d::CCPoint, cocos2d::_ccColor4F) = mac 0xecf00;
 }
 
 // class DS_Dictionary {

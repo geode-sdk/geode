@@ -2,6 +2,7 @@
 
 #include "Macros.hpp"
 #include "Types.hpp"
+#include "Hook.hpp"
 #include <utils/Result.hpp>
 #include <utils/VersionInfo.hpp>
 #include <string_view>
@@ -242,17 +243,6 @@ namespace geode {
         Result<> loadPlatformBinary();
         Result<> unloadPlatformBinary();
 
-        /**
-         * Low-level add hook
-         */
-        Result<Hook*> addHookBase(
-        	std::string_view displayName,
-            void* addr,
-            void* detour,
-            Hook* hook = nullptr
-        );
-        Result<Hook*> addHookBase(Hook* hook);
-
         Result<> createTempDir();
 
         static bool validateID(std::string const& id);
@@ -369,26 +359,31 @@ namespace geode {
          * Hook handle, errorful result with info on 
          * error
          */
-        Result<Hook*> addHook(void* address, void* detour);
+        template<auto Detour, template <class, class...> class Convention>
+        Result<Hook*> addHook(void* address) {
+		    return this->addHook<Detour, Convention>("", address);
+		}
 
         /**
-         * IDK too lazy to add documentation for ths
-         */
-        Result<Hook*> addHook(std::string_view displayName, void* address, void* detour);
-
-        /**
-         * Create a hook at an address with a detour
-         * and trampoline
+         * Create a hook at an address. Call the original 
+         * function by calling the original function – 
+         * no trampoline needed. Also takes a displayName 
+         * parameter to use for when visualizing the hook.
          * @param address The absolute address of 
          * the function to hook, i.e. gd_base + 0xXXXX
          * @param detour Pointer to your detour function
-         * @param trampoline Pointer to a function pointer 
-         * used to call the original
          * @returns Successful result containing the 
          * Hook handle, errorful result with info on 
          * error
          */
-        Result<Hook*> addHook(void* address, void* detour, void** trampoline);
+		template<auto Detour, template <class, class...> class Convention>
+        Result<Hook*> addHook(std::string const& displayName, void* address) {
+		    auto hook = Hook::create<Detour, Convention>((decltype(Detour))address, displayName, this);
+	        return this->addHook(hook);
+		}
+
+		Result<Hook*> addHook(Hook* hook);
+
 
         /**
          * Enable a hook owned by this Mod

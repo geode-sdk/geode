@@ -65,6 +65,5 @@ int main(int argc, char** argv) {
 			);
 		}
 	}
-
 	CacShare::writeFile(output);
 }
