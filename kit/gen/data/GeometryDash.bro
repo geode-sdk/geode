@@ -419,7 +419,7 @@ class CCScrollLayerExt : cocos2d::CCLayer {
 	    return this->m_scrollLimitBottom;
 	}
 
-	virtual ~CCScrollLayerExt() = mac 0x2359b0, win 0x1b3f0, ios 0x0;
+	virtual ~CCScrollLayerExt() = mac 0x2359b0, win 0x1b520, ios 0x0;
 	virtual void visit() = mac 0x236550, win 0x1bed0, ios 0x0;
 	virtual bool ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x235ef0, win 0x1b9b0, ios 0x0;
 	virtual void ccTouchMoved(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x236300, win 0x1bcc0, ios 0x0;
