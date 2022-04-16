@@ -131,10 +131,21 @@ namespace geode {
     };
 
     inline struct {
+        // todo: fix it returning a reference instead 
+        // of just ignoring the warning
+        #ifdef _MSC_VER
+            #pragma warning(push)
+            #pragma warning(disable: 4172)
+        #endif
+
         template <typename T>
         geode::Log& operator<<(T a) {
             return geode::Log::get() << a;
         }
+
+        #ifdef _MSC_VER
+            #pragma warning(pop)
+        #endif
     } log;
 }
 GEODE_DLL geode::Log& operator<<(geode::Log&, geode::Mod*);
