@@ -1722,7 +1722,7 @@ class GJComment : cocos2d::CCNode {
 	int m_modBadge;
 	cocos2d::ccColor3B m_color;
 	bool m_hasLevelID;
-	gd::GJUserScore* m_userScore;
+	GJUserScore* m_userScore;
 }
 
 class GJCommentListLayer : cocos2d::CCLayerColor {
@@ -4339,7 +4339,7 @@ class ProfilePage : FLAlertLayer, FLAlertLayerProtocol, LevelCommentDelegate, Co
 	void getUserInfoFailed(int) = mac 0x0, win 0x2133e0, ios 0x0;
 	bool init(int accountID, bool idk) = mac 0x0, win 0x20ef00, ios 0x0;
 	void onUpdate(cocos2d::CCObject*) = mac 0x0, win 0x20fa20, ios 0x0;
-	void loadPageFromUserInfo(gd::GJUserScore* score) = mac 0x0, win 0x210040, ios 0x0;
+	void loadPageFromUserInfo(GJUserScore* score) = mac 0x0, win 0x210040, ios 0x0;
 
 	GJUserScore* m_score;
 	int m_accountID;
