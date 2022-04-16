@@ -2344,6 +2344,8 @@ class GJUserScore : cocos2d::CCNode {
 	int m_friendReqCount;
 	bool m_isBlocked;
 	gd::string m_lastScoreAge;
+
+	static GJUserScore* create() = mac 0x0, win 0xc1660, ios 0x0;
 }
 
 class GManager : cocos2d::CCNode {
