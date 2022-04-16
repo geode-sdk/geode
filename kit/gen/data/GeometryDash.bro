@@ -1698,7 +1698,7 @@ class GJChallengeItem : cocos2d::CCObject {
 	int m_timeLeft;
 	bool m_canClaim;
 	int m_position;
-	std::string m_name;
+	gd::string m_name;
 }
 
 class GJColorSetupLayer {}
@@ -3170,7 +3170,7 @@ class InfoLayer : FLAlertLayer, LevelCommentDelegate, CommentUploadDelegate, FLA
 
 	GJGameLevel* m_level;
 	GJUserScore* m_score;
-	std::string m_commentKey;
+	gd::string m_commentKey;
 	LoadingCircle* m_loadingCircle;
 	cocos2d::CCLabelBMFont* m_pageLabel;
 	cocos2d::CCLabelBMFont* m_commentsGoldLabel;
