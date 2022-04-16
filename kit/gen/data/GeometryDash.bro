@@ -3128,9 +3128,29 @@ class InfoLayer : FLAlertLayer, LevelCommentDelegate, CommentUploadDelegate, FLA
 	void setupCommentsBrowser(cocos2d::CCArray* comments) = mac 0x0, win 0x152270, ios 0x0;
 	void onMore(cocos2d::CCObject* pSender) = mac 0x0, win 0x151500, ios 0x0;
 	void onLevelInfo(cocos2d::CCObject* pSender) = mac 0x0, win 0x151850, ios 0x0;
+	void loadPage(int page) = mac 0x0, win 0x151e70, ios 0x0;
+	static InfoLayer* create(GJGameLevel* level, GJUserScore* score) = mac 0x0, win 0x14f4f0, ios 0x0;
 
-	PAD = mac 0x0, win 0x2c, android 0x0;
+	GJGameLevel* m_level;
+	GJUserScore* m_score;
+	std::string m_commentKey;
+	LoadingCircle* m_loadingCircle;
+	cocos2d::CCLabelBMFont* m_pageLabel;
+	cocos2d::CCLabelBMFont* m_commentsGoldLabel;
 	GJCommentListLayer* m_list;
+	CCMenuItemSpriteExtra* m_leftArrow;
+	CCMenuItemSpriteExtra* m_rightArrow;
+	CCMenuItemSpriteExtra* m_likeBtn;
+	CCMenuItemSpriteExtra* m_timeBtn;
+	CCMenuItemSpriteExtra* m_reportBtn;
+	CCMenuItemSpriteExtra* m_commentsBtn;
+	CCMenuItemSpriteExtra* m_refreshCommentsBtn;
+	int m_itemCount;
+	int m_pageStartIdx;
+	int m_pageEndIdx;
+	int m_page;
+	bool m_canUpdateUserScore;
+	bool m_commentHistory;
 }
 
 class InheritanceNode : cocos2d::CCObject {}
