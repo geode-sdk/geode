@@ -775,8 +775,10 @@ class CreateMenuItem : CCMenuItemSpriteExtra {
 }
 
 class CreatorLayer : cocos2d::CCLayer {
+	void onChallenge(cocos2d::CCObject*) = mac 0x0, win 0x4f1b0, ios 0x0;
 	void onMyLevels(cocos2d::CCObject*) = mac 0x142b70, win 0x0, ios 0x0;
 	void onSavedLevels(cocos2d::CCObject*) = mac 0x142860, win 0x0, ios 0x0;
+	void init() = mac 0x0, win 0x4de40, ios 0x0;
 	static CreatorLayer* create() = mac 0x0, win 0x4dda0, ios 0x0;
 }
 
@@ -866,6 +868,11 @@ class CustomizeObjectLayer : FLAlertLayer, TextInputDelegate, HSVWidgetPopupDele
 
 class DailyLevelPage {
 	static DailyLevelPage* create(bool weekly) = mac 0x0, win 0x6a860, ios 0x0;
+	void init(bool weekly) = mac 0x0, win 0x6a900, ios 0x0;
+	void updateTimers(float) = mac 0x0, win 0x6bef0, ios 0x0;
+
+	PAD = mac 0x0, win 0x1ed, ios 0x0;
+	bool m_weekly;
 }
 
 class DialogLayer : cocos2d::CCLayerColor {
@@ -990,6 +997,7 @@ class EditLevelLayer : cocos2d::CCLayer {
 	}
 
 	static EditLevelLayer* create(GJGameLevel* level) = mac 0xe1e50, win 0x6f530, ios 0x82420;
+	void onLevelInfo() = mac 0x0, win 0x70660, ios 0x0;
 
 	cocos2d::CCMenu* m_buttonMenu;
 	GJGameLevel* m_level;
@@ -2400,6 +2408,7 @@ class GameLevelManager : cocos2d::CCNode {
 	void getTopArtistsKey(int) = mac 0x2ce7a0, win 0x0, ios 0x0;
 	void makeTimeStamp(char const*) = mac 0x2bfd90, win 0x0, ios 0x0;
 	GJGameLevel* getMainLevel(int id, bool unk) = mac 0x0, win 0xa0940, ios 0x0;
+	gd::string userNameForUserID(int id) = mac 0x0, win 0xa1c20, ios 0x0;
 
 	//cocos2d::CCDictionary* timerDict = mac 0x1e8, win 0x0, android 0x0;
 	cocos2d::CCDictionary* m_mainLevels;
@@ -3223,6 +3232,7 @@ class LevelBrowserLayer : cocos2d::CCLayer {
 	bool init(GJSearchObject* pSearch) = mac 0x0, win 0x15a040, ios 0x0;
 	void loadPage(GJSearchObject* pSearch) = mac 0x0, win 0x15b160, ios 0x0;
 	void setupLevelBrowser(cocos2d::CCArray* levels) = mac 0x0, win 0x15bb40, ios 0x0;
+	void updateLevelsLabel(cocos2d::CCArray* levels) = mac 0x0, win 0x15c350, ios 0x0;
 	static LevelBrowserLayer* create(GJSearchObject* pSearch) = mac 0x251210, win 0x159fa0, ios 0x2d0a00;
 
 	PAD = mac 0x0, win 0x18, android 0x0;
@@ -3374,6 +3384,7 @@ class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDeleg
 	void onGarage(cocos2d::CCObject* pSender) = mac 0x0, win 0x177c10, ios 0x0;
 	void onViewProfile(cocos2d::CCObject* pSender) = mac 0x0, win 0x17ac90, ios 0x0;
 	void onLevelInfo(cocos2d::CCObject* pSender) = mac 0x0, win 0x17acf0, ios 0x0;
+	void setupProgressBars() = mac 0x0, win 0x177fc0, ios 0x0;
 
 	PAD = mac 0x0, win 0x4, android 0x0;
 	cocos2d::CCMenu* m_playBtnMenu;
@@ -3394,10 +3405,24 @@ class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDeleg
 	PAD = mac 0x0, win 0x4, android 0x0;
 }
 
+class LevelCell : public TableViewCell
+{
+	CCMenuItemSpriteExtra* m_button;
+	GJGameLevel* m_level;
+	bool m_cellDrawn;
+};
+
 //TODO: leaderboardType is actually of enum type LevelLeaderboardType
 class LevelLeaderboard : FLAlertLayer {
+	void onChangeType(cocos2d::CCObject* pSender) = mac 0x0, win 0x17d090, ios 0x0;
 	void onGarage(cocos2d::CCObject* pSender) = mac 0x0, win 0x17d1b0, ios 0x0;
+	bool init(GJGameLevel* level, int type) = mac 0x0, win 0x17c4f0, ios 0x0;
 	static LevelLeaderboard* create(GJGameLevel* level, int leaderboardType) = mac 0x15f290, win 0x17c440, ios 0x0;
+}
+
+class LevelPage {
+	PAD = mac 0x0, win 0x124, android 0x0;
+	GJGameLevel* m_level;
 }
 
 class LevelSearchLayer {
