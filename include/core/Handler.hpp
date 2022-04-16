@@ -13,7 +13,7 @@ namespace geode::core {
 		    if constexpr (std::is_same_v<Ret, void>) {
 		    	if (counter == Det->size()) counter = 0;
 
-				if (counter < Det->size()) {
+				if (counter < static_cast<int>(Det->size())) {
 					Det->at(counter++)(args...);
 			    }
 
@@ -23,7 +23,7 @@ namespace geode::core {
 		    	Ret ret;
 			    if (counter == Det->size()) counter = 0;
 
-				if (counter < Det->size()) {
+				if (counter < static_cast<int>(Det->size())) {
 					ret = Det->at(counter++)(args...);
 			    }
 
