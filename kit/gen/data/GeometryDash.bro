@@ -1682,13 +1682,20 @@ class GJComment : cocos2d::CCNode {
 	static GJComment* create(cocos2d::CCDictionary* dict) = mac 0x0, win 0xc3740, ios 0x0;
 
 	gd::string m_commentString;
-	PAD = mac 0x0, win 0x18, android 0x0;
+	gd::string m_userName;
 	int m_commentID;
-	PAD = mac 0x0, win 0x4, android 0x0;
+	int m_userID;
 	int m_likeCount;
-	PAD = mac 0x0, win 0x8, android 0x0;
+	int m_levelID;
+	bool m_isSpam;
 	int m_accountID;
 	gd::string m_uploadDate;
+	bool m_commentDeleted;
+	int m_percentage;
+	int m_modBadge;
+	cocos2d::ccColor3B m_color;
+	bool m_hasLevelID;
+	gd::GJUserScore* m_userScore;
 }
 
 class GJCommentListLayer : cocos2d::CCLayerColor {
