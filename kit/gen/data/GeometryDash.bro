@@ -3024,6 +3024,9 @@ class GameStatsManager : cocos2d::CCNode {
 	void awardCurrencyForLevel(GJGameLevel*) = mac 0x43600, win 0x0, ios 0x0;
 	void awardDiamondsForLevel(GJGameLevel*) = mac 0x43c60, win 0x0, ios 0x0;
 	void awardSecretKey() = mac 0x4b1e0, win 0x0, ios 0x0;
+	int getAwardedCurrencyForLevel(GJGameLevel*) = mac 0x0, win 0xf83e0, ios 0x0;
+	int getBaseCurrencyForLevel(GJGameLevel*) = mac 0x0, win 0xf8530, ios 0x0;
+	GJChallengeItem* getChallenge(int id) = mac 0x0, win 0xa2fb0, ios 0x0;
 	void getSecretCoinKey(char const*) = mac 0x429f0, win 0x0, ios 0x0;
 	void getStat(char const*) = mac 0x3d310, win 0x0, ios 0x0;
 	void hasPendingUserCoin(char const*) = mac 0x42730, win 0x0, ios 0x0;
@@ -3035,7 +3038,6 @@ class GameStatsManager : cocos2d::CCNode {
 	void storePendingUserCoin(char const*) = mac 0x42940, win 0x0, ios 0x0;
 	void storeSecretCoin(char const*) = mac 0x42a10, win 0x0, ios 0x0;
 	void storeUserCoin(char const*) = mac 0x42890, win 0x0, ios 0x0;
-	GJChallengeItem* getChallenge(int id) = mac 0x0, win 0xa2fb0, ios 0x0;
 
 	PAD = mac 0x0, win 0x28, android 0x0;
 	cocos2d::CCDictionary* m_dailyChests;
