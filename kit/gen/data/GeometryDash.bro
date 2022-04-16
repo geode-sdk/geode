@@ -3357,6 +3357,12 @@ class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDeleg
 	PAD = mac 0x0, win 0x4, android 0x0;
 }
 
+//TODO: leaderboardType is actually of enum type LevelLeaderboardType
+class LevelLeaderboard : FLAlertLayer {
+	void onGarage(cocos2d::CCObject* pSender) = mac 0x0, win 0x17d1b0, ios 0x0;
+	static LevelLeaderboard* create(GJGameLevel* level, int leaderboardType) = mac 0x15f290, win 0x17c440, ios 0x0;
+}
+
 class LevelSearchLayer {
 	static LevelSearchLayer* create() = mac 0x0, win 0x17d9c0, ios 0x0;
 }
