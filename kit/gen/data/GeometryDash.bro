@@ -1674,6 +1674,24 @@ class GJBaseGameLayer : cocos2d::CCLayer, TriggerEffectDelegate {
 	PAD = mac 0x16, win 0x8, android 0x0;
 }
 
+class GJChallengeItem : cocos2d::CCObject {
+
+	GJChallengeType m_challengeType;
+	int m_count_seed;
+	int m_count_rand;
+	int m_count;
+	int m_reward_seed;
+	int m_reward_rand;
+	int m_reward;
+	int m_goal_seed;
+	int m_goal_rand;
+	int m_goal;
+	int m_timeLeft;
+	bool m_canClaim;
+	int m_position;
+	std::string m_name;
+}
+
 class GJColorSetupLayer {}
 
 class GJComment : cocos2d::CCNode {
