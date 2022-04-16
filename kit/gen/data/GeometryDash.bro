@@ -3212,11 +3212,20 @@ class LevelBrowserLayer : cocos2d::CCLayer {
 	}
 
 	bool init(GJSearchObject* pSearch) = mac 0x0, win 0x15a040, ios 0x0;
+	void loadPage(GJSearchObject* pSearch) = mac 0x0, win 0x15b160, ios 0x0;
 	void setupLevelBrowser(cocos2d::CCArray* levels) = mac 0x0, win 0x15bb40, ios 0x0;
 	static LevelBrowserLayer* create(GJSearchObject* pSearch) = mac 0x251210, win 0x159fa0, ios 0x2d0a00;
 
 	PAD = mac 0x0, win 0x18, android 0x0;
 	GJListLayer* m_list;
+	CCMenuItemSpriteExtra* m_leftArrow;
+	CCMenuItemSpriteExtra* m_rightArrow;
+	PAD = mac 0x0, win 0x10, android 0x0;
+	GJSearchObject* m_searchObject;
+	PAD = mac 0x0, win 0x14, android 0x0;
+	int m_itemCount;
+	int m_pageStartIdx;
+	int m_pageEndIdx;
 }
 
 class LevelCommentDelegate {}
