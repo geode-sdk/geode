@@ -4302,9 +4302,15 @@ class PointNode : cocos2d::CCObject {
 
 class ProfilePage : FLAlertLayer, FLAlertLayerProtocol, LevelCommentDelegate, CommentUploadDelegate, UserInfoDelegate, UploadActionDelegate, UploadPopupDelegate, LeaderboardManagerDelegate {
 	static ProfilePage* create(int accountID, bool idk) = mac 0x45eed0, win 0x20ee50, ios 0x0;
+	void getUserInfoFailed(int) = mac 0x0, win 0x2133e0, ios 0x0;
+	bool init(int accountID, bool idk) = mac 0x0, win 0x20ef00, ios 0x0;
+	void onUpdate(cocos2d::CCObject*) = mac 0x0, win 0x20fa20, ios 0x0;
+	void loadPageFromUserInfo(gd::GJUserScore* score) = mac 0x0, win 0x210040, ios 0x0;
 
-	PAD = mac 0x0, win 0x4, android 0x0;
+	GJUserScore* m_score;
 	int m_accountID;
+	PAD = mac 0x0, win 0x38, android 0x24;
+	cocos2d::CCArray* m_buttons;
 }
 
 class PulseEffectAction : cocos2d::CCNode {
