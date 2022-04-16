@@ -1473,6 +1473,7 @@ class GJAccountManager : cocos2d::CCNode {
 	PAD = mac 0x0, win 0x4, android 0x0;
 	gd::string m_password;
 	gd::string m_username;
+	int m_accountID;
 }
 
 class GJAccountSyncDelegate {
@@ -2678,7 +2679,10 @@ class GameManager : GManager {
 	bool m_unk2;
 	bool m_gameCenterEnabled;
 	bool m_smoothFix;
-	PAD = mac 0x0, win 0x10, android 0x0;
+	int m_ratePowerSeed;
+	int m_ratePowerRand;
+	int m_ratePower;
+	bool m_canGetLevelSaveData;
 	int m_resolution;
 	cocos2d::TextureQuality m_quality;
 }
