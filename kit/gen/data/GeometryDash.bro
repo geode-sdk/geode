@@ -1914,6 +1914,7 @@ class GJGameLevel : cocos2d::CCNode {
 	void savePercentage(int, bool, int, int, bool) = mac 0x2db700, win 0x0, ios 0x0;
 	void dataLoaded(DS_Dictionary* dict) = mac 0x2922f0, win 0xbded0, ios 0x6fca4;
 	GJDifficulty getAverageDifficulty() = mac 0x0, win 0xbd9b0, ios 0x0;
+	gd::string getUnpackedLevelDescription() = mac 0x0, win 0xbf890, ios 0x0;
 
 	int levelId = mac 0x130, win 0x0, android 0x0;
 	gd::string name = mac 0x138, win 0x0, android 0x0;
