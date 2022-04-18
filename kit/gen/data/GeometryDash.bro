@@ -419,12 +419,14 @@ class CCScrollLayerExt : cocos2d::CCLayer {
 	    return this->m_scrollLimitBottom;
 	}
 
-	virtual ~CCScrollLayerExt() = mac 0x2359b0, win 0x1b520, ios 0x0;
+	// todo: add this back when CCDestructor works and 
+	// this no longer causes crashing
+	// virtual ~CCScrollLayerExt() = mac 0x2359b0, win 0x1b520, ios 0x0;
 	virtual void visit() = mac 0x236550, win 0x1bed0, ios 0x0;
 	virtual bool ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x235ef0, win 0x1b9b0, ios 0x0;
-	virtual void ccTouchMoved(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x236300, win 0x1bcc0, ios 0x0;
+	virtual void ccTouchMoved(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x236300, win 0x1bce0, ios 0x0;
 	virtual void ccTouchEnded(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x236020, win 0x1baa0, ios 0x0;
-	virtual void ccTouchCancelled(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x2362a0, win 0x1bce0, ios 0x0;
+	virtual void ccTouchCancelled(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x2362a0, win 0x1bcc0, ios 0x0;
 	virtual void registerWithTouchDispatcher() = mac 0x235eb0, win 0x1b980, ios 0x0;
 	virtual void preVisitWithClippingRect(struct cocos2d::CCRect) = mac 0x2366a0, win 0x1c000, ios 0x0;
 	virtual void postVisit() = mac 0x236720, win 0x1c090, ios 0x0;
