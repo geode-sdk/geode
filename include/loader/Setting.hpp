@@ -171,6 +171,8 @@ namespace geode {
 		
 	public:
 		inline virtual SettingType getType() override { return SettingType::Float; }
+
+		size_t getPrecision() const { return m_precision; }
 	};
 
 	class StringSetting : public SingleSetting<std::string, StringSetting> {
