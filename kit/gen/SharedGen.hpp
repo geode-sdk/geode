@@ -141,6 +141,59 @@ struct CacShare {
     	return types;
     }
 
+    static void editArguments(Function& f) {
+        for (size_t i = 0; i < f.argnames.size(); ++i) {
+            if (f.argnames[i] == "") {
+                f.argnames[i] = fmt::format("p{}", i);
+            }
+        }
+    }
+
+    static string getIndex(Function const& f) {
+    	return fmt::format("{}", f.global_index);
+    }
+
+    static string getClassName(Function const& f) {
+    	return fmt::format("{}", f.parent_class->name);
+    }
+
+    static string getFunctionName(Function const& f) {
+    	return fmt::format("{}", f.name);
+    }
+
+    static string getConst(Function const& f) {
+    	return fmt::format("{}", f.is_const ? "const" : "");
+    }
+
+    static string getConstWhitespace(Function const& f) {
+    	return fmt::format("{}", f.is_const ? " " : "");
+    }
+
+    static string getParameters(Function const& f) { // int p0, float p1
+    	// return fmt::format("{} {}", fmt::join(f.args, ""), fmt::join(f.argnames, ", "));
+        return formatRawArgs(f.args, f.argnames);
+    }
+
+    static string getParameterTypes(Function const& f) { //int, float
+    	return fmt::format("{}", fmt::join(f.args, ", "));
+    }
+
+    static string getArguments(Function const& f) { // p0, p1
+    	return fmt::format("{}", fmt::join(f.argnames, ", "));
+    }
+
+    static string getParameterComma(Function const& f) { // int p0, float p1
+    	return fmt::format("{}", f.args.size() > 0 ? ", " : "");
+    }
+
+    static string getParameterTypeComma(Function const& f) { //int, float
+    	return fmt::format("{}", f.args.size() > 0 ? ", " : "");
+    }
+
+    static string getArgumentComma(Function const& f) { // p0, p1
+    	return fmt::format("{}", f.argnames.size() > 0 ? ", " : "");
+    }
+
     static string formatArgTypes(vector<string> args) {
         return args.size() > 0 ? fmt::format(", {}", fmt::join(removeStruct(args), ", ")) : string("");
     }
@@ -188,6 +241,8 @@ struct CacShare {
             return "";
         }
     }
+
+
 
     static string formatParameters(vector<int> const& params, vector<string> const& names) {
         if (params.size()) {

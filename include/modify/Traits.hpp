@@ -8,29 +8,19 @@ namespace geode::modifier {
 	 * The unevaluated function that gets the appropriate 
 	 * version of a function type from its return, parameters, and classes.
 	 */
-	template <class Ret, class Base, class Derived, class ...Parameters>
-	auto substitute(Ret(Base::*)(Parameters...)) -> Ret(Base::*)(Parameters...) {
-		static_assert(always_false<Ret>, "This function is for unevaluated context");
+	template <class Return, class Class, class ...Parameters>
+	auto substitute(Return(Class::*)(Parameters...)) -> Return(Class::*)(Parameters...) {
+		// static_assert(always_false<Ret>, "This function is for unevaluated context");
+	}
+	
+	template <class Return, class Class, class ...Parameters>
+	auto substitute(Return(Class::*)(Parameters...) const) -> Return(Class::*)(Parameters...) const {
+		// static_assert(always_false<Ret>, "This function is for unevaluated context");
 	}
 
-	template <class Ret, class Base, class Derived, class ...Parameters>
-	auto substitute(Ret(Derived::*)(Parameters...)) -> Ret(Derived::*)(Parameters...) {
-		static_assert(always_false<Ret>, "This function is for unevaluated context");
-	}
-
-	template <class Ret, class Base, class Derived, class ...Parameters>
-	auto substitute(Ret(Base::*)(Parameters...) const) -> Ret(Base::*)(Parameters...) const {
-		static_assert(always_false<Ret>, "This function is for unevaluated context");
-	}
-
-	template <class Ret, class Base, class Derived, class ...Parameters>
-	auto substitute(Ret(Derived::*)(Parameters...) const) -> Ret(Derived::*)(Parameters...) const {
-		static_assert(always_false<Ret>, "This function is for unevaluated context");
-	}
-
-	template <class Ret, class Base, class Derived, class ...Parameters>
-	auto substitute(Ret(*)(Parameters...)) -> Ret(*)(Parameters...) {
-		static_assert(always_false<Ret>, "This function is for unevaluated context");
+	template <class Return, class Class, class ...Parameters>
+	auto substitute(Return(*)(Parameters...)) -> Return(*)(Parameters...) {
+		// static_assert(always_false<Ret>, "This function is for unevaluated context");
 	}
 
 	/**

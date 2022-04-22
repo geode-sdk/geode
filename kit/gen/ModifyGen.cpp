@@ -15,16 +15,7 @@ struct Modify<Derived, {class_name}> : ModifyBase<Modify<Derived, {class_name}>>
 
 	// requires: index, class_name, arg_types, function_name, raw_arg_types, non_virtual
 	char const* apply_function = R"RAW(
-		if constexpr (compare::{function_name}<Derived, Base, types::pure{global_index}>::value) {{
-			Interface::get()->logInfo(
-				"Adding hook at function {class_name}::{function_name}", 
-				Severity::Debug
-			);
-			Interface::get()->addHook<wrap::{function_name}<DefaultConv, Derived, Base, types::pure{global_index}>::value, {function_convention}>(
-				"{class_name}::{function_name}", 
-				(void*)addresses::address{global_index}()
-			);
-		}}
+		GEODE_APPLY_MODIFY_FOR_FUNCTION({global_index}, {function_convention}, {class_name}, {function_name})
 )RAW";
 
 	char const* modify_end = R"RAW(

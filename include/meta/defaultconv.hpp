@@ -6,11 +6,11 @@ namespace geode::core::meta {
     class DefaultConv {
     public:
         static Ret invoke(void* address, Args... all) {
-            Ret(*raw)(Args...) = reinterpret_cast<decltype(raw)>(address);
+            Ret (*raw)(Args...) = reinterpret_cast<decltype(raw)>(address);
             return raw(all...);
         }
 
-        template <Ret(*detour)(Args...)>
+        template <Ret (*detour)(Args...)>
         static constexpr decltype(auto) get_wrapper() {
             return detour;
         }

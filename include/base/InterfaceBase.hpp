@@ -12,14 +12,9 @@
 namespace geode::core::meta {}
 
 template<auto F>
-struct address_of_t {
+struct AddressOf {
 	static inline auto value = geode::base::get();
 };
-
-template<auto F>
-inline auto address_of = address_of_t<F>::value;
-
-
 
 
 

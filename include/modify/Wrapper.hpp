@@ -1,51 +1,66 @@
 #pragma once
 #include "Traits.hpp"
 
+#define GEODE_WRAPPER_FOR_IDENTIFIER(identifier)                                                                       \
+/* Default - function Return Class::identifier(Parameters...) does not exist */                                        \
+template <                                                                                                             \
+	class Class,                                                                                                       \
+	class FunctionType,                                                                                                \
+	class = void                                                                                                       \
+>                                                                                                                      \
+struct identifier {                                                                                                    \
+private:                                                                                                               \
+	static void wrapperImpl(...) {}                                                                                    \
+public:                                                                                                                \
+	constexpr static inline auto value = &wrapperImpl;                                                                 \
+};                                                                                                                     \
+/* Specialization - function Return Class::identifier(Parameters...) is a member function */                           \
+template <                                                                                                             \
+	class Class,                                                                                                       \
+	class Return,                                                                                                      \
+	class ...Parameters                                                                                                \
+>                                                                                                                      \
+struct identifier<                                                                                                     \
+	Class,                                                                                                             \
+	Return(Parameters...), std::enable_if_t<                                                                           \
+	    std::is_member_function_pointer_v<                                                                             \
+            decltype(substitute<Return, Class, Parameters...>(&Class::identifier))                                     \
+        >                                                                                                              \
+	>                                                                                                                  \
+> {                                                                                                                    \
+private:                                                                                                               \
+	static Return wrapperImpl(Class* self, Parameters... ps) {                                                         \
+		return self->Class::identifier(ps...);                                                                         \
+	}                                                                                                                  \
+public:                                                                                                                \
+	constexpr static inline auto value = &wrapperImpl;                                                                 \
+};                                                                                                                     \
+/* Specialization - function Return Class::identifier(Parameters...) is a static function */                           \
+template <                                                                                                             \
+	class Class,                                                                                                       \
+	class Return,                                                                                                      \
+	class ...Parameters                                                                                                \
+>                                                                                                                      \
+struct identifier<                                                                                                     \
+	Class,                                                                                                             \
+	Return(Parameters...), std::enable_if_t<                                                                           \
+        std::is_pointer_v<                                                                                             \
+            decltype(substitute<Return, Class, Parameters...>(&Class::identifier))                                     \
+        >                                                                                                              \
+	>                                                                                                                  \
+> {                                                                                                                    \
+private:                                                                                                               \
+	static Return wrapperImpl(Parameters... ps) {                                                                      \
+		return Class::identifier(ps...);                                                                               \
+	}                                                                                                                  \
+public:                                                                                                                \
+	constexpr static inline auto value = &wrapperImpl;                                                                 \
+};                                                                                                                     \
+
 namespace geode::modifier {
-
 	struct wrap {
-		template <template <class, class...> class, class, class, class, class = void>
-		struct constructor {
-		private:
-			static void wrapper(...) {}
-		public:
-			constexpr static inline auto value = &wrapper;
-		};
-
-		template <template <class, class...> class Conv, class Derived, class Base, class Ret, class ...Parameters>
-		struct constructor<Conv, Derived, Base, Ret(Parameters...), std::enable_if_t<
-			std::is_member_function_pointer_v<decltype(substitute<Ret, Base, Derived, Parameters...>(&Derived::constructor))>
-		>> {
-		private:
-			static Ret wrapper(Derived* self, Parameters... ps) {
-				return self->Derived::constructor(ps...);
-			}
-		public:
-			using MyConv = Conv<Ret, Derived*, Parameters...>;
-			constexpr static inline auto value = MyConv::template get_wrapper<&wrapper>();
-		};
-
-		template <template <class, class...> class, class, class, class, class = void>
-		struct destructor {
-		private:
-			static void wrapper(...) {}
-		public:
-			constexpr static inline auto value = &wrapper;
-		};
-
-		template <template <class, class...> class Conv, class Derived, class Base, class Ret, class ...Parameters>
-		struct destructor<Conv, Derived, Base, Ret(Parameters...), std::enable_if_t<
-			std::is_member_function_pointer_v<decltype(substitute<Ret, Base, Derived, Parameters...>(&Derived::destructor))>
-		>> {
-		private:
-			static Ret wrapper(Derived* self, Parameters... ps) {
-				return self->Derived::destructor(ps...);
-			}
-		public:
-			using MyConv = Conv<Ret, Derived*, Parameters...>;
-			constexpr static inline auto value = MyConv::template get_wrapper<&wrapper>();
-		};
-		
-		#include <gen/Wrap.hpp>
+		GEODE_WRAPPER_FOR_IDENTIFIER(constructor)
+		GEODE_WRAPPER_FOR_IDENTIFIER(destructor)
+		#include <gen/Wrapper.hpp>
 	};
 }

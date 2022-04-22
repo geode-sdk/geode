@@ -14,19 +14,23 @@ GEODE_NOINLINE GEODE_HIDDEN inline static uintptr_t address{global_index}() {{
 int main(int argc, char** argv) {
 	string output("");
 	Root root = CacShare::init(argc, argv);
+	set<string> used;
 
 	for (auto& [name, c] : root.classes) {
-		string unqualifiedName = CacShare::toUnqualified(name);
-
 		for (auto& f : c.functions) {
-			if (!CacShare::functionDefined(f))
-                continue; // Function not supported, skip
-
-			output += fmt::format(format_strings::declare_address,
-				fmt::arg("address", CacShare::getAddress(f)),
-				fmt::arg("global_index", f.global_index)
+			switch (f.function_type) {
+				case kConstructor: [[fallthrough]];
+				case kDestructor: continue;
+				default: break;
+			}
+			if (used.find(f.name) != used.end()) continue;
+			
+			output += fmt::format(format_strings::declare_member_type,
+				fmt::arg("function_name", f.name)
 			);
+			used.insert(f.name);
 		}
 	}
+
 	CacShare::writeFile(output);
 }
