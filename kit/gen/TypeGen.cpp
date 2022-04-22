@@ -7,6 +7,7 @@ namespace format_strings {
 using ret{global_index} = {return};
 using func{global_index} = ret{global_index}(*)({const}{constw}{class_name}*{arg_types});
 using pure{global_index} = ret{global_index}({raw_arg_types});
+using meta{global_index} = ret{global_index}({const}{constw}{class_name}*{arg_types});
 using member{global_index} = ret{global_index}({class_name}::*)({raw_arg_types}){const};
 )RAW";
 
@@ -14,6 +15,7 @@ using member{global_index} = ret{global_index}({class_name}::*)({raw_arg_types})
 using ret{global_index} = {return};
 using func{global_index} = ret{global_index}(*)({raw_arg_types});
 using pure{global_index} = ret{global_index}({raw_arg_types});
+using meta{global_index} = ret{global_index}({raw_arg_types});
 using member{global_index} = func{global_index};
 )RAW";
 
@@ -21,6 +23,7 @@ using member{global_index} = func{global_index};
 using ret{global_index} = void;
 using func{global_index} = ret{global_index}(*)({class_name}*{arg_types});
 using pure{global_index} = ret{global_index}({raw_arg_types});
+using meta{global_index} = ret{global_index}({const}{constw}{class_name}*{arg_types});
 using member{global_index} = func{global_index};
 )RAW";
 
