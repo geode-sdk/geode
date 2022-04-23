@@ -23,7 +23,7 @@ types::ret{index} {class_name}::{function_name}({parameters}){const_whitespace}{
 
 	char const* declare_virtual = R"GEN(
 types::ret{index} {class_name}::{function_name}({parameters}){const_whitespace}{const} {{
-	auto self = addresser::thunkAdjust((member{index})(&{class_name}::{function_name}), this);
+	auto self = addresser::thunkAdjust((types::member{index})(&{class_name}::{function_name}), this);
 	auto func = Function<types::meta{index}, {convention}>({{addresses::address{index}()}});
 	return func(self{argument_comma}{arguments});
 }}
@@ -54,7 +54,7 @@ types::ret{index} {class_name}::{function_name}({parameters}){const_whitespace}{
 
 	// requires: static, return_type, function_name, raw_parameters, const, class_name, definition
 	char const* ool_function_definition = R"GEN(
-types::ret{index} {class_name}::{function_name}({parameters}){const_whitespace}{const} {definition}
+{return_type} {class_name}::{function_name}({parameters}){const_whitespace}{const} {definition}
 )GEN";
 }
 

@@ -10,17 +10,17 @@ namespace geode::modifier {
 	 */
 	template <class Return, class Class, class ...Parameters>
 	auto substitute(Return(Class::*)(Parameters...)) -> Return(Class::*)(Parameters...) {
-		// static_assert(always_false<Ret>, "This function is for unevaluated context");
+		static_assert(always_false<Return>, "This function is for unevaluated context");
 	}
 	
 	template <class Return, class Class, class ...Parameters>
 	auto substitute(Return(Class::*)(Parameters...) const) -> Return(Class::*)(Parameters...) const {
-		// static_assert(always_false<Ret>, "This function is for unevaluated context");
+		static_assert(always_false<Return>, "This function is for unevaluated context");
 	}
 
 	template <class Return, class Class, class ...Parameters>
 	auto substitute(Return(*)(Parameters...)) -> Return(*)(Parameters...) {
-		// static_assert(always_false<Ret>, "This function is for unevaluated context");
+		static_assert(always_false<Return>, "This function is for unevaluated context");
 	}
 
 	/**
