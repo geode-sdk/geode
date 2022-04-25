@@ -97,6 +97,7 @@ namespace geode {
 	protected:
 		T m_min = std::numeric_limits<T>::min();
 		T m_max = std::numeric_limits<T>::max();
+		T m_step = 1;
 		bool m_slider = Slider;
 		bool m_input = Input;
 		bool m_arrows = Arrows;
