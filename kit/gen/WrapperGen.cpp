@@ -4,8 +4,7 @@
 namespace format_strings {
 
 	char const* declare_member_type = R"GEN(
-GEODE_WRAPPER_FOR_IDENTIFIER({function_name}) 
-)GEN";
+GEODE_WRAPPER_FOR_IDENTIFIER({function_name}) )GEN";
 }
 
 using std::set;
