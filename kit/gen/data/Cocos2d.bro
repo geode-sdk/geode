@@ -793,9 +793,31 @@ class cocos2d::CCTransitionFade {
 // 	static auto decompressString(gd::string, bool, int) = mac 0xea380;
 // }
 
+class cocos2d::extension::CCControl {
+    auto sendActionsForControlEvents(cocos2d::extension::CCControlEvent) = mac 0x1a7490;
+    auto registerWithTouchDispatcher() = mac 0x1a7420;
+    auto setOpacityModifyRGB(bool) = mac 0x1a7c10;
+    auto onExit() = mac 0x1a7480;
+    auto isTouchInside(cocos2d::CCTouch*) = mac 0x1a7de0;
+    auto setEnabled(bool) = mac 0x1a7e60;
+    auto onEnter() = mac 0x1a7470;
+    auto isEnabled() = mac 0x1a7e90;
+    auto setSelected(bool) = mac 0x1a7ea0;
+    auto isOpacityModifyRGB() = mac 0x1a7d70;
+    auto setHighlighted(bool) = mac 0x1a7ed0;
+    auto needsLayout() = mac 0x1a7e50;
+    auto getTouchLocation(cocos2d::CCTouch*) = mac 0x1a7d90;
+    auto isHighlighted() = mac 0x1a7ef0;
+    auto addTargetWithActionForControlEvents(cocos2d::CCObject*, cocos2d::extension::SEL_CCControlHandler, cocos2d::extension::CCControlEvent) = mac 0x1a7820;
+    auto removeTargetWithActionForControlEvents(cocos2d::CCObject*, cocos2d::extension::SEL_CCControlHandler, cocos2d::extension::CCControlEvent) = mac 0x1a7950;
+    auto isSelected() = mac 0x1a7ec0;
+}
 
 class cocos2d::extension::CCControlColourPicker {
+    ~CCControlColourPicker() = mac 0x1aae30;
 	auto setColorValue(cocos2d::_ccColor3B const&) = mac 0x1aac10;
+    auto ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x1aae10;
+    auto init() = mac 0x1aa400;
 }
 
 class cocos2d::extension::CCControlUtils {
