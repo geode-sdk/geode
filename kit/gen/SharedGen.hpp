@@ -98,6 +98,25 @@ struct CacShare {
 
     // new funcs start here
 
+    // defined : we have a symbol that is usable
+    static bool isFunctionDefined(Function const& f) { 
+        // basically this is true for
+        // fmod for all platforms
+        // cocos for windows
+        // all funcs without stl parameter for android
+        // destructors for no platforms
+        if (f.function_type == kDestructor) return false;
+        if (f.parent_class->name.rfind("fmod", 0) == 0) return true;
+        if (f.parent_class->name.rfind("cocos2d", 0) == 0 && platform == kWindows) return true;
+    }
+
+    // definable : we can define it and hook it
+    static bool isFunctionDefinable(Function const& f) {
+    	// basically this is true for
+        // all funcs that we have the offset for
+        // all funcs with stl parameter for android
+    }
+
     static void editArguments(Function& f) {
         for (size_t i = 0; i < f.argnames.size(); ++i) {
             if (f.argnames[i] == "") {
