@@ -96,50 +96,7 @@ struct CacShare {
         return qualifiedName.substr(qualifiedName.rfind("::")+2);
     }
 
-    static std::pair<vector<int>, vector<string>> reorderStructs(Function const& f) {
-    	if (platform != kWindows) return {};
-        auto cc = CacShare::getConvention(f);
-        vector<string> out;
-        vector<int> params;
-        vector<std::pair<int, string>> structs;
-        int ix = 0;
-        for (auto i : f.args) {
-            if (i.rfind("struct ", 0) == 0) {
-                if (cc == "Optcall" || cc == "Membercall") {
-                    structs.push_back({ ix, i });
-                } else {
-                    out.push_back(i);
-                    params.push_back(ix);
-                }
-            } else {
-                out.push_back(i);
-                params.push_back(ix);
-            }
-            ix++;
-        }
-        
-        for (auto s : structs) {
-            out.push_back(std::get<1>(s));
-            params.push_back(std::get<0>(s));
-        }
-
-        if (!structs.size()) {
-            params = {};
-        }
-
-        return { params, out };
-    }
-
-    static string removeStruct(string type) {
-    	return type.find("struct") != string::npos ? type.substr(7) : type;
-    }
-
-    static vector<string> removeStruct(vector<string> types) {
-    	for (string& type : types) {
-			type = type.find("struct") != string::npos ? type.substr(7) : type;
-    	}
-    	return types;
-    }
+    // new funcs start here
 
     static void editArguments(Function& f) {
         for (size_t i = 0; i < f.argnames.size(); ++i) {
@@ -154,24 +111,27 @@ struct CacShare {
     }
 
     static string getClassName(Function const& f) {
-    	return fmt::format("{}", f.parent_class->name);
+    	return f.parent_class->name;
     }
 
     static string getFunctionName(Function const& f) {
-    	return fmt::format("{}", f.name);
+    	return f.name;
     }
 
     static string getConst(Function const& f) {
-    	return fmt::format("{}", f.is_const ? "const" : "");
+    	return f.is_const ? "const" : "";
     }
 
     static string getConstWhitespace(Function const& f) {
-    	return fmt::format("{}", f.is_const ? " " : "");
+    	return f.is_const ? " " : "";
     }
 
     static string getParameters(Function const& f) { // int p0, float p1
-    	// return fmt::format("{} {}", fmt::join(f.args, ""), fmt::join(f.argnames, ", "));
-        return formatRawArgs(f.args, f.argnames);
+        vector<string> parameters;
+        for (size_t i = 0; i < f.args.size(); ++i) {
+            parameters.push_back(fmt::format("{} {}, ", f.args[i]}, f.argnames[i])); // p0, myFloat
+        }
+        return fmt::format("{}", fmt::join(parameters, ", "));
     }
 
     static string getParameterTypes(Function const& f) { //int, float
@@ -183,102 +143,21 @@ struct CacShare {
     }
 
     static string getParameterComma(Function const& f) { // int p0, float p1
-    	return fmt::format("{}", f.args.size() > 0 ? ", " : "");
+    	return f.args.size() > 0 ? ", " : "";
     }
 
     static string getParameterTypeComma(Function const& f) { //int, float
-    	return fmt::format("{}", f.args.size() > 0 ? ", " : "");
+    	return f.args.size() > 0 ? ", " : "";
     }
 
     static string getArgumentComma(Function const& f) { // p0, p1
-    	return fmt::format("{}", f.argnames.size() > 0 ? ", " : "");
+    	return f.argnames.size() > 0 ? ", " : "";
     }
 
-    static string formatArgTypes(vector<string> args) {
-        return args.size() > 0 ? fmt::format(", {}", fmt::join(removeStruct(args), ", ")) : string("");
-    }
-
-    static string formatRawArgTypes(vector<string> args) {
-        return args.size() > 0 ? fmt::format("{}", fmt::join(removeStruct(args), ", ")) : string("");
-    }
-
-    static string formatRawArgs(vector<string> args) {
-        string out = "";
-        size_t c = 0;
-        if (args.size() == 1 && args[0] == "void")
-            return "";
-        for (auto& i : args) {
-            out += fmt::format("{} p{}, ", removeStruct(i), c);
-            ++c;
-        }
-        return out.substr(0, out.size()-2);
-    }
-
-    static string formatRawArgs(vector<string> args, vector<string> argnames) {
-        string out = "";
-        size_t c = 0;
-        if (args.size() == 1 && args[0] == "void")
-            return "";
-        for (auto& i : args) {
-            if (argnames[c] == "") out += fmt::format("{} p{}, ", removeStruct(i), c); 
-            else out += fmt::format("{} {}, ", removeStruct(i), argnames[c]); 
-            ++c;
-        }
-        return out.substr(0, out.size()-2);
-    }
+    // and end here
 
     static string formatBases(vector<string> args) {
         return args.size() > 0 ? " : " + fmt::format("{}", fmt::join(args, ", ")) : string(""); 
-    }
-
-    static string formatRawParameters(size_t paramCount) {
-        if (paramCount) {
-            vector<string> c;
-            for (auto i = 0u; i<paramCount; ++i)
-                c.push_back(fmt::format("p{}", i));
-            return fmt::format("{}", fmt::join(c, ", "));
-        } else {
-            return "";
-        }
-    }
-
-
-
-    static string formatParameters(vector<int> const& params, vector<string> const& names) {
-        if (params.size()) {
-            vector<string> c;
-            for (auto i : params) {
-                if (i < static_cast<int>(names.size())) {
-                    if (names[i] != "") {
-                        c.push_back(names[i]);
-                        continue;
-                    }
-                }
-                c.push_back(fmt::format("p{}", i));
-            }
-            return fmt::format("{}", fmt::join(c, ", "));
-        } else {
-            return "";
-        }
-    }
-
-    static string formatRawParameters(vector<int> const& params) {
-        if (params.size()) {
-            vector<string> c;
-            for (auto i : params)
-                c.push_back(fmt::format("p{}", i));
-            return fmt::format("{}", fmt::join(c, ", "));
-        } else {
-            return "";
-        }
-    }
-
-    static string formatParameters(size_t paramCount) {
-        if (paramCount) {
-            return fmt::format(", {}", formatRawParameters(paramCount));
-        } else {
-            return "";
-        }
     }
 
     static string getConvention(Function const& f) {

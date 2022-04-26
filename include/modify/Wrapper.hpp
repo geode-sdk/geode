@@ -9,10 +9,8 @@ template <                                                                      
 	class = void                                                                                                       \
 >                                                                                                                      \
 struct identifier {                                                                                                    \
-private:                                                                                                               \
-	static void wrapperImpl(...) {}                                                                                    \
 public:                                                                                                                \
-	constexpr static inline auto value = &wrapperImpl;                                                                 \
+	constexpr static inline auto value = nullptr;                                                                      \
 };                                                                                                                     \
 /* Specialization - function Return Class::identifier(Parameters...) is a member function */                           \
 template <                                                                                                             \

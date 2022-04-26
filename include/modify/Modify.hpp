@@ -8,7 +8,7 @@
 #define GEODE_APPLY_MODIFY_FOR_FUNCTION(index, convention, className, functionName)                      \
 static constexpr auto base##index = wrap::functionName<Base, types::pure##index>::value;                 \
 static constexpr auto derived##index = wrap::functionName<Derived, types::pure##index>::value;           \
-if constexpr ((void*)base##index != (void*)derived##index) {                                             \
+if constexpr (derived##index != nullptr && (void*)base##index != (void*)derived##index) {                \
 	Interface::get()->logInfo(                                                                           \
 		"Adding hook at function " #className "::" #functionName,                                        \
 		Severity::Debug                                                                                  \
