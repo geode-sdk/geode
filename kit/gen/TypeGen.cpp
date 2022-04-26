@@ -5,10 +5,10 @@ namespace format_strings {
 
 	char const* declare_member_type = R"GEN(
 using ret{index} = {return};
-using func{index} = ret{index}(*)({const}{constw}{class_name}*{parameter_type_comma}{parameter_types});
+using func{index} = ret{index}(*)({const}{const_whitespace}{class_name}*{parameter_type_comma}{parameter_types});
 using pure{index} = ret{index}({parameter_types});
-using meta{index} = ret{index}({const}{constw}{class_name}*{parameter_type_comma}{parameter_types});
-using member{index} = ret{index}({class_name}::*)({parameter_types}){const};
+using meta{index} = ret{index}({const}{const_whitespace}{class_name}*{parameter_type_comma}{parameter_types});
+using member{index} = ret{index}({class_name}::*)({parameter_types}){const_whitespace}{const};
 )GEN";
 
 	char const* declare_static_type = R"GEN(
@@ -23,7 +23,7 @@ using member{index} = func{index};
 using ret{index} = void;
 using func{index} = ret{index}(*)({class_name}*{parameter_type_comma}{parameter_types});
 using pure{index} = ret{index}({parameter_types});
-using meta{index} = ret{index}({const}{constw}{class_name}*{parameter_type_comma}{parameter_types});
+using meta{index} = ret{index}({const}{const_whitespace}{class_name}*{parameter_type_comma}{parameter_types});
 using member{index} = func{index};
 )GEN";
 
@@ -79,7 +79,6 @@ int main(int argc, char** argv) {
 			}
 
 			output += fmt::format(used_format,
-				fmt::arg("address", CacShare::getAddress(f)),
 				fmt::arg("parameter_types", CacShare::getParameterTypes(f)),
 				fmt::arg("parameter_type_comma", CacShare::getParameterTypeComma(f)),
 				fmt::arg("class_name", CacShare::getClassName(f)),

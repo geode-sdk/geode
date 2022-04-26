@@ -26,12 +26,9 @@ macro(add_gen project file)
 endmacro()
 
 
-# add_gen(Interface Interface.hpp)
 add_gen(Source Source.cpp)
 add_gen(Header Header.hpp)
-# add_gen(TempName TempName.hpp)
-add_gen(Tidy Tidy.bro)
-add_gen(Compare Compare.hpp)
+# add_gen(Tidy Tidy.bro) # run manually
 add_gen(Wrapper Wrapper.hpp)
 add_gen(Modify Modify.hpp)
 add_gen(Type Type.hpp)

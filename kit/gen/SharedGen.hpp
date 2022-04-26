@@ -48,10 +48,6 @@ struct CacShare {
     	return f.parent_class->name.rfind("cocos2d", 0) == 0;
     }
 
-    static bool functionDefined(Function const& f) {
-    	return getAddress(f) != "base::get()+";
-    }
-
     static string& getHardcode(Member & m) {
         return m.hardcodes[(std::array<size_t, 4> {0, 1, 0, 2})[CacShare::platform]];
     }
@@ -102,7 +98,7 @@ struct CacShare {
     static string getParameters(Function const& f) { // int p0, float p1
         vector<string> parameters;
         for (size_t i = 0; i < f.args.size(); ++i) {
-            parameters.push_back(fmt::format("{} {}, ", f.args[i]}, f.argnames[i])); // p0, myFloat
+            parameters.push_back(fmt::format("{} {}, ", f.args[i], f.argnames[i])); // p0, myFloat
         }
         return fmt::format("{}", fmt::join(parameters, ", "));
     }
@@ -128,7 +124,7 @@ struct CacShare {
     }
 
     static string getConvention(Function const& f) {
-    	if (platform != kWindows) return "DefaultConv";
+    	if (CacShare::platform != kWindows) return "DefaultConv";
         switch (f.function_type) {
             case kConstructor: [[fallthrough]];
             case kDestructor: [[fallthrough]];
@@ -154,7 +150,9 @@ struct CacShare {
         if (f.function_type == kDestructor) return false;
         if (f.parent_class->name.rfind("fmod::", 0) == 0) return true;
         if (f.parent_class->name.rfind("cocos2d::", 0) == 0 && platform == kWindows) return true;
-        if (getParameterTypes.find("gd::", 0) != string::npos && platform == kAndroid) return false;
+        if (getParameterTypes(f).find("gd::", 0) != string::npos && platform == kAndroid) return false;
+        if (platform == kAndroid) return true;
+        return false;
     }
 
     // definable : we can define it and hook it
@@ -162,8 +160,9 @@ struct CacShare {
     	// basically this is true for
         // all funcs that we have the offset for
         // all funcs with stl parameter for android
-        if (getParameterTypes.find("gd::", 0) != string::npos && platform == kAndroid) return true;
+        if (getParameterTypes(f).find("gd::", 0) != string::npos && platform == kAndroid) return true;
         if (getBind(f) != "") return true;
+        return false;
     }
 
     // and end here

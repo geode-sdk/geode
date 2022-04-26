@@ -54,7 +54,7 @@ types::ret{index} {class_name}::{function_name}({parameters}){const_whitespace}{
 
 	// requires: static, return_type, function_name, raw_parameters, const, class_name, definition
 	char const* ool_function_definition = R"GEN(
-{return_type} {class_name}::{function_name}({parameters}){const_whitespace}{const} {definition}
+types::ret{index} {class_name}::{function_name}({parameters}){const_whitespace}{const} {definition}
 )GEN";
 }
 
@@ -71,7 +71,6 @@ int main(int argc, char** argv) {
             
 			if (f.is_defined) {
 				output += fmt::format(format_strings::ool_function_definition,
-					fmt::arg("return_type", CacShare::getReturn(f)),
 					fmt::arg("function_name", CacShare::getFunctionName(f)),
 					fmt::arg("const", CacShare::getConst(f)),
 				    fmt::arg("const_whitespace", CacShare::getConstWhitespace(f)),

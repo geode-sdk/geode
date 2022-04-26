@@ -9,6 +9,8 @@ GEODE_NOINLINE GEODE_HIDDEN inline static uintptr_t address{index}() {{
 }}
 )GEN";
 
+}
+
 static string getAddress(Function const& f) {
     if (CacShare::isFunctionDefined(f)) {
         string format;
