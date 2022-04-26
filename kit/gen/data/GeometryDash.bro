@@ -4467,12 +4467,12 @@ class Slider : cocos2d::CCLayer {
 	    this->m_sliderBar->setVisible(v);
 	}
 	static Slider* create(cocos2d::CCNode* target, cocos2d::SEL_MenuHandler click, float scale) {
-	    return create(target, click, "slidergroove.png", "sliderthumb.png", "sliderthumbsel.png", scale);
+	    return create(target, click, nullptr, "slidergroove.png", "sliderthumb.png", "sliderthumbsel.png", scale);
 	}
 
 	float getValue() = mac 0x18e0c0, win 0x2e970, ios 0x0;
 	void updateBar() = mac 0x0, win 0x2ea10, ios 0x0;
-	static Slider* create(cocos2d::CCNode* target, cocos2d::SEL_MenuHandler click, const char* grooveSpr, const char* thumbSpr, const char* thumbSprSel, float scale) = mac 0x18dd80, win 0x2e6e0, ios 0x2113f4;
+	static Slider* create(cocos2d::CCNode* target, cocos2d::SEL_MenuHandler click, const char* unused, const char* grooveSpr, const char* thumbSpr, const char* thumbSprSel, float scale) = mac 0x18dd80, win 0x2e6e0, ios 0x2113f4;
 
 	SliderTouchLogic* m_touchLogic;
 	cocos2d::CCSprite* m_sliderBar;
@@ -4483,6 +4483,13 @@ class Slider : cocos2d::CCLayer {
 
 class SliderThumb : cocos2d::CCMenuItemImage {
 	void setValue(float val) = mac 0x18ce80, win 0x2e1b0, ios 0x210db4;
+	float getValue() {
+		return (m_fScaleX * this->m_length * .5f +
+				(m_vertical ?
+					this->getPositionY() : 
+					this->getPositionX())
+			) / (m_fScaleX * this->m_length);
+	}
 
 	float m_length;
 	bool m_vertical;
