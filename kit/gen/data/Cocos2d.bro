@@ -794,6 +794,8 @@ class cocos2d::CCTransitionFade {
 // }
 
 class cocos2d::extension::CCControl {
+    virtual bool init() = mac 0x1a71c0;
+    virtual ~CCControl() = mac 0x1a7380;
     auto sendActionsForControlEvents(cocos2d::extension::CCControlEvent) = mac 0x1a7490;
     auto registerWithTouchDispatcher() = mac 0x1a7420;
     auto setOpacityModifyRGB(bool) = mac 0x1a7c10;
