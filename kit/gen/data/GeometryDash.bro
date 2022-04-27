@@ -3429,6 +3429,7 @@ class MenuLayer : cocos2d::CCLayer, FLAlertLayerProtocol {
 class MoreOptionsLayer {
 	static MoreOptionsLayer* create() = mac 0x0, win 0x1de850, ios 0x0;
 	void addToggle(const char* name, const char* key, const char* info) = mac 0x0, win 0x1df6b0, ios 0x0;
+	void onKeybindings(cocos2d::CCObject* pSender) = mac 0x0, win 0x749d0, ios 0x0;
 }
 
 class MoreVideoOptionsLayer : FLAlertLayer {
