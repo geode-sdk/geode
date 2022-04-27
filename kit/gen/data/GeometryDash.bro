@@ -2493,7 +2493,7 @@ class GameManager : GManager {
 	}
 
 	void accountStatusChanged() = mac 0x1cdad0, win 0x0, ios 0x0;
-	const cocos2d::_ccColor3B& colorForIdx(int) = mac 0x1cbc80, win 0xc8d10, ios 0x237488;
+	cocos2d::_ccColor3B colorForIdx(int) = mac 0x1cbc80, win 0xc8d10, ios 0x237488;
 	void didExitPlayscene() = mac 0x1d0230, win 0x0, ios 0x0;
 	void doQuickSave() = mac 0x1d0200, win 0x0, ios 0x0;
 	void fadeInMusic(const char*) = mac 0x1c2ff0, win 0xc4bd0, ios 0x0;
