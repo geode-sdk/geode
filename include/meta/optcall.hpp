@@ -243,6 +243,12 @@ namespace geode::core::meta::x86 {
             return &MyImpl::template wrapper<detour>;
         }
     };
+
+    template <class Ret, class... Args>
+    class Optcall<Ret> : public Cdecl<Ret> {
+        using Cdecl<Ret>::invoke;
+        using Cdecl<Ret>::get_wrapper;
+    };
 }
 
 #endif /* GEODE_CORE_META_OPTCALL_HPP */
