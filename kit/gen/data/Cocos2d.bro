@@ -151,11 +151,23 @@ class cocos2d::CCEaseOut {
 }
 
 class cocos2d::CCEGLView {
-	void onGLFWMouseCallBack(GLFWwindow* wnd, int btn, int pressed, int z);
 	virtual void swapBuffers();
 	void updateWindow(int width, int height);
 	void toggleFullScreen(bool fullscreen);
 	void pollEvents();
+    void toggleFullScreen(bool fullscreen);
+    void onGLFWCharCallback(GLFWwindow* window, unsigned int entered);
+    void onGLFWCursorEnterFunCallback(GLFWwindow* window, int entered);
+    void onGLFWDeviceChangeFunCallback(GLFWwindow* window);
+    void onGLFWError(int code, const char* description);
+    void onGLFWframebuffersize(GLFWwindow* window, int width, int height);
+    void onGLFWMouseMoveCallBack(GLFWwindow* window, double x, double y);
+    void onGLFWMouseCallBack(GLFWwindow* window, int button, int action, int mods);
+    void onGLFWKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+    void onGLFWMouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
+    void onGLFWWindowIconifyFunCallback(GLFWwindow* window, int iconified);
+    void onGLFWWindowPosCallback(GLFWwindow* window, int x, int y);
+    void onGLFWWindowSizeFunCallback(GLFWwindow* window, int width, int height);
 }
 
 class cocos2d::CCFadeOut {
@@ -386,6 +398,10 @@ class cocos2d::CCMotionStreak {
 	auto resumeStroke() = mac 0x2edb30;
 	auto stopStroke() = mac 0x2edb20;
 	bool initWithFade(float fade, float minSeg, float stroke, cocos2d::ccColor3B const& color, cocos2d::CCTexture2D* texture) = mac 0x2ed6f0;
+}
+
+class cocos2d::CCMouseDispatcher {
+    
 }
 
 class cocos2d::CCMouseHandler {
