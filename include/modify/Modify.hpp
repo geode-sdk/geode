@@ -3,6 +3,7 @@
 #include "Types.hpp"
 #include "Addresses.hpp"
 #include "../meta/meta.hpp"
+#include "../loader/Interface.hpp"
 #include <iostream>
 
 #define GEODE_APPLY_MODIFY_FOR_FUNCTION(index, convention, className, functionName)                      \
@@ -42,5 +43,5 @@ namespace geode::modifier {
 		}
 	};
 
-	#include <gen/Modify.hpp>
+	#include <gen/GeneratedModify.hpp>
 }

@@ -2,7 +2,8 @@
 
 namespace format_strings {
 	char const* source_start = R"CAC(
-#include <InterfaceBase.hpp>
+#include <base/Header.hpp>
+#include <utils/addresser.hpp>
 #include <utils/casts.hpp>
 #include <modify/Addresses.hpp>
 #include <modify/Types.hpp>
@@ -54,7 +55,7 @@ types::ret{index} {class_name}::{function_name}({parameters}){const_whitespace}{
 
 	// requires: static, return_type, function_name, raw_parameters, const, class_name, definition
 	char const* ool_function_definition = R"GEN(
-types::ret{index} {class_name}::{function_name}({parameters}){const_whitespace}{const} {definition}
+{return} {class_name}::{function_name}({parameters}){const_whitespace}{const} {definition}
 )GEN";
 }
 
@@ -77,7 +78,8 @@ int main(int argc, char** argv) {
 					fmt::arg("class_name", CacShare::getClassName(f)),
                     fmt::arg("parameters", CacShare::getParameters(f)),
                     fmt::arg("index", CacShare::getIndex(f)),
-					fmt::arg("definition", f.definition)
+					fmt::arg("definition", f.definition),
+				    fmt::arg("return", f.return_type)
 				);
 				continue;
 			}

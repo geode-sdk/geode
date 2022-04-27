@@ -59,6 +59,6 @@ namespace geode::modifier {
 	struct wrap {
 		GEODE_WRAPPER_FOR_IDENTIFIER(constructor)
 		GEODE_WRAPPER_FOR_IDENTIFIER(destructor)
-		#include <gen/Wrapper.hpp>
+		#include <gen/GeneratedWrapper.hpp>
 	};
 }

@@ -6,11 +6,11 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
-#include <utils/Result.hpp>
+#include "../utils/Result.hpp"
 #include <functional>
 #include <unordered_set>
-#include <fs/filesystem.hpp>
-#include <Log.hpp>
+#include "../fs/filesystem.hpp"
+#include "Log.hpp"
 
 class Geode;
 

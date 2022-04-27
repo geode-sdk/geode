@@ -26,10 +26,10 @@ macro(add_gen project file)
 endmacro()
 
 
-add_gen(Source Source.cpp)
-add_gen(Header Header.hpp)
+add_gen(Source GeneratedSource.cpp)
+add_gen(Header GeneratedHeader.hpp)
 # add_gen(Tidy Tidy.bro) # run manually
-add_gen(Wrapper Wrapper.hpp)
-add_gen(Modify Modify.hpp)
-add_gen(Type Type.hpp)
-add_gen(Address Address.hpp)
+add_gen(Wrapper GeneratedWrapper.hpp)
+add_gen(Modify GeneratedModify.hpp)
+add_gen(Type GeneratedType.hpp)
+add_gen(Address GeneratedAddress.hpp)

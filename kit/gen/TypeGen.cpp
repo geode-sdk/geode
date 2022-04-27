@@ -61,8 +61,8 @@ int main(int argc, char** argv) {
 
 	for (auto& [name, c] : root.classes) {
 		for (auto& f : c.functions) {
-			// if (!CacShare::isFunctionDefinable(f) && !CacShare::isFunctionDefined(f))
-            //     continue; // Function not supported, skip
+			if (!CacShare::isFunctionDefinable(f) && !CacShare::isFunctionDefined(f))
+                continue; // Function not supported, skip
 			char const* used_format;
 			switch (f.function_type) {
 				case kVirtualFunction:

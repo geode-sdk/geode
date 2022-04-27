@@ -38,21 +38,17 @@ int main(int argc, char** argv) {
 		for (auto& f : c.functions) {
 			if (!CacShare::isFunctionDefinable(f))
 				continue; // Function not supported for this platform, skip it
-			string function_name = f.name;
-			switch (f.function_type) {
-				case kConstructor: 
-					function_name = "constructor";
-					break;
-				case kDestructor: 
-					function_name = "destructor";
-					break;
-				default: break;
-			}
+            string function_name = CacShare::getFunctionName(f);
+            switch (f.function_type) {
+                case kConstructor: function_name = "constructor";
+                case kDestructor: function_name = "destructor";
+                default: break;
+            }
 
 			output += fmt::format(format_strings::apply_function,
 				fmt::arg("index", CacShare::getIndex(f)),
 				fmt::arg("class_name", CacShare::getClassName(f)),
-				fmt::arg("function_name", CacShare::getFunctionName(f)),
+				fmt::arg("function_name", function_name),
 				fmt::arg("function_convention", CacShare::getConvention(f))
 			);
 		}

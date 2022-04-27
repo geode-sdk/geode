@@ -84,7 +84,7 @@ struct CacShare {
     }
 
     static string getFunctionName(Function const& f) {
-    	return f.name;
+        return f.name;
     }
 
     static string getConst(Function const& f) {
@@ -98,7 +98,7 @@ struct CacShare {
     static string getParameters(Function const& f) { // int p0, float p1
         vector<string> parameters;
         for (size_t i = 0; i < f.args.size(); ++i) {
-            parameters.push_back(fmt::format("{} {}, ", f.args[i], f.argnames[i])); // p0, myFloat
+            parameters.push_back(fmt::format("{} {}", f.args[i], f.argnames[i])); // p0, myFloat
         }
         return fmt::format("{}", fmt::join(parameters, ", "));
     }
@@ -166,15 +166,6 @@ struct CacShare {
     }
 
     // and end here
-
-    static string formatBases(vector<string> args) {
-        return args.size() > 0 ? " : " + fmt::format("{}", fmt::join(args, ", ")) : string(""); 
-    }
-
-    
-    static string getDocs(string docs) {
-    	return docs.size() > 0 ? fmt::format("{}", docs) : string("");
-    }
 
     static void writeFile(string& output) {
     	ifstream readfile;
