@@ -50,6 +50,8 @@ NS_CC_EXT_BEGIN
 
 class CCControlColourPicker : public CCControl
 {
+    GEODE_FRIEND_MODIFY
+    
 public:
     RT_ADD(
         ccColor3B const& getColorValue() const;
