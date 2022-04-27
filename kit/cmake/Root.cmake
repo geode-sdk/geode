@@ -80,7 +80,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 	# ${GEODE_INCLUDE_DIR}/c++stl
 	# ${GEODE_INCLUDE_DIR}/hook
 	# ${GEODE_INCLUDE_DIR}/loader
-	# ${GEODE_INCLUDE_DIR}/utils
+	${GEODE_INCLUDE_DIR}/utils
 	# ${GEODE_INCLUDE_DIR}/meta
 	${GEODE_INCLUDE_DIR}/cocos/
 	${GEODE_INCLUDE_DIR}/cocos/cocos2dx

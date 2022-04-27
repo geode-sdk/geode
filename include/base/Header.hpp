@@ -6,9 +6,9 @@
 #pragma warning(disable: 4584) // CCKeyboardDelegate included twice in UILayer
 #endif
 
-#include <Macros.hpp>
+#include "Macros.hpp"
 
-#include <gdstdlib.hpp>
+#include <c++stl/gdstdlib.hpp>
 #include <cocos2d.h>
 #include <fmod.hpp>
 #include <cocos-ext.h>

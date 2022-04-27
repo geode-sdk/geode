@@ -2,7 +2,7 @@
 
 #include "Macros.hpp"
 #include <string>
-#include <platform/cplatform.h>
+#include <base/platform/cplatform.h>
 
 namespace geode {
 	/**
