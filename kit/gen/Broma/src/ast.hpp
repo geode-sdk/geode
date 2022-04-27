@@ -31,7 +31,7 @@ enum PlatformFunction {
     kMacFunction=0,
     kWindowsFunction=1,
     kIosFunction=2,
-    kAndroidFunction=-1
+    kAndroidFunction=3
 };
 
 enum FieldType {
@@ -71,7 +71,7 @@ struct Function : ClassField {
 	vector<string> args;
 	vector<string> argnames;
 
-	string binds[3]; // mac, windows, ios (android has all symbols included). No binding = no string. Stored as a string because no math is done on it
+	string binds[4]; // mac, windows, ios (android has all symbols included). No binding = no string. Stored as a string because no math is done on it
 	string android_mangle; // only sometimes matters. empty if irrelevant
 	size_t index;
 	size_t global_index;

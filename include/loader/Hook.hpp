@@ -2,7 +2,7 @@
 
 #include "Macros.hpp"
 #include <inttypes.h>
-#include <utils/types.hpp>
+#include "../utils/types.hpp"
 #include <string_view>
 
 #include "../core/Hook.hpp"

@@ -3,15 +3,16 @@
 #include "Macros.hpp"
 #include "Types.hpp"
 #include "Hook.hpp"
-#include <utils/Result.hpp>
-#include <utils/VersionInfo.hpp>
+#include "Notification.hpp"
+#include "Setting.hpp"
+#include "../utils/types.hpp"
+#include "../utils/Result.hpp"
+#include "../utils/VersionInfo.hpp"
 #include <string_view>
 #include <vector>
 #include <unordered_map>
-#include "Setting.hpp"
-#include <utils/types.hpp>
 #include <type_traits>
-#include <Notification.hpp>
+
 
 class Geode;
 class InternalMod;

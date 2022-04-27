@@ -3,30 +3,57 @@
 
 namespace format_strings {
 
-	char const* declare_member_type = R"RAW(
-using ret{global_index} = {return};
-using func{global_index} = ret{global_index}(*)({const}{constw}{class_name}*{arg_types});
-using pure{global_index} = ret{global_index}({raw_arg_types});
-using member{global_index} = ret{global_index}({class_name}::*)({raw_arg_types}){const};
-)RAW";
+	char const* declare_member_type = R"GEN(
+using ret{index} = {return};
+using func{index} = ret{index}(*)({const}{const_whitespace}{class_name}*{parameter_type_comma}{parameter_types});
+using pure{index} = ret{index}({parameter_types});
+using meta{index} = ret{index}({const}{const_whitespace}{class_name}*{parameter_type_comma}{parameter_types});
+using member{index} = ret{index}({class_name}::*)({parameter_types}){const_whitespace}{const};
+)GEN";
 
-	char const* declare_static_type = R"RAW(
-using ret{global_index} = {return};
-using func{global_index} = ret{global_index}(*)({raw_arg_types});
-using pure{global_index} = ret{global_index}({raw_arg_types});
-using member{global_index} = func{global_index};
-)RAW";
+	char const* declare_static_type = R"GEN(
+using ret{index} = {return};
+using func{index} = ret{index}(*)({parameter_types});
+using pure{index} = ret{index}({parameter_types});
+using meta{index} = ret{index}({parameter_types});
+using member{index} = func{index};
+)GEN";
 
-	char const* declare_structor_type = R"RAW(
-using ret{global_index} = void;
-using func{global_index} = ret{global_index}(*)({class_name}*{arg_types});
-using pure{global_index} = ret{global_index}({raw_arg_types});
-using member{global_index} = func{global_index};
-)RAW";
+	char const* declare_structor_type = R"GEN(
+using ret{index} = void;
+using func{index} = ret{index}(*)({class_name}*{parameter_type_comma}{parameter_types});
+using pure{index} = ret{index}({parameter_types});
+using meta{index} = ret{index}({const}{const_whitespace}{class_name}*{parameter_type_comma}{parameter_types});
+using member{index} = func{index};
+)GEN";
 
 }
 
 using std::set;
+
+static string getReturn(Function const& f) {
+    switch (f.function_type) {
+        case kConstructor: [[fallthrough]];
+        case kDestructor:
+            return "void";
+        default: break;
+    }
+    if (f.return_type == "auto") {
+        vector<string> declval_strings;
+        for (string i : f.args) {
+            declval_strings.push_back(fmt::format("std::declval<{}>()", i));
+        }
+        string format;
+        if (f.function_type == kStaticFunction) {
+            format = "decltype({}::{}({}))";
+        }
+        else {
+            format = "decltype(std::declval<{}>().{}({}))";
+        }
+        return fmt::format(format, f.parent_class->name, f.name, fmt::join(declval_strings, ", "));
+    }
+    else return f.return_type;
+}
 
 int main(int argc, char** argv) {
 	string output("");
@@ -34,11 +61,9 @@ int main(int argc, char** argv) {
 
 	for (auto& [name, c] : root.classes) {
 		for (auto& f : c.functions) {
-			if (!CacShare::functionDefined(f))
+			if (!CacShare::isFunctionDefinable(f) && !CacShare::isFunctionDefined(f))
                 continue; // Function not supported, skip
-
 			char const* used_format;
-			
 			switch (f.function_type) {
 				case kVirtualFunction:
 				case kRegularFunction:
@@ -54,14 +79,13 @@ int main(int argc, char** argv) {
 			}
 
 			output += fmt::format(used_format,
-				fmt::arg("address", CacShare::getAddress(f)),
-				fmt::arg("arg_types", CacShare::formatArgTypes(f.args)),
-				fmt::arg("raw_arg_types", CacShare::formatRawArgTypes(f.args)),
-				fmt::arg("class_name", name),
-				fmt::arg("const", f.is_const ? "const " : ""),
-				fmt::arg("constw", f.is_const ? " " : ""),
-				fmt::arg("global_index", f.global_index),
-				fmt::arg("return", CacShare::getReturn(f))
+				fmt::arg("parameter_types", CacShare::getParameterTypes(f)),
+				fmt::arg("parameter_type_comma", CacShare::getParameterTypeComma(f)),
+				fmt::arg("class_name", CacShare::getClassName(f)),
+				fmt::arg("const", CacShare::getConst(f)),
+				fmt::arg("const_whitespace", CacShare::getConstWhitespace(f)),
+				fmt::arg("index", CacShare::getIndex(f)),
+				fmt::arg("return", getReturn(f))
 			);
 		}
 	}

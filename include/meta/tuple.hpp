@@ -7,29 +7,29 @@
 #include <utility>
 
 namespace geode::core::meta {
-    /* The Tuple class presents a nicer way to interact with parameter packs. 
-    * While this container is technically usable in other code, this is mostly
-    * used for static reflection in function wrapping. Other applications will
-    * usually be better covered by std::tuple.
-    */
+    /* The Tuple class presents a nicer way to interact with parameter packs.
+     * While this container is technically usable in other code, this is mostly
+     * used for static reflection in function wrapping. Other applications will
+     * usually be better covered by std::tuple.
+     */
     template <class...>
     class Tuple;
 
     template <>
     class Tuple<> {
     private:
-        template <class T, size_t i>
+        template <class Type, size_t i>
         class Element {
         private:
-            T value;
+            Type value;
 
         protected:
-            constexpr T at(std::integral_constant<size_t, i>&&) const {
+            constexpr Type at(std::integral_constant<size_t, i>&&) const {
                 return this->value;
             }
-        
+
         public:
-            constexpr Element(T value) : value(value) {}
+            constexpr Element(Type value) : value(value) {}
         };
 
         template <class... Parents>
@@ -39,6 +39,7 @@ namespace geode::core::meta {
 
         public:
             static constexpr size_t size = sizeof...(Parents);
+
             template <size_t i>
             constexpr decltype(auto) at() const {
                 static_assert(i < size, "Out of range access!");
@@ -47,19 +48,18 @@ namespace geode::core::meta {
         };
 
         template <class, class...>
-        struct elements_for_impl;
+        class elements_for_impl;
 
         template <size_t... indices, class... Classes>
-        struct elements_for_impl<std::index_sequence<indices...>, Classes...> {
+        class elements_for_impl<std::index_sequence<indices...>, Classes...> {
+        public:
             using result = Elements<Element<Classes, indices>...>;
         };
 
     public:
         template <class... Classes>
         using elements_for = typename elements_for_impl<
-                std::make_index_sequence<sizeof...(Classes)>,
-                Classes...
-            >::result;
+            std::make_index_sequence<sizeof...(Classes)>, Classes...>::result;
 
         template <class... Classes>
         static auto make(Classes&&... values) {
@@ -76,66 +76,23 @@ namespace geode::core::meta {
         template <size_t i>
         using type_at = decltype(std::declval<MyElements>().template at<i>());
 
-    protected:
-        // Haskell (false case)
-        template <
-            template <size_t, class, size_t> class Pred, 
-            bool, size_t i, size_t counter, size_t... seq
-        >
-        class filter_impl {
-        private:
-            using NextPred = Pred<i + 1, type_at<i + 1>, counter>;
-        
+    private:
+        template <size_t i, bool>
+        class type_at_wrap_impl {
         public:
-            using result = typename filter_impl<
-                    Pred, NextPred::result, i + 1, counter, seq...
-                >::result;
+            using result = void;
         };
 
-        // Haskell (true case)
-        template <
-            template <size_t, class, size_t> class Pred, 
-            size_t i, size_t counter, size_t... seq
-        >
-        class filter_impl<Pred, true, i, counter, seq...> {
-        private:
-            using MyPred = Pred<i, type_at<i>, counter>;
-            using NextPred = Pred<i + 1, type_at<i + 1>, counter>;
-        
+        template <size_t i>
+        class type_at_wrap_impl<i, true> {
         public:
-            using result = typename filter_impl<
-                    Pred, NextPred::result, i + 1, 
-                    MyPred::counter, seq..., MyPred::index
-                >::result;
+            using result = type_at<i>;
         };
 
-        // Haskell (final case, if true)
-        template <
-            template <size_t, class, size_t> class Pred, 
-            size_t counter, size_t... seq
-        >
-        class filter_impl<Pred, false, sizeof...(Rest), counter, seq...> {
-        public:
-            using result = std::index_sequence<seq...>;
-        };
-
-        // Haskell (final case, if false)
-        template <
-            template <size_t, class, size_t> class Pred, 
-            size_t counter, size_t... seq
-        >
-        class filter_impl<Pred, true, sizeof...(Rest), counter, seq...> {
-        private:
-            static constexpr size_t i = sizeof...(Rest);
-            using MyPred = Pred<i, type_at<i>, counter>;
-            
-        public:
-            using result = std::index_sequence<seq..., MyPred::index>;
-        };
-        
     public:
-        template <template <size_t, class, size_t> class Pred>
-        using filter = typename filter_impl<Pred, Pred<0, Current, 0>::result, 0, 0>::result;
+        // MSVC literally shows internal compiler structures if I don't wrap this sometimes.
+        template <size_t i>
+        using type_at_wrap = typename type_at_wrap_impl<i, (i < sizeof...(Rest) + 1)>::result;
     };
 }
 

@@ -1,10 +1,24 @@
 #pragma once
-#include "Comparer.hpp"
 #include "Wrapper.hpp"
 #include "Types.hpp"
 #include "Addresses.hpp"
 #include "../meta/meta.hpp"
+#include "../loader/Interface.hpp"
 #include <iostream>
+
+#define GEODE_APPLY_MODIFY_FOR_FUNCTION(index, convention, className, functionName)                      \
+static constexpr auto base##index = wrap::functionName<Base, types::pure##index>::value;                 \
+static constexpr auto derived##index = wrap::functionName<Derived, types::pure##index>::value;           \
+if constexpr (derived##index != nullptr && (void*)base##index != (void*)derived##index) {                \
+	Interface::get()->logInfo(                                                                           \
+		"Adding hook at function " #className "::" #functionName,                                        \
+		Severity::Debug                                                                                  \
+	);                                                                                                   \
+	Interface::get()->addHook<derived##index, convention>(                                               \
+		#className "::" #functionName,                                                                   \
+		(void*)addresses::address##index()                                                               \
+	);                                                                                                   \
+}                                                                                                        \
 
 namespace geode::modifier {
 
@@ -13,6 +27,7 @@ namespace geode::modifier {
 
 	template <class Derived>
 	class ModifyBase {
+		// unordered_map<handles> idea
 		ModifyBase() {
 			Derived::apply();
 		}
@@ -28,5 +43,5 @@ namespace geode::modifier {
 		}
 	};
 
-	#include <gen/Modify.hpp>
+	#include <gen/GeneratedModify.hpp>
 }

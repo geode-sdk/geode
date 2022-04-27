@@ -52,8 +52,8 @@ if (GEODE_BUILD_CODEGEN)
 	set(GEODE_CODEGEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/gen)
 	file(MAKE_DIRECTORY ${GEODE_CODEGEN_DIR})
 
-	set_source_files_properties(${GEODE_CODEGEN_DIR}/Source.cpp PROPERTIES GENERATED 1)
-	target_sources(${PROJECT_NAME} PRIVATE ${GEODE_CODEGEN_DIR}/Source.cpp)
+	set_source_files_properties("${GEODE_CODEGEN_DIR}/GeneratedSource.cpp" PROPERTIES GENERATED 1)
+	target_sources(${PROJECT_NAME} PRIVATE "${GEODE_CODEGEN_DIR}/GeneratedSource.cpp")
 	target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR})
 	target_link_libraries(${PROJECT_NAME} fmt)
 
@@ -75,13 +75,13 @@ endif()
 target_compile_definitions(${PROJECT_NAME} PUBLIC -DPROJECT_NAME=${PROJECT_NAME} -DEXPORT_${PROJECT_NAME}=1)
 target_include_directories(${PROJECT_NAME} PUBLIC
 	${GEODE_INCLUDE_DIR}
-	${GEODE_INCLUDE_DIR}/helpers
-	${GEODE_INCLUDE_DIR}/base
-	${GEODE_INCLUDE_DIR}/c++stl
-	${GEODE_INCLUDE_DIR}/hook
-	${GEODE_INCLUDE_DIR}/loader
-	${GEODE_INCLUDE_DIR}/utils
-	${GEODE_INCLUDE_DIR}/meta
+	# ${GEODE_INCLUDE_DIR}/helpers
+	# ${GEODE_INCLUDE_DIR}/base
+	# ${GEODE_INCLUDE_DIR}/c++stl
+	# ${GEODE_INCLUDE_DIR}/hook
+	# ${GEODE_INCLUDE_DIR}/loader
+	# ${GEODE_INCLUDE_DIR}/utils
+	# ${GEODE_INCLUDE_DIR}/meta
 	${GEODE_INCLUDE_DIR}/cocos/
 	${GEODE_INCLUDE_DIR}/cocos/cocos2dx
 	${GEODE_INCLUDE_DIR}/cocos/cocos2dx/include
