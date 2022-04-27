@@ -13,19 +13,14 @@ namespace geode::core {
 		    if constexpr (std::is_same_v<Ret, void>) {
 		    	if (counter == (int)Det->size()) counter = 0;
 
-				if (counter < (int)Det->size()) {
-					Det->at(counter++)(args...);
-			    }
+				Det->at(counter++)(args...);
 
 				if (--counter < 0) counter = Det->size() - 1;
 		    }
 		    else {
-		    	Ret ret;
 			    if (counter == (int)Det->size()) counter = 0;
 
-				if (counter < (int)Det->size()) {
-					ret = Det->at(counter++)(args...);
-			    }
+				Ret ret = Det->at(counter++)(args...);
 
 				if (--counter < 0) counter = Det->size() - 1;
 			    return ret;
