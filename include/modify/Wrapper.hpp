@@ -11,6 +11,7 @@ template <                                                                      
 struct identifier {                                                                                                    \
 public:                                                                                                                \
 	constexpr static inline auto value = nullptr;                                                                      \
+	constexpr static inline auto uuid = nullptr;                                                                       \
 };                                                                                                                     \
 /* Specialization - function Return Class::identifier(Parameters...) is a member function */                           \
 template <                                                                                                             \
@@ -32,6 +33,9 @@ private:                                                                        
 	}                                                                                                                  \
 public:                                                                                                                \
 	constexpr static inline auto value = &wrapperImpl;                                                                 \
+	constexpr static inline auto uuid = function_uuid<                                                                 \
+		substitute<Return, Class, Parameters...>(&Class::identifier)                                                   \
+	>::value;                                                                                                          \
 };                                                                                                                     \
 /* Specialization - function Return Class::identifier(Parameters...) is a static function */                           \
 template <                                                                                                             \
@@ -53,6 +57,9 @@ private:                                                                        
 	}                                                                                                                  \
 public:                                                                                                                \
 	constexpr static inline auto value = &wrapperImpl;                                                                 \
+	constexpr static inline auto uuid = function_uuid<                                                                 \
+		substitute<Return, Class, Parameters...>(&Class::identifier)                                                   \
+	>::value;                                                                                                          \
 };                                                                                                                     \
 
 namespace geode::modifier {

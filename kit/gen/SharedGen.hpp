@@ -132,6 +132,7 @@ struct CacShare {
         // all funcs without stl parameter for android
         // destructors for no platforms
         if (f.function_type == kDestructor) return false;
+        if (f.function_type == kConstructor) return false;
         if (f.parent_class->name.rfind("fmod::", 0) == 0) return true;
         if (f.parent_class->name.rfind("cocos2d::", 0) == 0 && platform == kWindows) return true;
         if (getParameterTypes(f).find("gd::", 0) != string::npos && platform == kAndroid) return false;

@@ -9,7 +9,9 @@
 #define GEODE_APPLY_MODIFY_FOR_FUNCTION(index, convention, className, functionName)                      \
 static constexpr auto base##index = wrap::functionName<Base, types::pure##index>::value;                 \
 static constexpr auto derived##index = wrap::functionName<Derived, types::pure##index>::value;           \
-if constexpr (derived##index != nullptr && (void*)base##index != (void*)derived##index) {                \
+static constexpr auto base##index##uuid = wrap::functionName<Base, types::pure##index>::uuid;            \
+static constexpr auto derived##index##uuid = wrap::functionName<Derived, types::pure##index>::uuid;      \
+if constexpr (derived##index != nullptr && (void*)base##index##uuid != (void*)derived##index##uuid) {    \
 	Interface::get()->logInfo(                                                                           \
 		"Adding hook at function " #className "::" #functionName,                                        \
 		Severity::Debug                                                                                  \
