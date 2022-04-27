@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
 		);
 
 		for (auto& f : c.functions) {
-			if (!CacShare::isFunctionDefinable(f))
+			if (!CacShare::isFunctionDefinable(f) && !CacShare::isFunctionDefined(f))
 				continue; // Function not supported for this platform, skip it
             string function_name = CacShare::getFunctionName(f);
             switch (f.function_type) {
