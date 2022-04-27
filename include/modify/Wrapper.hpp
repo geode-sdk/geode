@@ -23,7 +23,7 @@ struct identifier<                                                              
 	Class,                                                                                                             \
 	Return(Parameters...), std::enable_if_t<                                                                           \
 	    std::is_member_function_pointer_v<                                                                             \
-            decltype(substitute<Return, Class, Parameters...>(&Class::identifier))                                     \
+            decltype(substitute<Return(Parameters...)>(&Class::identifier))                                            \
         >                                                                                                              \
 	>                                                                                                                  \
 > {                                                                                                                    \
@@ -34,7 +34,7 @@ private:                                                                        
 public:                                                                                                                \
 	constexpr static inline auto value = &wrapperImpl;                                                                 \
 	constexpr static inline auto uuid = function_uuid<                                                                 \
-		substitute<Return, Class, Parameters...>(&Class::identifier)                                                   \
+		substitute<Return(Parameters...)>(&Class::identifier)                                                          \
 	>::value;                                                                                                          \
 };                                                                                                                     \
 /* Specialization - function Return Class::identifier(Parameters...) is a static function */                           \
@@ -47,7 +47,7 @@ struct identifier<                                                              
 	Class,                                                                                                             \
 	Return(Parameters...), std::enable_if_t<                                                                           \
         std::is_pointer_v<                                                                                             \
-            decltype(substitute<Return, Class, Parameters...>(&Class::identifier))                                     \
+            decltype(substitute<Return(Parameters...)>(&Class::identifier))                                            \
         >                                                                                                              \
 	>                                                                                                                  \
 > {                                                                                                                    \
@@ -58,7 +58,7 @@ private:                                                                        
 public:                                                                                                                \
 	constexpr static inline auto value = &wrapperImpl;                                                                 \
 	constexpr static inline auto uuid = function_uuid<                                                                 \
-		substitute<Return, Class, Parameters...>(&Class::identifier)                                                   \
+		substitute<Return(Parameters...)>(&Class::identifier)                                                          \
 	>::value;                                                                                                          \
 };                                                                                                                     \
 

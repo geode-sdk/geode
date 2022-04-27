@@ -3,6 +3,31 @@
 #include "../meta/common.hpp"
 
 namespace geode::modifier {
+	template <class FunctionType>
+	struct MemberFunc {
+		template <class Class>
+		using with = FunctionType Class::*;
+	};
+
+	template <class FunctionType>
+	struct ConstMemberFunc {
+	    template <class Class>
+	    using with = FunctionType Class::*;
+	};
+
+	// why
+	template <class Return, class ...Parameters>
+	struct ConstMemberFunc<Return(Parameters...)> {
+	    using FunctionType = Return(Parameters...) const;
+	    template <class Class>
+	    using with = FunctionType Class::*;
+	};
+
+	template <class FunctionType>
+	struct StaticFunc {
+		using type = FunctionType*;
+	};
+
 	using geode::core::meta::always_false;
 	/**
 	 * The ~unevaluated~ function that gets the appropriate 
@@ -10,20 +35,46 @@ namespace geode::modifier {
 	 * 
 	 * nvm its no more unevaluated
 	 */
-	template <class Return, class Class, class ...Parameters>
-	constexpr auto substitute(Return(Class::*function)(Parameters...)) /* -> Return(Class::*)(Parameters...) */ {
-		return function;
-	}
-	
-	template <class Return, class Class, class ...Parameters>
-	constexpr auto substitute(Return(Class::*function)(Parameters...) const) /* -> Return(Class::*)(Parameters...) const */ {
+	template <class FunctionType, class Class>
+	constexpr auto substitute(typename MemberFunc<FunctionType>::template with<Class> function) {
 		return function;
 	}
 
-	template <class Return, class Class, class ...Parameters>
-	constexpr auto substitute(Return(*function)(Parameters...)) /* -> Return(*)(Parameters...) */ {
+	template <class FunctionType, class Class>
+	constexpr auto substitute(typename ConstMemberFunc<FunctionType>::template with<Class> function) {
 		return function;
 	}
+	
+	template <class FunctionType>
+	constexpr auto substitute(typename StaticFunc<FunctionType>::type function) {
+		return function;
+	}
+	
+
+	// template <class Return, class Class, class Fallback, class ...Parameters>
+	// constexpr auto substituteWithFallback(Return(Class::*function)(Parameters...)) /* -> Return(Class::*)(Parameters...) */ {
+	// 	return function;
+	// }
+	
+	// template <class Return, class Class, class Fallback, class ...Parameters>
+	// constexpr auto substituteWithFallback(Return(Class::*function)(Parameters...) const) /* -> Return(Class::*)(Parameters...) const */ {
+	// 	return function;
+	// }
+
+	// template <class Return, class Class, class Fallback, class ...Parameters>
+	// constexpr auto substituteWithFallback(Return(Fallback::*function)(Parameters...)) /* -> Return(Class::*)(Parameters...) */ {
+	// 	return function;
+	// }
+	
+	// template <class Return, class Class, class Fallback, class ...Parameters>
+	// constexpr auto substituteWithFallback(Return(Fallback::*function)(Parameters...) const) /* -> Return(Class::*)(Parameters...) const */ {
+	// 	return function;
+	// }
+
+	// template <class Return, class Class, class Fallback, class ...Parameters>
+	// constexpr auto substituteWithFallback(Return(*function)(Parameters...)) /* -> Return(*)(Parameters...) */ {
+	// 	return function;
+	// }
 
 	/**
 	 * An UUID system that generates an unique comparable
