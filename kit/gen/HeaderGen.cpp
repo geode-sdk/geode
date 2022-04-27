@@ -141,22 +141,6 @@ int main(int argc, char** argv) {
         }
 
         for (auto m : cd.members) {
-            if (m.member_type == kHardcode && CacShare::getHardcode(m).size() == 0)
-                continue; // Not Implemented on platform
-
-        	char const* used_format;
-        	switch (m.member_type) {
-                case kDefault:
-                	used_format = format_strings::member_definition;
-                	break;
-                case kHardcode:
-                	used_format = format_strings::hardcode_definition;
-                	break;
-                case kPad:
-                	used_format = format_strings::pad_definition;
-                	if (CacShare::getHardcode(m).size() == 0) used_format = format_strings::unimplemented_definition;
-                	break;
-            }
             string hardcode;
             switch (CacShare::platform) {
                 case kIos:
@@ -172,6 +156,23 @@ int main(int argc, char** argv) {
                     hardcode = m.hardcodes[kWindowsMember];
                     break;
             }
+            if (m.member_type == kHardcode && hardcode.size() == 0)
+                continue; // Not Implemented on platform
+
+        	char const* used_format;
+        	switch (m.member_type) {
+                case kDefault:
+                	used_format = format_strings::member_definition;
+                	break;
+                case kHardcode:
+                	used_format = format_strings::hardcode_definition;
+                	break;
+                case kPad:
+                	used_format = format_strings::pad_definition;
+                	if (hardcode.size() == 0) used_format = format_strings::unimplemented_definition;
+                	break;
+            }
+            
             string array = m.count > 0 ? fmt::format("[{}]", m.count) : "";
             string member_name = m.name.substr(m.member_type == kHardcode && m.name.substr(0, 2) == "m_" ? 2 : 0, m.name.size());
         	output += fmt::format(used_format,

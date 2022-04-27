@@ -44,23 +44,6 @@ struct CacShare {
         return parseTokens(lexStream(s));
     }
 
-    static bool isCocos(Function const& f) {
-    	return f.parent_class->name.rfind("cocos2d", 0) == 0;
-    }
-
-    static string& getHardcode(Member & m) {
-        return m.hardcodes[(std::array<size_t, 4> {0, 1, 0, 2})[CacShare::platform]];
-    }
-
-    static string getArray(size_t size) {
-        return size > 0 ? fmt::format("[{}]", size) : string("");
-    }
-
-    static string toUnqualified(string qualifiedName) {
-        if (qualifiedName.rfind("::") == string::npos) return qualifiedName;
-        return qualifiedName.substr(qualifiedName.rfind("::")+2);
-    }
-
     // new funcs start here
 
     static void editArguments(Function& f) {
@@ -137,6 +120,7 @@ struct CacShare {
             	if (isFunctionDefined(f)) return "x86::Cdecl";
                 return "x86::Optcall";
         }
+        return "x86::Membercall";
     }
     
 

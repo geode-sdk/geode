@@ -11,9 +11,9 @@ namespace geode::core {
 			static thread_local int counter = 0;
 		    
 		    if constexpr (std::is_same_v<Ret, void>) {
-		    	if (counter == Det->size()) counter = 0;
+		    	if (counter == (int)Det->size()) counter = 0;
 
-				if (counter < Det->size()) {
+				if (counter < (int)Det->size()) {
 					Det->at(counter++)(args...);
 			    }
 
@@ -21,9 +21,9 @@ namespace geode::core {
 		    }
 		    else {
 		    	Ret ret;
-			    if (counter == Det->size()) counter = 0;
+			    if (counter == (int)Det->size()) counter = 0;
 
-				if (counter < Det->size()) {
+				if (counter < (int)Det->size()) {
 					ret = Det->at(counter++)(args...);
 			    }
 
