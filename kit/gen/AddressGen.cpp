@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
 
 	for (auto& [name, c] : root.classes) {
 		for (auto& f : c.functions) {
-			if (!CacShare::isFunctionDefinable(f)) 
+			if (!CacShare::isFunctionDefinable(f) && !CacShare::isFunctionDefined(f))
                 continue; // Function not supported, skip
 
 			output += fmt::format(format_strings::declare_address,
