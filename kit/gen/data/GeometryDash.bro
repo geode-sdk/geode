@@ -378,12 +378,14 @@ class CCScrollLayerExt : cocos2d::CCLayer {
 	    return this->m_scrollLimitBottom;
 	}
 
-	virtual ~CCScrollLayerExt() = mac 0x2359b0, win 0x1b520, ios 0x0;
+	// todo: add this back when CCDestructor works and 
+	// this no longer causes crashing
+	// virtual ~CCScrollLayerExt() = mac 0x2359b0, win 0x1b520, ios 0x0;
 	virtual void visit() = mac 0x236550, win 0x1bed0, ios 0x0;
 	virtual bool ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x235ef0, win 0x1b9b0, ios 0x0;
-	virtual void ccTouchMoved(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x236300, win 0x1bcc0, ios 0x0;
+	virtual void ccTouchMoved(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x236300, win 0x1bce0, ios 0x0;
 	virtual void ccTouchEnded(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x236020, win 0x1baa0, ios 0x0;
-	virtual void ccTouchCancelled(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x2362a0, win 0x1bce0, ios 0x0;
+	virtual void ccTouchCancelled(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x2362a0, win 0x1bcc0, ios 0x0;
 	virtual void registerWithTouchDispatcher() = mac 0x235eb0, win 0x1b980, ios 0x0;
 	virtual void preVisitWithClippingRect(cocos2d::CCRect) = mac 0x2366a0, win 0x1c000, ios 0x0;
 	virtual void postVisit() = mac 0x236720, win 0x1c090, ios 0x0;
@@ -4424,12 +4426,12 @@ class Slider : cocos2d::CCLayer {
 	    this->m_sliderBar->setVisible(v);
 	}
 	static Slider* create(cocos2d::CCNode* target, cocos2d::SEL_MenuHandler click, float scale) {
-	    return create(target, click, "slidergroove.png", "sliderthumb.png", "sliderthumbsel.png", scale);
+	    return create(target, click, nullptr, "slidergroove.png", "sliderthumb.png", "sliderthumbsel.png", scale);
 	}
 
 	float getValue() = mac 0x18e0c0, win 0x2e970, ios 0x0;
 	void updateBar() = mac 0x0, win 0x2ea10, ios 0x0;
-	static Slider* create(cocos2d::CCNode* target, cocos2d::SEL_MenuHandler click, const char* grooveSpr, const char* thumbSpr, const char* thumbSprSel, float scale) = mac 0x18dd80, win 0x2e6e0, ios 0x2113f4;
+	static Slider* create(cocos2d::CCNode* target, cocos2d::SEL_MenuHandler click, const char* unused, const char* grooveSpr, const char* thumbSpr, const char* thumbSprSel, float scale) = mac 0x18dd80, win 0x2e6e0, ios 0x2113f4;
 
 	SliderTouchLogic* m_touchLogic;
 	cocos2d::CCSprite* m_sliderBar;
@@ -4440,6 +4442,13 @@ class Slider : cocos2d::CCLayer {
 
 class SliderThumb : cocos2d::CCMenuItemImage {
 	void setValue(float val) = mac 0x18ce80, win 0x2e1b0, ios 0x210db4;
+	float getValue() {
+		return (m_fScaleX * this->m_length * .5f +
+				(m_vertical ?
+					this->getPositionY() : 
+					this->getPositionX())
+			) / (m_fScaleX * this->m_length);
+	}
 
 	float m_length;
 	bool m_vertical;

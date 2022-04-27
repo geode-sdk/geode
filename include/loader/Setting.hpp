@@ -88,6 +88,7 @@ namespace geode {
 
 	public:
 		std::string getName() const { return m_name; }
+		std::string getDescription() const { return m_description; }
 
 		static Result<SettingClass*> parse(nlohmann::json const& json);
 	};
@@ -97,6 +98,7 @@ namespace geode {
 	protected:
 		T m_min = std::numeric_limits<T>::min();
 		T m_max = std::numeric_limits<T>::max();
+		T m_step = 1;
 		bool m_slider = Slider;
 		bool m_input = Input;
 		bool m_arrows = Arrows;
@@ -106,6 +108,7 @@ namespace geode {
 	public:
 		T getMin() { return m_min; }
 		T getMax() { return m_max; }
+		T getStep() { return m_step; }
 		bool hasSlider() { return m_slider; }
 		bool hasInput() { return m_input; }
 		bool hasArrows() { return m_arrows; }
@@ -136,6 +139,20 @@ namespace geode {
 		size_t getDefaultIndex() const { return m_default; }
 		T getValue() const { return m_options.at(m_value); }
 		T getDefault() const { return m_options.at(m_default); }
+
+		void setIndex(size_t value) { m_value = clamp(value, 0, m_options.size() - 1); }
+		void incrementIndex(long increment) {
+			auto newValue = m_value + increment;
+			if (newValue < 0) m_value = 0;
+			else if (newValue > m_options.size() - 1) m_value = m_options.size() - 1;
+			else m_value = newValue;
+		}
+		void incrementIndexWrap(long increment) {
+			long newValue = m_value + increment;
+			if (newValue < 0) m_value = m_options.size() - 1;
+			else if (newValue > static_cast<long>(m_options.size() - 1)) m_value = 0;
+			else m_value = newValue;
+		}
 	};
 
 	class BoolSetting : public SingleSetting<bool, BoolSetting> {
@@ -171,6 +188,8 @@ namespace geode {
 		
 	public:
 		inline virtual SettingType getType() override { return SettingType::Float; }
+
+		size_t getPrecision() const { return m_precision; }
 	};
 
 	class StringSetting : public SingleSetting<std::string, StringSetting> {
@@ -183,6 +202,8 @@ namespace geode {
 		Result<> load(nlohmann::json const& json) override;
 		
 	public:
+		std::string getFilter() const { return m_filter; }
+
 		static bool replaceWithBuiltInFilter(std::string& filter);
 		inline virtual SettingType getType() override { return SettingType::String; }
 	};

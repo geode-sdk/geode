@@ -42,7 +42,7 @@ namespace geode::cocos {
     }
 
     inline cocos2d::ccColor4B to4B(cocos2d::ccColor3B const& color, GLubyte alpha = 255) {
-        return { color.r, color.g, color.b, 255 };
+        return { color.r, color.g, color.b, alpha };
     }
     
     inline cocos2d::ccColor4F to4F(cocos2d::ccColor4B const& color) {
