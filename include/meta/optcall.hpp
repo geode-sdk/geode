@@ -246,6 +246,7 @@ namespace geode::core::meta::x86 {
 
     template <class Ret>
     class Optcall<Ret> : public Cdecl<Ret> {
+    public:
         using Cdecl<Ret>::invoke;
         using Cdecl<Ret>::get_wrapper;
     };
