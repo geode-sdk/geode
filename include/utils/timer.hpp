@@ -52,7 +52,7 @@ namespace geode::utils {
                 return std::to_string(this->elapsed<Duration>()) + "ns";
             }
             else {
-                static_assert(!std::is_same_v<bool, bool>, "Unsupported duration type");
+                // static_assert(!std::is_same_v<bool, bool>, "Unsupported duration type");
             }
         }
     };
@@ -73,7 +73,7 @@ namespace geode::utils {
             m_timer = Timer<Clock>();
         };
         ~LogPerformance() {
-            m_output << "Running \"" << m_msg << "\" took " << m_timer.elapsedAsString<Duration>() << std::endl;
+            m_output << "Running \"" << m_msg << "\" took " << m_timer.template elapsedAsString<Duration>() << std::endl;
         }
     };
 }

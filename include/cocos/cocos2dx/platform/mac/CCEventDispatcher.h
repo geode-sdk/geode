@@ -207,9 +207,9 @@ struct _listEntry;
 
 	BOOL					dispatchEvents_;
 	
-	struct	_listEntry		*keyboardDelegates_;
-	struct	_listEntry		*mouseDelegates_;
-	struct	_listEntry		*touchDelegates_;
+	struct	::_listEntry		*keyboardDelegates_;
+	struct	::_listEntry		*mouseDelegates_;
+	struct	::_listEntry		*touchDelegates_;
 }
 
 @property (nonatomic, readwrite) BOOL dispatchEvents;
