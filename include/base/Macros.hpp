@@ -11,7 +11,6 @@ namespace geode::cast {}
 namespace geode::cocos {}
 namespace geode::utils {}
 namespace geode::helper {}
-namespace geode::node {}
 namespace geode::op {}
 namespace geode::stream {}
 namespace geode::view {}
@@ -25,7 +24,6 @@ namespace cocos2d::extension {}
     using namespace geode::cocos;       \
     using namespace geode::helper;      \
     using namespace geode::utils;       \
-    using namespace geode::node;        \
     using namespace geode::op;          \
     using namespace geode::stream;      \
     using namespace geode::view;        \
