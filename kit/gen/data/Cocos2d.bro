@@ -170,6 +170,10 @@ class cocos2d::CCEGLView {
     void onGLFWWindowSizeFunCallback(GLFWwindow* window, int width, int height);
 }
 
+class cocos2d::CCEGLViewProtocol {
+    auto getViewPortRect() const = mac 0x29e2f0;
+}
+
 class cocos2d::CCFadeOut {
 	static cocos2d::CCFadeOut* create(float) = mac 0x1f7d80;
 }
@@ -354,6 +358,7 @@ class cocos2d::CCMenuItem {
 	virtual auto isEnabled() = mac 0x1fbaf0, ios 0x2cf34;
 	virtual auto setEnabled(bool) = mac 0x1fbae0, ios 0x2cf2c;
 	virtual auto isSelected() = mac 0x1fbb50, ios 0x2cf60;
+    auto setTarget(cocos2d::CCObject*, cocos2d::SEL_MenuHandler) = mac 0x1fbb60;
 	auto rect() = mac 0x1fbb00, ios 0x2cf3c;
 }
 
@@ -796,8 +801,9 @@ class cocos2d::CCTouchDispatcher {
 }
 
 class cocos2d::CCTouchHandler {
-    virtual auto initWithDelegate(cocos2d::CCTouchDelegate*, int) = mac 0x247d10, , ios 0x69f8;
-    ~CCTouchHandler() = mac 0x247de0, , ios 0x6ac0;
+    virtual auto initWithDelegate(cocos2d::CCTouchDelegate*, int) = mac 0x247d10, ios 0x69f8;
+    auto getPriority() = mac 0x247c20;
+    ~CCTouchHandler() = mac 0x247de0, ios 0x6ac0;
 }
 
 class cocos2d::CCTransitionFade {
@@ -836,6 +842,8 @@ class cocos2d::extension::CCControlColourPicker {
 	auto setColorValue(cocos2d::_ccColor3B const&) = mac 0x1aac10;
     auto ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x1aae10;
     auto init() = mac 0x1aa400;
+    static auto colourPicker() = mac 0x1aaa30;
+
 }
 
 class cocos2d::extension::CCControlUtils {

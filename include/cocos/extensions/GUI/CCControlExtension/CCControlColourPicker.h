@@ -55,12 +55,7 @@ class CCControlColourPicker : public CCControl
 public:
     RT_ADD(
         ccColor3B const& getColorValue() const;
-        CCSprite* getColorTarget();
-        ColorPickerDelegate* getDelegate();
-
         virtual void setColorValue(ccColor3B const&);
-        void setColorTarget(CCSprite*);
-        void setDelegate(ColorPickerDelegate*);
     )
 
     CCControlColourPicker();
@@ -72,6 +67,11 @@ protected:
     
     CC_SYNTHESIZE_RETAIN(CCControlHuePicker*, m_huePicker, HuePicker)
     CC_SYNTHESIZE_RETAIN(CCSprite*, m_background, Background)
+
+    RT_ADD(
+        CC_SYNTHESIZE_NV(CCSprite*, m_colorTarget, ColorTarget)
+        CC_SYNTHESIZE_NV(ColorPickerDelegate*, m_delegate, Delegate)
+    )
     
 public:
     RT_REMOVE(

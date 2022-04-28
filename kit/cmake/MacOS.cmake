@@ -21,6 +21,12 @@ function(geode_link_bin proname bin_repo_directory)
 	)
 endfunction()
 
+macro(link_prebuilts project)
+	target_link_libraries(${project} 
+		"${GEODE_SDK_DIR}/lib/macos/Geometry Dash"
+	)
+endmacro()
+
 # add_custom_command(
 #     TARGET ${PROJECT_NAME} POST_BUILD
 #     COMMAND strip -x $<TARGET_FILE:${PROJECT_NAME}>
