@@ -6,15 +6,13 @@
 
 #include <cstdlib>
 #include <stddef.h>
-#include <base/Macros.hpp>
+#include "../base/Macros.hpp"
 #include <type_traits>
-#ifndef GEODE_ADDRESSER_TEST
-	#include <loader/Interface.hpp>
-	#include <loader/Mod.hpp>
-	#include <loader/Log.hpp>
-	#include <utils/general.hpp>
-#endif
-#include <utils/casts.hpp>
+#include "../loader/Interface.hpp"
+#include "../loader/Mod.hpp"
+#include "../loader/Log.hpp"
+#include "general.hpp"
+#include "casts.hpp"
 
 namespace geode::addresser {
 
@@ -87,10 +85,7 @@ namespace geode::addresser {
 			auto index = indexOf(func);
 			auto thunk = thunkOf(func);
 
-			// i need something better than this
-			#ifndef GEODE_ADDRESSER_TEST
-				Interface::get()->logInfo("[[" + utils::intToHex((void*)ins) + " + " + utils::intToHex(thunk) + "] + " + utils::intToHex(index) + "]", Severity::Debug);
-			#endif
+			Interface::get()->logInfo("[[" + utils::intToHex((void*)ins) + " + " + utils::intToHex(thunk) + "] + " + utils::intToHex(index) + "]", Severity::Debug);
 
 			// [[this + thunk] + offset] is the f we want
 			auto address = *(intptr_t*)(*(intptr_t*)(reference_cast<intptr_t>(ins) + thunk) + index);

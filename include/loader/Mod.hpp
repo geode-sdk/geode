@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Macros.hpp"
+#include "../base/Macros.hpp"
 #include "Types.hpp"
 #include "Hook.hpp"
 #include "Notification.hpp"

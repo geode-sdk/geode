@@ -633,7 +633,7 @@ class ColorChannelSprite : cocos2d::CCSprite {
 	void updateCopyLabel(int, bool) = mac 0x16ded0, win 0x114440, ios 0x0;
 	void updateOpacity(float) = mac 0x16e080, win 0x1145c0, ios 0x0;
 	void updateValues(ColorAction*) = mac 0x16e2e0, win 0x114800, ios 0x0;
-	static ColorChannelSprite* create() = mac 0x0, win 0x114340, ios 0x0;
+	static ColorChannelSprite* create() = mac 0x16de00, win 0x114340, ios 0x0;
 
 	cocos2d::CCLabelBMFont* m_copyLabel;
 	cocos2d::CCLabelBMFont* m_opacityLabel;
@@ -4441,7 +4441,7 @@ class Slider : cocos2d::CCLayer {
 	}
 
 	float getValue() = mac 0x18e0c0, win 0x2e970, ios 0x0;
-	void updateBar() = mac 0x0, win 0x2ea10, ios 0x0;
+	void updateBar() = mac 0x18d970, win 0x2ea10, ios 0x0;
 	static Slider* create(cocos2d::CCNode* target, cocos2d::SEL_MenuHandler click, const char* unused, const char* grooveSpr, const char* thumbSpr, const char* thumbSprSel, float scale) = mac 0x18dd80, win 0x2e6e0, ios 0x2113f4;
 
 	SliderTouchLogic* m_touchLogic;
