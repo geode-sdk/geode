@@ -23,27 +23,57 @@ namespace geode::utils {
 
     public:
         Timer() {
-            this->m_start = Clock::now();
+            m_start = Clock::now();
+        }
+
+        void reset() {
+            m_start = Clock::now();
         }
 
         clock_point time() const { return m_start; }
 
         template<typename Duration = std::chrono::milliseconds>
-        int64_t time() const {
+        int64_t elapsed() const {
             static_assert(is_chrono_duration<Duration>::value, "Duration must be a std::chrono::duration");
             auto end = Clock::now();
             return std::chrono::duration_cast<Duration>(end - m_start).count();
         }
 
         template<typename Duration = std::chrono::milliseconds>
-        std::string timeToString() const {
+        std::string elapsedAsString() const {
             static_assert(is_chrono_duration<Duration>::value, "Duration must be a std::chrono::duration");
             if constexpr (std::is_same<Duration, std::chrono::milliseconds>::value) {
-                return std::to_string(this->time<Duration>()) + "ms";
+                return std::to_string(this->elapsed<Duration>()) + "ms";
             }
-            if constexpr (std::is_same<Duration, std::chrono::microseconds>::value) {
-                return std::to_string(this->time<Duration>()) + u8"\u00b5s";
+            else if constexpr (std::is_same<Duration, std::chrono::microseconds>::value) {
+                return std::to_string(this->elapsed<Duration>()) + "us";
             }
+            else if constexpr (std::is_same<Duration, std::chrono::nanoseconds>::value) {
+                return std::to_string(this->elapsed<Duration>()) + "ns";
+            }
+            else {
+                static_assert(!std::is_same_v<bool, bool>, "Unsupported duration type");
+            }
+        }
+    };
+
+    template<
+        typename Duration = std::chrono::milliseconds,
+        class Clock = std::chrono::high_resolution_clock
+    >
+    struct LogPerformance {
+        std::ostream& m_output;
+        std::string m_msg;
+        Timer<Clock> m_timer;
+
+        LogPerformance(
+            std::string const& msg = "",
+            std::ostream& out = std::cout
+        ) : m_msg(msg), m_output(out) {
+            m_timer = Timer<Clock>();
+        };
+        ~LogPerformance() {
+            m_output << "Running \"" << m_msg << "\" took " << m_timer.elapsedAsString<Duration>() << std::endl;
         }
     };
 }

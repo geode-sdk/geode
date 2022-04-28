@@ -186,6 +186,11 @@ class CCAnimatedSprite : cocos2d::CCSprite {
 	PAD = mac 0x0, win 0x4, android 0x0;
 }
 
+class CCAnimateFrameCache : cocos2d::CCObject {
+	static CCAnimateFrameCache* sharedSpriteFrameCache() = mac 0x0, win 0x158f0, ios 0x0;
+	void addSpriteFramesWithFile(const char* file) = mac 0x0, win 0x159b0, ios 0x0;
+}
+
 class CCBlockLayer : cocos2d::CCLayerColor {
 	void disableUI() = mac 0x2a5a80, win 0x0, ios 0x0;
 	void draw() = mac 0x2a5c20, win 0x0, ios 0x0;
@@ -3382,7 +3387,7 @@ class LoadingLayer : cocos2d::CCLayer {
 	TextArea* m_textArea;
 	cocos2d::CCSprite* m_sliderBar;
 	float m_sliderGrooveXPos;
-	float m_unknown3;
+	float m_sliderGrooveHeight;
 	bool m_fromRefresh;
 }
 
@@ -3479,6 +3484,11 @@ class OBB2D : cocos2d::CCNode {
 	double m_rot1;
 	double m_rot2;
 	cocos2d::CCPoint m_center;
+}
+
+class ObjectManager : cocos2d::CCNode {
+	static ObjectManager* instance() = mac 0x0, win 0x2c2c0, ios 0x0;
+	void setup() = mac 0x0, win 0x2c3b0, ios 0x0;
 }
 
 class ObjectToolbox : cocos2d::CCNode {
