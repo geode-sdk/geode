@@ -44,6 +44,7 @@ namespace geode {
 	class Setting {
 	protected:
 		std::string m_key;
+		Mod* m_mod = nullptr;
 
 		friend class Loader;
 
@@ -57,6 +58,8 @@ namespace geode {
 		virtual Result<> load(nlohmann::json const& json) = 0;
 
 		static Result<Setting*> parseFromJSON(nlohmann::json const& json);
+
+		void update();
 
 		template<typename T>
 		Result<T> getValueAs();
@@ -124,7 +127,12 @@ namespace geode {
 		T getValue() const { return m_value; }
 		T getDefault() const { return m_default; }
 
-		void setValue(T val) { m_value = val; }
+		using value_type_t = T;
+
+		void setValue(T val) {
+			m_value = val;
+			this->update();
+		}
 	};
 
 	template<typename T, class SettingClass>
@@ -140,18 +148,25 @@ namespace geode {
 		T getValue() const { return m_options.at(m_value); }
 		T getDefault() const { return m_options.at(m_default); }
 
-		void setIndex(size_t value) { m_value = clamp(value, 0, m_options.size() - 1); }
+		using value_type_t = T;
+		
+		void setIndex(size_t value) {
+			m_value = clamp(value, 0, m_options.size() - 1);
+			this->update();
+		}
 		void incrementIndex(long increment) {
 			auto newValue = m_value + increment;
 			if (newValue < 0) m_value = 0;
 			else if (newValue > m_options.size() - 1) m_value = m_options.size() - 1;
 			else m_value = newValue;
+			this->update();
 		}
 		void incrementIndexWrap(long increment) {
 			long newValue = m_value + increment;
 			if (newValue < 0) m_value = m_options.size() - 1;
 			else if (newValue > static_cast<long>(m_options.size() - 1)) m_value = 0;
 			else m_value = newValue;
+			this->update();
 		}
 	};
 

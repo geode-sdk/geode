@@ -25,6 +25,7 @@ namespace geode {
     class Loader;
     class Log;
     class Mod;
+    class Setting;
 
     class Unknown;
 	using unknownmemfn_t = void(Unknown::*)();
@@ -224,6 +225,7 @@ namespace geode {
         geode_disable m_disableFunc = nullptr;
         geode_load_data m_loadDataFunc = nullptr;
         geode_save_data m_saveDataFunc = nullptr;
+        geode_setting_updated m_settingUpdatedFunc = nullptr;
         /**
          * Path to the mod's build directory
          */
@@ -262,6 +264,7 @@ namespace geode {
         friend class Loader;
         friend class ::Geode;
         friend struct ModInfo;
+        friend class Setting;
 
     public:
         std::string getID()         const;

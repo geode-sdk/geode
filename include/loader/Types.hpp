@@ -112,6 +112,7 @@ namespace geode {
 	};
 
 	class Mod;
+	class Setting;
 
     /**
      * Represents if a mod has been loaded & 
@@ -145,4 +146,5 @@ namespace geode {
 	typedef bool(GEODE_CALL* geode_disable)();
 	typedef bool(GEODE_CALL* geode_save_data)(const char*);
 	typedef bool(GEODE_CALL* geode_load_data)(const char*);
+	typedef void(GEODE_CALL* geode_setting_updated)(const char*, Setting*);
 }
