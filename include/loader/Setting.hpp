@@ -158,7 +158,7 @@ namespace geode {
 		using value_type_t = size_t;
 		
 		void setIndex(size_t value) {
-			m_value = clamp<size_t>(value, 0, m_options.size() - 1);
+			m_value = utils::clamp<size_t>(value, 0, m_options.size() - 1);
 			this->update();
 		}
 		void incrementIndex(long increment) {
@@ -286,6 +286,8 @@ namespace geode {
 	protected:
 		Result<> save(nlohmann::json& json) const override;
 		Result<> load(nlohmann::json const& json) override;
+		
+		void resetToDefault() override {}
 		
 	public:
 		inline virtual SettingType getType() override { return SettingType::Custom; }
