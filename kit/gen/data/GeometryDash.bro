@@ -2522,7 +2522,7 @@ class GameManager : GManager {
 	void getGTexture(int) = mac 0x1cca40, win 0x0, ios 0x0;
 	virtual bool init() = mac 0x1c2ec0, win 0x0, ios 0x0;
 	void reportAchievementWithID(char const*, int, bool) = mac 0x1c6460, win 0x0, ios 0x0;
-	void resolutionForKey(int) = mac 0x1d0b40, win 0x0, ios 0x0;
+	void resolutionForKey(int) = mac 0x1d0b40, win 0xceca0, ios 0x0;
 	void update(float) = mac 0x1d0270, win 0x0, ios 0x0;
 	bool isColorUnlocked(int _id, bool _type) = mac 0x0, win 0xc53f0, ios 0x0;
 	bool isIconUnlocked(int _id, IconType _type) = mac 0x0, win 0xc4fc0, ios 0x0;
