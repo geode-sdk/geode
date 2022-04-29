@@ -22,6 +22,8 @@ GEODE_DLL std::ostream& operator<<(std::ostream& os, cocos2d::CCArray* obj);
 GEODE_DLL std::ostream& operator<<(std::ostream& os, cocos2d::CCPoint const& pos);
 GEODE_DLL std::ostream& operator<<(std::ostream& os, cocos2d::CCSize const& size);
 GEODE_DLL std::ostream& operator<<(std::ostream& os, cocos2d::CCRect const& rect);
+GEODE_DLL std::ostream& operator<<(std::ostream& os, cocos2d::ccColor3B const& color);
+GEODE_DLL std::ostream& operator<<(std::ostream& os, cocos2d::ccColor4B const& color);
 
 namespace geode {
     class Mod;
