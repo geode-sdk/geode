@@ -66,7 +66,7 @@ namespace geode {
 	};
 
 	template<class SettingClass>
-	class GeodeSetting : public Setting {
+	class GEODE_DLL GeodeSetting : public Setting {
 	protected:
 		std::string m_name = "";
 		std::string m_description = "";
@@ -97,7 +97,7 @@ namespace geode {
 	};
 
 	template<typename T, class Friend, bool Slider, bool Input, bool Arrows>
-	class INumericSetting {
+	class GEODE_DLL INumericSetting {
 	protected:
 		T m_min = std::numeric_limits<T>::min();
 		T m_max = std::numeric_limits<T>::max();
@@ -118,7 +118,7 @@ namespace geode {
 	};
 
 	template<typename T, class SettingClass>
-	class SingleSetting : public GeodeSetting<SettingClass> {
+	class GEODE_DLL SingleSetting : public GeodeSetting<SettingClass> {
 	protected: 
 		T m_value = T();
 		T m_default = T();
@@ -136,7 +136,7 @@ namespace geode {
 	};
 
 	template<typename T, class SettingClass>
-	class SelectSetting : public GeodeSetting<SettingClass> {
+	class GEODE_DLL SelectSetting : public GeodeSetting<SettingClass> {
 	protected:
 		size_t m_value;
 		size_t m_default;
@@ -171,7 +171,7 @@ namespace geode {
 		}
 	};
 
-	class BoolSetting : public SingleSetting<bool, BoolSetting> {
+	class GEODE_DLL BoolSetting : public SingleSetting<bool, BoolSetting> {
 	protected:
 		friend class GeodeSetting<BoolSetting>;
 	
@@ -182,7 +182,7 @@ namespace geode {
 		inline virtual SettingType getType() override { return SettingType::Bool; }
 	};
 
-	class IntSetting : public SingleSetting<int, IntSetting>, public INumericSetting<int, IntSetting, false, true, true> {
+	class GEODE_DLL IntSetting : public SingleSetting<int, IntSetting>, public INumericSetting<int, IntSetting, false, true, true> {
 	protected:
 		friend class GeodeSetting<IntSetting>;
 
@@ -193,7 +193,7 @@ namespace geode {
 		inline virtual SettingType getType() override { return SettingType::Int; }
 	};
 
-	class FloatSetting : public SingleSetting<float, FloatSetting>, public INumericSetting<int, FloatSetting, true, true, true> {
+	class GEODE_DLL FloatSetting : public SingleSetting<float, FloatSetting>, public INumericSetting<int, FloatSetting, true, true, true> {
 	protected:
 		size_t m_precision = 0;
 
@@ -208,7 +208,7 @@ namespace geode {
 		size_t getPrecision() const { return m_precision; }
 	};
 
-	class StringSetting : public SingleSetting<std::string, StringSetting> {
+	class GEODE_DLL StringSetting : public SingleSetting<std::string, StringSetting> {
 	protected:
 		std::string m_filter;
 
@@ -224,7 +224,7 @@ namespace geode {
 		inline virtual SettingType getType() override { return SettingType::String; }
 	};
 
-	class ColorSetting : public SingleSetting<cocos2d::ccColor3B, ColorSetting> {
+	class GEODE_DLL ColorSetting : public SingleSetting<cocos2d::ccColor3B, ColorSetting> {
 	protected:
 		Result<cocos2d::ccColor3B> parseColor(nlohmann::json const& json);
 
@@ -237,7 +237,7 @@ namespace geode {
 		inline virtual SettingType getType() override { return SettingType::Color; }
 	};
 
-	class ColorAlphaSetting : public SingleSetting<cocos2d::ccColor4B, ColorAlphaSetting> {
+	class GEODE_DLL ColorAlphaSetting : public SingleSetting<cocos2d::ccColor4B, ColorAlphaSetting> {
 	protected:
 		Result<cocos2d::ccColor4B> parseColor(nlohmann::json const& json);
 
@@ -250,7 +250,7 @@ namespace geode {
 		inline virtual SettingType getType() override { return SettingType::ColorAlpha; }
 	};
 
-	class PathSetting : public SingleSetting<ghc::filesystem::path, PathSetting> {
+	class GEODE_DLL PathSetting : public SingleSetting<ghc::filesystem::path, PathSetting> {
 	protected:
 		friend class GeodeSetting<PathSetting>;
 	
@@ -261,7 +261,7 @@ namespace geode {
 		inline virtual SettingType getType() override { return SettingType::Path; }
 	};
 
-	class StringSelectSetting : public SelectSetting<std::string, StringSelectSetting> {
+	class GEODE_DLL StringSelectSetting : public SelectSetting<std::string, StringSelectSetting> {
 	protected:
 		friend class GeodeSetting<StringSelectSetting>;
 	
@@ -272,7 +272,7 @@ namespace geode {
 		inline virtual SettingType getType() override { return SettingType::StringSelect; }
 	};
 
-	class CustomSettingPlaceHolder : public Setting {
+	class GEODE_DLL CustomSettingPlaceHolder : public Setting {
 	protected:
 		Result<> save(nlohmann::json& json) const override;
 		Result<> load(nlohmann::json const& json) override;
