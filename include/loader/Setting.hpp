@@ -147,7 +147,8 @@ namespace geode {
 		size_t getDefaultIndex() const { return m_default; }
 		T getValue() const { return m_options.at(m_value); }
 		T getDefault() const { return m_options.at(m_default); }
-		T getValueAt(size_t ix) { return m_options.at(ix); }
+		T getValueAt(size_t ix) const { return m_options.at(ix); }
+		std::vector<T> getOptions() const { return m_options; };
 
 		using value_type_t = size_t;
 		

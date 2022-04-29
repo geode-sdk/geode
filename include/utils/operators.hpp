@@ -103,9 +103,15 @@ namespace geode {
                c1.b == c2.b &&
                c1.a == c2.a;
     }
-    static bool operator==(cocos2d::ccColor3B const& c1, cocos2d::ccColor3B const& c2) {
-        return c1.r == c2.r &&
-               c1.g == c2.g &&
-               c1.b == c2.b;
+    static bool operator!=(cocos2d::ccColor4B const& c1, cocos2d::ccColor4B const& c2) {
+        return c1.r != c2.r ||
+               c1.g != c2.g ||
+               c1.b != c2.b ||
+               c1.a != c2.a;
+    }
+    static bool operator!=(cocos2d::ccColor3B const& c1, cocos2d::ccColor3B const& c2) {
+        return c1.r != c2.r ||
+               c1.g != c2.g ||
+               c1.b != c2.b;
     }
 }
