@@ -170,7 +170,7 @@ namespace geode {
 		}
 	};
 
-	class GEODE_DLL BoolSetting : public SingleSetting<bool, BoolSetting> {
+	class BoolSetting : public SingleSetting<bool, BoolSetting> {
 	protected:
 		friend class GeodeSetting<BoolSetting>;
 	
@@ -181,7 +181,7 @@ namespace geode {
 		inline virtual SettingType getType() override { return SettingType::Bool; }
 	};
 
-	class GEODE_DLL IntSetting : public SingleSetting<int, IntSetting>, public INumericSetting<int, IntSetting, false, true, true> {
+	class IntSetting : public SingleSetting<int, IntSetting>, public INumericSetting<int, IntSetting, false, true, true> {
 	protected:
 		friend class GeodeSetting<IntSetting>;
 
@@ -192,7 +192,7 @@ namespace geode {
 		inline virtual SettingType getType() override { return SettingType::Int; }
 	};
 
-	class GEODE_DLL FloatSetting : public SingleSetting<float, FloatSetting>, public INumericSetting<int, FloatSetting, true, true, true> {
+	class FloatSetting : public SingleSetting<float, FloatSetting>, public INumericSetting<int, FloatSetting, true, true, true> {
 	protected:
 		size_t m_precision = 0;
 
@@ -207,7 +207,7 @@ namespace geode {
 		size_t getPrecision() const { return m_precision; }
 	};
 
-	class GEODE_DLL StringSetting : public SingleSetting<std::string, StringSetting> {
+	class StringSetting : public SingleSetting<std::string, StringSetting> {
 	protected:
 		std::string m_filter;
 
@@ -223,7 +223,7 @@ namespace geode {
 		inline virtual SettingType getType() override { return SettingType::String; }
 	};
 
-	class GEODE_DLL ColorSetting : public SingleSetting<cocos2d::ccColor3B, ColorSetting> {
+	class ColorSetting : public SingleSetting<cocos2d::ccColor3B, ColorSetting> {
 	protected:
 		Result<cocos2d::ccColor3B> parseColor(nlohmann::json const& json);
 
@@ -236,7 +236,7 @@ namespace geode {
 		inline virtual SettingType getType() override { return SettingType::Color; }
 	};
 
-	class GEODE_DLL ColorAlphaSetting : public SingleSetting<cocos2d::ccColor4B, ColorAlphaSetting> {
+	class ColorAlphaSetting : public SingleSetting<cocos2d::ccColor4B, ColorAlphaSetting> {
 	protected:
 		Result<cocos2d::ccColor4B> parseColor(nlohmann::json const& json);
 
@@ -249,7 +249,7 @@ namespace geode {
 		inline virtual SettingType getType() override { return SettingType::ColorAlpha; }
 	};
 
-	class GEODE_DLL PathSetting : public SingleSetting<ghc::filesystem::path, PathSetting> {
+	class PathSetting : public SingleSetting<ghc::filesystem::path, PathSetting> {
 	protected:
 		friend class GeodeSetting<PathSetting>;
 	
@@ -260,7 +260,7 @@ namespace geode {
 		inline virtual SettingType getType() override { return SettingType::Path; }
 	};
 
-	class GEODE_DLL StringSelectSetting : public SelectSetting<std::string, StringSelectSetting> {
+	class StringSelectSetting : public SelectSetting<std::string, StringSelectSetting> {
 	protected:
 		friend class GeodeSetting<StringSelectSetting>;
 	
@@ -271,7 +271,7 @@ namespace geode {
 		inline virtual SettingType getType() override { return SettingType::StringSelect; }
 	};
 
-	class GEODE_DLL CustomSettingPlaceHolder : public Setting {
+	class CustomSettingPlaceHolder : public Setting {
 	protected:
 		Result<> save(nlohmann::json& json) const override;
 		Result<> load(nlohmann::json const& json) override;
