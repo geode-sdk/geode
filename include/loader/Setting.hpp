@@ -12,6 +12,7 @@
 #include <limits>
 #undef min
 #undef max
+#include <utils/general.hpp>
 
 namespace cocos2d {
 	class CCNode;
