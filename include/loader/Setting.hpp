@@ -41,7 +41,7 @@ namespace geode {
 		Custom,
 	};
 
-	class Setting {
+	class GEODE_DLL Setting {
 	protected:
 		std::string m_key;
 		Mod* m_mod = nullptr;
