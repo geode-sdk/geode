@@ -66,7 +66,7 @@ namespace geode {
 	};
 
 	template<class SettingClass>
-	class GEODE_DLL GeodeSetting : public Setting {
+	class GeodeSetting : public Setting {
 	protected:
 		std::string m_name = "";
 		std::string m_description = "";
@@ -97,7 +97,7 @@ namespace geode {
 	};
 
 	template<typename T, class Friend, bool Slider, bool Input, bool Arrows>
-	class GEODE_DLL INumericSetting {
+	class INumericSetting {
 	protected:
 		T m_min = std::numeric_limits<T>::min();
 		T m_max = std::numeric_limits<T>::max();
@@ -118,7 +118,7 @@ namespace geode {
 	};
 
 	template<typename T, class SettingClass>
-	class GEODE_DLL SingleSetting : public GeodeSetting<SettingClass> {
+	class SingleSetting : public GeodeSetting<SettingClass> {
 	protected: 
 		T m_value = T();
 		T m_default = T();
@@ -136,7 +136,7 @@ namespace geode {
 	};
 
 	template<typename T, class SettingClass>
-	class GEODE_DLL SelectSetting : public GeodeSetting<SettingClass> {
+	class SelectSetting : public GeodeSetting<SettingClass> {
 	protected:
 		size_t m_value;
 		size_t m_default;
