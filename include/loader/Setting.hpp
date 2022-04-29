@@ -147,11 +147,12 @@ namespace geode {
 		size_t getDefaultIndex() const { return m_default; }
 		T getValue() const { return m_options.at(m_value); }
 		T getDefault() const { return m_options.at(m_default); }
+		T getValueAt(size_t ix) { return m_options.at(ix); }
 
-		using value_type_t = T;
+		using value_type_t = size_t;
 		
 		void setIndex(size_t value) {
-			m_value = clamp(value, 0, m_options.size() - 1);
+			m_value = clamp<size_t>(value, 0, m_options.size() - 1);
 			this->update();
 		}
 		void incrementIndex(long increment) {
