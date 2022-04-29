@@ -59,6 +59,7 @@ namespace geode {
 
 		static Result<Setting*> parseFromJSON(nlohmann::json const& json);
 
+		virtual void resetToDefault() = 0;
 		void update();
 
 		template<typename T>
@@ -133,6 +134,10 @@ namespace geode {
 			m_value = val;
 			this->update();
 		}
+
+		void resetToDefault() override {
+			this->setValue(m_default);
+		}
 	};
 
 	template<typename T, class SettingClass>
@@ -169,6 +174,10 @@ namespace geode {
 			else if (newValue > static_cast<long>(m_options.size() - 1)) m_value = 0;
 			else m_value = newValue;
 			this->update();
+		}
+
+		void resetToDefault() override {
+			this->setIndex(m_default);
 		}
 	};
 
