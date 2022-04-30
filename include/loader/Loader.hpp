@@ -227,6 +227,8 @@ namespace geode {
          */
         static Mod* getInternalMod();
 
+        bool isModInstalled(std::string const& id) const;
+
         /**
          * Run a function in the GD thread. Useful if you're 
          * doing logic in another thread and need to interact 
