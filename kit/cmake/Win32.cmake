@@ -14,6 +14,7 @@ macro(link_prebuilts project)
 	target_link_libraries(${project} 
 		${GEODE_SDK_DIR}/lib/windows/libcocos2d.lib
 		${GEODE_SDK_DIR}/lib/windows/libExtensions.lib
+		${GEODE_SDK_DIR}/lib/windows/libcurl.lib
 	)
 endmacro()
 
