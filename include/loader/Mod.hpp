@@ -3,7 +3,7 @@
 #include "../base/Macros.hpp"
 #include "Types.hpp"
 #include "Hook.hpp"
-#include "Notification.hpp"
+#include "Event.hpp"
 #include "Setting.hpp"
 #include "../utils/types.hpp"
 #include "../utils/Result.hpp"
@@ -330,7 +330,7 @@ namespace geode {
          */
         template <typename T>
         void exportAPIFunction(std::string const& selector, T ptr) {
-        	NotificationCenter::get()->registerObserver<T*>(this, selector, [ptr](Notification<T*> const& n) {
+        	EventCenter::get()->registerObserver<T*>(this, selector, [ptr](Event<T*> const& n) {
                 //*reinterpret_cast<T*>(n.object<void*>()) = ptr;
                 *n.object() = ptr;
             });
@@ -348,7 +348,7 @@ namespace geode {
         template <typename T>
         T importAPIFunction(std::string const& selector, Mod* source) {
         	T out;
-            NotificationCenter::get()->send(Notification(selector, &out, nullptr), source);
+            EventCenter::get()->send(Event(selector, &out, nullptr), source);
             return out;
         }
 
