@@ -280,6 +280,7 @@ namespace geode {
         bool        supportsDisabling() const;
         bool        wasSuccesfullyLoaded() const;
         std::string getLoadErrorInfo() const;
+        ModInfo     getModInfo() const;
 
         ghc::filesystem::path getHotReloadPath() const;
         Result<> enableHotReload();
