@@ -88,7 +88,7 @@ namespace geode {
          * use it, so who cares
          */
         template<int Schema>
-        Result<Mod*> checkBySchema(std::string const& path, void* json);
+        Result<ModInfo> checkBySchema(std::string const& path, void* json);
 
         Result<std::string> createTempDirectoryForMod(ModInfo const& info);
         Result<Mod*> loadModFromFile(std::string const& file);
@@ -107,6 +107,11 @@ namespace geode {
 
         Result<> saveSettings();
         Result<> loadSettings();
+
+        Result<ModInfo> parseModJson(
+            std::string const& path,
+            nlohmann::json const& json
+        );
 
         bool shouldLoadMod(std::string const& id) const;
         std::vector<UnloadedModInfo> const& getFailedMods() const;
