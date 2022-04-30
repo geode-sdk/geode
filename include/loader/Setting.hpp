@@ -296,23 +296,23 @@ namespace geode {
 
 	template<typename T>
 	Result<T> Setting::getValueAs() {
-		if (std::is_same_v<T, bool>) {
+		if constexpr (std::is_same_v<T, bool>) {
 			auto self = dynamic_cast<BoolSetting*>(this);
 			return self ? Ok<T>(self->getValue()) : Err<>("Not a bool");
 		}
-		if (std::is_same_v<T, int>) {
+		if constexpr (std::is_same_v<T, int>) {
 			auto self = dynamic_cast<IntSetting*>(this);
 			return self ? Ok<T>(self->getValue()) : Err<>("Not a int");
 		}
-		if (std::is_same_v<T, float>) {
+		if constexpr (std::is_same_v<T, float>) {
 			auto self = dynamic_cast<FloatSetting*>(this);
 			return self ? Ok<T>(self->getValue()) : Err<>("Not a float");
 		}
-		if (std::is_same_v<T, size_t>) {
+		if constexpr (std::is_same_v<T, size_t>) {
 			auto self = dynamic_cast<SelectSetting<T, BoolSetting>*>(this); // BoolSetting works as a stub here
 			return self ? Ok<T>(self->getIndex()) : Err<>("Not a select");
 		}
-		if (std::is_same_v<T, std::string>) {
+		if constexpr (std::is_same_v<T, std::string>) {
 			auto self = dynamic_cast<StringSetting*>(this);
 			if (self) {
 				return Ok<T>(self->getValue());
@@ -324,15 +324,15 @@ namespace geode {
 			}
 			return Err<>("Not a string");
 		}
-		if (std::is_same_v<T, cocos2d::ccColor3B>) {
+		if constexpr (std::is_same_v<T, cocos2d::ccColor3B>) {
 			auto self = dynamic_cast<ColorSetting*>(this);
 			return self ? Ok<T>(self->getValue()) : Err<>("Not a ccColor3B");
 		}
-		if (std::is_same_v<T, cocos2d::ccColor4B>) {
+		if constexpr (std::is_same_v<T, cocos2d::ccColor4B>) {
 			auto self = dynamic_cast<ColorAlphaSetting*>(this);
 			return self ? Ok<T>(self->getValue()) : Err<>("Not a ccColor4B");
 		}
-		if (std::is_same_v<T, ghc::filesystem::path>) {
+		if constexpr (std::is_same_v<T, ghc::filesystem::path>) {
 			auto self = dynamic_cast<PathSetting*>(this);
 			return self ? Ok<T>(self->getValue()) : Err<>("Not a path");
 		}
