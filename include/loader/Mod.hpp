@@ -462,6 +462,15 @@ namespace geode {
          */
         Result<> disable();
 
+        /**
+         * Disable & unload this mod (if supported), 
+         * then delete the mod's .geode file.
+         * @returns Successful result on success, 
+         * errorful result with info on error
+         */
+        Result<> uninstall();
+        bool isUninstalled() const;
+
         Result<> saveData();
         Result<> loadData();
 
