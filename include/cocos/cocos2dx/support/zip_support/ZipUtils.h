@@ -186,7 +186,7 @@ namespace cocos2d
     *
     * @since v2.0.5
     */
-    class ZipFile
+    class CC_ZIP_DLL ZipFile
     {
     public:
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
