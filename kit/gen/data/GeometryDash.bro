@@ -3355,9 +3355,9 @@ class LoadingCircle : cocos2d::CCLayerColor {
 	    m_fade = fade;
 	}
 
-	static LoadingCircle* create() = mac 0x0, win 0x2a0d0, ios 0x0;
-	void show() = mac 0x0, win 0x2a290, ios 0x0;
-	void fadeAndRemove() = mac 0x0, win 0x2a370, ios 0x0;
+	static LoadingCircle* create() = mac 0x277d50, win 0x2a0d0, ios 0x0;
+	void show() = mac 0x277fd0, win 0x2a290, ios 0x0;
+	void fadeAndRemove() = mac 0x2780d0, win 0x2a370, ios 0x0;
 
 	cocos2d::CCSprite* m_sprite;
 	cocos2d::CCLayer* m_parentLayer;
