@@ -149,6 +149,10 @@ namespace geode {
          * Whether the mod can be disabled or not
          */
         bool m_supportsDisabling = true;
+        /**
+         * Whether the mod can be unloaded or not
+         */
+        bool m_supportsUnloading = false;
     };
 
     /**
@@ -278,6 +282,7 @@ namespace geode {
         bool        isEnabled()     const;
         bool        isLoaded()      const;
         bool        supportsDisabling() const;
+        bool        supportsUnloading() const;
         bool        wasSuccesfullyLoaded() const;
         std::string getLoadErrorInfo() const;
         ModInfo     getModInfo() const;
