@@ -39,10 +39,20 @@ namespace geode {
 				case iOS:     return "iOS";
 				case Android: return "Android";
 				case Linux:   return "Linux";
+				default: break;
 			}
 			return "Undefined";
 		}
 	};
+}
+
+namespace std {
+    template<>
+    struct hash<geode::PlatformID> {
+        inline std::size_t operator()(geode::PlatformID const& id) const {
+			return std::hash<geode::PlatformID::Type>()(id.m_value);
+		}
+    };
 }
 
 // Windows
