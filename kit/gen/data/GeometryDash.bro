@@ -164,7 +164,7 @@ class ButtonSprite : cocos2d::CCSprite {
 	static ButtonSprite* create(char const*, float) = mac 0x4fa60, win 0x0, ios 0x0;
 	void setString(const char* txt) = mac 0x0, win 0x14030, ios 0x0;
 	void updateSpriteBGSize(cocos2d::CCPoint const& offset) = mac 0x0, win 0x13c00, ios 0x0;
-	void setColor(cocos2d::ccColor3B color) = mac 0x0, win 0x143e0, ios 0x0;
+	void setColor(cocos2d::ccColor3B color) = mac 0x50410, win 0x143e0, ios 0x0;
 
 	PAD = mac 0x0, win 0x18, android 0x0;
 	cocos2d::CCLabelBMFont* m_label;

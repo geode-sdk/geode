@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 #if defined(GEODE_CALL)
 	#undef GEODE_CALL
 #endif
