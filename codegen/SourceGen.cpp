@@ -4,8 +4,8 @@ namespace format_strings {
 	char const* source_start = R"CAC(
 #include <InterfaceBase.hpp>
 #include <utils/casts.hpp>
-#include <modify/Addresses.hpp>
-#include <modify/Types.hpp>
+#include <syntax/Addresses.hpp>
+#include <syntax/Types.hpp>
 using namespace geode;
 using namespace geode::cast;
 using cocos2d::CCDestructor;

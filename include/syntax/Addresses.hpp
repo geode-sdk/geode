@@ -3,6 +3,6 @@
 
 namespace geode::modifier {
 	struct addresses {
-		#include <gen/Address.hpp>
+		#include <codegen/Address.hpp>
 	};
 }

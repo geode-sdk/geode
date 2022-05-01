@@ -28,5 +28,5 @@ namespace geode::modifier {
 		}
 	};
 
-	#include <gen/Modify.hpp>
+	#include <codegen/Modify.hpp>
 }

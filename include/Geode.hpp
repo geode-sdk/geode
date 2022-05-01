@@ -1,7 +1,7 @@
-#include "base/InterfaceBase.hpp"
-#include "modify/Modify.hpp"
-#include "modify/Field.hpp"
-#include "modify/Macros.hpp"
+#include "codegen-base/InterfaceBase.hpp"
+#include "syntax/Modify.hpp"
+#include "syntax/Field.hpp"
+#include "syntax/InternalMacros.hpp"
 #include "utils/include.hpp"
 #include "loader/GeodeLoader.hpp"
 

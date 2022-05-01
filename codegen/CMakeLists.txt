@@ -8,7 +8,7 @@ if (NOT DEFINED GEODE_HOST_ARM AND APPLE)
 	set(CMAKE_OSX_SYSROOT )
 endif()
 
-add_subdirectory(../../include/fmt ${CMAKE_BINARY_DIR}/fmt)
+add_subdirectory(fmt)
 
 macro(add_gen project file)
 	add_executable(${project}Gen ${project}Gen.cpp)
@@ -18,7 +18,7 @@ macro(add_gen project file)
 		${CMAKE_CURRENT_SOURCE_DIR}/fmt/include
 	)
 	add_custom_target(${project}Run
-		COMMAND ${project}Gen ${GEODE_TARGET_PLATFORM} "${CMAKE_CURRENT_SOURCE_DIR}/data" "${GEODE_CODEGEN_DIR}/${file}"
+		COMMAND ${project}Gen ${GEODE_TARGET_PLATFORM} "${GEODE_SDK_PATH}/bindings" "${GEODE_CODEGEN_DIR}/${file}"
 		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 		COMMENT "Run ${project}Gen"
 	)

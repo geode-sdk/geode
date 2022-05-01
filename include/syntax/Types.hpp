@@ -1,8 +1,8 @@
 #pragma once
-#include <base/HeaderBase.hpp>
+#include <codegen-base/HeaderBase.hpp>
 
 namespace geode::modifier {
 	struct types {
-		#include <gen/Type.hpp>
+		#include <codegen/Type.hpp>
 	};
 }

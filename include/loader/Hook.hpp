@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Macros.hpp"
+#include <Macros.hpp>
 #include <inttypes.h>
 #include <utils/types.hpp>
 #include <string_view>
 
-#include "../core/Hook.hpp"
+#include "../hook-core/Hook.hpp"
 
 namespace geode {
     class Mod;

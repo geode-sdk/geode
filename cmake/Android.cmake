@@ -6,7 +6,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fms-extensions -Xlinker --no-demangle -
 target_link_libraries(${PROJECT_NAME} log android EGL GLESv2)
 
 include_directories(
-	${GEODE_INCLUDE_DIR}/cocos/cocos2dx/platform/android
+	${GEODE_SDK_PATH}/include/cocos/cocos2dx/platform/android
 )
 
 macro(link_prebuilts project)

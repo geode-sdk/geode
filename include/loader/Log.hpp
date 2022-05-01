@@ -5,7 +5,7 @@
 #include <chrono>
 #include <sstream>
 #include <vector>
-#include "../fs/filesystem.hpp"
+#include <utils/fs/filesystem.hpp>
 
 namespace cocos2d {
     class CCObject;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../base/Macros.hpp"
+#include <Macros.hpp>
 #include "Result.hpp"
 #include <string>
 #include <vector>

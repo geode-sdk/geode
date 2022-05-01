@@ -26,6 +26,6 @@ namespace geode::modifier {
 		>> {
 			constexpr static inline bool value = true;
 		};
-		#include <gen/Compare.hpp>
+		#include <codegen/Compare.hpp>
 	};
 }

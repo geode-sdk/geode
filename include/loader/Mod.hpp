@@ -13,7 +13,7 @@
 #include <type_traits>
 #include <Notification.hpp>
 
-class Geode;
+class InternalLoader;
 class InternalMod;
 
 namespace geode {                  
@@ -259,7 +259,7 @@ namespace geode {
 
         friend class ::InternalMod;
         friend class Loader;
-        friend class ::Geode;
+        friend class ::InternalLoader;
         friend struct ModInfo;
 
     public:

@@ -46,6 +46,6 @@ namespace geode::modifier {
 			constexpr static inline auto value = MyConv::template get_wrapper<&wrapper>();
 		};
 		
-		#include <gen/Wrap.hpp>
+		#include <codegen/Wrap.hpp>
 	};
 }
