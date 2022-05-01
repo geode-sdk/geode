@@ -1,17 +1,18 @@
 #pragma once
 
-#include "Macros.hpp"
+#include <Macros.hpp>
 #include "Types.hpp"
 #include "Hook.hpp"
-#include <utils/Result.hpp>
-#include <utils/VersionInfo.hpp>
+#include "Event.hpp"
+#include "Setting.hpp"
+#include "../utils/types.hpp"
+#include "../utils/Result.hpp"
+#include "../utils/VersionInfo.hpp"
 #include <string_view>
 #include <vector>
 #include <unordered_map>
-#include "Setting.hpp"
-#include <utils/types.hpp>
 #include <type_traits>
-#include <Notification.hpp>
+
 
 class InternalLoader;
 class InternalMod;
@@ -24,6 +25,7 @@ namespace geode {
     class Loader;
     class Log;
     class Mod;
+    class Setting;
 
     class Unknown;
 	using unknownmemfn_t = void(Unknown::*)();
@@ -147,6 +149,10 @@ namespace geode {
          * Whether the mod can be disabled or not
          */
         bool m_supportsDisabling = true;
+        /**
+         * Whether the mod can be unloaded or not
+         */
+        bool m_supportsUnloading = false;
     };
 
     /**
@@ -223,6 +229,7 @@ namespace geode {
         geode_disable m_disableFunc = nullptr;
         geode_load_data m_loadDataFunc = nullptr;
         geode_save_data m_saveDataFunc = nullptr;
+        geode_setting_updated m_settingUpdatedFunc = nullptr;
         /**
          * Path to the mod's build directory
          */
@@ -261,6 +268,7 @@ namespace geode {
         friend class Loader;
         friend class ::InternalLoader;
         friend struct ModInfo;
+        friend class Setting;
 
     public:
         std::string getID()         const;
@@ -274,8 +282,10 @@ namespace geode {
         bool        isEnabled()     const;
         bool        isLoaded()      const;
         bool        supportsDisabling() const;
+        bool        supportsUnloading() const;
         bool        wasSuccesfullyLoaded() const;
         std::string getLoadErrorInfo() const;
+        ModInfo     getModInfo() const;
 
         ghc::filesystem::path getHotReloadPath() const;
         Result<> enableHotReload();
@@ -320,7 +330,7 @@ namespace geode {
          */
         template <typename T>
         void exportAPIFunction(std::string const& selector, T ptr) {
-        	NotificationCenter::get()->registerObserver<T*>(this, selector, [ptr](Notification<T*> const& n) {
+        	EventCenter::get()->registerObserver<T*>(this, selector, [ptr](Event<T*> const& n) {
                 //*reinterpret_cast<T*>(n.object<void*>()) = ptr;
                 *n.object() = ptr;
             });
@@ -338,7 +348,7 @@ namespace geode {
         template <typename T>
         T importAPIFunction(std::string const& selector, Mod* source) {
         	T out;
-            NotificationCenter::get()->send(Notification(selector, &out, nullptr), source);
+            EventCenter::get()->send(Event(selector, &out, nullptr), source);
             return out;
         }
 
@@ -451,6 +461,15 @@ namespace geode {
          * errorful result with info on error
          */
         Result<> disable();
+
+        /**
+         * Disable & unload this mod (if supported), 
+         * then delete the mod's .geode file.
+         * @returns Successful result on success, 
+         * errorful result with info on error
+         */
+        Result<> uninstall();
+        bool isUninstalled() const;
 
         Result<> saveData();
         Result<> loadData();

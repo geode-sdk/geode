@@ -4,5 +4,6 @@
 #include "syntax/InternalMacros.hpp"
 #include "utils/include.hpp"
 #include "loader/GeodeLoader.hpp"
+#include "loader/API.hpp"
 
 using namespace geode::modifier;

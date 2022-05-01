@@ -3,34 +3,23 @@
 
 namespace format_strings {
 	// requires: class_name
-	char const* modify_start = R"RAW(
+	char const* modify_start = R"GEN(
 template<class Derived>
 struct Modify<Derived, {class_name}> : ModifyBase<Modify<Derived, {class_name}>> {{
 	using ModifyBase<Modify<Derived, {class_name}>>::ModifyBase;
 	using Base = {class_name};
 	static void apply() {{
 		using namespace geode::core::meta;
-		using namespace geode::core::meta::x86;
-)RAW";
+)GEN";
 
 	// requires: index, class_name, arg_types, function_name, raw_arg_types, non_virtual
-	char const* apply_function = R"RAW(
-		if constexpr (compare::{function_name}<Derived, Base, types::pure{global_index}>::value) {{
-			Interface::get()->logInfo(
-				"Adding hook at function {class_name}::{function_name}", 
-				Severity::Debug
-			);
-			Interface::get()->addHook<wrap::{function_name}<DefaultConv, Derived, Base, types::pure{global_index}>::value, {function_convention}>(
-				"{class_name}::{function_name}", 
-				(void*)addresses::address{global_index}()
-			);
-		}}
-)RAW";
+	char const* apply_function = R"GEN(
+		GEODE_APPLY_MODIFY_FOR_FUNCTION({index}, {function_convention}, {class_name}, {function_name}))GEN";
 
-	char const* modify_end = R"RAW(
+	char const* modify_end = R"GEN(
 	}
 };
-)RAW";
+)GEN";
 }
 
 
@@ -47,22 +36,18 @@ int main(int argc, char** argv) {
 		);
 
 		for (auto& f : c.functions) {
-			if (!CacShare::functionDefined(f))
+			if (!CacShare::isFunctionDefinable(f) && !CacShare::isFunctionDefined(f))
 				continue; // Function not supported for this platform, skip it
-			string function_name = f.name;
-			switch (f.function_type) {
-				case kConstructor: 
-					function_name = "constructor";
-					break;
-				case kDestructor: 
-					function_name = "destructor";
-					break;
-				default: break;
-			}
+            string function_name = CacShare::getFunctionName(f);
+            switch (f.function_type) {
+                case kConstructor: function_name = "constructor";
+                case kDestructor: function_name = "destructor";
+                default: break;
+            }
 
 			output += fmt::format(format_strings::apply_function,
-				fmt::arg("global_index",f.hash()),
-				fmt::arg("class_name", name),
+				fmt::arg("index", CacShare::getIndex(f)),
+				fmt::arg("class_name", CacShare::getClassName(f)),
 				fmt::arg("function_name", function_name),
 				fmt::arg("function_convention", CacShare::getConvention(f))
 			);

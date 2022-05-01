@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Macros.hpp"
+#include <Macros.hpp>
 #include "Types.hpp"
 #include <chrono>
 #include <sstream>
@@ -22,6 +22,8 @@ GEODE_DLL std::ostream& operator<<(std::ostream& os, cocos2d::CCArray* obj);
 GEODE_DLL std::ostream& operator<<(std::ostream& os, cocos2d::CCPoint const& pos);
 GEODE_DLL std::ostream& operator<<(std::ostream& os, cocos2d::CCSize const& size);
 GEODE_DLL std::ostream& operator<<(std::ostream& os, cocos2d::CCRect const& rect);
+GEODE_DLL std::ostream& operator<<(std::ostream& os, cocos2d::ccColor3B const& color);
+GEODE_DLL std::ostream& operator<<(std::ostream& os, cocos2d::ccColor4B const& color);
 
 namespace geode {
     class Mod;
@@ -131,10 +133,21 @@ namespace geode {
     };
 
     inline struct {
+        // todo: fix it returning a reference instead 
+        // of just ignoring the warning
+        #ifdef _MSC_VER
+            #pragma warning(push)
+            #pragma warning(disable: 4172)
+        #endif
+
         template <typename T>
         geode::Log& operator<<(T a) {
             return geode::Log::get() << a;
         }
+
+        #ifdef _MSC_VER
+            #pragma warning(pop)
+        #endif
     } log;
 }
 GEODE_DLL geode::Log& operator<<(geode::Log&, geode::Mod*);

@@ -177,7 +177,21 @@ RT_ADD(
         KEY_ArrowUp = 0x11B,
         KEY_ArrowDown = 0x11C,
         KEY_ArrowLeft = 0x11D,
-        KEY_ArrowRight = 0x11E
+        KEY_ArrowRight = 0x11E,
+        CONTROLLER_A = 0x3E9,
+        CONTROLLER_B = 0x3EA,
+        CONTROLLER_Y = 0x3EB,
+        CONTROLLER_X = 0x3EC,
+        CONTROLLER_Start = 0x3ED,
+        CONTROLLER_Back = 0x3EE,
+        CONTROLLER_RB = 0x3EF,
+        CONTROLLER_LB = 0x3F0,
+        CONTROLLER_RT = 0x3F1,
+        CONTROLLER_LT = 0x3F2,
+        CONTROLLER_Up = 0x3F3,
+        CONTROLLER_Down = 0x3F4,
+        CONTROLLER_Left = 0x3F5,
+        CONTROLLER_Right = 0x3F6
     } enumKeyCodes;
 
 	class CC_DLL CCKeyboardDelegate

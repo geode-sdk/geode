@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Macros.hpp"
+#include <Macros.hpp>
 #include "Types.hpp"
 #include <string_view>
 #include <vector>
@@ -9,8 +9,8 @@
 #include <utils/Result.hpp>
 #include <functional>
 #include <unordered_set>
-#include <fs/filesystem.hpp>
-#include <Log.hpp>
+#include <utils/fs/filesystem.hpp>
+#include "Log.hpp"
 
 class Geode;
 
@@ -88,7 +88,7 @@ namespace geode {
          * use it, so who cares
          */
         template<int Schema>
-        Result<Mod*> checkBySchema(std::string const& path, void* json);
+        Result<ModInfo> checkBySchema(std::string const& path, void* json);
 
         Result<std::string> createTempDirectoryForMod(ModInfo const& info);
         Result<Mod*> loadModFromFile(std::string const& file);
@@ -107,6 +107,11 @@ namespace geode {
 
         Result<> saveSettings();
         Result<> loadSettings();
+
+        Result<ModInfo> parseModJson(
+            std::string const& path,
+            nlohmann::json const& json
+        );
 
         bool shouldLoadMod(std::string const& id) const;
         std::vector<UnloadedModInfo> const& getFailedMods() const;
@@ -221,6 +226,8 @@ namespace geode {
          * @returns Pointer to InternalMod
          */
         static Mod* getInternalMod();
+
+        bool isModInstalled(std::string const& id) const;
 
         /**
          * Run a function in the GD thread. Useful if you're 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Macros.hpp"
+#include <Macros.hpp>
 #include "Types.hpp"
 // #include <Base.hpp> // Geode
 #include <ccTypes.h>
@@ -12,6 +12,7 @@
 #include <limits>
 #undef min
 #undef max
+#include <utils/general.hpp>
 
 namespace cocos2d {
 	class CCNode;
@@ -41,9 +42,10 @@ namespace geode {
 		Custom,
 	};
 
-	class Setting {
+	class GEODE_DLL Setting {
 	protected:
 		std::string m_key;
+		Mod* m_mod = nullptr;
 
 		friend class Loader;
 
@@ -57,6 +59,9 @@ namespace geode {
 		virtual Result<> load(nlohmann::json const& json) = 0;
 
 		static Result<Setting*> parseFromJSON(nlohmann::json const& json);
+
+		virtual void resetToDefault() = 0;
+		void update();
 
 		template<typename T>
 		Result<T> getValueAs();
@@ -88,6 +93,7 @@ namespace geode {
 
 	public:
 		std::string getName() const { return m_name; }
+		std::string getDescription() const { return m_description; }
 
 		static Result<SettingClass*> parse(nlohmann::json const& json);
 	};
@@ -97,6 +103,7 @@ namespace geode {
 	protected:
 		T m_min = std::numeric_limits<T>::min();
 		T m_max = std::numeric_limits<T>::max();
+		T m_step = 1;
 		bool m_slider = Slider;
 		bool m_input = Input;
 		bool m_arrows = Arrows;
@@ -106,6 +113,7 @@ namespace geode {
 	public:
 		T getMin() { return m_min; }
 		T getMax() { return m_max; }
+		T getStep() { return m_step; }
 		bool hasSlider() { return m_slider; }
 		bool hasInput() { return m_input; }
 		bool hasArrows() { return m_arrows; }
@@ -121,7 +129,16 @@ namespace geode {
 		T getValue() const { return m_value; }
 		T getDefault() const { return m_default; }
 
-		void setValue(T val) { m_value = val; }
+		using value_type_t = T;
+
+		void setValue(T val) {
+			m_value = val;
+			this->update();
+		}
+
+		void resetToDefault() override {
+			this->setValue(m_default);
+		}
 	};
 
 	template<typename T, class SettingClass>
@@ -136,6 +153,33 @@ namespace geode {
 		size_t getDefaultIndex() const { return m_default; }
 		T getValue() const { return m_options.at(m_value); }
 		T getDefault() const { return m_options.at(m_default); }
+		T getValueAt(size_t ix) const { return m_options.at(ix); }
+		std::vector<T> getOptions() const { return m_options; };
+
+		using value_type_t = size_t;
+		
+		void setIndex(size_t value) {
+			m_value = utils::clamp<size_t>(value, 0, m_options.size() - 1);
+			this->update();
+		}
+		void incrementIndex(long increment) {
+			auto newValue = m_value + increment;
+			if (newValue < 0) m_value = 0;
+			else if (newValue > m_options.size() - 1) m_value = m_options.size() - 1;
+			else m_value = newValue;
+			this->update();
+		}
+		void incrementIndexWrap(long increment) {
+			long newValue = m_value + increment;
+			if (newValue < 0) m_value = m_options.size() - 1;
+			else if (newValue > static_cast<long>(m_options.size() - 1)) m_value = 0;
+			else m_value = newValue;
+			this->update();
+		}
+
+		void resetToDefault() override {
+			this->setIndex(m_default);
+		}
 	};
 
 	class BoolSetting : public SingleSetting<bool, BoolSetting> {
@@ -171,6 +215,8 @@ namespace geode {
 		
 	public:
 		inline virtual SettingType getType() override { return SettingType::Float; }
+
+		size_t getPrecision() const { return m_precision; }
 	};
 
 	class StringSetting : public SingleSetting<std::string, StringSetting> {
@@ -183,6 +229,8 @@ namespace geode {
 		Result<> load(nlohmann::json const& json) override;
 		
 	public:
+		std::string getFilter() const { return m_filter; }
+
 		static bool replaceWithBuiltInFilter(std::string& filter);
 		inline virtual SettingType getType() override { return SettingType::String; }
 	};
@@ -240,29 +288,31 @@ namespace geode {
 		Result<> save(nlohmann::json& json) const override;
 		Result<> load(nlohmann::json const& json) override;
 		
+		void resetToDefault() override {}
+		
 	public:
 		inline virtual SettingType getType() override { return SettingType::Custom; }
 	};
 
 	template<typename T>
 	Result<T> Setting::getValueAs() {
-		if (std::is_same_v<T, bool>) {
+		if constexpr (std::is_same_v<T, bool>) {
 			auto self = dynamic_cast<BoolSetting*>(this);
 			return self ? Ok<T>(self->getValue()) : Err<>("Not a bool");
 		}
-		if (std::is_same_v<T, int>) {
+		if constexpr (std::is_same_v<T, int>) {
 			auto self = dynamic_cast<IntSetting*>(this);
 			return self ? Ok<T>(self->getValue()) : Err<>("Not a int");
 		}
-		if (std::is_same_v<T, float>) {
+		if constexpr (std::is_same_v<T, float>) {
 			auto self = dynamic_cast<FloatSetting*>(this);
 			return self ? Ok<T>(self->getValue()) : Err<>("Not a float");
 		}
-		if (std::is_same_v<T, size_t>) {
+		if constexpr (std::is_same_v<T, size_t>) {
 			auto self = dynamic_cast<SelectSetting<T, BoolSetting>*>(this); // BoolSetting works as a stub here
 			return self ? Ok<T>(self->getIndex()) : Err<>("Not a select");
 		}
-		if (std::is_same_v<T, std::string>) {
+		if constexpr (std::is_same_v<T, std::string>) {
 			auto self = dynamic_cast<StringSetting*>(this);
 			if (self) {
 				return Ok<T>(self->getValue());
@@ -274,15 +324,15 @@ namespace geode {
 			}
 			return Err<>("Not a string");
 		}
-		if (std::is_same_v<T, cocos2d::ccColor3B>) {
+		if constexpr (std::is_same_v<T, cocos2d::ccColor3B>) {
 			auto self = dynamic_cast<ColorSetting*>(this);
 			return self ? Ok<T>(self->getValue()) : Err<>("Not a ccColor3B");
 		}
-		if (std::is_same_v<T, cocos2d::ccColor4B>) {
+		if constexpr (std::is_same_v<T, cocos2d::ccColor4B>) {
 			auto self = dynamic_cast<ColorAlphaSetting*>(this);
 			return self ? Ok<T>(self->getValue()) : Err<>("Not a ccColor4B");
 		}
-		if (std::is_same_v<T, ghc::filesystem::path>) {
+		if constexpr (std::is_same_v<T, ghc::filesystem::path>) {
 			auto self = dynamic_cast<PathSetting*>(this);
 			return self ? Ok<T>(self->getValue()) : Err<>("Not a path");
 		}

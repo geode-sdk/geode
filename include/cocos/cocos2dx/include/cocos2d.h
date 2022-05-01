@@ -307,6 +307,8 @@ THE SOFTWARE.
 #include "robtop/mouse_dispatcher/CCMouseDelegate.h"
 #include "robtop/mouse_dispatcher/CCMouseDispatcher.h"
 
+#include "robtop/content/CCContentManager.h"
+
 #include "robtop/scene_nodes/CCSceneTransitionDelegate.h"
 
 #include "robtop/xml/DS_Dictionary.h"

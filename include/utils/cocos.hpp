@@ -45,4 +45,40 @@ namespace geode::cocos {
      * Origin will be <= 0 and size will be >= 0
      */
     GEODE_DLL cocos2d::CCRect calculateChildCoverage(cocos2d::CCNode* parent);
+
+    /**
+     * Rescale node to fit inside given size
+     * @param node Node to rescale
+     * @param size Size to fit inside
+     * @param def Default size
+     * @param min Minimum size
+     */
+    GEODE_DLL void limitNodeSize(
+        cocos2d::CCNode* node,
+        cocos2d::CCSize const& size,
+        float def,
+        float min
+    );
+
+    /**
+     * Checks if a node is visible (recursively 
+     * checks parent visibility)
+     * @param node Node to check if visible
+     * @returns True if node is visibile. Does 
+     * not take into account if node is off-screen
+     */
+    GEODE_DLL bool nodeIsVisible(cocos2d::CCNode* node);
+
+    /**
+     * Checks if a given file exists in CCFileUtils 
+     * search paths. 
+     * @param filename File to check
+     * @returns True if file exists
+     * @example if (fileExistsInSearchPaths("mySprite.png"_spr)) {
+     *      CCSprite::create("mySprite.png"_spr);
+     * } else {
+     *      CCSprite::create("fallback.png");
+     * }
+     */
+    GEODE_DLL bool fileExistsInSearchPaths(const char* filename);
 }

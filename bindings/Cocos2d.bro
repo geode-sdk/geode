@@ -151,11 +151,27 @@ class cocos2d::CCEaseOut {
 }
 
 class cocos2d::CCEGLView {
-	void onGLFWMouseCallBack(GLFWwindow* wnd, int btn, int pressed, int z);
 	virtual void swapBuffers();
 	void updateWindow(int width, int height);
 	void toggleFullScreen(bool fullscreen);
 	void pollEvents();
+    void toggleFullScreen(bool fullscreen);
+    void onGLFWCharCallback(GLFWwindow* window, unsigned int entered);
+    void onGLFWCursorEnterFunCallback(GLFWwindow* window, int entered);
+    void onGLFWDeviceChangeFunCallback(GLFWwindow* window);
+    void onGLFWError(int code, const char* description);
+    void onGLFWframebuffersize(GLFWwindow* window, int width, int height);
+    void onGLFWMouseMoveCallBack(GLFWwindow* window, double x, double y);
+    void onGLFWMouseCallBack(GLFWwindow* window, int button, int action, int mods);
+    void onGLFWKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+    void onGLFWMouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
+    void onGLFWWindowIconifyFunCallback(GLFWwindow* window, int iconified);
+    void onGLFWWindowPosCallback(GLFWwindow* window, int x, int y);
+    void onGLFWWindowSizeFunCallback(GLFWwindow* window, int width, int height);
+}
+
+class cocos2d::CCEGLViewProtocol {
+    auto getViewPortRect() const = mac 0x29e2f0;
 }
 
 class cocos2d::CCFadeOut {
@@ -342,6 +358,7 @@ class cocos2d::CCMenuItem {
 	virtual auto isEnabled() = mac 0x1fbaf0, ios 0x2cf34;
 	virtual auto setEnabled(bool) = mac 0x1fbae0, ios 0x2cf2c;
 	virtual auto isSelected() = mac 0x1fbb50, ios 0x2cf60;
+    auto setTarget(cocos2d::CCObject*, cocos2d::SEL_MenuHandler) = mac 0x1fbb60;
 	auto rect() = mac 0x1fbb00, ios 0x2cf3c;
 }
 
@@ -375,7 +392,7 @@ class cocos2d::CCMenuItemSprite {
 	virtual auto setDisabledImage(cocos2d::CCNode*) = mac 0x1fd080, ios 0x2d104;
 	virtual auto updateImagesVisibility() = mac 0x1fd510, ios 0x2d3dc;
 
-	bool initWithNormalSprite(cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCObject*, cocos2d::SEL_MenuHandler) = mac 0x125450;
+	bool initWithNormalSprite(cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCObject*, cocos2d::SEL_MenuHandler) = mac 0x1fd2f0;
 	static auto create(cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCNode*) = mac 0x1fd120;
 	static auto create(cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCObject*, cocos2d::SEL_MenuHandler) = mac 0x1fd140;
 	static auto create(cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCObject*, cocos2d::SEL_MenuHandler) = mac 0x1fd2d0;
@@ -386,6 +403,10 @@ class cocos2d::CCMotionStreak {
 	auto resumeStroke() = mac 0x2edb30;
 	auto stopStroke() = mac 0x2edb20;
 	bool initWithFade(float fade, float minSeg, float stroke, cocos2d::ccColor3B const& color, cocos2d::CCTexture2D* texture) = mac 0x2ed6f0;
+}
+
+class cocos2d::CCMouseDispatcher {
+    
 }
 
 class cocos2d::CCMouseHandler {
@@ -780,8 +801,9 @@ class cocos2d::CCTouchDispatcher {
 }
 
 class cocos2d::CCTouchHandler {
-    virtual auto initWithDelegate(cocos2d::CCTouchDelegate*, int) = mac 0x247d10, , ios 0x69f8;
-    ~CCTouchHandler() = mac 0x247de0, , ios 0x6ac0;
+    virtual auto initWithDelegate(cocos2d::CCTouchDelegate*, int) = mac 0x247d10, ios 0x69f8;
+    auto getPriority() = mac 0x247c20;
+    ~CCTouchHandler() = mac 0x247de0, ios 0x6ac0;
 }
 
 class cocos2d::CCTransitionFade {
@@ -793,9 +815,35 @@ class cocos2d::CCTransitionFade {
 // 	static auto decompressString(gd::string, bool, int) = mac 0xea380;
 // }
 
+class cocos2d::extension::CCControl {
+    virtual bool init() = mac 0x1a71c0;
+    virtual ~CCControl() = mac 0x1a7380;
+    auto sendActionsForControlEvents(cocos2d::extension::CCControlEvent) = mac 0x1a7490;
+    auto registerWithTouchDispatcher() = mac 0x1a7420;
+    auto setOpacityModifyRGB(bool) = mac 0x1a7c10;
+    auto onExit() = mac 0x1a7480;
+    auto isTouchInside(cocos2d::CCTouch*) = mac 0x1a7de0;
+    auto setEnabled(bool) = mac 0x1a7e60;
+    auto onEnter() = mac 0x1a7470;
+    auto isEnabled() = mac 0x1a7e90;
+    auto setSelected(bool) = mac 0x1a7ea0;
+    auto isOpacityModifyRGB() = mac 0x1a7d70;
+    auto setHighlighted(bool) = mac 0x1a7ed0;
+    auto needsLayout() = mac 0x1a7e50;
+    auto getTouchLocation(cocos2d::CCTouch*) = mac 0x1a7d90;
+    auto isHighlighted() = mac 0x1a7ef0;
+    auto addTargetWithActionForControlEvents(cocos2d::CCObject*, cocos2d::extension::SEL_CCControlHandler, cocos2d::extension::CCControlEvent) = mac 0x1a7820;
+    auto removeTargetWithActionForControlEvents(cocos2d::CCObject*, cocos2d::extension::SEL_CCControlHandler, cocos2d::extension::CCControlEvent) = mac 0x1a7950;
+    auto isSelected() = mac 0x1a7ec0;
+}
 
 class cocos2d::extension::CCControlColourPicker {
+    ~CCControlColourPicker() = mac 0x1aae30;
 	auto setColorValue(cocos2d::_ccColor3B const&) = mac 0x1aac10;
+    auto ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x1aae10;
+    auto init() = mac 0x1aa400;
+    static auto colourPicker() = mac 0x1aaa30;
+
 }
 
 class cocos2d::extension::CCControlUtils {

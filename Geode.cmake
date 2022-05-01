@@ -40,8 +40,8 @@ function(setup_geode_mod)
 		set(GEODE_CODEGEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/codegen)
 		file(MAKE_DIRECTORY ${GEODE_CODEGEN_DIR})
 
-		set_source_files_properties(${GEODE_CODEGEN_DIR}/Source.cpp PROPERTIES GENERATED 1)
-		target_sources(${PROJECT_NAME} PRIVATE ${GEODE_CODEGEN_DIR}/Source.cpp)
+		set_source_files_properties(${GEODE_CODEGEN_DIR}/GeneratedSource.cpp PROPERTIES GENERATED 1)
+		target_sources(${PROJECT_NAME} PRIVATE ${GEODE_CODEGEN_DIR}/GeneratedSource.cpp)
 		target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR})
 		target_link_libraries(${PROJECT_NAME} fmt)
 

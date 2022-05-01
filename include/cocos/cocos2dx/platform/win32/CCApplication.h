@@ -60,6 +60,8 @@ public:
     CC_DEPRECATED_ATTRIBUTE const gd::string& getResourceRootPath(void);
 
     void setStartupScriptFilename(const gd::string& startupScriptFile);
+    
+    bool getControllerConnected() const;
 
     const gd::string& getStartupScriptFilename(void)
     {

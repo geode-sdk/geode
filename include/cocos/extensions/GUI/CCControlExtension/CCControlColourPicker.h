@@ -48,30 +48,30 @@ NS_CC_EXT_BEGIN
  * @{
  */
 
-class CCControlColourPicker: public CCControl
+class CCControlColourPicker : public CCControl
 {
+    GEODE_FRIEND_MODIFY
+    
 public:
+    RT_ADD(
+        ccColor3B const& getColorValue() const;
+        virtual void setColorValue(ccColor3B const&);
+    )
+
     CCControlColourPicker();
     virtual ~CCControlColourPicker();
-    virtual void setColor(const ccColor3B& colorValue);
-    virtual void setEnabled(bool bEnabled);
 
 protected:
     HSV m_hsv;
     CC_SYNTHESIZE_RETAIN(CCControlSaturationBrightnessPicker*, m_colourPicker, colourPicker)
     
-    RT_ADD(
-        ccColor3B const& getColorValue();
-        CCSprite* getColorTarget();
-        ColorPickerDelegate* getDelegate();
-
-        virtual void setColorValue(ccColor3B const&);
-        void setColorTarget(CCSprite*);
-        void setDelegate(ColorPickerDelegate*);
-    )
-
     CC_SYNTHESIZE_RETAIN(CCControlHuePicker*, m_huePicker, HuePicker)
     CC_SYNTHESIZE_RETAIN(CCSprite*, m_background, Background)
+
+    RT_ADD(
+        CC_SYNTHESIZE_NV(CCSprite*, m_colorTarget, ColorTarget)
+        CC_SYNTHESIZE_NV(ColorPickerDelegate*, m_delegate, Delegate)
+    )
     
 public:
     RT_REMOVE(

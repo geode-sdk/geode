@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Macros.hpp"
+#include <Macros.hpp>
 #include "Types.hpp"
 #include <vector>
 #include <variant>
-#include <utils/casts.hpp>
-#include <utils/Result.hpp>
+#include "../utils/casts.hpp"
+#include "../utils/Result.hpp"
 #include "Log.hpp"
 #include "Mod.hpp"
 
@@ -160,12 +160,12 @@ namespace geode {
 	}
 
 	template <typename T>
-	inline Observer<std::monostate>* NotificationCenter::registerObserver(std::string sel, std::function<void(Notification<T> const&)> cb) {
-	    return registerObserver(Mod::get(), NotifInfo<T>(sel), cb);
+	inline Observer<std::monostate>* EventCenter::registerObserver(std::string sel, std::function<void(Event<T> const&)> cb) {
+	    return registerObserver(Mod::get(), EventInfo<T>(sel), cb);
 	}
 
 	template <typename T>
-	inline Observer<std::monostate>* NotificationCenter::registerObserver(NotifInfo<T> info, std::function<void(Notification<T> const&)> cb) {
+	inline Observer<std::monostate>* EventCenter::registerObserver(EventInfo<T> info, std::function<void(Event<T> const&)> cb) {
 	    return registerObserver(Mod::get(), info, cb);
 	}
     

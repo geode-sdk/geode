@@ -1,8 +1,9 @@
 #pragma once
 #include "Types.hpp"
+#include <utils/addresser.hpp>
 
 namespace geode::modifier {
 	struct addresses {
-		#include <codegen/Address.hpp>
+		#include <codegen/GeneratedAddress.hpp>
 	};
 }
