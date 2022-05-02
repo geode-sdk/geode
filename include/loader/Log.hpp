@@ -6,15 +6,16 @@
 #include <sstream>
 #include <vector>
 #include <utils/fs/filesystem.hpp>
+#include <ccTypes.h>
 
-namespace cocos2d {
+/*namespace cocos2d {
     class CCObject;
     class CCNode;
     class CCPoint;
     class CCSize;
     class CCRect;
     class CCArray;
-}
+}*/
 
 GEODE_DLL std::ostream& operator<<(std::ostream& os, geode::Mod* mod);
 GEODE_DLL std::ostream& operator<<(std::ostream& os, cocos2d::CCObject* obj);
