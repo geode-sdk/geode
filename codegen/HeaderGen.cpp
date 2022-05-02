@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
 	set<ClassDefinition*> looked;
 	vector<ClassDefinition*> ordered;
 
-    string output = "#pragma once\n#include <cocos2d.h>\n#include <gdstdlib.hpp>";
+    string output = "#pragma once\n#include <gdstdlib.hpp>\n#include <cocos2d.h>\n";
     Root root = CacShare::init(argc, argv);
 
     for (auto& [name, c] : root.classes) {
