@@ -4,6 +4,7 @@ set(CMAKE_SYSTEM_NAME Win32)
 include_directories(
 	${GEODE_SDK_PATH}/include/cocos/cocos2dx/platform/win32
 	${GEODE_SDK_PATH}/include/cocos/cocos2dx/platform/third_party/win32
+	${GEODE_SDK_PATH}/include/cocos/cocos2dx/platform/third_party/win32/zlib
 	${GEODE_SDK_PATH}/include/cocos/cocos2dx/platform/third_party/win32/OGLES
 
 	${GEODE_SDK_PATH}/include/hook/geode-meta/include
