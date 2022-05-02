@@ -10,6 +10,7 @@
 #include <functional>
 #include <unordered_set>
 #include <utils/fs/filesystem.hpp>
+#include <utils/json.hpp>
 #include "Log.hpp"
 
 class Geode;
