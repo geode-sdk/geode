@@ -14,8 +14,6 @@ namespace cocos2d {
     class CCSize;
     class CCRect;
     class CCArray;
-    class ccColor3B;
-    class ccColor4B;
 }
 
 GEODE_DLL std::ostream& operator<<(std::ostream& os, geode::Mod* mod);
