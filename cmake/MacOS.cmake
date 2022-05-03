@@ -11,14 +11,14 @@ include_directories(
 )
 
 link_libraries("-framework Cocoa")
-function(geode_link_bin proname bin_repo_directory)
+function(geode_link_bin)
 	target_link_libraries(
-	    ${proname}
-	    "${bin_repo_directory}/macos/Geode.dylib"
+	    ${PROJECT_NAME}
+	    "${GEODE_SDK_PATH}/../macos/Geode.dylib"
 	)
 	target_include_directories(
-	    ${proname} PUBLIC
-	    "${bin_repo_directory}/macos"
+	    ${PROJECT_NAME} PUBLIC
+	    "${GEODE_SDK_PATH}/../macos"
 	)
 endfunction()
 

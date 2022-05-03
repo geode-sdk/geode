@@ -32,16 +32,16 @@ install(
 	DESTINATION ${CMAKE_BINARY_DIR}/out/
 )
 
-function(geode_link_bin proname bin_repo_directory)
+function(geode_link_bin)
 
     target_link_libraries(
-        ${proname}
-        "${bin_repo_directory}/windows/geode.lib"
-        "${bin_repo_directory}/windows/CCZipUtils.lib"
+        ${PROJECT_NAME}
+        "${GEODE_SDK_PATH}/../windows/geode.lib"
+        "${GEODE_SDK_PATH}/../windows/CCZipUtils.lib"
     )
     target_include_directories(
-        ${proname} PUBLIC
-        "${bin_repo_directory}/windows"
+        ${PROJECT_NAME} PUBLIC
+        "${GEODE_SDK_PATH}/../windows"
     )
 
 endfunction()
