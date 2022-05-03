@@ -1,0 +1,33 @@
+name: Update Suite
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+    - '*'
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:      
+    - uses: actions/checkout@v2
+      with:
+        repository: geode-sdk/suite
+        path: suite
+        ref: nightly
+        submodules: recursive
+        token: '${{ secrets.GEODE_BOT_PUSH_BIN_TOKEN }}'
+
+    - name: Update SDK
+      working-directory: ${{ github.workspace }}/suite/sdk
+      run: git pull
+        
+    - name: Commit and push to suite
+      working-directory: ${{ github.workspace }}/suite
+      run: |
+        git config --local user.email "${{ secrets.GEODE_BOT_EMAIL }}"
+        git config --local user.name "GeodeBot"
+        git add -A
+        git commit -m "Loader update from ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}"
+        git push "https://GeodeBot:${{ secrets.GEODE_BOT_PUSH_BIN_TOKEN}}@github.com/geode-sdk/suite.git" main
