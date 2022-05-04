@@ -12,6 +12,7 @@
 #include <vector>
 #include <unordered_map>
 #include <type_traits>
+#include <cocos2d.h>
 
 
 class InternalLoader;
