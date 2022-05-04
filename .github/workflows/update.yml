@@ -21,7 +21,7 @@ jobs:
 
     - name: Update SDK
       working-directory: ${{ github.workspace }}/suite/sdk
-      run: git pull
+      run: git checkout main
         
     - name: Commit and push to suite
       working-directory: ${{ github.workspace }}/suite
@@ -30,4 +30,4 @@ jobs:
         git config --local user.name "GeodeBot"
         git add -A
         git commit -m "Loader update from ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}"
-        git push "https://GeodeBot:${{ secrets.GEODE_BOT_PUSH_BIN_TOKEN}}@github.com/geode-sdk/suite.git" main
+        git push "https://GeodeBot:${{ secrets.GEODE_BOT_PUSH_BIN_TOKEN}}@github.com/geode-sdk/suite.git"
