@@ -4,10 +4,10 @@
 #include "Types.hpp"
 #include "Hook.hpp"
 #include "Event.hpp"
-#include "Setting.hpp"
 #include "../utils/types.hpp"
 #include "../utils/Result.hpp"
 #include "../utils/VersionInfo.hpp"
+#include <utils/json.hpp>
 #include <string_view>
 #include <vector>
 #include <unordered_map>
@@ -25,7 +25,6 @@ namespace geode {
     class Loader;
     class Log;
     class Mod;
-    class Setting;
 
     class Unknown;
 	using unknownmemfn_t = void(Unknown::*)();
@@ -142,9 +141,10 @@ namespace geode {
          */
         std::vector<std::string> m_spritesheets;
         /**
-         * Settings
+         * Default data store values
          */
-        std::unordered_map<std::string, Setting*> m_settings;
+        nlohmann::json m_defaultDataStore;
+
         /**
          * Whether the mod can be disabled or not
          */
@@ -153,6 +153,18 @@ namespace geode {
          * Whether the mod can be unloaded or not
          */
         bool m_supportsUnloading = false;
+        /**
+         * Create ModInfo from geode file
+         */
+        static Result<ModInfo> createFromFile(std::string const& path);
+     private:
+        /**
+         * Backwards compatibility; if we update the mod.json format
+         */
+        template<int Schema>
+        static Result<ModInfo> createFromSchema(std::string const& path, nlohmann::json& json, cocos2d::ZipFile& unzip);
+
+
     };
 
     /**
@@ -268,7 +280,6 @@ namespace geode {
         friend class Loader;
         friend class ::InternalLoader;
         friend struct ModInfo;
-        friend class Setting;
 
     public:
         std::string getID()         const;
@@ -470,50 +481,6 @@ namespace geode {
          */
         Result<> uninstall();
         bool isUninstalled() const;
-
-        Result<> saveData();
-        Result<> loadData();
-
-        /**
-         * Get the value of a setting
-         * @param key The setting's key
-         * @returns Successful result with the 
-         * setting's value on success, errorful 
-         * result with info on error. Note that 
-         * if the setting is managed by a custom 
-         * control and/or has a custom type, this 
-         * function will return an errorful result; 
-         * you will need to use that custom control's 
-         * getter, provided it has one implemented.
-         */
-        template<typename T>
-        Result<T> getSettingValue(std::string const& key) const {
-            if (!this->m_info.m_settings.count(key)) {
-                return Err<>("No setting \"" + key + "\" exists");
-            }
-            return this->m_info.m_settings.at(key)->getValueAs<T>();
-        }
-
-        /**
-         * Register a custom setting control 
-         * for a setting marked as "custom". 
-         * @param key Setting key
-         * @param control Setting control
-         * @param override Override the existing 
-         * control, even if one has been set 
-         * already. Note: will override the 
-         * setting even if it's not marked as 
-         * custom.
-         * @returns Successful result on success, 
-         * errorful result with info on error
-         */
-        Result<> setCustomSetting(
-            std::string const& key,
-            Setting* control,
-            bool override = false
-        );
-
-        std::vector<Setting*> getSettings() const;
         
         /**
          * Get the mod's save directory 

@@ -52,6 +52,8 @@ namespace geode {
         std::vector<ghc::filesystem::path> m_modDirectories;
         std::vector<UnloadedModInfo> m_erroredMods;
         LoaderSettings m_loadedSettings;
+        std::unordered_map<std::string, nlohmann::json> m_dataStore;
+
         bool m_isSetup = false;
         static bool s_unloading;
 
@@ -74,23 +76,6 @@ namespace geode {
          */
         static constexpr const int s_supportedSchemaMax = 1;
 
-        /**
-         * This function is to avoid ridiculous 
-         * indentation in `checkMetaInformation`
-         * 
-         * The json parameter is void* because 
-         * I don't want to force-include json 
-         * for every geode user and forward-
-         * declaring the template-full basic_json 
-         * class looks horrifying
-         * 
-         * This function is only used in one place 
-         * anyway, only by me who knows how to 
-         * use it, so who cares
-         */
-        template<int Schema>
-        Result<ModInfo> checkBySchema(std::string const& path, void* json);
-
         Result<std::string> createTempDirectoryForMod(ModInfo const& info);
         Result<Mod*> loadModFromFile(std::string const& file);
         void createDirectories();
@@ -109,10 +94,8 @@ namespace geode {
         Result<> saveSettings();
         Result<> loadSettings();
 
-        Result<ModInfo> parseModJson(
-            std::string const& path,
-            nlohmann::json const& json
-        );
+        Result<> saveDataStore();
+        Result<> initDataStore();
 
         bool shouldLoadMod(std::string const& id) const;
         std::vector<UnloadedModInfo> const& getFailedMods() const;
@@ -147,12 +130,28 @@ namespace geode {
          * occurred
          */
         bool setup();
+
         /**
          * Refresh the mods list. Scans all search 
          * directories again for unloaded mods
          * @returns Amount of new mods loaded
          */
         size_t refreshMods();
+
+        /**
+         * Return the data store object for a mod
+         * @param id The ID of the mod
+         * @returns JSON object referring to data 
+         * store
+         */
+        Result<nlohmann::json&> getDataStore(std::string const& id);
+
+        /**
+         * Reset the data store for a mod to the
+         * default value
+         * @param id The ID of the mod
+         */
+        Result<> resetDataStore(std::string const& id);
 
         /**
          * Returns true if the Loader is unloading / 
