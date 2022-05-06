@@ -52,7 +52,6 @@ namespace geode {
         std::vector<ghc::filesystem::path> m_modDirectories;
         std::vector<UnloadedModInfo> m_erroredMods;
         LoaderSettings m_loadedSettings;
-        std::unordered_map<std::string, nlohmann::json> m_dataStore;
 
         bool m_isSetup = false;
         static bool s_unloading;
@@ -94,9 +93,6 @@ namespace geode {
         Result<> saveSettings();
         Result<> loadSettings();
 
-        Result<> saveDataStore();
-        Result<> initDataStore();
-
         bool shouldLoadMod(std::string const& id) const;
         std::vector<UnloadedModInfo> const& getFailedMods() const;
 
@@ -137,21 +133,6 @@ namespace geode {
          * @returns Amount of new mods loaded
          */
         size_t refreshMods();
-
-        /**
-         * Return the data store object for a mod
-         * @param id The ID of the mod
-         * @returns JSON object referring to data 
-         * store
-         */
-        Result<nlohmann::json&> getDataStore(std::string const& id);
-
-        /**
-         * Reset the data store for a mod to the
-         * default value
-         * @param id The ID of the mod
-         */
-        Result<> resetDataStore(std::string const& id);
 
         /**
          * Returns true if the Loader is unloading / 

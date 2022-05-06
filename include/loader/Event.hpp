@@ -62,6 +62,8 @@ namespace geode {
 
         inline Event(Event&& a) : m_info(a.m_info), m_sender(a.m_sender), m_object(std::move(a.m_object)) {}
 
+        inline operator T() { return m_object; }
+
         friend class EventCenter;
     };
 

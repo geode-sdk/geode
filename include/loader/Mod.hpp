@@ -170,6 +170,25 @@ namespace geode {
     };
 
     /**
+     * @class DataStore
+     * Internal class for notifying Mod
+     * when the datastore changes
+     */
+    class DataStore {
+        nlohmann::json m_store;
+        Mod* m_mod;
+
+        DataStore(Mod* m, nlohmann::json& j) : m_mod(m), m_store(j) {}
+        friend class Mod;
+     public:
+        ~DataStore();
+        nlohmann::json& operator[](std::string const&);
+        DataStore& operator=(nlohmann::json&);
+        operator nlohmann::json();
+
+    };
+
+    /**
      * @class Mod
      * Represents a Mod ingame. Inherit
      * from this class to create your own
@@ -259,10 +278,20 @@ namespace geode {
         std::string m_loadErrorInfo = "";
 
         /**
+         * Data Store object
+         */
+        nlohmann::json m_dataStore;
+
+        /**
          * Load the platform binary
          */
         Result<> loadPlatformBinary();
         Result<> unloadPlatformBinary();
+
+        Result<> saveDataStore();
+        Result<> loadDataStore();
+
+        void postDSUpdate();
 
         Result<> createTempDir();
 
@@ -282,6 +311,7 @@ namespace geode {
         friend class Loader;
         friend class ::InternalLoader;
         friend struct ModInfo;
+        friend class DataStore;
 
     public:
         std::string getID()         const;
@@ -489,6 +519,20 @@ namespace geode {
          * path
          */
         ghc::filesystem::path getSaveDir() const;
+
+        /**
+         * Return the data store object
+         * @returns DataStore object
+         * store
+         */
+        DataStore getDataStore();
+
+        /**
+         * Reset the data store to the
+         * default value
+         */
+        Result<> resetDataStore();
+
 
         /**
          * Check whether or not this Mod

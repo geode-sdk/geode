@@ -35,9 +35,19 @@ function(setup_geode_mod)
 	include(CheckIPOSupported)
 	check_ipo_supported(RESULT supported OUTPUT error)
 
+	target_sources(${PROJECT_NAME} PRIVATE ${GEODE_SDK_PATH}/entry.cpp)
+
 	if (DEFINED PARSED_ARGS_BUILD_CODEGEN)
 		add_definitions(-DGEODE_EXPORTING_CODEGEN)
-		set(GEODE_CODEGEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/codegen)
+
+		# only 1 codegen dir
+		get_property(GEODE_CODEGEN_DIR GLOBAL PROPERTY GEODE_CODEGEN_DIR)
+		if (NOT GEODE_CODEGEN_DIR)
+			set(GEODE_CODEGEN_BUILD 1)
+			set_property(GLOBAL PROPERTY GEODE_CODEGEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/codegen)
+			get_property(GEODE_CODEGEN_DIR GLOBAL PROPERTY GEODE_CODEGEN_DIR)
+		endif()
+
 		file(MAKE_DIRECTORY ${GEODE_CODEGEN_DIR})
 
 		set_source_files_properties(${GEODE_CODEGEN_DIR}/GeneratedSource.cpp PROPERTIES GENERATED 1)
@@ -45,7 +55,9 @@ function(setup_geode_mod)
 		target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR})
 		target_link_libraries(${PROJECT_NAME} fmt)
 
-		add_subdirectory(${GEODE_SDK_PATH}/codegen ${GEODE_CODEGEN_DIR})
+		if (DEFINED GEODE_CODEGEN_BUILD)
+			add_subdirectory(${GEODE_SDK_PATH}/codegen ${GEODE_CODEGEN_DIR})
+		endif()
 	endif()
 
 	target_compile_definitions(${PROJECT_NAME} PUBLIC -DPROJECT_NAME=${PROJECT_NAME} -DEXPORT_${PROJECT_NAME}=1)
