@@ -30,6 +30,7 @@ function(setup_geode_mod)
     )
 
     set(GEODE_NO_LOADER ${PARSED_ARGS_NO_LOADER})
+    set(GEODE_DO_CODEGEN ${PARSED_ARGS_BUILD_CODEGEN})
 	if(PARSED_ARGS_OUTPUT)
 		set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" OUTPUT_NAME ${PARSED_ARGS_OUTPUT})
 	endif()
@@ -40,7 +41,7 @@ function(setup_geode_mod)
 
 	target_sources(${PROJECT_NAME} PRIVATE ${GEODE_SDK_PATH}/entry.cpp)
 
-	if (DEFINED PARSED_ARGS_BUILD_CODEGEN)
+	if (${GEODE_DO_CODEGEN})
 		add_definitions(-DGEODE_EXPORTING_CODEGEN)
 
 		# only 1 codegen dir

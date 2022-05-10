@@ -39,3 +39,10 @@ target_link_libraries(
     "${GEODE_SDK_PATH}/../windows/CCZipUtils.lib"
 )
 endif()
+
+if (NOT ${GEODE_DO_CODEGEN})
+	target_include_directories(
+		${PROJECT_NAME} PRIVATE
+		"${GEODE_SDK_PATH}/../windows/"
+	)
+endif()

@@ -10,7 +10,6 @@ include_directories(
 	${GEODE_SDK_PATH}/include/cocos/cocos2dx/platform/third_party/mac/OGLES
 )
 
-
 target_link_libraries(${PROJECT_NAME} "-framework Cocoa")
 if(NOT ${GEODE_NO_LOADER})
 	target_link_libraries(
@@ -18,6 +17,14 @@ if(NOT ${GEODE_NO_LOADER})
 	    "${GEODE_SDK_PATH}/../macos/Geode.dylib"
 	)
 endif()
+
+if (NOT ${GEODE_DO_CODEGEN})
+	target_include_directories(
+		${PROJECT_NAME} PRIVATE
+		"${GEODE_SDK_PATH}/../macos/"
+	)
+endif()
+
 
 macro(link_prebuilts project)
 	target_link_libraries(${project} 
