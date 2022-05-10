@@ -1,3 +1,5 @@
+#pragma once
+
 #include <broma.hpp>
 #include <array>
 #include <fmt/format.h>

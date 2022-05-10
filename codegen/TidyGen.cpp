@@ -1,4 +1,4 @@
-#include "SharedGen.hpp"
+#include <SharedGen.hpp>
 #include <iostream>
 #include <set>
 

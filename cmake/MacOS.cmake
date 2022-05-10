@@ -19,7 +19,6 @@ if(NOT ${GEODE_NO_LOADER})
 	)
 endif()
 
-
 macro(link_prebuilts project)
 	target_link_libraries(${project} 
 		"${GEODE_SDK_DIR}/lib/macos/Geometry Dash"
