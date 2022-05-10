@@ -9,6 +9,7 @@ else()
 endif()
     
 function(create_geode_file proname)
+    message(STATUS "Creating geode file")
 
     if(NOT GEODE_CLI)
         message(WARNING "create_geode_file called, but Geode CLI was not found - You will need to manually package the .geode files")

@@ -8,6 +8,7 @@
 		OUTPUT                    name of the output binary
 		BUILD_CODEGEN             whether to build 
 		NO_GEODE_FILE             dont produce geode file
+		NO_LOADER                 dont link loader
 		
 ]]
 
@@ -16,9 +17,10 @@ cmake_minimum_required(VERSION 3.13.4)
 set(GEODE_SDK_PATH ${CMAKE_CURRENT_LIST_DIR})
 
 include(CMakeParseArguments)
+include(${GEODE_SDK_PATH}/cmake/GeodeFile.cmake)
 
 function(setup_geode_mod)
-	set(bools BUILD_CODEGEN NO_GEODE_FILE)
+	set(bools BUILD_CODEGEN NO_GEODE_FILE NO_LOADER)
     cmake_parse_arguments(
         PARSED_ARGS
         "${bools}"
@@ -26,11 +28,12 @@ function(setup_geode_mod)
         ""
         ${ARGN}
     )
+
+    set(GEODE_NO_LOADER PARSED_ARGS_NO_LOADER)
 	if(PARSED_ARGS_OUTPUT)
 		set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" OUTPUT_NAME ${PARSED_ARGS_OUTPUT})
 	endif()
 
-	include(${GEODE_SDK_PATH}/cmake/GeodeFile.cmake)
 	include(${GEODE_SDK_PATH}/cmake/Platform.cmake)
 	include(CheckIPOSupported)
 	check_ipo_supported(RESULT supported OUTPUT error)
