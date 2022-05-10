@@ -15,6 +15,7 @@ class cocos2d::CCApplication {
 	virtual auto getTargetPlatform() = mac 0x1a3f20, ios 0x10e57c;
 	virtual auto openURL(char const*) = mac 0x1a4550, ios 0x10e7a4;
 	virtual auto setAnimationInterval(double) = mac 0x1a3ee0, ios 0x10e494;
+	static auto sharedApplication() = mac 0x1a3f30;
 	~CCApplication() = mac 0x1a3d10, ios 0x10e384;
 }
 
