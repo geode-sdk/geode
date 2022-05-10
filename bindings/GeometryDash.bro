@@ -3367,7 +3367,7 @@ class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDeleg
 	PAD = mac 0x0, win 0x4, android 0x0;
 }
 
-class LevelCell : public TableViewCell
+class LevelCell : TableViewCell
 {
 	CCMenuItemSpriteExtra* m_button;
 	GJGameLevel* m_level;
