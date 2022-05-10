@@ -174,7 +174,7 @@ namespace geode {
      * Internal class for notifying Mod
      * when the datastore changes
      */
-    class DataStore {
+    class GEODE_DLL DataStore {
         nlohmann::json m_store;
         Mod* m_mod;
 

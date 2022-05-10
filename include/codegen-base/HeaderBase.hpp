@@ -298,6 +298,13 @@ enum class IconType {
 	Special        = 99,
 };
 
+enum class GJChallengeType {
+	Unknown = 0,
+	Orbs = 1,
+	UserCoins = 2,
+	Stars = 3
+};
+
 // Geode Addition
 enum class ComparisonType {
     Equals = 0,
