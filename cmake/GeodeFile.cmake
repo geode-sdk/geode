@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.13.4)
 
-find_program(GEODE_CLI NAMES geode.exe geode-cli.exe geode geode-cli)
+find_program(GEODE_CLI NAMES geode.exe geode-cli.exe geode geode-cli PATHS /Users/Shared/GeodeSDK/bin)
 
 if(NOT GEODE_CLI)
     message(STATUS "Unable to find Geode CLI - You will need to manually package the .geode files")
