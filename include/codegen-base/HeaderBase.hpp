@@ -303,7 +303,7 @@ enum class GJChallengeType {
 	Orbs = 1,
 	UserCoins = 2,
 	Stars = 3
-}
+};
 
 // Geode Addition
 enum class ComparisonType {

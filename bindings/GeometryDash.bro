@@ -745,7 +745,7 @@ class CreatorLayer : cocos2d::CCLayer {
 	void onChallenge(cocos2d::CCObject*) = mac 0x0, win 0x4f1b0, ios 0x0;
 	void onMyLevels(cocos2d::CCObject*) = mac 0x142b70, win 0x0, ios 0x0;
 	void onSavedLevels(cocos2d::CCObject*) = mac 0x142860, win 0x0, ios 0x0;
-	void init() = mac 0x0, win 0x4de40, ios 0x0;
+	bool init() = mac 0x0, win 0x4de40, ios 0x0;
 	static CreatorLayer* create() = mac 0x0, win 0x4dda0, ios 0x0;
 }
 
@@ -835,7 +835,7 @@ class CustomizeObjectLayer : FLAlertLayer, TextInputDelegate, HSVWidgetPopupDele
 
 class DailyLevelPage {
 	static DailyLevelPage* create(bool weekly) = mac 0x0, win 0x6a860, ios 0x0;
-	void init(bool weekly) = mac 0x0, win 0x6a900, ios 0x0;
+	bool init(bool weekly) = mac 0x0, win 0x6a900, ios 0x0;
 	void updateTimers(float) = mac 0x0, win 0x6bef0, ios 0x0;
 
 	PAD = mac 0x0, win 0x1ed, ios 0x0;
@@ -852,7 +852,7 @@ class DialogLayer : cocos2d::CCLayerColor {
 	}
 
 	static DialogLayer* createDialogLayer(DialogObject*, cocos2d::CCArray*, int) = mac 0x2047d0, win 0x6D470, ios 0x459d0;
-	void init(DialogLayer*, DialogObject*, cocos2d::CCArray*, int) = mac 0x0, win 0x6D520, ios 0x0;
+	bool init(DialogLayer*, DialogObject*, cocos2d::CCArray*, int) = mac 0x0, win 0x6D520, ios 0x0;
 	cocos2d::CCAction* animateIn(int location) = mac 0x0, win 0x6E130, ios 0x0;
 
 	~DialogLayer() = mac 0x204720, win 0x0, ios 0x0;
