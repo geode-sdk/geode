@@ -78,7 +78,7 @@ struct Function : ClassField {
 
 	bool is_defined;
 	string definition;
-	bool same(Function const& other) const {
+	inline bool same(Function const& other) const {
 		if (name != other.name) return false;
 		// if (return_type != other.return_type) return false;
 		// if (is_const != other.is_const) return false;
@@ -87,7 +87,7 @@ struct Function : ClassField {
 		for (auto i = 0u; i < args.size(); ++i) if (args[i] != other.args[i]) return false;
 		return true;
 	}
-	void merge(Function const& other) {
+	inline void merge(Function const& other) {
 		for (int i = 0; i < 3; ++i)
 			if (binds[i] == "") binds[i] = other.binds[i];
 		if (return_type == "void") return_type = other.return_type;
@@ -97,7 +97,7 @@ struct Function : ClassField {
 };
 
 struct Member : ClassField {
-	Member() : type(), name(), hardcodes(), count() {}
+	inline Member() : type(), name(), hardcodes(), count() {}
 	string type;
 	string name;
 	MemberType member_type;
@@ -107,7 +107,7 @@ struct Member : ClassField {
 };
 
 struct Inline : ClassField {
-	Inline() : inlined() {}
+	inline Inline() : inlined() {}
 	string inlined;
 };
 
@@ -121,7 +121,7 @@ struct ClassDefinition {
 	vector<Inline> inlines;
 	vector<ClassField*> in_order;
 
-	void addSuperclass(string sclass) {
+	inline void addSuperclass(string sclass) {
 		if (std::find(superclasses.begin(), superclasses.end(), sclass) == superclasses.end()) {
 			superclasses.push_back(sclass);	
 			depends.push_back(sclass);	
@@ -160,7 +160,7 @@ struct ClassDefinition {
 struct Root {
 	unordered_map<string, ClassDefinition> classes;
 
-	ClassDefinition& addClass(string name) {
+	inline ClassDefinition& addClass(string name) {
 		if (classes.find(name) == classes.end()) {
 			classes[name] = ClassDefinition();
 			classes[name].name = name;

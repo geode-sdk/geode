@@ -53,7 +53,7 @@ struct Token {
 	string slice;
 };
 
-Token parseIdent(stringstream& stream) {
+inline Token parseIdent(stringstream& stream) {
     while (stream.peek() == ' ') {
         stream.get();
     }
@@ -76,7 +76,7 @@ Token parseIdent(stringstream& stream) {
     cacerr("Unexpected EOF\n");
 }
 
-void parseString(stringstream& stream, string& slice, char start) {
+inline void parseString(stringstream& stream, string& slice, char start) {
 	slice.clear();
 	slice.reserve(128);
 	while (stream.peek() != start) {
@@ -86,7 +86,7 @@ void parseString(stringstream& stream, string& slice, char start) {
 	slice.shrink_to_fit();
 }
 
-void parseDefined(stringstream& stream, string& slice) {
+inline void parseDefined(stringstream& stream, string& slice) {
 	slice.clear();
 	slice.reserve(256);
 	slice += "{";
@@ -133,7 +133,7 @@ void parseDefined(stringstream& stream, string& slice) {
 	slice.shrink_to_fit();
 }
 
-void parseInline(stringstream& stream, string& slice) {
+inline void parseInline(stringstream& stream, string& slice) {
 	slice.clear();
 	slice.reserve(256);
 	while (stream.peek() != '{' && stream.peek() != '\n') {
@@ -188,7 +188,7 @@ void parseInline(stringstream& stream, string& slice) {
 }
 
 
-void parseTemplate(stringstream& stream, string& slice) {
+inline void parseTemplate(stringstream& stream, string& slice) {
 	slice.clear();
 	slice.reserve(64);
 	slice += "<";
@@ -207,7 +207,7 @@ void parseTemplate(stringstream& stream, string& slice) {
 	slice.shrink_to_fit();
 } 
 
-void parsePreproc(stringstream& stream) {
+inline void parsePreproc(stringstream& stream) {
 	string slice = parseIdent(stream).slice;
 	if (slice == "include") {
 		while (stream.peek() == ' ') {
@@ -245,7 +245,7 @@ void parsePreproc(stringstream& stream) {
 	}
 }
 
-vector<Token> lexStream(stringstream& stream) {
+inline vector<Token> lexStream(stringstream& stream) {
 	vector<Token> ts;
 	bool class_mode = false;
 

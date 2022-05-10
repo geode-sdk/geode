@@ -8,7 +8,7 @@
 
 using std::ifstream, std::ofstream;
 
-Root parseFile(char const* fname) {
+inline Root parseFile(char const* fname) {
 	ifstream in(fname);
 	string contents;
 	while (in)

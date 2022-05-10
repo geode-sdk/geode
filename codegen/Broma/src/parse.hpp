@@ -9,7 +9,7 @@ using std::queue;
 #define loop while(true)
 using Tokens = queue<Token>;
 
-Token next(Tokens& tokens) {
+inline Token next(Tokens& tokens) {
 	if (tokens.size() == 0) {
 		cacerr("Unexpected EOF while parsing\n");
 	}
@@ -20,7 +20,7 @@ Token next(Tokens& tokens) {
 	return p;
 }
 
-Token peek(Tokens& tokens) {
+inline Token peek(Tokens& tokens) {
 	if (tokens.size() == 0) {
 		cacerr("Unexpected EOF while parsing\n");
 	}
@@ -28,14 +28,14 @@ Token peek(Tokens& tokens) {
 	return p;
 }
 
-Token next_expect(Tokens& tokens, TokenType type, string tname) {
+inline Token next_expect(Tokens& tokens, TokenType type, string tname) {
 	auto t = next(tokens);
 	if (t.type == type)
 		return t;
 	cacerr("Expected %s, found %s (next tokens %s)\n", tname.c_str(), t.slice.c_str(), next(tokens).slice.c_str());
 }
 
-bool next_if_type(TokenType type, Tokens& tokens) {
+inline bool next_if_type(TokenType type, Tokens& tokens) {
 	auto t = peek(tokens);
 	if (t.type == type) {
 		next(tokens);
@@ -43,13 +43,13 @@ bool next_if_type(TokenType type, Tokens& tokens) {
 	}
 	return true;
 }
-string parseQualifiedName(Tokens& tokens);
+inline string parseQualifiedName(Tokens& tokens);
 
 inline bool checkEndOfType(bool qualifiedUsed, Tokens& tokens) {
 	return (!qualifiedUsed || peek(tokens).type != kIdent) && 
 		peek(tokens).type != kComma && peek(tokens).type != kParenR;
 }
-string parseReturn(Tokens& tokens) {
+inline string parseReturn(Tokens& tokens) {
 	string ret;
 	bool qualifiedUsed = false;
 	while (checkEndOfType(qualifiedUsed, tokens)) {
@@ -72,7 +72,7 @@ string parseReturn(Tokens& tokens) {
 	return ret;
 }
 
-string parseQualifiedName(Tokens& tokens) {
+inline string parseQualifiedName(Tokens& tokens) {
 	string qual;
 	Token t;
 	do {
@@ -85,7 +85,7 @@ string parseQualifiedName(Tokens& tokens) {
 	return qual;
 }
 
-string parseAttribute(Tokens& tokens) { // if attributes are expanded we will need to create a new attribute ast type intead of string
+inline string parseAttribute(Tokens& tokens) { // if attributes are expanded we will need to create a new attribute ast type intead of string
 	string attrib_name = next_expect(tokens, kIdent, "identifier").slice;
 	if (attrib_name == "mangle") {
 		next_expect(tokens, kParenL, "(");
@@ -114,7 +114,7 @@ string parseAttribute(Tokens& tokens) { // if attributes are expanded we will ne
 	}
 }
 
-void parseFunction(ClassDefinition& c, Function myFunction, Tokens& tokens) {
+inline void parseFunction(ClassDefinition& c, Function myFunction, Tokens& tokens) {
 	next_expect(tokens, kParenL, "(");
 
 	// std::cout << "func: " << myFunction.name << std::endl;
@@ -175,7 +175,7 @@ void parseFunction(ClassDefinition& c, Function myFunction, Tokens& tokens) {
 	c.addField(myFunction);
 }
 
-void parseMember(ClassDefinition& c, string type, string varName, Tokens& tokens) {
+inline void parseMember(ClassDefinition& c, string type, string varName, Tokens& tokens) {
 	//cacerr("not implemented yet!!!\n");
 
 	Member myMember;
@@ -237,7 +237,7 @@ void parseMember(ClassDefinition& c, string type, string varName, Tokens& tokens
 	c.addField(myMember);
 }
 
-void parseField(ClassDefinition& c, Tokens& tokens) {
+inline void parseField(ClassDefinition& c, Tokens& tokens) {
 	string attrib;
 	if (!next_if_type(kAttrL, tokens)) {
 		attrib = parseAttribute(tokens);
@@ -339,7 +339,7 @@ void parseField(ClassDefinition& c, Tokens& tokens) {
 	return parseMember(c, return_type, varName, tokens);
 }
 
-void parseClass(Root& r, Tokens& tokens) {
+inline void parseClass(Root& r, Tokens& tokens) {
 	string attrib;
 	if (!next_if_type(kAttrL, tokens)) {
 		attrib = parseAttribute(tokens);
@@ -382,7 +382,7 @@ void parseClass(Root& r, Tokens& tokens) {
 	}
 }
 
-Root parseTokens(vector<Token> ts) {
+inline Root parseTokens(vector<Token> ts) {
 	Root root;
 	Tokens tokens;
 	for (auto& t : ts) {
