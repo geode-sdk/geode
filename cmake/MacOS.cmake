@@ -12,7 +12,7 @@ include_directories(
 
 
 target_link_libraries(${PROJECT_NAME} "-framework Cocoa")
-if(NOT GEODE_NO_LOADER)
+if(NOT ${GEODE_NO_LOADER})
 	target_link_libraries(
 	    ${PROJECT_NAME}
 	    "${GEODE_SDK_PATH}/../macos/Geode.dylib"

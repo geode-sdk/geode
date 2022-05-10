@@ -32,7 +32,7 @@ install(
 	DESTINATION ${CMAKE_BINARY_DIR}/out/
 )
 
-if(NOT GEODE_NO_LOADER)
+if(NOT ${GEODE_NO_LOADER})
 target_link_libraries(
     ${PROJECT_NAME}
     "${GEODE_SDK_PATH}/../windows/geode.lib"

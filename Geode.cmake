@@ -29,7 +29,7 @@ function(setup_geode_mod)
         ${ARGN}
     )
 
-    set(GEODE_NO_LOADER PARSED_ARGS_NO_LOADER)
+    set(GEODE_NO_LOADER ${PARSED_ARGS_NO_LOADER})
 	if(PARSED_ARGS_OUTPUT)
 		set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" OUTPUT_NAME ${PARSED_ARGS_OUTPUT})
 	endif()
