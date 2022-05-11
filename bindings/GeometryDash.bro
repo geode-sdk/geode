@@ -646,6 +646,10 @@ class ColorSelectDelegate {}
 class ColorSelectPopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, TextInputDelegate, GJSpecialColorSelectDelegate {
 	virtual void colorValueChanged(cocos2d::ccColor3B color) = mac 0x0, win 0x46ee0, ios 0x0;
 
+	bool init(EffectGameObject* triggerObj, cocos2d::CCArray* triggerObjs, ColorAction* colorAction) = mac 0x0, win 0x43ae0, ios 0x0;
+	void updateColorValue() = mac 0x0, win 0x46f30, ios 0x0;
+	void updateCopyColorTextInputLabel() = mac 0x0, win 0x479c0, ios 0x0;
+
 	cocos2d::extension::CCControlColourPicker* m_colorPicker;
 	cocos2d::CCLabelBMFont* m_unk1DC;
 	cocos2d::CCLabelBMFont* m_label;
@@ -658,10 +662,10 @@ class ColorSelectPopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, 
 	unsigned int m_rgbLastColor;
 	cocos2d::CCSprite* m_unk200;
 	cocos2d::CCSprite* m_unk204;
-	unsigned int m_bgrColor;
+	unsigned int m_bgrColor; // TODO: are u sure this isnt just a cccolor3b
 	GJColorSetupLayer* m_colorSetupLayer;
 	float m_fadeTime;
-	int m_olayerColor;
+	int m_playerColor;
 	bool m_isBlending;
 	float m_opacity;
 	ColorAction* m_colorAction;
@@ -676,7 +680,7 @@ class ColorSelectPopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, 
 	bool m_unk234;
 	int m_copyChannelID;
 	bool m_copyOpacity;
-	ConfigureHSVWidget* m_configurehsvwidget;
+	ConfigureHSVWidget* m_hsvWidget;
 	PAD = mac 0x0, win 0x10, android 0x0;
 	cocos2d::CCArray* m_unk254;
 	cocos2d::CCArray* m_unk258;
@@ -4449,7 +4453,13 @@ class SetupPickupTriggerPopup : FLAlertLayer {
 }
 
 class SetupPulsePopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, TextInputDelegate, GJSpecialColorSelectDelegate {
-	virtual void colorValueChanged(cocos2d::ccColor3B color) {}
+	virtual void colorValueChanged(cocos2d::ccColor3B color) = mac 0x0, win 0x242660, ios 0x0;
+
+	bool init(EffectGameObject* triggerObj, cocos2d::CCArray* triggerObjs) = mac 0x0, win 0x23e980, ios 0x0;
+	void updateColorValue() = mac 0x0, win 0x2426b0, ios 0x0;
+	void onSelectPulseMode(cocos2d::CCObject*) = mac 0x0, win 0x241420, ios 0x0;
+	void updatePulseMode() = mac 0x0, win 0x242cf0, ios 0x0;
+
 
 	cocos2d::extension::CCControlColourPicker* m_colorPicker;
 	PAD = mac 0x0, win 0x30, android 0x0;
