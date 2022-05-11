@@ -73,22 +73,24 @@ public:
 /**
  * This class is used to fix the problem of destructor recursion.
  */
-GEODE_ADD(
-	class GEODE_CC_DLL CCDestructor : public CCCopying {
-	private:
-		static inline auto& destructorLock() {
-			static std::unordered_map<void*, bool> ret;
-			return ret;
-		}
-	public:
-		static inline bool& lock(void* self) {
-			return destructorLock()[self];
-		}
-		inline ~CCDestructor() {
-			destructorLock().erase(this);
-		}
-	};
-)
+class CCDestructor : public CCCopying {
+private:
+	static inline auto& destructorLock() {
+		static std::unordered_map<void*, bool> ret;
+		return ret;
+	}
+public:
+	static inline bool& globalLock() {
+		static thread_local bool ret = false;
+		return ret; 
+	}
+	static inline bool& lock(void* self) {
+		return destructorLock()[self];
+	}
+	inline ~CCDestructor() {
+		destructorLock().erase(this);
+	}
+};
 
 /**
  * @js NA

@@ -3,14 +3,19 @@
  * 
  * class hook0Dummy;
  * template<typename>
- * struct _hook0 final {};
+ * struct _hook0 {};
  * namespace {
- *     struct hook0UUID {};
- *     Modify<_hook0<hook0UUID>, MenuLayer> hook0Apply;
+ *     struct hook0ID {};
+ *     struct hook0ID2 {};
+ *     Modify<_hook0<hook0ID>, MenuLayer> hook0Apply;
  * }
- * using hook0 = _hook0<hook0UUID>;
+ * using hook0 = _hook0<hook0ID>;
  * template<>
- * struct GEODE_HIDDEN _hook0<hook0UUID>: public MenuLayer {
+ * struct GEODE_HIDDEN _hook0<hook0ID2>: public MenuLayer {
+ *     _hook0() : _hook0(*this) {}
+ * };
+ * template<>
+ * struct GEODE_HIDDEN _hook0<hook0ID>: public _hook0<hook0ID2> {
  *     // code stuff idk
  * };
  * 
@@ -20,17 +25,20 @@
 
 #define GEODE_MODIFY_PREDECLARE(derived) 								\
 derived##Dummy; 														\
-template<typename> struct _##derived final {};
+template<typename> struct _##derived {};
 #define GEODE_MODIFY_APPLY(base, derived) 								\
 namespace { 															\
-	struct derived##UUID {}; 											\
-	Modify<_##derived<derived##UUID>, base> derived##Apply;             \
+	struct derived##ID {}; 			  								    \
+	struct derived##ID2 {}; 			  								\
+	Modify<_##derived<derived##ID>, base> derived##Apply;               \
 }
 #define GEODE_MODIFY_DECLARE(base, derived) 							\
-using derived = _##derived<derived##UUID>; 							    \
-template <> 													        \
-struct GEODE_HIDDEN _##derived<derived##UUID> final 				    \
-	: public base
+using derived = _##derived<derived##ID>; 					  		    \
+template <> struct GEODE_HIDDEN _##derived<derived##ID2> : base {       \
+	_##derived() : _##derived(*this) {}                                 \
+};                                                                      \
+template <> struct GEODE_HIDDEN _##derived<derived##ID>   				\
+	: _##derived<derived##ID2>
 
 #define GEODE_MODIFY_REDIRECT4(base, derived) GEODE_MODIFY_PREDECLARE(derived) GEODE_MODIFY_APPLY(base, derived) GEODE_MODIFY_DECLARE(base, derived)
 #define GEODE_MODIFY_REDIRECT3(base, derived) GEODE_MODIFY_REDIRECT4(base, derived)

@@ -2,9 +2,53 @@
 #include "Traits.hpp"
 
 namespace geode::modifier {
+	template<typename T = void*>
+	struct container; 
+	template<typename T>
+	struct field;
+
+	template<typename T>
+	struct container {
+	    T* field;
+		container() {
+			field = new T();
+		}
+		container(T value) {
+			field = new T();
+			*field = value;
+		}
+	    virtual ~container() {
+	        delete field;
+	    }
+	    T& get() {
+	    	return *field;
+	    }
+	};
+
+	using FieldDefault = std::pair<void*, container<void*>*>;
+
+	GEODE_NOINLINE inline auto& fieldDefaultQueue() {
+    	static std::vector<FieldDefault> ret;
+    	return ret;
+    }
+
 	template<typename T>
 	struct field {
 		uint8_t padding;
+
+		field() {
+			auto cont = new container<T>();
+			fieldDefaultQueue().push_back(
+				{this, (container<void*>*)(cont)}
+			);
+		}
+
+		field(T defaultValue) {
+			auto cont = new container<T>(defaultValue);
+			fieldDefaultQueue().push_back(
+				{this, (container<void*>*)(cont)}
+			);
+		}
 
 	    template<typename Q>
 	    void operator=(Q) {
@@ -27,22 +71,9 @@ namespace geode::modifier {
 	    using type = T;
 	};
 
-	template<typename T = void*>
-	struct container {
-	    virtual ~container() {
-	        delete field;
-	    }
-	    T* field;
-
-	    GEODE_NOINLINE T& get() {
-	    	if (!field) field = new T();
-	    	return *field;
-	    }
-	};
-
 	template <typename T>
-	GEODE_NOINLINE inline auto& getAdditionalFields() {
-    	static std::unordered_map<T*, std::unordered_map<void*, container<void*>>> ret;
+	GEODE_NOINLINE inline auto& getAdditionalContainers() {
+    	static std::unordered_map<T*, std::unordered_map<void*, container<void*>*>> ret;
     	return ret;
     }
 
@@ -54,7 +85,10 @@ namespace geode::modifier {
 
     template <typename T>
     GEODE_NOINLINE inline void fieldCleanup(T* self) {{
-    	getAdditionalFields<T>().erase(self);
+    	for (auto& [mem, cont] : getAdditionalContainers<T>()[self]) {
+    		delete cont;
+    	}
+    	getAdditionalContainers<T>().erase(self);
     	getOriginalDestructor<T>()(self);
     }}
 
@@ -63,7 +97,7 @@ namespace geode::modifier {
 	    // this replaces the destructor in the vtable
 	    // only done this way to be performant
 	    // because we are still not using inline hooking
-	    auto& fields = getAdditionalFields<A>();
+	    auto& containers = getAdditionalContainers<A>();
 	    auto& destructor = getOriginalDestructor<A>();
 
 	    // on first use
@@ -73,10 +107,16 @@ namespace geode::modifier {
 	        destructor = reinterpret_cast<void(*)(void*)>(vtableDestructor);
 	        vtableDestructor = (uintptr_t)&fieldCleanup<A>;
 	    }
-
-	    auto field = reinterpret_cast<container<T>*>(&fields[self][member]);
+	    if (containers[self].size() == 0) {
+	    	void* obj = new A();
+	    	operator delete(obj);
+			for (auto& [fie, cont] : fieldDefaultQueue()) {
+				containers[self].insert({member, cont});
+			}
+			fieldDefaultQueue().clear();
+	    }
 
 	    // gets the respective field
-	    return field->get();
+	    return reinterpret_cast<container<T>*>(containers[self][member])->get();
 	}
 }
