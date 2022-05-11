@@ -13,7 +13,8 @@ namespace geode::utils::clipboard {
 }
 
 namespace geode::utils::dirs {
-    GEODE_DLL ghc::filesystem::path geode_root();
+    GEODE_DLL ghc::filesystem::path geodeRoot();
+    GEODE_DLL bool openFolder(ghc::filesystem::path const& path);
 }
 
 namespace geode::utils::web {
