@@ -2562,8 +2562,8 @@ class GameManager : GManager {
 	void reportAchievementWithID(char const*, int, bool) = mac 0x1c6460, win 0x0, ios 0x0;
 	cocos2d::CCSize* resolutionForKey(cocos2d::CCSize*, int) = mac 0x1d0b40, win 0xceca0, ios 0x0;
 	void update(float) = mac 0x1d0270, win 0x0, ios 0x0;
-	bool isColorUnlocked(int _id, bool _type) = mac 0x0, win 0xc53f0, ios 0x0;
-	bool isIconUnlocked(int _id, IconType _type) = mac 0x0, win 0xc4fc0, ios 0x0;
+	bool isColorUnlocked(int _id, bool _type) = mac 0x1c3b90, win 0xc53f0, ios 0x0;
+	bool isIconUnlocked(int _id, IconType _type) = mac 0x1c35b0, win 0xc4fc0, ios 0x0;
 	void toggleGameVariable(const char* key) = mac 0x0, win 0xc9e90, ios 0x0;
 	static void returnToLastScene(GJGameLevel* level) = mac 0x0, win 0xce6a0, ios 0x0;
 
