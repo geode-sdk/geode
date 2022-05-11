@@ -628,6 +628,7 @@ class cocos2d::CCSet {
 	CCSet() = mac 0x45ad80, ios 0x10e870;
 	virtual ~CCSet() = mac 0x45b050, ios 0x10ebcc;
 	virtual auto acceptVisitor(cocos2d::CCDataVisitor&) = mac 0x45b090, ios 0x10ec04;
+	auto anyObject() = mac 0x45b410;
 }
 
 class cocos2d::CCSprite {
