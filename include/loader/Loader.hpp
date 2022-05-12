@@ -12,6 +12,7 @@
 #include <utils/fs/filesystem.hpp>
 #include <utils/json.hpp>
 #include "Log.hpp"
+#include <utils/VersionInfo.hpp>
 
 class Geode;
 
@@ -89,6 +90,9 @@ namespace geode {
     public:
         Loader();
         virtual ~Loader();
+        
+        VersionInfo getVersion() const;
+        std::string getVersionType() const;
 
         Result<> saveSettings();
         Result<> loadSettings();

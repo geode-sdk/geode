@@ -29,7 +29,11 @@ namespace geode {
     
     public:
         VersionInfo() = delete;
-        VersionInfo(int major, int minor, int patch);
+        constexpr VersionInfo(int major, int minor, int patch) {
+            m_major = major;
+            m_minor = minor;
+            m_patch = patch;
+        }
         VersionInfo(const char* versionString);
         VersionInfo(std::string const& versionString);
 

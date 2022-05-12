@@ -42,25 +42,6 @@ namespace geode {
         bool isUnresolved() const;
     };
 
-    struct Credits {
-        struct Person {
-            std::string m_name;
-            std::string m_reason = "";
-            int m_gdAccountID = 0;
-            std::string m_gdAccountName = "";
-            std::unordered_map<std::string, std::string> m_links;
-        };
-
-        struct Library {
-            std::string m_name = "";
-            std::string m_repo = "";
-        };
-
-        std::vector<Person> m_people;
-        std::vector<std::string> m_thanks;
-        std::vector<Library> m_libraries;
-    };
-
     /**
      * Represents all the data gatherable 
      * from mod.json
@@ -122,14 +103,6 @@ namespace geode {
          * here; use `m_credits` instead.
          */
         std::string m_details = "";
-        /**
-         * Free-form list of credits.
-         */
-        std::string m_creditsString = "";
-        /**
-         * List of credits.
-         */
-        Credits m_credits;
         /**
          * Git Repository of the mod.
          */
@@ -319,7 +292,6 @@ namespace geode {
         std::string getDeveloper()  const;
         std::string getDescription()const;
         std::string getDetails()    const;
-        std::string getCredits()    const;
         std::string getPath()       const;
         VersionInfo getVersion()    const;
         bool        isEnabled()     const;
