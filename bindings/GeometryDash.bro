@@ -707,7 +707,11 @@ class CommentCell : TableViewCell {
 	PAD = mac 0x0, win 0x4, android 0x0;
 }
 
-class CommentUploadDelegate {}
+class CommentUploadDelegate {
+	virtual void commentUploadFinished(int) {}
+	virtual void commentUploadFailed(int, CommentError) {}
+	virtual void commentDeleteFailed(int, int) {}
+}
 
 class ConfigureHSVWidget : cocos2d::CCNode {
 	cocos2d::CCLabelBMFont* m_hueLabel;
@@ -3231,11 +3235,22 @@ class LevelBrowserLayer : cocos2d::CCLayer {
 	int m_pageEndIdx;
 }
 
-class LevelCommentDelegate {}
+class LevelCommentDelegate {
+	virtual void loadCommentsFinished(cocos2d::CCArray *, const char*)  {}
+	virtual void loadCommentsFailed(const char*)  {}
+	virtual void updateUserScoreFinished()  {}
+	virtual void setupPageInfo(gd::string, const char*)  {}
+}
 
-class LevelDeleteDelegate {}
+class LevelDeleteDelegate {
+	virtual void levelDeleteFinished(int) {}
+	virtual void levelDeleteFailed(int) {}
+}
 
-class LevelDownloadDelegate {}
+class LevelDownloadDelegate {
+	virtual void levelDownloadFinished(GJGameLevel*) {}
+	virtual void levelDownloadFailed(int) {}
+}
 
 class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
 	static LevelEditorLayer* get() {
@@ -3451,9 +3466,14 @@ class LevelSettingsObject : cocos2d::CCNode {
 	gd::string m_unknownStr;
 }
 
-class LevelUpdateDelegate {}
+class LevelUpdateDelegate {
+	virtual void levelUpdateFinished(GJGameLevel*, UpdateResponse) {}
+	virtual void levelUpdateFailed(int) {}
+}
 
-class LikeItemDelegate {}
+class LikeItemDelegate {
+	virtual void likedItem(LikeItemType, int, bool) {}
+}
 
 class ListButtonBar : cocos2d::CCNode {
 	BoomScrollLayer* m_scrollLayer;
@@ -3575,7 +3595,11 @@ class MusicDownloadManager : cocos2d::CCNode, PlatformDownloadDelegate {
 	int m_unknown;
 }
 
-class NumberInputDelegate {}
+class NumberInputDelegate {
+	virtual void numberInputClosed(NumberInputLayer*) {}
+}
+
+class NumberInputLayer {}
 
 class OBB2D : cocos2d::CCNode {
 	void calculateWithCenter(cocos2d::CCPoint, float, float, float) = mac 0x35a9c0, win 0x0, ios 0x0;
@@ -4343,7 +4367,9 @@ class PulseEffectAction : cocos2d::CCNode {
 	int group = mac 0x130, win 0x0, android 0x0;
 }
 
-class RateLevelDelegate {}
+class RateLevelDelegate {
+	virtual void rateLevelClosed() {}
+}
 
 class RetryLevelLayer {
 	static RetryLevelLayer* create() = mac 0x28dd60, win 0x0, ios 0x0;
@@ -4396,7 +4422,9 @@ class SetIDLayer {
 
 class SetIDPopup {}
 
-class SetIDPopupDelegate {}
+class SetIDPopupDelegate {
+	virtual void setIDPopupClosed(SetIDPopup*, int) {}
+}
 
 class SetItemIDLayer {
 	static SetItemIDLayer* create(EffectGameObject*, cocos2d::CCArray*) = mac 0x5a830, win 0x0, ios 0x0;
