@@ -4993,7 +4993,7 @@ class UploadActionDelegate {
 class UploadMessageDelegate {}
 
 class UploadPopupDelegate {
-	virtual void onClosePopup(void) {}
+	virtual void onClosePopup() {}
 }
 
 class UserInfoDelegate {}
