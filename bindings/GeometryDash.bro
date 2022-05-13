@@ -641,10 +641,6 @@ class ColorChannelSprite : cocos2d::CCSprite {
 	cocos2d::CCLabelBMFont* m_blendingDot;
 }
 
-class ColorPickerDelegate {
-	virtual void colorValueChanged(cocos2d::ccColor3B color) {}
-}
-
 class ColorSelectDelegate {
 	virtual void colorSelectClosed(cocos2d::CCNode*) {}
 }
