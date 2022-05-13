@@ -305,6 +305,17 @@ enum class GJChallengeType {
 	Stars = 3
 };
 
+enum class GJScoreType {
+	Unknown = 0,
+	Creator = 1
+};
+
+enum class LevelLeaderboardType {
+	Friends = 0,
+	Global = 1,
+	Weekly = 2
+};
+
 // Geode Addition
 enum class ComparisonType {
     Equals = 0,
