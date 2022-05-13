@@ -2771,10 +2771,10 @@ class GameManager : GManager {
 	bool m_unk2;
 	bool m_gameCenterEnabled;
 	bool m_smoothFix;
-	int m_nRatePowerSeed;
-	int m_nRatePowerRand;
-	int m_nRatePower;
-	PAD = mac 0xC, win 0xC, android 0x0;
+	int m_ratePowerSeed;
+	int m_ratePowerRand;
+	int m_ratePower;
+	bool m_canGetLevelSaveData;
 	int m_resolution;
 	cocos2d::TextureQuality m_quality;
 }
