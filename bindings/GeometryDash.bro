@@ -3928,7 +3928,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, DialogDelegate {
 	void resume() = mac 0x80480, win 0x0, ios 0x0;
 	void resumeAndRestart() = mac 0x80400, win 0x0, ios 0x0;
 	void saveRecordAction(bool, PlayerObject*) = mac 0x78750, win 0x0, ios 0x0;
-	cocos2d::CCScene* scene(GJGameLevel*) = mac 0x6b500, win 0x1fb690, ios 0x0;
+	static cocos2d::CCScene* scene(GJGameLevel*) = mac 0x6b500, win 0x1fb690, ios 0x0;
 	void setupLevelStart(LevelSettingsObject*) = mac 0x6f560, win 0x1fb780, ios 0x0;
 	void setupReplay(gd::string) = mac 0x7e1e0, win 0x0, ios 0x0;
 	void shakeCamera(float, float, float) = mac 0x744a0, win 0x0, ios 0x0;
