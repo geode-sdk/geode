@@ -641,7 +641,13 @@ class ColorChannelSprite : cocos2d::CCSprite {
 	cocos2d::CCLabelBMFont* m_blendingDot;
 }
 
-class ColorSelectDelegate {}
+class ColorPickerDelegate {
+	virtual void colorValueChanged(cocos2d::ccColor3B color) {}
+}
+
+class ColorSelectDelegate {
+	virtual void colorSelectClosed(cocos2d::CCNode*) {}
+}
 
 class ColorSelectPopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, TextInputDelegate, GJSpecialColorSelectDelegate {
 	virtual void colorValueChanged(cocos2d::ccColor3B color) = mac 0x0, win 0x46ee0, ios 0x0;
@@ -1773,7 +1779,9 @@ class GJDropDownLayer : cocos2d::CCLayerColor {
 	void* m_unknown;
 }
 
-class GJDropDownLayerDelegate {}
+class GJDropDownLayerDelegate {
+	virtual void dropDownLayerWillClose(GJDropDownLayer*) {}
+}
 
 class GJEffectManager : cocos2d::CCNode {
 	virtual bool init() = mac 0x180230, win 0x0, ios 0x0;
@@ -2229,7 +2237,11 @@ class GJRotationControl : cocos2d::CCLayer {
 	int m_touchID;
 }
 
-class GJRotationControlDelegate {}
+class GJRotationControlDelegate {
+	virtual void angleChangeBegin() {}
+	virtual void angleChangeEnded() {}
+	virtual void angleChanged(float) {}
+}
 
 class GJScaleControl : cocos2d::CCLayer {
 	void updateLabel(float value) = mac 0x0, win 0x94990, ios 0x0;
@@ -2243,7 +2255,11 @@ class GJScaleControl : cocos2d::CCLayer {
 	GJScaleControlDelegate* m_delegate;
 }
 
-class GJScaleControlDelegate {}
+class GJScaleControlDelegate {
+	virtual void scaleChangeBegin() {}
+	virtual void scaleChangeEnded() {}
+	virtual void scaleChanged(float) {}
+}
 
 class GJScoreCell : TableViewCell {
 	virtual void FLAlert_Clicked(FLAlertLayer*, bool) = mac 0x0, win 0x624a0, ios 0x0;
@@ -2285,7 +2301,9 @@ class GJSpecialColorSelect {
 	static const char* textForColorIdx(int id) = mac 0x383a50, win 0x14e1d0, ios 0x113f6c;
 }
 
-class GJSpecialColorSelectDelegate {}
+class GJSpecialColorSelectDelegate {
+	virtual void colorSelectClosed(GJSpecialColorSelect*, int) {}
+}
 
 class GJSpiderSprite {
 	~GJSpiderSprite() = mac 0x34c4a0, win 0x0, ios 0x0;
@@ -2409,6 +2427,10 @@ class GManager : cocos2d::CCNode {
 	bool m_setup;
 	bool m_saved;
 	bool m_quickSave;
+}
+
+class GooglePlayDelegate {
+	virtual void googlePlaySignedIn() {}
 }
 
 class GameLevelManager : cocos2d::CCNode {
@@ -3676,7 +3698,13 @@ class MoreVideoOptionsLayer : FLAlertLayer {
 
 class MultilineBitmapFont : cocos2d::CCSprite {}
 
-class MusicDownloadDelegate {}
+class MusicDownloadDelegate {
+	virtual void downloadSongFailed(int, GJSongError) {}
+	virtual void downloadSongFinished(SongInfoObject*) {}
+	virtual void loadSongInfoFailed(int, GJSongError) {}
+	virtual void loadSongInfoFinished(SongInfoObject*) {}
+	virtual void songStateChanged() {}
+}
 
 class MusicDownloadManager : cocos2d::CCNode, PlatformDownloadDelegate {
 	void incrementPriorityForSong(int) = mac 0x2ef750, win 0x0, ios 0x0;
@@ -4957,11 +4985,16 @@ class UndoObject : cocos2d::CCObject {
 	bool m_redo;
 }
 
-class UploadActionDelegate {}
+class UploadActionDelegate {
+	virtual void uploadActionFinished(int, int) {}
+	virtual void uploadActionFailed(int, int) {}
+}
 
 class UploadMessageDelegate {}
 
-class UploadPopupDelegate {}
+class UploadPopupDelegate {
+	virtual void onClosePopup(void) {}
+}
 
 class UserInfoDelegate {}
 
