@@ -43,74 +43,74 @@ namespace geode {
 
     class Log;
     class GEODE_DLL LogPtr {
-        protected:
-            Mod* m_sender = nullptr;
-            log_clock::time_point m_time = log_clock::now();
-            std::vector<LogMetadata*> m_data;
-            Severity m_severity = Severity::Debug;
+    protected:
+        Mod* m_sender = nullptr;
+        log_clock::time_point m_time = log_clock::now();
+        std::vector<LogMetadata*> m_data;
+        Severity m_severity = Severity::Debug;
 
-            friend class Log;
-        
-        public:
-            LogPtr(Mod* Mod) : m_sender(Mod) {}
+        friend class Log;
+    
+    public:
+        LogPtr(Mod* Mod) : m_sender(Mod) {}
 
-            ~LogPtr();
+        ~LogPtr();
 
-            std::string toString(bool logTime = true) const;
+        std::string toString(bool logTime = true) const;
 
-            log_clock::time_point getTime() const;
-            std::string getTimeString() const;
-            Mod* getSender() const;
-            Severity getSeverity() const;
+        log_clock::time_point getTime() const;
+        std::string getTimeString() const;
+        Mod* getSender() const;
+        Severity getSeverity() const;
 
     };
 
     using ostream_fn_type = std::ostream&(*)(std::ostream&);
 
     class GEODE_DLL Log {
-        protected:
-            LogPtr* m_logptr = nullptr;
-            std::stringstream m_stream;
-            void flush();
+    protected:
+        LogPtr* m_logptr = nullptr;
+        std::stringstream m_stream;
+        void flush();
 
-        public:
-            static inline Log get();
-            
-            inline Log(Mod* m) : m_logptr(new LogPtr(m)) {}
-            inline Log() : Log(nullptr) {}
+    public:
+        static Log get();
+        
+        inline Log(Mod* m) : m_logptr(new LogPtr(m)) {}
+        inline Log() : Log(nullptr) {}
 
-            Log& operator<<(ostream_fn_type);
+        Log& operator<<(ostream_fn_type);
 
-            Log& operator<<(Severity::type s);
-            Log& operator<<(Severity s);
+        Log& operator<<(Severity::type s);
+        Log& operator<<(Severity s);
 
 
-            template <typename T>
-            Log& operator<<(T item) {
-                this->m_stream << item;
-                //static_assert(!std::is_same<Severity, T>::value, "didnt work :(");
-                return *this;
-            }
+        template <typename T>
+        Log& operator<<(T item) {
+            this->m_stream << item;
+            //static_assert(!std::is_same<Severity, T>::value, "didnt work :(");
+            return *this;
+        }
 
-            template <typename U, typename T>
-            Log& streamMeta(T t) {
-                static_assert(std::is_base_of<LogMetadata, U>::value, "Metadata class must derive from geode::LogMetadata");
+        template <typename U, typename T>
+        Log& streamMeta(T t) {
+            static_assert(std::is_base_of<LogMetadata, U>::value, "Metadata class must derive from geode::LogMetadata");
 
-                auto md = new LogMetadata;
-                md->m_repr = this->m_stream.str();
-                this->m_logptr->m_data.push_back(md);
-                m_stream.str("");
+            auto md = new LogMetadata;
+            md->m_repr = this->m_stream.str();
+            this->m_logptr->m_data.push_back(md);
+            m_stream.str("");
 
-                md = new U(t);
-                m_stream << t;
-                md->m_repr = m_stream.str();
-                this->m_logptr->m_data.push_back(md);
-                m_stream.str("");
+            md = new U(t);
+            m_stream << t;
+            md->m_repr = m_stream.str();
+            this->m_logptr->m_data.push_back(md);
+            m_stream.str("");
 
-                return *this;
-            }
+            return *this;
+        }
 
-            ~Log();
+        ~Log();
     };
 
     // geode-defined metadata functions

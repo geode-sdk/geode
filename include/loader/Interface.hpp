@@ -69,9 +69,8 @@ namespace geode {
 		std::vector<ScheduledLog> m_scheduledLogs;
 		std::vector<ScheduledExport> m_scheduledExports;
 		std::vector<loadfn_t> m_scheduledFunctions;
+		
 	public:
-
-
 		static inline GEODE_HIDDEN Interface* get() {
 			static Interface* ret = create();
 			return ret;

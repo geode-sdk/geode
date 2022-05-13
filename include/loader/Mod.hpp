@@ -129,17 +129,25 @@ namespace geode {
          */
         bool m_supportsUnloading = false;
         /**
-         * Create ModInfo from geode file
+         * Create ModInfo from a .geode package
          */
-        static Result<ModInfo> createFromFile(std::string const& path);
-     private:
+        static Result<ModInfo> createFromGeodeFile(ghc::filesystem::path const& path);
         /**
-         * Backwards compatibility; if we update the mod.json format
+         * Create ModInfo from a mod.json file
          */
-        template<int Schema>
-        static Result<ModInfo> createFromSchema(std::string const& path, nlohmann::json& json, cocos2d::ZipFile& unzip);
+        static Result<ModInfo> createFromFile(ghc::filesystem::path const& path);
+        /**
+         * Create ModInfo from a parsed json document
+         */
+        static Result<ModInfo> create(nlohmann::json const& json);
 
-
+    private:
+        /**
+         * Version is passed for backwards 
+         * compatibility if we update the mod.json 
+         * format
+         */
+        static Result<ModInfo> createFromSchemaV010(nlohmann::json const& json);
     };
 
     /**
@@ -237,10 +245,6 @@ namespace geode {
         geode_save_data m_saveDataFunc = nullptr;
         geode_setting_updated m_settingUpdatedFunc = nullptr;
         /**
-         * Path to the mod's build directory
-         */
-        ghc::filesystem::path m_hotReloadPath;
-        /**
          * Whether temp/<mod id>/resources should be 
          * added to CCFileUtils search paths
          */
@@ -301,11 +305,6 @@ namespace geode {
         bool        wasSuccesfullyLoaded() const;
         std::string getLoadErrorInfo() const;
         ModInfo     getModInfo() const;
-
-        ghc::filesystem::path getHotReloadPath() const;
-        Result<> enableHotReload();
-        void disableHotReload();
-        bool isHotReloadEnabled() const;
 
         /**
          * Get the mod container stored in the Interface

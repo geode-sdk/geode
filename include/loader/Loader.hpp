@@ -14,12 +14,10 @@
 #include "Log.hpp"
 #include <utils/VersionInfo.hpp>
 
-class Geode;
-
 namespace geode {
     #pragma warning(disable: 4251)
 
-    static constexpr const std::string_view geodeDirectory          = "geode";
+    static constexpr const std::string_view geodeDirectory         = "geode";
     static constexpr const std::string_view geodeModDirectory      = "mods";
     static constexpr const std::string_view geodeLogDirectory      = "log";
     static constexpr const std::string_view geodeResourceDirectory = "resources";
@@ -34,7 +32,7 @@ namespace geode {
 
     class GEODE_DLL Loader {
     public:
-        struct UnloadedModInfo {
+        struct FailedModInfo {
             std::string m_file;
             std::string m_reason;
         };
@@ -51,7 +49,7 @@ namespace geode {
         std::vector<LogPtr*> m_logs;
         std::ofstream m_logStream;
         std::vector<ghc::filesystem::path> m_modDirectories;
-        std::vector<UnloadedModInfo> m_erroredMods;
+        std::vector<FailedModInfo> m_erroredMods;
         LoaderSettings m_loadedSettings;
 
         bool m_isSetup = false;
@@ -63,7 +61,7 @@ namespace geode {
          * lower than this will not be loaded, 
          * as they will be considered out-of-date.
          */
-        static constexpr const int s_supportedSchemaMin = 1;
+        static constexpr const VersionInfo s_supportedVersionMin { 0, 1, 0 };
         /**
          * Highest support mod version.
          * Any mod targeting a geode version 
@@ -74,7 +72,7 @@ namespace geode {
          * and has downloaded a mod from the 
          * future.
          */
-        static constexpr const int s_supportedSchemaMax = 1;
+        static constexpr const VersionInfo s_supportedVersionMax { 0, 1, 0 };
 
         Result<std::string> createTempDirectoryForMod(ModInfo const& info);
         Result<Mod*> loadModFromFile(std::string const& file);
@@ -84,21 +82,22 @@ namespace geode {
 
         friend class Mod;
         friend class CustomLoader;
-        friend class Geode;
         friend struct ModInfo;
         
     public:
-        Loader();
-        virtual ~Loader();
+        ~Loader();
+
+        /**
+         * Get the shared Loader instance
+         * @returns Shared loader instance
+         */
+        static Loader* get();
         
         VersionInfo getVersion() const;
         std::string getVersionType() const;
 
         Result<> saveSettings();
         Result<> loadSettings();
-
-        bool shouldLoadMod(std::string const& id) const;
-        std::vector<UnloadedModInfo> const& getFailedMods() const;
 
         /**
          * Directory where Geometry Dash is
@@ -118,10 +117,10 @@ namespace geode {
         ghc::filesystem::path getGeodeSaveDirectory() const;
 
         /**
-         * Get the shared Loader instance
-         * @returns Shared loader instance
+         * Whether mod specified with ID is enabled 
+         * @param id The ID of the mod
          */
-        static Loader* get();
+        bool shouldLoadMod(std::string const& id) const;
 
         /**
          * Set up the Loader.
@@ -166,53 +165,59 @@ namespace geode {
         void updateResources();
 
         /**
-         * Check if a mod with an ID has been loaded
+         * Check if a mod with an ID is installed. Any 
+         * valid .geode file in the mods directory will 
+         * be listed as installed
          * @param id The ID of the mod
-         * @param resolved Whether the mod's dependencies have to 
-         * be resolved to be returned. If set to true and the mod 
-         * is unresolved, this function returns false
-         * @returns True if the mod was found, or false if 
-         * the mod is not loaded or it was unresolved and the `resolved` 
-         * parameter was set to true
+         * @returns True if the mod is installed
          */
-        bool isModLoaded(std::string const& id, bool resolved = true) const;
+        bool isModInstalled(std::string const& id) const;
+        /**
+         * Get an installed mod by its ID
+         * @param id The ID of the mod
+         * @returns Pointer to Mod if it was found, or nullptr if 
+         * the mod is not installed
+         */
+        Mod* getInstalledMod(std::string const& id) const;
+        /**
+         * Check if a mod with an ID is loaded
+         * @param id The ID of the mod
+         * @returns True if the mod was found, or false if 
+         * the mod is not loaded nor installed
+         */
+        bool isModLoaded(std::string const& id) const;
         /**
          * Get a loaded mod by its ID
          * @param id The ID of the mod
-         * @param resolved Whether the mod's dependencies have to 
-         * be resolved to be returned. If set to true and the mod 
-         * is unresolved, this function returns nullptr
          * @returns Pointer to Mod if it was found, or nullptr if 
-         * the mod is not loaded or it was unresolved and the `resolved` 
-         * parameter was set to true
+         * the mod is not loaded nor installed
          */
-        Mod* getLoadedMod(std::string const& id, bool resolved = true) const;
+        Mod* getLoadedMod(std::string const& id) const;
         /**
-         * Get a list of all loaded mods
-         * @returns List of all loaded mods
+         * Get a list of all installed mods
+         * @returns List of all installed mods
          */
-        std::vector<Mod*> getLoadedMods(bool resolved = false) const;
+        std::vector<Mod*> getAllMods() const;
         /**
-         * Get the count of loaded mods
-         * @returns Tuple where the first element is the count of 
-         * all loaded mods and second element is the count of 
-         * unresolved mods
+         * Get all mods that are a serious 
+         * disappointment to their parents
          */
-        std::tuple<size_t, size_t> getLoadedModCount() const;
+        std::vector<FailedModInfo> const& getFailedMods() const;
         /**
          * Unload a mod fully. This will remove it 
-         * from the mods list and delete the Mod. Use 
-         * with caution!
+         * from the mods list and delete the Mod. If 
+         * the mod does not properly handle unloading, 
+         * this function may cause a crash; Use with 
+         * caution!
          */
         void unloadMod(Mod* mod);
+
         /**
          * Get Geode's internal representation. Use with 
          * caution!
          * @returns Pointer to InternalMod
          */
         static Mod* getInternalMod();
-
-        bool isModInstalled(std::string const& id) const;
 
         /**
          * Run a function in the GD thread. Useful if you're 
@@ -223,5 +228,4 @@ namespace geode {
          */
         void queueInGDThread(std::function<void GEODE_CALL(void)> func);
     };
-
 }
