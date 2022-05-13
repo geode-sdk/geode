@@ -27,6 +27,7 @@ namespace geode::modifier {
 
 	template <class Derived>
 	class ModifyBase {
+	public:
 		// unordered_map<handles> idea
 		ModifyBase() {
 			Derived::apply();
@@ -38,8 +39,9 @@ namespace geode::modifier {
 
 	template <class Derived, class Base>
 	class Modify {
+	public:
 		Modify() {
-			static_assert(std::is_same_v<Derived, Derived>, "Custom Modify not implemented.");
+			static_assert(core::meta::always_false<Derived>, "Custom Modify not implemented.");
 		}
 	};
 
