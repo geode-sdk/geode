@@ -92,6 +92,8 @@ public:
 	}
 };
 
+#pragma warning(push)
+#pragma warning(disable: 4275)
 /**
  * @js NA
  */
@@ -156,6 +158,7 @@ public:
 
     friend class CCAutoreleasePool;
 };
+#pragma warning(pop)
 
 typedef void (CCObject::*SEL_SCHEDULE)(float);
 typedef void (CCObject::*SEL_CallFunc)();
