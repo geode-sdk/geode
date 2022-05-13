@@ -847,12 +847,12 @@ class CustomizeObjectLayer : FLAlertLayer, TextInputDelegate, HSVWidgetPopupDele
 	bool m_customColorSelected;
 }
 
-class DailyLevelPage {
+class DailyLevelPage : FLAlertLayer {
 	static DailyLevelPage* create(bool weekly) = mac 0x0, win 0x6a860, ios 0x0;
 	bool init(bool weekly) = mac 0x0, win 0x6a900, ios 0x0;
 	void updateTimers(float) = mac 0x0, win 0x6bef0, ios 0x0;
 
-	PAD = mac 0x0, win 0x1ed, ios 0x0;
+	PAD = mac 0x0, win 0x21, ios 0x0;
 	bool m_weekly;
 }
 
@@ -1925,7 +1925,7 @@ class GJGameLevel : cocos2d::CCNode {
 	virtual bool init() = mac 0x2db310, win 0x0, ios 0x0;
 	static GJGameLevel* create() = mac 0x2b83e0, win 0xbd2b0, ios 0x51fe8;
 	gd::string getAudioFileName() = mac 0x2dbe70, win 0xbdc70, ios 0x0;
-	void getCoinKey(int) = mac 0x2ce360, win 0x0, ios 0x0;
+	const char* getCoinKey(int) = mac 0x2ce360, win 0xbda50, ios 0x0;
 	void getLengthKey(int) = mac 0x2dbba0, win 0x0, ios 0x0;
 	void getNormalPercent() = mac 0x2b8b20, win 0x0, ios 0x0;
 	void levelWasAltered() = mac 0x2db530, win 0xbd550, ios 0x0;
@@ -2270,6 +2270,7 @@ class GJSearchObject : cocos2d::CCNode {
 	}
 
 	static GJSearchObject* create(SearchType nID) = mac 0x0, win 0xc2b90, ios 0x0;
+	static GJSearchObject* create(SearchType nID, gd::string str) = mac 0x0, win 0xc2c80, ios 0x0;
 
 	SearchType m_searchType;
 	gd::string m_searchQuery;
@@ -2667,6 +2668,7 @@ class GameManager : GManager {
 	bool m_toFullscreen;
 	bool m_reloading;
 	bool m_unknown0;
+	PAD = mac 0x4, win 0x4, android 0x0;
 	cocos2d::CCDictionary* m_valueKeeper;
 	cocos2d::CCDictionary* m_unlockValueKeeper;
 	cocos2d::CCDictionary* m_customObjectDict;
@@ -2674,7 +2676,7 @@ class GameManager : GManager {
 	double m_adCache;
 	PAD = mac 0x8, win 0x8, android 0x0;
 	double m_unknownDouble;
-	PAD = mac 0x8, win 0x8, android 0x0;
+	PAD = mac 0x4, win 0x4, android 0x0;
 	bool m_loaded;
 	gd::string m_unknownString;
 	PlayLayer* m_playLayer;
@@ -2769,7 +2771,10 @@ class GameManager : GManager {
 	bool m_unk2;
 	bool m_gameCenterEnabled;
 	bool m_smoothFix;
-	PAD = mac 0x18, win 0x18, android 0x0;
+	int m_nRatePowerSeed;
+	int m_nRatePowerRand;
+	int m_nRatePower;
+	PAD = mac 0xC, win 0xC, android 0x0;
 	int m_resolution;
 	cocos2d::TextureQuality m_quality;
 }
