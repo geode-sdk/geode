@@ -26,7 +26,7 @@ class AchievementNotifier : cocos2d::CCNode {
 	}
 
 	static AchievementNotifier* sharedState() = mac 0x464e00, win 0xfc90, ios 0x0;
-	void willSwitchToScene(cocos2d::CCScene*) = mac 0x4650b0, win 0x0, ios 0x0;
+	void willSwitchToScene(cocos2d::CCScene*) = mac 0x4650b0, win 0xfea0, ios 0x0;
 	void showNextAchievement() = mac 0x464f10, win 0xfd60, ios 0x13f508;
 
 	cocos2d::CCScene* m_currentScene;
