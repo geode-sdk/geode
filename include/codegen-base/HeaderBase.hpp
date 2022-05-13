@@ -107,7 +107,13 @@ enum class UserListType {};
 enum class GJErrorCode {};
 enum class AccountError {};
 enum class GJSongError {};
-enum class LikeItemType {};
+enum class LikeItemType {
+	Unknown = 0,
+	Level = 1,
+	Comment = 2,
+	AccountComment = 3
+};
+
 enum class GJStoreItem {};
 enum class CommentError {};
 enum class BackupAccountError {};
@@ -303,6 +309,17 @@ enum class GJChallengeType {
 	Orbs = 1,
 	UserCoins = 2,
 	Stars = 3
+};
+
+enum class GJScoreType {
+	Unknown = 0,
+	Creator = 1
+};
+
+enum class LevelLeaderboardType {
+	Friends = 0,
+	Global = 1,
+	Weekly = 2
 };
 
 // Geode Addition

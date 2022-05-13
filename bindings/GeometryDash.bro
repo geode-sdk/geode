@@ -76,7 +76,7 @@ class ArtistCell : TableViewCell {
 	virtual bool init() = mac 0x11c7c0, win 0x0, ios 0x0;
 	void loadFromObject(SongInfoObject*) = mac 0x1118b0, win 0x0, ios 0x0;
 	void onNewgrounds(cocos2d::CCObject*) = mac 0x11c7e0, win 0x0, ios 0x0;
-	void updateBGColor(int) = mac 0x110460, win 0x0, ios 0x0;
+	void updateBGColor(int) = mac 0x110460, win 0x5c6b0, ios 0x0;
 
 	void* m_idk;
 }
@@ -641,7 +641,13 @@ class ColorChannelSprite : cocos2d::CCSprite {
 	cocos2d::CCLabelBMFont* m_blendingDot;
 }
 
-class ColorSelectDelegate {}
+class ColorPickerDelegate {
+	virtual void colorValueChanged(cocos2d::ccColor3B color) {}
+}
+
+class ColorSelectDelegate {
+	virtual void colorSelectClosed(cocos2d::CCNode*) {}
+}
 
 class ColorSelectPopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, TextInputDelegate, GJSpecialColorSelectDelegate {
 	virtual void colorValueChanged(cocos2d::ccColor3B color) = mac 0x0, win 0x46ee0, ios 0x0;
@@ -698,7 +704,7 @@ class ColorSelectPopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, 
 class ColorSetupDelegate {}
 
 class CommentCell : TableViewCell {
-	void loadFromComment(GJComment*) = mac 0x111c70, win 0x0, ios 0x0;
+	void loadFromComment(GJComment*) = mac 0x111c70, win 0x5f3d0, ios 0x0;
 
 	PAD = mac 0x0, win 0x4, android 0x0;
 	cocos2d::CCSprite* m_iconSprite;
@@ -707,7 +713,11 @@ class CommentCell : TableViewCell {
 	PAD = mac 0x0, win 0x4, android 0x0;
 }
 
-class CommentUploadDelegate {}
+class CommentUploadDelegate {
+	virtual void commentUploadFinished(int) {}
+	virtual void commentUploadFailed(int, CommentError) {}
+	virtual void commentDeleteFailed(int, int) {}
+}
 
 class ConfigureHSVWidget : cocos2d::CCNode {
 	cocos2d::CCLabelBMFont* m_hueLabel;
@@ -745,10 +755,14 @@ class CreateMenuItem : CCMenuItemSpriteExtra {
 	int m_buildTab;
 }
 
+//TODO: inherits cocos2d::CCSceneTransitionDelegate
 class CreatorLayer : cocos2d::CCLayer {
+	void onBack(cocos2d::CCObject*) = mac 0x0, win 0x4fae0, ios 0x0;
 	void onChallenge(cocos2d::CCObject*) = mac 0x0, win 0x4f1b0, ios 0x0;
+	void onLeaderboards(cocos2d::CCObject*) = mac 0x0, win 0x4ed20, ios 0x0;
 	void onMyLevels(cocos2d::CCObject*) = mac 0x142b70, win 0x0, ios 0x0;
 	void onSavedLevels(cocos2d::CCObject*) = mac 0x142860, win 0x0, ios 0x0;
+	virtual void sceneWillResume() = mac 0x0, win 0x4fb50, ios 0x0;
 	bool init() = mac 0x0, win 0x4de40, ios 0x0;
 	static CreatorLayer* create() = mac 0x0, win 0x4dda0, ios 0x0;
 }
@@ -886,6 +900,8 @@ class DialogObject : cocos2d::CCObject {
 	float m_textWidth;
 	bool m_canSkip;
 }
+
+class DownloadMessageDelegate {}
 
 class DrawGridLayer : cocos2d::CCLayer {
 	inline using CCPointArray400 = cocos2d::CCPoint(*)[400];
@@ -1422,6 +1438,8 @@ class FMODSound : cocos2d::CCNode {
 	FMOD::Sound* m_sound;
 }
 
+class FriendRequestDelegate {}
+
 class GJAccountBackupDelegate {
 	virtual bool backupAccountFailed(BackupAccountError) {
 		return false;
@@ -1654,6 +1672,8 @@ class GJBaseGameLayer : cocos2d::CCLayer, TriggerEffectDelegate {
 	PAD = mac 0x16, win 0x8, android 0x0;
 }
 
+class GJChallengeDelegate {}
+
 class GJChallengeItem : cocos2d::CCObject {
 
 	GJChallengeType m_challengeType;
@@ -1702,6 +1722,8 @@ class GJCommentListLayer : cocos2d::CCLayerColor {
 
 	BoomListView* m_list;
 }
+
+class GJDailyLevelDelegate {}
 
 class GJDropDownLayer : cocos2d::CCLayerColor {
 	virtual void customSetup() {}
@@ -1757,7 +1779,9 @@ class GJDropDownLayer : cocos2d::CCLayerColor {
 	void* m_unknown;
 }
 
-class GJDropDownLayerDelegate {}
+class GJDropDownLayerDelegate {
+	virtual void dropDownLayerWillClose(GJDropDownLayer*) {}
+}
 
 class GJEffectManager : cocos2d::CCNode {
 	virtual bool init() = mac 0x180230, win 0x0, ios 0x0;
@@ -2139,6 +2163,10 @@ class GJItemIcon {
 	static GJItemIcon* create(UnlockType _type, int _id, cocos2d::ccColor3B _col1, cocos2d::ccColor3B _col2, bool _un0, bool _un1, bool _un2, cocos2d::ccColor3B _col3) = mac 0x1bb330, win 0x12cbf0, ios 0x227188;
 }
 
+class GJLevelScoreCell : TableViewCell {
+	void updateBGColor(unsigned int index) = mac 0x0, win 0x5c6b0, ios 0x0;
+}
+
 class GJListLayer : cocos2d::CCLayerColor {
 	~GJListLayer() = mac 0x344350, win 0x0, ios 0x0;
 	static GJListLayer* create(cocos2d::CCObject* target, const char* title, cocos2d::ccColor4B color, float width, float height) = mac 0x343e10, win 0x12e000, ios 0x0;
@@ -2159,6 +2187,16 @@ class GJMapPack : cocos2d::CCNode {
 	int m_MId;
 	bool m_isGauntlet;
 }
+
+class GJMessageCell : TableViewCell {
+	void updateBGColor(unsigned int index) = mac 0x0, win 0x5c6b0, ios 0x0;
+}
+
+class GJRequestCell : TableViewCell {
+	void updateBGColor(unsigned int index) = mac 0x0, win 0x5c6b0, ios 0x0;
+}
+
+class GJRewardDelegate {}
 
 class GJRewardObject : cocos2d::CCObject {
 	SpecialRewardItem m_specialRewardItem;
@@ -2199,7 +2237,11 @@ class GJRotationControl : cocos2d::CCLayer {
 	int m_touchID;
 }
 
-class GJRotationControlDelegate {}
+class GJRotationControlDelegate {
+	virtual void angleChangeBegin() {}
+	virtual void angleChangeEnded() {}
+	virtual void angleChanged(float) {}
+}
 
 class GJScaleControl : cocos2d::CCLayer {
 	void updateLabel(float value) = mac 0x0, win 0x94990, ios 0x0;
@@ -2213,7 +2255,18 @@ class GJScaleControl : cocos2d::CCLayer {
 	GJScaleControlDelegate* m_delegate;
 }
 
-class GJScaleControlDelegate {}
+class GJScaleControlDelegate {
+	virtual void scaleChangeBegin() {}
+	virtual void scaleChangeEnded() {}
+	virtual void scaleChanged(float) {}
+}
+
+class GJScoreCell : TableViewCell {
+	virtual void FLAlert_Clicked(FLAlertLayer*, bool) = mac 0x0, win 0x624a0, ios 0x0;
+	void loadFromScore(GJUserScore* score) = mac 0x0, win 0x61440, ios 0x0;
+	void onViewProfile(cocos2d::CCObject* pSender) = mac 0x0, win 0x62380, ios 0x0;
+	void updateBGColor(unsigned int index) = mac 0x0, win 0x5c6b0, ios 0x0;
+}
 
 class GJSearchObject : cocos2d::CCNode {
 	SearchType getType() {
@@ -2248,7 +2301,9 @@ class GJSpecialColorSelect {
 	static const char* textForColorIdx(int id) = mac 0x383a50, win 0x14e1d0, ios 0x113f6c;
 }
 
-class GJSpecialColorSelectDelegate {}
+class GJSpecialColorSelectDelegate {
+	virtual void colorSelectClosed(GJSpecialColorSelect*, int) {}
+}
 
 class GJSpiderSprite {
 	~GJSpiderSprite() = mac 0x34c4a0, win 0x0, ios 0x0;
@@ -2264,6 +2319,10 @@ class GJSpriteColor : cocos2d::CCNode {
 	bool unk_108;
 	float unk_10C;
 	bool unk_110;
+}
+
+class GJUserCell : TableViewCell {
+	void updateBGColor(unsigned int index) = mac 0x0, win 0x5c6b0, ios 0x0;
 }
 
 class GJUserScore : cocos2d::CCNode {
@@ -2309,6 +2368,8 @@ class GJUserScore : cocos2d::CCNode {
 	gd::string getPlayerName() const { 
 	    return this->m_userName; 
 	}
+	static GJUserScore* create() = mac 0x0, win 0xc1660, ios 0x0;
+	static GJUserScore* create(cocos2d::CCDictionary*) = mac 0x0, win 0xc0750, ios 0x0;
 
 	gd::string m_userName;
 	gd::string m_userUDID;
@@ -2368,16 +2429,29 @@ class GManager : cocos2d::CCNode {
 	bool m_quickSave;
 }
 
+class GooglePlayDelegate {
+	virtual void googlePlaySignedIn() {}
+}
+
 class GameLevelManager : cocos2d::CCNode {
+	cocos2d::CCArray* createAndGetScores(gd::string, GJScoreType) = mac 0x0, win 0xa2780, ios 0x0;
 	GJGameLevel* createNewLevel() = mac 0x2b8180, win 0xa0db0, ios 0x0;
 	static GameLevelManager* sharedState() = mac 0x2a8340, win 0x9f860, ios 0x0;
+	void getCompletedLevels(bool newFilter) = mac 0x0, win 0xa2d20, ios 0x0;
+	void getGJUserInfo(int) = mac 0x0, win 0xb00b0, ios 0x0;
+	void getOnlineLevels(GJSearchObject*) = mac 0x0, win 0xa7bc0, ios 0x0;
 	void getPageInfo(char const*) = mac 0x2c0050, win 0x0, ios 0x0;
-	cocos2d::CCArray* getStoredOnlineLevels(char const*) = mac 0x2bfe80, win 0x0, ios 0x0;
+	cocos2d::CCArray* getSavedLevels(bool favorite, int levelFolder) = mac 0x0, win 0xa2960, ios 0x0;
+	cocos2d::CCArray* getStoredOnlineLevels(char const*) = mac 0x2bfe80, win 0xa3a90, ios 0x0;
 	void getTopArtists(int, int) = mac 0x2ce3d0, win 0x0, ios 0x0;
 	void getTopArtistsKey(int) = mac 0x2ce7a0, win 0x0, ios 0x0;
 	void makeTimeStamp(char const*) = mac 0x2bfd90, win 0x0, ios 0x0;
 	GJGameLevel* getMainLevel(int id, bool unk) = mac 0x0, win 0xa0940, ios 0x0;
+	cocos2d::CCDictionary* responseToDict(gd::string response, bool comment) = mac 0x0, win 0xbba50, ios 0x0;
+	void storeUserNames(gd::string) = mac 0x0, win 0xa1840, ios 0x0;
 	gd::string userNameForUserID(int id) = mac 0x0, win 0xa1c20, ios 0x0;
+	void updateUserScore() = mac 0x0, win 0xada60, ios 0x0;
+
 
 	//cocos2d::CCDictionary* timerDict = mac 0x1e8, win 0x0, android 0x0;
 	cocos2d::CCDictionary* m_mainLevels;
@@ -2403,7 +2477,7 @@ class GameLevelManager : cocos2d::CCNode {
 	cocos2d::CCDictionary* m_gauntletLevels;
 	cocos2d::CCDictionary* m_unkDict13;
 	PAD = mac 0x0, win 0x4, android 0x0;
-	cocos2d::CCDictionary* timerDict;
+	cocos2d::CCDictionary* m_timerDict;
 	cocos2d::CCDictionary* m_knownUsers;
 	cocos2d::CCDictionary* m_accountIDtoUserIDDict;
 	cocos2d::CCDictionary* m_userIDtoAccountIDDict;
@@ -2420,7 +2494,29 @@ class GameLevelManager : cocos2d::CCNode {
 	cocos2d::CCDictionary* m_userReplies;
 	gd::string m_unkStr1;
 	gd::string m_unkStr2;
-	PAD = mac 0x0, win 0x5c, android 0x0;
+	LeaderboardState m_leaderboardState;
+	bool m_unkEditLevelLayerOnBack;
+	OnlineListDelegate* m_onlineListDelegate;
+	LevelDownloadDelegate* m_levelDownloadDelegate;
+	LevelCommentDelegate* m_levelCommentDelegate;
+	CommentUploadDelegate* m_commentUploadDelegate;
+	LevelUploadDelegate* m_levelUploadDelegate;
+	LevelUpdateDelegate* m_levelUpdateDelegate;
+	LeaderboardManagerDelegate* m_leaderboardManagerDelegate;
+	LevelDeleteDelegate* m_levelDeleteDelegate;
+	UserInfoDelegate* m_userInfoDelegate;
+	LevelManagerDelegate* m_levelManagerDelegate;
+	void* m_unkDelegate;
+	FriendRequestDelegate* m_friendRequestDelegate;
+	MessageListDelegate* m_messageListDelegate;
+	DownloadMessageDelegate* m_downloadMessageDelegate;
+	UploadMessageDelegate* m_uploadMessageDelegate;
+	GJRewardDelegate* m_GJRewardDelegate;
+	GJChallengeDelegate* m_GJChallengeDelegate;
+	GJDailyLevelDelegate* m_GJDailyLevelDelegate;
+	MusicDownloadDelegate* m_musicDownloadDelegate;
+	int m_unkDownload;
+	PAD = mac 0x0, win 0x4, android 0x0;
 	gd::string m_unkStr3;
 	cocos2d::CCString* m_unkStr4;
 }
@@ -3032,6 +3128,7 @@ class GameStatsManager : cocos2d::CCNode {
 	void hasPendingUserCoin(char const*) = mac 0x42730, win 0x0, ios 0x0;
 	void hasSecretCoin(char const*) = mac 0x40730, win 0x0, ios 0x0;
 	void hasUserCoin(char const*) = mac 0x427e0, win 0x0, ios 0x0;
+	void incrementChallenge(GJChallengeType type, int count) = mac 0x0, win 0xf9ae0, ios 0x0;
 	void incrementStat(char const*) = mac 0x3d6d0, win 0x0, ios 0x0;
 	void incrementStat(char const*, int) = mac 0x3d6e0, win 0x0, ios 0x0;
 	static GameStatsManager* sharedState() = mac 0x38f20, win 0xf1e50, ios 0x0;
@@ -3198,8 +3295,9 @@ class LabelGameObject : GameObject {
 
 class LeaderboardManagerDelegate {}
 
-class LeaderboardsLayer {
+class LeaderboardsLayer : cocos2d::CCLayer {
 	static LeaderboardsLayer* create(LeaderboardState state) = mac 0x0, win 0x158710, ios 0x0;
+	bool init(LeaderboardState state) = mac 0x0, win 0x1587b0, ios 0x0;
 }
 
 class LevelBrowserLayer : cocos2d::CCLayer {
@@ -3216,7 +3314,7 @@ class LevelBrowserLayer : cocos2d::CCLayer {
 	bool init(GJSearchObject* pSearch) = mac 0x0, win 0x15a040, ios 0x0;
 	void loadPage(GJSearchObject* pSearch) = mac 0x0, win 0x15b160, ios 0x0;
 	void setupLevelBrowser(cocos2d::CCArray* levels) = mac 0x0, win 0x15bb40, ios 0x0;
-	void updateLevelsLabel(cocos2d::CCArray* levels) = mac 0x0, win 0x15c350, ios 0x0;
+	void updateLevelsLabel() = mac 0x0, win 0x15c350, ios 0x0;
 	static LevelBrowserLayer* create(GJSearchObject* pSearch) = mac 0x251210, win 0x159fa0, ios 0x2d0a00;
 
 	PAD = mac 0x0, win 0x18, android 0x0;
@@ -3231,11 +3329,32 @@ class LevelBrowserLayer : cocos2d::CCLayer {
 	int m_pageEndIdx;
 }
 
-class LevelCommentDelegate {}
+class LevelCell : TableViewCell {
+	CCMenuItemSpriteExtra* m_button;
+	GJGameLevel* m_level;
+	bool m_cellDrawn;
 
-class LevelDeleteDelegate {}
+	void onViewProfile(cocos2d::CCObject*) = mac 0x0, win 0x5c790, ios 0x0;
+	void loadCustomLevelCell() = mac 0x0, win 0x5a020, ios 0x0;
+	void updateBGColor(unsigned int index) = mac 0x0, win 0x5c6b0, ios 0x0;
+}
 
-class LevelDownloadDelegate {}
+class LevelCommentDelegate {
+	virtual void loadCommentsFinished(cocos2d::CCArray *, const char*)  {}
+	virtual void loadCommentsFailed(const char*)  {}
+	virtual void updateUserScoreFinished()  {}
+	virtual void setupPageInfo(gd::string, const char*)  {}
+}
+
+class LevelDeleteDelegate {
+	virtual void levelDeleteFinished(int) {}
+	virtual void levelDeleteFailed(int) {}
+}
+
+class LevelDownloadDelegate {
+	virtual void levelDownloadFinished(GJGameLevel*) {}
+	virtual void levelDownloadFailed(int) {}
+}
 
 class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
 	static LevelEditorLayer* get() {
@@ -3389,19 +3508,14 @@ class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDeleg
 	PAD = mac 0x0, win 0x4, android 0x0;
 }
 
-class LevelCell : TableViewCell {
-	CCMenuItemSpriteExtra* m_button;
-	GJGameLevel* m_level;
-	bool m_cellDrawn;
-}
-
-//TODO: leaderboardType is actually of enum type LevelLeaderboardType
 class LevelLeaderboard : FLAlertLayer {
 	void onChangeType(cocos2d::CCObject* pSender) = mac 0x0, win 0x17d090, ios 0x0;
 	void onGarage(cocos2d::CCObject* pSender) = mac 0x0, win 0x17d1b0, ios 0x0;
 	bool init(GJGameLevel* level, int type) = mac 0x0, win 0x17c4f0, ios 0x0;
-	static LevelLeaderboard* create(GJGameLevel* level, int leaderboardType) = mac 0x15f290, win 0x17c440, ios 0x0;
+	static LevelLeaderboard* create(GJGameLevel* level, LevelLeaderboardType leaderboardType) = mac 0x0, win 0x17c440, ios 0x0;
 }
+
+class LevelManagerDelegate {}
 
 class LevelPage {
 	PAD = mac 0x0, win 0x124, android 0x0;
@@ -3410,6 +3524,12 @@ class LevelPage {
 
 class LevelSearchLayer {
 	static LevelSearchLayer* create() = mac 0x0, win 0x17d9c0, ios 0x0;
+	GJSearchObject* getSearchObject(SearchType, gd::string) = mac 0x0, win 0x1805f0, ios 0x0;
+	void onMoreOptions(cocos2d::CCObject*) = mac 0x0, win 0x17f500, ios 0x0;
+	void onSearch(cocos2d::CCObject*) = mac 0x0, win 0x180fc0, ios 0x0;
+
+	PAD = mac 0x0, win 0xC, android 0x0;
+	CCTextInputNode* m_searchInput;
 }
 
 class LevelSelectLayer : cocos2d::CCLayer {
@@ -3451,9 +3571,16 @@ class LevelSettingsObject : cocos2d::CCNode {
 	gd::string m_unknownStr;
 }
 
-class LevelUpdateDelegate {}
+class LevelUploadDelegate {}
 
-class LikeItemDelegate {}
+class LevelUpdateDelegate {
+	virtual void levelUpdateFinished(GJGameLevel*, UpdateResponse) {}
+	virtual void levelUpdateFailed(int) {}
+}
+
+class LikeItemDelegate {
+	virtual void likedItem(LikeItemType, int, bool) {}
+}
 
 class ListButtonBar : cocos2d::CCNode {
 	BoomScrollLayer* m_scrollLayer;
@@ -3515,6 +3642,10 @@ class LocalLevelManager : cocos2d::CCNode {
 	cocos2d::CCArray* m_localLevels;
 }
 
+class MapPackCell : TableViewCell {
+	void updateBGColor(unsigned int index) = mac 0x0, win 0x5c6b0, ios 0x0;
+}
+
 class MenuGameLayer {
 	void resetPlayer() = mac 0x28fdc0, win 0x0, ios 0x0;
 	void update(float) = mac 0x28fa70, win 0x0, ios 0x0;
@@ -3546,6 +3677,13 @@ class MenuLayer : cocos2d::CCLayer, FLAlertLayerProtocol {
 	MenuLayer* node() = mac 0x0, win 0x190550, ios 0x0;
 }
 
+class MessageListDelegate {}
+
+class MoreSearchLayer : FLAlertLayer {
+	static MoreSearchLayer* create() = mac 0x0, win 0x182520, ios 0x0;
+	bool init() = mac 0x0, win 0x1825c0, ios 0x0;
+}
+
 class MoreOptionsLayer {
 	static MoreOptionsLayer* create() = mac 0x0, win 0x1de850, ios 0x0;
 	void addToggle(const char* name, const char* key, const char* info) = mac 0x0, win 0x1df6b0, ios 0x0;
@@ -3560,7 +3698,13 @@ class MoreVideoOptionsLayer : FLAlertLayer {
 
 class MultilineBitmapFont : cocos2d::CCSprite {}
 
-class MusicDownloadDelegate {}
+class MusicDownloadDelegate {
+	virtual void downloadSongFailed(int, GJSongError) {}
+	virtual void downloadSongFinished(SongInfoObject*) {}
+	virtual void loadSongInfoFailed(int, GJSongError) {}
+	virtual void loadSongInfoFinished(SongInfoObject*) {}
+	virtual void songStateChanged() {}
+}
 
 class MusicDownloadManager : cocos2d::CCNode, PlatformDownloadDelegate {
 	void incrementPriorityForSong(int) = mac 0x2ef750, win 0x0, ios 0x0;
@@ -3575,7 +3719,11 @@ class MusicDownloadManager : cocos2d::CCNode, PlatformDownloadDelegate {
 	int m_unknown;
 }
 
-class NumberInputDelegate {}
+class NumberInputDelegate {
+	virtual void numberInputClosed(NumberInputLayer*) {}
+}
+
+class NumberInputLayer {}
 
 class OBB2D : cocos2d::CCNode {
 	void calculateWithCenter(cocos2d::CCPoint, float, float, float) = mac 0x35a9c0, win 0x0, ios 0x0;
@@ -3648,6 +3796,12 @@ class OpacityEffectAction : cocos2d::CCNode {
 	float m_opacity;
 	int m_uuid;
 	float m_delta;
+}
+
+class OnlineListDelegate {
+	virtual void loadListFinished(cocos2d::CCArray*, const char*) {}
+	virtual void loadListFailed(const char*) {}
+	virtual void setupPageInfo(gd::string, const char*) {}
 }
 
 class OptionsLayer : GJDropDownLayer, FLAlertLayerProtocol {
@@ -4327,6 +4481,7 @@ class ProfilePage : FLAlertLayer, FLAlertLayerProtocol, LevelCommentDelegate, Co
 	static ProfilePage* create(int accountID, bool idk) = mac 0x45eed0, win 0x20ee50, ios 0x0;
 	void getUserInfoFailed(int) = mac 0x0, win 0x2133e0, ios 0x0;
 	bool init(int accountID, bool idk) = mac 0x0, win 0x20ef00, ios 0x0;
+	void onMyLevels(cocos2d::CCObject*) = mac 0x0, win 0x211bb0, ios 0x0;
 	void onUpdate(cocos2d::CCObject*) = mac 0x0, win 0x20fa20, ios 0x0;
 	void loadPageFromUserInfo(GJUserScore* score) = mac 0x0, win 0x210040, ios 0x0;
 
@@ -4343,7 +4498,9 @@ class PulseEffectAction : cocos2d::CCNode {
 	int group = mac 0x130, win 0x0, android 0x0;
 }
 
-class RateLevelDelegate {}
+class RateLevelDelegate {
+	virtual void rateLevelClosed() {}
+}
 
 class RetryLevelLayer {
 	static RetryLevelLayer* create() = mac 0x28dd60, win 0x0, ios 0x0;
@@ -4396,7 +4553,9 @@ class SetIDLayer {
 
 class SetIDPopup {}
 
-class SetIDPopupDelegate {}
+class SetIDPopupDelegate {
+	virtual void setIDPopupClosed(SetIDPopup*, int) {}
+}
 
 class SetItemIDLayer {
 	static SetItemIDLayer* create(EffectGameObject*, cocos2d::CCArray*) = mac 0x5a830, win 0x0, ios 0x0;
@@ -4602,6 +4761,10 @@ class SliderTouchLogic : cocos2d::CCMenu {
 	bool m_unknown;
 	PAD = mac 0x0, win 0x8, android 0x0;
 	bool m_vertical;
+}
+
+class SongCell : TableViewCell {
+	void updateBGColor(unsigned int index) = mac 0x0, win 0x5c6b0, ios 0x0;
 }
 
 class SongInfoLayer : FLAlertLayer {
@@ -4822,9 +4985,16 @@ class UndoObject : cocos2d::CCObject {
 	bool m_redo;
 }
 
-class UploadActionDelegate {}
+class UploadActionDelegate {
+	virtual void uploadActionFinished(int, int) {}
+	virtual void uploadActionFailed(int, int) {}
+}
 
-class UploadPopupDelegate {}
+class UploadMessageDelegate {}
+
+class UploadPopupDelegate {
+	virtual void onClosePopup() {}
+}
 
 class UserInfoDelegate {}
 
