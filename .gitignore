@@ -50,3 +50,4 @@ Scratch/
 # Ignore data stuff
 Source/Geode/gen/data/todo/
 Source/Geode/gen/data/Backup/
+JesusChristGen.cpp

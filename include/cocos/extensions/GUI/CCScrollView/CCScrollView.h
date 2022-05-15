@@ -185,7 +185,7 @@ public:
      * direction allowed to scroll. CCScrollViewDirectionBoth by default.
      */
     CCScrollViewDirection getDirection() { return m_eDirection; }
-    virtual void setDirection(CCScrollViewDirection eDirection) { m_eDirection = eDirection; }
+    virtual void setDirection(CCScrollViewDirection eDirection);
 
     CCScrollViewDelegate* getDelegate() { return m_pDelegate; }
     void setDelegate(CCScrollViewDelegate* pDelegate) { m_pDelegate = pDelegate; }

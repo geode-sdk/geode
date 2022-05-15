@@ -3931,7 +3931,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, DialogDelegate {
 	cocos2d::CCScene* scene(GJGameLevel*) = mac 0x6b500, win 0x1fb690, ios 0x0;
 	void setupLevelStart(LevelSettingsObject*) = mac 0x6f560, win 0x1fb780, ios 0x0;
 	void setupReplay(gd::string) = mac 0x7e1e0, win 0x0, ios 0x0;
-	void shakeCamera(float, float, float) = mac 0x744a0, win 0x0, ios 0x0;
+	void shakeCamera(float, float, float) = mac 0x744a0, win 0x1ff210, ios 0x0;
 	void shouldBlend(int) = mac 0x771b0, win 0x0, ios 0x0;
 	void showCompleteEffect() = mac 0x738e0, win 0x0, ios 0x0;
 	void showCompleteText() = mac 0x73be0, win 0x0, ios 0x0;

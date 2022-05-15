@@ -20,7 +20,7 @@ static string getAddress(Function const& f) {
             format = "addresser::getNonVirtual((types::member{})(&{}::{}))";
         return fmt::format(format, f.global_index, f.parent_class->name, f.name);
     }
-    else return "base::get()+" + f.binds[CacShare::platform];
+    else return "base::get() + " + f.binds[CacShare::platform];
 }
 
 int main(int argc, char** argv) {
