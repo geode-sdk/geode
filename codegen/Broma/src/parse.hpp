@@ -81,7 +81,7 @@ inline string parseQualifiedName(Tokens& tokens) {
 	} while ((t.type == kQualifier && peek(tokens).type == kIdent) || (t.type == kIdent && peek(tokens).type == kQualifier));
 	if (qual.size() == 0)
 		cacerr("Expected identifier, found %s\n", next(tokens).slice.c_str());
-
+	//std::cout << "qual: " << qual << std::endl;
 	return qual;
 }
 
@@ -355,6 +355,7 @@ inline void parseClass(Root& r, Tokens& tokens) {
 		}
 	} else {
 		string name = parseQualifiedName(tokens);
+		std::cout << "parsing: " << name << std::endl;
 		ClassDefinition& myClass = r.addClass(name);
 
 	    stringstream f(attrib);

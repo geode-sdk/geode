@@ -98,6 +98,21 @@ enum class GameObjectType {
 	Special = 40,
 };
 
+enum class spriteMode {}; // yes this is real its not pascalcase
+enum class frameValues {};
+enum class GauntletType {};
+enum class FormatterType {};
+enum class DialogAnimationType {};
+enum class DialogChatPlacement {};
+enum class GJRewardType {};
+enum class CurrencySpriteType {};
+enum class DemonDifficultyType {};
+enum class CurrencyRewardType {};
+enum class ChestSpriteState {};
+enum class GJHttpType {};
+enum class GJKeyGroup {};
+enum class GJKeyCommand {};
+enum class CommentType {};
 enum class PulseEffectType {};
 enum class TouchTriggerType {};
 enum class PlayerButton {};
@@ -114,7 +129,6 @@ enum class LikeItemType {
 	AccountComment = 3
 };
 
-enum class GJStoreItem {};
 enum class CommentError {};
 enum class BackupAccountError {};
 
