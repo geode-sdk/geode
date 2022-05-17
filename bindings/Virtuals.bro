@@ -49,7 +49,7 @@ class GameObject : CCSpritePlus {
 	virtual void getRealPosition() = mac 0x335750, ios 0x194a2c;
 	virtual void setStartPos(cocos2d::CCPoint) = mac 0x2fa520, ios 0x170e70;
 	virtual void updateStartValues() = mac 0x2fa800, ios 0x1710dc;
-	virtual void customObjectSetup(std::map<std::string, std::string, std::less<std::string>, std::allocator<std::pair<std::string const, std::string> > >&) = mac 0xdc1a0;
+	virtual void customObjectSetup(gd::map<gd::string, gd::string>&) = mac 0xdc1a0;
 	virtual void getSaveString() = mac 0x33d3d0, ios 0x19b07c;
 	virtual void isFlipX() = mac 0x335a40, ios 0x194c98;
 	virtual void isFlipY() = mac 0x335a50, ios 0x194ca0;
@@ -99,7 +99,7 @@ class RingObject : EffectGameObject {
 	virtual void setScale(float) = mac 0xc6fb0, ios 0x276210;
 	virtual void setRotation(float) = mac 0xc7010, ios 0x276260;
 	virtual void resetObject() = mac 0xc6f90, ios 0x2761e4;
-	virtual void customObjectSetup(std::map<std::string, std::string, std::less<std::string>, std::allocator<std::pair<std::string const, std::string> > >&) = mac 0xc7040, ios 0x276290;
+	virtual void customObjectSetup(gd::map<gd::string, gd::string>&) = mac 0xc7040, ios 0x276290;
 	virtual void getSaveString() = mac 0xc73a0, ios 0x27638c;
 	virtual void setRScale(float) = mac 0xc6fe0, ios 0x276238;
 	virtual void triggerActivated(float) = mac 0xc6e10, ios 0x276094;
@@ -239,7 +239,7 @@ class ProfilePage : FLAlertLayer, FLAlertLayerProtocol, LevelCommentDelegate, Co
 	virtual void userInfoChanged(GJUserScore*) = mac 0x464070, ios 0xfe398;
 	virtual void loadCommentsFinished(cocos2d::CCArray*, char const*) = mac 0x464250, ios 0xfe594;
 	virtual void loadCommentsFailed(char const*) = mac 0x464340, ios 0xfe618;
-	virtual void setupPageInfo(std::string, char const*) = mac 0x464410, ios 0xfe688;
+	virtual void setupPageInfo(gd::string, char const*) = mac 0x464410, ios 0xfe688;
 	virtual void commentUploadFinished(int) = mac 0x464770, ios 0xfea14;
 	virtual void commentUploadFailed(int, CommentError) = mac 0x464800, ios 0xfea6c;
 	virtual void commentDeleteFailed(int, int) = mac 0x4648e0, ios 0xfeb44;
@@ -842,7 +842,7 @@ class SelectArtLayer : FLAlertLayer {
 
 class SetFolderPopup : SetIDPopup, SetTextPopupDelegate {
 	virtual void valueChanged() = mac 0x155d40, ios 0x20da70;
-	virtual void setTextPopupClosed(SetTextPopup*, std::string) = mac 0x1561b0, ios 0x20ddb0;
+	virtual void setTextPopupClosed(SetTextPopup*, gd::string) = mac 0x1561b0, ios 0x20ddb0;
 };
 
 class SetItemIDLayer : FLAlertLayer, TextInputDelegate {
@@ -1012,7 +1012,7 @@ class LabelGameObject : EffectGameObject {
 	virtual void setOpacity(unsigned char) = mac 0xdba40, ios 0x27eb28;
 	virtual void setupCustomSprites() = mac 0xdb9b0, ios 0x27ea98;
 	virtual void addMainSpriteToParent(bool) = mac 0xdbce0, ios 0x27ed40;
-	virtual void customObjectSetup(std::map<std::string, std::string, std::less<std::string>, std::allocator<std::pair<std::string const, std::string> > >&) = mac 0xdbbe0, ios 0x27ec6c;
+	virtual void customObjectSetup(gd::map<gd::string, gd::string>&) = mac 0xdbbe0, ios 0x27ec6c;
 	virtual void getSaveString() = mac 0xdbd50, ios 0x27eda4;
 	virtual void setObjectColor(cocos2d::_ccColor3B const&) = mac 0xdbca0, ios 0x27ed00;
 };
@@ -1084,7 +1084,7 @@ class TopArtistsLayer : FLAlertLayer, OnlineListDelegate {
 	virtual void show() = mac 0x193e40, ios 0x106198;
 	virtual void loadListFinished(cocos2d::CCArray*, char const*) = mac 0x193600, ios 0x1058e8;
 	virtual void loadListFailed(char const*) = mac 0x1936f0, ios 0x105958;
-	virtual void setupPageInfo(std::string, char const*) = mac 0x193730, ios 0x105980;
+	virtual void setupPageInfo(gd::string, char const*) = mac 0x193730, ios 0x105980;
 };
 
 class AccountHelpLayer : GJDropDownLayer, GJAccountDelegate, FLAlertLayerProtocol {
@@ -1162,7 +1162,7 @@ class EditorPauseLayer : CCBlockLayer, FLAlertLayerProtocol {
 class EffectGameObject : GameObject {
 	virtual void customSetup() = mac 0xca370, ios 0x278c98;
 	virtual void triggerObject(GJBaseGameLayer*) = mac 0xc9870, ios 0x278380;
-	virtual void customObjectSetup(std::map<std::string, std::string, std::less<std::string>, std::allocator<std::pair<std::string const, std::string> > >&) = mac 0xca420, ios 0x278d40;
+	virtual void customObjectSetup(gd::map<gd::string, gd::string>&) = mac 0xca420, ios 0x278d40;
 	virtual void getSaveString() = mac 0xcd7e0, ios 0x27b49c;
 	virtual void triggerActivated(float) = mac 0xca310, ios 0x278c34;
 	virtual void spawnXPosition() = mac 0xca2d0, ios 0x278bfc;
@@ -1423,8 +1423,8 @@ class LevelBrowserLayer : cocos2d::CCLayer, LevelManagerDelegate, FLAlertLayerPr
 	virtual void keyDown(cocos2d::enumKeyCodes) = mac 0x255680, ios 0x2d4710;
 	virtual void loadLevelsFinished(cocos2d::CCArray*, char const*) = mac 0x254e10, ios 0x2d3fdc;
 	virtual void loadLevelsFailed(char const*) = mac 0x254f60, ios 0x2d4080;
-	virtual void setupPageInfo(std::string, char const*) = mac 0x255050, ios 0x2d40fc;
-	virtual void setTextPopupClosed(SetTextPopup*, std::string) = mac 0x255760, ios 0x2d47d0;
+	virtual void setupPageInfo(gd::string, char const*) = mac 0x255050, ios 0x2d40fc;
+	virtual void setTextPopupClosed(SetTextPopup*, gd::string) = mac 0x255760, ios 0x2d47d0;
 	virtual void FLAlert_Clicked(FLAlertLayer*, bool) = mac 0x255840, ios 0x2d4858;
 	virtual void setIDPopupClosed(SetIDPopup*, int) = mac 0x2554f0, ios 0x2d45c0;
 };
@@ -1540,7 +1540,7 @@ class AnimatedGameObject : GameObject, AnimatedSpriteDelegate, SpritePartDelegat
 	virtual void deactivateObject(bool) = mac 0xc85e0, ios 0x2770ac;
 	virtual void setObjectColor(cocos2d::_ccColor3B const&) = mac 0xc8720, ios 0x2771c8;
 	virtual void animationFinished(char const*) = mac 0xc8750, ios 0x2771fc;
-	virtual void displayFrameChanged(cocos2d::CCObject*, std::string) = mac 0xc9160, ios 0x277c58;
+	virtual void displayFrameChanged(cocos2d::CCObject*, gd::string) = mac 0xc9160, ios 0x277c58;
 };
 
 class AnimatedShopKeeper : CCAnimatedSprite {
@@ -1628,7 +1628,7 @@ class LevelSettingsLayer : FLAlertLayer, ColorSelectDelegate, SelectArtDelegate,
 class OnlineListDelegate {
 	virtual void loadListFinished(cocos2d::CCArray*, char const*);
 	virtual void loadListFailed(char const*);
-	virtual void setupPageInfo(std::string, char const*);
+	virtual void setupPageInfo(gd::string, char const*);
 };
 
 class SetIDPopupDelegate {
@@ -1639,7 +1639,7 @@ class SpawnTriggerAction : cocos2d::CCNode {
 };
 
 class SpritePartDelegate {
-	virtual void displayFrameChanged(cocos2d::CCObject*, std::string);
+	virtual void displayFrameChanged(cocos2d::CCObject*, gd::string);
 };
 
 class AchievementNotifier : cocos2d::CCNode {
@@ -1693,7 +1693,7 @@ class FRequestProfilePage : FLAlertLayer, FLAlertLayerProtocol, UploadActionDele
 	virtual void uploadActionFailed(int, int) = mac 0x437500, ios 0x1184f0;
 	virtual void loadFRequestsFinished(cocos2d::CCArray*, char const*) = mac 0x437840, ios 0x118860;
 	virtual void loadFRequestsFailed(char const*, GJErrorCode) = mac 0x437930, ios 0x1188e4;
-	virtual void setupPageInfo(std::string, char const*) = mac 0x437ab0, ios 0x1189b8;
+	virtual void setupPageInfo(gd::string, char const*) = mac 0x437ab0, ios 0x1189b8;
 	virtual void forceReloadRequests(bool) = mac 0x437a60, ios 0x118984;
 };
 
@@ -1753,7 +1753,7 @@ class MessageListDelegate {
 	virtual void loadMessagesFinished(cocos2d::CCArray*, char const*);
 	virtual void loadMessagesFailed(char const*, GJErrorCode);
 	virtual void forceReloadMessages(bool);
-	virtual void setupPageInfo(std::string, char const*);
+	virtual void setupPageInfo(gd::string, char const*);
 };
 
 class MessagesProfilePage : FLAlertLayer, FLAlertLayerProtocol, UploadActionDelegate, UploadPopupDelegate, MessageListDelegate {
@@ -1766,7 +1766,7 @@ class MessagesProfilePage : FLAlertLayer, FLAlertLayerProtocol, UploadActionDele
 	virtual void loadMessagesFinished(cocos2d::CCArray*, char const*) = mac 0x108150, ios 0x12b4a0;
 	virtual void loadMessagesFailed(char const*, GJErrorCode) = mac 0x108280, ios 0x12b5b4;
 	virtual void forceReloadMessages(bool) = mac 0x1083b0, ios 0x12b654;
-	virtual void setupPageInfo(std::string, char const*) = mac 0x108400, ios 0x12b688;
+	virtual void setupPageInfo(gd::string, char const*) = mac 0x108400, ios 0x12b688;
 };
 
 class MultilineBitmapFont : cocos2d::CCSprite {
@@ -1871,13 +1871,13 @@ class LevelCommentDelegate {
 	virtual void loadCommentsFinished(cocos2d::CCArray*, char const*);
 	virtual void loadCommentsFailed(char const*);
 	virtual void updateUserScoreFinished();
-	virtual void setupPageInfo(std::string, char const*);
+	virtual void setupPageInfo(gd::string, char const*);
 };
 
 class LevelManagerDelegate {
 	virtual void loadLevelsFinished(cocos2d::CCArray*, char const*);
 	virtual void loadLevelsFailed(char const*);
-	virtual void setupPageInfo(std::string, char const*) = mac 0x1d5ec0;
+	virtual void setupPageInfo(gd::string, char const*) = mac 0x1d5ec0;
 };
 
 class MusicDelegateHandler : cocos2d::CCNode {
@@ -1893,14 +1893,14 @@ class ParentalOptionsLayer : FLAlertLayer {
 };
 
 class SetTextPopupDelegate {
-	virtual void setTextPopupClosed(SetTextPopup*, std::string);
+	virtual void setTextPopupClosed(SetTextPopup*, gd::string);
 };
 
 class TeleportPortalObject : GameObject {
 	virtual void setPosition(cocos2d::CCPoint const&) = mac 0xdad00, ios 0x27e3e4;
 	virtual void setRotation(float) = mac 0xdadb0, ios 0x27e48c;
 	virtual void setStartPos(cocos2d::CCPoint) = mac 0xdab50, ios 0x27e254;
-	virtual void customObjectSetup(std::map<std::string, std::string, std::less<std::string>, std::allocator<std::pair<std::string const, std::string> > >&) = mac 0xdb640, ios 0x27e858;
+	virtual void customObjectSetup(gd::map<gd::string, gd::string>&) = mac 0xdb640, ios 0x27e858;
 	virtual void getSaveString() = mac 0xdaf00, ios 0x27e5d0;
 	virtual void addToGroup(int) = mac 0xdae40, ios 0x27e508;
 	virtual void removeFromGroup(int) = mac 0xdaea0, ios 0x27e56c;
@@ -1945,7 +1945,7 @@ class DynamicScrollDelegate {
 class FriendRequestDelegate {
 	virtual void loadFRequestsFinished(cocos2d::CCArray*, char const*);
 	virtual void loadFRequestsFailed(char const*, GJErrorCode);
-	virtual void setupPageInfo(std::string, char const*);
+	virtual void setupPageInfo(gd::string, char const*);
 	virtual void forceReloadRequests(bool);
 };
 
@@ -2287,7 +2287,7 @@ class InfoLayer : FLAlertLayer, LevelCommentDelegate, CommentUploadDelegate, FLA
 	virtual void show() = mac 0x45ab80, ios 0x25d430;
 	virtual void loadCommentsFinished(cocos2d::CCArray*, char const*) = mac 0x45a1b0, ios 0x25cbdc;
 	virtual void loadCommentsFailed(char const*) = mac 0x45a270, ios 0x25cc4c;
-	virtual void setupPageInfo(std::string, char const*) = mac 0x45a320, ios 0x25cca8;
+	virtual void setupPageInfo(gd::string, char const*) = mac 0x45a320, ios 0x25cca8;
 	virtual void commentUploadFinished(int) = mac 0x45a890, ios 0x25d1a4;
 	virtual void commentUploadFailed(int, CommentError) = mac 0x45a960, ios 0x25d21c;
 	virtual void updateUserScoreFinished() = mac 0x45a720, ios 0x25d0f4;
@@ -2522,14 +2522,14 @@ class cocos2d::CCCallFuncN : cocos2d::CCCallFunc, cocos2d::TypeInfo {
 	virtual auto copyWithZone(cocos2d::CCZone*);
 	virtual auto execute() = mac 0x455190;
 	virtual auto getClassTypeInfo() = mac 0x455e70;
-	virtual auto initWithTarget(cocos2d::CCObject*, void (cocos2d::CCObject::*)(cocos2d::CCNode*)) = mac 0x455330;
+	virtual auto initWithTarget(cocos2d::CCObject*, cocos2d::SEL_CallFuncN) = mac 0x455330;
 };
 
 class cocos2d::CCCallFuncO : cocos2d::CCCallFunc, cocos2d::TypeInfo {
 	virtual auto copyWithZone(cocos2d::CCZone*);
 	virtual auto execute() = mac 0x455910, ios 0x112b40;
 	virtual auto getClassTypeInfo() = mac 0x4561d0, ios 0x112e10;
-	virtual auto initWithTarget(cocos2d::CCObject*, void (cocos2d::CCObject::*)(cocos2d::CCObject*), cocos2d::CCObject*) = mac 0x455a20, ios 0x112c38;
+	virtual auto initWithTarget(cocos2d::CCObject*, cocos2d::SEL_MenuHandler, cocos2d::CCObject*) = mac 0x455a20, ios 0x112c38;
 };
 
 class cocos2d::CCComponent : cocos2d::CCObject {
@@ -2570,26 +2570,26 @@ class cocos2d::CCFileUtils : cocos2d::TypeInfo {
 	virtual auto loadFilenameLookupDictionaryFromFile(char const*) = mac 0x2416f0, ios 0xd0084;
 	virtual auto setFilenameLookupDictionary(cocos2d::CCDictionary*) = mac 0x241680, ios 0xd001c;
 	virtual auto fullPathFromRelativeFile(char const*, char const*) = mac 0x2408c0, ios 0xcf270;
-	virtual auto setSearchResolutionsOrder(std::vector<std::string, std::allocator<std::string> > const&) = mac 0x240ac0, ios 0xcf43c;
+	virtual auto setSearchResolutionsOrder(gd::vector<gd::string> const&) = mac 0x240ac0, ios 0xcf43c;
 	virtual auto addSearchResolutionsOrder(char const*) = mac 0x240d30, ios 0xcf658;
 	virtual auto getSearchResolutionsOrder() = mac 0x240df0, ios 0xcf75c;
-	virtual auto setSearchPaths(std::vector<std::string, std::allocator<std::string> > const&) = mac 0x240e10, ios 0xcf76c;
+	virtual auto setSearchPaths(gd::vector<gd::string> const&) = mac 0x240e10, ios 0xcf76c;
 	virtual auto addSearchPath(char const*) = mac 0x241180, ios 0xcfb6c;
 	virtual auto removeSearchPath(char const*) = mac 0x241390, ios 0xcfd50;
 	virtual auto getSearchPaths() = mac 0x240e00, ios 0xcf764;
 	virtual auto getWritablePath2() = mac 0x241a90, ios 0xd03b0;
-	virtual auto isAbsolutePath(std::string const&) = mac 0x2419c0, ios 0xd02ac;
+	virtual auto isAbsolutePath(gd::string const&) = mac 0x2419c0, ios 0xd02ac;
 	virtual auto setPopupNotify(bool) = mac 0x2419d0, ios 0xd02cc;
 	virtual auto isPopupNotify() = mac 0x2419e0, ios 0xd02d8;
 	virtual auto init() = mac 0x23f010, ios 0xcdcb4;
 	virtual auto getNewFilename(char const*) = mac 0x23f3f0, ios 0xce02c;
 	virtual auto shouldUseHD() = mac 0x23f4e0, ios 0xce1a0;
-	virtual auto addSuffix(std::string, std::string) = mac 0x23f510, ios 0xce1c4;
-	virtual auto getPathForFilename(std::string const&, std::string const&, std::string const&) = mac 0x23f650, ios 0xce3d8;
-	virtual auto getFullPathForDirectoryAndFilename(std::string const&, std::string const&) = mac 0x241900, ios 0xd023c;
-	virtual auto createCCDictionaryWithContentsOfFile(std::string const&) = mac 0x23ec30, ios 0xcdb08;
-	virtual auto writeToFile(cocos2d::CCDictionary*, std::string const&) = mac 0x23ec40, ios 0xcdb10;
-	virtual auto createCCArrayWithContentsOfFile(std::string const&) = mac 0x23ec50, ios 0xcdb18;
+	virtual auto addSuffix(gd::string, gd::string) = mac 0x23f510, ios 0xce1c4;
+	virtual auto getPathForFilename(gd::string const&, gd::string const&, gd::string const&) = mac 0x23f650, ios 0xce3d8;
+	virtual auto getFullPathForDirectoryAndFilename(gd::string const&, gd::string const&) = mac 0x241900, ios 0xd023c;
+	virtual auto createCCDictionaryWithContentsOfFile(gd::string const&) = mac 0x23ec30, ios 0xcdb08;
+	virtual auto writeToFile(cocos2d::CCDictionary*, gd::string const&) = mac 0x23ec40, ios 0xcdb10;
+	virtual auto createCCArrayWithContentsOfFile(gd::string const&) = mac 0x23ec50, ios 0xcdb18;
 };
 
 class cocos2d::CCGLProgram : cocos2d::CCObject {
@@ -3572,8 +3572,8 @@ class cocos2d::CCFadeOutDownTiles : cocos2d::CCFadeOutUpTiles {
 class cocos2d::CCFileUtilsAndroid : cocos2d::CCFileUtils {
 	virtual auto getFileData(char const*, char const*, unsigned long*);
 	virtual auto getWritablePath();
-	virtual auto isFileExist(std::string const&);
-	virtual auto isAbsolutePath(std::string const&);
+	virtual auto isFileExist(gd::string const&);
+	virtual auto isAbsolutePath(gd::string const&);
 	virtual auto init();
 };
 
@@ -4554,7 +4554,7 @@ class cocos2d::extension::CCControlButton : cocos2d::extension::CCControl {
 	virtual auto setLabelAnchorPoint(cocos2d::CCPoint) = mac 0x1a8d70;
 	virtual auto setMargins(int, int) = mac 0x1a8ae0;
 	virtual auto initWithLabelAndBackgroundSprite(cocos2d::CCNode*, cocos2d::extension::CCScale9Sprite*) = mac 0x1a8480;
-	virtual auto initWithTitleAndFontNameAndFontSize(std::string, char const*, float) = mac 0x1a88f0;
+	virtual auto initWithTitleAndFontNameAndFontSize(gd::string, char const*, float) = mac 0x1a88f0;
 	virtual auto initWithBackgroundSprite(cocos2d::extension::CCScale9Sprite*) = mac 0x1a8a30;
 	virtual auto getTitleForState(unsigned int) = mac 0x1a8db0;
 	virtual auto setTitleForState(cocos2d::CCString*, unsigned int) = mac 0x1a8e90;
@@ -4707,8 +4707,8 @@ class cocos2d::extension::CCControl : cocos2d::CCLayerRGBA {
 	virtual auto isHighlighted() = mac 0x1a7ef0, ios 0x106c7c;
 	virtual auto needsLayout() = mac 0x1a7e50, ios 0x106c28;
 	virtual auto sendActionsForControlEvents(unsigned int) = mac 0x1a7490, ios 0x106650;
-	virtual auto addTargetWithActionForControlEvents(cocos2d::CCObject*, void (cocos2d::CCObject::*)(cocos2d::CCObject*, unsigned int), unsigned int) = mac 0x1a7820, ios 0x106880;
-	virtual auto removeTargetWithActionForControlEvents(cocos2d::CCObject*, void (cocos2d::CCObject::*)(cocos2d::CCObject*, unsigned int), unsigned int) = mac 0x1a7950, ios 0x106918;
+	virtual auto addTargetWithActionForControlEvents(cocos2d::CCObject*, cocos2d::extension::SEL_EventHandler, unsigned int) = mac 0x1a7820, ios 0x106880;
+	virtual auto removeTargetWithActionForControlEvents(cocos2d::CCObject*, cocos2d::extension::SEL_EventHandler, unsigned int) = mac 0x1a7950, ios 0x106918;
 	virtual auto getTouchLocation(cocos2d::CCTouch*) = mac 0x1a7d90, ios 0x106b6c;
 	virtual auto isTouchInside(cocos2d::CCTouch*) = mac 0x1a7de0, ios 0x106bb8;
 };
@@ -4734,23 +4734,23 @@ class cocos2d::extension::WebSocket {
 	virtual auto onUIThreadReceiveMessage(cocos2d::extension::WsMessage*);
 };
 
-class std::bad_typeid : std::exception {
+class gd::bad_typeid : gd::exception {
 	virtual void what() const;
 };
 
-class std::bad_exception : std::exception {
+class gd::bad_exception : gd::exception {
 	virtual void what() const;
 };
 
-class std::bad_cast : std::exception {
+class gd::bad_cast : gd::exception {
 	virtual void what() const;
 };
 
-class std::bad_alloc : std::exception {
+class gd::bad_alloc : gd::exception {
 	virtual void what() const;
 };
 
-class std::exception {
+class gd::exception {
 	virtual void what() const;
 };
 
