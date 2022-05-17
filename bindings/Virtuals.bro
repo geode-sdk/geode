@@ -2541,12 +2541,6 @@ class cocos2d::CCDelayTime : cocos2d::CCActionInterval {
 	virtual auto reverse() = mac 0x1f8b00, ios 0xf36a8;
 }
 
-class cocos2d::CCDictMaker : cocos2d::CCSAXDelegator {
-	virtual auto startElement(void*, char const*, char const**);
-	virtual auto endElement(void*, char const*);
-	virtual auto textHandler(void*, char const*, int);
-}
-
 class cocos2d::CCEaseInOut : cocos2d::CCEaseRateAction {
 	virtual auto copyWithZone(cocos2d::CCZone*);
 	virtual auto update(float) = mac 0x2a1f30, ios 0x1a6b30;
@@ -2654,13 +2648,6 @@ class cocos2d::CCTexture2D : cocos2d::CCObject {
 	virtual auto setMaxT(float) = mac 0x246510, ios 0xbdd98;
 }
 
-class cocos2d::ExtraAction : cocos2d::CCFiniteTimeAction {
-	virtual auto copyWithZone(cocos2d::CCZone*);
-	virtual auto update(float) = mac 0x1f2450, ios 0xf0390;
-	virtual auto step(float) = mac 0x1f2460, ios 0xf0394;
-	virtual auto reverse() = mac 0x1f23e0, ios 0xf037c;
-}
-
 class cocos2d::CCActionEase : cocos2d::CCActionInterval {
 	virtual auto copyWithZone(cocos2d::CCZone*);
 	virtual auto update(float) = mac 0x2a15e0, ios 0x1a658c;
@@ -2757,12 +2744,6 @@ class cocos2d::CCTMXMapInfo : cocos2d::CCObject, cocos2d::CCSAXDelegator {
 	virtual auto textHandler(void*, char const*, int) = mac 0x286460;
 }
 
-class cocos2d::CCTextureETC : cocos2d::CCObject {
-}
-
-class cocos2d::CCTexturePVR : cocos2d::CCObject {
-}
-
 class cocos2d::CCActionTween : cocos2d::CCActionInterval {
 	virtual auto update(float) = mac 0x447720, ios 0x28e6fc;
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x4476f0, ios 0x28e6d0;
@@ -2770,10 +2751,10 @@ class cocos2d::CCActionTween : cocos2d::CCActionInterval {
 }
 
 class cocos2d::CCApplication : cocos2d::CCApplicationProtocol {
-	virtual auto cocos2d::CCApplicationProtocol::applicationWillBecomeActive() = mac 0x1a45c0;
-	virtual auto cocos2d::CCApplicationProtocol::applicationWillResignActive() = mac 0x1a45d0;
-	virtual auto cocos2d::CCApplicationProtocol::trySaveGame() = mac 0x1a45e0;
-	virtual auto cocos2d::CCApplicationProtocol::gameDidSave() = mac 0x1a45f0;
+	virtual auto applicationWillBecomeActive() = mac 0x1a45c0;
+	virtual auto applicationWillResignActive() = mac 0x1a45d0;
+	virtual auto trySaveGame() = mac 0x1a45e0;
+	virtual auto gameDidSave() = mac 0x1a45f0;
 	virtual auto setAnimationInterval(double) = mac 0x1a3ee0, ios 0x10e508;
 	virtual auto getCurrentLanguage() = mac 0x1a3f40, ios 0x10e57c;
 	virtual auto getTargetPlatform() = mac 0x1a3f20, ios 0x10e7a4;
@@ -2870,9 +2851,6 @@ class cocos2d::CCParticleSun : cocos2d::CCParticleSystemQuad {
 	virtual auto initWithTotalParticles(unsigned int) = mac 0x24bbb0;
 }
 
-class cocos2d::CCPointObject {
-}
-
 class cocos2d::CCReverseTime : cocos2d::CCActionInterval {
 	virtual auto copyWithZone(cocos2d::CCZone*);
 	virtual auto update(float) = mac 0x1f8f70;
@@ -2882,9 +2860,6 @@ class cocos2d::CCReverseTime : cocos2d::CCActionInterval {
 }
 
 class cocos2d::CCShaderCache : cocos2d::CCObject {
-}
-
-class cocos2d::CCSpriteExtra : cocos2d::CCSprite {
 }
 
 class cocos2d::CCSpriteFrame : cocos2d::CCObject {
@@ -3547,14 +3522,6 @@ class cocos2d::CCEaseElasticInOut : cocos2d::CCEaseElastic {
 
 class cocos2d::CCFadeOutDownTiles : cocos2d::CCFadeOutUpTiles {
 	virtual auto testFunc(cocos2d::CCSize const&, float) = mac 0x45d280;
-}
-
-class cocos2d::CCFileUtilsAndroid : cocos2d::CCFileUtils {
-	virtual auto getFileData(char const*, char const*, unsigned long*);
-	virtual auto getWritablePath();
-	virtual auto isFileExist(gd::string const&);
-	virtual auto isAbsolutePath(gd::string const&);
-	virtual auto init();
 }
 
 class cocos2d::CCFiniteTimeAction : cocos2d::CCAction {
@@ -4491,18 +4458,6 @@ class cocos2d::extension::CCScale9Sprite : cocos2d::CCNodeRGBA {
 	virtual auto setSpriteFrame(cocos2d::CCSpriteFrame*) = mac 0x213a90, ios 0x13f070;
 }
 
-class cocos2d::extension::CCSortedObject : cocos2d::CCObject, cocos2d::extension::CCSortableObject {
-	virtual auto setObjectID(unsigned int);
-	virtual auto getObjectID();
-}
-
-class cocos2d::extension::WsThreadHelper : cocos2d::CCObject {
-	virtual auto update(float);
-}
-
-class cocos2d::extension::CCColor3bObject : cocos2d::CCObject {
-}
-
 class cocos2d::extension::CCControlButton : cocos2d::extension::CCControl {
 	virtual auto init() = mac 0x1a8420;
 	virtual auto ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x1a9c20;
@@ -4585,9 +4540,6 @@ class cocos2d::extension::CCControlStepper : cocos2d::extension::CCControl {
 	virtual auto isContinuous() = mac 0x1e1100;
 }
 
-class cocos2d::extension::CCSortableObject {
-}
-
 class cocos2d::extension::CCControlHuePicker : cocos2d::extension::CCControl {
 	virtual auto ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x1ac050, ios 0x1147a8;
 	virtual auto ccTouchMoved(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x1ac150, ios 0x114830;
@@ -4600,32 +4552,6 @@ class cocos2d::extension::CCControlHuePicker : cocos2d::extension::CCControl {
 
 class cocos2d::extension::ColorPickerDelegate {
 	virtual auto colorValueChanged(cocos2d::ccColor3B);
-}
-
-class cocos2d::extension::CCEditBoxImplAndroid : cocos2d::extension::CCEditBoxImpl {
-	virtual auto initWithSize(cocos2d::CCSize const&);
-	virtual auto setFont(char const*, int);
-	virtual auto setFontColor(cocos2d::ccColor3B const&);
-	virtual auto setPlaceholderFont(char const*, int);
-	virtual auto setPlaceholderFontColor(cocos2d::ccColor3B const&);
-	virtual auto setInputMode(cocos2d::extension::EditBoxInputMode);
-	virtual auto setInputFlag(cocos2d::extension::EditBoxInputFlag);
-	virtual auto setMaxLength(int);
-	virtual auto getMaxLength();
-	virtual auto setReturnType(cocos2d::extension::KeyboardReturnType);
-	virtual auto isEditing();
-	virtual auto setText(char const*);
-	virtual auto getText();
-	virtual auto setPlaceHolder(char const*);
-	virtual auto doAnimationWhenKeyboardMove(float, float);
-	virtual auto openKeyboard();
-	virtual auto closeKeyboard();
-	virtual auto setPosition(cocos2d::CCPoint const&);
-	virtual auto setVisible(bool);
-	virtual auto setContentSize(cocos2d::CCSize const&);
-	virtual auto setAnchorPoint(cocos2d::CCPoint const&);
-	virtual auto visit();
-	virtual auto onEnter();
 }
 
 class cocos2d::extension::CCScrollViewDelegate {
@@ -4696,11 +4622,4 @@ class cocos2d::extension::CCEditBox : cocos2d::extension::CCControlButton, cocos
 	virtual auto keyboardDidShow(cocos2d::CCIMEKeyboardNotificationInfo&) = mac 0x26daf0;
 	virtual auto keyboardWillHide(cocos2d::CCIMEKeyboardNotificationInfo&) = mac 0x26db10;
 	virtual auto keyboardDidHide(cocos2d::CCIMEKeyboardNotificationInfo&) = mac 0x26db80;
-}
-
-class cocos2d::extension::WebSocket {
-	virtual auto onSubThreadStarted();
-	virtual auto onSubThreadLoop();
-	virtual auto onSubThreadEnded();
-	virtual auto onUIThreadReceiveMessage(cocos2d::extension::WsMessage*);
 }

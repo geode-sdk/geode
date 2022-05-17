@@ -355,7 +355,7 @@ inline void parseClass(Root& r, Tokens& tokens) {
 		}
 	} else {
 		string name = parseQualifiedName(tokens);
-		std::cout << "parsing: " << name << std::endl;
+		// std::cout << "parsing: " << name << std::endl;
 		ClassDefinition& myClass = r.addClass(name);
 
 	    stringstream f(attrib);

@@ -174,6 +174,7 @@ emitter.startSpin = 0;
 */
 class CC_DLL CCParticleSystem : public CCNode, public CCTextureProtocol
 {    
+	GEODE_FRIEND_MODIFY
 protected:
     gd::string m_sPlistFile;
     //! time elapsed since the start of the system (in seconds)

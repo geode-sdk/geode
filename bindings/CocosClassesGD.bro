@@ -465,12 +465,6 @@ class cocos2d::CCDictionary : cocos2d::CCObject {
 	auto valueForKey(gd::string const&);
 	auto writeToFile(char const*);
 }
-class cocos2d::CCDictMaker : cocos2d::CCSAXDelegator {
-	auto CCDictMaker();
-	auto endElement(void*, char const*);
-	auto startElement(void*, char const*, char const**);
-	auto textHandler(void*, char const*, int);
-}
 class cocos2d::CCDirector : cocos2d::CCObject, cocos2d::TypeInfo {
 	auto CCDirector();
 	auto calculateDeltaTime();
@@ -815,16 +809,6 @@ class cocos2d::CCFileUtils : cocos2d::TypeInfo {
 	auto sharedFileUtils();
 	auto shouldUseHD();
 	auto writeToFile(cocos2d::CCDictionary*, gd::string const&);
-}
-class cocos2d::CCFileUtilsAndroid : cocos2d::CCFileUtils {
-	auto CCFileUtilsAndroid();
-	auto doGetFileData(char const*, char const*, unsigned long*, bool);
-	auto getFileData(char const*, char const*, unsigned long*);
-	auto getFileDataForAsync(char const*, char const*, unsigned long*);
-	auto getWritablePath();
-	auto init();
-	auto isAbsolutePath(gd::string const&);
-	auto isFileExist(gd::string const&);
 }
 class cocos2d::CCFiniteTimeAction : cocos2d::CCAction {
 	auto reverse();
@@ -1960,9 +1944,6 @@ class cocos2d::CCPointArray : cocos2d::CCObject {
 	auto reverseInline();
 	auto setControlPoints(gd::vector<cocos2d::CCPoint*>*);
 }
-class cocos2d::CCPointObject {
-	auto pointWithCCPoint(cocos2d::CCPoint, cocos2d::CCPoint);
-}
 class cocos2d::CCPrettyPrinter : cocos2d::CCDataVisitor {
 	auto CCPrettyPrinter(int);
 	auto clear();
@@ -2437,8 +2418,6 @@ class cocos2d::CCSpriteBatchNode : cocos2d::CCNode, cocos2d::CCTextureProtocol {
 	auto updateQuadFromSprite(cocos2d::CCSprite*, unsigned int);
 	auto visit();
 }
-class cocos2d::CCSpriteExtra : cocos2d::CCSprite {
-}
 class cocos2d::CCSpriteFrame : cocos2d::CCObject {
 	auto CCSpriteFrame();
 	auto copyWithZone(cocos2d::CCZone*);
@@ -2649,23 +2628,7 @@ class cocos2d::CCTextureCache : cocos2d::CCObject {
 	auto snapshotTextures();
 	auto textureForKey(char const*);
 }
-class cocos2d::CCTextureETC : cocos2d::CCObject {
-	auto CCTextureETC();
-	auto getHeight();
-	auto getName();
-	auto getWidth();
-	auto initWithFile(char const*);
-	auto loadTexture(char const*);
-}
 class cocos2d::CCTextureProtocol : cocos2d::CCBlendProtocol {
-}
-class cocos2d::CCTexturePVR : cocos2d::CCObject {
-	auto CCTexturePVR();
-	auto create(char const*);
-	auto createGLTexture();
-	auto initWithContentsOfFile(char const*);
-	auto unpackPVRv2Data(unsigned char*, unsigned int);
-	auto unpackPVRv3Data(unsigned char*, unsigned int);
 }
 class cocos2d::CCTiledGrid3D : cocos2d::CCGridBase {
 	auto CCTiledGrid3D();
@@ -3146,48 +3109,6 @@ class cocos2d::CCWavesTiles3D : cocos2d::CCTiledGrid3DAction {
 }
 class cocos2d::EGLTouchDelegate {
 }
-class cocos2d::extension::AssetsManager {
-	auto AssetsManager(char const*, char const*, char const*);
-	auto Helper::Helper();
-	auto Helper::handleUpdateSucceed(cocos2d::extension::AssetsManager::_Message*);
-	auto Helper::sendMessage(cocos2d::extension::AssetsManager::_Message*);
-	auto Helper::update(float);
-	auto Helper::~Helper();
-	auto checkStoragePath();
-	auto checkUpdate();
-	auto createDirectory(char const*);
-	auto deleteVersion();
-	auto downLoad();
-	auto getConnectionTimeout();
-	auto getPackageUrl();
-	auto getStoragePath();
-	auto getVersion();
-	auto getVersionFileUrl();
-	auto sendErrorMessage(cocos2d::extension::AssetsManager::ErrorCode);
-	auto setConnectionTimeout(unsigned int);
-	auto setDelegate(cocos2d::extension::AssetsManagerDelegateProtocol*);
-	auto setPackageUrl(char const*);
-	auto setSearchPath();
-	auto setStoragePath(char const*);
-	auto setVersionFileUrl(char const*);
-	auto uncompress();
-	auto update();
-}
-class cocos2d::extension::AssetsManager::Helper : cocos2d::CCObject {
-	auto Helper();
-	auto handleUpdateSucceed(cocos2d::extension::AssetsManager::_Message*);
-	auto sendMessage(cocos2d::extension::AssetsManager::_Message*);
-	auto update(float);
-}
-class cocos2d::extension::CCArrayForObjectSorting : cocos2d::CCArray {
-	auto indexOfSortedObject(cocos2d::extension::CCSortableObject*);
-	auto insertSortedObject(cocos2d::extension::CCSortableObject*);
-	auto objectWithObjectID(unsigned int);
-	auto removeSortedObject(cocos2d::extension::CCSortableObject*);
-	auto setObjectID_ofSortedObject(unsigned int, cocos2d::extension::CCSortableObject*);
-}
-class cocos2d::extension::CCColor3bObject : cocos2d::CCObject {
-}
 class cocos2d::extension::CCControl : cocos2d::CCLayerRGBA {
 	auto CCControl();
 	auto addHandleOfControlEvent(int, unsigned int);
@@ -3429,32 +3350,6 @@ class cocos2d::extension::CCEditBox : cocos2d::extension::CCControlButton, cocos
 }
 class cocos2d::extension::CCEditBoxImpl {
 }
-class cocos2d::extension::CCEditBoxImplAndroid : cocos2d::extension::CCEditBoxImpl {
-	auto CCEditBoxImplAndroid(cocos2d::extension::CCEditBox*);
-	auto closeKeyboard();
-	auto doAnimationWhenKeyboardMove(float, float);
-	auto getMaxLength();
-	auto getText();
-	auto initWithSize(cocos2d::CCSize const&);
-	auto isEditing();
-	auto onEnter();
-	auto openKeyboard();
-	auto setAnchorPoint(cocos2d::CCPoint const&);
-	auto setContentSize(cocos2d::CCSize const&);
-	auto setFont(char const*, int);
-	auto setFontColor(cocos2d::_ccColor3B const&);
-	auto setInputFlag(cocos2d::extension::EditBoxInputFlag);
-	auto setInputMode(cocos2d::extension::EditBoxInputMode);
-	auto setMaxLength(int);
-	auto setPlaceHolder(char const*);
-	auto setPlaceholderFont(char const*, int);
-	auto setPlaceholderFontColor(cocos2d::_ccColor3B const&);
-	auto setPosition(cocos2d::CCPoint const&);
-	auto setReturnType(cocos2d::extension::KeyboardReturnType);
-	auto setText(char const*);
-	auto setVisible(bool);
-	auto visit();
-}
 class cocos2d::extension::CCHttpClient : cocos2d::CCObject {
 	auto CCHttpClient();
 	auto destroyInstance();
@@ -3573,12 +3468,6 @@ class cocos2d::extension::CCScrollView : cocos2d::CCLayer {
 }
 class cocos2d::extension::CCScrollViewDelegate {
 }
-class cocos2d::extension::CCSortableObject {
-}
-class cocos2d::extension::CCSortedObject : cocos2d::CCObject, cocos2d::extension::CCSortableObject {
-	auto getObjectID();
-	auto setObjectID(unsigned int);
-}
 class cocos2d::extension::CCTableView : cocos2d::extension::CCScrollView, cocos2d::extension::CCScrollViewDelegate {
 	auto CCTableView();
 	auto __indexFromOffset(cocos2d::CCPoint);
@@ -3618,38 +3507,6 @@ class cocos2d::extension::CCTableViewCell : cocos2d::CCNode, cocos2d::extension:
 }
 class cocos2d::extension::ColorPickerDelegate {
 	auto colorValueChanged(cocos2d::_ccColor3B);
-}
-class cocos2d::extension::WebSocket {
-	auto WebSocket();
-	auto close();
-	auto getReadyState();
-	auto init(cocos2d::extension::WebSocket::Delegate const&, gd::string const&, gd::vector<gd::string> const*);
-	auto onSocketCallback(lws*, lws_callback_reasons, void*, void*, unsigned int);
-	auto onSubThreadEnded();
-	auto onSubThreadLoop();
-	auto onSubThreadStarted();
-	auto onUIThreadReceiveMessage(cocos2d::extension::WsMessage*);
-	auto send(unsigned char const*, unsigned int);
-	auto send(gd::string const&);
-}
-class cocos2d::extension::WsThreadHelper : cocos2d::CCObject {
-	auto WsThreadHelper();
-	auto createThread(cocos2d::extension::WebSocket const&);
-	auto joinSubThread();
-	auto quitSubThread();
-	auto sendMessageToSubThread(cocos2d::extension::WsMessage*);
-	auto sendMessageToUIThread(cocos2d::extension::WsMessage*);
-	auto update(float);
-	auto wsThreadEntryFunc(void*);
-}
-class cocos2d::ExtraAction : cocos2d::CCFiniteTimeAction {
-	auto copyWithZone(cocos2d::CCZone*);
-	auto create();
-	auto reverse();
-	auto step(float);
-	auto update(float);
-}
-class cocos2d::TypeInfo {
 }
 class cocos2d::ZipFile {
 	auto ZipFile(gd::string const&, gd::string const&);

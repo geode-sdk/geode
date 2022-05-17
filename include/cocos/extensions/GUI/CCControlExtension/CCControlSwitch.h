@@ -36,7 +36,41 @@ namespace cocos2d { class CCLabelTTF; }
 
 NS_CC_EXT_BEGIN
 
-class CCControlSwitchSprite;
+class CCControlSwitchSprite : public CCSprite, public CCActionTweenDelegate
+{
+	GEODE_FRIEND_MODIFY
+public:
+    CCControlSwitchSprite();
+    virtual ~CCControlSwitchSprite();
+    bool initWithMaskSprite(
+        CCSprite *maskSprite, 
+        CCSprite *onSprite, 
+        CCSprite *offSprite,
+        CCSprite *thumbSprite,
+        CCLabelTTF* onLabel, 
+        CCLabelTTF* offLabel);
+    void draw();
+    void needsLayout();
+    void setSliderXPosition(float sliderXPosition);
+    float getSliderXPosition() {return m_fSliderXPosition;}
+    float onSideWidth();
+    float offSideWidth();
+    virtual void updateTweenAction(float value, const char* key);
+/** Contains the position (in x-axis) of the slider inside the receiver. */
+    float m_fSliderXPosition;
+    CC_SYNTHESIZE(float, m_fOnPosition, OnPosition)
+    CC_SYNTHESIZE(float, m_fOffPosition, OffPosition)
+    
+    CC_SYNTHESIZE_RETAIN(CCTexture2D*, m_pMaskTexture, MaskTexture)
+    CC_SYNTHESIZE(GLuint, m_uTextureLocation, TextureLocation)
+    CC_SYNTHESIZE(GLuint, m_uMaskLocation, MaskLocation)
+    
+    CC_SYNTHESIZE_RETAIN(CCSprite*, m_pOnSprite, OnSprite)
+    CC_SYNTHESIZE_RETAIN(CCSprite*, m_pOffSprite, OffSprite)
+    CC_SYNTHESIZE_RETAIN(CCSprite*, m_ThumbSprite, ThumbSprite)
+    CC_SYNTHESIZE_RETAIN(CCLabelTTF*, m_pOnLabel, OnLabel)
+    CC_SYNTHESIZE_RETAIN(CCLabelTTF*, m_pOffLabel, OffLabel)
+};
 
 /**
  * @addtogroup GUI
