@@ -11,7 +11,6 @@ class AccountHelpLayer : GJDropDownLayer, GJAccountDelegate, FLAlertLayerProtoco
 	void onUnlink(cocos2d::CCObject*);
 	void updatePage();
 	void verifyUnlink();
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
 }
 class AccountLayer : GJDropDownLayer, GJAccountDelegate, GJAccountBackupDelegate, GJAccountSyncDelegate, FLAlertLayerProtocol {
 	void FLAlert_Clicked(FLAlertLayer*, bool);
@@ -37,9 +36,6 @@ class AccountLayer : GJDropDownLayer, GJAccountDelegate, GJAccountBackupDelegate
 	void syncAccountFinished();
 	void toggleUI(bool);
 	void updatePage(bool);
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void backupAccountFailed(BackupAccountError);
-	virtual void syncAccountFailed(BackupAccountError);
 }
 class AccountLoginLayer : FLAlertLayer, TextInputDelegate, GJAccountLoginDelegate, FLAlertLayerProtocol {
 	void FLAlert_Clicked(FLAlertLayer*, bool);
@@ -66,12 +62,6 @@ class AccountLoginLayer : FLAlertLayer, TextInputDelegate, GJAccountLoginDelegat
 	void textInputOpened(CCTextInputNode*);
 	void toggleUI(bool);
 	void updateLabel(AccountError);
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void loginAccountFailed(AccountError);
-	virtual void loginAccountFinished(int,int);
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputOpened(CCTextInputNode *);
 }
 class AccountRegisterLayer : FLAlertLayer, TextInputDelegate, GJAccountRegisterDelegate, FLAlertLayerProtocol {
 	void FLAlert_Clicked(FLAlertLayer*, bool);
@@ -102,21 +92,12 @@ class AccountRegisterLayer : FLAlertLayer, TextInputDelegate, GJAccountRegisterD
 	void validEmail(gd::string);
 	void validPassword(gd::string);
 	void validUser(gd::string);
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void allowTextInput(CCTextInputNode *);
-	virtual void registerAccountFailed(AccountError);
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputOpened(CCTextInputNode *);
-	virtual void textInputReturn(CCTextInputNode *);
-	virtual void textInputShouldOffset(CCTextInputNode *,float);
 }
 class AchievementBar : cocos2d::CCNodeRGBA {
 	void create(char const*, char const*, char const*, bool);
 	void init(char const*, char const*, char const*, bool);
 	void setOpacity(unsigned char);
 	void show();
-	virtual void setOpacity(uchar);
 }
 class AchievementCell : TableViewCell {
 	void draw();
@@ -167,7 +148,6 @@ class AchievementsLayer : GJDropDownLayer {
 	void onPrevPage(cocos2d::CCObject*);
 	void setupLevelBrowser(cocos2d::CCArray*);
 	void setupPageInfo(int, int, int);
-	virtual void keyDown(cocos2d::enumKeyCodes);
 }
 class AnimatedGameObject : GameObject, AnimatedSpriteDelegate, SpritePartDelegate {
 	void activateObject();
@@ -185,22 +165,15 @@ class AnimatedGameObject : GameObject, AnimatedSpriteDelegate, SpritePartDelegat
 	void setupAnimatedSize(int);
 	void setupChildSprites();
 	void updateChildSpriteColor(cocos2d::_ccColor3B);
-	virtual void animationFinished(char const*);
-	virtual void deactivateObject(bool);
-	virtual void displayFrameChanged(cocos2d::CCObject *,gd::string);
-	virtual void setObjectColor(cocos2d::_ccColor3B const&);
-	virtual void setOpacity(uchar);
 }
 class AnimatedShopKeeper : CCAnimatedSprite {
 	void animationFinished(char const*);
 	void create(ShopType);
 	void init(ShopType);
 	void startAnimating();
-	virtual void animationFinished(char const*);
 }
 class AnimatedSpriteDelegate {
 	void animationFinished(char const*);
-	virtual void animationFinished(char const*);
 }
 class AppDelegate : cocos2d::CCSceneDelegate {
 	void applicationDidEnterBackground();
@@ -222,7 +195,6 @@ class AppDelegate : cocos2d::CCSceneDelegate {
 	void showLoadingCircle(bool, bool, bool);
 	void trySaveGame();
 	void willSwitchToScene(cocos2d::CCScene*);
-	virtual void willSwitchToScene(cocos2d::CCScene *);
 }
 class ArtistCell : TableViewCell {
 	void draw();
@@ -242,7 +214,6 @@ class AudioEffectsLayer : cocos2d::CCLayerColor {
 	void resetAudioVars();
 	void triggerEffect(float);
 	void updateTweenAction(float, char const*);
-	virtual void updateTweenAction(float,char const*);
 }
 class BitmapFontCache : cocos2d::CCObject {
 	void fontWithConfigFile(char const*, float);
@@ -274,16 +245,6 @@ class BoomListView : cocos2d::CCLayer, TableViewDelegate, TableViewDataSource {
 	void numberOfRowsInSection(unsigned int, TableView*);
 	void numberOfSectionsInTableView(TableView*);
 	void setupList();
-	virtual void TableViewCommitCellEditingStyleForRowAtIndexPath(TableView *,TableViewCellEditingStyle,CCIndexPath &);
-	virtual void TableViewWillDisplayCellForRowAtIndexPath(CCIndexPath &,TableViewCell *,TableView *);
-	virtual void TableViewWillReloadCellForRowAtIndexPath(CCIndexPath &,TableViewCell *,TableView *);
-	virtual void cellForRowAtIndexPath(CCIndexPath &,TableView *);
-	virtual void cellHeightForRowAtIndexPath(CCIndexPath &,TableView *);
-	virtual void didSelectRowAtIndexPath(CCIndexPath &,TableView *);
-	virtual void getListCell(char const*);
-	virtual void loadCell(TableViewCell *,int);
-	virtual void numberOfRowsInSection(uint,TableView *);
-	virtual void numberOfSectionsInTableView(TableView *);
 }
 class BoomScrollLayer : cocos2d::CCLayer {
 	void addPage(cocos2d::CCLayer*);
@@ -321,20 +282,12 @@ class BoomScrollLayer : cocos2d::CCLayer {
 	void updateDots(float);
 	void updatePages();
 	void visit();
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchCancelled(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchEnded(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
 }
 class BoomScrollLayerDelegate {
 	void scrollLayerMoved(cocos2d::CCPoint);
 	void scrollLayerScrolledToPage(BoomScrollLayer*, int);
 	void scrollLayerScrollingStarted(BoomScrollLayer*);
 	void scrollLayerWillScrollToPage(BoomScrollLayer*, int);
-	virtual void scrollLayerMoved(cocos2d::CCPoint);
-	virtual void scrollLayerScrolledToPage(BoomScrollLayer *,int);
-	virtual void scrollLayerScrollingStarted(BoomScrollLayer *);
-	virtual void scrollLayerWillScrollToPage(BoomScrollLayer *,int);
 }
 class ButtonPage : cocos2d::CCLayer {
 	void create(cocos2d::CCArray*, cocos2d::CCPoint, int, float);
@@ -378,9 +331,6 @@ class CCAnimatedSprite : cocos2d::CCSprite {
 	void tweenToAnimation(gd::string, float);
 	void tweenToAnimationFinished();
 	void willPlayAnimation();
-	virtual void animationFinished(char const*);
-	virtual void animationFinishedO(cocos2d::CCObject *);
-	virtual void setOpacity(uchar);
 }
 class CCAnimateFrameCache : cocos2d::CCObject {
 	void addCustomSpriteFramesWithFile(char const*);
@@ -413,12 +363,6 @@ class CCBlockLayer : cocos2d::CCLayerColor {
 	void layerVisible();
 	void registerWithTouchDispatcher();
 	void showLayer(bool);
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchCancelled(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchEnded(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void hideLayer(bool);
-	virtual void showLayer(bool);
 }
 class CCCircleAlert : CCCircleWave {
 	void create(float, float, float);
@@ -435,17 +379,13 @@ class CCCircleWave : cocos2d::CCNode {
 	void setPosition(cocos2d::CCPoint const&);
 	void updatePosition(float);
 	void updateTweenAction(float, char const*);
-	virtual void setPosition(cocos2d::CCPoint const&);
-	virtual void updateTweenAction(float,char const*);
 }
 class CCCircleWaveDelegate {
 	void circleWaveWillBeRemoved(CCCircleWave*);
-	virtual void circleWaveWillBeRemoved(CCCircleWave *);
 }
 class CCContentLayer : cocos2d::CCLayerColor {
 	void create(cocos2d::_ccColor4B const&, float, float);
 	void setPosition(cocos2d::CCPoint const&);
-	virtual void setPosition(cocos2d::CCPoint const&);
 }
 class CCContentManager : cocos2d::CCObject {
 	void addDict(char const*, bool);
@@ -460,7 +400,6 @@ class CCCountdown : cocos2d::CCSprite {
 	void lapFinished();
 	void setOpacity(unsigned char);
 	void startTimerWithSeconds(float, void (cocos2d::CCObject::*)(), cocos2d::CCNode*);
-	virtual void setOpacity(uchar);
 }
 class CCCounterLabel : cocos2d::CCLabelBMFont {
 	void calculateStepSize();
@@ -493,7 +432,6 @@ class CCLightStrip : cocos2d::CCNode {
 	void draw();
 	void init(float, float, float, float, float);
 	void updateTweenAction(float, char const*);
-	virtual void updateTweenAction(float,char const*);
 }
 class CCMenuItemSpriteExtra : cocos2d::CCMenuItemSprite {
 	void activate();
@@ -516,7 +454,6 @@ class CCMenuItemToggler : cocos2d::CCMenuItem {
 	void setSizeMult(float);
 	void toggle(bool);
 	void unselected();
-	virtual void setEnabled(bool);
 }
 class CCMoveCNode : cocos2d::CCNode {
 	void create();
@@ -548,13 +485,6 @@ class CCPartAnimSprite : cocos2d::CCSprite {
 	void transformSprite(frameValues);
 	void tweenSpriteTo(frameValues, float);
 	void tweenToFrame(cocos2d::CCSpriteFrame*, float);
-	virtual void isFrameDisplayed(cocos2d::CCSpriteFrame *);
-	virtual void setBlendFunc(cocos2d::_ccBlendFunc);
-	virtual void setDisplayFrame(cocos2d::CCSpriteFrame *);
-	virtual void setOpacity(uchar);
-	virtual void setScale(float);
-	virtual void setScaleX(float);
-	virtual void setScaleY(float);
 }
 class CCScrollLayerExt : cocos2d::CCLayer {
 	void ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*);
@@ -575,11 +505,6 @@ class CCScrollLayerExt : cocos2d::CCLayer {
 	void setContentOffset(cocos2d::CCPoint, bool);
 	void updateIndicators(float);
 	void visit();
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchCancelled(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchEnded(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void preVisitWithClippingRect(cocos2d::CCRect);
 }
 class CCScrollLayerExtDelegate {
 	void scrllViewWillBeginDecelerating(CCScrollLayerExt*);
@@ -588,12 +513,6 @@ class CCScrollLayerExtDelegate {
 	void scrollViewTouchBegin(CCScrollLayerExt*);
 	void scrollViewTouchEnd(CCScrollLayerExt*);
 	void scrollViewTouchMoving(CCScrollLayerExt*);
-	virtual void scrllViewWillBeginDecelerating(CCScrollLayerExt *);
-	virtual void scrollViewDidEndDecelerating(CCScrollLayerExt *);
-	virtual void scrollViewDidEndMoving(CCScrollLayerExt *);
-	virtual void scrollViewTouchBegin(CCScrollLayerExt *);
-	virtual void scrollViewTouchEnd(CCScrollLayerExt *);
-	virtual void scrollViewTouchMoving(CCScrollLayerExt *);
 }
 class CCSpritePart : CCSpritePlus {
 	void create(cocos2d::CCTexture2D*);
@@ -622,15 +541,6 @@ class CCSpritePlus : cocos2d::CCSprite {
 	void setScaleX(float);
 	void setScaleY(float);
 	void stopFollow();
-	virtual void initWithSpriteFrameName(char const*);
-	virtual void initWithTexture(cocos2d::CCTexture2D *);
-	virtual void setFlipX(bool);
-	virtual void setFlipY(bool);
-	virtual void setPosition(cocos2d::CCPoint const&);
-	virtual void setRotation(float);
-	virtual void setScale(float);
-	virtual void setScaleX(float);
-	virtual void setScaleY(float);
 }
 class CCSpriteWithHue : cocos2d::CCSprite {
 	void create(gd::string const&);
@@ -655,10 +565,6 @@ class CCSpriteWithHue : cocos2d::CCSprite {
 	void updateColor();
 	void updateColorMatrix();
 	void updateHue(float);
-	virtual void initWithSpriteFrame(cocos2d::CCSpriteFrame *);
-	virtual void initWithTexture(cocos2d::CCTexture2D *);
-	virtual void initWithTexture(cocos2d::CCTexture2D *,cocos2d::CCRect const&);
-	virtual void initWithTexture(cocos2d::CCTexture2D *,cocos2d::CCRect const&,bool);
 }
 class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTextFieldDelegate {
 	void ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*);
@@ -688,16 +594,6 @@ class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTex
 	void updateBlinkLabel();
 	void updateLabel(gd::string);
 	void visit();
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchCancelled(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchEnded(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void keyboardWillHide(cocos2d::CCIMEKeyboardNotificationInfo &);
-	virtual void keyboardWillShow(cocos2d::CCIMEKeyboardNotificationInfo &);
-	virtual void onClickTrackNode(bool);
-	virtual void onTextFieldAttachWithIME(cocos2d::CCTextFieldTTF *);
-	virtual void onTextFieldDetachWithIME(cocos2d::CCTextFieldTTF *);
-	virtual void onTextFieldInsertText(cocos2d::CCTextFieldTTF *,char const*,int);
 }
 class ChallengeNode : cocos2d::CCNode {
 	void create(GJChallengeItem*, ChallengesPage*, bool);
@@ -722,8 +618,6 @@ class ChallengesPage : FLAlertLayer, FLAlertLayerProtocol, GJChallengeDelegate, 
 	void tryGetChallenges();
 	void updateDots();
 	void updateTimers(float);
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void currencyWillExit(CurrencyRewardLayer *);
 }
 class CheckpointObject : cocos2d::CCNode {
 	void create();
@@ -750,10 +644,6 @@ class CollisionBlockPopup : FLAlertLayer, TextInputDelegate {
 	void updateEditorLabel();
 	void updateItemID();
 	void updateTextInputLabel();
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputReturn(CCTextInputNode *);
-	virtual void textInputShouldOffset(CCTextInputNode *,float);
 }
 class CollisionTriggerAction : cocos2d::CCNode {
 	void create(int, int, int, bool, bool);
@@ -793,7 +683,6 @@ class ColoredSection : cocos2d::CCObject {
 }
 class ColorSelectDelegate {
 	void colorSelectClosed(cocos2d::CCNode*);
-	virtual void colorSelectClosed(cocos2d::CCNode *);
 }
 class ColorSelectLiveOverlay : FLAlertLayer {
 	void closeColorSelect(cocos2d::CCObject*);
@@ -866,16 +755,9 @@ class ColorSelectPopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, 
 	void updateSpawnedByTrigger();
 	void updateTextInputLabel();
 	void updateTouchTriggered();
-	virtual void colorSelectClosed(GJSpecialColorSelect *,int);
-	virtual void colorValueChanged(cocos2d::_ccColor3B);
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputReturn(CCTextInputNode *);
-	virtual void textInputShouldOffset(CCTextInputNode *,float);
 }
 class ColorSetupDelegate {
 	void colorSetupClosed(int);
-	virtual void colorSetupClosed(int);
 }
 class CommentCell : TableViewCell, LikeItemDelegate, FLAlertLayerProtocol {
 	void FLAlert_Clicked(FLAlertLayer*, bool);
@@ -894,16 +776,11 @@ class CommentCell : TableViewCell, LikeItemDelegate, FLAlertLayerProtocol {
 	void onViewProfile(cocos2d::CCObject*);
 	void updateBGColor(int);
 	void updateLabelValues();
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void likedItem(LikeItemType,int,bool);
 }
 class CommentUploadDelegate {
 	void commentDeleteFailed(int, int);
 	void commentUploadFailed(int, CommentError);
 	void commentUploadFinished(int);
-	virtual void commentDeleteFailed(int,int);
-	virtual void commentUploadFailed(int,CommentError);
-	virtual void commentUploadFinished(int);
 }
 class CommunityCreditNode : cocos2d::CCNode {
 	void create(int, int, int, gd::string);
@@ -938,12 +815,9 @@ class ConfigureValuePopup : FLAlertLayer, TextInputDelegate {
 	void textChanged(CCTextInputNode*);
 	void textInputClosed(CCTextInputNode*);
 	void updateTextInputLabel();
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
 }
 class ConfigureValuePopupDelegate {
 	void valuePopupClosed(ConfigureValuePopup*, float);
-	virtual void valuePopupClosed(ConfigureValuePopup *,float);
 }
 class CountTriggerAction : cocos2d::CCNode {
 	void create(int, int, bool, bool);
@@ -973,14 +847,6 @@ class CreateGuidelinesLayer : FLAlertLayer, FLAlertLayerProtocol {
 	void registerWithTouchDispatcher();
 	void toggleItems(bool);
 	void update(float);
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchCancelled(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchEnded(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void keyDown(cocos2d::enumKeyCodes);
-	virtual void keyUp(cocos2d::enumKeyCodes);
-	virtual void update(float);
 }
 class CreateMenuItem : CCMenuItemSpriteExtra {
 	void create(cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCObject*, cocos2d::SEL_MenuHandler);
@@ -1009,11 +875,9 @@ class CreatorLayer : cocos2d::CCLayer, cocos2d::CCSceneTransitionDelegate, Dialo
 	void onWeeklyLevel(cocos2d::CCObject*);
 	void scene();
 	void sceneWillResume();
-	virtual void dialogClosed(DialogLayer *);
 }
 class CurrencyRewardDelegate {
 	void currencyWillExit(CurrencyRewardLayer*);
-	virtual void currencyWillExit(CurrencyRewardLayer *);
 }
 class CurrencyRewardLayer : cocos2d::CCLayer {
 	void create(int, int, int, CurrencySpriteType, int, CurrencySpriteType, int, cocos2d::CCPoint, CurrencyRewardType, float);
@@ -1028,7 +892,6 @@ class CurrencyRewardLayer : cocos2d::CCLayer {
 	void init(int, int, int, CurrencySpriteType, int, CurrencySpriteType, int, cocos2d::CCPoint, CurrencyRewardType, float);
 	void pulseSprite(cocos2d::CCSprite*);
 	void update(float);
-	virtual void update(float);
 }
 class CurrencySprite : CCSpritePlus {
 	void create(CurrencySpriteType, bool);
@@ -1074,12 +937,6 @@ class CustomizeObjectLayer : FLAlertLayer, TextInputDelegate, HSVWidgetPopupDele
 	void updateCustomColorLabels();
 	void updateHSVButtons();
 	void updateSelected(int);
-	virtual void colorSelectClosed(cocos2d::CCNode *);
-	virtual void colorSetupClosed(int);
-	virtual void hsvPopupClosed(HSVWidgetPopup *,cocos2d::_ccHSVValue);
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputOpened(CCTextInputNode *);
 }
 class CustomListView : BoomListView {
 	void create(cocos2d::CCArray*, float, float, int, BoomListType);
@@ -1087,8 +944,6 @@ class CustomListView : BoomListView {
 	void loadCell(TableViewCell*, int);
 	void reloadAll();
 	void setupList();
-	virtual void getListCell(char const*);
-	virtual void loadCell(TableViewCell *,int);
 }
 class CustomSongCell : TableViewCell {
 	void draw();
@@ -1121,13 +976,6 @@ class CustomSongLayer : FLAlertLayer, FLAlertLayerProtocol, TextInputDelegate, G
 	void textInputOpened(CCTextInputNode*);
 	void textInputReturn(CCTextInputNode*);
 	void textInputShouldOffset(CCTextInputNode*, float);
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void dropDownLayerWillClose(GJDropDownLayer *);
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputOpened(CCTextInputNode *);
-	virtual void textInputReturn(CCTextInputNode *);
-	virtual void textInputShouldOffset(CCTextInputNode *,float);
 }
 class CustomSongLayerDelegate {
 	void customSongLayerClosed();
@@ -1160,11 +1008,6 @@ class CustomSongWidget : cocos2d::CCNode, MusicDownloadDelegate, FLAlertLayerPro
 	void updateSongInfo();
 	void updateSongObject(SongInfoObject*);
 	void verifySongID(int);
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void downloadSongFailed(int,GJSongError);
-	virtual void downloadSongFinished(SongInfoObject *);
-	virtual void loadSongInfoFailed(int,GJSongError);
-	virtual void loadSongInfoFinished(SongInfoObject *);
 }
 class DailyLevelNode : cocos2d::CCNode, FLAlertLayerProtocol {
 	void FLAlert_Clicked(FLAlertLayer*, bool);
@@ -1174,7 +1017,6 @@ class DailyLevelNode : cocos2d::CCNode, FLAlertLayerProtocol {
 	void onSkipLevel(cocos2d::CCObject*);
 	void showSkipButton();
 	void updateTimeLabel(gd::string);
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
 }
 class DailyLevelPage : FLAlertLayer, FLAlertLayerProtocol, GJDailyLevelDelegate, LevelDownloadDelegate {
 	void FLAlert_Clicked(FLAlertLayer*, bool);
@@ -1199,11 +1041,6 @@ class DailyLevelPage : FLAlertLayer, FLAlertLayerProtocol, GJDailyLevelDelegate,
 	void skipDailyLevel(DailyLevelNode*, GJGameLevel*);
 	void tryGetDailyStatus();
 	void updateTimers(float);
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void dailyStatusFailed(bool);
-	virtual void dailyStatusFinished(bool);
-	virtual void levelDownloadFailed(int);
-	virtual void levelDownloadFinished(GJGameLevel *);
 }
 class DelayedSpawnNode : cocos2d::CCObject {
 	void create();
@@ -1215,7 +1052,6 @@ class DelaySection : cocos2d::CCObject {
 }
 class DemonFilterDelegate {
 	void demonFilterSelectClosed(int);
-	virtual void demonFilterSelectClosed(int);
 }
 class DemonFilterSelectLayer : FLAlertLayer {
 	void create();
@@ -1226,7 +1062,6 @@ class DemonFilterSelectLayer : FLAlertLayer {
 }
 class DialogDelegate {
 	void dialogClosed(DialogLayer*);
-	virtual void dialogClosed(DialogLayer *);
 }
 class DialogLayer : cocos2d::CCLayerColor, TextAreaDelegate {
 	void animateIn(DialogAnimationType);
@@ -1252,12 +1087,6 @@ class DialogLayer : cocos2d::CCLayerColor, TextAreaDelegate {
 	void registerWithTouchDispatcher();
 	void updateChatPlacement(DialogChatPlacement);
 	void updateNavButtonFrame();
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchCancelled(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchEnded(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void fadeInTextFinished(TextArea *);
-	virtual void keyDown(cocos2d::enumKeyCodes);
 }
 class DialogObject : cocos2d::CCObject {
 	void create(gd::string, gd::string, int, float, bool, cocos2d::_ccColor3B);
@@ -1266,8 +1095,6 @@ class DialogObject : cocos2d::CCObject {
 class DownloadMessageDelegate {
 	void downloadMessageFailed(int);
 	void downloadMessageFinished(GJUserMessage*);
-	virtual void downloadMessageFailed(int);
-	virtual void downloadMessageFinished(GJUserMessage *);
 }
 class DrawGridLayer : cocos2d::CCLayer {
 	void addPlayer2Point(cocos2d::CCPoint, bool);
@@ -1290,7 +1117,6 @@ class DrawGridLayer : cocos2d::CCLayer {
 	void updateMusicGuideTime(float);
 	void updateTimeMarkers();
 	void xPosForTime(float);
-	virtual void update(float);
 }
 class DungeonBarsSprite : cocos2d::CCNode {
 	void animateOutBars();
@@ -1355,15 +1181,6 @@ class EditLevelLayer : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol
 	void uploadActionFailed(int, int);
 	void uploadActionFinished(int, int);
 	void verifyLevelName();
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void keyDown(cocos2d::enumKeyCodes);
-	virtual void onClosePopup(UploadActionPopup *);
-	virtual void setIDPopupClosed(SetIDPopup *,int);
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputOpened(CCTextInputNode *);
-	virtual void uploadActionFailed(int,int);
-	virtual void uploadActionFinished(int,int);
 }
 class EditorOptionsLayer : GJOptionsLayer {
 	void create();
@@ -1372,7 +1189,6 @@ class EditorOptionsLayer : GJOptionsLayer {
 	void onButtonsPerRow(cocos2d::CCObject*);
 	void onClose(cocos2d::CCObject*);
 	void setupOptions();
-	virtual void onClose(cocos2d::CCObject *);
 }
 class EditorPauseLayer : CCBlockLayer, FLAlertLayerProtocol {
 	void FLAlert_Clicked(FLAlertLayer*, bool);
@@ -1422,8 +1238,6 @@ class EditorPauseLayer : CCBlockLayer, FLAlertLayerProtocol {
 	void toggleShowObjectInfo(cocos2d::CCObject*);
 	void uncheckAllPortals(cocos2d::CCObject*);
 	void updateSongButton();
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void keyDown(cocos2d::enumKeyCodes);
 }
 class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJRotationControlDelegate, GJScaleControlDelegate, MusicDownloadDelegate {
 	void FLAlert_Clicked(FLAlertLayer*, bool);
@@ -1625,17 +1439,6 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
 	void zoomGameLayer(bool);
 	void zoomIn(cocos2d::CCObject*);
 	void zoomOut(cocos2d::CCObject*);
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void angleChanged(float);
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchCancelled(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchEnded(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void colorSelectClosed(cocos2d::CCNode *);
-	virtual void keyDown(cocos2d::enumKeyCodes);
-	virtual void keyUp(cocos2d::enumKeyCodes);
-	virtual void scaleChanged(float);
-	virtual void scrollWheel(float,float);
 }
 class EditTriggersPopup : FLAlertLayer {
 	void create(EffectGameObject*, cocos2d::CCArray*);
@@ -1654,7 +1457,7 @@ class EditTriggersPopup : FLAlertLayer {
 }
 class EffectGameObject : GameObject {
 	void create(char const*);
-	void customObjectSetup(gd::map<gd::string, gd::string, gd::less<gd::string >, gd::allocator<gd::pair<gd::string const, gd::string > > >&);
+	void customObjectSetup(gd::map<gd::string, gd::string>&);
 	void customSetup();
 	void getSaveString();
 	void getTargetColorIndex();
@@ -1664,9 +1467,6 @@ class EffectGameObject : GameObject {
 	void triggerActivated(float);
 	void triggerObject(GJBaseGameLayer*);
 	void updateSpecialColor();
-	virtual void customObjectSetup(gd::map<gd::string,gd::string,gd::less<gd::string>,gd::allocator<gd::pair<gd::string const,gd::string>>> &);
-	virtual void triggerActivated(float);
-	virtual void triggerObject(GJBaseGameLayer *);
 }
 class EndLevelLayer : GJDropDownLayer {
 	void coinEnterFinished(cocos2d::CCPoint);
@@ -1694,9 +1494,6 @@ class EndLevelLayer : GJDropDownLayer {
 	void showLayer(bool);
 	void starEnterFinished();
 	void tryShowBanner(float);
-	virtual void keyDown(cocos2d::enumKeyCodes);
-	virtual void keyUp(cocos2d::enumKeyCodes);
-	virtual void showLayer(bool);
 }
 class EndPortalObject : GameObject {
 	void calculateSpawnXPos();
@@ -1706,15 +1503,11 @@ class EndPortalObject : GameObject {
 	void setVisible(bool);
 	void triggerObject(GJBaseGameLayer*);
 	void updateColors(cocos2d::_ccColor3B);
-	virtual void setPosition(cocos2d::CCPoint const&);
-	virtual void setVisible(bool);
-	virtual void triggerObject(GJBaseGameLayer *);
 }
 class ExtendedLayer : cocos2d::CCLayer {
 	void create();
 	void init();
 	void setPosition(cocos2d::CCPoint const&);
-	virtual void setPosition(cocos2d::CCPoint const&);
 }
 class FileSaveManager : GManager {
 	void firstLoad();
@@ -1739,15 +1532,9 @@ class FLAlertLayer : cocos2d::CCLayerColor {
 	void onEnter();
 	void registerWithTouchDispatcher();
 	void show();
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchCancelled(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchEnded(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void keyDown(cocos2d::enumKeyCodes);
 }
 class FLAlertLayerProtocol {
 	void FLAlert_Clicked(FLAlertLayer*, bool);
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
 }
 class FMODAudioEngine : cocos2d::CCNode {
 	void disableMetering();
@@ -1783,7 +1570,6 @@ class FMODAudioEngine : cocos2d::CCNode {
 	void unloadEffect(gd::string);
 	void update(float);
 	void willPlayBackgroundMusic();
-	virtual void update(float);
 }
 class FMODSound : cocos2d::CCNode {
 	void create(FMOD::Sound*);
@@ -1800,7 +1586,6 @@ class FollowRewardPage : FLAlertLayer, FLAlertLayerProtocol, GameRateDelegate {
 	void show();
 	void switchToOpenedState(CCMenuItemSpriteExtra*);
 	void updateRate();
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
 }
 class FontObject : cocos2d::CCObject {
 	void createWithConfigFile(char const*, float);
@@ -1835,24 +1620,12 @@ class FRequestProfilePage : FLAlertLayer, FLAlertLayerProtocol, UploadActionDele
 	void updatePageArrows();
 	void uploadActionFailed(int, int);
 	void uploadActionFinished(int, int);
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void forceReloadRequests(bool);
-	virtual void loadFRequestsFailed(char const*,GJErrorCode);
-	virtual void loadFRequestsFinished(cocos2d::CCArray *,char const*);
-	virtual void onClosePopup(UploadActionPopup *);
-	virtual void setupPageInfo(gd::string,char const*);
-	virtual void uploadActionFailed(int,int);
-	virtual void uploadActionFinished(int,int);
 }
 class FriendRequestDelegate {
 	void forceReloadRequests(bool);
 	void loadFRequestsFailed(char const*, GJErrorCode);
 	void loadFRequestsFinished(cocos2d::CCArray*, char const*);
 	void setupPageInfo(gd::string, char const*);
-	virtual void forceReloadRequests(bool);
-	virtual void loadFRequestsFailed(char const*,GJErrorCode);
-	virtual void loadFRequestsFinished(cocos2d::CCArray *,char const*);
-	virtual void setupPageInfo(gd::string,char const*);
 }
 class FriendRequestPopup : FLAlertLayer, UploadActionDelegate, UploadPopupDelegate, FLAlertLayerProtocol {
 	void FLAlert_Clicked(FLAlertLayer*, bool);
@@ -1868,10 +1641,6 @@ class FriendRequestPopup : FLAlertLayer, UploadActionDelegate, UploadPopupDelega
 	void onRemove(cocos2d::CCObject*);
 	void uploadActionFailed(int, int);
 	void uploadActionFinished(int, int);
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void onClosePopup(UploadActionPopup *);
-	virtual void uploadActionFailed(int,int);
-	virtual void uploadActionFinished(int,int);
 }
 class FriendsProfilePage : FLAlertLayer, FLAlertLayerProtocol, UploadActionDelegate, UploadPopupDelegate, UserListDelegate {
 	void create(UserListType);
@@ -1886,10 +1655,6 @@ class FriendsProfilePage : FLAlertLayer, FLAlertLayerProtocol, UploadActionDeleg
 	void registerWithTouchDispatcher();
 	void setupUsersBrowser(cocos2d::CCArray*, UserListType);
 	void userListChanged(cocos2d::CCArray*, UserListType);
-	virtual void forceReloadList(UserListType);
-	virtual void getUserListFailed(UserListType,GJErrorCode);
-	virtual void getUserListFinished(cocos2d::CCArray *,UserListType);
-	virtual void userListChanged(cocos2d::CCArray *,UserListType);
 }
 class GameCell : TableViewCell {
 	void draw();
@@ -2297,9 +2062,6 @@ class GameManager : GManager {
 	void verifySyncedCoins();
 	void videoAdHidden();
 	void videoAdShowed();
-	virtual void dataLoaded(DS_Dictionary *);
-	virtual void encodeDataTo(DS_Dictionary *);
-	virtual void update(float);
 }
 class GameObject : CCSpritePlus {
 	void activateObject();
@@ -2344,7 +2106,7 @@ class GameObject : CCSpritePlus {
 	void createWithFrame(char const*);
 	void createWithKey(int);
 	void createWithTexture(cocos2d::CCTexture2D*);
-	void customObjectSetup(gd::map<gd::string, gd::string, gd::less<gd::string >, gd::allocator<gd::pair<gd::string const, gd::string > > >&);
+	void customObjectSetup(gd::map<gd::string, gd::string>&);
 	void customScaleMod(char const*);
 	void customSetup();
 	void deactivateObject(bool);
@@ -2498,36 +2260,6 @@ class GameObject : CCSpritePlus {
 	void updateSyncedAnimation(float);
 	void updateTextObject(gd::string, bool);
 	void waitingForActivation();
-	virtual void addMainSpriteToParent(bool);
-	virtual void addToGroup(int);
-	virtual void customObjectSetup(gd::map<gd::string,gd::string,gd::less<gd::string>,gd::allocator<gd::pair<gd::string const,gd::string>>> &);
-	virtual void deactivateObject(bool);
-	virtual void getObjectRect(float,float);
-	virtual void getObjectRect2(float,float);
-	virtual void initWithTexture(cocos2d::CCTexture2D *);
-	virtual void removeFromGroup(int);
-	virtual void setChildColor(cocos2d::_ccColor3B const&);
-	virtual void setFlipX(bool);
-	virtual void setFlipY(bool);
-	virtual void setGlowColor(cocos2d::_ccColor3B const&);
-	virtual void setObjectColor(cocos2d::_ccColor3B const&);
-	virtual void setObjectRectDirty(bool);
-	virtual void setOpacity(uchar);
-	virtual void setOrientedRectDirty(bool);
-	virtual void setPosition(cocos2d::CCPoint const&);
-	virtual void setRScale(float);
-	virtual void setRScaleX(float);
-	virtual void setRScaleY(float);
-	virtual void setRotation(float);
-	virtual void setScale(float);
-	virtual void setScaleX(float);
-	virtual void setScaleY(float);
-	virtual void setStartPos(cocos2d::CCPoint);
-	virtual void setType(GameObjectType);
-	virtual void setVisible(bool);
-	virtual void triggerActivated(float);
-	virtual void triggerObject(GJBaseGameLayer *);
-	virtual void update(float);
 }
 class GameObjectCopy : cocos2d::CCObject {
 	void create(GameObject*);
@@ -2724,7 +2456,6 @@ class GaragePage : cocos2d::CCLayer, ListButtonBarDelegate {
 	void onGlow(cocos2d::CCObject*);
 	void onSelect(cocos2d::CCObject*);
 	void updateSelect(cocos2d::CCNode*);
-	virtual void listButtonBarSwitchedPage(ListButtonBar *,int);
 }
 class GauntletLayer : cocos2d::CCLayer, LevelManagerDelegate {
 	void create(GauntletType);
@@ -2737,8 +2468,6 @@ class GauntletLayer : cocos2d::CCLayer, LevelManagerDelegate {
 	void scene(GauntletType);
 	void setupGauntlet(cocos2d::CCArray*);
 	void unlockActiveItem();
-	virtual void loadLevelsFailed(char const*);
-	virtual void loadLevelsFinished(cocos2d::CCArray *,char const*);
 }
 class GauntletNode : cocos2d::CCNode {
 	void create(GJMapPack*);
@@ -2765,10 +2494,6 @@ class GauntletSelectLayer : cocos2d::CCLayer, BoomScrollLayerDelegate, LevelMana
 	void scrollLayerWillScrollToPage(BoomScrollLayer*, int);
 	void setupGauntlets();
 	void updateArrows();
-	virtual void loadLevelsFailed(char const*);
-	virtual void loadLevelsFinished(cocos2d::CCArray *,char const*);
-	virtual void scrollLayerScrolledToPage(BoomScrollLayer *,int);
-	virtual void scrollLayerWillScrollToPage(BoomScrollLayer *,int);
 }
 class GhostTrailEffect : cocos2d::CCNode {
 	void create();
@@ -2782,7 +2507,6 @@ class GhostTrailEffect : cocos2d::CCNode {
 class GJAccountBackupDelegate {
 	void backupAccountFailed(BackupAccountError);
 	void backupAccountFinished();
-	virtual void backupAccountFailed(BackupAccountError);
 }
 class GJAccountDelegate {
 	void accountStatusChanged();
@@ -2790,8 +2514,6 @@ class GJAccountDelegate {
 class GJAccountLoginDelegate {
 	void loginAccountFailed(AccountError);
 	void loginAccountFinished(int, int);
-	virtual void loginAccountFailed(AccountError);
-	virtual void loginAccountFinished(int,int);
 }
 class GJAccountManager : cocos2d::CCNode {
 	void ProcessHttpRequest(gd::string, gd::string, gd::string, GJHttpType);
@@ -2830,7 +2552,6 @@ class GJAccountManager : cocos2d::CCNode {
 class GJAccountRegisterDelegate {
 	void registerAccountFailed(AccountError);
 	void registerAccountFinished();
-	virtual void registerAccountFailed(AccountError);
 }
 class GJAccountSettingsDelegate {
 	void updateSettingsFailed();
@@ -2849,13 +2570,10 @@ class GJAccountSettingsLayer : FLAlertLayer, TextInputDelegate {
 	void textInputReturn(CCTextInputNode*);
 	void textInputShouldOffset(CCTextInputNode*, float);
 	void updateScoreValues();
-	virtual void textInputReturn(CCTextInputNode *);
-	virtual void textInputShouldOffset(CCTextInputNode *,float);
 }
 class GJAccountSyncDelegate {
 	void syncAccountFailed(BackupAccountError);
 	void syncAccountFinished();
-	virtual void syncAccountFailed(BackupAccountError);
 }
 class GJBaseGameLayer : cocos2d::CCLayer, TriggerEffectDelegate {
 	void addObjectCounter(LabelGameObject*, int);
@@ -2927,16 +2645,6 @@ class GJBaseGameLayer : cocos2d::CCLayer, TriggerEffectDelegate {
 	void updateLegacyLayerCapacity(int, int, int, int);
 	void updateOBB2(cocos2d::CCRect);
 	void updateQueuedLabels();
-	virtual void addToGroup(GameObject *,int,bool);
-	virtual void addToSection(GameObject *);
-	virtual void calculateColorValues(EffectGameObject *,EffectGameObject *,int,float,ColorActionSprite *,GJEffectManager *);
-	virtual void createMoveCommand(cocos2d::CCPoint,int,float,int,float,bool,bool,int);
-	virtual void flipGravity(PlayerObject *,bool,bool);
-	virtual void objectsCollided(int,int);
-	virtual void removeFromGroup(GameObject *,int);
-	virtual void spawnGroup(int);
-	virtual void toggleGroupTriggered(int,bool);
-	virtual void updateColor(cocos2d::_ccColor3B,float,int,bool,float,cocos2d::_ccHSVValue,int,bool,int,EffectGameObject *);
 }
 class GJChallengeDelegate {
 	void challengeStatusFailed();
@@ -2953,14 +2661,12 @@ class GJChallengeItem : cocos2d::CCObject {
 	void incrementCount(int);
 	void init(GJChallengeType, int, int, int, gd::string);
 	void setCount(int);
-	virtual void encodeWithCoder(DS_Dictionary *);
 }
 class GJChestSprite : cocos2d::CCSprite {
 	void create(int);
 	void init(int);
 	void setColor(cocos2d::_ccColor3B const&);
 	void switchToState(ChestSpriteState, bool);
-	virtual void setColor(cocos2d::_ccColor3B const&);
 }
 class GJColorSetupLayer : FLAlertLayer, ColorSelectDelegate, FLAlertLayerProtocol {
 	void colorSelectClosed(cocos2d::CCNode*);
@@ -2973,7 +2679,6 @@ class GJColorSetupLayer : FLAlertLayer, ColorSelectDelegate, FLAlertLayerProtoco
 	void showPage(int);
 	void updateSpriteColor(ColorChannelSprite*, cocos2d::CCLabelBMFont*, int);
 	void updateSpriteColors();
-	virtual void colorSelectClosed(cocos2d::CCNode *);
 }
 class GJComment : cocos2d::CCNode {
 	void create(cocos2d::CCDictionary*);
@@ -2987,8 +2692,6 @@ class GJCommentListLayer : cocos2d::CCLayerColor {
 class GJDailyLevelDelegate {
 	void dailyStatusFailed(bool);
 	void dailyStatusFinished(bool);
-	virtual void dailyStatusFailed(bool);
-	virtual void dailyStatusFinished(bool);
 }
 class GJDropDownLayer : cocos2d::CCLayerColor {
 	void ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*);
@@ -3012,17 +2715,9 @@ class GJDropDownLayer : cocos2d::CCLayerColor {
 	void layerVisible();
 	void registerWithTouchDispatcher();
 	void showLayer(bool);
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchCancelled(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchEnded(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void exitLayer(cocos2d::CCObject *);
-	virtual void hideLayer(bool);
-	virtual void showLayer(bool);
 }
 class GJDropDownLayerDelegate {
 	void dropDownLayerWillClose(GJDropDownLayer*);
-	virtual void dropDownLayerWillClose(GJDropDownLayer *);
 }
 class GJEffectManager : cocos2d::CCNode {
 	void activeColorForIndex(int);
@@ -3149,10 +2844,6 @@ class GJFollowCommandLayer : FLAlertLayer, TextInputDelegate {
 	void updateXModLabel();
 	void updateYMod();
 	void updateYModLabel();
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputReturn(CCTextInputNode *);
-	virtual void textInputShouldOffset(CCTextInputNode *,float);
 }
 class GJFriendRequest : cocos2d::CCNode {
 	void create(cocos2d::CCDictionary*);
@@ -3202,7 +2893,6 @@ class GJGameLevel : cocos2d::CCNode {
 	void setPassword(int);
 	void setStars(int);
 	void unverifyCoins();
-	virtual void encodeWithCoder(DS_Dictionary *);
 }
 class GJGarageLayer : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol, GameRateDelegate, ListButtonBarDelegate, DialogDelegate {
 	void FLAlert_Clicked(FLAlertLayer*, bool);
@@ -3257,12 +2947,6 @@ class GJGarageLayer : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol,
 	void updatePlayerName(char const*);
 	void updatePlayerSelect(cocos2d::CCNode*);
 	void updateRate();
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void dialogClosed(DialogLayer *);
-	virtual void listButtonBarSwitchedPage(ListButtonBar *,int);
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputOpened(CCTextInputNode *);
 }
 class GJGroundLayer : cocos2d::CCLayer {
 	void create(int, int);
@@ -3283,8 +2967,6 @@ class GJGroundLayer : cocos2d::CCLayer {
 	void updateGroundPos(cocos2d::CCPoint);
 	void updateGroundWidth();
 	void updateLineBlend(bool);
-	virtual void fadeInGround(float);
-	virtual void fadeOutGround(float);
 }
 class GJHttpResult : cocos2d::CCNode {
 	void create(bool, gd::string, gd::string, GJHttpType);
@@ -3296,7 +2978,6 @@ class GJItemIcon : cocos2d::CCSprite {
 	void createStoreItem(UnlockType, int, bool, cocos2d::_ccColor3B);
 	void init(UnlockType, int, cocos2d::_ccColor3B, cocos2d::_ccColor3B, bool, bool, bool, cocos2d::_ccColor3B);
 	void setOpacity(unsigned char);
-	virtual void setOpacity(uchar);
 }
 class GJLevelScoreCell : TableViewCell {
 	void draw();
@@ -3334,10 +3015,6 @@ class GJMessageCell : TableViewCell, FLAlertLayerProtocol, UploadPopupDelegate, 
 	void updateToggle();
 	void uploadActionFailed(int, int);
 	void uploadActionFinished(int, int);
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void onClosePopup(UploadActionPopup *);
-	virtual void uploadActionFailed(int,int);
-	virtual void uploadActionFinished(int,int);
 }
 class GJMessagePopup : FLAlertLayer, UploadActionDelegate, UploadPopupDelegate, FLAlertLayerProtocol, DownloadMessageDelegate {
 	void FLAlert_Clicked(FLAlertLayer*, bool);
@@ -3355,12 +3032,6 @@ class GJMessagePopup : FLAlertLayer, UploadActionDelegate, UploadPopupDelegate, 
 	void onReply(cocos2d::CCObject*);
 	void uploadActionFailed(int, int);
 	void uploadActionFinished(int, int);
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void downloadMessageFailed(int);
-	virtual void downloadMessageFinished(GJUserMessage *);
-	virtual void onClosePopup(UploadActionPopup *);
-	virtual void uploadActionFailed(int,int);
-	virtual void uploadActionFinished(int,int);
 }
 class GJMoreGamesLayer : GJDropDownLayer {
 	void create();
@@ -3414,17 +3085,11 @@ class GJMoveCommandLayer : FLAlertLayer, TextInputDelegate, ConfigureValuePopupD
 	void updateValueXLabel();
 	void updateValueYLabel();
 	void valuePopupClosed(ConfigureValuePopup*, float);
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputReturn(CCTextInputNode *);
-	virtual void textInputShouldOffset(CCTextInputNode *,float);
-	virtual void valuePopupClosed(ConfigureValuePopup *,float);
 }
 class GJObjectDecoder : cocos2d::CCNode, ObjectDecoderDelegate {
 	void getDecodedObject(int, DS_Dictionary*);
 	void init();
 	void sharedDecoder();
-	virtual void getDecodedObject(int,DS_Dictionary *);
 }
 class GJOptionsLayer : FLAlertLayer {
 	void addToggle(char const*, char const*, char const*);
@@ -3447,7 +3112,6 @@ class GJOptionsLayer : FLAlertLayer {
 	void onToggle(cocos2d::CCObject*);
 	void pageKey(int);
 	void setupOptions();
-	virtual void onClose(cocos2d::CCObject *);
 }
 class GJPFollowCommandLayer : FLAlertLayer, TextInputDelegate {
 	void create(EffectGameObject*, cocos2d::CCArray*);
@@ -3482,14 +3146,9 @@ class GJPFollowCommandLayer : FLAlertLayer, TextInputDelegate {
 	void updateXModLabel();
 	void updateYMod();
 	void updateYModLabel();
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputReturn(CCTextInputNode *);
-	virtual void textInputShouldOffset(CCTextInputNode *,float);
 }
 class GJPurchaseDelegate {
 	void didPurchaseItem(GJStoreItem*);
-	virtual void didPurchaseItem(GJStoreItem *);
 }
 class GJRequestCell : TableViewCell, FLAlertLayerProtocol, UploadPopupDelegate, UploadActionDelegate {
 	void FLAlert_Clicked(FLAlertLayer*, bool);
@@ -3506,15 +3165,10 @@ class GJRequestCell : TableViewCell, FLAlertLayerProtocol, UploadPopupDelegate, 
 	void updateToggle();
 	void uploadActionFailed(int, int);
 	void uploadActionFinished(int, int);
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void onClosePopup(UploadActionPopup *);
-	virtual void uploadActionFailed(int,int);
-	virtual void uploadActionFinished(int,int);
 }
 class GJRewardDelegate {
 	void rewardsStatusFailed();
 	void rewardsStatusFinished(int);
-	virtual void rewardsStatusFinished(int);
 }
 class GJRewardItem : cocos2d::CCObject {
 	void canEncode();
@@ -3535,7 +3189,6 @@ class GJRewardItem : cocos2d::CCObject {
 	void isShardType(SpecialRewardItem);
 	void rewardItemToStat(SpecialRewardItem);
 	void setObjects(cocos2d::CCArray*);
-	virtual void encodeWithCoder(DS_Dictionary *);
 }
 class GJRewardObject : cocos2d::CCObject {
 	void canEncode();
@@ -3547,7 +3200,6 @@ class GJRewardObject : cocos2d::CCObject {
 	void encodeWithCoder(DS_Dictionary*);
 	void init(SpecialRewardItem, int, int);
 	void isSpecialType();
-	virtual void encodeWithCoder(DS_Dictionary *);
 }
 class GJRobotSprite : CCAnimatedSprite {
 	void create();
@@ -3562,7 +3214,6 @@ class GJRobotSprite : CCAnimatedSprite {
 	void updateColors();
 	void updateFrame(int);
 	void updateGlowColor(cocos2d::_ccColor3B, bool);
-	virtual void setOpacity(uchar);
 }
 class GJRotateCommandLayer : FLAlertLayer, TextInputDelegate, ConfigureValuePopupDelegate {
 	void create(EffectGameObject*, cocos2d::CCArray*);
@@ -3605,11 +3256,6 @@ class GJRotateCommandLayer : FLAlertLayer, TextInputDelegate, ConfigureValuePopu
 	void updateTimesLabel();
 	void updateTouchTriggered();
 	void valuePopupClosed(ConfigureValuePopup*, float);
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputReturn(CCTextInputNode *);
-	virtual void textInputShouldOffset(CCTextInputNode *,float);
-	virtual void valuePopupClosed(ConfigureValuePopup *,float);
 }
 class GJRotationControl : cocos2d::CCLayer {
 	void ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*);
@@ -3622,16 +3268,11 @@ class GJRotationControl : cocos2d::CCLayer {
 	void init();
 	void setAngle(float);
 	void updateSliderPosition(cocos2d::CCPoint);
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchCancelled(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchEnded(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
 }
 class GJRotationControlDelegate {
 	void angleChangeBegin();
 	void angleChangeEnded();
 	void angleChanged(float);
-	virtual void angleChanged(float);
 }
 class GJScaleControl : cocos2d::CCLayer {
 	void ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*);
@@ -3646,16 +3287,11 @@ class GJScaleControl : cocos2d::CCLayer {
 	void sliderChanged(cocos2d::CCObject*);
 	void updateLabel(float);
 	void valueFromScale(float);
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchCancelled(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchEnded(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
 }
 class GJScaleControlDelegate {
 	void scaleChangeBegin();
 	void scaleChangeEnded();
 	void scaleChanged(float);
-	virtual void scaleChanged(float);
 }
 class GJScoreCell : TableViewCell, FLAlertLayerProtocol {
 	void FLAlert_Clicked(FLAlertLayer*, bool);
@@ -3667,7 +3303,6 @@ class GJScoreCell : TableViewCell, FLAlertLayerProtocol {
 	void onMoreLevels(cocos2d::CCObject*);
 	void onViewProfile(cocos2d::CCObject*);
 	void updateBGColor(int);
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
 }
 class GJSearchObject : cocos2d::CCNode {
 	void create(SearchType);
@@ -3697,7 +3332,6 @@ class GJShopLayer : cocos2d::CCLayer, GJPurchaseDelegate {
 	void scene(ShopType);
 	void showVideoAdReward(int);
 	void updateCurrencyCounter();
-	virtual void didPurchaseItem(GJStoreItem *);
 }
 class GJSongBrowser : GJDropDownLayer, FLAlertLayerProtocol {
 	void FLAlert_Clicked(FLAlertLayer*, bool);
@@ -3710,7 +3344,6 @@ class GJSongBrowser : GJDropDownLayer, FLAlertLayerProtocol {
 	void onPrevPage(cocos2d::CCObject*);
 	void setupPageInfo(int, int, int);
 	void setupSongBrowser(cocos2d::CCArray*);
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
 }
 class GJSpecialColorSelect : FLAlertLayer {
 	void create(int, GJSpecialColorSelectDelegate*, bool);
@@ -3724,7 +3357,6 @@ class GJSpecialColorSelect : FLAlertLayer {
 }
 class GJSpecialColorSelectDelegate {
 	void colorSelectClosed(GJSpecialColorSelect*, int);
-	virtual void colorSelectClosed(GJSpecialColorSelect *,int);
 }
 class GJSpiderSprite : GJRobotSprite {
 	void create();
@@ -3761,10 +3393,6 @@ class GJUserCell : TableViewCell, FLAlertLayerProtocol, UploadPopupDelegate, Upl
 	void updateBGColor(int);
 	void uploadActionFailed(int, int);
 	void uploadActionFinished(int, int);
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void onClosePopup(UploadActionPopup *);
-	virtual void uploadActionFailed(int,int);
-	virtual void uploadActionFinished(int,int);
 }
 class GJUserMessage : cocos2d::CCNode {
 	void create(cocos2d::CCDictionary*);
@@ -3812,15 +3440,6 @@ class GJWriteMessagePopup : FLAlertLayer, TextInputDelegate, UploadMessageDelega
 	void updateText(gd::string, int);
 	void uploadMessageFailed(int);
 	void uploadMessageFinished(int);
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void onClosePopup(UploadActionPopup *);
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputOpened(CCTextInputNode *);
-	virtual void textInputReturn(CCTextInputNode *);
-	virtual void textInputShouldOffset(CCTextInputNode *,float);
-	virtual void uploadMessageFailed(int);
-	virtual void uploadMessageFinished(int);
 }
 class GManager : cocos2d::CCNode {
 	void dataLoaded(DS_Dictionary*);
@@ -3838,8 +3457,6 @@ class GManager : cocos2d::CCNode {
 	void saveGMTo(gd::string);
 	void setup();
 	void tryLoadData(DS_Dictionary*, gd::string);
-	virtual void dataLoaded(DS_Dictionary *);
-	virtual void encodeDataTo(DS_Dictionary *);
 }
 class GooglePlayDelegate {
 	void googlePlaySignedIn();
@@ -3869,7 +3486,6 @@ class GroupCommandObject : cocos2d::CCNode {
 	void runRotateCommand(float, float, int, float, bool);
 	void step(float);
 	void updateTweenAction(float, char const*);
-	virtual void updateTweenAction(float,char const*);
 }
 class HardStreak : cocos2d::CCDrawNode {
 	void addPoint(cocos2d::CCPoint);
@@ -3892,7 +3508,6 @@ class HSVWidgetPopup : FLAlertLayer {
 }
 class HSVWidgetPopupDelegate {
 	void hsvPopupClosed(HSVWidgetPopup*, cocos2d::_ccHSVValue);
-	virtual void hsvPopupClosed(HSVWidgetPopup *,cocos2d::_ccHSVValue);
 }
 class InfoAlertButton : CCMenuItemSpriteExtra {
 	void activate();
@@ -3935,12 +3550,6 @@ class InfoLayer : FLAlertLayer, LevelCommentDelegate, CommentUploadDelegate, FLA
 	void updateCommentModeButtons();
 	void updateLevelsLabel();
 	void updateUserScoreFinished();
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void commentUploadFailed(int,CommentError);
-	virtual void commentUploadFinished(int);
-	virtual void loadCommentsFailed(char const*);
-	virtual void loadCommentsFinished(cocos2d::CCArray *,char const*);
-	virtual void setupPageInfo(gd::string,char const*);
 }
 class InheritanceNode : cocos2d::CCObject {
 	void create(int, InheritanceNode*);
@@ -4003,13 +3612,11 @@ class KeysLayer : cocos2d::CCLayer, FLAlertLayerProtocol, DialogDelegate {
 	void scene();
 	void switchToOpenedState(CCMenuItemSpriteExtra*);
 	void updateUnlockedLabel();
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void dialogClosed(DialogLayer *);
 }
 class LabelGameObject : EffectGameObject {
 	void addMainSpriteToParent(bool);
 	void create();
-	void customObjectSetup(gd::map<gd::string, gd::string, gd::less<gd::string >, gd::allocator<gd::pair<gd::string const, gd::string > > >&);
+	void customObjectSetup(gd::map<gd::string, gd::string>&);
 	void getSaveString();
 	void init();
 	void queueUpdateLabel(gd::string);
@@ -4018,18 +3625,12 @@ class LabelGameObject : EffectGameObject {
 	void setupCustomSprites();
 	void updateLabel(gd::string);
 	void updateLabelIfDirty();
-	virtual void addMainSpriteToParent(bool);
-	virtual void customObjectSetup(gd::map<gd::string,gd::string,gd::less<gd::string>,gd::allocator<gd::pair<gd::string const,gd::string>>> &);
-	virtual void setObjectColor(cocos2d::_ccColor3B const&);
-	virtual void setOpacity(uchar);
 }
 class LeaderboardManagerDelegate {
 	void loadLeaderboardFailed(char const*);
 	void loadLeaderboardFinished(cocos2d::CCArray*, char const*);
 	void updateUserScoreFailed();
 	void updateUserScoreFinished();
-	virtual void loadLeaderboardFailed(char const*);
-	virtual void loadLeaderboardFinished(cocos2d::CCArray *,char const*);
 }
 class LeaderboardsLayer : cocos2d::CCLayer, LeaderboardManagerDelegate {
 	void create(LeaderboardState);
@@ -4052,8 +3653,6 @@ class LeaderboardsLayer : cocos2d::CCLayer, LeaderboardManagerDelegate {
 	void toggleTabButtons();
 	void updateUserScoreFailed();
 	void updateUserScoreFinished();
-	virtual void loadLeaderboardFailed(char const*);
-	virtual void loadLeaderboardFinished(cocos2d::CCArray *,char const*);
 }
 class LevelBrowserLayer : cocos2d::CCLayer, LevelManagerDelegate, FLAlertLayerProtocol, SetIDPopupDelegate, SetTextPopupDelegate {
 	void FLAlert_Clicked(FLAlertLayer*, bool);
@@ -4092,13 +3691,6 @@ class LevelBrowserLayer : cocos2d::CCLayer, LevelManagerDelegate, FLAlertLayerPr
 	void setupPageInfo(gd::string, char const*);
 	void updateLevelsLabel();
 	void updatePageLabel();
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void keyDown(cocos2d::enumKeyCodes);
-	virtual void loadLevelsFailed(char const*);
-	virtual void loadLevelsFinished(cocos2d::CCArray *,char const*);
-	virtual void setIDPopupClosed(SetIDPopup *,int);
-	virtual void setTextPopupClosed(SetTextPopup *,gd::string);
-	virtual void setupPageInfo(gd::string,char const*);
 }
 class LevelCell : TableViewCell {
 	void create(float, float);
@@ -4116,21 +3708,14 @@ class LevelCommentDelegate {
 	void loadCommentsFinished(cocos2d::CCArray*, char const*);
 	void setupPageInfo(gd::string, char const*);
 	void updateUserScoreFinished();
-	virtual void loadCommentsFailed(char const*);
-	virtual void loadCommentsFinished(cocos2d::CCArray *,char const*);
-	virtual void setupPageInfo(gd::string,char const*);
 }
 class LevelDeleteDelegate {
 	void levelDeleteFailed(int);
 	void levelDeleteFinished(int);
-	virtual void levelDeleteFailed(int);
-	virtual void levelDeleteFinished(int);
 }
 class LevelDownloadDelegate {
 	void levelDownloadFailed(int);
 	void levelDownloadFinished(GJGameLevel*);
-	virtual void levelDownloadFailed(int);
-	virtual void levelDownloadFinished(GJGameLevel *);
 }
 class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
 	void activateTriggerEffect(EffectGameObject*, float, float, float);
@@ -4260,14 +3845,6 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
 	void validGroup(GameObject*, bool);
 	void willSwitchToMode(int, PlayerObject*);
 	void xPosForTime(float);
-	virtual void addToGroup(GameObject *,int,bool);
-	virtual void calculateColorValues(EffectGameObject *,EffectGameObject *,int,float,ColorActionSprite *,GJEffectManager *);
-	virtual void flipGravity(PlayerObject *,bool,bool);
-	virtual void removeFromGroup(GameObject *,int);
-	virtual void timeForXPos(float);
-	virtual void update(float);
-	virtual void updateColor(cocos2d::_ccColor3B,float,int,bool,float,cocos2d::_ccHSVValue,int,bool,int,EffectGameObject *);
-	virtual void xPosForTime(float);
 }
 class LevelFeatureLayer : FLAlertLayer {
 	void create(int);
@@ -4341,17 +3918,6 @@ class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDeleg
 	void tryShowAd();
 	void updateLabelValues();
 	void updateSideButtons();
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void keyDown(cocos2d::enumKeyCodes);
-	virtual void levelDeleteFailed(int);
-	virtual void levelDeleteFinished(int);
-	virtual void levelDownloadFailed(int);
-	virtual void levelDownloadFinished(GJGameLevel *);
-	virtual void levelUpdateFailed(int);
-	virtual void levelUpdateFinished(GJGameLevel *,UpdateResponse);
-	virtual void likedItem(LikeItemType,int,bool);
-	virtual void numberInputClosed(NumberInputLayer *);
-	virtual void setIDPopupClosed(SetIDPopup *,int);
 }
 class LevelLeaderboard : FLAlertLayer, LeaderboardManagerDelegate {
 	void create(GJGameLevel*, LevelLeaderboardType);
@@ -4369,16 +3935,11 @@ class LevelLeaderboard : FLAlertLayer, LeaderboardManagerDelegate {
 	void show();
 	void updateUserScoreFailed();
 	void updateUserScoreFinished();
-	virtual void loadLeaderboardFailed(char const*);
-	virtual void loadLeaderboardFinished(cocos2d::CCArray *,char const*);
 }
 class LevelManagerDelegate {
 	void loadLevelsFailed(char const*);
 	void loadLevelsFinished(cocos2d::CCArray*, char const*);
 	void setupPageInfo(gd::string, char const*);
-	virtual void loadLevelsFailed(char const*);
-	virtual void loadLevelsFinished(cocos2d::CCArray *,char const*);
-	virtual void setupPageInfo(gd::string,char const*);
 }
 class LevelPage : cocos2d::CCLayer, DialogDelegate {
 	void addSecretCoin();
@@ -4398,11 +3959,6 @@ class LevelPage : cocos2d::CCLayer, DialogDelegate {
 	void playStep3();
 	void registerWithTouchDispatcher();
 	void updateDynamicPage(GJGameLevel*);
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchCancelled(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchEnded(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void dialogClosed(DialogLayer *);
 }
 class LevelSearchLayer : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol, DemonFilterDelegate {
 	void FLAlert_Clicked(FLAlertLayer*, bool);
@@ -4444,11 +4000,6 @@ class LevelSearchLayer : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtoc
 	void toggleTime(cocos2d::CCObject*);
 	void toggleTimeNum(int, bool);
 	void updateSearchLabel(char const*);
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void demonFilterSelectClosed(int);
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputOpened(CCTextInputNode *);
 }
 class LevelSelectLayer : cocos2d::CCLayer, BoomScrollLayerDelegate, DynamicScrollDelegate {
 	void colorForPage(int);
@@ -4467,9 +4018,6 @@ class LevelSelectLayer : cocos2d::CCLayer, BoomScrollLayerDelegate, DynamicScrol
 	void scrollLayerMoved(cocos2d::CCPoint);
 	void tryShowAd();
 	void updatePageWithObject(cocos2d::CCObject*, cocos2d::CCObject*);
-	virtual void keyDown(cocos2d::enumKeyCodes);
-	virtual void scrollLayerMoved(cocos2d::CCPoint);
-	virtual void updatePageWithObject(cocos2d::CCObject *,cocos2d::CCObject *);
 }
 class LevelSettingsDelegate {
 	void levelSettingsUpdated();
@@ -4513,9 +4061,6 @@ class LevelSettingsLayer : FLAlertLayer, ColorSelectDelegate, SelectArtDelegate,
 	void updateAudioLabel();
 	void updateColorSprite(ColorChannelSprite*);
 	void updateColorSprites();
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void colorSelectClosed(cocos2d::CCNode *);
-	virtual void selectArtClosed(SelectArtLayer *);
 }
 class LevelSettingsObject : cocos2d::CCNode {
 	void create();
@@ -4529,18 +4074,13 @@ class LevelSettingsObject : cocos2d::CCNode {
 class LevelUpdateDelegate {
 	void levelUpdateFailed(int);
 	void levelUpdateFinished(GJGameLevel*, UpdateResponse);
-	virtual void levelUpdateFailed(int);
-	virtual void levelUpdateFinished(GJGameLevel *,UpdateResponse);
 }
 class LevelUploadDelegate {
 	void levelUploadFailed(GJGameLevel*);
 	void levelUploadFinished(GJGameLevel*);
-	virtual void levelUploadFailed(GJGameLevel *);
-	virtual void levelUploadFinished(GJGameLevel *);
 }
 class LikeItemDelegate {
 	void likedItem(LikeItemType, int, bool);
-	virtual void likedItem(LikeItemType,int,bool);
 }
 class LikeItemLayer : FLAlertLayer {
 	void create(LikeItemType, int, int);
@@ -4561,7 +4101,6 @@ class ListButtonBar : cocos2d::CCNode {
 }
 class ListButtonBarDelegate {
 	void listButtonBarSwitchedPage(ListButtonBar*, int);
-	virtual void listButtonBarSwitchedPage(ListButtonBar *,int);
 }
 class ListButtonPage : cocos2d::CCLayer {
 	void create(cocos2d::CCArray*, cocos2d::CCPoint, int, int, float, float, float);
@@ -4584,10 +4123,6 @@ class LoadingCircle : cocos2d::CCLayerColor {
 	void init();
 	void registerWithTouchDispatcher();
 	void show();
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchCancelled(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchEnded(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
 }
 class LoadingLayer : cocos2d::CCLayer {
 	void create(bool);
@@ -4616,8 +4151,6 @@ class LocalLevelManager : GManager {
 	void sharedState();
 	void updateLevelOrder();
 	void updateLevelRevision();
-	virtual void dataLoaded(DS_Dictionary *);
-	virtual void encodeDataTo(DS_Dictionary *);
 }
 class MapPackCell : TableViewCell {
 	void draw();
@@ -4644,11 +4177,6 @@ class MenuGameLayer : cocos2d::CCLayer {
 	void update(float);
 	void updateColor(float);
 	void updateColors();
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchCancelled(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchEnded(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void update(float);
 }
 class MenuLayer : cocos2d::CCLayer, FLAlertLayerProtocol, GooglePlayDelegate {
 	void FLAlert_Clicked(FLAlertLayer*, bool);
@@ -4688,18 +4216,12 @@ class MenuLayer : cocos2d::CCLayer, FLAlertLayerProtocol, GooglePlayDelegate {
 	void tryShowAd(float);
 	void updateUserProfileButton();
 	void willClose();
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void keyDown(cocos2d::enumKeyCodes);
 }
 class MessageListDelegate {
 	void forceReloadMessages(bool);
 	void loadMessagesFailed(char const*, GJErrorCode);
 	void loadMessagesFinished(cocos2d::CCArray*, char const*);
 	void setupPageInfo(gd::string, char const*);
-	virtual void forceReloadMessages(bool);
-	virtual void loadMessagesFailed(char const*,GJErrorCode);
-	virtual void loadMessagesFinished(cocos2d::CCArray *,char const*);
-	virtual void setupPageInfo(gd::string,char const*);
 }
 class MessagesProfilePage : FLAlertLayer, FLAlertLayerProtocol, UploadActionDelegate, UploadPopupDelegate, MessageListDelegate {
 	void FLAlert_Clicked(FLAlertLayer*, bool);
@@ -4728,14 +4250,6 @@ class MessagesProfilePage : FLAlertLayer, FLAlertLayerProtocol, UploadActionDele
 	void updatePageArrows();
 	void uploadActionFailed(int, int);
 	void uploadActionFinished(int, int);
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void forceReloadMessages(bool);
-	virtual void loadMessagesFailed(char const*,GJErrorCode);
-	virtual void loadMessagesFinished(cocos2d::CCArray *,char const*);
-	virtual void onClosePopup(UploadActionPopup *);
-	virtual void setupPageInfo(gd::string,char const*);
-	virtual void uploadActionFailed(int,int);
-	virtual void uploadActionFinished(int,int);
 }
 class MoreOptionsLayer : FLAlertLayer, TextInputDelegate, GooglePlayDelegate {
 	void addToggle(char const*, char const*, char const*);
@@ -4766,8 +4280,6 @@ class MoreOptionsLayer : FLAlertLayer, TextInputDelegate, GooglePlayDelegate {
 	void textInputReturn(CCTextInputNode*);
 	void textInputShouldOffset(CCTextInputNode*, float);
 	void toggleGP();
-	virtual void textInputReturn(CCTextInputNode *);
-	virtual void textInputShouldOffset(CCTextInputNode *,float);
 }
 class MoreSearchLayer : FLAlertLayer, TextInputDelegate {
 	void audioNext(cocos2d::CCObject*);
@@ -4795,8 +4307,6 @@ class MoreSearchLayer : FLAlertLayer, TextInputDelegate {
 	void textInputShouldOffset(CCTextInputNode*, float);
 	void toggleSongNodes(bool, bool);
 	void updateAudioLabel();
-	virtual void textInputReturn(CCTextInputNode *);
-	virtual void textInputShouldOffset(CCTextInputNode *,float);
 }
 class MoreVideoOptionsLayer : FLAlertLayer {
 	void addToggle(char const*, char const*, char const*);
@@ -4826,7 +4336,6 @@ class MultilineBitmapFont : cocos2d::CCSprite {
 	void readColorInfo(gd::string);
 	void setOpacity(unsigned char);
 	void stringWithMaxWidth(gd::string, float, float);
-	virtual void setOpacity(uchar);
 }
 class MusicDelegateHandler : cocos2d::CCNode {
 	void create(MusicDownloadDelegate*);
@@ -4838,10 +4347,6 @@ class MusicDownloadDelegate {
 	void loadSongInfoFailed(int, GJSongError);
 	void loadSongInfoFinished(SongInfoObject*);
 	void songStateChanged();
-	virtual void downloadSongFailed(int,GJSongError);
-	virtual void downloadSongFinished(SongInfoObject *);
-	virtual void loadSongInfoFailed(int,GJSongError);
-	virtual void loadSongInfoFinished(SongInfoObject *);
 }
 class MusicDownloadManager : cocos2d::CCNode, PlatformDownloadDelegate {
 	void ProcessHttpRequest(gd::string, gd::string, gd::string, GJHttpType);
@@ -4907,7 +4412,6 @@ class NodePoint : cocos2d::CCObject {
 }
 class NumberInputDelegate {
 	void numberInputClosed(NumberInputLayer*);
-	virtual void numberInputClosed(NumberInputLayer *);
 }
 class NumberInputLayer : FLAlertLayer {
 	void create();
@@ -4938,7 +4442,6 @@ class ObjectDecoder : cocos2d::CCNode {
 }
 class ObjectDecoderDelegate {
 	void getDecodedObject(int, DS_Dictionary*);
-	virtual void getDecodedObject(int,DS_Dictionary *);
 }
 class ObjectManager : cocos2d::CCNode {
 	void animLoaded(char const*);
@@ -4967,9 +4470,6 @@ class OnlineListDelegate {
 	void loadListFailed(char const*);
 	void loadListFinished(cocos2d::CCArray*, char const*);
 	void setupPageInfo(gd::string, char const*);
-	virtual void loadListFailed(char const*);
-	virtual void loadListFinished(cocos2d::CCArray *,char const*);
-	virtual void setupPageInfo(gd::string,char const*);
 }
 class OpacityEffectAction : cocos2d::CCNode {
 	void create(float, float, float, int);
@@ -4998,7 +4498,6 @@ class OptionsLayer : GJDropDownLayer, FLAlertLayerProtocol {
 	void onVideo(cocos2d::CCObject*);
 	void sfxSliderChanged(cocos2d::CCObject*);
 	void tryEnableRecord();
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
 }
 class ParentalOptionsLayer : FLAlertLayer {
 	void addToggle(char const*, char const*, char const*);
@@ -5046,14 +4545,10 @@ class PauseLayer : CCBlockLayer {
 	void setupProgressBars();
 	void sfxSliderChanged(cocos2d::CCObject*);
 	void tryShowBanner(float);
-	virtual void keyDown(cocos2d::enumKeyCodes);
-	virtual void keyUp(cocos2d::enumKeyCodes);
 }
 class PlatformDownloadDelegate {
 	void downloadFailed(char const*);
 	void downloadFinished(char const*);
-	virtual void downloadFailed(char const*);
-	virtual void downloadFinished(char const*);
 }
 class PlayerCheckpoint : cocos2d::CCNode {
 	void create();
@@ -5210,18 +4705,6 @@ class PlayerObject : GameObject {
 	void usingWallLimitedMode();
 	void yStartDown();
 	void yStartUp();
-	virtual void animationFinished(char const*);
-	virtual void setColor(cocos2d::_ccColor3B const&);
-	virtual void setFlipX(bool);
-	virtual void setFlipY(bool);
-	virtual void setOpacity(uchar);
-	virtual void setPosition(cocos2d::CCPoint const&);
-	virtual void setRotation(float);
-	virtual void setScale(float);
-	virtual void setScaleX(float);
-	virtual void setScaleY(float);
-	virtual void setVisible(bool);
-	virtual void update(float);
 }
 class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate, DialogDelegate {
 	void addCircle(CCCircleWave*);
@@ -5376,16 +4859,6 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
 	void visitWithColorFlash();
 	void willSwitchToMode(int, PlayerObject*);
 	void xPosForTime(float);
-	virtual void calculateColorValues(EffectGameObject *,EffectGameObject *,int,float,ColorActionSprite *,GJEffectManager *);
-	virtual void circleWaveWillBeRemoved(CCCircleWave *);
-	virtual void currencyWillExit(CurrencyRewardLayer *);
-	virtual void dialogClosed(DialogLayer *);
-	virtual void flipGravity(PlayerObject *,bool,bool);
-	virtual void timeForXPos(float);
-	virtual void update(float);
-	virtual void updateColor(cocos2d::_ccColor3B,float,int,bool,float,cocos2d::_ccHSVValue,int,bool,int,EffectGameObject *);
-	virtual void updateTweenAction(float,char const*);
-	virtual void xPosForTime(float);
 }
 class PointNode : cocos2d::CCObject {
 	void create(cocos2d::CCPoint);
@@ -5447,19 +4920,6 @@ class ProfilePage : FLAlertLayer, FLAlertLayerProtocol, LevelCommentDelegate, Co
 	void uploadActionFailed(int, int);
 	void uploadActionFinished(int, int);
 	void userInfoChanged(GJUserScore*);
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void commentDeleteFailed(int,int);
-	virtual void commentUploadFailed(int,CommentError);
-	virtual void commentUploadFinished(int);
-	virtual void getUserInfoFailed(int);
-	virtual void getUserInfoFinished(GJUserScore *);
-	virtual void loadCommentsFailed(char const*);
-	virtual void loadCommentsFinished(cocos2d::CCArray *,char const*);
-	virtual void onClosePopup(UploadActionPopup *);
-	virtual void setupPageInfo(gd::string,char const*);
-	virtual void uploadActionFailed(int,int);
-	virtual void uploadActionFinished(int,int);
-	virtual void userInfoChanged(GJUserScore *);
 }
 class PromoInterstitial : FLAlertLayer {
 	void ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*);
@@ -5473,31 +4933,23 @@ class PromoInterstitial : FLAlertLayer {
 	void onClose(cocos2d::CCObject*);
 	void setup();
 	void show();
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchCancelled(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchEnded(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
 }
 class pugi::xml_tree_walker {
 	void begin(pugi::xml_node&);
 	void depth();
 	void end(pugi::xml_node&);
 	void xml_tree_walker();
-	virtual void begin(pugi::xml_node &);
-	virtual void end(pugi::xml_node &);
 }
 class pugi::xml_writer {
 }
 class pugi::xml_writer_file : pugi::xml_writer {
 	void write(void const*, unsigned int);
 	void xml_writer_file(void*);
-	virtual void write(void const*,uint);
 }
 class pugi::xml_writer_stream : pugi::xml_writer {
 	void write(void const*, unsigned int);
 	void xml_writer_stream(gd::basic_ostream<char, gd::char_traits<char> >&);
 	void xml_writer_stream(gd::basic_ostream<wchar_t, gd::char_traits<wchar_t> >&);
-	virtual void write(void const*,uint);
 }
 class PulseEffectAction : cocos2d::CCNode {
 	void create(float, float, float, PulseEffectType, int, cocos2d::_ccColor3B, cocos2d::_ccHSVValue, int, bool, bool);
@@ -5525,9 +4977,6 @@ class RateDemonLayer : FLAlertLayer, UploadPopupDelegate, UploadActionDelegate {
 	void selectRating(cocos2d::CCObject*);
 	void uploadActionFailed(int, int);
 	void uploadActionFinished(int, int);
-	virtual void onClosePopup(UploadActionPopup *);
-	virtual void uploadActionFailed(int,int);
-	virtual void uploadActionFinished(int,int);
 }
 class RateLevelDelegate {
 	void rateLevelClosed();
@@ -5553,9 +5002,6 @@ class RateStarsLayer : FLAlertLayer, UploadPopupDelegate, UploadActionDelegate {
 	void selectRating(cocos2d::CCObject*);
 	void uploadActionFailed(int, int);
 	void uploadActionFinished(int, int);
-	virtual void onClosePopup(UploadActionPopup *);
-	virtual void uploadActionFailed(int,int);
-	virtual void uploadActionFinished(int,int);
 }
 class RetryLevelLayer : GJDropDownLayer {
 	void create();
@@ -5570,9 +5016,6 @@ class RetryLevelLayer : GJDropDownLayer {
 	void onReplay(cocos2d::CCObject*);
 	void setupLastProgress();
 	void showLayer(bool);
-	virtual void keyDown(cocos2d::enumKeyCodes);
-	virtual void keyUp(cocos2d::enumKeyCodes);
-	virtual void showLayer(bool);
 }
 class RewardsPage : FLAlertLayer, FLAlertLayerProtocol, GJRewardDelegate {
 	void FLAlert_Clicked(FLAlertLayer*, bool);
@@ -5590,8 +5033,6 @@ class RewardsPage : FLAlertLayer, FLAlertLayerProtocol, GJRewardDelegate {
 	void tryGetRewards();
 	void unlockLayerClosed(RewardUnlockLayer*);
 	void updateTimers(float);
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void rewardsStatusFinished(int);
 }
 class RewardUnlockLayer : FLAlertLayer, CurrencyRewardDelegate {
 	void connectionTimeout();
@@ -5609,11 +5050,10 @@ class RewardUnlockLayer : FLAlertLayer, CurrencyRewardDelegate {
 	void showCollectReward(GJRewardItem*);
 	void step2();
 	void step3();
-	virtual void currencyWillExit(CurrencyRewardLayer *);
 }
 class RingObject : EffectGameObject {
 	void create(char const*);
-	void customObjectSetup(gd::map<gd::string, gd::string, gd::less<gd::string >, gd::allocator<gd::pair<gd::string const, gd::string > > >&);
+	void customObjectSetup(gd::map<gd::string, gd::string>&);
 	void getSaveString();
 	void init(char const*);
 	void powerOffObject();
@@ -5624,11 +5064,6 @@ class RingObject : EffectGameObject {
 	void setScale(float);
 	void spawnCircle();
 	void triggerActivated(float);
-	virtual void customObjectSetup(gd::map<gd::string,gd::string,gd::less<gd::string>,gd::allocator<gd::pair<gd::string const,gd::string>>> &);
-	virtual void setRScale(float);
-	virtual void setRotation(float);
-	virtual void setScale(float);
-	virtual void triggerActivated(float);
 }
 class ScrollingLayer : cocos2d::CCLayerColor {
 	void ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*);
@@ -5641,10 +5076,6 @@ class ScrollingLayer : cocos2d::CCLayerColor {
 	void init(cocos2d::CCSize, cocos2d::CCPoint, float);
 	void setStartOffset(cocos2d::CCPoint);
 	void visit();
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchCancelled(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchEnded(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
 }
 class SearchButton : cocos2d::CCSprite {
 	void create(char const*, char const*, float, char const*);
@@ -5669,10 +5100,6 @@ class SecretLayer : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol {
 	void textInputOpened(CCTextInputNode*);
 	void updateMessageLabel(gd::string);
 	void updateSearchLabel(char const*);
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputOpened(CCTextInputNode *);
 }
 class SecretLayer2 : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol, DialogDelegate {
 	void FLAlert_Clicked(FLAlertLayer*, bool);
@@ -5700,11 +5127,6 @@ class SecretLayer2 : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol, 
 	void textInputOpened(CCTextInputNode*);
 	void updateMessageLabel(gd::string);
 	void updateSearchLabel(char const*);
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void dialogClosed(DialogLayer *);
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputOpened(CCTextInputNode *);
 }
 class SecretLayer3 : cocos2d::CCLayer, DialogDelegate {
 	void animateEyes();
@@ -5728,7 +5150,6 @@ class SecretLayer3 : cocos2d::CCLayer, DialogDelegate {
 	void revealStep5();
 	void scene();
 	void showUnlockDialog();
-	virtual void dialogClosed(DialogLayer *);
 }
 class SecretLayer4 : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol, DialogDelegate {
 	void FLAlert_Clicked(FLAlertLayer*, bool);
@@ -5755,11 +5176,6 @@ class SecretLayer4 : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol, 
 	void textInputOpened(CCTextInputNode*);
 	void updateMessageLabel(gd::string);
 	void updateSearchLabel(char const*);
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void dialogClosed(DialogLayer *);
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputOpened(CCTextInputNode *);
 }
 class SecretNumberLayer : cocos2d::CCLayer {
 	void create();
@@ -5768,7 +5184,6 @@ class SecretNumberLayer : cocos2d::CCLayer {
 }
 class SelectArtDelegate {
 	void selectArtClosed(SelectArtLayer*);
-	virtual void selectArtClosed(SelectArtLayer *);
 }
 class SelectArtLayer : FLAlertLayer {
 	void create(SelectArtType);
@@ -5793,7 +5208,6 @@ class SetFolderPopup : SetIDPopup, SetTextPopupDelegate {
 	void onSetFolderName(cocos2d::CCObject*);
 	void setTextPopupClosed(SetTextPopup*, gd::string);
 	void valueChanged();
-	virtual void setTextPopupClosed(SetTextPopup *,gd::string);
 }
 class SetGroupIDLayer : FLAlertLayer, TextInputDelegate {
 	void addGroupID(int);
@@ -5831,8 +5245,6 @@ class SetGroupIDLayer : FLAlertLayer, TextInputDelegate {
 	void updateZLayerButtons();
 	void updateZOrder();
 	void updateZOrderLabel();
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
 }
 class SetIDLayer : FLAlertLayer {
 	void create(GameObject*);
@@ -5856,12 +5268,9 @@ class SetIDPopup : FLAlertLayer, TextInputDelegate {
 	void textInputClosed(CCTextInputNode*);
 	void updateTextInputLabel();
 	void valueChanged();
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
 }
 class SetIDPopupDelegate {
 	void setIDPopupClosed(SetIDPopup*, int);
-	virtual void setIDPopupClosed(SetIDPopup *,int);
 }
 class SetItemIDLayer : FLAlertLayer, TextInputDelegate {
 	void create(EffectGameObject*, cocos2d::CCArray*);
@@ -5879,10 +5288,6 @@ class SetItemIDLayer : FLAlertLayer, TextInputDelegate {
 	void updateEditorLabel();
 	void updateItemID();
 	void updateTextInputLabel();
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputReturn(CCTextInputNode *);
-	virtual void textInputShouldOffset(CCTextInputNode *,float);
 }
 class SetTargetIDLayer : FLAlertLayer, TextInputDelegate {
 	void create(EffectGameObject*, cocos2d::CCArray*, gd::string);
@@ -5906,10 +5311,6 @@ class SetTargetIDLayer : FLAlertLayer, TextInputDelegate {
 	void updateTargetID();
 	void updateTextInputLabel();
 	void updateTouchTriggered();
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputReturn(CCTextInputNode *);
-	virtual void textInputShouldOffset(CCTextInputNode *,float);
 }
 class SetTextPopup : FLAlertLayer, TextInputDelegate {
 	void create(gd::string, gd::string, int, gd::string, gd::string, bool);
@@ -5922,12 +5323,9 @@ class SetTextPopup : FLAlertLayer, TextInputDelegate {
 	void textChanged(CCTextInputNode*);
 	void textInputClosed(CCTextInputNode*);
 	void updateTextInputLabel();
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
 }
 class SetTextPopupDelegate {
 	void setTextPopupClosed(SetTextPopup*, gd::string);
-	virtual void setTextPopupClosed(SetTextPopup *,gd::string);
 }
 class SetupAnimationPopup : FLAlertLayer, TextInputDelegate {
 	void create(EffectGameObject*, cocos2d::CCArray*);
@@ -5954,10 +5352,6 @@ class SetupAnimationPopup : FLAlertLayer, TextInputDelegate {
 	void updateTargetID();
 	void updateTextInputLabel();
 	void updateTouchTriggered();
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputReturn(CCTextInputNode *);
-	virtual void textInputShouldOffset(CCTextInputNode *,float);
 }
 class SetupAnimSettingsPopup : FLAlertLayer, TextInputDelegate {
 	void create(EffectGameObject*, cocos2d::CCArray*);
@@ -5975,10 +5369,6 @@ class SetupAnimSettingsPopup : FLAlertLayer, TextInputDelegate {
 	void textInputShouldOffset(CCTextInputNode*, float);
 	void updateAnimSpeedMod();
 	void updateRotationInputLabel();
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputReturn(CCTextInputNode *);
-	virtual void textInputShouldOffset(CCTextInputNode *,float);
 }
 class SetupCollisionTriggerPopup : FLAlertLayer, TextInputDelegate {
 	void create(EffectGameObject*, cocos2d::CCArray*);
@@ -6010,10 +5400,6 @@ class SetupCollisionTriggerPopup : FLAlertLayer, TextInputDelegate {
 	void updateTargetID();
 	void updateTargetIDInputLabel();
 	void updateTouchTriggered();
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputReturn(CCTextInputNode *);
-	virtual void textInputShouldOffset(CCTextInputNode *,float);
 }
 class SetupCountTriggerPopup : FLAlertLayer, TextInputDelegate {
 	void create(EffectGameObject*, cocos2d::CCArray*);
@@ -6045,10 +5431,6 @@ class SetupCountTriggerPopup : FLAlertLayer, TextInputDelegate {
 	void updateTargetID();
 	void updateTargetIDInputLabel();
 	void updateTouchTriggered();
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputReturn(CCTextInputNode *);
-	virtual void textInputShouldOffset(CCTextInputNode *,float);
 }
 class SetupInstantCountPopup : FLAlertLayer, TextInputDelegate {
 	void create(EffectGameObject*, cocos2d::CCArray*);
@@ -6080,10 +5462,6 @@ class SetupInstantCountPopup : FLAlertLayer, TextInputDelegate {
 	void updateTargetID();
 	void updateTargetIDInputLabel();
 	void updateTouchTriggered();
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputReturn(CCTextInputNode *);
-	virtual void textInputShouldOffset(CCTextInputNode *,float);
 }
 class SetupInteractObjectPopup : FLAlertLayer, TextInputDelegate {
 	void create(EffectGameObject*, cocos2d::CCArray*);
@@ -6110,10 +5488,6 @@ class SetupInteractObjectPopup : FLAlertLayer, TextInputDelegate {
 	void updateState();
 	void updateTargetID();
 	void updateTextInputLabel();
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputReturn(CCTextInputNode *);
-	virtual void textInputShouldOffset(CCTextInputNode *,float);
 }
 class SetupObjectTogglePopup : FLAlertLayer, TextInputDelegate {
 	void create(EffectGameObject*, cocos2d::CCArray*);
@@ -6139,10 +5513,6 @@ class SetupObjectTogglePopup : FLAlertLayer, TextInputDelegate {
 	void updateTargetID();
 	void updateTextInputLabel();
 	void updateTouchTriggered();
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputReturn(CCTextInputNode *);
-	virtual void textInputShouldOffset(CCTextInputNode *,float);
 }
 class SetupOpacityPopup : FLAlertLayer, TextInputDelegate {
 	void create(EffectGameObject*, cocos2d::CCArray*);
@@ -6170,10 +5540,6 @@ class SetupOpacityPopup : FLAlertLayer, TextInputDelegate {
 	void updateTargetID();
 	void updateTextInputLabel();
 	void updateTouchTriggered();
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputReturn(CCTextInputNode *);
-	virtual void textInputShouldOffset(CCTextInputNode *,float);
 }
 class SetupPickupTriggerPopup : FLAlertLayer, TextInputDelegate {
 	void create(EffectGameObject*, cocos2d::CCArray*);
@@ -6201,10 +5567,6 @@ class SetupPickupTriggerPopup : FLAlertLayer, TextInputDelegate {
 	void updateSpawnedByTrigger();
 	void updateTargetCount();
 	void updateTouchTriggered();
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputReturn(CCTextInputNode *);
-	virtual void textInputShouldOffset(CCTextInputNode *,float);
 }
 class SetupPulsePopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, TextInputDelegate, GJSpecialColorSelectDelegate {
 	void closeColorSelect(cocos2d::CCObject*);
@@ -6257,13 +5619,6 @@ class SetupPulsePopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, T
 	void updateTargetID();
 	void updateTextInputLabel();
 	void updateTouchTriggered();
-	virtual void colorSelectClosed(GJSpecialColorSelect *,int);
-	virtual void colorValueChanged(cocos2d::_ccColor3B);
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputOpened(CCTextInputNode *);
-	virtual void textInputReturn(CCTextInputNode *);
-	virtual void textInputShouldOffset(CCTextInputNode *,float);
 }
 class SetupRotatePopup : FLAlertLayer, TextInputDelegate {
 	void create(EffectGameObject*, cocos2d::CCArray*);
@@ -6283,10 +5638,6 @@ class SetupRotatePopup : FLAlertLayer, TextInputDelegate {
 	void updateDisableRotation();
 	void updateRotationInputLabel();
 	void updateState();
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputReturn(CCTextInputNode *);
-	virtual void textInputShouldOffset(CCTextInputNode *,float);
 }
 class SetupShakePopup : FLAlertLayer, TextInputDelegate {
 	void create(EffectGameObject*, cocos2d::CCArray*);
@@ -6313,10 +5664,6 @@ class SetupShakePopup : FLAlertLayer, TextInputDelegate {
 	void updateShakeLabel(bool);
 	void updateSpawnedByTrigger();
 	void updateTouchTriggered();
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputReturn(CCTextInputNode *);
-	virtual void textInputShouldOffset(CCTextInputNode *,float);
 }
 class SetupSpawnPopup : FLAlertLayer, TextInputDelegate {
 	void create(EffectGameObject*, cocos2d::CCArray*);
@@ -6344,10 +5691,6 @@ class SetupSpawnPopup : FLAlertLayer, TextInputDelegate {
 	void updateTargetID();
 	void updateTextInputLabel();
 	void updateTouchTriggered();
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputReturn(CCTextInputNode *);
-	virtual void textInputShouldOffset(CCTextInputNode *,float);
 }
 class SetupTouchTogglePopup : FLAlertLayer, TextInputDelegate {
 	void create(EffectGameObject*, cocos2d::CCArray*);
@@ -6374,10 +5717,6 @@ class SetupTouchTogglePopup : FLAlertLayer, TextInputDelegate {
 	void updateTargetID();
 	void updateTextInputLabel();
 	void updateTouchTriggered();
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputReturn(CCTextInputNode *);
-	virtual void textInputShouldOffset(CCTextInputNode *,float);
 }
 class ShardsPage : FLAlertLayer {
 	void FLAlert_Clicked(FLAlertLayer*, bool);
@@ -6407,12 +5746,6 @@ class ShareCommentLayer : FLAlertLayer, TextInputDelegate, UploadActionDelegate,
 	void updatePercentLabel();
 	void uploadActionFailed(int, int);
 	void uploadActionFinished(int, int);
-	virtual void onClosePopup(UploadActionPopup *);
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputOpened(CCTextInputNode *);
-	virtual void uploadActionFailed(int,int);
-	virtual void uploadActionFinished(int,int);
 }
 class ShareLevelLayer : FLAlertLayer {
 	void create(GJGameLevel*);
@@ -6436,7 +5769,6 @@ class ShareLevelSettingsLayer : FLAlertLayer, NumberInputDelegate {
 	void onPassword(cocos2d::CCObject*);
 	void onUnlisted(cocos2d::CCObject*);
 	void updateSettingsState();
-	virtual void numberInputClosed(NumberInputLayer *);
 }
 class SimpleObject : cocos2d::CCObject {
 	void create();
@@ -6451,8 +5783,6 @@ class SimplePlayer : cocos2d::CCSprite {
 	void setSecondColor(cocos2d::_ccColor3B const&);
 	void updateColors();
 	void updatePlayerFrame(int, IconType);
-	virtual void setColor(cocos2d::_ccColor3B const&);
-	virtual void setOpacity(uchar);
 }
 class SlideInLayer : cocos2d::CCLayerColor {
 	void ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*);
@@ -6474,13 +5804,6 @@ class SlideInLayer : cocos2d::CCLayerColor {
 	void layerVisible();
 	void registerWithTouchDispatcher();
 	void showLayer(bool);
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchCancelled(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchEnded(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void exitLayer(cocos2d::CCObject *);
-	virtual void hideLayer(bool);
-	virtual void showLayer(bool);
 }
 class Slider : cocos2d::CCLayer {
 	void ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*);
@@ -6501,9 +5824,6 @@ class Slider : cocos2d::CCLayer {
 	void setRotated(bool);
 	void setValue(float);
 	void updateBar();
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchEnded(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
 }
 class SliderThumb : cocos2d::CCMenuItemImage {
 	void create(cocos2d::CCNode*, cocos2d::SEL_MenuHandler, char const*, char const*);
@@ -6522,9 +5842,6 @@ class SliderTouchLogic : cocos2d::CCMenu {
 	void registerWithTouchDispatcher();
 	void setMaxOffset(float);
 	void setRotated(bool);
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchEnded(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
 }
 class SongCell : TableViewCell {
 	void draw();
@@ -6552,7 +5869,6 @@ class SongInfoObject : cocos2d::CCNode {
 	void createWithCoder(DS_Dictionary*);
 	void encodeWithCoder(DS_Dictionary*);
 	void init(int, gd::string, gd::string, int, float, gd::string, gd::string, gd::string, int);
-	virtual void encodeWithCoder(DS_Dictionary *);
 }
 class SongObject : cocos2d::CCObject {
 	void create(int);
@@ -6620,7 +5936,6 @@ class SpriteDescription : cocos2d::CCObject {
 }
 class SpritePartDelegate {
 	void displayFrameChanged(cocos2d::CCObject*, gd::string);
-	virtual void displayFrameChanged(cocos2d::CCObject *,gd::string);
 }
 class StartPosObject : EffectGameObject {
 	void create();
@@ -6661,10 +5976,6 @@ class SupportLayer : GJDropDownLayer, FLAlertLayerProtocol, UploadActionDelegate
 	void sendSupportMail();
 	void uploadActionFailed(int, int);
 	void uploadActionFinished(int, int);
-	virtual void FLAlert_Clicked(FLAlertLayer *,bool);
-	virtual void onClosePopup(UploadActionPopup *);
-	virtual void uploadActionFailed(int,int);
-	virtual void uploadActionFinished(int,int);
 }
 class TableView : CCScrollLayerExt, CCScrollLayerExtDelegate {
 	void cancelAndStoleTouch(cocos2d::CCTouch*, cocos2d::CCEvent*);
@@ -6698,15 +6009,6 @@ class TableView : CCScrollLayerExt, CCScrollLayerExtDelegate {
 	void scrollViewTouchMoving(CCScrollLayerExt*);
 	void scrollWheel(float, float);
 	void touchFinish(cocos2d::CCTouch*);
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchCancelled(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchEnded(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void scrllViewWillBeginDecelerating(CCScrollLayerExt *);
-	virtual void scrollViewDidEndDecelerating(CCScrollLayerExt *);
-	virtual void scrollViewDidEndMoving(CCScrollLayerExt *);
-	virtual void scrollViewTouchMoving(CCScrollLayerExt *);
-	virtual void scrollWheel(float,float);
 }
 class TableViewCell : cocos2d::CCLayer {
 	void updateVisibility();
@@ -6714,8 +6016,6 @@ class TableViewCell : cocos2d::CCLayer {
 class TableViewDataSource {
 	void TableViewCommitCellEditingStyleForRowAtIndexPath(TableView*, TableViewCellEditingStyle, CCIndexPath&);
 	void numberOfSectionsInTableView(TableView*);
-	virtual void TableViewCommitCellEditingStyleForRowAtIndexPath(TableView *,TableViewCellEditingStyle,CCIndexPath &);
-	virtual void numberOfSectionsInTableView(TableView *);
 }
 class TableViewDelegate {
 	void TableViewDidDisplayCellForRowAtIndexPath(CCIndexPath&, TableViewCell*, TableView*);
@@ -6723,17 +6023,12 @@ class TableViewDelegate {
 	void TableViewWillReloadCellForRowAtIndexPath(CCIndexPath&, TableViewCell*, TableView*);
 	void didEndTweenToIndexPath(CCIndexPath&, TableView*);
 	void willTweenToIndexPath(CCIndexPath&, TableViewCell*, TableView*);
-	virtual void TableViewDidDisplayCellForRowAtIndexPath(CCIndexPath &,TableViewCell *,TableView *);
-	virtual void TableViewWillDisplayCellForRowAtIndexPath(CCIndexPath &,TableViewCell *,TableView *);
-	virtual void TableViewWillReloadCellForRowAtIndexPath(CCIndexPath &,TableViewCell *,TableView *);
-	virtual void didEndTweenToIndexPath(CCIndexPath &,TableView *);
-	virtual void willTweenToIndexPath(CCIndexPath &,TableViewCell *,TableView *);
 }
 class TeleportPortalObject : GameObject {
 	void addToGroup(int);
 	void addToGroup2(int);
 	void create(char const*);
-	void customObjectSetup(gd::map<gd::string, gd::string, gd::less<gd::string >, gd::allocator<gd::pair<gd::string const, gd::string > > >&);
+	void customObjectSetup(gd::map<gd::string, gd::string>&);
 	void getSaveString();
 	void getTeleportXOff(cocos2d::CCNode*);
 	void init(char const*);
@@ -6745,15 +6040,6 @@ class TeleportPortalObject : GameObject {
 	void setRotation2(float);
 	void setStartPos(cocos2d::CCPoint);
 	void setStartPosOverride(cocos2d::CCPoint);
-	virtual void addToGroup(int);
-	virtual void addToGroup2(int);
-	virtual void customObjectSetup(gd::map<gd::string,gd::string,gd::less<gd::string>,gd::allocator<gd::pair<gd::string const,gd::string>>> &);
-	virtual void removeFromGroup(int);
-	virtual void removeFromGroup2(int);
-	virtual void setPosition(cocos2d::CCPoint const&);
-	virtual void setRotation(float);
-	virtual void setRotation2(float);
-	virtual void setStartPos(cocos2d::CCPoint);
 }
 class TextAlertPopup : cocos2d::CCNode {
 	void create(gd::string, float, float);
@@ -6775,11 +6061,9 @@ class TextArea : cocos2d::CCSprite {
 	void setString(gd::string);
 	void showAll();
 	void stopAllCharacterActions();
-	virtual void setOpacity(uchar);
 }
 class TextAreaDelegate {
 	void fadeInTextFinished(TextArea*);
-	virtual void fadeInTextFinished(TextArea *);
 }
 class TextInputDelegate {
 	void allowTextInput(CCTextInputNode*);
@@ -6788,12 +6072,6 @@ class TextInputDelegate {
 	void textInputOpened(CCTextInputNode*);
 	void textInputReturn(CCTextInputNode*);
 	void textInputShouldOffset(CCTextInputNode*, float);
-	virtual void allowTextInput(CCTextInputNode *);
-	virtual void textChanged(CCTextInputNode *);
-	virtual void textInputClosed(CCTextInputNode *);
-	virtual void textInputOpened(CCTextInputNode *);
-	virtual void textInputReturn(CCTextInputNode *);
-	virtual void textInputShouldOffset(CCTextInputNode *,float);
 }
 class tinyxml2::MemPool {
 }
@@ -6802,28 +6080,24 @@ class tinyxml2::MemPoolT<36> : tinyxml2::MemPool {
 	void Free(void*);
 	void ItemSize();
 	void SetTracked();
-	virtual void Free(void *);
 }
 class tinyxml2::MemPoolT<44> : tinyxml2::MemPool {
 	void Alloc();
 	void Free(void*);
 	void ItemSize();
 	void SetTracked();
-	virtual void Free(void *);
 }
 class tinyxml2::MemPoolT<48> : tinyxml2::MemPool {
 	void Alloc();
 	void Free(void*);
 	void ItemSize();
 	void SetTracked();
-	virtual void Free(void *);
 }
 class tinyxml2::MemPoolT<52> : tinyxml2::MemPool {
 	void Alloc();
 	void Free(void*);
 	void ItemSize();
 	void SetTracked();
-	virtual void Free(void *);
 }
 class tinyxml2::XMLAttribute {
 	void ParseDeep(char*, bool);
@@ -6848,10 +6122,6 @@ class tinyxml2::XMLComment : tinyxml2::XMLNode {
 	void ToComment();
 	void ToComment();
 	void XMLComment(tinyxml2::XMLDocument*);
-	virtual void Accept(tinyxml2::XMLVisitor *);
-	virtual void ParseDeep(char *,tinyxml2::StrPair *);
-	virtual void ShallowClone(tinyxml2::XMLDocument *);
-	virtual void ShallowEqual(tinyxml2::XMLNode const*);
 }
 class tinyxml2::XMLDeclaration : tinyxml2::XMLNode {
 	void Accept(tinyxml2::XMLVisitor*);
@@ -6861,10 +6131,6 @@ class tinyxml2::XMLDeclaration : tinyxml2::XMLNode {
 	void ToDeclaration();
 	void ToDeclaration();
 	void XMLDeclaration(tinyxml2::XMLDocument*);
-	virtual void Accept(tinyxml2::XMLVisitor *);
-	virtual void ParseDeep(char *,tinyxml2::StrPair *);
-	virtual void ShallowClone(tinyxml2::XMLDocument *);
-	virtual void ShallowEqual(tinyxml2::XMLNode const*);
 }
 class tinyxml2::XMLDocument : tinyxml2::XMLNode {
 	void Accept(tinyxml2::XMLVisitor*);
@@ -6888,9 +6154,6 @@ class tinyxml2::XMLDocument : tinyxml2::XMLNode {
 	void ToDocument();
 	void ToDocument();
 	void XMLDocument(bool, tinyxml2::Whitespace);
-	virtual void Accept(tinyxml2::XMLVisitor *);
-	virtual void ShallowClone(tinyxml2::XMLDocument*);
-	virtual void ShallowEqual(tinyxml2::XMLNode const*);
 }
 class tinyxml2::XMLElement : tinyxml2::XMLNode {
 	void Accept(tinyxml2::XMLVisitor*);
@@ -6912,10 +6175,6 @@ class tinyxml2::XMLElement : tinyxml2::XMLNode {
 	void ToElement();
 	void ToElement();
 	void XMLElement(tinyxml2::XMLDocument*);
-	virtual void Accept(tinyxml2::XMLVisitor *);
-	virtual void ParseDeep(char *,tinyxml2::StrPair *);
-	virtual void ShallowClone(tinyxml2::XMLDocument *);
-	virtual void ShallowEqual(tinyxml2::XMLNode const*);
 }
 class tinyxml2::XMLNode {
 	void DeleteChild(tinyxml2::XMLNode*);
@@ -6943,7 +6202,6 @@ class tinyxml2::XMLNode {
 	void ToUnknown();
 	void Unlink(tinyxml2::XMLNode*);
 	void XMLNode(tinyxml2::XMLDocument*);
-	virtual void ParseDeep(char *,tinyxml2::StrPair *);
 }
 class tinyxml2::XMLPrinter : tinyxml2::XMLVisitor {
 	void CloseElement();
@@ -6976,14 +6234,6 @@ class tinyxml2::XMLPrinter : tinyxml2::XMLVisitor {
 	void VisitExit(tinyxml2::XMLElement const&);
 	void VisitExit(tinyxml2::XMLDocument const&);
 	void XMLPrinter(__sFILE*, bool);
-	virtual void Visit(tinyxml2::XMLDeclaration const&);
-	virtual void Visit(tinyxml2::XMLText const&);
-	virtual void Visit(tinyxml2::XMLComment const&);
-	virtual void Visit(tinyxml2::XMLUnknown const&);
-	virtual void VisitEnter(tinyxml2::XMLDocument const&);
-	virtual void VisitEnter(tinyxml2::XMLElement const&,tinyxml2::XMLAttribute const*);
-	virtual void VisitExit(tinyxml2::XMLDocument const&);
-	virtual void VisitExit(tinyxml2::XMLElement const&);
 }
 class tinyxml2::XMLText : tinyxml2::XMLNode {
 	void Accept(tinyxml2::XMLVisitor*);
@@ -6992,10 +6242,6 @@ class tinyxml2::XMLText : tinyxml2::XMLNode {
 	void ShallowEqual(tinyxml2::XMLNode const*);
 	void ToText();
 	void ToText();
-	virtual void Accept(tinyxml2::XMLVisitor *);
-	virtual void ParseDeep(char *,tinyxml2::StrPair *);
-	virtual void ShallowClone(tinyxml2::XMLDocument *);
-	virtual void ShallowEqual(tinyxml2::XMLNode const*);
 }
 class tinyxml2::XMLUnknown : tinyxml2::XMLNode {
 	void Accept(tinyxml2::XMLVisitor*);
@@ -7005,10 +6251,6 @@ class tinyxml2::XMLUnknown : tinyxml2::XMLNode {
 	void ToUnknown();
 	void ToUnknown();
 	void XMLUnknown(tinyxml2::XMLDocument*);
-	virtual void Accept(tinyxml2::XMLVisitor *);
-	virtual void ParseDeep(char *,tinyxml2::StrPair *);
-	virtual void ShallowClone(tinyxml2::XMLDocument *);
-	virtual void ShallowEqual(tinyxml2::XMLNode const*);
 }
 class tinyxml2::XMLVisitor {
 	void Visit(tinyxml2::XMLComment const&);
@@ -7019,14 +6261,6 @@ class tinyxml2::XMLVisitor {
 	void VisitEnter(tinyxml2::XMLDocument const&);
 	void VisitExit(tinyxml2::XMLElement const&);
 	void VisitExit(tinyxml2::XMLDocument const&);
-	virtual void Visit(tinyxml2::XMLDeclaration const&);
-	virtual void Visit(tinyxml2::XMLText const&);
-	virtual void Visit(tinyxml2::XMLComment const&);
-	virtual void Visit(tinyxml2::XMLUnknown const&);
-	virtual void VisitEnter(tinyxml2::XMLDocument const&);
-	virtual void VisitEnter(tinyxml2::XMLElement const&,tinyxml2::XMLAttribute const*);
-	virtual void VisitExit(tinyxml2::XMLDocument const&);
-	virtual void VisitExit(tinyxml2::XMLElement const&);
 }
 class ToggleTriggerAction : cocos2d::CCNode {
 	void create(int, bool);
@@ -7050,9 +6284,6 @@ class TopArtistsLayer : FLAlertLayer, OnlineListDelegate {
 	void setupPageInfo(gd::string, char const*);
 	void show();
 	void updateLevelsLabel();
-	virtual void loadListFailed(char const*);
-	virtual void loadListFinished(cocos2d::CCArray *,char const*);
-	virtual void setupPageInfo(gd::string,char const*);
 }
 class TouchToggleAction : cocos2d::CCNode {
 	void create(int, bool, TouchTriggerType);
@@ -7099,12 +6330,6 @@ class UILayer : cocos2d::CCLayerColor, cocos2d::CCKeyboardDelegate {
 	void pCommand(cocos2d::CCNode*);
 	void registerWithTouchDispatcher();
 	void toggleCheckpointsMenu(bool);
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchCancelled(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchEnded(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void keyDown(cocos2d::enumKeyCodes);
-	virtual void keyUp(cocos2d::enumKeyCodes);
 }
 class UndoObject : cocos2d::CCObject {
 	void create(GameObject*, UndoCommand);
@@ -7126,8 +6351,6 @@ class UpdateAccountSettingsPopup : FLAlertLayer, GJAccountSettingsDelegate {
 class UploadActionDelegate {
 	void uploadActionFailed(int, int);
 	void uploadActionFinished(int, int);
-	virtual void uploadActionFailed(int,int);
-	virtual void uploadActionFinished(int,int);
 }
 class UploadActionPopup : FLAlertLayer {
 	void closePopup();
@@ -7141,8 +6364,6 @@ class UploadActionPopup : FLAlertLayer {
 class UploadMessageDelegate {
 	void uploadMessageFailed(int);
 	void uploadMessageFinished(int);
-	virtual void uploadMessageFailed(int);
-	virtual void uploadMessageFinished(int);
 }
 class UploadPopup : FLAlertLayer, LevelUploadDelegate {
 	void create(GJGameLevel*);
@@ -7154,30 +6375,20 @@ class UploadPopup : FLAlertLayer, LevelUploadDelegate {
 	void onClose(cocos2d::CCObject*);
 	void onReturnToLevel(cocos2d::CCObject*);
 	void show();
-	virtual void levelUploadFailed(GJGameLevel *);
-	virtual void levelUploadFinished(GJGameLevel *);
 }
 class UploadPopupDelegate {
 	void onClosePopup(UploadActionPopup*);
-	virtual void onClosePopup(UploadActionPopup *);
 }
 class UserInfoDelegate {
 	void getUserInfoFailed(int);
 	void getUserInfoFinished(GJUserScore*);
 	void userInfoChanged(GJUserScore*);
-	virtual void getUserInfoFailed(int);
-	virtual void getUserInfoFinished(GJUserScore *);
-	virtual void userInfoChanged(GJUserScore *);
 }
 class UserListDelegate {
 	void forceReloadList(UserListType);
 	void getUserListFailed(UserListType, GJErrorCode);
 	void getUserListFinished(cocos2d::CCArray*, UserListType);
 	void userListChanged(cocos2d::CCArray*, UserListType);
-	virtual void forceReloadList(UserListType);
-	virtual void getUserListFailed(UserListType,GJErrorCode);
-	virtual void getUserListFinished(cocos2d::CCArray *,UserListType);
-	virtual void userListChanged(cocos2d::CCArray *,UserListType);
 }
 class VideoOptionsLayer : FLAlertLayer {
 	void create();
@@ -7229,13 +6440,9 @@ class WorldSelectLayer : cocos2d::CCLayer, BoomScrollLayerDelegate {
 	void tryShowAd();
 	void unblockButtons();
 	void updateArrows();
-	virtual void scrollLayerMoved(cocos2d::CCPoint);
-	virtual void scrollLayerScrolledToPage(BoomScrollLayer *,int);
-	virtual void scrollLayerWillScrollToPage(BoomScrollLayer *,int);
 }
 class xml_string_writer : pugi::xml_writer {
 	void write(void const*, unsigned int);
-	virtual void write(void const*,uint);
 }
 class cocos2d::CCAccelAmplitude : cocos2d::CCActionInterval {
 	void create(cocos2d::CCAction*, float);
@@ -7243,8 +6450,6 @@ class cocos2d::CCAccelAmplitude : cocos2d::CCActionInterval {
 	void reverse();
 	void startWithTarget(cocos2d::CCNode*);
 	void update(float);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void update(float);
 }
 class cocos2d::CCAccelDeccelAmplitude : cocos2d::CCActionInterval {
 	void create(cocos2d::CCAction*, float);
@@ -7252,12 +6457,9 @@ class cocos2d::CCAccelDeccelAmplitude : cocos2d::CCActionInterval {
 	void reverse();
 	void startWithTarget(cocos2d::CCNode*);
 	void update(float);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void update(float);
 }
 class cocos2d::CCAccelerometerDelegate {
 	void didAccelerate(cocos2d::CCAcceleration*);
-	virtual void didAccelerate(cocos2d::CCAcceleration *);
 }
 class cocos2d::CCAction : cocos2d::CCObject {
 	void CCAction();
@@ -7270,16 +6472,10 @@ class cocos2d::CCAction : cocos2d::CCObject {
 	void step(float);
 	void stop();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void setTag(int);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void step(float);
-	virtual void update(float);
 }
 class cocos2d::CCActionCamera : cocos2d::CCActionInterval {
 	void reverse();
 	void startWithTarget(cocos2d::CCNode*);
-	virtual void startWithTarget(cocos2d::CCNode *);
 }
 class cocos2d::CCActionEase : cocos2d::CCActionInterval {
 	void CCActionEase();
@@ -7291,9 +6487,6 @@ class cocos2d::CCActionEase : cocos2d::CCActionInterval {
 	void startWithTarget(cocos2d::CCNode*);
 	void stop();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void update(float);
 }
 class cocos2d::CCActionInstant : cocos2d::CCFiniteTimeAction {
 	void CCActionInstant();
@@ -7302,9 +6495,6 @@ class cocos2d::CCActionInstant : cocos2d::CCFiniteTimeAction {
 	void reverse();
 	void step(float);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void step(float);
-	virtual void update(float);
 }
 class cocos2d::CCActionInterval : cocos2d::CCFiniteTimeAction {
 	void CCActionInterval();
@@ -7317,9 +6507,6 @@ class cocos2d::CCActionInterval : cocos2d::CCFiniteTimeAction {
 	void setAmplitudeRate(float);
 	void startWithTarget(cocos2d::CCNode*);
 	void step(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void step(float);
 }
 class cocos2d::CCActionManager : cocos2d::CCObject {
 	void CCActionManager();
@@ -7338,7 +6525,6 @@ class cocos2d::CCActionManager : cocos2d::CCObject {
 	void resumeTarget(cocos2d::CCObject*);
 	void resumeTargets(cocos2d::CCSet*);
 	void update(float);
-	virtual void update(float);
 }
 class cocos2d::CCActionTween : cocos2d::CCActionInterval {
 	void create(float, char const*, float, float);
@@ -7346,8 +6532,6 @@ class cocos2d::CCActionTween : cocos2d::CCActionInterval {
 	void reverse();
 	void startWithTarget(cocos2d::CCNode*);
 	void update(float);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void update(float);
 }
 class cocos2d::CCActionTweenDelegate {
 }
@@ -7360,9 +6544,6 @@ class cocos2d::CCAnimate : cocos2d::CCActionInterval {
 	void startWithTarget(cocos2d::CCNode*);
 	void stop();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void update(float);
 }
 class cocos2d::CCAnimation : cocos2d::CCObject {
 	void CCAnimation();
@@ -7378,7 +6559,6 @@ class cocos2d::CCAnimation : cocos2d::CCObject {
 	void initWithAnimationFrames(cocos2d::CCArray*, float, unsigned int);
 	void initWithSpriteFrames(cocos2d::CCArray*, float);
 	void setFrames(cocos2d::CCArray*);
-	virtual void copyWithZone(cocos2d::CCZone *);
 }
 class cocos2d::CCAnimationCache : cocos2d::CCObject {
 	void CCAnimationCache();
@@ -7397,7 +6577,6 @@ class cocos2d::CCAnimationFrame : cocos2d::CCObject {
 	void CCAnimationFrame();
 	void copyWithZone(cocos2d::CCZone*);
 	void initWithSpriteFrame(cocos2d::CCSpriteFrame*, float, cocos2d::CCDictionary*);
-	virtual void copyWithZone(cocos2d::CCZone *);
 }
 class cocos2d::CCApplication : cocos2d::CCApplicationProtocol {
 	void CCApplication();
@@ -7407,8 +6586,6 @@ class cocos2d::CCApplication : cocos2d::CCApplicationProtocol {
 	void run();
 	void setAnimationInterval(double);
 	void sharedApplication();
-	virtual void openURL(char const*);
-	virtual void setAnimationInterval(double);
 }
 class cocos2d::CCApplicationProtocol {
 	void applicationWillBecomeActive();
@@ -7416,7 +6593,6 @@ class cocos2d::CCApplicationProtocol {
 	void gameDidSave();
 	void openURL(char const*);
 	void trySaveGame();
-	virtual void openURL(char const*);
 }
 class cocos2d::CCArray : cocos2d::CCObject {
 	void CCArray(unsigned int);
@@ -7461,8 +6637,6 @@ class cocos2d::CCArray : cocos2d::CCObject {
 	void replaceObjectAtIndex(unsigned int, cocos2d::CCObject*, bool);
 	void reverseObjects();
 	void stringAtIndex(unsigned int);
-	virtual void acceptVisitor(cocos2d::CCDataVisitor &);
-	virtual void copyWithZone(cocos2d::CCZone *);
 }
 class cocos2d::CCAtlasNode : cocos2d::CCNodeRGBA, cocos2d::CCTextureProtocol {
 	void CCAtlasNode();
@@ -7488,13 +6662,6 @@ class cocos2d::CCAtlasNode : cocos2d::CCNodeRGBA, cocos2d::CCTextureProtocol {
 	void updateAtlasValues();
 	void updateBlendFunc();
 	void updateOpacityModifyRGB();
-	virtual void setBlendFunc(cocos2d::_ccBlendFunc);
-	virtual void setColor(cocos2d::_ccColor3B const&);
-	virtual void setOpacity(uchar);
-	virtual void setOpacityModifyRGB(bool);
-	virtual void setQuadsToDraw(uint);
-	virtual void setTexture(cocos2d::CCTexture2D *);
-	virtual void setTextureAtlas(cocos2d::CCTextureAtlas *);
 }
 class cocos2d::CCAutoreleasePool : cocos2d::CCObject {
 	void CCAutoreleasePool();
@@ -7510,17 +6677,12 @@ class cocos2d::CCBezierBy : cocos2d::CCActionInterval {
 	void reverse();
 	void startWithTarget(cocos2d::CCNode*);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void update(float);
 }
 class cocos2d::CCBezierTo : cocos2d::CCBezierBy {
 	void copyWithZone(cocos2d::CCZone*);
 	void create(float, cocos2d::_ccBezierConfig const&);
 	void initWithDuration(float, cocos2d::_ccBezierConfig const&);
 	void startWithTarget(cocos2d::CCNode*);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void startWithTarget(cocos2d::CCNode *);
 }
 class cocos2d::CCBlendProtocol {
 }
@@ -7532,9 +6694,6 @@ class cocos2d::CCBlink : cocos2d::CCActionInterval {
 	void startWithTarget(cocos2d::CCNode*);
 	void stop();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void update(float);
 }
 class cocos2d::CCBMFontConfiguration : cocos2d::CCObject {
 	void CCBMFontConfiguration();
@@ -7554,7 +6713,6 @@ class cocos2d::CCBMFontConfiguration : cocos2d::CCObject {
 class cocos2d::CCBool : cocos2d::CCObject {
 	void acceptVisitor(cocos2d::CCDataVisitor&);
 	void create(bool);
-	virtual void acceptVisitor(cocos2d::CCDataVisitor &);
 }
 class cocos2d::CCCallFunc : cocos2d::CCActionInstant {
 	void CCCallFunc();
@@ -7564,9 +6722,6 @@ class cocos2d::CCCallFunc : cocos2d::CCActionInstant {
 	void execute();
 	void initWithTarget(cocos2d::CCObject*);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void initWithTarget(cocos2d::CCObject *);
-	virtual void update(float);
 }
 class cocos2d::CCCallFuncN : cocos2d::CCCallFunc, cocos2d::TypeInfo {
 	void copyWithZone(cocos2d::CCZone*);
@@ -7576,8 +6731,6 @@ class cocos2d::CCCallFuncN : cocos2d::CCCallFunc, cocos2d::TypeInfo {
 	void getClassTypeInfo();
 	void getClassTypeInfo();
 	void initWithTarget(cocos2d::CCObject*, cocos2d::SEL_CallFuncN);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void initWithTarget(cocos2d::CCObject *,void (cocos2d::CCObject::*)(cocos2d::CCNode *));
 }
 class cocos2d::CCCallFuncND : cocos2d::CCCallFuncN {
 	void copyWithZone(cocos2d::CCZone*);
@@ -7586,8 +6739,6 @@ class cocos2d::CCCallFuncND : cocos2d::CCCallFuncN {
 	void getClassTypeInfo();
 	void getClassTypeInfo();
 	void initWithTarget(cocos2d::CCObject*, cocos2d::SEL_CallFuncND, void*);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void initWithTarget(cocos2d::CCObject *,void (cocos2d::CCObject::*)(cocos2d::CCNode *,void *),void *);
 }
 class cocos2d::CCCallFuncO : cocos2d::CCCallFunc, cocos2d::TypeInfo {
 	void CCCallFuncO();
@@ -7597,8 +6748,6 @@ class cocos2d::CCCallFuncO : cocos2d::CCCallFunc, cocos2d::TypeInfo {
 	void getClassTypeInfo();
 	void getClassTypeInfo();
 	void initWithTarget(cocos2d::CCObject*, cocos2d::SEL_MenuHandler, cocos2d::CCObject*);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void initWithTarget(cocos2d::CCObject *,void (cocos2d::CCObject::*)(cocos2d::CCObject *),cocos2d::CCObject *);
 }
 class cocos2d::CCCamera : cocos2d::CCObject {
 	void CCCamera();
@@ -7620,8 +6769,6 @@ class cocos2d::CCCardinalSplineBy : cocos2d::CCCardinalSplineTo {
 	void reverse();
 	void startWithTarget(cocos2d::CCNode*);
 	void updatePosition(cocos2d::CCPoint&);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void updatePosition(cocos2d::CCPoint &);
 }
 class cocos2d::CCCardinalSplineTo : cocos2d::CCActionInterval {
 	void CCCardinalSplineTo();
@@ -7632,10 +6779,6 @@ class cocos2d::CCCardinalSplineTo : cocos2d::CCActionInterval {
 	void startWithTarget(cocos2d::CCNode*);
 	void update(float);
 	void updatePosition(cocos2d::CCPoint&);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void update(float);
-	virtual void updatePosition(cocos2d::CCPoint &);
 }
 class cocos2d::CCCatmullRomBy : cocos2d::CCCardinalSplineBy {
 	void create(float, cocos2d::CCPointArray*);
@@ -7662,7 +6805,6 @@ class cocos2d::CCClippingNode : cocos2d::CCNode {
 	void setInverted(bool);
 	void setStencil(cocos2d::CCNode*);
 	void visit();
-	virtual void init(cocos2d::CCNode *);
 }
 class cocos2d::CCComponent : cocos2d::CCObject {
 	void CCComponent();
@@ -7678,9 +6820,6 @@ class cocos2d::CCComponent : cocos2d::CCObject {
 	void setName(char const*);
 	void setOwner(cocos2d::CCNode*);
 	void update(float);
-	virtual void serialize(void *);
-	virtual void setEnabled(bool);
-	virtual void update(float);
 }
 class cocos2d::CCComponentContainer {
 	void CCComponentContainer(cocos2d::CCNode*);
@@ -7692,11 +6831,6 @@ class cocos2d::CCComponentContainer {
 	void remove(cocos2d::CCComponent*);
 	void removeAll();
 	void visit(float);
-	virtual void add(cocos2d::CCComponent *);
-	virtual void get(char const*);
-	virtual void remove(char const*);
-	virtual void remove(cocos2d::CCComponent *);
-	virtual void visit(float);
 }
 class cocos2d::CCConfiguration : cocos2d::CCObject {
 	void CCConfiguration();
@@ -7723,7 +6857,6 @@ class cocos2d::CCConfiguration : cocos2d::CCObject {
 }
 class cocos2d::CCCopying {
 	void copyWithZone(cocos2d::CCZone*);
-	virtual void copyWithZone(cocos2d::CCZone *);
 }
 class cocos2d::CCDataVisitor {
 	void visit(cocos2d::CCDictionary const*);
@@ -7734,14 +6867,6 @@ class cocos2d::CCDataVisitor {
 	void visit(cocos2d::CCDouble const*);
 	void visit(cocos2d::CCString const*);
 	void visit(cocos2d::CCInteger const*);
-	virtual void visit(cocos2d::CCBool const*);
-	virtual void visit(cocos2d::CCInteger const*);
-	virtual void visit(cocos2d::CCFloat const*);
-	virtual void visit(cocos2d::CCDouble const*);
-	virtual void visit(cocos2d::CCString const*);
-	virtual void visit(cocos2d::CCArray const*);
-	virtual void visit(cocos2d::CCDictionary const*);
-	virtual void visit(cocos2d::CCSet const*);
 }
 class cocos2d::CCDeccelAmplitude : cocos2d::CCActionInterval {
 	void create(cocos2d::CCAction*, float);
@@ -7749,16 +6874,12 @@ class cocos2d::CCDeccelAmplitude : cocos2d::CCActionInterval {
 	void reverse();
 	void startWithTarget(cocos2d::CCNode*);
 	void update(float);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void update(float);
 }
 class cocos2d::CCDelayTime : cocos2d::CCActionInterval {
 	void copyWithZone(cocos2d::CCZone*);
 	void create(float);
 	void reverse();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCDictionary : cocos2d::CCObject {
 	void CCDictionary();
@@ -7788,17 +6909,12 @@ class cocos2d::CCDictionary : cocos2d::CCObject {
 	void valueForKey(int);
 	void valueForKey(gd::string const&);
 	void writeToFile(char const*);
-	virtual void acceptVisitor(cocos2d::CCDataVisitor &);
-	virtual void copyWithZone(cocos2d::CCZone *);
 }
 class cocos2d::CCDictMaker : cocos2d::CCSAXDelegator {
 	void CCDictMaker();
 	void endElement(void*, char const*);
 	void startElement(void*, char const*, char const**);
 	void textHandler(void*, char const*, int);
-	virtual void endElement(void *,char const*);
-	virtual void startElement(void *,char const*,char const**);
-	virtual void textHandler(void *,char const*,int);
 }
 class cocos2d::CCDirector : cocos2d::CCObject, cocos2d::TypeInfo {
 	void CCDirector();
@@ -7883,21 +6999,12 @@ class cocos2d::CCDirector : cocos2d::CCObject, cocos2d::TypeInfo {
 	void updateContentScale(cocos2d::TextureQuality);
 	void updateScreenScale(cocos2d::CCSize);
 	void willSwitchToScene(cocos2d::CCScene*);
-	virtual void setAccelerometer(cocos2d::CCAccelerometer *);
-	virtual void setActionManager(cocos2d::CCActionManager *);
-	virtual void setKeyboardDispatcher(cocos2d::CCKeyboardDispatcher *);
-	virtual void setKeypadDispatcher(cocos2d::CCKeypadDispatcher *);
-	virtual void setMouseDispatcher(cocos2d::CCMouseDispatcher *);
-	virtual void setSceneDelegate(cocos2d::CCSceneDelegate *);
-	virtual void setScheduler(cocos2d::CCScheduler *);
-	virtual void setTouchDispatcher(cocos2d::CCTouchDispatcher *);
 }
 class cocos2d::CCDisplayLinkDirector : cocos2d::CCDirector {
 	void mainLoop();
 	void setAnimationInterval(double);
 	void startAnimation();
 	void stopAnimation();
-	virtual void setAnimationInterval(double);
 }
 class cocos2d::CCDrawNode : cocos2d::CCNodeRGBA {
 	void CCDrawNode();
@@ -7919,55 +7026,42 @@ class cocos2d::CCEaseBackIn : cocos2d::CCActionEase {
 	void create(cocos2d::CCActionInterval*);
 	void reverse();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCEaseBackInOut : cocos2d::CCActionEase {
 	void copyWithZone(cocos2d::CCZone*);
 	void create(cocos2d::CCActionInterval*);
 	void reverse();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCEaseBackOut : cocos2d::CCActionEase {
 	void copyWithZone(cocos2d::CCZone*);
 	void create(cocos2d::CCActionInterval*);
 	void reverse();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCEaseBounce : cocos2d::CCActionEase {
 	void bounceTime(float);
 	void copyWithZone(cocos2d::CCZone*);
 	void create(cocos2d::CCActionInterval*);
 	void reverse();
-	virtual void copyWithZone(cocos2d::CCZone *);
 }
 class cocos2d::CCEaseBounceIn : cocos2d::CCEaseBounce {
 	void copyWithZone(cocos2d::CCZone*);
 	void create(cocos2d::CCActionInterval*);
 	void reverse();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCEaseBounceInOut : cocos2d::CCEaseBounce {
 	void copyWithZone(cocos2d::CCZone*);
 	void create(cocos2d::CCActionInterval*);
 	void reverse();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCEaseBounceOut : cocos2d::CCEaseBounce {
 	void copyWithZone(cocos2d::CCZone*);
 	void create(cocos2d::CCActionInterval*);
 	void reverse();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCEaseElastic : cocos2d::CCActionEase {
 	void copyWithZone(cocos2d::CCZone*);
@@ -7975,7 +7069,6 @@ class cocos2d::CCEaseElastic : cocos2d::CCActionEase {
 	void create(cocos2d::CCActionInterval*, float);
 	void initWithAction(cocos2d::CCActionInterval*, float);
 	void reverse();
-	virtual void copyWithZone(cocos2d::CCZone *);
 }
 class cocos2d::CCEaseElasticIn : cocos2d::CCEaseElastic {
 	void copyWithZone(cocos2d::CCZone*);
@@ -7983,8 +7076,6 @@ class cocos2d::CCEaseElasticIn : cocos2d::CCEaseElastic {
 	void create(cocos2d::CCActionInterval*, float);
 	void reverse();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCEaseElasticInOut : cocos2d::CCEaseElastic {
 	void copyWithZone(cocos2d::CCZone*);
@@ -7992,8 +7083,6 @@ class cocos2d::CCEaseElasticInOut : cocos2d::CCEaseElastic {
 	void create(cocos2d::CCActionInterval*, float);
 	void reverse();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCEaseElasticOut : cocos2d::CCEaseElastic {
 	void copyWithZone(cocos2d::CCZone*);
@@ -8001,87 +7090,66 @@ class cocos2d::CCEaseElasticOut : cocos2d::CCEaseElastic {
 	void create(cocos2d::CCActionInterval*, float);
 	void reverse();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCEaseExponentialIn : cocos2d::CCActionEase {
 	void copyWithZone(cocos2d::CCZone*);
 	void create(cocos2d::CCActionInterval*);
 	void reverse();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCEaseExponentialInOut : cocos2d::CCActionEase {
 	void copyWithZone(cocos2d::CCZone*);
 	void create(cocos2d::CCActionInterval*);
 	void reverse();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCEaseExponentialOut : cocos2d::CCActionEase {
 	void copyWithZone(cocos2d::CCZone*);
 	void create(cocos2d::CCActionInterval*);
 	void reverse();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCEaseIn : cocos2d::CCEaseRateAction {
 	void copyWithZone(cocos2d::CCZone*);
 	void create(cocos2d::CCActionInterval*, float);
 	void reverse();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCEaseInOut : cocos2d::CCEaseRateAction {
 	void copyWithZone(cocos2d::CCZone*);
 	void create(cocos2d::CCActionInterval*, float);
 	void reverse();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCEaseOut : cocos2d::CCEaseRateAction {
 	void copyWithZone(cocos2d::CCZone*);
 	void create(cocos2d::CCActionInterval*, float);
 	void reverse();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCEaseRateAction : cocos2d::CCActionEase {
 	void copyWithZone(cocos2d::CCZone*);
 	void create(cocos2d::CCActionInterval*, float);
 	void initWithAction(cocos2d::CCActionInterval*, float);
 	void reverse();
-	virtual void copyWithZone(cocos2d::CCZone *);
 }
 class cocos2d::CCEaseSineIn : cocos2d::CCActionEase {
 	void copyWithZone(cocos2d::CCZone*);
 	void create(cocos2d::CCActionInterval*);
 	void reverse();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCEaseSineInOut : cocos2d::CCActionEase {
 	void copyWithZone(cocos2d::CCZone*);
 	void create(cocos2d::CCActionInterval*);
 	void reverse();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCEaseSineOut : cocos2d::CCActionEase {
 	void copyWithZone(cocos2d::CCZone*);
 	void create(cocos2d::CCActionInterval*);
 	void reverse();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCEGLView : cocos2d::CCEGLViewProtocol {
 	void CCEGLView();
@@ -8090,17 +7158,6 @@ class cocos2d::CCEGLView : cocos2d::CCEGLViewProtocol {
 	void setIMEKeyboardState(bool);
 	void sharedOpenGLView();
 	void swapBuffers();
-	virtual void otocol::handleTouchesBegin(int,int *,float *,float *);
-	virtual void otocol::handleTouchesCancel(int,int *,float *,float *);
-	virtual void otocol::handleTouchesEnd(int,int *,float *,float *);
-	virtual void otocol::handleTouchesMove(int,int *,float *,float *);
-	virtual void otocol::setDesignResolutionSize(float,float,ResolutionPolicy);
-	virtual void otocol::setFrameSize(float,float);
-	virtual void otocol::setScissorInPoints(float,float,float,float);
-	virtual void otocol::setTouchDelegate(cocos2d::EGLTouchDelegate *);
-	virtual void otocol::setViewName(char const*);
-	virtual void otocol::setViewPortInPoints(float,float,float,float);
-	virtual void setIMEKeyboardState(bool);
 }
 class cocos2d::CCEGLViewProtocol {
 	void CCEGLViewProtocol();
@@ -8127,42 +7184,26 @@ class cocos2d::CCEGLViewProtocol {
 	void setViewName(char const*);
 	void setViewPortInPoints(float, float, float, float);
 	void updateDesignResolutionSize();
-	virtual void handleTouchesBegin(int,int *,float *,float *);
-	virtual void handleTouchesCancel(int,int *,float *,float *);
-	virtual void handleTouchesEnd(int,int *,float *,float *);
-	virtual void handleTouchesMove(int,int *,float *,float *);
-	virtual void setDesignResolutionSize(float,float,ResolutionPolicy);
-	virtual void setFrameSize(float,float);
-	virtual void setScissorInPoints(float,float,float,float);
-	virtual void setTouchDelegate(cocos2d::EGLTouchDelegate *);
-	virtual void setViewName(char const*);
-	virtual void setViewPortInPoints(float,float,float,float);
 }
 class cocos2d::CCFadeIn : cocos2d::CCActionInterval {
 	void copyWithZone(cocos2d::CCZone*);
 	void create(float);
 	void reverse();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCFadeOut : cocos2d::CCActionInterval {
 	void copyWithZone(cocos2d::CCZone*);
 	void create(float);
 	void reverse();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCFadeOutBLTiles : cocos2d::CCFadeOutTRTiles {
 	void create(float, cocos2d::CCSize const&);
 	void testFunc(cocos2d::CCSize const&, float);
-	virtual void testFunc(cocos2d::CCSize const&,float);
 }
 class cocos2d::CCFadeOutDownTiles : cocos2d::CCFadeOutUpTiles {
 	void create(float, cocos2d::CCSize const&);
 	void testFunc(cocos2d::CCSize const&, float);
-	virtual void testFunc(cocos2d::CCSize const&,float);
 }
 class cocos2d::CCFadeOutTRTiles : cocos2d::CCTiledGrid3DAction {
 	void create(float, cocos2d::CCSize const&);
@@ -8171,16 +7212,11 @@ class cocos2d::CCFadeOutTRTiles : cocos2d::CCTiledGrid3DAction {
 	void turnOffTile(cocos2d::CCPoint const&);
 	void turnOnTile(cocos2d::CCPoint const&);
 	void update(float);
-	virtual void testFunc(cocos2d::CCSize const&,float);
-	virtual void transformTile(cocos2d::CCPoint const&,float);
-	virtual void update(float);
 }
 class cocos2d::CCFadeOutUpTiles : cocos2d::CCFadeOutTRTiles {
 	void create(float, cocos2d::CCSize const&);
 	void testFunc(cocos2d::CCSize const&, float);
 	void transformTile(cocos2d::CCPoint const&, float);
-	virtual void testFunc(cocos2d::CCSize const&,float);
-	virtual void transformTile(cocos2d::CCPoint const&,float);
 }
 class cocos2d::CCFadeTo : cocos2d::CCActionInterval {
 	void copyWithZone(cocos2d::CCZone*);
@@ -8188,9 +7224,6 @@ class cocos2d::CCFadeTo : cocos2d::CCActionInterval {
 	void initWithDuration(float, unsigned char);
 	void startWithTarget(cocos2d::CCNode*);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void update(float);
 }
 class cocos2d::CCFileUtils : cocos2d::TypeInfo {
 	void CCFileUtils();
@@ -8222,32 +7255,11 @@ class cocos2d::CCFileUtils : cocos2d::TypeInfo {
 	void removeSearchPath(char const*);
 	void setFilenameLookupDictionary(cocos2d::CCDictionary*);
 	void setPopupNotify(bool);
-	void setSearchPaths(gd::vector<gd::string, gd::allocator<gd::string > > const&);
-	void setSearchResolutionsOrder(gd::vector<gd::string, gd::allocator<gd::string > > const&);
+	void setSearchPaths(gd::vector<gd::string> const&);
+	void setSearchResolutionsOrder(gd::vector<gd::string> const&);
 	void sharedFileUtils();
 	void shouldUseHD();
 	void writeToFile(cocos2d::CCDictionary*, gd::string const&);
-	virtual void addSearchPath(char const*);
-	virtual void addSearchResolutionsOrder(char const*);
-	virtual void addSuffix(gd::string,gd::string);
-	virtual void createCCArrayWithContentsOfFile(gd::string const&);
-	virtual void createCCDictionaryWithContentsOfFile(gd::string const&);
-	virtual void fullPathForFilename(char const*,bool);
-	virtual void fullPathFromRelativeFile(char const*,char const*);
-	virtual void getFileData(char const*,char const*,ulong *);
-	virtual void getFileDataFromZip(char const*,char const*,ulong *);
-	virtual void getFullPathForDirectoryAndFilename(gd::string const&,gd::string const&);
-	virtual void getNewFilename(char const*);
-	virtual void getPathForFilename(gd::string const&,gd::string const&,gd::string const&);
-	virtual void isAbsolutePath(gd::string const&);
-	virtual void loadFilenameLookupDictionaryFromFile(char const*);
-	virtual void removeFullPath(char const*);
-	virtual void removeSearchPath(char const*);
-	virtual void setFilenameLookupDictionary(cocos2d::CCDictionary *);
-	virtual void setPopupNotify(bool);
-	virtual void setSearchPaths(gd::vector<gd::string,gd::allocator<gd::string>> const&);
-	virtual void setSearchResolutionsOrder(gd::vector<gd::string,gd::allocator<gd::string>> const&);
-	virtual void writeToFile(cocos2d::CCDictionary *,gd::string const&);
 }
 class cocos2d::CCFileUtilsAndroid : cocos2d::CCFileUtils {
 	void CCFileUtilsAndroid();
@@ -8258,9 +7270,6 @@ class cocos2d::CCFileUtilsAndroid : cocos2d::CCFileUtils {
 	void init();
 	void isAbsolutePath(gd::string const&);
 	void isFileExist(gd::string const&);
-	virtual void getFileData(char const*,char const*,ulong *);
-	virtual void isAbsolutePath(gd::string const&);
-	virtual void isFileExist(gd::string const&);
 }
 class cocos2d::CCFiniteTimeAction : cocos2d::CCAction {
 	void reverse();
@@ -8271,8 +7280,6 @@ class cocos2d::CCFlipX : cocos2d::CCActionInstant {
 	void initWithFlipX(bool);
 	void reverse();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCFlipX3D : cocos2d::CCGrid3DAction {
 	void copyWithZone(cocos2d::CCZone*);
@@ -8280,10 +7287,6 @@ class cocos2d::CCFlipX3D : cocos2d::CCGrid3DAction {
 	void initWithDuration(float);
 	void initWithSize(cocos2d::CCSize const&, float);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void initWithDuration(float);
-	virtual void initWithSize(cocos2d::CCSize const&,float);
-	virtual void update(float);
 }
 class cocos2d::CCFlipY : cocos2d::CCActionInstant {
 	void copyWithZone(cocos2d::CCZone*);
@@ -8291,15 +7294,11 @@ class cocos2d::CCFlipY : cocos2d::CCActionInstant {
 	void initWithFlipY(bool);
 	void reverse();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCFlipY3D : cocos2d::CCFlipX3D {
 	void copyWithZone(cocos2d::CCZone*);
 	void create(float);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCFollow : cocos2d::CCAction {
 	void copyWithZone(cocos2d::CCZone*);
@@ -8308,8 +7307,6 @@ class cocos2d::CCFollow : cocos2d::CCAction {
 	void isDone();
 	void step(float);
 	void stop();
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void step(float);
 }
 class cocos2d::CCGLProgram : cocos2d::CCObject {
 	void CCGLProgram();
@@ -8378,9 +7375,6 @@ class cocos2d::CCGridAction : cocos2d::CCActionInterval {
 	void initWithDuration(float, cocos2d::CCSize const&);
 	void reverse();
 	void startWithTarget(cocos2d::CCNode*);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void initWithDuration(float,cocos2d::CCSize const&);
-	virtual void startWithTarget(cocos2d::CCNode *);
 }
 class cocos2d::CCGridBase : cocos2d::CCObject {
 	void CCGridBase();
@@ -8402,8 +7396,6 @@ class cocos2d::CCHide : cocos2d::CCActionInstant {
 	void create();
 	void reverse();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCImage : cocos2d::CCObject {
 	void CCImage();
@@ -8436,16 +7428,10 @@ class cocos2d::CCIMEDelegate {
 	void keyboardDidShow(cocos2d::CCIMEKeyboardNotificationInfo&);
 	void keyboardWillHide(cocos2d::CCIMEKeyboardNotificationInfo&);
 	void keyboardWillShow(cocos2d::CCIMEKeyboardNotificationInfo&);
-	virtual void insertText(char const*,int);
-	virtual void keyboardDidHide(cocos2d::CCIMEKeyboardNotificationInfo &);
-	virtual void keyboardDidShow(cocos2d::CCIMEKeyboardNotificationInfo &);
-	virtual void keyboardWillHide(cocos2d::CCIMEKeyboardNotificationInfo &);
-	virtual void keyboardWillShow(cocos2d::CCIMEKeyboardNotificationInfo &);
 }
 class cocos2d::CCInteger : cocos2d::CCObject {
 	void acceptVisitor(cocos2d::CCDataVisitor&);
 	void create(int);
-	virtual void acceptVisitor(cocos2d::CCDataVisitor &);
 }
 class cocos2d::CCJumpBy : cocos2d::CCActionInterval {
 	void CCJumpBy();
@@ -8455,30 +7441,21 @@ class cocos2d::CCJumpBy : cocos2d::CCActionInterval {
 	void reverse();
 	void startWithTarget(cocos2d::CCNode*);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void update(float);
 }
 class cocos2d::CCJumpTiles3D : cocos2d::CCTiledGrid3DAction {
 	void copyWithZone(cocos2d::CCZone*);
 	void create(float, cocos2d::CCSize const&, unsigned int, float);
 	void initWithDuration(float, cocos2d::CCSize const&, unsigned int, float);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCJumpTo : cocos2d::CCJumpBy {
 	void copyWithZone(cocos2d::CCZone*);
 	void create(float, cocos2d::CCPoint const&, float, int);
 	void startWithTarget(cocos2d::CCNode*);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void startWithTarget(cocos2d::CCNode *);
 }
 class cocos2d::CCKeyboardDelegate {
 	void keyDown(cocos2d::enumKeyCodes);
 	void keyUp(cocos2d::enumKeyCodes);
-	virtual void keyDown(cocos2d::enumKeyCodes);
-	virtual void keyUp(cocos2d::enumKeyCodes);
 }
 class cocos2d::CCKeyboardDispatcher : cocos2d::CCObject {
 	void CCKeyboardDispatcher();
@@ -8496,7 +7473,6 @@ class cocos2d::CCKeyboardHandler : cocos2d::CCObject {
 	void handlerWithDelegate(cocos2d::CCKeyboardDelegate*);
 	void initWithDelegate(cocos2d::CCKeyboardDelegate*);
 	void setDelegate(cocos2d::CCKeyboardDelegate*);
-	virtual void initWithDelegate(cocos2d::CCKeyboardDelegate *);
 }
 class cocos2d::CCKeypadDelegate {
 	void keyBackClicked();
@@ -8515,7 +7491,6 @@ class cocos2d::CCKeypadHandler : cocos2d::CCObject {
 	void handlerWithDelegate(cocos2d::CCKeypadDelegate*);
 	void initWithDelegate(cocos2d::CCKeypadDelegate*);
 	void setDelegate(cocos2d::CCKeypadDelegate*);
-	virtual void initWithDelegate(cocos2d::CCKeypadDelegate *);
 }
 class cocos2d::CCLabelAtlas : cocos2d::CCAtlasNode, cocos2d::CCLabelProtocol {
 	void create(char const*, char const*);
@@ -8526,7 +7501,6 @@ class cocos2d::CCLabelAtlas : cocos2d::CCAtlasNode, cocos2d::CCLabelProtocol {
 	void initWithString(char const*, char const*, unsigned int, unsigned int, unsigned int);
 	void setString(char const*);
 	void updateAtlasValues();
-	virtual void setString(char const*);
 }
 class cocos2d::CCLabelBMFont : cocos2d::CCSpriteBatchNode, cocos2d::CCLabelProtocol, cocos2d::CCRGBAProtocol {
 	void CCLabelBMFont();
@@ -8574,24 +7548,6 @@ class cocos2d::CCLabelBMFont : cocos2d::CCSpriteBatchNode, cocos2d::CCLabelProto
 	void updateDisplayedColor(cocos2d::_ccColor3B const&);
 	void updateDisplayedOpacity(unsigned char);
 	void updateLabel();
-	virtual void setAlignment(cocos2d::CCTextAlignment);
-	virtual void setAnchorPoint(cocos2d::CCPoint const&);
-	virtual void setCString(char const*);
-	virtual void setCascadeColorEnabled(bool);
-	virtual void setCascadeOpacityEnabled(bool);
-	virtual void setColor(cocos2d::_ccColor3B const&);
-	virtual void setLineBreakWithoutSpace(bool);
-	virtual void setOpacity(uchar);
-	virtual void setOpacityModifyRGB(bool);
-	virtual void setScale(float);
-	virtual void setScaleX(float);
-	virtual void setScaleY(float);
-	virtual void setString(char const*);
-	virtual void setString(char const*,bool);
-	virtual void setString(ushort *,bool);
-	virtual void setWidth(float);
-	virtual void updateDisplayedColor(cocos2d::_ccColor3B const&);
-	virtual void updateDisplayedOpacity(uchar);
 }
 class cocos2d::CCLabelProtocol {
 }
@@ -8630,7 +7586,6 @@ class cocos2d::CCLabelTTF : cocos2d::CCSprite, cocos2d::CCLabelProtocol {
 	void setTextDefinition(cocos2d::_ccFontDefinition*);
 	void setVerticalAlignment(cocos2d::CCVerticalTextAlignment);
 	void updateTexture();
-	virtual void setString(char const*);
 }
 class cocos2d::CCLayer : cocos2d::CCNode, cocos2d::CCTouchDelegate, cocos2d::CCAccelerometerDelegate, cocos2d::CCKeypadDelegate, cocos2d::CCKeyboardDelegate, cocos2d::CCMouseDelegate {
 	void CCLayer();
@@ -8675,25 +7630,6 @@ class cocos2d::CCLayer : cocos2d::CCNode, cocos2d::CCTouchDelegate, cocos2d::CCA
 	void unregisterScriptAccelerateHandler();
 	void unregisterScriptKeypadHandler();
 	void unregisterScriptTouchHandler();
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchCancelled(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchEnded(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchesBegan(cocos2d::CCSet *,cocos2d::CCEvent *);
-	virtual void ccTouchesCancelled(cocos2d::CCSet *,cocos2d::CCEvent *);
-	virtual void ccTouchesEnded(cocos2d::CCSet *,cocos2d::CCEvent *);
-	virtual void ccTouchesMoved(cocos2d::CCSet *,cocos2d::CCEvent *);
-	virtual void didAccelerate(cocos2d::CCAcceleration *);
-	virtual void keyDown(cocos2d::enumKeyCodes);
-	virtual void registerScriptTouchHandler(int,bool,int,bool);
-	virtual void setAccelerometerEnabled(bool);
-	virtual void setAccelerometerInterval(double);
-	virtual void setKeyboardEnabled(bool);
-	virtual void setKeypadEnabled(bool);
-	virtual void setMouseEnabled(bool);
-	virtual void setTouchEnabled(bool);
-	virtual void setTouchMode(cocos2d::ccTouchesMode);
-	virtual void setTouchPriority(int);
 }
 class cocos2d::CCLayerColor : cocos2d::CCLayerRGBA, cocos2d::CCBlendProtocol {
 	void CCLayerColor();
@@ -8713,12 +7649,6 @@ class cocos2d::CCLayerColor : cocos2d::CCLayerRGBA, cocos2d::CCBlendProtocol {
 	void setContentSize(cocos2d::CCSize const&);
 	void setOpacity(unsigned char);
 	void updateColor();
-	virtual void initWithColor(cocos2d::_ccColor4B const&,float,float);
-	virtual void initWithColor(cocos2d::_ccColor4B const&);
-	virtual void setBlendFunc(cocos2d::_ccBlendFunc);
-	virtual void setColor(cocos2d::_ccColor3B const&);
-	virtual void setContentSize(cocos2d::CCSize const&);
-	virtual void setOpacity(uchar);
 }
 class cocos2d::CCLayerGradient : cocos2d::CCLayerColor {
 	void CCLayerGradient();
@@ -8741,14 +7671,6 @@ class cocos2d::CCLayerGradient : cocos2d::CCLayerColor {
 	void setStartOpacity(unsigned char);
 	void setVector(cocos2d::CCPoint const&);
 	void updateColor();
-	virtual void initWithColor(cocos2d::_ccColor4B const&,cocos2d::_ccColor4B const&);
-	virtual void initWithColor(cocos2d::_ccColor4B const&,cocos2d::_ccColor4B const&,cocos2d::CCPoint const&);
-	virtual void setCompressedInterpolation(bool);
-	virtual void setEndColor(cocos2d::_ccColor3B const&);
-	virtual void setEndOpacity(uchar);
-	virtual void setStartColor(cocos2d::_ccColor3B const&);
-	virtual void setStartOpacity(uchar);
-	virtual void setVector(cocos2d::CCPoint const&);
 }
 class cocos2d::CCLayerMultiplex : cocos2d::CCLayer {
 	void CCLayerMultiplex();
@@ -8779,13 +7701,6 @@ class cocos2d::CCLayerRGBA : cocos2d::CCLayer, cocos2d::CCRGBAProtocol {
 	void setOpacityModifyRGB(bool);
 	void updateDisplayedColor(cocos2d::_ccColor3B const&);
 	void updateDisplayedOpacity(unsigned char);
-	virtual void setCascadeColorEnabled(bool);
-	virtual void setCascadeOpacityEnabled(bool);
-	virtual void setColor(cocos2d::_ccColor3B const&);
-	virtual void setOpacity(uchar);
-	virtual void setOpacityModifyRGB(bool);
-	virtual void updateDisplayedColor(cocos2d::_ccColor3B const&);
-	virtual void updateDisplayedOpacity(uchar);
 }
 class cocos2d::CCLens3D : cocos2d::CCGrid3DAction {
 	void copyWithZone(cocos2d::CCZone*);
@@ -8793,8 +7708,6 @@ class cocos2d::CCLens3D : cocos2d::CCGrid3DAction {
 	void initWithDuration(float, cocos2d::CCSize const&, cocos2d::CCPoint const&, float);
 	void setPosition(cocos2d::CCPoint const&);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCLightning : cocos2d::CCNode, cocos2d::CCRGBAProtocol {
 	void CCLightning();
@@ -8821,21 +7734,12 @@ class cocos2d::CCLightning : cocos2d::CCNode, cocos2d::CCRGBAProtocol {
 	void strikeWithSeed(unsigned long);
 	void updateDisplayedColor(cocos2d::_ccColor3B const&);
 	void updateDisplayedOpacity(unsigned char);
-	virtual void setCascadeColorEnabled(bool);
-	virtual void setCascadeOpacityEnabled(bool);
-	virtual void setColor(cocos2d::_ccColor3B const&);
-	virtual void setOpacity(uchar);
-	virtual void setOpacityModifyRGB(bool);
-	virtual void updateDisplayedColor(cocos2d::_ccColor3B const&);
-	virtual void updateDisplayedOpacity(uchar);
 }
 class cocos2d::CCLiquid : cocos2d::CCGrid3DAction {
 	void copyWithZone(cocos2d::CCZone*);
 	void create(float, cocos2d::CCSize const&, unsigned int, float);
 	void initWithDuration(float, cocos2d::CCSize const&, unsigned int, float);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCMenu : cocos2d::CCLayerRGBA {
 	void addChild(cocos2d::CCNode*);
@@ -8871,16 +7775,6 @@ class cocos2d::CCMenu : cocos2d::CCLayerRGBA {
 	void setEnabled(bool);
 	void setHandlerPriority(int);
 	void setOpacityModifyRGB(bool);
-	virtual void addChild(cocos2d::CCNode *);
-	virtual void addChild(cocos2d::CCNode *,int);
-	virtual void addChild(cocos2d::CCNode *,int,int);
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchCancelled(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchEnded(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void removeChild(cocos2d::CCNode *,bool);
-	virtual void setEnabled(bool);
-	virtual void setOpacityModifyRGB(bool);
 }
 class cocos2d::CCMenuItem : cocos2d::CCNodeRGBA {
 	void activate();
@@ -8896,8 +7790,6 @@ class cocos2d::CCMenuItem : cocos2d::CCNodeRGBA {
 	void setTarget(cocos2d::CCObject*, cocos2d::SEL_MenuHandler);
 	void unregisterScriptTapHandler();
 	void unselected();
-	virtual void registerScriptTapHandler(int);
-	virtual void setEnabled(bool);
 }
 class cocos2d::CCMenuItemAtlasFont : cocos2d::CCMenuItemLabel {
 	void create(char const*, char const*, int, int, char);
@@ -8945,9 +7837,6 @@ class cocos2d::CCMenuItemLabel : cocos2d::CCMenuItem {
 	void setLabel(cocos2d::CCNode*);
 	void setString(char const*);
 	void unselected();
-	virtual void setDisabledColor(cocos2d::_ccColor3B const&);
-	virtual void setEnabled(bool);
-	virtual void setLabel(cocos2d::CCNode *);
 }
 class cocos2d::CCMenuItemSprite : cocos2d::CCMenuItem {
 	void create(cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCObject*, cocos2d::SEL_MenuHandler);
@@ -8964,10 +7853,6 @@ class cocos2d::CCMenuItemSprite : cocos2d::CCMenuItem {
 	void setSelectedImage(cocos2d::CCNode*);
 	void unselected();
 	void updateImagesVisibility();
-	virtual void setDisabledImage(cocos2d::CCNode *);
-	virtual void setEnabled(bool);
-	virtual void setNormalImage(cocos2d::CCNode *);
-	virtual void setSelectedImage(cocos2d::CCNode *);
 }
 class cocos2d::CCMenuItemToggle : cocos2d::CCMenuItem {
 	void CCMenuItemToggle();
@@ -8987,9 +7872,6 @@ class cocos2d::CCMenuItemToggle : cocos2d::CCMenuItem {
 	void setSelectedIndex(unsigned int);
 	void setSubItems(cocos2d::CCArray*);
 	void unselected();
-	virtual void setEnabled(bool);
-	virtual void setSelectedIndex(uint);
-	virtual void setSubItems(cocos2d::CCArray *);
 }
 class cocos2d::CCMotionStreak : cocos2d::CCNodeRGBA, cocos2d::CCTextureProtocol {
 	void CCMotionStreak();
@@ -9014,18 +7896,11 @@ class cocos2d::CCMotionStreak : cocos2d::CCNodeRGBA, cocos2d::CCTextureProtocol 
 	void stopStroke();
 	void tintWithColor(cocos2d::_ccColor3B);
 	void update(float);
-	virtual void setBlendFunc(cocos2d::_ccBlendFunc);
-	virtual void setOpacity(uchar);
-	virtual void setOpacityModifyRGB(bool);
-	virtual void setPosition(cocos2d::CCPoint const&);
-	virtual void setTexture(cocos2d::CCTexture2D *);
-	virtual void update(float);
 }
 class cocos2d::CCMouseDelegate {
 	void rightKeyDown();
 	void rightKeyUp();
 	void scrollWheel(float, float);
-	virtual void scrollWheel(float,float);
 }
 class cocos2d::CCMouseDispatcher : cocos2d::CCObject {
 	void CCMouseDispatcher();
@@ -9040,7 +7915,6 @@ class cocos2d::CCMouseHandler : cocos2d::CCObject {
 	void handlerWithDelegate(cocos2d::CCMouseDelegate*);
 	void initWithDelegate(cocos2d::CCMouseDelegate*);
 	void setDelegate(cocos2d::CCMouseDelegate*);
-	virtual void initWithDelegate(cocos2d::CCMouseDelegate *);
 }
 class cocos2d::CCMoveBy : cocos2d::CCActionInterval {
 	void CCMoveBy();
@@ -9050,17 +7924,12 @@ class cocos2d::CCMoveBy : cocos2d::CCActionInterval {
 	void reverse();
 	void startWithTarget(cocos2d::CCNode*);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void update(float);
 }
 class cocos2d::CCMoveTo : cocos2d::CCMoveBy {
 	void copyWithZone(cocos2d::CCZone*);
 	void create(float, cocos2d::CCPoint const&);
 	void initWithDuration(float, cocos2d::CCPoint const&);
 	void startWithTarget(cocos2d::CCNode*);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void startWithTarget(cocos2d::CCNode *);
 }
 class cocos2d::CCNode : cocos2d::CCObject {
 	void CCNode();
@@ -9197,53 +8066,6 @@ class cocos2d::CCNode : cocos2d::CCObject {
 	void updateTweenAction(float, char const*);
 	void visit();
 	void worldToNodeTransform();
-	virtual void _setZOrder(int);
-	virtual void addChild(cocos2d::CCNode*);
-	virtual void addChild(cocos2d::CCNode*,int);
-	virtual void addChild(cocos2d::CCNode*,int,int);
-	virtual void addComponent(cocos2d::CCComponent *);
-	virtual void getChildByTag(int);
-	virtual void getPosition(float *,float *);
-	virtual void ignoreAnchorPointForPosition(bool);
-	virtual void registerScriptHandler(int);
-	virtual void removeAllChildrenWithCleanup(bool);
-	virtual void removeChild(cocos2d::CCNode*);
-	virtual void removeChild(cocos2d::CCNode*,bool);
-	virtual void removeChildByTag(int);
-	virtual void removeChildByTag(int,bool);
-	virtual void removeComponent(char const*);
-	virtual void removeComponent(cocos2d::CCComponent *);
-	virtual void removeFromParentAndCleanup(bool);
-	virtual void reorderChild(cocos2d::CCNode*,int);
-	virtual void setActionManager(cocos2d::CCActionManager *);
-	virtual void setAnchorPoint(cocos2d::CCPoint const&);
-	virtual void setContentSize(cocos2d::CCSize const&);
-	virtual void setGLServerState(cocos2d::ccGLServerState);
-	virtual void setGrid(cocos2d::CCGridBase *);
-	virtual void setOrderOfArrival(uint);
-	virtual void setParent(cocos2d::CCNode*);
-	virtual void setPosition(cocos2d::CCPoint const&);
-	virtual void setPosition(float,float);
-	virtual void setPositionX(float);
-	virtual void setPositionY(float);
-	virtual void setRotation(float);
-	virtual void setRotationX(float);
-	virtual void setRotationY(float);
-	virtual void setScale(float);
-	virtual void setScale(float,float);
-	virtual void setScaleX(float);
-	virtual void setScaleY(float);
-	virtual void setScheduler(cocos2d::CCScheduler *);
-	virtual void setShaderProgram(cocos2d::CCGLProgram *);
-	virtual void setSkewX(float);
-	virtual void setSkewY(float);
-	virtual void setUserData(void *);
-	virtual void setUserObject(cocos2d::CCObject *);
-	virtual void setVertexZ(float);
-	virtual void setVisible(bool);
-	virtual void setZOrder(int);
-	virtual void update(float);
-	virtual void updateTweenAction(float,char const*);
 }
 class cocos2d::CCNodeRGBA : cocos2d::CCNode, cocos2d::CCRGBAProtocol {
 	void CCNodeRGBA();
@@ -9267,9 +8089,6 @@ class cocos2d::CCNodeRGBA : cocos2d::CCNode, cocos2d::CCRGBAProtocol {
 	void updateDisplayedColor(cocos2d::_ccColor3B const&);
 	void updateDisplayedOpacity(unsigned char);
 	void updateDisplayedOpacity(uchar);
-	virtual void setCascadeColorEnabled(bool);
-	virtual void setOpacityModifyRGB(bool);
-	virtual void updateDisplayedColor(cocos2d::_ccColor3B const&);
 }
 class cocos2d::CCNotificationCenter : cocos2d::CCObject {
 	void CCNotificationCenter();
@@ -9294,7 +8113,6 @@ class cocos2d::CCNotificationObserver : cocos2d::CCObject {
 	void getTarget();
 	void performSelector(cocos2d::CCObject*);
 	void setHandler(int);
-	virtual void setHandler(int);
 }
 class cocos2d::CCObject : cocos2d::CCCopying {
 	void CCObject();
@@ -9312,11 +8130,6 @@ class cocos2d::CCObject : cocos2d::CCCopying {
 	void retainCount();
 	void setTag(int);
 	void update(float);
-	virtual void acceptVisitor(cocos2d::CCDataVisitor &);
-	virtual void encodeWithCoder(DS_Dictionary *);
-	virtual void isEqual(cocos2d::CCObject const*);
-	virtual void setTag(int);
-	virtual void update(float);
 }
 class cocos2d::CCOrbitCamera : cocos2d::CCActionCamera {
 	void CCOrbitCamera();
@@ -9326,14 +8139,10 @@ class cocos2d::CCOrbitCamera : cocos2d::CCActionCamera {
 	void sphericalRadius(float*, float*, float*);
 	void startWithTarget(cocos2d::CCNode*);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void update(float);
 }
 class cocos2d::CCPageTurn3D : cocos2d::CCGrid3DAction {
 	void create(float, cocos2d::CCSize const&);
 	void update(float);
-	virtual void update(float);
 }
 class cocos2d::CCParallaxNode : cocos2d::CCNode {
 	void CCParallaxNode();
@@ -9344,10 +8153,6 @@ class cocos2d::CCParallaxNode : cocos2d::CCNode {
 	void removeAllChildrenWithCleanup(bool);
 	void removeChild(cocos2d::CCNode*, bool);
 	void visit();
-	virtual void addChild(cocos2d::CCNode *,uint,cocos2d::CCPoint const&,cocos2d::CCPoint const&);
-	virtual void addChild(cocos2d::CCNode *,uint,int);
-	virtual void removeAllChildrenWithCleanup(bool);
-	virtual void removeChild(cocos2d::CCNode *,bool);
 }
 class cocos2d::CCParticleBatchNode : cocos2d::CCNode, cocos2d::CCTextureProtocol {
 	void CCParticleBatchNode();
@@ -9376,91 +8181,72 @@ class cocos2d::CCParticleBatchNode : cocos2d::CCNode, cocos2d::CCTextureProtocol
 	void updateAllAtlasIndexes();
 	void updateBlendFunc();
 	void visit();
-	virtual void addChild(cocos2d::CCNode *);
-	virtual void addChild(cocos2d::CCNode *,int);
-	virtual void addChild(cocos2d::CCNode *,int,int);
-	virtual void removeAllChildrenWithCleanup(bool);
-	virtual void removeChild(cocos2d::CCNode *,bool);
-	virtual void reorderChild(cocos2d::CCNode *,int);
-	virtual void setBlendFunc(cocos2d::_ccBlendFunc);
-	virtual void setTexture(cocos2d::CCTexture2D *);
 }
 class cocos2d::CCParticleExplosion : cocos2d::CCParticleSystemQuad {
 	void create();
 	void createWithTotalParticles(unsigned int);
 	void init();
 	void initWithTotalParticles(unsigned int);
-	virtual void initWithTotalParticles(uint);
 }
 class cocos2d::CCParticleFire : cocos2d::CCParticleSystemQuad {
 	void create();
 	void createWithTotalParticles(unsigned int);
 	void init();
 	void initWithTotalParticles(unsigned int);
-	virtual void initWithTotalParticles(uint);
 }
 class cocos2d::CCParticleFireworks : cocos2d::CCParticleSystemQuad {
 	void create();
 	void createWithTotalParticles(unsigned int);
 	void init();
 	void initWithTotalParticles(unsigned int);
-	virtual void initWithTotalParticles(uint);
 }
 class cocos2d::CCParticleFlower : cocos2d::CCParticleSystemQuad {
 	void create();
 	void createWithTotalParticles(unsigned int);
 	void init();
 	void initWithTotalParticles(unsigned int);
-	virtual void initWithTotalParticles(uint);
 }
 class cocos2d::CCParticleGalaxy : cocos2d::CCParticleSystemQuad {
 	void create();
 	void createWithTotalParticles(unsigned int);
 	void init();
 	void initWithTotalParticles(unsigned int);
-	virtual void initWithTotalParticles(uint);
 }
 class cocos2d::CCParticleMeteor : cocos2d::CCParticleSystemQuad {
 	void create();
 	void createWithTotalParticles(unsigned int);
 	void init();
 	void initWithTotalParticles(unsigned int);
-	virtual void initWithTotalParticles(uint);
 }
 class cocos2d::CCParticleRain : cocos2d::CCParticleSystemQuad {
 	void create();
 	void createWithTotalParticles(unsigned int);
 	void init();
 	void initWithTotalParticles(unsigned int);
-	virtual void initWithTotalParticles(uint);
 }
 class cocos2d::CCParticleSmoke : cocos2d::CCParticleSystemQuad {
 	void create();
 	void createWithTotalParticles(unsigned int);
 	void init();
 	void initWithTotalParticles(unsigned int);
-	virtual void initWithTotalParticles(uint);
 }
 class cocos2d::CCParticleSnow : cocos2d::CCParticleSystemQuad {
 	void create();
 	void createWithTotalParticles(unsigned int);
 	void init();
 	void initWithTotalParticles(unsigned int);
-	virtual void initWithTotalParticles(uint);
 }
 class cocos2d::CCParticleSpiral : cocos2d::CCParticleSystemQuad {
 	void create();
 	void createWithTotalParticles(unsigned int);
 	void init();
 	void initWithTotalParticles(unsigned int);
-	virtual void initWithTotalParticles(uint);
 }
 class cocos2d::CCParticleSun : cocos2d::CCParticleSystemQuad {
 	void create();
 	void createWithTotalParticles(unsigned int);
 	void init();
 	void initWithTotalParticles(unsigned int);
-	virtual void initWithTotalParticles(uint);
 }
 class cocos2d::CCParticleSystem : cocos2d::CCNode, cocos2d::CCTextureProtocol {
 	void CCParticleSystem();
@@ -9577,56 +8363,6 @@ class cocos2d::CCParticleSystem : cocos2d::CCNode, cocos2d::CCTextureProtocol {
 	void updateBlendFunc();
 	void updateQuadWithParticle(cocos2d::sCCParticle*, cocos2d::CCPoint const&);
 	void updateWithNoTime();
-	virtual void initWithTotalParticles(uint);
-	virtual void setAngle(float);
-	virtual void setAngleVar(float);
-	virtual void setAutoRemoveOnFinish(bool);
-	virtual void setBatchNode(cocos2d::CCParticleBatchNode *);
-	virtual void setBlendAdditive(bool);
-	virtual void setBlendFunc(cocos2d::_ccBlendFunc);
-	virtual void setDuration(float);
-	virtual void setEmissionRate(float);
-	virtual void setEmitterMode(int);
-	virtual void setEndColor(cocos2d::_ccColor4F const&);
-	virtual void setEndColorVar(cocos2d::_ccColor4F const&);
-	virtual void setEndRadius(float);
-	virtual void setEndRadiusVar(float);
-	virtual void setEndSize(float);
-	virtual void setEndSizeVar(float);
-	virtual void setEndSpin(float);
-	virtual void setEndSpinVar(float);
-	virtual void setGravity(cocos2d::CCPoint const&);
-	virtual void setLife(float);
-	virtual void setLifeVar(float);
-	virtual void setOpacityModifyRGB(bool);
-	virtual void setPosVar(cocos2d::CCPoint const&);
-	virtual void setPositionType(cocos2d::tCCPositionType);
-	virtual void setRadialAccel(float);
-	virtual void setRadialAccelVar(float);
-	virtual void setRotatePerSecond(float);
-	virtual void setRotatePerSecondVar(float);
-	virtual void setRotation(float);
-	virtual void setRotationIsDir(bool);
-	virtual void setScale(float);
-	virtual void setScaleX(float);
-	virtual void setScaleY(float);
-	virtual void setSourcePosition(cocos2d::CCPoint const&);
-	virtual void setSpeed(float);
-	virtual void setSpeedVar(float);
-	virtual void setStartColor(cocos2d::_ccColor4F const&);
-	virtual void setStartColorVar(cocos2d::_ccColor4F const&);
-	virtual void setStartRadius(float);
-	virtual void setStartRadiusVar(float);
-	virtual void setStartSize(float);
-	virtual void setStartSizeVar(float);
-	virtual void setStartSpin(float);
-	virtual void setStartSpinVar(float);
-	virtual void setTangentialAccel(float);
-	virtual void setTangentialAccelVar(float);
-	virtual void setTexture(cocos2d::CCTexture2D *);
-	virtual void setTotalParticles(uint);
-	virtual void update(float);
-	virtual void updateQuadWithParticle(cocos2d::sCCParticle *,cocos2d::CCPoint const&);
 }
 class cocos2d::CCParticleSystemQuad : cocos2d::CCParticleSystem {
 	void CCParticleSystemQuad();
@@ -9647,19 +8383,12 @@ class cocos2d::CCParticleSystemQuad : cocos2d::CCParticleSystem {
 	void setTotalParticles(unsigned int);
 	void setupVBO();
 	void updateQuadWithParticle(cocos2d::sCCParticle*, cocos2d::CCPoint const&);
-	virtual void initWithTotalParticles(uint);
-	virtual void setBatchNode(cocos2d::CCParticleBatchNode *);
-	virtual void setTexture(cocos2d::CCTexture2D *);
-	virtual void setTotalParticles(uint);
-	virtual void updateQuadWithParticle(cocos2d::sCCParticle *,cocos2d::CCPoint const&);
 }
 class cocos2d::CCPlace : cocos2d::CCActionInstant {
 	void copyWithZone(cocos2d::CCZone*);
 	void create(cocos2d::CCPoint const&);
 	void initWithPosition(cocos2d::CCPoint const&);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCPointArray : cocos2d::CCObject {
 	void CCPointArray();
@@ -9675,8 +8404,7 @@ class cocos2d::CCPointArray : cocos2d::CCObject {
 	void replaceControlPoint(cocos2d::CCPoint&, unsigned int);
 	void reverse();
 	void reverseInline();
-	void setControlPoints(gd::vector<cocos2d::CCPoint*, gd::allocator<cocos2d::CCPoint*> >*);
-	virtual void copyWithZone(cocos2d::CCZone *);
+	void setControlPoints(gd::vector<cocos2d::CCPoint*>*);
 }
 class cocos2d::CCPointObject {
 	void pointWithCCPoint(cocos2d::CCPoint, cocos2d::CCPoint);
@@ -9695,15 +8423,6 @@ class cocos2d::CCPrettyPrinter : cocos2d::CCDataVisitor {
 	void visit(cocos2d::CCString const*);
 	void visit(cocos2d::CCInteger const*);
 	void visitObject(cocos2d::CCObject const*);
-	virtual void visit(cocos2d::CCBool const*);
-	virtual void visit(cocos2d::CCInteger const*);
-	virtual void visit(cocos2d::CCFloat const*);
-	virtual void visit(cocos2d::CCDouble const*);
-	virtual void visit(cocos2d::CCString const*);
-	virtual void visit(cocos2d::CCArray const*);
-	virtual void visit(cocos2d::CCDictionary const*);
-	virtual void visit(cocos2d::CCSet const*);
-	virtual void visitObject(cocos2d::CCObject const*);
 }
 class cocos2d::CCProfiler : cocos2d::CCObject {
 	void createAndAddTimerWithName(char const*);
@@ -9726,9 +8445,6 @@ class cocos2d::CCProgressFromTo : cocos2d::CCActionInterval {
 	void reverse();
 	void startWithTarget(cocos2d::CCNode*);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void update(float);
 }
 class cocos2d::CCProgressTimer : cocos2d::CCNodeRGBA {
 	void CCProgressTimer();
@@ -9753,9 +8469,6 @@ class cocos2d::CCProgressTimer : cocos2d::CCNodeRGBA {
 	void updateProgress();
 	void updateRadial();
 	void vertexFromAlphaPoint(cocos2d::CCPoint);
-	virtual void setColor(cocos2d::_ccColor3B const&);
-	virtual void setMidpoint(cocos2d::CCPoint);
-	virtual void setOpacity(uchar);
 }
 class cocos2d::CCProgressTo : cocos2d::CCActionInterval {
 	void copyWithZone(cocos2d::CCZone*);
@@ -9763,9 +8476,6 @@ class cocos2d::CCProgressTo : cocos2d::CCActionInterval {
 	void initWithDuration(float, float);
 	void startWithTarget(cocos2d::CCNode*);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void update(float);
 }
 class cocos2d::CCRemoveSelf : cocos2d::CCActionInstant {
 	void copyWithZone(cocos2d::CCZone*);
@@ -9773,8 +8483,6 @@ class cocos2d::CCRemoveSelf : cocos2d::CCActionInstant {
 	void init(bool);
 	void reverse();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCRenderTexture : cocos2d::CCNode {
 	void CCRenderTexture();
@@ -9811,7 +8519,6 @@ class cocos2d::CCRenderTexture : cocos2d::CCNode {
 	void setClearStencil(float);
 	void setSprite(cocos2d::CCSprite*);
 	void visit();
-	virtual void setSprite(cocos2d::CCSprite *);
 }
 class cocos2d::CCRepeat : cocos2d::CCActionInterval {
 	void copyWithZone(cocos2d::CCZone*);
@@ -9822,9 +8529,6 @@ class cocos2d::CCRepeat : cocos2d::CCActionInterval {
 	void startWithTarget(cocos2d::CCNode*);
 	void stop();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void update(float);
 }
 class cocos2d::CCRepeatForever : cocos2d::CCActionInterval {
 	void copyWithZone(cocos2d::CCZone*);
@@ -9834,15 +8538,11 @@ class cocos2d::CCRepeatForever : cocos2d::CCActionInterval {
 	void reverse();
 	void startWithTarget(cocos2d::CCNode*);
 	void step(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void step(float);
 }
 class cocos2d::CCReuseGrid : cocos2d::CCActionInstant {
 	void create(int);
 	void initWithTimes(int);
 	void startWithTarget(cocos2d::CCNode*);
-	virtual void startWithTarget(cocos2d::CCNode *);
 }
 class cocos2d::CCReverseTime : cocos2d::CCActionInterval {
 	void CCReverseTime();
@@ -9853,9 +8553,6 @@ class cocos2d::CCReverseTime : cocos2d::CCActionInterval {
 	void startWithTarget(cocos2d::CCNode*);
 	void stop();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void update(float);
 }
 class cocos2d::CCRGBAProtocol {
 }
@@ -9865,8 +8562,6 @@ class cocos2d::CCRipple3D : cocos2d::CCGrid3DAction {
 	void initWithDuration(float, cocos2d::CCSize const&, cocos2d::CCPoint const&, float, unsigned int, float);
 	void setPosition(cocos2d::CCPoint const&);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCRotateBy : cocos2d::CCActionInterval {
 	void copyWithZone(cocos2d::CCZone*);
@@ -9877,9 +8572,6 @@ class cocos2d::CCRotateBy : cocos2d::CCActionInterval {
 	void reverse();
 	void startWithTarget(cocos2d::CCNode*);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void update(float);
 }
 class cocos2d::CCRotateTo : cocos2d::CCActionInterval {
 	void copyWithZone(cocos2d::CCZone*);
@@ -9889,10 +8581,6 @@ class cocos2d::CCRotateTo : cocos2d::CCActionInterval {
 	void initWithDuration(float, float, float);
 	void startWithTarget(cocos2d::CCNode*);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void initWithDuration(float,float,float);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void update(float);
 }
 class cocos2d::CCSAXDelegator {
 }
@@ -9902,8 +8590,6 @@ class cocos2d::CCScaleBy : cocos2d::CCScaleTo {
 	void create(float, float, float);
 	void reverse();
 	void startWithTarget(cocos2d::CCNode*);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void startWithTarget(cocos2d::CCNode *);
 }
 class cocos2d::CCScaleTo : cocos2d::CCActionInterval {
 	void copyWithZone(cocos2d::CCZone*);
@@ -9913,9 +8599,6 @@ class cocos2d::CCScaleTo : cocos2d::CCActionInterval {
 	void initWithDuration(float, float, float);
 	void startWithTarget(cocos2d::CCNode*);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void update(float);
 }
 class cocos2d::CCScene : cocos2d::CCNode {
 	void CCScene();
@@ -9952,7 +8635,6 @@ class cocos2d::CCScheduler : cocos2d::CCObject {
 	void unscheduleSelector(cocos2d::SEL_SCHEDULE, cocos2d::CCObject*);
 	void unscheduleUpdateForTarget(cocos2d::CCObject const*);
 	void update(float);
-	virtual void update(float);
 }
 class cocos2d::CCSchedulerScriptHandlerEntry : cocos2d::CCScriptHandlerEntry {
 	void create(int, float, bool);
@@ -9970,9 +8652,6 @@ class cocos2d::CCScrollLayer : cocos2d::CCLayer {
 	void initWithLayers(cocos2d::CCArray*, int);
 	void nodeWithLayers(cocos2d::CCArray*, int);
 	void setMaximumScrollHeight(float);
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchEnded(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
 }
 class cocos2d::CCSequence : cocos2d::CCActionInterval {
 	void copyWithZone(cocos2d::CCZone*);
@@ -9985,9 +8664,6 @@ class cocos2d::CCSequence : cocos2d::CCActionInterval {
 	void startWithTarget(cocos2d::CCNode*);
 	void stop();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void update(float);
 }
 class cocos2d::CCSet : cocos2d::CCObject {
 	void CCSet(cocos2d::CCSet const&);
@@ -10004,7 +8680,6 @@ class cocos2d::CCSet : cocos2d::CCObject {
 	void mutableCopy();
 	void removeAllObjects();
 	void removeObject(cocos2d::CCObject*);
-	virtual void acceptVisitor(cocos2d::CCDataVisitor &);
 }
 class cocos2d::CCShaderCache : cocos2d::CCObject {
 	void CCShaderCache();
@@ -10022,34 +8697,24 @@ class cocos2d::CCShaky3D : cocos2d::CCGrid3DAction {
 	void create(float, cocos2d::CCSize const&, int, bool);
 	void initWithDuration(float, cocos2d::CCSize const&, int, bool);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCShakyTiles3D : cocos2d::CCTiledGrid3DAction {
 	void copyWithZone(cocos2d::CCZone*);
 	void create(float, cocos2d::CCSize const&, int, bool);
 	void initWithDuration(float, cocos2d::CCSize const&, int, bool);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void initWithDuration(float,cocos2d::CCSize const&,int,bool);
-	virtual void update(float);
 }
 class cocos2d::CCShatteredTiles3D : cocos2d::CCTiledGrid3DAction {
 	void copyWithZone(cocos2d::CCZone*);
 	void create(float, cocos2d::CCSize const&, int, bool);
 	void initWithDuration(float, cocos2d::CCSize const&, int, bool);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void initWithDuration(float,cocos2d::CCSize const&,int,bool);
-	virtual void update(float);
 }
 class cocos2d::CCShow : cocos2d::CCActionInstant {
 	void copyWithZone(cocos2d::CCZone*);
 	void create();
 	void reverse();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCShuffleTiles : cocos2d::CCTiledGrid3DAction {
 	void copyWithZone(cocos2d::CCZone*);
@@ -10060,18 +8725,12 @@ class cocos2d::CCShuffleTiles : cocos2d::CCTiledGrid3DAction {
 	void shuffle(unsigned int*, unsigned int);
 	void startWithTarget(cocos2d::CCNode*);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void initWithDuration(float,cocos2d::CCSize const&,uint);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void update(float);
 }
 class cocos2d::CCSkewBy : cocos2d::CCSkewTo {
 	void create(float, float, float);
 	void initWithDuration(float, float, float);
 	void reverse();
 	void startWithTarget(cocos2d::CCNode*);
-	virtual void initWithDuration(float,float,float);
-	virtual void startWithTarget(cocos2d::CCNode *);
 }
 class cocos2d::CCSkewTo : cocos2d::CCActionInterval {
 	void CCSkewTo();
@@ -10080,10 +8739,6 @@ class cocos2d::CCSkewTo : cocos2d::CCActionInterval {
 	void initWithDuration(float, float, float);
 	void startWithTarget(cocos2d::CCNode*);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void initWithDuration(float,float,float);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void update(float);
 }
 class cocos2d::CCSpawn : cocos2d::CCActionInterval {
 	void copyWithZone(cocos2d::CCZone*);
@@ -10096,9 +8751,6 @@ class cocos2d::CCSpawn : cocos2d::CCActionInterval {
 	void startWithTarget(cocos2d::CCNode*);
 	void stop();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void update(float);
 }
 class cocos2d::CCSpeed : cocos2d::CCAction {
 	void copyWithZone(cocos2d::CCZone*);
@@ -10110,9 +8762,6 @@ class cocos2d::CCSpeed : cocos2d::CCAction {
 	void startWithTarget(cocos2d::CCNode*);
 	void step(float);
 	void stop();
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void step(float);
 }
 class cocos2d::CCSplitCols : cocos2d::CCTiledGrid3DAction {
 	void copyWithZone(cocos2d::CCZone*);
@@ -10120,10 +8769,6 @@ class cocos2d::CCSplitCols : cocos2d::CCTiledGrid3DAction {
 	void initWithDuration(float, unsigned int);
 	void startWithTarget(cocos2d::CCNode*);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void initWithDuration(float,uint);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void update(float);
 }
 class cocos2d::CCSplitRows : cocos2d::CCTiledGrid3DAction {
 	void copyWithZone(cocos2d::CCZone*);
@@ -10131,10 +8776,6 @@ class cocos2d::CCSplitRows : cocos2d::CCTiledGrid3DAction {
 	void initWithDuration(float, unsigned int);
 	void startWithTarget(cocos2d::CCNode*);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void initWithDuration(float,uint);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void update(float);
 }
 class cocos2d::CCSprite : cocos2d::CCNodeRGBA, cocos2d::CCTextureProtocol {
 	void CCSprite();
@@ -10208,51 +8849,6 @@ class cocos2d::CCSprite : cocos2d::CCNodeRGBA, cocos2d::CCTextureProtocol {
 	void updateDisplayedColor(cocos2d::_ccColor3B const&);
 	void updateDisplayedOpacity(unsigned char);
 	void updateTransform();
-	virtual void addChild(cocos2d::CCNode *);
-	virtual void addChild(cocos2d::CCNode *,int);
-	virtual void addChild(cocos2d::CCNode *,int,int);
-	virtual void ignoreAnchorPointForPosition(bool);
-	virtual void initWithFile(char const*);
-	virtual void initWithFile(char const*,cocos2d::CCRect const&);
-	virtual void initWithSpriteFrame(cocos2d::CCSpriteFrame *);
-	virtual void initWithSpriteFrameName(char const*);
-	virtual void initWithTexture(cocos2d::CCTexture2D *);
-	virtual void initWithTexture(cocos2d::CCTexture2D *,cocos2d::CCRect const&);
-	virtual void initWithTexture(cocos2d::CCTexture2D *,cocos2d::CCRect const&,bool);
-	virtual void isFrameDisplayed(cocos2d::CCSpriteFrame *);
-	virtual void removeAllChildrenWithCleanup(bool);
-	virtual void removeChild(cocos2d::CCNode *,bool);
-	virtual void reorderChild(cocos2d::CCNode *,int);
-	virtual void setAnchorPoint(cocos2d::CCPoint const&);
-	virtual void setBatchNode(cocos2d::CCSpriteBatchNode *);
-	virtual void setBlendFunc(cocos2d::_ccBlendFunc);
-	virtual void setChildColor(cocos2d::_ccColor3B const&);
-	virtual void setChildOpacity(uchar);
-	virtual void setColor(cocos2d::_ccColor3B const&);
-	virtual void setDirty(bool);
-	virtual void setDirtyRecursively(bool);
-	virtual void setDisplayFrame(cocos2d::CCSpriteFrame *);
-	virtual void setDisplayFrameWithAnimationName(char const*,int);
-	virtual void setOpacity(uchar);
-	virtual void setOpacityModifyRGB(bool);
-	virtual void setPosition(cocos2d::CCPoint const&);
-	virtual void setRotation(float);
-	virtual void setRotationX(float);
-	virtual void setRotationY(float);
-	virtual void setScale(float);
-	virtual void setScaleX(float);
-	virtual void setScaleY(float);
-	virtual void setSkewX(float);
-	virtual void setSkewY(float);
-	virtual void setTexture(cocos2d::CCTexture2D *);
-	virtual void setTextureCoords(cocos2d::CCRect const&);
-	virtual void setTextureRect(cocos2d::CCRect const&);
-	virtual void setTextureRect(cocos2d::CCRect const&,bool,cocos2d::CCSize const&);
-	virtual void setVertexRect(cocos2d::CCRect const&);
-	virtual void setVertexZ(float);
-	virtual void setVisible(bool);
-	virtual void updateDisplayedColor(cocos2d::_ccColor3B const&);
-	virtual void updateDisplayedOpacity(uchar);
 }
 class cocos2d::CCSpriteBatchNode : cocos2d::CCNode, cocos2d::CCTextureProtocol {
 	void CCSpriteBatchNode();
@@ -10295,14 +8891,6 @@ class cocos2d::CCSpriteBatchNode : cocos2d::CCNode, cocos2d::CCTextureProtocol {
 	void updateBlendFunc();
 	void updateQuadFromSprite(cocos2d::CCSprite*, unsigned int);
 	void visit();
-	virtual void addChild(cocos2d::CCNode *);
-	virtual void addChild(cocos2d::CCNode *,int);
-	virtual void addChild(cocos2d::CCNode *,int,int);
-	virtual void removeAllChildrenWithCleanup(bool);
-	virtual void removeChild(cocos2d::CCNode *,bool);
-	virtual void reorderChild(cocos2d::CCNode *,int);
-	virtual void setBlendFunc(cocos2d::_ccBlendFunc);
-	virtual void setTexture(cocos2d::CCTexture2D *);
 }
 class cocos2d::CCSpriteExtra : cocos2d::CCSprite {
 }
@@ -10325,7 +8913,6 @@ class cocos2d::CCSpriteFrame : cocos2d::CCObject {
 	void setRect(cocos2d::CCRect const&);
 	void setRectInPixels(cocos2d::CCRect const&);
 	void setTexture(cocos2d::CCTexture2D*);
-	virtual void copyWithZone(cocos2d::CCZone *);
 }
 class cocos2d::CCSpriteFrameCache : cocos2d::CCObject {
 	void addSpriteFrame(cocos2d::CCSpriteFrame*, char const*);
@@ -10347,12 +8934,10 @@ class cocos2d::CCSpriteFrameCache : cocos2d::CCObject {
 class cocos2d::CCStandardTouchHandler : cocos2d::CCTouchHandler {
 	void handlerWithDelegate(cocos2d::CCTouchDelegate*, int);
 	void initWithDelegate(cocos2d::CCTouchDelegate*, int);
-	virtual void initWithDelegate(cocos2d::CCTouchDelegate *,int);
 }
 class cocos2d::CCStopGrid : cocos2d::CCActionInstant {
 	void create();
 	void startWithTarget(cocos2d::CCNode*);
-	virtual void startWithTarget(cocos2d::CCNode *);
 }
 class cocos2d::CCString : cocos2d::CCObject {
 	void CCString(char const*);
@@ -10377,9 +8962,6 @@ class cocos2d::CCString : cocos2d::CCObject {
 	void length();
 	void operator=(cocos2d::CCString const&);
 	void uintValue();
-	virtual void acceptVisitor(cocos2d::CCDataVisitor &);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void isEqual(cocos2d::CCObject const*);
 }
 class cocos2d::CCTargetedAction : cocos2d::CCActionInterval {
 	void CCTargetedAction();
@@ -10389,9 +8971,6 @@ class cocos2d::CCTargetedAction : cocos2d::CCActionInterval {
 	void startWithTarget(cocos2d::CCNode*);
 	void stop();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void update(float);
 }
 class cocos2d::CCTargetedTouchHandler : cocos2d::CCTouchHandler {
 	void getClaimedTouches();
@@ -10407,11 +8986,6 @@ class cocos2d::CCTextFieldDelegate {
 	void onTextFieldDetachWithIME(cocos2d::CCTextFieldTTF*);
 	void onTextFieldInsertText(cocos2d::CCTextFieldTTF*, char const*, int);
 	void textChanged();
-	virtual void onDraw(cocos2d::CCTextFieldTTF *);
-	virtual void onTextFieldAttachWithIME(cocos2d::CCTextFieldTTF *);
-	virtual void onTextFieldDeleteBackward(cocos2d::CCTextFieldTTF *,char const*,int);
-	virtual void onTextFieldDetachWithIME(cocos2d::CCTextFieldTTF *);
-	virtual void onTextFieldInsertText(cocos2d::CCTextFieldTTF *,char const*,int);
 }
 class cocos2d::CCTextFieldTTF : cocos2d::CCLabelTTF, cocos2d::CCIMEDelegate {
 	void CCTextFieldTTF();
@@ -10435,11 +9009,6 @@ class cocos2d::CCTextFieldTTF : cocos2d::CCLabelTTF, cocos2d::CCIMEDelegate {
 	void setString(char const*);
 	void textFieldWithPlaceHolder(char const*, cocos2d::CCSize const&, cocos2d::CCTextAlignment, char const*, float);
 	void textFieldWithPlaceHolder(char const*, char const*, float);
-	virtual void insertText(char const*,int);
-	virtual void setColorSpaceHolder(cocos2d::_ccColor3B const&);
-	virtual void setPlaceHolder(char const*);
-	virtual void setSecureTextEntry(bool);
-	virtual void setString(char const*);
 }
 class cocos2d::CCTexture2D : cocos2d::CCObject {
 	void CCTexture2D();
@@ -10481,9 +9050,6 @@ class cocos2d::CCTexture2D : cocos2d::CCObject {
 	void setShaderProgram(cocos2d::CCGLProgram*);
 	void setTexParameters(cocos2d::_ccTexParams*);
 	void stringForFormat();
-	virtual void setMaxS(float);
-	virtual void setMaxT(float);
-	virtual void setShaderProgram(cocos2d::CCGLProgram *);
 }
 class cocos2d::CCTextureAtlas : cocos2d::CCObject {
 	void CCTextureAtlas();
@@ -10517,8 +9083,6 @@ class cocos2d::CCTextureAtlas : cocos2d::CCObject {
 	void setupIndices();
 	void setupVBO();
 	void updateQuad(cocos2d::_ccV3F_C4B_T2F_Quad*, unsigned int);
-	virtual void setQuads(cocos2d::_ccV3F_C4B_T2F_Quad *);
-	virtual void setTexture(cocos2d::CCTexture2D *);
 }
 class cocos2d::CCTextureCache : cocos2d::CCObject {
 	void CCTextureCache();
@@ -10591,7 +9155,6 @@ class cocos2d::CCTileMapAtlas : cocos2d::CCAtlasNode {
 	void tileAt(cocos2d::CCPoint const&);
 	void updateAtlasValueAt(cocos2d::CCPoint const&, cocos2d::_ccColor3B const&, unsigned int);
 	void updateAtlasValues();
-	virtual void setTGAInfo(cocos2d::sImageTGA *);
 }
 class cocos2d::CCTimer : cocos2d::CCObject {
 	void CCTimer();
@@ -10605,7 +9168,6 @@ class cocos2d::CCTimer : cocos2d::CCObject {
 	void timerWithTarget(cocos2d::CCObject*, cocos2d::SEL_SCHEDULE);
 	void timerWithTarget(cocos2d::CCObject*, cocos2d::SEL_SCHEDULE, float);
 	void update(float);
-	virtual void update(float);
 }
 class cocos2d::CCTintBy : cocos2d::CCActionInterval {
 	void copyWithZone(cocos2d::CCZone*);
@@ -10614,9 +9176,6 @@ class cocos2d::CCTintBy : cocos2d::CCActionInterval {
 	void reverse();
 	void startWithTarget(cocos2d::CCNode*);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void update(float);
 }
 class cocos2d::CCTintTo : cocos2d::CCActionInterval {
 	void copyWithZone(cocos2d::CCZone*);
@@ -10624,9 +9183,6 @@ class cocos2d::CCTintTo : cocos2d::CCActionInterval {
 	void initWithDuration(float, unsigned char, unsigned char, unsigned char);
 	void startWithTarget(cocos2d::CCNode*);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void update(float);
 }
 class cocos2d::CCTMXLayer : cocos2d::CCSpriteBatchNode {
 	void CCTMXLayer();
@@ -10661,16 +9217,11 @@ class cocos2d::CCTMXLayer : cocos2d::CCSpriteBatchNode {
 	void tileGIDAt(cocos2d::CCPoint const&, cocos2d::ccTMXTileFlags_*);
 	void updateTileForGID(unsigned int, cocos2d::CCPoint const&);
 	void vertexZForPos(cocos2d::CCPoint const&);
-	virtual void addChild(cocos2d::CCNode *,int,int);
-	virtual void removeChild(cocos2d::CCNode *,bool);
-	virtual void setProperties(cocos2d::CCDictionary *);
-	virtual void setTileSet(cocos2d::CCTMXTilesetInfo *);
 }
 class cocos2d::CCTMXLayerInfo : cocos2d::CCObject {
 	void CCTMXLayerInfo();
 	void getProperties();
 	void setProperties(cocos2d::CCDictionary*);
-	virtual void setProperties(cocos2d::CCDictionary *);
 }
 class cocos2d::CCTMXMapInfo : cocos2d::CCObject, cocos2d::CCSAXDelegator {
 	void CCTMXMapInfo();
@@ -10694,13 +9245,6 @@ class cocos2d::CCTMXMapInfo : cocos2d::CCObject, cocos2d::CCSAXDelegator {
 	void setTilesets(cocos2d::CCArray*);
 	void startElement(void*, char const*, char const**);
 	void textHandler(void*, char const*, int);
-	virtual void endElement(void *,char const*);
-	virtual void setLayers(cocos2d::CCArray *);
-	virtual void setObjectGroups(cocos2d::CCArray *);
-	virtual void setProperties(cocos2d::CCDictionary *);
-	virtual void setTilesets(cocos2d::CCArray *);
-	virtual void startElement(void *,char const*,char const**);
-	virtual void textHandler(void *,char const*,int);
 }
 class cocos2d::CCTMXObjectGroup : cocos2d::CCObject {
 	void CCTMXObjectGroup();
@@ -10710,8 +9254,6 @@ class cocos2d::CCTMXObjectGroup : cocos2d::CCObject {
 	void propertyNamed(char const*);
 	void setObjects(cocos2d::CCArray*);
 	void setProperties(cocos2d::CCDictionary*);
-	virtual void setObjects(cocos2d::CCArray *);
-	virtual void setProperties(cocos2d::CCDictionary *);
 }
 class cocos2d::CCTMXTiledMap : cocos2d::CCNode {
 	void CCTMXTiledMap();
@@ -10730,8 +9272,6 @@ class cocos2d::CCTMXTiledMap : cocos2d::CCNode {
 	void setObjectGroups(cocos2d::CCArray*);
 	void setProperties(cocos2d::CCDictionary*);
 	void tilesetForLayer(cocos2d::CCTMXLayerInfo*, cocos2d::CCTMXMapInfo*);
-	virtual void setObjectGroups(cocos2d::CCArray *);
-	virtual void setProperties(cocos2d::CCDictionary *);
 }
 class cocos2d::CCTMXTilesetInfo : cocos2d::CCObject {
 	void CCTMXTilesetInfo();
@@ -10741,8 +9281,6 @@ class cocos2d::CCToggleVisibility : cocos2d::CCActionInstant {
 	void copyWithZone(cocos2d::CCZone*);
 	void create();
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCTouch : cocos2d::CCObject {
 	void getDelta();
@@ -10762,14 +9300,6 @@ class cocos2d::CCTouchDelegate {
 	void ccTouchesCancelled(cocos2d::CCSet*, cocos2d::CCEvent*);
 	void ccTouchesEnded(cocos2d::CCSet*, cocos2d::CCEvent*);
 	void ccTouchesMoved(cocos2d::CCSet*, cocos2d::CCEvent*);
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchCancelled(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchEnded(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchesBegan(cocos2d::CCSet *,cocos2d::CCEvent *);
-	virtual void ccTouchesCancelled(cocos2d::CCSet *,cocos2d::CCEvent *);
-	virtual void ccTouchesEnded(cocos2d::CCSet *,cocos2d::CCEvent *);
-	virtual void ccTouchesMoved(cocos2d::CCSet *,cocos2d::CCEvent *);
 }
 class cocos2d::CCTouchDispatcher : cocos2d::CCObject, cocos2d::EGLTouchDelegate {
 	void addStandardDelegate(cocos2d::CCTouchDelegate*, int);
@@ -10793,10 +9323,6 @@ class cocos2d::CCTouchDispatcher : cocos2d::CCObject, cocos2d::EGLTouchDelegate 
 	void touchesCancelled(cocos2d::CCSet*, cocos2d::CCEvent*);
 	void touchesEnded(cocos2d::CCSet*, cocos2d::CCEvent*);
 	void touchesMoved(cocos2d::CCSet*, cocos2d::CCEvent*);
-	virtual void touchesBegan(cocos2d::CCSet *,cocos2d::CCEvent *);
-	virtual void touchesCancelled(cocos2d::CCSet *,cocos2d::CCEvent *);
-	virtual void touchesEnded(cocos2d::CCSet *,cocos2d::CCEvent *);
-	virtual void touchesMoved(cocos2d::CCSet *,cocos2d::CCEvent *);
 }
 class cocos2d::CCTouchHandler : cocos2d::CCObject {
 	void getDelegate();
@@ -10807,7 +9333,6 @@ class cocos2d::CCTouchHandler : cocos2d::CCObject {
 	void setDelegate(cocos2d::CCTouchDelegate*);
 	void setEnalbedSelectors(int);
 	void setPriority(int);
-	virtual void initWithDelegate(cocos2d::CCTouchDelegate *,int);
 }
 class cocos2d::CCTouchScriptHandlerEntry : cocos2d::CCScriptHandlerEntry {
 	void create(int, bool, int, bool);
@@ -10830,20 +9355,16 @@ class cocos2d::CCTransitionFade : cocos2d::CCTransitionScene {
 	void initWithDuration(float, cocos2d::CCScene*, cocos2d::_ccColor3B const&);
 	void onEnter();
 	void onExit();
-	virtual void initWithDuration(float,cocos2d::CCScene *);
-	virtual void initWithDuration(float,cocos2d::CCScene *,cocos2d::_ccColor3B const&);
 }
 class cocos2d::CCTransitionFadeBL : cocos2d::CCTransitionFadeTR {
 	void CCTransitionFadeBL();
 	void actionWithSize(cocos2d::CCSize const&);
 	void create(float, cocos2d::CCScene*);
-	virtual void actionWithSize(cocos2d::CCSize const&);
 }
 class cocos2d::CCTransitionFadeDown : cocos2d::CCTransitionFadeTR {
 	void CCTransitionFadeDown();
 	void actionWithSize(cocos2d::CCSize const&);
 	void create(float, cocos2d::CCScene*);
-	virtual void actionWithSize(cocos2d::CCSize const&);
 }
 class cocos2d::CCTransitionFadeTR : cocos2d::CCTransitionScene, cocos2d::CCTransitionEaseScene {
 	void CCTransitionFadeTR();
@@ -10852,14 +9373,11 @@ class cocos2d::CCTransitionFadeTR : cocos2d::CCTransitionScene, cocos2d::CCTrans
 	void easeActionWithAction(cocos2d::CCActionInterval*);
 	void onEnter();
 	void sceneOrder();
-	virtual void actionWithSize(cocos2d::CCSize const&);
-	virtual void easeActionWithAction(cocos2d::CCActionInterval *);
 }
 class cocos2d::CCTransitionFadeUp : cocos2d::CCTransitionFadeTR {
 	void CCTransitionFadeUp();
 	void actionWithSize(cocos2d::CCSize const&);
 	void create(float, cocos2d::CCScene*);
-	virtual void actionWithSize(cocos2d::CCSize const&);
 }
 class cocos2d::CCTransitionFlipAngular : cocos2d::CCTransitionSceneOriented {
 	void CCTransitionFlipAngular();
@@ -10896,7 +9414,6 @@ class cocos2d::CCTransitionMoveInL : cocos2d::CCTransitionScene, cocos2d::CCTran
 	void easeActionWithAction(cocos2d::CCActionInterval*);
 	void initScenes();
 	void onEnter();
-	virtual void easeActionWithAction(cocos2d::CCActionInterval *);
 }
 class cocos2d::CCTransitionMoveInR : cocos2d::CCTransitionMoveInL {
 	void CCTransitionMoveInR();
@@ -10915,7 +9432,6 @@ class cocos2d::CCTransitionPageTurn : cocos2d::CCTransitionScene {
 	void initWithDuration(float, cocos2d::CCScene*, bool);
 	void onEnter();
 	void sceneOrder();
-	virtual void initWithDuration(float,cocos2d::CCScene *,bool);
 }
 class cocos2d::CCTransitionProgress : cocos2d::CCTransitionScene {
 	void CCTransitionProgress();
@@ -10925,39 +9441,32 @@ class cocos2d::CCTransitionProgress : cocos2d::CCTransitionScene {
 	void progressTimerNodeWithRenderTexture(cocos2d::CCRenderTexture*);
 	void sceneOrder();
 	void setupTransition();
-	virtual void progressTimerNodeWithRenderTexture(cocos2d::CCRenderTexture *);
 }
 class cocos2d::CCTransitionProgressHorizontal : cocos2d::CCTransitionProgress {
 	void create(float, cocos2d::CCScene*);
 	void progressTimerNodeWithRenderTexture(cocos2d::CCRenderTexture*);
-	virtual void progressTimerNodeWithRenderTexture(cocos2d::CCRenderTexture *);
 }
 class cocos2d::CCTransitionProgressInOut : cocos2d::CCTransitionProgress {
 	void create(float, cocos2d::CCScene*);
 	void progressTimerNodeWithRenderTexture(cocos2d::CCRenderTexture*);
 	void sceneOrder();
 	void setupTransition();
-	virtual void progressTimerNodeWithRenderTexture(cocos2d::CCRenderTexture *);
 }
 class cocos2d::CCTransitionProgressOutIn : cocos2d::CCTransitionProgress {
 	void create(float, cocos2d::CCScene*);
 	void progressTimerNodeWithRenderTexture(cocos2d::CCRenderTexture*);
-	virtual void progressTimerNodeWithRenderTexture(cocos2d::CCRenderTexture *);
 }
 class cocos2d::CCTransitionProgressRadialCCW : cocos2d::CCTransitionProgress {
 	void create(float, cocos2d::CCScene*);
 	void progressTimerNodeWithRenderTexture(cocos2d::CCRenderTexture*);
-	virtual void progressTimerNodeWithRenderTexture(cocos2d::CCRenderTexture *);
 }
 class cocos2d::CCTransitionProgressRadialCW : cocos2d::CCTransitionProgress {
 	void create(float, cocos2d::CCScene*);
 	void progressTimerNodeWithRenderTexture(cocos2d::CCRenderTexture*);
-	virtual void progressTimerNodeWithRenderTexture(cocos2d::CCRenderTexture *);
 }
 class cocos2d::CCTransitionProgressVertical : cocos2d::CCTransitionProgress {
 	void create(float, cocos2d::CCScene*);
 	void progressTimerNodeWithRenderTexture(cocos2d::CCRenderTexture*);
-	virtual void progressTimerNodeWithRenderTexture(cocos2d::CCRenderTexture *);
 }
 class cocos2d::CCTransitionRotoZoom : cocos2d::CCTransitionScene {
 	void CCTransitionRotoZoom();
@@ -10976,20 +9485,17 @@ class cocos2d::CCTransitionScene : cocos2d::CCScene {
 	void onExit();
 	void sceneOrder();
 	void setNewScene(float);
-	virtual void initWithDuration(float,cocos2d::CCScene *);
 }
 class cocos2d::CCTransitionSceneOriented : cocos2d::CCTransitionScene {
 	void CCTransitionSceneOriented();
 	void create(float, cocos2d::CCScene*, cocos2d::tOrientation);
 	void initWithDuration(float, cocos2d::CCScene*, cocos2d::tOrientation);
-	virtual void initWithDuration(float,cocos2d::CCScene *,cocos2d::tOrientation);
 }
 class cocos2d::CCTransitionShrinkGrow : cocos2d::CCTransitionScene, cocos2d::CCTransitionEaseScene {
 	void CCTransitionShrinkGrow();
 	void create(float, cocos2d::CCScene*);
 	void easeActionWithAction(cocos2d::CCActionInterval*);
 	void onEnter();
-	virtual void easeActionWithAction(cocos2d::CCActionInterval *);
 }
 class cocos2d::CCTransitionSlideInB : cocos2d::CCTransitionSlideInL {
 	void CCTransitionSlideInB();
@@ -11006,7 +9512,6 @@ class cocos2d::CCTransitionSlideInL : cocos2d::CCTransitionScene, cocos2d::CCTra
 	void initScenes();
 	void onEnter();
 	void sceneOrder();
-	virtual void easeActionWithAction(cocos2d::CCActionInterval *);
 }
 class cocos2d::CCTransitionSlideInR : cocos2d::CCTransitionSlideInL {
 	void CCTransitionSlideInR();
@@ -11028,7 +9533,6 @@ class cocos2d::CCTransitionSplitCols : cocos2d::CCTransitionScene, cocos2d::CCTr
 	void create(float, cocos2d::CCScene*);
 	void easeActionWithAction(cocos2d::CCActionInterval*);
 	void onEnter();
-	virtual void easeActionWithAction(cocos2d::CCActionInterval *);
 }
 class cocos2d::CCTransitionSplitRows : cocos2d::CCTransitionSplitCols {
 	void CCTransitionSplitRows();
@@ -11041,7 +9545,6 @@ class cocos2d::CCTransitionTurnOffTiles : cocos2d::CCTransitionScene, cocos2d::C
 	void easeActionWithAction(cocos2d::CCActionInterval*);
 	void onEnter();
 	void sceneOrder();
-	virtual void easeActionWithAction(cocos2d::CCActionInterval *);
 }
 class cocos2d::CCTransitionZoomFlipAngular : cocos2d::CCTransitionSceneOriented {
 	void CCTransitionZoomFlipAngular();
@@ -11071,10 +9574,6 @@ class cocos2d::CCTurnOffTiles : cocos2d::CCTiledGrid3DAction {
 	void turnOffTile(cocos2d::CCPoint const&);
 	void turnOnTile(cocos2d::CCPoint const&);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void initWithDuration(float,cocos2d::CCSize const&,uint);
-	virtual void startWithTarget(cocos2d::CCNode *);
-	virtual void update(float);
 }
 class cocos2d::CCTwirl : cocos2d::CCGrid3DAction {
 	void copyWithZone(cocos2d::CCZone*);
@@ -11082,33 +9581,24 @@ class cocos2d::CCTwirl : cocos2d::CCGrid3DAction {
 	void initWithDuration(float, cocos2d::CCSize const&, cocos2d::CCPoint, unsigned int, float);
 	void setPosition(cocos2d::CCPoint const&);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCWaves : cocos2d::CCGrid3DAction {
 	void copyWithZone(cocos2d::CCZone*);
 	void create(float, cocos2d::CCSize const&, unsigned int, float, bool, bool);
 	void initWithDuration(float, cocos2d::CCSize const&, unsigned int, float, bool, bool);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCWaves3D : cocos2d::CCGrid3DAction {
 	void copyWithZone(cocos2d::CCZone*);
 	void create(float, cocos2d::CCSize const&, unsigned int, float);
 	void initWithDuration(float, cocos2d::CCSize const&, unsigned int, float);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void update(float);
 }
 class cocos2d::CCWavesTiles3D : cocos2d::CCTiledGrid3DAction {
 	void copyWithZone(cocos2d::CCZone*);
 	void create(float, cocos2d::CCSize const&, unsigned int, float);
 	void initWithDuration(float, cocos2d::CCSize const&, unsigned int, float);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void initWithDuration(float,cocos2d::CCSize const&,uint,float);
-	virtual void update(float);
 }
 class cocos2d::EGLTouchDelegate {
 }
@@ -11144,7 +9634,6 @@ class cocos2d::extension::AssetsManager::Helper : cocos2d::CCObject {
 	void handleUpdateSucceed(cocos2d::extension::AssetsManager::_Message*);
 	void sendMessage(cocos2d::extension::AssetsManager::_Message*);
 	void update(float);
-	virtual void update(float);
 }
 class cocos2d::extension::CCArrayForObjectSorting : cocos2d::CCArray {
 	void indexOfSortedObject(cocos2d::extension::CCSortableObject*);
@@ -11183,15 +9672,6 @@ class cocos2d::extension::CCControl : cocos2d::CCLayerRGBA {
 	void setHighlighted(bool);
 	void setOpacityModifyRGB(bool);
 	void setSelected(bool);
-	virtual void addTargetWithActionForControlEvents(cocos2d::CCObject *,void (cocos2d::CCObject::*)(cocos2d::CCObject *,uint),uint);
-	virtual void getTouchLocation(cocos2d::CCTouch *);
-	virtual void isTouchInside(cocos2d::CCTouch *);
-	virtual void removeTargetWithActionForControlEvents(cocos2d::CCObject *,void (cocos2d::CCObject::*)(cocos2d::CCObject *,uint),uint);
-	virtual void sendActionsForControlEvents(uint);
-	virtual void setEnabled(bool);
-	virtual void setHighlighted(bool);
-	virtual void setOpacityModifyRGB(bool);
-	virtual void setSelected(bool);
 }
 class cocos2d::extension::CCControlButton : cocos2d::extension::CCControl {
 	void CCControlButton();
@@ -11241,37 +9721,6 @@ class cocos2d::extension::CCControlButton : cocos2d::extension::CCControl {
 	void setTitleTTFForState(char const*, unsigned int);
 	void setTitleTTFSizeForState(float, unsigned int);
 	void setZoomOnTouchDown(bool);
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchCancelled(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchEnded(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void getBackgroundSpriteForState(uint);
-	virtual void getTitleBMFontForState(uint);
-	virtual void getTitleColorForState(uint);
-	virtual void getTitleForState(uint);
-	virtual void getTitleLabelForState(uint);
-	virtual void getTitleTTFForState(uint);
-	virtual void getTitleTTFSizeForState(uint);
-	virtual void initWithBackgroundSprite(cocos2d::extension::CCScale9Sprite *);
-	virtual void initWithLabelAndBackgroundSprite(cocos2d::CCNode *,cocos2d::extension::CCScale9Sprite *);
-	virtual void initWithTitleAndFontNameAndFontSize(gd::string,char const*,float);
-	virtual void setBackgroundSpriteForState(cocos2d::extension::CCScale9Sprite *,uint);
-	virtual void setBackgroundSpriteFrameForState(cocos2d::CCSpriteFrame *,uint);
-	virtual void setColor(cocos2d::_ccColor3B const&);
-	virtual void setEnabled(bool);
-	virtual void setHighlighted(bool);
-	virtual void setLabelAnchorPoint(cocos2d::CCPoint);
-	virtual void setMargins(int,int);
-	virtual void setOpacity(uchar);
-	virtual void setPreferredSize(cocos2d::CCSize);
-	virtual void setSelected(bool);
-	virtual void setTitleBMFontForState(char const*,uint);
-	virtual void setTitleColorForState(cocos2d::_ccColor3B,uint);
-	virtual void setTitleForState(cocos2d::CCString *,uint);
-	virtual void setTitleLabelForState(cocos2d::CCNode *,uint);
-	virtual void setTitleTTFForState(char const*,uint);
-	virtual void setTitleTTFSizeForState(float,uint);
-	virtual void setZoomOnTouchDown(bool);
 }
 class cocos2d::extension::CCControlColourPicker : cocos2d::extension::CCControl {
 	void ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*);
@@ -11283,8 +9732,6 @@ class cocos2d::extension::CCControlColourPicker : cocos2d::extension::CCControl 
 	void setColorValue(cocos2d::_ccColor3B const&);
 	void updateControlPicker();
 	void updateHueAndControlPicker();
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void setColorValue(cocos2d::_ccColor3B const&);
 }
 class cocos2d::extension::CCControlHuePicker : cocos2d::extension::CCControl {
 	void CCControlHuePicker();
@@ -11298,12 +9745,6 @@ class cocos2d::extension::CCControlHuePicker : cocos2d::extension::CCControl {
 	void setHue(float);
 	void setHuePercentage(float);
 	void updateSliderPosition(cocos2d::CCPoint);
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void initWithTargetAndPos(cocos2d::CCNode *,cocos2d::CCPoint);
-	virtual void setEnabled(bool);
-	virtual void setHue(float);
-	virtual void setHuePercentage(float);
 }
 class cocos2d::extension::CCControlPotentiometer : cocos2d::extension::CCControl {
 	void CCControlPotentiometer();
@@ -11325,11 +9766,6 @@ class cocos2d::extension::CCControlPotentiometer : cocos2d::extension::CCControl
 	void setMaximumValue(float);
 	void setMinimumValue(float);
 	void setValue(float);
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchEnded(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void isTouchInside(cocos2d::CCTouch *);
-	virtual void setEnabled(bool);
 }
 class cocos2d::extension::CCControlSaturationBrightnessPicker : cocos2d::extension::CCControl {
 	void CCControlSaturationBrightnessPicker();
@@ -11343,12 +9779,6 @@ class cocos2d::extension::CCControlSaturationBrightnessPicker : cocos2d::extensi
 	void updateDraggerWithHSV(cocos2d::extension::HSV);
 	void updateSliderPosition(cocos2d::CCPoint);
 	void updateWithHSV(cocos2d::extension::HSV);
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void initWithTargetAndPos(cocos2d::CCNode *,cocos2d::CCPoint);
-	virtual void setEnabled(bool);
-	virtual void updateDraggerWithHSV(cocos2d::extension::HSV);
-	virtual void updateWithHSV(cocos2d::extension::HSV);
 }
 class cocos2d::extension::CCControlSlider : cocos2d::extension::CCControl {
 	void CCControlSlider();
@@ -11369,15 +9799,6 @@ class cocos2d::extension::CCControlSlider : cocos2d::extension::CCControl {
 	void sliderEnded(cocos2d::CCPoint);
 	void sliderMoved(cocos2d::CCPoint);
 	void valueForLocation(cocos2d::CCPoint);
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchEnded(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void initWithSprites(cocos2d::CCSprite *,cocos2d::CCSprite *,cocos2d::CCSprite *);
-	virtual void isTouchInside(cocos2d::CCTouch *);
-	virtual void setEnabled(bool);
-	virtual void setMaximumValue(float);
-	virtual void setMinimumValue(float);
-	virtual void setValue(float);
 }
 class cocos2d::extension::CCControlStepper : cocos2d::extension::CCControl {
 	void CCControlStepper();
@@ -11398,16 +9819,6 @@ class cocos2d::extension::CCControlStepper : cocos2d::extension::CCControl {
 	void stopAutorepeat();
 	void update(float);
 	void updateLayoutUsingTouchLocation(cocos2d::CCPoint);
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchEnded(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void setMaximumValue(double);
-	virtual void setMinimumValue(double);
-	virtual void setStepValue(double);
-	virtual void setValue(double);
-	virtual void setValueWithSendingEvent(double,bool);
-	virtual void setWraps(bool);
-	virtual void update(float);
 }
 class cocos2d::extension::CCControlSwitch : cocos2d::extension::CCControl {
 	void CCControlSwitch();
@@ -11423,11 +9834,6 @@ class cocos2d::extension::CCControlSwitch : cocos2d::extension::CCControl {
 	void setEnabled(bool);
 	void setOn(bool);
 	void setOn(bool, bool);
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchCancelled(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchEnded(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void setEnabled(bool);
 }
 class cocos2d::extension::CCControlSwitchSprite : cocos2d::CCSprite, cocos2d::CCActionTweenDelegate {
 	void CCControlSwitchSprite();
@@ -11438,7 +9844,6 @@ class cocos2d::extension::CCControlSwitchSprite : cocos2d::CCSprite, cocos2d::CC
 	void onSideWidth();
 	void setSliderXPosition(float);
 	void updateTweenAction(float, char const*);
-	virtual void updateTweenAction(float,char const*);
 }
 class cocos2d::extension::CCEditBox : cocos2d::extension::CCControlButton, cocos2d::CCIMEDelegate {
 	void CCEditBox();
@@ -11477,14 +9882,6 @@ class cocos2d::extension::CCEditBox : cocos2d::extension::CCControlButton, cocos
 	void touchDownAction(cocos2d::CCObject*, unsigned int);
 	void unregisterScriptEditBoxHandler();
 	void visit();
-	virtual void keyboardDidHide(cocos2d::CCIMEKeyboardNotificationInfo &);
-	virtual void keyboardDidShow(cocos2d::CCIMEKeyboardNotificationInfo &);
-	virtual void keyboardWillHide(cocos2d::CCIMEKeyboardNotificationInfo &);
-	virtual void keyboardWillShow(cocos2d::CCIMEKeyboardNotificationInfo &);
-	virtual void setAnchorPoint(cocos2d::CCPoint const&);
-	virtual void setContentSize(cocos2d::CCSize const&);
-	virtual void setPosition(cocos2d::CCPoint const&);
-	virtual void setVisible(bool);
 }
 class cocos2d::extension::CCEditBoxImpl {
 }
@@ -11513,22 +9910,6 @@ class cocos2d::extension::CCEditBoxImplAndroid : cocos2d::extension::CCEditBoxIm
 	void setText(char const*);
 	void setVisible(bool);
 	void visit();
-	virtual void doAnimationWhenKeyboardMove(float,float);
-	virtual void initWithSize(cocos2d::CCSize const&);
-	virtual void setAnchorPoint(cocos2d::CCPoint const&);
-	virtual void setContentSize(cocos2d::CCSize const&);
-	virtual void setFont(char const*,int);
-	virtual void setFontColor(cocos2d::_ccColor3B const&);
-	virtual void setInputFlag(cocos2d::extension::EditBoxInputFlag);
-	virtual void setInputMode(cocos2d::extension::EditBoxInputMode);
-	virtual void setMaxLength(int);
-	virtual void setPlaceHolder(char const*);
-	virtual void setPlaceholderFont(char const*,int);
-	virtual void setPlaceholderFontColor(cocos2d::_ccColor3B const&);
-	virtual void setPosition(cocos2d::CCPoint const&);
-	virtual void setReturnType(cocos2d::extension::KeyboardReturnType);
-	virtual void setText(char const*);
-	virtual void setVisible(bool);
 }
 class cocos2d::extension::CCHttpClient : cocos2d::CCObject {
 	void CCHttpClient();
@@ -11599,30 +9980,6 @@ class cocos2d::extension::CCScale9Sprite : cocos2d::CCNodeRGBA {
 	void updatePositions();
 	void updateWithBatchNode(cocos2d::CCSpriteBatchNode*, cocos2d::CCRect, bool, cocos2d::CCRect);
 	void visit();
-	virtual void initWithBatchNode(cocos2d::CCSpriteBatchNode *,cocos2d::CCRect,bool,cocos2d::CCRect);
-	virtual void initWithBatchNode(cocos2d::CCSpriteBatchNode *,cocos2d::CCRect,cocos2d::CCRect);
-	virtual void initWithFile(char const*,cocos2d::CCRect,cocos2d::CCRect);
-	virtual void initWithFile(char const*,cocos2d::CCRect);
-	virtual void initWithFile(cocos2d::CCRect,char const*);
-	virtual void initWithFile(char const*);
-	virtual void initWithSpriteFrame(cocos2d::CCSpriteFrame *,cocos2d::CCRect);
-	virtual void initWithSpriteFrame(cocos2d::CCSpriteFrame *);
-	virtual void initWithSpriteFrameName(char const*,cocos2d::CCRect);
-	virtual void initWithSpriteFrameName(char const*);
-	virtual void setCapInsets(cocos2d::CCRect);
-	virtual void setColor(cocos2d::_ccColor3B const&);
-	virtual void setContentSize(cocos2d::CCSize const&);
-	virtual void setInsetBottom(float);
-	virtual void setInsetLeft(float);
-	virtual void setInsetRight(float);
-	virtual void setInsetTop(float);
-	virtual void setOpacity(uchar);
-	virtual void setOpacityModifyRGB(bool);
-	virtual void setPreferredSize(cocos2d::CCSize);
-	virtual void setSpriteFrame(cocos2d::CCSpriteFrame *);
-	virtual void updateDisplayedColor(cocos2d::_ccColor3B const&);
-	virtual void updateDisplayedOpacity(uchar);
-	virtual void updateWithBatchNode(cocos2d::CCSpriteBatchNode *,cocos2d::CCRect,bool,cocos2d::CCRect);
 }
 class cocos2d::extension::CCScrollView : cocos2d::CCLayer {
 	void CCScrollView();
@@ -11669,16 +10026,6 @@ class cocos2d::extension::CCScrollView : cocos2d::CCLayer {
 	void unregisterScriptHandler(int);
 	void updateInset();
 	void visit();
-	virtual void addChild(cocos2d::CCNode *);
-	virtual void addChild(cocos2d::CCNode *,int);
-	virtual void addChild(cocos2d::CCNode *,int,int);
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchCancelled(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchEnded(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void setContentSize(cocos2d::CCSize const&);
-	virtual void setDirection(cocos2d::extension::CCScrollViewDirection);
-	virtual void setTouchEnabled(bool);
 }
 class cocos2d::extension::CCScrollViewDelegate {
 }
@@ -11687,7 +10034,6 @@ class cocos2d::extension::CCSortableObject {
 class cocos2d::extension::CCSortedObject : cocos2d::CCObject, cocos2d::extension::CCSortableObject {
 	void getObjectID();
 	void setObjectID(unsigned int);
-	virtual void setObjectID(uint);
 }
 class cocos2d::extension::CCTableView : cocos2d::extension::CCScrollView, cocos2d::extension::CCScrollViewDelegate {
 	void CCTableView();
@@ -11718,12 +10064,6 @@ class cocos2d::extension::CCTableView : cocos2d::extension::CCScrollView, cocos2
 	void setVerticalFillOrder(cocos2d::extension::CCTableViewVerticalFillOrder);
 	void unregisterAllScriptHandler();
 	void updateCellAtIndex(unsigned int);
-	virtual void ccTouchBegan(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchCancelled(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchEnded(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void ccTouchMoved(cocos2d::CCTouch *,cocos2d::CCEvent *);
-	virtual void scrollViewDidScroll(cocos2d::extension::CCScrollView *);
-	virtual void scrollViewDidZoom(cocos2d::extension::CCScrollView *);
 }
 class cocos2d::extension::CCTableViewCell : cocos2d::CCNode, cocos2d::extension::CCSortableObject {
 	void getIdx();
@@ -11731,17 +10071,15 @@ class cocos2d::extension::CCTableViewCell : cocos2d::CCNode, cocos2d::extension:
 	void reset();
 	void setIdx(unsigned int);
 	void setObjectID(unsigned int);
-	virtual void setObjectID(uint);
 }
 class cocos2d::extension::ColorPickerDelegate {
 	void colorValueChanged(cocos2d::_ccColor3B);
-	virtual void colorValueChanged(cocos2d::_ccColor3B);
 }
 class cocos2d::extension::WebSocket {
 	void WebSocket();
 	void close();
 	void getReadyState();
-	void init(cocos2d::extension::WebSocket::Delegate const&, gd::string const&, gd::vector<gd::string, gd::allocator<gd::string > > const*);
+	void init(cocos2d::extension::WebSocket::Delegate const&, gd::string const&, gd::vector<gd::string> const*);
 	void onSocketCallback(lws*, lws_callback_reasons, void*, void*, unsigned int);
 	void onSubThreadEnded();
 	void onSubThreadLoop();
@@ -11749,7 +10087,6 @@ class cocos2d::extension::WebSocket {
 	void onUIThreadReceiveMessage(cocos2d::extension::WsMessage*);
 	void send(unsigned char const*, unsigned int);
 	void send(gd::string const&);
-	virtual void onUIThreadReceiveMessage(cocos2d::extension::WsMessage *);
 }
 class cocos2d::extension::WsThreadHelper : cocos2d::CCObject {
 	void WsThreadHelper();
@@ -11760,7 +10097,6 @@ class cocos2d::extension::WsThreadHelper : cocos2d::CCObject {
 	void sendMessageToUIThread(cocos2d::extension::WsMessage*);
 	void update(float);
 	void wsThreadEntryFunc(void*);
-	virtual void update(float);
 }
 class cocos2d::ExtraAction : cocos2d::CCFiniteTimeAction {
 	void copyWithZone(cocos2d::CCZone*);
@@ -11768,9 +10104,6 @@ class cocos2d::ExtraAction : cocos2d::CCFiniteTimeAction {
 	void reverse();
 	void step(float);
 	void update(float);
-	virtual void copyWithZone(cocos2d::CCZone *);
-	virtual void step(float);
-	virtual void update(float);
 }
 class cocos2d::TypeInfo {
 }
@@ -11779,10 +10112,6 @@ class cocos2d::XmlSaxHander : tinyxml2::XMLVisitor {
 	void Visit(tinyxml2::XMLText const&);
 	void VisitEnter(tinyxml2::XMLElement const&, tinyxml2::XMLAttribute const*);
 	void VisitExit(tinyxml2::XMLElement const&);
-	virtual void Visit(tinyxml2::XMLText const&);
-	virtual void Visit(tinyxml2::XMLUnknown const&);
-	virtual void VisitEnter(tinyxml2::XMLElement const&,tinyxml2::XMLAttribute const*);
-	virtual void VisitExit(tinyxml2::XMLElement const&);
 }
 class cocos2d::ZipFile {
 	void ZipFile(gd::string const&, gd::string const&);
