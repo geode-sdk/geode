@@ -68,4 +68,31 @@ namespace geode::modifier {
 		GEODE_WRAPPER_FOR_IDENTIFIER(destructor)
 		#include <codegen/GeneratedWrapper.hpp>
 	};
+
+	// template <template<class, class, class=void> class Identifier, class Base, class Derived, class ...Types>
+	// struct PotentiallyWrongIdentifier {
+
+	// 	template <typename D>
+	//     static std::true_type existsImpl(...);
+
+	//     template <typename D, typename = std::enable_if_t<
+	//         (... && (
+	//         	Identifier<D, Types>::uuid == nullptr ||
+	//         	Identifier<Base, Types>::uuid == Identifier<D, Types>::uuid
+	//         ))
+	//     >>
+	//     static std::false_type existsImpl(char);
+
+	//     template <typename D, typename = std::enable_if_t<
+	//         (... || (
+	//         	Identifier<D, Types>::uuid != nullptr &&
+	//         	Identifier<Base, Types>::uuid == Identifier<D, Types>::uuid
+	//         ))
+	//     >>
+	//     static std::false_type existsImpl(int);
+
+	//     static constexpr bool value = decltype(existsImpl<Derived>(0))::value;
+
+	// };
+
 }

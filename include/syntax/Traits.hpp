@@ -51,31 +51,6 @@ namespace geode::modifier {
 	}
 	
 
-	// template <class Return, class Class, class Fallback, class ...Parameters>
-	// constexpr auto substituteWithFallback(Return(Class::*function)(Parameters...)) /* -> Return(Class::*)(Parameters...) */ {
-	// 	return function;
-	// }
-	
-	// template <class Return, class Class, class Fallback, class ...Parameters>
-	// constexpr auto substituteWithFallback(Return(Class::*function)(Parameters...) const) /* -> Return(Class::*)(Parameters...) const */ {
-	// 	return function;
-	// }
-
-	// template <class Return, class Class, class Fallback, class ...Parameters>
-	// constexpr auto substituteWithFallback(Return(Fallback::*function)(Parameters...)) /* -> Return(Class::*)(Parameters...) */ {
-	// 	return function;
-	// }
-	
-	// template <class Return, class Class, class Fallback, class ...Parameters>
-	// constexpr auto substituteWithFallback(Return(Fallback::*function)(Parameters...) const) /* -> Return(Class::*)(Parameters...) const */ {
-	// 	return function;
-	// }
-
-	// template <class Return, class Class, class Fallback, class ...Parameters>
-	// constexpr auto substituteWithFallback(Return(*function)(Parameters...)) /* -> Return(*)(Parameters...) */ {
-	// 	return function;
-	// }
-
 	/**
 	 * An UUID system that generates an unique comparable
 	 * value for every instance. Internally used for comparing member

@@ -2209,6 +2209,7 @@ class GJRobotSprite : CCAnimatedSprite {
 	static GJRobotSprite* create() = mac 0x34ac00, win 0x0, ios 0x0;
 	void updateColor02(cocos2d::_ccColor3B) = mac 0x34bbd0, win 0x0, ios 0x0;
 	void updateFrame(int) = mac 0x34bdd0, win 0x0, ios 0x0;
+	void hideGlow() = mac 0x34b860;
 
 	PAD = mac 0x0, win 0x8, android 0x0;
 	cocos2d::ccColor3B m_secondaryColor;
@@ -2301,7 +2302,7 @@ class GJSpecialColorSelectDelegate {
 	virtual void colorSelectClosed(GJSpecialColorSelect*, int) {}
 }
 
-class GJSpiderSprite {
+class GJSpiderSprite : GJRobotSprite {
 	~GJSpiderSprite() = mac 0x34c4a0, win 0x0, ios 0x0;
 	virtual bool init() = mac 0x34c700, win 0x0, ios 0x0;
 	static GJSpiderSprite* create() = mac 0x34c5b0, win 0x0, ios 0x0;
@@ -4692,12 +4693,12 @@ class SimplePlayer : cocos2d::CCSprite {
 	    updateColors();
 	}
 
-	bool init(int iconID) = mac 0x0, win 0x12be20, ios 0x0;
+	bool init(int iconID) = mac 0x1bc570, win 0x12be20, ios 0x0;
 	static SimplePlayer* create(int iconID) = mac 0x1b6140, win 0x12bd80, ios 0x0;
 	void updatePlayerFrame(int iconID, IconType iconType) = mac 0x1b62f0, win 0x12c650, ios 0x0;
 	void updateColors() = mac 0x1ba1f0, win 0x12c440, ios 0x224f2c;
 	void setFrames(const char* firstLayer, const char* secondLayer, const char* birdDome, const char* outlineSprite, const char* detailSprite) = mac 0x0, win 0x12c9e0, ios 0x0;
-	void setColor(const cocos2d::ccColor3B& color) = mac 0x0, win 0x12c410, ios 0x0;
+	void setColor(const cocos2d::ccColor3B& color) = mac 0x1bc9b0, win 0x12c410, ios 0x0;
 	void setOpacity(unsigned char opacity) = mac 0x0, win 0x12cb90, ios 0x0;
 
 	cocos2d::CCSprite* m_firstLayer;
