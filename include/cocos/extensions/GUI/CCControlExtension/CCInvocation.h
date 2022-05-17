@@ -54,6 +54,7 @@ typedef void (CCObject::*SEL_CCControlHandler)(CCObject*, CCControlEvent);
  */
 class CCInvocation : public CCObject
 {
+	GEODE_FRIEND_MODIFY
     CC_SYNTHESIZE_READONLY(SEL_CCControlHandler, m_action, Action);
     CC_SYNTHESIZE_READONLY(CCObject*, m_target, Target);
     CC_SYNTHESIZE_READONLY(CCControlEvent, m_controlEvent, ControlEvent);

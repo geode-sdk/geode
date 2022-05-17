@@ -2606,23 +2606,23 @@ class cocos2d::CCLayerRGBA : cocos2d::CCLayer, cocos2d::CCRGBAProtocol {
 	virtual auto isOpacityModifyRGB() = mac 0x6190;
 }
 
-class cocos2d::CCLightning : cocos2d::CCNode, cocos2d::CCRGBAProtocol {
-	virtual auto draw() = mac 0x34d200, ios 0x254424;
-	virtual auto isOpacityModifyRGB() = mac 0x34d520, ios 0x2545b4;
-	virtual auto setOpacityModifyRGB(bool) = mac 0x34d540, ios 0x2545c4;
-	virtual auto getOpacity() = mac 0x34d450, ios 0x25453c;
-	virtual auto getDisplayedOpacity() = mac 0x34d470, ios 0x25454c;
-	virtual auto setOpacity(unsigned char) = mac 0x34d4a0, ios 0x254568;
-	virtual auto updateDisplayedOpacity(unsigned char) = mac 0x34d560, ios 0x2545d4;
-	virtual auto isCascadeOpacityEnabled() = mac 0x34d580, ios 0x2545e4;
-	virtual auto setCascadeOpacityEnabled(bool) = mac 0x34d5a0, ios 0x2545f4;
-	virtual auto getColor() = mac 0x34d4c0, ios 0x254578;
-	virtual auto getDisplayedColor() = mac 0x34d5c0, ios 0x254604;
-	virtual auto setColor(cocos2d::ccColor3B const&) = mac 0x34d4e0, ios 0x254588;
-	virtual auto updateDisplayedColor(cocos2d::ccColor3B const&) = mac 0x34d5e0, ios 0x254614;
-	virtual auto isCascadeColorEnabled() = mac 0x34d620, ios 0x25463c;
-	virtual auto setCascadeColorEnabled(bool) = mac 0x34d640, ios 0x25464c;
-}
+// class cocos2d::CCLightning : cocos2d::CCNode, cocos2d::CCRGBAProtocol {
+// 	virtual auto draw() = mac 0x34d200, ios 0x254424;
+// 	virtual auto isOpacityModifyRGB() = mac 0x34d520, ios 0x2545b4;
+// 	virtual auto setOpacityModifyRGB(bool) = mac 0x34d540, ios 0x2545c4;
+// 	virtual auto getOpacity() = mac 0x34d450, ios 0x25453c;
+// 	virtual auto getDisplayedOpacity() = mac 0x34d470, ios 0x25454c;
+// 	virtual auto setOpacity(unsigned char) = mac 0x34d4a0, ios 0x254568;
+// 	virtual auto updateDisplayedOpacity(unsigned char) = mac 0x34d560, ios 0x2545d4;
+// 	virtual auto isCascadeOpacityEnabled() = mac 0x34d580, ios 0x2545e4;
+// 	virtual auto setCascadeOpacityEnabled(bool) = mac 0x34d5a0, ios 0x2545f4;
+// 	virtual auto getColor() = mac 0x34d4c0, ios 0x254578;
+// 	virtual auto getDisplayedColor() = mac 0x34d5c0, ios 0x254604;
+// 	virtual auto setColor(cocos2d::ccColor3B const&) = mac 0x34d4e0, ios 0x254588;
+// 	virtual auto updateDisplayedColor(cocos2d::ccColor3B const&) = mac 0x34d5e0, ios 0x254614;
+// 	virtual auto isCascadeColorEnabled() = mac 0x34d620, ios 0x25463c;
+// 	virtual auto setCascadeColorEnabled(bool) = mac 0x34d640, ios 0x25464c;
+// }
 
 class cocos2d::CCReuseGrid : cocos2d::CCActionInstant {
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0xef010;
@@ -2879,12 +2879,6 @@ class cocos2d::CCReverseTime : cocos2d::CCActionInterval {
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x1f8f00;
 	virtual auto stop() = mac 0x1f8f40;
 	virtual auto reverse() = mac 0x1f8fa0;
-}
-
-class cocos2d::CCScrollLayer : cocos2d::CCLayer {
-	virtual auto ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x2e4be0;
-	virtual auto ccTouchMoved(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x2e4c00;
-	virtual auto ccTouchEnded(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x2e4d40;
 }
 
 class cocos2d::CCShaderCache : cocos2d::CCObject {
@@ -4352,23 +4346,23 @@ class cocos2d::CCEGLView : cocos2d::CCEGLViewProtocol {
 	virtual auto isOpenGLReady() = mac 0x295470, ios 0xbac80;
 	virtual auto swapBuffers() = mac 0x295510, ios 0xbad54;
 	virtual auto setIMEKeyboardState(bool) = mac 0x295550, ios 0xbad80;
-	virtual auto cocos2d::CCEGLViewProtocol::getFrameSize() const = mac 0x29d950, ios 0x20eee4;
-	virtual auto cocos2d::CCEGLViewProtocol::setFrameSize(float, float) = mac 0x29d960, ios 0x20eeec;
-	virtual auto cocos2d::CCEGLViewProtocol::getVisibleSize() const = mac 0x29d9a0, ios 0x20ef30;
-	virtual auto cocos2d::CCEGLViewProtocol::getVisibleOrigin() const = mac 0x29d9f0, ios 0x20ef60;
-	virtual auto cocos2d::CCEGLViewProtocol::setDesignResolutionSize(float, float, ResolutionPolicy) = mac 0x29d7c0, ios 0x20edb0;
-	virtual auto cocos2d::CCEGLViewProtocol::getDesignResolutionSize() const = mac 0x29d940, ios 0x20eedc;
-	virtual auto cocos2d::CCEGLViewProtocol::setTouchDelegate(cocos2d::EGLTouchDelegate*) = mac 0x29da60, ios 0x20efac;
-	virtual auto cocos2d::CCEGLViewProtocol::setViewPortInPoints(float, float, float, float) = mac 0x29da70, ios 0x20efb4;
-	virtual auto cocos2d::CCEGLViewProtocol::setScissorInPoints(float, float, float, float) = mac 0x29dab0, ios 0x20efe8;
-	virtual auto cocos2d::CCEGLViewProtocol::isScissorEnabled() = mac 0x29daf0, ios 0x20f01c;
-	virtual auto cocos2d::CCEGLViewProtocol::getScissorRect() = mac 0x29db10, ios 0x20f03c;
-	virtual auto cocos2d::CCEGLViewProtocol::setViewName(char const*) = mac 0x29dba0, ios 0x20f0d4;
-	virtual auto cocos2d::CCEGLViewProtocol::handleTouchesBegin(int, int*, float*, float*) = mac 0x29dbd0, ios 0x20f0f0;
-	virtual auto cocos2d::CCEGLViewProtocol::handleTouchesMove(int, int*, float*, float*) = mac 0x29deb0, ios 0x20f350;
-	virtual auto cocos2d::CCEGLViewProtocol::handleTouchesEnd(int, int*, float*, float*) = mac 0x29e1d0, ios 0x20f5cc;
-	virtual auto cocos2d::CCEGLViewProtocol::handleTouchesCancel(int, int*, float*, float*) = mac 0x29e260, ios 0x20f66c;
-	virtual auto cocos2d::CCEGLViewProtocol::pollInputEvents() = mac 0x29e320, ios 0x20f724;
+	virtual auto getFrameSize() const = mac 0x29d950, ios 0x20eee4;
+	virtual auto setFrameSize(float, float) = mac 0x29d960, ios 0x20eeec;
+	virtual auto getVisibleSize() const = mac 0x29d9a0, ios 0x20ef30;
+	virtual auto getVisibleOrigin() const = mac 0x29d9f0, ios 0x20ef60;
+	virtual auto setDesignResolutionSize(float, float, ResolutionPolicy) = mac 0x29d7c0, ios 0x20edb0;
+	virtual auto getDesignResolutionSize() const = mac 0x29d940, ios 0x20eedc;
+	virtual auto setTouchDelegate(cocos2d::EGLTouchDelegate*) = mac 0x29da60, ios 0x20efac;
+	virtual auto setViewPortInPoints(float, float, float, float) = mac 0x29da70, ios 0x20efb4;
+	virtual auto setScissorInPoints(float, float, float, float) = mac 0x29dab0, ios 0x20efe8;
+	virtual auto isScissorEnabled() = mac 0x29daf0, ios 0x20f01c;
+	virtual auto getScissorRect() = mac 0x29db10, ios 0x20f03c;
+	virtual auto setViewName(char const*) = mac 0x29dba0, ios 0x20f0d4;
+	virtual auto handleTouchesBegin(int, int*, float*, float*) = mac 0x29dbd0, ios 0x20f0f0;
+	virtual auto handleTouchesMove(int, int*, float*, float*) = mac 0x29deb0, ios 0x20f350;
+	virtual auto handleTouchesEnd(int, int*, float*, float*) = mac 0x29e1d0, ios 0x20f5cc;
+	virtual auto handleTouchesCancel(int, int*, float*, float*) = mac 0x29e260, ios 0x20f66c;
+	virtual auto pollInputEvents() = mac 0x29e320, ios 0x20f724;
 }
 
 class cocos2d::CCEaseOut : cocos2d::CCEaseRateAction {
@@ -4684,8 +4678,8 @@ class cocos2d::extension::CCControl : cocos2d::CCLayerRGBA {
 	virtual auto isHighlighted() = mac 0x1a7ef0, ios 0x106c7c;
 	virtual auto needsLayout() = mac 0x1a7e50, ios 0x106c28;
 	virtual auto sendActionsForControlEvents(unsigned int) = mac 0x1a7490, ios 0x106650;
-	virtual auto addTargetWithActionForControlEvents(cocos2d::CCObject*, cocos2d::extension::SEL_EventHandler, unsigned int) = mac 0x1a7820, ios 0x106880;
-	virtual auto removeTargetWithActionForControlEvents(cocos2d::CCObject*, cocos2d::extension::SEL_EventHandler, unsigned int) = mac 0x1a7950, ios 0x106918;
+	virtual auto addTargetWithActionForControlEvents(cocos2d::CCObject*, cocos2d::extension::SEL_CCControlHandler, unsigned int) = mac 0x1a7820, ios 0x106880;
+	virtual auto removeTargetWithActionForControlEvents(cocos2d::CCObject*, cocos2d::extension::SEL_CCControlHandler, unsigned int) = mac 0x1a7950, ios 0x106918;
 	virtual auto getTouchLocation(cocos2d::CCTouch*) = mac 0x1a7d90, ios 0x106b6c;
 	virtual auto isTouchInside(cocos2d::CCTouch*) = mac 0x1a7de0, ios 0x106bb8;
 }

@@ -67,6 +67,7 @@ typedef struct
  **/
 class CCColor3bObject : public CCObject
 {
+	GEODE_FRIEND_MODIFY
 public:
     ccColor3B value;
     CCColor3bObject(ccColor3B s_value):value(s_value){}
@@ -74,6 +75,7 @@ public:
 
 class CCControlUtils
 {
+	GEODE_FRIEND_MODIFY
 public:
     static CCSprite* addSpriteToTargetWithPosAndAnchor(const char* spriteName, CCNode * target, CCPoint pos, CCPoint anchor);
     static HSV HSVfromRGB(RGBA value);

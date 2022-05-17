@@ -52,6 +52,7 @@ NS_CC_EXT_BEGIN
 /** @class CCControlButton Button control for Cocos2D. */
 class CCControlButton : public CCControl
 {        
+	GEODE_FRIEND_MODIFY
 public:
     CCControlButton();
     virtual ~CCControlButton();

@@ -48,6 +48,7 @@ typedef enum
 
 class CCControlStepper : public CCControl
 {
+	GEODE_FRIEND_MODIFY
 public:
     CCControlStepper();
     virtual ~CCControlStepper();

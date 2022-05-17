@@ -47,6 +47,7 @@ NS_CC_EXT_BEGIN
 
 class CCControlSaturationBrightnessPicker : public CCControl
 {
+	GEODE_FRIEND_MODIFY
     /** Contains the receiver¡¯s current saturation value. */
     CC_SYNTHESIZE_READONLY(float, m_saturation, Saturation);
     /** Contains the receiver¡¯s current brightness value. */

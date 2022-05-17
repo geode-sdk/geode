@@ -1263,32 +1263,32 @@ class cocos2d::CCLens3D : cocos2d::CCGrid3DAction {
 	auto setPosition(cocos2d::CCPoint const&);
 	auto update(float);
 }
-class cocos2d::CCLightning : cocos2d::CCNode, cocos2d::CCRGBAProtocol {
-	auto CCLightning();
-	auto draw();
-	auto getColor();
-	auto getDisplayedColor();
-	auto getDisplayedOpacity();
-	auto getOpacity();
-	auto initWithStrikePoint(cocos2d::CCPoint);
-	auto initWithStrikePoint(cocos2d::CCPoint, cocos2d::CCPoint, float);
-	auto isCascadeColorEnabled();
-	auto isCascadeOpacityEnabled();
-	auto isOpacityModifyRGB();
-	auto lightningWithStrikePoint(cocos2d::CCPoint);
-	auto lightningWithStrikePoint(cocos2d::CCPoint, cocos2d::CCPoint, float);
-	auto setCascadeColorEnabled(bool);
-	auto setCascadeOpacityEnabled(bool);
-	auto setColor(cocos2d::_ccColor3B const&);
-	auto setOpacity(unsigned char);
-	auto setOpacityModifyRGB(bool);
-	auto strike();
-	auto strikeFinished();
-	auto strikeRandom();
-	auto strikeWithSeed(unsigned long);
-	auto updateDisplayedColor(cocos2d::_ccColor3B const&);
-	auto updateDisplayedOpacity(unsigned char);
-}
+// class cocos2d::CCLightning : cocos2d::CCNode, cocos2d::CCRGBAProtocol {
+// 	auto CCLightning();
+// 	auto draw();
+// 	auto getColor();
+// 	auto getDisplayedColor();
+// 	auto getDisplayedOpacity();
+// 	auto getOpacity();
+// 	auto initWithStrikePoint(cocos2d::CCPoint);
+// 	auto initWithStrikePoint(cocos2d::CCPoint, cocos2d::CCPoint, float);
+// 	auto isCascadeColorEnabled();
+// 	auto isCascadeOpacityEnabled();
+// 	auto isOpacityModifyRGB();
+// 	auto lightningWithStrikePoint(cocos2d::CCPoint);
+// 	auto lightningWithStrikePoint(cocos2d::CCPoint, cocos2d::CCPoint, float);
+// 	auto setCascadeColorEnabled(bool);
+// 	auto setCascadeOpacityEnabled(bool);
+// 	auto setColor(cocos2d::_ccColor3B const&);
+// 	auto setOpacity(unsigned char);
+// 	auto setOpacityModifyRGB(bool);
+// 	auto strike();
+// 	auto strikeFinished();
+// 	auto strikeRandom();
+// 	auto strikeWithSeed(unsigned long);
+// 	auto updateDisplayedColor(cocos2d::_ccColor3B const&);
+// 	auto updateDisplayedOpacity(unsigned char);
+// }
 class cocos2d::CCLiquid : cocos2d::CCGrid3DAction {
 	auto copyWithZone(cocos2d::CCZone*);
 	auto create(float, cocos2d::CCSize const&, unsigned int, float);
@@ -2197,15 +2197,6 @@ class cocos2d::CCSchedulerScriptHandlerEntry : cocos2d::CCScriptHandlerEntry {
 class cocos2d::CCScriptHandlerEntry : cocos2d::CCObject {
 	auto CCScriptHandlerEntry(int);
 	auto create(int);
-}
-class cocos2d::CCScrollLayer : cocos2d::CCLayer {
-	auto CCScrollLayer();
-	auto ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*);
-	auto ccTouchEnded(cocos2d::CCTouch*, cocos2d::CCEvent*);
-	auto ccTouchMoved(cocos2d::CCTouch*, cocos2d::CCEvent*);
-	auto initWithLayers(cocos2d::CCArray*, int);
-	auto nodeWithLayers(cocos2d::CCArray*, int);
-	auto setMaximumScrollHeight(float);
 }
 class cocos2d::CCSequence : cocos2d::CCActionInterval {
 	auto copyWithZone(cocos2d::CCZone*);
@@ -3200,8 +3191,8 @@ class cocos2d::extension::CCColor3bObject : cocos2d::CCObject {
 class cocos2d::extension::CCControl : cocos2d::CCLayerRGBA {
 	auto CCControl();
 	auto addHandleOfControlEvent(int, unsigned int);
-	auto addTargetWithActionForControlEvent(cocos2d::CCObject*, cocos2d::extension::SEL_EventHandler, unsigned int);
-	auto addTargetWithActionForControlEvents(cocos2d::CCObject*, cocos2d::extension::SEL_EventHandler, unsigned int);
+	auto addTargetWithActionForControlEvent(cocos2d::CCObject*, cocos2d::extension::SEL_CCControlHandler, unsigned int);
+	auto addTargetWithActionForControlEvents(cocos2d::CCObject*, cocos2d::extension::SEL_CCControlHandler, unsigned int);
 	auto create();
 	auto dispatchListforControlEvent(unsigned int);
 	auto getHandleOfControlEvent(unsigned int);
@@ -3218,8 +3209,8 @@ class cocos2d::extension::CCControl : cocos2d::CCLayerRGBA {
 	auto onExit();
 	auto registerWithTouchDispatcher();
 	auto removeHandleOfControlEvent(unsigned int);
-	auto removeTargetWithActionForControlEvent(cocos2d::CCObject*, cocos2d::extension::SEL_EventHandler, unsigned int);
-	auto removeTargetWithActionForControlEvents(cocos2d::CCObject*, cocos2d::extension::SEL_EventHandler, unsigned int);
+	auto removeTargetWithActionForControlEvent(cocos2d::CCObject*, cocos2d::extension::SEL_CCControlHandler, unsigned int);
+	auto removeTargetWithActionForControlEvents(cocos2d::CCObject*, cocos2d::extension::SEL_CCControlHandler, unsigned int);
 	auto sendActionsForControlEvents(unsigned int);
 	auto setEnabled(bool);
 	auto setHighlighted(bool);
@@ -3479,8 +3470,8 @@ class cocos2d::extension::CCHttpResponse : cocos2d::CCObject {
 	auto CCHttpResponse(cocos2d::extension::CCHttpRequest*);
 }
 class cocos2d::extension::CCInvocation : cocos2d::CCObject {
-	auto CCInvocation(cocos2d::CCObject*, cocos2d::extension::SEL_EventHandler, unsigned int);
-	auto create(cocos2d::CCObject*, cocos2d::extension::SEL_EventHandler, unsigned int);
+	auto CCInvocation(cocos2d::CCObject*, cocos2d::extension::SEL_CCControlHandler, unsigned int);
+	auto create(cocos2d::CCObject*, cocos2d::extension::SEL_CCControlHandler, unsigned int);
 	auto invoke(cocos2d::CCObject*);
 }
 class cocos2d::extension::CCScale9Sprite : cocos2d::CCNodeRGBA {

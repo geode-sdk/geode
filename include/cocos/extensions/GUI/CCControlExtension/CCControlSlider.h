@@ -44,6 +44,7 @@ NS_CC_EXT_BEGIN
 
 class CCControlSlider: public CCControl
 {
+	GEODE_FRIEND_MODIFY
     //maunally put in the setters
     /** Contains the receiver¡¯s current value. */
     CC_SYNTHESIZE_READONLY(float, m_value, Value);

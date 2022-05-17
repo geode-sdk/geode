@@ -48,6 +48,7 @@ class CCControlSwitchSprite;
 /** @class CCControlSwitch Switch control for Cocos2D. */
 class CCControlSwitch : public CCControl
 {
+	GEODE_FRIEND_MODIFY
 public:
     CCControlSwitch();
     virtual ~CCControlSwitch();

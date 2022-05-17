@@ -87,6 +87,7 @@ typedef unsigned int CCControlState;
  */
 class CCControl : public CCLayerRGBA
 {
+	GEODE_FRIEND_MODIFY
     /** The current control state constant. */
     RT_REMOVE(
         CC_SYNTHESIZE_READONLY(CCControlState, m_eState, State);

@@ -52,6 +52,7 @@ NS_CC_EXT_BEGIN
  */
 class CCScale9Sprite : public CCNodeRGBA
 {
+	GEODE_FRIEND_MODIFY
 public:
     CCScale9Sprite();
     virtual ~CCScale9Sprite();

@@ -47,6 +47,7 @@ NS_CC_EXT_BEGIN
 
 class CCControlHuePicker : public CCControl
 {
+	GEODE_FRIEND_MODIFY
     //maunally put in the setters
     CC_SYNTHESIZE_READONLY(float, m_hue, Hue);
     virtual void setHue(float val);
