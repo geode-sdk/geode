@@ -20,7 +20,7 @@ include(CMakeParseArguments)
 include(${GEODE_SDK_PATH}/cmake/GeodeFile.cmake)
 
 function(setup_geode_mod)
-	set(bools BUILD_CODEGEN NO_GEODE_FILE NO_LOADER)
+	set(bools BUILD_CODEGEN NO_GEODE_FILE NO_LOADER NO_PRECOMPILED_HEADER NO_ENTRY)
     cmake_parse_arguments(
         PARSED_ARGS
         "${bools}"
@@ -31,6 +31,8 @@ function(setup_geode_mod)
 
     set(GEODE_NO_LOADER ${PARSED_ARGS_NO_LOADER})
     set(GEODE_DO_CODEGEN ${PARSED_ARGS_BUILD_CODEGEN})
+    set(GEODE_NO_PRECOMPILED_HEADER ${PARSED_ARGS_NO_PRECOMPILED_HEADER})
+    set(GEODE_NO_ENTRY ${PARSED_ARGS_NO_ENTRY})
 	if(PARSED_ARGS_OUTPUT)
 		set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" OUTPUT_NAME ${PARSED_ARGS_OUTPUT})
 	endif()
@@ -38,8 +40,10 @@ function(setup_geode_mod)
 	include(${GEODE_SDK_PATH}/cmake/Platform.cmake)
 	include(CheckIPOSupported)
 	check_ipo_supported(RESULT supported OUTPUT error)
-
-	target_sources(${PROJECT_NAME} PRIVATE ${GEODE_SDK_PATH}/entry.cpp)
+	
+	if (NOT ${GEODE_NO_ENTRY})
+		target_sources(${PROJECT_NAME} PRIVATE ${GEODE_SDK_PATH}/entry.cpp)
+	endif()
 
 	if (${GEODE_DO_CODEGEN})
 		add_definitions(-DGEODE_EXPORTING_CODEGEN)
@@ -84,7 +88,7 @@ function(setup_geode_mod)
 	if (APPLE)
 		file(GLOB_RECURSE GEODE_NO_PCH ${CMAKE_SOURCE_DIR}/**/*.mm ${CMAKE_SOURCE_DIR}/**/*.m ${CMAKE_SOURCE_DIR}/*.m ${CMAKE_SOURCE_DIR}/*.mm)
 		set_source_files_properties(${GEODE_NO_PCH} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
-		if (NOT GEODE_NO_PRECOMPILED_HEADERS)
+		if (NOT GEODE_NO_PRECOMPILED_HEADER)
 			target_precompile_headers(${PROJECT_NAME} PUBLIC
 				"$<$<COMPILE_LANGUAGE:CXX>:${GEODE_SDK_PATH}/include/Geode.hpp>"
 			)
