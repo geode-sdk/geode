@@ -152,7 +152,7 @@ class cocos2d::CCEaseOut {
 }
 
 class cocos2d::CCEGLView {
-	virtual void swapBuffers();
+	virtual void swapBuffers() = mac 0x295510;
 	void updateWindow(int width, int height);
 	void toggleFullScreen(bool fullscreen);
 	void pollEvents();
