@@ -16,6 +16,9 @@ cmake_minimum_required(VERSION 3.13.4)
 
 set(GEODE_SDK_PATH ${CMAKE_CURRENT_LIST_DIR})
 
+set(CMAKE_APPLE_SILICON_PROCESSOR x86_64)
+set(CMAKE_OSX_ARCHITECTURES x86_64)
+
 include(CMakeParseArguments)
 include(${GEODE_SDK_PATH}/cmake/GeodeFile.cmake)
 
