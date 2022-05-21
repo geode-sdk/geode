@@ -135,7 +135,16 @@ public:
     /** helper constructor to create an array of sequenceable actions 
      * @lua NA
      */
-    static CCSequence* create(CCFiniteTimeAction *pAction1, ...);
+    static CCSequence* create(CCFiniteTimeAction *pAction1, ...) {
+	    va_list params;
+	    va_start(params, pAction1);
+
+	    CCSequence *pRet = CCSequence::createWithVariableList(pAction1, params);
+
+	    va_end(params);
+	    
+	    return pRet;
+	}
     /** helper constructor to create an array of sequenceable actions given an array 
      * @js NA
      */

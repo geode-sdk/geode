@@ -2,6 +2,10 @@ class cocos2d::CCActionTween {
 	static cocos2d::CCActionTween* create(float, char const*, float, float) = mac 0x447590;
 }
 
+class cocos2d::CCActionManager {
+	auto addAction(cocos2d::CCAction*, cocos2d::CCNode*, bool) = mac 0x10bed0;
+}
+
 class cocos2d::CCAnimate {
 	static cocos2d::CCAnimate* create(cocos2d::CCAnimation*) = mac 0x1f8fc0;
 }
@@ -48,7 +52,11 @@ class cocos2d::CCBMFontConfiguration {
 }
 
 class cocos2d::CCCallFunc {
-	static cocos2d::CCCallFunc* create(int) = mac 0x454d90;
+	static auto create(cocos2d::CCObject*, cocos2d::SEL_CallFunc) = mac 0x454d90;
+}
+
+class cocos2d::CCCallFuncO {
+	static auto create(cocos2d::CCObject*, cocos2d::SEL_CallFuncO, cocos2d::CCObject*) = mac 0x455940;
 }
 
 class cocos2d::CCClippingNode {
@@ -622,6 +630,7 @@ class cocos2d::CCScheduler {
 }
 
 class cocos2d::CCSequence {
+	static auto createWithVariableList(cocos2d::CCFiniteTimeAction*, va_list) = mac 0x1f2910;
 }
 
 class cocos2d::CCSet {
