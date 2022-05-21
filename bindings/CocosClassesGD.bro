@@ -206,8 +206,8 @@ class cocos2d::CCAtlasNode : cocos2d::CCNodeRGBA, cocos2d::CCTextureProtocol {
 	auto initWithTexture(cocos2d::CCTexture2D*, unsigned int, unsigned int, unsigned int);
 	auto initWithTileFile(char const*, unsigned int, unsigned int, unsigned int);
 	auto isOpacityModifyRGB();
-	auto setBlendFunc(cocos2d::_ccBlendFunc);
-	auto setColor(cocos2d::_ccColor3B const&);
+	auto setBlendFunc(cocos2d::ccBlendFunc);
+	auto setColor(cocos2d::ccColor3B const&);
 	auto setIgnoreContentScaleFactor(bool);
 	auto setOpacity(unsigned char);
 	auto setOpacityModifyRGB(bool);
@@ -568,7 +568,7 @@ class cocos2d::CCDrawNode : cocos2d::CCNodeRGBA {
 	auto init();
 	auto listenBackToForeground(cocos2d::CCObject*);
 	auto render();
-	auto setBlendFunc(cocos2d::_ccBlendFunc const&);
+	auto setBlendFunc(cocos2d::ccBlendFunc const&);
 }
 class cocos2d::CCEaseBackIn : cocos2d::CCActionEase {
 	auto copyWithZone(cocos2d::CCZone*);
@@ -1071,7 +1071,7 @@ class cocos2d::CCLabelBMFont : cocos2d::CCSpriteBatchNode, cocos2d::CCLabelProto
 	auto setCString(char const*);
 	auto setCascadeColorEnabled(bool);
 	auto setCascadeOpacityEnabled(bool);
-	auto setColor(cocos2d::_ccColor3B const&);
+	auto setColor(cocos2d::ccColor3B const&);
 	auto setFntFile(char const*);
 	auto setLineBreakWithoutSpace(bool);
 	auto setOpacity(unsigned char);
@@ -1083,7 +1083,7 @@ class cocos2d::CCLabelBMFont : cocos2d::CCSpriteBatchNode, cocos2d::CCLabelProto
 	auto setString(char const*, bool);
 	auto setString(unsigned short*, bool);
 	auto setWidth(float);
-	auto updateDisplayedColor(cocos2d::_ccColor3B const&);
+	auto updateDisplayedColor(cocos2d::ccColor3B const&);
 	auto updateDisplayedOpacity(unsigned char);
 	auto updateLabel();
 }
@@ -1102,7 +1102,7 @@ class cocos2d::CCLabelTTF : cocos2d::CCSprite, cocos2d::CCLabelProtocol {
 	auto disableShadow(bool);
 	auto disableStroke(bool);
 	auto enableShadow(cocos2d::CCSize const&, float, float, bool);
-	auto enableStroke(cocos2d::_ccColor3B const&, float, bool);
+	auto enableStroke(cocos2d::ccColor3B const&, float, bool);
 	auto getDimensions();
 	auto getFontName();
 	auto getFontSize();
@@ -1116,7 +1116,7 @@ class cocos2d::CCLabelTTF : cocos2d::CCSprite, cocos2d::CCLabelProtocol {
 	auto initWithString(char const*, char const*, float, cocos2d::CCSize const&, cocos2d::CCTextAlignment, cocos2d::CCVerticalTextAlignment);
 	auto initWithStringAndTextDefinition(char const*, cocos2d::_ccFontDefinition&);
 	auto setDimensions(cocos2d::CCSize const&);
-	auto setFontFillColor(cocos2d::_ccColor3B const&, bool);
+	auto setFontFillColor(cocos2d::ccColor3B const&, bool);
 	auto setFontName(char const*);
 	auto setFontSize(float);
 	auto setHorizontalAlignment(cocos2d::CCTextAlignment);
@@ -1174,24 +1174,24 @@ class cocos2d::CCLayerColor : cocos2d::CCLayerRGBA, cocos2d::CCBlendProtocol {
 	auto changeHeight(float);
 	auto changeWidth(float);
 	auto changeWidthAndHeight(float, float);
-	auto create(cocos2d::_ccColor4B const&);
-	auto create(cocos2d::_ccColor4B const&, float, float);
+	auto create(cocos2d::ccColor4B const&);
+	auto create(cocos2d::ccColor4B const&, float, float);
 	auto create();
 	auto draw();
 	auto getBlendFunc();
 	auto init();
-	auto initWithColor(cocos2d::_ccColor4B const&);
-	auto initWithColor(cocos2d::_ccColor4B const&, float, float);
-	auto setBlendFunc(cocos2d::_ccBlendFunc);
-	auto setColor(cocos2d::_ccColor3B const&);
+	auto initWithColor(cocos2d::ccColor4B const&);
+	auto initWithColor(cocos2d::ccColor4B const&, float, float);
+	auto setBlendFunc(cocos2d::ccBlendFunc);
+	auto setColor(cocos2d::ccColor3B const&);
 	auto setContentSize(cocos2d::CCSize const&);
 	auto setOpacity(unsigned char);
 	auto updateColor();
 }
 class cocos2d::CCLayerGradient : cocos2d::CCLayerColor {
 	auto CCLayerGradient();
-	auto create(cocos2d::_ccColor4B const&, cocos2d::_ccColor4B const&);
-	auto create(cocos2d::_ccColor4B const&, cocos2d::_ccColor4B const&, cocos2d::CCPoint const&);
+	auto create(cocos2d::ccColor4B const&, cocos2d::ccColor4B const&);
+	auto create(cocos2d::ccColor4B const&, cocos2d::ccColor4B const&, cocos2d::CCPoint const&);
 	auto create();
 	auto getEndColor();
 	auto getEndOpacity();
@@ -1199,13 +1199,13 @@ class cocos2d::CCLayerGradient : cocos2d::CCLayerColor {
 	auto getStartOpacity();
 	auto getVector();
 	auto init();
-	auto initWithColor(cocos2d::_ccColor4B const&, cocos2d::_ccColor4B const&);
-	auto initWithColor(cocos2d::_ccColor4B const&, cocos2d::_ccColor4B const&, cocos2d::CCPoint const&);
+	auto initWithColor(cocos2d::ccColor4B const&, cocos2d::ccColor4B const&);
+	auto initWithColor(cocos2d::ccColor4B const&, cocos2d::ccColor4B const&, cocos2d::CCPoint const&);
 	auto isCompressedInterpolation();
 	auto setCompressedInterpolation(bool);
-	auto setEndColor(cocos2d::_ccColor3B const&);
+	auto setEndColor(cocos2d::ccColor3B const&);
 	auto setEndOpacity(unsigned char);
-	auto setStartColor(cocos2d::_ccColor3B const&);
+	auto setStartColor(cocos2d::ccColor3B const&);
 	auto setStartOpacity(unsigned char);
 	auto setVector(cocos2d::CCPoint const&);
 	auto updateColor();
@@ -1234,10 +1234,10 @@ class cocos2d::CCLayerRGBA : cocos2d::CCLayer, cocos2d::CCRGBAProtocol {
 	auto isOpacityModifyRGB();
 	auto setCascadeColorEnabled(bool);
 	auto setCascadeOpacityEnabled(bool);
-	auto setColor(cocos2d::_ccColor3B const&);
+	auto setColor(cocos2d::ccColor3B const&);
 	auto setOpacity(unsigned char);
 	auto setOpacityModifyRGB(bool);
-	auto updateDisplayedColor(cocos2d::_ccColor3B const&);
+	auto updateDisplayedColor(cocos2d::ccColor3B const&);
 	auto updateDisplayedOpacity(unsigned char);
 }
 class cocos2d::CCLens3D : cocos2d::CCGrid3DAction {
@@ -1263,14 +1263,14 @@ class cocos2d::CCLens3D : cocos2d::CCGrid3DAction {
 // 	auto lightningWithStrikePoint(cocos2d::CCPoint, cocos2d::CCPoint, float);
 // 	auto setCascadeColorEnabled(bool);
 // 	auto setCascadeOpacityEnabled(bool);
-// 	auto setColor(cocos2d::_ccColor3B const&);
+// 	auto setColor(cocos2d::ccColor3B const&);
 // 	auto setOpacity(unsigned char);
 // 	auto setOpacityModifyRGB(bool);
 // 	auto strike();
 // 	auto strikeFinished();
 // 	auto strikeRandom();
 // 	auto strikeWithSeed(unsigned long);
-// 	auto updateDisplayedColor(cocos2d::_ccColor3B const&);
+// 	auto updateDisplayedColor(cocos2d::ccColor3B const&);
 // 	auto updateDisplayedOpacity(unsigned char);
 // }
 class cocos2d::CCLiquid : cocos2d::CCGrid3DAction {
@@ -1370,7 +1370,7 @@ class cocos2d::CCMenuItemLabel : cocos2d::CCMenuItem {
 	auto getLabel();
 	auto initWithLabel(cocos2d::CCNode*, cocos2d::CCObject*, cocos2d::SEL_MenuHandler);
 	auto selected();
-	auto setDisabledColor(cocos2d::_ccColor3B const&);
+	auto setDisabledColor(cocos2d::ccColor3B const&);
 	auto setEnabled(bool);
 	auto setLabel(cocos2d::CCNode*);
 	auto setString(char const*);
@@ -1413,26 +1413,26 @@ class cocos2d::CCMenuItemToggle : cocos2d::CCMenuItem {
 }
 class cocos2d::CCMotionStreak : cocos2d::CCNodeRGBA, cocos2d::CCTextureProtocol {
 	auto CCMotionStreak();
-	auto create(float, float, float, cocos2d::_ccColor3B const&, char const*);
-	auto create(float, float, float, cocos2d::_ccColor3B const&, cocos2d::CCTexture2D*);
+	auto create(float, float, float, cocos2d::ccColor3B const&, char const*);
+	auto create(float, float, float, cocos2d::ccColor3B const&, cocos2d::CCTexture2D*);
 	auto draw();
 	auto enableRepeatMode(float);
 	auto getBlendFunc();
 	auto getOpacity();
 	auto getTexture();
-	auto initWithFade(float, float, float, cocos2d::_ccColor3B const&, char const*);
-	auto initWithFade(float, float, float, cocos2d::_ccColor3B const&, cocos2d::CCTexture2D*);
+	auto initWithFade(float, float, float, cocos2d::ccColor3B const&, char const*);
+	auto initWithFade(float, float, float, cocos2d::ccColor3B const&, cocos2d::CCTexture2D*);
 	auto isOpacityModifyRGB();
 	auto reset();
 	auto resumeStroke();
-	auto setBlendFunc(cocos2d::_ccBlendFunc);
+	auto setBlendFunc(cocos2d::ccBlendFunc);
 	auto setOpacity(unsigned char);
 	auto setOpacityModifyRGB(bool);
 	auto setPosition(cocos2d::CCPoint const&);
 	auto setStroke(float);
 	auto setTexture(cocos2d::CCTexture2D*);
 	auto stopStroke();
-	auto tintWithColor(cocos2d::_ccColor3B);
+	auto tintWithColor(cocos2d::ccColor3B);
 	auto update(float);
 }
 class cocos2d::CCMouseDelegate {
@@ -1619,12 +1619,12 @@ class cocos2d::CCNodeRGBA : cocos2d::CCNode, cocos2d::CCRGBAProtocol {
 	auto setCascadeColorEnabled(bool);
 	auto setCascadeOpacityEnabled(bool);
 	auto setCascadeOpacityEnabled(bool);
-	auto setColor(cocos2d::_ccColor3B const&);
-	auto setColor(cocos2d::_ccColor3B const&);
+	auto setColor(cocos2d::ccColor3B const&);
+	auto setColor(cocos2d::ccColor3B const&);
 	auto setOpacity(unsigned char);
 	auto setOpacity(uchar);
 	auto setOpacityModifyRGB(bool);
-	auto updateDisplayedColor(cocos2d::_ccColor3B const&);
+	auto updateDisplayedColor(cocos2d::ccColor3B const&);
 	auto updateDisplayedOpacity(unsigned char);
 	auto updateDisplayedOpacity(uchar);
 }
@@ -1714,7 +1714,7 @@ class cocos2d::CCParticleBatchNode : cocos2d::CCNode, cocos2d::CCTextureProtocol
 	auto removeChildAtIndex(unsigned int, bool);
 	auto reorderChild(cocos2d::CCNode*, int);
 	auto searchNewPositionInChildrenForZ(int);
-	auto setBlendFunc(cocos2d::_ccBlendFunc);
+	auto setBlendFunc(cocos2d::ccBlendFunc);
 	auto setTexture(cocos2d::CCTexture2D*);
 	auto updateAllAtlasIndexes();
 	auto updateBlendFunc();
@@ -1854,7 +1854,7 @@ class cocos2d::CCParticleSystem : cocos2d::CCNode, cocos2d::CCTextureProtocol {
 	auto setAutoRemoveOnFinish(bool);
 	auto setBatchNode(cocos2d::CCParticleBatchNode*);
 	auto setBlendAdditive(bool);
-	auto setBlendFunc(cocos2d::_ccBlendFunc);
+	auto setBlendFunc(cocos2d::ccBlendFunc);
 	auto setDuration(float);
 	auto setEmissionRate(float);
 	auto setEmitterMode(int);
@@ -1991,7 +1991,7 @@ class cocos2d::CCProgressTimer : cocos2d::CCNodeRGBA {
 	auto getOpacity();
 	auto initWithSprite(cocos2d::CCSprite*);
 	auto setAnchorPoint(cocos2d::CCPoint);
-	auto setColor(cocos2d::_ccColor3B const&);
+	auto setColor(cocos2d::ccColor3B const&);
 	auto setMidpoint(cocos2d::CCPoint);
 	auto setOpacity(unsigned char);
 	auto setPercentage(float);
@@ -2340,10 +2340,10 @@ class cocos2d::CCSprite : cocos2d::CCNodeRGBA, cocos2d::CCTextureProtocol {
 	auto reorderChild(cocos2d::CCNode*, int);
 	auto setAnchorPoint(cocos2d::CCPoint const&);
 	auto setBatchNode(cocos2d::CCSpriteBatchNode*);
-	auto setBlendFunc(cocos2d::_ccBlendFunc);
-	auto setChildColor(cocos2d::_ccColor3B const&);
+	auto setBlendFunc(cocos2d::ccBlendFunc);
+	auto setChildColor(cocos2d::ccColor3B const&);
 	auto setChildOpacity(unsigned char);
-	auto setColor(cocos2d::_ccColor3B const&);
+	auto setColor(cocos2d::ccColor3B const&);
 	auto setDirty(bool);
 	auto setDirtyRecursively(bool);
 	auto setDisplayFrame(cocos2d::CCSpriteFrame*);
@@ -2372,7 +2372,7 @@ class cocos2d::CCSprite : cocos2d::CCNodeRGBA, cocos2d::CCTextureProtocol {
 	auto sortAllChildren();
 	auto updateBlendFunc();
 	auto updateColor();
-	auto updateDisplayedColor(cocos2d::_ccColor3B const&);
+	auto updateDisplayedColor(cocos2d::ccColor3B const&);
 	auto updateDisplayedOpacity(unsigned char);
 	auto updateTransform();
 }
@@ -2409,7 +2409,7 @@ class cocos2d::CCSpriteBatchNode : cocos2d::CCNode, cocos2d::CCTextureProtocol {
 	auto removeSpriteFromAtlas(cocos2d::CCSprite*);
 	auto reorderBatch(bool);
 	auto reorderChild(cocos2d::CCNode*, int);
-	auto setBlendFunc(cocos2d::_ccBlendFunc);
+	auto setBlendFunc(cocos2d::ccBlendFunc);
 	auto setTexture(cocos2d::CCTexture2D*);
 	auto sortAllChildren();
 	auto swap(int, int);
@@ -2526,7 +2526,7 @@ class cocos2d::CCTextFieldTTF : cocos2d::CCLabelTTF, cocos2d::CCIMEDelegate {
 	auto initWithPlaceHolder(char const*, char const*, float);
 	auto insertText(char const*, int);
 	auto isSecureTextEntry();
-	auto setColorSpaceHolder(cocos2d::_ccColor3B const&);
+	auto setColorSpaceHolder(cocos2d::ccColor3B const&);
 	auto setPlaceHolder(char const*);
 	auto setSecureTextEntry(bool);
 	auto setString(char const*);
@@ -2658,9 +2658,9 @@ class cocos2d::CCTileMapAtlas : cocos2d::CCAtlasNode {
 	auto loadTGAfile(char const*);
 	auto releaseMap();
 	auto setTGAInfo(cocos2d::sImageTGA*);
-	auto setTile(cocos2d::_ccColor3B const&, cocos2d::CCPoint const&);
+	auto setTile(cocos2d::ccColor3B const&, cocos2d::CCPoint const&);
 	auto tileAt(cocos2d::CCPoint const&);
-	auto updateAtlasValueAt(cocos2d::CCPoint const&, cocos2d::_ccColor3B const&, unsigned int);
+	auto updateAtlasValueAt(cocos2d::CCPoint const&, cocos2d::ccColor3B const&, unsigned int);
 	auto updateAtlasValues();
 }
 class cocos2d::CCTimer : cocos2d::CCObject {
@@ -2857,9 +2857,9 @@ class cocos2d::CCTransitionEaseScene {
 class cocos2d::CCTransitionFade : cocos2d::CCTransitionScene {
 	auto CCTransitionFade();
 	auto create(float, cocos2d::CCScene*);
-	auto create(float, cocos2d::CCScene*, cocos2d::_ccColor3B const&);
+	auto create(float, cocos2d::CCScene*, cocos2d::ccColor3B const&);
 	auto initWithDuration(float, cocos2d::CCScene*);
-	auto initWithDuration(float, cocos2d::CCScene*, cocos2d::_ccColor3B const&);
+	auto initWithDuration(float, cocos2d::CCScene*, cocos2d::ccColor3B const&);
 	auto onEnter();
 	auto onExit();
 }
@@ -3170,7 +3170,7 @@ class cocos2d::extension::CCControlButton : cocos2d::extension::CCControl {
 	auto setBackgroundSprite(cocos2d::extension::CCScale9Sprite*);
 	auto setBackgroundSpriteForState(cocos2d::extension::CCScale9Sprite*, unsigned int);
 	auto setBackgroundSpriteFrameForState(cocos2d::CCSpriteFrame*, unsigned int);
-	auto setColor(cocos2d::_ccColor3B const&);
+	auto setColor(cocos2d::ccColor3B const&);
 	auto setEnabled(bool);
 	auto setHighlighted(bool);
 	auto setLabelAnchorPoint(cocos2d::CCPoint);
@@ -3179,7 +3179,7 @@ class cocos2d::extension::CCControlButton : cocos2d::extension::CCControl {
 	auto setPreferredSize(cocos2d::CCSize);
 	auto setSelected(bool);
 	auto setTitleBMFontForState(char const*, unsigned int);
-	auto setTitleColorForState(cocos2d::_ccColor3B, unsigned int);
+	auto setTitleColorForState(cocos2d::ccColor3B, unsigned int);
 	auto setTitleForState(cocos2d::CCString*, unsigned int);
 	auto setTitleLabel(cocos2d::CCNode*);
 	auto setTitleLabelForState(cocos2d::CCNode*, unsigned int);
@@ -3194,7 +3194,7 @@ class cocos2d::extension::CCControlColourPicker : cocos2d::extension::CCControl 
 	auto create();
 	auto hueSliderValueChanged(cocos2d::CCObject*, unsigned int);
 	auto init();
-	auto setColorValue(cocos2d::_ccColor3B const&);
+	auto setColorValue(cocos2d::ccColor3B const&);
 	auto updateControlPicker();
 	auto updateHueAndControlPicker();
 }
@@ -3329,7 +3329,7 @@ class cocos2d::extension::CCEditBox : cocos2d::extension::CCControlButton, cocos
 	auto setContentSize(cocos2d::CCSize const&);
 	auto setDelegate(cocos2d::extension::CCEditBoxDelegate*);
 	auto setFont(char const*, int);
-	auto setFontColor(cocos2d::_ccColor3B const&);
+	auto setFontColor(cocos2d::ccColor3B const&);
 	auto setFontName(char const*);
 	auto setFontSize(int);
 	auto setInputFlag(cocos2d::extension::EditBoxInputFlag);
@@ -3337,7 +3337,7 @@ class cocos2d::extension::CCEditBox : cocos2d::extension::CCControlButton, cocos
 	auto setMaxLength(int);
 	auto setPlaceHolder(char const*);
 	auto setPlaceholderFont(char const*, int);
-	auto setPlaceholderFontColor(cocos2d::_ccColor3B const&);
+	auto setPlaceholderFontColor(cocos2d::ccColor3B const&);
 	auto setPlaceholderFontName(char const*);
 	auto setPlaceholderFontSize(int);
 	auto setPosition(cocos2d::CCPoint const&);
@@ -3403,7 +3403,7 @@ class cocos2d::extension::CCScale9Sprite : cocos2d::CCNodeRGBA {
 	auto resizableSpriteWithCapInsets(cocos2d::CCRect);
 	auto setBlendAdditive(bool);
 	auto setCapInsets(cocos2d::CCRect);
-	auto setColor(cocos2d::_ccColor3B const&);
+	auto setColor(cocos2d::ccColor3B const&);
 	auto setContentSize(cocos2d::CCSize const&);
 	auto setInsetBottom(float);
 	auto setInsetLeft(float);
@@ -3414,7 +3414,7 @@ class cocos2d::extension::CCScale9Sprite : cocos2d::CCNodeRGBA {
 	auto setPreferredSize(cocos2d::CCSize);
 	auto setSpriteFrame(cocos2d::CCSpriteFrame*);
 	auto updateCapInset();
-	auto updateDisplayedColor(cocos2d::_ccColor3B const&);
+	auto updateDisplayedColor(cocos2d::ccColor3B const&);
 	auto updateDisplayedOpacity(unsigned char);
 	auto updatePositions();
 	auto updateWithBatchNode(cocos2d::CCSpriteBatchNode*, cocos2d::CCRect, bool, cocos2d::CCRect);
@@ -3506,7 +3506,7 @@ class cocos2d::extension::CCTableViewCell : cocos2d::CCNode, cocos2d::extension:
 	auto setObjectID(unsigned int);
 }
 class cocos2d::extension::ColorPickerDelegate {
-	auto colorValueChanged(cocos2d::_ccColor3B);
+	auto colorValueChanged(cocos2d::ccColor3B);
 }
 class cocos2d::ZipFile {
 	auto ZipFile(gd::string const&, gd::string const&);

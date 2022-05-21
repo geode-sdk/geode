@@ -6,3 +6,4 @@
 #include <Virtuals.bro>
 #include <ClassesGD.bro>
 #include <CocosClassesGD.bro>
+#include <Destructors.bro>

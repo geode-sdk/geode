@@ -144,8 +144,8 @@ class AppDelegate : cocos2d::CCSceneDelegate {
 	virtual void applicationDidFinishLaunching() = mac 0x3aa900, ios 0x1a23f8;
 	virtual void applicationDidEnterBackground() = mac 0x3aabe0, ios 0x1a267c;
 	virtual void applicationWillEnterForeground() = mac 0x3aac80, ios 0x1a2710;
-	virtual void applicationWillBecomeActive() = mac 0x3aab30, ios 0x1a25f4;
-	virtual void applicationWillResignActive() = mac 0x3aab50, ios 0x1a2608;
+	virtual void applicationWillBecomeActive();
+	virtual void applicationWillResignActive();
 	virtual void trySaveGame() = mac 0x3aaf10, ios 0x1a28f0;
 	virtual void willSwitchToScene(cocos2d::CCScene*) = mac 0x3aaf40, ios 0x1a28cc;
 }
@@ -1105,7 +1105,7 @@ class CCPartAnimSprite : cocos2d::CCSprite {
 	virtual void setScaleY(float) = mac 0x1bff70, ios 0x3ddbc;
 	virtual void setScale(float) = mac 0x1bff30, ios 0x3dd6c;
 	virtual void setOpacity(unsigned char) = mac 0x1c01d0, ios 0x3dfa8;
-	virtual void setBlendFunc(cocos2d::_ccBlendFunc) = mac 0x1bff90, ios 0x3dde4;
+	virtual void setBlendFunc(cocos2d::ccBlendFunc) = mac 0x1bff90, ios 0x3dde4;
 	virtual void setDisplayFrame(cocos2d::CCSpriteFrame*) = mac 0x1bfa40, ios 0x3d8d4;
 	virtual bool isFrameDisplayed(cocos2d::CCSpriteFrame*) = mac 0x1bfc20, ios 0x3da6c;
 	virtual cocos2d::CCSpriteFrame* displayFrame() = mac 0x1bfc40, ios 0x3da84;
@@ -2360,19 +2360,19 @@ class TableView : CCScrollLayerExt, CCScrollLayerExtDelegate {
 }
 
 class cocos2d::CCBezierBy : cocos2d::CCActionInterval {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x1f6960, ios 0xf21ec;
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x1f67a0, ios 0xf2088;
 	virtual auto reverse() = mac 0x1f6b40, ios 0xf2368;
 }
 
 class cocos2d::CCBezierTo : cocos2d::CCBezierBy {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x1f6f30, ios 0xf2690;
 }
 
 class cocos2d::CCCallFunc : cocos2d::CCActionInstant {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x455120, ios 0x112a2c;
 	virtual auto initWithTarget(cocos2d::CCObject*) = mac 0x454eb0, ios 0x112838;
 	virtual auto execute() = mac 0x455130, ios 0x112a38;
@@ -2380,7 +2380,7 @@ class cocos2d::CCCallFunc : cocos2d::CCActionInstant {
 
 class cocos2d::CCDirector : cocos2d::CCObject, cocos2d::TypeInfo {
 	virtual auto init() = mac 0x248df0, ios 0xec064;
-	virtual auto getClassTypeInfo() = mac 0x24b280, ios 0xed9dc;
+	virtual auto getClassTypeInfo();
 	virtual auto getScheduler() = mac 0x24af00, ios 0xed6bc;
 	virtual auto setScheduler(cocos2d::CCScheduler*) = mac 0x24aec0, ios 0xed674;
 	virtual auto getActionManager() = mac 0x24af50, ios 0xed70c;
@@ -2442,8 +2442,8 @@ class cocos2d::CCNodeRGBA : cocos2d::CCNode, cocos2d::CCRGBAProtocol {
 	virtual auto updateDisplayedColor(cocos2d::ccColor3B const&) = mac 0x1251e0, ios 0x15fa68;
 	virtual auto isCascadeColorEnabled() = mac 0x125320, ios 0x15fb70;
 	virtual auto setCascadeColorEnabled(bool) = mac 0x125340, ios 0x15fb80;
-	virtual auto setOpacityModifyRGB(bool) = mac 0x328e0;
-	virtual auto isOpacityModifyRGB() = mac 0x328f0;
+	virtual auto setOpacityModifyRGB(bool);
+	virtual auto isOpacityModifyRGB();
 }
 
 class cocos2d::CCProfiler : cocos2d::CCObject {
@@ -2454,21 +2454,21 @@ class cocos2d::CCRipple3D : cocos2d::CCGrid3DAction {
 }
 
 class cocos2d::CCRotateBy : cocos2d::CCActionInterval {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x1f4f90, ios 0xf18e0;
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x1f4f40, ios 0xf1888;
 	virtual auto reverse() = mac 0x1f5000, ios 0xf1964;
 }
 
 class cocos2d::CCRotateTo : cocos2d::CCActionInterval {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x1f4be0, ios 0xf15c0;
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x1f4aa0, ios 0xf14b8;
 	virtual auto initWithDuration(float, float, float) = mac 0x1f4980, ios 0xf13a8;
 }
 
 class cocos2d::CCSequence : cocos2d::CCActionInterval {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float);
 	virtual auto startWithTarget(cocos2d::CCNode*);
 	virtual auto stop();
@@ -2489,7 +2489,7 @@ class cocos2d::CCTMXLayer : cocos2d::CCSpriteBatchNode {
 }
 
 class cocos2d::CCAnimation : cocos2d::CCObject {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto getDuration() = mac 0x141460, ios 0x104c2c;
 }
 
@@ -2503,7 +2503,7 @@ class cocos2d::CCAtlasNode : cocos2d::CCNodeRGBA, cocos2d::CCTextureProtocol {
 	virtual auto getTextureAtlas() = mac 0x1a54a0;
 	virtual auto setTextureAtlas(cocos2d::CCTextureAtlas*) = mac 0x1a5460;
 	virtual auto getBlendFunc() = mac 0x1a5320;
-	virtual auto setBlendFunc(cocos2d::_ccBlendFunc) = mac 0x1a5340;
+	virtual auto setBlendFunc(cocos2d::ccBlendFunc) = mac 0x1a5340;
 	virtual auto getQuadsToDraw() = mac 0x1a54b0;
 	virtual auto setQuadsToDraw(unsigned int) = mac 0x1a54c0;
 	virtual auto updateAtlasValues() = mac 0x1a4f60;
@@ -2512,16 +2512,16 @@ class cocos2d::CCAtlasNode : cocos2d::CCNodeRGBA, cocos2d::CCTextureProtocol {
 }
 
 class cocos2d::CCCallFuncN : cocos2d::CCCallFunc, cocos2d::TypeInfo {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto execute() = mac 0x455190;
-	virtual auto getClassTypeInfo() = mac 0x455e70;
+	virtual auto getClassTypeInfo();
 	virtual auto initWithTarget(cocos2d::CCObject*, cocos2d::SEL_CallFuncN) = mac 0x455330;
 }
 
 class cocos2d::CCCallFuncO : cocos2d::CCCallFunc, cocos2d::TypeInfo {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto execute() = mac 0x455910, ios 0x112b40;
-	virtual auto getClassTypeInfo() = mac 0x4561d0, ios 0x112e10;
+	virtual auto getClassTypeInfo();
 	virtual auto initWithTarget(cocos2d::CCObject*, cocos2d::SEL_MenuHandler, cocos2d::CCObject*) = mac 0x455a20, ios 0x112c38;
 }
 
@@ -2536,13 +2536,13 @@ class cocos2d::CCComponent : cocos2d::CCObject {
 }
 
 class cocos2d::CCDelayTime : cocos2d::CCActionInterval {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x1f8af0, ios 0xf36a4;
 	virtual auto reverse() = mac 0x1f8b00, ios 0xf36a8;
 }
 
 class cocos2d::CCEaseInOut : cocos2d::CCEaseRateAction {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x2a1f30, ios 0x1a6b30;
 	virtual auto reverse() = mac 0x2a1fa0, ios 0x1a6bac;
 }
@@ -2596,8 +2596,8 @@ class cocos2d::CCLayerRGBA : cocos2d::CCLayer, cocos2d::CCRGBAProtocol {
 	virtual auto updateDisplayedColor(cocos2d::ccColor3B const&) = mac 0x2740b0, ios 0xc89a4;
 	virtual auto isCascadeColorEnabled() = mac 0x274230, ios 0xc8acc;
 	virtual auto setCascadeColorEnabled(bool) = mac 0x274250, ios 0xc8adc;
-	virtual auto setOpacityModifyRGB(bool) = mac 0x6180;
-	virtual auto isOpacityModifyRGB() = mac 0x6190;
+	virtual auto setOpacityModifyRGB(bool);
+	virtual auto isOpacityModifyRGB();
 }
 
 // class cocos2d::CCLightning : cocos2d::CCNode, cocos2d::CCRGBAProtocol {
@@ -2627,14 +2627,14 @@ class cocos2d::CCScheduler : cocos2d::CCObject {
 }
 
 class cocos2d::CCSplitCols : cocos2d::CCTiledGrid3DAction {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x45e790;
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x45e750;
 	virtual auto initWithDuration(float, unsigned int) = mac 0x45e5d0;
 }
 
 class cocos2d::CCSplitRows : cocos2d::CCTiledGrid3DAction {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x45e3e0;
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x45e3a0;
 	virtual auto initWithDuration(float, unsigned int) = mac 0x45e220;
@@ -2646,10 +2646,16 @@ class cocos2d::CCTexture2D : cocos2d::CCObject {
 	virtual auto setMaxS(float) = mac 0x2464f0, ios 0xbdd88;
 	virtual auto getMaxT() = mac 0x246500, ios 0xbdd90;
 	virtual auto setMaxT(float) = mac 0x246510, ios 0xbdd98;
+	virtual auto getPixelFormat() = mac 0x246420, ios 0xbdd08;
+	virtual auto getPixelsWide() = mac 0x246430, ios 0xbdd10;
+	virtual auto getPixelsHigh() = mac 0x246440, ios 0xbdd18;
+	virtual auto getContentSize() = mac 0x246460, ios 0xbdd28;
+	virtual auto getShaderProgram() = mac 0x246520, ios 0xbdda0;
+	virtual auto setShaderProgram(cocos2d::CCGLProgram*) = mac 0x246530, ios 0xbdda8;
 }
 
 class cocos2d::CCActionEase : cocos2d::CCActionInterval {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x2a15e0, ios 0x1a658c;
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x2a1580, ios 0x1a652c;
 	virtual auto stop() = mac 0x2a15b0, ios 0x1a655c;
@@ -2658,33 +2664,36 @@ class cocos2d::CCActionEase : cocos2d::CCActionInterval {
 }
 
 class cocos2d::CCCallFuncND : cocos2d::CCCallFuncN {
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
+	virtual auto getClassTypeInfo();
+	virtual auto initWithTarget(cocos2d::CCObject*, cocos2d::SEL_CallFuncND, void*) = mac 0x455560;
 	virtual auto execute() = mac 0x4556e0;
 }
 
 class cocos2d::CCDictionary : cocos2d::CCObject {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto acceptVisitor(cocos2d::CCDataVisitor&) = mac 0x192790, ios 0x2e066c;
 }
 
 class cocos2d::CCEaseBackIn : cocos2d::CCActionEase {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x2a42a0, ios 0x1a85a4;
 	virtual auto reverse() = mac 0x2a42d0, ios 0x1a85d4;
 }
 
 class cocos2d::CCEaseBounce : cocos2d::CCActionEase {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto reverse() = mac 0x2a3890;
 }
 
 class cocos2d::CCEaseSineIn : cocos2d::CCActionEase {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x2a2780, ios 0x1a72ec;
 	virtual auto reverse() = mac 0x2a27c0, ios 0x1a733c;
 }
 
 class cocos2d::CCGridAction : cocos2d::CCActionInterval {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0xee0d0;
 	virtual auto reverse() = mac 0xee1a0;
 	virtual auto initWithDuration(float, cocos2d::CCSize const&) = mac 0xee0a0;
@@ -2706,7 +2715,7 @@ class cocos2d::CCLayerColor : cocos2d::CCLayerRGBA, cocos2d::CCBlendProtocol {
 	virtual auto initWithColor(cocos2d::ccColor4B const&, float, float) = mac 0x274850, ios 0xc8e34;
 	virtual auto initWithColor(cocos2d::ccColor4B const&) = mac 0x2749a0, ios 0xc8f14;
 	virtual auto getBlendFunc() = mac 0x274480, ios 0xc8bcc;
-	virtual auto setBlendFunc(cocos2d::_ccBlendFunc) = mac 0x2744a0, ios 0xc8bdc;
+	virtual auto setBlendFunc(cocos2d::ccBlendFunc) = mac 0x2744a0, ios 0xc8bdc;
 	virtual auto updateColor() = mac 0x274ae0, ios 0xc8f80;
 }
 
@@ -2715,17 +2724,17 @@ class cocos2d::CCPageTurn3D : cocos2d::CCGrid3DAction {
 }
 
 class cocos2d::CCPointArray : cocos2d::CCObject {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 }
 
 class cocos2d::CCProgressTo : cocos2d::CCActionInterval {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x23d380;
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x23d340;
 }
 
 class cocos2d::CCRemoveSelf : cocos2d::CCActionInstant {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x454770;
 	virtual auto reverse() = mac 0x454790;
 }
@@ -2751,10 +2760,6 @@ class cocos2d::CCActionTween : cocos2d::CCActionInterval {
 }
 
 class cocos2d::CCApplication : cocos2d::CCApplicationProtocol {
-	virtual auto applicationWillBecomeActive() = mac 0x1a45c0;
-	virtual auto applicationWillResignActive() = mac 0x1a45d0;
-	virtual auto trySaveGame() = mac 0x1a45e0;
-	virtual auto gameDidSave() = mac 0x1a45f0;
 	virtual auto setAnimationInterval(double) = mac 0x1a3ee0, ios 0x10e508;
 	virtual auto getCurrentLanguage() = mac 0x1a3f40, ios 0x10e57c;
 	virtual auto getTargetPlatform() = mac 0x1a3f20, ios 0x10e7a4;
@@ -2773,18 +2778,18 @@ class cocos2d::CCDataVisitor {
 }
 
 class cocos2d::CCEaseBackOut : cocos2d::CCActionEase {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x2a4480, ios 0x1a8754;
 	virtual auto reverse() = mac 0x2a44c0, ios 0x1a8794;
 }
 
 class cocos2d::CCEaseElastic : cocos2d::CCActionEase {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto reverse() = mac 0x2a2dd0;
 }
 
 class cocos2d::CCEaseSineOut : cocos2d::CCActionEase {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x2a2970, ios 0x1a74bc;
 	virtual auto reverse() = mac 0x2a29a0, ios 0x1a7504;
 }
@@ -2792,17 +2797,17 @@ class cocos2d::CCEaseSineOut : cocos2d::CCActionEase {
 class cocos2d::CCIMEDelegate {
 	virtual auto attachWithIME() = mac 0x2776a0, ios 0x12d3d4;
 	virtual auto detachWithIME() = mac 0x277880, ios 0x12d4e8;
-	virtual auto canAttachWithIME() = mac 0x5ef30;
-	virtual auto didAttachWithIME() = mac 0x5ef40;
-	virtual auto canDetachWithIME() = mac 0x5ef50;
-	virtual auto didDetachWithIME() = mac 0x5ef60;
-	virtual auto insertText(char const*, int) = mac 0x5ef70;
-	virtual auto deleteBackward() = mac 0x5ef80;
-	virtual auto getContentText() = mac 0x5ef90, ios 0xe4008;
-	virtual auto keyboardWillShow(cocos2d::CCIMEKeyboardNotificationInfo&) = mac 0x126e80;
-	virtual auto keyboardDidShow(cocos2d::CCIMEKeyboardNotificationInfo&) = mac 0x5efa0;
-	virtual auto keyboardWillHide(cocos2d::CCIMEKeyboardNotificationInfo&) = mac 0x126e90;
-	virtual auto keyboardDidHide(cocos2d::CCIMEKeyboardNotificationInfo&) = mac 0x5efb0;
+	virtual auto canAttachWithIME();
+	virtual auto didAttachWithIME();
+	virtual auto canDetachWithIME();
+	virtual auto didDetachWithIME();
+	virtual auto insertText(char const*, int);
+	virtual auto deleteBackward();
+	virtual auto getContentText();
+	virtual auto keyboardWillShow(cocos2d::CCIMEKeyboardNotificationInfo&);
+	virtual auto keyboardDidShow(cocos2d::CCIMEKeyboardNotificationInfo&);
+	virtual auto keyboardWillHide(cocos2d::CCIMEKeyboardNotificationInfo&);
+	virtual auto keyboardDidHide(cocos2d::CCIMEKeyboardNotificationInfo&);
 }
 
 class cocos2d::CCJumpTiles3D : cocos2d::CCTiledGrid3DAction {
@@ -2841,18 +2846,18 @@ class cocos2d::CCLabelBMFont : cocos2d::CCSpriteBatchNode, cocos2d::CCLabelProto
 }
 
 class cocos2d::CCOrbitCamera : cocos2d::CCActionCamera {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x1b30c0;
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x1b2de0;
 }
 
 class cocos2d::CCParticleSun : cocos2d::CCParticleSystemQuad {
-	virtual auto init() = mac 0x24d720;
+	virtual auto init();
 	virtual auto initWithTotalParticles(unsigned int) = mac 0x24bbb0;
 }
 
 class cocos2d::CCReverseTime : cocos2d::CCActionInterval {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x1f8f70;
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x1f8f00;
 	virtual auto stop() = mac 0x1f8f40;
@@ -2863,7 +2868,7 @@ class cocos2d::CCShaderCache : cocos2d::CCObject {
 }
 
 class cocos2d::CCSpriteFrame : cocos2d::CCObject {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 }
 
 class cocos2d::CCTMXTiledMap : cocos2d::CCNode {
@@ -2901,7 +2906,7 @@ class cocos2d::CCClippingNode : cocos2d::CCNode {
 }
 
 class cocos2d::CCEaseBounceIn : cocos2d::CCEaseBounce {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x2a3a40, ios 0x1a804c;
 	virtual auto reverse() = mac 0x2a3b20, ios 0x1a808c;
 }
@@ -2923,7 +2928,7 @@ class cocos2d::CCMotionStreak : cocos2d::CCNodeRGBA, cocos2d::CCTextureProtocol 
 	virtual auto isOpacityModifyRGB() = mac 0x2edaa0, ios 0xee00c;
 	virtual auto getTexture() = mac 0x2ed950, ios 0xedf6c;
 	virtual auto setTexture(cocos2d::CCTexture2D*) = mac 0x2ed970, ios 0xedf7c;
-	virtual auto setBlendFunc(cocos2d::_ccBlendFunc) = mac 0x2eda00, ios 0xedfcc;
+	virtual auto setBlendFunc(cocos2d::ccBlendFunc) = mac 0x2eda00, ios 0xedfcc;
 	virtual auto getBlendFunc() = mac 0x2eda20, ios 0xedfdc;
 }
 
@@ -2940,17 +2945,17 @@ class cocos2d::CCParallaxNode : cocos2d::CCNode {
 }
 
 class cocos2d::CCParticleFire : cocos2d::CCParticleSystemQuad {
-	virtual auto init() = mac 0x24d660;
+	virtual auto init();
 	virtual auto initWithTotalParticles(unsigned int) = mac 0x24b570;
 }
 
 class cocos2d::CCParticleRain : cocos2d::CCParticleSystemQuad {
-	virtual auto init() = mac 0x24da20;
+	virtual auto init();
 	virtual auto initWithTotalParticles(unsigned int) = mac 0x24d3f0;
 }
 
 class cocos2d::CCParticleSnow : cocos2d::CCParticleSystemQuad {
-	virtual auto init() = mac 0x24d9c0;
+	virtual auto init();
 	virtual auto initWithTotalParticles(unsigned int) = mac 0x24d0d0;
 }
 
@@ -2961,11 +2966,13 @@ class cocos2d::CCSAXDelegator {
 }
 
 class cocos2d::CCShakyTiles3D : cocos2d::CCTiledGrid3DAction {
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x45b900;
+	virtual auto initWithDuration(float, cocos2d::CCSize const&, int, bool) = mac 0x45b7b0;
 }
 
 class cocos2d::CCShuffleTiles : cocos2d::CCTiledGrid3DAction {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x45c830;
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x45c590;
 	virtual auto initWithDuration(float, cocos2d::CCSize const&, unsigned int) = mac 0x45c140;
@@ -3018,18 +3025,20 @@ class cocos2d::CCTouchHandler : cocos2d::CCObject {
 }
 
 class cocos2d::CCTurnOffTiles : cocos2d::CCTiledGrid3DAction {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x45d870;
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x45d7c0;
 	virtual auto initWithDuration(float, cocos2d::CCSize const&, unsigned int) = mac 0x45d4d0;
 }
 
 class cocos2d::CCWavesTiles3D : cocos2d::CCTiledGrid3DAction {
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x45dba0;
+	virtual auto initWithDuration(float, cocos2d::CCSize const&, unsigned int, float) = mac 0x45da40;
 }
 
 class cocos2d::CCActionInstant : cocos2d::CCFiniteTimeAction {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x4542f0, ios 0x112518;
 	virtual auto isDone() = mac 0x4542c0, ios 0x112500;
 	virtual auto step(float) = mac 0x4542d0, ios 0x112508;
@@ -3047,25 +3056,25 @@ class cocos2d::CCConfiguration : cocos2d::CCObject {
 }
 
 class cocos2d::CCEaseBackInOut : cocos2d::CCActionEase {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x2a4670, ios 0x1a8914;
 	virtual auto reverse() = mac 0x2a4700, ios 0x1a89a0;
 }
 
 class cocos2d::CCEaseBounceOut : cocos2d::CCEaseBounce {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x2a3cd0, ios 0x1a820c;
 	virtual auto reverse() = mac 0x2a3d90, ios 0x1a8238;
 }
 
 class cocos2d::CCEaseElasticIn : cocos2d::CCEaseElastic {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x2a2fb0, ios 0x1a7878;
 	virtual auto reverse() = mac 0x2a3050, ios 0x1a7904;
 }
 
 class cocos2d::CCEaseSineInOut : cocos2d::CCActionEase {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x2a2b50, ios 0x1a7684;
 	virtual auto reverse() = mac 0x2a2b90, ios 0x1a76dc;
 }
@@ -3106,19 +3115,19 @@ class cocos2d::CCMenuItemLabel : cocos2d::CCMenuItem {
 	virtual auto unselected() = mac 0x1fc380;
 	virtual auto setEnabled(bool) = mac 0x1fc3f0;
 	virtual auto getDisabledColor() = mac 0x1fbb80;
-	virtual auto setDisabledColor(cocos2d::ccColor3B const&) = mac 0x1fbb90;
+	virtual auto setDisabledColor(cocos2d::ccColor3B const&);
 	virtual auto getLabel() = mac 0x1fbbb0;
 	virtual auto setLabel(cocos2d::CCNode*) = mac 0x1fbbc0;
 }
 
 class cocos2d::CCMouseDelegate {
-	virtual auto rightKeyDown() = mac 0x61b0;
-	virtual auto rightKeyUp() = mac 0x61c0;
-	virtual auto scrollWheel(float, float) = mac 0x61d0;
+	virtual auto rightKeyDown();
+	virtual auto rightKeyUp();
+	virtual auto scrollWheel(float, float);
 }
 
 class cocos2d::CCParticleSmoke : cocos2d::CCParticleSystemQuad {
-	virtual auto init() = mac 0x24d960;
+	virtual auto init();
 	virtual auto initWithTotalParticles(unsigned int) = mac 0x24cdd0;
 }
 
@@ -3154,7 +3163,7 @@ class cocos2d::CCRenderTexture : cocos2d::CCNode {
 }
 
 class cocos2d::CCRepeatForever : cocos2d::CCActionInterval {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto isDone() = mac 0x1f3b40, ios 0xf0d70;
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x1f3a90, ios 0xf0c98;
 	virtual auto step(float) = mac 0x1f3ad0, ios 0xf0cd8;
@@ -3183,7 +3192,7 @@ class cocos2d::CCAccelAmplitude : cocos2d::CCActionInterval {
 }
 
 class cocos2d::CCActionInterval : cocos2d::CCFiniteTimeAction {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto isDone() = mac 0x1f2640, ios 0xf04a0;
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x1f2700, ios 0xf0530;
 	virtual auto step(float) = mac 0x1f2660, ios 0xf04b0;
@@ -3194,17 +3203,17 @@ class cocos2d::CCAnimationCache : cocos2d::CCObject {
 }
 
 class cocos2d::CCAnimationFrame : cocos2d::CCObject {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 }
 
 class cocos2d::CCEaseElasticOut : cocos2d::CCEaseElastic {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x2a3250, ios 0x1a7abc;
 	virtual auto reverse() = mac 0x2a32f0, ios 0x1a7b54;
 }
 
 class cocos2d::CCEaseRateAction : cocos2d::CCActionEase {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto reverse() = mac 0x2a1930;
 }
 
@@ -3256,22 +3265,22 @@ class cocos2d::CCMenuItemToggle : cocos2d::CCMenuItem {
 }
 
 class cocos2d::CCParticleFlower : cocos2d::CCParticleSystemQuad {
-	virtual auto init() = mac 0x24d7e0;
+	virtual auto init();
 	virtual auto initWithTotalParticles(unsigned int) = mac 0x24c1a0;
 }
 
 class cocos2d::CCParticleGalaxy : cocos2d::CCParticleSystemQuad {
-	virtual auto init() = mac 0x24d780;
+	virtual auto init();
 	virtual auto initWithTotalParticles(unsigned int) = mac 0x24be90;
 }
 
 class cocos2d::CCParticleMeteor : cocos2d::CCParticleSystemQuad {
-	virtual auto init() = mac 0x24d840;
+	virtual auto init();
 	virtual auto initWithTotalParticles(unsigned int) = mac 0x24c4c0;
 }
 
 class cocos2d::CCParticleSpiral : cocos2d::CCParticleSystemQuad {
-	virtual auto init() = mac 0x24d8a0;
+	virtual auto init();
 	virtual auto initWithTotalParticles(unsigned int) = mac 0x24c7e0;
 }
 
@@ -3361,7 +3370,7 @@ class cocos2d::CCParticleSystem : cocos2d::CCNode, cocos2d::CCTextureProtocol {
 	virtual auto getTexture() = mac 0x46c620, ios 0xf95c4;
 	virtual auto setTexture(cocos2d::CCTexture2D*) = mac 0x46c4f0, ios 0xf94f4;
 	virtual auto getBlendFunc() = mac 0x46cbb0, ios 0xf989c;
-	virtual auto setBlendFunc(cocos2d::_ccBlendFunc) = mac 0x46cbd0, ios 0xf98ac;
+	virtual auto setBlendFunc(cocos2d::ccBlendFunc) = mac 0x46cbd0, ios 0xf98ac;
 	virtual auto getOpacityModifyRGB() = mac 0x46cc50, ios 0xf991c;
 	virtual auto setOpacityModifyRGB(bool) = mac 0x46cc60, ios 0xf9924;
 	virtual auto getPositionType() = mac 0x46cc70, ios 0xf992c;
@@ -3381,7 +3390,7 @@ class cocos2d::CCProfilingTimer : cocos2d::CCObject {
 }
 
 class cocos2d::CCProgressFromTo : cocos2d::CCActionInterval {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x23d650;
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x23d640;
 	virtual auto reverse() = mac 0x23d590;
@@ -3398,7 +3407,7 @@ class cocos2d::CCTMXTilesetInfo : cocos2d::CCObject {
 }
 
 class cocos2d::CCTargetedAction : cocos2d::CCActionInterval {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x1f9d40;
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x1f9d00;
 	virtual auto stop() = mac 0x1f9d30;
@@ -3444,7 +3453,7 @@ class cocos2d::CCEGLViewProtocol {
 }
 
 class cocos2d::CCEaseBounceInOut : cocos2d::CCEaseBounce {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x2a3f40, ios 0x1a83b8;
 	virtual auto reverse() = mac 0x2a40f0, ios 0x1a8424;
 }
@@ -3469,7 +3478,7 @@ class cocos2d::CCSpriteBatchNode : cocos2d::CCNode, cocos2d::CCTextureProtocol {
 	virtual auto visit() = mac 0xbb880, ios 0x130d54;
 	virtual auto getTexture() = mac 0xbcd70, ios 0x131a70;
 	virtual auto setTexture(cocos2d::CCTexture2D*) = mac 0xbcda0, ios 0x131a90;
-	virtual auto setBlendFunc(cocos2d::_ccBlendFunc) = mac 0xbcd30, ios 0x131a50;
+	virtual auto setBlendFunc(cocos2d::ccBlendFunc) = mac 0xbcd30, ios 0x131a50;
 	virtual auto getBlendFunc() = mac 0xbcd50, ios 0x131a60;
 }
 
@@ -3507,7 +3516,7 @@ class cocos2d::CCCardinalSplineBy : cocos2d::CCCardinalSplineTo {
 }
 
 class cocos2d::CCCardinalSplineTo : cocos2d::CCActionInterval {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x167c40;
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x167aa0;
 	virtual auto reverse() = mac 0x167f60;
@@ -3515,7 +3524,7 @@ class cocos2d::CCCardinalSplineTo : cocos2d::CCActionInterval {
 }
 
 class cocos2d::CCEaseElasticInOut : cocos2d::CCEaseElastic {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x2a34f0, ios 0x1a7d00;
 	virtual auto reverse() = mac 0x2a3620, ios 0x1a7e00;
 }
@@ -3530,21 +3539,23 @@ class cocos2d::CCFiniteTimeAction : cocos2d::CCAction {
 
 class cocos2d::CCKeyboardDelegate {
 	virtual auto keyDown(cocos2d::enumKeyCodes);
-	virtual auto keyUp(cocos2d::enumKeyCodes) = mac 0x61a0;
+	virtual auto keyUp(cocos2d::enumKeyCodes);
 }
 
 class cocos2d::CCKeypadDispatcher : cocos2d::CCObject {
 }
 
 class cocos2d::CCShatteredTiles3D : cocos2d::CCTiledGrid3DAction {
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x45bdc0;
+	virtual auto initWithDuration(float, cocos2d::CCSize const&, int, bool) = mac 0x45bc70;
 }
 
 class cocos2d::CCSpriteFrameCache : cocos2d::CCObject {
 }
 
 class cocos2d::CCToggleVisibility : cocos2d::CCActionInstant {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float);
 }
 
@@ -3564,7 +3575,7 @@ class cocos2d::CCTransitionFadeUp : cocos2d::CCTransitionFadeTR {
 }
 
 class cocos2d::CCEaseExponentialIn : cocos2d::CCActionEase {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x2a2160, ios 0x1a6d3c;
 	virtual auto reverse() = mac 0x2a21b0, ios 0x1a6da4;
 }
@@ -3583,17 +3594,17 @@ class cocos2d::CCParticleBatchNode : cocos2d::CCNode, cocos2d::CCTextureProtocol
 	virtual auto visit() = mac 0x2062e0;
 	virtual auto getTexture() = mac 0x206f90;
 	virtual auto setTexture(cocos2d::CCTexture2D*) = mac 0x206ee0;
-	virtual auto setBlendFunc(cocos2d::_ccBlendFunc) = mac 0x206fc0;
+	virtual auto setBlendFunc(cocos2d::ccBlendFunc) = mac 0x206fc0;
 	virtual auto getBlendFunc() = mac 0x206fe0;
 }
 
 class cocos2d::CCParticleExplosion : cocos2d::CCParticleSystemQuad {
-	virtual auto init() = mac 0x24d900;
+	virtual auto init();
 	virtual auto initWithTotalParticles(unsigned int) = mac 0x24cad0;
 }
 
 class cocos2d::CCParticleFireworks : cocos2d::CCParticleSystemQuad {
-	virtual auto init() = mac 0x24d6c0;
+	virtual auto init();
 	virtual auto initWithTotalParticles(unsigned int) = mac 0x24b910;
 }
 
@@ -3601,8 +3612,8 @@ class cocos2d::CCTextFieldDelegate {
 	virtual auto onTextFieldAttachWithIME(cocos2d::CCTextFieldTTF*);
 	virtual auto onTextFieldDetachWithIME(cocos2d::CCTextFieldTTF*);
 	virtual auto onTextFieldInsertText(cocos2d::CCTextFieldTTF*, char const*, int);
-	virtual auto onTextFieldDeleteBackward(cocos2d::CCTextFieldTTF*, char const*, int) = mac 0x5efc0;
-	virtual auto onDraw(cocos2d::CCTextFieldTTF*) = mac 0x5efd0;
+	virtual auto onTextFieldDeleteBackward(cocos2d::CCTextFieldTTF*, char const*, int);
+	virtual auto onDraw(cocos2d::CCTextFieldTTF*);
 	virtual auto textChanged();
 }
 
@@ -3639,7 +3650,7 @@ class cocos2d::CCComponentContainer {
 }
 
 class cocos2d::CCEaseExponentialOut : cocos2d::CCActionEase {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x2a2360, ios 0x1a6f24;
 	virtual auto reverse() = mac 0x2a23b0, ios 0x1a6f80;
 }
@@ -3719,10 +3730,10 @@ class cocos2d::CCActionTweenDelegate {
 }
 
 class cocos2d::CCApplicationProtocol {
-	virtual auto applicationWillBecomeActive() = mac 0x1a45c0;
-	virtual auto applicationWillResignActive() = mac 0x1a45d0;
-	virtual auto trySaveGame() = mac 0x1a45e0;
-	virtual auto gameDidSave() = mac 0x1a45f0;
+	virtual auto applicationWillBecomeActive();
+	virtual auto applicationWillResignActive();
+	virtual auto trySaveGame();
+	virtual auto gameDidSave();
 	virtual auto openURL(char const*);
 }
 
@@ -3770,7 +3781,7 @@ class cocos2d::CCAccelDeccelAmplitude : cocos2d::CCActionInterval {
 }
 
 class cocos2d::CCEaseExponentialInOut : cocos2d::CCActionEase {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x2a2560, ios 0x1a7100;
 	virtual auto reverse() = mac 0x2a25d0, ios 0x1a716c;
 }
@@ -3863,7 +3874,7 @@ class cocos2d::CCBool : cocos2d::CCObject {
 }
 
 class cocos2d::CCHide : cocos2d::CCActionInstant {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float);
 	virtual auto reverse();
 }
@@ -3880,10 +3891,10 @@ class cocos2d::CCMenu : cocos2d::CCLayerRGBA {
 	virtual auto ccTouchEnded(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x438fd0, ios 0x1321bc;
 	virtual auto ccTouchCancelled(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x439050, ios 0x132244;
 	virtual auto registerWithTouchDispatcher() = mac 0x438cd0, ios 0x131f8c;
-	virtual auto setOpacityModifyRGB(bool) = mac 0x18e6d0;
-	virtual auto isOpacityModifyRGB() = mac 0x18e6e0;
-	virtual auto isEnabled() = mac 0x18e6f0, ios 0x132730;
-	virtual auto setEnabled(bool) = mac 0x18e700, ios 0x132738;
+	virtual auto setOpacityModifyRGB(bool);
+	virtual auto isOpacityModifyRGB();
+	virtual auto isEnabled();
+	virtual auto setEnabled(bool);
 }
 
 class cocos2d::CCNode : cocos2d::CCObject {
@@ -3988,18 +3999,18 @@ class cocos2d::CCNode : cocos2d::CCObject {
 }
 
 class cocos2d::CCShow : cocos2d::CCActionInstant {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float);
 	virtual auto reverse();
 }
 
 class cocos2d::CCArray : cocos2d::CCObject {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto acceptVisitor(cocos2d::CCDataVisitor&) = mac 0x41a880, ios 0x165398;
 }
 
 class cocos2d::CCBlink : cocos2d::CCActionInterval {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x1f79f0, ios 0xf2c3c;
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x1f78b0, ios 0xf2b08;
 	virtual auto stop() = mac 0x1f7880, ios 0xf2ad4;
@@ -4007,13 +4018,13 @@ class cocos2d::CCBlink : cocos2d::CCActionInterval {
 }
 
 class cocos2d::CCFlipX : cocos2d::CCActionInstant {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x454910;
 	virtual auto reverse() = mac 0x454930;
 }
 
 class cocos2d::CCFlipY : cocos2d::CCActionInstant {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x454ab0;
 	virtual auto reverse() = mac 0x454ad0;
 }
@@ -4059,7 +4070,7 @@ class cocos2d::CCLayer : cocos2d::CCNode, cocos2d::CCTouchDelegate, cocos2d::CCA
 }
 
 class cocos2d::CCPlace : cocos2d::CCActionInstant {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x454d70;
 }
 
@@ -4068,7 +4079,7 @@ class cocos2d::CCScene : cocos2d::CCNode {
 }
 
 class cocos2d::CCSpawn : cocos2d::CCActionInterval {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x1f46c0, ios 0xf1258;
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x1f4650, ios 0xf11c4;
 	virtual auto stop() = mac 0x1f4690, ios 0xf1218;
@@ -4076,7 +4087,7 @@ class cocos2d::CCSpawn : cocos2d::CCActionInterval {
 }
 
 class cocos2d::CCSpeed : cocos2d::CCAction {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto isDone() = mac 0x35bc50;
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x35bbe0;
 	virtual auto stop() = mac 0x35bc00;
@@ -4092,12 +4103,12 @@ class cocos2d::CCTouch : cocos2d::CCObject {
 }
 
 class cocos2d::CCTwirl : cocos2d::CCGrid3DAction {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x129850;
 }
 
 class cocos2d::CCWaves : cocos2d::CCGrid3DAction {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x129340;
 }
 
@@ -4105,9 +4116,9 @@ class cocos2d::ZipFile {
 }
 
 class cocos2d::CCAction : cocos2d::CCObject {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x35b890, ios 0x19d964;
-	virtual auto setTag(int) = mac 0xef0b0, ios 0x230d8;
+	virtual auto setTag(int);
 	virtual auto isDone() = mac 0x35b870, ios 0x19d958;
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x35b850, ios 0x19d948;
 	virtual auto stop() = mac 0x35b860, ios 0x19d950;
@@ -4118,25 +4129,25 @@ class cocos2d::CCCamera : cocos2d::CCObject {
 }
 
 class cocos2d::CCEaseIn : cocos2d::CCEaseRateAction {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x2a1b10, ios 0x1a6740;
 	virtual auto reverse() = mac 0x2a1b40, ios 0x1a6780;
 }
 
 class cocos2d::CCFadeIn : cocos2d::CCActionInterval {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x1f7c80, ios 0xf2e34;
 	virtual auto reverse() = mac 0x1f7ce0, ios 0xf2e98;
 }
 
 class cocos2d::CCFadeTo : cocos2d::CCActionInterval {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x1f8220, ios 0xf3274;
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x1f81c0, ios 0xf3210;
 }
 
 class cocos2d::CCFollow : cocos2d::CCAction {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto isDone() = mac 0x35c2e0;
 	virtual auto stop() = mac 0x35c300;
 	virtual auto step(float) = mac 0x35c1f0;
@@ -4149,14 +4160,14 @@ class cocos2d::CCGrid3D : cocos2d::CCGridBase {
 }
 
 class cocos2d::CCJumpBy : cocos2d::CCActionInterval {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x1f6160;
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x1f6110;
 	virtual auto reverse() = mac 0x1f6290;
 }
 
 class cocos2d::CCJumpTo : cocos2d::CCJumpBy {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x1f6570;
 }
 
@@ -4165,26 +4176,26 @@ class cocos2d::CCLens3D : cocos2d::CCGrid3DAction {
 }
 
 class cocos2d::CCLiquid : cocos2d::CCGrid3DAction {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x128ed0;
 }
 
 class cocos2d::CCMoveBy : cocos2d::CCActionInterval {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x1f5400, ios 0xf1c24;
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x1f5360, ios 0xf1b8c;
 	virtual auto reverse() = mac 0x1f53b0, ios 0xf1be0;
 }
 
 class cocos2d::CCMoveTo : cocos2d::CCMoveBy {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x1f5740, ios 0xf1ef8;
 }
 
 class cocos2d::CCObject : cocos2d::CCCopying {
 	virtual auto isEqual(cocos2d::CCObject const*) = mac 0x250f20, ios 0x439e4;
 	virtual auto acceptVisitor(cocos2d::CCDataVisitor&) = mac 0x250f30, ios 0x439f0;
-	virtual auto update(float) = mac 0x32660;
+	virtual auto update(float);
 	virtual auto encodeWithCoder(DS_Dictionary*) = mac 0x250f70, ios 0x43a18;
 	virtual auto canEncode() = mac 0x250f90, ios 0x43a24;
 	virtual auto getTag() const = mac 0x250f50, ios 0x43a08;
@@ -4192,7 +4203,7 @@ class cocos2d::CCObject : cocos2d::CCCopying {
 }
 
 class cocos2d::CCRepeat : cocos2d::CCActionInterval {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x1f36b0;
 	virtual auto isDone() = mac 0x1f37e0;
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x1f3630;
@@ -4207,7 +4218,7 @@ class cocos2d::CCSkewBy : cocos2d::CCSkewTo {
 }
 
 class cocos2d::CCSkewTo : cocos2d::CCActionInterval {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x1f5b20;
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x1f59f0;
 	virtual auto initWithDuration(float, float, float) = mac 0x1f58d0;
@@ -4252,8 +4263,8 @@ class cocos2d::CCSprite : cocos2d::CCNodeRGBA, cocos2d::CCTextureProtocol {
 	virtual auto initWithFile(char const*, cocos2d::CCRect const&) = mac 0x133210, ios 0x15b720;
 	virtual auto setTexture(cocos2d::CCTexture2D*) = mac 0x135a90, ios 0x15d610;
 	virtual auto getTexture() = mac 0x135c00, ios 0x15d748;
-	virtual auto setBlendFunc(cocos2d::_ccBlendFunc) = mac 0x50590, ios 0x14c7c;
-	virtual auto getBlendFunc() = mac 0x505a0, ios 0x14c88;
+	virtual auto setBlendFunc(cocos2d::ccBlendFunc);
+	virtual auto getBlendFunc();
 	virtual auto setChildColor(cocos2d::ccColor3B const&) = mac 0x135160, ios 0x15d0f4;
 	virtual auto setChildOpacity(unsigned char) = mac 0x134f50, ios 0x15cfe4;
 	virtual auto getBatchNode() = mac 0x135910, ios 0x15d4e0;
@@ -4266,8 +4277,8 @@ class cocos2d::CCSprite : cocos2d::CCNodeRGBA, cocos2d::CCTextureProtocol {
 	virtual auto isFrameDisplayed(cocos2d::CCSpriteFrame*) = mac 0x1356d0, ios 0x15d344;
 	virtual auto displayFrame() = mac 0x135760, ios 0x15d3d8;
 	virtual auto setDisplayFrameWithAnimationName(char const*, int) = mac 0x135680, ios 0x15d2f0;
-	virtual auto isDirty() = mac 0x505b0, ios 0x14c94;
-	virtual auto setDirty(bool) = mac 0x505c0, ios 0x14c9c;
+	virtual auto isDirty();
+	virtual auto setDirty(bool);
 	virtual auto setTextureCoords(cocos2d::CCRect const&) = mac 0x133910, ios 0x15bc64;
 	virtual auto updateBlendFunc() = mac 0x135a20, ios 0x15d5a0;
 	virtual auto setReorderChildDirtyRecursively() = mac 0x134550, ios 0x15c764;
@@ -4275,20 +4286,20 @@ class cocos2d::CCSprite : cocos2d::CCNodeRGBA, cocos2d::CCTextureProtocol {
 }
 
 class cocos2d::CCString : cocos2d::CCObject {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto isEqual(cocos2d::CCObject const*) = mac 0x44c8f0, ios 0x1a1e6c;
 	virtual auto acceptVisitor(cocos2d::CCDataVisitor&) = mac 0x44ccb0, ios 0x1a2168;
 }
 
 class cocos2d::CCTintBy : cocos2d::CCActionInterval {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x1f8870;
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x1f8800;
 	virtual auto reverse() = mac 0x1f8950;
 }
 
 class cocos2d::CCTintTo : cocos2d::CCActionInterval {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x1f8510, ios 0xf3518;
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x1f84b0, ios 0xf34ac;
 }
@@ -4297,15 +4308,11 @@ class cocos2d::TypeInfo {
 }
 
 class cocos2d::CCAnimate : cocos2d::CCActionInterval {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x1f9610, ios 0xf3c04;
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x1f9570, ios 0xf3b58;
 	virtual auto stop() = mac 0x1f95d0, ios 0xf3bc0;
 	virtual auto reverse() = mac 0x1f9840, ios 0xf3e04;
-}
-
-class cocos2d::CCCopying {
-	virtual auto copyWithZone(cocos2d::CCZone*);
 }
 
 class cocos2d::CCEGLView : cocos2d::CCEGLViewProtocol {
@@ -4313,46 +4320,20 @@ class cocos2d::CCEGLView : cocos2d::CCEGLViewProtocol {
 	virtual auto isOpenGLReady() = mac 0x295470, ios 0xbac80;
 	virtual auto swapBuffers() = mac 0x295510, ios 0xbad54;
 	virtual auto setIMEKeyboardState(bool) = mac 0x295550, ios 0xbad80;
-	virtual auto getFrameSize() const = mac 0x29d950, ios 0x20eee4;
-	virtual auto setFrameSize(float, float) = mac 0x29d960, ios 0x20eeec;
-	virtual auto getVisibleSize() const = mac 0x29d9a0, ios 0x20ef30;
-	virtual auto getVisibleOrigin() const = mac 0x29d9f0, ios 0x20ef60;
-	virtual auto setDesignResolutionSize(float, float, ResolutionPolicy) = mac 0x29d7c0, ios 0x20edb0;
-	virtual auto getDesignResolutionSize() const = mac 0x29d940, ios 0x20eedc;
-	virtual auto setTouchDelegate(cocos2d::EGLTouchDelegate*) = mac 0x29da60, ios 0x20efac;
-	virtual auto setViewPortInPoints(float, float, float, float) = mac 0x29da70, ios 0x20efb4;
-	virtual auto setScissorInPoints(float, float, float, float) = mac 0x29dab0, ios 0x20efe8;
-	virtual auto isScissorEnabled() = mac 0x29daf0, ios 0x20f01c;
-	virtual auto getScissorRect() = mac 0x29db10, ios 0x20f03c;
-	virtual auto setViewName(char const*) = mac 0x29dba0, ios 0x20f0d4;
-	virtual auto handleTouchesBegin(int, int*, float*, float*) = mac 0x29dbd0, ios 0x20f0f0;
-	virtual auto handleTouchesMove(int, int*, float*, float*) = mac 0x29deb0, ios 0x20f350;
-	virtual auto handleTouchesEnd(int, int*, float*, float*) = mac 0x29e1d0, ios 0x20f5cc;
-	virtual auto handleTouchesCancel(int, int*, float*, float*) = mac 0x29e260, ios 0x20f66c;
-	virtual auto pollInputEvents() = mac 0x29e320, ios 0x20f724;
+	virtual auto setViewPortInPoints(float, float, float, float) = mac 0x295490, ios 0x20efb4;
+	virtual auto setScissorInPoints(float, float, float, float) = mac 0x295730, ios 0x20efe8;
 }
 
 class cocos2d::CCEaseOut : cocos2d::CCEaseRateAction {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x2a1d20, ios 0x1a6934;
 	virtual auto reverse() = mac 0x2a1d50, ios 0x1a697c;
 }
 
 class cocos2d::CCFadeOut : cocos2d::CCActionInterval {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x1f7ee0, ios 0xf3000;
 	virtual auto reverse() = mac 0x1f7f50, ios 0xf306c;
-}
-
-class cocos2d::CCFlipX3D : cocos2d::CCGrid3DAction {
-	virtual auto update(float) = mac 0x127560;
-}
-
-class cocos2d::CCFlipY3D : cocos2d::CCFlipX3D {
-	virtual auto update(float) = mac 0x127a50;
-}
-
-class cocos2d::CCGrabber : cocos2d::CCObject {
 }
 
 class cocos2d::CCInteger : cocos2d::CCObject {
@@ -4360,13 +4341,13 @@ class cocos2d::CCInteger : cocos2d::CCObject {
 }
 
 class cocos2d::CCScaleBy : cocos2d::CCScaleTo {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x1f7640;
 	virtual auto reverse() = mac 0x1f76b0;
 }
 
 class cocos2d::CCScaleTo : cocos2d::CCActionInterval {
-	virtual auto copyWithZone(cocos2d::CCZone*);
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) { return nullptr; }
 	virtual auto update(float) = mac 0x1f7360, ios 0xf29c0;
 	virtual auto startWithTarget(cocos2d::CCNode*) = mac 0x1f72f0, ios 0xf2954;
 }
@@ -4385,7 +4366,7 @@ class cocos2d::extension::CCTableView : cocos2d::extension::CCScrollView, cocos2
 	virtual auto ccTouchEnded(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x234ae0;
 	virtual auto ccTouchCancelled(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x234e50;
 	virtual auto scrollViewDidScroll(cocos2d::extension::CCScrollView*) = mac 0x234830;
-	virtual auto scrollViewDidZoom(cocos2d::extension::CCScrollView*) = mac 0x234ef0;
+	virtual auto scrollViewDidZoom(cocos2d::extension::CCScrollView*);
 }
 
 class cocos2d::extension::CCHttpClient : cocos2d::CCObject {
@@ -4408,7 +4389,7 @@ class cocos2d::extension::CCScrollView : cocos2d::CCLayer {
 	virtual auto ccTouchCancelled(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x216d30;
 	virtual auto registerWithTouchDispatcher() = mac 0x214ff0;
 	virtual auto setTouchEnabled(bool) = mac 0x215250;
-	virtual auto setDirection(cocos2d::extension::CCScrollViewDirection) = mac 0x216f80;
+	virtual auto setDirection(cocos2d::extension::CCScrollViewDirection);
 }
 
 class cocos2d::extension::CCEditBoxImpl {
@@ -4603,9 +4584,9 @@ class cocos2d::extension::CCControl : cocos2d::CCLayerRGBA {
 	virtual auto setHighlighted(bool) = mac 0x1a7ed0, ios 0x106c6c;
 	virtual auto isHighlighted() = mac 0x1a7ef0, ios 0x106c7c;
 	virtual auto needsLayout() = mac 0x1a7e50, ios 0x106c28;
-	virtual auto sendActionsForControlEvents(unsigned int) = mac 0x1a7490, ios 0x106650;
-	virtual auto addTargetWithActionForControlEvents(cocos2d::CCObject*, cocos2d::extension::SEL_CCControlHandler, unsigned int) = mac 0x1a7820, ios 0x106880;
-	virtual auto removeTargetWithActionForControlEvents(cocos2d::CCObject*, cocos2d::extension::SEL_CCControlHandler, unsigned int) = mac 0x1a7950, ios 0x106918;
+	virtual auto sendActionsForControlEvents(unsigned int);
+	virtual auto addTargetWithActionForControlEvents(cocos2d::CCObject*, cocos2d::extension::SEL_CCControlHandler, unsigned int);
+	virtual auto removeTargetWithActionForControlEvents(cocos2d::CCObject*, cocos2d::extension::SEL_CCControlHandler, unsigned int);
 	virtual auto getTouchLocation(cocos2d::CCTouch*) = mac 0x1a7d90, ios 0x106b6c;
 	virtual auto isTouchInside(cocos2d::CCTouch*) = mac 0x1a7de0, ios 0x106bb8;
 }

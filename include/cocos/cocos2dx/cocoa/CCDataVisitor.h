@@ -70,14 +70,30 @@ public:
     /** default method, called from non-overloaded methods and for unrecognized objects */
     virtual void visitObject(const CCObject *p) = 0;
 
-    virtual void visit(const CCBool *p);
-    virtual void visit(const CCInteger *p);
-    virtual void visit(const CCFloat *p);
-    virtual void visit(const CCDouble *p);
-    virtual void visit(const CCString *p);
-    virtual void visit(const CCArray *p);
-    virtual void visit(const CCDictionary *p);
-    virtual void visit(const CCSet *p);
+    virtual void visit(const CCBool *p) {
+    	visitObject((const CCObject*)p);
+    }
+    virtual void visit(const CCInteger *p) {
+    	visitObject((const CCObject*)p);
+    }
+    virtual void visit(const CCFloat *p) {
+    	visitObject((const CCObject*)p);
+    }
+    virtual void visit(const CCDouble *p) {
+    	visitObject((const CCObject*)p);
+    }
+    virtual void visit(const CCString *p) {
+    	visitObject((const CCObject*)p);
+    }
+    virtual void visit(const CCArray *p) {
+    	visitObject((const CCObject*)p);
+    }
+    virtual void visit(const CCDictionary *p) {
+    	visitObject((const CCObject*)p);
+    }
+    virtual void visit(const CCSet *p) {
+    	visitObject((const CCObject*)p);
+    }
 };
 
 /**

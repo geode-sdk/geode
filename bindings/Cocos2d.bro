@@ -130,7 +130,7 @@ class cocos2d::CCDrawNode {
 	auto drawSegment(cocos2d::CCPoint const&, cocos2d::CCPoint const&, float, cocos2d::_ccColor4F const&) = mac 0x3792d0;
 	auto getBlendFunc() const = mac 0x379ea0;
 	auto init() = mac 0x378e00;
-	auto setBlendFunc(cocos2d::_ccBlendFunc const&) = mac 0x379eb0;
+	auto setBlendFunc(cocos2d::ccBlendFunc const&) = mac 0x379eb0;
 	auto draw() = mac 0x379020;
 	virtual ~CCDrawNode() = mac 0x378cc0;
 }
@@ -290,14 +290,14 @@ class cocos2d::CCLayer {
 
 class cocos2d::CCLayerColor {
     CCLayerColor() = mac 0x274320, ios 0xc8aec;
-    static cocos2d::CCLayerColor* create(cocos2d::_ccColor4B const&, float, float) = mac 0x2745e0;
+    static cocos2d::CCLayerColor* create(cocos2d::ccColor4B const&, float, float) = mac 0x2745e0;
     auto draw() = mac 0x274b50, , ios 0xc8fe0;
     auto getBlendFunc() = mac 0x274480, , ios 0xc8bcc;
     auto init() = mac 0x274800, , ios 0xc8de8;
-    auto initWithColor(cocos2d::_ccColor4B const&) = mac 0x2749a0, , ios 0xc8f14;
-    auto initWithColor(cocos2d::_ccColor4B const&, float, float) = mac 0x274850, , ios 0xc8e34;
-    auto setBlendFunc(cocos2d::_ccBlendFunc) = mac 0x2744a0, , ios 0xc8bdc;
-    auto setColor(cocos2d::_ccColor3B const&) = mac 0x274c20, , ios 0xc90ac;
+    auto initWithColor(cocos2d::ccColor4B const&) = mac 0x2749a0, , ios 0xc8f14;
+    auto initWithColor(cocos2d::ccColor4B const&, float, float) = mac 0x274850, , ios 0xc8e34;
+    auto setBlendFunc(cocos2d::ccBlendFunc) = mac 0x2744a0, , ios 0xc8bdc;
+    auto setColor(cocos2d::ccColor3B const&) = mac 0x274c20, , ios 0xc90ac;
     auto setContentSize(cocos2d::CCSize const&) = mac 0x2749f0, , ios 0xc8f64;
     auto setOpacity(unsigned char) = mac 0x274db0, , ios 0xc9108;
     auto updateColor() = mac 0x274ae0, , ios 0xc8f80;
@@ -315,8 +315,8 @@ class cocos2d::CCLayerRGBA {
     virtual auto setCascadeOpacityEnabled(bool) = mac 0x274210, , ios 0xc8abc;
     virtual auto getColor() = mac 0x273d60, , ios 0xc87d8;
     virtual auto getDisplayedColor() = mac 0x273d80, , ios 0xc87e8;
-    virtual auto setColor(cocos2d::_ccColor3B const&) = mac 0x273da0, , ios 0xc87f8;
-    virtual auto updateDisplayedColor(cocos2d::_ccColor3B const&) = mac 0x2740b0, , ios 0xc89a4;
+    virtual auto setColor(cocos2d::ccColor3B const&) = mac 0x273da0, , ios 0xc87f8;
+    virtual auto updateDisplayedColor(cocos2d::ccColor3B const&) = mac 0x2740b0, , ios 0xc89a4;
     virtual auto isCascadeColorEnabled() = mac 0x274230, , ios 0xc8acc;
     virtual auto setCascadeColorEnabled(bool) = mac 0x274250, , ios 0xc8adc;
     // virtual auto setOpacityModifyRGB(bool) = mac 0x6180, , ios 0x68e8;
@@ -375,7 +375,7 @@ class cocos2d::CCMenuItemLabel {
 	virtual auto unselected() = mac 0x1fc380;
 	virtual auto setEnabled(bool) = mac 0x1fc3f0;
 	virtual auto getDisabledColor() = mac 0x1fbb80;
-	virtual auto setDisabledColor(cocos2d::_ccColor3B const&) = mac 0x1fbb90;
+	virtual auto setDisabledColor(cocos2d::ccColor3B const&) = mac 0x1fbb90;
 	virtual auto getLabel() = mac 0x1fbbb0;
 	virtual auto setLabel(cocos2d::CCNode*) = mac 0x1fbbc0;
 }
@@ -548,14 +548,14 @@ class cocos2d::CCNodeRGBA {
 	virtual auto init() = mac 0x124bf0, ios 0x15f780;
 	virtual auto getOpacity() = mac 0x124cd0, ios 0x15f7b8;
 	virtual auto getDisplayedOpacity() = mac 0x124cf0, ios 0x15f7c8;
-	virtual auto setOpacity(GLubyte) = mac 0x124d10, ios 0x15f7d8;
-	virtual auto updateDisplayedOpacity(GLubyte) = mac 0x124e50, ios 0x15f87c;
+	virtual auto setOpacity(unsigned char) = mac 0x124d10, ios 0x15f7d8;
+	virtual auto updateDisplayedOpacity(unsigned char) = mac 0x124e50, ios 0x15f87c;
 	virtual auto isCascadeOpacityEnabled() = mac 0x124fe0, ios 0x15f948;
 	virtual auto setCascadeOpacityEnabled(bool) = mac 0x125000, ios 0x15f958;
 	virtual auto getColor() = mac 0x125020, ios 0x15f968;
 	virtual auto getDisplayedColor() = mac 0x125040, ios 0x15f978;
-	virtual auto setColor(cocos2d::_ccColor3B const&) = mac 0x125060, ios 0x15f9888;
-	virtual auto updateDisplayedColor(cocos2d::_ccColor3B const&) = mac 0x1251e0, ios 0x15fa68;
+	virtual auto setColor(cocos2d::ccColor3B const&) = mac 0x125060, ios 0x15f9888;
+	virtual auto updateDisplayedColor(cocos2d::ccColor3B const&) = mac 0x1251e0, ios 0x15fa68;
 	virtual auto isCascadeColorEnabled() = mac 0x125320, ios 0x15fb70;
 	virtual auto setCascadeColorEnabled(bool) = mac 0x125340, ios 0x15fb80;
 }
@@ -658,8 +658,8 @@ class cocos2d::CCSprite {
     virtual auto updateTransform() = mac 0x133b70, ios 0x15be0c;
     virtual auto setOpacity(unsigned char) = mac 0x134da0, ios 0x15cf48;
     virtual auto updateDisplayedOpacity(unsigned char) = mac 0x1354c0, ios 0x15d228;
-    virtual auto setColor(cocos2d::_ccColor3B const&) = mac 0x134ff0, ios 0x15d088;
-    virtual auto updateDisplayedColor(cocos2d::_ccColor3B const&) = mac 0x135370, ios 0x15d1dc;
+    virtual auto setColor(cocos2d::ccColor3B const&) = mac 0x134ff0, ios 0x15d088;
+    virtual auto updateDisplayedColor(cocos2d::ccColor3B const&) = mac 0x135370, ios 0x15d1dc;
     virtual auto setOpacityModifyRGB(bool) = mac 0x135200, ios 0x15d198;
     virtual auto isOpacityModifyRGB() = mac 0x135350, ios 0x15d1cc;
     virtual auto initWithTexture(cocos2d::CCTexture2D*) = mac 0x133110, ios 0x15b608;
@@ -671,9 +671,9 @@ class cocos2d::CCSprite {
     virtual auto initWithFile(char const*, cocos2d::CCRect const&) = mac 0x133210, ios 0x15b720;
     virtual auto setTexture(cocos2d::CCTexture2D*) = mac 0x135a90, ios 0x15d610;
     virtual auto getTexture() = mac 0x135c00, ios 0x15d748;
-    // virtual auto setBlendFunc(cocos2d::_ccBlendFunc) = mac 0x50590, ios 0x14c7c;
-    // virtual cocos2d::_ccBlendFunc getBlendFunc() = mac 0x505a0, ios 0x14c88;
-    virtual auto setChildColor(cocos2d::_ccColor3B const&) = mac 0x135160, ios 0x15d0f4;
+    // virtual auto setBlendFunc(cocos2d::ccBlendFunc) = mac 0x50590, ios 0x14c7c;
+    // virtual cocos2d::ccBlendFunc getBlendFunc() = mac 0x505a0, ios 0x14c88;
+    virtual auto setChildColor(cocos2d::ccColor3B const&) = mac 0x135160, ios 0x15d0f4;
     virtual auto setChildOpacity(unsigned char) = mac 0x134f50, ios 0x15cfe4;
     virtual auto getBatchNode() = mac 0x135910, ios 0x15d4e0;
     virtual auto setBatchNode(cocos2d::CCSpriteBatchNode*) = mac 0x135920, ios 0x15d4e8;
@@ -733,7 +733,7 @@ class cocos2d::CCString {
 	// virtual ~CCString() = mac 0x44c590;
 	virtual auto isEqual(cocos2d::CCObject const*) = mac 0x44c8f0, ios 0x1a1e6c;
 	virtual auto acceptVisitor(cocos2d::CCDataVisitor&) = mac 0x44ccb0, ios 0x1a2168;
-	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) = mac 0x44c870, ios 0x1a1e14;
+	//virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) = mac 0x44c870, ios 0x1a1e14;
 	// cocos2d::CCString::create(gd::string const&) = mac 0x44c960;
 	// CCString(gd::string const&) = mac 0x44c310;
 	auto boolValue() const = mac 0x44c810, ios 0x1a1d88;
@@ -841,7 +841,7 @@ class cocos2d::extension::CCControl {
 
 class cocos2d::extension::CCControlColourPicker {
     ~CCControlColourPicker() = mac 0x1aae30;
-	auto setColorValue(cocos2d::_ccColor3B const&) = mac 0x1aac10;
+	auto setColorValue(cocos2d::ccColor3B const&) = mac 0x1aac10;
     auto ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x1aae10;
     auto init() = mac 0x1aa400;
     static auto colourPicker() = mac 0x1aaa30;
@@ -865,8 +865,8 @@ class cocos2d::extension::CCScale9Sprite {
     virtual auto setOpacity(unsigned char) = mac 0x213dd0;
     virtual auto updateDisplayedOpacity(unsigned char) = mac 0x2139b0;
     virtual auto getColor() = mac 0x213db0;
-    virtual auto setColor(cocos2d::_ccColor3B const&) = mac 0x213c20;
-    virtual auto updateDisplayedColor(cocos2d::_ccColor3B const&) = mac 0x213a20;
+    virtual auto setColor(cocos2d::ccColor3B const&) = mac 0x213c20;
+    virtual auto updateDisplayedColor(cocos2d::ccColor3B const&) = mac 0x213a20;
     virtual auto setOpacityModifyRGB(bool) = mac 0x213830;
     virtual auto isOpacityModifyRGB() = mac 0x213990;
     virtual auto getPreferredSize() = mac 0x213620;

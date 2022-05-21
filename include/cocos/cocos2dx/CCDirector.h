@@ -91,7 +91,7 @@ RT_ADD(
     class CCKeyboardDispatcher;
     class CCMouseDispatcher;
     class CCSceneDelegate {
-    	virtual void willSwitchToScene(cocos2d::CCScene*);
+    	virtual void willSwitchToScene(cocos2d::CCScene*) {}
     };
 )
 

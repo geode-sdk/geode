@@ -150,7 +150,8 @@ public:
      *  @js NA
      *  @lua NA
      */
-    virtual CCCardinalSplineTo* copyWithZone(CCZone* pZone);
+    // tell me if i care
+    virtual CCObject* copyWithZone(CCZone* pZone);
     /**
      *  @lua NA
      */

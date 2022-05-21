@@ -65,7 +65,7 @@ public:
      */
     virtual ~CCActionCamera(){}
     // super methods
-    virtual void startWithTarget(CCNode *pTarget);
+    virtual void startWithTarget(CCNode *pTarget) {}
     virtual CCActionInterval * reverse();
 protected:
     float m_fCenterXOrig;

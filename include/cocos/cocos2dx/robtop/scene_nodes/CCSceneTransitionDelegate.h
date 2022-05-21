@@ -13,7 +13,7 @@ RT_ADD(
 
 		CCSceneTransitionDelegate& operator=(const CCSceneTransitionDelegate&);
 
-		virtual void sceneWillResume(void);
+		virtual void sceneWillResume(void) {}
 	};
 
 	NS_CC_END

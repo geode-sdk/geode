@@ -158,7 +158,7 @@ public:
     inline void setDuration(float duration) { m_fDuration = duration; }
 
     /** returns a reversed action */
-    virtual CCFiniteTimeAction* reverse(void);
+    virtual CCFiniteTimeAction* reverse(void) { return nullptr; }
 protected:
     //! duration in seconds
     float m_fDuration;
