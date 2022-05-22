@@ -144,8 +144,8 @@ namespace geode {
         const E _value;
         Err(const E value) : _value(value) {}
         template <class T>
-        operator Result<T>() const {
-            return Result<T>::err(_value);
+        operator Result<T, E>() const {
+            return Result<T, E>::err(_value);
         }
     };
 }

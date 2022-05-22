@@ -25,8 +25,12 @@ RT_ADD(
 		bool dispatchScrollMSG(float x, float y);
 
 	protected:
-		CCArray* m_pDelegates;
-		//there's more here, check the initializer
+		CCArray* m_pMouseHandlers;
+		bool m_bLocked;
+		bool m_bToAdd;
+		bool m_bToRemove;
+		ccCArray* m_pHandlersToAdd;
+		ccCArray* m_pHandlersToRemove;
 	};
 
 	NS_CC_END
