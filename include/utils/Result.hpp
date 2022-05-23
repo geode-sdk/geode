@@ -2,6 +2,7 @@
 
 #include <Macros.hpp>
 #include <string_view>
+#include "types.hpp"
 
 namespace geode {
     /**
@@ -142,7 +143,7 @@ namespace geode {
     template <class E = std::string>
     struct Err {
         const E _value;
-        Err(const E value) : _value(value) {}
+        Err(const TypeIdentityType<E> value) : _value(value) {}
         template <class T>
         operator Result<T, E>() const {
             return Result<T, E>::err(_value);
