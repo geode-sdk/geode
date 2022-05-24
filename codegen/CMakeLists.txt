@@ -10,7 +10,9 @@ endif()
 
 message(STATUS "Building Codegen")
 
-add_subdirectory(fmt)
+if (NOT DEFINED GEODE_DISABLE_THE_LINKING_OF_THE_EXTERNAL_DEPENDENCY_KNOWN_AS_FMTLIB)
+	add_subdirectory(fmt)
+endif()
 
 set(GEODE_CG_FIRST "")
 
