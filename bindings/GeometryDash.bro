@@ -3076,7 +3076,8 @@ class GameObject : CCSpritePlus {
 	bool m_unknownLayerRelated;
 	float m_multiScaleMultiplier;
 	bool m_isGroupParent;
-	inline using GroupArrayType = short(*)[10];
+	inline using GroupArrayType = short*; 
+	// it is a short array with size 10 but pointer to arrays are weird
 	GroupArrayType m_groups;
 	short m_groupCount;
 	GroupArrayType m_pulseGroups;
