@@ -2958,9 +2958,10 @@ class GameObject : CCSpritePlus {
 	//GJSpriteColor* m_secondaryColourMode;
 	//bool m_col1;
 	//bool m_col2;
-	float m_unknown27c;
-	float m_unknown280;
-	float m_unknown284;
+	int m_baseColorID; //0x27c on macos
+	int m_detailColorID;
+	bool m_baseColorHSVModified;
+    bool m_detailColorHSVModified;
 	cocos2d::CCPoint m_startPosOffset;
 	float m_rotateOffset;
 	bool m_tintTrigger;
@@ -3075,9 +3076,13 @@ class GameObject : CCSpritePlus {
 	bool m_unknownLayerRelated;
 	float m_multiScaleMultiplier;
 	bool m_isGroupParent;
-	short* m_groups;
+	inline using GroupArrayType = short(*)[10];
+	GroupArrayType m_groups;
 	short m_groupCount;
-	PAD = mac 0x22, win 0x12, android 0x0;
+	GroupArrayType m_pulseGroups;
+	short m_pulseGroupCount; // mac 0x470
+	GroupArrayType m_alphaGroups;
+	short m_alphaGroupCount; // mac 0x480
 	int m_editorLayer;
 	int m_editorLayer2;
 	int m_unk414;
@@ -3085,8 +3090,8 @@ class GameObject : CCSpritePlus {
 	cocos2d::CCPoint m_firstPosition;
 	PAD = mac 0x1c, win 0x1c, android 0x0;
 	bool m_highDetail;
-	ColorActionSprite* m_colorActionSprite1;
-	ColorActionSprite* m_colorActionSprite2;
+	ColorActionSprite* m_colorActionSpriteBase;
+	ColorActionSprite* m_colorActionSpriteDetail;
 	GJEffectManager* m_effectManager;
 	PAD = mac 0x10, win 0x10, android 0x0;
 }
