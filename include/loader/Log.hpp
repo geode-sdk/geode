@@ -6,7 +6,7 @@
 #include <chrono>
 #include <sstream>
 #include <vector>
-#include <ccTypes.h>
+#include <include/ccTypes.h>
 
 /*namespace cocos2d {
     class CCObject;
