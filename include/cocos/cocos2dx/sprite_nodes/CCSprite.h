@@ -28,9 +28,9 @@ THE SOFTWARE.
 #define __SPITE_NODE_CCSPRITE_H__
 
 #include "base_nodes/CCNode.h"
-#include "CCProtocols.h"
+#include "include/CCProtocols.h"
 #include "textures/CCTextureAtlas.h"
-#include "ccTypes.h"
+#include "include/ccTypes.h"
 #include "cocoa/CCDictionary.h"
 #include <string>
 #ifdef EMSCRIPTEN

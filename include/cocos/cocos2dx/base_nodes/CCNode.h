@@ -28,7 +28,7 @@
 #ifndef __PLATFORM_CCNODE_H__
 #define __PLATFORM_CCNODE_H__
 
-#include "ccMacros.h"
+#include "include/ccMacros.h"
 #include "cocoa/CCAffineTransform.h"
 #include "cocoa/CCArray.h"
 #include "CCGL.h"
@@ -36,7 +36,7 @@
 #include "shaders/CCGLProgram.h"
 #include "kazmath/kazmath.h"
 #include "script_support/CCScriptSupport.h"
-#include "CCProtocols.h"
+#include "include/CCProtocols.h"
 
 NS_CC_BEGIN
 

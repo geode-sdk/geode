@@ -1,7 +1,7 @@
 #ifndef __CCMOUSE_DELEGATE_H__
 #define __CCMOUSE_DELEGATE_H__
 
-#include "ccMacros.h"
+#include "include/ccMacros.h"
 #include "cocoa/CCObject.h"
 
 RT_ADD(

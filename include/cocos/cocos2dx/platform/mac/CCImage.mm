@@ -24,7 +24,7 @@ THE SOFTWARE.
 #include <Foundation/Foundation.h>
 #include <Cocoa/Cocoa.h>
 #include "CCDirector.h"
-#include "ccMacros.h"
+#include "include/ccMacros.h"
 #include "CCImage.h"
 #include "CCFileUtils.h"
 #include "CCTexture2D.h"

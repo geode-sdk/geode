@@ -28,8 +28,8 @@ THE SOFTWARE.
 #include <vector>
 #include <map>
 #include "CCPlatformMacros.h"
-#include "ccTypes.h"
-#include "ccTypeInfo.h"
+#include "include/ccTypes.h"
+#include "include/ccTypeInfo.h"
 
 NS_CC_BEGIN
 

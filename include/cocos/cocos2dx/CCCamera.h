@@ -28,7 +28,7 @@ THE SOFTWARE.
 #define __CCCAMERA_H__
 
 #include "cocoa/CCObject.h"
-#include "ccMacros.h"
+#include "include/ccMacros.h"
 #include "kazmath/mat4.h"
 #include <string>
 

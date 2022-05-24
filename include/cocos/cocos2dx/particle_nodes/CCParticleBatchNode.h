@@ -30,7 +30,7 @@
 #define __CCPARTICLEBATCHNODE_H__
 
 #include "base_nodes/CCNode.h"
-#include "CCProtocols.h"
+#include "include/CCProtocols.h"
 
 NS_CC_BEGIN
 

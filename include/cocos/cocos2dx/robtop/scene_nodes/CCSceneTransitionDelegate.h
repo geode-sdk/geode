@@ -1,7 +1,7 @@
 #ifndef __CCSCENE_TRANSITION_DELEGATE_H__
 #define __CCSCENE_TRANSITION_DELEGATE_H__
 
-#include "ccMacros.h"
+#include "include/ccMacros.h"
 
 RT_ADD(
 	NS_CC_BEGIN

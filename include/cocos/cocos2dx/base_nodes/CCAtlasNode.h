@@ -28,8 +28,8 @@ THE SOFTWARE.
 #define __CCATLAS_NODE_H__
 
 #include "CCNode.h"
-#include "CCProtocols.h"
-#include "ccTypes.h"
+#include "include/CCProtocols.h"
+#include "include/ccTypes.h"
 
 NS_CC_BEGIN
 

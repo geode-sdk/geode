@@ -1,7 +1,7 @@
 #ifndef __CCEGLVIEWPROTOCOL_H__
 #define __CCEGLVIEWPROTOCOL_H__
 
-#include "ccTypes.h"
+#include "include/ccTypes.h"
 
 enum ResolutionPolicy
 {

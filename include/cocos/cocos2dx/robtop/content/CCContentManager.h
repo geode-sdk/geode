@@ -1,7 +1,7 @@
 #ifndef __CCCONTENT_MANAGER_H__
 #define __CCCONTENT_MANAGER_H__
 
-#include "ccMacros.h"
+#include "include/ccMacros.h"
 #include "cocoa/CCObject.h"
 #include "cocoa/CCDictionary.h"
 

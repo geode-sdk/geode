@@ -29,7 +29,7 @@ THE SOFTWARE.
 #include <string>
 #include "cocoa/CCObject.h"
 #include "cocoa/CCGeometry.h"
-#include "ccTypes.h"
+#include "include/ccTypes.h"
 #ifdef EMSCRIPTEN
 #include "base_nodes/CCGLBufferedNode.h"
 #endif // EMSCRIPTEN

@@ -1,7 +1,7 @@
 #ifndef __CCKEYBOARD_DELEGATE_H__
 #define __CCKEYBOARD_DELEGATE_H__
 
-#include "ccMacros.h"
+#include "include/ccMacros.h"
 #include "cocoa/CCObject.h"
 
 RT_ADD(

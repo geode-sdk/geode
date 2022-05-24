@@ -42,7 +42,7 @@ THE SOFTWARE.
 #ifndef CC_ARRAY_H
 #define CC_ARRAY_H
 
-#include "ccMacros.h"
+#include "include/ccMacros.h"
 #include "cocoa/CCObject.h"
 
 #include <stdlib.h>

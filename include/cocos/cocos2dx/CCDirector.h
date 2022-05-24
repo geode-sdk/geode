@@ -29,13 +29,13 @@ THE SOFTWARE.
 
 #include "platform/CCPlatformMacros.h"
 #include "cocoa/CCObject.h"
-#include "ccTypes.h"
+#include "include/ccTypes.h"
 #include "cocoa/CCGeometry.h"
 #include "cocoa/CCArray.h"
 #include "CCGL.h"
 #include "kazmath/mat4.h"
 #include "label_nodes/CCLabelAtlas.h"
-#include "ccTypeInfo.h"
+#include "include/ccTypeInfo.h"
 
 
 NS_CC_BEGIN

@@ -26,7 +26,7 @@ THE SOFTWARE.
 #define __CCOBJECT_H__
 
 #include "CCDataVisitor.h"
-#include "ccMacros.h"
+#include "include/ccMacros.h"
 #include <unordered_map>
 
 #ifdef EMSCRIPTEN

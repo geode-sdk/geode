@@ -27,7 +27,7 @@ THE SOFTWARE.
 #ifndef __CCTEXTURE_ATLAS_H__
 #define __CCTEXTURE_ATLAS_H__
 
-#include "ccTypes.h"
+#include "include/ccTypes.h"
 #include "cocoa/CCObject.h"
 #include "ccConfig.h"
 #include <string>

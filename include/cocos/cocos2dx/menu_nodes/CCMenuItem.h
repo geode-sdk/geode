@@ -28,7 +28,7 @@ THE SOFTWARE.
 #define __CCMENU_ITEM_H__
 
 #include "base_nodes/CCNode.h"
-#include "CCProtocols.h"
+#include "include/CCProtocols.h"
 #include "cocoa/CCArray.h"
 
 NS_CC_BEGIN

@@ -27,7 +27,7 @@
 /**
  * define some platform specific macros
  */
-#include "ccConfig.h"
+#include "include/ccConfig.h"
 #include "CCPlatformConfig.h"
 #include "CCPlatformDefine.h"
 

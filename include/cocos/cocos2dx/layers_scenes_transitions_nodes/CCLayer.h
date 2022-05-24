@@ -28,7 +28,7 @@ THE SOFTWARE.
 #define __CCLAYER_H__
 
 #include "base_nodes/CCNode.h"
-#include "CCProtocols.h"
+#include "include/CCProtocols.h"
 #include "touch_dispatcher/CCTouchDelegateProtocol.h"
 #include "platform/CCAccelerometerDelegate.h"
 #include "keypad_dispatcher/CCKeypadDelegate.h"

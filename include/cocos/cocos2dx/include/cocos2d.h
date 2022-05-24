@@ -88,8 +88,8 @@ THE SOFTWARE.
 #include "ccTypes.h"
 
 // kazmath
-#include "kazmath/include/kazmath/kazmath.h"
-#include "kazmath/include/kazmath/GL/matrix.h"
+#include "kazmath/kazmath.h"
+#include "kazmath/GL/matrix.h"
 
 // keypad_dispatcher
 #include "keypad_dispatcher/CCKeypadDelegate.h"

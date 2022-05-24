@@ -28,7 +28,7 @@ THE SOFTWARE.
 #include "cocoa/CCObject.h"
 #include "base_nodes/CCNode.h"
 #include "CCCamera.h"
-#include "ccTypes.h"
+#include "include/ccTypes.h"
 #include "textures/CCTexture2D.h"
 #include "CCDirector.h"
 #include "kazmath/mat4.h"

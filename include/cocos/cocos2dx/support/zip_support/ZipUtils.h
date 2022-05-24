@@ -27,7 +27,7 @@ THE SOFTWARE.
 #include <string>
 #include "CCPlatformDefine.h"
 #include "platform/CCPlatformConfig.h"
-#include "ccMacros.h"
+#include "include/ccMacros.h"
 #include "zipMacro.h"
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)

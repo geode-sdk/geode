@@ -267,16 +267,16 @@ public:
      */
     CCArray(unsigned int capacity);
 
-    CCObject* begin() { 
+    CCObject** begin() { 
     	return &data->arr[0]; 
     }
-    CCObject const* begin() const { 
+    CCObject* const* begin() const { 
     	return &data->arr[0]; 
     }
-    CCObject* end() { 
+    CCObject** end() { 
     	return &data->arr[data->num]; 
     }
-    CCObject const* end() const { 
+    CCObject* const* end() const { 
     	return &data->arr[data->num]; 
     }
 };

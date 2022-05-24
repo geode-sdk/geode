@@ -28,7 +28,7 @@ THE SOFTWARE.
 #ifndef __CCGLPROGRAM_H__
 #define __CCGLPROGRAM_H__
 
-#include "ccMacros.h"
+#include "include/ccMacros.h"
 #include "cocoa/CCObject.h"
 
 #include "CCGL.h"

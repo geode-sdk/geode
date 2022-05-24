@@ -40,8 +40,8 @@ THE SOFTWARE.
 #define __CCDRAWING_PRIMITIVES__
     
 
-#include "ccTypes.h"
-#include "ccMacros.h"
+#include "include/ccTypes.h"
+#include "include/ccMacros.h"
 #include "cocoa/CCGeometry.h"    // for CCPoint
 
 /**

@@ -71,18 +71,11 @@ function(setup_geode_mod)
 	target_compile_definitions(${PROJECT_NAME} PUBLIC -DPROJECT_NAME=${PROJECT_NAME} -DEXPORT_${PROJECT_NAME}=1)
 	target_include_directories(${PROJECT_NAME} PUBLIC
 		${GEODE_SDK_PATH}/include
-		${GEODE_SDK_PATH}/include/codegen-base
-		${GEODE_SDK_PATH}/include/c++stl
-		${GEODE_SDK_PATH}/include/loader
-		${GEODE_SDK_PATH}/include/utils
-		${GEODE_SDK_PATH}/include/meta
-		${GEODE_SDK_PATH}/include/cocos/
 		${GEODE_SDK_PATH}/include/cocos/cocos2dx
-		${GEODE_SDK_PATH}/include/cocos/cocos2dx/include
-		${GEODE_SDK_PATH}/include/cocos/cocos2dx/support/zip_support
-		${GEODE_SDK_PATH}/include/cocos/cocos2dx/kazmath/include
+		# ${GEODE_SDK_PATH}/include/cocos/cocos2dx/include
+		# ${GEODE_SDK_PATH}/include/cocos/cocos2dx/support/zip_support
+		# ${GEODE_SDK_PATH}/include/cocos/cocos2dx/kazmath/include
 		${GEODE_SDK_PATH}/include/cocos/extensions
-		${GEODE_SDK_PATH}/include/fmod
 	)
 
 	if (APPLE)

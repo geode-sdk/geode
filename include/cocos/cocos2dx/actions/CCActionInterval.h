@@ -29,7 +29,7 @@ THE SOFTWARE.
 
 #include "base_nodes/CCNode.h"
 #include "CCAction.h"
-#include "CCProtocols.h"
+#include "include/CCProtocols.h"
 #include "sprite_nodes/CCSpriteFrame.h"
 #include "sprite_nodes/CCAnimation.h"
 #include <vector>
