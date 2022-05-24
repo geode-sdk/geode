@@ -43,7 +43,15 @@
 #ifndef _unz64_H
 #define _unz64_H
 
-#include "CCPlatformDefine.h"
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
+	#include "platform/android/CCPlatformDefine.h"
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+	#include "platform/ios/CCPlatformDefine.h"
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
+	#include "platform/mac/CCPlatformDefine.h"
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
+	#include "platform/win32/CCPlatformDefine.h"
+#endif
 
 #ifndef _ZLIB_H
 #include "zlib.h"
