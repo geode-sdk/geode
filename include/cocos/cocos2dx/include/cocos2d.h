@@ -83,7 +83,7 @@ THE SOFTWARE.
 // include
 #include "CCEventType.h"
 #include "CCProtocols.h"
-#include "ccConfig.h"
+#include "ccConfig.h" // lol this is included twice but im gonna leave it
 #include "ccMacros.h"
 #include "ccTypes.h"
 

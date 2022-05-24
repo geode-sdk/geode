@@ -29,7 +29,7 @@ THE SOFTWARE.
 
 #include "include/ccTypes.h"
 #include "cocoa/CCObject.h"
-#include "ccConfig.h"
+#include "include/ccConfig.h"
 #include <string>
 
 NS_CC_BEGIN

@@ -3,7 +3,22 @@
 
 #include "pugixml.hpp"
 #include <vector>
-#include <cocos2d.h>
+
+namespace cocos2d {
+	class CCRect;
+	class CCPoint;
+	class CCArray;
+	class CCDictionary;
+	class CCObject;
+}
+
+namespace gd {
+	class string;
+	template <class T>
+	class vector;
+	template <class K, class V>
+	class map;
+}
 
 class CC_DLL DS_Dictionary {
 public:

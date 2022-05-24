@@ -27,7 +27,7 @@ THE SOFTWARE.
 #define __TOUCH_DISPATHCHER_CCTOUCH_DELEGATE_PROTOCOL_H__
 
 #include "cocoa/CCObject.h"
-#include "ccConfig.h"
+#include "include/ccConfig.h"
 
 NS_CC_BEGIN
 
