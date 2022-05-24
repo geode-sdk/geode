@@ -8,8 +8,8 @@
 #include "Macros.hpp"
 #include "c++stl/gdstdlib.hpp"
 #include "fmod/fmod.hpp"
-#include "cocos/cocos2dx/include/cocos2d.h"
-#include "cocos/cocos2dx/extensions/cocos-ext.h"
+#include "cocos2dx/include/cocos2d.h"
+#include "cocos2dx/extensions/cocos-ext.h"
 #include <unordered_map>
 
 #define CLASSPARAM(...)

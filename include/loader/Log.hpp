@@ -6,16 +6,19 @@
 #include <chrono>
 #include <sstream>
 #include <vector>
-#include <include/ccTypes.h>
 
-/*namespace cocos2d {
+namespace cocos2d {
     class CCObject;
     class CCNode;
     class CCPoint;
     class CCSize;
     class CCRect;
     class CCArray;
-}*/
+    struct _ccColor3B;
+    using ccColor3B = _ccColor3B;
+    struct _ccColor4B;
+    using ccColor4B = _ccColor4B;
+}
 
 GEODE_DLL std::ostream& operator<<(std::ostream& os, geode::Mod* mod);
 GEODE_DLL std::ostream& operator<<(std::ostream& os, cocos2d::CCObject* obj);
