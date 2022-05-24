@@ -216,7 +216,7 @@ class AnimatedShopKeeper : CCAnimatedSprite {
 }
 
 class AnimatedSpriteDelegate {
-	virtual void animationFinished(char const* p0);
+	virtual void animationFinished(char const* p0) {}
 }
 
 class AppDelegate : cocos2d::CCApplication, cocos2d::CCSceneDelegate {
@@ -371,10 +371,10 @@ class BoomScrollLayer : cocos2d::CCLayer {
 }
 
 class BoomScrollLayerDelegate {
-	virtual void scrollLayerScrollingStarted(BoomScrollLayer* p0) = mac 0x204370;
-	virtual void scrollLayerScrolledToPage(BoomScrollLayer* p0, int p1) = mac 0x23cf70;
-	virtual void scrollLayerMoved(cocos2d::CCPoint p0) = mac 0x2eca30;
-	virtual void scrollLayerWillScrollToPage(BoomScrollLayer* p0, int p1) = mac 0x23cf80;
+	virtual void scrollLayerScrollingStarted(BoomScrollLayer* p0) {}
+	virtual void scrollLayerScrolledToPage(BoomScrollLayer* p0, int p1) {}
+	virtual void scrollLayerMoved(cocos2d::CCPoint p0) {}
+	virtual void scrollLayerWillScrollToPage(BoomScrollLayer* p0, int p1) {}
 }
 
 class ButtonPage : cocos2d::CCLayer {
@@ -1245,7 +1245,7 @@ class ColorSelectPopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, 
 }
 
 class ColorSetupDelegate {
-	virtual void colorSetupClosed(int p0);
+	virtual void colorSetupClosed(int p0) {}
 }
 
 class ColoredSection : cocos2d::CCObject {
@@ -1337,7 +1337,7 @@ class ConfigureValuePopup : FLAlertLayer, TextInputDelegate {
 }
 
 class ConfigureValuePopupDelegate {
-	virtual void valuePopupClosed(ConfigureValuePopup* p0, float p1);
+	virtual void valuePopupClosed(ConfigureValuePopup* p0, float p1) {}
 }
 
 class CountTriggerAction : cocos2d::CCNode {
@@ -1506,7 +1506,7 @@ class CustomSongLayer : FLAlertLayer, FLAlertLayerProtocol, TextInputDelegate, G
 }
 
 class CustomSongLayerDelegate {
-	virtual void customSongLayerClosed();
+	virtual void customSongLayerClosed() {}
 }
 
 class CustomSongWidget : cocos2d::CCNode, MusicDownloadDelegate, FLAlertLayerProtocol {
@@ -1669,7 +1669,7 @@ class DelayedSpawnNode : cocos2d::CCObject {
 }
 
 class DemonFilterDelegate {
-	virtual void demonFilterSelectClosed(int p0);
+	virtual void demonFilterSelectClosed(int p0) {}
 }
 
 class DemonFilterSelectLayer : FLAlertLayer {
@@ -1734,8 +1734,8 @@ class DialogObject : cocos2d::CCObject {
 }
 
 class DownloadMessageDelegate {
-	virtual void downloadMessageFinished(GJUserMessage* p0);
-	virtual void downloadMessageFailed(int p0);
+	virtual void downloadMessageFinished(GJUserMessage* p0) {}
+	virtual void downloadMessageFailed(int p0) {}
 }
 
 class DrawGridLayer : cocos2d::CCLayer {
@@ -2662,10 +2662,10 @@ class FontObject : cocos2d::CCObject {
 }
 
 class FriendRequestDelegate {
-	virtual void loadFRequestsFinished(cocos2d::CCArray* p0, char const* p1);
-	virtual void loadFRequestsFailed(char const* p0, GJErrorCode p1);
-	virtual void setupPageInfo(gd::string p0, char const* p1);
-	virtual void forceReloadRequests(bool p0);
+	virtual void loadFRequestsFinished(cocos2d::CCArray* p0, char const* p1) {}
+	virtual void loadFRequestsFailed(char const* p0, GJErrorCode p1) {}
+	virtual void setupPageInfo(gd::string p0, char const* p1) {}
+	virtual void forceReloadRequests(bool p0) {}
 }
 
 class FriendRequestPopup : FLAlertLayer, UploadActionDelegate, UploadPopupDelegate, FLAlertLayerProtocol {
@@ -2767,13 +2767,13 @@ class GJAccountManager : cocos2d::CCNode {
 }
 
 class GJAccountRegisterDelegate {
-	virtual void registerAccountFinished();
-	virtual void registerAccountFailed(AccountError p0);
+	virtual void registerAccountFinished() {}
+	virtual void registerAccountFailed(AccountError p0) {}
 }
 
 class GJAccountSettingsDelegate {
-	virtual void updateSettingsFinished();
-	virtual void updateSettingsFailed();
+	virtual void updateSettingsFinished() {}
+	virtual void updateSettingsFailed() {}
 }
 
 class GJAccountSettingsLayer : FLAlertLayer, TextInputDelegate {
@@ -2984,8 +2984,8 @@ class GJBaseGameLayer : cocos2d::CCLayer, TriggerEffectDelegate {
 }
 
 class GJChallengeDelegate {
-	virtual void challengeStatusFinished();
-	virtual void challengeStatusFailed();
+	virtual void challengeStatusFinished() {}
+	virtual void challengeStatusFailed() {}
 }
 
 class GJChallengeItem : cocos2d::CCObject {
@@ -3071,8 +3071,8 @@ class GJCommentListLayer : cocos2d::CCLayerColor {
 }
 
 class GJDailyLevelDelegate {
-	virtual void dailyStatusFinished(bool p0);
-	virtual void dailyStatusFailed(bool p0);
+	virtual void dailyStatusFinished(bool p0) {}
+	virtual void dailyStatusFailed(bool p0) {}
 }
 
 class GJDropDownLayer : cocos2d::CCLayerColor {
@@ -3869,7 +3869,7 @@ class GJPFollowCommandLayer : FLAlertLayer, TextInputDelegate {
 }
 
 class GJPurchaseDelegate {
-	virtual void didPurchaseItem(GJStoreItem* p0);
+	virtual void didPurchaseItem(GJStoreItem* p0) {}
 }
 
 class GJRequestCell : TableViewCell, FLAlertLayerProtocol, UploadPopupDelegate, UploadActionDelegate {
@@ -3892,8 +3892,8 @@ class GJRequestCell : TableViewCell, FLAlertLayerProtocol, UploadPopupDelegate, 
 }
 
 class GJRewardDelegate {
-	virtual void rewardsStatusFinished(int p0);
-	virtual void rewardsStatusFailed();
+	virtual void rewardsStatusFinished(int p0) {}
+	virtual void rewardsStatusFailed() {}
 }
 
 class GJRewardItem : cocos2d::CCObject {
@@ -5486,7 +5486,7 @@ class GameObjectCopy : cocos2d::CCObject {
 }
 
 class GameRateDelegate {
-	virtual void updateRate();
+	virtual void updateRate() {}
 }
 
 class GameSoundManager : cocos2d::CCNode {
@@ -5852,7 +5852,7 @@ class HSVWidgetPopup : FLAlertLayer {
 }
 
 class HSVWidgetPopupDelegate {
-	virtual void hsvPopupClosed(HSVWidgetPopup* p0, cocos2d::ccHSVValue p1);
+	virtual void hsvPopupClosed(HSVWidgetPopup* p0, cocos2d::ccHSVValue p1) {}
 }
 
 class HardStreak : cocos2d::CCDrawNode {
@@ -6043,10 +6043,10 @@ class LabelGameObject : EffectGameObject {
 }
 
 class LeaderboardManagerDelegate {
-	virtual void updateUserScoreFinished();
-	virtual void updateUserScoreFailed();
-	virtual void loadLeaderboardFinished(cocos2d::CCArray* p0, char const* p1) = mac 0x464aa0;
-	virtual void loadLeaderboardFailed(char const* p0) = mac 0x464ab0;
+	virtual void updateUserScoreFinished() {}
+	virtual void updateUserScoreFailed() {}
+	virtual void loadLeaderboardFinished(cocos2d::CCArray* p0, char const* p1) {}
+	virtual void loadLeaderboardFailed(char const* p0) {}
 }
 
 class LeaderboardsLayer : cocos2d::CCLayer, LeaderboardManagerDelegate {
@@ -6468,9 +6468,9 @@ class LevelLeaderboard : FLAlertLayer, LeaderboardManagerDelegate {
 }
 
 class LevelManagerDelegate {
-	virtual void loadLevelsFinished(cocos2d::CCArray* p0, char const* p1);
-	virtual void loadLevelsFailed(char const* p0);
-	virtual void setupPageInfo(gd::string p0, char const* p1) = mac 0x1d5ec0;
+	virtual void loadLevelsFinished(cocos2d::CCArray* p0, char const* p1) {}
+	virtual void loadLevelsFailed(char const* p0) {}
+	virtual void setupPageInfo(gd::string p0, char const* p1) {}
 }
 
 class LevelPage : cocos2d::CCLayer, DialogDelegate {
@@ -6567,7 +6567,7 @@ class LevelSelectLayer : cocos2d::CCLayer, BoomScrollLayerDelegate, DynamicScrol
 }
 
 class LevelSettingsDelegate {
-	virtual void levelSettingsUpdated();
+	virtual void levelSettingsUpdated() {}
 }
 
 class LevelSettingsLayer : FLAlertLayer, ColorSelectDelegate, SelectArtDelegate, FLAlertLayerProtocol, CustomSongLayerDelegate {
@@ -6645,8 +6645,8 @@ class LevelUpdateDelegate {
 }
 
 class LevelUploadDelegate {
-	virtual void levelUploadFinished(GJGameLevel* p0);
-	virtual void levelUploadFailed(GJGameLevel* p0);
+	virtual void levelUploadFinished(GJGameLevel* p0) {}
+	virtual void levelUploadFailed(GJGameLevel* p0) {}
 }
 
 class LikeItemDelegate {
@@ -6677,7 +6677,7 @@ class ListButtonBar : cocos2d::CCNode {
 }
 
 class ListButtonBarDelegate {
-	virtual void listButtonBarSwitchedPage(ListButtonBar* p0, int p1);
+	virtual void listButtonBarSwitchedPage(ListButtonBar* p0, int p1) {}
 }
 
 class ListButtonPage : cocos2d::CCLayer {
@@ -6846,10 +6846,10 @@ class MenuLayer : cocos2d::CCLayer, FLAlertLayerProtocol, GooglePlayDelegate {
 }
 
 class MessageListDelegate {
-	virtual void loadMessagesFinished(cocos2d::CCArray* p0, char const* p1);
-	virtual void loadMessagesFailed(char const* p0, GJErrorCode p1);
-	virtual void forceReloadMessages(bool p0);
-	virtual void setupPageInfo(gd::string p0, char const* p1);
+	virtual void loadMessagesFinished(cocos2d::CCArray* p0, char const* p1) {}
+	virtual void loadMessagesFailed(char const* p0, GJErrorCode p1) {}
+	virtual void forceReloadMessages(bool p0) {}
+	virtual void setupPageInfo(gd::string p0, char const* p1) {}
 }
 
 class MessagesProfilePage : FLAlertLayer, FLAlertLayerProtocol, UploadActionDelegate, UploadPopupDelegate, MessageListDelegate {
@@ -7117,7 +7117,7 @@ class ObjectDecoder : cocos2d::CCNode {
 }
 
 class ObjectDecoderDelegate {
-	virtual void getDecodedObject(int p0, DS_Dictionary* p1);
+	virtual void getDecodedObject(int p0, DS_Dictionary* p1) {}
 }
 
 class ObjectManager : cocos2d::CCNode {
@@ -8246,7 +8246,7 @@ class SecretNumberLayer : cocos2d::CCLayer {
 }
 
 class SelectArtDelegate {
-	virtual void selectArtClosed(SelectArtLayer* p0);
+	virtual void selectArtClosed(SelectArtLayer* p0) {}
 }
 
 class SelectArtLayer : FLAlertLayer {
@@ -8431,7 +8431,7 @@ class SetTextPopup : FLAlertLayer, TextInputDelegate {
 }
 
 class SetTextPopupDelegate {
-	virtual void setTextPopupClosed(SetTextPopup* p0, gd::string p1);
+	virtual void setTextPopupClosed(SetTextPopup* p0, gd::string p1) {}
 }
 
 class SetupAnimSettingsPopup : FLAlertLayer, TextInputDelegate {
@@ -9215,7 +9215,7 @@ class SpriteDescription : cocos2d::CCObject {
 }
 
 class SpritePartDelegate {
-	virtual cocos2d::CCSpriteFrame* displayFrameChanged(cocos2d::CCObject* p0, gd::string p1);
+	virtual cocos2d::CCSpriteFrame* displayFrameChanged(cocos2d::CCObject* p0, gd::string p1) {}
 }
 
 class StartPosObject : EffectGameObject {
@@ -9432,7 +9432,7 @@ class TextArea : cocos2d::CCSprite {
 }
 
 class TextAreaDelegate {
-	virtual void fadeInTextFinished(TextArea* p0);
+	virtual void fadeInTextFinished(TextArea* p0) {}
 }
 
 class TextInputDelegate {
@@ -9579,7 +9579,7 @@ class UploadActionPopup : FLAlertLayer {
 }
 
 class UploadMessageDelegate {
-	virtual void uploadMessageFinished(int p0);
+	virtual void uploadMessageFinished(int p0) {}
 	virtual void uploadMessageFailed(int p0);
 }
 
@@ -9599,20 +9599,20 @@ class UploadPopup : FLAlertLayer, LevelUploadDelegate {
 class UploadPopupDelegate {
 	virtual void onClosePopup() {}
 
-	virtual void onClosePopup(UploadActionPopup* p0) = mac 0x3aa740;
+	virtual void onClosePopup(UploadActionPopup* p0) {}
 }
 
 class UserInfoDelegate {
-	virtual void getUserInfoFinished(GJUserScore* p0);
-	virtual void getUserInfoFailed(int p0);
-	virtual void userInfoChanged(GJUserScore* p0);
+	virtual void getUserInfoFinished(GJUserScore* p0) {}
+	virtual void getUserInfoFailed(int p0) {}
+	virtual void userInfoChanged(GJUserScore* p0) {}
 }
 
 class UserListDelegate {
-	virtual void getUserListFinished(cocos2d::CCArray* p0, UserListType p1);
-	virtual void getUserListFailed(UserListType p0, GJErrorCode p1);
-	virtual void userListChanged(cocos2d::CCArray* p0, UserListType p1);
-	virtual void forceReloadList(UserListType p0);
+	virtual void getUserListFinished(cocos2d::CCArray* p0, UserListType p1) {}
+	virtual void getUserListFailed(UserListType p0, GJErrorCode p1) {}
+	virtual void userListChanged(cocos2d::CCArray* p0, UserListType p1) {}
+	virtual void forceReloadList(UserListType p0) {}
 }
 
 class VideoOptionsLayer : FLAlertLayer {
