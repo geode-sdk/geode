@@ -6,16 +6,16 @@ using std::set;
 
 namespace format_strings {
     // requires: base_classes, class_name
-    char const* class_start = "class {class_name}{base_classes} {{\n";
+    char const* class_start = "class {class_name}{colon}{base_classes} {{\n";
     
-    char const* function_address_definition = " = mac {mac_address}, win {win_address}, ios {ios_address}";
+    char const* address_definition = " = {address}";
 
     // requires: static, virtual, return_type, function_name, raw_parameters, const
-    char const* function_definition = "\t{static}{virtual}{return_type} {function_name}({raw_params}){const}{address};\n";
+    char const* function_definition = "\t{static}{virtual}{return_type} {function_name}({parameters}){const_whitespace}{const}{address};\n";
 
-    char const* outofline_definition = "\t{static}{virtual}{return_type} {function_name}({raw_params}){const} {definition}\n";
+    char const* outofline_definition = "\t{static}{virtual}{return_type} {function_name}({parameters}){const_whitespace}{const} {definition}\n";
 
-    char const* structor_definition = "\t{function_name}({raw_params}){address};\n";
+    char const* structor_definition = "\t{function_name}({parameters}){address};\n";
     
 
 	char const* member_address_definition = " = mac {mac_address}, win {win_address}, android {android_address}";
@@ -47,7 +47,8 @@ int main(int argc, char** argv) {
    	for (auto& cd : sorted_classes) {
         output += fmt::format(format_strings::class_start,
             fmt::arg("class_name", cd.name),
-            fmt::arg("base_classes", CacShare::formatBases(cd.superclasses))
+            fmt::arg("colon", cd.superclasses.size() ? " : " : ""),
+            fmt::arg("base_classes", fmt::join(cd.superclasses, ", "))
         );
 
         bool inlinePad = false;
@@ -62,14 +63,16 @@ int main(int argc, char** argv) {
         bool outoflinePad = false;
         for (auto f : cd.functions) {
             if (!f.is_defined) continue;
+            CacShare::editArguments(f);
             outoflinePad = true;
             output += fmt::format(format_strings::outofline_definition,
             	fmt::arg("virtual", f.function_type == kVirtualFunction ? "virtual " : ""),
                 fmt::arg("static", f.function_type == kStaticFunction ? "static " : ""),
-                fmt::arg("return_type", CacShare::getReturn(f)),
-                fmt::arg("function_name", f.name),
-                fmt::arg("raw_params", CacShare::formatRawArgs(f.args, f.argnames)),
-                fmt::arg("const", f.is_const ? " const" : ""),
+                fmt::arg("return_type", f.return_type),
+                fmt::arg("function_name", CacShare::getFunctionName(f)),
+                fmt::arg("parameters", CacShare::getParameters(f)),
+                fmt::arg("const", CacShare::getConst(f)),
+				fmt::arg("const_whitespace", CacShare::getConstWhitespace(f)),
                 fmt::arg("definition", f.definition)
         	);
         }
@@ -78,6 +81,7 @@ int main(int argc, char** argv) {
         bool functionPad = false;
         for (auto f : cd.functions) {
             if (f.is_defined) continue;
+            CacShare::editArguments(f);
             functionPad = true;
         	char const* used_format;
         	switch (f.function_type) {
@@ -89,18 +93,22 @@ int main(int argc, char** argv) {
                		used_format = format_strings::function_definition;
                     break;
             }
-            auto address = fmt::format(format_strings::function_address_definition,
-            	fmt::arg("mac_address", f.binds[kMac].size() ? f.binds[kMac] : "0x0"),
-                fmt::arg("win_address", f.binds[kWindows].size() ? f.binds[kWindows] : "0x0"),
-                fmt::arg("ios_address", f.binds[kIos].size() ? f.binds[kIos] : "0x0")
-            );
+            string address;
+            if (f.binds[kMac].size() || f.binds[kWindows].size() || f.binds[kIos].size()) {
+            	vector<string> addresses;
+            	if (f.binds[kMac].size()) addresses.push_back("mac " + f.binds[kMac]);
+            	if (f.binds[kWindows].size()) addresses.push_back("win " + f.binds[kWindows]);
+            	if (f.binds[kIos].size()) addresses.push_back("ios " + f.binds[kIos]);
+            	address = fmt::format(" = {}", fmt::join(addresses, ", "));
+            }
         	output += fmt::format(used_format,
                 fmt::arg("virtual", f.function_type == kVirtualFunction ? "virtual " : ""),
                 fmt::arg("static", f.function_type == kStaticFunction ? "static " : ""),
                 fmt::arg("return_type", f.return_type),
-                fmt::arg("function_name", f.name),
-                fmt::arg("raw_params", CacShare::formatRawArgs(f.args, f.argnames)),
-                fmt::arg("const", f.is_const ? " const" : ""),
+                fmt::arg("function_name", CacShare::getFunctionName(f)),
+                fmt::arg("parameters", CacShare::getParameters(f)),
+                fmt::arg("const", CacShare::getConst(f)),
+				fmt::arg("const_whitespace", CacShare::getConstWhitespace(f)),
                 fmt::arg("address", address)
             );
         }
@@ -121,16 +129,20 @@ int main(int argc, char** argv) {
                 	used_format = format_strings::pad_definition;
                 	break;
             }
-            auto address = fmt::format(format_strings::member_address_definition,
-            	fmt::arg("mac_address", m.hardcodes[kMacMember].size() ? m.hardcodes[kMacMember] : "0x0"),
-                fmt::arg("win_address", m.hardcodes[kWindowsMember].size() ? m.hardcodes[kWindowsMember] : "0x0"),
-                fmt::arg("android_address", m.hardcodes[kAndroidMember].size() ? m.hardcodes[kAndroidMember] : "0x0")
-            );
+            string address;
+            if (m.hardcodes[kMacMember].size() || m.hardcodes[kWindowsMember].size() || m.hardcodes[kAndroidMember].size()) {
+            	vector<string> addresses;
+            	if (m.hardcodes[kMacMember].size()) addresses.push_back("mac " + m.hardcodes[kMacMember]);
+            	if (m.hardcodes[kWindowsMember].size()) addresses.push_back("win " + m.hardcodes[kWindowsMember]);
+            	if (m.hardcodes[kAndroidMember].size()) addresses.push_back("android " + m.hardcodes[kAndroidMember]);
+            	address = fmt::format(" = {}", fmt::join(addresses, ", "));
+            }
+            string array = m.count > 0 ? fmt::format("[{}]", m.count) : "";
         	output += fmt::format(used_format,
                 fmt::arg("type", m.type),
-                fmt::arg("member_name", m.name.substr(m.member_type == kHardcode ? 2 : 0, m.name.size())),
+                fmt::arg("member_name", m.name),
                 fmt::arg("address", address),
-                fmt::arg("array", CacShare::getArray(m.count)) //why is this not tied to member
+                fmt::arg("array", array) //why is this not tied to member
             );
         }
         if (memberPad) output += "\n";
