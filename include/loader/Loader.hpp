@@ -1,18 +1,19 @@
 #pragma once
 
-#include <Macros.hpp>
+
 #include "Types.hpp"
+#include "Log.hpp"
+#include "../Macros.hpp"
+#include "../utils/Result.hpp"
+#include "../utils/fs/filesystem.hpp"
+#include "../utils/json.hpp"
+#include "../utils/VersionInfo.hpp"
 #include <string_view>
 #include <vector>
 #include <string>
 #include <unordered_map>
-#include <utils/Result.hpp>
 #include <functional>
 #include <unordered_set>
-#include <utils/fs/filesystem.hpp>
-#include <utils/json.hpp>
-#include "Log.hpp"
-#include <utils/VersionInfo.hpp>
 
 namespace geode {
     #pragma warning(disable: 4251)

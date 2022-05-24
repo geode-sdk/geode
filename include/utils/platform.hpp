@@ -1,11 +1,11 @@
 #pragma once
 
-#include <Macros.hpp>
 #include "Result.hpp"
+#include "fs/filesystem.hpp"
+#include "../Macros.hpp"
 #include <string>
 #include <vector>
 #include <functional>
-#include <fs/filesystem.hpp>
 
 namespace geode::utils::clipboard {
     GEODE_DLL bool write(std::string const& data);

@@ -1,6 +1,7 @@
 #pragma once
-#include <type_traits>
 #include "../meta/common.hpp"
+#include <type_traits>
+
 
 namespace geode::modifier {
 	template <class FunctionType>

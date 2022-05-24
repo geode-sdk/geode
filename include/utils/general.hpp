@@ -1,12 +1,11 @@
 #pragma once
 
+#include "Result.hpp"
+#include "../Macros.hpp"
 #include <string>
 #include <sstream>
 #include <chrono>
 #include <iomanip>
-
-#include <Macros.hpp>
-#include "Result.hpp"
 
 namespace geode::utils {
     constexpr unsigned int hash(const char* str, int h = 0) {

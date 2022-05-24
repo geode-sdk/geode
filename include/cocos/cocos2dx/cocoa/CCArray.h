@@ -266,6 +266,19 @@ public:
      *  @lua NA
      */
     CCArray(unsigned int capacity);
+
+    CCObject* begin() { 
+    	return &data->arr[0]; 
+    }
+    CCObject const* begin() const { 
+    	return &data->arr[0]; 
+    }
+    CCObject* end() { 
+    	return &data->arr[data->num]; 
+    }
+    CCObject const* end() const { 
+    	return &data->arr[data->num]; 
+    }
 };
 
 // end of data_structure group

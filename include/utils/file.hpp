@@ -1,10 +1,10 @@
 #pragma once
 
-#include <Macros.hpp>
 #include "Result.hpp"
-#include <string>
 #include "types.hpp"
 #include "fs/filesystem.hpp"
+#include "../Macros.hpp"
+#include <string>
 
 namespace geode::file_utils {
     GEODE_DLL Result<std::string> readString(std::string            const& path);

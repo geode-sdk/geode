@@ -1,10 +1,10 @@
 #pragma once
 
+#include "../utils/platform.hpp"
 #include <string>
 #include <map>
 #include <vector>
 #include <iostream>
-#include "../utils/platform.hpp"
 
 namespace geode::base {
 	uintptr_t get();

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <Macros.hpp>
+#include "../Macros.hpp"
+#include "../platform/platform.hpp"
 #include <string>
-#include <platform/cplatform.h>
 
 namespace geode {
 	/**
