@@ -847,12 +847,12 @@ class CustomizeObjectLayer : FLAlertLayer, TextInputDelegate, HSVWidgetPopupDele
 	bool m_customColorSelected;
 }
 
-class DailyLevelPage {
-	static DailyLevelPage* create(bool weekly) = win 0x6a860;
-	bool init(bool weekly) = win 0x6a900;
-	void updateTimers(float) = win 0x6bef0;
+class DailyLevelPage : FLAlertLayer {
+	static DailyLevelPage* create(bool weekly) = mac 0x0, win 0x6a860, ios 0x0;
+	bool init(bool weekly) = mac 0x0, win 0x6a900, ios 0x0;
+	void updateTimers(float) = mac 0x0, win 0x6bef0, ios 0x0;
 
-	PAD = win 0x1ed;
+	PAD = mac 0x0, win 0x21, ios 0x0;
 	bool m_weekly;
 }
 
@@ -1924,12 +1924,12 @@ class GJGameLevel : cocos2d::CCNode {
 	virtual bool canEncode() = mac 0x2ddae0;
 	virtual bool init() = mac 0x2db310;
 	static GJGameLevel* create() = mac 0x2b83e0, win 0xbd2b0, ios 0x51fe8;
-	gd::string getAudioFileName() = mac 0x2dbe70, win 0xbdc70;
-	void getCoinKey(int) = mac 0x2ce360;
-	void getLengthKey(int) = mac 0x2dbba0;
-	void getNormalPercent() = mac 0x2b8b20;
-	void levelWasAltered() = mac 0x2db530, win 0xbd550;
-	void savePercentage(int, bool, int, int, bool) = mac 0x2db700;
+	gd::string getAudioFileName() = mac 0x2dbe70, win 0xbdc70, ios 0x0;
+	const char* getCoinKey(int) = mac 0x2ce360, win 0xbda50, ios 0x0;
+	void getLengthKey(int) = mac 0x2dbba0, win 0x0, ios 0x0;
+	void getNormalPercent() = mac 0x2b8b20, win 0x0, ios 0x0;
+	void levelWasAltered() = mac 0x2db530, win 0xbd550, ios 0x0;
+	void savePercentage(int, bool, int, int, bool) = mac 0x2db700, win 0x0, ios 0x0;
 	void dataLoaded(DS_Dictionary* dict) = mac 0x2922f0, win 0xbded0, ios 0x6fca4;
 	GJDifficulty getAverageDifficulty() = win 0xbd9b0;
 	gd::string getUnpackedLevelDescription() = win 0xbf890;
@@ -2270,7 +2270,8 @@ class GJSearchObject : cocos2d::CCNode {
 	    return this->m_searchType;
 	}
 
-	static GJSearchObject* create(SearchType nID) = win 0xc2b90;
+	static GJSearchObject* create(SearchType nID) = mac 0x0, win 0xc2b90, ios 0x0;
+	static GJSearchObject* create(SearchType nID, gd::string str) = mac 0x0, win 0xc2c80, ios 0x0;
 
 	SearchType m_searchType;
 	gd::string m_searchQuery;
@@ -2668,6 +2669,7 @@ class GameManager : GManager {
 	bool m_toFullscreen;
 	bool m_reloading;
 	bool m_unknown0;
+	PAD = mac 0x4, win 0x4, android 0x0;
 	cocos2d::CCDictionary* m_valueKeeper;
 	cocos2d::CCDictionary* m_unlockValueKeeper;
 	cocos2d::CCDictionary* m_customObjectDict;
@@ -2675,7 +2677,7 @@ class GameManager : GManager {
 	double m_adCache;
 	PAD = mac 0x8, win 0x8;
 	double m_unknownDouble;
-	PAD = mac 0x8, win 0x8;
+	PAD = mac 0x4, win 0x4, android 0x0;
 	bool m_loaded;
 	gd::string m_unknownString;
 	PlayLayer* m_playLayer;
@@ -2770,7 +2772,10 @@ class GameManager : GManager {
 	bool m_unk2;
 	bool m_gameCenterEnabled;
 	bool m_smoothFix;
-	PAD = mac 0x18, win 0x18;
+	int m_ratePowerSeed;
+	int m_ratePowerRand;
+	int m_ratePower;
+	bool m_canGetLevelSaveData;
 	int m_resolution;
 	cocos2d::TextureQuality m_quality;
 }
@@ -2953,9 +2958,10 @@ class GameObject : CCSpritePlus {
 	//GJSpriteColor* m_secondaryColourMode;
 	//bool m_col1;
 	//bool m_col2;
-	float m_unknown27c;
-	float m_unknown280;
-	float m_unknown284;
+	int m_baseColorID; //0x27c on macos
+	int m_detailColorID;
+	bool m_baseColorHSVModified;
+    bool m_detailColorHSVModified;
 	cocos2d::CCPoint m_startPosOffset;
 	float m_rotateOffset;
 	bool m_tintTrigger;
@@ -3070,9 +3076,13 @@ class GameObject : CCSpritePlus {
 	bool m_unknownLayerRelated;
 	float m_multiScaleMultiplier;
 	bool m_isGroupParent;
-	short* m_groups;
+	inline using GroupArrayType = short(*)[10];
+	GroupArrayType m_groups;
 	short m_groupCount;
-	PAD = mac 0x22, win 0x12;
+	GroupArrayType m_pulseGroups;
+	short m_pulseGroupCount; // mac 0x470
+	GroupArrayType m_alphaGroups;
+	short m_alphaGroupCount; // mac 0x480
 	int m_editorLayer;
 	int m_editorLayer2;
 	int m_unk414;
@@ -3080,8 +3090,8 @@ class GameObject : CCSpritePlus {
 	cocos2d::CCPoint m_firstPosition;
 	PAD = mac 0x1c, win 0x1c;
 	bool m_highDetail;
-	ColorActionSprite* m_colorActionSprite1;
-	ColorActionSprite* m_colorActionSprite2;
+	ColorActionSprite* m_colorActionSpriteBase;
+	ColorActionSprite* m_colorActionSpriteDetail;
 	GJEffectManager* m_effectManager;
 	PAD = mac 0x10, win 0x10;
 }
@@ -4899,17 +4909,9 @@ class TextArea : cocos2d::CCSprite {
 	virtual void draw() = mac 0x19f890;
 	virtual void setOpacity(unsigned char) = mac 0x19f760;
 	bool init(gd::string str, char const* font, float width, float height, cocos2d::CCPoint anchor, float scale, bool disableColor) = mac 0x19ec70, win 0x33370, ios 0x92444;
-	static TextArea* create(gd::string const& str, char const* font, float width, float height, cocos2d::CCPoint const& anchor, float scale, bool disableColor) {
-		auto ret = new TextArea();
-	    if (ret->init(str, font, width, height, anchor, scale, disableColor)) {
-	        ret->autorelease();
-	        return ret;
-	    }
-	    CC_SAFE_DELETE(ret);
-	    return nullptr;
-	}
-	void colorAllCharactersTo(cocos2d::ccColor3B color) = win 0x33830;
-	void setString(gd::string str) = mac 0x19eda0, win 0x33480;
+	static TextArea* create(gd::string const& str, char const* font, float width, float height, cocos2d::CCPoint const& anchor, float scale, bool disableColor) = mac 0x19eb40, win 0x33270;
+	void colorAllCharactersTo(cocos2d::ccColor3B color) = mac 0x0, win 0x33830, ios 0x0;
+	void setString(gd::string str) = mac 0x19eda0, win 0x33480, ios 0x0;
 
 	bool m_disableColor;			// 0x1e4
 	MultilineBitmapFont* m_label;	// 0x1e8

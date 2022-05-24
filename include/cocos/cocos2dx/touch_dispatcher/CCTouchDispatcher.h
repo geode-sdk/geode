@@ -211,13 +211,13 @@ protected:
     CCTouchHandler* findHandler(CCArray* pArray, CCTouchDelegate *pDelegate);
 
 protected:
-     CCArray* m_pTargetedHandlers;
-     CCArray* m_pStandardHandlers;
+    CCArray* m_pTargetedHandlers;
+    CCArray* m_pStandardHandlers;
 
     bool m_bLocked;
     bool m_bToAdd;
     bool m_bToRemove;
-     CCArray* m_pHandlersToAdd;
+    CCArray* m_pHandlersToAdd;
     struct _ccCArray *m_pHandlersToRemove;
     bool m_bToQuit;
     bool m_bDispatchEvents;

@@ -3,6 +3,7 @@ set(CMAKE_SYSTEM_NAME MacOS)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fms-extensions -Wno-deprecated -Wno-ignored-attributes -O2 -Os -fdata-sections -ffunction-sections")
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -dead_strip")
+set(CMAKE_OSX_ARCHITECTURES x86_64)
 
 include_directories(
 	${GEODE_SDK_PATH}/include/cocos/cocos2dx/platform/mac

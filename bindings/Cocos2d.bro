@@ -2,6 +2,10 @@ class cocos2d::CCActionTween {
 	static cocos2d::CCActionTween* create(float, char const*, float, float) = mac 0x447590;
 }
 
+class cocos2d::CCActionManager {
+	auto addAction(cocos2d::CCAction*, cocos2d::CCNode*, bool) = mac 0x10bed0;
+}
+
 class cocos2d::CCAnimate {
 	static cocos2d::CCAnimate* create(cocos2d::CCAnimation*) = mac 0x1f8fc0;
 }
@@ -48,7 +52,11 @@ class cocos2d::CCBMFontConfiguration {
 }
 
 class cocos2d::CCCallFunc {
-	static cocos2d::CCCallFunc* create(int) = mac 0x454d90;
+	static auto create(cocos2d::CCObject*, cocos2d::SEL_CallFunc) = mac 0x454d90;
+}
+
+class cocos2d::CCCallFuncO {
+	static auto create(cocos2d::CCObject*, cocos2d::SEL_CallFuncO, cocos2d::CCObject*) = mac 0x455940;
 }
 
 class cocos2d::CCClippingNode {
@@ -152,7 +160,7 @@ class cocos2d::CCEaseOut {
 }
 
 class cocos2d::CCEGLView {
-	virtual void swapBuffers();
+	virtual void swapBuffers() = mac 0x295510;
 	void updateWindow(int width, int height);
 	void toggleFullScreen(bool fullscreen);
 	void pollEvents();
@@ -407,7 +415,8 @@ class cocos2d::CCMotionStreak {
 }
 
 class cocos2d::CCMouseDispatcher {
-    
+    bool dispatchScrollMSG(float x, float y);
+    void removeDelegate(cocos2d::CCMouseDelegate* delegate);
 }
 
 class cocos2d::CCMouseHandler {
@@ -426,120 +435,120 @@ class cocos2d::CCMoveTo {
 
 class cocos2d::CCNode {
     CCNode() = mac 0x122550;
-    auto _setZOrder(int) = mac 0x122990, , ios 0x15dd7c;
-    auto addChild(cocos2d::CCNode*) = mac 0x1233d0, , ios 0x15e5d4;
-    auto addChild(cocos2d::CCNode*, int) = mac 0x1233b0, , ios 0x15e5c4;
-    auto addChild(cocos2d::CCNode*, int, int) = mac 0x1232a0, , ios 0x15e4e4;
-    auto addComponent(cocos2d::CCComponent*) = mac 0x124a40, , ios 0x15f6a4;
-    auto cleanup() = mac 0x123100, , ios 0x15e3a4;
-    auto convertToNodeSpace(cocos2d::CCPoint const&) = mac 0x124750, ios 0x15f55c;
-    auto convertToWorldSpace(cocos2d::CCPoint const&) = mac 0x124790;
+    virtual auto _setZOrder(int) = mac 0x122990, , ios 0x15dd7c;
+    virtual auto addChild(cocos2d::CCNode*) = mac 0x1233d0, , ios 0x15e5d4;
+    virtual auto addChild(cocos2d::CCNode*, int) = mac 0x1233b0, , ios 0x15e5c4;
+    virtual auto addChild(cocos2d::CCNode*, int, int) = mac 0x1232a0, , ios 0x15e4e4;
+    virtual auto addComponent(cocos2d::CCComponent*) = mac 0x124a40, , ios 0x15f6a4;
+    virtual auto cleanup() = mac 0x123100, , ios 0x15e3a4;
+    virtual auto convertToNodeSpace(cocos2d::CCPoint const&) = mac 0x124750, ios 0x15f55c;
+    virtual auto convertToWorldSpace(cocos2d::CCPoint const&) = mac 0x124790;
     static cocos2d::CCNode* create() = mac 0x1230a0;
-    auto draw() = mac 0x123840, , ios 0x15e974;
-    auto getActionByTag(int) = mac 0x123ee0;
-    auto getActionManager() = mac 0x123e50, , ios 0x15ef54;
-    auto getAnchorPoint() = mac 0x122d80, , ios 0x15e090;
-    auto getAnchorPointInPoints() = mac 0x122d70, , ios 0x15e088;
-    auto getCamera() = mac 0x122cb0, , ios 0x15dfe4;
-    auto getChildByTag(int) = mac 0x123220, , ios 0x15e460;
-    auto getChildren() = mac 0x122c80, , ios 0x15dfcc;
-    auto getChildrenCount() const = mac 0x122c90, , ios 0x15dfd4;
-    auto getContentSize() const = mac 0x122e00, , ios 0x15e118;
-    auto getGLServerState() = mac 0x122f90, , ios 0x15e248;
-    auto getGrid() = mac 0x122d00, , ios 0x15e034;
-    auto getOrderOfArrival() = mac 0x122f50, , ios 0x15e228;
-    auto getParent() = mac 0x122ed0, , ios 0x15e1e0;
-    auto getPosition() = mac 0x122b60, , ios 0x15debc;
-    auto getPosition(float*, float*) = mac 0x122b90, , ios 0x15dedc;
-    auto getPositionX() = mac 0x122be0, , ios 0x15df30;
-    auto getPositionY() = mac 0x122bf0, , ios 0x15df38;
-    auto getRotation() = mac 0x122a00, , ios 0x15dde4;
-    auto getRotationX() = mac 0x122a50, , ios 0x15de1c;
-    auto getRotationY() = mac 0x122a80, , ios 0x15de38;
-    auto getScale() = mac 0x122ab0, , ios 0x15de54;
-    auto getScaleX() = mac 0x122b00, , ios 0x15de84;
-    auto getScaleY() = mac 0x122b30, , ios 0x15dea0;
-    auto getScaledContentSize() = mac 0x122e10, , ios 0x15e120;
-    auto getScheduler() = mac 0x123f70, , ios 0x15f008;
-    auto getShaderProgram() = mac 0x122f70, , ios 0x15e238;
-    auto getSkewX() = mac 0x122920, , ios 0x15dd3c;
-    auto getSkewY() = mac 0x122950, , ios 0x15dd58;
-    auto getUserData() = mac 0x122f30, , ios 0x15e218;
-    auto getUserObject() = mac 0x122f80, , ios 0x15e240;
-    auto getVertexZ() = mac 0x1229e0, , ios 0x15ddd4;
-    auto getZOrder() = mac 0x122980, , ios 0x15dd74;
-    auto ignoreAnchorPointForPosition(bool) = mac 0x122f00, , ios 0x15e1f8;
-    auto init() = mac 0x122910, , ios 0x15dd34;
-    auto isIgnoreAnchorPointForPosition() = mac 0x122ef0, , ios 0x15e1f0;
-    auto isRunning() = mac 0x122ec0, , ios 0x15e1d8;
-    auto isVisible() = mac 0x122d50, , ios 0x15e078;
-    auto nodeToParentTransform() = mac 0x124210, , ios 0x15f1a4;
-    auto nodeToWorldTransform() = mac 0x124670, , ios 0x15f490;
-    auto onEnter() = mac 0x123a90, , ios 0x15eb94;
-    auto onEnterTransitionDidFinish() = mac 0x123b90, , ios 0x15ec94;
-    auto onExit() = mac 0x123ca0, , ios 0x15edb0;
-    auto onExitTransitionDidStart() = mac 0x123c00, , ios 0x15ed18;
-    auto parentToNodeTransform() = mac 0x1245d0, , ios 0x15f410;
-    auto pauseSchedulerAndActions() = mac 0x123d60;
-    auto registerScriptHandler(int) = mac 0x123d90, , ios 0x15ee94;
-    auto removeAllChildren() = mac 0x123600, , ios 0x15e788;
-    auto removeAllChildrenWithCleanup(bool) = mac 0x123620, , ios 0x15e798;
-    auto removeAllComponents() = mac 0x124aa0, , ios 0x15f6d4;
-    auto removeChild(cocos2d::CCNode*) = mac 0x123460, , ios 0x15e630;
-    auto removeChild(cocos2d::CCNode*, bool) = mac 0x123480, , ios 0x15e640;
-    auto removeChildByTag(int) = mac 0x1235a0, , ios 0x15e724;
-    auto removeChildByTag(int, bool) = mac 0x1235c0, , ios 0x15e734;
-    auto removeComponent(char const*) = mac 0x124a60, , ios 0x15f6b4;
-    auto removeComponent(cocos2d::CCComponent*) = mac 0x124a80, , ios 0x15f6c4;
-    auto removeFromParent() = mac 0x1233f0, , ios 0x15e5e8;
-    auto removeFromParentAndCleanup(bool) = mac 0x123410, , ios 0x15e5f8;
-    auto removeMeAndCleanup() = mac 0x123440, , ios 0x15e620;
-    auto reorderChild(cocos2d::CCNode*, int) = mac 0x123760, , ios 0x15e87c;
-    auto resumeSchedulerAndActions() = mac 0x123b60;
-    auto runAction(cocos2d::CCAction*) = mac 0x123e60;
-    auto schedule(cocos2d::SEL_SCHEDULE) = mac 0x1240b0;
-    auto schedule(cocos2d::SEL_SCHEDULE, float) = mac 0x124120;
-    auto scheduleUpdate() = mac 0x123f80;
-    auto setActionManager(cocos2d::CCActionManager*) = mac 0x123e00, , ios 0x15ef04;
-    auto setAnchorPoint(cocos2d::CCPoint const&) = mac 0x122d90, , ios 0x15e098;
-    auto setContentSize(cocos2d::CCSize const&) = mac 0x122e50, , ios 0x15e158;
-    auto setGLServerState(cocos2d::ccGLServerState) = mac 0x122fa0, , ios 0x15e250;
-    auto setGrid(cocos2d::CCGridBase*) = mac 0x122d10, , ios 0x15e03c;
-    auto setOrderOfArrival(unsigned int) = mac 0x122f60, , ios 0x15e230;
-    auto setParent(cocos2d::CCNode*) = mac 0x122ee0, , ios 0x15e1e8;
-    auto setPosition(cocos2d::CCPoint const&) = mac 0x122b70, , ios 0x15dec4;
-    auto setPosition(float, float) = mac 0x122ba0, , ios 0x15def0;
-    auto setPositionX(float) = mac 0x122c00, , ios 0x15df40;
-    auto setPositionY(float) = mac 0x122c40, , ios 0x15df84;
-    auto setRotation(float) = mac 0x122a10, , ios 0x15ddec;
-    auto setRotationX(float) = mac 0x122a60, , ios 0x15de24;
-    auto setRotationY(float) = mac 0x122a90, , ios 0x15de40;
-    auto setScale(float) = mac 0x122ac0, , ios 0x15de5c;
-    auto setScale(float, float) = mac 0x122ae0, , ios 0x15de70;
-    auto setScaleX(float) = mac 0x122b10, , ios 0x15de8c;
-    auto setScaleY(float) = mac 0x122b40, , ios 0x15dea8;
-    auto setScheduler(cocos2d::CCScheduler*) = mac 0x123f20, , ios 0x15efb8;
-    auto setShaderProgram(cocos2d::CCGLProgram*) = mac 0x122ff0, , ios 0x15e294;
-    auto setSkewX(float) = mac 0x122930, , ios 0x15dd44;
-    auto setSkewY(float) = mac 0x122960, , ios 0x15dd60;
-    auto setUserData(void*) = mac 0x122f40, , ios 0x15e220;
-    auto setUserObject(cocos2d::CCObject*) = mac 0x122fb0, , ios 0x15e258;
-    auto setVertexZ(float) = mac 0x1229f0, , ios 0x15dddc;
-    auto setVisible(bool) = mac 0x122d60, , ios 0x15e080;
-    auto setZOrder(int) = mac 0x1229a0, , ios 0x15dd84;
-    auto sortAllChildren() = mac 0x1237b0, , ios 0x15e8d4;
-    auto stopActionByTag(int) = mac 0x123ec0;
-    auto stopAllActions() = mac 0x123190;
-    auto unregisterScriptHandler() = mac 0x123dc0, , ios 0x15eec4;
-    auto unschedule(cocos2d::SEL_SCHEDULE) = mac 0x124180;
-    auto unscheduleAllSelectors() = mac 0x1231b0;
-    auto unscheduleUpdate() = mac 0x124060;
-    auto update(float) = mac 0x1241a0, , ios 0x15f124;
-    auto updateTransform() = mac 0x1249d0, , ios 0x15f648;
-    auto updateTweenAction(float, char const*) = mac 0x1249c0, , ios 0x15f644;
-    auto visit() = mac 0x123850, , ios 0x15e978;
-    auto worldToNodeTransform() = mac 0x124710, , ios 0x15f51c;
-    ~CCNode() = mac 0x122750, , ios 0x6c98;
+    virtual auto draw() = mac 0x123840, , ios 0x15e974;
+    virtual auto getActionByTag(int) = mac 0x123ee0;
+    virtual auto getActionManager() = mac 0x123e50, , ios 0x15ef54;
+    virtual auto getAnchorPoint() = mac 0x122d80, , ios 0x15e090;
+    virtual auto getAnchorPointInPoints() = mac 0x122d70, , ios 0x15e088;
+    virtual auto getCamera() = mac 0x122cb0, , ios 0x15dfe4;
+    virtual auto getChildByTag(int) = mac 0x123220, , ios 0x15e460;
+    virtual auto getChildren() = mac 0x122c80, , ios 0x15dfcc;
+    virtual auto getChildrenCount() const = mac 0x122c90, , ios 0x15dfd4;
+    virtual auto getContentSize() const = mac 0x122e00, , ios 0x15e118;
+    virtual auto getGLServerState() = mac 0x122f90, , ios 0x15e248;
+    virtual auto getGrid() = mac 0x122d00, , ios 0x15e034;
+    virtual auto getOrderOfArrival() = mac 0x122f50, , ios 0x15e228;
+    virtual auto getParent() = mac 0x122ed0, , ios 0x15e1e0;
+    virtual auto getPosition() = mac 0x122b60, , ios 0x15debc;
+    virtual auto getPosition(float*, float*) = mac 0x122b90, , ios 0x15dedc;
+    virtual auto getPositionX() = mac 0x122be0, , ios 0x15df30;
+    virtual auto getPositionY() = mac 0x122bf0, , ios 0x15df38;
+    virtual auto getRotation() = mac 0x122a00, , ios 0x15dde4;
+    virtual auto getRotationX() = mac 0x122a50, , ios 0x15de1c;
+    virtual auto getRotationY() = mac 0x122a80, , ios 0x15de38;
+    virtual auto getScale() = mac 0x122ab0, , ios 0x15de54;
+    virtual auto getScaleX() = mac 0x122b00, , ios 0x15de84;
+    virtual auto getScaleY() = mac 0x122b30, , ios 0x15dea0;
+    virtual auto getScaledContentSize() = mac 0x122e10, , ios 0x15e120;
+    virtual auto getScheduler() = mac 0x123f70, , ios 0x15f008;
+    virtual auto getShaderProgram() = mac 0x122f70, , ios 0x15e238;
+    virtual auto getSkewX() = mac 0x122920, , ios 0x15dd3c;
+    virtual auto getSkewY() = mac 0x122950, , ios 0x15dd58;
+    virtual auto getUserData() = mac 0x122f30, , ios 0x15e218;
+    virtual auto getUserObject() = mac 0x122f80, , ios 0x15e240;
+    virtual auto getVertexZ() = mac 0x1229e0, , ios 0x15ddd4;
+    virtual auto getZOrder() = mac 0x122980, , ios 0x15dd74;
+    virtual auto ignoreAnchorPointForPosition(bool) = mac 0x122f00, , ios 0x15e1f8;
+    virtual auto init() = mac 0x122910, , ios 0x15dd34;
+    virtual auto isIgnoreAnchorPointForPosition() = mac 0x122ef0, , ios 0x15e1f0;
+    virtual auto isRunning() = mac 0x122ec0, , ios 0x15e1d8;
+    virtual auto isVisible() = mac 0x122d50, , ios 0x15e078;
+    virtual auto nodeToParentTransform() = mac 0x124210, , ios 0x15f1a4;
+    virtual auto nodeToWorldTransform() = mac 0x124670, , ios 0x15f490;
+    virtual auto onEnter() = mac 0x123a90, , ios 0x15eb94;
+    virtual auto onEnterTransitionDidFinish() = mac 0x123b90, , ios 0x15ec94;
+    virtual auto onExit() = mac 0x123ca0, , ios 0x15edb0;
+    virtual auto onExitTransitionDidStart() = mac 0x123c00, , ios 0x15ed18;
+    virtual auto parentToNodeTransform() = mac 0x1245d0, , ios 0x15f410;
+    virtual auto pauseSchedulerAndActions() = mac 0x123d60;
+    virtual auto registerScriptHandler(int) = mac 0x123d90, , ios 0x15ee94;
+    virtual auto removeAllChildren() = mac 0x123600, , ios 0x15e788;
+    virtual auto removeAllChildrenWithCleanup(bool) = mac 0x123620, , ios 0x15e798;
+    virtual auto removeAllComponents() = mac 0x124aa0, , ios 0x15f6d4;
+    virtual auto removeChild(cocos2d::CCNode*) = mac 0x123460, , ios 0x15e630;
+    virtual auto removeChild(cocos2d::CCNode*, bool) = mac 0x123480, , ios 0x15e640;
+    virtual auto removeChildByTag(int) = mac 0x1235a0, , ios 0x15e724;
+    virtual auto removeChildByTag(int, bool) = mac 0x1235c0, , ios 0x15e734;
+    virtual auto removeComponent(char const*) = mac 0x124a60, , ios 0x15f6b4;
+    virtual auto removeComponent(cocos2d::CCComponent*) = mac 0x124a80, , ios 0x15f6c4;
+    virtual auto removeFromParent() = mac 0x1233f0, , ios 0x15e5e8;
+    virtual auto removeFromParentAndCleanup(bool) = mac 0x123410, , ios 0x15e5f8;
+    virtual auto removeMeAndCleanup() = mac 0x123440, , ios 0x15e620;
+    virtual auto reorderChild(cocos2d::CCNode*, int) = mac 0x123760, , ios 0x15e87c;
+    virtual auto resumeSchedulerAndActions() = mac 0x123b60;
+    virtual auto runAction(cocos2d::CCAction*) = mac 0x123e60;
+    virtual auto schedule(cocos2d::SEL_SCHEDULE) = mac 0x1240b0;
+    virtual auto schedule(cocos2d::SEL_SCHEDULE, float) = mac 0x124120;
+    virtual auto scheduleUpdate() = mac 0x123f80;
+    virtual auto setActionManager(cocos2d::CCActionManager*) = mac 0x123e00, , ios 0x15ef04;
+    virtual auto setAnchorPoint(cocos2d::CCPoint const&) = mac 0x122d90, , ios 0x15e098;
+    virtual auto setContentSize(cocos2d::CCSize const&) = mac 0x122e50, , ios 0x15e158;
+    virtual auto setGLServerState(cocos2d::ccGLServerState) = mac 0x122fa0, , ios 0x15e250;
+    virtual auto setGrid(cocos2d::CCGridBase*) = mac 0x122d10, , ios 0x15e03c;
+    virtual auto setOrderOfArrival(unsigned int) = mac 0x122f60, , ios 0x15e230;
+    virtual auto setParent(cocos2d::CCNode*) = mac 0x122ee0, , ios 0x15e1e8;
+    virtual auto setPosition(cocos2d::CCPoint const&) = mac 0x122b70, , ios 0x15dec4;
+    virtual auto setPosition(float, float) = mac 0x122ba0, , ios 0x15def0;
+    virtual auto setPositionX(float) = mac 0x122c00, , ios 0x15df40;
+    virtual auto setPositionY(float) = mac 0x122c40, , ios 0x15df84;
+    virtual auto setRotation(float) = mac 0x122a10, , ios 0x15ddec;
+    virtual auto setRotationX(float) = mac 0x122a60, , ios 0x15de24;
+    virtual auto setRotationY(float) = mac 0x122a90, , ios 0x15de40;
+    virtual auto setScale(float) = mac 0x122ac0, , ios 0x15de5c;
+    virtual auto setScale(float, float) = mac 0x122ae0, , ios 0x15de70;
+    virtual auto setScaleX(float) = mac 0x122b10, , ios 0x15de8c;
+    virtual auto setScaleY(float) = mac 0x122b40, , ios 0x15dea8;
+    virtual auto setScheduler(cocos2d::CCScheduler*) = mac 0x123f20, , ios 0x15efb8;
+    virtual auto setShaderProgram(cocos2d::CCGLProgram*) = mac 0x122ff0, , ios 0x15e294;
+    virtual auto setSkewX(float) = mac 0x122930, , ios 0x15dd44;
+    virtual auto setSkewY(float) = mac 0x122960, , ios 0x15dd60;
+    virtual auto setUserData(void*) = mac 0x122f40, , ios 0x15e220;
+    virtual auto setUserObject(cocos2d::CCObject*) = mac 0x122fb0, , ios 0x15e258;
+    virtual auto setVertexZ(float) = mac 0x1229f0, , ios 0x15dddc;
+    virtual auto setVisible(bool) = mac 0x122d60, , ios 0x15e080;
+    virtual auto setZOrder(int) = mac 0x1229a0, , ios 0x15dd84;
+    virtual auto sortAllChildren() = mac 0x1237b0, , ios 0x15e8d4;
+    virtual auto stopActionByTag(int) = mac 0x123ec0;
+    virtual auto stopAllActions() = mac 0x123190;
+    virtual auto unregisterScriptHandler() = mac 0x123dc0, , ios 0x15eec4;
+    virtual auto unschedule(cocos2d::SEL_SCHEDULE) = mac 0x124180;
+    virtual auto unscheduleAllSelectors() = mac 0x1231b0;
+    virtual auto unscheduleUpdate() = mac 0x124060;
+    virtual auto update(float) = mac 0x1241a0, , ios 0x15f124;
+    virtual auto updateTransform() = mac 0x1249d0, , ios 0x15f648;
+    virtual auto updateTweenAction(float, char const*) = mac 0x1249c0, , ios 0x15f644;
+    virtual auto visit() = mac 0x123850, , ios 0x15e978;
+    virtual auto worldToNodeTransform() = mac 0x124710, , ios 0x15f51c;
+    virtual ~CCNode() = mac 0x122750, , ios 0x6c98;
 }
 
 class cocos2d::CCNodeRGBA {
@@ -622,6 +631,7 @@ class cocos2d::CCScheduler {
 }
 
 class cocos2d::CCSequence {
+	static auto createWithVariableList(cocos2d::CCFiniteTimeAction*, va_list) = mac 0x1f2910;
 }
 
 class cocos2d::CCSet {
@@ -797,9 +807,12 @@ class cocos2d::CCTouch {
 }
 
 class cocos2d::CCTouchDispatcher {
+	auto addTargetedDelegate(cocos2d::CCTouchDelegate*, int, bool) = mac 0x281180;
 	auto decrementForcePrio(int) = mac 0x280f70, ios 0xcc280;
 	auto incrementForcePrio(int) = mac 0x280f60, ios 0xcc268;
 	void touches(cocos2d::CCSet*, cocos2d::CCEvent*, unsigned int) = mac 0x281a60;
+    void removeDelegate(cocos2d::CCTouchDelegate* delegate);
+
 }
 
 class cocos2d::CCTouchHandler {
