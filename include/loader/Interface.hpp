@@ -115,6 +115,9 @@ namespace geode {
          */
         template<auto Detour, template <class, class...> class Convention>
         Result<Hook*> addHook(std::string const& displayName, void* address) {
+        	if (this->m_mod) {
+        		return this->m_mod->addHook<Detour, Convention>(displayName, address);
+        	}
         	this->m_scheduledHooks.push_back({ displayName, address, &Mod::addHook<Detour, Convention> });
 			return Ok<Hook*>(nullptr);
         }
