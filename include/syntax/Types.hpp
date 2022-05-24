@@ -1,5 +1,5 @@
 #pragma once
-#include <codegen-base/HeaderBase.hpp>
+#include <Header.hpp>
 
 namespace geode::modifier {
 	struct types {

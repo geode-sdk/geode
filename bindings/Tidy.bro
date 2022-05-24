@@ -517,13 +517,13 @@ class CCCircleWave : cocos2d::CCNode {
 	PAD = win 0x4;
 	float m_currentRadius;
 	float m_currentOpacity;
-	cocos2d::ccColor3B color = mac 0x134;
+	cocos2d::ccColor3B color;
 	cocos2d::CCPoint m_circleCenter;
 	int m_filled;
 	int m_lineWidth;
 	float m_opacityMultiplier;
 	bool m_blendFuncDirty;
-	CCCircleWaveDelegate* delegate = mac 0x150;
+	CCCircleWaveDelegate* delegate;
 }
 
 class CCCircleWaveDelegate {

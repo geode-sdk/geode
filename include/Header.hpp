@@ -3,31 +3,16 @@
 #ifdef _MSC_VER
 #pragma warning(disable: 4251) // dll-interface
 #pragma warning(disable: 4099) // type first seen as 'class'
-#pragma warning(disable: 4584) // CCKeyboardDelegate included twice in UILayer
 #endif
 
 #include "Macros.hpp"
-
-#include <c++stl/gdstdlib.hpp>
+#include "c++stl/gdstdlib.hpp"
+#include "fmod/fmod.hpp"
 #include <cocos2d.h>
-#include <fmod.hpp>
 #include <cocos-ext.h>
 #include <unordered_map>
 
-// #define CLASSPARAM(type, getter, offset)        		\
-// 	[[deprecated]]                                      \
-// 	inline type& _##getter() {                      	\
-// 		return *((type*)((uintptr_t)this + offset));	\
-// 	}
-
-// #define STRUCTPARAM(type, getter, offset)       		\
-// 	[[deprecated]]                                      \
-// 	inline type _##getter() {                       	\
-// 		return *(type*)((uintptr_t)this+offset);		\
-// 	}
-
 #define CLASSPARAM(...)
-#define STRUCTPARAM(...)
 
 //thanks pie
 enum class SearchType {
@@ -98,6 +83,21 @@ enum class GameObjectType {
 	Special = 40,
 };
 
+enum class spriteMode {}; // yes this is real its not pascalcase
+enum class frameValues {};
+enum class GauntletType {};
+enum class FormatterType {};
+enum class DialogAnimationType {};
+enum class DialogChatPlacement {};
+enum class GJRewardType {};
+enum class CurrencySpriteType {};
+enum class DemonDifficultyType {};
+enum class CurrencyRewardType {};
+enum class ChestSpriteState {};
+enum class GJHttpType {};
+enum class GJKeyGroup {};
+enum class GJKeyCommand {};
+enum class CommentType {};
 enum class PulseEffectType {};
 enum class TouchTriggerType {};
 enum class PlayerButton {};
@@ -107,8 +107,13 @@ enum class UserListType {};
 enum class GJErrorCode {};
 enum class AccountError {};
 enum class GJSongError {};
-enum class LikeItemType {};
-enum class GJStoreItem {};
+enum class LikeItemType {
+	Unknown = 0,
+	Level = 1,
+	Comment = 2,
+	AccountComment = 3
+};
+
 enum class CommentError {};
 enum class BackupAccountError {};
 
@@ -296,6 +301,24 @@ enum class IconType {
 	Spider         = 6,
 	DeathEffect    = 98,
 	Special        = 99,
+};
+
+enum class GJChallengeType {
+	Unknown = 0,
+	Orbs = 1,
+	UserCoins = 2,
+	Stars = 3
+};
+
+enum class GJScoreType {
+	Unknown = 0,
+	Creator = 1
+};
+
+enum class LevelLeaderboardType {
+	Friends = 0,
+	Global = 1,
+	Weekly = 2
 };
 
 // Geode Addition
