@@ -1,0 +1,64 @@
+name: Build Codegen
+
+on:
+  workflow_dispatch:
+  push:
+    branches:    
+    - '**'              # every branch
+    - '!no-build-**'    # unless marked as no-build
+
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - name: "Windows"
+          os: windows-2019
+          extra_flags: '-G "Visual Studio 16 2019" -T host=x86 -A win32'
+          gen_paths:  './build/codegen/*.hpp'
+        - name: "macOS"
+          os: macos-latest
+          extra_flags: "-DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache"
+          gen_paths:  './build/codegen/*.hpp'
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x86
+      if: matrix.config.os == 'windows-latest'
+
+    - name: Configure ccache
+      uses: hendrikmuhs/ccache-action@v1
+      with:
+        key: ${{ matrix.config.os }}
+      if: matrix.config.os == 'macos-latest'
+
+    - name: Configure CMake for Codegen
+      run: |
+        cd codegen
+        cmake -B ${{ github.workspace }}/build ${{ matrix.config.extra_flags }}
+
+    - name: Build
+      run: |
+        cd build
+        cmake --build . --config Release
+          
+    - name: Move to output folder
+      shell: bash
+      working-directory: ${{ github.workspace }}
+      run: |
+        mkdir ./out
+        mkdir ./out/codegen
+        mv ${{ matrix.config.gen_paths }} ./out/codegen
+        
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ matrix.config.name }} Binary
+        path: ./out/

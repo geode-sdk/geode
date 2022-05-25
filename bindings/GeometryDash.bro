@@ -4056,10 +4056,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, DialogDelegate {
 	float unknown5c4;
 	GJGroundLayer* m_bottomGround;
 	GJGroundLayer* m_topGround;
-
-	// this is literaly garbage data
-	PAD = mac 0x8, win 0x8, android 0x0;
-
+	double m_completelyUninitializedData;
 	bool m_isDead;
 	bool m_startCameraAtCorner;
 	bool m_cameraYLocked;
