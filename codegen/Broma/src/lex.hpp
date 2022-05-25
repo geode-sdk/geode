@@ -73,7 +73,7 @@ inline Token parseIdent(stringstream& stream) {
         stream.get();
     } while (stream);
 
-    cacerr("Unexpected EOF\n");
+    codegenerr("Unexpected EOF\n");
 }
 
 inline void parseString(stringstream& stream, string& slice, char start) {
@@ -215,7 +215,7 @@ inline void parsePreproc(stringstream& stream) {
 		}
 
 		if (stream.get() != '<') {
-			cacerr("Invalid include\n");
+			codegenerr("Invalid include\n");
 		}
 		stringstream a;
 		while (stream.peek() != '>') {
@@ -229,7 +229,7 @@ inline void parsePreproc(stringstream& stream) {
 
 		if (!fptr) {
 			cout << fname << endl;
-			cacerr("Could not include file %s\n", fname.c_str());
+			codegenerr("Could not include file %s\n", fname.c_str());
 		}
 
 		fclose(fptr);
@@ -241,7 +241,7 @@ inline void parsePreproc(stringstream& stream) {
 		//slice = stream.str();
 		//cout << stream.str().erase(0, stream.tellp()) << endl;
 	} else {
-		cacerr("Invalid preprocessor token %s\n", slice.c_str());
+		codegenerr("Invalid preprocessor token %s\n", slice.c_str());
 	}
 }
 
@@ -308,7 +308,7 @@ inline vector<Token> lexStream(stringstream& stream) {
 				std::istringstream ss(slice);
 				ss >> std::setbase(16) >> tn;
 				if (ss.fail()) {
-					cacerr("Invalid hex %s", slice.c_str());
+					codegenerr("Invalid hex %s", slice.c_str());
 				}
 			}
 
@@ -411,7 +411,7 @@ inline vector<Token> lexStream(stringstream& stream) {
 							}
 						}
 					} else {
-						cacerr("Invalid token \"%s\"", slice.c_str());
+						codegenerr("Invalid token \"%s\"", slice.c_str());
 					}
 					break;
 				case '\'':
@@ -424,7 +424,7 @@ inline vector<Token> lexStream(stringstream& stream) {
 					break;
 				default:
 					std::streamoff pos = stream.tellg();
-					cacerr("Invalid token \"%s\"", slice.c_str());
+					codegenerr("Invalid token \"%s\"", slice.c_str());
 			}
 
 			t.slice = slice;

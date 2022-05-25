@@ -127,7 +127,7 @@ struct ClassDefinition {
 			depends.push_back(sclass);	
 		}
 		// intentional
-		// else cacerr("Duplicate superclass %s for class %s\n", sclass.c_str(), name.c_str());
+		// else codegenerr("Duplicate superclass %s for class %s\n", sclass.c_str(), name.c_str());
 	}
 
 	template<typename T>

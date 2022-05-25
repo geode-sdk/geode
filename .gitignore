@@ -27,27 +27,14 @@
 # Macos be like
 **/.DS_Store
 
-# Camila likes leaving sublime stuff in the repo so yeah
-
 # Cache files for Sublime Text
-*.tmlanguage.cache
-*.tmPreferences.cache
-*.stTheme.cache
+**/*.tmlanguage.cache
+**/*.tmPreferences.cache
+**/*.stTheme.cache
 
 # Workspace files are user-specific
-*.sublime-workspace
-
-# I need to find a way to automatically remove this
-Source/Geode/pkg/uber-apk-signer.jar
+**/*.sublime-workspace
+**/*.sublime-project
 
 # Ignore build folders
 **/build
-
-# Ignore old files
-scripts/
-Scratch/
-
-# Ignore data stuff
-Source/Geode/gen/data/todo/
-Source/Geode/gen/data/Backup/
-JesusChristGen.cpp

@@ -1,6 +1,6 @@
-#include <SharedGen.hpp>
+#include "Shared.hpp"
 
-namespace format_strings {
+namespace { namespace format_strings {
 
 	char const* declare_address = R"GEN(
 GEODE_NOINLINE GEODE_HIDDEN inline static uintptr_t address{index}() {{
@@ -9,10 +9,10 @@ GEODE_NOINLINE GEODE_HIDDEN inline static uintptr_t address{index}() {{
 }}
 )GEN";
 
-}
+}}
 
 static string getAddress(Function const& f) {
-    if (CacShare::isFunctionDefined(f)) {
+    if (codegen::isFunctionDefined(f)) {
         string format;
         if (f.function_type == kVirtualFunction)
             format = "addresser::getVirtual((types::member{})(&{}::{}))";
@@ -20,23 +20,22 @@ static string getAddress(Function const& f) {
             format = "addresser::getNonVirtual((types::member{})(&{}::{}))";
         return fmt::format(format, f.global_index, f.parent_class->name, f.name);
     }
-    else return "base::get() + " + f.binds[CacShare::platform];
+    else return "base::get() + " + f.binds[codegen::platform];
 }
 
-int main(int argc, char** argv) {
+std::string generateAddressHeader(Root const& root) {
 	string output("");
-	Root root = CacShare::init(argc, argv);
 
 	for (auto& [name, c] : root.classes) {
 		for (auto& f : c.functions) {
-			if (!CacShare::isFunctionDefinable(f) && !CacShare::isFunctionDefined(f))
+			if (!codegen::isFunctionDefinable(f) && !codegen::isFunctionDefined(f))
                 continue; // Function not supported, skip
 
-			output += fmt::format(format_strings::declare_address,
+			output += fmt::format(::format_strings::declare_address,
 				fmt::arg("address", getAddress(f)),
-				fmt::arg("index", CacShare::getIndex(f))
+				fmt::arg("index", codegen::getIndex(f))
 			);
 		}
 	}
-	CacShare::writeFile(output);
+	return output;
 }

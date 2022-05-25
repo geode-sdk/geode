@@ -1,10 +1,10 @@
-#include <SharedGen.hpp>
+#include "Shared.hpp"
 #include <iostream>
 #include <set>
 
 using std::set;
 
-namespace format_strings {
+namespace { namespace format_strings {
 	char const* class_predeclare = "class {class_name};\n";
     // requires: base_classes, class_name
     char const* class_start = R"GEN(
@@ -42,9 +42,9 @@ public:
     char const* class_end = R"GEN(
 };
 )GEN";
-}
+}}
 
-void sortClass(Root& r, ClassDefinition* c, set<ClassDefinition*>& looked, vector<ClassDefinition*>& ordered) {
+void sortClass(Root const& r, ClassDefinition const* c, set<ClassDefinition const*>& looked, vector<ClassDefinition const*>& ordered) {
 	if (c->name.find("DS_Dictionary") != string::npos) return;
 	if (c->name.find("cocos2d") != string::npos) return; // cocos headers exist already
     if (looked.find(c) == looked.end()) {
@@ -52,11 +52,11 @@ void sortClass(Root& r, ClassDefinition* c, set<ClassDefinition*>& looked, vecto
         for (string j : c->depends) {
         	if (j.find("cocos2d") != string::npos) continue;
         	if (r.classes.count(c->name) == 0) {
-		        cacerr("Expected class definition for %s\n", c->name.c_str());
+		        codegenerr("Expected class definition for %s\n", c->name.c_str());
 		    }
 		    else {
 		    	if (r.classes.find(j) == r.classes.end()) {
-		    		cacerr("Create class definition for %s\n", j.c_str());
+		    		codegenerr("Create class definition for %s\n", j.c_str());
 		    	}
 		    	else sortClass(r, &r.classes.at(j), looked, ordered);
 		    }    
@@ -65,12 +65,11 @@ void sortClass(Root& r, ClassDefinition* c, set<ClassDefinition*>& looked, vecto
     }
 }
 
-int main(int argc, char** argv) {
-	set<ClassDefinition*> looked;
-	vector<ClassDefinition*> ordered;
+std::string generateGDHeader(Root const& root) {
+	set<ClassDefinition const*> looked;
+	vector<ClassDefinition const*> ordered;
 
     string output = "#pragma once\n#include <gdstdlib.hpp>\n#include <cocos2d.h>\n";
-    Root root = CacShare::init(argc, argv);
 
     for (auto& [name, c] : root.classes) {
         sortClass(root, &c, looked, ordered);
@@ -78,7 +77,7 @@ int main(int argc, char** argv) {
 
     for (auto& cp : ordered) {
         if (cp->name != "") {
-            output += fmt::format(format_strings::class_predeclare,
+            output += fmt::format(::format_strings::class_predeclare,
                 fmt::arg("class_name", cp->name)
             );
         }
@@ -95,7 +94,7 @@ int main(int argc, char** argv) {
 
         string bases = cd.superclasses.size() > 0 ? fmt::format(" : {}", fmt::join(base_strings, ", ")) : "";
 
-        output += fmt::format(format_strings::class_start,
+        output += fmt::format(::format_strings::class_start,
             fmt::arg("class_name", cd.name),
             fmt::arg("base_classes", bases)
         );
@@ -105,36 +104,35 @@ int main(int argc, char** argv) {
         }
 
         for (auto f : cd.functions) {
-            CacShare::editArguments(f);
         	char const* used_format;
         	switch (f.function_type) {
                 case kDestructor:
                 case kConstructor:
-                    used_format = format_strings::structor_definition;
+                    used_format = ::format_strings::structor_definition;
                     break;
                 default:
-               		used_format = format_strings::function_definition;
+               		used_format = ::format_strings::function_definition;
                     break;
             }
 
-            if (f.binds[CacShare::platform].size() == 0 && !f.is_defined) {
+            if (f.binds[codegen::platform].size() == 0 && !f.is_defined) {
                 //continue;
                 // ok new idea
 
                 if (f.function_type == kDestructor || f.function_type == kConstructor)
                     continue;
-                used_format = format_strings::error_definition;
+                used_format = ::format_strings::error_definition;
             }
 
         	output += fmt::format(used_format,
                 fmt::arg("virtual", f.function_type == kVirtualFunction ? "virtual " : ""),
                 fmt::arg("static", f.function_type == kStaticFunction ? "static " : ""),
-                fmt::arg("class_name", CacShare::getClassName(f)),
-				fmt::arg("const", CacShare::getConst(f)),
-				fmt::arg("const_whitespace", CacShare::getConstWhitespace(f)),
-				fmt::arg("function_name", CacShare::getFunctionName(f)),
-				fmt::arg("index", CacShare::getIndex(f)),
-				fmt::arg("parameters", CacShare::getParameters(f)),
+                fmt::arg("class_name", codegen::getClassName(f)),
+				fmt::arg("const", codegen::getConst(f)),
+				fmt::arg("const_whitespace", codegen::getConstWhitespace(f)),
+				fmt::arg("function_name", codegen::getFunctionName(f)),
+				fmt::arg("index", codegen::getIndex(f)),
+				fmt::arg("parameters", codegen::getParameters(f)),
                 fmt::arg("return_type", f.return_type),
                 fmt::arg("docs", f.docs)
             );
@@ -142,7 +140,7 @@ int main(int argc, char** argv) {
 
         for (auto m : cd.members) {
             string hardcode;
-            switch (CacShare::platform) {
+            switch (codegen::platform) {
                 case kIos:
                     hardcode = m.hardcodes[kIosMember];
                     break;
@@ -162,14 +160,14 @@ int main(int argc, char** argv) {
         	char const* used_format;
         	switch (m.member_type) {
                 case kDefault:
-                	used_format = format_strings::member_definition;
+                	used_format = ::format_strings::member_definition;
                 	break;
                 case kHardcode:
-                	used_format = format_strings::hardcode_definition;
+                	used_format = ::format_strings::hardcode_definition;
                 	break;
                 case kPad:
-                	used_format = format_strings::pad_definition;
-                	if (hardcode.size() == 0) used_format = format_strings::unimplemented_definition;
+                	used_format = ::format_strings::pad_definition;
+                	if (hardcode.size() == 0) used_format = ::format_strings::unimplemented_definition;
                 	break;
             }
             
@@ -184,10 +182,10 @@ int main(int argc, char** argv) {
         }
 
         // if (hasClass)
-        output += format_strings::class_end;
+        output += ::format_strings::class_end;
 
         // queued.pop_front();
     }
 
-    CacShare::writeFile(output);
+    return output;
 }
