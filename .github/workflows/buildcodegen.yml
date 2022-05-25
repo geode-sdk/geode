@@ -14,39 +14,31 @@ jobs:
       fail-fast: false
       matrix:
         config:
-        - name: "Windows"
-          os: windows-2019
-          extra_flags: '-G "Visual Studio 16 2019" -T host=x86 -A win32 -DGEODE_TARGET_PLATFORM=Win32'
-          gen_paths:  './build/codegen/*.hpp'
-        - name: "macOS"
-          os: macos-latest
-          extra_flags: "-DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DGEODE_TARGET_PLATFORM=MacOS"
-          gen_paths:  './build/codegen/*.hpp'
+        - name: "Windows Codegen"
+          extra_flags: '-DGEODE_TARGET_PLATFORM=Win32'
+        - name: "macOS Codegen"
+          extra_flags: '-DGEODE_TARGET_PLATFORM=MacOS'
+        - name: "iOS Codegen"
+          extra_flags: '-DGEODE_TARGET_PLATFORM=iOS'
     name: ${{ matrix.config.name }}
-    runs-on: ${{ matrix.config.os }}
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
 
-    - uses: ilammy/msvc-dev-cmd@v1
-      with:
-        arch: x86
-      if: matrix.config.os == 'windows-latest'
-
     - name: Configure ccache
       uses: hendrikmuhs/ccache-action@v1
       with:
-        key: ${{ matrix.config.os }}
-      if: matrix.config.os == 'macos-latest'
+        key: ubuntu-latest
 
     - name: Configure CMake for Codegen
       run: |
         cd codegen
-        cmake -B ./build ${{ matrix.config.extra_flags }} -DGEODE_BINDING_PATH=${{ github.workspace }}/bindings
+        cmake -B ./build ${{ matrix.config.extra_flags }} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DGEODE_BINDING_PATH=${{ github.workspace }}/bindings
 
-    - name: Build
+    - name: Build for Codegen
       run: |
-        cd build
+        cd codegen/build
         cmake --build . --config Release
           
     - name: Move to output folder
@@ -55,7 +47,7 @@ jobs:
       run: |
         mkdir ./out
         mkdir ./out/codegen
-        mv ${{ matrix.config.gen_paths }} ./out/codegen
+        mv './build/codegen/*.hpp' ./out/codegen
         
     - name: Upload Artifacts
       uses: actions/upload-artifact@v2
