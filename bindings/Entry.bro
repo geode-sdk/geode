@@ -3,7 +3,7 @@
 #include <GeometryDash.bro>
 
 // for cleanup
-#include <Virtuals.bro>
-#include <ClassesGD.bro>
-#include <CocosClassesGD.bro>
-#include <Destructors.bro>
+// #include <Virtuals.bro>
+// #include <ClassesGD.bro>
+// #include <CocosClassesGD.bro>
+// #include <Destructors.bro>
