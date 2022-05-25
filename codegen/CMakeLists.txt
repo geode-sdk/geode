@@ -8,8 +8,6 @@ if (NOT DEFINED GEODE_HOST_ARM AND APPLE)
 	set(CMAKE_OSX_SYSROOT )
 endif()
 
-message(STATUS "Building Codegen")
-
 add_subdirectory(fmt)
 
 file(GLOB SOURCES

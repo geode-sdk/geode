@@ -22,7 +22,9 @@ jobs:
           extra_flags: '-DGEODE_TARGET_PLATFORM=iOS'
     name: ${{ matrix.config.name }}
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: ./codegen
     steps:
     - uses: actions/checkout@v2
 
@@ -33,12 +35,11 @@ jobs:
 
     - name: Configure CMake for Codegen
       run: |
-        cd codegen
         cmake -B ./build ${{ matrix.config.extra_flags }} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DGEODE_BINDING_PATH=${{ github.workspace }}/bindings
 
     - name: Build for Codegen
       run: |
-        cd codegen/build
+        cd build
         cmake --build . --config Release
           
     - name: Move to output folder
@@ -47,10 +48,10 @@ jobs:
       run: |
         mkdir ./out
         mkdir ./out/codegen
-        mv './build/codegen/*.hpp' ./out/codegen
+        mv ./build/codegen/*.hpp ./out/codegen
         
     - name: Upload Artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ matrix.config.name }} Binary
+        name: ${{ matrix.config.name }} Files
         path: ./out/
