@@ -43,8 +43,9 @@ jobs:
         cmake --build . --config Release
           
     - name: Move to output folder
-      shell: bash
       run: |
+        pwd
+        ls ./build/codegen
         mkdir ./out
         mkdir ./out/codegen
         mv ./build/codegen/*.hpp ./out/codegen
