@@ -52,7 +52,7 @@ if (NOT DEFINED GEODE_CODEGEN_DIR)
 	message("Using current binary dir for GEODE_CODEGEN_DIR, which is ${CMAKE_CURRENT_BINARY_DIR}")
 endif()
 
-add_custom_target(CodegenRun
+add_custom_target(CodegenRun ALL
 	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/CodegenBinary ${GEODE_TARGET_PLATFORM} ${GEODE_BINDING_PATH} ${GEODE_CODEGEN_DIR}
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 	COMMENT "Run Codegen"
