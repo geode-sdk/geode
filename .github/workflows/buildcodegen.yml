@@ -1,0 +1,52 @@
+name: Build Codegen
+
+on:
+  workflow_dispatch:
+  push:
+    branches:    
+    - '**'              # every branch
+    - '!no-build-**'    # unless marked as no-build
+
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - name: "Windows Codegen"
+          extra_flags: '-DGEODE_TARGET_PLATFORM=Win32'
+        - name: "macOS Codegen"
+          extra_flags: '-DGEODE_TARGET_PLATFORM=MacOS'
+        - name: "iOS Codegen"
+          extra_flags: '-DGEODE_TARGET_PLATFORM=iOS'
+    name: ${{ matrix.config.name }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./codegen
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Configure CMake for Codegen
+      run: |
+        cmake -B ./build ${{ matrix.config.extra_flags }} -DGEODE_BINDING_PATH=${{ github.workspace }}/bindings
+
+    - name: Build for Codegen
+      run: |
+        cd build
+        cmake --build . --config Release
+          
+    - name: Move to output folder
+      run: |
+        pwd
+        ls ./build/codegen
+        mkdir ./out
+        mv ./build/codegen/*.hpp ./out
+        ls ./out
+        
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ matrix.config.name }} Files
+        path: ${{ github.workspace }}/codegen/out

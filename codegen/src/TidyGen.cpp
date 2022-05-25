@@ -1,10 +1,10 @@
-#include <SharedGen.hpp>
+#include "Shared.hpp"
 #include <iostream>
 #include <set>
 
 using std::set;
 
-namespace format_strings {
+namespace { namespace format_strings {
     // requires: base_classes, class_name
     char const* class_start = "class {class_name}{colon}{base_classes} {{\n";
     
@@ -29,11 +29,10 @@ namespace format_strings {
     char const* inline_definition = "\tinline{inline}\n";
 
     char const* class_end = "}\n";
-}
+}}
 
-int main(int argc, char** argv) {
+std::string generateTidyHeader(Root const& root) {
 	string output("");
-    Root root = CacShare::init(argc, argv);
     vector<ClassDefinition> sorted_classes;
     for (auto& [name, cd] : root.classes) {
     	sorted_classes.push_back(cd);
@@ -45,7 +44,7 @@ int main(int argc, char** argv) {
 	});
 
    	for (auto& cd : sorted_classes) {
-        output += fmt::format(format_strings::class_start,
+        output += fmt::format(::format_strings::class_start,
             fmt::arg("class_name", cd.name),
             fmt::arg("colon", cd.superclasses.size() ? " : " : ""),
             fmt::arg("base_classes", fmt::join(cd.superclasses, ", "))
@@ -54,7 +53,7 @@ int main(int argc, char** argv) {
         bool inlinePad = false;
         for (auto i : cd.inlines) {
         	inlinePad = true;
-        	output += fmt::format(format_strings::inline_definition,
+        	output += fmt::format(::format_strings::inline_definition,
 	            fmt::arg("inline", i.inlined)
 	        );
         }
@@ -63,16 +62,15 @@ int main(int argc, char** argv) {
         bool outoflinePad = false;
         for (auto f : cd.functions) {
             if (!f.is_defined) continue;
-            CacShare::editArguments(f);
             outoflinePad = true;
-            output += fmt::format(format_strings::outofline_definition,
+            output += fmt::format(::format_strings::outofline_definition,
             	fmt::arg("virtual", f.function_type == kVirtualFunction ? "virtual " : ""),
                 fmt::arg("static", f.function_type == kStaticFunction ? "static " : ""),
                 fmt::arg("return_type", f.return_type),
-                fmt::arg("function_name", CacShare::getFunctionName(f)),
-                fmt::arg("parameters", CacShare::getParameters(f)),
-                fmt::arg("const", CacShare::getConst(f)),
-				fmt::arg("const_whitespace", CacShare::getConstWhitespace(f)),
+                fmt::arg("function_name", codegen::getFunctionName(f)),
+                fmt::arg("parameters", codegen::getParameters(f)),
+                fmt::arg("const", codegen::getConst(f)),
+				fmt::arg("const_whitespace", codegen::getConstWhitespace(f)),
                 fmt::arg("definition", f.definition)
         	);
         }
@@ -81,16 +79,15 @@ int main(int argc, char** argv) {
         bool functionPad = false;
         for (auto f : cd.functions) {
             if (f.is_defined) continue;
-            CacShare::editArguments(f);
             functionPad = true;
         	char const* used_format;
         	switch (f.function_type) {
                 case kDestructor:
                 case kConstructor:
-                    used_format = format_strings::structor_definition;
+                    used_format = ::format_strings::structor_definition;
                     break;
                 default:
-               		used_format = format_strings::function_definition;
+               		used_format = ::format_strings::function_definition;
                     break;
             }
             string address;
@@ -105,10 +102,10 @@ int main(int argc, char** argv) {
                 fmt::arg("virtual", f.function_type == kVirtualFunction ? "virtual " : ""),
                 fmt::arg("static", f.function_type == kStaticFunction ? "static " : ""),
                 fmt::arg("return_type", f.return_type),
-                fmt::arg("function_name", CacShare::getFunctionName(f)),
-                fmt::arg("parameters", CacShare::getParameters(f)),
-                fmt::arg("const", CacShare::getConst(f)),
-				fmt::arg("const_whitespace", CacShare::getConstWhitespace(f)),
+                fmt::arg("function_name", codegen::getFunctionName(f)),
+                fmt::arg("parameters", codegen::getParameters(f)),
+                fmt::arg("const", codegen::getConst(f)),
+				fmt::arg("const_whitespace", codegen::getConstWhitespace(f)),
                 fmt::arg("address", address)
             );
         }
@@ -120,13 +117,13 @@ int main(int argc, char** argv) {
         	char const* used_format;
         	switch (m.member_type) {
                 case kDefault:
-                	used_format = format_strings::member_definition;
+                	used_format = ::format_strings::member_definition;
                 	break;
                 case kHardcode:
-                	used_format = format_strings::hardcode_definition;
+                	used_format = ::format_strings::hardcode_definition;
                 	break;
                 case kPad:
-                	used_format = format_strings::pad_definition;
+                	used_format = ::format_strings::pad_definition;
                 	break;
             }
             string address;
@@ -148,11 +145,12 @@ int main(int argc, char** argv) {
         if (memberPad) output += "\n";
 
         output = output.substr(0, output.size()-1);
-        output += format_strings::class_end;
+        output += ::format_strings::class_end;
         output += "\n";
 
         // queued.pop_front();
     }
 
-    CacShare::writeFile(output);
+
+    return output;
 }

@@ -4056,10 +4056,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, DialogDelegate {
 	float unknown5c4;
 	GJGroundLayer* m_bottomGround;
 	GJGroundLayer* m_topGround;
-
-	// this is literaly garbage data
-	PAD = mac 0x8, win 0x8;
-
+	double m_completelyUninitializedData;
 	bool m_isDead;
 	bool m_startCameraAtCorner;
 	bool m_cameraYLocked;
@@ -4136,23 +4133,23 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, DialogDelegate {
 	bool unk4BF;
 	int m_lastDeathPercent;
 	bool unk4C4;
-	PAD = win 0xb;
+	PAD = mac 0xb, win 0xb;
 	bool unk4D0;
 	bool unk4D1;
 	cocos2d::CCArray* unk4D4;
 	cocos2d::CCDictionary* unk4D8;
-	PAD = win 0x4;
-	double unk4E0;
-	double unk4E8;
-	PAD = win 0xc;
-	float unk4FC;
-	int unk500;
-	PAD = win 0x4;
+	double m_inlineCalculatedKickTime;
+	double m_accumulatedKickDeltaTime;
+	double m_unusedKickDouble;
+	bool m_shouldTryToKick;
+	float m_kickCheckDeltaSnapshot;
+	int m_accumulatedKickCounter;
+	PAD = mac 0x4, win 0x4;
 	double unk508;
-	PAD = win 0x8;
+	PAD = mac 0x8, win 0x8;
 	double unk518;
 	double unk520;
-	PAD = win 0x4;
+	PAD = mac 0x4, win 0x4;
 	bool m_hasGlitter;
 	bool m_isBgEffectOff;
 	bool unk52F;

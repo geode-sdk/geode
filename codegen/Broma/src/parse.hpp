@@ -11,7 +11,7 @@ using Tokens = queue<Token>;
 
 inline Token next(Tokens& tokens) {
 	if (tokens.size() == 0) {
-		cacerr("Unexpected EOF while parsing\n");
+		codegenerr("Unexpected EOF while parsing\n");
 	}
 	Token p = tokens.front();
 	// epic debugger
@@ -22,7 +22,7 @@ inline Token next(Tokens& tokens) {
 
 inline Token peek(Tokens& tokens) {
 	if (tokens.size() == 0) {
-		cacerr("Unexpected EOF while parsing\n");
+		codegenerr("Unexpected EOF while parsing\n");
 	}
 	Token p = tokens.front();
 	return p;
@@ -32,7 +32,7 @@ inline Token next_expect(Tokens& tokens, TokenType type, string tname) {
 	auto t = next(tokens);
 	if (t.type == type)
 		return t;
-	cacerr("Expected %s, found %s (next tokens %s)\n", tname.c_str(), t.slice.c_str(), next(tokens).slice.c_str());
+	codegenerr("Expected %s, found %s (next tokens %s)\n", tname.c_str(), t.slice.c_str(), next(tokens).slice.c_str());
 }
 
 inline bool next_if_type(TokenType type, Tokens& tokens) {
@@ -80,8 +80,7 @@ inline string parseQualifiedName(Tokens& tokens) {
 		qual += t.slice;
 	} while ((t.type == kQualifier && peek(tokens).type == kIdent) || (t.type == kIdent && peek(tokens).type == kQualifier));
 	if (qual.size() == 0)
-		cacerr("Expected identifier, found %s\n", next(tokens).slice.c_str());
-	//std::cout << "qual: " << qual << std::endl;
+		codegenerr("Expected identifier, found %s\n", next(tokens).slice.c_str());
 	return qual;
 }
 
@@ -109,7 +108,7 @@ inline string parseAttribute(Tokens& tokens) { // if attributes are expanded we 
 		return docs;
 	} else {
 		// we can add more later
-		cacerr("Invalid attribute %s\n", attrib_name.c_str());
+		codegenerr("Invalid attribute %s\n", attrib_name.c_str());
 		return "";
 	}
 }
@@ -145,7 +144,7 @@ inline void parseFunction(ClassDefinition& c, Function myFunction, Tokens& token
 	} else if (!next_if_type(kEqual, tokens)) {
 		for (int k = 0; k < 4; ++k) {
 			if (k == 3)
-				cacerr("Maximum of 3 binds allowed\n");
+				codegenerr("Maximum of 3 binds allowed\n");
 
 			auto t = peek(tokens);
 			if (t.type == kComma)
@@ -155,19 +154,19 @@ inline void parseFunction(ClassDefinition& c, Function myFunction, Tokens& token
 				auto platform = t.slice;
 				t = next(tokens);
 				if (t.slice == "0x0") t.slice = "";
-				if (t.type != kAddress) cacerr("Expected address, found %s\n", t.slice.c_str());
+				if (t.type != kAddress) codegenerr("Expected address, found %s\n", t.slice.c_str());
 				if (platform == "mac") myFunction.binds[kMacFunction] = t.slice;
 				else if (platform == "win") myFunction.binds[kWindowsFunction] = t.slice;
 				else if (platform == "ios") myFunction.binds[kIosFunction] = t.slice;
-				else cacerr("Unknown identifier, found %s\n", t.slice.c_str());
+				else codegenerr("Unknown identifier, found %s\n", t.slice.c_str());
 			} else 
-				cacerr("Expected platform identifier, found %s\n", t.slice.c_str());
+				codegenerr("Expected platform identifier, found %s\n", t.slice.c_str());
 
 			t = next(tokens);
 			if (t.type == kSemi)
 				break;
 			if (t.type != kComma)
-				cacerr("Expected comma, found %s.\n", t.slice.c_str());
+				codegenerr("Expected comma, found %s.\n", t.slice.c_str());
 		}
 	} else next_expect(tokens, kSemi, ";");
 	// myFunction.parent_class = &c;
@@ -176,7 +175,7 @@ inline void parseFunction(ClassDefinition& c, Function myFunction, Tokens& token
 }
 
 inline void parseMember(ClassDefinition& c, string type, string varName, Tokens& tokens) {
-	//cacerr("not implemented yet!!!\n");
+	//codegenerr("not implemented yet!!!\n");
 
 	Member myMember;
 	myMember.type = type;
@@ -187,7 +186,7 @@ inline void parseMember(ClassDefinition& c, string type, string varName, Tokens&
 	if (!next_if_type(kBrackL, tokens)) {
 		auto num_maybe = next_expect(tokens, kIdent, "number").slice;
 		if (num_maybe.find_first_not_of("0123456789") != string::npos) {
-			cacerr("Expected number, found %s\n", num_maybe.c_str());
+			codegenerr("Expected number, found %s\n", num_maybe.c_str());
 		}
 		myMember.count = static_cast<size_t>(strtoll(num_maybe.c_str(), NULL, 10));
 
@@ -200,7 +199,7 @@ inline void parseMember(ClassDefinition& c, string type, string varName, Tokens&
 			myMember.member_type = MemberType::kHardcode;
 		for (int k = 0; k < 5; ++k) {
 			if (k == 4)
-				cacerr("Maximum of 4 hardcodes allowed\n");
+				codegenerr("Maximum of 4 hardcodes allowed\n");
 
 			auto t = next(tokens);
 			if (t.type == kComma)
@@ -209,23 +208,23 @@ inline void parseMember(ClassDefinition& c, string type, string varName, Tokens&
 				auto platform = t.slice;
 				t = next(tokens);
 				if (t.slice == "0x0") t.slice = "";
-				if (t.type != kAddress) cacerr("Expected address, found %s\n", t.slice.c_str());
+				if (t.type != kAddress) codegenerr("Expected address, found %s\n", t.slice.c_str());
 				if (platform == "mac") myMember.hardcodes[kMacMember] = t.slice;
 				else if (platform == "win") myMember.hardcodes[kWindowsMember] = t.slice;
 				else if (platform == "ios") myMember.hardcodes[kIosMember] = t.slice;
 				else if (platform == "android") myMember.hardcodes[kAndroidMember] = t.slice;
-				else cacerr("Unknown identifier, found %s\n", t.slice.c_str());
+				else codegenerr("Unknown identifier, found %s\n", t.slice.c_str());
 			}
 			else if (t.type == kAddress)
 				myMember.hardcodes[k] = t.slice;
 			else 
-				cacerr("Expected platform identifier, found %s\n", t.slice.c_str());
+				codegenerr("Expected platform identifier, found %s\n", t.slice.c_str());
 
 			t = next(tokens);
 			if (t.type == kSemi)
 				break;
 			if (t.type != kComma)
-				cacerr("Expected comma, found %s.\n", t.slice.c_str());
+				codegenerr("Expected comma, found %s.\n", t.slice.c_str());
 		}
 	} else {
 		myMember.member_type = MemberType::kDefault;
@@ -288,9 +287,9 @@ inline void parseField(ClassDefinition& c, Tokens& tokens) {
 	}
 
 	if (return_name.empty())
-		cacerr("Expected identifier, found %s\n", next(tokens).slice.c_str());
+		codegenerr("Expected identifier, found %s\n", next(tokens).slice.c_str());
 	if (return_name.back().type != kIdent)
-		cacerr("Expected identifier, found %s\n", return_name.back().slice.c_str());
+		codegenerr("Expected identifier, found %s\n", return_name.back().slice.c_str());
 
 	string varName = return_name.back().slice;
 	return_name.pop_back();
@@ -333,9 +332,9 @@ inline void parseField(ClassDefinition& c, Tokens& tokens) {
 	}
 
 	if (fn_type == kVirtualFunction)
-		cacerr("Unexpected virtual keyword\n")
+		codegenerr("Unexpected virtual keyword\n")
 	if (fn_type == kStaticFunction)
-		cacerr("Unexpected static keyword\n")
+		codegenerr("Unexpected static keyword\n")
 	return parseMember(c, return_type, varName, tokens);
 }
 
@@ -394,6 +393,6 @@ inline Root parseTokens(vector<Token> ts) {
 		parseClass(root, tokens);
 	}
 
-	//cacerr("s %d\n", tokens.size());
+	//codegenerr("s %d\n", tokens.size());
 	return root;
 }

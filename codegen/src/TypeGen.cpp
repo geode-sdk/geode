@@ -1,7 +1,7 @@
-#include <SharedGen.hpp>
+#include "Shared.hpp"
 #include <set>
 
-namespace format_strings {
+namespace { namespace format_strings {
 
 	char const* declare_member_type = R"GEN(
 using ret{index} = {return};
@@ -27,7 +27,7 @@ using meta{index} = ret{index}({const}{const_whitespace}{class_name}*{parameter_
 using member{index} = func{index};
 )GEN";
 
-}
+}}
 
 using std::set;
 
@@ -55,39 +55,38 @@ static string getReturn(Function const& f) {
     else return f.return_type;
 }
 
-int main(int argc, char** argv) {
+std::string generateTypeHeader(Root const& root) {
 	string output("");
-	Root root = CacShare::init(argc, argv);
 
 	for (auto& [name, c] : root.classes) {
 		for (auto& f : c.functions) {
-			if (!CacShare::isFunctionDefinable(f) && !CacShare::isFunctionDefined(f))
+			if (!codegen::isFunctionDefinable(f) && !codegen::isFunctionDefined(f))
                 continue; // Function not supported, skip
 			char const* used_format;
 			switch (f.function_type) {
 				case kVirtualFunction:
 				case kRegularFunction:
-					used_format = format_strings::declare_member_type;
+					used_format = ::format_strings::declare_member_type;
 					break;
 				case kStaticFunction:
-					used_format = format_strings::declare_static_type;
+					used_format = ::format_strings::declare_static_type;
 					break;
 				case kDestructor:
 				case kConstructor:
-					used_format = format_strings::declare_structor_type;
+					used_format = ::format_strings::declare_structor_type;
 					break;
 			}
 
 			output += fmt::format(used_format,
-				fmt::arg("parameter_types", CacShare::getParameterTypes(f)),
-				fmt::arg("parameter_type_comma", CacShare::getParameterTypeComma(f)),
-				fmt::arg("class_name", CacShare::getClassName(f)),
-				fmt::arg("const", CacShare::getConst(f)),
-				fmt::arg("const_whitespace", CacShare::getConstWhitespace(f)),
-				fmt::arg("index", CacShare::getIndex(f)),
+				fmt::arg("parameter_types", codegen::getParameterTypes(f)),
+				fmt::arg("parameter_type_comma", codegen::getParameterTypeComma(f)),
+				fmt::arg("class_name", codegen::getClassName(f)),
+				fmt::arg("const", codegen::getConst(f)),
+				fmt::arg("const_whitespace", codegen::getConstWhitespace(f)),
+				fmt::arg("index", codegen::getIndex(f)),
 				fmt::arg("return", getReturn(f))
 			);
 		}
 	}
-	CacShare::writeFile(output);
+	return output;
 }

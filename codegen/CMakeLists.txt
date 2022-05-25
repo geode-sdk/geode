@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
-project(Codegen LANGUAGES C CXX)
+project(CodegenRun LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -8,43 +8,51 @@ if (NOT DEFINED GEODE_HOST_ARM AND APPLE)
 	set(CMAKE_OSX_SYSROOT )
 endif()
 
-message(STATUS "Building Codegen")
-
 add_subdirectory(fmt)
 
-set(GEODE_CG_FIRST "")
+file(GLOB SOURCES
+	${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+)
 
-macro(add_gen project file)
-	add_executable(${project}Gen ${project}Gen.cpp)
+file(GLOB HEADERS
+	${CMAKE_CURRENT_SOURCE_DIR}/Broma/src/*.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/fmt/include/*.h
+)
 
-	target_link_libraries(${project}Gen PUBLIC fmt)
-	target_include_directories(${project}Gen PUBLIC 
-		${CMAKE_CURRENT_SOURCE_DIR}/Broma/src
-		${CMAKE_CURRENT_SOURCE_DIR}/fmt/include
-		${CMAKE_CURRENT_SOURCE_DIR}/
-	)
+add_executable(Codegen ${SOURCES})
+target_link_libraries(Codegen PRIVATE fmt)
+target_include_directories(Codegen PRIVATE 
+	${CMAKE_CURRENT_SOURCE_DIR}/Broma/src
+	${CMAKE_CURRENT_SOURCE_DIR}/fmt/include
+	${CMAKE_CURRENT_SOURCE_DIR}/
+)
+set_target_properties(Codegen PROPERTIES PREFIX "" OUTPUT_NAME "CodegenBinary")
+target_precompile_headers(Codegen PRIVATE 
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Shared.hpp
+	${BROMA_HEADERS}
+)
 
-	if ("${GEODE_CG_FIRST}" STREQUAL "")
-		target_precompile_headers(${project}Gen PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/SharedGen.hpp")
-		set(GEODE_CG_FIRST ${project}Gen)
-	else()
-		target_precompile_headers(${project}Gen REUSE_FROM ${GEODE_CG_FIRST})
-	endif()
+# set(GEODE_TARGET_PLATFORM MacOS)
 
-	add_custom_target(${project}Run
-		COMMAND ${project}Gen ${GEODE_TARGET_PLATFORM} "${GEODE_SDK_PATH}/bindings" "${GEODE_CODEGEN_DIR}/${file}"
-		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-		COMMENT "Run ${project}Gen"
-	)
-	add_dependencies(${CMAKE_PROJECT_NAME} ${project}Run)
-endmacro()
+# set(GEODE_BINDING_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../bindings)
 
+# set(GEODE_CODEGEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/codegen)
+# message(${GEODE_BINDING_PATH})
 
-add_gen(Source GeneratedSource.cpp)
-add_gen(Header GeneratedHeader.hpp)
-# add_gen(Tidy Tidy.bro) # run manually
-add_gen(Wrapper GeneratedWrapper.hpp)
-add_gen(Modify GeneratedModify.hpp)
-add_gen(Type GeneratedType.hpp)
-add_gen(Address GeneratedAddress.hpp)
-# add_gen(JesusChrist DynamicTypes.cpp)
+if (NOT DEFINED GEODE_TARGET_PLATFORM)
+	message(FATAL_ERROR "GEODE_TARGET_PLATFORM is not defined")
+endif()
+if (NOT DEFINED GEODE_BINDING_PATH)
+	message(FATAL_ERROR "GEODE_BINDING_PATH is not defined")
+endif()
+if (NOT DEFINED GEODE_CODEGEN_DIR)
+	set(GEODE_CODEGEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/codegen)
+	message("Using current binary dir for GEODE_CODEGEN_DIR, which is ${CMAKE_CURRENT_BINARY_DIR}/codegen")
+endif()
+
+add_custom_target(CodegenRun ALL
+	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/CodegenBinary ${GEODE_TARGET_PLATFORM} ${GEODE_BINDING_PATH} ${GEODE_CODEGEN_DIR}
+	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+	COMMENT "Run Codegen"
+)
+add_dependencies(CodegenRun Codegen)
