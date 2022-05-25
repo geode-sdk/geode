@@ -29,5 +29,5 @@ jobs:
         git config --local user.email "${{ secrets.GEODE_BOT_EMAIL }}"
         git config --local user.name "GeodeBot"
         git add -A
-        git commit -m "Loader update from ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}"
+        git commit -m "SDK update from ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}"
         git push "https://GeodeBot:${{ secrets.GEODE_BOT_PUSH_BIN_TOKEN}}@github.com/geode-sdk/suite.git"

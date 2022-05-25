@@ -1,0 +1,78 @@
+name: Update Suite
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+    - '*'
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:      
+    - uses: actions/checkout@v2
+      with:
+        repository: geode-sdk/suite
+        path: suite
+        ref: nightly
+        submodules: recursive
+        token: '${{ secrets.GEODE_BOT_PUSH_BIN_TOKEN }}'
+
+    - name: Download Windows artifact
+      uses: dawidd6/action-download-artifact@v2
+      with:
+        github_token: ${{secrets.GEODE_BOT_PUSH_BIN_TOKEN}}
+        workflow: build.yml
+        workflow_conclusion: success
+        name: Windows Files
+        path: '${{ github.workspace }}/windows'
+        
+    - name: Download MacOS artifact
+      uses: dawidd6/action-download-artifact@v2
+      with:
+        github_token: ${{secrets.GEODE_BOT_PUSH_BIN_TOKEN}}
+        workflow: build.yml
+        workflow_conclusion: success
+        name: macOS Files
+        path: '${{ github.workspace }}/macos'
+
+    - name: Download iOS artifact
+      uses: dawidd6/action-download-artifact@v2
+      with:
+        github_token: ${{secrets.GEODE_BOT_PUSH_BIN_TOKEN}}
+        workflow: build.yml
+        workflow_conclusion: success
+        name: ios Files
+        path: '${{ github.workspace }}/ios'
+
+    - name: Download Android artifact
+      uses: dawidd6/action-download-artifact@v2
+      with:
+        github_token: ${{secrets.GEODE_BOT_PUSH_BIN_TOKEN}}
+        workflow: build.yml
+        workflow_conclusion: success
+        name: Android Files
+        path: '${{ github.workspace }}/android'
+      
+    - name: Move files to suite
+      shell: bash
+      working-directory: ${{ github.workspace }}
+      run: |
+        mkdir -p ./suite/windows/codegen
+        mkdir -p ./suite/macos/codegen
+        mkdir -p ./suite/ios/codegen
+        mkdir -p ./suite/android/codegen
+        cp -r ./windows/* ./suite/windows/codegen
+        cp -r ./macos/* ./suite/macos/codegen
+        cp -r ./ios/* ./suite/ios/codegen
+        cp -r ./android/* ./suite/android/codegen
+        
+    - name: Commit and push to suite
+      working-directory: ${{ github.workspace }}/suite
+      run: |
+        git config --local user.email "${{ secrets.GEODE_BOT_EMAIL }}"
+        git config --local user.name "GeodeBot"
+        git add -A
+        git commit -m "SDK Codegen update from ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}"
+        git push "https://GeodeBot:${{ secrets.GEODE_BOT_PUSH_BIN_TOKEN}}@github.com/geode-sdk/suite.git"

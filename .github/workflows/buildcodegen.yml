@@ -20,6 +20,8 @@ jobs:
           extra_flags: '-DGEODE_TARGET_PLATFORM=MacOS'
         - name: "iOS Codegen"
           extra_flags: '-DGEODE_TARGET_PLATFORM=iOS'
+        - name: "Android Codegen"
+          extra_flags: '-DGEODE_TARGET_PLATFORM=Android'
     name: ${{ matrix.config.name }}
     runs-on: ubuntu-latest
     defaults:
