@@ -28,14 +28,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Configure ccache
-      uses: hendrikmuhs/ccache-action@v1
-      with:
-        key: ubuntu-latest
-
     - name: Configure CMake for Codegen
       run: |
-        cmake -B ./build ${{ matrix.config.extra_flags }} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DGEODE_BINDING_PATH=${{ github.workspace }}/bindings
+        cmake -B ./build ${{ matrix.config.extra_flags }} -DGEODE_BINDING_PATH=${{ github.workspace }}/bindings
 
     - name: Build for Codegen
       run: |
@@ -47,11 +42,10 @@ jobs:
         pwd
         ls ./build/codegen
         mkdir ./out
-        mkdir ./out/codegen
-        mv ./build/codegen/*.hpp ./out/codegen
+        mv ./build/codegen/*.hpp ./out
         
     - name: Upload Artifacts
       uses: actions/upload-artifact@v2
       with:
         name: ${{ matrix.config.name }} Files
-        path: ./out/
+        path: ./out
