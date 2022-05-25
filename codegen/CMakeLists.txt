@@ -26,7 +26,6 @@ target_include_directories(Codegen PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}/fmt/include
 	${CMAKE_CURRENT_SOURCE_DIR}/
 )
-set_target_properties(Codegen PROPERTIES PREFIX "" OUTPUT_NAME "CodegenBinary")
 target_precompile_headers(Codegen PRIVATE 
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Shared.hpp
 	${BROMA_HEADERS}
@@ -51,7 +50,7 @@ if (NOT DEFINED GEODE_CODEGEN_DIR)
 endif()
 
 add_custom_target(CodegenRun ALL
-	COMMAND CodegenBinary ${GEODE_TARGET_PLATFORM} ${GEODE_BINDING_PATH} ${GEODE_CODEGEN_DIR}
+	COMMAND Codegen ${GEODE_TARGET_PLATFORM} ${GEODE_BINDING_PATH} ${GEODE_CODEGEN_DIR}
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 	COMMENT "Run Codegen"
 )
