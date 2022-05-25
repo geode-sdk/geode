@@ -39,7 +39,7 @@ target_precompile_headers(Codegen PRIVATE
 # set(GEODE_BINDING_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../bindings)
 
 # set(GEODE_CODEGEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/codegen)
-# message(${GEODE_SDK_PATH}/bindings)
+# message(${GEODE_BINDING_PATH})
 
 if (NOT DEFINED GEODE_TARGET_PLATFORM)
 	message(FATAL_ERROR "GEODE_TARGET_PLATFORM is not defined")

@@ -42,7 +42,7 @@ jobs:
     - name: Configure CMake for Codegen
       run: |
         cd codegen
-        cmake -B ${{ github.workspace }}/build ${{ matrix.config.extra_flags }} -DGEODE_BINDING_PATH=${{ github.workspace }}/bindings
+        cmake -B ./build ${{ matrix.config.extra_flags }} -DGEODE_BINDING_PATH=${{ github.workspace }}/bindings
 
     - name: Build
       run: |
