@@ -16,11 +16,11 @@ jobs:
         config:
         - name: "Windows"
           os: windows-2019
-          extra_flags: '-G "Visual Studio 16 2019" -T host=x86 -A win32'
+          extra_flags: '-G "Visual Studio 16 2019" -T host=x86 -A win32 -DGEODE_TARGET_PLATFORM=Win32'
           gen_paths:  './build/codegen/*.hpp'
         - name: "macOS"
           os: macos-latest
-          extra_flags: "-DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache"
+          extra_flags: "-DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DGEODE_TARGET_PLATFORM=MacOS"
           gen_paths:  './build/codegen/*.hpp'
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
@@ -42,7 +42,7 @@ jobs:
     - name: Configure CMake for Codegen
       run: |
         cd codegen
-        cmake -B ${{ github.workspace }}/build ${{ matrix.config.extra_flags }}
+        cmake -B ${{ github.workspace }}/build ${{ matrix.config.extra_flags }} -DGEODE_BINDING_PATH=${{ github.workspace }}/bindings
 
     - name: Build
       run: |

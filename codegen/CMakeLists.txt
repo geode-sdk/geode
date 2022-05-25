@@ -48,7 +48,8 @@ if (NOT DEFINED GEODE_BINDING_PATH)
 	message(FATAL_ERROR "GEODE_BINDING_PATH is not defined")
 endif()
 if (NOT DEFINED GEODE_CODEGEN_DIR)
-	message(FATAL_ERROR "GEODE_CODEGEN_DIR is not defined")
+	set(GEODE_CODEGEN_DIR ${CMAKE_CURRENT_BINARY_DIR})
+	message("Using current binary dir for GEODE_CODEGEN_DIR, which is ${CMAKE_CURRENT_BINARY_DIR}")
 endif()
 
 add_custom_target(CodegenRun
