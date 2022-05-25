@@ -765,7 +765,7 @@ class CCScrollLayerExt : cocos2d::CCLayer {
 	void setContentLayerSize(cocos2d::CCSize p0);
 	void setContentOffset(cocos2d::CCPoint p0, bool p1);
 	void updateIndicators(float p0);
-	~CCScrollLayerExt() = mac 0x2359b0, ios 0x21f7ac;
+	~CCScrollLayerExt() = mac 0x2359b0, win 0x1b520, ios 0x21f7ac;
 
 	cocos2d::CCTouch* m_touch;
 	cocos2d::CCPoint m_touchPosition;
@@ -1199,7 +1199,7 @@ class ColorSelectPopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, 
 	void updateTouchTriggered();
 	~ColorSelectPopup() = mac 0x41ead0, ios 0x2d816c;
 
-	cocos2d::extension::CCControlColourPicker* m_colorPicker;
+	cocos2d::extension::CCControlColorPicker* m_colorPicker;
 	cocos2d::CCLabelBMFont* m_unk1DC;
 	cocos2d::CCLabelBMFont* m_label;
 	Slider* m_unk1E4;
@@ -1211,7 +1211,7 @@ class ColorSelectPopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, 
 	unsigned int m_rgbLastColor;
 	cocos2d::CCSprite* m_unk200;
 	cocos2d::CCSprite* m_unk204;
-	unsigned int m_bgrColor;
+	unsigned int m_bgrColor; // TODO: are u sure this isnt just a cccolor3b
 	GJColorSetupLayer* m_colorSetupLayer;
 	float m_fadeTime;
 	int m_playerColor;
@@ -1728,7 +1728,7 @@ class DialogObject : cocos2d::CCObject {
 	gd::string m_text;
 	gd::string m_title;
 	int m_dialogType;
-	cocos2d::ccColor3B m_colour;
+	cocos2d::ccColor3B m_color;
 	float m_textWidth;
 	bool m_canSkip;
 }
@@ -3700,8 +3700,8 @@ class GJMapPack : cocos2d::CCNode {
 	int m_coins;
 	gd::string m_packName;
 	gd::string m_levelStrings;
-	cocos2d::ccColor3B m_textColour;
-	cocos2d::ccColor3B m_barColour;
+	cocos2d::ccColor3B m_textColor;
+	cocos2d::ccColor3B m_barColor;
 	int m_MId;
 	bool m_isGauntlet;
 }
@@ -5059,7 +5059,7 @@ class GameManager : GManager {
 	bool m_recordGameplay;
 	bool m_showProgressBar;
 	bool m_performanceMode;
-	bool m_clickedGarage;
+	bool m_clickedGarage; // this should be 0x2a2 on macos and 0x28a on windows
 	bool m_clickedEditor;
 	bool m_clickedName;
 	bool m_clickedPractice;
@@ -5084,6 +5084,7 @@ class GameManager : GManager {
 }
 
 class GameObject : CCSpritePlus {
+	// it is a short array with size 10 but pointer to arrays are weird
 	inline using GroupArrayType = short*; 
 
 	cocos2d::CCPoint getStartPosition() { 
@@ -5342,7 +5343,11 @@ class GameObject : CCSpritePlus {
 	bool field_21C;
 	bool m_editor;
 	bool m_groupDisabled;
-	bool m_colourOnTop;
+	bool m_colorOnTop;
+	//GJSpriteColor* m_mainColorMode;
+	//GJSpriteColor* m_secondaryColorMode;
+	//bool m_col1;
+	//bool m_col2;
 	int m_baseColorID;
 	int m_detailColorID;
 	bool m_baseColorHSVModified;
@@ -5427,7 +5432,7 @@ class GameObject : CCSpritePlus {
 	bool m_useSecondSheet;
 	bool m_unknown3d9;
 	bool m_isPortal;
-	bool m_lockColourAsChild;
+	bool m_lockColorAsChild;
 	bool m_customAudioScale;
 	int m_minAudioScale;
 	int m_maxAudioScale;
@@ -5435,7 +5440,7 @@ class GameObject : CCSpritePlus {
 	int m_secretCoinID;
 	int m_unkUnusedSaveStringKey53;
 	bool m_invisibleMode;
-	bool m_glowUserBackgroundColour;
+	bool m_glowUserBackgroundColor;
 	bool m_useSpecialLight;
 	bool m_orbOrPad;
 	float m_glowOpacityMod;
@@ -6623,6 +6628,7 @@ class LevelSettingsObject : cocos2d::CCNode {
 	void offsetMusic();
 
 	GJEffectManager* m_effectManager;
+	// TODO: make enums for these
 	int m_startMode;
 	int m_startSpeed;
 	bool m_startMini;
@@ -7839,6 +7845,9 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
 	cocos2d::CCParticleSystemQuad* m_unk5D4;
 	cocos2d::CCParticleSystemQuad* m_unk5D8;
 	PAD = win 0x20;
+	// int m_streakID;
+	// float m_wellIdk;
+	// PAD = win 0x10;
 	bool m_unk5FC;
 	bool m_unk5FD;
 	bool m_unk5FE;
@@ -8749,7 +8758,7 @@ class SetupPulsePopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, T
 	void updateTouchTriggered();
 	~SetupPulsePopup() = mac 0x1e6ca0, ios 0x298dc4;
 
-	cocos2d::extension::CCControlColourPicker* m_colorPicker;
+	cocos2d::extension::CCControlColorPicker* m_colorPicker;
 	PAD = win 0x30;
 	cocos2d::CCSprite* m_currentColorSpr;
 	cocos2d::CCSprite* m_prevColorSpr;
@@ -8846,6 +8855,7 @@ class SetupSpawnPopup : FLAlertLayer, TextInputDelegate {
 	CCTextInputNode* m_targetIDTextNode;
 	int m_targetIDValue;
 	bool m_textUpdateLock;
+	// the toggle is inside the array for some obscure reason
 	cocos2d::CCArray* m_multiTriggerToggle;
 	bool m_multiTrigger;
 	bool m_editorDisable;
@@ -9344,7 +9354,7 @@ class TableViewCell : cocos2d::CCLayer {
 	bool m_unknown;
 	TableView* m_tableView;
 	CCIndexPath m_indexPath;
-	int m_unknownThing;
+	int m_unknownThing; // don't even know if this is an int, it's always set to 0
 	gd::string m_unknownString;
 	float m_width;
 	float m_height;
@@ -9531,7 +9541,7 @@ class UILayer : cocos2d::CCLayerColor {
 	virtual void registerWithTouchDispatcher() = mac 0x280c10, ios 0x2c250;
 	virtual void keyBackClicked() = mac 0x2808e0, ios 0x2c02c;
 
-	void* m_keyboardDelegateVtable;
+	void* m_keyboardDelegateVtable; // rob is silly so he subclasses cckeyboarddelegate twice
 	PAD = mac 0x8, win 0x4, android 0x4;
 	cocos2d::CCMenu* m_checkPointMenu;
 }
@@ -13369,13 +13379,13 @@ class cocos2d::extension::CCControlButton : cocos2d::extension::CCControl {
 	~CCControlButton() = mac 0x1a8380;
 }
 
-class cocos2d::extension::CCControlColourPicker : cocos2d::extension::CCControl {
-	~CCControlColourPicker() = mac 0x1aae30;
+class cocos2d::extension::CCControlColorPicker : cocos2d::extension::CCControl {
+	~CCControlColorPicker() = mac 0x1aae30;
 	auto setColorValue(cocos2d::ccColor3B const& p0) = mac 0x1aac10;
 	auto ccTouchBegan(cocos2d::CCTouch* p0, cocos2d::CCEvent* p1) = mac 0x1aae10;
 	auto init() = mac 0x1aa400;
-	static auto colourPicker() = mac 0x1aaa30;
-	auto colourSliderValueChanged(cocos2d::CCObject* p0, unsigned int p1);
+	static auto colorPicker() = mac 0x1aaa30;
+	auto colorSliderValueChanged(cocos2d::CCObject* p0, unsigned int p1);
 	auto create();
 	auto hueSliderValueChanged(cocos2d::CCObject* p0, unsigned int p1);
 	auto updateControlPicker();
