@@ -452,7 +452,7 @@ class CCSpritePlus : cocos2d::CCSprite {
 
 class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTextFieldDelegate {
 	inline CCTextInputNode() : cocos2d::CCLayer(), cocos2d::CCIMEDelegate(), cocos2d::CCTextFieldDelegate(), m_caption(), m_allowedChars() {
-		m_unknown0 = nullptr;
+		m_numberInput = false;
 		m_unknown1 = 0;
 		m_selected = false;
 		m_unknown2 = false;
@@ -529,6 +529,7 @@ class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTex
 
 	void refreshLabel() = mac 0x5d730, win 0x21330, ios 0xe2af4;
 	void updateLabel(gd::string) = mac 0x5d4a0, win 0x0, ios 0x0;
+	void updateBlinkLabel() = mac 0x5d920;
 	virtual void registerWithTouchDispatcher() = mac 0x5eec0, win 0x220e0, ios 0x0;
 	virtual void visit() = mac 0x5d380, win 0x21000, ios 0x0;
 	virtual bool ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x5ec80, win 0x21f20, ios 0x0;
@@ -543,7 +544,7 @@ class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTex
 	virtual bool onTextFieldAttachWithIME(cocos2d::CCTextFieldTTF*) = mac 0x5e2c0, win 0x21b10, ios 0x0;
 	virtual bool onTextFieldDetachWithIME(cocos2d::CCTextFieldTTF*) = mac 0x5e610, win 0x21d60, ios 0x0;
 
-	void* m_unknown0;
+	bool m_numberInput;
 	gd::string m_caption;
 	int m_unknown1;
 	bool m_selected;

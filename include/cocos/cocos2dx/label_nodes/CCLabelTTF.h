@@ -150,17 +150,69 @@ public:
     virtual void setString(const char *label);
     virtual const char* getString(void);
     
-    CCTextAlignment getHorizontalAlignment();
-    void setHorizontalAlignment(CCTextAlignment alignment);
+    CCTextAlignment getHorizontalAlignment() {
+	    return m_hAlignment;
+	}
+    void setHorizontalAlignment(CCTextAlignment alignment) {
+	    if (alignment != m_hAlignment)
+	    {
+	        m_hAlignment = alignment;
+	        
+	        // Force update
+	        if (std::string(m_string).size() > 0)
+	        {
+	            this->updateTexture();
+	        }
+	    }
+	}
     
-    CCVerticalTextAlignment getVerticalAlignment();
-    void setVerticalAlignment(CCVerticalTextAlignment verticalAlignment);
+    CCVerticalTextAlignment getVerticalAlignment() {
+	    return m_vAlignment;
+	}
+    void setVerticalAlignment(CCVerticalTextAlignment verticalAlignment) {
+	    if (verticalAlignment != m_vAlignment)
+	    {
+	        m_vAlignment = verticalAlignment;
+	        
+	        // Force update
+	        if (std::string(m_string).size() > 0)
+	        {
+	            this->updateTexture();
+	        }
+	    }
+	}
     
-    CCSize getDimensions();
-    void setDimensions(const CCSize &dim);
+    CCSize getDimensions() {
+    	return m_tDimensions;
+    }
+    void setDimensions(const CCSize &dim) {
+    	if (dim.width != m_tDimensions.width || dim.height != m_tDimensions.height)
+	    {
+	        m_tDimensions = dim;
+	        
+	        // Force update
+	        if (std::string(m_string).size() > 0)
+	        {
+	            this->updateTexture();
+	        }
+	    }
+    }
     
-    float getFontSize();
-    void setFontSize(float fontSize);
+    float getFontSize() {
+    	return m_fFontSize;
+    }
+    void setFontSize(float fontSize) {
+    	if (m_fFontSize != fontSize)
+	    {
+	        m_fFontSize = fontSize;
+	        
+	        // Force update
+	        if (std::string(m_string).size() > 0)
+	        {
+	            this->updateTexture();
+	        }
+	    }
+    }
     
     const char* getFontName();
     void setFontName(const char *fontName);
