@@ -7,7 +7,7 @@
 #include "../utils/platform.hpp"
 
 namespace geode::base {
-	uintptr_t get();
+	GEODE_DLL uintptr_t get();
 }
 
 #if defined(GEODE_IS_MACOS) || defined(GEODE_IS_ANDROID)
@@ -18,7 +18,7 @@ namespace gd {
 		int                m_refcount;
 	};
 
-	class string {
+	class GEODE_DLL string {
 	public:
 		string();
 		string(char const* ok);
@@ -188,7 +188,7 @@ namespace gd {
 	}
 
 	template <typename K, typename V>
-	class map {
+	class GEODE_DLL map {
 	protected:
 		std::less<K> compare;
 		_rb_tree_base m_header;
@@ -278,7 +278,7 @@ namespace gd {
 	};
 
 	template <typename T>
-	class vector {
+	class GEODE_DLL vector {
 	 public:
 		operator std::vector<T>() {
 			std::vector<T> out;
@@ -433,7 +433,7 @@ namespace gd {
 
 #elif defined(GEODE_IS_IOS)
 namespace gd {
-	class string {
+	class GEODE_DLL string {
 	public:
 		string() {}
 		string(char const* ok) : m_internal(ok) {}
@@ -454,7 +454,7 @@ namespace gd {
 	};
 
 	template <typename T>
-	class vector {
+	class GEODE_DLL vector {
 	 public:
 		operator std::vector<T>() {
 			return m_internal;
@@ -479,7 +479,7 @@ namespace gd {
 	};
 
 	template <typename K, typename V>
-	class map {
+	class GEODE_DLL map {
 	protected:
 		std::map<K, V> m_internal;
 	public:
