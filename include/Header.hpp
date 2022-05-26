@@ -97,7 +97,8 @@ enum class ChestSpriteState {};
 enum class GJHttpType {};
 enum class GJKeyGroup {};
 enum class GJKeyCommand {};
-enum class CommentType {};
+// i would prefer this to be an enum but it breaks on macos
+// enum class CommentType {};
 enum class PulseEffectType {};
 enum class TouchTriggerType {};
 enum class PlayerButton {};

@@ -26,7 +26,7 @@ THE SOFTWARE.
 #define __EAGLVIEW_MAC_H__
 
 #import <Cocoa/Cocoa.h>
-#import "ccConfig.h"
+#import "include/ccConfig.h"
 
 //PROTOCOLS:
 

@@ -4436,7 +4436,8 @@ class GameLevelManager : cocos2d::CCNode {
 	void createPageInfo(int p0, int p1, int p2);
 	void dataLoaded(DS_Dictionary* p0);
 	void deleteAccountComment(int p0);
-	void deleteComment(int p0, CommentType p1, int p2);
+	// void deleteComment(int p0, CommentType p1, int p2);
+	void deleteComment(int p0, int p1, int p2);
 	void deleteFriendRequests(int p0, cocos2d::CCArray* p1, bool p2);
 	void deleteLevel(GJGameLevel* p0);
 	void deleteLevelComment(int p0, int p1);
@@ -4667,7 +4668,8 @@ class GameLevelManager : cocos2d::CCNode {
 	void updateLevelRewards(GJGameLevel* p0);
 	void updateUsernames();
 	void uploadAccountComment(gd::string p0);
-	void uploadComment(gd::string p0, CommentType p1, int p2, int p3);
+	// void uploadComment(gd::string p0, CommentType p1, int p2, int p3);
+	void uploadComment(gd::string p0, int p1, int p2, int p3);
 	void uploadFriendRequest(int p0, gd::string p1);
 	void uploadLevel(GJGameLevel* p0);
 	void uploadLevelComment(int p0, gd::string p1, int p2);
@@ -8911,8 +8913,10 @@ class ShareCommentLayer : FLAlertLayer, TextInputDelegate, UploadActionDelegate,
 	virtual void uploadActionFinished(int p0, int p1) = mac 0x3509f0, ios 0x12f7dc;
 	virtual void uploadActionFailed(int p0, int p1) = mac 0x350ad0, ios 0x12f888;
 	virtual void onClosePopup(UploadActionPopup* p0) = mac 0x350ba0, ios 0x12f934;
-	void create(gd::string p0, int p1, CommentType p2, int p3);
-	bool init(gd::string p0, int p1, CommentType p2, int p3);
+	// void create(gd::string p0, int p1, CommentType p2, int p3);
+	void create(gd::string p0, int p1, int p2, int p3);
+	// bool init(gd::string p0, int p1, CommentType p2, int p3);
+	bool init(gd::string p0, int p1, int p2, int p3);
 	void onClose(cocos2d::CCObject* p0);
 	void onPercent(cocos2d::CCObject* p0);
 	void onShare(cocos2d::CCObject* p0);

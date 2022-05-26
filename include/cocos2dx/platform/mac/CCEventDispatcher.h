@@ -34,7 +34,7 @@
 #import "EAGLView.h"
 //#import "../../Support/uthash.h"	// hack: uthash needs to be imported before utlist to prevent warning
 //#import "../../Support/utlist.h"
-#import "ccConfig.h"
+#import "include/ccConfig.h"
 
 //NS_CC_BEGIN;
 #pragma mark -

@@ -56,7 +56,9 @@ public:
 
     /** priority */
     int getPriority(void);
-    void setPriority(int nPriority);
+    void setPriority(int nPriority) {
+    	m_nPriority = nPriority;
+    }
 
     /** enabled selectors */
     int getEnabledSelectors(void);
