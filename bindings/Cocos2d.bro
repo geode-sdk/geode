@@ -782,8 +782,8 @@ class cocos2d::CCTexture2D {
 	auto setTexParameters(cocos2d::_ccTexParams*) = mac 0x247980;
 }
 
-class cocos2d::CCTextFieldDelegate {
-
+class cocos2d::CCTextFieldTTF {
+	static auto textFieldWithPlaceHolder(char const*, char const*, float) = mac 0x126220;
 }
 
 class cocos2d::CCTextureCache {
@@ -808,6 +808,8 @@ class cocos2d::CCTouch {
 
 class cocos2d::CCTouchDispatcher {
 	auto addTargetedDelegate(cocos2d::CCTouchDelegate*, int, bool) = mac 0x281180;
+	auto addStandardDelegate(cocos2d::CCTouchDelegate*, int) = mac 0x281060;
+	auto removeDelegate(cocos2d::CCTouchDelegate*) = mac 0x2813b0;
 	auto decrementForcePrio(int) = mac 0x280f70, ios 0xcc280;
 	auto incrementForcePrio(int) = mac 0x280f60, ios 0xcc268;
 	void touches(cocos2d::CCSet*, cocos2d::CCEvent*, unsigned int) = mac 0x281a60;
