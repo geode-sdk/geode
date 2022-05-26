@@ -24,11 +24,10 @@ target_link_libraries(Codegen PRIVATE fmt)
 target_include_directories(Codegen PRIVATE 
 	${CMAKE_CURRENT_SOURCE_DIR}/Broma/src
 	${CMAKE_CURRENT_SOURCE_DIR}/fmt/include
-	${CMAKE_CURRENT_SOURCE_DIR}/
+	${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 target_precompile_headers(Codegen PRIVATE 
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Shared.hpp
-	${BROMA_HEADERS}
 )
 
 # set(GEODE_TARGET_PLATFORM MacOS)

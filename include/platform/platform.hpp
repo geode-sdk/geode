@@ -153,7 +153,7 @@ namespace std {
 	#ifdef GEODE_EXPORTING_CODEGEN
 	    #define GEODE_CODEGEN_DLL __attribute__((visibility("default")))
 	#else
-	    #define GEODE_CODEGEN_DLL 
+	    #define GEODE_CODEGEN_DLL
 	#endif
 
 	#define GEODE_API extern "C" __attribute__((visibility("default")))
