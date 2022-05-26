@@ -46,7 +46,6 @@ function(setup_geode_mod)
 	endif()
 
 	if (${GEODE_DO_CODEGEN})
-		add_definitions(-DGEODE_EXPORTING_CODEGEN)
 
 		# only 1 codegen dir
 		get_property(GEODE_CODEGEN_DIR GLOBAL PROPERTY GEODE_CODEGEN_DIR)
