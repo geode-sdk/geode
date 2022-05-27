@@ -66,6 +66,8 @@ function(setup_geode_mod)
 			add_subdirectory(${GEODE_SDK_PATH}/codegen ${GEODE_CODEGEN_DIR})
 			add_dependencies(${PROJECT_NAME} CodegenRun)
 		endif()
+
+		target_compile_definitions(${PROJECT_NAME} PUBLIC -DGEODE_BUILDING_CODEGEN)
 	endif()
 
 	target_compile_definitions(${PROJECT_NAME} PUBLIC -DPROJECT_NAME=${PROJECT_NAME} -DEXPORT_${PROJECT_NAME}=1)
