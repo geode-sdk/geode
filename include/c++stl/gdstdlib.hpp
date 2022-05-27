@@ -7,7 +7,7 @@
 #include "../utils/platform.hpp"
 
 namespace geode::base {
-	GEODE_DLL uintptr_t get();
+	uintptr_t get();
 }
 
 #if defined(GEODE_IS_MACOS) || defined(GEODE_IS_ANDROID)
