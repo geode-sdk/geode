@@ -1525,7 +1525,7 @@ class GJBaseGameLayer : cocos2d::CCLayer, TriggerEffectDelegate {
 	void objectIntersectsCircle(GameObject*, GameObject*) = mac 0xb66e0, win 0x0, ios 0x0;
 	void objectTriggered(EffectGameObject*) = mac 0xb71b0, win 0x0, ios 0x0;
 	void optimizeMoveGroups() = mac 0xb96c0, win 0x0, ios 0x0;
-	void parentForZLayer(int, bool, int) = mac 0xb55d0, win 0x0, ios 0x0;
+	cocos2d::CCNode* parentForZLayer(int, bool, int) = mac 0xb55d0, win 0x0, ios 0x0;
 	void playerTouchedRing(PlayerObject*, GameObject*) = mac 0xb69e0, win 0x0, ios 0x0;
 	void processColorObject(EffectGameObject*, int, cocos2d::CCDictionary*, float, GJEffectManager*) = mac 0xb5a90, win 0x0, ios 0x0;
 	void processFollowActions() = mac 0xb8fd0, win 0x0, ios 0x0;

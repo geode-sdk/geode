@@ -106,7 +106,7 @@ namespace geode::cocos {
      protected:
         cocos2d::CCArray* m_arr;
      public:
-        CCArrayExt() : m_arr(CCArray::create()) {
+        CCArrayExt() : m_arr(cocos2d::CCArray::create()) {
             m_arr->retain();
         }
         CCArrayExt(cocos2d::CCArray* arr) : m_arr(arr) {
@@ -177,7 +177,7 @@ namespace geode::cocos {
         K m_key;
         cocos2d::CCDictionary* m_dict;
 
-        CCDictEntry(K key, CCDictionary* dict) : m_key(key), m_dict(dict) {}
+        CCDictEntry(K key, cocos2d::CCDictionary* dict) : m_key(key), m_dict(dict) {}
 
         T operator->() {
             return reinterpret_cast<T>(m_dict->objectForKey(m_key));
@@ -199,14 +199,14 @@ namespace geode::cocos {
      protected:
         cocos2d::CCDictionary* m_dict;
     public:
-        CCDictionaryExt() : m_dict(CCDictionary::create()) {
-            m_dict.retain();
+        CCDictionaryExt() : m_dict(cocos2d::CCDictionary::create()) {
+            m_dict->retain();
         }   
         CCDictionaryExt(cocos2d::CCDictionary* dict) : m_dict(dict) {
-            m_dict.retain();
+            m_dict->retain();
         }
         CCDictionaryExt(CCDictionaryExt const& d) : m_dict(d.m_dict) {
-            m_dict.retain();
+            m_dict->retain();
         }
         CCDictionaryExt(CCDictionaryExt&& d) : m_dict(d.m_dict) {
             d.m_dict = nullptr;
@@ -216,6 +216,12 @@ namespace geode::cocos {
                 m_dict->release();
         }
 
+        CCDictionaryExt const& operator=(cocos2d::CCDictionary* d) {
+            m_dict->release();
+            m_dict = d;
+            m_dict->retain();
+        }
+
         auto begin() {
             return CCDictIterator<K, T*>(m_dict->m_pElements);
         }
@@ -223,18 +229,16 @@ namespace geode::cocos {
         auto end() {
             return nullptr;
         }
-        auto size() { return m_dict->count(); }
+        size_t size() { return m_dict->count(); }
         auto operator[](K key) {
             auto ret = reinterpret_cast<T*>(m_dict->objectForKey(key));
-            if (ret)
-                return ret;
-
-            m_dict->setObject(CCObject::create(), key);
+            if (!ret)
+                m_dict->setObject(cocos2d::CCNode::create(), key);
 
             return CCDictEntry<K, T*>(key, m_dict);
         }
         size_t count(K key) {
-            return m_dict->addKeys(key)->count();
+            return m_dict->allKeys(key)->count();
         }
     };
 }
