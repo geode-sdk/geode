@@ -59,15 +59,9 @@ namespace geode {
 
 		using loadfn_t = void(*)(Mod*);
 
-		struct ScheduledExport {
-			std::string m_selector;
-			std::variant<unknownmemfn_t, unknownfn_t> m_func;
-		};
-
 		Mod* m_mod = nullptr;
 		std::vector<ScheduledHook> m_scheduledHooks;
 		std::vector<ScheduledLog> m_scheduledLogs;
-		std::vector<ScheduledExport> m_scheduledExports;
 		std::vector<loadfn_t> m_scheduledFunctions;
 		
 	public:
@@ -160,17 +154,6 @@ namespace geode {
 	inline Log Log::get() {
 		return Mod::get()->log();
 	}
-
-	template <typename T>
-	inline Observer<std::monostate>* EventCenter::registerObserver(std::string sel, std::function<void(Event<T> const&)> cb) {
-	    return registerObserver(Mod::get(), EventInfo<T>(sel), cb);
-	}
-
-	template <typename T>
-	inline Observer<std::monostate>* EventCenter::registerObserver(EventInfo<T> info, std::function<void(Event<T> const&)> cb) {
-	    return registerObserver(Mod::get(), info, cb);
-	}
-    
 }
 
 inline const char* operator"" _spr(const char* str, size_t) {

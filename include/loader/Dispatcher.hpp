@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../codegen-base/Macros.hpp"
 #include "../utils/include.hpp"
 #include "Mod.hpp"
@@ -6,65 +8,86 @@
 #include <vector>
 
 namespace geode {
-	class Dispatcher;
-	
-	struct GEODE_DLL dispatch_handle {
-		void* handle;
+    class Dispatcher;
+    
+    struct GEODE_DLL dispatch_handle {
+        void* handle;
 
-		dispatch_handle() = delete;
-		dispatch_handle(dispatch_handle&& d) : handle(d.handle) {}
-		dispatch_handle(dispatch_handle const& d) : handle(d.handle) {}
+        dispatch_handle() = delete;
+        dispatch_handle(dispatch_handle const& d) : handle(d.handle) {}
 
-		template <typename T>
-		std::function<T> get() {
-			*reinterpret_cast<std::function<T>*>(this->handle);
-		}
+        template <typename T>
+        std::function<T> into() {
+            *reinterpret_cast<std::function<T>*>(this->handle);
+        }
 
-		template <typename R, typename ...Args>
-		R call(Args... args) {
-			return this->get<std::function<R(Args...)>>()(args...);
-		}
-		
-	 private:
-		dispatch_handle(void* h) : handle(h) {}
-		friend class Dispatcher;
-	};
+        template <typename R, typename ...Args>
+        R call(Args... args) {
+            return this->into<std::function<R(Args...)>>()(args...);
+        }
 
-	class GEODE_DLL Dispatcher {
-	 protected:
-	 	std::map<dispatch_handle, std::pair<std::string, Mod*>> m_dispatchMap;
-	 	std::map<std::string, std::vector<dispatch_handle>> m_selectorMap;
-	 	// 2 maps for lookup speed
+        bool operator<(dispatch_handle const& b) const {
+            return handle < b.handle;
+        }
 
-	 	std::vector<dispatch_handle> _getHandles(std::string const& a);
-	 	std::pair<string, Mod*> _getInfo(dispatch_handle u);
+        bool operator==(dispatch_handle const& b) const {
+            return handle == b.handle;
+        }
+        
+     private:
+        dispatch_handle(void* h) : handle(h) {}
 
-	 	void _removeFunction(dispatch_handle u);
-	 	dispatch_handle _addFunction(Mod* m, std::string const& a);
+        template <typename T>
+        static dispatch_handle from(std::function<T> f) {
+            return dispatch_handle(reinterpret_cast<void*>(new std::function<T>(f)));
+        }
+        friend class Dispatcher;
+    };
 
-	 	std::vector<dispatch_handle> _allHandles();
+    class GEODE_DLL Dispatcher {
+     protected:
+        std::map<dispatch_handle, std::pair<std::string, Mod*>> m_dispatchMap;
+        std::map<std::string, std::vector<dispatch_handle>> m_selectorMap;
+        // 2 maps for lookup speed
 
+        std::vector<dispatch_handle> getFunctions_(std::string const& a);
 
+        void addFunction_(Mod* m, std::string const& a, dispatch_handle u);
 
+        std::vector<dispatch_handle> allFunctions_();
 
-	 	template <typename T>
-	 	std::function<T> _fromOpaque(void* f) {
-	 		*reinterpret_cast<std::function<T>*>(f);
-	 	}
+        Dispatcher() {}
 
-	 	template <typename T>
-	 	void* _toOpaque(std::function<T> f) {
-	 		return reinterpret_cast<void*>(new std::function<T>(f));
-	 	}
-	 public:
-		static Dispatcher* get();
+     public:
+        static Dispatcher* get();
 
-		template <typename T>
-		std::vector<std::function<T>> getSelectors(std::string_view const& a) {
-			return geode::vector_utils::map(_getSelectors(a), [this](std::pair<dispatch_handle, void*> selector) {
-				return _fromOpaque<T>(selector.second);
-			});
-		}
+        template <typename T>
+        std::vector<std::function<T>> getFunctions(std::string const& a) {
+            return geode::vector_utils::map(getFunctions_(a), [this](dispatch_handle fn) {
+                return fn.into<T>();
+            });
+        }
 
-	};
+        template <typename T>
+        std::function<T> getFunction(std::string const& a) {
+            return getFunctions_(a).back().into<T>();
+        }
+
+        template <typename T>
+        dispatch_handle addFunction(std::string const& a, std::function<T> f) {
+            dispatch_handle hdl = dispatch_handle::from(f);
+            addFunction_(Mod::get(), a, hdl);
+            return hdl;
+        }
+
+        template <typename T>
+        std::vector<dispatch_handle> allFunctions() {
+            return geode::vector_utils::map(allFunctions_(), [this](dispatch_handle fn) {
+                return fn.into<T>();
+            });
+        }
+
+        void removeFunction(dispatch_handle u);
+        std::pair<std::string, Mod*> getFunctionInfo(dispatch_handle u);
+    };
 }
