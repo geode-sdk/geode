@@ -2878,6 +2878,7 @@ class GameObject : CCSpritePlus {
 	void activatedByPlayer(GameObject*) = mac 0x342a20, win 0x0, ios 0x0;
 	void addColorSprite() = mac 0x2f7fe0, win 0x0, ios 0x0;
 	void addColorSpriteToParent(bool) = mac 0x2fb470, win 0x0, ios 0x0;
+	void addGlow() = mac 0x2f5c10, win 0x0, ios 0x0;
 	void addToTempOffset(float, float) = mac 0x335700, win 0x0, ios 0x0;
 	void calculateOrientedBox() = mac 0x342b20, win 0x0, ios 0x0;
 	void canChangeCustomColor() = mac 0x342db0, win 0x0, ios 0x0;
