@@ -5,6 +5,6 @@
 #include "syntax/Field.hpp"
 #include "syntax/InternalMacros.hpp"
 #include "loader/GeodeLoader.hpp"
-#include "loader/API.hpp"
+#include "loader/Dispatcher.hpp"
 
 using namespace geode::modifier;

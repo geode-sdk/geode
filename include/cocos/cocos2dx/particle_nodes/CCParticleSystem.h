@@ -235,8 +235,8 @@ protected:
     /** weak reference to the CCSpriteBatchNode that renders the CCSprite */
     CC_PROPERTY(CCParticleBatchNode*, m_pBatchNode, BatchNode);
 
-    // index of system in batch node array
-    CC_SYNTHESIZE(unsigned int, m_uAtlasIndex, AtlasIndex);
+    // RobTop removed this
+    ///CC_SYNTHESIZE(unsigned int, m_uAtlasIndex, AtlasIndex);
 
     //true if scaled or rotated
     bool m_bTransformSystemDirty;

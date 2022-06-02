@@ -1525,7 +1525,7 @@ class GJBaseGameLayer : cocos2d::CCLayer, TriggerEffectDelegate {
 	void objectIntersectsCircle(GameObject*, GameObject*) = mac 0xb66e0, win 0x0, ios 0x0;
 	void objectTriggered(EffectGameObject*) = mac 0xb71b0, win 0x0, ios 0x0;
 	void optimizeMoveGroups() = mac 0xb96c0, win 0x0, ios 0x0;
-	void parentForZLayer(int, bool, int) = mac 0xb55d0, win 0x0, ios 0x0;
+	cocos2d::CCNode* parentForZLayer(int, bool, int) = mac 0xb55d0, win 0x0, ios 0x0;
 	void playerTouchedRing(PlayerObject*, GameObject*) = mac 0xb69e0, win 0x0, ios 0x0;
 	void processColorObject(EffectGameObject*, int, cocos2d::CCDictionary*, float, GJEffectManager*) = mac 0xb5a90, win 0x0, ios 0x0;
 	void processFollowActions() = mac 0xb8fd0, win 0x0, ios 0x0;
@@ -1662,8 +1662,8 @@ class GJBaseGameLayer : cocos2d::CCLayer, TriggerEffectDelegate {
 	int m_unk2AC;
 	bool m_activeDualTouch;
 	int m_attemptClickCount;
-	int m_currentSection;
-	int m_oldSection;
+	int m_lastVisibleSection;
+	int m_firstVisibleSection;
 	bool m_objectsAreDisabled;
 	bool m_blending;
 	PAD = mac 0x16, win 0x8, android 0x0;
@@ -2846,7 +2846,7 @@ class GameObject : CCSpritePlus {
 	virtual cocos2d::CCRect* getObjectRect(float, float) = mac 0x3352d0, win 0xe4a70, ios 0x0;
 	virtual cocos2d::CCRect* getObjectRect2(float, float) = mac 0x3354e0, win 0xe4b90, ios 0x0;
 	virtual cocos2d::CCRect* getObjectTextureRect() = mac 0x3355b0, win 0xe4c40, ios 0x0;
-	virtual void getRealPosition() = mac 0x335750, win 0xe4d90, ios 0x0;
+	virtual cocos2d::CCPoint getRealPosition() = mac 0x335750, win 0xe4d90, ios 0x0;
 	virtual void setStartPos(cocos2d::CCPoint) = mac 0x2fa520, win 0xd1390, ios 0x0;
 	virtual void updateStartValues() = mac 0x2fa800, win 0xd1610, ios 0x0;
 	virtual void customObjectSetup() = mac 0xdc1a0, win 0x0, ios 0x0;
@@ -2874,10 +2874,11 @@ class GameObject : CCSpritePlus {
 	virtual void setOrientedRectDirty(bool) = mac 0xdc200, win 0x0, ios 0x0;
 	virtual GameObjectType getType() const = mac 0xdc210, win 0x989e0, ios 0x0;
 	virtual void setType(GameObjectType) = mac 0xdc220, win 0x989f0, ios 0x0;
-	virtual void getStartPos() const = mac 0xdc230, win 0x98a00, ios 0x0;
+	virtual cocos2d::CCPoint const& getStartPos() const = mac 0xdc230, win 0x98a00, ios 0x0;
 	void activatedByPlayer(GameObject*) = mac 0x342a20, win 0x0, ios 0x0;
 	void addColorSprite() = mac 0x2f7fe0, win 0x0, ios 0x0;
 	void addColorSpriteToParent(bool) = mac 0x2fb470, win 0x0, ios 0x0;
+	void addGlow() = mac 0x2f5c10, win 0x0, ios 0x0;
 	void addToTempOffset(float, float) = mac 0x335700, win 0x0, ios 0x0;
 	void calculateOrientedBox() = mac 0x342b20, win 0x0, ios 0x0;
 	void canChangeCustomColor() = mac 0x342db0, win 0x0, ios 0x0;
@@ -3090,7 +3091,9 @@ class GameObject : CCSpritePlus {
 	int m_unk414;
 	PAD = mac 0xc, win 0xc, android 0x0;
 	cocos2d::CCPoint m_firstPosition;
-	PAD = mac 0x1c, win 0x1c, android 0x0;
+	PAD = mac 0x15, win 0x0, android 0x0;
+	bool m_isTriggerable;
+	PAD = mac 0x7, win 0x7, android 0x0;
 	bool m_highDetail;
 	ColorActionSprite* m_colorActionSpriteBase;
 	ColorActionSprite* m_colorActionSpriteDetail;
@@ -3868,7 +3871,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, DialogDelegate {
 	void colorObject(int, cocos2d::_ccColor3B) = mac 0x77810, win 0x0, ios 0x0;
 	void commitJumps() = mac 0x737e0, win 0x0, ios 0x0;
 	static PlayLayer* create(GJGameLevel*) = mac 0x6b590, win 0x1fb6d0, ios 0x0;
-	void createCheckpoint() = mac 0x7e470, win 0x20b050, ios 0x0;
+	CheckpointObject* createCheckpoint() = mac 0x7e470, win 0x20b050, ios 0x0;
 	void createObjectsFromSetup(gd::string) = mac 0x6d130, win 0x0, ios 0x0;
 	void createParticle(int, char const*, int, cocos2d::tCCPositionType) = mac 0x76800, win 0x0, ios 0x0;
 	void currencyWillExit(CurrencyRewardLayer*) = mac 0x7e070, win 0x0, ios 0x0;
@@ -4008,7 +4011,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, DialogDelegate {
 	int m_dontSaveRand;
 	int m_dontSaveSeed;
 	int unknown4d8;
-	bool unknown4dc;
+	bool m_debugPauseOff;
 	bool m_shouldSmoothCamera;
 	float unused_4e0;
 	cocos2d::CCObject* unknown4e8;
@@ -4017,7 +4020,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, DialogDelegate {
 	float m_somegroup4f8;
 	float m_groundRestriction;
 	float m_ceilRestriction;
-	bool unknown504;
+	bool m_fullReset;
 	bool unknown505;
 	float unknown508;
 	float unknown50c;
@@ -4026,7 +4029,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, DialogDelegate {
 	float unknown518;
 	//PAD = mac 0x19, win 0x19, android 0x0;
 	StartPosObject* m_startPos;
-	CheckpointObject* unk330;
+	CheckpointObject* m_startPosCheckpoint;
 	EndPortalObject* m_endPortal;
 	cocos2d::CCArray* m_checkpoints;
 	cocos2d::CCArray* unk33C;
@@ -4048,7 +4051,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, DialogDelegate {
 	bool unk36A;
 	bool unk36B;
 	cocos2d::CCArray* m_screenRingObjects;
-	cocos2d::CCParticleSystemQuad* unk370;
+	cocos2d::CCParticleSystemQuad* m_particleSystem;
 	cocos2d::CCDictionary* m_pickedUpItems;
 	cocos2d::CCArray* m_circleWaves;
 	cocos2d::CCArray* unk37C;
@@ -4065,7 +4068,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, DialogDelegate {
 	bool unknown5e4;
 	int m_ballFrameSeed;
 	float unknown5ec;
-	float unknown5f0;
+	float m_lockGroundToCamera;
 	float unknown5f4;
 	float m_levelLength;
 	float m_realLevelLength;
@@ -4115,7 +4118,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, DialogDelegate {
 	float m_mirrorTransition;
 	UILayer* m_UILayer;
 	GJGameLevel* m_level;
-	cocos2d::CCPoint m_cameraPos;
+	cocos2d::CCPoint m_cameraPosition;
 	bool m_isTestMode;
 	bool m_isPracticeMode;
 	bool unk496;
@@ -4154,8 +4157,8 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, DialogDelegate {
 	bool m_hasGlitter;
 	bool m_isBgEffectOff;
 	bool unk52F;
-	GameObject* unk530;
-	bool unk534;
+	GameObject* m_antiCheatObject;
+	bool m_antiCheatPassed;
 	bool unk535;
 	bool m_disableGravityEffect;
 }
@@ -4195,7 +4198,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
 	virtual void setFlipX(bool) = mac 0x22e720, win 0x1fa690, ios 0x0;
 	virtual void setFlipY(bool) = mac 0x22e7b0, win 0x1fa740, ios 0x0;
 	virtual void resetObject() = mac 0x223170, win 0x1eecd0, ios 0x0;
-	virtual void getRealPosition() = mac 0x22d5f0, win 0x1f7e20, ios 0x0;
+	virtual cocos2d::CCPoint getRealPosition() = mac 0x22d5f0, win 0x1f7e20, ios 0x0;
 	virtual void getOrientedBox() = mac 0x22dee0, win 0x1f95d0, ios 0x0;
 	virtual void animationFinished(char const*) = mac 0x22e9d0, win 0x0, ios 0x0;
 	void activateStreak() = mac 0x21aef0, win 0x1f9080, ios 0x0;
