@@ -132,6 +132,7 @@ class cocos2d::CCDirector {
 }
 
 class cocos2d::CCDrawNode {
+	CCDrawNode() = mac 0x378b40;
 	auto clear() = mac 0x379e80;
 	static cocos2d::CCDrawNode* create() = mac 0x378d00;
 	auto drawPolygon(cocos2d::CCPoint*, unsigned int, cocos2d::_ccColor4F const&, float, cocos2d::_ccColor4F const&) = mac 0x3797f0;

@@ -2842,10 +2842,10 @@ class GameObject : CCSpritePlus {
 	virtual void triggerObject(GJBaseGameLayer*) = mac 0x2fa8f0, win 0x0, ios 0x0;
 	virtual void activateObject() = mac 0x2faf60, win 0xEF0E0, ios 0x0;
 	virtual void deactivateObject(bool) = mac 0x2fb8f0, win 0xd19b0, ios 0x0;
-	virtual cocos2d::CCRect* getObjectRect() = mac 0x3352b0, win 0xe4a40, ios 0x0;
-	virtual cocos2d::CCRect* getObjectRect(float, float) = mac 0x3352d0, win 0xe4a70, ios 0x0;
-	virtual cocos2d::CCRect* getObjectRect2(float, float) = mac 0x3354e0, win 0xe4b90, ios 0x0;
-	virtual cocos2d::CCRect* getObjectTextureRect() = mac 0x3355b0, win 0xe4c40, ios 0x0;
+	virtual cocos2d::CCRect const& getObjectRect() = mac 0x3352b0, win 0xe4a40, ios 0x0;
+	virtual cocos2d::CCRect getObjectRect(float, float) = mac 0x3352d0, win 0xe4a70, ios 0x0;
+	virtual cocos2d::CCRect getObjectRect2(float, float) = mac 0x3354e0, win 0xe4b90, ios 0x0;
+	virtual cocos2d::CCRect const& getObjectTextureRect() = mac 0x3355b0, win 0xe4c40, ios 0x0;
 	virtual cocos2d::CCPoint getRealPosition() = mac 0x335750, win 0xe4d90, ios 0x0;
 	virtual void setStartPos(cocos2d::CCPoint) = mac 0x2fa520, win 0xd1390, ios 0x0;
 	virtual void updateStartValues() = mac 0x2fa800, win 0xd1610, ios 0x0;
@@ -4208,9 +4208,9 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
 	void bumpPlayer(float, int) = mac 0x22d890, win 0x0, ios 0x0;
 	void buttonDown(PlayerButton) = mac 0x22b7e0, win 0x0, ios 0x0;
 	void checkSnapJumpToObject(GameObject*) = mac 0x2217f0, win 0x0, ios 0x0;
-	void collidedWithObject(float, GameObject*) = mac 0x21d880, win 0x0, ios 0x0;
-	void collidedWithObject(float, GameObject*, cocos2d::CCRect) = mac 0x21f0b0, win 0x0, ios 0x0;
-	void collidedWithSlope(float, GameObject*, bool) = mac 0x21d8d0, win 0x0, ios 0x0;
+	bool collidedWithObject(float, GameObject*) = mac 0x21d880, win 0x0, ios 0x0;
+	bool collidedWithObject(float, GameObject*, cocos2d::CCRect) = mac 0x21f0b0, win 0x0, ios 0x0;
+	bool collidedWithSlope(float, GameObject*, bool) = mac 0x21d8d0, win 0x0, ios 0x0;
 	void convertToClosestRotation(float) = mac 0x21c860, win 0x0, ios 0x0;
 	void copyAttributes(PlayerObject*) = mac 0x22dc70, win 0x0, ios 0x0;
 	static PlayerObject* create(int, int, cocos2d::CCLayer*) = mac 0x217260, win 0x0, ios 0x0;
