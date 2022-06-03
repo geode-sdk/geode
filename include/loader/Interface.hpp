@@ -129,19 +129,19 @@ namespace geode {
         GEODE_DLL void scheduleOnLoad(loadfn_t fn);
 
     protected:
-        GEODE_DLL void exportAPIFunctionInternal(std::string const& selector, unknownmemfn_t fn);
-        GEODE_DLL void exportAPIFunctionInternal(std::string const& selector, unknownfn_t fn);
+        // GEODE_DLL void exportAPIFunctionInternal(std::string const& selector, unknownmemfn_t fn);
+        // GEODE_DLL void exportAPIFunctionInternal(std::string const& selector, unknownfn_t fn);
 
     public:
-        template <typename T>
-        inline void exportAPIFunction(std::string const& selector, T ptr) {
-        	if constexpr (std::is_member_function_pointer_v<decltype(ptr)>) {
-        		exportAPIFunctionInternal(selector, cast::reference_cast<unknownmemfn_t>(ptr));
-        	}
-        	else {
-        		exportAPIFunctionInternal(selector, reinterpret_cast<unknownfn_t>(ptr));
-        	}
-        }
+        // template <typename T>
+        // inline void exportAPIFunction(std::string const& selector, T ptr) {
+        // 	if constexpr (std::is_member_function_pointer_v<decltype(ptr)>) {
+        // 		exportAPIFunctionInternal(selector, cast::reference_cast<unknownmemfn_t>(ptr));
+        // 	}
+        // 	else {
+        // 		exportAPIFunctionInternal(selector, reinterpret_cast<unknownfn_t>(ptr));
+        // 	}
+        // }
 
         friend Mod* Mod::get<void>();
 	};

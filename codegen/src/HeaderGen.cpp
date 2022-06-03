@@ -8,12 +8,12 @@ namespace { namespace format_strings {
 	char const* class_predeclare = "class {class_name};\n";
     // requires: base_classes, class_name
     char const* class_start = R"GEN(
-class {class_name}{base_classes} {{
+class GEODE_CODEGEN_DLL {class_name}{base_classes} {{
 public:
 )GEN";
 
     char const* function_definition = R"GEN(
-    {docs}GEODE_CODEGEN_DLL {static}{virtual}{return_type} {function_name}({parameters}){const_whitespace}{const};
+    {docs}{static}{virtual}{return_type} {function_name}({parameters}){const_whitespace}{const};
 )GEN";
 
     char const* error_definition = R"GEN(
@@ -24,7 +24,7 @@ public:
 )GEN";
 
     char const* structor_definition = R"GEN(
-        GEODE_CODEGEN_DLL {function_name}({parameters});)GEN";
+        {function_name}({parameters});)GEN";
     
     // requires: type, member_name, array
     char const* member_definition = R"GEN(

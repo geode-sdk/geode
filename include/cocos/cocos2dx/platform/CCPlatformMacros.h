@@ -115,19 +115,6 @@ namespace geode {
 #define GEODE_FRIEND_MODIFY GEODE_ADD(friend struct geode::modify; friend struct geode::modifier::addresses; friend struct geode::modifier::types; friend struct geode::temp_name_find_better;)
 #define GEODE_ADD(...) __VA_ARGS__
 
-/**
- * For CCDestructor
- */
-#if CC_TARGET_PLATFORM == CC_PLATFORM_WIN32
-    #ifdef GEODE_EXPORTING
-        #define GEODE_CC_DLL __declspec(dllexport)
-    #else
-        #define GEODE_CC_DLL __declspec(dllimport)
-    #endif
-#else
-    #define GEODE_CC_DLL __attribute__((visibility("default")))
-#endif
-
 #ifdef __cplusplus
     #define NS_CC_BEGIN                     namespace cocos2d {
     #define NS_CC_END                       }
