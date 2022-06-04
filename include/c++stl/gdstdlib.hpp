@@ -498,4 +498,4 @@ namespace gd {
 }
 #else
 namespace gd = std;
-#endif 
+#endif
