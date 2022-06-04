@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../codegen-base/Macros.hpp"
-#include "../utils/include.hpp"
 #include "Mod.hpp"
 #include <functional>
 #include <string>
@@ -10,7 +9,7 @@
 namespace geode {
     class Dispatcher;
     
-    struct GEODE_DLL dispatch_handle {
+    struct dispatch_handle {
         void* handle;
 
         dispatch_handle() = delete;
@@ -18,7 +17,7 @@ namespace geode {
 
         template <typename T>
         std::function<T> into() {
-            *reinterpret_cast<std::function<T>*>(this->handle);
+            return *reinterpret_cast<std::function<T>*>(this->handle);
         }
 
         template <typename R, typename ...Args>
@@ -45,7 +44,7 @@ namespace geode {
     };
 
     class GEODE_DLL Dispatcher {
-     protected:
+    protected:
         std::map<dispatch_handle, std::pair<std::string, Mod*>> m_dispatchMap;
         std::map<std::string, std::vector<dispatch_handle>> m_selectorMap;
         // 2 maps for lookup speed
@@ -58,7 +57,7 @@ namespace geode {
 
         Dispatcher() {}
 
-     public:
+    public:
         static Dispatcher* get();
 
         template <typename T>
