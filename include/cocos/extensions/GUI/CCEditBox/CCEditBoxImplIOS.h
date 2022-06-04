@@ -66,12 +66,12 @@
 
 NS_CC_EXT_BEGIN
 
-class CCEditBox;
+class CC_DLL CCEditBox;
 /**
  *  @js NA
  *  @lua NA
  */
-class CCEditBoxImplIOS : public CCEditBoxImpl
+class CC_DLL CCEditBoxImplIOS : public CCEditBoxImpl
 {
 public:
     CCEditBoxImplIOS(CCEditBox* pEditText);

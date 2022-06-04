@@ -4395,7 +4395,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
 	double m_xAccel;
 	double m_jumpAccel;
 	double m_gravity;
-	PAD = mac 0x10, win 0x08;
+	double m_unknown20;
 	bool m_unk538;
 	bool m_unk539;
 	bool m_unk53A;

@@ -48,7 +48,7 @@ NS_CC_EXT_BEGIN
  * @{
  */
 
-class CCControlColourPicker : public CCControl
+class CC_DLL CCControlColourPicker : public CCControl
 {
     GEODE_FRIEND_MODIFY
     

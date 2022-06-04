@@ -33,7 +33,7 @@
 NS_CC_EXT_BEGIN
 
 
-class CCEditBoxImpl
+class CC_DLL CCEditBoxImpl
 {
 public:
     CCEditBoxImpl(CCEditBox* pEditBox) : m_pDelegate(NULL),m_pEditBox(pEditBox) {}
