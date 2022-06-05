@@ -3422,6 +3422,8 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
 	void objectMoved(GameObject*) = mac 0x999f0, win 0x0, ios 0x0;
 	void objectsInRect(cocos2d::CCRect, bool) = mac 0x95e60, win 0x0, ios 0x0;
 	void onPlaytest() = mac 0xa06b0, win 0x0, ios 0x0;
+	void onResumePlaytest() = mac 0xa15e0;
+	void onPausePlaytest() = mac 0xa1570;
 	void onStopPlaytest() = mac 0xa1780, win 0x0, ios 0x0;
 	void pasteAttributeState(GameObject* obj, cocos2d::CCArray* objs) = mac 0x0, win 0x16b740, ios 0x0;
 	void playMusic() = mac 0xa13c0, win 0x0, ios 0x0;
@@ -3698,8 +3700,10 @@ class MoreSearchLayer : FLAlertLayer {
 
 class MoreOptionsLayer {
 	static MoreOptionsLayer* create() = mac 0x0, win 0x1de850, ios 0x0;
-	void addToggle(const char* name, const char* key, const char* info) = mac 0x0, win 0x1df6b0, ios 0x0;
-	void onKeybindings(cocos2d::CCObject* pSender) = mac 0x0, win 0x749d0, ios 0x0;
+	bool init() = mac 0x43f470;
+	void addToggle(const char* name, const char* key, const char* info) = mac 0x440430, win 0x1df6b0, ios 0x0;
+	void onKeybindings(cocos2d::CCObject* sender) = mac 0x0, win 0x749d0, ios 0x0;
+	void onToggle(cocos2d::CCObject* sender) = mac 0x441370;
 }
 
 class MoreVideoOptionsLayer : FLAlertLayer {
