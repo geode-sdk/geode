@@ -29,9 +29,9 @@ THE SOFTWARE.
 
 NS_CC_EXT_BEGIN
 
-class CCEditBox;
+class CC_DLL CCEditBox;
 
-class CCEditBoxImplWp8 : public CCEditBoxImpl
+class CC_DLL CCEditBoxImplWp8 : public CCEditBoxImpl
 {
 public:
 	CCEditBoxImplWp8(CCEditBox* pEditText);

@@ -124,14 +124,14 @@ enum EditBoxInputFlag
 };
 
 
-class CCEditBox;
-class CCEditBoxImpl;
+class CC_DLL CCEditBox;
+class CC_DLL CCEditBoxImpl;
 
 /**
  *  @js NA
  *  @lua NA
  */
-class CCEditBoxDelegate 
+class CC_DLL CCEditBoxDelegate 
 {
 public:
     virtual ~CCEditBoxDelegate() {};
@@ -171,7 +171,7 @@ public:
  * 
  */
  
-class CCEditBox
+class CC_DLL CCEditBox
 : public CCControlButton
 , public CCIMEDelegate
 {

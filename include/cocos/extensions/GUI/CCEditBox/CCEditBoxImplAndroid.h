@@ -35,9 +35,9 @@
 
 NS_CC_EXT_BEGIN
 
-class CCEditBox;
+class CC_DLL CCEditBox;
 
-class CCEditBoxImplAndroid : public CCEditBoxImpl
+class CC_DLL CCEditBoxImplAndroid : public CCEditBoxImpl
 {
 public:
     CCEditBoxImplAndroid(CCEditBox* pEditText);

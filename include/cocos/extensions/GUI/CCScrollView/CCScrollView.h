@@ -43,12 +43,12 @@ typedef enum {
     kCCScrollViewDirectionBoth
 } CCScrollViewDirection;
 
-class CCScrollView;
+class CC_DLL CCScrollView;
 /**
  *  @js NA
  *  @lua NA
  */
-class CCScrollViewDelegate
+class CC_DLL CCScrollViewDelegate
 {
 public:
     virtual ~CCScrollViewDelegate() {}
@@ -62,7 +62,7 @@ public:
  * It provides scroll view functionalities to cocos2d projects natively.
  * @lua NA
  */
-class CCScrollView : public CCLayer
+class CC_DLL CCScrollView : public CCLayer
 {
 public:
     /**

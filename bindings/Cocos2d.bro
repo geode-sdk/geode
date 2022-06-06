@@ -614,6 +614,10 @@ class cocos2d::CCRotateBy {
 	static cocos2d::CCRotateBy* create(float, float) = mac 0x1f4c50;
 }
 
+class cocos2d::CCRotateTo {
+	static cocos2d::CCRotateTo* create(float, float) = mac 0x1f47b0;
+}
+
 class cocos2d::CCScaleTo {
 	static cocos2d::CCScaleTo* create(float, float) = mac 0x1f6ff0;
 	static cocos2d::CCScaleTo* create(float, float, float) = mac 0x1f70f0;

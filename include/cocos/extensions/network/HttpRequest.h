@@ -30,8 +30,8 @@
 
 NS_CC_EXT_BEGIN
 
-class CCHttpClient;
-class CCHttpResponse;
+class CC_DLL CCHttpClient;
+class CC_DLL CCHttpResponse;
 typedef void (CCObject::*SEL_HttpResponse)(CCHttpClient* client, CCHttpResponse* response);
 #define httpresponse_selector(_SELECTOR) (cocos2d::extension::SEL_HttpResponse)(&_SELECTOR)
 
@@ -43,7 +43,7 @@ typedef void (CCObject::*SEL_HttpResponse)(CCHttpClient* client, CCHttpResponse*
  @lua NA
  */
 
-class CCHttpRequest : public CCObject
+class CC_DLL CCHttpRequest : public CCObject
 {
 public:
     /** Use this enum type as param in setReqeustType(param) */

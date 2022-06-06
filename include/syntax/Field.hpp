@@ -1,5 +1,11 @@
 #pragma once
 #include "Traits.hpp"
+#include "../platform/platform.hpp"
+
+#ifdef GEODE_IS_WINDOWS
+// for the manual virtualprotect
+#include <memoryapi.h>
+#endif
 
 namespace geode::modifier {
 	template<typename T = void*>
@@ -77,20 +83,25 @@ namespace geode::modifier {
     	return ret;
     }
 
+	using DestructorType = void(GEODE_WINDOWS(__thiscall)*)(void* GEODE_WINDOWS(, bool));
+
     template <typename T>
     GEODE_NOINLINE inline auto& getOriginalDestructor() {
-    	static void(*ret)(void*);
+    	static DestructorType ret;
     	return ret;
     }
 
-    template <typename T>
-    GEODE_NOINLINE inline void fieldCleanup(T* self) {{
-    	for (auto& [mem, cont] : getAdditionalContainers<T>()[self]) {
-    		delete cont;
-    	}
-    	getAdditionalContainers<T>().erase(self);
-    	getOriginalDestructor<T>()(self);
-    }}
+	// this is beautiful
+	struct FieldCleanupHook {
+		template <typename T>
+		static GEODE_NOINLINE inline void GEODE_WINDOWS(__thiscall) fieldCleanup(T* self GEODE_WINDOWS(, bool arg)) {{
+			for (auto& [mem, cont] : getAdditionalContainers<T>()[self]) {
+				delete cont;
+			}
+			getAdditionalContainers<T>().erase(self);
+			getOriginalDestructor<T>()(self GEODE_WINDOWS(, arg));
+		}}
+	};
 
 	template <typename T, typename A>
 	GEODE_NOINLINE T& operator->*(A* self, field<T>& member) {
@@ -102,10 +113,16 @@ namespace geode::modifier {
 
 	    // on first use
 	    if (destructor == nullptr) {
-	    	// takes the third element because all cocos classes have the destructor at third.
-	        auto& vtableDestructor = 2[*(uintptr_t**)self]; // i love this
-	        destructor = reinterpret_cast<void(*)(void*)>(vtableDestructor);
-	        vtableDestructor = (uintptr_t)&fieldCleanup<A>;
+			// classes inheriting CCObject always have their destructor(s) as the 2nd (and 3rd on itanium) element in the vtable
+			// choose 3rd elemnt (the second destructor) on itanium platforms because the first one gets inlined often
+			static constexpr size_t index = GEODE_WINDOWS(1) GEODE_MACOS(2) GEODE_IOS(2) GEODE_ANDROID(2);
+	        auto& vtableDestructor = index[*reinterpret_cast<uintptr_t**>(self)]; // i love this
+	        destructor = reinterpret_cast<DestructorType>(vtableDestructor);
+#ifdef GEODE_IS_WINDOWS
+			DWORD old;
+			VirtualProtect(reinterpret_cast<void*>(&vtableDestructor), sizeof(void*), PAGE_EXECUTE_READWRITE, &old);
+#endif
+	        vtableDestructor = reinterpret_cast<uintptr_t>(&FieldCleanupHook::fieldCleanup<A>);
 	    }
 	    if (containers[self].size() == 0) {
 	    	void* obj = new A();
