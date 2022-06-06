@@ -574,7 +574,7 @@ class ChallengesPage {
 }
 
 class CheckpointObject : cocos2d::CCNode {
-	static CheckpointObject* create() = mac 0x7e7d0, win 0x0, ios 0x0;
+	static CheckpointObject* create() = mac 0x7e7d0, win 0x20DDD0, ios 0x0;
 	void getObject() = mac 0x7ef50, win 0x0, ios 0x0;
 
 	GameObject* m_gameObject;
@@ -3123,7 +3123,7 @@ class GameSoundManager : cocos2d::CCNode {
 	void getMeteringValue() = mac 0x362db0, win 0x0, ios 0x0;
 	void playBackgroundMusic(gd::string, bool, bool) = mac 0x362070, win 0x0, ios 0x0;
 	void playEffect(gd::string, float, float, float) = mac 0x3623d0, win 0x25450, ios 0x0;
-	void stopBackgroundMusic() = mac 0x362130, win 0x0, ios 0x0;
+	void stopBackgroundMusic() = mac 0x362130, win 0x253A0, ios 0x0;
 	~GameSoundManager() = mac 0x362c00, win 0x0, ios 0x0;
 	static GameSoundManager* sharedManager() = mac 0x3610f0, win 0x24800, ios 0x0;
 
@@ -3430,6 +3430,8 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
 	void objectMoved(GameObject*) = mac 0x999f0, win 0x0, ios 0x0;
 	void objectsInRect(cocos2d::CCRect, bool) = mac 0x95e60, win 0x0, ios 0x0;
 	void onPlaytest() = mac 0xa06b0, win 0x0, ios 0x0;
+	void onResumePlaytest() = mac 0xa15e0;
+	void onPausePlaytest() = mac 0xa1570;
 	void onStopPlaytest() = mac 0xa1780, win 0x0, ios 0x0;
 	void pasteAttributeState(GameObject* obj, cocos2d::CCArray* objs) = mac 0x0, win 0x16b740, ios 0x0;
 	void playMusic() = mac 0xa13c0, win 0x0, ios 0x0;
@@ -3707,8 +3709,10 @@ class MoreSearchLayer : FLAlertLayer {
 
 class MoreOptionsLayer {
 	static MoreOptionsLayer* create() = mac 0x0, win 0x1de850, ios 0x0;
-	void addToggle(const char* name, const char* key, const char* info) = mac 0x0, win 0x1df6b0, ios 0x0;
-	void onKeybindings(cocos2d::CCObject* pSender) = mac 0x0, win 0x749d0, ios 0x0;
+	bool init() = mac 0x43f470;
+	void addToggle(const char* name, const char* key, const char* info) = mac 0x440430, win 0x1df6b0, ios 0x0;
+	void onKeybindings(cocos2d::CCObject* sender) = mac 0x0, win 0x749d0, ios 0x0;
+	void onToggle(cocos2d::CCObject* sender) = mac 0x441370;
 }
 
 class MoreVideoOptionsLayer : FLAlertLayer {
@@ -3971,7 +3975,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, DialogDelegate {
 	void spawnParticle(char const*, int, cocos2d::tCCPositionType, cocos2d::CCPoint) = mac 0x76330, win 0x0, ios 0x0;
 	void spawnPlayer2() = mac 0x7d170, win 0x0, ios 0x0;
 	void startGame() = mac 0x726b0, win 0x0, ios 0x0;
-	void startMusic() = mac 0x72910, win 0x0, ios 0x0;
+	void startMusic() = mac 0x72910, win 0x20C8F0, ios 0x0;
 	void startRecording() = mac 0x7fec0, win 0x0, ios 0x0;
 	void startRecordingDelayed() = mac 0x7fed0, win 0x0, ios 0x0;
 	void stopCameraShake() = mac 0x75900, win 0x0, ios 0x0;

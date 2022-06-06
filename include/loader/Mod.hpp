@@ -160,10 +160,11 @@ namespace geode {
 
         DataStore(Mod* m, nlohmann::json& j) : m_mod(m), m_store(j) {}
         friend class Mod;
-     public:
+    public:
         ~DataStore();
         nlohmann::json& operator[](std::string const&);
         DataStore& operator=(nlohmann::json&);
+        bool contains(std::string const&);
         operator nlohmann::json();
 
     };
