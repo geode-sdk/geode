@@ -4537,7 +4537,7 @@ class RingObject : EffectGameObject {
 	virtual void setRotation(float) = win 0x252640;
 	virtual void setScale(float) = win 0x252580;
 	virtual void resetObject() = win 0x252560;
-	virtual void customObjectSetup(gd::map<gd::string, gd::string>>&) = win 0x2526A0;
+	virtual void customObjectSetup(gd::map<gd::string, gd::string>&) = win 0x2526A0;
 	virtual void getSaveString() = win 0x2527F0;
 	virtual void powerOnObject() = win 0x252360;
 	virtual void powerOffObject();
