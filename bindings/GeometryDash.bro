@@ -34,12 +34,12 @@ class AchievementNotifier : cocos2d::CCNode {
 	AchievementBar* m_currentAchievement;
 }
 
-class AchievementsLayer {
-	void customSetup() = mac 0x1bdea0, win 0x0, ios 0x0;
+class AchievementsLayer : GJDropDownLayer {
+	void customSetup() = mac 0x1bdea0, win 0x3c2f0, ios 0x0;
 	void loadPage(int) = mac 0x1be190, win 0x3c600, ios 0x0;
 }
 
-class AnimatedGameObject {
+class AnimatedGameObject : GameObject, AnimatedSpriteDelegate, SpritePartDelegate {
 	void playAnimation(int) = mac 0xc93d0, win 0x0, ios 0x0;
 	void updateChildSpriteColor(cocos2d::_ccColor3B) = mac 0xc8450, win 0x0, ios 0x0;
 }
@@ -63,10 +63,14 @@ class AppDelegate : cocos2d::CCApplication {
 	virtual void applicationDidEnterBackground() = mac 0x3aabe0, win 0x3cf40, ios 0x0;
 	virtual void applicationWillEnterForeground() = mac 0x3aac80, win 0x3d130, ios 0x0;
 	virtual void applicationWillBecomeActive() = mac 0x3aab30, win 0x3ce90, ios 0x0;
-	virtual void applicationWillResignActive() = mac 0x3aab50, win 0x3d3e0, ios 0x0;
+	virtual void applicationWillResignActive() = mac 0x3aab50, win 0x3cf20, ios 0x0;
 	virtual void trySaveGame() = mac 0x3aaf10, win 0x3d5e0, ios 0x1a28f0;
 	virtual void willSwitchToScene(cocos2d::CCScene*) = mac 0x3aaf40, win 0x3d690, ios 0x0;
 	static AppDelegate* get() = mac 0x3aab10, win 0x0, ios 0x0;
+	bool musicTest() = mac 0x0, win 0x3d580, ios 0x0;
+	void pauseGame() = mac 0x0, win 0x3d3e0, ios 0x0;
+	void resumeSound() = mac 0x0, win 0x3d4d0, ios 0x0;
+	void setupGLView() = mac 0x0, win 0x3c950, ios 0x0;
 
 	cocos2d::CCScene* m_runningScene;
 }
@@ -74,7 +78,7 @@ class AppDelegate : cocos2d::CCApplication {
 class ArtistCell : TableViewCell {
 	void draw() = mac 0x11c980, win 0x0, ios 0x0;
 	virtual bool init() = mac 0x11c7c0, win 0x0, ios 0x0;
-	void loadFromObject(SongInfoObject*) = mac 0x1118b0, win 0x0, ios 0x0;
+	void loadFromObject(SongInfoObject*) = mac 0x1118b0, win 0x5ede0, ios 0x0;
 	void onNewgrounds(cocos2d::CCObject*) = mac 0x11c7e0, win 0x0, ios 0x0;
 	void updateBGColor(int) = mac 0x110460, win 0x5c6b0, ios 0x0;
 
@@ -1252,9 +1256,13 @@ class EffectGameObject : GameObject {
 	}
 
 	static EffectGameObject* create(const char*) = mac 0xc9790, win 0x253c30, ios 0x0;
+	bool init(char const*) = win 0x253CD0;
 	void getTargetColorIndex() = mac 0xca1f0, win 0x0, ios 0x0;
 	virtual void triggerObject(GJBaseGameLayer*) = mac 0xc9870, win 0x253d60, ios 0x0;
 	gd::string getSaveString() = mac 0x0, win 0x257560, ios 0x0;
+	void updateSpecialColor() = win 0x254980;
+	void spawnXPosition() = win 0x254A00;
+	void triggerActivated(float) = win 0x254A30;
 
 	int targetGroup = mac 0x4F8, win 0x0, android 0x0;
 	bool activateGroup = mac 0x578, win 0x0, android 0x0;
@@ -3496,6 +3504,7 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
 
 class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDelegate, RateLevelDelegate, LikeItemDelegate, FLAlertLayerProtocol, LevelDeleteDelegate, NumberInputDelegate, SetIDPopupDelegate {
 	static LevelInfoLayer* create(GJGameLevel* level) = mac 0x15f290, win 0x175d50, ios 0x0;
+	bool init(GJGameLevel* level) = mac 0x0, win 0x175DF0, ios 0x0;
 	void onGarage(cocos2d::CCObject* pSender) = mac 0x0, win 0x177c10, ios 0x0;
 	void onViewProfile(cocos2d::CCObject* pSender) = mac 0x0, win 0x17ac90, ios 0x0;
 	void onLevelInfo(cocos2d::CCObject* pSender) = mac 0x0, win 0x17acf0, ios 0x0;
@@ -4515,6 +4524,21 @@ class RateLevelDelegate {
 
 class RetryLevelLayer {
 	static RetryLevelLayer* create() = mac 0x28dd60, win 0x0, ios 0x0;
+}
+
+class RingObject : EffectGameObject {
+	bool create(char const*) = mac 0x0, win 0x252220, ios 0x0;
+	bool init(char const*) = mac 0x0, win 0x2522E0, ios 0x0;
+	void spawnCircle() = win 0x2523A0;
+	virtual void setRotation(float) = win 0x252640;
+	virtual void setScale(float) = win 0x252580;
+	virtual void resetObject() = win 0x252560;
+	virtual void customObjectSetup(gd::map<gd::string, gd::string>>&) = win 0x2526A0;
+	virtual void getSaveString() = win 0x2527F0;
+	virtual void powerOnObject() = win 0x252360;
+	virtual void powerOffObject();
+	virtual void setRScale(float) = win 0x2525D0;
+	virtual void triggerActivated(float) = win 0x252350;
 }
 
 class ScrollingLayer : cocos2d::CCLayerColor {
