@@ -4844,6 +4844,8 @@ class SpawnTriggerAction : cocos2d::CCNode {
 	int m_uuid;
 }
 
+class SpritePartDelegate {}
+
 class StartPosObject {}
 
 class StatsCell {
