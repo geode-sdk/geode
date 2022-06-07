@@ -1322,7 +1322,7 @@ class EffectGameObject : GameObject {
 	bool m_dynamicBlock;
 	int m_targetItemID;
 	int m_pickupMode;
-	PAD = mac 0x0, win 0x24, android 0x0;
+	PAD = mac 0x24, win 0x24, android 0x0;
 }
 
 class EndLevelLayer {
@@ -3831,7 +3831,7 @@ class PauseLayer : CCBlockLayer {
 	static PauseLayer* create(bool) = mac 0x20b1e0, win 0x0, ios 0x0;
 	void onEdit(cocos2d::CCObject*) = mac 0x20c630, win 0x0, ios 0x0;
 	void createToggleButton(cocos2d::SEL_MenuHandler callback, bool on, cocos2d::CCMenu* menu, gd::string caption, cocos2d::CCPoint pos) = mac 0x0, win 0x1e5570, ios 0x0;
-
+	void keyDown(cocos2d::enumKeyCodes) = mac 0x20cc80;
 	bool m_unknown;
 	bool m_unknown2;
 }
@@ -4125,7 +4125,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, DialogDelegate {
 	bool unk497;
 	cocos2d::CCArray* unk498;
 	bool unk49C;
-	cocos2d::CCPoint unk4A0;
+	cocos2d::CCPoint m_playerStartPosition;
 	int m_currentAttempt;
 	int m_jumpCount;
 	bool unk4B0;
@@ -4816,7 +4816,11 @@ class SpawnTriggerAction : cocos2d::CCNode {
 	int m_uuid;
 }
 
-class StartPosObject {}
+class StartPosObject : EffectGameObject {
+	static StartPosObject* create() = mac 0xda7c0;
+
+	LevelSettingsObject* m_levelSettings;
+}
 
 class StatsCell {
 	void updateBGColor(unsigned int index) = mac 0x0, win 0x59cf0, ios 0x0;
