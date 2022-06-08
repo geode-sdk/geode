@@ -3818,9 +3818,11 @@ class OptionsLayer : GJDropDownLayer, FLAlertLayerProtocol {
 }
 
 class PauseLayer : CCBlockLayer {
-	static PauseLayer* create(bool) = mac 0x20b1e0, win 0x0, ios 0x0;
-	void onEdit(cocos2d::CCObject*) = mac 0x20c630, win 0x0, ios 0x0;
+	static PauseLayer* create(bool) = mac 0x20b1e0, win 0x1e4570, ios 0x0;
+	void onEdit(cocos2d::CCObject*) = mac 0x20c630, win 0x1e60e0, ios 0x0;
 	void createToggleButton(cocos2d::SEL_MenuHandler callback, bool on, cocos2d::CCMenu* menu, gd::string caption, cocos2d::CCPoint pos) = mac 0x0, win 0x1e5570, ios 0x0;
+	virtual void customSetup() = mac 0x0, win 0x1e4620, ios 0x0;
+	void onRestart(cocos2d::CCObject* sender) = mac 0x0, win 0x1e6040, ios 0x0;
 
 	bool m_unknown;
 	bool m_unknown2;
