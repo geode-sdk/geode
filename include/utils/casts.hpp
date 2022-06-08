@@ -27,8 +27,9 @@ namespace geode::cast {
     }
 
     /** 
-     * Reference casting, it's pretty much black 
-     * magic so idk how to explain it
+     * Reference casting. Does a pointer-to-pointer
+     * cast but uses reference syntactic sugar to
+     * look cleaner.
      */
     template<typename T, typename F>
 	static constexpr T reference_cast(F v) {
