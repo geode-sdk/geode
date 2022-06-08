@@ -601,7 +601,7 @@ class CollisionTriggerAction : cocos2d::CCNode {
 }
 
 class ColorAction : cocos2d::CCNode {
-	void getSaveString() = mac 0x17d080, win 0x0, ios 0x0;
+	gd::string getSaveString() = mac 0x17d080, win 0x0, ios 0x0;
 	void setupFromDict(cocos2d::CCDictionary*) = mac 0x17f310, win 0x0, ios 0x0;
 	void setupFromString(gd::string) = mac 0x17f270, win 0x0, ios 0x0;
 
@@ -1818,7 +1818,7 @@ class GJEffectManager : cocos2d::CCNode {
 	void getLoadedMoveOffset() = mac 0x184390, win 0x0, ios 0x0;
 	void getMixedColor(cocos2d::_ccColor3B, cocos2d::_ccColor3B, float) = mac 0x185d30, win 0x0, ios 0x0;
 	uint8_t getOpacityActionForGroup(int) = mac 0x1845b0, win 0x0, ios 0x0;
-	void getSaveString() = mac 0x185e90, win 0x0, ios 0x0;
+	gd::string getSaveString() = mac 0x185e90, win 0x0, ios 0x0;
 	void handleObjectCollision(bool, int, int) = mac 0x1828f0, win 0x0, ios 0x0;
 	void hasActiveDualTouch() = mac 0x185540, win 0x0, ios 0x0;
 	void hasBeenTriggered(int) = mac 0x1853b0, win 0x0, ios 0x0;
@@ -4520,7 +4520,7 @@ class ProfilePage : FLAlertLayer, FLAlertLayerProtocol, LevelCommentDelegate, Co
 
 class PulseEffectAction : cocos2d::CCNode {
 	static PulseEffectAction* createFromString(gd::string) = mac 0x179e90, win 0x0, ios 0x0;
-	void getSaveString() = mac 0x17a850, win 0x0, ios 0x0;
+	gd::string getSaveString() = mac 0x17a850, win 0x0, ios 0x0;
 
 	int group = mac 0x130, win 0x0, android 0x0;
 }
@@ -4541,7 +4541,7 @@ class RingObject : EffectGameObject {
 	virtual void setScale(float) = win 0x252580;
 	virtual void resetObject() = win 0x252560;
 	virtual void customObjectSetup(gd::map<gd::string, gd::string>&) = win 0x2526A0;
-	virtual void getSaveString() = win 0x2527F0;
+	virtual gd::string getSaveString() = win 0x2527F0;
 	virtual void powerOnObject() = win 0x252360;
 	virtual void powerOffObject();
 	virtual void setRScale(float) = win 0x2525D0;
