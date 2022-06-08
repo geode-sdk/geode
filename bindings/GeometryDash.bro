@@ -2687,7 +2687,10 @@ class GameManager : GManager {
 	double m_adCache;
 	PAD = mac 0x8, win 0x8, android 0x0;
 	double m_unknownDouble;
-	PAD = mac 0x4, win 0x4, android 0x0;
+	// TODO: according to wylie's decomp this pad was 0x4, gd.h has it as 0x8 (and its correct)
+	// i have a feeling android gm and windows gm are different structs
+	// so the extra member could be here (for windows)
+	PAD = mac 0x4, win 0x8, android 0x0;
 	bool m_loaded;
 	gd::string m_unknownString;
 	PlayLayer* m_playLayer;
@@ -3844,6 +3847,7 @@ class OptionsLayer : GJDropDownLayer, FLAlertLayerProtocol {
 class PauseLayer : CCBlockLayer {
 	static PauseLayer* create(bool) = mac 0x20b1e0, win 0x1e4570, ios 0x0;
 	void onEdit(cocos2d::CCObject*) = mac 0x20c630, win 0x1e60e0, ios 0x0;
+	void onQuit(cocos2d::CCObject*) = mac 0x0, win 0x1e63d0, ios 0x0;
 	void createToggleButton(cocos2d::SEL_MenuHandler callback, bool on, cocos2d::CCMenu* menu, gd::string caption, cocos2d::CCPoint pos) = mac 0x0, win 0x1e5570, ios 0x0;
 	virtual void customSetup() = mac 0x0, win 0x1e4620, ios 0x0;
 	void onRestart(cocos2d::CCObject* sender) = mac 0x0, win 0x1e6040, ios 0x0;
