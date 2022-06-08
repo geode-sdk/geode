@@ -79,9 +79,13 @@ namespace std {
 	#endif
 
 	#ifdef GEODE_EXPORTING_CODEGEN
-	    #define GEODE_CODEGEN_DLL __declspec(dllexport)
+		#define GEODE_CODEGEN_DLL __declspec(dllexport)
 	#else
-	    #define GEODE_CODEGEN_DLL __declspec(dllimport)
+		#ifndef GEODE_BUILDING_CODEGEN
+			#define GEODE_CODEGEN_DLL __declspec(dllimport)
+		#else
+			#define GEODE_CODEGEN_DLL
+		#endif
 	#endif
 
 	#define GEODE_API extern "C" __declspec(dllexport)
@@ -153,7 +157,7 @@ namespace std {
 	#ifdef GEODE_EXPORTING_CODEGEN
 	    #define GEODE_CODEGEN_DLL __attribute__((visibility("default")))
 	#else
-	    #define GEODE_CODEGEN_DLL 
+	    #define GEODE_CODEGEN_DLL
 	#endif
 
 	#define GEODE_API extern "C" __attribute__((visibility("default")))

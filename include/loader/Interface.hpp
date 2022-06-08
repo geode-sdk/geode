@@ -59,15 +59,9 @@ namespace geode {
 
 		using loadfn_t = void(*)(Mod*);
 
-		struct ScheduledExport {
-			std::string m_selector;
-			std::variant<unknownmemfn_t, unknownfn_t> m_func;
-		};
-
 		Mod* m_mod = nullptr;
 		std::vector<ScheduledHook> m_scheduledHooks;
 		std::vector<ScheduledLog> m_scheduledLogs;
-		std::vector<ScheduledExport> m_scheduledExports;
 		std::vector<loadfn_t> m_scheduledFunctions;
 		
 	public:
@@ -115,6 +109,9 @@ namespace geode {
          */
         template<auto Detour, template <class, class...> class Convention>
         Result<Hook*> addHook(std::string const& displayName, void* address) {
+        	if (this->m_mod) {
+        		return this->m_mod->addHook<Detour, Convention>(displayName, address);
+        	}
         	this->m_scheduledHooks.push_back({ displayName, address, &Mod::addHook<Detour, Convention> });
 			return Ok<Hook*>(nullptr);
         }
@@ -132,19 +129,19 @@ namespace geode {
         GEODE_DLL void scheduleOnLoad(loadfn_t fn);
 
     protected:
-        GEODE_DLL void exportAPIFunctionInternal(std::string const& selector, unknownmemfn_t fn);
-        GEODE_DLL void exportAPIFunctionInternal(std::string const& selector, unknownfn_t fn);
+        // GEODE_DLL void exportAPIFunctionInternal(std::string const& selector, unknownmemfn_t fn);
+        // GEODE_DLL void exportAPIFunctionInternal(std::string const& selector, unknownfn_t fn);
 
     public:
-        template <typename T>
-        inline void exportAPIFunction(std::string const& selector, T ptr) {
-        	if constexpr (std::is_member_function_pointer_v<decltype(ptr)>) {
-        		exportAPIFunctionInternal(selector, cast::reference_cast<unknownmemfn_t>(ptr));
-        	}
-        	else {
-        		exportAPIFunctionInternal(selector, reinterpret_cast<unknownfn_t>(ptr));
-        	}
-        }
+        // template <typename T>
+        // inline void exportAPIFunction(std::string const& selector, T ptr) {
+        // 	if constexpr (std::is_member_function_pointer_v<decltype(ptr)>) {
+        // 		exportAPIFunctionInternal(selector, cast::reference_cast<unknownmemfn_t>(ptr));
+        // 	}
+        // 	else {
+        // 		exportAPIFunctionInternal(selector, reinterpret_cast<unknownfn_t>(ptr));
+        // 	}
+        // }
 
         friend Mod* Mod::get<void>();
 	};
@@ -157,17 +154,6 @@ namespace geode {
 	inline Log Log::get() {
 		return Mod::get()->log();
 	}
-
-	template <typename T>
-	inline Observer<std::monostate>* EventCenter::registerObserver(std::string sel, std::function<void(Event<T> const&)> cb) {
-	    return registerObserver(Mod::get(), EventInfo<T>(sel), cb);
-	}
-
-	template <typename T>
-	inline Observer<std::monostate>* EventCenter::registerObserver(EventInfo<T> info, std::function<void(Event<T> const&)> cb) {
-	    return registerObserver(Mod::get(), info, cb);
-	}
-    
 }
 
 inline const char* operator"" _spr(const char* str, size_t) {

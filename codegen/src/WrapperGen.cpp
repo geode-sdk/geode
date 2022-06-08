@@ -1,17 +1,16 @@
-#include <SharedGen.hpp>
+#include "Shared.hpp"
 #include <set>
 
-namespace format_strings {
+namespace { namespace format_strings {
 
 	char const* declare_member_type = R"GEN(
 GEODE_WRAPPER_FOR_IDENTIFIER({function_name}) )GEN";
-}
+}}
 
 using std::set;
 
-int main(int argc, char** argv) {
+std::string generateWrapperHeader(Root const& root) {
 	string output("");
-	Root root = CacShare::init(argc, argv);
 	set<string> used;
 
 	for (auto& [name, c] : root.classes) {
@@ -22,12 +21,12 @@ int main(int argc, char** argv) {
 				default: break;
 			}
 			if (used.find(f.name) != used.end()) continue;
-			output += fmt::format(format_strings::declare_member_type,
-				fmt::arg("function_name", CacShare::getFunctionName(f))
+			output += fmt::format(::format_strings::declare_member_type,
+				fmt::arg("function_name", codegen::getFunctionName(f))
 			);
 			used.insert(f.name);
 		}
 	}
 
-	CacShare::writeFile(output);
+	return output;
 }

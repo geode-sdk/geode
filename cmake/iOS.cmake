@@ -13,9 +13,8 @@ if (NOT DEFINED GEODE_IOS_SDK)
 endif()
 
 set(CMAKE_SYSTEM_NAME iOS)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fms-extensions -Wno-deprecated -fdata-sections -ffunction-sections")
-set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} -fms-extensions -Wno-deprecated -fdata-sections -ffunction-sections")
-set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -dead_strip -arch arm64")
+target_compile_options(${PROJECT_NAME} PUBLIC -fms-extensions -Wno-deprecated -Wno-ignored-attributes -Os -flto -fvisibility=internal)
+target_link_options(${PROJECT_NAME} PUBLIC -arch arm64)
 
 set(CMAKE_OSX_ARCHITECTURES arm64)
 set(CMAKE_OSX_SYSROOT ${GEODE_IOS_SDK})

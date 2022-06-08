@@ -1,7 +1,7 @@
 add_definitions(-DANDROID)
 add_definitions(-DCC_TARGET_OS_ANDROID)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fms-extensions -Xlinker --no-demangle -Wno-deprecated -m32 ")
+target_compile_options(${PROJECT_NAME} -fms-extensions -Xlinker --no-demangle -Wno-deprecated -m32)
 
 target_link_libraries(${PROJECT_NAME} log android EGL GLESv2)
 

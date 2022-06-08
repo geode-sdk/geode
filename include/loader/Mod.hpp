@@ -3,7 +3,6 @@
 #include <Macros.hpp>
 #include "Types.hpp"
 #include "Hook.hpp"
-#include "Event.hpp"
 #include "../utils/types.hpp"
 #include "../utils/Result.hpp"
 #include "../utils/VersionInfo.hpp"
@@ -161,10 +160,11 @@ namespace geode {
 
         DataStore(Mod* m, nlohmann::json& j) : m_mod(m), m_store(j) {}
         friend class Mod;
-     public:
+    public:
         ~DataStore();
         nlohmann::json& operator[](std::string const&);
         DataStore& operator=(nlohmann::json&);
+        bool contains(std::string const&);
         operator nlohmann::json();
 
     };
@@ -334,37 +334,6 @@ namespace geode {
             std::string const& info,
             Severity severity
         );
-
-        /**
-         * Exports an internal function. You can use this
-         * for mod interoperability.
-         * @param selector mod-specific string identifier
-         * for your function
-         * @param ptr pointer to your exported function
-         */
-        template <typename T>
-        void exportAPIFunction(std::string const& selector, T ptr) {
-        	EventCenter::get()->registerObserver<T*>(this, selector, [ptr](Event<T*> const& n) {
-                //*reinterpret_cast<T*>(n.object<void*>()) = ptr;
-                *n.object() = ptr;
-            });
-        }
-
-        /**
-         * Imports an internal function. You can use this
-         * for mod interoperability.
-         * @param selector Mod-specific string identifier
-         * for your function
-         * @param source Mod that the API function originates
-         * from
-         * @returns Pointer to the external function
-         */
-        template <typename T>
-        T importAPIFunction(std::string const& selector, Mod* source) {
-        	T out;
-            EventCenter::get()->send(Event(selector, &out, nullptr), source);
-            return out;
-        }
 
         /**
          * Get all hooks owned by this Mod

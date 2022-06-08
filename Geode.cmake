@@ -46,12 +46,11 @@ function(setup_geode_mod)
 	endif()
 
 	if (${GEODE_DO_CODEGEN})
-		add_definitions(-DGEODE_EXPORTING_CODEGEN)
-
 		# only 1 codegen dir
 		get_property(GEODE_CODEGEN_DIR GLOBAL PROPERTY GEODE_CODEGEN_DIR)
 		if (NOT GEODE_CODEGEN_DIR)
 			set(GEODE_CODEGEN_BUILD 1)
+			set(GEODE_BINDING_PATH ${GEODE_SDK_PATH}/bindings)
 			set_property(GLOBAL PROPERTY GEODE_CODEGEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/codegen)
 			get_property(GEODE_CODEGEN_DIR GLOBAL PROPERTY GEODE_CODEGEN_DIR)
 		endif()
@@ -60,12 +59,15 @@ function(setup_geode_mod)
 
 		set_source_files_properties(${GEODE_CODEGEN_DIR}/GeneratedSource.cpp PROPERTIES GENERATED 1)
 		target_sources(${PROJECT_NAME} PRIVATE ${GEODE_CODEGEN_DIR}/GeneratedSource.cpp)
-		target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR})
+		target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 		#target_link_libraries(${PROJECT_NAME} fmt)
 
 		if (DEFINED GEODE_CODEGEN_BUILD)
 			add_subdirectory(${GEODE_SDK_PATH}/codegen ${GEODE_CODEGEN_DIR})
+			add_dependencies(${PROJECT_NAME} CodegenRun)
 		endif()
+
+		target_compile_definitions(${PROJECT_NAME} PUBLIC -DGEODE_BUILDING_CODEGEN)
 	endif()
 
 	target_compile_definitions(${PROJECT_NAME} PUBLIC -DPROJECT_NAME=${PROJECT_NAME} -DEXPORT_${PROJECT_NAME}=1)

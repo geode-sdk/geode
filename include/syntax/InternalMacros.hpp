@@ -57,7 +57,7 @@ template <> struct GEODE_HIDDEN _##derived<derived##ID>   				\
 #define $modify(...) GEODE_INVOKE(GEODE_CONCAT(GEODE_CRTP, GEODE_NUMBER_OF_ARGS(__VA_ARGS__)), __VA_ARGS__)
 #define $(...) $modify(__VA_ARGS__)
 
-#define GEODE_ONLY_FIELD(type, field) private: field<type> field; public:
+#define GEODE_ONLY_FIELD(type, field_, default_) private: field<type> field_ = default_; public:
 #define GEODE_INTERNAL_FIELD(type, field, name) inline type& name() { return this->*field; }
-#define GEODE_EXTERNAL_FIELD(type, field, name) static inline type& name##From(void* self) { return reinterpret_cast<decltype(this)>(self)->*field; }
-#define GEODE_FIELD(type, field, name) GEODE_ONLY_FIELD(type, field) GEODE_INTERNAL_FIELD(type, field, name) GEODE_EXTERNAL_FIELD(type, field, name)
+//#define GEODE_EXTERNAL_FIELD(type, field, name) static inline type& name##From(void* self) { return reinterpret_cast<decltype(this)>(self)->*field; }
+#define GEODE_FIELD(type, field, name, default_) GEODE_ONLY_FIELD(type, field, default_) GEODE_INTERNAL_FIELD(type, field, name) //GEODE_EXTERNAL_FIELD(type, field, name)

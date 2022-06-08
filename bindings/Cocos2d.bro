@@ -132,6 +132,7 @@ class cocos2d::CCDirector {
 }
 
 class cocos2d::CCDrawNode {
+	CCDrawNode() = mac 0x378b40;
 	auto clear() = mac 0x379e80;
 	static cocos2d::CCDrawNode* create() = mac 0x378d00;
 	auto drawPolygon(cocos2d::CCPoint*, unsigned int, cocos2d::_ccColor4F const&, float, cocos2d::_ccColor4F const&) = mac 0x3797f0;
@@ -613,6 +614,10 @@ class cocos2d::CCRotateBy {
 	static cocos2d::CCRotateBy* create(float, float) = mac 0x1f4c50;
 }
 
+class cocos2d::CCRotateTo {
+	static cocos2d::CCRotateTo* create(float, float) = mac 0x1f47b0;
+}
+
 class cocos2d::CCScaleTo {
 	static cocos2d::CCScaleTo* create(float, float) = mac 0x1f6ff0;
 	static cocos2d::CCScaleTo* create(float, float, float) = mac 0x1f70f0;
@@ -725,6 +730,7 @@ class cocos2d::CCSpriteBatchNode {
 class cocos2d::CCSpriteFrame {
 	static auto createWithTexture(cocos2d::CCTexture2D*, cocos2d::CCRect const&, bool, cocos2d::CCPoint const&, cocos2d::CCSize const&) = mac 0x1ac7f0;
 	static auto createWithTexture(cocos2d::CCTexture2D*, cocos2d::CCRect const&) = mac 0x1ac5c0;
+	auto getTexture() = mac 0x1ad250;
 }
 
 class cocos2d::CCSpriteFrameCache {
@@ -782,12 +788,14 @@ class cocos2d::CCTexture2D {
 	auto setTexParameters(cocos2d::_ccTexParams*) = mac 0x247980;
 }
 
-class cocos2d::CCTextFieldDelegate {
-
+class cocos2d::CCTextFieldTTF {
+	static auto textFieldWithPlaceHolder(char const*, char const*, float) = mac 0x126220;
 }
 
 class cocos2d::CCTextureCache {
 	auto addImage(char const*, bool) = mac 0x358120, ios 0xa8388;
+	auto textureForKey(char const*) = mac 0x359050;
+
 	static cocos2d::CCTextureCache* sharedTextureCache() = mac 0x356e00, ios 0xa81ec;
 }
 
@@ -807,10 +815,14 @@ class cocos2d::CCTouch {
 }
 
 class cocos2d::CCTouchDispatcher {
+	auto addTargetedDelegate(cocos2d::CCTouchDelegate*, int, bool) = mac 0x281180;
+	auto addStandardDelegate(cocos2d::CCTouchDelegate*, int) = mac 0x281060;
+	auto removeDelegate(cocos2d::CCTouchDelegate*) = mac 0x2813b0;
 	auto decrementForcePrio(int) = mac 0x280f70, ios 0xcc280;
 	auto incrementForcePrio(int) = mac 0x280f60, ios 0xcc268;
 	void touches(cocos2d::CCSet*, cocos2d::CCEvent*, unsigned int) = mac 0x281a60;
     void removeDelegate(cocos2d::CCTouchDelegate* delegate);
+
 }
 
 class cocos2d::CCTouchHandler {

@@ -1,6 +1,6 @@
-#include <SharedGen.hpp>
+#include "Shared.hpp"
 
-namespace format_strings {
+namespace { namespace format_strings {
 	char const* source_start = R"CAC(
 #include <codegen-base/HeaderBase.hpp>
 #include <utils/addresser.hpp>
@@ -57,71 +57,68 @@ types::ret{index} {class_name}::{function_name}({parameters}){const_whitespace}{
 	char const* ool_function_definition = R"GEN(
 {return} {class_name}::{function_name}({parameters}){const_whitespace}{const} {definition}
 )GEN";
-}
+}}
 
-int main(int argc, char** argv) {
+std::string generateGDSource(Root const& root) {
 	vector<ClassDefinition*> in_order;
-	string output(format_strings::source_start);
-	Root root = CacShare::init(argc, argv);
+	string output(::format_strings::source_start);
 
 	for (auto& [name, c] : root.classes) {
 		
 
-		for (auto& f : c.functions) {
-            CacShare::editArguments(f);
-            
+		for (auto& f : c.functions) {            
 			if (f.is_defined) {
-				output += fmt::format(format_strings::ool_function_definition,
-					fmt::arg("function_name", CacShare::getFunctionName(f)),
-					fmt::arg("const", CacShare::getConst(f)),
-				    fmt::arg("const_whitespace", CacShare::getConstWhitespace(f)),
-					fmt::arg("class_name", CacShare::getClassName(f)),
-                    fmt::arg("parameters", CacShare::getParameters(f)),
-                    fmt::arg("index", CacShare::getIndex(f)),
+				output += fmt::format(::format_strings::ool_function_definition,
+					fmt::arg("function_name", codegen::getFunctionName(f)),
+					fmt::arg("const", codegen::getConst(f)),
+				    fmt::arg("const_whitespace", codegen::getConstWhitespace(f)),
+					fmt::arg("class_name", codegen::getClassName(f)),
+                    fmt::arg("parameters", codegen::getParameters(f)),
+                    fmt::arg("index", codegen::getIndex(f)),
 					fmt::arg("definition", f.definition),
 				    fmt::arg("return", f.return_type)
 				);
 				continue;
 			}
-			if (f.binds[CacShare::platform].size() == 0) continue; // Function not implemented, skip
+			if (!codegen::isFunctionDefinable(f)) continue; // Function not implemented, skip
 
 			char const* used_declare_format;
 
 			switch (f.function_type) {
 				case kVirtualFunction:
-					used_declare_format = format_strings::declare_virtual;
+					used_declare_format = ::format_strings::declare_virtual;
 					break;
 				case kRegularFunction:
-					used_declare_format = format_strings::declare_member;
+					used_declare_format = ::format_strings::declare_member;
 					break;
 				case kStaticFunction:
-					used_declare_format = format_strings::declare_static;
+					used_declare_format = ::format_strings::declare_static;
 					break;
 				case kDestructor:
-					used_declare_format = format_strings::declare_destructor;
+					used_declare_format = ::format_strings::declare_destructor;
 					break;
 				case kConstructor:
-					used_declare_format = format_strings::declare_constructor;
+					used_declare_format = ::format_strings::declare_constructor;
 					break;
 			}
 
 			// cout << "dsffdssd" << endl;
 			output += fmt::format(used_declare_format,
-				fmt::arg("class_name", CacShare::getClassName(f)),
-				fmt::arg("const", CacShare::getConst(f)),
-				fmt::arg("const_whitespace", CacShare::getConstWhitespace(f)),
-				fmt::arg("convention", CacShare::getConvention(f)),
-				fmt::arg("function_name", CacShare::getFunctionName(f)),
-				fmt::arg("index", CacShare::getIndex(f)),
-				fmt::arg("parameters", CacShare::getParameters(f)),
-				fmt::arg("parameter_types", CacShare::getParameterTypes(f)),
-				fmt::arg("arguments", CacShare::getArguments(f)),
-				fmt::arg("parameter_comma", CacShare::getParameterComma(f)),
-				fmt::arg("parameter_type_comma", CacShare::getParameterTypeComma(f)),
-				fmt::arg("argument_comma", CacShare::getArgumentComma(f))
+				fmt::arg("class_name", codegen::getClassName(f)),
+				fmt::arg("const", codegen::getConst(f)),
+				fmt::arg("const_whitespace", codegen::getConstWhitespace(f)),
+				fmt::arg("convention", codegen::getConvention(f)),
+				fmt::arg("function_name", codegen::getFunctionName(f)),
+				fmt::arg("index", codegen::getIndex(f)),
+				fmt::arg("parameters", codegen::getParameters(f)),
+				fmt::arg("parameter_types", codegen::getParameterTypes(f)),
+				fmt::arg("arguments", codegen::getArguments(f)),
+				fmt::arg("parameter_comma", codegen::getParameterComma(f)),
+				fmt::arg("parameter_type_comma", codegen::getParameterTypeComma(f)),
+				fmt::arg("argument_comma", codegen::getArgumentComma(f))
 			);
 		}
-		if (CacShare::platform == kMac || CacShare::platform == kIos) {
+		if (codegen::platform == kMac || codegen::platform == kIos) {
 			for (auto& i : c.inlines) {
 				if (c.name.find("cocos2d") == string::npos) continue; // cocos inlines
 				output += i.inlined + "\n";
@@ -129,5 +126,5 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	CacShare::writeFile(output);
+	return output;
 }

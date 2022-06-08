@@ -1,5 +1,6 @@
 #pragma once
 
+#include "json.hpp"
 #include "VersionInfo.hpp"
 #include "Result.hpp"
 #include "types.hpp"

@@ -31,7 +31,7 @@
         #define CC_ZIP_DLL __declspec(dllimport)
     #endif
 #else
-    #define CC_ZIP_DLL
+    #define CC_ZIP_DLL __attribute__((visibility("default")))
 #endif
 
 #if (!defined(_WIN32)) && (!defined(WIN32))

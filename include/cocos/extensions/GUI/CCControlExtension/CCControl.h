@@ -36,7 +36,7 @@
 
 NS_CC_EXT_BEGIN
 
-class CCInvocation;
+class CC_DLL CCInvocation;
 
 /**
  * @addtogroup GUI
@@ -85,7 +85,7 @@ typedef unsigned int CCControlState;
  *
  * To use the CCControl you have to subclass it.
  */
-class CCControl : public CCLayerRGBA
+class CC_DLL CCControl : public CCLayerRGBA
 {
     /** The current control state constant. */
     RT_REMOVE(
