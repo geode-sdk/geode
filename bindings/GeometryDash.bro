@@ -2097,8 +2097,8 @@ class GJGarageLayer : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol,
 	inline GJGarageLayer() {
 		m_nameInput = nullptr;
 		m_playerPreview = nullptr;
-		m_unkSprite0x140 = nullptr;
-		m_unkSprite0x144 = nullptr;
+		m_colorSelector1 = nullptr;
+		m_colorSelector2 = nullptr;
 		m_unkButton0x148 = nullptr;
 		m_unkButton0x14c = nullptr;
 		m_pagesArray = nullptr;
@@ -2128,12 +2128,13 @@ class GJGarageLayer : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol,
 	void onShards(cocos2d::CCObject* pSender) = mac 0x0, win 0x12ad70, ios 0x0;
 	void onBack(cocos2d::CCObject* pSender) = mac 0x0, win 0x12adf0, ios 0x0;
 	void onShop(cocos2d::CCObject* pSender) = mac 0x0, win 0x12ad90, ios 0x0;
-
+	void setupColorSelect() = mac 0x1b7500;
+	PAD = mac 0x10, win 0x0, android 0x0;
 	CCTextInputNode* m_nameInput;
 	SimplePlayer* m_playerPreview;
-	PAD = mac 0x0, win 0x8, android 0x0;
-	cocos2d::CCSprite* m_unkSprite0x140;
-	cocos2d::CCSprite* m_unkSprite0x144;
+	PAD = mac 0x10, win 0x8, android 0x0;
+	cocos2d::CCSprite* m_colorSelector1;
+	cocos2d::CCSprite* m_colorSelector2;
 	CCMenuItemSpriteExtra* m_unkButton0x148;
 	CCMenuItemSpriteExtra* m_unkButton0x14c;
 	PAD = mac 0x0, win 0x8, android 0x0;
