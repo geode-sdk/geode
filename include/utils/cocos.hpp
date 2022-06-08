@@ -74,7 +74,7 @@ namespace geode::cocos {
      * Gets a node by tag by traversing
      * children recursively
      */
-    GEODE_DLL cocos2d::CCNode* getChildByTagRecursive(cocos2d::CCNode* node);
+    GEODE_DLL cocos2d::CCNode* getChildByTagRecursive(cocos2d::CCNode* node, int tag);
 
     /**
      * Checks if a given file exists in CCFileUtils 
