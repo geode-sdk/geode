@@ -3868,7 +3868,7 @@ class PlatformToolbox {
 	static bool isControllerConnected() = mac 0x27d1b0, win 0x0, ios 0x0;
 }
 
-class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, DialogDelegate {
+class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate, DialogDelegate {
 	static PlayLayer* get() {
 	    return GameManager::sharedState()->getPlayLayer();
 	}
@@ -4035,6 +4035,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, DialogDelegate {
 	bool m_debugPauseOff;
 	bool m_shouldSmoothCamera;
 	float unused_4e0;
+	PAD = mac 0x4, win 0x4;
 	cocos2d::CCObject* unknown4e8;
 	float m_camera4f0;
 	int unused4f4;
@@ -4048,7 +4049,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, DialogDelegate {
 	float unknown510;
 	float unknown514;
 	float unknown518;
-	//PAD = mac 0x19, win 0x19, android 0x0;
+	PAD = mac 0x4, win 0x4;
 	StartPosObject* m_startPos;
 	CheckpointObject* m_startPosCheckpoint;
 	EndPortalObject* m_endPortal;
