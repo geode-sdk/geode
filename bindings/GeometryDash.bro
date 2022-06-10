@@ -2991,6 +2991,7 @@ class GameObject : CCSpritePlus {
 	bool m_objectPoweredOn;
 	cocos2d::CCSize m_objectSize;
 	bool m_modifier;
+	bool unknown2e5;
 	bool m_active;
 	bool m_animationFinished;
 	cocos2d::CCParticleSystemQuad* m_particleSystem;
@@ -3014,7 +3015,10 @@ class GameObject : CCSpritePlus {
 	bool m_isSaw;
 	int m_customRotateSpeed;
 	bool m_sawIsDisabled;
-	PAD = mac 0x4, win 0x4, android 0x0;
+	bool m_unknownVisibility345;
+	bool m_unknown346;
+	bool m_unknownVisibility347;
+	cocos2d::CCSprite* m_baseSprite;
 	cocos2d::CCSprite* m_detailSprite;
 	PAD = mac 0x8, win 0x8, android 0x0;
 	bool m_isRotatedSide;
@@ -3043,7 +3047,7 @@ class GameObject : CCSpritePlus {
 	int m_targetColorID;
 	float m_scale;
 	int m_objectID;
-	PAD = mac 0x4, win 0x4, android 0x0;
+	PAD = mac 0x8, win 0x4, android 0x0;
 	bool m_unk368;
 	bool m_unk369;
 	bool m_unk36A;
@@ -3071,7 +3075,7 @@ class GameObject : CCSpritePlus {
 	int m_slopeType;
 	float m_slopeAngle;
 	bool m_hazardousSlope;
-	float m_unkWin18C;
+	float m_realOpacity;
 	GJSpriteColor* m_baseColor;
 	GJSpriteColor* m_detailColor;
 	int m_unknown420;																																																				
@@ -3844,8 +3848,8 @@ class OptionsLayer : GJDropDownLayer, FLAlertLayerProtocol {
 class PauseLayer : CCBlockLayer {
 	static PauseLayer* create(bool) = mac 0x20b1e0, win 0x1e4570, ios 0x0;
 	void onEdit(cocos2d::CCObject*) = mac 0x20c630, win 0x1e60e0, ios 0x0;
-	void createToggleButton(cocos2d::SEL_MenuHandler callback, bool on, cocos2d::CCMenu* menu, gd::string caption, cocos2d::CCPoint pos) = mac 0x0, win 0x1e5570, ios 0x0;
-	virtual void customSetup() = mac 0x0, win 0x1e4620, ios 0x0;
+	void createToggleButton(gd::string caption, cocos2d::SEL_MenuHandler callback, bool on, cocos2d::CCMenu* menu, cocos2d::CCPoint pos) = mac 0x20c890, win 0x1e5570, ios 0x0;
+	virtual void customSetup() = mac 0x20b300, win 0x1e4620, ios 0x0;
 	void onRestart(cocos2d::CCObject* sender) = mac 0x0, win 0x1e6040, ios 0x0;
 	void keyDown(cocos2d::enumKeyCodes) = mac 0x20cc80;
 	

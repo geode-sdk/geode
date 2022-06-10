@@ -1,6 +1,8 @@
 #pragma once
 
 #include <Geode.hpp>
+#include <functional>
+#include <type_traits>
 
 namespace geode::cocos {
     /**
@@ -69,12 +71,17 @@ namespace geode::cocos {
      */
     GEODE_DLL bool nodeIsVisible(cocos2d::CCNode* node);
 
-
     /**
      * Gets a node by tag by traversing
      * children recursively
+     * 
+     * @param node Parent node
+     * @param tag Target tag
+     * @return Child node with specified tag, or
+     * null if there is none
      */
     GEODE_DLL cocos2d::CCNode* getChildByTagRecursive(cocos2d::CCNode* node, int tag);
+
 
     /**
      * Checks if a given file exists in CCFileUtils 
@@ -108,10 +115,11 @@ namespace geode::cocos {
         friend bool operator!= (const CCArrayIterator<T>& a, const CCArrayIterator<T>& b) { return a.m_ptr != b.m_ptr; };   
     };
 
-    template <typename T>
+    template <typename _Type>
     class CCArrayExt {
      protected:
         cocos2d::CCArray* m_arr;
+        using T = std::remove_pointer_t<_Type>;
      public:
         CCArrayExt() : m_arr(cocos2d::CCArray::create()) {
             m_arr->retain();
@@ -131,21 +139,21 @@ namespace geode::cocos {
         }
 
         auto begin() {
-            return CCArrayIterator<T*>(reinterpret_cast<T*>(m_arr->data->arr));
+            return CCArrayIterator<T*>(reinterpret_cast<T**>(m_arr->data->arr));
         }
         auto end() {
-            return CCArrayIterator<T*>(reinterpret_cast<T*>(m_arr->data->arr) + m_arr->count());
+            return CCArrayIterator<T*>(reinterpret_cast<T**>(m_arr->data->arr) + m_arr->count());
         }
         auto size() const {
             return m_arr->count();
         }
         T operator[](size_t index) {
-            return reinterpret_cast<T>(m_arr->objectAtIndex(index));
+            return reinterpret_cast<T*>(m_arr->objectAtIndex(index));
         }
-        void push_back(T item) {
+        void push_back(T* item) {
             m_arr->addObject(item);
         }
-        T pop_back() { 
+        T* pop_back() { 
             T ret = m_arr->lastObject();
             m_arr->removeLastObject();
             return ret;
