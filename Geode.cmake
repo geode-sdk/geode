@@ -59,7 +59,7 @@ function(setup_geode_mod)
 
 		set_source_files_properties(${GEODE_CODEGEN_DIR}/GeneratedSource.cpp PROPERTIES GENERATED 1)
 		target_sources(${PROJECT_NAME} PRIVATE ${GEODE_CODEGEN_DIR}/GeneratedSource.cpp)
-		target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+		target_include_directories(${PROJECT_NAME} PUBLIC ${GEODE_CODEGEN_DIR}/..)
 		#target_link_libraries(${PROJECT_NAME} fmt)
 
 		if (DEFINED GEODE_CODEGEN_BUILD)
