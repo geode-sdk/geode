@@ -3869,7 +3869,7 @@ class PauseLayer : CCBlockLayer {
 	virtual void customSetup() = mac 0x20b300, win 0x1e4620, ios 0x0;
 
 	void onRestart(cocos2d::CCObject* sender) = mac 0x0, win 0x1e6040, ios 0x0;
-	void keyDown(cocos2d::enumKeyCodes) = mac 0x20cc80;
+	void keyDown(cocos2d::enumKeyCodes) = mac 0x20cc80, win 0x1E6580;
 	
 	bool m_unknown;
 	bool m_unknown2;
