@@ -356,6 +356,7 @@ class cocos2d::CCMenu {
     auto addChild(cocos2d::CCNode*, int, int) = mac 0x438bc0, ios 0x131ed0;
     auto addChild(cocos2d::CCNode*, int) = mac 0xbbb50, ios 0x131ecc;
     auto addChild(cocos2d::CCNode*) = mac 0xbbb40, ios 0x131ec8;
+    auto itemForTouch(cocos2d::CCTouch*) = mac 0x438dd0;
 }
 
 class cocos2d::CCMenuItem {
