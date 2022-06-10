@@ -1551,7 +1551,12 @@ class GJBaseGameLayer : cocos2d::CCLayer, TriggerEffectDelegate {
 	void reorderObjectSection(GameObject*) = mac 0xb7cb0, win 0x0, ios 0x0;
 	void resetGroupCounters(bool) = mac 0xba300, win 0x0, ios 0x0;
 	void resetMoveOptimizedValue() = mac 0xb9670, win 0x0, ios 0x0;
-	int sectionForPos(float) = mac 0xb6120, win 0x0, ios 0x0;
+	// inlined on windows
+	int sectionForPos(float x) {
+		int section = x / 100;
+		if (section < 0) section = 0;
+		return section;
+	}
 	void setupLayers() = mac 0xaffe0, win 0x0, ios 0x0;
 	void shouldExitHackedLevel() = mac 0xb1100, win 0x0, ios 0x0;
 	void spawnGroupTriggered(int, float, int) = mac 0xb7020, win 0x0, ios 0x0;
@@ -2909,7 +2914,13 @@ class GameObject : CCSpritePlus {
 	void getLastPosition() = mac 0x3439d0, win 0x0, ios 0x0;
 	void getMainColorMode() = mac 0x334c30, win 0x0, ios 0x0;
 	void getObjectZOrder() = mac 0x337d70, win 0x0, ios 0x0;
-	float getObjectRadius() = mac 0x343c10, win 0x0, ios 0x0;
+	// inlined on windows
+	float getObjectRadius() {
+		float radius = m_objectRadius;
+		if (m_scale != 1.0f)
+			radius *= m_scale;
+		return radius;
+	}
 	void getSecondaryColorMode() = mac 0x341c20, win 0x0, ios 0x0;
 	void getSectionIdx() = mac 0x343a00, win 0x0, ios 0x0;
 	void groupWasDisabled() = mac 0x33b110, win 0x0, ios 0x0;
@@ -2941,7 +2952,7 @@ class GameObject : CCSpritePlus {
 	void slopeWallLeft() = mac 0x3427e0, win 0x0, ios 0x0;
 	void updateCustomScale(float) = mac 0x335eb0, win 0xe5340, ios 0x0;
 	void updateMainColor() = mac 0x343340, win 0x0, ios 0x0;
-	void updateOrientedBox() = mac 0x342b50, win 0x0, ios 0x0;
+	void updateOrientedBox() = mac 0x342b50, win 0xEF1C0, ios 0x0;
 	void updateSecondaryColor() = mac 0x343740, win 0x0, ios 0x0;
 	void updateStartPos() = mac 0x2fa590, win 0x0, ios 0x0;
 	void updateState() = mac 0x3369e0, win 0x0, ios 0x0;
@@ -3019,7 +3030,8 @@ class GameObject : CCSpritePlus {
 	bool m_sawIsDisabled;
 	PAD = mac 0x4, win 0x4, android 0x0;
 	cocos2d::CCSprite* m_detailSprite;
-	PAD = mac 0x8, win 0x8, android 0x0;
+	PAD = mac 0x4, win 0x4, android 0x0;
+	float m_objectRadius;
 	bool m_isRotatedSide;
 	float m_unk2F4;
 	float m_unk2F8;
@@ -3414,7 +3426,7 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
 	void addToRedoList(UndoObject*) = mac 0x96f80, win 0x0, ios 0x0;
 	void addToUndoList(UndoObject*, bool) = mac 0x94e20, win 0x0, ios 0x0;
 	void animateInDualGround(GameObject*, float, bool) = mac 0xa2780, win 0x0, ios 0x0;
-	void checkCollisions(PlayerObject*, float) = mac 0x9e620, win 0x0, ios 0x0;
+	void checkCollisions(PlayerObject*, float) = mac 0x9e620, win 0x167F10, ios 0x0;
 	void createBackground() = mac 0x929f0, win 0x0, ios 0x0;
 	void createGroundLayer() = mac 0x92840, win 0x0, ios 0x0;
 	GameObject* createObject(int, cocos2d::CCPoint, bool) = mac 0x957c0, win 0x160d70, ios 0x0;
@@ -3429,14 +3441,14 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
 	void getObjectRect(GameObject*, bool) = mac 0x96240, win 0x1616b0, ios 0x0;
 	void getRelativeOffset(GameObject*) = mac 0x96840, win 0x0, ios 0x0;
 	void handleAction(bool, cocos2d::CCArray*) = mac 0x97020, win 0x0, ios 0x0;
-	bool init(GJGameLevel*) = mac 0x91010, win 0x0, ios 0x0;
+	bool init(GJGameLevel*) = mac 0x91010, win 0x15EE00, ios 0x0;
 	void objectAtPosition(cocos2d::CCPoint) = mac 0x960c0, win 0x161300, ios 0x0;
 	void objectMoved(GameObject*) = mac 0x999f0, win 0x0, ios 0x0;
 	void objectsInRect(cocos2d::CCRect, bool) = mac 0x95e60, win 0x0, ios 0x0;
-	void onPlaytest() = mac 0xa06b0, win 0x0, ios 0x0;
-	void onResumePlaytest() = mac 0xa15e0;
-	void onPausePlaytest() = mac 0xa1570;
-	void onStopPlaytest() = mac 0xa1780, win 0x0, ios 0x0;
+	void onPlaytest() = mac 0xa06b0, win 0x1695A0, ios 0x0;
+	void onResumePlaytest() = mac 0xa15e0, win 0x169D90;
+	void onPausePlaytest() = mac 0xa1570, win 0x169CC0;
+	void onStopPlaytest() = mac 0xa1780, win 0x169F10, ios 0x0;
 	void pasteAttributeState(GameObject* obj, cocos2d::CCArray* objs) = mac 0x0, win 0x16b740, ios 0x0;
 	void playMusic() = mac 0xa13c0, win 0x0, ios 0x0;
 	void recreateGroups() = mac 0x9dbf0, win 0x0, ios 0x0;
@@ -3713,7 +3725,7 @@ class MoreSearchLayer : FLAlertLayer {
 
 class MoreOptionsLayer {
 	static MoreOptionsLayer* create() = mac 0x0, win 0x1de850, ios 0x0;
-	bool init() = mac 0x43f470;
+	bool init() = mac 0x43f470, win 0x1DE8F0;
 	void addToggle(const char* name, const char* key, const char* info) = mac 0x440430, win 0x1df6b0, ios 0x0;
 	void onKeybindings(cocos2d::CCObject* sender) = mac 0x0, win 0x749d0, ios 0x0;
 	void onToggle(cocos2d::CCObject* sender) = mac 0x441370;
@@ -3885,7 +3897,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
 	virtual void calculateColorValues(EffectGameObject*, EffectGameObject*, int, float, ColorActionSprite*, GJEffectManager*) = mac 0x7aa10, win 0x0, ios 0x0;
 	void cameraMoveX(float, float, float) = mac 0x7cbe0, win 0x0, ios 0x0;
 	void cameraMoveY(float, float, float) = mac 0x7cc60, win 0x0, ios 0x0;
-	void checkCollisions(PlayerObject*, float) = mac 0x78c90, win 0x0, ios 0x0;
+	void checkCollisions(PlayerObject*, float) = mac 0x78c90, win 0x203CD0, ios 0x0;
 	void circleWaveWillBeRemoved(CCCircleWave*) = mac 0x7e110, win 0x0, ios 0x0;
 	void claimParticle(gd::string) = mac 0x76ba0, win 0x0, ios 0x0;
 	void clearPickedUpItems() = mac 0x7cfa0, win 0x0, ios 0x0;
