@@ -4893,17 +4893,12 @@ class SpawnTriggerAction : cocos2d::CCNode {
 	int m_uuid;
 }
 
-<<<<<<< HEAD
-class StartPosObject : EffectGameObject {
-	LevelSettingsObject* m_settingsObject;
-=======
 class SpritePartDelegate {}
 
 class StartPosObject : EffectGameObject {
 	static StartPosObject* create() = mac 0xda7c0;
 
 	LevelSettingsObject* m_levelSettings;
->>>>>>> a2cf247773204c4a4428ad87d5f4a34cfbd0fac3
 }
 
 class StatsCell {
