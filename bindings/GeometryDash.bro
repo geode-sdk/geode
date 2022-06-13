@@ -1056,9 +1056,11 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
 	virtual void ccTouchMoved(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x2f3d0, win 0x0, ios 0x0;
 	virtual void ccTouchEnded(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x2fb00, win 0x0, ios 0x0;
 	virtual void keyDown(cocos2d::enumKeyCodes) = mac 0x30790, win 0x91a30, ios 0x0;
+	CreateMenuItem* menuItemFromObjectString(gd::string, int) = mac 0x1e130;
 	void moveObject(GameObject*, cocos2d::CCPoint) = mac 0x24b10, win 0x8ddb0, ios 0x0;
 	void onDuplicate(cocos2d::CCObject*) = mac 0x18ba0, win 0x87d20, ios 0x0;
-	cocos2d::CCArray* pasteObjects(gd::string const&) = mac 0x232d0, win 0x88240, ios 0x0;
+	void onCreateObject(int) = mac 0x200d0;
+	cocos2d::CCArray* pasteObjects(gd::string) = mac 0x232d0, win 0x88240, ios 0x0;
 	void playerTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x2ebf0, win 0x0, ios 0x0;
 	void playtestStopped() = mac 0x24790, win 0x0, ios 0x0;
 	void redoLastAction(cocos2d::CCObject*) = mac 0xb8e0, win 0x870f0, ios 0x0;
@@ -1072,7 +1074,9 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
 	void updateObjectInfoLabel() = mac 0x1cb10, win 0x793b0, ios 0x0;
 	void updateSlider() = mac 0x18a90, win 0x78f10, ios 0x0;
 	void updateZoom(float) = mac 0x248c0, win 0x878a0, ios 0x0;
-	void selectObject(GameObject* obj, bool idk) = mac 0x1bd60, win 0x86250, ios 0x0;
+	void selectObject(GameObject* obj, bool filter) = mac 0x1bd60, win 0x86250, ios 0x0;
+	void deselectObject(GameObject* object) = mac 0x1f220;
+	void deleteObject(GameObject* object, bool filter) = mac 0x1f130;
 	void selectAll() = mac 0x0, win 0x86c40, ios 0x0;
 	void selectAllWithDirection(bool left) = mac 0x0, win 0x86d80, ios 0x0;
 	cocos2d::CCPoint getTouchPoint(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) = mac 0x0, win 0x90620, ios 0x0;
@@ -1125,6 +1129,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
 	void onGoToBaseLayer(cocos2d::CCObject* pSender) = mac 0x0, win 0x88790, ios 0x0;
 	void editColor(cocos2d::CCObject* pSender) = mac 0x0, win 0x8d3c0, ios 0x0;
 	void alignObjects(cocos2d::CCArray* objs, bool alignY) = mac 0x0, win 0x8f320, ios 0x0;
+	virtual void keyDown(cocos2d::enumKeyCodes key) = mac 0x30790;
 	virtual void keyUp(cocos2d::enumKeyCodes key) = mac 0x312b0, win 0x92180, ios 0x0;
 
 	EditButtonBar* m_buttonBar;
@@ -1151,9 +1156,9 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
 	float m_unknown2;
 	bool m_swipeEnabled;
 	bool m_freeMoveEnabled;
-	PAD = mac 0x12, win 0xc, android 0x0;
+	PAD = mac 0x12, win 0xc, android 0xc;
 	cocos2d::CCArray* m_unknownArray2;
-	PAD = mac 0x16, win 0x8, android 0x0;
+	PAD = mac 0x10, win 0x8, android 0x8;
 	cocos2d::CCArray* m_selectedObjects;
 	cocos2d::CCMenu* m_deleteMenu;
 	cocos2d::CCArray* m_unknownArray4;
@@ -1200,7 +1205,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
 	CCMenuItemSpriteExtra* m_layerNextBtn;
 	CCMenuItemSpriteExtra* m_layerPrevBtn;
 	CCMenuItemSpriteExtra* m_goToBaseBtn;
-	PAD = mac 0x16, win 0x8, android 0x0;
+	PAD = mac 0x10, win 0x8, android 0x0;
 	int m_selectedCreateObjectID;
 	cocos2d::CCArray* m_createButtonArray;
 	cocos2d::CCArray* m_customObjectButtonArray;
@@ -1209,7 +1214,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
 	LevelEditorLayer* m_editorLayer;
 	cocos2d::CCPoint m_swipeStart;
 	cocos2d::CCPoint m_swipeEnd;
-	PAD = mac 0x40, win 0x20, android 0x0;
+	PAD = mac 0x20, win 0x20, android 0x0;
 	GameObject* m_selectedObject;
 	PAD = mac 0x16, win 0x8, android 0x0;
 	gd::string m_clipboard;
@@ -1322,7 +1327,7 @@ class EffectGameObject : GameObject {
 	bool m_dynamicBlock;
 	int m_targetItemID;
 	int m_pickupMode;
-	PAD = mac 0x0, win 0x24, android 0x0;
+	PAD = mac 0x20, win 0x24, android 0x0;
 }
 
 class EndLevelLayer {
@@ -1763,7 +1768,7 @@ class GJDropDownLayer : cocos2d::CCLayerColor {
 		m_controllerEnabled = false;
 		m_mainLayer = nullptr;
 		m_hidden = false;
-		m_unknown = nullptr;
+		m_delegate = nullptr;
 	}
 
 	cocos2d::CCPoint m_endPosition;
@@ -1773,7 +1778,7 @@ class GJDropDownLayer : cocos2d::CCLayerColor {
 	bool m_controllerEnabled;
 	cocos2d::CCLayer* m_mainLayer;
 	bool m_hidden;
-	void* m_unknown;
+	GJDropDownLayerDelegate* m_delegate;
 }
 
 class GJDropDownLayerDelegate {
@@ -2242,13 +2247,18 @@ class GJRotationControlDelegate {
 }
 
 class GJScaleControl : cocos2d::CCLayer {
+	virtual bool init() = mac 0x31b30;
+	virtual bool ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x31d30;
+	virtual void ccTouchMoved(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x31e60;
+	virtual void ccTouchEnded(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x31fb0;
+	virtual void ccTouchCancelled(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x32060;
 	void updateLabel(float value) = mac 0x0, win 0x94990, ios 0x0;
 	void loadValues(GameObject* obj, cocos2d::CCArray* objs) = mac 0x0, win 0x94590, ios 0x0;
 
 	Slider* m_slider;
 	unsigned int m_touchID;
 	float m_value;
-	PAD = mac 0x0, win 0x4, android 0x0;
+	PAD = mac 0x8, win 0x4, android 0x0;
 	cocos2d::CCLabelBMFont* m_label;
 	GJScaleControlDelegate* m_delegate;
 }
@@ -3407,7 +3417,7 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
 	void createGroundLayer() = mac 0x92840, win 0x0, ios 0x0;
 	GameObject* createObject(int, cocos2d::CCPoint, bool) = mac 0x957c0, win 0x160d70, ios 0x0;
 	void createObjectsFromSetup(gd::string) = mac 0x92230, win 0x0, ios 0x0;
-	void createObjectsFromString(gd::string, bool) = mac 0x94730, win 0x0, ios 0x0;
+	cocos2d::CCArray* createObjectsFromString(gd::string, bool) = mac 0x94730, win 0x0, ios 0x0;
 	void getLastObjectX() = mac 0x9c860, win 0x167290, ios 0x0;
 	void getLevelString() = mac 0x97790, win 0x162480, ios 0x0;
 	void getNextColorChannel() = mac 0x9a610, win 0x0, ios 0x0;
@@ -3555,8 +3565,18 @@ class LevelSelectLayer : cocos2d::CCLayer {
 
 class LevelSettingsDelegate {}
 
-class LevelSettingsLayer {
+class SelectArtDelegate {
+	virtual void selectArtClosed(SelectArtLayer*) {}
+}
+
+class CustomSongLayerDelegate {
+	virtual void customSongLayerClosed() {}
+}
+
+class LevelSettingsLayer : FLAlertLayer, ColorSelectDelegate, SelectArtDelegate, FLAlertLayerProtocol, CustomSongLayerDelegate {
 	static LevelSettingsLayer* create(LevelSettingsObject* levelSettings, LevelEditorLayer* editor) = mac 0x0, win 0x170d90, ios 0x0;
+	PAD = mac 0x50;
+	LevelSettingsObject* m_settingsObject;
 }
 
 class LevelSettingsObject : cocos2d::CCNode {
@@ -4129,7 +4149,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, DialogDelegate {
 	bool unk497;
 	cocos2d::CCArray* unk498;
 	bool unk49C;
-	cocos2d::CCPoint unk4A0;
+	cocos2d::CCPoint m_startingPosition;
 	int m_currentAttempt;
 	int m_jumpCount;
 	bool unk4B0;
@@ -4138,7 +4158,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, DialogDelegate {
 	bool unk4BC;
 	bool m_hasLevelCompleteMenu;
 	bool m_hasCompletedLevel;
-	bool unk4BF;
+	bool m_delayedResetLevel;
 	int m_lastDeathPercent;
 	bool unk4C4;
 	PAD = mac 0xb, win 0xb, android 0x0;
@@ -4820,7 +4840,9 @@ class SpawnTriggerAction : cocos2d::CCNode {
 	int m_uuid;
 }
 
-class StartPosObject {}
+class StartPosObject : EffectGameObject {
+	LevelSettingsObject* m_settingsObject;
+}
 
 class StatsCell {
 	void updateBGColor(unsigned int index) = mac 0x0, win 0x59cf0, ios 0x0;
@@ -4964,6 +4986,7 @@ class TriggerEffectDelegate {
 
 class UILayer : cocos2d::CCLayerColor {
 	static UILayer* create() = mac 0x27fd10, win 0x25f310, ios 0x0;
+	virtual bool init() = mac 0x27fe40;
 	void disableMenu() = mac 0x280960, win 0x0, ios 0x0;
 	void enableMenu() = mac 0x280940, win 0x0, ios 0x0;
 	void pCommand(cocos2d::CCNode*) = mac 0x280830, win 0x0, ios 0x0;
