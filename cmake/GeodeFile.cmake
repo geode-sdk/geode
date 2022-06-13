@@ -23,8 +23,8 @@ function(create_geode_file proname)
             message(STATUS "Installing ${proname} in geode/mods after build")
         endif()
 
-        add_custom_command(
-            TARGET ${proname} POST_BUILD
+        add_custom_target(${proname}_PACKAGE ALL
+            DEPENDS ${proname}
             COMMAND ${GEODE_CLI} pkg ${CMAKE_CURRENT_SOURCE_DIR} $<TARGET_FILE_DIR:${proname}> $<TARGET_FILE_DIR:${proname}>/${proname}.geode ${INSTALL_FLAGS} --cached
             VERBATIM USES_TERMINAL
         )

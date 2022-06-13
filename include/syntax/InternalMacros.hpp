@@ -1,3 +1,5 @@
+#include <type_traits>
+
 /**
  * Main class implementation, it has the structure
  * 
@@ -56,6 +58,13 @@ template <> struct GEODE_HIDDEN _##derived<derived##ID>   				\
 #define GEODE_CRTP2(derived, base) GEODE_MODIFY_REDIRECT3(base, derived)
 #define $modify(...) GEODE_INVOKE(GEODE_CONCAT(GEODE_CRTP, GEODE_NUMBER_OF_ARGS(__VA_ARGS__)), __VA_ARGS__)
 #define $(...) $modify(__VA_ARGS__)
+
+
+/**
+ * Get current hook class without needing to name it.
+ * Useful for callbacks
+ */
+#define $cls std::remove_pointer<decltype(this)>::type
 
 #define GEODE_ONLY_FIELD(type, field_, default_) private: field<type> field_ = default_; public:
 #define GEODE_INTERNAL_FIELD(type, field, name) inline type& name() { return this->*field; }
