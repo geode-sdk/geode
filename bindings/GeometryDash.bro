@@ -1860,7 +1860,7 @@ class GJEffectManager : cocos2d::CCNode {
 	void setColorAction(ColorAction*, int) = mac 0x181d00, win 0x0, ios 0x0;
 	void setFollowing(int, int, bool) = mac 0x185e00, win 0x0, ios 0x0;
 	void setupFromString(gd::string) = mac 0x186290, win 0x0, ios 0x0;
-	void shouldBlend(int) = mac 0x180e40, win 0x0, ios 0x0;
+	bool shouldBlend(int) = mac 0x180e40, win 0x0, ios 0x0;
 	void spawnGroup(int, float, int) = mac 0x1852a0, win 0x0, ios 0x0;
 	void stopActionsForTrigger(EffectGameObject*) = mac 0x183150, win 0x0, ios 0x0;
 	void stopMoveActionsForGroup(int) = mac 0x1830e0, win 0x0, ios 0x0;
@@ -2332,6 +2332,8 @@ class GJSpriteColor : cocos2d::CCNode {
 	bool unk_108;
 	float unk_10C;
 	bool unk_110;
+
+	void resetCustomColorMode() = mac 0x342f10, win 0x0, ios 0x0;
 }
 
 class GJUserCell : TableViewCell {
@@ -3062,7 +3064,7 @@ class GameObject : CCSpritePlus {
 	int m_targetColorID;
 	float m_scale;
 	int m_objectID;
-	PAD = mac 0x8, win 0x4, android 0x0;
+	int m_unknown3c8;
 	bool m_unk368;
 	bool m_unk369;
 	bool m_unk36A;
