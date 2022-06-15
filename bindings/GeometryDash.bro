@@ -3442,7 +3442,7 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
 	void addToRedoList(UndoObject*) = mac 0x96f80, win 0x0, ios 0x0;
 	void addToUndoList(UndoObject*, bool) = mac 0x94e20, win 0x0, ios 0x0;
 	void animateInDualGround(GameObject*, float, bool) = mac 0xa2780, win 0x0, ios 0x0;
-	void checkCollisions(PlayerObject*, float) = mac 0x9e620, win 0x167F10, ios 0x0;
+	bool checkCollisions(PlayerObject*, float) = mac 0x9e620, win 0x167F10, ios 0x0;
 	void createBackground() = mac 0x929f0, win 0x0, ios 0x0;
 	void createGroundLayer() = mac 0x92840, win 0x0, ios 0x0;
 	GameObject* createObject(int, cocos2d::CCPoint, bool) = mac 0x957c0, win 0x160d70, ios 0x0;
