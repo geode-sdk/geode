@@ -3017,7 +3017,7 @@ class GameObject : CCSpritePlus {
 	bool m_objectPoweredOn;
 	cocos2d::CCSize m_objectSize;
 	bool m_modifier;
-	bool unknown2e5;
+	// bool unknown2e5; m_active is 0x2e5 on macos
 	bool m_active;
 	bool m_animationFinished;
 	cocos2d::CCParticleSystemQuad* m_particleSystem;
