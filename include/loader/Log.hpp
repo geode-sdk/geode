@@ -57,6 +57,7 @@ namespace geode {
         ~LogPtr();
 
         std::string toString(bool logTime = true) const;
+        std::vector<LogMetadata*> const& getData() const;
 
         log_clock::time_point getTime() const;
         std::string getTimeString() const;
@@ -132,24 +133,6 @@ namespace geode {
         CCArrayMeta(std::string const& r, cocos2d::CCArray* arr);
         ~CCArrayMeta();
     };
-
-    inline struct {
-        // todo: fix it returning a reference instead 
-        // of just ignoring the warning
-        #ifdef _MSC_VER
-            #pragma warning(push)
-            #pragma warning(disable: 4172)
-        #endif
-
-        template <typename T>
-        geode::Log& operator<<(T a) {
-            return geode::Log::get() << a;
-        }
-
-        #ifdef _MSC_VER
-            #pragma warning(pop)
-        #endif
-    } log;
 }
 GEODE_DLL geode::Log& operator<<(geode::Log&, geode::Mod*);
 GEODE_DLL geode::Log& operator<<(geode::Log&, cocos2d::CCObject*);
