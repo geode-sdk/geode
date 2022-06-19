@@ -87,21 +87,17 @@ typedef unsigned int CCControlState;
  */
 class CC_DLL CCControl : public CCLayerRGBA
 {
+
+    //CCRGBAProtocol
+    bool m_bIsOpacityModifyRGB;
+
     /** The current control state constant. */
     RT_REMOVE(
         CC_SYNTHESIZE_READONLY(CCControlState, m_eState, State);
     )
     RT_ADD(
-    protected:
-        CCControlState m_eState;
-
-    public:
-        int getState(void) const;
+        CC_SYNTHESIZE_READONLY_NV(CCControlState, m_eState, State);
     )
-
-    //CCRGBAProtocol
-    bool m_bIsOpacityModifyRGB;
-    
 
     /** True if all of the controls parents are visible */
 protected:

@@ -41,7 +41,7 @@ class AchievementsLayer : GJDropDownLayer {
 
 class AnimatedGameObject : GameObject, AnimatedSpriteDelegate, SpritePartDelegate {
 	void playAnimation(int) = mac 0xc93d0, win 0x0, ios 0x0;
-	void updateChildSpriteColor(cocos2d::_ccColor3B) = mac 0xc8450, win 0x0, ios 0x0;
+	void updateChildSpriteColor(cocos2d::_ccColor3B) = mac 0xc8450, win 0x2531f0, ios 0x0;
 }
 
 class AnimatedShopKeeper : CCAnimatedSprite {
@@ -908,7 +908,9 @@ class DrawGridLayer : cocos2d::CCLayer {
 	inline using CCPointArray400 = cocos2d::CCPoint(*)[400];
 	inline using CCPointArray200 = cocos2d::CCPoint(*)[200];
 
+	bool init(cocos2d::CCNode* grid, LevelEditorLayer* editor) = mac 0x0, win 0x16c4d0, ios 0x0;
 	void draw() = mac 0x0, win 0x16ce90, ios 0x0;
+	virtual void update(float) = mac 0x0, win 0x16cd80, ios 0x0;
 
 	CCPointArray400 m_commonLines;
 	CCPointArray200 m_yellowGuidelines;
@@ -985,6 +987,7 @@ class EditLevelLayer : cocos2d::CCLayer {
 	}
 
 	static EditLevelLayer* create(GJGameLevel* level) = mac 0xe1e50, win 0x6f530, ios 0x82420;
+	bool init(GJGameLevel* level) = mac 0x0, win 0x6f5d0, ios 0x0;
 	void onLevelInfo() = mac 0x0, win 0x70660, ios 0x0;
 
 	cocos2d::CCMenu* m_buttonMenu;
@@ -1055,7 +1058,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
 	CCMenuItemSpriteExtra* getCreateBtn(int, int) = mac 0x1f6c0, win 0x85120, ios 0x0;
 	cocos2d::CCPoint getGroupCenter(cocos2d::CCArray*, bool) = mac 0x23470, win 0x8fc30, ios 0x0;
 	cocos2d::CCArray* getSelectedObjects() = mac 0x23f30, win 0x86900, ios 0x0;
-	void init(LevelEditorLayer*) = mac 0x8ae0, win 0x0, ios 0x0;
+	bool init(LevelEditorLayer*) = mac 0x8ae0, win 0x76310, ios 0x0;
 	virtual bool ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x2ed60, win 0x0, ios 0x0;
 	virtual void ccTouchMoved(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x2f3d0, win 0x0, ios 0x0;
 	virtual void ccTouchEnded(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x2fb00, win 0x0, ios 0x0;
@@ -1133,6 +1136,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
 	void onGoToBaseLayer(cocos2d::CCObject* pSender) = mac 0x0, win 0x88790, ios 0x0;
 	void editColor(cocos2d::CCObject* pSender) = mac 0x0, win 0x8d3c0, ios 0x0;
 	void alignObjects(cocos2d::CCArray* objs, bool alignY) = mac 0x0, win 0x8f320, ios 0x0;
+	virtual void draw() = mac 0x0, win 0x18fbe0, ios 0x0;
 	virtual void keyDown(cocos2d::enumKeyCodes key) = mac 0x30790;
 	virtual void keyUp(cocos2d::enumKeyCodes key) = mac 0x312b0, win 0x92180, ios 0x0;
 
@@ -1418,6 +1422,8 @@ class FMODAudioEngine : cocos2d::CCNode {
 	bool isBackgroundMusicPlaying() = mac 0x0, win 0x24050, ios 0x0;
 	bool isBackgroundMusicPlaying(gd::string path) = mac 0x0, win 0x24080, ios 0x0;
 	void playBackgroundMusic(gd::string path, bool fade, bool paused) = mac 0x0, win 0x23d80, ios 0x0;
+    
+	virtual void update(float) = mac 0x0, win 0x23b20, ios 0x0;
 
 	cocos2d::CCDictionary* m_dictionary;
 	std::string m_filePath;
@@ -1541,19 +1547,19 @@ class GJBaseGameLayer : cocos2d::CCLayer, TriggerEffectDelegate {
 	cocos2d::CCNode* parentForZLayer(int, bool, int) = mac 0xb55d0, win 0x0, ios 0x0;
 	void playerTouchedRing(PlayerObject*, GameObject*) = mac 0xb69e0, win 0x0, ios 0x0;
 	void processColorObject(EffectGameObject*, int, cocos2d::CCDictionary*, float, GJEffectManager*) = mac 0xb5a90, win 0x0, ios 0x0;
-	void processFollowActions() = mac 0xb8fd0, win 0x0, ios 0x0;
-	void processMoveActions() = mac 0xb86c0, win 0x0, ios 0x0;
-	void processMoveActionsStep(float) = mac 0xb7ea0, win 0x0, ios 0x0;
+	void processFollowActions() = mac 0xb8fd0, win 0x110e00, ios 0x0;
+	void processMoveActions() = mac 0xb86c0, win 0x1107e0, ios 0x0;
+	void processMoveActionsStep(float) = mac 0xb7ea0, win 0x10ffa0, ios 0x0;
 	void processOpacityObject(EffectGameObject*, cocos2d::CCDictionary*, float, GJEffectManager*) = mac 0xb5ae0, win 0x0, ios 0x0;
-	void processPlayerFollowActions(float) = mac 0xb8b50, win 0x0, ios 0x0;
-	void processRotationActions() = mac 0xb7fd0, win 0x0, ios 0x0;
+	void processPlayerFollowActions(float) = mac 0xb8b50, win 0x110b10, ios 0x0;
+	void processRotationActions() = mac 0xb7fd0, win 0x1101a0, ios 0x0;
 	void pushButton(int, bool) = mac 0xb9920, win 0x111500, ios 0x0;
 	void rectIntersectsCircle(cocos2d::CCRect, cocos2d::CCPoint, float) = mac 0xb6470, win 0x0, ios 0x0;
 	void refreshCounterLabels() = mac 0xb9fc0, win 0x0, ios 0x0;
 	void releaseButton(int, bool) = mac 0xb9a00, win 0x111660, ios 0x0;
 	void removeFromGroups(GameObject*) = mac 0xb7a00, win 0x0, ios 0x0;
-	void removeObjectFromSection(GameObject*) = mac 0xb7e00, win 0x0, ios 0x0;
-	void reorderObjectSection(GameObject*) = mac 0xb7cb0, win 0x0, ios 0x0;
+	void removeObjectFromSection(GameObject*) = mac 0xb7e00, win 0x10ff30, ios 0x0;
+	void reorderObjectSection(GameObject*) = mac 0xb7cb0, win 0x10fe10, ios 0x0;
 	void resetGroupCounters(bool) = mac 0xba300, win 0x0, ios 0x0;
 	void resetMoveOptimizedValue() = mac 0xb9670, win 0x0, ios 0x0;
 	// inlined on windows
@@ -1570,13 +1576,13 @@ class GJBaseGameLayer : cocos2d::CCLayer, TriggerEffectDelegate {
 	void toggleGroup(int, bool) = mac 0xb75f0, win 0x0, ios 0x0;
 	void togglePlayerVisibility(bool) = mac 0xba910, win 0x0, ios 0x0;
 	void triggerMoveCommand(EffectGameObject*) = mac 0xb7290, win 0x0, ios 0x0;
-	void updateCollisionBlocks() = mac 0xb6a30, win 0x0, ios 0x0;
+	void updateCollisionBlocks() = mac 0xb6a30, win 0x10ef70, ios 0x0;
 	void updateCounters(int, int) = mac 0xb9bc0, win 0x0, ios 0x0;
 	void updateDisabledObjectsLastPos(cocos2d::CCArray*) = mac 0xb95b0, win 0x0, ios 0x0;
 	void updateLayerCapacity(gd::string) = mac 0xb1680, win 0x0, ios 0x0;
 	void updateLegacyLayerCapacity(int, int, int, int) = mac 0xb1590, win 0x0, ios 0x0;
 	void updateOBB2(cocos2d::CCRect) = mac 0xb63f0, win 0x0, ios 0x0;
-	void updateQueuedLabels() = mac 0xb9f30, win 0x0, ios 0x0;
+	void updateQueuedLabels() = mac 0xb9f30, win 0x111b00, ios 0x0;
 	~GJBaseGameLayer() = mac 0xaf990, win 0x0, ios 0x0;
 
 	// GJEffectManager* effectManager = mac 0x180, win 0x0, android 0x0;
@@ -1804,9 +1810,9 @@ class GJEffectManager : cocos2d::CCNode {
 	void activeOpacityForIndex(int) = mac 0x180e10, win 0x0, ios 0x0;
 	void addAllInheritedColorActions(cocos2d::CCArray*) = mac 0x1817a0, win 0x0, ios 0x0;
 	void addGroupPulseEffect(PulseEffectAction*) = mac 0x184c10, win 0x0, ios 0x0;
-	void calculateBaseActiveColors() = mac 0x180f70, win 0x0, ios 0x0;
+	void calculateBaseActiveColors() = mac 0x180f70, win 0x11c7c0, ios 0x0;
 	void calculateInheritedColor(int, ColorAction*) = mac 0x1818f0, win 0x0, ios 0x0;
-	void calculateLightBGColor(cocos2d::_ccColor3B) = mac 0x185b90, win 0x0, ios 0x0;
+	void calculateLightBGColor(cocos2d::_ccColor3B) = mac 0x185b90, win 0x11f420, ios 0x0;
 	void colorActionChanged(ColorAction*) = mac 0x181dc0, win 0x0, ios 0x0;
 	void colorExists(int) = mac 0x181da0, win 0x0, ios 0x0;
 	void colorForEffect(cocos2d::_ccColor3B, cocos2d::_ccHSVValue) = mac 0x182650, win 0x0, ios 0x0;
@@ -1823,7 +1829,7 @@ class GJEffectManager : cocos2d::CCNode {
 	void getAllColorActions() = mac 0x180980, win 0x0, ios 0x0;
 	void getAllColorSprites() = mac 0x1809e0, win 0x0, ios 0x0;
 	const cocos2d::_ccColor3B& getColorAction(int) = mac 0x180b00, win 0x11cde0, ios 0x0;
-	const cocos2d::_ccColor3B& getColorSprite(int) = mac 0x180d00, win 0x0, ios 0x0;
+	const cocos2d::_ccColor3B& getColorSprite(int) = mac 0x180d00, win 0x11ce20, ios 0x0;
 	void getCurrentStateString() = mac 0x1867e0, win 0x0, ios 0x0;
 	void getLoadedMoveOffset() = mac 0x184390, win 0x0, ios 0x0;
 	void getMixedColor(cocos2d::_ccColor3B, cocos2d::_ccColor3B, float) = mac 0x185d30, win 0x0, ios 0x0;
@@ -1841,13 +1847,13 @@ class GJEffectManager : cocos2d::CCNode {
 	float opacityModForGroup(int) = mac 0x184740, win 0x0, ios 0x0;
 	void playerButton(bool, bool) = mac 0x1855a0, win 0x0, ios 0x0;
 	void playerDied() = mac 0x185860, win 0x0, ios 0x0;
-	void postCollisionCheck() = mac 0x182720, win 0x0, ios 0x0;
-	void preCollisionCheck() = mac 0x182680, win 0x0, ios 0x0;
-	void prepareMoveActions(float, bool) = mac 0x183660, win 0x0, ios 0x0;
+	void postCollisionCheck() = mac 0x182720, win 0x11d0b0, ios 0x0;
+	void preCollisionCheck() = mac 0x182680, win 0x11d030, ios 0x0;
+	void prepareMoveActions(float, bool) = mac 0x183660, win 0x11da30, ios 0x0;
 	void processColors() = mac 0x180e70, win 0x0, ios 0x0;
-	void processCopyColorPulseActions() = mac 0x181530, win 0x0, ios 0x0;
-	void processInheritedColors() = mac 0x181190, win 0x0, ios 0x0;
-	void processPulseActions() = mac 0x181040, win 0x0, ios 0x0;
+	void processCopyColorPulseActions() = mac 0x181530, win 0x11ebc0, ios 0x0;
+	void processInheritedColors() = mac 0x181190, win 0x11c8a0, ios 0x0;
+	void processPulseActions() = mac 0x181040, win 0x11ea50, ios 0x0;
 	void registerCollisionTrigger(int, int, int, bool, bool, int) = mac 0x182b70, win 0x0, ios 0x0;
 	void removeAllPulseActions() = mac 0x1825e0, win 0x0, ios 0x0;
 	void removeColorAction(int) = mac 0x181d60, win 0x0, ios 0x0;
@@ -1874,13 +1880,13 @@ class GJEffectManager : cocos2d::CCNode {
 	void traverseInheritanceChain(InheritanceNode*) = mac 0x181850, win 0x0, ios 0x0;
 	void updateActiveOpacityEffects() = mac 0x1847e0, win 0x0, ios 0x0;
 	void updateColorAction(ColorAction*) = mac 0x184560, win 0x0, ios 0x0;
-	void updateColorEffects(float) = mac 0x181f40, win 0x0, ios 0x0;
+	void updateColorEffects(float) = mac 0x181f40, win 0x11e1d0, ios 0x0;
 	void updateColors(cocos2d::_ccColor3B, cocos2d::_ccColor3B) = mac 0x180a40, win 0x0, ios 0x0;
 	void updateEffects(float) = mac 0x181df0, win 0x0, ios 0x0;
 	void updateOpacityAction(OpacityEffectAction*) = mac 0x184780, win 0x0, ios 0x0;
 	void updateOpacityEffects(float) = mac 0x1823e0, win 0x11e490, ios 0x0;
-	void updatePulseEffects(float) = mac 0x182130, win 0x0, ios 0x0;
-	void updateSpawnTriggers(float) = mac 0x182510, win 0x0, ios 0x0;
+	void updatePulseEffects(float) = mac 0x182130, win 0x11e7f0, ios 0x0;
+	void updateSpawnTriggers(float) = mac 0x182510, win 0x11f000, ios 0x0;
 	void wasFollowing(int, int) = mac 0x185e60, win 0x0, ios 0x0;
 	void wouldCreateLoop(InheritanceNode*, int) = mac 0x181820, win 0x0, ios 0x0;
 	~GJEffectManager() = mac 0x17fe00, win 0x0, ios 0x0;
@@ -2686,7 +2692,7 @@ class GameManager : GManager {
 	virtual bool init() = mac 0x1c2ec0, win 0x0, ios 0x0;
 	void reportAchievementWithID(char const*, int, bool) = mac 0x1c6460, win 0x0, ios 0x0;
 	cocos2d::CCSize* resolutionForKey(cocos2d::CCSize*, int) = mac 0x1d0b40, win 0xceca0, ios 0x0;
-	void update(float) = mac 0x1d0270, win 0x0, ios 0x0;
+	virtual void update(float) = mac 0x1d0270, win 0xce440, ios 0x0;
 	bool isColorUnlocked(int _id, bool _type) = mac 0x1c3b90, win 0xc53f0, ios 0x0;
 	bool isIconUnlocked(int _id, IconType _type) = mac 0x1c35b0, win 0xc4fc0, ios 0x0;
 	void toggleGameVariable(const char* key) = mac 0x0, win 0xc9e90, ios 0x0;
@@ -2869,7 +2875,8 @@ class GameObject : CCSpritePlus {
 	virtual void addMainSpriteToParent(bool) = mac 0x33a5b0, win 0xeb250, ios 0x0;
 	virtual void resetObject() = mac 0x2fa620, win 0xd1470, ios 0x0;
 	virtual void triggerObject(GJBaseGameLayer*) = mac 0x2fa8f0, win 0x0, ios 0x0;
-	virtual void activateObject() = mac 0x2faf60, win 0xEF0E0, ios 0x0;
+	virtual void activateObject() = mac 0x2faf60, win 0xd1870, ios 0x0;
+	void activateObject(PlayerObject*) = mac 0x0, win 0xef0e0, ios 0x0;
 	virtual void deactivateObject(bool) = mac 0x2fb8f0, win 0xd19b0, ios 0x0;
 	virtual cocos2d::CCRect const& getObjectRect() = mac 0x3352b0, win 0xe4a40, ios 0x0;
 	virtual cocos2d::CCRect getObjectRect(float, float) = mac 0x3352d0, win 0xe4a70, ios 0x0;
@@ -2906,7 +2913,7 @@ class GameObject : CCSpritePlus {
 	virtual cocos2d::CCPoint const& getStartPos() const = mac 0xdc230, win 0x98a00, ios 0x0;
 	void activatedByPlayer(GameObject*) = mac 0x342a20, win 0x0, ios 0x0;
 	void addColorSprite() = mac 0x2f7fe0, win 0x0, ios 0x0;
-	void addColorSpriteToParent(bool) = mac 0x2fb470, win 0x0, ios 0x0;
+	void addColorSpriteToParent(bool) = mac 0x2fb470, win 0xeb3f0, ios 0x0;
 	void addGlow() = mac 0x2f5c10, win 0x0, ios 0x0;
 	void addToTempOffset(float, float) = mac 0x335700, win 0x0, ios 0x0;
 	void calculateOrientedBox() = mac 0x342b20, win 0x0, ios 0x0;
@@ -3150,13 +3157,14 @@ class GameObjectCopy : cocos2d::CCObject {
 class GameRateDelegate {}
 
 class GameSoundManager : cocos2d::CCNode {
-	void disableMetering() = mac 0x362d80, win 0x0, ios 0x0;
-	void enableMetering() = mac 0x362d00, win 0x0, ios 0x0;
+	void disableMetering() = mac 0x362d80, win 0x257D0, ios 0x0;
+	void enableMetering() = mac 0x362d00, win 0x256F0, ios 0x0;
 	void getMeteringValue() = mac 0x362db0, win 0x0, ios 0x0;
-	void playBackgroundMusic(gd::string, bool, bool) = mac 0x362070, win 0x0, ios 0x0;
+	void playBackgroundMusic(gd::string, bool, bool) = mac 0x362070, win 0x252B0, ios 0x0;
 	void playEffect(gd::string, float, float, float) = mac 0x3623d0, win 0x25450, ios 0x0;
 	void stopBackgroundMusic() = mac 0x362130, win 0x253A0, ios 0x0;
-	~GameSoundManager() = mac 0x362c00, win 0x0, ios 0x0;
+	void asynchronousSetup() = mac 0x0, win 0x25520, ios 0x0;
+	~GameSoundManager() = mac 0x362c00, win 0x25640, ios 0x0;
 	static GameSoundManager* sharedManager() = mac 0x3610f0, win 0x24800, ios 0x0;
 
 	cocos2d::CCDictionary* m_dictionary1;
@@ -3425,8 +3433,8 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
 	}
 
 	~LevelEditorLayer() = mac 0x90e80, win 0x0, ios 0x0;
-	virtual void update(float) = mac 0xa1b70, win 0x26a660, ios 0x0;
-	virtual void draw() = mac 0xa2a70, win 0x0, ios 0x0;
+	virtual void update(float) = mac 0xa1b70, win 0x16a660, ios 0x0;
+	virtual void draw() = mac 0xa2a70, win 0x16b7c0, ios 0x0;
 	virtual void updateColor(cocos2d::_ccColor3B, float, int, bool, float, cocos2d::_ccHSVValue, int, bool, int, EffectGameObject*) = mac 0x9c200, win 0x0, ios 0x0;
 	virtual void flipGravity(PlayerObject*, bool, bool) = mac 0xa04e0, win 0x0, ios 0x0;
 	virtual void calculateColorValues(EffectGameObject*, EffectGameObject*, int, float, ColorActionSprite*, GJEffectManager*) = mac 0x9c590, win 0x0, ios 0x0;
@@ -3839,7 +3847,7 @@ class ObjectToolbox : cocos2d::CCNode {
 	    m_keyToFrameDict->setObject(cocos2d::CCString::create(frame), id);
 	}
 
-	virtual bool init() = mac 0x3b2d80, win 0x0, ios 0x0;
+	virtual bool init() = mac 0x3b2d80, win 0x198b20, ios 0x0;
 	static ObjectToolbox* sharedState() = mac 0x3b2bc0, win 0x198a80, ios 0x0;
 	float gridNodeSizeForKey(int key) = mac 0x0, win 0x1dc920, ios 0x0;
 	const char* perspectiveBlockFrame(int key) = mac 0x0, win 0x1dcd00, ios 0x0;
@@ -3970,7 +3978,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
 	void levelComplete() = mac 0x72b80, win 0x1fd3d0, ios 0x0;
 	void lightningFlash(cocos2d::CCPoint, cocos2d::CCPoint, cocos2d::_ccColor3B, float, float, int, bool, float) = mac 0x75cc0, win 0x0, ios 0x0;
 	void lightningFlash(cocos2d::CCPoint, cocos2d::_ccColor3B) = mac 0x75bf0, win 0x0, ios 0x0;
-	void loadDefaultColors() = mac 0x6ef30, win 0x0, ios 0x0;
+	void loadDefaultColors() = mac 0x6ef30, win 0x206e10, ios 0x0;
 	void loadFromCheckpoint(CheckpointObject*) = mac 0x7f000, win 0x0, ios 0x0;
 	void loadLastCheckpoint() = mac 0x7efc0, win 0x0, ios 0x0;
 	void loadSavedObjectsState(gd::string) = mac 0x7f3d0, win 0x0, ios 0x0;
@@ -4048,7 +4056,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
 	void unregisterStateObject(GameObject*) = mac 0x777f0, win 0x0, ios 0x0;
 	virtual void update(float) = mac 0x77900, win 0x2029C0, ios 0xb2f08;
 	void updateAttempts() = mac 0x7fcd0, win 0x20ced0, ios 0x0;
-	void updateCamera(float) = mac 0x6e2b0, win 0x0, ios 0x0;
+	void updateCamera(float) = mac 0x6e2b0, win 0x2071d0, ios 0x0;
 	virtual void updateColor(cocos2d::_ccColor3B, float, int, bool, float, cocos2d::_ccHSVValue, int, bool, int, EffectGameObject*) = mac 0x7c7f0, win 0x0, ios 0x0;
 	void updateDualGround(PlayerObject*, int, bool) = mac 0x7caa0, win 0x0, ios 0x0;
 	void updateEffectPositions() = mac 0x7a6d0, win 0x0, ios 0x0;
@@ -4248,7 +4256,7 @@ class PlayerCheckpoint : cocos2d::CCNode {
 
 class PlayerObject : GameObject, AnimatedSpriteDelegate {
 	~PlayerObject() = mac 0x217220, win 0x0, ios 0x0;
-	virtual void update(float) = mac 0x218bf0, win 0x0, ios 0x0;
+	virtual void update(float) = mac 0x218bf0, win 0x1e8200, ios 0x0;
 	virtual void setScaleX(float) = mac 0x22e7f0, win 0x0, ios 0x0;
 	virtual void setScaleY(float) = mac 0x22e830, win 0x0, ios 0x0;
 	virtual void setScale(float) = mac 0x22e870, win 0x0, ios 0x0;
@@ -4291,7 +4299,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
 	void hardFlipGravity() = mac 0x22b860, win 0x0, ios 0x0;
 	void hitGround(bool) = mac 0x220a30, win 0x0, ios 0x0;
 	void incrementJumps() = mac 0x21c050, win 0x1e9a20, ios 0x0;
-	bool init(int, int, cocos2d::CCLayer*) = mac 0x2172e0, win 0x0, ios 0x0;
+	bool init(int, int, cocos2d::CCLayer*) = mac 0x2172e0, win 0x1e6da0, ios 0x0;
 	void isBoostValid(float) = mac 0x21d650, win 0x0, ios 0x0;
 	void isFlying() = mac 0x21a4e0, win 0x0, ios 0x0;
 	void isSafeFlip(float) = mac 0x2209f0, win 0x0, ios 0x0;
@@ -4364,7 +4372,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
 	void touchedObject(GameObject*) = mac 0x22e660, win 0x0, ios 0x0;
 	void tryPlaceCheckpoint() = mac 0x21a950, win 0x0, ios 0x0;
 	void updateCheckpointMode(bool) = mac 0x218980, win 0x0, ios 0x0;
-	void updateCheckpointTest() = mac 0x21a890, win 0x0, ios 0x0;
+	void updateCheckpointTest() = mac 0x21a890, win 0x1e8b50, ios 0x0;
 	void updateCollide(bool, int) = mac 0x220f10, win 0x0, ios 0x0;
 	void updateCollideBottom(float, int) = mac 0x221790, win 0x0, ios 0x0;
 	void updateCollideTop(float, int) = mac 0x221c20, win 0x0, ios 0x0;
