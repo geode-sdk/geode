@@ -224,8 +224,8 @@ class cocos2d::CCImage {
 }
 
 class cocos2d::CCKeyboardDispatcher {
-	auto dispatchKeyboardMSG(cocos2d::enumKeyCodes, bool) = mac 0xe8190;
-	auto keyToString(cocos2d::enumKeyCodes) = mac 0xe8450;
+	bool dispatchKeyboardMSG(cocos2d::enumKeyCodes, bool) = mac 0xe8190;
+	const char* keyToString(cocos2d::enumKeyCodes) = mac 0xe8450;
 }
 
 class cocos2d::CCKeyboardHandler {
