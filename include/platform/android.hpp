@@ -8,3 +8,11 @@ namespace geode::base {
 		return base;
 	}
 }
+
+namespace geode::cast {
+	template <class After, class Before>
+	After typeinfo_cast(Before ptr) {
+		// yall have symbols smh
+	    return dynamic_cast<After>(ptr);
+	} 
+}
