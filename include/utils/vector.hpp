@@ -69,10 +69,10 @@ namespace geode::vector_utils {
         std::string res = "";
 
         for (auto p : vec) {
-            if (!std::is_same<T, std::string>::value) {
-                res += std::to_string(p) + sep;
-            } else {
+            if constexpr (std::is_same_v<T, std::string>) {
                 res += p + sep;
+            } else {
+                res += std::to_string(p) + sep;
             }
         }
         
