@@ -2820,7 +2820,7 @@ class GameObject : CCSpritePlus {
 	    return m_uniqueID;
 	}
 	short getGroupID(int ix) {
-	    return m_groups->operator[](ix);
+	    return m_groups->at(ix);
 	}
 	short getGroupIDCount() {
 	    return m_groupCount; 
@@ -2828,9 +2828,9 @@ class GameObject : CCSpritePlus {
 	gd::vector<short> getGroupIDs() {
 	    std::vector<short> res;
 	
-	    if (m_groups && m_groups->operator[](0))
+	    if (m_groups && m_groups->at(0))
 	        for (auto i = 0; i < m_groupCount; i++)
-	            res.push_back(m_groups->operator[](i));
+	            res.push_back(m_groups->at(i));
 	
 	    return res;
 	}
