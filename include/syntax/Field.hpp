@@ -6,6 +6,7 @@
 namespace geode::modifier {
 	class FieldContainer : public cocos2d::CCObject {
 		std::vector<void*> m_containedFields;
+		std::vector<std::function<void()>> m_destructorFunctions;
 	public:
 
 		static FieldContainer* create() {
@@ -17,18 +18,21 @@ namespace geode::modifier {
 			return nullptr;
 		}
 		~FieldContainer() {
-			for(auto ptr : m_containedFields) {
-				operator delete(ptr);
+			for(auto i = 0; i < m_containedFields.size(); ++i)  {
+				m_destructorFunctions[i]();
+				operator delete(m_containedFields[i]);
 			}
 		}
 		void* getField(size_t index) {
 			if (m_containedFields.size() <= index) {
 				m_containedFields.resize(index + 1);
+				m_destructorFunctions.resize(index + 1);
 			}
 			return m_containedFields.at(index);
 		}
-		void* setField(size_t index, size_t size) {
+		void* setField(size_t index, size_t size, std::function<void()> destructor) {
 			m_containedFields.at(index) = operator new(size);
+			m_destructorFunctions.at(index) = destructor;
 			return m_containedFields.at(index);
 		}
 	};
@@ -42,7 +46,7 @@ namespace geode::modifier {
 		template <class=std::enable_if_t<true>>
 		Parent* operator->() {
 			// get the this pointer of the base
-			auto node = reinterpret_cast<cocos2d::CCNode*>(reinterpret_cast<std::byte*>(this) - sizeof(Base));
+			auto node = reinterpret_cast<Parent*>(reinterpret_cast<std::byte*>(this) - sizeof(Base));
 			auto container = reinterpret_cast<FieldContainer*>(node->getUserObject());
 			if (!container) {
 				container = FieldContainer::create();
@@ -51,7 +55,12 @@ namespace geode::modifier {
 			static size_t index = Loader::get()->getFieldIndexForClass(typeid(Base).hash_code());
 			// this pointer is offset 
 			auto offsetField = container->getField(index);
-			if (!offsetField) offsetField = container->setField(index, sizeof(Parent) - sizeof(Intermediate));
+			if (!offsetField) {
+				offsetField = container->setField(index, sizeof(Parent) - sizeof(Intermediate), 
+					std::bind(&Parent::fieldDestructor, node)
+				);
+				node->fieldConstructor();
+			}
 
 			return reinterpret_cast<Parent*>(reinterpret_cast<std::byte*>(offsetField) - sizeof(Intermediate));
 		}

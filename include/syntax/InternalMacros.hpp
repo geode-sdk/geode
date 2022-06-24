@@ -39,6 +39,8 @@ template <> struct GEODE_HIDDEN _##derived<derived##Intermediate> : base {      
         _##derived<derived##Intermediate>,                                                              \
         _##derived<derived##Parent>                                                                     \
     > m_fields;                                                                                         \
+    void fieldConstructor() {}                                                                          \
+    void fieldDestructor() {}                                                                           \
 };                                                                                                      \
 template <> struct GEODE_HIDDEN _##derived<derived##Parent> : _##derived<derived##Intermediate>         \
    
