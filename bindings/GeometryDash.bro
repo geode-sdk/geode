@@ -1907,7 +1907,7 @@ class GJEffectManager : cocos2d::CCNode {
 	std::array<bool, 1100> m_pulseExistsForGroup;
 	bool m_f063c;
 	std::array<bool, 1100> m_opactiyExistsForGroup;
-	std::array<bool, 1100> m_itemValues;
+	std::array<int, 1100> m_itemValues;
 	int m_unusued;
 	int* m_unused2;
 	cocos2d::CCArray* m_f1bc8;
@@ -2820,7 +2820,7 @@ class GameObject : CCSpritePlus {
 	    return m_uniqueID;
 	}
 	short getGroupID(int ix) {
-	    return m_groups[ix];
+	    return m_groups->operator[](ix);
 	}
 	short getGroupIDCount() {
 	    return m_groupCount; 
@@ -2828,9 +2828,9 @@ class GameObject : CCSpritePlus {
 	gd::vector<short> getGroupIDs() {
 	    std::vector<short> res;
 	
-	    if (m_groups && m_groups[0])
+	    if (m_groups && m_groups->operator[](0))
 	        for (auto i = 0; i < m_groupCount; i++)
-	            res.push_back(m_groups[i]);
+	            res.push_back(m_groups->operator[](i));
 	
 	    return res;
 	}
