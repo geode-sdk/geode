@@ -905,16 +905,13 @@ class DialogObject : cocos2d::CCObject {
 class DownloadMessageDelegate {}
 
 class DrawGridLayer : cocos2d::CCLayer {
-	inline using CCPointArray400 = cocos2d::CCPoint(*)[400];
-	inline using CCPointArray200 = cocos2d::CCPoint(*)[200];
-
 	bool init(cocos2d::CCNode* grid, LevelEditorLayer* editor) = mac 0x0, win 0x16c4d0, ios 0x0;
 	void draw() = mac 0x0, win 0x16ce90, ios 0x0;
 	virtual void update(float) = mac 0x0, win 0x16cd80, ios 0x0;
 
-	CCPointArray400 m_commonLines;
-	CCPointArray200 m_yellowGuidelines;
-	CCPointArray200 m_greenGuidelines;
+	std::array<cocos2d::CCPoint, 400>* m_commonLines;
+	std::array<cocos2d::CCPoint, 200>* m_yellowGuidelines;
+	std::array<cocos2d::CCPoint, 200>* m_greenGuidelines;
 	float m_songOffset1;
 	float m_songOffset2;
 	float m_lastMusicXPosition;
@@ -1040,11 +1037,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
 	static EditorUI* get() {
 	    auto lel = LevelEditorLayer::get();
 	    if (!lel) return nullptr;
-	    #ifdef GEODE_IS_WINDOWS
 	    return lel->m_editorUI;
-	    #else
-	    return nullptr;
-	    #endif
 	}
 
 	void constrainGameLayerPosition() = mac 0x1c6d0, win 0x0, ios 0x0;
@@ -1911,10 +1904,10 @@ class GJEffectManager : cocos2d::CCNode {
 	cocos2d::CCDictionary* m_collisionActionsForGroup2;
 	gd::vector<ColorAction*> m_colorActionsForGroup;
 	gd::vector<ColorActionSprite*> m_colorSpritesForGroup;
-	bool m_pulseExistsForGroup[1100];
+	std::array<bool, 1100> m_pulseExistsForGroup;
 	bool m_f063c;
-	bool m_opactiyExistsForGroup[1100];
-	int m_itemValues[1100];
+	std::array<bool, 1100> m_opactiyExistsForGroup;
+	std::array<bool, 1100> m_itemValues;
 	int m_unusued;
 	int* m_unused2;
 	cocos2d::CCArray* m_f1bc8;
@@ -3125,13 +3118,11 @@ class GameObject : CCSpritePlus {
 	bool m_unknownLayerRelated;
 	float m_multiScaleMultiplier;
 	bool m_isGroupParent;
-	inline using GroupArrayType = short*; 
-	// it is a short array with size 10 but pointer to arrays are weird
-	GroupArrayType m_groups;
+	std::array<short, 10>* m_groups;
 	short m_groupCount;
-	GroupArrayType m_pulseGroups;
+	std::array<short, 10>* m_pulseGroups;
 	short m_pulseGroupCount; // mac 0x470
-	GroupArrayType m_alphaGroups;
+	std::array<short, 10>* m_alphaGroups;
 	short m_alphaGroupCount; // mac 0x480
 	int m_editorLayer;
 	int m_editorLayer2;
@@ -3464,6 +3455,7 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
 	void getNextFreeItemID(cocos2d::CCArray*) = mac 0x9a390, win 0x0, ios 0x0;
 	void getObjectRect(GameObject*, bool) = mac 0x96240, win 0x1616b0, ios 0x0;
 	void getRelativeOffset(GameObject*) = mac 0x96840, win 0x0, ios 0x0;
+	bool hasAction(bool) = mac 0x96ff0;
 	void handleAction(bool, cocos2d::CCArray*) = mac 0x97020, win 0x0, ios 0x0;
 	bool init(GJGameLevel*) = mac 0x91010, win 0x15EE00, ios 0x0;
 	void objectAtPosition(cocos2d::CCPoint) = mac 0x960c0, win 0x161300, ios 0x0;
@@ -3526,9 +3518,9 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
 	int m_coinCountRand1;
 	int m_coinCountRand2;
 	int m_coinCount;
-	PAD = mac 0x50, win 0x28, android 0x0;
+	PAD = mac 0x40, win 0x28, android 0x0;
 	int m_currentLayer;
-	PAD = mac 0x50, win 0x28, android 0x0;
+	PAD = mac 0x38, win 0x28, android 0x0;
 	EditorUI* m_editorUI;
 	PAD = mac 0x8, win 0x4, android 0x0;
 	cocos2d::CCArray* m_undoObjects;
@@ -4548,7 +4540,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
 	float m_groundHeight;
 	float m_unk69C;
 	PAD = mac 0x0, win 0x4, android 0x0;
-	float m_unk6A4[200];
+	std::array<float, 200> m_unk6A4;
 	PAD = mac 0x0, win 0x1c, android 0x0;
 }
 
