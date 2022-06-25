@@ -1027,6 +1027,8 @@ class EditorPauseLayer : CCBlockLayer, FLAlertLayerProtocol {
 	void onSave(cocos2d::CCObject* pSender) = mac 0x0, win 0x755a0, ios 0x0;
 	void onExitNoSave(cocos2d::CCObject* pSender) = mac 0x0, win 0x75700, ios 0x0;
 	void uncheckAllPortals(cocos2d::CCObject* pSender) = mac 0x0, win 0x74760, ios 0x0;
+	void onResetUnusedColors(cocos2d::CCObject* pSender) = mac 0x0, win 0x74810, ios 0x0;
+	void doResetUnused() = mac 0x0, win 0x165070, ios 0x0;
 	EditorPauseLayer() = mac 0x0, win 0x72f10, ios 0x0;
 
 	bool m_saved;
@@ -1828,7 +1830,7 @@ class GJEffectManager : cocos2d::CCNode {
 	void createRotateCommand(int, float, int, int, int, float, bool, int) = mac 0x182df0, win 0x0, ios 0x0;
 	void getAllColorActions() = mac 0x180980, win 0x0, ios 0x0;
 	void getAllColorSprites() = mac 0x1809e0, win 0x0, ios 0x0;
-	const cocos2d::_ccColor3B& getColorAction(int) = mac 0x180b00, win 0x11cde0, ios 0x0;
+	ColorAction* getColorAction(int) = mac 0x180b00, win 0x11cde0, ios 0x0;
 	const cocos2d::_ccColor3B& getColorSprite(int) = mac 0x180d00, win 0x11ce20, ios 0x0;
 	void getCurrentStateString() = mac 0x1867e0, win 0x0, ios 0x0;
 	void getLoadedMoveOffset() = mac 0x184390, win 0x0, ios 0x0;
