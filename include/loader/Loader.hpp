@@ -29,6 +29,10 @@ namespace geode {
     struct ModInfo;
     class Log;
     class LogPtr;
+    namespace modifier {
+    	template<class, class, class>
+		class FieldIntermediate;
+    }
 
     class GEODE_DLL Loader {
     public:
@@ -83,6 +87,11 @@ namespace geode {
         friend class Mod;
         friend class CustomLoader;
         friend struct ModInfo;
+    private:
+    	size_t getFieldIndexForClass(size_t hash);
+
+    	template <class, class, class>
+        friend class modifier::FieldIntermediate;
         
     public:
         ~Loader();
