@@ -7,17 +7,17 @@
  * template<typename>
  * struct _hook0 {};
  * namespace {
- *     struct hook0ID {};
- *     struct hook0ID2 {};
- *     Modify<_hook0<hook0ID>, MenuLayer> hook0Apply;
+ *     struct hook0Parent {};
+ *     struct hook0Intermediate {};
+ *     Modify<_hook0<hook0Parent>, MenuLayer> hook0Apply;
  * }
- * using hook0 = _hook0<hook0ID>;
+ * using hook0 = _hook0<hook0Parent>;
  * template<>
- * struct GEODE_HIDDEN _hook0<hook0ID2>: public MenuLayer {
+ * struct GEODE_HIDDEN _hook0<hook0Intermediate>: public MenuLayer {
  *     _hook0() : _hook0(*this) {}
  * };
  * template<>
- * struct GEODE_HIDDEN _hook0<hook0ID>: public _hook0<hook0ID2> {
+ * struct GEODE_HIDDEN _hook0<hook0Parent>: public _hook0<hook0Intermediate> {
  *     // code stuff idk
  * };
  * 
@@ -25,24 +25,27 @@
  * I am bad at this stuff
  */
 
-#define GEODE_MODIFY_PREDECLARE(derived) 								\
-derived##Dummy; 														\
-template<typename> struct _##derived {};
-#define GEODE_MODIFY_APPLY(base, derived) 								\
-namespace { 															\
-	struct derived##ID {}; 			  								    \
-	struct derived##ID2 {}; 			  								\
-	Modify<_##derived<derived##ID>, base> derived##Apply;               \
-}
-#define GEODE_MODIFY_DECLARE(base, derived) 							\
-using derived = _##derived<derived##ID>; 					  		    \
-template <> struct GEODE_HIDDEN _##derived<derived##ID2> : base {       \
-	_##derived() : _##derived(*this) {}                                 \
-};                                                                      \
-template <> struct GEODE_HIDDEN _##derived<derived##ID>   				\
-	: _##derived<derived##ID2>
+#define GEODE_MODIFY_DECLARE(base, derived)                                                             \
+derived##Dummy;                                                                                         \
+template<class> struct _##derived {};                                                                   \
+namespace {                                                                                             \
+    struct derived##Parent {};                                                                          \
+    struct derived##Intermediate {};                                                                    \
+    Modify<_##derived<derived##Parent>, base> derived##Apply;                                           \
+}                                                                                                       \
+using derived = _##derived<derived##Parent>;                                                            \
+template <> struct GEODE_HIDDEN _##derived<derived##Intermediate> : base {                              \
+    geode::modifier::FieldIntermediate<base,                                                            \
+        _##derived<derived##Intermediate>,                                                              \
+        _##derived<derived##Parent>                                                                     \
+    > m_fields;                                                                                         \
+    void fieldConstructor() {}                                                                          \
+    void fieldDestructor() {}                                                                           \
+};                                                                                                      \
+template <> struct GEODE_HIDDEN _##derived<derived##Parent> : _##derived<derived##Intermediate>         \
+   
 
-#define GEODE_MODIFY_REDIRECT4(base, derived) GEODE_MODIFY_PREDECLARE(derived) GEODE_MODIFY_APPLY(base, derived) GEODE_MODIFY_DECLARE(base, derived)
+#define GEODE_MODIFY_REDIRECT4(base, derived) GEODE_MODIFY_DECLARE(base, derived)
 #define GEODE_MODIFY_REDIRECT3(base, derived) GEODE_MODIFY_REDIRECT4(base, derived)
 #define GEODE_MODIFY_REDIRECT2(base) GEODE_MODIFY_REDIRECT3(base, GEODE_CONCAT(hook, __COUNTER__))
 #define GEODE_MODIFY_REDIRECT1(base) GEODE_MODIFY_REDIRECT2(base)

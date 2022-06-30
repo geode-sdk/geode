@@ -3,7 +3,11 @@
 
 #include <assert.h>
 
-#define CC_DLL __attribute__((visibility("default")))
+#ifdef GEODE_EXPORTING
+    #define CC_DLL __attribute__((visibility("default")))
+#else
+    #define CC_DLL 
+#endif
 
 #define CC_ASSERT(cond) assert(cond)
 
