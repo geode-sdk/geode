@@ -17,12 +17,12 @@
 namespace geode {
     #pragma warning(disable: 4251)
 
-    static constexpr const std::string_view geodeDirectory         = "geode";
-    static constexpr const std::string_view geodeModDirectory      = "mods";
-    static constexpr const std::string_view geodeLogDirectory      = "log";
-    static constexpr const std::string_view geodeResourceDirectory = "resources";
-    static constexpr const std::string_view geodeTempDirectory     = "temp";
-    static constexpr const std::string_view geodeModExtension      = ".geode";
+    static constexpr std::string_view GEODE_DIRECTORY          = "geode";
+    static constexpr std::string_view GEODE_MOD_DIRECTORY      = "mods";
+    static constexpr std::string_view GEODE_LOG_DIRECTORY      = "log";
+    static constexpr std::string_view GEODE_RESOURCE_DIRECTORY = "resources";
+    static constexpr std::string_view GEODE_TEMP_DIRECTORY     = "temp";
+    static constexpr std::string_view GEODE_MOD_EXTENSION      = ".geode";
 
     class Mod;
     class Hook;
@@ -80,6 +80,7 @@ namespace geode {
 
         Result<std::string> createTempDirectoryForMod(ModInfo const& info);
         Result<Mod*> loadModFromFile(std::string const& file);
+        size_t loadModsFromDirectory(ghc::filesystem::path const& path, bool recursive);
         void createDirectories();
 
         void updateAllDependencies();
@@ -87,6 +88,7 @@ namespace geode {
         friend class Mod;
         friend class CustomLoader;
         friend struct ModInfo;
+
     private:
     	size_t getFieldIndexForClass(size_t hash);
 
