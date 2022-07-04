@@ -166,11 +166,11 @@ namespace std {
 	#define GEODE_EXPORT __attribute__((visibility("default")))
 
 	#include "macos.hpp"
+#endif
+
 #else 
 	#define GEODE_IOS(...)
 	#define GEODE_MACOS(...)
-#endif
-
 
 #endif
 
