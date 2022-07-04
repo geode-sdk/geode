@@ -986,12 +986,12 @@ class EditButtonBar : cocos2d::CCNode {
 
 class EditLevelLayer : cocos2d::CCLayer {
 	static void scene(GJGameLevel* level) {
-	    auto pScene = cocos2d::CCScene::create();
+	    auto scene = cocos2d::CCScene::create();
 	
-	    pScene->addChild(reinterpret_cast<cocos2d::CCNode*>(EditLevelLayer::create(level)));
+	    scene->addChild(reinterpret_cast<cocos2d::CCNode*>(EditLevelLayer::create(level)));
 	
 	    cocos2d::CCDirector::sharedDirector()->replaceScene(
-	        cocos2d::CCTransitionFade::create(.5f, pScene)
+	        cocos2d::CCTransitionFade::create(.5f, scene)
 	    );
 	}
 
@@ -3404,7 +3404,7 @@ class LevelBrowserLayer : cocos2d::CCLayer {
 	    scene->addChild(LevelBrowserLayer::create(search));
 
 	    cocos2d::CCDirector::sharedDirector()->pushScene(
-	        cocos2d::CCTransitionFade::create(.5f, pScene)
+	        cocos2d::CCTransitionFade::create(.5f, scene)
 	    );
 	}
 

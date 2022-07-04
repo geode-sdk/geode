@@ -32,6 +32,10 @@ THE SOFTWARE.
 // 00   02 01 00
 #define COCOS2D_VERSION 0x00020100
 
+
+// Geode macros
+#include "../../../platform/platform.hpp"
+
 //
 // all cocos2d include files
 //
