@@ -29,6 +29,9 @@ THE SOFTWARE.
 #include "ccMacros.h"
 #include <unordered_map>
 
+// Geode macros
+#include "../../../platform/platform.hpp"
+
 #ifdef EMSCRIPTEN
 #include <GLES2/gl2.h>
 #endif // EMSCRIPTEN
