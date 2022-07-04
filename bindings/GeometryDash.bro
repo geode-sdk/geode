@@ -3333,7 +3333,7 @@ class HardStreak : cocos2d::CCDrawNode {
 class InfoAlertButton {
 	bool init(gd::string const& title, gd::string const& text, float scale) = mac 0x0, win 0x14ef50, ios 0x0;
 	void activate() = mac 0x0, win 0x14f050, ios 0x0;
-	InfoAlertButton() = mac 0x0, win 0x14ef50, ios 0x0;
+	inline InfoAlertButton() {}
 	static InfoAlertButton* create(gd::string const& title, gd::string const& text, float scale) = mac 0x0, win 0x14ed20, ios 0x0;
 }
 
