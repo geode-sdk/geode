@@ -92,6 +92,7 @@ class AudioEffectsLayer {
 }
 
 class BoomListView : cocos2d::CCLayer, TableViewDelegate, TableViewDataSource {
+	inline BoomListView() {}
 	inline ~BoomListView() {
 	    CC_SAFE_RELEASE(m_entries);
 	}
@@ -797,7 +798,7 @@ class CustomListView : BoomListView {
 	virtual TableViewCell* getListCell(const char*) = mac 0x10d560, win 0x58050, ios 0x0;
 	virtual void loadCell(TableViewCell*, unsigned int) = mac 0x10e610, win 0x585c0, ios 0x0;
 	virtual void setupList() = mac 0x116e70, win 0x58870, ios 0x0;
-	CustomListView() = mac 0x0, win 0x57e60, ios 0x0;
+	inline CustomListView() {}
 }
 
 class CustomSongCell : TableViewCell {
