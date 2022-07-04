@@ -96,7 +96,6 @@ class BoomListView : cocos2d::CCLayer, TableViewDelegate, TableViewDataSource {
 	inline ~BoomListView() {
 	    CC_SAFE_RELEASE(m_entries);
 	}
-	inline BoomListView() : m_tableView(nullptr), m_entries(nullptr) {}
 
 	static BoomListView* create(cocos2d::CCArray*, float, float, int, BoomListType) = mac 0x18ecb0, win 0x0, ios 0x0;
 	bool init(cocos2d::CCArray*, float, float, int, BoomListType) = mac 0x18ee00, win 0x10c20, ios 0x12c5a8;
