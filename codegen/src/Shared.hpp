@@ -41,6 +41,12 @@ namespace codegen {
     	return f.parent_class->name;
     }
 
+    inline std::string getUnqualifiedClassName(Function const& f) {
+    	auto index = f.parent_class->name.rfind("::");
+    	if (index == std::string::npos) return f.parent_class->name;
+    	return f.parent_class->name.substr(index + 2);
+    }
+
     inline std::string getFunctionName(Function const& f) {
         return f.name;
     }

@@ -5341,7 +5341,7 @@ class EffectGameObject : GameObject {
     float m_fadeOutTime; 
     int m_pulseHSVMode; 
     int m_pulseGroupMode; 
-    cocos2d::ccHSVValue m_HSVValue; 
+    cocos2d::ccHSVValue m_hsvValue; 
     int m_copyColorID; 
     bool m_copyOpacity; 
     bool m_pulseMainOnly; 

@@ -39,6 +39,8 @@ types::ret{index} {class_name}::{function_name}({parameters}){const_whitespace}{
 
 	char const* declare_destructor = R"GEN(
 {class_name}::{function_name}({parameters}) {{
+	// basically we destruct it once by calling the gd function, 
+	// then lock it, so that other gd destructors dont get called
 	if (CCDestructor::lock(this)) return;
 	CCDestructor::lock(this) = true;
 	auto func = Function<types::meta{index}, {convention}>({{addresses::address{index}()}});
@@ -47,7 +49,12 @@ types::ret{index} {class_name}::{function_name}({parameters}){const_whitespace}{
 )GEN";
 
 	char const* declare_constructor = R"GEN(
-{class_name}::{function_name}({parameters}) : {class_name}(*this) {{
+{class_name}::{function_name}({parameters}) : {class_name}(std::monostate()) {{
+	// here we construct it as normal as we can, then destruct it
+	// using the generated functions. this ensures no memory gets leaked
+	// no crashes :pray:
+	CCDestructor::lock(this) = true;
+	{class_name}::~{unqualified_class_name}();
 	auto func = Function<types::meta{index}, {convention}>({{addresses::address{index}()}});
 	func(this{argument_comma}{arguments});
 }}
@@ -105,6 +112,7 @@ std::string generateGDSource(Root const& root) {
 			// cout << "dsffdssd" << endl;
 			output += fmt::format(used_declare_format,
 				fmt::arg("class_name", codegen::getClassName(f)),
+				fmt::arg("unqualified_class_name", codegen::getUnqualifiedClassName(f)),
 				fmt::arg("const", codegen::getConst(f)),
 				fmt::arg("const_whitespace", codegen::getConstWhitespace(f)),
 				fmt::arg("convention", codegen::getConvention(f)),

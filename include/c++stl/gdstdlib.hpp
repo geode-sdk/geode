@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 #include <iostream>
+#include <variant> // for std::monostate
 #include "../utils/platform.hpp"
 
 namespace geode::base {

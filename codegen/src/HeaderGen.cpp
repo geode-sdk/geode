@@ -12,6 +12,14 @@ class GEODE_CODEGEN_DLL {class_name}{base_classes} {{
 public:
 )GEN";
 
+	char const* monostate_constructor = R"GEN(
+	GEODE_MONOSTATE_CONSTRUCTOR_GD({class_name}, {first_base})
+)GEN";
+
+	char const* monostate_constructor_cutoff = R"GEN(
+	GEODE_MONOSTATE_CONSTRUCTOR_CUTOFF({class_name}, {first_base})
+)GEN";
+
     char const* function_definition = R"GEN(
     {docs}{static}{virtual}{return_type} {function_name}({parameters}){const_whitespace}{const};
 )GEN";
@@ -98,6 +106,21 @@ std::string generateGDHeader(Root const& root) {
             fmt::arg("class_name", cd.name),
             fmt::arg("base_classes", bases)
         );
+
+        if (cd.superclasses.size() > 0) {
+        	if (cd.superclasses[0].find("cocos2d") != string::npos) {
+        		output += fmt::format(::format_strings::monostate_constructor_cutoff,
+		            fmt::arg("class_name", cd.name),
+		            fmt::arg("first_base", cd.superclasses[0])
+		        );
+        	}
+        	else {
+        		output += fmt::format(::format_strings::monostate_constructor,
+		            fmt::arg("class_name", cd.name),
+		            fmt::arg("first_base", cd.superclasses[0])
+		        );
+        	}
+        }
 
         for (auto i : cd.inlines) {
         	output += "\t" + i.inlined + "\n";

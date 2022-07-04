@@ -57,6 +57,24 @@ inline type& name() {                       \
 #define GEODE_EXPAND(x) x
 #define GEODE_INVOKE(macro, ...) GEODE_EXPAND(macro(__VA_ARGS__))
 
+#define GEODE_MONOSTATE_CONSTRUCTOR_BEGIN(Class_) \
+GEODE_MACOS(Class_(std::monostate) {})    \
+GEODE_IOS(Class_(std::monostate) {})
+
+#define GEODE_MONOSTATE_CONSTRUCTOR_COCOS(Class_, Base_)                 \
+GEODE_MACOS(Class_(std::monostate) : Base_(std::monostate()) {}) \
+GEODE_IOS(Class_(std::monostate) : Base_(std::monostate()) {})
+
+#define GEODE_MONOSTATE_CONSTRUCTOR_GD(Class_, Base_)                      \
+GEODE_WINDOWS(Class_(std::monostate) : Base_(std::monostate()) {}) \
+GEODE_MACOS(Class_(std::monostate) : Base_(std::monostate()) {})   \
+GEODE_IOS(Class_(std::monostate) : Base_(std::monostate()) {})
+
+#define GEODE_MONOSTATE_CONSTRUCTOR_CUTOFF(Class_, Base_)                  \
+GEODE_WINDOWS(Class_(std::monostate) : Base_() {})                 \
+GEODE_MACOS(Class_(std::monostate) : Base_(std::monostate()) {})   \
+GEODE_IOS(Class_(std::monostate) : Base_(std::monostate()) {})
+
 #define GEODE_NUMBER_OF_ARGS(...) GEODE_EXPAND(GEODE_NUMBER_OF_ARGS_(__VA_ARGS__, GEODE_NUMBER_SEQUENCE(),))
 #define GEODE_NUMBER_OF_ARGS_(...) GEODE_EXPAND(GEODE_NUMBER_OF_ARGS_N(__VA_ARGS__))
 #define GEODE_NUMBER_OF_ARGS_N( 			\

@@ -54,6 +54,7 @@ public:
      *  @js ctor
      */
     CCScene();
+    GEODE_MONOSTATE_CONSTRUCTOR_COCOS(CCScene, CCNode)
     /**
      *  @js NA
      *  @lua NA

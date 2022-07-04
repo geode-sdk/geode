@@ -6,7 +6,7 @@
 namespace geode::modifier {
 	class FieldContainer : public cocos2d::CCObject {
 		std::vector<void*> m_containedFields;
-		std::vector<std::function<void()>> m_destructorFunctions;
+		std::vector<std::function<void(void*)>> m_destructorFunctions;
 	public:
 
 		static FieldContainer* create() {
@@ -19,7 +19,7 @@ namespace geode::modifier {
 		}
 		~FieldContainer() {
 			for(auto i = 0; i < m_containedFields.size(); ++i)  {
-				m_destructorFunctions[i]();
+				m_destructorFunctions[i](m_containedFields[i]);
 				operator delete(m_containedFields[i]);
 			}
 		}
@@ -30,7 +30,7 @@ namespace geode::modifier {
 			}
 			return m_containedFields.at(index);
 		}
-		void* setField(size_t index, size_t size, std::function<void()> destructor) {
+		void* setField(size_t index, size_t size, std::function<void(void*)> destructor) {
 			m_containedFields.at(index) = operator new(size);
 			m_destructorFunctions.at(index) = destructor;
 			return m_containedFields.at(index);
@@ -41,8 +41,35 @@ namespace geode::modifier {
 	class FieldIntermediate {
 		// Padding used for guaranteeing any member of parents 
 		// will be in between sizeof(Intermediate) and sizeof(Parent)
-		size_t m_padding; 
+		std::max_align_t m_padding; 
 	public:
+		static void fieldConstructor(void* offsetField) {
+			std::array<std::byte, sizeof(Parent)> parentContainer;
+
+			auto parent = new (parentContainer.data()) Parent();
+
+			parent->Intermediate::~Intermediate();
+
+			std::memcpy(
+				offsetField, 
+				&parentContainer[sizeof(Intermediate)], 
+				sizeof(Parent) - sizeof(Intermediate)
+			);
+		}
+		static void fieldDestructor(void* offsetField) {
+			std::array<std::byte, sizeof(Parent)> parentContainer;
+
+			auto parent = new (parentContainer.data()) Intermediate();
+
+			std::memcpy(
+				&parentContainer[sizeof(Intermediate)], 
+				offsetField, 
+				sizeof(Parent) - sizeof(Intermediate)
+			);
+
+			static_cast<Parent*>(parent)->Parent::~Parent();
+		}
+
 		template <class=std::enable_if_t<true>>
 		Parent* operator->() {
 			// get the this pointer of the base
@@ -57,9 +84,10 @@ namespace geode::modifier {
 			auto offsetField = container->getField(index);
 			if (!offsetField) {
 				offsetField = container->setField(index, sizeof(Parent) - sizeof(Intermediate), 
-					std::bind(&Parent::fieldDestructor, node)
+					&FieldIntermediate::fieldDestructor
 				);
-				node->fieldConstructor();
+
+				FieldIntermediate::fieldConstructor(offsetField);
 			}
 
 			return reinterpret_cast<Parent*>(reinterpret_cast<std::byte*>(offsetField) - sizeof(Intermediate));
