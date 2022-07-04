@@ -34,7 +34,7 @@ THE SOFTWARE.
 
 
 // Geode macros
-#include "../../../platform/platform.hpp"
+#include "../../../codegen-base/Macros.hpp"
 
 //
 // all cocos2d include files

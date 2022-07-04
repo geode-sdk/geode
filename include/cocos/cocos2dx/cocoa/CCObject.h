@@ -30,7 +30,7 @@ THE SOFTWARE.
 #include <unordered_map>
 
 // Geode macros
-#include "../../../platform/platform.hpp"
+#include "../../../codegen-base/Macros.hpp"
 
 #ifdef EMSCRIPTEN
 #include <GLES2/gl2.h>
