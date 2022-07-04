@@ -1038,7 +1038,6 @@ class EditorPauseLayer : CCBlockLayer, FLAlertLayerProtocol {
 	void uncheckAllPortals(cocos2d::CCObject* sender) = mac 0x0, win 0x74760, ios 0x0;
 	void onResetUnusedColors(cocos2d::CCObject* sender) = mac 0x0, win 0x74810, ios 0x0;
 	void doResetUnused() = mac 0x0, win 0x165070, ios 0x0;
-	EditorPauseLayer() = mac 0x0, win 0x72f10, ios 0x0;
 
 	bool m_saved;
 	PAD = mac 0x0, win 0x4, android 0x0;
