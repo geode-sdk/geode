@@ -49,7 +49,7 @@ types::ret{index} {class_name}::{function_name}({parameters}){const_whitespace}{
 )GEN";
 
 	char const* declare_constructor = R"GEN(
-{class_name}::{function_name}({parameters}) : {class_name}(std::monostate()) {{
+{class_name}::{function_name}({parameters}) : {class_name}(std::monostate(), sizeof({class_name})) {{
 	// here we construct it as normal as we can, then destruct it
 	// using the generated functions. this ensures no memory gets leaked
 	// no crashes :pray:
