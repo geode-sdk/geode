@@ -20,7 +20,9 @@ class cocos2d::CCApplication {
 	virtual auto openURL(char const*) = mac 0x1a4550, ios 0x10e7a4;
 	virtual auto setAnimationInterval(double) = mac 0x1a3ee0, ios 0x10e494;
 	static auto sharedApplication() = mac 0x1a3f30;
-	~CCApplication() = mac 0x1a3d10, ios 0x10e384;
+	// ~CCApplication() = mac 0x1a3d10, ios 0x10e384;
+	inline cocos2d::CCApplication::CCApplication() {}
+	inline cocos2d::CCApplication::~CCApplication() {}
 }
 
 class cocos2d::CCArray {
@@ -94,7 +96,9 @@ class cocos2d::CCDictionary {
 }
 
 class cocos2d::CCDirector {
-	virtual ~CCDirector() = mac 0x2493a0;
+	inline cocos2d::CCDirector::CCDirector() {}
+	inline cocos2d::CCDirector::~CCDirector() {}
+	// virtual ~CCDirector() = mac 0x2493a0;
 	virtual auto init() = mac 0x248df0;
 	virtual auto getScheduler() = mac 0x24af00;
 	virtual auto setScheduler(cocos2d::CCScheduler*) = mac 0x24aec0;
@@ -424,7 +428,7 @@ class cocos2d::CCMouseDispatcher {
 class cocos2d::CCMouseHandler {
     static cocos2d::CCMouseHandler* handlerWithDelegate(cocos2d::CCMouseDelegate*) = mac 0x12ef80;
     virtual auto initWithDelegate(cocos2d::CCMouseDelegate*) = mac 0x12ef40, , ios 0x43798;
-    ~CCMouseHandler() = mac 0x12ede0, , ios 0x4375c;
+    ~CCMouseHandler() = mac 0x12ede0, ios 0x4375c;
 }
 
 class cocos2d::CCMoveBy {
@@ -744,7 +748,7 @@ class cocos2d::CCSpriteFrameCache {
 class cocos2d::CCStandardTouchHandler {
     static cocos2d::CCStandardTouchHandler* handlerWithDelegate(cocos2d::CCTouchDelegate*, int) = mac 0x247f30;
     virtual auto initWithDelegate(cocos2d::CCTouchDelegate*, int) = mac 0x247ed0, , ios 0x69; // iOS stub
-    ~CCStandardTouchHandler() = mac 0x2482a0, , ios 0x6d28;
+    ~CCStandardTouchHandler() = mac 0x2482a0, ios 0x6d28;
 }
 
 class cocos2d::CCString {
@@ -843,6 +847,7 @@ class cocos2d::CCTransitionFade {
 // }
 
 class cocos2d::extension::CCControl {
+	inline cocos2d::extension::CCControl::CCControl() {}
     virtual bool init() = mac 0x1a71c0;
     virtual ~CCControl() = mac 0x1a7380;
     auto sendActionsForControlEvents(cocos2d::extension::CCControlEvent) = mac 0x1a7490;
@@ -865,6 +870,7 @@ class cocos2d::extension::CCControl {
 }
 
 class cocos2d::extension::CCControlColourPicker {
+	inline cocos2d::extension::CCControlColourPicker::CCControlColourPicker() {}
     ~CCControlColourPicker() = mac 0x1aae30;
 	auto setColorValue(cocos2d::_ccColor3B const&) = mac 0x1aac10;
     auto ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x1aae10;

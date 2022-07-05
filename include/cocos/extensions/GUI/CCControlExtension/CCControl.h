@@ -139,6 +139,8 @@ public:
      *  @js ctor
      */
     CCControl();
+    GEODE_MONOSTATE_CONSTRUCTOR_COCOS(CCControl, CCLayerRGBA)
+    
     virtual bool init(void);
     /**
      *  @js NA

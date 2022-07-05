@@ -48,6 +48,8 @@ class CC_DLL  CCTouchHandler : public CCObject
 {
     GEODE_FRIEND_MODIFY
 public:
+	GEODE_MONOSTATE_CONSTRUCTOR_COCOS(CCTouchHandler, CCObject)
+	inline CCTouchHandler() = default;
     virtual ~CCTouchHandler(void);
 
     /** delegate */
@@ -84,6 +86,9 @@ class CC_DLL  CCStandardTouchHandler : public CCTouchHandler
 {
     GEODE_FRIEND_MODIFY
 public:
+	GEODE_MONOSTATE_CONSTRUCTOR_COCOS(CCStandardTouchHandler, CCTouchHandler)
+	inline CCStandardTouchHandler() = default;
+
     ~CCStandardTouchHandler(void);
     
     /** initializes a TouchHandler with a delegate and a priority */
@@ -105,6 +110,9 @@ class CC_DLL  CCTargetedTouchHandler : public CCTouchHandler
 {
     GEODE_FRIEND_MODIFY
 public:
+	GEODE_MONOSTATE_CONSTRUCTOR_COCOS(CCTargetedTouchHandler, CCTouchHandler)
+	inline CCTargetedTouchHandler() = default;
+	
     ~CCTargetedTouchHandler(void);
 
     /** whether or not the touches are swallowed */

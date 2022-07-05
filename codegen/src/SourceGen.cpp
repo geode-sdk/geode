@@ -42,9 +42,12 @@ types::ret{index} {class_name}::{function_name}({parameters}){const_whitespace}{
 	// basically we destruct it once by calling the gd function, 
 	// then lock it, so that other gd destructors dont get called
 	if (CCDestructor::lock(this)) return;
-	CCDestructor::lock(this) = true;
 	auto func = Function<types::meta{index}, {convention}>({{addresses::address{index}()}});
 	func(this{argument_comma}{arguments});
+	// we need to construct it back so that it uhhh ummm doesnt crash
+	// while going to the child destructors
+	auto thing = new (this) {class_name}(std::monostate(), sizeof({class_name}));
+	CCDestructor::lock(this) = true;
 }}
 )GEN";
 
