@@ -139,6 +139,7 @@ public:
     : m_pLabel(NULL)
     , m_fOriginalScale(0.0)
     {}
+    GEODE_MONOSTATE_CONSTRUCTOR_COCOS(CCMenuItemLabel, CCMenuItem)
     /**
      * @js NA
      * @lua NA

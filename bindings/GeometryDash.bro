@@ -782,7 +782,8 @@ class CreatorLayer : cocos2d::CCLayer {
 	static CreatorLayer* create() = mac 0x0, win 0x4dda0, ios 0x0;
 }
 
-class CurrencyRewardLayer {
+class CurrencyRewardLayer : cocos2d::CCLayer {
+	inline CurrencyRewardLayer() {}
 	~CurrencyRewardLayer() = mac 0x447950, win 0x0, ios 0x0;
 	virtual void update(float) = mac 0x44a5c0, win 0x0, ios 0x0;
 }
@@ -919,6 +920,12 @@ class DialogObject : cocos2d::CCObject {
 class DownloadMessageDelegate {}
 
 class DrawGridLayer : cocos2d::CCLayer {
+	static DrawGridLayer* get() {
+		auto editorLayer = LevelEditorLayer::get();
+		if (!editorLayer) return nullptr;
+		return editorLayer->m_drawGridLayer;
+	}
+
 	bool init(cocos2d::CCNode* grid, LevelEditorLayer* editor) = mac 0x0, win 0x16c4d0, ios 0x0;
 	void draw() = mac 0x0, win 0x16ce90, ios 0x0;
 	virtual void update(float) = mac 0x0, win 0x16cd80, ios 0x0;
@@ -1110,6 +1117,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
 	void constrainGameLayerPosition(float x, float y) = mac 0x18890, win 0x8f920, ios 0x0;
 	void moveGameLayer(cocos2d::CCPoint const& pos) = mac 0x1ca90, win 0x79290, ios 0x0;
 	void showUI(bool show) = mac 0x245b0, win 0x87180, ios 0x0;
+	void resetUI() = mac 0x18520;
 	void editObject2(cocos2d::CCObject* sender) = mac 0x0, win 0x8d1b0, ios 0x0;
 	void editGroup(cocos2d::CCObject* sender) = mac 0x0, win 0x8d720, ios 0x0;
 	void moveObjectCall(cocos2d::CCObject* sender) = mac 0x29830, win 0x8db30, ios 0x0;
@@ -1187,7 +1195,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
 	CCMenuItemSpriteExtra* m_snapBtn;
 	CCMenuItemSpriteExtra* m_rotateBtn;
 	CCMenuItemSpriteExtra* m_playbackBtn;
-	CCMenuItemSpriteExtra* m_PlaytestBtn;
+	CCMenuItemSpriteExtra* m_playtestBtn;
 	CCMenuItemSpriteExtra* m_playtestStopBtn;
 	CCMenuItemSpriteExtra* m_trashBtn;
 	CCMenuItemSpriteExtra* m_linkBtn;
@@ -2887,6 +2895,7 @@ class GameObject : CCSpritePlus {
 	    return m_detailColor;
 	}
 
+	GameObject() = mac 0xdc4c0; // yeah why is this here wtf, seems life ego ctor created this
 	~GameObject() = mac 0x2f4ca0, win 0x0, ios 0x0;
 	virtual void update(float) = mac 0x2fbb90, win 0x0, ios 0x0;
 	virtual void setScaleX(float) = mac 0x335b00, win 0xe5050, ios 0x0;
@@ -3566,12 +3575,12 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
 	int m_coinCount;
 	PAD = mac 0x40, win 0x28, android 0x0;
 	int m_currentLayer;
-	PAD = mac 0x38, win 0x28, android 0x0;
-	EditorUI* m_editorUI;
+	PAD = mac 0x40, win 0x28, android 0x0;
+	EditorUI* m_editorUI; // 0x5d8 on macos!! 
 	cocos2d::CCSprite* m_backgroundLayer;
 	cocos2d::CCArray* m_undoObjects;
 	cocos2d::CCArray* m_someArray;
-	PAD = mac 0x16, win 0x8, android 0x0;
+	PAD = mac 0x8, win 0x8, android 0x0;
 	int m_objectsRand1;
 	int m_objectsRand2;
 	int m_objects;

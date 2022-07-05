@@ -207,6 +207,9 @@ RT_ADD(
 	class CC_DLL CCKeyboardHandler : public CCObject
 	{
 	public:
+		GEODE_MONOSTATE_CONSTRUCTOR_COCOS(CCKeyboardHandler, CCObject)
+		inline CCKeyboardHandler() = default;
+		
 		virtual ~CCKeyboardHandler();
 
 		CCKeyboardHandler& operator=(const CCKeyboardHandler&);
