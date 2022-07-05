@@ -245,6 +245,7 @@ class CCCircleWaveDelegate {
 }
 
 class CCContentLayer : cocos2d::CCLayerColor {
+	inline CCContentLayer() {}
 	static CCContentLayer* create(cocos2d::ccColor4B const& color, float width, float height) = mac 0x0, win 0x172a0, ios 0x0;
 	virtual void setPosition(cocos2d::CCPoint const& pos) = mac 0x0, win 0x17400, ios 0x0;
 }
@@ -3778,6 +3779,7 @@ class MenuGameLayer {
 }
 
 class MenuLayer : cocos2d::CCLayer, FLAlertLayerProtocol {
+	inline MenuLayer() {}
 	~MenuLayer() = mac 0x1d1230, win 0x0, ios 0x0;
 	virtual bool init() = mac 0x1d14b0, win 0x1907b0, ios 0x0;
 	virtual void keyBackClicked() = mac 0x1d3160, win 0x191f90, ios 0x0;
