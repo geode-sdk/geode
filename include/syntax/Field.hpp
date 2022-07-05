@@ -73,7 +73,7 @@ namespace geode::modifier {
 		template <class=std::enable_if_t<true>>
 		Parent* operator->() {
 			// get the this pointer of the base
-			auto node = reinterpret_cast<Parent*>(reinterpret_cast<std::byte*>(this) - sizeof(Base));
+			auto node = reinterpret_cast<Parent*>(reinterpret_cast<std::byte*>(this) - offsetof(Parent, m_fields));
 			auto container = reinterpret_cast<FieldContainer*>(node->getUserObject());
 			if (!container) {
 				container = FieldContainer::create();

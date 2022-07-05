@@ -5050,7 +5050,7 @@ class TableViewDelegate {
 class TeleportPortalObject : GameObject {
 	PAD = mac 0x8, win 0x4, android 0x0;
 	TeleportPortalObject* m_orangePortal;
-	bool m_unk470;
+	bool m_isYellowPortal;
 	float m_teleportYOffset;
 	bool m_teleportEase;
 }
