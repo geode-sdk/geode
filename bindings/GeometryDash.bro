@@ -139,7 +139,7 @@ class BoomScrollLayer : cocos2d::CCLayer {
 
 class ButtonSprite : cocos2d::CCSprite {
 	// you really should find this function or a higher overload on mac
-	static ButtonSprite* create(const char* caption, int width, int unknown, float scale, bool absoluteWidth, const char* font, const char* texture, float height) = win 0x137d0, mac 0x4fa90, ios 0x38c7c;
+	static ButtonSprite* create(const char* caption, int width, int unknown, float scale, float height, bool absoluteWidth, const char* font, const char* texture) = win 0x137d0, mac 0x4fa90, ios 0x38c7c;
 
 	[[docs("
 	/**
@@ -154,8 +154,8 @@ class ButtonSprite : cocos2d::CCSprite {
 	* @returns Pointer to the created ButtonSprite, or nullptr on error
 	*/
 	")]]
-	static ButtonSprite* create(const char* caption, int width, bool absolute, const char* font, const char* texture, float height, float scale) {
-		return create(caption, width, 0, scale, absolute, font, texture, height);
+	static ButtonSprite* create(const char* caption, int width, float height, float scale, bool absolute, const char* font, const char* texture) {
+		return create(caption, width, 0, scale, height, absolute, font, texture);
 	}
 
 	inline static ButtonSprite* create(char const* caption) {
@@ -167,7 +167,7 @@ class ButtonSprite : cocos2d::CCSprite {
 	static ButtonSprite* create(char const*, int, int, float, bool) = mac 0x4fa40, win 0x0, ios 0x0;
 	void updateBGImage(const char*) = mac 0x502d0, win 0x13af0, ios 0x0;
 	static ButtonSprite* create(char const*, float) = mac 0x4fa60, win 0x0, ios 0x0;
-	void setString(const char* txt) = mac 0x0, win 0x14030, ios 0x0;
+	void setString(const char* txt) = mac 0x4fec0, win 0x14030, ios 0x0;
 	void updateSpriteBGSize(cocos2d::CCPoint const& offset) = mac 0x0, win 0x13c00, ios 0x0;
 	void setColor(cocos2d::ccColor3B color) = mac 0x50410, win 0x143e0, ios 0x0;
 
@@ -1038,7 +1038,7 @@ class EditorPauseLayer : CCBlockLayer, FLAlertLayerProtocol {
 	void saveLevel() = mac 0x13ebd0, win 0x75010, ios 0x0;
 	bool init(LevelEditorLayer*) = mac 0x13c7a0, win 0x730e0, ios 0x280cb8;
 	void onExitEditor(cocos2d::CCObject* sender) = mac 0x0, win 0x75660, ios 0x0;
-	void playStep2() = mac 0x0, win 0x75440, ios 0x0;
+	void playStep2() = mac 0x13f040, win 0x75440, ios 0x0;
 	void onResume(cocos2d::CCObject* sender) = mac 0x0, win 0x74fe0, ios 0x0;
 	void onSaveAndPlay(cocos2d::CCObject* sender) = mac 0x0, win 0x753d0, ios 0x0;
 	void onSaveAndExit(cocos2d::CCObject* sender) = mac 0x0, win 0x75620, ios 0x0;
@@ -1049,7 +1049,7 @@ class EditorPauseLayer : CCBlockLayer, FLAlertLayerProtocol {
 	void doResetUnused() = mac 0x0, win 0x165070, ios 0x0;
 
 	bool m_saved;
-	PAD = mac 0x0, win 0x4, android 0x0;
+	PAD = mac 0x8, win 0x4, android 0x0;
 	CCMenuItemSpriteExtra* m_button0;
 	CCMenuItemSpriteExtra* m_button1;
 	LevelEditorLayer* m_editorLayer;
@@ -3504,7 +3504,7 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
 	void createObjectsFromSetup(gd::string) = mac 0x92230, win 0x0, ios 0x0;
 	cocos2d::CCArray* createObjectsFromString(gd::string, bool) = mac 0x94730, win 0x0, ios 0x0;
 	void getLastObjectX() = mac 0x9c860, win 0x167290, ios 0x0;
-	void getLevelString() = mac 0x97790, win 0x162480, ios 0x0;
+	gd::string getLevelString() = mac 0x97790, win 0x162480, ios 0x0;
 	void getNextColorChannel() = mac 0x9a610, win 0x0, ios 0x0;
 	void getNextFreeBlockID(cocos2d::CCArray*) = mac 0x9a4e0, win 0x0, ios 0x0;
 	int getNextFreeGroupID(cocos2d::CCArray*) = mac 0x9a1b0, win 0x164ae0, ios 0x0;
