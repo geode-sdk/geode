@@ -139,7 +139,7 @@ class BoomScrollLayer : cocos2d::CCLayer {
 
 class ButtonSprite : cocos2d::CCSprite {
 	// you really should find this function or a higher overload on mac
-	static ButtonSprite* create(const char* caption, int width, int unknown, float scale, float height, bool absoluteWidth, const char* font, const char* texture) = win 0x137d0, mac 0x4fa90, ios 0x38c7c;
+	static ButtonSprite* create(const char* caption, int width, int unknown, float scale, bool absoluteWidth, const char* font, const char* texture, float height) = win 0x137d0, mac 0x4fa90, ios 0x38c7c;
 
 	[[docs("
 	/**
@@ -154,15 +154,15 @@ class ButtonSprite : cocos2d::CCSprite {
 	* @returns Pointer to the created ButtonSprite, or nullptr on error
 	*/
 	")]]
-	static ButtonSprite* create(const char* caption, int width, float height, float scale, bool absolute, const char* font, const char* texture) {
-		return create(caption, width, 0, scale, height, absolute, font, texture);
+	static ButtonSprite* create(const char* caption, int width, bool absolute, const char* font, const char* texture, float height, float scale) {
+		return create(caption, width, 0, scale, absolute, font, texture, height);
 	}
 
 	inline static ButtonSprite* create(char const* caption) {
-		return ButtonSprite::create(caption, 0, 0, .0f, 1.f, "goldFont.fnt", "GJ_button_01.png");
+		return ButtonSprite::create(caption, 0, 0, "goldFont.fnt", "GJ_button_01.png", .0f, 1.f);
 	}
 	inline static ButtonSprite* create(char const* caption, const char* font, const char* texture, float scale = 1.f) {
-		return ButtonSprite::create(caption, 0, 0, .0f, scale, font, texture);
+		return ButtonSprite::create(caption, 0, 0, font, texture, .0f, scale);
 	}
 	static ButtonSprite* create(char const*, int, int, float, bool) = mac 0x4fa40, win 0x0, ios 0x0;
 	void updateBGImage(const char*) = mac 0x502d0, win 0x13af0, ios 0x0;
