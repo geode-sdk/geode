@@ -159,10 +159,10 @@ class ButtonSprite : cocos2d::CCSprite {
 	}
 
 	inline static ButtonSprite* create(char const* caption) {
-		return ButtonSprite::create(caption, 0, 0, "goldFont.fnt", "GJ_button_01.png", .0f, 1.f);
+		return ButtonSprite::create(caption, 0, 0, .0f, 1.f, "goldFont.fnt", "GJ_button_01.png");
 	}
 	inline static ButtonSprite* create(char const* caption, const char* font, const char* texture, float scale = 1.f) {
-		return ButtonSprite::create(caption, 0, 0, font, texture, .0f, scale);
+		return ButtonSprite::create(caption, 0, 0, .0f, scale, font, texture);
 	}
 	static ButtonSprite* create(char const*, int, int, float, bool) = mac 0x4fa40, win 0x0, ios 0x0;
 	void updateBGImage(const char*) = mac 0x502d0, win 0x13af0, ios 0x0;
