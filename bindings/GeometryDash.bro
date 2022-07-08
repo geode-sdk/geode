@@ -1406,7 +1406,16 @@ class FLAlertLayer : cocos2d::CCLayerColor {
 	virtual void keyDown(cocos2d::enumKeyCodes) = mac 0x25ece0, win 0x23250, ios 0x0;
 	virtual void show() = mac 0x25f120, win 0x23560, ios 0x1feff4;
 
-	bool init(FLAlertLayerProtocol*, char const*, gd::string, char const*, char const*, float, bool, float) = mac 0x25e1b0, win 0x0, ios 0x0;
+	bool init(
+		FLAlertLayerProtocol* protocol,
+		char const* title,
+		gd::string content,
+		char const* btn1,
+		char const* btn2,
+		float width,
+		bool scrollable,
+		float height
+	) = mac 0x25e1b0, win 0x228e0, ios 0x0;
 	static FLAlertLayer* create(FLAlertLayerProtocol*, char const*, gd::string, char const*, char const*) = mac 0x25de00, win 0x22680, ios 0x0;
 	static FLAlertLayer* create(FLAlertLayerProtocol*, char const*, gd::string, char const*, char const*, float) = mac 0x25e0e0, win 0x22730, ios 0x1fe374;
 	static FLAlertLayer* create(FLAlertLayerProtocol*, char const*, gd::string, char const*, char const*, float, bool, float) = mac 0x25dec0, win 0x227e0, ios 0x0;
