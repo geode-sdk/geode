@@ -4914,13 +4914,13 @@ class SliderThumb : cocos2d::CCMenuItemImage {
 class SliderTouchLogic : cocos2d::CCMenu {
 	SliderThumb* getThumb() const { return m_thumb; }
 
-	PAD = mac 0x0, win 0x4, android 0x0;
+	float m_unknownUnused;
 	float m_length;
 	SliderThumb* m_thumb;
 	Slider* m_slider;
-	bool m_unknown;
-	PAD = mac 0x0, win 0x8, android 0x0;
-	bool m_vertical;
+	bool m_activateThumb;
+	cocos2d::CCPoint m_position;
+	bool m_rotated;
 }
 
 class SongCell : TableViewCell {
