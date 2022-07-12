@@ -46,7 +46,6 @@ types::ret{index} {class_name}::{function_name}({parameters}){const_whitespace}{
 	func(this{argument_comma}{arguments});
 	// we need to construct it back so that it uhhh ummm doesnt crash
 	// while going to the child destructors
-	std::memset(this, 0, sizeof({class_name}));
 	auto thing = new (this) {class_name}(std::monostate(), sizeof({class_name}));
 	CCDestructor::lock(this) = true;
 }}

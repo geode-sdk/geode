@@ -23,6 +23,30 @@ namespace geode::cocos {
     }
 
     /**
+     * Get nth child that is a given type. Checks bounds. 
+     * @returns Child at index cast to the given type, 
+     * or nullptr if index exceeds bounds
+     */
+    template<class Type = cocos2d::CCNode*>
+    static Type getChildOfType(cocos2d::CCNode* node, size_t index) {
+    	auto indexCounter = static_cast<size_t>(0);
+
+		for (size_t i = 0; i < node->getChildrenCount(); ++i) {
+			auto obj = cast::typeinfo_cast<Type>(
+				node->getChildren()->objectAtIndex(i)
+			);
+			if (obj != nullptr) {
+				if (indexCounter == index) {
+					return obj;
+				}
+				++indexCounter;
+			}
+		}
+
+		return nullptr;
+    }
+
+    /**
      * Get bounds for a set of nodes. Based on content 
      * size
      * @param nodes Nodes to calculate coverage of

@@ -52,7 +52,7 @@ namespace geode::modifier {
 
 			std::memcpy(
 				offsetField, 
-				&parentContainer[sizeof(Intermediate)], 
+				std::launder(&parentContainer[sizeof(Intermediate)]), 
 				sizeof(Parent) - sizeof(Intermediate)
 			);
 		}
@@ -62,7 +62,7 @@ namespace geode::modifier {
 			auto parent = new (parentContainer.data()) Intermediate();
 
 			std::memcpy(
-				&parentContainer[sizeof(Intermediate)], 
+				std::launder(&parentContainer[sizeof(Intermediate)]), 
 				offsetField, 
 				sizeof(Parent) - sizeof(Intermediate)
 			);

@@ -1038,7 +1038,7 @@ class EditorPauseLayer : CCBlockLayer, FLAlertLayerProtocol {
 	void saveLevel() = mac 0x13ebd0, win 0x75010, ios 0x0;
 	bool init(LevelEditorLayer*) = mac 0x13c7a0, win 0x730e0, ios 0x280cb8;
 	void onExitEditor(cocos2d::CCObject* sender) = mac 0x0, win 0x75660, ios 0x0;
-	void playStep2() = mac 0x0, win 0x75440, ios 0x0;
+	void playStep2() = mac 0x13f040, win 0x75440, ios 0x0;
 	void onResume(cocos2d::CCObject* sender) = mac 0x0, win 0x74fe0, ios 0x0;
 	void onSaveAndPlay(cocos2d::CCObject* sender) = mac 0x0, win 0x753d0, ios 0x0;
 	void onSaveAndExit(cocos2d::CCObject* sender) = mac 0x0, win 0x75620, ios 0x0;
@@ -1049,7 +1049,7 @@ class EditorPauseLayer : CCBlockLayer, FLAlertLayerProtocol {
 	void doResetUnused() = mac 0x0, win 0x165070, ios 0x0;
 
 	bool m_saved;
-	PAD = mac 0x0, win 0x4, android 0x0;
+	PAD = mac 0x8, win 0x4, android 0x0;
 	CCMenuItemSpriteExtra* m_button0;
 	CCMenuItemSpriteExtra* m_button1;
 	LevelEditorLayer* m_editorLayer;
@@ -1406,7 +1406,16 @@ class FLAlertLayer : cocos2d::CCLayerColor {
 	virtual void keyDown(cocos2d::enumKeyCodes) = mac 0x25ece0, win 0x23250, ios 0x0;
 	virtual void show() = mac 0x25f120, win 0x23560, ios 0x1feff4;
 
-	bool init(FLAlertLayerProtocol*, char const*, gd::string, char const*, char const*, float, bool, float) = mac 0x25e1b0, win 0x0, ios 0x0;
+	bool init(
+		FLAlertLayerProtocol* protocol,
+		char const* title,
+		gd::string content,
+		char const* btn1,
+		char const* btn2,
+		float width,
+		bool scrollable,
+		float height
+	) = mac 0x25e1b0, win 0x228e0, ios 0x0;
 	static FLAlertLayer* create(FLAlertLayerProtocol*, char const*, gd::string, char const*, char const*) = mac 0x25de00, win 0x22680, ios 0x0;
 	static FLAlertLayer* create(FLAlertLayerProtocol*, char const*, gd::string, char const*, char const*, float) = mac 0x25e0e0, win 0x22730, ios 0x1fe374;
 	static FLAlertLayer* create(FLAlertLayerProtocol*, char const*, gd::string, char const*, char const*, float, bool, float) = mac 0x25dec0, win 0x227e0, ios 0x0;
@@ -3504,7 +3513,7 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
 	void createObjectsFromSetup(gd::string) = mac 0x92230, win 0x0, ios 0x0;
 	cocos2d::CCArray* createObjectsFromString(gd::string, bool) = mac 0x94730, win 0x0, ios 0x0;
 	void getLastObjectX() = mac 0x9c860, win 0x167290, ios 0x0;
-	void getLevelString() = mac 0x97790, win 0x162480, ios 0x0;
+	gd::string getLevelString() = mac 0x97790, win 0x162480, ios 0x0;
 	void getNextColorChannel() = mac 0x9a610, win 0x0, ios 0x0;
 	void getNextFreeBlockID(cocos2d::CCArray*) = mac 0x9a4e0, win 0x0, ios 0x0;
 	int getNextFreeGroupID(cocos2d::CCArray*) = mac 0x9a1b0, win 0x164ae0, ios 0x0;
@@ -4905,13 +4914,13 @@ class SliderThumb : cocos2d::CCMenuItemImage {
 class SliderTouchLogic : cocos2d::CCMenu {
 	SliderThumb* getThumb() const { return m_thumb; }
 
-	PAD = mac 0x4, win 0x4, android 0x0;
+	float m_unknownUnused;
 	float m_length;
 	SliderThumb* m_thumb;
 	Slider* m_slider;
-	bool m_unknown;
-	PAD = mac 0x0, win 0x8, android 0x0;
-	bool m_vertical;
+	bool m_activateThumb;
+	cocos2d::CCPoint m_position;
+	bool m_rotated;
 }
 
 class SongCell : TableViewCell {
