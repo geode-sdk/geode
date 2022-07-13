@@ -26,9 +26,10 @@ namespace geode {
 
     class Mod;
     class Hook;
-    struct ModInfo;
     class Log;
     class LogPtr;
+    struct ModInfo;
+
     namespace modifier {
     	template<class, class, class>
 		class FieldIntermediate;
@@ -65,7 +66,7 @@ namespace geode {
          * lower than this will not be loaded, 
          * as they will be considered out-of-date.
          */
-        static constexpr const VersionInfo s_supportedVersionMin { 0, 1, 0 };
+        static constexpr VersionInfo s_supportedVersionMin { 0, 1, 0 };
         /**
          * Highest support mod version.
          * Any mod targeting a geode version 
@@ -76,11 +77,13 @@ namespace geode {
          * and has downloaded a mod from the 
          * future.
          */
-        static constexpr const VersionInfo s_supportedVersionMax { 0, 1, 0 };
+        static constexpr VersionInfo s_supportedVersionMax { 0, 1, 0 };
 
         Result<std::string> createTempDirectoryForMod(ModInfo const& info);
         Result<Mod*> loadModFromFile(std::string const& file);
-        size_t loadModsFromDirectory(ghc::filesystem::path const& path, bool recursive);
+        size_t loadModsFromDirectory(
+            ghc::filesystem::path const& path, bool recursive
+        );
         void createDirectories();
 
         void updateAllDependencies();
@@ -109,6 +112,9 @@ namespace geode {
 
         Result<> saveSettings();
         Result<> loadSettings();
+        
+        bool didLastLaunchCrash() const;
+        ghc::filesystem::path getCrashLogDirectory() const;
 
         /**
          * Directory where Geometry Dash is

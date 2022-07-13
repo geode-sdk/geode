@@ -295,20 +295,22 @@ namespace geode {
         friend class DataStore;
 
     public:
-        std::string getID()         const;
-        std::string getName()       const;
-        std::string getDeveloper()  const;
-        std::string getDescription()const;
-        std::string getDetails()    const;
-        std::string getPath()       const;
-        VersionInfo getVersion()    const;
-        bool        isEnabled()     const;
-        bool        isLoaded()      const;
+        std::string getID() const;
+        std::string getName() const;
+        std::string getDeveloper() const;
+        std::string getDescription() const;
+        std::string getDetails() const;
+        std::string getPath() const;
+        VersionInfo getVersion() const;
+        bool        isEnabled() const;
+        bool        isLoaded() const;
         bool        supportsDisabling() const;
         bool        supportsUnloading() const;
         bool        wasSuccesfullyLoaded() const;
         std::string getLoadErrorInfo() const;
         ModInfo     getModInfo() const;
+        ghc::filesystem::path getTempDir() const;
+        ghc::filesystem::path getBinaryPath() const;
 
         /**
          * Get the mod container stored in the Interface
