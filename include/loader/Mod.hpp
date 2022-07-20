@@ -97,11 +97,17 @@ namespace geode {
          */
         std::string m_description = "";
         /**
-         * Free-form detailed description
-         * of the mod. Do not write credits
-         * here; use `m_credits` instead.
+         * Detailed description of the mod, writtenin Markdown (see
+         * https://github.com/geode-sdk/api/blob/main/include/nodes/MDTextArea.hpp) 
+         * for more info
          */
         std::string m_details = "";
+        /**
+         * Changelog for the mod, written in Markdown (see
+         * https://github.com/geode-sdk/api/blob/main/include/nodes/MDTextArea.hpp) 
+         * for more info
+         */
+        std::string m_changelog = "";
         /**
          * Git Repository of the mod.
          */
@@ -159,12 +165,16 @@ namespace geode {
         Mod* m_mod;
 
         DataStore(Mod* m, nlohmann::json& j) : m_mod(m), m_store(j) {}
+        
         friend class Mod;
+
     public:
         ~DataStore();
+
+        nlohmann::json& getJson() const;
         nlohmann::json& operator[](std::string const&);
         DataStore& operator=(nlohmann::json&);
-        bool contains(std::string const&);
+        bool contains(std::string const&) const;
         operator nlohmann::json();
 
     };
@@ -291,20 +301,22 @@ namespace geode {
         friend class DataStore;
 
     public:
-        std::string getID()         const;
-        std::string getName()       const;
-        std::string getDeveloper()  const;
-        std::string getDescription()const;
-        std::string getDetails()    const;
-        std::string getPath()       const;
-        VersionInfo getVersion()    const;
-        bool        isEnabled()     const;
-        bool        isLoaded()      const;
+        std::string getID() const;
+        std::string getName() const;
+        std::string getDeveloper() const;
+        std::string getDescription() const;
+        std::string getDetails() const;
+        std::string getPath() const;
+        VersionInfo getVersion() const;
+        bool        isEnabled() const;
+        bool        isLoaded() const;
         bool        supportsDisabling() const;
         bool        supportsUnloading() const;
         bool        wasSuccesfullyLoaded() const;
         std::string getLoadErrorInfo() const;
         ModInfo     getModInfo() const;
+        ghc::filesystem::path getTempDir() const;
+        ghc::filesystem::path getBinaryPath() const;
 
         /**
          * Get the mod container stored in the Interface
