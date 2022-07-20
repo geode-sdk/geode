@@ -841,10 +841,10 @@ class cocos2d::CCTransitionFade {
 	static cocos2d::CCTransitionFade* create(float, cocos2d::CCScene*) = mac 0x8ea30, ios 0x12c244;
 }
 
-// class cocos2d::ZipUtils {
-// 	static auto compressString(gd::string, bool, int) = mac 0xe9a50;
-// 	static auto decompressString(gd::string, bool, int) = mac 0xea380;
-// }
+class cocos2d::ZipUtils {
+	static auto compressString(gd::string, bool, int) = mac 0xe9a50;
+	static auto decompressString(gd::string, bool, int) = mac 0xea380;
+}
 
 class cocos2d::extension::CCControl {
 	inline cocos2d::extension::CCControl::CCControl() {}

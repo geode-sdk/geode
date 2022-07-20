@@ -149,19 +149,19 @@ namespace cocos2d
         static void ccSetPvrEncryptionKey(unsigned int keyPart1, unsigned int keyPart2, unsigned int keyPart3, unsigned int keyPart4);
 
         RT_ADD(
-            static std::string base64DecodeEnc(std::string, std::string);
-            static std::string base64EncodeEnc(std::string, std::string);
-            static std::string base64URLDecode(std::string);
-            static std::string base64URLEncode(std::string);
+            static gd::string base64DecodeEnc(gd::string, gd::string);
+            static gd::string base64EncodeEnc(gd::string, gd::string);
+            static gd::string base64URLDecode(gd::string);
+            static gd::string base64URLEncode(gd::string);
             static int ccDeflateMemory(unsigned char*, unsigned int, unsigned char**);
             static int ccDeflateMemoryWithHint(unsigned char*, unsigned int, unsigned char**, unsigned int);
-            static std::string compressString(std::string, bool, int);
-            static std::string decompressString(std::string, bool, int);
-            static std::string decompressString2(unsigned char*, bool, int, int);
-            static std::string encryptDecrypt(std::string, int);
-            static std::string encryptDecryptWKey(std::string, std::string);
-            static unsigned char hexToChar(const std::string&);
-            static std::string urlDecode(const std::string&);
+            static gd::string compressString(gd::string, bool, int);
+            static gd::string decompressString(gd::string, bool, int);
+            static gd::string decompressString2(unsigned char*, bool, int, int);
+            static gd::string encryptDecrypt(gd::string, int);
+            static gd::string encryptDecryptWKey(gd::string, gd::string);
+            static unsigned char hexToChar(const gd::string&);
+            static gd::string urlDecode(const gd::string&);
         )
 
     private:

@@ -54,15 +54,12 @@ namespace geode {
 			Severity m_severity;
 		};
 
-		using exportmemfn_t = void(Mod::*)(std::string const&, unknownmemfn_t);
-		using exportfn_t = void(Mod::*)(std::string const&, unknownfn_t);
-
-		using loadfn_t = void(*)(Mod*);
+		using ScheduledFunction = std::function<void()>;
 
 		Mod* m_mod = nullptr;
 		std::vector<ScheduledHook> m_scheduledHooks;
 		std::vector<ScheduledLog> m_scheduledLogs;
-		std::vector<loadfn_t> m_scheduledFunctions;
+		std::vector<ScheduledFunction> m_scheduledFunctions;
 		
 	public:
 		static inline GEODE_HIDDEN Interface* get() {
@@ -126,22 +123,7 @@ namespace geode {
          */
         GEODE_DLL void logInfo(std::string const& info, Severity severity);
 
-        GEODE_DLL void scheduleOnLoad(loadfn_t fn);
-
-    protected:
-        // GEODE_DLL void exportAPIFunctionInternal(std::string const& selector, unknownmemfn_t fn);
-        // GEODE_DLL void exportAPIFunctionInternal(std::string const& selector, unknownfn_t fn);
-
-    public:
-        // template <typename T>
-        // inline void exportAPIFunction(std::string const& selector, T ptr) {
-        // 	if constexpr (std::is_member_function_pointer_v<decltype(ptr)>) {
-        // 		exportAPIFunctionInternal(selector, cast::reference_cast<unknownmemfn_t>(ptr));
-        // 	}
-        // 	else {
-        // 		exportAPIFunctionInternal(selector, reinterpret_cast<unknownfn_t>(ptr));
-        // 	}
-        // }
+        GEODE_DLL void scheduleOnLoad(ScheduledFunction function);
 
         friend Mod* Mod::get<void>();
 	};

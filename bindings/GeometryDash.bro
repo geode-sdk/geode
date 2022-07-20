@@ -1040,8 +1040,8 @@ class EditorPauseLayer : CCBlockLayer, FLAlertLayerProtocol {
 	void onExitEditor(cocos2d::CCObject* sender) = mac 0x0, win 0x75660, ios 0x0;
 	void playStep2() = mac 0x13f040, win 0x75440, ios 0x0;
 	void onResume(cocos2d::CCObject* sender) = mac 0x0, win 0x74fe0, ios 0x0;
-	void onSaveAndPlay(cocos2d::CCObject* sender) = mac 0x0, win 0x753d0, ios 0x0;
-	void onSaveAndExit(cocos2d::CCObject* sender) = mac 0x0, win 0x75620, ios 0x0;
+	void onSaveAndPlay(cocos2d::CCObject* sender) = mac 0x13e1b0, win 0x753d0, ios 0x0;
+	void onSaveAndExit(cocos2d::CCObject* sender) = mac 0x13e230, win 0x75620, ios 0x0;
 	void onSave(cocos2d::CCObject* sender) = mac 0x0, win 0x755a0, ios 0x0;
 	void onExitNoSave(cocos2d::CCObject* sender) = mac 0x0, win 0x75700, ios 0x0;
 	void uncheckAllPortals(cocos2d::CCObject* sender) = mac 0x0, win 0x74760, ios 0x0;
@@ -1238,11 +1238,13 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
 	LevelEditorLayer* m_editorLayer;
 	cocos2d::CCPoint m_swipeStart;
 	cocos2d::CCPoint m_swipeEnd;
-	PAD = mac 0x20, win 0x20, android 0x0;
+	PAD = mac 0x10, win 0x10, android 0x0;
+	cocos2d::CCPoint m_caremaTest;
+	PAD = mac 0x8, win 0x8, android 0x0;
 	GameObject* m_selectedObject;
-	PAD = mac 0x16, win 0x8, android 0x0;
+	PAD = mac 0x10, win 0x8, android 0x0;
 	gd::string m_clipboard;
-	PAD = mac 0x16, win 0x8, android 0x0;
+	PAD = mac 0x10, win 0x8, android 0x0;
 	int m_selectedTab;
 	int m_timesSelected;
 	PAD = mac 0x0, win 0x20, android 0x0;
@@ -1500,9 +1502,9 @@ class GJAccountLoginDelegate {
 }
 
 class GJAccountManager : cocos2d::CCNode {
-	static GJAccountManager* sharedState() = mac 0x0, win 0x107d50, ios 0x0;
+	static GJAccountManager* sharedState() = mac 0x85070, win 0x107d50, ios 0x0;
 
-	PAD = mac 0x0, win 0x4, android 0x0;
+	PAD = mac 0x8, win 0x4, android 0x0;
 	gd::string m_password;
 	gd::string m_username;
 	int m_accountID;
@@ -2734,7 +2736,7 @@ class GameManager : GManager {
 	bool isColorUnlocked(int _id, bool _type) = mac 0x1c3b90, win 0xc53f0, ios 0x0;
 	bool isIconUnlocked(int _id, IconType _type) = mac 0x1c35b0, win 0xc4fc0, ios 0x0;
 	void toggleGameVariable(const char* key) = mac 0x0, win 0xc9e90, ios 0x0;
-	static void returnToLastScene(GJGameLevel* level) = mac 0x0, win 0xce6a0, ios 0x0;
+	void returnToLastScene(GJGameLevel* level) = mac 0x1d0500, win 0xce6a0, ios 0x0;
 
 	bool m_switchModes;
 	bool m_toFullscreen;
@@ -3948,6 +3950,7 @@ class OptionsLayer : GJDropDownLayer, FLAlertLayerProtocol {
 class PauseLayer : CCBlockLayer {
 	static PauseLayer* create(bool) = mac 0x20b1e0, win 0x1e4570, ios 0x0;
 	void onEdit(cocos2d::CCObject*) = mac 0x20c630, win 0x1e60e0, ios 0x0;
+	void goEdit() = mac 0x20cc10;
 
 	void onQuit(cocos2d::CCObject*) = mac 0x0, win 0x1e63d0, ios 0x0;
 	void createToggleButton(gd::string caption, cocos2d::SEL_MenuHandler callback, bool on, cocos2d::CCMenu* menu, cocos2d::CCPoint pos) = mac 0x20c890, win 0x1e5570, ios 0x0;
