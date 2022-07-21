@@ -280,4 +280,69 @@ namespace geode::cocos {
             return m_dict->allKeys(key)->count();
         }
     };
+
+    template <typename R, typename ...Args>
+    class SelectorWrapperImpl : public cocos2d::CCObject {
+     protected:
+        std::function<R(Args...)> m_inner;
+     public:
+        static SelectorWrapperImpl<R, Args...>* create(std::function<R(Args...)> fn) {
+            auto ret = new SelectorWrapperImpl<R, Args...>();
+            ret->m_inner = fn;
+            ret->autorelease();
+            return ret;
+        }
+        
+        R invoke(Args... args) {
+            return m_inner(args...);
+        }
+    };
+
+    template <typename R, typename ...Args>
+    class SelectorWrapper {
+     protected:
+        using Target = SelectorWrapperImpl<R, Args...>;
+        bool m_tied;
+        Target* m_impl;
+     public:
+        SelectorWrapper(std::function<R(Args...)> fn) {
+            m_impl = Target::create(fn);
+            m_impl->retain();
+        }
+
+        ~SelectorWrapper() {
+            if (!m_tied)
+                m_impl->release();
+        }
+
+        Target* target() {
+            return m_impl;
+        }
+
+        auto selector() {
+            return reinterpret_cast<R(cocos2d::CCObject::*)(Args...)>(&Target::invoke);
+        }
+
+        SelectorWrapper<R, Args...>& leak() {
+            m_impl->retain();
+            return *this;
+        }
+
+        SelectorWrapper<R, Args...> tieToNode(cocos2d::CCNode* node) {
+            if (m_tied) {
+                Log::get() << "Error in SelectorWrapper::tieToNode: already tied!";
+            } else {
+                node->addChild(m_impl);
+                m_impl->release();
+                m_tied = true;
+            }
+
+            return *this;
+        }
+    };
+
+    template <typename F>
+    auto selectorFromFn(std::function<F> fn) {
+        return SelectorWrapper(fn);
+    }
 }

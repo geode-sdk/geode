@@ -165,6 +165,7 @@ class cocos2d::CCEaseOut {
 }
 
 class cocos2d::CCEGLView {
+	static cocos2d::CCEGLView* sharedOpenGLView() = mac 0x295320;
 	virtual void swapBuffers() = mac 0x295510;
 	void updateWindow(int width, int height);
 	void toggleFullScreen(bool fullscreen);
@@ -186,6 +187,8 @@ class cocos2d::CCEGLView {
 
 class cocos2d::CCEGLViewProtocol {
     auto getViewPortRect() const = mac 0x29e2f0;
+    auto getScaleX() const = mac 0x29e300;
+    auto getScaleY() const = mac 0x29e310;
 }
 
 class cocos2d::CCFadeOut {
@@ -585,6 +588,10 @@ class cocos2d::CCObject {
     auto isEqual(cocos2d::CCObject const*) = mac 0x250f20, , ios 0x439e4;
     auto release() = mac 0x250ea0, ios 0x43984;
     auto retain() = mac 0x250ec0, ios 0x439a8;
+    unsigned int retainCount() const {
+    	return m_uReference;
+    }
+
     virtual auto setTag(int) = mac 0x250f60, , ios 0x43a10;
     ~CCObject() = mac 0x250d20, , ios 0x6ac0;
 }
@@ -828,6 +835,7 @@ class cocos2d::CCTouchDispatcher {
 	auto incrementForcePrio(int) = mac 0x280f60, ios 0xcc268;
 	void touches(cocos2d::CCSet*, cocos2d::CCEvent*, unsigned int) = mac 0x281a60;
     void removeDelegate(cocos2d::CCTouchDelegate* delegate);
+    
 
 }
 
