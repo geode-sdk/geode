@@ -56,7 +56,7 @@ struct GEODE_HIDDEN derived : derived##Intermediate                             
 
 #define GEODE_MODIFY_REDIRECT4(base, derived) GEODE_MODIFY_DECLARE(base, derived)
 #define GEODE_MODIFY_REDIRECT3(base, derived) GEODE_MODIFY_DECLARE_ANONYMOUS(base, derived)
-#define GEODE_MODIFY_REDIRECT2(base) GEODE_MODIFY_REDIRECT3(base, GEODE_CONCAT(hook, __COUNTER__))
+#define GEODE_MODIFY_REDIRECT2(base) GEODE_MODIFY_REDIRECT3(base, GEODE_CONCAT(hook, __LINE__))
 #define GEODE_MODIFY_REDIRECT1(base) GEODE_MODIFY_REDIRECT2(base)
 
 /**
@@ -82,3 +82,18 @@ struct GEODE_HIDDEN derived : derived##Intermediate                             
 #define GEODE_INTERNAL_FIELD(type, field, name) inline type& name() { return this->*field; }
 //#define GEODE_EXTERNAL_FIELD(type, field, name) static inline type& name##From(void* self) { return reinterpret_cast<decltype(this)>(self)->*field; }
 #define GEODE_FIELD(type, field, name, default_) GEODE_ONLY_FIELD(type, field, default_) GEODE_INTERNAL_FIELD(type, field, name) //GEODE_EXTERNAL_FIELD(type, field, name)
+
+
+#define GEODE_EXECUTE_FUNC(Line_)                                 \
+template<class>                                                   \
+void _##Line_##Function();                                        \
+namespace {                                                       \
+	struct _##Line_##Unique {};                                   \
+}                                                                 \
+static inline auto _line = (Interface::get()->scheduleOnLoad(     \
+	&_##Line_##Function<_##Line_##Unique>                         \
+), 0);                                                            \
+template<class>                                                   \
+void _##Line_##Function()
+
+#define $execute GEODE_EXECUTE_FUNC(__LINE__)
