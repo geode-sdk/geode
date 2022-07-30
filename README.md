@@ -15,11 +15,11 @@ USE_GEODE_NAMESPACE();
 
 class $modify(MenuLayer) {
 	void onMoreGames(CCObject*) {
-        FLAlertLayer::create(
-            "Geode",
-            "Hello World from my Custom Mod!",
-            "OK"
-        )->show();
+		FLAlertLayer::create(
+			"Geode",
+			"Hello World from my Custom Mod!",
+			"OK"
+		)->show();
 	}
 };
 ```
