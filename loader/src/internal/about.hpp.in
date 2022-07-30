@@ -1,0 +1,15 @@
+#pragma once
+
+#include <Geode/utils/VersionInfo.hpp>
+
+static constexpr const char* LOADER_ABOUT_MD = R"MD_SEPARATOR(@LOADER_ABOUT_MD@)MD_SEPARATOR";
+static constexpr const char* LOADER_VERSION_STR = "@PROJECT_VERSION@";
+static constexpr int LOADER_VERSION_MAJOR = @PROJECT_VERSION_MAJOR@;
+static constexpr int LOADER_VERSION_MINOR = @PROJECT_VERSION_MINOR@;
+static constexpr int LOADER_VERSION_PATCH = @PROJECT_VERSION_PATCH@;
+static constexpr geode::VersionInfo LOADER_VERSION = {
+    @PROJECT_VERSION_MAJOR@,
+    @PROJECT_VERSION_MINOR@,
+    @PROJECT_VERSION_PATCH@
+};
+static constexpr const char* LOADER_VERSION_TYPE = "@PROJECT_VERSION_TYPE@";

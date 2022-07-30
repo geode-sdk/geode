@@ -1,0 +1,9 @@
+{
+    "geode":        "v0.1.0",
+	"version":      "v1.0.0",
+	"id":           "geode.testdep",
+    "name":         "Geode Test Dependency",
+    "developer":    "Geode Team",
+    "description":  "Unit test dependency for Geode",
+    "binary":       "TestDependency"
+}

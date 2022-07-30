@@ -1,0 +1,96 @@
+name: Build Binaries
+
+on:
+  workflow_dispatch:
+  push:
+    branches:    
+    - '**'              # every branch
+    - '!no-build-**'    # unless marked as no-build
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - name: "Windows"
+          os: windows-2019
+          prefixes: ''
+          extra_flags: '-G "Visual Studio 16 2019" -T host=x86 -A win32'
+          out_paths: './bin/nightly/geode.dll ./bin/nightly/geode.lib ./bin/nightly/XInput9_1_0.dll'
+        - name: "macOS"
+          os: macos-latest
+          prefixes: 'PATH="/usr/local/opt/ccache/libexec:$PATH"'
+          extra_flags: "-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON"
+          out_paths: './bin/nightly/Geode.dylib'
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x86
+      if: matrix.config.os == 'windows-latest'
+
+    - name: Configure ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: ${{ matrix.config.os }}
+      if: matrix.config.os == 'macos-latest'
+
+    - name: Configure CMake
+      run: |
+        ${{ matrix.config.prefixes }} cmake -B ${{ github.workspace }}/build ${{ matrix.config.extra_flags }}
+
+    - name: Build
+      run: |
+        cd build
+        cmake --build . --config Release
+
+    - name: Move to output folder
+      shell: bash
+      working-directory: ${{ github.workspace }}
+      run: |
+        mkdir ./out
+        mv ${{ matrix.config.out_paths }} ./out
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ matrix.config.name }}
+        path: ./out
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/download-artifact@v3
+        with:
+          path: ${{ github.workspace }}
+
+      - uses: vimtor/action-zip@v1
+        with:
+          files: macOS
+          dest: macOS.zip
+
+      - uses: vimtor/action-zip@v1
+        with:
+          files: Windows
+          dest: Windows.zip
+
+      - uses: vimtor/action-zip@v1
+        with:
+          files: loader/include
+          dest: Headers.zip
+
+      - name: Update release
+        uses: IsaacShelton/update-existing-release@v1.3.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: ./macOS.zip ./Windows.zip ./Headers.zip
+          release: Nightly
+          prerelease: true

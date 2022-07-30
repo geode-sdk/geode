@@ -1,0 +1,19 @@
+{
+    "geode":        "v0.1.0",
+	"version":      "v1.0.0",
+	"id":           "geode.test",
+    "name":         "Geode Test",
+    "developer":    "Geode Team",
+    "description":  "unit test for geode",
+    "binary":       "TestMod",
+    "datastore": {
+        "times-opened": 1
+    },
+    "dependencies": [
+        {
+            "id": "geode.testdep",
+            "version": "v1.0.*",
+            "required": true
+        }
+    ]
+}
