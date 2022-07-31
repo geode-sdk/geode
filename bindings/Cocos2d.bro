@@ -165,6 +165,7 @@ class cocos2d::CCEaseOut {
 }
 
 class cocos2d::CCEGLView {
+    CCEGLView();
 	static cocos2d::CCEGLView* sharedOpenGLView() = mac 0x295320;
 	virtual void swapBuffers() = mac 0x295510;
 	void updateWindow(int width, int height);
@@ -641,7 +642,7 @@ class cocos2d::CCScheduler {
 	auto scheduleUpdateForTarget(cocos2d::CCObject*, int, bool) = mac 0x2438d0;
 	auto unscheduleAllForTarget(cocos2d::CCObject*) = mac 0x243e40;
 	auto unscheduleUpdateForTarget(cocos2d::CCObject const*) = mac 0x243c60;
-	virtual auto update(float delta) = mac 0x2446d0;
+	virtual void update(float delta) = mac 0x2446d0;
 }
 
 class cocos2d::CCSequence {

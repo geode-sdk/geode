@@ -6,10 +6,11 @@ namespace geode {
     using byte_array = std::vector<uint8_t>;
 
     template <typename T>
-    byte_array to_byte_array(T& a) {
-    	uint8_t* c_array = reinterpret_cast<uint8_t*>(&a);
-
-    	return byte_array(c_array, c_array + sizeof(T));
+    byte_array to_byte_array(T const& a) {
+        byte_array out;
+        out.resize(sizeof(T));
+        std::memcpy(out.data(), &a, sizeof(T));
+        return out;
     }
 
     template<class T>

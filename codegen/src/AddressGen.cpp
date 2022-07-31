@@ -17,21 +17,28 @@ std::string generateAddressHeader(Root& root) {
 	for (auto& c : root.classes) {
 
 		for (auto& field : c.fields) {
-			if (codegen::getStatus(field) == BindStatus::Unbindable)
-				continue;
-
 			std::string address_str;
 
-			if (auto fn = field.get_as<FunctionBindField>()) {
-				address_str = fmt::format("base::get() + {}", codegen::platformNumber(fn->binds));
-			} else if (auto fn = field.get_as<OutOfLineField>()) {
+			auto fn = field.get_as<FunctionBindField>();
+
+			if (!fn) {
+				continue;
+			}
+
+			if (codegen::getStatus(field) == BindStatus::Binded) {
+
 				address_str = fmt::format("addresser::get{}Virtual((types::member{})(&{}::{}))",
 					str_if("Non", !fn->beginning.is_virtual),
 					field.field_id,
 					field.parent,
 					fn->beginning.name
 				);
-			} else {
+
+			} else if (codegen::getStatus(field) == BindStatus::NeedsBinding) {
+
+				address_str = fmt::format("base::get() + {}", codegen::platformNumber(fn->binds));
+
+			} else { 
 				continue;
 			}
 

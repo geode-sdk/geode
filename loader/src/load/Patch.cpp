@@ -28,13 +28,13 @@ Result<Patch*> Mod::patch(void* address, byte_array data) {
         delete p;
         return Err<>("Unable to enable patch at " + std::to_string(p->getAddress()));
     }
-    this->m_patches.push_back(p);
+    m_patches.push_back(p);
     return Ok<Patch*>(p);
 }
 
 Result<> Mod::unpatch(Patch* patch) {
     if (patch->restore()) {
-        vector_utils::erase<Patch*>(this->m_patches, patch);
+        vector_utils::erase<Patch*>(m_patches, patch);
         delete patch;
         return Ok<>();
     }
@@ -43,12 +43,12 @@ Result<> Mod::unpatch(Patch* patch) {
 
 bool Patch::apply() {
     return lilac::hook::write_memory(
-         this->m_address, this->m_patch.data(), this->m_patch.size()
+        m_address, m_patch.data(), m_patch.size()
     );
 }
 
 bool Patch::restore() {
     return lilac::hook::write_memory(
-        this->m_address, this->m_original.data(), this->m_original.size()
+        m_address, m_original.data(), m_original.size()
     );
 }
