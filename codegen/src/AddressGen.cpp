@@ -36,7 +36,7 @@ std::string generateAddressHeader(Root& root) {
 
 			} else if (codegen::getStatus(field) == BindStatus::NeedsBinding) {
 
-				address_str = fmt::format("base::get() + {}", codegen::platformNumber(fn->binds));
+				address_str = fmt::format("base::get() + 0x{:x}", codegen::platformNumber(fn->binds));
 
 			} else { 
 				continue;
