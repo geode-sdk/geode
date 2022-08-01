@@ -1,0 +1,3 @@
+[submodule "loader/md4c"]
+	path = loader/md4c
+	url = https://github.com/mity/md4c

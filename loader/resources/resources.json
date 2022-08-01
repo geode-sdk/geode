@@ -1,0 +1,39 @@
+{
+    "fonts": {
+        "mdFont": {
+            "path": "fonts/Ubuntu-Regular.ttf",
+            "size": 80
+        },
+        "mdFontB": {
+            "path": "fonts/Ubuntu-Bold.ttf",
+            "size": 80
+        },
+        "mdFontI": {
+            "path": "fonts/Ubuntu-Italic.ttf",
+            "size": 80
+        },
+        "mdFontBI": {
+            "path": "fonts/Ubuntu-BoldItalic.ttf",
+            "size": 80
+        },
+        "mdFontMono": {
+            "path": "fonts/UbuntuMono-Regular.ttf",
+            "size": 80
+        }
+    },
+    "files": [
+        "images/*.png",
+        "sounds/*.ogg"
+    ],
+    "spritesheets": {
+        "LogoSheet": [
+            "logos/*.png"
+        ],
+        "APISheet": [
+            "*.png"
+        ],
+        "BlankSheet": [
+            "blanks/*.png"
+        ]
+    }
+}

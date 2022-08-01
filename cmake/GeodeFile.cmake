@@ -23,3 +23,18 @@ function(create_geode_file proname)
     endif()
 
 endfunction()
+
+function(package_geode_resources proname src dest prefix)
+    message(STATUS "Packaging resources from ${src} with prefix ${prefix} into ${dest}")
+
+    if(GEODE_CLI STREQUAL "GEODE_CLI-NOTFOUND")
+        message(WARNING "package_geode_resources called, but Geode CLI was not found - You will need to manually package the resources")
+    else()
+
+        add_custom_target(${proname}_PACKAGE ALL
+            DEPENDS ${proname}
+            COMMAND ${GEODE_CLI} resources ${src} ${dest} --prefix ${prefix} --cached
+            VERBATIM USES_TERMINAL
+        )
+    endif()
+endfunction()

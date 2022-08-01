@@ -62,8 +62,11 @@ void Loader::addModResourcesPath(Mod* mod) {
 }
 
 void Loader::updateResourcePaths() {
+    // add own resources directory
 	auto resDir = this->getGeodeDirectory() / GEODE_RESOURCE_DIRECTORY;
     CCFileUtils::sharedFileUtils()->addSearchPath(resDir.string().c_str());
+
+    // add mods' resources directories
     for (auto const& [_, mod] : m_mods) {
         this->addModResourcesPath(mod);
     }
@@ -97,6 +100,10 @@ void Loader::updateModResources(Mod* mod) {
 }
 
 void Loader::updateResources() {
+    // add own spritesheets
+    this->updateModResources(InternalMod::get());
+
+    // add mods' spritesheets
     for (auto const& [_, mod] : m_mods) {
         this->updateModResources(mod);
     }
@@ -315,6 +322,11 @@ bool Loader::setup() {
     this->createDirectories();
     this->loadSettings();
     this->refreshMods();
+
+    // add resources on startup
+    this->queueInGDThread([]() {
+        Loader::get()->updateResourcePaths();
+    });
 
     if (crashlog::setupPlatformHandler()) {
         InternalMod::get()->log()

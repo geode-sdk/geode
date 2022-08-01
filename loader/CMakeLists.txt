@@ -3,9 +3,11 @@ cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
 project(geode-loader VERSION 0.2.0 LANGUAGES C CXX)
 set(PROJECT_VERSION_TYPE Alpha)
 
+# Package info file for internal representation
 file(READ resources/about.md LOADER_ABOUT_MD)
 configure_file(src/internal/about.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/src/internal/about.hpp)
 
+# Source files
 file(GLOB CORE_SOURCES
 	src/cocos2d-ext/*.cpp
 	src/core/*.cpp
@@ -22,6 +24,13 @@ file(GLOB CORE_SOURCES
 	src/utils/*.cpp
 	src/utils/windows/*.cpp
 	src/utils/zip/*.cpp
+	src/index/*.cpp
+	src/ui/nodes/*.cpp
+	src/ui/internal/credits/*.cpp
+	src/ui/internal/dev/*.cpp
+	src/ui/internal/info/*.cpp
+	src/ui/internal/list/*.cpp
+	src/ui/internal/settings/*.cpp
 )
 
 file(GLOB OBJC_SOURCES
@@ -33,7 +42,7 @@ file(GLOB OBJC_SOURCES
 	src/utils/mac/*.mm
 )
 
-# embed version info in binary
+# Embed version info in binary
 if (WIN32)
 	configure_file(src/internal/windows/info.rc.in info.rc)
 	set(CORE_SOURCES ${CORE_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/info.rc)
@@ -55,6 +64,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 	ARCHIVE_OUTPUT_DIRECTORY "${GEODE_BIN_PATH}"
 )
 
+# Move compiled binary into `bin/nightly` directory
 if (APPLE)
 	add_custom_command(
 		COMMAND 
@@ -73,10 +83,23 @@ elseif(WIN32)
 	)
 endif()
 
+if (NOT GEODE_DONT_PACKAGE_RESOURCES)
+	# Package resources for UI
+	package_geode_resources(
+		${PROJECT_NAME}
+		${CMAKE_CURRENT_SOURCE_DIR}/resources
+		${GEODE_BIN_PATH}/nightly/resources
+		"geode.loader"
+	)
+endif()
+
 target_include_directories(${PROJECT_NAME} PRIVATE
 	src/internal/
 	src/platform/
 	src/gui/
+	src/index/
+	md4c/src/
+	hash/
 	./ # lilac
 )
 
@@ -85,10 +108,15 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY RULE_LAUNCH_COMPILE "${CMAKE_COMMAN
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC GEODE_EXPORTING GEODE_PLATFORM_CONSOLE)
 
+# Markdown support
+add_subdirectory(md4c)
+target_link_libraries(${PROJECT_NAME} md4c)
+
+# Lilac (hooking)
 add_subdirectory(lilac)
+target_link_libraries(${PROJECT_NAME} z lilac_hook geode-sdk)
 
-target_link_libraries(${PROJECT_NAME} z lilac_hook geode-sdk) # lilac
-
+# Use precompiled headers for faster builds
 set_source_files_properties(${OBJC_SOURCES} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 target_precompile_headers(${PROJECT_NAME} PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/DefaultInclude.hpp"
@@ -96,6 +124,7 @@ target_precompile_headers(${PROJECT_NAME} PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/cocos/cocos2dx/include/cocos2d.h"
 )
 
+# Create launcher
 if (APPLE) 
 	if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm" OR GEODE_TARGET_PLATFORM STREQUAL "iOS")
 		add_custom_command(TARGET geode-loader
@@ -116,8 +145,12 @@ elseif (WIN32)
 	target_link_libraries(${PROJECT_NAME} dbghelp)
 endif()
 
+# Build test mods if needed
 if(NOT GEODE_DONT_BUILD_TEST_MODS)
 	if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
 		add_subdirectory(test)
 	endif()
 endif()
+
+# Build index hashing algorithm test program
+add_subdirectory(hash)

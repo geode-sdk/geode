@@ -1,7 +1,7 @@
 #include "InternalMod.hpp"
 #include "about.hpp"
 
-ModInfo getInternalModInfo() {
+static ModInfo getInternalModInfo() {
     ModInfo info;
     
     info.m_id          = "geode.loader";
@@ -11,6 +11,11 @@ ModInfo getInternalModInfo() {
     info.m_details     = LOADER_ABOUT_MD;
     info.m_version     = LOADER_VERSION;
     info.m_supportsDisabling = false;
+    info.m_spritesheets = {
+        "geode.loader_LogoSheet",
+        "geode.loader_APISheet",
+        "geode.loader_BlankSheet"
+    };
 
     return info;
 }
