@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
+#include <Geode/Bindings.hpp>
 #include "SceneManager.hpp"
 #include <chrono>
 #include "../utils/Ref.hpp"
@@ -21,7 +21,7 @@ namespace geode {
         NotificationLocation::BottomRight;
     #else
         NotificationLocation::TopCenter;
-    #endif;
+    #endif
 
     class Notification;
     class NotificationManager;

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ui/BasedButton.hpp"
 #include "ui/BasedButtonSprite.hpp"
+#include "ui/BasedButton.hpp"
 #include "ui/IconButtonSprite.hpp"
 #include "ui/InputNode.hpp"
 #include "ui/ListView.hpp"
