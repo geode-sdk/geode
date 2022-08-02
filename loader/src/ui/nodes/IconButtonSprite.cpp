@@ -1,4 +1,5 @@
 #include <Geode/ui/IconButtonSprite.hpp>
+#include <Geode/Utils.hpp>
 
 USE_GEODE_NAMESPACE();
 
