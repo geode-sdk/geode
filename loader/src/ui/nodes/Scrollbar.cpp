@@ -1,4 +1,5 @@
 #include <Geode/ui/Scrollbar.hpp>
+#include <Geode/Utils.hpp>
 
 // TODO: die
 #undef min

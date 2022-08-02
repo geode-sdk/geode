@@ -1,5 +1,6 @@
 #include <Geode/ui/TextRenderer.hpp>
 #include <Geode/utils/WackyGeodeMacros.hpp>
+#include <Geode/Utils.hpp>
 #undef max
 #undef min
 

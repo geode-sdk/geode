@@ -1,6 +1,7 @@
 #include <Geode/ui/MDTextArea.hpp>
 #include <Geode/utils/WackyGeodeMacros.hpp>
 #include <md4c.h>
+#include <Geode/Utils.hpp>
 
 USE_GEODE_NAMESPACE();
 

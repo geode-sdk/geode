@@ -1,6 +1,7 @@
 #include <Geode/ui/Notification.hpp>
 #include <Geode/ui/TextRenderer.hpp>
 #include <Geode/utils/WackyGeodeMacros.hpp>
+#include <Geode/Utils.hpp>
 
 USE_GEODE_NAMESPACE();
 
