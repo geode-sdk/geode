@@ -1,9 +1,9 @@
 #include <Geode/Geode.hpp>
-#include "../ui/internal/list/ModListLayer.hpp"
 #include <Geode/utils/WackyGeodeMacros.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
-#include <Index.hpp>
 #include <Geode/ui/Notification.hpp>
+#include <Index.hpp>
+#include "../ui/internal/list/ModListLayer.hpp"
 
 USE_GEODE_NAMESPACE();
 
@@ -134,44 +134,25 @@ class $modify(CustomMenuLayer, MenuLayer) {
 		if (!MenuLayer::init())
 			return false;
 
-		CCMenu* bottomMenu = nullptr;
+		auto bottomMenu = nodeOrDefault(getChildOfType<CCMenu>(this, 1));
 
-		size_t indexCounter = 0;
-		for (size_t i = 0; i < this->getChildren()->count(); i++) {
-			auto obj = typeinfo_cast<CCMenu*>(this->getChildren()->objectAtIndex(i));
-			if (obj != nullptr) {
-				++indexCounter;
-				if (indexCounter == 2) {
-					bottomMenu = obj;
-					break;
-				}
-			}
-		}
-
-		// if (!GameManager::sharedState()->m_clickedGarage) {
-		// 	bottomMenu = getChild<CCMenu*>(this, 4);
-		// }
-		// else {
-		// 	bottomMenu = getChild<CCMenu*>(this, 3);
-		// }
-
-		auto chest = getChild<>(bottomMenu, -1);
+		auto chest = getChild(bottomMenu, -1);
 		if (chest) {
 			chest->retain();
 			chest->removeFromParent();
 		}
 		
-		auto y = getChild<>(bottomMenu, 0)->getPositionY();
+		auto y = getChild(bottomMenu, 0)->getPositionY();
 
-		g_geodeButton = CircleButtonSprite::createWithSpriteFrameName(
-			"geode-logo-outline-gold.png"_spr,
-			1.0f,
-			CircleBaseColor::Green,
-			CircleBaseSize::Medium2
-		);
-		if (!g_geodeButton) {
-			g_geodeButton = ButtonSprite::create("!!");
-		}
+		g_geodeButton = SafeCreate<CCSprite>()
+			.with(CircleButtonSprite::createWithSpriteFrameName(
+				"geode-logo-outline-gold.png"_spr,
+				1.0f,
+				CircleBaseColor::Green,
+				CircleBaseSize::Medium2
+			))
+			.orMake<ButtonSprite>("!!");
+
 		addUpdateIcon();
 		auto btn = CCMenuItemSpriteExtra::create(
 			g_geodeButton.data(), this, menu_selector(CustomMenuLayer::onGeode)

@@ -12,15 +12,15 @@ namespace geode::cocos {
      * @returns Child at index cast to the given type, 
      * or nullptr if index exceeds bounds
      */
-    template<class T = cocos2d::CCNode*>
-    static T getChild(cocos2d::CCNode* x, int i) {
+    template<class T = cocos2d::CCNode>
+    static T* getChild(cocos2d::CCNode* x, int i) {
         // start from end for negative index
         if (i < 0) i = x->getChildrenCount() + i;
         // check if backwards index is out of bounds
         if (i < 0) return nullptr;
         // check if forwards index is out of bounds
         if (static_cast<int>(x->getChildrenCount()) <= i) return nullptr;
-        return reinterpret_cast<T>(x->getChildren()->objectAtIndex(i));
+        return reinterpret_cast<T*>(x->getChildren()->objectAtIndex(i));
     }
 
     /**
@@ -28,12 +28,12 @@ namespace geode::cocos {
      * @returns Child at index cast to the given type, 
      * or nullptr if index exceeds bounds
      */
-    template<class Type = cocos2d::CCNode*>
-    static Type getChildOfType(cocos2d::CCNode* node, size_t index) {
-    	auto indexCounter = static_cast<size_t>(0);
+    template<class Type = cocos2d::CCNode>
+    static Type* getChildOfType(cocos2d::CCNode* node, size_t index) {
+    	size_t indexCounter = 0;
 
 		for (size_t i = 0; i < node->getChildrenCount(); ++i) {
-			auto obj = cast::typeinfo_cast<Type>(
+			auto obj = cast::typeinfo_cast<Type*>(
 				node->getChildren()->objectAtIndex(i)
 			);
 			if (obj != nullptr) {
@@ -46,6 +46,34 @@ namespace geode::cocos {
 
 		return nullptr;
     }
+
+    /**
+     * Return a node, or create a default one if it's 
+     * nullptr. Syntactic sugar function
+     */
+    template<class T, class... Args>
+    static T* nodeOrDefault(T* node, Args... args) {
+        return node ? node : T::create(args...);
+    }
+
+    template<class T = cocos2d::CCNode>
+    struct SafeCreate final {
+        T* result;
+        SafeCreate<T>& with(T* node) {
+            result = node;
+            return *this;
+        }
+        template<class O = T, class... Args>
+        T* orMakeUsing(O*(*func)(Args...), Args... args) {
+            if (result) return result;
+            return func(args...);
+        }
+        template<class O = T, class... Args>
+        T* orMake(Args... args) {
+            if (result) return result;
+            return O::create(args...);
+        }
+    };
 
     /**
      * Get bounds for a set of nodes. Based on content 

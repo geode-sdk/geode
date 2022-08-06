@@ -52,13 +52,14 @@ void InstallTicket::install(std::string const& id) {
         tempFile,
         [this, tempFile](double now, double total) -> int {
             // check if cancelled
-            m_cancelMutex.lock();
+            std::lock_guard cancelLock(m_cancelMutex);
             if (m_cancelling) {
                 try { ghc::filesystem::remove(tempFile); } catch(...) {}
-                m_cancelMutex.unlock();
                 return 1;
             }
-            m_cancelMutex.unlock();
+
+            // no need to scope the lock guard more as this 
+            // function is going to exit right after anyway
 
             this->postProgress(
                 UpdateStatus::Progress,
@@ -77,13 +78,15 @@ void InstallTicket::install(std::string const& id) {
     }
 
     // check if cancelled
-    m_cancelMutex.lock();
-    if (m_cancelling) {
-        ghc::filesystem::remove(tempFile);
-        m_cancelMutex.unlock();
-        return;
+    {
+        std::lock_guard cancelLock(m_cancelMutex);
+        if (m_cancelling) {
+            ghc::filesystem::remove(tempFile);
+            return;
+        }
+        // scope ends here since we don't need to 
+        // access m_cancelling anymore
     }
-    m_cancelMutex.unlock();
 
     // check for 404
     auto notFound = file_utils::readString(tempFile);
@@ -164,6 +167,9 @@ void InstallTicket::install(std::string const& id) {
 }
 
 void InstallTicket::cancel() {
+    // really no point in using std::lock_guard here 
+    // since just plain locking and unlocking the mutex
+    // will do the job just fine with the same legibility
     m_cancelMutex.lock();
     m_cancelling = true;
     m_cancelMutex.unlock();
