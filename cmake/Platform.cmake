@@ -66,7 +66,8 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Win32")
 		${GEODE_LOADER_PATH}/include/link/libcurl.lib
 	)
 
-	set(GEODE_PLATFORM_BINARY "Geode.dll")
+	# Windows links against .lib and not .dll
+	set(GEODE_PLATFORM_BINARY "Geode.lib")
 elseif (GEODE_TARGET_PLATFORM STREQUAL "Android")
 	message(FATAL_ERROR "IDK figure it out")
 endif()
