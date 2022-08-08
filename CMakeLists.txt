@@ -30,6 +30,12 @@ add_custom_target(CodegenRun ALL
 add_dependencies(${PROJECT_NAME} CodegenRun)
 add_dependencies(CodegenRun Codegen)
 
+# Hacky way to supress the not generated error
+if (NOT EXISTS ${GEODE_CODEGEN_PATH}/GeneratedSource.cpp)
+	make_directory(${GEODE_CODEGEN_PATH})
+	execute_process(COMMAND touch ${GEODE_CODEGEN_PATH}/GeneratedSource.cpp)
+endif()
+
 target_sources(${PROJECT_NAME} INTERFACE ${GEODE_CODEGEN_PATH}/GeneratedSource.cpp)
 target_include_directories(${PROJECT_NAME} INTERFACE ${GEODE_CODEGEN_PATH}/..)
 
@@ -50,7 +56,7 @@ add_subdirectory(fmt)
 
 target_link_libraries(${PROJECT_NAME} INTERFACE filesystem fmt)
 
-add_subdirectory(loader)
+
 
 if (NOT EXISTS ${GEODE_BIN_PATH})
 	make_directory(${GEODE_BIN_PATH})
@@ -64,6 +70,7 @@ endif()
 
 
 if (PROJECT_IS_TOP_LEVEL)
+	add_subdirectory(loader)
 	target_link_libraries(${PROJECT_NAME} INTERFACE geode-loader)
 elseif(EXISTS ${GEODE_PLATFORM_BIN_PATH})
 	target_link_libraries(${PROJECT_NAME} INTERFACE "${GEODE_PLATFORM_BIN_PATH}")
