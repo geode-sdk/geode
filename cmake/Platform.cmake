@@ -69,5 +69,5 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Win32")
 	# Windows links against .lib and not .dll
 	set(GEODE_PLATFORM_BINARY "Geode.lib")
 elseif (GEODE_TARGET_PLATFORM STREQUAL "Android")
-	message(FATAL_ERROR "IDK figure it out")
+	message(FATAL_ERROR "Geode is not supporting Android yet. Please wait, before Android support will be eventually out.")
 endif()
