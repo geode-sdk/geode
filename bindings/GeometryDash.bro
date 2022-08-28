@@ -4049,7 +4049,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
 	void loadFromCheckpoint(CheckpointObject*) = mac 0x7f000, win 0x0, ios 0x0;
 	void loadLastCheckpoint() = mac 0x7efc0, win 0x0, ios 0x0;
 	void loadSavedObjectsState(gd::string) = mac 0x7f3d0, win 0x0, ios 0x0;
-	void markCheckpoint() = mac 0x7ef60, win 0x25fb60, ios 0x0;
+	void markCheckpoint() = mac 0x7ef60, win 0x20b450, ios 0x0;
 	void moveCameraToPos(cocos2d::CCPoint) = mac 0x7c980, win 0x0, ios 0x0;
 	virtual void onEnterTransitionDidFinish() = mac 0x806e0, win 0x20dbd0, ios 0x0;
 	virtual void onExit() = mac 0x80710, win 0x020D810, ios 0x0;
@@ -4103,7 +4103,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
 	void startRecordingDelayed() = mac 0x7fed0, win 0x0, ios 0x0;
 	void stopCameraShake() = mac 0x75900, win 0x0, ios 0x0;
 	void stopRecording() = mac 0x6d090, win 0x0, ios 0x0;
-	void storeCheckpoint(CheckpointObject*) = mac 0x7ef10, win 0x0, ios 0x0;
+	void storeCheckpoint(CheckpointObject*) = mac 0x7ef10, win 0x20b420, ios 0x0;
 	void switchToFlyMode(PlayerObject*, GameObject*, bool, int) = mac 0x7baf0, win 0x0, ios 0x0;
 	void switchToRobotMode(PlayerObject*, GameObject*, bool) = mac 0x7bc80, win 0x0, ios 0x0;
 	void switchToRollMode(PlayerObject*, GameObject*, bool) = mac 0x7bbe0, win 0x0, ios 0x0;
