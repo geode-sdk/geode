@@ -24,11 +24,11 @@ class $modify(MenuLayer) {
 };
 ```
 
-This code hooks the "More Games" button in Geometry Dash, and makes it show a different popup when clicked. Compared to traditional modding methods such as MinHook, we would argue that this is **much easier to write, understand & maintain**.
-
-Geode is in many ways a **declarative framework**; you tell it what you want, not how to accomplish it. Geode has been built to let modders focus on what mod they want to make, not how exactly to build it. Its goal is to **abstract away** unnecessary details, while still enabling developers have **precise control** over their mod.
+This code hooks the "More Games" button in Geometry Dash, and makes it show a different popup when clicked. Compared to traditional modding methods such as MinHook, we would argue that this is **much simpler to write, understand & maintain**.
 
 One of our main design goals with Geode has been to make a framework so good that **after using it once, you never want to go back**.
+
+> :warning: It is important to note that Geode is **not meant to make learning to mod easier**. To make a good GD mod, you will still need to learn the ins  and outs of C++, reverse engineering, byte patching, and everything else. Geode is merely a collection of tools that make modding more enjoyable for people who are already familiar with it; not a magic wand for making mods without the hours of experience and practice required.
 
 ## Documentation
 
