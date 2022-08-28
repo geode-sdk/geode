@@ -50,26 +50,15 @@ void Loader::createDirectories() {
     m_logStream = std::ofstream(logDir / generateLogName());
 }
 
-void Loader::addModResourcesPath(Mod* mod) {
-    if (mod->m_addResourcesToSearchPath) {
-        CCFileUtils::sharedFileUtils()->addSearchPath(
-            mod->m_tempDirName.string().c_str()
-        );
-        CCFileUtils::sharedFileUtils()->addSearchPath(
-            (mod->m_tempDirName / "resources").string().c_str()
-        );
-    }
-}
-
 void Loader::updateResourcePaths() {
     // add own resources directory
-	auto resDir = this->getGeodeDirectory() / GEODE_RESOURCE_DIRECTORY;
-    CCFileUtils::sharedFileUtils()->addSearchPath(resDir.string().c_str());
-
-    // add mods' resources directories
-    for (auto const& [_, mod] : m_mods) {
-        this->addModResourcesPath(mod);
-    }
+    CCFileUtils::sharedFileUtils()->addSearchPath(
+        (this->getGeodeDirectory() / GEODE_RESOURCE_DIRECTORY).string().c_str()
+    );
+    // add mods directory
+    CCFileUtils::sharedFileUtils()->addSearchPath(
+        (this->getGeodeDirectory() / GEODE_MOD_DIRECTORY).string().c_str()
+    );
 }
 
 void Loader::updateModResources(Mod* mod) {

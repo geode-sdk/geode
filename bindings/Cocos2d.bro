@@ -201,6 +201,7 @@ class cocos2d::CCFadeTo {
 
 class cocos2d::CCFileUtils : cocos2d::TypeInfo {
 	static cocos2d::CCFileUtils* sharedFileUtils() = mac 0x377030, ios 0x159450;
+    virtual std::string fullPathForFilename(const char* filename, bool unk);
 }
 
 class cocos2d::CCHide {

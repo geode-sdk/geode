@@ -131,7 +131,6 @@ Result<> Mod::createTempDir() {
     }
 
     this->m_addResourcesToSearchPath = true;
-    Loader::get()->addModResourcesPath(this);
 
     return Ok<>(tempPath);
 }
@@ -484,7 +483,7 @@ const char* Mod::expandSpriteName(const char* name) {
         return expanded[name];
     }
     auto exp = new char[strlen(name) + 2 + this->m_info.m_id.size()];
-    auto exps = this->m_info.m_id + "_" + name;
+    auto exps = this->m_info.m_id + "/" + name;
     memcpy(exp, exps.c_str(), exps.size() + 1);
     expanded[name] = exp;
     return exp;
@@ -560,7 +559,7 @@ Result<ModInfo> ModInfo::createFromSchemaV010(
         .has("spritesheets")
         .as<nlohmann::json::object_t>()
         .each([&info](auto key, auto) -> void {
-            info.m_spritesheets.push_back(info.m_id + "_" + key);
+            info.m_spritesheets.push_back(info.m_id + "/" + key);
         });
     
     json_assign_optional(knownKeys, json, "toggleable", info.m_supportsDisabling);

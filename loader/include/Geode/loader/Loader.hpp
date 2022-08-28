@@ -176,7 +176,6 @@ namespace geode {
          * Mod::m_addResourcesToSearchPath to true 
          * first
          */
-        void addModResourcesPath(Mod* mod);
         void updateResourcePaths();
         void updateModResources(Mod* mod);
         void updateResources();

@@ -12,9 +12,9 @@ static ModInfo getInternalModInfo() {
     info.m_version     = LOADER_VERSION;
     info.m_supportsDisabling = false;
     info.m_spritesheets = {
-        "geode.loader_LogoSheet",
-        "geode.loader_APISheet",
-        "geode.loader_BlankSheet"
+        "geode.loader/LogoSheet",
+        "geode.loader/APISheet",
+        "geode.loader/BlankSheet"
     };
 
     return info;
