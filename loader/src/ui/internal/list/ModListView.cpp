@@ -367,20 +367,24 @@ void ModListView::loadCell(TableViewCell* cell, unsigned int index) {
     }
 }
 
-bool ModListView::filter(ModInfo const& info, const char* searchFilter, int searchFlags) {
-    if (!searchFilter || !strlen(searchFilter)) return true;
+bool ModListView::filter(
+    ModInfo const& info,
+    std::optional<std::string> const& searchFilter,
+    int searchFlags
+) {
+    if (!searchFilter) return true;
     auto check = [searchFlags, searchFilter](SearchFlags flag, std::string const& name) -> bool {
         if (!(searchFlags & flag)) return false;
         return string_utils::contains(
             string_utils::toLower(name),
-            string_utils::toLower(searchFilter)
+            string_utils::toLower(searchFilter.value())
         );
     };
-    if (check(SearchFlags::Name,        info.m_name)) return true;
-    if (check(SearchFlags::ID,          info.m_id)) return true;
-    if (check(SearchFlags::Developer,   info.m_developer)) return true;
-    if (check(SearchFlags::Description, info.m_description)) return true;
-    if (check(SearchFlags::Details,     info.m_details)) return true;
+    if (check(SearchFlag::Name,        info.m_name)) return true;
+    if (check(SearchFlag::ID,          info.m_id)) return true;
+    if (check(SearchFlag::Developer,   info.m_developer)) return true;
+    if (check(SearchFlag::Description, info.m_description)) return true;
+    if (check(SearchFlag::Details,     info.m_details)) return true;
     return false;
 }
 
@@ -416,8 +420,7 @@ bool ModListView::init(
     ModListType type,
     float width,
     float height,
-    const char* searchFilter,
-    int searchFlags
+    ModListQuery query
 ) {
     if (!mods) {
         switch (type) {
@@ -429,7 +432,7 @@ bool ModListView::init(
                 }
                 // internal geode representation always at the top
                 auto imod = Loader::getInternalMod();
-                if (this->filter(imod->getModInfo(), searchFilter, searchFlags)) {
+                if (this->filter(imod->getModInfo(), query.m_searchFilter, query.m_searchFlags)) {
                     mods->addObject(new ModObject(imod));
                 }
                 // then other mods
@@ -438,7 +441,7 @@ bool ModListView::init(
                     // loaded, it's as good as not existing
                     // (because it doesn't)
                     if (mod->isUninstalled() && !mod->isLoaded()) continue;
-                    if (this->filter(mod->getModInfo(), searchFilter, searchFlags)) {
+                    if (this->filter(mod->getModInfo(), query.m_searchFilter, query.m_searchFlags)) {
                         mods->addObject(new ModObject(mod));
                     }
                 }
@@ -449,8 +452,10 @@ bool ModListView::init(
 
             case ModListType::Download: {
                 mods = CCArray::create();
-                for (auto const& item : Index::get()->getUninstalledItems()) {
-                    mods->addObject(new ModObject(item));
+                for (auto const& item : Index::get()->getNoninstalledItems(query.m_platforms)) {
+                    if (this->filter(item.m_info, query.m_searchFilter, query.m_searchFlags)) {
+                        mods->addObject(new ModObject(item));
+                    }
                 }
                 if (!mods->count()) {
                     m_status = Status::NoModsFound;
@@ -473,12 +478,11 @@ ModListView* ModListView::create(
     ModListType type,
     float width,
     float height,
-    const char* searchFilter,
-    int searchFlags
+    ModListQuery query
 ) {
     auto pRet = new ModListView;
     if (pRet) {
-        if (pRet->init(mods, type, width, height, searchFilter, searchFlags)) {
+        if (pRet->init(mods, type, width, height, query)) {
             pRet->autorelease();
             return pRet;
         }
@@ -491,10 +495,9 @@ ModListView* ModListView::create(
     ModListType type,
     float width,
     float height,
-    const char* searchFilter,
-    int searchFlags
+    ModListQuery query
 ) {
-    return ModListView::create(nullptr, type, width, height, searchFilter, searchFlags);
+    return ModListView::create(nullptr, type, width, height, query);
 }
 
 ModListView::Status ModListView::getStatus() const {

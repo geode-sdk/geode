@@ -13,8 +13,12 @@ protected:
 
     bool setup(ModListLayer* layer, ModListType type) override;
     void addSearchMatch(const char* title, int flag, CCPoint& pos);
+    void addPlatformToggle(const char* title, PlatformID id, CCPoint& pos);
 
-    void onToggle(cocos2d::CCObject*);
+    void onSearchToggle(CCObject*);
+    void onPlatformToggle(CCObject*);
+
+    void onClose(CCObject*) override;
     
 public:
     static SearchFilterPopup* create(ModListLayer* layer, ModListType type);

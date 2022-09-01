@@ -2,8 +2,11 @@
 
 #include <Geode/Geode.hpp>
 #include <Index.hpp>
+#include <optional>
 
 USE_GEODE_NAMESPACE();
+
+struct ModListQuery;
 
 enum class ModListType {
 	Installed,
@@ -74,10 +77,8 @@ public:
     static ModCell* create(ModListView* list, const char* key, CCSize size);
 };
 
-class ModListView : public CustomListView {
-public:
-    // this is not enum class so | works
-    enum SearchFlags {
+struct SearchFlag {
+    enum : int {
         Name        = 0b1,
         ID          = 0b10,
         Developer   = 0b100,
@@ -85,14 +86,24 @@ public:
         Description = 0b10000,
         Details     = 0b100000,
     };
-    static constexpr int s_allFlags =
-        SearchFlags::Name |
-        SearchFlags::ID |
-        SearchFlags::Developer |
-        SearchFlags::Credits |
-        SearchFlags::Description |
-        SearchFlags::Details;
+};
+using SearchFlags = int;
 
+static constexpr SearchFlags ALL_FLAGS =
+    SearchFlag::Name |
+    SearchFlag::ID |
+    SearchFlag::Developer |
+    SearchFlag::Credits |
+    SearchFlag::Description |
+    SearchFlag::Details;
+
+struct ModListQuery {
+    std::optional<std::string> m_searchFilter = std::nullopt;
+    int m_searchFlags = ALL_FLAGS;
+    std::unordered_set<PlatformID> m_platforms { GEODE_PLATFORM_TARGET };
+};
+
+class ModListView : public CustomListView {
 protected:
     enum class Status {
         OK,
@@ -113,10 +124,13 @@ protected:
         ModListType type,
         float width,
         float height,
-        const char* searchFilter,
-        int searchFlags
+        ModListQuery query
     );
-    bool filter(ModInfo const& info, const char* searchFilter, int searchFlags);
+    bool filter(
+        ModInfo const& info,
+        std::optional<std::string> const& searchFilter,
+        SearchFlags searchFlags
+    );
 
 public:
     static ModListView* create(
@@ -124,15 +138,13 @@ public:
         ModListType type = ModListType::Installed,
         float width = 358.f,
         float height = 220.f,
-        const char* searchFilter = nullptr,
-        int searchFlags = 0
+        ModListQuery query = ModListQuery()
     );
     static ModListView* create(
         ModListType type,
         float width = 358.f,
         float height = 220.f,
-        const char* searchFilter = nullptr,
-        int searchFlags = 0
+        ModListQuery query = ModListQuery()
     );
 
     void updateAllStates(ModCell* toggled = nullptr);

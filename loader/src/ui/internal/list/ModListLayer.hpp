@@ -24,7 +24,7 @@ protected:
 	CCNode* m_searchBG = nullptr;
 	CCTextInputNode* m_searchInput = nullptr;
 	LoadingCircle* m_loadingCircle = nullptr;
-	int m_searchFlags = ModListView::s_allFlags;
+	ModListQuery m_query;
 
 	virtual ~ModListLayer();
 

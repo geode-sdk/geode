@@ -31,8 +31,12 @@ namespace geode {
 		operator int() const { return m_value; }
 
 		template<class T>
-		static Type cast(T t) {
+		static PlatformID from(T t) {
 			return static_cast<Type>(t);
+		}
+		template<class T>
+		T to() const {
+			return static_cast<T>(m_value);
 		}
 
 		static constexpr const char* toString(Type lp) {

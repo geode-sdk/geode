@@ -233,8 +233,12 @@ void ModListLayer::reloadList() {
 	}
 
 	// create new list
-	const char* filter = m_searchInput ? m_searchInput->getString() : nullptr;
-	auto list = ModListView::create(g_tab, 358.f, 190.f, filter, m_searchFlags);
+	m_query.m_searchFilter =
+		m_searchInput &&
+		m_searchInput->getString() &&
+		strlen(m_searchInput->getString()) ?
+			std::optional<std::string>(m_searchInput->getString()) : std::nullopt;
+	auto list = ModListView::create(g_tab, 358.f, 190.f, m_query);
 	list->setLayer(this);
 
 	// set list status
@@ -299,7 +303,7 @@ void ModListLayer::reloadList() {
 
 	// check if the user has searched something, 
 	// and show visual indicator if so
-	auto hasQuery = filter && strlen(filter);
+	auto hasQuery = m_query.m_searchFilter.has_value();
 	m_searchBtn->setVisible(!hasQuery);
 	m_searchClearBtn->setVisible(hasQuery);
 
