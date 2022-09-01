@@ -256,8 +256,8 @@ void ModCell::onEnable(CCObject* pSender) {
         return;
     }
     if (!as<CCMenuItemToggler*>(pSender)->isToggled()) {
-        if (tryOrAlert(m_obj->m_mod->enable(), "Error enabling mod")) {
-            tryOrAlert(m_obj->m_mod->load(), "Error loading mod");
+        if (tryOrAlert(m_obj->m_mod->load(), "Error loading mod")) {
+            tryOrAlert(m_obj->m_mod->enable(), "Error enabling mod");
         }
     } else {
         tryOrAlert(m_obj->m_mod->disable(), "Error disabling mod");
