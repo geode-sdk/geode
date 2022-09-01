@@ -125,6 +125,8 @@ std::tuple<CCNode*, CCTextInputNode*> ModListLayer::createSearchControl() {
 	auto menu = CCMenu::create();
 	menu->setPosition(340.f, 15.f);
 
+	constexpr float buttonSpace = 50.f;
+
 	// filters
 	auto filterSpr = EditorButtonSprite::createWithSpriteFrameName(
 		"filters.png"_spr, 1.0f, EditorBaseColor::Gray
@@ -133,7 +135,7 @@ std::tuple<CCNode*, CCTextInputNode*> ModListLayer::createSearchControl() {
 
 	auto filterBtn = CCMenuItemSpriteExtra::create(
 		filterSpr, this, makeMenuSelector([this](CCObject*) {
-			SearchFilterPopup::create(this)->show();
+			SearchFilterPopup::create(this, g_tab)->show();
 		})
 	);
 	filterBtn->setPosition(-10.f, 0.f);
@@ -162,12 +164,12 @@ std::tuple<CCNode*, CCTextInputNode*> ModListLayer::createSearchControl() {
         "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
     );
     inputBG->setColor({ 126, 59, 7 });
-	inputBG->setContentSize({ 550.f, 40.f });
-	inputBG->setPosition(150.f, 15.f);
+	inputBG->setContentSize({ 650.f - buttonSpace * 2, 40.f });
+	inputBG->setPosition(175.f - buttonSpace / 2, 15.f);
 	inputBG->setScale(.5f);
 	layer->addChild(inputBG);
 
-	auto input = CCTextInputNode::create(260.f, 20.f, "Search Mods...", "bigFont.fnt");
+	auto input = CCTextInputNode::create(310.f - buttonSpace, 20.f, "Search Mods...", "bigFont.fnt");
 	input->setLabelPlaceholderColor({ 150, 150, 150 });
 	input->setLabelPlaceholderScale(.4f);
 	input->setMaxLabelScale(.4f);

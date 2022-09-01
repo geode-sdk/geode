@@ -39,16 +39,15 @@ void InstallTicket::install(std::string const& id) {
     auto indexDir = Loader::get()->getGeodeDirectory() / "index";
 
     auto item = m_index->getKnownItem(id);
-    auto download = item.m_download.at(GEODE_PLATFORM_TARGET);
 
     this->postProgress(UpdateStatus::Progress, "Checking status", 0);
     
     // download to temp file in index dir
-    auto tempFile = indexDir / download.m_filename;
+    auto tempFile = indexDir / item.m_download.m_filename;
 
     this->postProgress(UpdateStatus::Progress, "Fetching binary", 0);
     auto res = fetchFile(
-        download.m_url,
+        item.m_download.m_url,
         tempFile,
         [this, tempFile](double now, double total) -> int {
             // check if cancelled
@@ -104,7 +103,7 @@ void InstallTicket::install(std::string const& id) {
 
     auto checksum = ::calculateHash(tempFile.string());
 
-    if (checksum != download.m_hash) {
+    if (checksum != item.m_download.m_hash) {
         try { ghc::filesystem::remove(tempFile); } catch(...) {}
         return this->postProgress(
             UpdateStatus::Failed,
@@ -117,12 +116,12 @@ void InstallTicket::install(std::string const& id) {
     // move temp file to geode directory
     try {
         auto modDir = Loader::get()->getGeodeDirectory() / "mods";
-        auto targetFile = modDir / download.m_filename;
+        auto targetFile = modDir / item.m_download.m_filename;
 
         // find valid filename that doesn't exist yet
         if (!m_replaceFiles) {
             auto filename = ghc::filesystem::path(
-                download.m_filename
+                item.m_download.m_filename
             ).replace_extension("").string();
 
             size_t number = 0;

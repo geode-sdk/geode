@@ -29,6 +29,7 @@ namespace geode {
             m_mainLayer->addChild(m_bgSprite);
 
             m_buttonMenu = cocos2d::CCMenu::create();
+            m_buttonMenu->setZOrder(100);
             m_mainLayer->addChild(m_buttonMenu);
 
             cocos2d::CCDirector::sharedDirector()->getTouchDispatcher()->incrementForcePrio(2);

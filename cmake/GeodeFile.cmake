@@ -19,6 +19,22 @@ function(create_geode_file proname)
 
     message(STATUS "Creating geode file")
 
+    if(GEODE_CLI STREQUAL "GEODE_CLI-NOTFOUND")
+        message(WARNING "create_geode_file called, but Geode CLI was not found - You will need to manually package the .geode files")
+    else()
+
+        add_custom_target(${proname}_PACKAGE ALL
+            DEPENDS ${proname}
+            COMMAND ${GEODE_CLI} pkg ${CMAKE_CURRENT_SOURCE_DIR} $<TARGET_FILE_DIR:${proname}> $<TARGET_FILE_DIR:${proname}>/${proname}.geode --install --cached
+            VERBATIM USES_TERMINAL
+        )
+    endif()
+    
+endfunction()
+
+function(create_geode_file_v2 proname)
+    message(STATUS "Creating geode file")
+
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/mod.json ${CMAKE_CURRENT_BINARY_DIR}/what.txt)
     set_target_properties(${proname} PROPERTIES CMAKE_CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/mod.json)
 
@@ -39,23 +55,6 @@ function(create_geode_file proname)
             VERBATIM USES_TERMINAL
         )
     endif()
-
-endfunction()
-
-function(create_geode_file_v2 proname)
-    message(STATUS "Creating geode file")
-
-    if(GEODE_CLI STREQUAL "GEODE_CLI-NOTFOUND")
-        message(WARNING "create_geode_file called, but Geode CLI was not found - You will need to manually package the .geode files")
-    else()
-
-        add_custom_target(${proname}_PACKAGE ALL
-            DEPENDS ${proname}
-            COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR} --out $<TARGET_FILE_DIR:${proname}>/${proname}.geode --install
-            VERBATIM USES_TERMINAL
-        )
-    endif()
-
 endfunction()
 
 function(package_geode_resources proname src dest prefix)

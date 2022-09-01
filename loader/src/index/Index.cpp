@@ -337,76 +337,28 @@ void Index::addIndexItemFromFolder(ghc::filesystem::path const& dir) {
             Log::get() << Severity::Warning
                 << "[index.json].download is not an object, "
                 "skipping";
+            return;
         }
 
-        auto download = json["download"];
-        std::set<PlatformID> unsetPlatforms = {
-            PlatformID::Windows,
-            PlatformID::MacOS,
-            PlatformID::iOS,
-            PlatformID::Android,
-            PlatformID::Linux,
-        };
-        for (auto& key : std::initializer_list<std::string> {
-            "windows",
-            "macos",
-            "android",
-            "ios",
-            "*",
-        }) {
-            if (download.contains(key)) {
-                auto platformDownload = download[key];
-                if (!platformDownload.is_object()) {
-                    Log::get() << Severity::Warning
-                        << "[index.json].download."
-                        << key
-                        << " is not an object, skipping";
-                    return;
-                }
-                if (
-                    !platformDownload.contains("url") ||
-                    !platformDownload["url"].is_string()
-                ) {
-                    Log::get() << Severity::Warning
-                        << "[index.json].download."
-                        << key
-                        << ".url is not a string, skipping";
-                    return;
-                }
-                if (
-                    !platformDownload.contains("name") ||
-                    !platformDownload["name"].is_string()
-                ) {
-                    Log::get() << Severity::Warning
-                        << "[index.json].download."
-                        << key
-                        << ".name is not a string, skipping";
-                    return;
-                }
-                if (
-                    !platformDownload.contains("hash") ||
-                    !platformDownload["hash"].is_string()
-                ) {
-                    Log::get() << Severity::Warning
-                        << "[index.json].download."
-                        << key
-                        << ".hash is not a string, skipping";
-                    return;
-                }
-                IndexItem::Download down;
-                down.m_url = platformDownload["url"];
-                down.m_filename = platformDownload["name"];
-                down.m_hash = platformDownload["hash"];
-                if (key == "*") {
-                    for (auto& platform : unsetPlatforms) {
-                        item.m_download[platform] = down;
-                    }
-                } else {
-                    auto id = platformFromString(key);
-                    item.m_download[id] = down;
-                    unsetPlatforms.erase(id);
-                }
+        #define REQUIRE_DOWNLOAD_KEY(key, type) \
+            if (!download.contains(key) || !download[key].is_##type()) {\
+                Log::get() << Severity::Warning\
+                    << "[index.json].download." key " is not a " #type ", skipping";\
+                return;\
             }
+
+        auto download = json["download"];
+
+        REQUIRE_DOWNLOAD_KEY("url", string);
+        REQUIRE_DOWNLOAD_KEY("name", string);
+        REQUIRE_DOWNLOAD_KEY("hash", string);
+        REQUIRE_DOWNLOAD_KEY("platforms", array);
+
+        item.m_download.m_url = download["url"];
+        item.m_download.m_filename = download["name"];
+        item.m_download.m_hash = download["hash"];
+        for (auto& platform : download["platforms"]) {
+            item.m_download.m_platforms.insert(platformFromString(platform));
         }
 
         m_items.push_back(item);
@@ -435,7 +387,7 @@ std::vector<IndexItem> Index::getUninstalledItems() const {
     std::vector<IndexItem> items;
     for (auto& item : m_items) {
         if (!Loader::get()->isModInstalled(item.m_info.m_id)) {
-            if (item.m_download.count(GEODE_PLATFORM_TARGET)) {
+            if (item.m_download.m_platforms.count(GEODE_PLATFORM_TARGET)) {
                 items.push_back(item);
             }
         }
@@ -528,26 +480,25 @@ Result<InstallTicket*> Index::installItems(
 ) {
     std::vector<std::string> ids {};
     for (auto& item : items) {
-        if (!item.m_download.count(GEODE_PLATFORM_TARGET)) {
+        if (!item.m_download.m_platforms.count(GEODE_PLATFORM_TARGET)) {
             return Err(
                 "This mod is not available on your "
                 "current platform \"" GEODE_PLATFORM_NAME "\" - Sorry! :("
             );
         }
-        auto download = item.m_download.at(GEODE_PLATFORM_TARGET);
-        if (!download.m_url.size()) {
+        if (!item.m_download.m_url.size()) {
             return Err(
                 "Download URL not set! Report this bug to "
                 "the Geode developers - this should not happen, ever."
             );
         }
-        if (!download.m_filename.size()) {
+        if (!item.m_download.m_filename.size()) {
             return Err(
                 "Download filename not set! Report this bug to "
                 "the Geode developers - this should not happen, ever."
             );
         }
-        if (!download.m_hash.size()) {
+        if (!item.m_download.m_hash.size()) {
             return Err(
                 "Checksum not set! Report this bug to "
                 "the Geode developers - this should not happen, ever."

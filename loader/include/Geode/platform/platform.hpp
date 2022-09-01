@@ -28,7 +28,7 @@ namespace geode {
 		bool operator==(PlatformID const& other) const { return m_value == other.m_value; }
 		bool operator<(PlatformID const& other) const { return m_value < other.m_value; }
 		bool operator>(PlatformID const& other) const { return m_value > other.m_value; }
-		operator int() { return m_value; }
+		operator int() const { return m_value; }
 
 		template<class T>
 		static Type cast(T t) {

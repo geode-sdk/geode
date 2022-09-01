@@ -5,17 +5,18 @@
 USE_GEODE_NAMESPACE();
 
 class ModListLayer;
+enum class ModListType;
 
-class SearchFilterPopup : public Popup<ModListLayer*> {
+class SearchFilterPopup : public Popup<ModListLayer*, ModListType> {
 protected:
     ModListLayer* m_modLayer;
 
-    bool setup(ModListLayer* layer) override;
-    void addToggle(const char* title, int flag, CCPoint& pos);
+    bool setup(ModListLayer* layer, ModListType type) override;
+    void addSearchMatch(const char* title, int flag, CCPoint& pos);
 
     void onToggle(cocos2d::CCObject*);
     
 public:
-    static SearchFilterPopup* create(ModListLayer* layer);
+    static SearchFilterPopup* create(ModListLayer* layer, ModListType type);
 };
 

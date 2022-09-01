@@ -29,12 +29,12 @@ struct IndexItem {
         std::string m_url;
         std::string m_filename;
         std::string m_hash;
+        std::unordered_set<PlatformID> m_platforms;
     };
 
     ghc::filesystem::path m_path;
     ModInfo m_info;
-    std::unordered_map<PlatformID, Download> m_download;
-    std::string m_installFailed;
+    Download m_download;
 };
 
 enum class InstallMode {
