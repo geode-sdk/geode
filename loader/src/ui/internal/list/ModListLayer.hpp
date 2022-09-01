@@ -37,7 +37,6 @@ protected:
 	void onResetSearch(CCObject*);
 	void keyDown(enumKeyCodes) override;
 	void onTab(CCObject*);
-	void onSearchFilters(CCObject*);
 	void textChanged(CCTextInputNode*) override;
 	void indexUpdateProgress(
         UpdateStatus status,

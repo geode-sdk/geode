@@ -56,7 +56,11 @@ namespace geode {
          * structures, this class can handle either 
          * one universally. All relevant vtables are 
          * stored in-class to avoid needing to 
-         * `dynamic_cast` everything.
+         * `dynamic_cast` everything. This way of 
+         * storing vtables also means that anything 
+         * which satisfies these 3 vtables can be used, 
+         * even if its true UX representation is 
+         * actually not a label.
          */
         struct Label {
             /**

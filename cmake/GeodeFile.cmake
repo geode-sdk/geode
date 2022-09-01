@@ -9,6 +9,14 @@ else()
 endif()
 
 function(create_geode_file proname)
+    message(
+        DEPRECATION
+        "create_geode_file has been deprecated, and will 
+        be replaced by create_geode_file_v2 in the future. 
+        Do note that create_geode_file_v2 will be *renamed* 
+        to create_geode_file"
+    )
+
     message(STATUS "Creating geode file")
 
     if(GEODE_CLI STREQUAL "GEODE_CLI-NOTFOUND")
@@ -18,6 +26,22 @@ function(create_geode_file proname)
         add_custom_target(${proname}_PACKAGE ALL
             DEPENDS ${proname}
             COMMAND ${GEODE_CLI} pkg ${CMAKE_CURRENT_SOURCE_DIR} $<TARGET_FILE_DIR:${proname}> $<TARGET_FILE_DIR:${proname}>/${proname}.geode --install --cached
+            VERBATIM USES_TERMINAL
+        )
+    endif()
+
+endfunction()
+
+function(create_geode_file_v2 proname)
+    message(STATUS "Creating geode file")
+
+    if(GEODE_CLI STREQUAL "GEODE_CLI-NOTFOUND")
+        message(WARNING "create_geode_file called, but Geode CLI was not found - You will need to manually package the .geode files")
+    else()
+
+        add_custom_target(${proname}_PACKAGE ALL
+            DEPENDS ${proname}
+            COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR} --out $<TARGET_FILE_DIR:${proname}>/${proname}.geode --install
             VERBATIM USES_TERMINAL
         )
     endif()

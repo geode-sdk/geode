@@ -372,4 +372,92 @@ namespace geode::cocos {
     auto selectorFromFn(std::function<F> fn) {
         return SelectorWrapper(fn);
     }
+    
+    // namespace for storing implementation stuff for 
+    // inline member functions
+    namespace {
+        // class that holds the lambda (probably should've just used 
+        // std::function but hey, this one's heap-free!)
+        template<class F, class Ret, class... Args>
+        struct LambdaHolder {
+            bool m_assigned = false;
+            // lambdas don't implement operator= so we 
+            // gotta do this wacky union stuff
+            union {
+                F m_lambda;
+            };
+            LambdaHolder() {}
+            ~LambdaHolder() {
+                if (m_assigned) {
+                    m_lambda.~F();
+                }
+            }
+            Ret operator()(Args... args) {
+                if (m_assigned) {
+                    return m_lambda(std::forward<Args>(args)...);
+                } else {
+                    if constexpr (!std::is_void_v<Ret>) {
+                        return Ret();
+                    }
+                }
+            }
+            void assign(F&& func) {
+                if (!m_assigned) {
+                    new (&m_lambda) F(func);
+                    m_assigned = true;
+                }
+            }
+        };
+
+        // Extract parameters and return type from a lambda
+        template<class Func>
+        struct ExtractLambda : public ExtractLambda<decltype(&Func::operator())> {};
+
+        template<class C, class R, class... Args>
+        struct ExtractLambda<R(C::*)(Args...) const> {
+            using Ret = R;
+            using Params = std::tuple<Args...>;
+        };
+
+        // Class for storing the member function
+        template<class Base, class Func, class Args>
+        struct InlineMemberFunction;
+
+        template<class Base, class Func, class... Args>
+        struct InlineMemberFunction<Base, Func, std::tuple<Args...>> : public Base {
+            // this class isn't instantiated anywhere, and is 
+            // just used as a proxy to redirect the member function
+            // to the lambda 
+            static inline LambdaHolder<Func, typename ExtractLambda<Func>::Ret, Args...> s_selector {};
+            typename ExtractLambda<Func>::Ret onSelector(Args... args) {
+                return s_selector(std::forward<Args>(args)...);
+            }
+        };
+    }
+
+    /**
+     * Wrap a lambda into a member function pointer. Useful for creating 
+     * callbacks that have to be members of a class without having to deal
+     * with all of the boilerplate associated with defining a new class 
+     * member function.
+     */
+    template<class Base, class Func>
+    static auto makeMemberFunction(Func&& function) {
+        InlineMemberFunction<Base, Func, typename ExtractLambda<Func>::Params>::s_selector.assign(std::move(function));
+        return &InlineMemberFunction<Base, Func, typename ExtractLambda<Func>::Params>::onSelector;
+    }
+
+    /**
+     * Create a SEL_MenuHandler out of a lambda with optional captures. Useful 
+     * for adding callbacks to CCMenuItemSpriteExtras without needing to add 
+     * the callback as a member to a class. Use the GEODE_MENU_SELECTOR class 
+     * for even more concise code.
+     */
+    template<class Func>
+    static cocos2d::SEL_MenuHandler makeMenuSelector(Func&& selector) {
+        return (cocos2d::SEL_MenuHandler)(makeMemberFunction<cocos2d::CCObject, Func>(std::move(selector)));
+    }
+
+    #define GEODE_MENU_SELECTOR(senderArg, ...) \
+        makeMenuSelector([=](senderArg) { __VA_ARGS__; })
 }

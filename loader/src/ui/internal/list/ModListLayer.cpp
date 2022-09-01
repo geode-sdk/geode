@@ -2,6 +2,7 @@
 #include <Geode/ui/BasedButton.hpp>
 #include "SearchFilterPopup.hpp"
 #include <Geode/ui/Notification.hpp>
+#include <optional>
 
 static ModListType g_tab = ModListType::Installed;
 static ModListLayer* g_instance = nullptr;
@@ -124,17 +125,21 @@ std::tuple<CCNode*, CCTextInputNode*> ModListLayer::createSearchControl() {
 	auto menu = CCMenu::create();
 	menu->setPosition(340.f, 15.f);
 
+	// filters
 	auto filterSpr = EditorButtonSprite::createWithSpriteFrameName(
 		"filters.png"_spr, 1.0f, EditorBaseColor::Gray
 	);
 	filterSpr->setScale(.7f);
 
 	auto filterBtn = CCMenuItemSpriteExtra::create(
-		filterSpr, this, menu_selector(ModListLayer::onSearchFilters)
+		filterSpr, this, makeMenuSelector([this](CCObject*) {
+			SearchFilterPopup::create(this)->show();
+		})
 	);
-	filterBtn->setPosition(-8.f, 0.f);
+	filterBtn->setPosition(-10.f, 0.f);
 	menu->addChild(filterBtn);
 
+	// search button
 	auto searchSpr = CCSprite::createWithSpriteFrameName("gj_findBtn_001.png");
 	searchSpr->setScale(.7f);
 
@@ -152,16 +157,17 @@ std::tuple<CCNode*, CCTextInputNode*> ModListLayer::createSearchControl() {
 	m_searchClearBtn->setVisible(false);
 	menu->addChild(m_searchClearBtn);
 
+	// search input
 	auto inputBG = CCScale9Sprite::create(
         "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
     );
     inputBG->setColor({ 126, 59, 7 });
-	inputBG->setContentSize({ 530.f, 40.f });
-	inputBG->setPosition(153.f, 15.f);
+	inputBG->setContentSize({ 550.f, 40.f });
+	inputBG->setPosition(150.f, 15.f);
 	inputBG->setScale(.5f);
 	layer->addChild(inputBG);
 
-	auto input = CCTextInputNode::create(250.f, 20.f, "Search Mods...", "bigFont.fnt");
+	auto input = CCTextInputNode::create(260.f, 20.f, "Search Mods...", "bigFont.fnt");
 	input->setLabelPlaceholderColor({ 150, 150, 150 });
 	input->setLabelPlaceholderScale(.4f);
 	input->setMaxLabelScale(.4f);
@@ -170,6 +176,7 @@ std::tuple<CCNode*, CCTextInputNode*> ModListLayer::createSearchControl() {
 	input->m_placeholderLabel->setAnchorPoint({ .0f, .5f });
 
 	layer->addChild(menu);
+
 	return { layer, input };
 }
 
@@ -278,7 +285,7 @@ void ModListLayer::reloadList() {
 
 		m_searchInput = std::get<1>(search);
 		m_searchInput->setPosition(
-			winSize.width / 2 - 155.f,
+			winSize.width / 2 - 160.f,
 			winSize.height / 2 + 95.f
 		);
 		m_searchInput->setZOrder(60);
@@ -395,10 +402,6 @@ void ModListLayer::onTab(CCObject* pSender) {
 	toggleTab(m_downloadTabBtn);
 	toggleTab(m_installedTabBtn);
 	toggleTab(m_featuredTabBtn);
-}
-
-void ModListLayer::onSearchFilters(CCObject*) {
-	SearchFilterPopup::create(this)->show();
 }
 
 ModListLayer* ModListLayer::create() {

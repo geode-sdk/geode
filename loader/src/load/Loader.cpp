@@ -192,6 +192,7 @@ Result<> Loader::saveSettings() {
         json["mods"][id] = value;
     }
     json["succesfully-closed"] = true;
+    InternalLoader::get()->saveInfoAlerts(json);
     auto path = this->getGeodeSaveDirectory() / "mods.json";
     return file_utils::writeString(path, json.dump(4));
 }
@@ -233,6 +234,7 @@ Result<> Loader::loadSettings() {
                 m_loadedSettings.m_mods.insert({ key, mod });
             }
         }
+        InternalLoader::get()->loadInfoAlerts(json);
         return Ok();
     } catch(std::exception const& e) {
         return Err(e.what());

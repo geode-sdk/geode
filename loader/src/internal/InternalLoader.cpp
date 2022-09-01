@@ -70,6 +70,22 @@ bool InternalLoader::platformConsoleReady() const {
     return m_platformConsoleReady;
 }
 
+bool InternalLoader::shownInfoAlert(std::string const& key) {
+    if (m_shownInfoAlerts.count(key)) {
+        return true;
+    }
+    m_shownInfoAlerts.insert(key);
+    return false;
+}
+
+void InternalLoader::saveInfoAlerts(nlohmann::json& json) {
+    json["alerts"] = m_shownInfoAlerts;
+}
+
+void InternalLoader::loadInfoAlerts(nlohmann::json& json) {
+    m_shownInfoAlerts = json["alerts"].get<std::unordered_set<std::string>>();
+}
+
 #if defined(GEODE_IS_WINDOWS)
 void InternalLoader::platformMessageBox(const char* title, const char* info) {
     MessageBoxA(nullptr, title, info, MB_OK);

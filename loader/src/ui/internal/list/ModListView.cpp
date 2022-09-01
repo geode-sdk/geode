@@ -3,6 +3,15 @@
 #include <Geode/utils/WackyGeodeMacros.hpp>
 #include <Index.hpp>
 #include "ModListLayer.hpp"
+#include <InternalLoader.hpp>
+
+template<class T>
+static bool tryOrAlert(Result<T> const& res, const char* title) {
+    if (!res) {
+        FLAlertLayer::create(title, res.error(), "OK")->show();
+    }
+    return res;
+}
 
 ModCell::ModCell(const char* name, CCSize size) :
     TableViewCell(name, size.width, size.height) {}
@@ -234,50 +243,24 @@ void ModCell::updateBGColor(int index) {
 }
 
 void ModCell::onEnable(CCObject* pSender) {
-    // if (!APIInternal::get()->m_shownEnableWarning) {
-    //     APIInternal::get()->m_shownEnableWarning = true;
-    //     FLAlertLayer::create(
-    //         "Notice",
-    //         "<cb>Disabling</c> a <cy>mod</c> removes its hooks & patches and "
-    //         "calls its user-defined disable function if one exists. You may "
-    //         "still see some effects of the mod left however, and you may "
-    //         "need to <cg>restart</c> the game to have it fully unloaded.",
-    //         "OK"
-    //     )->show();
-    //     m_list->updateAllStates(this);
-    //     return;
-    // }
+    if (!InternalLoader::get()->shownInfoAlert("mod-disable-vs-unload")) {
+        FLAlertLayer::create(
+            "Notice",
+            "<cb>Disabling</c> a <cy>mod</c> removes its hooks & patches and "
+            "calls its user-defined disable function if one exists. You may "
+            "still see some effects of the mod left however, and you may "
+            "need to <cg>restart</c> the game to have it fully unloaded.",
+            "OK"
+        )->show();
+        m_list->updateAllStates(this);
+        return;
+    }
     if (!as<CCMenuItemToggler*>(pSender)->isToggled()) {
-        auto res = m_obj->m_mod->load();
-        if (!res) {
-            FLAlertLayer::create(
-                nullptr,
-                "Error Loading Mod",
-                res.error(),
-                "OK", nullptr
-            )->show();
-        }
-        else {
-        	auto res = m_obj->m_mod->enable();
-	        if (!res) {
-	            FLAlertLayer::create(
-	                nullptr,
-	                "Error Enabling Mod",
-	                res.error(),
-	                "OK", nullptr
-	            )->show();
-	        }
+        if (tryOrAlert(m_obj->m_mod->enable(), "Error enabling mod")) {
+            tryOrAlert(m_obj->m_mod->load(), "Error loading mod");
         }
     } else {
-        auto res = m_obj->m_mod->disable();
-        if (!res) {
-            FLAlertLayer::create(
-                nullptr,
-                "Error Disabling Mod",
-                res.error(),
-                "OK", nullptr
-            )->show();
-        }
+        tryOrAlert(m_obj->m_mod->disable(), "Error disabling mod");
     }
     m_list->updateAllStates(this);
 }
