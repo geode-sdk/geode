@@ -1,6 +1,7 @@
 #include "Index.hpp"
 #include <thread>
 #include <Geode/utils/json.hpp>
+#include <Geode/utils/json_check.hpp>
 #include "fetch.hpp"
 
 #define GITHUB_DONT_RATE_LIMIT_ME_PLS 0
@@ -70,6 +71,18 @@ static Result<> unzipTo(
     }
 
     return Ok();
+}
+
+static PlatformID platformFromString(std::string const& str) {
+    switch (hash(string_utils::trim(string_utils::toLower(str)).c_str())) {
+        default:
+        case hash("unknown"): return PlatformID::Unknown;
+        case hash("windows"): return PlatformID::Windows;
+        case hash("macos"): return PlatformID::MacOS;
+        case hash("ios"): return PlatformID::iOS;
+        case hash("android"): return PlatformID::Android;
+        case hash("linux"): return PlatformID::Linux;
+    }
 }
 
 
@@ -281,18 +294,6 @@ void Index::updateIndex(IndexUpdateCallback callback, bool force) {
     std::thread(&Index::updateIndexThread, this, force).detach();
 }
 
-PlatformID platformFromString(std::string const& str) {
-    switch (hash(string_utils::trim(string_utils::toLower(str)).c_str())) {
-        default:
-        case hash("unknown"): return PlatformID::Unknown;
-        case hash("windows"): return PlatformID::Windows;
-        case hash("macos"): return PlatformID::MacOS;
-        case hash("ios"): return PlatformID::iOS;
-        case hash("android"): return PlatformID::Android;
-        case hash("linux"): return PlatformID::Linux;
-    }
-}
-
 void Index::addIndexItemFromFolder(ghc::filesystem::path const& dir) {
     if (ghc::filesystem::exists(dir / "index.json")) {
 
@@ -329,79 +330,83 @@ void Index::addIndexItemFromFolder(ghc::filesystem::path const& dir) {
         item.m_path = dir;
         item.m_info = info.value();
 
-        if (json.contains("download") && json["download"].is_object()) {
-            auto download = json["download"];
-            std::set<PlatformID> unsetPlatforms = {
-                PlatformID::Windows,
-                PlatformID::MacOS,
-                PlatformID::iOS,
-                PlatformID::Android,
-                PlatformID::Linux,
-            };
-            for (auto& key : std::initializer_list<std::string> {
-                "windows",
-                "macos",
-                "android",
-                "ios",
-                "*",
-            }) {
-                if (download.contains(key)) {
-                    auto platformDownload = download[key];
-                    if (!platformDownload.is_object()) {
-                        Log::get() << Severity::Warning
-                            << "[index.json].download."
-                            << key
-                            << " is not an object, skipping";
-                        return;
+        if (
+            !json.contains("download") ||
+            !json["download"].is_object()
+        ) {
+            Log::get() << Severity::Warning
+                << "[index.json].download is not an object, "
+                "skipping";
+        }
+
+        auto download = json["download"];
+        std::set<PlatformID> unsetPlatforms = {
+            PlatformID::Windows,
+            PlatformID::MacOS,
+            PlatformID::iOS,
+            PlatformID::Android,
+            PlatformID::Linux,
+        };
+        for (auto& key : std::initializer_list<std::string> {
+            "windows",
+            "macos",
+            "android",
+            "ios",
+            "*",
+        }) {
+            if (download.contains(key)) {
+                auto platformDownload = download[key];
+                if (!platformDownload.is_object()) {
+                    Log::get() << Severity::Warning
+                        << "[index.json].download."
+                        << key
+                        << " is not an object, skipping";
+                    return;
+                }
+                if (
+                    !platformDownload.contains("url") ||
+                    !platformDownload["url"].is_string()
+                ) {
+                    Log::get() << Severity::Warning
+                        << "[index.json].download."
+                        << key
+                        << ".url is not a string, skipping";
+                    return;
+                }
+                if (
+                    !platformDownload.contains("name") ||
+                    !platformDownload["name"].is_string()
+                ) {
+                    Log::get() << Severity::Warning
+                        << "[index.json].download."
+                        << key
+                        << ".name is not a string, skipping";
+                    return;
+                }
+                if (
+                    !platformDownload.contains("hash") ||
+                    !platformDownload["hash"].is_string()
+                ) {
+                    Log::get() << Severity::Warning
+                        << "[index.json].download."
+                        << key
+                        << ".hash is not a string, skipping";
+                    return;
+                }
+                IndexItem::Download down;
+                down.m_url = platformDownload["url"];
+                down.m_filename = platformDownload["name"];
+                down.m_hash = platformDownload["hash"];
+                if (key == "*") {
+                    for (auto& platform : unsetPlatforms) {
+                        item.m_download[platform] = down;
                     }
-                    if (
-                        !platformDownload.contains("url") ||
-                        !platformDownload["url"].is_string()
-                    ) {
-                        Log::get() << Severity::Warning
-                            << "[index.json].download."
-                            << key
-                            << ".url is not a string, skipping";
-                        return;
-                    }
-                    if (
-                        !platformDownload.contains("name") ||
-                        !platformDownload["name"].is_string()
-                    ) {
-                        Log::get() << Severity::Warning
-                            << "[index.json].download."
-                            << key
-                            << ".name is not a string, skipping";
-                        return;
-                    }
-                    if (
-                        !platformDownload.contains("hash") ||
-                        !platformDownload["hash"].is_string()
-                    ) {
-                        Log::get() << Severity::Warning
-                            << "[index.json].download."
-                            << key
-                            << ".hash is not a string, skipping";
-                        return;
-                    }
-                    IndexItem::Download down;
-                    down.m_url = platformDownload["url"];
-                    down.m_filename = platformDownload["name"];
-                    down.m_hash = platformDownload["hash"];
-                    if (key == "*") {
-                        for (auto& platform : unsetPlatforms) {
-                            item.m_download[platform] = down;
-                        }
-                    } else {
-                        auto id = platformFromString(key);
-                        item.m_download[id] = down;
-                        unsetPlatforms.erase(id);
-                    }
+                } else {
+                    auto id = platformFromString(key);
+                    item.m_download[id] = down;
+                    unsetPlatforms.erase(id);
                 }
             }
-        } else {
-            Log::get() << Severity::Warning
-                << "[index.json] is missing \"download\", adding anyway";
         }
 
         m_items.push_back(item);

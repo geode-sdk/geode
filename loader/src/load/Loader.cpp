@@ -430,3 +430,9 @@ size_t Loader::getFieldIndexForClass(size_t hash) {
 	static std::unordered_map<size_t, size_t> nextIndex;
 	return nextIndex[hash]++;
 }
+
+bool Loader::supportedModVersion(VersionInfo const& version) {
+    return 
+        version >= s_supportedVersionMin &&
+        version <= s_supportedVersionMax;
+}

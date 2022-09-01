@@ -134,6 +134,11 @@ namespace geode {
         ghc::filesystem::path getGeodeSaveDirectory() const;
 
         /**
+         * Check if a mod's version is within the supported range
+         */
+        bool supportedModVersion(VersionInfo const& version);
+
+        /**
          * Whether mod specified with ID is enabled 
          * @param id The ID of the mod
          */

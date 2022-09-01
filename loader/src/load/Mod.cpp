@@ -498,9 +498,7 @@ std::string sanitizeDetailsData(unsigned char* start, unsigned char* end) {
     return string_utils::replace(std::string(start, end), "\r", "");
 }
 
-Result<ModInfo> ModInfo::createFromSchemaV010(
-    nlohmann::json const& rawJson
-) {
+Result<ModInfo> ModInfo::createFromSchemaV010(nlohmann::json const& rawJson) {
     ModInfo info;
 
     auto json = rawJson;
