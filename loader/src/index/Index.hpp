@@ -133,9 +133,6 @@ public:
     static Index* get();
 
     std::vector<IndexItem> const& getItems() const;
-    std::vector<IndexItem> getNoninstalledItems(
-        std::optional<std::unordered_set<PlatformID>> const& platforms
-    ) const;
     bool isKnownItem(std::string const& id) const;
     IndexItem getKnownItem(std::string const& id) const;
     Result<InstallTicket*> installItems(

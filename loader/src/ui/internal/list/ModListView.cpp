@@ -367,17 +367,13 @@ void ModListView::loadCell(TableViewCell* cell, unsigned int index) {
     }
 }
 
-bool ModListView::filter(
-    ModInfo const& info,
-    std::optional<std::string> const& searchFilter,
-    int searchFlags
-) {
-    if (!searchFilter) return true;
-    auto check = [searchFlags, searchFilter](SearchFlags flag, std::string const& name) -> bool {
-        if (!(searchFlags & flag)) return false;
+bool ModListView::filter(ModInfo const& info, ModListQuery const& query) {
+    if (!query.m_searchFilter) return true;
+    auto check = [query](SearchFlags flag, std::string const& name) -> bool {
+        if (!(query.m_searchFlags & flag)) return false;
         return string_utils::contains(
             string_utils::toLower(name),
-            string_utils::toLower(searchFilter.value())
+            string_utils::toLower(query.m_searchFilter.value())
         );
     };
     if (check(SearchFlag::Name,        info.m_name)) return true;
@@ -385,6 +381,23 @@ bool ModListView::filter(
     if (check(SearchFlag::Developer,   info.m_developer)) return true;
     if (check(SearchFlag::Description, info.m_description)) return true;
     if (check(SearchFlag::Details,     info.m_details)) return true;
+    return false;
+}
+
+bool ModListView::filter(IndexItem const& item, ModListQuery const& query) {
+    if (query.m_installed != ModListQuery::All) {
+        if (
+            Loader::get()->isModInstalled(item.m_info.m_id) !=
+            (query.m_installed == ModListQuery::Installed)
+        ) {
+            return false;
+        }
+    }
+    for (auto& plat : query.m_platforms) {
+        if (item.m_download.m_platforms.count(plat)) {
+            return filter(item.m_info, query);
+        }
+    }
     return false;
 }
 
@@ -432,7 +445,7 @@ bool ModListView::init(
                 }
                 // internal geode representation always at the top
                 auto imod = Loader::getInternalMod();
-                if (this->filter(imod->getModInfo(), query.m_searchFilter, query.m_searchFlags)) {
+                if (this->filter(imod->getModInfo(), query)) {
                     mods->addObject(new ModObject(imod));
                 }
                 // then other mods
@@ -441,7 +454,7 @@ bool ModListView::init(
                     // loaded, it's as good as not existing
                     // (because it doesn't)
                     if (mod->isUninstalled() && !mod->isLoaded()) continue;
-                    if (this->filter(mod->getModInfo(), query.m_searchFilter, query.m_searchFlags)) {
+                    if (this->filter(mod->getModInfo(), query)) {
                         mods->addObject(new ModObject(mod));
                     }
                 }
@@ -452,8 +465,8 @@ bool ModListView::init(
 
             case ModListType::Download: {
                 mods = CCArray::create();
-                for (auto const& item : Index::get()->getNoninstalledItems(query.m_platforms)) {
-                    if (this->filter(item.m_info, query.m_searchFilter, query.m_searchFlags)) {
+                for (auto const& item : Index::get()->getItems()) {
+                    if (this->filter(item, query)) {
                         mods->addObject(new ModObject(item));
                     }
                 }
@@ -478,7 +491,7 @@ ModListView* ModListView::create(
     ModListType type,
     float width,
     float height,
-    ModListQuery query
+    ModListQuery const& query
 ) {
     auto pRet = new ModListView;
     if (pRet) {
@@ -495,7 +508,7 @@ ModListView* ModListView::create(
     ModListType type,
     float width,
     float height,
-    ModListQuery query
+    ModListQuery const& query
 ) {
     return ModListView::create(nullptr, type, width, height, query);
 }

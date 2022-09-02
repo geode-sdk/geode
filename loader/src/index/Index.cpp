@@ -383,31 +383,6 @@ std::vector<IndexItem> const& Index::getItems() const {
     return m_items;
 }
 
-std::vector<IndexItem> Index::getNoninstalledItems(
-    std::optional<std::unordered_set<PlatformID>> const& platforms
-) const {
-    std::vector<IndexItem> items;
-    for (auto& item : m_items) {
-        if (!Loader::get()->isModInstalled(item.m_info.m_id)) {
-            // return whatever is available on requested platforms
-            if (platforms) {
-                for (auto& plat : platforms.value()) {
-                    if (item.m_download.m_platforms.count(plat)) {
-                        items.push_back(item);
-                    }
-                }
-            }
-            // otherwise just return whatever is available on current platform
-            else {
-                if (item.m_download.m_platforms.count(GEODE_PLATFORM_TARGET)) {
-                    items.push_back(item);
-                }
-            }
-        }
-    }
-    return items;
-}
-
 bool Index::isKnownItem(std::string const& id) const {
     for (auto& item : m_items) {
         if (item.m_info.m_id == id) return true;

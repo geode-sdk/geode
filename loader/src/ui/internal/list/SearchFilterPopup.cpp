@@ -1,6 +1,7 @@
 #include "SearchFilterPopup.hpp"
 #include "ModListLayer.hpp"
 #include "ModListView.hpp"
+#include <Geode/ui/SelectList.hpp>
 
 bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
     // todo: clean this shitty ass popup up
@@ -22,8 +23,8 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
     );
     matchBG->setColor({ 0, 0, 0 });
     matchBG->setOpacity(90);
-	matchBG->setContentSize({ 290.f, 300.f });
-	matchBG->setPosition(winSize.width / 2 - 90.f, winSize.height / 2 - 21.f);
+	matchBG->setContentSize({ 290.f, 295.f });
+	matchBG->setPosition(winSize.width / 2 - 90.f, winSize.height / 2 - 21.5f);
 	matchBG->setScale(.5f);
 	m_mainLayer->addChild(matchBG);
 
@@ -50,45 +51,67 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
     );
     platformBG->setColor({ 0, 0, 0 });
     platformBG->setOpacity(90);
-	platformBG->setContentSize({ 290.f, 300.f });
-	platformBG->setPosition(winSize.width / 2 + 90.f, winSize.height / 2 - 21.f);
+	platformBG->setContentSize({ 290.f, 205.f });
+	platformBG->setPosition(winSize.width / 2 + 90.f, winSize.height / 2 + 1.f);
 	platformBG->setScale(.5f);
 	m_mainLayer->addChild(platformBG);
 
-    pos = CCPoint { winSize.width / 2 + 45.f, winSize.height / 2 + 35.f };
+    pos = CCPoint { winSize.width / 2 + 35.f, winSize.height / 2 + 35.f };
 
-    this->addPlatformToggle("Windows", PlatformID::Windows, pos);
-    this->addPlatformToggle("MacOS",   PlatformID::MacOS,   pos);
-    this->addPlatformToggle("iOS",     PlatformID::iOS,     pos);
-    this->addPlatformToggle("Android", PlatformID::Android, pos);
+    this->enable(this->addPlatformToggle("Windows", PlatformID::Windows, pos), type);
+    this->enable(this->addPlatformToggle("MacOS",   PlatformID::MacOS,   pos), type);
+    this->enable(this->addPlatformToggle("iOS",     PlatformID::iOS,     pos), type);
+    this->enable(this->addPlatformToggle("Android", PlatformID::Android, pos), type);
+
+	auto installedBG = CCScale9Sprite::create(
+        "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
+    );
+    installedBG->setColor({ 0, 0, 0 });
+    installedBG->setOpacity(90);
+	installedBG->setContentSize({ 290.f, 65.f });
+	installedBG->setPosition(winSize.width / 2 + 90.f, winSize.height / 2 - 80.f);
+	installedBG->setScale(.5f);
+	m_mainLayer->addChild(installedBG);
 
     return true;
 }
 
-void SearchFilterPopup::addSearchMatch(const char* title, int flag, CCPoint& pos) {
-    GameToolbox::createToggleButton(
+void SearchFilterPopup::enable(CCMenuItemToggler* toggle, ModListType type) {
+    if (type == ModListType::Installed) {
+        toggle->setEnabled(false);
+        toggle->m_onButton->setColor(cc3x(0x50));
+        toggle->m_offButton->setColor(cc3x(0x50));
+    }
+}
+
+CCMenuItemToggler* SearchFilterPopup::addSearchMatch(const char* title, int flag, CCPoint& pos) {
+    auto toggle = GameToolbox::createToggleButton(
         title, menu_selector(SearchFilterPopup::onSearchToggle),
         m_modLayer->m_query.m_searchFlags & flag,
         m_buttonMenu, pos, this,
         m_buttonMenu, .5f, .5f, 100.f, 
         { 10.f, .0f }, nullptr, false, flag, nullptr
-    )->setTag(flag);
+    );
+    toggle->setTag(flag);
     pos.y -= 22.5f;
+    return toggle;
 }
 
-void SearchFilterPopup::addPlatformToggle(
+CCMenuItemToggler* SearchFilterPopup::addPlatformToggle(
     const char* title,
     PlatformID id,
     CCPoint& pos
 ) {
-    GameToolbox::createToggleButton(
+    auto toggle = GameToolbox::createToggleButton(
         title, menu_selector(SearchFilterPopup::onPlatformToggle),
         m_modLayer->m_query.m_platforms.count(id),
         m_buttonMenu, pos, this,
         m_buttonMenu, .5f, .5f, 100.f, 
         { 10.f, .0f }, nullptr, false, id.to<int>(), nullptr
-    )->setTag(id.to<int>());
+    );
+    toggle->setTag(id.to<int>());
     pos.y -= 22.5f;
+    return toggle;
 }
 
 void SearchFilterPopup::onSearchToggle(CCObject* sender) {

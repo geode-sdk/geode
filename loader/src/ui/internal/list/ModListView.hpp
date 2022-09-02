@@ -100,6 +100,11 @@ static constexpr SearchFlags ALL_FLAGS =
 struct ModListQuery {
     std::optional<std::string> m_searchFilter = std::nullopt;
     int m_searchFlags = ALL_FLAGS;
+    enum {
+        Installed,
+        Noninstalled,
+        All,
+    } m_installed = Installed;
     std::unordered_set<PlatformID> m_platforms { GEODE_PLATFORM_TARGET };
 };
 
@@ -126,11 +131,8 @@ protected:
         float height,
         ModListQuery query
     );
-    bool filter(
-        ModInfo const& info,
-        std::optional<std::string> const& searchFilter,
-        SearchFlags searchFlags
-    );
+    bool filter(ModInfo const& info, ModListQuery const& query);
+    bool filter(IndexItem const& item, ModListQuery const& query);
 
 public:
     static ModListView* create(
@@ -138,13 +140,13 @@ public:
         ModListType type = ModListType::Installed,
         float width = 358.f,
         float height = 220.f,
-        ModListQuery query = ModListQuery()
+        ModListQuery const& query = ModListQuery()
     );
     static ModListView* create(
         ModListType type,
         float width = 358.f,
         float height = 220.f,
-        ModListQuery query = ModListQuery()
+        ModListQuery const& query = ModListQuery()
     );
 
     void updateAllStates(ModCell* toggled = nullptr);
