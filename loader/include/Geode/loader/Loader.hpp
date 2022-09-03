@@ -170,7 +170,7 @@ namespace geode {
 
         void pushLog(LogPtr* log);
         void popLog(LogPtr* log);
-        std::vector<LogPtr*> const& getLogs() const;
+        std::vector<LogPtr*> getLogs() const;
         std::vector<LogPtr*> getLogs(
             std::initializer_list<Severity> severityFilter
         );
@@ -223,7 +223,7 @@ namespace geode {
          * Get all mods that are a serious 
          * disappointment to their parents
          */
-        std::vector<FailedModInfo> const& getFailedMods() const;
+        std::vector<FailedModInfo> getFailedMods() const;
         /**
          * Unload a mod fully. This will remove it 
          * from the mods list and delete the Mod. If 

@@ -347,18 +347,37 @@ void Index::addIndexItemFromFolder(ghc::filesystem::path const& dir) {
                 return;\
             }
 
-        auto download = json["download"];
+        try {
 
-        REQUIRE_DOWNLOAD_KEY("url", string);
-        REQUIRE_DOWNLOAD_KEY("name", string);
-        REQUIRE_DOWNLOAD_KEY("hash", string);
-        REQUIRE_DOWNLOAD_KEY("platforms", array);
+            auto download = json["download"];
 
-        item.m_download.m_url = download["url"];
-        item.m_download.m_filename = download["name"];
-        item.m_download.m_hash = download["hash"];
-        for (auto& platform : download["platforms"]) {
-            item.m_download.m_platforms.insert(platformFromString(platform));
+            REQUIRE_DOWNLOAD_KEY("url", string);
+            REQUIRE_DOWNLOAD_KEY("name", string);
+            REQUIRE_DOWNLOAD_KEY("hash", string);
+            REQUIRE_DOWNLOAD_KEY("platforms", array);
+
+            item.m_download.m_url = download["url"];
+            item.m_download.m_filename = download["name"];
+            item.m_download.m_hash = download["hash"];
+            for (auto& platform : download["platforms"]) {
+                item.m_download.m_platforms.insert(platformFromString(platform));
+            }
+
+            if (json.contains("categories")) {
+                if (!json["categories"].is_array()) {
+                    Log::get() << Severity::Warning
+                        << "[index.json].categories is not an array, skipping";
+                    return;
+                }
+                item.m_categories = json["categories"].get<std::unordered_set<std::string>>();
+                m_categories.insert(item.m_categories.begin(), item.m_categories.end());
+            }
+
+        } catch(std::exception& e) {
+            Log::get() << Severity::Warning
+                << "[index.json] parsing error: "
+                << e.what() << ", skipping";
+            return;
         }
 
         m_items.push_back(item);
@@ -379,8 +398,12 @@ void Index::updateIndexFromLocalCache() {
     }
 }
 
-std::vector<IndexItem> const& Index::getItems() const {
+std::vector<IndexItem> Index::getItems() const {
     return m_items;
+}
+
+std::unordered_set<std::string> Index::getCategories() const {
+    return m_categories;
 }
 
 bool Index::isKnownItem(std::string const& id) const {

@@ -113,7 +113,7 @@ std::string LogPtr::toString(bool logTime) const {
     return res.str();
 }
 
-std::vector<LogMetadata*> const& LogPtr::getData() const {
+std::vector<LogMetadata*> LogPtr::getData() const {
     return m_data;
 }
 

@@ -285,7 +285,7 @@ std::vector<Mod*> Loader::getAllMods() const {
     return map_utils::getValues(m_mods);
 }
 
-std::vector<Loader::FailedModInfo> const& Loader::getFailedMods() const {
+std::vector<Loader::FailedModInfo> Loader::getFailedMods() const {
     return m_erroredMods;
 }
 
@@ -370,7 +370,7 @@ void Loader::popLog(LogPtr* log) {
     delete log;
 }
 
-std::vector<LogPtr*> const& Loader::getLogs() const {
+std::vector<LogPtr*> Loader::getLogs() const {
     return m_logs;
 }
 

@@ -90,6 +90,8 @@ namespace geode {
     
     public:
         static BasedButtonSprite* create(cocos2d::CCNode* ontop, int type, int size, int color);
+
+        cocos2d::CCNode* getTopNode() const;
     };
 
     class GEODE_DLL CircleButtonSprite : public BasedButtonSprite {

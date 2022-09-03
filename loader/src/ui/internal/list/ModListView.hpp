@@ -100,11 +100,7 @@ static constexpr SearchFlags ALL_FLAGS =
 struct ModListQuery {
     std::optional<std::string> m_searchFilter = std::nullopt;
     int m_searchFlags = ALL_FLAGS;
-    enum {
-        Installed,
-        Noninstalled,
-        All,
-    } m_installed = Installed;
+    bool m_showInstalled = false;
     std::unordered_set<PlatformID> m_platforms { GEODE_PLATFORM_TARGET };
 };
 

@@ -36,6 +36,7 @@ struct IndexItem {
     ghc::filesystem::path m_path;
     ModInfo m_info;
     Download m_download;
+    std::unordered_set<std::string> m_categories;
 };
 
 enum class InstallMode {
@@ -88,7 +89,7 @@ public:
     /**
      * Get list of mods to install
      */
-    std::vector<std::string> const& getInstallList() const;
+    std::vector<std::string> getInstallList() const;
 
     /**
      * Cancel all pending installations and revert finished ones. This 
@@ -114,6 +115,7 @@ protected:
     mutable std::mutex m_callbacksMutex;
     std::vector<IndexUpdateCallback> m_callbacks;
     std::vector<IndexItem> m_items;
+    std::unordered_set<std::string> m_categories;
 
     void indexUpdateProgress(
         UpdateStatus status,
@@ -132,7 +134,7 @@ protected:
 public:
     static Index* get();
 
-    std::vector<IndexItem> const& getItems() const;
+    std::vector<IndexItem> getItems() const;
     bool isKnownItem(std::string const& id) const;
     IndexItem getKnownItem(std::string const& id) const;
     Result<InstallTicket*> installItems(
@@ -150,6 +152,7 @@ public:
         IndexUpdateCallback callback = nullptr,
         bool force = false
     );
+    std::unordered_set<std::string> getCategories() const;
 
     bool isIndexUpdated() const;
     void updateIndex(IndexUpdateCallback callback, bool force = false);

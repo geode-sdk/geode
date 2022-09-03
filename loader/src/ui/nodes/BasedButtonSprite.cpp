@@ -41,6 +41,10 @@ bool BasedButtonSprite::initWithSpriteFrameName(const char* sprName, float sprSc
     return this->init(spr, type, size, color);
 }
 
+CCNode* BasedButtonSprite::getTopNode() const {
+    return m_onTop;
+}
+
 BasedButtonSprite::~BasedButtonSprite() {
     CC_SAFE_RELEASE(this->m_onTop);
 }

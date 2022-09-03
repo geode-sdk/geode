@@ -29,7 +29,7 @@ InstallTicket::InstallTicket(
     m_installList(list),
     m_progress(progress) {}
 
-std::vector<std::string> const& InstallTicket::getInstallList() const {
+std::vector<std::string> InstallTicket::getInstallList() const {
     return m_installList;
 }
 

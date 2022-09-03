@@ -25,6 +25,7 @@ protected:
 	CCTextInputNode* m_searchInput = nullptr;
 	LoadingCircle* m_loadingCircle = nullptr;
 	ModListQuery m_query;
+	CCMenuItemSpriteExtra* m_filterBtn;
 
 	virtual ~ModListLayer();
 
@@ -43,7 +44,7 @@ protected:
         std::string const& info,
         uint8_t percentage
 	);
-	std::tuple<CCNode*, CCTextInputNode*> createSearchControl();
+	void createSearchControl();
 
 	friend class SearchFilterPopup;
 

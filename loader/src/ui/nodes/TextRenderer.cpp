@@ -319,7 +319,7 @@ void TextRenderer::moveCursor(CCPoint const& pos) {
     m_cursor = pos;
 }
 
-CCPoint const& TextRenderer::getCursorPos() {
+CCPoint TextRenderer::getCursorPos() {
     return m_cursor;
 }
 

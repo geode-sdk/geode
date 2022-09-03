@@ -119,8 +119,10 @@ bool ModListLayer::init() {
 	return true;
 }
 
-std::tuple<CCNode*, CCTextInputNode*> ModListLayer::createSearchControl() {
-	auto layer = CCLayerColor::create({ 194, 114, 62, 255 }, 358.f, 30.f);
+void ModListLayer::createSearchControl() {
+	auto winSize = CCDirector::sharedDirector()->getWinSize();
+
+	m_searchBG = CCLayerColor::create({ 194, 114, 62, 255 }, 358.f, 30.f);
 
 	auto menu = CCMenu::create();
 	menu->setPosition(340.f, 15.f);
@@ -133,13 +135,13 @@ std::tuple<CCNode*, CCTextInputNode*> ModListLayer::createSearchControl() {
 	);
 	filterSpr->setScale(.7f);
 
-	auto filterBtn = CCMenuItemSpriteExtra::create(
+	m_filterBtn = CCMenuItemSpriteExtra::create(
 		filterSpr, this, makeMenuSelector([this](CCObject*) {
 			SearchFilterPopup::create(this, g_tab)->show();
 		})
 	);
-	filterBtn->setPosition(-10.f, 0.f);
-	menu->addChild(filterBtn);
+	m_filterBtn->setPosition(-10.f, 0.f);
+	menu->addChild(m_filterBtn);
 
 	// search button
 	auto searchSpr = CCSprite::createWithSpriteFrameName("gj_findBtn_001.png");
@@ -159,6 +161,10 @@ std::tuple<CCNode*, CCTextInputNode*> ModListLayer::createSearchControl() {
 	m_searchClearBtn->setVisible(false);
 	menu->addChild(m_searchClearBtn);
 
+	m_searchBG->addChild(menu);
+	m_searchBG->setPosition(0.f, 190.f);
+	m_list->addChild(m_searchBG);
+
 	// search input
 	auto inputBG = CCScale9Sprite::create(
         "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
@@ -167,19 +173,21 @@ std::tuple<CCNode*, CCTextInputNode*> ModListLayer::createSearchControl() {
 	inputBG->setContentSize({ 650.f - buttonSpace * 2, 40.f });
 	inputBG->setPosition(175.f - buttonSpace / 2, 15.f);
 	inputBG->setScale(.5f);
-	layer->addChild(inputBG);
+	m_searchBG->addChild(inputBG);
 
-	auto input = CCTextInputNode::create(310.f - buttonSpace, 20.f, "Search Mods...", "bigFont.fnt");
-	input->setLabelPlaceholderColor({ 150, 150, 150 });
-	input->setLabelPlaceholderScale(.4f);
-	input->setMaxLabelScale(.4f);
-	input->setDelegate(this);
-	input->m_textField->setAnchorPoint({ .0f, .5f });
-	input->m_placeholderLabel->setAnchorPoint({ .0f, .5f });
-
-	layer->addChild(menu);
-
-	return { layer, input };
+	m_searchInput = CCTextInputNode::create(310.f - buttonSpace, 20.f, "Search Mods...", "bigFont.fnt");
+	m_searchInput->setLabelPlaceholderColor({ 150, 150, 150 });
+	m_searchInput->setLabelPlaceholderScale(.4f);
+	m_searchInput->setMaxLabelScale(.4f);
+	m_searchInput->setDelegate(this);
+	m_searchInput->m_textField->setAnchorPoint({ .0f, .5f });
+	m_searchInput->m_placeholderLabel->setAnchorPoint({ .0f, .5f });
+	m_searchInput->setPosition(
+		winSize.width / 2 - 160.f,
+		winSize.height / 2 + 95.f
+	);
+	m_searchInput->setZOrder(60);
+	this->addChild(m_searchInput);
 }
 
 void ModListLayer::indexUpdateProgress(
@@ -283,23 +291,21 @@ void ModListLayer::reloadList() {
 
 	// add search input to list
 	if (!m_searchInput) {
-		auto search = this->createSearchControl();
-
-		m_searchBG = std::get<0>(search);
-		m_searchBG->setPosition(0.f, 190.f);
-		m_list->addChild(m_searchBG);
-
-		m_searchInput = std::get<1>(search);
-		m_searchInput->setPosition(
-			winSize.width / 2 - 160.f,
-			winSize.height / 2 + 95.f
-		);
-		m_searchInput->setZOrder(60);
-		this->addChild(m_searchInput);
+		this->createSearchControl();
 	} else {
 		m_list->addChild(m_searchBG);
 		m_searchBG->release();
 	}
+
+	// enable filter button
+	m_filterBtn->setEnabled(g_tab != ModListType::Installed);
+	auto filterSpr = static_cast<EditorButtonSprite*>(m_filterBtn->getNormalImage());
+	filterSpr->setColor(
+		g_tab != ModListType::Installed ? cc3x(0xff) : cc3x(0x88)
+	);
+	static_cast<CCSprite*>(filterSpr->getTopNode())->setColor(
+		g_tab != ModListType::Installed ? cc3x(0xff) : cc3x(0x88)
+	);
 
 	// check if the user has searched something, 
 	// and show visual indicator if so

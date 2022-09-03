@@ -368,6 +368,10 @@ void ModListView::loadCell(TableViewCell* cell, unsigned int index) {
 }
 
 bool ModListView::filter(ModInfo const& info, ModListQuery const& query) {
+    // the UI for this functionality has been removed, however 
+    // the code has been kept in case we want to add it back at 
+    // some point.
+    
     if (!query.m_searchFilter) return true;
     auto check = [query](SearchFlags flag, std::string const& name) -> bool {
         if (!(query.m_searchFlags & flag)) return false;
@@ -385,11 +389,8 @@ bool ModListView::filter(ModInfo const& info, ModListQuery const& query) {
 }
 
 bool ModListView::filter(IndexItem const& item, ModListQuery const& query) {
-    if (query.m_installed != ModListQuery::All) {
-        if (
-            Loader::get()->isModInstalled(item.m_info.m_id) !=
-            (query.m_installed == ModListQuery::Installed)
-        ) {
+    if (!query.m_showInstalled) {
+        if (Loader::get()->isModInstalled(item.m_info.m_id)) {
             return false;
         }
     }

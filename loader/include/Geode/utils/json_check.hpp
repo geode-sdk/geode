@@ -21,7 +21,7 @@ struct json_check {
     std::string m_types = "";
     std::set<std::string_view>& m_knownKeys;
 
-    nlohmann::json const& get_json() {
+    nlohmann::json get_json() {
         return m_key.size() ? m_json[m_key] : m_json;
     }
 
