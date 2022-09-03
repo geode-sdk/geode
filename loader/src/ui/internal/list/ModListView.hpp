@@ -102,6 +102,7 @@ struct ModListQuery {
     int m_searchFlags = ALL_FLAGS;
     bool m_showInstalled = false;
     std::unordered_set<PlatformID> m_platforms { GEODE_PLATFORM_TARGET };
+    std::unordered_set<std::string> m_categories {};
 };
 
 class ModListView : public CustomListView {

@@ -86,11 +86,26 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
     for (auto& category : Index::get()->getCategories()) {
         this->addToggle(
             category.c_str(),
-            nullptr,
-            false,
+            makeMenuSelector([this](CCMenuItemToggler* toggle) {
+                // seems like C++ generates the same lambda if you try to 
+                // capture category so all toggles will use the same one 
+                // which is not wanted
+                try {
+                    if (!toggle->isToggled()) {
+                        m_modLayer->m_query.m_categories.insert(
+                            static_cast<CCString*>(toggle->getUserObject())->getCString()
+                        );
+                    } else {
+                        m_modLayer->m_query.m_categories.erase(
+                            static_cast<CCString*>(toggle->getUserObject())->getCString()
+                        );
+                    }
+                } catch(...) {}
+            }),
+            m_modLayer->m_query.m_categories.count(category),
             0,
             pos
-        );
+        )->setUserObject(CCString::create(category));
     }
 
     return true;

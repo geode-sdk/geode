@@ -394,6 +394,17 @@ bool ModListView::filter(IndexItem const& item, ModListQuery const& query) {
             return false;
         }
     }
+    if (query.m_categories.size()) {
+        bool found = false;
+        for (auto& cat : query.m_categories) {
+            if (item.m_categories.count(cat)) {
+                found = true;
+            }
+        }
+        if (!found) {
+            return false;
+        }
+    }
     for (auto& plat : query.m_platforms) {
         if (item.m_download.m_platforms.count(plat)) {
             return filter(item.m_info, query);

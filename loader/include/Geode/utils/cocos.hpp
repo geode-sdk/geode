@@ -396,9 +396,7 @@ namespace geode::cocos {
                 if (m_assigned) {
                     return m_lambda(std::forward<Args>(args)...);
                 } else {
-                    if constexpr (!std::is_void_v<Ret>) {
-                        return Ret();
-                    }
+                    return Ret();
                 }
             }
             void assign(F&& func) {
