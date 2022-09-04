@@ -60,17 +60,20 @@ bool ModListLayer::init() {
 
 
 	// add list display button
-	auto unextendedIconSpr = CCSprite::create("GJ_button_01.png");
+	// the button backgrounds are intentially the wrong way around, 
+	// to match the behaviour of the smallModeIcon button on comments
+	// in level info
+	auto unextendedIconSpr = CCSprite::create("GJ_button_02.png");
 	unextendedIconSpr->setScale(.75f);
 
-	auto unextendedIconTopSpr = CCSprite::createWithSpriteFrameName("GJ_extendedIcon_001.png");
+	auto unextendedIconTopSpr = CCSprite::createWithSpriteFrameName("GJ_smallModeIcon_001.png");
 	unextendedIconTopSpr->setPosition(unextendedIconSpr->getContentSize() / 2);
 	unextendedIconSpr->addChild(unextendedIconTopSpr);
 
-	auto extendedIconSpr = CCSprite::create("GJ_button_02.png");
+	auto extendedIconSpr = CCSprite::create("GJ_button_01.png");
 	extendedIconSpr->setScale(.75f);
 
-	auto extendedIconTopSpr = CCSprite::createWithSpriteFrameName("GJ_extendedIcon_001.png");
+	auto extendedIconTopSpr = CCSprite::createWithSpriteFrameName("GJ_smallModeIcon_001.png");
 	extendedIconTopSpr->setPosition(extendedIconSpr->getContentSize() / 2);
 	extendedIconSpr->addChild(extendedIconTopSpr);
 

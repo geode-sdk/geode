@@ -3313,7 +3313,7 @@ class HardStreak : cocos2d::CCDrawNode {
     void reset() = mac 0x5c930;
     void resumeStroke() = mac 0x5c210;
     void stopStroke() = mac 0x5c8f0;
-    void updateStroke(float) = mac 0x5c240;
+    void updateStroke(float) = mac 0x5c240, win 0x14e530;
 
     cocos2d::CCArray* m_pointsArr;
     cocos2d::CCPoint m_currentPoint;
@@ -4033,9 +4033,9 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     void playEndAnimationToPos(cocos2d::CCPoint) = mac 0x759a0, win 0x0, ios 0x0;
     void playExitDualEffect(PlayerObject*) = mac 0x7d1d0, win 0x0, ios 0x0;
     void playFlashEffect(float, int, float) = mac 0x75e50, win 0x0, ios 0x0;
-    void playGravityEffect(bool) = mac 0x7b5a0, win 0x0, ios 0x0;
+    void playGravityEffect(bool) = mac 0x7b5a0, win 0x207e00, ios 0x0;
     void playSpeedParticle(float) = mac 0x77030, win 0x0, ios 0x0;
-    void playerWillSwitchMode(PlayerObject*, GameObject*) = mac 0x7b820, win 0x0, ios 0x0;
+    void playerWillSwitchMode(PlayerObject*, GameObject*) = mac 0x7b820, win 0x16b290, ios 0x0;
     void prepareSpawnObjects() = mac 0x7fc00, win 0x0, ios 0x0;
     void processItems() = mac 0x735c0, win 0x0, ios 0x0;
     void processLoadedMoveActions() = mac 0x7a7c0, win 0x0, ios 0x0;
@@ -4082,7 +4082,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     void timeForXPos2(float, bool) = mac 0x293eb0, win 0x1fd3d0, ios 0x0;
     void toggleBGEffectVisibility(bool) = mac 0x7fe80, win 0x0, ios 0x0;
     void toggleDualMode(GameObject*, bool, PlayerObject*, bool) = mac 0x7bf90, win 0x0, ios 0x0;
-    void toggleFlipped(bool, bool) = mac 0x7bdc0, win 0x0, ios 0x0;
+    void toggleFlipped(bool, bool) = mac 0x7bdc0, win 0x20ab20, ios 0x0;
     void toggleGhostEffect(int) = mac 0x7fe40, win 0x0, ios 0x0;
     void toggleGlitter(bool) = mac 0x70e00, win 0x0, ios 0x0;
     void togglePracticeMode(bool) = mac 0x7f9e0, win 0x20d0d0, ios 0x0;
@@ -4099,7 +4099,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     void updateEffectPositions() = mac 0x7a6d0, win 0x0, ios 0x0;
     void updateLevelColors() = mac 0x6f1e0, win 0x0, ios 0x0;
     void updateMoveObjectsLastPosition() = mac 0x7a720, win 0x0, ios 0x0;
-    void updateProgressbar() = mac 0x6ed70, win 0x0, ios 0x0;
+    void updateProgressbar() = mac 0x6ed70, win 0x69b40, ios 0x0;
     void updateReplay(float) = mac 0x78b60, win 0x20af40, ios 0x0;
     void updateTimeMod(float, bool) = mac 0x786f0, win 0x0, ios 0x0;
     virtual void updateTweenAction(float, char const*) = mac 0x7ffb0, win 0x20d1f0, ios 0x0;
@@ -4301,7 +4301,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     virtual void setVisible(bool) = mac 0x22e8b0, win 0x1fa860, ios 0x0;
     virtual void setRotation(float) = mac 0x22e6e0, win 0x0, ios 0x0;
     virtual void setOpacity(unsigned char) = mac 0x22d400, win 0x0, ios 0x0;
-    virtual void setColor(cocos2d::_ccColor3B const&) = mac 0x22cdf0, win 0x0, ios 0x0;
+    virtual void setColor(cocos2d::_ccColor3B const&) = mac 0x22cdf0, win 0x1f77f0, ios 0x0;
     virtual void setFlipX(bool) = mac 0x22e720, win 0x1fa690, ios 0x0;
     virtual void setFlipY(bool) = mac 0x22e7b0, win 0x1fa740, ios 0x0;
     virtual void resetObject() = mac 0x223170, win 0x1eecd0, ios 0x0;
@@ -5095,7 +5095,9 @@ class UILayer : cocos2d::CCLayerColor {
     void disableMenu() = mac 0x280960, win 0x0, ios 0x0;
     void enableMenu() = mac 0x280940, win 0x0, ios 0x0;
     void pCommand(cocos2d::CCNode*) = mac 0x280830, win 0x0, ios 0x0;
-    void toggleCheckpointsMenu(bool) = mac 0x280430, win 0x0, ios 0x0;
+    inline void toggleCheckpointsMenu(bool toggled) {
+        m_checkPointMenu->setVisible(toggled);
+    }
     void onCheck(cocos2d::CCObject* sender) = mac 0x2803e0, win 0x25fb60, ios 0x0;
     void onDeleteCheck(cocos2d::CCObject* sender) = mac 0x280410, win 0x25fc90, ios 0x0;
     void onPause(cocos2d::CCObject* sender) = mac 0x2803c0, win 0x25fad0, ios 0x0;
