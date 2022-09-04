@@ -52,6 +52,7 @@ protected:
     CCMenu* m_menu;
     CCMenuItemToggler* m_enableToggle = nullptr;
     CCMenuItemSpriteExtra* m_unresolvedExMark;
+    bool m_expanded;
 
     ModCell(const char* name, CCSize size);
 
@@ -67,14 +68,14 @@ protected:
 
     void FLAlert_Clicked(FLAlertLayer*, bool btn2) override;
 
-    bool init(ModListView* list);
+    bool init(ModListView* list, bool expanded);
 
 public:
     void updateBGColor(int index);
     void loadFromObject(ModObject*);
     void updateState(bool invert = false);
 
-    static ModCell* create(ModListView* list, const char* key, CCSize size);
+    static ModCell* create(ModListView* list, bool expanded, const char* key, CCSize size);
 };
 
 struct SearchFlag {
@@ -116,6 +117,7 @@ protected:
 
     Status m_status = Status::OK;
     ModListLayer* m_layer = nullptr;
+	bool m_expandedList;
 
     void setupList() override;
     TableViewCell* getListCell(const char* key) override;
@@ -124,6 +126,7 @@ protected:
     bool init(
         CCArray* mods,
         ModListType type,
+        bool expanded,
         float width,
         float height,
         ModListQuery query
@@ -135,12 +138,14 @@ public:
     static ModListView* create(
         CCArray* mods,
         ModListType type = ModListType::Installed,
+        bool expanded = false,
         float width = 358.f,
         float height = 220.f,
         ModListQuery const& query = ModListQuery()
     );
     static ModListView* create(
         ModListType type,
+        bool expanded = false,
         float width = 358.f,
         float height = 220.f,
         ModListQuery const& query = ModListQuery()

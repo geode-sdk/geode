@@ -7,7 +7,7 @@ static ModInfo getInternalModInfo() {
     info.m_id          = "geode.loader";
     info.m_name        = "Geode";
     info.m_developer   = "Geode Team";
-    info.m_description = "Internal representation";
+    info.m_description = "The mod loader";
     info.m_details     = LOADER_ABOUT_MD;
     info.m_version     = LOADER_VERSION;
     info.m_supportsDisabling = false;

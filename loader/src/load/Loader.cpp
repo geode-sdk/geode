@@ -57,7 +57,7 @@ void Loader::updateResourcePaths() {
     );
     // add mods directory
     CCFileUtils::sharedFileUtils()->addSearchPath(
-        (this->getGeodeDirectory() / GEODE_MOD_DIRECTORY).string().c_str()
+        (this->getGeodeDirectory() / GEODE_TEMP_DIRECTORY).string().c_str()
     );
 }
 

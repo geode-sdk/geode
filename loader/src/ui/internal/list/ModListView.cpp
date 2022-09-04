@@ -116,7 +116,7 @@ void ModCell::setupLoadedButtons() {
         m_enableToggle = CCMenuItemToggler::createWithStandardSprites(
             this, menu_selector(ModCell::onEnable), .7f
         );
-        m_enableToggle->setPosition(-50.f, 0.f);
+        m_enableToggle->setPosition(-45.f, 0.f);
         m_menu->addChild(m_enableToggle);
     }
 
@@ -127,11 +127,10 @@ void ModCell::setupLoadedButtons() {
         exMark, this, menu_selector(ModCell::onUnresolvedInfo)
     );
     m_unresolvedExMark->setPosition(-80.f, 0.f);
+    m_unresolvedExMark->setVisible(false);
     m_menu->addChild(m_unresolvedExMark);
 
-    if (!m_obj->m_mod->wasSuccesfullyLoaded()) {
-        m_unresolvedExMark->setVisible(false);
-    } else {
+    if (m_obj->m_mod->wasSuccesfullyLoaded()) {
         if (Index::get()->isUpdateAvailableForItem(m_obj->m_mod->getID())) {
             viewSpr->updateBGImage("GE_button_01.png"_spr);
 
@@ -167,10 +166,10 @@ void ModCell::loadFromObject(ModObject* modobj) {
     m_backgroundLayer->setOpacity(255);
     
     m_menu = CCMenu::create();
-    m_menu->setPosition(m_width - m_height, m_height / 2);
+    m_menu->setPosition(m_width - 40.f, m_height / 2);
     m_mainLayer->addChild(m_menu);
 
-    auto logoSize = m_height - 12.f;
+    auto logoSize = m_height / 1.5f;
 
     auto logoSpr = ModInfoLayer::createLogoSpr(modobj);
     logoSpr->setPosition({ logoSize / 2 + 12.f, m_height / 2 });
@@ -190,10 +189,15 @@ void ModCell::loadFromObject(ModObject* modobj) {
         default: return;
     }
 
+    bool hasDesc = m_expanded && info.m_description.size();
+
     auto titleLabel = CCLabelBMFont::create(info.m_name.c_str(), "bigFont.fnt");
     titleLabel->setAnchorPoint({ .0f, .5f });
-    titleLabel->setPosition(m_height / 2 + logoSize, m_height / 2 + 7.f);
-    titleLabel->limitLabelWidth(m_width / 2 - 30.f, .5f, .1f);
+    titleLabel->setPosition(
+        m_height / 2 + logoSize / 2 + 13.f,
+        (hasDesc ? m_height / 2 + 15.f : m_height / 2 + 7.f)
+    );
+    titleLabel->limitLabelWidth(m_width / 2 - 40.f, .5f, .1f);
     m_mainLayer->addChild(titleLabel);
 
     auto versionLabel = CCLabelBMFont::create(
@@ -203,7 +207,7 @@ void ModCell::loadFromObject(ModObject* modobj) {
     versionLabel->setScale(.3f);
     versionLabel->setPosition(
         titleLabel->getPositionX() + titleLabel->getScaledContentSize().width + 5.f,
-        m_height / 2 + 7.f
+        (hasDesc ? m_height / 2 + 15.f : m_height / 2 + 7.f)
     );
     versionLabel->setColor({ 0, 255, 0 });
     m_mainLayer->addChild(versionLabel);
@@ -214,8 +218,39 @@ void ModCell::loadFromObject(ModObject* modobj) {
     );
     creatorLabel->setAnchorPoint({ .0f, .5f });
     creatorLabel->setScale(.43f);
-    creatorLabel->setPosition(m_height / 2 + logoSize, m_height / 2 - 7.f);
+    creatorLabel->setPosition(
+        m_height / 2 + logoSize / 2 + 13.f,
+        (hasDesc ? m_height / 2 : m_height / 2 - 7.f)
+    );
     m_mainLayer->addChild(creatorLabel);
+
+    if (hasDesc) {
+        auto descBG = CCScale9Sprite::create(
+            "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
+        );
+        descBG->setColor({ 0, 0, 0 });
+        descBG->setOpacity(90);
+        descBG->setContentSize({ m_width * 2, 60.f });
+        descBG->setAnchorPoint({ .0f, .5f });
+        descBG->setPosition(
+            m_height / 2 + logoSize / 2 + 13.f,
+            m_height / 2 - 17.f
+        );
+        descBG->setScale(.25f);
+        m_mainLayer->addChild(descBG);
+
+        auto descText = CCLabelBMFont::create(
+            info.m_description.c_str(),
+            "chatFont.fnt"
+        );
+        descText->setAnchorPoint({ .0f, .5f });
+        descText->setPosition(
+            m_height / 2 + logoSize / 2 + 18.f,
+            m_height / 2 - 17.f
+        );
+        descText->limitLabelWidth(m_width / 2 - 10.f, .5f, .1f);
+        m_mainLayer->addChild(descText);
+    }
 
     switch (modobj->m_type) {
         case ModObjectType::Mod:
@@ -285,8 +320,9 @@ void ModCell::onUnresolvedInfo(CCObject* pSender) {
     )->show();
 }
 
-bool ModCell::init(ModListView* list) {
+bool ModCell::init(ModListView* list, bool expanded) {
     m_list = list;
+    m_expanded = expanded;
     return true;
 }
 
@@ -305,9 +341,9 @@ void ModCell::updateState(bool invert) {
     }
 }
 
-ModCell* ModCell::create(ModListView* list, const char* key, CCSize size) {
+ModCell* ModCell::create(ModListView* list, bool expanded, const char* key, CCSize size) {
     auto pRet = new ModCell(key, size);
-    if (pRet && pRet->init(list)) {
+    if (pRet && pRet->init(list, expanded)) {
         return pRet;
     }
     CC_SAFE_DELETE(pRet);
@@ -322,7 +358,7 @@ void ModListView::updateAllStates(ModCell* toggled) {
 }
 
 void ModListView::setupList() {
-    m_itemSeparation = 40.0f;
+    m_itemSeparation = m_expandedList ? 60.f : 40.0f;
 
     if (!m_entries->count()) return;
 
@@ -346,7 +382,7 @@ void ModListView::setupList() {
 }
 
 TableViewCell* ModListView::getListCell(const char* key) {
-    return ModCell::create(this, key, { m_width, m_itemSeparation });
+    return ModCell::create(this, m_expandedList, key, { m_width, m_itemSeparation });
 }
 
 void ModListView::loadCell(TableViewCell* cell, unsigned int index) {
@@ -443,10 +479,12 @@ static std::vector<Mod*> sortedInstalledMods() {
 bool ModListView::init(
     CCArray* mods,
     ModListType type,
+    bool expanded,
     float width,
     float height,
     ModListQuery query
 ) {
+    m_expandedList = expanded;
     if (!mods) {
         switch (type) {
             case ModListType::Installed: {
@@ -501,13 +539,14 @@ bool ModListView::init(
 ModListView* ModListView::create(
     CCArray* mods,
     ModListType type,
+    bool expanded,
     float width,
     float height,
     ModListQuery const& query
 ) {
     auto pRet = new ModListView;
     if (pRet) {
-        if (pRet->init(mods, type, width, height, query)) {
+        if (pRet->init(mods, type, expanded, width, height, query)) {
             pRet->autorelease();
             return pRet;
         }
@@ -518,11 +557,12 @@ ModListView* ModListView::create(
 
 ModListView* ModListView::create(
     ModListType type,
+    bool expanded,
     float width,
     float height,
     ModListQuery const& query
 ) {
-    return ModListView::create(nullptr, type, width, height, query);
+    return ModListView::create(nullptr, type, expanded, width, height, query);
 }
 
 ModListView::Status ModListView::getStatus() const {

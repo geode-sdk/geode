@@ -87,9 +87,8 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
         this->addToggle(
             category.c_str(),
             makeMenuSelector([this](CCMenuItemToggler* toggle) {
-                // seems like C++ generates the same lambda if you try to 
-                // capture category so all toggles will use the same one 
-                // which is not wanted
+                // due to implementation problems in makeMemberFunction, 
+                // category can't be passed through capture
                 try {
                     if (!toggle->isToggled()) {
                         m_modLayer->m_query.m_categories.insert(

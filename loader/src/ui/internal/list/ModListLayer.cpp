@@ -55,8 +55,36 @@ bool ModListLayer::init() {
     auto openBtn = CCMenuItemSpriteExtra::create(
 		openSpr, this, menu_selector(ModListLayer::onOpenFolder)
 	);
-	openBtn->setPosition(-winSize.width / 2 + 30.0f, - winSize.height / 2 + 80.0f);
-	this->m_menu->addChild(openBtn);
+	openBtn->setPosition(-winSize.width / 2 + 30.0f, -winSize.height / 2 + 80.0f);
+	m_menu->addChild(openBtn);
+
+
+	// add list display button
+	auto unextendedIconSpr = CCSprite::create("GJ_button_01.png");
+	unextendedIconSpr->setScale(.75f);
+
+	auto unextendedIconTopSpr = CCSprite::createWithSpriteFrameName("GJ_extendedIcon_001.png");
+	unextendedIconTopSpr->setPosition(unextendedIconSpr->getContentSize() / 2);
+	unextendedIconSpr->addChild(unextendedIconTopSpr);
+
+	auto extendedIconSpr = CCSprite::create("GJ_button_02.png");
+	extendedIconSpr->setScale(.75f);
+
+	auto extendedIconTopSpr = CCSprite::createWithSpriteFrameName("GJ_extendedIcon_001.png");
+	extendedIconTopSpr->setPosition(extendedIconSpr->getContentSize() / 2);
+	extendedIconSpr->addChild(extendedIconTopSpr);
+
+	auto listDisplayType = CCMenuItemToggler::create(
+		unextendedIconSpr,
+		extendedIconSpr,
+		this,
+		makeMenuSelector([this](CCMenuItemToggler* toggle) {
+			m_expandedList = !toggle->isToggled();
+			this->reloadList();
+		})
+	);
+	listDisplayType->setPosition(-210.f, .0f);
+	m_topMenu->addChild(listDisplayType);
 
 
 	// add list status label	
@@ -245,8 +273,11 @@ void ModListLayer::reloadList() {
 		m_searchInput &&
 		m_searchInput->getString() &&
 		strlen(m_searchInput->getString()) ?
-			std::optional<std::string>(m_searchInput->getString()) : std::nullopt;
-	auto list = ModListView::create(g_tab, 358.f, 190.f, m_query);
+			std::optional<std::string>(m_searchInput->getString()) : 
+			std::nullopt;
+	auto list = ModListView::create(
+		g_tab, m_expandedList, 358.f, 190.f, m_query
+	);
 	list->setLayer(this);
 
 	// set list status

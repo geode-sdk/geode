@@ -400,10 +400,11 @@ namespace geode::cocos {
                 }
             }
             void assign(F&& func) {
-                if (!m_assigned) {
-                    new (&m_lambda) F(func);
-                    m_assigned = true;
+                if (m_assigned) {
+                    m_lambda.~F();
                 }
+                new (&m_lambda) F(func);
+                m_assigned = true;
             }
         };
 
@@ -438,6 +439,12 @@ namespace geode::cocos {
      * callbacks that have to be members of a class without having to deal
      * with all of the boilerplate associated with defining a new class 
      * member function.
+     * 
+     * Do note that due to implementation problems, captures may have 
+     * unexpected side-effects. In practice, lambda member functions with 
+     * captures do not work properly in loops. If you assign the same 
+     * member lambda to multiple different targets, they will share the 
+     * same captured values.
      */
     template<class Base, class Func>
     static auto makeMemberFunction(Func&& function) {
@@ -450,6 +457,12 @@ namespace geode::cocos {
      * for adding callbacks to CCMenuItemSpriteExtras without needing to add 
      * the callback as a member to a class. Use the GEODE_MENU_SELECTOR class 
      * for even more concise code.
+     * 
+     * Do note that due to implementation problems, captures may have 
+     * unexpected side-effects. In practice, lambda member functions with 
+     * captures do not work properly in loops. If you assign the same 
+     * member lambda to multiple different targets, they will share the 
+     * same captured values.
      */
     template<class Func>
     static cocos2d::SEL_MenuHandler makeMenuSelector(Func&& selector) {

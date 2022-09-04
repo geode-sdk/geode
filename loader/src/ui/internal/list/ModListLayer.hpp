@@ -26,6 +26,7 @@ protected:
 	LoadingCircle* m_loadingCircle = nullptr;
 	ModListQuery m_query;
 	CCMenuItemSpriteExtra* m_filterBtn;
+	bool m_expandedList = false;
 
 	virtual ~ModListLayer();
 

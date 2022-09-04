@@ -684,11 +684,11 @@ CCNode* ModInfoLayer::createLogoSpr(ModObject* modObj) {
 CCNode* ModInfoLayer::createLogoSpr(Mod* mod) {
     CCNode* spr = nullptr;
     if (mod == Loader::getInternalMod()) {
-        spr = CCSprite::create("geode.api.png");
+        spr = CCSprite::createWithSpriteFrameName("geode-logo.png"_spr);
     } else {
         spr = CCSprite::create(
             CCString::createWithFormat(
-                "%s.png",
+                "%s/logo.png",
                 mod->getID().c_str()
             )->getCString()
         );
