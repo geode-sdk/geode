@@ -112,8 +112,8 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
     auto nameLabel = CCLabelBMFont::create(
         m_info.m_name.c_str(), "bigFont.fnt"
     );
-    nameLabel->setScale(.7f);
     nameLabel->setAnchorPoint({ .0f, .5f });
+    nameLabel->limitLabelWidth(200.f, .7f, .1f);
     m_mainLayer->addChild(nameLabel, 2); 
 
     auto logoSpr = this->createLogoSpr(obj);

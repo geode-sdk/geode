@@ -4,6 +4,7 @@
 #include <Index.hpp>
 #include "ModListLayer.hpp"
 #include <InternalLoader.hpp>
+#include "../info/CategoryNode.hpp"
 
 template<class T>
 static bool tryOrAlert(Result<T> const& res, const char* title) {
@@ -176,6 +177,8 @@ void ModCell::loadFromObject(ModObject* modobj) {
     logoSpr->setScale(logoSize / logoSpr->getContentSize().width);
     m_mainLayer->addChild(logoSpr);
 
+    bool hasCategories = false;
+
     ModInfo info;
     switch (modobj->m_type) {
         case ModObjectType::Mod:
@@ -184,6 +187,7 @@ void ModCell::loadFromObject(ModObject* modobj) {
 
         case ModObjectType::Index:
             info = modobj->m_index.m_info;
+            hasCategories = m_expanded && modobj->m_index.m_categories.size();
             break;
         
         default: return;
@@ -193,10 +197,14 @@ void ModCell::loadFromObject(ModObject* modobj) {
 
     auto titleLabel = CCLabelBMFont::create(info.m_name.c_str(), "bigFont.fnt");
     titleLabel->setAnchorPoint({ .0f, .5f });
-    titleLabel->setPosition(
-        m_height / 2 + logoSize / 2 + 13.f,
-        (hasDesc ? m_height / 2 + 15.f : m_height / 2 + 7.f)
-    );
+    titleLabel->setPositionX(m_height / 2 + logoSize / 2 + 13.f);
+    if (hasDesc && hasCategories) {
+        titleLabel->setPositionY(m_height / 2 + 20.f);
+    } else if (hasDesc || hasCategories) {
+        titleLabel->setPositionY(m_height / 2 + 15.f);
+    } else {
+        titleLabel->setPositionY(m_height / 2 + 7.f);
+    }
     titleLabel->limitLabelWidth(m_width / 2 - 40.f, .5f, .1f);
     m_mainLayer->addChild(titleLabel);
 
@@ -207,7 +215,7 @@ void ModCell::loadFromObject(ModObject* modobj) {
     versionLabel->setScale(.3f);
     versionLabel->setPosition(
         titleLabel->getPositionX() + titleLabel->getScaledContentSize().width + 5.f,
-        (hasDesc ? m_height / 2 + 15.f : m_height / 2 + 7.f)
+        titleLabel->getPositionY() - 1.f
     );
     versionLabel->setColor({ 0, 255, 0 });
     m_mainLayer->addChild(versionLabel);
@@ -218,10 +226,14 @@ void ModCell::loadFromObject(ModObject* modobj) {
     );
     creatorLabel->setAnchorPoint({ .0f, .5f });
     creatorLabel->setScale(.43f);
-    creatorLabel->setPosition(
-        m_height / 2 + logoSize / 2 + 13.f,
-        (hasDesc ? m_height / 2 : m_height / 2 - 7.f)
-    );
+    creatorLabel->setPositionX(m_height / 2 + logoSize / 2 + 13.f);
+    if (hasDesc && hasCategories) {
+        creatorLabel->setPositionY(m_height / 2 + 7.5f);
+    } else if (hasDesc || hasCategories) {
+        creatorLabel->setPositionY(m_height / 2);
+    } else {
+        creatorLabel->setPositionY(m_height / 2 - 7.f);
+    }
     m_mainLayer->addChild(creatorLabel);
 
     if (hasDesc) {
@@ -232,10 +244,12 @@ void ModCell::loadFromObject(ModObject* modobj) {
         descBG->setOpacity(90);
         descBG->setContentSize({ m_width * 2, 60.f });
         descBG->setAnchorPoint({ .0f, .5f });
-        descBG->setPosition(
-            m_height / 2 + logoSize / 2 + 13.f,
-            m_height / 2 - 17.f
-        );
+        descBG->setPositionX(m_height / 2 + logoSize / 2 + 13.f);
+        if (hasCategories) {
+            descBG->setPositionY(m_height / 2 - 7.5f);
+        } else {
+            descBG->setPositionY(m_height / 2 - 17.f);
+        }
         descBG->setScale(.25f);
         m_mainLayer->addChild(descBG);
 
@@ -246,10 +260,28 @@ void ModCell::loadFromObject(ModObject* modobj) {
         descText->setAnchorPoint({ .0f, .5f });
         descText->setPosition(
             m_height / 2 + logoSize / 2 + 18.f,
-            m_height / 2 - 17.f
+            descBG->getPositionY()
         );
         descText->limitLabelWidth(m_width / 2 - 10.f, .5f, .1f);
         m_mainLayer->addChild(descText);
+    }
+
+    if (hasCategories) {
+        float x = m_height / 2 + logoSize / 2 + 13.f;
+        for (auto& category : modobj->m_index.m_categories) {
+            auto node = CategoryNode::create(category);
+            node->setAnchorPoint({ .0f, .5f });
+            node->setPositionX(x);
+            node->setScale(.3f);
+            if (hasDesc) {
+                node->setPositionY(m_height / 2 - 23.f);
+            } else {
+                node->setPositionY(m_height / 2 - 17.f);
+            }
+            m_mainLayer->addChild(node);
+
+            x += node->getScaledContentSize().width + 5.f;
+        }
     }
 
     switch (modobj->m_type) {

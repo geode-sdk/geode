@@ -2,6 +2,7 @@
 #include "ModListLayer.hpp"
 #include "ModListView.hpp"
 #include <Geode/ui/SelectList.hpp>
+#include "../info/CategoryNode.hpp"
 
 bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
     // todo: clean this shitty ass popup up
@@ -84,8 +85,8 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
     pos = CCPoint { winSize.width / 2 + 30.f, winSize.height / 2 + 45.f };
 
     for (auto& category : Index::get()->getCategories()) {
-        this->addToggle(
-            category.c_str(),
+        auto toggle = CCMenuItemToggler::createWithStandardSprites(
+            this,
             makeMenuSelector([this](CCMenuItemToggler* toggle) {
                 // due to implementation problems in makeMemberFunction, 
                 // category can't be passed through capture
@@ -101,10 +102,20 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
                     }
                 } catch(...) {}
             }),
-            m_modLayer->m_query.m_categories.count(category),
-            0,
-            pos
-        )->setUserObject(CCString::create(category));
+            .5f
+        );
+        toggle->toggle(m_modLayer->m_query.m_categories.count(category));
+        toggle->setPosition(pos - winSize / 2);
+        toggle->setUserObject(CCString::create(category));
+        m_buttonMenu->addChild(toggle);
+
+        auto label = CategoryNode::create(category, CategoryNodeStyle::Dot);
+        label->setScale(.4f);
+        label->setAnchorPoint({ .0f, .5f });
+        label->setPosition(pos.x + 10.f, pos.y);
+        m_mainLayer->addChild(label);
+
+        pos.y -= 22.5f;
     }
 
     return true;
