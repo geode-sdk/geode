@@ -3,20 +3,24 @@
 USE_GEODE_NAMESPACE();
 
 const char* InputNode::getString() {
-    return m_input->getTextField()->getString();
+    return m_input->getString();
 }
 
-void InputNode::setString(const char* _str) {
-    m_input->getTextField()->setString(_str);
-    m_input->refreshLabel();
+void InputNode::setString(std::string const& str) {
+    m_input->setString(str);
 }
 
-CCTextInputNode* InputNode::getInputNode() const {
+CCTextInputNode* InputNode::getInput() const {
     return m_input;
 }
 
-CCScale9Sprite* InputNode::getBGSprite() const {
+CCScale9Sprite* InputNode::getBG() const {
     return m_bgSprite;
+}
+
+void InputNode::activate() {
+    std::cout << "steve\n";
+    m_input->onClickTrackNode(true);
 }
 
 void InputNode::setEnabled(bool enabled) {
@@ -24,7 +28,14 @@ void InputNode::setEnabled(bool enabled) {
     m_input->setTouchEnabled(enabled);
 }
 
-bool InputNode::init(float _w, float _h, const char* _phtxt, const char* _fnt, const std::string & _awc, int _cc) {
+bool InputNode::init(
+    float width, float height,
+    const char* placeholder, const char* font,
+    std::string const& filter, int maxCharCount
+) {
+    if (!CCMenuItem::init())
+        return false;
+
     m_bgSprite = cocos2d::extension::CCScale9Sprite::create(
         "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
     );
@@ -32,34 +43,51 @@ bool InputNode::init(float _w, float _h, const char* _phtxt, const char* _fnt, c
     m_bgSprite->setScale(.5f);
     m_bgSprite->setColor({ 0, 0, 0 });
     m_bgSprite->setOpacity(75);
-    m_bgSprite->setContentSize({ _w * 2, _h * 2 });
+    m_bgSprite->setContentSize({ width * 2, height * 2 });
+    m_bgSprite->setPosition(width / 2, height / 2);
 
     this->addChild(m_bgSprite);
 
     m_input = CCTextInputNode::create(
-        _w - 10.0f, 60.0f, _phtxt, _fnt
+        width - 10.0f, height, placeholder, font
     );
-
     m_input->setLabelPlaceholderColor({ 150, 150, 150 });
     m_input->setLabelPlaceholderScale(.75f);
-    m_input->setMaxLabelScale(.8f);
-    m_input->setMaxLabelWidth(_cc);
-    if (_awc.length())
-        m_input->setAllowedChars(_awc);
-
+    m_input->setMaxLabelScale(.85f);
+    m_input->setMaxLabelWidth(maxCharCount);
+    m_input->setPosition(width / 2, height / 2);
+    if (filter.length()) {
+        m_input->setAllowedChars(filter);
+    }
     this->addChild(m_input);
+
+    this->setContentSize({ width, height });
+    this->setAnchorPoint({ .5f, .5f });
+    this->setEnabled(true);
 
     return true;
 }
 
-bool InputNode::init(float _w, const char* _phtxt, const char* _fnt, const std::string & _awc, int _cc) {
-    return init(_w, 30.0f, _phtxt, _fnt, _awc, _cc);
+bool InputNode::init(
+    float width,
+    const char* placeholder,
+    const char* font,
+    std::string const& filter,
+    int maxCharCount
+) {
+    return init(width, 30.0f, placeholder, font, filter, maxCharCount);
 }
 
-InputNode* InputNode::create(float _w, const char* _phtxt, const char* _fnt, const std::string & _awc, int _cc) {
+InputNode* InputNode::create(
+    float width,
+    const char* placeholder,
+    const char* font,
+    std::string const& filter,
+    int maxCharCount
+) {
     auto pRet = new InputNode();
 
-    if (pRet && pRet->init(_w, _phtxt, _fnt, _awc, _cc)) {
+    if (pRet && pRet->init(width, placeholder, font, filter, maxCharCount)) {
         pRet->autorelease();
         return pRet;
     }
@@ -68,18 +96,34 @@ InputNode* InputNode::create(float _w, const char* _phtxt, const char* _fnt, con
     return nullptr;
 }
 
-InputNode* InputNode::create(float _w, const char* _phtxt, const std::string & _awc) {
-    return create(_w, _phtxt, "bigFont.fnt", _awc, 69);
+InputNode* InputNode::create(
+    float width,
+    const char* placeholder,
+    std::string const& filter
+) {
+    return create(width, placeholder, "bigFont.fnt", filter, 69);
 }
 
-InputNode* InputNode::create(float _w, const char* _phtxt, const std::string & _awc, int _cc) {
-    return create(_w, _phtxt, "bigFont.fnt", _awc, _cc);
+InputNode* InputNode::create(
+    float width,
+    const char* placeholder,
+    std::string const& filter,
+    int maxCharCount
+) {
+    return create(width, placeholder, "bigFont.fnt", filter, maxCharCount);
 }
 
-InputNode* InputNode::create(float _w, const char* _phtxt, const char* _fnt) {
-    return create(_w, _phtxt, _fnt, "", 69);
+InputNode* InputNode::create(
+    float width,
+    const char* placeholder,
+    const char* font
+) {
+    return create(width, placeholder, font, "", 69);
 }
 
-InputNode* InputNode::create(float _w, const char* _phtxt) {
-    return create(_w, _phtxt, "bigFont.fnt");
+InputNode* InputNode::create(
+    float width,
+    const char* placeholder
+) {
+    return create(width, placeholder, "bigFont.fnt");
 }

@@ -5,5 +5,25 @@
     "name":         "Geode Test Dependency",
     "developer":    "Geode Team",
     "description":  "Unit test dependency for Geode",
-    "binary":       "TestDependency"
+    "binary":       "TestDependency",
+    "settings": {
+        "sock": {
+            "type": "string",
+            "default": "Cheese"
+        },
+        "steve-setting": {
+            "type": "string",
+            "name": "Steve!!",
+            "default": "ball"
+        },
+        "enable-gay-dreams": {
+            "type": "bool",
+            "default": true
+        },
+        "catgirl": {
+            "type": "int",
+            "default": 5,
+            "max": 10
+        }
+    }
 }

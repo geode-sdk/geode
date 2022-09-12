@@ -5,7 +5,6 @@
 #include "../info/CategoryNode.hpp"
 
 bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
-    // todo: clean this shitty ass popup up
     m_noElasticity = true;
     m_modLayer = layer;
 

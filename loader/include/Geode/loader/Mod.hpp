@@ -13,7 +13,6 @@
 #include <type_traits>
 #include <cocos2d.h>
 
-
 class InternalLoader;
 class InternalMod;
 
@@ -25,6 +24,7 @@ namespace geode {
     class Loader;
     class Log;
     class Mod;
+    class Setting;
 
     class Unknown;
 	using unknownmemfn_t = void(Unknown::*)();
@@ -123,7 +123,10 @@ namespace geode {
          * Default data store values
          */
         nlohmann::json m_defaultDataStore;
-
+        /**
+         * Mod settings
+         */
+        std::unordered_map<std::string, std::shared_ptr<Setting>> m_settings;
         /**
          * Whether the mod can be disabled or not
          */
@@ -316,6 +319,9 @@ namespace geode {
         ModInfo     getModInfo() const;
         ghc::filesystem::path getTempDir() const;
         ghc::filesystem::path getBinaryPath() const;
+
+        bool hasSettings() const;
+        decltype(ModInfo::m_settings) getSettings() const;
 
         /**
          * Get the mod container stored in the Interface

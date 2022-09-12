@@ -3,7 +3,7 @@
 #include <Geode/Bindings.hpp>
 
 namespace geode {
-    class GEODE_DLL InputNode : public cocos2d::CCNode {
+    class GEODE_DLL InputNode : public cocos2d::CCMenuItem {
      protected:
         cocos2d::extension::CCScale9Sprite* m_bgSprite;
         CCTextInputNode* m_input;
@@ -40,12 +40,14 @@ namespace geode {
             const char* placeholder
         );
 
-        CCTextInputNode* getInputNode() const;
-        cocos2d::extension::CCScale9Sprite* getBGSprite() const;
+        void activate() override;
+
+        CCTextInputNode* getInput() const;
+        cocos2d::extension::CCScale9Sprite* getBG() const;
 
         void setEnabled(bool);
 
-        void setString(const char*);
+        void setString(std::string const&);
         const char* getString();
     };
 }

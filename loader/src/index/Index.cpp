@@ -1,7 +1,7 @@
 #include "Index.hpp"
 #include <thread>
 #include <Geode/utils/json.hpp>
-#include <Geode/utils/json_check.hpp>
+#include <Geode/utils/JsonValidation.hpp>
 #include "fetch.hpp"
 
 #define GITHUB_DONT_RATE_LIMIT_ME_PLS 0
@@ -321,7 +321,7 @@ void Index::addIndexItemFromFolder(ghc::filesystem::path const& dir) {
         auto info = ModInfo::create(readModJson.value());
         if (!info) {
             Log::get() << Severity::Warning
-                << info.error() << ", skipping";
+                << dir << ": " << info.error() << ", skipping";
             return;
         }
 

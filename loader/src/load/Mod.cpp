@@ -4,13 +4,13 @@
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Interface.hpp>
+#include <Geode/loader/Setting.hpp>
 #include <Geode/utils/conststring.hpp>
 #include <Geode/utils/file.hpp>
-#include <Geode/utils/json_check.hpp>
+#include <Geode/utils/JsonValidation.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/vector.hpp>
-//#include <InternalLoader.hpp>
 #include <InternalMod.hpp>
 #include <ZipUtils.h>
 
@@ -489,11 +489,19 @@ const char* Mod::expandSpriteName(const char* name) {
     return exp;
 }
 
+bool Mod::hasSettings() const {
+    return m_info.m_settings.size();
+}
+
+decltype(ModInfo::m_settings) Mod::getSettings() const {
+    return m_info.m_settings;
+}
+
 std::string Mod::getLoadErrorInfo() const {
     return m_loadErrorInfo;
 }
 
-std::string sanitizeDetailsData(unsigned char* start, unsigned char* end) {
+static std::string sanitizeDetailsData(unsigned char* start, unsigned char* end) {
     // delete CRLF
     return string_utils::replace(std::string(start, end), "\r", "");
 }
@@ -503,110 +511,98 @@ Result<ModInfo> ModInfo::createFromSchemaV010(nlohmann::json const& rawJson) {
 
     auto json = rawJson;
 
-    try {
+    #define PROPAGATE(err) \
+        { auto err__ = err; if (!err__) return Err(err__.error()); }
 
-    std::set<std::string_view> knownKeys;
+    JsonChecker checker(json);
+    auto root = checker.root("[mod.json]");
 
-    json_check(knownKeys, json)
+    root.addKnownKey("geode");
+    root.addKnownKey("binary");
+
+    using nlohmann::detail::value_t;
+
+    root
         .needs("id")
-        .as<std::string>()
-        .validate([](auto t) -> bool { return Mod::validateID(t.template get<std::string>()); })
+        .validate(&Mod::validateID)
         .into(info.m_id);
-
-    json_check(knownKeys, json)
+    root
         .needs("version")
-        .as<std::string>()
-        .validate([](auto t) -> bool { return VersionInfo::validate(t.template get<std::string>()); })
-        .into([&info](auto json) -> void { info.m_version = VersionInfo(json.template get<std::string>()); });
+        .validate(&VersionInfo::validate)
+        .intoAs<std::string>(info.m_version);
+    root.needs("name").into(info.m_name);
+    root.needs("developer").into(info.m_developer);
+    root.has("description").into(info.m_description);
+    root.has("repository").into(info.m_repository);
+    root.has("datastore").intoRaw(info.m_defaultDataStore);
+    root.has("toggleable").into(info.m_supportsDisabling);
+    root.has("unloadable").into(info.m_supportsUnloading);
 
-    json_assign_required(knownKeys, json, "name", info.m_name);
-    json_assign_required(knownKeys, json, "developer", info.m_developer);
-    json_assign_optional(knownKeys, json, "description", info.m_description);
-    json_assign_optional(knownKeys, json, "repository", info.m_repository);
+    for (auto& dep : root.has("dependencies").iterate()) {
+        auto obj = dep.obj();
 
-    json_check(knownKeys, json)
-        .has("dependencies")
-        .as<nlohmann::json::array_t>()
-        .each([&info](json_check dep) -> void {
-            dep.as<nlohmann::json::object_t>();
-            auto depobj = Dependency {};
-            std::set<std::string_view> knownKeys;
-            json_check(knownKeys, dep)
-                .needs("id")
-                .as<std::string>()
-                .into(depobj.m_id);
-            json_check(knownKeys, dep)
-                .has("version")
-                .as<std::string>()
-                .validate([&](auto t) -> bool { return VersionInfo::validate(t.template get<std::string>()); })
-                .into([&info](auto json) -> void { info.m_version = VersionInfo(json.template get<std::string>()); });
-            json_check(knownKeys, dep).has("required").as<bool>().into(depobj.m_required);
-            json_check_unknown(knownKeys, dep.m_json, dep.m_hierarchy);
-            info.m_dependencies.push_back(depobj);
-        });
-    
-    json_check(knownKeys, json)
-        .has("datastore")
-        .as<nlohmann::json::object_t>()
-        .into(info.m_defaultDataStore);
-    
-    json_check(knownKeys, json)
-        .has("resources")
-        .as<nlohmann::json::object_t>()
-        .step()
-        .has("spritesheets")
-        .as<nlohmann::json::object_t>()
-        .each([&info](auto key, auto) -> void {
-            info.m_spritesheets.push_back(info.m_id + "/" + key);
-        });
-    
-    json_assign_optional(knownKeys, json, "toggleable", info.m_supportsDisabling);
-    json_assign_optional(knownKeys, json, "unloadable", info.m_supportsUnloading);
+        auto depobj = Dependency {};
+        obj
+            .needs("id")
+            .validate(&Mod::validateID)
+            .into(depobj.m_id);
+        obj
+            .needs("version")
+            .validate(&VersionInfo::validate)
+            .intoAs<std::string>(depobj.m_version);
+        obj
+            .has("required")
+            .into(depobj.m_required);
+        obj.checkUnknownKeys();
 
-    knownKeys.insert("geode");
-    knownKeys.insert("binary");
-    knownKeys.insert("userdata");
-    json_check_unknown(knownKeys, json, "");
-
-    } catch(std::exception& e) {
-        return Err<>(e.what());
+        info.m_dependencies.push_back(depobj);
     }
 
-    if (json.contains("binary")) {
-        bool autoEnd = true;
-        if (json["binary"].is_string()) {
-            info.m_binaryName = json["binary"];
-        } else if (json["binary"].is_object()) {
-            auto bo = json["binary"];
-            if (bo.contains("*") && bo["*"].is_string()) {
-                info.m_binaryName = bo["*"];
-            }
-            if (bo.contains("auto") && bo["auto"].is_boolean()) {
-                autoEnd = bo["auto"];
-            }
-            #if defined(GEODE_IS_WINDOWS)
-            if (bo.contains("windows") && bo["windows"].is_string()) {
-                info.m_binaryName = bo["windows"];
-            }
-            #elif defined(GEODE_IS_MACOS)
-            if (bo.contains("macos") && bo["macos"].is_string()) {
-                info.m_binaryName = bo["macos"];
-            }
-            #elif defined(GEODE_IS_ANDROID)
-            if (bo.contains("android") && bo["android"].is_string()) {
-                info.m_binaryName = bo["android"];
-            }
-            #elif defined(GEODE_IS_IOS)
-            if (bo.contains("ios") && bo["ios"].is_string()) {
-                info.m_binaryName = bo["ios"];
-            }
-            #endif
-        } else goto skip_binary_check;
-        if (autoEnd && !string_utils::endsWith(info.m_binaryName, GEODE_PLATFORM_EXTENSION)) {
-            info.m_binaryName += GEODE_PLATFORM_EXTENSION;
+    for (auto& [key, value] : root.has("settings").items()) {
+        auto sett = Setting::parse(key, value.json());
+        PROPAGATE(sett);
+        info.m_settings.insert({ key, sett.value() });
+    }
+
+    if (auto resources = root.has("resources").obj()) {
+        for (auto& [key, _] : resources.has("spritesheets").items()) {
+            info.m_spritesheets.push_back(info.m_id + "/" + key);
         }
     }
-    skip_binary_check:
+
+    root.has("binary").asOneOf<value_t::string, value_t::object>();
+
+    bool autoEndBinaryName = true;
+
+    root.has("binary").is<value_t::string>().into(info.m_binaryName);
+    
+    if (auto bin = root.has("binary").is<value_t::object>().obj()) {
+        bin.has("*").into(info.m_binaryName);
+        bin.has("auto").into(autoEndBinaryName);
+
+    #if defined(GEODE_IS_WINDOWS)
+        bin.has("windows").into(info.m_binaryName);
+    #elif defined(GEODE_IS_MACOS)
+        bin.has("macos").into(info.m_binaryName);
+    #elif defined(GEODE_IS_ANDROID)
+        bin.has("android").into(info.m_binaryName);
+    #elif defined(GEODE_IS_IOS)
+        bin.has("ios").into(info.m_binaryName);
+    #endif
+    }
+
+    if (
+        root.has("binary") &&
+        autoEndBinaryName &&
+        !string_utils::endsWith(info.m_binaryName, GEODE_PLATFORM_EXTENSION)
+    ) {
+        info.m_binaryName += GEODE_PLATFORM_EXTENSION;
+    }
+
+    if (checker.isError()) {
+        return Err(checker.getError());
+    }
+    root.checkUnknownKeys();
 
     return Ok(info);
 }

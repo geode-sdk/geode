@@ -75,8 +75,8 @@ if (APPLE)
 	)
 elseif(WIN32)
 	add_custom_command(
-		COMMAND ${CMAKE_COMMAND} -E rename "$<TARGET_FILE:${PROJECT_NAME}>" "${GEODE_BIN_PATH}/nightly/$<TARGET_FILE_NAME:${PROJECT_NAME}>"
-		COMMAND ${CMAKE_COMMAND} -E rename "$<TARGET_LINKER_FILE:${PROJECT_NAME}>" "${GEODE_BIN_PATH}/nightly/$<TARGET_LINKER_FILE_NAME:${PROJECT_NAME}>"
+		COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:${PROJECT_NAME}>" "${GEODE_BIN_PATH}/nightly/$<TARGET_FILE_NAME:${PROJECT_NAME}>"
+		COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_LINKER_FILE:${PROJECT_NAME}>" "${GEODE_BIN_PATH}/nightly/$<TARGET_LINKER_FILE_NAME:${PROJECT_NAME}>"
 		DEPENDS $<TARGET_FILE:${PROJECT_NAME}>
 		VERBATIM
 		TARGET ${PROJECT_NAME}
@@ -151,9 +151,7 @@ endif()
 
 # Build test mods if needed
 if(NOT GEODE_DONT_BUILD_TEST_MODS)
-	if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-		add_subdirectory(test)
-	endif()
+	add_subdirectory(test)
 endif()
 
 # Build index hashing algorithm test program

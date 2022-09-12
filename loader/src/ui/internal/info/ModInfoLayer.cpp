@@ -1,13 +1,13 @@
 #include "ModInfoLayer.hpp"
 #include "../dev/HookListLayer.hpp"
-#include "../settings/ModSettingsLayer.hpp"
 #include <Geode/ui/BasedButton.hpp>
 #include <Geode/ui/MDTextArea.hpp>
 #include "../list/ModListView.hpp"
 #include <Geode/ui/Scrollbar.hpp>
 #include <Geode/utils/WackyGeodeMacros.hpp>
-// #include <settings/Setting.hpp>
 #include <Geode/ui/IconButtonSprite.hpp>
+#include "../settings/ModSettingsPopup.hpp"
+#include <InternalLoader.hpp>
 
 // TODO: die
 #undef min
@@ -207,12 +207,12 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
         );
         m_buttonMenu->addChild(settingsBtn);
 
-	    // if (!SettingManager::with(m_mod)->hasSettings()) {
-	    //     settingsSpr->setColor({ 150, 150, 150 });
-	    //     settingsBtn->setTarget(
-        //         this, menu_selector(ModInfoLayer::onNoSettings)
-        //     );
-	    // }
+	    if (!m_mod->hasSettings()) {
+	        settingsSpr->setColor({ 150, 150, 150 });
+	        settingsBtn->setTarget(
+                this, menu_selector(ModInfoLayer::onNoSettings)
+            );
+	    }
 
         auto devSpr = ButtonSprite::create(
             "Dev Options", "bigFont.fnt", "GJ_button_05.png", .6f
@@ -268,8 +268,7 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
             uninstallBtn->setPosition(-85.f, 75.f);
             m_buttonMenu->addChild(uninstallBtn);
 
-            // api and loader should be updated through the installer
-            // todo: show update button on them that invokes the installer
+            // todo: show update button on loader that invokes the installer
             if (Index::get()->isUpdateAvailableForItem(m_info.m_id)) {
                 m_installBtnSpr = IconButtonSprite::create(
                     "GE_button_01.png"_spr,
@@ -350,19 +349,18 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
 }
 
 void ModInfoLayer::onEnableMod(CCObject* pSender) {
-    // if (!APIInternal::get()->m_shownEnableWarning) {
-    //     APIInternal::get()->m_shownEnableWarning = true;
-    //     FLAlertLayer::create(
-    //         "Notice",
-    //         "<cb>Disabling</c> a <cy>mod</c> removes its hooks & patches and "
-    //         "calls its user-defined disable function if one exists. You may "
-    //         "still see some effects of the mod left however, and you may "
-    //         "need to <cg>restart</c> the game to have it fully unloaded.",
-    //         "OK"
-    //     )->show();
-    //     if (m_list) m_list->updateAllStates(nullptr);
-    //     return;
-    // }
+    if (!InternalLoader::get()->shownInfoAlert("mod-disable-vs-unload")) {
+        FLAlertLayer::create(
+            "Notice",
+            "<cb>Disabling</c> a <cy>mod</c> removes its hooks & patches and "
+            "calls its user-defined disable function if one exists. You may "
+            "still see some effects of the mod left however, and you may "
+            "need to <cg>restart</c> the game to have it fully unloaded.",
+            "OK"
+        )->show();
+        if (m_list) m_list->updateAllStates(nullptr);
+        return;
+    }
     if (as<CCMenuItemToggler*>(pSender)->isToggled()) {
     	auto res = m_mod->load();
         if (!res) {
@@ -603,8 +601,7 @@ void ModInfoLayer::onHooks(CCObject*) {
 }
 
 void ModInfoLayer::onSettings(CCObject*) {
-    //ModSettingsLayer::create(this->m_mod)->show();
-    // FIXME: No settings yet
+    ModSettingsPopup::create(m_mod)->show();
 }
 
 void ModInfoLayer::onNoSettings(CCObject*) {
