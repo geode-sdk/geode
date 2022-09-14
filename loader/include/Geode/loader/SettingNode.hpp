@@ -14,6 +14,8 @@ namespace geode {
     public:
         virtual void commit() = 0;
         virtual bool hasUncommittedChanges() = 0;
+        virtual bool hasNonDefaultValue() = 0;
+        virtual void resetToDefault() = 0;
     };
 
     namespace {
@@ -27,6 +29,7 @@ namespace geode {
             cocos2d::CCMenu* m_menu;
             cocos2d::CCLabelBMFont* m_nameLabel;
             cocos2d::CCLabelBMFont* m_editedIndicator;
+            CCMenuItemSpriteExtra* m_resetBtn;
 
             bool init(std::shared_ptr<T> setting, float width) {
                 if (!SettingNode::init(std::static_pointer_cast<Setting>(setting)))
@@ -50,12 +53,12 @@ namespace geode {
                 });
                 this->addChild(m_nameLabel);
 
-                m_editedIndicator = cocos2d::CCLabelBMFont::create("*", "bigFont.fnt");
+                m_editedIndicator = cocos2d::CCLabelBMFont::create("•", "bigFont.fnt");
                 m_editedIndicator->setColor({ 255, 120, 80 });
                 m_editedIndicator->setPosition(
                     m_obContentSize.height / 2 +
-                        m_nameLabel->getScaledContentSize().width + 10.f,
-                    m_obContentSize.height / 2
+                        m_nameLabel->getScaledContentSize().width + 40.f,
+                    m_obContentSize.height / 2 + 2.f
                 );
                 m_editedIndicator->setVisible(false);
                 this->addChild(m_editedIndicator);
@@ -67,23 +70,50 @@ namespace geode {
                 });
                 this->addChild(m_menu);
 
+                if (setting->canResetToDefault()) {
+                    auto resetBtnSpr = cocos2d::CCSprite::createWithSpriteFrameName(
+                        "GJ_updateBtn_001.png"
+                    );
+                    resetBtnSpr->setScale(.5f);
+
+                    m_resetBtn = CCMenuItemSpriteExtra::create(
+                        resetBtnSpr, this,
+                        (cocos2d::SEL_MenuHandler)(&GeodeSettingNode::onResetToDefault)
+                    );
+                    m_resetBtn->setPosition(
+                        -m_obContentSize.width + m_obContentSize.height + 
+                            m_nameLabel->getScaledContentSize().width + 15.f,
+                        .0f
+                    );
+                    m_menu->addChild(m_resetBtn);
+                }
+
                 cocos2d::CCDirector::sharedDirector()->getTouchDispatcher()->incrementForcePrio(2);
                 m_menu->registerWithTouchDispatcher();
 
                 if (!this->setup(setting, width))
                     return false;
                 
+                this->valueChanged();
+                
                 return true;
             }
 
             virtual bool setup(std::shared_ptr<T> setting, float width) = 0;
 
-            void valueChanged() {
+            virtual void valueChanged() {
                 m_editedIndicator->setVisible(
                     this->hasUncommittedChanges()
                 );
+                if (m_resetBtn) m_resetBtn->setVisible(
+                    this->hasNonDefaultValue()
+                );
             }
         
+            void onResetToDefault(cocos2d::CCObject*) {
+                this->resetToDefault();
+            }
+
         public:
             static N* create(
                 std::shared_ptr<T> setting,
@@ -107,6 +137,17 @@ namespace geode {
                 return m_uncommittedValue !=
                     std::static_pointer_cast<T>(m_setting)->getValue();
             }
+                
+            bool hasNonDefaultValue() override {
+                return m_uncommittedValue !=
+                    std::static_pointer_cast<T>(m_setting)->getDefault();
+            }
+
+            void resetToDefault() override {
+                m_uncommittedValue =
+                    std::static_pointer_cast<T>(m_setting)->getDefault();
+                this->valueChanged();
+            }
         };
     }
 
@@ -114,6 +155,10 @@ namespace geode {
         public GeodeSettingNode<BoolSettingNode, BoolSetting>
     {
     protected:
+        CCMenuItemToggler* m_toggle;
+
+        void onToggle(CCObject*);
+        void valueChanged() override;
         bool setup(std::shared_ptr<BoolSetting> setting, float width) override;
     };
 
@@ -132,14 +177,16 @@ namespace geode {
     };
 
     class StringSettingNode :
-        public GeodeSettingNode<StringSettingNode, StringSetting>
+        public GeodeSettingNode<StringSettingNode, StringSetting>,
+        public TextInputDelegate
     {
     protected:
         InputNode* m_input;
 
+        void textChanged(CCTextInputNode* input);
+        void valueChanged() override;
         void updateLabel();
         
         bool setup(std::shared_ptr<StringSetting> setting, float width) override;
     };
-
 }

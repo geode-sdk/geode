@@ -12,6 +12,7 @@
 #include <unordered_map>
 #include <type_traits>
 #include <cocos2d.h>
+#include "Setting.hpp"
 
 class InternalLoader;
 class InternalMod;
@@ -322,6 +323,13 @@ namespace geode {
 
         bool hasSettings() const;
         decltype(ModInfo::m_settings) getSettings() const;
+        template<class T>
+        T getSettingValue(std::string const& key) const {
+            if (m_info.m_settings.count(key)) {
+                return geode::getSettingValue<T>(m_info.m_settings.at(key));
+            }
+            return T();
+        }
 
         /**
          * Get the mod container stored in the Interface

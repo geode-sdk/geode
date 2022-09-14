@@ -1,7 +1,6 @@
 #include "ModSettingsPopup.hpp"
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/loader/Setting.hpp>
-#include <Geode/loader/SettingNode.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/convert.hpp>
 
@@ -28,7 +27,7 @@ bool ModSettingsPopup::setup(Mod* mod) {
 
     float totalHeight = .0f;
     std::vector<CCNode*> rendered;
-    bool hasBG = false;
+    bool hasBG = true;
     for (auto& [_, sett] : mod->getSettings()) {
         auto node = sett->createNode(layerSize.width);
 

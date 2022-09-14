@@ -67,6 +67,34 @@ namespace geode {
         rect.size   += add.size;
         return rect;
     }
+    static cocos2d::CCPoint operator-=(cocos2d::CCPoint & pos,  cocos2d::CCPoint const& add) {
+        pos.x -= add.x;
+        pos.y -= add.y;
+        return pos;
+    }
+    static cocos2d::CCSize  operator-=(cocos2d::CCSize  & size, cocos2d::CCPoint const& add) {
+        size.width  -= add.x;
+        size.height -= add.y;
+        return size;
+    }
+    static cocos2d::CCSize  operator-=(cocos2d::CCSize  & size, cocos2d::CCSize  const& add) {
+        size.width  -= add.width;
+        size.height -= add.height;
+        return size;
+    }
+    static cocos2d::CCRect  operator-=(cocos2d::CCRect  & rect, cocos2d::CCPoint const& add) {
+        rect.origin -= add;
+        return rect;
+    }
+    static cocos2d::CCRect  operator-=(cocos2d::CCRect  & rect, cocos2d::CCSize  const& add) {
+        rect.size -= add;
+        return rect;
+    }
+    static cocos2d::CCRect  operator-=(cocos2d::CCRect  & rect, cocos2d::CCRect  const& add) {
+        rect.origin -= add.origin;
+        rect.size   -= add.size;
+        return rect;
+    }
     static cocos2d::CCSize  operator- (cocos2d::CCSize const& size, float f) {
         return { size.width - f, size.height - f };
     }

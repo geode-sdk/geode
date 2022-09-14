@@ -19,7 +19,6 @@ CCScale9Sprite* InputNode::getBG() const {
 }
 
 void InputNode::activate() {
-    std::cout << "steve\n";
     m_input->onClickTrackNode(true);
 }
 
@@ -33,19 +32,17 @@ bool InputNode::init(
     const char* placeholder, const char* font,
     std::string const& filter, int maxCharCount
 ) {
-    if (!CCMenuItem::init())
+    if (!CCMenuItem::initWithTarget(this, nullptr))
         return false;
 
     m_bgSprite = cocos2d::extension::CCScale9Sprite::create(
         "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
     );
-
     m_bgSprite->setScale(.5f);
     m_bgSprite->setColor({ 0, 0, 0 });
     m_bgSprite->setOpacity(75);
     m_bgSprite->setContentSize({ width * 2, height * 2 });
     m_bgSprite->setPosition(width / 2, height / 2);
-
     this->addChild(m_bgSprite);
 
     m_input = CCTextInputNode::create(
@@ -60,10 +57,12 @@ bool InputNode::init(
         m_input->setAllowedChars(filter);
     }
     this->addChild(m_input);
-
+    
     this->setContentSize({ width, height });
     this->setAnchorPoint({ .5f, .5f });
-    this->setEnabled(true);
+    
+    this->setCascadeColorEnabled(true);
+    this->setCascadeOpacityEnabled(true);
 
     return true;
 }

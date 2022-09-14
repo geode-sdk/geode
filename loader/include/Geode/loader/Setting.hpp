@@ -9,6 +9,10 @@
 
 namespace geode {
     class SettingNode;
+    class BoolSetting;
+    class IntSetting;
+    class FloatSetting;
+    class StringSetting;
 
     enum class SettingType {
         Bool,
@@ -51,7 +55,7 @@ namespace geode {
     };
 
     namespace {
-        #define GEODE_PARSE_SETTING_IMPL(func) \
+        #define GEODE_PARSE_SETTING_IMPL(obj, func) \
             if constexpr (requires(JsonMaybeObject& obj) {\
                 {res->func(obj)} -> std::same_as<Result<>>;\
             }) {\
@@ -69,9 +73,11 @@ namespace geode {
         template<class Class, class ValueType, SettingType Type>
         class GeodeSetting : public Setting {
         protected:
+            ValueType m_default;
             ValueType m_value;
             std::string m_name;
             std::string m_description;
+            bool m_canResetToDefault = true;
 
             friend class Setting;
 
@@ -82,12 +88,21 @@ namespace geode {
                 auto res = std::make_shared<Class>();
                 
                 res->m_key = key;
-                obj.needs("default").into(res->m_value);
+                obj.needs("default").into(res->m_default);
                 obj.has("name").into(res->m_name);
                 obj.has("description").into(res->m_description);
-                GEODE_PARSE_SETTING_IMPL(Class::parseMinMax);
-                GEODE_PARSE_SETTING_IMPL(Class::parseOneOf);
-                res->setValue(res->m_value);
+                GEODE_PARSE_SETTING_IMPL(obj, Class::parseMinMax);
+                GEODE_PARSE_SETTING_IMPL(obj, Class::parseOneOf);
+                res->setValue(res->m_default);
+
+                if (auto controls = obj.has("control").obj()) {
+                    // every built-in setting type has a reset button 
+                    // by default
+                    controls.has("can-reset").into(res->m_canResetToDefault);
+                    GEODE_PARSE_SETTING_IMPL(controls, Class::parseArrows);
+                    GEODE_PARSE_SETTING_IMPL(controls, Class::parseSlider);
+                    GEODE_PARSE_SETTING_IMPL(controls, Class::parseInput);
+                }
 
                 return Ok(res);
             }
@@ -101,6 +116,10 @@ namespace geode {
 
             std::string getDescription() const {
                 return m_description;
+            }
+
+            ValueType getDefault() const {
+                return m_default;
             }
 
             ValueType getValue() const {
@@ -121,6 +140,10 @@ namespace geode {
             bool save(nlohmann::json& json) const override {
                 json["value"] = m_value;
                 return true;
+            }
+
+            bool canResetToDefault() const {
+                return m_canResetToDefault;
             }
 
             SettingType getType() const override {
@@ -189,6 +212,24 @@ namespace geode {
                 return m_oneOf;
             }
         };
+    
+        #define GEODE_DECL_SETTING_CONTROL(Name, name, default, json) \
+            class IC##Name {\
+            protected:\
+                bool m_##name = default;\
+            public:\
+                Result<> parse##Name(JsonMaybeObject& obj) {\
+                    obj.has(json).into(m_##name);\
+                    return Ok();\
+                }\
+                bool has##Name() const {\
+                    return m_##name;\
+                }\
+            }
+
+        GEODE_DECL_SETTING_CONTROL(Arrows,   hasArrows, true, "arrows");
+        GEODE_DECL_SETTING_CONTROL(Slider,   hasSlider, true, "slider");
+        GEODE_DECL_SETTING_CONTROL(Input,    hasInput,  true, "input");
     }
 
     class GEODE_DLL BoolSetting :
@@ -202,7 +243,8 @@ namespace geode {
     class GEODE_DLL IntSetting :
         public GeodeSetting<IntSetting, int64_t, SettingType::Int>,
         public IMinMax<int64_t>,
-        public std::enable_shared_from_this<IntSetting>
+        public std::enable_shared_from_this<IntSetting>,
+        public ICArrows, public ICSlider, public ICInput
     {
     public:
         SettingNode* createNode(float width) override;
@@ -211,7 +253,8 @@ namespace geode {
     class GEODE_DLL FloatSetting : 
         public GeodeSetting<FloatSetting, double, SettingType::Float>,
         public IMinMax<double>,
-        public std::enable_shared_from_this<FloatSetting>
+        public std::enable_shared_from_this<FloatSetting>,
+        public ICArrows, public ICSlider, public ICInput
     {
     public:
         SettingNode* createNode(float width) override;
@@ -219,9 +262,38 @@ namespace geode {
 
     class GEODE_DLL StringSetting : 
         public GeodeSetting<StringSetting, std::string, SettingType::String>,
-        public std::enable_shared_from_this<StringSetting>
+        public std::enable_shared_from_this<StringSetting>,
+        public ICInput
     {
     public:
         SettingNode* createNode(float width) override;
     };
+    
+    template<class T>
+    T getSettingValue(const std::shared_ptr<Setting> setting) {
+        if constexpr (std::is_same_v<T, bool>) {
+            if (setting->getType() == SettingType::Bool) {
+                return std::static_pointer_cast<BoolSetting>(setting)->getValue();
+            }
+        }
+        else if constexpr (std::is_floating_point_v<T>) {
+            if (setting->getType() == SettingType::Float) {
+                return std::static_pointer_cast<FloatSetting>(setting)->getValue();
+            }
+        }
+        else if constexpr (std::is_integral_v<T>) {
+            if (setting->getType() == SettingType::Int) {
+                return std::static_pointer_cast<IntSetting>(setting)->getValue();
+            }
+        }
+        else if constexpr (std::is_same_v<T, std::string>) {
+            if (setting->getType() == SettingType::String) {
+                return std::static_pointer_cast<StringSetting>(setting)->getValue();
+            }
+        }
+        else {
+            static_assert(!std::is_same_v<T, T>, "todo: implement");
+        }
+        return T();
+    }
 }
