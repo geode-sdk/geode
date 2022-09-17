@@ -290,8 +290,8 @@ namespace geode {
         }
 
         JsonMaybeValue has(std::string const& key) {
-            if (this->isError()) return emptyValue(); 
             this->addKnownKey(key);
+            if (this->isError()) return emptyValue(); 
             if (!m_json.contains(key) || m_json[key].is_null()) {
                 return emptyValue();
             }
@@ -299,8 +299,8 @@ namespace geode {
         }
 
         JsonMaybeValue needs(std::string const& key) {
-            if (this->isError()) return emptyValue(); 
             this->addKnownKey(key);
+            if (this->isError()) return emptyValue(); 
             if (!m_json.contains(key)) {
                 this->setError(
                     m_hierarchy + " is missing required key \"" + key + "\""
@@ -335,12 +335,8 @@ namespace geode {
             return std::get<std::string>(m_result);
         }
 
-        JsonMaybeObject root(std::string const& hierarchy) {
-            if (!m_json.is_object()) {
-                m_result = hierarchy + ": Root is not an object";
-                return JsonMaybeObject(*this, m_json, hierarchy, false);
-            }
-            return JsonMaybeObject(*this, m_json, hierarchy, true);
+        JsonMaybeValue root(std::string const& hierarchy) {
+            return JsonMaybeValue(*this, m_json, hierarchy, true);
         }
     };
 }

@@ -34,7 +34,7 @@ Result<std::shared_ptr<Setting>> Setting::parse(
     if (rawJson.is_object()) {
         auto json = rawJson;
         JsonChecker checker(json);
-        auto root = checker.root("[setting \"" + key + "\"]");
+        auto root = checker.root("[setting \"" + key + "\"]").obj();
 
         auto res = Setting::parse(
             root.needs("type").get<std::string>(), key, root

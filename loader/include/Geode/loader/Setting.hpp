@@ -55,7 +55,7 @@ namespace geode {
     };
 
     namespace {
-        #define GEODE_PARSE_SETTING_IMPL(obj, func) \
+        #define GEODE_INT_PARSE_SETTING_IMPL(obj, func) \
             if constexpr (requires(JsonMaybeObject& obj) {\
                 {res->func(obj)} -> std::same_as<Result<>>;\
             }) {\
@@ -63,7 +63,7 @@ namespace geode {
                 if (!r) return Err(r.error());\
             }
 
-        #define GEODE_CONSTRAIN_SETTING_IMPL(func) \
+        #define GEODE_INT_CONSTRAIN_SETTING_IMPL(func) \
             if constexpr (requires(ValueType& value) {\
                 this->func(value);\
             }) {\
@@ -91,17 +91,17 @@ namespace geode {
                 obj.needs("default").into(res->m_default);
                 obj.has("name").into(res->m_name);
                 obj.has("description").into(res->m_description);
-                GEODE_PARSE_SETTING_IMPL(obj, Class::parseMinMax);
-                GEODE_PARSE_SETTING_IMPL(obj, Class::parseOneOf);
+                GEODE_INT_PARSE_SETTING_IMPL(obj, Class::parseMinMax);
+                GEODE_INT_PARSE_SETTING_IMPL(obj, Class::parseOneOf);
                 res->setValue(res->m_default);
 
                 if (auto controls = obj.has("control").obj()) {
                     // every built-in setting type has a reset button 
                     // by default
                     controls.has("can-reset").into(res->m_canResetToDefault);
-                    GEODE_PARSE_SETTING_IMPL(controls, Class::parseArrows);
-                    GEODE_PARSE_SETTING_IMPL(controls, Class::parseSlider);
-                    GEODE_PARSE_SETTING_IMPL(controls, Class::parseInput);
+                    GEODE_INT_PARSE_SETTING_IMPL(controls, Class::parseArrows);
+                    GEODE_INT_PARSE_SETTING_IMPL(controls, Class::parseSlider);
+                    GEODE_INT_PARSE_SETTING_IMPL(controls, Class::parseInput);
                 }
 
                 return Ok(res);
@@ -128,17 +128,20 @@ namespace geode {
 
             void setValue(ValueType const& value) {
                 m_value = value;
-                GEODE_CONSTRAIN_SETTING_IMPL(Class::constrainMinMax);
-                GEODE_CONSTRAIN_SETTING_IMPL(Class::constrainOneOf);
+                GEODE_INT_CONSTRAIN_SETTING_IMPL(Class::constrainMinMax);
+                GEODE_INT_CONSTRAIN_SETTING_IMPL(Class::constrainOneOf);
             }
 
             bool load(nlohmann::json const& json) override {
-                m_value = json["value"];
+                auto rawJson = json;
+                JsonChecker(rawJson)
+                    .root("[setting value]")
+                    .into(m_value);
                 return true;
             }
 
             bool save(nlohmann::json& json) const override {
-                json["value"] = m_value;
+                json = m_value;
                 return true;
             }
 
@@ -213,7 +216,7 @@ namespace geode {
             }
         };
     
-        #define GEODE_DECL_SETTING_CONTROL(Name, name, default, json) \
+        #define GEODE_INT_DECL_SETTING_CONTROL(Name, name, default, json) \
             class IC##Name {\
             protected:\
                 bool m_##name = default;\
@@ -227,9 +230,9 @@ namespace geode {
                 }\
             }
 
-        GEODE_DECL_SETTING_CONTROL(Arrows,   hasArrows, true, "arrows");
-        GEODE_DECL_SETTING_CONTROL(Slider,   hasSlider, true, "slider");
-        GEODE_DECL_SETTING_CONTROL(Input,    hasInput,  true, "input");
+        GEODE_INT_DECL_SETTING_CONTROL(Arrows,   hasArrows, true, "arrows");
+        GEODE_INT_DECL_SETTING_CONTROL(Slider,   hasSlider, true, "slider");
+        GEODE_INT_DECL_SETTING_CONTROL(Input,    hasInput,  true, "input");
     }
 
     class GEODE_DLL BoolSetting :
@@ -269,31 +272,35 @@ namespace geode {
         SettingNode* createNode(float width) override;
     };
     
+    // these can't be member functions because C++ is single-pass >:(
+
+    #define GEODE_INT_BUILTIN_SETTING_IF(type, action, ...) \
+        if constexpr (__VA_ARGS__) {\
+            if (setting->getType() == SettingType::type) {\
+                return std::static_pointer_cast<type##Setting>(setting)->action;\
+            }\
+        }
+
     template<class T>
-    T getSettingValue(const std::shared_ptr<Setting> setting) {
-        if constexpr (std::is_same_v<T, bool>) {
-            if (setting->getType() == SettingType::Bool) {
-                return std::static_pointer_cast<BoolSetting>(setting)->getValue();
-            }
-        }
-        else if constexpr (std::is_floating_point_v<T>) {
-            if (setting->getType() == SettingType::Float) {
-                return std::static_pointer_cast<FloatSetting>(setting)->getValue();
-            }
-        }
-        else if constexpr (std::is_integral_v<T>) {
-            if (setting->getType() == SettingType::Int) {
-                return std::static_pointer_cast<IntSetting>(setting)->getValue();
-            }
-        }
-        else if constexpr (std::is_same_v<T, std::string>) {
-            if (setting->getType() == SettingType::String) {
-                return std::static_pointer_cast<StringSetting>(setting)->getValue();
-            }
-        }
+    T getBuiltInSettingValue(const std::shared_ptr<Setting> setting) {
+        GEODE_INT_BUILTIN_SETTING_IF(Bool, getValue(), std::is_same_v<T, bool>)
+        else GEODE_INT_BUILTIN_SETTING_IF(Float, getValue(), std::is_floating_point_v<T>)
+        else GEODE_INT_BUILTIN_SETTING_IF(Int, getValue(), std::is_integral_v<T>)
+        else GEODE_INT_BUILTIN_SETTING_IF(String, getValue(), std::is_same_v<T, std::string>)
         else {
             static_assert(!std::is_same_v<T, T>, "todo: implement");
         }
         return T();
+    }
+
+    template<class T>
+    void setBuiltInSettingValue(const std::shared_ptr<Setting> setting, T const& value) {
+        GEODE_INT_BUILTIN_SETTING_IF(Bool, setValue(value), std::is_same_v<T, bool>)
+        else GEODE_INT_BUILTIN_SETTING_IF(Float, setValue(value), std::is_floating_point_v<T>)
+        else GEODE_INT_BUILTIN_SETTING_IF(Int, setValue(value), std::is_integral_v<T>)
+        else GEODE_INT_BUILTIN_SETTING_IF(String, setValue(value), std::is_same_v<T, std::string>)
+        else {
+            static_assert(!std::is_same_v<T, T>, "todo: implement");
+        }
     }
 }

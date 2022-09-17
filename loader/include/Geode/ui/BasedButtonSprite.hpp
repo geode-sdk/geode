@@ -58,13 +58,22 @@ namespace geode {
     };
 
     enum class BaseType {
+        // Circle buttons
         Circle = 0,
+        // Like the buttons in the main menu
         Cross = 1,
-        Account = 2,
+        // Like the friend request / account buttons
+        BevelledSquare = 2,
+        // Like the icon select button
         IconSelect = 3,
-        GlobalThing = 4,
+        // Like the leaderboard buttons
+        BevelledSquare2 = 4,
+        // Like the buttons in the editor sidebar
         Editor = 5,
+        // Like a list view tab
         Tab = 6,
+        // Like the buttons in CreatorLayer
+        Category = 7,
     };
 
     /**

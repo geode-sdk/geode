@@ -278,8 +278,8 @@ namespace geode {
         Result<> loadPlatformBinary();
         Result<> unloadPlatformBinary();
 
-        Result<> saveDataStore();
-        Result<> loadDataStore();
+        Result<> saveSettings();
+        Result<> loadSettings();
 
         void postDSUpdate();
 
@@ -323,12 +323,21 @@ namespace geode {
 
         bool hasSettings() const;
         decltype(ModInfo::m_settings) getSettings() const;
+        std::shared_ptr<Setting> getSetting(std::string const& key) const;
         template<class T>
         T getSettingValue(std::string const& key) const {
             if (m_info.m_settings.count(key)) {
-                return geode::getSettingValue<T>(m_info.m_settings.at(key));
+                return geode::getBuiltInSettingValue<T>(m_info.m_settings.at(key));
             }
             return T();
+        }
+        template<class T>
+        bool setSettingValue(std::string const& key, T const& value) {
+            if (m_info.m_settings.count(key)) {
+                geode::setBuiltInSettingValue<T>(m_info.m_settings[key], value);
+                return true;
+            }
+            return false;
         }
 
         /**

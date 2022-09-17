@@ -188,7 +188,8 @@ Result<> Loader::saveSettings() {
         if (mod->isUninstalled()) continue;
         auto value = nlohmann::json::object();
         value["enabled"] = mod->m_enabled;
-        mod->saveDataStore();
+        mod->saveSettings();
+
         json["mods"][id] = value;
     }
     json["succesfully-closed"] = true;
