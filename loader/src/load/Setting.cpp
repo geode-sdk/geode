@@ -1,6 +1,7 @@
 #include <Geode/loader/Setting.hpp>
 #include <Geode/utils/general.hpp>
 #include <Geode/loader/SettingNode.hpp>
+#include "../ui/internal/settings/GeodeSettingNode.hpp"
 
 USE_GEODE_NAMESPACE();
 

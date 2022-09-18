@@ -7,10 +7,24 @@
     "description":  "Unit test dependency for Geode",
     "binary":       "TestDependency",
     "settings": {
-        "enable-gay-dreams": {
+        "its-raining-after-all": {
             "type": "bool",
-            "name": "Yeah I am quite fond of Astolfo",
+            "name": "It's Raining After All",
             "default": true
+        },
+        "trapped-in-the-past": {
+            "type": "string",
+            "default": "Ima ima ima ima",
+            "match": "([iI]ma\\s?)*"
+        },
+        "compared-child": {
+            "type": "int",
+            "description": "Kuraberarekko",
+            "default": 2
+        },
+        "even-tears-withered": {
+            "type": "string",
+            "default": ";-;"
         }
     }
 }

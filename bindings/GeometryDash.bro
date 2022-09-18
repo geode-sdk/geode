@@ -138,8 +138,49 @@ class BoomScrollLayer : cocos2d::CCLayer {
 }
 
 class ButtonSprite : cocos2d::CCSprite {
-    // you really should find this function or a higher overload on mac
-    static ButtonSprite* create(const char* caption, int width, int unknown, float scale, bool absoluteWidth, const char* font, const char* texture, float height) = win 0x137d0, mac 0x4fa90, ios 0x38c7c;
+    static ButtonSprite* create(
+        const char* caption,
+        int width,
+        int unknown,
+        float scale,
+        bool absoluteWidth,
+        const char* font,
+        const char* texture,
+        float height
+    ) = win 0x137d0, mac 0x4fa90, ios 0x38c7c;
+
+    static ButtonSprite* create(
+        cocos2d::CCSprite* topSprite,
+        int width,
+        int unknown,
+        float height,
+        float scale,
+        bool absoluteWidth,
+        const char* texture,
+        bool bUnknown
+    ) = win 0x134b0, mac 0x0, ios 0x0;
+
+    [[docs("
+    /**
+    * Create a ButtonSprite with a top sprite and a texture.
+    * @param topSprite The top sprite to add on top of the sprite
+    * @param width Sprite width; ignored if `absolute` is false
+    * @param absolute Whether to use absolute width or not
+    * @param texture The name of the background sprite file (can't be in a spritesheet)
+    * @param height The height of the button, leave 0 for automatic
+    * @param scale Scale of top sprite
+    */
+    ")]]
+    static ButtonSprite* create(
+        cocos2d::CCSprite* topSprite,
+        int width,
+        bool absolute,
+        float height,
+        const char* texture,
+        float scale
+    ) {
+        return create(topSprite, width, 0, height, scale, absolute, texture, true);
+    }
 
     [[docs("
     /**

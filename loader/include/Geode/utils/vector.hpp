@@ -91,9 +91,7 @@ namespace geode::vector_utils {
     template<class T, class T2>
     std::vector<T2> map(std::vector<T> const& vec, std::function<T2(T)> mapFunc) {
         std::vector<T2> res;
-        for (auto m : vec) {
-            res.push_back(mapFunc(m));
-        }
+        std::transform(vec.begin(), vec.end(), res.end(), mapFunc);
         return res;
     }
 
@@ -178,7 +176,7 @@ namespace geode::vector_utils {
      * @returns Reference to vector.
      */
     template<class T>
-    std::vector<T> & erase(std::vector<T> & vec, T element) {
+    std::vector<T>& erase(std::vector<T>& vec, T element) {
         vec.erase(std::remove(vec.begin(), vec.end(), element), vec.end());
         return vec;
     }
@@ -191,7 +189,7 @@ namespace geode::vector_utils {
      * @returns Reference to vector.
      */
     template<class T>
-    std::vector<T> & erase(std::vector<T> & vec, std::function<bool(T)> eraseFunc) {
+    std::vector<T>& erase(std::vector<T>& vec, std::function<bool(T)> eraseFunc) {
         vec.erase(std::remove_if(vec.begin(), vec.end(), eraseFunc), vec.end());
         return vec;
     }

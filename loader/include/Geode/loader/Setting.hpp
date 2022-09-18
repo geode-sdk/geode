@@ -1,11 +1,13 @@
 #pragma once
 
 #include <Geode/DefaultInclude.hpp>
+#include "../utils/container.hpp"
 #include <optional>
 #include <unordered_set>
 #include "../utils/json.hpp"
 #include "../utils/Result.hpp"
 #include "../utils/JsonValidation.hpp"
+#include <regex>
 
 namespace geode {
     class SettingNode;
@@ -54,6 +56,7 @@ namespace geode {
         virtual SettingType getType() const = 0;
     };
 
+    // built-in settings' implementation details
     namespace {
         #define GEODE_INT_PARSE_SETTING_IMPL(obj, func) \
             if constexpr (requires(JsonMaybeObject& obj) {\
@@ -63,12 +66,20 @@ namespace geode {
                 if (!r) return Err(r.error());\
             }
 
-        #define GEODE_INT_CONSTRAIN_SETTING_IMPL(func) \
-            if constexpr (requires(ValueType& value) {\
-                this->func(value);\
-            }) {\
-                this->func(m_value);\
+        #define GEODE_INT_CONSTRAIN_SETTING_CAN_IMPL(base, func) \
+            if constexpr (std::is_base_of_v<base, Class>) {\
+                auto res = static_cast<Class*>(this)->func(value);\
+                if (!res) {\
+                    return res;\
+                }\
             }
+
+        template<class ValueType>
+        class IMinMax;
+        template<class ValueType>
+        class IOneOf;
+        template<class Class>
+        class IMatch;
 
         template<class Class, class ValueType, SettingType Type>
         class GeodeSetting : public Setting {
@@ -93,6 +104,7 @@ namespace geode {
                 obj.has("description").into(res->m_description);
                 GEODE_INT_PARSE_SETTING_IMPL(obj, Class::parseMinMax);
                 GEODE_INT_PARSE_SETTING_IMPL(obj, Class::parseOneOf);
+                GEODE_INT_PARSE_SETTING_IMPL(obj, Class::parseMatch);
                 res->setValue(res->m_default);
 
                 if (auto controls = obj.has("control").obj()) {
@@ -128,8 +140,22 @@ namespace geode {
 
             void setValue(ValueType const& value) {
                 m_value = value;
-                GEODE_INT_CONSTRAIN_SETTING_IMPL(Class::constrainMinMax);
-                GEODE_INT_CONSTRAIN_SETTING_IMPL(Class::constrainOneOf);
+                if constexpr (std::is_base_of_v<IMinMax<ValueType>, Class>) {
+                    static_cast<Class*>(this)->constrainMinMax(m_value);
+                }
+                if constexpr (std::is_base_of_v<IOneOf<ValueType>, Class>) {
+                    static_cast<Class*>(this)->constrainOneOf(m_value);
+                }
+                if constexpr (std::is_base_of_v<IMatch<Class>, Class>) {
+                    static_cast<Class*>(this)->constrainMatch(m_value);
+                }
+            }
+
+            Result<> isValidValue(ValueType value) {
+                GEODE_INT_CONSTRAIN_SETTING_CAN_IMPL(IMinMax<ValueType>, constrainMinMax);
+                GEODE_INT_CONSTRAIN_SETTING_CAN_IMPL(IOneOf<ValueType>, constrainOneOf);
+                GEODE_INT_CONSTRAIN_SETTING_CAN_IMPL(IMatch<Class>, constrainMatch);
+                return Ok();
             }
 
             bool load(nlohmann::json const& json) override {
@@ -161,13 +187,24 @@ namespace geode {
             std::optional<ValueType> m_max = std::nullopt;
 
         public:
-            void constrainMinMax(ValueType& value) {
+            Result<> constrainMinMax(ValueType& value) {
                 if (m_min && value < m_min.value()) {
                     value = m_min.value();
+                    return Err(
+                        "Value must be between " + 
+                        std::to_string(m_min.value()) + " and " +
+                        std::to_string(m_max.value())
+                    );
                 }
                 if (m_max && value > m_max.value()) {
                     value = m_max.value();
+                    return Err(
+                        "Value must be between " + 
+                        std::to_string(m_min.value()) + " and " +
+                        std::to_string(m_max.value())
+                    );
                 }
+                return Ok();
             }
 
             Result<> parseMinMax(JsonMaybeObject& obj) {
@@ -190,14 +227,19 @@ namespace geode {
             std::optional<std::unordered_set<ValueType>> m_oneOf = std::nullopt;
 
         public:
-            void constrainOneOf(ValueType& value) {
+            Result<> constrainOneOf(ValueType& value) {
                 if (m_oneOf && !m_oneOf.value().count(value)) {
                     if (m_oneOf.value().size()) {
                         value = m_oneOf.value()[0];
                     } else {
                         value = ValueType();
                     }
+                    return Err(
+                        "Value must be one of " +
+                        container_utils::join(m_oneOf.value(), ", ")
+                    );
                 }
+                return Ok();
             }
 
             Result<> parseOneOf(JsonMaybeObject& obj) {
@@ -216,6 +258,35 @@ namespace geode {
             }
         };
     
+        template<class Class>
+        class IMatch {
+        protected:
+            std::optional<std::string> m_matchRegex = std::nullopt;
+        
+        public:
+            Result<> constrainMatch(std::string& value) {
+                if (m_matchRegex) {
+                    auto regex = std::regex(m_matchRegex.value());
+                    if (!std::regex_match(value, regex)) {
+                        value = static_cast<Class*>(this)->getDefault();
+                        return Err(
+                            "Value must match regex " + m_matchRegex.value()
+                        );
+                    }
+                }
+                return Ok();
+            }
+
+            Result<> parseMatch(JsonMaybeObject& obj) {
+                obj.has("match").intoAs<std::string>(m_matchRegex);
+                return Ok();
+            }
+
+            std::optional<std::string> getMatch() const {
+                return m_matchRegex;
+            }
+        };
+
         #define GEODE_INT_DECL_SETTING_CONTROL(Name, name, default, json) \
             class IC##Name {\
             protected:\
@@ -265,6 +336,7 @@ namespace geode {
 
     class GEODE_DLL StringSetting : 
         public GeodeSetting<StringSetting, std::string, SettingType::String>,
+        public IMatch<StringSetting>,
         public std::enable_shared_from_this<StringSetting>,
         public ICInput
     {

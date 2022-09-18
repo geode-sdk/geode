@@ -4,16 +4,16 @@ USE_GEODE_NAMESPACE();
 
 class $modify(MenuLayer) {
 	void onMoreGames(CCObject*) {
-		if (Mod::get()->getSettingValue<bool>("enable-gay-dreams")) {
+		if (Mod::get()->getSettingValue<bool>("its-raining-after-all")) {
 			FLAlertLayer::create(
-				"Warning",
-				"You are homosexual",
+				"Damn",
+				":(",
 				"OK"
 			)->show();
 		} else {
 			FLAlertLayer::create(
-				"Warning",
-				"There is no evidence for nor against you being homosexual",
+				"Yay",
+				"The weather report said it wouldn't rain today :)",
 				"OK"
 			)->show();
 		}

@@ -21,4 +21,4 @@ namespace geode {
             cocos2d::SEL_MenuHandler callback
         );
     };
-} // namespace geode
+}

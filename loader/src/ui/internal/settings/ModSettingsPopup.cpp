@@ -30,6 +30,7 @@ bool ModSettingsPopup::setup(Mod* mod) {
     bool hasBG = true;
     for (auto& [_, sett] : mod->getSettings()) {
         auto node = sett->createNode(layerSize.width);
+        node->setDelegate(this);
 
         totalHeight += node->getScaledContentSize().height;
 
@@ -87,7 +88,19 @@ bool ModSettingsPopup::setup(Mod* mod) {
     m_applyBtn->setPosition(.0f, -m_size.height / 2 + 20.f);
     m_buttonMenu->addChild(m_applyBtn);
 
+    this->settingValueChanged(nullptr);
+
     return true;
+}
+
+void ModSettingsPopup::settingValueChanged(SettingNode*) {
+    if (this->hasUncommitted()) {
+        m_applyBtnSpr->setColor(cc3x(0xf));
+        m_applyBtn->setEnabled(true);
+    } else {
+        m_applyBtnSpr->setColor(cc3x(0x4));
+        m_applyBtn->setEnabled(false);
+    }
 }
 
 bool ModSettingsPopup::hasUncommitted() const {
