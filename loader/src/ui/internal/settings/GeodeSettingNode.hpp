@@ -39,6 +39,8 @@ namespace {
         using value_t = typename T::value_t;
 
     protected:
+        float m_width;
+        float m_height;
         value_t m_uncommittedValue;
         CCMenu* m_menu;
         CCLabelBMFont* m_nameLabel;
@@ -49,8 +51,11 @@ namespace {
             if (!SettingNode::init(std::static_pointer_cast<Setting>(setting)))
                 return false;
             
+            m_width = width;
+            m_height = this->setupHeight(setting);
+            this->setContentSize({ width, m_height });
+
             constexpr auto sidePad = 40.f;
-            this->setContentSize({ width, this->setupHeight(setting) });
 
             m_uncommittedValue = setting->getValue();
 
@@ -217,6 +222,7 @@ namespace {
     class ImplInput : public TextInputDelegate {
     protected:
         InputNode* m_input = nullptr;
+        CCLabelBMFont* m_label = nullptr;
 
         C* self() {
             return static_cast<C*>(this);
@@ -232,15 +238,32 @@ namespace {
                 m_input->setScale(.65f);
                 m_input->getInput()->setDelegate(this);
                 self()->m_menu->addChild(m_input);
+            } else {
+                m_label = CCLabelBMFont::create("", "bigFont.fnt");
+                m_label->setPosition({
+                    -(width / 2 - 70.f) / 2,
+                    setting->hasSlider() ? 5.f : 0.f
+                });
+                m_label->limitLabelWidth(width / 2 - 70.f, .5f, .1f);
+                self()->m_menu->addChild(m_label);
             }
         }
 
         void updateLabel(bool updateText) {
             if (!updateText) return;
-            // hacky way to make setString not called textChanged
-            m_input->getInput()->setDelegate(nullptr);
-            m_input->setString(numToStringFixed(self()->m_uncommittedValue));
-            m_input->getInput()->setDelegate(this);
+            if (m_input) {
+                // hacky way to make setString not called textChanged
+                m_input->getInput()->setDelegate(nullptr);
+                m_input->setString(
+                    numToStringFixed(self()->m_uncommittedValue)
+                );
+                m_input->getInput()->setDelegate(this);
+            } else {
+                m_label->setString(
+                    numToStringFixed(self()->m_uncommittedValue).c_str()
+                );
+                m_label->limitLabelWidth(self()->m_width / 2 - 70.f, .5f, .1f);
+            }
         }
 
         void textChanged(CCTextInputNode* input) override {

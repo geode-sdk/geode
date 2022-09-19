@@ -28,7 +28,9 @@
                 "arrows": true,
                 "arrow-step": 2,
                 "big-arrows": true,
-                "big-arrow-step": 5
+                "big-arrow-step": 5,
+                "slider-step": 2,
+                "input": false
             }
         },
         "even-tears-withered": {
