@@ -8,11 +8,11 @@ bool ModSettingsPopup::setup(Mod* mod) {
     m_noElasticity = true;
     m_mod = mod;
 
-    this->setTitle((mod->getName() + "'s Settings").c_str());
+    this->setTitle(("Settings for " + mod->getName()).c_str());
 
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
-    auto const layerSize = CCSize { 360.f, 220.f };
+    auto const layerSize = CCSize { 346.f, 220.f };
 
     auto layerBG = CCLayerColor::create({ 0, 0, 0, 75 });
     layerBG->setContentSize(layerSize);
@@ -35,7 +35,7 @@ bool ModSettingsPopup::setup(Mod* mod) {
         totalHeight += node->getScaledContentSize().height;
 
         if (hasBG) {
-            auto bg = CCLayerColor::create({ 0, 0, 0, 75 });
+            auto bg = CCLayerColor::create({ 0, 0, 0, 50 });
             bg->setContentSize(node->getScaledContentSize());
             bg->setPosition(0.f, -totalHeight);
             bg->setZOrder(-10);
@@ -51,6 +51,14 @@ bool ModSettingsPopup::setup(Mod* mod) {
         node->setPosition(0.f, -totalHeight);
         layer->m_contentLayer->addChild(node);
 
+        auto separator = CCLayerColor::create(
+            { 0, 0, 0, static_cast<GLubyte>(hasBG ? 100 : 50) },
+            layerSize.width, 1.f
+        );
+        separator->setPosition(0.f, -totalHeight);
+        layer->m_contentLayer->addChild(separator);
+        rendered.push_back(separator);
+        
         rendered.push_back(node);
         m_settings.push_back(node);
     }
@@ -61,11 +69,58 @@ bool ModSettingsPopup::setup(Mod* mod) {
         node->setPositionY(node->getPositionY() + totalHeight);
     }
     layer->m_contentLayer->setContentSize({ layerSize.width, totalHeight });
+    layer->moveToTop();
 
     m_mainLayer->addChild(layer);
 
-    m_applyBtnSpr = ButtonSprite::create("Apply");
-    m_applyBtnSpr->setScale(.8f);
+    // layer borders
+
+    auto layerTopSpr = CCSprite::createWithSpriteFrameName(
+        "GJ_commentTop_001.png"
+    );
+    layerTopSpr->setPosition({
+        winSize.width / 2,
+        winSize.height / 2 + layerSize.height / 2 - 5.f
+    });
+    m_mainLayer->addChild(layerTopSpr);
+
+    auto layerBottomSpr = CCSprite::createWithSpriteFrameName(
+        "GJ_commentTop_001.png"
+    );
+    layerBottomSpr->setFlipY(true);
+    layerBottomSpr->setPosition({
+        winSize.width / 2,
+        winSize.height / 2 - layerSize.height / 2 + 5.f
+    });
+    m_mainLayer->addChild(layerBottomSpr);
+
+    auto layerLeftSpr = CCSprite::createWithSpriteFrameName(
+        "GJ_commentSide_001.png"
+    );
+    layerLeftSpr->setScaleY(6.3f);
+    layerLeftSpr->setPosition({
+        winSize.width / 2 - layerSize.width / 2 - .5f,
+        winSize.height / 2
+    });
+    m_mainLayer->addChild(layerLeftSpr);
+
+    auto layerRightSpr = CCSprite::createWithSpriteFrameName(
+        "GJ_commentSide_001.png"
+    );
+    layerRightSpr->setScaleY(6.3f);
+    layerRightSpr->setFlipX(true);
+    layerRightSpr->setPosition({
+        winSize.width / 2 + layerSize.width / 2 + .5f,
+        winSize.height / 2
+    });
+    m_mainLayer->addChild(layerRightSpr);
+
+    // buttons
+
+    m_applyBtnSpr = ButtonSprite::create(
+        "Apply", "goldFont.fnt", "GJ_button_01.png", .7f
+    );
+    m_applyBtnSpr->setScale(.7f);
 
     m_applyBtn = CCMenuItemSpriteExtra::create(
         m_applyBtnSpr, this, makeMenuSelector([this](CCObject*) {
@@ -87,6 +142,34 @@ bool ModSettingsPopup::setup(Mod* mod) {
     );
     m_applyBtn->setPosition(.0f, -m_size.height / 2 + 20.f);
     m_buttonMenu->addChild(m_applyBtn);
+
+    auto resetBtnSpr = ButtonSprite::create(
+        "Reset All",
+        "goldFont.fnt",
+        "GJ_button_05.png",
+        .7f
+    );
+    resetBtnSpr->setScale(.7f);
+
+    auto resetBtn = CCMenuItemSpriteExtra::create(
+        resetBtnSpr, this, makeMenuSelector([this](CCObject*) {
+            createQuickPopup(
+                "Reset All",
+                "Are you sure you want to <cr>reset</c> ALL settings "
+                "to <cy>default</c>?",
+                "Cancel", "Reset",
+                [this](auto, bool btn2) {
+                    if (btn2) {
+                        for (auto& sett : m_settings) {
+                            sett->resetToDefault();
+                        }
+                    }
+                }
+            );
+        })
+    );
+    resetBtn->setPosition(-m_size.width / 2 + 45.f, -m_size.height / 2 + 20.f);
+    m_buttonMenu->addChild(resetBtn);
 
     this->settingValueChanged(nullptr);
 

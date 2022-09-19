@@ -58,16 +58,14 @@ namespace geode {
 
     // built-in settings' implementation details
     namespace {
-        #define GEODE_INT_PARSE_SETTING_IMPL(obj, func) \
-            if constexpr (requires(JsonMaybeObject& obj) {\
-                {res->func(obj)} -> std::same_as<Result<>>;\
-            }) {\
-                auto r = res->func(obj);\
+        #define GEODE_INT_PARSE_SETTING_IMPL(obj, func, ...) \
+            if constexpr (std::is_base_of_v<__VA_ARGS__, Class>) {\
+                auto r = std::static_pointer_cast<Class>(res)->func(obj);\
                 if (!r) return Err(r.error());\
             }
 
-        #define GEODE_INT_CONSTRAIN_SETTING_CAN_IMPL(base, func) \
-            if constexpr (std::is_base_of_v<base, Class>) {\
+        #define GEODE_INT_CONSTRAIN_SETTING_CAN_IMPL(func, ...) \
+            if constexpr (std::is_base_of_v<__VA_ARGS__, Class>) {\
                 auto res = static_cast<Class*>(this)->func(value);\
                 if (!res) {\
                     return res;\
@@ -76,18 +74,23 @@ namespace geode {
 
         template<class ValueType>
         class IMinMax;
-        template<class ValueType>
+        template<class Class, class ValueType>
         class IOneOf;
         template<class Class>
         class IMatch;
+
+        class ICArrows;
+        template<class ValueType>
+        class ICSlider;
+        class ICInput;
 
         template<class Class, class ValueType, SettingType Type>
         class GeodeSetting : public Setting {
         protected:
             ValueType m_default;
             ValueType m_value;
-            std::string m_name;
-            std::string m_description;
+            std::optional<std::string> m_name;
+            std::optional<std::string> m_description;
             bool m_canResetToDefault = true;
 
             friend class Setting;
@@ -97,23 +100,23 @@ namespace geode {
                 JsonMaybeObject& obj
             ) {
                 auto res = std::make_shared<Class>();
-                
+
                 res->m_key = key;
                 obj.needs("default").into(res->m_default);
-                obj.has("name").into(res->m_name);
-                obj.has("description").into(res->m_description);
-                GEODE_INT_PARSE_SETTING_IMPL(obj, Class::parseMinMax);
-                GEODE_INT_PARSE_SETTING_IMPL(obj, Class::parseOneOf);
-                GEODE_INT_PARSE_SETTING_IMPL(obj, Class::parseMatch);
+                obj.has("name").intoAs<std::string>(res->m_name);
+                obj.has("description").intoAs<std::string>(res->m_description);
+                GEODE_INT_PARSE_SETTING_IMPL(obj, parseMinMax, IMinMax<ValueType>);
+                GEODE_INT_PARSE_SETTING_IMPL(obj, parseOneOf,  IOneOf<Class, ValueType>);
+                GEODE_INT_PARSE_SETTING_IMPL(obj, parseMatch,  IMatch<Class>);
                 res->setValue(res->m_default);
 
                 if (auto controls = obj.has("control").obj()) {
                     // every built-in setting type has a reset button 
                     // by default
                     controls.has("can-reset").into(res->m_canResetToDefault);
-                    GEODE_INT_PARSE_SETTING_IMPL(controls, Class::parseArrows);
-                    GEODE_INT_PARSE_SETTING_IMPL(controls, Class::parseSlider);
-                    GEODE_INT_PARSE_SETTING_IMPL(controls, Class::parseInput);
+                    GEODE_INT_PARSE_SETTING_IMPL(controls, parseArrows, ICArrows);
+                    GEODE_INT_PARSE_SETTING_IMPL(controls, parseSlider, ICSlider<ValueType>);
+                    GEODE_INT_PARSE_SETTING_IMPL(controls, parseInput,  ICInput);
                 }
 
                 return Ok(res);
@@ -122,11 +125,11 @@ namespace geode {
         public:
             using value_t = ValueType;
 
-            std::string getName() const {
+            std::optional<std::string> getName() const {
                 return m_name;
             }
 
-            std::string getDescription() const {
+            std::optional<std::string> getDescription() const {
                 return m_description;
             }
 
@@ -143,7 +146,7 @@ namespace geode {
                 if constexpr (std::is_base_of_v<IMinMax<ValueType>, Class>) {
                     static_cast<Class*>(this)->constrainMinMax(m_value);
                 }
-                if constexpr (std::is_base_of_v<IOneOf<ValueType>, Class>) {
+                if constexpr (std::is_base_of_v<IOneOf<Class, ValueType>, Class>) {
                     static_cast<Class*>(this)->constrainOneOf(m_value);
                 }
                 if constexpr (std::is_base_of_v<IMatch<Class>, Class>) {
@@ -152,9 +155,9 @@ namespace geode {
             }
 
             Result<> isValidValue(ValueType value) {
-                GEODE_INT_CONSTRAIN_SETTING_CAN_IMPL(IMinMax<ValueType>, constrainMinMax);
-                GEODE_INT_CONSTRAIN_SETTING_CAN_IMPL(IOneOf<ValueType>, constrainOneOf);
-                GEODE_INT_CONSTRAIN_SETTING_CAN_IMPL(IMatch<Class>, constrainMatch);
+                GEODE_INT_CONSTRAIN_SETTING_CAN_IMPL(constrainMinMax, IMinMax<ValueType>);
+                GEODE_INT_CONSTRAIN_SETTING_CAN_IMPL(constrainOneOf,  IOneOf<Class, ValueType>);
+                GEODE_INT_CONSTRAIN_SETTING_CAN_IMPL(constrainMatch,  IMatch<Class>);
                 return Ok();
             }
 
@@ -221,7 +224,7 @@ namespace geode {
             }
         };
 
-        template<class ValueType>
+        template<class Class, class ValueType>
         class IOneOf {
         protected:
             std::optional<std::unordered_set<ValueType>> m_oneOf = std::nullopt;
@@ -229,11 +232,7 @@ namespace geode {
         public:
             Result<> constrainOneOf(ValueType& value) {
                 if (m_oneOf && !m_oneOf.value().count(value)) {
-                    if (m_oneOf.value().size()) {
-                        value = m_oneOf.value()[0];
-                    } else {
-                        value = ValueType();
-                    }
+                    value = static_cast<Class*>(this)->getDefault();
                     return Err(
                         "Value must be one of " +
                         container_utils::join(m_oneOf.value(), ", ")
@@ -253,7 +252,7 @@ namespace geode {
                 return Ok();
             }
 
-            std::optional<std::unordered_set<ValueType>> getOneOf() const {
+            auto getOneOf() const {
                 return m_oneOf;
             }
         };
@@ -301,9 +300,58 @@ namespace geode {
                 }\
             }
 
-        GEODE_INT_DECL_SETTING_CONTROL(Arrows,   hasArrows, true, "arrows");
-        GEODE_INT_DECL_SETTING_CONTROL(Slider,   hasSlider, true, "slider");
-        GEODE_INT_DECL_SETTING_CONTROL(Input,    hasInput,  true, "input");
+        class ICArrows {
+        protected:
+            bool m_hasArrows = true;
+            bool m_hasBigArrows = false;
+            size_t m_arrowStep = 1;
+            size_t m_bigArrowStep = 1;
+        
+        public:
+            Result<> parseArrows(JsonMaybeObject& obj) {
+                obj.has("arrows").into(m_hasArrows);
+                obj.has("arrow-step").into(m_arrowStep);
+                obj.has("big-arrows").into(m_hasBigArrows);
+                obj.has("big-arrow-step").into(m_bigArrowStep);
+                return Ok();
+            }
+
+            bool hasArrows() const {
+                return m_hasArrows;
+            }
+            bool hasBigArrows() const {
+                return m_hasBigArrows;
+            }
+            size_t getArrowStepSize() const {
+                return m_arrowStep;
+            }
+            size_t getBigArrowStepSize() const {
+                return m_bigArrowStep;
+            }
+        };
+
+        template<class ValueType>
+        class ICSlider {
+        protected:
+            bool m_hasSlider = true;
+            std::optional<ValueType> m_sliderStep = std::nullopt;
+        
+        public:
+            Result<> parseSlider(JsonMaybeObject& obj) {
+                obj.has("slider").into(m_hasSlider);
+                obj.has("slider-step").intoAs<ValueType>(m_sliderStep);
+                return Ok();
+            }
+
+            bool hasSlider() const {
+                return m_hasSlider;
+            }
+            std::optional<ValueType> getSliderStepSize() const {
+                return m_sliderStep;
+            }
+        };
+
+        GEODE_INT_DECL_SETTING_CONTROL(Input,  hasInput,  true, "input");
     }
 
     class GEODE_DLL BoolSetting :
@@ -316,9 +364,10 @@ namespace geode {
 
     class GEODE_DLL IntSetting :
         public GeodeSetting<IntSetting, int64_t, SettingType::Int>,
+        public IOneOf<IntSetting, int64_t>,
         public IMinMax<int64_t>,
         public std::enable_shared_from_this<IntSetting>,
-        public ICArrows, public ICSlider, public ICInput
+        public ICArrows, public ICSlider<int64_t>, public ICInput
     {
     public:
         SettingNode* createNode(float width) override;
@@ -326,9 +375,10 @@ namespace geode {
 
     class GEODE_DLL FloatSetting : 
         public GeodeSetting<FloatSetting, double, SettingType::Float>,
+        public IOneOf<FloatSetting, double>,
         public IMinMax<double>,
         public std::enable_shared_from_this<FloatSetting>,
-        public ICArrows, public ICSlider, public ICInput
+        public ICArrows, public ICSlider<double>, public ICInput
     {
     public:
         SettingNode* createNode(float width) override;
@@ -336,9 +386,9 @@ namespace geode {
 
     class GEODE_DLL StringSetting : 
         public GeodeSetting<StringSetting, std::string, SettingType::String>,
+        public IOneOf<StringSetting, std::string>,
         public IMatch<StringSetting>,
-        public std::enable_shared_from_this<StringSetting>,
-        public ICInput
+        public std::enable_shared_from_this<StringSetting>
     {
     public:
         SettingNode* createNode(float width) override;

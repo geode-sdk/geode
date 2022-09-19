@@ -6,10 +6,33 @@
 #include <Geode/ui/InputNode.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
 #include <Geode/utils/convert.hpp>
+#include <Geode/utils/string.hpp>
+#include <Geode/utils/cocos.hpp>
+#include <Geode/ui/Popup.hpp>
 
 USE_GEODE_NAMESPACE();
 
 namespace {
+    template<class Num>
+    Num parseNumForInput(std::string const& str) {
+        try {
+            if constexpr(std::is_same_v<Num, int64_t>) {
+                return std::stoll(str);
+            } else if constexpr(std::is_same_v<Num, double>) {
+                return std::stod(str);
+            }
+        } catch(...) {
+            return 0;
+        }
+    }
+
+    template<class Num>
+    std::string numToStringFixed(Num num) {
+        std::stringstream ss;
+        ss << num;
+        return ss.str();
+    }
+
     template<class N, class T>
     class GeodeSettingNode : public SettingNode {
     public:
@@ -25,21 +48,21 @@ namespace {
         bool init(std::shared_ptr<T> setting, float width) {
             if (!SettingNode::init(std::static_pointer_cast<Setting>(setting)))
                 return false;
-
-            this->setContentSize({ width, 40.f });
+            
+            constexpr auto sidePad = 40.f;
+            this->setContentSize({ width, this->setupHeight(setting) });
 
             m_uncommittedValue = setting->getValue();
+
+            auto name = setting->getName() ?
+                setting->getName().value() :
+                setting->getKey();
             
-            m_nameLabel = CCLabelBMFont::create(
-                (setting->getName().size() ?
-                    setting->getName() :
-                    setting->getKey()).c_str(),
-                "bigFont.fnt"
-            );
+            m_nameLabel = CCLabelBMFont::create(name.c_str(), "bigFont.fnt");
             m_nameLabel->setAnchorPoint({ .0f, .5f });
             m_nameLabel->limitLabelWidth(width / 2 - 50.f, .5f, .1f);
             m_nameLabel->setPosition({
-                m_obContentSize.height / 2,
+                sidePad / 2,
                 m_obContentSize.height / 2
             });
             this->addChild(m_nameLabel);
@@ -48,8 +71,8 @@ namespace {
             m_errorLabel->setAnchorPoint({ .0f, .5f });
             m_errorLabel->limitLabelWidth(width / 2 - 50.f, .25f, .1f);
             m_errorLabel->setPosition({
-                m_obContentSize.height / 2,
-                m_obContentSize.height / 2 - 15.f
+                sidePad / 2,
+                m_obContentSize.height / 2 - 14.f
             });
             m_errorLabel->setColor({ 255, 100, 100 });
             m_errorLabel->setZOrder(5);
@@ -57,27 +80,60 @@ namespace {
 
             m_menu = CCMenu::create();
             m_menu->setPosition({
-                m_obContentSize.width - m_obContentSize.height / 2,
+                m_obContentSize.width - sidePad / 2,
                 m_obContentSize.height / 2
             });
             this->addChild(m_menu);
 
+            float btnPos = 15.f;
+
+            if (setting->getDescription()) {
+                auto infoSpr = CCSprite::createWithSpriteFrameName(
+                    "GJ_infoIcon_001.png"
+                );
+                infoSpr->setScale(.6f);
+
+                auto infoBtn = CCMenuItemSpriteExtra::create(
+                    infoSpr, this, makeMenuSelector([this, name, setting](CCObject*) {
+                        FLAlertLayer::create(
+                            name.c_str(),
+                            setting->getDescription().value(),
+                            "OK"
+                        )->show();
+                    })
+                );
+                infoBtn->setPosition(
+                    -m_obContentSize.width + sidePad + 
+                        m_nameLabel->getScaledContentSize().width + btnPos,
+                    0.f
+                );
+                m_menu->addChild(infoBtn);
+
+                btnPos += 20.f;
+            }
+
             if (setting->canResetToDefault()) {
-                auto resetBtnSpr = ButtonSprite::create(
-                    CCSprite::createWithSpriteFrameName(
-                        "reset-gold.png"_spr
-                    ),
-                    0x20, true, 32.f, "black-square.png"_spr, 1.f
+                auto resetBtnSpr = CCSprite::createWithSpriteFrameName(
+                    "reset-gold.png"_spr
                 );
                 resetBtnSpr->setScale(.5f);
 
                 m_resetBtn = CCMenuItemSpriteExtra::create(
-                    resetBtnSpr, this,
-                    (SEL_MenuHandler)(&GeodeSettingNode::onResetToDefault)
+                    resetBtnSpr, this, makeMenuSelector([name, this](CCObject*) {
+                        createQuickPopup(
+                            "Reset",
+                            "Are you sure you want to <cr>reset</c> <cl>" +
+                            name + "</c> to <cy>default</c>?",
+                            "Cancel", "Reset",
+                            [this](auto, bool btn2) {
+                                if (btn2) this->resetToDefault();
+                            }
+                        );
+                    })
                 );
                 m_resetBtn->setPosition(
-                    -m_obContentSize.width + m_obContentSize.height + 
-                        m_nameLabel->getScaledContentSize().width + 15.f,
+                    -m_obContentSize.width + sidePad + 
+                        m_nameLabel->getScaledContentSize().width + btnPos,
                     .0f
                 );
                 m_menu->addChild(m_resetBtn);
@@ -94,12 +150,15 @@ namespace {
             return true;
         }
 
+        virtual float setupHeight(std::shared_ptr<T> setting) const {
+            return 40.f;
+        }
         virtual bool setup(std::shared_ptr<T> setting, float width) = 0;
 
-        virtual void valueChanged() {
+        virtual void valueChanged(bool updateText = true) {
             if (m_delegate) m_delegate->settingValueChanged(this);
             if (this->hasUncommittedChanges()) {
-                m_nameLabel->setColor(cc3x(0xaaa));
+                m_nameLabel->setColor(cc3x(0x1d0));
             } else {
                 m_nameLabel->setColor(cc3x(0xfff));
             }
@@ -116,10 +175,6 @@ namespace {
             }
         }
     
-        void onResetToDefault(CCObject*) {
-            this->resetToDefault();
-        }
-
     public:
         static N* create(
             std::shared_ptr<T> setting,
@@ -136,6 +191,7 @@ namespace {
 
         void commit() override {
             std::static_pointer_cast<T>(m_setting)->setValue(m_uncommittedValue);
+            m_uncommittedValue = std::static_pointer_cast<T>(m_setting)->getValue();
             this->valueChanged();
             if (m_delegate) m_delegate->settingValueCommitted(this);
         }
@@ -156,6 +212,210 @@ namespace {
             this->valueChanged();
         }
     };
+
+    template<class C, class T>
+    class ImplInput : public TextInputDelegate {
+    protected:
+        InputNode* m_input = nullptr;
+
+        C* self() {
+            return static_cast<C*>(this);
+        }
+
+        void setupInput(std::shared_ptr<T> setting, float width) {
+            if (setting->hasInput()) {
+                m_input = InputNode::create(width / 2 - 70.f, "Text", "chatFont.fnt");
+                m_input->setPosition({
+                    -(width / 2 - 70.f) / 2,
+                    setting->hasSlider() ? 5.f : 0.f
+                });
+                m_input->setScale(.65f);
+                m_input->getInput()->setDelegate(this);
+                self()->m_menu->addChild(m_input);
+            }
+        }
+
+        void updateLabel(bool updateText) {
+            if (!updateText) return;
+            // hacky way to make setString not called textChanged
+            m_input->getInput()->setDelegate(nullptr);
+            m_input->setString(numToStringFixed(self()->m_uncommittedValue));
+            m_input->getInput()->setDelegate(this);
+        }
+
+        void textChanged(CCTextInputNode* input) override {
+            try {
+                self()->m_uncommittedValue = parseNumForInput<typename C::value_t>(
+                    input->getString()
+                );
+                self()->valueChanged(false);
+            } catch(...) {}
+        }
+    };
+
+    template<class C, class T>
+    class ImplArrows {
+    protected:
+        CCMenuItemSpriteExtra* m_decArrow = nullptr;
+        CCMenuItemSpriteExtra* m_incArrow = nullptr;
+        CCMenuItemSpriteExtra* m_bigDecArrow = nullptr;
+        CCMenuItemSpriteExtra* m_bigIncArrow = nullptr;
+
+        C* self() {
+            return static_cast<C*>(this);
+        }
+
+        void setupArrows(std::shared_ptr<T> setting, float width) {
+            auto yPos = setting->hasSlider() ? 5.f : 0.f;
+
+            if (setting->hasArrows()) {
+                auto decArrowSpr = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
+                decArrowSpr->setFlipX(true);
+                decArrowSpr->setScale(.3f);
+
+                m_decArrow = CCMenuItemSpriteExtra::create(
+                    decArrowSpr, self(),
+                    menu_selector(ImplArrows::onDecrement)
+                );
+                m_decArrow->setPosition(-width / 2 + 80.f, yPos);
+                self()->m_menu->addChild(m_decArrow);
+
+                auto incArrowSpr = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
+                incArrowSpr->setScale(.3f);
+
+                m_incArrow = CCMenuItemSpriteExtra::create(
+                    incArrowSpr, self(),
+                    menu_selector(ImplArrows::onIncrement)
+                );
+                m_incArrow->setPosition(-10.f, yPos);
+                self()->m_menu->addChild(m_incArrow);
+            }
+
+            if (setting->hasBigArrows()) {
+                auto decArrowSpr = CCSprite::createWithSpriteFrameName("double-nav.png"_spr);
+                decArrowSpr->setFlipX(true);
+                decArrowSpr->setScale(.3f);
+
+                m_bigDecArrow = CCMenuItemSpriteExtra::create(
+                    decArrowSpr, self(),
+                    (SEL_MenuHandler)(&ImplArrows<C, T>::onBigDecrement)
+                );
+                m_bigDecArrow->setPosition(-width / 2 + 65.f, yPos);
+                self()->m_menu->addChild(m_bigDecArrow);
+
+                auto incArrowSpr = CCSprite::createWithSpriteFrameName("double-nav.png"_spr);
+                incArrowSpr->setScale(.3f);
+
+                m_bigIncArrow = CCMenuItemSpriteExtra::create(
+                    incArrowSpr, self(),
+                    (SEL_MenuHandler)(&ImplArrows<C, T>::onBigIncrement)
+                );
+                m_bigIncArrow->setPosition(5.f, yPos);
+                self()->m_menu->addChild(m_bigIncArrow);
+            }
+        }
+
+        void onIncrement(CCObject*) {
+            auto self = reinterpret_cast<C*>(this);
+            self->m_uncommittedValue += std::static_pointer_cast<T>(
+                self->m_setting
+            )->getArrowStepSize();
+            self->valueChanged(true);
+        }
+
+        void onDecrement(CCObject*) {
+            auto self = reinterpret_cast<C*>(this);
+            self->m_uncommittedValue -= std::static_pointer_cast<T>(
+                self->m_setting
+            )->getArrowStepSize();
+            self->valueChanged(true);
+        }
+
+        void onBigIncrement(CCObject*) {
+            auto self = reinterpret_cast<C*>(this);
+            self->m_uncommittedValue += std::static_pointer_cast<T>(
+                self->m_setting
+            )->getBigArrowStepSize();
+            self->valueChanged(true);
+        }
+
+        void onBigDecrement(CCObject*) {
+            auto self = reinterpret_cast<C*>(this);
+            self->m_uncommittedValue -= std::static_pointer_cast<T>(
+                self->m_setting
+            )->getBigArrowStepSize();
+            self->valueChanged(true);
+        }
+    };
+
+    template<class C, class T>
+    class ImplSlider {
+    protected:
+        Slider* m_slider = nullptr;
+
+        C* self() {
+            return static_cast<C*>(this);
+        }
+
+        float valueToSlider(
+            std::shared_ptr<T> setting,
+            typename T::value_t num
+        ) {
+            auto min = setting->getMin() ? setting->getMin().value() : -100;
+            auto max = setting->getMax() ? setting->getMax().value() : +100;
+            auto range = max - min;
+            return static_cast<float>(clamp(
+                static_cast<double>(num - min) / range, 0.0, 1.0
+            ));
+        }
+
+        typename T::value_t valueFromSlider(
+            std::shared_ptr<T> setting,
+            float num
+        ) {
+            auto min = setting->getMin() ? setting->getMin().value() : -100;
+            auto max = setting->getMax() ? setting->getMax().value() : +100;
+            auto range = max - min;
+            auto value = static_cast<typename T::value_t>(num * range + min);
+            if (auto step = setting->getSliderStepSize()) {
+                value = static_cast<typename T::value_t>(
+                    round(value / step.value()) * step.value()
+                );
+            }
+            return value;
+        }
+
+        void setupSlider(std::shared_ptr<T> setting, float width) {
+            if (setting->hasSlider()) {
+                m_slider = Slider::create(
+                    self(), menu_selector(ImplSlider::onSlider), .5f
+                );
+                m_slider->setPosition(-50.f, -15.f);
+                self()->m_menu->addChild(m_slider);
+
+                this->updateSlider();
+            }
+        }
+
+        void updateSlider() {
+            auto setting = std::static_pointer_cast<T>(self()->m_setting);
+            m_slider->setValue(
+                valueToSlider(setting, self()->m_uncommittedValue)
+            );
+            m_slider->updateBar();
+        }
+
+        void onSlider(CCObject* slider) {
+            auto self = reinterpret_cast<C*>(this);
+            auto setting = std::static_pointer_cast<T>(self->m_setting);
+
+            self->m_uncommittedValue = valueFromSlider(
+                setting,
+                static_cast<SliderThumb*>(slider)->getValue()
+            );
+            self->valueChanged(true);
+        }
+    };
 }
 
 class BoolSettingNode :
@@ -165,21 +425,41 @@ protected:
     CCMenuItemToggler* m_toggle;
 
     void onToggle(CCObject*);
-    void valueChanged() override;
+    void valueChanged(bool updateText) override;
     bool setup(std::shared_ptr<BoolSetting> setting, float width) override;
 };
 
 class IntSettingNode :
-    public GeodeSettingNode<IntSettingNode, IntSetting>
+    public GeodeSettingNode<IntSettingNode, IntSetting>,
+    public ImplArrows<IntSettingNode, IntSetting>,
+    public ImplInput<IntSettingNode, IntSetting>,
+    public ImplSlider<IntSettingNode, IntSetting>
 {
 protected:
+    friend class ImplArrows<IntSettingNode, IntSetting>;
+    friend class ImplInput<IntSettingNode, IntSetting>;
+    friend class ImplSlider<IntSettingNode, IntSetting>;
+
+    void valueChanged(bool updateText) override;
+
+    float setupHeight(std::shared_ptr<IntSetting> setting) const override;
     bool setup(std::shared_ptr<IntSetting> setting, float width) override;
 };
 
 class FloatSettingNode :
-    public GeodeSettingNode<FloatSettingNode, FloatSetting>
+    public GeodeSettingNode<FloatSettingNode, FloatSetting>,
+    public ImplArrows<FloatSettingNode, FloatSetting>,
+    public ImplInput<FloatSettingNode, FloatSetting>,
+    public ImplSlider<FloatSettingNode, FloatSetting>
 {
 protected:
+    friend class ImplArrows<FloatSettingNode, FloatSetting>;
+    friend class ImplInput<FloatSettingNode, FloatSetting>;
+    friend class ImplSlider<FloatSettingNode, FloatSetting>;
+
+    void valueChanged(bool updateText) override;
+
+    float setupHeight(std::shared_ptr<FloatSetting> setting) const override;
     bool setup(std::shared_ptr<FloatSetting> setting, float width) override;
 };
 
@@ -190,8 +470,8 @@ class StringSettingNode :
 protected:
     InputNode* m_input;
 
-    void textChanged(CCTextInputNode* input);
-    void valueChanged() override;
+    void textChanged(CCTextInputNode* input) override;
+    void valueChanged(bool updateText) override;
     void updateLabel();
     
     bool setup(std::shared_ptr<StringSetting> setting, float width) override;

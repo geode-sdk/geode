@@ -40,7 +40,7 @@ namespace geode::container_utils {
      * @param sep Separator string.
      * @returns Joined string.
      */
-    template<class C, class T>
+    template<class C>
     std::string join(C const& cont, std::string const& sep) {
         std::string res = "";
         bool first = true;
@@ -50,7 +50,7 @@ namespace geode::container_utils {
             } else {
                 first = false;
             }
-            if constexpr (std::is_same_v<T, std::string>) {
+            if constexpr (std::is_same_v<decltype(p), std::string>) {
                 res += p;
             } else {
                 res += std::to_string(p);
