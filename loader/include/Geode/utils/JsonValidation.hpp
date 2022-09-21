@@ -51,6 +51,9 @@ namespace geode {
         }
 
         bool jsonConvertibleTo(value_t value, value_t to) {
+            // if we don't know the type we're passing into, 
+            // everything's valid
+            if (to == value_t::null) return true;
             if (
                 value == value_t::number_float ||
                 value == value_t::number_integer ||

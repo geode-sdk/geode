@@ -22,6 +22,8 @@ Result<std::shared_ptr<Setting>> Setting::parse(
         case hash("int"):    return IntSetting::parse(key, obj);
         case hash("float"):  return FloatSetting::parse(key, obj);
         case hash("string"): return StringSetting::parse(key, obj);
+        case hash("color"):  return ColorSetting::parse(key, obj);
+        case hash("rgba"):   return ColorAlphaSetting::parse(key, obj);
         default: return Err(
             "Setting \"" + key + "\" has unknown type \"" + type + "\""
         );
@@ -63,4 +65,12 @@ SettingNode* FloatSetting::createNode(float width) {
 
 SettingNode* StringSetting::createNode(float width) {
     return StringSettingNode::create(shared_from_this(), width);
+}
+
+SettingNode* ColorSetting::createNode(float width) {
+    return ColorSettingNode::create(shared_from_this(), width);
+}
+
+SettingNode* ColorAlphaSetting::createNode(float width) {
+    return ColorAlphaSettingNode::create(shared_from_this(), width);
 }

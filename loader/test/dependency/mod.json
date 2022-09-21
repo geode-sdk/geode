@@ -52,6 +52,14 @@
                 "mirai toka",
                 "arun darou ka"
             ]
+        },
+        "territory-battle": {
+            "type": "color",
+            "default": "#00f"
+        },
+        "faithful-dog-hachi": {
+            "type": "rgba",
+            "default": [ 255, 150, 55, 180 ]
         }
     }
 }

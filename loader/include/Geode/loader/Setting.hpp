@@ -7,6 +7,7 @@
 #include "../utils/json.hpp"
 #include "../utils/Result.hpp"
 #include "../utils/JsonValidation.hpp"
+#include "../utils/convert.hpp"
 #include <regex>
 
 namespace geode {
@@ -394,6 +395,22 @@ namespace geode {
         SettingNode* createNode(float width) override;
     };
     
+    class GEODE_DLL ColorSetting : 
+        public GeodeSetting<ColorSetting, cocos2d::ccColor3B, SettingType::Color>,
+        public std::enable_shared_from_this<ColorSetting>
+    {
+    public:
+        SettingNode* createNode(float width) override;
+    };
+    
+    class GEODE_DLL ColorAlphaSetting : 
+        public GeodeSetting<ColorAlphaSetting, cocos2d::ccColor4B, SettingType::ColorAlpha>,
+        public std::enable_shared_from_this<ColorAlphaSetting>
+    {
+    public:
+        SettingNode* createNode(float width) override;
+    };
+
     // these can't be member functions because C++ is single-pass >:(
 
     #define GEODE_INT_BUILTIN_SETTING_IF(type, action, ...) \

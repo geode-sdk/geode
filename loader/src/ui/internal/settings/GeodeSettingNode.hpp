@@ -12,6 +12,9 @@
 
 USE_GEODE_NAMESPACE();
 
+template<class T>
+class ColorPickPopup;
+
 namespace {
     template<class Num>
     Num parseNumForInput(std::string const& str) {
@@ -24,13 +27,6 @@ namespace {
         } catch(...) {
             return 0;
         }
-    }
-
-    template<class Num>
-    std::string numToStringFixed(Num num) {
-        std::stringstream ss;
-        ss << num;
-        return ss.str();
     }
 
     template<class N, class T>
@@ -255,12 +251,12 @@ namespace {
                 // hacky way to make setString not called textChanged
                 m_input->getInput()->setDelegate(nullptr);
                 m_input->setString(
-                    numToStringFixed(self()->m_uncommittedValue)
+                    numToString(self()->m_uncommittedValue)
                 );
                 m_input->getInput()->setDelegate(this);
             } else {
                 m_label->setString(
-                    numToStringFixed(self()->m_uncommittedValue).c_str()
+                    numToString(self()->m_uncommittedValue).c_str()
                 );
                 m_label->limitLabelWidth(self()->m_width / 2 - 70.f, .5f, .1f);
             }
@@ -498,4 +494,158 @@ protected:
     void updateLabel();
     
     bool setup(std::shared_ptr<StringSetting> setting, float width) override;
+};
+
+class ColorSettingNode : 
+    public GeodeSettingNode<ColorSettingNode, ColorSetting>
+{
+protected:
+    ColorChannelSprite* m_colorSpr;
+
+    friend class ColorPickPopup<ColorSettingNode>;
+
+    void valueChanged(bool updateText) override;
+
+    bool setup(std::shared_ptr<ColorSetting> setting, float width) override;
+};
+
+class ColorAlphaSettingNode : 
+    public GeodeSettingNode<ColorAlphaSettingNode, ColorAlphaSetting>
+{
+protected:
+    ColorChannelSprite* m_colorSpr;
+
+    friend class ColorPickPopup<ColorAlphaSettingNode>;
+
+    void valueChanged(bool updateText) override;
+
+    bool setup(std::shared_ptr<ColorAlphaSetting> setting, float width) override;
+};
+
+template<class T>
+class ColorPickPopup :
+    public Popup<T*>,
+    public ColorPickerDelegate,
+    public TextInputDelegate
+{
+protected:
+    T* m_settingNode;
+    Slider* m_opacitySlider = nullptr;
+    InputNode* m_opacityInput = nullptr;
+
+    static constexpr auto TAG_OPACITY_INPUT = 0;
+    static constexpr auto TAG_R_INPUT       = 1;
+    static constexpr auto TAG_G_INPUT       = 2;
+    static constexpr auto TAG_B_INPUT       = 3;
+    static constexpr auto TAG_HEX_INPUT     = 4;
+    static constexpr auto IS_RGBA = std::is_same_v<
+        decltype(T::m_uncommittedValue),
+        ccColor4B
+    >;
+
+    FLAlertLayer* asAlert() {
+        return static_cast<FLAlertLayer*>(this);
+    }
+
+    bool setup(T* node) override {
+        asAlert()->m_noElasticity = true;
+
+        m_settingNode = node;
+
+        auto winSize = CCDirector::sharedDirector()->getWinSize();
+
+        auto picker = CCControlColourPicker::colourPicker();
+        if constexpr (IS_RGBA) {
+            picker->setColorValue(to3B(node->m_uncommittedValue));
+        } else {
+            picker->setColorValue(node->m_uncommittedValue);
+        }
+        picker->setColorTarget(node->m_colorSpr);
+        picker->setPosition(
+            winSize.width / 2,
+            winSize.height / 2 + (IS_RGBA ? 20.f : 0.f)
+        );
+        picker->setDelegate(this);
+        asAlert()->m_mainLayer->addChild(picker);
+
+        if constexpr (IS_RGBA) {
+            m_opacitySlider = Slider::create(
+                this,
+                menu_selector(ColorPickPopup::onOpacity),
+                .75f
+            );
+            m_opacitySlider->setPosition(
+                winSize.width / 2 - 30.f,
+                winSize.height / 2 - 90.f
+            );
+            m_opacitySlider->setValue(node->m_uncommittedValue.a / 255.f);
+            m_opacitySlider->updateBar();
+            asAlert()->m_mainLayer->addChild(m_opacitySlider);
+
+            m_opacityInput = InputNode::create(45.f, "0.00");
+            m_opacityInput->setPosition(85.f, -90.f);
+            m_opacityInput->setString(numToString(
+                node->m_uncommittedValue.a / 255.f, 2
+            ));
+            m_opacityInput->getInput()->setTag(TAG_OPACITY_INPUT);
+            m_opacityInput->getInput()->setDelegate(this);
+            asAlert()->m_buttonMenu->addChild(m_opacityInput);
+        }
+
+        return true;
+    }
+
+    void textChanged(CCTextInputNode* input) override {
+        switch (input->getTag()) {
+            case TAG_OPACITY_INPUT: {
+                if constexpr (IS_RGBA) {
+                    try {
+                        auto value = std::stof(input->getString());
+                        m_settingNode->m_uncommittedValue.a = static_cast<GLubyte>(
+                            value * 255.f
+                        );
+                        m_opacitySlider->setValue(value);
+                        m_opacitySlider->updateBar();
+                        m_settingNode->valueChanged(true);
+                    } catch(...) {}
+                }
+            } break;
+
+            default: break;
+        }
+    }
+
+    void onOpacity(CCObject* sender) {
+        if constexpr (IS_RGBA) {
+            m_settingNode->m_uncommittedValue.a = static_cast<GLubyte>(
+                static_cast<SliderThumb*>(sender)->getValue() * 255.f
+            );
+            m_opacityInput->setString(numToString(
+                m_settingNode->m_uncommittedValue.a / 255.f, 3
+            ));
+            m_settingNode->valueChanged(true);
+        }
+    }
+
+    void colorValueChanged(ccColor3B color) override {
+        if constexpr (IS_RGBA) {
+            m_settingNode->m_uncommittedValue = to4B(
+                color, m_settingNode->m_uncommittedValue.a
+            );
+        } else {
+            m_settingNode->m_uncommittedValue = color;
+        }
+        m_settingNode->valueChanged(true);
+    }
+
+public:
+    static ColorPickPopup* create(T* node) {
+        auto ret = new ColorPickPopup();
+        if (ret && ret->init(250.f, (IS_RGBA ? 250.f : 200.f), node)) {
+            ret->autorelease();
+            return ret;
+        }
+        CC_SAFE_DELETE(ret);
+        return nullptr;
+    }
 };

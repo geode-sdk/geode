@@ -60,5 +60,22 @@ namespace geode::utils {
 		return stream.str();
 	}
 
+    /**
+     * Turn a number into a string, with support for specifying precision 
+     * (unlike std::to_string).
+     * @param num Number to convert to string
+     * @param precision Precision of the converted number
+     * @returns Number as string
+     */
+    template<class Num>
+    std::string numToString(Num num, size_t precision = 0) {
+        std::stringstream ss;
+        if (precision) {
+            ss << std::fixed << std::setprecision(precision);
+        }
+        ss << num;
+        return ss.str();
+    }
+
     GEODE_DLL std::string timePointAsString(const std::chrono::system_clock::time_point& tp);
 }
