@@ -98,6 +98,11 @@ void ColorSettingNode::valueChanged(bool updateText) {
     m_colorSpr->setColor(m_uncommittedValue);
 }
 
+void ColorSettingNode::updateColor(ccColor4B const& color) {
+    m_uncommittedValue = to3B(color);
+    this->valueChanged(true);
+}
+
 bool ColorSettingNode::setup(std::shared_ptr<ColorSetting> setting, float width) {
 	m_colorSpr = ColorChannelSprite::create();
 	m_colorSpr->setColor(m_uncommittedValue);
@@ -105,7 +110,10 @@ bool ColorSettingNode::setup(std::shared_ptr<ColorSetting> setting, float width)
 	
 	auto button = CCMenuItemSpriteExtra::create(
 		m_colorSpr, this, makeMenuSelector([this](CCObject*) {
-            ColorPickPopup<ColorSettingNode>::create(this)->show();
+            auto popup = ColorPickPopup::create(m_uncommittedValue);
+            popup->setDelegate(this);
+            popup->setColorTarget(m_colorSpr);
+            popup->show();
         })
 	);
     button->setPositionX(-10.f);
@@ -122,6 +130,11 @@ void ColorAlphaSettingNode::valueChanged(bool updateText) {
     m_colorSpr->updateOpacity(m_uncommittedValue.a / 255.f);
 }
 
+void ColorAlphaSettingNode::updateColor(ccColor4B const& color) {
+    m_uncommittedValue = color;
+    this->valueChanged(true);
+}
+
 bool ColorAlphaSettingNode::setup(std::shared_ptr<ColorAlphaSetting> setting, float width) {
 	m_colorSpr = ColorChannelSprite::create();
 	m_colorSpr->setColor(to3B(m_uncommittedValue));
@@ -130,7 +143,10 @@ bool ColorAlphaSettingNode::setup(std::shared_ptr<ColorAlphaSetting> setting, fl
 	
 	auto button = CCMenuItemSpriteExtra::create(
 		m_colorSpr, this, makeMenuSelector([this](CCObject*) {
-            ColorPickPopup<ColorAlphaSettingNode>::create(this)->show();
+            auto popup = ColorPickPopup::create(m_uncommittedValue);
+            popup->setDelegate(this);
+            popup->setColorTarget(m_colorSpr);
+            popup->show();
         })
 	);
     button->setPositionX(-10.f);

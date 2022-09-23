@@ -22,7 +22,8 @@ Result<std::shared_ptr<Setting>> Setting::parse(
         case hash("int"):    return IntSetting::parse(key, obj);
         case hash("float"):  return FloatSetting::parse(key, obj);
         case hash("string"): return StringSetting::parse(key, obj);
-        case hash("color"):  return ColorSetting::parse(key, obj);
+        case hash("rgb"): case hash("color"):
+            return ColorSetting::parse(key, obj);
         case hash("rgba"):   return ColorAlphaSetting::parse(key, obj);
         default: return Err(
             "Setting \"" + key + "\" has unknown type \"" + type + "\""
