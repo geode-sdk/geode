@@ -494,6 +494,20 @@ protected:
     bool setup(std::shared_ptr<StringSetting> setting, float width) override;
 };
 
+class FileSettingNode :
+    public GeodeSettingNode<FileSettingNode, FileSetting>,
+    public TextInputDelegate
+{
+protected:
+    InputNode* m_input;
+
+    void textChanged(CCTextInputNode* input) override;
+    void valueChanged(bool updateText) override;
+    void updateLabel();
+    
+    bool setup(std::shared_ptr<FileSetting> setting, float width) override;
+};
+
 class ColorSettingNode : 
     public GeodeSettingNode<ColorSettingNode, ColorSetting>,
     public ColorPickPopupDelegate

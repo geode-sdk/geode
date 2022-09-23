@@ -395,6 +395,14 @@ namespace geode {
         SettingNode* createNode(float width) override;
     };
     
+    class GEODE_DLL FileSetting :
+        public GeodeSetting<FileSetting, ghc::filesystem::path, SettingType::File>,
+        public std::enable_shared_from_this<FileSetting>
+    {
+    public:
+        SettingNode* createNode(float width) override;
+    };
+
     class GEODE_DLL ColorSetting : 
         public GeodeSetting<ColorSetting, cocos2d::ccColor3B, SettingType::Color>,
         public std::enable_shared_from_this<ColorSetting>

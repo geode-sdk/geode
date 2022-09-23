@@ -127,7 +127,7 @@ namespace geode {
         /**
          * Mod settings
          */
-        std::unordered_map<std::string, std::shared_ptr<Setting>> m_settings;
+        std::vector<std::pair<std::string, std::shared_ptr<Setting>>> m_settings;
         /**
          * Whether the mod can be disabled or not
          */
@@ -323,18 +323,21 @@ namespace geode {
 
         bool hasSettings() const;
         decltype(ModInfo::m_settings) getSettings() const;
+        bool hasSetting(std::string const& key) const;
         std::shared_ptr<Setting> getSetting(std::string const& key) const;
         template<class T>
         T getSettingValue(std::string const& key) const {
-            if (m_info.m_settings.count(key)) {
-                return geode::getBuiltInSettingValue<T>(m_info.m_settings.at(key));
+            if (this->hasSetting(key)) {
+                return geode::getBuiltInSettingValue<T>(
+                    this->getSetting(key)
+                );
             }
             return T();
         }
         template<class T>
         bool setSettingValue(std::string const& key, T const& value) {
-            if (m_info.m_settings.count(key)) {
-                geode::setBuiltInSettingValue<T>(m_info.m_settings[key], value);
+            if (this->hasSetting(key)) {
+                geode::setBuiltInSettingValue<T>(this->getSetting(key), value);
                 return true;
             }
             return false;

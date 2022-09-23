@@ -60,6 +60,11 @@
         "faithful-dog-hachi": {
             "type": "rgba",
             "default": [ 255, 150, 55, 180 ]
+        },
+        "im-getting-to-the-bus-to-the-other-world-see-ya": {
+            "type": "file",
+            "name": "Bus",
+            "default": ""
         }
     }
 }

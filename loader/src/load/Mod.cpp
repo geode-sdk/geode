@@ -558,10 +558,21 @@ decltype(ModInfo::m_settings) Mod::getSettings() const {
 }
 
 std::shared_ptr<Setting> Mod::getSetting(std::string const& key) const {
-    if (m_info.m_settings.count(key)) {
-        return m_info.m_settings.at(key);
+    for (auto& sett : m_info.m_settings) {
+        if (sett.first == key) {
+            return sett.second;
+        }
     }
     return nullptr;
+}
+
+bool Mod::hasSetting(std::string const& key) const {
+    for (auto& sett : m_info.m_settings) {
+        if (sett.first == key) {
+            return true;
+        }
+    }
+    return false;
 }
 
 std::string Mod::getLoadErrorInfo() const {

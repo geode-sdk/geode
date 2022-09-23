@@ -91,6 +91,35 @@ bool StringSettingNode::setup(std::shared_ptr<StringSetting> setting, float widt
     return true;
 }
 
+// FileSettingNode
+
+void FileSettingNode::updateLabel() {
+    // hacky way to make setString not called textChanged
+    m_input->getInput()->setDelegate(nullptr);
+    m_input->setString(m_uncommittedValue.string());
+    m_input->getInput()->setDelegate(this);
+}
+
+void FileSettingNode::textChanged(CCTextInputNode* input) {
+    m_uncommittedValue = input->getString();
+    this->valueChanged(false);
+}
+
+void FileSettingNode::valueChanged(bool updateText) {
+    GeodeSettingNode::valueChanged(updateText);
+    this->updateLabel();
+}
+
+bool FileSettingNode::setup(std::shared_ptr<FileSetting> setting, float width) {
+    m_input = InputNode::create(width / 2 - 10.f, "Path to File", "chatFont.fnt");
+    m_input->setPosition({ -(width / 2 - 70.f) / 2, .0f });
+    m_input->setScale(.65f);
+    m_input->getInput()->setDelegate(this);
+    m_menu->addChild(m_input);
+
+    return true;
+}
+
 // ColorSettingNode
 
 void ColorSettingNode::valueChanged(bool updateText) {
