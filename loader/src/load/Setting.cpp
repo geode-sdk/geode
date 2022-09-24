@@ -15,7 +15,7 @@ std::string Setting::getKey() const {
 Result<std::shared_ptr<Setting>> Setting::parse(
     std::string const& type,
     std::string const& key,
-    JsonMaybeObject& obj
+    JsonMaybeObject<ModJson>& obj
 ) {
     switch (hash(type.c_str())) {
         case hash("bool"):   return BoolSetting::parse(key, obj);
@@ -35,7 +35,7 @@ Result<std::shared_ptr<Setting>> Setting::parse(
 
 Result<std::shared_ptr<Setting>> Setting::parse(
     std::string const& key,
-    nlohmann::json const& rawJson
+    ModJson const& rawJson
 ) {
     if (rawJson.is_object()) {
         auto json = rawJson;

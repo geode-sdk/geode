@@ -86,13 +86,4 @@ Result<std::string> fetch(std::string const& url) {
     return Err("Error getting info: " + std::string(curl_easy_strerror(res)));
 }
 
-Result<nlohmann::json> fetchJSON(std::string const& url) {
-    auto res = fetch(url);
-    if (!res) return Err(res.error());
-    try {
-        return Ok(nlohmann::json::parse(res.value()));
-    } catch(std::exception& e) {
-        return Err(e.what());
-    }
-}
 

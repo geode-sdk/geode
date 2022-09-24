@@ -11,6 +11,8 @@
 #include <regex>
 
 namespace geode {
+    using ModJson = nlohmann::ordered_json;
+
     class SettingNode;
     class BoolSetting;
     class IntSetting;
@@ -35,7 +37,7 @@ namespace geode {
         static Result<std::shared_ptr<Setting>> parse(
             std::string const& type,
             std::string const& key,
-            JsonMaybeObject& obj
+            JsonMaybeObject<ModJson>& obj
         );
 
     public:
@@ -44,7 +46,7 @@ namespace geode {
         // Load from mod.json
         static Result<std::shared_ptr<Setting>> parse(
             std::string const& key,
-            nlohmann::json const& json
+            ModJson const& json
         );
         // Load value from saved settings
         virtual bool load(nlohmann::json const& json) = 0;
@@ -98,7 +100,7 @@ namespace geode {
 
             static Result<std::shared_ptr<Class>> parse(
                 std::string const& key,
-                JsonMaybeObject& obj
+                JsonMaybeObject<ModJson>& obj
             ) {
                 auto res = std::make_shared<Class>();
 
@@ -211,7 +213,7 @@ namespace geode {
                 return Ok();
             }
 
-            Result<> parseMinMax(JsonMaybeObject& obj) {
+            Result<> parseMinMax(JsonMaybeObject<ModJson>& obj) {
                 obj.has("min").intoAs<ValueType>(m_min);
                 obj.has("max").intoAs<ValueType>(m_max);
                 return Ok();
@@ -242,7 +244,7 @@ namespace geode {
                 return Ok();
             }
 
-            Result<> parseOneOf(JsonMaybeObject& obj) {
+            Result<> parseOneOf(JsonMaybeObject<ModJson>& obj) {
                 std::unordered_set<ValueType> oneOf {};
                 for (auto& item : obj.has("one-of").iterate()) {
                     oneOf.insert(item.get<ValueType>());
@@ -277,7 +279,7 @@ namespace geode {
                 return Ok();
             }
 
-            Result<> parseMatch(JsonMaybeObject& obj) {
+            Result<> parseMatch(JsonMaybeObject<ModJson>& obj) {
                 obj.has("match").intoAs<std::string>(m_matchRegex);
                 return Ok();
             }
@@ -292,7 +294,7 @@ namespace geode {
             protected:\
                 bool m_##name = default;\
             public:\
-                Result<> parse##Name(JsonMaybeObject& obj) {\
+                Result<> parse##Name(JsonMaybeObject<ModJson>& obj) {\
                     obj.has(json).into(m_##name);\
                     return Ok();\
                 }\
@@ -309,7 +311,7 @@ namespace geode {
             size_t m_bigArrowStep = 1;
         
         public:
-            Result<> parseArrows(JsonMaybeObject& obj) {
+            Result<> parseArrows(JsonMaybeObject<ModJson>& obj) {
                 obj.has("arrows").into(m_hasArrows);
                 obj.has("arrow-step").into(m_arrowStep);
                 obj.has("big-arrows").into(m_hasBigArrows);
@@ -338,7 +340,7 @@ namespace geode {
             std::optional<ValueType> m_sliderStep = std::nullopt;
         
         public:
-            Result<> parseSlider(JsonMaybeObject& obj) {
+            Result<> parseSlider(JsonMaybeObject<ModJson>& obj) {
                 obj.has("slider").into(m_hasSlider);
                 obj.has("slider-step").intoAs<ValueType>(m_sliderStep);
                 return Ok();

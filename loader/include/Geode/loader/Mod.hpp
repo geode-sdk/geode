@@ -147,7 +147,7 @@ namespace geode {
         /**
          * Create ModInfo from a parsed json document
          */
-        static Result<ModInfo> create(nlohmann::json const& json);
+        static Result<ModInfo> create(ModJson const& json);
 
     private:
         /**
@@ -155,7 +155,7 @@ namespace geode {
          * compatibility if we update the mod.json 
          * format
          */
-        static Result<ModInfo> createFromSchemaV010(nlohmann::json const& json);
+        static Result<ModInfo> createFromSchemaV010(ModJson const& json);
     };
 
     /**

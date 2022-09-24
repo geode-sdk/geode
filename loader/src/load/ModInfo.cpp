@@ -11,7 +11,7 @@ static std::string sanitizeDetailsData(unsigned char* start, unsigned char* end)
     return string_utils::replace(std::string(start, end), "\r", "");
 }
 
-Result<ModInfo> ModInfo::createFromSchemaV010(nlohmann::json const& rawJson) {
+Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
     ModInfo info;
 
     auto json = rawJson;
@@ -66,7 +66,7 @@ Result<ModInfo> ModInfo::createFromSchemaV010(nlohmann::json const& rawJson) {
     for (auto& [key, value] : root.has("settings").items()) {
         auto sett = Setting::parse(key, value.json());
         PROPAGATE(sett);
-        info.m_settings.insert({ key, sett.value() });
+        info.m_settings.push_back({ key, sett.value() });
     }
 
     if (auto resources = root.has("resources").obj()) {
@@ -112,7 +112,7 @@ Result<ModInfo> ModInfo::createFromSchemaV010(nlohmann::json const& rawJson) {
     return Ok(info);
 }
 
-Result<ModInfo> ModInfo::create(nlohmann::json const& json) {
+Result<ModInfo> ModInfo::create(ModJson const& json) {
     // Check mod.json target version
     auto schema = LOADER_VERSION;
     if (json.contains("geode") && json["geode"].is_string()) {
@@ -170,11 +170,15 @@ Result<ModInfo> ModInfo::createFromFile(ghc::filesystem::path const& path) {
     try {
         auto read = file_utils::readString(path);
         if (!read) return Err(read.error());
-        auto res = ModInfo::create(nlohmann::json::parse(read.value()));
-        if (!res) return res;
-        auto info = res.value();
-        info.m_path = path;
-        return Ok(info);
+        try {
+            auto res = ModInfo::create(ModJson::parse(read.value()));
+            if (!res) return res;
+            auto info = res.value();
+            info.m_path = path;
+            return Ok(info);
+        } catch(std::exception& e) {
+            return Err("Unable to parse mod.json: " + std::string(e.what()));
+        }
     } catch(std::exception const& e) {
         return Err(e.what());
     }
@@ -195,9 +199,9 @@ Result<ModInfo> ModInfo::createFromGeodeFile(ghc::filesystem::path const& path) 
     if (!read || !readSize) {
         return Err("\"" + path.string() + "\": Unable to read mod.json");
     }
-    nlohmann::json json;
+    ModJson json;
     try {
-        json = nlohmann::json::parse(std::string(read, read + readSize));
+        json = ModJson::parse(std::string(read, read + readSize));
     } catch(std::exception const& e) {
         delete[] read;
         return Err<>(e.what());

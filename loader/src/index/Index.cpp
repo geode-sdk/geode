@@ -6,13 +6,14 @@
 
 #define GITHUB_DONT_RATE_LIMIT_ME_PLS 0
 
-static Result<nlohmann::json> readJSON(ghc::filesystem::path const& path) {
+template<class Json = nlohmann::json>
+static Result<Json> readJSON(ghc::filesystem::path const& path) {
     auto indexJsonData = file_utils::readString(path);
     if (!indexJsonData) {
         return Err("Unable to read " + path.string());
     }
     try {
-        return Ok(nlohmann::json::parse(indexJsonData.value()));
+        return Ok(Json::parse(indexJsonData.value()));
     } catch(std::exception& e) {
         return Err("Error parsing JSON: " + std::string(e.what()));
     }
@@ -311,7 +312,7 @@ void Index::addIndexItemFromFolder(ghc::filesystem::path const& dir) {
             return;
         }
 
-        auto readModJson = readJSON(dir / "mod.json");
+        auto readModJson = readJSON<ModJson>(dir / "mod.json");
         if (!readModJson) {
             Log::get() << Severity::Warning
                 << "Error reading mod.json: "
