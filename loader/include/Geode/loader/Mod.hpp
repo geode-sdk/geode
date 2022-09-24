@@ -97,15 +97,13 @@ namespace geode {
          */
         std::string m_description = "";
         /**
-         * Detailed description of the mod, writtenin Markdown (see
-         * https://github.com/geode-sdk/api/blob/main/include/nodes/MDTextArea.hpp) 
-         * for more info
+         * Detailed description of the mod, writtenin Markdown (see 
+         * <Geode/ui/MDTextArea.hpp>) for more info
          */
         std::string m_details = "";
         /**
          * Changelog for the mod, written in Markdown (see
-         * https://github.com/geode-sdk/api/blob/main/include/nodes/MDTextArea.hpp) 
-         * for more info
+         * <Geode/ui/MDTextArea.hpp>) for more info
          */
         std::string m_changelog = "";
         /**
