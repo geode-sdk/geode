@@ -412,7 +412,7 @@ void ModListLayer::onReload(CCObject*) {
 }
 
 void ModListLayer::onOpenFolder(CCObject*) {
-	dirs::openFolder(
+	file::openFolder(
 		ghc::filesystem::canonical(Loader::get()->getGeodeDirectory() / "mods")
 	);
 }

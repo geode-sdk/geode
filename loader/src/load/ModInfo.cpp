@@ -8,7 +8,7 @@ USE_GEODE_NAMESPACE();
 
 static std::string sanitizeDetailsData(unsigned char* start, unsigned char* end) {
     // delete CRLF
-    return string_utils::replace(std::string(start, end), "\r", "");
+    return utils::string::replace(std::string(start, end), "\r", "");
 }
 
 Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
@@ -99,7 +99,7 @@ Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
     if (
         root.has("binary") &&
         autoEndBinaryName &&
-        !string_utils::endsWith(info.m_binaryName, GEODE_PLATFORM_EXTENSION)
+        !utils::string::endsWith(info.m_binaryName, GEODE_PLATFORM_EXTENSION)
     ) {
         info.m_binaryName += GEODE_PLATFORM_EXTENSION;
     }
@@ -168,7 +168,7 @@ Result<ModInfo> ModInfo::create(ModJson const& json) {
 
 Result<ModInfo> ModInfo::createFromFile(ghc::filesystem::path const& path) {
     try {
-        auto read = file_utils::readString(path);
+        auto read = utils::file::readString(path);
         if (!read) return Err(read.error());
         try {
             auto res = ModInfo::create(ModJson::parse(read.value()));

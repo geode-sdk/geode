@@ -6,7 +6,7 @@
 #include <functional>
 #include <algorithm>
 
-namespace geode::vector_utils {
+namespace geode::utils::vector {
     /**
      * Check if a vector contains an element by value.
      * @param vec The vector to check.
@@ -229,7 +229,7 @@ namespace geode::vector_utils {
      */
     template<class T>
     void insertBefore(std::vector<T> & vec, T const& item, T const& before) {
-        vec.insert(vector_utils::indexOf(vec, before), item);
+        vec.insert(utils::vector::indexOf(vec, before), item);
     }
 
     /**
@@ -241,6 +241,6 @@ namespace geode::vector_utils {
      */
     template<class T>
     void insertAfter(std::vector<T> & vec, T const& item, T const& after) {
-        vec.insert(vector_utils::indexOf(vec, after) + 1, item);
+        vec.insert(utils::vector::indexOf(vec, after) + 1, item);
     }
 }

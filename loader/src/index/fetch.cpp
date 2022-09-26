@@ -1,7 +1,7 @@
 #include "fetch.hpp"
 #include <curl/curl.h>
 
-namespace fetch_utils {
+namespace geode::utils::fetch {
     static size_t writeData(char* data, size_t size, size_t nmemb, void* str) {
         as<std::string*>(str)->append(data, size * nmemb);
         return size * nmemb;
@@ -35,12 +35,12 @@ Result<> fetchFile(
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &file);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, fetch_utils::writeBinaryData);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, utils::fetch::writeBinaryData);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "github_api/1.0");
     if (prog) {
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
-        curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, fetch_utils::progress);
+        curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, utils::fetch::progress);
         curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &prog);
     }
     auto res = curl_easy_perform(curl);
@@ -68,7 +68,7 @@ Result<std::string> fetch(std::string const& url) {
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &ret);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, fetch_utils::writeData);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, utils::fetch::writeData);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "github_api/1.0");
     auto res = curl_easy_perform(curl);
     if (res != CURLE_OK) {

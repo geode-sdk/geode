@@ -42,7 +42,7 @@ void Loader::createDirectories() {
     ghc::filesystem::create_directory(logDir);
     ghc::filesystem::create_directory(tempDir);
 
-    if (!vector_utils::contains(m_modDirectories, modDir)) {
+    if (!utils::vector::contains(m_modDirectories, modDir)) {
         m_modDirectories.push_back(modDir);
     }
 
@@ -122,7 +122,7 @@ size_t Loader::loadModsFromDirectory(
         }
 
         // skip this entry if it's already loaded
-        if (map_utils::contains<std::string, Mod*>(
+        if (utils::map::contains<std::string, Mod*>(
             m_mods,
             [entry](Mod* p) -> bool {
                 return p->m_info.m_path == entry.path();
@@ -195,7 +195,7 @@ Result<> Loader::saveSettings() {
     json["succesfully-closed"] = true;
     InternalLoader::get()->saveInfoAlerts(json);
     auto path = this->getGeodeSaveDirectory() / "mods.json";
-    return file_utils::writeString(path, json.dump(4));
+    return utils::file::writeString(path, json.dump(4));
 }
 
 Result<> Loader::loadSettings() {
@@ -204,7 +204,7 @@ Result<> Loader::loadSettings() {
         return Ok();
     }
 
-    auto read = file_utils::readString(path);
+    auto read = utils::file::readString(path);
     if (!read) {
         return read;
     }
@@ -283,7 +283,7 @@ Mod* Loader::getLoadedMod(std::string const& id) const {
 }
 
 std::vector<Mod*> Loader::getAllMods() const {
-    return map_utils::getValues(m_mods);
+    return utils::map::getValues(m_mods);
 }
 
 std::vector<Loader::FailedModInfo> Loader::getFailedMods() const {
@@ -367,7 +367,7 @@ void Loader::pushLog(LogPtr* logptr) {
 }
 
 void Loader::popLog(LogPtr* log) {
-    vector_utils::erase(m_logs, log);
+    utils::vector::erase(m_logs, log);
     delete log;
 }
 
@@ -385,7 +385,7 @@ std::vector<LogPtr*> Loader::getLogs(
     std::vector<LogPtr*> logs;
 
     for (auto const& log : m_logs) {
-        if (vector_utils::contains<Severity>(
+        if (utils::vector::contains<Severity>(
             severityFilter, log->getSeverity()
         )) {
             logs.push_back(log);
@@ -420,7 +420,7 @@ ghc::filesystem::path Loader::getSaveDirectory() const {
 }
 
 ghc::filesystem::path Loader::getGeodeDirectory() const {
-    return geode::utils::dirs::geodeRoot() / GEODE_DIRECTORY;
+    return geode::utils::file::geodeRoot() / GEODE_DIRECTORY;
 }
 
 ghc::filesystem::path Loader::getGeodeSaveDirectory() const {

@@ -9,6 +9,20 @@ namespace geode {
     template<class Json>
     struct JsonChecker;
 
+    template <typename T, typename = void>
+    struct is_iterable : std::false_type {};
+
+    template <typename T>
+    struct is_iterable<T,
+        std::void_t<
+            decltype(std::begin(std::declval<T>())),
+            decltype(std::end(std::declval<T>()))
+        >
+    > : std::true_type {};
+
+    template <typename T>
+    constexpr bool is_iterable_v = is_iterable<T>::value;
+
     namespace {
         using value_t = nlohmann::detail::value_t;
 
@@ -43,10 +57,12 @@ namespace geode {
                 return value_t::number_integer;
             }
             else if constexpr (
-                std::is_same_v<T, std::string> ||
-                std::is_same_v<T, const char*>
+                std::is_constructible_v<T, std::string>
             ) {
                 return value_t::string;
+            }
+            else if constexpr (is_iterable_v<T>) {
+                return value_t::array;
             }
             return value_t::null;
         }

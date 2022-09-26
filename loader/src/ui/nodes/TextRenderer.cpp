@@ -431,12 +431,12 @@ std::vector<TextRenderer::Label> TextRenderer::renderStringEx(
     if (!createLabel()) return {};
 
     bool firstLine = true;
-    for (auto line : string_utils::split(str, "\n")) {
+    for (auto line : utils::string::split(str, "\n")) {
         if (!firstLine && !nextLine()) {
             return {};
         }
         firstLine = false;
-        for (auto word : string_utils::split(line, " ")) {
+        for (auto word : utils::string::split(line, " ")) {
             // add extra space in front of word if not on 
             // new line
             if (!newLine) word = " " + word;
@@ -444,8 +444,8 @@ std::vector<TextRenderer::Label> TextRenderer::renderStringEx(
 
             // update capitalization
             switch (caps) {
-                case TextCapitalization::AllUpper: string_utils::toUpperIP(word); break;
-                case TextCapitalization::AllLower: string_utils::toLowerIP(word); break;
+                case TextCapitalization::AllUpper: utils::string::toUpperIP(word); break;
+                case TextCapitalization::AllLower: utils::string::toLowerIP(word); break;
                 default: break;
             }
 
@@ -455,7 +455,7 @@ std::vector<TextRenderer::Label> TextRenderer::renderStringEx(
             // try to create a new line
             if (!nextLine()) return {};
 
-            if (string_utils::startsWith(word, " ")) word = word.substr(1);
+            if (utils::string::startsWith(word, " ")) word = word.substr(1);
             newLine = false;
 
             // try to render on new line
@@ -472,7 +472,7 @@ std::vector<TextRenderer::Label> TextRenderer::renderStringEx(
                 ) {
                     if (!nextLine()) return {};
                     
-                    if (string_utils::startsWith(word, " ")) word = word.substr(1);
+                    if (utils::string::startsWith(word, " ")) word = word.substr(1);
                     newLine = false;
                 }
             }

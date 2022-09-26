@@ -443,9 +443,9 @@ bool ModListView::filter(ModInfo const& info, ModListQuery const& query) {
     if (!query.m_searchFilter) return true;
     auto check = [query](SearchFlags flag, std::string const& name) -> bool {
         if (!(query.m_searchFlags & flag)) return false;
-        return string_utils::contains(
-            string_utils::toLower(name),
-            string_utils::toLower(query.m_searchFilter.value())
+        return utils::string::contains(
+            utils::string::toLower(name),
+            utils::string::toLower(query.m_searchFilter.value())
         );
     };
     if (check(SearchFlag::Name,        info.m_name)) return true;

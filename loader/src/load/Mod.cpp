@@ -57,7 +57,7 @@ Result<> Mod::loadSettings() {
     // Check if settings exist
     auto settPath = m_saveDirPath / "settings.json";
     if (ghc::filesystem::exists(settPath)) {
-        auto settData = file_utils::readString(settPath);
+        auto settData = utils::file::readString(settPath);
         if (!settData) return settData;
         try {
             // parse settings.json
@@ -94,7 +94,7 @@ Result<> Mod::loadSettings() {
     if (!ghc::filesystem::exists(dsPath)) {
         m_dataStore = m_info.m_defaultDataStore;
     } else {
-        auto dsData = file_utils::readString(dsPath);
+        auto dsData = utils::file::readString(dsPath);
         if (!dsData) return dsData;
         try {
             m_dataStore = nlohmann::json::parse(dsData.value());
@@ -114,14 +114,14 @@ Result<> Mod::saveSettings() {
             return Err("Unable to save setting \"" + key + "\"");
         }
     }
-    auto sw = file_utils::writeString(settPath, json.dump(4));
+    auto sw = utils::file::writeString(settPath, json.dump(4));
     if (!sw) {
         return sw;
     }
 
     // datastore
     auto dsPath = m_saveDirPath / "ds.json";
-    auto dw = file_utils::writeString(dsPath, m_dataStore.dump(4));
+    auto dw = utils::file::writeString(dsPath, m_dataStore.dump(4));
     if (!dw) {
         return dw;
     }
@@ -183,7 +183,7 @@ Result<> Mod::createTempDir() {
         if (!data || !size) {
             return Err<>("Unable to read \"" + std::string(file) + "\"");
         }
-        auto wrt = file_utils::writeBinary(
+        auto wrt = utils::file::writeBinary(
             tempPath / file,
             byte_array(data, data + size)
         );
@@ -531,7 +531,7 @@ void Mod::logInfo(
 }
 
 bool Mod::depends(std::string const& id) const {
-    return vector_utils::contains<Dependency>(
+    return utils::vector::contains<Dependency>(
         this->m_info.m_dependencies,
         [id](Dependency t) -> bool { return t.m_id == id; }
     );

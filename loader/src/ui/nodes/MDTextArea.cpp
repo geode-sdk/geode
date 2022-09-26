@@ -66,9 +66,9 @@ public:
 
 
 Result<ccColor3B> colorForIdentifier(std::string const& tag) {
-    if (string_utils::contains(tag, ' ')) {
-        auto hexStr = string_utils::split(
-            string_utils::normalize(tag), " "
+    if (utils::string::contains(tag, ' ')) {
+        auto hexStr = utils::string::split(
+            utils::string::normalize(tag), " "
         ).at(1);
         try {
             auto hex = std::stoi(hexStr, nullptr, 16);
@@ -224,7 +224,7 @@ struct MDParser {
                     // rendering is done since the position of the 
                     // rendered labels may change after alignments 
                     // are adjusted
-                    vector_utils::push(s_codeSpans, rendered);
+                    utils::vector::push(s_codeSpans, rendered);
                 }
             } break;
 
@@ -243,7 +243,7 @@ struct MDParser {
                     auto rendered = renderer->renderStringInteractive(
                         text,
                         textarea,
-                        string_utils::startsWith(s_lastLink, "user:") ?
+                        utils::string::startsWith(s_lastLink, "user:") ?
                             menu_selector(MDTextArea::onGDProfile) : 
                             menu_selector(MDTextArea::onLink)
                     );
@@ -254,7 +254,7 @@ struct MDParser {
                     renderer->popColor();
                 } else if (s_lastImage.size()) {
                     bool isFrame = false;
-                    if (string_utils::startsWith(s_lastImage, "frame:")) {
+                    if (utils::string::startsWith(s_lastImage, "frame:")) {
                         s_lastImage = s_lastImage.substr(s_lastImage.find(":") + 1);
                         isFrame = true;
                     }
@@ -277,7 +277,7 @@ struct MDParser {
             
             case MD_TEXTTYPE::MD_TEXT_HTML: {
                 if (text.size() > 2) {
-                    auto tag = string_utils::trim(text.substr(1, text.size() - 2));
+                    auto tag = utils::string::trim(text.substr(1, text.size() - 2));
                     auto isClosing = tag.front() == '/';
                     if (isClosing) tag = tag.substr(1);
                     if (tag.front() != 'c') {

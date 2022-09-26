@@ -6,7 +6,7 @@
 #include "types.hpp"
 #include "fs/filesystem.hpp"
 
-namespace geode::file_utils {
+namespace geode::utils::file {
     GEODE_DLL Result<std::string> readString(std::string            const& path);
     GEODE_DLL Result<std::string> readString(std::wstring           const& path);
     GEODE_DLL Result<std::string> readString(ghc::filesystem::path  const& path);

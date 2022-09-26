@@ -88,7 +88,7 @@ void InstallTicket::install(std::string const& id) {
     }
 
     // check for 404
-    auto notFound = file_utils::readString(tempFile);
+    auto notFound = utils::file::readString(tempFile);
     if (notFound && notFound.value() == "Not Found") {
         try { ghc::filesystem::remove(tempFile); } catch(...) {}
         return this->postProgress(

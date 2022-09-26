@@ -55,16 +55,28 @@
         },
         "territory-battle": {
             "type": "color",
-            "default": "#00f"
+            "default": "#ff006f"
         },
         "faithful-dog-hachi": {
             "type": "rgba",
-            "default": [ 255, 150, 55, 180 ]
+            "default": [ 55, 224, 255, 255 ]
         },
         "im-getting-to-the-bus-to-the-other-world-see-ya": {
             "type": "file",
             "name": "Bus",
-            "default": ""
+            "default": "",
+            "control": {
+                "filters": [
+                    {
+                        "description": "Level Files",
+                        "files": [ "*.gmd2", "*.gmd", "*.lvl" ]
+                    },
+                    {
+                        "description": "GMD Files",
+                        "files": [ "*.gmd" ]
+                    }
+                ]
+            }
         }
     }
 }

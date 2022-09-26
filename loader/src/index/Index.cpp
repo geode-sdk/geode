@@ -8,7 +8,7 @@
 
 template<class Json = nlohmann::json>
 static Result<Json> readJSON(ghc::filesystem::path const& path) {
-    auto indexJsonData = file_utils::readString(path);
+    auto indexJsonData = utils::file::readString(path);
     if (!indexJsonData) {
         return Err("Unable to read " + path.string());
     }
@@ -36,8 +36,8 @@ static Result<> unzipTo(
         // getAllFiles returns the directories 
         // aswell now
         if (
-            string_utils::endsWith(file, "\\") ||
-            string_utils::endsWith(file, "/")
+            utils::string::endsWith(file, "\\") ||
+            utils::string::endsWith(file, "/")
         ) continue;
 
         auto zipPath = file;
@@ -62,7 +62,7 @@ static Result<> unzipTo(
         if (!data || !size) {
             return Err("Unable to read \"" + std::string(zipPath) + "\"");
         }
-        auto wrt = file_utils::writeBinary(
+        auto wrt = utils::file::writeBinary(
             to / file,
             byte_array(data, data + size)
         );
@@ -75,7 +75,7 @@ static Result<> unzipTo(
 }
 
 static PlatformID platformFromString(std::string const& str) {
-    switch (hash(string_utils::trim(string_utils::toLower(str)).c_str())) {
+    switch (hash(utils::string::trim(utils::string::toLower(str)).c_str())) {
         default:
         case hash("unknown"): return PlatformID::Unknown;
         case hash("windows"): return PlatformID::Windows;
@@ -165,7 +165,7 @@ void Index::updateIndexThread(bool force) {
     // read sha of currently installed commit
     std::string currentCommitSHA = "";
     if (ghc::filesystem::exists(indexDir / "current")) {
-        auto data = file_utils::readString(indexDir / "current");
+        auto data = utils::file::readString(indexDir / "current");
         if (data) {
             currentCommitSHA = data.value();
         }
@@ -175,7 +175,7 @@ void Index::updateIndexThread(bool force) {
     // different sha
     if (force || currentCommitSHA != upcomingCommitSHA) {
         // save new sha in file
-        file_utils::writeString(indexDir / "current", upcomingCommitSHA);
+        utils::file::writeString(indexDir / "current", upcomingCommitSHA);
 
         // download latest commit (by downloading 
         // the repo as a zip)
@@ -520,7 +520,7 @@ Result<InstallTicket*> Index::installItems(
         if (!list) {
             return Err(list.error());
         }
-        vector_utils::push(ids, list.value());
+        utils::vector::push(ids, list.value());
     }
     return Ok(new InstallTicket(this, ids, progress));
 }

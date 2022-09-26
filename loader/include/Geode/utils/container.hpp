@@ -4,7 +4,7 @@
 #include <string>
 #include <algorithm>
 
-namespace geode::container_utils {
+namespace geode::utils::container {
     /**
      * Check if a container contains an element by value.
      * @param vec The vector to check.

@@ -438,7 +438,7 @@ Notification* NotificationBuilder::show() {
 bool NotificationManager::isInQueue(Notification* notification) {
     auto location = notification->m_location;
     if (m_notifications.count(location)) {
-        return vector_utils::contains(
+        return utils::vector::contains(
             m_notifications.at(location), Ref(notification)
         );
     }
@@ -458,7 +458,7 @@ void NotificationManager::push(Notification* notification) {
 void NotificationManager::pop(Notification* notification) {
     auto location = notification->m_location;
     if (m_notifications.count(location)) {
-        vector_utils::erase(
+        utils::vector::erase(
             m_notifications.at(location), Ref(notification)
         );
         if (!m_notifications.at(location).size()) {

@@ -1,4 +1,5 @@
 #include "GeodeSettingNode.hpp"
+#include <Geode/utils/platform.hpp>
 
 // BoolSettingNode
 
@@ -111,11 +112,33 @@ void FileSettingNode::valueChanged(bool updateText) {
 }
 
 bool FileSettingNode::setup(std::shared_ptr<FileSetting> setting, float width) {
-    m_input = InputNode::create(width / 2 - 10.f, "Path to File", "chatFont.fnt");
-    m_input->setPosition({ -(width / 2 - 70.f) / 2, .0f });
+    m_input = InputNode::create(width / 2 - 30.f, "Path to File", "chatFont.fnt");
+    m_input->setPosition({ -(width / 2 - 80.f) / 2 - 15.f, .0f });
     m_input->setScale(.65f);
     m_input->getInput()->setDelegate(this);
     m_menu->addChild(m_input);
+
+    auto fileBtnSpr = CCSprite::createWithSpriteFrameName("gj_folderBtn_001.png");
+    fileBtnSpr->setScale(.5f);
+
+    auto fileBtn = CCMenuItemSpriteExtra::create(
+        fileBtnSpr, this, makeMenuSelector([this, setting](CCObject*) {
+            if (auto path = file::pickFile(
+                file::PickMode::OpenFile,
+                {
+                    file::geodeRoot(),
+                    setting->getFileFilters().value_or(
+                        std::vector<file::FilePickOptions::Filter>()
+                    )
+                }
+            )) {
+                m_uncommittedValue = path.value();
+                this->valueChanged(true);
+            }
+        })
+    );
+    fileBtn->setPosition(.0f, .0f);
+    m_menu->addChild(fileBtn);
 
     return true;
 }

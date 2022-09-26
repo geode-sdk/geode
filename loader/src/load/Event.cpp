@@ -6,12 +6,12 @@ USE_GEODE_NAMESPACE();
 std::vector<BasicEventHandler*> Event::handlers = {};
 
 void BasicEventHandler::listen() {
-	if (!vector_utils::contains(Event::handlers, this))
+	if (!utils::vector::contains(Event::handlers, this))
 		Event::handlers.push_back(this);
 }
 
 void BasicEventHandler::unlisten() {
-	vector_utils::erase(Event::handlers, this);
+	utils::vector::erase(Event::handlers, this);
 }
 
 Event::~Event() {}

@@ -21,14 +21,14 @@ std::string utils::clipboard::read() {
 	return std::string(clipboard);
 }
 
-ghc::filesystem::path utils::dirs::geodeRoot() {
+ghc::filesystem::path utils::file::geodeRoot() {
 	char cwd[PATH_MAX];
 	getcwd(cwd, sizeof(cwd));
 	// utils::clipboard::write(cwd);
 	return ghc::filesystem::path(cwd);
 }
 
-bool utils::dirs::openFolder(ghc::filesystem::path const& path) {
+bool utils::file::openFolder(ghc::filesystem::path const& path) {
 	NSURL* fileURL = [NSURL fileURLWithPath: [NSString stringWithUTF8String: path.string().c_str()]];
 	NSURL* folderURL = [fileURL URLByDeletingLastPathComponent];
 	[[NSWorkspace sharedWorkspace] openURL: folderURL]; 

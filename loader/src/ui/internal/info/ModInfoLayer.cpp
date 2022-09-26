@@ -418,7 +418,7 @@ void ModInfoLayer::onInstallMod(CCObject*) {
         this,
         "Install",
         "The following <cb>mods</c> will be installed: " +
-        vector_utils::join(m_ticket->getInstallList(), ",") + ".",
+        utils::vector::join(m_ticket->getInstallList(), ",") + ".",
         "Cancel", "OK", 360.f
     );
     layer->setTag(TAG_CONFIRM_INSTALL);

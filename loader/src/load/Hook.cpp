@@ -58,7 +58,7 @@ Result<> Mod::disableHook(Hook* hook) {
 Result<> Mod::removeHook(Hook* hook) {
     auto res = this->disableHook(hook);
     if (res) {
-        vector_utils::erase<Hook*>(this->m_hooks, hook);
+        utils::vector::erase<Hook*>(this->m_hooks, hook);
         delete hook;
     }
     return res;

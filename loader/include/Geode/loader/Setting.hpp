@@ -1,13 +1,14 @@
 #pragma once
 
 #include <Geode/DefaultInclude.hpp>
-#include "../utils/container.hpp"
 #include <optional>
 #include <unordered_set>
+#include "../utils/container.hpp"
 #include "../utils/json.hpp"
 #include "../utils/Result.hpp"
 #include "../utils/JsonValidation.hpp"
 #include "../utils/convert.hpp"
+#include "../utils/platform.hpp"
 #include <regex>
 
 namespace geode {
@@ -79,13 +80,14 @@ namespace geode {
         class IMinMax;
         template<class Class, class ValueType>
         class IOneOf;
-        template<class Class>
+        template<class Class, class ValueType>
         class IMatch;
 
         class ICArrows;
         template<class ValueType>
         class ICSlider;
         class ICInput;
+        class ICFileFilters;
 
         template<class Class, class ValueType, SettingType Type>
         class GeodeSetting : public Setting {
@@ -110,7 +112,7 @@ namespace geode {
                 obj.has("description").intoAs<std::string>(res->m_description);
                 GEODE_INT_PARSE_SETTING_IMPL(obj, parseMinMax, IMinMax<ValueType>);
                 GEODE_INT_PARSE_SETTING_IMPL(obj, parseOneOf,  IOneOf<Class, ValueType>);
-                GEODE_INT_PARSE_SETTING_IMPL(obj, parseMatch,  IMatch<Class>);
+                GEODE_INT_PARSE_SETTING_IMPL(obj, parseMatch,  IMatch<Class, ValueType>);
                 res->setValue(res->m_default);
 
                 if (auto controls = obj.has("control").obj()) {
@@ -120,6 +122,7 @@ namespace geode {
                     GEODE_INT_PARSE_SETTING_IMPL(controls, parseArrows, ICArrows);
                     GEODE_INT_PARSE_SETTING_IMPL(controls, parseSlider, ICSlider<ValueType>);
                     GEODE_INT_PARSE_SETTING_IMPL(controls, parseInput,  ICInput);
+                    GEODE_INT_PARSE_SETTING_IMPL(controls, parseFileFilters, ICFileFilters);
                 }
 
                 return Ok(res);
@@ -152,7 +155,7 @@ namespace geode {
                 if constexpr (std::is_base_of_v<IOneOf<Class, ValueType>, Class>) {
                     static_cast<Class*>(this)->constrainOneOf(m_value);
                 }
-                if constexpr (std::is_base_of_v<IMatch<Class>, Class>) {
+                if constexpr (std::is_base_of_v<IMatch<Class, ValueType>, Class>) {
                     static_cast<Class*>(this)->constrainMatch(m_value);
                 }
             }
@@ -160,7 +163,7 @@ namespace geode {
             Result<> isValidValue(ValueType value) {
                 GEODE_INT_CONSTRAIN_SETTING_CAN_IMPL(constrainMinMax, IMinMax<ValueType>);
                 GEODE_INT_CONSTRAIN_SETTING_CAN_IMPL(constrainOneOf,  IOneOf<Class, ValueType>);
-                GEODE_INT_CONSTRAIN_SETTING_CAN_IMPL(constrainMatch,  IMatch<Class>);
+                GEODE_INT_CONSTRAIN_SETTING_CAN_IMPL(constrainMatch,  IMatch<Class, ValueType>);
                 return Ok();
             }
 
@@ -238,7 +241,7 @@ namespace geode {
                     value = static_cast<Class*>(this)->getDefault();
                     return Err(
                         "Value must be one of " +
-                        container_utils::join(m_oneOf.value(), ", ")
+                        utils::container::join(m_oneOf.value(), ", ")
                     );
                 }
                 return Ok();
@@ -260,13 +263,13 @@ namespace geode {
             }
         };
     
-        template<class Class>
+        template<class Class, class ValueType>
         class IMatch {
         protected:
-            std::optional<std::string> m_matchRegex = std::nullopt;
+            std::optional<ValueType> m_matchRegex = std::nullopt;
         
         public:
-            Result<> constrainMatch(std::string& value) {
+            Result<> constrainMatch(ValueType& value) {
                 if (m_matchRegex) {
                     auto regex = std::regex(m_matchRegex.value());
                     if (!std::regex_match(value, regex)) {
@@ -280,11 +283,11 @@ namespace geode {
             }
 
             Result<> parseMatch(JsonMaybeObject<ModJson>& obj) {
-                obj.has("match").intoAs<std::string>(m_matchRegex);
+                obj.has("match").intoAs<ValueType>(m_matchRegex);
                 return Ok();
             }
 
-            std::optional<std::string> getMatch() const {
+            std::optional<ValueType> getMatch() const {
                 return m_matchRegex;
             }
         };
@@ -354,6 +357,34 @@ namespace geode {
             }
         };
 
+        class ICFileFilters {
+        protected:
+            using Filter = utils::file::FilePickOptions::Filter;
+
+            std::optional<std::vector<Filter>> m_filters = std::nullopt;
+
+        public:
+            Result<> parseFileFilters(JsonMaybeObject<ModJson>& obj) {
+                std::vector<Filter> filters {};
+                for (auto& item : obj.has("filters").iterate()) {
+                    if (auto iobj = item.obj()) {
+                        Filter filter;
+                        iobj.has("description").into(filter.description);
+                        iobj.has("files").into(filter.files);
+                        filters.push_back(filter);
+                    }
+                }
+                if (filters.size()) {
+                    m_filters = filters;
+                }
+                return Ok();
+            }
+
+            auto getFileFilters() const {
+                return m_filters;
+            }
+        };
+
         GEODE_INT_DECL_SETTING_CONTROL(Input,  hasInput,  true, "input");
     }
 
@@ -390,7 +421,7 @@ namespace geode {
     class GEODE_DLL StringSetting : 
         public GeodeSetting<StringSetting, std::string, SettingType::String>,
         public IOneOf<StringSetting, std::string>,
-        public IMatch<StringSetting>,
+        public IMatch<StringSetting, std::string>,
         public std::enable_shared_from_this<StringSetting>
     {
     public:
@@ -399,6 +430,7 @@ namespace geode {
     
     class GEODE_DLL FileSetting :
         public GeodeSetting<FileSetting, ghc::filesystem::path, SettingType::File>,
+        public ICFileFilters,
         public std::enable_shared_from_this<FileSetting>
     {
     public:
