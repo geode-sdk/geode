@@ -115,6 +115,7 @@ protected:
     mutable std::mutex m_callbacksMutex;
     std::vector<IndexUpdateCallback> m_callbacks;
     std::vector<IndexItem> m_items;
+    std::unordered_set<std::string> m_featured;
     std::unordered_set<std::string> m_categories;
 
     void indexUpdateProgress(
@@ -153,6 +154,8 @@ public:
         bool force = false
     );
     std::unordered_set<std::string> getCategories() const;
+    std::vector<IndexItem> getFeaturedItems() const;
+    bool isFeaturedItem(std::string const& item) const;
 
     bool isIndexUpdated() const;
     void updateIndex(IndexUpdateCallback callback, bool force = false);

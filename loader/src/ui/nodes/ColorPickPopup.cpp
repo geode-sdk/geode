@@ -28,6 +28,19 @@ bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
 
     this->setTitle("Select Color");
 
+    auto bg = cocos2d::extension::CCScale9Sprite::create(
+        "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
+    );
+    bg->setScale(.5f);
+    bg->setColor({ 0, 0, 0 });
+    bg->setOpacity(85);
+    bg->setContentSize({
+        m_size.width * 2 - 40.f,
+        m_size.height * 2 - 140.f
+    });
+    bg->setPosition(winSize / 2);
+    m_mainLayer->addChild(bg);
+
     // picker
 
     m_picker = CCControlColourPicker::colourPicker();
@@ -140,7 +153,7 @@ bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
         auto opacityText = CCLabelBMFont::create("Opacity", "goldFont.fnt");
         opacityText->setPosition(
             winSize.width / 2 - 30.f,
-            winSize.height / 2 - 70.f
+            winSize.height / 2 - 75.f
         );
         opacityText->setScale(.55f);
         m_mainLayer->addChild(opacityText);
@@ -152,14 +165,14 @@ bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
         );
         m_opacitySlider->setPosition(
             winSize.width / 2 - 30.f,
-            winSize.height / 2 - 90.f
+            winSize.height / 2 - 95.f
         );
         m_opacitySlider->setValue(color.a / 255.f);
         m_opacitySlider->updateBar();
         m_mainLayer->addChild(m_opacitySlider);
 
         m_opacityInput = InputNode::create(60.f, "0.00");
-        m_opacityInput->setPosition(85.f, -90.f);
+        m_opacityInput->setPosition(85.f, -95.f);
         m_opacityInput->setScale(.7f);
         m_opacityInput->getInput()->setTag(TAG_OPACITY_INPUT);
         m_opacityInput->getInput()->setDelegate(this);
@@ -174,7 +187,7 @@ bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
     auto okBtn = CCMenuItemSpriteExtra::create(
         okBtnSpr, this, menu_selector(ColorPickPopup::onClose)
     );
-    okBtn->setPosition(.0f, -m_size.height / 2 + 25.f);
+    okBtn->setPosition(.0f, -m_size.height / 2 + 20.f);
     m_buttonMenu->addChild(okBtn);
 
     return true;
@@ -267,7 +280,7 @@ void ColorPickPopup::setColorTarget(cocos2d::CCSprite* spr) {
 ColorPickPopup* ColorPickPopup::create(ccColor4B const& color, bool isRGBA) {
     auto ret = new ColorPickPopup();
     if (ret && ret->init(
-        380.f, (isRGBA ? 290.f : 240.f), color, isRGBA
+        400.f, (isRGBA ? 290.f : 240.f), color, isRGBA
     )) {
         ret->autorelease();
         return ret;

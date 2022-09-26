@@ -96,6 +96,23 @@ bool Index::isIndexUpdated() const {
     return m_upToDate;
 }
 
+std::vector<IndexItem> Index::getFeaturedItems() const {
+    std::vector<IndexItem> items;
+    items.reserve(m_featured.size());
+    std::transform(
+        m_featured.begin(),
+        m_featured.end(),
+        std::back_inserter(items),
+        [this](auto const& item) {
+            return this->getKnownItem(item);
+        }
+    );
+    return items;
+}
+
+bool Index::isFeaturedItem(std::string const& item) const {
+    return m_featured.count(item);
+}
 
 void Index::updateIndexThread(bool force) {
     auto indexDir = Loader::get()->getGeodeDirectory() / "index";
@@ -391,8 +408,19 @@ void Index::addIndexItemFromFolder(ghc::filesystem::path const& dir) {
 
 void Index::updateIndexFromLocalCache() {
     m_items.clear();
-    auto indexDir = Loader::get()->getGeodeDirectory() / "index" / "index";
-    for (auto const& dir : ghc::filesystem::directory_iterator(indexDir)) {
+    auto baseIndexDir = Loader::get()->getGeodeDirectory() / "index";
+
+    // load geode.json (index settings)
+    if (auto baseIndexJson = readJSON(baseIndexDir / "geode.json")) {
+        auto json = baseIndexJson.value();
+        auto checker = JsonChecker(json);
+        checker.root("[index/geode.json]").obj()
+            .has("featured").into(m_featured);
+    }
+
+    // load index mods
+    auto modsDir = baseIndexDir / "index";
+    for (auto const& dir : ghc::filesystem::directory_iterator(modsDir)) {
         if (ghc::filesystem::is_directory(dir)) {
             this->addIndexItemFromFolder(dir);
         }

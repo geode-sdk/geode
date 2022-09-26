@@ -101,6 +101,7 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
     );
     bg->setContentSize(size);
     bg->setPosition(winSize.width / 2, winSize.height / 2);
+    bg->setZOrder(-10);
     m_mainLayer->addChild(bg);
 
     m_buttonMenu = CCMenu::create();
@@ -157,7 +158,6 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
     );
     versionLabel->setColor({ 0, 255, 0 });
     m_mainLayer->addChild(versionLabel);
-
 
     CCDirector::sharedDirector()->getTouchDispatcher()->incrementForcePrio(2);
     this->registerWithTouchDispatcher();
@@ -323,7 +323,7 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
         );
         m_installBtn->setPosition(-143.0f, 75.f);
         m_buttonMenu->addChild(m_installBtn);
-        
+
         m_installStatus = DownloadStatusNode::create();
         m_installStatus->setPosition(
             winSize.width / 2 - 25.f,
@@ -699,7 +699,23 @@ CCNode* ModInfoLayer::createLogoSpr(IndexItem const& item) {
     CCNode* spr = nullptr;
     auto logoPath = ghc::filesystem::absolute(item.m_path / "logo.png");
     spr = CCSprite::create(logoPath.string().c_str());
-    if (!spr) spr = CCSprite::createWithSpriteFrameName("no-logo.png"_spr);
-    if (!spr) spr = CCLabelBMFont::create("OwO", "goldFont.fnt");
+    if (!spr) {
+        spr = CCSprite::createWithSpriteFrameName("no-logo.png"_spr);
+    }
+    if (!spr) {
+        spr = CCLabelBMFont::create("OwO", "goldFont.fnt");
+    }
+    
+    if (Index::get()->isFeaturedItem(item.m_info.m_id)) {
+        auto logoGlow = CCSprite::createWithSpriteFrameName("logo-glow.png"_spr);
+        spr->setPosition(
+            logoGlow->getContentSize().width / 2 + 1.f,
+            logoGlow->getContentSize().height / 2 - .6f
+        );
+        logoGlow->setContentSize(spr->getContentSize());
+        logoGlow->addChild(spr);
+        spr = logoGlow;
+    }
+    
     return spr;
 }

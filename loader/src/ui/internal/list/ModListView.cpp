@@ -559,7 +559,14 @@ bool ModListView::init(
 
             case ModListType::Featured: {
                 mods = CCArray::create();
-                m_status = Status::NoModsFound;
+                for (auto const& item : Index::get()->getFeaturedItems()) {
+                    if (this->filter(item, query)) {
+                        mods->addObject(new ModObject(item));
+                    }
+                }
+                if (!mods->count()) {
+                    m_status = Status::NoModsFound;
+                }
             } break;
 
             default: return false;

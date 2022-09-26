@@ -357,7 +357,7 @@ namespace geode {
         }
     };
     
-    template<class Json>
+    template<class Json = nlohmann::json>
     struct JsonChecker {
         std::variant<std::monostate, std::string> m_result;
         Json& m_json;
