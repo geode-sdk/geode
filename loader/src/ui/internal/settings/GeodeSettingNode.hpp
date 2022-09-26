@@ -8,6 +8,7 @@
 #include <Geode/utils/convert.hpp>
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/utils/operators.hpp>
 #include <Geode/ui/Popup.hpp>
 #include <Geode/ui/ColorPickPopup.hpp>
 
