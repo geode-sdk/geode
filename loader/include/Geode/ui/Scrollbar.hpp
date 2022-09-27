@@ -3,10 +3,7 @@
 #include <Geode/Bindings.hpp>
 
 namespace geode {
-    class GEODE_DLL Scrollbar :
-        public cocos2d::CCLayer
-        // public ExtMouseDelegate
-    {
+    class GEODE_DLL Scrollbar : public cocos2d::CCLayer {
     protected:
         CCScrollLayerExt* m_target = nullptr;
         cocos2d::extension::CCScale9Sprite* m_track;
@@ -16,15 +13,18 @@ namespace geode {
         bool m_resizeThumb;
         bool m_trackIsRotated;
         bool m_hoverHighlight;
+        bool m_touchDown = false;
 
-        // bool mouseDownExt(MouseEvent, cocos2d::CCPoint const&) override;
-        // bool mouseUpExt(MouseEvent, cocos2d::CCPoint const&) override;
-        // void mouseMoveExt(cocos2d::CCPoint const&) override;
+        bool ccTouchBegan(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
+        void ccTouchMoved(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
+        void ccTouchEnded(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
+        void ccTouchCancelled(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
         void scrollWheel(float y, float x) override;
+        void registerWithTouchDispatcher() override;
     
         void draw() override;
 
-        bool init(CCScrollLayerExt*);
+        bool init(CCScrollLayerExt* list);
 
     public:
         void setTarget(CCScrollLayerExt* list);

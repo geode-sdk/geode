@@ -7,68 +7,62 @@
 
 USE_GEODE_NAMESPACE();
 
-// bool Scrollbar::mouseDownExt(MouseEvent, cocos2d::CCPoint const& mpos) {
-//     if (!m_target) return false;
+bool Scrollbar::ccTouchBegan(CCTouch* touch, CCEvent* event) {
+    // hitbox
+    auto rect = this->boundingBox();
+    // since anchor point is 0.5, 0.5 it's offset
+    rect.origin -= this->getScaledContentSize() / 2;
+    if (!m_target || !rect.containsPoint(touch->getLocation())) return false;
 
-//     ExtMouseDispatcher::get()->attainCapture(this);
+    // trigger scrollbar thumb move
+    this->ccTouchMoved(touch, event);
 
-//     auto pos = this->convertToNodeSpace(mpos);
+    m_touchDown = true;
 
-//     auto contentHeight = m_target->m_contentLayer->getScaledContentSize().height;
-//     auto targetHeight = m_target->getScaledContentSize().height;
+    return true;
+}
 
-//     auto h = contentHeight - targetHeight + m_target->m_scrollLimitTop;
-//     auto p = targetHeight / contentHeight;
+void Scrollbar::ccTouchEnded(CCTouch*, CCEvent*) {
+    m_touchDown = false;
+}
 
-//     auto thumbHeight = m_resizeThumb ? std::min(p, 1.f) * targetHeight / .4f : 0;
+void Scrollbar::ccTouchCancelled(CCTouch*, CCEvent*) {
+    m_touchDown = false;
+}
 
-//     auto posY = h * (
-//         (-pos.y - targetHeight / 2 + thumbHeight / 4 - 5) /
-//         (targetHeight - thumbHeight / 2 + 10)
-//     );
+void Scrollbar::ccTouchMoved(CCTouch* touch, CCEvent*) {
+    if (!m_target) return;
 
-//     if (posY > 0.0f) posY = 0.0f;
-//     if (posY < -h) posY = -h;
+    auto pos = this->convertToNodeSpace(touch->getLocation());
+
+    auto contentHeight = m_target->m_contentLayer->getScaledContentSize().height;
+    auto targetHeight = m_target->getScaledContentSize().height;
     
-//     auto offsetY = m_target->m_contentLayer->getPositionY() - posY;
+    auto h = contentHeight - targetHeight + m_target->m_scrollLimitTop;
+    auto p = targetHeight / contentHeight;
 
-//     return true;
-// }
+    auto thumbHeight = m_resizeThumb ? std::min(p, 1.f) * targetHeight / .4f : 0;
 
-// bool Scrollbar::mouseUpExt(MouseEvent, cocos2d::CCPoint const&) {
-//     ExtMouseDispatcher::get()->releaseCapture(this);
-//     return true;
-// }
+    auto posY = h * (
+        (-pos.y - targetHeight / 2 + thumbHeight / 4 - 5) /
+        (targetHeight - thumbHeight / 2 + 10)
+    );
 
-// void Scrollbar::mouseMoveExt(cocos2d::CCPoint const& mpos) {
-//     if (!m_target || !ExtMouseDispatcher::get()->isCapturing(this)) return;
+    if (posY > 0.0f) posY = 0.0f;
+    if (posY < -h) posY = -h;
 
-//     if (this->m_extMouseDown.size()) {
-//         auto pos = this->convertToNodeSpace(mpos);
-
-//         auto contentHeight = m_target->m_contentLayer->getScaledContentSize().height;
-//         auto targetHeight = m_target->getScaledContentSize().height;
-        
-//         auto h = contentHeight - targetHeight + m_target->m_scrollLimitTop;
-//         auto p = targetHeight / contentHeight;
-
-//         auto thumbHeight = m_resizeThumb ? std::min(p, 1.f) * targetHeight / .4f : 0;
-
-//         auto posY = h * (
-//             (-pos.y - targetHeight / 2 + thumbHeight / 4 - 5) /
-//             (targetHeight - thumbHeight / 2 + 10)
-//         );
-
-//         if (posY > 0.0f) posY = 0.0f;
-//         if (posY < -h) posY = -h;
-
-//         m_target->m_contentLayer->setPositionY(posY);
-//     }
-// }
+    m_target->m_contentLayer->setPositionY(posY);
+}
 
 void Scrollbar::scrollWheel(float x, float y) {
     if (!m_target) return;
     m_target->scrollWheel(x, y);
+}
+
+void Scrollbar::registerWithTouchDispatcher() {
+    CCDirector::sharedDirector()->getTouchDispatcher()->addTargetedDelegate(
+        this, 0, true
+    );
 }
 
 void Scrollbar::draw() {
@@ -103,14 +97,14 @@ void Scrollbar::draw() {
         // if (m_extMouseHovered) {
             // o = 160;
         // }
-        // if (m_extMouseDown.size()) {
-            // o = 255;
-        // }
+        if (m_touchDown) {
+            o = 255;
+        }
     } else {
         o = 255;
-        // if (m_extMouseDown.size()) {
-        //     o = 125;
-        // }
+        if (m_touchDown) {
+            o = 125;
+        }
     }
     m_thumb->setColor({ o, o, o });
 
@@ -183,7 +177,7 @@ bool Scrollbar::init(CCScrollLayerExt* target) {
     this->addChild(m_track);
     this->addChild(m_thumb);
 
-    // this->registerWithMouseDispatcher();
+    this->registerWithTouchDispatcher();
 
     return true;
 }
