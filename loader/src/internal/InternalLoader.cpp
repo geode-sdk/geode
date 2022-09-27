@@ -159,7 +159,9 @@ void InternalLoader::platformMessageBox(const char* title, const char* info) {
 
 void InternalLoader::setupPlatformConsole() {
     ghc::filesystem::path(getpwuid(getuid())->pw_dir);
-    freopen(ghc::filesystem::path(utils::file::geodeRoot() / "geode_log.txt").string().c_str(),"w",stdout);
+    freopen(ghc::filesystem::path(
+        utils::file::geodeRoot() / "geode_log.txt"
+    ).string().c_str(),"w",stdout);
     InternalLoader::
     m_platformConsoleReady = true;
 }

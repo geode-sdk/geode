@@ -10,6 +10,7 @@ static ModInfo getInternalModInfo() {
     info.m_description = "The mod loader";
     info.m_details     = LOADER_ABOUT_MD;
     info.m_version     = LOADER_VERSION;
+    info.m_repository  = "https://github.com/geode-sdk/geode";
     info.m_supportsDisabling = false;
     info.m_spritesheets = {
         "geode.loader/LogoSheet",

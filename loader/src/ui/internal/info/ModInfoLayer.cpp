@@ -214,16 +214,20 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
             );
 	    }
 
-        auto devSpr = ButtonSprite::create(
-            "Dev Options", "bigFont.fnt", "GJ_button_05.png", .6f
-        );
-        devSpr->setScale(.5f);
+        if (m_mod->getModInfo().m_repository.size()) {
+            auto repoSpr = CCSprite::createWithSpriteFrameName("github.png"_spr);
 
-        auto devBtn = CCMenuItemSpriteExtra::create(
-            devSpr, this, nullptr
-        );
-        devBtn->setPosition(size.width / 2 - 50.f, -size.height / 2 + 25.f);
-        m_buttonMenu->addChild(devBtn);
+            auto repoBtn = CCMenuItemSpriteExtra::create(
+                repoSpr, this, makeMenuSelector([this](CCObject*) {
+                    web::openLinkInBrowser(m_mod->getModInfo().m_repository);
+                })
+            );
+            repoBtn->setPosition(
+                size.width / 2 - 25.f,
+                -size.height / 2 + 25.f
+            );
+            m_buttonMenu->addChild(repoBtn);
+        }
 
 
         auto enableBtnSpr = ButtonSprite::create(
