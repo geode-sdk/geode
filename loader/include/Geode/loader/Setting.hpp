@@ -11,6 +11,9 @@
 #include "../utils/platform.hpp"
 #include <regex>
 
+#pragma warning(push)
+#pragma warning(disable: 4275)
+
 namespace geode {
     using ModJson = nlohmann::ordered_json;
 
@@ -485,3 +488,5 @@ namespace geode {
         }
     }
 }
+
+#pragma warning(pop)
