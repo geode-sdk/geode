@@ -226,8 +226,9 @@ Result<ModInfo> ModInfo::createFromGeodeFile(ghc::filesystem::path const& path) 
     // unzip known MD files
     using God = std::initializer_list<std::pair<std::string, std::string*>>;
     for (auto [file, target] : God {
-        { "about.md", &info.m_details },
+        { "about.md",     &info.m_details },
         { "changelog.md", &info.m_changelog },
+        { "support.md",   &info.m_supportInfo },
     }) {
         if (unzip.fileExists(file)) {
             unsigned long readSize = 0;

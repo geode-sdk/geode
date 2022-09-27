@@ -1,6 +1,11 @@
 #include "InternalMod.hpp"
 #include "about.hpp"
 
+static auto SUPPORT_INFO = R"MD(
+**Geode** is funded through your gracious <cy>**donations**</c>!
+You can support our work by sending <cp>**catgirl pictures**</c> to [HJfod](user:104257) :))
+)MD";
+
 static ModInfo getInternalModInfo() {
     ModInfo info;
     
@@ -10,6 +15,7 @@ static ModInfo getInternalModInfo() {
     info.m_description = "The mod loader";
     info.m_details     = LOADER_ABOUT_MD;
     info.m_version     = LOADER_VERSION;
+    info.m_supportInfo = SUPPORT_INFO;
     info.m_repository  = "https://github.com/geode-sdk/geode";
     info.m_supportsDisabling = false;
     info.m_spritesheets = {

@@ -14,7 +14,8 @@ namespace geode {
             float width,
             float height,
             InitArgs... args,
-            const char* bg = "GJ_square01.png"
+            const char* bg = "GJ_square01.png",
+            cocos2d::CCRect bgRect = { 0, 0, 80, 80 }
         ) {
             auto winSize = cocos2d::CCDirector::sharedDirector()->getWinSize();
             m_size = cocos2d::CCSize { width, height };
@@ -23,7 +24,7 @@ namespace geode {
             m_mainLayer = cocos2d::CCLayer::create();
             this->addChild(m_mainLayer);
 
-            m_bgSprite = cocos2d::extension::CCScale9Sprite::create(bg, { 0, 0, 80, 80 });
+            m_bgSprite = cocos2d::extension::CCScale9Sprite::create(bg, bgRect);
             m_bgSprite->setContentSize(m_size);
             m_bgSprite->setPosition(winSize.width / 2, winSize.height / 2);
             m_mainLayer->addChild(m_bgSprite);
@@ -70,7 +71,12 @@ namespace geode {
             this->removeFromParentAndCleanup(true);
         }
 
-        void setTitle(const char* title, const char* font = "goldFont.fnt") {
+        void setTitle(
+            const char* title,
+            const char* font = "goldFont.fnt",
+            float scale = .7f,
+            float offset = 20.f
+        ) {
             if (m_title) {
                 m_title->setString(title);
             } else {
@@ -78,11 +84,11 @@ namespace geode {
                 m_title = cocos2d::CCLabelBMFont::create(title, font);
                 m_title->setPosition(
                     winSize.width / 2,
-                    winSize.height / 2 + m_size.height / 2 - 20.f
+                    winSize.height / 2 + m_size.height / 2 - offset
                 );
                 m_mainLayer->addChild(m_title, 2);
             }
-            m_title->limitLabelWidth(m_size.width - 20.f, .7f, .1f);
+            m_title->limitLabelWidth(m_size.width - 20.f, scale, .1f);
         }
     };
 

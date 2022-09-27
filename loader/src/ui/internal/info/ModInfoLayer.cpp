@@ -6,6 +6,7 @@
 #include <Geode/ui/Scrollbar.hpp>
 #include <Geode/utils/WackyGeodeMacros.hpp>
 #include <Geode/ui/IconButtonSprite.hpp>
+#include <Geode/ui/MDPopup.hpp>
 #include "../settings/ModSettingsPopup.hpp"
 #include <InternalLoader.hpp>
 
@@ -215,10 +216,9 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
 	    }
 
         if (m_mod->getModInfo().m_repository.size()) {
-            auto repoSpr = CCSprite::createWithSpriteFrameName("github.png"_spr);
-
             auto repoBtn = CCMenuItemSpriteExtra::create(
-                repoSpr, this, makeMenuSelector([this](CCObject*) {
+                CCSprite::createWithSpriteFrameName("github.png"_spr),
+                this, makeMenuSelector([this](CCObject*) {
                     web::openLinkInBrowser(m_mod->getModInfo().m_repository);
                 })
             );
@@ -227,6 +227,24 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
                 -size.height / 2 + 25.f
             );
             m_buttonMenu->addChild(repoBtn);
+        }
+
+        if (m_mod->getModInfo().m_supportInfo.size()) {
+            auto supportBtn = CCMenuItemSpriteExtra::create(
+                CCSprite::createWithSpriteFrameName("gift.png"_spr),
+                this, makeMenuSelector([this](CCObject*) {
+                    MDPopup::create(
+                        "Support " + m_mod->getName(),
+                        m_mod->getModInfo().m_supportInfo,
+                        "OK"
+                    )->show();
+                })
+            );
+            supportBtn->setPosition(
+                size.width / 2 - 60.f,
+                -size.height / 2 + 25.f
+            );
+            m_buttonMenu->addChild(supportBtn);
         }
 
 

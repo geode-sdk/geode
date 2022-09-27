@@ -107,6 +107,12 @@ namespace geode {
          */
         std::string m_changelog = "";
         /**
+         * Support info for the mod; this means anything to show ways to 
+         * support the mod's development, like donations. Written in Markdown 
+         * (see <Geode/ui/MDTextArea.hpp>) for more info
+         */
+        std::string m_supportInfo = "";
+        /**
          * Git Repository of the mod.
          */
         std::string m_repository = "";
