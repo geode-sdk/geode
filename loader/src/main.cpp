@@ -106,23 +106,11 @@ int geodeEntry(void* platformData) {
     InternalMod::get()->log()
         << Severity::Debug
         << "Set up loader";
-
-    // debugging console
-    #ifdef GEODE_PLATFORM_CONSOLE
-    InternalMod::get()->log()
-        << Severity::Debug
-        << "Loading Console...";
-
-    InternalLoader::get()->setupPlatformConsole();
-    InternalLoader::get()->awaitPlatformConsole();
-    InternalLoader::get()->closePlatformConsole();
-
-    InternalMod::get()->log()
-        << Severity::Debug
-        << "Cleaning up...";
-
-    //delete InternalLoader::get();
-    #endif
+    
+    if (InternalMod::get()->getSettingValue<bool>("show-platform-console")) {
+        InternalLoader::get()->setupPlatformConsole();
+        InternalLoader::get()->awaitPlatformConsole();
+    }
 
     InternalMod::get()->log()
         << Severity::Debug

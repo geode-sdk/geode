@@ -136,9 +136,9 @@ void Log::flush() {
 
 Log::~Log() {
     this->flush();
-    #ifdef GEODE_PLATFORM_CONSOLE
-    std::cout << std::endl;
-    #endif
+    if (InternalLoader::get()->platformConsoleReady()) {
+        std::cout << std::endl;
+    }
 }
 
 Log& Log::operator<<(Severity::type s) {

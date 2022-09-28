@@ -248,5 +248,14 @@ namespace geode {
          * @param func Function to run
          */
         void queueInGDThread(std::function<void GEODE_CALL(void)> func);
+
+        /**
+         * Open the platform-specific external console (if one exists)
+         */
+        static void openPlatformConsole();
+        /**
+         * Close the platform-specific external console (if one exists)
+         */
+        static void closePlatfromConsole();
     };
 }

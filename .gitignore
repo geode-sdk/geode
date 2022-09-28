@@ -43,6 +43,6 @@ build
 bin
 
 loader/src/internal/about.hpp
-
+loader/resources/loader-mod.json
 fods-catgirl-hideout.txt
 

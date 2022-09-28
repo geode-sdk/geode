@@ -4,6 +4,8 @@ project(geode-loader VERSION 0.2.0 LANGUAGES C CXX)
 set(PROJECT_VERSION_TYPE Alpha)
 
 # Package info file for internal representation
+configure_file(resources/loader-mod.json.in ${CMAKE_CURRENT_SOURCE_DIR}/resources/loader-mod.json)
+file(READ resources/loader-mod.json LOADER_MOD_JSON)
 file(READ resources/about.md LOADER_ABOUT_MD)
 configure_file(src/internal/about.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/src/internal/about.hpp)
 
@@ -106,7 +108,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 # For profiling
 set_property(TARGET ${PROJECT_NAME} PROPERTY RULE_LAUNCH_COMPILE "${CMAKE_COMMAND} -E time")
 
-target_compile_definitions(${PROJECT_NAME} PUBLIC GEODE_EXPORTING GEODE_PLATFORM_CONSOLE)
+target_compile_definitions(${PROJECT_NAME} PUBLIC GEODE_EXPORTING)
 
 # Markdown support
 add_subdirectory(md4c)

@@ -13,3 +13,4 @@ static constexpr geode::VersionInfo LOADER_VERSION = {
     @PROJECT_VERSION_PATCH@
 };
 static constexpr const char* LOADER_VERSION_TYPE = "@PROJECT_VERSION_TYPE@";
+static constexpr const char* LOADER_MOD_JSON = R"JSON_SEPARATOR(@LOADER_MOD_JSON@)JSON_SEPARATOR";

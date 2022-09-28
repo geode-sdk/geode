@@ -183,19 +183,39 @@ size_t Loader::refreshMods() {
 
 Result<> Loader::saveSettings() {
     auto json = nlohmann::json::object();
+
+    // save mod enabled / disabled states
     json["mods"] = nlohmann::json::object();
     for (auto [id, mod] : m_mods) {
         if (mod->isUninstalled()) continue;
         auto value = nlohmann::json::object();
         value["enabled"] = mod->m_enabled;
-        mod->saveSettings();
+
+        // save mod's settings
+        auto saveSett = mod->saveSettings();
+        if (!saveSett) {
+            return Err(saveSett.error());
+        }
 
         json["mods"][id] = value;
     }
-    json["succesfully-closed"] = true;
+
+    // save loader settings
+    auto saveIS = InternalMod::get()->saveSettings();
+    if (!saveIS) {
+        return Err(saveIS.error());
+    }
+
+    // save info alerts
     InternalLoader::get()->saveInfoAlerts(json);
-    auto path = this->getGeodeSaveDirectory() / "mods.json";
-    return utils::file::writeString(path, json.dump(4));
+
+    // mark the game as not having crashed
+    json["succesfully-closed"] = true;
+
+    return utils::file::writeString(
+        this->getGeodeSaveDirectory() / "mods.json",
+        json.dump(4)
+    );
 }
 
 Result<> Loader::loadSettings() {
@@ -204,6 +224,7 @@ Result<> Loader::loadSettings() {
         return Ok();
     }
 
+    // read mods.json
     auto read = utils::file::readString(path);
     if (!read) {
         return read;
@@ -355,13 +376,11 @@ Loader::~Loader() {
 void Loader::pushLog(LogPtr* logptr) {
     m_logs.push_back(logptr);
 
-    #ifdef GEODE_PLATFORM_CONSOLE
     if (InternalLoader::get()->platformConsoleReady()) {
         std::cout << logptr->toString(true);
     } else {
         InternalLoader::get()->queueConsoleMessage(logptr);
     }
-    #endif
 
     m_logStream << logptr->toString(true) << std::endl;
 }
@@ -436,4 +455,17 @@ bool Loader::supportedModVersion(VersionInfo const& version) {
     return 
         version >= s_supportedVersionMin &&
         version <= s_supportedVersionMax;
+}
+
+void Loader::openPlatformConsole() {
+    if (!InternalLoader::get()->platformConsoleReady()) {
+        InternalLoader::get()->setupPlatformConsole();
+        std::thread([]() {
+            InternalLoader::get()->awaitPlatformConsole();
+        }).detach();
+    }
+}
+
+void Loader::closePlatfromConsole() {
+    InternalLoader::get()->closePlatformConsole();
 }

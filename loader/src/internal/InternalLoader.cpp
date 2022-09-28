@@ -9,16 +9,10 @@
 #include <Geode/Geode.hpp>
 #include <thread>
 
-InternalLoader::InternalLoader() : Loader() {
-    #ifdef GEODE_PLATFORM_CONSOLE
-    this->setupPlatformConsole();
-    #endif
-}
+InternalLoader::InternalLoader() : Loader() {}
 
 InternalLoader::~InternalLoader() {
-    #ifdef GEODE_PLATFORM_CONSOLE
     this->closePlatformConsole();
-    #endif
 }
 
 InternalLoader* InternalLoader::get() {
@@ -87,8 +81,8 @@ void InternalLoader::loadInfoAlerts(nlohmann::json& json) {
 }
 
 #if defined(GEODE_IS_WINDOWS)
-void InternalLoader::platformMessageBox(const char* title, const char* info) {
-    MessageBoxA(nullptr, title, info, MB_OK);
+void InternalLoader::platformMessageBox(const char* title, std::string const& info) {
+    MessageBoxA(nullptr, info.c_str(), title, MB_ICONERROR);
 }
 
 void InternalLoader::setupPlatformConsole() {
@@ -104,9 +98,9 @@ void InternalLoader::setupPlatformConsole() {
 void InternalLoader::awaitPlatformConsole() {
     if (!m_platformConsoleReady) return;
 
-    for (auto const& log : this->m_logQueue) {
+    for (auto const& log : m_logQueue) {
         std::cout << log->toString(true) << "\n";
-        this->m_logQueue.clear();
+        m_logQueue.clear();
     }
 
     std::string inp;
@@ -118,7 +112,7 @@ void InternalLoader::awaitPlatformConsole() {
     while (ss >> inpa) args.push_back(inpa);
     ss.clear();
     
-    if (inp != "e") this->awaitPlatformConsole();
+    this->awaitPlatformConsole();
 }
 
 void InternalLoader::closePlatformConsole() {
@@ -132,7 +126,7 @@ void InternalLoader::closePlatformConsole() {
 #elif defined(GEODE_IS_MACOS)
 #include <iostream>
 
-void InternalLoader::platformMessageBox(const char* title, const char* info) {
+void InternalLoader::platformMessageBox(const char* title, std::string const& info) {
 	std::cout << title << ": " << info << std::endl;
 }
 
@@ -141,7 +135,6 @@ void InternalLoader::setupPlatformConsole() {
 }
 
 void InternalLoader::awaitPlatformConsole() {
-	
 }
 
 void InternalLoader::closePlatformConsole() {
@@ -153,7 +146,7 @@ void InternalLoader::closePlatformConsole() {
 #include <sys/types.h>
 #include <pwd.h>
 
-void InternalLoader::platformMessageBox(const char* title, const char* info) {
+void InternalLoader::platformMessageBox(const char* title, std::string const& info) {
     std::cout << title << ": " << info << std::endl;
 }
 

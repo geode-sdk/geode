@@ -48,12 +48,12 @@ public:
 	void queueInGDThread(std::function<void GEODE_CALL(void)> func);
 	void executeGDThreadQueue();
 
-	bool platformConsoleReady() const;
 	void queueConsoleMessage(LogPtr*);
+	bool platformConsoleReady() const;
 	void setupPlatformConsole();
 	void awaitPlatformConsole();
 	void closePlatformConsole();
-	static void platformMessageBox(const char* title, const char* info);
+	static void platformMessageBox(const char* title, std::string const& info);
 
 	friend int geodeEntry(void* platformData);
 };

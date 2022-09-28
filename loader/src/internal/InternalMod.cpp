@@ -1,5 +1,6 @@
 #include "InternalMod.hpp"
 #include "about.hpp"
+#include "InternalLoader.hpp"
 
 static auto SUPPORT_INFO = R"MD(
 **Geode** is funded through your gracious <cy>**donations**</c>!
@@ -7,27 +8,40 @@ You can support our work by sending <cp>**catgirl pictures**</c> to [HJfod](user
 )MD";
 
 static ModInfo getInternalModInfo() {
-    ModInfo info;
-    
-    info.m_id          = "geode.loader";
-    info.m_name        = "Geode";
-    info.m_developer   = "Geode Team";
-    info.m_description = "The mod loader";
-    info.m_details     = LOADER_ABOUT_MD;
-    info.m_version     = LOADER_VERSION;
-    info.m_supportInfo = SUPPORT_INFO;
-    info.m_repository  = "https://github.com/geode-sdk/geode";
-    info.m_supportsDisabling = false;
-    info.m_spritesheets = {
-        "geode.loader/LogoSheet",
-        "geode.loader/APISheet",
-        "geode.loader/BlankSheet"
-    };
-
-    return info;
+    try {
+        auto json = ModJson::parse(LOADER_MOD_JSON);
+        auto infoRes = ModInfo::create(json);
+        if (infoRes.is_error()) {
+            InternalLoader::platformMessageBox(
+                "Fatal Internal Error",
+                "Unable to parse loader mod.json: \"" + infoRes.error() + "\"\n"
+                "This is a fatal internal error in the loader, please "
+                "contact Geode developers immediately!"
+            );
+            exit(1);
+        }
+        auto info = infoRes.value();
+        info.m_details           = LOADER_ABOUT_MD;
+        info.m_supportInfo       = SUPPORT_INFO;
+        info.m_supportsDisabling = false;
+        return info;
+    } catch(std::exception& e) {
+        InternalLoader::platformMessageBox(
+            "Fatal Internal Error",
+            "Unable to parse loader mod.json: \"" + std::string(e.what()) + "\"\n"
+            "This is a fatal internal error in the loader, please "
+            "contact Geode developers immediately!"
+        );
+        exit(1);
+    }
 }
 
-InternalMod::InternalMod() : Mod(getInternalModInfo()) {}
+InternalMod::InternalMod() : Mod(getInternalModInfo()) {
+    auto sett = this->loadSettings();
+    if (!sett) {
+        this->logInfo(sett.error(), Severity::Error);
+    }
+}
 
 InternalMod::~InternalMod() {}
 
