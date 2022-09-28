@@ -122,9 +122,6 @@ void InternalLoader::openPlatformConsole() {
     m_platformConsoleOpen = true;
 }
 
-void InternalLoader::awaitPlatformConsole() {
-}
-
 void InternalLoader::closePlatformConsole() {
 }
 
@@ -145,9 +142,6 @@ void InternalLoader::openPlatformConsole() {
     ).string().c_str(),"w",stdout);
     InternalLoader::
     m_platformConsoleOpen = true;
-}
-
-void InternalLoader::awaitPlatformConsole() {
 }
 
 void InternalLoader::closePlatformConsole() {
