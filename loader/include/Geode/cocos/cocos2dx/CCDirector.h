@@ -136,6 +136,12 @@ public:
 		return id;
     }
 
+    GEODE_ADD(
+        inline static CCDirector* get() {
+            return CCDirector::sharedDirector();
+        }
+    )
+
     // attribute
 
     /** Get current running Scene. Director can only run one Scene at the time */

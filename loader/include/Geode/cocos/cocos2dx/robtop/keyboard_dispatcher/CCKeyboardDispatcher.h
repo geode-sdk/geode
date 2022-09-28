@@ -14,24 +14,29 @@ RT_ADD(
 		virtual ~CCKeyboardDispatcher();
 
 		void addDelegate(CCKeyboardDelegate* pDelegate);
-
 		void removeDelegate(CCKeyboardDelegate* pDelegate);
 
 		void forceAddDelegate(CCKeyboardDelegate* pDelegate);
-
 		void forceRemoveDelegate(CCKeyboardDelegate* pDelegate);
 
 		enumKeyCodes convertKeyCode(enumKeyCodes key);
 
 		bool dispatchKeyboardMSG(enumKeyCodes key, bool);
 		
-		inline bool getAltKeyPressed() const {return m_bAltPressed;}
+		inline bool getAltKeyPressed() const {
+			return m_bAltPressed;
+		}
+		inline bool getCommandKeyPressed() const {
+			return m_bCommandPressed;
+		}
+		inline bool getControlKeyPressed() const {
+			return m_bControlPressed;
+		}
+		inline bool getShiftKeyPressed() const {
+			return m_bShiftPressed;
+		}
 
-		inline bool getCommandKeyPressed() const {return m_bCommandPressed;}
-
-		inline bool getControlKeyPressed() const {return m_bControlPressed;}
-
-		inline bool getShiftKeyPressed() const {return m_bShiftPressed;}
+		static CCKeyboardDispatcher* get();
 
 		const char* keyToString(enumKeyCodes key);
 
