@@ -45,7 +45,7 @@ namespace geode {
         CCTextInputNode* getInput() const;
         cocos2d::extension::CCScale9Sprite* getBG() const;
 
-        void setEnabled(bool);
+        void setEnabled(bool enabled) override;
 
         void setString(std::string const&);
         const char* getString();

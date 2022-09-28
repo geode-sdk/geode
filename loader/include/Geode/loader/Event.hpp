@@ -3,6 +3,7 @@
 #include <Geode/DefaultInclude.hpp>
 #include <type_traits>
 #include "Mod.hpp"
+#include "Interface.hpp"
 
 namespace geode {
 	class Mod;
@@ -20,7 +21,8 @@ namespace geode {
 	 	friend BasicEventHandler;
 
 	 	Mod* m_sender;
-	 public:
+
+	public:
 	 	static std::vector<BasicEventHandler*> const& getHandlers();
 
 	 	void postFrom(Mod* sender);
@@ -35,7 +37,7 @@ namespace geode {
 
 	template <typename T>
 	class EventHandler : public BasicEventHandler {
-	 public:
+	public:
 		virtual bool handle(T*) = 0;
 		bool onEvent(Event* ev) override {
 			if (auto myev = dynamic_cast<T*>(ev)) {

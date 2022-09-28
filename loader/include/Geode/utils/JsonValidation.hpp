@@ -184,7 +184,7 @@ namespace geode {
         JsonMaybeValue<Json> validate(JsonValueValidator<T> validator) {
             if (this->isError()) return *this;
             try {
-                if (!validator(self().m_json.get<T>())) {
+                if (!validator(self().m_json.template get<T>())) {
                     this->setError(self().m_hierarchy + ": Invalid value format");
                 }
             } catch(...) {
@@ -219,7 +219,7 @@ namespace geode {
             this->inferType<A>();
             if (this->isError()) return *this;
             try {
-                target = self().m_json.get<A>();
+                target = self().m_json.template get<A>();
             } catch(...) {
                 this->setError(
                     self().m_hierarchy + ": Invalid type \"" + 
@@ -234,7 +234,7 @@ namespace geode {
             this->inferType<T>();
             if (this->isError()) return T();
             try {
-                return self().m_json.get<T>();
+                return self().m_json.template get<T>();
             } catch(...) {
                 this->setError(
                     self().m_hierarchy + ": Invalid type to get \"" + 
