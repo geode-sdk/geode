@@ -1202,7 +1202,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     cocos2d::CCArray* m_hideableUIElementArray;
     PAD = mac 0x8, win 0x4, android 0x0;
     float m_gridSize;
-    PAD = mac 0x14, win 0x14, android 0x0;
+    PAD = mac 0x18, win 0x14, android 0x0;
     bool m_moveModifier;
     int m_rotationTouchID;
     int m_scaleTouchID;
@@ -1220,10 +1220,12 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     float m_minYLimit;
     float m_unknown2;
     bool m_swipeEnabled;
+    PAD = mac 0x3, win 0x3, android 0x3;
     bool m_freeMoveEnabled;
-    PAD = mac 0x12, win 0xc, android 0xc;
+    PAD = mac 0xb, win 0xb, android 0xa;
+    bool m_updateTimeMarkers;
     cocos2d::CCArray* m_unknownArray2;
-    PAD = mac 0x10, win 0x8, android 0x8;
+    PAD = mac 0x8, win 0x8, android 0x8;
     cocos2d::CCArray* m_selectedObjects;
     cocos2d::CCMenu* m_deleteMenu;
     cocos2d::CCArray* m_unknownArray4;
@@ -3612,7 +3614,7 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
     DrawGridLayer* m_drawGridLayer;
     GJGameLevel* m_level;
     PlaybackMode m_playbackMode;
-    PAD = mac 0x8, win 0x4, android 0x0;
+    PAD = mac 0x8, win 0x14, android 0x0;
     GJGroundLayer* m_groundLayer;
 }
 

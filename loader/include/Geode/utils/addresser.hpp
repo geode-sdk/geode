@@ -25,6 +25,9 @@ namespace geode::addresser {
 	template<typename T, typename F>
 	inline F thunkAdjust(T func, F self);
 
+	template<typename T, typename F>
+	inline F rthunkAdjust(T func, F self);
+
 	class GEODE_DLL Addresser final {
 		template <char C>
 		struct SingleInheritance {
@@ -146,6 +149,9 @@ namespace geode::addresser {
 
 		template<typename T, typename F>
 		friend F thunkAdjust(T func, F self);
+
+		template<typename T, typename F>
+		friend F rthunkAdjust(T func, F self);
 	};
 
 	#ifdef GEODE_ADDRESSER_TEST
@@ -178,6 +184,11 @@ namespace geode::addresser {
 		template<typename T, typename F>
 		inline F thunkAdjust(T func, F self) {
 			return (F)((intptr_t)self + Addresser::thunkOf(func));
+		}
+
+		template<typename T, typename F>
+		inline F rthunkAdjust(T func, F self) {
+			return (F)((intptr_t)self - Addresser::thunkOf(func));
 		}
 	#endif
 }
