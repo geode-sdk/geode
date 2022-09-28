@@ -136,7 +136,7 @@ void Log::flush() {
 
 Log::~Log() {
     this->flush();
-    if (InternalLoader::get()->platformConsoleReady()) {
+    if (InternalLoader::get()->platformConsoleOpen()) {
         std::cout << std::endl;
     }
 }

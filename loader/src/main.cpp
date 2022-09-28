@@ -1,5 +1,6 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Loader.hpp>
+#include <Geode/loader/SettingEvent.hpp>
 #include <InternalLoader.hpp>
 #include <InternalMod.hpp>
 #include <Geode/loader/Log.hpp>
@@ -50,6 +51,16 @@ BOOL WINAPI DllMain(HINSTANCE lib, DWORD reason, LPVOID) {
 }
 #endif
 
+static SettingChangedEventHandler<BoolSetting> _(
+    "geode.loader", "show-platform-console",
+    [](std::shared_ptr<BoolSetting> setting) {
+        if (setting->getValue()) {
+            Loader::get()->openPlatformConsole();
+        } else {
+            Loader::get()->closePlatfromConsole();
+        }
+    }
+);
 
 int geodeEntry(void* platformData) {
     // setup internals
@@ -108,8 +119,7 @@ int geodeEntry(void* platformData) {
         << "Set up loader";
     
     if (InternalMod::get()->getSettingValue<bool>("show-platform-console")) {
-        InternalLoader::get()->setupPlatformConsole();
-        InternalLoader::get()->awaitPlatformConsole();
+        Loader::get()->openPlatformConsole();
     }
 
     InternalMod::get()->log()

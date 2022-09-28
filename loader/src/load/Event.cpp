@@ -3,15 +3,14 @@
 
 USE_GEODE_NAMESPACE();
 
-std::vector<BasicEventHandler*> Event::handlers = {};
+std::unordered_set<BasicEventHandler*> Event::s_handlers = {};
 
 void BasicEventHandler::listen() {
-	if (!utils::vector::contains(Event::handlers, this))
-		Event::handlers.push_back(this);
+	Event::s_handlers.insert(this);
 }
 
 void BasicEventHandler::unlisten() {
-	utils::vector::erase(Event::handlers, this);
+	Event::s_handlers.erase(this);
 }
 
 Event::~Event() {}
@@ -20,12 +19,17 @@ void Event::postFrom(Mod* m) {
 	if (m)
 		m_sender = m;
 
-	for (auto h : Event::handlers) {
-		if (!h->onEvent(this))
+	for (auto h : Event::s_handlers) {
+		if (h->passThrough(this) == PassThrough::Stop) {
 			break;
+		}
 	}
 }
 
-std::vector<BasicEventHandler*> const& Event::getHandlers() {
-	return Event::handlers;
+Mod* Event::getSender() {
+	return m_sender;
+}
+
+std::unordered_set<BasicEventHandler*> const& Event::getHandlers() {
+	return Event::s_handlers;
 }

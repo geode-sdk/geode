@@ -17,10 +17,9 @@ USE_GEODE_NAMESPACE();
  */
 class InternalLoader : public Loader {
 protected:
-	std::vector<LogPtr*> m_logQueue;
 	std::vector<std::function<void(void)>> m_gdThreadQueue;
 	mutable std::mutex m_gdThreadMutex;
-	bool m_platformConsoleReady = false;
+	bool m_platformConsoleOpen = false;
 	std::unordered_set<std::string> m_shownInfoAlerts;
 
 	void saveInfoAlerts(nlohmann::json& json);
@@ -48,10 +47,9 @@ public:
 	void queueInGDThread(std::function<void GEODE_CALL(void)> func);
 	void executeGDThreadQueue();
 
-	void queueConsoleMessage(LogPtr*);
-	bool platformConsoleReady() const;
-	void setupPlatformConsole();
-	void awaitPlatformConsole();
+	void logConsoleMessage(LogPtr*);
+	bool platformConsoleOpen() const;
+	void openPlatformConsole();
 	void closePlatformConsole();
 	static void platformMessageBox(const char* title, std::string const& info);
 

@@ -4,33 +4,40 @@
 #include <type_traits>
 #include "Mod.hpp"
 #include "Interface.hpp"
+#include <unordered_set>
 
 namespace geode {
 	class Mod;
 	class Event;
 
+	enum class PassThrough : bool {
+		Propagate,
+		Stop,
+	};
+
 	struct GEODE_DLL BasicEventHandler {
-		virtual bool onEvent(Event*) = 0;
+		virtual PassThrough passThrough(Event*) = 0;
 
 		void listen();
 		void unlisten();
 	};
 
 	class GEODE_DLL Event {
-		static std::vector<BasicEventHandler*> handlers;
+		static std::unordered_set<BasicEventHandler*> s_handlers;
+
 	 	friend BasicEventHandler;
 
 	 	Mod* m_sender;
 
 	public:
-	 	static std::vector<BasicEventHandler*> const& getHandlers();
+	 	static std::unordered_set<BasicEventHandler*> const& getHandlers();
 
 	 	void postFrom(Mod* sender);
 	 	inline void post() {
 	 		postFrom(Mod::get());
 	 	}
 
-	 	Mod* sender();
+	 	Mod* getSender();
 
 	 	virtual ~Event();
 	};
@@ -38,12 +45,12 @@ namespace geode {
 	template <typename T>
 	class EventHandler : public BasicEventHandler {
 	public:
-		virtual bool handle(T*) = 0;
-		bool onEvent(Event* ev) override {
+		virtual PassThrough handle(T*) = 0;
+		PassThrough passThrough(Event* ev) override {
 			if (auto myev = dynamic_cast<T*>(ev)) {
 				return handle(myev);
 			}
-			return true;
+			return PassThrough::Propagate;
 		}
 
 		EventHandler() {

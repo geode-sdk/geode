@@ -376,11 +376,7 @@ Loader::~Loader() {
 void Loader::pushLog(LogPtr* logptr) {
     m_logs.push_back(logptr);
 
-    if (InternalLoader::get()->platformConsoleReady()) {
-        std::cout << logptr->toString(true);
-    } else {
-        InternalLoader::get()->queueConsoleMessage(logptr);
-    }
+    InternalLoader::get()->logConsoleMessage(logptr);
 
     m_logStream << logptr->toString(true) << std::endl;
 }
@@ -458,12 +454,7 @@ bool Loader::supportedModVersion(VersionInfo const& version) {
 }
 
 void Loader::openPlatformConsole() {
-    if (!InternalLoader::get()->platformConsoleReady()) {
-        InternalLoader::get()->setupPlatformConsole();
-        std::thread([]() {
-            InternalLoader::get()->awaitPlatformConsole();
-        }).detach();
-    }
+    InternalLoader::get()->openPlatformConsole();
 }
 
 void Loader::closePlatfromConsole() {

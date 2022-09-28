@@ -1,4 +1,5 @@
 #include <Geode/loader/Setting.hpp>
+#include <Geode/loader/SettingEvent.hpp>
 #include <Geode/utils/general.hpp>
 #include <Geode/loader/SettingNode.hpp>
 #include "../ui/internal/settings/GeodeSettingNode.hpp"
@@ -54,30 +55,68 @@ Result<std::shared_ptr<Setting>> Setting::parse(
     return Err("Setting value is not an object");
 }
 
+void Setting::valueChanged() {
+    SettingChangedEvent(m_modID, shared_from_this()).post();
+}
+
 SettingNode* BoolSetting::createNode(float width) {
-    return BoolSettingNode::create(shared_from_this(), width);
+    return BoolSettingNode::create(
+        std::static_pointer_cast<BoolSetting>(shared_from_this()),
+        width
+    );
 }
 
 SettingNode* IntSetting::createNode(float width) {
-    return IntSettingNode::create(shared_from_this(), width);
+    return IntSettingNode::create(
+        std::static_pointer_cast<IntSetting>(shared_from_this()),
+        width
+    );
 }
 
 SettingNode* FloatSetting::createNode(float width) {
-    return FloatSettingNode::create(shared_from_this(), width);
+    return FloatSettingNode::create(
+        std::static_pointer_cast<FloatSetting>(shared_from_this()),
+        width
+    );
 }
 
 SettingNode* StringSetting::createNode(float width) {
-    return StringSettingNode::create(shared_from_this(), width);
+    return StringSettingNode::create(
+        std::static_pointer_cast<StringSetting>(shared_from_this()),
+        width
+    );
 }
 
 SettingNode* FileSetting::createNode(float width) {
-    return FileSettingNode::create(shared_from_this(), width);
+    return FileSettingNode::create(
+        std::static_pointer_cast<FileSetting>(shared_from_this()),
+        width
+    );
 }
 
 SettingNode* ColorSetting::createNode(float width) {
-    return ColorSettingNode::create(shared_from_this(), width);
+    return ColorSettingNode::create(
+        std::static_pointer_cast<ColorSetting>(shared_from_this()),
+        width
+    );
 }
 
 SettingNode* ColorAlphaSetting::createNode(float width) {
-    return ColorAlphaSettingNode::create(shared_from_this(), width);
+    return ColorAlphaSettingNode::create(
+        std::static_pointer_cast<ColorAlphaSetting>(shared_from_this()),
+        width
+    );
+}
+
+SettingChangedEvent::SettingChangedEvent(
+    std::string const& modID,
+    std::shared_ptr<Setting> setting
+) : m_modID(modID), m_setting(setting) {}
+
+std::string SettingChangedEvent::getModID() const {
+    return m_modID;
+}
+
+std::shared_ptr<Setting> SettingChangedEvent::getSetting() const {
+    return m_setting;
 }

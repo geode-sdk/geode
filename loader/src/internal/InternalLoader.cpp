@@ -56,12 +56,14 @@ void InternalLoader::executeGDThreadQueue() {
     m_gdThreadMutex.unlock();
 }
 
-void InternalLoader::queueConsoleMessage(LogPtr* msg) {
-    this->m_logQueue.push_back(msg);
+void InternalLoader::logConsoleMessage(LogPtr* msg) {
+    if (m_platformConsoleOpen) {
+        std::cout << msg->toString(true);
+    }
 }
 
-bool InternalLoader::platformConsoleReady() const {
-    return m_platformConsoleReady;
+bool InternalLoader::platformConsoleOpen() const {
+    return m_platformConsoleOpen;
 }
 
 bool InternalLoader::shownInfoAlert(std::string const& key) {
@@ -85,42 +87,28 @@ void InternalLoader::platformMessageBox(const char* title, std::string const& in
     MessageBoxA(nullptr, info.c_str(), title, MB_ICONERROR);
 }
 
-void InternalLoader::setupPlatformConsole() {
-    if (m_platformConsoleReady) return;
+void InternalLoader::openPlatformConsole() {
+    if (m_platformConsoleOpen) return;
     if (AllocConsole() == 0)    return;
     // redirect console output
     freopen_s(reinterpret_cast<FILE**>(stdout), "CONOUT$", "w", stdout);
     freopen_s(reinterpret_cast<FILE**>(stdin), "CONIN$", "r", stdin);
 
-    m_platformConsoleReady = true;
-}
+    m_platformConsoleOpen = true;
 
-void InternalLoader::awaitPlatformConsole() {
-    if (!m_platformConsoleReady) return;
-
-    for (auto const& log : m_logQueue) {
+    for (auto const& log : Loader::get()->getLogs()) {
         std::cout << log->toString(true) << "\n";
-        m_logQueue.clear();
     }
-
-    std::string inp;
-    getline(std::cin, inp);
-    std::string inpa;
-    std::stringstream ss(inp);
-    std::vector<std::string> args;
-
-    while (ss >> inpa) args.push_back(inpa);
-    ss.clear();
-    
-    this->awaitPlatformConsole();
 }
 
 void InternalLoader::closePlatformConsole() {
-    if (!m_platformConsoleReady) return;
+    if (!m_platformConsoleOpen) return;
 
     fclose(stdin);
     fclose(stdout);
     FreeConsole();
+
+    m_platformConsoleOpen = false;
 }
 
 #elif defined(GEODE_IS_MACOS)
@@ -130,8 +118,8 @@ void InternalLoader::platformMessageBox(const char* title, std::string const& in
 	std::cout << title << ": " << info << std::endl;
 }
 
-void InternalLoader::setupPlatformConsole() {
-    m_platformConsoleReady = true;
+void InternalLoader::openPlatformConsole() {
+    m_platformConsoleOpen = true;
 }
 
 void InternalLoader::awaitPlatformConsole() {
@@ -150,13 +138,13 @@ void InternalLoader::platformMessageBox(const char* title, std::string const& in
     std::cout << title << ": " << info << std::endl;
 }
 
-void InternalLoader::setupPlatformConsole() {
+void InternalLoader::openPlatformConsole() {
     ghc::filesystem::path(getpwuid(getuid())->pw_dir);
     freopen(ghc::filesystem::path(
         utils::file::geodeRoot() / "geode_log.txt"
     ).string().c_str(),"w",stdout);
     InternalLoader::
-    m_platformConsoleReady = true;
+    m_platformConsoleOpen = true;
 }
 
 void InternalLoader::awaitPlatformConsole() {

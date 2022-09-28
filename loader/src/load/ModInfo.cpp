@@ -64,9 +64,11 @@ Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
     }
 
     for (auto& [key, value] : root.has("settings").items()) {
-        auto sett = Setting::parse(key, value.json());
-        PROPAGATE(sett);
-        info.m_settings.push_back({ key, sett.value() });
+        auto settRes = Setting::parse(key, value.json());
+        PROPAGATE(settRes);
+        auto sett = settRes.value();
+        sett->m_modID = info.m_id;
+        info.m_settings.push_back({ key, sett });
     }
 
     if (auto resources = root.has("resources").obj()) {

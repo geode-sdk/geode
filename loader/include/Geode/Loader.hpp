@@ -7,3 +7,4 @@
 #include "loader/Loader.hpp"
 #include "loader/Interface.hpp"
 #include "loader/Setting.hpp"
+#include "loader/SettingEvent.hpp"
