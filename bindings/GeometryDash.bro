@@ -158,7 +158,7 @@ class ButtonSprite : cocos2d::CCSprite {
         bool absoluteWidth,
         const char* texture,
         bool bUnknown
-    ) = win 0x134b0, mac 0x0, ios 0x0;
+    ) = win 0x134b0, mac 0x4f1d0, ios 0x0;
 
     [[docs("
     /**
