@@ -92,12 +92,13 @@ namespace geode {
         }
     };
 
-    void GEODE_DLL createQuickPopup(
+    GEODE_DLL FLAlertLayer* createQuickPopup(
         const char* title,
         std::string const& content,
         const char* btn1,
         const char* btn2,
-        std::function<void(FLAlertLayer*, bool)> selected
+        std::function<void(FLAlertLayer*, bool)> selected,
+        bool doShow = true
     );
 }
 

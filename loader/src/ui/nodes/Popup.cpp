@@ -34,17 +34,22 @@ public:
     }
 };
 
-void geode::createQuickPopup(
+FLAlertLayer* geode::createQuickPopup(
     const char* title,
     std::string const& content,
     const char* btn1,
     const char* btn2,
-    std::function<void(FLAlertLayer*, bool)> selected
+    std::function<void(FLAlertLayer*, bool)> selected,
+    bool doShow
 ) {
-    QuickPopup::create(
+    auto ret = QuickPopup::create(
         title,
         content,
         btn1, btn2,
         selected
-    )->show();
+    );
+    if (doShow) {
+        ret->show();
+    }
+    return ret;
 }

@@ -4,6 +4,7 @@
 #include <Geode/ui/Notification.hpp>
 #include <Index.hpp>
 #include "../ui/internal/list/ModListLayer.hpp"
+#include <Geode/ui/MDPopup.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -169,18 +170,42 @@ class $modify(CustomMenuLayer, MenuLayer) {
 			chest->release();
 		}
 
+		// show if some mods failed to load
 		auto failed = Loader::get()->getFailedMods();
 		if (failed.size()) {
-            auto layer = FLAlertLayer::create(
-				"Notice",
-				"Some mods failed to load; see <cy>Geode</c> for details",
-				"OK"
-			);
-			layer->m_scene = this;
-			layer->m_noElasticity = true;
-			layer->show();
+			NotificationBuilder()
+				.title("Failed to load")
+				.text("Some mods failed to load")
+				.show();
         }
 
+		// show crash info
+		if (Loader::get()->didLastLaunchCrash()) {
+			auto popup = createQuickPopup(
+				"Crashed",
+				"It appears that the last session crashed. Would you like to "
+				"send a <cy>crash report</c>?",
+				"No", "Send",
+				[](auto, bool btn2) {
+					if (btn2) {
+						MDPopup::create(
+							"Crash Report",
+							"Please send the latest crash report file from `" + 
+							Loader::get()->getCrashLogDirectory().string() + "` to the "
+							"[#support](https://discord.com/channels/911701438269386882/979352389985390603) "
+							"channnel in the [Geode Discord Server](https://discord.gg/9e43WMKzhp)\n\n",
+							"OK"
+						)->show();
+					}
+				},
+				false
+			);
+			popup->m_scene = this;
+			popup->m_noElasticity = true;
+			popup->show();
+		}
+
+		// update mods index
 		if (!g_indexUpdateNotif && !Index::get()->isIndexUpdated()) {
 			g_indexUpdateNotif = NotificationBuilder()
 				.title("Index Update")
@@ -196,6 +221,7 @@ class $modify(CustomMenuLayer, MenuLayer) {
 	}
 
 	void onGeode(CCObject*) {
+		*(int*)(0) = 5;
 		ModListLayer::scene();
 	}
 };

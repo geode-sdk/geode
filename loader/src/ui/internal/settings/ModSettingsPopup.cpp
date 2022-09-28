@@ -197,7 +197,7 @@ bool ModSettingsPopup::hasUncommitted() const {
 
 void ModSettingsPopup::onClose(CCObject* sender) {
     if (sender && this->hasUncommitted()) {
-        return createQuickPopup(
+        createQuickPopup(
             "Unsaved Changes",
             "You have <cr>unsaved changes</c>! Are you sure you "
             "want to exit?",
@@ -206,6 +206,7 @@ void ModSettingsPopup::onClose(CCObject* sender) {
                 if (btn2) this->onClose(nullptr);
             }
         );
+        return;
     }
     Popup<Mod*>::onClose(sender);
 }
