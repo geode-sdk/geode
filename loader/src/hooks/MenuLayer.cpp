@@ -221,7 +221,6 @@ class $modify(CustomMenuLayer, MenuLayer) {
 	}
 
 	void onGeode(CCObject*) {
-		*(int*)(0) = 5;
 		ModListLayer::scene();
 	}
 };
