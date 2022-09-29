@@ -101,27 +101,27 @@ namespace geode {
          * Short & concise description of the 
          * mod.
          */
-        std::string m_description = "";
+        std::optional<std::string> m_description;
         /**
          * Detailed description of the mod, writtenin Markdown (see 
          * <Geode/ui/MDTextArea.hpp>) for more info
          */
-        std::string m_details = "";
+        std::optional<std::string> m_details;
         /**
          * Changelog for the mod, written in Markdown (see
          * <Geode/ui/MDTextArea.hpp>) for more info
          */
-        std::string m_changelog = "";
+        std::optional<std::string> m_changelog;
         /**
          * Support info for the mod; this means anything to show ways to 
          * support the mod's development, like donations. Written in Markdown 
          * (see <Geode/ui/MDTextArea.hpp>) for more info
          */
-        std::string m_supportInfo = "";
+        std::optional<std::string> m_supportInfo;
         /**
          * Git Repository of the mod
          */
-        std::string m_repository = "";
+        std::optional<std::string> m_repository;
         /**
          * Info about where users should report issues and request help
          */
@@ -321,8 +321,8 @@ namespace geode {
         std::string getID() const;
         std::string getName() const;
         std::string getDeveloper() const;
-        std::string getDescription() const;
-        std::string getDetails() const;
+        std::optional<std::string> getDescription() const;
+        std::optional<std::string> getDetails() const;
         std::string getPath() const;
         VersionInfo getVersion() const;
         bool        isEnabled() const;

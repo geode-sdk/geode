@@ -164,8 +164,8 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
     this->registerWithTouchDispatcher();
 
     auto details = MDTextArea::create(
-        m_info.m_details.size() ?
-            m_info.m_details :
+        m_info.m_details ?
+            m_info.m_details.value() :
             "### No description provided.",
         { 350.f, 137.5f }
     );
@@ -231,11 +231,11 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
             );
 	    }
 
-        if (m_mod->getModInfo().m_repository.size()) {
+        if (m_mod->getModInfo().m_repository) {
             auto repoBtn = CCMenuItemSpriteExtra::create(
                 CCSprite::createWithSpriteFrameName("github.png"_spr),
                 this, makeMenuSelector([this](CCObject*) {
-                    web::openLinkInBrowser(m_mod->getModInfo().m_repository);
+                    web::openLinkInBrowser(m_mod->getModInfo().m_repository.value());
                 })
             );
             repoBtn->setPosition(
@@ -245,13 +245,13 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
             m_buttonMenu->addChild(repoBtn);
         }
 
-        if (m_mod->getModInfo().m_supportInfo.size()) {
+        if (m_mod->getModInfo().m_supportInfo) {
             auto supportBtn = CCMenuItemSpriteExtra::create(
                 CCSprite::createWithSpriteFrameName("gift.png"_spr),
                 this, makeMenuSelector([this](CCObject*) {
                     MDPopup::create(
                         "Support " + m_mod->getName(),
-                        m_mod->getModInfo().m_supportInfo,
+                        m_mod->getModInfo().m_supportInfo.value(),
                         "OK"
                     )->show();
                 })

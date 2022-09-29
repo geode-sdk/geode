@@ -193,7 +193,7 @@ void ModCell::loadFromObject(ModObject* modobj) {
         default: return;
     }
 
-    bool hasDesc = m_expanded && info.m_description.size();
+    bool hasDesc = m_expanded && info.m_description.has_value();
 
     auto titleLabel = CCLabelBMFont::create(info.m_name.c_str(), "bigFont.fnt");
     titleLabel->setAnchorPoint({ .0f, .5f });
@@ -254,7 +254,7 @@ void ModCell::loadFromObject(ModObject* modobj) {
         m_mainLayer->addChild(descBG);
 
         auto descText = CCLabelBMFont::create(
-            info.m_description.c_str(),
+            info.m_description.value().c_str(),
             "chatFont.fnt"
         );
         descText->setAnchorPoint({ .0f, .5f });
@@ -451,8 +451,8 @@ bool ModListView::filter(ModInfo const& info, ModListQuery const& query) {
     if (check(SearchFlag::Name,        info.m_name)) return true;
     if (check(SearchFlag::ID,          info.m_id)) return true;
     if (check(SearchFlag::Developer,   info.m_developer)) return true;
-    if (check(SearchFlag::Description, info.m_description)) return true;
-    if (check(SearchFlag::Details,     info.m_details)) return true;
+    if (check(SearchFlag::Description, info.m_description.value_or(""))) return true;
+    if (check(SearchFlag::Details,     info.m_details.value_or(""))) return true;
     return false;
 }
 
