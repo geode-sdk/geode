@@ -38,6 +38,13 @@ void ScrollLayer::enableScrollWheel(bool enable) {
     m_scrollWheelEnabled = enable;
 }
 
+bool ScrollLayer::ccTouchBegan(CCTouch* touch, CCEvent* event) {
+    if (this->isVisible()) {
+        return CCScrollLayerExt::ccTouchBegan(touch, event);
+    }
+    return false;
+}
+
 ScrollLayer::ScrollLayer(
     CCRect const& rect,
     bool scrollWheelEnabled,

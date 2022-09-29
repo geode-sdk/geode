@@ -182,6 +182,59 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
     );
     m_mainLayer->addChild(detailsBar);
 
+    // changelog
+    if (m_info.m_changelog) {
+        auto changelog = MDTextArea::create(
+            m_info.m_changelog.value(),
+            { 350.f, 137.5f }
+        );
+        changelog->setPosition(
+            -5000.f,
+            winSize.height / 2 - changelog->getScaledContentSize().height / 2 - 20.f
+        );
+        changelog->setVisible(false);
+        m_mainLayer->addChild(changelog);
+        
+        auto changelogBtnOffSpr = ButtonSprite::create(
+            CCSprite::createWithSpriteFrameName("changelog.png"_spr),
+            0x20, true, 32.f, "GJ_button_01.png", 1.f
+        );
+        changelogBtnOffSpr->setScale(.65f);
+
+        auto changelogBtnOnSpr = ButtonSprite::create(
+            CCSprite::createWithSpriteFrameName("changelog.png"_spr),
+            0x20, true, 32.f, "GJ_button_02.png", 1.f
+        );
+        changelogBtnOnSpr->setScale(.65f);
+
+        auto changelogBtn = CCMenuItemToggler::create(
+            changelogBtnOffSpr,
+            changelogBtnOnSpr,
+            this,
+            makeMenuSelector([
+                this, winSize, details, detailsBar, changelog
+            ](CCMenuItemToggler* toggle) {
+                details->setVisible(toggle->isToggled());
+                // as it turns out, cocos2d is stupid and still passes touch 
+                // events to invisible nodes
+                details->setPositionX(toggle->isToggled() ?
+                    winSize.width / 2 - details->getScaledContentSize().width / 2 :
+                    -5000.f
+                );
+
+                changelog->setVisible(!toggle->isToggled());
+                // as it turns out, cocos2d is stupid and still passes touch 
+                // events to invisible nodes
+                changelog->setPositionX(!toggle->isToggled() ?
+                    winSize.width / 2 - changelog->getScaledContentSize().width / 2 :
+                    -5000.f
+                );
+            })
+        );
+        changelogBtn->setPosition(-size.width / 2 + 21.5f, .0f);
+        m_buttonMenu->addChild(changelogBtn);
+    }
+
 
     auto infoSpr = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
     infoSpr->setScale(.85f);
