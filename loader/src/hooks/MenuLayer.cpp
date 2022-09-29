@@ -5,6 +5,8 @@
 #include <Index.hpp>
 #include "../ui/internal/list/ModListLayer.hpp"
 #include <Geode/ui/MDPopup.hpp>
+#include <InternalMod.hpp>
+#include "../ui/internal/info/ModInfoLayer.hpp"
 
 USE_GEODE_NAMESPACE();
 
@@ -188,14 +190,9 @@ class $modify(CustomMenuLayer, MenuLayer) {
 				"No", "Send",
 				[](auto, bool btn2) {
 					if (btn2) {
-						MDPopup::create(
-							"Crash Report",
-							"Please send the latest crash report file from `" + 
-							Loader::get()->getCrashLogDirectory().string() + "` to the "
-							"[#support](https://discord.com/channels/911701438269386882/979352389985390603) "
-							"channnel in the [Geode Discord Server](https://discord.gg/9e43WMKzhp)\n\n",
-							"OK"
-						)->show();
+						ModInfoLayer::showIssueReportPopup(
+							InternalMod::get()->getModInfo()
+						);
 					}
 				},
 				false

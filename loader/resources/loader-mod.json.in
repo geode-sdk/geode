@@ -52,5 +52,9 @@
             "name": "Show Platform Console",
             "description": "Show the native console (if one exists). <cr>This setting is meant for developers</c>."
         }
+    },
+    "issues": {
+        "info": "Post your issues on the <cp>Geode Github Repository</c>. <cy>Please follow the standard issue format</c>.",
+        "url": "https://github.com/geode-sdk/geode/issues/new"
     }
 }

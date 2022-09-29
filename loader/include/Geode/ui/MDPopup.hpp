@@ -11,14 +11,22 @@ namespace geode {
     class MDPopup : public Popup<
         std::string const&,
         std::string const&,
-        std::string const&
+        const char*,
+        const char*,
+        std::function<void(bool)>
     > {
     protected:
+        std::function<void(bool)> m_onClick = nullptr;
+
         bool setup(
             std::string const& title,
             std::string const& info,
-            std::string const& btn
+            const char* btn1,
+            const char* btn2,
+            std::function<void(bool)> onClick
         ) override;
+
+        void onBtn(CCObject*);
 
         static float estimateHeight(std::string const& content);
     
@@ -26,7 +34,9 @@ namespace geode {
         static MDPopup* create(
             std::string const& title,
             std::string const& content,
-            std::string const& button
+            const char* btn1,
+            const char* btn2 = nullptr,
+            std::function<void(bool)> onClick = nullptr
         );
     };
 }

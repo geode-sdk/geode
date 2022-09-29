@@ -192,6 +192,22 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
     infoBtn->setPosition(size.width / 2 - 25.f, size.height / 2 - 25.f);
     m_buttonMenu->addChild(infoBtn);
 
+    // issue report button
+    if (m_info.m_issues) {
+        auto issuesBtnSpr = ButtonSprite::create(
+            "Report an Issue", "goldFont.fnt", "GJ_button_04.png", .8f
+        );
+        issuesBtnSpr->setScale(.75f);
+
+        auto issuesBtn = CCMenuItemSpriteExtra::create(
+            issuesBtnSpr, this, makeMenuSelector([this](CCObject*) {
+                ModInfoLayer::showIssueReportPopup(m_info);
+            })
+        );
+        issuesBtn->setPosition(0.f, -size.height / 2 + 25.f);
+        m_buttonMenu->addChild(issuesBtn);
+    }
+
 
     if (isInstalledMod) {
         auto settingsSpr = CCSprite::createWithSpriteFrameName(
@@ -740,4 +756,34 @@ CCNode* ModInfoLayer::createLogoSpr(IndexItem const& item) {
     }
     
     return spr;
+}
+
+
+void ModInfoLayer::showIssueReportPopup(ModInfo const& info) {
+    if (info.m_issues) {
+        MDPopup::create(
+            "Issue Report",
+            info.m_issues.value().m_info + "\n\n"
+            "If your issue relates to a <cr>game crash</c>, <cb>please include</c> the "
+            "latest crash log(s) from `" + 
+            Loader::get()->getCrashLogDirectory().string() + "`",
+            "OK", (info.m_issues.value().m_url ? "Open URL" : ""),
+            [info](bool btn2) {
+                if (btn2) {
+                    web::openLinkInBrowser(info.m_issues.value().m_url.value());
+                }
+            }
+        )->show();
+    } else {
+        MDPopup::create(
+            "Issue Report",
+            "Please report your issue on the "
+            "[#support](https://discord.com/channels/911701438269386882/979352389985390603) "
+            "channnel in the [Geode Discord Server](https://discord.gg/9e43WMKzhp)\n\n"
+            "If your issue relates to a <cr>game crash</c>, <cb>please include</c> the "
+            "latest crash log(s) from `" + 
+            Loader::get()->getCrashLogDirectory().string() + "`",
+            "OK"
+        )->show();
+    }
 }

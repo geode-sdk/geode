@@ -77,6 +77,13 @@ Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
         }
     }
 
+    if (auto issues = root.has("issues").obj()) {
+        IssuesInfo issuesInfo;
+        issues.needs("info").into(issuesInfo.m_info);
+        issues.has("url").intoAs<std::string>(issuesInfo.m_url);
+        info.m_issues = issuesInfo;
+    }
+
     root.has("binary").asOneOf<value_t::string, value_t::object>();
 
     bool autoEndBinaryName = true;

@@ -67,6 +67,8 @@ public:
     static ModInfoLayer* create(Mod* mod, ModListView* list);
     static ModInfoLayer* create(ModObject* obj, ModListView* list);
 
+    static void showIssueReportPopup(ModInfo const& info);
+
     static CCNode* createLogoSpr(ModObject* modObj);
     static CCNode* createLogoSpr(Mod* mod);
     static CCNode* createLogoSpr(IndexItem const& item);

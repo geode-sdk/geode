@@ -13,6 +13,7 @@
 #include <type_traits>
 #include <cocos2d.h>
 #include "Setting.hpp"
+#include <optional>
 
 class InternalLoader;
 class InternalMod;
@@ -39,6 +40,11 @@ namespace geode {
         bool m_required = false;
         Mod* m_mod = nullptr;
         bool isUnresolved() const;
+    };
+
+    struct IssuesInfo {
+        std::string m_info;
+        std::optional<std::string> m_url;
     };
 
     /**
@@ -113,9 +119,13 @@ namespace geode {
          */
         std::string m_supportInfo = "";
         /**
-         * Git Repository of the mod.
+         * Git Repository of the mod
          */
         std::string m_repository = "";
+        /**
+         * Info about where users should report issues and request help
+         */
+        std::optional<IssuesInfo> m_issues;
         /**
          * Dependencies
          */
