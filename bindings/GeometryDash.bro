@@ -2229,6 +2229,11 @@ class GJMessageCell : TableViewCell {
     void updateBGColor(unsigned int index) = mac 0x0, win 0x5c6b0, ios 0x0;
 }
 
+class GJOptionsLayer : FLAlertLayer {
+    static GJOptionsLayer* create() = mac 0x145ae0, win 0x0, ios 0x0;
+    void addToggle(char const*, char const*, char const*) = mac 0x1464e0, win 0x0, ios 0x0;
+}
+
 class GJRequestCell : TableViewCell {
     void updateBGColor(unsigned int index) = mac 0x0, win 0x5c6b0, ios 0x0;
 }
