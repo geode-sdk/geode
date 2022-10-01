@@ -63,6 +63,22 @@ namespace geode::cocos {
             result = node;
             return *this;
         }
+        template<class... Args>
+        SafeCreate<T>& make(Args... args) {
+            result = T::create(args...);
+            return *this;
+        }
+        // convenience for CCSprite
+        template<class... Args>
+        SafeCreate<T>& makeWithFrame(Args... args) {
+            result = T::createWithSpriteFrameName(args...);
+            return *this;
+        }
+        template<class... Args>
+        SafeCreate<T>& makeUsing(T*(*func)(Args...), Args... args) {
+            result = func(args);
+            return *this;
+        }
         template<class O = T, class... Args>
         T* orMakeUsing(O*(*func)(Args...), Args... args) {
             if (result) return result;
@@ -72,6 +88,11 @@ namespace geode::cocos {
         T* orMake(Args... args) {
             if (result) return result;
             return O::create(args...);
+        }
+        template<class O = T, class... Args>
+        T* orMakeWithFrame(Args... args) {
+            if (result) return result;
+            return O::createWithSpriteFrameName(args...);
         }
     };
 
