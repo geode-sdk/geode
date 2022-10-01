@@ -76,7 +76,7 @@ namespace geode::cocos {
         }
         template<class... Args>
         SafeCreate<T>& makeUsing(T*(*func)(Args...), Args... args) {
-            result = func(args);
+            result = func(args...);
             return *this;
         }
         template<class O = T, class... Args>
