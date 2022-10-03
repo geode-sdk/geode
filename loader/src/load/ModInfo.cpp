@@ -161,7 +161,7 @@ Result<ModInfo> ModInfo::create(ModJson const& json) {
     }
 
     // Handle mod.json data based on target
-    if (schema <= VersionInfo(0, 2, 0)) {
+    if (schema <= VersionInfo(0, 2, 1)) {
         return ModInfo::createFromSchemaV010(json);
     }
 
@@ -233,7 +233,7 @@ Result<ModInfo> ModInfo::createFromGeodeFile(ghc::filesystem::path const& path) 
     info.m_path = path;
     
     // unzip known MD files
-    using God = std::initializer_list<std::pair<std::string, std::string*>>;
+    using God = std::initializer_list<std::pair<std::string, std::optional<std::string>*>>;
     for (auto [file, target] : God {
         { "about.md",     &info.m_details },
         { "changelog.md", &info.m_changelog },

@@ -27,6 +27,8 @@ namespace geode {
             bool vertical
         );
 
+        bool ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) override;
+
     public:
         static ScrollLayer* create(
             cocos2d::CCRect const& rect,

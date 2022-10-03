@@ -182,7 +182,9 @@ class $modify(CustomMenuLayer, MenuLayer) {
         }
 
 		// show crash info
-		if (Loader::get()->didLastLaunchCrash()) {
+		static bool shownLastCrash = false;
+		if (Loader::get()->didLastLaunchCrash() && !shownLastCrash) {
+			shownLastCrash = true;
 			auto popup = createQuickPopup(
 				"Crashed",
 				"It appears that the last session crashed. Would you like to "

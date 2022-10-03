@@ -34,7 +34,7 @@ Result<std::string> utils::file::readString(std::wstring const& path) {
 #endif
 
 Result<std::string> utils::file::readString(ghc::filesystem::path const& path) {
-    std::ifstream in(path.string(), std::ios::in | std::ios::binary);
+    std::ifstream in(path.wstring(), std::ios::in | std::ios::binary);
     if (in) {
         std::string contents;
         in.seekg(0, std::ios::end);
@@ -66,7 +66,7 @@ Result<byte_array> utils::file::readBinary(std::wstring const& path) {
 #endif
 
 Result<byte_array> utils::file::readBinary(ghc::filesystem::path const& path) {
-    std::ifstream in(path.string(), std::ios::in | std::ios::binary);
+    std::ifstream in(path.wstring(), std::ios::in | std::ios::binary);
     if (in) {
         return Ok(byte_array (std::istreambuf_iterator<char>(in), {}));
     }
@@ -103,7 +103,7 @@ Result<> utils::file::writeString(std::wstring const& path, std::string const& d
 
 Result<> utils::file::writeString(ghc::filesystem::path const& path, std::string const& data) {
     std::ofstream file;
-    file.open(path.string());
+    file.open(path.wstring());
     if (file.is_open()) {
         file << data;
         file.close();
@@ -144,7 +144,7 @@ Result<> utils::file::writeBinary(std::wstring const& path, byte_array const& da
 
 Result<> utils::file::writeBinary(ghc::filesystem::path const& path, byte_array const& data) {
     std::ofstream file;
-    file.open(path.string(), std::ios::out | std::ios::binary);
+    file.open(path.wstring(), std::ios::out | std::ios::binary);
     if (file.is_open()) {
         file.write(reinterpret_cast<const char*>(data.data()), data.size());
         file.close();

@@ -77,7 +77,7 @@ namespace geode {
          * and has downloaded a mod from the 
          * future.
          */
-        static constexpr VersionInfo s_supportedVersionMax { 0, 2, 0 };
+        static constexpr VersionInfo s_supportedVersionMax { 0, 2, 1 };
 
         Result<std::string> createTempDirectoryForMod(ModInfo const& info);
         Result<Mod*> loadModFromFile(std::string const& file);

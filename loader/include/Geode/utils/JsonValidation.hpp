@@ -214,6 +214,11 @@ namespace geode {
             return this->intoAs<T, T>(target);
         }
 
+        template<class T>
+        JsonMaybeValue<Json> into(std::optional<T>& target) {
+            return this->intoAs<T, std::optional<T>>(target);
+        }
+
         template<class A, class T>
         JsonMaybeValue<Json> intoAs(T& target) {
             this->inferType<A>();

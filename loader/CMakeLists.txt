@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
 
-project(geode-loader VERSION 0.2.0 LANGUAGES C CXX)
+project(geode-loader VERSION 0.2.1 LANGUAGES C CXX)
 set(PROJECT_VERSION_TYPE Alpha)
 
 # Package info file for internal representation

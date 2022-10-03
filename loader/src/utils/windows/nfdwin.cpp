@@ -219,7 +219,6 @@ Result<> nfdPick(
                     )) {
                         return Err("Could not get path from result");
                     }
-
                     *reinterpret_cast<Path*>(result) = filePath;
                     CoTaskMemFree(filePath);
 

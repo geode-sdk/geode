@@ -164,8 +164,8 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
     this->registerWithTouchDispatcher();
 
     auto details = MDTextArea::create(
-        m_info.m_details.size() ?
-            m_info.m_details :
+        m_info.m_details ?
+            m_info.m_details.value() :
             "### No description provided.",
         { 350.f, 137.5f }
     );
@@ -181,6 +181,59 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
         winSize.height / 2 - 20.f
     );
     m_mainLayer->addChild(detailsBar);
+
+    // changelog
+    if (m_info.m_changelog) {
+        auto changelog = MDTextArea::create(
+            m_info.m_changelog.value(),
+            { 350.f, 137.5f }
+        );
+        changelog->setPosition(
+            -5000.f,
+            winSize.height / 2 - changelog->getScaledContentSize().height / 2 - 20.f
+        );
+        changelog->setVisible(false);
+        m_mainLayer->addChild(changelog);
+        
+        auto changelogBtnOffSpr = ButtonSprite::create(
+            CCSprite::createWithSpriteFrameName("changelog.png"_spr),
+            0x20, true, 32.f, "GJ_button_01.png", 1.f
+        );
+        changelogBtnOffSpr->setScale(.65f);
+
+        auto changelogBtnOnSpr = ButtonSprite::create(
+            CCSprite::createWithSpriteFrameName("changelog.png"_spr),
+            0x20, true, 32.f, "GJ_button_02.png", 1.f
+        );
+        changelogBtnOnSpr->setScale(.65f);
+
+        auto changelogBtn = CCMenuItemToggler::create(
+            changelogBtnOffSpr,
+            changelogBtnOnSpr,
+            this,
+            makeMenuSelector([
+                this, winSize, details, detailsBar, changelog
+            ](CCMenuItemToggler* toggle) {
+                details->setVisible(toggle->isToggled());
+                // as it turns out, cocos2d is stupid and still passes touch 
+                // events to invisible nodes
+                details->setPositionX(toggle->isToggled() ?
+                    winSize.width / 2 - details->getScaledContentSize().width / 2 :
+                    -5000.f
+                );
+
+                changelog->setVisible(!toggle->isToggled());
+                // as it turns out, cocos2d is stupid and still passes touch 
+                // events to invisible nodes
+                changelog->setPositionX(!toggle->isToggled() ?
+                    winSize.width / 2 - changelog->getScaledContentSize().width / 2 :
+                    -5000.f
+                );
+            })
+        );
+        changelogBtn->setPosition(-size.width / 2 + 21.5f, .0f);
+        m_buttonMenu->addChild(changelogBtn);
+    }
 
 
     auto infoSpr = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
@@ -231,11 +284,11 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
             );
 	    }
 
-        if (m_mod->getModInfo().m_repository.size()) {
+        if (m_mod->getModInfo().m_repository) {
             auto repoBtn = CCMenuItemSpriteExtra::create(
                 CCSprite::createWithSpriteFrameName("github.png"_spr),
                 this, makeMenuSelector([this](CCObject*) {
-                    web::openLinkInBrowser(m_mod->getModInfo().m_repository);
+                    web::openLinkInBrowser(m_mod->getModInfo().m_repository.value());
                 })
             );
             repoBtn->setPosition(
@@ -245,13 +298,13 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
             m_buttonMenu->addChild(repoBtn);
         }
 
-        if (m_mod->getModInfo().m_supportInfo.size()) {
+        if (m_mod->getModInfo().m_supportInfo) {
             auto supportBtn = CCMenuItemSpriteExtra::create(
                 CCSprite::createWithSpriteFrameName("gift.png"_spr),
                 this, makeMenuSelector([this](CCObject*) {
                     MDPopup::create(
                         "Support " + m_mod->getName(),
-                        m_mod->getModInfo().m_supportInfo,
+                        m_mod->getModInfo().m_supportInfo.value(),
                         "OK"
                     )->show();
                 })

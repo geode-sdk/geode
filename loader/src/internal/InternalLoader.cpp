@@ -89,7 +89,8 @@ void InternalLoader::platformMessageBox(const char* title, std::string const& in
 
 void InternalLoader::openPlatformConsole() {
     if (m_platformConsoleOpen) return;
-    if (AllocConsole() == 0)    return;
+    if (AllocConsole() == 0)   return;
+    SetConsoleCP(CP_UTF8);
     // redirect console output
     freopen_s(reinterpret_cast<FILE**>(stdout), "CONOUT$", "w", stdout);
     freopen_s(reinterpret_cast<FILE**>(stdin), "CONIN$", "r", stdin);
