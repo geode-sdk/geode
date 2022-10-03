@@ -15,6 +15,11 @@ function(create_geode_file_old proname)
         "Please update to the new (v1.x.x) version of Geode CLI."
     )
 
+    if (GEODE_DISABLE_CLI_CALLS)
+        message("Skipping creating geode file")
+        return()
+    endif()
+
     message(STATUS "Creating geode file")
 
     if(GEODE_CLI STREQUAL "GEODE_CLI-NOTFOUND")
@@ -31,6 +36,11 @@ function(create_geode_file_old proname)
 endfunction()
 
 function(create_geode_file proname)
+    if (GEODE_DISABLE_CLI_CALLS)
+        message("Skipping creating geode file for ${proname}")
+        return()
+    endif()
+
     message(STATUS "Creating geode file for ${proname}")
 
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/mod.json ${CMAKE_CURRENT_BINARY_DIR}/what.txt)
@@ -56,6 +66,11 @@ function(create_geode_file proname)
 endfunction()
 
 function(package_geode_resources proname src dest)
+    if (GEODE_DISABLE_CLI_CALLS)
+        message("Skipping packaging resources from ${src} into ${dest}")
+        return()
+    endif()
+
     message(STATUS "Packaging resources from ${src} into ${dest}")
 
     if(GEODE_CLI STREQUAL "GEODE_CLI-NOTFOUND")

@@ -85,7 +85,7 @@ elseif(WIN32)
 	)
 endif()
 
-if (NOT GEODE_DONT_PACKAGE_RESOURCES)
+if (NOT GEODE_DISABLE_CLI_CALLS)
 	# Package resources for UI
 	package_geode_resources(
 		${PROJECT_NAME}
