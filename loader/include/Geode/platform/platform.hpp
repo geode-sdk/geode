@@ -110,7 +110,7 @@ namespace std {
 	#define GEODE_DUPABLE __attribute__((always_inline))
 	#define GEODE_VIRTUAL_CONSTEXPR constexpr
 	#define GEODE_NOINLINE __attribute__((noinline))
-	#define GEODE_PLATFORM_EXTENSION ".dylib"
+	#define GEODE_PLATFORM_EXTENSION ".ios.dylib"
 
 	#ifdef GEODE_EXPORTING
 	    #define GEODE_DLL    __attribute__((visibility("default")))

@@ -53,7 +53,7 @@ BOOL WINAPI DllMain(HINSTANCE lib, DWORD reason, LPVOID) {
 
 static SettingChangedEventHandler<BoolSetting> _(
     "geode.loader", "show-platform-console",
-    [](std::shared_ptr<BoolSetting> setting) {
+    [](auto setting) {
         if (setting->getValue()) {
             Loader::get()->openPlatformConsole();
         } else {

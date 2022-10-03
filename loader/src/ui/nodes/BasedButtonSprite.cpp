@@ -9,15 +9,15 @@ bool BasedButtonSprite::init(CCNode* ontop, int type, int size, int color) {
         )
     )) return false;
 
-    this->m_type = type;
-    this->m_size = size;
-    this->m_color = color;
+    m_type = type;
+    m_size = size;
+    m_color = color;
     
     if (ontop) {
-        this->m_onTop = ontop;
-        this->m_onTop->retain();
-        this->addChild(this->m_onTop);
-        this->m_onTop->setPosition(this->getContentSize() / 2 + this->getTopOffset());
+        m_onTop = ontop;
+        m_onTop->retain();
+        this->addChild(m_onTop);
+        m_onTop->setPosition(this->getContentSize() / 2 + this->getTopOffset());
     }
 
     return true;
@@ -46,7 +46,7 @@ CCNode* BasedButtonSprite::getTopNode() const {
 }
 
 BasedButtonSprite::~BasedButtonSprite() {
-    CC_SAFE_RELEASE(this->m_onTop);
+    CC_SAFE_RELEASE(m_onTop);
 }
 
 BasedButtonSprite* BasedButtonSprite::create(CCNode* ontop, int type, int size, int color) {

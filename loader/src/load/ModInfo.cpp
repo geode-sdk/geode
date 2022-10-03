@@ -84,6 +84,14 @@ Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
         info.m_issues = issuesInfo;
     }
 
+    // with new cli, binary name is always mod id
+    info.m_binaryName = info.m_id + GEODE_PLATFORM_EXTENSION;
+
+    if (root.has("binary")) {
+        Log::get() << "Warning: [mod.json].binary is deprecated "
+            "and will be removed in the future.";
+    }
+
     root.has("binary").asOneOf<value_t::string, value_t::object>();
 
     bool autoEndBinaryName = true;

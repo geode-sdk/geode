@@ -29,8 +29,10 @@
                 "size": 80
             }
         },
+        "sprites": [
+            "images/*.png"
+        ],
         "files": [
-            "images/*.png",
             "sounds/*.ogg"
         ],
         "spritesheets": {

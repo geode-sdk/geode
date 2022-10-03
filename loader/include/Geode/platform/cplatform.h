@@ -42,7 +42,7 @@
 		#define GEODE_IS_IOS
 		#define GEODE_IS_MOBILE
 		#define GEODE_PLATFORM_NAME "iOS"
-		#define GEODE_PLATFORM_EXTENSION ".dylib"
+		#define GEODE_PLATFORM_EXTENSION ".ios.dylib"
 	#else
 		#define GEODE_IOS(...)
 		#define GEODE_MACOS(...) __VA_ARGS__

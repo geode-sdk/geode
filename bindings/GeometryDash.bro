@@ -2546,6 +2546,10 @@ class GameLevelManager : cocos2d::CCNode {
     gd::string userNameForUserID(int id) = mac 0x0, win 0xa1c20, ios 0x0;
     void updateUserScore() = mac 0x0, win 0xada60, ios 0x0;
 
+    inline static GameLevelManager* get() {
+        return GameLevelManager::sharedState();
+    }
+
 
     //cocos2d::CCDictionary* timerDict = mac 0x1e8, win 0x0, android 0x0;
     cocos2d::CCDictionary* m_mainLevels;
@@ -3788,7 +3792,10 @@ class LoadingLayer : cocos2d::CCLayer {
 }
 
 class LocalLevelManager : cocos2d::CCNode {
-    static LocalLevelManager* sharedState() = mac 0x35dd60, win 0x0, ios 0x0;
+    static LocalLevelManager* sharedState() = mac 0x35dd60, win 0x18d260, ios 0x0;
+    inline static LocalLevelManager* get() {
+        return LocalLevelManager::sharedState();
+    }
 
     PAD = mac 0x0, win 0x1C, android 0x0;
     cocos2d::CCDictionary* m_loadData;

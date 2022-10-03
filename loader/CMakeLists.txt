@@ -4,8 +4,8 @@ project(geode-loader VERSION 0.2.1 LANGUAGES C CXX)
 set(PROJECT_VERSION_TYPE Alpha)
 
 # Package info file for internal representation
-configure_file(resources/loader-mod.json.in ${CMAKE_CURRENT_SOURCE_DIR}/resources/loader-mod.json)
-file(READ resources/loader-mod.json LOADER_MOD_JSON)
+configure_file(resources/mod.json.in ${CMAKE_CURRENT_SOURCE_DIR}/resources/mod.json)
+file(READ resources/mod.json LOADER_MOD_JSON)
 file(READ resources/about.md LOADER_ABOUT_MD)
 configure_file(src/internal/about.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/src/internal/about.hpp)
 
@@ -91,7 +91,6 @@ if (NOT GEODE_DONT_PACKAGE_RESOURCES)
 		${PROJECT_NAME}
 		${CMAKE_CURRENT_SOURCE_DIR}/resources
 		${GEODE_BIN_PATH}/nightly/resources
-		"geode.loader"
 	)
 endif()
 
