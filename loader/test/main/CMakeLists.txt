@@ -8,11 +8,11 @@ project(${PROJECT_NAME} VERSION 1.0.0)
 
 add_library(${PROJECT_NAME} SHARED main.cpp)
 
+set(GEODE_LINK_SOURCE ON)
 set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
 
 target_link_libraries(
     ${PROJECT_NAME}
-    geode-loader
     geode-sdk
 )
 

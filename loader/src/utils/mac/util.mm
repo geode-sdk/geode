@@ -7,6 +7,7 @@ USE_GEODE_NAMESPACE();
 #include <iostream>
 #include <sstream>
 #include <Cocoa/Cocoa.h>
+#include <functional>
 
 bool utils::clipboard::write(std::string const& data) {
 	[[NSPasteboard generalPasteboard] clearContents];
@@ -38,6 +39,48 @@ bool utils::file::openFolder(ghc::filesystem::path const& path) {
 
 void utils::web::openLinkInBrowser(std::string const& url) {
     [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:[NSString stringWithUTF8String: url.c_str()]]];
+}
+
+// @interface FileDialog : NSObject
+// + (Result<ghc::filesystem::path>)importDocumentWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options;
+// + (Result<std::vector<ghc::filesystem::path>>)importDocumentsWithOptions:(file::FilePickOptions const&)options
+// @end
+
+// @implementation FileDialog
+
+// + (Result<ghc::filesystem::path>)importDocumentWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options {
+// 	NSOpenPanel* panel = [NSOpenPanel openPanel];
+// 	// TODO: [panel setAllowedFileTypes:@[]];
+
+// 	auto defaultPath = [NSString stringWithCString:options.defaultPath.c_str() encoding:NSUTF8StringEncoding];
+// 	[panel setDirectoryURL: [NSURL fileURLWithPath: defaultPath]];
+// 	[panel beginWithCompletionHandler:^(NSInteger result){
+// 		if (result == NSFileHandlingPanelOKButton) {
+// 			auto fileUrl = [[panel URLs] objectAtIndex:0];
+// 			auto path = std::string([[fileUrl path] UTF8String], [[fileUrl path] lengthOfBytesUsingEncoding:NSUTF8StringEncoding]);
+// 			return Ok(path);
+// 		}
+// 		else {
+// 			return Err(result);
+// 		}
+// 	}];
+// }
+
+// @end
+
+Result<ghc::filesystem::path> utils::file::pickFile(
+    file::PickMode mode,
+    file::FilePickOptions const& options
+) {
+	throw std::runtime_error("utils::file::pickFile is not implemented");
+    // return [FileDialog importDocumentWithMode:mode options:options];
+}
+
+Result<std::vector<ghc::filesystem::path>> utils::file::pickFiles(
+    file::FilePickOptions const& options
+) {
+	throw std::runtime_error("utils::file::pickFiles is not implemented");
+     // return [FileDialog importDocumentWithOptions:options];
 }
 
 #endif

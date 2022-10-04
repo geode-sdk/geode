@@ -21,8 +21,8 @@ class cocos2d::CCApplication {
 	virtual auto setAnimationInterval(double) = mac 0x1a3ee0, ios 0x10e494;
 	static auto sharedApplication() = mac 0x1a3f30;
 	// ~CCApplication() = mac 0x1a3d10, ios 0x10e384;
-	inline cocos2d::CCApplication::CCApplication() {}
-	inline cocos2d::CCApplication::~CCApplication() {}
+	CCApplication() {}
+	~CCApplication() {}
 }
 
 class cocos2d::CCArray {
@@ -96,8 +96,8 @@ class cocos2d::CCDictionary {
 }
 
 class cocos2d::CCDirector {
-	inline cocos2d::CCDirector::CCDirector() {}
-	inline cocos2d::CCDirector::~CCDirector() {}
+	CCDirector() {}
+	~CCDirector() {}
 	// virtual ~CCDirector() = mac 0x2493a0;
 	virtual auto init() = mac 0x248df0;
 	virtual auto getScheduler() = mac 0x24af00;
@@ -146,6 +146,10 @@ class cocos2d::CCDrawNode {
 	auto setBlendFunc(cocos2d::_ccBlendFunc const&) = mac 0x379eb0;
 	auto draw() = mac 0x379020;
 	virtual ~CCDrawNode() = mac 0x378cc0;
+}
+
+class cocos2d::CCEaseBackIn {
+	static cocos2d::CCEaseBackIn* create(cocos2d::CCActionInterval*) = mac 0x2a41b0;
 }
 
 class cocos2d::CCEaseElasticOut {
@@ -209,12 +213,12 @@ class cocos2d::CCHide {
 }
 
 class cocos2d::CCIMEDelegate {
-	inline cocos2d::CCIMEDelegate::~CCIMEDelegate() {
+	~CCIMEDelegate() {
 	    CCIMEDispatcher::sharedDispatcher()->removeDelegate(this);
 	}
 	virtual auto attachWithIME() = mac 0x2776a0, ios 0x12d3d4;
 	virtual auto detachWithIME() = mac 0x277880, ios 0x12d4e8;
-	inline cocos2d::CCIMEDelegate::CCIMEDelegate() {
+	CCIMEDelegate() {
 		CCIMEDispatcher::sharedDispatcher()->addDelegate(this);
 	}
 }
@@ -308,6 +312,7 @@ class cocos2d::CCLayer {
 class cocos2d::CCLayerColor {
     CCLayerColor() = mac 0x274320, ios 0xc8aec;
     static cocos2d::CCLayerColor* create(cocos2d::_ccColor4B const&, float, float) = mac 0x2745e0;
+    static cocos2d::CCLayerColor* create(cocos2d::_ccColor4B const&) = mac 0x2744c0;
     auto draw() = mac 0x274b50, ios 0xc8fe0;
     auto getBlendFunc() = mac 0x274480, ios 0xc8bcc;
     auto init() = mac 0x274800, ios 0xc8de8;
@@ -365,6 +370,7 @@ class cocos2d::CCMenu {
 }
 
 class cocos2d::CCMenuItem {
+	auto initWithTarget(cocos2d::CCObject*, cocos2d::SEL_MenuHandler) = mac 0x1fb7f0;
 	virtual ~CCMenuItem() = mac 0x1fb8e0, ios 0x2cdf4;
 	virtual auto activate() = mac 0x1fba70, ios 0x2ceb0;
 	virtual auto selected() = mac 0x1fb9e0, ios 0x2ce2e;
@@ -442,6 +448,7 @@ class cocos2d::CCMoveTo {
 
 class cocos2d::CCNode {
     CCNode() = mac 0x122550;
+    auto boundingBox() = mac 0x123030;
     virtual auto _setZOrder(int) = mac 0x122990, ios 0x15dd7c;
     virtual auto addChild(cocos2d::CCNode*) = mac 0x1233d0, ios 0x15e5d4;
     virtual auto addChild(cocos2d::CCNode*, int) = mac 0x1233b0, ios 0x15e5c4;
@@ -614,6 +621,10 @@ class cocos2d::CCRenderTexture {
 	auto end() = mac 0x35d2c0;
 	static cocos2d::CCRenderTexture* create(int, int, cocos2d::CCTexture2DPixelFormat) = mac 0x35c720;
 	auto newCCImage(bool) = mac 0x35d7d0;
+}
+
+class cocos2d::CCRepeat {
+	static cocos2d::CCRepeat* create(cocos2d::CCFiniteTimeAction*, unsigned int) = mac 0x1f3230;
 }
 
 class cocos2d::CCRepeatForever {
@@ -823,6 +834,7 @@ class cocos2d::CCTouch {
 	auto getLocationInView() const = mac 0x38250;
 	auto getPreviousLocationInView() const = mac 0x38270;
 	auto getLocation() const = mac 0x382b0, ios 0x21ce78;
+	auto getStartLocation() const = mac 0x382e0;
 }
 
 class cocos2d::CCTouchDispatcher {
@@ -852,7 +864,7 @@ class cocos2d::ZipUtils {
 }
 
 class cocos2d::extension::CCControl {
-	inline cocos2d::extension::CCControl::CCControl() {}
+	CCControl() {}
     virtual bool init() = mac 0x1a71c0;
     virtual ~CCControl() = mac 0x1a7380;
     auto sendActionsForControlEvents(cocos2d::extension::CCControlEvent) = mac 0x1a7490;
@@ -875,7 +887,7 @@ class cocos2d::extension::CCControl {
 }
 
 class cocos2d::extension::CCControlColourPicker {
-	inline cocos2d::extension::CCControlColourPicker::CCControlColourPicker() {}
+	CCControlColourPicker() {}
     ~CCControlColourPicker() = mac 0x1aae30;
 	auto setColorValue(cocos2d::_ccColor3B const&) = mac 0x1aac10;
     auto ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x1aae10;
@@ -893,6 +905,8 @@ class cocos2d::extension::CCScale9Sprite {
     CCScale9Sprite() = mac 0x211330;
     static cocos2d::extension::CCScale9Sprite* create(char const*) = mac 0x2130d0;
     static cocos2d::extension::CCScale9Sprite* create(char const*, cocos2d::CCRect) = mac 0x212ef0;
+    static cocos2d::extension::CCScale9Sprite* createWithSpriteFrameName(char const*, cocos2d::CCRect) = mac 0x213380;
+    static cocos2d::extension::CCScale9Sprite* createWithSpriteFrameName(char const*) = mac 0x213460;
     virtual ~CCScale9Sprite() = mac 0x211590;
     virtual auto init() = mac 0x2115d0;
     virtual auto setContentSize(cocos2d::CCSize const&) = mac 0x2127c0, ios 0x13e400;

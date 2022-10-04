@@ -4,6 +4,9 @@ project(geode-sdk VERSION 0.2.1 LANGUAGES CXX C)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+if (APPLE)
+	set(CMAKE_BUILD_TYPE Debug)
+endif()
 
 add_library(${PROJECT_NAME} INTERFACE)
 

@@ -67,23 +67,23 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 )
 
 # Move compiled binary into `bin/nightly` directory
-if (APPLE)
-	add_custom_command(
-		COMMAND 
-			${CMAKE_COMMAND} -E rename "$<TARGET_FILE:${PROJECT_NAME}>" "${GEODE_BIN_PATH}/nightly/$<TARGET_FILE_NAME:${PROJECT_NAME}>"
-		DEPENDS $<TARGET_FILE:${PROJECT_NAME}>
-		VERBATIM
-		TARGET ${PROJECT_NAME}
-	)
-elseif(WIN32)
-	add_custom_command(
-		COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:${PROJECT_NAME}>" "${GEODE_BIN_PATH}/nightly/$<TARGET_FILE_NAME:${PROJECT_NAME}>"
-		COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_LINKER_FILE:${PROJECT_NAME}>" "${GEODE_BIN_PATH}/nightly/$<TARGET_LINKER_FILE_NAME:${PROJECT_NAME}>"
-		DEPENDS $<TARGET_FILE:${PROJECT_NAME}>
-		VERBATIM
-		TARGET ${PROJECT_NAME}
-	)
-endif()
+# if (APPLE)
+# 	add_custom_command(
+# 		COMMAND 
+# 			${CMAKE_COMMAND} -E rename "$<TARGET_FILE:${PROJECT_NAME}>" "${GEODE_BIN_PATH}/nightly/$<TARGET_FILE_NAME:${PROJECT_NAME}>"
+# 		DEPENDS $<TARGET_FILE:${PROJECT_NAME}>
+# 		VERBATIM
+# 		TARGET ${PROJECT_NAME}
+# 	)
+# elseif(WIN32)
+# 	add_custom_command(
+# 		COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:${PROJECT_NAME}>" "${GEODE_BIN_PATH}/nightly/$<TARGET_FILE_NAME:${PROJECT_NAME}>"
+# 		COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_LINKER_FILE:${PROJECT_NAME}>" "${GEODE_BIN_PATH}/nightly/$<TARGET_LINKER_FILE_NAME:${PROJECT_NAME}>"
+# 		DEPENDS $<TARGET_FILE:${PROJECT_NAME}>
+# 		VERBATIM
+# 		TARGET ${PROJECT_NAME}
+# 	)
+# endif()
 
 if (NOT GEODE_DISABLE_CLI_CALLS)
 	# Package resources for UI

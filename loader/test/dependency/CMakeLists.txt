@@ -10,11 +10,11 @@ add_library(${PROJECT_NAME} SHARED main.cpp)
 
 add_compile_definitions(EXPORTING_MOD)
 
+set(GEODE_LINK_SOURCE ON)
 set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
 
 target_link_libraries(
     ${PROJECT_NAME}
-    geode-loader
     geode-sdk
 )
 
