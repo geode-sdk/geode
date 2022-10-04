@@ -4907,7 +4907,7 @@ class Slider : cocos2d::CCLayer {
         this->m_sliderBar->setVisible(v);
     }
     static Slider* create(cocos2d::CCNode* target, cocos2d::SEL_MenuHandler click, float scale) {
-        return create(target, click, nullptr, "slidergroove.png", "sliderthumb.png", "sliderthumbsel.png", scale);
+        return create(target, click, "sliderBar.png", "slidergroove.png", "sliderthumb.png", "sliderthumbsel.png", scale);
     }
 
     float getValue() = mac 0x18e0c0, win 0x2e970, ios 0x0;

@@ -72,14 +72,14 @@ Result<ghc::filesystem::path> utils::file::pickFile(
     file::PickMode mode,
     file::FilePickOptions const& options
 ) {
-	throw std::runtime_error("utils::file::pickFile is not implemented");
+	return Err("utils::file::pickFile is not implemented");
     // return [FileDialog importDocumentWithMode:mode options:options];
 }
 
 Result<std::vector<ghc::filesystem::path>> utils::file::pickFiles(
     file::FilePickOptions const& options
 ) {
-	throw std::runtime_error("utils::file::pickFiles is not implemented");
+	return Err("utils::file::pickFiles is not implemented");
      // return [FileDialog importDocumentWithOptions:options];
 }
 

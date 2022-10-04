@@ -84,6 +84,9 @@ std::string generateGDSource(Root& root) {
 						output += i->inner + "\n";
 				}
 			} else if (auto fn = f.get_as<OutOfLineField>()) {
+				if (codegen::getStatus(f) != BindStatus::Unbindable)
+					continue;
+
 				switch (fn->beginning.type) {
 					case FunctionType::Ctor:
 					case FunctionType::Dtor:
