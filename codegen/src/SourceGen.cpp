@@ -63,9 +63,12 @@ types::ret{index} {class_name}::{function_name}({parameters}){const} {{
 }}
 )GEN";
 
-	// requires: static, return_type, function_name, raw_parameters, const, class_name, definition
 	char const* ool_function_definition = R"GEN(
 {return} {class_name}::{function_name}({parameters}){const} {definition}
+)GEN";
+
+	char const* ool_structor_function_definition = R"GEN(
+{class_name}::{function_name}({parameters}){const} {definition}
 )GEN";
 }}
 
@@ -81,15 +84,34 @@ std::string generateGDSource(Root& root) {
 						output += i->inner + "\n";
 				}
 			} else if (auto fn = f.get_as<OutOfLineField>()) {
-				output += fmt::format(format_strings::ool_function_definition,
-					fmt::arg("function_name", fn->beginning.name),
-					fmt::arg("const", str_if(" const ", fn->beginning.is_const)),
-					fmt::arg("class_name", c.name),
-                    fmt::arg("parameters", codegen::getParameters(fn->beginning)),
-                    fmt::arg("index", f.field_id),
-					fmt::arg("definition", fn->inner),
-				    fmt::arg("return", fn->beginning.ret.name)
-				);
+				if (codegen::getStatus(f) != BindStatus::Unbindable)
+					continue;
+
+				switch (fn->beginning.type) {
+					case FunctionType::Ctor:
+					case FunctionType::Dtor:
+						output += fmt::format(format_strings::ool_structor_function_definition,
+							fmt::arg("function_name", fn->beginning.name),
+							fmt::arg("const", str_if(" const ", fn->beginning.is_const)),
+							fmt::arg("class_name", c.name),
+		                    fmt::arg("parameters", codegen::getParameters(fn->beginning)),
+		                    fmt::arg("index", f.field_id),
+							fmt::arg("definition", fn->inner)
+						);
+						break;
+					default:
+						output += fmt::format(format_strings::ool_function_definition,
+							fmt::arg("function_name", fn->beginning.name),
+							fmt::arg("const", str_if(" const ", fn->beginning.is_const)),
+							fmt::arg("class_name", c.name),
+		                    fmt::arg("parameters", codegen::getParameters(fn->beginning)),
+		                    fmt::arg("index", f.field_id),
+							fmt::arg("definition", fn->inner),
+						    fmt::arg("return", fn->beginning.ret.name)
+						);
+						break;
+				}
+				
 			} else if (auto fn = f.get_as<FunctionBindField>()) {
 				if (codegen::getStatus(f) != BindStatus::NeedsBinding)
 					continue;

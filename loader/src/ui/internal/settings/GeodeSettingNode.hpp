@@ -293,7 +293,9 @@ namespace {
 
                 m_decArrow = CCMenuItemSpriteExtra::create(
                     decArrowSpr, self(),
-                    menu_selector(ImplArrows::onDecrement)
+                    makeMenuSelector([this](CCObject*){
+                        onDecrement(self());
+                    })
                 );
                 m_decArrow->setPosition(-width / 2 + 80.f, yPos);
                 self()->m_menu->addChild(m_decArrow);
@@ -303,7 +305,9 @@ namespace {
 
                 m_incArrow = CCMenuItemSpriteExtra::create(
                     incArrowSpr, self(),
-                    menu_selector(ImplArrows::onIncrement)
+                    makeMenuSelector([this](CCObject*){
+                        onIncrement(self());
+                    })
                 );
                 m_incArrow->setPosition(-10.f, yPos);
                 self()->m_menu->addChild(m_incArrow);
@@ -316,7 +320,9 @@ namespace {
 
                 m_bigDecArrow = CCMenuItemSpriteExtra::create(
                     decArrowSpr, self(),
-                    (SEL_MenuHandler)(&ImplArrows<C, T>::onBigDecrement)
+                    makeMenuSelector([this](CCObject*){
+                        onBigDecrement(self());
+                    })
                 );
                 m_bigDecArrow->setPosition(-width / 2 + 65.f, yPos);
                 self()->m_menu->addChild(m_bigDecArrow);
@@ -326,39 +332,37 @@ namespace {
 
                 m_bigIncArrow = CCMenuItemSpriteExtra::create(
                     incArrowSpr, self(),
-                    (SEL_MenuHandler)(&ImplArrows<C, T>::onBigIncrement)
+                    makeMenuSelector([this](CCObject*){
+                        onBigIncrement(self());
+                    })
                 );
                 m_bigIncArrow->setPosition(5.f, yPos);
                 self()->m_menu->addChild(m_bigIncArrow);
             }
         }
 
-        void onIncrement(CCObject*) {
-            auto self = reinterpret_cast<C*>(this);
+        static void onIncrement(C* self) {
             self->m_uncommittedValue += std::static_pointer_cast<T>(
                 self->m_setting
             )->getArrowStepSize();
             self->valueChanged(true);
         }
 
-        void onDecrement(CCObject*) {
-            auto self = reinterpret_cast<C*>(this);
+        static void onDecrement(C* self) {
             self->m_uncommittedValue -= std::static_pointer_cast<T>(
                 self->m_setting
             )->getArrowStepSize();
             self->valueChanged(true);
         }
 
-        void onBigIncrement(CCObject*) {
-            auto self = reinterpret_cast<C*>(this);
+        static void onBigIncrement(C* self) {
             self->m_uncommittedValue += std::static_pointer_cast<T>(
                 self->m_setting
             )->getBigArrowStepSize();
             self->valueChanged(true);
         }
 
-        void onBigDecrement(CCObject*) {
-            auto self = reinterpret_cast<C*>(this);
+        static void onBigDecrement(C* self) {
             self->m_uncommittedValue -= std::static_pointer_cast<T>(
                 self->m_setting
             )->getBigArrowStepSize();
@@ -375,7 +379,7 @@ namespace {
             return static_cast<C*>(this);
         }
 
-        float valueToSlider(
+        static float valueToSlider(
             std::shared_ptr<T> setting,
             typename T::value_t num
         ) {
@@ -387,7 +391,7 @@ namespace {
             ));
         }
 
-        typename T::value_t valueFromSlider(
+        static typename T::value_t valueFromSlider(
             std::shared_ptr<T> setting,
             float num
         ) {
@@ -406,7 +410,9 @@ namespace {
         void setupSlider(std::shared_ptr<T> setting, float width) {
             if (setting->hasSlider()) {
                 m_slider = Slider::create(
-                    self(), menu_selector(ImplSlider::onSlider), .5f
+                    self(), makeMenuSelector([this](CCObject* slider){
+                        onSlider(self(), slider);
+                    }), .5f
                 );
                 m_slider->setPosition(-50.f, -15.f);
                 self()->m_menu->addChild(m_slider);
@@ -423,8 +429,7 @@ namespace {
             m_slider->updateBar();
         }
 
-        void onSlider(CCObject* slider) {
-            auto self = reinterpret_cast<C*>(this);
+        static void onSlider(C* self, CCObject* slider) {
             auto setting = std::static_pointer_cast<T>(self->m_setting);
 
             self->m_uncommittedValue = valueFromSlider(
