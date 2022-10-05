@@ -1104,6 +1104,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
         return lel->m_editorUI;
     }
 
+    inline EditorUI() {}
     bool editButton2Usable() = mac 0x0, win 0x8b890, ios 0x0;
     inline void constrainGameLayerPosition() {
         this->constrainGameLayerPosition(-3.f, -6.f);

@@ -4,7 +4,7 @@
 
 namespace geode {
     template<typename... InitArgs>
-    class GEODE_DLL Popup : public FLAlertLayer {
+    class Popup : public FLAlertLayer {
     protected:
         cocos2d::CCSize m_size;
         cocos2d::extension::CCScale9Sprite* m_bgSprite;
