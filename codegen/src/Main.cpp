@@ -18,7 +18,7 @@ void writeFile(ghc::filesystem::path const& writePath, std::string const& output
 	}
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv) try {
 	if (argc != 4) throw codegen::error("Invalid number of parameters (expected 3 found {})", argc-1);
 
     std::string p = argv[1];
@@ -50,4 +50,7 @@ int main(int argc, char** argv) {
     writeFile(writeDir / "GeneratedType.hpp", generateTypeHeader(root)); // pretty much obsolete with a custom compiler
     writeFile(writeDir / "GeneratedHeader.hpp", generateGDHeader(root));
     writeFile(writeDir / "GeneratedSource.cpp", generateGDSource(root));
+} catch(std::exception& e) {
+    std::cout << "Codegen error: " << e.what() << "\n";
+    return 1;
 }
