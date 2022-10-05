@@ -121,7 +121,7 @@ int geodeEntry(void* platformData) {
     if (InternalMod::get()->getSettingValue<bool>("show-platform-console")) {
         Loader::get()->openPlatformConsole();
     }
-
+    
     InternalMod::get()->log()
         << Severity::Debug
         << "Entry done.";

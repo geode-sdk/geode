@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
 
-project(geode-loader VERSION 0.2.1 LANGUAGES C CXX)
+project(geode-loader VERSION ${GEODE_VERSION} LANGUAGES C CXX)
 set(PROJECT_VERSION_TYPE Alpha)
 
 # Package info file for internal representation
@@ -28,6 +28,7 @@ file(GLOB CORE_SOURCES
 	src/utils/zip/*.cpp
 	src/index/*.cpp
 	src/ui/nodes/*.cpp
+	src/ui/internal/*.cpp
 	src/ui/internal/credits/*.cpp
 	src/ui/internal/dev/*.cpp
 	src/ui/internal/info/*.cpp

@@ -7,6 +7,7 @@
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/Geode.hpp>
+#include <Geode/utils/fetch.hpp>
 #include <thread>
 
 InternalLoader::InternalLoader() : Loader() {}

@@ -2,7 +2,7 @@
 #include <thread>
 #include <Geode/utils/json.hpp>
 #include <hash.hpp>
-#include "fetch.hpp"
+#include <Geode/utils/fetch.hpp>
 
 void InstallTicket::postProgress(
     UpdateStatus status,
@@ -46,7 +46,7 @@ void InstallTicket::install(std::string const& id) {
     auto tempFile = indexDir / item.m_download.m_filename;
 
     this->postProgress(UpdateStatus::Progress, "Fetching binary", 0);
-    auto res = fetchFile(
+    auto res = web::fetchFile(
         item.m_download.m_url,
         tempFile,
         [this, tempFile](double now, double total) -> int {
@@ -54,7 +54,7 @@ void InstallTicket::install(std::string const& id) {
             std::lock_guard cancelLock(m_cancelMutex);
             if (m_cancelling) {
                 try { ghc::filesystem::remove(tempFile); } catch(...) {}
-                return 1;
+                return false;
             }
 
             // no need to scope the lock guard more as this 
@@ -65,7 +65,7 @@ void InstallTicket::install(std::string const& id) {
                 "Downloading binary",
                 static_cast<uint8_t>(now / total * 100.0)
             );
-            return 0;
+            return true;
         }
     );
     if (!res) {

@@ -1,5 +1,7 @@
 #include <Geode/utils/file.hpp>
+#include <Geode/utils/string.hpp>
 #include <fstream>
+#include <Geode/Bindings.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -187,4 +189,70 @@ Result<std::vector<std::string>> utils::file::listFilesRecursively(std::string c
         res.push_back(file.path().string());
     }
     return Ok<>(res);
+}
+
+Result<> utils::file::unzipTo(
+    ghc::filesystem::path const& from,
+    ghc::filesystem::path const& to
+) {
+    // unzip downloaded
+    auto unzip = ZipFile(from.string());
+    if (!unzip.isLoaded()) {
+        return Err("Unable to unzip index.zip");
+    }
+
+    if (
+        !ghc::filesystem::exists(to) &&
+        !ghc::filesystem::create_directories(to)
+    ) {
+        return Err(
+            "Unable to create directories \"" + 
+            to.string() + "\""
+        );
+    }
+
+    for (auto file : unzip.getAllFiles()) {
+        // this is a very bad check for seeing 
+        // if file is a directory. it seems to 
+        // work on windows at least. idk why 
+        // getAllFiles returns the directories 
+        // aswell now
+        if (
+            utils::string::endsWith(file, "\\") ||
+            utils::string::endsWith(file, "/")
+        ) continue;
+
+        auto zipPath = file;
+
+        // dont include the github repo folder
+        file = file.substr(file.find_first_of("/") + 1);
+
+        auto path = ghc::filesystem::path(file);
+        if (path.has_parent_path()) {
+            auto dir = to / path.parent_path();
+            if (
+                !ghc::filesystem::exists(dir) &&
+                !ghc::filesystem::create_directories(dir)
+            ) {
+                return Err(
+                    "Unable to create directories \"" + 
+                    dir.string() + "\""
+                );
+            }
+        }
+        unsigned long size;
+        auto data = unzip.getFileData(zipPath, &size);
+        if (!data || !size) {
+            return Err("Unable to read \"" + std::string(zipPath) + "\"");
+        }
+        auto wrt = utils::file::writeBinary(
+            to / file,
+            byte_array(data, data + size)
+        );
+        if (!wrt) {
+            return Err("Unable to write \"" + (to / file).string() + "\": " + wrt.error());
+        }
+    }
+
+    return Ok();
 }

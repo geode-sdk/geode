@@ -1,5 +1,8 @@
-#include "fetch.hpp"
+#include <Geode/utils/fetch.hpp>
 #include <curl/curl.h>
+#include <Geode/utils/casts.hpp>
+
+USE_GEODE_NAMESPACE();
 
 namespace geode::utils::fetch {
     static size_t writeData(char* data, size_t size, size_t nmemb, void* str) {
@@ -13,14 +16,14 @@ namespace geode::utils::fetch {
     }
 
     static int progress(void* ptr, double total, double now, double, double) {
-        return (*as<std::function<int(double, double)>*>(ptr))(now, total);
+        return (*as<web::FileProgressCallback*>(ptr))(now, total) != true;
     }
 }
 
-Result<> fetchFile(
+Result<> web::fetchFile(
     std::string const& url,
     ghc::filesystem::path const& into,
-    std::function<int(double, double)> prog
+    FileProgressCallback prog
 ) {
     auto curl = curl_easy_init();
     
@@ -46,7 +49,7 @@ Result<> fetchFile(
     auto res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
         curl_easy_cleanup(curl);
-        return Err("Fetch failed");
+        return Err("Fetch failed: " + std::string(curl_easy_strerror(res)));
     }
 
     char* ct;
@@ -59,7 +62,7 @@ Result<> fetchFile(
     return Err("Error getting info: " + std::string(curl_easy_strerror(res)));
 }
 
-Result<std::string> fetch(std::string const& url) {
+Result<std::string> web::fetch(std::string const& url) {
     auto curl = curl_easy_init();
     
     if (!curl) return Err("Curl not initialized!");

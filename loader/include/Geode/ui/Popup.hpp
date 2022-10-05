@@ -9,6 +9,7 @@ namespace geode {
         cocos2d::CCSize m_size;
         cocos2d::extension::CCScale9Sprite* m_bgSprite;
         cocos2d::CCLabelBMFont* m_title = nullptr;
+        CCMenuItemSpriteExtra* m_closeBtn;
 
         bool init(
             float width,
@@ -36,21 +37,21 @@ namespace geode {
             cocos2d::CCDirector::sharedDirector()->getTouchDispatcher()->incrementForcePrio(2);
             this->registerWithTouchDispatcher();
 
-            if (!setup(std::forward<InitArgs>(args)...)) {
-                return false;
-            }
-
             auto closeSpr = cocos2d::CCSprite::createWithSpriteFrameName("GJ_closeBtn_001.png");
             closeSpr->setScale(.8f);
 
-            auto closeBtn = CCMenuItemSpriteExtra::create(
+            m_closeBtn = CCMenuItemSpriteExtra::create(
                 closeSpr, this, (cocos2d::SEL_MenuHandler)(&Popup::onClose)
             );
-            closeBtn->setPosition(
+            m_closeBtn->setPosition(
                 -m_size.width / 2 + 3.f,
                 m_size.height / 2 - 3.f
             );
-            m_buttonMenu->addChild(closeBtn);
+            m_buttonMenu->addChild(m_closeBtn);
+
+            if (!setup(std::forward<InitArgs>(args)...)) {
+                return false;
+            }
 
             this->setKeypadEnabled(true);
             this->setTouchEnabled(true);

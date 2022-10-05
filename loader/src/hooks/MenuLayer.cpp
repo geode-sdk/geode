@@ -7,6 +7,7 @@
 #include <Geode/ui/MDPopup.hpp>
 #include <InternalMod.hpp>
 #include "../ui/internal/info/ModInfoLayer.hpp"
+#include <InternalLoader.hpp>
 
 USE_GEODE_NAMESPACE();
 

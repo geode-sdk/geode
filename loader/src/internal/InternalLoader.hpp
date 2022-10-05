@@ -8,6 +8,8 @@
 #include <Geode/loader/Log.hpp>
 #include <Geode/utils/Result.hpp>
 #include <unordered_set>
+#include <Geode/utils/json.hpp>
+#include <optional>
 
 USE_GEODE_NAMESPACE();
 
@@ -52,6 +54,6 @@ public:
 	void openPlatformConsole();
 	void closePlatformConsole();
 	static void platformMessageBox(const char* title, std::string const& info);
-
+	
 	friend int geodeEntry(void* platformData);
 };

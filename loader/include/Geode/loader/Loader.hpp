@@ -60,25 +60,6 @@ namespace geode {
         bool m_isSetup = false;
         static bool s_unloading;
 
-        /**
-         * Lowest supported mod version.
-         * Any mod targeting a geode version 
-         * lower than this will not be loaded, 
-         * as they will be considered out-of-date.
-         */
-        static constexpr VersionInfo s_supportedVersionMin { 0, 1, 0 };
-        /**
-         * Highest support mod version.
-         * Any mod targeting a geode version 
-         * higher than this will not be loaded, 
-         * as a higher version means that 
-         * the user's geode is out-of-date, 
-         * or that the user is a time traveller 
-         * and has downloaded a mod from the 
-         * future.
-         */
-        static constexpr VersionInfo s_supportedVersionMax { 0, 2, 1 };
-
         Result<std::string> createTempDirectoryForMod(ModInfo const& info);
         Result<Mod*> loadModFromFile(std::string const& file);
         size_t loadModsFromDirectory(
@@ -107,8 +88,8 @@ namespace geode {
          */
         static Loader* get();
         
-        VersionInfo getVersion() const;
-        std::string getVersionType() const;
+        static VersionInfo getVersion();
+        static std::string getVersionType();
 
         Result<> saveSettings();
         Result<> loadSettings();
@@ -134,9 +115,17 @@ namespace geode {
         ghc::filesystem::path getGeodeSaveDirectory() const;
 
         /**
+         * Minimum supported mod version
+         */
+        static VersionInfo minModVersion();
+        /**
+         * Maximum supported mod version
+         */
+        static VersionInfo maxModVersion();
+        /**
          * Check if a mod's version is within the supported range
          */
-        bool supportedModVersion(VersionInfo const& version);
+        static bool supportedModVersion(VersionInfo const& version);
 
         /**
          * Whether mod specified with ID is enabled 

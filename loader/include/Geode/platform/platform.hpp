@@ -77,6 +77,7 @@ namespace std {
 	#define GEODE_VIRTUAL_CONSTEXPR 
 	#define GEODE_NOINLINE __declspec(noinline)
 	#define GEODE_PLATFORM_EXTENSION ".dll"
+	#define GEODE_PLATFORM_SHORT_IDENTIFIER "win"
 
 	#ifdef GEODE_EXPORTING
 	    #define GEODE_DLL    __declspec(dllexport)
@@ -111,6 +112,7 @@ namespace std {
 	#define GEODE_VIRTUAL_CONSTEXPR constexpr
 	#define GEODE_NOINLINE __attribute__((noinline))
 	#define GEODE_PLATFORM_EXTENSION ".ios.dylib"
+	#define GEODE_PLATFORM_SHORT_IDENTIFIER "ios"
 
 	#ifdef GEODE_EXPORTING
 	    #define GEODE_DLL    __attribute__((visibility("default")))
@@ -137,6 +139,7 @@ namespace std {
 	#define GEODE_VIRTUAL_CONSTEXPR constexpr
 	#define GEODE_NOINLINE __attribute__((noinline))
 	#define GEODE_PLATFORM_EXTENSION ".dylib"
+	#define GEODE_PLATFORM_SHORT_IDENTIFIER "mac"
 
 	#ifdef GEODE_EXPORTING
 	    #define GEODE_DLL    __attribute__((visibility("default")))
@@ -169,6 +172,7 @@ namespace std {
 	#define GEODE_VIRTUAL_CONSTEXPR constexpr
 	#define GEODE_NOINLINE __attribute__((noinline))
 	#define GEODE_PLATFORM_EXTENSION ".so"
+	#define GEODE_PLATFORM_SHORT_IDENTIFIER "android"
 
 	#ifdef GEODE_EXPORTING
 	    #define GEODE_DLL    __attribute__((visibility("default")))

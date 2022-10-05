@@ -19,11 +19,11 @@ USE_GEODE_NAMESPACE();
 bool Loader::s_unloading = false;
 std::mutex g_unloadMutex;
 
-VersionInfo Loader::getVersion() const {
+VersionInfo Loader::getVersion() {
     return LOADER_VERSION;
 }
 
-std::string Loader::getVersionType() const {
+std::string Loader::getVersionType() {
     return LOADER_VERSION_TYPE;
 }
 
@@ -51,14 +51,23 @@ void Loader::createDirectories() {
 }
 
 void Loader::updateResourcePaths() {
-    // add own resources directory
+    // add own geode/resources directory
     CCFileUtils::sharedFileUtils()->addSearchPath(
         (this->getGeodeDirectory() / GEODE_RESOURCE_DIRECTORY).string().c_str()
     );
-    // add mods directory
-    CCFileUtils::sharedFileUtils()->addSearchPath(
-        (this->getGeodeDirectory() / GEODE_TEMP_DIRECTORY).string().c_str()
-    );
+
+    // add geode/temp for accessing root resources in mods
+    auto tempDir = this->getGeodeDirectory() / GEODE_TEMP_DIRECTORY;
+    CCFileUtils::sharedFileUtils()->addSearchPath(tempDir.string().c_str());
+
+    // add geode/temp/mod.id/resources for accessing additional resources in mods
+    for (auto& [_, mod] : m_mods) {
+        if (mod->m_addResourcesToSearchPath) {
+            CCFileUtils::sharedFileUtils()->addSearchPath(
+                (tempDir / mod->getID() / "resources").string().c_str()
+            );
+        }
+    }
 }
 
 void Loader::updateModResources(Mod* mod) {
@@ -447,10 +456,18 @@ size_t Loader::getFieldIndexForClass(size_t hash) {
 	return nextIndex[hash]++;
 }
 
+VersionInfo Loader::minModVersion() {
+    return { 0, 1, 0 };
+}
+
+VersionInfo Loader::maxModVersion() {
+    return Loader::getVersion();
+}
+
 bool Loader::supportedModVersion(VersionInfo const& version) {
     return 
-        version >= s_supportedVersionMin &&
-        version <= s_supportedVersionMax;
+        version >= Loader::minModVersion() &&
+        version <= Loader::maxModVersion();
 }
 
 void Loader::openPlatformConsole() {
