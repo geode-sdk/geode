@@ -87,6 +87,11 @@ std::string generateGDSource(Root& root) {
 				if (codegen::getStatus(f) != BindStatus::Unbindable)
 					continue;
 
+				// no cocos2d definitions on windows
+				if (codegen::platform == Platform::Windows && f.parent.rfind("cocos2d::", 0) == 0) {
+					continue;
+				}
+
 				switch (fn->beginning.type) {
 					case FunctionType::Ctor:
 					case FunctionType::Dtor:

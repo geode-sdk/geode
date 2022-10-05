@@ -41,7 +41,7 @@ namespace geode::modifier {
 	class FieldIntermediate {
 		// Padding used for guaranteeing any member of parents 
 		// will be in between sizeof(Intermediate) and sizeof(Parent)
-		std::max_align_t m_padding; 
+		uintptr_t m_padding; 
 	public:
 		static void fieldConstructor(void* offsetField) {
 			std::array<std::byte, sizeof(Parent)> parentContainer;
