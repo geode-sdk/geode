@@ -137,6 +137,10 @@ public:
     */
 	static CCEGLView* sharedOpenGLView();
 
+    GEODE_ADD(
+        static CCEGLView* get();
+    );
+
 protected:
 
 private:

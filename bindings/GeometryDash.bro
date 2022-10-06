@@ -2250,7 +2250,7 @@ class GJGarageLayer : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol,
 }
 
 class GJGroundLayer : cocos2d::CCLayer {
-    void updateGroundWidth() = mac 0x0, win 0x12dda0, ios 0x0;
+    void updateGroundWidth() = mac 0x356790, win 0x12dda0, ios 0x0;
 }
 
 class GJItemIcon {
@@ -4095,7 +4095,9 @@ class PlatformDownloadDelegate {
 class PlatformToolbox {
     static void hideCursor() = mac 0x27c340, win 0x0, ios 0x0;
     static void showCursor() = mac 0x27c360, win 0x0, ios 0x0;
-    static bool isControllerConnected() = mac 0x27d1b0, win 0x0, ios 0x0;
+    static bool isControllerConnected() {
+        return cocos2d::CCApplication::sharedApplication()->getControllerConnected();
+    }
 }
 
 class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate, DialogDelegate {
@@ -4565,7 +4567,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     void updatePlayerBirdFrame(int) = mac 0x22bfe0, win 0x0, ios 0x0;
     void updatePlayerDartFrame(int) = mac 0x22c260, win 0x0, ios 0x0;
     void updatePlayerFrame(int) = mac 0x22c470, win 0x0, ios 0x0;
-    void updatePlayerGlow() = mac 0x22bc50, win 0x0, ios 0x0;
+    void updatePlayerGlow() = mac 0x22bc50, win 0x1f9290, ios 0x0;
     void updatePlayerRobotFrame(int) = mac 0x22d620, win 0x0, ios 0x0;
     void updatePlayerRollFrame(int) = mac 0x22c6a0, win 0x0, ios 0x0;
     void updatePlayerScale() = mac 0x22b8b0, win 0x0, ios 0x0;

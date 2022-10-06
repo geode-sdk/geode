@@ -49,6 +49,10 @@ public:
     virtual void setIMEKeyboardState(bool bOpen);
     
     static CCEGLView* sharedOpenGLView();
+    
+    GEODE_ADD(
+        static CCEGLView* get();
+    );
 
 };
 

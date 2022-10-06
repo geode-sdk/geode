@@ -141,12 +141,68 @@ class $modify(CustomMenuLayer, MenuLayer) {
 		
 		Loader::get()->updateResourcePaths();
 
-		auto bottomMenuWithID = getChildOfType<CCMenu>(this, 1);
-		bottomMenuWithID->setID("bottom-menu");
+		auto setIDSafe = +[](CCNode* node, int index, const char* id) {
+			if (auto child = getChild(node, index)) {
+				child->setID(id);
+			}
+		};
 
+		// set IDs to everything
+		this->setID("main-menu-layer");
+		setIDSafe(this, 0, "main-menu-bg");
+		getChildOfType<CCSprite>(this, 0)->setID("main-title");
+
+		if (CCApplication::get()->getControllerConnected()) {
+			getChildOfType<CCSprite>(this, 1)->setID("play-gamepad-icon");
+			getChildOfType<CCSprite>(this, 2)->setID("editor-gamepad-icon");
+			getChildOfType<CCSprite>(this, 3)->setID("icon-kit-gamepad-icon");
+
+			getChildOfType<CCSprite>(this, 4)->setID("settings-gamepad-icon");
+			getChildOfType<CCSprite>(this, 5)->setID("mouse-gamepad-icon");
+			getChildOfType<CCSprite>(this, 6)->setID("click-gamepad-icon");
+
+			getChildOfType<CCLabelBMFont>(this, 0)->setID("mouse-gamepad-label");
+			getChildOfType<CCLabelBMFont>(this, 1)->setID("click-gamepad-label");
+
+			getChildOfType<CCLabelBMFont>(this, 2)->setID("player-username");
+		} else {
+			getChildOfType<CCLabelBMFont>(this, 0)->setID("player-username");
+		}
+		if (auto menu = getChildOfType<CCMenu>(this, 0)) {
+			menu->setID("main-menu");
+			setIDSafe(menu, 0, "play-button");
+			setIDSafe(menu, 1, "icon-kit-button");
+			setIDSafe(menu, 2, "editor-button");
+			setIDSafe(menu, 3, "profile-button");
+		}
+		if (auto menu = getChildOfType<CCMenu>(this, 1)) {
+			menu->setID("bottom-menu");
+			setIDSafe(menu, 0, "achievements-button");
+			setIDSafe(menu, 1, "settings-button");
+			setIDSafe(menu, 2, "stats-button");
+			setIDSafe(menu, 3, "newgrounds-button");
+			setIDSafe(menu, -1,"daily-chest-button");
+		}
+		if (auto menu = getChildOfType<CCMenu>(this, 2)) {
+			menu->setID("social-media-menu");
+			setIDSafe(menu, 0, "robtop-logo-button");
+			setIDSafe(menu, 1, "facebook-button");
+			setIDSafe(menu, 2, "twitter-button");
+			setIDSafe(menu, 3, "youtube-button");
+		}
+		if (auto menu = getChildOfType<CCMenu>(this, 3)) {
+			menu->setID("more-games-menu");
+			setIDSafe(menu, 0, "more-games-button");
+			setIDSafe(menu, 1, "close-button");
+		}
+
+		auto winSize = CCDirector::sharedDirector()->getWinSize();
+
+		// add geode button
 		auto bottomMenu = static_cast<CCMenu*>(this->getChildByID("bottom-menu"));
 
-		auto chest = getChild(bottomMenu, -1);
+		// keep chest in the same position
+		auto chest = bottomMenu->getChildByID("daily-chest-button");
 		if (chest) {
 			chest->retain();
 			chest->removeFromParent();
@@ -167,6 +223,7 @@ class $modify(CustomMenuLayer, MenuLayer) {
 		auto btn = CCMenuItemSpriteExtra::create(
 			g_geodeButton.data(), this, menu_selector(CustomMenuLayer::onGeode)
 		);
+		btn->setID("geode-button");
 		bottomMenu->addChild(btn);
 
 		bottomMenu->alignItemsHorizontallyWithPadding(3.f);
@@ -177,6 +234,12 @@ class $modify(CustomMenuLayer, MenuLayer) {
 		if (chest) {
 			bottomMenu->addChild(chest);
 			chest->release();
+		}
+
+		if (auto node = this->getChildByID("settings-gamepad-icon")) {
+			node->setPositionX(bottomMenu->getChildByID(
+				"settings-button"
+			)->getPositionX() + winSize.width / 2);
 		}
 
 		// show if some mods failed to load

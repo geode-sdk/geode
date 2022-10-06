@@ -29,6 +29,8 @@ private:
 
 public:
     static GeodeNodeMetadata* set(CCNode* target) {
+        if (!target) return nullptr;
+        
         auto old = target->m_pUserObject;
         // faster than dynamic_cast, technically can 
         // but extremely unlikely to fail

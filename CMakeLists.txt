@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
 
-set(GEODE_VERSION 0.3.0)
+set(GEODE_VERSION 0.3.1)
 
 project(geode-sdk VERSION ${GEODE_VERSION} LANGUAGES CXX C)
 

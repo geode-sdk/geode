@@ -137,9 +137,7 @@ public:
     }
 
     GEODE_ADD(
-        inline static CCDirector* get() {
-            return CCDirector::sharedDirector();
-        }
+        static CCDirector* get();
     )
 
     // attribute
