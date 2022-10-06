@@ -332,7 +332,7 @@ namespace geode {
             bool m_hasArrows = true;
             bool m_hasBigArrows = false;
             size_t m_arrowStep = 1;
-            size_t m_bigArrowStep = 1;
+            size_t m_bigArrowStep = 5;
         
         public:
             Result<> parseArrows(JsonMaybeObject<ModJson>& obj) {

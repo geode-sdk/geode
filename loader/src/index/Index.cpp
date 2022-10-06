@@ -2,7 +2,7 @@
 #include <thread>
 #include <Geode/utils/json.hpp>
 #include <Geode/utils/JsonValidation.hpp>
-#include "fetch.hpp"
+#include <Geode/utils/fetch.hpp>
 
 #define GITHUB_DONT_RATE_LIMIT_ME_PLS 0
 
@@ -17,61 +17,6 @@ static Result<Json> readJSON(ghc::filesystem::path const& path) {
     } catch(std::exception& e) {
         return Err("Error parsing JSON: " + std::string(e.what()));
     }
-}
-
-static Result<> unzipTo(
-    ghc::filesystem::path const& from,
-    ghc::filesystem::path const& to
-) {
-    // unzip downloaded
-    auto unzip = ZipFile(from.string());
-    if (!unzip.isLoaded()) {
-        return Err("Unable to unzip index.zip");
-    }
-
-    for (auto file : unzip.getAllFiles()) {
-        // this is a very bad check for seeing 
-        // if file is a directory. it seems to 
-        // work on windows at least. idk why 
-        // getAllFiles returns the directories 
-        // aswell now
-        if (
-            utils::string::endsWith(file, "\\") ||
-            utils::string::endsWith(file, "/")
-        ) continue;
-
-        auto zipPath = file;
-
-        // dont include the github repo folder
-        file = file.substr(file.find_first_of("/") + 1);
-
-        auto path = ghc::filesystem::path(file);
-        if (path.has_parent_path()) {
-            if (
-                !ghc::filesystem::exists(to / path.parent_path()) &&
-                !ghc::filesystem::create_directories(to / path.parent_path())
-            ) {
-                return Err(
-                    "Unable to create directories \"" + 
-                    path.parent_path().string() + "\""
-                );
-            }
-        }
-        unsigned long size;
-        auto data = unzip.getFileData(zipPath, &size);
-        if (!data || !size) {
-            return Err("Unable to read \"" + std::string(zipPath) + "\"");
-        }
-        auto wrt = utils::file::writeBinary(
-            to / file,
-            byte_array(data, data + size)
-        );
-        if (!wrt) {
-            return Err("Unable to write \"" + file + "\": " + wrt.error());
-        }
-    }
-
-    return Ok();
 }
 
 static PlatformID platformFromString(std::string const& str) {
@@ -126,7 +71,7 @@ void Index::updateIndexThread(bool force) {
     );
 
     // get all commits in index repo
-    auto commit = fetchJSON(
+    auto commit = web::fetchJSON(
         "https://api.github.com/repos/geode-sdk/mods/commits"
     );
     if (!commit) {
@@ -202,7 +147,7 @@ void Index::updateIndexThread(bool force) {
             "Downloading index",
             50
         );
-        auto gotZip = fetchFile(
+        auto gotZip = web::fetchFile(
             "https://github.com/geode-sdk/mods/zipball/main",
             indexDir / "index.zip"
         );
@@ -218,7 +163,7 @@ void Index::updateIndexThread(bool force) {
             ghc::filesystem::remove_all(indexDir / "index");
         }
 
-        auto unzip = unzipTo(indexDir / "index.zip", indexDir);
+        auto unzip = file::unzipTo(indexDir / "index.zip", indexDir);
         if (!unzip) {
             return indexUpdateProgress(
                 UpdateStatus::Failed, unzip.error()
@@ -252,6 +197,7 @@ void Index::indexUpdateProgress(
     uint8_t percentage
 ) {
     Loader::get()->queueInGDThread([this, status, info, percentage]() -> void {
+        Log::get() << info;
         m_callbacksMutex.lock();
         for (auto& d : m_callbacks) {
             d(status, info, percentage);

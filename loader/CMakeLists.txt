@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
 
-project(geode-loader VERSION 0.2.1 LANGUAGES C CXX)
+project(geode-loader VERSION ${GEODE_VERSION} LANGUAGES C CXX)
 set(PROJECT_VERSION_TYPE Alpha)
 
 # Package info file for internal representation
@@ -28,6 +28,7 @@ file(GLOB CORE_SOURCES
 	src/utils/zip/*.cpp
 	src/index/*.cpp
 	src/ui/nodes/*.cpp
+	src/ui/internal/*.cpp
 	src/ui/internal/credits/*.cpp
 	src/ui/internal/dev/*.cpp
 	src/ui/internal/info/*.cpp
@@ -61,10 +62,24 @@ make_directory("${GEODE_BIN_PATH}/nightly")
 set_target_properties(${PROJECT_NAME} PROPERTIES 
 	PREFIX "" 
 	OUTPUT_NAME "Geode"
+	# i'm going to say a slur that not a single soul has uttered in the last 200 years
+	LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO "${GEODE_BIN_PATH}/nightly"
+	RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${GEODE_BIN_PATH}/nightly"
+	ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO "${GEODE_BIN_PATH}/nightly"
+	LIBRARY_OUTPUT_DIRECTORY_RELEASE "${GEODE_BIN_PATH}/nightly"
+	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${GEODE_BIN_PATH}/nightly"
+	ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${GEODE_BIN_PATH}/nightly"
+	LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL "${GEODE_BIN_PATH}/nightly"
+	RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL "${GEODE_BIN_PATH}/nightly"
+	ARCHIVE_OUTPUT_DIRECTORY_MINSIZEREL "${GEODE_BIN_PATH}/nightly"
 	LIBRARY_OUTPUT_DIRECTORY "${GEODE_BIN_PATH}/nightly"
 	RUNTIME_OUTPUT_DIRECTORY "${GEODE_BIN_PATH}/nightly"
 	ARCHIVE_OUTPUT_DIRECTORY "${GEODE_BIN_PATH}/nightly"
 )
+
+if (GEODE_NO_UNDEFINED_VIRTUALS)
+	target_compile_definitions(${PROJECT_NAME} PUBLIC GEODE_NO_UNDEFINED_VIRTUALS)
+endif()
 
 if (NOT GEODE_DISABLE_CLI_CALLS)
 	# Package resources for UI
@@ -129,6 +144,11 @@ elseif (WIN32)
 	# add_subdirectory(dobby)
 
 	target_link_libraries(${PROJECT_NAME} dbghelp)
+
+	# disable warnings about CCNode::setID
+	if (MSVC)
+		target_link_options(${PROJECT_NAME} PUBLIC /ignore:4217)
+	endif()
 endif()
 
 # Build test mods if needed

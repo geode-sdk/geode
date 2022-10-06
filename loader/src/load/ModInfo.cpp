@@ -148,28 +148,28 @@ Result<ModInfo> ModInfo::create(ModJson const& json) {
             "specified, or it is invalidally formatted (required: \"[v]X.X.X\")!"
         );
     }
-    if (schema < Loader::s_supportedVersionMin) {
+    if (schema < Loader::minModVersion()) {
         return Err(
             "[mod.json] is built for an older version (" + 
             schema.toString() + ") of Geode (current: " + 
-            Loader::s_supportedVersionMin.toString() +
+            Loader::minModVersion().toString() +
             "). Please update the mod to the latest version, "
             "and if the problem persists, contact the developer "
             "to update it."
         );
     }
-    if (schema > Loader::s_supportedVersionMax) {
+    if (schema > Loader::maxModVersion()) {
         return Err(
             "[mod.json] is built for a newer version (" + 
             schema.toString() + ") of Geode (current: " +
-            Loader::s_supportedVersionMax.toString() +
+            Loader::maxModVersion().toString() +
             "). You need to update Geode in order to use "
             "this mod."
         );
     }
 
     // Handle mod.json data based on target
-    if (schema <= VersionInfo(0, 2, 1)) {
+    if (schema >= VersionInfo(0, 1, 0)) {
         return ModInfo::createFromSchemaV010(json);
     }
 

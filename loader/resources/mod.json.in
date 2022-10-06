@@ -52,7 +52,19 @@
             "type": "bool",
             "default": false,
             "name": "Show Platform Console",
-            "description": "Show the native console (if one exists). <cr>This setting is meant for developers</c>."
+            "description": "Show the native console (if one exists). <cr>This setting is meant for developers</c>"
+        },
+        "auto-check-updates": {
+            "type": "bool",
+            "default": true,
+            "name": "Check For Updates",
+            "description": "Automatically check for <cy>updates</c> to Geode on startup"
+        },
+        "auto-update-mods": {
+            "type": "bool",
+            "default": true,
+            "name": "Auto-Update Mods",
+            "description": "Automatically update <cp>mods</c> on startup"
         }
     },
     "issues": {

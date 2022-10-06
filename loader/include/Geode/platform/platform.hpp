@@ -63,6 +63,12 @@ namespace std {
     };
 }
 
+#if !defined(__PRETTY_FUNCTION__) && !defined(__GNUC__)
+	#define GEODE_PRETTY_FUNCTION std::string(__FUNCSIG__)
+#else
+	#define GEODE_PRETTY_FUNCTION std::string(__PRETTY_FUNCTION__)
+#endif
+
 // Windows
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 
@@ -77,6 +83,7 @@ namespace std {
 	#define GEODE_VIRTUAL_CONSTEXPR 
 	#define GEODE_NOINLINE __declspec(noinline)
 	#define GEODE_PLATFORM_EXTENSION ".dll"
+	#define GEODE_PLATFORM_SHORT_IDENTIFIER "win"
 
 	#ifdef GEODE_EXPORTING
 	    #define GEODE_DLL    __declspec(dllexport)
@@ -111,6 +118,7 @@ namespace std {
 	#define GEODE_VIRTUAL_CONSTEXPR constexpr
 	#define GEODE_NOINLINE __attribute__((noinline))
 	#define GEODE_PLATFORM_EXTENSION ".ios.dylib"
+	#define GEODE_PLATFORM_SHORT_IDENTIFIER "ios"
 
 	#ifdef GEODE_EXPORTING
 	    #define GEODE_DLL    __attribute__((visibility("default")))
@@ -137,6 +145,7 @@ namespace std {
 	#define GEODE_VIRTUAL_CONSTEXPR constexpr
 	#define GEODE_NOINLINE __attribute__((noinline))
 	#define GEODE_PLATFORM_EXTENSION ".dylib"
+	#define GEODE_PLATFORM_SHORT_IDENTIFIER "mac"
 
 	#ifdef GEODE_EXPORTING
 	    #define GEODE_DLL    __attribute__((visibility("default")))
@@ -169,6 +178,7 @@ namespace std {
 	#define GEODE_VIRTUAL_CONSTEXPR constexpr
 	#define GEODE_NOINLINE __attribute__((noinline))
 	#define GEODE_PLATFORM_EXTENSION ".so"
+	#define GEODE_PLATFORM_SHORT_IDENTIFIER "android"
 
 	#ifdef GEODE_EXPORTING
 	    #define GEODE_DLL    __attribute__((visibility("default")))

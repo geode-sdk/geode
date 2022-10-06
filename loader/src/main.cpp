@@ -119,6 +119,6 @@ int geodeEntry(void* platformData) {
     }
 
     internal_log(Severity::Debug, "Entry done.");
-    
+
     return 0;
 }

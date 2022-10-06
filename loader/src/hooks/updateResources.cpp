@@ -14,6 +14,7 @@ class $modify(LoadingLayer) {
 	void loadAssets() {
 		LoadingLayer::loadAssets();
 		if (this->m_loadStep == 5) {
+			Loader::get()->updateResourcePaths();
 			Loader::get()->updateResources();
 		}
 	}
