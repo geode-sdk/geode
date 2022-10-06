@@ -36,7 +36,9 @@ RT_ADD(
 			return m_bShiftPressed;
 		}
 
-		static CCKeyboardDispatcher* get();
+		GEODE_ADD(
+			static CCKeyboardDispatcher* get();
+		);
 
 		const char* keyToString(enumKeyCodes key);
 

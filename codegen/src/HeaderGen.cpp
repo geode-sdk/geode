@@ -30,7 +30,11 @@ public:
 )GEN";
 
     char const* error_definition_virtual = R"GEN(
+    [[deprecated("Use of undefined virtual function - will crash at runtime!!!")]]
     {virtual}{return_type} {function_name}({parameters}){const}{{
+        #ifdef GEODE_NO_UNDEFINED_VIRTUALS
+        static_assert(false, "Undefined virtual function " GEODE_PRETTY_FUNCTION " - implement in GeometryDash.bro");
+        #endif
         throw std::runtime_error("Use of undefined virtual function " GEODE_PRETTY_FUNCTION);
     }}
 )GEN";

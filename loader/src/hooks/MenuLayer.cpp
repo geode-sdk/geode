@@ -11,6 +11,8 @@
 
 USE_GEODE_NAMESPACE();
 
+#pragma warning(disable: 4217)
+
 class CustomMenuLayer;
 
 static Ref<Notification> g_indexUpdateNotif = nullptr;
@@ -137,8 +139,13 @@ class $modify(CustomMenuLayer, MenuLayer) {
 	bool init() {
 		if (!MenuLayer::init())
 			return false;
+		
+		Loader::get()->updateResourcePaths();
 
-		auto bottomMenu = nodeOrDefault(getChildOfType<CCMenu>(this, 1));
+		auto bottomMenuWithID = getChildOfType<CCMenu>(this, 1);
+		bottomMenuWithID->setID("bottom-menu");
+
+		auto bottomMenu = static_cast<CCMenu*>(this->getChildByID("bottom-menu"));
 
 		auto chest = getChild(bottomMenu, -1);
 		if (chest) {

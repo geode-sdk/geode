@@ -52,6 +52,7 @@ class CCActionManager;
 class CCComponent;
 class CCDictionary;
 class CCComponentContainer;
+class CCKeyboardDispatcher;
 
 /**
  * @addtogroup base_nodes
@@ -841,6 +842,40 @@ public:
     
     /// @} end of Tag & User Data
     
+    GEODE_ADD(
+    private:
+        friend class geode::modifier::FieldContainer;
+
+        geode::modifier::FieldContainer* getFieldContainer();
+    
+    public:
+        /**
+         * Get the string ID of this node
+         * @returns The ID, or an empty string if the node has no ID.
+         */
+        std::string getID();
+        /**
+         * Set the string ID of this node. String IDs are a Geode addition 
+         * that are much safer to use to get nodes than absolute indexes
+         * @param id The ID of the node, recommended to be in kebab case 
+         * without any spaces or uppercase letters
+         */
+        void setID(std::string const& id);
+
+        /**
+         * Get a child by its string ID
+         * @param id ID of the child
+         * @returns The child, or nullptr if none was found
+         */
+        CCNode* getChildByID(std::string const& id);
+
+        /**
+         * Get a child by its string ID. Recursively searches all the children
+         * @param id ID of the child
+         * @returns The child, or nullptr if none was found
+         */
+        CCNode* getChildByIDRecursive(std::string const& id);
+    );
     
     /// @{
     /// @name Shader Program
