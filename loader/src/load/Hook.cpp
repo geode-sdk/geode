@@ -84,10 +84,7 @@ bool InternalLoader::loadHooks() {
     for (auto const& hook : internalHooks()) {
         auto res = hook.mod->addHook(hook.hook);
         if (!res) {
-            hook.mod->logInfo(
-                res.error(),
-                Severity::Error
-            );
+            log::log(Severity::Error, hook.mod, res.error());
             thereWereErrors = true;
         }
     }

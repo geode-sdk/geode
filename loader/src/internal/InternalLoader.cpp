@@ -21,20 +21,18 @@ InternalLoader* InternalLoader::get() {
 }
 
 bool InternalLoader::setup() {
-    InternalMod::get()->log()
-        << Severity::Debug << "Set up internal mod representation";
-
-    InternalMod::get()->log()
-        << Severity::Debug << "Loading hooks... ";
+    log::log(Severity::Debug, InternalMod::get(), "Set up internal mod representation");
+    log::log(Severity::Debug, InternalMod::get(), "Loading hooks... ");
 
     if (!this->loadHooks()) {
-        InternalMod::get()->log()
-            << "There were errors loading some hooks, "
-            "see console for details";
+        log::log(
+            Severity::Error,
+            InternalMod::get(),
+            "There were errors loading some hooks, see console for details"
+        );
     }
 
-    InternalMod::get()->log()
-        << Severity::Debug << "Loaded hooks";
+    log::log(Severity::Debug, InternalMod::get(), "Loaded hooks");
 
     return true;
 }
@@ -56,9 +54,9 @@ void InternalLoader::executeGDThreadQueue() {
     m_gdThreadMutex.unlock();
 }
 
-void InternalLoader::logConsoleMessage(LogPtr* msg) {
+void InternalLoader::logConsoleMessage(std::string const& msg) {
     if (m_platformConsoleOpen) {
-        std::cout << msg->toString(true);
+        std::cout << msg;
     }
 }
 

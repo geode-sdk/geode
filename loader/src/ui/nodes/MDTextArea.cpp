@@ -281,7 +281,7 @@ struct MDParser {
                     auto isClosing = tag.front() == '/';
                     if (isClosing) tag = tag.substr(1);
                     if (tag.front() != 'c') {
-                        Log::get() << Severity::Warning << "Unknown tag " << text;
+                        log::warn("Unknown tag ", text);
                         renderer->renderString(text);
                     } else {
                         if (isClosing) {
@@ -291,20 +291,18 @@ struct MDParser {
                             if (color) {
                                 renderer->pushColor(color.value());
                             } else {
-                                Log::get() << Severity::Warning
-                                    << "Error parsing color: " << color.error();
+                                log::warn("Error parsing color: ", color.error());
                             }
                         }
                     }
                 } else {
-                    Log::get() << Severity::Warning
-                        << "Too short tag " << text;
+                    log::warn("Too short tag ", text);
                     renderer->renderString(text);
                 }
             } break;
 
             default: {
-                Log::get() << Severity::Warning << "Unhandled text type " << type;
+                log::warn("Unhandled text type ", type);
             } break;
         }
         return 0;
@@ -369,7 +367,7 @@ struct MDParser {
             } break;
 
             default: {
-                Log::get() << Severity::Warning << "Unhandled block enter type " << type;
+                log::warn("Unhandled block enter type ", type);
             } break;
         }
         return 0;
@@ -451,7 +449,7 @@ struct MDParser {
             case MD_BLOCKTYPE::MD_BLOCK_HR: {} break;
 
             default: {
-                Log::get() << Severity::Warning << "Unhandled block leave type " << type;
+                log::warn("Unhandled block leave type ", type);
             } break;
         }
         return 0;
@@ -492,7 +490,7 @@ struct MDParser {
             } break;
 
             default: {
-                Log::get() << Severity::Warning << "Unhandled span enter type " << type;
+                log::warn("Unhandled span enter type ", type);
             } break;
         }
         return 0;
@@ -530,7 +528,7 @@ struct MDParser {
             } break;
 
             default: {
-                Log::get() << Severity::Warning << "Unhandled span leave type " << type;
+                log::warn("Unhandled span leave type ", type);
             } break;
         }
         return 0;

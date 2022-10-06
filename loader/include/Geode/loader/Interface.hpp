@@ -6,12 +6,10 @@
 #include <variant>
 #include "../utils/casts.hpp"
 #include "../utils/Result.hpp"
-#include "Log.hpp"
 #include "Mod.hpp"
 
 namespace geode {
 	class Hook;
-	class LogPtr;
 
 	/**
 	 * For developing your own mods, it is 
@@ -49,16 +47,10 @@ namespace geode {
 			Result<Hook*>(Mod::*m_addFunction)(std::string const&, void*);
 		};
 
-		struct ScheduledLog {
-			std::string m_info;
-			Severity m_severity;
-		};
-
 		using ScheduledFunction = std::function<void()>;
 
 		Mod* m_mod = nullptr;
 		std::vector<ScheduledHook> m_scheduledHooks;
-		std::vector<ScheduledLog> m_scheduledLogs;
 		std::vector<ScheduledFunction> m_scheduledFunctions;
 		
 	public:
@@ -70,11 +62,6 @@ namespace geode {
 		[[deprecated("Use Mod::get instead")]]
 		static inline GEODE_HIDDEN Mod* mod() {
 			return Interface::get()->m_mod;
-		}
-
-		[[deprecated("Use Log::get instead")]]
-		static inline GEODE_HIDDEN Log log() {
-			return Interface::get()->m_mod->log();
 		}
 
 		GEODE_DLL void init(Mod*);
@@ -113,16 +100,6 @@ namespace geode {
 			return Ok<Hook*>(nullptr);
         }
 
-        /**
-         * Log an information. Equivalent to 
-         * ```
-         * Mod::log() << Severity::severity << info.
-         * ```
-         * @param info Log information
-         * @param severity Log severity
-         */
-        GEODE_DLL void logInfo(std::string const& info, Severity severity);
-
         GEODE_DLL void scheduleOnLoad(ScheduledFunction function);
 
         friend Mod* Mod::get<void>();
@@ -131,10 +108,6 @@ namespace geode {
 	template<>
 	inline Mod* Mod::get<void>() {
 		return Interface::get()->m_mod;
-	}
-
-	inline Log Log::get() {
-		return Mod::get()->log();
 	}
 }
 

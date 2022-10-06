@@ -26,8 +26,6 @@ namespace geode {
 
     class Mod;
     class Hook;
-    class Log;
-    class LogPtr;
     struct ModInfo;
 
     namespace modifier {
@@ -51,7 +49,7 @@ namespace geode {
         };
         
         std::unordered_map<std::string, Mod*> m_mods;
-        std::vector<LogPtr*> m_logs;
+        std::vector<log::Log> m_logs;
         std::ofstream m_logStream;
         std::vector<ghc::filesystem::path> m_modDirectories;
         std::vector<FailedModInfo> m_erroredMods;
@@ -168,11 +166,10 @@ namespace geode {
          */
         static bool isUnloading();
 
-        void pushLog(LogPtr* log);
-        void popLog(LogPtr* log);
-        std::vector<LogPtr*> getLogs() const;
-        std::vector<LogPtr*> getLogs(
-            std::initializer_list<Severity> severityFilter
+        void pushLog(log::Log&& log);
+        void popLog(log::Log* log);
+        std::vector<log::Log*> getLogs(
+            std::initializer_list<Severity> severityFilter = {}
         );
         
         /**

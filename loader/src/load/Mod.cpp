@@ -76,10 +76,10 @@ Result<> Mod::loadSettings() {
                         );
                     }
                 } else {
-                    this->logInfo(
-                        "Encountered unknown setting \"" + key + "\" while "
-                        "loading settings",
-                        Severity::Warning
+                    log::log(
+                        Severity::Warning,
+                        this, 
+                        "Encountered unknown setting \"" + key + "\" while loading settings"
                     );
                 }
             }
@@ -230,7 +230,7 @@ Result<> Mod::load() {
     m_loaded = true;
     if (m_loadDataFunc) {
         if (!m_loadDataFunc(m_saveDirPath.string().c_str())) {
-            this->logInfo("Mod load data function returned false", Severity::Error);
+            log::log(Severity::Error, this, "Mod load data function returned false");
         }
     }
     m_loadErrorInfo = "";
@@ -249,7 +249,7 @@ Result<> Mod::unload() {
     
     if (m_saveDataFunc) {
         if (!m_saveDataFunc(m_saveDirPath.string().c_str())) {
-            this->logInfo("Mod save data function returned false", Severity::Error);
+            log::log(Severity::Error, this, "Mod save data function returned false");
         }
     }
 
@@ -383,13 +383,13 @@ bool Mod::updateDependencyStates() {
                     auto r = dep.m_mod->load();
                     if (!r) {
                         dep.m_state = ModResolveState::Unloaded;
-                        dep.m_mod->logInfo(r.error(), Severity::Error);
+                        log::log(Severity::Error, dep.m_mod, r.error());
                     }
                     else {
                     	auto r = dep.m_mod->enable();
                     	if (!r) {
 	                        dep.m_state = ModResolveState::Disabled;
-	                        dep.m_mod->logInfo(r.error(), Severity::Error);
+                            log::log(Severity::Error, dep.m_mod, r.error());
 	                    }
                     }
 				} else {
@@ -410,22 +410,22 @@ bool Mod::updateDependencyStates() {
 		}
 	}
     if (!hasUnresolved && !m_resolved) {
-        Log::get() << Severity::Debug << "All dependencies for " << m_info.m_id << " found";
+        log::debug("All dependencies for ", m_info.m_id, " found");
         m_resolved = true;
         if (m_enabled) {
-            Log::get() << Severity::Debug << "Resolved & loading " << m_info.m_id;
+            log::debug("Resolved & loading ", m_info.m_id);
             auto r = this->load();
             if (!r) {
-                Log::get() << Severity::Error << this << "Error loading: " << r.error();
+                log::error(this, " Error loading: ", r.error());
             }
             else {
             	auto r = this->enable();
 	            if (!r) {
-	                Log::get() << Severity::Error << this << "Error enabling: " << r.error();
+	                log::error(this, " Error enabling: ", r.error());
 	            }
             }
         } else {
-            Log::get() << Severity::Debug << "Resolved " << m_info.m_id << ", however not loading it as it is disabled";
+            log::debug("Resolved ", m_info.m_id, ", however not loading it as it is disabled");
         }
     }
     return hasUnresolved;
@@ -516,18 +516,6 @@ bool Mod::wasSuccesfullyLoaded() const {
 
 std::vector<Hook*> Mod::getHooks() const {
     return m_hooks;
-}
-
-Log Mod::log() {
-    return Log(this);
-}
-
-void Mod::logInfo(
-    std::string const& info,
-    Severity severity
-) {
-    Log l(this);
-    l << severity << info;
 }
 
 bool Mod::depends(std::string const& id) const {

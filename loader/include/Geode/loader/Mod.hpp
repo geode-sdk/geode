@@ -24,7 +24,6 @@ namespace geode {
     class Hook;
     class Patch;
     class Loader;
-    class Log;
     class Mod;
     class Setting;
 
@@ -366,27 +365,6 @@ namespace geode {
         static inline Mod* get();
 
         /**
-         * Log to geode's integrated console / 
-         * the platform debug console.
-         * @returns Reference to log stream. Make sure 
-         * to end your logging with geode::endl.
-         */
-        Log log();
-
-        /**
-         * Log an information. Equivalent to 
-         * ```
-         * Mod::log() << Severity::severity << info.
-         * ```
-         * @param info Log infomration
-         * @param severity Log severity
-         */
-        void logInfo(
-            std::string const& info,
-            Severity severity
-        );
-
-        /**
          * Get all hooks owned by this Mod
          * @returns Vector of hooks
          */
@@ -563,4 +541,14 @@ namespace geode {
 
 		const char* expandSpriteName(const char* name);
     };
+
+    /**
+     * To bypass the need for cyclic dependencies,
+     * this function does the exact same as Mod::get()
+     * However, it can be externed, unlike Mod::get()
+     * @returns Same thing Mod::get() returns
+     */
+    inline Mod* getMod() {
+        return Mod::get();
+    }
 }

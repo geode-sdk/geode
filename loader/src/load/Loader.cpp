@@ -47,7 +47,7 @@ void Loader::createDirectories() {
     }
 
     // files too
-    m_logStream = std::ofstream(logDir / generateLogName());
+    m_logStream = std::ofstream(logDir / log::generateLogName());
 }
 
 void Loader::updateResourcePaths() {
@@ -75,10 +75,12 @@ void Loader::updateModResources(Mod* mod) {
                 ccfu->fullPathForFilename(plist.c_str(), false)
             )
         ) {
-            InternalMod::get()->logInfo(
-                "The resource dir of \"" + mod->m_info.m_id +
-                "\" is missing \"" + sheet + "\" png and/or plist files",
-                Severity::Warning
+            internal_log(Severity::Warning,
+                "The resource dir of \"",
+                mod->m_info.m_id,
+                "\" is missing \"",
+                sheet,
+                "\" png and/or plist files"
             );
         } else {
             CCTextureCache::sharedTextureCache()->addImage(png.c_str(), false);
@@ -101,7 +103,7 @@ void Loader::updateResources() {
 size_t Loader::loadModsFromDirectory(
     ghc::filesystem::path const& dir, bool recursive
 ) {
-    InternalMod::get()->log() << Severity::Debug << "Searching " << dir;
+    internal_log(Severity::Debug, "Searching ", dir);
         
     size_t loadedCount = 0;
     for (auto const& entry : ghc::filesystem::directory_iterator(dir)) {
@@ -131,9 +133,7 @@ size_t Loader::loadModsFromDirectory(
 
         // load mod
 
-        InternalMod::get()->log()
-            << Severity::Debug
-            << "Loading " << entry.path().string();
+        internal_log(Severity::Debug, "Loading ", entry.path().string());
 
         auto res = this->loadModFromFile(entry.path().string());
         if (res && res.value()) {
@@ -142,15 +142,13 @@ size_t Loader::loadModsFromDirectory(
 
             // check for dependencies
             if (!res.value()->hasUnresolvedDependencies()) {
-                InternalMod::get()->log()
-                    << "Succesfully loaded " << res.value();
+                internal_log(Severity::Debug, "Successfully loaded ", res.value());
             } else {
-                InternalMod::get()->log()
-                    << res.value() << " has unresolved dependencies";
+                internal_log(Severity::Error, res.value(), " has unresolved dependencies");
             }
         } else {
             // something went wrong
-            InternalMod::get()->logInfo(res.error(), Severity::Error);
+            internal_log(Severity::Error, res.error());
             m_erroredMods.push_back({ entry.path().string(), res.error() });
         }
     }
@@ -158,7 +156,7 @@ size_t Loader::loadModsFromDirectory(
 }
 
 size_t Loader::refreshMods() {
-    InternalMod::get()->log() << Severity::Debug << "Loading mods...";
+    internal_log(Severity::Debug, "Loading mods...");
     
     // clear errored mods since that list will be 
     // reconstructed from scratch
@@ -175,9 +173,7 @@ size_t Loader::refreshMods() {
         loadedCount += loadModsFromDirectory(dir, true);
     }
 
-    InternalMod::get()->log()
-        << Severity::Debug
-        << "Loaded " << loadedCount << " mods";
+    internal_log(Severity::Debug, "Loaded ", loadedCount, " mods");
     return loadedCount;
 }
 
@@ -328,9 +324,7 @@ bool Loader::setup() {
     if (m_isSetup)
         return true;
 
-    InternalMod::get()->log()
-        << Severity::Debug
-        << "Setting up Loader...";
+    internal_log(Severity::Debug, "Setting up Loader...");
 
     this->createDirectories();
     this->loadSettings();
@@ -342,13 +336,9 @@ bool Loader::setup() {
     });
 
     if (crashlog::setupPlatformHandler()) {
-        InternalMod::get()->log()
-            << Severity::Debug
-            << "Set up platform crash logger";
+        internal_log(Severity::Debug, "Set up platform crash logger");
     } else {
-        InternalMod::get()->log()
-            << Severity::Debug
-            << "Unable to set up platform crash logger";
+        internal_log(Severity::Debug, "Unable to set up platform crash logger");
     }
 
     m_isSetup = true;
@@ -364,46 +354,40 @@ Loader::~Loader() {
         delete mod;
     }
     m_mods.clear();
-    for (auto const& log : m_logs) {
-        delete log;
-    }
     m_logs.clear();
 
     auto tempDir = this->getGeodeDirectory() / GEODE_TEMP_DIRECTORY;
     ghc::filesystem::remove_all(tempDir);
 }
 
-void Loader::pushLog(LogPtr* logptr) {
-    m_logs.push_back(logptr);
+void Loader::pushLog(log::Log&& log) {
+    m_logs.push_back(std::move(log));
 
-    InternalLoader::get()->logConsoleMessage(logptr);
+    std::string logStr = log.toString(true);
 
-    m_logStream << logptr->toString(true) << std::endl;
+    InternalLoader::get()->logConsoleMessage(logStr);
+    m_logStream << logStr << std::endl;
 }
 
-void Loader::popLog(LogPtr* log) {
-    utils::vector::erase(m_logs, log);
-    delete log;
+void Loader::popLog(log::Log* log) {
+    /*for (auto i = m_logs.begin(); i < m_logs.end(); ++i) {
+        if (i == log) {
+            m_logs.erase(i);
+        }
+    }*/
+    utils::vector::erase(m_logs, *log);
 }
 
-std::vector<LogPtr*> Loader::getLogs() const {
-    return m_logs;
-}
-
-std::vector<LogPtr*> Loader::getLogs(
+std::vector<log::Log*> Loader::getLogs(
     std::initializer_list<Severity> severityFilter
 ) {
-    if (!severityFilter.size()) {
-        return m_logs;
-    }
+    std::vector<log::Log*> logs;
 
-    std::vector<LogPtr*> logs;
-
-    for (auto const& log : m_logs) {
+    for (auto& log : m_logs) {
         if (utils::vector::contains<Severity>(
-            severityFilter, log->getSeverity()
-        )) {
-            logs.push_back(log);
+            severityFilter, log.getSeverity()
+        ) || !severityFilter.size()) {
+            logs.push_back(&log);
         }
     }
 

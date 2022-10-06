@@ -47,7 +47,7 @@ public:
 	void queueInGDThread(std::function<void GEODE_CALL(void)> func);
 	void executeGDThreadQueue();
 
-	void logConsoleMessage(LogPtr*);
+	void logConsoleMessage(std::string const& msg);
 	bool platformConsoleOpen() const;
 	void openPlatformConsole();
 	void closePlatformConsole();

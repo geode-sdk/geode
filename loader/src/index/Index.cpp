@@ -317,29 +317,23 @@ void Index::addIndexItemFromFolder(ghc::filesystem::path const& dir) {
 
         auto readJson = readJSON(dir / "index.json");
         if (!readJson) {
-            Log::get() << Severity::Warning
-                << "Error reading index.json: "
-                << readJson.error() << ", skipping";
+            log::warn("Error reading index.json: ", readJson.error(), ", skipping");
             return;
         }
         auto json = readJson.value();
         if (!json.is_object()) {
-            Log::get() << Severity::Warning
-                << "[index.json] is not an object, skipping";
+            log::warn("[index.json] is not an object, skipping");
             return;
         }
 
         auto readModJson = readJSON<ModJson>(dir / "mod.json");
         if (!readModJson) {
-            Log::get() << Severity::Warning
-                << "Error reading mod.json: "
-                << readModJson.error() << ", skipping";
+            log::warn("Error reading mod.json: ", readModJson.error(), ", skipping");
             return;
         }
         auto info = ModInfo::create(readModJson.value());
         if (!info) {
-            Log::get() << Severity::Warning
-                << dir << ": " << info.error() << ", skipping";
+            log::warn(dir, ": ", info.error(), ", skipping");
             return;
         }
 
@@ -352,16 +346,13 @@ void Index::addIndexItemFromFolder(ghc::filesystem::path const& dir) {
             !json.contains("download") ||
             !json["download"].is_object()
         ) {
-            Log::get() << Severity::Warning
-                << "[index.json].download is not an object, "
-                "skipping";
+            log::warn("[index.json].download is not an object, skipping");
             return;
         }
 
         #define REQUIRE_DOWNLOAD_KEY(key, type) \
             if (!download.contains(key) || !download[key].is_##type()) {\
-                Log::get() << Severity::Warning\
-                    << "[index.json].download." key " is not a " #type ", skipping";\
+                log::warn("[index.json].download." key " is not a " #type ", skipping");\
                 return;\
             }
 
@@ -383,8 +374,7 @@ void Index::addIndexItemFromFolder(ghc::filesystem::path const& dir) {
 
             if (json.contains("categories")) {
                 if (!json["categories"].is_array()) {
-                    Log::get() << Severity::Warning
-                        << "[index.json].categories is not an array, skipping";
+                    log::warn("[index.json].categories is not an array, skipping");
                     return;
                 }
                 item.m_categories = json["categories"].get<std::unordered_set<std::string>>();
@@ -392,17 +382,14 @@ void Index::addIndexItemFromFolder(ghc::filesystem::path const& dir) {
             }
 
         } catch(std::exception& e) {
-            Log::get() << Severity::Warning
-                << "[index.json] parsing error: "
-                << e.what() << ", skipping";
+            log::warn("[index.json] parsing error: ", e.what(), ", skipping");
             return;
         }
 
         m_items.push_back(item);
 
     } else {
-        Log::get() << Severity::Warning << "Index directory "
-            << dir << " is missing index.json, skipping";
+        log::warn("Index directory ", dir, " is missing index.json, skipping");
     }
 }
 

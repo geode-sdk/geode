@@ -14,26 +14,11 @@ void Interface::init(Mod* mod) {
 		}
 		this->m_scheduledHooks.clear();
 
-		for (auto const& log : this->m_scheduledLogs) {
-			this->m_mod->logInfo(log.m_info, log.m_severity);
-		}
-		this->m_scheduledLogs.clear();
-
 		for (auto const& fn : this->m_scheduledFunctions) {
 			std::invoke(fn);
 		}
 		this->m_scheduledFunctions.clear();
 	}
-}
-
-void Interface::logInfo(
-	std::string const& info,
-	Severity severity
-) {
-	if (this->m_mod) {
-		return this->m_mod->logInfo(info, severity);
-	}
-	this->m_scheduledLogs.push_back({ info, severity });
 }
 
 void Interface::scheduleOnLoad(ScheduledFunction function) {

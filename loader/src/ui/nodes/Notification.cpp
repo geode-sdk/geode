@@ -458,8 +458,9 @@ void NotificationManager::push(Notification* notification) {
 void NotificationManager::pop(Notification* notification) {
     auto location = notification->m_location;
     if (m_notifications.count(location)) {
+        auto ref = Ref(notification);
         utils::vector::erase(
-            m_notifications.at(location), Ref(notification)
+            m_notifications.at(location), ref
         );
         if (!m_notifications.at(location).size()) {
             m_notifications.erase(location);

@@ -34,7 +34,11 @@ Result<std::string> utils::file::readString(std::wstring const& path) {
 #endif
 
 Result<std::string> utils::file::readString(ghc::filesystem::path const& path) {
+    #if _WIN32
     std::ifstream in(path.wstring(), std::ios::in | std::ios::binary);
+    #else
+    std::ifstream in(path.string(), std::ios::in | std::ios::binary);
+    #endif
     if (in) {
         std::string contents;
         in.seekg(0, std::ios::end);
@@ -66,7 +70,11 @@ Result<byte_array> utils::file::readBinary(std::wstring const& path) {
 #endif
 
 Result<byte_array> utils::file::readBinary(ghc::filesystem::path const& path) {
+    #if _WIN32
     std::ifstream in(path.wstring(), std::ios::in | std::ios::binary);
+    #else
+    std::ifstream in(path.string(), std::ios::in | std::ios::binary);
+    #endif
     if (in) {
         return Ok(byte_array (std::istreambuf_iterator<char>(in), {}));
     }
@@ -103,7 +111,11 @@ Result<> utils::file::writeString(std::wstring const& path, std::string const& d
 
 Result<> utils::file::writeString(ghc::filesystem::path const& path, std::string const& data) {
     std::ofstream file;
+    #if _WIN32
     file.open(path.wstring());
+    #else
+    file.open(path.string());
+    #endif
     if (file.is_open()) {
         file << data;
         file.close();
@@ -144,7 +156,11 @@ Result<> utils::file::writeBinary(std::wstring const& path, byte_array const& da
 
 Result<> utils::file::writeBinary(ghc::filesystem::path const& path, byte_array const& data) {
     std::ofstream file;
+    #if _WIN32
     file.open(path.wstring(), std::ios::out | std::ios::binary);
+    #else
+    file.open(path.string(), std::ios::out | std::ios::binary);
+    #endif
     if (file.is_open()) {
         file.write(reinterpret_cast<const char*>(data.data()), data.size());
         file.close();

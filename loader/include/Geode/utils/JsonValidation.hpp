@@ -356,7 +356,7 @@ namespace geode {
         void checkUnknownKeys() {
             for (auto& [key, _] : self().m_json.items()) {
                 if (!m_knownKeys.count(key)) {
-                    Log::get() << self().m_hierarchy + " contains unknown key \"" + key + "\"";
+                    log::debug(self().m_hierarchy + " contains unknown key \"" + key + "\"");
                 }
             }
         }

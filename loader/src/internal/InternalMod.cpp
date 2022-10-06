@@ -39,7 +39,7 @@ static ModInfo getInternalModInfo() {
 InternalMod::InternalMod() : Mod(getInternalModInfo()) {
     auto sett = this->loadSettings();
     if (!sett) {
-        this->logInfo(sett.error(), Severity::Error);
+        log::log(Severity::Error, this, sett.error());
     }
 }
 
