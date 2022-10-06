@@ -152,7 +152,7 @@ class $modify(CustomMenuLayer, MenuLayer) {
 		setIDSafe(this, 0, "main-menu-bg");
 		getChildOfType<CCSprite>(this, 0)->setID("main-title");
 
-		if (CCApplication::get()->getControllerConnected()) {
+		if (PlatformToolbox::isControllerConnected()) {
 			getChildOfType<CCSprite>(this, 1)->setID("play-gamepad-icon");
 			getChildOfType<CCSprite>(this, 2)->setID("editor-gamepad-icon");
 			getChildOfType<CCSprite>(this, 3)->setID("icon-kit-gamepad-icon");
