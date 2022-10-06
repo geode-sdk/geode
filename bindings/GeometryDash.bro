@@ -4098,7 +4098,7 @@ class PlatformToolbox {
     static bool isControllerConnected() {
         #ifdef GEODE_IS_WINDOWS
             return cocos2d::CCApplication::sharedApplication()->getControllerConnected();
-        #elif GEODE_IS_MACOS
+        #elif defined(GEODE_IS_MACOS)
             // this is just gd.h
             return reinterpret_cast<bool(*)()>(geode::base::get() + 0x27d1b0)();
         #else
