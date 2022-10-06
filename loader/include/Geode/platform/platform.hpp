@@ -64,9 +64,9 @@ namespace std {
 }
 
 #if !defined(__PRETTY_FUNCTION__) && !defined(__GNUC__)
-	#define GEODE_PRETTY_FUNCTION __FUNCSIG__
+	#define GEODE_PRETTY_FUNCTION std::string_view(__FUNCSIG__)
 #else
-	#define GEODE_PRETTY_FUNCTION __PRETTY_FUNCTION__
+	#define GEODE_PRETTY_FUNCTION std::string_view(__PRETTY_FUNCTION__)
 #endif
 
 // Windows

@@ -86,46 +86,45 @@ static void updateIndexProgress(
 		g_indexUpdateNotif->hide();
 		g_indexUpdateNotif = nullptr;
 		if (Index::get()->areUpdatesAvailable()) {
-			// todo: uncomment and fix crash
-			// if (Mod::get()->getDataStore()["enable-auto-updates"]) {
-			// 	auto ticket = Index::get()->installUpdates(updateModsProgress);
-			// 	if (!ticket) {
-			// 		NotificationBuilder()
-			// 			.title("Unable to auto-update")
-			// 			.text("Unable to update mods :(")
-			// 			.icon("updates-failed.png"_spr)
-			// 			.show();
-			// 	} else {
-			// 		g_indexUpdateNotif = NotificationBuilder()
-			// 			.title("Installing updates")
-			// 			.text("Installing updates...")
-			// 			.clicked([ticket](auto) -> void {
-			// 				createQuickPopup(
-			// 					"Cancel Updates",
-			// 					"Do you want to <cr>cancel</c> updates?",
-			// 					"Don't Cancel", "Cancel Updates",
-			// 					[ticket](auto, bool btn2) -> void {
-			// 						if (g_indexUpdateNotif && btn2) {
-			// 							ticket.value()->cancel();
-			// 						}
-			// 					}
-			// 				);
-			// 			}, false)
-			// 			.loading()
-			// 			.stay()
-			// 			.show();
-			// 	}
-			// } else {
-			// 	NotificationBuilder()
-			// 		.title("Updates available")
-			// 		.text("Some mods have updates available!")
-			// 		.icon("updates-available.png"_spr)
-			// 		.clicked([](auto) -> void {
-			// 			ModListLayer::scene();
-			// 		})
-			// 		.show();
-			// }
-			// addUpdateIcon();
+			if (Mod::get()->getSettingValue<bool>("auto-update-mods")) {
+				auto ticket = Index::get()->installUpdates(updateModsProgress);
+				if (!ticket) {
+					NotificationBuilder()
+						.title("Unable to auto-update")
+						.text("Unable to update mods :(")
+						.icon("updates-failed.png"_spr)
+						.show();
+				} else {
+					g_indexUpdateNotif = NotificationBuilder()
+						.title("Installing updates")
+						.text("Installing updates...")
+						.clicked([ticket](auto) -> void {
+							createQuickPopup(
+								"Cancel Updates",
+								"Do you want to <cr>cancel</c> updates?",
+								"Don't Cancel", "Cancel Updates",
+								[ticket](auto, bool btn2) -> void {
+									if (g_indexUpdateNotif && btn2) {
+										ticket.value()->cancel();
+									}
+								}
+							);
+						}, false)
+						.loading()
+						.stay()
+						.show();
+				}
+			} else {
+				NotificationBuilder()
+					.title("Updates available")
+					.text("Some mods have updates available!")
+					.icon("updates-available.png"_spr)
+					.clicked([](auto) -> void {
+						ModListLayer::scene();
+					})
+					.show();
+			}
+			addUpdateIcon();
 		}
 	}
 }

@@ -59,6 +59,12 @@
             "default": true,
             "name": "Check For Updates",
             "description": "Automatically check for <cy>updates</c> to Geode on startup"
+        },
+        "auto-update-mods": {
+            "type": "bool",
+            "default": true,
+            "name": "Auto-Update Mods",
+            "description": "Automatically update <cp>mods</c> on startup"
         }
     },
     "issues": {
