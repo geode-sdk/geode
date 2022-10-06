@@ -4096,7 +4096,14 @@ class PlatformToolbox {
     static void hideCursor() = mac 0x27c340, win 0x0, ios 0x0;
     static void showCursor() = mac 0x27c360, win 0x0, ios 0x0;
     static bool isControllerConnected() {
-        return cocos2d::CCApplication::sharedApplication()->getControllerConnected();
+        #ifdef GEODE_IS_WINDOWS
+            return cocos2d::CCApplication::sharedApplication()->getControllerConnected();
+        #elif GEODE_IS_MACOS
+            // this is just gd.h
+            return reinterpret_cast<bool(*)()>(geode::base::get() + 0x27d1b0)();
+        #else
+            return false;
+        #endif
     }
 }
 
