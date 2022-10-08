@@ -84,7 +84,7 @@ void Loader::updateModResources(Mod* mod) {
                 ccfu->fullPathForFilename(plist.c_str(), false)
             )
         ) {
-            internal_log(Severity::Warning,
+            log::warn(
                 "The resource dir of \"",
                 mod->m_info.m_id,
                 "\" is missing \"",
@@ -112,7 +112,7 @@ void Loader::updateResources() {
 size_t Loader::loadModsFromDirectory(
     ghc::filesystem::path const& dir, bool recursive
 ) {
-    internal_log(Severity::Debug, "Searching ", dir);
+    log::debug("Searching ", dir);
         
     size_t loadedCount = 0;
     for (auto const& entry : ghc::filesystem::directory_iterator(dir)) {
@@ -142,7 +142,7 @@ size_t Loader::loadModsFromDirectory(
 
         // load mod
 
-        internal_log(Severity::Debug, "Loading ", entry.path().string());
+        log::debug("Loading ", entry.path().string());
 
         auto res = this->loadModFromFile(entry.path().string());
         if (res && res.value()) {
@@ -151,13 +151,13 @@ size_t Loader::loadModsFromDirectory(
 
             // check for dependencies
             if (!res.value()->hasUnresolvedDependencies()) {
-                internal_log(Severity::Debug, "Successfully loaded ", res.value());
+                log::debug("Successfully loaded ", res.value());
             } else {
-                internal_log(Severity::Error, res.value(), " has unresolved dependencies");
+                log::error(res.value(), " has unresolved dependencies");
             }
         } else {
             // something went wrong
-            internal_log(Severity::Error, res.error());
+            log::error(res.error());
             m_erroredMods.push_back({ entry.path().string(), res.error() });
         }
     }
@@ -165,7 +165,7 @@ size_t Loader::loadModsFromDirectory(
 }
 
 size_t Loader::refreshMods() {
-    internal_log(Severity::Debug, "Loading mods...");
+    log::debug("Loading mods...");
     
     // clear errored mods since that list will be 
     // reconstructed from scratch
@@ -182,7 +182,7 @@ size_t Loader::refreshMods() {
         loadedCount += loadModsFromDirectory(dir, true);
     }
 
-    internal_log(Severity::Debug, "Loaded ", loadedCount, " mods");
+    log::debug("Loaded ", loadedCount, " mods");
     return loadedCount;
 }
 
@@ -333,7 +333,7 @@ bool Loader::setup() {
     if (m_isSetup)
         return true;
 
-    internal_log(Severity::Debug, "Setting up Loader...");
+    log::debug("Setting up Loader...");
 
     this->createDirectories();
     this->loadSettings();
@@ -345,9 +345,9 @@ bool Loader::setup() {
     });
 
     if (crashlog::setupPlatformHandler()) {
-        internal_log(Severity::Debug, "Set up platform crash logger");
+        log::debug("Set up platform crash logger");
     } else {
-        internal_log(Severity::Debug, "Unable to set up platform crash logger");
+        log::debug("Unable to set up platform crash logger");
     }
 
     m_isSetup = true;

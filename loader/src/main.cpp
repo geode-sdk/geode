@@ -139,7 +139,7 @@ int geodeEntry(void* platformData) {
         return 1;
     }
 
-    internal_log(Severity::Debug, "Loaded internal Geode class");
+    log::debug("Loaded internal Geode class");
 
     // set up loader, load mods, etc.
     if (!Loader::get()->setup()) {
@@ -152,13 +152,13 @@ int geodeEntry(void* platformData) {
         return 1;
     }
 
-    internal_log(Severity::Debug, "Set up loader");
+    log::debug("Set up loader");
     
     if (InternalMod::get()->getSettingValue<bool>("show-platform-console")) {
         Loader::get()->openPlatformConsole();
     }
 
-    internal_log(Severity::Debug, "Entry done.");
+    log::debug("Entry done.");
 
     return 0;
 }

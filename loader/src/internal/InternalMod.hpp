@@ -14,6 +14,3 @@ class InternalMod : public Mod {
     public:
         static InternalMod* get();
 };
-
-template <typename ...Args>
-void internal_log(Severity sev, Args... args) { log::log(sev, InternalMod::get(), args...); }

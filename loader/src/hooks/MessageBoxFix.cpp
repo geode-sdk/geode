@@ -35,6 +35,9 @@ static CCEGLView* CCEGLView_CCEGLView(CCEGLView* self) {
     );
     return self;
 }
-static auto _ = Interface::get()->addHook<&CCEGLView_CCEGLView, Thiscall>("CCEGLView::CCEGLView", CCEGLVIEW_CON_ADDR);
+
+$execute {
+    Mod::get()->addHook<&CCEGLView_CCEGLView, Thiscall>("CCEGLView::CCEGLView", CCEGLVIEW_CON_ADDR);
+}
 
 #endif
