@@ -32,7 +32,7 @@ namespace geode {
         std::string generateLogName();
 
         struct GEODE_DLL ComponentTrait {
-            virtual ~ComponentTrait() = 0;
+            virtual ~ComponentTrait() {}
             virtual std::string _toString() = 0;
         };
 
