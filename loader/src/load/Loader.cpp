@@ -371,12 +371,12 @@ Loader::~Loader() {
 }
 
 void Loader::pushLog(log::Log&& log) {
-    m_logs.push_back(std::move(log));
-
     std::string logStr = log.toString(true);
 
     InternalLoader::get()->logConsoleMessage(logStr);
     m_logStream << logStr << std::endl;
+
+    m_logs.push_back(std::move(log));
 }
 
 void Loader::popLog(log::Log* log) {

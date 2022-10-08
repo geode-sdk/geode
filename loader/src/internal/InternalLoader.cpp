@@ -57,7 +57,8 @@ void InternalLoader::executeGDThreadQueue() {
 
 void InternalLoader::logConsoleMessage(std::string const& msg) {
     if (m_platformConsoleOpen) {
-        std::cout << msg;
+        // TODO: make flushing optional
+        std::cout << msg << '\n' << std::flush;
     }
 }
 
