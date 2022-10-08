@@ -83,7 +83,7 @@ std::string Log::toString(bool logTime) const {
         res += fmt::format("{:%H:%M:%S} ", m_time);
     }
 
-    res += fmt::format("[{}]:", m_sender ? m_sender->getName() : "?");
+    res += fmt::format("[{}]: ", m_sender ? m_sender->getName() : "?");
 
     for (auto& i : m_components) {
         res += i->_toString();

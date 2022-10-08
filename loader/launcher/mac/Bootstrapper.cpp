@@ -40,7 +40,7 @@ __attribute__((constructor)) void _entry() {
 	if (ghc::filesystem::exists(updatesDir / "Geode.dylib", error) && !error) {
         ghc::filesystem::rename(
             updatesDir / "Geode.dylib", 
-            workingDir / "Geode.dylib", error
+            libDir / "Geode.dylib", error
         );
         if (error) {
             displayError(std::string("Couldn't update Geode: ") + error.message());
