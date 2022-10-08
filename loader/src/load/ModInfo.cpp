@@ -89,8 +89,10 @@ Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
     info.m_binaryName = info.m_id + GEODE_PLATFORM_EXTENSION;
 
     if (root.has("binary")) {
-        log::warn("Warning: [mod.json].binary is deprecated "
-                  "and will be removed in the future.");
+        log::warn(
+            "[mod.json].binary is deprecated "
+            "and will be removed in the future."
+        );
     }
 
     root.has("binary").asOneOf<value_t::string, value_t::object>();

@@ -73,19 +73,19 @@ std::string Log::toString(bool logTime) const {
     std::string res;
 
     if (logTime) {
-        const auto t = std::chrono::system_clock::to_time_t(this->m_time);
+        const auto t = std::chrono::system_clock::to_time_t(m_time);
         tm obj;
         #ifdef _MSC_VER
         localtime_s(&obj, &t);
         #else
         obj = *std::localtime(&t);
         #endif
-        res += fmt::format("{:%H:%M:%S}", this->m_time);
+        res += fmt::format("{:%H:%M:%S} ", m_time);
     }
 
-    res += fmt::format("[{}]:", this->m_sender ? this->m_sender->getName() : "?");
+    res += fmt::format("[{}]:", m_sender ? m_sender->getName() : "?");
 
-    for (ComponentTrait* i : this->m_components) {
+    for (auto& i : m_components) {
         res += i->_toString();
     }
 
