@@ -11,7 +11,7 @@ DWORD XInputGetDSoundAudioDeviceGuids(DWORD user, GUID* render, GUID* capture) {
 #pragma comment(linker, "/export:XInputGetDSoundAudioDeviceGuids=_XInputGetDSoundAudioDeviceGuids")
 
 DWORD WINAPI load(PVOID _) {
-	LoadLibraryA("Geode.dll");
+	LoadLibraryA("GeodeBootstrapper.dll");
 	return 0;
 }
 

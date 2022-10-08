@@ -1,4 +1,5 @@
 #include <Geode/Geode.hpp>
+#include <Geode/Modify.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -26,11 +27,10 @@ GEODE_API bool GEODE_CALL geode_unload() {
 // Modify
 class $modify(GJGarageLayerTest, GJGarageLayer) {
 	GJGarageLayerTest() : 
-		myValue(1907), 
-		myString("yeah have fun finding a better thing for this") {}
+		myValue(1907) {}
 
 	int myValue;
-	std::string myString;
+	std::string myString = "yeah have fun finding a better thing for this";
 	bool init() {
 		if (!GJGarageLayer::init()) return false;
 

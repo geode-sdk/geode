@@ -8,6 +8,7 @@
 #include <InternalMod.hpp>
 #include "../ui/internal/info/ModInfoLayer.hpp"
 #include <InternalLoader.hpp>
+#include <Geode/Modify.hpp>
 
 USE_GEODE_NAMESPACE();
 

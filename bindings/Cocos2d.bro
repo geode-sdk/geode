@@ -257,9 +257,37 @@ class cocos2d::CCKeypadHandler {
 class cocos2d::CCLabelBMFont {
 	static cocos2d::CCLabelBMFont* create(char const*, char const*) = mac 0x347660;
 	auto limitLabelWidth(float, float, float) = mac 0x34a6e0, ios 0x21b740;
-	auto setScale(float) = mac 0x34a5d0;
-	auto setString(char const*, bool) = mac 0x3489e0;
-	auto setAnchorPoint(cocos2d::CCPoint const&) = mac 0x349440;
+
+	virtual ~CCLabelBMFont() = mac 0x347e80, ios 0x219afc;
+
+	virtual auto init() = mac 0x347b10, ios 0x2198e0;
+	virtual auto setScaleX(float) = mac 0x34a5b0, ios 0x21b6e8;
+	virtual auto setScaleY(float) = mac 0x34a5d0, ios 0x21b714;
+	virtual auto setScale(float) = mac 0x34a590, ios 0x21b6bc;
+	virtual auto setAnchorPoint(cocos2d::CCPoint const&) = mac 0x349440, ios 0x21aa7c;
+	virtual auto setString(char const*) = mac 0x348990, ios 0x21a408;
+	virtual auto setString(char const*, bool) = mac 0x3489e0, ios 0x21a42c;
+	virtual auto getString() = mac 0x348bf0, ios 0x21a60c;
+	virtual auto setCString(char const*) = mac 0x348c10, ios 0x21a63c;
+	virtual auto updateLabel() = mac 0x349480, ios 0x21aad0;
+	virtual auto setAlignment(cocos2d::CCTextAlignment) = mac 0x34a530, ios 0x21b68c;
+	virtual auto setWidth(float) = mac 0x34a550, ios 0x21b69c;
+	virtual auto setLineBreakWithoutSpace(bool) = mac 0x34a570, ios 0x21b6ac;
+	virtual auto isOpacityModifyRGB() = mac 0x3490e0, ios 0x21a8c4;
+	virtual auto setOpacityModifyRGB(bool) = mac 0x348f70, ios 0x21a80c;
+	virtual auto getOpacity() = mac 0x348df0, ios 0x21a748;
+	virtual auto getDisplayedOpacity() = mac 0x348e10, ios 0x21a758;
+	virtual auto setOpacity(unsigned char) = mac 0x348e30, ios 0x21a768;
+	virtual auto updateDisplayedOpacity(unsigned char) = mac 0x349100, ios 0x21a8d4;
+	virtual auto isCascadeOpacityEnabled() = mac 0x349400, ios 0x21aa5c;
+	virtual auto setCascadeOpacityEnabled(bool) = mac 0x349420, ios 0x21aa6c;
+	virtual auto getColor() = mac 0x348c30, ios 0x21a648;
+	virtual auto getDisplayedColor() = mac 0x348c50, ios 0x21a658;
+	virtual auto setColor(cocos2d::ccColor3B const&) = mac 0x348c70, ios 0x21a668;
+	virtual auto updateDisplayedColor(cocos2d::ccColor3B const&) = mac 0x349210, ios 0x21a968;
+	virtual auto isCascadeColorEnabled() = mac 0x3493c0, ios 0x21aa3c;
+	virtual auto setCascadeColorEnabled(bool) = mac 0x3493e0, ios 0x21aa4c;
+	virtual auto setString(unsigned short*, bool) = mac 0x348a60, ios 0x21a4b4;
 }
 
 class cocos2d::CCLabelTTF {
@@ -747,6 +775,23 @@ class cocos2d::CCSpriteBatchNode {
 	static auto createWithTexture(cocos2d::CCTexture2D*, unsigned int) = mac 0xbb310;
 	auto getUsedAtlasCapacity() = mac 0xbc6b0;
 	auto increaseAtlasCapacity(unsigned int) = mac 0xbc670;
+
+	virtual ~CCSpriteBatchNode() = mac 0xbb790, ios 0x130d18;
+
+	virtual auto init() = mac 0xbb680, ios 0x130c20;
+	virtual auto addChild(cocos2d::CCNode*) = mac 0xbbb40, ios 0x131034;
+	virtual auto addChild(cocos2d::CCNode*, int) = mac 0xbbb50, ios 0x131038;
+	virtual auto addChild(cocos2d::CCNode*, int, int) = mac 0xbb930, ios 0x130e0c;
+	virtual auto removeChild(cocos2d::CCNode*, bool) = mac 0xbbbb0, ios 0x1310a4;
+	virtual auto removeAllChildrenWithCleanup(bool) = mac 0xbbe30, ios 0x1312d8;
+	virtual auto reorderChild(cocos2d::CCNode*, int) = mac 0xbbb60, ios 0x13103c;
+	virtual auto sortAllChildren() = mac 0xbbee0, ios 0x13137c;
+	virtual auto draw() = mac 0xbc540, ios 0x13191c;
+	virtual auto visit() = mac 0xbb880, ios 0x130d54;
+	virtual auto getTexture() = mac 0xbcd70, ios 0x131a70;
+	virtual auto setTexture(cocos2d::CCTexture2D*) = mac 0xbcda0, ios 0x131a90;
+	virtual auto setBlendFunc(cocos2d::ccBlendFunc) = mac 0xbcd30, ios 0x131a50;
+	virtual auto getBlendFunc() = mac 0xbcd50, ios 0x131a60;
 }
 
 class cocos2d::CCSpriteFrame {

@@ -10,6 +10,7 @@ There's nothing worse than having to read thousands of words just to see what so
 
 ```cpp
 #include <Geode.hpp>
+#include <Modify.hpp>
 
 USE_GEODE_NAMESPACE();
 
