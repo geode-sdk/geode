@@ -109,6 +109,10 @@ namespace geode {
 	inline Mod* Mod::get<void>() {
 		return Interface::get()->m_mod;
 	}
+	
+    inline Mod* getMod() {
+        return Mod::get();
+    }
 }
 
 inline const char* operator"" _spr(const char* str, size_t) {

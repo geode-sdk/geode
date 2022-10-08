@@ -441,7 +441,7 @@ size_t Loader::getFieldIndexForClass(size_t hash) {
 }
 
 VersionInfo Loader::minModVersion() {
-    return { 0, 1, 0 };
+    return { 0, 4, 0 };
 }
 
 VersionInfo Loader::maxModVersion() {
