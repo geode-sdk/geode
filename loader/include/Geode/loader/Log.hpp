@@ -32,6 +32,7 @@ namespace geode {
         std::string generateLogName();
 
         struct GEODE_DLL ComponentTrait {
+            virtual ~ComponentTrait() = 0;
             virtual std::string _toString() = 0;
         };
 
@@ -45,6 +46,7 @@ namespace geode {
         template <typename T>
         struct ComponentBase : public ComponentTrait {
             T m_item;
+            inline ~ComponentBase() override {}
             inline ComponentBase(T const& item) : m_item(item) {}
             // specialization must implement
             inline std::string _toString() override { return parse(m_item); }

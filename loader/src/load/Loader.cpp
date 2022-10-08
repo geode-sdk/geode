@@ -385,6 +385,7 @@ void Loader::popLog(log::Log* log) {
         }
     }*/
     utils::vector::erase(m_logs, *log);
+    delete log;
 }
 
 std::vector<log::Log*> Loader::getLogs(
@@ -401,6 +402,13 @@ std::vector<log::Log*> Loader::getLogs(
     }
 
     return logs;
+}
+
+void Loader::clearLogs() {
+    for (auto log : m_logs) {
+        delete log;
+    }
+    m_logs.clear();
 }
 
 void Loader::queueInGDThread(ScheduledFunction func) {

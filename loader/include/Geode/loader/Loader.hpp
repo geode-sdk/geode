@@ -174,6 +174,8 @@ namespace geode {
         std::vector<log::Log*> getLogs(
             std::initializer_list<Severity> severityFilter = {}
         );
+
+        void clearLogs();
         
         /**
          * You shouldn't be calling this manually, 
