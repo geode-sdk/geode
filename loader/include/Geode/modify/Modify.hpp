@@ -3,6 +3,7 @@
 #include "Types.hpp"
 #include "Addresses.hpp"
 #include "../meta/meta.hpp"
+#include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <iostream>
 
