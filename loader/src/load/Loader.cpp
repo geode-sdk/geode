@@ -1,6 +1,5 @@
 #include <Geode/loader/Hook.hpp>
 #include <Geode/loader/Mod.hpp>
-#include <Geode/loader/Interface.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <InternalLoader.hpp>
@@ -404,7 +403,7 @@ std::vector<log::Log*> Loader::getLogs(
     return logs;
 }
 
-void Loader::queueInGDThread(std::function<void GEODE_CALL()> func) {
+void Loader::queueInGDThread(ScheduledFunction func) {
     InternalLoader::get()->queueInGDThread(func);
 }
 
@@ -461,4 +460,16 @@ void Loader::openPlatformConsole() {
 
 void Loader::closePlatfromConsole() {
     InternalLoader::get()->closePlatformConsole();
+}
+
+void Loader::scheduleOnModLoad(Mod* m, ScheduledFunction func) {
+    if (m) return func();
+    m_scheduledFunctions.push_back(func);
+}
+
+void Loader::releaseScheduledFunctions(Mod* mod) {
+    for (auto& func : m_scheduledFunctions) {
+        func();
+    }
+    m_scheduledFunctions.clear();
 }

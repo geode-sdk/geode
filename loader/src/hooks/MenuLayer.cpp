@@ -210,6 +210,7 @@ class $modify(CustomMenuLayer, MenuLayer) {
 		}
 		
 		auto y = getChild(bottomMenu, 0)->getPositionY();
+		std::cout << "test: " << "geode-logo-outline-gold.png"_spr << std::endl;
 
 		g_geodeButton = SafeCreate<CCSprite>()
 			.with(CircleButtonSprite::createWithSpriteFrameName(

@@ -17,8 +17,7 @@
 
 class InternalLoader;
 class InternalMod;
-
-namespace geode {                  
+namespace geode {
     struct PlatformInfo;
 
     class Hook;
@@ -28,8 +27,16 @@ namespace geode {
     class Setting;
 
     class Unknown;
-	using unknownmemfn_t = void(Unknown::*)();
-	using unknownfn_t = void(*)();
+    using unknownmemfn_t = void(Unknown::*)();
+    using unknownfn_t = void(*)();
+}
+
+/**
+ * The predeclaration of the implicit entry
+ */
+GEODE_API bool GEODE_CALL geode_implicit_load(geode::Mod*);
+
+namespace geode {                
 
     struct Dependency {
         std::string m_id;
@@ -197,9 +204,7 @@ namespace geode {
 
     /**
      * @class Mod
-     * Represents a Mod ingame. Inherit
-     * from this class to create your own
-     * mod interfaces.
+     * Represents a Mod ingame. 
      * @abstract
      */
     class GEODE_DLL Mod {
@@ -316,6 +321,16 @@ namespace geode {
         friend struct ModInfo;
         friend class DataStore;
 
+        template<class = void>
+        static inline GEODE_HIDDEN Mod* sharedMod = nullptr;
+
+        template<class = void>
+        static inline GEODE_HIDDEN void setSharedMod(Mod* mod) {
+            sharedMod<> = mod;
+        }
+
+        friend bool GEODE_CALL ::geode_implicit_load(Mod*);
+
     public:
         std::string getID() const;
         std::string getName() const;
@@ -362,7 +377,9 @@ namespace geode {
          * the mod pointer if it is initialized
          */
         template<class = void>
-        static inline Mod* get();
+        static inline GEODE_HIDDEN Mod* get() {
+            return sharedMod<>;
+        }
 
         /**
          * Get all hooks owned by this Mod
@@ -548,5 +565,11 @@ namespace geode {
      * However, it can be externed, unlike Mod::get()
      * @returns Same thing Mod::get() returns
      */
-    inline Mod* getMod();
+    inline GEODE_HIDDEN Mod* getMod() {
+        return Mod::get();
+    }
+}
+
+inline const char* operator"" _spr(const char* str, size_t) {
+    return geode::Mod::get()->expandSpriteName(str);
 }

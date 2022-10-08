@@ -46,7 +46,7 @@ public:
 	 */
 	bool shownInfoAlert(std::string const& key);
 
-	void queueInGDThread(std::function<void GEODE_CALL(void)> func);
+	void queueInGDThread(ScheduledFunction func);
 	void executeGDThreadQueue();
 
 	void logConsoleMessage(std::string const& msg);

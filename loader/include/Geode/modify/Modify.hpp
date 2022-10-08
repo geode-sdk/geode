@@ -3,17 +3,14 @@
 #include "Types.hpp"
 #include "Addresses.hpp"
 #include "../meta/meta.hpp"
-#include "../loader/Interface.hpp"
+#include <Geode/loader/Mod.hpp>
 #include <iostream>
 
 #define GEODE_APPLY_MODIFY_FOR_FUNCTION(index, convention, className, functionName)                            \
 using base##index = wrap::functionName<Base, types::pure##index>;                                              \
 using derived##index = wrap::functionName<Derived, types::pure##index>;                                        \
 if constexpr (derived##index::uuid != nullptr && (void*)base##index::uuid != (void*)derived##index::uuid) {    \
-	log::debug(                                                                                                \
-		"Adding hook at function " #className "::" #functionName                                               \
-	);                                                                                                         \
-	Interface::get()->addHook<derived##index::value, convention>(                                              \
+	Mod::get()->addHook<derived##index::value, convention>(                                                    \
 		#className "::" #functionName,                                                                         \
 		(void*)addresses::address##index()                                                                     \
 	);                                                                                                         \
@@ -30,7 +27,9 @@ namespace geode::modifier {
 	public:
 		// unordered_map<handles> idea
 		ModifyBase() {
-			Derived::apply();
+			Loader::get()->scheduleOnModLoad(getMod(), [](){
+				Derived::apply();
+			});
 		}
 		template <class, class>
 		friend class Modify;

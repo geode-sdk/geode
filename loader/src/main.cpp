@@ -1,5 +1,4 @@
 #include <Geode/loader/Mod.hpp>
-#include <Geode/loader/Interface.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/SettingEvent.hpp>
 #include <InternalLoader.hpp>
@@ -124,7 +123,7 @@ int geodeEntry(void* platformData) {
         );
     }
 
-    Interface::get()->init(InternalMod::get());
+    geode_implicit_load(InternalMod::get());
 
     if (!InternalLoader::get()->setup()) {
         // if we've made it here, Geode will 

@@ -1,7 +1,6 @@
 #include <Geode/loader/Hook.hpp>
 #include <vector>
 #include <Geode/loader/Mod.hpp>
-#include <Geode/loader/Interface.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/vector.hpp>
@@ -31,6 +30,7 @@ Result<> Mod::enableHook(Hook* hook) {
     if (!hook->isEnabled()) {
     	auto res = std::invoke(hook->m_addFunction, hook->m_address);
 	    if (res) {
+            log::debug("Enabling hook at function ", hook->m_displayName);
 	        this->m_hooks.push_back(hook);
 	        hook->m_enabled = true;
 	        hook->m_handle = res.value();
@@ -48,6 +48,7 @@ Result<> Mod::enableHook(Hook* hook) {
 Result<> Mod::disableHook(Hook* hook) {
     if (hook->isEnabled()) {
         if (geode::core::hook::remove(hook->m_handle)) {
+            log::debug("Disabling hook at function {}", hook->m_displayName);
             hook->m_enabled = false;
             return Ok<>();
         }

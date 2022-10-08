@@ -38,7 +38,7 @@ bool InternalLoader::setup() {
     return true;
 }
 
-void InternalLoader::queueInGDThread(std::function<void GEODE_CALL()> func) {
+void InternalLoader::queueInGDThread(ScheduledFunction func) {
     std::lock_guard<std::mutex> lock(m_gdThreadMutex);
     this->m_gdThreadQueue.push_back(func);
 }
@@ -113,17 +113,25 @@ void InternalLoader::closePlatformConsole() {
 }
 
 #elif defined(GEODE_IS_MACOS)
-#include <iostream>
+#include <CoreFoundation/CoreFoundation.h>
 
 void InternalLoader::platformMessageBox(const char* title, std::string const& info) {
-	std::cout << title << ": " << info << std::endl;
+	 CFStringRef cfTitle = CFStringCreateWithCString(NULL, title, kCFStringEncodingUTF8);
+    CFStringRef cfMessage = CFStringCreateWithCString(NULL, info.c_str(), kCFStringEncodingUTF8);
+
+    CFUserNotificationDisplayNotice(0, kCFUserNotificationNoteAlertLevel, NULL, NULL, NULL, cfTitle, cfMessage, NULL);
 }
 
 void InternalLoader::openPlatformConsole() {
     m_platformConsoleOpen = true;
+
+    for (auto const& log : Loader::get()->getLogs()) {
+        std::cout << log->toString(true) << "\n";
+    }
 }
 
 void InternalLoader::closePlatformConsole() {
+    m_platformConsoleOpen = false;
 }
 
 #elif defined(GEODE_IS_IOS)

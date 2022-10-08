@@ -96,15 +96,15 @@ namespace geode {
             l.pushToLoader();
         }
 
-        void releaseSchedules(Mod* m);
+        void GEODE_DLL releaseSchedules(Mod* m);
 
         template <typename ...Args>
         void schedule(Severity sev, Args... args) {
             auto m = getMod();
             if (m) return log(sev, m, args...);
 
-            Log::scheduled().push_back([=](Mod* m){
-                log(sev, m, args...);
+            Log::scheduled().push_back([=](Mod* m2){
+                log(sev, m2, args...);
             });
         }
 

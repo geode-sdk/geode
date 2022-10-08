@@ -8,7 +8,6 @@
 #include <stddef.h>
 #include <Geode/DefaultInclude.hpp>
 #include <type_traits>
-#include "../loader/Interface.hpp"
 #include "../loader/Mod.hpp"
 #include "../loader/Log.hpp"
 #include "general.hpp"

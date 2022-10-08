@@ -1,7 +1,6 @@
 #include <Geode/Geode.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
-#include <Geode/loader/Interface.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/utils/general.hpp>
 #include <Geode/utils/casts.hpp>
@@ -97,10 +96,10 @@ std::string Log::toString(bool logTime) const {
     std::string res;
 
     if (logTime) {
-        res += fmt::format("{:%H:%M:%S}", this->m_time);
+        res += fmt::format("{:%H:%M:%S}", m_time);
     }
 
-    res += fmt::format("[{}]: ", m_sender ? m_sender->getName() : "?");
+    res += fmt::format(" [{}]: ", m_sender ? m_sender->getName() : "?");
 
     for (auto& i : m_components) {
         res += i->_toString();
@@ -114,5 +113,5 @@ void Log::pushToLoader() {
 }
 
 std::string geode::log::generateLogName() {
-    return fmt::format("Geode_{:%H:%M:%S}.log", log_clock::now());
+    return fmt::format("Geode_{:%H.%M.%S}.log", log_clock::now());
 }

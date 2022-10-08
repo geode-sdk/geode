@@ -3,7 +3,6 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
-#include <Geode/loader/Interface.hpp>
 #include <Geode/loader/Setting.hpp>
 #include <Geode/utils/conststring.hpp>
 #include <Geode/utils/file.hpp>
@@ -211,7 +210,6 @@ Result<> Mod::load() {
     if (this->hasUnresolvedDependencies()) {
         RETURN_LOAD_ERR("Mod has unresolved dependencies");
     }
-    log::releaseSchedules(this);
     auto err = this->loadPlatformBinary();
     if (!err) RETURN_LOAD_ERR(err.error());
     if (m_implicitLoadFunc) {

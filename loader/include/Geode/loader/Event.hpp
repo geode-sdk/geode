@@ -3,7 +3,6 @@
 #include <Geode/DefaultInclude.hpp>
 #include <type_traits>
 #include "Mod.hpp"
-#include "Interface.hpp"
 #include <unordered_set>
 
 namespace geode {

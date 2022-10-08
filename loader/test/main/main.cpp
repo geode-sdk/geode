@@ -3,6 +3,11 @@
 
 USE_GEODE_NAMESPACE();
 
+auto test = [](){
+    log::info("Static logged");
+    return 0;
+};
+
 // Exported functions
 GEODE_API bool GEODE_CALL geode_enable() {
 	log::info("Enabled");

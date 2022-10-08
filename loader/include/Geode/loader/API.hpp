@@ -1,6 +1,5 @@
 #include "Mod.hpp"
 #include "Loader.hpp"
-#include "Interface.hpp"
 
 #ifdef API_DECL
 #undef API_DECL

@@ -32,6 +32,14 @@ namespace geode {
     	template<class, class, class>
 		class FieldIntermediate;
     }
+}
+
+/**
+ * The predeclaration of the implicit entry
+ */
+GEODE_API bool GEODE_CALL geode_implicit_load(geode::Mod*);
+
+namespace geode {
 
     class GEODE_DLL Loader {
     public:
@@ -47,7 +55,10 @@ namespace geode {
             };
             std::unordered_map<std::string, ModSettings> m_mods;
         };
+
+        using ScheduledFunction = std::function<void GEODE_CALL(void)>;
         
+        std::vector<ScheduledFunction> m_scheduledFunctions;
         std::unordered_map<std::string, Mod*> m_mods;
         std::vector<log::Log> m_logs;
         std::ofstream m_logStream;
@@ -67,15 +78,18 @@ namespace geode {
 
         void updateAllDependencies();
 
+        void releaseScheduledFunctions(Mod* mod);
+
         friend class Mod;
         friend class CustomLoader;
         friend struct ModInfo;
 
-    private:
     	size_t getFieldIndexForClass(size_t hash);
 
     	template <class, class, class>
         friend class modifier::FieldIntermediate;
+
+        friend bool GEODE_CALL ::geode_implicit_load(Mod*);
         
     public:
         ~Loader();
@@ -233,7 +247,15 @@ namespace geode {
          * `CCScheduler::update` is called
          * @param func Function to run
          */
-        void queueInGDThread(std::function<void GEODE_CALL(void)> func);
+        void queueInGDThread(ScheduledFunction func);
+
+        /**
+         * Run a function when the Mod is loaded. Useful if for 
+         * some reason you need to run some function in 
+         * static initialization.
+         * @param func Function to run
+         */
+        void scheduleOnModLoad(Mod* m, ScheduledFunction func);
 
         /**
          * Open the platform-specific external console (if one exists)

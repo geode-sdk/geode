@@ -1,7 +1,6 @@
 #include <Geode/loader/Hook.hpp>
 #include <vector>
 #include <Geode/loader/Mod.hpp>
-#include <Geode/loader/Interface.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/vector.hpp>
