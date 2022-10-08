@@ -197,7 +197,7 @@ void Index::indexUpdateProgress(
     uint8_t percentage
 ) {
     Loader::get()->queueInGDThread([this, status, info, percentage]() -> void {
-        Log::get() << info;
+        log::debug(info);
         m_callbacksMutex.lock();
         for (auto& d : m_callbacks) {
             d(status, info, percentage);

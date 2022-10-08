@@ -1,6 +1,6 @@
 #include <Geode/Bindings.hpp>
 #include <Geode/utils/Ref.hpp>
-#include <Geode/modify/Field.hpp>
+#include <Geode/Modify.hpp>
 #include <Geode/utils/WackyGeodeMacros.hpp>
 
 USE_GEODE_NAMESPACE();
@@ -95,7 +95,7 @@ CCNode* CCNode::getChildByIDRecursive(std::string const& id) {
         return child;
     }
     CCARRAY_FOREACH_B_TYPE(m_pChildren, child, CCNode) {
-        if (child = child->getChildByIDRecursive(id)) {
+        if ((child = child->getChildByIDRecursive(id))) {
             return child;
         }
     }

@@ -6,6 +6,7 @@
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Interface.hpp>
 #include "../core/Core.hpp"
+#include <array>
 
 int geodeEntry(void* platformData);
 // platform-specific entry points
@@ -16,20 +17,55 @@ int geodeEntry(void* platformData);
 
 std::length_error::~length_error() _NOEXCEPT {} // do not ask...
 
-__attribute__((constructor)) void _entry() {
-    char gddir[PATH_MAX];
-    uint32_t out = PATH_MAX;
-    _NSGetExecutablePath(gddir, &out);
+// camila has an old ass macos and this function turned 
+// from dynamic to static thats why she needs to define it 
+// this is what old versions does to a silly girl
 
-    ghc::filesystem::path gdpath = gddir;
+__attribute__((constructor)) void _entry() {
+    std::array<char, PATH_MAX> gddir;
+
+    uint32_t out = PATH_MAX;
+    _NSGetExecutablePath(gddir.data(), &out);
+
+    ghc::filesystem::path gdpath = gddir.data();
     ghc::filesystem::current_path(gdpath.parent_path().parent_path());
+
+    auto workingDir = ghc::filesystem::current_path();
+    auto updatesDir = workingDir / "geode" / "update";
+
+    auto error = std::error_code();
+
+    if (ghc::filesystem::exists(updatesDir / "GeodeBootstrapper.dylib", error) && !error) {
+        ghc::filesystem::rename(
+            updatesDir / "GeodeBootstrapper.dylib", 
+            workingDir / "GeodeBootstrapper.dylib", error
+        );
+        if (error) return;
+    }
 
     geodeEntry(nullptr);
 }
+
 #elif defined(GEODE_IS_WINDOWS)
 #include <Windows.h>
 
 DWORD WINAPI loadThread(void* arg) {
+    auto module = GetModuleHandleA("GeodeBootstrapper.dll");
+    FreeLibrary(module);
+
+    auto workingDir = ghc::filesystem::current_path();
+    auto updatesDir = workingDir / "geode" / "update";
+
+    auto error = std::error_code();
+
+    if (ghc::filesystem::exists(updatesDir / "GeodeBootstrapper.dll", error) && !error) {
+        ghc::filesystem::rename(
+            updatesDir / "GeodeBootstrapper.dll", 
+            workingDir / "GeodeBootstrapper.dll", error
+        );
+        if (error) return error.value();
+    }
+
     return geodeEntry(arg);
 }
 
