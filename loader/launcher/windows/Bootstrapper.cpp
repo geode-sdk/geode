@@ -1,6 +1,10 @@
 #include <Windows.h>
 #include "../../../filesystem/fs/filesystem.hpp"
 
+void showError(std::string const& error) {
+	MessageBoxA(nullptr, error.c_str(), "Error Loading Geode", MB_ICONERROR);
+}
+
 DWORD WINAPI load(PVOID _) {
 	auto workingDir = ghc::filesystem::current_path();
 	auto updatesDir = workingDir / "geode" / "update";
@@ -13,7 +17,10 @@ DWORD WINAPI load(PVOID _) {
             updatesDir / "Geode.dll", 
             workingDir / "Geode.dll", error
         );
-        if (error) return error.value();
+        if (error) {
+			showError("Unable to update Geode: Unable to move Geode.dll - " + error.message());
+			return error.value();
+		}
     }
 
     if (ghc::filesystem::exists(updatesDir / "resources", error) && !error) {
@@ -21,10 +28,17 @@ DWORD WINAPI load(PVOID _) {
             updatesDir / "resources", 
             resourcesDir / "geode.loader", error
         );
-        if (error) return error.value();
+        if (error) {
+			showError("Unable to update Geode resources: " + error.message());
+			return error.value();
+		}
     }
     
-	LoadLibraryA("Geode.dll");
+	if (!LoadLibraryW(L"Geode.dll")) {
+		showError("Unable to load Geode (code " + std::to_string(GetLastError()) + ")");
+		return 1;
+	}
+
 	return 0;
 }
 
