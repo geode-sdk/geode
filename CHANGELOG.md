@@ -1,13 +1,14 @@
-## v0.3.1
+## v0.4.1
 
-TODO
+ - Initial dev release of Geode.
 
 ---
 
 Note that from here on, changes to the framework were not tracked by versions as the framework was still considered to be in heavy development and not released. Instead, major changes are listed by dates.
 
-## 2022/10/06
+## 2022/10/08
 
+ - `ui` branch merged to `main`
  - Geode released for developers
 
 ## 2022/10/03
