@@ -83,6 +83,11 @@ namespace geode {
             inline log_clock::time_point getTime() const { return m_time; }
             inline Mod* getSender() const { return m_sender; }
             inline Severity getSeverity() const { return m_severity; }
+            inline ~Log() {
+                for (auto comp : m_components) {
+                    delete comp;
+                }
+            }
 
             template <typename ...Args>
             friend void schedule(Severity sev, Args... args);

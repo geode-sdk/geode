@@ -1,6 +1,6 @@
 #include "../crashlog.hpp"
-#include <CoreFoundation/CoreFoundation.h>
-#include <signal.h>
+#include "../../../../filesystem/fs/filesystem.hpp"
+#include <Foundation/Foundation.h>
 
 #ifdef GEODE_IS_MACOS
 
