@@ -3,6 +3,15 @@
 #include <unistd.h>
 #include <dlfcn.h>
 #include <array>
+#include <iostream>
+
+void loadGeode() {
+    auto dylib = dlopen("Geode.dylib", RTLD_LAZY);
+    if (dylib) return;
+
+    std::cout << "Couldn't open Geode: " << dlerror() << std::endl;
+    return;
+}
 
 __attribute__((constructor)) void _entry() {
     std::array<char, PATH_MAX> gddir;
@@ -14,7 +23,11 @@ __attribute__((constructor)) void _entry() {
     auto workingDir = gdpath.parent_path().parent_path();
 
     auto updatesDir = workingDir / "geode" / "update";
+    auto libDir = workingDir / "Frameworks";
 	auto resourcesDir = workingDir / "geode" / "resources";
+
+    std::cout << workingDir << std::endl;
+    std::cout << libDir << std::endl;
 
 	auto error = std::error_code();
 
@@ -23,19 +36,31 @@ __attribute__((constructor)) void _entry() {
             updatesDir / "Geode.dylib", 
             workingDir / "Geode.dylib", error
         );
-        if (error) return;
+        if (error) {
+            std::cout << "Couldn't update Geode: " << error.message() << std::endl;
+            return loadGeode();
+        }
     }
 
     if (ghc::filesystem::exists(updatesDir / "resources", error) && !error) {
+        std::filesystem::remove_all(resourcesDir / "geode.loader", error);
+
+        if (error) {
+            std::cout << "Couldn't update Geode resources: " << error.message() << std::endl;
+            return loadGeode();
+        }
+
         ghc::filesystem::rename(
             updatesDir / "resources", 
             resourcesDir / "geode.loader", error
         );
-        if (error) return;
-    }
-    
-	auto dylib = dlopen("Geode.dylib", RTLD_LAZY);
-	if (dylib) return;
+        std::cout << error.message() << std::endl;
+        
+        if (error) {
+            std::cout << "Couldn't update Geode resources: " << error.message() << std::endl;
+            return loadGeode();
+        }
+    }    
 
-	return;
+    return loadGeode();
 }

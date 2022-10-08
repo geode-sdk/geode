@@ -34,7 +34,8 @@ __attribute__((constructor)) void _entry() {
     ghc::filesystem::path gdpath = gddir.data();
     ghc::filesystem::current_path(gdpath.parent_path().parent_path());
 
-    auto workingDir = ghc::filesystem::current_path();
+    auto workingDir = gdpath.parent_path().parent_path();
+    auto libDir = workingDir / "Frameworks";
     auto updatesDir = workingDir / "geode" / "update";
 
     auto error = std::error_code();
@@ -42,7 +43,7 @@ __attribute__((constructor)) void _entry() {
     if (ghc::filesystem::exists(updatesDir / "GeodeBootstrapper.dylib", error) && !error) {
         ghc::filesystem::rename(
             updatesDir / "GeodeBootstrapper.dylib", 
-            workingDir / "GeodeBootstrapper.dylib", error
+            libDir / "GeodeBootstrapper.dylib", error
         );
         if (error) return;
     }
