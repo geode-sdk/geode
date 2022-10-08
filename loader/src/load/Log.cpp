@@ -100,9 +100,9 @@ std::string Log::toString(bool logTime) const {
         res += fmt::format("{:%H:%M:%S}", this->m_time);
     }
 
-    res += fmt::format(" [{}]: ", this->m_sender ? this->m_sender->getName() : "?");
+    res += fmt::format("[{}]: ", m_sender ? m_sender->getName() : "?");
 
-    for (ComponentTrait* i : this->m_components) {
+    for (auto& i : m_components) {
         res += i->_toString();
     }
 

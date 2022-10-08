@@ -7,22 +7,22 @@
 USE_GEODE_NAMESPACE();
 
 void Interface::init(Mod* mod) {
-	if (!this->m_mod) {
-		this->m_mod = mod;
-		for (auto const& hook : this->m_scheduledHooks) {
-			std::invoke(hook.m_addFunction, this->m_mod, hook.m_displayName, hook.m_address);
+	if (!m_mod) {
+		m_mod = mod;
+		for (auto const& hook : m_scheduledHooks) {
+			std::invoke(hook.m_addFunction, m_mod, hook.m_displayName, hook.m_address);
 		}
-		this->m_scheduledHooks.clear();
+		m_scheduledHooks.clear();
 
-		for (auto const& fn : this->m_scheduledFunctions) {
+		for (auto const& fn : m_scheduledFunctions) {
 			std::invoke(fn);
 		}
-		this->m_scheduledFunctions.clear();
+		m_scheduledFunctions.clear();
 	}
 }
 
 void Interface::scheduleOnLoad(ScheduledFunction function) {
-	this->m_scheduledFunctions.push_back(function);
+	m_scheduledFunctions.push_back(function);
 }
 
 Interface* Interface::create() {
