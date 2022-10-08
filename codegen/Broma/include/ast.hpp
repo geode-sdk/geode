@@ -48,7 +48,7 @@ struct FunctionBegin {
 		if (name != f.name || is_const != f.is_const || args.size() != f.args.size())
 			return false;
 
-		for (int i=0; i<args.size(); ++i) {
+		for (size_t i = 0; i < args.size(); ++i) {
 			if (!(args[i].first == f.args[i].first))
 				return false;
 		}
