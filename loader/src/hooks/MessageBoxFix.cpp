@@ -12,7 +12,7 @@ using geode::core::meta::x86::Thiscall;
 static auto CCEGLVIEW_CON_ADDR = reinterpret_cast<void*>(base::getCocos() + 0xc2860);
 
 static void __cdecl fixedErrorHandler(int code, const char* description) {
-    log::critical("GLFW Error ", code, ": ", description);
+    log::critical("GLFW Error {}: {}", code, description);
     MessageBoxA(
         nullptr,
         CCString::createWithFormat(

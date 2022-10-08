@@ -409,22 +409,22 @@ bool Mod::updateDependencyStates() {
 		}
 	}
     if (!hasUnresolved && !m_resolved) {
-        log::debug("All dependencies for ", m_info.m_id, " found");
+        log::debug("All dependencies for {} found", m_info.m_id);
         m_resolved = true;
         if (m_enabled) {
-            log::debug("Resolved & loading ", m_info.m_id);
+            log::debug("Resolved & loading {}", m_info.m_id);
             auto r = this->load();
             if (!r) {
-                log::error(this, " Error loading: ", r.error());
+                log::error("{} Error loading: {}", this, r.error());
             }
             else {
             	auto r = this->enable();
 	            if (!r) {
-	                log::error(this, " Error enabling: ", r.error());
+	                log::error("{} Error enabling: {}", this, r.error());
 	            }
             }
         } else {
-            log::debug("Resolved ", m_info.m_id, ", however not loading it as it is disabled");
+            log::debug("Resolved {}, however not loading it as it is disabled", m_info.m_id);
         }
     }
     return hasUnresolved;

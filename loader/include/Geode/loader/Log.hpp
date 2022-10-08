@@ -36,7 +36,8 @@ namespace geode {
             virtual std::string _toString() = 0;
         };
 
-        template <typename T> requires requires(T b) { std::stringstream() << b; }
+        template <typename T>
+        requires requires(T b) { std::stringstream() << b; }
         std::string parse(T const& thing) {
             std::stringstream buf;
             buf << thing;
@@ -95,12 +96,19 @@ namespace geode {
             friend void GEODE_DLL releaseSchedules(Mod* m);
         };
 
-        template <typename ...Args> requires requires(Args... b) { (parse(b), ...); }
-        void log(Severity sev, Mod* m, Args... args) {
-            Log l(m, sev);
-            (l.getComponents().push_back(new ComponentBase(args)), ...);
+        void GEODE_DLL vlogImplSecretDontUse(Severity, Mod*, std::string_view, std::function<void(Log&)>*, size_t);
 
-            l.pushToLoader();
+        template <typename... Args>
+        requires requires(Args... b) { (parse(b), ...); }
+        void log(Severity severity, Mod* mod, std::string_view formatStr, Args... args) {
+            static constexpr auto pushSomething = [](Log& log, auto something) {
+                // i think this line of code is very sad
+                log.getComponents().push_back(new ComponentBase(something));
+            };
+
+            std::array<std::function<void(Log&)>, sizeof...(Args)> comps = { [&](Log& log) { pushSomething(log, args); }... };
+            // tfw no std::span
+            vlogImplSecretDontUse(severity, mod, formatStr, comps.data(), comps.size());
         }
 
         void GEODE_DLL releaseSchedules(Mod* m);
