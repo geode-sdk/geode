@@ -3,6 +3,7 @@
 class InternalMod;
 
 #include <Geode/loader/Mod.hpp>
+#include <Geode/loader/Interface.hpp>
 
 USE_GEODE_NAMESPACE();
 
