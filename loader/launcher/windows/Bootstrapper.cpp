@@ -30,7 +30,7 @@ DWORD WINAPI load(PVOID _) {
     }
 
     if (ghc::filesystem::exists(updatesDir / "resources", error) && !error) {
-    	std::filesystem::remove_all(resourcesDir / "geode.loader", error);
+    	ghc::filesystem::remove_all(resourcesDir / "geode.loader", error);
 
         if (error) {
             std::cout << "Couldn't update Geode resources: " << error.message() << std::endl;

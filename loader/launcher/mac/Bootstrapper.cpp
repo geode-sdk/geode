@@ -26,9 +26,6 @@ __attribute__((constructor)) void _entry() {
     auto libDir = workingDir / "Frameworks";
 	auto resourcesDir = workingDir / "geode" / "resources";
 
-    std::cout << workingDir << std::endl;
-    std::cout << libDir << std::endl;
-
 	auto error = std::error_code();
 
 	if (ghc::filesystem::exists(updatesDir / "Geode.dylib", error) && !error) {
@@ -43,7 +40,7 @@ __attribute__((constructor)) void _entry() {
     }
 
     if (ghc::filesystem::exists(updatesDir / "resources", error) && !error) {
-        std::filesystem::remove_all(resourcesDir / "geode.loader", error);
+        ghc::filesystem::remove_all(resourcesDir / "geode.loader", error);
 
         if (error) {
             std::cout << "Couldn't update Geode resources: " << error.message() << std::endl;
@@ -54,7 +51,6 @@ __attribute__((constructor)) void _entry() {
             updatesDir / "resources", 
             resourcesDir / "geode.loader", error
         );
-        std::cout << error.message() << std::endl;
         
         if (error) {
             std::cout << "Couldn't update Geode resources: " << error.message() << std::endl;
