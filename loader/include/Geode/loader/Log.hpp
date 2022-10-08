@@ -85,7 +85,7 @@ namespace geode {
             template <typename ...Args>
             friend void schedule(Severity sev, Args... args);
 
-            friend void releaseSchedules(Mod* m);
+            friend void GEODE_DLL releaseSchedules(Mod* m);
         };
 
         template <typename ...Args> requires requires(Args... b) { (parse(b), ...); }
