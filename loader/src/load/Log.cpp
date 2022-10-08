@@ -14,6 +14,18 @@ USE_GEODE_NAMESPACE();
 using namespace geode::log;
 using namespace cocos2d;
 
+std::vector<std::function<void(Mod*)>>& Log::scheduled() {
+    static std::vector<std::function<void(Mod*)>> ret;
+    return ret;
+}
+
+void log::releaseSchedules(Mod* m) {
+    for (auto& func : Log::scheduled()) {
+        func(m);
+    }
+    Log::scheduled().clear();
+}
+
 std::string log::parse(Mod* const& mod) {
     if (mod) {
         return fmt::format("{{ Mod, {} }}", mod->getName());;
@@ -27,6 +39,18 @@ std::string log::parse(CCObject* const& obj) {
         return fmt::format("{{ {}, {} }}", typeid(*obj).name(), utils::intToHex(obj));
     } else {
         return "{ CCObject, null }";
+    }
+}
+
+std::string log::parse(CCNode* const& obj) {
+    if (obj) {
+        auto bb = obj->boundingBox();
+        return fmt::format("{{ {}, {}, ({}, {} | {} : {}) }}", 
+            typeid(*obj).name(), utils::intToHex(obj),
+            bb.origin.x, bb.origin.y, bb.size.width, bb.size.height
+        );
+    } else {
+        return "{ CCNode, null }";
     }
 }
 
@@ -73,13 +97,6 @@ std::string Log::toString(bool logTime) const {
     std::string res;
 
     if (logTime) {
-        const auto t = std::chrono::system_clock::to_time_t(this->m_time);
-        tm obj;
-        #ifdef _MSC_VER
-        localtime_s(&obj, &t);
-        #else
-        obj = *std::localtime(&t);
-        #endif
         res += fmt::format("{:%H:%M:%S}", this->m_time);
     }
 
@@ -97,9 +114,5 @@ void Log::pushToLoader() {
 }
 
 std::string geode::log::generateLogName() {
-    std::stringstream tmp;
-    tmp << "Geode_" 
-        << std::chrono::duration_cast<std::chrono::seconds>(log_clock::now().time_since_epoch()).count()
-        << ".log";
-    return tmp.str();
+    return fmt::format("Geode_{:%H:%M:%S}.log", log_clock::now());
 }

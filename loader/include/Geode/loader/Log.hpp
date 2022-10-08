@@ -60,6 +60,8 @@ namespace geode {
         };*/
 
         class GEODE_DLL Log {
+        private: 
+            static std::vector<std::function<void(Mod*)>>& scheduled();
         protected:
             Mod* m_sender;
             log_clock::time_point m_time;
@@ -79,6 +81,11 @@ namespace geode {
             inline log_clock::time_point getTime() const { return m_time; }
             inline Mod* getSender() const { return m_sender; }
             inline Severity getSeverity() const { return m_severity; }
+
+            template <typename ...Args>
+            friend void schedule(Severity sev, Args... args);
+
+            friend void releaseSchedules(Mod* m);
         };
 
         template <typename ...Args> requires requires(Args... b) { (parse(b), ...); }
@@ -89,35 +96,48 @@ namespace geode {
             l.pushToLoader();
         }
 
-        template <typename ...Args>
-        void debug(Args... args) { log(Severity::Debug, getMod(), args...); }
+        void releaseSchedules(Mod* m);
 
         template <typename ...Args>
-        void info(Args... args) { log(Severity::Info, getMod(), args...); }
+        void schedule(Severity sev, Args... args) {
+            auto m = getMod();
+            if (m) return log(sev, m, args...);
+
+            Log::scheduled().push_back([=](Mod* m){
+                log(sev, m, args...);
+            });
+        }
 
         template <typename ...Args>
-        void notice(Args... args) { log(Severity::Notice, getMod(), args...); }
+        void debug(Args... args) { schedule(Severity::Debug, args...); }
 
         template <typename ...Args>
-        void warn(Args... args) { log(Severity::Warning, getMod(), args...); }
+        void info(Args... args) { schedule(Severity::Info, args...); }
 
         template <typename ...Args>
-        void error(Args... args) { log(Severity::Error, getMod(), args...); }
+        void notice(Args... args) { schedule(Severity::Notice, args...); }
 
         template <typename ...Args>
-        void critical(Args... args) { log(Severity::Critical, getMod(), args...); }
+        void warn(Args... args) { schedule(Severity::Warning, args...); }
 
         template <typename ...Args>
-        void alert(Args... args) { log(Severity::Alert, getMod(), args...); }
+        void error(Args... args) { schedule(Severity::Error, args...); }
 
         template <typename ...Args>
-        void emergency(Args... args) { log(Severity::Emergency, getMod(), args...); }
+        void critical(Args... args) { schedule(Severity::Critical, args...); }
+
+        template <typename ...Args>
+        void alert(Args... args) { schedule(Severity::Alert, args...); }
+
+        template <typename ...Args>
+        void emergency(Args... args) { schedule(Severity::Emergency, args...); }
 
         // parse overload
         #define FF(x) \
             std::string parse(x const& thing);
 
         FF(cocos2d::CCObject*)
+        FF(cocos2d::CCNode*)
         FF(cocos2d::CCPoint)
         FF(cocos2d::CCSize)
         FF(cocos2d::CCRect)

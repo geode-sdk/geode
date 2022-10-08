@@ -211,6 +211,7 @@ Result<> Mod::load() {
     if (this->hasUnresolvedDependencies()) {
         RETURN_LOAD_ERR("Mod has unresolved dependencies");
     }
+    log::releaseSchedules(this);
     auto err = this->loadPlatformBinary();
     if (!err) RETURN_LOAD_ERR(err.error());
     if (m_implicitLoadFunc) {
