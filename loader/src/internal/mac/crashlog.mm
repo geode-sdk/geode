@@ -1,8 +1,9 @@
 #include "../crashlog.hpp"
-#include "../../../../filesystem/fs/filesystem.hpp"
-#include <Foundation/Foundation.h>
 
 #ifdef GEODE_IS_MACOS
+
+#include "../../../../filesystem/fs/filesystem.hpp"
+#include <Foundation/Foundation.h>
 
 bool crashlog::setupPlatformHandler() {
     return true;
