@@ -1,6 +1,7 @@
 #include <Geode/Geode.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
+#include <Geode/loader/Interface.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/utils/general.hpp>
 #include <Geode/utils/casts.hpp>

@@ -3,6 +3,7 @@
 #ifdef GEODE_IS_MACOS
 
 #include <Geode/loader/Mod.hpp>
+#include <Geode/loader/Interface.hpp>
 #include <dlfcn.h>
 
 USE_GEODE_NAMESPACE();

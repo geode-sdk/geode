@@ -1,10 +1,10 @@
 #include <Geode/loader/Mod.hpp>
+#include <Geode/loader/Interface.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/SettingEvent.hpp>
 #include <InternalLoader.hpp>
 #include <InternalMod.hpp>
 #include <Geode/loader/Log.hpp>
-#include <Geode/loader/Interface.hpp>
 #include "../core/Core.hpp"
 #include <array>
 
