@@ -8,6 +8,7 @@
 #include <fs/filesystem.hpp>
 #include <ccTypes.h>
 
+#ifdef GEODE_IS_MACOS
 namespace std {
     // <concepts> isn't working for me lmao
     template <class From, class To>
@@ -17,6 +18,7 @@ namespace std {
         static_cast<To>(std::declval<From>());
       };
 }
+#endif
 
 namespace geode {
     #pragma warning(disable: 4251)

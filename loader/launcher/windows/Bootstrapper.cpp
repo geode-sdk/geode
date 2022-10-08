@@ -2,13 +2,17 @@
 #include <iostream>
 #include "../../../filesystem/fs/filesystem.hpp"
 
+void showError(std::string const& error) {
+	MessageBoxA(nullptr, error.c_str(), "Error Loading Geode", MB_ICONERROR);
+}
+
 int loadGeode() {
-    auto dll = LoadLibraryA("Geode.dll");
-    if (!dylib) {
-    	std::cout << "Couldn't open Geode: " << GetLastError() << std::endl;
-    	return GetLastError();
-    }
-    return 0;
+	if (!LoadLibraryW(L"Geode.dll")) {
+		auto code = GetLastError();
+		showError("Unable to load Geode (code " + std::to_string(code) + ")");
+		return code;
+	}
+	return 0;
 }
 
 DWORD WINAPI load(PVOID _) {
@@ -24,29 +28,27 @@ DWORD WINAPI load(PVOID _) {
             workingDir / "Geode.dll", error
         );
         if (error) {
-            std::cout << "Couldn't update Geode: " << error.message() << std::endl;
-            return loadGeode();
-        }
+			showError("Unable to update Geode: Unable to move Geode.dll - " + error.message());
+			return error.value();
+		}
     }
 
     if (ghc::filesystem::exists(updatesDir / "resources", error) && !error) {
     	ghc::filesystem::remove_all(resourcesDir / "geode.loader", error);
 
         if (error) {
-            std::cout << "Couldn't update Geode resources: " << error.message() << std::endl;
-            return loadGeode();
-        }
-
-        ghc::filesystem::rename(
-            updatesDir / "resources", 
-            resourcesDir / "geode.loader", error
-        );
-        if (error) {
-            std::cout << "Couldn't update Geode resources: " << error.message() << std::endl;
-            return loadGeode();
-        }
+			showError("Unable to update Geode resources: " + error.message());
+        } else {
+			ghc::filesystem::rename(
+				updatesDir / "resources", 
+				resourcesDir / "geode.loader", error
+			);
+			if (error) {
+				showError("Unable to update Geode resources: " + error.message());
+			}
+		}
     }
-    
+
 	return loadGeode();
 }
 

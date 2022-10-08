@@ -548,7 +548,5 @@ namespace geode {
      * However, it can be externed, unlike Mod::get()
      * @returns Same thing Mod::get() returns
      */
-    inline Mod* getMod() {
-        return Mod::get();
-    }
+    inline Mod* getMod();
 }
