@@ -4,12 +4,21 @@
 #include <dlfcn.h>
 #include <array>
 #include <iostream>
+#include <CoreFoundation/CoreFoundation.h>
+
+void displayError(std::string alertMessage) {
+    CFStringRef cfTitle = CFStringCreateWithCString(NULL, "Geode Bootstrapper", kCFStringEncodingUTF8);
+    CFStringRef cfMessage = CFStringCreateWithCString(NULL, alertMessage.c_str(), kCFStringEncodingUTF8);
+
+    CFUserNotificationDisplayNotice(0, kCFUserNotificationCautionAlertLevel, NULL, NULL, NULL, cfTitle, cfMessage, NULL);
+}
 
 void loadGeode() {
     auto dylib = dlopen("Geode.dylib", RTLD_LAZY);
     if (dylib) return;
 
-    std::cout << "Couldn't open Geode: " << dlerror() << std::endl;
+    displayError(std::string("Couldn't open Geode: ") + dlerror());
+
     return;
 }
 
@@ -34,7 +43,7 @@ __attribute__((constructor)) void _entry() {
             workingDir / "Geode.dylib", error
         );
         if (error) {
-            std::cout << "Couldn't update Geode: " << error.message() << std::endl;
+            displayError(std::string("Couldn't update Geode: ") + error.message());
             return loadGeode();
         }
     }
@@ -43,7 +52,7 @@ __attribute__((constructor)) void _entry() {
         ghc::filesystem::remove_all(resourcesDir / "geode.loader", error);
 
         if (error) {
-            std::cout << "Couldn't update Geode resources: " << error.message() << std::endl;
+            displayError(std::string("Couldn't update Geode resources: ") + error.message());
             return loadGeode();
         }
 
@@ -53,7 +62,7 @@ __attribute__((constructor)) void _entry() {
         );
         
         if (error) {
-            std::cout << "Couldn't update Geode resources: " << error.message() << std::endl;
+            displayError(std::string("Couldn't update Geode resources: ") + error.message());
             return loadGeode();
         }
     }    

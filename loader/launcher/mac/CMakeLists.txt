@@ -8,3 +8,5 @@ set_target_properties(Bootstrapper PROPERTIES
 	LIBRARY_OUTPUT_DIRECTORY "${GEODE_BIN_PATH}/nightly"
 	RUNTIME_OUTPUT_DIRECTORY "${GEODE_BIN_PATH}/nightly"
 )
+
+target_link_libraries(Bootstrapper PRIVATE "-framework CoreFoundation")
