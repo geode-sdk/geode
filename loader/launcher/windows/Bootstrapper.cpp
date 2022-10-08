@@ -1,8 +1,18 @@
 #include <Windows.h>
+#include <iostream>
 #include "../../../filesystem/fs/filesystem.hpp"
 
 void showError(std::string const& error) {
 	MessageBoxA(nullptr, error.c_str(), "Error Loading Geode", MB_ICONERROR);
+}
+
+int loadGeode() {
+	if (!LoadLibraryW(L"Geode.dll")) {
+		auto code = GetLastError();
+		showError("Unable to load Geode (code " + std::to_string(code) + ")");
+		return code;
+	}
+	return 0;
 }
 
 DWORD WINAPI load(PVOID _) {
@@ -24,22 +34,22 @@ DWORD WINAPI load(PVOID _) {
     }
 
     if (ghc::filesystem::exists(updatesDir / "resources", error) && !error) {
-        ghc::filesystem::rename(
-            updatesDir / "resources", 
-            resourcesDir / "geode.loader", error
-        );
+    	ghc::filesystem::remove_all(resourcesDir / "geode.loader", error);
+
         if (error) {
 			showError("Unable to update Geode resources: " + error.message());
-			return error.value();
+        } else {
+			ghc::filesystem::rename(
+				updatesDir / "resources", 
+				resourcesDir / "geode.loader", error
+			);
+			if (error) {
+				showError("Unable to update Geode resources: " + error.message());
+			}
 		}
     }
-    
-	if (!LoadLibraryW(L"Geode.dll")) {
-		showError("Unable to load Geode (code " + std::to_string(GetLastError()) + ")");
-		return 1;
-	}
 
-	return 0;
+	return loadGeode();
 }
 
 BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID _) {
