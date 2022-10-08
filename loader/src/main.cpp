@@ -14,6 +14,7 @@ int geodeEntry(void* platformData);
 #if defined(GEODE_IS_IOS) || defined(GEODE_IS_MACOS)
 #include <mach-o/dyld.h>
 #include <unistd.h>
+#include <dlfcn.h>
 
 std::length_error::~length_error() _NOEXCEPT {} // do not ask...
 
@@ -22,6 +23,9 @@ std::length_error::~length_error() _NOEXCEPT {} // do not ask...
 // this is what old versions does to a silly girl
 
 __attribute__((constructor)) void _entry() {
+    auto dylib = dlopen("GeodeBootstrapper.dylib", RTLD_NOLOAD);
+    dlclose(dylib);
+
     std::array<char, PATH_MAX> gddir;
 
     uint32_t out = PATH_MAX;

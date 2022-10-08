@@ -34,7 +34,7 @@ __attribute__((constructor)) void _entry() {
         if (error) return;
     }
     
-	auto dylib = dlopen("Geode.dylib", RTLD_NOW);
+	auto dylib = dlopen("Geode.dylib", RTLD_LAZY);
 	if (dylib) return;
 
 	return;

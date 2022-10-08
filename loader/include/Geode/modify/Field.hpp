@@ -2,6 +2,7 @@
 
 #include <Geode/Bindings.hpp>
 #include "Traits.hpp"
+#include <Geode/loader/Loader.hpp>
 #include <vector>
 
 namespace geode::modifier {
