@@ -1403,7 +1403,7 @@ class EffectGameObject : GameObject {
     bool m_dynamicBlock;
     int m_itemBlockAID;
     int m_pickupMode;
-    PAD = mac 0x20, win 0x20, android 0x0;
+    PAD = mac 0x28, win 0x24, android 0x0;
 }
 
 class EndLevelLayer {
