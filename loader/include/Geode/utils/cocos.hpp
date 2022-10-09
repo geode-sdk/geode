@@ -171,30 +171,116 @@ namespace geode::cocos {
     GEODE_DLL bool fileExistsInSearchPaths(const char* filename);
 
 
-    template <typename T>
+    template <class T>
     struct GEODE_DLL CCArrayIterator {
     public:
         CCArrayIterator(T* p) : m_ptr(p) {}
         T* m_ptr;
 
-        T& operator*() { return *m_ptr; }
-        T* operator->() { return m_ptr; }
+        auto& operator*() {
+            return *m_ptr;
+        }
+        auto& operator*() const {
+            return *m_ptr;
+        }
+        auto operator->() {
+            return m_ptr;
+        }
+
+        auto operator->() const {
+            return m_ptr;
+        }
 
         auto& operator++() {
             ++m_ptr;
             return *this;
         }
 
-        friend bool operator== (const CCArrayIterator<T>& a, const CCArrayIterator<T>& b) { return a.m_ptr == b.m_ptr; };
-        friend bool operator!= (const CCArrayIterator<T>& a, const CCArrayIterator<T>& b) { return a.m_ptr != b.m_ptr; };   
+        auto& operator--() {
+            --m_ptr;
+            return *this;
+        }
+
+        auto& operator+=(size_t val) {
+            m_ptr += val;
+            return *this;
+        }
+
+        auto& operator-=(size_t val) {
+            m_ptr -= val;
+            return *this;
+        }
+
+        auto operator+(size_t val) const {
+            return CCArrayIterator<T>(m_ptr + val);
+        }
+
+        auto operator-(size_t val) const {
+            return CCArrayIterator<T>(m_ptr - val);
+        }
+
+        auto operator-(CCArrayIterator<T> const& other) const {
+            return m_ptr - other.m_ptr;
+        }
+
+        bool operator<(CCArrayIterator<T> const& other) const {
+            return m_ptr < other.m_ptr;
+        }
+
+        bool operator>(CCArrayIterator<T> const& other) const {
+            return m_ptr > other.m_ptr;
+        }
+
+        bool operator<=(CCArrayIterator<T> const& other) const {
+            return m_ptr <= other.m_ptr;
+        }
+
+        bool operator>=(CCArrayIterator<T> const& other) const {
+            return m_ptr >= other.m_ptr;
+        }
+
+        bool operator==(CCArrayIterator<T> const& other) const {
+            return m_ptr == other.m_ptr;
+        }
+        bool operator!=(CCArrayIterator<T> const& other) const {
+            return m_ptr != other.m_ptr;
+        }
+    };
+
+    template <typename T>
+    struct std::iterator_traits<CCArrayIterator<T>> {
+        using difference_type = ptrdiff_t;
+        using value_type = T;
+        using pointer = T*;
+        using reference = T&;
+        using iterator_category = std::random_access_iterator_tag; // its random access but im too lazy to implement it
+    };
+
+    struct GEODE_DLL CCArrayInserter {
+    public:
+        CCArrayInserter(cocos2d::CCArray* p) : m_array(p) {}
+        cocos2d::CCArray* m_array;
+
+        auto& operator=(cocos2d::CCObject* value) {
+            m_array->addObject(value);
+            return *this;
+        }
+
+        auto& operator*() {
+            return *this;
+        }
+
+        auto& operator++() {
+            return *this;
+        }
     };
 
     template <typename _Type>
     class CCArrayExt {
-     protected:
+    protected:
         cocos2d::CCArray* m_arr;
         using T = std::remove_pointer_t<_Type>;
-     public:
+    public:
         CCArrayExt() : m_arr(cocos2d::CCArray::create()) {
             m_arr->retain();
         }
