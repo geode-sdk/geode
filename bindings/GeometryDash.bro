@@ -1121,9 +1121,12 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     cocos2d::CCArray* getSelectedObjects() = mac 0x23f30, win 0x86900, ios 0x0;
     bool init(LevelEditorLayer*) = mac 0x8ae0, win 0x76310, ios 0x0;
     virtual bool ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x2ed60, win 0x907b0, ios 0x0;
-    virtual void ccTouchMoved(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x2f3d0, win 0x0, ios 0x0;
+    virtual void ccTouchMoved(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x2f3d0, win 0x90cd0, ios 0x0;
     virtual void ccTouchEnded(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x2fb00, win 0x911a0, ios 0x0;
     virtual void keyDown(cocos2d::enumKeyCodes) = mac 0x30790, win 0x91a30, ios 0x0;
+    virtual void draw() = mac 0x0, win 0x18fbe0, ios 0x0;
+    virtual void keyUp(cocos2d::enumKeyCodes key) = mac 0x312b0, win 0x92180, ios 0x0;
+    virtual void scrollWheel(float y, float x) = mac 0x0, win 0x921d0, ios 0x0;
     CreateMenuItem* menuItemFromObjectString(gd::string, int) = mac 0x1e130, win 0x84d00;
     void moveObject(GameObject*, cocos2d::CCPoint) = mac 0x24b10, win 0x8ddb0, ios 0x0;
     void onDuplicate(cocos2d::CCObject*) = mac 0x18ba0, win 0x87d20, ios 0x0;
@@ -3530,7 +3533,6 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
     }
 
     inline LevelEditorLayer() {}
-
     ~LevelEditorLayer() = mac 0x90a00, win 0x15e8d0, ios 0x0;
     virtual void update(float) = mac 0xa1b70, win 0x16a660, ios 0x0;
     virtual void draw() = mac 0xa2a70, win 0x16b7c0, ios 0x0;
@@ -3622,7 +3624,9 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
         m_currentStartPos = obj;
     }
 
-     bool m_ignoreDamage;
+    // huge thank you to Wylie for many of these members
+
+    bool m_ignoreDamage;
     bool m_followPlayer;
     bool m_drawTriggerBoxes;
     bool m_debugDraw;
