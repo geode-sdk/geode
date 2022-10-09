@@ -1,9 +1,14 @@
 cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
 
-project(geode-sdk VERSION 0.2.0 LANGUAGES CXX C)
+set(GEODE_VERSION 0.4.1)
+
+project(geode-sdk VERSION ${GEODE_VERSION} LANGUAGES CXX C)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+if (APPLE)
+	set(CMAKE_BUILD_TYPE Debug)
+endif()
 
 add_library(${PROJECT_NAME} INTERFACE)
 
@@ -33,7 +38,7 @@ add_dependencies(CodegenRun Codegen)
 # Hacky way to supress the not generated error
 if (NOT EXISTS ${GEODE_CODEGEN_PATH}/GeneratedSource.cpp)
 	make_directory(${GEODE_CODEGEN_PATH})
-	execute_process(COMMAND touch ${GEODE_CODEGEN_PATH}/GeneratedSource.cpp)
+	file(TOUCH ${GEODE_CODEGEN_PATH}/GeneratedSource.cpp)
 endif()
 
 target_sources(${PROJECT_NAME} INTERFACE ${GEODE_CODEGEN_PATH}/GeneratedSource.cpp)
@@ -62,7 +67,7 @@ if (NOT EXISTS ${GEODE_BIN_PATH})
 	make_directory(${GEODE_BIN_PATH})
 endif()
 
-if (GEODE_LINK_SOURCE)
+if (${GEODE_LINK_NIGHTLY})
 	set(GEODE_PLATFORM_BIN_PATH ${GEODE_BIN_PATH}/nightly/${GEODE_PLATFORM_BINARY})
 else()
 	set(GEODE_PLATFORM_BIN_PATH ${GEODE_BIN_PATH}/${PROJECT_VERSION}/${GEODE_PLATFORM_BINARY})

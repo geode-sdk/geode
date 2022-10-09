@@ -30,6 +30,7 @@ Result<> Mod::enableHook(Hook* hook) {
     if (!hook->isEnabled()) {
     	auto res = std::invoke(hook->m_addFunction, hook->m_address);
 	    if (res) {
+            log::debug("Enabling hook at function {}", hook->m_displayName);
 	        this->m_hooks.push_back(hook);
 	        hook->m_enabled = true;
 	        hook->m_handle = res.value();
@@ -47,6 +48,7 @@ Result<> Mod::enableHook(Hook* hook) {
 Result<> Mod::disableHook(Hook* hook) {
     if (hook->isEnabled()) {
         if (geode::core::hook::remove(hook->m_handle)) {
+            log::debug("Disabling hook at function {}", hook->m_displayName);
             hook->m_enabled = false;
             return Ok<>();
         }
@@ -58,7 +60,7 @@ Result<> Mod::disableHook(Hook* hook) {
 Result<> Mod::removeHook(Hook* hook) {
     auto res = this->disableHook(hook);
     if (res) {
-        vector_utils::erase<Hook*>(this->m_hooks, hook);
+        utils::vector::erase<Hook*>(this->m_hooks, hook);
         delete hook;
     }
     return res;
@@ -84,10 +86,7 @@ bool InternalLoader::loadHooks() {
     for (auto const& hook : internalHooks()) {
         auto res = hook.mod->addHook(hook.hook);
         if (!res) {
-            hook.mod->logInfo(
-                res.error(),
-                Severity::Error
-            );
+            log::log(Severity::Error, hook.mod, res.error());
             thereWereErrors = true;
         }
     }

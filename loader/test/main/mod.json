@@ -1,11 +1,10 @@
 {
-    "geode":        "v0.2.0",
+    "geode":        "v0.4.1",
 	"version":      "v1.0.0",
 	"id":           "geode.test",
     "name":         "Geode Test",
     "developer":    "Geode Team",
     "description":  "unit test for geode",
-    "binary":       "TestMod",
     "datastore": {
         "times-opened": 1
     },

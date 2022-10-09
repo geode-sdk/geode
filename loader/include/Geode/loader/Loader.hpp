@@ -26,14 +26,20 @@ namespace geode {
 
     class Mod;
     class Hook;
-    class Log;
-    class LogPtr;
     struct ModInfo;
 
     namespace modifier {
     	template<class, class, class>
 		class FieldIntermediate;
     }
+}
+
+/**
+ * The predeclaration of the implicit entry
+ */
+GEODE_API bool GEODE_CALL geode_implicit_load(geode::Mod*);
+
+namespace geode {
 
     class GEODE_DLL Loader {
     public:
@@ -49,9 +55,12 @@ namespace geode {
             };
             std::unordered_map<std::string, ModSettings> m_mods;
         };
+
+        using ScheduledFunction = std::function<void GEODE_CALL(void)>;
         
+        std::vector<ScheduledFunction> m_scheduledFunctions;
         std::unordered_map<std::string, Mod*> m_mods;
-        std::vector<LogPtr*> m_logs;
+        std::vector<log::Log> m_logs;
         std::ofstream m_logStream;
         std::vector<ghc::filesystem::path> m_modDirectories;
         std::vector<FailedModInfo> m_erroredMods;
@@ -59,25 +68,6 @@ namespace geode {
 
         bool m_isSetup = false;
         static bool s_unloading;
-
-        /**
-         * Lowest supported mod version.
-         * Any mod targeting a geode version 
-         * lower than this will not be loaded, 
-         * as they will be considered out-of-date.
-         */
-        static constexpr VersionInfo s_supportedVersionMin { 0, 1, 0 };
-        /**
-         * Highest support mod version.
-         * Any mod targeting a geode version 
-         * higher than this will not be loaded, 
-         * as a higher version means that 
-         * the user's geode is out-of-date, 
-         * or that the user is a time traveller 
-         * and has downloaded a mod from the 
-         * future.
-         */
-        static constexpr VersionInfo s_supportedVersionMax { 0, 2, 0 };
 
         Result<std::string> createTempDirectoryForMod(ModInfo const& info);
         Result<Mod*> loadModFromFile(std::string const& file);
@@ -88,15 +78,18 @@ namespace geode {
 
         void updateAllDependencies();
 
+        void releaseScheduledFunctions(Mod* mod);
+
         friend class Mod;
         friend class CustomLoader;
         friend struct ModInfo;
 
-    private:
     	size_t getFieldIndexForClass(size_t hash);
 
     	template <class, class, class>
         friend class modifier::FieldIntermediate;
+
+        friend bool GEODE_CALL ::geode_implicit_load(Mod*);
         
     public:
         ~Loader();
@@ -107,8 +100,8 @@ namespace geode {
          */
         static Loader* get();
         
-        VersionInfo getVersion() const;
-        std::string getVersionType() const;
+        static VersionInfo getVersion();
+        static std::string getVersionType();
 
         Result<> saveSettings();
         Result<> loadSettings();
@@ -132,6 +125,19 @@ namespace geode {
          * Directory where Geode saves its files
          */
         ghc::filesystem::path getGeodeSaveDirectory() const;
+
+        /**
+         * Minimum supported mod version
+         */
+        static VersionInfo minModVersion();
+        /**
+         * Maximum supported mod version
+         */
+        static VersionInfo maxModVersion();
+        /**
+         * Check if a mod's version is within the supported range
+         */
+        static bool supportedModVersion(VersionInfo const& version);
 
         /**
          * Whether mod specified with ID is enabled 
@@ -163,12 +169,13 @@ namespace geode {
          */
         static bool isUnloading();
 
-        void pushLog(LogPtr* log);
-        void popLog(LogPtr* log);
-        std::vector<LogPtr*> const& getLogs() const;
-        std::vector<LogPtr*> getLogs(
-            std::initializer_list<Severity> severityFilter
+        void pushLog(log::Log&& log);
+        void popLog(log::Log* log);
+        std::vector<log::Log*> getLogs(
+            std::initializer_list<Severity> severityFilter = {}
         );
+
+        void clearLogs();
         
         /**
          * You shouldn't be calling this manually, 
@@ -176,7 +183,6 @@ namespace geode {
          * Mod::m_addResourcesToSearchPath to true 
          * first
          */
-        void addModResourcesPath(Mod* mod);
         void updateResourcePaths();
         void updateModResources(Mod* mod);
         void updateResources();
@@ -219,7 +225,7 @@ namespace geode {
          * Get all mods that are a serious 
          * disappointment to their parents
          */
-        std::vector<FailedModInfo> const& getFailedMods() const;
+        std::vector<FailedModInfo> getFailedMods() const;
         /**
          * Unload a mod fully. This will remove it 
          * from the mods list and delete the Mod. If 
@@ -243,6 +249,23 @@ namespace geode {
          * `CCScheduler::update` is called
          * @param func Function to run
          */
-        void queueInGDThread(std::function<void GEODE_CALL(void)> func);
+        void queueInGDThread(ScheduledFunction func);
+
+        /**
+         * Run a function when the Mod is loaded. Useful if for 
+         * some reason you need to run some function in 
+         * static initialization.
+         * @param func Function to run
+         */
+        void scheduleOnModLoad(Mod* m, ScheduledFunction func);
+
+        /**
+         * Open the platform-specific external console (if one exists)
+         */
+        static void openPlatformConsole();
+        /**
+         * Close the platform-specific external console (if one exists)
+         */
+        static void closePlatfromConsole();
     };
 }

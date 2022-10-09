@@ -15,6 +15,12 @@
 #include <locale>
 #include <ostream>
 #include <type_traits>
+#include <cmath>
+
+// fix for msvc aliasing isnan to _isnan
+#ifdef isnan
+  #undef isnan
+#endif
 
 #include "format.h"
 

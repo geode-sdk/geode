@@ -1,4 +1,5 @@
 #include <Windows.h>
+#include <stdio.h>
 
 #pragma comment(linker, "/export:XInputGetState=xinput1_4.XInputGetState")
 #pragma comment(linker, "/export:XInputSetState=xinput1_4.XInputSetState")
@@ -11,7 +12,14 @@ DWORD XInputGetDSoundAudioDeviceGuids(DWORD user, GUID* render, GUID* capture) {
 #pragma comment(linker, "/export:XInputGetDSoundAudioDeviceGuids=_XInputGetDSoundAudioDeviceGuids")
 
 DWORD WINAPI load(PVOID _) {
-	LoadLibraryA("Geode.dll");
+	if (!LoadLibraryW(L"GeodeBootstrapper.dll")) {
+		char msg[256];
+		sprintf(msg,
+			"Unable to load Geode: Unable to load "
+			"bootstrapper (error code %d)", GetLastError()
+		);
+		MessageBoxA(NULL, msg, "Error Loading Geode", MB_ICONERROR);
+	}
 	return 0;
 }
 

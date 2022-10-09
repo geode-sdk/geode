@@ -8,132 +8,159 @@
 #include <fs/filesystem.hpp>
 #include <ccTypes.h>
 
-/*namespace cocos2d {
-    class CCObject;
-    class CCNode;
-    class CCPoint;
-    class CCSize;
-    class CCRect;
-    class CCArray;
-}*/
-
-GEODE_DLL std::ostream& operator<<(std::ostream& os, geode::Mod* mod);
-GEODE_DLL std::ostream& operator<<(std::ostream& os, cocos2d::CCObject* obj);
-GEODE_DLL std::ostream& operator<<(std::ostream& os, cocos2d::CCArray* obj);
-GEODE_DLL std::ostream& operator<<(std::ostream& os, cocos2d::CCPoint const& pos);
-GEODE_DLL std::ostream& operator<<(std::ostream& os, cocos2d::CCSize const& size);
-GEODE_DLL std::ostream& operator<<(std::ostream& os, cocos2d::CCRect const& rect);
-GEODE_DLL std::ostream& operator<<(std::ostream& os, cocos2d::ccColor3B const& color);
-GEODE_DLL std::ostream& operator<<(std::ostream& os, cocos2d::ccColor4B const& color);
+#ifdef GEODE_IS_MACOS
+namespace std {
+    // <concepts> isn't working for me lmao
+    template <class From, class To>
+    concept convertible_to =
+      std::is_convertible_v<From, To> &&
+      requires {
+        static_cast<To>(std::declval<From>());
+      };
+}
+#endif
 
 namespace geode {
-    class Mod;
     #pragma warning(disable: 4251)
 
-    using log_clock = std::chrono::system_clock;
+    class Mod;
+    inline Mod* getMod();
 
-    struct GEODE_DLL LogMetadata {
-        std::string m_repr;
-        LogMetadata(std::string const& r) : m_repr(r) {}
-        LogMetadata() {}
-        virtual ~LogMetadata() {}
-    };
+    namespace log {
+        using log_clock = std::chrono::system_clock;
 
-    std::string generateLogName();
+        std::string generateLogName();
 
-    class Log;
-    class GEODE_DLL LogPtr {
-    protected:
-        Mod* m_sender = nullptr;
-        log_clock::time_point m_time = log_clock::now();
-        std::vector<LogMetadata*> m_data;
-        Severity m_severity = Severity::Debug;
-
-        friend class Log;
-    
-    public:
-        LogPtr(Mod* Mod) : m_sender(Mod) {}
-
-        ~LogPtr();
-
-        std::string toString(bool logTime = true) const;
-        std::vector<LogMetadata*> const& getData() const;
-
-        log_clock::time_point getTime() const;
-        std::string getTimeString() const;
-        Mod* getSender() const;
-        Severity getSeverity() const;
-
-    };
-
-    using ostream_fn_type = std::ostream&(*)(std::ostream&);
-
-    class GEODE_DLL Log {
-    protected:
-        LogPtr* m_logptr = nullptr;
-        std::stringstream m_stream;
-        void flush();
-
-    public:
-        static Log get();
-        
-        inline Log(Mod* m) : m_logptr(new LogPtr(m)) {}
-        inline Log() : Log(nullptr) {}
-
-        Log& operator<<(ostream_fn_type);
-
-        Log& operator<<(Severity::type s);
-        Log& operator<<(Severity s);
-
+        std::string parse(cocos2d::CCNode*);
+        template <class T>
+        requires std::convertible_to<T*, cocos2d::CCNode*>
+        std::string parse(T* node) {
+            return parse(static_cast<cocos2d::CCNode*>(node));
+        }
+        std::string parse(cocos2d::CCPoint const&);
+        std::string parse(cocos2d::CCSize const&);
+        std::string parse(cocos2d::CCRect const&);
+        std::string parse(cocos2d::CCArray*);
+        std::string parse(cocos2d::ccColor3B const&);
+        std::string parse(cocos2d::ccColor4B const&);
+        std::string parse(cocos2d::ccColor4F const&);
+        std::string parse(cocos2d::CCObject*);
+        std::string parse(Mod*);
 
         template <typename T>
-        Log& operator<<(T item) {
-            this->m_stream << item;
-            //static_assert(!std::is_same<Severity, T>::value, "didnt work :(");
-            return *this;
+        requires requires(T b) { std::stringstream() << b; }
+        std::string parse(T const& thing) {
+            std::stringstream buf;
+            buf << thing;
+            return buf.str();
         }
 
-        template <typename U, typename T>
-        Log& streamMeta(T t) {
-            static_assert(std::is_base_of<LogMetadata, U>::value, "Metadata class must derive from geode::LogMetadata");
+        struct GEODE_DLL ComponentTrait {
+            virtual ~ComponentTrait() {}
+            virtual std::string _toString() = 0;
+        };
 
-            auto md = new LogMetadata;
-            md->m_repr = this->m_stream.str();
-            this->m_logptr->m_data.push_back(md);
-            m_stream.str("");
+        template <typename T>
+        struct ComponentBase : public ComponentTrait {
+            T m_item;
+            inline ~ComponentBase() override {}
+            inline ComponentBase(T const& item) : m_item(item) {}
+            // specialization must implement
+            inline std::string _toString() override { return parse(m_item); }
+        };
 
-            md = new U(t);
-            m_stream << t;
-            md->m_repr = m_stream.str();
-            this->m_logptr->m_data.push_back(md);
-            m_stream.str("");
+        /*template <typename T> requires requires(T b) { std::stringstream() << b; }
+        struct Component<T> : ComponentBase<T> {
+            inline static std::string toString(T const& thing) {
+                std::stringstream buf;
+                buf << thing;
+                return buf.str();
+            }
+        };*/
 
-            return *this;
+        class GEODE_DLL Log {
+        private: 
+            static std::vector<std::function<void(Mod*)>>& scheduled();
+        protected:
+            Mod* m_sender;
+            log_clock::time_point m_time;
+            std::vector<ComponentTrait*> m_components;
+            Severity m_severity;
+        
+        public:
+            Log(Mod* mod, Severity sev);// : m_sender(mod), m_time(log_clock::now()), m_severity(sev) {}
+            Log(Log&& l) = default;
+            Log& operator=(Log&& l) = default;
+            bool operator==(Log const& l);
+
+            std::string toString(bool logTime = true) const;
+            void pushToLoader();
+
+            inline std::vector<ComponentTrait*>& getComponents() { return m_components; }
+            inline log_clock::time_point getTime() const { return m_time; }
+            inline Mod* getSender() const { return m_sender; }
+            inline Severity getSeverity() const { return m_severity; }
+            inline ~Log() {
+                for (auto comp : m_components) {
+                    delete comp;
+                }
+            }
+
+            template <typename ...Args>
+            friend void schedule(Severity sev, Args... args);
+
+            friend void GEODE_DLL releaseSchedules(Mod* m);
+        };
+
+        void GEODE_DLL vlogImpl(Severity, Mod*, std::string_view, std::function<void(Log&)>*, size_t);
+
+        template <typename... Args>
+        requires requires(Args... b) { (parse(b), ...); }
+        void log(Severity severity, Mod* mod, std::string_view formatStr, Args... args) {
+            static constexpr auto pushSomething = [](Log& log, auto something) {
+                // i think this line of code is very sad
+                log.getComponents().push_back(new ComponentBase(something));
+            };
+
+            std::array<std::function<void(Log&)>, sizeof...(Args)> comps = { [&](Log& log) { pushSomething(log, args); }... };
+            // tfw no std::span
+            vlogImpl(severity, mod, formatStr, comps.data(), comps.size());
         }
 
-        ~Log();
-    };
+        void GEODE_DLL releaseSchedules(Mod* m);
 
-    // geode-defined metadata functions
+        template <typename ...Args>
+        void schedule(Severity sev, Args... args) {
+            auto m = getMod();
+            if (m) return log(sev, m, args...);
 
-    struct ModMeta : public LogMetadata {
-        Mod* m_mod;
-        ModMeta(Mod* m) : m_mod(m) {}
-        ModMeta(std::string const& r, Mod* m) : m_mod(m), LogMetadata(r) {}
-    };
-    struct GEODE_DLL CCObjectMeta : public LogMetadata {
-        cocos2d::CCObject* m_obj;
-        CCObjectMeta(cocos2d::CCObject* obj);
-        CCObjectMeta(std::string const& r, cocos2d::CCObject* obj);
-        ~CCObjectMeta();
-    };
-    struct GEODE_DLL CCArrayMeta : public LogMetadata {
-        cocos2d::CCArray* m_arr;
-        CCArrayMeta(cocos2d::CCArray* arr);
-        CCArrayMeta(std::string const& r, cocos2d::CCArray* arr);
-        ~CCArrayMeta();
-    };
+            Log::scheduled().push_back([=](Mod* m2){
+                log(sev, m2, args...);
+            });
+        }
+
+        template <typename ...Args>
+        void debug(Args... args) { schedule(Severity::Debug, args...); }
+
+        template <typename ...Args>
+        void info(Args... args) { schedule(Severity::Info, args...); }
+
+        template <typename ...Args>
+        void notice(Args... args) { schedule(Severity::Notice, args...); }
+
+        template <typename ...Args>
+        void warn(Args... args) { schedule(Severity::Warning, args...); }
+
+        template <typename ...Args>
+        void error(Args... args) { schedule(Severity::Error, args...); }
+
+        template <typename ...Args>
+        void critical(Args... args) { schedule(Severity::Critical, args...); }
+
+        template <typename ...Args>
+        void alert(Args... args) { schedule(Severity::Alert, args...); }
+
+        template <typename ...Args>
+        void emergency(Args... args) { schedule(Severity::Emergency, args...); }
+    }
 }
-GEODE_DLL geode::Log& operator<<(geode::Log&, geode::Mod*);
-GEODE_DLL geode::Log& operator<<(geode::Log&, cocos2d::CCObject*);
-GEODE_DLL geode::Log& operator<<(geode::Log&, cocos2d::CCArray*);

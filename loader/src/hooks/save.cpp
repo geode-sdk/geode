@@ -5,16 +5,14 @@ USE_GEODE_NAMESPACE();
 
 class $modify(AppDelegate) {
     void trySaveGame() {
-        Loader::getInternalMod()->log() << "Saving...";
+        log::log(Severity::Info, Loader::getInternalMod(), "Saving...");
 
         auto r = Loader::get()->saveSettings();
         if (!r) {
-            Loader::getInternalMod()->logInfo(
-                r.error(), Severity::Error
-            );
+            log::log(Severity::Error, Loader::getInternalMod(), r.error());
         }
 
-        Loader::getInternalMod()->log() << "Saved";
+        log::log(Severity::Info, Loader::getInternalMod(), "Saved");
         
         return AppDelegate::trySaveGame();
     }

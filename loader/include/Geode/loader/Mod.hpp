@@ -12,23 +12,31 @@
 #include <unordered_map>
 #include <type_traits>
 #include <cocos2d.h>
-
+#include "Setting.hpp"
+#include <optional>
 
 class InternalLoader;
 class InternalMod;
-
-namespace geode {                  
+namespace geode {
     struct PlatformInfo;
 
     class Hook;
     class Patch;
     class Loader;
-    class Log;
     class Mod;
+    class Setting;
 
     class Unknown;
-	using unknownmemfn_t = void(Unknown::*)();
-	using unknownfn_t = void(*)();
+    using unknownmemfn_t = void(Unknown::*)();
+    using unknownfn_t = void(*)();
+}
+
+/**
+ * The predeclaration of the implicit entry
+ */
+GEODE_API bool GEODE_CALL geode_implicit_load(geode::Mod*);
+
+namespace geode {                
 
     struct Dependency {
         std::string m_id;
@@ -38,6 +46,11 @@ namespace geode {
         bool m_required = false;
         Mod* m_mod = nullptr;
         bool isUnresolved() const;
+    };
+
+    struct IssuesInfo {
+        std::string m_info;
+        std::optional<std::string> m_url;
     };
 
     /**
@@ -94,23 +107,31 @@ namespace geode {
          * Short & concise description of the 
          * mod.
          */
-        std::string m_description = "";
+        std::optional<std::string> m_description;
         /**
-         * Detailed description of the mod, writtenin Markdown (see
-         * https://github.com/geode-sdk/api/blob/main/include/nodes/MDTextArea.hpp) 
-         * for more info
+         * Detailed description of the mod, writtenin Markdown (see 
+         * <Geode/ui/MDTextArea.hpp>) for more info
          */
-        std::string m_details = "";
+        std::optional<std::string> m_details;
         /**
          * Changelog for the mod, written in Markdown (see
-         * https://github.com/geode-sdk/api/blob/main/include/nodes/MDTextArea.hpp) 
-         * for more info
+         * <Geode/ui/MDTextArea.hpp>) for more info
          */
-        std::string m_changelog = "";
+        std::optional<std::string> m_changelog;
         /**
-         * Git Repository of the mod.
+         * Support info for the mod; this means anything to show ways to 
+         * support the mod's development, like donations. Written in Markdown 
+         * (see <Geode/ui/MDTextArea.hpp>) for more info
          */
-        std::string m_repository = "";
+        std::optional<std::string> m_supportInfo;
+        /**
+         * Git Repository of the mod
+         */
+        std::optional<std::string> m_repository;
+        /**
+         * Info about where users should report issues and request help
+         */
+        std::optional<IssuesInfo> m_issues;
         /**
          * Dependencies
          */
@@ -123,7 +144,10 @@ namespace geode {
          * Default data store values
          */
         nlohmann::json m_defaultDataStore;
-
+        /**
+         * Mod settings
+         */
+        std::vector<std::pair<std::string, std::shared_ptr<Setting>>> m_settings;
         /**
          * Whether the mod can be disabled or not
          */
@@ -143,7 +167,7 @@ namespace geode {
         /**
          * Create ModInfo from a parsed json document
          */
-        static Result<ModInfo> create(nlohmann::json const& json);
+        static Result<ModInfo> create(ModJson const& json);
 
     private:
         /**
@@ -151,7 +175,7 @@ namespace geode {
          * compatibility if we update the mod.json 
          * format
          */
-        static Result<ModInfo> createFromSchemaV010(nlohmann::json const& json);
+        static Result<ModInfo> createFromSchemaV010(ModJson const& json);
     };
 
     /**
@@ -180,9 +204,7 @@ namespace geode {
 
     /**
      * @class Mod
-     * Represents a Mod ingame. Inherit
-     * from this class to create your own
-     * mod interfaces.
+     * Represents a Mod ingame. 
      * @abstract
      */
     class GEODE_DLL Mod {
@@ -274,8 +296,8 @@ namespace geode {
         Result<> loadPlatformBinary();
         Result<> unloadPlatformBinary();
 
-        Result<> saveDataStore();
-        Result<> loadDataStore();
+        Result<> saveSettings();
+        Result<> loadSettings();
 
         void postDSUpdate();
 
@@ -299,12 +321,22 @@ namespace geode {
         friend struct ModInfo;
         friend class DataStore;
 
+        template<class = void>
+        static inline GEODE_HIDDEN Mod* sharedMod = nullptr;
+
+        template<class = void>
+        static inline GEODE_HIDDEN void setSharedMod(Mod* mod) {
+            sharedMod<> = mod;
+        }
+
+        friend bool GEODE_CALL ::geode_implicit_load(Mod*);
+
     public:
         std::string getID() const;
         std::string getName() const;
         std::string getDeveloper() const;
-        std::string getDescription() const;
-        std::string getDetails() const;
+        std::optional<std::string> getDescription() const;
+        std::optional<std::string> getDetails() const;
         std::string getPath() const;
         VersionInfo getVersion() const;
         bool        isEnabled() const;
@@ -317,34 +349,37 @@ namespace geode {
         ghc::filesystem::path getTempDir() const;
         ghc::filesystem::path getBinaryPath() const;
 
+        bool hasSettings() const;
+        decltype(ModInfo::m_settings) getSettings() const;
+        bool hasSetting(std::string const& key) const;
+        std::shared_ptr<Setting> getSetting(std::string const& key) const;
+        template<class T>
+        T getSettingValue(std::string const& key) const {
+            if (this->hasSetting(key)) {
+                return geode::getBuiltInSettingValue<T>(
+                    this->getSetting(key)
+                );
+            }
+            return T();
+        }
+        template<class T>
+        bool setSettingValue(std::string const& key, T const& value) {
+            if (this->hasSetting(key)) {
+                geode::setBuiltInSettingValue<T>(this->getSetting(key), value);
+                return true;
+            }
+            return false;
+        }
+
         /**
          * Get the mod container stored in the Interface
          * @returns nullptr if Interface is not initialized,
          * the mod pointer if it is initialized
          */
         template<class = void>
-        static inline Mod* get();
-
-        /**
-         * Log to geode's integrated console / 
-         * the platform debug console.
-         * @returns Reference to log stream. Make sure 
-         * to end your logging with geode::endl.
-         */
-        Log log();
-
-        /**
-         * Log an information. Equivalent to 
-         * ```
-         * Mod::log() << Severity::severity << info.
-         * ```
-         * @param info Log infomration
-         * @param severity Log severity
-         */
-        void logInfo(
-            std::string const& info,
-            Severity severity
-        );
+        static inline GEODE_HIDDEN Mod* get() {
+            return sharedMod<>;
+        }
 
         /**
          * Get all hooks owned by this Mod
@@ -523,4 +558,18 @@ namespace geode {
 
 		const char* expandSpriteName(const char* name);
     };
+
+    /**
+     * To bypass the need for cyclic dependencies,
+     * this function does the exact same as Mod::get()
+     * However, it can be externed, unlike Mod::get()
+     * @returns Same thing Mod::get() returns
+     */
+    inline GEODE_HIDDEN Mod* getMod() {
+        return Mod::get();
+    }
+}
+
+inline const char* operator"" _spr(const char* str, size_t) {
+    return geode::Mod::get()->expandSpriteName(str);
 }

@@ -7,18 +7,13 @@
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/Geode.hpp>
+#include <Geode/utils/fetch.hpp>
 #include <thread>
 
-InternalLoader::InternalLoader() : Loader() {
-    #ifdef GEODE_PLATFORM_CONSOLE
-    this->setupPlatformConsole();
-    #endif
-}
+InternalLoader::InternalLoader() : Loader() {}
 
 InternalLoader::~InternalLoader() {
-    #ifdef GEODE_PLATFORM_CONSOLE
     this->closePlatformConsole();
-    #endif
 }
 
 InternalLoader* InternalLoader::get() {
@@ -27,25 +22,23 @@ InternalLoader* InternalLoader::get() {
 }
 
 bool InternalLoader::setup() {
-    InternalMod::get()->log()
-        << Severity::Debug << "Set up internal mod representation";
-
-    InternalMod::get()->log()
-        << Severity::Debug << "Loading hooks... ";
+    log::log(Severity::Debug, InternalMod::get(), "Set up internal mod representation");
+    log::log(Severity::Debug, InternalMod::get(), "Loading hooks... ");
 
     if (!this->loadHooks()) {
-        InternalMod::get()->log()
-            << "There were errors loading some hooks, "
-            "see console for details";
+        log::log(
+            Severity::Error,
+            InternalMod::get(),
+            "There were errors loading some hooks, see console for details"
+        );
     }
 
-    InternalMod::get()->log()
-        << Severity::Debug << "Loaded hooks";
+    log::log(Severity::Debug, InternalMod::get(), "Loaded hooks");
 
     return true;
 }
 
-void InternalLoader::queueInGDThread(std::function<void GEODE_CALL()> func) {
+void InternalLoader::queueInGDThread(ScheduledFunction func) {
     std::lock_guard<std::mutex> lock(m_gdThreadMutex);
     this->m_gdThreadQueue.push_back(func);
 }
@@ -62,73 +55,83 @@ void InternalLoader::executeGDThreadQueue() {
     m_gdThreadMutex.unlock();
 }
 
-void InternalLoader::queueConsoleMessage(LogPtr* msg) {
-    this->m_logQueue.push_back(msg);
+void InternalLoader::logConsoleMessage(std::string const& msg) {
+    if (m_platformConsoleOpen) {
+        // TODO: make flushing optional
+        std::cout << msg << '\n' << std::flush;
+    }
 }
 
-bool InternalLoader::platformConsoleReady() const {
-    return m_platformConsoleReady;
+bool InternalLoader::platformConsoleOpen() const {
+    return m_platformConsoleOpen;
+}
+
+bool InternalLoader::shownInfoAlert(std::string const& key) {
+    if (m_shownInfoAlerts.count(key)) {
+        return true;
+    }
+    m_shownInfoAlerts.insert(key);
+    return false;
+}
+
+void InternalLoader::saveInfoAlerts(nlohmann::json& json) {
+    json["alerts"] = m_shownInfoAlerts;
+}
+
+void InternalLoader::loadInfoAlerts(nlohmann::json& json) {
+    m_shownInfoAlerts = json["alerts"].get<std::unordered_set<std::string>>();
 }
 
 #if defined(GEODE_IS_WINDOWS)
-void InternalLoader::platformMessageBox(const char* title, const char* info) {
-    MessageBoxA(nullptr, title, info, MB_OK);
+void InternalLoader::platformMessageBox(const char* title, std::string const& info) {
+    MessageBoxA(nullptr, info.c_str(), title, MB_ICONERROR);
 }
 
-void InternalLoader::setupPlatformConsole() {
-    if (m_platformConsoleReady) return;
-    if (AllocConsole() == 0)    return;
+void InternalLoader::openPlatformConsole() {
+    if (m_platformConsoleOpen) return;
+    if (AllocConsole() == 0)   return;
+    SetConsoleCP(CP_UTF8);
     // redirect console output
     freopen_s(reinterpret_cast<FILE**>(stdout), "CONOUT$", "w", stdout);
     freopen_s(reinterpret_cast<FILE**>(stdin), "CONIN$", "r", stdin);
 
-    m_platformConsoleReady = true;
-}
+    m_platformConsoleOpen = true;
 
-void InternalLoader::awaitPlatformConsole() {
-    if (!m_platformConsoleReady) return;
-
-    for (auto const& log : this->m_logQueue) {
+    for (auto const& log : Loader::get()->getLogs()) {
         std::cout << log->toString(true) << "\n";
-        this->m_logQueue.clear();
     }
-
-    std::string inp;
-    getline(std::cin, inp);
-    std::string inpa;
-    std::stringstream ss(inp);
-    std::vector<std::string> args;
-
-    while (ss >> inpa) args.push_back(inpa);
-    ss.clear();
-    
-    if (inp != "e") this->awaitPlatformConsole();
 }
 
 void InternalLoader::closePlatformConsole() {
-    if (!m_platformConsoleReady) return;
+    if (!m_platformConsoleOpen) return;
 
     fclose(stdin);
     fclose(stdout);
     FreeConsole();
+
+    m_platformConsoleOpen = false;
 }
 
 #elif defined(GEODE_IS_MACOS)
-#include <iostream>
+#include <CoreFoundation/CoreFoundation.h>
 
-void InternalLoader::platformMessageBox(const char* title, const char* info) {
-	std::cout << title << ": " << info << std::endl;
+void InternalLoader::platformMessageBox(const char* title, std::string const& info) {
+	 CFStringRef cfTitle = CFStringCreateWithCString(NULL, title, kCFStringEncodingUTF8);
+    CFStringRef cfMessage = CFStringCreateWithCString(NULL, info.c_str(), kCFStringEncodingUTF8);
+
+    CFUserNotificationDisplayNotice(0, kCFUserNotificationNoteAlertLevel, NULL, NULL, NULL, cfTitle, cfMessage, NULL);
 }
 
-void InternalLoader::setupPlatformConsole() {
-    m_platformConsoleReady = true;
-}
+void InternalLoader::openPlatformConsole() {
+    m_platformConsoleOpen = true;
 
-void InternalLoader::awaitPlatformConsole() {
-	
+    for (auto const& log : Loader::get()->getLogs()) {
+        std::cout << log->toString(true) << "\n";
+    }
 }
 
 void InternalLoader::closePlatformConsole() {
+    m_platformConsoleOpen = false;
 }
 
 #elif defined(GEODE_IS_IOS)
@@ -137,18 +140,17 @@ void InternalLoader::closePlatformConsole() {
 #include <sys/types.h>
 #include <pwd.h>
 
-void InternalLoader::platformMessageBox(const char* title, const char* info) {
+void InternalLoader::platformMessageBox(const char* title, std::string const& info) {
     std::cout << title << ": " << info << std::endl;
 }
 
-void InternalLoader::setupPlatformConsole() {
+void InternalLoader::openPlatformConsole() {
     ghc::filesystem::path(getpwuid(getuid())->pw_dir);
-    freopen(ghc::filesystem::path(utils::dirs::geodeRoot() / "geode_log.txt").string().c_str(),"w",stdout);
+    freopen(ghc::filesystem::path(
+        utils::file::geodeRoot() / "geode_log.txt"
+    ).string().c_str(),"w",stdout);
     InternalLoader::
-    m_platformConsoleReady = true;
-}
-
-void InternalLoader::awaitPlatformConsole() {
+    m_platformConsoleOpen = true;
 }
 
 void InternalLoader::closePlatformConsole() {

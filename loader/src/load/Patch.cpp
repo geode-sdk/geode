@@ -34,7 +34,7 @@ Result<Patch*> Mod::patch(void* address, byte_array data) {
 
 Result<> Mod::unpatch(Patch* patch) {
     if (patch->restore()) {
-        vector_utils::erase<Patch*>(m_patches, patch);
+        utils::vector::erase<Patch*>(m_patches, patch);
         delete patch;
         return Ok<>();
     }
