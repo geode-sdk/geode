@@ -63,6 +63,9 @@ public:
     virtual ~CCControlColourPicker();
 
 protected:
+    RT_ADD(
+        ccColor3B m_rgb;
+    )
     HSV m_hsv;
     CC_SYNTHESIZE_RETAIN(CCControlSaturationBrightnessPicker*, m_colourPicker, colourPicker)
     

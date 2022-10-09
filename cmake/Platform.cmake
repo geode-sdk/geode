@@ -39,8 +39,8 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
 		${GEODE_LOADER_PATH}/include/Geode/cocos/cocos2dx/platform/third_party/mac/OGLES
 	)
 
-	target_link_libraries(${PROJECT_NAME} INTERFACE "-framework Cocoa")
-	target_compile_options(${PROJECT_NAME} INTERFACE -fms-extensions -Wno-deprecated -Wno-ignored-attributes -Os -flto -fvisibility=internal)
+	target_link_libraries(${PROJECT_NAME} INTERFACE curl "-framework Cocoa")
+	target_compile_options(${PROJECT_NAME} INTERFACE -fms-extensions -Wno-deprecated -Wno-ignored-attributes -Os #[[-flto]] -fvisibility=internal)
 	target_compile_definitions(${PROJECT_NAME} INTERFACE -DCC_TARGET_OS_MAC)
 
 	set(GEODE_PLATFORM_BINARY "Geode.dylib")

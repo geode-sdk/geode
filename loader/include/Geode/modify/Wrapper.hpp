@@ -1,5 +1,6 @@
 #pragma once
 #include "Traits.hpp"
+#include "../utils/addresser.hpp"
 
 #define GEODE_WRAPPER_FOR_IDENTIFIER(identifier)                                                                       \
 /* Default - function Return Class::identifier(Parameters...) does not exist */                                        \
@@ -29,6 +30,7 @@ struct identifier<                                                              
 > {                                                                                                                    \
 private:                                                                                                               \
 	static Return wrapperImpl(Class* self, Parameters... ps) {                                                         \
+		self = addresser::rthunkAdjust(substitute<Return(Parameters...)>(&Class::identifier), self);				   \
 		return self->Class::identifier(ps...);                                                                         \
 	}                                                                                                                  \
 public:                                                                                                                \

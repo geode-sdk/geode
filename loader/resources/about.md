@@ -38,4 +38,8 @@ Using
 
  * [fmt](https://fmt.dev/latest/index.html)
 
+ * [PEGTL](https://github.com/taocpp/PEGTL)
+
+ * [md4c](https://github.com/mity/md4c)
+
 Special thanks to [RobTop Games](https://twitter.com/RobTopGames/) for making this amazing game and providing us and so many others with hours of entertainment <3

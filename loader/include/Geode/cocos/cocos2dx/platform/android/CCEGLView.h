@@ -49,6 +49,10 @@ public:
     @brief    get the shared main open gl window
     */
     static CCEGLView* sharedOpenGLView();
+    
+    GEODE_ADD(
+        static CCEGLView* get();
+    );
 };
 
 NS_CC_END

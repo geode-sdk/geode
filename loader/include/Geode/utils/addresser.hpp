@@ -8,7 +8,6 @@
 #include <stddef.h>
 #include <Geode/DefaultInclude.hpp>
 #include <type_traits>
-#include "../loader/Interface.hpp"
 #include "../loader/Mod.hpp"
 #include "../loader/Log.hpp"
 #include "general.hpp"
@@ -24,6 +23,9 @@ namespace geode::addresser {
 
 	template<typename T, typename F>
 	inline F thunkAdjust(T func, F self);
+
+	template<typename T, typename F>
+	inline F rthunkAdjust(T func, F self);
 
 	class GEODE_DLL Addresser final {
 		template <char C>
@@ -85,7 +87,7 @@ namespace geode::addresser {
 			auto index = indexOf(func);
 			auto thunk = thunkOf(func);
 
-			Interface::get()->logInfo("[[" + utils::intToHex((void*)ins) + " + " + utils::intToHex(thunk) + "] + " + utils::intToHex(index) + "]", Severity::Debug);
+			log::debug("[[" + utils::intToHex((void*)ins) + " + " + utils::intToHex(thunk) + "] + " + utils::intToHex(index) + "]");
 
 			// [[this + thunk] + offset] is the f we want
 			auto address = *(intptr_t*)(*(intptr_t*)(reference_cast<intptr_t>(ins) + thunk) + index);
@@ -146,6 +148,9 @@ namespace geode::addresser {
 
 		template<typename T, typename F>
 		friend F thunkAdjust(T func, F self);
+
+		template<typename T, typename F>
+		friend F rthunkAdjust(T func, F self);
 	};
 
 	#ifdef GEODE_ADDRESSER_TEST
@@ -161,23 +166,28 @@ namespace geode::addresser {
 	#else
 		template<typename T>
 		inline intptr_t getVirtual(T func) {
-			Interface::get()->logInfo("Get virtual function address from " + utils::intToHex(geode::cast::reference_cast<intptr_t>(func)), Severity::Debug);
+			log::debug("Get virtual function address from " + utils::intToHex(geode::cast::reference_cast<intptr_t>(func)));
 			auto addr = Addresser::addressOfVirtual(func);
-			Interface::get()->logInfo("The address is: " + utils::intToHex(addr), Severity::Debug);
+			log::debug("The address is: " + utils::intToHex(addr), Severity::Debug);
 			return addr;
 		}
 
 		template<typename T>
 		inline intptr_t getNonVirtual(T func) {
-			Interface::get()->logInfo("Get non-virtual function address from " + utils::intToHex(geode::cast::reference_cast<intptr_t>(func)), Severity::Debug);
+			log::debug("Get non-virtual function address from " + utils::intToHex(geode::cast::reference_cast<intptr_t>(func)));
 			auto addr = Addresser::addressOfNonVirtual(func);
-			Interface::get()->logInfo("The address is: " + utils::intToHex(addr), Severity::Debug);
+			log::debug("The address is: " + utils::intToHex(addr));
 			return addr;
 		}
 
 		template<typename T, typename F>
 		inline F thunkAdjust(T func, F self) {
 			return (F)((intptr_t)self + Addresser::thunkOf(func));
+		}
+
+		template<typename T, typename F>
+		inline F rthunkAdjust(T func, F self) {
+			return (F)((intptr_t)self - Addresser::thunkOf(func));
 		}
 	#endif
 }

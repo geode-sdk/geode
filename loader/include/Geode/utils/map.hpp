@@ -7,7 +7,7 @@
 #include <functional>
 #include <unordered_map>
 
-namespace geode::map_utils { 
+namespace geode::utils::map { 
     /**
      * Returns true if the map contains
      * a value matching `containFunc`.

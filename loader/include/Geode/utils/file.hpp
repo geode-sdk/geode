@@ -4,9 +4,9 @@
 #include "Result.hpp"
 #include <string>
 #include "types.hpp"
-#include "fs/filesystem.hpp"
+#include <fs/filesystem.hpp>
 
-namespace geode::file_utils {
+namespace geode::utils::file {
     GEODE_DLL Result<std::string> readString(std::string            const& path);
     GEODE_DLL Result<std::string> readString(std::wstring           const& path);
     GEODE_DLL Result<std::string> readString(ghc::filesystem::path  const& path);
@@ -25,4 +25,15 @@ namespace geode::file_utils {
     GEODE_DLL Result<> createDirectoryAll(std::string const& path);
     GEODE_DLL Result<std::vector<std::string>> listFiles(std::string const& path);
     GEODE_DLL Result<std::vector<std::string>> listFilesRecursively(std::string const& path);
+
+    /**
+     * Unzip file to directory
+     * @param from File to unzip
+     * @param to Directory to unzip to
+     * @returns Ok on success, Error on error
+     */
+    GEODE_DLL Result<> unzipTo(
+        ghc::filesystem::path const& from,
+        ghc::filesystem::path const& to
+    );
 }

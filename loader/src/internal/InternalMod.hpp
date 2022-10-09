@@ -6,12 +6,8 @@ class InternalMod;
 
 USE_GEODE_NAMESPACE();
 
-class InternalLoader;
-
 class InternalMod : public Mod {
     protected:
-        friend class InternalLoade;
-
         InternalMod();
         virtual ~InternalMod();
 

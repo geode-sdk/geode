@@ -3,6 +3,8 @@
 #include <Geode/Geode.hpp>
 
 GEODE_API bool GEODE_CALL geode_implicit_load(geode::Mod* m) {
-	geode::Interface::get()->init(m);
+	geode::Mod::setSharedMod(m);
+	geode::log::releaseSchedules(m);
+	geode::Loader::get()->releaseScheduledFunctions(m);
 	return true;
 }

@@ -1,36 +1,41 @@
 #include <Geode/Geode.hpp>
+#include <Geode/Modify.hpp>
 
 USE_GEODE_NAMESPACE();
 
+auto test = [](){
+    log::info("Static logged");
+    return 0;
+};
+
 // Exported functions
 GEODE_API bool GEODE_CALL geode_enable() {
-	Log::get() << "Enabled";
+	log::info("Enabled");
 	return true;
 }
 
 GEODE_API bool GEODE_CALL geode_disable() {
-	Log::get() << "Disabled";
+	log::info("Disabled");
 	return true;
 }
 
 GEODE_API bool GEODE_CALL geode_load(Mod*) {
-	Log::get() << "Loaded";
+	log::info("Loaded");
 	return true;
 }
 
 GEODE_API bool GEODE_CALL geode_unload() {
-	Log::get() << "Unoaded";
+	log::info("Unloaded");
 	return true;
 }
 
 // Modify
 class $modify(GJGarageLayerTest, GJGarageLayer) {
 	GJGarageLayerTest() : 
-		myValue(1907), 
-		myString("yeah have fun finding a better thing for this") {}
+		myValue(1907) {}
 
 	int myValue;
-	std::string myString;
+	std::string myString = "yeah have fun finding a better thing for this";
 	bool init() {
 		if (!GJGarageLayer::init()) return false;
 

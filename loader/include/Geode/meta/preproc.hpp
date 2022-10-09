@@ -11,6 +11,7 @@
         #define GEODE_PLATFORM_TARGET PlatformID::Windows
         #define GEODE_CALL __stdcall
         #define GEODE_PLATFORM_EXTENSION ".dll"
+        #define GEODE_PLATFORM_SHORT_IDENTIFIER "win"
     #else
         #define GEODE_WINDOWS(...)
     #endif
@@ -25,7 +26,8 @@
 			#define GEODE_IS_MOBILE
 			#define GEODE_PLATFORM_NAME "iOS"
 			#define GEODE_PLATFORM_TARGET PlatformID::iOS
-			#define GEODE_PLATFORM_EXTENSION ".dylib"
+			#define GEODE_PLATFORM_EXTENSION ".ios.dylib"
+            #define GEODE_PLATFORM_SHORT_IDENTIFIER "ios"
 		#else
 			#define GEODE_IOS(...)
 			#define GEODE_MACOS(...) __VA_ARGS__
@@ -34,6 +36,7 @@
 			#define GEODE_PLATFORM_NAME "MacOS"
 			#define GEODE_PLATFORM_TARGET PlatformID::MacOS
 			#define GEODE_PLATFORM_EXTENSION ".dylib"
+            #define GEODE_PLATFORM_SHORT_IDENTIFIER "mac"
 		#endif
 		#define GEODE_CALL
 	#else
@@ -50,6 +53,7 @@
         #define GEODE_PLATFORM_TARGET PlatformID::Android
         #define GEODE_CALL
         #define GEODE_PLATFORM_EXTENSION ".so"
+        #define GEODE_PLATFORM_SHORT_IDENTIFIER "android"
     #else
         #define GEODE_ANDROID(...)
     #endif

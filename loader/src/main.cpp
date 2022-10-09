@@ -1,10 +1,11 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Loader.hpp>
+#include <Geode/loader/SettingEvent.hpp>
 #include <InternalLoader.hpp>
 #include <InternalMod.hpp>
 #include <Geode/loader/Log.hpp>
-#include <Geode/loader/Interface.hpp>
 #include "../core/Core.hpp"
+#include <array>
 
 int geodeEntry(void* platformData);
 // platform-specific entry points
@@ -12,23 +13,63 @@ int geodeEntry(void* platformData);
 #if defined(GEODE_IS_IOS) || defined(GEODE_IS_MACOS)
 #include <mach-o/dyld.h>
 #include <unistd.h>
+#include <dlfcn.h>
 
 std::length_error::~length_error() _NOEXCEPT {} // do not ask...
 
-__attribute__((constructor)) void _entry() {
-    char gddir[PATH_MAX];
-    uint32_t out = PATH_MAX;
-    _NSGetExecutablePath(gddir, &out);
+// camila has an old ass macos and this function turned 
+// from dynamic to static thats why she needs to define it 
+// this is what old versions does to a silly girl
 
-    ghc::filesystem::path gdpath = gddir;
+__attribute__((constructor)) void _entry() {
+    auto dylib = dlopen("GeodeBootstrapper.dylib", RTLD_NOLOAD);
+    dlclose(dylib);
+
+    std::array<char, PATH_MAX> gddir;
+
+    uint32_t out = PATH_MAX;
+    _NSGetExecutablePath(gddir.data(), &out);
+
+    ghc::filesystem::path gdpath = gddir.data();
     ghc::filesystem::current_path(gdpath.parent_path().parent_path());
+
+    auto workingDir = gdpath.parent_path().parent_path();
+    auto libDir = workingDir / "Frameworks";
+    auto updatesDir = workingDir / "geode" / "update";
+
+    auto error = std::error_code();
+
+    if (ghc::filesystem::exists(updatesDir / "GeodeBootstrapper.dylib", error) && !error) {
+        ghc::filesystem::rename(
+            updatesDir / "GeodeBootstrapper.dylib", 
+            libDir / "GeodeBootstrapper.dylib", error
+        );
+        if (error) return;
+    }
 
     geodeEntry(nullptr);
 }
+
 #elif defined(GEODE_IS_WINDOWS)
 #include <Windows.h>
 
 DWORD WINAPI loadThread(void* arg) {
+    auto module = GetModuleHandleA("GeodeBootstrapper.dll");
+    FreeLibrary(module);
+
+    auto workingDir = ghc::filesystem::current_path();
+    auto updatesDir = workingDir / "geode" / "update";
+
+    auto error = std::error_code();
+
+    if (ghc::filesystem::exists(updatesDir / "GeodeBootstrapper.dll", error) && !error) {
+        ghc::filesystem::rename(
+            updatesDir / "GeodeBootstrapper.dll", 
+            workingDir / "GeodeBootstrapper.dll", error
+        );
+        if (error) return error.value();
+    }
+
     return geodeEntry(arg);
 }
 
@@ -50,6 +91,16 @@ BOOL WINAPI DllMain(HINSTANCE lib, DWORD reason, LPVOID) {
 }
 #endif
 
+static SettingChangedEventHandler<BoolSetting> _(
+    "geode.loader", "show-platform-console",
+    [](auto setting) {
+        if (setting->getValue()) {
+            Loader::get()->openPlatformConsole();
+        } else {
+            Loader::get()->closePlatfromConsole();
+        }
+    }
+);
 
 int geodeEntry(void* platformData) {
     // setup internals
@@ -72,7 +123,7 @@ int geodeEntry(void* platformData) {
         );
     }
 
-    Interface::get()->init(InternalMod::get());
+    geode_implicit_load(InternalMod::get());
 
     if (!InternalLoader::get()->setup()) {
         // if we've made it here, Geode will 
@@ -88,9 +139,7 @@ int geodeEntry(void* platformData) {
         return 1;
     }
 
-    InternalMod::get()->log()
-        << Severity::Debug
-        << "Loaded internal Geode class";
+    log::debug("Loaded internal Geode class");
 
     // set up loader, load mods, etc.
     if (!Loader::get()->setup()) {
@@ -103,30 +152,13 @@ int geodeEntry(void* platformData) {
         return 1;
     }
 
-    InternalMod::get()->log()
-        << Severity::Debug
-        << "Set up loader";
-
-    // debugging console
-    #ifdef GEODE_PLATFORM_CONSOLE
-    InternalMod::get()->log()
-        << Severity::Debug
-        << "Loading Console...";
-
-    InternalLoader::get()->setupPlatformConsole();
-    InternalLoader::get()->awaitPlatformConsole();
-    InternalLoader::get()->closePlatformConsole();
-
-    InternalMod::get()->log()
-        << Severity::Debug
-        << "Cleaning up...";
-
-    //delete InternalLoader::get();
-    #endif
-
-    InternalMod::get()->log()
-        << Severity::Debug
-        << "Entry done.";
+    log::debug("Set up loader");
     
+    if (InternalMod::get()->getSettingValue<bool>("show-platform-console")) {
+        Loader::get()->openPlatformConsole();
+    }
+
+    log::debug("Entry done.");
+
     return 0;
 }

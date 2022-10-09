@@ -20,11 +20,4 @@ namespace geode {
 
 	template<class T>
 	using TypeIdentityType = typename TypeIdentity<T>::type;
-
-    #ifndef GEODE_NO_CRINGE
-
-    using unknown_t = uintptr_t;
-    using edx_t = uintptr_t;
-
-    #endif
 }

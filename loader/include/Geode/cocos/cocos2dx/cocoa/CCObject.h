@@ -79,8 +79,8 @@ public:
 class CCDestructor : public CCCopying {
 private:
 	static inline auto& destructorLock() {
-		static std::unordered_map<void*, bool> ret;
-		return ret;
+		static auto ret = new std::unordered_map<void*, bool>;
+		return *ret;
 	}
 public:
 	static inline bool& globalLock() {

@@ -198,6 +198,7 @@ public:
      *  @js ctor
      */
     CCLabelBMFont();
+    GEODE_MONOSTATE_CONSTRUCTOR_COCOS(CCLabelBMFont, CCSpriteBatchNode)
     /**
      *  @js NA
      *  @lua NA

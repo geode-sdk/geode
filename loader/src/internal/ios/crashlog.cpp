@@ -10,7 +10,7 @@ bool crashlog::didLastLaunchCrash() {
     return false;
 }
 
-std::string const& crashlog::getCrashLogDirectory() {
+std::string crashlog::getCrashLogDirectory() {
     return "";
 }
 

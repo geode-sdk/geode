@@ -147,7 +147,8 @@ bool geode::core::hook::initialize() {
 
 #else
 
-#include <dobby.h>
+// #include <dobby.h>
+#include <MinHook.h>
 
 namespace geode::core::impl {
 	namespace {
@@ -162,8 +163,14 @@ namespace geode::core::impl {
 	}
 
 	void addJump(void* at, void* to) {
-        DobbyDestroy(at);
-        DobbyHook(at, to, &trampolines()[at]);
+        // DobbyDestroy(at);
+        // DobbyHook(at, to, &trampolines()[at]);
+
+		static auto _ = MH_Initialize();
+
+		MH_RemoveHook(at);
+		MH_CreateHook(at, to, &trampolines()[at]);
+		MH_EnableHook(at);
 	}
 }
 

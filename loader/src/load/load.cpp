@@ -37,8 +37,12 @@ Result<Mod*> Loader::loadModFromFile(std::string const& path) {
     // create and set up Mod instance
     auto mod = new Mod(res.value());
     mod->m_saveDirPath = Loader::get()->getGeodeSaveDirectory() / GEODE_MOD_DIRECTORY / res.value().m_id;
-    mod->loadDataStore();
     ghc::filesystem::create_directories(mod->m_saveDirPath);
+
+    auto sett = mod->loadSettings();
+    if (!sett) {
+        log::log(Severity::Error, mod, sett.error());
+    }
 
     // enable mod if needed
     mod->m_enabled = Loader::get()->shouldLoadMod(mod->m_info.m_id);
