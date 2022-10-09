@@ -2949,9 +2949,9 @@ class GameObject : CCSpritePlus {
         return m_detailColor;
     }
 
-    GameObject() = mac 0xdc4c0; // yeah why is this here wtf, seems life ego ctor created this
+    GameObject() = mac 0xdc4c0, win 0x983e0; // yeah why is this here wtf, seems life ego ctor created this
     ~GameObject() = mac 0x2f4ca0, win 0xcf340, ios 0x0;
-    virtual void update(float) = mac 0x2fbb90, win 0x30e00, ios 0x0;
+    virtual void update(float) = mac 0x2fbb90, win 0xce440, ios 0x0;
     virtual void setScaleX(float) = mac 0x335b00, win 0xe5050, ios 0x0;
     virtual void setScaleY(float) = mac 0x335b90, win 0xe50e0, ios 0x0;
     virtual void setScale(float) = mac 0x335c20, win 0xe5170, ios 0x0;
@@ -3053,7 +3053,7 @@ class GameObject : CCSpritePlus {
     void removeGlow() = mac 0x2f7f70, win 0x0, ios 0x0;
     void resetGroupDisabled() = mac 0x2fa7e0, win 0x0, ios 0x0;
     void saveActiveColors() = mac 0x33d250, win 0x0, ios 0x0;
-    void selectObject(const cocos2d::ccColor3B&) = mac 0x341f90, win 0xee960, ios 0x0;
+    void selectObject(cocos2d::ccColor3B) = mac 0x341f90, win 0xee960, ios 0x0;
     void setDefaultMainColorMode(int) = mac 0x304fc0, win 0x0, ios 0x0;
     void setDidUpdateLastPosition(bool const&) = mac 0x343a30, win 0x0, ios 0x0;
     void setGlowOpacity(unsigned char) = mac 0x336200, win 0x0, ios 0x0;
@@ -3065,17 +3065,18 @@ class GameObject : CCSpritePlus {
     void slopeWallLeft() = mac 0x3427e0, win 0x0, ios 0x0;
     void updateCustomScale(float) = mac 0x335eb0, win 0xe5340, ios 0x0;
     void updateMainColor() = mac 0x343340, win 0x0, ios 0x0;
-    void updateObjectEditorColor() = mac 0x3423c0;
-    void updateOrientedBox() = mac 0x342b50, win 0xEF1C0, ios 0x0;
+    void updateObjectEditorColor() = mac 0x3423c0, win 0xeee50;
+    void updateOrientedBox() = mac 0x342b50, win 0xef1c0, ios 0x0;
     void updateSecondaryColor() = mac 0x343740, win 0x0, ios 0x0;
     void updateStartPos() = mac 0x2fa590, win 0x0, ios 0x0;
     void updateState() = mac 0x3369e0, win 0x0, ios 0x0;
     void updateSyncedAnimation(float) = mac 0x337f00, win 0x0, ios 0x0;
-    void updateTextObject(gd::string, bool) = mac 0x2f58d0;
-    void deselectObject() = mac 0x0, win 0xeee50, ios 0x0;
+    void updateTextObject(gd::string, bool) = mac 0x2f58d0, win 0xcfc60;
+    void deselectObject() = mac 0x3423a0, win 0xeee50, ios 0x0;
     cocos2d::CCRepeatForever* createRotateAction(float f, int n) = mac 0x0, win 0xe49b0, ios 0x0;
     void setMyAction(cocos2d::CCAction* pAction) = mac 0x0, win 0xd1b90, ios 0x0;
     bool canAllowMultiActivate() = mac 0x0, win 0xf06b0, ios 0x0;
+    void createGroupContainer(int size) = mac 0x33aca0, win 0xeb870;
 
     bool m_unk3;
     bool m_isBlueMaybe;
@@ -3186,9 +3187,6 @@ class GameObject : CCSpritePlus {
     bool m_isDontFade;
     int m_defaultZOrder;
     bool m_useSecondSheet;
-    bool m_unknown3d9;
-
-    //PAD = mac 0x17, win 0x17, android 0x0;
     bool m_isPortal;
     bool m_lockColourAsChild;
     bool m_customAudioScale;
@@ -3219,7 +3217,7 @@ class GameObject : CCSpritePlus {
     bool m_isSelected;
     int m_globalClickCounter;
     PAD = mac 0x8, win 0x8, android 0x0;
-    bool m_usingNondefaultColor;
+    bool m_shouldUpdateColorSprite;
     float m_multiScaleMultiplier;
     bool m_isGroupParent;
     std::array<short, 10>* m_groups;
