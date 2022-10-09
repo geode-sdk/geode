@@ -1046,7 +1046,7 @@ class EditLevelLayer : cocos2d::CCLayer {
     }
 
     static EditLevelLayer* create(GJGameLevel* level) = mac 0xe1e50, win 0x6f530, ios 0x82420;
-    bool init(GJGameLevel* level) = mac 0x0, win 0x6f5d0, ios 0x0;
+    bool init(GJGameLevel* level) = mac 0xe1fd0, win 0x6f5d0, ios 0x0;
     void onLevelInfo() = mac 0x0, win 0x70660, ios 0x0;
 
     cocos2d::CCMenu* m_buttonMenu;
@@ -1404,6 +1404,8 @@ class EffectGameObject : GameObject {
 
 class EndLevelLayer {
     static EndLevelLayer* create() = mac 0x2787d0, win 0x0, ios 0x0;
+
+    void onMenu(cocos2d::CCObject* sender) = mac 0x27a500, win 0x96c10;
 }
 
 class EndPortalObject : GameObject {
@@ -4071,14 +4073,19 @@ class OptionsLayer : GJDropDownLayer, FLAlertLayerProtocol {
     }
 
     static OptionsLayer* create() = mac 0x43db60, win 0x1dd310, ios 0x86314;
+
+    virtual void customSetup() = mac 0x43dc70, win 0x1dd420;
+    virtual void layerHidden() = mac 0x43f200, win 0x1de6d0;
+
+    cocos2d::CCMenu* m_optionsMenu;
 }
 
 class PauseLayer : CCBlockLayer {
     static PauseLayer* create(bool) = mac 0x20b1e0, win 0x1e4570, ios 0x0;
     void onEdit(cocos2d::CCObject*) = mac 0x20c630, win 0x1e60e0, ios 0x0;
-    void goEdit() = mac 0x20cc10;
+    void goEdit() = mac 0x20cc10, win 0x1e62f0;
 
-    void onQuit(cocos2d::CCObject*) = mac 0x0, win 0x1e63d0, ios 0x0;
+    void onQuit(cocos2d::CCObject*) = mac 0x20c790, win 0x1e63d0, ios 0x0;
     void createToggleButton(gd::string caption, cocos2d::SEL_MenuHandler callback, bool on, cocos2d::CCMenu* menu, cocos2d::CCPoint pos) = mac 0x20c890, win 0x1e5570, ios 0x0;
     virtual void customSetup() = mac 0x20b300, win 0x1e4620, ios 0x0;
 
@@ -5107,9 +5114,11 @@ class StartPosObject : EffectGameObject {
     LevelSettingsObject* m_levelSettings;
 }
 
-class StatsCell {
+class StatsCell : TableViewCell {
+    inline StatsCell() {}
+    inline StatsCell(char const* identifier, float parentHeight, float height) : TableViewCell(identifier, parentHeight, height) {}
     void updateBGColor(unsigned int index) = mac 0x0, win 0x59cf0, ios 0x0;
-    void draw() = mac 0x11bf80, win 0x59d40, ios 0x0;
+    virtual void draw() = mac 0x11bf80, win 0x59d40, ios 0x0;
 }
 
 class TableView : CCScrollLayerExt, CCScrollLayerExtDelegate {
