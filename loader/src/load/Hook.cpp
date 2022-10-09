@@ -30,7 +30,7 @@ Result<> Mod::enableHook(Hook* hook) {
     if (!hook->isEnabled()) {
     	auto res = std::invoke(hook->m_addFunction, hook->m_address);
 	    if (res) {
-            log::debug("Enabling hook at function ", hook->m_displayName);
+            log::debug("Enabling hook at function {}", hook->m_displayName);
 	        this->m_hooks.push_back(hook);
 	        hook->m_enabled = true;
 	        hook->m_handle = res.value();

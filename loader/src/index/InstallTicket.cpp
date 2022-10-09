@@ -15,7 +15,7 @@ void InstallTicket::postProgress(
         });
     }
     if (status == UpdateStatus::Failed || status == UpdateStatus::Finished) {
-        log::info("Deleting InstallTicket at ", this);
+        log::info("Deleting InstallTicket at {}", this);
         // clean up own memory
         delete this;
     }

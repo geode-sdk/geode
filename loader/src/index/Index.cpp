@@ -262,7 +262,7 @@ void Index::addIndexItemFromFolder(ghc::filesystem::path const& dir) {
 
         auto readJson = readJSON(dir / "index.json");
         if (!readJson) {
-            log::warn("Error reading index.json: ", readJson.error(), ", skipping");
+            log::warn("Error reading index.json: {}, skipping", readJson.error());
             return;
         }
         auto json = readJson.value();
@@ -273,12 +273,12 @@ void Index::addIndexItemFromFolder(ghc::filesystem::path const& dir) {
 
         auto readModJson = readJSON<ModJson>(dir / "mod.json");
         if (!readModJson) {
-            log::warn("Error reading mod.json: ", readModJson.error(), ", skipping");
+            log::warn("Error reading mod.json: {}, skipping", readModJson.error());
             return;
         }
         auto info = ModInfo::create(readModJson.value());
         if (!info) {
-            log::warn(dir, ": ", info.error(), ", skipping");
+            log::warn("{}: {}, skipping", dir, info.error());
             return;
         }
 
@@ -327,14 +327,14 @@ void Index::addIndexItemFromFolder(ghc::filesystem::path const& dir) {
             }
 
         } catch(std::exception& e) {
-            log::warn("[index.json] parsing error: ", e.what(), ", skipping");
+            log::warn("[index.json] parsing error: {}, skipping", e.what());
             return;
         }
 
         m_items.push_back(item);
 
     } else {
-        log::warn("Index directory ", dir, " is missing index.json, skipping");
+        log::warn("Index directory {} is missing index.json, skipping", dir);
     }
 }
 
