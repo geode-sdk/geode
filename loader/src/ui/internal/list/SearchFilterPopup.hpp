@@ -21,6 +21,8 @@ protected:
 
     void onSearchToggle(CCObject*);
     void onPlatformToggle(CCObject*);
+    void onShowInstalled(CCObject*);
+    void onCategory(CCObject*);
 
     void enable(CCMenuItemToggler* toggle, ModListType type);
 

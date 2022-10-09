@@ -155,6 +155,10 @@ namespace geode {
                 return m_name;
             }
 
+            std::string getDisplayName() const {
+                return m_name.value_or(m_key);
+            }
+
             std::optional<std::string> getDescription() const {
                 return m_description;
             }

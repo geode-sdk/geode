@@ -171,8 +171,8 @@ namespace geode::cocos {
     GEODE_DLL bool fileExistsInSearchPaths(const char* filename);
 
 
-    template <class T>
-    struct GEODE_DLL CCArrayIterator {
+    template <typename T>
+    struct CCArrayIterator {
     public:
         CCArrayIterator(T* p) : m_ptr(p) {}
         T* m_ptr;
@@ -416,69 +416,6 @@ namespace geode::cocos {
             return m_dict->allKeys(key)->count();
         }
     };
-
-    template <typename R, typename ...Args>
-    class SelectorWrapperImpl : public cocos2d::CCObject {
-     protected:
-        std::function<R(Args...)> m_inner;
-     public:
-        static SelectorWrapperImpl<R, Args...>* create(std::function<R(Args...)> fn) {
-            auto ret = new SelectorWrapperImpl<R, Args...>();
-            ret->m_inner = fn;
-            ret->autorelease();
-            return ret;
-        }
-        
-        R invoke(Args... args) {
-            return m_inner(args...);
-        }
-    };
-
-    template <typename R, typename ...Args>
-    class SelectorWrapper {
-     protected:
-        using Target = SelectorWrapperImpl<R, Args...>;
-        bool m_tied;
-        Target* m_impl;
-     public:
-        SelectorWrapper(std::function<R(Args...)> fn) {
-            m_impl = Target::create(fn);
-            m_impl->retain();
-        }
-
-        ~SelectorWrapper() {
-            if (!m_tied)
-                m_impl->release();
-        }
-
-        Target* target() {
-            return m_impl;
-        }
-
-        auto selector() {
-            return reinterpret_cast<R(cocos2d::CCObject::*)(Args...)>(&Target::invoke);
-        }
-
-        SelectorWrapper<R, Args...>& leak() {
-            m_impl->retain();
-            return *this;
-        }
-
-        SelectorWrapper<R, Args...> tieToNode(cocos2d::CCNode* node) {
-            if (!m_tied) {
-                node->addChild(m_impl);
-                m_impl->release();
-                m_tied = true;
-            }
-
-            return *this;
-        }
-    };
-
-    template <typename F>
-    auto selectorFromFn(std::function<F> fn) {
-        return SelectorWrapper(fn);
-    }
     
     // namespace for storing implementation stuff for 
     // inline member functions
@@ -498,6 +435,9 @@ namespace geode::cocos {
                 if (m_assigned) {
                     m_lambda.~F();
                 }
+            }
+            LambdaHolder(F&& func) {
+                this->assign(std::forward<F>(func));
             }
             Ret operator()(Args... args) {
                 if (m_assigned) {
@@ -531,12 +471,17 @@ namespace geode::cocos {
 
         template<class Base, class Func, class... Args>
         struct InlineMemberFunction<Base, Func, std::tuple<Args...>> : public Base {
-            // this class isn't instantiated anywhere, and is 
-            // just used as a proxy to redirect the member function
-            // to the lambda 
-            static inline LambdaHolder<Func, typename ExtractLambda<Func>::Ret, Args...> s_selector {};
-            typename ExtractLambda<Func>::Ret onSelector(Args... args) {
+            using Ret = typename ExtractLambda<Func>::Ret;
+            using Selector = Ret(Base::*)(Args...);
+            using Holder = LambdaHolder<Func, Ret, Args...>;
+
+            static inline Holder s_selector {};
+            Ret selector(Args... args) {
                 return s_selector(std::forward<Args>(args)...);
+            }
+            static Selector get(Func&& function) {
+                s_selector.assign(std::move(function));
+                return static_cast<Selector>(&InlineMemberFunction::selector);
             }
         };
     }
@@ -554,9 +499,14 @@ namespace geode::cocos {
      * same captured values.
      */
     template<class Base, class Func>
+    [[deprecated(
+        "Due to too many implementation problems, "
+        "makeMemberFunction will be removed in the future."
+    )]]
     static auto makeMemberFunction(Func&& function) {
-        InlineMemberFunction<Base, Func, typename ExtractLambda<Func>::Params>::s_selector.assign(std::move(function));
-        return &InlineMemberFunction<Base, Func, typename ExtractLambda<Func>::Params>::onSelector;
+        return InlineMemberFunction<
+            Base, Func, typename ExtractLambda<Func>::Params
+        >::get(std::move(function));
     }
 
     /**
@@ -566,16 +516,22 @@ namespace geode::cocos {
      * for even more concise code.
      * 
      * Do note that due to implementation problems, captures may have 
-     * unexpected side-effects. In practice, lambda member functions with 
-     * captures do not work properly in loops. If you assign the same 
-     * member lambda to multiple different targets, they will share the 
-     * same captured values.
+     * unexpected side-effects. In practice, **you should not expect to be able 
+     * to pass any more information than you can pass to a normal menu selector 
+     * through captures**. If you assign the same member lambda to multiple 
+     * different targets, they will share the same captured values.
      */
     template<class Func>
+    [[deprecated(
+        "Due to too many implementation problems, "
+        "makeMenuSelector will be removed in the future."
+    )]]
     static cocos2d::SEL_MenuHandler makeMenuSelector(Func&& selector) {
-        return (cocos2d::SEL_MenuHandler)(makeMemberFunction<cocos2d::CCObject, Func>(std::move(selector)));
+        return reinterpret_cast<cocos2d::SEL_MenuHandler>(
+            makeMemberFunction<cocos2d::CCObject, Func>(std::move(selector))
+        );
     }
 
     #define GEODE_MENU_SELECTOR(senderArg, ...) \
-        makeMenuSelector([=](senderArg) { __VA_ARGS__; })
+        makeMenuSelector([this](senderArg) { __VA_ARGS__; })
 }

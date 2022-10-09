@@ -123,22 +123,7 @@ bool ModSettingsPopup::setup(Mod* mod) {
     m_applyBtnSpr->setScale(.7f);
 
     m_applyBtn = CCMenuItemSpriteExtra::create(
-        m_applyBtnSpr, this, makeMenuSelector([this](CCObject*) {
-            bool someChangesMade = false;
-            for (auto& sett : m_settings) {
-                if (sett->hasUncommittedChanges()) {
-                    sett->commit();
-                    someChangesMade = true;
-                }
-            }
-            if (!someChangesMade) {
-                FLAlertLayer::create(
-                    "Info",
-                    "No changes have been made.",
-                    "OK"
-                )->show();
-            }
-        })
+        m_applyBtnSpr, this, menu_selector(ModSettingsPopup::onApply)
     );
     m_applyBtn->setPosition(.0f, -m_size.height / 2 + 20.f);
     m_buttonMenu->addChild(m_applyBtn);
@@ -152,21 +137,7 @@ bool ModSettingsPopup::setup(Mod* mod) {
     resetBtnSpr->setScale(.7f);
 
     auto resetBtn = CCMenuItemSpriteExtra::create(
-        resetBtnSpr, this, makeMenuSelector([this](CCObject*) {
-            createQuickPopup(
-                "Reset All",
-                "Are you sure you want to <cr>reset</c> ALL settings "
-                "to <cy>default</c>?",
-                "Cancel", "Reset",
-                [this](auto, bool btn2) {
-                    if (btn2) {
-                        for (auto& sett : m_settings) {
-                            sett->resetToDefault();
-                        }
-                    }
-                }
-            );
-        })
+        resetBtnSpr, this, menu_selector(ModSettingsPopup::onResetAll)
     );
     resetBtn->setPosition(-m_size.width / 2 + 45.f, -m_size.height / 2 + 20.f);
     m_buttonMenu->addChild(resetBtn);
@@ -174,6 +145,39 @@ bool ModSettingsPopup::setup(Mod* mod) {
     this->settingValueChanged(nullptr);
 
     return true;
+}
+
+void ModSettingsPopup::onApply(CCObject*) {
+    bool someChangesMade = false;
+    for (auto& sett : m_settings) {
+        if (sett->hasUncommittedChanges()) {
+            sett->commit();
+            someChangesMade = true;
+        }
+    }
+    if (!someChangesMade) {
+        FLAlertLayer::create(
+            "Info",
+            "No changes have been made.",
+            "OK"
+        )->show();
+    }
+}
+
+void ModSettingsPopup::onResetAll(CCObject*) {
+    createQuickPopup(
+        "Reset All",
+        "Are you sure you want to <cr>reset</c> ALL settings "
+        "to <cy>default</c>?",
+        "Cancel", "Reset",
+        [this](auto, bool btn2) {
+            if (btn2) {
+                for (auto& sett : m_settings) {
+                    sett->resetToDefault();
+                }
+            }
+        }
+    );
 }
 
 void ModSettingsPopup::settingValueChanged(SettingNode*) {
