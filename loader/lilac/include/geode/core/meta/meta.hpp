@@ -5,7 +5,7 @@
 #include "common.hpp"
 #include "function.hpp"
 #include "hook.hpp"
-#include "preproc.hpp"
+#include <Geode/platform/platform.hpp>
 
 #if defined(LILAC_IS_WINDOWS)
     #include "cdecl.hpp"

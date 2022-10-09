@@ -1,7 +1,7 @@
 #ifndef GEODE_CORE_HOOK_HPP
 #define GEODE_CORE_HOOK_HPP
 
-#include "../meta/preproc.hpp"
+#include <Geode/platform/platform.hpp>
 
 #include <cstddef>
 
