@@ -3605,6 +3605,7 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
             this->updateLevelColors();
         }
     }
+    void updateLevelFont(int) = mac 0x9df00, win 0x1677a0;
     void updateLevelColors() {
         // literally empty
     }
@@ -3799,6 +3800,8 @@ class LevelSettingsObject : cocos2d::CCNode {
     static LevelSettingsObject* objectFromDict(cocos2d::CCDictionary*) = mac 0xa5810, win 0x0, ios 0x0;
     static LevelSettingsObject* objectFromString(gd::string) = mac 0x945a0, win 0x0, ios 0x0;
     void setupColorsFromLegacyMode(cocos2d::CCDictionary*) = mac 0xa6a30, win 0x170050, ios 0x0;
+
+    gd::string getSaveString() = mac 0x979c0, win 0x16ebf0;
 
     GJEffectManager* m_effectManager;
     // TODO: make enums for these
