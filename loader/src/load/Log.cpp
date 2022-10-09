@@ -25,7 +25,7 @@ void log::releaseSchedules(Mod* m) {
     Log::scheduled().clear();
 }
 
-std::string log::parse(Mod* const& mod) {
+std::string log::parse(Mod* mod) {
     if (mod) {
         return fmt::format("{{ Mod, {} }}", mod->getName());;
     } else {
@@ -33,7 +33,7 @@ std::string log::parse(Mod* const& mod) {
     }
 }
 
-std::string log::parse(CCObject* const& obj) {
+std::string log::parse(CCObject* obj) {
     if (obj) {
         return fmt::format("{{ {}, {} }}", typeid(*obj).name(), utils::intToHex(obj));
     } else {
@@ -41,7 +41,7 @@ std::string log::parse(CCObject* const& obj) {
     }
 }
 
-std::string log::parse(CCNode* const& obj) {
+std::string log::parse(CCNode* obj) {
     if (obj) {
         auto bb = obj->boundingBox();
         return fmt::format("{{ {}, {}, ({}, {} | {} : {}) }}", 
@@ -53,7 +53,7 @@ std::string log::parse(CCNode* const& obj) {
     }
 }
 
-std::string log::parse(CCArray* const& arr) {
+std::string log::parse(CCArray* arr) {
     std::string out = "[";
 
     if (arr && arr->count()) {
@@ -116,7 +116,7 @@ std::string geode::log::generateLogName() {
     return fmt::format("Geode_{:%H.%M.%S}.log", log_clock::now());
 }
 
-void geode::log::vlogImplSecretDontUse(Severity severity, Mod* mod, std::string_view formatStr, std::function<void(Log&)>* components, size_t componentsSize) {
+void geode::log::vlogImpl(Severity severity, Mod* mod, std::string_view formatStr, std::function<void(Log&)>* components, size_t componentsSize) {
     Log log(mod, severity);
 
     const auto pushSomething = [](Log& log, auto something) {
