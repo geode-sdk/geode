@@ -3798,7 +3798,6 @@ class LevelSettingsObject : cocos2d::CCNode {
     virtual ~LevelSettingsObject() = mac 0xa5650, win 0x16e800, ios 0x0;
     virtual bool init() = mac 0xa5690, win 0x16e940, ios 0x0;
     static LevelSettingsObject* create() = mac 0x92760, win 0x16e8a0, ios 0x0;
-    static LevelSettingsObject* create() = mac 0x92760, win 0x0, ios 0x0;
     static LevelSettingsObject* objectFromDict(cocos2d::CCDictionary*) = mac 0xa5810, win 0x16f4d0, ios 0x0;
     static LevelSettingsObject* objectFromString(gd::string) = mac 0x945a0, win 0x16f440, ios 0x0;
     void setupColorsFromLegacyMode(cocos2d::CCDictionary*) = mac 0xa6a30, win 0x170050, ios 0x0;
