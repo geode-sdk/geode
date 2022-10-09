@@ -643,11 +643,11 @@ class CollisionTriggerAction : cocos2d::CCNode {
 
 class ColorAction : cocos2d::CCNode {
     static ColorAction* create() = mac 0x17c990;
-    gd::string getSaveString() = mac 0x17d080, win 0x0, ios 0x0;
-    void setupFromDict(cocos2d::CCDictionary*) = mac 0x17f310, win 0x0, ios 0x0;
-    void setupFromString(gd::string) = mac 0x17f270, win 0x0, ios 0x0;
+    gd::string getSaveString() = mac 0x17d080, win 0x11ada0, ios 0x0;
+    void setupFromDict(cocos2d::CCDictionary*) = mac 0x17f310, win 0x11b7c0, ios 0x0;
+    void setupFromString(gd::string) = mac 0x17f270, win 0x11b730, ios 0x0;
 
-    PAD = mac 0xc, win 0x0, android 0x0;
+    PAD = mac 0xc, win 0xc, android 0x0;
     cocos2d::ccColor3B m_color;
     cocos2d::ccColor3B m_color2;
     float m_unk100;
