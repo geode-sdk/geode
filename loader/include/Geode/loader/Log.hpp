@@ -31,10 +31,21 @@ namespace geode {
 
         std::string generateLogName();
 
-        struct GEODE_DLL ComponentTrait {
-            virtual ~ComponentTrait() {}
-            virtual std::string _toString() = 0;
-        };
+        std::string parse(cocos2d::CCNode*);
+        template <class T>
+        requires std::convertible_to<T*, cocos2d::CCNode*>
+        std::string parse(T* node) {
+            return parse(static_cast<cocos2d::CCNode*>(node));
+        }
+        std::string parse(cocos2d::CCPoint const&);
+        std::string parse(cocos2d::CCSize const&);
+        std::string parse(cocos2d::CCRect const&);
+        std::string parse(cocos2d::CCArray*);
+        std::string parse(cocos2d::ccColor3B const&);
+        std::string parse(cocos2d::ccColor4B const&);
+        std::string parse(cocos2d::ccColor4F const&);
+        std::string parse(cocos2d::CCObject*);
+        std::string parse(Mod*);
 
         template <typename T>
         requires requires(T b) { std::stringstream() << b; }
@@ -43,6 +54,11 @@ namespace geode {
             buf << thing;
             return buf.str();
         }
+
+        struct GEODE_DLL ComponentTrait {
+            virtual ~ComponentTrait() {}
+            virtual std::string _toString() = 0;
+        };
 
         template <typename T>
         struct ComponentBase : public ComponentTrait {
@@ -96,7 +112,7 @@ namespace geode {
             friend void GEODE_DLL releaseSchedules(Mod* m);
         };
 
-        void GEODE_DLL vlogImplSecretDontUse(Severity, Mod*, std::string_view, std::function<void(Log&)>*, size_t);
+        void GEODE_DLL vlogImpl(Severity, Mod*, std::string_view, std::function<void(Log&)>*, size_t);
 
         template <typename... Args>
         requires requires(Args... b) { (parse(b), ...); }
@@ -108,7 +124,7 @@ namespace geode {
 
             std::array<std::function<void(Log&)>, sizeof...(Args)> comps = { [&](Log& log) { pushSomething(log, args); }... };
             // tfw no std::span
-            vlogImplSecretDontUse(severity, mod, formatStr, comps.data(), comps.size());
+            vlogImpl(severity, mod, formatStr, comps.data(), comps.size());
         }
 
         void GEODE_DLL releaseSchedules(Mod* m);
@@ -146,22 +162,5 @@ namespace geode {
 
         template <typename ...Args>
         void emergency(Args... args) { schedule(Severity::Emergency, args...); }
-
-        // parse overload
-        #define FF(x) \
-            std::string parse(x const& thing);
-
-        FF(cocos2d::CCObject*)
-        FF(cocos2d::CCNode*)
-        FF(cocos2d::CCPoint)
-        FF(cocos2d::CCSize)
-        FF(cocos2d::CCRect)
-        FF(cocos2d::CCArray*)
-        FF(cocos2d::ccColor3B)
-        FF(cocos2d::ccColor4B)
-        FF(cocos2d::ccColor4F)
-        FF(Mod*)
-
-        #undef FF
     }
 }
