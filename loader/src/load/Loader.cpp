@@ -84,13 +84,7 @@ void Loader::updateModResources(Mod* mod) {
                 ccfu->fullPathForFilename(plist.c_str(), false)
             )
         ) {
-            log::warn(
-                "The resource dir of \"",
-                mod->m_info.m_id,
-                "\" is missing \"",
-                sheet,
-                "\" png and/or plist files"
-            );
+            log::warn("The resource dir of \"{}\" is missing \"{}\" png and/or plist files", mod->m_info.m_id, sheet);
         } else {
             CCTextureCache::sharedTextureCache()->addImage(png.c_str(), false);
             CCSpriteFrameCache::sharedSpriteFrameCache()
@@ -112,7 +106,7 @@ void Loader::updateResources() {
 size_t Loader::loadModsFromDirectory(
     ghc::filesystem::path const& dir, bool recursive
 ) {
-    log::debug("Searching ", dir);
+    log::debug("Searching {}", dir);
         
     size_t loadedCount = 0;
     for (auto const& entry : ghc::filesystem::directory_iterator(dir)) {
@@ -142,7 +136,7 @@ size_t Loader::loadModsFromDirectory(
 
         // load mod
 
-        log::debug("Loading ", entry.path().string());
+        log::debug("Loading {}", entry.path().string());
 
         auto res = this->loadModFromFile(entry.path().string());
         if (res && res.value()) {
@@ -151,13 +145,13 @@ size_t Loader::loadModsFromDirectory(
 
             // check for dependencies
             if (!res.value()->hasUnresolvedDependencies()) {
-                log::debug("Successfully loaded ", res.value());
+                log::debug("Successfully loaded {}", res.value());
             } else {
-                log::error(res.value(), " has unresolved dependencies");
+                log::error("{} has unresolved dependencies", res.value());
             }
         } else {
             // something went wrong
-            log::error(res.error());
+            log::error("{}", res.error());
             m_erroredMods.push_back({ entry.path().string(), res.error() });
         }
     }
@@ -182,7 +176,7 @@ size_t Loader::refreshMods() {
         loadedCount += loadModsFromDirectory(dir, true);
     }
 
-    log::debug("Loaded ", loadedCount, " mods");
+    log::debug("Loaded {} mods", loadedCount);
     return loadedCount;
 }
 

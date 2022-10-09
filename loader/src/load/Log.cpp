@@ -25,7 +25,7 @@ void log::releaseSchedules(Mod* m) {
     Log::scheduled().clear();
 }
 
-std::string log::parse(Mod* const& mod) {
+std::string log::parse(Mod* mod) {
     if (mod) {
         return fmt::format("{{ Mod, {} }}", mod->getName());;
     } else {
@@ -33,7 +33,7 @@ std::string log::parse(Mod* const& mod) {
     }
 }
 
-std::string log::parse(CCObject* const& obj) {
+std::string log::parse(CCObject* obj) {
     if (obj) {
         return fmt::format("{{ {}, {} }}", typeid(*obj).name(), utils::intToHex(obj));
     } else {
@@ -41,7 +41,7 @@ std::string log::parse(CCObject* const& obj) {
     }
 }
 
-std::string log::parse(CCNode* const& obj) {
+std::string log::parse(CCNode* obj) {
     if (obj) {
         auto bb = obj->boundingBox();
         return fmt::format("{{ {}, {}, ({}, {} | {} : {}) }}", 
@@ -53,7 +53,7 @@ std::string log::parse(CCNode* const& obj) {
     }
 }
 
-std::string log::parse(CCArray* const& arr) {
+std::string log::parse(CCArray* arr) {
     std::string out = "[";
 
     if (arr && arr->count()) {
@@ -115,3 +115,62 @@ void Log::pushToLoader() {
 std::string geode::log::generateLogName() {
     return fmt::format("Geode_{:%H.%M.%S}.log", log_clock::now());
 }
+
+void geode::log::vlogImpl(Severity severity, Mod* mod, std::string_view formatStr, std::function<void(Log&)>* components, size_t componentsSize) {
+    Log log(mod, severity);
+
+    const auto pushSomething = [](Log& log, auto something) {
+        // i think this line of code is very sad
+        log.getComponents().push_back(new ComponentBase(something));
+    };
+
+    size_t compIndex = 0;
+    std::string current;
+    for (size_t i = 0; i < formatStr.size(); ++i) {
+        if (formatStr[i] == '{') {
+            if (i == formatStr.size() - 1)
+                throw std::runtime_error("Unescaped { at the end of format string");
+            const auto next = formatStr[i + 1];
+            if (next == '{') {
+                current.push_back('{');
+                ++i;
+                continue;
+            }
+            if (next == '}') {
+                if (compIndex >= componentsSize)
+                    throw std::runtime_error("Not enough arguments for format string");
+                pushSomething(log, current);
+                components[compIndex++](log);
+                current.clear();
+                ++i;
+                continue;
+            }
+            throw std::runtime_error("You put something in between {} silly head");
+        }
+        if (formatStr[i] == '}') {
+            if (i == formatStr.size() - 1)
+                throw std::runtime_error("Unescaped } at the end of format string");
+            if (formatStr[i + 1] == '}') {
+                current.push_back('}');
+                ++i;
+                continue;
+            }
+            throw std::runtime_error("You have an unescaped }");
+        }
+
+        current.push_back(formatStr[i]);
+    }
+
+    if (!current.empty())
+        pushSomething(log, current);
+
+    if (compIndex != componentsSize) {
+        throw std::runtime_error("You have left over arguments.. silly head");
+        // show_silly_error(formatStr);
+    }
+
+    // (l.getComponents().push_back(new ComponentBase(args)), ...);
+
+    log.pushToLoader();
+}
+

@@ -87,7 +87,8 @@ namespace geode::addresser {
 			auto index = indexOf(func);
 			auto thunk = thunkOf(func);
 
-			log::debug("[[" + utils::intToHex((void*)ins) + " + " + utils::intToHex(thunk) + "] + " + utils::intToHex(index) + "]");
+			// log::debug("[[" + utils::intToHex((void*)ins) + " + " + utils::intToHex(thunk) + "] + " + utils::intToHex(index) + "]");
+			log::debug("[[{} + {}] + {}]", utils::intToHex((void*)ins), utils::intToHex(thunk), utils::intToHex(index));
 
 			// [[this + thunk] + offset] is the f we want
 			auto address = *(intptr_t*)(*(intptr_t*)(reference_cast<intptr_t>(ins) + thunk) + index);
@@ -166,17 +167,17 @@ namespace geode::addresser {
 	#else
 		template<typename T>
 		inline intptr_t getVirtual(T func) {
-			log::debug("Get virtual function address from " + utils::intToHex(geode::cast::reference_cast<intptr_t>(func)));
+			log::debug("Get virtual function address from {}", utils::intToHex(geode::cast::reference_cast<intptr_t>(func)));
 			auto addr = Addresser::addressOfVirtual(func);
-			log::debug("The address is: " + utils::intToHex(addr), Severity::Debug);
+			log::debug("The address is: {}", utils::intToHex(addr));
 			return addr;
 		}
 
 		template<typename T>
 		inline intptr_t getNonVirtual(T func) {
-			log::debug("Get non-virtual function address from " + utils::intToHex(geode::cast::reference_cast<intptr_t>(func)));
+			log::debug("Get non-virtual function address from {}", utils::intToHex(geode::cast::reference_cast<intptr_t>(func)));
 			auto addr = Addresser::addressOfNonVirtual(func);
-			log::debug("The address is: " + utils::intToHex(addr));
+			log::debug("The address is: {}", utils::intToHex(addr));
 			return addr;
 		}
 
