@@ -1108,7 +1108,6 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
         this->constrainGameLayerPosition(-3.f, -6.f);
     }
 
-    void constrainGameLayerPosition() = mac 0x1c6d0, win 0x0, ios 0x0;
     void create(LevelEditorLayer*) = mac 0x8a80, win 0x0, ios 0x0;
     cocos2d::CCArray* createCustomItems() = mac 0x1ddf0, win 0x7a370;
     void deselectAll() = mac 0x1f300, win 0x86af0, ios 0x0;
@@ -1203,9 +1202,6 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     void onGoToBaseLayer(cocos2d::CCObject* sender) = mac 0x0, win 0x88790, ios 0x0;
     void editColor(cocos2d::CCObject* sender) = mac 0x19190, win 0x8d3c0, ios 0x0;
     void alignObjects(cocos2d::CCArray* objs, bool alignY) = mac 0x0, win 0x8f320, ios 0x0;
-    virtual void draw() = mac 0x0, win 0x18fbe0, ios 0x0;
-    virtual void keyDown(cocos2d::enumKeyCodes key) = mac 0x30790;
-    virtual void keyUp(cocos2d::enumKeyCodes key) = mac 0x312b0, win 0x92180, ios 0x0;
 
     EditButtonBar* m_buttonBar;
     PAD = mac 0x8, win 0x4, android 0x0;
