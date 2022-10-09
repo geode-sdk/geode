@@ -2,6 +2,8 @@
 
 #include <Geode/Geode.hpp>
 #include <Index.hpp>
+#include <Geode/ui/MDTextArea.hpp>
+#include <Geode/ui/Scrollbar.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -36,6 +38,9 @@ protected:
     CCMenuItemSpriteExtra* m_installBtn;
     CCLabelBMFont* m_updateVersionLabel = nullptr;
     InstallTicket* m_ticket = nullptr;
+    MDTextArea* m_detailsArea;
+    MDTextArea* m_changelogArea;
+    Scrollbar* m_scrollbar;
 
     void onHooks(CCObject*);
     void onSettings(CCObject*);
@@ -46,6 +51,10 @@ protected:
     void onCancelInstall(CCObject*);
     void onUninstall(CCObject*);
     void onDisablingNotSupported(CCObject*);
+    void onChangelog(CCObject*);
+    void onIssues(CCObject*);
+    void onRepository(CCObject*);
+    void onSupport(CCObject*);
     void install();
     void uninstall();
     void updateInstallStatus(std::string const& status, uint8_t progress);

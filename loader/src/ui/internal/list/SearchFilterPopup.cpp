@@ -56,9 +56,7 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
 
     this->addToggle(
         "Show Installed",
-        makeMenuSelector([this](CCMenuItemToggler* sender) {
-            m_modLayer->m_query.m_showInstalled = !sender->isToggled();
-        }),
+        menu_selector(SearchFilterPopup::onShowInstalled),
         layer->m_query.m_showInstalled,
         0,
         pos
@@ -85,23 +83,7 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
 
     for (auto& category : Index::get()->getCategories()) {
         auto toggle = CCMenuItemToggler::createWithStandardSprites(
-            this,
-            makeMenuSelector([this](CCMenuItemToggler* toggle) {
-                // due to implementation problems in makeMemberFunction, 
-                // category can't be passed through capture
-                try {
-                    if (!toggle->isToggled()) {
-                        m_modLayer->m_query.m_categories.insert(
-                            static_cast<CCString*>(toggle->getUserObject())->getCString()
-                        );
-                    } else {
-                        m_modLayer->m_query.m_categories.erase(
-                            static_cast<CCString*>(toggle->getUserObject())->getCString()
-                        );
-                    }
-                } catch(...) {}
-            }),
-            .5f
+            this, menu_selector(SearchFilterPopup::onCategory), .5f
         );
         toggle->toggle(m_modLayer->m_query.m_categories.count(category));
         toggle->setPosition(pos - winSize / 2);
@@ -118,6 +100,23 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
     }
 
     return true;
+}
+
+void SearchFilterPopup::onCategory(CCObject* sender) {
+    try {
+        auto toggle = static_cast<CCMenuItemToggler*>(sender);
+        auto category = static_cast<CCString*>(toggle->getUserObject())->getCString();
+        if (!toggle->isToggled()) {
+            m_modLayer->m_query.m_categories.insert(category);
+        } else {
+            m_modLayer->m_query.m_categories.erase(category);
+        }
+    } catch(...) {}
+}
+
+void SearchFilterPopup::onShowInstalled(CCObject* sender) {
+    auto toggle = static_cast<CCMenuItemToggler*>(sender);
+    m_modLayer->m_query.m_showInstalled = !toggle->isToggled();
 }
 
 void SearchFilterPopup::enable(CCMenuItemToggler* toggle, ModListType type) {

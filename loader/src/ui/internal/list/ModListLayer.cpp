@@ -80,11 +80,7 @@ bool ModListLayer::init() {
 	auto listDisplayType = CCMenuItemToggler::create(
 		unextendedIconSpr,
 		extendedIconSpr,
-		this,
-		makeMenuSelector([this](CCMenuItemToggler* toggle) {
-			m_expandedList = !toggle->isToggled();
-			this->reloadList();
-		})
+		this, menu_selector(ModListLayer::onExpand)
 	);
 	listDisplayType->setPosition(-210.f, .0f);
 	m_topMenu->addChild(listDisplayType);
@@ -167,9 +163,7 @@ void ModListLayer::createSearchControl() {
 	filterSpr->setScale(.7f);
 
 	m_filterBtn = CCMenuItemSpriteExtra::create(
-		filterSpr, this, makeMenuSelector([this](CCObject*) {
-			SearchFilterPopup::create(this, g_tab)->show();
-		})
+		filterSpr, this, menu_selector(ModListLayer::onFilters)
 	);
 	m_filterBtn->setPosition(-10.f, 0.f);
 	menu->addChild(m_filterBtn);
@@ -409,6 +403,15 @@ void ModListLayer::onExit(CCObject*) {
 void ModListLayer::onReload(CCObject*) {
 	Loader::get()->refreshMods();
 	this->reloadList();
+}
+
+void ModListLayer::onExpand(CCObject* sender) {
+	m_expandedList = !static_cast<CCMenuItemToggler*>(sender)->isToggled();
+	this->reloadList();
+}
+
+void ModListLayer::onFilters(CCObject*) {
+	SearchFilterPopup::create(this, g_tab)->show();
 }
 
 void ModListLayer::onOpenFolder(CCObject*) {

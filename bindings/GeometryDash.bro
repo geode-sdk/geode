@@ -573,7 +573,7 @@ class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTex
     bool init(float width, float height, const char* caption, const char* thonburi, int maxCharCount, const char* font) = mac 0x5d180, win 0x20e50, ios 0xe261c;
 
     void refreshLabel() = mac 0x5d730, win 0x21330, ios 0xe2af4;
-    void updateLabel(gd::string) = mac 0x5d4a0, win 0x0, ios 0x0;
+    void updateLabel(gd::string) = mac 0x5d4a0, win 0x21190, ios 0x0;
     void updateBlinkLabel() = mac 0x5d920;
     virtual void registerWithTouchDispatcher() = mac 0x5eec0, win 0x220e0, ios 0x0;
     virtual void visit() = mac 0x5d380, win 0x21000, ios 0x0;
@@ -691,7 +691,7 @@ class ColorSelectDelegate {
 }
 
 class ColorSelectLiveOverlay : FLAlertLayer {
-    bool init(ColorAction*, ColorAction*, EffectGameObject*) = mac 0x2e2790;
+    bool init(ColorAction*, ColorAction*, EffectGameObject*) = mac 0x2e2790, win 0x41db0;
     void sliderChanged(cocos2d::CCObject*) = mac 0x2e3830;
     EffectGameObject* m_effectGameObject;
     cocos2d::CCArray* m_barSprites;
@@ -707,7 +707,7 @@ class ColorSelectPopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, 
     bool init(EffectGameObject* triggerObj, cocos2d::CCArray* triggerObjs, ColorAction* colorAction) = mac 0x41ee70, win 0x43ae0, ios 0x0;
     void updateColorValue() = mac 0x0, win 0x46f30, ios 0x0;
     void updateCopyColorTextInputLabel() = mac 0x0, win 0x479c0, ios 0x0;
-    void closeColorSelect(cocos2d::CCObject* sender) = mac 0x421af0;
+    void closeColorSelect(cocos2d::CCObject* sender) = mac 0x421af0, win 0x46d80;
 
     cocos2d::extension::CCControlColourPicker* m_colorPicker;
     cocos2d::CCLabelBMFont* m_unk1DC;
@@ -2766,10 +2766,10 @@ class GameManager : GManager {
     bool getGameVariable(const char*) = mac 0x1cccd0, win 0xc9d30, ios 0x0;
     int getIntGameVariable(const char*) = mac 0x1cd1d0, win 0xca330, ios 0x0;
     bool getUGV(const char*) = mac 0x1ccfa0, win 0xca0d0, ios 0x0;
-    void loadBackground(int) = mac 0x1cc820;
+    void loadBackground(int) = mac 0x1cc820, win 0xc9990;
     void loadDeathEffect(int) = mac 0x1cc690, win 0x0, ios 0x0;
-    void loadFont(int) = mac 0x1cc550, win 0x0, ios 0x0;
-    void loadGround(int) = mac 0x1cc8e0;
+    void loadFont(int) = mac 0x1cc550, win 0xc9770, ios 0x0;
+    void loadGround(int) = mac 0x1cc8e0, win 0xc9a50;
     void reloadAll(bool, bool, bool) = mac 0x1d08a0, win 0xce950, ios 0x0;
     void reloadAllStep2() = mac 0x1d0940, win 0xce9e0, ios 0x23b1f4;
     void reloadAllStep5() = mac 0x1d0b00, win 0x0, ios 0x0;
@@ -3799,8 +3799,8 @@ class LevelSettingsObject : cocos2d::CCNode {
     virtual ~LevelSettingsObject() = mac 0xa5650, win 0x16e800, ios 0x0;
     virtual bool init() = mac 0xa5690, win 0x16e940, ios 0x0;
     static LevelSettingsObject* create() = mac 0x92760, win 0x16e8a0, ios 0x0;
-    static LevelSettingsObject* objectFromDict(cocos2d::CCDictionary*) = mac 0xa5810, win 0x0, ios 0x0;
-    static LevelSettingsObject* objectFromString(gd::string) = mac 0x945a0, win 0x0, ios 0x0;
+    static LevelSettingsObject* objectFromDict(cocos2d::CCDictionary*) = mac 0xa5810, win 0x16f4d0, ios 0x0;
+    static LevelSettingsObject* objectFromString(gd::string) = mac 0x945a0, win 0x16f440, ios 0x0;
     void setupColorsFromLegacyMode(cocos2d::CCDictionary*) = mac 0xa6a30, win 0x170050, ios 0x0;
 
     gd::string getSaveString() = mac 0x979c0, win 0x16ebf0;
