@@ -18,6 +18,8 @@ protected:
     bool setup(Mod* mod) override;
     bool hasUncommitted() const;
     void onClose(CCObject*) override;
+    void onApply(CCObject*);
+    void onResetAll(CCObject*);
     
 public:
     static ModSettingsPopup* create(Mod* mod);

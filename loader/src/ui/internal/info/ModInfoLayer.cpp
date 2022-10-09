@@ -1,9 +1,7 @@
 #include "ModInfoLayer.hpp"
 #include "../dev/HookListLayer.hpp"
 #include <Geode/ui/BasedButton.hpp>
-#include <Geode/ui/MDTextArea.hpp>
 #include "../list/ModListView.hpp"
-#include <Geode/ui/Scrollbar.hpp>
 #include <Geode/utils/WackyGeodeMacros.hpp>
 #include <Geode/ui/IconButtonSprite.hpp>
 #include <Geode/ui/MDPopup.hpp>
@@ -69,6 +67,26 @@ void DownloadStatusNode::setStatus(std::string const& text) {
     m_label->limitLabelWidth(m_obContentSize.width - 30.f, .5f, .1f);
 }
 
+void ModInfoLayer::onChangelog(CCObject* sender) {
+    auto toggle = static_cast<CCMenuItemToggler*>(sender);
+    auto winSize = CCDirector::get()->getWinSize();
+
+    m_detailsArea->setVisible(toggle->isToggled());
+    // as it turns out, cocos2d is stupid and still passes touch 
+    // events to invisible nodes
+    m_detailsArea->setPositionX(toggle->isToggled() ?
+        winSize.width / 2 - m_detailsArea->getScaledContentSize().width / 2 :
+        -5000.f
+    );
+
+    m_changelogArea->setVisible(!toggle->isToggled());
+    // as it turns out, cocos2d is stupid and still passes touch 
+    // events to invisible nodes
+    m_changelogArea->setPositionX(!toggle->isToggled() ?
+        winSize.width / 2 - m_changelogArea->getScaledContentSize().width / 2 :
+        -5000.f
+    );
+}
 
 bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
     m_noElasticity = true;
@@ -163,37 +181,37 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
     CCDirector::sharedDirector()->getTouchDispatcher()->incrementForcePrio(2);
     this->registerWithTouchDispatcher();
 
-    auto details = MDTextArea::create(
+    m_detailsArea = MDTextArea::create(
         m_info.m_details ?
             m_info.m_details.value() :
             "### No description provided.",
         { 350.f, 137.5f }
     );
-    details->setPosition(
-        winSize.width / 2 - details->getScaledContentSize().width / 2,
-        winSize.height / 2 - details->getScaledContentSize().height / 2 - 20.f
+    m_detailsArea->setPosition(
+        winSize.width / 2 - m_detailsArea->getScaledContentSize().width / 2,
+        winSize.height / 2 - m_detailsArea->getScaledContentSize().height / 2 - 20.f
     );
-    m_mainLayer->addChild(details);
+    m_mainLayer->addChild(m_detailsArea);
 
-    auto detailsBar = Scrollbar::create(details->getScrollLayer());
-    detailsBar->setPosition(
-        winSize.width / 2 + details->getScaledContentSize().width / 2 + 20.f,
+    m_scrollbar= Scrollbar::create(m_detailsArea->getScrollLayer());
+    m_scrollbar->setPosition(
+        winSize.width / 2 + m_detailsArea->getScaledContentSize().width / 2 + 20.f,
         winSize.height / 2 - 20.f
     );
-    m_mainLayer->addChild(detailsBar);
+    m_mainLayer->addChild(m_scrollbar);
 
     // changelog
     if (m_info.m_changelog) {
-        auto changelog = MDTextArea::create(
+        m_changelogArea = MDTextArea::create(
             m_info.m_changelog.value(),
             { 350.f, 137.5f }
         );
-        changelog->setPosition(
+        m_changelogArea->setPosition(
             -5000.f,
-            winSize.height / 2 - changelog->getScaledContentSize().height / 2 - 20.f
+            winSize.height / 2 - m_changelogArea->getScaledContentSize().height / 2 - 20.f
         );
-        changelog->setVisible(false);
-        m_mainLayer->addChild(changelog);
+        m_changelogArea->setVisible(false);
+        m_mainLayer->addChild(m_changelogArea);
         
         auto changelogBtnOffSpr = ButtonSprite::create(
             CCSprite::createWithSpriteFrameName("changelog.png"_spr),
@@ -210,26 +228,7 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
         auto changelogBtn = CCMenuItemToggler::create(
             changelogBtnOffSpr,
             changelogBtnOnSpr,
-            this,
-            makeMenuSelector([
-                this, winSize, details, detailsBar, changelog
-            ](CCMenuItemToggler* toggle) {
-                details->setVisible(toggle->isToggled());
-                // as it turns out, cocos2d is stupid and still passes touch 
-                // events to invisible nodes
-                details->setPositionX(toggle->isToggled() ?
-                    winSize.width / 2 - details->getScaledContentSize().width / 2 :
-                    -5000.f
-                );
-
-                changelog->setVisible(!toggle->isToggled());
-                // as it turns out, cocos2d is stupid and still passes touch 
-                // events to invisible nodes
-                changelog->setPositionX(!toggle->isToggled() ?
-                    winSize.width / 2 - changelog->getScaledContentSize().width / 2 :
-                    -5000.f
-                );
-            })
+            this, menu_selector(ModInfoLayer::onChangelog)
         );
         changelogBtn->setPosition(-size.width / 2 + 21.5f, .0f);
         m_buttonMenu->addChild(changelogBtn);
@@ -253,9 +252,7 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
         issuesBtnSpr->setScale(.75f);
 
         auto issuesBtn = CCMenuItemSpriteExtra::create(
-            issuesBtnSpr, this, makeMenuSelector([this](CCObject*) {
-                ModInfoLayer::showIssueReportPopup(m_info);
-            })
+            issuesBtnSpr, this, menu_selector(ModInfoLayer::onIssues)
         );
         issuesBtn->setPosition(0.f, -size.height / 2 + 25.f);
         m_buttonMenu->addChild(issuesBtn);
@@ -287,9 +284,7 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
         if (m_mod->getModInfo().m_repository) {
             auto repoBtn = CCMenuItemSpriteExtra::create(
                 CCSprite::createWithSpriteFrameName("github.png"_spr),
-                this, makeMenuSelector([this](CCObject*) {
-                    web::openLinkInBrowser(m_mod->getModInfo().m_repository.value());
-                })
+                this, menu_selector(ModInfoLayer::onRepository)
             );
             repoBtn->setPosition(
                 size.width / 2 - 25.f,
@@ -301,13 +296,7 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
         if (m_mod->getModInfo().m_supportInfo) {
             auto supportBtn = CCMenuItemSpriteExtra::create(
                 CCSprite::createWithSpriteFrameName("gift.png"_spr),
-                this, makeMenuSelector([this](CCObject*) {
-                    MDPopup::create(
-                        "Support " + m_mod->getName(),
-                        m_mod->getModInfo().m_supportInfo.value(),
-                        "OK"
-                    )->show();
-                })
+                this, menu_selector(ModInfoLayer::onSupport)
             );
             supportBtn->setPosition(
                 size.width / 2 - 60.f,
@@ -439,6 +428,18 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
     return true;
 }
 
+void ModInfoLayer::onIssues(CCObject*) {
+    ModInfoLayer::showIssueReportPopup(m_info);
+}
+
+void ModInfoLayer::onSupport(CCObject*) {
+    MDPopup::create(
+        "Support " + m_mod->getName(),
+        m_mod->getModInfo().m_supportInfo.value(),
+        "OK"
+    )->show();
+}
+
 void ModInfoLayer::onEnableMod(CCObject* pSender) {
     if (!InternalLoader::get()->shownInfoAlert("mod-disable-vs-unload")) {
         FLAlertLayer::create(
@@ -487,6 +488,10 @@ void ModInfoLayer::onEnableMod(CCObject* pSender) {
     }
     if (m_list) m_list->updateAllStates(nullptr);
     as<CCMenuItemToggler*>(pSender)->toggle(m_mod->isEnabled());
+}
+
+void ModInfoLayer::onRepository(CCObject*) {
+    web::openLinkInBrowser(m_mod->getModInfo().m_repository.value());
 }
 
 void ModInfoLayer::onInstallMod(CCObject*) {

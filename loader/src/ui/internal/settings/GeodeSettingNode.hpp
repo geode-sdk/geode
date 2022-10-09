@@ -54,9 +54,7 @@ namespace {
 
             m_uncommittedValue = setting->getValue();
 
-            auto name = setting->getName() ?
-                setting->getName().value() :
-                setting->getKey();
+            auto name = setting->getDisplayName();
             
             m_nameLabel = CCLabelBMFont::create(name.c_str(), "bigFont.fnt");
             m_nameLabel->setAnchorPoint({ .0f, .5f });
@@ -94,13 +92,7 @@ namespace {
                 infoSpr->setScale(.6f);
 
                 auto infoBtn = CCMenuItemSpriteExtra::create(
-                    infoSpr, this, makeMenuSelector([this, name, setting](CCObject*) {
-                        FLAlertLayer::create(
-                            name.c_str(),
-                            setting->getDescription().value(),
-                            "OK"
-                        )->show();
-                    })
+                    infoSpr, this, menu_selector(GeodeSettingNode::onDescription)
                 );
                 infoBtn->setPosition(
                     -m_obContentSize.width + sidePad + 
@@ -119,17 +111,7 @@ namespace {
                 resetBtnSpr->setScale(.5f);
 
                 m_resetBtn = CCMenuItemSpriteExtra::create(
-                    resetBtnSpr, this, makeMenuSelector([name, this](CCObject*) {
-                        createQuickPopup(
-                            "Reset",
-                            "Are you sure you want to <cr>reset</c> <cl>" +
-                            name + "</c> to <cy>default</c>?",
-                            "Cancel", "Reset",
-                            [this](auto, bool btn2) {
-                                if (btn2) this->resetToDefault();
-                            }
-                        );
-                    })
+                    resetBtnSpr, this, menu_selector(GeodeSettingNode::onReset)
                 );
                 m_resetBtn->setPosition(
                     -m_obContentSize.width + sidePad + 
@@ -148,6 +130,29 @@ namespace {
             this->valueChanged();
             
             return true;
+        }
+
+        void onDescription(CCObject*) {
+            auto setting = std::static_pointer_cast<T>(m_setting);
+            FLAlertLayer::create(
+                setting->getDisplayName().c_str(),
+                setting->getDescription().value(),
+                "OK"
+            )->show();
+        }
+
+        void onReset(CCObject*) {
+            auto setting = std::static_pointer_cast<T>(m_setting);
+            createQuickPopup(
+                "Reset",
+                "Are you sure you want to <cr>reset</c> <cl>" +
+                setting->getDisplayName() + 
+                "</c> to <cy>default</c>?",
+                "Cancel", "Reset",
+                [this](auto, bool btn2) {
+                    if (btn2) this->resetToDefault();
+                }
+            );
         }
 
         virtual float setupHeight(std::shared_ptr<T> setting) const {
@@ -292,10 +297,7 @@ namespace {
                 decArrowSpr->setScale(.3f);
 
                 m_decArrow = CCMenuItemSpriteExtra::create(
-                    decArrowSpr, self(),
-                    makeMenuSelector([this](CCObject*){
-                        onDecrement(self());
-                    })
+                    decArrowSpr, self(), menu_selector(ImplArrows::onDecrement)
                 );
                 m_decArrow->setPosition(-width / 2 + 80.f, yPos);
                 self()->m_menu->addChild(m_decArrow);
@@ -304,10 +306,7 @@ namespace {
                 incArrowSpr->setScale(.3f);
 
                 m_incArrow = CCMenuItemSpriteExtra::create(
-                    incArrowSpr, self(),
-                    makeMenuSelector([this](CCObject*){
-                        onIncrement(self());
-                    })
+                    incArrowSpr, self(), menu_selector(ImplArrows::onIncrement)
                 );
                 m_incArrow->setPosition(-10.f, yPos);
                 self()->m_menu->addChild(m_incArrow);
@@ -319,10 +318,7 @@ namespace {
                 decArrowSpr->setScale(.3f);
 
                 m_bigDecArrow = CCMenuItemSpriteExtra::create(
-                    decArrowSpr, self(),
-                    makeMenuSelector([this](CCObject*){
-                        onBigDecrement(self());
-                    })
+                    decArrowSpr, self(), menu_selector(ImplArrows::onBigDecrement)
                 );
                 m_bigDecArrow->setPosition(-width / 2 + 65.f, yPos);
                 self()->m_menu->addChild(m_bigDecArrow);
@@ -331,38 +327,45 @@ namespace {
                 incArrowSpr->setScale(.3f);
 
                 m_bigIncArrow = CCMenuItemSpriteExtra::create(
-                    incArrowSpr, self(),
-                    makeMenuSelector([this](CCObject*){
-                        onBigIncrement(self());
-                    })
+                    incArrowSpr, self(), menu_selector(ImplArrows::onBigIncrement)
                 );
                 m_bigIncArrow->setPosition(5.f, yPos);
                 self()->m_menu->addChild(m_bigIncArrow);
             }
         }
 
-        static void onIncrement(C* self) {
+        void onIncrement(CCObject*) {
+            // intentionally refcast to prevent warnings on clang and 
+            // not to offset this as it has already been offset to the 
+            // correct vtable when it's passed to CCMenuItemSpriteExtra
+            auto self = reference_cast<C*>(this);
             self->m_uncommittedValue += std::static_pointer_cast<T>(
                 self->m_setting
             )->getArrowStepSize();
             self->valueChanged(true);
         }
 
-        static void onDecrement(C* self) {
+        void onDecrement(CCObject*) {
+            // intentional, see ImplArrows::onIncrement
+            auto self = reference_cast<C*>(this);
             self->m_uncommittedValue -= std::static_pointer_cast<T>(
                 self->m_setting
             )->getArrowStepSize();
             self->valueChanged(true);
         }
 
-        static void onBigIncrement(C* self) {
+        void onBigIncrement(CCObject*) {
+            // intentional, see ImplArrows::onIncrement
+            auto self = reference_cast<C*>(this);
             self->m_uncommittedValue += std::static_pointer_cast<T>(
                 self->m_setting
             )->getBigArrowStepSize();
             self->valueChanged(true);
         }
 
-        static void onBigDecrement(C* self) {
+        void onBigDecrement(CCObject*) {
+            // intentional, see ImplArrows::onIncrement
+            auto self = reference_cast<C*>(this);
             self->m_uncommittedValue -= std::static_pointer_cast<T>(
                 self->m_setting
             )->getBigArrowStepSize();
@@ -410,9 +413,7 @@ namespace {
         void setupSlider(std::shared_ptr<T> setting, float width) {
             if (setting->hasSlider()) {
                 m_slider = Slider::create(
-                    self(), makeMenuSelector([this](CCObject* slider){
-                        onSlider(self(), slider);
-                    }), .5f
+                    self(), menu_selector(ImplSlider::onSlider), .5f
                 );
                 m_slider->setPosition(-50.f, -15.f);
                 self()->m_menu->addChild(m_slider);
@@ -429,7 +430,9 @@ namespace {
             m_slider->updateBar();
         }
 
-        static void onSlider(C* self, CCObject* slider) {
+        void onSlider(CCObject* slider) {
+            // intentional, see ImplArrows::onIncrement
+            auto self = reference_cast<C*>(this);
             auto setting = std::static_pointer_cast<T>(self->m_setting);
 
             self->m_uncommittedValue = valueFromSlider(
@@ -510,6 +513,8 @@ protected:
     void textChanged(CCTextInputNode* input) override;
     void valueChanged(bool updateText) override;
     void updateLabel();
+
+    void onPickFile(CCObject*);
     
     bool setup(std::shared_ptr<FileSetting> setting, float width) override;
 };
@@ -524,6 +529,8 @@ protected:
     void valueChanged(bool updateText) override;
     void updateColor(ccColor4B const& color) override;
 
+    void onSelectColor(CCObject*);
+
     bool setup(std::shared_ptr<ColorSetting> setting, float width) override;
 };
 
@@ -537,5 +544,7 @@ protected:
     void valueChanged(bool updateText) override;
     void updateColor(ccColor4B const& color) override;
 
+    void onSelectColor(CCObject*);
+    
     bool setup(std::shared_ptr<ColorAlphaSetting> setting, float width) override;
 };
