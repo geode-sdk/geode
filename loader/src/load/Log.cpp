@@ -113,7 +113,7 @@ void Log::pushToLoader() {
 }
 
 std::string geode::log::generateLogName() {
-    return fmt::format("Geode_{:%H.%M.%S}.log", log_clock::now());
+    return fmt::format("Geode {:%d %b %H.%M.%S}.log", log_clock::now());
 }
 
 void geode::log::vlogImpl(Severity severity, Mod* mod, std::string_view formatStr, std::function<void(Log&)>* components, size_t componentsSize) {
