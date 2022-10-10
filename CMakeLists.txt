@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
 
+set(BUILD_SHARED_LIBS OFF FORCE CACHE BOOL "Build libraries static")
 set(GEODE_VERSION 0.4.1)
 
 project(geode-sdk VERSION ${GEODE_VERSION} LANGUAGES CXX C)
