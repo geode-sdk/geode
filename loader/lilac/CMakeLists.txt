@@ -11,9 +11,12 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     add_subdirectory("test")
 endif()
 
+message(STATUS ${GEODE_LOADER_PATH}/include)
+
 target_include_directories(
     lilac_hook INTERFACE 
     ${lilac_SOURCE_DIR}/include/geode
     ${lilac_SOURCE_DIR}/include/geode/core
     ${lilac_SOURCE_DIR}/include/geode/core/hook
+    ${GEODE_LOADER_PATH}/include
 )

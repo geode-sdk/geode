@@ -30,6 +30,7 @@ target_compile_features(lilac_hook PUBLIC cxx_std_17)
 target_include_directories(lilac_hook 
     PRIVATE
         ${lilac_SOURCE_DIR}/include/geode/core/hook
+        ${GEODE_LOADER_PATH}/include
     INTERFACE
         $<BUILD_INTERFACE:${lilac_SOURCE_DIR}/include>
         $<BUILD_INTERFACE:${lilac_SOURCE_DIR}/include/geode>

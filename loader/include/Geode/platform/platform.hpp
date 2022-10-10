@@ -1,10 +1,7 @@
 #pragma once
 
 #include <functional>
-
-#if defined(GEODE_CALL)
-	#undef GEODE_CALL
-#endif
+#include "cplatform.h"
 
 namespace geode {
 	class PlatformID {
@@ -70,20 +67,13 @@ namespace std {
 #endif
 
 // Windows
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+#ifdef GEODE_IS_WINDOWS
 
-	#define GEODE_WINDOWS(...) __VA_ARGS__
-	#define GEODE_IS_WINDOWS
-	#define GEODE_IS_DESKTOP
-	#define GEODE_PLATFORM_NAME "Windows"
 	#define GEODE_PLATFORM_TARGET PlatformID::Windows
-	#define GEODE_CALL __stdcall
 	#define GEODE_HIDDEN
 	#define GEODE_DUPABLE __forceinline
 	#define GEODE_VIRTUAL_CONSTEXPR 
 	#define GEODE_NOINLINE __declspec(noinline)
-	#define GEODE_PLATFORM_EXTENSION ".dll"
-	#define GEODE_PLATFORM_SHORT_IDENTIFIER "win"
 
 	#ifdef GEODE_EXPORTING
 	    #define GEODE_DLL    __declspec(dllexport)
@@ -96,56 +86,13 @@ namespace std {
 	
 	#include "windows.hpp"
 
-#else
-	#define GEODE_WINDOWS(...)
-#endif
+#elif defined(GEODE_IS_MACOS)
 
-// MacOS / iOS
-#if defined(__APPLE__)
-#include <TargetConditionals.h>
-
-#if TARGET_OS_IPHONE
-	#define GEODE_MACOS(...)
-
-	#define GEODE_IOS(...) __VA_ARGS__
-	#define GEODE_IS_IOS
-	#define GEODE_IS_MOBILE
-	#define GEODE_PLATFORM_NAME "iOS"
-	#define GEODE_PLATFORM_TARGET PlatformID::iOS
-	#define GEODE_CALL
-	#define GEODE_HIDDEN __attribute__((visibility("hidden")))
-	#define GEODE_DUPABLE __attribute__((always_inline))
-	#define GEODE_VIRTUAL_CONSTEXPR constexpr
-	#define GEODE_NOINLINE __attribute__((noinline))
-	#define GEODE_PLATFORM_EXTENSION ".ios.dylib"
-	#define GEODE_PLATFORM_SHORT_IDENTIFIER "ios"
-
-	#ifdef GEODE_EXPORTING
-	    #define GEODE_DLL    __attribute__((visibility("default")))
-	#else
-	    #define GEODE_DLL    
-	#endif
-
-	#define GEODE_API extern "C" __attribute__((visibility("default")))
-	#define GEODE_EXPORT __attribute__((visibility("default")))
-
-	#include "ios.hpp"
-
-#else
-	#define GEODE_IOS(...)
-
-	#define GEODE_MACOS(...) __VA_ARGS__
-	#define GEODE_IS_MACOS
-	#define GEODE_IS_DESKTOP
-	#define GEODE_PLATFORM_NAME "MacOS"
 	#define GEODE_PLATFORM_TARGET PlatformID::MacOS
-	#define GEODE_CALL
 	#define GEODE_HIDDEN __attribute__((visibility("hidden")))
 	#define GEODE_DUPABLE __attribute__((always_inline))
 	#define GEODE_VIRTUAL_CONSTEXPR constexpr
 	#define GEODE_NOINLINE __attribute__((noinline))
-	#define GEODE_PLATFORM_EXTENSION ".dylib"
-	#define GEODE_PLATFORM_SHORT_IDENTIFIER "mac"
 
 	#ifdef GEODE_EXPORTING
 	    #define GEODE_DLL    __attribute__((visibility("default")))
@@ -157,28 +104,33 @@ namespace std {
 	#define GEODE_EXPORT __attribute__((visibility("default")))
 
 	#include "macos.hpp"
-#endif
 
-#else 
-	#define GEODE_IOS(...)
-	#define GEODE_MACOS(...)
+#elif defined(GEODE_IS_IOS)
 
-#endif
-
-// Android
-#if defined(__ANDROID__)
-	#define GEODE_ANDROID(...) __VA_ARGS__
-	#define GEODE_IS_ANDROID
-	#define GEODE_IS_MOBILE
-	#define GEODE_PLATFORM_NAME "Android"
-	#define GEODE_PLATFORM_TARGET PlatformID::Android
-	#define GEODE_CALL
+	#define GEODE_PLATFORM_TARGET PlatformID::iOS
 	#define GEODE_HIDDEN __attribute__((visibility("hidden")))
 	#define GEODE_DUPABLE __attribute__((always_inline))
 	#define GEODE_VIRTUAL_CONSTEXPR constexpr
 	#define GEODE_NOINLINE __attribute__((noinline))
-	#define GEODE_PLATFORM_EXTENSION ".so"
-	#define GEODE_PLATFORM_SHORT_IDENTIFIER "android"
+
+	#ifdef GEODE_EXPORTING
+	    #define GEODE_DLL __attribute__((visibility("default")))
+	#else
+	    #define GEODE_DLL    
+	#endif
+
+	#define GEODE_API extern "C" __attribute__((visibility("default")))
+	#define GEODE_EXPORT __attribute__((visibility("default")))
+
+	#include "ios.hpp"
+	
+#elif defined(GEODE_IS_ANDROID)
+
+	#define GEODE_PLATFORM_TARGET PlatformID::Android
+	#define GEODE_HIDDEN __attribute__((visibility("hidden")))
+	#define GEODE_DUPABLE __attribute__((always_inline))
+	#define GEODE_VIRTUAL_CONSTEXPR constexpr
+	#define GEODE_NOINLINE __attribute__((noinline))
 
 	#ifdef GEODE_EXPORTING
 	    #define GEODE_DLL    __attribute__((visibility("default")))
@@ -189,12 +141,10 @@ namespace std {
 	#define GEODE_API extern "C" __attribute__((visibility("default")))
 	#define GEODE_EXPORT __attribute__((visibility("default")))
 
-	#include "windows.hpp"
+	#include "android.hpp"
 
 #else
-	#define GEODE_ANDROID(...)
-#endif
 
-#ifndef GEODE_PLATFORM_NAME
-	#error "Unsupported PlatformID!"
+	#error "Unsupported Platform!"
+
 #endif
