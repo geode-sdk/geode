@@ -7,16 +7,8 @@
 USE_GEODE_NAMESPACE();
 
 void addIDsToMenuLayer(MenuLayer* layer) {
-	auto setIDSafe = +[](CCNode* node, int index, const char* id) -> CCNode* {
-		if (auto child = getChild(node, index)) {
-			child->setID(id);
-			return child;
-		}
-		return nullptr;
-	};
-
 	// set IDs to everything
-	layer->setID("main-menu-layer");
+	layer->setID("MenuLayer");
 	setIDSafe(layer, 0, "main-menu-bg");
 	getChildOfType<CCSprite>(layer, 0)->setID("main-title");
 

@@ -84,12 +84,19 @@ void ColumnLayout::apply(CCArray* nodes, CCSize const& availableSize) {
         case Alignment::End: pos = 0.f; break;
     }
     CCARRAY_FOREACH_B_TYPE(nodes, node, CCNode) {
-        auto sw = node->getScaledContentSize().height;
-        node->setPositionY(pos + sw / 2);
+        auto sh = node->getScaledContentSize().height;
+        float disp;
+        switch (m_alignment) {
+            default:
+            case Alignment::Center: disp = sh * node->getAnchorPoint().y; break;
+            case Alignment::Begin:  disp = sh; break;
+            case Alignment::End:    disp = 0.f; break;
+        }
+        node->setPositionY(pos + disp);
         if (m_alignHorizontally) {
             node->setPositionX(m_alignHorizontally.value());
         }
-        pos += sw + m_gap;
+        pos += sh + m_gap;
     }
 }
 
