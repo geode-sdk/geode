@@ -13,6 +13,10 @@ endif()
 
 add_library(${PROJECT_NAME} INTERFACE)
 
+if (GEODE_DEBUG)
+	target_compile_definitions(${PROJECT_NAME} INTERFACE GEODE_DEBUG)
+endif()
+
 target_compile_definitions(${PROJECT_NAME} INTERFACE -DPROJECT_NAME=${CMAKE_PROJECT_NAME})
 
 set(GEODE_CODEGEN_PATH ${CMAKE_CURRENT_BINARY_DIR}/codegenned)

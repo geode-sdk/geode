@@ -883,6 +883,8 @@ public:
 
         void setPositionHint(PositionHint hint);
         PositionHint getPositionHint();
+
+        void swapChildIndices(CCNode* first, CCNode* second);
     );
     
     /// @{

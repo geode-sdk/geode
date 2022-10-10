@@ -9,6 +9,7 @@
 #include "../ui/internal/info/ModInfoLayer.hpp"
 #include <InternalLoader.hpp>
 #include <Geode/Modify.hpp>
+#include "../ids/AddIDs.hpp"
 
 USE_GEODE_NAMESPACE();
 
@@ -139,6 +140,10 @@ class $modify(CustomMenuLayer, MenuLayer) {
 	bool init() {
 		if (!MenuLayer::init())
 			return false;
+		
+		// make sure to add the string IDs for nodes (Geode has no manual 
+		// hook order support yet so gotta do this to ensure)
+		addIDsToMenuLayer(this);
 
 		Loader::get()->updateResourcePaths();
 

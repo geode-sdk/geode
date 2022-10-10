@@ -3,6 +3,12 @@
 
 using namespace cocos2d;
 
+#pragma warning(disable: 4273)
+
+void CCNode::swapChildIndices(CCNode* first, CCNode* second) {
+    m_pChildren->exchangeObject(first, second);
+}
+
 void RowLayout::apply(CCArray* nodes, CCSize const& availableSize) {
     float totalWidth = .0f;
     CCARRAY_FOREACH_B_BASE(nodes, node, CCNode*, ix) {
@@ -21,7 +27,14 @@ void RowLayout::apply(CCArray* nodes, CCSize const& availableSize) {
     }
     CCARRAY_FOREACH_B_TYPE(nodes, node, CCNode) {
         auto sw = node->getScaledContentSize().width;
-        node->setPositionX(pos + sw / 2);
+        float disp;
+        switch (m_alignment) {
+            default:
+            case Alignment::Center: disp = sw * node->getAnchorPoint().x; break;
+            case Alignment::Begin:  disp = sw; break;
+            case Alignment::End:    disp = 0.f; break;
+        }
+        node->setPositionX(pos + disp);
         if (m_alignVertically) {
             node->setPositionY(m_alignVertically.value());
         }
