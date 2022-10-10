@@ -18,6 +18,8 @@ private:
     FieldContainer* m_fieldContainer;
     Ref<cocos2d::CCObject> m_userObject;
     std::string m_id = "";
+    std::unique_ptr<Layout> m_layout = nullptr;
+    PositionHint m_positionHint = PositionHint::Default;
 
     friend class ProxyCCNode;
     friend class cocos2d::CCNode;
@@ -100,6 +102,39 @@ CCNode* CCNode::getChildByIDRecursive(std::string const& id) {
         }
     }
     return nullptr;
+}
+
+void CCNode::setLayout(Layout* layout, bool apply) {
+    GeodeNodeMetadata::set(this)->m_layout.reset(layout);
+    if (apply) {
+        this->updateLayout();
+    }
+}
+
+Layout* CCNode::getLayout() {
+    return GeodeNodeMetadata::set(this)->m_layout.get();
+}
+
+void CCNode::updateLayout() {
+    if (auto layout = GeodeNodeMetadata::set(this)->m_layout.get()) {
+        // nodes with absolute position should never be rearranged
+        auto filtered = CCArray::createWithCapacity(m_pChildren->capacity());
+        CCARRAY_FOREACH_B_TYPE(m_pChildren, child, CCNode) {
+            if (child->getPositionHint() != PositionHint::Absolute) {
+                filtered->addObject(child);
+            }
+        }
+        layout->apply(filtered, m_obContentSize);
+        filtered->release();
+    }
+}
+
+void CCNode::setPositionHint(PositionHint hint) {
+    GeodeNodeMetadata::set(this)->m_positionHint = hint;
+}
+
+PositionHint CCNode::getPositionHint() {
+    return GeodeNodeMetadata::set(this)->m_positionHint;
 }
 
 #pragma warning(pop)

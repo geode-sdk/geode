@@ -19,7 +19,6 @@ if constexpr (derived##index::uuid != nullptr && (void*)base##index::uuid != (vo
 
 
 namespace geode::modifier {
-
 	template <class Derived, class Base>
 	class Modify;
 

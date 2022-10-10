@@ -37,6 +37,7 @@
 #include "kazmath/kazmath.h"
 #include "script_support/CCScriptSupport.h"
 #include "CCProtocols.h"
+#include "Layout.hpp"
 
 NS_CC_BEGIN
 
@@ -875,6 +876,13 @@ public:
          * @returns The child, or nullptr if none was found
          */
         CCNode* getChildByIDRecursive(std::string const& id);
+
+        void setLayout(Layout* layout, bool apply = true);
+        Layout* getLayout();
+        void updateLayout();
+
+        void setPositionHint(PositionHint hint);
+        PositionHint getPositionHint();
     );
     
     /// @{

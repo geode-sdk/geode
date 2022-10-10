@@ -14,6 +14,7 @@ file(GLOB CORE_SOURCES
 	src/cocos2d-ext/*.cpp
 	src/core/*.cpp
 	src/hooks/*.cpp
+	src/ids/*.cpp
 	src/internal/*.cpp
 	src/internal/windows/*.cpp
 	src/internal/mac/*.cpp
