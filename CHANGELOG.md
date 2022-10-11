@@ -1,3 +1,17 @@
+# Geode Changelog
+
+## v0.4.3
+
+ - Simplified the minimum and maximum loader versions, loader will now load any mod whose target version major and minor match. In practice, this means that for example mods whose target version is v0.4.8 can be loaded by loader of version v0.4.6.
+ - Add `Geode/ui/GeodeUI.hpp` header for exposing some access to internal Geode UI like opening a mod's settings popup
+ - Fix crash with settings that could have a slider control
+
+## v0.4.2
+
+ - Moved SDK version to its own file so CLI can query it
+ - md4c is now linked statically on MacOS
+ - Fix log filenames
+
 ## v0.4.1
 
  - Initial dev release of Geode.
@@ -6,10 +20,13 @@
 
 Note that from here on, changes to the framework were not tracked by versions as the framework was still considered to be in heavy development and not released. Instead, major changes are listed by dates.
 
+## 2022/10/10
+
+ - Geode released for developers
+
 ## 2022/10/08
 
  - `ui` branch merged to `main`
- - Geode released for developers
 
 ## 2022/10/03
 

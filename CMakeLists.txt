@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
 
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build libraries static" FORCE)
-set(GEODE_VERSION 0.4.1)
+file(READ VERSION GEODE_VERSION)
+string(STRIP "${GEODE_VERSION}" GEODE_VERSION)
 
 project(geode-sdk VERSION ${GEODE_VERSION} LANGUAGES CXX C)
 
@@ -12,6 +13,9 @@ if (PROJECT_IS_TOP_LEVEL AND APPLE)
 endif()
 
 add_library(${PROJECT_NAME} INTERFACE)
+
+# Rerun CMake on VERSION file change
+set_target_properties(${PROJECT_NAME} PROPERTIES CMAKE_CONFIGURE_DEPENDS VERSION)
 
 target_compile_definitions(${PROJECT_NAME} INTERFACE -DPROJECT_NAME=${CMAKE_PROJECT_NAME})
 

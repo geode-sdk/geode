@@ -54,20 +54,26 @@ __attribute__((constructor)) void _entry() {
 #include <Windows.h>
 
 DWORD WINAPI loadThread(void* arg) {
-    auto module = GetModuleHandleA("GeodeBootstrapper.dll");
-    FreeLibrary(module);
+    bool canMoveBootstrapper = true;
+    if (auto mod = GetModuleHandleA("GeodeBootstrapper.dll")) {
+        if (WaitForSingleObject(mod, 1000) != WAIT_OBJECT_0) {
+            canMoveBootstrapper = false;
+        }
+    }
 
-    auto workingDir = ghc::filesystem::current_path();
-    auto updatesDir = workingDir / "geode" / "update";
+    if (canMoveBootstrapper) {
+        auto workingDir = ghc::filesystem::current_path();
+        auto updatesDir = workingDir / "geode" / "update";
 
-    auto error = std::error_code();
+        auto error = std::error_code();
 
-    if (ghc::filesystem::exists(updatesDir / "GeodeBootstrapper.dll", error) && !error) {
-        ghc::filesystem::rename(
-            updatesDir / "GeodeBootstrapper.dll", 
-            workingDir / "GeodeBootstrapper.dll", error
-        );
-        if (error) return error.value();
+        if (ghc::filesystem::exists(updatesDir / "GeodeBootstrapper.dll", error) && !error) {
+            ghc::filesystem::rename(
+                updatesDir / "GeodeBootstrapper.dll", 
+                workingDir / "GeodeBootstrapper.dll", error
+            );
+            if (error) return error.value();
+        }
     }
 
     return geodeEntry(arg);
@@ -91,9 +97,9 @@ BOOL WINAPI DllMain(HINSTANCE lib, DWORD reason, LPVOID) {
 }
 #endif
 
-static SettingChangedEventHandler<BoolSetting> _(
-    "geode.loader", "show-platform-console",
-    [](auto setting) {
+static auto _ = listenForSettingChanges(
+    "show-platform-console",
+    +[](std::shared_ptr<BoolSetting> setting) {
         if (setting->getValue()) {
             Loader::get()->openPlatformConsole();
         } else {
