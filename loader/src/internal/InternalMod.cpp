@@ -2,7 +2,7 @@
 #include "about.hpp"
 #include "InternalLoader.hpp"
 
-static auto SUPPORT_INFO = R"MD(
+static constexpr const char* SUPPORT_INFO = R"MD(
 **Geode** is funded through your gracious <cy>**donations**</c>!
 You can support our work by sending <cp>**catgirl pictures**</c> to [HJfod](user:104257) :))
 )MD";

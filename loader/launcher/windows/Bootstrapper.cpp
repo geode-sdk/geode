@@ -6,16 +6,17 @@ void showError(std::string const& error) {
 	MessageBoxA(nullptr, error.c_str(), "Error Loading Geode", MB_ICONERROR);
 }
 
-int loadGeode() {
+int loadGeode(PVOID module) {
 	if (!LoadLibraryW(L"Geode.dll")) {
 		auto code = GetLastError();
 		showError("Unable to load Geode (code " + std::to_string(code) + ")");
 		return code;
 	}
+	FreeLibraryAndExitThread(static_cast<HINSTANCE>(module), 0);
 	return 0;
 }
 
-DWORD WINAPI load(PVOID _) {
+DWORD WINAPI load(PVOID module) {
 	auto workingDir = ghc::filesystem::current_path();
 	auto updatesDir = workingDir / "geode" / "update";
 	auto resourcesDir = workingDir / "geode" / "resources";
@@ -49,16 +50,17 @@ DWORD WINAPI load(PVOID _) {
 		}
     }
 
-	return loadGeode();
+	return loadGeode(module);
 }
 
 BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID _) {
 	if (reason == DLL_PROCESS_ATTACH) {
 		HANDLE handle = CreateThread(NULL, 0, load, module, 0, NULL);
-		if (handle)
+		if (handle) {
 			CloseHandle(handle);
-		else
+		} else {
 			return FALSE;
+		}
 	}
 	return TRUE;
 }

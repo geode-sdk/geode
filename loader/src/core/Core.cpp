@@ -166,8 +166,6 @@ namespace geode::core::impl {
         // DobbyDestroy(at);
         // DobbyHook(at, to, &trampolines()[at]);
 
-		static auto _ = MH_Initialize();
-
 		MH_RemoveHook(at);
 		MH_CreateHook(at, to, &trampolines()[at]);
 		MH_EnableHook(at);
@@ -175,7 +173,7 @@ namespace geode::core::impl {
 }
 
 bool geode::core::hook::initialize() {
-	return true;
+	return MH_Initialize() == MH_OK;
 }
 
 #endif
