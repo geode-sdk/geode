@@ -439,11 +439,21 @@ size_t Loader::getFieldIndexForClass(size_t hash) {
 }
 
 VersionInfo Loader::minModVersion() {
-    return { 0, 4, 0 };
+    // patches are always backwards-compatible. if not, we have failed
+    return VersionInfo {
+        Loader::getVersion().getMajor(),
+        Loader::getVersion().getMinor(),
+        0,
+    };
 }
 
 VersionInfo Loader::maxModVersion() {
-    return Loader::getVersion();
+    // patches are always backwards-compatible. if not, we have failed
+    return VersionInfo {
+        Loader::getVersion().getMajor(),
+        Loader::getVersion().getMinor(),
+        99999999,
+    };
 }
 
 bool Loader::supportedModVersion(VersionInfo const& version) {
