@@ -6,10 +6,13 @@
 
 Note that from here on, changes to the framework were not tracked by versions as the framework was still considered to be in heavy development and not released. Instead, major changes are listed by dates.
 
+## 2022/10/10
+
+ - Geode released for developers
+
 ## 2022/10/08
 
  - `ui` branch merged to `main`
- - Geode released for developers
 
 ## 2022/10/03
 
