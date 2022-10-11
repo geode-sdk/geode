@@ -118,7 +118,7 @@ Layout* CCNode::getLayout() {
 void CCNode::updateLayout() {
     if (auto layout = GeodeNodeMetadata::set(this)->m_layout.get()) {
         // nodes with absolute position should never be rearranged
-        auto filtered = CCArray::createWithCapacity(m_pChildren->capacity());
+        auto filtered = CCArray::create();
         CCARRAY_FOREACH_B_TYPE(m_pChildren, child, CCNode) {
             if (child->getPositionHint() != PositionHint::Absolute) {
                 filtered->addObject(child);
