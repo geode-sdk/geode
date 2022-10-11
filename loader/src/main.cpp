@@ -54,17 +54,26 @@ __attribute__((constructor)) void _entry() {
 #include <Windows.h>
 
 DWORD WINAPI loadThread(void* arg) {
-    auto workingDir = ghc::filesystem::current_path();
-    auto updatesDir = workingDir / "geode" / "update";
+    bool canMoveBootstrapper = true;
+    if (auto mod = GetModuleHandleA("GeodeBootstrapper.dll")) {
+        if (WaitForSingleObject(mod, 1000) != WAIT_OBJECT_0) {
+            canMoveBootstrapper = false;
+        }
+    }
 
-    auto error = std::error_code();
+    if (canMoveBootstrapper) {
+        auto workingDir = ghc::filesystem::current_path();
+        auto updatesDir = workingDir / "geode" / "update";
 
-    if (ghc::filesystem::exists(updatesDir / "GeodeBootstrapper.dll", error) && !error) {
-        ghc::filesystem::rename(
-            updatesDir / "GeodeBootstrapper.dll", 
-            workingDir / "GeodeBootstrapper.dll", error
-        );
-        if (error) return error.value();
+        auto error = std::error_code();
+
+        if (ghc::filesystem::exists(updatesDir / "GeodeBootstrapper.dll", error) && !error) {
+            ghc::filesystem::rename(
+                updatesDir / "GeodeBootstrapper.dll", 
+                workingDir / "GeodeBootstrapper.dll", error
+            );
+            if (error) return error.value();
+        }
     }
 
     return geodeEntry(arg);
