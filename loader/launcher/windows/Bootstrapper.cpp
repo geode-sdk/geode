@@ -24,22 +24,22 @@ DWORD WINAPI load(PVOID module) {
 	auto error = std::error_code();
 
 	if (ghc::filesystem::exists(updatesDir / "Geode.dll", error) && !error) {
-        ghc::filesystem::rename(
-            updatesDir / "Geode.dll", 
-            workingDir / "Geode.dll", error
-        );
-        if (error) {
+		ghc::filesystem::rename(
+			updatesDir / "Geode.dll", 
+			workingDir / "Geode.dll", error
+		);
+		if (error) {
 			showError("Unable to update Geode: Unable to move Geode.dll - " + error.message());
 			return error.value();
 		}
-    }
+	}
 
-    if (ghc::filesystem::exists(updatesDir / "resources", error) && !error) {
-    	ghc::filesystem::remove_all(resourcesDir / "geode.loader", error);
+	if (ghc::filesystem::exists(updatesDir / "resources", error) && !error) {
+		ghc::filesystem::remove_all(resourcesDir / "geode.loader", error);
 
-        if (error) {
+		if (error) {
 			showError("Unable to update Geode resources: " + error.message());
-        } else {
+		} else {
 			ghc::filesystem::rename(
 				updatesDir / "resources", 
 				resourcesDir / "geode.loader", error
@@ -48,12 +48,12 @@ DWORD WINAPI load(PVOID module) {
 				showError("Unable to update Geode resources: " + error.message());
 			}
 		}
-    }
+	}
 
 	return loadGeode(module);
 }
 
-BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID _) {
+BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID) {
 	if (reason == DLL_PROCESS_ATTACH) {
 		HANDLE handle = CreateThread(NULL, 0, load, module, 0, NULL);
 		if (handle) {
