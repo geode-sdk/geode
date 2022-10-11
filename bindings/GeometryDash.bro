@@ -3760,7 +3760,7 @@ class LevelPage {
 
 class LevelSearchLayer : cocos2d::CCLayer {
     static LevelSearchLayer* create() = mac 0x0, win 0x17d9c0, ios 0x0;
-    bool init() = mac 0x384770, win 0x0, ios 0x0;
+    bool init() = mac 0x384770, win 0x17da60, ios 0x0;
     GJSearchObject* getSearchObject(SearchType, gd::string) = mac 0x388a50, win 0x1805f0, ios 0x0;
     void onMoreOptions(cocos2d::CCObject*) = mac 0x0, win 0x17f500, ios 0x0;
     void onSearch(cocos2d::CCObject*) = mac 0x0, win 0x180fc0, ios 0x0;
