@@ -1,0 +1,57 @@
+name: Crash Report
+description: Report a bug that crashes the game or prevents startup.
+labels: [ "unverified", "crash" ]
+body:
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      description: The platform you were using when this bug was encountered.
+      options:
+        - "MacOS"
+        - "Windows"
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Geode Version
+      description: The version of Geode you were using when this bug was encountered. If you do not know where to find this, look for the mods listing.
+      placeholder: "Example: v0.5.4"
+    validations:
+      required: true
+  - type: textarea
+    id: mods
+    attributes:
+      label: Mods Installed
+      description: The mods and their respective versions used when this bug was encountered. If you were not using mods, please leave this field blank.
+      placeholder: "Example: geode.test v1.0.0, geode.testdep v0.1.0"
+    validations:
+      required: false
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: How to reproduce the crash.
+      placeholder: "Example: 1) I did X..."
+    validations:
+      required: true
+  - type: textarea
+    id: crash-report
+    attributes:
+      label: Crash Report
+      description: "You can find the crash report in `geode/crashlogs/`, if one was created. If you are using MacOS you can find the crash report in `Console.app` too. Additionally, please attach latest log in `geode/log/`. If either or both files do not exist, state such. Please link to a paste site with their content, such as GitHub Gists or Pastebin. **Do not paste the contents of either these files directly into the text box.**"
+      placeholder: "Example: a link to a paste site with the crash report and latest.log."
+    validations:
+      required: false
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: Additional Information
+      description: Any additional information you wish to provide. Please add anything which did not fit into the other sections here.
+      placeholder: "Example: This is likely caused by X because..."
+    validations:
+      required: false
+  - type: markdown
+    attributes:
+      value: Thank you for taking the time to fill out this crash report.
