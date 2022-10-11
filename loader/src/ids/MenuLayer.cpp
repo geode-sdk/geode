@@ -55,18 +55,9 @@ void addIDsToMenuLayer(MenuLayer* layer) {
 		// move daily chest to its own menu
 
 		if (auto dailyChest = setIDSafe(menu, -1, "daily-chest-button")) {
-			dailyChest->retain();
-			dailyChest->removeFromParent();
-
-			auto rightSideMenu = CCMenu::create();
-			rightSideMenu->setID("right-side-menu");
-			rightSideMenu->setPosition(menu->convertToWorldSpace(dailyChest->getPosition()));
-			dailyChest->setPosition(0, 0);
-			rightSideMenu->addChild(dailyChest);
-			rightSideMenu->setLayout(ColumnLayout::create(5.f, 0.f));
-			layer->addChild(rightSideMenu);
-
-			dailyChest->release();
+			detachIntoOwnMenu(layer, dailyChest, "right-side-menu", 
+				ColumnLayout::create(5.f, 0.f)
+			);
 		}
 
 		menu->setLayout(RowLayout::create(5.f, ach->getPositionY()));
@@ -85,18 +76,9 @@ void addIDsToMenuLayer(MenuLayer* layer) {
 		// move close button to its own menu
 
 		if (auto closeBtn = setIDSafe(menu, 1, "close-button")) {
-			closeBtn->retain();
-			closeBtn->removeFromParent();
-
-			auto closeMenu = CCMenu::create();
-			closeMenu->setPosition(menu->convertToWorldSpace(closeBtn->getPosition()));
-			closeMenu->setID("top-left-menu");
-			closeBtn->setPosition(0, 0);
-			closeMenu->addChild(closeBtn);
-			closeMenu->setLayout(RowLayout::create(5.f, 0.f)->setAlignment(Alignment::Begin));
-			layer->addChild(closeMenu);
-
-			closeBtn->release();
+			detachIntoOwnMenu(layer, closeBtn, "close-menu", 
+				RowLayout::create(5.f, 0.f)->setAlignment(Alignment::Begin)
+			);
 		}
 	}
 

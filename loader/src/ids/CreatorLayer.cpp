@@ -31,35 +31,17 @@ class $modify(CreatorLayer) {
             // move vault button to its own menu
 
             if (auto lockBtn = setIDSafe(menu, -2, "vault-button")) {
-                lockBtn->retain();
-                lockBtn->removeFromParent();
-
-                auto lockMenu = CCMenu::create();
-                lockMenu->setPosition(menu->convertToWorldSpace(lockBtn->getPosition()));
-                lockMenu->setID("top-right-menu");
-                lockBtn->setPosition(0, 0);
-                lockMenu->addChild(lockBtn);
-                lockMenu->setLayout(ColumnLayout::create(5.f, 0.f)->setAlignment(Alignment::Begin));
-                this->addChild(lockMenu);
-
-                lockBtn->release();
+                detachIntoOwnMenu(this, lockBtn, "top-right-menu", 
+                    ColumnLayout::create(5.f, 0.f)->setAlignment(Alignment::Begin)
+                );
             }
 
             // move treasure room button to its own menu
 
             if (auto roomBtn = setIDSafe(menu, -1, "treasure-room-button")) {
-                roomBtn->retain();
-                roomBtn->removeFromParent();
-
-                auto roomMenu = CCMenu::create();
-                roomMenu->setPosition(menu->convertToWorldSpace(roomBtn->getPosition()));
-                roomMenu->setID("bottom-right-menu");
-                roomBtn->setPosition(0, 0);
-                roomMenu->addChild(roomBtn);
-                roomMenu->setLayout(ColumnLayout::create(5.f, 0.f)->setAlignment(Alignment::End));
-                this->addChild(roomMenu);
-
-                roomBtn->release();
+                detachIntoOwnMenu(this, roomBtn, "bottom-right-menu", 
+                    ColumnLayout::create(5.f, 0.f)->setAlignment(Alignment::End)
+                );
             }
         }
 
@@ -67,6 +49,8 @@ class $modify(CreatorLayer) {
             menu->setID("go-back-menu");
             setIDSafe(menu, 0, "back-button");
         }
+
+        EnterLayerEvent("CreatorLayer", this).post();
 
         return true;
     }
