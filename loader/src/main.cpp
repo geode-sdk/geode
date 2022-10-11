@@ -54,9 +54,6 @@ __attribute__((constructor)) void _entry() {
 #include <Windows.h>
 
 DWORD WINAPI loadThread(void* arg) {
-    auto module = GetModuleHandleA("GeodeBootstrapper.dll");
-    FreeLibrary(module);
-
     auto workingDir = ghc::filesystem::current_path();
     auto updatesDir = workingDir / "geode" / "update";
 
@@ -91,9 +88,9 @@ BOOL WINAPI DllMain(HINSTANCE lib, DWORD reason, LPVOID) {
 }
 #endif
 
-static SettingChangedEventHandler<BoolSetting> _(
-    "geode.loader", "show-platform-console",
-    [](auto setting) {
+static auto _ = listenForSettingChanges(
+    "show-platform-console",
+    +[](std::shared_ptr<BoolSetting> setting) {
         if (setting->getValue()) {
             Loader::get()->openPlatformConsole();
         } else {

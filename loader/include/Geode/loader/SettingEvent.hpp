@@ -3,6 +3,7 @@
 #include "Event.hpp"
 #include <optional>
 #include "Setting.hpp"
+#include "Loader.hpp"
 
 namespace geode {
     class GEODE_DLL SettingChangedEvent : public Event {
@@ -67,5 +68,30 @@ namespace geode {
             m_targetKey(std::nullopt),
             m_consumer(handler) {}
 	};
+
+    template<class T>
+        requires std::is_base_of_v<Setting, T>
+    std::monostate listenForSettingChanges(
+        std::string const& settingID,
+        void(*callback)(std::shared_ptr<T>)
+    ) {
+        Loader::get()->scheduleOnModLoad(getMod(), [=]() {
+            static SettingChangedEventHandler<T> _(
+                getMod()->getID(), settingID, callback
+            );
+        });
+        return std::monostate();
+    }
+
+    static std::monostate listenForAllSettingChanges(
+        void(*callback)(std::shared_ptr<Setting>)
+    ) {
+        Loader::get()->scheduleOnModLoad(getMod(), [=]() {
+            static SettingChangedEventHandler<Setting> _(
+                getMod()->getID(), callback
+            );
+        });
+        return std::monostate();
+    }
 }
 
