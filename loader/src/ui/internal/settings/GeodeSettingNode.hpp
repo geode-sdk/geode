@@ -423,11 +423,13 @@ namespace {
         }
 
         void updateSlider() {
-            auto setting = std::static_pointer_cast<T>(self()->m_setting);
-            m_slider->setValue(
-                valueToSlider(setting, self()->m_uncommittedValue)
-            );
-            m_slider->updateBar();
+            if (m_slider) {
+                auto setting = std::static_pointer_cast<T>(self()->m_setting);
+                m_slider->setValue(
+                    valueToSlider(setting, self()->m_uncommittedValue)
+                );
+                m_slider->updateBar();
+            }
         }
 
         void onSlider(CCObject* slider) {

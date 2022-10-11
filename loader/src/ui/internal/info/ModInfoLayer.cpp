@@ -576,7 +576,7 @@ void ModInfoLayer::FLAlert_Clicked(FLAlertLayer* layer, bool btn2) {
                     )->show();
                 }
             }
-            m_list->refreshList();
+            if (m_list) m_list->refreshList();
             this->onClose(nullptr);
         } break;
     }
@@ -631,7 +631,7 @@ void ModInfoLayer::modInstallProgress(
 
             m_ticket = nullptr;
 
-            m_list->refreshList();
+            if (m_list) m_list->refreshList();
             this->onClose(nullptr);
         } break;
 
