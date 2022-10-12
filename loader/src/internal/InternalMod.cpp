@@ -42,7 +42,7 @@ InternalMod::InternalMod() : Mod(getInternalModInfo()) {
 
     auto sett = this->loadSettings();
     if (!sett) {
-        log::log(Severity::Error, this, sett.error());
+        log::log(Severity::Error, this, "{}", sett.error());
     }
 }
 

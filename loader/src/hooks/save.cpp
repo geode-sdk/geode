@@ -9,7 +9,7 @@ class $modify(AppDelegate) {
 
         auto r = Loader::get()->saveSettings();
         if (!r) {
-            log::log(Severity::Error, Loader::getInternalMod(), r.error());
+            log::log(Severity::Error, Loader::getInternalMod(), "{}", r.error());
         }
 
         log::log(Severity::Info, Loader::getInternalMod(), "Saved");

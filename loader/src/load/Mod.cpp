@@ -78,7 +78,8 @@ Result<> Mod::loadSettings() {
                     log::log(
                         Severity::Warning,
                         this, 
-                        "Encountered unknown setting \"" + key + "\" while loading settings"
+                        "Encountered unknown setting \"{}\" while loading settings",
+                        key
                     );
                 }
             }
@@ -382,13 +383,13 @@ bool Mod::updateDependencyStates() {
                     auto r = dep.m_mod->load();
                     if (!r) {
                         dep.m_state = ModResolveState::Unloaded;
-                        log::log(Severity::Error, dep.m_mod, r.error());
+                        log::log(Severity::Error, dep.m_mod, "{}", r.error());
                     }
                     else {
                     	auto r = dep.m_mod->enable();
                     	if (!r) {
 	                        dep.m_state = ModResolveState::Disabled;
-                            log::log(Severity::Error, dep.m_mod, r.error());
+                            log::log(Severity::Error, dep.m_mod, "{}", r.error());
 	                    }
                     }
 				} else {
