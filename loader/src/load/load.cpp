@@ -41,7 +41,7 @@ Result<Mod*> Loader::loadModFromFile(std::string const& path) {
 
     auto sett = mod->loadSettings();
     if (!sett) {
-        log::log(Severity::Error, mod, sett.error());
+        log::log(Severity::Error, mod, "{}", sett.error());
     }
 
     // enable mod if needed
