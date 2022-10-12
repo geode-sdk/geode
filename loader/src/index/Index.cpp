@@ -3,6 +3,7 @@
 #include <Geode/utils/json.hpp>
 #include <Geode/utils/JsonValidation.hpp>
 #include <Geode/utils/fetch.hpp>
+#include <hash.hpp>
 
 #define GITHUB_DONT_RATE_LIMIT_ME_PLS 0
 
@@ -59,159 +60,17 @@ bool Index::isFeaturedItem(std::string const& item) const {
     return m_featured.count(item);
 }
 
-void Index::updateIndexThread(bool force) {
-    auto indexDir = Loader::get()->getGeodeDirectory() / "index";
-
-    // download index
-
-#if GITHUB_DONT_RATE_LIMIT_ME_PLS == 0
-
-    indexUpdateProgress(
-        UpdateStatus::Progress, "Fetching index metadata", 0
-    );
-
-    // get all commits in index repo
-    auto commit = web::fetchJSON(
-        "https://api.github.com/repos/geode-sdk/mods/commits"
-    );
-    if (!commit) {
-        return indexUpdateProgress(UpdateStatus::Failed, commit.error());
-    }
-    auto json = commit.value();
-    if (
-        json.is_object() &&
-        json.contains("documentation_url") &&
-        json.contains("message")
-    ) {
-        // whoops! got rate limited
-        return indexUpdateProgress(
-            UpdateStatus::Failed,
-            json["message"].get<std::string>()
-        );
-    }
-
-    indexUpdateProgress(
-        UpdateStatus::Progress, "Checking index status", 25
-    );
-
-    // read sha of latest commit
-
-    if (!json.is_array()) {
-        return indexUpdateProgress(
-            UpdateStatus::Failed,
-            "Fetched commits, expected 'array', got '" +
-                std::string(json.type_name()) + "'. "
-            "Report this bug to the Geode developers!"
-        );
-    }
-
-    if (!json.at(0).is_object()) {
-        return indexUpdateProgress(
-            UpdateStatus::Failed,
-            "Fetched commits, expected 'array.object', got 'array." +
-                std::string(json.type_name()) + "'. "
-            "Report this bug to the Geode developers!"
-        );
-    }
-
-    if (!json.at(0).contains("sha")) {
-        return indexUpdateProgress(
-            UpdateStatus::Failed,
-            "Fetched commits, missing '0.sha'. "
-            "Report this bug to the Geode developers!"
-        );
-    }
-
-    auto upcomingCommitSHA = json.at(0)["sha"];
-
-    // read sha of currently installed commit
-    std::string currentCommitSHA = "";
-    if (ghc::filesystem::exists(indexDir / "current")) {
-        auto data = utils::file::readString(indexDir / "current");
-        if (data) {
-            currentCommitSHA = data.value();
-        }
-    }
-
-    // update if forced or latest commit has 
-    // different sha
-    if (force || currentCommitSHA != upcomingCommitSHA) {
-        // save new sha in file
-        utils::file::writeString(indexDir / "current", upcomingCommitSHA);
-
-        // download latest commit (by downloading 
-        // the repo as a zip)
-
-        indexUpdateProgress(
-            UpdateStatus::Progress,
-            "Downloading index",
-            50
-        );
-        auto gotZip = web::fetchFile(
-            "https://github.com/geode-sdk/mods/zipball/main",
-            indexDir / "index.zip"
-        );
-        if (!gotZip) {
-            return indexUpdateProgress(
-                UpdateStatus::Failed,
-                gotZip.error()
-            );
-        }
-
-        // delete old index
-        if (ghc::filesystem::exists(indexDir / "index")) {
-            ghc::filesystem::remove_all(indexDir / "index");
-        }
-
-        auto unzip = file::unzipTo(indexDir / "index.zip", indexDir);
-        if (!unzip) {
-            return indexUpdateProgress(
-                UpdateStatus::Failed, unzip.error()
-            );
-        }
-    }
-#endif
-
-    // update index
-
-    indexUpdateProgress(
-        UpdateStatus::Progress,
-        "Updating index",
-        75
-    );
-    this->updateIndexFromLocalCache();
-
-    m_upToDate = true;
-    m_updating = false;
-
-    indexUpdateProgress(
-        UpdateStatus::Finished,
-        "",
-        100
-    );
-}
-
-void Index::indexUpdateProgress(
-    UpdateStatus status,
-    std::string const& info,
-    uint8_t percentage
-) {
-    Loader::get()->queueInGDThread([this, status, info, percentage]() -> void {
-        m_callbacksMutex.lock();
-        for (auto& d : m_callbacks) {
-            d(status, info, percentage);
-        }
-        if (
-            status == UpdateStatus::Finished ||
-            status == UpdateStatus::Failed
-        ) {
-            m_callbacks.clear();
-        }
-        m_callbacksMutex.unlock();
-    });
-}
-
 void Index::updateIndex(IndexUpdateCallback callback, bool force) {
+    #define RETURN_ERROR(str)           \
+        std::string err__ = (str);      \
+        if (callback) callback(         \
+            UpdateStatus::Failed,       \
+            err__,                      \
+            0                           \
+        );                              \
+        log::info("Index update failed: {}", err__);\
+        return;
+
     // if already updated and no force, let 
     // delegate know
     if (!force && m_upToDate) {
@@ -225,36 +84,134 @@ void Index::updateIndex(IndexUpdateCallback callback, bool force) {
         return;
     }
 
-    // add delegate thread-safely if it's not 
-    // added already
-    if (callback) {
-        m_callbacksMutex.lock();
-        m_callbacks.push_back(callback);
-        m_callbacksMutex.unlock();
-    }
-
-    // if already updating, let delegate know 
-    // and return
-    if (m_updating) {
-        if (callback) {
-            callback(
-                UpdateStatus::Progress,
-                "Waiting for update info",
-                0
-            );
-        }
-        return;
-    }
-    m_updating = true;
-
     // create directory for the local clone of 
     // the index
     auto indexDir = Loader::get()->getGeodeDirectory() / "index";
     ghc::filesystem::create_directories(indexDir);
 
-    // update index in another thread to avoid 
-    // pausing UI
-    std::thread(&Index::updateIndexThread, this, force).detach();
+#if GITHUB_DONT_RATE_LIMIT_ME_PLS == 1
+
+    auto err = this->updateIndexFromLocalCache();
+    if (!err) {
+        RETURN_ERROR(err);
+    }
+    
+    m_upToDate = true;
+    m_updating = false;
+
+    if (callback) callback(UpdateStatus::Finished, "", 100);
+    return;
+
+#endif
+
+    web::AsyncWebRequest()
+        .join("index-update")
+        .fetch("https://api.github.com/repos/geode-sdk/mods/commits")
+        .json()
+        .then([this, force, callback](nlohmann::json const& json) {
+            auto indexDir = Loader::get()->getGeodeDirectory() / "index";
+            
+            // check if rate-limited (returns object)
+            JsonChecker checkerObj(json);
+            auto obj = checkerObj.root("[geode-sdk/mods/commits]").obj();
+            if (obj.has("documentation_url") && obj.has("message")) {
+                RETURN_ERROR(obj.has("message").get<std::string>());
+            }
+
+            // get sha of latest commit
+            JsonChecker checker(json);
+            auto root = checker.root("[geode-sdk/mods/commits]").array();
+
+            std::string upcomingCommitSHA;
+            if (auto first = root.at(0).obj().needs("sha")) {
+                upcomingCommitSHA = first.get<std::string>();
+            } else {
+                RETURN_ERROR("Unable to get hash from latest commit: " + checker.getError());
+            }
+
+            // read sha of currently installed commit
+            std::string currentCommitSHA = "";
+            if (ghc::filesystem::exists(indexDir / "current")) {
+                auto data = utils::file::readString(indexDir / "current");
+                if (data) {
+                    currentCommitSHA = data.value();
+                }
+            }
+
+            // update if forced or latest commit has 
+            // different sha
+            if (force || currentCommitSHA != upcomingCommitSHA) {
+                // save new sha in file
+                utils::file::writeString(indexDir / "current", upcomingCommitSHA);
+
+                web::AsyncWebRequest()
+                    .join("index-download")
+                    .fetch("https://github.com/geode-sdk/mods/zipball/main")
+                    .into(indexDir / "index.zip")
+                    .then([this, indexDir, callback](auto) {
+                        // delete old index
+                        try {
+                            if (ghc::filesystem::exists(indexDir / "index")) {
+                                ghc::filesystem::remove_all(indexDir / "index");
+                            }
+                        } catch(std::exception& e) {
+                            RETURN_ERROR("Unable to delete old index " + std::string(e.what()));
+                        }
+
+                        // unzip new index
+                        auto unzip = file::unzipTo(indexDir / "index.zip", indexDir);
+                        if (!unzip) {
+                            RETURN_ERROR(unzip.error());
+                        }
+
+                        // update index
+                        auto err = this->updateIndexFromLocalCache();
+                        if (!err) {
+                            RETURN_ERROR(err.error());
+                        }
+
+                        m_upToDate = true;
+                        m_updating = false;
+
+                        if (callback) callback(
+                            UpdateStatus::Finished, "", 100
+                        );
+                    })
+                    .expect([callback](std::string const& err) {
+                        RETURN_ERROR(err);
+                    })
+                    .progress([callback](web::SentAsyncWebRequest& req, double now, double total) {
+                        if (callback) callback(
+                            UpdateStatus::Progress,
+                            "Downloading",
+                            static_cast<int>(now / total * 100.0)
+                        );
+                    });
+            } else {
+                auto err = this->updateIndexFromLocalCache();
+                if (!err) {
+                    RETURN_ERROR(err.error());
+                }
+
+                m_upToDate = true;
+                m_updating = false;
+
+                if (callback) callback(
+                    UpdateStatus::Finished,
+                    "", 100
+                );
+            }
+        })
+        .expect([callback](std::string const& err) {
+            RETURN_ERROR(err);
+        })
+        .progress([callback](web::SentAsyncWebRequest& req, double now, double total) {
+            if (callback) callback(
+                UpdateStatus::Progress,
+                "Downloading",
+                static_cast<int>(now / total * 100.0)
+            );
+        });
 }
 
 void Index::addIndexItemFromFolder(ghc::filesystem::path const& dir) {
@@ -338,7 +295,7 @@ void Index::addIndexItemFromFolder(ghc::filesystem::path const& dir) {
     }
 }
 
-void Index::updateIndexFromLocalCache() {
+Result<> Index::updateIndexFromLocalCache() {
     m_items.clear();
     auto baseIndexDir = Loader::get()->getGeodeDirectory() / "index";
 
@@ -352,10 +309,19 @@ void Index::updateIndexFromLocalCache() {
 
     // load index mods
     auto modsDir = baseIndexDir / "index";
-    for (auto const& dir : ghc::filesystem::directory_iterator(modsDir)) {
-        if (ghc::filesystem::is_directory(dir)) {
-            this->addIndexItemFromFolder(dir);
+    if (ghc::filesystem::exists(modsDir)) {
+        for (auto const& dir : ghc::filesystem::directory_iterator(modsDir)) {
+            if (ghc::filesystem::is_directory(dir)) {
+                this->addIndexItemFromFolder(dir);
+            }
         }
+        log::info("Index updated");
+        return Ok();
+    } else {
+        return Err(
+            "Index appears not to have been "
+            "downloaded, or is fully empty"
+        );
     }
 }
 
@@ -446,9 +412,8 @@ Result<std::vector<std::string>> Index::checkDependenciesForItem(
     }
 }
 
-Result<InstallTicket*> Index::installItems(
-    std::vector<IndexItem> const& items,
-    ItemInstallCallback progress
+Result<InstallItems> Index::installItems(
+    std::vector<IndexItem> const& items
 ) {
     std::vector<std::string> ids {};
     for (auto& item : items) {
@@ -482,14 +447,13 @@ Result<InstallTicket*> Index::installItems(
         }
         utils::vector::push(ids, list.value());
     }
-    return Ok(new InstallTicket(this, ids, progress));
+    return Ok(InstallItems(ids));
 }
 
-Result<InstallTicket*> Index::installItem(
-    IndexItem const& item,
-    ItemInstallCallback progress
+Result<InstallItems> Index::installItem(
+    IndexItem const& item
 ) {
-    return this->installItems({ item }, progress);
+    return this->installItems({ item });
 }
 
 bool Index::isUpdateAvailableForItem(std::string const& id) const {
@@ -522,9 +486,7 @@ bool Index::areUpdatesAvailable() const {
     return false;
 }
 
-Result<InstallTicket*> Index::installUpdates(
-    IndexUpdateCallback callback, bool force
-) {
+Result<InstallItems> Index::installAllUpdates() {
     // find items that need updating
     std::vector<IndexItem> itemsToUpdate {};
     for (auto& item : m_items) {
@@ -532,52 +494,118 @@ Result<InstallTicket*> Index::installUpdates(
             itemsToUpdate.push_back(item);
         }
     }
+    return this->installItems(itemsToUpdate);
+}
 
-    // generate ticket
-    auto ticket = this->installItems(
-        itemsToUpdate,
-        [itemsToUpdate, callback](
-            InstallTicket*,
-            UpdateStatus status,
-            std::string const& info,
-            uint8_t progress
-        ) -> void {
-            switch (status) {
-                case UpdateStatus::Failed: {
-                    callback(
-                        UpdateStatus::Failed,
-                        "Updating failed: " + info,
+InstallHandles Index::getRunningInstallations() const {
+    return map::getValues(m_installations);
+}
+
+InstallHandle Index::isInstallingItem(std::string const& id) {
+    if (m_installations.count(id)) {
+        return m_installations.at(id);
+    }
+    return nullptr;
+}
+
+std::vector<std::string> InstallItems::toInstall() const {
+    return m_toInstall;
+}
+
+InstallHandles InstallItems::begin(ItemInstallCallback callback) const {
+    InstallHandles res {};
+
+    for (auto& inst : m_toInstall) {
+        // by virtue of running this function we know item must be valid
+        auto item = Index::get()->getKnownItem(inst);
+
+        auto indexDir = Loader::get()->getGeodeDirectory() / "index";
+        auto tempFile = indexDir / item.m_download.m_filename;
+
+        auto handle = web::AsyncWebRequest()
+            .join("install_mod_" + inst)
+            .fetch(item.m_download.m_url)
+            .into(tempFile)
+            .then([callback, item, inst, indexDir, tempFile](auto) {
+                // check for 404
+                auto notFound = utils::file::readString(tempFile);
+                if (notFound && notFound.value() == "Not Found") {
+                    try { ghc::filesystem::remove(tempFile); } catch(...) {}
+                    if (callback) callback(
+                        inst, UpdateStatus::Failed,
+                        "Binary file download returned \"Not found\". Report "
+                        "this to the Geode development team.",
                         0
                     );
-                } break;
+                }
 
-                case UpdateStatus::Finished: {
-                    std::string updatedStr = "";
-                    for (auto& item : itemsToUpdate) {
-                        updatedStr += item.m_info.m_name + " (" + 
-                            item.m_info.m_id + ")\n";
-                    }
-                    callback(
-                        UpdateStatus::Finished,
-                        "Updated the following mods: " +
-                        updatedStr +
-                        "Please restart to apply changes.",
-                        100
+                // verify checksum
+                if (callback) callback(inst, UpdateStatus::Progress, "Verifying", 100);
+                if (::calculateHash(tempFile.string()) != item.m_download.m_hash) {
+                    try { ghc::filesystem::remove(tempFile); } catch(...) {}
+                    if (callback) callback(
+                        inst, UpdateStatus::Failed,
+                        "Checksum mismatch! (Downloaded file did not match what "
+                        "was expected. Try again, and if the download fails another time, "
+                        "report this to the Geode development team.",
+                        0
                     );
-                } break;
+                }
 
-                case UpdateStatus::Progress: {
-                    callback(UpdateStatus::Progress, info, progress);
-                } break;
-            }
-        }
-    );
-    if (!ticket) {
-        return Err(ticket.error());
+                // move temp file to geode directory
+                try {
+                    auto modDir = Loader::get()->getGeodeDirectory() / "mods";
+                    auto targetFile = modDir / item.m_download.m_filename;
+
+                    // find valid filename that doesn't exist yet
+                    auto filename = ghc::filesystem::path(
+                        item.m_download.m_filename
+                    ).replace_extension("").string();
+
+                    size_t number = 0;
+                    while (ghc::filesystem::exists(targetFile)) {
+                        targetFile = modDir /
+                            (filename + std::to_string(number) + ".geode");
+                        number++;
+                    }
+
+                    // move file
+                    ghc::filesystem::rename(tempFile, targetFile);
+                } catch(std::exception& e) {
+                    try { ghc::filesystem::remove(tempFile); } catch(...) {}
+                    if (callback) callback(
+                        inst, UpdateStatus::Failed,
+                        "Unable to move downloaded file to mods directory: \"" + 
+                        std::string(e.what()) + " \" "
+                        "(This might be due to insufficient permissions to "
+                        "write files under SteamLibrary, try running GD as "
+                        "administrator)",
+                        0
+                    );
+                }
+
+                // finished
+                if (callback) callback(inst, UpdateStatus::Finished, "", 100);
+            })
+            .expect([inst, callback](std::string const& error) {
+                if (callback) callback(inst, UpdateStatus::Failed, error, 0);
+                Index::get()->m_installations.erase(inst);
+            })
+            .cancelled([inst](auto&) {
+                Index::get()->m_installations.erase(inst);
+            })
+            .progress([inst, callback](web::SentAsyncWebRequest&, double now, double total) {
+                if (callback) callback(
+                    inst, UpdateStatus::Progress,
+                    "Downloading binary",
+                    static_cast<uint8_t>(now / total * 100.0)
+                );
+            })
+            .send();
+        
+        res.push_back(handle);
+        Index::get()->m_installations.insert({ inst, handle });
     }
-
-    // install updates concurrently
-    ticket.value()->start(InstallMode::Concurrent);
-
-    return ticket;
+    
+    return res;
 }

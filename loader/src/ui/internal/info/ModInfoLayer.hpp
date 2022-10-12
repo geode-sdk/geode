@@ -37,7 +37,7 @@ protected:
     IconButtonSprite* m_installBtnSpr;
     CCMenuItemSpriteExtra* m_installBtn;
     CCLabelBMFont* m_updateVersionLabel = nullptr;
-    InstallTicket* m_ticket = nullptr;
+    InstallHandles m_installations;
     MDTextArea* m_detailsArea;
     MDTextArea* m_changelogArea;
     Scrollbar* m_scrollbar;
@@ -60,7 +60,7 @@ protected:
     void updateInstallStatus(std::string const& status, uint8_t progress);
 
     void modInstallProgress(
-        InstallTicket*,
+        std::string const& mod,
         UpdateStatus status,
         std::string const& info,
         uint8_t percentage

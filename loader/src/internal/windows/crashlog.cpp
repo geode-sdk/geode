@@ -293,7 +293,7 @@ static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
             << "Please submit this crash report to its developer ("
             << faultyMod->getDeveloper() << ") for assistance.\n";
     }
-    
+
     // geode info
     file << "\n== Geode Information ==\n";
     printGeodeInfo(file);

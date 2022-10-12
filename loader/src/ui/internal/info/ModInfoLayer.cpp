@@ -12,7 +12,6 @@
 #undef min
 #undef max
 
-static constexpr const int TAG_CONFIRM_INSTALL = 4;
 static constexpr const int TAG_CONFIRM_UNINSTALL = 5;
 static constexpr const int TAG_DELETE_SAVEDATA = 6;
 
@@ -411,6 +410,10 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
         );
         m_installStatus->setVisible(false);
         m_mainLayer->addChild(m_installStatus);
+
+        if (auto handle = Index::get()->isInstallingItem(m_info.m_id)) {
+            m_installations.push_back(handle);
+        }
     }
 
     auto closeSpr = CCSprite::createWithSpriteFrameName("GJ_closeBtn_001.png");
@@ -496,10 +499,7 @@ void ModInfoLayer::onRepository(CCObject*) {
 
 void ModInfoLayer::onInstallMod(CCObject*) {
     auto ticketRes = Index::get()->installItem(
-        Index::get()->getKnownItem(m_info.m_id),
-        [this](InstallTicket* ticket, UpdateStatus status, std::string const& info, uint8_t progress) -> void {
-            this->modInstallProgress(ticket, status, info, progress);
-        }
+        Index::get()->getKnownItem(m_info.m_id)
     );
     if (!ticketRes) {
         return FLAlertLayer::create(
@@ -508,26 +508,50 @@ void ModInfoLayer::onInstallMod(CCObject*) {
             "OK"
         )->show();
     }
-    m_ticket = ticketRes.value();
+    auto items = ticketRes.value();
 
-    auto layer = FLAlertLayer::create(
-        this,
+    createQuickPopup(
         "Install",
         "The following <cb>mods</c> will be installed: " +
-        utils::vector::join(m_ticket->getInstallList(), ",") + ".",
-        "Cancel", "OK", 360.f
+        utils::vector::join(items.toInstall(), ",") + ".",
+        "Cancel", "OK",
+        [this, items](FLAlertLayer*, bool btn2) {
+            if (btn2) {
+                if (m_updateVersionLabel) {
+                    m_updateVersionLabel->setVisible(false);
+                }
+                this->updateInstallStatus("Starting install", 0);
+
+                m_installBtn->setTarget(
+                    this, menu_selector(ModInfoLayer::onCancelInstall)
+                );
+                m_installBtnSpr->setString("Cancel");
+                m_installBtnSpr->setBG("GJ_button_06.png", false);
+
+                this->retain();
+
+                m_installations = items.begin([this](
+                    std::string const& mod,
+                    UpdateStatus status,
+                    std::string const& value,
+                    uint8_t progress
+                ) {
+                    this->modInstallProgress(mod, status, value, progress);
+                });
+            } else {
+                this->updateInstallStatus("", 0);
+            }
+        }
     );
-    layer->setTag(TAG_CONFIRM_INSTALL);
-    layer->show();
 }
 
 void ModInfoLayer::onCancelInstall(CCObject*) {
     m_installBtn->setEnabled(false);
     m_installBtnSpr->setString("Cancelling");
-
-    if (m_ticket) {
-        m_ticket->cancel();
+    for (auto& inst : m_installations) {
+        inst->cancel();
     }
+    m_installations.clear();
     if (m_updateVersionLabel) {
         m_updateVersionLabel->setVisible(true);
     }
@@ -546,14 +570,6 @@ void ModInfoLayer::onUninstall(CCObject*) {
 
 void ModInfoLayer::FLAlert_Clicked(FLAlertLayer* layer, bool btn2) {
     switch (layer->getTag()) {
-        case TAG_CONFIRM_INSTALL: {
-            if (btn2) {
-                this->install();
-            } else {
-                this->updateInstallStatus("", 0);
-            }
-        } break;
-
         case TAG_CONFIRM_UNINSTALL: {
             if (btn2) {
                 this->uninstall();
@@ -596,7 +612,7 @@ void ModInfoLayer::updateInstallStatus(
 }
 
 void ModInfoLayer::modInstallProgress(
-    InstallTicket*,
+    std::string const& mod,
     UpdateStatus status,
     std::string const& info,
     uint8_t percentage
@@ -615,10 +631,22 @@ void ModInfoLayer::modInstallProgress(
             m_installBtnSpr->setString("Install");
             m_installBtnSpr->setBG("GE_button_01.png"_spr, false);
 
-            m_ticket = nullptr;
+            for (auto& inst : m_installations) {
+                inst->cancel();
+            }
+            m_installations.clear();
+            this->release();
         } break;
 
         case UpdateStatus::Finished: {
+            // if some installations are still running, keep going
+            for (auto& inst : m_installations) {
+                if (!inst->finished()) return;
+            }
+
+            // load mods
+            Loader::get()->refreshMods();
+
             this->updateInstallStatus("", 100);
             
             FLAlertLayer::create(
@@ -629,32 +657,17 @@ void ModInfoLayer::modInstallProgress(
                 "OK"
             )->show();
 
-            m_ticket = nullptr;
+            m_installations.clear();
 
             if (m_list) m_list->refreshList();
             this->onClose(nullptr);
+
+            this->release();
         } break;
 
         default: {
             this->updateInstallStatus(info, percentage);
         } break;
-    }
-}
-
-void ModInfoLayer::install() {
-    if (m_ticket) {
-        if (m_updateVersionLabel) {
-            m_updateVersionLabel->setVisible(false);
-        }
-        this->updateInstallStatus("Starting install", 0);
-
-        m_installBtn->setTarget(
-            this, menu_selector(ModInfoLayer::onCancelInstall)
-        );
-        m_installBtnSpr->setString("Cancel");
-        m_installBtnSpr->setBG("GJ_button_06.png", false);
-
-        m_ticket->start();
     }
 }
 
@@ -732,6 +745,7 @@ void ModInfoLayer::keyDown(enumKeyCodes key) {
 void ModInfoLayer::onClose(CCObject* pSender) {
     this->setKeyboardEnabled(false);
     this->removeFromParentAndCleanup(true);
+    m_installations.clear();
 };
 
 ModInfoLayer* ModInfoLayer::create(Mod* mod, ModListView* list) {

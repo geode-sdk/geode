@@ -4,9 +4,17 @@
 #include <fs/filesystem.hpp>
 #include "Result.hpp"
 #include "json.hpp"
+#include <mutex>
 
 namespace geode::utils::web {
     using FileProgressCallback = std::function<bool(double, double)>;
+
+    /**
+     * Synchronously fetch data from the internet
+     * @param url URL to fetch
+     * @returns Returned data as bytes, or error on error
+     */
+    GEODE_DLL Result<byte_array> fetchBytes(std::string const& url);
 
     /**
      * Synchronously fetch data from the internet
@@ -46,5 +54,154 @@ namespace geode::utils::web {
             return Err(e.what());
         }
     }
+
+    class SentAsyncWebRequest;
+    template<class T>
+    class AsyncWebResult;
+    class AsyncWebResponse;
+    class AsyncWebRequest;
+
+    using AsyncProgress  = std::function<void(SentAsyncWebRequest&, double, double)>;
+    using AsyncExpect    = std::function<void(std::string const&)>;
+    using AsyncThen      = std::function<void(SentAsyncWebRequest&, byte_array const&)>;
+    using AsyncCancelled = std::function<void(SentAsyncWebRequest&)>;
+
+    class SentAsyncWebRequest {
+    private:
+        std::string m_id;
+        std::string m_url;
+        std::vector<AsyncThen> m_thens;
+        std::vector<AsyncExpect> m_expects;
+        std::vector<AsyncProgress> m_progresses;
+        std::vector<AsyncCancelled> m_cancelleds;
+        std::atomic<bool> m_paused = true;
+        std::atomic<bool> m_cancelled = false;
+        std::atomic<bool> m_finished = false;
+        std::atomic<bool> m_cleanedUp = false;
+        mutable std::mutex m_mutex;
+        std::variant<
+            std::monostate,
+            std::ostream*,
+            ghc::filesystem::path
+        > m_target = std::monostate();
+
+        template<class T>
+        friend class AsyncWebResult;
+        friend class AsyncWebRequest;
+
+        void pause();
+        void resume();
+        void error(std::string const& error);
+        void doCancel();
+
+    public:
+        SentAsyncWebRequest(AsyncWebRequest const&, std::string const& id);
+
+        void cancel();
+        bool finished() const;
+    };
+
+    using SentAsyncWebRequestHandle = std::shared_ptr<SentAsyncWebRequest>;
+
+    template<class T>
+    using DataConverter = Result<T>(*)(byte_array const&);
+
+    template<class T>
+    class AsyncWebResult {
+    private:
+        AsyncWebRequest& m_request;
+        DataConverter<T> m_converter;
+
+        AsyncWebResult(AsyncWebRequest& request, DataConverter<T> converter)
+         : m_request(request), m_converter(converter) {}
+        
+        friend class AsyncWebResponse;
+
+    public:
+        AsyncWebRequest& then(std::function<void(T)> handle) {
+            m_request.m_then = [
+                converter = m_converter,
+                handle
+            ](SentAsyncWebRequest& req, byte_array const& arr) {
+                auto conv = converter(arr);
+                if (conv) {
+                    handle(conv.value());
+                } else {
+                    req.error("Unable to convert value: " + conv.error());
+                }
+            };
+            return m_request;
+        }
+
+        AsyncWebRequest& then(std::function<void(SentAsyncWebRequest&, T)> handle) {
+            m_request.m_then = [
+                converter = m_converter,
+                handle
+            ](SentAsyncWebRequest& req, byte_array const& arr) {
+                auto conv = converter(arr);
+                if (conv) {
+                    handle(req, conv.value());
+                } else {
+                    req.error("Unable to convert value: " + conv.error());
+                }
+            };
+            return m_request;
+        }
+    };
+
+    class GEODE_DLL AsyncWebResponse {
+    private:
+        AsyncWebRequest& m_request;
+
+        inline AsyncWebResponse(AsyncWebRequest& request) : m_request(request) {}
+
+        friend class AsyncWebRequest;
+
+    public:
+        // Make sure the stream lives for the entire duration of the request.
+        AsyncWebResult<std::monostate> into(std::ostream& stream);
+        AsyncWebResult<std::monostate> into(ghc::filesystem::path const& path);
+        AsyncWebResult<std::string> text();
+        AsyncWebResult<byte_array> bytes();
+        AsyncWebResult<nlohmann::json> json();
+
+        template<class T>
+        AsyncWebResult<T> as(DataConverter<T> converter) {
+            return AsyncWebResult(m_request, converter);
+        }
+    };
+
+    class GEODE_DLL AsyncWebRequest {
+    private:
+        std::optional<std::string> m_joinID;
+        std::string m_url;
+        AsyncThen m_then = nullptr;
+        AsyncExpect m_expect = nullptr;
+        AsyncProgress m_progress = nullptr;
+        AsyncCancelled m_cancelled = nullptr;
+        bool m_sent = false;
+        std::variant<
+            std::monostate,
+            std::ostream*,
+            ghc::filesystem::path
+        > m_target;
+
+        template<class T>
+        friend class AsyncWebResult;
+        friend class SentAsyncWebRequest;
+        friend class AsyncWebResponse;
+
+    public:
+        AsyncWebRequest& join(std::string const& requestID);
+        AsyncWebResponse fetch(std::string const& url);
+        AsyncWebRequest& expect(AsyncExpect handler);
+        AsyncWebRequest& progress(AsyncProgress progressFunc);
+        // Web requests may be cancelled after they are finished (for example, 
+        // if downloading files in bulk and one fails). In that case, handle 
+        // freeing up the results of `then` here
+        AsyncWebRequest& cancelled(AsyncCancelled cancelledFunc);
+        SentAsyncWebRequestHandle send();
+        ~AsyncWebRequest();
+    };
 }
 

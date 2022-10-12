@@ -18,13 +18,14 @@ public:
         std::string const& content,
         const char* btn1,
         const char* btn2,
+        float width,
         std::function<void(FLAlertLayer*, bool)> selected
     ) {
         auto inst = new QuickPopup;
         inst->m_selected = selected;
         if (inst && inst->init(
             inst, title, content,
-            btn1, btn2, 350.f, false, .0f
+            btn1, btn2, width, false, .0f
         )) {
             inst->autorelease();
             return inst;
@@ -39,6 +40,7 @@ FLAlertLayer* geode::createQuickPopup(
     std::string const& content,
     const char* btn1,
     const char* btn2,
+    float width,
     std::function<void(FLAlertLayer*, bool)> selected,
     bool doShow
 ) {
@@ -46,10 +48,25 @@ FLAlertLayer* geode::createQuickPopup(
         title,
         content,
         btn1, btn2,
+        width,
         selected
     );
     if (doShow) {
         ret->show();
     }
     return ret;
+}
+
+FLAlertLayer* geode::createQuickPopup(
+    const char* title,
+    std::string const& content,
+    const char* btn1,
+    const char* btn2,
+    std::function<void(FLAlertLayer*, bool)> selected,
+    bool doShow
+) {
+    return createQuickPopup(
+        title, content, btn1, btn2, 350.f,
+        selected, doShow
+    );
 }

@@ -176,7 +176,7 @@ namespace geode::utils::vector {
      * @returns Reference to vector.
      */
     template<class T>
-    std::vector<T>& erase(std::vector<T>& vec, T& element) {
+    std::vector<T>& erase(std::vector<T>& vec, T const& element) {
         vec.erase(std::remove(vec.begin(), vec.end(), element), vec.end());
         return vec;
     }

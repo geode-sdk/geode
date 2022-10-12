@@ -157,6 +157,11 @@ namespace geode {
             return *this;
         }
 
+        JsonMaybeValue<Json> array() {
+            this->as<value_t::array>();
+            return *this;
+        }
+
         template<nlohmann::detail::value_t... T>
         JsonMaybeValue<Json> asOneOf() {
             if (this->isError()) return *this;
@@ -272,6 +277,24 @@ namespace geode {
                 return m_values.end();
             }
         };
+
+        JsonMaybeValue<Json> at(size_t i) {
+            this->as<value_t::array>();
+            if (this->isError()) return *this;
+            if (self().m_json.size() <= i) {
+                this->setError(
+                    self().m_hierarchy + ": has " +
+                    std::to_string(self().m_json.size()) + "items "
+                    ", expected to have at least " + std::to_string(i + 1)
+                );
+                return *this;
+            }
+            return JsonMaybeValue<Json>(
+                self().m_checker, self().m_json.at(i),
+                self().m_hierarchy + "." + std::to_string(i),
+                self().m_hasValue
+            );
+        }
 
         Iterator<JsonMaybeValue<Json>> iterate() {
             this->as<value_t::array>();
