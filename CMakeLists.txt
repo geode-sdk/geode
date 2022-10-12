@@ -14,6 +14,10 @@ endif()
 
 add_library(${PROJECT_NAME} INTERFACE)
 
+if (CMAKE_BUILD_TYPE STREQUAL Debug OR CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo) 
+	target_compile_definitions(${PROJECT_NAME} INTERFACE -DGEODE_DEBUG)
+endif()
+
 # Rerun CMake on VERSION file change
 set_target_properties(${PROJECT_NAME} PROPERTIES CMAKE_CONFIGURE_DEPENDS VERSION)
 

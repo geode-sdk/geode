@@ -141,7 +141,7 @@ namespace geode {
 
         template <typename ...Args>
         void debug(Args... args) { 
-        #ifndef NDEBUG
+        #ifdef GEODE_DEBUG
             schedule(Severity::Debug, args...); 
         #endif
         }
