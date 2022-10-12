@@ -49,7 +49,7 @@ jobs:
     - name: Build
       run: |
         cd build
-        cmake --build . --config Release
+        cmake --build . --config RelWithDebInfo
 
     - name: Move to output folder
       shell: bash
