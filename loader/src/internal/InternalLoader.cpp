@@ -39,19 +39,21 @@ bool InternalLoader::setup() {
 
 void InternalLoader::queueInGDThread(ScheduledFunction func) {
     std::lock_guard<std::mutex> lock(m_gdThreadMutex);
-    this->m_gdThreadQueue.push_back(func);
+    m_gdThreadQueue.push_back(func);
 }
 
 void InternalLoader::executeGDThreadQueue() {
+    // copy queue to avoid locking mutex if someone is 
+    // running addToGDThread inside their function
     m_gdThreadMutex.lock();
-    auto queue = std::move(m_gdThreadQueue);
+    auto queue = m_gdThreadQueue;
+    m_gdThreadQueue.clear();
     m_gdThreadMutex.unlock();
+
+    // call queue
     for (auto const& func : queue) {
         func();
     }
-    m_gdThreadMutex.lock();
-    m_gdThreadQueue.clear();
-    m_gdThreadMutex.unlock();
 }
 
 void InternalLoader::logConsoleMessage(std::string const& msg) {

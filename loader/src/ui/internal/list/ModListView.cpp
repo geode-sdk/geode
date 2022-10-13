@@ -10,6 +10,8 @@
 #include <Geode/binding/StatsCell.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/binding/TableView.hpp>
+#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
+#include <Geode/loader/Mod.hpp>
 
 template<class T>
 static bool tryOrAlert(Result<T> const& res, const char* title) {

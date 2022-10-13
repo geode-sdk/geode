@@ -50,6 +50,8 @@ void Loader::createDirectories() {
 }
 
 void Loader::updateResourcePaths() {
+    log::debug("Updating resources paths");
+
     // add own geode/resources directory
     CCFileUtils::sharedFileUtils()->addSearchPath(
         (this->getGeodeDirectory() / GEODE_RESOURCE_DIRECTORY).string().c_str()
@@ -61,11 +63,20 @@ void Loader::updateResourcePaths() {
 
     // add geode/temp/mod.id/resources for accessing additional resources in mods
     for (auto& [_, mod] : m_mods) {
-        if (mod->m_addResourcesToSearchPath) {
-            CCFileUtils::sharedFileUtils()->addSearchPath(
-                (tempDir / mod->getID() / "resources").string().c_str()
-            );
-        }
+        this->updateModResourcePaths(mod);
+    }
+}
+
+void Loader::updateModResourcePaths(Mod* mod) {
+    if (mod->m_addResourcesToSearchPath) {
+        CCFileUtils::sharedFileUtils()->addSearchPath(
+            (this->getGeodeDirectory() / 
+                GEODE_TEMP_DIRECTORY / 
+                mod->getID() / 
+                "resources"
+            ).string().c_str()
+        );
+        log::debug("Added resources path for {}", mod->getID());
     }
 }
 
@@ -88,11 +99,15 @@ void Loader::updateModResources(Mod* mod) {
             CCTextureCache::sharedTextureCache()->addImage(png.c_str(), false);
             CCSpriteFrameCache::sharedSpriteFrameCache()
                 ->addSpriteFramesWithFile(plist.c_str());
+
+            log::debug("Added resources for {}", mod->getID());
         }
     }
 }
 
 void Loader::updateResources() {
+    log::debug("Adding mod resources");
+
     // add own spritesheets
     this->updateModResources(InternalMod::get());
 
@@ -326,6 +341,12 @@ bool Loader::setup() {
     if (m_isSetup)
         return true;
 
+    if (crashlog::setupPlatformHandler()) {
+        log::debug("Set up platform crash logger");
+    } else {
+        log::debug("Unable to set up platform crash logger");
+    }
+
     log::debug("Setting up Loader...");
 
     this->createDirectories();
@@ -335,13 +356,8 @@ bool Loader::setup() {
     // add resources on startup
     this->queueInGDThread([]() {
         Loader::get()->updateResourcePaths();
+        Loader::get()->updateResources();
     });
-
-    if (crashlog::setupPlatformHandler()) {
-        log::debug("Set up platform crash logger");
-    } else {
-        log::debug("Unable to set up platform crash logger");
-    }
 
     m_isSetup = true;
 

@@ -267,11 +267,7 @@ static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
 
     SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
 
-    std::ofstream file;
-    file.open(
-        crashlog::getCrashLogDirectory() + "/" + getDateString(true) + ".log",
-        std::ios::app
-    );
+    std::stringstream file;
 
     // init symbols so we can get some juicy debug info
     g_symbolsInitialized = SymInitialize(
@@ -314,6 +310,20 @@ static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
     // mods
     file << "\n== Installed Mods ==\n";
     printMods(file);
+
+    // show message box on debug mode
+    #ifdef GEODE_DEBUG
+    MessageBoxA(nullptr, file.str().c_str(), "Geode Crashed", MB_ICONERROR);
+    #endif
+
+    // save actual file
+    std::ofstream actualFile;
+    actualFile.open(
+        crashlog::getCrashLogDirectory() + "/" + getDateString(true) + ".log",
+        std::ios::app
+    );
+    actualFile << file.rdbuf() << std::flush;
+    actualFile.close();
 
     return EXCEPTION_CONTINUE_SEARCH;
 }

@@ -6,9 +6,9 @@
 
 USE_GEODE_NAMESPACE();
 
-static std::string sanitizeDetailsData(unsigned char* start, unsigned char* end) {
+static std::string sanitizeDetailsData(std::string const& str) {
     // delete CRLF
-    return utils::string::replace(std::string(start, end), "\r", "");
+    return utils::string::replace(str, "\r", "");
 }
 
 Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
@@ -194,6 +194,9 @@ Result<ModInfo> ModInfo::createFromFile(ghc::filesystem::path const& path) {
             if (!res) return res;
             auto info = res.value();
             info.m_path = path;
+            if (path.has_parent_path()) {
+                info.addSpecialFiles(path.parent_path());
+            }
             return Ok(info);
         } catch(std::exception& e) {
             return Err("Unable to parse mod.json: " + std::string(e.what()));
@@ -241,24 +244,51 @@ Result<ModInfo> ModInfo::createFromGeodeFile(ghc::filesystem::path const& path) 
     }
     auto info = res.value();
     info.m_path = path;
+
+    info.addSpecialFiles(unzip);
     
+    return Ok(info);
+}
+
+Result<> ModInfo::addSpecialFiles(ZipFile& unzip) {
     // unzip known MD files
-    using God = std::initializer_list<std::pair<std::string, std::optional<std::string>*>>;
-    for (auto [file, target] : God {
-        { "about.md",     &info.m_details },
-        { "changelog.md", &info.m_changelog },
-        { "support.md",   &info.m_supportInfo },
-    }) {
+    for (auto& [file, target] : getSpecialFiles()) {
         if (unzip.fileExists(file)) {
             unsigned long readSize = 0;
             auto fileData = unzip.getFileData(file, &readSize);
             if (!fileData || !readSize) {
-                return Err("Unable to read \"" + path.string() + "\"/" + file);
+                return Err("Unable to read \"" + file + "\"");
             } else {
-                *target = sanitizeDetailsData(fileData, fileData + readSize);
+                *target = sanitizeDetailsData(
+                    std::string(fileData, fileData + readSize)
+                );
             }
         }
     }
+    return Ok();
+}
 
-    return Ok(info);
+Result<> ModInfo::addSpecialFiles(ghc::filesystem::path const& dir) {
+    // unzip known MD files
+    for (auto& [file, target] : getSpecialFiles()) {
+        if (ghc::filesystem::exists(dir / file)) {
+            auto data = file::readString(dir / file);
+            if (!data) {
+                return Err("Unable to read \"" + file + "\": " + data.error());
+            }
+            *target = sanitizeDetailsData(data.value());
+        }
+    }
+    return Ok();
+}
+
+std::vector<std::pair<
+    std::string,
+    std::optional<std::string>*
+>> ModInfo::getSpecialFiles() {
+    return {
+        { "about.md",     &m_details },
+        { "changelog.md", &m_changelog },
+        { "support.md",   &m_supportInfo },
+    };
 }

@@ -8,6 +8,10 @@
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/vector.hpp>
 #include <Geode/utils/map.hpp>
+#include <Geode/utils/general.hpp>
+#include <Geode/loader/Loader.hpp>
+#include <Geode/loader/Mod.hpp>
+#include <Geode/binding/FLAlertLayer.hpp>
 
 #define GITHUB_DONT_RATE_LIMIT_ME_PLS 0
 
@@ -35,7 +39,6 @@ static PlatformID platformFromString(std::string const& str) {
         case hash("linux"): return PlatformID::Linux;
     }
 }
-
 
 Index* Index::get() {
     static auto ret = new Index();
@@ -232,12 +235,7 @@ void Index::addIndexItemFromFolder(ghc::filesystem::path const& dir) {
             return;
         }
 
-        auto readModJson = readJSON<ModJson>(dir / "mod.json");
-        if (!readModJson) {
-            log::warn("Error reading mod.json: {}, skipping", readModJson.error());
-            return;
-        }
-        auto info = ModInfo::create(readModJson.value());
+        auto info = ModInfo::createFromFile(dir / "mod.json");
         if (!info) {
             log::warn("{}: {}, skipping", dir, info.error());
             return;
@@ -416,7 +414,7 @@ Result<std::vector<std::string>> Index::checkDependenciesForItem(
     }
 }
 
-Result<InstallItems> Index::installItems(
+Result<InstallHandle> Index::installItems(
     std::vector<IndexItem> const& items
 ) {
     std::vector<std::string> ids {};
@@ -451,29 +449,32 @@ Result<InstallItems> Index::installItems(
         }
         utils::vector::push(ids, list.value());
     }
-    return Ok(InstallItems(ids));
+    auto ret = std::make_shared<InstallItems>(
+        std::unordered_set(ids.begin(), ids.end())
+    );
+    m_installations.insert(ret);
+    return Ok(ret);
 }
 
-Result<InstallItems> Index::installItem(
+Result<InstallHandle> Index::installItem(
     IndexItem const& item
 ) {
     return this->installItems({ item });
 }
 
 bool Index::isUpdateAvailableForItem(std::string const& id) const {
-    if (!Loader::get()->isModInstalled(id)) {
-        return false;
-    }
     if (!this->isKnownItem(id)) {
         return false;
     }
-    return
-        this->getKnownItem(id).m_info.m_version > 
-        Loader::get()->getInstalledMod(id)->getVersion();
+    return this->isUpdateAvailableForItem(this->getKnownItem(id));
 }
 
 bool Index::isUpdateAvailableForItem(IndexItem const& item) const {
     if (!Loader::get()->isModInstalled(item.m_info.m_id)) {
+        return false;
+    }
+    // has the mod been updated (but update not yet been applied by restarting game)
+    if (m_updated.count(item.m_info.m_id)) {
         return false;
     }
     return
@@ -490,7 +491,7 @@ bool Index::areUpdatesAvailable() const {
     return false;
 }
 
-Result<InstallItems> Index::installAllUpdates() {
+Result<InstallHandle> Index::installAllUpdates() {
     // find items that need updating
     std::vector<IndexItem> itemsToUpdate {};
     for (auto& item : m_items) {
@@ -501,115 +502,219 @@ Result<InstallItems> Index::installAllUpdates() {
     return this->installItems(itemsToUpdate);
 }
 
-InstallHandles Index::getRunningInstallations() const {
-    return map::getValues(m_installations);
+std::vector<InstallHandle> Index::getRunningInstallations() const {
+    return std::vector<InstallHandle>(
+        m_installations.begin(),
+        m_installations.end()
+    );
 }
 
 InstallHandle Index::isInstallingItem(std::string const& id) {
-    if (m_installations.count(id)) {
-        return m_installations.at(id);
+    for (auto& inst : m_installations) {
+        if (inst->m_toInstall.count(id)) {
+            return inst;
+        }
     }
     return nullptr;
 }
 
-std::vector<std::string> InstallItems::toInstall() const {
+std::unordered_set<std::string> InstallItems::toInstall() const {
     return m_toInstall;
 }
 
-InstallHandles InstallItems::begin(ItemInstallCallback callback) const {
-    InstallHandles res {};
+InstallItems::CallbackID InstallItems::join(ItemInstallCallback callback) {
+    // already finished?
+    if (m_started && this->finished()) {
+        callback(shared_from_this(), UpdateStatus::Finished, "", 100);
+        return 0;
+    }
+    // start at one because 0 means invalid callback
+    static CallbackID COUNTER = 1;
+    if (callback) {
+        auto id = COUNTER++;
+        m_callbacks.insert({ id, callback });
+        return id;
+    }
+    return 0;
+}
+
+void InstallItems::leave(InstallItems::CallbackID id) {
+    m_callbacks.erase(id);
+}
+
+void InstallItems::post(
+    UpdateStatus status,
+    std::string const& info,
+    uint8_t progress
+) {
+    for (auto& [_, cb] : m_callbacks) {
+        cb(shared_from_this(), status, info, progress);
+    }
+}
+
+void InstallItems::progress(
+    std::string const& info,
+    uint8_t progress
+) {
+    this->post(UpdateStatus::Progress, info, progress);
+}
+
+void InstallItems::error(std::string const& info) {
+    this->post(UpdateStatus::Failed, info, 0);
+}
+
+void InstallItems::finish(bool replaceFiles) {
+    // move files from temp dir to geode directory
+    auto tempDir = Loader::get()->getGeodeDirectory() / "index" / "temp";
+    for (auto& file : ghc::filesystem::directory_iterator(tempDir)) {
+        try {
+            auto modDir = Loader::get()->getGeodeDirectory() / "mods";
+            auto targetFile = modDir / file.path().filename();
+            auto targetName = file.path().stem();
+
+            if (!replaceFiles) {
+                // find valid filename that doesn't exist yet
+                auto filename = ghc::filesystem::path(targetName)
+                    .replace_extension("")
+                    .string();
+
+                size_t number = 0;
+                while (ghc::filesystem::exists(targetFile)) {
+                    targetFile = modDir /
+                        (filename + std::to_string(number) + ".geode");
+                    number++;
+                }
+            }
+
+            // move file
+            ghc::filesystem::rename(file, targetFile);
+            
+        } catch(std::exception& e) {
+            try { ghc::filesystem::remove_all(tempDir); } catch(...) {}
+            return this->error(
+                "Unable to move downloaded file to mods directory: \"" + 
+                std::string(e.what()) + " \" "
+                "(This might be due to insufficient permissions to "
+                "write files under SteamLibrary, try running GD as "
+                "administrator)"
+            );
+        }
+    }
+
+    // load mods
+    Loader::get()->refreshMods();
+    
+    // finished
+    this->post(UpdateStatus::Finished, "", 100);
+
+    // let index know these mods have been updated
+    for (auto& inst : m_toInstall) {
+        Index::get()->m_updated.insert(inst);
+    }
+
+    // if no one is listening, show a popup anyway
+    if (!m_callbacks.size()) {
+        FLAlertLayer::create(
+            "Mods installed",
+            "The following <cy>mods</c> have been installed: " + 
+            container::join(m_toInstall, ",") + "\n"
+            "Please <cr>restart the game</c> to apply",
+            "OK"
+        )->show();
+    }
+
+    // no longer need to ensure aliveness
+    Index::get()->m_installations.erase(shared_from_this());
+}
+
+InstallItems::CallbackID InstallItems::start(
+    ItemInstallCallback callback,
+    bool replaceFiles
+) {
+    auto id = this->join(callback);
+
+    // check if started already, if so, behave like join
+    if (m_started) return id;
+    m_started = true;
 
     for (auto& inst : m_toInstall) {
         // by virtue of running this function we know item must be valid
         auto item = Index::get()->getKnownItem(inst);
 
         auto indexDir = Loader::get()->getGeodeDirectory() / "index";
-        auto tempFile = indexDir / item.m_download.m_filename;
+        file::createDirectoryAll(indexDir / "temp");
+        auto tempFile = indexDir / "temp" / item.m_download.m_filename;
+
+        m_downloaded.push_back(tempFile);
 
         auto handle = web::AsyncWebRequest()
             .join("install_mod_" + inst)
             .fetch(item.m_download.m_url)
             .into(tempFile)
-            .then([callback, item, inst, indexDir, tempFile](auto) {
+            .then([this, replaceFiles, item, inst, indexDir, tempFile](auto) {
                 // check for 404
                 auto notFound = utils::file::readString(tempFile);
                 if (notFound && notFound.value() == "Not Found") {
                     try { ghc::filesystem::remove(tempFile); } catch(...) {}
-                    if (callback) callback(
-                        inst, UpdateStatus::Failed,
+                    return this->error(
                         "Binary file download returned \"Not found\". Report "
-                        "this to the Geode development team.",
-                        0
+                        "this to the Geode development team."
                     );
                 }
 
                 // verify checksum
-                if (callback) callback(inst, UpdateStatus::Progress, "Verifying", 100);
+                this->progress("Verifying", 100);
                 if (::calculateHash(tempFile.string()) != item.m_download.m_hash) {
                     try { ghc::filesystem::remove(tempFile); } catch(...) {}
-                    if (callback) callback(
-                        inst, UpdateStatus::Failed,
+                    return this->error(
                         "Checksum mismatch! (Downloaded file did not match what "
                         "was expected. Try again, and if the download fails another time, "
-                        "report this to the Geode development team.",
-                        0
+                        "report this to the Geode development team."
                     );
                 }
 
-                // move temp file to geode directory
-                try {
-                    auto modDir = Loader::get()->getGeodeDirectory() / "mods";
-                    auto targetFile = modDir / item.m_download.m_filename;
-
-                    // find valid filename that doesn't exist yet
-                    auto filename = ghc::filesystem::path(
-                        item.m_download.m_filename
-                    ).replace_extension("").string();
-
-                    size_t number = 0;
-                    while (ghc::filesystem::exists(targetFile)) {
-                        targetFile = modDir /
-                            (filename + std::to_string(number) + ".geode");
-                        number++;
-                    }
-
-                    // move file
-                    ghc::filesystem::rename(tempFile, targetFile);
-                } catch(std::exception& e) {
-                    try { ghc::filesystem::remove(tempFile); } catch(...) {}
-                    if (callback) callback(
-                        inst, UpdateStatus::Failed,
-                        "Unable to move downloaded file to mods directory: \"" + 
-                        std::string(e.what()) + " \" "
-                        "(This might be due to insufficient permissions to "
-                        "write files under SteamLibrary, try running GD as "
-                        "administrator)",
-                        0
-                    );
+                // finished() just checks if the web requests are done
+                if (this->finished()) {
+                    this->finish(replaceFiles);
                 }
-
-                // finished
-                if (callback) callback(inst, UpdateStatus::Finished, "", 100);
             })
-            .expect([inst, callback](std::string const& error) {
-                if (callback) callback(inst, UpdateStatus::Failed, error, 0);
-                Index::get()->m_installations.erase(inst);
+            .expect([this, inst](std::string const& error) {
+                this->error(error);
+                this->cancel();
             })
-            .cancelled([inst](auto&) {
-                Index::get()->m_installations.erase(inst);
+            .cancelled([this, item](auto&) {
+                this->cancel();
             })
-            .progress([inst, callback](web::SentAsyncWebRequest&, double now, double total) {
-                if (callback) callback(
-                    inst, UpdateStatus::Progress,
+            .progress([this, inst](web::SentAsyncWebRequest&, double now, double total) {
+                this->progress(
                     "Downloading binary",
                     static_cast<uint8_t>(now / total * 100.0)
                 );
             })
             .send();
         
-        res.push_back(handle);
-        Index::get()->m_installations.insert({ inst, handle });
+        m_handles.push_back(handle);
     }
-    
-    return res;
+    // manage installation in the index until it's finished so 
+    // even if no one listens to it it doesn't get freed from 
+    // memory
+    Index::get()->m_installations.insert(shared_from_this());
+
+    return id;
 }
+
+bool InstallItems::finished() const {
+    for (auto& inst : m_handles) {
+        if (!inst->finished()) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void InstallItems::cancel() {
+    for (auto& inst : m_handles) {
+        inst->cancel();
+    }
+}
+

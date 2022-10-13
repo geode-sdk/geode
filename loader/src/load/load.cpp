@@ -46,8 +46,18 @@ Result<Mod*> Loader::loadModFromFile(std::string const& path) {
 
     // enable mod if needed
     mod->m_enabled = Loader::get()->shouldLoadMod(mod->m_info.m_id);
-    this->m_mods.insert({ res.value().m_id, mod });
+    m_mods.insert({ res.value().m_id, mod });
     mod->updateDependencyStates();
 
-    return Ok<>(mod);
+    log::debug("loaded mod, adding resources");
+
+    // add mod resources
+    this->queueInGDThread([this, mod]() {
+        log::debug("steve :pleading_face:");
+        
+        this->updateModResourcePaths(mod);
+        this->updateModResources(mod);
+    });
+
+    return Ok(mod);
 }
