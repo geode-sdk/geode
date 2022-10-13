@@ -151,35 +151,8 @@ namespace geode::utils::web {
         friend class AsyncWebResponse;
 
     public:
-        AsyncWebRequest& then(std::function<void(T)> handle) {
-            m_request.m_then = [
-                converter = m_converter,
-                handle
-            ](SentAsyncWebRequest& req, byte_array const& arr) {
-                auto conv = converter(arr);
-                if (conv) {
-                    handle(conv.value());
-                } else {
-                    req.error("Unable to convert value: " + conv.error());
-                }
-            };
-            return m_request;
-        }
-
-        AsyncWebRequest& then(std::function<void(SentAsyncWebRequest&, T)> handle) {
-            m_request.m_then = [
-                converter = m_converter,
-                handle
-            ](SentAsyncWebRequest& req, byte_array const& arr) {
-                auto conv = converter(arr);
-                if (conv) {
-                    handle(req, conv.value());
-                } else {
-                    req.error("Unable to convert value: " + conv.error());
-                }
-            };
-            return m_request;
-        }
+        AsyncWebRequest& then(std::function<void(T)> handle);
+        AsyncWebRequest& then(std::function<void(SentAsyncWebRequest&, T)> handle);
     };
 
     class GEODE_DLL AsyncWebResponse {
@@ -203,5 +176,37 @@ namespace geode::utils::web {
             return AsyncWebResult(m_request, converter);
         }
     };
+    
+    template<class T>
+    AsyncWebRequest& AsyncWebResult<T>::then(std::function<void(T)> handle) {
+        m_request.m_then = [
+            converter = m_converter,
+            handle
+        ](SentAsyncWebRequest& req, byte_array const& arr) {
+            auto conv = converter(arr);
+            if (conv) {
+                handle(conv.value());
+            } else {
+                req.error("Unable to convert value: " + conv.error());
+            }
+        };
+        return m_request;
+    }
+
+    template<class T>
+    AsyncWebRequest& AsyncWebResult<T>::then(std::function<void(SentAsyncWebRequest&, T)> handle) {
+        m_request.m_then = [
+            converter = m_converter,
+            handle
+        ](SentAsyncWebRequest& req, byte_array const& arr) {
+            auto conv = converter(arr);
+            if (conv) {
+                handle(req, conv.value());
+            } else {
+                req.error("Unable to convert value: " + conv.error());
+            }
+        };
+        return m_request;
+    }
 }
 
