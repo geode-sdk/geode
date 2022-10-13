@@ -1,4 +1,6 @@
 #ifdef GEODE_IS_WINDOWS
+#include <Geode/loader/Mod.hpp>
+#include <Geode/modify/InternalMacros.hpp>
 
 USE_GEODE_NAMESPACE();
 using geode::core::meta::x86::Thiscall;

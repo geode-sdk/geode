@@ -90,7 +90,7 @@ namespace std {
 
 	#define GEODE_PLATFORM_TARGET PlatformID::MacOS
 	#define GEODE_HIDDEN __attribute__((visibility("hidden")))
-	#define GEODE_INLINE __attribute__((always_inline))
+	#define GEODE_INLINE inline __attribute__((always_inline))
 	#define GEODE_VIRTUAL_CONSTEXPR constexpr
 	#define GEODE_NOINLINE __attribute__((noinline))
 
@@ -109,7 +109,7 @@ namespace std {
 
 	#define GEODE_PLATFORM_TARGET PlatformID::iOS
 	#define GEODE_HIDDEN __attribute__((visibility("hidden")))
-	#define GEODE_INLINE __attribute__((always_inline))
+	#define GEODE_INLINE inline __attribute__((always_inline))
 	#define GEODE_VIRTUAL_CONSTEXPR constexpr
 	#define GEODE_NOINLINE __attribute__((noinline))
 
@@ -128,7 +128,7 @@ namespace std {
 
 	#define GEODE_PLATFORM_TARGET PlatformID::Android
 	#define GEODE_HIDDEN __attribute__((visibility("hidden")))
-	#define GEODE_INLINE __attribute__((always_inline))
+	#define GEODE_INLINE inline __attribute__((always_inline))
 	#define GEODE_VIRTUAL_CONSTEXPR constexpr
 	#define GEODE_NOINLINE __attribute__((noinline))
 
