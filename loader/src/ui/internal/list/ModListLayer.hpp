@@ -1,6 +1,6 @@
 #pragma once
 
-#include <codegenned/binding/TextInputDelegate.hpp>
+#include <Geode/binding/TextInputDelegate.hpp>
 #include "ModListView.hpp"
 #include <Index.hpp>
 

@@ -2,10 +2,10 @@
 
 #include <Geode/loader/Setting.hpp>
 #include <Geode/loader/SettingNode.hpp>
-#include <codegenned/binding/CCMenuItemSpriteExtra.hpp>
-#include <codegenned/binding/CCTextInputNode.hpp>
-#include <codegenned/binding/Slider.hpp>
-#include <codegenned/binding/SliderThumb.hpp>
+#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
+#include <Geode/binding/CCTextInputNode.hpp>
+#include <Geode/binding/Slider.hpp>
+#include <Geode/binding/SliderThumb.hpp>
 #include <Geode/ui/InputNode.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
 #include <Geode/utils/convert.hpp>

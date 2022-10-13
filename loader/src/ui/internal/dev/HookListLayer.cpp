@@ -1,5 +1,5 @@
 #include "HookListLayer.hpp"
-#include <codegenned/binding/GJListLayer.hpp>
+#include <Geode/binding/GJListLayer.hpp>
 
 bool HookListLayer::init(Mod* mod) {
     if (!GJDropDownLayer::init("Hooks", 220.f))

@@ -8,12 +8,12 @@
 #include <Geode/ui/MDPopup.hpp>
 #include "../settings/ModSettingsPopup.hpp"
 #include <InternalLoader.hpp>
-#include <codegenned/binding/Slider.hpp>
-#include <codegenned/binding/SliderThumb.hpp>
-#include <codegenned/binding/ButtonSprite.hpp>
-#include <codegenned/binding/SliderTouchLogic.hpp>
-#include <codegenned/binding/GJListLayer.hpp>
-#include <codegenned/binding/CCTextInputNode.hpp>
+#include <Geode/binding/Slider.hpp>
+#include <Geode/binding/SliderThumb.hpp>
+#include <Geode/binding/ButtonSprite.hpp>
+#include <Geode/binding/SliderTouchLogic.hpp>
+#include <Geode/binding/GJListLayer.hpp>
+#include <Geode/binding/CCTextInputNode.hpp>
 
 // TODO: die
 #undef min

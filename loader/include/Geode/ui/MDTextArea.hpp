@@ -1,6 +1,6 @@
 #pragma once
 
-#include <codegenned/binding/FLAlertLayerProtocol.hpp>
+#include <Geode/binding/FLAlertLayerProtocol.hpp>
 #include "TextRenderer.hpp"
 #include "ScrollLayer.hpp"
 

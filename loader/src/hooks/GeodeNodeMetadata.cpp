@@ -59,7 +59,7 @@ public:
 };
 
 // proxy forwards
-#include <codegenned/modify/CCNode.hpp>
+#include <Geode/modify/CCNode.hpp>
 class $modify(ProxyCCNode, CCNode) {
     virtual CCObject* getUserObject() {
         return GeodeNodeMetadata::set(this)->m_userObject;

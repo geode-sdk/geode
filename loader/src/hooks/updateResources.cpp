@@ -2,7 +2,7 @@
 
 USE_GEODE_NAMESPACE();
 
-#include <codegenned/modify/GameManager.hpp>
+#include <Geode/modify/GameManager.hpp>
 class $modify(GameManager) {
 	void reloadAllStep2() {
 		GameManager::reloadAllStep2();
@@ -10,7 +10,7 @@ class $modify(GameManager) {
 	}
 };
 
-#include <codegenned/modify/LoadingLayer.hpp>
+#include <Geode/modify/LoadingLayer.hpp>
 class $modify(LoadingLayer) {
 	void loadAssets() {
 		LoadingLayer::loadAssets();

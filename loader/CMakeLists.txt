@@ -123,6 +123,7 @@ target_precompile_headers(${PROJECT_NAME} PRIVATE
 	# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Bindings.hpp"
 	# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Modify.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/cocos/cocos2dx/include/cocos2d.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/cocos/extensions/cocos-ext.h"
 )
 
 # Create launcher

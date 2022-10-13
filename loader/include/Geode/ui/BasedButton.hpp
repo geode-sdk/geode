@@ -1,7 +1,7 @@
 #pragma once
 
 #include "BasedButtonSprite.hpp"
-#include <codegenned/binding/CCMenuItemToggler.hpp>
+#include <Geode/binding/CCMenuItemToggler.hpp>
 
 #pragma warning(disable : 4275)
 

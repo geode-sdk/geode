@@ -22,4 +22,4 @@ namespace geode::core::meta {}
 #define CLASSPARAM(...)
 #define STRUCTPARAM(...)
 
-#include <codegenned/GeneratedBinding.hpp>
+#include <Geode/GeneratedBinding.hpp>

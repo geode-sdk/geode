@@ -1,8 +1,8 @@
 #pragma once
 
-#include <codegenned/binding/TableViewCell.hpp>
-#include <codegenned/binding/FLAlertLayerProtocol.hpp>
-#include <codegenned/binding/CustomListView.hpp>
+#include <Geode/binding/TableViewCell.hpp>
+#include <Geode/binding/FLAlertLayerProtocol.hpp>
+#include <Geode/binding/CustomListView.hpp>
 #include <Index.hpp>
 #include <optional>
 

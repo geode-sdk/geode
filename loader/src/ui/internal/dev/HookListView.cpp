@@ -1,6 +1,6 @@
 #include "HookListView.hpp"
-#include <codegenned/binding/TableView.hpp>
-#include <codegenned/binding/StatsCell.hpp>
+#include <Geode/binding/TableView.hpp>
+#include <Geode/binding/StatsCell.hpp>
 #include <Geode/utils/casts.hpp>
 
 HookCell::HookCell(const char* name, CCSize size) :

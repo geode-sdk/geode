@@ -16,7 +16,7 @@ int main(int argc, char** argv) try {
 
     chdir(argv[2]);
 
-    ghc::filesystem::path writeDir = argv[3];
+    auto writeDir = ghc::filesystem::path(argv[3]) / "Geode";
     ghc::filesystem::create_directories(writeDir);
     ghc::filesystem::create_directories(writeDir / "modify");
     ghc::filesystem::create_directories(writeDir / "binding");

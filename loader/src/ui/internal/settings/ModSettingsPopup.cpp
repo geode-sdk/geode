@@ -3,7 +3,7 @@
 #include <Geode/loader/Setting.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/convert.hpp>
-#include <codegenned/binding/ButtonSprite.hpp>
+#include <Geode/binding/ButtonSprite.hpp>
 
 bool ModSettingsPopup::setup(Mod* mod) {
     m_noElasticity = true;

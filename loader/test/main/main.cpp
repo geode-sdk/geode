@@ -29,7 +29,7 @@ GEODE_API bool GEODE_CALL geode_unload() {
 }
 
 // Modify
-#include <codegenned/modify/GJGarageLayer.hpp>
+#include <Geode/modify/GJGarageLayer.hpp>
 class $modify(GJGarageLayerTest, GJGarageLayer) {
 	GJGarageLayerTest() : 
 		myValue(1907) {}

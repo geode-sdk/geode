@@ -2,7 +2,7 @@
 
 USE_GEODE_NAMESPACE();
 
-#include <codegenned/modify/AppDelegate.hpp>
+#include <Geode/modify/AppDelegate.hpp>
 class $modify(AppDelegate) {
     void trySaveGame() {
         log::log(Severity::Info, Loader::getInternalMod(), "Saving...");

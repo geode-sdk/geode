@@ -1,9 +1,9 @@
 #include "GeodeSettingNode.hpp"
 #include <Geode/utils/platform.hpp>
-#include <codegenned/binding/ColorChannelSprite.hpp>
-#include <codegenned/binding/ButtonSprite.hpp>
-#include <codegenned/binding/CCTextInputNode.hpp>
-#include <codegenned/binding/Slider.hpp>
+#include <Geode/binding/ColorChannelSprite.hpp>
+#include <Geode/binding/ButtonSprite.hpp>
+#include <Geode/binding/CCTextInputNode.hpp>
+#include <Geode/binding/Slider.hpp>
 
 // BoolSettingNode
 

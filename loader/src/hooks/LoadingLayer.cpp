@@ -2,7 +2,7 @@
 
 USE_GEODE_NAMESPACE();
 
-#include <codegenned/modify/LoadingLayer.hpp>
+#include <Geode/modify/LoadingLayer.hpp>
 class $modify(CustomLoadingLayer, LoadingLayer) {
     bool init(bool fromReload) {
         if (!LoadingLayer::init(fromReload))

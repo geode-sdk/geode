@@ -1,9 +1,9 @@
 #include <Geode/ui/ColorPickPopup.hpp>
 #include <Geode/utils/operators.hpp>
-#include <codegenned/binding/ButtonSprite.hpp>
-#include <codegenned/binding/CCTextInputNode.hpp>
-#include <codegenned/binding/Slider.hpp>
-#include <codegenned/binding/SliderThumb.hpp>
+#include <Geode/binding/ButtonSprite.hpp>
+#include <Geode/binding/CCTextInputNode.hpp>
+#include <Geode/binding/Slider.hpp>
+#include <Geode/binding/SliderThumb.hpp>
 
 USE_GEODE_NAMESPACE();
 

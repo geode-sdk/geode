@@ -7,9 +7,9 @@
 #include "ModListLayer.hpp"
 #include <InternalLoader.hpp>
 #include "../info/CategoryNode.hpp"
-#include <codegenned/binding/StatsCell.hpp>
-#include <codegenned/binding/ButtonSprite.hpp>
-#include <codegenned/binding/TableView.hpp>
+#include <Geode/binding/StatsCell.hpp>
+#include <Geode/binding/ButtonSprite.hpp>
+#include <Geode/binding/TableView.hpp>
 
 template<class T>
 static bool tryOrAlert(Result<T> const& res, const char* title) {

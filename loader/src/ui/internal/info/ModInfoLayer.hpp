@@ -1,7 +1,7 @@
 #pragma once
 
-#include <codegenned/binding/FLAlertLayer.hpp>
-#include <codegenned/binding/FLAlertLayerProtocol.hpp>
+#include <Geode/binding/FLAlertLayer.hpp>
+#include <Geode/binding/FLAlertLayerProtocol.hpp>
 #include <Index.hpp>
 #include <Geode/ui/MDTextArea.hpp>
 #include <Geode/ui/Scrollbar.hpp>

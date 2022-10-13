@@ -3,7 +3,7 @@
 #include "ModListView.hpp"
 #include <Geode/ui/SelectList.hpp>
 #include "../info/CategoryNode.hpp"
-#include <codegenned/binding/GameToolbox.hpp>
+#include <Geode/binding/GameToolbox.hpp>
 
 bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
     m_noElasticity = true;

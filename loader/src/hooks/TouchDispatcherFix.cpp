@@ -1,6 +1,6 @@
 USE_GEODE_NAMESPACE();
 
-#include <codegenned/modify/CCTouchDispatcher.hpp>
+#include <Geode/modify/CCTouchDispatcher.hpp>
 class $modify(CCTouchDispatcher) {
     void addTargetedDelegate(CCTouchDelegate *delegate, int priority, bool swallowsTouches) {
         m_bForcePrio = false;

@@ -11,7 +11,7 @@ namespace { namespace format_strings {
 #include <Geode/c++stl/gdstdlib.hpp>
 #include <cocos2d.h>
 #include <cocos-ext.h>
-#include <codegenned/GeneratedPredeclare.hpp>
+#include <Geode/GeneratedPredeclare.hpp>
 #include <Geode/Enums.hpp>
 
 )GEN";

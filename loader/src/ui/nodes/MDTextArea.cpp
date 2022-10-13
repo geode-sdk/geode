@@ -1,6 +1,6 @@
 #include <Geode/ui/MDTextArea.hpp>
 #include <md4c.h>
-#include <codegenned/binding/ProfilePage.hpp>
+#include <Geode/binding/ProfilePage.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/casts.hpp>

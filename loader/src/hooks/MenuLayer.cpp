@@ -128,7 +128,7 @@ static void updateIndexProgress(
 	}
 }
 
-#include <codegenned/modify/MenuLayer.hpp>
+#include <Geode/modify/MenuLayer.hpp>
 class $modify(CustomMenuLayer, MenuLayer) {
 	void destructor() {
 		g_geodeButton = nullptr;

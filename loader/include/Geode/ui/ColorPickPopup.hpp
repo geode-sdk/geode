@@ -1,7 +1,7 @@
 #include "Popup.hpp"
 #include "InputNode.hpp"
 
-#include <codegenned/binding/TextInputDelegate.hpp>
+#include <Geode/binding/TextInputDelegate.hpp>
 
 namespace geode {
     class ColorPickPopupDelegate {

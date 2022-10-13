@@ -4,6 +4,6 @@
 
 namespace geode::modifier {
 	struct addresses {
-		#include <codegenned/GeneratedAddress.hpp>
+		#include <Geode/GeneratedAddress.hpp>
 	};
 }

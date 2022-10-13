@@ -1,5 +1,5 @@
 #include <Geode/ui/InputNode.hpp>
-#include <codegenned/binding/CCTextInputNode.hpp>
+#include <Geode/binding/CCTextInputNode.hpp>
 
 USE_GEODE_NAMESPACE();
 

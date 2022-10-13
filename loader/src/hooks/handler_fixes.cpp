@@ -46,14 +46,14 @@ class $modify(CCUtility##HandlerTypeinfoFix, CCUtility##Handler) {              
 	}                                                                                                   \
 } 
 
-#include <codegenned/modify/CCKeypadHandler.hpp>
+#include <Geode/modify/CCKeypadHandler.hpp>
 HandlerFixFor(CCKeypad);
-#include <codegenned/modify/CCKeyboardHandler.hpp>
+#include <Geode/modify/CCKeyboardHandler.hpp>
 HandlerFixFor(CCKeyboard);
-#include <codegenned/modify/CCMouseHandler.hpp>
+#include <Geode/modify/CCMouseHandler.hpp>
 HandlerFixFor(CCMouse);
 
-#include <codegenned/modify/CCTargetedTouchHandler.hpp>
+#include <Geode/modify/CCTargetedTouchHandler.hpp>
 class $modify(CCTargetedTouchHandlerTypeinfoFix, CCTargetedTouchHandler) {
 	void destructor() {
 		if (m_pDelegate) {
@@ -100,7 +100,7 @@ class $modify(CCTargetedTouchHandlerTypeinfoFix, CCTargetedTouchHandler) {
 	}
 };
 
-#include <codegenned/modify/CCStandardTouchHandler.hpp>
+#include <Geode/modify/CCStandardTouchHandler.hpp>
 class $modify(CCStandardTouchHandlerTypeinfoFix, CCStandardTouchHandler) {
 	void destructor() {
 		if (m_pDelegate) {

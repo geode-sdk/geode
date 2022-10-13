@@ -1,6 +1,6 @@
 #include <Geode/ui/Notification.hpp>
 #include <Geode/ui/TextRenderer.hpp>
-#include <codegenned/binding/GameSoundManager.hpp>
+#include <Geode/binding/GameSoundManager.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/vector.hpp>
 

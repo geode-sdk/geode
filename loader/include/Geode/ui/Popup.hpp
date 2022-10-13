@@ -1,7 +1,7 @@
 #pragma once
 
-#include <codegenned/binding/FLAlertLayer.hpp>
-#include <codegenned/binding/CCMenuItemSpriteExtra.hpp>
+#include <Geode/binding/FLAlertLayer.hpp>
+#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 
 namespace geode {
     template<typename... InitArgs>

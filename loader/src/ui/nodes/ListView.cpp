@@ -1,6 +1,6 @@
 #include <Geode/ui/ListView.hpp>
-#include <codegenned/binding/StatsCell.hpp>
-#include <codegenned/binding/TableView.hpp>
+#include <Geode/binding/StatsCell.hpp>
+#include <Geode/binding/TableView.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/cocos.hpp>
 
