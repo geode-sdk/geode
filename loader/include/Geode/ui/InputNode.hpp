@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Geode/Bindings.hpp>
+#include <cocos2d.h>
 
 namespace geode {
     class GEODE_DLL InputNode : public cocos2d::CCMenuItem {

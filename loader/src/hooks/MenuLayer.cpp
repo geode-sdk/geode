@@ -228,7 +228,7 @@ class $modify(CustomMenuLayer, MenuLayer) {
 
 		bottomMenu->alignItemsHorizontallyWithPadding(3.f);
 
-		CCARRAY_FOREACH_B_TYPE(bottomMenu->getChildren(), node, CCNode) {
+		for (auto node : CCArrayExt<CCNode>(bottomMenu->getChildren())) {
 			node->setPositionY(y);
 		}
 		if (chest) {

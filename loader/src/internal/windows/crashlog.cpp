@@ -4,8 +4,6 @@
 
 #ifdef GEODE_IS_WINDOWS
 
-#include <Geode/Geode.hpp>
-
 #include "../crashlog.hpp"
 #include <Windows.h>
 #include <fstream>

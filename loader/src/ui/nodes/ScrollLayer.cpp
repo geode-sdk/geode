@@ -1,5 +1,5 @@
 #include <Geode/ui/ScrollLayer.hpp>
-#include <Geode/utils/WackyGeodeMacros.hpp>
+#include <Geode/utils/cocos.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -18,7 +18,7 @@ void GenericContentLayer::setPosition(CCPoint const& pos) {
     // all be TableViewCells
     CCLayerColor::setPosition(pos);
 
-    CCARRAY_FOREACH_B_TYPE(m_pChildren, child, CCNode) {
+    for (auto child : CCArrayExt<CCNode>(m_pChildren)) {
         auto y = this->getPositionY() + child->getPositionY();
         child->setVisible(!(
             (m_obContentSize.height < y) ||

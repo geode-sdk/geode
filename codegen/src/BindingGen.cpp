@@ -10,7 +10,9 @@ namespace { namespace format_strings {
     char const* class_includes = R"GEN(#pragma once
 #include <Geode/c++stl/gdstdlib.hpp>
 #include <cocos2d.h>
+#include <cocos-ext.h>
 #include <codegenned/GeneratedPredeclare.hpp>
+#include <Geode/Enums.hpp>
 
 )GEN";
     
@@ -75,7 +77,7 @@ std::string generateBindingHeader(Root& root, ghc::filesystem::path const& singl
         std::string single_output;
         single_output += format_strings::class_includes;
 
-        for (auto dep : cls.superclasses) {
+        for (auto dep : cls.depends) {
             if (can_find(dep, "cocos2d::")) continue;
 
             std::string depfilename = (codegen::getUnqualifiedClassName(dep) + ".hpp");

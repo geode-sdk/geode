@@ -1,6 +1,7 @@
 #pragma once
 
-#include <Geode/Bindings.hpp>
+#include <codegenned/binding/TableViewCell.hpp>
+#include <codegenned/binding/CustomListView.hpp>
 
 namespace geode {
     class GEODE_DLL GenericListCell : public TableViewCell {

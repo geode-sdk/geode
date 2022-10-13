@@ -1,5 +1,5 @@
 #include <Geode/ui/SceneManager.hpp>
-#include <Geode/utils/WackyGeodeMacros.hpp>
+#include <Geode/utils/cocos.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -31,7 +31,7 @@ void SceneManager::forget(CCNode* node) {
 }
 
 void SceneManager::willSwitchToScene(CCScene* scene) {
-    CCARRAY_FOREACH_B_TYPE(m_persistedNodes, node, CCNode) {
+    for (auto node : CCArrayExt<CCNode>(m_persistedNodes)) {
         // no cleanup in order to keep actions running
         node->removeFromParentAndCleanup(false);
         scene->addChild(node);

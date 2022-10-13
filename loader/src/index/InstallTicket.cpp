@@ -3,6 +3,8 @@
 #include <Geode/utils/json.hpp>
 #include <hash.hpp>
 #include <Geode/utils/fetch.hpp>
+#include <Geode/utils/file.hpp>
+#include <Geode/utils/string.hpp>
 
 void InstallTicket::postProgress(
     UpdateStatus status,

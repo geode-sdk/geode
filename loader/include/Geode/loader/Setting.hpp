@@ -3,12 +3,12 @@
 #include <Geode/DefaultInclude.hpp>
 #include <optional>
 #include <unordered_set>
-#include "../utils/container.hpp"
-#include "../utils/json.hpp"
-#include "../utils/Result.hpp"
-#include "../utils/JsonValidation.hpp"
-#include "../utils/convert.hpp"
-#include "../utils/platform.hpp"
+#include <Geode/utils/container.hpp>
+#include <Geode/utils/json.hpp>
+#include <Geode/utils/Result.hpp>
+#include <Geode/utils/JsonValidation.hpp>
+#include <Geode/utils/convert.hpp>
+#include <Geode/utils/platform.hpp>
 #include <regex>
 
 #pragma warning(push)

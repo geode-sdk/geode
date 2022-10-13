@@ -384,7 +384,7 @@ ModCell* ModCell::create(ModListView* list, bool expanded, const char* key, CCSi
 
 
 void ModListView::updateAllStates(ModCell* toggled) {
-    CCARRAY_FOREACH_B_TYPE(m_tableView->m_cellArray, cell, ModCell) {
+    for (auto cell : CCArrayExt<ModCell>(m_tableView->m_cellArray)) {
         cell->updateState(toggled == cell);
     }
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Geode/Bindings.hpp>
+#include <cocos2d.h>
 
 namespace geode {
     class GEODE_DLL Scrollbar : public cocos2d::CCLayer {
