@@ -1,7 +1,6 @@
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/string.hpp>
 #include <fstream>
-#include <Geode/Bindings.hpp>
 
 USE_GEODE_NAMESPACE();
 

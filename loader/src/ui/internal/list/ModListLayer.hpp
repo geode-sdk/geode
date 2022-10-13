@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
+#include <Geode/binding/TextInputDelegate.hpp>
 #include "ModListView.hpp"
 #include <Index.hpp>
 

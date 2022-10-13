@@ -1,4 +1,3 @@
-#include <Geode/Geode.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Loader.hpp>

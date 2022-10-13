@@ -1,5 +1,4 @@
-#include <Geode/Geode.hpp>
-#include <Geode/utils/WackyGeodeMacros.hpp>
+#include <Geode/utils/cocos.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
 #include <Geode/ui/Notification.hpp>
 #include <Index.hpp>
@@ -8,7 +7,6 @@
 #include <InternalMod.hpp>
 #include "../ui/internal/info/ModInfoLayer.hpp"
 #include <InternalLoader.hpp>
-#include <Geode/Modify.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -64,6 +62,7 @@ static void updateIndexProgress(
 	}
 }
 
+#include <Geode/modify/MenuLayer.hpp>
 class $modify(CustomMenuLayer, MenuLayer) {
 	void destructor() {
 		g_geodeButton = nullptr;
@@ -163,7 +162,7 @@ class $modify(CustomMenuLayer, MenuLayer) {
 
 		bottomMenu->alignItemsHorizontallyWithPadding(3.f);
 
-		CCARRAY_FOREACH_B_TYPE(bottomMenu->getChildren(), node, CCNode) {
+		for (auto node : CCArrayExt<CCNode>(bottomMenu->getChildren())) {
 			node->setPositionY(y);
 		}
 		if (chest) {

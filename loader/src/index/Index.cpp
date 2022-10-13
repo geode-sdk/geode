@@ -4,6 +4,9 @@
 #include <Geode/utils/JsonValidation.hpp>
 #include <Geode/utils/fetch.hpp>
 #include <hash.hpp>
+#include <Geode/utils/file.hpp>
+#include <Geode/utils/string.hpp>
+#include <Geode/utils/vector.hpp>
 
 #define GITHUB_DONT_RATE_LIMIT_ME_PLS 0
 

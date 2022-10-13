@@ -2,11 +2,18 @@
 #include "../dev/HookListLayer.hpp"
 #include <Geode/ui/BasedButton.hpp>
 #include "../list/ModListView.hpp"
-#include <Geode/utils/WackyGeodeMacros.hpp>
+#include <Geode/utils/casts.hpp>
+#include <Geode/utils/vector.hpp>
 #include <Geode/ui/IconButtonSprite.hpp>
 #include <Geode/ui/MDPopup.hpp>
 #include "../settings/ModSettingsPopup.hpp"
 #include <InternalLoader.hpp>
+#include <Geode/binding/Slider.hpp>
+#include <Geode/binding/SliderThumb.hpp>
+#include <Geode/binding/ButtonSprite.hpp>
+#include <Geode/binding/SliderTouchLogic.hpp>
+#include <Geode/binding/GJListLayer.hpp>
+#include <Geode/binding/CCTextInputNode.hpp>
 
 // TODO: die
 #undef min

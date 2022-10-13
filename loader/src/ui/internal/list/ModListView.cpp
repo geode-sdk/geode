@@ -1,10 +1,15 @@
 #include "ModListView.hpp"
 #include "../info/ModInfoLayer.hpp"
-#include <Geode/utils/WackyGeodeMacros.hpp>
+#include <Geode/utils/cocos.hpp>
+#include <Geode/utils/casts.hpp>
+#include <Geode/utils/string.hpp>
 #include <Index.hpp>
 #include "ModListLayer.hpp"
 #include <InternalLoader.hpp>
 #include "../info/CategoryNode.hpp"
+#include <Geode/binding/StatsCell.hpp>
+#include <Geode/binding/ButtonSprite.hpp>
+#include <Geode/binding/TableView.hpp>
 
 template<class T>
 static bool tryOrAlert(Result<T> const& res, const char* title) {
@@ -384,7 +389,7 @@ ModCell* ModCell::create(ModListView* list, bool expanded, const char* key, CCSi
 
 
 void ModListView::updateAllStates(ModCell* toggled) {
-    CCARRAY_FOREACH_B_TYPE(m_tableView->m_cellArray, cell, ModCell) {
+    for (auto cell : CCArrayExt<ModCell>(m_tableView->m_cellArray)) {
         cell->updateState(toggled == cell);
     }
 }

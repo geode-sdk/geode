@@ -92,8 +92,8 @@ class AudioEffectsLayer {
 }
 
 class BoomListView : cocos2d::CCLayer, TableViewDelegate, TableViewDataSource {
-    inline BoomListView() {}
-    inline ~BoomListView() {
+    BoomListView() {}
+    ~BoomListView() {
         CC_SAFE_RELEASE(m_entries);
     }
 

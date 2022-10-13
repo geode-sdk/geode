@@ -247,14 +247,20 @@ namespace geode::cocos {
         }
     };
 
+}
+
+namespace std {
     template <typename T>
-    struct std::iterator_traits<CCArrayIterator<T>> {
+    struct iterator_traits<geode::cocos::CCArrayIterator<T>> {
         using difference_type = ptrdiff_t;
         using value_type = T;
         using pointer = T*;
         using reference = T&;
         using iterator_category = std::random_access_iterator_tag; // its random access but im too lazy to implement it
     };
+}
+
+namespace geode::cocos {
 
     struct GEODE_DLL CCArrayInserter {
     public:

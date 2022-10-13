@@ -1,6 +1,7 @@
 #pragma once
 
 #include "HookListView.hpp"
+#include <Geode/binding/GJDropDownLayer.hpp>
 
 class HookListLayer : public GJDropDownLayer {
     protected:

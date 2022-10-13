@@ -68,7 +68,7 @@ namespace geode::modifier {
 	struct wrap {
 		GEODE_WRAPPER_FOR_IDENTIFIER(constructor)
 		GEODE_WRAPPER_FOR_IDENTIFIER(destructor)
-		#include <codegenned/GeneratedWrapper.hpp>
+		#include <Geode/GeneratedWrapper.hpp>
 	};
 
 	// template <template<class, class, class=void> class Identifier, class Base, class Derived, class ...Types>

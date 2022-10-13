@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
 #include <mutex>
 #include <optional>
 #include <Geode/utils/fetch.hpp>

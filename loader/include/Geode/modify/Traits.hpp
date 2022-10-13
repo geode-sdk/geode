@@ -28,7 +28,7 @@ namespace geode::modifier {
 		using type = FunctionType*;
 	};
 
-	using geode::core::meta::always_false;
+	using ::geode::core::meta::always_false;
 	/**
 	 * The ~unevaluated~ function that gets the appropriate 
 	 * version of a function type from its return, parameters, and classes.

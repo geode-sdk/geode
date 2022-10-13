@@ -10,9 +10,7 @@
 #include <functional>
 #include <unordered_set>
 #include <fs/filesystem.hpp>
-#include <Geode/utils/json.hpp>
 #include "Log.hpp"
-#include <Geode/utils/VersionInfo.hpp>
 
 namespace geode {
     #pragma warning(disable: 4251)
@@ -27,6 +25,7 @@ namespace geode {
     class Mod;
     class Hook;
     struct ModInfo;
+    class VersionInfo;
 
     namespace modifier {
     	template<class, class, class>

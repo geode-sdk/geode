@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Setting.hpp"
-#include <Geode/Bindings.hpp>
+#include <cocos2d.h>
 
 namespace geode {
     class SettingNode;
