@@ -115,9 +115,6 @@ class cocos2d::CCDirector {
 	virtual auto getAccelerometer() = mac 0x24b0e0;
 	virtual auto setAccelerometer(cocos2d::CCAccelerometer*) = mac 0x24b0a0;
 	virtual auto getDeltaTime() = mac 0x249bd0;
-	virtual auto getSceneDelegate() const = mac 0x24b320;
-	virtual auto setSceneDelegate(cocos2d::CCSceneDelegate*) = mac 0x24b330;
-
 
 	auto getWinSize() = mac 0x24a0f0, ios 0xece34;
 	auto pushScene(cocos2d::CCScene*) = mac 0x24a620;
