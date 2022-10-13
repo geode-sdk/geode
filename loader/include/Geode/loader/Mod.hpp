@@ -3,15 +3,14 @@
 #include <Geode/DefaultInclude.hpp>
 #include "Types.hpp"
 #include "Hook.hpp"
-#include "../utils/types.hpp"
-#include "../utils/Result.hpp"
-#include "../utils/VersionInfo.hpp"
+#include <Geode/utils/types.hpp>
+#include <Geode/utils/Result.hpp>
+#include <Geode/utils/VersionInfo.hpp>
 #include <Geode/utils/json.hpp>
 #include <string_view>
 #include <vector>
 #include <unordered_map>
 #include <type_traits>
-#include <cocos2d.h>
 #include "Setting.hpp"
 #include <optional>
 

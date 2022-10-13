@@ -10,7 +10,6 @@
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/types.hpp>
 #include <mutex>
-#include <Geode/Geode.hpp>
 #include <about.hpp>
 #include <crashlog.hpp>
 

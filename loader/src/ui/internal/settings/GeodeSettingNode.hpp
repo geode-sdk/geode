@@ -2,7 +2,10 @@
 
 #include <Geode/loader/Setting.hpp>
 #include <Geode/loader/SettingNode.hpp>
-#include <Geode/Bindings.hpp>
+#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
+#include <Geode/binding/CCTextInputNode.hpp>
+#include <Geode/binding/Slider.hpp>
+#include <Geode/binding/SliderThumb.hpp>
 #include <Geode/ui/InputNode.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
 #include <Geode/utils/convert.hpp>
@@ -297,7 +300,7 @@ namespace {
                 decArrowSpr->setScale(.3f);
 
                 m_decArrow = CCMenuItemSpriteExtra::create(
-                    decArrowSpr, self(), menu_selector(ImplArrows::onDecrement)
+                    decArrowSpr, self(), menu_selector(ImplArrows::Callbacks::onDecrement)
                 );
                 m_decArrow->setPosition(-width / 2 + 80.f, yPos);
                 self()->m_menu->addChild(m_decArrow);
@@ -306,7 +309,7 @@ namespace {
                 incArrowSpr->setScale(.3f);
 
                 m_incArrow = CCMenuItemSpriteExtra::create(
-                    incArrowSpr, self(), menu_selector(ImplArrows::onIncrement)
+                    incArrowSpr, self(), menu_selector(ImplArrows::Callbacks::onIncrement)
                 );
                 m_incArrow->setPosition(-10.f, yPos);
                 self()->m_menu->addChild(m_incArrow);
@@ -318,7 +321,7 @@ namespace {
                 decArrowSpr->setScale(.3f);
 
                 m_bigDecArrow = CCMenuItemSpriteExtra::create(
-                    decArrowSpr, self(), menu_selector(ImplArrows::onBigDecrement)
+                    decArrowSpr, self(), menu_selector(ImplArrows::Callbacks::onBigDecrement)
                 );
                 m_bigDecArrow->setPosition(-width / 2 + 65.f, yPos);
                 self()->m_menu->addChild(m_bigDecArrow);
@@ -327,50 +330,46 @@ namespace {
                 incArrowSpr->setScale(.3f);
 
                 m_bigIncArrow = CCMenuItemSpriteExtra::create(
-                    incArrowSpr, self(), menu_selector(ImplArrows::onBigIncrement)
+                    incArrowSpr, self(), menu_selector(ImplArrows::Callbacks::onBigIncrement)
                 );
                 m_bigIncArrow->setPosition(5.f, yPos);
                 self()->m_menu->addChild(m_bigIncArrow);
             }
         }
 
-        void onIncrement(CCObject*) {
-            // intentionally refcast to prevent warnings on clang and 
-            // not to offset this as it has already been offset to the 
-            // correct vtable when it's passed to CCMenuItemSpriteExtra
-            auto self = reference_cast<C*>(this);
-            self->m_uncommittedValue += std::static_pointer_cast<T>(
-                self->m_setting
-            )->getArrowStepSize();
-            self->valueChanged(true);
-        }
+        // intentionally a subclass to make it relatively safe to 
+        // use as callbacks for the child class, since we give the 
+        // child class as the target to CCMenuItemSpriteExtra
+        struct Callbacks : public C {
+            void onIncrement(CCObject*) {
+                this->m_uncommittedValue += std::static_pointer_cast<T>(
+                    this->m_setting
+                )->getArrowStepSize();
+                this->valueChanged(true);
+            }
 
-        void onDecrement(CCObject*) {
-            // intentional, see ImplArrows::onIncrement
-            auto self = reference_cast<C*>(this);
-            self->m_uncommittedValue -= std::static_pointer_cast<T>(
-                self->m_setting
-            )->getArrowStepSize();
-            self->valueChanged(true);
-        }
+            void onDecrement(CCObject*) {
+                this->m_uncommittedValue -= std::static_pointer_cast<T>(
+                    this->m_setting
+                )->getArrowStepSize();
+                this->valueChanged(true);
+            }
 
-        void onBigIncrement(CCObject*) {
-            // intentional, see ImplArrows::onIncrement
-            auto self = reference_cast<C*>(this);
-            self->m_uncommittedValue += std::static_pointer_cast<T>(
-                self->m_setting
-            )->getBigArrowStepSize();
-            self->valueChanged(true);
-        }
+            void onBigIncrement(CCObject*) {
+                this->m_uncommittedValue += std::static_pointer_cast<T>(
+                    this->m_setting
+                )->getBigArrowStepSize();
+                this->valueChanged(true);
+            }
 
-        void onBigDecrement(CCObject*) {
-            // intentional, see ImplArrows::onIncrement
-            auto self = reference_cast<C*>(this);
-            self->m_uncommittedValue -= std::static_pointer_cast<T>(
-                self->m_setting
-            )->getBigArrowStepSize();
-            self->valueChanged(true);
-        }
+            void onBigDecrement(CCObject*) {
+                this->m_uncommittedValue -= std::static_pointer_cast<T>(
+                    this->m_setting
+                )->getBigArrowStepSize();
+                this->valueChanged(true);
+            }
+        };
+
     };
 
     template<class C, class T>
@@ -413,7 +412,7 @@ namespace {
         void setupSlider(std::shared_ptr<T> setting, float width) {
             if (setting->hasSlider()) {
                 m_slider = Slider::create(
-                    self(), menu_selector(ImplSlider::onSlider), .5f
+                    self(), menu_selector(ImplSlider::Callbacks::onSlider), .5f
                 );
                 m_slider->setPosition(-50.f, -15.f);
                 self()->m_menu->addChild(m_slider);
@@ -432,17 +431,21 @@ namespace {
             }
         }
 
-        void onSlider(CCObject* slider) {
-            // intentional, see ImplArrows::onIncrement
-            auto self = reference_cast<C*>(this);
-            auto setting = std::static_pointer_cast<T>(self->m_setting);
+        // intentionally a subclass to make it relatively safe to 
+        // use as callbacks for the child class, since we give the 
+        // child class as the target to CCMenuItemSpriteExtra
+        struct Callbacks : public C {
+            void onSlider(CCObject* slider) {
+                auto setting = std::static_pointer_cast<T>(this->m_setting);
 
-            self->m_uncommittedValue = valueFromSlider(
-                setting,
-                static_cast<SliderThumb*>(slider)->getValue()
-            );
-            self->valueChanged(true);
-        }
+                this->m_uncommittedValue = valueFromSlider(
+                    setting,
+                    static_cast<SliderThumb*>(slider)->getValue()
+                );
+                this->valueChanged(true);
+
+            }
+        };
     };
 }
 

@@ -1,13 +1,10 @@
-#include <Geode/Modify.hpp>
-
-
 // this is the fix for the dynamic_cast problems
+// TODO: completely replace dynamic_cast on macos
 
 using namespace cocos2d;
 using namespace geode::modifier;
 
 #if defined(GEODE_IS_IOS) || defined(GEODE_IS_MACOS)
-namespace geode::fixes {
 	using namespace geode::cast;
 
 #define HandlerFixFor(CCUtility)                                                                        \
@@ -49,10 +46,14 @@ class $modify(CCUtility##HandlerTypeinfoFix, CCUtility##Handler) {              
 	}                                                                                                   \
 } 
 
+#include <Geode/modify/CCKeypadHandler.hpp>
 HandlerFixFor(CCKeypad);
+#include <Geode/modify/CCKeyboardHandler.hpp>
 HandlerFixFor(CCKeyboard);
+#include <Geode/modify/CCMouseHandler.hpp>
 HandlerFixFor(CCMouse);
 
+#include <Geode/modify/CCTargetedTouchHandler.hpp>
 class $modify(CCTargetedTouchHandlerTypeinfoFix, CCTargetedTouchHandler) {
 	void destructor() {
 		if (m_pDelegate) {
@@ -99,6 +100,7 @@ class $modify(CCTargetedTouchHandlerTypeinfoFix, CCTargetedTouchHandler) {
 	}
 };
 
+#include <Geode/modify/CCStandardTouchHandler.hpp>
 class $modify(CCStandardTouchHandlerTypeinfoFix, CCStandardTouchHandler) {
 	void destructor() {
 		if (m_pDelegate) {
@@ -139,7 +141,5 @@ class $modify(CCStandardTouchHandlerTypeinfoFix, CCStandardTouchHandler) {
 		return pHandler;
 	}
 };
-
-} // geode::fixes
 
 #endif

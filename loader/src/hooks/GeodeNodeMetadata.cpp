@@ -1,7 +1,7 @@
-#include <Geode/Bindings.hpp>
+#include <cocos2d.h>
 #include <Geode/utils/Ref.hpp>
-#include <Geode/Modify.hpp>
-#include <Geode/utils/WackyGeodeMacros.hpp>
+#include <Geode/utils/cocos.hpp>
+#include <Geode/modify/Field.hpp>
 
 USE_GEODE_NAMESPACE();
 using namespace geode::modifier;
@@ -59,6 +59,7 @@ public:
 };
 
 // proxy forwards
+#include <Geode/modify/CCNode.hpp>
 class $modify(ProxyCCNode, CCNode) {
     virtual CCObject* getUserObject() {
         return GeodeNodeMetadata::set(this)->m_userObject;
@@ -82,7 +83,7 @@ void CCNode::setID(std::string const& id) {
 }
 
 CCNode* CCNode::getChildByID(std::string const& id) {
-    CCARRAY_FOREACH_B_TYPE(m_pChildren, child, CCNode) {
+    for (auto child : CCArrayExt<CCNode>(m_pChildren)) {
         if (child->getID() == id) {
             return child;
         }
@@ -94,7 +95,7 @@ CCNode* CCNode::getChildByIDRecursive(std::string const& id) {
     if (auto child = this->getChildByID(id)) {
         return child;
     }
-    CCARRAY_FOREACH_B_TYPE(m_pChildren, child, CCNode) {
+    for (auto child : CCArrayExt<CCNode>(m_pChildren)) {
         if ((child = child->getChildByIDRecursive(id))) {
             return child;
         }

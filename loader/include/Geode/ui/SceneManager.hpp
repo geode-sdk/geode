@@ -1,6 +1,9 @@
 #pragma once
 
-#include <Geode/Bindings.hpp>
+namespace cocos2d {
+    class CCArray;
+    class CCNode;
+}
 
 namespace geode {
     class GEODE_DLL SceneManager {

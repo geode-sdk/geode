@@ -1,9 +1,12 @@
 #pragma once
 
-#include <Geode/Bindings.hpp>
 #include "Traits.hpp"
 #include <Geode/loader/Loader.hpp>
 #include <vector>
+
+namespace cocos2d {
+	class CCNode;
+}
 
 namespace geode::modifier {
 	class FieldContainer {

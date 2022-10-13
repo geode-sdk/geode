@@ -1,6 +1,7 @@
 #pragma once
 
-#include <Geode/Bindings.hpp>
+#include <Geode/binding/CCContentLayer.hpp>
+#include <Geode/binding/CCScrollLayerExt.hpp>
 
 namespace geode {
     /**

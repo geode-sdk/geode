@@ -1,6 +1,8 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
+#include <Geode/binding/TableViewCell.hpp>
+#include <Geode/binding/FLAlertLayerProtocol.hpp>
+#include <Geode/binding/CustomListView.hpp>
 #include <Index.hpp>
 #include <optional>
 

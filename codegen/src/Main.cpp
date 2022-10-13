@@ -3,21 +3,6 @@
 
 using namespace codegen;
 
-void writeFile(ghc::filesystem::path const& writePath, std::string const& output) {
-	std::ifstream readfile;
-	readfile >> std::noskipws;
-	readfile.open(writePath);
-	std::string data((std::istreambuf_iterator<char>(readfile)), std::istreambuf_iterator<char>());
-	readfile.close();
-
-	if (data != output) {
-		std::ofstream writefile;
-		writefile.open(writePath);
-		writefile << output;
-		writefile.close();
-	}
-}
-
 int main(int argc, char** argv) try {
 	if (argc != 4) throw codegen::error("Invalid number of parameters (expected 3 found {})", argc-1);
 
@@ -31,8 +16,10 @@ int main(int argc, char** argv) try {
 
     chdir(argv[2]);
 
-    ghc::filesystem::path writeDir = argv[3];
+    auto writeDir = ghc::filesystem::path(argv[3]) / "Geode";
     ghc::filesystem::create_directories(writeDir);
+    ghc::filesystem::create_directories(writeDir / "modify");
+    ghc::filesystem::create_directories(writeDir / "binding");
 
     Root root = broma::parse_file("Entry.bro");
 
@@ -45,11 +32,12 @@ int main(int argc, char** argv) try {
     }
 
     writeFile(writeDir / "GeneratedAddress.hpp", generateAddressHeader(root));
-    writeFile(writeDir / "GeneratedModify.hpp", generateModifyHeader(root)); // pretty much obsolete with a custom compiler
+    writeFile(writeDir / "GeneratedModify.hpp", generateModifyHeader(root, writeDir / "modify")); // pretty much obsolete with a custom compiler
     writeFile(writeDir / "GeneratedWrapper.hpp", generateWrapperHeader(root)); // pretty much obsolete with a custom compiler
     writeFile(writeDir / "GeneratedType.hpp", generateTypeHeader(root)); // pretty much obsolete with a custom compiler
-    writeFile(writeDir / "GeneratedHeader.hpp", generateGDHeader(root));
-    writeFile(writeDir / "GeneratedSource.cpp", generateGDSource(root));
+    writeFile(writeDir / "GeneratedBinding.hpp", generateBindingHeader(root, writeDir / "binding"));
+    writeFile(writeDir / "GeneratedPredeclare.hpp", generatePredeclareHeader(root));
+    writeFile(writeDir / "GeneratedSource.cpp", generateBindingSource(root));
 } catch(std::exception& e) {
     std::cout << "Codegen error: " << e.what() << "\n";
     return 1;

@@ -341,17 +341,17 @@ class cocos2d::CCLayerColor {
     CCLayerColor() = mac 0x274320, ios 0xc8aec;
     static cocos2d::CCLayerColor* create(cocos2d::_ccColor4B const&, float, float) = mac 0x2745e0;
     static cocos2d::CCLayerColor* create(cocos2d::_ccColor4B const&) = mac 0x2744c0;
-    auto draw() = mac 0x274b50, ios 0xc8fe0;
-    auto getBlendFunc() = mac 0x274480, ios 0xc8bcc;
-    auto init() = mac 0x274800, ios 0xc8de8;
-    auto initWithColor(cocos2d::_ccColor4B const&) = mac 0x2749a0, ios 0xc8f14;
-    auto initWithColor(cocos2d::_ccColor4B const&, float, float) = mac 0x274850, ios 0xc8e34;
-    auto setBlendFunc(cocos2d::_ccBlendFunc) = mac 0x2744a0, ios 0xc8bdc;
-    auto setColor(cocos2d::_ccColor3B const&) = mac 0x274c20, ios 0xc90ac;
-    auto setContentSize(cocos2d::CCSize const&) = mac 0x2749f0, ios 0xc8f64;
-    auto setOpacity(unsigned char) = mac 0x274db0, ios 0xc9108;
-    auto updateColor() = mac 0x274ae0, ios 0xc8f80;
-    ~CCLayerColor() = mac 0x2743d0, ios 0x2743e0;
+    virtual auto draw() = mac 0x274b50, ios 0xc8fe0;
+    virtual auto getBlendFunc() = mac 0x274480, ios 0xc8bcc;
+    virtual auto init() = mac 0x274800, ios 0xc8de8;
+    virtual auto initWithColor(cocos2d::_ccColor4B const&) = mac 0x2749a0, ios 0xc8f14;
+    virtual auto initWithColor(cocos2d::_ccColor4B const&, float, float) = mac 0x274850, ios 0xc8e34;
+    virtual auto setBlendFunc(cocos2d::_ccBlendFunc) = mac 0x2744a0, ios 0xc8bdc;
+    virtual auto setColor(cocos2d::_ccColor3B const&) = mac 0x274c20, ios 0xc90ac;
+    virtual auto setContentSize(cocos2d::CCSize const&) = mac 0x2749f0, ios 0xc8f64;
+    virtual auto setOpacity(unsigned char) = mac 0x274db0, ios 0xc9108;
+    virtual auto updateColor() = mac 0x274ae0, ios 0xc8f80;
+    virtual ~CCLayerColor() = mac 0x2743d0, ios 0x2743e0;
 }
 
 class cocos2d::CCLayerRGBA {

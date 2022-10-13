@@ -1,5 +1,4 @@
-#include <Geode/Geode.hpp>
-#include <Geode/Modify.hpp>
+#include <Geode/Loader.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -30,6 +29,7 @@ GEODE_API bool GEODE_CALL geode_unload() {
 }
 
 // Modify
+#include <Geode/modify/GJGarageLayer.hpp>
 class $modify(GJGarageLayerTest, GJGarageLayer) {
 	GJGarageLayerTest() : 
 		myValue(1907) {}

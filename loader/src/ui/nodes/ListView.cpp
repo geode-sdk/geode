@@ -1,5 +1,8 @@
 #include <Geode/ui/ListView.hpp>
-#include <Geode/Utils.hpp>
+#include <Geode/binding/StatsCell.hpp>
+#include <Geode/binding/TableView.hpp>
+#include <Geode/utils/casts.hpp>
+#include <Geode/utils/cocos.hpp>
 
 USE_GEODE_NAMESPACE();
 

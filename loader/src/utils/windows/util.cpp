@@ -1,5 +1,5 @@
 #include <Geode/utils/platform.hpp>
-#include <Geode/Geode.hpp>
+#include <fs/filesystem.hpp>
 
 #ifdef GEODE_IS_WINDOWS
 

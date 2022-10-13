@@ -3,6 +3,15 @@
 #include "SearchFilterPopup.hpp"
 #include <Geode/ui/Notification.hpp>
 #include <optional>
+#include <Geode/binding/GJListLayer.hpp>
+#include <Geode/binding/CCTextInputNode.hpp>
+#include <Geode/binding/ButtonSprite.hpp>
+#include <Geode/binding/LoadingCircle.hpp>
+#include <Geode/binding/MenuLayer.hpp>
+#include <Geode/binding/GameToolbox.hpp>
+#include <Geode/binding/StatsCell.hpp>
+#include <Geode/binding/TableView.hpp>
+#include <Geode/utils/casts.hpp>
 
 static ModListType g_tab = ModListType::Installed;
 static ModListLayer* g_instance = nullptr;

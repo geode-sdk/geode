@@ -117,12 +117,13 @@ target_link_libraries(${PROJECT_NAME} z lilac_hook geode-sdk)
 set_source_files_properties(${OBJC_SOURCES} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 target_precompile_headers(${PROJECT_NAME} PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/DefaultInclude.hpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Utils.hpp"
+	# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Utils.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Loader.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/UI.hpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Bindings.hpp"
+	# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Bindings.hpp"
 	# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Modify.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/cocos/cocos2dx/include/cocos2d.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/cocos/extensions/cocos-ext.h"
 )
 
 # Create launcher

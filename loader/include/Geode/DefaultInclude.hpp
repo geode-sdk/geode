@@ -103,82 +103,82 @@ _61,_62,_63,N,...) N
 9,  8,  7,  6,  5,  4,  3,  2,  1,  0
 
 
-#define GEODE_NEST1(macro, begin)           \
-macro(GEODE_CONCAT(begin, 0)),                        \
-macro(GEODE_CONCAT(begin, 1)),                        \
-macro(GEODE_CONCAT(begin, 2)),                        \
-macro(GEODE_CONCAT(begin, 3)),                        \
-macro(GEODE_CONCAT(begin, 4)),                        \
-macro(GEODE_CONCAT(begin, 5)),                        \
-macro(GEODE_CONCAT(begin, 6)),                        \
-macro(GEODE_CONCAT(begin, 7)),                        \
-macro(GEODE_CONCAT(begin, 8)),                        \
-macro(GEODE_CONCAT(begin, 9)),                        \
-macro(GEODE_CONCAT(begin, a)),                        \
-macro(GEODE_CONCAT(begin, b)),                        \
-macro(GEODE_CONCAT(begin, c)),                        \
-macro(GEODE_CONCAT(begin, d)),                        \
-macro(GEODE_CONCAT(begin, e)),                        \
-macro(GEODE_CONCAT(begin, f))  
+// #define GEODE_NEST1(macro, begin)           \
+// macro(GEODE_CONCAT(begin, 0)),                        \
+// macro(GEODE_CONCAT(begin, 1)),                        \
+// macro(GEODE_CONCAT(begin, 2)),                        \
+// macro(GEODE_CONCAT(begin, 3)),                        \
+// macro(GEODE_CONCAT(begin, 4)),                        \
+// macro(GEODE_CONCAT(begin, 5)),                        \
+// macro(GEODE_CONCAT(begin, 6)),                        \
+// macro(GEODE_CONCAT(begin, 7)),                        \
+// macro(GEODE_CONCAT(begin, 8)),                        \
+// macro(GEODE_CONCAT(begin, 9)),                        \
+// macro(GEODE_CONCAT(begin, a)),                        \
+// macro(GEODE_CONCAT(begin, b)),                        \
+// macro(GEODE_CONCAT(begin, c)),                        \
+// macro(GEODE_CONCAT(begin, d)),                        \
+// macro(GEODE_CONCAT(begin, e)),                        \
+// macro(GEODE_CONCAT(begin, f))  
 
-#define GEODE_NEST2(macro, begin)           \
-GEODE_NEST1(macro, GEODE_CONCAT(begin, 0)), \
-GEODE_NEST1(macro, GEODE_CONCAT(begin, 1)), \
-GEODE_NEST1(macro, GEODE_CONCAT(begin, 2)), \
-GEODE_NEST1(macro, GEODE_CONCAT(begin, 3)), \
-GEODE_NEST1(macro, GEODE_CONCAT(begin, 4)), \
-GEODE_NEST1(macro, GEODE_CONCAT(begin, 5)), \
-GEODE_NEST1(macro, GEODE_CONCAT(begin, 6)), \
-GEODE_NEST1(macro, GEODE_CONCAT(begin, 7)), \
-GEODE_NEST1(macro, GEODE_CONCAT(begin, 8)), \
-GEODE_NEST1(macro, GEODE_CONCAT(begin, 9)), \
-GEODE_NEST1(macro, GEODE_CONCAT(begin, a)), \
-GEODE_NEST1(macro, GEODE_CONCAT(begin, b)), \
-GEODE_NEST1(macro, GEODE_CONCAT(begin, c)), \
-GEODE_NEST1(macro, GEODE_CONCAT(begin, d)), \
-GEODE_NEST1(macro, GEODE_CONCAT(begin, e)), \
-GEODE_NEST1(macro, GEODE_CONCAT(begin, f))  
+// #define GEODE_NEST2(macro, begin)           \
+// GEODE_NEST1(macro, GEODE_CONCAT(begin, 0)), \
+// GEODE_NEST1(macro, GEODE_CONCAT(begin, 1)), \
+// GEODE_NEST1(macro, GEODE_CONCAT(begin, 2)), \
+// GEODE_NEST1(macro, GEODE_CONCAT(begin, 3)), \
+// GEODE_NEST1(macro, GEODE_CONCAT(begin, 4)), \
+// GEODE_NEST1(macro, GEODE_CONCAT(begin, 5)), \
+// GEODE_NEST1(macro, GEODE_CONCAT(begin, 6)), \
+// GEODE_NEST1(macro, GEODE_CONCAT(begin, 7)), \
+// GEODE_NEST1(macro, GEODE_CONCAT(begin, 8)), \
+// GEODE_NEST1(macro, GEODE_CONCAT(begin, 9)), \
+// GEODE_NEST1(macro, GEODE_CONCAT(begin, a)), \
+// GEODE_NEST1(macro, GEODE_CONCAT(begin, b)), \
+// GEODE_NEST1(macro, GEODE_CONCAT(begin, c)), \
+// GEODE_NEST1(macro, GEODE_CONCAT(begin, d)), \
+// GEODE_NEST1(macro, GEODE_CONCAT(begin, e)), \
+// GEODE_NEST1(macro, GEODE_CONCAT(begin, f))  
 
-#define GEODE_NEST3(macro, begin)           \
-GEODE_NEST2(macro, GEODE_CONCAT(begin, 0)), \
-GEODE_NEST2(macro, GEODE_CONCAT(begin, 1)), \
-GEODE_NEST2(macro, GEODE_CONCAT(begin, 2)), \
-GEODE_NEST2(macro, GEODE_CONCAT(begin, 3)), \
-GEODE_NEST2(macro, GEODE_CONCAT(begin, 4)), \
-GEODE_NEST2(macro, GEODE_CONCAT(begin, 5)), \
-GEODE_NEST2(macro, GEODE_CONCAT(begin, 6)), \
-GEODE_NEST2(macro, GEODE_CONCAT(begin, 7)), \
-GEODE_NEST2(macro, GEODE_CONCAT(begin, 8)), \
-GEODE_NEST2(macro, GEODE_CONCAT(begin, 9)), \
-GEODE_NEST2(macro, GEODE_CONCAT(begin, a)), \
-GEODE_NEST2(macro, GEODE_CONCAT(begin, b)), \
-GEODE_NEST2(macro, GEODE_CONCAT(begin, c)), \
-GEODE_NEST2(macro, GEODE_CONCAT(begin, d)), \
-GEODE_NEST2(macro, GEODE_CONCAT(begin, e)), \
-GEODE_NEST2(macro, GEODE_CONCAT(begin, f))  
+// #define GEODE_NEST3(macro, begin)           \
+// GEODE_NEST2(macro, GEODE_CONCAT(begin, 0)), \
+// GEODE_NEST2(macro, GEODE_CONCAT(begin, 1)), \
+// GEODE_NEST2(macro, GEODE_CONCAT(begin, 2)), \
+// GEODE_NEST2(macro, GEODE_CONCAT(begin, 3)), \
+// GEODE_NEST2(macro, GEODE_CONCAT(begin, 4)), \
+// GEODE_NEST2(macro, GEODE_CONCAT(begin, 5)), \
+// GEODE_NEST2(macro, GEODE_CONCAT(begin, 6)), \
+// GEODE_NEST2(macro, GEODE_CONCAT(begin, 7)), \
+// GEODE_NEST2(macro, GEODE_CONCAT(begin, 8)), \
+// GEODE_NEST2(macro, GEODE_CONCAT(begin, 9)), \
+// GEODE_NEST2(macro, GEODE_CONCAT(begin, a)), \
+// GEODE_NEST2(macro, GEODE_CONCAT(begin, b)), \
+// GEODE_NEST2(macro, GEODE_CONCAT(begin, c)), \
+// GEODE_NEST2(macro, GEODE_CONCAT(begin, d)), \
+// GEODE_NEST2(macro, GEODE_CONCAT(begin, e)), \
+// GEODE_NEST2(macro, GEODE_CONCAT(begin, f))  
 
-#define GEODE_NEST4(macro, begin)           \
-GEODE_NEST3(macro, GEODE_CONCAT(begin, 0)), \
-GEODE_NEST3(macro, GEODE_CONCAT(begin, 1)), \
-GEODE_NEST3(macro, GEODE_CONCAT(begin, 2)), \
-GEODE_NEST3(macro, GEODE_CONCAT(begin, 3)), \
-GEODE_NEST3(macro, GEODE_CONCAT(begin, 4)), \
-GEODE_NEST3(macro, GEODE_CONCAT(begin, 5)), \
-GEODE_NEST3(macro, GEODE_CONCAT(begin, 6)), \
-GEODE_NEST3(macro, GEODE_CONCAT(begin, 7)), \
-GEODE_NEST3(macro, GEODE_CONCAT(begin, 8)), \
-GEODE_NEST3(macro, GEODE_CONCAT(begin, 9)), \
-GEODE_NEST3(macro, GEODE_CONCAT(begin, a)), \
-GEODE_NEST3(macro, GEODE_CONCAT(begin, b)), \
-GEODE_NEST3(macro, GEODE_CONCAT(begin, c)), \
-GEODE_NEST3(macro, GEODE_CONCAT(begin, d)), \
-GEODE_NEST3(macro, GEODE_CONCAT(begin, e)), \
-GEODE_NEST3(macro, GEODE_CONCAT(begin, f))  
+// #define GEODE_NEST4(macro, begin)           \
+// GEODE_NEST3(macro, GEODE_CONCAT(begin, 0)), \
+// GEODE_NEST3(macro, GEODE_CONCAT(begin, 1)), \
+// GEODE_NEST3(macro, GEODE_CONCAT(begin, 2)), \
+// GEODE_NEST3(macro, GEODE_CONCAT(begin, 3)), \
+// GEODE_NEST3(macro, GEODE_CONCAT(begin, 4)), \
+// GEODE_NEST3(macro, GEODE_CONCAT(begin, 5)), \
+// GEODE_NEST3(macro, GEODE_CONCAT(begin, 6)), \
+// GEODE_NEST3(macro, GEODE_CONCAT(begin, 7)), \
+// GEODE_NEST3(macro, GEODE_CONCAT(begin, 8)), \
+// GEODE_NEST3(macro, GEODE_CONCAT(begin, 9)), \
+// GEODE_NEST3(macro, GEODE_CONCAT(begin, a)), \
+// GEODE_NEST3(macro, GEODE_CONCAT(begin, b)), \
+// GEODE_NEST3(macro, GEODE_CONCAT(begin, c)), \
+// GEODE_NEST3(macro, GEODE_CONCAT(begin, d)), \
+// GEODE_NEST3(macro, GEODE_CONCAT(begin, e)), \
+// GEODE_NEST3(macro, GEODE_CONCAT(begin, f))  
 
 
-#define GEODE_ENUM_OFFSETS_DEFINE(hex) GEODE_CONCAT($, hex)
-#define GEODE_ENUM_OFFSETS_SET() GEODE_NEST4(GEODE_ENUM_OFFSETS_DEFINE, 0x)
+// #define GEODE_ENUM_OFFSETS_DEFINE(hex) GEODE_CONCAT($, hex)
+// #define GEODE_ENUM_OFFSETS_SET() GEODE_NEST4(GEODE_ENUM_OFFSETS_DEFINE, 0x)
 
-enum class PrinterOffsets {
-   GEODE_ENUM_OFFSETS_SET() 
-};
+// enum class PrinterOffsets {
+//    GEODE_ENUM_OFFSETS_SET() 
+// };

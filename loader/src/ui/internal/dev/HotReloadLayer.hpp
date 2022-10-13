@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
+#include <cocos2d.h>
 
 USE_GEODE_NAMESPACE();
 

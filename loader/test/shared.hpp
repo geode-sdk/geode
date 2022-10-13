@@ -1,5 +1,5 @@
 #define EXPORT_NAME TestDependency
-#include <Geode/Geode.hpp>
+#include <Geode/Loader.hpp>
 
 API_INIT("com.geode.testdep")
 

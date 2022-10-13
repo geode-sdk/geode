@@ -14,6 +14,10 @@ endif()
 
 add_library(${PROJECT_NAME} INTERFACE)
 
+if (CMAKE_BUILD_TYPE STREQUAL Debug OR CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo) 
+	target_compile_definitions(${PROJECT_NAME} INTERFACE -DGEODE_DEBUG)
+endif()
+
 # Rerun CMake on VERSION file change
 set_target_properties(${PROJECT_NAME} PROPERTIES CMAKE_CONFIGURE_DEPENDS VERSION)
 
@@ -39,21 +43,22 @@ add_custom_target(CodegenRun ALL
 	COMMAND Codegen ${GEODE_TARGET_PLATFORM} bindings ${GEODE_CODEGEN_PATH}
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 	COMMENT "Run Codegen"
-	BYPRODUCTS ${GEODE_CODEGEN_PATH}/GeneratedSource.cpp
+	BYPRODUCTS ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp
 )
 add_dependencies(${PROJECT_NAME} CodegenRun)
 add_dependencies(CodegenRun Codegen)
 
 # Hacky way to supress the not generated error
-if (NOT EXISTS ${GEODE_CODEGEN_PATH}/GeneratedSource.cpp)
+if (NOT EXISTS ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp)
 	make_directory(${GEODE_CODEGEN_PATH})
-	file(TOUCH ${GEODE_CODEGEN_PATH}/GeneratedSource.cpp)
+	make_directory(${GEODE_CODEGEN_PATH}/Geode)
+	file(TOUCH ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp)
 endif()
 
-target_sources(${PROJECT_NAME} INTERFACE ${GEODE_CODEGEN_PATH}/GeneratedSource.cpp)
-target_include_directories(${PROJECT_NAME} INTERFACE ${GEODE_CODEGEN_PATH}/..)
+target_sources(${PROJECT_NAME} INTERFACE ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp)
 
 target_include_directories(${PROJECT_NAME} INTERFACE
+	${GEODE_CODEGEN_PATH}
 	${GEODE_LOADER_PATH}/include
 	${GEODE_LOADER_PATH}/include/Geode/cocos/
 	${GEODE_LOADER_PATH}/include/Geode/cocos/cocos2dx
