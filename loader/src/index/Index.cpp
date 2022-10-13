@@ -7,6 +7,7 @@
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/vector.hpp>
+#include <Geode/utils/map.hpp>
 
 #define GITHUB_DONT_RATE_LIMIT_ME_PLS 0
 
