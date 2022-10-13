@@ -49,12 +49,8 @@ Result<Mod*> Loader::loadModFromFile(std::string const& path) {
     m_mods.insert({ res.value().m_id, mod });
     mod->updateDependencyStates();
 
-    log::debug("loaded mod, adding resources");
-
     // add mod resources
     this->queueInGDThread([this, mod]() {
-        log::debug("steve :pleading_face:");
-        
         this->updateModResourcePaths(mod);
         this->updateModResources(mod);
     });
