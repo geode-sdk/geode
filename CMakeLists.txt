@@ -47,6 +47,7 @@ add_dependencies(CodegenRun Codegen)
 # Hacky way to supress the not generated error
 if (NOT EXISTS ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp)
 	make_directory(${GEODE_CODEGEN_PATH})
+	make_directory(${GEODE_CODEGEN_PATH}/Geode)
 	file(TOUCH ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp)
 endif()
 
