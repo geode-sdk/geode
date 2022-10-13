@@ -14,6 +14,7 @@
 #include <Geode/binding/SliderTouchLogic.hpp>
 #include <Geode/binding/GJListLayer.hpp>
 #include <Geode/binding/CCTextInputNode.hpp>
+#include <Geode/loader/Mod.hpp>
 
 // TODO: die
 #undef min
