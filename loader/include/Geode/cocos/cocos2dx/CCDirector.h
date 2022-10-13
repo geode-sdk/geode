@@ -529,7 +529,7 @@ protected:
     CCDirectorDelegate *m_pProjectionDelegate;
 
     RT_ADD(
-        CC_PROPERTY(CCSceneDelegate*, m_pAppDelegate, SceneDelegate);
+        CC_SYNTHESIZE(CCSceneDelegate*, m_pAppDelegate, SceneDelegate);
         CCSize m_obScaleFactor;
         CCSize m_obResolutionInPixels;
         TextureQuality m_eTextureQuality;
