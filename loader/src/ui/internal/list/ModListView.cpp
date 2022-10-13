@@ -1,10 +1,15 @@
 #include "ModListView.hpp"
 #include "../info/ModInfoLayer.hpp"
-#include <Geode/utils/WackyGeodeMacros.hpp>
+#include <Geode/utils/cocos.hpp>
+#include <Geode/utils/casts.hpp>
+#include <Geode/utils/string.hpp>
 #include <Index.hpp>
 #include "ModListLayer.hpp"
 #include <InternalLoader.hpp>
 #include "../info/CategoryNode.hpp"
+#include <codegenned/binding/StatsCell.hpp>
+#include <codegenned/binding/ButtonSprite.hpp>
+#include <codegenned/binding/TableView.hpp>
 
 template<class T>
 static bool tryOrAlert(Result<T> const& res, const char* title) {

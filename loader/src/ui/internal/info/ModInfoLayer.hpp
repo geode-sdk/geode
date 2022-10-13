@@ -1,6 +1,7 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
+#include <codegenned/binding/FLAlertLayer.hpp>
+#include <codegenned/binding/FLAlertLayerProtocol.hpp>
 #include <Index.hpp>
 #include <Geode/ui/MDTextArea.hpp>
 #include <Geode/ui/Scrollbar.hpp>

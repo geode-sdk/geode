@@ -1,6 +1,7 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
+#include <codegenned/binding/TableViewCell.hpp>
+#include <codegenned/binding/CustomListView.hpp>
 
 USE_GEODE_NAMESPACE();
 

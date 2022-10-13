@@ -1,4 +1,4 @@
-#include <Geode/utils/WackyGeodeMacros.hpp>
+#include <Geode/utils/cocos.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
 #include <Geode/ui/Notification.hpp>
 #include <Index.hpp>

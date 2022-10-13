@@ -1,6 +1,7 @@
 #pragma once
 
 #include "HookListView.hpp"
+#include <codegenned/binding/GJDropDownLayer.hpp>
 
 class HookListLayer : public GJDropDownLayer {
     protected:
