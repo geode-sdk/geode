@@ -1,5 +1,3 @@
-#include <Geode/Modify.hpp>
-
 #ifdef GEODE_IS_WINDOWS
 
 USE_GEODE_NAMESPACE();

@@ -44,6 +44,4 @@ namespace geode::modifier {
 			static_assert(core::meta::always_false<Derived>, "Custom Modify not implemented.");
 		}
 	};
-
-	#include <codegenned/GeneratedModify.hpp>
 }

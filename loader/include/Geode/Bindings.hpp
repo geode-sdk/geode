@@ -352,4 +352,4 @@ enum class LeaderboardState {
 #define CLASSPARAM(...)
 #define STRUCTPARAM(...)
 
-#include <codegenned/GeneratedHeader.hpp>
+#include <codegenned/GeneratedBinding.hpp>

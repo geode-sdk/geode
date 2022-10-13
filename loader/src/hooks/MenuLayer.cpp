@@ -1,4 +1,3 @@
-#include <Geode/Geode.hpp>
 #include <Geode/utils/WackyGeodeMacros.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
 #include <Geode/ui/Notification.hpp>
@@ -8,7 +7,6 @@
 #include <InternalMod.hpp>
 #include "../ui/internal/info/ModInfoLayer.hpp"
 #include <InternalLoader.hpp>
-#include <Geode/Modify.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -130,6 +128,7 @@ static void updateIndexProgress(
 	}
 }
 
+#include <codegenned/modify/MenuLayer.hpp>
 class $modify(CustomMenuLayer, MenuLayer) {
 	void destructor() {
 		g_geodeButton = nullptr;
