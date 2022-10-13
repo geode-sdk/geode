@@ -106,6 +106,39 @@ namespace geode::utils::web {
     template<class T>
     using DataConverter = Result<T>(*)(byte_array const&);
 
+    class GEODE_DLL AsyncWebRequest {
+    private:
+        std::optional<std::string> m_joinID;
+        std::string m_url;
+        AsyncThen m_then = nullptr;
+        AsyncExpect m_expect = nullptr;
+        AsyncProgress m_progress = nullptr;
+        AsyncCancelled m_cancelled = nullptr;
+        bool m_sent = false;
+        std::variant<
+            std::monostate,
+            std::ostream*,
+            ghc::filesystem::path
+        > m_target;
+
+        template<class T>
+        friend class AsyncWebResult;
+        friend class SentAsyncWebRequest;
+        friend class AsyncWebResponse;
+
+    public:
+        AsyncWebRequest& join(std::string const& requestID);
+        AsyncWebResponse fetch(std::string const& url);
+        AsyncWebRequest& expect(AsyncExpect handler);
+        AsyncWebRequest& progress(AsyncProgress progressFunc);
+        // Web requests may be cancelled after they are finished (for example, 
+        // if downloading files in bulk and one fails). In that case, handle 
+        // freeing up the results of `then` here
+        AsyncWebRequest& cancelled(AsyncCancelled cancelledFunc);
+        SentAsyncWebRequestHandle send();
+        ~AsyncWebRequest();
+    };
+
     template<class T>
     class AsyncWebResult {
     private:
@@ -169,39 +202,6 @@ namespace geode::utils::web {
         AsyncWebResult<T> as(DataConverter<T> converter) {
             return AsyncWebResult(m_request, converter);
         }
-    };
-
-    class GEODE_DLL AsyncWebRequest {
-    private:
-        std::optional<std::string> m_joinID;
-        std::string m_url;
-        AsyncThen m_then = nullptr;
-        AsyncExpect m_expect = nullptr;
-        AsyncProgress m_progress = nullptr;
-        AsyncCancelled m_cancelled = nullptr;
-        bool m_sent = false;
-        std::variant<
-            std::monostate,
-            std::ostream*,
-            ghc::filesystem::path
-        > m_target;
-
-        template<class T>
-        friend class AsyncWebResult;
-        friend class SentAsyncWebRequest;
-        friend class AsyncWebResponse;
-
-    public:
-        AsyncWebRequest& join(std::string const& requestID);
-        AsyncWebResponse fetch(std::string const& url);
-        AsyncWebRequest& expect(AsyncExpect handler);
-        AsyncWebRequest& progress(AsyncProgress progressFunc);
-        // Web requests may be cancelled after they are finished (for example, 
-        // if downloading files in bulk and one fails). In that case, handle 
-        // freeing up the results of `then` here
-        AsyncWebRequest& cancelled(AsyncCancelled cancelledFunc);
-        SentAsyncWebRequestHandle send();
-        ~AsyncWebRequest();
     };
 }
 

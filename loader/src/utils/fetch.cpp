@@ -3,6 +3,7 @@
 #include <Geode/utils/casts.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/utils/vector.hpp>
+#include <thread>
 
 USE_GEODE_NAMESPACE();
 using namespace web;
