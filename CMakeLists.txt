@@ -93,7 +93,7 @@ if (PROJECT_IS_TOP_LEVEL)
 	target_link_libraries(${PROJECT_NAME} INTERFACE geode-loader)
 elseif(EXISTS ${GEODE_PLATFORM_BIN_PATH})
 	target_link_libraries(${PROJECT_NAME} INTERFACE "${GEODE_PLATFORM_BIN_PATH}")
-	target_precompile_headers(${PROJECT_NAME} PRIVATE
+	target_precompile_headers(${PROJECT_NAME} INTERFACE
 		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/DefaultInclude.hpp"
 		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Loader.hpp"
 		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/UI.hpp"
