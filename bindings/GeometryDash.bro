@@ -3865,6 +3865,7 @@ class LoadingLayer : cocos2d::CCLayer {
         m_fromRefresh = value;
     }
 
+    LoadingLayer() {}
     static LoadingLayer* create(bool fromReload) = mac 0x1df1f0, win 0x18bfe0, ios 0x130278;
     bool init(bool fromReload) = mac 0x1df2f0, win 0x18c080, ios 0x0;
     const char* getLoadingString() = mac 0x0, win 0x18cf40, ios 0x0;

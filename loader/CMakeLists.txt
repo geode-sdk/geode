@@ -81,14 +81,13 @@ if (GEODE_NO_UNDEFINED_VIRTUALS)
 	target_compile_definitions(${PROJECT_NAME} PUBLIC GEODE_NO_UNDEFINED_VIRTUALS)
 endif()
 
-if (NOT GEODE_DISABLE_CLI_CALLS)
-	# Package resources for UI
-	package_geode_resources(
-		${PROJECT_NAME}
-		${CMAKE_CURRENT_SOURCE_DIR}/resources
-		${GEODE_BIN_PATH}/nightly/resources
-	)
-endif()
+# Package resources for UI
+package_geode_resources_now(
+	${PROJECT_NAME}
+	${CMAKE_CURRENT_SOURCE_DIR}/resources
+	${GEODE_BIN_PATH}/nightly/resources
+	${CMAKE_CURRENT_SOURCE_DIR}/src/internal/resources.hpp
+)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
 	src/internal/
