@@ -1,25 +1,28 @@
 set(GEODE_CLI_MINIMUM_VERSION 1.0.5)
 
+# for passing CLI through CMake arguments
+if (DEFINED CLI_PATH)
+    list(APPEND CMAKE_PROGRAM_PATH ${CLI_PATH}) 
+endif()
+
+# Find Geode CLI
 if (NOT DEFINED GEODE_CLI)
     find_program(GEODE_CLI NAMES geode.exe geode-cli.exe geode geode-cli)
 endif()
 
+# Check if CLI was found
 if (GEODE_CLI STREQUAL "GEODE_CLI-NOTFOUND")
 	message(STATUS "Unable to find Geode CLI")
 else()
-    if (NOT GEODE_DISABLE_CLI_CALLS)
-
-        # `geode --version` returns `geode x.x.x\n` so gotta do some wacky shit
-        execute_process(
-            COMMAND ${GEODE_CLI} --version
-            OUTPUT_VARIABLE GEODE_CLI_VERSION
-        )
-        # Remove trailing newline
-        string(STRIP ${GEODE_CLI_VERSION} GEODE_CLI_VERSION)
-        # Remove program name
-        string(REPLACE "geode " "" GEODE_CLI_VERSION ${GEODE_CLI_VERSION})
-
-    endif()
+    # `geode --version` returns `geode x.x.x\n` so gotta do some wacky shit
+    execute_process(
+        COMMAND ${GEODE_CLI} --version
+        OUTPUT_VARIABLE GEODE_CLI_VERSION
+    )
+    # Remove trailing newline
+    string(STRIP ${GEODE_CLI_VERSION} GEODE_CLI_VERSION)
+    # Remove program name
+    string(REPLACE "geode " "" GEODE_CLI_VERSION ${GEODE_CLI_VERSION})
 
     # Need at least v1.0.5 (--shut-up arg in geode package resources)
     if (${GEODE_CLI_VERSION} VERSION_LESS ${GEODE_CLI_MINIMUM_VERSION})
@@ -127,9 +130,10 @@ endfunction()
 
 function(package_geode_resources_now proname src dest header_dest)
     if (GEODE_DISABLE_CLI_CALLS)
-        message(FATAL_ERROR
+        message(WARNING
             "package_geode_resources_now called, but GEODE_DISABLE_CLI_CALLS 
-            is set to true - This function requires CLI calls in order to work"
+            is set to true - Ignoring it as this function requires CLI calls 
+            in order to work"
         )
     endif()
 
