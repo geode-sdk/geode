@@ -173,6 +173,12 @@ bool InternalLoader::verifyLoaderResources(IndexUpdateCallback callback) {
         return false;
     }
 
+    return true;
+    // FIXME: plist orderings are not consistent
+    // thus every time CLI generates them its a different hash..
+    // making it so geode would always fetch resources
+    // so for now, disable hash checks
+
     // make sure every file was covered
     size_t coverage = 0;
 
