@@ -6,4 +6,6 @@ project(GeodeChecksum VERSION 1.0)
 
 add_executable(${PROJECT_NAME} hash.cpp)
 
+target_link_libraries(${PROJECT_NAME} PUBLIC filesystem)
+
 message(STATUS "Building Checksum Exe")
