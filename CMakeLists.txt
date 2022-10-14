@@ -93,7 +93,13 @@ if (PROJECT_IS_TOP_LEVEL)
 	target_link_libraries(${PROJECT_NAME} INTERFACE geode-loader)
 elseif(EXISTS ${GEODE_PLATFORM_BIN_PATH})
 	target_link_libraries(${PROJECT_NAME} INTERFACE "${GEODE_PLATFORM_BIN_PATH}")
-	target_precompile_headers(${PROJECT_NAME} INTERFACE "${GEODE_LOADER_PATH}/include/Geode/Geode.hpp")
+	target_precompile_headers(${PROJECT_NAME} PRIVATE
+		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/DefaultInclude.hpp"
+		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Loader.hpp"
+		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/UI.hpp"
+		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/cocos/cocos2dx/include/cocos2d.h"
+		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/cocos/extensions/cocos-ext.h"
+	)
 else()
 	message(FATAL_ERROR "No valid loader binary to link to! Install a pre-built binary for version ${PROJECT_VERSION} with Geode CLI or build it from source.")
 endif()

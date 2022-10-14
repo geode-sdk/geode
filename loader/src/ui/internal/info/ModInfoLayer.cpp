@@ -456,9 +456,7 @@ void ModInfoLayer::onEnableMod(CCObject* pSender) {
     if (!InternalLoader::get()->shownInfoAlert("mod-disable-vs-unload")) {
         FLAlertLayer::create(
             "Notice",
-            "<cb>Disabling</c> a <cy>mod</c> removes its hooks & patches and "
-            "calls its user-defined disable function if one exists. You may "
-            "still see some effects of the mod left however, and you may "
+            "You may still see some effects of the mod left, and you may "
             "need to <cg>restart</c> the game to have it fully unloaded.",
             "OK"
         )->show();
