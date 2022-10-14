@@ -175,6 +175,14 @@ namespace geode {
          * format
          */
         static Result<ModInfo> createFromSchemaV010(ModJson const& json);
+
+        Result<> addSpecialFiles(ghc::filesystem::path const& dir);
+        Result<> addSpecialFiles(cocos2d::ZipFile& zip);
+
+        std::vector<std::pair<
+            std::string,
+            std::optional<std::string>*
+        >> getSpecialFiles();
     };
 
     /**
