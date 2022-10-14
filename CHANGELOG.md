@@ -1,5 +1,14 @@
 # Geode Changelog
 
+## v0.4.6
+ - Automatically checks & downloads loader resources if they are missing / corrupt on startup
+ - CMake rework; `GeodeFile.cmake` now checks and verifies CLI version
+ - Add optional `DONT_INSTALL` parameter to `create_geode_file`
+ - Test mods are now no longer automatically installed
+ - Add `package_geode_resources_now` command for packaging resources at configure time and creating a header with their calculated hashes
+ - Fix `getSceneDelegate`
+ - Change `CCArrayExt` to use `Ref`
+
 ## v0.4.5
 
  - Rework bindings and codegen to improve compile times, now individual bindings can be included with `<Geode/binding/{ClassName}.hpp>`

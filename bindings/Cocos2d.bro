@@ -641,6 +641,10 @@ class cocos2d::CCPoolManager {
 	static cocos2d::CCPoolManager* sharedPoolManager() = mac 0x2142c0;
 }
 
+class cocos2d::CCRemoveSelf {
+	static cocos2d::CCRemoveSelf* create(bool) = mac 0x454700;
+}
+
 class cocos2d::CCRenderTexture {
 	auto begin() = mac 0x35ce10;
 	auto end() = mac 0x35d2c0;

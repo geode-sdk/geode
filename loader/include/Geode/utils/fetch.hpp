@@ -148,6 +148,13 @@ namespace geode::utils::web {
 
     public:
         /**
+         * An asynchronous, thread-safe web request. Downloads data from the 
+         * internet without slowing the main thread. All callbacks are run in the 
+         * GD thread, so interacting with the Cocos2d UI is perfectly safe
+         */
+        AsyncWebRequest() = default;
+
+        /**
          * If you only want one instance of this web request to run (for example, 
          * you're downloading some global data for a manager), then use this 
          * to specify a Join ID. If another request with the same ID is 

@@ -18,11 +18,17 @@ jobs:
           prefixes: ''
           extra_flags: '-G "Visual Studio 16 2019" -T host=x86 -A win32'
           out_paths: './bin/nightly/Geode.dll ./bin/nightly/GeodeBootstrapper.dll ./bin/nightly/Geode.lib ./bin/nightly/XInput9_1_0.dll'
+          cli_name: '*-win.zip'
+          cli_cmd: ''
+
         - name: "macOS"
           os: macos-latest
           prefixes: 'PATH="/usr/local/opt/ccache/libexec:$PATH"'
           extra_flags: "-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++"
           out_paths: './bin/nightly/Geode.dylib ./bin/nightly/GeodeBootstrapper.dylib'
+          cli_name: '*-mac.zip'
+          cli_cmd: 'chmod +x $GITHUB_WORKSPACE/cli/geode'
+          
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
 
@@ -42,9 +48,28 @@ jobs:
         key: ${{ matrix.config.os }}
       if: matrix.config.os == 'macos-latest'
 
+    - name: Download CLI
+      uses: robinraju/release-downloader@v1.5
+      with:
+        repository: geode-sdk/cli
+        latest: true
+        fileName: ${{ matrix.config.cli_name }}
+        tarBall: false
+        zipBall: false
+        out-file-path: "cli"
+    
+    - name: Unzip CLI
+      run: |
+        7z x "${{ github.workspace }}/cli/${{ matrix.config.cli_name }}" -o"${{ github.workspace }}/cli"
+    
+    - name: Add CLI to Path
+      run: |
+        ${{ matrix.config.cli_cmd }}
+        echo "${{ github.workspace }}/cli" >> $GITHUB_PATH
+
     - name: Configure CMake
       run: |
-        ${{ matrix.config.prefixes }} cmake -B ${{ github.workspace }}/build ${{ matrix.config.extra_flags }} -DGEODE_DISABLE_CLI_CALLS=ON
+        ${{ matrix.config.prefixes }} cmake -B ${{ github.workspace }}/build ${{ matrix.config.extra_flags }} -DGEODE_DISABLE_CLI_CALLS=ON -DCLI_PATH="${{ github.workspace }}/cli"
 
     - name: Build
       run: |

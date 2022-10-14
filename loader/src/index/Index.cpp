@@ -664,7 +664,7 @@ InstallItems::CallbackID InstallItems::start(
 
                 // verify checksum
                 this->progress("Verifying", 100);
-                if (::calculateHash(tempFile.string()) != item.m_download.m_hash) {
+                if (::calculateHash(tempFile) != item.m_download.m_hash) {
                     try { ghc::filesystem::remove(tempFile); } catch(...) {}
                     return this->error(
                         "Checksum mismatch! (Downloaded file did not match what "
