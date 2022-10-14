@@ -10,6 +10,7 @@
 #include <unordered_set>
 #include <Geode/utils/json.hpp>
 #include <optional>
+#include "../index/Index.hpp"
 
 USE_GEODE_NAMESPACE();
 
@@ -26,6 +27,8 @@ protected:
 
 	void saveInfoAlerts(nlohmann::json& json);
 	void loadInfoAlerts(nlohmann::json& json);
+
+	void downloadLoaderResources(IndexUpdateCallback callback);
 
 	InternalLoader();
 	~InternalLoader();
@@ -54,6 +57,8 @@ public:
 	void openPlatformConsole();
 	void closePlatformConsole();
 	static void platformMessageBox(const char* title, std::string const& info);
+
+	bool verifyLoaderResources(IndexUpdateCallback callback);
 	
 	friend int geodeEntry(void* platformData);
 };

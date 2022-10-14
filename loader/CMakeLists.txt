@@ -83,10 +83,11 @@ endif()
 
 if (NOT GEODE_DISABLE_CLI_CALLS)
 	# Package resources for UI
-	package_geode_resources(
+	package_geode_resources_now(
 		${PROJECT_NAME}
 		${CMAKE_CURRENT_SOURCE_DIR}/resources
 		${GEODE_BIN_PATH}/nightly/resources
+		${CMAKE_CURRENT_SOURCE_DIR}/src/internal/resources.hpp
 	)
 endif()
 
