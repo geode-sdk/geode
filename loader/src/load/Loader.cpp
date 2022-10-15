@@ -49,67 +49,67 @@ void Loader::createDirectories() {
     m_logStream = std::ofstream(logDir / log::generateLogName());
 }
 
-void Loader::updateResourcePaths() {
-    log::debug("Updating resources paths");
-
-    // add own geode/resources directory
-    CCFileUtils::sharedFileUtils()->addSearchPath(
-        (this->getGeodeDirectory() / GEODE_RESOURCE_DIRECTORY).string().c_str()
-    );
-
-    // add geode/temp for accessing root resources in mods
-    auto tempDir = this->getGeodeDirectory() / GEODE_TEMP_DIRECTORY;
-    CCFileUtils::sharedFileUtils()->addSearchPath(tempDir.string().c_str());
-
-    // add geode/temp/mod.id/resources for accessing additional resources in mods
-    for (auto& [_, mod] : m_mods) {
-        this->updateModResourcePaths(mod);
-    }
-}
-
-void Loader::updateModResourcePaths(Mod* mod) {
-    if (mod->m_addResourcesToSearchPath) {
-        CCFileUtils::sharedFileUtils()->addSearchPath(
-            (this->getGeodeDirectory() / 
-                GEODE_TEMP_DIRECTORY / 
-                mod->getID() / 
-                "resources"
-            ).string().c_str()
-        );
-        log::debug("Added resources path for {}", mod->getID());
-    }
-}
-
 void Loader::updateModResources(Mod* mod) {
+    if (!mod->m_addResourcesToSearchPath) {
+        log::debug("Mod {} doesn't have resources, skipping", mod->getID());
+        return;
+    }
+
+    auto searchPath = this->getGeodeDirectory() / 
+        GEODE_TEMP_DIRECTORY / mod->getID() / "resources";
+
+    // if resources already added
+    if (vector::contains(CCFileUtils::get()->getSearchPaths(), searchPath.string())) {
+        return;
+    }
+
+    log::debug("Adding resources for {}", mod->getID());
+
+    // add search path
+    CCFileUtils::get()->addSearchPath(searchPath.string().c_str());
+
+    // add spritesheets
     for (auto const& sheet : mod->m_info.m_spritesheets) {
         auto png = sheet + ".png";
         auto plist = sheet + ".plist";
         auto ccfu = CCFileUtils::sharedFileUtils();
 
         if (
-            png == std::string(
-                ccfu->fullPathForFilename(png.c_str(), false)
-            ) ||
-            plist == std::string(
-                ccfu->fullPathForFilename(plist.c_str(), false)
-            )
+            png == std::string(ccfu->fullPathForFilename(png.c_str(), false)) ||
+            plist == std::string(ccfu->fullPathForFilename(plist.c_str(), false))
         ) {
-            log::warn("The resource dir of \"{}\" is missing \"{}\" png and/or plist files", mod->m_info.m_id, sheet);
+            log::warn(
+                "The resource dir of \"{}\" is missing \"{}\" png and/or plist files",
+                mod->m_info.m_id, sheet
+            );
         } else {
             CCTextureCache::sharedTextureCache()->addImage(png.c_str(), false);
             CCSpriteFrameCache::sharedSpriteFrameCache()
                 ->addSpriteFramesWithFile(plist.c_str());
-
-            log::debug("Added resources for {}", mod->getID());
         }
     }
 }
 
 void Loader::updateResources() {
-    log::debug("Adding mod resources");
+    log::debug("Adding resources");
 
-    // add own spritesheets
-    this->updateModResources(InternalMod::get());
+    // if resources already added
+    if (!vector::contains(
+        CCFileUtils::get()->getSearchPaths(),
+        (this->getGeodeDirectory() / GEODE_RESOURCE_DIRECTORY).string()
+    )) {
+        // add own geode/resources directory
+        CCFileUtils::get()->addSearchPath(
+            (this->getGeodeDirectory() / GEODE_RESOURCE_DIRECTORY).string().c_str()
+        );
+
+        // add geode/temp for accessing root resources in mods
+        auto tempDir = this->getGeodeDirectory() / GEODE_TEMP_DIRECTORY;
+        CCFileUtils::get()->addSearchPath(tempDir.string().c_str());
+
+        // add own spritesheets
+        this->updateModResources(InternalMod::get());
+    }
 
     // add mods' spritesheets
     for (auto const& [_, mod] : m_mods) {
@@ -353,12 +353,6 @@ bool Loader::setup() {
     this->loadSettings();
     this->refreshMods();
 
-    // add resources on startup
-    this->queueInGDThread([]() {
-        Loader::get()->updateResourcePaths();
-        Loader::get()->updateResources();
-    });
-
     m_isSetup = true;
 
     return true;
@@ -454,12 +448,8 @@ size_t Loader::getFieldIndexForClass(size_t hash) {
 }
 
 VersionInfo Loader::minModVersion() {
-    // patches are always backwards-compatible. if not, we have failed
-    return VersionInfo {
-        Loader::getVersion().getMajor(),
-        Loader::getVersion().getMinor(),
-        0,
-    };
+    // Remember to update when deleting features!
+    return VersionInfo { 0, 4, 0 };
 }
 
 VersionInfo Loader::maxModVersion() {

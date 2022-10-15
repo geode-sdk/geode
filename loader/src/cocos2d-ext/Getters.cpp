@@ -25,4 +25,8 @@ CCEGLView* CCEGLView::get() {
     return CCDirector::sharedDirector()->getOpenGLView();
 }
 
+CCFileUtils* CCFileUtils::get() {
+    return CCFileUtils::sharedFileUtils();
+}
+
 #pragma warning(pop)
