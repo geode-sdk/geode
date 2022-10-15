@@ -283,6 +283,8 @@ namespace gd {
 	template <typename T>
 	class GEODE_DLL vector {
 	 public:
+		using value_type = T;
+
 		operator std::vector<T>() {
 			std::vector<T> out;
 
@@ -459,6 +461,8 @@ namespace gd {
 	template <typename T>
 	class GEODE_DLL vector {
 	 public:
+		using value_type = T;
+
 		operator std::vector<T>() {
 			return m_internal;
 		}
