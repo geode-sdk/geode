@@ -14,7 +14,7 @@ namespace geode::utils::vector {
      * @returns True if element is in `vec`, false if not.
      */
     template<class T>
-    bool contains(std::vector<T> const& vec, T const& elem) {
+    bool contains(gd::vector<T> const& vec, T const& elem) {
         return std::find(vec.begin(), vec.end(), elem) != vec.end();
     }
 
@@ -23,10 +23,10 @@ namespace geode::utils::vector {
      * @param vec The vector to check.
      * @param elem The element to get the index of.
      * @returns Iterator to the index of element, or 
-     * std::vector::end if the item is not in the vector.
+     * gd::vector::end if the item is not in the vector.
      */
     template<class T>
-    typename std::vector<T>::const_iterator indexOf(std::vector<T> const& vec, T const& elem) {
+    typename gd::vector<T>::const_iterator indexOf(gd::vector<T> const& vec, T const& elem) {
         return std::find(vec.begin(), vec.end(), elem);
     }
 
@@ -39,7 +39,7 @@ namespace geode::utils::vector {
      * in `vec`, false if not.
      */
     template<class T>
-    bool contains(std::vector<T> const& vec, std::function<bool(T)> containFunc) {
+    bool contains(gd::vector<T> const& vec, std::function<bool(T)> containFunc) {
         for (auto const& item : vec) {
             if (containFunc(item))
                 return true;
@@ -53,7 +53,7 @@ namespace geode::utils::vector {
      * @param subVec The vector to add.
      */
     template<class T>
-    void push(std::vector<T> & vec, std::vector<T> const& subVec) {
+    void push(gd::vector<T> & vec, gd::vector<T> const& subVec) {
         vec.insert(vec.begin(), subVec.begin(), subVec.end());
     }
 
@@ -65,7 +65,7 @@ namespace geode::utils::vector {
      * @returns Joined string.
      */
     template<class T>
-    std::string join(std::vector<T> const& vec, std::string const& sep) {
+    std::string join(gd::vector<T> const& vec, std::string const& sep) {
         std::string res = "";
 
         for (auto p : vec) {
@@ -89,8 +89,8 @@ namespace geode::utils::vector {
      * @returns Mapped vector.
      */
     template<class T, class T2>
-    std::vector<T2> map(std::vector<T> const& vec, std::function<T2(T)> mapFunc) {
-        std::vector<T2> res;
+    gd::vector<T2> map(gd::vector<T> const& vec, std::function<T2(T)> mapFunc) {
+        gd::vector<T2> res;
         std::transform(vec.begin(), vec.end(), res.end(), mapFunc);
         return res;
     }
@@ -104,8 +104,8 @@ namespace geode::utils::vector {
      * @returns Filtered vector.
      */
     template<class T>
-    std::vector<T>& filterIP(std::vector<T> & vec, std::function<bool(T)> filterFunc) {
-        std::vector<T> res;
+    gd::vector<T>& filterIP(gd::vector<T> & vec, std::function<bool(T)> filterFunc) {
+        gd::vector<T> res;
         for (auto m : vec) {
             if (filterFunc(m)) {
                 res.push_back(m);
@@ -124,8 +124,8 @@ namespace geode::utils::vector {
      * @returns Filtered vector.
      */
     template<class T>
-    std::vector<T> filter(std::vector<T> const& vec, std::function<bool(T)> filterFunc) {
-        std::vector<T> res;
+    gd::vector<T> filter(gd::vector<T> const& vec, std::function<bool(T)> filterFunc) {
+        gd::vector<T> res;
         for (auto m : vec) {
             if (filterFunc(m)) {
                 res.push_back(m);
@@ -145,7 +145,7 @@ namespace geode::utils::vector {
      * found, the return type is nullptr.
      */
     template<class T>
-    T select(std::vector<T> const& vec, std::function<bool(T)> selectFunc) {
+    T select(gd::vector<T> const& vec, std::function<bool(T)> selectFunc) {
         for (auto const& v : vec) {
             if (selectFunc(v)) {
                 return v;
@@ -165,7 +165,7 @@ namespace geode::utils::vector {
      * @returns Filtered vector.
      */
     template<class T>
-    std::vector<T> selectAll(std::vector<T> const& vec, std::function<bool(T)> selectFunc) {
+    gd::vector<T> selectAll(gd::vector<T> const& vec, std::function<bool(T)> selectFunc) {
         return filter<T>(vec, selectFunc);
     }
 
@@ -176,7 +176,7 @@ namespace geode::utils::vector {
      * @returns Reference to vector.
      */
     template<class T>
-    std::vector<T>& erase(std::vector<T>& vec, T const& element) {
+    gd::vector<T>& erase(gd::vector<T>& vec, T const& element) {
         vec.erase(std::remove(vec.begin(), vec.end(), element), vec.end());
         return vec;
     }
@@ -189,7 +189,7 @@ namespace geode::utils::vector {
      * @returns Reference to vector.
      */
     template<class T>
-    std::vector<T>& erase(std::vector<T>& vec, std::function<bool(T)> eraseFunc) {
+    gd::vector<T>& erase(gd::vector<T>& vec, std::function<bool(T)> eraseFunc) {
         vec.erase(std::remove_if(vec.begin(), vec.end(), eraseFunc), vec.end());
         return vec;
     }
@@ -204,7 +204,7 @@ namespace geode::utils::vector {
      * accumulator, for example with R += T, to
      * compute the reduced value.
      * @example ```cpp
-     * std::vector<int> numbers = { 1, 3, 7, 8, };
+     * gd::vector<int> numbers = { 1, 3, 7, 8, };
      * int total = reduce<int, int>(numbers, [](int& acc, int val) -> void {
      *      acc += val;
      * }); // 19
@@ -212,7 +212,7 @@ namespace geode::utils::vector {
      * @returns Reduced value.
      */
     template<class R, class T>
-    R reduce(std::vector<T> const& vec, std::function<void(R&, T)> reduceFunc) {
+    R reduce(gd::vector<T> const& vec, std::function<void(R&, T)> reduceFunc) {
         R res = R();
         for (auto const& item : vec) {
             reduceFunc(res, item);
@@ -228,7 +228,7 @@ namespace geode::utils::vector {
      * @param after Element to insert before.
      */
     template<class T>
-    void insertBefore(std::vector<T> & vec, T const& item, T const& before) {
+    void insertBefore(gd::vector<T> & vec, T const& item, T const& before) {
         vec.insert(utils::vector::indexOf(vec, before), item);
     }
 
@@ -240,7 +240,7 @@ namespace geode::utils::vector {
      * @param after Element to insert after.
      */
     template<class T>
-    void insertAfter(std::vector<T> & vec, T const& item, T const& after) {
+    void insertAfter(gd::vector<T> & vec, T const& item, T const& after) {
         vec.insert(utils::vector::indexOf(vec, after) + 1, item);
     }
 }
