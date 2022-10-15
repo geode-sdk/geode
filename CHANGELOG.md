@@ -1,6 +1,17 @@
 # Geode Changelog
 
+## v0.4.8
+
+ - CLI issues fixed in v1.0.6 so loader again verifies if loader resources are missing / corrupt on startup
+ - Resource download text is no longer a popup on top of the title but instead just replaces the loading text
+ - Add delegates to `EditLevelLayer`
+
+## v0.4.7
+
+ - Loader resources check would always fail due to CLI issues, so for now loader just checks if the resources folder exists
+
 ## v0.4.6
+
  - Automatically checks & downloads loader resources if they are missing / corrupt on startup
  - CMake rework; `GeodeFile.cmake` now checks and verifies CLI version
  - Add optional `DONT_INSTALL` parameter to `create_geode_file`
