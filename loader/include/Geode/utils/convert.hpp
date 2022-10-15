@@ -2,6 +2,15 @@
 
 #include <cocos2d.h>
 #include "general.hpp"
+#include "json.hpp"
+
+// support converting ccColor3B / ccColor4B to / from json
+namespace cocos2d {
+    void GEODE_DLL to_json(nlohmann::json& json, cocos2d::ccColor3B const& color);
+    void GEODE_DLL from_json(nlohmann::json const& json, cocos2d::ccColor3B& color);
+    void GEODE_DLL to_json(nlohmann::json& json, cocos2d::ccColor4B const& color);
+    void GEODE_DLL from_json(nlohmann::json const& json, cocos2d::ccColor4B& color);
+}
 
 namespace geode::cocos {
     inline void ccDrawColor4B(cocos2d::ccColor4B const& color) {
@@ -80,6 +89,11 @@ namespace geode::cocos {
                 static_cast<GLubyte>(hexValue >> 0  & 0xff)
             };
     }
+
+    GEODE_DLL Result<cocos2d::ccColor3B> cc3bFromHexString(std::string const& hexValue);
+    GEODE_DLL Result<cocos2d::ccColor4B> cc4bFromHexString(std::string const& hexValue);
+    GEODE_DLL std::string cc3bToHexString(cocos2d::ccColor3B const& color);
+    GEODE_DLL std::string cc4bToHexString(cocos2d::ccColor4B const& color);
 
     template<typename T,
     	typename = std::enable_if_t<std::is_pointer_v<T>> >

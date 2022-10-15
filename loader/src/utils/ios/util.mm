@@ -17,7 +17,7 @@ std::string utils::clipboard::read() {
 	return std::string([[UIPasteboard generalPasteboard].string UTF8String]);
 }
 
-ghc::filesystem::path utils::dirs::geodeRoot() {
+ghc::filesystem::path utils::file::geodeRoot() {
 	return ghc::filesystem::path([[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] lastObject].path.UTF8String);
 }
 

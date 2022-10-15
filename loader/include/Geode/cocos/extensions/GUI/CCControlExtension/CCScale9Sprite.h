@@ -59,7 +59,7 @@ public:
 
 public:
     /** Original sprite's size. */
-    CC_SYNTHESIZE_READONLY(CCSize, m_originalSize, OriginalSize);
+    CC_SYNTHESIZE_READONLY_NV(CCSize, m_originalSize, OriginalSize);
     /** Prefered sprite's size. By default the prefered size is the original size. */
 
     //if the preferredSize component is given as -1, it is ignored

@@ -8,6 +8,8 @@
 #include <Geode/DefaultInclude.hpp>
 #include "Result.hpp"
 
+#undef snprintf
+
 namespace geode::utils {
     constexpr unsigned int hash(const char* str, int h = 0) {
         return !str[h] ? 5381 : (hash(str, h+1) * 33) ^ str[h];
@@ -59,6 +61,23 @@ namespace geode::utils {
 		stream << std::showbase << std::setbase(16) << (uint64_t)i;
 		return stream.str();
 	}
+
+    /**
+     * Turn a number into a string, with support for specifying precision 
+     * (unlike std::to_string).
+     * @param num Number to convert to string
+     * @param precision Precision of the converted number
+     * @returns Number as string
+     */
+    template<class Num>
+    std::string numToString(Num num, size_t precision = 0) {
+        std::stringstream ss;
+        if (precision) {
+            ss << std::fixed << std::setprecision(precision);
+        }
+        ss << num;
+        return ss.str();
+    }
 
     GEODE_DLL std::string timePointAsString(const std::chrono::system_clock::time_point& tp);
 }

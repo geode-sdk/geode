@@ -1,22 +1,20 @@
 #pragma once
-#include <Geode/Geode.hpp>
+
 #include "Traits.hpp"
+#include <Geode/loader/Loader.hpp>
 #include <vector>
 
+namespace cocos2d {
+	class CCNode;
+}
+
 namespace geode::modifier {
-	class FieldContainer : public cocos2d::CCObject {
+	class FieldContainer {
+	private:
 		std::vector<void*> m_containedFields;
 		std::vector<std::function<void(void*)>> m_destructorFunctions;
-	public:
 
-		static FieldContainer* create() {
-			auto ret = new (std::nothrow) FieldContainer;
-			if (ret) {
-				ret->autorelease();
-				return ret;
-			}
-			return nullptr;
-		}
+	public:
 		~FieldContainer() {
 			for (auto i = 0u; i < m_containedFields.size(); i++)  {
 				m_destructorFunctions[i](m_containedFields[i]);
@@ -35,13 +33,16 @@ namespace geode::modifier {
 			m_destructorFunctions.at(index) = destructor;
 			return m_containedFields.at(index);
 		}
+		static FieldContainer* from(cocos2d::CCNode* node) {
+			return node->getFieldContainer();
+		}
 	};
 	
 	template<class Base, class Intermediate, class Parent>
 	class FieldIntermediate {
 		// Padding used for guaranteeing any member of parents 
 		// will be in between sizeof(Intermediate) and sizeof(Parent)
-		std::max_align_t m_padding; 
+		uintptr_t m_padding; 
 	public:
 		static void fieldConstructor(void* offsetField) {
 			std::array<std::byte, sizeof(Parent)> parentContainer;
@@ -73,12 +74,9 @@ namespace geode::modifier {
 		template <class=std::enable_if_t<true>>
 		Parent* operator->() {
 			// get the this pointer of the base
-			auto node = reinterpret_cast<Parent*>(reinterpret_cast<std::byte*>(this) - offsetof(Parent, m_fields));
-			auto container = reinterpret_cast<FieldContainer*>(node->getUserObject());
-			if (!container) {
-				container = FieldContainer::create();
-				node->setUserObject(container);
-			}
+			auto node = reinterpret_cast<Parent*>(reinterpret_cast<std::byte*>(this) - sizeof(Base));
+			static_assert(sizeof(Base) == offsetof(Parent, m_fields), "offsetof not correct");
+			auto container = FieldContainer::from(node);
 			static size_t index = Loader::get()->getFieldIndexForClass(typeid(Base).hash_code());
 			// this pointer is offset 
 			auto offsetField = container->getField(index);

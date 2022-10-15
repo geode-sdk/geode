@@ -1,0 +1,65 @@
+name: Bug Report
+description: Report a bug where something is not working as expected, which does not crash the game.
+labels: [ "unverified", "bug" ]
+body:
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      description: The platform you were using when this bug was encountered.
+      options:
+        - "MacOS"
+        - "Windows"
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Geode Version
+      description: The version of Geode you were using when this bug was encountered. If you do not know where to find this, look for the mods listing.
+      placeholder: "Example: v0.5.4"
+    validations:
+      required: true
+  - type: textarea
+    id: mods
+    attributes:
+      label: Mods Installed
+      description: The mods and their respective versions used when this bug was encountered. If you were not using mods, please leave this field blank.
+      placeholder: "Example: geode.test v1.0.0, geode.testdep v0.1.0"
+    validations:
+      required: false
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What you expected to happen. Attach screenshots here as necessary.
+      placeholder: "Example: Expected to produce X by consuming Y."
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Actual Behavior
+      description: What happened despite your expectations. Attach screenshots here as necessary.
+      placeholder: "Example: Produced one X but Y was not consumed."
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: How to reproduce the bug.
+      placeholder: "Example: 1) I did X..."
+    validations:
+      required: true
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: Additional Information
+      description: Any additional information you wish to provide. Please add anything which did not fit into the other sections here.
+      placeholder: "Example: This is likely caused by X because..."
+    validations:
+      required: false
+  - type: markdown
+    attributes:
+      value: Thank you for taking the time to fill out this bug report. 

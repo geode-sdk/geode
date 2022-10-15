@@ -4,7 +4,7 @@
 #include "callconv.hpp"
 #include "common.hpp"
 #include "function.hpp"
-#include "preproc.hpp"
+#include "../platform/platform.hpp"
 #include "defaultconv.hpp"
 
 namespace geode::core::meta {}

@@ -1,6 +1,6 @@
-#include <Geode/Modify.hpp>
-
 #ifdef GEODE_IS_WINDOWS
+#include <Geode/loader/Mod.hpp>
+#include <Geode/modify/InternalMacros.hpp>
 
 USE_GEODE_NAMESPACE();
 using geode::core::meta::x86::Thiscall;
@@ -12,7 +12,7 @@ using geode::core::meta::x86::Thiscall;
 static auto CCEGLVIEW_CON_ADDR = reinterpret_cast<void*>(base::getCocos() + 0xc2860);
 
 static void __cdecl fixedErrorHandler(int code, const char* description) {
-    Log::get() << Severity::Critical << "GLFW Error " << code << ": " << description;
+    log::critical("GLFW Error {}: {}", code, description);
     MessageBoxA(
         nullptr,
         CCString::createWithFormat(
@@ -35,6 +35,9 @@ static CCEGLView* CCEGLView_CCEGLView(CCEGLView* self) {
     );
     return self;
 }
-static auto _ = Interface::get()->addHook<&CCEGLView_CCEGLView, Thiscall>("CCEGLView::CCEGLView", CCEGLVIEW_CON_ADDR);
+
+$execute {
+    Mod::get()->addHook<&CCEGLView_CCEGLView, Thiscall>("CCEGLView::CCEGLView", CCEGLVIEW_CON_ADDR);
+}
 
 #endif

@@ -4,7 +4,8 @@
 
 #ifdef GEODE_IS_WINDOWS
 
-#include <Geode/Geode.hpp>
+#include <Geode/utils/casts.hpp>
+#include <Geode/utils/file.hpp>
 
 #include "../crashlog.hpp"
 #include <Windows.h>
@@ -256,21 +257,17 @@ static void printMods(std::ostream& stream) {
 
 static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
     // make sure crashlog directory exists
-    file_utils::createDirectoryAll(crashlog::getCrashLogDirectory());
+    utils::file::createDirectoryAll(crashlog::getCrashLogDirectory());
 
     // add a file to let Geode know on next launch that it crashed previously
     // this could also be done by saving a loader setting or smth but eh.
-    file_utils::writeBinary(
+    utils::file::writeBinary(
         crashlog::getCrashLogDirectory() + "/last-crashed", {}
     );
 
     SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
 
-    std::ofstream file;
-    file.open(
-        crashlog::getCrashLogDirectory() + "/" + getDateString(true) + ".log",
-        std::ios::app
-    );
+    std::stringstream file;
 
     // init symbols so we can get some juicy debug info
     g_symbolsInitialized = SymInitialize(
@@ -293,7 +290,7 @@ static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
             << "Please submit this crash report to its developer ("
             << faultyMod->getDeveloper() << ") for assistance.\n";
     }
-    
+
     // geode info
     file << "\n== Geode Information ==\n";
     printGeodeInfo(file);
@@ -313,6 +310,20 @@ static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
     // mods
     file << "\n== Installed Mods ==\n";
     printMods(file);
+
+    // show message box on debug mode
+    #ifdef GEODE_DEBUG
+    MessageBoxA(nullptr, file.str().c_str(), "Geode Crashed", MB_ICONERROR);
+    #endif
+
+    // save actual file
+    std::ofstream actualFile;
+    actualFile.open(
+        crashlog::getCrashLogDirectory() + "/" + getDateString(true) + ".log",
+        std::ios::app
+    );
+    actualFile << file.rdbuf() << std::flush;
+    actualFile.close();
 
     return EXCEPTION_CONTINUE_SEARCH;
 }

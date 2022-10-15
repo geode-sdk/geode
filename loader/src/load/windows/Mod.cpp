@@ -2,7 +2,7 @@
 
 #ifdef GEODE_IS_WINDOWS
 
-#include <Geode/Geode.hpp>
+#include <Geode/loader/Mod.hpp>
 USE_GEODE_NAMESPACE();
 
 template<typename T>

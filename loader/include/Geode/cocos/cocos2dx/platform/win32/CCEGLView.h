@@ -95,6 +95,11 @@ public:
     @brief    get the shared main open gl window
     */
     static CCEGLView* sharedOpenGLView();
+
+    GEODE_ADD(
+        static CCEGLView* get();
+    );
+
     RT_ADD( static CCEGLView* create(const gd::string&);   )
 
     RT_ADD(

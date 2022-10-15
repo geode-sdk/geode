@@ -30,6 +30,10 @@ public:
     */
     static CCApplication* sharedApplication();
 
+    GEODE_ADD(
+        static CCApplication* get();
+    );
+
     /* override functions */
     virtual void setAnimationInterval(double interval);
     virtual ccLanguageType getCurrentLanguage();
@@ -45,6 +49,7 @@ public:
         virtual void setupGLView();
         virtual void platformShutdown();
         void toggleVerticalSync(bool);
+        bool getVerticalSyncEnabled() const;
     )
 
     /**

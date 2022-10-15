@@ -5,6 +5,7 @@
 #include <fmt/format.h>
 #include <fmt/ranges.h>
 #include <fstream>
+#include <fs/filesystem.hpp> // bruh
 
 using std::istreambuf_iterator;
 
@@ -19,12 +20,28 @@ using std::istreambuf_iterator;
 #endif
 
 std::string generateAddressHeader(Root& root);
-std::string generateModifyHeader(Root& root);
+std::string generateModifyHeader(Root& root, ghc::filesystem::path const& singleFolder);
 std::string generateWrapperHeader(Root& root);
 std::string generateTypeHeader(Root& root);
-std::string generateGDHeader(Root& root);
-std::string generateGDSource(Root& root);
+std::string generateBindingHeader(Root& root, ghc::filesystem::path const& singleFolder);
+std::string generatePredeclareHeader(Root& root);
+std::string generateBindingSource(Root& root);
 std::string generateTidyHeader(Root& root);
+
+inline void writeFile(ghc::filesystem::path const& writePath, std::string const& output) {
+    std::ifstream readfile;
+    readfile >> std::noskipws;
+    readfile.open(writePath);
+    std::string data((std::istreambuf_iterator<char>(readfile)), std::istreambuf_iterator<char>());
+    readfile.close();
+
+    if (data != output) {
+        std::ofstream writefile;
+        writefile.open(writePath);
+        writefile << output;
+        writefile.close();
+    }
+}
 
 inline std::string str_if(std::string&& str, bool cond) {
     return cond ? str : "";

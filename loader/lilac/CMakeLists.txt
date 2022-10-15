@@ -16,4 +16,5 @@ target_include_directories(
     ${lilac_SOURCE_DIR}/include/geode
     ${lilac_SOURCE_DIR}/include/geode/core
     ${lilac_SOURCE_DIR}/include/geode/core/hook
+    ${GEODE_LOADER_PATH}/include
 )

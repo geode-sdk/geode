@@ -57,6 +57,10 @@ public:
     @js getInstance
     */
     static CCApplication* sharedApplication();
+
+    GEODE_ADD(
+        static CCApplication* get();
+    );
     
     /**
      @brief    Callback by CCDirector for limit FPS.

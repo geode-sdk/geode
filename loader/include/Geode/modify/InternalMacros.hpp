@@ -89,8 +89,8 @@ void _##Line_##Function();                                        \
 namespace {                                                       \
 	struct _##Line_##Unique {};                                   \
 }                                                                 \
-static inline auto _line = (Interface::get()->scheduleOnLoad(     \
-	&_##Line_##Function<_##Line_##Unique>                         \
+static inline auto _line = (Loader::get()->scheduleOnModLoad(     \
+	nullptr, &_##Line_##Function<_##Line_##Unique>                \
 ), 0);                                                            \
 template<class>                                                   \
 void _##Line_##Function()

@@ -10,7 +10,6 @@
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/types.hpp>
 #include <mutex>
-#include <Geode/Geode.hpp>
 #include <about.hpp>
 #include <crashlog.hpp>
 
@@ -19,11 +18,11 @@ USE_GEODE_NAMESPACE();
 bool Loader::s_unloading = false;
 std::mutex g_unloadMutex;
 
-VersionInfo Loader::getVersion() const {
+VersionInfo Loader::getVersion() {
     return LOADER_VERSION;
 }
 
-std::string Loader::getVersionType() const {
+std::string Loader::getVersionType() {
     return LOADER_VERSION_TYPE;
 }
 
@@ -42,30 +41,42 @@ void Loader::createDirectories() {
     ghc::filesystem::create_directory(logDir);
     ghc::filesystem::create_directory(tempDir);
 
-    if (!vector_utils::contains(m_modDirectories, modDir)) {
+    if (!utils::vector::contains(m_modDirectories, modDir)) {
         m_modDirectories.push_back(modDir);
     }
 
     // files too
-    m_logStream = std::ofstream(logDir / generateLogName());
-}
-
-void Loader::addModResourcesPath(Mod* mod) {
-    if (mod->m_addResourcesToSearchPath) {
-        CCFileUtils::sharedFileUtils()->addSearchPath(
-            mod->m_tempDirName.string().c_str()
-        );
-        CCFileUtils::sharedFileUtils()->addSearchPath(
-            (mod->m_tempDirName / "resources").string().c_str()
-        );
-    }
+    m_logStream = std::ofstream(logDir / log::generateLogName());
 }
 
 void Loader::updateResourcePaths() {
-	auto resDir = this->getGeodeDirectory() / GEODE_RESOURCE_DIRECTORY;
-    CCFileUtils::sharedFileUtils()->addSearchPath(resDir.string().c_str());
-    for (auto const& [_, mod] : m_mods) {
-        this->addModResourcesPath(mod);
+    log::debug("Updating resources paths");
+
+    // add own geode/resources directory
+    CCFileUtils::sharedFileUtils()->addSearchPath(
+        (this->getGeodeDirectory() / GEODE_RESOURCE_DIRECTORY).string().c_str()
+    );
+
+    // add geode/temp for accessing root resources in mods
+    auto tempDir = this->getGeodeDirectory() / GEODE_TEMP_DIRECTORY;
+    CCFileUtils::sharedFileUtils()->addSearchPath(tempDir.string().c_str());
+
+    // add geode/temp/mod.id/resources for accessing additional resources in mods
+    for (auto& [_, mod] : m_mods) {
+        this->updateModResourcePaths(mod);
+    }
+}
+
+void Loader::updateModResourcePaths(Mod* mod) {
+    if (mod->m_addResourcesToSearchPath) {
+        CCFileUtils::sharedFileUtils()->addSearchPath(
+            (this->getGeodeDirectory() / 
+                GEODE_TEMP_DIRECTORY / 
+                mod->getID() / 
+                "resources"
+            ).string().c_str()
+        );
+        log::debug("Added resources path for {}", mod->getID());
     }
 }
 
@@ -83,20 +94,24 @@ void Loader::updateModResources(Mod* mod) {
                 ccfu->fullPathForFilename(plist.c_str(), false)
             )
         ) {
-            InternalMod::get()->logInfo(
-                "The resource dir of \"" + mod->m_info.m_id +
-                "\" is missing \"" + sheet + "\" png and/or plist files",
-                Severity::Warning
-            );
+            log::warn("The resource dir of \"{}\" is missing \"{}\" png and/or plist files", mod->m_info.m_id, sheet);
         } else {
             CCTextureCache::sharedTextureCache()->addImage(png.c_str(), false);
             CCSpriteFrameCache::sharedSpriteFrameCache()
                 ->addSpriteFramesWithFile(plist.c_str());
+
+            log::debug("Added resources for {}", mod->getID());
         }
     }
 }
 
 void Loader::updateResources() {
+    log::debug("Adding mod resources");
+
+    // add own spritesheets
+    this->updateModResources(InternalMod::get());
+
+    // add mods' spritesheets
     for (auto const& [_, mod] : m_mods) {
         this->updateModResources(mod);
     }
@@ -105,7 +120,7 @@ void Loader::updateResources() {
 size_t Loader::loadModsFromDirectory(
     ghc::filesystem::path const& dir, bool recursive
 ) {
-    InternalMod::get()->log() << Severity::Debug << "Searching " << dir;
+    log::debug("Searching {}", dir);
         
     size_t loadedCount = 0;
     for (auto const& entry : ghc::filesystem::directory_iterator(dir)) {
@@ -126,7 +141,7 @@ size_t Loader::loadModsFromDirectory(
         }
 
         // skip this entry if it's already loaded
-        if (map_utils::contains<std::string, Mod*>(
+        if (utils::map::contains<std::string, Mod*>(
             m_mods,
             [entry](Mod* p) -> bool {
                 return p->m_info.m_path == entry.path();
@@ -135,9 +150,7 @@ size_t Loader::loadModsFromDirectory(
 
         // load mod
 
-        InternalMod::get()->log()
-            << Severity::Debug
-            << "Loading " << entry.path().string();
+        log::debug("Loading {}", entry.path().string());
 
         auto res = this->loadModFromFile(entry.path().string());
         if (res && res.value()) {
@@ -146,15 +159,13 @@ size_t Loader::loadModsFromDirectory(
 
             // check for dependencies
             if (!res.value()->hasUnresolvedDependencies()) {
-                InternalMod::get()->log()
-                    << "Succesfully loaded " << res.value();
+                log::debug("Successfully loaded {}", res.value());
             } else {
-                InternalMod::get()->log()
-                    << res.value() << " has unresolved dependencies";
+                log::error("{} has unresolved dependencies", res.value());
             }
         } else {
             // something went wrong
-            InternalMod::get()->logInfo(res.error(), Severity::Error);
+            log::error("{}", res.error());
             m_erroredMods.push_back({ entry.path().string(), res.error() });
         }
     }
@@ -162,7 +173,7 @@ size_t Loader::loadModsFromDirectory(
 }
 
 size_t Loader::refreshMods() {
-    InternalMod::get()->log() << Severity::Debug << "Loading mods...";
+    log::debug("Loading mods...");
     
     // clear errored mods since that list will be 
     // reconstructed from scratch
@@ -179,25 +190,45 @@ size_t Loader::refreshMods() {
         loadedCount += loadModsFromDirectory(dir, true);
     }
 
-    InternalMod::get()->log()
-        << Severity::Debug
-        << "Loaded " << loadedCount << " mods";
+    log::debug("Loaded {} mods", loadedCount);
     return loadedCount;
 }
 
 Result<> Loader::saveSettings() {
     auto json = nlohmann::json::object();
+
+    // save mod enabled / disabled states
     json["mods"] = nlohmann::json::object();
     for (auto [id, mod] : m_mods) {
         if (mod->isUninstalled()) continue;
         auto value = nlohmann::json::object();
         value["enabled"] = mod->m_enabled;
-        mod->saveDataStore();
+
+        // save mod's settings
+        auto saveSett = mod->saveSettings();
+        if (!saveSett) {
+            return Err(saveSett.error());
+        }
+
         json["mods"][id] = value;
     }
+
+    // save loader settings
+    auto saveIS = InternalMod::get()->saveSettings();
+    if (!saveIS) {
+        return Err(saveIS.error());
+    }
+
+    // save info alerts
+    InternalLoader::get()->saveInfoAlerts(json);
+
+    // mark the game as not having crashed
     json["succesfully-closed"] = true;
-    auto path = this->getGeodeSaveDirectory() / "mods.json";
-    return file_utils::writeString(path, json.dump(4));
+
+    return utils::file::writeString(
+        this->getGeodeSaveDirectory() / "mods.json",
+        json.dump(4)
+    );
 }
 
 Result<> Loader::loadSettings() {
@@ -206,7 +237,8 @@ Result<> Loader::loadSettings() {
         return Ok();
     }
 
-    auto read = file_utils::readString(path);
+    // read mods.json
+    auto read = utils::file::readString(path);
     if (!read) {
         return read;
     }
@@ -237,6 +269,7 @@ Result<> Loader::loadSettings() {
                 m_loadedSettings.m_mods.insert({ key, mod });
             }
         }
+        InternalLoader::get()->loadInfoAlerts(json);
         return Ok();
     } catch(std::exception const& e) {
         return Err(e.what());
@@ -284,10 +317,10 @@ Mod* Loader::getLoadedMod(std::string const& id) const {
 }
 
 std::vector<Mod*> Loader::getAllMods() const {
-    return map_utils::getValues(m_mods);
+    return utils::map::getValues(m_mods);
 }
 
-std::vector<Loader::FailedModInfo> const& Loader::getFailedMods() const {
+std::vector<Loader::FailedModInfo> Loader::getFailedMods() const {
     return m_erroredMods;
 }
 
@@ -308,23 +341,23 @@ bool Loader::setup() {
     if (m_isSetup)
         return true;
 
-    InternalMod::get()->log()
-        << Severity::Debug
-        << "Setting up Loader...";
+    if (crashlog::setupPlatformHandler()) {
+        log::debug("Set up platform crash logger");
+    } else {
+        log::debug("Unable to set up platform crash logger");
+    }
+
+    log::debug("Setting up Loader...");
 
     this->createDirectories();
     this->loadSettings();
     this->refreshMods();
 
-    if (crashlog::setupPlatformHandler()) {
-        InternalMod::get()->log()
-            << Severity::Debug
-            << "Set up platform crash logger";
-    } else {
-        InternalMod::get()->log()
-            << Severity::Debug
-            << "Unable to set up platform crash logger";
-    }
+    // add resources on startup
+    this->queueInGDThread([]() {
+        Loader::get()->updateResourcePaths();
+        Loader::get()->updateResources();
+    });
 
     m_isSetup = true;
 
@@ -339,59 +372,51 @@ Loader::~Loader() {
         delete mod;
     }
     m_mods.clear();
-    for (auto const& log : m_logs) {
-        delete log;
-    }
     m_logs.clear();
 
     auto tempDir = this->getGeodeDirectory() / GEODE_TEMP_DIRECTORY;
     ghc::filesystem::remove_all(tempDir);
 }
 
-void Loader::pushLog(LogPtr* logptr) {
-    m_logs.push_back(logptr);
+void Loader::pushLog(log::Log&& log) {
+    std::string logStr = log.toString(true);
 
-    #ifdef GEODE_PLATFORM_CONSOLE
-    if (InternalLoader::get()->platformConsoleReady()) {
-        std::cout << logptr->toString(true);
-    } else {
-        InternalLoader::get()->queueConsoleMessage(logptr);
-    }
-    #endif
+    InternalLoader::get()->logConsoleMessage(logStr);
+    m_logStream << logStr << std::endl;
 
-    m_logStream << logptr->toString(true) << std::endl;
+    m_logs.push_back(std::move(log));
 }
 
-void Loader::popLog(LogPtr* log) {
-    vector_utils::erase(m_logs, log);
-    delete log;
+void Loader::popLog(log::Log* log) {
+    /*for (auto i = m_logs.begin(); i < m_logs.end(); ++i) {
+        if (i == log) {
+            m_logs.erase(i);
+        }
+    }*/
+    utils::vector::erase(m_logs, *log);
 }
 
-std::vector<LogPtr*> const& Loader::getLogs() const {
-    return m_logs;
-}
-
-std::vector<LogPtr*> Loader::getLogs(
+std::vector<log::Log*> Loader::getLogs(
     std::initializer_list<Severity> severityFilter
 ) {
-    if (!severityFilter.size()) {
-        return m_logs;
-    }
+    std::vector<log::Log*> logs;
 
-    std::vector<LogPtr*> logs;
-
-    for (auto const& log : m_logs) {
-        if (vector_utils::contains<Severity>(
-            severityFilter, log->getSeverity()
-        )) {
-            logs.push_back(log);
+    for (auto& log : m_logs) {
+        if (utils::vector::contains<Severity>(
+            severityFilter, log.getSeverity()
+        ) || !severityFilter.size()) {
+            logs.push_back(&log);
         }
     }
 
     return logs;
 }
 
-void Loader::queueInGDThread(std::function<void GEODE_CALL()> func) {
+void Loader::clearLogs() {
+    m_logs.clear();
+}
+
+void Loader::queueInGDThread(ScheduledFunction func) {
     InternalLoader::get()->queueInGDThread(func);
 }
 
@@ -416,7 +441,7 @@ ghc::filesystem::path Loader::getSaveDirectory() const {
 }
 
 ghc::filesystem::path Loader::getGeodeDirectory() const {
-    return geode::utils::dirs::geodeRoot() / GEODE_DIRECTORY;
+    return geode::utils::file::geodeRoot() / GEODE_DIRECTORY;
 }
 
 ghc::filesystem::path Loader::getGeodeSaveDirectory() const {
@@ -426,4 +451,48 @@ ghc::filesystem::path Loader::getGeodeSaveDirectory() const {
 size_t Loader::getFieldIndexForClass(size_t hash) {
 	static std::unordered_map<size_t, size_t> nextIndex;
 	return nextIndex[hash]++;
+}
+
+VersionInfo Loader::minModVersion() {
+    // patches are always backwards-compatible. if not, we have failed
+    return VersionInfo {
+        Loader::getVersion().getMajor(),
+        Loader::getVersion().getMinor(),
+        0,
+    };
+}
+
+VersionInfo Loader::maxModVersion() {
+    // patches are always backwards-compatible. if not, we have failed
+    return VersionInfo {
+        Loader::getVersion().getMajor(),
+        Loader::getVersion().getMinor(),
+        99999999,
+    };
+}
+
+bool Loader::supportedModVersion(VersionInfo const& version) {
+    return 
+        version >= Loader::minModVersion() &&
+        version <= Loader::maxModVersion();
+}
+
+void Loader::openPlatformConsole() {
+    InternalLoader::get()->openPlatformConsole();
+}
+
+void Loader::closePlatfromConsole() {
+    InternalLoader::get()->closePlatformConsole();
+}
+
+void Loader::scheduleOnModLoad(Mod* m, ScheduledFunction func) {
+    if (m) return func();
+    m_scheduledFunctions.push_back(func);
+}
+
+void Loader::releaseScheduledFunctions(Mod* mod) {
+    for (auto& func : m_scheduledFunctions) {
+        func();
+    }
+    m_scheduledFunctions.clear();
 }
