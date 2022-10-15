@@ -10,24 +10,26 @@ void addIDsToMenuLayer(MenuLayer* layer) {
 	// set IDs to everything
 	layer->setID("MenuLayer");
 	setIDSafe(layer, 0, "main-menu-bg");
-	getChildOfType<CCSprite>(layer, 0)->setID("main-title");
+	setIDSafe<CCSprite>(layer, 0, "main-title");
 
+	// controller
 	if (PlatformToolbox::isControllerConnected()) {
-		getChildOfType<CCSprite>(layer, 1)->setID("play-gamepad-icon");
-		getChildOfType<CCSprite>(layer, 2)->setID("editor-gamepad-icon");
-		getChildOfType<CCSprite>(layer, 3)->setID("icon-kit-gamepad-icon");
+		setIDSafe<CCSprite>(layer, 1, "play-gamepad-icon");
+		setIDSafe<CCSprite>(layer, 2, "editor-gamepad-icon");
+		setIDSafe<CCSprite>(layer, 3, "icon-kit-gamepad-icon");
 
-		getChildOfType<CCSprite>(layer, 4)->setID("settings-gamepad-icon");
-		getChildOfType<CCSprite>(layer, 5)->setID("mouse-gamepad-icon");
-		getChildOfType<CCSprite>(layer, 6)->setID("click-gamepad-icon");
+		setIDSafe<CCSprite>(layer, 4, "settings-gamepad-icon");
+		setIDSafe<CCSprite>(layer, 5, "mouse-gamepad-icon");
+		setIDSafe<CCSprite>(layer, 6, "click-gamepad-icon");
 
-		getChildOfType<CCLabelBMFont>(layer, 0)->setID("mouse-gamepad-label");
-		getChildOfType<CCLabelBMFont>(layer, 1)->setID("click-gamepad-label");
+		setIDSafe<CCLabelBMFont>(layer, 0, "mouse-gamepad-label");
+		setIDSafe<CCLabelBMFont>(layer, 1, "click-gamepad-label");
 
-		getChildOfType<CCLabelBMFont>(layer, 2)->setID("player-username");
+		setIDSafe<CCLabelBMFont>(layer, 2, "player-username");
 	} else {
-		getChildOfType<CCLabelBMFont>(layer, 0)->setID("player-username");
+		setIDSafe<CCLabelBMFont>(layer, 0, "player-username");
 	}
+	// main menu
 	if (auto menu = getChildOfType<CCMenu>(layer, 0)) {
 		menu->setID("main-menu");
 		auto playBtn = setIDSafe(menu, 0, "play-button");
@@ -45,6 +47,7 @@ void addIDsToMenuLayer(MenuLayer* layer) {
 
 		menu->setLayout(RowLayout::create(18.f, 0.f));
 	}
+	// bottom menu
 	if (auto menu = getChildOfType<CCMenu>(layer, 1)) {
 		menu->setID("bottom-menu");
 		auto ach = setIDSafe(menu, 0, "achievements-button");
@@ -62,6 +65,7 @@ void addIDsToMenuLayer(MenuLayer* layer) {
 
 		menu->setLayout(RowLayout::create(5.f, ach->getPositionY()));
 	}
+	// social media menu
 	if (auto menu = getChildOfType<CCMenu>(layer, 2)) {
 		menu->setID("social-media-menu");
 		setIDSafe(menu, 0, "robtop-logo-button");
@@ -69,6 +73,7 @@ void addIDsToMenuLayer(MenuLayer* layer) {
 		setIDSafe(menu, 2, "twitter-button");
 		setIDSafe(menu, 3, "youtube-button");
 	}
+	// more games menu
 	if (auto menu = getChildOfType<CCMenu>(layer, 3)) {
 		menu->setID("more-games-menu");
 		setIDSafe(menu, 0, "more-games-button");
