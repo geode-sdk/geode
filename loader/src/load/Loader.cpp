@@ -59,7 +59,7 @@ void Loader::updateModResources(Mod* mod) {
         GEODE_TEMP_DIRECTORY / mod->getID() / "resources";
 
     // if resources already added
-    if (vector::contains(CCFileUtils::get()->getSearchPaths(), searchPath.string())) {
+    if (ranges::contains(CCFileUtils::get()->getSearchPaths(), searchPath.string())) {
         return;
     }
 
@@ -94,7 +94,7 @@ void Loader::updateResources() {
     log::debug("Adding resources");
 
     // if resources already added
-    if (!vector::contains(
+    if (!ranges::contains(
         CCFileUtils::get()->getSearchPaths(),
         (this->getGeodeDirectory() / GEODE_RESOURCE_DIRECTORY).string()
     )) {
