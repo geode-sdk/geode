@@ -107,19 +107,7 @@ class $modify(CustomMenuLayer, MenuLayer) {
 		btn->setID("geode-button");
 		bottomMenu->addChild(btn);
 
-<<<<<<< HEAD
 		bottomMenu->updateLayout();
-=======
-		bottomMenu->alignItemsHorizontallyWithPadding(3.f);
-
-		for (auto node : CCArrayExt<CCNode>(bottomMenu->getChildren())) {
-			node->setPositionY(y);
-		}
-		if (chest) {
-			bottomMenu->addChild(chest);
-			chest->release();
-		}
->>>>>>> main
 
 		if (auto node = this->getChildByID("settings-gamepad-icon")) {
 			node->setPositionX(bottomMenu->getChildByID(
