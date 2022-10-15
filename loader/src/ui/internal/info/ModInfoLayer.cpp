@@ -4,6 +4,7 @@
 #include "../list/ModListView.hpp"
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/vector.hpp>
+#include <Geode/utils/ranges.hpp>
 #include <Geode/ui/IconButtonSprite.hpp>
 #include <Geode/ui/MDPopup.hpp>
 #include "../settings/ModSettingsPopup.hpp"
@@ -520,7 +521,7 @@ void ModInfoLayer::onInstallMod(CCObject*) {
     createQuickPopup(
         "Install",
         "The following <cb>mods</c> will be installed: " +
-        utils::container::join(m_installation->toInstall(), ",") + ".",
+        ranges::join(m_installation->toInstall(), ",") + ".",
         "Cancel", "OK",
         [this](FLAlertLayer*, bool btn2) {
             if (btn2) {

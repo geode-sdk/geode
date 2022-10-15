@@ -2,9 +2,13 @@
 #include <md4c.h>
 #include <Geode/binding/ProfilePage.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/utils/convert.hpp>
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/casts.hpp>
-#include <Geode/utils/vector.hpp>
+#include <Geode/utils/ranges.hpp>
+#include <Geode/utils/fetch.hpp>
+#include <Geode/utils/platform.hpp>
+#include <Geode/loader/Mod.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -227,7 +231,7 @@ struct MDParser {
                     // rendering is done since the position of the 
                     // rendered labels may change after alignments 
                     // are adjusted
-                    utils::vector::push(s_codeSpans, rendered);
+                    ranges::push(s_codeSpans, rendered);
                 }
             } break;
 

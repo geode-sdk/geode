@@ -2,7 +2,10 @@
 #include <Geode/ui/TextRenderer.hpp>
 #include <Geode/binding/GameSoundManager.hpp>
 #include <Geode/utils/cocos.hpp>
-#include <Geode/utils/vector.hpp>
+#include <Geode/utils/ranges.hpp>
+#include <Geode/utils/container.hpp>
+#include <Geode/utils/ranges.hpp>
+#include <Geode/loader/Mod.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -439,7 +442,7 @@ Notification* NotificationBuilder::show() {
 bool NotificationManager::isInQueue(Notification* notification) {
     auto location = notification->m_location;
     if (m_notifications.count(location)) {
-        return utils::vector::contains(
+        return utils::ranges::contains(
             m_notifications.at(location), Ref(notification)
         );
     }
@@ -460,9 +463,7 @@ void NotificationManager::pop(Notification* notification) {
     auto location = notification->m_location;
     if (m_notifications.count(location)) {
         auto ref = Ref(notification);
-        utils::vector::erase(
-            m_notifications.at(location), ref
-        );
+        ranges::remove(m_notifications.at(location), ref);
         if (!m_notifications.at(location).size()) {
             m_notifications.erase(location);
         } else {

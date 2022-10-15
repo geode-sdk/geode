@@ -14,7 +14,8 @@ namespace geode::utils::vector {
      * @returns True if element is in `vec`, false if not.
      */
     template<class T>
-    bool contains(gd::vector<T> const& vec, T const& elem) {
+    [[deprecated("Use geode::utils::ranges::contains instead")]]
+    bool contains(std::vector<T> const& vec, T const& elem) {
         return std::find(vec.begin(), vec.end(), elem) != vec.end();
     }
 
@@ -23,10 +24,11 @@ namespace geode::utils::vector {
      * @param vec The vector to check.
      * @param elem The element to get the index of.
      * @returns Iterator to the index of element, or 
-     * gd::vector::end if the item is not in the vector.
+     * std::vector::end if the item is not in the vector.
      */
     template<class T>
-    typename gd::vector<T>::const_iterator indexOf(gd::vector<T> const& vec, T const& elem) {
+    [[deprecated("Useless utility, if you want it added to geode::utils::ranges open an Issue on GitHub")]]
+    typename std::vector<T>::const_iterator indexOf(std::vector<T> const& vec, T const& elem) {
         return std::find(vec.begin(), vec.end(), elem);
     }
 
@@ -39,7 +41,8 @@ namespace geode::utils::vector {
      * in `vec`, false if not.
      */
     template<class T>
-    bool contains(gd::vector<T> const& vec, std::function<bool(T)> containFunc) {
+    [[deprecated("Use geode::utils::ranges::contains instead")]]
+    bool contains(std::vector<T> const& vec, std::function<bool(T)> containFunc) {
         for (auto const& item : vec) {
             if (containFunc(item))
                 return true;
@@ -53,7 +56,8 @@ namespace geode::utils::vector {
      * @param subVec The vector to add.
      */
     template<class T>
-    void push(gd::vector<T> & vec, gd::vector<T> const& subVec) {
+    [[deprecated("Use geode::utils::ranges::push instead")]]
+    void push(std::vector<T> & vec, std::vector<T> const& subVec) {
         vec.insert(vec.begin(), subVec.begin(), subVec.end());
     }
 
@@ -65,7 +69,8 @@ namespace geode::utils::vector {
      * @returns Joined string.
      */
     template<class T>
-    std::string join(gd::vector<T> const& vec, std::string const& sep) {
+    [[deprecated("Use geode::utils::ranges::join instead")]]
+    std::string join(std::vector<T> const& vec, std::string const& sep) {
         std::string res = "";
 
         for (auto p : vec) {
@@ -89,8 +94,9 @@ namespace geode::utils::vector {
      * @returns Mapped vector.
      */
     template<class T, class T2>
-    gd::vector<T2> map(gd::vector<T> const& vec, std::function<T2(T)> mapFunc) {
-        gd::vector<T2> res;
+    [[deprecated("Use geode::utils::ranges::map instead")]]
+    std::vector<T2> map(std::vector<T> const& vec, std::function<T2(T)> mapFunc) {
+        std::vector<T2> res;
         std::transform(vec.begin(), vec.end(), res.end(), mapFunc);
         return res;
     }
@@ -104,8 +110,9 @@ namespace geode::utils::vector {
      * @returns Filtered vector.
      */
     template<class T>
-    gd::vector<T>& filterIP(gd::vector<T> & vec, std::function<bool(T)> filterFunc) {
-        gd::vector<T> res;
+    [[deprecated("Useless utility, if you want it added to geode::utils::ranges open an Issue on GitHub")]]
+    std::vector<T>& filterIP(std::vector<T> & vec, std::function<bool(T)> filterFunc) {
+        std::vector<T> res;
         for (auto m : vec) {
             if (filterFunc(m)) {
                 res.push_back(m);
@@ -124,8 +131,9 @@ namespace geode::utils::vector {
      * @returns Filtered vector.
      */
     template<class T>
-    gd::vector<T> filter(gd::vector<T> const& vec, std::function<bool(T)> filterFunc) {
-        gd::vector<T> res;
+    [[deprecated("Use geode::utils::ranges::filter instead")]]
+    std::vector<T> filter(std::vector<T> const& vec, std::function<bool(T)> filterFunc) {
+        std::vector<T> res;
         for (auto m : vec) {
             if (filterFunc(m)) {
                 res.push_back(m);
@@ -145,7 +153,8 @@ namespace geode::utils::vector {
      * found, the return type is nullptr.
      */
     template<class T>
-    T select(gd::vector<T> const& vec, std::function<bool(T)> selectFunc) {
+    [[deprecated("Useless utility, if you want it added to geode::utils::ranges open an Issue on GitHub")]]
+    T select(std::vector<T> const& vec, std::function<bool(T)> selectFunc) {
         for (auto const& v : vec) {
             if (selectFunc(v)) {
                 return v;
@@ -165,7 +174,8 @@ namespace geode::utils::vector {
      * @returns Filtered vector.
      */
     template<class T>
-    gd::vector<T> selectAll(gd::vector<T> const& vec, std::function<bool(T)> selectFunc) {
+    [[deprecated("Useless utility, if you want it added to geode::utils::ranges open an Issue on GitHub")]]
+    std::vector<T> selectAll(std::vector<T> const& vec, std::function<bool(T)> selectFunc) {
         return filter<T>(vec, selectFunc);
     }
 
@@ -176,7 +186,8 @@ namespace geode::utils::vector {
      * @returns Reference to vector.
      */
     template<class T>
-    gd::vector<T>& erase(gd::vector<T>& vec, T const& element) {
+    [[deprecated("Use geode::utils::ranges::remove instead")]]
+    std::vector<T>& erase(std::vector<T>& vec, T const& element) {
         vec.erase(std::remove(vec.begin(), vec.end(), element), vec.end());
         return vec;
     }
@@ -189,7 +200,8 @@ namespace geode::utils::vector {
      * @returns Reference to vector.
      */
     template<class T>
-    gd::vector<T>& erase(gd::vector<T>& vec, std::function<bool(T)> eraseFunc) {
+    [[deprecated("Use geode::utils::ranges::remove instead")]]
+    std::vector<T>& erase(std::vector<T>& vec, std::function<bool(T)> eraseFunc) {
         vec.erase(std::remove_if(vec.begin(), vec.end(), eraseFunc), vec.end());
         return vec;
     }
@@ -204,7 +216,7 @@ namespace geode::utils::vector {
      * accumulator, for example with R += T, to
      * compute the reduced value.
      * @example ```cpp
-     * gd::vector<int> numbers = { 1, 3, 7, 8, };
+     * std::vector<int> numbers = { 1, 3, 7, 8, };
      * int total = reduce<int, int>(numbers, [](int& acc, int val) -> void {
      *      acc += val;
      * }); // 19
@@ -212,7 +224,8 @@ namespace geode::utils::vector {
      * @returns Reduced value.
      */
     template<class R, class T>
-    R reduce(gd::vector<T> const& vec, std::function<void(R&, T)> reduceFunc) {
+    [[deprecated("Use geode::utils::ranges::reduce instead")]]
+    R reduce(std::vector<T> const& vec, std::function<void(R&, T)> reduceFunc) {
         R res = R();
         for (auto const& item : vec) {
             reduceFunc(res, item);
@@ -228,7 +241,8 @@ namespace geode::utils::vector {
      * @param after Element to insert before.
      */
     template<class T>
-    void insertBefore(gd::vector<T> & vec, T const& item, T const& before) {
+    [[deprecated("Useless utility, if you want it added to geode::utils::ranges open an Issue on GitHub")]]
+    void insertBefore(std::vector<T> & vec, T const& item, T const& before) {
         vec.insert(utils::vector::indexOf(vec, before), item);
     }
 
@@ -240,7 +254,8 @@ namespace geode::utils::vector {
      * @param after Element to insert after.
      */
     template<class T>
-    void insertAfter(gd::vector<T> & vec, T const& item, T const& after) {
+    [[deprecated("Useless utility, if you want it added to geode::utils::ranges open an Issue on GitHub")]]
+    void insertAfter(std::vector<T> & vec, T const& item, T const& after) {
         vec.insert(utils::vector::indexOf(vec, after) + 1, item);
     }
 }

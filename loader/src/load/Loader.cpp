@@ -6,7 +6,7 @@
 #include <InternalMod.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/conststring.hpp>
-#include <Geode/utils/vector.hpp>
+#include <Geode/utils/ranges.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/types.hpp>
 #include <mutex>
@@ -41,7 +41,7 @@ void Loader::createDirectories() {
     ghc::filesystem::create_directory(logDir);
     ghc::filesystem::create_directory(tempDir);
 
-    if (!utils::vector::contains(m_modDirectories, modDir)) {
+    if (!ranges::contains(m_modDirectories, modDir)) {
         m_modDirectories.push_back(modDir);
     }
 
@@ -388,12 +388,7 @@ void Loader::pushLog(log::Log&& log) {
 }
 
 void Loader::popLog(log::Log* log) {
-    /*for (auto i = m_logs.begin(); i < m_logs.end(); ++i) {
-        if (i == log) {
-            m_logs.erase(i);
-        }
-    }*/
-    utils::vector::erase(m_logs, *log);
+    ranges::remove(m_logs, *log);
 }
 
 std::vector<log::Log*> Loader::getLogs(
@@ -402,9 +397,7 @@ std::vector<log::Log*> Loader::getLogs(
     std::vector<log::Log*> logs;
 
     for (auto& log : m_logs) {
-        if (utils::vector::contains<Severity>(
-            severityFilter, log.getSeverity()
-        ) || !severityFilter.size()) {
+        if (ranges::contains(severityFilter, log.getSeverity()) || !severityFilter.size()) {
             logs.push_back(&log);
         }
     }
