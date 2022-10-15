@@ -1,6 +1,10 @@
 #pragma once
 
-#include <Geode/Bindings.hpp>
+#include <cocos2d.h>
+
+namespace cocos2d::extension {
+    class CCScale9Sprite;
+}
 
 namespace geode {
     class GEODE_DLL IconButtonSprite :

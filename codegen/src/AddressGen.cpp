@@ -3,7 +3,7 @@
 namespace { namespace format_strings {
 
 	char const* declare_address = R"GEN(
-GEODE_NOINLINE GEODE_HIDDEN inline static uintptr_t address{index}() {{
+GEODE_INLINE GEODE_HIDDEN static uintptr_t address{index}() {{
 	static uintptr_t ret = {address};
 	return ret;
 }}

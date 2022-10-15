@@ -92,8 +92,8 @@ class AudioEffectsLayer {
 }
 
 class BoomListView : cocos2d::CCLayer, TableViewDelegate, TableViewDataSource {
-    inline BoomListView() {}
-    inline ~BoomListView() {
+    BoomListView() {}
+    ~BoomListView() {
         CC_SAFE_RELEASE(m_entries);
     }
 
@@ -1034,7 +1034,7 @@ class EditButtonBar : cocos2d::CCNode {
     cocos2d::CCArray* m_pagesArray;
 }
 
-class EditLevelLayer : cocos2d::CCLayer {
+class EditLevelLayer : cocos2d::CCLayer, FLAlertLayerProtocol, TextInputDelegate, UploadActionDelegate, UploadPopupDelegate, SetIDPopupDelegate {
     static void scene(GJGameLevel* level) {
         auto scene = cocos2d::CCScene::create();
     
@@ -3760,7 +3760,7 @@ class LevelPage {
 
 class LevelSearchLayer : cocos2d::CCLayer {
     static LevelSearchLayer* create() = mac 0x0, win 0x17d9c0, ios 0x0;
-    bool init() = mac 0x384770, win 0x0, ios 0x0;
+    bool init() = mac 0x384770, win 0x17da60, ios 0x0;
     GJSearchObject* getSearchObject(SearchType, gd::string) = mac 0x388a50, win 0x1805f0, ios 0x0;
     void onMoreOptions(cocos2d::CCObject*) = mac 0x0, win 0x17f500, ios 0x0;
     void onSearch(cocos2d::CCObject*) = mac 0x0, win 0x180fc0, ios 0x0;
@@ -3865,6 +3865,7 @@ class LoadingLayer : cocos2d::CCLayer {
         m_fromRefresh = value;
     }
 
+    LoadingLayer() {}
     static LoadingLayer* create(bool fromReload) = mac 0x1df1f0, win 0x18bfe0, ios 0x130278;
     bool init(bool fromReload) = mac 0x1df2f0, win 0x18c080, ios 0x0;
     const char* getLoadingString() = mac 0x0, win 0x18cf40, ios 0x0;
@@ -4121,6 +4122,8 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     static PlayLayer* get() {
         return GameManager::sharedState()->getPlayLayer();
     }
+
+    PlayLayer() = win 0x1FAA90;
 
     void addCircle(CCCircleWave*) = mac 0x7e0f0, win 0x0, ios 0x0;
     void addObject(GameObject*) = mac 0x70e50, win 0x2017e0, ios 0x0;

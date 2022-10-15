@@ -1,6 +1,8 @@
 #include <Geode/ui/TextRenderer.hpp>
-#include <Geode/utils/WackyGeodeMacros.hpp>
-#include <Geode/Utils.hpp>
+#include <Geode/utils/operators.hpp>
+#include <Geode/utils/cocos.hpp>
+#include <Geode/utils/string.hpp>
+#include <Geode/utils/casts.hpp>
 #undef max
 #undef min
 
@@ -279,7 +281,7 @@ CCNode* TextRenderer::end(
                 padY = std::max(m_size.height - renderedHeight, 0.f); break;
         }
         // adjust child positions
-        CCARRAY_FOREACH_B_TYPE(m_target->getChildren(), child, CCNode) {
+        for (auto child : CCArrayExt<CCNode>(m_target->getChildren())) {
             child->setPosition(
                 child->getPositionX() + padX,
                 child->getPositionY() +

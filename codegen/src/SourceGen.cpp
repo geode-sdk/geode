@@ -72,7 +72,7 @@ types::ret{index} {class_name}::{function_name}({parameters}){const} {{
 )GEN";
 }}
 
-std::string generateGDSource(Root& root) {
+std::string generateBindingSource(Root& root) {
 	std::string output(format_strings::source_start);
 
 	for (auto& c : root.classes) {

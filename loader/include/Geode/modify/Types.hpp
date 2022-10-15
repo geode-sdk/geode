@@ -3,6 +3,6 @@
 
 namespace geode::modifier {
 	struct types {
-		#include <codegenned/GeneratedType.hpp>
+		#include <Geode/GeneratedType.hpp>
 	};
 }

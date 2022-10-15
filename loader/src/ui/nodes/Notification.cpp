@@ -1,7 +1,8 @@
 #include <Geode/ui/Notification.hpp>
 #include <Geode/ui/TextRenderer.hpp>
-#include <Geode/utils/WackyGeodeMacros.hpp>
-#include <Geode/Utils.hpp>
+#include <Geode/binding/GameSoundManager.hpp>
+#include <Geode/utils/cocos.hpp>
+#include <Geode/utils/vector.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -220,7 +221,7 @@ bool Notification::init(
     m_obContentSize.width += iconSpace;
     m_icon->setPositionX(m_icon->getPositionX() - iconSpace / 2);
     m_title->setPositionX(m_title->getPositionX() - iconSpace / 2);
-    CCARRAY_FOREACH_B_TYPE(m_labels, label, CCNode) {
+    for (auto label : CCArrayExt<CCNode>(m_labels)) {
         label->setPosition(
             label->getPositionX() + iconSpace - m_obContentSize.width / 2,
             label->getPositionY() - m_obContentSize.height / 2 + 2.f

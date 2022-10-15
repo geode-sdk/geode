@@ -1,7 +1,6 @@
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/string.hpp>
 #include <fstream>
-#include <Geode/Bindings.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -174,14 +173,38 @@ Result<> utils::file::writeBinary(ghc::filesystem::path const& path, byte_array 
 }
 
 Result<> utils::file::createDirectory(std::string const& path) {
-    if (ghc::filesystem::create_directory(path))
-        return Ok<>();
+    try {
+        if (ghc::filesystem::create_directory(path)) {
+            return Ok<>();
+        }
+    } catch(...) {}
+    return Err<>("Unable to create directory");
+}
+
+Result<> utils::file::createDirectory(ghc::filesystem::path const& path) {
+    try {
+        if (ghc::filesystem::create_directory(path)) {
+            return Ok<>();
+        }
+    } catch(...) {}
     return Err<>("Unable to create directory");
 }
 
 Result<> utils::file::createDirectoryAll(std::string const& path) {
-    if (ghc::filesystem::create_directories(path))
-        return Ok<>();
+    try {
+        if (ghc::filesystem::create_directories(path)) {
+            return Ok<>();
+        }
+    } catch(...) {}
+    return Err<>("Unable to create directories");
+}
+
+Result<> utils::file::createDirectoryAll(ghc::filesystem::path const& path) {
+    try {
+        if (ghc::filesystem::create_directories(path)) {
+            return Ok<>();
+        }
+    } catch(...) {}
     return Err<>("Unable to create directories");
 }
 

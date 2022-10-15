@@ -1,5 +1,6 @@
 #include <Geode/ui/MDPopup.hpp>
 #include <Geode/utils/string.hpp>
+#include <Geode/binding/ButtonSprite.hpp>
 
 USE_GEODE_NAMESPACE();
 

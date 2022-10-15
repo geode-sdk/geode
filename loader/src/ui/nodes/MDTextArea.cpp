@@ -1,7 +1,10 @@
 #include <Geode/ui/MDTextArea.hpp>
-#include <Geode/utils/WackyGeodeMacros.hpp>
 #include <md4c.h>
-#include <Geode/Utils.hpp>
+#include <Geode/binding/ProfilePage.hpp>
+#include <Geode/utils/cocos.hpp>
+#include <Geode/utils/string.hpp>
+#include <Geode/utils/casts.hpp>
+#include <Geode/utils/vector.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -53,7 +56,7 @@ public:
         // so that's why based MDContentLayer expects itself 
         // to have a CCMenu :-)
         if (m_content) {
-            CCARRAY_FOREACH_B_TYPE(m_content->getChildren(), child, CCNode) {
+            for (auto child : CCArrayExt<CCNode>(m_content->getChildren())) {
                auto y = this->getPositionY() + child->getPositionY();
                child->setVisible(!(
                     (m_content->getContentSize().height < y) ||

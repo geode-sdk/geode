@@ -2,7 +2,7 @@
 
 #ifdef GEODE_IS_IOS
 
-#include <Geode/Geode.hpp>
+#include <Geode/loader/Mod.hpp>
 #include <dlfcn.h>
 
 USE_GEODE_NAMESPACE();

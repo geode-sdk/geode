@@ -2,17 +2,24 @@
 #include "../dev/HookListLayer.hpp"
 #include <Geode/ui/BasedButton.hpp>
 #include "../list/ModListView.hpp"
-#include <Geode/utils/WackyGeodeMacros.hpp>
+#include <Geode/utils/casts.hpp>
+#include <Geode/utils/vector.hpp>
 #include <Geode/ui/IconButtonSprite.hpp>
 #include <Geode/ui/MDPopup.hpp>
 #include "../settings/ModSettingsPopup.hpp"
 #include <InternalLoader.hpp>
+#include <Geode/binding/Slider.hpp>
+#include <Geode/binding/SliderThumb.hpp>
+#include <Geode/binding/ButtonSprite.hpp>
+#include <Geode/binding/SliderTouchLogic.hpp>
+#include <Geode/binding/GJListLayer.hpp>
+#include <Geode/binding/CCTextInputNode.hpp>
+#include <Geode/loader/Mod.hpp>
 
 // TODO: die
 #undef min
 #undef max
 
-static constexpr const int TAG_CONFIRM_INSTALL = 4;
 static constexpr const int TAG_CONFIRM_UNINSTALL = 5;
 static constexpr const int TAG_DELETE_SAVEDATA = 6;
 
@@ -258,7 +265,6 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
         m_buttonMenu->addChild(issuesBtn);
     }
 
-
     if (isInstalledMod) {
         auto settingsSpr = CCSprite::createWithSpriteFrameName(
             "GJ_optionsBtn_001.png"
@@ -413,6 +419,12 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
         m_mainLayer->addChild(m_installStatus);
     }
 
+    // check if this mod is being installed/updated, and if so, update UI
+    if (auto handle = Index::get()->isInstallingItem(m_info.m_id)) {
+        m_installation = handle;
+        this->install();
+    }
+
     auto closeSpr = CCSprite::createWithSpriteFrameName("GJ_closeBtn_001.png");
     closeSpr->setScale(.8f);
 
@@ -444,9 +456,7 @@ void ModInfoLayer::onEnableMod(CCObject* pSender) {
     if (!InternalLoader::get()->shownInfoAlert("mod-disable-vs-unload")) {
         FLAlertLayer::create(
             "Notice",
-            "<cb>Disabling</c> a <cy>mod</c> removes its hooks & patches and "
-            "calls its user-defined disable function if one exists. You may "
-            "still see some effects of the mod left however, and you may "
+            "You may still see some effects of the mod left, and you may "
             "need to <cg>restart</c> the game to have it fully unloaded.",
             "OK"
         )->show();
@@ -496,10 +506,7 @@ void ModInfoLayer::onRepository(CCObject*) {
 
 void ModInfoLayer::onInstallMod(CCObject*) {
     auto ticketRes = Index::get()->installItem(
-        Index::get()->getKnownItem(m_info.m_id),
-        [this](InstallTicket* ticket, UpdateStatus status, std::string const& info, uint8_t progress) -> void {
-            this->modInstallProgress(ticket, status, info, progress);
-        }
+        Index::get()->getKnownItem(m_info.m_id)
     );
     if (!ticketRes) {
         return FLAlertLayer::create(
@@ -508,26 +515,28 @@ void ModInfoLayer::onInstallMod(CCObject*) {
             "OK"
         )->show();
     }
-    m_ticket = ticketRes.value();
+    m_installation = ticketRes.value();
 
-    auto layer = FLAlertLayer::create(
-        this,
+    createQuickPopup(
         "Install",
         "The following <cb>mods</c> will be installed: " +
-        utils::vector::join(m_ticket->getInstallList(), ",") + ".",
-        "Cancel", "OK", 360.f
+        utils::container::join(m_installation->toInstall(), ",") + ".",
+        "Cancel", "OK",
+        [this](FLAlertLayer*, bool btn2) {
+            if (btn2) {
+                this->install();
+            } else {
+                this->updateInstallStatus("", 0);
+            }
+        }
     );
-    layer->setTag(TAG_CONFIRM_INSTALL);
-    layer->show();
 }
 
 void ModInfoLayer::onCancelInstall(CCObject*) {
     m_installBtn->setEnabled(false);
     m_installBtnSpr->setString("Cancelling");
-
-    if (m_ticket) {
-        m_ticket->cancel();
-    }
+    m_installation->cancel();
+    m_installation = nullptr;
     if (m_updateVersionLabel) {
         m_updateVersionLabel->setVisible(true);
     }
@@ -546,14 +555,6 @@ void ModInfoLayer::onUninstall(CCObject*) {
 
 void ModInfoLayer::FLAlert_Clicked(FLAlertLayer* layer, bool btn2) {
     switch (layer->getTag()) {
-        case TAG_CONFIRM_INSTALL: {
-            if (btn2) {
-                this->install();
-            } else {
-                this->updateInstallStatus("", 0);
-            }
-        } break;
-
         case TAG_CONFIRM_UNINSTALL: {
             if (btn2) {
                 this->uninstall();
@@ -596,7 +597,7 @@ void ModInfoLayer::updateInstallStatus(
 }
 
 void ModInfoLayer::modInstallProgress(
-    InstallTicket*,
+    InstallHandle,
     UpdateStatus status,
     std::string const& info,
     uint8_t percentage
@@ -615,7 +616,7 @@ void ModInfoLayer::modInstallProgress(
             m_installBtnSpr->setString("Install");
             m_installBtnSpr->setBG("GE_button_01.png"_spr, false);
 
-            m_ticket = nullptr;
+            m_installation = nullptr;
         } break;
 
         case UpdateStatus::Finished: {
@@ -629,7 +630,7 @@ void ModInfoLayer::modInstallProgress(
                 "OK"
             )->show();
 
-            m_ticket = nullptr;
+            m_installation = nullptr;
 
             if (m_list) m_list->refreshList();
             this->onClose(nullptr);
@@ -642,20 +643,22 @@ void ModInfoLayer::modInstallProgress(
 }
 
 void ModInfoLayer::install() {
-    if (m_ticket) {
-        if (m_updateVersionLabel) {
-            m_updateVersionLabel->setVisible(false);
-        }
-        this->updateInstallStatus("Starting install", 0);
-
-        m_installBtn->setTarget(
-            this, menu_selector(ModInfoLayer::onCancelInstall)
-        );
-        m_installBtnSpr->setString("Cancel");
-        m_installBtnSpr->setBG("GJ_button_06.png", false);
-
-        m_ticket->start();
+    if (m_updateVersionLabel) {
+        m_updateVersionLabel->setVisible(false);
     }
+    this->updateInstallStatus("Starting install", 0);
+
+    m_installBtn->setTarget(
+        this, menu_selector(ModInfoLayer::onCancelInstall)
+    );
+    m_installBtnSpr->setString("Cancel");
+    m_installBtnSpr->setBG("GJ_button_06.png", false);
+
+    m_callbackID = m_installation->start(std::bind(
+        &ModInfoLayer::modInstallProgress, this,
+        std::placeholders::_1, std::placeholders::_2,
+        std::placeholders::_3, std::placeholders::_4
+    ));
 }
 
 void ModInfoLayer::uninstall() {
@@ -732,6 +735,9 @@ void ModInfoLayer::keyDown(enumKeyCodes key) {
 void ModInfoLayer::onClose(CCObject* pSender) {
     this->setKeyboardEnabled(false);
     this->removeFromParentAndCleanup(true);
+    if (m_installation) {
+        m_installation->leave(m_callbackID);
+    }
 };
 
 ModInfoLayer* ModInfoLayer::create(Mod* mod, ModListView* list) {
@@ -805,8 +811,8 @@ CCNode* ModInfoLayer::createLogoSpr(IndexItem const& item) {
     if (Index::get()->isFeaturedItem(item.m_info.m_id)) {
         auto logoGlow = CCSprite::createWithSpriteFrameName("logo-glow.png"_spr);
         spr->setPosition(
-            logoGlow->getContentSize().width / 2 + 1.f,
-            logoGlow->getContentSize().height / 2 - .6f
+            logoGlow->getContentSize().width / 2,
+            logoGlow->getContentSize().height / 2
         );
         logoGlow->setContentSize(spr->getContentSize());
         logoGlow->addChild(spr);
@@ -815,7 +821,6 @@ CCNode* ModInfoLayer::createLogoSpr(IndexItem const& item) {
     
     return spr;
 }
-
 
 void ModInfoLayer::showIssueReportPopup(ModInfo const& info) {
     if (info.m_issues) {

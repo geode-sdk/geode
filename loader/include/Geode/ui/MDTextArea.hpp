@@ -1,10 +1,11 @@
 #pragma once
 
-#include <Geode/Bindings.hpp>
+#include <Geode/binding/FLAlertLayerProtocol.hpp>
 #include "TextRenderer.hpp"
 #include "ScrollLayer.hpp"
 
 struct MDParser;
+class CCScrollLayerExt;
 
 namespace geode {
     /**

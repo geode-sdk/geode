@@ -1,8 +1,8 @@
-#include <Geode/Modify.hpp>
 #include <Geode/loader/Loader.hpp>
 
 USE_GEODE_NAMESPACE();
 
+#include <Geode/modify/GameManager.hpp>
 class $modify(GameManager) {
 	void reloadAllStep2() {
 		GameManager::reloadAllStep2();
@@ -10,6 +10,7 @@ class $modify(GameManager) {
 	}
 };
 
+#include <Geode/modify/LoadingLayer.hpp>
 class $modify(LoadingLayer) {
 	void loadAssets() {
 		LoadingLayer::loadAssets();

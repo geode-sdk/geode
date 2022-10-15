@@ -1,14 +1,17 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
 #include <mutex>
 #include <optional>
+#include <Geode/utils/fetch.hpp>
+#include <unordered_set>
 
 USE_GEODE_NAMESPACE();
 
 class Index;
 struct ModInstallUpdate;
-class InstallTicket;
+struct InstallItems;
+
+using InstallHandle = std::shared_ptr<InstallItems>;
 
 // todo: make index use events
 
@@ -19,7 +22,7 @@ enum class UpdateStatus {
 };
 
 using ItemInstallCallback = std::function<void(
-    InstallTicket*, UpdateStatus, std::string const&, uint8_t
+    InstallHandle, UpdateStatus, std::string const&, uint8_t
 )>;
 using IndexUpdateCallback = std::function<void(
     UpdateStatus, std::string const&, uint8_t
@@ -39,73 +42,38 @@ struct IndexItem {
     std::unordered_set<std::string> m_categories;
 };
 
-enum class InstallMode {
-    Order,      // download & install one-by-one
-    Concurrent, // download & install all simultaneously
-};
+struct InstallItems final : public std::enable_shared_from_this<InstallItems> {
+public:
+    using CallbackID = size_t;
 
-/**
- * Used for working with a currently 
- * happening mod installation from 
- * the index. Note that once the 
- * installation is finished / failed, 
- * the ticket will free its own memory, 
- * so make sure to let go of any 
- * pointers you may have to it.
- */
-class InstallTicket {
-protected:
-    ItemInstallCallback m_progress;
-    const std::vector<std::string> m_installList;
-    mutable std::mutex m_cancelMutex;
-    bool m_cancelling = false;
-    bool m_installing = false;
-    bool m_replaceFiles = true;
-    Index* m_index;
+private:
+    bool m_started = false;
+    std::unordered_set<std::string> m_toInstall;
+    std::vector<web::SentAsyncWebRequestHandle> m_handles;
+    std::unordered_map<CallbackID, ItemInstallCallback> m_callbacks;
+    std::vector<ghc::filesystem::path> m_downloaded;
 
-    void postProgress(
-        UpdateStatus status,
-        std::string const& info = "",
-        uint8_t progress = 0
-    );
-    void install(std::string const& id);
+    void post(UpdateStatus status, std::string const& info, uint8_t progress);
+    void progress(std::string const& info, uint8_t progress);
+    void error(std::string const& info);
+    void finish(bool replaceFiles);
 
     friend class Index;
 
 public:
-    /**
-     * Create a new ticket for installing a list of mods. This method 
-     * should not be called manually; instead, you should always use 
-     * `Index::installItem`. Note that once the installation is 
-     * finished / failed, the ticket will free its own memory, so make 
-     * sure to let go of any pointers you may have to it.
-     */
-    InstallTicket(
-        Index* index,
-        std::vector<std::string> const& list,
-        ItemInstallCallback progress
-    );
+    std::unordered_set<std::string> toInstall() const;
 
-    /**
-     * Get list of mods to install
-     */
-    std::vector<std::string> getInstallList() const;
+    inline InstallItems(
+        std::unordered_set<std::string> const& toInstall
+    ) : m_toInstall(toInstall) {}
 
-    /**
-     * Cancel all pending installations and revert finished ones. This 
-     * function is thread-safe
-     */
     void cancel();
+    bool finished() const;
 
-    /**
-     * Begin installation. Note that this function is *not* 
-     * thread-safe
-     * @param mode Whether to install the list of mods 
-     * provided concurrently or in order
-     * @note Use InstallTicket::cancel to cancel the 
-     * installation
-     */
-    void start(InstallMode mode = InstallMode::Concurrent);
+    CallbackID join(ItemInstallCallback callback);
+    void leave(CallbackID id);
+
+    CallbackID start(ItemInstallCallback callback, bool replaceFiles = true);
 };
 
 class Index {
@@ -113,24 +81,21 @@ protected:
     bool m_upToDate = false;
     bool m_updating = false;
     mutable std::mutex m_callbacksMutex;
-    std::vector<IndexUpdateCallback> m_callbacks;
     std::vector<IndexItem> m_items;
+    std::unordered_set<InstallHandle> m_installations;
+    mutable std::mutex m_ticketsMutex;
     std::unordered_set<std::string> m_featured;
     std::unordered_set<std::string> m_categories;
+    std::unordered_set<std::string> m_updated;
 
-    void indexUpdateProgress(
-        UpdateStatus status,
-        std::string const& info = "",
-        uint8_t percentage = 0
-    );
-
-    void updateIndexThread(bool force);
     void addIndexItemFromFolder(ghc::filesystem::path const& dir);
-    void updateIndexFromLocalCache();
+    Result<> updateIndexFromLocalCache();
 
     Result<std::vector<std::string>> checkDependenciesForItem(
         IndexItem const& item
     );
+
+    friend struct InstallItems;
 
 public:
     static Index* get();
@@ -138,24 +103,20 @@ public:
     std::vector<IndexItem> getItems() const;
     bool isKnownItem(std::string const& id) const;
     IndexItem getKnownItem(std::string const& id) const;
-    Result<InstallTicket*> installItems(
-        std::vector<IndexItem> const& item,
-        ItemInstallCallback progress = nullptr
-    );
-    Result<InstallTicket*> installItem(
-        IndexItem const& item,
-        ItemInstallCallback progress = nullptr
-    );
-    bool isUpdateAvailableForItem(std::string const& id) const;
-    bool isUpdateAvailableForItem(IndexItem const& item) const;
-    bool areUpdatesAvailable() const;
-    Result<InstallTicket*> installUpdates(
-        IndexUpdateCallback callback = nullptr,
-        bool force = false
-    );
+
     std::unordered_set<std::string> getCategories() const;
     std::vector<IndexItem> getFeaturedItems() const;
     bool isFeaturedItem(std::string const& item) const;
+
+    Result<InstallHandle> installItems(std::vector<IndexItem> const& item);
+    Result<InstallHandle> installItem(IndexItem const& item);
+    std::vector<InstallHandle> getRunningInstallations() const;
+    InstallHandle isInstallingItem(std::string const& id);
+
+    bool isUpdateAvailableForItem(std::string const& id) const;
+    bool isUpdateAvailableForItem(IndexItem const& item) const;
+    bool areUpdatesAvailable() const;
+    Result<InstallHandle> installAllUpdates();
 
     bool isIndexUpdated() const;
     void updateIndex(IndexUpdateCallback callback, bool force = false);

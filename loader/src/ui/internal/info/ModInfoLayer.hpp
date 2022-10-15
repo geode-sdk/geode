@@ -1,6 +1,7 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
+#include <Geode/binding/FLAlertLayer.hpp>
+#include <Geode/binding/FLAlertLayerProtocol.hpp>
 #include <Index.hpp>
 #include <Geode/ui/MDTextArea.hpp>
 #include <Geode/ui/Scrollbar.hpp>
@@ -37,7 +38,8 @@ protected:
     IconButtonSprite* m_installBtnSpr;
     CCMenuItemSpriteExtra* m_installBtn;
     CCLabelBMFont* m_updateVersionLabel = nullptr;
-    InstallTicket* m_ticket = nullptr;
+    InstallHandle m_installation;
+    InstallItems::CallbackID m_callbackID;
     MDTextArea* m_detailsArea;
     MDTextArea* m_changelogArea;
     Scrollbar* m_scrollbar;
@@ -60,7 +62,7 @@ protected:
     void updateInstallStatus(std::string const& status, uint8_t progress);
 
     void modInstallProgress(
-        InstallTicket*,
+        InstallHandle handle,
         UpdateStatus status,
         std::string const& info,
         uint8_t percentage

@@ -4,6 +4,7 @@
 #include <cocos2d.h>
 #include <functional>
 #include <type_traits>
+#include "Ref.hpp"
 
 namespace geode::cocos {
     /**
@@ -247,14 +248,20 @@ namespace geode::cocos {
         }
     };
 
+}
+
+namespace std {
     template <typename T>
-    struct std::iterator_traits<CCArrayIterator<T>> {
+    struct iterator_traits<geode::cocos::CCArrayIterator<T>> {
         using difference_type = ptrdiff_t;
         using value_type = T;
         using pointer = T*;
         using reference = T&;
         using iterator_category = std::random_access_iterator_tag; // its random access but im too lazy to implement it
     };
+}
+
+namespace geode::cocos {
 
     struct GEODE_DLL CCArrayInserter {
     public:
@@ -278,25 +285,16 @@ namespace geode::cocos {
     template <typename _Type>
     class CCArrayExt {
     protected:
-        cocos2d::CCArray* m_arr;
+        Ref<cocos2d::CCArray> m_arr;
         using T = std::remove_pointer_t<_Type>;
     public:
-        CCArrayExt() : m_arr(cocos2d::CCArray::create()) {
-            m_arr->retain();
-        }
-        CCArrayExt(cocos2d::CCArray* arr) : m_arr(arr) {
-            m_arr->retain();
-        }
-        CCArrayExt(CCArrayExt const& a) : m_arr(a.m_arr) {
-            m_arr->retain();
-        }
+        CCArrayExt() : m_arr(cocos2d::CCArray::create()) {}
+        CCArrayExt(cocos2d::CCArray* arr) : m_arr(arr) {}
+        CCArrayExt(CCArrayExt const& a) : m_arr(a.m_arr) {}
         CCArrayExt(CCArrayExt&& a) : m_arr(a.m_arr) {
             a.m_arr = nullptr;
         }
-        ~CCArrayExt() {
-            if (m_arr)
-                m_arr->release();
-        }
+        ~CCArrayExt() {}
 
         auto begin() {
             return CCArrayIterator<T*>(reinterpret_cast<T**>(m_arr->data->arr));

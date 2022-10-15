@@ -5,7 +5,7 @@
 #include <Geode/utils/types.hpp>
 #include <string_view>
 
-#include "../hook-core/Hook.hpp"
+#include <Geode/hook-core/Hook.hpp>
 
 namespace geode {
     class Mod;

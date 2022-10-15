@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
+#include <cocos2d.h>
 
 namespace geode {
     static cocos2d::CCPoint& operator*=(cocos2d::CCPoint & pos,  float mul) {

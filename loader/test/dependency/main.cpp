@@ -1,8 +1,8 @@
-#include <Geode/Geode.hpp>
-#include <Geode/Modify.hpp>
+#include <Geode/Loader.hpp>
 
 USE_GEODE_NAMESPACE();
 
+#include <Geode/modify/MenuLayer.hpp>
 class $modify(MenuLayer) {
 	void onMoreGames(CCObject*) {
 		if (Mod::get()->getSettingValue<bool>("its-raining-after-all")) {
