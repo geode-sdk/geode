@@ -51,6 +51,7 @@ Result<Mod*> Loader::loadModFromFile(std::string const& path) {
 
     // add mod resources
     this->queueInGDThread([this, mod]() {
+        this->updateResourcePaths();
         this->updateModResources(mod);
     });
 

@@ -49,6 +49,31 @@ void Loader::createDirectories() {
     m_logStream = std::ofstream(logDir / log::generateLogName());
 }
 
+void Loader::updateResourcePaths() {
+    log::debug("Setting resource paths");
+
+    // reset search paths
+    CCFileUtils::get()->setSearchPaths({
+        "Resources",
+        (this->getGeodeDirectory() / GEODE_RESOURCE_DIRECTORY).string(),
+        (this->getGeodeDirectory() / GEODE_TEMP_DIRECTORY).string()
+    });
+
+    // add mods' search paths
+    for (auto const& [_, mod] : m_mods) {
+        auto searchPath = this->getGeodeDirectory() / 
+            GEODE_TEMP_DIRECTORY / mod->getID() / "resources";
+        
+        // add search path
+        CCFileUtils::get()->addSearchPath(searchPath.string().c_str());
+    }
+
+    // add custom texture paths
+    for (auto const& path : m_texturePaths) {
+        CCFileUtils::get()->addSearchPath(path.string().c_str());
+    }
+}
+
 void Loader::updateModResources(Mod* mod) {
     if (!mod->m_addResourcesToSearchPath) {
         log::debug("Mod {} doesn't have resources, skipping", mod->getID());
@@ -58,15 +83,7 @@ void Loader::updateModResources(Mod* mod) {
     auto searchPath = this->getGeodeDirectory() / 
         GEODE_TEMP_DIRECTORY / mod->getID() / "resources";
 
-    // if resources already added
-    if (ranges::contains(CCFileUtils::get()->getSearchPaths(), searchPath.string())) {
-        return;
-    }
-
     log::debug("Adding resources for {}", mod->getID());
-
-    // add search path
-    CCFileUtils::get()->addSearchPath(searchPath.string().c_str());
 
     // add spritesheets
     for (auto const& sheet : mod->m_info.m_spritesheets) {
@@ -93,28 +110,23 @@ void Loader::updateModResources(Mod* mod) {
 void Loader::updateResources() {
     log::debug("Adding resources");
 
-    // if resources already added
-    if (!ranges::contains(
-        CCFileUtils::get()->getSearchPaths(),
-        (this->getGeodeDirectory() / GEODE_RESOURCE_DIRECTORY).string()
-    )) {
-        // add own geode/resources directory
-        CCFileUtils::get()->addSearchPath(
-            (this->getGeodeDirectory() / GEODE_RESOURCE_DIRECTORY).string().c_str()
-        );
+    this->updateResourcePaths();
 
-        // add geode/temp for accessing root resources in mods
-        auto tempDir = this->getGeodeDirectory() / GEODE_TEMP_DIRECTORY;
-        CCFileUtils::get()->addSearchPath(tempDir.string().c_str());
-
-        // add own spritesheets
-        this->updateModResources(InternalMod::get());
-    }
+    // add own spritesheets
+    this->updateModResources(InternalMod::get());
 
     // add mods' spritesheets
     for (auto const& [_, mod] : m_mods) {
         this->updateModResources(mod);
     }
+}
+
+void Loader::addTexturePath(ghc::filesystem::path const& path) {
+    m_texturePaths.push_back(path);
+}
+
+void Loader::removeTexturePath(ghc::filesystem::path const& path) {
+    ranges::remove(m_texturePaths, path);
 }
 
 size_t Loader::loadModsFromDirectory(
