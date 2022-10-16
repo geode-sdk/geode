@@ -64,6 +64,10 @@ public:
      *  @js getInstance
      */
     static CCFileUtils* sharedFileUtils();
+
+    GEODE_ADD(
+        static CCFileUtils* get();
+    );
     
     /**
      *  Destroys the instance of CCFileUtils.

@@ -67,6 +67,23 @@ static void updateIndexProgress(
 	}
 }
 
+template<class T = CCNode>
+	requires std::is_base_of_v<CCNode, T>
+T* setIDSafe(CCNode* node, int index, const char* id) {
+	if constexpr (std::is_same_v<CCNode, T>) {
+		if (auto child = getChild(node, index)) {
+			child->setID(id);
+			return child;
+		}
+	} else {
+		if (auto child = getChildOfType<T>(node, index)) {
+			child->setID(id);
+			return child;
+		}
+	}
+	return nullptr;
+}
+
 #include <Geode/modify/MenuLayer.hpp>
 class $modify(CustomMenuLayer, MenuLayer) {
 	void destructor() {
@@ -81,8 +98,6 @@ class $modify(CustomMenuLayer, MenuLayer) {
 		// make sure to add the string IDs for nodes (Geode has no manual 
 		// hook order support yet so gotta do this to ensure)
 		addIDsToMenuLayer(this);
-
-		Loader::get()->updateResourcePaths();
 
 		auto winSize = CCDirector::sharedDirector()->getWinSize();
 
