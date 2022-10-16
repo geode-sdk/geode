@@ -16,9 +16,9 @@ namespace geode::base {
 #if defined(GEODE_IS_MACOS) || defined(GEODE_IS_ANDROID)
 namespace gd {
 	struct _internal_string {
-		uintptr_t      m_len;
-		uintptr_t      m_capacity;
-		int                m_refcount;
+		size_t m_len;
+		size_t m_capacity;
+		int m_refcount;
 	};
 
 	class GEODE_DLL string {
@@ -26,18 +26,17 @@ namespace gd {
 		string();
 		string(char const* ok);
 		string(std::string ok) : string(ok.c_str()) {}
-		operator std::string() {
-			return std::string((char*)m_data, m_data[-1].m_len);
-		}
 		operator std::string() const {
 			return std::string((char*)m_data, m_data[-1].m_len);
 		}
+		bool operator==(string const& other) const;
 		string(string const& ok);
 		string& operator=(char const* ok);
 		string& operator=(string const& ok);
 		__attribute__((noinline)) ~string();
-		char const* c_str() const {return (char const*)m_data; }
-	 protected: 
+		char const* c_str() const { return (char const*)m_data; }
+		size_t size() const { return m_data[-1].m_len; }
+	protected:
 		_internal_string*       m_data;
 	};
 
@@ -285,14 +284,6 @@ namespace gd {
 	 public:
 		using value_type = T;
 
-		operator std::vector<T>() {
-			std::vector<T> out;
-
-			for (auto i = m_start; i != m_finish; ++i) {
-				out.push_back(*i);
-			}
-			return out; 
-		}
 		operator std::vector<T>() const {
 			std::vector<T> out;
 
@@ -317,6 +308,11 @@ namespace gd {
 		T& front() {
 			return *m_start;
 		}
+
+		auto begin() { return m_start; }
+		auto end() { return m_finish; }
+		auto begin() const { return static_cast<const T*>(m_start); }
+		auto end() const { return static_cast<const T*>(m_finish); }
 		
 		vector(vector const& lol) : vector(std::vector<T>(lol)) {}
 
