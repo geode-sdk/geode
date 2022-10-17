@@ -26,7 +26,7 @@
 #pragma warning(disable: 4251)
 #endif
 
-#include <zlib.h>
+#include <../platform/IncludeZlib.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <Geode/c++stl/gdstdlib.hpp>
