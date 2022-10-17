@@ -5,6 +5,7 @@
 #include <vector>
 #include <iostream>
 #include <variant> // for std::monostate
+#include <algorithm>
 #include <Geode/platform/platform.hpp>
 
 //#include "../utils/platform.hpp"
@@ -303,6 +304,14 @@ namespace gd {
 				*tmp = i;
 				tmp++;
 			}
+		}
+
+		vector(std::initializer_list<T> const& input) {
+			auto tmp = new T[input.size()];
+			m_start = tmp;
+			m_finish = m_start + input.size();
+			m_capacity_end = m_start + input.size();
+			std::copy(input.begin(), input.end(), std::begin(tmp));
 		}
 
 		T& front() {
