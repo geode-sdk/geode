@@ -311,7 +311,7 @@ namespace gd {
 			m_start = tmp;
 			m_finish = m_start + input.size();
 			m_capacity_end = m_start + input.size();
-			std::copy(input.begin(), input.end(), std::begin(tmp));
+			std::copy(input.begin(), input.end(), tmp);
 		}
 
 		T& front() {
