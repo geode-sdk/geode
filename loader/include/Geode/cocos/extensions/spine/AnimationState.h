@@ -26,7 +26,7 @@
 #ifndef SPINE_ANIMATIONSTATE_H_
 #define SPINE_ANIMATIONSTATE_H_
 
-#include <spine/AnimationStateData.h>
+#include "AnimationStateData.h"
 
 namespace cocos2d { namespace extension {
 

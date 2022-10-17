@@ -26,9 +26,9 @@
 #ifndef SPINE_SLOT_H_
 #define SPINE_SLOT_H_
 
-#include <spine/Bone.h>
-#include <spine/Attachment.h>
-#include <spine/SlotData.h>
+#include "Bone.h"
+#include "Attachment.h"
+#include "SlotData.h"
 
 namespace cocos2d { namespace extension {
 

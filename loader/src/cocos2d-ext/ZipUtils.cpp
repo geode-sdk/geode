@@ -31,10 +31,11 @@
 #include <stdlib.h>
 #include <Geode/c++stl/gdstdlib.hpp>
 
-#include <ZipUtils.h>
-#include "ccMacros.h"
-#include "platform/CCFileUtils.h"
-#include <unzip.h>
+#include <../support/zip_support/ZipUtils.h>
+#include <ccMacros.h>
+#include <../platform/CCFileUtils.h>
+#include <../support/zip_support/ioapi.h>
+#include <../support/zip_support/unzip.h>
 #include <map>
 
 NS_CC_BEGIN

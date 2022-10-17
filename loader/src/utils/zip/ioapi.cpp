@@ -17,7 +17,7 @@
 #define THE_FOPEN(file, name, mode) file = fopen(name, mode);
 #endif
 
-#include <ioapi.h>
+#include "../../../include/Geode/cocos/support/zip_support/ioapi.h"
 
 namespace cocos2d {
 

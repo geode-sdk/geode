@@ -25,8 +25,8 @@
 #ifndef __HTTP_RESPONSE__
 #define __HTTP_RESPONSE__
 
-#include "cocos2d.h"
-#include "ExtensionMacros.h"
+#include "../../include/cocos2d.h"
+#include "../ExtensionMacros.h"
 #include "HttpRequest.h"
 
 NS_CC_EXT_BEGIN

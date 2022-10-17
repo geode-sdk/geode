@@ -76,7 +76,7 @@
 #endif
 
 #include <zlib.h>
-#include <unzip.h>
+#include "../../../include/Geode/cocos/support/zip_support/unzip.h"
 
 #ifdef STDC
 #  include <stddef.h>

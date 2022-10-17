@@ -12,7 +12,7 @@
 #include <Geode/utils/vector.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <InternalMod.hpp>
-#include <ZipUtils.h>
+#include <../support/zip_support/ZipUtils.h>
 
 USE_GEODE_NAMESPACE();
 

@@ -1,5 +1,5 @@
 #include <Geode/utils/fetch.hpp>
-#include <curl/curl.h>
+#include <../platform/IncludeCurl.h>
 #include <Geode/utils/casts.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/utils/vector.hpp>
