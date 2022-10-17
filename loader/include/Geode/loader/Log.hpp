@@ -8,7 +8,7 @@
 #include <fs/filesystem.hpp>
 #include <ccTypes.h>
 
-#ifdef GEODE_IS_MACOS
+#ifndef __cpp_lib_concepts
 namespace std {
     // <concepts> isn't working for me lmao
     template <class From, class To>
