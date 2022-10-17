@@ -16,6 +16,10 @@ namespace geode::modifier {{
 		using Base = {class_name};
 		static void apply() {{
 			using namespace geode::core::meta;
+
+			if constexpr (HasStringIDProvider<Derived>) {{
+				geode::NodeStringIDManager::get()->registerProvider("{class_name}", &Derived::provideStringIDs);
+			}}
 )GEN";
 
 	// requires: index, class_name, arg_types, function_name, raw_arg_types, non_virtual

@@ -1,4 +1,5 @@
 #include <type_traits>
+#include "IDManager.hpp"
 
 /**
  * Main class implementation, it has the structure
@@ -35,6 +36,10 @@ namespace {                                                                     
 			derived##Intermediate,                                                \
 			derived<derived##Parent>                                              \
 		> m_fields;                                                               \
+		template<class = void>                                                    \
+		bool addStringIDs() {                                                     \
+			return geode::NodeStringIDManager::get()->provide(#base, this);       \
+		}                                                                         \
 	};                                                                            \
 }                                                                                 \
 template <> struct GEODE_HIDDEN derived<derived##Parent> : derived##Intermediate  \
@@ -49,6 +54,10 @@ namespace {                                                                     
 			derived##Intermediate,                                                \
 			derived                                                               \
 		> m_fields;                                                               \
+		template<class = void>                                                    \
+		bool addStringIDs() {                                                     \
+			return geode::NodeStringIDManager::get()->provide(#base, this);       \
+		}                                                                         \
 	};                                                                            \
 }                                                                                 \
 struct GEODE_HIDDEN derived : derived##Intermediate                               \

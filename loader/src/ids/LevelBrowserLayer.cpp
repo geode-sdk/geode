@@ -22,7 +22,7 @@ class $modify(LevelBrowserLayer) {
             setIDSafe(menu, 0, "back-button");
         }
 
-        if (search->m_searchType == SearchType::MyLevels) {
+        if (m_searchObject->m_searchType == SearchType::MyLevels) {
             if (auto menu = getChildOfType<CCMenu>(this, 1)) {
                 menu->setID("new-level-menu");
                 setIDSafe(menu, 0, "new-level-button");

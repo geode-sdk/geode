@@ -6,6 +6,7 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <iostream>
+#include "IDManager.hpp"
 
 #define GEODE_APPLY_MODIFY_FOR_FUNCTION(index, convention, className, functionName)                            \
 using base##index = wrap::functionName<Base, types::pure##index>;                                              \
@@ -17,6 +18,10 @@ if constexpr (derived##index::uuid != nullptr && (void*)base##index::uuid != (vo
 	);                                                                                                         \
 }                                                                                                              \
 
+template<class T>
+concept HasStringIDProvider = requires {
+	T::provideStringIDs();
+};
 
 namespace geode::modifier {
 	template <class Derived, class Base>
