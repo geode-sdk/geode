@@ -2229,7 +2229,7 @@ class GJGarageLayer : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol,
     void onBack(cocos2d::CCObject* sender) = mac 0x0, win 0x12adf0, ios 0x0;
     void onShop(cocos2d::CCObject* sender) = mac 0x0, win 0x12ad90, ios 0x0;
     void setupColorSelect() = mac 0x1b7500;
-    PAD = mac 0x10, win 0x0, android 0x0;
+    PAD = mac 0x10, win 0x8, android 0x0;
     CCTextInputNode* m_nameInput;
     SimplePlayer* m_playerPreview;
     PAD = mac 0x10, win 0x8, android 0x0;

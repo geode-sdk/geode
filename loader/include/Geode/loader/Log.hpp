@@ -29,23 +29,28 @@ namespace geode {
     namespace log {
         using log_clock = std::chrono::system_clock;
 
-        std::string generateLogName();
+        GEODE_DLL std::string generateLogName();
 
-        std::string parse(cocos2d::CCNode*);
+        GEODE_DLL std::string parse(cocos2d::CCNode*);
         template <class T>
         requires std::convertible_to<T*, cocos2d::CCNode*>
         std::string parse(T* node) {
             return parse(static_cast<cocos2d::CCNode*>(node));
         }
-        std::string parse(cocos2d::CCPoint const&);
-        std::string parse(cocos2d::CCSize const&);
-        std::string parse(cocos2d::CCRect const&);
-        std::string parse(cocos2d::CCArray*);
-        std::string parse(cocos2d::ccColor3B const&);
-        std::string parse(cocos2d::ccColor4B const&);
-        std::string parse(cocos2d::ccColor4F const&);
-        std::string parse(cocos2d::CCObject*);
-        std::string parse(Mod*);
+        GEODE_DLL std::string parse(cocos2d::CCPoint const&);
+        GEODE_DLL std::string parse(cocos2d::CCSize const&);
+        GEODE_DLL std::string parse(cocos2d::CCRect const&);
+        GEODE_DLL std::string parse(cocos2d::CCArray*);
+        GEODE_DLL std::string parse(cocos2d::ccColor3B const&);
+        GEODE_DLL std::string parse(cocos2d::ccColor4B const&);
+        GEODE_DLL std::string parse(cocos2d::ccColor4F const&);
+        GEODE_DLL std::string parse(cocos2d::CCObject*);
+        template <class T>
+        requires (std::convertible_to<T*, cocos2d::CCObject*> && !std::convertible_to<T*, cocos2d::CCNode*>)
+        std::string parse(T* node) {
+            return parse(static_cast<cocos2d::CCObject*>(node));
+        }
+        GEODE_DLL std::string parse(Mod*);
 
         template <typename T>
         requires requires(T b) { std::stringstream() << b; }
