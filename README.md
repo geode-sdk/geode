@@ -2,7 +2,7 @@
 
 # Geode SDK
 
-**Geode** is a [Geometry Dash](https://store.steampowered.com/app/322170/Geometry_Dash/) **mod loader** and **modding SDK** with a modern approach towards mod development. Unlike previous mod loaders, which merely inject the DLLs and let devs handle the rest, Geode aims to be a more comprehensive project, which manages loaded mods & hooks itself. Geode has been built to ensure performance, compatibility, portability and ease of use. For devs, Geode means **easy development and portability**; for end users, Geode means **an uniform and easy experience** using mods.
+**Geode** is a [Geometry Dash](https://store.steampowered.com/app/322170/Geometry_Dash/) **mod loader** and **modding SDK** with a modern approach towards mod development. Unlike previous mod loaders, which merely inject the DLLs and let devs handle the rest, Geode aims to be a more comprehensive project, which manages loaded mods & hooks itself. Geode has been built to ensure performance, compatibility, portability and ease of use. For devs, Geode means **easy development and portability**; for end users, **a uniform and easy experience** using mods.
 
 ## Why Geode?
 
@@ -29,7 +29,7 @@ This code hooks the "More Games" button in Geometry Dash, and makes it show a di
 
 One of our main design goals with Geode has been to make a framework so good that **after using it once, you never want to go back**.
 
-> :warning: It is important to note that Geode is **not meant to make learning to mod easier**. To make a good GD mod, you will still need to learn the ins  and outs of C++, reverse engineering, byte patching, and everything else. Geode is merely a collection of tools that make modding more enjoyable for people who are already familiar with it; not a magic wand for making mods without the hours of experience and practice required.
+> :warning: It is important to note that Geode is **not meant to make learning to mod easier**. To make a good GD mod, you will still need to learn the ins and outs of C++, reverse engineering, byte patching, and everything else. Geode is merely a collection of tools that make modding more enjoyable for people who are already familiar with it; not a magic wand for making mods without the hours of experience and practice required.
 
 ## Documentation
 

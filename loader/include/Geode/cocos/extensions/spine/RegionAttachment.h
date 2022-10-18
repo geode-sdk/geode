@@ -26,9 +26,9 @@
 #ifndef SPINE_REGIONATTACHMENT_H_
 #define SPINE_REGIONATTACHMENT_H_
 
-#include <spine/Attachment.h>
-#include <spine/Atlas.h>
-#include <spine/Slot.h>
+#include "Attachment.h"
+#include "Atlas.h"
+#include "Slot.h"
 
 namespace cocos2d { namespace extension {
 

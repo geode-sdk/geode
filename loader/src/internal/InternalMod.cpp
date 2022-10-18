@@ -40,6 +40,9 @@ InternalMod::InternalMod() : Mod(getInternalModInfo()) {
     m_saveDirPath = Loader::get()->getGeodeSaveDirectory() / GEODE_MOD_DIRECTORY / m_info.m_id;
     ghc::filesystem::create_directories(m_saveDirPath);
 
+    // make sure spritesheets get added
+    m_addResourcesToSearchPath = true;
+
     auto sett = this->loadSettings();
     if (!sett) {
         log::log(Severity::Error, this, "{}", sett.error());

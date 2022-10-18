@@ -30,9 +30,9 @@
 #ifndef __CC_WEBSOCKET_H__
 #define __CC_WEBSOCKET_H__
 
-#include "ExtensionMacros.h"
-#include "cocos2d.h"
-#include "libwebsockets.h"
+#include "../ExtensionMacros.h"
+#include "../../include/cocos2d.h"
+#include <libwebsockets.h>
 #include <list>
 
 NS_CC_EXT_BEGIN

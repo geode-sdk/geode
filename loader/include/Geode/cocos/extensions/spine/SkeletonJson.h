@@ -26,11 +26,11 @@
 #ifndef SPINE_SKELETONJSON_H_
 #define SPINE_SKELETONJSON_H_
 
-#include <spine/Attachment.h>
-#include <spine/AttachmentLoader.h>
-#include <spine/SkeletonData.h>
-#include <spine/Atlas.h>
-#include <spine/Animation.h>
+#include "Attachment.h"
+#include "AttachmentLoader.h"
+#include "SkeletonData.h"
+#include "Atlas.h"
+#include "Animation.h"
 
 namespace cocos2d { namespace extension {
 

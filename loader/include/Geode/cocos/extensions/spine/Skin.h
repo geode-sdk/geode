@@ -26,7 +26,7 @@
 #ifndef SPINE_SKIN_H_
 #define SPINE_SKIN_H_
 
-#include <spine/Attachment.h>
+#include "Attachment.h"
 
 namespace cocos2d { namespace extension {
 

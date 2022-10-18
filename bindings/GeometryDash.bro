@@ -1034,7 +1034,7 @@ class EditButtonBar : cocos2d::CCNode {
     cocos2d::CCArray* m_pagesArray;
 }
 
-class EditLevelLayer : cocos2d::CCLayer {
+class EditLevelLayer : cocos2d::CCLayer, FLAlertLayerProtocol, TextInputDelegate, UploadActionDelegate, UploadPopupDelegate, SetIDPopupDelegate {
     static void scene(GJGameLevel* level) {
         auto scene = cocos2d::CCScene::create();
     

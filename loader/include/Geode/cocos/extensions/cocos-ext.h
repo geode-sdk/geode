@@ -2,7 +2,7 @@
 #define __COCOS2D_EXT_H__
 
 #include "ExtensionMacros.h"
-#include "ccMacros.h"
+#include "../include/ccMacros.h"
 
 #include "GUI/CCControlExtension/CCControlExtensions.h"
 #include "GUI/CCScrollView/CCScrollView.h"

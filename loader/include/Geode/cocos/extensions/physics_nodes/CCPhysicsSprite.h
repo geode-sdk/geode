@@ -22,8 +22,8 @@
 #ifndef __PHYSICSNODES_CCPHYSICSSPRITE_H__
 #define __PHYSICSNODES_CCPHYSICSSPRITE_H__
 
-#include "cocos2d.h"
-#include "ExtensionMacros.h"
+#include "../../include/cocos2d.h"
+#include "../ExtensionMacros.h"
 
 #if CC_ENABLE_CHIPMUNK_INTEGRATION
 #include "chipmunk.h"

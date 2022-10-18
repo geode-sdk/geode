@@ -35,6 +35,11 @@ namespace gd {
 			reinterpret_cast<void(*)(_internal_string*, void*)>(geode::base::get() + 0x489f78)(&m_data[-1], al);
 		}
 	}
+	bool string::operator==(string const& other) const {
+		if (size() != other.size()) return false;
+		return strcmp(c_str(), other.c_str()) == 0;
+	}
+
 
 }
 

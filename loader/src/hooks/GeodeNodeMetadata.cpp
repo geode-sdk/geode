@@ -2,6 +2,7 @@
 #include <Geode/utils/Ref.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/modify/Field.hpp>
+#include <Geode/modify/CCNode.hpp>
 
 USE_GEODE_NAMESPACE();
 using namespace geode::modifier;
@@ -59,7 +60,6 @@ public:
 };
 
 // proxy forwards
-#include <Geode/modify/CCNode.hpp>
 class $modify(ProxyCCNode, CCNode) {
     virtual CCObject* getUserObject() {
         return GeodeNodeMetadata::set(this)->m_userObject;

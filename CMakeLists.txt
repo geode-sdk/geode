@@ -60,11 +60,7 @@ target_sources(${PROJECT_NAME} INTERFACE ${GEODE_CODEGEN_PATH}/Geode/GeneratedSo
 target_include_directories(${PROJECT_NAME} INTERFACE
 	${GEODE_CODEGEN_PATH}
 	${GEODE_LOADER_PATH}/include
-	${GEODE_LOADER_PATH}/include/Geode/cocos/
-	${GEODE_LOADER_PATH}/include/Geode/cocos/cocos2dx
-	${GEODE_LOADER_PATH}/include/Geode/cocos/cocos2dx/include
-	${GEODE_LOADER_PATH}/include/Geode/cocos/cocos2dx/support/zip_support
-	${GEODE_LOADER_PATH}/include/Geode/cocos/cocos2dx/kazmath/include
+	${GEODE_LOADER_PATH}/include/Geode/cocos/include
 	${GEODE_LOADER_PATH}/include/Geode/cocos/extensions
 	${GEODE_LOADER_PATH}/include/Geode/fmod
 )
@@ -97,9 +93,12 @@ elseif(EXISTS ${GEODE_PLATFORM_BIN_PATH})
 		"${GEODE_LOADER_PATH}/include/Geode/DefaultInclude.hpp"
 		"${GEODE_LOADER_PATH}/include/Geode/Loader.hpp"
 		"${GEODE_LOADER_PATH}/include/Geode/UI.hpp"
-		"${GEODE_LOADER_PATH}/include/Geode/cocos/cocos2dx/include/cocos2d.h"
+		"${GEODE_LOADER_PATH}/include/Geode/cocos/include/cocos2d.h"
 		"${GEODE_LOADER_PATH}/include/Geode/cocos/extensions/cocos-ext.h"
 	)
 else()
-	message(FATAL_ERROR "No valid loader binary to link to! Install a pre-built binary for version ${PROJECT_VERSION} with Geode CLI or build it from source.")
+	message(FATAL_ERROR
+		"No valid loader binary to link to! Install prebuilts with `geode sdk install-prebuilts` "
+		"or build Geode from source."
+	)
 endif()

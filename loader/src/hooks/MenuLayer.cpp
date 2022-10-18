@@ -62,6 +62,23 @@ static void updateIndexProgress(
 	}
 }
 
+template<class T = CCNode>
+	requires std::is_base_of_v<CCNode, T>
+T* setIDSafe(CCNode* node, int index, const char* id) {
+	if constexpr (std::is_same_v<CCNode, T>) {
+		if (auto child = getChild(node, index)) {
+			child->setID(id);
+			return child;
+		}
+	} else {
+		if (auto child = getChildOfType<T>(node, index)) {
+			child->setID(id);
+			return child;
+		}
+	}
+	return nullptr;
+}
+
 #include <Geode/modify/MenuLayer.hpp>
 class $modify(CustomMenuLayer, MenuLayer) {
 	void destructor() {
@@ -73,34 +90,26 @@ class $modify(CustomMenuLayer, MenuLayer) {
 		if (!MenuLayer::init())
 			return false;
 		
-		Loader::get()->updateResourcePaths();
-
-		auto setIDSafe = +[](CCNode* node, int index, const char* id) {
-			if (auto child = getChild(node, index)) {
-				child->setID(id);
-			}
-		};
-
 		// set IDs to everything
 		this->setID("main-menu-layer");
 		setIDSafe(this, 0, "main-menu-bg");
-		getChildOfType<CCSprite>(this, 0)->setID("main-title");
+		setIDSafe<CCSprite>(this, 0, "main-title");
 
 		if (PlatformToolbox::isControllerConnected()) {
-			getChildOfType<CCSprite>(this, 1)->setID("play-gamepad-icon");
-			getChildOfType<CCSprite>(this, 2)->setID("editor-gamepad-icon");
-			getChildOfType<CCSprite>(this, 3)->setID("icon-kit-gamepad-icon");
+			setIDSafe<CCSprite>(this, 1, "play-gamepad-icon");
+			setIDSafe<CCSprite>(this, 2, "editor-gamepad-icon");
+			setIDSafe<CCSprite>(this, 3, "icon-kit-gamepad-icon");
 
-			getChildOfType<CCSprite>(this, 4)->setID("settings-gamepad-icon");
-			getChildOfType<CCSprite>(this, 5)->setID("mouse-gamepad-icon");
-			getChildOfType<CCSprite>(this, 6)->setID("click-gamepad-icon");
+			setIDSafe<CCSprite>(this, 4, "settings-gamepad-icon");
+			setIDSafe<CCSprite>(this, 5, "mouse-gamepad-icon");
+			setIDSafe<CCSprite>(this, 6, "click-gamepad-icon");
 
-			getChildOfType<CCLabelBMFont>(this, 0)->setID("mouse-gamepad-label");
-			getChildOfType<CCLabelBMFont>(this, 1)->setID("click-gamepad-label");
+			setIDSafe<CCLabelBMFont>(this, 0, "mouse-gamepad-label");
+			setIDSafe<CCLabelBMFont>(this, 1, "click-gamepad-label");
 
-			getChildOfType<CCLabelBMFont>(this, 2)->setID("player-username");
+			setIDSafe<CCLabelBMFont>(this, 2, "player-username");
 		} else {
-			getChildOfType<CCLabelBMFont>(this, 0)->setID("player-username");
+			setIDSafe<CCLabelBMFont>(this, 0, "player-username");
 		}
 		if (auto menu = getChildOfType<CCMenu>(this, 0)) {
 			menu->setID("main-menu");
