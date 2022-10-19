@@ -63,6 +63,7 @@ namespace geode {
         std::ofstream m_logStream;
         std::vector<ghc::filesystem::path> m_modDirectories;
         std::vector<FailedModInfo> m_erroredMods;
+        std::vector<ghc::filesystem::path> m_texturePaths;
         LoaderSettings m_loadedSettings;
 
         bool m_isSetup = false;
@@ -87,9 +88,12 @@ namespace geode {
 
     	template <class, class, class>
         friend class modifier::FieldIntermediate;
+        
+        void updateResourcePaths();
+        void updateModResources(Mod* mod);
 
         friend bool GEODE_CALL ::geode_implicit_load(Mod*);
-        
+
     public:
         ~Loader();
 
@@ -175,17 +179,13 @@ namespace geode {
         );
 
         void clearLogs();
-        
+
         /**
-         * You shouldn't be calling this manually, 
-         * but if you are, make sure to set 
-         * Mod::m_addResourcesToSearchPath to true 
-         * first
+         * Do not call manually unless you know what you're doing.
          */
-        void updateModResourcePaths(Mod*);
-        void updateResourcePaths();
-        void updateModResources(Mod* mod);
         void updateResources();
+        void addTexturePath(ghc::filesystem::path const& path);
+        void removeTexturePath(ghc::filesystem::path const& path);
 
         /**
          * Check if a mod with an ID is installed. Any 

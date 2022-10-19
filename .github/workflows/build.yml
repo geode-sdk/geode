@@ -56,7 +56,7 @@ jobs:
         fileName: ${{ matrix.config.cli_name }}
         tarBall: false
         zipBall: false
-        out-file-path: "cli"
+        out-file-path: "cli" 
     
     - name: Unzip CLI
       run: |

@@ -9,6 +9,7 @@
 #include <Geode/utils/JsonValidation.hpp>
 #include <Geode/utils/convert.hpp>
 #include <Geode/utils/platform.hpp>
+#include <Geode/utils/ranges.hpp>
 #include <regex>
 
 #pragma warning(push)
@@ -266,7 +267,7 @@ namespace geode {
                     value = static_cast<Class*>(this)->getDefault();
                     return Err(
                         "Value must be one of " +
-                        utils::container::join(m_oneOf.value(), ", ")
+                        utils::ranges::join(m_oneOf.value(), ", ")
                     );
                 }
                 return Ok();

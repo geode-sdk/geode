@@ -4,6 +4,7 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/vector.hpp>
+#include <Geode/utils/ranges.hpp>
 // #include <hook/hook.hpp>
 #include <Geode/hook-core/Hook.hpp>
 #include "InternalLoader.hpp"
@@ -60,7 +61,7 @@ Result<> Mod::disableHook(Hook* hook) {
 Result<> Mod::removeHook(Hook* hook) {
     auto res = this->disableHook(hook);
     if (res) {
-        utils::vector::erase<Hook*>(this->m_hooks, hook);
+        ranges::remove(m_hooks, hook);
         delete hook;
     }
     return res;

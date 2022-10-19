@@ -4,6 +4,7 @@
 #include "ui/BasedButton.hpp"
 #include "ui/IconButtonSprite.hpp"
 #include "ui/InputNode.hpp"
+#include "ui/LayerBG.hpp"
 #include "ui/ListView.hpp"
 #include "ui/MDTextArea.hpp"
 #include "ui/Notification.hpp"

@@ -26,11 +26,11 @@
 #ifndef __CCEDITBOXIMPLANDROID_H__
 #define __CCEDITBOXIMPLANDROID_H__
 
-#include "cocos2d.h"
+#include "../../../include/cocos2d.h"
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
 
-#include "ExtensionMacros.h"
+#include "../../ExtensionMacros.h"
 #include "CCEditBoxImpl.h"
 
 NS_CC_EXT_BEGIN

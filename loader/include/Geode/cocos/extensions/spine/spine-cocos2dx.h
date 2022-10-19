@@ -26,10 +26,10 @@
 #ifndef SPINE_COCOS2DX_H_
 #define SPINE_COCOS2DX_H_
 
-#include <spine/spine.h>
-#include "cocos2d.h"
-#include <spine/CCSkeleton.h>
-#include <spine/CCSkeletonAnimation.h>
+#include "spine.h"
+#include "../../include/cocos2d.h"
+#include "CCSkeleton.h"
+#include "CCSkeletonAnimation.h"
 
 namespace cocos2d { namespace extension {
 

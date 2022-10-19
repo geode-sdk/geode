@@ -30,7 +30,7 @@
 #ifndef __CCINVOCATION_H__
 #define __CCINVOCATION_H__
 
-#include "cocoa/CCObject.h"
+#include "../../../cocoa/CCObject.h"
 #include "../../ExtensionMacros.h"
 
 NS_CC_EXT_BEGIN

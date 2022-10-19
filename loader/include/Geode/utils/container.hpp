@@ -12,6 +12,7 @@ namespace geode::utils::container {
      * @returns True if element is in `vec`, false if not.
      */
     template<class C, class T>
+    [[deprecated("Use geode::utils::ranges::contains instead")]]
     bool contains(C const& cont, T const& elem) {
         return std::find(cont.begin(), cont.end(), elem) != cont.end();
     }
@@ -25,6 +26,7 @@ namespace geode::utils::container {
      * in `vec`, false if not.
      */
     template<class C, class T>
+    [[deprecated("Use geode::utils::ranges::contains instead")]]
     bool contains(C const& cont, std::function<bool(T)> containFunc) {
         for (auto const& item : cont) {
             if (containFunc(item))
@@ -41,6 +43,7 @@ namespace geode::utils::container {
      * @returns Joined string.
      */
     template<class C>
+    [[deprecated("Use geode::utils::ranges::join instead")]]
     std::string join(C const& cont, std::string const& sep) {
         std::string res = "";
         bool first = true;
@@ -67,6 +70,7 @@ namespace geode::utils::container {
      * @returns Mapped container.
      */
     template<class C, class C2, class T, class T2>
+    [[deprecated("Use geode::utils::ranges::map instead")]]
     C2 map(C const& cont, std::function<T2(T)> mapFunc) {
         C2 res;
         std::transform(cont.begin(), cont.end(), res.end(), mapFunc);

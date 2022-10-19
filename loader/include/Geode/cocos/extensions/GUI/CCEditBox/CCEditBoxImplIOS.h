@@ -26,11 +26,11 @@
 #ifndef __CCEditBoxIMPLIOS_H__
 #define __CCEditBoxIMPLIOS_H__
 
-#include "cocos2d.h"
+#include "../../../include/cocos2d.h"
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
 
-#include "ExtensionMacros.h"
+#include "../../ExtensionMacros.h"
 #include "CCEditBoxImpl.h"
 
 #import <Foundation/Foundation.h>

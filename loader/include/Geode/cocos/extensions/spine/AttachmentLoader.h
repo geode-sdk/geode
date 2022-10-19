@@ -26,8 +26,8 @@
 #ifndef SPINE_ATTACHMENTLOADER_H_
 #define SPINE_ATTACHMENTLOADER_H_
 
-#include <spine/Attachment.h>
-#include <spine/Skin.h>
+#include "Attachment.h"
+#include "Skin.h"
 
 namespace cocos2d { namespace extension {
 

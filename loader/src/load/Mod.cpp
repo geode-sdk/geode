@@ -10,8 +10,9 @@
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/vector.hpp>
+#include <Geode/utils/ranges.hpp>
 #include <InternalMod.hpp>
-#include <ZipUtils.h>
+#include <../support/zip_support/ZipUtils.h>
 
 USE_GEODE_NAMESPACE();
 
@@ -519,9 +520,9 @@ std::vector<Hook*> Mod::getHooks() const {
 }
 
 bool Mod::depends(std::string const& id) const {
-    return utils::vector::contains<Dependency>(
+    return utils::ranges::contains(
         m_info.m_dependencies,
-        [id](Dependency t) -> bool { return t.m_id == id; }
+        [id](Dependency const& t) { return t.m_id == id; }
     );
 }
 

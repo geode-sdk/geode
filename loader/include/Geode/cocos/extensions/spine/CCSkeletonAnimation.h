@@ -26,9 +26,9 @@
 #ifndef SPINE_CCSKELETONANIMATION_H_
 #define SPINE_CCSKELETONANIMATION_H_
 
-#include <spine/spine.h>
-#include <spine/CCSkeleton.h>
-#include "cocos2d.h"
+#include "spine.h"
+#include "CCSkeleton.h"
+#include "../../include/cocos2d.h"
 
 namespace cocos2d { namespace extension {
 

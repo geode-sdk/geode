@@ -24,7 +24,7 @@ THE SOFTWARE.
 #ifndef __CCEditBoxIMPLWP8_H__
 #define __CCEditBoxIMPLWP8_H__
 
-#include "ExtensionMacros.h"
+#include "../../ExtensionMacros.h"
 #include "CCEditBoxImpl.h"
 
 NS_CC_EXT_BEGIN

@@ -5,10 +5,9 @@
 USE_GEODE_NAMESPACE();
 
 class $modify(CustomLoadingLayer, LoadingLayer) {
-    CCScale9Sprite* m_updatingResourcesBG;
-    CCLabelBMFont* m_updatingResources;
+    bool m_updatingResources;
 
-    CustomLoadingLayer() : m_updatingResources(nullptr) {}
+    CustomLoadingLayer() : m_updatingResources(false) {}
 
     bool init(bool fromReload) {
         if (!LoadingLayer::init(fromReload))
@@ -38,22 +37,22 @@ class $modify(CustomLoadingLayer, LoadingLayer) {
                 std::placeholders::_3
             )
         )) {
-            auto bg = CCScale9Sprite::create(
-                "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
-            );
-            bg->setScale(.6f);
-            bg->setColor({ 0, 0, 0 });
-            bg->setOpacity(150);
-            bg->setPosition(winSize / 2);
-            this->addChild(bg);
+            // auto bg = CCScale9Sprite::create(
+            //     "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
+            // );
+            // bg->setScale(.6f);
+            // bg->setColor({ 0, 0, 0 });
+            // bg->setOpacity(150);
+            // bg->setPosition(winSize / 2);
+            // this->addChild(bg);
 
-            m_fields->m_updatingResourcesBG = bg;
+            // m_fields->m_updatingResourcesBG = bg;
 
-            auto label = CCLabelBMFont::create("", "goldFont.fnt");
-            label->setScale(1.1f);
-            bg->addChild(label);
+            // auto label = CCLabelBMFont::create("", "goldFont.fnt");
+            // label->setScale(1.1f);
+            // bg->addChild(label);
 
-            m_fields->m_updatingResources = label;
+            m_fields->m_updatingResources = true;
 
             this->setUpdateText("Downloading Resources");
         }
@@ -62,14 +61,15 @@ class $modify(CustomLoadingLayer, LoadingLayer) {
     }
 
     void setUpdateText(std::string const& text) {
-        m_fields->m_updatingResources->setString(text.c_str());
-        m_fields->m_updatingResourcesBG->setContentSize({
-            m_fields->m_updatingResources->getScaledContentSize().width + 30.f,
-            50.f
-        });
-        m_fields->m_updatingResources->setPosition(
-            m_fields->m_updatingResourcesBG->getContentSize() / 2
-        );
+        m_textArea->setString(text.c_str());
+        // m_fields->m_updatingResources->setString(text.c_str());
+        // m_fields->m_updatingResourcesBG->setContentSize({
+        //     m_fields->m_updatingResources->getScaledContentSize().width + 30.f,
+        //     50.f
+        // });
+        // m_fields->m_updatingResources->setPosition(
+        //     m_fields->m_updatingResourcesBG->getContentSize() / 2
+        // );
     }
 
     void updateResourcesProgress(
@@ -87,13 +87,7 @@ class $modify(CustomLoadingLayer, LoadingLayer) {
 
             case UpdateStatus::Finished: {
                 this->setUpdateText("Resources Downloaded");
-                m_fields->m_updatingResourcesBG->runAction(CCSequence::create(
-                    CCDelayTime::create(1.f),
-                    CCRemoveSelf::create(),
-                    nullptr
-                ));
-                m_fields->m_updatingResourcesBG = nullptr;
-                m_fields->m_updatingResources = nullptr;
+                m_fields->m_updatingResources = false;
                 this->loadAssets();
             } break;
 
@@ -105,13 +99,7 @@ class $modify(CustomLoadingLayer, LoadingLayer) {
                     "that it may very likely crash."
                 );
                 this->setUpdateText("Resource Download Failed");
-                m_fields->m_updatingResourcesBG->runAction(CCSequence::create(
-                    CCDelayTime::create(1.f),
-                    CCRemoveSelf::create(),
-                    nullptr
-                ));
-                m_fields->m_updatingResourcesBG = nullptr;
-                m_fields->m_updatingResources = nullptr;
+                m_fields->m_updatingResources = false;
                 this->loadAssets();
             } break;
         }

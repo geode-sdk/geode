@@ -9,6 +9,7 @@
 #include <Geode/utils/vector.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/general.hpp>
+#include <Geode/utils/ranges.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/binding/FLAlertLayer.hpp>
@@ -447,7 +448,7 @@ Result<InstallHandle> Index::installItems(
         if (!list) {
             return Err(list.error());
         }
-        utils::vector::push(ids, list.value());
+        ranges::push(ids, list.value());
     }
     auto ret = std::make_shared<InstallItems>(
         std::unordered_set(ids.begin(), ids.end())
@@ -617,7 +618,7 @@ void InstallItems::finish(bool replaceFiles) {
         FLAlertLayer::create(
             "Mods installed",
             "The following <cy>mods</c> have been installed: " + 
-            container::join(m_toInstall, ",") + "\n"
+            ranges::join(m_toInstall, std::string(",")) + "\n"
             "Please <cr>restart the game</c> to apply",
             "OK"
         )->show();

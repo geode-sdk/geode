@@ -4,6 +4,7 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/vector.hpp>
+#include <Geode/utils/ranges.hpp>
 #include <InternalLoader.hpp>
 
 #include <lilac/include/geode/core/hook/hook.hpp>
@@ -34,7 +35,7 @@ Result<Patch*> Mod::patch(void* address, byte_array data) {
 
 Result<> Mod::unpatch(Patch* patch) {
     if (patch->restore()) {
-        utils::vector::erase<Patch*>(m_patches, patch);
+        ranges::remove(m_patches, patch);
         delete patch;
         return Ok<>();
     }
