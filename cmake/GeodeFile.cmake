@@ -163,17 +163,22 @@ function(package_geode_resources_now proname src dest header_dest)
     file(GLOB RESOURCE_FILES "${dest}/*.*")
 
     set(HEADER_FILE
-        "#include <unordered_map>\n\n"
-        "static const std::unordered_map<std::string, std::string> "
-        "LOADER_RESOURCE_HASHES {\n"
+        #[["#include <unordered_map>\n\n"]]
+        #[["static const std::unordered_map<std::string, std::string> "]]
+        #[["LOADER_RESOURCE_HASHES {\n"]]
+        "#include <vector>\n\n"
+        "static const std::vector<std::string> "
+        "LOADER_RESOURCE_FILES {\n"
     )
 
     foreach(file ${RESOURCE_FILES})
         cmake_path(GET file FILENAME FILE_NAME)
         if (NOT FILE_NAME STREQUAL ".geode_cache")
             
-            file(SHA256 ${file} COMPUTED_HASH)
-            list(APPEND HEADER_FILE "\t{ \"${FILE_NAME}\", \"${COMPUTED_HASH}\" },\n")
+            # file(SHA256 ${file} COMPUTED_HASH)
+            # list(APPEND HEADER_FILE "\t{ \"${FILE_NAME}\", \"${COMPUTED_HASH}\" },\n")
+
+            list(APPEND HEADER_FILE "\t\"${FILE_NAME}\",\n")
 
         endif()
 

@@ -815,7 +815,7 @@ class CreatorLayer : cocos2d::CCLayer {
     void onMyLevels(cocos2d::CCObject*) = mac 0x142b70, win 0x0, ios 0x0;
     void onSavedLevels(cocos2d::CCObject*) = mac 0x142860, win 0x0, ios 0x0;
     virtual void sceneWillResume() = mac 0x0, win 0x4fb50, ios 0x0;
-    bool init() = mac 0x0, win 0x4de40, ios 0x0;
+    virtual bool init() = mac 0x141c10, win 0x4de40, ios 0x0;
     static CreatorLayer* create() = mac 0x0, win 0x4dda0, ios 0x0;
 }
 
@@ -1083,7 +1083,7 @@ class EditorPauseLayer : CCBlockLayer, FLAlertLayerProtocol {
     void onResume(cocos2d::CCObject* sender) = mac 0x0, win 0x74fe0, ios 0x0;
     void onSaveAndPlay(cocos2d::CCObject* sender) = mac 0x13e1b0, win 0x753d0, ios 0x0;
     void onSaveAndExit(cocos2d::CCObject* sender) = mac 0x13e230, win 0x75620, ios 0x0;
-    void onSave(cocos2d::CCObject* sender) = mac 0x0, win 0x755a0, ios 0x0;
+    void onSave(cocos2d::CCObject* sender) = mac 0x13e290, win 0x755a0, ios 0x0;
     void onExitNoSave(cocos2d::CCObject* sender) = mac 0x0, win 0x75700, ios 0x0;
     void uncheckAllPortals(cocos2d::CCObject* sender) = mac 0x0, win 0x74760, ios 0x0;
     void onResetUnusedColors(cocos2d::CCObject* sender) = mac 0x0, win 0x74810, ios 0x0;
@@ -1173,6 +1173,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     void onDelete(cocos2d::CCObject* sender) = mac 0x1b3d0, win 0x7b8d0;
     void onDeleteSelected(cocos2d::CCObject* sender) = mac 0xb990, win 0x7bf50, ios 0x0;
     void onDeleteSelectedType(cocos2d::CCObject* sender) = mac 0x1e7a0, win 0x7c480;
+    void onDeleteStartPos(cocos2d::CCObject* sender) = mac 0x1e770, win 0x7c4c0;
     void onCopy(cocos2d::CCObject* sender) = mac 0x18dc0, win 0x87fb0, ios 0x0;
     void onPaste(cocos2d::CCObject* sender) = mac 0x18ee0, win 0x880c0, ios 0x0;
     void tryUpdateTimeMarkers() = mac 0x1ca50, win 0x88940;
@@ -3895,7 +3896,7 @@ class LocalLevelManager : cocos2d::CCNode {
         return LocalLevelManager::sharedState();
     }
 
-    PAD = mac 0x0, win 0x1C, android 0x0;
+    PAD = mac 0x10, win 0x1C, android 0x0;
     cocos2d::CCDictionary* m_loadData;
     cocos2d::CCDictionary* m_levelData;
     cocos2d::CCArray* m_localLevels;

@@ -36,6 +36,7 @@ class cocos2d::CCArray {
 	auto fastRemoveObject(cocos2d::CCObject*) = mac 0x41a520;
 	auto fastRemoveObjectAtIndex(unsigned int) = mac 0x41a500;
 	auto fastRemoveObjectAtIndexNew(unsigned int) = mac 0x41a510;
+	auto insertObject(cocos2d::CCObject*, unsigned int) = mac 0x41a460;
 	auto lastObject() = mac 0x41a360;
 	auto objectAtIndex(unsigned int) = mac 0x41a340, ios 0x16510c;
 	auto removeAllObjects() = mac 0x41a4f0, ios 0x1651f0;

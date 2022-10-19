@@ -180,20 +180,23 @@ bool InternalLoader::verifyLoaderResources(IndexUpdateCallback callback) {
     for (auto& file : ghc::filesystem::directory_iterator(resourcesDir)) {
         auto name = file.path().filename().string();
         // skip unknown files
-        if (!LOADER_RESOURCE_HASHES.count(name)) {
+        if (/*!LOADER_RESOURCE_HASHES.count(name)*/ 
+            std::find(LOADER_RESOURCE_FILES.begin(), LOADER_RESOURCE_FILES.end(), name) 
+            == LOADER_RESOURCE_FILES.end()) {
             continue;
         }
         // verify hash
-        auto hash = calculateSHA256(file.path());
-        if (hash != LOADER_RESOURCE_HASHES.at(name)) {
-            this->downloadLoaderResources(callback);
-            return false;
-        }
+        // auto hash = calculateSHA256(file.path());
+        // if (hash != LOADER_RESOURCE_HASHES.at(name)) {
+        //     log::debug("compare {} {} {}", file.path().string(), hash, LOADER_RESOURCE_HASHES.at(name));
+        //     this->downloadLoaderResources(callback);
+        //     return false;
+        // }
         coverage += 1;
     }
 
     // make sure every file was found
-    if (coverage != LOADER_RESOURCE_HASHES.size()) {
+    if (coverage != /*LOADER_RESOURCE_HASHES*/ LOADER_RESOURCE_FILES.size()) {
         this->downloadLoaderResources(callback);
         return false;
     }
