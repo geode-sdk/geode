@@ -47,7 +47,7 @@ class AnimatedGameObject : GameObject, AnimatedSpriteDelegate, SpritePartDelegat
 class AnimatedShopKeeper : CCAnimatedSprite {
     void animationFinished(const char*) {}
 
-    static AnimatedShopKeeper* create(ShopType type) = mac 0x0, win 0x14c4d0, ios 0x0;
+    static AnimatedShopKeeper* create(ShopType type) = mac 0x1a57d0, win 0x14c4d0, ios 0x0;
     void startAnimating() = mac 0x0, win 0x14c690, ios 0x0;
 
     float m_unknown1;
@@ -68,7 +68,7 @@ class AppDelegate : cocos2d::CCApplication {
     virtual void willSwitchToScene(cocos2d::CCScene*) = mac 0x3aaf40, win 0x3d690, ios 0x0;
     static AppDelegate* get() = mac 0x3aab10, win 0x0, ios 0x0;
     bool musicTest() = mac 0x0, win 0x3d580, ios 0x0;
-    void pauseGame() = mac 0x0, win 0x3d3e0, ios 0x0;
+    void pauseGame() = mac 0x3aab60, win 0x3d3e0, ios 0x0;
     void resumeSound() = mac 0x0, win 0x3d4d0, ios 0x0;
     void setupGLView() = mac 0x0, win 0x3c950, ios 0x0;
 
@@ -234,7 +234,7 @@ class CCAnimatedSprite : cocos2d::CCSprite {
 }
 
 class CCAnimateFrameCache : cocos2d::CCObject {
-    static CCAnimateFrameCache* sharedSpriteFrameCache() = mac 0x0, win 0x158f0, ios 0x0;
+    static CCAnimateFrameCache* sharedSpriteFrameCache() = mac 0x2e4df0, win 0x158f0, ios 0x0;
     void addSpriteFramesWithFile(const char* file) = mac 0x0, win 0x159b0, ios 0x0;
 }
 
@@ -263,10 +263,10 @@ class CCCircleWave : cocos2d::CCNode {
     bool init(float, float, float, bool, bool) = mac 0xbd380, win 0x0, ios 0x0;
     void followObject(cocos2d::CCNode*, bool) = mac 0xbd670, win 0x16f20, ios 0x0;
     void updatePosition(float) = mac 0xbd630, win 0x16f00, ios 0x0;
-    void setPosition(cocos2d::CCPoint const& pos) = mac 0x0, win 0x16ed0, ios 0x0;
-    void removeMeAndCleanup() = mac 0x0, win 0x17280, ios 0x0;
-    void draw() = mac 0x0, win 0x17100, ios 0x0;
-    void updateTweenAction(float dt, const char* key) = mac 0x0, win 0x16f90, ios 0x0;
+    void setPosition(cocos2d::CCPoint const& pos) = mac 0xbd600, win 0x16ed0, ios 0x0;
+    void removeMeAndCleanup() = mac 0xbdac0, win 0x17280, ios 0x0;
+    void draw() = mac 0xbd960, win 0x17100, ios 0x0;
+    void updateTweenAction(float dt, const char* key) = mac 0xbd960, win 0x16f90, ios 0x0;
 
     cocos2d::CCArray* m_children;
     PAD = mac 0x0, win 0x4, android 0x0;
@@ -286,7 +286,7 @@ class CCCircleWaveDelegate {
 class CCContentLayer : cocos2d::CCLayerColor {
     inline CCContentLayer() {}
     static CCContentLayer* create(cocos2d::ccColor4B const& color, float width, float height) = mac 0x0, win 0x172a0, ios 0x0;
-    virtual void setPosition(cocos2d::CCPoint const& pos) = mac 0x0, win 0x17400, ios 0x0;
+    virtual void setPosition(cocos2d::CCPoint const& pos) = mac 0x464c60, win 0x17400, ios 0x0;
 }
 
 class CCIndexPath : cocos2d::CCObject {
@@ -326,9 +326,9 @@ class CCMenuItemSpriteExtra : cocos2d::CCMenuItemSprite {
     ~CCMenuItemSpriteExtra() = mac 0x0, win 0x18eb0, ios 0x0;
     bool init(cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCObject*, cocos2d::SEL_MenuHandler) = mac 0x125450, win 0x18fa0, ios 0x0;
     bool init(cocos2d::CCNode* spr) = mac 0x0, win 0x18fa0, ios 0x0;
-    void activate() = mac 0x0, win 0x191c0, ios 0x0;
-    void selected() = mac 0x0, win 0x19270, ios 0x0;
-    void unselected() = mac 0x0, win 0x19430, ios 0x0;
+    void activate() = mac 0x125730, win 0x191c0, ios 0x0;
+    void selected() = mac 0x125840, win 0x19270, ios 0x0;
+    void unselected() = mac 0x125a70, win 0x19430, ios 0x0;
 
     float m_scaleMultiplier;
     float m_baseScale;
@@ -611,7 +611,7 @@ class CCTextInputNode : cocos2d::CCLayer, cocos2d::CCIMEDelegate, cocos2d::CCTex
 }
 
 class ChallengesPage {
-    static ChallengesPage* create() = mac 0x0, win 0x3e050, ios 0x0;
+    static ChallengesPage* create() = mac 0x1db350, win 0x3e050, ios 0x0;
 }
 
 class CheckpointObject : cocos2d::CCNode {
@@ -702,7 +702,7 @@ class ColorSelectLiveOverlay : FLAlertLayer {
 }
 
 class ColorSelectPopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, TextInputDelegate, GJSpecialColorSelectDelegate {
-    virtual void colorValueChanged(cocos2d::ccColor3B color) = mac 0x0, win 0x46ee0, ios 0x0;
+    virtual void colorValueChanged(cocos2d::ccColor3B color) = mac 0x423520, win 0x46ee0, ios 0x0;
 
     bool init(EffectGameObject* triggerObj, cocos2d::CCArray* triggerObjs, ColorAction* colorAction) = mac 0x41ee70, win 0x43ae0, ios 0x0;
     void updateColorValue() = mac 0x0, win 0x46f30, ios 0x0;
@@ -4769,7 +4769,7 @@ class PointNode : cocos2d::CCObject {
 class ProfilePage : FLAlertLayer, FLAlertLayerProtocol, LevelCommentDelegate, CommentUploadDelegate, UserInfoDelegate, UploadActionDelegate, UploadPopupDelegate, LeaderboardManagerDelegate {
     static ProfilePage* create(int accountID, bool idk) = mac 0x45eed0, win 0x20ee50, ios 0x0;
     void getUserInfoFailed(int) = mac 0x0, win 0x2133e0, ios 0x0;
-    bool init(int accountID, bool idk) = mac 0x0, win 0x20ef00, ios 0x0;
+    bool init(int accountID, bool idk) = mac 0x45f170, win 0x20ef00, ios 0x0;
     void onMyLevels(cocos2d::CCObject*) = mac 0x0, win 0x211bb0, ios 0x0;
     void onUpdate(cocos2d::CCObject*) = mac 0x0, win 0x20fa20, ios 0x0;
     void loadPageFromUserInfo(GJUserScore* score) = mac 0x0, win 0x210040, ios 0x0;
