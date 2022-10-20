@@ -1,7 +1,22 @@
 #include "Shared.hpp"
 #include <iostream>
+#include <set>
 
 namespace { namespace format_strings {
+	char const* wrap_start = R"GEN(
+	namespace wrap {
+)GEN";
+
+	char const* wrap_declare_identifier = R"GEN(
+	#ifndef GEODE_WRAP_{function_name}
+		#define GEODE_WRAP_{function_name}
+		GEODE_WRAPPER_FOR_IDENTIFIER({function_name}) 
+	#endif
+)GEN";
+
+	char const* wrap_end = R"GEN(
+	}
+)GEN";
 	// requires: class_name
 	char const* modify_start = R"GEN(#pragma once
 #include <Geode/modify/Modify.hpp>
@@ -10,6 +25,7 @@ namespace { namespace format_strings {
 using namespace geode::modifier;
 
 namespace geode::modifier {{
+	{wrap}
 	template<class Derived>
 	struct Modify<Derived, {class_name}> : ModifyBase<Modify<Derived, {class_name}>> {{
 		using ModifyBase<Modify<Derived, {class_name}>>::ModifyBase;
@@ -46,11 +62,29 @@ std::string generateModifyHeader(Root& root, ghc::filesystem::path const& single
 		);
 
 		std::string single_output;
+		std::string wrap;
+
+		// wrap
+		wrap += format_strings::wrap_start;
+		std::set<std::string> used;
+		for (auto& f : c.fields) {
+			if (auto fn = f.get_fn()) {
+				if (fn->type == FunctionType::Normal && !used.count(fn->name)) {
+					used.insert(fn->name);
+					wrap += fmt::format(format_strings::wrap_declare_identifier,
+						fmt::arg("function_name", fn->name)
+					);
+				}
+			}
+		}
+		wrap += format_strings::wrap_end;
 
 		single_output += fmt::format(format_strings::modify_start, 
-			fmt::arg("class_name", c.name)
+			fmt::arg("class_name", c.name),
+			fmt::arg("wrap", wrap)
 		);
 
+		// modify
 		for (auto& f : c.fields) {
 			if (codegen::getStatus(f) != BindStatus::Unbindable) {
 				auto begin = f.get_fn();

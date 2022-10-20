@@ -65,10 +65,9 @@ public:                                                                         
 };                                                                                                                     \
 
 namespace geode::modifier {
-	struct wrap {
+	namespace wrap {
 		GEODE_WRAPPER_FOR_IDENTIFIER(constructor)
 		GEODE_WRAPPER_FOR_IDENTIFIER(destructor)
-		#include <Geode/GeneratedWrapper.hpp>
 	};
 
 	// template <template<class, class, class=void> class Identifier, class Base, class Derived, class ...Types>
