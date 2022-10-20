@@ -72,7 +72,6 @@ add_subdirectory(fmt)
 target_link_libraries(${PROJECT_NAME} INTERFACE filesystem fmt)
 
 
-
 if (NOT EXISTS ${GEODE_BIN_PATH})
 	make_directory(${GEODE_BIN_PATH})
 endif()
