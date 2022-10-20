@@ -429,7 +429,7 @@ class cocos2d::CCMenuItemLabel {
 
 class cocos2d::CCMenuItemSprite {
 	// virtual ~CCMenuItemSprite() = mac 0x1feab0;
-	virtual auto selected() = mac 0x1fd3f0, ios 0x02d2cc;
+	virtual auto selected() = mac 0x1fd3f0, ios 0x2d2cc;
 	virtual auto unselected() = mac 0x1fd470, ios 0x2d34c;
 	virtual auto setEnabled(bool) = mac 0x1fd4e0, ios 0x2d3bc;
 	virtual auto getNormalImage() = mac 0x1fcee0, ios 0x2cf68;

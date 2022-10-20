@@ -4183,7 +4183,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     void hasItem(int) = mac 0x7cee0;
     void hasUniqueCoin(GameObject*) = mac 0x77510;
     void incrementJumps() = mac 0x7ff40;
-    bool init(GJGameLevel*) = mac 0x6b5f0, win 0x01fb780;
+    bool init(GJGameLevel*) = mac 0x6b5f0, win 0x1fb780;
     void isFlipping() = mac 0x76100;
     void levelComplete() = mac 0x72b80, win 0x1fd3d0;
     void lightningFlash(cocos2d::CCPoint, cocos2d::CCPoint, cocos2d::_ccColor3B, float, float, int, bool, float) = mac 0x75cc0;
@@ -4195,7 +4195,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     void markCheckpoint() = mac 0x7ef60, win 0x20b450;
     void moveCameraToPos(cocos2d::CCPoint) = mac 0x7c980;
     virtual void onEnterTransitionDidFinish() = mac 0x806e0, win 0x20dbd0;
-    virtual void onExit() = mac 0x80710, win 0x020D810;
+    virtual void onExit() = mac 0x80710, win 0x20D810;
     void onQuit() = mac 0x72710, win 0x20d810;
     void optimizeColorGroups() = mac 0x6dad0;
     void optimizeOpacityGroups() = mac 0x6dc20;
