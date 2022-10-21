@@ -1,4 +1,5 @@
 #include "Shared.hpp"
+#include "TypeOpt.hpp"
 #include <iostream>
 #include <set>
 
@@ -36,7 +37,7 @@ namespace geode::modifier {{
 
 	// requires: index, class_name, arg_types, function_name, raw_arg_types, non_virtual
 	char const* apply_function = R"GEN(
-			GEODE_APPLY_MODIFY_FOR_FUNCTION({index}, {function_convention}, {class_name}, {function_name}))GEN";
+			GEODE_APPLY_MODIFY_FOR_FUNCTION({addr_index}, {pure_index}, {function_convention}, {class_name}, {function_name}))GEN";
 
 	char const* modify_end = R"GEN(
 		}
@@ -51,6 +52,9 @@ namespace geode::modifier {{
 
 std::string generateModifyHeader(Root& root, ghc::filesystem::path const& singleFolder) {
 	std::string output;
+
+	TypeBank bank;
+	bank.loadFrom(root);
 
 	for (auto c : root.classes) {
 		if (c.name == "cocos2d")
@@ -104,7 +108,8 @@ std::string generateModifyHeader(Root& root, ghc::filesystem::path const& single
 				}
 
 				single_output += fmt::format(format_strings::apply_function,
-					fmt::arg("index", f.field_id),
+					fmt::arg("addr_index", f.field_id),
+					fmt::arg("pure_index", bank.getPure(*begin, c.name)),
 					fmt::arg("class_name", c.name),
 					fmt::arg("function_name", function_name),
 					fmt::arg("function_convention", codegen::getConvention(f))

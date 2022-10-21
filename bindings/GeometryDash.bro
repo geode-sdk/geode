@@ -17,6 +17,7 @@ class AchievementManager : cocos2d::CCNode {
     PAD = win 0x4;
 }
 
+
 class AchievementNotifier : cocos2d::CCNode {
     void notifyAchievement(const char* title, const char* desc, const char* icon, bool quest) {
         m_queue->addObject(AchievementBar::create(title, desc, icon, quest));
