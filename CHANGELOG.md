@@ -1,5 +1,28 @@
 # Geode Changelog
 
+## v0.6.0
+
+ - Mod resource loading has been reworked again, with the intent of adding support for texture pack loaders
+ - Added `Loader::addTexturePath` and `Loader::removeTexturePath` to work with additional resource paths
+ - Mods that work with Cocos2d search paths directly should convert to using the above functions
+ - New header `Geode/ui/LayerBG.hpp` with `createLayerBG` function for creating the blue gradient background GD layers have
+ - All Cocos2d include paths have been changed to be relative
+ - `cocos2dx` folder has been removed, cocos2d is now directly inside `Geode/cocos`
+ - Loader resource updating has once again been changed to just verify filenames exist as there are some odd problems with CLI on MacOS
+ - More codegen optimizations, Geode mods should now compile faster
+ - Added `NewResult` class, which will eventually replace the old `Result`
+ - Add `deprecate` and `nodiscard` attributes to the old `Result` class
+ - Many more bindings on Mac and Windows
+
+## v0.5.0
+
+ - Added `CCFileUtils::get`
+ - Fix crashes related to setting IDs in `MenuLayer`
+ - Remove `Loader::updateModResourcePaths` and `Loader::updateResourcePaths`. The minimum mod target version is still v0.4.0 however, as you should never have been using these functions.
+ - Rework how mod resources are added
+ - Deprecate `geode::utils::vector` and `geode::utils::container` namespaces and replace them with `geode::utils::ranges`
+ - Finally added a license to Geode! The framework is now licensed under BSL v1.0.
+
 ## v0.4.8
 
  - CLI issues fixed in v1.0.6 so loader again verifies if loader resources are missing / corrupt on startup
