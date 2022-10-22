@@ -1206,6 +1206,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     void onGoToBaseLayer(cocos2d::CCObject* sender) = win 0x88790;
     void editColor(cocos2d::CCObject* sender) = mac 0x19190, win 0x8d3c0;
     void alignObjects(cocos2d::CCArray* objs, bool alignY) = win 0x8f320;
+    virtual void scrollWheel(float vertical, float horizontal) = win 0x921d0, mac 0x31370, ios 0x2c4884;
 
     EditButtonBar* m_buttonBar;
     PAD = mac 0x8, win 0x4;
