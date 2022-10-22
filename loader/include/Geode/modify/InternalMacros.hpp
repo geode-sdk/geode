@@ -77,12 +77,6 @@ struct GEODE_HIDDEN derived : derived##Intermediate                             
  */
 #define $cls std::remove_pointer<decltype(this)>::type
 
-#define GEODE_ONLY_FIELD(type, field_, default_) private: field<type> field_ = default_; public:
-#define GEODE_INTERNAL_FIELD(type, field, name) inline type& name() { return this->*field; }
-//#define GEODE_EXTERNAL_FIELD(type, field, name) static inline type& name##From(void* self) { return reinterpret_cast<decltype(this)>(self)->*field; }
-#define GEODE_FIELD(type, field, name, default_) GEODE_ONLY_FIELD(type, field, default_) GEODE_INTERNAL_FIELD(type, field, name) //GEODE_EXTERNAL_FIELD(type, field, name)
-
-
 #define GEODE_EXECUTE_FUNC(Line_)                                 \
 template<class>                                                   \
 void _##Line_##Function();                                        \

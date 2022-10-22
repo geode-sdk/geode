@@ -7,12 +7,12 @@ USE_GEODE_NAMESPACE();
 std::string g_lastError = "";
 
 void geode_mod_log(void* cmod, const char* message) {
-	auto mod = reinterpret_cast<Mod*>(cmod);
+	auto mod = static_cast<Mod*>(cmod);
 	log::log(Severity::Debug, mod, "{}", message);
 }
 
 bool geode_mod_add_hook(void* cmod, void* address, void* detour) {
-	// auto mod = reinterpret_cast<Mod*>(cmod);
+	// auto mod = static_cast<Mod*>(cmod);
 	// auto res = mod->addHook(address, detour);
 	// if (!res) {
 	// 	g_lastError = res.error();

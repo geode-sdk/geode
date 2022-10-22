@@ -7,11 +7,11 @@
 
 namespace geode::cast {
     /** 
-     * Alias for reinterpret_cast
+     * Alias for static_cast
      */
     template <typename T, typename F>
     static constexpr T as(F const v) {
-        return reinterpret_cast<T>(v);
+        return static_cast<T>(v);
     }
 
     /**

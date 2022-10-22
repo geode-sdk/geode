@@ -33,7 +33,7 @@ void FileWatcher::watch() {
 	           DISPATCH_VNODE_ATTRIB | DISPATCH_VNODE_LINK | DISPATCH_VNODE_RENAME | 
 	           DISPATCH_VNODE_REVOKE, queue);
 
-	this->m_platform_handle = reinterpret_cast<void*>(source);
+	this->m_platform_handle = static_cast<void*>(source);
 
 	dispatch_source_set_event_handler(source, ^{
 		if (this->m_callback) {

@@ -1021,7 +1021,7 @@ class EditButtonBar : cocos2d::CCNode {
     }
     void addButton(CCMenuItemSpriteExtra* btn, bool reload) {
         if (this->m_buttonArray)
-            this->m_buttonArray->addObject(reinterpret_cast<cocos2d::CCObject*>(btn));
+            this->m_buttonArray->addObject(static_cast<cocos2d::CCObject*>(btn));
         if (reload)
             this->reloadItemsInNormalSize();
     }
@@ -1040,7 +1040,7 @@ class EditLevelLayer : cocos2d::CCLayer, FLAlertLayerProtocol, TextInputDelegate
     static void scene(GJGameLevel* level) {
         auto scene = cocos2d::CCScene::create();
     
-        scene->addChild(reinterpret_cast<cocos2d::CCNode*>(EditLevelLayer::create(level)));
+        scene->addChild(static_cast<cocos2d::CCNode*>(EditLevelLayer::create(level)));
     
         cocos2d::CCDirector::sharedDirector()->replaceScene(
             cocos2d::CCTransitionFade::create(.5f, scene)
@@ -1307,7 +1307,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
 
 class EffectGameObject : GameObject {
     void updateLabel() {
-        auto label = reinterpret_cast<cocos2d::CCLabelBMFont*>(this->getChildByTag(999));
+        auto label = static_cast<cocos2d::CCLabelBMFont*>(this->getChildByTag(999));
         if (label) {
             switch (this->m_objectID) {
                 // instant count, collision block, pickup
@@ -2750,13 +2750,13 @@ class GameManager : GManager {
         return m_levelEditorLayer;
     }
     bool getGameVariableDefault(const char* key, bool defaultValue) {
-        auto object = reinterpret_cast<cocos2d::CCString*>(m_valueKeeper->objectForKey(std::string("gv_") + key));
+        auto object = static_cast<cocos2d::CCString*>(m_valueKeeper->objectForKey(std::string("gv_") + key));
         if (object == nullptr)
             return defaultValue;
         return object->boolValue();
     }
     int getIntGameVariableDefault(const char* key, int defaultValue) {
-        auto object = reinterpret_cast<cocos2d::CCString*>(m_valueKeeper->objectForKey(std::string("gv_") + key));
+        auto object = static_cast<cocos2d::CCString*>(m_valueKeeper->objectForKey(std::string("gv_") + key));
         if (object == nullptr)
             return defaultValue;
         return object->intValue();
@@ -4035,10 +4035,10 @@ class ObjectToolbox : cocos2d::CCNode {
         return m_frameToKeyDict->allKeys();
     }
     const char* frameToKey(const char* frame) {
-        return reinterpret_cast<cocos2d::CCString*>(m_frameToKeyDict->objectForKey(frame))->getCString();
+        return static_cast<cocos2d::CCString*>(m_frameToKeyDict->objectForKey(frame))->getCString();
     }
     const char* intKeyToFrame(int key) {
-        return reinterpret_cast<cocos2d::CCString*>(m_keyToFrameDict->objectForKey(key))->getCString();
+        return static_cast<cocos2d::CCString*>(m_keyToFrameDict->objectForKey(key))->getCString();
     }
     const char* keyToFrame(const char* key) {
         return intKeyToFrame(atoi(key));

@@ -197,7 +197,7 @@ SentAsyncWebRequest::SentAsyncWebRequest(
 
         curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION,
             +[](void* ptr, double total, double now, double, double) -> int {
-                auto data = reinterpret_cast<ProgressData*>(ptr);
+                auto data = static_cast<ProgressData*>(ptr);
                 while (data->self->m_paused) {}
                 if (data->self->m_cancelled) {
                     if (data->file) {
