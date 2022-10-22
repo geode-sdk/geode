@@ -39,14 +39,23 @@ target_sources(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/entry.cpp)
 
 add_subdirectory(codegen)
 
-add_custom_target(CodegenRun ALL
+message(STATUS ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp)
+add_custom_command(
+	DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/bindings/GeometryDash.bro
+			${CMAKE_CURRENT_SOURCE_DIR}/bindings/Cocos2d.bro
+			${CMAKE_CURRENT_SOURCE_DIR}/bindings/Entry.bro
 	COMMAND Codegen ${GEODE_TARGET_PLATFORM} bindings ${GEODE_CODEGEN_PATH}
+	COMMAND echo codegen > ${GEODE_CODEGEN_PATH}/.stamp
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 	COMMENT "Run Codegen"
-	BYPRODUCTS ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp
+	OUTPUT ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp ${GEODE_CODEGEN_PATH}/.stamp
 )
+
+add_custom_target(CodegenRun
+	DEPENDS ${GEODE_CODEGEN_PATH}/.stamp
+)
+
 add_dependencies(${PROJECT_NAME} CodegenRun)
-add_dependencies(CodegenRun Codegen)
 
 # Hacky way to supress the not generated error
 if (NOT EXISTS ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp)

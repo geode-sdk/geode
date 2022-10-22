@@ -1,4 +1,5 @@
 #include "Shared.hpp"
+#include "TypeOpt.hpp"
 
 namespace { namespace format_strings {
 
@@ -14,6 +15,9 @@ GEODE_INLINE GEODE_HIDDEN static uintptr_t address{index}() {{
 std::string generateAddressHeader(Root& root) {
 	std::string output;
 
+	TypeBank bank;
+	bank.loadFrom(root);
+
 	for (auto& c : root.classes) {
 
 		for (auto& field : c.fields) {
@@ -26,18 +30,16 @@ std::string generateAddressHeader(Root& root) {
 			}
 
 			if (codegen::getStatus(field) == BindStatus::Binded) {
+				const auto ids = bank.getIDs(fn->beginning, c.name);
 
 				address_str = fmt::format("addresser::get{}Virtual((types::member{})(&{}::{}))",
 					str_if("Non", !fn->beginning.is_virtual),
-					field.field_id,
+					ids.member,
 					field.parent,
 					fn->beginning.name
 				);
-
 			} else if (codegen::getStatus(field) == BindStatus::NeedsBinding) {
-
 				address_str = fmt::format("base::get() + 0x{:x}", codegen::platformNumber(fn->binds));
-
 			} else { 
 				continue;
 			}

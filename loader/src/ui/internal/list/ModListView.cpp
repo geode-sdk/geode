@@ -18,7 +18,7 @@ static bool tryOrAlert(Result<T> const& res, const char* title) {
     if (!res) {
         FLAlertLayer::create(title, res.error(), "OK")->show();
     }
-    return res;
+    return res.is_value();
 }
 
 ModCell::ModCell(const char* name, CCSize size) :

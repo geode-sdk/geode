@@ -17,6 +17,7 @@ class AchievementManager : cocos2d::CCNode {
     PAD = win 0x4;
 }
 
+
 class AchievementNotifier : cocos2d::CCNode {
     void notifyAchievement(const char* title, const char* desc, const char* icon, bool quest) {
         m_queue->addObject(AchievementBar::create(title, desc, icon, quest));
@@ -1205,6 +1206,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     void onGoToBaseLayer(cocos2d::CCObject* sender) = win 0x88790;
     void editColor(cocos2d::CCObject* sender) = mac 0x19190, win 0x8d3c0;
     void alignObjects(cocos2d::CCArray* objs, bool alignY) = win 0x8f320;
+    virtual void scrollWheel(float vertical, float horizontal) = win 0x921d0, mac 0x31370, ios 0x2c4884;
 
     EditButtonBar* m_buttonBar;
     PAD = mac 0x8, win 0x4;
@@ -3917,7 +3919,7 @@ class MenuGameLayer {
     void update(float) = mac 0x28fa70, win 0x18f190;
 }
 
-class MenuLayer : cocos2d::CCLayer, FLAlertLayerProtocol {
+class MenuLayer : cocos2d::CCLayer, FLAlertLayerProtocol, GooglePlayDelegate {
     inline MenuLayer() {}
     virtual ~MenuLayer() = mac 0x1d1230, win 0x190620;
     virtual bool init() = mac 0x1d14b0, win 0x1907b0;
@@ -3942,6 +3944,11 @@ class MenuLayer : cocos2d::CCLayer, FLAlertLayerProtocol {
     void onYouTube(cocos2d::CCObject*) = win 0x1919A0;
     static cocos2d::CCScene* scene(bool) = mac 0x1d12d0, win 0x190720, ios 0x19e57c;
     MenuLayer* node() = win 0x190550;
+
+    cocos2d::CCSprite* m_googlePlaySprite;
+    cocos2d::CCSprite* m_viewProfileInfoText;
+    cocos2d::CCLabelBMFont* m_playerNameLabel;
+    CCMenuItemSpriteExtra* m_profileBtn;
 }
 
 class MessageListDelegate {}

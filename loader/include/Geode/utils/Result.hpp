@@ -3,6 +3,7 @@
 #include <Geode/DefaultInclude.hpp>
 #include <string_view>
 #include "types.hpp"
+#include "NewResult.hpp"
 
 namespace geode {
     /**
@@ -26,7 +27,7 @@ namespace geode {
      * @authors Matcool, HJfod
      */
     template <class T = no_result, class E = std::string>
-    class Result {
+    class [[nodiscard, deprecated("Result's implementation will be replaced with geode::NewResult later")]] Result {
     protected:
         bool success;
         union {
@@ -109,7 +110,7 @@ namespace geode {
          * Convert to bool
          * @example if (result) { <handle success> } else { <handle failure> }
          */
-        operator bool() const { return this->success; }
+        explicit operator bool() const { return this->success; }
 
         /**
          * Create a success result
@@ -130,6 +131,7 @@ namespace geode {
      * @returns Successful Result
      */
     template <class T = no_result>
+    [[nodiscard, deprecated("Result's implementation will be replaced with geode::NewResult later")]] 
     Result<T> Ok(T value = T()) {
         return Result<T>::ok(value);
     }
@@ -141,7 +143,7 @@ namespace geode {
      * @returns Errorful Result
      */
     template <class E = std::string>
-    struct Err {
+    struct [[nodiscard, deprecated("Result's implementation will be replaced with geode::NewResult later")]] Err {
         const E _value;
         Err(const TypeIdentityType<E> value) : _value(value) {}
         template <class T>

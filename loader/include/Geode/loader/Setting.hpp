@@ -175,13 +175,13 @@ namespace geode {
             void setValue(ValueType const& value) {
                 m_value = value;
                 if constexpr (std::is_base_of_v<IMinMax<ValueType>, Class>) {
-                    static_cast<Class*>(this)->constrainMinMax(m_value);
+                    (void)static_cast<Class*>(this)->constrainMinMax(m_value);
                 }
                 if constexpr (std::is_base_of_v<IOneOf<Class, ValueType>, Class>) {
-                    static_cast<Class*>(this)->constrainOneOf(m_value);
+                    (void)static_cast<Class*>(this)->constrainOneOf(m_value);
                 }
                 if constexpr (std::is_base_of_v<IMatch<Class, ValueType>, Class>) {
-                    static_cast<Class*>(this)->constrainMatch(m_value);
+                    (void)static_cast<Class*>(this)->constrainMatch(m_value);
                 }
                 this->valueChanged();
             }
