@@ -12,7 +12,9 @@
  - More codegen optimizations, Geode mods should now compile faster
  - Added `NewResult` class, which will eventually replace the old `Result`
  - Add `deprecate` and `nodiscard` attributes to the old `Result` class
+ - Cocos2d selectors (like `SEL_MenuHandler`) no longer require `using namespace cocos2d`
  - Many more bindings on Mac and Windows
+ - Add IDs to `LevelSearchLayer` (thank you @Jollycistaken)
 
 ## v0.5.0
 
