@@ -38,7 +38,7 @@ Result<> Mod::enableHook(Hook* hook) {
 	        return Ok<>();
 		} else {
 	        return Err<>(
-	            "Unable to create hook at " + std::to_string(as<uintptr_t>(hook->m_address))
+	            "Unable to create hook at " + std::to_string(reinterpret_cast<uintptr_t>(hook->m_address))
 	        );
 	    }
 	    return Err<>("Hook already has a handle");

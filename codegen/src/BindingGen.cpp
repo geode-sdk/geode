@@ -22,6 +22,7 @@ namespace { namespace format_strings {
     char const* class_start = R"GEN(
 class {class_name}{base_classes} {{
 public:
+    static constexpr auto CLASS_NAME = "{class_name}";
 )GEN";
 
 	char const* monostate_constructor = R"GEN(    GEODE_MONOSTATE_CONSTRUCTOR_GD({class_name}, {first_base})

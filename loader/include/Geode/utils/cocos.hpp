@@ -21,7 +21,7 @@ namespace geode::cocos {
         if (i < 0) return nullptr;
         // check if forwards index is out of bounds
         if (static_cast<int>(x->getChildrenCount()) <= i) return nullptr;
-        return reinterpret_cast<T*>(x->getChildren()->objectAtIndex(i));
+        return static_cast<T*>(x->getChildren()->objectAtIndex(i));
     }
 
     /**
@@ -306,7 +306,7 @@ namespace geode::cocos {
             return m_arr->count();
         }
         T operator[](size_t index) {
-            return reinterpret_cast<T*>(m_arr->objectAtIndex(index));
+            return static_cast<T*>(m_arr->objectAtIndex(index));
         }
         void push_back(T* item) {
             m_arr->addObject(item);
@@ -329,14 +329,14 @@ namespace geode::cocos {
 
         std::pair<K, T> operator*() {
             if constexpr (std::is_same<K, std::string>::value) {
-                return { m_ptr->getStrKey(), reinterpret_cast<T>(m_ptr->getObject()) };
+                return { m_ptr->getStrKey(), static_cast<T>(m_ptr->getObject()) };
             } else {
-                return { m_ptr->getIntKey(), reinterpret_cast<T>(m_ptr->getObject()) };
+                return { m_ptr->getIntKey(), static_cast<T>(m_ptr->getObject()) };
             }
         }
 
         auto& operator++() {
-            m_ptr = reinterpret_cast<decltype(m_ptr)>(m_ptr->hh.next);
+            m_ptr = static_cast<decltype(m_ptr)>(m_ptr->hh.next);
             return *this;
         }
 
@@ -353,11 +353,11 @@ namespace geode::cocos {
         CCDictEntry(K key, cocos2d::CCDictionary* dict) : m_key(key), m_dict(dict) {}
 
         T operator->() {
-            return reinterpret_cast<T>(m_dict->objectForKey(m_key));
+            return static_cast<T>(m_dict->objectForKey(m_key));
         }
 
         operator T() {
-            return reinterpret_cast<T>(m_dict->objectForKey(m_key));
+            return static_cast<T>(m_dict->objectForKey(m_key));
         }
 
         CCDictEntry& operator=(T f) {
@@ -404,7 +404,7 @@ namespace geode::cocos {
         }
         size_t size() { return m_dict->count(); }
         auto operator[](K key) {
-            auto ret = reinterpret_cast<T*>(m_dict->objectForKey(key));
+            auto ret = static_cast<T*>(m_dict->objectForKey(key));
             if (!ret)
                 m_dict->setObject(cocos2d::CCNode::create(), key);
 

@@ -110,6 +110,16 @@ class $modify(CustomMenuLayer, MenuLayer) {
 			setIDSafe<CCLabelBMFont>(this, 2, "player-username");
 		} else {
 			setIDSafe<CCLabelBMFont>(this, 0, "player-username");
+
+			auto spriteId = 1;
+
+			if (!GameManager::get()->m_clickedGarage) {
+				setIDSafe<CCSprite>(this, spriteId++, "click-garage-message");
+			}
+
+			if (!GameManager::get()->m_clickedEditor) {
+				setIDSafe<CCSprite>(this, spriteId++, "click-editor-message");
+			}
 		}
 		if (auto menu = getChildOfType<CCMenu>(this, 0)) {
 			menu->setID("main-menu");

@@ -220,7 +220,7 @@ struct MDParser {
     static std::vector<TextRenderer::Label> s_codeSpans;
 
     static int parseText(MD_TEXTTYPE type, MD_CHAR const* rawText, MD_SIZE size, void* mdtextarea) {
-        auto textarea = reinterpret_cast<MDTextArea*>(mdtextarea);
+        auto textarea = static_cast<MDTextArea*>(mdtextarea);
         auto renderer = textarea->m_renderer;
         auto text = std::string(rawText, size);
         switch (type) {
@@ -316,13 +316,13 @@ struct MDParser {
     }
 
     static int enterBlock(MD_BLOCKTYPE type, void* detail, void* mdtextarea) {
-        auto textarea = reinterpret_cast<MDTextArea*>(mdtextarea);
+        auto textarea = static_cast<MDTextArea*>(mdtextarea);
         auto renderer = textarea->m_renderer;
         switch (type) {
             case MD_BLOCKTYPE::MD_BLOCK_DOC: {} break;
 
             case MD_BLOCKTYPE::MD_BLOCK_H: {
-                auto hdetail = reinterpret_cast<MD_BLOCK_H_DETAIL*>(detail);
+                auto hdetail = static_cast<MD_BLOCK_H_DETAIL*>(detail);
                 renderer->pushStyleFlags(TextStyleBold);
                 switch (hdetail->level) {
                     case 1: renderer->pushScale(g_fontScale * 2.f); break;
@@ -355,7 +355,7 @@ struct MDParser {
 
             case MD_BLOCKTYPE::MD_BLOCK_LI: {
                 renderer->pushOpacity(renderer->getCurrentOpacity() / 2);
-                auto lidetail = reinterpret_cast<MD_BLOCK_LI_DETAIL*>(detail);
+                auto lidetail = static_cast<MD_BLOCK_LI_DETAIL*>(detail);
                 if (s_isOrderedList) {
                     s_orderedListNum++;
                     renderer->renderString(std::to_string(s_orderedListNum) + ". ");
@@ -381,13 +381,13 @@ struct MDParser {
     }
     
     static int leaveBlock(MD_BLOCKTYPE type, void* detail, void* mdtextarea) {
-        auto textarea = reinterpret_cast<MDTextArea*>(mdtextarea);
+        auto textarea = static_cast<MDTextArea*>(mdtextarea);
         auto renderer = textarea->m_renderer;
         switch (type) {
             case MD_BLOCKTYPE::MD_BLOCK_DOC: {} break;
 
             case MD_BLOCKTYPE::MD_BLOCK_H: {
-                auto hdetail = reinterpret_cast<MD_BLOCK_H_DETAIL*>(detail);
+                auto hdetail = static_cast<MD_BLOCK_H_DETAIL*>(detail);
                 renderer->breakLine();
                 if (hdetail->level == 1) {
                     renderer->breakLine(g_paragraphPadding / 2);
@@ -463,7 +463,7 @@ struct MDParser {
     }
     
     static int enterSpan(MD_SPANTYPE type, void* detail, void* mdtextarea) {
-        auto renderer = reinterpret_cast<MDTextArea*>(mdtextarea)->m_renderer;
+        auto renderer = static_cast<MDTextArea*>(mdtextarea)->m_renderer;
         switch (type) {
             case MD_SPANTYPE::MD_SPAN_STRONG: {
                 renderer->pushStyleFlags(TextStyleBold);
@@ -482,12 +482,12 @@ struct MDParser {
             } break;
 
             case MD_SPANTYPE::MD_SPAN_IMG: {
-                auto adetail = reinterpret_cast<MD_SPAN_IMG_DETAIL*>(detail);
+                auto adetail = static_cast<MD_SPAN_IMG_DETAIL*>(detail);
                 s_lastImage = std::string(adetail->src.text, adetail->src.size);
             } break;
             
             case MD_SPANTYPE::MD_SPAN_A: {
-                auto adetail = reinterpret_cast<MD_SPAN_A_DETAIL*>(detail);
+                auto adetail = static_cast<MD_SPAN_A_DETAIL*>(detail);
                 s_lastLink = std::string(adetail->href.text, adetail->href.size);
             } break;
 
@@ -504,7 +504,7 @@ struct MDParser {
     }
     
     static int leaveSpan(MD_SPANTYPE type, void* detail, void* mdtextarea) {
-        auto renderer = reinterpret_cast<MDTextArea*>(mdtextarea)->m_renderer;
+        auto renderer = static_cast<MDTextArea*>(mdtextarea)->m_renderer;
         switch (type) {
             case MD_SPANTYPE::MD_SPAN_STRONG: {
                 renderer->popStyleFlags();

@@ -15,7 +15,6 @@ class $modify(CCUtility##HandlerTypeinfoFix, CCUtility##Handler) {              
 			if (pObject) {                                                                              \
 				pObject->release();                                                                     \
 			}                                                                                           \
-			/*reinterpret_cast<CCObject*>(this)->~CCObject();*/                                             \
 		}                                                                                               \
 	}                                                                                                   \
 																										\
@@ -63,7 +62,6 @@ class $modify(CCTargetedTouchHandlerTypeinfoFix, CCTargetedTouchHandler) {
 				pObject->release();
 				CC_SAFE_RELEASE(m_pClaimedTouches);
 			}
-			/*reinterpret_cast<CCObject*>(this)->~CCObject();*/
 		}
 	}
 
@@ -109,7 +107,6 @@ class $modify(CCStandardTouchHandlerTypeinfoFix, CCStandardTouchHandler) {
 				// the entire destructor
 				pObject->release();
 			}
-			/*reinterpret_cast<CCObject*>(this)->~CCObject();*/
 		}
 	}
 
