@@ -5,9 +5,8 @@
 
 USE_GEODE_NAMESPACE();
 
-$register_ids(MenuLayer, {
+$register_ids(MenuLayer) {
 	// set IDs to everything
-	this->setID("MenuLayer");
 	setIDSafe(this, 0, "main-menu-bg");
 	setIDSafe<CCSprite>(this, 0, "main-title");
 
@@ -85,4 +84,4 @@ $register_ids(MenuLayer, {
 			);
 		}
 	}
-});
+}
