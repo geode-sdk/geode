@@ -224,19 +224,19 @@ namespace geode {
                 std::is_copy_constructible_v<value_type>
           : NewResult(value_type(other.unwrap()), true) {}
         
-        template<class E2>
-            requires ConvertibleToResult<E2, E>
-        NewResult(NewResult<AnyType, E2> const& other)
-            requires
-                std::is_copy_constructible_v<value_type>
-          : NewResult(error_type(other.unwrapErr()), false) {}
-        
         template<class T2>
             requires ConvertibleToResult<T2, T>
         NewResult(NewResult<T2, AnyType>&& other)
             requires (
                 !std::is_copy_constructible_v<value_type>
             ) : NewResult(std::forward<value_type>(other.unwrap()), true) {}
+        
+        template<class E2>
+            requires ConvertibleToResult<E2, T>
+        NewResult(NewResult<AnyType, E2> const& other)
+            requires
+                std::is_copy_constructible_v<value_type>
+          : NewResult(error_type(other.unwrapErr()), false) {}
         
         template<class E2>
             requires ConvertibleToResult<E2, T>

@@ -131,7 +131,8 @@ namespace geode {
      * @returns Successful Result
      */
     template <class T = no_result>
-    Result<T> [[nodiscard, deprecated("Result's implementation will be replaced with geode::NewResult later")]] Ok(T value = T()) {
+    [[nodiscard, deprecated("Result's implementation will be replaced with geode::NewResult later")]] 
+    Result<T> Ok(T value = T()) {
         return Result<T>::ok(value);
     }
 
