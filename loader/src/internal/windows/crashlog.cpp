@@ -100,7 +100,7 @@ static void printAddr(
         &module
     )) {
         // calculate base + [address]
-		const auto diff = as<uintptr_t>(addr) - as<uintptr_t>(module);
+		const auto diff = reinterpret_cast<uintptr_t>(addr) - reinterpret_cast<uintptr_t>(module);
 		stream
             << getModuleName(module, fullPath) << " + "
             << std::hex << diff << std::dec;
@@ -121,7 +121,7 @@ static void printAddr(
 
             if (SymFromAddr(
                 proc,
-                static_cast<DWORD64>(as<uintptr_t>(addr)),
+                static_cast<DWORD64>(reinterpret_cast<uintptr_t>(addr)),
                 &displacement,
                 symbolInfo
             )) {
@@ -137,7 +137,7 @@ static void printAddr(
 
                 if (SymGetLineFromAddr64(
                     proc,
-                    static_cast<DWORD64>(as<uintptr_t>(addr)),
+                    static_cast<DWORD64>(reinterpret_cast<uintptr_t>(addr)),
                     &displacement2,
                     &line
                 )) {
