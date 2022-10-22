@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../DefaultInclude.hpp"
+#include "../ui/EnterLayerEvent.hpp"
 
 namespace cocos2d {
     class CCNode;
@@ -43,8 +44,11 @@ namespace geode {
 
     template<IDProvidable For>
     void GEODE_CALL geodeInternalProvideIDsFor(For* cls) {
-        cls->setID(For::CLASS_NAME);
-        cls->provide();
+        if (cls->getID() != For::CLASS_NAME) {
+            cls->setID(For::CLASS_NAME);
+            cls->provide();
+            EnterLayerEvent(For::CLASS_NAME, cls).post();
+        }
     }
 }
 

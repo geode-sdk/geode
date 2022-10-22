@@ -1,6 +1,5 @@
 #include <Geode/modify/MenuLayer.hpp>
 #include <Geode/utils/cocos.hpp>
-#include <Geode/ui/EnterLayerEvent.hpp>
 #include "AddIDs.hpp"
 
 USE_GEODE_NAMESPACE();
