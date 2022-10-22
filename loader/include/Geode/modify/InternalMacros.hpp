@@ -1,5 +1,4 @@
 #include <type_traits>
-#include "IDManager.hpp"
 
 /**
  * Main class implementation, it has the structure
@@ -36,10 +35,6 @@ namespace {                                                                     
 			derived##Intermediate,                                                \
 			derived<derived##Parent>                                              \
 		> m_fields;                                                               \
-		template<class = void>                                                    \
-		bool addStringIDs() {                                                     \
-			return geode::NodeStringIDManager::get()->provide(#base, this);       \
-		}                                                                         \
 	};                                                                            \
 }                                                                                 \
 template <> struct GEODE_HIDDEN derived<derived##Parent> : derived##Intermediate  \
@@ -54,10 +49,6 @@ namespace {                                                                     
 			derived##Intermediate,                                                \
 			derived                                                               \
 		> m_fields;                                                               \
-		template<class = void>                                                    \
-		bool addStringIDs() {                                                     \
-			return geode::NodeStringIDManager::get()->provide(#base, this);       \
-		}                                                                         \
 	};                                                                            \
 }                                                                                 \
 struct GEODE_HIDDEN derived : derived##Intermediate                               \
@@ -92,16 +83,14 @@ struct GEODE_HIDDEN derived : derived##Intermediate                             
 #define GEODE_FIELD(type, field, name, default_) GEODE_ONLY_FIELD(type, field, default_) GEODE_INTERNAL_FIELD(type, field, name) //GEODE_EXTERNAL_FIELD(type, field, name)
 
 
-#define GEODE_EXECUTE_FUNC(Line_)                                 \
+#define $execute                                                  \
 template<class>                                                   \
-void _##Line_##Function();                                        \
+void GEODE_CONCAT(geodeExecFunction, __LINE__)();                            \
 namespace {                                                       \
-	struct _##Line_##Unique {};                                   \
+	struct GEODE_CONCAT(ExecFuncUnique, __LINE__) {};                   \
 }                                                                 \
 static inline auto _line = (Loader::get()->scheduleOnModLoad(     \
-	nullptr, &_##Line_##Function<_##Line_##Unique>                \
+	nullptr, &GEODE_CONCAT(geodeExecFunction, __LINE__)<GEODE_CONCAT(ExecFuncUnique, __LINE__)> \
 ), 0);                                                            \
 template<class>                                                   \
-void _##Line_##Function()
-
-#define $execute GEODE_EXECUTE_FUNC(__LINE__)
+void GEODE_CONCAT(geodeExecFunction, __LINE__)()

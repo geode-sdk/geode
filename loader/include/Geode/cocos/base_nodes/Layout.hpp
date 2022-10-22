@@ -1,8 +1,8 @@
 #pragma once
 
-#include "ccMacros.h"
-#include "cocoa/CCAffineTransform.h"
-#include "cocoa/CCArray.h"
+#include "../include/ccMacros.h"
+#include "../cocoa/CCAffineTransform.h"
+#include "../cocoa/CCArray.h"
 #include <Geode/platform/platform.hpp>
 #include <optional>
 #include <unordered_map>

@@ -5,8 +5,6 @@
 
 USE_GEODE_NAMESPACE();
 
-void addIDsToMenuLayer(MenuLayer* layer);
-
 template<class T = CCNode>
     requires std::is_base_of_v<CCNode, T>
 T* setIDSafe(CCNode* node, int index, const char* id) {

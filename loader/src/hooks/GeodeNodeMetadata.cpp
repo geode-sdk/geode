@@ -2,11 +2,8 @@
 #include <Geode/utils/Ref.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/modify/Field.hpp>
-<<<<<<< HEAD
 #include <Geode/utils/WackyGeodeMacros.hpp>
-=======
 #include <Geode/modify/CCNode.hpp>
->>>>>>> main
 
 USE_GEODE_NAMESPACE();
 using namespace geode::modifier;

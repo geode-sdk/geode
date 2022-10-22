@@ -80,7 +80,7 @@ class $modify(CustomMenuLayer, MenuLayer) {
 		
 		// make sure to add the string IDs for nodes (Geode has no manual 
 		// hook order support yet so gotta do this to ensure)
-		addIDsToMenuLayer(this);
+		NodeStringIDManager::get()->provide(this);
 
 		auto winSize = CCDirector::sharedDirector()->getWinSize();
 

@@ -19,11 +19,6 @@ if constexpr (                                                                  
 	);                                                                                                                                      \
 }                                                                                                                                           \
 
-template<class T>
-concept HasStringIDProvider = requires {
-	T::provideStringIDs();
-};
-
 namespace geode::modifier {
 	template <class Derived, class Base>
 	class Modify;

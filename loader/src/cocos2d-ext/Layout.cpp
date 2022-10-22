@@ -1,7 +1,7 @@
 #include <cocos2d.h>
-#include <Geode/utils/WackyGeodeMacros.hpp>
+#include <Geode/utils/cocos.hpp>
 
-using namespace cocos2d;
+USE_GEODE_NAMESPACE();
 
 #pragma warning(disable: 4273)
 
@@ -11,11 +11,13 @@ void CCNode::swapChildIndices(CCNode* first, CCNode* second) {
 
 void RowLayout::apply(CCArray* nodes, CCSize const& availableSize) {
     float totalWidth = .0f;
-    CCARRAY_FOREACH_B_BASE(nodes, node, CCNode*, ix) {
+    size_t ix = 0;
+    for (auto& node : CCArrayExt<CCNode*>(nodes)) {
         totalWidth += node->getScaledContentSize().width;
         if (ix) {
             totalWidth += m_gap;
         }
+        ix++;
     }
 
     float pos;
@@ -25,7 +27,7 @@ void RowLayout::apply(CCArray* nodes, CCSize const& availableSize) {
         case Alignment::Begin: pos = -totalWidth; break;
         case Alignment::End: pos = 0.f; break;
     }
-    CCARRAY_FOREACH_B_TYPE(nodes, node, CCNode) {
+    for (auto& node : CCArrayExt<CCNode*>(nodes)) {
         auto sw = node->getScaledContentSize().width;
         float disp;
         switch (m_alignment) {
@@ -69,7 +71,8 @@ RowLayout* RowLayout::setAlignVertically(std::optional<float> align) {
 
 void ColumnLayout::apply(CCArray* nodes, CCSize const& availableSize) {
     float totalHeight = .0f;
-    CCARRAY_FOREACH_B_BASE(nodes, node, CCNode*, ix) {
+    size_t ix = 0;
+    for (auto& node : CCArrayExt<CCNode*>(nodes)) {
         totalHeight += node->getScaledContentSize().height;
         if (ix) {
             totalHeight += m_gap;
@@ -83,7 +86,7 @@ void ColumnLayout::apply(CCArray* nodes, CCSize const& availableSize) {
         case Alignment::Begin: pos = -totalHeight; break;
         case Alignment::End: pos = 0.f; break;
     }
-    CCARRAY_FOREACH_B_TYPE(nodes, node, CCNode) {
+    for (auto& node : CCArrayExt<CCNode*>(nodes)) {
         auto sh = node->getScaledContentSize().height;
         float disp;
         switch (m_alignment) {
