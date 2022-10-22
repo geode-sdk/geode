@@ -195,7 +195,10 @@ Result<ModInfo> ModInfo::createFromFile(ghc::filesystem::path const& path) {
             auto info = res.value();
             info.m_path = path;
             if (path.has_parent_path()) {
-                info.addSpecialFiles(path.parent_path());
+                auto err = info.addSpecialFiles(path.parent_path());
+                if (!err) {
+                    return Err(err.error());
+                }
             }
             return Ok(info);
         } catch(std::exception& e) {
@@ -245,7 +248,10 @@ Result<ModInfo> ModInfo::createFromGeodeFile(ghc::filesystem::path const& path) 
     auto info = res.value();
     info.m_path = path;
 
-    info.addSpecialFiles(unzip);
+    auto err = info.addSpecialFiles(unzip);
+    if (!err) {
+        return Err(err.error());
+    }
     
     return Ok(info);
 }

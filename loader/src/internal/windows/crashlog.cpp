@@ -257,11 +257,11 @@ static void printMods(std::ostream& stream) {
 
 static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
     // make sure crashlog directory exists
-    utils::file::createDirectoryAll(crashlog::getCrashLogDirectory());
+    (void)utils::file::createDirectoryAll(crashlog::getCrashLogDirectory());
 
     // add a file to let Geode know on next launch that it crashed previously
     // this could also be done by saving a loader setting or smth but eh.
-    utils::file::writeBinary(
+    (void)utils::file::writeBinary(
         crashlog::getCrashLogDirectory() + "/last-crashed", {}
     );
 

@@ -12,7 +12,7 @@ if constexpr (                                                                  
 		wrap::functionName<Derived, types::pure##pure_index>::uuid != nullptr &&                                                            \
 		(void*)wrap::functionName<Base, types::pure##pure_index>::uuid != (void*)wrap::functionName<Derived, types::pure##pure_index>::uuid \
 	) {                                                                                                                                     \
-	Mod::get()->addHook<wrap::functionName<Derived, types::pure##pure_index>::value, convention>(                                           \
+	(void)Mod::get()->addHook<wrap::functionName<Derived, types::pure##pure_index>::value, convention>(                                           \
 		#className "::" #functionName,                                                                                                      \
 		(void*)addresses::address##addr_index()                                                                                             \
 	);                                                                                                                                      \

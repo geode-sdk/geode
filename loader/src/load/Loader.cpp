@@ -362,7 +362,10 @@ bool Loader::setup() {
     log::debug("Setting up Loader...");
 
     this->createDirectories();
-    this->loadSettings();
+    auto sett = this->loadSettings();
+    if (!sett) {
+        log::warn("Unable to load loader settings: {}", sett.error());
+    }
     this->refreshMods();
 
     m_isSetup = true;
