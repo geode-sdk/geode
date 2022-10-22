@@ -8,7 +8,7 @@
  - New header `Geode/ui/LayerBG.hpp` with `createLayerBG` function for creating the blue gradient background GD layers have
  - All Cocos2d include paths have been changed to be relative
  - `cocos2dx` folder has been removed, cocos2d is now directly inside `Geode/cocos`
- - Loader resource updating has once again been changed to just verify filenames exist as there are some odd problems with CLI on MacOS
+ - Loader resources updating will no longer check for plist file differences due to problems with CLI on Mac
  - More codegen optimizations, Geode mods should now compile faster
  - Added `NewResult` class, which will eventually replace the old `Result`
  - Add `deprecate` and `nodiscard` attributes to the old `Result` class
