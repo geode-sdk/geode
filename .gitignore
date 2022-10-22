@@ -47,3 +47,6 @@ loader/src/internal/resources.hpp
 loader/resources/mod.json
 fods-catgirl-hideout.txt
 
+# krita files too because alk is funny
+**/*.kra
+

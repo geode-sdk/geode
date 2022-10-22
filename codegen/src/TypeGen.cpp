@@ -1,84 +1,95 @@
 #include "Shared.hpp"
+#include "TypeOpt.hpp"
 #include <set>
-
-namespace { namespace format_strings {
-
-	char const* declare_member_type = R"GEN(
-using ret{index} = {return};
-using func{index} = ret{index}(*)({const}{class_name}*{parameter_type_comma}{parameter_types});
-using pure{index} = ret{index}({parameter_types});
-using meta{index} = ret{index}({const}{class_name}*{parameter_type_comma}{parameter_types});
-using member{index} = ret{index}({class_name}::*)({parameter_types}){const};
-)GEN";
-
-	char const* declare_static_type = R"GEN(
-using ret{index} = {return};
-using func{index} = ret{index}(*)({parameter_types});
-using pure{index} = ret{index}({parameter_types});
-using meta{index} = ret{index}({parameter_types});
-using member{index} = func{index};
-)GEN";
-
-	char const* declare_structor_type = R"GEN(
-using ret{index} = void;
-using func{index} = ret{index}(*)({class_name}*{parameter_type_comma}{parameter_types});
-using pure{index} = ret{index}({parameter_types});
-using meta{index} = ret{index}({const}{class_name}*{parameter_type_comma}{parameter_types});
-using member{index} = func{index};
-)GEN";
-
-}}
-
-static std::string getReturn(FunctionBegin const& fn, std::string const& parent) {
-	if (fn.type != FunctionType::Normal)
-		return "void";
-
-	if (fn.ret.name == "auto") {
-		std::vector<std::string> declvals;
-
-		for (auto& [t, n] : fn.args) {
-			declvals.push_back(fmt::format("std::declval<{}>()", t.name));
-		}
-
-		return fmt::format(
-			fn.is_static ? "decltype({}::{}({}))" : "decltype(std::declval<{}>().{}({}))",
-			parent,
-			fn.name,
-			fmt::join(declvals, ", ")
-		);
-	}
-
-	return fn.ret.name;
-}
 
 std::string generateTypeHeader(Root& root) {
 	std::string output;
 
-	for (auto& c : root.classes) {
-		for (auto& f : c.fields) {
-			if (codegen::getStatus(f) == BindStatus::Unbindable)
-				continue;
-			auto fn = f.get_fn();
+	TypeBank bank;
+	bank.loadFrom(root);
 
-			char const* used_format = format_strings::declare_member_type;
+	std::map<std::string, int> used_returns;
+	std::map<std::string, int> used_funcs;
+	std::map<std::string, int> used_pures;
 
-			if (fn->type != FunctionType::Normal) {
-				used_format = format_strings::declare_structor_type;
-			}
+	int i = 0;
+	for (auto& f : bank.typeList()) {
 
-			if (fn->is_static) {
-				used_format = format_strings::declare_static_type;
-			}
+		char const* return_fmt = "using ret{index} = {return};";
+		char const* func_fmt;
+		char const* pure_fmt = "ret{ret_index}({parameter_types});";
+		char const* meta_fmt;
+		char const* member_fmt;
 
-			output += fmt::format(used_format,
-				fmt::arg("parameter_types", codegen::getParameterTypes(*fn)),
-				fmt::arg("parameter_type_comma", str_if(", ", !fn->args.empty())),
-				fmt::arg("class_name", c.name),
-				fmt::arg("const", str_if(" const ", fn->is_const)),
-				fmt::arg("index", f.field_id),
-				fmt::arg("return", getReturn(*fn, c.name))
-			);
+		switch (f.type) {
+			case FuncType::Member:
+				func_fmt = "ret{ret_index}(*)( {const}{class_name}*{parameter_type_comma}{parameter_types});";
+				meta_fmt = "ret{ret_index}({const}{class_name}*{parameter_type_comma}{parameter_types});";
+				member_fmt = "ret{ret_index}({class_name}::*)({parameter_types}){const};";
+				break;
+			case FuncType::Static:
+				func_fmt = "ret{ret_index}(*)({parameter_types});";
+				meta_fmt = "ret{ret_index}({parameter_types});";
+				member_fmt = "func{index};";
+				break;
+			case FuncType::Structor:
+				func_fmt = "ret{ret_index}(*)({class_name}*{parameter_type_comma}{parameter_types});";
+				meta_fmt = "ret{ret_index}({const}{class_name}*{parameter_type_comma}{parameter_types});";
+				member_fmt = "func{index};";
+				break;
 		}
+
+		if (used_returns.count(f.return_type) == 0) {
+			output += fmt::format(return_fmt,
+				fmt::arg("index", i),
+				fmt::arg("return", f.return_type)
+			) + "\n";
+			used_returns[f.return_type] = i;
+		}
+		int ret_index = used_returns[f.return_type];
+
+		std::string pure_val = fmt::format(pure_fmt,
+			fmt::arg("ret_index", ret_index),
+			fmt::arg("parameter_types", fmt::join(f.parameter_types, ", "))
+		);
+		if (used_pures.count(pure_val) == 0) {
+			output += fmt::format("using pure{} = {}\n", i, pure_val);
+			used_pures[pure_val] = i;
+		}
+
+		std::string func_val = fmt::format(func_fmt,
+			fmt::arg("ret_index", ret_index),
+			fmt::arg("parameter_types", fmt::join(f.parameter_types, ", ")),
+			fmt::arg("parameter_type_comma", str_if(", ", !f.parameter_types.empty())),
+			fmt::arg("class_name", f.class_name),
+			fmt::arg("const", str_if(" const ", f.is_const))
+		);
+		std::string meta_val = fmt::format(meta_fmt,
+			fmt::arg("ret_index", ret_index),
+			fmt::arg("parameter_types", fmt::join(f.parameter_types, ", ")),
+			fmt::arg("parameter_type_comma", str_if(", ", !f.parameter_types.empty())),
+			fmt::arg("class_name", f.class_name),
+			fmt::arg("const", str_if(" const ", f.is_const))
+		);
+		std::string member_val = fmt::format(member_fmt,
+			fmt::arg("ret_index", ret_index),
+			fmt::arg("parameter_types", fmt::join(f.parameter_types, ", ")),
+			fmt::arg("class_name", f.class_name),
+			fmt::arg("const", str_if(" const ", f.is_const)),
+			fmt::arg("index", i)
+		);
+
+		if (used_funcs.count(func_val) == 0) {
+			output += fmt::format("using func{index} = {func}\nusing meta{index} = {meta}\nusing member{index} = {member}\n",
+				fmt::arg("index", i), 
+				fmt::arg("func", func_val),
+				fmt::arg("meta", meta_val),
+				fmt::arg("member", member_val)
+			);
+			used_funcs[func_val] = i;
+		}
+
+		++i;
 	}
 
 	return output;

@@ -37,7 +37,7 @@ static CCEGLView* CCEGLView_CCEGLView(CCEGLView* self) {
 }
 
 $execute {
-    Mod::get()->addHook<&CCEGLView_CCEGLView, Thiscall>("CCEGLView::CCEGLView", CCEGLVIEW_CON_ADDR);
+    (void)Mod::get()->addHook<&CCEGLView_CCEGLView, Thiscall>("CCEGLView::CCEGLView", CCEGLVIEW_CON_ADDR);
 }
 
 #endif

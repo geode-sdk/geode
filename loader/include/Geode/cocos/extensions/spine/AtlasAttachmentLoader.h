@@ -26,8 +26,8 @@
 #ifndef SPINE_ATLASATTACHMENTLOADER_H_
 #define SPINE_ATLASATTACHMENTLOADER_H_
 
-#include <spine/AttachmentLoader.h>
-#include <spine/Atlas.h>
+#include "AttachmentLoader.h"
+#include "Atlas.h"
 
 namespace cocos2d { namespace extension {
 

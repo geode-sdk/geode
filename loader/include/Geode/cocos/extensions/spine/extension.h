@@ -82,11 +82,11 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <spine/Skeleton.h>
-#include <spine/RegionAttachment.h>
-#include <spine/Animation.h>
-#include <spine/Atlas.h>
-#include <spine/AttachmentLoader.h>
+#include "Skeleton.h"
+#include "RegionAttachment.h"
+#include "Animation.h"
+#include "Atlas.h"
+#include "AttachmentLoader.h"
 
 namespace cocos2d { namespace extension {
 

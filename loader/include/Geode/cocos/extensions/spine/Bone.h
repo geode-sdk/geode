@@ -26,7 +26,7 @@
 #ifndef SPINE_BONE_H_
 #define SPINE_BONE_H_
 
-#include <spine/BoneData.h>
+#include "BoneData.h"
 
 namespace cocos2d { namespace extension {
 

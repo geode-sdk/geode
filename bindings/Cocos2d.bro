@@ -36,6 +36,7 @@ class cocos2d::CCArray {
 	auto fastRemoveObject(cocos2d::CCObject*) = mac 0x41a520;
 	auto fastRemoveObjectAtIndex(unsigned int) = mac 0x41a500;
 	auto fastRemoveObjectAtIndexNew(unsigned int) = mac 0x41a510;
+	auto insertObject(cocos2d::CCObject*, unsigned int) = mac 0x41a460;
 	auto lastObject() = mac 0x41a360;
 	auto objectAtIndex(unsigned int) = mac 0x41a340, ios 0x16510c;
 	auto removeAllObjects() = mac 0x41a4f0, ios 0x1651f0;
@@ -428,7 +429,7 @@ class cocos2d::CCMenuItemLabel {
 
 class cocos2d::CCMenuItemSprite {
 	// virtual ~CCMenuItemSprite() = mac 0x1feab0;
-	virtual auto selected() = mac 0x1fd3f0, ios 0x02d2cc;
+	virtual auto selected() = mac 0x1fd3f0, ios 0x2d2cc;
 	virtual auto unselected() = mac 0x1fd470, ios 0x2d34c;
 	virtual auto setEnabled(bool) = mac 0x1fd4e0, ios 0x2d3bc;
 	virtual auto getNormalImage() = mac 0x1fcee0, ios 0x2cf68;

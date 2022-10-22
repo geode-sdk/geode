@@ -39,14 +39,23 @@ target_sources(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/entry.cpp)
 
 add_subdirectory(codegen)
 
-add_custom_target(CodegenRun ALL
+message(STATUS ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp)
+add_custom_command(
+	DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/bindings/GeometryDash.bro
+			${CMAKE_CURRENT_SOURCE_DIR}/bindings/Cocos2d.bro
+			${CMAKE_CURRENT_SOURCE_DIR}/bindings/Entry.bro
 	COMMAND Codegen ${GEODE_TARGET_PLATFORM} bindings ${GEODE_CODEGEN_PATH}
+	COMMAND echo codegen > ${GEODE_CODEGEN_PATH}/.stamp
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 	COMMENT "Run Codegen"
-	BYPRODUCTS ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp
+	OUTPUT ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp ${GEODE_CODEGEN_PATH}/.stamp
 )
+
+add_custom_target(CodegenRun
+	DEPENDS ${GEODE_CODEGEN_PATH}/.stamp
+)
+
 add_dependencies(${PROJECT_NAME} CodegenRun)
-add_dependencies(CodegenRun Codegen)
 
 # Hacky way to supress the not generated error
 if (NOT EXISTS ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp)
@@ -60,11 +69,7 @@ target_sources(${PROJECT_NAME} INTERFACE ${GEODE_CODEGEN_PATH}/Geode/GeneratedSo
 target_include_directories(${PROJECT_NAME} INTERFACE
 	${GEODE_CODEGEN_PATH}
 	${GEODE_LOADER_PATH}/include
-	${GEODE_LOADER_PATH}/include/Geode/cocos/
-	${GEODE_LOADER_PATH}/include/Geode/cocos/cocos2dx
-	${GEODE_LOADER_PATH}/include/Geode/cocos/cocos2dx/include
-	${GEODE_LOADER_PATH}/include/Geode/cocos/cocos2dx/support/zip_support
-	${GEODE_LOADER_PATH}/include/Geode/cocos/cocos2dx/kazmath/include
+	${GEODE_LOADER_PATH}/include/Geode/cocos/include
 	${GEODE_LOADER_PATH}/include/Geode/cocos/extensions
 	${GEODE_LOADER_PATH}/include/Geode/fmod
 )
@@ -74,7 +79,6 @@ add_subdirectory(filesystem)
 add_subdirectory(fmt)
 
 target_link_libraries(${PROJECT_NAME} INTERFACE filesystem fmt)
-
 
 
 if (NOT EXISTS ${GEODE_BIN_PATH})
@@ -97,9 +101,12 @@ elseif(EXISTS ${GEODE_PLATFORM_BIN_PATH})
 		"${GEODE_LOADER_PATH}/include/Geode/DefaultInclude.hpp"
 		"${GEODE_LOADER_PATH}/include/Geode/Loader.hpp"
 		"${GEODE_LOADER_PATH}/include/Geode/UI.hpp"
-		"${GEODE_LOADER_PATH}/include/Geode/cocos/cocos2dx/include/cocos2d.h"
+		"${GEODE_LOADER_PATH}/include/Geode/cocos/include/cocos2d.h"
 		"${GEODE_LOADER_PATH}/include/Geode/cocos/extensions/cocos-ext.h"
 	)
 else()
-	message(FATAL_ERROR "No valid loader binary to link to! Install a pre-built binary for version ${PROJECT_VERSION} with Geode CLI or build it from source.")
+	message(FATAL_ERROR
+		"No valid loader binary to link to! Install prebuilts with `geode sdk install-prebuilts` "
+		"or build Geode from source."
+	)
 endif()

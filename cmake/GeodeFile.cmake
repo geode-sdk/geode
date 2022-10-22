@@ -166,14 +166,26 @@ function(package_geode_resources_now proname src dest header_dest)
         "#include <unordered_map>\n\n"
         "static const std::unordered_map<std::string, std::string> "
         "LOADER_RESOURCE_HASHES {\n"
+        # "#include <vector>\n\n"
+        # "static const std::vector<std::string> "
+        # "LOADER_RESOURCE_FILES {\n"
     )
+
+    list(APPEND HASHED_EXTENSIONS ".png")
+    list(APPEND HASHED_EXTENSIONS ".mp3")
+    list(APPEND HASHED_EXTENSIONS ".ogg")
 
     foreach(file ${RESOURCE_FILES})
         cmake_path(GET file FILENAME FILE_NAME)
-        if (NOT FILE_NAME STREQUAL ".geode_cache")
+        get_filename_component(FILE_EXTENSION ${file} EXT)
+        list(FIND HASHED_EXTENSIONS "${FILE_EXTENSION}" FILE_SHOULD_HASH)
+
+        if (NOT FILE_NAME STREQUAL ".geode_cache" AND NOT FILE_SHOULD_HASH EQUAL -1)
             
             file(SHA256 ${file} COMPUTED_HASH)
             list(APPEND HEADER_FILE "\t{ \"${FILE_NAME}\", \"${COMPUTED_HASH}\" },\n")
+
+            # list(APPEND HEADER_FILE "\t\"${FILE_NAME}\",\n")
 
         endif()
 

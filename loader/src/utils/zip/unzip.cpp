@@ -75,8 +75,8 @@
         #define NOUNCRYPT
 #endif
 
-#include <zlib.h>
-#include <unzip.h>
+#include <../platform/IncludeZlib.h>
+#include <../support/zip_support/unzip.h>
 
 #ifdef STDC
 #  include <stddef.h>

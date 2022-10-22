@@ -150,7 +150,7 @@ void Index::updateIndex(IndexUpdateCallback callback, bool force) {
             // different sha
             if (force || currentCommitSHA != upcomingCommitSHA) {
                 // save new sha in file
-                utils::file::writeString(indexDir / "current", upcomingCommitSHA);
+                (void)utils::file::writeString(indexDir / "current", upcomingCommitSHA);
 
                 web::AsyncWebRequest()
                     .join("index-download")
@@ -643,7 +643,7 @@ InstallItems::CallbackID InstallItems::start(
         auto item = Index::get()->getKnownItem(inst);
 
         auto indexDir = Loader::get()->getGeodeDirectory() / "index";
-        file::createDirectoryAll(indexDir / "temp");
+        (void)file::createDirectoryAll(indexDir / "temp");
         auto tempFile = indexDir / "temp" / item.m_download.m_filename;
 
         m_downloaded.push_back(tempFile);

@@ -8,15 +8,16 @@
 #include <iostream>
 #include "IDManager.hpp"
 
-#define GEODE_APPLY_MODIFY_FOR_FUNCTION(index, convention, className, functionName)                            \
-using base##index = wrap::functionName<Base, types::pure##index>;                                              \
-using derived##index = wrap::functionName<Derived, types::pure##index>;                                        \
-if constexpr (derived##index::uuid != nullptr && (void*)base##index::uuid != (void*)derived##index::uuid) {    \
-	Mod::get()->addHook<derived##index::value, convention>(                                                    \
-		#className "::" #functionName,                                                                         \
-		(void*)addresses::address##index()                                                                     \
-	);                                                                                                         \
-}                                                                                                              \
+#define GEODE_APPLY_MODIFY_FOR_FUNCTION(addr_index, pure_index, convention, className, functionName)                                        \
+if constexpr (                                                                                                                              \
+		wrap::functionName<Derived, types::pure##pure_index>::uuid != nullptr &&                                                            \
+		(void*)wrap::functionName<Base, types::pure##pure_index>::uuid != (void*)wrap::functionName<Derived, types::pure##pure_index>::uuid \
+	) {                                                                                                                                     \
+	(void)Mod::get()->addHook<wrap::functionName<Derived, types::pure##pure_index>::value, convention>(                                           \
+		#className "::" #functionName,                                                                                                      \
+		(void*)addresses::address##addr_index()                                                                                             \
+	);                                                                                                                                      \
+}                                                                                                                                           \
 
 template<class T>
 concept HasStringIDProvider = requires {

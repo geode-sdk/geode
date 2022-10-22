@@ -26,8 +26,8 @@
 #ifndef SPINE_ANIMATIONSTATEDATA_H_
 #define SPINE_ANIMATIONSTATEDATA_H_
 
-#include <spine/Animation.h>
-#include <spine/SkeletonData.h>
+#include "Animation.h"
+#include "SkeletonData.h"
 
 namespace cocos2d { namespace extension {
 

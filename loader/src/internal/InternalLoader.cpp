@@ -186,6 +186,7 @@ bool InternalLoader::verifyLoaderResources(IndexUpdateCallback callback) {
         // verify hash
         auto hash = calculateSHA256(file.path());
         if (hash != LOADER_RESOURCE_HASHES.at(name)) {
+            log::debug("compare {} {} {}", file.path().string(), hash, LOADER_RESOURCE_HASHES.at(name));
             this->downloadLoaderResources(callback);
             return false;
         }

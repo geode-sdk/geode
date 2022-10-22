@@ -26,14 +26,14 @@
 #ifndef __CCEditBoxIMPLMAC_H__
 #define __CCEditBoxIMPLMAC_H__
 
-#include "cocos2d.h"
+#include "../../../include/cocos2d.h"
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
 
 #import <Foundation/Foundation.h>
 #import <AppKit/AppKit.h>
 
-#include "ExtensionMacros.h"
+#include "../../ExtensionMacros.h"
 #include "CCEditBoxImpl.h"
 
 @interface CustomNSTextField : NSTextField

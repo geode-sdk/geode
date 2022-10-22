@@ -26,10 +26,10 @@
 #ifndef SPINE_SKELETONDATA_H_
 #define SPINE_SKELETONDATA_H_
 
-#include <spine/BoneData.h>
-#include <spine/SlotData.h>
-#include <spine/Skin.h>
-#include <spine/Animation.h>
+#include "BoneData.h"
+#include "SlotData.h"
+#include "Skin.h"
+#include "Animation.h"
 
 namespace cocos2d { namespace extension {
 

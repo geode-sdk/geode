@@ -12,7 +12,7 @@
 #include <Geode/utils/vector.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <InternalMod.hpp>
-#include <ZipUtils.h>
+#include <../support/zip_support/ZipUtils.h>
 
 USE_GEODE_NAMESPACE();
 
@@ -48,7 +48,7 @@ Mod::Mod(ModInfo const& info) {
 }
 
 Mod::~Mod() {
-    this->unload();
+    (void)this->unload();
 }
 
 Result<> Mod::loadSettings() {
@@ -217,14 +217,14 @@ Result<> Mod::load() {
     if (m_implicitLoadFunc) {
         auto r = m_implicitLoadFunc(this);
         if (!r) {
-            this->unloadPlatformBinary();
+            (void)this->unloadPlatformBinary();
             RETURN_LOAD_ERR("Implicit mod entry point returned an error");
         }
     }
     if (m_loadFunc) {
         auto r = m_loadFunc(this);
         if (!r) {
-            this->unloadPlatformBinary();
+            (void)this->unloadPlatformBinary();
             RETURN_LOAD_ERR("Mod entry point returned an error");
         }
     }
@@ -406,7 +406,7 @@ bool Mod::updateDependencyStates() {
 		}
 		if (dep.isUnresolved()) {
 			m_resolved = false;
-            this->unload();
+            (void)this->unload();
             hasUnresolved = true;
 		}
 	}
