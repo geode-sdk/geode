@@ -185,7 +185,7 @@ static void walkStack(std::ostream& stream, PCONTEXT context) {
         )) break;
 
 		stream << " - ";
-        printAddr(stream, static_cast<void*>(stack.AddrPC.Offset));
+        printAddr(stream, reinterpret_cast<void*>(stack.AddrPC.Offset));
         stream << std::endl;
     }
 }
