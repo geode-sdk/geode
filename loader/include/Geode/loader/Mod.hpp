@@ -558,11 +558,6 @@ namespace geode {
          */
         std::vector<Dependency> getUnresolvedDependencies();
 
-        template<class T>
-        T* with() {
-            return reinterpret_cast<T*>(this);
-        }
-
 		const char* expandSpriteName(const char* name);
     };
 

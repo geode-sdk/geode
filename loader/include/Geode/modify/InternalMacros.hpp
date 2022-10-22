@@ -85,9 +85,9 @@ struct GEODE_HIDDEN derived : derived##Intermediate                             
 
 #define $execute                                                  \
 template<class>                                                   \
-void GEODE_CONCAT(geodeExecFunction, __LINE__)();                            \
+void GEODE_CONCAT(geodeExecFunction, __LINE__)();                 \
 namespace {                                                       \
-	struct GEODE_CONCAT(ExecFuncUnique, __LINE__) {};                   \
+	struct GEODE_CONCAT(ExecFuncUnique, __LINE__) {};             \
 }                                                                 \
 static inline auto _line = (Loader::get()->scheduleOnModLoad(     \
 	nullptr, &GEODE_CONCAT(geodeExecFunction, __LINE__)<GEODE_CONCAT(ExecFuncUnique, __LINE__)> \

@@ -14,7 +14,7 @@ USE_GEODE_NAMESPACE();
 byte_array readMemory(void* address, size_t amount) {
     byte_array ret;
     for (size_t i = 0; i < amount; i++) {
-        ret.push_back(*as<uint8_t*>(as<uintptr_t>(address) + i));
+        ret.push_back(*reinterpret_cast<uint8_t*>(reinterpret_cast<uintptr_t>(address) + i));
     }
     return ret;
 }
