@@ -3918,7 +3918,7 @@ class MenuGameLayer {
     void update(float) = mac 0x28fa70, win 0x18f190;
 }
 
-class MenuLayer : cocos2d::CCLayer, FLAlertLayerProtocol {
+class MenuLayer : cocos2d::CCLayer, FLAlertLayerProtocol, GooglePlayDelegate {
     inline MenuLayer() {}
     virtual ~MenuLayer() = mac 0x1d1230, win 0x190620;
     virtual bool init() = mac 0x1d14b0, win 0x1907b0;
@@ -3943,6 +3943,11 @@ class MenuLayer : cocos2d::CCLayer, FLAlertLayerProtocol {
     void onYouTube(cocos2d::CCObject*) = win 0x1919A0;
     static cocos2d::CCScene* scene(bool) = mac 0x1d12d0, win 0x190720, ios 0x19e57c;
     MenuLayer* node() = win 0x190550;
+
+    cocos2d::CCSprite* m_googlePlaySprite;
+    cocos2d::CCSprite* m_viewProfileInfoText;
+    cocos2d::CCLabelBMFont* m_playerNameLabel;
+    CCMenuItemSpriteExtra* m_profileBtn;
 }
 
 class MessageListDelegate {}
