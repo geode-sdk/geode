@@ -102,7 +102,7 @@ class $modify(CustomMenuLayer, MenuLayer) {
 		auto btn = CCMenuItemSpriteExtra::create(
 			g_geodeButton.data(), this, menu_selector(CustomMenuLayer::onGeode)
 		);
-		btn->setID("geode-button");
+		btn->setID("geode-button"_spr);
 		bottomMenu->addChild(btn);
 
 		bottomMenu->updateLayout();

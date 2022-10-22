@@ -65,3 +65,14 @@ $register_ids(LevelSearchLayer) {
 	}
 }
 
+class $modify(LevelSearchLayer) {
+    bool init() {
+        if (!LevelSearchLayer::init())
+            return false;
+        
+        NodeStringIDManager::get()->provide(this);
+
+        return true;
+    }
+};
+

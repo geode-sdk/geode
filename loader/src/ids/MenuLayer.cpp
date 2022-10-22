@@ -84,3 +84,5 @@ $register_ids(MenuLayer) {
 		}
 	}
 }
+
+// MenuLayer::init is hooked in ../hooks/MenuLayer.cpp

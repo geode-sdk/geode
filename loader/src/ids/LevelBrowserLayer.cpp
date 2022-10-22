@@ -28,3 +28,14 @@ $register_ids(LevelBrowserLayer) {
         }
     }
 }
+
+class $modify(LevelBrowserLayer) {
+    bool init(GJSearchObject* obj) {
+        if (!LevelBrowserLayer::init(obj))
+            return false;
+        
+        NodeStringIDManager::get()->provide(this);
+
+        return true;
+    }
+};

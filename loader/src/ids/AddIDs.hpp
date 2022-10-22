@@ -30,7 +30,7 @@ static CCMenu* detachIntoOwnMenu(CCNode* parent, CCNode* node, const char* menuI
 
     auto newMenu = CCMenu::create();
     newMenu->setPosition(oldMenu->convertToWorldSpace(node->getPosition()));
-    newMenu->setID("top-right-menu");
+    newMenu->setID(menuID);
     node->setPosition(0, 0);
     newMenu->addChild(node);
     newMenu->setLayout(layout);

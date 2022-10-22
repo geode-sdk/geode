@@ -859,7 +859,8 @@ public:
          * Set the string ID of this node. String IDs are a Geode addition 
          * that are much safer to use to get nodes than absolute indexes
          * @param id The ID of the node, recommended to be in kebab case 
-         * without any spaces or uppercase letters
+         * without any spaces or uppercase letters. If the node is added 
+         * by a mod, use the _spr literal to append the mod ID to it
          */
         void setID(std::string const& id);
 

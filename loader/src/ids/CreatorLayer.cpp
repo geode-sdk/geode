@@ -22,7 +22,6 @@ $register_ids(CreatorLayer) {
         setIDSafe(menu, 10,"gauntlets-button");
 
         // move vault button to its own menu
-
         if (auto lockBtn = setIDSafe(menu, -2, "vault-button")) {
             detachIntoOwnMenu(this, lockBtn, "top-right-menu", 
                 ColumnLayout::create(5.f, 0.f)->setAlignment(Alignment::Begin)
@@ -30,7 +29,6 @@ $register_ids(CreatorLayer) {
         }
 
         // move treasure room button to its own menu
-
         if (auto roomBtn = setIDSafe(menu, -1, "treasure-room-button")) {
             detachIntoOwnMenu(this, roomBtn, "bottom-right-menu", 
                 ColumnLayout::create(5.f, 0.f)->setAlignment(Alignment::End)
@@ -43,3 +41,14 @@ $register_ids(CreatorLayer) {
         setIDSafe(menu, 0, "back-button");
     }
 }
+
+class $modify(CreatorLayer) {
+    bool init() {
+        if (!CreatorLayer::init())
+            return false;
+        
+        NodeStringIDManager::get()->provide(this);
+
+        return true;
+    }
+};
