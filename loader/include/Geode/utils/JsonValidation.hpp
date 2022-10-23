@@ -104,47 +104,38 @@ namespace geode {
         friend struct JsonMaybeObject<Json>;
         friend struct JsonMaybeValue<Json>;
 
-        void setError(std::string const& error);
+        GEODE_DLL void setError(std::string const& error);
     
     public:
-        Json& json() {
-            return m_json;
-        }
+        GEODE_DLL Json& json();
 
-        JsonMaybeSomething(
+        GEODE_DLL JsonMaybeSomething(
             JsonChecker<Json>& checker,
             Json& json,
             std::string const& hierarchy,
             bool hasValue
-        ) : m_checker(checker),
-            m_json(json),
-            m_hierarchy(hierarchy),
-            m_hasValue(hasValue) {}
+        );
 
-        bool isError() const;
+        GEODE_DLL bool isError() const;
 
-        operator bool() const {
-            return !isError();
-        }
+        GEODE_DLL operator bool() const;
     };
 
     template<class Json>
     struct JsonMaybeValue : public JsonMaybeSomething<Json> {
         bool m_inferType = true;
 
-        JsonMaybeValue(
+        GEODE_DLL JsonMaybeValue(
             JsonChecker<Json>& checker,
             Json& json,
             std::string const& hierarchy,
             bool hasValue
-        ) : JsonMaybeSomething<Json>(checker, json, hierarchy, hasValue) {}
+        );
 
-        JsonMaybeSomething<Json>& self() {
-            return *static_cast<JsonMaybeSomething<Json>*>(this);
-        }
+        GEODE_DLL JsonMaybeSomething<Json>& self();
 
         template<nlohmann::detail::value_t T>
-        JsonMaybeValue<Json> as() {
+        JsonMaybeValue<Json>& as() {
             if (this->isError()) return *this;
             if (!jsonConvertibleTo(self().m_json.type(), T)) {
                 this->setError(
@@ -157,13 +148,10 @@ namespace geode {
             return *this;
         }
 
-        JsonMaybeValue<Json> array() {
-            this->as<value_t::array>();
-            return *this;
-        }
+        GEODE_DLL JsonMaybeValue<Json>& array();
 
         template<nlohmann::detail::value_t... T>
-        JsonMaybeValue<Json> asOneOf() {
+        JsonMaybeValue<Json>& asOneOf() {
             if (this->isError()) return *this;
             bool isOneOf = (... || jsonConvertibleTo(self().m_json.type(), T));
             if (!isOneOf) {
@@ -178,7 +166,7 @@ namespace geode {
         }
 
         template<nlohmann::detail::value_t T>
-        JsonMaybeValue<Json> is() {
+        JsonMaybeValue<Json>& is() {
             if (this->isError()) return *this;
             self().m_hasValue = jsonConvertibleTo(self().m_json.type(), T);
             m_inferType = false;
@@ -186,7 +174,7 @@ namespace geode {
         }
 
         template<class T>
-        JsonMaybeValue<Json> validate(JsonValueValidator<T> validator) {
+        JsonMaybeValue<Json>& validate(JsonValueValidator<T> validator) {
             if (this->isError()) return *this;
             try {
                 if (!validator(self().m_json.template get<T>())) {
@@ -202,30 +190,30 @@ namespace geode {
         }
 
         template<class T>
-        JsonMaybeValue<Json> inferType() {
+        JsonMaybeValue<Json>& inferType() {
             if (this->isError() || !m_inferType) return *this;
             return this->as<getJsonType<T>()>();
         }
 
         template<class T>
-        JsonMaybeValue<Json> intoRaw(T& target) {
+        JsonMaybeValue<Json>& intoRaw(T& target) {
             if (this->isError()) return *this;
             target = self().m_json;
             return *this;
         }
 
         template<class T>
-        JsonMaybeValue<Json> into(T& target) {
+        JsonMaybeValue<Json>& into(T& target) {
             return this->intoAs<T, T>(target);
         }
 
         template<class T>
-        JsonMaybeValue<Json> into(std::optional<T>& target) {
+        JsonMaybeValue<Json>& into(std::optional<T>& target) {
             return this->intoAs<T, std::optional<T>>(target);
         }
 
         template<class A, class T>
-        JsonMaybeValue<Json> intoAs(T& target) {
+        JsonMaybeValue<Json>& intoAs(T& target) {
             this->inferType<A>();
             if (this->isError()) return *this;
             try {
@@ -278,112 +266,37 @@ namespace geode {
             }
         };
 
-        JsonMaybeValue<Json> at(size_t i) {
-            this->as<value_t::array>();
-            if (this->isError()) return *this;
-            if (self().m_json.size() <= i) {
-                this->setError(
-                    self().m_hierarchy + ": has " +
-                    std::to_string(self().m_json.size()) + "items "
-                    ", expected to have at least " + std::to_string(i + 1)
-                );
-                return *this;
-            }
-            return JsonMaybeValue<Json>(
-                self().m_checker, self().m_json.at(i),
-                self().m_hierarchy + "." + std::to_string(i),
-                self().m_hasValue
-            );
-        }
+        GEODE_DLL JsonMaybeValue<Json> at(size_t i);
 
-        Iterator<JsonMaybeValue<Json>> iterate() {
-            this->as<value_t::array>();
-            Iterator<JsonMaybeValue<Json>> iter;
-            if (this->isError()) return iter;
-            size_t i = 0;
-            for (auto& obj : self().m_json) {
-                iter.m_values.emplace_back(
-                    self().m_checker, obj,
-                    self().m_hierarchy + "." + std::to_string(i++),
-                    self().m_hasValue
-                );
-            }
-            return iter;
-        }
+        GEODE_DLL Iterator<JsonMaybeValue<Json>> iterate();
 
-        Iterator<std::pair<std::string, JsonMaybeValue<Json>>> items() {
-            this->as<value_t::object>();
-            Iterator<std::pair<std::string, JsonMaybeValue<Json>>> iter;
-            if (this->isError()) return iter;
-
-            for (auto& [k, v] : self().m_json.items()) {
-                iter.m_values.emplace_back(k, JsonMaybeValue<Json>(
-                    self().m_checker, v,
-                    self().m_hierarchy + "." + k,
-                    self().m_hasValue
-                ));
-            }
-
-            return iter;
-        }
+        GEODE_DLL Iterator<std::pair<std::string, JsonMaybeValue<Json>>> items();
     };
 
     template<class Json>
     struct JsonMaybeObject : JsonMaybeSomething<Json> {
         std::set<std::string> m_knownKeys;
 
-        JsonMaybeObject(
+        GEODE_DLL JsonMaybeObject(
             JsonChecker<Json>& checker,
             Json& json,
             std::string const& hierarchy,
             bool hasValue
-        ) : JsonMaybeSomething<Json>(checker, json, hierarchy, hasValue) {}
+        );
 
-        JsonMaybeSomething<Json>& self() {
-            return *static_cast<JsonMaybeSomething<Json>*>(this);
-        }
+        GEODE_DLL JsonMaybeSomething<Json>& self();
 
-        void addKnownKey(std::string const& key) {
-            m_knownKeys.insert(key);
-        }
+        GEODE_DLL void addKnownKey(std::string const& key);
 
-        Json& json() {
-            return self().m_json;
-        }
+        GEODE_DLL Json& json();
 
-        JsonMaybeValue<Json> emptyValue() {
-            return JsonMaybeValue(self().m_checker, self().m_json, "", false);
-        }
+        GEODE_DLL JsonMaybeValue<Json> emptyValue();
 
-        JsonMaybeValue<Json> has(std::string const& key) {
-            this->addKnownKey(key);
-            if (this->isError()) return emptyValue(); 
-            if (!self().m_json.contains(key) || self().m_json[key].is_null()) {
-                return emptyValue();
-            }
-            return JsonMaybeValue<Json>(self().m_checker, self().m_json[key], key, true);
-        }
+        GEODE_DLL JsonMaybeValue<Json> has(std::string const& key);
 
-        JsonMaybeValue<Json> needs(std::string const& key) {
-            this->addKnownKey(key);
-            if (this->isError()) return emptyValue(); 
-            if (!self().m_json.contains(key)) {
-                this->setError(
-                    self().m_hierarchy + " is missing required key \"" + key + "\""
-                );
-                return emptyValue();
-            }
-            return JsonMaybeValue<Json>(self().m_checker, self().m_json[key], key, true);
-        }
+        GEODE_DLL JsonMaybeValue<Json> needs(std::string const& key);
 
-        void checkUnknownKeys() {
-            for (auto& [key, _] : self().m_json.items()) {
-                if (!m_knownKeys.count(key)) {
-                    // log::debug(self().m_hierarchy + " contains unknown key \"" + key + "\"");
-                    log::debug("{} contains unknown key \"{}\"", self().m_hierarchy, key);
-                }
-            }
-        }
+        GEODE_DLL void checkUnknownKeys();
     };
     
     template<class Json = nlohmann::json>
@@ -391,37 +304,13 @@ namespace geode {
         std::variant<std::monostate, std::string> m_result;
         Json& m_json;
 
-        JsonChecker(Json& json) : m_json(json), m_result(std::monostate()) {}
+        GEODE_DLL JsonChecker(Json& json);
 
-        bool isError() const {
-            return std::holds_alternative<std::string>(m_result);
-        }
+        GEODE_DLL bool isError() const;
 
-        std::string getError() const {
-            return std::get<std::string>(m_result);
-        }
+        GEODE_DLL std::string getError() const;
 
-        JsonMaybeValue<Json> root(std::string const& hierarchy) {
-            return JsonMaybeValue(*this, m_json, hierarchy, true);
-        }
+        GEODE_DLL JsonMaybeValue<Json> root(std::string const& hierarchy);
     };
     
-    template<class Json>
-    void JsonMaybeSomething<Json>::setError(std::string const& error) {
-        m_checker.m_result = error;
-    }
-
-    template<class Json>
-    bool JsonMaybeSomething<Json>::isError() const {
-        return m_checker.isError() || !m_hasValue;
-    }
-
-    template<class Json>
-    JsonMaybeObject<Json> JsonMaybeValue<Json>::obj() {
-        this->as<value_t::object>();
-        return JsonMaybeObject(
-            self().m_checker, self().m_json,
-            self().m_hierarchy, self().m_hasValue
-        );
-    }
 }
