@@ -9,7 +9,7 @@ namespace cocos2d {
 
 namespace geode {
     template<class T>
-    concept IDProvidable = std::is_base_of_v<cocos2d::CCNode, T> && requires {
+    concept IDProvidable = requires {
         { T::CLASS_NAME } -> std::convertible_to<const char*>;
     };
 

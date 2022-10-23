@@ -71,13 +71,6 @@ jobs:
       run: |
         ${{ matrix.config.prefixes }} cmake -B ${{ github.workspace }}/build ${{ matrix.config.extra_flags }} -DGEODE_DISABLE_CLI_CALLS=ON -DCLI_PATH="${{ github.workspace }}/cli"
 
-    - name: Publish resources
-      uses: actions/upload-artifact@v2
-      with:
-        name: resources
-        path: ./bin/nightly/resources.zip
-      if: matrix.config.os == 'windows-latest'
-
     - name: Build
       run: |
         cd build
@@ -95,6 +88,13 @@ jobs:
       with:
         path: ${{ github.workspace }}/VERSION
       id: version
+
+    - name: Upload resources
+      uses: actions/upload-artifact@v2
+      with:
+        name: resources
+        path: ./bin/nightly/resources.zip
+      if: matrix.config.os == 'windows-latest'
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v2
