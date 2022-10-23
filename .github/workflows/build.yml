@@ -88,11 +88,15 @@ jobs:
         path: ${{ github.workspace }}/VERSION
       id: version
 
+    - name: Delete resource cache file
+      run: |
+        rm ./bin/nightly/resources/.geode_cache
+
     - name: Upload resources
       uses: actions/upload-artifact@v2
       with:
         name: resources
-        path: ./bin/nightly/resources.zip
+        path: ./bin/nightly/resources
       if: matrix.config.os_identifier == 'win'
 
     - name: Upload Artifacts
