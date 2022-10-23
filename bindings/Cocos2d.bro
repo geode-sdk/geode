@@ -209,7 +209,7 @@ class cocos2d::CCFileUtils : cocos2d::TypeInfo {
 
 class cocos2d::CCGLProgram {
 	auto setUniformsForBuiltins() = mac 0x232c70;
-	auto use() = max 0x231d70;
+	auto use() = mac 0x231d70;
 }
 
 class cocos2d::CCHide {
