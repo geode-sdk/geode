@@ -1,5 +1,8 @@
 #pragma once
 
+#include "../DefaultInclude.hpp"
+#include <cocos2d.h>
+
 namespace cocos2d {
     class CCArray;
     class CCNode;
