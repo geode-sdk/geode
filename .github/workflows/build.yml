@@ -40,13 +40,12 @@ jobs:
     - uses: ilammy/msvc-dev-cmd@v1
       with:
         arch: x86
-      if: matrix.config.os == 'windows-latest'
+      if: matrix.config.os_identifier == 'win'
 
     - name: Configure ccache
       uses: hendrikmuhs/ccache-action@v1.2
       with:
         key: ${{ matrix.config.os }}
-      if: matrix.config.os == 'macos-latest'
 
     - name: Download CLI
       uses: robinraju/release-downloader@v1.5
@@ -94,7 +93,7 @@ jobs:
       with:
         name: resources
         path: ./bin/nightly/resources.zip
-      if: matrix.config.os == 'windows-latest'
+      if: matrix.config.os_identifier == 'win'
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v2
