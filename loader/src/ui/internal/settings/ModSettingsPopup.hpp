@@ -20,6 +20,7 @@ protected:
     void onClose(CCObject*) override;
     void onApply(CCObject*);
     void onResetAll(CCObject*);
+    void onOpenSaveDirectory(CCObject*);
     
 public:
     static ModSettingsPopup* create(Mod* mod);

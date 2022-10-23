@@ -4,6 +4,7 @@
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/convert.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
+#include <Geode/loader/Mod.hpp>
 
 bool ModSettingsPopup::setup(Mod* mod) {
     m_noElasticity = true;
@@ -143,6 +144,20 @@ bool ModSettingsPopup::setup(Mod* mod) {
     resetBtn->setPosition(-m_size.width / 2 + 45.f, -m_size.height / 2 + 20.f);
     m_buttonMenu->addChild(resetBtn);
 
+    auto openDirBtnSpr = ButtonSprite::create(
+        "Open Folder",
+        "goldFont.fnt",
+        "GJ_button_05.png",
+        .7f
+    );
+    openDirBtnSpr->setScale(.7f);
+
+    auto openDirBtn = CCMenuItemSpriteExtra::create(
+        openDirBtnSpr, this, menu_selector(ModSettingsPopup::onOpenSaveDirectory)
+    );
+    openDirBtn->setPosition(m_size.width / 2 - 45.f, -m_size.height / 2 + 20.f);
+    m_buttonMenu->addChild(openDirBtn);
+
     this->settingValueChanged(nullptr);
 
     return true;
@@ -214,6 +229,10 @@ void ModSettingsPopup::onClose(CCObject* sender) {
         return;
     }
     Popup<Mod*>::onClose(sender);
+}
+
+void ModSettingsPopup::onOpenSaveDirectory(CCObject*) {
+    file::openFolder(m_mod->getSaveDir());
 }
 
 ModSettingsPopup* ModSettingsPopup::create(Mod* mod) {

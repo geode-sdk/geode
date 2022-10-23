@@ -344,7 +344,9 @@ namespace geode {
         std::string getDeveloper() const;
         std::optional<std::string> getDescription() const;
         std::optional<std::string> getDetails() const;
+        [[deprecated("Use Mod::getPackagePath instead")]]
         std::string getPath() const;
+        ghc::filesystem::path getPackagePath() const;
         VersionInfo getVersion() const;
         bool        isEnabled() const;
         bool        isLoaded() const;
@@ -355,6 +357,14 @@ namespace geode {
         ModInfo     getModInfo() const;
         ghc::filesystem::path getTempDir() const;
         ghc::filesystem::path getBinaryPath() const;
+        /**
+         * Get the mod's save directory path
+         */
+        ghc::filesystem::path getSaveDir() const;
+        /**
+         * Get the mod's config directory path
+         */
+        ghc::filesystem::path getConfigDir() const;
 
         bool hasSettings() const;
         decltype(ModInfo::m_settings) getSettings() const;
@@ -506,12 +516,6 @@ namespace geode {
          */
         Result<> uninstall();
         bool isUninstalled() const;
-        
-        /**
-         * Get the mod's save directory 
-         * path
-         */
-        ghc::filesystem::path getSaveDir() const;
 
         /**
          * Return the data store object
