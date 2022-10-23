@@ -56,7 +56,7 @@ $register_ids(MenuLayer) {
 
 		if (auto dailyChest = setIDSafe(menu, -1, "daily-chest-button")) {
 			detachIntoOwnMenu(this, dailyChest, "right-side-menu", 
-				ColumnLayout::create(5.f, 0.f)
+				ColumnLayout::create(0.f, 0.f)
 			);
 		}
 

@@ -1,6 +1,7 @@
 #include <Geode/ui/ListView.hpp>
 #include <Geode/binding/StatsCell.hpp>
 #include <Geode/binding/TableView.hpp>
+#include <Geode/binding/CCContentLayer.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/cocos.hpp>
 
@@ -42,7 +43,9 @@ void ListView::setupList() {
     });
 
     if (m_entries->count() == 1) {
-        m_tableView->moveToTopWithOffset(m_itemSeparation);
+        m_tableView->moveToTopWithOffset(m_itemSeparation * 2);
+    } else if (m_entries->count() == 2) {
+        m_tableView->moveToTopWithOffset(-m_itemSeparation);
     } else {
         m_tableView->moveToTop();
     }

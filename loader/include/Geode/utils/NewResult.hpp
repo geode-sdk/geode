@@ -303,13 +303,13 @@ namespace geode {
     #define GEODE_UNWRAP_INTO(into, ...) \
         auto GEODE_CONCAT(res_, __LINE__) = (__VA_ARGS__);\
         if (GEODE_CONCAT(res_, __LINE__).isErr()) {\
-            return Err(std::move(GEODE_CONCAT(res_, __LINE__).unwrapErr()));\
+            return NewErr(std::move(GEODE_CONCAT(res_, __LINE__).unwrapErr()));\
         }\
         into = std::move(GEODE_CONCAT(res_, __LINE__).unwrap())
 
     #define GEODE_UNWRAP(...) \
         { auto GEODE_CONCAT(res_, __LINE__) = (__VA_ARGS__);\
         if (GEODE_CONCAT(res_, __LINE__).isErr()) {\
-            return Err(std::move(GEODE_CONCAT(res_, __LINE__).unwrapErr()));\
+            return NewErr(std::move(GEODE_CONCAT(res_, __LINE__).unwrapErr()));\
         } }
 }
