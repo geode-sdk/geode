@@ -26,24 +26,24 @@ class cocos2d::CCApplication {
 }
 
 class cocos2d::CCArray {
-	auto addObject(cocos2d::CCObject*) = mac 0x419f90, ios 0x16504c;
+	// auto addObject(cocos2d::CCObject*) = mac 0x419f90, ios 0x16504c;
 	auto addObjectNew(cocos2d::CCObject*) = mac 0x41a450;
-	auto addObjectsFromArray(cocos2d::CCArray*) = mac 0x41a2d0;
-	auto containsObject(cocos2d::CCObject*) const = mac 0x41a3e0;
-	auto count() const = mac 0x41a2f0, ios 0x1650e8;
-	static cocos2d::CCArray* create() = mac 0x419cb0, ios 0x164ec8;
-	static auto createWithObject(cocos2d::CCObject*) = mac 0x419d50;
-	auto fastRemoveObject(cocos2d::CCObject*) = mac 0x41a520;
-	auto fastRemoveObjectAtIndex(unsigned int) = mac 0x41a500;
+	// auto addObjectsFromArray(cocos2d::CCArray*) = mac 0x41a2d0;
+	// auto containsObject(cocos2d::CCObject*) const = mac 0x41a3e0;
+	// auto count() const = mac 0x41a2f0, ios 0x1650e8;
+	// static cocos2d::CCArray* create() = mac 0x419cb0, ios 0x164ec8;
+	// static auto createWithObject(cocos2d::CCObject*) = mac 0x419d50;
+	// auto fastRemoveObject(cocos2d::CCObject*) = mac 0x41a520;
+	// auto fastRemoveObjectAtIndex(unsigned int) = mac 0x41a500;
 	auto fastRemoveObjectAtIndexNew(unsigned int) = mac 0x41a510;
-	auto insertObject(cocos2d::CCObject*, unsigned int) = mac 0x41a460;
-	auto lastObject() = mac 0x41a360;
-	auto objectAtIndex(unsigned int) = mac 0x41a340, ios 0x16510c;
-	auto removeAllObjects() = mac 0x41a4f0, ios 0x1651f0;
-	auto removeLastObject(bool) = mac 0x41a470;
-	auto removeObject(cocos2d::CCObject*, bool) = mac 0x41a490;
-	auto removeObjectAtIndex(unsigned int, bool) = mac 0x41a4b0;
-	auto stringAtIndex(unsigned int) = mac 0x41a320;
+	// auto insertObject(cocos2d::CCObject*, unsigned int) = mac 0x41a460;
+	// auto lastObject() = mac 0x41a360;
+	// auto objectAtIndex(unsigned int) = mac 0x41a340, ios 0x16510c;
+	// auto removeAllObjects() = mac 0x41a4f0, ios 0x1651f0;
+	// auto removeLastObject(bool) = mac 0x41a470;
+	// auto removeObject(cocos2d::CCObject*, bool) = mac 0x41a490;
+	// auto removeObjectAtIndex(unsigned int, bool) = mac 0x41a4b0;
+	// auto stringAtIndex(unsigned int) = mac 0x41a320;
 }
 
 class cocos2d::CCBezierTo {
