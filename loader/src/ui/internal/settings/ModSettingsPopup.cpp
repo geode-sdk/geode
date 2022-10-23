@@ -155,7 +155,7 @@ bool ModSettingsPopup::setup(Mod* mod) {
     auto openDirBtn = CCMenuItemSpriteExtra::create(
         openDirBtnSpr, this, menu_selector(ModSettingsPopup::onOpenSaveDirectory)
     );
-    openDirBtn->setPosition(m_size.width / 2 - 45.f, -m_size.height / 2 + 20.f);
+    openDirBtn->setPosition(m_size.width / 2 - 53.f, -m_size.height / 2 + 20.f);
     m_buttonMenu->addChild(openDirBtn);
 
     this->settingValueChanged(nullptr);
