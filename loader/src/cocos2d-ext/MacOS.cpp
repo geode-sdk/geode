@@ -6,7 +6,7 @@
 using namespace cocos2d;
 
 /** Allocates and initializes a new array with specified capacity */
-ccArray* ccArrayNew(unsigned int capacity) 
+ccArray* cocos2d::ccArrayNew(unsigned int capacity) 
 {
 	if (capacity == 0)
 		capacity = 1;
@@ -20,7 +20,7 @@ ccArray* ccArrayNew(unsigned int capacity)
 }
 
 /** Frees array after removing all remaining objects. Silently ignores NULL arr. */
-void ccArrayFree(ccArray*& arr)
+void cocos2d::ccArrayFree(ccArray*& arr)
 {
     if( arr == NULL ) 
     {
@@ -34,7 +34,7 @@ void ccArrayFree(ccArray*& arr)
     arr = NULL;
 }
 
-void ccArrayDoubleCapacity(ccArray *arr)
+void cocos2d::ccArrayDoubleCapacity(ccArray *arr)
 {
 	arr->max *= 2;
 	CCObject** newArr = (CCObject**)realloc( arr->arr, arr->max * sizeof(CCObject*) );
@@ -43,7 +43,7 @@ void ccArrayDoubleCapacity(ccArray *arr)
 	arr->arr = newArr;
 }
 
-void ccArrayEnsureExtraCapacity(ccArray *arr, unsigned int extra)
+void cocos2d::ccArrayEnsureExtraCapacity(ccArray *arr, unsigned int extra)
 {
 	while (arr->max < arr->num + extra)
     {
@@ -51,7 +51,7 @@ void ccArrayEnsureExtraCapacity(ccArray *arr, unsigned int extra)
     }
 }
 
-void ccArrayShrink(ccArray *arr)
+void cocos2d::ccArrayShrink(ccArray *arr)
 {
     unsigned int newSize = 0;
 	
@@ -75,7 +75,7 @@ void ccArrayShrink(ccArray *arr)
 }
 
 /** Returns index of first occurrence of object, CC_INVALID_INDEX if object not found. */
-unsigned int ccArrayGetIndexOfObject(ccArray *arr, CCObject* object)
+unsigned int cocos2d::ccArrayGetIndexOfObject(ccArray *arr, CCObject* object)
 {
     const unsigned int arrNum = arr->num;
     CCObject** ptr = arr->arr;
@@ -88,13 +88,13 @@ unsigned int ccArrayGetIndexOfObject(ccArray *arr, CCObject* object)
 }
 
 /** Returns a Boolean value that indicates whether object is present in array. */
-bool ccArrayContainsObject(ccArray *arr, CCObject* object)
+bool cocos2d::ccArrayContainsObject(ccArray *arr, CCObject* object)
 {
 	return ccArrayGetIndexOfObject(arr, object) != CC_INVALID_INDEX;
 }
 
 /** Appends an object. Behavior undefined if array doesn't have enough capacity. */
-void ccArrayAppendObject(ccArray *arr, CCObject* object)
+void cocos2d::ccArrayAppendObject(ccArray *arr, CCObject* object)
 {
     CCAssert(object != NULL, "Invalid parameter!");
     object->retain();
@@ -103,7 +103,7 @@ void ccArrayAppendObject(ccArray *arr, CCObject* object)
 }
 
 /** Appends an object. Capacity of arr is increased if needed. */
-void ccArrayAppendObjectWithResize(ccArray *arr, CCObject* object)
+void cocos2d::ccArrayAppendObjectWithResize(ccArray *arr, CCObject* object)
 {
 	ccArrayEnsureExtraCapacity(arr, 1);
 	ccArrayAppendObject(arr, object);
@@ -111,7 +111,7 @@ void ccArrayAppendObjectWithResize(ccArray *arr, CCObject* object)
 
 /** Appends objects from plusArr to arr. Behavior undefined if arr doesn't have
  enough capacity. */
-void ccArrayAppendArray(ccArray *arr, ccArray *plusArr)
+void cocos2d::ccArrayAppendArray(ccArray *arr, ccArray *plusArr)
 {
 	for(unsigned int i = 0; i < plusArr->num; i++)
     {
@@ -120,14 +120,14 @@ void ccArrayAppendArray(ccArray *arr, ccArray *plusArr)
 }
 
 /** Appends objects from plusArr to arr. Capacity of arr is increased if needed. */
-void ccArrayAppendArrayWithResize(ccArray *arr, ccArray *plusArr)
+void cocos2d::ccArrayAppendArrayWithResize(ccArray *arr, ccArray *plusArr)
 {
 	ccArrayEnsureExtraCapacity(arr, plusArr->num);
 	ccArrayAppendArray(arr, plusArr);
 }
 
 /** Inserts an object at index */
-void ccArrayInsertObjectAtIndex(ccArray *arr, CCObject* object, unsigned int index)
+void cocos2d::ccArrayInsertObjectAtIndex(ccArray *arr, CCObject* object, unsigned int index)
 {
 	CCAssert(index<=arr->num, "Invalid index. Out of bounds");
 	CCAssert(object != NULL, "Invalid parameter!");
@@ -146,7 +146,7 @@ void ccArrayInsertObjectAtIndex(ccArray *arr, CCObject* object, unsigned int ind
 }
 
 /** Swaps two objects */
-void ccArraySwapObjectsAtIndexes(ccArray *arr, unsigned int index1, unsigned int index2)
+void cocos2d::ccArraySwapObjectsAtIndexes(ccArray *arr, unsigned int index1, unsigned int index2)
 {
 	CCAssert(index1 < arr->num, "(1) Invalid index. Out of bounds");
 	CCAssert(index2 < arr->num, "(2) Invalid index. Out of bounds");
@@ -158,7 +158,7 @@ void ccArraySwapObjectsAtIndexes(ccArray *arr, unsigned int index1, unsigned int
 }
 
 /** Removes all objects from arr */
-void ccArrayRemoveAllObjects(ccArray *arr)
+void cocos2d::ccArrayRemoveAllObjects(ccArray *arr)
 {
 	while( arr->num > 0 )
     {
@@ -168,7 +168,7 @@ void ccArrayRemoveAllObjects(ccArray *arr)
 
 /** Removes object at specified index and pushes back all subsequent objects.
  Behavior undefined if index outside [0, num-1]. */
-void ccArrayRemoveObjectAtIndex(ccArray *arr, unsigned int index, bool bReleaseObj/* = true*/)
+void cocos2d::ccArrayRemoveObjectAtIndex(ccArray *arr, unsigned int index, bool bReleaseObj/* = true*/)
 {
     CCAssert(arr && arr->num > 0 && index < arr->num, "Invalid index. Out of bounds");
     if (bReleaseObj)
@@ -188,14 +188,14 @@ void ccArrayRemoveObjectAtIndex(ccArray *arr, unsigned int index, bool bReleaseO
 /** Removes object at specified index and fills the gap with the last object,
  thereby avoiding the need to push back subsequent objects.
  Behavior undefined if index outside [0, num-1]. */
-void ccArrayFastRemoveObjectAtIndex(ccArray *arr, unsigned int index)
+void cocos2d::ccArrayFastRemoveObjectAtIndex(ccArray *arr, unsigned int index)
 {
 	CC_SAFE_RELEASE(arr->arr[index]);
 	unsigned int last = --arr->num;
 	arr->arr[index] = arr->arr[last];
 }
 
-void ccArrayFastRemoveObject(ccArray *arr, CCObject* object)
+void cocos2d::ccArrayFastRemoveObject(ccArray *arr, CCObject* object)
 {
 	unsigned int index = ccArrayGetIndexOfObject(arr, object);
 	if (index != CC_INVALID_INDEX)
@@ -206,7 +206,7 @@ void ccArrayFastRemoveObject(ccArray *arr, CCObject* object)
 
 /** Searches for the first occurrence of object and removes it. If object is not
  found the function has no effect. */
-void ccArrayRemoveObject(ccArray *arr, CCObject* object, bool bReleaseObj/* = true*/)
+void cocos2d::ccArrayRemoveObject(ccArray *arr, CCObject* object, bool bReleaseObj/* = true*/)
 {
 	unsigned int index = ccArrayGetIndexOfObject(arr, object);
 	if (index != CC_INVALID_INDEX)
@@ -217,7 +217,7 @@ void ccArrayRemoveObject(ccArray *arr, CCObject* object, bool bReleaseObj/* = tr
 
 /** Removes from arr all objects in minusArr. For each object in minusArr, the
  first matching instance in arr will be removed. */
-void ccArrayRemoveArray(ccArray *arr, ccArray *minusArr)
+void cocos2d::ccArrayRemoveArray(ccArray *arr, ccArray *minusArr)
 {
 	for(unsigned int i = 0; i < minusArr->num; i++)
     {
@@ -227,7 +227,7 @@ void ccArrayRemoveArray(ccArray *arr, ccArray *minusArr)
 
 /** Removes from arr all objects in minusArr. For each object in minusArr, all
  matching instances in arr will be removed. */
-void ccArrayFullRemoveArray(ccArray *arr, ccArray *minusArr)
+void cocos2d::ccArrayFullRemoveArray(ccArray *arr, ccArray *minusArr)
 {
 	unsigned int back = 0;
 	unsigned int i = 0;
@@ -249,7 +249,7 @@ void ccArrayFullRemoveArray(ccArray *arr, ccArray *minusArr)
 }
 
 /** Allocates and initializes a new C array with specified capacity */
-ccCArray* ccCArrayNew(unsigned int capacity)
+ccCArray* cocos2d::ccCArrayNew(unsigned int capacity)
 {
 	if (capacity == 0)
     {
@@ -265,7 +265,7 @@ ccCArray* ccCArrayNew(unsigned int capacity)
 }
 
 /** Frees C array after removing all remaining values. Silently ignores NULL arr. */
-void ccCArrayFree(ccCArray *arr)
+void cocos2d::ccCArrayFree(ccCArray *arr)
 {
     if( arr == NULL ) 
     {
@@ -278,19 +278,19 @@ void ccCArrayFree(ccCArray *arr)
 }
 
 /** Doubles C array capacity */
-void ccCArrayDoubleCapacity(ccCArray *arr)
+void cocos2d::ccCArrayDoubleCapacity(ccCArray *arr)
 {
     ccArrayDoubleCapacity((ccArray*)arr);
 }
 
 /** Increases array capacity such that max >= num + extra. */
-void ccCArrayEnsureExtraCapacity(ccCArray *arr, unsigned int extra)
+void cocos2d::ccCArrayEnsureExtraCapacity(ccCArray *arr, unsigned int extra)
 {
     ccArrayEnsureExtraCapacity((ccArray*)arr,extra);
 }
 
 /** Returns index of first occurrence of value, CC_INVALID_INDEX if value not found. */
-unsigned int ccCArrayGetIndexOfValue(ccCArray *arr, void* value)
+unsigned int cocos2d::ccCArrayGetIndexOfValue(ccCArray *arr, void* value)
 {
 	unsigned int i;
 	
@@ -302,13 +302,13 @@ unsigned int ccCArrayGetIndexOfValue(ccCArray *arr, void* value)
 }
 
 /** Returns a Boolean value that indicates whether value is present in the C array. */
-bool ccCArrayContainsValue(ccCArray *arr, void* value)
+bool cocos2d::ccCArrayContainsValue(ccCArray *arr, void* value)
 {
 	return ccCArrayGetIndexOfValue(arr, value) != CC_INVALID_INDEX;
 }
 
 /** Inserts a value at a certain position. Behavior undefined if array doesn't have enough capacity */
-void ccCArrayInsertValueAtIndex( ccCArray *arr, void* value, unsigned int index)
+void cocos2d::ccCArrayInsertValueAtIndex( ccCArray *arr, void* value, unsigned int index)
 {
 	CCAssert( index < arr->max, "ccCArrayInsertValueAtIndex: invalid index");
 	
@@ -329,7 +329,7 @@ void ccCArrayInsertValueAtIndex( ccCArray *arr, void* value, unsigned int index)
 }
 
 /** Appends an value. Behavior undefined if array doesn't have enough capacity. */
-void ccCArrayAppendValue(ccCArray *arr, void* value)
+void cocos2d::ccCArrayAppendValue(ccCArray *arr, void* value)
 {
 	arr->arr[arr->num] = value;
 	arr->num++;
@@ -342,7 +342,7 @@ void ccCArrayAppendValue(ccCArray *arr, void* value)
 }
 
 /** Appends an value. Capacity of arr is increased if needed. */
-void ccCArrayAppendValueWithResize(ccCArray *arr, void* value)
+void cocos2d::ccCArrayAppendValueWithResize(ccCArray *arr, void* value)
 {
 	ccCArrayEnsureExtraCapacity(arr, 1);
 	ccCArrayAppendValue(arr, value);
@@ -351,7 +351,7 @@ void ccCArrayAppendValueWithResize(ccCArray *arr, void* value)
 
 /** Appends values from plusArr to arr. Behavior undefined if arr doesn't have
  enough capacity. */
-void ccCArrayAppendArray(ccCArray *arr, ccCArray *plusArr)
+void cocos2d::ccCArrayAppendArray(ccCArray *arr, ccCArray *plusArr)
 {
 	unsigned int i;
 	
@@ -362,14 +362,14 @@ void ccCArrayAppendArray(ccCArray *arr, ccCArray *plusArr)
 }
 
 /** Appends values from plusArr to arr. Capacity of arr is increased if needed. */
-void ccCArrayAppendArrayWithResize(ccCArray *arr, ccCArray *plusArr)
+void cocos2d::ccCArrayAppendArrayWithResize(ccCArray *arr, ccCArray *plusArr)
 {
 	ccCArrayEnsureExtraCapacity(arr, plusArr->num);
 	ccCArrayAppendArray(arr, plusArr);
 }
 
 /** Removes all values from arr */
-void ccCArrayRemoveAllValues(ccCArray *arr)
+void cocos2d::ccCArrayRemoveAllValues(ccCArray *arr)
 {
 	arr->num = 0;
 }
@@ -378,7 +378,7 @@ void ccCArrayRemoveAllValues(ccCArray *arr)
  Behavior undefined if index outside [0, num-1].
  @since v0.99.4
  */
-void ccCArrayRemoveValueAtIndex(ccCArray *arr, unsigned int index)
+void cocos2d::ccCArrayRemoveValueAtIndex(ccCArray *arr, unsigned int index)
 {
 	unsigned int last;
 	
@@ -393,7 +393,7 @@ void ccCArrayRemoveValueAtIndex(ccCArray *arr, unsigned int index)
  Behavior undefined if index outside [0, num-1].
  @since v0.99.4
  */
-void ccCArrayFastRemoveValueAtIndex(ccCArray *arr, unsigned int index)
+void cocos2d::ccCArrayFastRemoveValueAtIndex(ccCArray *arr, unsigned int index)
 {
 	unsigned int last = --arr->num;
 	arr->arr[index] = arr->arr[last];
@@ -402,7 +402,7 @@ void ccCArrayFastRemoveValueAtIndex(ccCArray *arr, unsigned int index)
 /** Searches for the first occurrence of value and removes it. If value is not found the function has no effect.
  @since v0.99.4
  */
-void ccCArrayRemoveValue(ccCArray *arr, void* value)
+void cocos2d::ccCArrayRemoveValue(ccCArray *arr, void* value)
 {
 	unsigned int index = ccCArrayGetIndexOfValue(arr, value);
 	if (index != CC_INVALID_INDEX)
@@ -414,7 +414,7 @@ void ccCArrayRemoveValue(ccCArray *arr, void* value)
 /** Removes from arr all values in minusArr. For each Value in minusArr, the first matching instance in arr will be removed.
  @since v0.99.4
  */
-void ccCArrayRemoveArray(ccCArray *arr, ccCArray *minusArr)
+void cocos2d::ccCArrayRemoveArray(ccCArray *arr, ccCArray *minusArr)
 {
 	for(unsigned int i = 0; i < minusArr->num; i++)
     {
@@ -425,7 +425,7 @@ void ccCArrayRemoveArray(ccCArray *arr, ccCArray *minusArr)
 /** Removes from arr all values in minusArr. For each value in minusArr, all matching instances in arr will be removed.
  @since v0.99.4
  */
-void ccCArrayFullRemoveArray(ccCArray *arr, ccCArray *minusArr)
+void cocos2d::ccCArrayFullRemoveArray(ccCArray *arr, ccCArray *minusArr)
 {
 	unsigned int back = 0;
 	
