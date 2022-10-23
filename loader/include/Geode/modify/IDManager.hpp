@@ -9,7 +9,7 @@ namespace cocos2d {
 
 namespace geode {
     template<class T>
-    concept IDProvidable = requires {
+    concept IDProvidable = std::is_base_of_v<cocos2d::CCNode, T> && requires {
         { T::CLASS_NAME } -> std::convertible_to<const char*>;
     };
 
@@ -53,13 +53,12 @@ namespace geode {
 }
 
 #define $register_ids(Layer_) \
-	struct GEODE_CONCAT(ProvideIDsFor, Layer_);\
+    struct GEODE_CONCAT(ProvideIDsFor, Layer_) : public Layer_ {\
+        void provide();\
+    };\
 	$execute {\
 		NodeStringIDManager::get()->registerProvider(\
             &geodeInternalProvideIDsFor<GEODE_CONCAT(ProvideIDsFor, Layer_)>\
         );\
 	};\
-    struct GEODE_CONCAT(ProvideIDsFor, Layer_) : public Layer_ {\
-        void provide();\
-    };\
     void GEODE_CONCAT(ProvideIDsFor, Layer_)::provide() 
