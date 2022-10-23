@@ -491,6 +491,18 @@ std::string Mod::getPath() const {
     return m_info.m_path.string();
 }
 
+ghc::filesystem::path Mod::getPackagePath() const {
+    return m_info.m_path;
+}
+
+ghc::filesystem::path Mod::getConfigDir() const {
+    auto dir = Loader::get()->getGeodeDirectory() / GEODE_CONFIG_DIRECTORY / m_info.m_id;
+    if (!ghc::filesystem::exists(dir)) {
+        ghc::filesystem::create_directories(dir);
+    }
+    return dir;
+}
+
 VersionInfo Mod::getVersion() const {
     return m_info.m_version;
 }

@@ -35,8 +35,10 @@ void Loader::createDirectories() {
     auto logDir = this->getGeodeDirectory() / GEODE_LOG_DIRECTORY;
     auto resDir = this->getGeodeDirectory() / GEODE_RESOURCE_DIRECTORY;
     auto tempDir = this->getGeodeDirectory() / GEODE_TEMP_DIRECTORY;
+    auto confDir = this->getGeodeDirectory() / GEODE_CONFIG_DIRECTORY;
 
     ghc::filesystem::create_directories(resDir);
+    ghc::filesystem::create_directory(confDir);
     ghc::filesystem::create_directory(modDir);
     ghc::filesystem::create_directory(logDir);
     ghc::filesystem::create_directory(tempDir);

@@ -281,6 +281,28 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
         );
         m_buttonMenu->addChild(settingsBtn);
 
+        // Check if a config directory for the mod exists
+        // Mod::getConfigDir auto-creates the directory for user convenience, so 
+        // have to do it manually
+        if (ghc::filesystem::exists(
+            Loader::get()->getGeodeDirectory() /
+                GEODE_CONFIG_DIRECTORY / m_mod->getID()
+        )) {
+            auto configSpr = CircleButtonSprite::createWithSpriteFrameName(
+                "pencil.png"_spr, 1.f, CircleBaseColor::Green, CircleBaseSize::Medium2
+            );
+            configSpr->setScale(.65f);
+
+            auto configBtn = CCMenuItemSpriteExtra::create(
+                configSpr, this, menu_selector(ModInfoLayer::onOpenConfigDir)
+            );
+            configBtn->setPosition(
+                -size.width / 2 + 65.f,
+                -size.height / 2 + 25.f
+            );
+            m_buttonMenu->addChild(configBtn);
+        }
+
 	    if (!m_mod->hasSettings()) {
 	        settingsSpr->setColor({ 150, 150, 150 });
 	        settingsBtn->setTarget(
@@ -541,6 +563,10 @@ void ModInfoLayer::onCancelInstall(CCObject*) {
     if (m_updateVersionLabel) {
         m_updateVersionLabel->setVisible(true);
     }
+}
+
+void ModInfoLayer::onOpenConfigDir(CCObject*) {
+    file::openFolder(m_mod->getConfigDir());
 }
 
 void ModInfoLayer::onUninstall(CCObject*) {

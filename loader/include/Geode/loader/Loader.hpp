@@ -19,6 +19,7 @@ namespace geode {
     static constexpr std::string_view GEODE_MOD_DIRECTORY      = "mods";
     static constexpr std::string_view GEODE_LOG_DIRECTORY      = "log";
     static constexpr std::string_view GEODE_RESOURCE_DIRECTORY = "resources";
+    static constexpr std::string_view GEODE_CONFIG_DIRECTORY   = "config";
     static constexpr std::string_view GEODE_TEMP_DIRECTORY     = "temp";
     static constexpr std::string_view GEODE_MOD_EXTENSION      = ".geode";
 
@@ -65,7 +66,6 @@ namespace geode {
         std::vector<FailedModInfo> m_erroredMods;
         std::vector<ghc::filesystem::path> m_texturePaths;
         LoaderSettings m_loadedSettings;
-
         bool m_isSetup = false;
         static bool s_unloading;
 

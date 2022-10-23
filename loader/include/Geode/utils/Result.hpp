@@ -27,7 +27,7 @@ namespace geode {
      * @authors Matcool, HJfod
      */
     template <class T = no_result, class E = std::string>
-    class [[nodiscard, deprecated("Result's implementation will be replaced with geode::NewResult later")]] Result {
+    class [[nodiscard]] Result {
     protected:
         bool success;
         union {
@@ -131,7 +131,7 @@ namespace geode {
      * @returns Successful Result
      */
     template <class T = no_result>
-    [[nodiscard, deprecated("Result's implementation will be replaced with geode::NewResult later")]] 
+    [[nodiscard]] 
     Result<T> Ok(T value = T()) {
         return Result<T>::ok(value);
     }
@@ -143,7 +143,7 @@ namespace geode {
      * @returns Errorful Result
      */
     template <class E = std::string>
-    struct [[nodiscard, deprecated("Result's implementation will be replaced with geode::NewResult later")]] Err {
+    struct [[nodiscard]] Err {
         const E _value;
         Err(const TypeIdentityType<E> value) : _value(value) {}
         template <class T>

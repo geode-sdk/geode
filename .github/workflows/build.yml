@@ -26,7 +26,7 @@ jobs:
           os: macos-latest
           prefixes: 'PATH="/usr/local/opt/ccache/libexec:$PATH"'
           extra_flags: "-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++"
-          out_paths: './bin/nightly/Geode.dylib ./bin/nightly/GeodeBootstrapper.dylib'
+          out_paths: './bin/nightly/Geode.dylib ./bin/nightly/GeodeBootstrapper.dylib ./loader/include/link/libfmod.dylib'
           cli_cmd: 'chmod +x $GITHUB_WORKSPACE/cli/geode'
           
     name: ${{ matrix.config.name }}
@@ -65,13 +65,16 @@ jobs:
       run: |
         ${{ matrix.config.cli_cmd }}
         echo "${{ github.workspace }}/cli" >> $GITHUB_PATH
+
     - name: Configure CMake
       run: |
         ${{ matrix.config.prefixes }} cmake -B ${{ github.workspace }}/build ${{ matrix.config.extra_flags }} -DGEODE_DISABLE_CLI_CALLS=ON -DCLI_PATH="${{ github.workspace }}/cli"
+
     - name: Build
       run: |
         cd build
         cmake --build . --config RelWithDebInfo
+
     - name: Move to output folder
       shell: bash
       working-directory: ${{ github.workspace }}

@@ -99,3 +99,12 @@ bool geode::cocos::fileExistsInSearchPaths(const char* filename) {
     auto utils = CCFileUtils::sharedFileUtils();
     return utils->isFileExist(utils->fullPathForFilename(filename, false));
 }
+
+CCScene* geode::cocos::switchToScene(CCLayer* layer) {
+    auto scene = CCScene::create();
+    scene->addChild(layer);
+    CCDirector::get()->replaceScene(CCTransitionFade::create(
+        .5f, scene
+    ));
+    return scene;
+}
