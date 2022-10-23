@@ -1025,6 +1025,7 @@ class cocos2d {
 	static auto ccGLBlendFunc(GLenum, GLenum) = mac 0x1ae560;
 	static auto ccDrawSolidRect(cocos2d::CCPoint, cocos2d::CCPoint, cocos2d::_ccColor4F) = mac 0xecf00;
 	static auto ccGLEnableVertexAttribs(unsigned int) = mac 0x1ae740;
+	static auto ccGLBindTexture2D(GLuint) = mac 0x1ae610;
 }
 
 // class DS_Dictionary {
