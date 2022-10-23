@@ -2,6 +2,9 @@
 
 #ifdef GEODE_IS_MACOS
 
+#include <cocos2d.h>
+using namespace cocos2d;
+
 /** Allocates and initializes a new array with specified capacity */
 ccArray* ccArrayNew(unsigned int capacity) 
 {
