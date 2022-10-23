@@ -12,7 +12,7 @@ $register_ids(LevelBrowserLayer) {
     }
 
     if (m_searchObject->m_searchType == SearchType::MyLevels) {
-        if (auto menu = getChildOfType<CCMenu>(this, 1)) {
+        if (auto menu = getChildOfType<CCMenu>(this, 2)) {
             menu->setID("new-level-menu");
             setIDSafe(menu, 0, "new-level-button");
 
