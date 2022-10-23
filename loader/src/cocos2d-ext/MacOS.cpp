@@ -5,6 +5,11 @@
 #include <cocos2d.h>
 using namespace cocos2d;
 
+CCObject* CCObject::copy()
+{
+    return copyWithZone(0);
+}
+
 /** Allocates and initializes a new array with specified capacity */
 ccArray* cocos2d::ccArrayNew(unsigned int capacity) 
 {
