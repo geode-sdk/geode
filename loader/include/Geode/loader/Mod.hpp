@@ -220,9 +220,7 @@ namespace geode {
             m_mod(mod) {}
         HandleToSaved(HandleToSaved const&) = delete;
         HandleToSaved(HandleToSaved&&) = delete;
-        ~HandleToSaved() {
-            m_mod->setSavedValue(m_key, static_cast<T>(*this));
-        }
+        ~HandleToSaved();
     };
 
     /**
@@ -631,6 +629,11 @@ namespace geode {
 
 		const char* expandSpriteName(const char* name);
     };
+
+    template<class T>
+    HandleToSaved<T>::~HandleToSaved() {
+        m_mod->setSavedValue(m_key, static_cast<T>(*this));
+    }
 
     /**
      * To bypass the need for cyclic dependencies,
