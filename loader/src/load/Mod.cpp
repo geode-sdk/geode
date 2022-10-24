@@ -90,6 +90,18 @@ Result<> Mod::loadSettings() {
         }
     }
 
+    // Saved values
+    auto savedPath = m_saveDirPath / "saved.json";
+    if (ghc::filesystem::exists(savedPath)) {
+        auto data = utils::file::readString(savedPath);
+        if (!data) return data;
+        try {
+            m_saved = nlohmann::json::parse(data.value());
+        } catch(std::exception& e) {
+            return Err(std::string("Unable to parse saved values: ") + e.what());
+        }
+    }
+
     // datastore
     auto dsPath = m_saveDirPath / "ds.json";
     if (!ghc::filesystem::exists(dsPath)) {
@@ -118,6 +130,15 @@ Result<> Mod::saveSettings() {
     auto sw = utils::file::writeString(settPath, json.dump(4));
     if (!sw) {
         return sw;
+    }
+
+    // Saved values
+    auto sdw = utils::file::writeString(
+        m_saveDirPath / "saved.json",
+        m_saved.dump(4)
+    );
+    if (!sdw) {
+        return sdw;
     }
 
     // datastore
@@ -234,6 +255,8 @@ Result<> Mod::load() {
             log::log(Severity::Error, this, "Mod load data function returned false");
         }
     }
+    ModStateEvent(this, ModEventType::Load).post();
+    ModStateEvent(this, ModEventType::LoadData).post();
     m_loadErrorInfo = "";
     Loader::get()->updateAllDependencies();
     return Ok<>();
@@ -257,6 +280,9 @@ Result<> Mod::unload() {
     if (m_unloadFunc) {
         m_unloadFunc();
     }
+
+    ModStateEvent(this, ModEventType::SaveData).post();
+    ModStateEvent(this, ModEventType::Unload).post();
 
     for (auto const& hook : m_hooks) {
         auto d = this->disableHook(hook);
@@ -293,6 +319,8 @@ Result<> Mod::enable() {
         }
     }
 
+    ModStateEvent(this, ModEventType::Enable).post();
+
     for (auto const& hook : m_hooks) {
         auto d = this->enableHook(hook);
         if (!d) return d;
@@ -319,6 +347,8 @@ Result<> Mod::disable() {
             return Err<>("Mod disable function returned false");
         }
     }
+
+    ModStateEvent(this, ModEventType::Disable).post();
 
     for (auto const& hook : m_hooks) {
         auto d = this->disableHook(hook);

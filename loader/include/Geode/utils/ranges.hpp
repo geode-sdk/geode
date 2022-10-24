@@ -10,6 +10,8 @@ namespace geode::utils::ranges {
         c.begin();
         c.end();
         typename C::value_type;
+        typename C::iterator;
+        typename C::const_iterator;
     };
 
     template<class C>
@@ -17,6 +19,8 @@ namespace geode::utils::ranges {
         c.begin();
         c.end();
         typename C::value_type;
+        typename C::iterator;
+        typename C::const_iterator;
     };
 
     template<class C>
@@ -40,6 +44,25 @@ namespace geode::utils::ranges {
     template<ValidConstContainer C, ValidCUnaryPredicate<C> Predicate>
     bool contains(C const& cont, Predicate fun) {
         return std::find_if(cont.begin(), cont.end(), fun) != cont.end();
+    }
+
+    template<ValidConstContainer C, ValidCUnaryPredicate<C> Predicate>
+    std::optional<typename C::value_type> find(C const& cont, Predicate fun) {
+        auto it = std::find_if(cont.begin(), cont.end(), fun);
+        if (it != cont.end()) {
+            return std::optional(*it);
+        }
+        return std::nullopt;
+    }
+
+    template<ValidMutContainer C>
+    bool move(C& cont, typename C::value_type const& elem, size_t where) {
+        auto it = std::find(cont.begin(), cont.end(), elem);
+        if (it != cont.end()) {
+            std::rotate(cont.beign(), it, it + 1);
+            return true;
+        }
+        return false;
     }
 
     template<ValidConstContainer C, class Output>

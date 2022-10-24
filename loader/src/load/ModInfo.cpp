@@ -39,7 +39,12 @@ Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
     root.needs("developer").into(info.m_developer);
     root.has("description").into(info.m_description);
     root.has("repository").into(info.m_repository);
-    root.has("datastore").intoRaw(info.m_defaultDataStore);
+    if (root.has("datastore").intoRaw(info.m_defaultDataStore)) {
+        log::warn(
+            "[mod.json].datastore is deprecated "
+            "and will be removed in the future."
+        );
+    }
     root.has("toggleable").into(info.m_supportsDisabling);
     root.has("unloadable").into(info.m_supportsUnloading);
 

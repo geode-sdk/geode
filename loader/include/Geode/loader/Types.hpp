@@ -134,6 +134,10 @@ namespace geode {
     };
 
 	/**
+	 * These methods will be removed in v1.0.0 and replaced with events
+	 */
+
+	/**
 	 * Default Geode load method for C++ 
 	 * mods: The mod receive a pointer to 
 	 * its allocated Mod instance. Return 

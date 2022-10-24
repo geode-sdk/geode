@@ -89,7 +89,7 @@ void GEODE_CONCAT(geodeExecFunction, __LINE__)();                 \
 namespace {                                                       \
 	struct GEODE_CONCAT(ExecFuncUnique, __LINE__) {};             \
 }                                                                 \
-static inline auto _line = (Loader::get()->scheduleOnModLoad(     \
+static inline auto GEODE_CONCAT(Exec, __LINE__) = (Loader::get()->scheduleOnModLoad(\
 	nullptr, &GEODE_CONCAT(geodeExecFunction, __LINE__)<GEODE_CONCAT(ExecFuncUnique, __LINE__)> \
 ), 0);                                                            \
 template<class>                                                   \

@@ -209,6 +209,22 @@ namespace geode {
 
     };
 
+    template<class T>
+    struct HandleToSaved : public T {
+        Mod* m_mod;
+        std::string m_key;
+
+        HandleToSaved(std::string const& key, Mod* mod, T const& value)
+          : T(value),
+            m_key(key),
+            m_mod(mod) {}
+        HandleToSaved(HandleToSaved const&) = delete;
+        HandleToSaved(HandleToSaved&&) = delete;
+        ~HandleToSaved() {
+            m_mod->setSavedValue(m_key, static_cast<T>(*this));
+        }
+    };
+
     /**
      * @class Mod
      * Represents a Mod ingame. 
@@ -296,6 +312,10 @@ namespace geode {
          * Data Store object
          */
         nlohmann::json m_dataStore;
+        /**
+         * Saved values
+         */
+        nlohmann::json m_saved;
 
         /**
          * Load the platform binary
@@ -306,6 +326,7 @@ namespace geode {
         Result<> saveSettings();
         Result<> loadSettings();
 
+        [[deprecated("Datastore will be removed in v1.0.0")]]
         void postDSUpdate();
 
         Result<> createTempDir();
@@ -386,6 +407,50 @@ namespace geode {
                 return true;
             }
             return false;
+        }
+
+        template<class T>
+        T getSavedValue(std::string const& key) {
+            if (m_saved.count(key)) {
+                try {
+                    // json -> T may fail
+                    return m_saved.at(key);
+                } catch(...) {}
+            }
+            return T();
+        }
+
+        template<class T>
+        T getSavedValue(std::string const& key, T const& defaultValue) {
+            if (m_saved.count(key)) {
+                try {
+                    // json -> T may fail
+                    return m_saved.at(key);
+                } catch(...) {}
+            }
+            m_saved.insert({ key, defaultValue });
+            return defaultValue;
+        }
+
+        template<class T>
+        HandleToSaved<T> getSavedMutable(std::string const& key) {
+            return HandleToSaved(key, this, this->getSavedValue<T>(key));
+        }
+
+        template<class T>
+        HandleToSaved<T> getSavedMutable(std::string const& key, T const& defaultValue) {
+            return HandleToSaved(key, this, this->getSavedValue<T>(key, defaultValue));
+        }
+
+        /**
+         * Set the value of an automatically saved variable. When the game is 
+         * closed, the value is automatically saved under the key
+         * @param key Key of the saved value
+         * @param value Value
+         */
+        template<class T>
+        void setSavedValue(std::string const& key, T const& value) {
+            m_saved[key] = value;
         }
 
         /**
@@ -522,12 +587,14 @@ namespace geode {
          * @returns DataStore object
          * store
          */
+        [[deprecated("Datastore will be removed in v1.0.0")]]
         DataStore getDataStore();
 
         /**
          * Reset the data store to the
          * default value
          */
+        [[deprecated("Datastore will be removed in v1.0.0")]]
         Result<> resetDataStore();
 
 
@@ -579,3 +646,6 @@ namespace geode {
 inline const char* operator"" _spr(const char* str, size_t) {
     return geode::Mod::get()->expandSpriteName(str);
 }
+
+// this header uses Mod
+#include "ModEvent.hpp"
