@@ -126,6 +126,7 @@ class cocos2d::CCDirector {
 	auto calculateMPF() = mac 0x19eac0;
 	auto convertToGL(cocos2d::CCPoint const&) = mac 0x24a210;
 	auto drawScene() = mac 0x249690;
+	auto willSwitchToScene(cocos2d::CCScene* scene);
 
 	auto setNextScene() = mac 0x2498d0;
 	auto showStats() = mac 0x2499e0;
@@ -204,6 +205,11 @@ class cocos2d::CCFadeTo {
 class cocos2d::CCFileUtils : cocos2d::TypeInfo {
 	static cocos2d::CCFileUtils* sharedFileUtils() = mac 0x377030, ios 0x159450;
     virtual std::string fullPathForFilename(const char* filename, bool unk);
+}
+
+class cocos2d::CCGLProgram {
+	auto setUniformsForBuiltins() = mac 0x232c70;
+	auto use() = mac 0x231d70;
 }
 
 class cocos2d::CCHide {
@@ -698,6 +704,11 @@ class cocos2d::CCSet {
 	auto anyObject() = mac 0x45b410;
 }
 
+class cocos2d::CCShaderCache {
+	static auto sharedShaderCache() = mac 0xe6d10;
+	auto programForKey(const char*) = mac 0xe7d40;
+}
+
 class cocos2d::CCSprite {
 	virtual ~CCSprite() = mac 0x133430, ios 0x15b92c;
     virtual auto init() = mac 0x132ef0, ios 0x15b488;
@@ -1013,6 +1024,8 @@ class cocos2d::extension::CCScrollView {
 class cocos2d {
 	static auto ccGLBlendFunc(GLenum, GLenum) = mac 0x1ae560;
 	static auto ccDrawSolidRect(cocos2d::CCPoint, cocos2d::CCPoint, cocos2d::_ccColor4F) = mac 0xecf00;
+	static auto ccGLEnableVertexAttribs(unsigned int) = mac 0x1ae740;
+	static auto ccGLBindTexture2D(GLuint) = mac 0x1ae610;
 }
 
 // class DS_Dictionary {
