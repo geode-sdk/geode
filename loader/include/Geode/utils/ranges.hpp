@@ -114,7 +114,7 @@ namespace geode::utils::ranges {
             } else {
                 first = false;
             }
-            res += Conv(p);
+            res += converter(p);
         }
         return res;
     }

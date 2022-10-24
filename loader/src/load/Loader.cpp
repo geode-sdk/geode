@@ -55,11 +55,20 @@ void Loader::updateResourcePaths() {
     log::debug("Setting resource paths");
 
     // reset search paths
-    CCFileUtils::get()->setSearchPaths({
-        "Resources",
-        (this->getGeodeDirectory() / GEODE_RESOURCE_DIRECTORY).string(),
-        (this->getGeodeDirectory() / GEODE_TEMP_DIRECTORY).string()
-    });
+    CCFileUtils::get()->removeAllPaths();
+
+    // add custom texture paths first (priority)
+    for (auto const& path : m_texturePaths) {
+        CCFileUtils::get()->addSearchPath(path.string().c_str());
+    }
+
+    // add own paths next
+    CCFileUtils::get()->addSearchPath(
+        (this->getGeodeDirectory() / GEODE_RESOURCE_DIRECTORY).string().c_str()
+    );
+    CCFileUtils::get()->addSearchPath(
+        (this->getGeodeDirectory() / GEODE_TEMP_DIRECTORY).string().c_str()
+    );
 
     // add mods' search paths
     for (auto const& [_, mod] : m_mods) {
@@ -70,10 +79,8 @@ void Loader::updateResourcePaths() {
         CCFileUtils::get()->addSearchPath(searchPath.string().c_str());
     }
 
-    // add custom texture paths
-    for (auto const& path : m_texturePaths) {
-        CCFileUtils::get()->addSearchPath(path.string().c_str());
-    }
+    // add GD's search path
+    CCFileUtils::get()->addSearchPath("Resources");
 }
 
 void Loader::updateModResources(Mod* mod) {
@@ -124,11 +131,17 @@ void Loader::updateResources() {
 }
 
 void Loader::addTexturePath(ghc::filesystem::path const& path) {
+    // remove path if it already exists
+    this->removeTexturePath(path);
     m_texturePaths.push_back(path);
 }
 
 void Loader::removeTexturePath(ghc::filesystem::path const& path) {
     ranges::remove(m_texturePaths, path);
+}
+
+std::vector<ghc::filesystem::path> Loader::getTexturePaths() const {
+    return m_texturePaths;
 }
 
 size_t Loader::loadModsFromDirectory(

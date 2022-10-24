@@ -186,6 +186,7 @@ namespace geode {
         void updateResources();
         void addTexturePath(ghc::filesystem::path const& path);
         void removeTexturePath(ghc::filesystem::path const& path);
+        std::vector<ghc::filesystem::path> getTexturePaths() const;
 
         /**
          * Check if a mod with an ID is installed. Any 
