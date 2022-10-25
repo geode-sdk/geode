@@ -22,6 +22,7 @@ private:
     std::string m_id = "";
     std::unique_ptr<Layout> m_layout = nullptr;
     PositionHint m_positionHint = PositionHint::Default;
+    std::unordered_map<std::string, std::any> m_attributes;
 
     friend class ProxyCCNode;
     friend class cocos2d::CCNode;
@@ -137,6 +138,18 @@ void CCNode::setPositionHint(PositionHint hint) {
 
 PositionHint CCNode::getPositionHint() {
     return GeodeNodeMetadata::set(this)->m_positionHint;
+}
+
+void CCNode::setAttribute(std::string const& attr, std::any value) {
+    GeodeNodeMetadata::set(this)->m_attributes[attr] = value;
+}
+
+std::optional<std::any> CCNode::getAttributeInternal(std::string const& attr) {
+    auto meta = GeodeNodeMetadata::set(this);
+    if (meta->m_attributes.count(attr)) {
+        return meta->m_attributes.at(attr);
+    }
+    return std::nullopt;
 }
 
 #pragma warning(pop)

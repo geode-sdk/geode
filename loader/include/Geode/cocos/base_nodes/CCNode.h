@@ -38,6 +38,7 @@
 #include "../script_support/CCScriptSupport.h"
 #include "../include/CCProtocols.h"
 #include "Layout.hpp"
+#include <any>
 
 NS_CC_BEGIN
 
@@ -848,6 +849,7 @@ public:
         friend class geode::modifier::FieldContainer;
 
         geode::modifier::FieldContainer* getFieldContainer();
+        std::optional<std::any> getAttributeInternal(std::string const& attribute);
     
     public:
         /**
@@ -877,6 +879,19 @@ public:
          * @returns The child, or nullptr if none was found
          */
         CCNode* getChildByIDRecursive(std::string const& id);
+
+        void setAttribute(std::string const& attribute, std::any value);
+        template<class T>
+        std::optional<T> getAttribute(std::string const& attribute) {
+            if (auto value = this->getAttribute(attribute)) {
+                try {
+                    return std::any_cast<T>(value.value());
+                } catch(...) {
+                    return std::nullopt;
+                }
+            }
+            return std::nullopt;
+        }
 
         void setLayout(Layout* layout, bool apply = true);
         Layout* getLayout();

@@ -148,7 +148,7 @@ size_t Loader::loadModsFromDirectory(
     ghc::filesystem::path const& dir, bool recursive
 ) {
     log::debug("Searching {}", dir);
-        
+
     size_t loadedCount = 0;
     for (auto const& entry : ghc::filesystem::directory_iterator(dir)) {
         // recursively search directories
@@ -196,6 +196,7 @@ size_t Loader::loadModsFromDirectory(
             m_erroredMods.push_back({ entry.path().string(), res.error() });
         }
     }
+
     return loadedCount;
 }
 

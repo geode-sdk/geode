@@ -115,6 +115,7 @@ Result<> Mod::loadSettings() {
             return Err(std::string("Unable to parse datastore: ") + e.what());
         }
     }
+
     return Ok();
 }
 
