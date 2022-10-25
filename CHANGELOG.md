@@ -9,6 +9,7 @@
  - Add open save directory button to mods' settings popup
  - Removed deprecation from `Result` (it still will be replaced in v1.0.0, we just got tired of the warnings)
  - `JsonChecker<nlohmann::json>` and `JsonChecker<nlohmann::ordered_json>` are now defined in-source as exported symbols to speed up compilation times
+ - Add more bindings
 
 ## v0.6.0
 
