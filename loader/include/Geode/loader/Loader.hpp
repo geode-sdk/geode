@@ -11,6 +11,7 @@
 #include <unordered_set>
 #include <fs/filesystem.hpp>
 #include "Log.hpp"
+#include <mutex>
 
 namespace geode {
     #pragma warning(disable: 4251)
@@ -68,6 +69,7 @@ namespace geode {
         LoaderSettings m_loadedSettings;
         bool m_isSetup = false;
         static bool s_unloading;
+        mutable std::mutex m_modLoadMutex;
 
         Result<std::string> createTempDirectoryForMod(ModInfo const& info);
         Result<Mod*> loadModFromFile(std::string const& file);
@@ -89,7 +91,6 @@ namespace geode {
     	template <class, class, class>
         friend class modifier::FieldIntermediate;
         
-        void updateResourcePaths();
         void updateModResources(Mod* mod);
 
         friend bool GEODE_CALL ::geode_implicit_load(Mod*);
@@ -108,6 +109,8 @@ namespace geode {
 
         Result<> saveSettings();
         Result<> loadSettings();
+        Result<> saveData();
+        Result<> loadData();
         
         bool didLastLaunchCrash() const;
         ghc::filesystem::path getCrashLogDirectory() const;
@@ -180,6 +183,10 @@ namespace geode {
 
         void clearLogs();
 
+        /**
+         * Do not call manually unless you know what you're doing.
+         */
+        void updateResourcePaths();
         /**
          * Do not call manually unless you know what you're doing.
          */
@@ -268,5 +275,7 @@ namespace geode {
          * Close the platform-specific external console (if one exists)
          */
         static void closePlatfromConsole();
+        
+        void waitForModsToBeLoaded();
     };
 }

@@ -7,7 +7,7 @@ class $modify(AppDelegate) {
     void trySaveGame() {
         log::log(Severity::Info, Loader::getInternalMod(), "Saving...");
 
-        auto r = Loader::get()->saveSettings();
+        auto r = Loader::get()->saveData();
         if (!r) {
             log::log(Severity::Error, Loader::getInternalMod(), "{}", r.error());
         }

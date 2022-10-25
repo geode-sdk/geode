@@ -151,6 +151,28 @@ Result<> Mod::saveSettings() {
     return Ok();
 }
 
+Result<> Mod::loadData() {
+    if (m_loadDataFunc) {
+        if (!m_loadDataFunc(m_saveDirPath.string().c_str())) {
+            log::log(Severity::Error, this, "Mod load data function returned false");
+        }
+    }
+    ModStateEvent(this, ModEventType::LoadData).post();
+    
+    return this->loadSettings();
+}
+
+Result<> Mod::saveData() {
+    if (m_saveDataFunc) {
+        if (!m_saveDataFunc(m_saveDirPath.string().c_str())) {
+            log::log(Severity::Error, this, "Mod save data function returned false");
+        }
+    }
+    ModStateEvent(this, ModEventType::SaveData).post();
+
+    return this->saveSettings();
+}
+
 DataStore Mod::getDataStore() {
     return DataStore(this, m_dataStore);
 }
@@ -256,7 +278,10 @@ Result<> Mod::load() {
         }
     }
     ModStateEvent(this, ModEventType::Load).post();
-    ModStateEvent(this, ModEventType::LoadData).post();
+    auto loadRes = this->loadData();
+    if (!loadRes) {
+        log::warn("Unable to load data for \"{}\": {}", m_info.m_id, loadRes.error());
+    }
     m_loadErrorInfo = "";
     Loader::get()->updateAllDependencies();
     return Ok<>();
@@ -271,17 +296,14 @@ Result<> Mod::unload() {
         return Err<>("Mod does not support unloading");
     }
     
-    if (m_saveDataFunc) {
-        if (!m_saveDataFunc(m_saveDirPath.string().c_str())) {
-            log::log(Severity::Error, this, "Mod save data function returned false");
-        }
+    auto saveRes = this->saveData();
+    if (!saveRes) {
+        return saveRes;
     }
 
     if (m_unloadFunc) {
         m_unloadFunc();
     }
-
-    ModStateEvent(this, ModEventType::SaveData).post();
     ModStateEvent(this, ModEventType::Unload).post();
 
     for (auto const& hook : m_hooks) {

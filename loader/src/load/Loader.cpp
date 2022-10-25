@@ -201,6 +201,8 @@ size_t Loader::loadModsFromDirectory(
 
 size_t Loader::refreshMods() {
     log::debug("Loading mods...");
+
+    std::lock_guard loadLock(m_modLoadMutex);
     
     // clear errored mods since that list will be 
     // reconstructed from scratch
@@ -221,6 +223,30 @@ size_t Loader::refreshMods() {
     return loadedCount;
 }
 
+Result<> Loader::saveData() {
+    auto res = this->saveSettings();
+    if (!res) return res;
+    for (auto& [_, mod] : m_mods) {
+        auto r = mod->saveData();
+        if (!r) {
+            log::warn("Unable to save data for mod \"{}\": {}", mod->getID(), r.error());
+        }
+    }
+    return Ok();
+}
+
+Result<> Loader::loadData() {
+    auto res = this->loadSettings();
+    if (!res) return res;
+    for (auto& [_, mod] : m_mods) {
+        auto r = mod->loadData();
+        if (!r) {
+            log::warn("Unable to load data for mod \"{}\": {}", mod->getID(), r.error());
+        }
+    }
+    return Ok();
+}
+
 Result<> Loader::saveSettings() {
     auto json = nlohmann::json::object();
 
@@ -230,13 +256,6 @@ Result<> Loader::saveSettings() {
         if (mod->isUninstalled()) continue;
         auto value = nlohmann::json::object();
         value["enabled"] = mod->m_enabled;
-
-        // save mod's settings
-        auto saveSett = mod->saveSettings();
-        if (!saveSett) {
-            return Err(saveSett.error());
-        }
-
         json["mods"][id] = value;
     }
 
@@ -377,7 +396,7 @@ bool Loader::setup() {
     log::debug("Setting up Loader...");
 
     this->createDirectories();
-    auto sett = this->loadSettings();
+    auto sett = this->loadData();
     if (!sett) {
         log::warn("Unable to load loader settings: {}", sett.error());
     }
@@ -508,4 +527,8 @@ void Loader::releaseScheduledFunctions(Mod* mod) {
         func();
     }
     m_scheduledFunctions.clear();
+}
+
+void Loader::waitForModsToBeLoaded() {
+    std::lock_guard _(m_modLoadMutex);
 }

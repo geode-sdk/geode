@@ -5,6 +5,10 @@
 #include <cocos2d.h>
 using namespace cocos2d;
 
+void CCFileUtils::removeAllPaths() {
+    m_searchPathArray.clear();
+}
+
 CCObject* CCObject::copy()
 {
     return copyWithZone(0);

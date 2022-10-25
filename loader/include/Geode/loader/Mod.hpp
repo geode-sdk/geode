@@ -376,6 +376,10 @@ namespace geode {
         ModInfo     getModInfo() const;
         ghc::filesystem::path getTempDir() const;
         ghc::filesystem::path getBinaryPath() const;
+
+        Result<> saveData();
+        Result<> loadData();
+
         /**
          * Get the mod's save directory path
          */
