@@ -180,7 +180,7 @@ size_t Loader::loadModsFromDirectory(
         log::debug("Loading {}", entry.path().string());
 
         auto res = this->loadModFromFile(entry.path().string());
-        if (res && res.value()) {
+        if (res) {
             // succesfully loaded
             loadedCount++;
 
@@ -203,7 +203,21 @@ size_t Loader::loadModsFromDirectory(
 size_t Loader::refreshMods() {
     log::debug("Loading mods...");
 
-    std::lock_guard loadLock(m_modLoadMutex);
+    // load early load mods
+    m_modLoadMutex.lock();
+    for (auto const& path : m_loadedSettings.m_earlyLoadMods) {
+        if (!ranges::contains(m_mods, [path](auto mod) {
+            return mod.second->m_info.m_path == path;
+        })) {
+            auto res = this->loadModFromFile(path.string());
+            if (!res) {
+                // something went wrong
+                log::error("{}", res.error());
+                m_erroredMods.push_back({ path.string(), res.error() });
+            }
+        }
+    }
+    m_modLoadMutex.unlock();
     
     // clear errored mods since that list will be 
     // reconstructed from scratch
@@ -259,6 +273,7 @@ Result<> Loader::saveSettings() {
         value["enabled"] = mod->m_enabled;
         json["mods"][id] = value;
     }
+    json["early-load"] = m_loadedSettings.m_earlyLoadMods;
 
     // save loader settings
     auto saveIS = InternalMod::get()->saveSettings();
@@ -291,30 +306,17 @@ Result<> Loader::loadSettings() {
     }
     try {
         auto json = nlohmann::json::parse(read.value());
-        if (json.contains("mods")) {
-            auto mods = json["mods"];
-            if (!mods.is_object()) {
-                return Err("[loader settings].mods is not an object");
-            }
-            for (auto [key, val] : mods.items()) {
-                if (!val.is_object()) {
-                    return Err(
-                        "[loader settings].mods.\"" + key +
-                        "\" is not an object"
-                    );
-                }
-                LoaderSettings::ModSettings mod;
-                if (val.contains("enabled")) {
-                    if (!val["enabled"].is_boolean()) {
-                        return Err(
-                            "[loader settings].mods.\"" + key +
-                            "\".enabled is not a boolean"
-                        );
-                    }
-                    mod.m_enabled = val["enabled"];
-                }
-                m_loadedSettings.m_mods.insert({ key, mod });
-            }
+        auto checker = JsonChecker(json);
+        auto root = checker.root("[loader settings]").obj();
+        root.has("early-load").into(m_loadedSettings.m_earlyLoadMods);
+        for (auto [key, val] : root.has("mods").items()) {
+            auto obj = val.obj();
+            LoaderSettings::ModSettings mod;
+            obj.has("enabled").into(mod.m_enabled);
+            m_loadedSettings.m_mods.insert({ key, mod });
+        }
+        if (checker.isError()) {
+            log::error("Error loading global mod settings: {}", checker.getError());
         }
         InternalLoader::get()->loadInfoAlerts(json);
         return Ok();
@@ -532,4 +534,16 @@ void Loader::releaseScheduledFunctions(Mod* mod) {
 
 void Loader::waitForModsToBeLoaded() {
     std::lock_guard _(m_modLoadMutex);
+}
+
+void Loader::setEarlyLoadMod(Mod* mod, bool enabled) {
+    if (enabled) {
+        m_loadedSettings.m_earlyLoadMods.insert(mod->getPackagePath());
+    } else {
+        m_loadedSettings.m_earlyLoadMods.erase(mod->getPackagePath());
+    }
+}
+
+bool Loader::shouldEarlyLoadMod(Mod* mod) const {
+    return m_loadedSettings.m_earlyLoadMods.count(mod->getPackagePath());
 }

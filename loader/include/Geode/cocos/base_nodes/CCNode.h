@@ -883,7 +883,7 @@ public:
         void setAttribute(std::string const& attribute, std::any value);
         template<class T>
         std::optional<T> getAttribute(std::string const& attribute) {
-            if (auto value = this->getAttribute(attribute)) {
+            if (auto value = this->getAttributeInternal(attribute)) {
                 try {
                     return std::any_cast<T>(value.value());
                 } catch(...) {

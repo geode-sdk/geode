@@ -8,6 +8,7 @@
 #include <Geode/ui/IconButtonSprite.hpp>
 #include <Geode/ui/MDPopup.hpp>
 #include "../settings/ModSettingsPopup.hpp"
+#include "../settings/AdvancedSettingsPopup.hpp"
 #include <InternalLoader.hpp>
 #include <Geode/binding/Slider.hpp>
 #include <Geode/binding/SliderThumb.hpp>
@@ -242,7 +243,7 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
         m_buttonMenu->addChild(changelogBtn);
     }
 
-
+    // mod info
     auto infoSpr = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
     infoSpr->setScale(.85f);
 
@@ -267,6 +268,7 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
     }
 
     if (isInstalledMod) {
+        // mod settings
         auto settingsSpr = CCSprite::createWithSpriteFrameName(
             "GJ_optionsBtn_001.png"
         );
@@ -365,6 +367,19 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
             m_mod != Loader::get()->getInternalMod() &&
             m_mod != Mod::get()
         ) {
+            // advanced settings
+            auto advSettSpr = CCSprite::createWithSpriteFrameName("GJ_optionsBtn02_001.png");
+            advSettSpr->setScale(.65f);
+
+            auto advSettBtn = CCMenuItemSpriteExtra::create(
+                advSettSpr, this, menu_selector(ModInfoLayer::onAdvancedSettings)
+            );
+            advSettBtn->setPosition(
+                infoBtn->getPositionX() - 30.f,
+                infoBtn->getPositionY()
+            );
+            m_buttonMenu->addChild(advSettBtn);
+
             auto uninstallBtnSpr = ButtonSprite::create(
                 "Uninstall", "bigFont.fnt", "GJ_button_05.png", .6f
             );
@@ -736,6 +751,10 @@ void ModInfoLayer::onNoSettings(CCObject*) {
         "This mod has no customizable settings.",
         "OK"
     )->show();
+}
+
+void ModInfoLayer::onAdvancedSettings(CCObject*) {
+    AdvancedSettingsPopup::create(m_mod)->show();
 }
 
 void ModInfoLayer::onInfo(CCObject*) {
