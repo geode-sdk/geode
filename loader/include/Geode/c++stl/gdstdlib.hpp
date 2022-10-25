@@ -314,6 +314,11 @@ namespace gd {
 			std::copy(input.begin(), input.end(), tmp);
 		}
 
+		void clear() {
+			delete[] m_start;
+			m_finish = m_start;
+		}
+
 		T& front() {
 			return *m_start;
 		}
