@@ -67,7 +67,9 @@ class AppDelegate : cocos2d::CCApplication {
     virtual void applicationWillResignActive() = mac 0x3aab50, win 0x3cf20;
     virtual void trySaveGame() = mac 0x3aaf10, win 0x3d5e0, ios 0x1a28f0;
     virtual void willSwitchToScene(cocos2d::CCScene*) = mac 0x3aaf40, win 0x3d690;
-    static AppDelegate* get() = mac 0x3aab10;
+    static AppDelegate* get() {
+        return static_cast<AppDelegate*>(cocos2d::CCApplication::sharedApplication());
+    }
     bool musicTest() = win 0x3d580;
     void pauseGame() = mac 0x3aab60, win 0x3d3e0;
     void resumeSound() = win 0x3d4d0;

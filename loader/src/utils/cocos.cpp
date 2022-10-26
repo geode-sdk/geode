@@ -1,6 +1,7 @@
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/operators.hpp>
 #include <Geode/utils/WackyGeodeMacros.hpp>
+#include <Geode/modify/LoadingLayer.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -108,3 +109,31 @@ CCScene* geode::cocos::switchToScene(CCLayer* layer) {
     ));
     return scene;
 }
+
+static CreateLayerFunc LOADING_FINISHED_SCENE = nullptr;
+
+void geode::cocos::reloadTextures(CreateLayerFunc returnTo) {
+    LOADING_FINISHED_SCENE = returnTo;
+    GameManager::get()->reloadAll(false, false, true);
+}
+
+class $modify(LoadingLayer) {
+    void loadingFinished() {
+        // Default behaviour
+        if (!LOADING_FINISHED_SCENE) {
+            return LoadingLayer::loadingFinished();
+        }
+        // Create custom layer
+        auto layer = LOADING_FINISHED_SCENE();
+        // If failed, default behaviour
+        if (!layer) {
+            return LoadingLayer::loadingFinished();
+        }
+        auto scene = CCScene::create();
+        scene->addChild(layer);
+        AppDelegate::get()->m_runningScene = scene;
+        CCDirector::get()->replaceScene(scene);
+        // Don't overwrite behaviour next time
+        LOADING_FINISHED_SCENE = nullptr;
+    }
+};
