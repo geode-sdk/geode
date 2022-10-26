@@ -127,13 +127,13 @@ class $modify(LoadingLayer) {
 
         // Default behaviour
         if (!LOADING_FINISHED_SCENE) {
-            return LoadingLayer::loadingFinished();
+            return LoadingLayer::loadAssets();
         }
         // Create custom layer
         auto layer = LOADING_FINISHED_SCENE();
         // If failed, default behaviour
         if (!layer) {
-            return LoadingLayer::loadingFinished();
+            return LoadingLayer::loadAssets();
         }
         auto scene = CCScene::create();
         scene->addChild(layer);
