@@ -445,6 +445,7 @@ class CCScrollLayerExt : cocos2d::CCLayer {
     void moveToTopWithOffset(float) = mac 0x2357d0, win 0x1b420;
     CCScrollLayerExt(cocos2d::CCRect rect) = mac 0x235130, win 0x1b020, ios 0x21f05c;
     void scrollLayer(float scroll) = mac 0x236490, win 0x1be20;
+    void updateIndicators(float unknown) = win 0x1b710;
 
     cocos2d::CCTouch* m_touch;
     cocos2d::CCPoint m_touchPosition;
