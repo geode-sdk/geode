@@ -10,25 +10,49 @@ namespace geode {
     template<class T>
     concept InheritsCCNode = std::is_base_of_v<cocos2d::CCNode, T>;
 
-    template<InheritsCCNode T>
-    class EnterLayerEvent : public Event {
+    // Base class; exists so event listeners can be placed dynamically at runtime
+    class GEODE_DLL AEnterLayerEvent : public Event {
     protected:
         std::string m_layerID;
-        T* m_layer;
+        cocos2d::CCNode* m_layer;
     
+    public:
+        AEnterLayerEvent(
+            std::string const& layerID,
+            cocos2d::CCNode* layer
+        );
+
+        std::string getID() const;
+        cocos2d::CCNode* getLayer() const;
+    };
+
+    class GEODE_DLL AEnterLayerEventHandler : public EventHandler<AEnterLayerEvent> {
+	public:
+		using Consumer = std::function<void(AEnterLayerEvent*)>;
+    
+    protected:
+		Consumer m_consumer;
+		std::optional<std::string> m_targetID;
+	
+	public:
+        PassThrough handle(AEnterLayerEvent* event) override;
+
+		AEnterLayerEventHandler(
+			std::optional<std::string> const& id,
+			Consumer handler
+		);
+    };
+
+    template<InheritsCCNode T>
+    class EnterLayerEvent : public AEnterLayerEvent {
     public:
         EnterLayerEvent(
             std::string const& layerID,
             T* layer
-        ) : m_layerID(layerID),
-            m_layer(layer) {}
-
-        std::string getID() const {
-            return m_layerID;
-        }
+        ) : AEnterLayerEvent(layerID, layer) {}
 
         T* getLayer() const {
-            return m_layer;
+            return static_cast<T*>(m_layer);
         }
     };
 
@@ -38,7 +62,7 @@ namespace geode {
     template<class N, InheritsEnterLayer<N> T>
 	class EnterLayerEventHandler : public EventHandler<EnterLayerEvent<N>> {
 	public:
-		using Consumer = void(*)(T*);
+		using Consumer = std::function<void(T*)>;
         
 	protected:
 		Consumer m_consumer;

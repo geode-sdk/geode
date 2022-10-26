@@ -1,7 +1,6 @@
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Mod.hpp>
-#include <Geode/utils/timer.hpp>
 #undef snprintf
 
 USE_GEODE_NAMESPACE();
@@ -24,15 +23,11 @@ bool Mod::validateID(std::string const& id) {
 }
 
 Result<Mod*> Loader::loadModFromFile(std::string const& path) {
-    Timer timer;
-    
     // load mod.json
     auto res = ModInfo::createFromGeodeFile(path);
     if (!res) {
         return Err(res.error());
     }
-
-    log::debug("ModInfo::createFromGeodeFile took {}", timer.elapsedAsString());
 
     // check that a duplicate has not been loaded
     if (m_mods.count(res.value().m_id)) {
@@ -59,8 +54,6 @@ Result<Mod*> Loader::loadModFromFile(std::string const& path) {
         this->updateResourcePaths();
         this->updateModResources(mod);
     });
-
-    log::debug("Loader::loadModFromFile took {}", timer.elapsedAsString());
 
     return Ok(mod);
 }
