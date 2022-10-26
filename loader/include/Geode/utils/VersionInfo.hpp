@@ -28,7 +28,7 @@ namespace geode {
         int m_patch = 0;
     
     public:
-        VersionInfo() = delete;
+        VersionInfo() = default;
         constexpr VersionInfo(int major, int minor, int patch) {
             m_major = major;
             m_minor = minor;
