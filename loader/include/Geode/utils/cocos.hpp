@@ -305,13 +305,19 @@ namespace geode::cocos {
         ~CCArrayExt() {}
 
         auto begin() {
+            if (!m_arr) {
+                return CCArrayIterator<T*>(nullptr);
+            }
             return CCArrayIterator<T*>(reinterpret_cast<T**>(m_arr->data->arr));
         }
         auto end() {
+            if (!m_arr) {
+                return CCArrayIterator<T*>(nullptr);
+            }
             return CCArrayIterator<T*>(reinterpret_cast<T**>(m_arr->data->arr) + m_arr->count());
         }
-        auto size() const {
-            return m_arr->count();
+        size_t size() const {
+            return m_arr ? m_arr->count() : 0;
         }
         T operator[](size_t index) {
             return static_cast<T*>(m_arr->objectAtIndex(index));
