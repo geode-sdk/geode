@@ -13,6 +13,10 @@ void BasicEventHandler::unlisten() {
 	Event::s_handlers.erase(this);
 }
 
+BasicEventHandler::~BasicEventHandler() {
+	this->unlisten();
+}
+
 Event::~Event() {}
 
 void Event::postFrom(Mod* m) {

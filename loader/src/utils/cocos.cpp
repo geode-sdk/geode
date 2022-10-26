@@ -118,7 +118,13 @@ void geode::cocos::reloadTextures(CreateLayerFunc returnTo) {
 }
 
 class $modify(LoadingLayer) {
-    void loadingFinished() {
+    void loadAssets() {
+        // loadFinished is inlined on Macchew OS :sob:
+
+        if (m_loadStep < 14) {
+            return LoadingLayer::loadAssets();
+        }
+
         // Default behaviour
         if (!LOADING_FINISHED_SCENE) {
             return LoadingLayer::loadingFinished();

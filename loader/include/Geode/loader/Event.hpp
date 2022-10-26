@@ -17,6 +17,8 @@ namespace geode {
 	struct GEODE_DLL BasicEventHandler {
 		virtual PassThrough passThrough(Event*) = 0;
 
+		virtual ~BasicEventHandler();
+
 		void listen();
 		void unlisten();
 	};
