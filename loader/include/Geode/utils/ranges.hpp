@@ -169,6 +169,15 @@ namespace geode::utils::ranges {
         return container;
     }
 
+    template<ValidMutContainer C, ValidCUnaryPredicate<C> Predicate>
+    C& remove(C& container, Predicate fun) {
+        container.erase(
+            std::remove_if(container.begin(), container.end(), fun),
+            container.end()
+        );
+        return container;
+    }
+
     template<ValidContainer C, ValidCUnaryPredicate<C> Predicate>
     C filter(C const& container, Predicate filterFun) {
         auto res = C();
