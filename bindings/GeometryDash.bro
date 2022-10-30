@@ -332,7 +332,7 @@ class CCMenuItemSpriteExtra : cocos2d::CCMenuItemSprite {
         cocos2d::SEL_MenuHandler callback
     ) {
         if (!cocos2d::CCMenuItemSprite::initWithNormalSprite(
-            normalImage, selectedImage, nullptr, target, callbck
+            normalImage, selectedImage, nullptr, target, callback
         )) return false;
 
         this->setAnchorPoint({ .5f, .5f });
