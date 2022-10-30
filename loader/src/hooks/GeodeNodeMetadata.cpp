@@ -1,3 +1,4 @@
+#include <Geode/modify/Field.hpp>
 #include <Geode/utils/Ref.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <cocos2d.h>
@@ -61,7 +62,6 @@ public:
 // proxy forwards
 // clang-format off
 #include <Geode/modify/CCNode.hpp>
-#include <Geode/modify/Field.hpp>
 class $modify(ProxyCCNode, CCNode) {
     virtual CCObject* getUserObject() {
         return GeodeNodeMetadata::set(this)->m_userObject;

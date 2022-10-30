@@ -2,6 +2,7 @@
 
 #include <Geode/c++stl/gdstdlib.hpp>
 #include <Geode/platform/platform.hpp>
+#include <variant>
 
 // Because C++ doesn't like using a
 // namespace that doesn't exist
