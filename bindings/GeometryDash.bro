@@ -327,8 +327,26 @@ class CCMenuItemSpriteExtra : cocos2d::CCMenuItemSprite {
     void setSizeMult(float) = mac 0x1255e0, win 0x19080;
     CCMenuItemSpriteExtra() = mac 0x32670, win 0x18db0;
     ~CCMenuItemSpriteExtra() = win 0x18eb0;
-    bool init(cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCObject*, cocos2d::SEL_MenuHandler) = mac 0x125450, win 0x18fa0;
-    bool init(cocos2d::CCNode* spr) = win 0x18fa0;
+    bool init(
+        cocos2d::CCNode* normalImage,
+        cocos2d::CCNode* selectedImage,
+        cocos2d::CCObject* target,
+        cocos2d::SEL_MenuHandler callback
+    ) {
+        if (!cocos2d::CCMenuItemSprite::initWithNormalSprite(
+            normalImage, selectedImage, nullptr, target, callbck
+        )) return false;
+
+        this->setAnchorPoint({ .5f, .5f });
+        this->setContentSize(normalImage->getScaledContentSize());
+        normalImage->setPosition(m_obContentSize / 2);
+
+        m_baseScale = 1.f;
+        m_animationEnabled = true;
+        m_scaleMultiplier = 1.26f;
+
+        return true;
+    }
     void activate() = mac 0x125730, win 0x191c0;
     void selected() = mac 0x125840, win 0x19270;
     void unselected() = mac 0x125a70, win 0x19430;
