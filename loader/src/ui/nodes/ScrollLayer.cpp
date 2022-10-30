@@ -14,19 +14,15 @@ GenericContentLayer* GenericContentLayer::create(float width, float height) {
 }
 
 void GenericContentLayer::setPosition(CCPoint const& pos) {
-    // CCContentLayer expect its children to 
+    // CCContentLayer expect its children to
     // all be TableViewCells
     CCLayerColor::setPosition(pos);
 
     for (auto child : CCArrayExt<CCNode>(m_pChildren)) {
         auto y = this->getPositionY() + child->getPositionY();
-        child->setVisible(!(
-            (m_obContentSize.height < y) ||
-            (y < -child->getContentSize().height)
-        ));
+        child->setVisible(!((m_obContentSize.height < y) || (y < -child->getContentSize().height)));
     }
 }
-
 
 void ScrollLayer::scrollWheel(float y, float) {
     if (m_scrollWheelEnabled) {
@@ -45,11 +41,8 @@ bool ScrollLayer::ccTouchBegan(CCTouch* touch, CCEvent* event) {
     return false;
 }
 
-ScrollLayer::ScrollLayer(
-    CCRect const& rect,
-    bool scrollWheelEnabled,
-    bool vertical
-) : CCScrollLayerExt(rect) {
+ScrollLayer::ScrollLayer(CCRect const& rect, bool scrollWheelEnabled, bool vertical) :
+    CCScrollLayerExt(rect) {
     m_scrollWheelEnabled = scrollWheelEnabled;
 
     m_disableVertical = !vertical;
@@ -57,9 +50,7 @@ ScrollLayer::ScrollLayer(
     m_cutContent = true;
 
     m_contentLayer->removeFromParent();
-    m_contentLayer = GenericContentLayer::create(
-        rect.size.width, rect.size.height
-    );
+    m_contentLayer = GenericContentLayer::create(rect.size.width, rect.size.height);
     m_contentLayer->setAnchorPoint({ 0, 0 });
     this->addChild(m_contentLayer);
 

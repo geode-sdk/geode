@@ -1,14 +1,12 @@
-#include <cocos2d.h>
 #include <Geode/utils/Ref.hpp>
 #include <Geode/utils/cocos.hpp>
-#include <Geode/modify/Field.hpp>
-#include <Geode/modify/CCNode.hpp>
+#include <cocos2d.h>
 
 USE_GEODE_NAMESPACE();
 using namespace geode::modifier;
 
 #pragma warning(push)
-#pragma warning(disable: 4273)
+#pragma warning(disable : 4273)
 
 constexpr auto METADATA_TAG = 0xB324ABC;
 
@@ -24,6 +22,7 @@ private:
     friend class cocos2d::CCNode;
 
     GeodeNodeMetadata() : m_fieldContainer(new FieldContainer()) {}
+
     virtual ~GeodeNodeMetadata() {
         delete m_fieldContainer;
     }
@@ -31,9 +30,9 @@ private:
 public:
     static GeodeNodeMetadata* set(CCNode* target) {
         if (!target) return nullptr;
-        
+
         auto old = target->m_pUserObject;
-        // faster than dynamic_cast, technically can 
+        // faster than dynamic_cast, technically can
         // but extremely unlikely to fail
         if (old && old->getTag() == METADATA_TAG) {
             return static_cast<GeodeNodeMetadata*>(old);
@@ -60,6 +59,9 @@ public:
 };
 
 // proxy forwards
+// clang-format off
+#include <Geode/modify/CCNode.hpp>
+#include <Geode/modify/Field.hpp>
 class $modify(ProxyCCNode, CCNode) {
     virtual CCObject* getUserObject() {
         return GeodeNodeMetadata::set(this)->m_userObject;
@@ -68,6 +70,8 @@ class $modify(ProxyCCNode, CCNode) {
         GeodeNodeMetadata::set(this)->m_userObject = obj;
     }
 };
+
+// clang-format on
 
 // not const because might modify contents
 FieldContainer* CCNode::getFieldContainer() {

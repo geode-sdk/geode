@@ -11,15 +11,11 @@ enum class CategoryNodeStyle {
 
 class CategoryNode : public CCNode {
 protected:
-    bool init(
-        std::string const& category,
-        CategoryNodeStyle style
-    );
+    bool init(std::string const& category, CategoryNodeStyle style);
 
 public:
     static CategoryNode* create(
-        std::string const& category,
-        CategoryNodeStyle style = CategoryNodeStyle::Tag
+        std::string const& category, CategoryNodeStyle style = CategoryNodeStyle::Tag
     );
 
     static ccColor3B categoryToColor(std::string const& category);

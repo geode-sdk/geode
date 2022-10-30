@@ -1,8 +1,8 @@
 #pragma once
 
-#include <Geode/binding/TableViewCell.hpp>
-#include <Geode/binding/FLAlertLayerProtocol.hpp>
 #include <Geode/binding/CustomListView.hpp>
+#include <Geode/binding/FLAlertLayerProtocol.hpp>
+#include <Geode/binding/TableViewCell.hpp>
 #include <Index.hpp>
 #include <optional>
 
@@ -11,9 +11,9 @@ USE_GEODE_NAMESPACE();
 struct ModListQuery;
 
 enum class ModListType {
-	Installed,
-	Download,
-	Featured,
+    Installed,
+    Download,
+    Featured,
 };
 
 enum class ModObjectType {
@@ -31,16 +31,16 @@ struct ModObject : public CCObject {
     Loader::FailedModInfo m_info;
     IndexItem m_index;
 
-    inline ModObject(Mod* mod)
-     : m_mod(mod), m_type(ModObjectType::Mod) {
+    inline ModObject(Mod* mod) : m_mod(mod), m_type(ModObjectType::Mod) {
         this->autorelease();
     };
-    inline ModObject(Loader::FailedModInfo const& info)
-     : m_info(info), m_type(ModObjectType::Unloaded) {
+
+    inline ModObject(Loader::FailedModInfo const& info) :
+        m_info(info), m_type(ModObjectType::Unloaded) {
         this->autorelease();
     };
-    inline ModObject(IndexItem const& index)
-     : m_index(index), m_type(ModObjectType::Index) {
+
+    inline ModObject(IndexItem const& index) : m_index(index), m_type(ModObjectType::Index) {
         this->autorelease();
     };
 };
@@ -56,7 +56,7 @@ protected:
     CCMenuItemSpriteExtra* m_unresolvedExMark;
     bool m_expanded;
 
-    ModCell(const char* name, CCSize size);
+    ModCell(char const* name, CCSize size);
 
     void draw() override;
     void onInfo(CCObject*);
@@ -77,28 +77,24 @@ public:
     void loadFromObject(ModObject*);
     void updateState(bool invert = false);
 
-    static ModCell* create(ModListView* list, bool expanded, const char* key, CCSize size);
+    static ModCell* create(ModListView* list, bool expanded, char const* key, CCSize size);
 };
 
 struct SearchFlag {
     enum : int {
-        Name        = 0b1,
-        ID          = 0b10,
-        Developer   = 0b100,
-        Credits     = 0b1000,
+        Name = 0b1,
+        ID = 0b10,
+        Developer = 0b100,
+        Credits = 0b1000,
         Description = 0b10000,
-        Details     = 0b100000,
+        Details = 0b100000,
     };
 };
+
 using SearchFlags = int;
 
-static constexpr SearchFlags ALL_FLAGS =
-    SearchFlag::Name |
-    SearchFlag::ID |
-    SearchFlag::Developer |
-    SearchFlag::Credits |
-    SearchFlag::Description |
-    SearchFlag::Details;
+static constexpr SearchFlags ALL_FLAGS = SearchFlag::Name | SearchFlag::ID | SearchFlag::Developer |
+    SearchFlag::Credits | SearchFlag::Description | SearchFlag::Details;
 
 struct ModListQuery {
     std::optional<std::string> m_searchFilter = std::nullopt;
@@ -119,18 +115,14 @@ protected:
 
     Status m_status = Status::OK;
     ModListLayer* m_layer = nullptr;
-	bool m_expandedList;
+    bool m_expandedList;
 
     void setupList() override;
-    TableViewCell* getListCell(const char* key) override;
+    TableViewCell* getListCell(char const* key) override;
     void loadCell(TableViewCell* cell, unsigned int index) override;
 
     bool init(
-        CCArray* mods,
-        ModListType type,
-        bool expanded,
-        float width,
-        float height,
+        CCArray* mods, ModListType type, bool expanded, float width, float height,
         ModListQuery query
     );
     bool filter(ModInfo const& info, ModListQuery const& query);
@@ -138,18 +130,11 @@ protected:
 
 public:
     static ModListView* create(
-        CCArray* mods,
-        ModListType type = ModListType::Installed,
-        bool expanded = false,
-        float width = 358.f,
-        float height = 220.f,
-        ModListQuery const& query = ModListQuery()
+        CCArray* mods, ModListType type = ModListType::Installed, bool expanded = false,
+        float width = 358.f, float height = 220.f, ModListQuery const& query = ModListQuery()
     );
     static ModListView* create(
-        ModListType type,
-        bool expanded = false,
-        float width = 358.f,
-        float height = 220.f,
+        ModListType type, bool expanded = false, float width = 358.f, float height = 220.f,
         ModListQuery const& query = ModListQuery()
     );
 

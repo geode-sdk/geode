@@ -1,5 +1,4 @@
 ---
-Language: Cpp
 IndentWidth: 4
 
 AlignAfterOpenBracket: BlockIndent
@@ -8,13 +7,13 @@ AlignOperands: DontAlign
 AlignTrailingComments: false
 
 AllowAllArgumentsOnNextLine: true
-AllowAllParametersOfDeclarationOnNextLine: true
+AllowAllParametersOfDeclarationOnNextLine: false
 
 AllowShortBlocksOnASingleLine: Empty
 AllowShortFunctionsOnASingleLine: Empty
 AllowShortLambdasOnASingleLine: Empty
 
-AllowShortCaseLabelsOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: true
 AllowShortEnumsOnASingleLine: false
 
 AllowShortIfStatementsOnASingleLine: AllIfsAndElse
@@ -80,12 +79,12 @@ IncludeCategories:
 
 IndentAccessModifiers: false
 AccessModifierOffset: -4
-IndentCaseBlocks: false
-IndentCaseLabels: false
+IndentCaseBlocks: true
+IndentCaseLabels: true
 IndentExternBlock: Indent
 IndentGotoLabels: true
 IndentPPDirectives: BeforeHash
-IndentWrappedFunctionNames: true
+IndentWrappedFunctionNames: false
 # InsertBraces: true
 InsertTrailingCommas: None
 
@@ -103,7 +102,7 @@ PenaltyBreakFirstLessLess: 120
 PenaltyBreakString: 1000
 PenaltyBreakTemplateDeclaration: 10
 PenaltyExcessCharacter: 1000000
-PenaltyReturnTypeOnItsOwnLine: 60
+PenaltyReturnTypeOnItsOwnLine: 1000000
 PenaltyIndentedWhitespace: 0
 
 QualifierAlignment: Right

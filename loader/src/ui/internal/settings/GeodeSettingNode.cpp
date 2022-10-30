@@ -1,9 +1,10 @@
 #include "GeodeSettingNode.hpp"
-#include <Geode/utils/platform.hpp>
-#include <Geode/binding/ColorChannelSprite.hpp>
+
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/binding/CCTextInputNode.hpp>
+#include <Geode/binding/ColorChannelSprite.hpp>
 #include <Geode/binding/Slider.hpp>
+#include <Geode/utils/platform.hpp>
 
 // BoolSettingNode
 
@@ -118,14 +119,10 @@ void FileSettingNode::valueChanged(bool updateText) {
 void FileSettingNode::onPickFile(CCObject*) {
     auto setting = std::static_pointer_cast<FileSetting>(m_setting);
     if (auto path = file::pickFile(
-        file::PickMode::OpenFile,
-        {
-            file::geodeRoot(),
-            setting->getFileFilters().value_or(
-                std::vector<file::FilePickOptions::Filter>()
-            )
-        }
-    )) {
+            file::PickMode::OpenFile,
+            { file::geodeRoot(),
+              setting->getFileFilters().value_or(std::vector<file::FilePickOptions::Filter>()) }
+        )) {
         m_uncommittedValue = path.value();
         this->valueChanged(true);
     }
@@ -141,9 +138,8 @@ bool FileSettingNode::setup(std::shared_ptr<FileSetting> setting, float width) {
     auto fileBtnSpr = CCSprite::createWithSpriteFrameName("gj_folderBtn_001.png");
     fileBtnSpr->setScale(.5f);
 
-    auto fileBtn = CCMenuItemSpriteExtra::create(
-        fileBtnSpr, this, menu_selector(FileSettingNode::onPickFile)
-    );
+    auto fileBtn =
+        CCMenuItemSpriteExtra::create(fileBtnSpr, this, menu_selector(FileSettingNode::onPickFile));
     fileBtn->setPosition(.0f, .0f);
     m_menu->addChild(fileBtn);
 
@@ -170,15 +166,15 @@ void ColorSettingNode::onSelectColor(CCObject*) {
 }
 
 bool ColorSettingNode::setup(std::shared_ptr<ColorSetting> setting, float width) {
-	m_colorSpr = ColorChannelSprite::create();
-	m_colorSpr->setColor(m_uncommittedValue);
-	m_colorSpr->setScale(.65f);
-	
-	auto button = CCMenuItemSpriteExtra::create(
-		m_colorSpr, this, menu_selector(ColorSettingNode::onSelectColor)
-	);
+    m_colorSpr = ColorChannelSprite::create();
+    m_colorSpr->setColor(m_uncommittedValue);
+    m_colorSpr->setScale(.65f);
+
+    auto button = CCMenuItemSpriteExtra::create(
+        m_colorSpr, this, menu_selector(ColorSettingNode::onSelectColor)
+    );
     button->setPositionX(-10.f);
-	m_menu->addChild(button);
+    m_menu->addChild(button);
 
     return true;
 }
@@ -204,16 +200,16 @@ void ColorAlphaSettingNode::onSelectColor(CCObject*) {
 }
 
 bool ColorAlphaSettingNode::setup(std::shared_ptr<ColorAlphaSetting> setting, float width) {
-	m_colorSpr = ColorChannelSprite::create();
-	m_colorSpr->setColor(to3B(m_uncommittedValue));
+    m_colorSpr = ColorChannelSprite::create();
+    m_colorSpr->setColor(to3B(m_uncommittedValue));
     m_colorSpr->updateOpacity(m_uncommittedValue.a / 255.f);
-	m_colorSpr->setScale(.65f);
-	
-	auto button = CCMenuItemSpriteExtra::create(
-		m_colorSpr, this, menu_selector(ColorAlphaSettingNode::onSelectColor)
-	);
+    m_colorSpr->setScale(.65f);
+
+    auto button = CCMenuItemSpriteExtra::create(
+        m_colorSpr, this, menu_selector(ColorAlphaSettingNode::onSelectColor)
+    );
     button->setPositionX(-10.f);
-	m_menu->addChild(button);
+    m_menu->addChild(button);
 
     return true;
 }

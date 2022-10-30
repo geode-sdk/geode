@@ -1,22 +1,23 @@
 #include "Index.hpp"
-#include <thread>
-#include <Geode/utils/json.hpp>
-#include <Geode/utils/JsonValidation.hpp>
-#include <Geode/utils/fetch.hpp>
-#include <hash.hpp>
-#include <Geode/utils/file.hpp>
-#include <Geode/utils/string.hpp>
-#include <Geode/utils/vector.hpp>
-#include <Geode/utils/map.hpp>
-#include <Geode/utils/general.hpp>
-#include <Geode/utils/ranges.hpp>
+
+#include <Geode/binding/FLAlertLayer.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Mod.hpp>
-#include <Geode/binding/FLAlertLayer.hpp>
+#include <Geode/utils/JsonValidation.hpp>
+#include <Geode/utils/fetch.hpp>
+#include <Geode/utils/file.hpp>
+#include <Geode/utils/general.hpp>
+#include <Geode/utils/json.hpp>
+#include <Geode/utils/map.hpp>
+#include <Geode/utils/ranges.hpp>
+#include <Geode/utils/string.hpp>
+#include <Geode/utils/vector.hpp>
+#include <hash.hpp>
+#include <thread>
 
 #define GITHUB_DONT_RATE_LIMIT_ME_PLS 0
 
-template<class Json = nlohmann::json>
+template <class Json = nlohmann::json>
 static Result<Json> readJSON(ghc::filesystem::path const& path) {
     auto indexJsonData = utils::file::readString(path);
     if (!indexJsonData) {
@@ -24,7 +25,8 @@ static Result<Json> readJSON(ghc::filesystem::path const& path) {
     }
     try {
         return Ok(Json::parse(indexJsonData.value()));
-    } catch(std::exception& e) {
+    }
+    catch (std::exception& e) {
         return Err("Error parsing JSON: " + std::string(e.what()));
     }
 }
@@ -54,9 +56,7 @@ std::vector<IndexItem> Index::getFeaturedItems() const {
     std::vector<IndexItem> items;
     items.reserve(m_featured.size());
     std::transform(
-        m_featured.begin(),
-        m_featured.end(),
-        std::back_inserter(items),
+        m_featured.begin(), m_featured.end(), std::back_inserter(items),
         [this](auto const& item) {
             return this->getKnownItem(item);
         }
@@ -69,30 +69,22 @@ bool Index::isFeaturedItem(std::string const& item) const {
 }
 
 void Index::updateIndex(IndexUpdateCallback callback, bool force) {
-    #define RETURN_ERROR(str)           \
-        std::string err__ = (str);      \
-        if (callback) callback(         \
-            UpdateStatus::Failed,       \
-            err__,                      \
-            0                           \
-        );                              \
-        log::info("Index update failed: {}", err__);\
-        return;
+#define RETURN_ERROR(str)                                   \
+    std::string err__ = (str);                              \
+    if (callback) callback(UpdateStatus::Failed, err__, 0); \
+    log::info("Index update failed: {}", err__);            \
+    return;
 
-    // if already updated and no force, let 
+    // if already updated and no force, let
     // delegate know
     if (!force && m_upToDate) {
         if (callback) {
-            callback(
-                UpdateStatus::Finished,
-                "Index already updated",
-                100
-            );
+            callback(UpdateStatus::Finished, "Index already updated", 100);
         }
         return;
     }
 
-    // create directory for the local clone of 
+    // create directory for the local clone of
     // the index
     auto indexDir = Loader::get()->getGeodeDirectory() / "index";
     ghc::filesystem::create_directories(indexDir);
@@ -103,7 +95,7 @@ void Index::updateIndex(IndexUpdateCallback callback, bool force) {
     if (!err) {
         RETURN_ERROR(err);
     }
-    
+
     m_upToDate = true;
     m_updating = false;
 
@@ -118,7 +110,7 @@ void Index::updateIndex(IndexUpdateCallback callback, bool force) {
         .json()
         .then([this, force, callback](nlohmann::json const& json) {
             auto indexDir = Loader::get()->getGeodeDirectory() / "index";
-            
+
             // check if rate-limited (returns object)
             JsonChecker checkerObj(json);
             auto obj = checkerObj.root("[geode-sdk/mods/commits]").obj();
@@ -133,7 +125,8 @@ void Index::updateIndex(IndexUpdateCallback callback, bool force) {
             std::string upcomingCommitSHA;
             if (auto first = root.at(0).obj().needs("sha")) {
                 upcomingCommitSHA = first.get<std::string>();
-            } else {
+            }
+            else {
                 RETURN_ERROR("Unable to get hash from latest commit: " + checker.getError());
             }
 
@@ -146,7 +139,7 @@ void Index::updateIndex(IndexUpdateCallback callback, bool force) {
                 }
             }
 
-            // update if forced or latest commit has 
+            // update if forced or latest commit has
             // different sha
             if (force || currentCommitSHA != upcomingCommitSHA) {
                 // save new sha in file
@@ -162,7 +155,8 @@ void Index::updateIndex(IndexUpdateCallback callback, bool force) {
                             if (ghc::filesystem::exists(indexDir / "index")) {
                                 ghc::filesystem::remove_all(indexDir / "index");
                             }
-                        } catch(std::exception& e) {
+                        }
+                        catch (std::exception& e) {
                             RETURN_ERROR("Unable to delete old index " + std::string(e.what()));
                         }
 
@@ -181,21 +175,20 @@ void Index::updateIndex(IndexUpdateCallback callback, bool force) {
                         m_upToDate = true;
                         m_updating = false;
 
-                        if (callback) callback(
-                            UpdateStatus::Finished, "", 100
-                        );
+                        if (callback) callback(UpdateStatus::Finished, "", 100);
                     })
                     .expect([callback](std::string const& err) {
                         RETURN_ERROR(err);
                     })
                     .progress([callback](web::SentAsyncWebRequest& req, double now, double total) {
-                        if (callback) callback(
-                            UpdateStatus::Progress,
-                            "Downloading",
-                            static_cast<int>(now / total * 100.0)
-                        );
+                        if (callback)
+                            callback(
+                                UpdateStatus::Progress, "Downloading",
+                                static_cast<int>(now / total * 100.0)
+                            );
                     });
-            } else {
+            }
+            else {
                 auto err = this->updateIndexFromLocalCache();
                 if (!err) {
                     RETURN_ERROR(err.error());
@@ -204,27 +197,22 @@ void Index::updateIndex(IndexUpdateCallback callback, bool force) {
                 m_upToDate = true;
                 m_updating = false;
 
-                if (callback) callback(
-                    UpdateStatus::Finished,
-                    "", 100
-                );
+                if (callback) callback(UpdateStatus::Finished, "", 100);
             }
         })
         .expect([callback](std::string const& err) {
             RETURN_ERROR(err);
         })
         .progress([callback](web::SentAsyncWebRequest& req, double now, double total) {
-            if (callback) callback(
-                UpdateStatus::Progress,
-                "Downloading",
-                static_cast<int>(now / total * 100.0)
-            );
+            if (callback)
+                callback(
+                    UpdateStatus::Progress, "Downloading", static_cast<int>(now / total * 100.0)
+                );
         });
 }
 
 void Index::addIndexItemFromFolder(ghc::filesystem::path const& dir) {
     if (ghc::filesystem::exists(dir / "index.json")) {
-
         auto readJson = readJSON(dir / "index.json");
         if (!readJson) {
             log::warn("Error reading index.json: {}, skipping", readJson.error());
@@ -247,22 +235,18 @@ void Index::addIndexItemFromFolder(ghc::filesystem::path const& dir) {
         item.m_path = dir;
         item.m_info = info.value();
 
-        if (
-            !json.contains("download") ||
-            !json["download"].is_object()
-        ) {
+        if (!json.contains("download") || !json["download"].is_object()) {
             log::warn("[index.json].download is not an object, skipping");
             return;
         }
 
-        #define REQUIRE_DOWNLOAD_KEY(key, type) \
-            if (!download.contains(key) || !download[key].is_##type()) {\
-                log::warn("[index.json].download." key " is not a " #type ", skipping");\
-                return;\
-            }
+#define REQUIRE_DOWNLOAD_KEY(key, type)                                          \
+    if (!download.contains(key) || !download[key].is_##type()) {                 \
+        log::warn("[index.json].download." key " is not a " #type ", skipping"); \
+        return;                                                                  \
+    }
 
         try {
-
             auto download = json["download"];
 
             REQUIRE_DOWNLOAD_KEY("url", string);
@@ -285,15 +269,15 @@ void Index::addIndexItemFromFolder(ghc::filesystem::path const& dir) {
                 item.m_categories = json["categories"].get<std::unordered_set<std::string>>();
                 m_categories.insert(item.m_categories.begin(), item.m_categories.end());
             }
-
-        } catch(std::exception& e) {
+        }
+        catch (std::exception& e) {
             log::warn("[index.json] parsing error: {}, skipping", e.what());
             return;
         }
 
         m_items.push_back(item);
-
-    } else {
+    }
+    else {
         log::warn("Index directory {} is missing index.json, skipping", dir);
     }
 }
@@ -306,8 +290,7 @@ Result<> Index::updateIndexFromLocalCache() {
     if (auto baseIndexJson = readJSON(baseIndexDir / "geode.json")) {
         auto json = baseIndexJson.value();
         auto checker = JsonChecker(json);
-        checker.root("[index/geode.json]").obj()
-            .has("featured").into(m_featured);
+        checker.root("[index/geode.json]").obj().has("featured").into(m_featured);
     }
 
     // load index mods
@@ -320,7 +303,8 @@ Result<> Index::updateIndexFromLocalCache() {
         }
         log::info("Index updated");
         return Ok();
-    } else {
+    }
+    else {
         return Err(
             "Index appears not to have been "
             "downloaded, or is fully empty"
@@ -358,8 +342,7 @@ struct UninstalledDependency {
 };
 
 static void getUninstalledDependenciesRecursive(
-    ModInfo const& info,
-    std::vector<UninstalledDependency>& deps
+    ModInfo const& info, std::vector<UninstalledDependency>& deps
 ) {
     for (auto& dep : info.m_dependencies) {
         UninstalledDependency d;
@@ -369,17 +352,12 @@ static void getUninstalledDependenciesRecursive(
             deps.push_back(d);
         }
         if (d.m_isInIndex) {
-            getUninstalledDependenciesRecursive(
-                Index::get()->getKnownItem(dep.m_id).m_info,
-                deps
-            );
+            getUninstalledDependenciesRecursive(Index::get()->getKnownItem(dep.m_id).m_info, deps);
         }
     }
 }
 
-Result<std::vector<std::string>> Index::checkDependenciesForItem(
-    IndexItem const& item
-) {
+Result<std::vector<std::string>> Index::checkDependenciesForItem(IndexItem const& item) {
     // todo: check versions
     std::vector<UninstalledDependency> deps;
     getUninstalledDependenciesRecursive(item.m_info, deps);
@@ -399,7 +377,9 @@ Result<std::vector<std::string>> Index::checkDependenciesForItem(
             list.pop_back();
             return Err(
                 "This mod or its dependencies <cb>depends</c> on the "
-                "following unknown mods: " + list + ". You will have "
+                "following unknown mods: " +
+                list +
+                ". You will have "
                 "to manually install these mods before you can install "
                 "this one."
             );
@@ -410,14 +390,13 @@ Result<std::vector<std::string>> Index::checkDependenciesForItem(
         }
         list.push_back(item.m_info.m_id);
         return Ok(list);
-    } else {
+    }
+    else {
         return Ok<std::vector<std::string>>({ item.m_info.m_id });
     }
 }
 
-Result<InstallHandle> Index::installItems(
-    std::vector<IndexItem> const& items
-) {
+Result<InstallHandle> Index::installItems(std::vector<IndexItem> const& items) {
     std::vector<std::string> ids {};
     for (auto& item : items) {
         if (!item.m_download.m_platforms.count(GEODE_PLATFORM_TARGET)) {
@@ -450,16 +429,12 @@ Result<InstallHandle> Index::installItems(
         }
         ranges::push(ids, list.value());
     }
-    auto ret = std::make_shared<InstallItems>(
-        std::unordered_set(ids.begin(), ids.end())
-    );
+    auto ret = std::make_shared<InstallItems>(std::unordered_set(ids.begin(), ids.end()));
     m_installations.insert(ret);
     return Ok(ret);
 }
 
-Result<InstallHandle> Index::installItem(
-    IndexItem const& item
-) {
+Result<InstallHandle> Index::installItem(IndexItem const& item) {
     return this->installItems({ item });
 }
 
@@ -478,9 +453,7 @@ bool Index::isUpdateAvailableForItem(IndexItem const& item) const {
     if (m_updated.count(item.m_info.m_id)) {
         return false;
     }
-    return
-        item.m_info.m_version > 
-        Loader::get()->getInstalledMod(item.m_info.m_id)->getVersion();
+    return item.m_info.m_version > Loader::get()->getInstalledMod(item.m_info.m_id)->getVersion();
 }
 
 bool Index::areUpdatesAvailable() const {
@@ -504,10 +477,7 @@ Result<InstallHandle> Index::installAllUpdates() {
 }
 
 std::vector<InstallHandle> Index::getRunningInstallations() const {
-    return std::vector<InstallHandle>(
-        m_installations.begin(),
-        m_installations.end()
-    );
+    return std::vector<InstallHandle>(m_installations.begin(), m_installations.end());
 }
 
 InstallHandle Index::isInstallingItem(std::string const& id) {
@@ -543,20 +513,13 @@ void InstallItems::leave(InstallItems::CallbackID id) {
     m_callbacks.erase(id);
 }
 
-void InstallItems::post(
-    UpdateStatus status,
-    std::string const& info,
-    uint8_t progress
-) {
+void InstallItems::post(UpdateStatus status, std::string const& info, uint8_t progress) {
     for (auto& [_, cb] : m_callbacks) {
         cb(shared_from_this(), status, info, progress);
     }
 }
 
-void InstallItems::progress(
-    std::string const& info,
-    uint8_t progress
-) {
+void InstallItems::progress(std::string const& info, uint8_t progress) {
     this->post(UpdateStatus::Progress, info, progress);
 }
 
@@ -575,26 +538,27 @@ void InstallItems::finish(bool replaceFiles) {
 
             if (!replaceFiles) {
                 // find valid filename that doesn't exist yet
-                auto filename = ghc::filesystem::path(targetName)
-                    .replace_extension("")
-                    .string();
+                auto filename = ghc::filesystem::path(targetName).replace_extension("").string();
 
                 size_t number = 0;
                 while (ghc::filesystem::exists(targetFile)) {
-                    targetFile = modDir /
-                        (filename + std::to_string(number) + ".geode");
+                    targetFile = modDir / (filename + std::to_string(number) + ".geode");
                     number++;
                 }
             }
 
             // move file
             ghc::filesystem::rename(file, targetFile);
-            
-        } catch(std::exception& e) {
-            try { ghc::filesystem::remove_all(tempDir); } catch(...) {}
+        }
+        catch (std::exception& e) {
+            try {
+                ghc::filesystem::remove_all(tempDir);
+            }
+            catch (...) {
+            }
             return this->error(
-                "Unable to move downloaded file to mods directory: \"" + 
-                std::string(e.what()) + " \" "
+                "Unable to move downloaded file to mods directory: \"" + std::string(e.what()) +
+                " \" "
                 "(This might be due to insufficient permissions to "
                 "write files under SteamLibrary, try running GD as "
                 "administrator)"
@@ -604,7 +568,7 @@ void InstallItems::finish(bool replaceFiles) {
 
     // load mods
     Loader::get()->refreshMods();
-    
+
     // finished
     this->post(UpdateStatus::Finished, "", 100);
 
@@ -617,21 +581,20 @@ void InstallItems::finish(bool replaceFiles) {
     if (!m_callbacks.size()) {
         FLAlertLayer::create(
             "Mods installed",
-            "The following <cy>mods</c> have been installed: " + 
-            ranges::join(m_toInstall, std::string(",")) + "\n"
-            "Please <cr>restart the game</c> to apply",
+            "The following <cy>mods</c> have been installed: " +
+                ranges::join(m_toInstall, std::string(",")) +
+                "\n"
+                "Please <cr>restart the game</c> to apply",
             "OK"
-        )->show();
+        )
+            ->show();
     }
 
     // no longer need to ensure aliveness
     Index::get()->m_installations.erase(shared_from_this());
 }
 
-InstallItems::CallbackID InstallItems::start(
-    ItemInstallCallback callback,
-    bool replaceFiles
-) {
+InstallItems::CallbackID InstallItems::start(ItemInstallCallback callback, bool replaceFiles) {
     auto id = this->join(callback);
 
     // check if started already, if so, behave like join
@@ -648,56 +611,62 @@ InstallItems::CallbackID InstallItems::start(
 
         m_downloaded.push_back(tempFile);
 
-        auto handle = web::AsyncWebRequest()
-            .join("install_mod_" + inst)
-            .fetch(item.m_download.m_url)
-            .into(tempFile)
-            .then([this, replaceFiles, item, inst, indexDir, tempFile](auto) {
-                // check for 404
-                auto notFound = utils::file::readString(tempFile);
-                if (notFound && notFound.value() == "Not Found") {
-                    try { ghc::filesystem::remove(tempFile); } catch(...) {}
-                    return this->error(
-                        "Binary file download returned \"Not found\". Report "
-                        "this to the Geode development team."
-                    );
-                }
+        auto handle =
+            web::AsyncWebRequest()
+                .join("install_mod_" + inst)
+                .fetch(item.m_download.m_url)
+                .into(tempFile)
+                .then([this, replaceFiles, item, inst, indexDir, tempFile](auto) {
+                    // check for 404
+                    auto notFound = utils::file::readString(tempFile);
+                    if (notFound && notFound.value() == "Not Found") {
+                        try {
+                            ghc::filesystem::remove(tempFile);
+                        }
+                        catch (...) {
+                        }
+                        return this->error(
+                            "Binary file download returned \"Not found\". Report "
+                            "this to the Geode development team."
+                        );
+                    }
 
-                // verify checksum
-                this->progress("Verifying", 100);
-                if (::calculateHash(tempFile) != item.m_download.m_hash) {
-                    try { ghc::filesystem::remove(tempFile); } catch(...) {}
-                    return this->error(
-                        "Checksum mismatch! (Downloaded file did not match what "
-                        "was expected. Try again, and if the download fails another time, "
-                        "report this to the Geode development team."
-                    );
-                }
+                    // verify checksum
+                    this->progress("Verifying", 100);
+                    if (::calculateHash(tempFile) != item.m_download.m_hash) {
+                        try {
+                            ghc::filesystem::remove(tempFile);
+                        }
+                        catch (...) {
+                        }
+                        return this->error(
+                            "Checksum mismatch! (Downloaded file did not match what "
+                            "was expected. Try again, and if the download fails another time, "
+                            "report this to the Geode development team."
+                        );
+                    }
 
-                // finished() just checks if the web requests are done
-                if (this->finished()) {
-                    this->finish(replaceFiles);
-                }
-            })
-            .expect([this, inst](std::string const& error) {
-                this->error(error);
-                this->cancel();
-            })
-            .cancelled([this, item](auto&) {
-                this->cancel();
-            })
-            .progress([this, inst](web::SentAsyncWebRequest&, double now, double total) {
-                this->progress(
-                    "Downloading binary",
-                    static_cast<uint8_t>(now / total * 100.0)
-                );
-            })
-            .send();
-        
+                    // finished() just checks if the web requests are done
+                    if (this->finished()) {
+                        this->finish(replaceFiles);
+                    }
+                })
+                .expect([this, inst](std::string const& error) {
+                    this->error(error);
+                    this->cancel();
+                })
+                .cancelled([this, item](auto&) {
+                    this->cancel();
+                })
+                .progress([this, inst](web::SentAsyncWebRequest&, double now, double total) {
+                    this->progress("Downloading binary", static_cast<uint8_t>(now / total * 100.0));
+                })
+                .send();
+
         m_handles.push_back(handle);
     }
-    // manage installation in the index until it's finished so 
-    // even if no one listens to it it doesn't get freed from 
+    // manage installation in the index until it's finished so
+    // even if no one listens to it it doesn't get freed from
     // memory
     Index::get()->m_installations.insert(shared_from_this());
 
@@ -718,4 +687,3 @@ void InstallItems::cancel() {
         inst->cancel();
     }
 }
-

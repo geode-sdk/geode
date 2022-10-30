@@ -3,15 +3,12 @@
 USE_GEODE_NAMESPACE();
 
 TabButton* TabButton::create(
-    TabBaseColor unselected,
-    TabBaseColor selected,
-    const char* text,
-    cocos2d::CCObject* target,
+    TabBaseColor unselected, TabBaseColor selected, char const* text, cocos2d::CCObject* target,
     cocos2d::SEL_MenuHandler callback
 ) {
     auto ret = new TabButton();
     auto sprOff = TabButtonSprite::create(text, unselected);
-    auto sprOn  = TabButtonSprite::create(text, selected);
+    auto sprOn = TabButtonSprite::create(text, selected);
     if (ret && ret->init(sprOff, sprOn, target, callback)) {
         ret->m_offButton->m_colorDip = .3f;
         ret->m_offButton->m_colorEnabled = true;
@@ -24,10 +21,8 @@ TabButton* TabButton::create(
     return nullptr;
 }
 
-TabButton* TabButton::create(const char* text, CCObject* target, SEL_MenuHandler callback) {
+TabButton* TabButton::create(char const* text, CCObject* target, SEL_MenuHandler callback) {
     return TabButton::create(
-        TabBaseColor::Unselected,
-        TabBaseColor::Selected,
-        text, target, callback
+        TabBaseColor::Unselected, TabBaseColor::Selected, text, target, callback
     );
 }

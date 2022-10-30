@@ -1,28 +1,29 @@
 #include "ModListView.hpp"
+
+#include "../info/CategoryNode.hpp"
 #include "../info/ModInfoLayer.hpp"
-#include <Geode/utils/cocos.hpp>
+#include "ModListLayer.hpp"
+
+#include <Geode/binding/ButtonSprite.hpp>
+#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
+#include <Geode/binding/StatsCell.hpp>
+#include <Geode/binding/TableView.hpp>
+#include <Geode/loader/Mod.hpp>
 #include <Geode/utils/casts.hpp>
+#include <Geode/utils/cocos.hpp>
 #include <Geode/utils/string.hpp>
 #include <Index.hpp>
-#include "ModListLayer.hpp"
 #include <InternalLoader.hpp>
-#include "../info/CategoryNode.hpp"
-#include <Geode/binding/StatsCell.hpp>
-#include <Geode/binding/ButtonSprite.hpp>
-#include <Geode/binding/TableView.hpp>
-#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
-#include <Geode/loader/Mod.hpp>
 
-template<class T>
-static bool tryOrAlert(Result<T> const& res, const char* title) {
+template <class T>
+static bool tryOrAlert(Result<T> const& res, char const* title) {
     if (!res) {
         FLAlertLayer::create(title, res.error(), "OK")->show();
     }
     return res.is_value();
 }
 
-ModCell::ModCell(const char* name, CCSize size) :
-    TableViewCell(name, size.width, size.height) {}
+ModCell::ModCell(char const* name, CCSize size) : TableViewCell(name, size.width, size.height) {}
 
 void ModCell::draw() {
     reinterpret_cast<StatsCell*>(this)->StatsCell::draw();
@@ -30,14 +31,11 @@ void ModCell::draw() {
 
 void ModCell::onFailedInfo(CCObject*) {
     FLAlertLayer::create(
-        this,
-        "Error Info",
-        m_obj->m_info.m_reason.size() ?
-            m_obj->m_info.m_reason :
-            m_obj->m_mod->getLoadErrorInfo(),
-        "OK", "Remove file",
-        360.f
-    )->show();
+        this, "Error Info",
+        m_obj->m_info.m_reason.size() ? m_obj->m_info.m_reason : m_obj->m_mod->getLoadErrorInfo(),
+        "OK", "Remove file", 360.f
+    )
+        ->show();
 }
 
 void ModCell::FLAlert_Clicked(FLAlertLayer*, bool btn2) {
@@ -45,25 +43,26 @@ void ModCell::FLAlert_Clicked(FLAlertLayer*, bool btn2) {
         try {
             if (ghc::filesystem::remove(m_obj->m_info.m_file)) {
                 FLAlertLayer::create(
-                    "File removed",
-                    "Removed <cy>" + m_obj->m_info.m_file + "</c>",
-                    "OK"
-                )->show();
-            } else {
+                    "File removed", "Removed <cy>" + m_obj->m_info.m_file + "</c>", "OK"
+                )
+                    ->show();
+            }
+            else {
                 FLAlertLayer::create(
                     "Unable to remove file",
-                    "Unable to remove <cy>" + m_obj->m_info.m_file + "</c>",
-                    "OK"
-                )->show();
+                    "Unable to remove <cy>" + m_obj->m_info.m_file + "</c>", "OK"
+                )
+                    ->show();
             }
-        } catch(std::exception& e) {
+        }
+        catch (std::exception& e) {
             FLAlertLayer::create(
                 "Unable to remove file",
-                "Unable to remove <cy>" +
-                    m_obj->m_info.m_file + "</c>: <cr>" + 
+                "Unable to remove <cy>" + m_obj->m_info.m_file + "</c>: <cr>" +
                     std::string(e.what()) + "</c>",
                 "OK"
-            )->show();
+            )
+                ->show();
         }
         Loader::get()->refreshMods();
         m_list->refreshList();
@@ -82,45 +81,36 @@ void ModCell::setupUnloaded() {
     titleLabel->setScale(.5f);
     titleLabel->setPosition(m_height / 2, m_height / 2 + 7.f);
     m_mainLayer->addChild(titleLabel);
-    
-    auto pathLabel = CCLabelBMFont::create(
-        m_obj->m_info.m_file.c_str(), "chatFont.fnt"
-    );
+
+    auto pathLabel = CCLabelBMFont::create(m_obj->m_info.m_file.c_str(), "chatFont.fnt");
     pathLabel->setAnchorPoint({ .0f, .5f });
     pathLabel->setScale(.43f);
     pathLabel->setPosition(m_height / 2, m_height / 2 - 7.f);
     pathLabel->setColor({ 255, 255, 0 });
     m_mainLayer->addChild(pathLabel);
 
-    auto whySpr = ButtonSprite::create(
-        "Info", 0, 0, "bigFont.fnt", "GJ_button_01.png", 0, .8f
-    );
+    auto whySpr = ButtonSprite::create("Info", 0, 0, "bigFont.fnt", "GJ_button_01.png", 0, .8f);
     whySpr->setScale(.65f);
 
-    auto viewBtn = CCMenuItemSpriteExtra::create(
-        whySpr, this, menu_selector(ModCell::onFailedInfo)
-    );
+    auto viewBtn =
+        CCMenuItemSpriteExtra::create(whySpr, this, menu_selector(ModCell::onFailedInfo));
     menu->addChild(viewBtn);
 }
 
 void ModCell::setupLoadedButtons() {
-    auto viewSpr = m_obj->m_mod->wasSuccesfullyLoaded() ?
-        ButtonSprite::create("View", "bigFont.fnt", "GJ_button_01.png", .8f) :
-        ButtonSprite::create("Why", "bigFont.fnt", "GJ_button_06.png", .8f);
+    auto viewSpr = m_obj->m_mod->wasSuccesfullyLoaded()
+        ? ButtonSprite::create("View", "bigFont.fnt", "GJ_button_01.png", .8f)
+        : ButtonSprite::create("Why", "bigFont.fnt", "GJ_button_06.png", .8f);
     viewSpr->setScale(.65f);
 
     auto viewBtn = CCMenuItemSpriteExtra::create(
-        viewSpr, this, 
-            m_obj->m_mod->wasSuccesfullyLoaded() ?
-                menu_selector(ModCell::onInfo) :
-                menu_selector(ModCell::onFailedInfo)
+        viewSpr, this,
+        m_obj->m_mod->wasSuccesfullyLoaded() ? menu_selector(ModCell::onInfo)
+                                             : menu_selector(ModCell::onFailedInfo)
     );
     m_menu->addChild(viewBtn);
 
-    if (
-        m_obj->m_mod->wasSuccesfullyLoaded() &&
-        m_obj->m_mod->supportsDisabling()
-    ) {
+    if (m_obj->m_mod->wasSuccesfullyLoaded() && m_obj->m_mod->supportsDisabling()) {
         m_enableToggle = CCMenuItemToggler::createWithStandardSprites(
             this, menu_selector(ModCell::onEnable), .7f
         );
@@ -131,9 +121,8 @@ void ModCell::setupLoadedButtons() {
     auto exMark = CCSprite::createWithSpriteFrameName("exMark_001.png");
     exMark->setScale(.5f);
 
-    m_unresolvedExMark = CCMenuItemSpriteExtra::create(
-        exMark, this, menu_selector(ModCell::onUnresolvedInfo)
-    );
+    m_unresolvedExMark =
+        CCMenuItemSpriteExtra::create(exMark, this, menu_selector(ModCell::onUnresolvedInfo));
     m_unresolvedExMark->setPosition(-80.f, 0.f);
     m_unresolvedExMark->setVisible(false);
     m_menu->addChild(m_unresolvedExMark);
@@ -152,14 +141,10 @@ void ModCell::setupLoadedButtons() {
 }
 
 void ModCell::setupIndexButtons() {
-    auto viewSpr = ButtonSprite::create(
-        "View", "bigFont.fnt", "GJ_button_01.png", .8f
-    );
+    auto viewSpr = ButtonSprite::create("View", "bigFont.fnt", "GJ_button_01.png", .8f);
     viewSpr->setScale(.65f);
 
-    auto viewBtn = CCMenuItemSpriteExtra::create(
-        viewSpr, this, menu_selector(ModCell::onInfo)
-    );
+    auto viewBtn = CCMenuItemSpriteExtra::create(viewSpr, this, menu_selector(ModCell::onInfo));
     m_menu->addChild(viewBtn);
 }
 
@@ -172,7 +157,7 @@ void ModCell::loadFromObject(ModObject* modobj) {
 
     m_mainLayer->setVisible(true);
     m_backgroundLayer->setOpacity(255);
-    
+
     m_menu = CCMenu::create();
     m_menu->setPosition(m_width - 40.f, m_height / 2);
     m_mainLayer->addChild(m_menu);
@@ -188,15 +173,13 @@ void ModCell::loadFromObject(ModObject* modobj) {
 
     ModInfo info;
     switch (modobj->m_type) {
-        case ModObjectType::Mod:
-            info = modobj->m_mod->getModInfo();
-            break;
+        case ModObjectType::Mod: info = modobj->m_mod->getModInfo(); break;
 
         case ModObjectType::Index:
             info = modobj->m_index.m_info;
             hasCategories = m_expanded && modobj->m_index.m_categories.size();
             break;
-        
+
         default: return;
     }
 
@@ -207,17 +190,17 @@ void ModCell::loadFromObject(ModObject* modobj) {
     titleLabel->setPositionX(m_height / 2 + logoSize / 2 + 13.f);
     if (hasDesc && hasCategories) {
         titleLabel->setPositionY(m_height / 2 + 20.f);
-    } else if (hasDesc || hasCategories) {
+    }
+    else if (hasDesc || hasCategories) {
         titleLabel->setPositionY(m_height / 2 + 15.f);
-    } else {
+    }
+    else {
         titleLabel->setPositionY(m_height / 2 + 7.f);
     }
     titleLabel->limitLabelWidth(m_width / 2 - 40.f, .5f, .1f);
     m_mainLayer->addChild(titleLabel);
 
-    auto versionLabel = CCLabelBMFont::create(
-        info.m_version.toString().c_str(), "bigFont.fnt"
-    );
+    auto versionLabel = CCLabelBMFont::create(info.m_version.toString().c_str(), "bigFont.fnt");
     versionLabel->setAnchorPoint({ .0f, .5f });
     versionLabel->setScale(.3f);
     versionLabel->setPosition(
@@ -226,27 +209,25 @@ void ModCell::loadFromObject(ModObject* modobj) {
     );
     versionLabel->setColor({ 0, 255, 0 });
     m_mainLayer->addChild(versionLabel);
-    
+
     auto creatorStr = "by " + info.m_developer;
-    auto creatorLabel = CCLabelBMFont::create(
-        creatorStr.c_str(), "goldFont.fnt"
-    );
+    auto creatorLabel = CCLabelBMFont::create(creatorStr.c_str(), "goldFont.fnt");
     creatorLabel->setAnchorPoint({ .0f, .5f });
     creatorLabel->setScale(.43f);
     creatorLabel->setPositionX(m_height / 2 + logoSize / 2 + 13.f);
     if (hasDesc && hasCategories) {
         creatorLabel->setPositionY(m_height / 2 + 7.5f);
-    } else if (hasDesc || hasCategories) {
+    }
+    else if (hasDesc || hasCategories) {
         creatorLabel->setPositionY(m_height / 2);
-    } else {
+    }
+    else {
         creatorLabel->setPositionY(m_height / 2 - 7.f);
     }
     m_mainLayer->addChild(creatorLabel);
 
     if (hasDesc) {
-        auto descBG = CCScale9Sprite::create(
-            "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
-        );
+        auto descBG = CCScale9Sprite::create("square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f });
         descBG->setColor({ 0, 0, 0 });
         descBG->setOpacity(90);
         descBG->setContentSize({ m_width * 2, 60.f });
@@ -254,21 +235,16 @@ void ModCell::loadFromObject(ModObject* modobj) {
         descBG->setPositionX(m_height / 2 + logoSize / 2 + 13.f);
         if (hasCategories) {
             descBG->setPositionY(m_height / 2 - 7.5f);
-        } else {
+        }
+        else {
             descBG->setPositionY(m_height / 2 - 17.f);
         }
         descBG->setScale(.25f);
         m_mainLayer->addChild(descBG);
 
-        auto descText = CCLabelBMFont::create(
-            info.m_description.value().c_str(),
-            "chatFont.fnt"
-        );
+        auto descText = CCLabelBMFont::create(info.m_description.value().c_str(), "chatFont.fnt");
         descText->setAnchorPoint({ .0f, .5f });
-        descText->setPosition(
-            m_height / 2 + logoSize / 2 + 18.f,
-            descBG->getPositionY()
-        );
+        descText->setPosition(m_height / 2 + logoSize / 2 + 18.f, descBG->getPositionY());
         descText->limitLabelWidth(m_width / 2 - 10.f, .5f, .1f);
         m_mainLayer->addChild(descText);
     }
@@ -282,7 +258,8 @@ void ModCell::loadFromObject(ModObject* modobj) {
             node->setScale(.3f);
             if (hasDesc) {
                 node->setPositionY(m_height / 2 - 23.f);
-            } else {
+            }
+            else {
                 node->setPositionY(m_height / 2 - 17.f);
             }
             m_mainLayer->addChild(node);
@@ -292,16 +269,11 @@ void ModCell::loadFromObject(ModObject* modobj) {
     }
 
     switch (modobj->m_type) {
-        case ModObjectType::Mod:
-            this->setupLoadedButtons();
-            break;
+        case ModObjectType::Mod: this->setupLoadedButtons(); break;
 
-        case ModObjectType::Index:
-            this->setupIndexButtons();
-            break;
+        case ModObjectType::Index: this->setupIndexButtons(); break;
 
-        default: 
-        	break;
+        default: break;
     }
     this->updateState();
 }
@@ -311,7 +283,7 @@ void ModCell::onInfo(CCObject*) {
 }
 
 void ModCell::updateBGColor(int index) {
-	if (index & 1) m_backgroundLayer->setColor(ccc3(0xc2, 0x72, 0x3e));
+    if (index & 1) m_backgroundLayer->setColor(ccc3(0xc2, 0x72, 0x3e));
     else m_backgroundLayer->setColor(ccc3(0xa1, 0x58, 0x2c));
     m_backgroundLayer->setOpacity(0xff);
 }
@@ -325,7 +297,8 @@ void ModCell::onEnable(CCObject* pSender) {
             "still see some effects of the mod left however, and you may "
             "need to <cg>restart</c> the game to have it fully unloaded.",
             "OK"
-        )->show();
+        )
+            ->show();
         m_list->updateAllStates(this);
         return;
     }
@@ -333,7 +306,8 @@ void ModCell::onEnable(CCObject* pSender) {
         if (tryOrAlert(m_obj->m_mod->load(), "Error loading mod")) {
             tryOrAlert(m_obj->m_mod->enable(), "Error enabling mod");
         }
-    } else {
+    }
+    else {
         tryOrAlert(m_obj->m_mod->disable(), "Error disabling mod");
     }
     m_list->updateAllStates(this);
@@ -344,19 +318,14 @@ void ModCell::onUnresolvedInfo(CCObject* pSender) {
         "This mod has the following "
         "<cr>unresolved dependencies</c>: ";
     for (auto const& dep : m_obj->m_mod->getUnresolvedDependencies()) {
-        info +=
-            "<cg>" + dep.m_id + "</c> "
-            "(<cy>" + dep.m_version.toString() + "</c>), ";
+        info += "<cg>" + dep.m_id +
+            "</c> "
+            "(<cy>" +
+            dep.m_version.toString() + "</c>), ";
     }
     info.pop_back();
     info.pop_back();
-    FLAlertLayer::create(
-        nullptr,
-        "Unresolved Dependencies",
-        info,
-        "OK", nullptr,
-        400.f 
-    )->show();
+    FLAlertLayer::create(nullptr, "Unresolved Dependencies", info, "OK", nullptr, 400.f)->show();
 }
 
 bool ModCell::init(ModListView* list, bool expanded) {
@@ -380,7 +349,7 @@ void ModCell::updateState(bool invert) {
     }
 }
 
-ModCell* ModCell::create(ModListView* list, bool expanded, const char* key, CCSize size) {
+ModCell* ModCell::create(ModListView* list, bool expanded, char const* key, CCSize size) {
     auto pRet = new ModCell(key, size);
     if (pRet && pRet->init(list, expanded)) {
         return pRet;
@@ -388,7 +357,6 @@ ModCell* ModCell::create(ModListView* list, bool expanded, const char* key, CCSi
     CC_SAFE_DELETE(pRet);
     return nullptr;
 }
-
 
 void ModListView::updateAllStates(ModCell* toggled) {
     for (auto cell : CCArrayExt<ModCell>(m_tableView->m_cellArray)) {
@@ -403,24 +371,24 @@ void ModListView::setupList() {
 
     m_tableView->reloadData();
 
-    // fix content layer content size so the 
+    // fix content layer content size so the
     // list is properly aligned to the top
     auto coverage = calculateChildCoverage(m_tableView->m_contentLayer);
-    m_tableView->m_contentLayer->setContentSize({
-        -coverage.origin.x + coverage.size.width,
-        -coverage.origin.y + coverage.size.height
-    });
+    m_tableView->m_contentLayer->setContentSize({ -coverage.origin.x + coverage.size.width,
+                                                  -coverage.origin.y + coverage.size.height });
 
     if (m_entries->count() == 1) {
         m_tableView->moveToTopWithOffset(m_itemSeparation * 2);
-    } else if (m_entries->count() == 2) {
+    }
+    else if (m_entries->count() == 2) {
         m_tableView->moveToTopWithOffset(-m_itemSeparation);
-    } else {
+    }
+    else {
         m_tableView->moveToTop();
     }
 }
 
-TableViewCell* ModListView::getListCell(const char* key) {
+TableViewCell* ModListView::getListCell(char const* key) {
     return ModCell::create(this, m_expandedList, key, { m_width, m_itemSeparation });
 }
 
@@ -430,36 +398,37 @@ void ModListView::loadCell(TableViewCell* cell, unsigned int index) {
     if (obj->m_type == ModObjectType::Mod) {
         if (obj->m_mod->wasSuccesfullyLoaded()) {
             as<ModCell*>(cell)->updateBGColor(index);
-        } else {
+        }
+        else {
             cell->m_backgroundLayer->setOpacity(255);
             cell->m_backgroundLayer->setColor({ 153, 0, 0 });
         }
         if (obj->m_mod->isUninstalled()) {
             cell->m_backgroundLayer->setColor({ 50, 50, 50 });
         }
-    } else {
+    }
+    else {
         as<ModCell*>(cell)->updateBGColor(index);
     }
 }
 
 bool ModListView::filter(ModInfo const& info, ModListQuery const& query) {
-    // the UI for this functionality has been removed, however 
-    // the code has been kept in case we want to add it back at 
+    // the UI for this functionality has been removed, however
+    // the code has been kept in case we want to add it back at
     // some point.
-    
+
     if (!query.m_searchFilter) return true;
     auto check = [query](SearchFlags flag, std::string const& name) -> bool {
         if (!(query.m_searchFlags & flag)) return false;
         return utils::string::contains(
-            utils::string::toLower(name),
-            utils::string::toLower(query.m_searchFilter.value())
+            utils::string::toLower(name), utils::string::toLower(query.m_searchFilter.value())
         );
     };
-    if (check(SearchFlag::Name,        info.m_name)) return true;
-    if (check(SearchFlag::ID,          info.m_id)) return true;
-    if (check(SearchFlag::Developer,   info.m_developer)) return true;
+    if (check(SearchFlag::Name, info.m_name)) return true;
+    if (check(SearchFlag::ID, info.m_id)) return true;
+    if (check(SearchFlag::Developer, info.m_developer)) return true;
     if (check(SearchFlag::Description, info.m_description.value_or(""))) return true;
-    if (check(SearchFlag::Details,     info.m_details.value_or(""))) return true;
+    if (check(SearchFlag::Details, info.m_details.value_or(""))) return true;
     return false;
 }
 
@@ -490,18 +459,18 @@ bool ModListView::filter(IndexItem const& item, ModListQuery const& query) {
 
 static void sortInstalledMods(std::vector<Mod*>& mods) {
     if (!mods.size()) return;
-    // keep track of first object 
+    // keep track of first object
     size_t frontIndex = 0;
     auto front = mods.front();
     for (auto mod = mods.begin(); mod != mods.end(); mod++) {
         // move mods with updates to front
         if (Index::get()->isUpdateAvailableForItem((*mod)->getID())) {
             // swap first object and updatable mod
-            // if the updatable mod is the first object, 
+            // if the updatable mod is the first object,
             // nothing changes
             std::rotate(mods.begin(), mod, mod + 1);
 
-            // get next object at front for next mod 
+            // get next object at front for next mod
             // to sort
             frontIndex++;
             front = mods[frontIndex];
@@ -516,65 +485,66 @@ static std::vector<Mod*> sortedInstalledMods() {
 }
 
 bool ModListView::init(
-    CCArray* mods,
-    ModListType type,
-    bool expanded,
-    float width,
-    float height,
-    ModListQuery query
+    CCArray* mods, ModListType type, bool expanded, float width, float height, ModListQuery query
 ) {
     m_expandedList = expanded;
     if (!mods) {
         switch (type) {
-            case ModListType::Installed: {
-                mods = CCArray::create();
-                // failed mods first
-                for (auto const& mod : Loader::get()->getFailedMods()) {
-                    mods->addObject(new ModObject(mod));
-                }
-                // internal geode representation always at the top
-                auto imod = Loader::getInternalMod();
-                if (this->filter(imod->getModInfo(), query)) {
-                    mods->addObject(new ModObject(imod));
-                }
-                // then other mods
-                for (auto const& mod : sortedInstalledMods()) {
-                    // if the mod is no longer installed nor 
-                    // loaded, it's as good as not existing
-                    // (because it doesn't)
-                    if (mod->isUninstalled() && !mod->isLoaded()) continue;
-                    if (this->filter(mod->getModInfo(), query)) {
+            case ModListType::Installed:
+                {
+                    mods = CCArray::create();
+                    // failed mods first
+                    for (auto const& mod : Loader::get()->getFailedMods()) {
                         mods->addObject(new ModObject(mod));
                     }
-                }
-                if (!mods->count()) {
-                    m_status = Status::SearchEmpty;
-                }
-            } break;
-
-            case ModListType::Download: {
-                mods = CCArray::create();
-                for (auto const& item : Index::get()->getItems()) {
-                    if (this->filter(item, query)) {
-                        mods->addObject(new ModObject(item));
+                    // internal geode representation always at the top
+                    auto imod = Loader::getInternalMod();
+                    if (this->filter(imod->getModInfo(), query)) {
+                        mods->addObject(new ModObject(imod));
+                    }
+                    // then other mods
+                    for (auto const& mod : sortedInstalledMods()) {
+                        // if the mod is no longer installed nor
+                        // loaded, it's as good as not existing
+                        // (because it doesn't)
+                        if (mod->isUninstalled() && !mod->isLoaded()) continue;
+                        if (this->filter(mod->getModInfo(), query)) {
+                            mods->addObject(new ModObject(mod));
+                        }
+                    }
+                    if (!mods->count()) {
+                        m_status = Status::SearchEmpty;
                     }
                 }
-                if (!mods->count()) {
-                    m_status = Status::NoModsFound;
-                }
-            } break;
+                break;
 
-            case ModListType::Featured: {
-                mods = CCArray::create();
-                for (auto const& item : Index::get()->getFeaturedItems()) {
-                    if (this->filter(item, query)) {
-                        mods->addObject(new ModObject(item));
+            case ModListType::Download:
+                {
+                    mods = CCArray::create();
+                    for (auto const& item : Index::get()->getItems()) {
+                        if (this->filter(item, query)) {
+                            mods->addObject(new ModObject(item));
+                        }
+                    }
+                    if (!mods->count()) {
+                        m_status = Status::NoModsFound;
                     }
                 }
-                if (!mods->count()) {
-                    m_status = Status::NoModsFound;
+                break;
+
+            case ModListType::Featured:
+                {
+                    mods = CCArray::create();
+                    for (auto const& item : Index::get()->getFeaturedItems()) {
+                        if (this->filter(item, query)) {
+                            mods->addObject(new ModObject(item));
+                        }
+                    }
+                    if (!mods->count()) {
+                        m_status = Status::NoModsFound;
+                    }
                 }
-            } break;
+                break;
 
             default: return false;
         }
@@ -583,11 +553,7 @@ bool ModListView::init(
 }
 
 ModListView* ModListView::create(
-    CCArray* mods,
-    ModListType type,
-    bool expanded,
-    float width,
-    float height,
+    CCArray* mods, ModListType type, bool expanded, float width, float height,
     ModListQuery const& query
 ) {
     auto pRet = new ModListView;
@@ -602,11 +568,7 @@ ModListView* ModListView::create(
 }
 
 ModListView* ModListView::create(
-    ModListType type,
-    bool expanded,
-    float width,
-    float height,
-    ModListQuery const& query
+    ModListType type, bool expanded, float width, float height, ModListQuery const& query
 ) {
     return ModListView::create(nullptr, type, expanded, width, height, query);
 }
@@ -617,8 +579,8 @@ ModListView::Status ModListView::getStatus() const {
 
 std::string ModListView::getStatusAsString() const {
     switch (m_status) {
-        case Status::OK:          return "";
-        case Status::Unknown:     return "Unknown Issue";
+        case Status::OK: return "";
+        case Status::Unknown: return "Unknown Issue";
         case Status::NoModsFound: return "No Mods Found";
         case Status::SearchEmpty: return "No Mods Match Search Query";
     }

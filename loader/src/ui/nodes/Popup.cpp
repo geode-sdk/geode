@@ -14,19 +14,12 @@ protected:
 
 public:
     static QuickPopup* create(
-        const char* title,
-        std::string const& content,
-        const char* btn1,
-        const char* btn2,
-        float width,
-        std::function<void(FLAlertLayer*, bool)> selected
+        char const* title, std::string const& content, char const* btn1, char const* btn2,
+        float width, std::function<void(FLAlertLayer*, bool)> selected
     ) {
         auto inst = new QuickPopup;
         inst->m_selected = selected;
-        if (inst && inst->init(
-            inst, title, content,
-            btn1, btn2, width, false, .0f
-        )) {
+        if (inst && inst->init(inst, title, content, btn1, btn2, width, false, .0f)) {
             inst->autorelease();
             return inst;
         }
@@ -36,21 +29,10 @@ public:
 };
 
 FLAlertLayer* geode::createQuickPopup(
-    const char* title,
-    std::string const& content,
-    const char* btn1,
-    const char* btn2,
-    float width,
-    std::function<void(FLAlertLayer*, bool)> selected,
-    bool doShow
+    char const* title, std::string const& content, char const* btn1, char const* btn2, float width,
+    std::function<void(FLAlertLayer*, bool)> selected, bool doShow
 ) {
-    auto ret = QuickPopup::create(
-        title,
-        content,
-        btn1, btn2,
-        width,
-        selected
-    );
+    auto ret = QuickPopup::create(title, content, btn1, btn2, width, selected);
     if (doShow) {
         ret->show();
     }
@@ -58,15 +40,8 @@ FLAlertLayer* geode::createQuickPopup(
 }
 
 FLAlertLayer* geode::createQuickPopup(
-    const char* title,
-    std::string const& content,
-    const char* btn1,
-    const char* btn2,
-    std::function<void(FLAlertLayer*, bool)> selected,
-    bool doShow
+    char const* title, std::string const& content, char const* btn1, char const* btn2,
+    std::function<void(FLAlertLayer*, bool)> selected, bool doShow
 ) {
-    return createQuickPopup(
-        title, content, btn1, btn2, 350.f,
-        selected, doShow
-    );
+    return createQuickPopup(title, content, btn1, btn2, 350.f, selected, doShow);
 }

@@ -1,14 +1,14 @@
-#include <Geode/ui/MDTextArea.hpp>
-#include <md4c.h>
 #include <Geode/binding/ProfilePage.hpp>
+#include <Geode/loader/Mod.hpp>
+#include <Geode/ui/MDTextArea.hpp>
+#include <Geode/utils/casts.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/convert.hpp>
-#include <Geode/utils/string.hpp>
-#include <Geode/utils/casts.hpp>
-#include <Geode/utils/ranges.hpp>
 #include <Geode/utils/fetch.hpp>
 #include <Geode/utils/platform.hpp>
-#include <Geode/loader/Mod.hpp>
+#include <Geode/utils/ranges.hpp>
+#include <Geode/utils/string.hpp>
+#include <md4c.h>
 
 USE_GEODE_NAMESPACE();
 
@@ -35,7 +35,6 @@ TextRenderer::Font g_mdMonoFont = [](int style) -> TextRenderer::Label {
     return CCLabelBMFont::create("", "mdFontMono.fnt"_spr);
 };
 
-
 class MDContentLayer : public CCContentLayer {
 protected:
     CCMenu* m_content;
@@ -53,43 +52,44 @@ public:
     }
 
     void setPosition(CCPoint const& pos) override {
-        // cringe CCContentLayer expect its children to 
+        // cringe CCContentLayer expect its children to
         // all be TableViewCells
         CCLayerColor::setPosition(pos);
 
-        // so that's why based MDContentLayer expects itself 
+        // so that's why based MDContentLayer expects itself
         // to have a CCMenu :-)
         if (m_content) {
             for (auto child : CCArrayExt<CCNode>(m_content->getChildren())) {
-               auto y = this->getPositionY() + child->getPositionY();
-               child->setVisible(!(
-                    (m_content->getContentSize().height < y) ||
-                    (y < -child->getContentSize().height)
-                ));
+                auto y = this->getPositionY() + child->getPositionY();
+                child->setVisible(
+                    !((m_content->getContentSize().height < y) ||
+                      (y < -child->getContentSize().height))
+                );
             }
         }
     }
 };
 
-
 Result<ccColor3B> colorForIdentifier(std::string const& tag) {
     if (utils::string::contains(tag, ' ')) {
-        auto hexStr = utils::string::split(
-            utils::string::normalize(tag), " "
-        ).at(1);
+        auto hexStr = utils::string::split(utils::string::normalize(tag), " ").at(1);
         try {
             auto hex = std::stoi(hexStr, nullptr, 16);
             return Ok(cc3x(hex));
-        } catch(...) {
+        }
+        catch (...) {
             return Err("Invalid hex");
         }
-    } else {
+    }
+    else {
         auto colorText = tag.substr(1);
         if (!colorText.size()) {
             return Err("No color specified");
-        } else if (colorText.size() > 1) {
+        }
+        else if (colorText.size() > 1) {
             return Err("Color tag " + tag + " unexpectedly long, either do <cx> or <c hex>");
-        } else {
+        }
+        else {
             switch (colorText.front()) {
                 case 'b': return Ok(cc3x(0x4a52e1)); break;
                 case 'g': return Ok(cc3x(0x40e348)); break;
@@ -99,21 +99,15 @@ Result<ccColor3B> colorForIdentifier(std::string const& tag) {
                 case 'o': return Ok(cc3x(0xffa54b)); break;
                 case 'r': return Ok(cc3x(0xff5a5a)); break;
                 case 'p': return Ok(cc3x(0xff00ff)); break;
-                default:
-                    return Err("Unknown color " + colorText);
+                default: return Err("Unknown color " + colorText);
             }
         }
     }
     return Err("Unknown error");
 }
 
-
-bool MDTextArea::init(
-    std::string const& str,
-    CCSize const& size
-) {
-    if (!CCLayer::init())
-        return false;
+bool MDTextArea::init(std::string const& str, CCSize const& size) {
+    if (!CCLayer::init()) return false;
 
     m_text = str;
     m_size = size;
@@ -121,9 +115,7 @@ bool MDTextArea::init(
     m_renderer = TextRenderer::create();
     CC_SAFE_RETAIN(m_renderer);
 
-    m_bgSprite = CCScale9Sprite::create(
-        "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
-    );
+    m_bgSprite = CCScale9Sprite::create("square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f });
     m_bgSprite->setScale(.5f);
     m_bgSprite->setColor({ 0, 0, 0 });
     m_bgSprite->setOpacity(75);
@@ -177,12 +169,10 @@ public:
 void MDTextArea::onLink(CCObject* pSender) {
     auto href = as<CCString*>(as<CCNode*>(pSender)->getUserObject());
     auto layer = FLAlertLayer::create(
-        this,
-        "Hold Up!",
-        "Links are spooky! Are you sure you want to go to <cy>" +
-        std::string(href->getCString()) + "</c>?",
-        "Cancel", "Yes",
-        360.f
+        this, "Hold Up!",
+        "Links are spooky! Are you sure you want to go to <cy>" + std::string(href->getCString()) +
+            "</c>?",
+        "Cancel", "Yes", 360.f
     );
     layer->setUserObject(href);
     layer->show();
@@ -194,13 +184,16 @@ void MDTextArea::onGDProfile(CCObject* pSender) {
     profile = profile.substr(profile.find(":") + 1);
     try {
         ProfilePage::create(std::stoi(profile), false)->show();
-    } catch(...) {
+    }
+    catch (...) {
         FLAlertLayer::create(
             "Error",
-            "Invalid profile ID: <cr>" + profile + "</c>. This is "
-            "probably the modder's fault, report the bug to them.",
+            "Invalid profile ID: <cr>" + profile +
+                "</c>. This is "
+                "probably the modder's fault, report the bug to them.",
             "OK"
-        )->show();
+        )
+            ->show();
     }
 }
 
@@ -224,93 +217,112 @@ struct MDParser {
         auto renderer = textarea->m_renderer;
         auto text = std::string(rawText, size);
         switch (type) {
-            case MD_TEXTTYPE::MD_TEXT_CODE: {
-                auto rendered = renderer->renderString(text);
-                if (!s_isCodeBlock) {
-                    // code span BGs need to be rendered after all  
-                    // rendering is done since the position of the 
-                    // rendered labels may change after alignments 
-                    // are adjusted
-                    ranges::push(s_codeSpans, rendered);
+            case MD_TEXTTYPE::MD_TEXT_CODE:
+                {
+                    auto rendered = renderer->renderString(text);
+                    if (!s_isCodeBlock) {
+                        // code span BGs need to be rendered after all
+                        // rendering is done since the position of the
+                        // rendered labels may change after alignments
+                        // are adjusted
+                        ranges::push(s_codeSpans, rendered);
+                    }
                 }
-            } break;
+                break;
 
-            case MD_TEXTTYPE::MD_TEXT_BR: {
-                renderer->breakLine();
-            } break;
+            case MD_TEXTTYPE::MD_TEXT_BR:
+                {
+                    renderer->breakLine();
+                }
+                break;
 
-            case MD_TEXTTYPE::MD_TEXT_SOFTBR: {
-                renderer->breakLine();
-            } break;
-            
-            case MD_TEXTTYPE::MD_TEXT_NORMAL: {
-                if (s_lastLink.size()) {
-                    renderer->pushColor(g_linkColor);
-                    renderer->pushDecoFlags(TextDecorationUnderline);
-                    auto rendered = renderer->renderStringInteractive(
-                        text,
-                        textarea,
-                        utils::string::startsWith(s_lastLink, "user:") ?
-                            menu_selector(MDTextArea::onGDProfile) : 
-                            menu_selector(MDTextArea::onLink)
-                    );
-                    for (auto const& label : rendered) {
-                        label.m_node->setUserObject(CCString::create(s_lastLink));
+            case MD_TEXTTYPE::MD_TEXT_SOFTBR:
+                {
+                    renderer->breakLine();
+                }
+                break;
+
+            case MD_TEXTTYPE::MD_TEXT_NORMAL:
+                {
+                    if (s_lastLink.size()) {
+                        renderer->pushColor(g_linkColor);
+                        renderer->pushDecoFlags(TextDecorationUnderline);
+                        auto rendered = renderer->renderStringInteractive(
+                            text, textarea,
+                            utils::string::startsWith(s_lastLink, "user:")
+                                ? menu_selector(MDTextArea::onGDProfile)
+                                : menu_selector(MDTextArea::onLink)
+                        );
+                        for (auto const& label : rendered) {
+                            label.m_node->setUserObject(CCString::create(s_lastLink));
+                        }
+                        renderer->popDecoFlags();
+                        renderer->popColor();
                     }
-                    renderer->popDecoFlags();
-                    renderer->popColor();
-                } else if (s_lastImage.size()) {
-                    bool isFrame = false;
-                    if (utils::string::startsWith(s_lastImage, "frame:")) {
-                        s_lastImage = s_lastImage.substr(s_lastImage.find(":") + 1);
-                        isFrame = true;
+                    else if (s_lastImage.size()) {
+                        bool isFrame = false;
+                        if (utils::string::startsWith(s_lastImage, "frame:")) {
+                            s_lastImage = s_lastImage.substr(s_lastImage.find(":") + 1);
+                            isFrame = true;
+                        }
+                        CCSprite* spr = nullptr;
+                        if (isFrame) {
+                            spr = CCSprite::createWithSpriteFrameName(s_lastImage.c_str());
+                        }
+                        else {
+                            spr = CCSprite::create(s_lastImage.c_str());
+                        }
+                        if (spr) {
+                            renderer->renderNode(spr);
+                        }
+                        else {
+                            renderer->renderString(text);
+                        }
+                        s_lastImage = "";
                     }
-                    CCSprite* spr = nullptr;
-                    if (isFrame) {
-                        spr = CCSprite::createWithSpriteFrameName(s_lastImage.c_str());
-                    } else {
-                        spr = CCSprite::create(s_lastImage.c_str());
-                    }
-                    if (spr) {
-                        renderer->renderNode(spr);
-                    } else {
+                    else {
                         renderer->renderString(text);
                     }
-                    s_lastImage = "";
-                } else {
-                    renderer->renderString(text);
                 }
-            } break;
-            
-            case MD_TEXTTYPE::MD_TEXT_HTML: {
-                if (text.size() > 2) {
-                    auto tag = utils::string::trim(text.substr(1, text.size() - 2));
-                    auto isClosing = tag.front() == '/';
-                    if (isClosing) tag = tag.substr(1);
-                    if (tag.front() != 'c') {
-                        log::warn("Unknown tag {}", text);
-                        renderer->renderString(text);
-                    } else {
-                        if (isClosing) {
-                            renderer->popColor();
-                        } else {
-                            auto color = colorForIdentifier(tag);
-                            if (color) {
-                                renderer->pushColor(color.value());
-                            } else {
-                                log::warn("Error parsing color: {}", color.error());
+                break;
+
+            case MD_TEXTTYPE::MD_TEXT_HTML:
+                {
+                    if (text.size() > 2) {
+                        auto tag = utils::string::trim(text.substr(1, text.size() - 2));
+                        auto isClosing = tag.front() == '/';
+                        if (isClosing) tag = tag.substr(1);
+                        if (tag.front() != 'c') {
+                            log::warn("Unknown tag {}", text);
+                            renderer->renderString(text);
+                        }
+                        else {
+                            if (isClosing) {
+                                renderer->popColor();
+                            }
+                            else {
+                                auto color = colorForIdentifier(tag);
+                                if (color) {
+                                    renderer->pushColor(color.value());
+                                }
+                                else {
+                                    log::warn("Error parsing color: {}", color.error());
+                                }
                             }
                         }
                     }
-                } else {
-                    log::warn("Too short tag {}", text);
-                    renderer->renderString(text);
+                    else {
+                        log::warn("Too short tag {}", text);
+                        renderer->renderString(text);
+                    }
                 }
-            } break;
+                break;
 
-            default: {
-                log::warn("Unhandled text type {}", type);
-            } break;
+            default:
+                {
+                    log::warn("Unhandled text type {}", type);
+                }
+                break;
         }
         return 0;
     }
@@ -319,228 +331,294 @@ struct MDParser {
         auto textarea = static_cast<MDTextArea*>(mdtextarea);
         auto renderer = textarea->m_renderer;
         switch (type) {
-            case MD_BLOCKTYPE::MD_BLOCK_DOC: {} break;
-
-            case MD_BLOCKTYPE::MD_BLOCK_H: {
-                auto hdetail = static_cast<MD_BLOCK_H_DETAIL*>(detail);
-                renderer->pushStyleFlags(TextStyleBold);
-                switch (hdetail->level) {
-                    case 1: renderer->pushScale(g_fontScale * 2.f); break;
-                    case 2: renderer->pushScale(g_fontScale * 1.5f); break;
-                    case 3: renderer->pushScale(g_fontScale * 1.17f); break;
-                    case 4: renderer->pushScale(g_fontScale); break;
-                    case 5: renderer->pushScale(g_fontScale * .83f); break;
-                    default:
-                    case 6: renderer->pushScale(g_fontScale * .67f); break;
+            case MD_BLOCKTYPE::MD_BLOCK_DOC:
+                {
                 }
-                // switch (hdetail->level) {
-                //     case 3: renderer->pushCaps(TextCapitalization::AllUpper); break;
-                // }
-            } break;
-            
-            case MD_BLOCKTYPE::MD_BLOCK_P: {} break;
-            
+                break;
+
+            case MD_BLOCKTYPE::MD_BLOCK_H:
+                {
+                    auto hdetail = static_cast<MD_BLOCK_H_DETAIL*>(detail);
+                    renderer->pushStyleFlags(TextStyleBold);
+                    switch (hdetail->level) {
+                        case 1: renderer->pushScale(g_fontScale * 2.f); break;
+                        case 2: renderer->pushScale(g_fontScale * 1.5f); break;
+                        case 3: renderer->pushScale(g_fontScale * 1.17f); break;
+                        case 4: renderer->pushScale(g_fontScale); break;
+                        case 5: renderer->pushScale(g_fontScale * .83f); break;
+                        default:
+                        case 6: renderer->pushScale(g_fontScale * .67f); break;
+                    }
+                    // switch (hdetail->level) {
+                    //     case 3: renderer->pushCaps(TextCapitalization::AllUpper); break;
+                    // }
+                }
+                break;
+
+            case MD_BLOCKTYPE::MD_BLOCK_P:
+                {
+                }
+                break;
+
             case MD_BLOCKTYPE::MD_BLOCK_UL:
-            case MD_BLOCKTYPE::MD_BLOCK_OL: {
-                renderer->pushIndent(g_indent);
-                s_isOrderedList = type == MD_BLOCKTYPE::MD_BLOCK_OL;
-                s_orderedListNum = 0;
-            } break;
-
-            case MD_BLOCKTYPE::MD_BLOCK_HR: {
-                renderer->breakLine(g_paragraphPadding / 2);
-                renderer->renderNode(BreakLine::create(textarea->m_size.width));
-                renderer->breakLine(g_paragraphPadding);
-            } break;
-
-            case MD_BLOCKTYPE::MD_BLOCK_LI: {
-                renderer->pushOpacity(renderer->getCurrentOpacity() / 2);
-                auto lidetail = static_cast<MD_BLOCK_LI_DETAIL*>(detail);
-                if (s_isOrderedList) {
-                    s_orderedListNum++;
-                    renderer->renderString(std::to_string(s_orderedListNum) + ". ");
-                } else {
-                    renderer->renderString("• ");
+            case MD_BLOCKTYPE::MD_BLOCK_OL:
+                {
+                    renderer->pushIndent(g_indent);
+                    s_isOrderedList = type == MD_BLOCKTYPE::MD_BLOCK_OL;
+                    s_orderedListNum = 0;
                 }
-                renderer->popOpacity();
-            } break;
+                break;
 
-            case MD_BLOCKTYPE::MD_BLOCK_CODE: {
-                s_isCodeBlock = true;
-                s_codeStart = renderer->getCursorPos().y;
-                renderer->pushFont(g_mdMonoFont);
-                renderer->pushIndent(g_codeBlockIndent);
-                renderer->pushWrapOffset(g_codeBlockIndent);
-            } break;
+            case MD_BLOCKTYPE::MD_BLOCK_HR:
+                {
+                    renderer->breakLine(g_paragraphPadding / 2);
+                    renderer->renderNode(BreakLine::create(textarea->m_size.width));
+                    renderer->breakLine(g_paragraphPadding);
+                }
+                break;
 
-            default: {
-                log::warn("Unhandled block enter type {}", type);
-            } break;
+            case MD_BLOCKTYPE::MD_BLOCK_LI:
+                {
+                    renderer->pushOpacity(renderer->getCurrentOpacity() / 2);
+                    auto lidetail = static_cast<MD_BLOCK_LI_DETAIL*>(detail);
+                    if (s_isOrderedList) {
+                        s_orderedListNum++;
+                        renderer->renderString(std::to_string(s_orderedListNum) + ". ");
+                    }
+                    else {
+                        renderer->renderString("• ");
+                    }
+                    renderer->popOpacity();
+                }
+                break;
+
+            case MD_BLOCKTYPE::MD_BLOCK_CODE:
+                {
+                    s_isCodeBlock = true;
+                    s_codeStart = renderer->getCursorPos().y;
+                    renderer->pushFont(g_mdMonoFont);
+                    renderer->pushIndent(g_codeBlockIndent);
+                    renderer->pushWrapOffset(g_codeBlockIndent);
+                }
+                break;
+
+            default:
+                {
+                    log::warn("Unhandled block enter type {}", type);
+                }
+                break;
         }
         return 0;
     }
-    
+
     static int leaveBlock(MD_BLOCKTYPE type, void* detail, void* mdtextarea) {
         auto textarea = static_cast<MDTextArea*>(mdtextarea);
         auto renderer = textarea->m_renderer;
         switch (type) {
-            case MD_BLOCKTYPE::MD_BLOCK_DOC: {} break;
-
-            case MD_BLOCKTYPE::MD_BLOCK_H: {
-                auto hdetail = static_cast<MD_BLOCK_H_DETAIL*>(detail);
-                renderer->breakLine();
-                if (hdetail->level == 1) {
-                    renderer->breakLine(g_paragraphPadding / 2);
-                    renderer->renderNode(BreakLine::create(textarea->m_size.width));
+            case MD_BLOCKTYPE::MD_BLOCK_DOC:
+                {
                 }
-                renderer->breakLine(g_paragraphPadding);
-                renderer->popScale();
-                renderer->popStyleFlags();
-                // switch (hdetail->level) {
-                //     case 3: renderer->popCaps(); break;
-                // }
-            } break;
-            
-            case MD_BLOCKTYPE::MD_BLOCK_P: {
-                renderer->breakLine();
-                renderer->breakLine(g_paragraphPadding);
-            } break;
-            
+                break;
+
+            case MD_BLOCKTYPE::MD_BLOCK_H:
+                {
+                    auto hdetail = static_cast<MD_BLOCK_H_DETAIL*>(detail);
+                    renderer->breakLine();
+                    if (hdetail->level == 1) {
+                        renderer->breakLine(g_paragraphPadding / 2);
+                        renderer->renderNode(BreakLine::create(textarea->m_size.width));
+                    }
+                    renderer->breakLine(g_paragraphPadding);
+                    renderer->popScale();
+                    renderer->popStyleFlags();
+                    // switch (hdetail->level) {
+                    //     case 3: renderer->popCaps(); break;
+                    // }
+                }
+                break;
+
+            case MD_BLOCKTYPE::MD_BLOCK_P:
+                {
+                    renderer->breakLine();
+                    renderer->breakLine(g_paragraphPadding);
+                }
+                break;
+
             case MD_BLOCKTYPE::MD_BLOCK_OL:
-            case MD_BLOCKTYPE::MD_BLOCK_UL: {
-                renderer->popIndent();
-            } break;
+            case MD_BLOCKTYPE::MD_BLOCK_UL:
+                {
+                    renderer->popIndent();
+                }
+                break;
 
-            case MD_BLOCKTYPE::MD_BLOCK_CODE: {
-                auto codeEnd = renderer->getCursorPos().y;
+            case MD_BLOCKTYPE::MD_BLOCK_CODE:
+                {
+                    auto codeEnd = renderer->getCursorPos().y;
 
-                auto pad = g_codeBlockIndent / 1.5f;
+                    auto pad = g_codeBlockIndent / 1.5f;
 
-                CCSize size {
-                    textarea->m_size.width
-                     - renderer->getCurrentIndent()
-                     - renderer->getCurrentWrapOffset() +
-                     pad * 2,
-                    s_codeStart - codeEnd + pad * 2
-                };
+                    CCSize size { textarea->m_size.width - renderer->getCurrentIndent() -
+                                      renderer->getCurrentWrapOffset() + pad * 2,
+                                  s_codeStart - codeEnd + pad * 2 };
 
-                auto bg = CCScale9Sprite::create(
-                    "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
-                );
-                bg->setScale(.25f);
-                bg->setColor({ 0, 0, 0 });
-                bg->setOpacity(75);
-                bg->setContentSize(size * 4);
-                bg->setPosition(
-                    size.width / 2 + renderer->getCurrentIndent() - pad,
-                    // mmm i love magic numbers
-                    // the -2.f is to offset the the box 
-                    // to fit the Ubuntu font very neatly.
-                    // idk if it works the same for other 
-                    // fonts
-                    s_codeStart - 2.f + pad - size.height / 2
-                );
-                bg->setAnchorPoint({ .5f, .5f });
-                bg->setZOrder(-1);
-                textarea->m_content->addChild(bg);
-                
-                renderer->popWrapOffset();
-                renderer->popIndent();
-                renderer->popFont();
+                    auto bg =
+                        CCScale9Sprite::create("square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f });
+                    bg->setScale(.25f);
+                    bg->setColor({ 0, 0, 0 });
+                    bg->setOpacity(75);
+                    bg->setContentSize(size * 4);
+                    bg->setPosition(
+                        size.width / 2 + renderer->getCurrentIndent() - pad,
+                        // mmm i love magic numbers
+                        // the -2.f is to offset the the box
+                        // to fit the Ubuntu font very neatly.
+                        // idk if it works the same for other
+                        // fonts
+                        s_codeStart - 2.f + pad - size.height / 2
+                    );
+                    bg->setAnchorPoint({ .5f, .5f });
+                    bg->setZOrder(-1);
+                    textarea->m_content->addChild(bg);
 
-                renderer->breakLine();
-            } break;
+                    renderer->popWrapOffset();
+                    renderer->popIndent();
+                    renderer->popFont();
 
-            case MD_BLOCKTYPE::MD_BLOCK_LI: {} break;
-            
-            case MD_BLOCKTYPE::MD_BLOCK_HR: {} break;
+                    renderer->breakLine();
+                }
+                break;
 
-            default: {
-                log::warn("Unhandled block leave type {}", type);
-            } break;
+            case MD_BLOCKTYPE::MD_BLOCK_LI:
+                {
+                }
+                break;
+
+            case MD_BLOCKTYPE::MD_BLOCK_HR:
+                {
+                }
+                break;
+
+            default:
+                {
+                    log::warn("Unhandled block leave type {}", type);
+                }
+                break;
         }
         return 0;
     }
-    
+
     static int enterSpan(MD_SPANTYPE type, void* detail, void* mdtextarea) {
         auto renderer = static_cast<MDTextArea*>(mdtextarea)->m_renderer;
         switch (type) {
-            case MD_SPANTYPE::MD_SPAN_STRONG: {
-                renderer->pushStyleFlags(TextStyleBold);
-            } break;
+            case MD_SPANTYPE::MD_SPAN_STRONG:
+                {
+                    renderer->pushStyleFlags(TextStyleBold);
+                }
+                break;
 
-            case MD_SPANTYPE::MD_SPAN_EM: {
-                renderer->pushStyleFlags(TextStyleItalic);
-            } break;
-            
-            case MD_SPANTYPE::MD_SPAN_DEL: {
-                renderer->pushDecoFlags(TextDecorationStrikethrough);
-            } break;
-            
-            case MD_SPANTYPE::MD_SPAN_U: {
-                renderer->pushDecoFlags(TextDecorationUnderline);
-            } break;
+            case MD_SPANTYPE::MD_SPAN_EM:
+                {
+                    renderer->pushStyleFlags(TextStyleItalic);
+                }
+                break;
 
-            case MD_SPANTYPE::MD_SPAN_IMG: {
-                auto adetail = static_cast<MD_SPAN_IMG_DETAIL*>(detail);
-                s_lastImage = std::string(adetail->src.text, adetail->src.size);
-            } break;
-            
-            case MD_SPANTYPE::MD_SPAN_A: {
-                auto adetail = static_cast<MD_SPAN_A_DETAIL*>(detail);
-                s_lastLink = std::string(adetail->href.text, adetail->href.size);
-            } break;
+            case MD_SPANTYPE::MD_SPAN_DEL:
+                {
+                    renderer->pushDecoFlags(TextDecorationStrikethrough);
+                }
+                break;
 
-            case MD_SPANTYPE::MD_SPAN_CODE: {
-                s_isCodeBlock = false;
-                renderer->pushFont(g_mdMonoFont);
-            } break;
+            case MD_SPANTYPE::MD_SPAN_U:
+                {
+                    renderer->pushDecoFlags(TextDecorationUnderline);
+                }
+                break;
 
-            default: {
-                log::warn("Unhandled span enter type {}", type);
-            } break;
+            case MD_SPANTYPE::MD_SPAN_IMG:
+                {
+                    auto adetail = static_cast<MD_SPAN_IMG_DETAIL*>(detail);
+                    s_lastImage = std::string(adetail->src.text, adetail->src.size);
+                }
+                break;
+
+            case MD_SPANTYPE::MD_SPAN_A:
+                {
+                    auto adetail = static_cast<MD_SPAN_A_DETAIL*>(detail);
+                    s_lastLink = std::string(adetail->href.text, adetail->href.size);
+                }
+                break;
+
+            case MD_SPANTYPE::MD_SPAN_CODE:
+                {
+                    s_isCodeBlock = false;
+                    renderer->pushFont(g_mdMonoFont);
+                }
+                break;
+
+            default:
+                {
+                    log::warn("Unhandled span enter type {}", type);
+                }
+                break;
         }
         return 0;
     }
-    
+
     static int leaveSpan(MD_SPANTYPE type, void* detail, void* mdtextarea) {
         auto renderer = static_cast<MDTextArea*>(mdtextarea)->m_renderer;
         switch (type) {
-            case MD_SPANTYPE::MD_SPAN_STRONG: {
-                renderer->popStyleFlags();
-            } break;
+            case MD_SPANTYPE::MD_SPAN_STRONG:
+                {
+                    renderer->popStyleFlags();
+                }
+                break;
 
-            case MD_SPANTYPE::MD_SPAN_EM: {
-                renderer->popStyleFlags();
-            } break;
-            
-            case MD_SPANTYPE::MD_SPAN_DEL: {
-                renderer->popDecoFlags();
-            } break;
-            
-            case MD_SPANTYPE::MD_SPAN_U: {
-                renderer->popDecoFlags();
-            } break;
-            
-            case MD_SPANTYPE::MD_SPAN_A: {
-                s_lastLink = "";
-            } break;
-            
-            case MD_SPANTYPE::MD_SPAN_IMG: {
-                s_lastImage = "";
-            } break;
+            case MD_SPANTYPE::MD_SPAN_EM:
+                {
+                    renderer->popStyleFlags();
+                }
+                break;
 
-            case MD_SPANTYPE::MD_SPAN_CODE: {
-                renderer->popFont();
-            } break;
+            case MD_SPANTYPE::MD_SPAN_DEL:
+                {
+                    renderer->popDecoFlags();
+                }
+                break;
 
-            default: {
-                log::warn("Unhandled span leave type {}", type);
-            } break;
+            case MD_SPANTYPE::MD_SPAN_U:
+                {
+                    renderer->popDecoFlags();
+                }
+                break;
+
+            case MD_SPANTYPE::MD_SPAN_A:
+                {
+                    s_lastLink = "";
+                }
+                break;
+
+            case MD_SPANTYPE::MD_SPAN_IMG:
+                {
+                    s_lastImage = "";
+                }
+                break;
+
+            case MD_SPANTYPE::MD_SPAN_CODE:
+                {
+                    renderer->popFont();
+                }
+                break;
+
+            default:
+                {
+                    log::warn("Unhandled span leave type {}", type);
+                }
+                break;
         }
         return 0;
     }
 };
+
 std::string MDParser::s_lastLink = "";
 std::string MDParser::s_lastImage = "";
 bool MDParser::s_isOrderedList = false;
@@ -560,10 +638,8 @@ void MDTextArea::updateLabel() {
     MD_PARSER parser;
 
     parser.abi_version = 0;
-    parser.flags = MD_FLAG_UNDERLINE |
-                   MD_FLAG_STRIKETHROUGH |
-                   MD_FLAG_PERMISSIVEURLAUTOLINKS |
-                   MD_FLAG_PERMISSIVEWWWAUTOLINKS;
+    parser.flags = MD_FLAG_UNDERLINE | MD_FLAG_STRIKETHROUGH | MD_FLAG_PERMISSIVEURLAUTOLINKS |
+        MD_FLAG_PERMISSIVEWWWAUTOLINKS;
 
     parser.text = &MDParser::parseText;
     parser.enter_block = &MDParser::enterBlock;
@@ -572,7 +648,7 @@ void MDTextArea::updateLabel() {
     parser.leave_span = &MDParser::leaveSpan;
     parser.debug_log = nullptr;
     parser.syntax = nullptr;
-    
+
     MDParser::s_codeSpans = {};
 
     if (md_parse(m_text.c_str(), m_text.size(), &parser, this)) {
@@ -580,9 +656,7 @@ void MDTextArea::updateLabel() {
     }
 
     for (auto& render : MDParser::s_codeSpans) {
-        auto bg = CCScale9Sprite::create(
-            "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
-        );
+        auto bg = CCScale9Sprite::create("square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f });
         bg->setScale(.125f);
         bg->setColor({ 0, 0, 0 });
         bg->setOpacity(75);
@@ -597,12 +671,12 @@ void MDTextArea::updateLabel() {
         // i know what you're thinking.
         // my brother in christ, what the hell is this?
         // where did this magical + 1.5f come from?
-        // the reason is that if you remove them, code 
-        // spans are slightly offset and it triggers my 
+        // the reason is that if you remove them, code
+        // spans are slightly offset and it triggers my
         // OCD.
         render.m_node->setPositionY(render.m_node->getPositionY() + 1.5f);
     }
-    
+
     m_renderer->end();
 
     m_scrollLayer->m_contentLayer->setContentSize(m_content->getContentSize());
@@ -613,19 +687,16 @@ CCScrollLayerExt* MDTextArea::getScrollLayer() const {
     return m_scrollLayer;
 }
 
-void MDTextArea::setString(const char* text) {
+void MDTextArea::setString(char const* text) {
     this->m_text = text;
     this->updateLabel();
 }
 
-const char* MDTextArea::getString() {
+char const* MDTextArea::getString() {
     return this->m_text.c_str();
 }
 
-MDTextArea* MDTextArea::create(
-    std::string const& str,
-    CCSize const& size
-) {
+MDTextArea* MDTextArea::create(std::string const& str, CCSize const& size) {
     auto ret = new MDTextArea;
     if (ret && ret->init(str, size)) {
         ret->autorelease();

@@ -1,5 +1,6 @@
 USE_GEODE_NAMESPACE();
 
+// clang-format off
 #include <Geode/modify/CCTouchDispatcher.hpp>
 class $modify(CCTouchDispatcher) {
     void addTargetedDelegate(CCTouchDelegate *delegate, int priority, bool swallowsTouches) {
@@ -20,3 +21,4 @@ class $modify(CCTouchDispatcher) {
         m_bForcePrio = false;
     }
 };
+// clang-format on

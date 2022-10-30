@@ -1,29 +1,33 @@
+#include "../ui/internal/info/ModInfoLayer.hpp"
+#include "../ui/internal/list/ModListLayer.hpp"
+
 #include <Geode/utils/cocos.hpp>
 #include <Index.hpp>
-#include "../ui/internal/list/ModListLayer.hpp"
-#include <InternalMod.hpp>
-#include "../ui/internal/info/ModInfoLayer.hpp"
 #include <InternalLoader.hpp>
+#include <InternalMod.hpp>
 
 USE_GEODE_NAMESPACE();
 
-#pragma warning(disable: 4217)
-template<class T = CCNode>
-	requires std::is_base_of_v<CCNode, T>
-T* setIDSafe(CCNode* node, int index, const char* id) {
-	if constexpr (std::is_same_v<CCNode, T>) {
-		if (auto child = getChild(node, index)) {
-			child->setID(id);
-			return child;
-		}
-	} else {
-		if (auto child = getChildOfType<T>(node, index)) {
-			child->setID(id);
-			return child;
-		}
-	}
-	return nullptr;
+#pragma warning(disable : 4217)
+template <class T = CCNode>
+
+requires std::is_base_of_v<CCNode, T> T* setIDSafe(CCNode* node, int index, char const* id) {
+    if constexpr (std::is_same_v<CCNode, T>) {
+        if (auto child = getChild(node, index)) {
+            child->setID(id);
+            return child;
+        }
+    }
+    else {
+        if (auto child = getChildOfType<T>(node, index)) {
+            child->setID(id);
+            return child;
+        }
+    }
+    return nullptr;
 }
+
+// clang-format off
 #include <Geode/modify/LevelSearchLayer.hpp>
 class $modify(LevelSearchLayer) {
 	bool init() {
@@ -95,4 +99,4 @@ class $modify(LevelSearchLayer) {
 		return true;
 	}
 };
-
+// clang-format on

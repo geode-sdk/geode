@@ -1,8 +1,8 @@
 #pragma once
 
+#include <Geode/utils/fetch.hpp>
 #include <mutex>
 #include <optional>
-#include <Geode/utils/fetch.hpp>
 #include <unordered_set>
 
 USE_GEODE_NAMESPACE();
@@ -21,12 +21,9 @@ enum class UpdateStatus {
     Finished,
 };
 
-using ItemInstallCallback = std::function<void(
-    InstallHandle, UpdateStatus, std::string const&, uint8_t
-)>;
-using IndexUpdateCallback = std::function<void(
-    UpdateStatus, std::string const&, uint8_t
-)>;
+using ItemInstallCallback =
+    std::function<void(InstallHandle, UpdateStatus, std::string const&, uint8_t)>;
+using IndexUpdateCallback = std::function<void(UpdateStatus, std::string const&, uint8_t)>;
 
 struct IndexItem {
     struct Download {
@@ -63,9 +60,8 @@ private:
 public:
     std::unordered_set<std::string> toInstall() const;
 
-    inline InstallItems(
-        std::unordered_set<std::string> const& toInstall
-    ) : m_toInstall(toInstall) {}
+    inline InstallItems(std::unordered_set<std::string> const& toInstall) :
+        m_toInstall(toInstall) {}
 
     void cancel();
     bool finished() const;
@@ -91,9 +87,7 @@ protected:
     void addIndexItemFromFolder(ghc::filesystem::path const& dir);
     Result<> updateIndexFromLocalCache();
 
-    Result<std::vector<std::string>> checkDependenciesForItem(
-        IndexItem const& item
-    );
+    Result<std::vector<std::string>> checkDependenciesForItem(IndexItem const& item);
 
     friend struct InstallItems;
 

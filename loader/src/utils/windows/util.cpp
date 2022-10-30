@@ -5,58 +5,57 @@
 
 USE_GEODE_NAMESPACE();
 
-#include <iostream>
-#include <sstream>
-#include <Windows.h>
-#include <shobjidl.h>
-#include <shlwapi.h>
-#include "nfdwin.hpp"
+    #include "nfdwin.hpp"
+
+    #include <Windows.h>
+    #include <iostream>
+    #include <shlwapi.h>
+    #include <shobjidl.h>
+    #include <sstream>
 
 bool utils::clipboard::write(std::string const& data) {
-    if (!OpenClipboard(nullptr))
-        return false;
+    if (!OpenClipboard(nullptr)) return false;
     if (!EmptyClipboard()) {
         CloseClipboard();
         return false;
     }
 
     HGLOBAL hg = GlobalAlloc(GMEM_MOVEABLE, data.size() + 1);
-    
-	if (!hg) {
-		CloseClipboard();
-		return false;
-	}
 
-	auto dest = GlobalLock(hg);
+    if (!hg) {
+        CloseClipboard();
+        return false;
+    }
 
-	if (!dest) {
-		CloseClipboard();
-		return false;
-	}
+    auto dest = GlobalLock(hg);
 
-	memcpy(dest, data.c_str(), data.size() + 1);
+    if (!dest) {
+        CloseClipboard();
+        return false;
+    }
 
-	GlobalUnlock(hg);
+    memcpy(dest, data.c_str(), data.size() + 1);
 
-	SetClipboardData(CF_TEXT, hg);
-	CloseClipboard();
+    GlobalUnlock(hg);
 
-	GlobalFree(hg);
+    SetClipboardData(CF_TEXT, hg);
+    CloseClipboard();
+
+    GlobalFree(hg);
 
     return true;
 }
 
 std::string utils::clipboard::read() {
-    if (!OpenClipboard(nullptr))
-        return "";
-    
+    if (!OpenClipboard(nullptr)) return "";
+
     HANDLE hData = GetClipboardData(CF_TEXT);
     if (hData == nullptr) {
         CloseClipboard();
         return "";
     }
 
-    char * pszText = static_cast<char*>(GlobalLock(hData));
+    char* pszText = static_cast<char*>(GlobalLock(hData));
     if (pszText == nullptr) {
         CloseClipboard();
         return "";
@@ -75,13 +74,12 @@ ghc::filesystem::path utils::file::geodeRoot() {
 }
 
 bool utils::file::openFolder(ghc::filesystem::path const& path) {
-	ShellExecuteA(NULL, "open", path.string().c_str(), NULL, NULL, SW_SHOWDEFAULT);
-	return true;
+    ShellExecuteA(NULL, "open", path.string().c_str(), NULL, NULL, SW_SHOWDEFAULT);
+    return true;
 }
 
 Result<ghc::filesystem::path> utils::file::pickFile(
-    file::PickMode mode,
-    file::FilePickOptions const& options
+    file::PickMode mode, file::FilePickOptions const& options
 ) {
     #define TURN_INTO_NFDMODE(mode) \
         case file::PickMode::mode: nfdMode = NFDMode::mode; break;

@@ -1,8 +1,8 @@
 #pragma once
 
+#include <Geode/loader/SettingNode.hpp>
 #include <Geode/ui/Popup.hpp>
 #include <Geode/utils/Ref.hpp>
-#include <Geode/loader/SettingNode.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -14,15 +14,14 @@ protected:
     ButtonSprite* m_applyBtnSpr;
 
     void settingValueChanged(SettingNode* node) override;
-    
+
     bool setup(Mod* mod) override;
     bool hasUncommitted() const;
     void onClose(CCObject*) override;
     void onApply(CCObject*);
     void onResetAll(CCObject*);
     void onOpenSaveDirectory(CCObject*);
-    
+
 public:
     static ModSettingsPopup* create(Mod* mod);
 };
-

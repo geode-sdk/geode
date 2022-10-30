@@ -1,24 +1,25 @@
-#include <Geode/loader/Mod.hpp>
+#include "../core/Core.hpp"
+
 #include <Geode/loader/Loader.hpp>
+#include <Geode/loader/Log.hpp>
+#include <Geode/loader/Mod.hpp>
 #include <Geode/loader/SettingEvent.hpp>
 #include <InternalLoader.hpp>
 #include <InternalMod.hpp>
-#include <Geode/loader/Log.hpp>
-#include "../core/Core.hpp"
 #include <array>
 
 int geodeEntry(void* platformData);
 // platform-specific entry points
 
 #if defined(GEODE_IS_IOS) || defined(GEODE_IS_MACOS)
-#include <mach-o/dyld.h>
-#include <unistd.h>
-#include <dlfcn.h>
+    #include <dlfcn.h>
+    #include <mach-o/dyld.h>
+    #include <unistd.h>
 
 std::length_error::~length_error() _NOEXCEPT {} // do not ask...
 
-// camila has an old ass macos and this function turned 
-// from dynamic to static thats why she needs to define it 
+// camila has an old ass macos and this function turned
+// from dynamic to static thats why she needs to define it
 // this is what old versions does to a silly girl
 
 __attribute__((constructor)) void _entry() {
@@ -41,8 +42,7 @@ __attribute__((constructor)) void _entry() {
 
     if (ghc::filesystem::exists(updatesDir / "GeodeBootstrapper.dylib", error) && !error) {
         ghc::filesystem::rename(
-            updatesDir / "GeodeBootstrapper.dylib", 
-            libDir / "GeodeBootstrapper.dylib", error
+            updatesDir / "GeodeBootstrapper.dylib", libDir / "GeodeBootstrapper.dylib", error
         );
         if (error) return;
     }
@@ -51,7 +51,7 @@ __attribute__((constructor)) void _entry() {
 }
 
 #elif defined(GEODE_IS_WINDOWS)
-#include <Windows.h>
+    #include <Windows.h>
 
 DWORD WINAPI loadThread(void* arg) {
     bool canMoveBootstrapper = true;
@@ -69,8 +69,7 @@ DWORD WINAPI loadThread(void* arg) {
 
         if (ghc::filesystem::exists(updatesDir / "GeodeBootstrapper.dll", error) && !error) {
             ghc::filesystem::rename(
-                updatesDir / "GeodeBootstrapper.dll", 
-                workingDir / "GeodeBootstrapper.dll", error
+                updatesDir / "GeodeBootstrapper.dll", workingDir / "GeodeBootstrapper.dll", error
             );
             if (error) return error.value();
         }
@@ -102,7 +101,8 @@ static auto _ = listenForSettingChanges(
     +[](std::shared_ptr<BoolSetting> setting) {
         if (setting->getValue()) {
             Loader::get()->openPlatformConsole();
-        } else {
+        }
+        else {
             Loader::get()->closePlatfromConsole();
         }
     }
@@ -132,8 +132,8 @@ int geodeEntry(void* platformData) {
     geode_implicit_load(InternalMod::get());
 
     if (!InternalLoader::get()->setup()) {
-        // if we've made it here, Geode will 
-        // be gettable (otherwise the call to 
+        // if we've made it here, Geode will
+        // be gettable (otherwise the call to
         // setup would've immediately crashed)
 
         InternalLoader::platformMessageBox(
@@ -159,7 +159,7 @@ int geodeEntry(void* platformData) {
     }
 
     log::debug("Set up loader");
-    
+
     if (InternalMod::get()->getSettingValue<bool>("show-platform-console")) {
         Loader::get()->openPlatformConsole();
     }
