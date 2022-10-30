@@ -1,10 +1,11 @@
 #include "ModSettingsPopup.hpp"
-#include <Geode/ui/ScrollLayer.hpp>
-#include <Geode/loader/Setting.hpp>
-#include <Geode/utils/cocos.hpp>
-#include <Geode/utils/convert.hpp>
+
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/loader/Mod.hpp>
+#include <Geode/loader/Setting.hpp>
+#include <Geode/ui/ScrollLayer.hpp>
+#include <Geode/utils/cocos.hpp>
+#include <Geode/utils/convert.hpp>
 
 bool ModSettingsPopup::setup(Mod* mod) {
     m_noElasticity = true;
@@ -20,7 +21,7 @@ bool ModSettingsPopup::setup(Mod* mod) {
     layerBG->setContentSize(layerSize);
     layerBG->setPosition(winSize / 2 - layerSize / 2);
     m_mainLayer->addChild(layerBG);
-    
+
     auto layer = ScrollLayer::create(layerSize);
     layer->setPosition(winSize / 2 - layerSize / 2);
 
@@ -46,7 +47,8 @@ bool ModSettingsPopup::setup(Mod* mod) {
             rendered.push_back(bg);
 
             hasBG = false;
-        } else {
+        }
+        else {
             hasBG = true;
         }
 
@@ -54,13 +56,12 @@ bool ModSettingsPopup::setup(Mod* mod) {
         layer->m_contentLayer->addChild(node);
 
         auto separator = CCLayerColor::create(
-            { 0, 0, 0, static_cast<GLubyte>(hasBG ? 100 : 50) },
-            layerSize.width, 1.f
+            { 0, 0, 0, static_cast<GLubyte>(hasBG ? 100 : 50) }, layerSize.width, 1.f
         );
         separator->setPosition(0.f, -totalHeight);
         layer->m_contentLayer->addChild(separator);
         rendered.push_back(separator);
-        
+
         rendered.push_back(node);
         m_settings.push_back(node);
     }
@@ -77,51 +78,33 @@ bool ModSettingsPopup::setup(Mod* mod) {
 
     // layer borders
 
-    auto layerTopSpr = CCSprite::createWithSpriteFrameName(
-        "GJ_commentTop_001.png"
+    auto layerTopSpr = CCSprite::createWithSpriteFrameName("GJ_commentTop_001.png");
+    layerTopSpr->setPosition({ winSize.width / 2, winSize.height / 2 + layerSize.height / 2 - 5.f }
     );
-    layerTopSpr->setPosition({
-        winSize.width / 2,
-        winSize.height / 2 + layerSize.height / 2 - 5.f
-    });
     m_mainLayer->addChild(layerTopSpr);
 
-    auto layerBottomSpr = CCSprite::createWithSpriteFrameName(
-        "GJ_commentTop_001.png"
-    );
+    auto layerBottomSpr = CCSprite::createWithSpriteFrameName("GJ_commentTop_001.png");
     layerBottomSpr->setFlipY(true);
-    layerBottomSpr->setPosition({
-        winSize.width / 2,
-        winSize.height / 2 - layerSize.height / 2 + 5.f
-    });
+    layerBottomSpr->setPosition({ winSize.width / 2,
+                                  winSize.height / 2 - layerSize.height / 2 + 5.f });
     m_mainLayer->addChild(layerBottomSpr);
 
-    auto layerLeftSpr = CCSprite::createWithSpriteFrameName(
-        "GJ_commentSide_001.png"
-    );
+    auto layerLeftSpr = CCSprite::createWithSpriteFrameName("GJ_commentSide_001.png");
     layerLeftSpr->setScaleY(6.3f);
-    layerLeftSpr->setPosition({
-        winSize.width / 2 - layerSize.width / 2 - .5f,
-        winSize.height / 2
-    });
+    layerLeftSpr->setPosition({ winSize.width / 2 - layerSize.width / 2 - .5f, winSize.height / 2 }
+    );
     m_mainLayer->addChild(layerLeftSpr);
 
-    auto layerRightSpr = CCSprite::createWithSpriteFrameName(
-        "GJ_commentSide_001.png"
-    );
+    auto layerRightSpr = CCSprite::createWithSpriteFrameName("GJ_commentSide_001.png");
     layerRightSpr->setScaleY(6.3f);
     layerRightSpr->setFlipX(true);
-    layerRightSpr->setPosition({
-        winSize.width / 2 + layerSize.width / 2 + .5f,
-        winSize.height / 2
-    });
+    layerRightSpr->setPosition({ winSize.width / 2 + layerSize.width / 2 + .5f, winSize.height / 2 }
+    );
     m_mainLayer->addChild(layerRightSpr);
 
     // buttons
 
-    m_applyBtnSpr = ButtonSprite::create(
-        "Apply", "goldFont.fnt", "GJ_button_01.png", .7f
-    );
+    m_applyBtnSpr = ButtonSprite::create("Apply", "goldFont.fnt", "GJ_button_01.png", .7f);
     m_applyBtnSpr->setScale(.7f);
 
     m_applyBtn = CCMenuItemSpriteExtra::create(
@@ -130,12 +113,7 @@ bool ModSettingsPopup::setup(Mod* mod) {
     m_applyBtn->setPosition(.0f, -m_size.height / 2 + 20.f);
     m_buttonMenu->addChild(m_applyBtn);
 
-    auto resetBtnSpr = ButtonSprite::create(
-        "Reset All",
-        "goldFont.fnt",
-        "GJ_button_05.png",
-        .7f
-    );
+    auto resetBtnSpr = ButtonSprite::create("Reset All", "goldFont.fnt", "GJ_button_05.png", .7f);
     resetBtnSpr->setScale(.7f);
 
     auto resetBtn = CCMenuItemSpriteExtra::create(
@@ -144,12 +122,8 @@ bool ModSettingsPopup::setup(Mod* mod) {
     resetBtn->setPosition(-m_size.width / 2 + 45.f, -m_size.height / 2 + 20.f);
     m_buttonMenu->addChild(resetBtn);
 
-    auto openDirBtnSpr = ButtonSprite::create(
-        "Open Folder",
-        "goldFont.fnt",
-        "GJ_button_05.png",
-        .7f
-    );
+    auto openDirBtnSpr =
+        ButtonSprite::create("Open Folder", "goldFont.fnt", "GJ_button_05.png", .7f);
     openDirBtnSpr->setScale(.7f);
 
     auto openDirBtn = CCMenuItemSpriteExtra::create(
@@ -172,11 +146,7 @@ void ModSettingsPopup::onApply(CCObject*) {
         }
     }
     if (!someChangesMade) {
-        FLAlertLayer::create(
-            "Info",
-            "No changes have been made.",
-            "OK"
-        )->show();
+        FLAlertLayer::create("Info", "No changes have been made.", "OK")->show();
     }
 }
 
@@ -200,7 +170,8 @@ void ModSettingsPopup::settingValueChanged(SettingNode*) {
     if (this->hasUncommitted()) {
         m_applyBtnSpr->setColor(cc3x(0xf));
         m_applyBtn->setEnabled(true);
-    } else {
+    }
+    else {
         m_applyBtnSpr->setColor(cc3x(0x4));
         m_applyBtn->setEnabled(false);
     }

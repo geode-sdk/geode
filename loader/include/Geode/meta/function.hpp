@@ -26,7 +26,7 @@ namespace geode::core::meta {
 
     public:
         template <class Pointer>
-        Function(const Pointer& addr) : addr(reinterpret_cast<void*>(addr)) {}
+        Function(Pointer const& addr) : addr(reinterpret_cast<void*>(addr)) {}
 
         decltype(auto) operator()(Args... all) const {
             return MyConv::invoke(addr, all...);

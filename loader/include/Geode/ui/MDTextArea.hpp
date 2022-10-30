@@ -1,15 +1,16 @@
 #pragma once
 
-#include <Geode/binding/FLAlertLayerProtocol.hpp>
-#include "TextRenderer.hpp"
 #include "ScrollLayer.hpp"
+#include "TextRenderer.hpp"
+
+#include <Geode/binding/FLAlertLayerProtocol.hpp>
 
 struct MDParser;
 class CCScrollLayerExt;
 
 namespace geode {
     /**
-     * TextArea for static markdown content. Supports the 
+     * TextArea for static markdown content. Supports the
      * following features:
      *  - Links
      *  - Images (sprites & spritesheets)
@@ -23,16 +24,15 @@ namespace geode {
      *  - Bold & italic
      *  - Horizontal rules
      *  - Lists
-     * Note that links also have some special protocols. 
-     * Use `user:<id>` or `user:<name>` to link to a GD 
-     * account; `level:<id>` to link to a GD level and 
+     * Note that links also have some special protocols.
+     * Use `user:<id>` or `user:<name>` to link to a GD
+     * account; `level:<id>` to link to a GD level and
      * `mod:<id>` to link to another Geode mod.
      */
     class GEODE_DLL MDTextArea :
         public cocos2d::CCLayer,
         public cocos2d::CCLabelProtocol,
-        public FLAlertLayerProtocol
-    {
+        public FLAlertLayerProtocol {
     protected:
         std::string m_text;
         cocos2d::CCSize m_size;
@@ -67,8 +67,8 @@ namespace geode {
          */
         void updateLabel();
 
-        void setString(const char* text) override;
-        const char* getString() override;
+        void setString(char const* text) override;
+        char const* getString() override;
 
         CCScrollLayerExt* getScrollLayer() const;
     };

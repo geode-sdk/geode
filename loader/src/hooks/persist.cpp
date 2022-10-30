@@ -2,6 +2,7 @@
 
 USE_GEODE_NAMESPACE();
 
+// clang-format off
 #include <Geode/modify/AchievementNotifier.hpp>
 class $modify(AchievementNotifier) {
     void willSwitchToScene(CCScene* scene) {
@@ -9,3 +10,4 @@ class $modify(AchievementNotifier) {
         SceneManager::get()->willSwitchToScene(scene);
     }
 };
+// clang-format on

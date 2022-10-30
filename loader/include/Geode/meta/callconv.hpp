@@ -20,7 +20,7 @@ namespace geode::core::meta {
         template <auto>
         class arr_to_seq_impl;
 
-        template <class Type, size_t length, const std::array<Type, length>* arr>
+        template <class Type, size_t length, std::array<Type, length> const* arr>
         class arr_to_seq_impl<arr> {
         private:
             template <class>

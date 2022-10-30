@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Setting.hpp"
+
 #include <cocos2d.h>
 
 namespace geode {

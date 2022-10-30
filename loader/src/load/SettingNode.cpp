@@ -4,6 +4,7 @@
 USE_GEODE_NAMESPACE();
 
 void SettingNodeDelegate::settingValueChanged(SettingNode* node) {}
+
 void SettingNodeDelegate::settingValueCommitted(SettingNode* node) {}
 
 bool SettingNode::init(std::shared_ptr<Setting> setting) {

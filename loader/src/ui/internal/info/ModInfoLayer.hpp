@@ -2,9 +2,9 @@
 
 #include <Geode/binding/FLAlertLayer.hpp>
 #include <Geode/binding/FLAlertLayerProtocol.hpp>
-#include <Index.hpp>
 #include <Geode/ui/MDTextArea.hpp>
 #include <Geode/ui/Scrollbar.hpp>
+#include <Index.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -25,10 +25,7 @@ public:
     void setStatus(std::string const& text);
 };
 
-class ModInfoLayer :
-    public FLAlertLayer,
-    public FLAlertLayerProtocol
-{
+class ModInfoLayer : public FLAlertLayer, public FLAlertLayerProtocol {
 protected:
     Mod* m_mod = nullptr;
     ModInfo m_info;
@@ -63,10 +60,7 @@ protected:
     void updateInstallStatus(std::string const& status, uint8_t progress);
 
     void modInstallProgress(
-        InstallHandle handle,
-        UpdateStatus status,
-        std::string const& info,
-        uint8_t percentage
+        InstallHandle handle, UpdateStatus status, std::string const& info, uint8_t percentage
     );
     void FLAlert_Clicked(FLAlertLayer*, bool) override;
 
@@ -74,7 +68,7 @@ protected:
 
     void keyDown(cocos2d::enumKeyCodes) override;
     void onClose(cocos2d::CCObject*);
-    
+
 public:
     static ModInfoLayer* create(Mod* mod, ModListView* list);
     static ModInfoLayer* create(ModObject* obj, ModListView* list);

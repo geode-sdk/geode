@@ -1,9 +1,10 @@
 #pragma once
 
+#include "NewResult.hpp"
+#include "types.hpp"
+
 #include <Geode/DefaultInclude.hpp>
 #include <string_view>
-#include "types.hpp"
-#include "NewResult.hpp"
 
 namespace geode {
     /**
@@ -30,11 +31,14 @@ namespace geode {
     class [[nodiscard]] Result {
     protected:
         bool success;
+
         union {
             T my_value;
             E error_msg;
         };
+
         Result(const T value) : success(true), my_value(value) {}
+
         Result(const E error, int dummy) : success(false), error_msg(error) {}
 
     public:
@@ -46,13 +50,14 @@ namespace geode {
                 if (std::is_destructible<T>::value) {
                     my_value.~T();
                 }
-            } else {
+            }
+            else {
                 if (std::is_destructible<E>::value) {
                     error_msg.~E();
                 }
             }
         }
-        
+
         /**
          * Copy another Result of the same type
          */
@@ -60,7 +65,8 @@ namespace geode {
             if (other.success) {
                 this->success = true;
                 new (&this->my_value) T(other.value());
-            } else {
+            }
+            else {
                 this->success = false;
                 new (&this->error_msg) E(other.error());
             }
@@ -69,14 +75,15 @@ namespace geode {
         /**
          * Copy another Result of a convertible type
          */
-        template<class T2, class E2>
+        template <class T2, class E2>
         Result(Result<T2, E2> const& other) {
             if (other.is_value()) {
                 this->success = true;
                 if constexpr (!std::is_same<T, no_result>::value) {
                     new (&this->my_value) T(other.value());
                 }
-            } else {
+            }
+            else {
                 this->success = false;
                 new (&this->error_msg) E(other.error());
             }
@@ -86,43 +93,57 @@ namespace geode {
          * Check if Result was errorful
          * @returns True if errorful
          */
-        bool is_error() const { return !success; }
+        bool is_error() const {
+            return !success;
+        }
 
         /**
          * Check if Result was succesful
          * @returns True if succesful
          */
-        bool is_value() const { return success; }
-        
+        bool is_value() const {
+            return success;
+        }
+
         /**
          * Get the success value of a Result
          * @returns Value
          */
-        auto value() const { return my_value; }
-        
+        auto value() const {
+            return my_value;
+        }
+
         /**
          * Get the error message of a Result
          * @returns Error
          */
-        auto error() const { return error_msg; }
+        auto error() const {
+            return error_msg;
+        }
 
         /**
          * Convert to bool
          * @example if (result) { <handle success> } else { <handle failure> }
          */
-        explicit operator bool() const { return this->success; }
+        explicit operator bool() const {
+            return this->success;
+        }
 
         /**
          * Create a success result
          * @param value Value
          */
-        static auto ok(const T value) { return Result<T>(value); }
-        
+        static auto ok(const T value) {
+            return Result<T>(value);
+        }
+
         /**
          * Create an error result
          * @param error Error information
          */
-        static auto err(E error) { return Result<T>(error, 0); }
+        static auto err(E error) {
+            return Result<T>(error, 0);
+        }
     };
 
     /**
@@ -131,8 +152,7 @@ namespace geode {
      * @returns Successful Result
      */
     template <class T = no_result>
-    [[nodiscard]] 
-    Result<T> Ok(T value = T()) {
+    [[nodiscard]] Result<T> Ok(T value = T()) {
         return Result<T>::ok(value);
     }
 
@@ -145,7 +165,9 @@ namespace geode {
     template <class E = std::string>
     struct [[nodiscard]] Err {
         const E _value;
-        Err(const TypeIdentityType<E> value) : _value(value) {}
+
+        Err(TypeIdentityType<E> const value) : _value(value) {}
+
         template <class T>
         operator Result<T, E>() const {
             return Result<T, E>::err(_value);

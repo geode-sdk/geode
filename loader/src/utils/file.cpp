@@ -35,11 +35,11 @@ Result<std::string> utils::file::readString(std::wstring const& path) {
 #endif
 
 Result<std::string> utils::file::readString(ghc::filesystem::path const& path) {
-    #if _WIN32
+#if _WIN32
     std::ifstream in(path.wstring(), std::ios::in | std::ios::binary);
-    #else
+#else
     std::ifstream in(path.string(), std::ios::in | std::ios::binary);
-    #endif
+#endif
     if (in) {
         std::string contents;
         in.seekg(0, std::ios::end);
@@ -55,7 +55,7 @@ Result<std::string> utils::file::readString(ghc::filesystem::path const& path) {
 Result<byte_array> utils::file::readBinary(std::string const& path) {
     std::ifstream in(path, std::ios::in | std::ios::binary);
     if (in) {
-        return Ok(byte_array (std::istreambuf_iterator<char>(in), {}));
+        return Ok(byte_array(std::istreambuf_iterator<char>(in), {}));
     }
     return Err("Unable to open file");
 }
@@ -64,20 +64,20 @@ Result<byte_array> utils::file::readBinary(std::string const& path) {
 Result<byte_array> utils::file::readBinary(std::wstring const& path) {
     std::ifstream in(path, std::ios::in | std::ios::binary);
     if (in) {
-        return Ok(byte_array (std::istreambuf_iterator<char>(in), {}));
+        return Ok(byte_array(std::istreambuf_iterator<char>(in), {}));
     }
     return Err("Unable to open file");
 }
 #endif
 
 Result<byte_array> utils::file::readBinary(ghc::filesystem::path const& path) {
-    #if _WIN32
+#if _WIN32
     std::ifstream in(path.wstring(), std::ios::in | std::ios::binary);
-    #else
+#else
     std::ifstream in(path.string(), std::ios::in | std::ios::binary);
-    #endif
+#endif
     if (in) {
-        return Ok(byte_array (std::istreambuf_iterator<char>(in), {}));
+        return Ok(byte_array(std::istreambuf_iterator<char>(in), {}));
     }
     return Err("Unable to open file");
 }
@@ -112,11 +112,11 @@ Result<> utils::file::writeString(std::wstring const& path, std::string const& d
 
 Result<> utils::file::writeString(ghc::filesystem::path const& path, std::string const& data) {
     std::ofstream file;
-    #if _WIN32
+#if _WIN32
     file.open(path.wstring());
-    #else
+#else
     file.open(path.string());
-    #endif
+#endif
     if (file.is_open()) {
         file << data;
         file.close();
@@ -131,7 +131,7 @@ Result<> utils::file::writeBinary(std::string const& path, byte_array const& dat
     std::ofstream file;
     file.open(path, std::ios::out | std::ios::binary);
     if (file.is_open()) {
-        file.write(reinterpret_cast<const char*>(data.data()), data.size());
+        file.write(reinterpret_cast<char const*>(data.data()), data.size());
         file.close();
 
         return Ok<>();
@@ -145,7 +145,7 @@ Result<> utils::file::writeBinary(std::wstring const& path, byte_array const& da
     std::ofstream file;
     file.open(path, std::ios::out | std::ios::binary);
     if (file.is_open()) {
-        file.write(reinterpret_cast<const char*>(data.data()), data.size());
+        file.write(reinterpret_cast<char const*>(data.data()), data.size());
         file.close();
 
         return Ok<>();
@@ -157,13 +157,13 @@ Result<> utils::file::writeBinary(std::wstring const& path, byte_array const& da
 
 Result<> utils::file::writeBinary(ghc::filesystem::path const& path, byte_array const& data) {
     std::ofstream file;
-    #if _WIN32
+#if _WIN32
     file.open(path.wstring(), std::ios::out | std::ios::binary);
-    #else
+#else
     file.open(path.string(), std::ios::out | std::ios::binary);
-    #endif
+#endif
     if (file.is_open()) {
-        file.write(reinterpret_cast<const char*>(data.data()), data.size());
+        file.write(reinterpret_cast<char const*>(data.data()), data.size());
         file.close();
 
         return Ok<>();
@@ -177,7 +177,9 @@ Result<> utils::file::createDirectory(std::string const& path) {
         if (ghc::filesystem::create_directory(path)) {
             return Ok<>();
         }
-    } catch(...) {}
+    }
+    catch (...) {
+    }
     return Err<>("Unable to create directory");
 }
 
@@ -186,7 +188,9 @@ Result<> utils::file::createDirectory(ghc::filesystem::path const& path) {
         if (ghc::filesystem::create_directory(path)) {
             return Ok<>();
         }
-    } catch(...) {}
+    }
+    catch (...) {
+    }
     return Err<>("Unable to create directory");
 }
 
@@ -195,7 +199,9 @@ Result<> utils::file::createDirectoryAll(std::string const& path) {
         if (ghc::filesystem::create_directories(path)) {
             return Ok<>();
         }
-    } catch(...) {}
+    }
+    catch (...) {
+    }
     return Err<>("Unable to create directories");
 }
 
@@ -204,13 +210,14 @@ Result<> utils::file::createDirectoryAll(ghc::filesystem::path const& path) {
         if (ghc::filesystem::create_directories(path)) {
             return Ok<>();
         }
-    } catch(...) {}
+    }
+    catch (...) {
+    }
     return Err<>("Unable to create directories");
 }
 
 Result<std::vector<std::string>> utils::file::listFiles(std::string const& path) {
-    if (!ghc::filesystem::exists(path))
-        return Err<>("Directory does not exist");
+    if (!ghc::filesystem::exists(path)) return Err<>("Directory does not exist");
 
     std::vector<std::string> res;
     for (auto const& file : ghc::filesystem::directory_iterator(path)) {
@@ -220,9 +227,8 @@ Result<std::vector<std::string>> utils::file::listFiles(std::string const& path)
 }
 
 Result<std::vector<std::string>> utils::file::listFilesRecursively(std::string const& path) {
-    if (!ghc::filesystem::exists(path))
-        return Err<>("Directory does not exist");
-    
+    if (!ghc::filesystem::exists(path)) return Err<>("Directory does not exist");
+
     std::vector<std::string> res;
     for (auto const& file : ghc::filesystem::recursive_directory_iterator(path)) {
         res.push_back(file.path().string());
@@ -230,36 +236,24 @@ Result<std::vector<std::string>> utils::file::listFilesRecursively(std::string c
     return Ok<>(res);
 }
 
-Result<> utils::file::unzipTo(
-    ghc::filesystem::path const& from,
-    ghc::filesystem::path const& to
-) {
+Result<> utils::file::unzipTo(ghc::filesystem::path const& from, ghc::filesystem::path const& to) {
     // unzip downloaded
     auto unzip = ZipFile(from.string());
     if (!unzip.isLoaded()) {
         return Err("Unable to unzip index.zip");
     }
 
-    if (
-        !ghc::filesystem::exists(to) &&
-        !ghc::filesystem::create_directories(to)
-    ) {
-        return Err(
-            "Unable to create directories \"" + 
-            to.string() + "\""
-        );
+    if (!ghc::filesystem::exists(to) && !ghc::filesystem::create_directories(to)) {
+        return Err("Unable to create directories \"" + to.string() + "\"");
     }
 
     for (auto file : unzip.getAllFiles()) {
-        // this is a very bad check for seeing 
-        // if file is a directory. it seems to 
-        // work on windows at least. idk why 
-        // getAllFiles returns the directories 
+        // this is a very bad check for seeing
+        // if file is a directory. it seems to
+        // work on windows at least. idk why
+        // getAllFiles returns the directories
         // aswell now
-        if (
-            utils::string::endsWith(file, "\\") ||
-            utils::string::endsWith(file, "/")
-        ) continue;
+        if (utils::string::endsWith(file, "\\") || utils::string::endsWith(file, "/")) continue;
 
         auto zipPath = file;
 
@@ -269,14 +263,8 @@ Result<> utils::file::unzipTo(
         auto path = ghc::filesystem::path(file);
         if (path.has_parent_path()) {
             auto dir = to / path.parent_path();
-            if (
-                !ghc::filesystem::exists(dir) &&
-                !ghc::filesystem::create_directories(dir)
-            ) {
-                return Err(
-                    "Unable to create directories \"" + 
-                    dir.string() + "\""
-                );
+            if (!ghc::filesystem::exists(dir) && !ghc::filesystem::create_directories(dir)) {
+                return Err("Unable to create directories \"" + dir.string() + "\"");
             }
         }
         unsigned long size;
@@ -284,10 +272,7 @@ Result<> utils::file::unzipTo(
         if (!data || !size) {
             return Err("Unable to read \"" + std::string(zipPath) + "\"");
         }
-        auto wrt = utils::file::writeBinary(
-            to / file,
-            byte_array(data, data + size)
-        );
+        auto wrt = utils::file::writeBinary(to / file, byte_array(data, data + size));
         if (!wrt) {
             return Err("Unable to write \"" + (to / file).string() + "\": " + wrt.error());
         }

@@ -17,7 +17,8 @@ void cocos2d::from_json(nlohmann::json const& json, ccColor3B& color) {
             json.at(0).get_to(color.r);
             json.at(1).get_to(color.g);
             json.at(2).get_to(color.b);
-        } else {
+        }
+        else {
             throw nlohmann::json::type_error::create(
                 0, "Expected color array to have 3 items", json
             );
@@ -36,9 +37,7 @@ void cocos2d::from_json(nlohmann::json const& json, ccColor3B& color) {
             str.erase(str.begin());
         }
         if (str.size() > 6) {
-            throw nlohmann::json::type_error::create(
-                0, "Hex string for color too long", json
-            );
+            throw nlohmann::json::type_error::create(0, "Hex string for color too long", json);
         }
         auto c = cc3bFromHexString(str);
         if (!c) {
@@ -73,7 +72,8 @@ void cocos2d::from_json(nlohmann::json const& json, ccColor4B& color) {
             json.at(1).get_to(color.g);
             json.at(2).get_to(color.b);
             json.at(3).get_to(color.a);
-        } else {
+        }
+        else {
             throw nlohmann::json::type_error::create(
                 0, "Expected color array to have 4 items", json
             );
@@ -93,9 +93,7 @@ void cocos2d::from_json(nlohmann::json const& json, ccColor4B& color) {
             str.erase(str.begin());
         }
         if (str.size() > 8) {
-            throw nlohmann::json::type_error::create(
-                0, "Hex string for color too long", json
-            );
+            throw nlohmann::json::type_error::create(0, "Hex string for color too long", json);
         }
         auto c = cc4bFromHexString(str);
         if (!c) {
@@ -123,33 +121,42 @@ Result<ccColor3B> geode::cocos::cc3bFromHexString(std::string const& hexValue) {
     int numValue;
     try {
         numValue = std::stoi(hexValue, 0, 16);
-    } catch(...) {
+    }
+    catch (...) {
         return Err("Invalid hex value");
     }
     switch (hexValue.size()) {
-        case 6: {
-            auto r = static_cast<uint8_t>((numValue & 0xFF0000) >> 16);
-            auto g = static_cast<uint8_t>((numValue & 0x00FF00) >> 8);
-            auto b = static_cast<uint8_t>((numValue & 0x0000FF));
-            return Ok(ccc3(r, g, b));
-        } break;
+        case 6:
+            {
+                auto r = static_cast<uint8_t>((numValue & 0xFF0000) >> 16);
+                auto g = static_cast<uint8_t>((numValue & 0x00FF00) >> 8);
+                auto b = static_cast<uint8_t>((numValue & 0x0000FF));
+                return Ok(ccc3(r, g, b));
+            }
+            break;
 
-        case 3: {
-            auto r = static_cast<uint8_t>(((numValue & 0xF00) >> 8) * 17);
-            auto g = static_cast<uint8_t>(((numValue & 0x0F0) >> 4) * 17);
-            auto b = static_cast<uint8_t>(((numValue & 0x00F))      * 17);
-            return Ok(ccc3(r, g, b));
-        } break;
+        case 3:
+            {
+                auto r = static_cast<uint8_t>(((numValue & 0xF00) >> 8) * 17);
+                auto g = static_cast<uint8_t>(((numValue & 0x0F0) >> 4) * 17);
+                auto b = static_cast<uint8_t>(((numValue & 0x00F)) * 17);
+                return Ok(ccc3(r, g, b));
+            }
+            break;
 
-        case 2: {
-            auto num = static_cast<uint8_t>(numValue);
-            return Ok(ccc3(num, num, num));
-        } break;
+        case 2:
+            {
+                auto num = static_cast<uint8_t>(numValue);
+                return Ok(ccc3(num, num, num));
+            }
+            break;
 
-        case 1: {
-            auto num = static_cast<uint8_t>(numValue) * 17;
-            return Ok(ccc3(num, num, num));
-        } break;
+        case 1:
+            {
+                auto num = static_cast<uint8_t>(numValue) * 17;
+                return Ok(ccc3(num, num, num));
+            }
+            break;
 
         default: return Err("Invalid hex size, expected 1, 2, 3, or 6");
     }
@@ -165,49 +172,62 @@ Result<ccColor4B> geode::cocos::cc4bFromHexString(std::string const& hexValue) {
     int numValue;
     try {
         numValue = std::stoi(hexValue, 0, 16);
-    } catch(...) {
+    }
+    catch (...) {
         return Err("Invalid hex value");
     }
     switch (hexValue.size()) {
-        case 8: {
-            auto r = static_cast<uint8_t>((numValue & 0xFF000000) >> 24);
-            auto g = static_cast<uint8_t>((numValue & 0x00FF0000) >> 16);
-            auto b = static_cast<uint8_t>((numValue & 0x0000FF00) >> 8);
-            auto a = static_cast<uint8_t>((numValue & 0x000000FF));
-            return Ok(ccc4(r, g, b, a));
-        } break;
+        case 8:
+            {
+                auto r = static_cast<uint8_t>((numValue & 0xFF000000) >> 24);
+                auto g = static_cast<uint8_t>((numValue & 0x00FF0000) >> 16);
+                auto b = static_cast<uint8_t>((numValue & 0x0000FF00) >> 8);
+                auto a = static_cast<uint8_t>((numValue & 0x000000FF));
+                return Ok(ccc4(r, g, b, a));
+            }
+            break;
 
-        case 6: {
-            auto r = static_cast<uint8_t>((numValue & 0xFF0000) >> 16);
-            auto g = static_cast<uint8_t>((numValue & 0x00FF00) >> 8);
-            auto b = static_cast<uint8_t>((numValue & 0x0000FF));
-            return Ok(ccc4(r, g, b, 255));
-        } break;
+        case 6:
+            {
+                auto r = static_cast<uint8_t>((numValue & 0xFF0000) >> 16);
+                auto g = static_cast<uint8_t>((numValue & 0x00FF00) >> 8);
+                auto b = static_cast<uint8_t>((numValue & 0x0000FF));
+                return Ok(ccc4(r, g, b, 255));
+            }
+            break;
 
-        case 4: {
-            auto r = static_cast<uint8_t>(((numValue & 0xF000) >> 12) * 17);
-            auto g = static_cast<uint8_t>(((numValue & 0x0F00) >> 8)  * 17);
-            auto b = static_cast<uint8_t>(((numValue & 0x00F0) >> 4)  * 17);
-            auto a = static_cast<uint8_t>(((numValue & 0x000F))       * 17);
-            return Ok(ccc4(r, g, b, a));
-        } break;
+        case 4:
+            {
+                auto r = static_cast<uint8_t>(((numValue & 0xF000) >> 12) * 17);
+                auto g = static_cast<uint8_t>(((numValue & 0x0F00) >> 8) * 17);
+                auto b = static_cast<uint8_t>(((numValue & 0x00F0) >> 4) * 17);
+                auto a = static_cast<uint8_t>(((numValue & 0x000F)) * 17);
+                return Ok(ccc4(r, g, b, a));
+            }
+            break;
 
-        case 3: {
-            auto r = static_cast<uint8_t>(((numValue & 0xF00) >> 8) * 17);
-            auto g = static_cast<uint8_t>(((numValue & 0x0F0) >> 4) * 17);
-            auto b = static_cast<uint8_t>(((numValue & 0x00F))      * 17);
-            return Ok(ccc4(r, g, b, 255));
-        } break;
+        case 3:
+            {
+                auto r = static_cast<uint8_t>(((numValue & 0xF00) >> 8) * 17);
+                auto g = static_cast<uint8_t>(((numValue & 0x0F0) >> 4) * 17);
+                auto b = static_cast<uint8_t>(((numValue & 0x00F)) * 17);
+                return Ok(ccc4(r, g, b, 255));
+            }
+            break;
 
-        case 2: {
-            auto num = static_cast<uint8_t>(numValue);
-            return Ok(ccc4(num, num, num, 255));
-        } break;
+        case 2:
+            {
+                auto num = static_cast<uint8_t>(numValue);
+                return Ok(ccc4(num, num, num, 255));
+            }
+            break;
 
-        case 1: {
-            auto num = static_cast<uint8_t>(numValue) * 17;
-            return Ok(ccc4(num, num, num, 255));
-        } break;
+        case 1:
+            {
+                auto num = static_cast<uint8_t>(numValue) * 17;
+                return Ok(ccc4(num, num, num, 255));
+            }
+            break;
 
         default: return Err("Invalid hex size, expected 1, 2, 3, 4, 6, or 8");
     }
@@ -217,11 +237,11 @@ std::string geode::cocos::cc3bToHexString(ccColor3B const& color) {
     static constexpr auto digits = "0123456789ABCDEF";
     std::string output;
     output += digits[color.r >> 4 & 0xF];
-    output += digits[color.r      & 0xF];
+    output += digits[color.r & 0xF];
     output += digits[color.g >> 4 & 0xF];
-    output += digits[color.g      & 0xF];
+    output += digits[color.g & 0xF];
     output += digits[color.b >> 4 & 0xF];
-    output += digits[color.b      & 0xF];
+    output += digits[color.b & 0xF];
     return output;
 }
 
@@ -229,12 +249,12 @@ std::string geode::cocos::cc4bToHexString(ccColor4B const& color) {
     static constexpr auto digits = "0123456789ABCDEF";
     std::string output;
     output += digits[color.r >> 4 & 0xF];
-    output += digits[color.r      & 0xF];
+    output += digits[color.r & 0xF];
     output += digits[color.g >> 4 & 0xF];
-    output += digits[color.g      & 0xF];
+    output += digits[color.g & 0xF];
     output += digits[color.b >> 4 & 0xF];
-    output += digits[color.b      & 0xF];
+    output += digits[color.b & 0xF];
     output += digits[color.a >> 4 & 0xF];
-    output += digits[color.a      & 0xF];
+    output += digits[color.a & 0xF];
     return output;
 }

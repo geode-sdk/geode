@@ -7,10 +7,10 @@ class InternalMod;
 USE_GEODE_NAMESPACE();
 
 class InternalMod : public Mod {
-    protected:
-        InternalMod();
-        virtual ~InternalMod();
+protected:
+    InternalMod();
+    virtual ~InternalMod();
 
-    public:
-        static InternalMod* get();
+public:
+    static InternalMod* get();
 };

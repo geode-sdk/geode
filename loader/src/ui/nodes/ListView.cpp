@@ -1,19 +1,19 @@
-#include <Geode/ui/ListView.hpp>
 #include <Geode/binding/StatsCell.hpp>
 #include <Geode/binding/TableView.hpp>
+#include <Geode/ui/ListView.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/cocos.hpp>
 
 USE_GEODE_NAMESPACE();
 
-GenericListCell::GenericListCell(const char* name, CCSize size) :
+GenericListCell::GenericListCell(char const* name, CCSize size) :
     TableViewCell(name, size.width, size.height) {}
 
 void GenericListCell::draw() {
     reinterpret_cast<StatsCell*>(this)->StatsCell::draw();
 }
 
-GenericListCell* GenericListCell::create(const char* key, CCSize size) {
+GenericListCell* GenericListCell::create(char const* key, CCSize size) {
     auto pRet = new GenericListCell(key, size);
     if (pRet) {
         return pRet;
@@ -23,32 +23,30 @@ GenericListCell* GenericListCell::create(const char* key, CCSize size) {
 }
 
 void GenericListCell::updateBGColor(int index) {
-	if (index & 1) m_backgroundLayer->setColor(ccc3(0xc2, 0x72, 0x3e));
+    if (index & 1) m_backgroundLayer->setColor(ccc3(0xc2, 0x72, 0x3e));
     else m_backgroundLayer->setColor(ccc3(0xa1, 0x58, 0x2c));
     m_backgroundLayer->setOpacity(0xff);
 }
-
 
 void ListView::setupList() {
     if (!m_entries->count()) return;
     m_tableView->reloadData();
 
-    // fix content layer content size so the 
+    // fix content layer content size so the
     // list is properly aligned to the top
     auto coverage = calculateChildCoverage(m_tableView->m_contentLayer);
-    m_tableView->m_contentLayer->setContentSize({
-        -coverage.origin.x + coverage.size.width,
-        -coverage.origin.y + coverage.size.height
-    });
+    m_tableView->m_contentLayer->setContentSize({ -coverage.origin.x + coverage.size.width,
+                                                  -coverage.origin.y + coverage.size.height });
 
     if (m_entries->count() == 1) {
         m_tableView->moveToTopWithOffset(m_itemSeparation);
-    } else {
+    }
+    else {
         m_tableView->moveToTop();
     }
 }
 
-TableViewCell* ListView::getListCell(const char* key) {
+TableViewCell* ListView::getListCell(char const* key) {
     return GenericListCell::create(key, { this->m_width, this->m_itemSeparation });
 }
 
@@ -63,12 +61,7 @@ void ListView::loadCell(TableViewCell* cell, unsigned int index) {
     }
 }
 
-ListView* ListView::create(
-    CCArray* items,
-    float itemHeight,
-    float width,
-    float height
-) {
+ListView* ListView::create(CCArray* items, float itemHeight, float width, float height) {
     auto ret = new ListView();
     if (ret) {
         ret->m_itemSeparation = itemHeight;

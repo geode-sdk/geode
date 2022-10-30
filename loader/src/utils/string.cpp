@@ -5,9 +5,9 @@ USE_GEODE_NAMESPACE();
 
 #ifdef GEODE_IS_WINDOWS
 
-#include <cwctype>
-#include <Windows.h>
-#include <stringapiset.h>
+    #include <Windows.h>
+    #include <cwctype>
+    #include <stringapiset.h>
 
 std::string utils::string::wideToUtf8(std::wstring const& wstr) {
     int count = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), wstr.length(), NULL, 0, NULL, NULL);
@@ -26,39 +26,34 @@ std::wstring utils::string::utf8ToWide(std::string const& str) {
 #endif
 
 bool utils::string::startsWith(std::string const& str, std::string const& prefix) {
-	return str.rfind(prefix, 0) == 0;
+    return str.rfind(prefix, 0) == 0;
 }
+
 bool utils::string::startsWith(std::wstring const& str, std::wstring const& prefix) {
-	return str.rfind(prefix, 0) == 0;
+    return str.rfind(prefix, 0) == 0;
 }
+
 bool utils::string::endsWith(std::string const& str, std::string const& suffix) {
     if (suffix.size() > str.size()) return false;
     return std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
 }
+
 bool utils::string::endsWith(std::wstring const& str, std::wstring const& suffix) {
     if (suffix.size() > str.size()) return false;
     return std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
 }
 
 std::string& utils::string::toLowerIP(std::string& str) {
-    std::transform(
-        str.begin(), str.end(),
-        str.begin(),
-        [](auto c) {
-            return std::tolower(c);
-        }
-    );
+    std::transform(str.begin(), str.end(), str.begin(), [](auto c) {
+        return std::tolower(c);
+    });
     return str;
 }
 
 std::wstring& utils::string::toLowerIP(std::wstring& str) {
-    std::transform(
-        str.begin(), str.end(),
-        str.begin(),
-        [](auto c) {
-            return std::towlower(c);
-        }
-    );
+    std::transform(str.begin(), str.end(), str.begin(), [](auto c) {
+        return std::towlower(c);
+    });
     return str;
 }
 
@@ -73,24 +68,16 @@ std::wstring utils::string::toLower(std::wstring const& str) {
 }
 
 std::string& utils::string::toUpperIP(std::string& str) {
-    std::transform(
-        str.begin(), str.end(),
-        str.begin(),
-        [](auto c) {
-            return std::toupper(c);
-        }
-    );
+    std::transform(str.begin(), str.end(), str.begin(), [](auto c) {
+        return std::toupper(c);
+    });
     return str;
 }
 
 std::wstring& utils::string::toUpperIP(std::wstring& str) {
-    std::transform(
-        str.begin(), str.end(),
-        str.begin(),
-        [](auto c) {
-            return std::towupper(c);
-        }
-    );
+    std::transform(str.begin(), str.end(), str.begin(), [](auto c) {
+        return std::towupper(c);
+    });
     return str;
 }
 
@@ -105,53 +92,42 @@ std::wstring utils::string::toUpper(std::wstring const& str) {
 }
 
 std::string& utils::string::replaceIP(
-    std::string & str,
-    std::string const& orig,
-    std::string const& repl
+    std::string& str, std::string const& orig, std::string const& repl
 ) {
     std::string::size_type n = 0;
-    while ( ( n = str.find( orig, n ) ) != std::string::npos ) {
-        str.replace( n, orig.size(), repl );
+    while ((n = str.find(orig, n)) != std::string::npos) {
+        str.replace(n, orig.size(), repl);
         n += repl.size();
     }
     return str;
 }
 
 std::wstring& utils::string::replaceIP(
-    std::wstring & str,
-    std::wstring const& orig,
-    std::wstring const& repl
+    std::wstring& str, std::wstring const& orig, std::wstring const& repl
 ) {
     std::wstring::size_type n = 0;
-    while ( ( n = str.find( orig, n ) ) != std::wstring::npos ) {
-        str.replace( n, orig.size(), repl );
+    while ((n = str.find(orig, n)) != std::wstring::npos) {
+        str.replace(n, orig.size(), repl);
         n += repl.size();
     }
     return str;
 }
 
 std::string utils::string::replace(
-    std::string const& str,
-    std::string const& orig,
-    std::string const& repl
+    std::string const& str, std::string const& orig, std::string const& repl
 ) {
     auto ret = str;
     return utils::string::replaceIP(ret, orig, repl);
 }
 
 std::wstring utils::string::replace(
-    std::wstring const& str,
-    std::wstring const& orig,
-    std::wstring const& repl
+    std::wstring const& str, std::wstring const& orig, std::wstring const& repl
 ) {
     auto ret = str;
     return utils::string::replaceIP(ret, orig, repl);
 }
 
-std::vector<std::string> utils::string::split(
-    std::string const& str,
-    std::string const& split
-) {
+std::vector<std::string> utils::string::split(std::string const& str, std::string const& split) {
     std::vector<std::string> res;
     if (str.size()) {
         auto s = str;
@@ -165,10 +141,7 @@ std::vector<std::string> utils::string::split(
     return res;
 }
 
-std::vector<std::wstring> utils::string::split(
-    std::wstring const& str,
-    std::wstring const& split
-) {
+std::vector<std::wstring> utils::string::split(std::wstring const& str, std::wstring const& split) {
     std::vector<std::wstring> res;
     if (str.size()) {
         auto s = str;
@@ -214,48 +187,32 @@ bool utils::string::contains(std::wstring const& str, std::wstring::value_type c
     return str.find(c) != std::wstring::npos;
 }
 
-bool utils::string::containsAny(
-    std::string const& str,
-    std::vector<std::string> const& subs
-) {
+bool utils::string::containsAny(std::string const& str, std::vector<std::string> const& subs) {
     for (auto const& sub : subs) {
-        if (utils::string::contains(str, sub))
-            return true;
+        if (utils::string::contains(str, sub)) return true;
     }
     return false;
 }
 
-bool utils::string::containsAny(
-    std::wstring const& str,
-    std::vector<std::wstring> const& subs
-) {
+bool utils::string::containsAny(std::wstring const& str, std::vector<std::wstring> const& subs) {
     for (auto const& sub : subs) {
-        if (utils::string::contains(str, sub))
-            return true;
+        if (utils::string::contains(str, sub)) return true;
     }
     return false;
 }
 
-bool utils::string::containsAll(
-    std::string const& str,
-    std::vector<std::string> const& subs
-) {
+bool utils::string::containsAll(std::string const& str, std::vector<std::string> const& subs) {
     bool found = true;
     for (auto const& sub : subs) {
-        if (!utils::string::contains(str, sub))
-            found = false;
+        if (!utils::string::contains(str, sub)) found = false;
     }
     return found;
 }
 
-bool utils::string::containsAll(
-    std::wstring const& str,
-    std::vector<std::wstring> const& subs
-) {
+bool utils::string::containsAll(std::wstring const& str, std::vector<std::wstring> const& subs) {
     bool found = true;
     for (auto const& sub : subs) {
-        if (!utils::string::contains(str, sub))
-            found = false;
+        if (!utils::string::contains(str, sub)) found = false;
     }
     return found;
 }
@@ -274,52 +231,52 @@ size_t utils::string::count(std::wstring const& str, wchar_t countC) {
     return res;
 }
 
-std::string& utils::string::trimLeftIP(std::string & str) {
-    str.erase(str.begin(),
-        std::find_if(str.begin(), str.end(), [](auto ch) {
-            return !std::isspace(ch);
-        }
-    ));
+std::string& utils::string::trimLeftIP(std::string& str) {
+    str.erase(str.begin(), std::find_if(str.begin(), str.end(), [](auto ch) {
+                  return !std::isspace(ch);
+              }));
     return str;
 }
 
-std::wstring& utils::string::trimLeftIP(std::wstring & str) {
-    str.erase(str.begin(),
-        std::find_if(str.begin(), str.end(), [](auto ch) {
-            return !std::isspace(ch);
-        }
-    ));
+std::wstring& utils::string::trimLeftIP(std::wstring& str) {
+    str.erase(str.begin(), std::find_if(str.begin(), str.end(), [](auto ch) {
+                  return !std::isspace(ch);
+              }));
     return str;
 }
 
-std::string& utils::string::trimRightIP(std::string & str) {
-    str.erase(std::find_if(str.rbegin(), str.rend(), [](auto ch) {
-        return !std::isspace(ch);
-    }).base(), str.end());
+std::string& utils::string::trimRightIP(std::string& str) {
+    str.erase(
+        std::find_if(
+            str.rbegin(), str.rend(),
+            [](auto ch) {
+                return !std::isspace(ch);
+            }
+        ).base(),
+        str.end()
+    );
     return str;
 }
 
-std::wstring& utils::string::trimRightIP(std::wstring & str) {
-    str.erase(std::find_if(str.rbegin(), str.rend(), [](auto ch) {
-        return !std::isspace(ch);
-    }).base(), str.end());
+std::wstring& utils::string::trimRightIP(std::wstring& str) {
+    str.erase(
+        std::find_if(
+            str.rbegin(), str.rend(),
+            [](auto ch) {
+                return !std::isspace(ch);
+            }
+        ).base(),
+        str.end()
+    );
     return str;
 }
 
-std::string& utils::string::trimIP(std::string & str) {
-    return 
-        utils::string::trimLeftIP(
-        utils::string::trimRightIP(
-            str
-        ));
+std::string& utils::string::trimIP(std::string& str) {
+    return utils::string::trimLeftIP(utils::string::trimRightIP(str));
 }
 
-std::wstring& utils::string::trimIP(std::wstring & str) {
-    return 
-        utils::string::trimLeftIP(
-        utils::string::trimRightIP(
-            str
-        ));
+std::wstring& utils::string::trimIP(std::wstring& str) {
+    return utils::string::trimLeftIP(utils::string::trimRightIP(str));
 }
 
 std::string utils::string::trimLeft(std::string const& str) {
@@ -352,13 +309,13 @@ std::wstring utils::string::trim(std::wstring const& str) {
     return utils::string::trimIP(ret);
 }
 
-std::string& utils::string::normalizeIP(std::string & str) {
+std::string& utils::string::normalizeIP(std::string& str) {
     while (utils::string::contains(str, "  "))
         utils::string::replaceIP(str, "  ", " ");
     return str;
 }
 
-std::wstring& utils::string::normalizeIP(std::wstring & str) {
+std::wstring& utils::string::normalizeIP(std::wstring& str) {
     while (utils::string::contains(str, L"  "))
         utils::string::replaceIP(str, L"  ", L" ");
     return str;

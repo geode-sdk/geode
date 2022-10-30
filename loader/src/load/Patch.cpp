@@ -1,13 +1,12 @@
 #include <Geode/loader/Hook.hpp>
-#include <vector>
-#include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Loader.hpp>
+#include <Geode/loader/Mod.hpp>
 #include <Geode/utils/casts.hpp>
-#include <Geode/utils/vector.hpp>
 #include <Geode/utils/ranges.hpp>
+#include <Geode/utils/vector.hpp>
 #include <InternalLoader.hpp>
-
 #include <lilac/include/geode/core/hook/hook.hpp>
+#include <vector>
 
 USE_GEODE_NAMESPACE();
 
@@ -43,13 +42,9 @@ Result<> Mod::unpatch(Patch* patch) {
 }
 
 bool Patch::apply() {
-    return lilac::hook::write_memory(
-        m_address, m_patch.data(), m_patch.size()
-    );
+    return lilac::hook::write_memory(m_address, m_patch.data(), m_patch.size());
 }
 
 bool Patch::restore() {
-    return lilac::hook::write_memory(
-        m_address, m_original.data(), m_original.size()
-    );
+    return lilac::hook::write_memory(m_address, m_original.data(), m_original.size());
 }

@@ -1,8 +1,8 @@
-#include <about.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Mod.hpp>
-#include <Geode/utils/string.hpp>
 #include <Geode/utils/file.hpp>
+#include <Geode/utils/string.hpp>
+#include <about.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -16,8 +16,11 @@ Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
 
     auto json = rawJson;
 
-    #define PROPAGATE(err) \
-        { auto err__ = err; if (!err__) return Err(err__.error()); }
+#define PROPAGATE(err)                         \
+    {                                          \
+        auto err__ = err;                      \
+        if (!err__) return Err(err__.error()); \
+    }
 
     JsonChecker checker(json);
     auto root = checker.root("[mod.json]").obj();
@@ -27,14 +30,8 @@ Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
 
     using nlohmann::detail::value_t;
 
-    root
-        .needs("id")
-        .validate(&Mod::validateID)
-        .into(info.m_id);
-    root
-        .needs("version")
-        .validate(&VersionInfo::validate)
-        .intoAs<std::string>(info.m_version);
+    root.needs("id").validate(&Mod::validateID).into(info.m_id);
+    root.needs("version").validate(&VersionInfo::validate).intoAs<std::string>(info.m_version);
     root.needs("name").into(info.m_name);
     root.needs("developer").into(info.m_developer);
     root.has("description").into(info.m_description);
@@ -47,17 +44,9 @@ Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
         auto obj = dep.obj();
 
         auto depobj = Dependency {};
-        obj
-            .needs("id")
-            .validate(&Mod::validateID)
-            .into(depobj.m_id);
-        obj
-            .needs("version")
-            .validate(&VersionInfo::validate)
-            .intoAs<std::string>(depobj.m_version);
-        obj
-            .has("required")
-            .into(depobj.m_required);
+        obj.needs("id").validate(&Mod::validateID).into(depobj.m_id);
+        obj.needs("version").validate(&VersionInfo::validate).intoAs<std::string>(depobj.m_version);
+        obj.has("required").into(depobj.m_required);
         obj.checkUnknownKeys();
 
         info.m_dependencies.push_back(depobj);
@@ -99,27 +88,24 @@ Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
     bool autoEndBinaryName = true;
 
     root.has("binary").is<value_t::string>().into(info.m_binaryName);
-    
+
     if (auto bin = root.has("binary").is<value_t::object>().obj()) {
         bin.has("*").into(info.m_binaryName);
         bin.has("auto").into(autoEndBinaryName);
 
-    #if defined(GEODE_IS_WINDOWS)
+#if defined(GEODE_IS_WINDOWS)
         bin.has("windows").into(info.m_binaryName);
-    #elif defined(GEODE_IS_MACOS)
+#elif defined(GEODE_IS_MACOS)
         bin.has("macos").into(info.m_binaryName);
-    #elif defined(GEODE_IS_ANDROID)
+#elif defined(GEODE_IS_ANDROID)
         bin.has("android").into(info.m_binaryName);
-    #elif defined(GEODE_IS_IOS)
+#elif defined(GEODE_IS_IOS)
         bin.has("ios").into(info.m_binaryName);
-    #endif
+#endif
     }
 
-    if (
-        root.has("binary") &&
-        autoEndBinaryName &&
-        !utils::string::endsWith(info.m_binaryName, GEODE_PLATFORM_EXTENSION)
-    ) {
+    if (root.has("binary") && autoEndBinaryName &&
+        !utils::string::endsWith(info.m_binaryName, GEODE_PLATFORM_EXTENSION)) {
         info.m_binaryName += GEODE_PLATFORM_EXTENSION;
     }
 
@@ -138,13 +124,15 @@ Result<ModInfo> ModInfo::create(ModJson const& json) {
         auto ver = json["geode"];
         if (VersionInfo::validate(ver)) {
             schema = VersionInfo(ver);
-        } else {
+        }
+        else {
             return Err(
                 "[mod.json] has no target loader version "
                 "specified, or it is invalidally formatted (required: \"[v]X.X.X\")!"
             );
         }
-    } else {
+    }
+    else {
         return Err(
             "[mod.json] has no target loader version "
             "specified, or it is invalidally formatted (required: \"[v]X.X.X\")!"
@@ -152,9 +140,8 @@ Result<ModInfo> ModInfo::create(ModJson const& json) {
     }
     if (schema < Loader::minModVersion()) {
         return Err(
-            "[mod.json] is built for an older version (" + 
-            schema.toString() + ") of Geode (current: " + 
-            Loader::minModVersion().toString() +
+            "[mod.json] is built for an older version (" + schema.toString() +
+            ") of Geode (current: " + Loader::minModVersion().toString() +
             "). Please update the mod to the latest version, "
             "and if the problem persists, contact the developer "
             "to update it."
@@ -162,9 +149,8 @@ Result<ModInfo> ModInfo::create(ModJson const& json) {
     }
     if (schema > Loader::maxModVersion()) {
         return Err(
-            "[mod.json] is built for a newer version (" + 
-            schema.toString() + ") of Geode (current: " +
-            Loader::maxModVersion().toString() +
+            "[mod.json] is built for a newer version (" + schema.toString() +
+            ") of Geode (current: " + Loader::maxModVersion().toString() +
             "). You need to update Geode in order to use "
             "this mod."
         );
@@ -176,10 +162,11 @@ Result<ModInfo> ModInfo::create(ModJson const& json) {
     }
 
     return Err(
-        "[mod.json] targets a version (" +
-        schema.toString() + ") that isn't "
-        "supported by this version (v" + 
-        LOADER_VERSION_STR + ") of geode. "
+        "[mod.json] targets a version (" + schema.toString() +
+        ") that isn't "
+        "supported by this version (v" +
+        LOADER_VERSION_STR +
+        ") of geode. "
         "This is probably a bug; report it to "
         "the Geode Development Team."
     );
@@ -201,10 +188,12 @@ Result<ModInfo> ModInfo::createFromFile(ghc::filesystem::path const& path) {
                 }
             }
             return Ok(info);
-        } catch(std::exception& e) {
+        }
+        catch (std::exception& e) {
             return Err("Unable to parse mod.json: " + std::string(e.what()));
         }
-    } catch(std::exception const& e) {
+    }
+    catch (std::exception const& e) {
         return Err(e.what());
     }
 }
@@ -227,7 +216,8 @@ Result<ModInfo> ModInfo::createFromGeodeFile(ghc::filesystem::path const& path) 
     ModJson json;
     try {
         json = ModJson::parse(std::string(read, read + readSize));
-    } catch(std::exception const& e) {
+    }
+    catch (std::exception const& e) {
         delete[] read;
         return Err<>(e.what());
     }
@@ -236,7 +226,8 @@ Result<ModInfo> ModInfo::createFromGeodeFile(ghc::filesystem::path const& path) 
 
     if (!json.is_object()) {
         return Err(
-            "\"" + path.string() + "/mod.json\" does not have an "
+            "\"" + path.string() +
+            "/mod.json\" does not have an "
             "object at root despite expected"
         );
     }
@@ -252,7 +243,7 @@ Result<ModInfo> ModInfo::createFromGeodeFile(ghc::filesystem::path const& path) 
     if (!err) {
         return Err(err.error());
     }
-    
+
     return Ok(info);
 }
 
@@ -264,10 +255,9 @@ Result<> ModInfo::addSpecialFiles(ZipFile& unzip) {
             auto fileData = unzip.getFileData(file, &readSize);
             if (!fileData || !readSize) {
                 return Err("Unable to read \"" + file + "\"");
-            } else {
-                *target = sanitizeDetailsData(
-                    std::string(fileData, fileData + readSize)
-                );
+            }
+            else {
+                *target = sanitizeDetailsData(std::string(fileData, fileData + readSize));
             }
         }
     }
@@ -288,13 +278,10 @@ Result<> ModInfo::addSpecialFiles(ghc::filesystem::path const& dir) {
     return Ok();
 }
 
-std::vector<std::pair<
-    std::string,
-    std::optional<std::string>*
->> ModInfo::getSpecialFiles() {
+std::vector<std::pair<std::string, std::optional<std::string>*>> ModInfo::getSpecialFiles() {
     return {
-        { "about.md",     &m_details },
+        { "about.md", &m_details },
         { "changelog.md", &m_changelog },
-        { "support.md",   &m_supportInfo },
+        { "support.md", &m_supportInfo },
     };
 }

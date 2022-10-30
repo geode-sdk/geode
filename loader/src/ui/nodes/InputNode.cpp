@@ -1,9 +1,9 @@
-#include <Geode/ui/InputNode.hpp>
 #include <Geode/binding/CCTextInputNode.hpp>
+#include <Geode/ui/InputNode.hpp>
 
 USE_GEODE_NAMESPACE();
 
-const char* InputNode::getString() {
+char const* InputNode::getString() {
     return m_input->getString();
 }
 
@@ -29,12 +29,10 @@ void InputNode::setEnabled(bool enabled) {
 }
 
 bool InputNode::init(
-    float width, float height,
-    const char* placeholder, const char* font,
-    std::string const& filter, int maxCharCount
+    float width, float height, char const* placeholder, char const* font, std::string const& filter,
+    int maxCharCount
 ) {
-    if (!CCMenuItem::initWithTarget(this, nullptr))
-        return false;
+    if (!CCMenuItem::initWithTarget(this, nullptr)) return false;
 
     m_bgSprite = cocos2d::extension::CCScale9Sprite::create(
         "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
@@ -46,9 +44,7 @@ bool InputNode::init(
     m_bgSprite->setPosition(width / 2, height / 2);
     this->addChild(m_bgSprite);
 
-    m_input = CCTextInputNode::create(
-        width - 10.0f, height, placeholder, font
-    );
+    m_input = CCTextInputNode::create(width - 10.0f, height, placeholder, font);
     m_input->setLabelPlaceholderColor({ 150, 150, 150 });
     m_input->setLabelPlaceholderScale(.75f);
     m_input->setMaxLabelScale(.85f);
@@ -58,10 +54,10 @@ bool InputNode::init(
         m_input->setAllowedChars(filter);
     }
     this->addChild(m_input);
-    
+
     this->setContentSize({ width, height });
     this->setAnchorPoint({ .5f, .5f });
-    
+
     this->setCascadeColorEnabled(true);
     this->setCascadeOpacityEnabled(true);
 
@@ -69,20 +65,14 @@ bool InputNode::init(
 }
 
 bool InputNode::init(
-    float width,
-    const char* placeholder,
-    const char* font,
-    std::string const& filter,
+    float width, char const* placeholder, char const* font, std::string const& filter,
     int maxCharCount
 ) {
     return init(width, 30.0f, placeholder, font, filter, maxCharCount);
 }
 
 InputNode* InputNode::create(
-    float width,
-    const char* placeholder,
-    const char* font,
-    std::string const& filter,
+    float width, char const* placeholder, char const* font, std::string const& filter,
     int maxCharCount
 ) {
     auto pRet = new InputNode();
@@ -96,34 +86,20 @@ InputNode* InputNode::create(
     return nullptr;
 }
 
-InputNode* InputNode::create(
-    float width,
-    const char* placeholder,
-    std::string const& filter
-) {
+InputNode* InputNode::create(float width, char const* placeholder, std::string const& filter) {
     return create(width, placeholder, "bigFont.fnt", filter, 69);
 }
 
 InputNode* InputNode::create(
-    float width,
-    const char* placeholder,
-    std::string const& filter,
-    int maxCharCount
+    float width, char const* placeholder, std::string const& filter, int maxCharCount
 ) {
     return create(width, placeholder, "bigFont.fnt", filter, maxCharCount);
 }
 
-InputNode* InputNode::create(
-    float width,
-    const char* placeholder,
-    const char* font
-) {
+InputNode* InputNode::create(float width, char const* placeholder, char const* font) {
     return create(width, placeholder, font, "", 69);
 }
 
-InputNode* InputNode::create(
-    float width,
-    const char* placeholder
-) {
+InputNode* InputNode::create(float width, char const* placeholder) {
     return create(width, placeholder, "bigFont.fnt");
 }

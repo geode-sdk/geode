@@ -2,7 +2,7 @@
 
 /**
  * Main class implementation, it has the structure
- * 
+ *
  * class hook0Dummy;
  * template<typename>
  * struct hook0 {};
@@ -19,39 +19,38 @@
  * struct GEODE_HIDDEN hook0<hook0Parent>: hook0Intermediate {
  *     // code stuff idk
  * };
- * 
+ *
  * I tried to make the macro as verbose as it can be but
  * I am bad at this stuff
  */
 
-#define GEODE_MODIFY_DECLARE_ANONYMOUS(base, derived)                             \
-derived##Dummy;                                                                   \
-template<class> struct derived {};                                                \
-namespace {                                                                       \
-	struct derived##Parent {};                                                    \
-	Modify<derived<derived##Parent>, base> derived##Apply;                        \
-	struct GEODE_HIDDEN derived##Intermediate : base {                            \
-		geode::modifier::FieldIntermediate<base,                                  \
-			derived##Intermediate,                                                \
-			derived<derived##Parent>                                              \
-		> m_fields;                                                               \
-	};                                                                            \
-}                                                                                 \
-template <> struct GEODE_HIDDEN derived<derived##Parent> : derived##Intermediate  \
-   
-#define GEODE_MODIFY_DECLARE(base, derived)                                       \
-derived##Dummy;                                                                   \
-struct derived;                                                                   \
-namespace {                                                                       \
-	Modify<derived, base> derived##Apply;                                         \
-	struct GEODE_HIDDEN derived##Intermediate : base {                            \
-		geode::modifier::FieldIntermediate<base,                                  \
-			derived##Intermediate,                                                \
-			derived                                                               \
-		> m_fields;                                                               \
-	};                                                                            \
-}                                                                                 \
-struct GEODE_HIDDEN derived : derived##Intermediate                               \
+#define GEODE_MODIFY_DECLARE_ANONYMOUS(base, derived)                  \
+    derived##Dummy;                                                    \
+    template <class>                                                   \
+    struct derived {};                                                 \
+    namespace {                                                        \
+        struct derived##Parent {};                                     \
+        Modify<derived<derived##Parent>, base> derived##Apply;         \
+        struct GEODE_HIDDEN derived##Intermediate : base {             \
+            mutable geode::modifier::FieldIntermediate<                \
+                base, derived##Intermediate, derived<derived##Parent>> \
+                m_fields;                                              \
+        };                                                             \
+    }                                                                  \
+    template <>                                                        \
+    struct GEODE_HIDDEN derived<derived##Parent> : derived##Intermediate
+
+#define GEODE_MODIFY_DECLARE(base, derived)                                                  \
+    derived##Dummy;                                                                          \
+    struct derived;                                                                          \
+    namespace {                                                                              \
+        Modify<derived, base> derived##Apply;                                                \
+        struct GEODE_HIDDEN derived##Intermediate : base {                                   \
+            mutable geode::modifier::FieldIntermediate<base, derived##Intermediate, derived> \
+                m_fields;                                                                    \
+        };                                                                                   \
+    }                                                                                        \
+    struct GEODE_HIDDEN derived : derived##Intermediate
 
 #define GEODE_MODIFY_REDIRECT4(base, derived) GEODE_MODIFY_DECLARE(base, derived)
 #define GEODE_MODIFY_REDIRECT3(base, derived) GEODE_MODIFY_DECLARE_ANONYMOUS(base, derived)
@@ -60,16 +59,16 @@ struct GEODE_HIDDEN derived : derived##Intermediate                             
 
 /**
  * Interfaces for the class implementation
- * 
+ *
  * class $modify(MenuLayer) {};
  * class $modify(MyMenuLayerInterface, MenuLayer) {};
  */
 
 #define GEODE_CRTP1(base) GEODE_MODIFY_REDIRECT1(base)
 #define GEODE_CRTP2(derived, base) GEODE_MODIFY_REDIRECT4(base, derived)
-#define $modify(...) GEODE_INVOKE(GEODE_CONCAT(GEODE_CRTP, GEODE_NUMBER_OF_ARGS(__VA_ARGS__)), __VA_ARGS__)
+#define $modify(...) \
+    GEODE_INVOKE(GEODE_CONCAT(GEODE_CRTP, GEODE_NUMBER_OF_ARGS(__VA_ARGS__)), __VA_ARGS__)
 #define $(...) $modify(__VA_ARGS__)
-
 
 /**
  * Get current hook class without needing to name it.
@@ -77,16 +76,15 @@ struct GEODE_HIDDEN derived : derived##Intermediate                             
  */
 #define $cls std::remove_pointer<decltype(this)>::type
 
-#define GEODE_EXECUTE_FUNC(Line_)                                 \
-template<class>                                                   \
-void _##Line_##Function();                                        \
-namespace {                                                       \
-	struct _##Line_##Unique {};                                   \
-}                                                                 \
-static inline auto _line = (Loader::get()->scheduleOnModLoad(     \
-	nullptr, &_##Line_##Function<_##Line_##Unique>                \
-), 0);                                                            \
-template<class>                                                   \
-void _##Line_##Function()
+#define GEODE_EXECUTE_FUNC(Line_)                                                              \
+    template <class>                                                                           \
+    void _##Line_##Function();                                                                 \
+    namespace {                                                                                \
+        struct _##Line_##Unique {};                                                            \
+    }                                                                                          \
+    static inline auto _line =                                                                 \
+        (Loader::get()->scheduleOnModLoad(nullptr, &_##Line_##Function<_##Line_##Unique>), 0); \
+    template <class>                                                                           \
+    void _##Line_##Function()
 
 #define $execute GEODE_EXECUTE_FUNC(__LINE__)

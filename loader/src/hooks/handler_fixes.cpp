@@ -5,46 +5,48 @@ using namespace cocos2d;
 using namespace geode::modifier;
 
 #if defined(GEODE_IS_IOS) || defined(GEODE_IS_MACOS)
-	using namespace geode::cast;
+using namespace geode::cast;
 
-#define HandlerFixFor(CCUtility)                                                                        \
-class $modify(CCUtility##HandlerTypeinfoFix, CCUtility##Handler) {                                      \
-	void destructor() {                                                                                 \
-		if (m_pDelegate) {                                                                              \
-			cocos2d::CCObject* pObject = base_cast<cocos2d::CCObject*>(m_pDelegate);                    \
-			if (pObject) {                                                                              \
-				pObject->release();                                                                     \
-			}                                                                                           \
-		}                                                                                               \
-	}                                                                                                   \
-																										\
-	bool initWithDelegate(cocos2d::CCUtility##Delegate *pDelegate) {                                    \
-		cocos2d::CCObject* pObject = base_cast<cocos2d::CCObject*>(pDelegate);                          \
-		if (pObject) {                                                                                  \
-			m_pDelegate = pDelegate;                                                                    \
-			pObject->retain();                                                                          \
-			return true;                                                                                \
-		}                                                                                               \
-		return false;                                                                                   \
-	}                                                                                                   \
-																										\
-	static cocos2d::CCUtility##Handler* handlerWithDelegate(cocos2d::CCUtility##Delegate *pDelegate) {  \
-		cocos2d::CCUtility##Handler* pHandler = new cocos2d::CCUtility##Handler();                      \
-																										\
-		if (pHandler) {                                                                                 \
-			if (pHandler->initWithDelegate(pDelegate)) {                                                \
-				pHandler->autorelease();                                                                \
-			}                                                                                           \
-			else {                                                                                      \
-				CC_SAFE_RELEASE_NULL(pHandler);                                                         \
-				pHandler = CCUtility##Handler::handlerWithDelegate(pDelegate);                          \
-			}                                                                                           \
-		}                                                                                               \
-																										\
-		return pHandler;                                                                                \
-	}                                                                                                   \
-} 
-
+    #define HandlerFixFor(CCUtility)                                                         \
+        class $modify(CCUtility##HandlerTypeinfoFix, CCUtility##Handler) {                   \
+            void destructor() {                                                              \
+                if (m_pDelegate) {                                                           \
+                    cocos2d::CCObject* pObject = base_cast<cocos2d::CCObject*>(m_pDelegate); \
+                    if (pObject) {                                                           \
+                        pObject->release();                                                  \
+                    }                                                                        \
+                }                                                                            \
+            }                                                                                \
+                                                                                             \
+            bool initWithDelegate(cocos2d::CCUtility##Delegate* pDelegate) {                 \
+                cocos2d::CCObject* pObject = base_cast<cocos2d::CCObject*>(pDelegate);       \
+                if (pObject) {                                                               \
+                    m_pDelegate = pDelegate;                                                 \
+                    pObject->retain();                                                       \
+                    return true;                                                             \
+                }                                                                            \
+                return false;                                                                \
+            }                                                                                \
+                                                                                             \
+            static cocos2d::CCUtility##Handler* handlerWithDelegate(                         \
+                cocos2d::CCUtility##Delegate* pDelegate                                      \
+            ) {                                                                              \
+                cocos2d::CCUtility##Handler* pHandler = new cocos2d::CCUtility##Handler();   \
+                                                                                             \
+                if (pHandler) {                                                              \
+                    if (pHandler->initWithDelegate(pDelegate)) {                             \
+                        pHandler->autorelease();                                             \
+                    }                                                                        \
+                    else {                                                                   \
+                        CC_SAFE_RELEASE_NULL(pHandler);                                      \
+                        pHandler = CCUtility##Handler::handlerWithDelegate(pDelegate);       \
+                    }                                                                        \
+                }                                                                            \
+                                                                                             \
+                return pHandler;                                                             \
+            }                                                                                \
+        }
+    // clang-format off
 #include <Geode/modify/CCKeypadHandler.hpp>
 HandlerFixFor(CCKeypad);
 #include <Geode/modify/CCKeyboardHandler.hpp>
@@ -138,5 +140,6 @@ class $modify(CCStandardTouchHandlerTypeinfoFix, CCStandardTouchHandler) {
 		return pHandler;
 	}
 };
+// clang-format on
 
 #endif

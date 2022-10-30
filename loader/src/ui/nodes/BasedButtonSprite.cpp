@@ -3,16 +3,16 @@
 USE_GEODE_NAMESPACE();
 
 bool BasedButtonSprite::init(CCNode* ontop, int type, int size, int color) {
-    if (!CCSprite::initWithSpriteFrameName(
-        Mod::get()->expandSpriteName(
-            CCString::createWithFormat("GEODE_blank%02d_%02d_%02d.png", type, size, color)->getCString()
-        )
-    )) return false;
+    if (!CCSprite::initWithSpriteFrameName(Mod::get()->expandSpriteName(
+            CCString::createWithFormat("GEODE_blank%02d_%02d_%02d.png", type, size, color)
+                ->getCString()
+        )))
+        return false;
 
     m_type = type;
     m_size = size;
     m_color = color;
-    
+
     if (ontop) {
         m_onTop = ontop;
         m_onTop->retain();
@@ -27,14 +27,18 @@ CCPoint BasedButtonSprite::getTopOffset() const {
     return { 0, 0 };
 }
 
-bool BasedButtonSprite::initWithSprite(const char* sprName, float sprScale, int type, int size, int color) {
+bool BasedButtonSprite::initWithSprite(
+    char const* sprName, float sprScale, int type, int size, int color
+) {
     auto spr = CCSprite::create(sprName);
     if (!spr) return false;
     spr->setScale(sprScale);
     return this->init(spr, type, size, color);
 }
 
-bool BasedButtonSprite::initWithSpriteFrameName(const char* sprName, float sprScale, int type, int size, int color) {
+bool BasedButtonSprite::initWithSpriteFrameName(
+    char const* sprName, float sprScale, int type, int size, int color
+) {
     auto spr = CCSprite::createWithSpriteFrameName(sprName);
     if (!spr) return false;
     spr->setScale(sprScale);
@@ -70,15 +74,13 @@ EditorButtonSprite* EditorButtonSprite::create(cocos2d::CCNode* top, EditorBaseC
 }
 
 EditorButtonSprite* EditorButtonSprite::createWithSprite(
-    const char* sprName,
-    float sprScale,
-    EditorBaseColor color
+    char const* sprName, float sprScale, EditorBaseColor color
 ) {
     auto ret = new EditorButtonSprite();
-    if (ret && ret->initWithSprite(
-        sprName, sprScale,
-        static_cast<int>(BaseType::Editor), 0, static_cast<int>(color))
-    ) {
+    if (ret &&
+        ret->initWithSprite(
+            sprName, sprScale, static_cast<int>(BaseType::Editor), 0, static_cast<int>(color)
+        )) {
         ret->autorelease();
         return ret;
     }
@@ -87,15 +89,13 @@ EditorButtonSprite* EditorButtonSprite::createWithSprite(
 }
 
 EditorButtonSprite* EditorButtonSprite::createWithSpriteFrameName(
-    const char* sprName,
-    float sprScale,
-    EditorBaseColor color
+    char const* sprName, float sprScale, EditorBaseColor color
 ) {
     auto ret = new EditorButtonSprite();
-    if (ret && ret->initWithSpriteFrameName(
-        sprName, sprScale,
-        static_cast<int>(BaseType::Editor), 0, static_cast<int>(color))
-    ) {
+    if (ret &&
+        ret->initWithSpriteFrameName(
+            sprName, sprScale, static_cast<int>(BaseType::Editor), 0, static_cast<int>(color)
+        )) {
         ret->autorelease();
         return ret;
     }
@@ -104,15 +104,13 @@ EditorButtonSprite* EditorButtonSprite::createWithSpriteFrameName(
 }
 
 CircleButtonSprite* CircleButtonSprite::create(
-    cocos2d::CCNode* top,
-    CircleBaseColor color,
-    CircleBaseSize size
+    cocos2d::CCNode* top, CircleBaseColor color, CircleBaseSize size
 ) {
     auto ret = new CircleButtonSprite();
-    if (ret && ret->init(
-        top,
-        static_cast<int>(BaseType::Circle), static_cast<int>(size), static_cast<int>(color)
-    )) {
+    if (ret &&
+        ret->init(
+            top, static_cast<int>(BaseType::Circle), static_cast<int>(size), static_cast<int>(color)
+        )) {
         ret->autorelease();
         return ret;
     }
@@ -121,16 +119,14 @@ CircleButtonSprite* CircleButtonSprite::create(
 }
 
 CircleButtonSprite* CircleButtonSprite::createWithSprite(
-    const char* sprName,
-    float sprScale,
-    CircleBaseColor color,
-    CircleBaseSize size
+    char const* sprName, float sprScale, CircleBaseColor color, CircleBaseSize size
 ) {
     auto ret = new CircleButtonSprite();
-    if (ret && ret->initWithSprite(
-        sprName, sprScale,
-        static_cast<int>(BaseType::Circle), static_cast<int>(size), static_cast<int>(color)
-    )) {
+    if (ret &&
+        ret->initWithSprite(
+            sprName, sprScale, static_cast<int>(BaseType::Circle), static_cast<int>(size),
+            static_cast<int>(color)
+        )) {
         ret->autorelease();
         return ret;
     }
@@ -139,16 +135,14 @@ CircleButtonSprite* CircleButtonSprite::createWithSprite(
 }
 
 CircleButtonSprite* CircleButtonSprite::createWithSpriteFrameName(
-    const char* sprName,
-    float sprScale,
-    CircleBaseColor color,
-    CircleBaseSize size
+    char const* sprName, float sprScale, CircleBaseColor color, CircleBaseSize size
 ) {
     auto ret = new CircleButtonSprite();
-    if (ret && ret->initWithSpriteFrameName(
-        sprName, sprScale,
-        static_cast<int>(BaseType::Circle), static_cast<int>(size), static_cast<int>(color)
-    )) {
+    if (ret &&
+        ret->initWithSpriteFrameName(
+            sprName, sprScale, static_cast<int>(BaseType::Circle), static_cast<int>(size),
+            static_cast<int>(color)
+        )) {
         ret->autorelease();
         return ret;
     }
@@ -156,13 +150,11 @@ CircleButtonSprite* CircleButtonSprite::createWithSpriteFrameName(
     return nullptr;
 }
 
-TabButtonSprite* TabButtonSprite::create(const char* text, TabBaseColor color) {
+TabButtonSprite* TabButtonSprite::create(char const* text, TabBaseColor color) {
     auto ret = new TabButtonSprite();
     auto label = CCLabelBMFont::create(text, "bigFont.fnt");
     label->limitLabelWidth(75.f, .6f, .1f);
-    if (ret && ret->init(
-        label, static_cast<int>(BaseType::Tab), 0, static_cast<int>(color)
-    )) {
+    if (ret && ret->init(label, static_cast<int>(BaseType::Tab), 0, static_cast<int>(color))) {
         ret->autorelease();
         return ret;
     }

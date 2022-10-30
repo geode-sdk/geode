@@ -1,5 +1,5 @@
-#include "Popup.hpp"
 #include "InputNode.hpp"
+#include "Popup.hpp"
 
 #include <Geode/binding/TextInputDelegate.hpp>
 
@@ -12,8 +12,7 @@ namespace geode {
     class ColorPickPopup :
         public Popup<cocos2d::ccColor4B const&, bool>,
         public cocos2d::extension::ColorPickerDelegate,
-        public TextInputDelegate
-    {
+        public TextInputDelegate {
     protected:
         cocos2d::ccColor4B m_color;
         cocos2d::ccColor4B m_originalColor;
@@ -29,13 +28,13 @@ namespace geode {
         CCMenuItemSpriteExtra* m_resetBtn;
 
         static constexpr auto TAG_OPACITY_INPUT = 0;
-        static constexpr auto TAG_R_INPUT       = 1;
-        static constexpr auto TAG_G_INPUT       = 2;
-        static constexpr auto TAG_B_INPUT       = 3;
-        static constexpr auto TAG_HEX_INPUT     = 4;
+        static constexpr auto TAG_R_INPUT = 1;
+        static constexpr auto TAG_G_INPUT = 2;
+        static constexpr auto TAG_B_INPUT = 3;
+        static constexpr auto TAG_HEX_INPUT = 4;
 
         bool setup(cocos2d::ccColor4B const& color, bool isRGBA) override;
-    
+
         void onOpacitySlider(cocos2d::CCObject* sender);
         void onReset(cocos2d::CCObject* sender);
 
@@ -43,7 +42,7 @@ namespace geode {
         void colorValueChanged(cocos2d::ccColor3B color) override;
 
         void updateState(cocos2d::CCNode* except = nullptr);
-        
+
         static ColorPickPopup* create(cocos2d::ccColor4B const& color, bool isRGBA);
 
     public:

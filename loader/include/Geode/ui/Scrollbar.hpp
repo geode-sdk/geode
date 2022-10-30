@@ -21,7 +21,7 @@ namespace geode {
         void ccTouchCancelled(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
         void scrollWheel(float y, float x) override;
         void registerWithTouchDispatcher() override;
-    
+
         void draw() override;
 
         bool init(CCScrollLayerExt* list);

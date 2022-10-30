@@ -4,18 +4,14 @@
 USE_GEODE_NAMESPACE();
 
 bool IconButtonSprite::init(
-    const char* bg,
-    bool bgIsFrame,
-    cocos2d::CCNode* icon,
-    const char* text,
-    const char* font
+    char const* bg, bool bgIsFrame, cocos2d::CCNode* icon, char const* text, char const* font
 ) {
-    if (!CCSprite::init())
-        return false;
-    
+    if (!CCSprite::init()) return false;
+
     if (bgIsFrame) {
         m_bg = CCScale9Sprite::createWithSpriteFrameName(bg);
-    } else {
+    }
+    else {
         m_bg = CCScale9Sprite::create(bg);
     }
     this->addChild(m_bg);
@@ -32,12 +28,12 @@ bool IconButtonSprite::init(
     }
 
     this->updateLayout();
-    
+
     return true;
 }
 
 void IconButtonSprite::updateLayout() {
-    static constexpr const float PAD = 7.5f;
+    static constexpr float const PAD = 7.5f;
 
     auto size = CCSize { 20.f, 20.f };
     if (m_label->getString() && strlen(m_label->getString())) {
@@ -59,20 +55,17 @@ void IconButtonSprite::updateLayout() {
 
     if (m_icon) {
         m_label->setPosition(
-            size.height / 2 + m_icon->getScaledContentSize().width / 2 + PAD,
-            size.height / 2 + 1.f
+            size.height / 2 + m_icon->getScaledContentSize().width / 2 + PAD, size.height / 2 + 1.f
         );
         m_icon->setPosition(size.height / 2, size.height / 2);
-    } else {
+    }
+    else {
         m_label->setPosition(size.height / 2, size.height / 2);
     }
 }
 
 IconButtonSprite* IconButtonSprite::create(
-    const char* bg,
-    cocos2d::CCNode* icon,
-    const char* text,
-    const char* font
+    char const* bg, cocos2d::CCNode* icon, char const* text, char const* font
 ) {
     auto ret = new IconButtonSprite();
     if (ret && ret->init(bg, false, icon, text, font)) {
@@ -84,10 +77,7 @@ IconButtonSprite* IconButtonSprite::create(
 }
 
 IconButtonSprite* IconButtonSprite::createWithSpriteFrameName(
-    const char* bg,
-    cocos2d::CCNode* icon,
-    const char* text,
-    const char* font
+    char const* bg, cocos2d::CCNode* icon, char const* text, char const* font
 ) {
     auto ret = new IconButtonSprite();
     if (ret && ret->init(bg, true, icon, text, font)) {
@@ -98,13 +88,14 @@ IconButtonSprite* IconButtonSprite::createWithSpriteFrameName(
     return nullptr;
 }
 
-void IconButtonSprite::setBG(const char* bg, bool isFrame) {
+void IconButtonSprite::setBG(char const* bg, bool isFrame) {
     if (m_bg) {
         m_bg->removeFromParent();
     }
     if (isFrame) {
         m_bg = CCScale9Sprite::createWithSpriteFrameName(bg);
-    } else {
+    }
+    else {
         m_bg = CCScale9Sprite::create(bg);
     }
     this->addChild(m_bg);
@@ -125,12 +116,11 @@ cocos2d::CCNode* IconButtonSprite::getIcon() const {
     return m_icon;
 }
 
-void IconButtonSprite::setString(const char* label) {
+void IconButtonSprite::setString(char const* label) {
     m_label->setString(label);
     this->updateLayout();
 }
 
-const char* IconButtonSprite::getString() {
+char const* IconButtonSprite::getString() {
     return m_label->getString();
 }
-

@@ -2,6 +2,7 @@
 
 USE_GEODE_NAMESPACE();
 
+// clang-format off
 #include <Geode/modify/AppDelegate.hpp>
 class $modify(AppDelegate) {
     void trySaveGame() {
@@ -17,3 +18,4 @@ class $modify(AppDelegate) {
         return AppDelegate::trySaveGame();
     }
 };
+// clang-format on

@@ -168,11 +168,11 @@ namespace geode::core::meta::x86 {
             std::index_sequence<to...>, std::index_sequence<from...>,
             std::index_sequence<stack...>> {
         private:
-            static constexpr size_t fix = (std::is_class_v<Ret> ? stack_fix<Ret> : 0)
-                + stack_fix<typename Tuple<Args...>::template type_at<stack>...>;
+            static constexpr size_t fix = (std::is_class_v<Ret> ? stack_fix<Ret> : 0) +
+                stack_fix<typename Tuple<Args...>::template type_at<stack>...>;
 
         public:
-            static Ret invoke(void* address, const Tuple<Args..., float>& all) {
+            static Ret invoke(void* address, Tuple<Args..., float> const& all) {
                 if constexpr (!std::is_same_v<Ret, void>) {
                     Ret ret =
                         reinterpret_cast<Ret(__vectorcall*)(decltype(all.template at<to>())...)>(

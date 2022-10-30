@@ -7,22 +7,26 @@ std::string expandKnownLink(std::string const& link) {
         case hash("github"):
             if (!utils::string::contains(link, "/")) {
                 return "https://github.com/" + link;
-            } break;
+            }
+            break;
 
         case hash("youtube"):
             if (!utils::string::contains(link, "/")) {
                 return "https://youtube.com/channel/" + link;
-            } break;
+            }
+            break;
 
         case hash("twitter"):
             if (!utils::string::contains(link, "/")) {
                 return "https://twitter.com/" + link;
-            } break;
+            }
+            break;
 
         case hash("newgrounds"):
             if (!utils::string::contains(link, "/")) {
                 return "https://" + link + ".newgrounds.com";
-            } break;
+            }
+            break;
     }
     return link;
 }

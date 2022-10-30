@@ -11,10 +11,10 @@ bool SceneManager::setup() {
 
 SceneManager* SceneManager::get() {
     static SceneManager* inst = nullptr;
-	if (!inst) {
-		inst = new SceneManager();
-		inst->setup();
-	}
+    if (!inst) {
+        inst = new SceneManager();
+        inst->setup();
+    }
     return inst;
 }
 
