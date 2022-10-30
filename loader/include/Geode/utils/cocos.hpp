@@ -124,6 +124,14 @@ namespace geode::cocos {
     GEODE_DLL cocos2d::CCRect calculateChildCoverage(cocos2d::CCNode* parent);
 
     /**
+     * Create a CCScene from a layer and switch to it with the default fade 
+     * transition
+     * @param layer Layer to create a scene from
+     * @returns Created scene (not the fade transition)
+     */
+    GEODE_DLL cocos2d::CCScene* switchToScene(cocos2d::CCLayer* layer);
+
+    /**
      * Rescale node to fit inside given size
      * @param node Node to rescale
      * @param size Size to fit inside

@@ -1,5 +1,16 @@
 # Geode Changelog
 
+## v0.6.1
+ - Add `geode::cocos::switchToScene` utility for easily switching to a layer with the default fade transition
+ - Add `Mod::getPackagePath` as a replacement for `Mod::getPath`
+ - Add `geode/config` directory as a standardized place for mods to add their config files
+ - Add `Mod::getConfigDir` for getting a mods' config directory
+ - Add open config directory button to mods with a config directory
+ - Add open save directory button to mods' settings popup
+ - Removed deprecation from `Result` (it still will be replaced in v1.0.0, we just got tired of the warnings)
+ - `JsonChecker<nlohmann::json>` and `JsonChecker<nlohmann::ordered_json>` are now defined in-source as exported symbols to speed up compilation times
+ - Add more bindings
+
 ## v0.6.0
 
  - Mod resource loading has been reworked again, with the intent of adding support for texture pack loaders

@@ -242,7 +242,7 @@ namespace geode {
             return T();
         }
 
-        JsonMaybeObject<Json> obj();
+        GEODE_DLL JsonMaybeObject<Json> obj();
 
         template<class T>
         struct Iterator {
