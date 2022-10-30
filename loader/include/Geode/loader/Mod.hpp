@@ -1,21 +1,23 @@
 #pragma once
 
-#include <Geode/DefaultInclude.hpp>
-#include "Types.hpp"
 #include "Hook.hpp"
-#include <Geode/utils/types.hpp>
+#include "Setting.hpp"
+#include "Types.hpp"
+
+#include <Geode/DefaultInclude.hpp>
 #include <Geode/utils/Result.hpp>
 #include <Geode/utils/VersionInfo.hpp>
 #include <Geode/utils/json.hpp>
-#include <string_view>
-#include <vector>
-#include <unordered_map>
-#include <type_traits>
-#include "Setting.hpp"
+#include <Geode/utils/types.hpp>
 #include <optional>
+#include <string_view>
+#include <type_traits>
+#include <unordered_map>
+#include <vector>
 
 class InternalLoader;
 class InternalMod;
+
 namespace geode {
     struct PlatformInfo;
 
@@ -26,8 +28,8 @@ namespace geode {
     class Setting;
 
     class Unknown;
-    using unknownmemfn_t = void(Unknown::*)();
-    using unknownfn_t = void(*)();
+    using unknownmemfn_t = void (Unknown::*)();
+    using unknownfn_t = void (*)();
 }
 
 /**
@@ -35,7 +37,7 @@ namespace geode {
  */
 GEODE_API bool GEODE_CALL geode_implicit_load(geode::Mod*);
 
-namespace geode {                
+namespace geode {
 
     struct Dependency {
         std::string m_id;
@@ -53,7 +55,7 @@ namespace geode {
     };
 
     /**
-     * Represents all the data gatherable 
+     * Represents all the data gatherable
      * from mod.json
      */
     struct GEODE_DLL ModInfo {
@@ -62,13 +64,15 @@ namespace geode {
          */
         ghc::filesystem::path m_path;
         /**
-         * Name of the platform binary within 
+         * Name of the platform binary within
          * the mod zip
          */
+        // clang-format off
         std::string m_binaryName = GEODE_WINDOWS("mod.dll")
                                    GEODE_MACOS("mod.dylib")
                                    GEODE_IOS("mod.dylib")
                                    GEODE_ANDROID("mod.so");
+        // clang-format on
         /**
          * Mod Version. Should follow semver.
          */
@@ -103,12 +107,12 @@ namespace geode {
          */
         std::string m_developer;
         /**
-         * Short & concise description of the 
+         * Short & concise description of the
          * mod.
          */
         std::optional<std::string> m_description;
         /**
-         * Detailed description of the mod, writtenin Markdown (see 
+         * Detailed description of the mod, writtenin Markdown (see
          * <Geode/ui/MDTextArea.hpp>) for more info
          */
         std::optional<std::string> m_details;
@@ -118,8 +122,8 @@ namespace geode {
          */
         std::optional<std::string> m_changelog;
         /**
-         * Support info for the mod; this means anything to show ways to 
-         * support the mod's development, like donations. Written in Markdown 
+         * Support info for the mod; this means anything to show ways to
+         * support the mod's development, like donations. Written in Markdown
          * (see <Geode/ui/MDTextArea.hpp>) for more info
          */
         std::optional<std::string> m_supportInfo;
@@ -170,8 +174,8 @@ namespace geode {
 
     private:
         /**
-         * Version is passed for backwards 
-         * compatibility if we update the mod.json 
+         * Version is passed for backwards
+         * compatibility if we update the mod.json
          * format
          */
         static Result<ModInfo> createFromSchemaV010(ModJson const& json);
@@ -179,10 +183,7 @@ namespace geode {
         Result<> addSpecialFiles(ghc::filesystem::path const& dir);
         Result<> addSpecialFiles(cocos2d::ZipFile& zip);
 
-        std::vector<std::pair<
-            std::string,
-            std::optional<std::string>*
-        >> getSpecialFiles();
+        std::vector<std::pair<std::string, std::optional<std::string>*>> getSpecialFiles();
     };
 
     /**
@@ -195,7 +196,7 @@ namespace geode {
         Mod* m_mod;
 
         DataStore(Mod* m, nlohmann::json& j) : m_mod(m), m_store(j) {}
-        
+
         friend class Mod;
 
     public:
@@ -206,12 +207,11 @@ namespace geode {
         DataStore& operator=(nlohmann::json&);
         bool contains(std::string const&) const;
         operator nlohmann::json();
-
     };
 
     /**
      * @class Mod
-     * Represents a Mod ingame. 
+     * Represents a Mod ingame.
      * @abstract
      */
     class GEODE_DLL Mod {
@@ -253,9 +253,9 @@ namespace geode {
          */
         ghc::filesystem::path m_saveDirPath;
         /**
-         * Pointers to mods that depend on 
-         * this Mod. Makes it possible to 
-         * enable / disable them automatically, 
+         * Pointers to mods that depend on
+         * this Mod. Makes it possible to
+         * enable / disable them automatically,
          * when their dependency is disabled.
          */
         std::vector<Mod*> m_parentDependencies;
@@ -283,7 +283,7 @@ namespace geode {
         geode_save_data m_saveDataFunc = nullptr;
         geode_setting_updated m_settingUpdatedFunc = nullptr;
         /**
-         * Whether temp/<mod id>/resources should be 
+         * Whether temp/<mod id>/resources should be
          * added to CCFileUtils search paths
          */
         bool m_addResourcesToSearchPath = false;
@@ -312,9 +312,9 @@ namespace geode {
 
         static bool validateID(std::string const& id);
         // no copying
-        Mod(Mod const&)           = delete;
+        Mod(Mod const&) = delete;
         Mod operator=(Mod const&) = delete;
-        
+
         /**
          * Protected constructor/destructor
          */
@@ -328,10 +328,10 @@ namespace geode {
         friend struct ModInfo;
         friend class DataStore;
 
-        template<class = void>
+        template <class = void>
         static inline GEODE_HIDDEN Mod* sharedMod = nullptr;
 
-        template<class = void>
+        template <class = void>
         static inline GEODE_HIDDEN void setSharedMod(Mod* mod) {
             sharedMod<> = mod;
         }
@@ -344,17 +344,16 @@ namespace geode {
         std::string getDeveloper() const;
         std::optional<std::string> getDescription() const;
         std::optional<std::string> getDetails() const;
-        [[deprecated("Use Mod::getPackagePath instead")]]
-        std::string getPath() const;
+        [[deprecated("Use Mod::getPackagePath instead")]] std::string getPath() const;
         ghc::filesystem::path getPackagePath() const;
         VersionInfo getVersion() const;
-        bool        isEnabled() const;
-        bool        isLoaded() const;
-        bool        supportsDisabling() const;
-        bool        supportsUnloading() const;
-        bool        wasSuccesfullyLoaded() const;
+        bool isEnabled() const;
+        bool isLoaded() const;
+        bool supportsDisabling() const;
+        bool supportsUnloading() const;
+        bool wasSuccesfullyLoaded() const;
         std::string getLoadErrorInfo() const;
-        ModInfo     getModInfo() const;
+        ModInfo getModInfo() const;
         ghc::filesystem::path getTempDir() const;
         ghc::filesystem::path getBinaryPath() const;
         /**
@@ -370,16 +369,16 @@ namespace geode {
         decltype(ModInfo::m_settings) getSettings() const;
         bool hasSetting(std::string const& key) const;
         std::shared_ptr<Setting> getSetting(std::string const& key) const;
-        template<class T>
+
+        template <class T>
         T getSettingValue(std::string const& key) const {
             if (this->hasSetting(key)) {
-                return geode::getBuiltInSettingValue<T>(
-                    this->getSetting(key)
-                );
+                return geode::getBuiltInSettingValue<T>(this->getSetting(key));
             }
             return T();
         }
-        template<class T>
+
+        template <class T>
         bool setSettingValue(std::string const& key, T const& value) {
             if (this->hasSetting(key)) {
                 geode::setBuiltInSettingValue<T>(this->getSetting(key), value);
@@ -393,7 +392,7 @@ namespace geode {
          * @returns nullptr if Interface is not initialized,
          * the mod pointer if it is initialized
          */
-        template<class = void>
+        template <class = void>
         static inline GEODE_HIDDEN Mod* get() {
             return sharedMod<>;
         }
@@ -405,59 +404,59 @@ namespace geode {
         std::vector<Hook*> getHooks() const;
 
         /**
-         * Create a hook at an address. Call the original 
-         * function by calling the original function – 
+         * Create a hook at an address. Call the original
+         * function by calling the original function –
          * no trampoline needed
-         * @param address The absolute address of 
+         * @param address The absolute address of
          * the function to hook, i.e. gd_base + 0xXXXX
          * @param detour Pointer to your detour function
-         * @returns Successful result containing the 
-         * Hook handle, errorful result with info on 
+         * @returns Successful result containing the
+         * Hook handle, errorful result with info on
          * error
          */
-        template<auto Detour, template <class, class...> class Convention>
+        template <auto Detour, template <class, class...> class Convention>
         Result<Hook*> addHook(void* address) {
-		    return this->addHook<Detour, Convention>("", address);
-		}
+            return this->addHook<Detour, Convention>("", address);
+        }
 
         /**
-         * Create a hook at an address. Call the original 
-         * function by calling the original function – 
-         * no trampoline needed. Also takes a displayName 
+         * Create a hook at an address. Call the original
+         * function by calling the original function –
+         * no trampoline needed. Also takes a displayName
          * parameter to use for when visualizing the hook.
-         * @param address The absolute address of 
+         * @param address The absolute address of
          * the function to hook, i.e. gd_base + 0xXXXX
          * @param detour Pointer to your detour function
-         * @returns Successful result containing the 
-         * Hook handle, errorful result with info on 
+         * @returns Successful result containing the
+         * Hook handle, errorful result with info on
          * error
          */
-		template<auto Detour, template <class, class...> class Convention>
+        template <auto Detour, template <class, class...> class Convention>
         Result<Hook*> addHook(std::string const& displayName, void* address) {
-		    auto hook = Hook::create<Detour, Convention>((decltype(Detour))address, displayName, this);
-	        return this->addHook(hook);
-		}
+            auto hook =
+                Hook::create<Detour, Convention>((decltype(Detour))address, displayName, this);
+            return this->addHook(hook);
+        }
 
-		Result<Hook*> addHook(Hook* hook);
-
+        Result<Hook*> addHook(Hook* hook);
 
         /**
          * Enable a hook owned by this Mod
-         * @returns Successful result on success, 
+         * @returns Successful result on success,
          * errorful result with info on error
          */
         Result<> enableHook(Hook* hook);
 
         /**
          * Disable a hook owned by this Mod
-         * @returns Successful result on success, 
+         * @returns Successful result on success,
          * errorful result with info on error
          */
         Result<> disableHook(Hook* hook);
 
         /**
          * Remove a hook owned by this Mod
-         * @returns Successful result on success, 
+         * @returns Successful result on success,
          * errorful result with info on error
          */
         Result<> removeHook(Hook* hook);
@@ -466,52 +465,52 @@ namespace geode {
          * Write a patch at an address
          * @param address The address to write into
          * @param data The data to write there
-         * @returns Successful result on success, 
+         * @returns Successful result on success,
          * errorful result with info on error
          */
         Result<Patch*> patch(void* address, byte_array data);
 
         /**
          * Remove a patch owned by this Mod
-         * @returns Successful result on success, 
+         * @returns Successful result on success,
          * errorful result with info on error
          */
         Result<> unpatch(Patch* patch);
 
         /**
          * Load this mod
-         * @returns Successful result on success, 
+         * @returns Successful result on success,
          * errorful result with info on error
          */
         Result<> load();
 
         /**
          * Unload this mod
-         * @warning May crash if the mod doesn't 
+         * @warning May crash if the mod doesn't
          * properly handle unloading!
-         * @returns Successful result on success, 
+         * @returns Successful result on success,
          * errorful result with info on error
          */
         Result<> unload();
 
         /**
          * Enable this mod
-         * @returns Successful result on success, 
+         * @returns Successful result on success,
          * errorful result with info on error
          */
         Result<> enable();
-        
+
         /**
          * Disable this mod if it supports doing so
-         * @returns Successful result on success, 
+         * @returns Successful result on success,
          * errorful result with info on error
          */
         Result<> disable();
 
         /**
-         * Disable & unload this mod (if supported), 
+         * Disable & unload this mod (if supported),
          * then delete the mod's .geode file.
-         * @returns Successful result on success, 
+         * @returns Successful result on success,
          * errorful result with info on error
          */
         Result<> uninstall();
@@ -530,39 +529,38 @@ namespace geode {
          */
         Result<> resetDataStore();
 
-
         /**
          * Check whether or not this Mod
          * depends on another mod
          */
         bool depends(std::string const& id) const;
-        
+
         /**
-         * Check whether all the required 
-         * dependencies for this mod have 
+         * Check whether all the required
+         * dependencies for this mod have
          * been loaded or not
-         * @returns True if the mod has unresolved 
+         * @returns True if the mod has unresolved
          * dependencies, false if not.
          */
         bool hasUnresolvedDependencies() const;
         /**
-         * Update the state of each of the 
-         * dependencies. Depending on if the 
-         * mod has unresolved dependencies, 
+         * Update the state of each of the
+         * dependencies. Depending on if the
+         * mod has unresolved dependencies,
          * it will either be loaded or unloaded
-         * @returns True if the mod has unresolved 
+         * @returns True if the mod has unresolved
          * dependencies, false if not.
          */
         bool updateDependencyStates();
         /**
-         * Get a list of all the unresolved 
+         * Get a list of all the unresolved
          * dependencies this mod has
-         * @returns List of all the unresolved 
+         * @returns List of all the unresolved
          * dependencies
          */
         std::vector<Dependency> getUnresolvedDependencies();
 
-		const char* expandSpriteName(const char* name);
+        char const* expandSpriteName(char const* name);
     };
 
     /**
@@ -576,6 +574,6 @@ namespace geode {
     }
 }
 
-inline const char* operator"" _spr(const char* str, size_t) {
+inline char const* operator"" _spr(char const* str, size_t) {
     return geode::Mod::get()->expandSpriteName(str);
 }

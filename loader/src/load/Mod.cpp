@@ -1,18 +1,18 @@
-#include <about.hpp>
+#include <Geode/cocos/support/zip_support/ZipUtils.h>
 #include <Geode/loader/Hook.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Setting.hpp>
+#include <Geode/utils/JsonValidation.hpp>
 #include <Geode/utils/conststring.hpp>
 #include <Geode/utils/file.hpp>
-#include <Geode/utils/JsonValidation.hpp>
 #include <Geode/utils/map.hpp>
+#include <Geode/utils/ranges.hpp>
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/vector.hpp>
-#include <Geode/utils/ranges.hpp>
 #include <InternalMod.hpp>
-#include <../support/zip_support/ZipUtils.h>
+#include <about.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -70,22 +70,20 @@ Result<> Mod::loadSettings() {
                 if (auto sett = this->getSetting(key)) {
                     // load its value
                     if (!sett->load(value.json())) {
-                        return Err(
-                            "Unable to load value for setting \"" +
-                            key + "\""
-                        );
+                        return Err("Unable to load value for setting \"" + key + "\"");
                     }
-                } else {
+                }
+                else {
                     log::log(
-                        Severity::Warning,
-                        this, 
-                        "Encountered unknown setting \"{}\" while loading settings",
+                        Severity::Warning, this,
+                        "Encountered unknown setting \"{}\" while loading "
+                        "settings",
                         key
                     );
                 }
             }
-
-        } catch(std::exception& e) {
+        }
+        catch (std::exception& e) {
             return Err(std::string("Unable to parse settings: ") + e.what());
         }
     }
@@ -94,12 +92,14 @@ Result<> Mod::loadSettings() {
     auto dsPath = m_saveDirPath / "ds.json";
     if (!ghc::filesystem::exists(dsPath)) {
         m_dataStore = m_info.m_defaultDataStore;
-    } else {
+    }
+    else {
         auto dsData = utils::file::readString(dsPath);
         if (!dsData) return dsData;
         try {
             m_dataStore = nlohmann::json::parse(dsData.value());
-        } catch(std::exception& e) {
+        }
+        catch (std::exception& e) {
             return Err(std::string("Unable to parse datastore: ") + e.what());
         }
     }
@@ -151,8 +151,7 @@ Result<> Mod::createTempDir() {
 
     if (!unzip.fileExists(m_info.m_binaryName)) {
         return Err<>(
-            "Unable to find platform binary under the name \"" +
-            m_info.m_binaryName + "\""
+            "Unable to find platform binary under the name \"" + m_info.m_binaryName + "\""
         );
     }
 
@@ -162,7 +161,7 @@ Result<> Mod::createTempDir() {
             return Err<>("Unable to create temp directory for mods!");
         }
     }
-    
+
     auto tempPath = ghc::filesystem::path(tempDir) / m_info.m_id;
     if (!ghc::filesystem::exists(tempPath) && !ghc::filesystem::create_directories(tempPath)) {
         return Err<>("Unable to create temp directory");
@@ -172,11 +171,11 @@ Result<> Mod::createTempDir() {
     for (auto file : unzip.getAllFiles()) {
         auto path = ghc::filesystem::path(file);
         if (path.has_parent_path()) {
-            if (
-                !ghc::filesystem::exists(tempPath / path.parent_path()) &&
-                !ghc::filesystem::create_directories(tempPath / path.parent_path())
-            ) {
-                return Err<>("Unable to create directories \"" + path.parent_path().string() + "\"");
+            if (!ghc::filesystem::exists(tempPath / path.parent_path()) &&
+                !ghc::filesystem::create_directories(tempPath / path.parent_path())) {
+                return Err<>(
+                    "Unable to create directories \"" + path.parent_path().string() + "\""
+                );
             }
         }
         unsigned long size;
@@ -184,10 +183,7 @@ Result<> Mod::createTempDir() {
         if (!data || !size) {
             return Err<>("Unable to read \"" + std::string(file) + "\"");
         }
-        auto wrt = utils::file::writeBinary(
-            tempPath / file,
-            byte_array(data, data + size)
-        );
+        auto wrt = utils::file::writeBinary(tempPath / file, byte_array(data, data + size));
         if (!wrt) return Err<>("Unable to write \"" + file + "\": " + wrt.error());
     }
 
@@ -197,12 +193,14 @@ Result<> Mod::createTempDir() {
 }
 
 Result<> Mod::load() {
-	if (m_loaded) {
+    if (m_loaded) {
         return Ok<>();
     }
-    #define RETURN_LOAD_ERR(str) \
-        {m_loadErrorInfo = str; \
-        return Err<>(m_loadErrorInfo);}
+#define RETURN_LOAD_ERR(str)           \
+    {                                  \
+        m_loadErrorInfo = str;         \
+        return Err<>(m_loadErrorInfo); \
+    }
 
     if (!m_tempDirName.string().size()) {
         auto err = this->createTempDir();
@@ -247,7 +245,7 @@ Result<> Mod::unload() {
     if (!m_info.m_supportsUnloading) {
         return Err<>("Mod does not support unloading");
     }
-    
+
     if (m_saveDataFunc) {
         if (!m_saveDataFunc(m_saveDirPath.string().c_str())) {
             log::log(Severity::Error, this, "Mod save data function returned false");
@@ -286,7 +284,7 @@ Result<> Mod::enable() {
     if (!m_loaded) {
         return Err<>("Mod is not loaded");
     }
-    
+
     if (m_enableFunc) {
         if (!m_enableFunc()) {
             return Err<>("Mod enable function returned false");
@@ -361,55 +359,58 @@ bool Mod::isUninstalled() const {
 
 bool Dependency::isUnresolved() const {
     return m_required &&
-           (m_state == ModResolveState::Unloaded ||
-           m_state == ModResolveState::Unresolved ||
-           m_state == ModResolveState::Disabled);
+        (m_state == ModResolveState::Unloaded || m_state == ModResolveState::Unresolved ||
+         m_state == ModResolveState::Disabled);
 }
 
 bool Mod::updateDependencyStates() {
     bool hasUnresolved = false;
-	for (auto & dep : m_info.m_dependencies) {
-		if (!dep.m_mod) {
-			dep.m_mod = Loader::get()->getLoadedMod(dep.m_id);
-		}
-		if (dep.m_mod) {
-			dep.m_mod->updateDependencyStates();
+    for (auto& dep : m_info.m_dependencies) {
+        if (!dep.m_mod) {
+            dep.m_mod = Loader::get()->getLoadedMod(dep.m_id);
+        }
+        if (dep.m_mod) {
+            dep.m_mod->updateDependencyStates();
 
-			if (dep.m_mod->hasUnresolvedDependencies()) {
-				dep.m_state = ModResolveState::Unresolved;
-			} else {
-				if (!dep.m_mod->m_resolved) {
-					dep.m_mod->m_resolved = true;
-					dep.m_state = ModResolveState::Resolved;
+            if (dep.m_mod->hasUnresolvedDependencies()) {
+                dep.m_state = ModResolveState::Unresolved;
+            }
+            else {
+                if (!dep.m_mod->m_resolved) {
+                    dep.m_mod->m_resolved = true;
+                    dep.m_state = ModResolveState::Resolved;
                     auto r = dep.m_mod->load();
                     if (!r) {
                         dep.m_state = ModResolveState::Unloaded;
                         log::log(Severity::Error, dep.m_mod, "{}", r.error());
                     }
                     else {
-                    	auto r = dep.m_mod->enable();
-                    	if (!r) {
-	                        dep.m_state = ModResolveState::Disabled;
+                        auto r = dep.m_mod->enable();
+                        if (!r) {
+                            dep.m_state = ModResolveState::Disabled;
                             log::log(Severity::Error, dep.m_mod, "{}", r.error());
-	                    }
+                        }
                     }
-				} else {
-					if (dep.m_mod->isEnabled()) {
-						dep.m_state = ModResolveState::Loaded;
-					} else {
-						dep.m_state = ModResolveState::Disabled;
-					}
-				}
-			}
-		} else {
-			dep.m_state = ModResolveState::Unloaded;
-		}
-		if (dep.isUnresolved()) {
-			m_resolved = false;
+                }
+                else {
+                    if (dep.m_mod->isEnabled()) {
+                        dep.m_state = ModResolveState::Loaded;
+                    }
+                    else {
+                        dep.m_state = ModResolveState::Disabled;
+                    }
+                }
+            }
+        }
+        else {
+            dep.m_state = ModResolveState::Unloaded;
+        }
+        if (dep.isUnresolved()) {
+            m_resolved = false;
             (void)this->unload();
             hasUnresolved = true;
-		}
-	}
+        }
+    }
     if (!hasUnresolved && !m_resolved) {
         log::debug("All dependencies for {} found", m_info.m_id);
         m_resolved = true;
@@ -420,12 +421,13 @@ bool Mod::updateDependencyStates() {
                 log::error("{} Error loading: {}", this, r.error());
             }
             else {
-            	auto r = this->enable();
-	            if (!r) {
-	                log::error("{} Error enabling: {}", this, r.error());
-	            }
+                auto r = this->enable();
+                if (!r) {
+                    log::error("{} Error enabling: {}", this, r.error());
+                }
             }
-        } else {
+        }
+        else {
             log::debug("Resolved {}, however not loading it as it is disabled", m_info.m_id);
         }
     }
@@ -433,21 +435,21 @@ bool Mod::updateDependencyStates() {
 }
 
 bool Mod::hasUnresolvedDependencies() const {
-	for (auto const& dep : m_info.m_dependencies) {
-		if (dep.isUnresolved()) {
-			return true;
-		}
-	}
-	return false;
+    for (auto const& dep : m_info.m_dependencies) {
+        if (dep.isUnresolved()) {
+            return true;
+        }
+    }
+    return false;
 }
 
 std::vector<Dependency> Mod::getUnresolvedDependencies() {
     std::vector<Dependency> res;
-	for (auto const& dep : m_info.m_dependencies) {
-		if (dep.isUnresolved()) {
-			res.push_back(dep);
-		}
-	}
+    for (auto const& dep : m_info.m_dependencies) {
+        if (dep.isUnresolved()) {
+            res.push_back(dep);
+        }
+    }
     return res;
 }
 
@@ -532,14 +534,13 @@ std::vector<Hook*> Mod::getHooks() const {
 }
 
 bool Mod::depends(std::string const& id) const {
-    return utils::ranges::contains(
-        m_info.m_dependencies,
-        [id](Dependency const& t) { return t.m_id == id; }
-    );
+    return utils::ranges::contains(m_info.m_dependencies, [id](Dependency const& t) {
+        return t.m_id == id;
+    });
 }
 
-const char* Mod::expandSpriteName(const char* name) {
-    static std::unordered_map<std::string, const char*> expanded = {};
+char const* Mod::expandSpriteName(char const* name) {
+    static std::unordered_map<std::string, char const*> expanded = {};
     if (expanded.count(name)) {
         return expanded[name];
     }

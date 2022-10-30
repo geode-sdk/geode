@@ -31,7 +31,7 @@ namespace {                                                                     
 	struct derived##Parent {};                                                    \
 	Modify<derived<derived##Parent>, base> derived##Apply;                        \
 	struct GEODE_HIDDEN derived##Intermediate : base {                            \
-		geode::modifier::FieldIntermediate<base,                                  \
+		mutable geode::modifier::FieldIntermediate<base,                          \
 			derived##Intermediate,                                                \
 			derived<derived##Parent>                                              \
 		> m_fields;                                                               \
@@ -45,7 +45,7 @@ struct derived;                                                                 
 namespace {                                                                       \
 	Modify<derived, base> derived##Apply;                                         \
 	struct GEODE_HIDDEN derived##Intermediate : base {                            \
-		geode::modifier::FieldIntermediate<base,                                  \
+		mutable geode::modifier::FieldIntermediate<base,                          \
 			derived##Intermediate,                                                \
 			derived                                                               \
 		> m_fields;                                                               \

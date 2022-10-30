@@ -952,6 +952,7 @@ class cocos2d::extension::CCScale9Sprite {
     CCScale9Sprite() = mac 0x211330;
     static cocos2d::extension::CCScale9Sprite* create(char const*) = mac 0x2130d0;
     static cocos2d::extension::CCScale9Sprite* create(char const*, cocos2d::CCRect) = mac 0x212ef0;
+    static cocos2d::extension::CCScale9Sprite* create(char const*, cocos2d::CCRect, cocos2d::CCRect) = mac 0x212dd0;
     static cocos2d::extension::CCScale9Sprite* createWithSpriteFrameName(char const*, cocos2d::CCRect) = mac 0x213380;
     static cocos2d::extension::CCScale9Sprite* createWithSpriteFrameName(char const*) = mac 0x213460;
     virtual ~CCScale9Sprite() = mac 0x211590;
