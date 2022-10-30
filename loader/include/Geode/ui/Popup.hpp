@@ -1,10 +1,10 @@
 #pragma once
 
-#include <Geode/binding/FLAlertLayer.hpp>
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
+#include <Geode/binding/FLAlertLayer.hpp>
 
 namespace geode {
-    template<typename... InitArgs>
+    template <typename... InitArgs>
     class Popup : public FLAlertLayer {
     protected:
         cocos2d::CCSize m_size;
@@ -13,10 +13,7 @@ namespace geode {
         CCMenuItemSpriteExtra* m_closeBtn;
 
         bool init(
-            float width,
-            float height,
-            InitArgs... args,
-            const char* bg = "GJ_square01.png",
+            float width, float height, InitArgs... args, char const* bg = "GJ_square01.png",
             cocos2d::CCRect bgRect = { 0, 0, 80, 80 }
         ) {
             auto winSize = cocos2d::CCDirector::sharedDirector()->getWinSize();
@@ -44,10 +41,7 @@ namespace geode {
             m_closeBtn = CCMenuItemSpriteExtra::create(
                 closeSpr, this, (cocos2d::SEL_MenuHandler)(&Popup::onClose)
             );
-            m_closeBtn->setPosition(
-                -m_size.width / 2 + 3.f,
-                m_size.height / 2 - 3.f
-            );
+            m_closeBtn->setPosition(-m_size.width / 2 + 3.f, m_size.height / 2 - 3.f);
             m_buttonMenu->addChild(m_closeBtn);
 
             if (!setup(std::forward<InitArgs>(args)...)) {
@@ -74,19 +68,17 @@ namespace geode {
         }
 
         void setTitle(
-            const char* title,
-            const char* font = "goldFont.fnt",
-            float scale = .7f,
+            char const* title, char const* font = "goldFont.fnt", float scale = .7f,
             float offset = 20.f
         ) {
             if (m_title) {
                 m_title->setString(title);
-            } else {
+            }
+            else {
                 auto winSize = cocos2d::CCDirector::sharedDirector()->getWinSize();
                 m_title = cocos2d::CCLabelBMFont::create(title, font);
                 m_title->setPosition(
-                    winSize.width / 2,
-                    winSize.height / 2 + m_size.height / 2 - offset
+                    winSize.width / 2, winSize.height / 2 + m_size.height / 2 - offset
                 );
                 m_mainLayer->addChild(m_title, 2);
             }
@@ -95,23 +87,12 @@ namespace geode {
     };
 
     GEODE_DLL FLAlertLayer* createQuickPopup(
-        const char* title,
-        std::string const& content,
-        const char* btn1,
-        const char* btn2,
-        std::function<void(FLAlertLayer*, bool)> selected,
-        bool doShow = true
+        char const* title, std::string const& content, char const* btn1, char const* btn2,
+        std::function<void(FLAlertLayer*, bool)> selected, bool doShow = true
     );
 
     GEODE_DLL FLAlertLayer* createQuickPopup(
-        const char* title,
-        std::string const& content,
-        const char* btn1,
-        const char* btn2,
-        float width,
-        std::function<void(FLAlertLayer*, bool)> selected,
-        bool doShow = true
+        char const* title, std::string const& content, char const* btn1, char const* btn2,
+        float width, std::function<void(FLAlertLayer*, bool)> selected, bool doShow = true
     );
 }
-
-

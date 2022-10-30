@@ -1,12 +1,13 @@
 #pragma once
 
-#include <Geode/DefaultInclude.hpp>
 #include "Result.hpp"
+#include "fs/filesystem.hpp"
+
+#include <Geode/DefaultInclude.hpp>
+#include <functional>
 #include <string>
 #include <unordered_set>
 #include <vector>
-#include <functional>
-#include "fs/filesystem.hpp"
 
 namespace geode::utils::clipboard {
     GEODE_DLL bool write(std::string const& data);
@@ -30,17 +31,13 @@ namespace geode::utils::file {
             // Extensions (*.txt, *.doc, *.mp3, etc.)
             std::unordered_set<std::string> files;
         };
+
         ghc::filesystem::path defaultPath;
         std::vector<Filter> filters;
     };
-    
-    GEODE_DLL Result<ghc::filesystem::path> pickFile(
-        PickMode mode,
-        FilePickOptions const& options
-    );
-    GEODE_DLL Result<std::vector<ghc::filesystem::path>> pickFiles(
-        FilePickOptions const& options
-    );
+
+    GEODE_DLL Result<ghc::filesystem::path> pickFile(PickMode mode, FilePickOptions const& options);
+    GEODE_DLL Result<std::vector<ghc::filesystem::path>> pickFiles(FilePickOptions const& options);
 }
 
 namespace geode::utils::web {

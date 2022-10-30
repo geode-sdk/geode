@@ -13,11 +13,11 @@ namespace geode {
         return out;
     }
 
-    template<class T>
-	struct TypeIdentity {
-	    using type = T;
-	};
+    template <class T>
+    struct TypeIdentity {
+        using type = T;
+    };
 
-	template<class T>
-	using TypeIdentityType = typename TypeIdentity<T>::type;
+    template <class T>
+    using TypeIdentityType = typename TypeIdentity<T>::type;
 }

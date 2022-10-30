@@ -145,7 +145,7 @@ namespace geode::core::meta::x86 {
         template <size_t... to, size_t... from>
         class Impl<std::index_sequence<to...>, std::index_sequence<from...>> {
         public:
-            static Ret invoke(void* address, const Tuple<Args..., float, int>& all) {
+            static Ret invoke(void* address, Tuple<Args..., float, int> const& all) {
                 return reinterpret_cast<Ret(__vectorcall*)(
                     typename Tuple<Args..., float, int>::template type_at<to>...
                 )>(address)(all.template at<to>()...);

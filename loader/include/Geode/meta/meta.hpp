@@ -1,13 +1,14 @@
 #ifndef GEODE_CORE_META_META_HPP
 #define GEODE_CORE_META_META_HPP
 
+#include "../platform/platform.hpp"
 #include "callconv.hpp"
 #include "common.hpp"
-#include "function.hpp"
-#include "../platform/platform.hpp"
 #include "defaultconv.hpp"
+#include "function.hpp"
 
 namespace geode::core::meta {}
+
 namespace geode::core::meta::x86 {}
 
 #if defined(GEODE_IS_WINDOWS)

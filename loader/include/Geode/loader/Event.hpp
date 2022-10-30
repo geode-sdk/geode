@@ -1,59 +1,62 @@
 #pragma once
 
+#include "Mod.hpp"
+
 #include <Geode/DefaultInclude.hpp>
 #include <type_traits>
-#include "Mod.hpp"
 #include <unordered_set>
 
 namespace geode {
-	class Mod;
-	class Event;
+    class Mod;
+    class Event;
 
-	enum class PassThrough : bool {
-		Propagate,
-		Stop,
-	};
+    enum class PassThrough : bool {
+        Propagate,
+        Stop,
+    };
 
-	struct GEODE_DLL BasicEventHandler {
-		virtual PassThrough passThrough(Event*) = 0;
+    struct GEODE_DLL BasicEventHandler {
+        virtual PassThrough passThrough(Event*) = 0;
 
-		void listen();
-		void unlisten();
-	};
+        void listen();
+        void unlisten();
+    };
 
-	class GEODE_DLL Event {
-		static std::unordered_set<BasicEventHandler*> s_handlers;
+    class GEODE_DLL Event {
+        static std::unordered_set<BasicEventHandler*> s_handlers;
 
-	 	friend BasicEventHandler;
+        friend BasicEventHandler;
 
-	 	Mod* m_sender;
+        Mod* m_sender;
 
-	public:
-	 	static std::unordered_set<BasicEventHandler*> const& getHandlers();
+    public:
+        static std::unordered_set<BasicEventHandler*> const& getHandlers();
 
-	 	void postFrom(Mod* sender);
-	 	inline void post() {
-	 		postFrom(Mod::get());
-	 	}
+        void postFrom(Mod* sender);
 
-	 	Mod* getSender();
+        inline void post() {
+            postFrom(Mod::get());
+        }
 
-	 	virtual ~Event();
-	};
+        Mod* getSender();
 
-	template <typename T>
-	class EventHandler : public BasicEventHandler {
-	public:
-		virtual PassThrough handle(T*) = 0;
-		PassThrough passThrough(Event* ev) override {
-			if (auto myev = dynamic_cast<T*>(ev)) {
-				return handle(myev);
-			}
-			return PassThrough::Propagate;
-		}
+        virtual ~Event();
+    };
 
-		EventHandler() {
-			listen();
-		}
-	};
+    template <typename T>
+    class EventHandler : public BasicEventHandler {
+    public:
+        virtual PassThrough handle(T*) = 0;
+
+        PassThrough passThrough(Event* ev) override {
+            if (auto myev = dynamic_cast<T*>(ev)) {
+                return handle(myev);
+            }
+            return PassThrough::Propagate;
+        }
+
+        EventHandler() {
+            listen();
+        }
+    };
 }
