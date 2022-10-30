@@ -9,7 +9,7 @@
 There's nothing worse than having to read thousands of words just to see what some library's code actually looks like, so instead, here's a **Hello World** in Geode right off the bat:
 
 ```cpp
-#include <Geode/bindings.hpp>
+#include <Geode/Bindings.hpp>
 #include <Geode/modify/MenuLayer.hpp>
 
 USE_GEODE_NAMESPACE();
