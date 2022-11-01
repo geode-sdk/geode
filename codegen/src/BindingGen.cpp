@@ -76,7 +76,11 @@ std::string generateBindingHeader(Root& root, ghc::filesystem::path const& singl
         );
 
         std::string single_output;
-        single_output += format_strings::class_includes;
+        if (cls.name != "GDString") {
+            single_output += format_strings::class_includes;
+        } else {
+            single_output += "#pragma once\n#include <Geode/platform/platform.hpp>\n";
+        }
 
         for (auto dep : cls.depends) {
             if (can_find(dep, "cocos2d::")) continue;
