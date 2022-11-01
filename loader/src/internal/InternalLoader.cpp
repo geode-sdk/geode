@@ -125,6 +125,8 @@ void InternalLoader::downloadLoaderResources(IndexUpdateCallback callback) {
                                     ghc::filesystem::remove(tempResourcesZip);
                                 } catch(...) {}
 
+                                Loader::get()->updateResources();
+
                                 if (callback) callback(
                                     UpdateStatus::Finished,
                                     "Resources updated",
