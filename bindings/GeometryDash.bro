@@ -2860,7 +2860,9 @@ class GameManager : GManager {
     bool m_likedFacebook;
     bool m_followedTwitter;
     bool m_subbedYoutube;
-    int m_unknownInt;
+    // there are 4 bytes too many between m_timeOffset and m_playerFrameRand1
+    // and i'm guessing it's this one
+    // int m_unknownInt;
     double m_socialsDuration;
     bool m_showedAd;
     bool m_unknownBool;
