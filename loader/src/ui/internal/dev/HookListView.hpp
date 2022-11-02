@@ -1,12 +1,11 @@
 #pragma once
 
-#include <Geode/binding/TableViewCell.hpp>
 #include <Geode/binding/CustomListView.hpp>
+#include <Geode/binding/TableViewCell.hpp>
 
 USE_GEODE_NAMESPACE();
 
-static constexpr const BoomListType kBoomListType_Hooks
-    = static_cast<BoomListType>(0x358);
+static constexpr const BoomListType kBoomListType_Hooks = static_cast<BoomListType>(0x358);
 
 struct HookItem : public CCObject {
     Hook* m_hook;
@@ -17,34 +16,31 @@ struct HookItem : public CCObject {
 };
 
 class HookCell : public TableViewCell {
-    protected:
-        Mod* m_mod;
-        Hook* m_hook;
+protected:
+    Mod* m_mod;
+    Hook* m_hook;
 
-		HookCell(const char* name, CCSize size);
+    HookCell(char const* name, CCSize size);
 
-        void draw() override;
-        
+    void draw() override;
 
-        void onEnable(CCObject*);
-	
-	public:
-		void updateBGColor(int index);
-        void loadFromHook(Hook*, Mod*);
+    void onEnable(CCObject*);
 
-		static HookCell* create(const char* key, CCSize size);
+public:
+    void updateBGColor(int index);
+    void loadFromHook(Hook*, Mod*);
+
+    static HookCell* create(char const* key, CCSize size);
 };
 
 class HookListView : public CustomListView {
-    protected:
-        Mod* m_mod;
+protected:
+    Mod* m_mod;
 
-        void setupList() override;
-        TableViewCell* getListCell(const char* key) override;
-        void loadCell(TableViewCell* cell, unsigned int index) override;
-    
-    public:
-        static HookListView* create(
-            CCArray* hooks, Mod* Mod, float width, float height
-        );
+    void setupList() override;
+    TableViewCell* getListCell(char const* key) override;
+    void loadCell(TableViewCell* cell, unsigned int index) override;
+
+public:
+    static HookListView* create(CCArray* hooks, Mod* Mod, float width, float height);
 };

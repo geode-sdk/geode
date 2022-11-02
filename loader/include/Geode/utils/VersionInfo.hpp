@@ -5,7 +5,7 @@
 
 namespace geode {
     /**
-     * Class representing version 
+     * Class representing version
      * information
      * @class VersionInfo
      */
@@ -26,15 +26,17 @@ namespace geode {
         int m_major = 1;
         int m_minor = 0;
         int m_patch = 0;
-    
+
     public:
         VersionInfo() = default;
+        
         constexpr VersionInfo(int major, int minor, int patch) {
             m_major = major;
             m_minor = minor;
             m_patch = patch;
         }
-        VersionInfo(const char* versionString);
+
+        VersionInfo(char const* versionString);
         VersionInfo(std::string const& versionString);
 
         int getMajor() const;
@@ -48,14 +50,9 @@ namespace geode {
         bool operator==(VersionInfo const& other) const;
 
         bool match(VersionInfo const& other) const;
+        bool match(VersionInfo const& other, VersionInfo::Compare compare) const;
         bool match(
-            VersionInfo const& other,
-            VersionInfo::Compare compare
-        ) const;
-        bool match(
-            VersionInfo const& other,
-            VersionInfo::Compare major,
-            VersionInfo::Compare minor,
+            VersionInfo const& other, VersionInfo::Compare major, VersionInfo::Compare minor,
             VersionInfo::Compare patch
         ) const;
 

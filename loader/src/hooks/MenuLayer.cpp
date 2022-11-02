@@ -2,69 +2,65 @@
 #include <Geode/utils/WackyGeodeMacros.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/Ref.hpp>
-#include <Geode/ui/BasedButtonSprite.hpp>
-#include <Geode/ui/Notification.hpp>
-#include <Index.hpp>
-#include "../ui/internal/list/ModListLayer.hpp"
-#include <Geode/ui/MDPopup.hpp>
-#include <InternalMod.hpp>
 #include "../ui/internal/info/ModInfoLayer.hpp"
+#include "../ui/internal/list/ModListLayer.hpp"
+
+#include <Geode/ui/BasedButtonSprite.hpp>
+#include <Geode/ui/MDPopup.hpp>
+#include <Geode/ui/Notification.hpp>
+#include <Geode/utils/cocos.hpp>
+#include <Index.hpp>
 #include <InternalLoader.hpp>
 #include <Geode/Modify.hpp>
 #include "../ids/AddIDs.hpp"
+#include <InternalMod.hpp>
 
 USE_GEODE_NAMESPACE();
 
-#pragma warning(disable: 4217)
+#pragma warning(disable : 4217)
 
 class CustomMenuLayer;
 
 static Ref<Notification> g_indexUpdateNotif = nullptr;
 static Ref<CCSprite> g_geodeButton = nullptr;
 
-static void addUpdateIcon(const char* icon = "updates-available.png"_spr) {
-	if (g_geodeButton && Index::get()->areUpdatesAvailable()) {
-		auto updateIcon = CCSprite::createWithSpriteFrameName(icon);
-		updateIcon->setPosition(
-			g_geodeButton->getContentSize() - CCSize { 10.f, 10.f }
-		);
-		updateIcon->setZOrder(99);
-		updateIcon->setScale(.5f);
-		g_geodeButton->addChild(updateIcon);
-	}
+static void addUpdateIcon(char const* icon = "updates-available.png"_spr) {
+    if (g_geodeButton && Index::get()->areUpdatesAvailable()) {
+        auto updateIcon = CCSprite::createWithSpriteFrameName(icon);
+        updateIcon->setPosition(g_geodeButton->getContentSize() - CCSize { 10.f, 10.f });
+        updateIcon->setZOrder(99);
+        updateIcon->setScale(.5f);
+        g_geodeButton->addChild(updateIcon);
+    }
 }
 
-static void updateIndexProgress(
-	UpdateStatus status,
-	std::string const& info,
-	uint8_t progress
-) {
-	if (status == UpdateStatus::Failed) {
-		g_indexUpdateNotif->hide();
-		g_indexUpdateNotif = nullptr;
-		NotificationBuilder()
-			.title("Index Update")
-			.text("Index update failed :(")
-			.icon("info-alert.png"_spr)
-			.show();
-		addUpdateIcon("updates-failed.png"_spr);
-	}
+static void updateIndexProgress(UpdateStatus status, std::string const& info, uint8_t progress) {
+    if (status == UpdateStatus::Failed) {
+        g_indexUpdateNotif->hide();
+        g_indexUpdateNotif = nullptr;
+        NotificationBuilder()
+            .title("Index Update")
+            .text("Index update failed :(")
+            .icon("info-alert.png"_spr)
+            .show();
+        addUpdateIcon("updates-failed.png"_spr);
+    }
 
-	if (status == UpdateStatus::Finished) {
-		g_indexUpdateNotif->hide();
-		g_indexUpdateNotif = nullptr;
-		if (Index::get()->areUpdatesAvailable()) {
-			NotificationBuilder()
-				.title("Updates available")
-				.text("Some mods have updates available!")
-				.icon("updates-available.png"_spr)
-				.clicked([](auto) -> void {
-					ModListLayer::scene();
-				})
-				.show();
-			addUpdateIcon();
-		}
-	}
+    if (status == UpdateStatus::Finished) {
+        g_indexUpdateNotif->hide();
+        g_indexUpdateNotif = nullptr;
+        if (Index::get()->areUpdatesAvailable()) {
+            NotificationBuilder()
+                .title("Updates available")
+                .text("Some mods have updates available!")
+                .icon("updates-available.png"_spr)
+                .clicked([](auto) -> void {
+                    ModListLayer::scene();
+                })
+                .show();
+            addUpdateIcon();
+        }
+    }
 }
 
 #include <Geode/modify/MenuLayer.hpp>
@@ -164,4 +160,4 @@ class $modify(CustomMenuLayer, MenuLayer) {
 		ModListLayer::scene();
 	}
 };
-
+// clang-format on

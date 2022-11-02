@@ -1,3 +1,22 @@
+// geode additions to make stl containers easier
+class GDString {
+    void winDtor() = win 0xf6e0;
+    char const* winCStr() = win 0xf710;
+    GDString& winAssign(GDString const&, size_t, size_t) = win 0xf720;
+    GDString& winAssign(char const*) = win 0xf680;
+    GDString& winAssign(char const*, size_t) = win 0xf840;
+
+    static uintptr_t macEmptyContainer() {
+        return geode::base::get() + 0x6030d0;
+    }
+    void macCtor(char const*) = mac 0x489fc0;
+    void macCtor(GDString const&) = mac 0x489fcc;
+    GDString& macAssign(char const*) = mac 0x489f96;
+    GDString& macAssign(GDString const&) = mac 0x489f9c;
+    void macDestroy() = mac 0x489f78;
+}
+
+
 class AchievementBar : cocos2d::CCNodeRGBA {
     static AchievementBar* create(const char* title, const char* desc, const char* icon, bool quest) = mac 0x379f80, win 0x3b120, ios 0x1a4784;
 
@@ -835,7 +854,7 @@ class CreatorLayer : cocos2d::CCLayer {
     void onBack(cocos2d::CCObject*) = win 0x4fae0;
     void onChallenge(cocos2d::CCObject*) = win 0x4f1b0;
     void onLeaderboards(cocos2d::CCObject*) = win 0x4ed20;
-    void onMyLevels(cocos2d::CCObject*) = mac 0x142b70;
+    void onMyLevels(cocos2d::CCObject*) = mac 0x142b70, win 0x4eaa0;
     void onSavedLevels(cocos2d::CCObject*) = mac 0x142860;
     virtual void sceneWillResume() = win 0x4fb50;
     virtual bool init() = mac 0x141c10, win 0x4de40;
@@ -931,6 +950,7 @@ class DailyLevelPage : FLAlertLayer {
     static DailyLevelPage* create(bool weekly) = win 0x6a860;
     bool init(bool weekly) = win 0x6a900;
     void updateTimers(float) = win 0x6bef0;
+    virtual void show() = mac 0x10a4b0, win 0x3f360;
 
     PAD = win 0x21;
     bool m_weekly;
@@ -1042,7 +1062,7 @@ class EditButtonBar : cocos2d::CCNode {
     }
     void addButton(CCMenuItemSpriteExtra* btn, bool reload) {
         if (this->m_buttonArray)
-            this->m_buttonArray->addObject(static_cast<cocos2d::CCObject*>(btn));
+            this->m_buttonArray->addObject(btn);
         if (reload)
             this->reloadItemsInNormalSize();
     }
@@ -1061,7 +1081,7 @@ class EditLevelLayer : cocos2d::CCLayer, FLAlertLayerProtocol, TextInputDelegate
     static void scene(GJGameLevel* level) {
         auto scene = cocos2d::CCScene::create();
     
-        scene->addChild(static_cast<cocos2d::CCNode*>(EditLevelLayer::create(level)));
+        scene->addChild(EditLevelLayer::create(level));
     
         cocos2d::CCDirector::sharedDirector()->replaceScene(
             cocos2d::CCTransitionFade::create(.5f, scene)
@@ -4849,6 +4869,7 @@ class SelectArtLayer {
 }
 
 class SetGroupIDLayer : FLAlertLayer, TextInputDelegate {
+    bool init(GameObject* object, cocos2d::CCArray* objects) = mac 0x1947c0, win 0x22b670; 
     void onNextGroupID1(cocos2d::CCObject*) = mac 0x1967a0, win 0x22d790;
     void textChanged(CCTextInputNode*) = mac 0x197af0, win 0x22d610;
     void updateGroupIDLabel() = mac 0x197260, win 0x22e450;

@@ -2,18 +2,18 @@
 #include "Platform.hpp"
 
 /*
-	Internal use functions
+        Internal use functions
 */
 namespace geode::core {
-	namespace impl {
-		void* generateRawTrampoline(void* address);
+    namespace impl {
+        void* generateRawTrampoline(void* address);
 
-		void addJump(void* at, void* to);
+        void addJump(void* at, void* to);
 
-		void handleContext(void* context, void* current);
-	}
+        void handleContext(void* context, void* current);
+    }
 
-	namespace hook {
-		bool initialize();
-	}
+    namespace hook {
+        bool initialize();
+    }
 }

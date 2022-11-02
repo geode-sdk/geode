@@ -1,19 +1,20 @@
 #pragma once
 
+#include "Ref.hpp"
+
 #include <Geode/DefaultInclude.hpp>
 #include <cocos2d.h>
 #include <functional>
 #include <type_traits>
-#include "Ref.hpp"
 
 namespace geode::cocos {
     /**
-     * Get child at index. Checks bounds. A negative 
+     * Get child at index. Checks bounds. A negative
      * index will get the child starting from the end
-     * @returns Child at index cast to the given type, 
+     * @returns Child at index cast to the given type,
      * or nullptr if index exceeds bounds
      */
-    template<class T = cocos2d::CCNode>
+    template <class T = cocos2d::CCNode>
     static T* getChild(cocos2d::CCNode* x, int i) {
         // start from end for negative index
         if (i < 0) i = x->getChildrenCount() + i;
@@ -25,72 +26,77 @@ namespace geode::cocos {
     }
 
     /**
-     * Get nth child that is a given type. Checks bounds. 
-     * @returns Child at index cast to the given type, 
+     * Get nth child that is a given type. Checks bounds.
+     * @returns Child at index cast to the given type,
      * or nullptr if index exceeds bounds
      */
-    template<class Type = cocos2d::CCNode>
+    template <class Type = cocos2d::CCNode>
     static Type* getChildOfType(cocos2d::CCNode* node, size_t index) {
-    	size_t indexCounter = 0;
+        size_t indexCounter = 0;
 
-		for (size_t i = 0; i < node->getChildrenCount(); ++i) {
-			auto obj = cast::typeinfo_cast<Type*>(
-				node->getChildren()->objectAtIndex(i)
-			);
-			if (obj != nullptr) {
-				if (indexCounter == index) {
-					return obj;
-				}
-				++indexCounter;
-			}
-		}
+        for (size_t i = 0; i < node->getChildrenCount(); ++i) {
+            auto obj = cast::typeinfo_cast<Type*>(node->getChildren()->objectAtIndex(i));
+            if (obj != nullptr) {
+                if (indexCounter == index) {
+                    return obj;
+                }
+                ++indexCounter;
+            }
+        }
 
-		return nullptr;
+        return nullptr;
     }
 
     /**
-     * Return a node, or create a default one if it's 
+     * Return a node, or create a default one if it's
      * nullptr. Syntactic sugar function
      */
-    template<class T, class... Args>
+    template <class T, class... Args>
     static T* nodeOrDefault(T* node, Args... args) {
         return node ? node : T::create(args...);
     }
 
-    template<class T = cocos2d::CCNode>
+    template <class T = cocos2d::CCNode>
     struct SafeCreate final {
         T* result;
+
         SafeCreate<T>& with(T* node) {
             result = node;
             return *this;
         }
-        template<class... Args>
+
+        template <class... Args>
         SafeCreate<T>& make(Args... args) {
             result = T::create(args...);
             return *this;
         }
+
         // convenience for CCSprite
-        template<class... Args>
+        template <class... Args>
         SafeCreate<T>& makeWithFrame(Args... args) {
             result = T::createWithSpriteFrameName(args...);
             return *this;
         }
-        template<class... Args>
-        SafeCreate<T>& makeUsing(T*(*func)(Args...), Args... args) {
+
+        template <class... Args>
+        SafeCreate<T>& makeUsing(T* (*func)(Args...), Args... args) {
             result = func(args...);
             return *this;
         }
-        template<class O = T, class... Args>
-        T* orMakeUsing(O*(*func)(Args...), Args... args) {
+
+        template <class O = T, class... Args>
+        T* orMakeUsing(O* (*func)(Args...), Args... args) {
             if (result) return result;
             return func(args...);
         }
-        template<class O = T, class... Args>
+
+        template <class O = T, class... Args>
         T* orMake(Args... args) {
             if (result) return result;
             return O::create(args...);
         }
-        template<class O = T, class... Args>
+
+        template <class O = T, class... Args>
         T* orMakeWithFrame(Args... args) {
             if (result) return result;
             return O::createWithSpriteFrameName(args...);
@@ -98,23 +104,23 @@ namespace geode::cocos {
     };
 
     /**
-     * Get bounds for a set of nodes. Based on content 
+     * Get bounds for a set of nodes. Based on content
      * size
      * @param nodes Nodes to calculate coverage of
-     * @returns Rectangle fitting all nodes. Origin 
+     * @returns Rectangle fitting all nodes. Origin
      * will be <= 0 and size will be >= 0
      */
     GEODE_DLL cocos2d::CCRect calculateNodeCoverage(std::vector<cocos2d::CCNode*> const& nodes);
     /**
-     * Get bounds for a set of nodes. Based on content 
+     * Get bounds for a set of nodes. Based on content
      * size
      * @param nodes Nodes to calculate coverage of
-     * @returns Rectangle fitting all nodes. Origin 
+     * @returns Rectangle fitting all nodes. Origin
      * will be <= 0 and size will be >= 0
      */
     GEODE_DLL cocos2d::CCRect calculateNodeCoverage(cocos2d::CCArray* nodes);
     /**
-     * Get bounds for a set of nodes. Based on content 
+     * Get bounds for a set of nodes. Based on content
      * size
      * @param parent Parent whose children to calculate
      * coverage of
@@ -124,7 +130,7 @@ namespace geode::cocos {
     GEODE_DLL cocos2d::CCRect calculateChildCoverage(cocos2d::CCNode* parent);
 
     /**
-     * Create a CCScene from a layer and switch to it with the default fade 
+     * Create a CCScene from a layer and switch to it with the default fade
      * transition
      * @param layer Layer to create a scene from
      * @returns Created scene (not the fade transition)
@@ -150,17 +156,14 @@ namespace geode::cocos {
      * @param min Minimum size
      */
     GEODE_DLL void limitNodeSize(
-        cocos2d::CCNode* node,
-        cocos2d::CCSize const& size,
-        float def,
-        float min
+        cocos2d::CCNode* node, cocos2d::CCSize const& size, float def, float min
     );
 
     /**
-     * Checks if a node is visible (recursively 
+     * Checks if a node is visible (recursively
      * checks parent visibility)
      * @param node Node to check if visible
-     * @returns True if node is visibile. Does 
+     * @returns True if node is visibile. Does
      * not take into account if node is off-screen
      */
     GEODE_DLL bool nodeIsVisible(cocos2d::CCNode* node);
@@ -168,7 +171,7 @@ namespace geode::cocos {
     /**
      * Gets a node by tag by traversing
      * children recursively
-     * 
+     *
      * @param node Parent node
      * @param tag Target tag
      * @return Child node with specified tag, or
@@ -176,10 +179,9 @@ namespace geode::cocos {
      */
     GEODE_DLL cocos2d::CCNode* getChildByTagRecursive(cocos2d::CCNode* node, int tag);
 
-
     /**
-     * Checks if a given file exists in CCFileUtils 
-     * search paths. 
+     * Checks if a given file exists in CCFileUtils
+     * search paths.
      * @param filename File to check
      * @returns True if file exists
      * @example if (fileExistsInSearchPaths("mySprite.png"_spr)) {
@@ -188,21 +190,23 @@ namespace geode::cocos {
      *      CCSprite::create("fallback.png");
      * }
      */
-    GEODE_DLL bool fileExistsInSearchPaths(const char* filename);
-
+    GEODE_DLL bool fileExistsInSearchPaths(char const* filename);
 
     template <typename T>
     struct CCArrayIterator {
     public:
         CCArrayIterator(T* p) : m_ptr(p) {}
+
         T* m_ptr;
 
         auto& operator*() {
             return *m_ptr;
         }
+
         auto& operator*() const {
             return *m_ptr;
         }
+
         auto operator->() {
             return m_ptr;
         }
@@ -262,6 +266,7 @@ namespace geode::cocos {
         bool operator==(CCArrayIterator<T> const& other) const {
             return m_ptr == other.m_ptr;
         }
+
         bool operator!=(CCArrayIterator<T> const& other) const {
             return m_ptr != other.m_ptr;
         }
@@ -276,7 +281,8 @@ namespace std {
         using value_type = T;
         using pointer = T*;
         using reference = T&;
-        using iterator_category = std::random_access_iterator_tag; // its random access but im too lazy to implement it
+        using iterator_category =
+            std::random_access_iterator_tag; // its random access but im too lazy to implement it
     };
 }
 
@@ -285,6 +291,7 @@ namespace geode::cocos {
     struct GEODE_DLL CCArrayInserter {
     public:
         CCArrayInserter(cocos2d::CCArray* p) : m_array(p) {}
+
         cocos2d::CCArray* m_array;
 
         auto& operator=(cocos2d::CCObject* value) {
@@ -306,13 +313,18 @@ namespace geode::cocos {
     protected:
         Ref<cocos2d::CCArray> m_arr;
         using T = std::remove_pointer_t<_Type>;
+
     public:
         CCArrayExt() : m_arr(cocos2d::CCArray::create()) {}
+
         CCArrayExt(cocos2d::CCArray* arr) : m_arr(arr) {}
+
         CCArrayExt(CCArrayExt const& a) : m_arr(a.m_arr) {}
+
         CCArrayExt(CCArrayExt&& a) : m_arr(a.m_arr) {
             a.m_arr = nullptr;
         }
+
         ~CCArrayExt() {}
 
         auto begin() {
@@ -321,6 +333,7 @@ namespace geode::cocos {
             }
             return CCArrayIterator<T*>(reinterpret_cast<T**>(m_arr->data->arr));
         }
+
         auto end() {
             if (!m_arr) {
                 return CCArrayIterator<T*>(nullptr);
@@ -330,17 +343,21 @@ namespace geode::cocos {
         size_t size() const {
             return m_arr ? m_arr->count() : 0;
         }
+
         T operator[](size_t index) {
             return static_cast<T*>(m_arr->objectAtIndex(index));
         }
+
         void push_back(T* item) {
             m_arr->addObject(item);
         }
-        T* pop_back() { 
+
+        T* pop_back() {
             T ret = m_arr->lastObject();
             m_arr->removeLastObject();
             return ret;
         }
+
         cocos2d::CCArray* inner() {
             return m_arr;
         }
@@ -350,12 +367,14 @@ namespace geode::cocos {
     struct CCDictIterator {
     public:
         CCDictIterator(cocos2d::CCDictElement* p) : m_ptr(p) {}
+
         cocos2d::CCDictElement* m_ptr;
 
         std::pair<K, T> operator*() {
             if constexpr (std::is_same<K, std::string>::value) {
                 return { m_ptr->getStrKey(), static_cast<T>(m_ptr->getObject()) };
-            } else {
+            }
+            else {
                 return { m_ptr->getIntKey(), static_cast<T>(m_ptr->getObject()) };
             }
         }
@@ -365,9 +384,17 @@ namespace geode::cocos {
             return *this;
         }
 
-        friend bool operator== (const CCDictIterator<K, T>& a, const CCDictIterator<K, T>& b) { return a.m_ptr == b.m_ptr; };
-        friend bool operator!= (const CCDictIterator<K, T>& a, const CCDictIterator<K, T>& b) { return a.m_ptr != b.m_ptr; };
-        bool operator!= (int b) { return m_ptr != nullptr; }
+        friend bool operator==(CCDictIterator<K, T> const& a, CCDictIterator<K, T> const& b) {
+            return a.m_ptr == b.m_ptr;
+        };
+
+        friend bool operator!=(CCDictIterator<K, T> const& a, CCDictIterator<K, T> const& b) {
+            return a.m_ptr != b.m_ptr;
+        };
+
+        bool operator!=(int b) {
+            return m_ptr != nullptr;
+        }
     };
 
     template <typename K, typename T>
@@ -391,27 +418,30 @@ namespace geode::cocos {
         }
     };
 
-
     template <typename K, typename T>
     struct CCDictionaryExt {
-     protected:
+    protected:
         cocos2d::CCDictionary* m_dict;
+
     public:
         CCDictionaryExt() : m_dict(cocos2d::CCDictionary::create()) {
             m_dict->retain();
-        }   
+        }
+
         CCDictionaryExt(cocos2d::CCDictionary* dict) : m_dict(dict) {
             m_dict->retain();
         }
+
         CCDictionaryExt(CCDictionaryExt const& d) : m_dict(d.m_dict) {
             m_dict->retain();
         }
+
         CCDictionaryExt(CCDictionaryExt&& d) : m_dict(d.m_dict) {
             d.m_dict = nullptr;
         }
+
         ~CCDictionaryExt() {
-            if (m_dict)
-                m_dict->release();
+            if (m_dict) m_dict->release();
         }
 
         CCDictionaryExt const& operator=(cocos2d::CCDictionary* d) {
@@ -423,52 +453,64 @@ namespace geode::cocos {
         auto begin() {
             return CCDictIterator<K, T*>(m_dict->m_pElements);
         }
+
         // do not use this
         auto end() {
             return nullptr;
         }
-        size_t size() { return m_dict->count(); }
+
+        size_t size() {
+            return m_dict->count();
+        }
+
         auto operator[](K key) {
             auto ret = static_cast<T*>(m_dict->objectForKey(key));
-            if (!ret)
-                m_dict->setObject(cocos2d::CCNode::create(), key);
+            if (!ret) m_dict->setObject(cocos2d::CCNode::create(), key);
 
             return CCDictEntry<K, T*>(key, m_dict);
         }
+
         size_t count(K key) {
             return m_dict->allKeys(key)->count();
         }
     };
-    
-    // namespace for storing implementation stuff for 
+
+    // namespace for storing implementation stuff for
     // inline member functions
     namespace {
-        // class that holds the lambda (probably should've just used 
+        // class that holds the lambda (probably should've just used
         // std::function but hey, this one's heap-free!)
-        template<class F, class Ret, class... Args>
+        template <class F, class Ret, class... Args>
         struct LambdaHolder {
             bool m_assigned = false;
-            // lambdas don't implement operator= so we 
+
+            // lambdas don't implement operator= so we
             // gotta do this wacky union stuff
             union {
                 F m_lambda;
             };
+
             LambdaHolder() {}
+
             ~LambdaHolder() {
                 if (m_assigned) {
                     m_lambda.~F();
                 }
             }
+
             LambdaHolder(F&& func) {
                 this->assign(std::forward<F>(func));
             }
+
             Ret operator()(Args... args) {
                 if (m_assigned) {
                     return m_lambda(std::forward<Args>(args)...);
-                } else {
+                }
+                else {
                     return Ret();
                 }
             }
+
             void assign(F&& func) {
                 if (m_assigned) {
                     m_lambda.~F();
@@ -479,29 +521,31 @@ namespace geode::cocos {
         };
 
         // Extract parameters and return type from a lambda
-        template<class Func>
+        template <class Func>
         struct ExtractLambda : public ExtractLambda<decltype(&Func::operator())> {};
 
-        template<class C, class R, class... Args>
-        struct ExtractLambda<R(C::*)(Args...) const> {
+        template <class C, class R, class... Args>
+        struct ExtractLambda<R (C::*)(Args...) const> {
             using Ret = R;
             using Params = std::tuple<Args...>;
         };
 
         // Class for storing the member function
-        template<class Base, class Func, class Args>
+        template <class Base, class Func, class Args>
         struct InlineMemberFunction;
 
-        template<class Base, class Func, class... Args>
+        template <class Base, class Func, class... Args>
         struct InlineMemberFunction<Base, Func, std::tuple<Args...>> : public Base {
             using Ret = typename ExtractLambda<Func>::Ret;
-            using Selector = Ret(Base::*)(Args...);
+            using Selector = Ret (Base::*)(Args...);
             using Holder = LambdaHolder<Func, Ret, Args...>;
 
             static inline Holder s_selector {};
+
             Ret selector(Args... args) {
                 return s_selector(std::forward<Args>(args)...);
             }
+
             static Selector get(Func&& function) {
                 s_selector.assign(std::move(function));
                 return static_cast<Selector>(&InlineMemberFunction::selector);
@@ -510,51 +554,53 @@ namespace geode::cocos {
     }
 
     /**
-     * Wrap a lambda into a member function pointer. Useful for creating 
+     * Wrap a lambda into a member function pointer. Useful for creating
      * callbacks that have to be members of a class without having to deal
-     * with all of the boilerplate associated with defining a new class 
+     * with all of the boilerplate associated with defining a new class
      * member function.
-     * 
-     * Do note that due to implementation problems, captures may have 
-     * unexpected side-effects. In practice, lambda member functions with 
-     * captures do not work properly in loops. If you assign the same 
-     * member lambda to multiple different targets, they will share the 
+     *
+     * Do note that due to implementation problems, captures may have
+     * unexpected side-effects. In practice, lambda member functions with
+     * captures do not work properly in loops. If you assign the same
+     * member lambda to multiple different targets, they will share the
      * same captured values.
      */
-    template<class Base, class Func>
+    template <class Base, class Func>
     [[deprecated(
         "Due to too many implementation problems, "
         "makeMemberFunction will be removed in the future."
-    )]]
-    static auto makeMemberFunction(Func&& function) {
-        return InlineMemberFunction<
-            Base, Func, typename ExtractLambda<Func>::Params
-        >::get(std::move(function));
+    )]] static auto
+    makeMemberFunction(Func&& function) {
+        return InlineMemberFunction<Base, Func, typename ExtractLambda<Func>::Params>::get(
+            std::move(function)
+        );
     }
 
     /**
-     * Create a SEL_MenuHandler out of a lambda with optional captures. Useful 
-     * for adding callbacks to CCMenuItemSpriteExtras without needing to add 
-     * the callback as a member to a class. Use the GEODE_MENU_SELECTOR class 
+     * Create a SEL_MenuHandler out of a lambda with optional captures. Useful
+     * for adding callbacks to CCMenuItemSpriteExtras without needing to add
+     * the callback as a member to a class. Use the GEODE_MENU_SELECTOR class
      * for even more concise code.
-     * 
-     * Do note that due to implementation problems, captures may have 
-     * unexpected side-effects. In practice, **you should not expect to be able 
-     * to pass any more information than you can pass to a normal menu selector 
-     * through captures**. If you assign the same member lambda to multiple 
+     *
+     * Do note that due to implementation problems, captures may have
+     * unexpected side-effects. In practice, **you should not expect to be able
+     * to pass any more information than you can pass to a normal menu selector
+     * through captures**. If you assign the same member lambda to multiple
      * different targets, they will share the same captured values.
      */
-    template<class Func>
+    template <class Func>
     [[deprecated(
         "Due to too many implementation problems, "
         "makeMenuSelector will be removed in the future."
-    )]]
-    static cocos2d::SEL_MenuHandler makeMenuSelector(Func&& selector) {
+    )]] static cocos2d::SEL_MenuHandler
+    makeMenuSelector(Func&& selector) {
         return reinterpret_cast<cocos2d::SEL_MenuHandler>(
             makeMemberFunction<cocos2d::CCObject, Func>(std::move(selector))
         );
     }
 
-    #define GEODE_MENU_SELECTOR(senderArg, ...) \
-        makeMenuSelector([this](senderArg) { __VA_ARGS__; })
+#define GEODE_MENU_SELECTOR(senderArg, ...) \
+    makeMenuSelector([this](senderArg) {    \
+        __VA_ARGS__;                        \
+    })
 }

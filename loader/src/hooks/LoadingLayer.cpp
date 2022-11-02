@@ -1,9 +1,10 @@
-#include <Geode/modify/LoadingLayer.hpp>
-#include <array>
 #include <InternalLoader.hpp>
+#include <array>
 
 USE_GEODE_NAMESPACE();
 
+// clang-format off
+#include <Geode/modify/LoadingLayer.hpp>
 class $modify(CustomLoadingLayer, LoadingLayer) {
     bool m_updatingResources;
 
@@ -112,3 +113,5 @@ class $modify(CustomLoadingLayer, LoadingLayer) {
 		LoadingLayer::loadAssets();
 	}
 };
+
+// clang-format on

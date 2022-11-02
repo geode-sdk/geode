@@ -1,24 +1,26 @@
-#include <Geode/ui/ColorPickPopup.hpp>
-#include <Geode/utils/operators.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/binding/CCTextInputNode.hpp>
 #include <Geode/binding/Slider.hpp>
 #include <Geode/binding/SliderThumb.hpp>
+#include <Geode/ui/ColorPickPopup.hpp>
+#include <Geode/utils/operators.hpp>
 
 USE_GEODE_NAMESPACE();
 
-static GLubyte parseInt(const char* str) {
+static GLubyte parseInt(char const* str) {
     try {
         return static_cast<GLubyte>(std::stoi(str));
-    } catch(...) {
+    }
+    catch (...) {
         return 255;
     }
 }
 
-static GLubyte parseFloat(const char* str) {
+static GLubyte parseFloat(char const* str) {
     try {
         return static_cast<GLubyte>(std::stof(str) * 255.f);
-    } catch(...) {
+    }
+    catch (...) {
         return 255;
     }
 }
@@ -38,63 +40,47 @@ bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
     bg->setScale(.5f);
     bg->setColor({ 0, 0, 0 });
     bg->setOpacity(85);
-    bg->setContentSize({
-        m_size.width * 2 - 40.f,
-        m_size.height * 2 - 140.f
-    });
+    bg->setContentSize({ m_size.width * 2 - 40.f, m_size.height * 2 - 140.f });
     bg->setPosition(winSize / 2);
     m_mainLayer->addChild(bg);
 
     // picker
 
     m_picker = CCControlColourPicker::colourPicker();
-    m_picker->setPosition(
-        winSize.width / 2 - 45.f,
-        winSize.height / 2 + (isRGBA ? 25.f : 0.f)
-    );
+    m_picker->setPosition(winSize.width / 2 - 45.f, winSize.height / 2 + (isRGBA ? 25.f : 0.f));
     m_picker->setDelegate(this);
     m_mainLayer->addChild(m_picker);
 
     // color difference
 
     auto oldColorSpr = CCSprite::createWithSpriteFrameName("whiteSquare60_001.png");
-    oldColorSpr->setPosition({
-        winSize.width / 2 - 165.f,
-        winSize.height / 2 + 15.f
-    });
+    oldColorSpr->setPosition({ winSize.width / 2 - 165.f, winSize.height / 2 + 15.f });
     oldColorSpr->setColor(to3B(m_color));
     m_mainLayer->addChild(oldColorSpr);
 
     m_newColorSpr = CCSprite::createWithSpriteFrameName("whiteSquare60_001.png");
-    m_newColorSpr->setPosition({
-        winSize.width / 2 - 165.f,
-        winSize.height / 2 - 15.f
-    });
+    m_newColorSpr->setPosition({ winSize.width / 2 - 165.f, winSize.height / 2 - 15.f });
     m_newColorSpr->setColor(to3B(m_color));
     m_mainLayer->addChild(m_newColorSpr);
 
     auto resetBtnSpr = ButtonSprite::create(
-        CCSprite::createWithSpriteFrameName("reset-gold.png"_spr),
-        0x20, true, 0.f, "GJ_button_01.png", 1.25f
+        CCSprite::createWithSpriteFrameName("reset-gold.png"_spr), 0x20, true, 0.f,
+        "GJ_button_01.png", 1.25f
     );
     resetBtnSpr->setScale(.6f);
 
-    m_resetBtn = CCMenuItemSpriteExtra::create(
-        resetBtnSpr, this, menu_selector(ColorPickPopup::onReset)
-    );
+    m_resetBtn =
+        CCMenuItemSpriteExtra::create(resetBtnSpr, this, menu_selector(ColorPickPopup::onReset));
     m_resetBtn->setPosition({ -165.f, -50.f });
     m_buttonMenu->addChild(m_resetBtn);
 
     // r
 
     auto rText = CCLabelBMFont::create("R", "goldFont.fnt");
-    rText->setPosition(
-        winSize.width / 2 + 75.f,
-        winSize.height / 2 + (isRGBA ? 60.f : 35.f)
-    );
+    rText->setPosition(winSize.width / 2 + 75.f, winSize.height / 2 + (isRGBA ? 60.f : 35.f));
     rText->setScale(.55f);
     m_mainLayer->addChild(rText);
-    
+
     m_rInput = InputNode::create(50.f, "R");
     m_rInput->setPosition(75.f, (isRGBA ? 40.f : 15.f));
     m_rInput->setScale(.7f);
@@ -105,13 +91,10 @@ bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
     // g
 
     auto gText = CCLabelBMFont::create("G", "goldFont.fnt");
-    gText->setPosition(
-        winSize.width / 2 + 115.f,
-        winSize.height / 2 + (isRGBA ? 60.f : 35.f)
-    );
+    gText->setPosition(winSize.width / 2 + 115.f, winSize.height / 2 + (isRGBA ? 60.f : 35.f));
     gText->setScale(.55f);
     m_mainLayer->addChild(gText);
-    
+
     m_gInput = InputNode::create(50.f, "G");
     m_gInput->setPosition(115.f, (isRGBA ? 40.f : 15.f));
     m_gInput->setScale(.7f);
@@ -122,13 +105,10 @@ bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
     // b
 
     auto bText = CCLabelBMFont::create("B", "goldFont.fnt");
-    bText->setPosition(
-        winSize.width / 2 + 155.f,
-        winSize.height / 2 + (isRGBA ? 60.f : 35.f)
-    );
+    bText->setPosition(winSize.width / 2 + 155.f, winSize.height / 2 + (isRGBA ? 60.f : 35.f));
     bText->setScale(.55f);
     m_mainLayer->addChild(bText);
-    
+
     m_bInput = InputNode::create(50.f, "B");
     m_bInput->setPosition(155.f, (isRGBA ? 40.f : 15.f));
     m_bInput->setScale(.7f);
@@ -139,13 +119,10 @@ bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
     // hex
 
     auto hexText = CCLabelBMFont::create("Hex", "goldFont.fnt");
-    hexText->setPosition(
-        winSize.width / 2 + 115.f,
-        winSize.height / 2 + (isRGBA ? 20.f : -5.f)
-    );
+    hexText->setPosition(winSize.width / 2 + 115.f, winSize.height / 2 + (isRGBA ? 20.f : -5.f));
     hexText->setScale(.55f);
     m_mainLayer->addChild(hexText);
-    
+
     m_hexInput = InputNode::create(165.f, "Hex");
     m_hexInput->setPosition(115.f, (isRGBA ? 0.f : -25.f));
     m_hexInput->setScale(.7f);
@@ -155,22 +132,13 @@ bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
 
     if (isRGBA) {
         auto opacityText = CCLabelBMFont::create("Opacity", "goldFont.fnt");
-        opacityText->setPosition(
-            winSize.width / 2 - 30.f,
-            winSize.height / 2 - 75.f
-        );
+        opacityText->setPosition(winSize.width / 2 - 30.f, winSize.height / 2 - 75.f);
         opacityText->setScale(.55f);
         m_mainLayer->addChild(opacityText);
 
-        m_opacitySlider = Slider::create(
-            this,
-            menu_selector(ColorPickPopup::onOpacitySlider),
-            .75f
-        );
-        m_opacitySlider->setPosition(
-            winSize.width / 2 - 30.f,
-            winSize.height / 2 - 95.f
-        );
+        m_opacitySlider =
+            Slider::create(this, menu_selector(ColorPickPopup::onOpacitySlider), .75f);
+        m_opacitySlider->setPosition(winSize.width / 2 - 30.f, winSize.height / 2 - 95.f);
         m_opacitySlider->setValue(color.a / 255.f);
         m_opacitySlider->updateBar();
         m_mainLayer->addChild(m_opacitySlider);
@@ -188,9 +156,8 @@ bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
     auto okBtnSpr = ButtonSprite::create("OK");
     okBtnSpr->setScale(.7f);
 
-    auto okBtn = CCMenuItemSpriteExtra::create(
-        okBtnSpr, this, menu_selector(ColorPickPopup::onClose)
-    );
+    auto okBtn =
+        CCMenuItemSpriteExtra::create(okBtnSpr, this, menu_selector(ColorPickPopup::onClose));
     okBtn->setPosition(.0f, -m_size.height / 2 + 20.f);
     m_buttonMenu->addChild(okBtn);
 
@@ -198,22 +165,19 @@ bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
 }
 
 void ColorPickPopup::updateState(CCNode* except) {
-    #define IF_NOT_EXCEPT(inp, value)\
-        if (inp->getInput() != except) {\
-            inp->getInput()->setDelegate(nullptr);\
-            inp->setString(value);\
-            inp->getInput()->setDelegate(this);\
-        }
+#define IF_NOT_EXCEPT(inp, value)              \
+    if (inp->getInput() != except) {           \
+        inp->getInput()->setDelegate(nullptr); \
+        inp->setString(value);                 \
+        inp->getInput()->setDelegate(this);    \
+    }
 
     IF_NOT_EXCEPT(m_rInput, numToString<int>(m_color.r));
     IF_NOT_EXCEPT(m_gInput, numToString<int>(m_color.g));
     IF_NOT_EXCEPT(m_bInput, numToString<int>(m_color.b));
     IF_NOT_EXCEPT(m_hexInput, cc3bToHexString(to3B(m_color)));
     if (m_opacityInput) {
-        IF_NOT_EXCEPT(
-            m_opacityInput,
-            numToString(m_color.a / 255.f, 2)
-        );
+        IF_NOT_EXCEPT(m_opacityInput, numToString(m_color.a / 255.f, 2));
     }
     if (m_opacitySlider) {
         m_opacitySlider->setValue(m_color.a / 255.f);
@@ -230,9 +194,7 @@ void ColorPickPopup::updateState(CCNode* except) {
 }
 
 void ColorPickPopup::onOpacitySlider(CCObject* sender) {
-    m_color.a = static_cast<GLubyte>(
-        static_cast<SliderThumb*>(sender)->getValue() * 255.f
-    );
+    m_color.a = static_cast<GLubyte>(static_cast<SliderThumb*>(sender)->getValue() * 255.f);
     this->updateState();
 }
 
@@ -244,18 +206,22 @@ void ColorPickPopup::onReset(CCObject*) {
 void ColorPickPopup::textChanged(CCTextInputNode* input) {
     if (input->getString() && strlen(input->getString())) {
         switch (input->getTag()) {
-            case TAG_HEX_INPUT: {
-                if (auto color = cc3bFromHexString(input->getString())) {
-                    m_color.r = color.value().r;
-                    m_color.g = color.value().g;
-                    m_color.b = color.value().b;
+            case TAG_HEX_INPUT:
+                {
+                    if (auto color = cc3bFromHexString(input->getString())) {
+                        m_color.r = color.value().r;
+                        m_color.g = color.value().g;
+                        m_color.b = color.value().b;
+                    }
                 }
-            } break;
-            
-            case TAG_OPACITY_INPUT: {
-                m_color.a = parseFloat(input->getString());
-            } break;
-            
+                break;
+
+            case TAG_OPACITY_INPUT:
+                {
+                    m_color.a = parseFloat(input->getString());
+                }
+                break;
+
             case TAG_R_INPUT: m_color.r = parseInt(input->getString()); break;
             case TAG_G_INPUT: m_color.g = parseInt(input->getString()); break;
             case TAG_B_INPUT: m_color.b = parseInt(input->getString()); break;
@@ -283,9 +249,7 @@ void ColorPickPopup::setColorTarget(cocos2d::CCSprite* spr) {
 
 ColorPickPopup* ColorPickPopup::create(ccColor4B const& color, bool isRGBA) {
     auto ret = new ColorPickPopup();
-    if (ret && ret->init(
-        400.f, (isRGBA ? 290.f : 240.f), color, isRGBA
-    )) {
+    if (ret && ret->init(400.f, (isRGBA ? 290.f : 240.f), color, isRGBA)) {
         ret->autorelease();
         return ret;
     }

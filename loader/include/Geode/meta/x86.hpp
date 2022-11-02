@@ -12,15 +12,14 @@ namespace geode::core::meta::x86 {
 
     template <class Class>
     static constexpr bool gpr_passable =
-        ((sizeof(Class) <= sizeof(void*) && !std::is_class_v<Class> && !sse_passable<Class>)
-         || std::is_member_function_pointer_v<Class>);
+        ((sizeof(Class) <= sizeof(void*) && !std::is_class_v<Class> && !sse_passable<Class>) ||
+         std::is_member_function_pointer_v<Class>);
 
     template <class... Classes>
     static inline constexpr std::array<size_t, sizeof...(Classes)> reorder_pack() {
         constexpr size_t length = sizeof...(Classes);
-        constexpr bool should_reorder[] = {
-            std::is_class_v<Classes> && sizeof(Classes) > sizeof(void*)...
-        };
+        constexpr bool should_reorder[] = { std::is_class_v<Classes> &&
+                                            sizeof(Classes) > sizeof(void*)... };
 
         std::array<size_t, length> reordered = {};
         size_t out = 0;
@@ -47,8 +46,8 @@ namespace geode::core::meta::x86 {
     static constexpr size_t stack_fix =
         (((sizeof(Stack) % sizeof(void*) == 0)
               ? sizeof(Stack)
-              : sizeof(Stack) - (sizeof(Stack) % sizeof(void*)) + sizeof(void*))
-         + ...);
+              : sizeof(Stack) - (sizeof(Stack) % sizeof(void*)) + sizeof(void*)) +
+         ...);
 
     template <>
     static constexpr size_t stack_fix<> = 0;

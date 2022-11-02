@@ -10,14 +10,9 @@ bool Mod::validateID(std::string const& id) {
     // ids may not be empty
     if (!id.size()) return false;
     for (auto const& c : id) {
-        if (!(
-            ('a' <= c && c <= 'z') ||
-            ('A' <= c && c <= 'Z') ||
-            ('0' <= c && c <= '9') ||
-            (c == '-') ||
-            (c == '_') ||
-            (c == '.')
-        )) return false;
+        if (!(('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9') ||
+              (c == '-') || (c == '_') || (c == '.')))
+            return false;
     }
     return true;
 }
@@ -33,10 +28,11 @@ Result<Mod*> Loader::loadModFromFile(std::string const& path) {
     if (m_mods.count(res.value().m_id)) {
         return Err("Mod with ID \"" + res.value().m_id + "\" has already been loaded!");
     }
-    
+
     // create and set up Mod instance
     auto mod = new Mod(res.value());
-    mod->m_saveDirPath = Loader::get()->getGeodeSaveDirectory() / GEODE_MOD_DIRECTORY / res.value().m_id;
+    mod->m_saveDirPath =
+        Loader::get()->getGeodeSaveDirectory() / GEODE_MOD_DIRECTORY / res.value().m_id;
     ghc::filesystem::create_directories(mod->m_saveDirPath);
 
     auto sett = mod->loadSettings();

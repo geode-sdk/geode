@@ -1,17 +1,17 @@
 #include <Geode/loader/Hook.hpp>
-#include <Geode/loader/Mod.hpp>
-#include <Geode/loader/Log.hpp>
 #include <Geode/loader/Loader.hpp>
+#include <Geode/loader/Log.hpp>
+#include <Geode/loader/Mod.hpp>
+#include <Geode/utils/conststring.hpp>
+#include <Geode/utils/file.hpp>
+#include <Geode/utils/map.hpp>
+#include <Geode/utils/ranges.hpp>
+#include <Geode/utils/types.hpp>
 #include <InternalLoader.hpp>
 #include <InternalMod.hpp>
-#include <Geode/utils/file.hpp>
-#include <Geode/utils/conststring.hpp>
-#include <Geode/utils/ranges.hpp>
-#include <Geode/utils/map.hpp>
-#include <Geode/utils/types.hpp>
-#include <mutex>
 #include <about.hpp>
 #include <crashlog.hpp>
+#include <mutex>
 
 USE_GEODE_NAMESPACE();
 
@@ -72,9 +72,9 @@ void Loader::updateResourcePaths() {
 
     // add mods' search paths
     for (auto const& [_, mod] : m_mods) {
-        auto searchPath = this->getGeodeDirectory() / 
-            GEODE_TEMP_DIRECTORY / mod->getID() / "resources";
-        
+        auto searchPath =
+            this->getGeodeDirectory() / GEODE_TEMP_DIRECTORY / mod->getID() / "resources";
+
         // add search path
         CCFileUtils::get()->addSearchPath(searchPath.string().c_str());
     }
@@ -89,8 +89,7 @@ void Loader::updateModResources(Mod* mod) {
         return;
     }
 
-    auto searchPath = this->getGeodeDirectory() / 
-        GEODE_TEMP_DIRECTORY / mod->getID() / "resources";
+    auto searchPath = this->getGeodeDirectory() / GEODE_TEMP_DIRECTORY / mod->getID() / "resources";
 
     log::debug("Adding resources for {}", mod->getID());
 
@@ -100,18 +99,16 @@ void Loader::updateModResources(Mod* mod) {
         auto plist = sheet + ".plist";
         auto ccfu = CCFileUtils::sharedFileUtils();
 
-        if (
-            png == std::string(ccfu->fullPathForFilename(png.c_str(), false)) ||
-            plist == std::string(ccfu->fullPathForFilename(plist.c_str(), false))
-        ) {
+        if (png == std::string(ccfu->fullPathForFilename(png.c_str(), false)) ||
+            plist == std::string(ccfu->fullPathForFilename(plist.c_str(), false))) {
             log::warn(
                 "The resource dir of \"{}\" is missing \"{}\" png and/or plist files",
                 mod->m_info.m_id, sheet
             );
-        } else {
+        }
+        else {
             CCTextureCache::sharedTextureCache()->addImage(png.c_str(), false);
-            CCSpriteFrameCache::sharedSpriteFrameCache()
-                ->addSpriteFramesWithFile(plist.c_str());
+            CCSpriteFrameCache::sharedSpriteFrameCache()->addSpriteFramesWithFile(plist.c_str());
         }
     }
 }
@@ -162,18 +159,16 @@ size_t Loader::loadModsFromDirectory(
             continue;
         }
 
-        // skip this entry if its extension is not .geode 
+        // skip this entry if its extension is not .geode
         if (entry.path().extension() != GEODE_MOD_EXTENSION) {
             continue;
         }
 
         // skip this entry if it's already loaded
-        if (utils::map::contains<std::string, Mod*>(
-            m_mods,
-            [entry](Mod* p) -> bool {
+        if (utils::map::contains<std::string, Mod*>(m_mods, [entry](Mod* p) -> bool {
                 return p->m_info.m_path == entry.path();
-            }
-        )) continue;
+            }))
+            continue;
 
         // load mod
 
@@ -187,10 +182,12 @@ size_t Loader::loadModsFromDirectory(
             // check for dependencies
             if (!res.value()->hasUnresolvedDependencies()) {
                 log::debug("Successfully loaded {}", res.value());
-            } else {
+            }
+            else {
                 log::error("{} has unresolved dependencies", res.value());
             }
-        } else {
+        }
+        else {
             // something went wrong
             log::error("{}", res.error());
             m_erroredMods.push_back({ entry.path().string(), res.error() });
@@ -287,10 +284,7 @@ Result<> Loader::saveSettings() {
     // mark the game as not having crashed
     json["succesfully-closed"] = true;
 
-    return utils::file::writeString(
-        this->getGeodeSaveDirectory() / "mods.json",
-        json.dump(4)
-    );
+    return utils::file::writeString(this->getGeodeSaveDirectory() / "mods.json", json.dump(4));
 }
 
 Result<> Loader::loadSettings() {
@@ -320,7 +314,8 @@ Result<> Loader::loadSettings() {
         }
         InternalLoader::get()->loadInfoAlerts(json);
         return Ok();
-    } catch(std::exception const& e) {
+    }
+    catch (std::exception const& e) {
         return Err(e.what());
     }
 }
@@ -381,18 +376,18 @@ void Loader::updateAllDependencies() {
 
 void Loader::unloadMod(Mod* mod) {
     m_mods.erase(mod->m_info.m_id);
-    // ~Mod will call FreeLibrary 
+    // ~Mod will call FreeLibrary
     // automatically
     delete mod;
 }
 
 bool Loader::setup() {
-    if (m_isSetup)
-        return true;
+    if (m_isSetup) return true;
 
     if (crashlog::setupPlatformHandler()) {
         log::debug("Set up platform crash logger");
-    } else {
+    }
+    else {
         log::debug("Unable to set up platform crash logger");
     }
 
@@ -437,9 +432,7 @@ void Loader::popLog(log::Log* log) {
     ranges::remove(m_logs, *log);
 }
 
-std::vector<log::Log*> Loader::getLogs(
-    std::initializer_list<Severity> severityFilter
-) {
+std::vector<log::Log*> Loader::getLogs(std::initializer_list<Severity> severityFilter) {
     std::vector<log::Log*> logs;
 
     for (auto& log : m_logs) {
@@ -468,15 +461,11 @@ bool Loader::isUnloading() {
 }
 
 ghc::filesystem::path Loader::getGameDirectory() const {
-    return ghc::filesystem::path(
-        CCFileUtils::sharedFileUtils()->getWritablePath2().c_str()
-    );
+    return ghc::filesystem::path(CCFileUtils::sharedFileUtils()->getWritablePath2().c_str());
 }
 
 ghc::filesystem::path Loader::getSaveDirectory() const {
-    return ghc::filesystem::path(
-        CCFileUtils::sharedFileUtils()->getWritablePath().c_str()
-    );
+    return ghc::filesystem::path(CCFileUtils::sharedFileUtils()->getWritablePath().c_str());
 }
 
 ghc::filesystem::path Loader::getGeodeDirectory() const {
@@ -488,8 +477,8 @@ ghc::filesystem::path Loader::getGeodeSaveDirectory() const {
 }
 
 size_t Loader::getFieldIndexForClass(size_t hash) {
-	static std::unordered_map<size_t, size_t> nextIndex;
-	return nextIndex[hash]++;
+    static std::unordered_map<size_t, size_t> nextIndex;
+    return nextIndex[hash]++;
 }
 
 VersionInfo Loader::minModVersion() {
@@ -507,9 +496,7 @@ VersionInfo Loader::maxModVersion() {
 }
 
 bool Loader::supportedModVersion(VersionInfo const& version) {
-    return 
-        version >= Loader::minModVersion() &&
-        version <= Loader::maxModVersion();
+    return version >= Loader::minModVersion() && version <= Loader::maxModVersion();
 }
 
 void Loader::openPlatformConsole() {

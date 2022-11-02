@@ -1,7 +1,7 @@
-#include <Geode/utils/fetch.hpp>
-#include <../platform/IncludeCurl.h>
-#include <Geode/utils/casts.hpp>
+#include <Geode/cocos/platform/IncludeCurl.h>
 #include <Geode/loader/Loader.hpp>
+#include <Geode/utils/casts.hpp>
+#include <Geode/utils/fetch.hpp>
 #include <Geode/utils/vector.hpp>
 #include <thread>
 
@@ -10,10 +10,7 @@ using namespace web;
 
 namespace geode::utils::fetch {
     static size_t writeBytes(char* data, size_t size, size_t nmemb, void* str) {
-        as<byte_array*>(str)->insert(
-            as<byte_array*>(str)->end(),
-            data, data + size * nmemb
-        );
+        as<byte_array*>(str)->insert(as<byte_array*>(str)->end(), data, data + size * nmemb);
         return size * nmemb;
     }
 
@@ -33,12 +30,10 @@ namespace geode::utils::fetch {
 }
 
 Result<> web::fetchFile(
-    std::string const& url,
-    ghc::filesystem::path const& into,
-    FileProgressCallback prog
+    std::string const& url, ghc::filesystem::path const& into, FileProgressCallback prog
 ) {
     auto curl = curl_easy_init();
-    
+
     if (!curl) return Err("Curl not initialized!");
 
     std::ofstream file(into, std::ios::out | std::ios::binary);
@@ -76,7 +71,7 @@ Result<> web::fetchFile(
 
 Result<byte_array> web::fetchBytes(std::string const& url) {
     auto curl = curl_easy_init();
-    
+
     if (!curl) return Err("Curl not initialized!");
 
     byte_array ret;
@@ -103,7 +98,7 @@ Result<byte_array> web::fetchBytes(std::string const& url) {
 
 Result<std::string> web::fetch(std::string const& url) {
     auto curl = curl_easy_init();
-    
+
     if (!curl) return Err("Curl not initialized!");
 
     std::string ret;
@@ -131,27 +126,21 @@ Result<std::string> web::fetch(std::string const& url) {
 static std::unordered_map<std::string, SentAsyncWebRequestHandle> RUNNING_REQUESTS {};
 static std::mutex RUNNING_REQUESTS_MUTEX;
 
-SentAsyncWebRequest::SentAsyncWebRequest(
-    AsyncWebRequest const& req,
-    std::string const& id
-) : m_id(id),
-    m_url(req.m_url),
-    m_target(req.m_target)
-{
-    #define AWAIT_RESUME() \
-        while (m_paused) {}\
-        if (m_cancelled) {\
-            this->doCancel();\
-            return;\
-        }
-    
-    if (req.m_then)      m_thens.push_back(req.m_then);
-    if (req.m_progress)  m_progresses.push_back(req.m_progress);
+SentAsyncWebRequest::SentAsyncWebRequest(AsyncWebRequest const& req, std::string const& id) :
+    m_id(id), m_url(req.m_url), m_target(req.m_target) {
+#define AWAIT_RESUME()    \
+    while (m_paused) {}   \
+    if (m_cancelled) {    \
+        this->doCancel(); \
+        return;           \
+    }
+
+    if (req.m_then) m_thens.push_back(req.m_then);
+    if (req.m_progress) m_progresses.push_back(req.m_progress);
     if (req.m_cancelled) m_cancelleds.push_back(req.m_cancelled);
-    if (req.m_expect)    m_expects.push_back(req.m_expect);
+    if (req.m_expect) m_expects.push_back(req.m_expect);
 
     std::thread([this]() {
-
         AWAIT_RESUME();
 
         auto curl = curl_easy_init();
@@ -161,15 +150,14 @@ SentAsyncWebRequest::SentAsyncWebRequest(
 
         // resulting byte array
         byte_array ret;
-        // output file if downloading to file. unique_ptr because not always 
+        // output file if downloading to file. unique_ptr because not always
         // initialized but don't wanna manually managed memory
         std::unique_ptr<std::ofstream> file = nullptr;
 
         // into file
         if (std::holds_alternative<ghc::filesystem::path>(m_target)) {
             file = std::make_unique<std::ofstream>(
-                std::get<ghc::filesystem::path>(m_target),
-                std::ios::out | std::ios::binary
+                std::get<ghc::filesystem::path>(m_target), std::ios::out | std::ios::binary
             );
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, file.get());
             curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, utils::fetch::writeBinaryData);
@@ -195,7 +183,8 @@ SentAsyncWebRequest::SentAsyncWebRequest(
             std::ofstream* file;
         } data { this, file.get() };
 
-        curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION,
+        curl_easy_setopt(
+            curl, CURLOPT_PROGRESSFUNCTION,
             +[](void* ptr, double total, double now, double, double) -> int {
                 auto data = static_cast<ProgressData*>(ptr);
                 while (data->self->m_paused) {}
@@ -226,19 +215,18 @@ SentAsyncWebRequest::SentAsyncWebRequest(
 
         AWAIT_RESUME();
 
-        // if something is still holding a handle to this 
+        // if something is still holding a handle to this
         // request, then they may still cancel it
         m_finished = true;
-        
+
         Loader::get()->queueInGDThread([this, ret]() {
-            std::lock_guard  _(m_mutex);
+            std::lock_guard _(m_mutex);
             for (auto& then : m_thens) {
                 then(*this, ret);
             }
             std::lock_guard __(RUNNING_REQUESTS_MUTEX);
             RUNNING_REQUESTS.erase(m_id);
         });
-
     }).detach();
 }
 
@@ -252,7 +240,9 @@ void SentAsyncWebRequest::doCancel() {
         if (ghc::filesystem::exists(path)) {
             try {
                 ghc::filesystem::remove(path);
-            } catch(...) {}
+            }
+            catch (...) {
+            }
         }
     }
 
@@ -328,7 +318,7 @@ SentAsyncWebRequestHandle AsyncWebRequest::send() {
     m_sent = true;
 
     std::lock_guard __(RUNNING_REQUESTS_MUTEX);
-    
+
     // pause all running requests
     for (auto& [_, req] : RUNNING_REQUESTS) {
         req->pause();
@@ -340,12 +330,13 @@ SentAsyncWebRequestHandle AsyncWebRequest::send() {
     if (m_joinID && RUNNING_REQUESTS.count(m_joinID.value())) {
         auto& req = RUNNING_REQUESTS.at(m_joinID.value());
         std::lock_guard _(req->m_mutex);
-        if (m_then)      req->m_thens.push_back(m_then);
-        if (m_progress)  req->m_progresses.push_back(m_progress);
-        if (m_expect)    req->m_expects.push_back(m_expect);
+        if (m_then) req->m_thens.push_back(m_then);
+        if (m_progress) req->m_progresses.push_back(m_progress);
+        if (m_expect) req->m_expects.push_back(m_expect);
         if (m_cancelled) req->m_cancelleds.push_back(m_cancelled);
         ret = req;
-    } else {
+    }
+    else {
         auto id = m_joinID.value_or("__anon_request_" + std::to_string(COUNTER++));
         ret = std::make_shared<SentAsyncWebRequest>(*this, id);
         RUNNING_REQUESTS.insert({ id, ret });
@@ -393,9 +384,9 @@ AsyncWebResult<nlohmann::json> AsyncWebResponse::json() {
     return this->as(+[](byte_array const& bytes) -> Result<nlohmann::json> {
         try {
             return Ok(nlohmann::json::parse(bytes.begin(), bytes.end()));
-        } catch(std::exception& e) {
+        }
+        catch (std::exception& e) {
             return Err(std::string(e.what()));
         }
     });
 }
-

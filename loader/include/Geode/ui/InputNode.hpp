@@ -9,37 +9,20 @@ namespace geode {
         cocos2d::extension::CCScale9Sprite* m_bgSprite;
         CCTextInputNode* m_input;
 
-        bool init(float, float, const char*, const char*, std::string const&, int);
-        bool init(float, const char*, const char*, std::string const&, int);
+        bool init(float, float, char const*, char const*, std::string const&, int);
+        bool init(float, char const*, char const*, std::string const&, int);
 
     public:
         static InputNode* create(
-            float width,
-            const char* placeholder,
-            const char* fontFile,
-            std::string const& filter,
+            float width, char const* placeholder, char const* fontFile, std::string const& filter,
             int limit
         );
         static InputNode* create(
-            float width,
-            const char* placeholder,
-            std::string const& filter,
-            int limit
+            float width, char const* placeholder, std::string const& filter, int limit
         );
-        static InputNode* create(
-            float width,
-            const char* placeholder,
-            std::string const& filter
-        );
-        static InputNode* create(
-            float width,
-            const char* placeholder,
-            const char* fontFile
-        );
-        static InputNode* create(
-            float width,
-            const char* placeholder
-        );
+        static InputNode* create(float width, char const* placeholder, std::string const& filter);
+        static InputNode* create(float width, char const* placeholder, char const* fontFile);
+        static InputNode* create(float width, char const* placeholder);
 
         void activate() override;
 
@@ -49,8 +32,6 @@ namespace geode {
         void setEnabled(bool enabled) override;
 
         void setString(std::string const&);
-        const char* getString();
+        char const* getString();
     };
 }
-
-

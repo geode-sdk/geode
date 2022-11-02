@@ -1,9 +1,11 @@
 #include "SearchFilterPopup.hpp"
+
+#include "../info/CategoryNode.hpp"
 #include "ModListLayer.hpp"
 #include "ModListView.hpp"
-#include <Geode/ui/SelectList.hpp>
-#include "../info/CategoryNode.hpp"
+
 #include <Geode/binding/GameToolbox.hpp>
+#include <Geode/ui/SelectList.hpp>
 
 bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
     m_noElasticity = true;
@@ -21,9 +23,7 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
     platformTitle->setScale(.5f);
     m_mainLayer->addChild(platformTitle);
 
-    auto platformBG = CCScale9Sprite::create(
-        "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
-    );
+    auto platformBG = CCScale9Sprite::create("square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f });
     platformBG->setColor({ 0, 0, 0 });
     platformBG->setOpacity(90);
     platformBG->setContentSize({ 290.f, 205.f });
@@ -32,8 +32,8 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
     m_mainLayer->addChild(platformBG);
 
     this->enable(this->addPlatformToggle("Windows", PlatformID::Windows, pos), type);
-    this->enable(this->addPlatformToggle("MacOS",   PlatformID::MacOS,   pos), type);
-    this->enable(this->addPlatformToggle("iOS",     PlatformID::iOS,     pos), type);
+    this->enable(this->addPlatformToggle("MacOS", PlatformID::MacOS, pos), type);
+    this->enable(this->addPlatformToggle("iOS", PlatformID::iOS, pos), type);
     this->enable(this->addPlatformToggle("Android", PlatformID::Android, pos), type);
 
     // show installed
@@ -43,24 +43,19 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
     installedTitle->setScale(.5f);
     m_mainLayer->addChild(installedTitle);
 
-	auto installedBG = CCScale9Sprite::create(
-        "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
-    );
+    auto installedBG = CCScale9Sprite::create("square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f });
     installedBG->setColor({ 0, 0, 0 });
     installedBG->setOpacity(90);
-	installedBG->setContentSize({ 290.f, 65.f });
-	installedBG->setPosition(winSize.width / 2 - 85.f, winSize.height / 2 - 85.f);
-	installedBG->setScale(.5f);
-	m_mainLayer->addChild(installedBG);
+    installedBG->setContentSize({ 290.f, 65.f });
+    installedBG->setPosition(winSize.width / 2 - 85.f, winSize.height / 2 - 85.f);
+    installedBG->setScale(.5f);
+    m_mainLayer->addChild(installedBG);
 
     pos = CCPoint { winSize.width / 2 - 140.f, winSize.height / 2 - 85.f };
 
     this->addToggle(
-        "Show Installed",
-        menu_selector(SearchFilterPopup::onShowInstalled),
-        layer->m_query.m_showInstalled,
-        0,
-        pos
+        "Show Installed", menu_selector(SearchFilterPopup::onShowInstalled),
+        layer->m_query.m_showInstalled, 0, pos
     );
 
     // categories
@@ -70,9 +65,7 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
     categoriesTitle->setScale(.5f);
     m_mainLayer->addChild(categoriesTitle);
 
-    auto categoriesBG = CCScale9Sprite::create(
-        "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
-    );
+    auto categoriesBG = CCScale9Sprite::create("square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f });
     categoriesBG->setColor({ 0, 0, 0 });
     categoriesBG->setOpacity(90);
     categoriesBG->setContentSize({ 290.f, 328.f });
@@ -109,10 +102,13 @@ void SearchFilterPopup::onCategory(CCObject* sender) {
         auto category = static_cast<CCString*>(toggle->getUserObject())->getCString();
         if (!toggle->isToggled()) {
             m_modLayer->m_query.m_categories.insert(category);
-        } else {
+        }
+        else {
             m_modLayer->m_query.m_categories.erase(category);
         }
-    } catch(...) {}
+    }
+    catch (...) {
+    }
 }
 
 void SearchFilterPopup::onShowInstalled(CCObject* sender) {
@@ -129,14 +125,10 @@ void SearchFilterPopup::enable(CCMenuItemToggler* toggle, ModListType type) {
 }
 
 CCMenuItemToggler* SearchFilterPopup::addToggle(
-    const char* title, SEL_MenuHandler selector,
-    bool toggled, int tag, CCPoint& pos
+    char const* title, SEL_MenuHandler selector, bool toggled, int tag, CCPoint& pos
 ) {
     auto toggle = GameToolbox::createToggleButton(
-        title, selector,
-        toggled,
-        m_buttonMenu, pos, this,
-        m_buttonMenu, .5f, .5f, 100.f, 
+        title, selector, toggled, m_buttonMenu, pos, this, m_buttonMenu, .5f, .5f, 100.f,
         { 10.f, .0f }, nullptr, false, tag, nullptr
     );
     toggle->setTag(tag);
@@ -144,47 +136,37 @@ CCMenuItemToggler* SearchFilterPopup::addToggle(
     return toggle;
 }
 
-CCMenuItemToggler* SearchFilterPopup::addSearchMatch(const char* title, int flag, CCPoint& pos) {
+CCMenuItemToggler* SearchFilterPopup::addSearchMatch(char const* title, int flag, CCPoint& pos) {
     return this->addToggle(
-        title,
-        menu_selector(SearchFilterPopup::onSearchToggle),
-        m_modLayer->m_query.m_searchFlags & flag,
-        flag,
-        pos
+        title, menu_selector(SearchFilterPopup::onSearchToggle),
+        m_modLayer->m_query.m_searchFlags & flag, flag, pos
     );
 }
 
 CCMenuItemToggler* SearchFilterPopup::addPlatformToggle(
-    const char* title,
-    PlatformID id,
-    CCPoint& pos
+    char const* title, PlatformID id, CCPoint& pos
 ) {
     return this->addToggle(
-        title,
-        menu_selector(SearchFilterPopup::onPlatformToggle),
-        m_modLayer->m_query.m_platforms.count(id),
-        id.to<int>(),
-        pos
+        title, menu_selector(SearchFilterPopup::onPlatformToggle),
+        m_modLayer->m_query.m_platforms.count(id), id.to<int>(), pos
     );
 }
 
 void SearchFilterPopup::onSearchToggle(CCObject* sender) {
     if (static_cast<CCMenuItemToggler*>(sender)->isToggled()) {
         m_modLayer->m_query.m_searchFlags &= ~sender->getTag();
-    } else {
+    }
+    else {
         m_modLayer->m_query.m_searchFlags |= sender->getTag();
     }
 }
 
 void SearchFilterPopup::onPlatformToggle(CCObject* sender) {
     if (static_cast<CCMenuItemToggler*>(sender)->isToggled()) {
-        m_modLayer->m_query.m_platforms.erase(
-            PlatformID::from(sender->getTag())
-        );
-    } else {
-        m_modLayer->m_query.m_platforms.insert(
-            PlatformID::from(sender->getTag())
-        );
+        m_modLayer->m_query.m_platforms.erase(PlatformID::from(sender->getTag()));
+    }
+    else {
+        m_modLayer->m_query.m_platforms.insert(PlatformID::from(sender->getTag()));
     }
 }
 

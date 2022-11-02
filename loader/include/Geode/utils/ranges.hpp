@@ -1,11 +1,11 @@
 #pragma once
 
 #include <Geode/DefaultInclude.hpp>
-#include <string>
 #include <algorithm>
+#include <string>
 
 namespace geode::utils::ranges {
-    template<class C>
+    template <class C>
     concept ValidConstContainer = requires(C const& c) {
         c.begin();
         c.end();
@@ -15,7 +15,7 @@ namespace geode::utils::ranges {
         typename C::const_iterator;
     };
 
-    template<class C>
+    template <class C>
     concept ValidMutContainer = requires(C& c) {
         c.begin();
         c.end();
@@ -25,29 +25,30 @@ namespace geode::utils::ranges {
         typename C::const_iterator;
     };
 
-    template<class C>
+    template <class C>
     concept ValidContainer = ValidConstContainer<C> && ValidMutContainer<C>;
 
-    template<class P, class C>
+    template <class P, class C>
     concept ValidCUnaryPredicate = requires(P p, typename C::value_type const& t) {
         { p(t) } -> std::convertible_to<bool>;
     };
 
-    template<class P, class From, class Into>
+    template <class P, class From, class Into>
     concept ValidIntoConverter = requires(P p, From const& t) {
         { p(t) } -> std::convertible_to<Into>;
     };
 
-    template<ValidConstContainer C>
+    template <ValidConstContainer C>
     bool contains(C const& cont, typename C::value_type const& elem) {
         return std::find(cont.begin(), cont.end(), elem) != cont.end();
     }
 
-    template<ValidConstContainer C, ValidCUnaryPredicate<C> Predicate>
+    template <ValidConstContainer C, ValidCUnaryPredicate<C> Predicate>
     bool contains(C const& cont, Predicate fun) {
         return std::find_if(cont.begin(), cont.end(), fun) != cont.end();
     }
 
+<<<<<<< HEAD
     template<ValidConstContainer C, ValidCUnaryPredicate<C> Predicate>
     std::optional<typename C::value_type> find(C const& cont, Predicate fun) {
         auto it = std::find_if(cont.begin(), cont.end(), fun);
@@ -105,12 +106,20 @@ namespace geode::utils::ranges {
             std::is_default_constructible_v<Output> &&
             std::is_convertible_v<Output, typename C::value_type>
     Output join(C const& cont, Output const& separator) {
+=======
+    template <ValidConstContainer C, class Output>
+
+    requires std::is_default_constructible_v<Output> &&
+        std::is_convertible_v<Output, typename C::value_type>
+            Output join(C const& cont, Output const& separator) {
+>>>>>>> main
         auto res = Output();
         bool first = true;
         for (auto& p : cont) {
             if (!first) {
                 res += separator;
-            } else {
+            }
+            else {
                 first = false;
             }
             res += p;
@@ -118,14 +127,15 @@ namespace geode::utils::ranges {
         return res;
     }
 
-    template<ValidConstContainer C>
+    template <ValidConstContainer C>
     std::string join(C const& cont, std::string const& separator) {
         auto res = std::string();
         bool first = true;
         for (auto& p : cont) {
             if (!first) {
                 res += separator;
-            } else {
+            }
+            else {
                 first = false;
             }
             res += p;
@@ -133,20 +143,19 @@ namespace geode::utils::ranges {
         return res;
     }
 
-    template<
-        ValidConstContainer C,
-        class Output,
-        ValidIntoConverter<typename C::value_type, Output> Conv
-    >
-        requires
-            std::is_default_constructible_v<Output>
-    Output join(C const& cont, Output const& separator, Conv converter) {
+    template <
+        ValidConstContainer C, class Output,
+        ValidIntoConverter<typename C::value_type, Output> Conv>
+
+    requires std::is_default_constructible_v<Output> Output
+    join(C const& cont, Output const& separator, Conv converter) {
         auto res = Output();
         bool first = true;
         for (auto& p : cont) {
             if (!first) {
                 res += separator;
-            } else {
+            }
+            else {
                 first = false;
             }
             res += converter(p);
@@ -154,22 +163,19 @@ namespace geode::utils::ranges {
         return res;
     }
 
-    template<ValidContainer C>
+    template <ValidContainer C>
     C& push(C& container, C const& toAdd) {
         container.insert(container.end(), toAdd.begin(), toAdd.end());
         return container;
     }
 
-    template<ValidMutContainer C>
+    template <ValidMutContainer C>
     C& remove(C& container, typename C::value_type const& value) {
-        container.erase(
-            std::remove(container.begin(), container.end(), value),
-            container.end()
-        );
+        container.erase(std::remove(container.begin(), container.end(), value), container.end());
         return container;
     }
 
-    template<ValidMutContainer C, ValidCUnaryPredicate<C> Predicate>
+    template <ValidMutContainer C, ValidCUnaryPredicate<C> Predicate>
     C& remove(C& container, Predicate fun) {
         container.erase(
             std::remove_if(container.begin(), container.end(), fun),
@@ -178,17 +184,19 @@ namespace geode::utils::ranges {
         return container;
     }
 
-    template<ValidContainer C, ValidCUnaryPredicate<C> Predicate>
+    template <ValidContainer C, ValidCUnaryPredicate<C> Predicate>
     C filter(C const& container, Predicate filterFun) {
         auto res = C();
         std::copy_if(container.begin(), container.end(), res.end(), filterFun);
         return res;
     }
 
-    template<class R, ValidConstContainer C, class Reducer>
-        requires requires(Reducer r, R& acc, typename C::value_type t) {
-            r(acc, t);
-        }
+    template <class R, ValidConstContainer C, class Reducer>
+
+    requires requires(Reducer r, R& acc, typename C::value_type t) {
+        r(acc, t);
+    }
+
     R reduce(C const& container, Reducer reducer) {
         auto res = R();
         for (auto& item : container) {
@@ -196,12 +204,10 @@ namespace geode::utils::ranges {
         }
         return res;
     }
-    
-    template<
-        ValidConstContainer From,
-        ValidContainer Into,
-        ValidIntoConverter<typename From::value_type, typename Into::value_type> Mapper
-    >
+
+    template <
+        ValidConstContainer From, ValidContainer Into,
+        ValidIntoConverter<typename From::value_type, typename Into::value_type> Mapper>
     Into map(From const& from, Mapper mapper) {
         auto res = Into();
         std::transform(from.begin(), from.end(), res.end(), mapper);

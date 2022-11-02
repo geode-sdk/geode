@@ -4,12 +4,12 @@
 
 namespace geode {
 
-    template<class T>
+    template <class T>
     T do_nothing(T t) {
         return t;
     }
 
-    template<class T = std::string, auto Stringify = do_nothing<std::string>>
+    template <class T = std::string, auto Stringify = do_nothing<std::string>>
     class SelectList : public cocos2d::CCMenu {
     protected:
         std::vector<T> m_list;
@@ -18,15 +18,12 @@ namespace geode {
         cocos2d::CCLabelBMFont* m_label;
         CCMenuItemSpriteExtra* m_prevBtn;
         CCMenuItemSpriteExtra* m_nextBtn;
-    
+
         bool init(
-            float width,
-            std::vector<T> const& list,
-            std::function<void(T const&, size_t)> onChange
+            float width, std::vector<T> const& list, std::function<void(T const&, size_t)> onChange
         ) {
-            if (!cocos2d::CCMenu::init()) 
-                return false;
-            
+            if (!cocos2d::CCMenu::init()) return false;
+
             m_list = list;
             m_onChange = onChange;
 
@@ -36,18 +33,16 @@ namespace geode {
             prevSpr->setFlipX(true);
             prevSpr->setScale(.3f);
 
-            m_prevBtn = CCMenuItemSpriteExtra::create(
-                prevSpr, this, menu_selector(SelectList<T>::onPrev)
-            );
+            m_prevBtn =
+                CCMenuItemSpriteExtra::create(prevSpr, this, menu_selector(SelectList<T>::onPrev));
             m_prevBtn->setPosition(-width / 2 + 10.f, 0.f);
             this->addChild(m_prevBtn);
 
             auto nextSpr = cocos2d::CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
             nextSpr->setScale(.3f);
 
-            m_nextBtn = CCMenuItemSpriteExtra::create(
-                nextSpr, this, menu_selector(SelectList<T>::onNext)
-            );
+            m_nextBtn =
+                CCMenuItemSpriteExtra::create(nextSpr, this, menu_selector(SelectList<T>::onNext));
             m_nextBtn->setPosition(width / 2 - 10.f, 0.f);
             this->addChild(m_nextBtn);
 
@@ -67,7 +62,8 @@ namespace geode {
                 m_label->setString(Stringify(m_list.at(m_index)).c_str());
                 m_prevBtn->setEnabled(true);
                 m_nextBtn->setEnabled(true);
-            } else {
+            }
+            else {
                 m_label->setString("-");
                 m_prevBtn->setEnabled(false);
                 m_nextBtn->setEnabled(false);
@@ -78,7 +74,8 @@ namespace geode {
         void onPrev(CCObject* sender) {
             if (m_index == 0) {
                 m_index = m_list.size() - 1;
-            } else {
+            }
+            else {
                 m_index--;
             }
             this->updateLabel();
@@ -88,7 +85,8 @@ namespace geode {
         void onNext(CCObject* sender) {
             if (m_index == m_list.size() - 1) {
                 m_index = 0;
-            } else {
+            }
+            else {
                 m_index++;
             }
             this->updateLabel();
@@ -97,9 +95,7 @@ namespace geode {
 
     public:
         static SelectList* create(
-            float width,
-            std::vector<T> const& list,
-            std::function<void(T const&, size_t)> onChange
+            float width, std::vector<T> const& list, std::function<void(T const&, size_t)> onChange
         ) {
             auto ret = new SelectList();
             if (ret && ret->init(width, list, onChange)) {

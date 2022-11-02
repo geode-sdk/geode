@@ -6,7 +6,6 @@
 // namespace geode::fixes {
 // 	using namespace geode::cast;
 
-
 // class $modify(CCDictionaryTypeinfoFix, CCDictionary) {
 // 	const CCString* valueForKey(const gd::string& key) {
 // 		CCString* pStr = dynamic_cast<CCString*>(objectForKey(key));

@@ -21,3 +21,4 @@ class $modify(LoadingLayer) {
 		return LoadingLayer::init(fromReload);
 	}
 };
+// clang-format on

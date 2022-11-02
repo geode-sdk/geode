@@ -1,6 +1,6 @@
 #pragma once
 
-//thanks pie
+// thanks pie
 enum class SearchType {
     Search = 0,
     Downloaded = 1,
@@ -28,109 +28,121 @@ enum class SearchType {
 
 // jesus fucking christ (painfully written by @hjfod)
 enum class GameObjectType {
-	Solid = 0,
-	Hazard = 2,
-	InverseGravityPortal = 3,
-	NormalGravityPortal = 4,
-	ShipPortal = 5,
-	CubePortal = 6,
-	Decoration = 7,
-	YellowJumpPad = 8,
-	PinkJumpPad = 9,
-	GravityPad = 10,
-	YellowJumpRing = 11,
-	PinkJumpRing = 12,
-	GravityRing = 13,
-	InverseMirrorPortal = 14,
-	NormalMirrorPortal = 15,
-	BallPortal = 16,
-	RegularSizePortal = 17,
-	MiniSizePortal = 18,
-	UfoPortal = 19,
-	Modifier = 20,
-	SecretCoin = 22,
-	DualPortal = 23,
-	SoloPortal = 24,
-	Slope = 25,
-	WavePortal = 26,
-	RobotPortal = 27,
-	TeleportPortal = 28,
-	GreenRing = 29,
-	Collectible = 30,
-	UserCoin = 31,
-	DropRing = 32,
-	SpiderPortal = 33,
-	RedJumpPad = 34,
-	RedJumpRing = 35,
-	CustomRing = 36,
-	DashRing = 37,
-	GravityDashRing = 38,
-	CollisionObject = 39,
-	Special = 40,
+    Solid = 0,
+    Hazard = 2,
+    InverseGravityPortal = 3,
+    NormalGravityPortal = 4,
+    ShipPortal = 5,
+    CubePortal = 6,
+    Decoration = 7,
+    YellowJumpPad = 8,
+    PinkJumpPad = 9,
+    GravityPad = 10,
+    YellowJumpRing = 11,
+    PinkJumpRing = 12,
+    GravityRing = 13,
+    InverseMirrorPortal = 14,
+    NormalMirrorPortal = 15,
+    BallPortal = 16,
+    RegularSizePortal = 17,
+    MiniSizePortal = 18,
+    UfoPortal = 19,
+    Modifier = 20,
+    SecretCoin = 22,
+    DualPortal = 23,
+    SoloPortal = 24,
+    Slope = 25,
+    WavePortal = 26,
+    RobotPortal = 27,
+    TeleportPortal = 28,
+    GreenRing = 29,
+    Collectible = 30,
+    UserCoin = 31,
+    DropRing = 32,
+    SpiderPortal = 33,
+    RedJumpPad = 34,
+    RedJumpRing = 35,
+    CustomRing = 36,
+    DashRing = 37,
+    GravityDashRing = 38,
+    CollisionObject = 39,
+    Special = 40,
 };
 
-enum class PulseEffectType {};
-enum class TouchTriggerType {};
-enum class PlayerButton {};
-enum class GhostType {};
-enum class TableViewCellEditingStyle {};
-enum class UserListType {};
-enum class GJErrorCode {};
-enum class AccountError {};
-enum class GJSongError {};
+enum class PulseEffectType {
+};
+enum class TouchTriggerType {
+};
+enum class PlayerButton {
+};
+enum class GhostType {
+};
+enum class TableViewCellEditingStyle {
+};
+enum class UserListType {
+};
+enum class GJErrorCode {
+};
+enum class AccountError {
+};
+enum class GJSongError {
+};
 enum class LikeItemType {
-	Unknown = 0,
-	Level = 1,
-	Comment = 2,
-	AccountComment = 3
+    Unknown = 0,
+    Level = 1,
+    Comment = 2,
+    AccountComment = 3
 };
 
-enum class GJStoreItem {};
-enum class CommentError {};
-enum class BackupAccountError {};
+enum class GJStoreItem {
+};
+enum class CommentError {
+};
+enum class BackupAccountError {
+};
 
 enum class BoomListType {
-	Default 		= 0x0,
-	User 			= 0x2,
-	Stats 			= 0x3,
-	Achievement    = 0x4,
-	Level 		    = 0x5,
-	Level2 	    = 0x6,
-	Comment 	    = 0x7,
-	Comment2 	    = 0x8,
-	Song 		    = 0xb,
-	Score 		    = 0xc,
-	MapPack 	    = 0xd,
-	CustomSong     = 0xe,
-	Comment3 	    = 0xf,
-	User2 		    = 0x10,
-	Request 	    = 0x11,
-	Message 	    = 0x12,
-	LevelScore     = 0x13,
-	Artist		    = 0x14,
+    Default = 0x0,
+    User = 0x2,
+    Stats = 0x3,
+    Achievement = 0x4,
+    Level = 0x5,
+    Level2 = 0x6,
+    Comment = 0x7,
+    Comment2 = 0x8,
+    Song = 0xb,
+    Score = 0xc,
+    MapPack = 0xd,
+    CustomSong = 0xe,
+    Comment3 = 0xf,
+    User2 = 0x10,
+    Request = 0x11,
+    Message = 0x12,
+    LevelScore = 0x13,
+    Artist = 0x14,
 };
 
 enum class MenuAnimationType {
-	Scale	= 0,
-	Move 	= 1,
+    Scale = 0,
+    Move = 1,
 };
 
 enum class ShopType {
-	Normal,
-	Secret,
-	Community
+    Normal,
+    Secret,
+    Community
 };
 
 // Geode Addition
 enum class ZLayer {
-	B4 = -3,
-	B3 = -1,
-	B2 = 1,
-	B1 = 3,
-	Default = 0,
-	T1 = 5,
-	T2 = 7,
-	T3 = 9,
+    B4 = -3,
+    B3 = -1,
+    B2 = 1,
+    B1 = 3,
+    Default = 0,
+    T1 = 5,
+    T2 = 7,
+    T3 = 9,
 };
 
 enum class UpdateResponse {
@@ -141,75 +153,75 @@ enum class UpdateResponse {
 };
 
 enum class UnlockType {
-	Cube = 0x1,
-	Col1 = 0x2,
-	Col2 = 0x3,
-	Ship = 0x4,
-	Ball = 0x5,
-	Bird = 0x6,
-	Dart = 0x7,
-	Robot = 0x8,
-	Spider = 0x9,
-	Streak = 0xA,
-	Death = 0xB,
-	GJItem = 0xC,
+    Cube = 0x1,
+    Col1 = 0x2,
+    Col2 = 0x3,
+    Ship = 0x4,
+    Ball = 0x5,
+    Bird = 0x6,
+    Dart = 0x7,
+    Robot = 0x8,
+    Spider = 0x9,
+    Streak = 0xA,
+    Death = 0xB,
+    GJItem = 0xC,
 };
 
 enum class SpecialRewardItem {
-	FireShard = 0x1,
-	IceShard = 0x2,
-	PoisonShard = 0x3,
-	ShadowShard = 0x4,
-	LavaShard = 0x5,
-	BonusKey = 0x6,
-	Orbs = 0x7,
-	Diamonds = 0x8,
-	CustomItem = 0x9,
-};  
+    FireShard = 0x1,
+    IceShard = 0x2,
+    PoisonShard = 0x3,
+    ShadowShard = 0x4,
+    LavaShard = 0x5,
+    BonusKey = 0x6,
+    Orbs = 0x7,
+    Diamonds = 0x8,
+    CustomItem = 0x9,
+};
 
 enum class EditCommand {
-    SmallLeft   = 1,
-    SmallRight  = 2,
-    SmallUp     = 3,
-    SmallDown   = 4,
+    SmallLeft = 1,
+    SmallRight = 2,
+    SmallUp = 3,
+    SmallDown = 4,
 
-    Left        = 5,
-    Right       = 6,
-    Up          = 7,
-    Down        = 8,
+    Left = 5,
+    Right = 6,
+    Up = 7,
+    Down = 8,
 
-    BigLeft     = 9,
-    BigRight    = 10,
-    BigUp       = 11,
-    BigDown     = 12,
+    BigLeft = 9,
+    BigRight = 10,
+    BigUp = 11,
+    BigDown = 12,
 
-    TinyLeft    = 13,
-    TinyRight   = 14,
-    TinyUp      = 15,
-    TinyDown    = 16,
+    TinyLeft = 13,
+    TinyRight = 14,
+    TinyUp = 15,
+    TinyDown = 16,
 
-    FlipX       = 17,
-    FlipY       = 18,
-    RotateCW    = 19,
-    RotateCCW   = 20,
-    RotateCW45  = 21,
+    FlipX = 17,
+    FlipY = 18,
+    RotateCW = 19,
+    RotateCCW = 20,
+    RotateCW45 = 21,
     RotateCCW45 = 22,
-    RotateFree  = 23,
-    RotateSnap  = 24,
-    
-    Scale       = 25,
+    RotateFree = 23,
+    RotateSnap = 24,
+
+    Scale = 25,
 };
 
 // Geode Addition
 enum class PlaybackMode {
-	Not        = 0,
-	Playing    = 1,
-	Paused     = 2,
+    Not = 0,
+    Playing = 1,
+    Paused = 2,
 };
 
 enum class SelectArtType {
-    Background    = 0,
-    Ground        = 1,
+    Background = 0,
+    Ground = 1,
 };
 
 enum class UndoCommand {
@@ -244,53 +256,53 @@ enum class EasingType {
 };
 
 enum class GJDifficulty {
-	Auto = 0,
-	Easy = 1,
-	Normal = 2,
-	Hard = 3,
-	Harder = 4,
-	Insane = 5,
-	Demon = 6,
-	DemonEasy = 7,
-	DemonMedium = 8,
-	DemonInsane = 9,
-	DemonExtreme = 10
+    Auto = 0,
+    Easy = 1,
+    Normal = 2,
+    Hard = 3,
+    Harder = 4,
+    Insane = 5,
+    Demon = 6,
+    DemonEasy = 7,
+    DemonMedium = 8,
+    DemonInsane = 9,
+    DemonExtreme = 10
 };
 
 enum class GJLevelType {
-	Local = 1,
-	Editor = 2,
-	Saved = 3
+    Local = 1,
+    Editor = 2,
+    Saved = 3
 };
 
 enum class IconType {
-	Cube           = 0,
-	Ship           = 1,
-	Ball           = 2,
-	Ufo            = 3,
-	Wave           = 4,
-	Robot          = 5,
-	Spider         = 6,
-	DeathEffect    = 98,
-	Special        = 99,
+    Cube = 0,
+    Ship = 1,
+    Ball = 2,
+    Ufo = 3,
+    Wave = 4,
+    Robot = 5,
+    Spider = 6,
+    DeathEffect = 98,
+    Special = 99,
 };
 
 enum class GJChallengeType {
-	Unknown = 0,
-	Orbs = 1,
-	UserCoins = 2,
-	Stars = 3
+    Unknown = 0,
+    Orbs = 1,
+    UserCoins = 2,
+    Stars = 3
 };
 
 enum class GJScoreType {
-	Unknown = 0,
-	Creator = 1
+    Unknown = 0,
+    Creator = 1
 };
 
 enum class LevelLeaderboardType {
-	Friends = 0,
-	Global = 1,
-	Weekly = 2
+    Friends = 0,
+    Global = 1,
+    Weekly = 2
 };
 
 // Geode Addition
@@ -316,9 +328,9 @@ enum class TouchToggleMode {
 
 // Geode Addition
 enum class LeaderboardState {
-	Default    = 0,
-    Top100     = 1,
-    Global     = 2,
-    Creator    = 3,
-    Friends    = 4,
+    Default = 0,
+    Top100 = 1,
+    Global = 2,
+    Creator = 3,
+    Friends = 4,
 };

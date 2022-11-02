@@ -1,16 +1,18 @@
 #include "InternalLoader.hpp"
-#include <vector>
-#include <string>
-#include <sstream>
-#include <iostream>
+
 #include "InternalMod.hpp"
-#include <Geode/loader/Log.hpp>
-#include <Geode/loader/Loader.hpp>
-#include <Geode/utils/fetch.hpp>
-#include <thread>
 #include "resources.hpp"
-#include <hash.hpp>
+
+#include <Geode/loader/Loader.hpp>
+#include <Geode/loader/Log.hpp>
+#include <Geode/utils/fetch.hpp>
 #include <Geode/utils/file.hpp>
+#include <hash.hpp>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <thread>
+#include <vector>
 
 InternalLoader::InternalLoader() : Loader() {}
 
@@ -29,8 +31,7 @@ bool InternalLoader::setup() {
 
     if (!this->loadHooks()) {
         log::log(
-            Severity::Error,
-            InternalMod::get(),
+            Severity::Error, InternalMod::get(),
             "There were errors loading some hooks, see console for details"
         );
     }
@@ -46,7 +47,7 @@ void InternalLoader::queueInGDThread(ScheduledFunction func) {
 }
 
 void InternalLoader::executeGDThreadQueue() {
-    // copy queue to avoid locking mutex if someone is 
+    // copy queue to avoid locking mutex if someone is
     // running addToGDThread inside their function
     m_gdThreadMutex.lock();
     auto queue = m_gdThreadQueue;
@@ -89,8 +90,8 @@ void InternalLoader::loadInfoAlerts(nlohmann::json& json) {
 void InternalLoader::downloadLoaderResources(IndexUpdateCallback callback) {
     auto version = this->getVersion().toString();
     auto tempResourcesZip = this->getGeodeDirectory() / GEODE_RESOURCE_DIRECTORY / "new.zip";
-    auto resourcesDir = this->getGeodeDirectory() / 
-        GEODE_RESOURCE_DIRECTORY / InternalMod::get()->getID();
+    auto resourcesDir =
+        this->getGeodeDirectory() / GEODE_RESOURCE_DIRECTORY / InternalMod::get()->getID();
 
     web::AsyncWebRequest()
         .join("update-geode-loader-resources")
@@ -113,17 +114,19 @@ void InternalLoader::downloadLoaderResources(IndexUpdateCallback callback) {
                                 // unzip resources zip
                                 auto unzip = file::unzipTo(tempResourcesZip, resourcesDir);
                                 if (!unzip) {
-                                    if (callback) callback(
-                                        UpdateStatus::Failed,
-                                        "Unable to unzip new resources: " + unzip.error(),
-                                        0
-                                    );
+                                    if (callback)
+                                        callback(
+                                            UpdateStatus::Failed,
+                                            "Unable to unzip new resources: " + unzip.error(), 0
+                                        );
                                     return;
                                 }
                                 // delete resources zip
                                 try {
                                     ghc::filesystem::remove(tempResourcesZip);
-                                } catch(...) {}
+                                }
+                                catch (...) {
+                                }
 
                                 Loader::get()->updateResources();
 
@@ -137,11 +140,11 @@ void InternalLoader::downloadLoaderResources(IndexUpdateCallback callback) {
                                 if (callback) callback(UpdateStatus::Failed, info, 0);
                             })
                             .progress([callback](auto&, double now, double total) {
-                                if (callback) callback(
-                                    UpdateStatus::Progress,
-                                    "Downloading resources",
-                                    static_cast<uint8_t>(now / total * 100.0)
-                                );
+                                if (callback)
+                                    callback(
+                                        UpdateStatus::Progress, "Downloading resources",
+                                        static_cast<uint8_t>(now / total * 100.0)
+                                    );
                             });
                     }
                 }
@@ -163,14 +166,11 @@ bool InternalLoader::verifyLoaderResources(IndexUpdateCallback callback) {
     }
 
     // geode/resources/geode.loader
-    auto resourcesDir = this->getGeodeDirectory() / 
-        GEODE_RESOURCE_DIRECTORY / InternalMod::get()->getID();
+    auto resourcesDir =
+        this->getGeodeDirectory() / GEODE_RESOURCE_DIRECTORY / InternalMod::get()->getID();
 
     // if the resources dir doesn't exist, then it's probably incorrect
-    if (!(
-        ghc::filesystem::exists(resourcesDir) &&
-        ghc::filesystem::is_directory(resourcesDir)
-    )) {
+    if (!(ghc::filesystem::exists(resourcesDir) && ghc::filesystem::is_directory(resourcesDir))) {
         this->downloadLoaderResources(callback);
         return false;
     }
@@ -188,7 +188,9 @@ bool InternalLoader::verifyLoaderResources(IndexUpdateCallback callback) {
         // verify hash
         auto hash = calculateSHA256(file.path());
         if (hash != LOADER_RESOURCE_HASHES.at(name)) {
-            log::debug("compare {} {} {}", file.path().string(), hash, LOADER_RESOURCE_HASHES.at(name));
+            log::debug(
+                "compare {} {} {}", file.path().string(), hash, LOADER_RESOURCE_HASHES.at(name)
+            );
             this->downloadLoaderResources(callback);
             return false;
         }
@@ -205,13 +207,13 @@ bool InternalLoader::verifyLoaderResources(IndexUpdateCallback callback) {
 }
 
 #if defined(GEODE_IS_WINDOWS)
-void InternalLoader::platformMessageBox(const char* title, std::string const& info) {
+void InternalLoader::platformMessageBox(char const* title, std::string const& info) {
     MessageBoxA(nullptr, info.c_str(), title, MB_ICONERROR);
 }
 
 void InternalLoader::openPlatformConsole() {
     if (m_platformConsoleOpen) return;
-    if (AllocConsole() == 0)   return;
+    if (AllocConsole() == 0) return;
     SetConsoleCP(CP_UTF8);
     // redirect console output
     freopen_s(reinterpret_cast<FILE**>(stdout), "CONOUT$", "w", stdout);
@@ -235,13 +237,15 @@ void InternalLoader::closePlatformConsole() {
 }
 
 #elif defined(GEODE_IS_MACOS)
-#include <CoreFoundation/CoreFoundation.h>
+    #include <CoreFoundation/CoreFoundation.h>
 
-void InternalLoader::platformMessageBox(const char* title, std::string const& info) {
-	 CFStringRef cfTitle = CFStringCreateWithCString(NULL, title, kCFStringEncodingUTF8);
+void InternalLoader::platformMessageBox(char const* title, std::string const& info) {
+    CFStringRef cfTitle = CFStringCreateWithCString(NULL, title, kCFStringEncodingUTF8);
     CFStringRef cfMessage = CFStringCreateWithCString(NULL, info.c_str(), kCFStringEncodingUTF8);
 
-    CFUserNotificationDisplayNotice(0, kCFUserNotificationNoteAlertLevel, NULL, NULL, NULL, cfTitle, cfMessage, NULL);
+    CFUserNotificationDisplayNotice(
+        0, kCFUserNotificationNoteAlertLevel, NULL, NULL, NULL, cfTitle, cfMessage, NULL
+    );
 }
 
 void InternalLoader::openPlatformConsole() {
@@ -258,24 +262,22 @@ void InternalLoader::closePlatformConsole() {
 
 #elif defined(GEODE_IS_IOS)
 
-#include <unistd.h>
-#include <sys/types.h>
-#include <pwd.h>
+    #include <pwd.h>
+    #include <sys/types.h>
+    #include <unistd.h>
 
-void InternalLoader::platformMessageBox(const char* title, std::string const& info) {
+void InternalLoader::platformMessageBox(char const* title, std::string const& info) {
     std::cout << title << ": " << info << std::endl;
 }
 
 void InternalLoader::openPlatformConsole() {
     ghc::filesystem::path(getpwuid(getuid())->pw_dir);
-    freopen(ghc::filesystem::path(
-        utils::file::geodeRoot() / "geode_log.txt"
-    ).string().c_str(),"w",stdout);
-    InternalLoader::
-    m_platformConsoleOpen = true;
+    freopen(
+        ghc::filesystem::path(utils::file::geodeRoot() / "geode_log.txt").string().c_str(), "w",
+        stdout
+    );
+    InternalLoader::m_platformConsoleOpen = true;
 }
 
-void InternalLoader::closePlatformConsole() {
-}
+void InternalLoader::closePlatformConsole() {}
 #endif
-

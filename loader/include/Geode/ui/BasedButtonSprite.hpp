@@ -4,14 +4,14 @@
 
 namespace geode {
     enum class CircleBaseSize {
-        Tiny = 0,    // Equivalent to the tiny delete button
-        Small = 1,   // Equivalent to most circular buttons in the editor
-        Small2 = 2,  // Equivalent to the trash button in the editor
-        Medium = 3,  // Equivalent to most buttons
+        Tiny = 0, // Equivalent to the tiny delete button
+        Small = 1, // Equivalent to most circular buttons in the editor
+        Small2 = 2, // Equivalent to the trash button in the editor
+        Medium = 3, // Equivalent to most buttons
         Medium2 = 4, // Equivalent to the bottom buttons in MenuLayer
-        Big = 5,     // Equivalent to the New button
-        Big2 = 6,    // Equivalent to the Account button
-        Large = 7,   // Equivalent to the big Play Button
+        Big = 5, // Equivalent to the New button
+        Big2 = 6, // Equivalent to the Account button
+        Large = 7, // Equivalent to the big Play Button
     };
 
     enum class CrossBaseSize {
@@ -77,8 +77,8 @@ namespace geode {
     };
 
     /**
-     * Represents a GD button sprite where there's 
-     * an icon sprite on top another default sprite. 
+     * Represents a GD button sprite where there's
+     * an icon sprite on top another default sprite.
      * You know, it has a base. It's based.
      * lmao trademark lizbith
      */
@@ -90,13 +90,15 @@ namespace geode {
         cocos2d::CCNode* m_onTop = nullptr;
 
         bool init(cocos2d::CCNode* ontop, int type, int size, int color);
-        bool initWithSprite(const char* sprName, float sprScale, int type, int size, int color);
-        bool initWithSpriteFrameName(const char* sprName, float sprScale, int type, int size, int color);
+        bool initWithSprite(char const* sprName, float sprScale, int type, int size, int color);
+        bool initWithSpriteFrameName(
+            char const* sprName, float sprScale, int type, int size, int color
+        );
 
         cocos2d::CCPoint getTopOffset() const;
 
         virtual ~BasedButtonSprite();
-    
+
     public:
         static BasedButtonSprite* create(cocos2d::CCNode* ontop, int type, int size, int color);
 
@@ -106,19 +108,16 @@ namespace geode {
     class GEODE_DLL CircleButtonSprite : public BasedButtonSprite {
     public:
         static CircleButtonSprite* create(
-            cocos2d::CCNode* top,
-            CircleBaseColor color = CircleBaseColor::Green,
+            cocos2d::CCNode* top, CircleBaseColor color = CircleBaseColor::Green,
             CircleBaseSize size = CircleBaseSize::Medium
         );
         static CircleButtonSprite* createWithSprite(
-            const char* sprName,
-            float sprScale = 1.f,
+            char const* sprName, float sprScale = 1.f,
             CircleBaseColor color = CircleBaseColor::Green,
             CircleBaseSize size = CircleBaseSize::Medium
         );
         static CircleButtonSprite* createWithSpriteFrameName(
-            const char* sprName,
-            float sprScale = 1.f,
+            char const* sprName, float sprScale = 1.f,
             CircleBaseColor color = CircleBaseColor::Green,
             CircleBaseSize size = CircleBaseSize::Medium
         );
@@ -128,19 +127,17 @@ namespace geode {
     public:
         static EditorButtonSprite* create(cocos2d::CCNode* top, EditorBaseColor color);
         static EditorButtonSprite* createWithSprite(
-            const char* sprName,
-            float sprScale = 1.f,
+            char const* sprName, float sprScale = 1.f,
             EditorBaseColor color = EditorBaseColor::Green
         );
         static EditorButtonSprite* createWithSpriteFrameName(
-            const char* sprName,
-            float sprScale = 1.f,
+            char const* sprName, float sprScale = 1.f,
             EditorBaseColor color = EditorBaseColor::Green
         );
     };
 
     class GEODE_DLL TabButtonSprite : public BasedButtonSprite {
     public:
-        static TabButtonSprite* create(const char* text, TabBaseColor color);
+        static TabButtonSprite* create(char const* text, TabBaseColor color);
     };
 }

@@ -17,7 +17,6 @@ namespace geode {
     GEODE_DLL void openIndexPopup(Mod* mod);
     /**
      * Open the settings popup for a mod (if it has any settings)
-    */
+     */
     GEODE_DLL void openSettingsPopup(Mod* mod);
 }
-
