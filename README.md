@@ -6,7 +6,7 @@
 
 ## Why Geode?
 
-There's nothing worse than having to read thousands of words just to see what some library's code actually looks like, so instead, here's a **Hello World** in Geode right off the bat:
+Here's a **Hello World** mod in Geode:
 
 ```cpp
 #include <Geode/Bindings.hpp>
@@ -25,9 +25,7 @@ class $modify(MenuLayer) {
 };
 ```
 
-This code hooks the "More Games" button in Geometry Dash, and makes it show a different popup when clicked. Compared to traditional modding methods such as MinHook, we would argue that this is **much simpler to write, understand & maintain**.
-
-One of our main design goals with Geode has been to make a framework so good that **after using it once, you never want to go back**.
+This code hooks the "More Games" button in Geometry Dash, and makes it show a different popup when clicked.
 
 > :warning: It is important to note that Geode is **not meant to make learning to mod easier**. To make a good GD mod, you will still need to learn the ins and outs of C++, reverse engineering, byte patching, and everything else. Geode is merely a collection of tools that make modding more enjoyable for people who are already familiar with it; not a magic wand for making mods without the hours of experience and practice required.
 
