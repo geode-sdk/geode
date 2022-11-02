@@ -6,6 +6,8 @@
 USE_GEODE_NAMESPACE();
 
 $register_ids(CreatorLayer) {
+    setIDSafe<CCSprite>(this, 0, "background");
+
     if (auto menu = getChildOfType<CCMenu>(this, 0)) {
         menu->setID("creator-buttons-menu");
 
@@ -37,8 +39,8 @@ $register_ids(CreatorLayer) {
     }
 
     if (auto menu = getChildOfType<CCMenu>(this, 1)) {
-        menu->setID("go-back-menu");
-        setIDSafe(menu, 0, "back-button");
+        menu->setID("exit-menu");
+        setIDSafe(menu, 0, "exit-button");
     }
 }
 

@@ -3,7 +3,7 @@
 
 $register_ids(LevelSearchLayer) {
 	// set the funny ids
-	setIDSafe(this, 0, "creator-layer-bg");
+	setIDSafe(this, 0, "background");
 	getChildOfType<CCTextInputNode>(this, 0)->setID("search-bar");
 	getChildOfType<CCScale9Sprite>(this, 0)->setID("level-search-bg");
 	getChildOfType<CCScale9Sprite>(this, 1)->setID("level-search-bar-bg");
