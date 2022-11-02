@@ -1,10 +1,7 @@
 #include <Geode/binding/StatsCell.hpp>
 #include <Geode/binding/TableView.hpp>
-<<<<<<< HEAD
 #include <Geode/binding/CCContentLayer.hpp>
-=======
 #include <Geode/ui/ListView.hpp>
->>>>>>> main
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/cocos.hpp>
 

@@ -48,8 +48,7 @@ namespace geode::utils::ranges {
         return std::find_if(cont.begin(), cont.end(), fun) != cont.end();
     }
 
-<<<<<<< HEAD
-    template<ValidConstContainer C, ValidCUnaryPredicate<C> Predicate>
+    template <ValidConstContainer C, ValidCUnaryPredicate<C> Predicate>
     std::optional<typename C::value_type> find(C const& cont, Predicate fun) {
         auto it = std::find_if(cont.begin(), cont.end(), fun);
         if (it != cont.end()) {
@@ -58,7 +57,7 @@ namespace geode::utils::ranges {
         return std::nullopt;
     }
 
-    template<ValidConstContainer C>
+    template <ValidConstContainer C>
     std::optional<size_t> indexOf(C const& cont, typename C::value_type const& elem) {
         auto it = std::find(cont.begin(), cont.end(), elem);
         if (it != cont.end()) {
@@ -67,7 +66,7 @@ namespace geode::utils::ranges {
         return std::nullopt;
     }
 
-    template<ValidConstContainer C, ValidCUnaryPredicate<C> Predicate>
+    template <ValidConstContainer C, ValidCUnaryPredicate<C> Predicate>
     std::optional<size_t> indexOf(C const& cont, Predicate fun) {
         auto it = std::find_if(cont.begin(), cont.end(), fun);
         if (it != cont.end()) {
@@ -76,7 +75,7 @@ namespace geode::utils::ranges {
         return std::nullopt;
     }
 
-    template<ValidMutContainer C>
+    template <ValidMutContainer C>
     bool move(C& cont, typename C::value_type const& elem, size_t where) {
         if (where > cont.size() - 1) {
             return false;
@@ -101,18 +100,11 @@ namespace geode::utils::ranges {
         return false;
     }
 
-    template<ValidConstContainer C, class Output>
+    template <ValidConstContainer C, class Output>
         requires
             std::is_default_constructible_v<Output> &&
             std::is_convertible_v<Output, typename C::value_type>
     Output join(C const& cont, Output const& separator) {
-=======
-    template <ValidConstContainer C, class Output>
-
-    requires std::is_default_constructible_v<Output> &&
-        std::is_convertible_v<Output, typename C::value_type>
-            Output join(C const& cont, Output const& separator) {
->>>>>>> main
         auto res = Output();
         bool first = true;
         for (auto& p : cont) {
