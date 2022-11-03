@@ -7,6 +7,7 @@
 #include <Geode/loader/Log.hpp>
 #include <Geode/utils/fetch.hpp>
 #include <Geode/utils/file.hpp>
+#include <fmt/format.h>
 #include <hash.hpp>
 #include <iostream>
 #include <sstream>
@@ -95,62 +96,38 @@ void InternalLoader::downloadLoaderResources(IndexUpdateCallback callback) {
 
     web::AsyncWebRequest()
         .join("update-geode-loader-resources")
-        .fetch("https://api.github.com/repos/geode-sdk/geode/releases/tags/" + version)
-        .json()
-        .then([tempResourcesZip, resourcesDir, callback](nlohmann::json const& json) {
-            auto checker = JsonChecker(json);
-            auto root = checker.root("[matching geode release]").obj();
-
-            // find resources.zip and download it
-            for (auto asset : root.needs("assets").iterate()) {
-                auto obj = asset.obj();
-                if (obj.needs("name").get<std::string>() == "resources.zip") {
-                    auto url = obj.needs("browser_download_url").get<std::string>();
-                    if (url.size()) {
-                        web::AsyncWebRequest()
-                            .fetch(url)
-                            .into(tempResourcesZip)
-                            .then([tempResourcesZip, resourcesDir, callback](auto) {
-                                // unzip resources zip
-                                auto unzip = file::unzipTo(tempResourcesZip, resourcesDir);
-                                if (!unzip) {
-                                    if (callback)
-                                        callback(
-                                            UpdateStatus::Failed,
-                                            "Unable to unzip new resources: " + unzip.error(), 0
-                                        );
-                                    return;
-                                }
-                                // delete resources zip
-                                try {
-                                    ghc::filesystem::remove(tempResourcesZip);
-                                }
-                                catch (...) {
-                                }
-
-                                if (callback)
-                                    callback(UpdateStatus::Finished, "Resources updated", 100);
-                            })
-                            .expect([callback](std::string const& info) {
-                                if (callback) callback(UpdateStatus::Failed, info, 0);
-                            })
-                            .progress([callback](auto&, double now, double total) {
-                                if (callback)
-                                    callback(
-                                        UpdateStatus::Progress, "Downloading resources",
-                                        static_cast<uint8_t>(now / total * 100.0)
-                                    );
-                            });
-                    }
-                }
+        .fetch(fmt::format(
+            "https://github.com/geode-sdk/geode/releases/download/{}/resources.zip", version
+        ))
+        .into(tempResourcesZip)
+        .then([tempResourcesZip, resourcesDir, callback](auto) {
+            // unzip resources zip
+            auto unzip = file::unzipTo(tempResourcesZip, resourcesDir);
+            if (!unzip) {
+                if (callback)
+                    callback(
+                        UpdateStatus::Failed, "Unable to unzip new resources: " + unzip.error(), 0
+                    );
+                return;
+            }
+            // delete resources zip
+            try {
+                ghc::filesystem::remove(tempResourcesZip);
+            }
+            catch (...) {
             }
 
-            if (checker.isError()) {
-                if (callback) callback(UpdateStatus::Failed, checker.getError(), 0);
-            }
+            if (callback) callback(UpdateStatus::Finished, "Resources updated", 100);
         })
         .expect([callback](std::string const& info) {
             if (callback) callback(UpdateStatus::Failed, info, 0);
+        })
+        .progress([callback](auto&, double now, double total) {
+            if (callback)
+                callback(
+                    UpdateStatus::Progress, "Downloading resources",
+                    static_cast<uint8_t>(now / total * 100.0)
+                );
         });
 }
 
@@ -186,9 +163,8 @@ bool InternalLoader::verifyLoaderResources(IndexUpdateCallback callback) {
             log::debug(
                 "compare {} {} {}", file.path().string(), hash, LOADER_RESOURCE_HASHES.at(name)
             );
-            return true;
             this->downloadLoaderResources(callback);
-            return false; // todo
+            return false;
         }
         coverage += 1;
     }
