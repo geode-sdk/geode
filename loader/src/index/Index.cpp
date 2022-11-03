@@ -12,6 +12,7 @@
 #include <Geode/utils/ranges.hpp>
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/vector.hpp>
+#include <fmt/format.h>
 #include <hash.hpp>
 #include <thread>
 
@@ -104,39 +105,32 @@ void Index::updateIndex(IndexUpdateCallback callback, bool force) {
 
 #endif
 
+    // read sha of currently installed commit
+    std::string currentCommitSHA = "";
+    if (ghc::filesystem::exists(indexDir / "current")) {
+        auto data = utils::file::readString(indexDir / "current");
+        if (data) {
+            currentCommitSHA = data.value();
+        }
+    }
+
     web::AsyncWebRequest()
         .join("index-update")
-        .fetch("https://api.github.com/repos/geode-sdk/mods/commits")
-        .json()
-        .then([this, force, callback](nlohmann::json const& json) {
+        .header(fmt::format("If-None-Match: \"{}\"", currentCommitSHA))
+        .header("Accept: application/vnd.github.sha")
+        .fetch("https://api.github.com/repos/geode-sdk/mods/commits/main")
+        .text()
+        .then([this, force, callback, currentCommitSHA](std::string const& upcomingCommitSHA) {
             auto indexDir = Loader::get()->getGeodeDirectory() / "index";
 
-            // check if rate-limited (returns object)
-            JsonChecker checkerObj(json);
-            auto obj = checkerObj.root("[geode-sdk/mods/commits]").obj();
-            if (obj.has("documentation_url") && obj.has("message")) {
-                RETURN_ERROR(obj.has("message").get<std::string>());
-            }
+            // gee i sure hope no one does 60 commits to the mod index an hour and download every
+            // single one of them
+            if (upcomingCommitSHA == "") {
+                m_upToDate = true;
+                m_updating = false;
 
-            // get sha of latest commit
-            JsonChecker checker(json);
-            auto root = checker.root("[geode-sdk/mods/commits]").array();
-
-            std::string upcomingCommitSHA;
-            if (auto first = root.at(0).obj().needs("sha")) {
-                upcomingCommitSHA = first.get<std::string>();
-            }
-            else {
-                RETURN_ERROR("Unable to get hash from latest commit: " + checker.getError());
-            }
-
-            // read sha of currently installed commit
-            std::string currentCommitSHA = "";
-            if (ghc::filesystem::exists(indexDir / "current")) {
-                auto data = utils::file::readString(indexDir / "current");
-                if (data) {
-                    currentCommitSHA = data.value();
-                }
+                if (callback) callback(UpdateStatus::Finished, "", 100);
+                return;
             }
 
             // update if forced or latest commit has

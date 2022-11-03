@@ -86,6 +86,7 @@ namespace geode::utils::web {
         mutable std::mutex m_mutex;
         std::variant<std::monostate, std::ostream*, ghc::filesystem::path> m_target =
             std::monostate();
+        std::vector<std::string> m_httpHeaders;
 
         template <class T>
         friend class AsyncWebResult;
@@ -134,6 +135,7 @@ namespace geode::utils::web {
         AsyncCancelled m_cancelled = nullptr;
         bool m_sent = false;
         std::variant<std::monostate, std::ostream*, ghc::filesystem::path> m_target;
+        std::vector<std::string> m_httpHeaders;
 
         template <class T>
         friend class AsyncWebResult;
@@ -159,6 +161,12 @@ namespace geode::utils::web {
          * @returns Same AsyncWebRequest
          */
         AsyncWebRequest& join(std::string const& requestID);
+
+        /**
+         * In order to specify a http header to the request, give it here.
+         * Can be called more than once.
+         */
+        AsyncWebRequest& header(std::string const& header);
         /**
          * URL to fetch from the internet asynchronously
          * @param url URL of the data to download. Redirects will be

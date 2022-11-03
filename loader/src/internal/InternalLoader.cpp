@@ -186,8 +186,9 @@ bool InternalLoader::verifyLoaderResources(IndexUpdateCallback callback) {
             log::debug(
                 "compare {} {} {}", file.path().string(), hash, LOADER_RESOURCE_HASHES.at(name)
             );
+            return true;
             this->downloadLoaderResources(callback);
-            return false;
+            return false; // todo
         }
         coverage += 1;
     }
