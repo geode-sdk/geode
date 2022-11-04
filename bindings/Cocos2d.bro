@@ -140,6 +140,8 @@ class cocos2d::CCDrawNode {
 	static cocos2d::CCDrawNode* create() = mac 0x378d00;
 	auto drawPolygon(cocos2d::CCPoint*, unsigned int, cocos2d::_ccColor4F const&, float, cocos2d::_ccColor4F const&) = mac 0x3797f0;
 	auto drawSegment(cocos2d::CCPoint const&, cocos2d::CCPoint const&, float, cocos2d::_ccColor4F const&) = mac 0x3792d0;
+	auto drawDot(cocos2d::CCPoint const&, float, cocos2d::_ccColor4F const&) = mac 0x379100;
+
 	auto getBlendFunc() const = mac 0x379ea0;
 	auto init() = mac 0x378e00;
 	auto setBlendFunc(cocos2d::_ccBlendFunc const&) = mac 0x379eb0;
