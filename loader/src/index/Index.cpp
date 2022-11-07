@@ -87,7 +87,7 @@ void Index::updateIndex(IndexUpdateCallback callback, bool force) {
 
     // create directory for the local clone of
     // the index
-    auto indexDir = Loader::get()->getGeodeDirectory() / "index";
+    auto indexDir = Loader::get()->getGeodeSaveDirectory() / GEODE_INDEX_DIRECTORY;
     ghc::filesystem::create_directories(indexDir);
 
 #if GITHUB_DONT_RATE_LIMIT_ME_PLS == 1
@@ -121,7 +121,7 @@ void Index::updateIndex(IndexUpdateCallback callback, bool force) {
         .fetch("https://api.github.com/repos/geode-sdk/mods/commits/main")
         .text()
         .then([this, force, callback, currentCommitSHA](std::string const& upcomingCommitSHA) {
-            auto indexDir = Loader::get()->getGeodeDirectory() / "index";
+            auto indexDir = Loader::get()->getGeodeSaveDirectory() / GEODE_INDEX_DIRECTORY;
 
             // gee i sure hope no one does 60 commits to the mod index an hour and download every
             // single one of them
@@ -278,7 +278,7 @@ void Index::addIndexItemFromFolder(ghc::filesystem::path const& dir) {
 
 Result<> Index::updateIndexFromLocalCache() {
     m_items.clear();
-    auto baseIndexDir = Loader::get()->getGeodeDirectory() / "index";
+    auto baseIndexDir = Loader::get()->getGeodeSaveDirectory() / GEODE_INDEX_DIRECTORY;
 
     // load geode.json (index settings)
     if (auto baseIndexJson = readJSON(baseIndexDir / "geode.json")) {
@@ -523,7 +523,7 @@ void InstallItems::error(std::string const& info) {
 
 void InstallItems::finish(bool replaceFiles) {
     // move files from temp dir to geode directory
-    auto tempDir = Loader::get()->getGeodeDirectory() / "index" / "temp";
+    auto tempDir = Loader::get()->getGeodeSaveDirectory() / GEODE_INDEX_DIRECTORY / "temp";
     for (auto& file : ghc::filesystem::directory_iterator(tempDir)) {
         try {
             auto modDir = Loader::get()->getGeodeDirectory() / "mods";
@@ -599,7 +599,7 @@ InstallItems::CallbackID InstallItems::start(ItemInstallCallback callback, bool 
         // by virtue of running this function we know item must be valid
         auto item = Index::get()->getKnownItem(inst);
 
-        auto indexDir = Loader::get()->getGeodeDirectory() / "index";
+        auto indexDir = Loader::get()->getGeodeSaveDirectory() / GEODE_INDEX_DIRECTORY;
         (void)file::createDirectoryAll(indexDir / "temp");
         auto tempFile = indexDir / "temp" / item.m_download.m_filename;
 
