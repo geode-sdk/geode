@@ -15,14 +15,13 @@ USE_GEODE_NAMESPACE();
 #endif
 
 VersionInfo::VersionInfo(char const* versionString) {
-    if (!THE_SSCANF(versionString, "v%d.%d.%d", &this->m_major, &this->m_minor, &this->m_patch))
-        if (!THE_SSCANF(versionString, "%d.%d.%d", &this->m_major, &this->m_minor, &this->m_patch))
-            THE_SSCANF(versionString, "%d %d %d", &this->m_major, &this->m_minor, &this->m_patch);
+    if (!THE_SSCANF(versionString, "%d.%d.%d", &this->m_major, &this->m_minor, &this->m_patch)) {
+        THE_SSCANF(versionString, "%d %d %d", &this->m_major, &this->m_minor, &this->m_patch);
+    }
 }
 
 bool VersionInfo::validate(std::string const& string) {
     int buf0, buf1, buf2;
-    if (THE_SSCANF(string.c_str(), "v%d.%d.%d", &buf0, &buf1, &buf2)) return true;
     if (THE_SSCANF(string.c_str(), "%d.%d.%d", &buf0, &buf1, &buf2)) return true;
     if (THE_SSCANF(string.c_str(), "%d %d %d", &buf0, &buf1, &buf2)) return true;
     return false;
@@ -107,6 +106,6 @@ bool VersionInfo::match(
 }
 
 std::string VersionInfo::toString() const {
-    return "v" + std::to_string(this->m_major) + "." + std::to_string(this->m_minor) + "." +
+    return std::to_string(this->m_major) + "." + std::to_string(this->m_minor) + "." +
         std::to_string(this->m_patch);
 }
