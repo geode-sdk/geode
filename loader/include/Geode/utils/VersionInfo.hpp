@@ -60,4 +60,9 @@ namespace geode {
 
         std::string toString() const;
     };
+
+    inline std::ostream& operator<<(std::ostream& stream, VersionInfo const& version) {
+        stream << version.toString();
+        return stream;
+    }
 }

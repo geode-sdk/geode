@@ -23,6 +23,7 @@ namespace geode {
     static constexpr std::string_view GEODE_CONFIG_DIRECTORY = "config";
     static constexpr std::string_view GEODE_TEMP_DIRECTORY = "temp";
     static constexpr std::string_view GEODE_MOD_EXTENSION = ".geode";
+    static constexpr std::string_view GEODE_INDEX_DIRECTORY = "index";
 
     class Mod;
     class Hook;

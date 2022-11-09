@@ -4,6 +4,9 @@
 #include <algorithm>
 #include <string>
 
+#undef min
+#undef max
+
 namespace geode::utils::ranges {
     template <class C>
     concept ValidConstContainer = requires(C const& c) {
@@ -137,5 +140,58 @@ namespace geode::utils::ranges {
         auto res = Into();
         std::transform(from.begin(), from.end(), res.end(), mapper);
         return res;
+    }
+
+    template <ValidConstContainer C>
+    typename C::value_type min(C const& container) {
+        auto it = std::min_element(container.begin(), container.end());
+        if (it == container.end()) {
+            return C::value_type();
+        }
+        return *it;
+    }
+
+    template <class T, ValidConstContainer C, ValidIntoConverter<typename C::value_type, T> Member>
+        requires requires(T a, T b) {
+            a < b;
+        }
+    T min(C const& container, Member member) {
+        auto it = std::min_element(
+            container.begin(), container.end(),
+            [member](auto const& a, auto const& b) -> bool {
+                return member(a) < member(b);
+            }
+        );
+        if (it == container.end()) {
+            return T();
+        }
+        return member(*it);
+    }
+
+    template <ValidConstContainer C>
+    typename C::value_type max(C const& container) {
+        auto it = std::max_element(container.begin(), container.end());
+        if (it == container.end()) {
+            return C::value_type();
+        }
+        return *it;
+    }
+
+    template <class T, ValidConstContainer C, ValidIntoConverter<typename C::value_type, T> Member>
+        requires requires(T a, T b) {
+            a < b;
+            T();
+        }
+    T max(C const& container, Member member) {
+        auto it = std::max_element(
+            container.begin(), container.end(),
+            [member](auto const& a, auto const& b) -> bool {
+                return member(a) < member(b);
+            }
+        );
+        if (it == container.end()) {
+            return T();
+        }
+        return member(*it);
     }
 }
