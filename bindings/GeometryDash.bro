@@ -1,4 +1,5 @@
 // geode additions to make stl containers easier
+// clang-format off
 class GDString {
     void winDtor() = win 0xf6e0;
     char const* winCStr() = win 0xf710;
@@ -2104,6 +2105,14 @@ class GJGameLevel : cocos2d::CCNode {
     GJDifficulty getAverageDifficulty() = win 0xbd9b0;
     gd::string getUnpackedLevelDescription() = win 0xbf890;
 
+    static GJGameLevel* getCurrent() {
+        auto playLayer = PlayLayer::get();
+        if (playLayer) return playLayer->m_level;
+        auto editorLayer = LevelEditorLayer::get();
+        if (editorLayer) return editorLayer->m_level;
+        return nullptr;
+    }
+
     cocos2d::CCDictionary* m_lastBuildSave;
     int m_levelIDRand;
     int m_levelIDSeed;
@@ -3547,10 +3556,10 @@ class LevelCell : TableViewCell {
 }
 
 class LevelCommentDelegate {
-    virtual void loadCommentsFinished(cocos2d::CCArray *, const char*)  {}
-    virtual void loadCommentsFailed(const char*)  {}
+    virtual void loadCommentsFinished(cocos2d::CCArray*, char const*)  {}
+    virtual void loadCommentsFailed(char const*)  {}
     virtual void updateUserScoreFinished()  {}
-    virtual void setupPageInfo(gd::string, const char*)  {}
+    virtual void setupPageInfo(gd::string, char const*)  {}
 }
 
 class LevelDeleteDelegate {
@@ -3852,6 +3861,12 @@ class LevelSettingsObject : cocos2d::CCNode {
     static LevelSettingsObject* objectFromString(gd::string) = mac 0x945a0, win 0x16f440;
     void setupColorsFromLegacyMode(cocos2d::CCDictionary*) = mac 0xa6a30, win 0x170050;
 
+    static LevelSettingsObject* get() {
+        auto baseLayer = GJBaseGameLayer::get();
+        if (baseLayer) return baseLayer->m_levelSettings;
+        return nullptr;
+    }
+
     gd::string getSaveString() = mac 0x979c0, win 0x16ebf0;
 
     GJEffectManager* m_effectManager;
@@ -4032,7 +4047,7 @@ class MusicDownloadManager : cocos2d::CCNode, PlatformDownloadDelegate {
     cocos2d::CCDictionary* m_unknownDict;
     cocos2d::CCArray* m_handlers;
     cocos2d::CCDictionary* m_songsDict;
-    int m_unknown;
+    int m_priority;
 }
 
 class NumberInputDelegate {
@@ -5369,4 +5384,4 @@ class VideoOptionsLayer : FLAlertLayer {
 class LevelTools {
     static gd::string base64DecodeString(gd::string) = mac 0x294510, win 0x18b3b0;
 }
-
+// clang-format on
