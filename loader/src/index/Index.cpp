@@ -218,16 +218,34 @@ void Index::addIndexItemFromFolder(ghc::filesystem::path const& dir) {
             return;
         }
 
-        auto info = ModInfo::createFromFile(dir / "mod.json");
-        if (!info) {
-            log::warn("{}: {}, skipping", dir, info.error());
+        auto infoRes = ModInfo::createFromFile(dir / "mod.json");
+        if (!infoRes) {
+            log::warn("{}: {}, skipping", dir, infoRes.error());
             return;
+        }
+        auto info = infoRes.value();
+
+        // make sure only latest version is present in index
+        auto old = std::find_if(m_items.begin(), m_items.end(), [info](IndexItem const& item) {
+            return item.m_info.m_id == info.m_id;
+        });
+        if (old != m_items.end()) {
+            // this one is newer
+            if (old->m_info.m_version < info.m_version) {
+                m_items.erase(old);
+            } else {
+                log::warn(
+                    "Found older version of ({} < {}) of {}, skipping",
+                    info.m_version, old->m_info.m_version, info.m_id
+                );
+                return;
+            }
         }
 
         IndexItem item;
 
         item.m_path = dir;
-        item.m_info = info.value();
+        item.m_info = info;
 
         if (!json.contains("download") || !json["download"].is_object()) {
             log::warn("[index.json].download is not an object, skipping");

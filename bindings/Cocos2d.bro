@@ -264,9 +264,8 @@ class cocos2d::CCLabelBMFont {
 	static cocos2d::CCLabelBMFont* create(char const*, char const*) = mac 0x347660;
 	auto limitLabelWidth(float, float, float) = mac 0x34a6e0, ios 0x21b740;
 
-	virtual ~CCLabelBMFont() = mac 0x347e80, ios 0x219afc;
-
 	virtual auto init() = mac 0x347b10, ios 0x2198e0;
+	bool initWithString(const char* str, const char* fnt, float width, cocos2d::CCTextAlignment align, cocos2d::CCPoint offset);
 	virtual auto setScaleX(float) = mac 0x34a5b0, ios 0x21b6e8;
 	virtual auto setScaleY(float) = mac 0x34a5d0, ios 0x21b714;
 	virtual auto setScale(float) = mac 0x34a590, ios 0x21b6bc;

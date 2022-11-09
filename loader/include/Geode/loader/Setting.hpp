@@ -468,11 +468,19 @@ namespace geode {
         }                                                                    \
     }
 
+    // clang-format off
+
     template <class T>
     T getBuiltInSettingValue(const std::shared_ptr<Setting> setting) {
         GEODE_INT_BUILTIN_SETTING_IF(Bool, getValue(), std::is_same_v<T, bool>)
-        else GEODE_INT_BUILTIN_SETTING_IF(Float, getValue(), std::is_floating_point_v<T>) else GEODE_INT_BUILTIN_SETTING_IF(Int, getValue(), std::is_integral_v<T>) else GEODE_INT_BUILTIN_SETTING_IF(String, getValue(), std::is_same_v<T, std::string>) else {
-            static_assert(!std::is_same_v<T, T>, "todo: implement");
+        else GEODE_INT_BUILTIN_SETTING_IF(Float, getValue(), std::is_floating_point_v<T>)
+        else GEODE_INT_BUILTIN_SETTING_IF(Int, getValue(), std::is_integral_v<T>)
+        else GEODE_INT_BUILTIN_SETTING_IF(String, getValue(), std::is_same_v<T, std::string>)
+        else GEODE_INT_BUILTIN_SETTING_IF(File, getValue(), std::is_same_v<T, ghc::filesystem::path>)
+        else GEODE_INT_BUILTIN_SETTING_IF(Color, getValue(), std::is_same_v<T, cocos2d::ccColor3B>)
+        else GEODE_INT_BUILTIN_SETTING_IF(ColorAlpha, getValue(), std::is_same_v<T, cocos2d::ccColor4B>)
+        else {
+            static_assert(!std::is_same_v<T, T>, "Unsupported type for getting setting value!");
         }
         return T();
     }
@@ -480,10 +488,17 @@ namespace geode {
     template <class T>
     void setBuiltInSettingValue(const std::shared_ptr<Setting> setting, T const& value) {
         GEODE_INT_BUILTIN_SETTING_IF(Bool, setValue(value), std::is_same_v<T, bool>)
-        else GEODE_INT_BUILTIN_SETTING_IF(Float, setValue(value), std::is_floating_point_v<T>) else GEODE_INT_BUILTIN_SETTING_IF(Int, setValue(value), std::is_integral_v<T>) else GEODE_INT_BUILTIN_SETTING_IF(String, setValue(value), std::is_same_v<T, std::string>) else {
-            static_assert(!std::is_same_v<T, T>, "todo: implement");
+        else GEODE_INT_BUILTIN_SETTING_IF(Float, setValue(value), std::is_floating_point_v<T>)
+        else GEODE_INT_BUILTIN_SETTING_IF(Int, setValue(value), std::is_integral_v<T>)
+        else GEODE_INT_BUILTIN_SETTING_IF(String, setValue(value), std::is_same_v<T, std::string>)
+        else GEODE_INT_BUILTIN_SETTING_IF(File, setValue(value), std::is_same_v<T, ghc::filesystem::path>)
+        else GEODE_INT_BUILTIN_SETTING_IF(Color, setValue(value), std::is_same_v<T, cocos2d::ccColor3B>)
+        else GEODE_INT_BUILTIN_SETTING_IF(ColorAlpha, setValue(value), std::is_same_v<T, cocos2d::ccColor4B>)
+        else {
+            static_assert(!std::is_same_v<T, T>, "Unsupported type for getting setting value!");
         }
     }
+    // clang-format on
 }
 
 #pragma warning(pop)
