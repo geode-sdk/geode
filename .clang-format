@@ -79,7 +79,7 @@ IncludeCategories:
 
 IndentAccessModifiers: false
 AccessModifierOffset: -4
-IndentCaseBlocks: true
+IndentCaseBlocks: false
 IndentCaseLabels: true
 IndentExternBlock: Indent
 IndentGotoLabels: true

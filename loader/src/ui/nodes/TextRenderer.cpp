@@ -507,45 +507,33 @@ float TextRenderer::adjustLineAlignment() {
         auto anchor = node->getAnchorPoint().y;
         switch (this->getCurrentVerticalAlign()) {
             case TextAlignment::Begin:
-            default:
-                {
-                    node->setPositionY(m_cursor.y - height * (1.f - anchor));
-                }
-                break;
+            default: {
+                node->setPositionY(m_cursor.y - height * (1.f - anchor));
+            } break;
 
-            case TextAlignment::Center:
-                {
-                    node->setPositionY(m_cursor.y - maxHeight / 2 + height * (.5f - anchor));
-                }
-                break;
+            case TextAlignment::Center: {
+                node->setPositionY(m_cursor.y - maxHeight / 2 + height * (.5f - anchor));
+            } break;
 
-            case TextAlignment::End:
-                {
-                    node->setPositionY(m_cursor.y - maxHeight + height * anchor);
-                }
-                break;
+            case TextAlignment::End: {
+                node->setPositionY(m_cursor.y - maxHeight + height * anchor);
+            } break;
         }
         switch (this->getCurrentHorizontalAlign()) {
             case TextAlignment::Begin:
-            default:
-                {
-                    // already correct
-                }
-                break;
+            default: {
+                // already correct
+            } break;
 
-            case TextAlignment::Center:
-                {
-                    node->setPositionX(node->getPositionX() + (m_size.width - maxWidth) / 2);
-                }
-                break;
+            case TextAlignment::Center: {
+                node->setPositionX(node->getPositionX() + (m_size.width - maxWidth) / 2);
+            } break;
 
-            case TextAlignment::End:
-                {
-                    node->setPositionX(
-                        node->getPositionX() + m_size.width - maxWidth - this->getCurrentIndent()
-                    );
-                }
-                break;
+            case TextAlignment::End: {
+                node->setPositionX(
+                    node->getPositionX() + m_size.width - maxWidth - this->getCurrentIndent()
+                );
+            } break;
         }
     }
     return maxHeight;

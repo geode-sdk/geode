@@ -62,7 +62,7 @@ public:
 // proxy forwards
 // clang-format off
 #include <Geode/modify/CCNode.hpp>
-class $modify(ProxyCCNode, CCNode) {
+struct ProxyCCNode : Modify<ProxyCCNode, CCNode> {
     virtual CCObject* getUserObject() {
         return GeodeNodeMetadata::set(this)->m_userObject;
     }
