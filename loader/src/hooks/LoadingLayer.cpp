@@ -3,26 +3,23 @@
 
 USE_GEODE_NAMESPACE();
 
-// clang-format off
 #include <Geode/modify/LoadingLayer.hpp>
-class $modify(CustomLoadingLayer, LoadingLayer) {
+
+struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     bool m_updatingResources;
 
     CustomLoadingLayer() : m_updatingResources(false) {}
 
     bool init(bool fromReload) {
-        if (!LoadingLayer::init(fromReload))
-            return false;
+        if (!LoadingLayer::init(fromReload)) return false;
 
         auto winSize = CCDirector::sharedDirector()->getWinSize();
 
         auto count = Loader::get()->getAllMods().size();
 
         auto label = CCLabelBMFont::create(
-            CCString::createWithFormat(
-                "Geode: Loaded %lu mods",
-                static_cast<unsigned long>(count)
-            )->getCString(),
+            CCString::createWithFormat("Geode: Loaded %lu mods", static_cast<unsigned long>(count))
+                ->getCString(),
             "goldFont.fnt"
         );
         label->setPosition(winSize.width / 2, 30.f);
@@ -31,13 +28,10 @@ class $modify(CustomLoadingLayer, LoadingLayer) {
         this->addChild(label);
 
         // verify loader resources
-        if (!InternalLoader::get()->verifyLoaderResources(
-            std::bind(
-                &CustomLoadingLayer::updateResourcesProgress, this,
-                std::placeholders::_1, std::placeholders::_2,
-                std::placeholders::_3
-            )
-        )) {
+        if (!InternalLoader::get()->verifyLoaderResources(std::bind(
+                &CustomLoadingLayer::updateResourcesProgress, this, std::placeholders::_1,
+                std::placeholders::_2, std::placeholders::_3
+            ))) {
             // auto bg = CCScale9Sprite::create(
             //     "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
             // );
@@ -73,17 +67,10 @@ class $modify(CustomLoadingLayer, LoadingLayer) {
         // );
     }
 
-    void updateResourcesProgress(
-        UpdateStatus status,
-        std::string const& info,
-        uint8_t progress
-    ) {
+    void updateResourcesProgress(UpdateStatus status, std::string const& info, uint8_t progress) {
         switch (status) {
             case UpdateStatus::Progress: {
-                this->setUpdateText(
-                    "Downloading Resources: " +
-                    std::to_string(progress) + "%"
-                );
+                this->setUpdateText("Downloading Resources: " + std::to_string(progress) + "%");
             } break;
 
             case UpdateStatus::Finished: {
@@ -95,9 +82,10 @@ class $modify(CustomLoadingLayer, LoadingLayer) {
             case UpdateStatus::Failed: {
                 InternalLoader::platformMessageBox(
                     "Error updating resources",
-                    "Unable to update Geode resources: " + info + ".\n"
-                    "The game will be loaded as normal, but please be aware "
-                    "that it may very likely crash."
+                    "Unable to update Geode resources: " + info +
+                        ".\n"
+                        "The game will be loaded as normal, but please be aware "
+                        "that it may very likely crash."
                 );
                 this->setUpdateText("Resource Download Failed");
                 m_fields->m_updatingResources = false;
@@ -106,12 +94,10 @@ class $modify(CustomLoadingLayer, LoadingLayer) {
         }
     }
 
-	void loadAssets() {
-		if (m_fields->m_updatingResources) {
+    void loadAssets() {
+        if (m_fields->m_updatingResources) {
             return;
-		}
-		LoadingLayer::loadAssets();
-	}
+        }
+        LoadingLayer::loadAssets();
+    }
 };
-
-// clang-format on
