@@ -1,6 +1,7 @@
 #pragma once
 #include "../meta/meta.hpp"
 #include "Addresses.hpp"
+#include "Field.hpp"
 #include "Types.hpp"
 #include "Wrapper.hpp"
 
@@ -21,7 +22,7 @@
 namespace geode::modifier {
 
     template <class Derived, class Base>
-    class Modify;
+    class ModifyDerive;
 
     template <class Derived>
     class ModifyBase {
@@ -33,15 +34,29 @@ namespace geode::modifier {
             });
         }
         template <class, class>
-        friend class Modify;
+        friend class ModifyDerive;
         // explicit Modify(Property property) idea
     };
 
     template <class Derived, class Base>
-    class Modify {
+    class ModifyDerive {
     public:
-        Modify() {
+        ModifyDerive() {
             static_assert(core::meta::always_false<Derived>, "Custom Modify not implemented.");
         }
+    };
+}
+
+namespace geode {
+
+    template <class Derived, class Base>
+    class Modify : public Base {
+    private:
+        static inline modifier::ModifyDerive<Derived, Base> s_apply;
+        // because for some reason we need it
+        static inline auto s_applyRef = &Modify::s_apply;
+
+    public:
+        modifier::FieldIntermediate<Derived, Base> m_fields;
     };
 }

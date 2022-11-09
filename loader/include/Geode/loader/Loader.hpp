@@ -31,7 +31,7 @@ namespace geode {
     class VersionInfo;
 
     namespace modifier {
-        template <class, class, class>
+        template <class, class>
         class FieldIntermediate;
     }
 }
@@ -87,7 +87,7 @@ namespace geode {
 
         size_t getFieldIndexForClass(size_t hash);
 
-        template <class, class, class>
+        template <class, class>
         friend class modifier::FieldIntermediate;
 
         void updateResourcePaths();
