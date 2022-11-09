@@ -9,7 +9,7 @@ namespace geode::cast {
     /**
      * Alias for static_cast
      */
-    template <typename T, typename F>
+    template <class T, class F>
     static constexpr T as(F const v) {
         return static_cast<T>(v);
     }
@@ -18,8 +18,8 @@ namespace geode::cast {
      * Cast from anything to anything else,
      * provided they are the same size
      */
-    template <typename T, typename F>
-    static constexpr T union_cast(F v) {
+    template <class T, class F>
+    static constexpr T union_cast(F const v) {
         static_assert(sizeof(F) == sizeof(T), "union_cast: R and T don't match in size!");
 
         union {
@@ -36,27 +36,40 @@ namespace geode::cast {
      * cast but uses reference syntactic sugar to
      * look cleaner.
      */
-    template <typename T, typename F>
+    template <class T, class F>
     static constexpr T reference_cast(F v) {
         return reinterpret_cast<T&>(v);
     }
 
     /**
-     * Cast an adjusted this pointer to it's base pointer
+     * Cast based on RTTI. Casts an adjusted this pointer
+     * to it's non offset form.
      */
-    template <typename T, typename F>
-    static constexpr T base_cast(F obj) {
-        return reinterpret_cast<T>(dynamic_cast<void*>(obj));
+    template <class T, class F>
+    static constexpr T base_cast(F const obj) {
+        return static_cast<T>(dynamic_cast<void*>(obj));
     }
 
     /**
-     * Cast based on RTTI. This is a replacement for
-     * dynamic_cast, since it doesn't work for gd.
+     * Cast based on RTTI. This is used to check
+     * if an object is exactly the class needed. Returns
+     * nullptr on failure.
      */
-    template <typename T, typename F>
-    static T typeid_cast(F obj) {
-        if (std::string(typeid(*obj).name()) == typeid(std::remove_pointer_t<T>).name())
-            return reinterpret_cast<T>(obj);
-        else return nullptr;
+    template <class T, class F>
+    static T exact_cast(F const obj) {
+        if (std::strcmp(typeid(*obj).name(), typeid(std::remove_pointer_t<T>).name()) == 0) {
+            return base_cast<T>(obj);
+        }
+        return nullptr;
+    }
+
+    /**
+     * Cast based on RTTI. This behaves as a replacement
+     * of dynamic_cast for cocos and gd classes,
+     * and must be used for expected results.
+     */
+    template <class T, class F>
+    static T safe_cast(F const obj) {
+        return typeinfo_cast<T>(obj);
     }
 }
