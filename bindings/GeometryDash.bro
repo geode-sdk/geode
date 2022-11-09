@@ -5273,7 +5273,7 @@ class TeleportPortalObject : GameObject {
     bool m_teleportEase;
 }
 
-class TextAlertPopup {
+class TextAlertPopup : cocos2d::CCNode {
     static TextAlertPopup* create(gd::string const& text, float time, float scale) = win 0x1450b0;
 }
 

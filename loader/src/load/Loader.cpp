@@ -37,6 +37,10 @@ void Loader::createDirectories() {
     auto tempDir = this->getGeodeDirectory() / GEODE_TEMP_DIRECTORY;
     auto confDir = this->getGeodeDirectory() / GEODE_CONFIG_DIRECTORY;
 
+    #ifdef GEODE_IS_MACOS
+    ghc::filesystem::create_directory(this->getSaveDirectory());
+    #endif
+
     ghc::filesystem::create_directories(resDir);
     ghc::filesystem::create_directory(confDir);
     ghc::filesystem::create_directory(modDir);
@@ -423,7 +427,12 @@ ghc::filesystem::path Loader::getGameDirectory() const {
 }
 
 ghc::filesystem::path Loader::getSaveDirectory() const {
+    // not using ~/Library/Caches
+    #ifdef GEODE_IS_MACOS
+    return ghc::filesystem::path("/Users/Shared/Geode");
+    #else
     return ghc::filesystem::path(CCFileUtils::sharedFileUtils()->getWritablePath().c_str());
+    #endif
 }
 
 ghc::filesystem::path Loader::getGeodeDirectory() const {
