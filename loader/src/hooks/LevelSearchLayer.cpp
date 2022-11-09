@@ -1,7 +1,6 @@
 #include "../ui/internal/info/ModInfoLayer.hpp"
 #include "../ui/internal/list/ModListLayer.hpp"
 
-#include <Geode/binding/CCLabelBMFont.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Index.hpp>
 #include <InternalLoader.hpp>
