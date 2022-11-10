@@ -5202,6 +5202,19 @@ class TableView : CCScrollLayerExt, CCScrollLayerExtDelegate {
     static TableView* create(TableViewDelegate*, TableViewDataSource*, cocos2d::CCRect) = mac 0x37eb30, win 0x30ed0;
     void reloadData() = mac 0x37f970, win 0x317e0;
 
+    virtual void onEnter() = mac 0x37ff30, ios 0x21dcac;
+    virtual void onExit() = mac 0x37ff40, ios 0x21dcb0;
+    virtual bool ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x380120, ios 0x21de24, win 0x31de0;
+    virtual void ccTouchMoved(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x380be0, ios 0x21e5e8;
+    virtual void ccTouchEnded(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x3809a0, ios 0x21e46c;
+    virtual void ccTouchCancelled(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x380b20, ios 0x21e580;
+    virtual void registerWithTouchDispatcher() = mac 0x37ff50, ios 0x21dcb4;
+    virtual void scrollWheel(float, float) = mac 0x380cd0, ios 0x21e6b4;
+    virtual void scrllViewWillBeginDecelerating(CCScrollLayerExt*) = mac 0x3818a0, ios 0x21efd4;
+    virtual void scrollViewDidEndDecelerating(CCScrollLayerExt*) = mac 0x3818c0, ios 0x21efdc;
+    virtual void scrollViewTouchMoving(CCScrollLayerExt*) = mac 0x3818e0, ios 0x21efe4;
+    virtual void scrollViewDidEndMoving(CCScrollLayerExt*) = mac 0x381900, ios 0x21efec;
+
     bool m_touchOutOfBoundary;
     cocos2d::CCTouch* m_touchStart;
     cocos2d::CCPoint m_touchStartPosition2;
