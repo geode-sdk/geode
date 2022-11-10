@@ -1103,6 +1103,17 @@ class EditorOptionsLayer {
 }
 
 class EditorPauseLayer : CCBlockLayer, FLAlertLayerProtocol {
+    static EditorPauseLayer* get() {
+        if (!EditorUI::get()) return nullptr;
+
+        auto editor = LevelEditorLayer::get();
+        for (auto i = 0; i < editor->getChildrenCount(); ++i) {
+            if (auto layer = cast::safe_cast<EditorPauseLayer*>(editor->getChildren()->objectAtIndex(i))) {
+                return layer;
+            }
+        }
+        return nullptr;
+    }
     static EditorPauseLayer* create(LevelEditorLayer* editor) {
         auto pRet = new EditorPauseLayer();
         if (pRet && pRet->init(editor)) {
