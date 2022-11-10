@@ -39,7 +39,6 @@ target_sources(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/entry.cpp)
 
 add_subdirectory(codegen)
 
-message(STATUS ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp)
 add_custom_command(
 	DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/bindings/GeometryDash.bro
 			${CMAKE_CURRENT_SOURCE_DIR}/bindings/Cocos2d.bro
