@@ -11,8 +11,7 @@ USE_GEODE_NAMESPACE();
 #pragma warning(disable : 4217)
 
 template <class T = CCNode>
-
-    requires std::is_base_of_v<CCNode, T>
+requires std::is_base_of_v<CCNode, T>
 T* setIDSafe(CCNode* node, int index, char const* id) {
     if constexpr (std::is_same_v<CCNode, T>) {
         if (auto child = getChild(node, index)) {
