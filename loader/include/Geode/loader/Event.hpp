@@ -53,13 +53,12 @@ namespace geode {
     template <is_filter T>
     class EventListener : public EventListenerProtocol {
     public:
-        using Ev = typename T::Event;
         using Callback = typename T::Callback;
         template <typename C> requires std::is_class_v<C>
         using MemberFn = typename to_member<C, Callback>::value;
 
         ListenerResult passThrough(Event* e) override {
-            if (auto myev = dynamic_cast<Ev*>(e)) {
+            if (auto myev = dynamic_cast<typename T::Event*>(e)) {
                 return m_filter.handle(m_callback, myev);
             }
             return ListenerResult::Propagate;
