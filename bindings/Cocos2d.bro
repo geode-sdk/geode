@@ -293,6 +293,7 @@ class cocos2d::CCLabelBMFont {
 	virtual auto isCascadeColorEnabled() = mac 0x3493c0, ios 0x21aa3c;
 	virtual auto setCascadeColorEnabled(bool) = mac 0x3493e0, ios 0x21aa4c;
 	virtual auto setString(unsigned short*, bool) = mac 0x348a60, ios 0x21a4b4;
+	virtual ~CCLabelBMFont() = mac 0x347e80;
 }
 
 class cocos2d::CCLabelTTF {
