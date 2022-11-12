@@ -34,7 +34,7 @@ class $modify(LevelBrowserLayer) {
         if (!LevelBrowserLayer::init(obj))
             return false;
         
-        NodeStringIDManager::get()->provide(this);
+        NodeIDs::get()->provide(this);
 
         return true;
     }

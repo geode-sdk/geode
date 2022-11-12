@@ -6,12 +6,12 @@
 
 namespace geode {
     enum class ModEventType {
-        Load,
-        Unload,
-        Enable,
-        Disable,
-        LoadData,
-        SaveData,
+        Loaded,
+        Unloaded,
+        Enabled,
+        Disabled,
+        DataLoaded,
+        DataSaved,
     };
 
     class GEODE_DLL ModStateEvent : public Event {
@@ -25,35 +25,33 @@ namespace geode {
         Mod* getMod() const;
     };
 
-	class GEODE_DLL ModStateEventHandler : public EventHandler<ModStateEvent> {
+	class GEODE_DLL ModStateFilter : public EventFilter<ModStateEvent> {
 	public:
-		using Consumer = void(*)();
+		using Callback = void(ModStateEvent*);
         
 	protected:
         ModEventType m_type;
         Mod* m_mod;
-		Consumer m_consumer;
 	
 	public:
-        PassThrough handle(ModStateEvent* event) override;
-		ModStateEventHandler(Mod* mod, ModEventType type, Consumer handler);
+        ListenerResult handle(std::function<Callback> fn, ModStateEvent* event);
+		ModStateFilter(Mod* mod, ModEventType type);
 	};
 }
 
-#define $on(type) \
-template<class>                                                   \
-void GEODE_CONCAT(geodeExecFunction, __LINE__)();                 \
-namespace {                                                       \
-	struct GEODE_CONCAT(ExecFuncUnique, __LINE__) {};             \
-}                                                                 \
-static inline auto GEODE_CONCAT(Exec, __LINE__) = (Loader::get()->scheduleOnModLoad(\
-	nullptr, []() {                                               \
-        static ModStateEventHandler _(\
-            Mod::get(),\
-            ModEventType::type,\
-            &GEODE_CONCAT(geodeExecFunction, __LINE__)<GEODE_CONCAT(ExecFuncUnique, __LINE__)>\
-        );\
-    }                                                             \
-), 0);                                                            \
-template<class>                                                   \
-void GEODE_CONCAT(geodeExecFunction, __LINE__)()
+#define $on_mod(type) \
+template<class>                                                     \
+void GEODE_CONCAT(geodeExecFunction, __LINE__)(ModStateEvent*);     \
+namespace {                                                         \
+	struct GEODE_CONCAT(ExecFuncUnique, __LINE__) {};               \
+}                                                                   \
+static inline auto GEODE_CONCAT(Exec, __LINE__) = (geode::Loader::get()->scheduleOnModLoad(\
+	geode::Mod::get(), []() {                                       \
+        static auto _ = geode::EventListener(                       \
+            &GEODE_CONCAT(geodeExecFunction, __LINE__)<GEODE_CONCAT(ExecFuncUnique, __LINE__)>,\
+            geode::ModStateFilter(geode::Mod::get(), geode::ModEventType::type)\
+        );                                                          \
+    }                                                               \
+), 0);                                                              \
+template<class>                                                     \
+void GEODE_CONCAT(geodeExecFunction, __LINE__)(ModStateEvent*)

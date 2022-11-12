@@ -16,15 +16,13 @@ cocos2d::CCNode* AEnterLayerEvent::getLayer() const {
     return m_layer;
 }
 
-PassThrough AEnterLayerEventHandler::handle(AEnterLayerEvent* event) {
+ListenerResult AEnterLayerFilter::handle(Callback fn, AEnterLayerEvent* event) {
     if (m_targetID == event->getID()) {
-        m_consumer(event);
+        fn(event);
     }
-    return PassThrough::Propagate;
+    return ListenerResult::Propagate;
 }
 
-AEnterLayerEventHandler::AEnterLayerEventHandler(
-    std::optional<std::string> const& id,
-    Consumer handler
-) : m_targetID(id),
-    m_consumer(handler) {}
+AEnterLayerFilter::AEnterLayerFilter(
+    std::optional<std::string> const& id
+) : m_targetID(id) {}

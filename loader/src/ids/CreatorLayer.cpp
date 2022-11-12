@@ -49,7 +49,7 @@ class $modify(CreatorLayer) {
         if (!CreatorLayer::init())
             return false;
         
-        NodeStringIDManager::get()->provide(this);
+        NodeIDs::get()->provide(this);
 
         return true;
     }

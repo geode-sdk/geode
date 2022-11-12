@@ -2,7 +2,7 @@
 
 using namespace geode;
 
-NodeStringIDManager* NodeStringIDManager::get() {
-    static auto inst = new NodeStringIDManager;
+NodeIDs* NodeIDs::get() {
+    static auto inst = new NodeIDs;
     return inst;
 }

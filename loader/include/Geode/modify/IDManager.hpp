@@ -13,7 +13,7 @@ namespace geode {
         { T::CLASS_NAME } -> std::convertible_to<const char*>;
     };
 
-    class GEODE_DLL NodeStringIDManager {
+    class GEODE_DLL NodeIDs {
     public:
         template<class T>
         using Provider = void(GEODE_CALL*)(T*);
@@ -22,7 +22,7 @@ namespace geode {
         std::unordered_map<std::string, Provider<cocos2d::CCNode>> m_providers;
 
     public:
-        static NodeStringIDManager* get();
+        static NodeIDs* get();
 
         template<IDProvidable T>
         void registerProvider(void(GEODE_CALL* fun)(T*)) {
@@ -39,6 +39,12 @@ namespace geode {
                 return true;
             }
             return false;
+        }
+
+        // @note Because NodeIDs::provideFor(this) looks really neat
+        template<IDProvidable T>
+        static bool provideFor(T* layer) {
+            return NodeIDs::get()->provide(layer);
         }
     };
 
@@ -57,7 +63,7 @@ namespace geode {
         void provide();\
     };\
 	$execute {\
-		NodeStringIDManager::get()->registerProvider(\
+		NodeIDs::get()->registerProvider(\
             &geodeInternalProvideIDsFor<GEODE_CONCAT(ProvideIDsFor, Layer_)>\
         );\
 	};\

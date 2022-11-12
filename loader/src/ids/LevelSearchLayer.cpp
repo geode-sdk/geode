@@ -70,7 +70,7 @@ class $modify(LevelSearchLayer) {
         if (!LevelSearchLayer::init())
             return false;
         
-        NodeStringIDManager::get()->provide(this);
+        NodeIDs::get()->provide(this);
 
         return true;
     }

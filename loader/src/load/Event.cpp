@@ -13,8 +13,8 @@ void EventListenerProtocol::disable() {
     Event::s_listeners.erase(this);
 }
 
-BasicEventHandler::~BasicEventHandler() {
-	this->unlisten();
+EventListenerProtocol::~EventListenerProtocol() {
+	this->disable();
 }
 
 Event::~Event() {}

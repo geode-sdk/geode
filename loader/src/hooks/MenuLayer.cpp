@@ -4,16 +4,15 @@
 #include <Geode/utils/Ref.hpp>
 #include "../ui/internal/info/ModInfoLayer.hpp"
 #include "../ui/internal/list/ModListLayer.hpp"
-
 #include <Geode/ui/BasedButtonSprite.hpp>
 #include <Geode/ui/MDPopup.hpp>
 #include <Geode/ui/Notification.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Index.hpp>
 #include <InternalLoader.hpp>
-#include <Geode/Modify.hpp>
 #include "../ids/AddIDs.hpp"
 #include <InternalMod.hpp>
+#include <Geode/modify/Modify.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -64,7 +63,7 @@ static void updateIndexProgress(UpdateStatus status, std::string const& info, ui
 }
 
 #include <Geode/modify/MenuLayer.hpp>
-class CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
+struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 	void destructor() {
 		g_geodeButton = nullptr;
 		MenuLayer::~MenuLayer();
@@ -76,7 +75,7 @@ class CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 		
 		// make sure to add the string IDs for nodes (Geode has no manual 
 		// hook order support yet so gotta do this to ensure)
-		NodeStringIDManager::get()->provide(this);
+		NodeIDs::provideFor(this);
 
 		auto winSize = CCDirector::sharedDirector()->getWinSize();
 

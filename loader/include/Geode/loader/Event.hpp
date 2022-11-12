@@ -19,6 +19,7 @@ namespace geode {
         virtual void enable();
         virtual void disable();
         virtual ListenerResult passThrough(Event*) = 0;
+        virtual ~EventListenerProtocol();
     };
 
     template <typename C, typename T>

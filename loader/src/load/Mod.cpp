@@ -158,7 +158,7 @@ Result<> Mod::loadData() {
             log::log(Severity::Error, this, "Mod load data function returned false");
         }
     }
-    ModStateEvent(this, ModEventType::LoadData).post();
+    ModStateEvent(this, ModEventType::DataLoaded).post();
     
     return this->loadSettings();
 }
@@ -169,7 +169,7 @@ Result<> Mod::saveData() {
             log::log(Severity::Error, this, "Mod save data function returned false");
         }
     }
-    ModStateEvent(this, ModEventType::SaveData).post();
+    ModStateEvent(this, ModEventType::DataSaved).post();
 
     return this->saveSettings();
 }
@@ -276,7 +276,7 @@ Result<> Mod::load() {
             log::log(Severity::Error, this, "Mod load data function returned false");
         }
     }
-    ModStateEvent(this, ModEventType::Load).post();
+    ModStateEvent(this, ModEventType::Loaded).post();
     auto loadRes = this->loadData();
     if (!loadRes) {
         log::warn("Unable to load data for \"{}\": {}", m_info.m_id, loadRes.error());
@@ -303,7 +303,7 @@ Result<> Mod::unload() {
     if (m_unloadFunc) {
         m_unloadFunc();
     }
-    ModStateEvent(this, ModEventType::Unload).post();
+    ModStateEvent(this, ModEventType::Unloaded).post();
 
     for (auto const& hook : m_hooks) {
         auto d = this->disableHook(hook);
@@ -340,7 +340,7 @@ Result<> Mod::enable() {
         }
     }
 
-    ModStateEvent(this, ModEventType::Enable).post();
+    ModStateEvent(this, ModEventType::Enabled).post();
 
     for (auto const& hook : m_hooks) {
         auto d = this->enableHook(hook);
@@ -369,7 +369,7 @@ Result<> Mod::disable() {
         }
     }
 
-    ModStateEvent(this, ModEventType::Disable).post();
+    ModStateEvent(this, ModEventType::Disabled).post();
 
     for (auto const& hook : m_hooks) {
         auto d = this->disableHook(hook);

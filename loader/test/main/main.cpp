@@ -8,24 +8,17 @@ auto test = []() {
 };
 
 // Exported functions
-GEODE_API bool GEODE_CALL geode_enable() {
+$on_mod(Enabled) {
     log::info("Enabled");
-    return true;
 }
-
-GEODE_API bool GEODE_CALL geode_disable() {
+$on_mod(Disabled) {
     log::info("Disabled");
-    return true;
 }
-
-GEODE_API bool GEODE_CALL geode_load(Mod*) {
+$on_mod(Loaded) {
     log::info("Loaded");
-    return true;
 }
-
-GEODE_API bool GEODE_CALL geode_unload() {
+$on_mod(Unloaded) {
     log::info("Unloaded");
-    return true;
 }
 
 // Modify
