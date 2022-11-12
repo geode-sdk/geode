@@ -64,7 +64,7 @@ static void updateIndexProgress(UpdateStatus status, std::string const& info, ui
 }
 
 #include <Geode/modify/MenuLayer.hpp>
-class $modify(CustomMenuLayer, MenuLayer) {
+class CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 	void destructor() {
 		g_geodeButton = nullptr;
 		MenuLayer::~MenuLayer();
@@ -160,4 +160,3 @@ class $modify(CustomMenuLayer, MenuLayer) {
 		ModListLayer::scene();
 	}
 };
-// clang-format on

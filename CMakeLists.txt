@@ -39,7 +39,6 @@ target_sources(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/entry.cpp)
 
 add_subdirectory(codegen)
 
-message(STATUS ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp)
 add_custom_command(
 	DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/bindings/GeometryDash.bro
 			${CMAKE_CURRENT_SOURCE_DIR}/bindings/Cocos2d.bro
@@ -106,7 +105,7 @@ elseif(EXISTS ${GEODE_PLATFORM_BIN_PATH})
 	)
 else()
 	message(FATAL_ERROR
-		"No valid loader binary to link to! Install prebuilts with `geode sdk install-prebuilts` "
-		"or build Geode from source."
+		"No valid loader binary to link to! Install prebuilts with `geode sdk install-prebuilts`, "
+		"or build Geode from source and add `set(GEODE_LINK_NIGHTLY On)` to your CMakeLists.txt."
 	)
 endif()

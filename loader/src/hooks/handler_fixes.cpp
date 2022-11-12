@@ -1,14 +1,12 @@
 // this is the fix for the dynamic_cast problems
 // TODO: completely replace dynamic_cast on macos
-
-using namespace cocos2d;
-using namespace geode::modifier;
+#include <Geode/DefaultInclude.hpp>
 
 #if defined(GEODE_IS_IOS) || defined(GEODE_IS_MACOS)
-using namespace geode::cast;
+USE_GEODE_NAMESPACE();
 
     #define HandlerFixFor(CCUtility)                                                         \
-        class $modify(CCUtility##HandlerTypeinfoFix, CCUtility##Handler) {                   \
+        struct CCUtility##HandlerFix : Modify<CCUtility##HandlerFix, CCUtility##Handler> {   \
             void destructor() {                                                              \
                 if (m_pDelegate) {                                                           \
                     cocos2d::CCObject* pObject = base_cast<cocos2d::CCObject*>(m_pDelegate); \
@@ -55,7 +53,7 @@ HandlerFixFor(CCKeyboard);
 HandlerFixFor(CCMouse);
 
 #include <Geode/modify/CCTargetedTouchHandler.hpp>
-class $modify(CCTargetedTouchHandlerTypeinfoFix, CCTargetedTouchHandler) {
+struct CCTargetedTouchHandlerFix : Modify<CCTargetedTouchHandlerFix, CCTargetedTouchHandler> {
 	void destructor() {
 		if (m_pDelegate) {
 			cocos2d::CCObject* pObject = base_cast<cocos2d::CCObject*>(m_pDelegate);
@@ -101,7 +99,7 @@ class $modify(CCTargetedTouchHandlerTypeinfoFix, CCTargetedTouchHandler) {
 };
 
 #include <Geode/modify/CCStandardTouchHandler.hpp>
-class $modify(CCStandardTouchHandlerTypeinfoFix, CCStandardTouchHandler) {
+struct CCStandardTouchHandlerFix : Modify<CCStandardTouchHandlerFix, CCStandardTouchHandler> {
 	void destructor() {
 		if (m_pDelegate) {
 			cocos2d::CCObject* pObject = base_cast<cocos2d::CCObject*>(m_pDelegate);
@@ -140,6 +138,7 @@ class $modify(CCStandardTouchHandlerTypeinfoFix, CCStandardTouchHandler) {
 		return pHandler;
 	}
 };
+
 // clang-format on
 
 #endif

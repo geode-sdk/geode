@@ -8,15 +8,9 @@
  * struct hook0 {};
  * namespace {
  *     struct hook0Parent {};
- *     Modify<hook0<hook0Parent>, MenuLayer> hook0Apply;
- *     struct GEODE_HIDDEN hook0Intermediate: public MenuLayer {
- *         geode::modifier::FieldIntermediate<MenuLayer,
- *             hook0<hook0Intermediate>, hook0<hook0Parent>
- *         > m_fields;
- *     };
  * }
  * template<>
- * struct GEODE_HIDDEN hook0<hook0Parent>: hook0Intermediate {
+ * struct GEODE_HIDDEN hook0<hook0Parent> : Modify<hook0<hook0Parent>, MenuLayer> {
  *     // code stuff idk
  * };
  *
@@ -24,33 +18,19 @@
  * I am bad at this stuff
  */
 
-#define GEODE_MODIFY_DECLARE_ANONYMOUS(base, derived)                  \
-    derived##Dummy;                                                    \
-    template <class>                                                   \
-    struct derived {};                                                 \
-    namespace {                                                        \
-        struct derived##Parent {};                                     \
-        Modify<derived<derived##Parent>, base> derived##Apply;         \
-        struct GEODE_HIDDEN derived##Intermediate : base {             \
-            mutable geode::modifier::FieldIntermediate<                \
-                base, derived##Intermediate, derived<derived##Parent>> \
-                m_fields;                                              \
-        };                                                             \
-    }                                                                  \
-    template <>                                                        \
-    struct GEODE_HIDDEN derived<derived##Parent> : derived##Intermediate
+#define GEODE_MODIFY_DECLARE_ANONYMOUS(base, derived) \
+    derived##Dummy;                                   \
+    template <class>                                  \
+    struct derived {};                                \
+    namespace {                                       \
+        struct derived##Parent {};                    \
+    }                                                 \
+    template <>                                       \
+    struct GEODE_HIDDEN derived<derived##Parent> : geode::Modify<derived<derived##Parent>, base>
 
-#define GEODE_MODIFY_DECLARE(base, derived)                                                  \
-    derived##Dummy;                                                                          \
-    struct derived;                                                                          \
-    namespace {                                                                              \
-        Modify<derived, base> derived##Apply;                                                \
-        struct GEODE_HIDDEN derived##Intermediate : base {                                   \
-            mutable geode::modifier::FieldIntermediate<base, derived##Intermediate, derived> \
-                m_fields;                                                                    \
-        };                                                                                   \
-    }                                                                                        \
-    struct GEODE_HIDDEN derived : derived##Intermediate
+#define GEODE_MODIFY_DECLARE(base, derived) \
+    derived##Dummy;                         \
+    struct GEODE_HIDDEN derived : geode::Modify<derived, base>
 
 #define GEODE_MODIFY_REDIRECT4(base, derived) GEODE_MODIFY_DECLARE(base, derived)
 #define GEODE_MODIFY_REDIRECT3(base, derived) GEODE_MODIFY_DECLARE_ANONYMOUS(base, derived)

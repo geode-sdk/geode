@@ -101,9 +101,32 @@ namespace geode {
         bool operator==(T* other) const {
             return m_obj == other;
         }
-
         bool operator==(Ref<T> const& other) const {
             return m_obj == other.m_obj;
+        }
+
+        bool operator!=(T* other) const {
+            return m_obj != other;
+        }
+        bool operator!=(Ref<T> const& other) const {
+            return m_obj != other.m_obj;
+        }
+
+        // for containers
+        bool operator<(Ref<T> const& other) const {
+            return m_obj < other.m_obj;
+        }
+        bool operator>(Ref<T> const& other) const {
+            return m_obj > other.m_obj;
+        }
+    };
+}
+
+namespace std {
+    template<class T>
+    struct hash<geode::Ref<T>> {
+        size_t operator()(geode::Ref<T> const& ref) const {
+            return std::hash<T*>()(ref.data());
         }
     };
 }

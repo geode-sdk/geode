@@ -79,11 +79,12 @@ IncludeCategories:
 
 IndentAccessModifiers: false
 AccessModifierOffset: -4
-IndentCaseBlocks: true
+IndentCaseBlocks: false
 IndentCaseLabels: true
 IndentExternBlock: Indent
 IndentGotoLabels: true
 IndentPPDirectives: BeforeHash
+IndentRequiresClause: false
 IndentWrappedFunctionNames: false
 # InsertBraces: true
 InsertTrailingCommas: None
@@ -107,6 +108,7 @@ PenaltyIndentedWhitespace: 0
 
 QualifierAlignment: Right
 
+RequiresClausePosition: OwnLine
 ReflowComments: true
 SeparateDefinitionBlocks: Always
 

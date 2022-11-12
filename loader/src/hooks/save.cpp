@@ -2,9 +2,9 @@
 
 USE_GEODE_NAMESPACE();
 
-// clang-format off
 #include <Geode/modify/AppDelegate.hpp>
-class $modify(AppDelegate) {
+
+struct SaveLoader : Modify<SaveLoader, AppDelegate> {
     void trySaveGame() {
         log::log(Severity::Info, Loader::getInternalMod(), "Saving...");
 
@@ -14,8 +14,7 @@ class $modify(AppDelegate) {
         }
 
         log::log(Severity::Info, Loader::getInternalMod(), "Saved");
-        
+
         return AppDelegate::trySaveGame();
     }
 };
-// clang-format on

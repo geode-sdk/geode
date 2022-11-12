@@ -42,7 +42,7 @@ namespace geode::modifier {
         }
     };
 
-    template <class Base, class Intermediate, class Parent>
+    template <class Parent, class Base>
     class FieldIntermediate {
         // Padding used for guaranteeing any member of parents
         // will be in between sizeof(Intermediate) and sizeof(Parent)
@@ -54,22 +54,22 @@ namespace geode::modifier {
 
             auto parent = new (parentContainer.data()) Parent();
 
-            parent->Intermediate::~Intermediate();
+            parent->Base::~Base();
 
             std::memcpy(
-                offsetField, std::launder(&parentContainer[sizeof(Intermediate)]),
-                sizeof(Parent) - sizeof(Intermediate)
+                offsetField, std::launder(&parentContainer[sizeof(Base)]),
+                sizeof(Parent) - sizeof(Base)
             );
         }
 
         static void fieldDestructor(void* offsetField) {
             std::array<std::byte, sizeof(Parent)> parentContainer;
 
-            auto parent = new (parentContainer.data()) Intermediate();
+            auto parent = new (parentContainer.data()) Base();
 
             std::memcpy(
-                std::launder(&parentContainer[sizeof(Intermediate)]), offsetField,
-                sizeof(Parent) - sizeof(Intermediate)
+                std::launder(&parentContainer[sizeof(Base)]), offsetField,
+                sizeof(Parent) - sizeof(Base)
             );
 
             static_cast<Parent*>(parent)->Parent::~Parent();
@@ -87,15 +87,14 @@ namespace geode::modifier {
             auto offsetField = container->getField(index);
             if (!offsetField) {
                 offsetField = container->setField(
-                    index, sizeof(Parent) - sizeof(Intermediate),
-                    &FieldIntermediate::fieldDestructor
+                    index, sizeof(Parent) - sizeof(Base), &FieldIntermediate::fieldDestructor
                 );
 
                 FieldIntermediate::fieldConstructor(offsetField);
             }
 
             return reinterpret_cast<Parent*>(
-                reinterpret_cast<std::byte*>(offsetField) - sizeof(Intermediate)
+                reinterpret_cast<std::byte*>(offsetField) - sizeof(Base)
             );
         }
     };

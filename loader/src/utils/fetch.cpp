@@ -127,7 +127,7 @@ static std::unordered_map<std::string, SentAsyncWebRequestHandle> RUNNING_REQUES
 static std::mutex RUNNING_REQUESTS_MUTEX;
 
 SentAsyncWebRequest::SentAsyncWebRequest(AsyncWebRequest const& req, std::string const& id) :
-    m_id(id), m_url(req.m_url), m_target(req.m_target) {
+    m_id(id), m_url(req.m_url), m_target(req.m_target), m_httpHeaders(req.m_httpHeaders) {
 #define AWAIT_RESUME()    \
     while (m_paused) {}   \
     if (m_cancelled) {    \
@@ -177,6 +177,12 @@ SentAsyncWebRequest::SentAsyncWebRequest(AsyncWebRequest const& req, std::string
         curl_easy_setopt(curl, CURLOPT_USERAGENT, "github_api/1.0");
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
+
+        curl_slist* headers = nullptr;
+        for (auto& header : m_httpHeaders) {
+            headers = curl_slist_append(headers, header.c_str());
+        }
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
         struct ProgressData {
             SentAsyncWebRequest* self;
@@ -290,6 +296,11 @@ void SentAsyncWebRequest::error(std::string const& error) {
 
 AsyncWebRequest& AsyncWebRequest::join(std::string const& requestID) {
     m_joinID = requestID;
+    return *this;
+}
+
+AsyncWebRequest& AsyncWebRequest::header(std::string const& header) {
+    m_httpHeaders.push_back(header);
     return *this;
 }
 

@@ -140,6 +140,8 @@ class cocos2d::CCDrawNode {
 	static cocos2d::CCDrawNode* create() = mac 0x378d00;
 	auto drawPolygon(cocos2d::CCPoint*, unsigned int, cocos2d::_ccColor4F const&, float, cocos2d::_ccColor4F const&) = mac 0x3797f0;
 	auto drawSegment(cocos2d::CCPoint const&, cocos2d::CCPoint const&, float, cocos2d::_ccColor4F const&) = mac 0x3792d0;
+	auto drawDot(cocos2d::CCPoint const&, float, cocos2d::_ccColor4F const&) = mac 0x379100;
+
 	auto getBlendFunc() const = mac 0x379ea0;
 	auto init() = mac 0x378e00;
 	auto setBlendFunc(cocos2d::_ccBlendFunc const&) = mac 0x379eb0;
@@ -262,9 +264,8 @@ class cocos2d::CCLabelBMFont {
 	static cocos2d::CCLabelBMFont* create(char const*, char const*) = mac 0x347660;
 	auto limitLabelWidth(float, float, float) = mac 0x34a6e0, ios 0x21b740;
 
-	virtual ~CCLabelBMFont() = mac 0x347e80, ios 0x219afc;
-
 	virtual auto init() = mac 0x347b10, ios 0x2198e0;
+	bool initWithString(const char* str, const char* fnt, float width, cocos2d::CCTextAlignment align, cocos2d::CCPoint offset);
 	virtual auto setScaleX(float) = mac 0x34a5b0, ios 0x21b6e8;
 	virtual auto setScaleY(float) = mac 0x34a5d0, ios 0x21b714;
 	virtual auto setScale(float) = mac 0x34a590, ios 0x21b6bc;
@@ -292,6 +293,7 @@ class cocos2d::CCLabelBMFont {
 	virtual auto isCascadeColorEnabled() = mac 0x3493c0, ios 0x21aa3c;
 	virtual auto setCascadeColorEnabled(bool) = mac 0x3493e0, ios 0x21aa4c;
 	virtual auto setString(unsigned short*, bool) = mac 0x348a60, ios 0x21a4b4;
+	virtual ~CCLabelBMFont() = mac 0x347e80;
 }
 
 class cocos2d::CCLabelTTF {
@@ -657,6 +659,7 @@ class cocos2d::CCRenderTexture {
 	auto end() = mac 0x35d2c0;
 	static cocos2d::CCRenderTexture* create(int, int, cocos2d::CCTexture2DPixelFormat) = mac 0x35c720;
 	auto newCCImage(bool) = mac 0x35d7d0;
+	auto saveToFile(char const*) = mac 0x35dab0;
 }
 
 class cocos2d::CCRepeat {

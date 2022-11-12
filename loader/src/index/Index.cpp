@@ -12,6 +12,7 @@
 #include <Geode/utils/ranges.hpp>
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/vector.hpp>
+#include <fmt/format.h>
 #include <hash.hpp>
 #include <thread>
 
@@ -86,7 +87,7 @@ void Index::updateIndex(IndexUpdateCallback callback, bool force) {
 
     // create directory for the local clone of
     // the index
-    auto indexDir = Loader::get()->getGeodeDirectory() / "index";
+    auto indexDir = Loader::get()->getGeodeSaveDirectory() / GEODE_INDEX_DIRECTORY;
     ghc::filesystem::create_directories(indexDir);
 
 #if GITHUB_DONT_RATE_LIMIT_ME_PLS == 1
@@ -104,39 +105,32 @@ void Index::updateIndex(IndexUpdateCallback callback, bool force) {
 
 #endif
 
+    // read sha of currently installed commit
+    std::string currentCommitSHA = "";
+    if (ghc::filesystem::exists(indexDir / "current")) {
+        auto data = utils::file::readString(indexDir / "current");
+        if (data) {
+            currentCommitSHA = data.value();
+        }
+    }
+
     web::AsyncWebRequest()
         .join("index-update")
-        .fetch("https://api.github.com/repos/geode-sdk/mods/commits")
-        .json()
-        .then([this, force, callback](nlohmann::json const& json) {
-            auto indexDir = Loader::get()->getGeodeDirectory() / "index";
+        .header(fmt::format("If-None-Match: \"{}\"", currentCommitSHA))
+        .header("Accept: application/vnd.github.sha")
+        .fetch("https://api.github.com/repos/geode-sdk/mods/commits/main")
+        .text()
+        .then([this, force, callback, currentCommitSHA](std::string const& upcomingCommitSHA) {
+            auto indexDir = Loader::get()->getGeodeSaveDirectory() / GEODE_INDEX_DIRECTORY;
 
-            // check if rate-limited (returns object)
-            JsonChecker checkerObj(json);
-            auto obj = checkerObj.root("[geode-sdk/mods/commits]").obj();
-            if (obj.has("documentation_url") && obj.has("message")) {
-                RETURN_ERROR(obj.has("message").get<std::string>());
-            }
+            // gee i sure hope no one does 60 commits to the mod index an hour and download every
+            // single one of them
+            if (upcomingCommitSHA == "") {
+                m_upToDate = true;
+                m_updating = false;
 
-            // get sha of latest commit
-            JsonChecker checker(json);
-            auto root = checker.root("[geode-sdk/mods/commits]").array();
-
-            std::string upcomingCommitSHA;
-            if (auto first = root.at(0).obj().needs("sha")) {
-                upcomingCommitSHA = first.get<std::string>();
-            }
-            else {
-                RETURN_ERROR("Unable to get hash from latest commit: " + checker.getError());
-            }
-
-            // read sha of currently installed commit
-            std::string currentCommitSHA = "";
-            if (ghc::filesystem::exists(indexDir / "current")) {
-                auto data = utils::file::readString(indexDir / "current");
-                if (data) {
-                    currentCommitSHA = data.value();
-                }
+                if (callback) callback(UpdateStatus::Finished, "", 100);
+                return;
             }
 
             // update if forced or latest commit has
@@ -224,16 +218,34 @@ void Index::addIndexItemFromFolder(ghc::filesystem::path const& dir) {
             return;
         }
 
-        auto info = ModInfo::createFromFile(dir / "mod.json");
-        if (!info) {
-            log::warn("{}: {}, skipping", dir, info.error());
+        auto infoRes = ModInfo::createFromFile(dir / "mod.json");
+        if (!infoRes) {
+            log::warn("{}: {}, skipping", dir, infoRes.error());
             return;
+        }
+        auto info = infoRes.value();
+
+        // make sure only latest version is present in index
+        auto old = std::find_if(m_items.begin(), m_items.end(), [info](IndexItem const& item) {
+            return item.m_info.m_id == info.m_id;
+        });
+        if (old != m_items.end()) {
+            // this one is newer
+            if (old->m_info.m_version < info.m_version) {
+                m_items.erase(old);
+            } else {
+                log::warn(
+                    "Found older version of ({} < {}) of {}, skipping",
+                    info.m_version, old->m_info.m_version, info.m_id
+                );
+                return;
+            }
         }
 
         IndexItem item;
 
         item.m_path = dir;
-        item.m_info = info.value();
+        item.m_info = info;
 
         if (!json.contains("download") || !json["download"].is_object()) {
             log::warn("[index.json].download is not an object, skipping");
@@ -284,7 +296,7 @@ void Index::addIndexItemFromFolder(ghc::filesystem::path const& dir) {
 
 Result<> Index::updateIndexFromLocalCache() {
     m_items.clear();
-    auto baseIndexDir = Loader::get()->getGeodeDirectory() / "index";
+    auto baseIndexDir = Loader::get()->getGeodeSaveDirectory() / GEODE_INDEX_DIRECTORY;
 
     // load geode.json (index settings)
     if (auto baseIndexJson = readJSON(baseIndexDir / "geode.json")) {
@@ -529,7 +541,7 @@ void InstallItems::error(std::string const& info) {
 
 void InstallItems::finish(bool replaceFiles) {
     // move files from temp dir to geode directory
-    auto tempDir = Loader::get()->getGeodeDirectory() / "index" / "temp";
+    auto tempDir = Loader::get()->getGeodeSaveDirectory() / GEODE_INDEX_DIRECTORY / "temp";
     for (auto& file : ghc::filesystem::directory_iterator(tempDir)) {
         try {
             auto modDir = Loader::get()->getGeodeDirectory() / "mods";
@@ -605,7 +617,7 @@ InstallItems::CallbackID InstallItems::start(ItemInstallCallback callback, bool 
         // by virtue of running this function we know item must be valid
         auto item = Index::get()->getKnownItem(inst);
 
-        auto indexDir = Loader::get()->getGeodeDirectory() / "index";
+        auto indexDir = Loader::get()->getGeodeSaveDirectory() / GEODE_INDEX_DIRECTORY;
         (void)file::createDirectoryAll(indexDir / "temp");
         auto tempFile = indexDir / "temp" / item.m_download.m_filename;
 

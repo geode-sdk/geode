@@ -9,9 +9,10 @@
 USE_GEODE_NAMESPACE();
 
 #pragma warning(disable : 4217)
-template <class T = CCNode>
 
-requires std::is_base_of_v<CCNode, T> T* setIDSafe(CCNode* node, int index, char const* id) {
+template <class T = CCNode>
+requires std::is_base_of_v<CCNode, T>
+T* setIDSafe(CCNode* node, int index, char const* id) {
     if constexpr (std::is_same_v<CCNode, T>) {
         if (auto child = getChild(node, index)) {
             child->setID(id);
@@ -29,7 +30,7 @@ requires std::is_base_of_v<CCNode, T> T* setIDSafe(CCNode* node, int index, char
 
 // clang-format off
 #include <Geode/modify/LevelSearchLayer.hpp>
-class $modify(LevelSearchLayer) {
+struct LevelSearchLayerIDs : Modify<LevelSearchLayerIDs, LevelSearchLayer> {
 	bool init() {
 		if (!LevelSearchLayer::init())
 			return false;
@@ -99,4 +100,5 @@ class $modify(LevelSearchLayer) {
 		return true;
 	}
 };
+
 // clang-format on

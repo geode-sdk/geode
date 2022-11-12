@@ -28,6 +28,15 @@ namespace geode {
         return rect;
     }
 
+    static cocos2d::CCRect operator*(cocos2d::CCRect const& rect, float mul) {
+        return {
+            rect.origin.x * mul,
+            rect.origin.y * mul,
+            rect.size.width * mul,
+            rect.size.height * mul,
+        };
+    }
+
     static cocos2d::CCPoint operator/=(cocos2d::CCPoint& pos, float div) {
         pos.x /= div;
         pos.y /= div;

@@ -4,21 +4,12 @@
 
 USE_GEODE_NAMESPACE();
 
-class $modify(GameManager) {
-	void reloadAllStep2() {
-		GameManager::reloadAllStep2();
-		Loader::get()->updateResourcePaths();
-	}
+struct ResourcesUpdate : Modify<ResourcesUpdate, LoadingLayer> {
+    void loadAssets() {
+        LoadingLayer::loadAssets();
+        // this is in case the user refreshes texture quality at runtime
+        if (this->m_loadStep == 10) {
+            Loader::get()->updateResources();
+        }
+    }
 };
-
-class $modify(LoadingLayer) {
-	bool init(bool fromReload) {
-		// this is in case the user refreshes texture quality at runtime
-		// resources are loaded first so things like texture packs override 
-		// the GD textures
-		Loader::get()->waitForModsToBeLoaded();
-		Loader::get()->updateResources();
-		return LoadingLayer::init(fromReload);
-	}
-};
-// clang-format on
