@@ -37,13 +37,20 @@ include(cmake/Platform.cmake)
 target_sources(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/entry.cpp)
 
 
-add_subdirectory(codegen)
+include(ExternalProject)
+
+set(GEODE_CODEGEN_BINARY_OUT ${CMAKE_CURRENT_BINARY_DIR}/codegen)
+ExternalProject_Add(CodegenProject
+	SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/codegen
+	CMAKE_CACHE_ARGS "-DCMAKE_INSTALL_PREFIX:STRING=${GEODE_CODEGEN_BINARY_OUT}"
+)
 
 add_custom_command(
 	DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/bindings/GeometryDash.bro
 			${CMAKE_CURRENT_SOURCE_DIR}/bindings/Cocos2d.bro
 			${CMAKE_CURRENT_SOURCE_DIR}/bindings/Entry.bro
-	COMMAND Codegen ${GEODE_TARGET_PLATFORM} bindings ${GEODE_CODEGEN_PATH}
+	DEPENDS CodegenProject
+	COMMAND ${GEODE_CODEGEN_BINARY_OUT}/Codegen ${GEODE_TARGET_PLATFORM} bindings ${GEODE_CODEGEN_PATH}
 	COMMAND echo codegen > ${GEODE_CODEGEN_PATH}/.stamp
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 	COMMENT "Run Codegen"
