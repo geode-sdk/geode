@@ -25,12 +25,12 @@ THE SOFTWARE.
 #ifndef __CCMOTION_STREAK_H__
 #define __CCMOTION_STREAK_H__
 
-#include "../include/CCProtocols.h"
-#include "../textures/CCTexture2D.h"
-#include "../include/ccTypes.h"
 #include "../base_nodes/CCNode.h"
+#include "../include/CCProtocols.h"
+#include "../include/ccTypes.h"
+#include "../textures/CCTexture2D.h"
 #ifdef EMSCRIPTEN
-#include "../base_nodes/CCGLBufferedNode.h"
+    #include "../base_nodes/CCGLBufferedNode.h"
 #endif // EMSCRIPTEN
 
 NS_CC_BEGIN
@@ -43,11 +43,15 @@ NS_CC_BEGIN
 /** MotionStreak.
  Creates a trailing path.
  */
-class CC_DLL CCMotionStreak : public CCNodeRGBA, public CCTextureProtocol
+class CC_DLL CCMotionStreak :
+    public CCNodeRGBA,
+    public CCTextureProtocol
 #ifdef EMSCRIPTEN
-, public CCGLBufferedNode
+    ,
+    public CCGLBufferedNode
 #endif // EMSCRIPTEN
 {
+
 public:
     /**
      * @js ctor
@@ -59,15 +63,27 @@ public:
      */
     virtual ~CCMotionStreak();
 
-    /** creates and initializes a motion streak with fade in seconds, minimum segments, stroke's width, color, texture filename */
-    static CCMotionStreak* create(float fade, float minSeg, float stroke, const ccColor3B& color, const char* path);
-    /** creates and initializes a motion streak with fade in seconds, minimum segments, stroke's width, color, texture */
-    static CCMotionStreak* create(float fade, float minSeg, float stroke, const ccColor3B& color, CCTexture2D* texture);
+    /** creates and initializes a motion streak with fade in seconds, minimum segments, stroke's
+     * width, color, texture filename */
+    static CCMotionStreak* create(
+        float fade, float minSeg, float stroke, ccColor3B const& color, char const* path
+    );
+    /** creates and initializes a motion streak with fade in seconds, minimum segments, stroke's
+     * width, color, texture */
+    static CCMotionStreak* create(
+        float fade, float minSeg, float stroke, ccColor3B const& color, CCTexture2D* texture
+    );
 
-    /** initializes a motion streak with fade in seconds, minimum segments, stroke's width, color and texture filename */
-    bool initWithFade(float fade, float minSeg, float stroke, const ccColor3B& color, const char* path);
-    /** initializes a motion streak with fade in seconds, minimum segments, stroke's width, color and texture  */
-    bool initWithFade(float fade, float minSeg, float stroke, const ccColor3B& color, CCTexture2D* texture);
+    /** initializes a motion streak with fade in seconds, minimum segments, stroke's width, color
+     * and texture filename */
+    bool initWithFade(
+        float fade, float minSeg, float stroke, ccColor3B const& color, char const* path
+    );
+    /** initializes a motion streak with fade in seconds, minimum segments, stroke's width, color
+     * and texture  */
+    bool initWithFade(
+        float fade, float minSeg, float stroke, ccColor3B const& color, CCTexture2D* texture
+    );
 
     /** color used for the tint */
     void tintWithColor(ccColor3B colors);
@@ -76,13 +92,13 @@ public:
     void reset();
 
     /** Override super methods */
-    virtual void setPosition(const CCPoint& position);
+    virtual void setPosition(CCPoint const& position);
     virtual void draw();
     virtual void update(float delta);
 
     /* Implement interfaces */
     virtual CCTexture2D* getTexture(void);
-    virtual void setTexture(CCTexture2D *texture);
+    virtual void setTexture(CCTexture2D* texture);
     /**
      * @js NA
      */
@@ -96,24 +112,28 @@ public:
     virtual void setOpacityModifyRGB(bool bValue);
     virtual bool isOpacityModifyRGB(void);
 
-    RT_ADD(
-        void resumeStroke();
-        void stopStroke();
-    );
+    RT_ADD(void resumeStroke(); void stopStroke(););
 
     /** When fast mode is enabled, new points are added faster but with lower precision */
-    inline bool isFastMode() { return m_bFastMode; }
-    inline void setFastMode(bool bFastMode) { m_bFastMode = bFastMode; }
-
-    inline bool isStartingPositionInitialized() { return m_bStartingPositionInitialized; }
-    inline void setStartingPositionInitialized(bool bStartingPositionInitialized) 
-    { 
-        m_bStartingPositionInitialized = bStartingPositionInitialized; 
+    inline bool isFastMode() {
+        return m_bFastMode;
     }
+
+    inline void setFastMode(bool bFastMode) {
+        m_bFastMode = bFastMode;
+    }
+
+    inline bool isStartingPositionInitialized() {
+        return m_bStartingPositionInitialized;
+    }
+
+    inline void setStartingPositionInitialized(bool bStartingPositionInitialized) {
+        m_bStartingPositionInitialized = bStartingPositionInitialized;
+    }
+
 protected:
     bool m_bFastMode;
     bool m_bStartingPositionInitialized;
-private:
     /** texture used for the motion streak */
     CCTexture2D* m_pTexture;
     ccBlendFunc m_tBlendFunc;
