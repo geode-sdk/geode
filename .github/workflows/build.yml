@@ -17,7 +17,7 @@ jobs:
           os_identifier: "win"
           os: windows-2019
           prefixes: ''
-          extra_flags: '-G "Visual Studio 16 2019" -T host=x86 -A win32'
+          extra_flags: '-G "Visual Studio 16 2019" -T host=x86 -A win32 -DGEODE_DEBUG=On'
           out_paths: './bin/nightly/Geode.dll ./bin/nightly/GeodeBootstrapper.dll ./bin/nightly/Geode.lib ./bin/nightly/XInput9_1_0.dll'
           cli_cmd: ''
 
@@ -25,7 +25,7 @@ jobs:
           os_identifier: "mac"
           os: macos-latest
           prefixes: 'PATH="/usr/local/opt/ccache/libexec:$PATH"'
-          extra_flags: "-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++"
+          extra_flags: "-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug -DGEODE_DEBUG=On"
           out_paths: './bin/nightly/Geode.dylib ./bin/nightly/GeodeBootstrapper.dylib ./loader/include/link/libfmod.dylib'
           cli_cmd: 'chmod +x $GITHUB_WORKSPACE/cli/geode'
           
