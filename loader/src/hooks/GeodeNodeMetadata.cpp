@@ -64,6 +64,11 @@ public:
 #include <Geode/modify/CCNode.hpp>
 struct ProxyCCNode : Modify<ProxyCCNode, CCNode> {
     virtual CCObject* getUserObject() {
+        if (static_cast<CCObject*>(this) == static_cast<CCObject*>(CCDirector::get())) {
+            // apparently this function is the same as 
+            // CCDirector::getNextScene so yeah
+            return m_userObject;
+        }
         return GeodeNodeMetadata::set(this)->m_userObject;
     }
     virtual void setUserObject(CCObject* obj) {

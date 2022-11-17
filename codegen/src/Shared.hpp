@@ -1,16 +1,16 @@
 #pragma once
 
-#include <broma.hpp>
 #include <array>
+#include <broma.hpp>
 #include <fmt/format.h>
 #include <fmt/ranges.h>
-#include <fstream>
 #include <fs/filesystem.hpp> // bruh
+#include <fstream>
 
 using std::istreambuf_iterator;
 
 #ifdef _MSC_VER
-#pragma warning(disable: 4996)
+    #pragma warning(disable : 4996)
 #endif
 
 #if _WIN32
@@ -57,59 +57,57 @@ enum class BindStatus {
     Unbindable
 };
 
-
 struct codegen_error : std::runtime_error {
     inline codegen_error(char const* msg) : std::runtime_error(msg) {}
 };
 
 namespace codegen {
 
-    template <typename ...Args>
+    template <typename... Args>
     inline codegen_error error(Args... args) {
         return codegen_error(fmt::format(args...).c_str());
     }
 
+    inline Platform platform;
 
-	inline Platform platform;
-
-	inline uintptr_t platformNumber(PlatformNumber const& p) {
+    inline uintptr_t platformNumber(PlatformNumber const& p) {
         switch (codegen::platform) {
-            case Platform::Mac:
-                return p.mac;
-            case Platform::Windows:
-                return p.win;
-            case Platform::iOS:
-                return p.ios;
-            case Platform::Android:
-                return p.android;
+            case Platform::Mac: return p.mac;
+            case Platform::Windows: return p.win;
+            case Platform::iOS: return p.ios;
+            case Platform::Android: return p.android;
             default: // unreachable
                 return p.win;
         }
     }
 
     inline BindStatus getStatus(Field const& field) {
-        const FunctionBegin* fb;
+        FunctionBegin const* fb;
 
         if (auto fn = field.get_as<FunctionBindField>()) {
-            if (platformNumber(fn->binds))
-                return BindStatus::NeedsBinding;
+            if (platformNumber(fn->binds)) return BindStatus::NeedsBinding;
 
             fb = &fn->beginning;
-        } else if (auto fn = field.get_as<OutOfLineField>()) {
+        }
+        else if (auto fn = field.get_as<OutOfLineField>()) {
             fb = &fn->beginning;
-        } else return BindStatus::Unbindable;
+        }
+        else return BindStatus::Unbindable;
+
+        if (field.parent.rfind("GDString", 0) == 0) return BindStatus::NeedsBinding;
 
         if (platform == Platform::Android) {
             for (auto& [type, name] : fb->args) {
-                if (type.name.find("gd::") != std::string::npos)
-                    return BindStatus::NeedsBinding;
+                if (type.name.find("gd::") != std::string::npos) return BindStatus::NeedsBinding;
             }
+
+            if (field.parent.rfind("cocos2d::CCEGLView", 0) == 0) return BindStatus::Unbindable;
+
             return BindStatus::Binded;
         }
 
         if (fb->type == FunctionType::Normal) {
-            if (field.parent.rfind("fmod::", 0) == 0)
-                return BindStatus::Binded;
+            if (field.parent.rfind("fmod::", 0) == 0) return BindStatus::Binded;
             if (field.parent.rfind("cocos2d::", 0) == 0 && platform == Platform::Windows)
                 return BindStatus::Binded;
         }
@@ -148,26 +146,24 @@ namespace codegen {
     }
 
     inline std::string getConvention(Field& f) {
-        if (codegen::platform != Platform::Windows)
-            return "DefaultConv";
+        if (codegen::platform != Platform::Windows) return "DefaultConv";
 
         if (auto fn = f.get_fn()) {
             auto status = getStatus(f);
 
             if (fn->is_static) {
-                if (status == BindStatus::Binded)
-                    return "x86::Cdecl";
-                else
-                    return "x86::Optcall";
-            } else if (fn->is_virtual) {
-                return "x86::Thiscall";
-            } else {
-                if (status == BindStatus::Binded)
-                    return "x86::Thiscall";
-                else
-                    return "x86::Membercall";
+                if (status == BindStatus::Binded) return "x86::Cdecl";
+                else return "x86::Optcall";
             }
-        } else throw codegen::error("Tried to get convention of non-function");
+            else if (fn->is_virtual) {
+                return "x86::Thiscall";
+            }
+            else {
+                if (status == BindStatus::Binded) return "x86::Thiscall";
+                else return "x86::Membercall";
+            }
+        }
+        else throw codegen::error("Tried to get convention of non-function");
     }
 
     inline std::string getUnqualifiedClassName(std::string const& s) {

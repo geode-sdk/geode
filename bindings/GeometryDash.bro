@@ -5308,7 +5308,7 @@ class TextArea : cocos2d::CCSprite {
     virtual void draw() {}
     virtual void setOpacity(unsigned char) = mac 0x19f760, win 0x33800;
     bool init(gd::string str, char const* font, float width, float height, cocos2d::CCPoint anchor, float scale, bool disableColor) = mac 0x19ec70, win 0x33370, ios 0x92444;
-    static TextArea* create(gd::string str, char const* font, float scale, float width, cocos2d::CCPoint const& anchor, float height, bool disableColor) = mac 0x19eb40, win 0x33270;
+    static TextArea* create(gd::string str, char const* font, float scale, float width, cocos2d::CCPoint anchor, float height, bool disableColor) = mac 0x19eb40, win 0x33270;
     void colorAllCharactersTo(cocos2d::ccColor3B color) = win 0x33830;
     void setString(gd::string str) = mac 0x19eda0, win 0x33480;
 
