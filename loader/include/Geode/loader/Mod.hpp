@@ -331,14 +331,13 @@ namespace geode {
         template <class = void>
         static inline GEODE_HIDDEN Mod* sharedMod = nullptr;
 
+    public:
+        // used internally in geode_implicit_load
         template <class = void>
         static inline GEODE_HIDDEN void setSharedMod(Mod* mod) {
             sharedMod<> = mod;
         }
 
-        friend bool GEODE_CALL ::geode_implicit_load(Mod*);
-
-    public:
         std::string getID() const;
         std::string getName() const;
         std::string getDeveloper() const;

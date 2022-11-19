@@ -79,8 +79,6 @@ namespace geode {
 
         void updateAllDependencies();
 
-        void releaseScheduledFunctions(Mod* mod);
-
         friend class Mod;
         friend class CustomLoader;
         friend struct ModInfo;
@@ -93,9 +91,10 @@ namespace geode {
         void updateResourcePaths();
         void updateModResources(Mod* mod);
 
-        friend bool GEODE_CALL ::geode_implicit_load(Mod*);
-
     public:
+        // used internally in geode_implicit_load
+        void releaseScheduledFunctions(Mod* mod);
+
         ~Loader();
 
         /**
