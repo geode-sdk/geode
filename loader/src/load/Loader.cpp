@@ -431,6 +431,21 @@ ghc::filesystem::path Loader::getSaveDirectory() const {
 #ifdef GEODE_IS_MACOS
     return ghc::filesystem::path("/Users/Shared/Geode");
 #else
+    InternalLoader::platformMessageBox(
+        "Geode -7.!",
+        std::string("sdfsdf : ") + CCFileUtils::sharedFileUtils()->getWritablePath().c_str()
+    );
+
+    try {
+        auto a = ghc::filesystem::canonical(
+            ghc::filesystem::path(CCFileUtils::sharedFileUtils()->getWritablePath().c_str())
+        );
+
+        InternalLoader::platformMessageBox("Geode -7.!", "dsffdssd : " + a.string());
+    }
+    catch (std::exception const& e) {
+        InternalLoader::platformMessageBox("Geode -7.!", std::string("sdfsddghdg : ") + e.what());
+    }
     return ghc::filesystem::canonical(
         ghc::filesystem::path(CCFileUtils::sharedFileUtils()->getWritablePath().c_str())
     );
