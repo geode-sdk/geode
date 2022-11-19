@@ -94,7 +94,7 @@ namespace codegen {
         }
         else return BindStatus::Unbindable;
 
-        if (field.parent.rfind("GDString", 0) == 0) return BindStatus::NeedsBinding;
+        // if (field.parent.rfind("GDString", 0) == 0) return BindStatus::NeedsBinding;
 
         if (platform == Platform::Android) {
             for (auto& [type, name] : fb->args) {
