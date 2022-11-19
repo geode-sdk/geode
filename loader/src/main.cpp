@@ -111,10 +111,6 @@ static auto _ = listenForSettingChanges(
 int geodeEntry(void* platformData) {
     // setup internals
 
-    InternalLoader::platformMessageBox(
-        "Geode 0.5!", "address: " + std::to_string((size_t)InternalMod::get())
-    );
-
     if (!InternalLoader::get()) {
         InternalLoader::platformMessageBox(
             "Unable to Load Geode!",
@@ -122,11 +118,8 @@ int geodeEntry(void* platformData) {
             "internal tools and Geode can not be loaded. "
             "(InternalLoader::get returned nullptr)"
         );
+        return 1;
     }
-
-    InternalLoader::platformMessageBox(
-        "Geode 1.5!", "address: " + std::to_string((size_t)InternalMod::get())
-    );
 
     InternalLoader::platformMessageBox("Geode -0!", "Boobs i will squash the commits");
 
@@ -137,6 +130,7 @@ int geodeEntry(void* platformData) {
             "internal tools and Geode can not be loaded. "
             "(Unable to set up hook manager)"
         );
+        return 1;
     }
 
     InternalLoader::platformMessageBox("Geode -1!", "Boobs i will squash the commits");
@@ -146,6 +140,10 @@ int geodeEntry(void* platformData) {
     );
 
     InternalLoader::platformMessageBox("Geode 0!", "Boobs i will squash the commits");
+
+    InternalLoader::platformMessageBox(
+        "Geode 1.5!", "address: " + std::to_string((size_t)InternalMod::get())
+    );
 
     geode::Mod::setSharedMod(InternalMod::get());
     InternalLoader::platformMessageBox("Geode 1!", "Boobs i will squash the commits");

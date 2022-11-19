@@ -41,8 +41,10 @@ static ModInfo getInternalModInfo() {
 }
 
 InternalMod::InternalMod() : Mod(getInternalModInfo()) {
+    InternalLoader::platformMessageBox("InternalMod 1!", "Boobs i will squash the commits");
     m_saveDirPath = Loader::get()->getGeodeSaveDirectory() / GEODE_MOD_DIRECTORY / m_info.m_id;
     ghc::filesystem::create_directories(m_saveDirPath);
+    InternalLoader::platformMessageBox("InternalMod 2!", "Boobs i will squash the commits");
 
     // make sure spritesheets get added
     m_addResourcesToSearchPath = true;
@@ -51,6 +53,7 @@ InternalMod::InternalMod() : Mod(getInternalModInfo()) {
     if (!sett) {
         log::log(Severity::Error, this, "{}", sett.error());
     }
+    InternalLoader::platformMessageBox("InternalMod 3!", "Boobs i will squash the commits");
 }
 
 InternalMod::~InternalMod() {}
