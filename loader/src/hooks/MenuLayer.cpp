@@ -85,10 +85,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
     }
 
     bool init() {
-        InternalLoader::platformMessageBox("Geode -1.!", "Boobs i will squash the commits");
         if (!MenuLayer::init()) return false;
-        InternalLoader::platformMessageBox("Geode -2.!", "Boobs i will squash the commits");
-
         // set IDs to everything
         this->setID("main-menu-layer");
         setIDSafe(this, 0, "main-menu-bg");
@@ -149,8 +146,6 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             setIDSafe(menu, 1, "close-button");
         }
 
-        InternalLoader::platformMessageBox("Geode -3.!", "Boobs i will squash the commits");
-
         auto winSize = CCDirector::sharedDirector()->getWinSize();
 
         // add geode button
@@ -172,8 +167,6 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
                             ))
                             .orMake<ButtonSprite>("!!");
 
-        InternalLoader::platformMessageBox("Geode -4.!", "Boobs i will squash the commits");
-
         addUpdateIcon();
         auto btn = CCMenuItemSpriteExtra::create(
             g_geodeButton.data(), this, menu_selector(CustomMenuLayer::onGeode)
@@ -182,8 +175,6 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         bottomMenu->addChild(btn);
 
         bottomMenu->alignItemsHorizontallyWithPadding(3.f);
-
-        InternalLoader::platformMessageBox("Geode -5.!", "Boobs i will squash the commits");
 
         for (auto node : CCArrayExt<CCNode>(bottomMenu->getChildren())) {
             node->setPositionY(y);
@@ -204,8 +195,6 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         if (failed.size()) {
             NotificationBuilder().title("Failed to load").text("Some mods failed to load").show();
         }
-
-        InternalLoader::platformMessageBox("Geode -6.!", "Boobs i will squash the commits");
 
         // show crash info
         static bool shownLastCrash = false;
@@ -228,8 +217,6 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             popup->show();
         }
 
-        InternalLoader::platformMessageBox("Geode -7.!", "Boobs i will squash the commits");
-
         // update mods index
         if (!g_indexUpdateNotif && !Index::get()->isIndexUpdated()) {
             g_indexUpdateNotif = NotificationBuilder()
@@ -241,8 +228,6 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 
             Index::get()->updateIndex(updateIndexProgress);
         }
-
-        InternalLoader::platformMessageBox("Geode -8.!", "Boobs i will squash the commits");
 
         return true;
     }
