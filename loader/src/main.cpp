@@ -121,8 +121,6 @@ int geodeEntry(void* platformData) {
         return 1;
     }
 
-    InternalLoader::platformMessageBox("Geode -0!", "Boobs i will squash the commits");
-
     if (!geode::core::hook::initialize()) {
         InternalLoader::platformMessageBox(
             "Unable to load Geode!",
@@ -133,28 +131,9 @@ int geodeEntry(void* platformData) {
         return 1;
     }
 
-    InternalLoader::platformMessageBox("Geode -1!", "Boobs i will squash the commits");
+    geode_implicit_load(InternalMod::get());
 
-    InternalLoader::platformMessageBox(
-        "Geode -1.5!", "address: " + std::to_string((size_t)&geode_implicit_load)
-    );
-
-    InternalLoader::platformMessageBox("Geode 0!", "Boobs i will squash the commits");
-
-    InternalLoader::platformMessageBox(
-        "Geode 1.5!", "address: " + std::to_string((size_t)InternalMod::get())
-    );
-
-    geode::Mod::setSharedMod(InternalMod::get());
-    InternalLoader::platformMessageBox("Geode 1!", "Boobs i will squash the commits");
-    geode::log::releaseSchedules(InternalMod::get());
-    InternalLoader::platformMessageBox("Geode 2!", "Boobs i will squash the commits");
-    geode::Loader::get()->releaseScheduledFunctions(InternalMod::get());
-    InternalLoader::platformMessageBox("Geode 3!", "Boobs i will squash the commits");
-
-    // geode_implicit_load(InternalMod::get());
-
-    InternalLoader::platformMessageBox("Geode -2!", "Boobs i will squash the commits");
+    InternalLoader::platformMessageBox("Geode .1!", "Boobs i will squash the commits");
 
     if (!InternalLoader::get()->setup()) {
         // if we've made it here, Geode will
@@ -170,6 +149,8 @@ int geodeEntry(void* platformData) {
         return 1;
     }
 
+    InternalLoader::platformMessageBox("Geode .2!", "Boobs i will squash the commits");
+
     log::debug("Loaded internal Geode class");
 
     // set up loader, load mods, etc.
@@ -183,11 +164,15 @@ int geodeEntry(void* platformData) {
         return 1;
     }
 
+    InternalLoader::platformMessageBox("Geode .3!", "Boobs i will squash the commits");
+
     log::debug("Set up loader");
 
     if (InternalMod::get()->getSettingValue<bool>("show-platform-console")) {
         Loader::get()->openPlatformConsole();
     }
+
+    InternalLoader::platformMessageBox("Geode .4!", "Boobs i will squash the commits");
 
     log::debug("Entry done.");
 
