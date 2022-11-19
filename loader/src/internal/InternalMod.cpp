@@ -43,6 +43,10 @@ static ModInfo getInternalModInfo() {
 InternalMod::InternalMod() : Mod(getInternalModInfo()) {
     InternalLoader::platformMessageBox("InternalMod 1!", "Boobs i will squash the commits");
     m_saveDirPath = Loader::get()->getGeodeSaveDirectory() / GEODE_MOD_DIRECTORY / m_info.m_id;
+    if (ghc::filesystem::is_symlink(m_saveDirPath)) {
+        m_saveDirPath = ghc::filesystem::read_symlink(m_saveDirPath);
+    }
+
     InternalLoader::platformMessageBox("InternalMod 1.5!", m_saveDirPath.string());
     try {
         ghc::filesystem::create_directory(
