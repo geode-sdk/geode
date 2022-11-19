@@ -49,6 +49,7 @@ InternalMod::InternalMod() : Mod(getInternalModInfo()) {
 
     InternalLoader::platformMessageBox("InternalMod 1.5!", m_saveDirPath.string());
     try {
+        ghc::filesystem::create_directory(Loader::get()->getGeodeSaveDirectory());
         ghc::filesystem::create_directory(
             Loader::get()->getGeodeSaveDirectory() / GEODE_MOD_DIRECTORY
         );
