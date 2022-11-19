@@ -141,6 +141,7 @@ int geodeEntry(void* platformData) {
     InternalLoader::platformMessageBox(
         "Geode 0.5!", "address: " + std::to_string((size_t)InternalMod::get())
     );
+    InternalLoader::platformMessageBox("Geode 0.6!", "Boobs i will squash the commits");
 
     geode::Mod::setSharedMod(InternalMod::get());
     InternalLoader::platformMessageBox("Geode 1!", "Boobs i will squash the commits");
