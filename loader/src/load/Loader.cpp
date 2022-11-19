@@ -437,11 +437,19 @@ ghc::filesystem::path Loader::getSaveDirectory() const {
     );
 
     try {
-        auto a = ghc::filesystem::canonical(
-            ghc::filesystem::path(CCFileUtils::sharedFileUtils()->getWritablePath().c_str())
-        );
+        auto a = std::filesystem::path(CCFileUtils::sharedFileUtils()->getWritablePath().c_str());
 
-        InternalLoader::platformMessageBox("Geode -7.!", "dsffdssd : " + a.string());
+        InternalLoader::platformMessageBox("Geode 1.!", "dsffdssd : " + a.string());
+
+        auto b = std::filesystem::weakly_canonical(a);
+
+        InternalLoader::platformMessageBox("Geode 2.!", "dsffdssd : " + b.string());
+
+        auto c = ghc::filesystem::path(b.string());
+
+        InternalLoader::platformMessageBox("Geode 3.!", "dsffdssd : " + c.string());
+
+        return c;
     }
     catch (std::exception const& e) {
         InternalLoader::platformMessageBox("Geode -7.!", std::string("sdfsddghdg : ") + e.what());
