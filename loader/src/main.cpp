@@ -111,6 +111,8 @@ static auto _ = listenForSettingChanges(
 int geodeEntry(void* platformData) {
     // setup internals
 
+    InternalLoader::platformMessageBox("Geode 1!", "Boobs i will squash the commits");
+
     if (!InternalLoader::get()) {
         InternalLoader::platformMessageBox(
             "Unable to Load Geode!",
@@ -119,6 +121,9 @@ int geodeEntry(void* platformData) {
             "(InternalLoader::get returned nullptr)"
         );
     }
+
+    InternalLoader::platformMessageBox("Geode 2!", "Boobs i will squash the commits");
+
     if (!geode::core::hook::initialize()) {
         InternalLoader::platformMessageBox(
             "Unable to load Geode!",
@@ -127,7 +132,12 @@ int geodeEntry(void* platformData) {
             "(Unable to set up hook manager)"
         );
     }
+
+    InternalLoader::platformMessageBox("Geode 3!", "Boobs i will squash the commits");
+
     geode_implicit_load(InternalMod::get());
+
+    InternalLoader::platformMessageBox("Geode 4!", "Boobs i will squash the commits");
 
     if (!InternalLoader::get()->setup()) {
         // if we've made it here, Geode will
@@ -143,6 +153,8 @@ int geodeEntry(void* platformData) {
         return 1;
     }
 
+    InternalLoader::platformMessageBox("Geode 5!", "Boobs i will squash the commits");
+
     log::debug("Loaded internal Geode class");
 
     // set up loader, load mods, etc.
@@ -155,6 +167,8 @@ int geodeEntry(void* platformData) {
         delete InternalLoader::get();
         return 1;
     }
+
+    InternalLoader::platformMessageBox("Geode 6!", "Boobs i will squash the commits");
 
     log::debug("Set up loader");
 
