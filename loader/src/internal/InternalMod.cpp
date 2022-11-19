@@ -49,7 +49,7 @@ InternalMod::InternalMod() : Mod(getInternalModInfo()) {
     }
     catch (std::exception const& e) {
         InternalLoader::platformMessageBox(
-            "InternalMod 1.6!", "check out these boobs: " + e.what()
+            "InternalMod 1.6!", std::string("check out these boobs: ") + e.what()
         );
     }
     InternalLoader::platformMessageBox("InternalMod 2!", "Boobs i will squash the commits");
