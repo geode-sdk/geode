@@ -428,40 +428,19 @@ ghc::filesystem::path Loader::getGameDirectory() const {
 
 #ifdef GEODE_IS_WINDOWS
     #include <filesystem>
-
 #endif
 
 ghc::filesystem::path Loader::getSaveDirectory() const {
 // not using ~/Library/Caches
 #ifdef GEODE_IS_MACOS
     return ghc::filesystem::path("/Users/Shared/Geode");
+#elif defined(GEODE_IS_WINDOWS)
+    return ghc::filesystem::path(
+        std::filesystem::weakly_canonical(CCFileUtils::sharedFileUtils()->getWritablePath().c_str())
+            .string()
+    );
 #else
-    InternalLoader::platformMessageBox(
-        "Geode -7.!",
-        std::string("sdfsdf : ") + CCFileUtils::sharedFileUtils()->getWritablePath().c_str()
-    );
-
-    try {
-        auto a = std::filesystem::path(CCFileUtils::sharedFileUtils()->getWritablePath().c_str());
-
-        InternalLoader::platformMessageBox("Geode 1.!", "dsffdssd : " + a.string());
-
-        auto b = std::filesystem::weakly_canonical(a);
-
-        InternalLoader::platformMessageBox("Geode 2.!", "dsffdssd : " + b.string());
-
-        auto c = ghc::filesystem::path(b.string());
-
-        InternalLoader::platformMessageBox("Geode 3.!", "dsffdssd : " + c.string());
-
-        return c;
-    }
-    catch (std::exception const& e) {
-        InternalLoader::platformMessageBox("Geode -7.!", std::string("sdfsddghdg : ") + e.what());
-    }
-    return ghc::filesystem::canonical(
-        ghc::filesystem::path(CCFileUtils::sharedFileUtils()->getWritablePath().c_str())
-    );
+    return ghc::filesystem::path(CCFileUtils::sharedFileUtils()->getWritablePath().c_str());
 #endif
 }
 
