@@ -426,6 +426,11 @@ ghc::filesystem::path Loader::getGameDirectory() const {
     return ghc::filesystem::path(CCFileUtils::sharedFileUtils()->getWritablePath2().c_str());
 }
 
+#ifdef GEODE_IS_WINDOWS
+    #include <filesystem>
+
+#endif
+
 ghc::filesystem::path Loader::getSaveDirectory() const {
 // not using ~/Library/Caches
 #ifdef GEODE_IS_MACOS
