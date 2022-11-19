@@ -44,7 +44,14 @@ InternalMod::InternalMod() : Mod(getInternalModInfo()) {
     InternalLoader::platformMessageBox("InternalMod 1!", "Boobs i will squash the commits");
     m_saveDirPath = Loader::get()->getGeodeSaveDirectory() / GEODE_MOD_DIRECTORY / m_info.m_id;
     InternalLoader::platformMessageBox("InternalMod 1.5!", m_saveDirPath.string());
-    ghc::filesystem::create_directories(m_saveDirPath);
+    try {
+        ghc::filesystem::create_directories(m_saveDirPath);
+    }
+    catch (std::exception const& e) {
+        InternalLoader::platformMessageBox(
+            "InternalMod 1.6!", "check out these boobs: " + e.what()
+        );
+    }
     InternalLoader::platformMessageBox("InternalMod 2!", "Boobs i will squash the commits");
 
     // make sure spritesheets get added
