@@ -118,7 +118,9 @@ int geodeEntry(void* platformData) {
             "internal tools and Geode can not be loaded. "
             "(InternalLoader::get returned nullptr)"
         );
+        return 1;
     }
+
     if (!geode::core::hook::initialize()) {
         InternalLoader::platformMessageBox(
             "Unable to load Geode!",
@@ -126,7 +128,9 @@ int geodeEntry(void* platformData) {
             "internal tools and Geode can not be loaded. "
             "(Unable to set up hook manager)"
         );
+        return 1;
     }
+
     geode_implicit_load(InternalMod::get());
 
     if (!InternalLoader::get()->setup()) {

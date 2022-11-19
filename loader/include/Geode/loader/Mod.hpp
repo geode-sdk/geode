@@ -331,6 +331,7 @@ namespace geode {
         template <class = void>
         static inline GEODE_HIDDEN Mod* sharedMod = nullptr;
 
+        // used internally in geode_implicit_load
         template <class = void>
         static inline GEODE_HIDDEN void setSharedMod(Mod* mod) {
             sharedMod<> = mod;
