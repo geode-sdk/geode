@@ -96,9 +96,9 @@ BOOL WINAPI DllMain(HINSTANCE lib, DWORD reason, LPVOID) {
 }
 #endif
 
-static auto _ = listenForSettingChanges(
+static auto _ = listenForSettingChanges<BoolSetting>(
     "show-platform-console",
-    +[](std::shared_ptr<BoolSetting> setting) {
+    [](BoolSetting* setting) {
         if (setting->getValue()) {
             Loader::get()->openPlatformConsole();
         }

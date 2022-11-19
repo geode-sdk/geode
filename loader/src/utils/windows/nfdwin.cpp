@@ -68,9 +68,9 @@ static bool addFiltersToDialog(
     std::vector<COMDLG_FILTERSPEC> specList {};
     specList.reserve(filters.size() + 1);
     for (auto& filter : wfilters) {
-        specList.emplace_back(
-            filter.first.c_str(),
-            filter.second.c_str()
+        specList.push_back(
+            {filter.first.c_str(),
+            filter.second.c_str()}
         );
     }
     return SUCCEEDED(

@@ -51,7 +51,7 @@ Result<std::shared_ptr<Setting>> Setting::parse(std::string const& key, ModJson 
 }
 
 void Setting::valueChanged() {
-    SettingChangedEvent(m_modID, shared_from_this()).post();
+    SettingChangedEvent(m_modID, this).post();
 }
 
 SettingNode* BoolSetting::createNode(float width) {
@@ -95,7 +95,7 @@ SettingNode* ColorAlphaSetting::createNode(float width) {
 }
 
 SettingChangedEvent::SettingChangedEvent(
-    std::string const& modID, std::shared_ptr<Setting> setting
+    std::string const& modID, Setting* setting
 ) :
     m_modID(modID),
     m_setting(setting) {}
@@ -104,6 +104,6 @@ std::string SettingChangedEvent::getModID() const {
     return m_modID;
 }
 
-std::shared_ptr<Setting> SettingChangedEvent::getSetting() const {
+Setting* SettingChangedEvent::getSetting() const {
     return m_setting;
 }
