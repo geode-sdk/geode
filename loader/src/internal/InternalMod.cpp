@@ -45,7 +45,10 @@ InternalMod::InternalMod() : Mod(getInternalModInfo()) {
     m_saveDirPath = Loader::get()->getGeodeSaveDirectory() / GEODE_MOD_DIRECTORY / m_info.m_id;
     InternalLoader::platformMessageBox("InternalMod 1.5!", m_saveDirPath.string());
     try {
-        ghc::filesystem::create_directories(m_saveDirPath);
+        ghc::filesystem::create_directory(
+            Loader::get()->getGeodeSaveDirectory() / GEODE_MOD_DIRECTORY
+        );
+        ghc::filesystem::create_directory(m_saveDirPath);
     }
     catch (std::exception const& e) {
         InternalLoader::platformMessageBox(
