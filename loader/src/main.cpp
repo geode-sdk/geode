@@ -120,6 +120,8 @@ int geodeEntry(void* platformData) {
         );
     }
 
+    InternalLoader::platformMessageBox("Geode -0!", "Boobs i will squash the commits");
+
     if (!geode::core::hook::initialize()) {
         InternalLoader::platformMessageBox(
             "Unable to load Geode!",
@@ -129,7 +131,11 @@ int geodeEntry(void* platformData) {
         );
     }
 
+    InternalLoader::platformMessageBox("Geode -1!", "Boobs i will squash the commits");
+
     geode_implicit_load(InternalMod::get());
+
+    InternalLoader::platformMessageBox("Geode -2!", "Boobs i will squash the commits");
 
     if (!InternalLoader::get()->setup()) {
         // if we've made it here, Geode will

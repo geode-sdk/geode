@@ -5,6 +5,7 @@
 #include <Geode/Loader.hpp>
 
 GEODE_API bool GEODE_CALL geode_implicit_load(geode::Mod* m) {
+    InternalLoader::platformMessageBox("Geode 0!", "Boobs i will squash the commits");
     geode::Mod::setSharedMod(m);
     InternalLoader::platformMessageBox("Geode 1!", "Boobs i will squash the commits");
     geode::log::releaseSchedules(m);
