@@ -133,6 +133,10 @@ int geodeEntry(void* platformData) {
 
     InternalLoader::platformMessageBox("Geode -1!", "Boobs i will squash the commits");
 
+    InternalLoader::platformMessageBox(
+        "Geode -1.5!", "address: " + std::to_string((size_t)&geode_implicit_load)
+    );
+
     geode_implicit_load(InternalMod::get());
 
     InternalLoader::platformMessageBox("Geode -2!", "Boobs i will squash the commits");
