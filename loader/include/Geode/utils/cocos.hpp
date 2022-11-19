@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Ref.hpp"
+#include "casts.hpp"
 
 #include <Geode/DefaultInclude.hpp>
 #include <cocos2d.h>
@@ -179,13 +180,14 @@ namespace geode::cocos {
      */
     template <class Type = cocos2d::CCNode>
     Type* findFirstChildRecursive(cocos2d::CCNode* node, std::function<bool(Type*)> predicate) {
-        if (predicate(node))return node;
+        if (cast::safe_cast<Type*>(node) && predicate(node))
+            return node;
 
         auto children = node->getChildren();
         if (!children) return nullptr;
 
         for (int i = 0; i < children->count(); ++i) {
-            auto newParent = reinterpret_cast<cocos2d::CCNode*>(children->objectAtIndex(i));
+            auto newParent = static_cast<cocos2d::CCNode*>(children->objectAtIndex(i));
             auto child = findFirstChildRecursive(newParent, predicate);
             if (child)
                 return child;
