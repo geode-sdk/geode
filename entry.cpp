@@ -1,5 +1,7 @@
 // included by default in every geode project
 
+#include "loader/src/internal/InternalLoader.hpp"
+
 #include <Geode/Loader.hpp>
 
 GEODE_API bool GEODE_CALL geode_implicit_load(geode::Mod* m) {
