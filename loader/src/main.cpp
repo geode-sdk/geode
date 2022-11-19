@@ -133,8 +133,6 @@ int geodeEntry(void* platformData) {
 
     geode_implicit_load(InternalMod::get());
 
-    InternalLoader::platformMessageBox("Geode .1!", "Boobs i will squash the commits");
-
     if (!InternalLoader::get()->setup()) {
         // if we've made it here, Geode will
         // be gettable (otherwise the call to
@@ -149,8 +147,6 @@ int geodeEntry(void* platformData) {
         return 1;
     }
 
-    InternalLoader::platformMessageBox("Geode .2!", "Boobs i will squash the commits");
-
     log::debug("Loaded internal Geode class");
 
     // set up loader, load mods, etc.
@@ -164,15 +160,11 @@ int geodeEntry(void* platformData) {
         return 1;
     }
 
-    InternalLoader::platformMessageBox("Geode .3!", "Boobs i will squash the commits");
-
     log::debug("Set up loader");
 
     if (InternalMod::get()->getSettingValue<bool>("show-platform-console")) {
         Loader::get()->openPlatformConsole();
     }
-
-    InternalLoader::platformMessageBox("Geode .4!", "Boobs i will squash the commits");
 
     log::debug("Entry done.");
 
