@@ -42,12 +42,8 @@ static ModInfo getInternalModInfo() {
 
 InternalMod::InternalMod() : Mod(getInternalModInfo()) {
     m_saveDirPath = Loader::get()->getGeodeSaveDirectory() / GEODE_MOD_DIRECTORY / m_info.m_id;
-    if (ghc::filesystem::is_symlink(m_saveDirPath)) {
-        m_saveDirPath = ghc::filesystem::read_symlink(m_saveDirPath);
-    }
-    ghc::filesystem::create_directory(Loader::get()->getGeodeSaveDirectory());
-    ghc::filesystem::create_directory(Loader::get()->getGeodeSaveDirectory() / GEODE_MOD_DIRECTORY);
-    ghc::filesystem::create_directory(m_saveDirPath);
+
+    ghc::filesystem::create_directories(m_saveDirPath);
 
     // make sure spritesheets get added
     m_addResourcesToSearchPath = true;
