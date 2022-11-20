@@ -117,23 +117,18 @@ jobs:
 
       - uses: vimtor/action-zip@v1
         with:
-          files: macOS
+          files: Geode.dylib GeodeBootstrapper.dylib
           dest: macOS.zip
 
       - uses: vimtor/action-zip@v1
         with:
-          files: Windows
+          files: Geode.dll GeodeBootstrapper.dll Geode.lib
           dest: Windows.zip
-
-      - uses: vimtor/action-zip@v1
-        with:
-          files: loader/include
-          dest: Headers.zip
 
       - name: Update release
         uses: IsaacShelton/update-existing-release@v1.3.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          files: ./macOS.zip ./Windows.zip ./Headers.zip
+          files: ./macOS.zip ./Windows.zip
           release: Nightly
           prerelease: true
