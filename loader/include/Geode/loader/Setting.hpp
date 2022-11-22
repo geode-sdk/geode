@@ -45,7 +45,7 @@ namespace geode {
      * for things like storing the default value, broadcasting value change
      * events, making the setting node etc.
      */
-    class GEODE_DLL Setting : public std::enable_shared_from_this<Setting> {
+    class Setting : public std::enable_shared_from_this<Setting> {
     protected:
         std::string m_key;
         std::string m_modID;
@@ -57,10 +57,12 @@ namespace geode {
         );
 
     public:
-        virtual ~Setting() = default;
+        GEODE_DLL virtual ~Setting() = default;
 
         // Load from mod.json
-        static Result<std::shared_ptr<Setting>> parse(std::string const& key, ModJson const& json);
+        GEODE_DLL static Result<std::shared_ptr<Setting>> parse(
+            std::string const& key, ModJson const& json
+        );
         // Load value from saved settings
         virtual bool load(nlohmann::json const& json) = 0;
         // Save setting value
@@ -68,9 +70,9 @@ namespace geode {
 
         virtual SettingNode* createNode(float width) = 0;
 
-        void valueChanged();
+        GEODE_DLL void valueChanged();
 
-        std::string getKey() const;
+        GEODE_DLL std::string getKey() const;
         virtual SettingType getType() const = 0;
     };
 
@@ -314,9 +316,7 @@ namespace geode {
             obj.has(json).into(m_##name);                         \
             return Ok();                                          \
         }                                                         \
-        bool has##Name() const {                                  \
-            return m_##name;                                      \
-        }                                                         \
+        bool has##Name() const { return m_##name; }               \
     }
 
         class ICArrows {
@@ -405,12 +405,12 @@ namespace geode {
         GEODE_INT_DECL_SETTING_CONTROL(Input, hasInput, true, "input");
     }
 
-    class GEODE_DLL BoolSetting : public GeodeSetting<BoolSetting, bool, SettingType::Bool> {
+    class BoolSetting : public GeodeSetting<BoolSetting, bool, SettingType::Bool> {
     public:
-        SettingNode* createNode(float width) override;
+        GEODE_DLL SettingNode* createNode(float width) override;
     };
 
-    class GEODE_DLL IntSetting :
+    class IntSetting :
         public GeodeSetting<IntSetting, int64_t, SettingType::Int>,
         public IOneOf<IntSetting, int64_t>,
         public IMinMax<int64_t>,
@@ -418,10 +418,10 @@ namespace geode {
         public ICSlider<int64_t>,
         public ICInput {
     public:
-        SettingNode* createNode(float width) override;
+        GEODE_DLL SettingNode* createNode(float width) override;
     };
 
-    class GEODE_DLL FloatSetting :
+    class FloatSetting :
         public GeodeSetting<FloatSetting, double, SettingType::Float>,
         public IOneOf<FloatSetting, double>,
         public IMinMax<double>,
@@ -429,34 +429,33 @@ namespace geode {
         public ICSlider<double>,
         public ICInput {
     public:
-        SettingNode* createNode(float width) override;
+        GEODE_DLL SettingNode* createNode(float width) override;
     };
 
-    class GEODE_DLL StringSetting :
+    class StringSetting :
         public GeodeSetting<StringSetting, std::string, SettingType::String>,
         public IOneOf<StringSetting, std::string>,
         public IMatch<StringSetting, std::string> {
     public:
-        SettingNode* createNode(float width) override;
+        GEODE_DLL SettingNode* createNode(float width) override;
     };
 
-    class GEODE_DLL FileSetting :
+    class FileSetting :
         public GeodeSetting<FileSetting, ghc::filesystem::path, SettingType::File>,
         public ICFileFilters {
     public:
-        SettingNode* createNode(float width) override;
+        GEODE_DLL SettingNode* createNode(float width) override;
     };
 
-    class GEODE_DLL ColorSetting :
-        public GeodeSetting<ColorSetting, cocos2d::ccColor3B, SettingType::Color> {
+    class ColorSetting : public GeodeSetting<ColorSetting, cocos2d::ccColor3B, SettingType::Color> {
     public:
-        SettingNode* createNode(float width) override;
+        GEODE_DLL SettingNode* createNode(float width) override;
     };
 
-    class GEODE_DLL ColorAlphaSetting :
+    class ColorAlphaSetting :
         public GeodeSetting<ColorAlphaSetting, cocos2d::ccColor4B, SettingType::ColorAlpha> {
     public:
-        SettingNode* createNode(float width) override;
+        GEODE_DLL SettingNode* createNode(float width) override;
     };
 
     // these can't be member functions because C++ is single-pass >:(
@@ -498,6 +497,7 @@ namespace geode {
             static_assert(!std::is_same_v<T, T>, "Unsupported type for getting setting value!");
         }
     }
+
     // clang-format on
 }
 

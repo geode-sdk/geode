@@ -96,7 +96,7 @@ typedef FMOD_RESULT (F_CALL *FMOD_DSP_SYSTEM_MIX_CALLBACK)                (FMOD_
 typedef void *      (F_CALL *FMOD_DSP_ALLOC_FUNC)                         (unsigned int size, FMOD_MEMORY_TYPE type, const char *sourcestr);
 typedef void *      (F_CALL *FMOD_DSP_REALLOC_FUNC)                       (void *ptr, unsigned int size, FMOD_MEMORY_TYPE type, const char *sourcestr);
 typedef void        (F_CALL *FMOD_DSP_FREE_FUNC)                          (void *ptr, FMOD_MEMORY_TYPE type, const char *sourcestr);
-typedef void        (F_CALL *FMOD_DSP_LOG_FUNC)                           (FMOD_DEBUG_FLAGS level, const char *file, int line, const char *function, const char *string, ...);
+typedef void        (F_CALL *FMOD_DSP_LOG_FUNC)                           (FMOD_DEBUG_FLAGS level, const char *file, int line, const char *function, const char *string);
 typedef FMOD_RESULT (F_CALL *FMOD_DSP_GETSAMPLERATE_FUNC)                 (FMOD_DSP_STATE *dsp_state, int *rate);
 typedef FMOD_RESULT (F_CALL *FMOD_DSP_GETBLOCKSIZE_FUNC)                  (FMOD_DSP_STATE *dsp_state, unsigned int *blocksize);
 typedef FMOD_RESULT (F_CALL *FMOD_DSP_GETSPEAKERMODE_FUNC)                (FMOD_DSP_STATE *dsp_state, FMOD_SPEAKERMODE *speakermode_mixer, FMOD_SPEAKERMODE *speakermode_output);

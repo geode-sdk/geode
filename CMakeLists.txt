@@ -8,13 +8,15 @@ project(geode-sdk VERSION ${GEODE_VERSION} LANGUAGES CXX C)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-if (PROJECT_IS_TOP_LEVEL AND APPLE)
-	set(CMAKE_BUILD_TYPE Debug)
-endif()
 
 add_library(${PROJECT_NAME} INTERFACE)
 
-if (CMAKE_BUILD_TYPE STREQUAL Debug OR CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo) 
+if (NOT DEFINED GEODE_DEBUG AND (CMAKE_BUILD_TYPE STREQUAL Debug OR CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo))
+	set(GEODE_DEBUG ON)
+endif()
+
+# define it in command line or your project system
+if (GEODE_DEBUG) 
 	target_compile_definitions(${PROJECT_NAME} INTERFACE -DGEODE_DEBUG)
 endif()
 
@@ -22,10 +24,6 @@ endif()
 set_target_properties(${PROJECT_NAME} PROPERTIES CMAKE_CONFIGURE_DEPENDS VERSION)
 
 target_compile_definitions(${PROJECT_NAME} INTERFACE -DPROJECT_NAME=${CMAKE_PROJECT_NAME})
-
-if (GEODE_DEBUG)
-	target_compile_definitions(${PROJECT_NAME} INTERFACE GEODE_DEBUG)
-endif()
 
 set(GEODE_CODEGEN_PATH ${CMAKE_CURRENT_BINARY_DIR}/codegenned)
 set(GEODE_BIN_PATH ${CMAKE_CURRENT_SOURCE_DIR}/bin)
@@ -37,13 +35,20 @@ include(cmake/Platform.cmake)
 target_sources(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/entry.cpp)
 
 
-add_subdirectory(codegen)
+include(ExternalProject)
+
+set(GEODE_CODEGEN_BINARY_OUT ${CMAKE_CURRENT_BINARY_DIR}/codegen)
+ExternalProject_Add(CodegenProject
+	SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/codegen
+	CMAKE_CACHE_ARGS "-DCMAKE_INSTALL_PREFIX:STRING=${GEODE_CODEGEN_BINARY_OUT}"
+)
 
 add_custom_command(
 	DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/bindings/GeometryDash.bro
 			${CMAKE_CURRENT_SOURCE_DIR}/bindings/Cocos2d.bro
 			${CMAKE_CURRENT_SOURCE_DIR}/bindings/Entry.bro
-	COMMAND Codegen ${GEODE_TARGET_PLATFORM} bindings ${GEODE_CODEGEN_PATH}
+	DEPENDS CodegenProject
+	COMMAND ${GEODE_CODEGEN_BINARY_OUT}/Codegen ${GEODE_TARGET_PLATFORM} bindings ${GEODE_CODEGEN_PATH}
 	COMMAND echo codegen > ${GEODE_CODEGEN_PATH}/.stamp
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 	COMMENT "Run Codegen"
@@ -73,6 +78,8 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 	${GEODE_LOADER_PATH}/include/Geode/fmod
 )
 target_link_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/loader/include/link)
+
+add_definitions(-DFMT_CONSTEVAL=)
 
 add_subdirectory(filesystem)
 add_subdirectory(fmt)

@@ -1,14 +1,11 @@
 #pragma once
 
-#include <Geode/platform/platform.hpp>
-#include <algorithm>
-#include <functional>
-#include <map>
+#include <Geode/binding/GDString.hpp>
 #include <string>
+#include <stdexcept>
+#include <utility>
+#include <map>
 #include <vector>
-// #include <Geode/binding/GDString.hpp>
-
-#if defined(GEODE_IS_WINDOWS)
 
 namespace gd {
     struct InternalString {
@@ -21,9 +18,19 @@ namespace gd {
         size_t m_capacity;
     };
 
-    class GEODE_DLL string : protected GDString {
+    class string : GDString {
     private:
         InternalString m_data;
+
+        char* get_data() {
+            if (m_data.m_capacity < 16) return m_data.m_storage;
+            return m_data.m_pointer;
+        }
+
+        const char* get_data() const {
+            if (m_data.m_capacity < 16) return m_data.m_storage;
+            return m_data.m_pointer;
+        }
 
     public:
         template <class... Params>
@@ -36,62 +43,60 @@ namespace gd {
             (void)this->winAssign(val.c_str(), val.size());
         }
 
+        template <class Param>
+        string& operator=(Param&& param) {
+            std::string val;
+            val = std::forward<Param>(param);
+            (void)this->winAssign(val.c_str(), val.size());
+            return *this;
+        }
+
         ~string() {
             (void)this->winDtor();
         }
 
-        /*template <class... Params>
-        decltype(auto) operator=(Params&&... params) ->
-        decltype(this->operator=(std::forward<Params>(params)...)) { auto val =
-        std::string(this->winCStr(), m_data.m_length);
-                val.operator=(std::forward<Params>(params)...);
-                (void)this->winAssign(val.c_str(), val.size());
-        }*/
-
-        template <class... Params>
-        string& operator=(Params&&... params) {
-            auto val = std::string(this->winCStr(), m_data.m_length);
-            val.operator=(std::forward<Params>(params)...);
-            (void)this->winAssign(val.c_str(), val.size());
-            return *this;
-        }
-
-        template <class... Params>
-        string& assign(Params&&... params) {
-            auto val = std::string(this->winCStr(), m_data.m_length);
-            val.assign(std::forward<Params>(params)...);
-            (void)this->winAssign(val.c_str(), val.size());
-            return *this;
-        }
-
         char& at(size_t pos) {
             if (pos >= m_data.m_length) throw std::out_of_range("gd::string::at");
+            return (*this)[pos];
         }
 
         char const& at(size_t pos) const {
             if (pos >= m_data.m_length) throw std::out_of_range("gd::string::at");
+            return (*this)[pos];
         }
 
         char& operator[](size_t pos) {
-            return this->winCStr()[pos];
+            return this->get_data()[pos];
         }
 
         char const& operator[](size_t pos) const {
-            return this->winCStr()[pos];
+            return this->get_data()[pos];
         }
 
         char* data() {
-            return this->winCStr();
+            return this->get_data();
         }
 
         char const* data() const {
-            return this->winCStr();
+            return this->get_data();
         }
 
         char const* c_str() const {
-            return this->winCStr();
+            return this->get_data();
+        }
+
+        size_t size() const {
+            return m_data.m_length;
+        }
+
+        operator std::string() const {
+            return std::string(this->c_str(), this->size());
         }
     };
-}
 
-#endif
+    template <class T>
+    using vector = std::vector<T>;
+
+    template <class K, class V>
+    using map = std::map<K, V>;
+}

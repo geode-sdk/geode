@@ -2,7 +2,6 @@
 // clang-format off
 class GDString {
     void winDtor() = win 0xf6e0;
-    char const* winCStr() = win 0xf710;
     GDString& winAssign(GDString const&, size_t, size_t) = win 0xf720;
     GDString& winAssign(char const*) = win 0xf680;
     GDString& winAssign(char const*, size_t) = win 0xf840;
@@ -831,6 +830,7 @@ class CountTriggerAction : cocos2d::CCNode {
     int m_targetCount;
     int m_targetID;
     bool m_activateGroup;
+    bool m_multiActivate;
 }
 
 class CreateGuidelinesLayer : FLAlertLayer, FLAlertLayerProtocol {
@@ -1222,7 +1222,6 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     void editObject2(cocos2d::CCObject* sender) = win 0x8d1b0;
     void editGroup(cocos2d::CCObject* sender) = win 0x8d720;
     void moveObjectCall(cocos2d::CCObject* sender) = mac 0x29830, win 0x8db30;
-    void moveObjectCall(EditCommand command) = win 0x8db30;
     void transformObjectCall(cocos2d::CCObject* sender) = mac 0x29860, win 0x8def0;
     void onDelete(cocos2d::CCObject* sender) = mac 0x1b3d0, win 0x7b8d0;
     void onDeleteSelected(cocos2d::CCObject* sender) = mac 0xb990, win 0x7bf50;
@@ -4205,7 +4204,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
         return GameManager::sharedState()->getPlayLayer();
     }
 
-    PlayLayer() = win 0x1FAA90;
+    PlayLayer() = mac 0x80e20, win 0x1faa90;
 
     void addCircle(CCCircleWave*) = mac 0x7e0f0;
     void addObject(GameObject*) = mac 0x70e50, win 0x2017e0;
@@ -5315,7 +5314,11 @@ class TextArea : cocos2d::CCSprite {
     virtual void draw() {}
     virtual void setOpacity(unsigned char) = mac 0x19f760, win 0x33800;
     bool init(gd::string str, char const* font, float width, float height, cocos2d::CCPoint anchor, float scale, bool disableColor) = mac 0x19ec70, win 0x33370, ios 0x92444;
+<<<<<<< HEAD
     static TextArea* create(gd::string str, char const* font, float width, float height, cocos2d::CCPoint anchor, float scale, bool disableColor) = mac 0x19eb40, win 0x33270;
+=======
+    static TextArea* create(gd::string str, char const* font, float scale, float width, cocos2d::CCPoint anchor, float height, bool disableColor) = mac 0x19eb40, win 0x33270;
+>>>>>>> main
     void colorAllCharactersTo(cocos2d::ccColor3B color) = win 0x33830;
     void setString(gd::string str) = mac 0x19eda0, win 0x33480;
 

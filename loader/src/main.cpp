@@ -4,10 +4,13 @@
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/SettingEvent.hpp>
+#include <Geode/loader/Setting.hpp>
 #include <Geode/loader/IPC.hpp>
 #include <InternalLoader.hpp>
 #include <InternalMod.hpp>
 #include <array>
+
+USE_GEODE_NAMESPACE();
 
 int geodeEntry(void* platformData);
 // platform-specific entry points
@@ -101,7 +104,7 @@ BOOL WINAPI DllMain(HINSTANCE lib, DWORD reason, LPVOID) {
 
 static auto $_ = listenForSettingChanges(
     "show-platform-console",
-    +[](std::shared_ptr<BoolSetting> setting) {
+    [](BoolSetting* setting) {
         if (setting->getValue()) {
             Loader::get()->openPlatformConsole();
         }
@@ -138,6 +141,7 @@ int geodeEntry(void* platformData) {
             "internal tools and Geode can not be loaded. "
             "(InternalLoader::get returned nullptr)"
         );
+        return 1;
     }
 
     if (!geode::core::hook::initialize()) {
@@ -147,6 +151,7 @@ int geodeEntry(void* platformData) {
             "internal tools and Geode can not be loaded. "
             "(Unable to set up hook manager)"
         );
+        return 1;
     }
 
     geode_implicit_load(InternalMod::get());
