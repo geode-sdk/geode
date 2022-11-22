@@ -46,7 +46,7 @@ namespace gd {
         template <class Param>
         string& operator=(Params&& param) {
             std::string val;
-            val = std::forward<Params>(param);
+            val = std::forward<Param>(param);
             (void)this->winAssign(val.c_str(), val.size());
             return *this;
         }
