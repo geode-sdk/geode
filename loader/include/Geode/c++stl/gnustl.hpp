@@ -1,14 +1,10 @@
 #pragma once
 
-#include <Geode/platform/platform.hpp>
 #include <algorithm>
 #include <map>
 #include <string>
 #include <vector>
-
-// #include <Geode/binding/GDString.hpp>
-
-//#include "../utils/platform.hpp"
+#include <Geode/binding/GDString.hpp>
 
 namespace geode::base {
     uintptr_t get();
@@ -570,6 +566,4 @@ namespace gd {
         ~map() {}
     };
 }
-#else
-namespace gd = std;
 #endif

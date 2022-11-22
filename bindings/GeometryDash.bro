@@ -2,7 +2,6 @@
 // clang-format off
 class GDString {
     void winDtor() = win 0xf6e0;
-    char const* winCStr() = win 0xf710;
     GDString& winAssign(GDString const&, size_t, size_t) = win 0xf720;
     GDString& winAssign(char const*) = win 0xf680;
     GDString& winAssign(char const*, size_t) = win 0xf840;
