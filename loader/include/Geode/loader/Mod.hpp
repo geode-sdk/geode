@@ -172,7 +172,19 @@ namespace geode {
          */
         static Result<ModInfo> create(ModJson const& json);
 
+        /**
+         * Convert to JSON. Essentially same as getRawJSON except dynamically 
+         * adds runtime fields like path
+         */
+        ModJson toJSON() const;
+        /**
+         * Get the raw JSON file
+         */
+        ModJson getRawJSON() const;
+
     private:
+        ModJson m_rawJSON;
+
         /**
          * Version is passed for backwards
          * compatibility if we update the mod.json
@@ -185,6 +197,9 @@ namespace geode {
 
         std::vector<std::pair<std::string, std::optional<std::string>*>> getSpecialFiles();
     };
+
+    // For converting ModInfo back to JSON
+    void GEODE_DLL to_json(nlohmann::json& json, ModInfo const& info);
 
     /**
      * @class DataStore

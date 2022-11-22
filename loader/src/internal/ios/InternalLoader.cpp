@@ -24,7 +24,7 @@ void InternalLoader::openPlatformConsole() {
 
 void InternalLoader::closePlatformConsole() {}
 
-void InternalLoader::postIPCMessage(
+void InternalLoader::postIPCReply(
     void* rawPipeHandle,
     std::string const& senderID,
     std::string const& data

@@ -105,6 +105,10 @@ bool VersionInfo::match(
     return false;
 }
 
+void to_json(nlohmann::json& json, VersionInfo const& info) {
+    json = info.toString();
+}
+
 std::string VersionInfo::toString() const {
     return "v" + std::to_string(this->m_major) + "." + std::to_string(this->m_minor) + "." +
         std::to_string(this->m_patch);

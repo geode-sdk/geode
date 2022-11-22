@@ -5,18 +5,22 @@ USE_GEODE_NAMESPACE();
 
 IPCEvent::IPCEvent(
     void* rawPipeHandle,
-    std::string targetModID,
-    std::string senderID,
-    std::string messageID,
-    std::string messageData
+    std::string const& targetModID,
+    std::string const& messageID,
+    std::optional<std::string> const& replyID,
+    nlohmann::json const& messageData
 ) : m_rawPipeHandle(rawPipeHandle),
     m_targetModID(targetModID),
-    m_senderID(senderID),
     m_messageID(messageID),
+    m_replyID(replyID),
     m_messageData(messageData) {}
 
-std::string IPCEvent::getSenderID() const {
-    return m_senderID;
+IPCEvent::~IPCEvent() {
+    this->reply(nullptr);
+}
+
+std::optional<std::string> IPCEvent::getReplyID() const {
+    return m_replyID;
 }
 
 std::string IPCEvent::getTargetModID() const {
@@ -27,13 +31,20 @@ std::string IPCEvent::getMessageID() const {
     return m_messageID;
 }
 
-std::string IPCEvent::getMessageData() const {
+nlohmann::json IPCEvent::getMessageData() const {
     return m_messageData;
 }
 
-void IPCEvent::reply(std::string const& data) {
-    if (m_rawPipeHandle) {
-        InternalLoader::get()->postIPCMessage(m_rawPipeHandle, m_senderID, data);
+bool IPCEvent::canReply() const {
+    return m_replyID.has_value();
+}
+
+void IPCEvent::reply(nlohmann::json const& data) {
+    if (!m_replied && m_rawPipeHandle && m_replyID.has_value()) {
+        InternalLoader::get()->postIPCReply(
+            m_rawPipeHandle, m_replyID.value(), data
+        );
+        m_replied = true;
     }
 }
 

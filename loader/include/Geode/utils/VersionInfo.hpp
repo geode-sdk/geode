@@ -2,6 +2,7 @@
 
 #include <Geode/DefaultInclude.hpp>
 #include <string_view>
+#include "json.hpp"
 
 namespace geode {
     /**
@@ -60,6 +61,8 @@ namespace geode {
 
         std::string toString() const;
     };
+
+    void GEODE_DLL to_json(nlohmann::json& json, VersionInfo const& info);
 
     inline std::ostream& operator<<(std::ostream& stream, VersionInfo const& version) {
         stream << version.toString();

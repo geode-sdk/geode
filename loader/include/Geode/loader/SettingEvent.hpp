@@ -52,8 +52,8 @@ namespace geode {
     };
 
     template <class T>
-
-    requires std::is_base_of_v<Setting, T> std::monostate listenForSettingChanges(
+    requires std::is_base_of_v<Setting, T>
+    std::monostate listenForSettingChanges(
         std::string const& settingID, void (*callback)(T*)
     ) {
         Loader::get()->scheduleOnModLoad(getMod(), [=]() {

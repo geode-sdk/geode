@@ -8,35 +8,61 @@ namespace geode {
     constexpr const char* IPC_PIPE_NAME = "\\\\.\\pipe\\GeodeIPCPipe";
     #endif
 
-    // message ID may be anything that doesn't contain /, but to be safe, you 
-    // should only define message IDs that match the following: [a-z\-_\.]+
+    // IPC (Inter-Process Communication) provides a way for Geode mods to talk 
+    // to other programs on the user's computer. If you have, for example, a 
+    // debugger, or an external modding UI, that application can open up the 
+    // platform-specific pipe and start sending messages to mods. Mods can 
+    // listen for messages using the listenForIPC function, and reply to 
+    // messages the get by using the reply method on the event provided. For 
+    // example, an external application can query what mods are loaded in Geode 
+    // by sending the `list-mods` message to `geode.loader`.
 
     class GEODE_DLL IPCEvent : public Event {
     protected:
         void* m_rawPipeHandle;
         std::string m_targetModID;
-        std::string m_senderID;
+        std::optional<std::string> m_replyID;
         std::string m_messageID;
-        std::string m_messageData;
+        nlohmann::json m_messageData;
+        bool m_replied = false;
 
     public:
         IPCEvent(
             void* rawPipeHandle,
-            std::string targetModID,
-            std::string senderID,
-            std::string messageID,
-            std::string messageData
+            std::string const& targetModID,
+            std::string const& messageID,
+            std::optional<std::string> const& replyID,
+            nlohmann::json const& messageData
         );
+        virtual ~IPCEvent();
 
-        std::string getSenderID() const;
+        std::optional<std::string> getReplyID() const;
         std::string getTargetModID() const;
         std::string getMessageID() const;
-        std::string getMessageData() const;
+        nlohmann::json getMessageData() const;
 
         /**
-         * Reply to the message. You can only reply once
+         * Whether this message can be replied to, i.e. if it has a reply ID 
+         * provided
+         * @returns True if the message can be replied to, false otherwise
          */
-        void reply(std::string const& data);
+        bool canReply() const;
+
+        /**
+         * Reply to the message. Will post a message back to the application 
+         * the sent this message with the reply ID and provided data.
+         * You can only reply once; after the other application has received 
+         * the reply, it can assume the reply ID can be freed and reused for 
+         * other messages. Calling reply again on this message will not cause 
+         * a new response to be sent.
+         * If reply is not explicitly called, a default response of null will 
+         * be posted back.
+         * @param data The data to send back; will be the under the "data" key 
+         * in the response JSON. The structure may be anything; however, you 
+         * should document what kind of JSON structures applications may expect 
+         * from your mod.
+         */
+        void reply(nlohmann::json const& data);
     };
 
     class GEODE_DLL IPCFilter : public EventFilter<IPCEvent> {

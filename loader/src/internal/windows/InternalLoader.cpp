@@ -37,17 +37,21 @@ void InternalLoader::closePlatformConsole() {
     m_platformConsoleOpen = false;
 }
 
-void InternalLoader::postIPCMessage(
+void InternalLoader::postIPCReply(
     void* rawPipeHandle,
-    std::string const& senderID,
-    std::string const& data
+    std::string const& replyID,
+    nlohmann::json const& data
 ) {
-    std::string msg = senderID + "/" + data;
-    log::debug("Replying msg: {}", msg);
+    auto msgJson = nlohmann::json::object();
+    msgJson["reply"] = replyID;
+    msgJson["data"] = data;
+    auto msg = msgJson.dump();
+
     DWORD written;
     WriteFile(rawPipeHandle, msg.c_str(), msg.size(), &written, nullptr);
 }
 
+// todo: multiple connections
 void InternalLoader::setupIPC() {
     auto pipe = CreateNamedPipeA(
         IPC_PIPE_NAME,
@@ -68,29 +72,27 @@ void InternalLoader::setupIPC() {
                 DWORD read;
                 while (ReadFile(pipe, buffer, sizeof(buffer) - 1, &read, nullptr)) {
                     buffer[read] = '\0';
-
-                    // format of the message should be modID/senderID/msgID/data
-                    std::string modID;
-                    std::string senderID;
-                    std::string msgID;
-                    std::string data;
-                    size_t collectPart = 0;
-                    for (size_t i = 0; i < read; i++) {
-                        if (buffer[i] == '/' && collectPart < 3) {
-                            collectPart++;
-                        } else {
-                            switch (collectPart) {
-                                case 0: modID += buffer[i]; break;
-                                case 1: senderID += buffer[i]; break;
-                                case 2: msgID += buffer[i]; break;
-                                default: data += buffer[i]; break;
-                            }
+                    try {
+                        auto json = nlohmann::json::parse(buffer);
+                        if (!json.contains("mod") || !json["mod"].is_string()) {
+                            log::warn("Received IPC message without 'mod' field");
+                            continue;
                         }
-                    }
-                    if (modID.size() && senderID.size() && msgID.size()) {
-                        IPCEvent(pipe, modID, senderID, msgID, data).post();
-                    } else {
-                        log::warn("Received invalid IPC message: '{}'", buffer);
+                        if (!json.contains("message") || !json["message"].is_string()) {
+                            log::warn("Received IPC message without 'message' field");
+                            continue;
+                        }
+                        std::optional<std::string> reply = std::nullopt;
+                        if (json.contains("reply") && json["reply"].is_string()) {
+                            reply = json["reply"];
+                        }
+                        nlohmann::json data;
+                        if (json.contains("data")) {
+                            data = json["data"];
+                        }
+                        IPCEvent(pipe, json["mod"], json["message"], reply, data).post();
+                    } catch(...) {
+                        log::warn("Received IPC message that isn't valid JSON");
                     }
                 }
                 log::debug("Connection done");

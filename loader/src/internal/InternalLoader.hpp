@@ -44,10 +44,10 @@ public:
 
     bool setup();
 
-    void postIPCMessage(
+    void postIPCReply(
         void* rawPipeHandle,
-        std::string const& senderID,
-        std::string const& data
+        std::string const& replyID,
+        nlohmann::json const& data
     );
 
     /**

@@ -102,7 +102,7 @@ BOOL WINAPI DllMain(HINSTANCE lib, DWORD reason, LPVOID) {
 
 #define $_ GEODE_CONCAT(unnamedVar_, __LINE__)
 
-static auto $_ = listenForSettingChanges(
+static auto $_ = listenForSettingChanges<BoolSetting>(
     "show-platform-console",
     [](BoolSetting* setting) {
         if (setting->getValue()) {
@@ -119,16 +119,11 @@ static auto $_ = listenForIPC("ipc-test", +[](IPCEvent* event) {
 });
 
 static auto $_ = listenForIPC("list-mods", +[](IPCEvent* event) {
-    event->reply(
-        "[ " + ranges::join(
-            ranges::map<std::vector<std::string>>(
-                Loader::get()->getAllMods(),
-                [](Mod* mod) {
-                    return "\"" + mod->getID() + "\"";
-                }
-            ), ", "
-        ) + " ]"
-    );
+    event->reply(ranges::map<std::vector<nlohmann::json>>(
+        Loader::get()->getAllMods(), [](Mod* mod) {
+            return mod->getModInfo().toJSON();
+        }
+    ));
 });
 
 int geodeEntry(void* platformData) {

@@ -15,6 +15,7 @@ Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
     ModInfo info;
 
     auto json = rawJson;
+    info.m_rawJSON = rawJson;
 
 #define PROPAGATE(err)                         \
     {                                          \
@@ -289,4 +290,19 @@ std::vector<std::pair<std::string, std::optional<std::string>*>> ModInfo::getSpe
         { "changelog.md", &m_changelog },
         { "support.md", &m_supportInfo },
     };
+}
+
+ModJson ModInfo::toJSON() const {
+    auto json = m_rawJSON;
+    json["path"] = m_path;
+    json["binary"] = m_binaryName;
+    return json;
+}
+
+ModJson ModInfo::getRawJSON() const {
+    return m_rawJSON;
+}
+
+void to_json(nlohmann::json& json, ModInfo const& info) {
+    json = info.toJSON();
 }
