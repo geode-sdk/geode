@@ -48,6 +48,7 @@ namespace gd {
             std::string val;
             val = std::forward<Params>(param);
             (void)this->winAssign(val.c_str(), val.size());
+            return *this;
         }
 
         ~string() {
