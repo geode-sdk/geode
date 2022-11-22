@@ -8,11 +8,17 @@ namespace { namespace format_strings {
 )GEN";
 
     char const* class_includes = R"GEN(#pragma once
+#include <Geode/platform/platform.hpp>
 #include <Geode/c++stl/gdstdlib.hpp>
 #include <cocos2d.h>
 #include <cocos-ext.h>
 #include <Geode/GeneratedPredeclare.hpp>
 #include <Geode/Enums.hpp>
+
+)GEN";
+
+    char const* class_no_includes = R"GEN(#pragma once
+#include <Geode/platform/platform.hpp>
 
 )GEN";
     
@@ -79,7 +85,7 @@ std::string generateBindingHeader(Root& root, ghc::filesystem::path const& singl
         if (cls.name != "GDString") {
             single_output += format_strings::class_includes;
         } else {
-            single_output += "#pragma once\n#include <Geode/platform/platform.hpp>\n";
+            single_output += format_strings::class_no_includes;
         }
 
         for (auto dep : cls.depends) {
