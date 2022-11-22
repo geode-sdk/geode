@@ -4,6 +4,7 @@
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/SettingEvent.hpp>
+#include <Geode/loader/IPC.hpp>
 #include <InternalLoader.hpp>
 #include <InternalMod.hpp>
 #include <array>
@@ -96,7 +97,9 @@ BOOL WINAPI DllMain(HINSTANCE lib, DWORD reason, LPVOID) {
 }
 #endif
 
-static auto _ = listenForSettingChanges(
+#define $_ GEODE_CONCAT(unnamedVar_, __LINE__)
+
+static auto $_ = listenForSettingChanges(
     "show-platform-console",
     +[](std::shared_ptr<BoolSetting> setting) {
         if (setting->getValue()) {
@@ -107,6 +110,23 @@ static auto _ = listenForSettingChanges(
         }
     }
 );
+
+static auto $_ = listenForIPC("ipc-test", +[](IPCEvent* event) {
+    event->reply("Hello from Geode!");
+});
+
+static auto $_ = listenForIPC("list-mods", +[](IPCEvent* event) {
+    event->reply(
+        "[ " + ranges::join(
+            ranges::map<std::vector<std::string>>(
+                Loader::get()->getAllMods(),
+                [](Mod* mod) {
+                    return "\"" + mod->getID() + "\"";
+                }
+            ), ", "
+        ) + " ]"
+    );
+});
 
 int geodeEntry(void* platformData) {
     // setup internals

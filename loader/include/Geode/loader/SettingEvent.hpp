@@ -57,7 +57,7 @@ namespace geode {
         std::string const& settingID, void (*callback)(std::shared_ptr<T>)
     ) {
         Loader::get()->scheduleOnModLoad(getMod(), [=]() {
-            static auto _ = EventListener(
+            new EventListener(
                 callback, SettingChangedFilter<T>(getMod()->getID(), settingID)
             );
         });
@@ -66,7 +66,7 @@ namespace geode {
 
     static std::monostate listenForAllSettingChanges(void (*callback)(std::shared_ptr<Setting>)) {
         Loader::get()->scheduleOnModLoad(getMod(), [=]() {
-            static auto _ = EventListener(
+            new EventListener(
                 callback, SettingChangedFilter(getMod()->getID())
             );
         });

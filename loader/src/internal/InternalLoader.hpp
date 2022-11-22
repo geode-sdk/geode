@@ -31,6 +31,9 @@ protected:
 
     void downloadLoaderResources(IndexUpdateCallback callback);
 
+    bool loadHooks();
+    void setupIPC();
+
     InternalLoader();
     ~InternalLoader();
 
@@ -41,7 +44,11 @@ public:
 
     bool setup();
 
-    bool loadHooks();
+    void postIPCMessage(
+        void* rawPipeHandle,
+        std::string const& senderID,
+        std::string const& data
+    );
 
     /**
      * Check if a one-time event has been shown to the user,

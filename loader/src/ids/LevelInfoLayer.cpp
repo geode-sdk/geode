@@ -1,4 +1,5 @@
 #include "AddIDs.hpp"
+#include <Geode/binding/LevelInfoLayer.hpp>
 #include <Geode/modify/LevelInfoLayer.hpp>
 
 $register_ids(LevelInfoLayer) {

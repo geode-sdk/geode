@@ -201,11 +201,11 @@ namespace geode::utils::ranges {
     }
 
     template <
-        ValidConstContainer From, ValidContainer Into,
+        ValidContainer Into, ValidConstContainer From,
         ValidIntoConverter<typename From::value_type, typename Into::value_type> Mapper>
     Into map(From const& from, Mapper mapper) {
         auto res = Into();
-        std::transform(from.begin(), from.end(), res.end(), mapper);
+        std::transform(from.begin(), from.end(), std::back_inserter(res), mapper);
         return res;
     }
 
