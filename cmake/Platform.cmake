@@ -64,6 +64,7 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Win32")
 		${GEODE_LOADER_PATH}/include/link/libcocos2d.lib
 		${GEODE_LOADER_PATH}/include/link/libExtensions.lib
 		${GEODE_LOADER_PATH}/include/link/libcurl.lib
+		${GEODE_LOADER_PATH}/include/link/gdstring.lib
 	)
 
 	# Windows links against .lib and not .dll

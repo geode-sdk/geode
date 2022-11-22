@@ -110,6 +110,12 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v2
+      
+      - name: Get version
+        uses: juliangruber/read-file-action@v1.1.6
+        with:
+          path: ${{ github.workspace }}/VERSION
+        id: version
 
       - uses: actions/download-artifact@v3
         with:
@@ -117,23 +123,18 @@ jobs:
 
       - uses: vimtor/action-zip@v1
         with:
-          files: macOS
-          dest: macOS.zip
+          files: geode-v${{ steps.version.outputs.content }}-mac/Geode.dylib geode-v${{ steps.version.outputs.content }}-mac/GeodeBootstrapper.dylib
+          dest: geode-nightly-mac.zip
 
       - uses: vimtor/action-zip@v1
         with:
-          files: Windows
-          dest: Windows.zip
-
-      - uses: vimtor/action-zip@v1
-        with:
-          files: loader/include
-          dest: Headers.zip
+          files: geode-v${{ steps.version.outputs.content }}-win/Geode.dll geode-v${{ steps.version.outputs.content }}-win/GeodeBootstrapper.dll geode-v${{ steps.version.outputs.content }}-win/Geode.lib
+          dest: geode-nightly-win.zip
 
       - name: Update release
         uses: IsaacShelton/update-existing-release@v1.3.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          files: ./macOS.zip ./Windows.zip ./Headers.zip
+          files: ./geode-nightly-mac.zip ./geode-nightly-win.zip
           release: Nightly
           prerelease: true
