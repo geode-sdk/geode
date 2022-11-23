@@ -40,6 +40,7 @@ bool InternalLoader::setup() {
     log::log(Severity::Debug, InternalMod::get(), "Loaded hooks");
 
     log::log(Severity::Debug, InternalMod::get(), "Setting up IPC...");
+
     this->setupIPC();
 
     return true;

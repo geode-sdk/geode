@@ -16,6 +16,8 @@ IPCEvent::IPCEvent(
     m_messageData(messageData) {}
 
 IPCEvent::~IPCEvent() {
+    // if no handler was installed for this IPC event, reply with a default null 
+    // value
     this->reply(nullptr);
 }
 
@@ -35,10 +37,6 @@ nlohmann::json IPCEvent::getMessageData() const {
     return m_messageData;
 }
 
-bool IPCEvent::canReply() const {
-    return m_replyID.has_value();
-}
-
 void IPCEvent::reply(nlohmann::json const& data) {
     if (!m_replied && m_rawPipeHandle && m_replyID.has_value()) {
         InternalLoader::get()->postIPCReply(
@@ -53,7 +51,7 @@ ListenerResult IPCFilter::handle(std::function<Callback> fn, IPCEvent* event) {
         event->getTargetModID() == m_modID &&
         event->getMessageID() == m_messageID
     ) {
-        fn(event);
+        event->reply(fn(event));
         return ListenerResult::Stop;
     }
     return ListenerResult::Propagate;

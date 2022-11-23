@@ -164,6 +164,20 @@ namespace geode::utils::ranges {
         return container;
     }
 
+    template <ValidContainer C>
+    C concat(C const& cont, typename C::value_type const& value) {
+        auto copy = cont;
+        copy.push_back(value);
+        return copy;
+    }
+
+    template <ValidContainer C>
+    C concat(C const& cont1, C const& cont2) {
+        auto copy = cont1;
+        ranges::push(copy, cont2);
+        return copy;
+    }
+
     template <ValidMutContainer C>
     C& remove(C& container, typename C::value_type const& value) {
         container.erase(std::remove(container.begin(), container.end(), value), container.end());

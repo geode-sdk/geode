@@ -84,7 +84,7 @@ namespace geode {
         std::vector<ghc::filesystem::path> m_texturePaths;
         LoaderSettings m_loadedSettings;
         bool m_isSetup = false;
-        static bool s_unloading;
+        static std::atomic_bool s_unloading;
         mutable std::mutex m_modLoadMutex;
 
         Result<std::string> createTempDirectoryForMod(ModInfo const& info);

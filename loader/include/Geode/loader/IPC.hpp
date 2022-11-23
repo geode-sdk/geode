@@ -8,6 +8,8 @@ namespace geode {
     constexpr const char* IPC_PIPE_NAME = "\\\\.\\pipe\\GeodeIPCPipe";
     #endif
 
+    class IPCFilter;
+
     // IPC (Inter-Process Communication) provides a way for Geode mods to talk 
     // to other programs on the user's computer. If you have, for example, a 
     // debugger, or an external modding UI, that application can open up the 
@@ -26,28 +28,6 @@ namespace geode {
         nlohmann::json m_messageData;
         bool m_replied = false;
 
-    public:
-        IPCEvent(
-            void* rawPipeHandle,
-            std::string const& targetModID,
-            std::string const& messageID,
-            std::optional<std::string> const& replyID,
-            nlohmann::json const& messageData
-        );
-        virtual ~IPCEvent();
-
-        std::optional<std::string> getReplyID() const;
-        std::string getTargetModID() const;
-        std::string getMessageID() const;
-        nlohmann::json getMessageData() const;
-
-        /**
-         * Whether this message can be replied to, i.e. if it has a reply ID 
-         * provided
-         * @returns True if the message can be replied to, false otherwise
-         */
-        bool canReply() const;
-
         /**
          * Reply to the message. Will post a message back to the application 
          * the sent this message with the reply ID and provided data.
@@ -63,11 +43,28 @@ namespace geode {
          * from your mod.
          */
         void reply(nlohmann::json const& data);
+
+        friend class IPCFilter;
+
+    public:
+        IPCEvent(
+            void* rawPipeHandle,
+            std::string const& targetModID,
+            std::string const& messageID,
+            std::optional<std::string> const& replyID,
+            nlohmann::json const& messageData
+        );
+        virtual ~IPCEvent();
+
+        std::optional<std::string> getReplyID() const;
+        std::string getTargetModID() const;
+        std::string getMessageID() const;
+        nlohmann::json getMessageData() const;
     };
 
     class GEODE_DLL IPCFilter : public EventFilter<IPCEvent> {
     public:
-        using Callback = void(IPCEvent*);
+        using Callback = nlohmann::json(IPCEvent*);
 
     protected:
         std::string m_modID;
@@ -82,7 +79,7 @@ namespace geode {
     };
 
     template<class = void>
-    std::monostate listenForIPC(std::string const& messageID, void(*callback)(IPCEvent*)) {
+    std::monostate listenForIPC(std::string const& messageID, nlohmann::json(*callback)(IPCEvent*)) {
         Loader::get()->scheduleOnModLoad(getMod(), [=]() {
             new EventListener(
                 callback, IPCFilter(getMod()->getID(), messageID)

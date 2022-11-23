@@ -15,7 +15,7 @@
 
 USE_GEODE_NAMESPACE();
 
-bool Loader::s_unloading = false;
+std::atomic_bool Loader::s_unloading = false;
 std::mutex g_unloadMutex;
 
 VersionInfo Loader::getVersion() {

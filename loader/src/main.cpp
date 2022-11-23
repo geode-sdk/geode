@@ -114,16 +114,21 @@ static auto $_ = listenForSettingChanges<BoolSetting>(
     }
 );
 
-static auto $_ = listenForIPC("ipc-test", +[](IPCEvent* event) {
-    event->reply("Hello from Geode!");
+static auto $_ = listenForIPC("ipc-test", +[](IPCEvent* event) -> nlohmann::json {
+    return "Hello from Geode!";
 });
 
-static auto $_ = listenForIPC("list-mods", +[](IPCEvent* event) {
-    event->reply(ranges::map<std::vector<nlohmann::json>>(
-        Loader::get()->getAllMods(), [](Mod* mod) {
+static auto $_ = listenForIPC("list-mods", +[](IPCEvent* event) -> nlohmann::json {
+    log::debug("List mods for {}", event->getReplyID().value_or("<None>"));
+    return ranges::map<std::vector<nlohmann::json>>(
+        ranges::concat(
+            { Loader::get()->getInternalMod() },
+            Loader::get()->getAllMods()
+        ),
+        [](Mod* mod) {
             return mod->getModInfo().toJSON();
         }
-    ));
+    );
 });
 
 int geodeEntry(void* platformData) {
