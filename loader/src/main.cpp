@@ -118,17 +118,36 @@ static auto $_ = listenForIPC("ipc-test", +[](IPCEvent* event) -> nlohmann::json
     return "Hello from Geode!";
 });
 
+static auto $_ = listenForIPC("loader-info", +[](IPCEvent* event) -> nlohmann::json {
+    return Loader::get()->getInternalMod()->getModInfo();
+});
+
 static auto $_ = listenForIPC("list-mods", +[](IPCEvent* event) -> nlohmann::json {
-    log::debug("List mods for {}", event->getReplyID().value_or("<None>"));
-    return ranges::map<std::vector<nlohmann::json>>(
-        ranges::concat(
-            { Loader::get()->getInternalMod() },
-            Loader::get()->getAllMods()
-        ),
-        [](Mod* mod) {
-            return mod->getModInfo().toJSON();
-        }
-    );
+    std::vector<nlohmann::json> res;
+
+    auto args = event->getMessageData();
+    JsonChecker checker(args);
+    auto root = checker.root("").obj();
+
+    auto includeRunTimeInfo = root.has("include-runtime-info").template get<bool>();
+    auto dontIncludeLoader = root.has("dont-include-loader").template get<bool>();
+
+    if (!dontIncludeLoader) {
+        res.push_back(includeRunTimeInfo ? 
+            Loader::get()->getInternalMod()->getRuntimeInfo() : 
+            Loader::get()->getInternalMod()->getModInfo().toJSON()
+        );
+    }
+
+    for (auto& mod : Loader::get()->getAllMods()) {
+        res.push_back(
+            includeRunTimeInfo ?
+                mod->getRuntimeInfo() :
+                mod->getModInfo().toJSON()
+        );
+    }
+
+    return res;
 });
 
 int geodeEntry(void* platformData) {

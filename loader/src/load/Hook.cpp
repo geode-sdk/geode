@@ -96,3 +96,12 @@ bool InternalLoader::loadHooks() {
     internalHooks().clear();
     return !thereWereErrors;
 }
+
+nlohmann::json Hook::getRuntimeInfo() const {
+    auto json = nlohmann::json::object();
+    json["address"] = reinterpret_cast<uintptr_t>(m_address);
+    json["detour"] = reinterpret_cast<uintptr_t>(m_detour);
+    json["name"] = m_displayName;
+    json["enabled"] = m_enabled;
+    return json;
+}

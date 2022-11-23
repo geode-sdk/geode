@@ -303,6 +303,6 @@ ModJson ModInfo::getRawJSON() const {
     return m_rawJSON;
 }
 
-void to_json(nlohmann::json& json, ModInfo const& info) {
+void geode::to_json(nlohmann::json& json, ModInfo const& info) {
     json = info.toJSON();
 }

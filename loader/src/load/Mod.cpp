@@ -550,9 +550,9 @@ ghc::filesystem::path Mod::getPackagePath() const {
     return m_info.m_path;
 }
 
-ghc::filesystem::path Mod::getConfigDir() const {
+ghc::filesystem::path Mod::getConfigDir(bool create) const {
     auto dir = Loader::get()->getGeodeDirectory() / GEODE_CONFIG_DIRECTORY / m_info.m_id;
-    if (!ghc::filesystem::exists(dir)) {
+    if (create && !ghc::filesystem::exists(dir)) {
         ghc::filesystem::create_directories(dir);
     }
     return dir;
@@ -632,4 +632,26 @@ bool Mod::hasSetting(std::string const& key) const {
 
 std::string Mod::getLoadErrorInfo() const {
     return m_loadErrorInfo;
+}
+
+ModJson Mod::getRuntimeInfo() const {
+    auto json = m_info.toJSON();
+
+    auto obj = ModJson::object();
+    obj["hooks"] = ModJson::array();
+    for (auto hook : m_hooks) {
+        obj["hooks"].push_back(ModJson(hook->getRuntimeInfo()));
+    }
+    obj["patches"] = ModJson::array();
+    for (auto patch : m_patches) {
+        obj["patches"].push_back(ModJson(patch->getRuntimeInfo()));
+    }
+    obj["enabled"] = m_enabled;
+    obj["loaded"] = m_loaded;
+    obj["temp-dir"] = this->getTempDir();
+    obj["save-dir"] = this->getSaveDir();
+    obj["config-dir"] = this->getConfigDir(false);
+    json["runtime"] = obj;
+
+    return json;
 }

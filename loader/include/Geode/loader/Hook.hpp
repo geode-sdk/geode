@@ -5,6 +5,7 @@
 #include <Geode/utils/types.hpp>
 #include <inttypes.h>
 #include <string_view>
+#include "../utils/json.hpp"
 
 namespace geode {
     class Mod;
@@ -77,6 +78,12 @@ namespace geode {
         Mod* getOwner() const {
             return m_owner;
         }
+
+        /**
+         * Get info about the hook as JSON
+         * @note For IPC
+         */
+        nlohmann::json getRuntimeInfo() const;
     };
 
     class GEODE_DLL Patch {
@@ -128,5 +135,11 @@ namespace geode {
         Mod* getOwner() const {
             return m_owner;
         }
+
+        /**
+         * Get info about the patch as JSON
+         * @note For IPC
+         */
+        nlohmann::json getRuntimeInfo() const;
     };
 }

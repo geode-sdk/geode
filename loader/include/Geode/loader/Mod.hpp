@@ -402,7 +402,7 @@ namespace geode {
         /**
          * Get the mod's config directory path
          */
-        ghc::filesystem::path getConfigDir() const;
+        ghc::filesystem::path getConfigDir(bool create = true) const;
 
         bool hasSettings() const;
         decltype(ModInfo::m_settings) getSettings() const;
@@ -646,6 +646,12 @@ namespace geode {
         std::vector<Dependency> getUnresolvedDependencies();
 
         char const* expandSpriteName(char const* name);
+
+        /**
+         * Get info about the mod as JSON
+         * @note For IPC
+         */
+        ModJson getRuntimeInfo() const;
     };
 
     template<class T>
