@@ -522,6 +522,10 @@ namespace gd {
         operator std::vector<T>() {
             return m_internal;
         }
+        
+        void clear() {
+            m_internal.clear();
+        }
 
         operator std::vector<T>() const {
             return m_internal;
