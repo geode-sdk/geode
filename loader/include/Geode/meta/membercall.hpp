@@ -6,13 +6,20 @@
 #include "x86.hpp"
 
 namespace geode::core::meta::x86 {
+    template <class T>
+    concept MembercallStructReturn = std::is_class_v<T> && sizeof(T) > 8;
+
     template <class Ret, class... Args>
-    class Membercall : public CallConv<Ret, Args...> {
-    private:
+    class Membercall {};
+
+    template <class Ret, class... Args>
+    requires (!MembercallStructReturn<Ret>)
+    class Membercall<Ret, Args...> : public CallConv<Ret, Args...> {
+    protected:
         // Metaprogramming / typedefs we need for the rest of the class.
         using MyConv = CallConv<Ret, Args...>;
 
-    private:
+    public:
         class Sequences {
         private:
             // These are required for proper reordering.
@@ -131,7 +138,7 @@ namespace geode::core::meta::x86 {
             using from = typename MyConv::template arr_to_seq<from_arr>;
         };
 
-    private:
+    protected:
         // Where all the logic is actually implemented.
         template <class Class, class>
         class Impl {
@@ -163,7 +170,7 @@ namespace geode::core::meta::x86 {
             }
         };
 
-    private:
+    protected:
         // Putting it all together: instantiating Impl with our filters.
         using MyImpl = Impl<typename Sequences::to, typename Sequences::from>;
 
@@ -179,8 +186,64 @@ namespace geode::core::meta::x86 {
         }
 
         template <Ret (*detour)(Args...)>
-        static constexpr decltype(auto) get_wrapper() {
-            return &MyImpl::template wrapper<detour>;
+        static auto get_wrapper() {
+            return reinterpret_cast<void*>(&MyImpl::template wrapper<detour>);
+        }
+    };
+
+    template <class Ret, class Class, class... Args>
+    requires (MembercallStructReturn<Ret>)
+    class Membercall<Ret, Class, Args...> {
+    
+    protected:
+        using Sequences = Membercall<Ret*, Class, Ret*, Args...>::Sequences;
+
+        // Where all the logic is actually implemented.
+        template <class Class, class>
+        class Impl {
+            static_assert(
+                always_false<Class>,
+                "Please report a bug to the Geode developers! This should never be reached.\n"
+                "SFINAE didn't reach the right overload!"
+            );
+        };
+
+        template <size_t... to, size_t... from>
+        class Impl<std::index_sequence<to...>, std::index_sequence<from...>> {
+        public:
+            static Ret* invoke(void* address, Tuple<Class, Ret*, Args..., float, int> const& all) {
+                return reinterpret_cast<Ret*(__vectorcall*)(
+                    typename Tuple<Class, Ret*, Args..., float, int>::template type_at<to>...
+                )>(address)(all.template at<to>()...);
+            }
+
+            template <Ret (*detour)(Class, Args...)>
+            static Ret* __vectorcall wrapper(
+                /* It's wrapped to stop MSVC from giving me error messages with internal compiler
+                 * info. WTF.
+                 */
+                typename Tuple<Class, Ret*, Args..., float, int>::template type_at_wrap<to>... raw
+            ) {
+                auto all = Tuple<>::make(raw...);
+                return reinterpret_cast<Ret*(*)(Class, Ret*, Args...)>(detour)(all.template at<from>()...);
+            }
+        };
+
+    protected:
+        // Putting it all together: instantiating Impl with our filters.
+        using MyImpl = Impl<typename Sequences::to, typename Sequences::from>;
+
+
+    public:
+        static Ret invoke(void* address, Class inst, Args... all) {
+            Ret ret;
+            (void)MyImpl::invoke(address, { inst, &ret, all..., 314.0f, 314 });
+            return ret;
+        }
+
+        template <Ret (*detour)(Class, Args...)>
+        static auto get_wrapper() {
+            return reinterpret_cast<void*>(&MyImpl::template wrapper<detour>);
         }
     };
 }
