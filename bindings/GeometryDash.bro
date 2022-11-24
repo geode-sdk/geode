@@ -3789,7 +3789,7 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
 
 class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDelegate, RateLevelDelegate, LikeItemDelegate, FLAlertLayerProtocol, LevelDeleteDelegate, NumberInputDelegate, SetIDPopupDelegate {
     static LevelInfoLayer* create(GJGameLevel* level) = mac 0x15f290, win 0x175d50;
-    bool init(GJGameLevel* level) = win 0x175DF0;
+    bool init(GJGameLevel* level) = win 0x175df0, mac 0x15f520;
     void onGarage(cocos2d::CCObject* sender) = win 0x177c10;
     void onViewProfile(cocos2d::CCObject* sender) = win 0x17ac90;
     void onLevelInfo(cocos2d::CCObject* sender) = win 0x17acf0;
