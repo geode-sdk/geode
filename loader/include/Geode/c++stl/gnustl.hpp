@@ -330,6 +330,14 @@ namespace gd {
             m_capacity_end = m_start + input.size();
             std::copy(input.begin(), input.end(), tmp);
         }
+        
+        void clear() {
+            delete[] m_start;
+            auto tmp = new T[0];
+            m_start = tmp;
+            m_finish = m_start;
+            m_capacity_end = m_start;
+        }
 
         T& front() {
             return *m_start;
