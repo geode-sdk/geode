@@ -143,8 +143,7 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
     nameLabel->limitLabelWidth(200.f, .7f, .1f);
     m_mainLayer->addChild(nameLabel, 2);
 
-    auto logoSpr = this->createLogoSpr(obj);
-    logoSpr->setScale(logoSize / logoSpr->getContentSize().width);
+    auto logoSpr = this->createLogoSpr(obj, { logoSize, logoSize });
     m_mainLayer->addChild(logoSpr);
 
     auto developerStr = "by " + m_info.m_developer;
@@ -693,23 +692,25 @@ ModInfoLayer* ModInfoLayer::create(ModObject* obj, ModListView* list) {
     return nullptr;
 }
 
-CCNode* ModInfoLayer::createLogoSpr(ModObject* modObj) {
+CCNode* ModInfoLayer::createLogoSpr(ModObject* modObj, CCSize const& size) {
     switch (modObj->m_type) {
         case ModObjectType::Mod:
             {
-                return ModInfoLayer::createLogoSpr(modObj->m_mod);
+                return ModInfoLayer::createLogoSpr(modObj->m_mod, size);
             }
             break;
 
         case ModObjectType::Index:
             {
-                return ModInfoLayer::createLogoSpr(modObj->m_index);
+                return ModInfoLayer::createLogoSpr(modObj->m_index, size);
             }
             break;
 
         default:
             {
                 auto spr = CCSprite::createWithSpriteFrameName("no-logo.png"_spr);
+                spr->setScaleX(size.width / spr->getContentSize().width);
+                spr->setScaleY(size.height / spr->getContentSize().height);
                 if (!spr) {
                     return CCLabelBMFont::create("OwO", "goldFont.fnt");
                 }
@@ -719,7 +720,7 @@ CCNode* ModInfoLayer::createLogoSpr(ModObject* modObj) {
     }
 }
 
-CCNode* ModInfoLayer::createLogoSpr(Mod* mod) {
+CCNode* ModInfoLayer::createLogoSpr(Mod* mod, CCSize const& size) {
     CCNode* spr = nullptr;
     if (mod == Loader::getInternalMod()) {
         spr = CCSprite::createWithSpriteFrameName("geode-logo.png"_spr);
@@ -731,10 +732,12 @@ CCNode* ModInfoLayer::createLogoSpr(Mod* mod) {
     }
     if (!spr) spr = CCSprite::createWithSpriteFrameName("no-logo.png"_spr);
     if (!spr) spr = CCLabelBMFont::create("OwO", "goldFont.fnt");
+    spr->setScaleX(size.width / spr->getContentSize().width);
+    spr->setScaleY(size.height / spr->getContentSize().height);
     return spr;
 }
 
-CCNode* ModInfoLayer::createLogoSpr(IndexItem const& item) {
+CCNode* ModInfoLayer::createLogoSpr(IndexItem const& item, CCSize const& size) {
     CCNode* spr = nullptr;
     auto logoPath = ghc::filesystem::absolute(item.m_path / "logo.png");
     spr = CCSprite::create(logoPath.string().c_str());
@@ -746,13 +749,25 @@ CCNode* ModInfoLayer::createLogoSpr(IndexItem const& item) {
     }
 
     if (Index::get()->isFeaturedItem(item.m_info.m_id)) {
+        auto glowSize = size + CCSize(4.f, 4.f);
+
         auto logoGlow = CCSprite::createWithSpriteFrameName("logo-glow.png"_spr);
+        logoGlow->setScaleX(glowSize.width / logoGlow->getContentSize().width);
+        logoGlow->setScaleY(glowSize.height / logoGlow->getContentSize().height);
+        
+        // i dont know why + 1 is needed and its too late for me to figure out why
         spr->setPosition(
             logoGlow->getContentSize().width / 2, logoGlow->getContentSize().height / 2
         );
-        logoGlow->setContentSize(spr->getContentSize());
+        // scary mathematics
+        spr->setScaleX(size.width / spr->getContentSize().width / logoGlow->getScaleX());
+        spr->setScaleY(size.height / spr->getContentSize().height / logoGlow->getScaleY());
         logoGlow->addChild(spr);
         spr = logoGlow;
+    }
+    else {
+        spr->setScaleX(size.width / spr->getContentSize().width);
+        spr->setScaleY(size.height / spr->getContentSize().height);
     }
 
     return spr;

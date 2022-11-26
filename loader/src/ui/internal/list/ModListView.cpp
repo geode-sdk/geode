@@ -164,9 +164,8 @@ void ModCell::loadFromObject(ModObject* modobj) {
 
     auto logoSize = m_height / 1.5f;
 
-    auto logoSpr = ModInfoLayer::createLogoSpr(modobj);
+    auto logoSpr = ModInfoLayer::createLogoSpr(modobj, { logoSize, logoSize });
     logoSpr->setPosition({ logoSize / 2 + 12.f, m_height / 2 });
-    logoSpr->setScale(logoSize / logoSpr->getContentSize().width);
     m_mainLayer->addChild(logoSpr);
 
     bool hasCategories = false;
