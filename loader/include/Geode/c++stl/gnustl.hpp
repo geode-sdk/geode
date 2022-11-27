@@ -448,12 +448,12 @@ namespace gd {
             }
         }
 
-        operator std::vector<bool>() {
-            std::vector<bool> out;
-            for (auto i = m_start; i != m_end; ++i) {
-                out.push_back(*i);
-            }
-            return out;
+        vector(vector<bool> const& lol) : vector(std::vector<bool>(lol)) {}
+
+        vector() : vector(std::vector<bool>()) {}
+
+        ~vector() {
+            delete[] m_start.m_bitptr;
         }
 
         operator std::vector<bool>() const {
@@ -464,12 +464,14 @@ namespace gd {
             return out;
         }
 
-        vector(vector<bool> const& lol) : vector(std::vector<bool>(lol)) {}
+        _bit_reference operator[](size_t index) {
+            const auto real_index = index / sizeof(uintptr_t);
+            const auto offset = index % sizeof(uintptr_t);
+            return _bit_reference(&m_start.m_bitptr[real_index], 1UL << offset);
+        }
 
-        vector() : vector(std::vector<bool>()) {}
-
-        ~vector() {
-            delete[] m_start.m_bitptr;
+        bool operator[](size_t index) const {
+            return const_cast<vector&>(*this)[index];
         }
     };
 };
