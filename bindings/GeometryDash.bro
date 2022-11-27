@@ -2025,7 +2025,9 @@ class GJEffectManager : cocos2d::CCNode {
     void stopActionsForTrigger(EffectGameObject*) = mac 0x183150;
     void stopMoveActionsForGroup(int) = mac 0x1830e0;
     void storeTriggeredID(int) = mac 0x185380;
-    void toggleGroup(int, bool) = mac 0x182c80;
+    void toggleGroup(int item, bool value) { // mac 0x182c80;
+        m_groupToggled[item] = value;
+    }
     void traverseInheritanceChain(InheritanceNode*) = mac 0x181850, win 0x11caf0;
     void updateActiveOpacityEffects() = mac 0x1847e0;
     void updateColorAction(ColorAction*) = mac 0x184560;
