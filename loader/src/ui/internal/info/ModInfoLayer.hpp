@@ -76,7 +76,7 @@ public:
 
     static void showIssueReportPopup(ModInfo const& info);
 
-    static CCNode* createLogoSpr(ModObject* modObj);
-    static CCNode* createLogoSpr(Mod* mod);
-    static CCNode* createLogoSpr(IndexItem const& item);
+    static CCNode* createLogoSpr(ModObject* modObj, CCSize const& size);
+    static CCNode* createLogoSpr(Mod* mod, CCSize const& size);
+    static CCNode* createLogoSpr(IndexItem const& item, CCSize const& size);
 };
