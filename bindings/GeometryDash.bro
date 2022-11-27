@@ -5059,6 +5059,7 @@ class SetupTouchTogglePopup : FLAlertLayer {
 }
 
 class SimplePlayer : cocos2d::CCSprite {
+    SimplePlayer() {}
     void setSecondColor(const cocos2d::ccColor3B& color) {
         
         m_secondLayer->setColor(color);

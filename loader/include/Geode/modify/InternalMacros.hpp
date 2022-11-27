@@ -67,4 +67,5 @@
     template <class>                                                                           \
     void _##Line_##Function()
 
-#define $execute GEODE_EXECUTE_FUNC(__LINE__)
+#define GEODE_EXECUTE_FUNC1(Line_) GEODE_EXECUTE_FUNC(Line_)
+#define $execute GEODE_EXECUTE_FUNC1(__LINE__)
