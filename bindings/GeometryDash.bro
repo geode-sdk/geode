@@ -1257,6 +1257,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     void editColor(cocos2d::CCObject* sender) = mac 0x19190, win 0x8d3c0;
     void alignObjects(cocos2d::CCArray* objs, bool alignY) = win 0x8f320;
     virtual void scrollWheel(float vertical, float horizontal) = win 0x921d0, mac 0x31370, ios 0x2c4884;
+    void createMoveMenu() = mac 0x275e0, win 0x8c0d0;
 
     EditButtonBar* m_buttonBar;
     PAD = mac 0x8, win 0x4;
@@ -1514,9 +1515,9 @@ class FLAlertLayer : cocos2d::CCLayerColor {
         bool scrollable,
         float height
     ) = mac 0x25e1b0, win 0x228e0;
-    static FLAlertLayer* create(FLAlertLayerProtocol*, char const*, gd::string, char const*, char const*) = mac 0x25de00, win 0x22680;
-    static FLAlertLayer* create(FLAlertLayerProtocol*, char const*, gd::string, char const*, char const*, float) = mac 0x25e0e0, win 0x22730, ios 0x1fe374;
-    static FLAlertLayer* create(FLAlertLayerProtocol*, char const*, gd::string, char const*, char const*, float, bool, float) = mac 0x25dec0, win 0x227e0;
+    static FLAlertLayer* create(FLAlertLayerProtocol* protocol, char const* title, gd::string content, char const* btn1, char const* btn2) = mac 0x25de00, win 0x22680;
+    static FLAlertLayer* create(FLAlertLayerProtocol* protocol, char const* title, gd::string content, char const* btn1, char const* btn2, float width) = mac 0x25e0e0, win 0x22730, ios 0x1fe374;
+    static FLAlertLayer* create(FLAlertLayerProtocol* protocol, char const* title, gd::string content, char const* btn1, char const* btn2, float width, bool scrollable, float height) = mac 0x25dec0, win 0x227e0;
     void onBtn1(cocos2d::CCObject*) = mac 0x25ec20, win 0x23340;
     void onBtn2(cocos2d::CCObject*) = mac 0x25ec80, win 0x23380;
 
