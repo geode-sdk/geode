@@ -239,8 +239,8 @@ namespace geode::core::meta::x86 {
         }
 
         template <Ret (*detour)(Args...)>
-        static constexpr decltype(auto) get_wrapper() {
-            return &MyImpl::template wrapper<detour>;
+        static auto get_wrapper() {
+            return reinterpret_cast<void*>(&MyImpl::template wrapper<detour>);
         }
     };
 

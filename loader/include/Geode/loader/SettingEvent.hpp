@@ -10,24 +10,24 @@ namespace geode {
     class GEODE_DLL SettingChangedEvent : public Event {
     protected:
         std::string m_modID;
-        std::shared_ptr<Setting> m_setting;
+        Setting* m_setting;
 
     public:
-        SettingChangedEvent(std::string const& modID, std::shared_ptr<Setting> setting);
+        SettingChangedEvent(std::string const& modID, Setting* setting);
         std::string getModID() const;
-        std::shared_ptr<Setting> getSetting() const;
+        Setting* getSetting() const;
     };
 
     template <typename T = Setting, typename = std::enable_if_t<std::is_base_of_v<Setting, T>>>
     class SettingChangedFilter : public EventFilter<SettingChangedEvent> {
     public:
-        using Callback = void(std::shared_ptr<T>);
+        using Callback = void(T*);
         using Event = SettingChangedEvent;
 
         ListenerResult handle(std::function<Callback> fn, SettingChangedEvent* event) {
             if (m_modID == event->getModID() &&
                 (!m_targetKey || m_targetKey.value() == event->getSetting()->getKey())) {
-                fn(std::static_pointer_cast<T>(event->getSetting()));
+                fn(static_cast<T*>(event->getSetting()));
             }
             return ListenerResult::Propagate;
         }
@@ -54,7 +54,7 @@ namespace geode {
     template <class T>
 
     requires std::is_base_of_v<Setting, T> std::monostate listenForSettingChanges(
-        std::string const& settingID, void (*callback)(std::shared_ptr<T>)
+        std::string const& settingID, void (*callback)(T*)
     ) {
         Loader::get()->scheduleOnModLoad(getMod(), [=]() {
             static auto _ = EventListener(callback, SettingChangedFilter<T>(getMod()->getID(), settingID));
@@ -62,7 +62,7 @@ namespace geode {
         return std::monostate();
     }
 
-    static std::monostate listenForAllSettingChanges(void (*callback)(std::shared_ptr<Setting>)) {
+    static std::monostate listenForAllSettingChanges(void (*callback)(Setting*)) {
         Loader::get()->scheduleOnModLoad(getMod(), [=]() {
             static auto _ = EventListener(callback, SettingChangedFilter(getMod()->getID()));
         });

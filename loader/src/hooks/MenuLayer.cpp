@@ -59,7 +59,7 @@ static void updateIndexProgress(UpdateStatus status, std::string const& info, ui
 
 template <class T = CCNode>
 
-    requires std::is_base_of_v<CCNode, T>
+requires std::is_base_of_v<CCNode, T>
 T* setIDSafe(CCNode* node, int index, char const* id) {
     if constexpr (std::is_same_v<CCNode, T>) {
         if (auto child = getChild(node, index)) {
@@ -86,7 +86,6 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 
     bool init() {
         if (!MenuLayer::init()) return false;
-
         // set IDs to everything
         this->setID("main-menu-layer");
         setIDSafe(this, 0, "main-menu-bg");

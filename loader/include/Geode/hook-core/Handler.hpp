@@ -35,7 +35,7 @@ namespace geode::core {
     }
 
     template <template <class, class...> class Conv, auto& Det, class Ret, class... Args>
-    static constexpr inline auto handler =
+    static inline auto handler =
         Conv<Ret, Args...>::template get_wrapper<&impl::handler<Det, Ret, Args...>>();
 
     template <template <class, class...> class Conv, auto& Det, class Ret, class... Args>

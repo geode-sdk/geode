@@ -833,6 +833,7 @@ class cocos2d::CCString {
 	virtual auto isEqual(cocos2d::CCObject const*) = mac 0x44c8f0, ios 0x1a1e6c;
 	virtual auto acceptVisitor(cocos2d::CCDataVisitor&) = mac 0x44ccb0, ios 0x1a2168;
 	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone*) = mac 0x44c870, ios 0x1a1e14;
+	static cocos2d::CCString* createWithData(unsigned char const*, unsigned long) = mac 0x44c9d0;
 	// cocos2d::CCString::create(gd::string const&) = mac 0x44c960;
 	// CCString(gd::string const&) = mac 0x44c310;
 	auto boolValue() const = mac 0x44c810, ios 0x1a1d88;

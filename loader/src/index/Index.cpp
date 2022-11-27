@@ -126,6 +126,11 @@ void Index::updateIndex(IndexUpdateCallback callback, bool force) {
             // gee i sure hope no one does 60 commits to the mod index an hour and download every
             // single one of them
             if (upcomingCommitSHA == "") {
+                auto err = this->updateIndexFromLocalCache();
+                if (!err) {
+                    RETURN_ERROR(err.error());
+                }
+                
                 m_upToDate = true;
                 m_updating = false;
 

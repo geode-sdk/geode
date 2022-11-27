@@ -113,10 +113,9 @@ public:
      *  @return A CCString pointer which is an autorelease object pointer,
      *          it means that you needn't do a release operation unless you retain it.
      */
-    static inline CCString* create(const gd::string& str) {
-    	CCString* pRet = new CCString(str);
-	    pRet->autorelease();
-	    return pRet;
+    // Geode change: this is kind of a hack but i think it will work
+    static inline CCString* create(std::string const& str) {
+    	return CCString::createWithData(reinterpret_cast<unsigned char const*>(str.c_str()), str.size());
     }
 
     /** create a string with format, it's similar with the c function 'sprintf', the default buffer size is (1024*100) bytes,
