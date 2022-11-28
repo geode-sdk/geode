@@ -1,4 +1,6 @@
 
+#include <Geode/DefaultInclude.hpp>
+
 #ifdef GEODE_IS_MACOS
 
 USE_GEODE_NAMESPACE();

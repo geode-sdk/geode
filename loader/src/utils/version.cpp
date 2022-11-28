@@ -8,21 +8,21 @@
 USE_GEODE_NAMESPACE();
 
 #ifdef GEODE_IS_WINDOWS
-    #define THE_SSCANF sscanf_s
+    #define GEODE_SSCANF sscanf_s
 #else
-    #define THE_SSCANF sscanf
+    #define GEODE_SSCANF sscanf
 #endif
 
 VersionInfo::VersionInfo(char const* versionString) {
-    if (!THE_SSCANF(versionString, "v%d.%d.%d", &this->m_major, &this->m_minor, &this->m_patch)) {
-        THE_SSCANF(versionString, "%d.%d.%d", &this->m_major, &this->m_minor, &this->m_patch);
+    if (!GEODE_SSCANF(versionString, "v%d.%d.%d", &this->m_major, &this->m_minor, &this->m_patch)) {
+        GEODE_SSCANF(versionString, "%d.%d.%d", &this->m_major, &this->m_minor, &this->m_patch);
     }
 }
 
 bool VersionInfo::validate(std::string const& string) {
     int buf0, buf1, buf2;
-    if (THE_SSCANF(string.c_str(), "v%d.%d.%d", &buf0, &buf1, &buf2)) return true;
-    if (THE_SSCANF(string.c_str(), "%d.%d.%d", &buf0, &buf1, &buf2)) return true;
+    if (GEODE_SSCANF(string.c_str(), "v%d.%d.%d", &buf0, &buf1, &buf2)) return true;
+    if (GEODE_SSCANF(string.c_str(), "%d.%d.%d", &buf0, &buf1, &buf2)) return true;
     return false;
 }
 

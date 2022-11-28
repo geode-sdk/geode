@@ -1,11 +1,12 @@
-#include <fs/filesystem.hpp>
+
+#include <Geode/DefaultInclude.hpp>
 
 #ifdef GEODE_IS_WINDOWS
 
 USE_GEODE_NAMESPACE();
 
 #include "nfdwin.hpp"
-
+#include <fs/filesystem.hpp>
 #include <Windows.h>
 #include <iostream>
 #include <shlwapi.h>

@@ -1,6 +1,8 @@
-#include "MacOS.hpp"
 
 #include "Core.hpp"
+#include "../../core/Core.hpp"
+
+#include <Geode/DefaultInclude.hpp>
 
 #ifdef GEODE_IS_MACOS
 

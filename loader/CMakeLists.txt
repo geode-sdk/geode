@@ -12,6 +12,7 @@ configure_file(src/internal/about.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/src/interna
 # Source files
 file(GLOB SOURCES CONFIGURE_DEPENDS 
 	src/cocos2d-ext/*.cpp
+	src/cocos2d-ext/zip/*.cpp
 	src/core/*.cpp
 	src/hooks/*.cpp
 	src/ids/*.cpp
@@ -24,8 +25,6 @@ file(GLOB SOURCES CONFIGURE_DEPENDS
 	src/mac/*.cpp
 	src/main.cpp
 	src/utils/*.cpp
-	src/utils/windows/*.cpp
-	src/utils/zip/*.cpp
 	src/index/*.cpp
 	src/ui/nodes/*.cpp
 	src/ui/internal/*.cpp

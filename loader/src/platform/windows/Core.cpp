@@ -1,6 +1,6 @@
-#include "Windows.hpp"
 
 #include "Core.hpp"
+#include "../../core/Core.hpp"
 
 #ifdef GEODE_IS_WINDOWS
 
