@@ -6,7 +6,7 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/utils/Result.hpp>
-#include <Geode/utils/json.hpp>
+#include <Geode/external/json/json.hpp>
 #include <mutex>
 #include <optional>
 #include <unordered_map>
@@ -31,6 +31,9 @@ protected:
 
     void downloadLoaderResources(IndexUpdateCallback callback);
 
+    bool loadHooks();
+    void setupIPC();
+
     InternalLoader();
     ~InternalLoader();
 
@@ -41,7 +44,11 @@ public:
 
     bool setup();
 
-    bool loadHooks();
+    void postIPCReply(
+        void* rawPipeHandle,
+        std::string const& replyID,
+        nlohmann::json const& data
+    );
 
     /**
      * Check if a one-time event has been shown to the user,

@@ -8,9 +8,9 @@ struct SaveLoader : Modify<SaveLoader, AppDelegate> {
     void trySaveGame() {
         log::log(Severity::Info, Loader::getInternalMod(), "Saving...");
 
-        auto r = Loader::get()->saveSettings();
+        auto r = Loader::get()->saveData();
         if (!r) {
-            log::log(Severity::Error, Loader::getInternalMod(), "{}", r.error());
+            log::log(Severity::Error, Loader::getInternalMod(), "{}", r.unwrapErr());
         }
 
         log::log(Severity::Info, Loader::getInternalMod(), "Saved");

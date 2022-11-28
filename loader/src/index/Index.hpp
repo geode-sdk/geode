@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Geode/utils/fetch.hpp>
+#include <Geode/utils/web.hpp>
 #include <mutex>
 #include <optional>
 #include <unordered_set>

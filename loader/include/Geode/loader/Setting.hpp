@@ -1,13 +1,12 @@
 #pragma once
 
-#include <Geode/DefaultInclude.hpp>
-#include <Geode/utils/JsonValidation.hpp>
-#include <Geode/utils/Result.hpp>
-#include <Geode/utils/container.hpp>
-#include <Geode/utils/convert.hpp>
-#include <Geode/utils/json.hpp>
-#include <Geode/utils/platform.hpp>
-#include <Geode/utils/ranges.hpp>
+#include "../DefaultInclude.hpp"
+#include "../utils/JsonValidation.hpp"
+#include "../utils/Result.hpp"
+#include "../external/json/json.hpp"
+#include "../utils/file.hpp"
+#include "../utils/ranges.hpp"
+#include "../utils/cocos.hpp"
 #include <optional>
 #include <regex>
 #include <unordered_set>
@@ -81,7 +80,7 @@ namespace geode {
 #define GEODE_INT_PARSE_SETTING_IMPL(obj, func, ...)              \
     if constexpr (std::is_base_of_v<__VA_ARGS__, Class>) {        \
         auto r = std::static_pointer_cast<Class>(res)->func(obj); \
-        if (!r) return Err(r.error());                            \
+        if (!r) return Err(r.unwrapErr());                        \
     }
 
 #define GEODE_INT_CONSTRAIN_SETTING_CAN_IMPL(func, ...)    \

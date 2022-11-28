@@ -8,6 +8,7 @@
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/binding/StatsCell.hpp>
 #include <Geode/binding/TableView.hpp>
+#include <Geode/binding/CCMenuItemToggler.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/cocos.hpp>
@@ -18,9 +19,9 @@
 template <class T>
 static bool tryOrAlert(Result<T> const& res, char const* title) {
     if (!res) {
-        FLAlertLayer::create(title, res.error(), "OK")->show();
+        FLAlertLayer::create(title, res.unwrapErr(), "OK")->show();
     }
-    return res.is_value();
+    return res.isOk();
 }
 
 ModCell::ModCell(char const* name, CCSize size) : TableViewCell(name, size.width, size.height) {}

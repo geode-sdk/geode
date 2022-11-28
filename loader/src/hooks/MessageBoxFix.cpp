@@ -1,6 +1,10 @@
+
+#include <Geode/DefaultInclude.hpp>
+
 #ifdef GEODE_IS_WINDOWS
-    #include <Geode/loader/Mod.hpp>
-    #include <Geode/modify/InternalMacros.hpp>
+
+#include <Geode/modify/InternalMacros.hpp>
+#include <Geode/loader/Mod.hpp>
 
 USE_GEODE_NAMESPACE();
 using geode::core::meta::x86::Thiscall;
@@ -15,12 +19,11 @@ static void __cdecl fixedErrorHandler(int code, char const* description) {
     log::critical("GLFW Error {}: {}", code, description);
     MessageBoxA(
         nullptr,
-        CCString::createWithFormat(
-            "GLFWError #%d: %s\nPlease contact the "
+        fmt::format(
+            "GLFWError #{}: {}\nPlease contact the "
             "Geode Development Team for more information.",
             code, description
-        )
-            ->getCString(),
+        ).c_str(),
         "OpenGL Error", MB_ICONERROR
     );
 }

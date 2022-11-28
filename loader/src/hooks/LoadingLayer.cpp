@@ -4,6 +4,7 @@
 USE_GEODE_NAMESPACE();
 
 #include <Geode/modify/LoadingLayer.hpp>
+#include <fmt/format.h>
 
 struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     bool m_updatingResources;
@@ -18,8 +19,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
         auto count = Loader::get()->getAllMods().size();
 
         auto label = CCLabelBMFont::create(
-            CCString::createWithFormat("Geode: Loaded %lu mods", static_cast<unsigned long>(count))
-                ->getCString(),
+            fmt::format("Geode: Loaded {} mods", count).c_str(),
             "goldFont.fnt"
         );
         label->setPosition(winSize.width / 2, 30.f);

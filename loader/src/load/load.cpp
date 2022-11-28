@@ -19,30 +19,27 @@ bool Mod::validateID(std::string const& id) {
 
 Result<Mod*> Loader::loadModFromFile(std::string const& path) {
     // load mod.json
-    auto res = ModInfo::createFromGeodeFile(path);
-    if (!res) {
-        return Err(res.error());
-    }
+    GEODE_UNWRAP_INTO(auto json, ModInfo::createFromGeodeFile(path));
 
     // check that a duplicate has not been loaded
-    if (m_mods.count(res.value().m_id)) {
-        return Err("Mod with ID \"" + res.value().m_id + "\" has already been loaded!");
+    if (m_mods.count(json.m_id)) {
+        return Err("Mod with ID \"" + json.m_id + "\" has already been loaded!");
     }
 
     // create and set up Mod instance
-    auto mod = new Mod(res.value());
+    auto mod = new Mod(json);
     mod->m_saveDirPath =
-        Loader::get()->getGeodeSaveDirectory() / GEODE_MOD_DIRECTORY / res.value().m_id;
+        Loader::get()->getGeodeSaveDirectory() / GEODE_MOD_DIRECTORY / json.m_id;
     ghc::filesystem::create_directories(mod->m_saveDirPath);
 
     auto sett = mod->loadSettings();
     if (!sett) {
-        log::log(Severity::Error, mod, "{}", sett.error());
+        log::log(Severity::Error, mod, "{}", sett.unwrapErr());
     }
 
     // enable mod if needed
     mod->m_enabled = Loader::get()->shouldLoadMod(mod->m_info.m_id);
-    m_mods.insert({ res.value().m_id, mod });
+    m_mods.insert({ json.m_id, mod });
     mod->updateDependencyStates();
 
     // add mod resources

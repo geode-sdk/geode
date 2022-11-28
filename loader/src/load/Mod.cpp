@@ -5,43 +5,14 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Setting.hpp>
 #include <Geode/utils/JsonValidation.hpp>
-#include <Geode/utils/conststring.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <Geode/utils/string.hpp>
-#include <Geode/utils/vector.hpp>
 #include <InternalMod.hpp>
 #include <about.hpp>
 
 USE_GEODE_NAMESPACE();
-
-nlohmann::json& DataStore::operator[](std::string const& key) {
-    return m_mod->m_dataStore[key];
-}
-
-DataStore& DataStore::operator=(nlohmann::json& jsn) {
-    m_mod->m_dataStore = jsn;
-    return *this;
-}
-
-nlohmann::json& DataStore::getJson() const {
-    return m_mod->m_dataStore;
-}
-
-bool DataStore::contains(std::string const& key) const {
-    return m_mod->m_dataStore.contains(key);
-}
-
-DataStore::operator nlohmann::json() {
-    return m_mod->m_dataStore;
-}
-
-DataStore::~DataStore() {
-    if (m_store != m_mod->m_dataStore) {
-        m_mod->postDSUpdate();
-    }
-}
 
 Mod::Mod(ModInfo const& info) {
     m_info = info;
@@ -57,11 +28,10 @@ Result<> Mod::loadSettings() {
     // Check if settings exist
     auto settPath = m_saveDirPath / "settings.json";
     if (ghc::filesystem::exists(settPath)) {
-        auto settData = utils::file::readString(settPath);
-        if (!settData) return settData;
+        GEODE_UNWRAP_INTO(auto settData, utils::file::readString(settPath));
         try {
             // parse settings.json
-            auto data = nlohmann::json::parse(settData.value());
+            auto data = nlohmann::json::parse(settData);
             JsonChecker checker(data);
             auto root = checker.root("[settings.json]");
 
@@ -88,21 +58,17 @@ Result<> Mod::loadSettings() {
         }
     }
 
-    // datastore
-    auto dsPath = m_saveDirPath / "ds.json";
-    if (!ghc::filesystem::exists(dsPath)) {
-        m_dataStore = m_info.m_defaultDataStore;
-    }
-    else {
-        auto dsData = utils::file::readString(dsPath);
-        if (!dsData) return dsData;
+    // Saved values
+    auto savedPath = m_saveDirPath / "saved.json";
+    if (ghc::filesystem::exists(savedPath)) {
+        GEODE_UNWRAP_INTO(auto data, utils::file::readString(savedPath));
         try {
-            m_dataStore = nlohmann::json::parse(dsData.value());
-        }
-        catch (std::exception& e) {
-            return Err(std::string("Unable to parse datastore: ") + e.what());
+            m_saved = nlohmann::json::parse(data);
+        } catch(std::exception& e) {
+            return Err(std::string("Unable to parse saved values: ") + e.what());
         }
     }
+
     return Ok();
 }
 
@@ -120,37 +86,49 @@ Result<> Mod::saveSettings() {
         return sw;
     }
 
-    // datastore
-    auto dsPath = m_saveDirPath / "ds.json";
-    auto dw = utils::file::writeString(dsPath, m_dataStore.dump(4));
-    if (!dw) {
-        return dw;
+    // Saved values
+    auto sdw = utils::file::writeString(
+        m_saveDirPath / "saved.json",
+        m_saved.dump(4)
+    );
+    if (!sdw) {
+        return sdw;
     }
 
     return Ok();
 }
 
-DataStore Mod::getDataStore() {
-    return DataStore(this, m_dataStore);
+Result<> Mod::loadData() {
+    if (m_loadDataFunc) {
+        if (!m_loadDataFunc(m_saveDirPath.string().c_str())) {
+            log::log(Severity::Error, this, "Mod load data function returned false");
+        }
+    }
+    ModStateEvent(this, ModEventType::DataLoaded).post();
+    
+    return this->loadSettings();
 }
 
-void Mod::postDSUpdate() {
-    /*EventCenter::get()->send(Event(
-        "datastore-changed",
-        this
-    ), this);*/
-    // FIXME: Dispatch
+Result<> Mod::saveData() {
+    if (m_saveDataFunc) {
+        if (!m_saveDataFunc(m_saveDirPath.string().c_str())) {
+            log::log(Severity::Error, this, "Mod save data function returned false");
+        }
+    }
+    ModStateEvent(this, ModEventType::DataSaved).post();
+
+    return this->saveSettings();
 }
 
 Result<> Mod::createTempDir() {
     ZipFile unzip(m_info.m_path.string());
 
     if (!unzip.isLoaded()) {
-        return Err<>("Unable to unzip " + m_info.m_path.string());
+        return Err("Unable to unzip " + m_info.m_path.string());
     }
 
     if (!unzip.fileExists(m_info.m_binaryName)) {
-        return Err<>(
+        return Err(
             "Unable to find platform binary under the name \"" + m_info.m_binaryName + "\""
         );
     }
@@ -158,13 +136,13 @@ Result<> Mod::createTempDir() {
     auto tempDir = Loader::get()->getGeodeDirectory() / GEODE_TEMP_DIRECTORY;
     if (!ghc::filesystem::exists(tempDir)) {
         if (!ghc::filesystem::create_directory(tempDir)) {
-            return Err<>("Unable to create temp directory for mods!");
+            return Err("Unable to create temp directory for mods!");
         }
     }
 
     auto tempPath = ghc::filesystem::path(tempDir) / m_info.m_id;
     if (!ghc::filesystem::exists(tempPath) && !ghc::filesystem::create_directories(tempPath)) {
-        return Err<>("Unable to create temp directory");
+        return Err("Unable to create temp directory");
     }
     m_tempDirName = tempPath;
 
@@ -173,7 +151,7 @@ Result<> Mod::createTempDir() {
         if (path.has_parent_path()) {
             if (!ghc::filesystem::exists(tempPath / path.parent_path()) &&
                 !ghc::filesystem::create_directories(tempPath / path.parent_path())) {
-                return Err<>(
+                return Err(
                     "Unable to create directories \"" + path.parent_path().string() + "\""
                 );
             }
@@ -181,37 +159,37 @@ Result<> Mod::createTempDir() {
         unsigned long size;
         auto data = unzip.getFileData(file, &size);
         if (!data || !size) {
-            return Err<>("Unable to read \"" + std::string(file) + "\"");
+            return Err("Unable to read \"" + std::string(file) + "\"");
         }
         auto wrt = utils::file::writeBinary(tempPath / file, byte_array(data, data + size));
-        if (!wrt) return Err<>("Unable to write \"" + file + "\": " + wrt.error());
+        if (!wrt) return Err("Unable to write \"" + file + "\": " + wrt.unwrapErr());
     }
 
     m_addResourcesToSearchPath = true;
 
-    return Ok<>(tempPath);
+    return Ok();
 }
 
 Result<> Mod::load() {
     if (m_loaded) {
-        return Ok<>();
+        return Ok();
     }
 #define RETURN_LOAD_ERR(str)           \
     {                                  \
         m_loadErrorInfo = str;         \
-        return Err<>(m_loadErrorInfo); \
+        return Err(m_loadErrorInfo); \
     }
 
     if (!m_tempDirName.string().size()) {
         auto err = this->createTempDir();
-        if (!err) RETURN_LOAD_ERR("Unable to create temp directory: " + err.error());
+        if (!err) RETURN_LOAD_ERR("Unable to create temp directory: " + err.unwrapErr());
     }
 
     if (this->hasUnresolvedDependencies()) {
         RETURN_LOAD_ERR("Mod has unresolved dependencies");
     }
     auto err = this->loadPlatformBinary();
-    if (!err) RETURN_LOAD_ERR(err.error());
+    if (!err) RETURN_LOAD_ERR(err.unwrapErr());
     if (m_implicitLoadFunc) {
         auto r = m_implicitLoadFunc(this);
         if (!r) {
@@ -232,29 +210,34 @@ Result<> Mod::load() {
             log::log(Severity::Error, this, "Mod load data function returned false");
         }
     }
+    ModStateEvent(this, ModEventType::Loaded).post();
+    auto loadRes = this->loadData();
+    if (!loadRes) {
+        log::warn("Unable to load data for \"{}\": {}", m_info.m_id, loadRes.unwrapErr());
+    }
     m_loadErrorInfo = "";
     Loader::get()->updateAllDependencies();
-    return Ok<>();
+    return Ok();
 }
 
 Result<> Mod::unload() {
     if (!m_loaded) {
-        return Ok<>();
+        return Ok();
     }
 
     if (!m_info.m_supportsUnloading) {
-        return Err<>("Mod does not support unloading");
+        return Err("Mod does not support unloading");
     }
-
-    if (m_saveDataFunc) {
-        if (!m_saveDataFunc(m_saveDirPath.string().c_str())) {
-            log::log(Severity::Error, this, "Mod save data function returned false");
-        }
+    
+    auto saveRes = this->saveData();
+    if (!saveRes) {
+        return saveRes;
     }
 
     if (m_unloadFunc) {
         m_unloadFunc();
     }
+    ModStateEvent(this, ModEventType::Unloaded).post();
 
     for (auto const& hook : m_hooks) {
         auto d = this->disableHook(hook);
@@ -265,7 +248,7 @@ Result<> Mod::unload() {
 
     for (auto const& patch : m_patches) {
         if (!patch->restore()) {
-            return Err<>("Unable to restore patch at " + std::to_string(patch->getAddress()));
+            return Err("Unable to restore patch at " + std::to_string(patch->getAddress()));
         }
         delete patch;
     }
@@ -277,19 +260,21 @@ Result<> Mod::unload() {
     }
     m_loaded = false;
     Loader::get()->updateAllDependencies();
-    return Ok<>();
+    return Ok();
 }
 
 Result<> Mod::enable() {
     if (!m_loaded) {
-        return Err<>("Mod is not loaded");
+        return Err("Mod is not loaded");
     }
 
     if (m_enableFunc) {
         if (!m_enableFunc()) {
-            return Err<>("Mod enable function returned false");
+            return Err("Mod enable function returned false");
         }
     }
+
+    ModStateEvent(this, ModEventType::Enabled).post();
 
     for (auto const& hook : m_hooks) {
         auto d = this->enableHook(hook);
@@ -298,25 +283,27 @@ Result<> Mod::enable() {
 
     for (auto const& patch : m_patches) {
         if (!patch->apply()) {
-            return Err<>("Unable to apply patch at " + std::to_string(patch->getAddress()));
+            return Err("Unable to apply patch at " + std::to_string(patch->getAddress()));
         }
     }
 
     m_enabled = true;
 
-    return Ok<>();
+    return Ok();
 }
 
 Result<> Mod::disable() {
     if (!m_info.m_supportsDisabling) {
-        return Err<>("Mod does not support disabling");
+        return Err("Mod does not support disabling");
     }
 
     if (m_disableFunc) {
         if (!m_disableFunc()) {
-            return Err<>("Mod disable function returned false");
+            return Err("Mod disable function returned false");
         }
     }
+
+    ModStateEvent(this, ModEventType::Disabled).post();
 
     for (auto const& hook : m_hooks) {
         auto d = this->disableHook(hook);
@@ -325,13 +312,13 @@ Result<> Mod::disable() {
 
     for (auto const& patch : m_patches) {
         if (!patch->restore()) {
-            return Err<>("Unable to restore patch at " + std::to_string(patch->getAddress()));
+            return Err("Unable to restore patch at " + std::to_string(patch->getAddress()));
         }
     }
 
     m_enabled = false;
 
-    return Ok<>();
+    return Ok();
 }
 
 Result<> Mod::uninstall() {
@@ -344,13 +331,13 @@ Result<> Mod::uninstall() {
         }
     }
     if (!ghc::filesystem::remove(m_info.m_path)) {
-        return Err<>(
+        return Err(
             "Unable to delete mod's .geode file! "
             "This might be due to insufficient permissions - "
             "try running GD as administrator."
         );
     }
-    return Ok<>();
+    return Ok();
 }
 
 bool Mod::isUninstalled() const {
@@ -382,13 +369,13 @@ bool Mod::updateDependencyStates() {
                     auto r = dep.m_mod->load();
                     if (!r) {
                         dep.m_state = ModResolveState::Unloaded;
-                        log::log(Severity::Error, dep.m_mod, "{}", r.error());
+                        log::log(Severity::Error, dep.m_mod, "{}", r.unwrapErr());
                     }
                     else {
                         auto r = dep.m_mod->enable();
                         if (!r) {
                             dep.m_state = ModResolveState::Disabled;
-                            log::log(Severity::Error, dep.m_mod, "{}", r.error());
+                            log::log(Severity::Error, dep.m_mod, "{}", r.unwrapErr());
                         }
                     }
                 }
@@ -418,12 +405,12 @@ bool Mod::updateDependencyStates() {
             log::debug("Resolved & loading {}", m_info.m_id);
             auto r = this->load();
             if (!r) {
-                log::error("{} Error loading: {}", this, r.error());
+                log::error("{} Error loading: {}", this, r.unwrapErr());
             }
             else {
                 auto r = this->enable();
                 if (!r) {
-                    log::error("{} Error enabling: {}", this, r.error());
+                    log::error("{} Error enabling: {}", this, r.unwrapErr());
                 }
             }
         }
@@ -497,9 +484,9 @@ ghc::filesystem::path Mod::getPackagePath() const {
     return m_info.m_path;
 }
 
-ghc::filesystem::path Mod::getConfigDir() const {
+ghc::filesystem::path Mod::getConfigDir(bool create) const {
     auto dir = Loader::get()->getGeodeDirectory() / GEODE_CONFIG_DIRECTORY / m_info.m_id;
-    if (!ghc::filesystem::exists(dir)) {
+    if (create && !ghc::filesystem::exists(dir)) {
         ghc::filesystem::create_directories(dir);
     }
     return dir;
@@ -579,4 +566,26 @@ bool Mod::hasSetting(std::string const& key) const {
 
 std::string Mod::getLoadErrorInfo() const {
     return m_loadErrorInfo;
+}
+
+ModJson Mod::getRuntimeInfo() const {
+    auto json = m_info.toJSON();
+
+    auto obj = ModJson::object();
+    obj["hooks"] = ModJson::array();
+    for (auto hook : m_hooks) {
+        obj["hooks"].push_back(ModJson(hook->getRuntimeInfo()));
+    }
+    obj["patches"] = ModJson::array();
+    for (auto patch : m_patches) {
+        obj["patches"].push_back(ModJson(patch->getRuntimeInfo()));
+    }
+    obj["enabled"] = m_enabled;
+    obj["loaded"] = m_loaded;
+    obj["temp-dir"] = this->getTempDir();
+    obj["save-dir"] = this->getSaveDir();
+    obj["config-dir"] = this->getConfigDir(false);
+    json["runtime"] = obj;
+
+    return json;
 }

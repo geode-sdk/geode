@@ -1,3 +1,6 @@
+#pragma once
+
+#include "Popup.hpp"
 #include "InputNode.hpp"
 #include "Popup.hpp"
 

@@ -81,8 +81,8 @@ target_link_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/lo
 
 add_definitions(-DFMT_CONSTEVAL=)
 
-add_subdirectory(filesystem)
-add_subdirectory(fmt)
+add_subdirectory(loader/include/Geode/external/filesystem)
+add_subdirectory(loader/include/Geode/external/fmt)
 
 target_link_libraries(${PROJECT_NAME} INTERFACE filesystem fmt)
 

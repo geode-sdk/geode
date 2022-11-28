@@ -3,7 +3,6 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/ranges.hpp>
-#include <Geode/utils/vector.hpp>
 #include <InternalLoader.hpp>
 #include <lilac/include/geode/core/hook/hook.hpp>
 #include <vector>
@@ -26,7 +25,7 @@ Result<Patch*> Mod::patch(void* address, byte_array data) {
     p->m_patch = data;
     if (!p->apply()) {
         delete p;
-        return Err<>("Unable to enable patch at " + std::to_string(p->getAddress()));
+        return Err("Unable to enable patch at " + std::to_string(p->getAddress()));
     }
     m_patches.push_back(p);
     return Ok<Patch*>(p);
@@ -36,9 +35,9 @@ Result<> Mod::unpatch(Patch* patch) {
     if (patch->restore()) {
         ranges::remove(m_patches, patch);
         delete patch;
-        return Ok<>();
+        return Ok();
     }
-    return Err<>("Unable to restore patch!");
+    return Err("Unable to restore patch!");
 }
 
 bool Patch::apply() {
@@ -47,4 +46,13 @@ bool Patch::apply() {
 
 bool Patch::restore() {
     return lilac::hook::write_memory(m_address, m_original.data(), m_original.size());
+}
+
+nlohmann::json Patch::getRuntimeInfo() const {
+    auto json = nlohmann::json::object();
+    json["address"] = reinterpret_cast<uintptr_t>(m_address);
+    json["original"] = m_original;
+    json["patch"] = m_patch;
+    json["applied"] = m_applied;
+    return json;
 }

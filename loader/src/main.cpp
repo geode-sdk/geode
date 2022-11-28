@@ -4,9 +4,13 @@
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/SettingEvent.hpp>
+#include <Geode/loader/Setting.hpp>
+#include <Geode/loader/IPC.hpp>
 #include <InternalLoader.hpp>
 #include <InternalMod.hpp>
 #include <array>
+
+USE_GEODE_NAMESPACE();
 
 int geodeEntry(void* platformData);
 // platform-specific entry points
@@ -96,7 +100,9 @@ BOOL WINAPI DllMain(HINSTANCE lib, DWORD reason, LPVOID) {
 }
 #endif
 
-static auto _ = listenForSettingChanges<BoolSetting>(
+#define $_ GEODE_CONCAT(unnamedVar_, __LINE__)
+
+static auto $_ = listenForSettingChanges<BoolSetting>(
     "show-platform-console",
     [](BoolSetting* setting) {
         if (setting->getValue()) {
@@ -107,6 +113,42 @@ static auto _ = listenForSettingChanges<BoolSetting>(
         }
     }
 );
+
+static auto $_ = listenForIPC("ipc-test", +[](IPCEvent* event) -> nlohmann::json {
+    return "Hello from Geode!";
+});
+
+static auto $_ = listenForIPC("loader-info", +[](IPCEvent* event) -> nlohmann::json {
+    return Loader::get()->getInternalMod()->getModInfo();
+});
+
+static auto $_ = listenForIPC("list-mods", +[](IPCEvent* event) -> nlohmann::json {
+    std::vector<nlohmann::json> res;
+
+    auto args = event->getMessageData();
+    JsonChecker checker(args);
+    auto root = checker.root("").obj();
+
+    auto includeRunTimeInfo = root.has("include-runtime-info").template get<bool>();
+    auto dontIncludeLoader = root.has("dont-include-loader").template get<bool>();
+
+    if (!dontIncludeLoader) {
+        res.push_back(includeRunTimeInfo ? 
+            Loader::get()->getInternalMod()->getRuntimeInfo() : 
+            Loader::get()->getInternalMod()->getModInfo().toJSON()
+        );
+    }
+
+    for (auto& mod : Loader::get()->getAllMods()) {
+        res.push_back(
+            includeRunTimeInfo ?
+                mod->getRuntimeInfo() :
+                mod->getModInfo().toJSON()
+        );
+    }
+
+    return res;
+});
 
 int geodeEntry(void* platformData) {
     // setup internals

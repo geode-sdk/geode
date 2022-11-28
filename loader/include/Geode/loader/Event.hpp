@@ -19,6 +19,7 @@ namespace geode {
         virtual void enable();
         virtual void disable();
         virtual ListenerResult passThrough(Event*) = 0;
+        virtual ~EventListenerProtocol();
     };
 
     template <typename C, typename T>
@@ -64,12 +65,20 @@ namespace geode {
             return ListenerResult::Propagate;
         }
 
-        EventListener(T filter = T()) {}
-        EventListener(std::function<Callback> fn, T filter = T()) : m_callback(fn), m_filter(filter) {}
-        EventListener(Callback* fnptr, T filter = T()) : m_callback(fnptr), m_filter(filter) {}
+        EventListener(T filter = T()) {
+            this->enable();
+        }
+        EventListener(std::function<Callback> fn, T filter = T()) : m_callback(fn), m_filter(filter) {
+            this->enable();
+        }
+        EventListener(Callback* fnptr, T filter = T()) : m_callback(fnptr), m_filter(filter) {
+            this->enable();
+        }
 
         template <class C>
-        EventListener(C* cls, MemberFn<C> fn, T filter = T()) : EventListener(std::bind(fn, cls, std::placeholders::_1), filter) {}
+        EventListener(C* cls, MemberFn<C> fn, T filter = T()) : EventListener(std::bind(fn, cls, std::placeholders::_1), filter) {
+            this->enable();
+        }
 
         void bind(std::function<Callback> fn) {
             m_callback = fn;
