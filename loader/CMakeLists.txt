@@ -37,8 +37,8 @@ file(GLOB SOURCES CONFIGURE_DEPENDS
 
 # Obj-c sources
 file(GLOB OBJC_SOURCES
-	src/internal/ios/*.mm
-	src/internal/mac/*.mm
+	src/platform/ios/*.mm
+	src/platform/mac/*.mm
 	src/load/ios/*.mm
 	src/load/mac/*.mm
 	src/utils/ios/*.mm
@@ -54,7 +54,7 @@ if (WIN32)
 	)
 	list(APPEND SOURCES ${WIN_SOURCES})
 
-elseif(APPLE AND IOS)
+elseif(IOS)
 
 	file(GLOB IOS_SOURCES CONFIGURE_DEPENDS 
 		src/platform/ios/*.cpp
