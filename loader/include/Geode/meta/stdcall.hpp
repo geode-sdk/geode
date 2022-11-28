@@ -3,7 +3,7 @@
 
 namespace geode::core::meta::x86 {
     template <class Ret, class... Args>
-    class Thiscall {
+    class Stdcall {
     private:
         template <Ret (*detour)(Args...)>
         static Ret __stdcall wrapper(Args... all) {
