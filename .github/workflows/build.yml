@@ -73,6 +73,8 @@ jobs:
         ${{ matrix.config.extra_flags }} 
         -DGEODE_DISABLE_CLI_CALLS=ON 
         -DCLI_PATH="${{ github.workspace }}/cli" 
+        -D CMAKE_C_COMPILER_LAUNCHER=ccache
+        -D CMAKE_CXX_COMPILER_LAUNCHER=ccache
 
     - name: Build
       run: |
