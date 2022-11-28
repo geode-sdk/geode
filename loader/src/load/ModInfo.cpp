@@ -31,12 +31,6 @@ Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
     root.needs("developer").into(info.m_developer);
     root.has("description").into(info.m_description);
     root.has("repository").into(info.m_repository);
-    if (root.has("datastore").intoRaw(info.m_defaultDataStore)) {
-        log::warn(
-            "[mod.json].datastore is deprecated "
-            "and will be removed in the future."
-        );
-    }
     root.has("toggleable").into(info.m_supportsDisabling);
     root.has("unloadable").into(info.m_supportsUnloading);
 
@@ -74,37 +68,15 @@ Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
     // with new cli, binary name is always mod id
     info.m_binaryName = info.m_id + GEODE_PLATFORM_EXTENSION;
 
-    if (root.has("binary")) {
-        log::warn(
-            "[mod.json].binary is deprecated "
-            "and will be removed in the future."
+    // removed keys
+    if (root.has("datastore")) {
+        log::error(
+            "[mod.json].datastore has been deprecated "
+            "and removed. Use Saved Values instead (see TODO: DOCS LINK)"
         );
     }
-
-    root.has("binary").asOneOf<value_t::string, value_t::object>();
-
-    bool autoEndBinaryName = true;
-
-    root.has("binary").is<value_t::string>().into(info.m_binaryName);
-
-    if (auto bin = root.has("binary").is<value_t::object>().obj()) {
-        bin.has("*").into(info.m_binaryName);
-        bin.has("auto").into(autoEndBinaryName);
-
-#if defined(GEODE_IS_WINDOWS)
-        bin.has("windows").into(info.m_binaryName);
-#elif defined(GEODE_IS_MACOS)
-        bin.has("macos").into(info.m_binaryName);
-#elif defined(GEODE_IS_ANDROID)
-        bin.has("android").into(info.m_binaryName);
-#elif defined(GEODE_IS_IOS)
-        bin.has("ios").into(info.m_binaryName);
-#endif
-    }
-
-    if (root.has("binary") && autoEndBinaryName &&
-        !utils::string::endsWith(info.m_binaryName, GEODE_PLATFORM_EXTENSION)) {
-        info.m_binaryName += GEODE_PLATFORM_EXTENSION;
+    if (root.has("binary")) {
+        log::error("[mod.json].binary has been deprecated and removed.");
     }
 
     if (checker.isError()) {

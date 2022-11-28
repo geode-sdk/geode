@@ -145,10 +145,6 @@ namespace geode {
          */
         std::vector<std::string> m_spritesheets;
         /**
-         * Default data store values
-         */
-        nlohmann::json m_defaultDataStore;
-        /**
          * Mod settings
          */
         std::vector<std::pair<std::string, std::shared_ptr<Setting>>> m_settings;
@@ -201,29 +197,6 @@ namespace geode {
 
     // For converting ModInfo back to JSON
     void GEODE_DLL to_json(nlohmann::json& json, ModInfo const& info);
-
-    /**
-     * @class DataStore
-     * Internal class for notifying Mod
-     * when the datastore changes
-     */
-    class GEODE_DLL DataStore {
-        nlohmann::json m_store;
-        Mod* m_mod;
-
-        DataStore(Mod* m, nlohmann::json& j) : m_mod(m), m_store(j) {}
-
-        friend class Mod;
-
-    public:
-        ~DataStore();
-
-        nlohmann::json& getJson() const;
-        nlohmann::json& operator[](std::string const&);
-        DataStore& operator=(nlohmann::json&);
-        bool contains(std::string const&) const;
-        operator nlohmann::json();
-    };
 
     template<class T>
     struct HandleToSaved : public T {
@@ -323,10 +296,6 @@ namespace geode {
         std::string m_loadErrorInfo = "";
 
         /**
-         * Data Store object
-         */
-        nlohmann::json m_dataStore;
-        /**
          * Saved values
          */
         nlohmann::json m_saved;
@@ -339,9 +308,6 @@ namespace geode {
 
         Result<> saveSettings();
         Result<> loadSettings();
-
-        [[deprecated("Datastore will be removed in v1.0.0")]]
-        void postDSUpdate();
 
         Result<> createTempDir();
 
@@ -361,7 +327,6 @@ namespace geode {
         friend class Loader;
         friend class ::InternalLoader;
         friend struct ModInfo;
-        friend class DataStore;
 
         template <class = void>
         static inline GEODE_HIDDEN Mod* sharedMod = nullptr;
@@ -446,7 +411,7 @@ namespace geode {
                     return m_saved.at(key);
                 } catch(...) {}
             }
-            m_saved.insert({ key, defaultValue });
+            m_saved[key] = defaultValue;
             return defaultValue;
         }
 
@@ -599,21 +564,6 @@ namespace geode {
          */
         Result<> uninstall();
         bool isUninstalled() const;
-
-        /**
-         * Return the data store object
-         * @returns DataStore object
-         * store
-         */
-        [[deprecated("Datastore will be removed in v1.0.0")]]
-        DataStore getDataStore();
-
-        /**
-         * Reset the data store to the
-         * default value
-         */
-        [[deprecated("Datastore will be removed in v1.0.0")]]
-        Result<> resetDataStore();
 
         /**
          * Check whether or not this Mod

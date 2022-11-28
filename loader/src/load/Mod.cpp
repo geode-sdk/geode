@@ -14,33 +14,6 @@
 
 USE_GEODE_NAMESPACE();
 
-nlohmann::json& DataStore::operator[](std::string const& key) {
-    return m_mod->m_dataStore[key];
-}
-
-DataStore& DataStore::operator=(nlohmann::json& jsn) {
-    m_mod->m_dataStore = jsn;
-    return *this;
-}
-
-nlohmann::json& DataStore::getJson() const {
-    return m_mod->m_dataStore;
-}
-
-bool DataStore::contains(std::string const& key) const {
-    return m_mod->m_dataStore.contains(key);
-}
-
-DataStore::operator nlohmann::json() {
-    return m_mod->m_dataStore;
-}
-
-DataStore::~DataStore() {
-    if (m_store != m_mod->m_dataStore) {
-        m_mod->postDSUpdate();
-    }
-}
-
 Mod::Mod(ModInfo const& info) {
     m_info = info;
 }
@@ -96,21 +69,6 @@ Result<> Mod::loadSettings() {
         }
     }
 
-    // datastore
-    auto dsPath = m_saveDirPath / "ds.json";
-    if (!ghc::filesystem::exists(dsPath)) {
-        m_dataStore = m_info.m_defaultDataStore;
-    }
-    else {
-        GEODE_UNWRAP_INTO(auto dsData, utils::file::readString(dsPath));
-        try {
-            m_dataStore = nlohmann::json::parse(dsData);
-        }
-        catch (std::exception& e) {
-            return Err(std::string("Unable to parse datastore: ") + e.what());
-        }
-    }
-
     return Ok();
 }
 
@@ -137,13 +95,6 @@ Result<> Mod::saveSettings() {
         return sdw;
     }
 
-    // datastore
-    auto dsPath = m_saveDirPath / "ds.json";
-    auto dw = utils::file::writeString(dsPath, m_dataStore.dump(4));
-    if (!dw) {
-        return dw;
-    }
-
     return Ok();
 }
 
@@ -167,18 +118,6 @@ Result<> Mod::saveData() {
     ModStateEvent(this, ModEventType::DataSaved).post();
 
     return this->saveSettings();
-}
-
-DataStore Mod::getDataStore() {
-    return DataStore(this, m_dataStore);
-}
-
-void Mod::postDSUpdate() {
-    /*EventCenter::get()->send(Event(
-        "datastore-changed",
-        this
-    ), this);*/
-    // FIXME: Dispatch
 }
 
 Result<> Mod::createTempDir() {
