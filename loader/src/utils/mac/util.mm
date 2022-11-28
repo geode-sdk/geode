@@ -75,7 +75,7 @@ void utils::web::openLinkInBrowser(std::string const& url) {
 Result<ghc::filesystem::path> utils::file::pickFile(
     file::PickMode mode, file::FilePickOptions const& options
 ) {
-    return Err("utils::file::pickFile is not implemented");
+    return Err<std::string>("utils::file::pickFile is not implemented");
     // return [FileDialog importDocumentWithMode:mode options:options];
 }
 
