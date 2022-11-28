@@ -17,12 +17,6 @@ Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
     auto json = rawJson;
     info.m_rawJSON = rawJson;
 
-#define PROPAGATE(err)                         \
-    {                                          \
-        auto err__ = err;                      \
-        if (!err__) return Err(err__.error()); \
-    }
-
     JsonChecker checker(json);
     auto root = checker.root("[mod.json]").obj();
 
@@ -59,9 +53,7 @@ Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
     }
 
     for (auto& [key, value] : root.has("settings").items()) {
-        auto settRes = Setting::parse(key, value.json());
-        PROPAGATE(settRes);
-        auto sett = settRes.value();
+        GEODE_UNWRAP_INTO(auto sett, Setting::parse(key, value.json()));
         sett->m_modID = info.m_id;
         info.m_settings.push_back({ key, sett });
     }
@@ -180,18 +172,12 @@ Result<ModInfo> ModInfo::create(ModJson const& json) {
 
 Result<ModInfo> ModInfo::createFromFile(ghc::filesystem::path const& path) {
     try {
-        auto read = utils::file::readString(path);
-        if (!read) return Err(read.error());
+        GEODE_UNWRAP_INTO(auto read, utils::file::readString(path));
         try {
-            auto res = ModInfo::create(ModJson::parse(read.value()));
-            if (!res) return res;
-            auto info = res.value();
+            GEODE_UNWRAP_INTO(auto info, ModInfo::create(ModJson::parse(read)));
             info.m_path = path;
             if (path.has_parent_path()) {
-                auto err = info.addSpecialFiles(path.parent_path());
-                if (!err) {
-                    return Err(err.error());
-                }
+                GEODE_UNWRAP(info.addSpecialFiles(path.parent_path()));
             }
             return Ok(info);
         }
@@ -207,11 +193,11 @@ Result<ModInfo> ModInfo::createFromFile(ghc::filesystem::path const& path) {
 Result<ModInfo> ModInfo::createFromGeodeFile(ghc::filesystem::path const& path) {
     ZipFile unzip(path.string());
     if (!unzip.isLoaded()) {
-        return Err<>("\"" + path.string() + "\": Unable to unzip");
+        return Err("\"" + path.string() + "\": Unable to unzip");
     }
     // Check if mod.json exists in zip
     if (!unzip.fileExists("mod.json")) {
-        return Err<>("\"" + path.string() + "\" is missing mod.json");
+        return Err("\"" + path.string() + "\" is missing mod.json");
     }
     // Read mod.json & parse if possible
     unsigned long readSize = 0;
@@ -225,7 +211,7 @@ Result<ModInfo> ModInfo::createFromGeodeFile(ghc::filesystem::path const& path) 
     }
     catch (std::exception const& e) {
         delete[] read;
-        return Err<>(e.what());
+        return Err(e.what());
     }
 
     delete[] read;
@@ -240,15 +226,12 @@ Result<ModInfo> ModInfo::createFromGeodeFile(ghc::filesystem::path const& path) 
 
     auto res = ModInfo::create(json);
     if (!res) {
-        return Err("\"" + path.string() + "\" - " + res.error());
+        return Err("\"" + path.string() + "\" - " + res.unwrapErr());
     }
-    auto info = res.value();
+    auto info = res.unwrap();
     info.m_path = path;
 
-    auto err = info.addSpecialFiles(unzip);
-    if (!err) {
-        return Err(err.error());
-    }
+    GEODE_UNWRAP(info.addSpecialFiles(unzip));
 
     return Ok(info);
 }
@@ -276,9 +259,9 @@ Result<> ModInfo::addSpecialFiles(ghc::filesystem::path const& dir) {
         if (ghc::filesystem::exists(dir / file)) {
             auto data = file::readString(dir / file);
             if (!data) {
-                return Err("Unable to read \"" + file + "\": " + data.error());
+                return Err("Unable to read \"" + file + "\": " + data.unwrapErr());
             }
-            *target = sanitizeDetailsData(data.value());
+            *target = sanitizeDetailsData(data.unwrap());
         }
     }
     return Ok();

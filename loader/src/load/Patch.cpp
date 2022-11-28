@@ -26,7 +26,7 @@ Result<Patch*> Mod::patch(void* address, byte_array data) {
     p->m_patch = data;
     if (!p->apply()) {
         delete p;
-        return Err<>("Unable to enable patch at " + std::to_string(p->getAddress()));
+        return Err("Unable to enable patch at " + std::to_string(p->getAddress()));
     }
     m_patches.push_back(p);
     return Ok<Patch*>(p);
@@ -36,9 +36,9 @@ Result<> Mod::unpatch(Patch* patch) {
     if (patch->restore()) {
         ranges::remove(m_patches, patch);
         delete patch;
-        return Ok<>();
+        return Ok();
     }
-    return Err<>("Unable to restore patch!");
+    return Err("Unable to restore patch!");
 }
 
 bool Patch::apply() {

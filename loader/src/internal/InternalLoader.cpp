@@ -110,7 +110,7 @@ void InternalLoader::downloadLoaderResources(IndexUpdateCallback callback) {
             if (!unzip) {
                 if (callback)
                     callback(
-                        UpdateStatus::Failed, "Unable to unzip new resources: " + unzip.error(), 0
+                        UpdateStatus::Failed, "Unable to unzip new resources: " + unzip.unwrapErr(), 0
                     );
                 return;
             }

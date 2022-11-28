@@ -20,12 +20,12 @@
 
 template <class Json = nlohmann::json>
 static Result<Json> readJSON(ghc::filesystem::path const& path) {
-    auto indexJsonData = utils::file::readString(path);
-    if (!indexJsonData) {
-        return Err("Unable to read " + path.string());
-    }
+    GEODE_UNWRAP_INTO(
+        std::string indexJsonData,
+        utils::file::readString(path).expect("Unable to read {}", path.string())
+    );
     try {
-        return Ok(Json::parse(indexJsonData.value()));
+        return Ok(Json::parse(indexJsonData));
     }
     catch (std::exception& e) {
         return Err("Error parsing JSON: " + std::string(e.what()));
@@ -110,7 +110,7 @@ void Index::updateIndex(IndexUpdateCallback callback, bool force) {
     if (ghc::filesystem::exists(indexDir / "current")) {
         auto data = utils::file::readString(indexDir / "current");
         if (data) {
-            currentCommitSHA = data.value();
+            currentCommitSHA = data.unwrap();
         }
     }
 
@@ -128,7 +128,7 @@ void Index::updateIndex(IndexUpdateCallback callback, bool force) {
             if (upcomingCommitSHA == "") {
                 auto err = this->updateIndexFromLocalCache();
                 if (!err) {
-                    RETURN_ERROR(err.error());
+                    RETURN_ERROR(err.unwrapErr());
                 }
                 
                 m_upToDate = true;
@@ -162,13 +162,13 @@ void Index::updateIndex(IndexUpdateCallback callback, bool force) {
                         // unzip new index
                         auto unzip = file::unzipTo(indexDir / "index.zip", indexDir);
                         if (!unzip) {
-                            RETURN_ERROR(unzip.error());
+                            RETURN_ERROR(unzip.unwrapErr());
                         }
 
                         // update index
                         auto err = this->updateIndexFromLocalCache();
                         if (!err) {
-                            RETURN_ERROR(err.error());
+                            RETURN_ERROR(err.unwrapErr());
                         }
 
                         m_upToDate = true;
@@ -190,7 +190,7 @@ void Index::updateIndex(IndexUpdateCallback callback, bool force) {
             else {
                 auto err = this->updateIndexFromLocalCache();
                 if (!err) {
-                    RETURN_ERROR(err.error());
+                    RETURN_ERROR(err.unwrapErr());
                 }
 
                 m_upToDate = true;
@@ -214,10 +214,10 @@ void Index::addIndexItemFromFolder(ghc::filesystem::path const& dir) {
     if (ghc::filesystem::exists(dir / "index.json")) {
         auto readJson = readJSON(dir / "index.json");
         if (!readJson) {
-            log::warn("Error reading index.json: {}, skipping", readJson.error());
+            log::warn("Error reading index.json: {}, skipping", readJson.unwrapErr());
             return;
         }
-        auto json = readJson.value();
+        auto json = readJson.unwrap();
         if (!json.is_object()) {
             log::warn("[index.json] is not an object, skipping");
             return;
@@ -225,10 +225,10 @@ void Index::addIndexItemFromFolder(ghc::filesystem::path const& dir) {
 
         auto infoRes = ModInfo::createFromFile(dir / "mod.json");
         if (!infoRes) {
-            log::warn("{}: {}, skipping", dir, infoRes.error());
+            log::warn("{}: {}, skipping", dir, infoRes.unwrapErr());
             return;
         }
-        auto info = infoRes.value();
+        auto info = infoRes.unwrap();
 
         // make sure only latest version is present in index
         auto old = std::find_if(m_items.begin(), m_items.end(), [info](IndexItem const& item) {
@@ -283,7 +283,7 @@ void Index::addIndexItemFromFolder(ghc::filesystem::path const& dir) {
                     log::warn("[index.json].categories is not an array, skipping");
                     return;
                 }
-                item.m_categories = json["categories"].get<std::unordered_set<std::string>>();
+                item.m_categories = json["categories"].template get<std::unordered_set<std::string>>();
                 m_categories.insert(item.m_categories.begin(), item.m_categories.end());
             }
         }
@@ -305,7 +305,7 @@ Result<> Index::updateIndexFromLocalCache() {
 
     // load geode.json (index settings)
     if (auto baseIndexJson = readJSON(baseIndexDir / "geode.json")) {
-        auto json = baseIndexJson.value();
+        auto json = baseIndexJson.unwrap();
         auto checker = JsonChecker(json);
         checker.root("[index/geode.json]").obj().has("featured").into(m_featured);
     }
@@ -440,11 +440,8 @@ Result<InstallHandle> Index::installItems(std::vector<IndexItem> const& items) {
                 "the Geode developers - this should not happen, ever."
             );
         }
-        auto list = checkDependenciesForItem(item);
-        if (!list) {
-            return Err(list.error());
-        }
-        ranges::push(ids, list.value());
+        GEODE_UNWRAP_INTO(auto list, checkDependenciesForItem(item));
+        ranges::push(ids, list);
     }
     auto ret = std::make_shared<InstallItems>(std::unordered_set(ids.begin(), ids.end()));
     m_installations.insert(ret);
@@ -636,7 +633,7 @@ InstallItems::CallbackID InstallItems::start(ItemInstallCallback callback, bool 
                 .then([this, replaceFiles, item, inst, indexDir, tempFile](auto) {
                     // check for 404
                     auto notFound = utils::file::readString(tempFile);
-                    if (notFound && notFound.value() == "Not Found") {
+                    if (notFound && notFound.unwrap() == "Not Found") {
                         try {
                             ghc::filesystem::remove(tempFile);
                         }

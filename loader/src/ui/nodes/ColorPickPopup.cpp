@@ -209,9 +209,9 @@ void ColorPickPopup::textChanged(CCTextInputNode* input) {
             case TAG_HEX_INPUT:
                 {
                     if (auto color = cc3bFromHexString(input->getString())) {
-                        m_color.r = color.value().r;
-                        m_color.g = color.value().g;
-                        m_color.b = color.value().b;
+                        m_color.r = color.unwrap().r;
+                        m_color.g = color.unwrap().g;
+                        m_color.b = color.unwrap().b;
                     }
                 }
                 break;

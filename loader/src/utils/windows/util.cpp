@@ -89,13 +89,10 @@ Result<ghc::filesystem::path> utils::file::pickFile(
         TURN_INTO_NFDMODE(OpenFile);
         TURN_INTO_NFDMODE(SaveFile);
         TURN_INTO_NFDMODE(OpenFolder);
-        default: return Err("Unknown open mode");
+        default: return Err<std::string>("Unknown open mode");
     }
     ghc::filesystem::path path;
-    auto r = nfdPick(nfdMode, options, &path);
-    if (!r) {
-        return Err(r.error());
-    }
+    GEODE_UNWRAP(nfdPick(nfdMode, options, &path));
     return Ok(path);
 }
 
@@ -103,10 +100,7 @@ Result<std::vector<ghc::filesystem::path>> utils::file::pickFiles(
     file::FilePickOptions const& options
 ) {
     std::vector<ghc::filesystem::path> paths;
-    auto r = nfdPick(NFDMode::OpenFolder, options, &paths);
-    if (!r) {
-        return Err(r.error());
-    }
+    GEODE_UNWRAP(nfdPick(NFDMode::OpenFolder, options, &paths));
     return Ok(paths);
 }
 

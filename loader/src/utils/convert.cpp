@@ -42,10 +42,10 @@ void cocos2d::from_json(nlohmann::json const& json, ccColor3B& color) {
         auto c = cc3bFromHexString(str);
         if (!c) {
             throw nlohmann::json::type_error::create(
-                0, "Invalid color hex string: " + c.error(), json
+                0, "Invalid color hex string: " + c.unwrapErr(), json
             );
         }
-        color = c.value();
+        color = c.unwrap();
     }
     // bad
     else {
@@ -98,10 +98,10 @@ void cocos2d::from_json(nlohmann::json const& json, ccColor4B& color) {
         auto c = cc4bFromHexString(str);
         if (!c) {
             throw nlohmann::json::type_error::create(
-                0, "Invalid color hex string: " + c.error(), json
+                0, "Invalid color hex string: " + c.unwrapErr(), json
             );
         }
-        color = c.value();
+        color = c.unwrap();
     }
     // bad
     else {

@@ -33,18 +33,18 @@ Result<> Mod::enableHook(Hook* hook) {
             log::debug("Enabling hook at function {}", hook->m_displayName);
             this->m_hooks.push_back(hook);
             hook->m_enabled = true;
-            hook->m_handle = res.value();
-            return Ok<>();
+            hook->m_handle = res.unwrap();
+            return Ok();
         }
         else {
-            return Err<>(
+            return Err(
                 "Unable to create hook at " +
                 std::to_string(reinterpret_cast<uintptr_t>(hook->m_address))
             );
         }
-        return Err<>("Hook already has a handle");
+        return Err("Hook already has a handle");
     }
-    return Ok<>();
+    return Ok();
 }
 
 Result<> Mod::disableHook(Hook* hook) {
@@ -52,11 +52,11 @@ Result<> Mod::disableHook(Hook* hook) {
         if (geode::core::hook::remove(hook->m_handle)) {
             log::debug("Disabling hook at function {}", hook->m_displayName);
             hook->m_enabled = false;
-            return Ok<>();
+            return Ok();
         }
-        return Err<>("Unable to remove hook");
+        return Err("Unable to remove hook");
     }
-    return Ok<>();
+    return Ok();
 }
 
 Result<> Mod::removeHook(Hook* hook) {
@@ -73,7 +73,7 @@ Result<Hook*> Mod::addHook(Hook* hook) {
         auto res = this->enableHook(hook);
         if (!res) {
             delete hook;
-            return Err<>("Can't create hook");
+            return Err("Can't create hook");
         }
     }
     else {
@@ -88,7 +88,7 @@ bool InternalLoader::loadHooks() {
     for (auto const& hook : internalHooks()) {
         auto res = hook.mod->addHook(hook.hook);
         if (!res) {
-            log::log(Severity::Error, hook.mod, "{}", res.error());
+            log::log(Severity::Error, hook.mod, "{}", res.unwrapErr());
             thereWereErrors = true;
         }
     }

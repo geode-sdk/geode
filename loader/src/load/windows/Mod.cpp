@@ -91,7 +91,7 @@ Result<> Mod::loadPlatformBinary() {
         );
 
         if (!this->m_implicitLoadFunc && !this->m_loadFunc) {
-            return Err<>(
+            return Err(
                 "Unable to find mod entry point (lacking both implicit & explicit definition)"
             );
         }
@@ -101,9 +101,9 @@ Result<> Mod::loadPlatformBinary() {
         }
         this->m_platformInfo = new PlatformInfo { load };
 
-        return Ok<>();
+        return Ok();
     }
-    return Err<>("Unable to load the DLL: " + getLastWinError());
+    return Err("Unable to load the DLL: " + getLastWinError());
 }
 
 Result<> Mod::unloadPlatformBinary() {
@@ -113,10 +113,10 @@ Result<> Mod::unloadPlatformBinary() {
         this->m_implicitLoadFunc = nullptr;
         this->m_unloadFunc = nullptr;
         this->m_loadFunc = nullptr;
-        return Ok<>();
+        return Ok();
     }
     else {
-        return Err<>("Unable to free the DLL: " + getLastWinError());
+        return Err("Unable to free the DLL: " + getLastWinError());
     }
 }
 

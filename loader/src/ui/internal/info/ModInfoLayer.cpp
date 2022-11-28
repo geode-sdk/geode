@@ -448,12 +448,12 @@ void ModInfoLayer::onEnableMod(CCObject* pSender) {
     if (as<CCMenuItemToggler*>(pSender)->isToggled()) {
         auto res = m_mod->load();
         if (!res) {
-            FLAlertLayer::create(nullptr, "Error Loading Mod", res.error(), "OK", nullptr)->show();
+            FLAlertLayer::create(nullptr, "Error Loading Mod", res.unwrapErr(), "OK", nullptr)->show();
         }
         else {
             auto res = m_mod->enable();
             if (!res) {
-                FLAlertLayer::create(nullptr, "Error Enabling Mod", res.error(), "OK", nullptr)
+                FLAlertLayer::create(nullptr, "Error Enabling Mod", res.unwrapErr(), "OK", nullptr)
                     ->show();
             }
         }
@@ -461,7 +461,7 @@ void ModInfoLayer::onEnableMod(CCObject* pSender) {
     else {
         auto res = m_mod->disable();
         if (!res) {
-            FLAlertLayer::create(nullptr, "Error Disabling Mod", res.error(), "OK", nullptr)
+            FLAlertLayer::create(nullptr, "Error Disabling Mod", res.unwrapErr(), "OK", nullptr)
                 ->show();
         }
     }
@@ -476,9 +476,11 @@ void ModInfoLayer::onRepository(CCObject*) {
 void ModInfoLayer::onInstallMod(CCObject*) {
     auto ticketRes = Index::get()->installItem(Index::get()->getKnownItem(m_info.m_id));
     if (!ticketRes) {
-        return FLAlertLayer::create("Unable to install", ticketRes.error(), "OK")->show();
+        return FLAlertLayer::create(
+            "Unable to install", ticketRes.unwrapErr(), "OK"
+        )->show();
     }
-    m_installation = ticketRes.value();
+    m_installation = ticketRes.unwrap();
 
     createQuickPopup(
         "Install",
@@ -626,7 +628,9 @@ void ModInfoLayer::install() {
 void ModInfoLayer::uninstall() {
     auto res = m_mod->uninstall();
     if (!res) {
-        return FLAlertLayer::create("Uninstall failed :(", res.error(), "OK")->show();
+        return FLAlertLayer::create(
+            "Uninstall failed :(", res.unwrapErr(), "OK"
+        )->show();
     }
     auto layer = FLAlertLayer::create(
         this, "Uninstall complete",

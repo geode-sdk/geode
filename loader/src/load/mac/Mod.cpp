@@ -38,7 +38,7 @@ Result<> Mod::loadPlatformBinary() {
         );
 
         if (!this->m_implicitLoadFunc && !this->m_loadFunc) {
-            return Err<>(
+            return Err(
                 "Unable to find mod entry point (lacking both implicit & explicit definition)"
             );
         }
@@ -48,10 +48,10 @@ Result<> Mod::loadPlatformBinary() {
         }
         this->m_platformInfo = new PlatformInfo { dylib };
 
-        return Ok<>();
+        return Ok();
     }
     std::string err = (char const*)dlerror();
-    return Err<>("Unable to load the DYLIB: dlerror returned (" + err + ")");
+    return Err("Unable to load the DYLIB: dlerror returned (" + err + ")");
 }
 
 Result<> Mod::unloadPlatformBinary() {
@@ -67,10 +67,10 @@ Result<> Mod::unloadPlatformBinary() {
         this->m_saveDataFunc = nullptr;
         this->m_loadDataFunc = nullptr;
         this->m_settingUpdatedFunc = nullptr;
-        return Ok<>();
+        return Ok();
     }
     else {
-        return Err<>("Unable to free library");
+        return Err("Unable to free library");
     }
 }
 

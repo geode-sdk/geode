@@ -235,11 +235,7 @@ Result<> nfdPick(
                     Holder _([&]() {
                         shellItems->Release();
                     });
-                    auto res = convShellItems(shellItems);
-                    if (!res) {
-                        return Err(res.error());
-                    }
-                    *reinterpret_cast<Paths*>(result) = res.value();
+                    GEODE_UNWRAP_INTO(*reinterpret_cast<Paths*>(result), convShellItems(shellItems));
                     return Ok();
                 } break;
 

@@ -1,6 +1,7 @@
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/string.hpp>
 #include <fstream>
+#include <../support/zip_support/ZipUtils.h>
 
 USE_GEODE_NAMESPACE();
 
@@ -89,10 +90,10 @@ Result<> utils::file::writeString(std::string const& path, std::string const& da
         file << data;
         file.close();
 
-        return Ok<>();
+        return Ok();
     }
     file.close();
-    return Err<>("Unable to open file");
+    return Err("Unable to open file");
 }
 
 #if _WIN32
@@ -103,10 +104,10 @@ Result<> utils::file::writeString(std::wstring const& path, std::string const& d
         file << data;
         file.close();
 
-        return Ok<>();
+        return Ok();
     }
     file.close();
-    return Err<>("Unable to open file");
+    return Err("Unable to open file");
 }
 #endif
 
@@ -121,10 +122,10 @@ Result<> utils::file::writeString(ghc::filesystem::path const& path, std::string
         file << data;
         file.close();
 
-        return Ok<>();
+        return Ok();
     }
     file.close();
-    return Err<>("Unable to open file");
+    return Err("Unable to open file");
 }
 
 Result<> utils::file::writeBinary(std::string const& path, byte_array const& data) {
@@ -134,10 +135,10 @@ Result<> utils::file::writeBinary(std::string const& path, byte_array const& dat
         file.write(reinterpret_cast<char const*>(data.data()), data.size());
         file.close();
 
-        return Ok<>();
+        return Ok();
     }
     file.close();
-    return Err<>("Unable to open file");
+    return Err("Unable to open file");
 }
 
 #if _WIN32
@@ -148,10 +149,10 @@ Result<> utils::file::writeBinary(std::wstring const& path, byte_array const& da
         file.write(reinterpret_cast<char const*>(data.data()), data.size());
         file.close();
 
-        return Ok<>();
+        return Ok();
     }
     file.close();
-    return Err<>("Unable to open file");
+    return Err("Unable to open file");
 }
 #endif
 
@@ -166,74 +167,74 @@ Result<> utils::file::writeBinary(ghc::filesystem::path const& path, byte_array 
         file.write(reinterpret_cast<char const*>(data.data()), data.size());
         file.close();
 
-        return Ok<>();
+        return Ok();
     }
     file.close();
-    return Err<>("Unable to open file");
+    return Err("Unable to open file");
 }
 
 Result<> utils::file::createDirectory(std::string const& path) {
     try {
         if (ghc::filesystem::create_directory(path)) {
-            return Ok<>();
+            return Ok();
         }
     }
     catch (...) {
     }
-    return Err<>("Unable to create directory");
+    return Err("Unable to create directory");
 }
 
 Result<> utils::file::createDirectory(ghc::filesystem::path const& path) {
     try {
         if (ghc::filesystem::create_directory(path)) {
-            return Ok<>();
+            return Ok();
         }
     }
     catch (...) {
     }
-    return Err<>("Unable to create directory");
+    return Err("Unable to create directory");
 }
 
 Result<> utils::file::createDirectoryAll(std::string const& path) {
     try {
         if (ghc::filesystem::create_directories(path)) {
-            return Ok<>();
+            return Ok();
         }
     }
     catch (...) {
     }
-    return Err<>("Unable to create directories");
+    return Err("Unable to create directories");
 }
 
 Result<> utils::file::createDirectoryAll(ghc::filesystem::path const& path) {
     try {
         if (ghc::filesystem::create_directories(path)) {
-            return Ok<>();
+            return Ok();
         }
     }
     catch (...) {
     }
-    return Err<>("Unable to create directories");
+    return Err("Unable to create directories");
 }
 
 Result<std::vector<std::string>> utils::file::listFiles(std::string const& path) {
-    if (!ghc::filesystem::exists(path)) return Err<>("Directory does not exist");
+    if (!ghc::filesystem::exists(path)) return Err("Directory does not exist");
 
     std::vector<std::string> res;
     for (auto const& file : ghc::filesystem::directory_iterator(path)) {
         res.push_back(file.path().string());
     }
-    return Ok<>(res);
+    return Ok(res);
 }
 
 Result<std::vector<std::string>> utils::file::listFilesRecursively(std::string const& path) {
-    if (!ghc::filesystem::exists(path)) return Err<>("Directory does not exist");
+    if (!ghc::filesystem::exists(path)) return Err("Directory does not exist");
 
     std::vector<std::string> res;
     for (auto const& file : ghc::filesystem::recursive_directory_iterator(path)) {
         res.push_back(file.path().string());
     }
-    return Ok<>(res);
+    return Ok(res);
 }
 
 Result<> utils::file::unzipTo(ghc::filesystem::path const& from, ghc::filesystem::path const& to) {
@@ -274,7 +275,7 @@ Result<> utils::file::unzipTo(ghc::filesystem::path const& from, ghc::filesystem
         }
         auto wrt = utils::file::writeBinary(to / file, byte_array(data, data + size));
         if (!wrt) {
-            return Err("Unable to write \"" + (to / file).string() + "\": " + wrt.error());
+            return Err("Unable to write \"" + (to / file).string() + "\": " + wrt.unwrapErr());
         }
     }
 

@@ -10,7 +10,7 @@ struct SaveLoader : Modify<SaveLoader, AppDelegate> {
 
         auto r = Loader::get()->saveData();
         if (!r) {
-            log::log(Severity::Error, Loader::getInternalMod(), "{}", r.error());
+            log::log(Severity::Error, Loader::getInternalMod(), "{}", r.unwrapErr());
         }
 
         log::log(Severity::Info, Loader::getInternalMod(), "Saved");

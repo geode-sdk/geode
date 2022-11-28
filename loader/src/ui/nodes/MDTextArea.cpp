@@ -303,10 +303,10 @@ struct MDParser {
                             else {
                                 auto color = colorForIdentifier(tag);
                                 if (color) {
-                                    renderer->pushColor(color.value());
+                                    renderer->pushColor(color.unwrap());
                                 }
                                 else {
-                                    log::warn("Error parsing color: {}", color.error());
+                                    log::warn("Error parsing color: {}", color.unwrapErr());
                                 }
                             }
                         }

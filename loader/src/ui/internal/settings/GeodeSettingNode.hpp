@@ -162,7 +162,7 @@ namespace {
             auto isValid = std::static_pointer_cast<T>(m_setting)->isValidValue(m_uncommittedValue);
             if (!isValid) {
                 m_errorLabel->setVisible(true);
-                m_errorLabel->setString(isValid.error().c_str());
+                m_errorLabel->setString(isValid.unwrapErr().c_str());
             }
             else {
                 m_errorLabel->setVisible(false);

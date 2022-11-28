@@ -3,6 +3,7 @@
 #include "../DefaultInclude.hpp"
 #include "Result.hpp"
 #include "json.hpp"
+#include "types.hpp"
 
 #include <fs/filesystem.hpp>
 #include <mutex>
@@ -46,10 +47,10 @@ namespace geode::utils::web {
      */
     template <class Json = nlohmann::json>
     Result<Json> fetchJSON(std::string const& url) {
-        auto res = fetch(url);
-        if (!res) return Err(res.error());
+        std::string res;
+        GEODE_UNWRAP_INTO(res, fetch(url));
         try {
-            return Ok(Json::parse(res.value()));
+            return Ok(Json::parse(res));
         }
         catch (std::exception& e) {
             return Err(e.what());
@@ -309,10 +310,10 @@ namespace geode::utils::web {
                             handle](SentAsyncWebRequest& req, byte_array const& arr) {
             auto conv = converter(arr);
             if (conv) {
-                handle(conv.value());
+                handle(conv.unwrap());
             }
             else {
-                req.error("Unable to convert value: " + conv.error());
+                req.error("Unable to convert value: " + conv.unwrapErr());
             }
         };
         return m_request;

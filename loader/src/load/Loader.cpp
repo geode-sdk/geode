@@ -184,17 +184,17 @@ size_t Loader::loadModsFromDirectory(
             loadedCount++;
 
             // check for dependencies
-            if (!res.value()->hasUnresolvedDependencies()) {
-                log::debug("Successfully loaded {}", res.value());
+            if (!res.unwrap()->hasUnresolvedDependencies()) {
+                log::debug("Successfully loaded {}", res.unwrap());
             }
             else {
-                log::error("{} has unresolved dependencies", res.value());
+                log::error("{} has unresolved dependencies", res.unwrap());
             }
         }
         else {
             // something went wrong
-            log::error("{}", res.error());
-            m_erroredMods.push_back({ entry.path().string(), res.error() });
+            log::error("{}", res.unwrapErr());
+            m_erroredMods.push_back({ entry.path().string(), res.unwrapErr() });
         }
     }
 
@@ -213,8 +213,8 @@ size_t Loader::refreshMods() {
             auto res = this->loadModFromFile(path.string());
             if (!res) {
                 // something went wrong
-                log::error("{}", res.error());
-                m_erroredMods.push_back({ path.string(), res.error() });
+                log::error("{}", res.unwrapErr());
+                m_erroredMods.push_back({ path.string(), res.unwrapErr() });
             }
         }
     }
@@ -245,7 +245,7 @@ Result<> Loader::saveData() {
     for (auto& [_, mod] : m_mods) {
         auto r = mod->saveData();
         if (!r) {
-            log::warn("Unable to save data for mod \"{}\": {}", mod->getID(), r.error());
+            log::warn("Unable to save data for mod \"{}\": {}", mod->getID(), r.unwrapErr());
         }
     }
     return Ok();
@@ -257,7 +257,7 @@ Result<> Loader::loadData() {
     for (auto& [_, mod] : m_mods) {
         auto r = mod->loadData();
         if (!r) {
-            log::warn("Unable to load data for mod \"{}\": {}", mod->getID(), r.error());
+            log::warn("Unable to load data for mod \"{}\": {}", mod->getID(), r.unwrapErr());
         }
     }
     return Ok();
@@ -277,10 +277,7 @@ Result<> Loader::saveSettings() {
     json["early-load"] = m_loadedSettings.m_earlyLoadMods;
 
     // save loader settings
-    auto saveIS = InternalMod::get()->saveSettings();
-    if (!saveIS) {
-        return Err(saveIS.error());
-    }
+    GEODE_UNWRAP(InternalMod::get()->saveSettings());
 
     // save info alerts
     InternalLoader::get()->saveInfoAlerts(json);
@@ -298,12 +295,9 @@ Result<> Loader::loadSettings() {
     }
 
     // read mods.json
-    auto read = utils::file::readString(path);
-    if (!read) {
-        return read;
-    }
+    GEODE_UNWRAP_INTO(auto read, utils::file::readString(path));
     try {
-        auto json = nlohmann::json::parse(read.value());
+        auto json = nlohmann::json::parse(read);
         auto checker = JsonChecker(json);
         auto root = checker.root("[loader settings]").obj();
         root.has("early-load").into(m_loadedSettings.m_earlyLoadMods);
@@ -400,7 +394,7 @@ bool Loader::setup() {
     this->createDirectories();
     auto sett = this->loadData();
     if (!sett) {
-        log::warn("Unable to load loader settings: {}", sett.error());
+        log::warn("Unable to load loader settings: {}", sett.unwrapErr());
     }
     this->refreshMods();
 
