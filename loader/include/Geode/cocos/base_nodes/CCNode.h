@@ -37,6 +37,8 @@
 #include "../kazmath/include/kazmath/kazmath.h"
 #include "../script_support/CCScriptSupport.h"
 #include "../include/CCProtocols.h"
+#include "Layout.hpp"
+#include <any>
 
 NS_CC_BEGIN
 
@@ -847,6 +849,7 @@ public:
         friend class geode::modifier::FieldContainer;
 
         geode::modifier::FieldContainer* getFieldContainer();
+        std::optional<std::any> getAttributeInternal(std::string const& attribute);
     
     public:
         /**
@@ -858,7 +861,8 @@ public:
          * Set the string ID of this node. String IDs are a Geode addition 
          * that are much safer to use to get nodes than absolute indexes
          * @param id The ID of the node, recommended to be in kebab case 
-         * without any spaces or uppercase letters
+         * without any spaces or uppercase letters. If the node is added 
+         * by a mod, use the _spr literal to append the mod ID to it
          */
         void setID(std::string const& id);
 
@@ -875,6 +879,28 @@ public:
          * @returns The child, or nullptr if none was found
          */
         CCNode* getChildByIDRecursive(std::string const& id);
+
+        void setAttribute(std::string const& attribute, std::any value);
+        template<class T>
+        std::optional<T> getAttribute(std::string const& attribute) {
+            if (auto value = this->getAttributeInternal(attribute)) {
+                try {
+                    return std::any_cast<T>(value.value());
+                } catch(...) {
+                    return std::nullopt;
+                }
+            }
+            return std::nullopt;
+        }
+
+        void setLayout(Layout* layout, bool apply = true);
+        Layout* getLayout();
+        void updateLayout();
+
+        void setPositionHint(PositionHint hint);
+        PositionHint getPositionHint();
+
+        void swapChildIndices(CCNode* first, CCNode* second);
     );
     
     /// @{

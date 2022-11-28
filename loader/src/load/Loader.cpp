@@ -2,11 +2,9 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
-#include <Geode/utils/conststring.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/ranges.hpp>
-#include <Geode/utils/types.hpp>
 #include <InternalLoader.hpp>
 #include <InternalMod.hpp>
 #include <about.hpp>
@@ -15,7 +13,7 @@
 
 USE_GEODE_NAMESPACE();
 
-bool Loader::s_unloading = false;
+std::atomic_bool Loader::s_unloading = false;
 std::mutex g_unloadMutex;
 
 VersionInfo Loader::getVersion() {
@@ -59,9 +57,19 @@ void Loader::updateResourcePaths() {
     log::debug("Setting resource paths");
 
     // reset search paths
-    CCFileUtils::get()->setSearchPaths(
-        { "Resources", (this->getGeodeDirectory() / GEODE_RESOURCE_DIRECTORY).string(),
-          (this->getGeodeDirectory() / GEODE_TEMP_DIRECTORY).string() }
+    CCFileUtils::get()->removeAllPaths();
+
+    // add custom texture paths first (priority)
+    for (auto const& path : m_texturePaths) {
+        CCFileUtils::get()->addSearchPath(path.string().c_str());
+    }
+
+    // add own paths next
+    CCFileUtils::get()->addSearchPath(
+        (this->getGeodeDirectory() / GEODE_RESOURCE_DIRECTORY).string().c_str()
+    );
+    CCFileUtils::get()->addSearchPath(
+        (this->getGeodeDirectory() / GEODE_TEMP_DIRECTORY).string().c_str()
     );
 
     // add mods' search paths
@@ -73,10 +81,8 @@ void Loader::updateResourcePaths() {
         CCFileUtils::get()->addSearchPath(searchPath.string().c_str());
     }
 
-    // add custom texture paths
-    for (auto const& path : m_texturePaths) {
-        CCFileUtils::get()->addSearchPath(path.string().c_str());
-    }
+    // add GD's search path
+    CCFileUtils::get()->addSearchPath("Resources");
 }
 
 void Loader::updateModResources(Mod* mod) {
@@ -124,6 +130,8 @@ void Loader::updateResources() {
 }
 
 void Loader::addTexturePath(ghc::filesystem::path const& path) {
+    // remove path if it already exists
+    this->removeTexturePath(path);
     m_texturePaths.push_back(path);
 }
 
@@ -131,7 +139,13 @@ void Loader::removeTexturePath(ghc::filesystem::path const& path) {
     ranges::remove(m_texturePaths, path);
 }
 
-size_t Loader::loadModsFromDirectory(ghc::filesystem::path const& dir, bool recursive) {
+std::vector<ghc::filesystem::path> Loader::getTexturePaths() const {
+    return m_texturePaths;
+}
+
+size_t Loader::loadModsFromDirectory(
+    ghc::filesystem::path const& dir, bool recursive
+) {
     log::debug("Searching {}", dir);
 
     size_t loadedCount = 0;
@@ -163,31 +177,48 @@ size_t Loader::loadModsFromDirectory(ghc::filesystem::path const& dir, bool recu
         log::debug("Loading {}", entry.path().string());
 
         auto res = this->loadModFromFile(entry.path().string());
-        if (res && res.value()) {
+        if (res) {
             // succesfully loaded
             loadedCount++;
 
             // check for dependencies
-            if (!res.value()->hasUnresolvedDependencies()) {
-                log::debug("Successfully loaded {}", res.value());
+            if (!res.unwrap()->hasUnresolvedDependencies()) {
+                log::debug("Successfully loaded {}", res.unwrap());
             }
             else {
-                log::error("{} has unresolved dependencies", res.value());
+                log::error("{} has unresolved dependencies", res.unwrap());
             }
         }
         else {
             // something went wrong
-            log::error("{}", res.error());
-            m_erroredMods.push_back({ entry.path().string(), res.error() });
+            log::error("{}", res.unwrapErr());
+            m_erroredMods.push_back({ entry.path().string(), res.unwrapErr() });
         }
     }
+
     return loadedCount;
 }
 
 size_t Loader::refreshMods() {
     log::debug("Loading mods...");
 
-    // clear errored mods since that list will be
+    // load early load mods
+    m_modLoadMutex.lock();
+    for (auto const& path : m_loadedSettings.m_earlyLoadMods) {
+        if (!ranges::contains(m_mods, [path](auto mod) {
+            return mod.second->m_info.m_path == path;
+        })) {
+            auto res = this->loadModFromFile(path.string());
+            if (!res) {
+                // something went wrong
+                log::error("{}", res.unwrapErr());
+                m_erroredMods.push_back({ path.string(), res.unwrapErr() });
+            }
+        }
+    }
+    m_modLoadMutex.unlock();
+    
+    // clear errored mods since that list will be 
     // reconstructed from scratch
     m_erroredMods.clear();
 
@@ -206,6 +237,30 @@ size_t Loader::refreshMods() {
     return loadedCount;
 }
 
+Result<> Loader::saveData() {
+    auto res = this->saveSettings();
+    if (!res) return res;
+    for (auto& [_, mod] : m_mods) {
+        auto r = mod->saveData();
+        if (!r) {
+            log::warn("Unable to save data for mod \"{}\": {}", mod->getID(), r.unwrapErr());
+        }
+    }
+    return Ok();
+}
+
+Result<> Loader::loadData() {
+    auto res = this->loadSettings();
+    if (!res) return res;
+    for (auto& [_, mod] : m_mods) {
+        auto r = mod->loadData();
+        if (!r) {
+            log::warn("Unable to load data for mod \"{}\": {}", mod->getID(), r.unwrapErr());
+        }
+    }
+    return Ok();
+}
+
 Result<> Loader::saveSettings() {
     auto json = nlohmann::json::object();
 
@@ -215,21 +270,12 @@ Result<> Loader::saveSettings() {
         if (mod->isUninstalled()) continue;
         auto value = nlohmann::json::object();
         value["enabled"] = mod->m_enabled;
-
-        // save mod's settings
-        auto saveSett = mod->saveSettings();
-        if (!saveSett) {
-            return Err(saveSett.error());
-        }
-
         json["mods"][id] = value;
     }
+    json["early-load"] = m_loadedSettings.m_earlyLoadMods;
 
     // save loader settings
-    auto saveIS = InternalMod::get()->saveSettings();
-    if (!saveIS) {
-        return Err(saveIS.error());
-    }
+    GEODE_UNWRAP(InternalMod::get()->saveSettings());
 
     // save info alerts
     InternalLoader::get()->saveInfoAlerts(json);
@@ -247,32 +293,20 @@ Result<> Loader::loadSettings() {
     }
 
     // read mods.json
-    auto read = utils::file::readString(path);
-    if (!read) {
-        return read;
-    }
+    GEODE_UNWRAP_INTO(auto read, utils::file::readString(path));
     try {
-        auto json = nlohmann::json::parse(read.value());
-        if (json.contains("mods")) {
-            auto mods = json["mods"];
-            if (!mods.is_object()) {
-                return Err("[loader settings].mods is not an object");
-            }
-            for (auto [key, val] : mods.items()) {
-                if (!val.is_object()) {
-                    return Err("[loader settings].mods.\"" + key + "\" is not an object");
-                }
-                LoaderSettings::ModSettings mod;
-                if (val.contains("enabled")) {
-                    if (!val["enabled"].is_boolean()) {
-                        return Err(
-                            "[loader settings].mods.\"" + key + "\".enabled is not a boolean"
-                        );
-                    }
-                    mod.m_enabled = val["enabled"];
-                }
-                m_loadedSettings.m_mods.insert({ key, mod });
-            }
+        auto json = nlohmann::json::parse(read);
+        auto checker = JsonChecker(json);
+        auto root = checker.root("[loader settings]").obj();
+        root.has("early-load").into(m_loadedSettings.m_earlyLoadMods);
+        for (auto [key, val] : root.has("mods").items()) {
+            auto obj = val.obj();
+            LoaderSettings::ModSettings mod;
+            obj.has("enabled").into(mod.m_enabled);
+            m_loadedSettings.m_mods.insert({ key, mod });
+        }
+        if (checker.isError()) {
+            log::error("Error loading global mod settings: {}", checker.getError());
         }
         InternalLoader::get()->loadInfoAlerts(json);
         return Ok();
@@ -356,9 +390,9 @@ bool Loader::setup() {
     log::debug("Setting up Loader...");
 
     this->createDirectories();
-    auto sett = this->loadSettings();
+    auto sett = this->loadData();
     if (!sett) {
-        log::warn("Unable to load loader settings: {}", sett.error());
+        log::warn("Unable to load loader settings: {}", sett.unwrapErr());
     }
     this->refreshMods();
 
@@ -493,4 +527,20 @@ void Loader::releaseScheduledFunctions(Mod* mod) {
         func();
     }
     m_scheduledFunctions.clear();
+}
+
+void Loader::waitForModsToBeLoaded() {
+    std::lock_guard _(m_modLoadMutex);
+}
+
+void Loader::setEarlyLoadMod(Mod* mod, bool enabled) {
+    if (enabled) {
+        m_loadedSettings.m_earlyLoadMods.insert(mod->getPackagePath());
+    } else {
+        m_loadedSettings.m_earlyLoadMods.erase(mod->getPackagePath());
+    }
+}
+
+bool Loader::shouldEarlyLoadMod(Mod* mod) const {
+    return m_loadedSettings.m_earlyLoadMods.count(mod->getPackagePath());
 }

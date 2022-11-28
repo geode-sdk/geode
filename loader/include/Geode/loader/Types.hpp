@@ -148,18 +148,22 @@ namespace geode {
         Disabled,
     };
 
-    /**
-     * Default Geode load method for C++
-     * mods: The mod receive a pointer to
-     * its allocated Mod instance. Return
-     * true on a succesful load,
-     * return false on error.
-     */
-    typedef bool(GEODE_CALL* geode_load)(Mod*);
-    typedef void(GEODE_CALL* geode_unload)();
-    typedef bool(GEODE_CALL* geode_enable)();
-    typedef bool(GEODE_CALL* geode_disable)();
-    typedef bool(GEODE_CALL* geode_save_data)(char const*);
-    typedef bool(GEODE_CALL* geode_load_data)(char const*);
-    typedef void(GEODE_CALL* geode_setting_updated)(char const*, Setting*);
+	/**
+	 * These methods will be removed in v1.0.0 and replaced with events
+	 */
+
+	/**
+	 * Default Geode load method for C++ 
+	 * mods: The mod receive a pointer to 
+	 * its allocated Mod instance. Return 
+	 * true on a succesful load, 
+	 * return false on error.
+	 */
+	typedef bool(GEODE_CALL* geode_load)(Mod*);
+	typedef void(GEODE_CALL* geode_unload)();
+	typedef bool(GEODE_CALL* geode_enable)();
+	typedef bool(GEODE_CALL* geode_disable)();
+	typedef bool(GEODE_CALL* geode_save_data)(const char*);
+	typedef bool(GEODE_CALL* geode_load_data)(const char*);
+	typedef void(GEODE_CALL* geode_setting_updated)(const char*, Setting*);
 }

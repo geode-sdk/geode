@@ -11,7 +11,18 @@
 #include <string_view>
 #include <unordered_map>
 #include <unordered_set>
-#include <vector>
+#include <fs/filesystem.hpp>
+#include "Log.hpp"
+#include <mutex>
+
+// for some reason std::filesystem::path doesn't have std::hash defined in C++17 
+// and ghc seems to have inherited this limitation
+template<>
+struct std::hash<ghc::filesystem::path> {
+    std::size_t operator()(ghc::filesystem::path const& path) const noexcept {
+        return ghc::filesystem::hash_value(path);
+    }
+};
 
 namespace geode {
 #pragma warning(disable : 4251)
@@ -46,6 +57,7 @@ namespace geode {
     class GEODE_DLL Loader {
     public:
         struct FailedModInfo {
+            // todo: change to path
             std::string m_file;
             std::string m_reason;
         };
@@ -57,6 +69,8 @@ namespace geode {
             };
 
             std::unordered_map<std::string, ModSettings> m_mods;
+            // todo: in v1.0.0, make this a customizable option in mod.json
+            std::unordered_set<ghc::filesystem::path> m_earlyLoadMods;
         };
 
         using ScheduledFunction = std::function<void GEODE_CALL(void)>;
@@ -70,7 +84,8 @@ namespace geode {
         std::vector<ghc::filesystem::path> m_texturePaths;
         LoaderSettings m_loadedSettings;
         bool m_isSetup = false;
-        static bool s_unloading;
+        static std::atomic_bool s_unloading;
+        mutable std::mutex m_modLoadMutex;
 
         Result<std::string> createTempDirectoryForMod(ModInfo const& info);
         Result<Mod*> loadModFromFile(std::string const& file);
@@ -87,8 +102,7 @@ namespace geode {
 
         template <class, class>
         friend class modifier::FieldIntermediate;
-
-        void updateResourcePaths();
+        
         void updateModResources(Mod* mod);
 
         // used internally in geode_implicit_load
@@ -110,7 +124,9 @@ namespace geode {
 
         Result<> saveSettings();
         Result<> loadSettings();
-
+        Result<> saveData();
+        Result<> loadData();
+        
         bool didLastLaunchCrash() const;
         ghc::filesystem::path getCrashLogDirectory() const;
 
@@ -183,9 +199,14 @@ namespace geode {
         /**
          * Do not call manually unless you know what you're doing.
          */
+        void updateResourcePaths();
+        /**
+         * Do not call manually unless you know what you're doing.
+         */
         void updateResources();
         void addTexturePath(ghc::filesystem::path const& path);
         void removeTexturePath(ghc::filesystem::path const& path);
+        std::vector<ghc::filesystem::path> getTexturePaths() const;
 
         /**
          * Check if a mod with an ID is installed. Any
@@ -267,5 +288,9 @@ namespace geode {
          * Close the platform-specific external console (if one exists)
          */
         static void closePlatfromConsole();
+        
+        void waitForModsToBeLoaded();
+        void setEarlyLoadMod(Mod* mod, bool enabled);
+        bool shouldEarlyLoadMod(Mod* mod) const;
     };
 }

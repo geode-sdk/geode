@@ -15,12 +15,7 @@ Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
     ModInfo info;
 
     auto json = rawJson;
-
-#define PROPAGATE(err)                         \
-    {                                          \
-        auto err__ = err;                      \
-        if (!err__) return Err(err__.error()); \
-    }
+    info.m_rawJSON = rawJson;
 
     JsonChecker checker(json);
     auto root = checker.root("[mod.json]").obj();
@@ -36,7 +31,6 @@ Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
     root.needs("developer").into(info.m_developer);
     root.has("description").into(info.m_description);
     root.has("repository").into(info.m_repository);
-    root.has("datastore").intoRaw(info.m_defaultDataStore);
     root.has("toggleable").into(info.m_supportsDisabling);
     root.has("unloadable").into(info.m_supportsUnloading);
 
@@ -53,9 +47,7 @@ Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
     }
 
     for (auto& [key, value] : root.has("settings").items()) {
-        auto settRes = Setting::parse(key, value.json());
-        PROPAGATE(settRes);
-        auto sett = settRes.value();
+        GEODE_UNWRAP_INTO(auto sett, Setting::parse(key, value.json()));
         sett->m_modID = info.m_id;
         info.m_settings.push_back({ key, sett });
     }
@@ -76,37 +68,15 @@ Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
     // with new cli, binary name is always mod id
     info.m_binaryName = info.m_id + GEODE_PLATFORM_EXTENSION;
 
-    if (root.has("binary")) {
-        log::warn(
-            "[mod.json].binary is deprecated "
-            "and will be removed in the future."
+    // removed keys
+    if (root.has("datastore")) {
+        log::error(
+            "[mod.json].datastore has been deprecated "
+            "and removed. Use Saved Values instead (see TODO: DOCS LINK)"
         );
     }
-
-    root.has("binary").asOneOf<value_t::string, value_t::object>();
-
-    bool autoEndBinaryName = true;
-
-    root.has("binary").is<value_t::string>().into(info.m_binaryName);
-
-    if (auto bin = root.has("binary").is<value_t::object>().obj()) {
-        bin.has("*").into(info.m_binaryName);
-        bin.has("auto").into(autoEndBinaryName);
-
-#if defined(GEODE_IS_WINDOWS)
-        bin.has("windows").into(info.m_binaryName);
-#elif defined(GEODE_IS_MACOS)
-        bin.has("macos").into(info.m_binaryName);
-#elif defined(GEODE_IS_ANDROID)
-        bin.has("android").into(info.m_binaryName);
-#elif defined(GEODE_IS_IOS)
-        bin.has("ios").into(info.m_binaryName);
-#endif
-    }
-
-    if (root.has("binary") && autoEndBinaryName &&
-        !utils::string::endsWith(info.m_binaryName, GEODE_PLATFORM_EXTENSION)) {
-        info.m_binaryName += GEODE_PLATFORM_EXTENSION;
+    if (root.has("binary")) {
+        log::error("[mod.json].binary has been deprecated and removed.");
     }
 
     if (checker.isError()) {
@@ -174,18 +144,12 @@ Result<ModInfo> ModInfo::create(ModJson const& json) {
 
 Result<ModInfo> ModInfo::createFromFile(ghc::filesystem::path const& path) {
     try {
-        auto read = utils::file::readString(path);
-        if (!read) return Err(read.error());
+        GEODE_UNWRAP_INTO(auto read, utils::file::readString(path));
         try {
-            auto res = ModInfo::create(ModJson::parse(read.value()));
-            if (!res) return res;
-            auto info = res.value();
+            GEODE_UNWRAP_INTO(auto info, ModInfo::create(ModJson::parse(read)));
             info.m_path = path;
             if (path.has_parent_path()) {
-                auto err = info.addSpecialFiles(path.parent_path());
-                if (!err) {
-                    return Err(err.error());
-                }
+                GEODE_UNWRAP(info.addSpecialFiles(path.parent_path()));
             }
             return Ok(info);
         }
@@ -201,11 +165,11 @@ Result<ModInfo> ModInfo::createFromFile(ghc::filesystem::path const& path) {
 Result<ModInfo> ModInfo::createFromGeodeFile(ghc::filesystem::path const& path) {
     ZipFile unzip(path.string());
     if (!unzip.isLoaded()) {
-        return Err<>("\"" + path.string() + "\": Unable to unzip");
+        return Err("\"" + path.string() + "\": Unable to unzip");
     }
     // Check if mod.json exists in zip
     if (!unzip.fileExists("mod.json")) {
-        return Err<>("\"" + path.string() + "\" is missing mod.json");
+        return Err("\"" + path.string() + "\" is missing mod.json");
     }
     // Read mod.json & parse if possible
     unsigned long readSize = 0;
@@ -219,7 +183,7 @@ Result<ModInfo> ModInfo::createFromGeodeFile(ghc::filesystem::path const& path) 
     }
     catch (std::exception const& e) {
         delete[] read;
-        return Err<>(e.what());
+        return Err(e.what());
     }
 
     delete[] read;
@@ -234,15 +198,12 @@ Result<ModInfo> ModInfo::createFromGeodeFile(ghc::filesystem::path const& path) 
 
     auto res = ModInfo::create(json);
     if (!res) {
-        return Err("\"" + path.string() + "\" - " + res.error());
+        return Err("\"" + path.string() + "\" - " + res.unwrapErr());
     }
-    auto info = res.value();
+    auto info = res.unwrap();
     info.m_path = path;
 
-    auto err = info.addSpecialFiles(unzip);
-    if (!err) {
-        return Err(err.error());
-    }
+    GEODE_UNWRAP(info.addSpecialFiles(unzip));
 
     return Ok(info);
 }
@@ -270,9 +231,9 @@ Result<> ModInfo::addSpecialFiles(ghc::filesystem::path const& dir) {
         if (ghc::filesystem::exists(dir / file)) {
             auto data = file::readString(dir / file);
             if (!data) {
-                return Err("Unable to read \"" + file + "\": " + data.error());
+                return Err("Unable to read \"" + file + "\": " + data.unwrapErr());
             }
-            *target = sanitizeDetailsData(data.value());
+            *target = sanitizeDetailsData(data.unwrap());
         }
     }
     return Ok();
@@ -284,4 +245,19 @@ std::vector<std::pair<std::string, std::optional<std::string>*>> ModInfo::getSpe
         { "changelog.md", &m_changelog },
         { "support.md", &m_supportInfo },
     };
+}
+
+ModJson ModInfo::toJSON() const {
+    auto json = m_rawJSON;
+    json["path"] = m_path;
+    json["binary"] = m_binaryName;
+    return json;
+}
+
+ModJson ModInfo::getRawJSON() const {
+    return m_rawJSON;
+}
+
+void geode::to_json(nlohmann::json& json, ModInfo const& info) {
+    json = info.toJSON();
 }

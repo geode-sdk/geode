@@ -2,7 +2,7 @@
 
 #include <Geode/loader/SettingNode.hpp>
 #include <Geode/ui/Popup.hpp>
-#include <Geode/utils/Ref.hpp>
+#include <Geode/utils/cocos.hpp>
 
 USE_GEODE_NAMESPACE();
 

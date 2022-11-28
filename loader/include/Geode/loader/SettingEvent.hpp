@@ -52,19 +52,23 @@ namespace geode {
     };
 
     template <class T>
-
-    requires std::is_base_of_v<Setting, T> std::monostate listenForSettingChanges(
+    requires std::is_base_of_v<Setting, T>
+    std::monostate listenForSettingChanges(
         std::string const& settingID, void (*callback)(T*)
     ) {
         Loader::get()->scheduleOnModLoad(getMod(), [=]() {
-            static auto _ = EventListener(callback, SettingChangedFilter<T>(getMod()->getID(), settingID));
+            new EventListener(
+                callback, SettingChangedFilter<T>(getMod()->getID(), settingID)
+            );
         });
         return std::monostate();
     }
 
     static std::monostate listenForAllSettingChanges(void (*callback)(Setting*)) {
         Loader::get()->scheduleOnModLoad(getMod(), [=]() {
-            static auto _ = EventListener(callback, SettingChangedFilter(getMod()->getID()));
+            new EventListener(
+                callback, SettingChangedFilter(getMod()->getID())
+            );
         });
         return std::monostate();
     }

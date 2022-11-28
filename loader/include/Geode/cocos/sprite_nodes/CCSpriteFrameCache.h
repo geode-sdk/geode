@@ -152,6 +152,9 @@ public:
      *  @js getInstance
      */
     static CCSpriteFrameCache* sharedSpriteFrameCache(void);
+    GEODE_ADD(
+        static CCSpriteFrameCache* get();
+    );
 
     /** Purges the cache. It releases all the Sprite Frames and the retained instance. */
     static void purgeSharedSpriteFrameCache(void);

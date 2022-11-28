@@ -4,7 +4,6 @@
 #include <Geode/binding/CCTextInputNode.hpp>
 #include <Geode/binding/ColorChannelSprite.hpp>
 #include <Geode/binding/Slider.hpp>
-#include <Geode/utils/platform.hpp>
 
 // BoolSettingNode
 
@@ -120,10 +119,12 @@ void FileSettingNode::onPickFile(CCObject*) {
     auto setting = std::static_pointer_cast<FileSetting>(m_setting);
     if (auto path = file::pickFile(
             file::PickMode::OpenFile,
-            { file::geodeRoot(),
-              setting->getFileFilters().value_or(std::vector<file::FilePickOptions::Filter>()) }
+            {
+                file::geodeRoot(),
+                setting->getFileFilters().value_or(std::vector<file::FilePickOptions::Filter>())
+            }
         )) {
-        m_uncommittedValue = path.value();
+        m_uncommittedValue = path.unwrap();
         this->valueChanged(true);
     }
 }

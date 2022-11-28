@@ -1,6 +1,7 @@
 #include <Geode/modify/Field.hpp>
-#include <Geode/utils/Ref.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/modify/Field.hpp>
+#include <Geode/modify/CCNode.hpp>
 #include <cocos2d.h>
 
 USE_GEODE_NAMESPACE();
@@ -18,6 +19,9 @@ private:
     FieldContainer* m_fieldContainer;
     Ref<cocos2d::CCObject> m_userObject;
     std::string m_id = "";
+    std::unique_ptr<Layout> m_layout = nullptr;
+    PositionHint m_positionHint = PositionHint::Default;
+    std::unordered_map<std::string, std::any> m_attributes;
 
     friend class ProxyCCNode;
     friend class cocos2d::CCNode;
@@ -110,6 +114,51 @@ CCNode* CCNode::getChildByIDRecursive(std::string const& id) {
         }
     }
     return nullptr;
+}
+
+void CCNode::setLayout(Layout* layout, bool apply) {
+    GeodeNodeMetadata::set(this)->m_layout.reset(layout);
+    if (apply) {
+        this->updateLayout();
+    }
+}
+
+Layout* CCNode::getLayout() {
+    return GeodeNodeMetadata::set(this)->m_layout.get();
+}
+
+void CCNode::updateLayout() {
+    if (auto layout = GeodeNodeMetadata::set(this)->m_layout.get()) {
+        // nodes with absolute position should never be rearranged
+        auto filtered = CCArray::create();
+        for (auto& child : CCArrayExt<CCNode>(m_pChildren)) {
+            if (child->getPositionHint() != PositionHint::Absolute) {
+                filtered->addObject(child);
+            }
+        }
+        layout->apply(filtered, m_obContentSize);
+        filtered->release();
+    }
+}
+
+void CCNode::setPositionHint(PositionHint hint) {
+    GeodeNodeMetadata::set(this)->m_positionHint = hint;
+}
+
+PositionHint CCNode::getPositionHint() {
+    return GeodeNodeMetadata::set(this)->m_positionHint;
+}
+
+void CCNode::setAttribute(std::string const& attr, std::any value) {
+    GeodeNodeMetadata::set(this)->m_attributes[attr] = value;
+}
+
+std::optional<std::any> CCNode::getAttributeInternal(std::string const& attr) {
+    auto meta = GeodeNodeMetadata::set(this);
+    if (meta->m_attributes.count(attr)) {
+        return meta->m_attributes.at(attr);
+    }
+    return std::nullopt;
 }
 
 #pragma warning(pop)

@@ -5,9 +5,6 @@
     "name":         "Geode Test",
     "developer":    "Geode Team",
     "description":  "unit test for geode",
-    "datastore": {
-        "times-opened": 1
-    },
     "dependencies": [
         {
             "id": "geode.testdep",

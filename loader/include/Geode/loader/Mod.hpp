@@ -4,11 +4,12 @@
 #include "Setting.hpp"
 #include "Types.hpp"
 
-#include <Geode/DefaultInclude.hpp>
-#include <Geode/utils/Result.hpp>
-#include <Geode/utils/VersionInfo.hpp>
-#include <Geode/utils/json.hpp>
-#include <Geode/utils/types.hpp>
+#include "../DefaultInclude.hpp"
+#include "../utils/Result.hpp"
+#include "../utils/VersionInfo.hpp"
+#include "../external/json/json.hpp"
+#include "../utils/general.hpp"
+#include "../cocos/support/zip_support/ZipUtils.h"
 #include <optional>
 #include <string_view>
 #include <type_traits>
@@ -144,10 +145,6 @@ namespace geode {
          */
         std::vector<std::string> m_spritesheets;
         /**
-         * Default data store values
-         */
-        nlohmann::json m_defaultDataStore;
-        /**
          * Mod settings
          */
         std::vector<std::pair<std::string, std::shared_ptr<Setting>>> m_settings;
@@ -172,7 +169,19 @@ namespace geode {
          */
         static Result<ModInfo> create(ModJson const& json);
 
+        /**
+         * Convert to JSON. Essentially same as getRawJSON except dynamically 
+         * adds runtime fields like path
+         */
+        ModJson toJSON() const;
+        /**
+         * Get the raw JSON file
+         */
+        ModJson getRawJSON() const;
+
     private:
+        ModJson m_rawJSON;
+
         /**
          * Version is passed for backwards
          * compatibility if we update the mod.json
@@ -186,27 +195,21 @@ namespace geode {
         std::vector<std::pair<std::string, std::optional<std::string>*>> getSpecialFiles();
     };
 
-    /**
-     * @class DataStore
-     * Internal class for notifying Mod
-     * when the datastore changes
-     */
-    class GEODE_DLL DataStore {
-        nlohmann::json m_store;
+    // For converting ModInfo back to JSON
+    void GEODE_DLL to_json(nlohmann::json& json, ModInfo const& info);
+
+    template<class T>
+    struct HandleToSaved : public T {
         Mod* m_mod;
+        std::string m_key;
 
-        DataStore(Mod* m, nlohmann::json& j) : m_mod(m), m_store(j) {}
-
-        friend class Mod;
-
-    public:
-        ~DataStore();
-
-        nlohmann::json& getJson() const;
-        nlohmann::json& operator[](std::string const&);
-        DataStore& operator=(nlohmann::json&);
-        bool contains(std::string const&) const;
-        operator nlohmann::json();
+        HandleToSaved(std::string const& key, Mod* mod, T const& value)
+          : T(value),
+            m_key(key),
+            m_mod(mod) {}
+        HandleToSaved(HandleToSaved const&) = delete;
+        HandleToSaved(HandleToSaved&&) = delete;
+        ~HandleToSaved();
     };
 
     /**
@@ -293,9 +296,9 @@ namespace geode {
         std::string m_loadErrorInfo = "";
 
         /**
-         * Data Store object
+         * Saved values
          */
-        nlohmann::json m_dataStore;
+        nlohmann::json m_saved;
 
         /**
          * Load the platform binary
@@ -305,8 +308,6 @@ namespace geode {
 
         Result<> saveSettings();
         Result<> loadSettings();
-
-        void postDSUpdate();
 
         Result<> createTempDir();
 
@@ -326,7 +327,6 @@ namespace geode {
         friend class Loader;
         friend class ::InternalLoader;
         friend struct ModInfo;
-        friend class DataStore;
 
         template <class = void>
         static inline GEODE_HIDDEN Mod* sharedMod = nullptr;
@@ -357,6 +357,10 @@ namespace geode {
         ModInfo getModInfo() const;
         ghc::filesystem::path getTempDir() const;
         ghc::filesystem::path getBinaryPath() const;
+
+        Result<> saveData();
+        Result<> loadData();
+
         /**
          * Get the mod's save directory path
          */
@@ -364,7 +368,7 @@ namespace geode {
         /**
          * Get the mod's config directory path
          */
-        ghc::filesystem::path getConfigDir() const;
+        ghc::filesystem::path getConfigDir(bool create = true) const;
 
         bool hasSettings() const;
         decltype(ModInfo::m_settings) getSettings() const;
@@ -386,6 +390,50 @@ namespace geode {
                 return true;
             }
             return false;
+        }
+
+        template<class T>
+        T getSavedValue(std::string const& key) {
+            if (m_saved.count(key)) {
+                try {
+                    // json -> T may fail
+                    return m_saved.at(key);
+                } catch(...) {}
+            }
+            return T();
+        }
+
+        template<class T>
+        T getSavedValue(std::string const& key, T const& defaultValue) {
+            if (m_saved.count(key)) {
+                try {
+                    // json -> T may fail
+                    return m_saved.at(key);
+                } catch(...) {}
+            }
+            m_saved[key] = defaultValue;
+            return defaultValue;
+        }
+
+        template<class T>
+        HandleToSaved<T> getSavedMutable(std::string const& key) {
+            return HandleToSaved(key, this, this->getSavedValue<T>(key));
+        }
+
+        template<class T>
+        HandleToSaved<T> getSavedMutable(std::string const& key, T const& defaultValue) {
+            return HandleToSaved(key, this, this->getSavedValue<T>(key, defaultValue));
+        }
+
+        /**
+         * Set the value of an automatically saved variable. When the game is 
+         * closed, the value is automatically saved under the key
+         * @param key Key of the saved value
+         * @param value Value
+         */
+        template<class T>
+        void setSavedValue(std::string const& key, T const& value) {
+            m_saved[key] = value;
         }
 
         /**
@@ -518,19 +566,6 @@ namespace geode {
         bool isUninstalled() const;
 
         /**
-         * Return the data store object
-         * @returns DataStore object
-         * store
-         */
-        DataStore getDataStore();
-
-        /**
-         * Reset the data store to the
-         * default value
-         */
-        Result<> resetDataStore();
-
-        /**
          * Check whether or not this Mod
          * depends on another mod
          */
@@ -562,7 +597,18 @@ namespace geode {
         std::vector<Dependency> getUnresolvedDependencies();
 
         char const* expandSpriteName(char const* name);
+
+        /**
+         * Get info about the mod as JSON
+         * @note For IPC
+         */
+        ModJson getRuntimeInfo() const;
     };
+
+    template<class T>
+    HandleToSaved<T>::~HandleToSaved() {
+        m_mod->setSavedValue(m_key, static_cast<T>(*this));
+    }
 
     /**
      * To bypass the need for cyclic dependencies,
@@ -578,3 +624,6 @@ namespace geode {
 inline char const* operator"" _spr(char const* str, size_t) {
     return geode::Mod::get()->expandSpriteName(str);
 }
+
+// this header uses Mod
+#include "ModEvent.hpp"

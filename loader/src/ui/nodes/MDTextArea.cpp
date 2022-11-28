@@ -3,9 +3,7 @@
 #include <Geode/ui/MDTextArea.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/cocos.hpp>
-#include <Geode/utils/convert.hpp>
-#include <Geode/utils/fetch.hpp>
-#include <Geode/utils/platform.hpp>
+#include <Geode/utils/web.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <Geode/utils/string.hpp>
 #include <md4c.h>
@@ -303,10 +301,10 @@ struct MDParser {
                             else {
                                 auto color = colorForIdentifier(tag);
                                 if (color) {
-                                    renderer->pushColor(color.value());
+                                    renderer->pushColor(color.unwrap());
                                 }
                                 else {
-                                    log::warn("Error parsing color: {}", color.error());
+                                    log::warn("Error parsing color: {}", color.unwrapErr());
                                 }
                             }
                         }

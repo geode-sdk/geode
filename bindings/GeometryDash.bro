@@ -483,6 +483,7 @@ class CCScrollLayerExt : cocos2d::CCLayer {
     void moveToTopWithOffset(float) = mac 0x2357d0, win 0x1b420;
     CCScrollLayerExt(cocos2d::CCRect rect) = mac 0x235130, win 0x1b020, ios 0x21f05c;
     void scrollLayer(float scroll) = mac 0x236490, win 0x1be20;
+    void updateIndicators(float unknown) = win 0x1b710;
 
     cocos2d::CCTouch* m_touch;
     cocos2d::CCPoint m_touchPosition;
@@ -1204,7 +1205,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     cocos2d::CCPoint getTouchPoint(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) = win 0x90620;
     void onSelectBuildTab(cocos2d::CCObject* sender) = win 0x887f0;
     void onCreateButton(cocos2d::CCObject* sender) = win 0x854f0;
-    CCMenuItemSpriteExtra* getSpriteButton(const char* sprite, cocos2d::SEL_MenuHandler callback, cocos2d::CCMenu* menu, float scale) = win 0x78bf0;
+    CCMenuItemSpriteExtra* getSpriteButton(const char* sprite, cocos2d::SEL_MenuHandler callback, cocos2d::CCMenu* menu, float scale) = mac 0xb500, win 0x78bf0;
     cocos2d::CCPoint offsetForKey(int objID) = win 0x92310;
     void updateDeleteMenu() = win 0x7c5d0;
     void updateCreateMenu(bool updateTab) = mac 0x1e960, win 0x85530;
@@ -1257,6 +1258,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     void editColor(cocos2d::CCObject* sender) = mac 0x19190, win 0x8d3c0;
     void alignObjects(cocos2d::CCArray* objs, bool alignY) = win 0x8f320;
     virtual void scrollWheel(float vertical, float horizontal) = win 0x921d0, mac 0x31370, ios 0x2c4884;
+    void createMoveMenu() = mac 0x275e0, win 0x8c0d0;
 
     EditButtonBar* m_buttonBar;
     PAD = mac 0x8, win 0x4;
@@ -1514,9 +1516,9 @@ class FLAlertLayer : cocos2d::CCLayerColor {
         bool scrollable,
         float height
     ) = mac 0x25e1b0, win 0x228e0;
-    static FLAlertLayer* create(FLAlertLayerProtocol*, char const*, gd::string, char const*, char const*) = mac 0x25de00, win 0x22680;
-    static FLAlertLayer* create(FLAlertLayerProtocol*, char const*, gd::string, char const*, char const*, float) = mac 0x25e0e0, win 0x22730, ios 0x1fe374;
-    static FLAlertLayer* create(FLAlertLayerProtocol*, char const*, gd::string, char const*, char const*, float, bool, float) = mac 0x25dec0, win 0x227e0;
+    static FLAlertLayer* create(FLAlertLayerProtocol* protocol, char const* title, gd::string content, char const* btn1, char const* btn2) = mac 0x25de00, win 0x22680;
+    static FLAlertLayer* create(FLAlertLayerProtocol* protocol, char const* title, gd::string content, char const* btn1, char const* btn2, float width) = mac 0x25e0e0, win 0x22730, ios 0x1fe374;
+    static FLAlertLayer* create(FLAlertLayerProtocol* protocol, char const* title, gd::string content, char const* btn1, char const* btn2, float width, bool scrollable, float height) = mac 0x25dec0, win 0x227e0;
     void onBtn1(cocos2d::CCObject*) = mac 0x25ec20, win 0x23340;
     void onBtn2(cocos2d::CCObject*) = mac 0x25ec80, win 0x23380;
 
@@ -2025,7 +2027,9 @@ class GJEffectManager : cocos2d::CCNode {
     void stopActionsForTrigger(EffectGameObject*) = mac 0x183150;
     void stopMoveActionsForGroup(int) = mac 0x1830e0;
     void storeTriggeredID(int) = mac 0x185380;
-    void toggleGroup(int, bool) = mac 0x182c80;
+    void toggleGroup(int item, bool value) { // mac 0x182c80;
+        m_groupToggled[item] = value;
+    }
     void traverseInheritanceChain(InheritanceNode*) = mac 0x181850, win 0x11caf0;
     void updateActiveOpacityEffects() = mac 0x1847e0;
     void updateColorAction(ColorAction*) = mac 0x184560;
@@ -2897,7 +2901,9 @@ class GameManager : GManager {
     bool m_likedFacebook;
     bool m_followedTwitter;
     bool m_subbedYoutube;
-    int m_unknownInt;
+    // there are 4 bytes too many between m_timeOffset and m_playerFrameRand1
+    // and i'm guessing it's this one
+    // int m_unknownInt;
     double m_socialsDuration;
     bool m_showedAd;
     bool m_unknownBool;
@@ -3786,7 +3792,7 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
 
 class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDelegate, RateLevelDelegate, LikeItemDelegate, FLAlertLayerProtocol, LevelDeleteDelegate, NumberInputDelegate, SetIDPopupDelegate {
     static LevelInfoLayer* create(GJGameLevel* level) = mac 0x15f290, win 0x175d50;
-    bool init(GJGameLevel* level) = win 0x175DF0;
+    bool init(GJGameLevel* level) = win 0x175df0, mac 0x15f520;
     void onGarage(cocos2d::CCObject* sender) = win 0x177c10;
     void onViewProfile(cocos2d::CCObject* sender) = win 0x17ac90;
     void onLevelInfo(cocos2d::CCObject* sender) = win 0x17acf0;
@@ -4007,7 +4013,7 @@ class MenuLayer : cocos2d::CCLayer, FLAlertLayerProtocol, GooglePlayDelegate {
     void onTwitter(cocos2d::CCObject*) = win 0x191980;
     void onYouTube(cocos2d::CCObject*) = win 0x1919A0;
     static cocos2d::CCScene* scene(bool) = mac 0x1d12d0, win 0x190720, ios 0x19e57c;
-    MenuLayer* node() = win 0x190550;
+    static MenuLayer* node() = win 0x190550;
 
     cocos2d::CCSprite* m_googlePlaySprite;
     cocos2d::CCSprite* m_viewProfileInfoText;
@@ -5212,18 +5218,22 @@ class TableView : CCScrollLayerExt, CCScrollLayerExtDelegate {
     static TableView* create(TableViewDelegate*, TableViewDataSource*, cocos2d::CCRect) = mac 0x37eb30, win 0x30ed0;
     void reloadData() = mac 0x37f970, win 0x317e0;
 
-    virtual void onEnter() = mac 0x37ff30, ios 0x21dcac;
-    virtual void onExit() = mac 0x37ff40, ios 0x21dcb0;
+    virtual void onEnter() {
+        CCLayer::onEnter();
+    }
+    virtual void onExit() {
+        CCLayer::onExit();
+    }
     virtual bool ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x380120, ios 0x21de24, win 0x31de0;
-    virtual void ccTouchMoved(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x380be0, ios 0x21e5e8;
-    virtual void ccTouchEnded(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x3809a0, ios 0x21e46c;
-    virtual void ccTouchCancelled(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x380b20, ios 0x21e580;
-    virtual void registerWithTouchDispatcher() = mac 0x37ff50, ios 0x21dcb4;
-    virtual void scrollWheel(float, float) = mac 0x380cd0, ios 0x21e6b4;
-    virtual void scrllViewWillBeginDecelerating(CCScrollLayerExt*) = mac 0x3818a0, ios 0x21efd4;
-    virtual void scrollViewDidEndDecelerating(CCScrollLayerExt*) = mac 0x3818c0, ios 0x21efdc;
-    virtual void scrollViewTouchMoving(CCScrollLayerExt*) = mac 0x3818e0, ios 0x21efe4;
-    virtual void scrollViewDidEndMoving(CCScrollLayerExt*) = mac 0x381900, ios 0x21efec;
+    virtual void ccTouchMoved(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x380be0, ios 0x21e5e8, win 0x31f30;
+    virtual void ccTouchEnded(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x3809a0, ios 0x21e46c, win 0x31e80;
+    virtual void ccTouchCancelled(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x380b20, ios 0x21e580, win 0x31ed0;
+    virtual void registerWithTouchDispatcher() = mac 0x37ff50, ios 0x21dcb4, win 0x12aa0;
+    virtual void scrollWheel(float, float) = mac 0x380cd0, ios 0x21e6b4, win 0x320a0;
+    virtual void scrllViewWillBeginDecelerating(CCScrollLayerExt*) {}
+    virtual void scrollViewDidEndDecelerating(CCScrollLayerExt*) {}
+    virtual void scrollViewTouchMoving(CCScrollLayerExt*) {}
+    virtual void scrollViewDidEndMoving(CCScrollLayerExt*) {}
 
     bool m_touchOutOfBoundary;
     cocos2d::CCTouch* m_touchStart;
@@ -5308,7 +5318,7 @@ class TextArea : cocos2d::CCSprite {
     virtual void draw() {}
     virtual void setOpacity(unsigned char) = mac 0x19f760, win 0x33800;
     bool init(gd::string str, char const* font, float width, float height, cocos2d::CCPoint anchor, float scale, bool disableColor) = mac 0x19ec70, win 0x33370, ios 0x92444;
-    static TextArea* create(gd::string str, char const* font, float scale, float width, cocos2d::CCPoint anchor, float height, bool disableColor) = mac 0x19eb40, win 0x33270;
+    static TextArea* create(gd::string str, char const* font, float width, float height, cocos2d::CCPoint anchor, float scale, bool disableColor) = mac 0x19eb40, win 0x33270;
     void colorAllCharactersTo(cocos2d::ccColor3B color) = win 0x33830;
     void setString(gd::string str) = mac 0x19eda0, win 0x33480;
 
