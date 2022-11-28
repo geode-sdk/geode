@@ -211,13 +211,10 @@ SentAsyncWebRequest::SentAsyncWebRequest(AsyncWebRequest const& req, std::string
         );
         curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &data);
         auto res = curl_easy_perform(curl);
-
-        char* ct;
-        res = curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &ct);
-        curl_easy_cleanup(curl);
-        if ((res != CURLE_OK) || !ct) {
+        if (res != CURLE_OK) {
             return this->error("Fetch failed: " + std::string(curl_easy_strerror(res)));
         }
+        curl_easy_cleanup(curl);
 
         AWAIT_RESUME();
 
