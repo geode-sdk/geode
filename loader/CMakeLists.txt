@@ -55,7 +55,7 @@ if (WIN32)
 	)
 	list(APPEND SOURCES ${WIN_SOURCES})
 
-elseif(APPLE and IOS)
+elseif(APPLE AND IOS)
 
 	file(GLOB IOS_SOURCES CONFIGURE_DEPENDS 
 		src/platform/ios/*.cpp
