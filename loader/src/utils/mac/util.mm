@@ -7,6 +7,7 @@ USE_GEODE_NAMESPACE();
     #include <functional>
     #include <iostream>
     #include <sstream>
+    #include <Geode/utils/web.hpp>
 
 bool utils::clipboard::write(std::string const& data) {
     [[NSPasteboard generalPasteboard] clearContents];

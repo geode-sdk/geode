@@ -6,6 +6,7 @@ USE_GEODE_NAMESPACE();
     #include <UIKit/UIKit.h>
     #include <iostream>
     #include <sstream>
+    #include <Geode/utils/web.hpp>
 
 bool utils::clipboard::write(std::string const& data) {
     [UIPasteboard generalPasteboard].string = [NSString stringWithUTF8String:data.c_str()];
