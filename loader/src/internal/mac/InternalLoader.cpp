@@ -30,8 +30,8 @@ void InternalLoader::closePlatformConsole() {
 
 void InternalLoader::postIPCReply(
     void* rawPipeHandle,
-    std::string const& senderID,
-    std::string const& data
+    std::string const& replyID,
+    nlohmann::json const& data
 ) {}
 
 void InternalLoader::setupIPC() {
