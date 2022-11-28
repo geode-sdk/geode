@@ -43,6 +43,7 @@ Result<> web::fetchFile(
 
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &file);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, utils::fetch::writeBinaryData);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
@@ -76,6 +77,7 @@ Result<byte_array> web::fetchBytes(std::string const& url) {
     byte_array ret;
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &ret);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, utils::fetch::writeBytes);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "github_api/1.0");
@@ -103,6 +105,7 @@ Result<std::string> web::fetch(std::string const& url) {
     std::string ret;
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &ret);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, utils::fetch::writeString);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "github_api/1.0");
@@ -173,6 +176,7 @@ SentAsyncWebRequest::SentAsyncWebRequest(AsyncWebRequest const& req, std::string
         }
         curl_easy_setopt(curl, CURLOPT_URL, m_url.c_str());
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
         curl_easy_setopt(curl, CURLOPT_USERAGENT, "github_api/1.0");
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
