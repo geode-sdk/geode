@@ -5,36 +5,6 @@
 
 USE_GEODE_NAMESPACE();
 
-Result<std::string> utils::file::readString(std::string const& path) {
-    std::ifstream in(path, std::ios::in | std::ios::binary);
-    if (in) {
-        std::string contents;
-        in.seekg(0, std::ios::end);
-        contents.resize((const size_t)in.tellg());
-        in.seekg(0, std::ios::beg);
-        in.read(&contents[0], contents.size());
-        in.close();
-        return Ok(contents);
-    }
-    return Err("Unable to open file");
-}
-
-#if _WIN32
-Result<std::string> utils::file::readString(std::wstring const& path) {
-    std::ifstream in(path, std::ios::in | std::ios::binary);
-    if (in) {
-        std::string contents;
-        in.seekg(0, std::ios::end);
-        contents.resize((const size_t)in.tellg());
-        in.seekg(0, std::ios::beg);
-        in.read(&contents[0], contents.size());
-        in.close();
-        return Ok(contents);
-    }
-    return Err("Unable to open file");
-}
-#endif
-
 Result<std::string> utils::file::readString(ghc::filesystem::path const& path) {
 #if _WIN32
     std::ifstream in(path.wstring(), std::ios::in | std::ios::binary);
@@ -53,24 +23,6 @@ Result<std::string> utils::file::readString(ghc::filesystem::path const& path) {
     return Err("Unable to open file");
 }
 
-Result<byte_array> utils::file::readBinary(std::string const& path) {
-    std::ifstream in(path, std::ios::in | std::ios::binary);
-    if (in) {
-        return Ok(byte_array(std::istreambuf_iterator<char>(in), {}));
-    }
-    return Err("Unable to open file");
-}
-
-#if _WIN32
-Result<byte_array> utils::file::readBinary(std::wstring const& path) {
-    std::ifstream in(path, std::ios::in | std::ios::binary);
-    if (in) {
-        return Ok(byte_array(std::istreambuf_iterator<char>(in), {}));
-    }
-    return Err("Unable to open file");
-}
-#endif
-
 Result<byte_array> utils::file::readBinary(ghc::filesystem::path const& path) {
 #if _WIN32
     std::ifstream in(path.wstring(), std::ios::in | std::ios::binary);
@@ -82,34 +34,6 @@ Result<byte_array> utils::file::readBinary(ghc::filesystem::path const& path) {
     }
     return Err("Unable to open file");
 }
-
-Result<> utils::file::writeString(std::string const& path, std::string const& data) {
-    std::ofstream file;
-    file.open(path);
-    if (file.is_open()) {
-        file << data;
-        file.close();
-
-        return Ok();
-    }
-    file.close();
-    return Err("Unable to open file");
-}
-
-#if _WIN32
-Result<> utils::file::writeString(std::wstring const& path, std::string const& data) {
-    std::ofstream file;
-    file.open(path);
-    if (file.is_open()) {
-        file << data;
-        file.close();
-
-        return Ok();
-    }
-    file.close();
-    return Err("Unable to open file");
-}
-#endif
 
 Result<> utils::file::writeString(ghc::filesystem::path const& path, std::string const& data) {
     std::ofstream file;
@@ -128,34 +52,6 @@ Result<> utils::file::writeString(ghc::filesystem::path const& path, std::string
     return Err("Unable to open file");
 }
 
-Result<> utils::file::writeBinary(std::string const& path, byte_array const& data) {
-    std::ofstream file;
-    file.open(path, std::ios::out | std::ios::binary);
-    if (file.is_open()) {
-        file.write(reinterpret_cast<char const*>(data.data()), data.size());
-        file.close();
-
-        return Ok();
-    }
-    file.close();
-    return Err("Unable to open file");
-}
-
-#if _WIN32
-Result<> utils::file::writeBinary(std::wstring const& path, byte_array const& data) {
-    std::ofstream file;
-    file.open(path, std::ios::out | std::ios::binary);
-    if (file.is_open()) {
-        file.write(reinterpret_cast<char const*>(data.data()), data.size());
-        file.close();
-
-        return Ok();
-    }
-    file.close();
-    return Err("Unable to open file");
-}
-#endif
-
 Result<> utils::file::writeBinary(ghc::filesystem::path const& path, byte_array const& data) {
     std::ofstream file;
 #if _WIN32
@@ -173,17 +69,6 @@ Result<> utils::file::writeBinary(ghc::filesystem::path const& path, byte_array 
     return Err("Unable to open file");
 }
 
-Result<> utils::file::createDirectory(std::string const& path) {
-    try {
-        if (ghc::filesystem::create_directory(path)) {
-            return Ok();
-        }
-    }
-    catch (...) {
-    }
-    return Err("Unable to create directory");
-}
-
 Result<> utils::file::createDirectory(ghc::filesystem::path const& path) {
     try {
         if (ghc::filesystem::create_directory(path)) {
@@ -193,17 +78,6 @@ Result<> utils::file::createDirectory(ghc::filesystem::path const& path) {
     catch (...) {
     }
     return Err("Unable to create directory");
-}
-
-Result<> utils::file::createDirectoryAll(std::string const& path) {
-    try {
-        if (ghc::filesystem::create_directories(path)) {
-            return Ok();
-        }
-    }
-    catch (...) {
-    }
-    return Err("Unable to create directories");
 }
 
 Result<> utils::file::createDirectoryAll(ghc::filesystem::path const& path) {

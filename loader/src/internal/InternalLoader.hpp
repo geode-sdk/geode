@@ -6,7 +6,7 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/utils/Result.hpp>
-#include <Geode/utils/json.hpp>
+#include <Geode/external/json/json.hpp>
 #include <mutex>
 #include <optional>
 #include <unordered_map>

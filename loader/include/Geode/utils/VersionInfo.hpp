@@ -1,8 +1,8 @@
 #pragma once
 
-#include <Geode/DefaultInclude.hpp>
+#include "../DefaultInclude.hpp"
 #include <string_view>
-#include "json.hpp"
+#include "../external/json/json.hpp"
 
 namespace geode {
     /**

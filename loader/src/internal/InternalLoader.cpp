@@ -5,7 +5,7 @@
 
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
-#include <Geode/utils/fetch.hpp>
+#include <Geode/utils/web.hpp>
 #include <Geode/utils/file.hpp>
 #include <fmt/format.h>
 #include <hash.hpp>

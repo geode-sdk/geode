@@ -5,12 +5,10 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Setting.hpp>
 #include <Geode/utils/JsonValidation.hpp>
-#include <Geode/utils/conststring.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <Geode/utils/string.hpp>
-#include <Geode/utils/vector.hpp>
 #include <InternalMod.hpp>
 #include <about.hpp>
 

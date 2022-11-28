@@ -2,13 +2,15 @@
 
 #include "../DefaultInclude.hpp"
 #include "Result.hpp"
-#include "json.hpp"
-#include "types.hpp"
+#include "../external/json/json.hpp"
+#include "general.hpp"
 
 #include <fs/filesystem.hpp>
 #include <mutex>
 
 namespace geode::utils::web {
+    GEODE_DLL void openLinkInBrowser(std::string const& url);
+    
     using FileProgressCallback = std::function<bool(double, double)>;
 
     /**

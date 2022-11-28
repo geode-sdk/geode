@@ -11,8 +11,6 @@
 #include <Geode/ui/InputNode.hpp>
 #include <Geode/ui/Popup.hpp>
 #include <Geode/utils/cocos.hpp>
-#include <Geode/utils/convert.hpp>
-#include <Geode/utils/operators.hpp>
 #include <Geode/utils/string.hpp>
 
 USE_GEODE_NAMESPACE();

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../loader/Log.hpp"
-#include "json.hpp"
+#include "../external/json/json.hpp"
 
 #include <set>
 #include <variant>

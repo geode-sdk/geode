@@ -3,7 +3,6 @@
 #endif
 
 #include <Geode/utils/VersionInfo.hpp>
-#include <Geode/utils/ext.hpp>
 #include <Geode/utils/general.hpp>
 
 USE_GEODE_NAMESPACE();

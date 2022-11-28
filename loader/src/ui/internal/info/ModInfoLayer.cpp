@@ -18,7 +18,6 @@
 #include <Geode/ui/MDPopup.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/ranges.hpp>
-#include <Geode/utils/vector.hpp>
 #include <InternalLoader.hpp>
 
 // TODO: die

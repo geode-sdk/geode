@@ -1,5 +1,4 @@
 #include <Geode/loader/Event.hpp>
-#include <Geode/utils/vector.hpp>
 
 USE_GEODE_NAMESPACE();
 

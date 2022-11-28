@@ -1,7 +1,5 @@
 
-#include <Geode/utils/WackyGeodeMacros.hpp>
 #include <Geode/utils/cocos.hpp>
-#include <Geode/utils/Ref.hpp>
 #include "../ui/internal/info/ModInfoLayer.hpp"
 #include "../ui/internal/list/ModListLayer.hpp"
 #include <Geode/ui/BasedButtonSprite.hpp>

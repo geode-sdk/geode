@@ -2,11 +2,9 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
-#include <Geode/utils/conststring.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/ranges.hpp>
-#include <Geode/utils/types.hpp>
 #include <InternalLoader.hpp>
 #include <InternalMod.hpp>
 #include <about.hpp>

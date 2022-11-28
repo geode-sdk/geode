@@ -3,7 +3,7 @@
 #include <Geode/binding/Slider.hpp>
 #include <Geode/binding/SliderThumb.hpp>
 #include <Geode/ui/ColorPickPopup.hpp>
-#include <Geode/utils/operators.hpp>
+#include <Geode/utils/cocos.hpp>
 
 USE_GEODE_NAMESPACE();
 

@@ -1,17 +1,17 @@
-#include <Geode/utils/platform.hpp>
 #include <fs/filesystem.hpp>
 
 #ifdef GEODE_IS_WINDOWS
 
 USE_GEODE_NAMESPACE();
 
-    #include "nfdwin.hpp"
+#include "nfdwin.hpp"
 
-    #include <Windows.h>
-    #include <iostream>
-    #include <shlwapi.h>
-    #include <shobjidl.h>
-    #include <sstream>
+#include <Windows.h>
+#include <iostream>
+#include <shlwapi.h>
+#include <shobjidl.h>
+#include <sstream>
+#include <Geode/utils/web.hpp>
 
 bool utils::clipboard::write(std::string const& data) {
     if (!OpenClipboard(nullptr)) return false;

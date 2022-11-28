@@ -8,7 +8,7 @@
  * Modified to be modern Geode-fitting C++
  */
 
-#include <Geode/utils/platform.hpp>
+#include <Geode/DefaultInclude.hpp>
 
 #ifdef GEODE_IS_WINDOWS
 

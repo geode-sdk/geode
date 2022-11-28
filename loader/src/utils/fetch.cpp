@@ -1,8 +1,7 @@
 #include <Geode/cocos/platform/IncludeCurl.h>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/utils/casts.hpp>
-#include <Geode/utils/fetch.hpp>
-#include <Geode/utils/vector.hpp>
+#include <Geode/utils/web.hpp>
 #include <thread>
 
 USE_GEODE_NAMESPACE();

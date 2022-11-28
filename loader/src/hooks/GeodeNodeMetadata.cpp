@@ -1,8 +1,6 @@
 #include <Geode/modify/Field.hpp>
-#include <Geode/utils/Ref.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/modify/Field.hpp>
-#include <Geode/utils/WackyGeodeMacros.hpp>
 #include <Geode/modify/CCNode.hpp>
 #include <cocos2d.h>
 
@@ -133,7 +131,7 @@ void CCNode::updateLayout() {
     if (auto layout = GeodeNodeMetadata::set(this)->m_layout.get()) {
         // nodes with absolute position should never be rearranged
         auto filtered = CCArray::create();
-        CCARRAY_FOREACH_B_TYPE(m_pChildren, child, CCNode) {
+        for (auto& child : CCArrayExt<CCNode>(m_pChildren)) {
             if (child->getPositionHint() != PositionHint::Absolute) {
                 filtered->addObject(child);
             }

@@ -4,11 +4,12 @@
 #include "Setting.hpp"
 #include "Types.hpp"
 
-#include <Geode/DefaultInclude.hpp>
-#include <Geode/utils/Result.hpp>
-#include <Geode/utils/VersionInfo.hpp>
-#include <Geode/utils/json.hpp>
-#include <Geode/utils/types.hpp>
+#include "../DefaultInclude.hpp"
+#include "../utils/Result.hpp"
+#include "../utils/VersionInfo.hpp"
+#include "../external/json/json.hpp"
+#include "../utils/general.hpp"
+#include "../cocos/support/zip_support/ZipUtils.h"
 #include <optional>
 #include <string_view>
 #include <type_traits>

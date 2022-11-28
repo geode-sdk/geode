@@ -1,5 +1,4 @@
 #include <Geode/c++stl/gdstdlib.hpp>
-#include <Geode/utils/platform.hpp>
 
 #ifdef GEODE_IS_MACOS
 

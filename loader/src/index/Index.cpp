@@ -4,14 +4,13 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/utils/JsonValidation.hpp>
-#include <Geode/utils/fetch.hpp>
+#include <Geode/utils/web.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/general.hpp>
-#include <Geode/utils/json.hpp>
+#include <Geode/external/json/json.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <Geode/utils/string.hpp>
-#include <Geode/utils/vector.hpp>
 #include <fmt/format.h>
 #include <hash.hpp>
 #include <thread>

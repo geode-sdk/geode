@@ -1,11 +1,11 @@
 #pragma once
 
-#include <Geode/DefaultInclude.hpp>
-#include <Geode/hook-core/Hook.hpp>
-#include <Geode/utils/types.hpp>
+#include "../DefaultInclude.hpp"
+#include "../hook-core/Hook.hpp"
+#include "../utils/general.hpp"
+#include "../external/json/json.hpp"
 #include <inttypes.h>
 #include <string_view>
-#include "../utils/json.hpp"
 
 namespace geode {
     class Mod;

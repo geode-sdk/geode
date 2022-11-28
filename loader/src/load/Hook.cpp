@@ -3,7 +3,6 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/ranges.hpp>
-#include <Geode/utils/vector.hpp>
 #include <vector>
 // #include <hook/hook.hpp>
 #include "InternalLoader.hpp"
