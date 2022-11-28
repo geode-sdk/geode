@@ -1,8 +1,8 @@
-#include "../InternalLoader.hpp"
+#include <InternalLoader.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/IPC.hpp>
 #include <iostream>
-#include "../InternalMod.hpp"
+#include <InternalMod.hpp>
 
 USE_GEODE_NAMESPACE();
 

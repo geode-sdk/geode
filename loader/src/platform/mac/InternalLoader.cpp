@@ -1,7 +1,7 @@
-#include "../InternalLoader.hpp"
+#include <InternalLoader.hpp>
 #include <Geode/loader/Log.hpp>
 #include <iostream>
-#include "../InternalMod.hpp"
+#include <InternalMod.hpp>
 
 #ifdef GEODE_IS_MACOS
 

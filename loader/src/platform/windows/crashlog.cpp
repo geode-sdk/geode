@@ -4,19 +4,19 @@
 
 #ifdef GEODE_IS_WINDOWS
 
-    #include "../crashlog.hpp"
+#include <crashlog.hpp>
 
-    #include <DbgHelp.h>
-    #include <Geode/utils/casts.hpp>
-    #include <Geode/utils/file.hpp>
-    #include <Windows.h>
-    #include <chrono>
-    #include <ctime>
-    #include <errhandlingapi.h>
-    #include <fstream>
-    #include <iomanip>
-    #include <iostream>
-    #include <string>
+#include <DbgHelp.h>
+#include <Geode/utils/casts.hpp>
+#include <Geode/utils/file.hpp>
+#include <Windows.h>
+#include <chrono>
+#include <ctime>
+#include <errhandlingapi.h>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <string>
 
 USE_GEODE_NAMESPACE();
 

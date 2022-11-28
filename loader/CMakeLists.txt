@@ -10,15 +10,14 @@ file(READ resources/about.md LOADER_ABOUT_MD)
 configure_file(src/internal/about.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/src/internal/about.hpp)
 
 # Source files
-file(GLOB CORE_SOURCES
+file(GLOB SOURCES CONFIGURE_DEPENDS 
 	src/cocos2d-ext/*.cpp
 	src/core/*.cpp
 	src/hooks/*.cpp
 	src/ids/*.cpp
 	src/internal/*.cpp
-	src/internal/windows/*.cpp
-	src/internal/mac/*.cpp
-	src/internal/ios/*.cpp
+	src/platform/mac/*.cpp
+	src/platform/ios/*.cpp
 	src/load/*.cpp
 	src/load/windows/*.cpp
 	src/load/mac/*.cpp
@@ -37,6 +36,7 @@ file(GLOB CORE_SOURCES
 	src/ui/internal/settings/*.cpp
 )
 
+# Obj-c sources
 file(GLOB OBJC_SOURCES
 	src/internal/ios/*.mm
 	src/internal/mac/*.mm
@@ -45,17 +45,41 @@ file(GLOB OBJC_SOURCES
 	src/utils/ios/*.mm
 	src/utils/mac/*.mm
 )
+set_source_files_properties(${OBJC_SOURCES} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+
+# Add platform sources
+if (WIN32)
+
+	file(GLOB WIN_SOURCES CONFIGURE_DEPENDS 
+		src/platform/windows/*.cpp
+	)
+	list(APPEND SOURCES ${WIN_SOURCES})
+
+elseif(APPLE and IOS)
+
+	file(GLOB IOS_SOURCES CONFIGURE_DEPENDS 
+		src/platform/ios/*.cpp
+	)
+	list(APPEND SOURCES ${IOS_SOURCES})
+	list(APPEND SOURCES ${OBJC_SOURCES})
+
+elseif(APPLE)
+
+	file(GLOB MAC_SOURCES CONFIGURE_DEPENDS 
+		src/platform/mac/*.cpp
+	)
+	list(APPEND SOURCES ${MAC_SOURCES})
+	list(APPEND SOURCES ${OBJC_SOURCES})
+
+endif()
 
 # Embed version info in binary
 if (WIN32)
-	configure_file(src/internal/windows/info.rc.in info.rc)
-	set(CORE_SOURCES ${CORE_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/info.rc)
+	configure_file(src/platform/windows/info.rc.in info.rc)
+	set(SOURCES ${SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/info.rc)
 endif()
 
-add_library(${PROJECT_NAME} SHARED
-	${CORE_SOURCES}
-	${OBJC_SOURCES}
-)
+add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
 make_directory("${GEODE_BIN_PATH}/nightly")
 
@@ -114,7 +138,6 @@ add_subdirectory(lilac)
 target_link_libraries(${PROJECT_NAME} z lilac_hook geode-sdk)
 
 # Use precompiled headers for faster builds
-set_source_files_properties(${OBJC_SOURCES} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 target_precompile_headers(${PROJECT_NAME} PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/DefaultInclude.hpp"
 	# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Utils.hpp"

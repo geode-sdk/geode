@@ -1,4 +1,4 @@
-#include "../crashlog.hpp"
+#include <crashlog.hpp>
 
 #ifdef GEODE_IS_IOS
 
