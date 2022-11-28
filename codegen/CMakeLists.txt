@@ -4,8 +4,8 @@ project(Codegen LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 
 add_subdirectory(Broma)
-add_subdirectory(../fmt ${CMAKE_CURRENT_BINARY_DIR}/fmt)
-add_subdirectory(../filesystem ${CMAKE_CURRENT_BINARY_DIR}/fs)
+add_subdirectory(../loader/include/Geode/external/fmt ${CMAKE_CURRENT_BINARY_DIR}/fmt)
+add_subdirectory(../loader/include/Geode/external/filesystem ${CMAKE_CURRENT_BINARY_DIR}/fs)
 
 file(GLOB SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp

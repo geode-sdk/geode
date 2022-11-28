@@ -758,7 +758,7 @@ CCNode* ModInfoLayer::createLogoSpr(Mod* mod, CCSize const& size) {
     }
     else {
         spr = CCSprite::create(
-            CCString::createWithFormat("%s/logo.png", mod->getID().c_str())->getCString()
+            fmt::format("{}/logo.png", mod->getID()).c_str()
         );
     }
     if (!spr) spr = CCSprite::createWithSpriteFrameName("no-logo.png"_spr);

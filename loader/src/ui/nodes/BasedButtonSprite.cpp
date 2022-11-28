@@ -1,12 +1,12 @@
 #include <Geode/ui/BasedButtonSprite.hpp>
+#include <Geode/loader/Mod.hpp>
 
 USE_GEODE_NAMESPACE();
 
 bool BasedButtonSprite::init(CCNode* ontop, int type, int size, int color) {
     if (!CCSprite::initWithSpriteFrameName(Mod::get()->expandSpriteName(
-            CCString::createWithFormat("GEODE_blank%02d_%02d_%02d.png", type, size, color)
-                ->getCString()
-        )))
+        fmt::format("GEODE_blank%02d_%02d_%02d.png", type, size, color).c_str()
+    )))
         return false;
 
     m_type = type;
