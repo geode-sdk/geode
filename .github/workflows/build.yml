@@ -73,12 +73,11 @@ jobs:
         ${{ matrix.config.extra_flags }} 
         -DGEODE_DISABLE_CLI_CALLS=ON 
         -DCLI_PATH="${{ github.workspace }}/cli" 
-        --parallel
 
     - name: Build
       run: |
         cd build
-        cmake --build . --config RelWithDebInfo
+        cmake --build . --config RelWithDebInfo --parallel
 
     - name: Move to output folder
       shell: bash
