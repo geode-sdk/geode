@@ -11,8 +11,6 @@
 #include <Geode/ui/InputNode.hpp>
 #include <Geode/ui/Popup.hpp>
 #include <Geode/utils/cocos.hpp>
-#include <Geode/utils/convert.hpp>
-#include <Geode/utils/operators.hpp>
 #include <Geode/utils/string.hpp>
 
 USE_GEODE_NAMESPACE();
@@ -162,7 +160,7 @@ namespace {
             auto isValid = std::static_pointer_cast<T>(m_setting)->isValidValue(m_uncommittedValue);
             if (!isValid) {
                 m_errorLabel->setVisible(true);
-                m_errorLabel->setString(isValid.error().c_str());
+                m_errorLabel->setString(isValid.unwrapErr().c_str());
             }
             else {
                 m_errorLabel->setVisible(false);

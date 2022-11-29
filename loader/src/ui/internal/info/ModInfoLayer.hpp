@@ -55,6 +55,7 @@ protected:
     void onRepository(CCObject*);
     void onSupport(CCObject*);
     void onOpenConfigDir(CCObject*);
+    void onAdvancedSettings(CCObject*);
     void install();
     void uninstall();
     void updateInstallStatus(std::string const& status, uint8_t progress);

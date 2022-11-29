@@ -483,6 +483,7 @@ class CCScrollLayerExt : cocos2d::CCLayer {
     void moveToTopWithOffset(float) = mac 0x2357d0, win 0x1b420;
     CCScrollLayerExt(cocos2d::CCRect rect) = mac 0x235130, win 0x1b020, ios 0x21f05c;
     void scrollLayer(float scroll) = mac 0x236490, win 0x1be20;
+    void updateIndicators(float unknown) = win 0x1b710;
 
     cocos2d::CCTouch* m_touch;
     cocos2d::CCPoint m_touchPosition;
@@ -2900,7 +2901,9 @@ class GameManager : GManager {
     bool m_likedFacebook;
     bool m_followedTwitter;
     bool m_subbedYoutube;
-    int m_unknownInt;
+    // there are 4 bytes too many between m_timeOffset and m_playerFrameRand1
+    // and i'm guessing it's this one
+    // int m_unknownInt;
     double m_socialsDuration;
     bool m_showedAd;
     bool m_unknownBool;
@@ -3789,7 +3792,7 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
 
 class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDelegate, RateLevelDelegate, LikeItemDelegate, FLAlertLayerProtocol, LevelDeleteDelegate, NumberInputDelegate, SetIDPopupDelegate {
     static LevelInfoLayer* create(GJGameLevel* level) = mac 0x15f290, win 0x175d50;
-    bool init(GJGameLevel* level) = win 0x175DF0;
+    bool init(GJGameLevel* level) = win 0x175df0, mac 0x15f520;
     void onGarage(cocos2d::CCObject* sender) = win 0x177c10;
     void onViewProfile(cocos2d::CCObject* sender) = win 0x17ac90;
     void onLevelInfo(cocos2d::CCObject* sender) = win 0x17acf0;
@@ -4010,7 +4013,7 @@ class MenuLayer : cocos2d::CCLayer, FLAlertLayerProtocol, GooglePlayDelegate {
     void onTwitter(cocos2d::CCObject*) = win 0x191980;
     void onYouTube(cocos2d::CCObject*) = win 0x1919A0;
     static cocos2d::CCScene* scene(bool) = mac 0x1d12d0, win 0x190720, ios 0x19e57c;
-    MenuLayer* node() = win 0x190550;
+    static MenuLayer* node() = win 0x190550;
 
     cocos2d::CCSprite* m_googlePlaySprite;
     cocos2d::CCSprite* m_viewProfileInfoText;
@@ -5215,18 +5218,22 @@ class TableView : CCScrollLayerExt, CCScrollLayerExtDelegate {
     static TableView* create(TableViewDelegate*, TableViewDataSource*, cocos2d::CCRect) = mac 0x37eb30, win 0x30ed0;
     void reloadData() = mac 0x37f970, win 0x317e0;
 
-    virtual void onEnter() = mac 0x37ff30, ios 0x21dcac;
-    virtual void onExit() = mac 0x37ff40, ios 0x21dcb0;
+    virtual void onEnter() {
+        CCLayer::onEnter();
+    }
+    virtual void onExit() {
+        CCLayer::onExit();
+    }
     virtual bool ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x380120, ios 0x21de24, win 0x31de0;
-    virtual void ccTouchMoved(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x380be0, ios 0x21e5e8;
-    virtual void ccTouchEnded(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x3809a0, ios 0x21e46c;
-    virtual void ccTouchCancelled(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x380b20, ios 0x21e580;
-    virtual void registerWithTouchDispatcher() = mac 0x37ff50, ios 0x21dcb4;
-    virtual void scrollWheel(float, float) = mac 0x380cd0, ios 0x21e6b4;
-    virtual void scrllViewWillBeginDecelerating(CCScrollLayerExt*) = mac 0x3818a0, ios 0x21efd4;
-    virtual void scrollViewDidEndDecelerating(CCScrollLayerExt*) = mac 0x3818c0, ios 0x21efdc;
-    virtual void scrollViewTouchMoving(CCScrollLayerExt*) = mac 0x3818e0, ios 0x21efe4;
-    virtual void scrollViewDidEndMoving(CCScrollLayerExt*) = mac 0x381900, ios 0x21efec;
+    virtual void ccTouchMoved(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x380be0, ios 0x21e5e8, win 0x31f30;
+    virtual void ccTouchEnded(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x3809a0, ios 0x21e46c, win 0x31e80;
+    virtual void ccTouchCancelled(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x380b20, ios 0x21e580, win 0x31ed0;
+    virtual void registerWithTouchDispatcher() = mac 0x37ff50, ios 0x21dcb4, win 0x12aa0;
+    virtual void scrollWheel(float, float) = mac 0x380cd0, ios 0x21e6b4, win 0x320a0;
+    virtual void scrllViewWillBeginDecelerating(CCScrollLayerExt*) {}
+    virtual void scrollViewDidEndDecelerating(CCScrollLayerExt*) {}
+    virtual void scrollViewTouchMoving(CCScrollLayerExt*) {}
+    virtual void scrollViewDidEndMoving(CCScrollLayerExt*) {}
 
     bool m_touchOutOfBoundary;
     cocos2d::CCTouch* m_touchStart;
@@ -5311,7 +5318,7 @@ class TextArea : cocos2d::CCSprite {
     virtual void draw() {}
     virtual void setOpacity(unsigned char) = mac 0x19f760, win 0x33800;
     bool init(gd::string str, char const* font, float width, float height, cocos2d::CCPoint anchor, float scale, bool disableColor) = mac 0x19ec70, win 0x33370, ios 0x92444;
-    static TextArea* create(gd::string str, char const* font, float scale, float width, cocos2d::CCPoint anchor, float height, bool disableColor) = mac 0x19eb40, win 0x33270;
+    static TextArea* create(gd::string str, char const* font, float width, float height, cocos2d::CCPoint anchor, float scale, bool disableColor) = mac 0x19eb40, win 0x33270;
     void colorAllCharactersTo(cocos2d::ccColor3B color) = win 0x33830;
     void setString(gd::string str) = mac 0x19eda0, win 0x33480;
 

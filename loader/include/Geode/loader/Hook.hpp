@@ -1,8 +1,9 @@
 #pragma once
 
-#include <Geode/DefaultInclude.hpp>
-#include <Geode/hook-core/Hook.hpp>
-#include <Geode/utils/types.hpp>
+#include "../DefaultInclude.hpp"
+#include "../hook-core/Hook.hpp"
+#include "../utils/general.hpp"
+#include "../external/json/json.hpp"
 #include <inttypes.h>
 #include <string_view>
 
@@ -77,6 +78,12 @@ namespace geode {
         Mod* getOwner() const {
             return m_owner;
         }
+
+        /**
+         * Get info about the hook as JSON
+         * @note For IPC
+         */
+        nlohmann::json getRuntimeInfo() const;
     };
 
     class GEODE_DLL Patch {
@@ -128,5 +135,11 @@ namespace geode {
         Mod* getOwner() const {
             return m_owner;
         }
+
+        /**
+         * Get info about the patch as JSON
+         * @note For IPC
+         */
+        nlohmann::json getRuntimeInfo() const;
     };
 }

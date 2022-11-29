@@ -35,6 +35,7 @@ namespace geode::modifier {{
 		using Base = {class_name};
 		static void apply() {{
 			using namespace geode::core::meta;
+
 )GEN";
 
         // requires: index, class_name, arg_types, function_name, raw_arg_types, non_virtual

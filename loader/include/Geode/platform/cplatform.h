@@ -1,8 +1,5 @@
 #pragma once
 
-#define GEODE_C_DLL
-#define GEODE_C_API
-
 #ifdef _MSC_VER
     #pragma warning(disable : 4099) // type first seen as class
     #pragma warning(default : 4067)
@@ -20,16 +17,6 @@
     #define GEODE_CALL __stdcall
     #define GEODE_PLATFORM_EXTENSION ".dll"
     #define GEODE_PLATFORM_SHORT_IDENTIFIER "win"
-
-    #ifdef GEODE_EXPORTING
-        #undef GEODE_C_DLL
-        #define GEODE_C_DLL __declspec(dllexport)
-    #else
-        #undef GEODE_C_DLL
-        #define GEODE_C_DLL __declspec(dllimport)
-    #endif
-    #undef GEODE_C_API
-    #define GEODE_C_API __declspec(dllexport) __stdcall
 #else
     #define GEODE_WINDOWS(...)
 #endif

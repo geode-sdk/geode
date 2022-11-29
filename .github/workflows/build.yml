@@ -67,13 +67,19 @@ jobs:
         echo "${{ github.workspace }}/cli" >> $GITHUB_PATH
 
     - name: Configure CMake
-      run: |
-        ${{ matrix.config.prefixes }} cmake -B ${{ github.workspace }}/build ${{ matrix.config.extra_flags }} -DGEODE_DISABLE_CLI_CALLS=ON -DCLI_PATH="${{ github.workspace }}/cli"
+      run: >
+        ${{ matrix.config.prefixes }} cmake -B 
+        ${{ github.workspace }}/build 
+        ${{ matrix.config.extra_flags }} 
+        -DGEODE_DISABLE_CLI_CALLS=ON 
+        -DCLI_PATH="${{ github.workspace }}/cli" 
+        -D CMAKE_C_COMPILER_LAUNCHER=ccache
+        -D CMAKE_CXX_COMPILER_LAUNCHER=ccache
 
     - name: Build
       run: |
         cd build
-        cmake --build . --config RelWithDebInfo
+        cmake --build . --config RelWithDebInfo --parallel
 
     - name: Move to output folder
       shell: bash

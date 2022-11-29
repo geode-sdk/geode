@@ -1,5 +1,4 @@
 #include <Geode/loader/Event.hpp>
-#include <Geode/utils/vector.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -11,6 +10,10 @@ void EventListenerProtocol::enable() {
 
 void EventListenerProtocol::disable() {
     Event::s_listeners.erase(this);
+}
+
+EventListenerProtocol::~EventListenerProtocol() {
+	this->disable();
 }
 
 Event::~Event() {}

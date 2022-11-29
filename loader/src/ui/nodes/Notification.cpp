@@ -3,7 +3,6 @@
 #include <Geode/ui/Notification.hpp>
 #include <Geode/ui/TextRenderer.hpp>
 #include <Geode/utils/cocos.hpp>
-#include <Geode/utils/container.hpp>
 #include <Geode/utils/ranges.hpp>
 
 USE_GEODE_NAMESPACE();

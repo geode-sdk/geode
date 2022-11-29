@@ -16,6 +16,7 @@ namespace geode::core::meta::x86 {}
     #include "membercall.hpp"
     #include "optcall.hpp"
     #include "thiscall.hpp"
+    #include "stdcall.hpp"
 #endif
 
 #endif /* GEODE_CORE_META_META_HPP */

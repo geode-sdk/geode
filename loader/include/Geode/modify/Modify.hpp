@@ -8,6 +8,7 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <iostream>
+#include "IDManager.hpp"
 
 #define GEODE_APPLY_MODIFY_FOR_FUNCTION(                                                                                                                                                                                          \
     addr_index, pure_index, convention, className, functionName                                                                                                                                                                   \

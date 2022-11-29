@@ -5,7 +5,6 @@
 #include <Geode/loader/Setting.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/utils/cocos.hpp>
-#include <Geode/utils/convert.hpp>
 
 bool ModSettingsPopup::setup(Mod* mod) {
     m_noElasticity = true;

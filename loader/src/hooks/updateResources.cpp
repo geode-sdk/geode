@@ -1,5 +1,6 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/modify/LoadingLayer.hpp>
+#include <Geode/modify/GameManager.hpp>
 
 USE_GEODE_NAMESPACE();
 

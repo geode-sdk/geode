@@ -5,7 +5,7 @@
 #ifndef GEODE_IS_WINDOWS
 
     #if defined(GEODE_IS_MACOS)
-        #include "MacOS.hpp"
+        #include "../platform/mac/Core.hpp"
     #elif defined(GEODE_IS_IOS)
     // #include "iOS.hpp"
     #endif

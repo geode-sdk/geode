@@ -29,4 +29,12 @@ CCFileUtils* CCFileUtils::get() {
     return CCFileUtils::sharedFileUtils();
 }
 
+CCSpriteFrameCache* CCSpriteFrameCache::get() {
+    return CCSpriteFrameCache::sharedSpriteFrameCache();
+}
+
+CCTextureCache* CCTextureCache::get() {
+    return CCTextureCache::sharedTextureCache();
+}
+
 #pragma warning(pop)

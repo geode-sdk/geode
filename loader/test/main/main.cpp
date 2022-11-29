@@ -8,24 +8,17 @@ auto test = []() {
 };
 
 // Exported functions
-GEODE_API bool GEODE_CALL geode_enable() {
+$on_mod(Enabled) {
     log::info("Enabled");
-    return true;
 }
-
-GEODE_API bool GEODE_CALL geode_disable() {
+$on_mod(Disabled) {
     log::info("Disabled");
-    return true;
 }
-
-GEODE_API bool GEODE_CALL geode_load(Mod*) {
+$on_mod(Loaded) {
     log::info("Loaded");
-    return true;
 }
-
-GEODE_API bool GEODE_CALL geode_unload() {
+$on_mod(Unloaded) {
     log::info("Unloaded");
-    return true;
 }
 
 // Modify
@@ -54,14 +47,14 @@ struct GJGarageLayerTest : Modify<GJGarageLayerTest, GJGarageLayer> {
             addChild(label);
         }
 
-        // Data Store
-        auto ds = Mod::get()->getDataStore();
-        int out = ds["times-opened"];
-        ds["times-opened"] = out + 1;
+        // Saved Values
+        auto timesOpened = Mod::get()->getSavedValue<int64_t>("times-opened", 0);
+        Mod::get()->setSavedValue("times-opened", timesOpened + 1);
 
-        std::string text = std::string("Times opened: ") + std::to_string(out);
-
-        auto label2 = CCLabelBMFont::create(text.c_str(), "bigFont.fnt");
+        auto label2 = CCLabelBMFont::create(
+            fmt::format("Times opened: {}", timesOpened).c_str(),
+            "bigFont.fnt"
+        );
         label2->setPosition(100, 90);
         label2->setScale(.4f);
         label2->setZOrder(99999);

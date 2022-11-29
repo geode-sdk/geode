@@ -1,6 +1,5 @@
 #include <Geode/ui/Scrollbar.hpp>
 #include <Geode/utils/cocos.hpp>
-#include <Geode/utils/operators.hpp>
 
 // TODO: die
 #undef min

@@ -5,7 +5,7 @@
 
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
-#include <Geode/utils/fetch.hpp>
+#include <Geode/utils/web.hpp>
 #include <Geode/utils/file.hpp>
 #include <fmt/format.h>
 #include <hash.hpp>
@@ -38,6 +38,10 @@ bool InternalLoader::setup() {
     }
 
     log::log(Severity::Debug, InternalMod::get(), "Loaded hooks");
+
+    log::log(Severity::Debug, InternalMod::get(), "Setting up IPC...");
+
+    this->setupIPC();
 
     return true;
 }
@@ -106,7 +110,7 @@ void InternalLoader::downloadLoaderResources(IndexUpdateCallback callback) {
             if (!unzip) {
                 if (callback)
                     callback(
-                        UpdateStatus::Failed, "Unable to unzip new resources: " + unzip.error(), 0
+                        UpdateStatus::Failed, "Unable to unzip new resources: " + unzip.unwrapErr(), 0
                     );
                 return;
             }
@@ -177,79 +181,3 @@ bool InternalLoader::verifyLoaderResources(IndexUpdateCallback callback) {
 
     return true;
 }
-
-#if defined(GEODE_IS_WINDOWS)
-void InternalLoader::platformMessageBox(char const* title, std::string const& info) {
-    MessageBoxA(nullptr, info.c_str(), title, MB_ICONERROR);
-}
-
-void InternalLoader::openPlatformConsole() {
-    if (m_platformConsoleOpen) return;
-    if (AllocConsole() == 0) return;
-    SetConsoleCP(CP_UTF8);
-    // redirect console output
-    freopen_s(reinterpret_cast<FILE**>(stdout), "CONOUT$", "w", stdout);
-    freopen_s(reinterpret_cast<FILE**>(stdin), "CONIN$", "r", stdin);
-
-    m_platformConsoleOpen = true;
-
-    for (auto const& log : Loader::get()->getLogs()) {
-        std::cout << log->toString(true) << "\n";
-    }
-}
-
-void InternalLoader::closePlatformConsole() {
-    if (!m_platformConsoleOpen) return;
-
-    fclose(stdin);
-    fclose(stdout);
-    FreeConsole();
-
-    m_platformConsoleOpen = false;
-}
-
-#elif defined(GEODE_IS_MACOS)
-    #include <CoreFoundation/CoreFoundation.h>
-
-void InternalLoader::platformMessageBox(char const* title, std::string const& info) {
-    CFStringRef cfTitle = CFStringCreateWithCString(NULL, title, kCFStringEncodingUTF8);
-    CFStringRef cfMessage = CFStringCreateWithCString(NULL, info.c_str(), kCFStringEncodingUTF8);
-
-    CFUserNotificationDisplayNotice(
-        0, kCFUserNotificationNoteAlertLevel, NULL, NULL, NULL, cfTitle, cfMessage, NULL
-    );
-}
-
-void InternalLoader::openPlatformConsole() {
-    m_platformConsoleOpen = true;
-
-    for (auto const& log : Loader::get()->getLogs()) {
-        std::cout << log->toString(true) << "\n";
-    }
-}
-
-void InternalLoader::closePlatformConsole() {
-    m_platformConsoleOpen = false;
-}
-
-#elif defined(GEODE_IS_IOS)
-
-    #include <pwd.h>
-    #include <sys/types.h>
-    #include <unistd.h>
-
-void InternalLoader::platformMessageBox(char const* title, std::string const& info) {
-    std::cout << title << ": " << info << std::endl;
-}
-
-void InternalLoader::openPlatformConsole() {
-    ghc::filesystem::path(getpwuid(getuid())->pw_dir);
-    freopen(
-        ghc::filesystem::path(utils::file::geodeRoot() / "geode_log.txt").string().c_str(), "w",
-        stdout
-    );
-    InternalLoader::m_platformConsoleOpen = true;
-}
-
-void InternalLoader::closePlatformConsole() {}
-#endif
