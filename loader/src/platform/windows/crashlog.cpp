@@ -199,8 +199,7 @@ static void printInfo(std::ostream& stream, LPEXCEPTION_POINTERS info, Mod* faul
 }
 
 static void printGeodeInfo(std::ostream& stream) {
-    stream << "Loader Version: " << Loader::get()->getVersion().toString() << " "
-           << Loader::get()->getVersionType() << "\n"
+    stream << "Loader Version: " << Loader::get()->getVersion().toString() << "\n"
            << "Installed mods: " << Loader::get()->getAllMods().size() << "\n"
            << "Failed mods: " << Loader::get()->getFailedMods().size() << "\n";
 }

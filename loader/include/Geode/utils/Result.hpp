@@ -55,7 +55,7 @@ namespace geode {
             if (isErr()) {
                 return Result(fmt::format(str, std::forward<Args>(args)...));
             } else {
-                return this;
+                return *this;
             }
         }
 

@@ -22,25 +22,9 @@ Result<> Mod::loadPlatformBinary() {
     if (dylib) {
         this->m_implicitLoadFunc =
             findSymbolOrMangled<geode_load>(dylib, "geode_implicit_load", "_geode_implicit_load");
-        this->m_loadFunc = findSymbolOrMangled<geode_load>(dylib, "geode_load", "_geode_load");
-        this->m_unloadFunc =
-            findSymbolOrMangled<geode_unload>(dylib, "geode_unload", "_geode_unload");
-        this->m_enableFunc =
-            findSymbolOrMangled<geode_enable>(dylib, "geode_enable", "_geode_enable");
-        this->m_disableFunc =
-            findSymbolOrMangled<geode_disable>(dylib, "geode_disable", "_geode_disable");
-        this->m_saveDataFunc =
-            findSymbolOrMangled<geode_save_data>(dylib, "geode_save_data", "_geode_save_data");
-        this->m_loadDataFunc =
-            findSymbolOrMangled<geode_load_data>(dylib, "geode_load_data", "_geode_load_data");
-        this->m_settingUpdatedFunc = findSymbolOrMangled<geode_setting_updated>(
-            dylib, "geode_setting_updated", "_geode_setting_updated"
-        );
 
-        if (!this->m_implicitLoadFunc && !this->m_loadFunc) {
-            return Err(
-                "Unable to find mod entry point (lacking both implicit & explicit definition)"
-            );
+        if (!this->m_implicitLoadFunc) {
+            return Err("Unable to find mod entry point");
         }
 
         if (this->m_platformInfo) {
@@ -59,14 +43,7 @@ Result<> Mod::unloadPlatformBinary() {
     delete this->m_platformInfo;
     this->m_platformInfo = nullptr;
     if (dlclose(dylib) == 0) {
-        this->m_unloadFunc = nullptr;
-        this->m_loadFunc = nullptr;
         this->m_implicitLoadFunc = nullptr;
-        this->m_enableFunc = nullptr;
-        this->m_disableFunc = nullptr;
-        this->m_saveDataFunc = nullptr;
-        this->m_loadDataFunc = nullptr;
-        this->m_settingUpdatedFunc = nullptr;
         return Ok();
     }
     else {

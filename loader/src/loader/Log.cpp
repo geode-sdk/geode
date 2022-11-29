@@ -89,7 +89,10 @@ std::string log::parse(cocos2d::ccColor4B const& col) {
     return fmt::format("rgba({}, {}, {}, {})", col.r, col.g, col.b, col.a);
 }
 
-Log::Log(Mod* mod, Severity sev) : m_sender(mod), m_time(log_clock::now()), m_severity(sev) {}
+Log::Log(Mod* mod, Severity sev)
+  : m_sender(mod),
+    m_time(log_clock::now()),
+    m_severity(sev) {}
 
 bool Log::operator==(Log const& l) {
     return this == &l;
@@ -111,8 +114,60 @@ std::string Log::toString(bool logTime) const {
     return res;
 }
 
-void Log::pushToLoader() {
-    Loader::get()->pushLog(std::move(*this));
+void Logs::setup() {
+    s_logStream = std::ofstream(
+        Loader::get()->getGeodeDirectory() /
+        GEODE_LOG_DIRECTORY /
+        log::generateLogName()
+    );
+}
+
+void Logs::push(Log&& log) {
+    std::string logStr = log.toString(true);
+
+    InternalLoader::get()->logConsoleMessage(logStr);
+    s_logStream << logStr << std::endl;
+
+    s_logs.emplace_back(std::forward<Log>(log));
+}
+
+void Logs::pop(Log* log) {
+    ranges::remove(s_logs, *log);
+}
+
+std::vector<Log*> Logs::list() {
+    std::vector<Log*> logs;
+    logs.reserve(s_logs.size());
+    for (auto& log : s_logs) {
+        logs.push_back(&log);
+    }
+    return logs;
+}
+
+void Logs::clear() {
+    s_logs.clear();
+}
+
+std::vector<ComponentTrait*>& Log::getComponents() {
+    return m_components;
+}
+
+log_clock::time_point Log::getTime() const {
+    return m_time;
+}
+
+Mod* Log::getSender() const {
+    return m_sender;
+}
+
+Severity Log::getSeverity() const {
+    return m_severity;
+}
+
+Log::~Log() {
+    for (auto comp : m_components) {
+        delete comp;
+    }
 }
 
 std::string geode::log::generateLogName() {
@@ -176,5 +231,5 @@ void geode::log::vlogImpl(
 
     // (l.getComponents().push_back(new ComponentBase(args)), ...);
 
-    log.pushToLoader();
+    Logs::push(std::move(log));
 }

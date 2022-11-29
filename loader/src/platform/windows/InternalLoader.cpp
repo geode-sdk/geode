@@ -24,7 +24,7 @@ void InternalLoader::openPlatformConsole() {
 
     m_platformConsoleOpen = true;
 
-    for (auto const& log : Loader::get()->getLogs()) {
+    for (auto const& log : log::Logs::list()) {
         std::cout << log->toString(true) << "\n";
     }
 }
@@ -103,7 +103,7 @@ ipc_done:
 
 void InternalLoader::setupIPC() {
     std::thread([]() {
-        while (!Loader::get()->isUnloading()) {
+        while (true) {
             auto pipe = CreateNamedPipeA(
                 IPC_PIPE_NAME,
                 PIPE_ACCESS_DUPLEX,

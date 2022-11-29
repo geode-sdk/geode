@@ -580,7 +580,7 @@ void InstallItems::finish(bool replaceFiles) {
     }
 
     // load mods
-    Loader::get()->refreshMods();
+    (void)Loader::get()->refreshModsList();
 
     // finished
     this->post(UpdateStatus::Finished, "", 100);

@@ -1,8 +1,9 @@
 #pragma once
 
+#include "Types.hpp"
 #include "Hook.hpp"
 #include "Setting.hpp"
-#include "Types.hpp"
+#include "ModInfo.hpp"
 
 #include "../DefaultInclude.hpp"
 #include "../utils/Result.hpp"
@@ -16,188 +17,7 @@
 #include <unordered_map>
 #include <vector>
 
-class InternalLoader;
-class InternalMod;
-
 namespace geode {
-    struct PlatformInfo;
-
-    class Hook;
-    class Patch;
-    class Loader;
-    class Mod;
-    class Setting;
-
-    class Unknown;
-    using unknownmemfn_t = void (Unknown::*)();
-    using unknownfn_t = void (*)();
-}
-
-/**
- * The predeclaration of the implicit entry
- */
-GEODE_API bool GEODE_CALL geode_implicit_load(geode::Mod*);
-
-namespace geode {
-
-    struct Dependency {
-        std::string m_id;
-        // todo: Dynamic versions (1.*.*)
-        VersionInfo m_version { 1, 0, 0 };
-        ModResolveState m_state = ModResolveState::Unloaded;
-        bool m_required = false;
-        Mod* m_mod = nullptr;
-        bool isUnresolved() const;
-    };
-
-    struct IssuesInfo {
-        std::string m_info;
-        std::optional<std::string> m_url;
-    };
-
-    /**
-     * Represents all the data gatherable
-     * from mod.json
-     */
-    struct GEODE_DLL ModInfo {
-        /**
-         * Path to the mod file
-         */
-        ghc::filesystem::path m_path;
-        /**
-         * Name of the platform binary within
-         * the mod zip
-         */
-        // clang-format off
-        std::string m_binaryName = GEODE_WINDOWS("mod.dll")
-                                   GEODE_MACOS("mod.dylib")
-                                   GEODE_IOS("mod.dylib")
-                                   GEODE_ANDROID("mod.so");
-        // clang-format on
-        /**
-         * Mod Version. Should follow semver.
-         */
-        VersionInfo m_version { 1, 0, 0 };
-        /**
-         * Human-readable ID of the Mod.
-         * Recommended to be in the format
-         * "com.developer.mod". Not
-         * guaranteed to be either case-
-         * nor space-sensitive. Should
-         * be restricted to the ASCII
-         * character set.
-         */
-        std::string m_id;
-        /**
-         * Name of the mod. May contain
-         * spaces & punctuation, but should
-         * be restricted to the ASCII
-         * character set.
-         */
-        std::string m_name;
-        /**
-         * The name of the head developer.
-         * Should be a single name, like
-         * "HJfod" or "The Geode Team".
-         * If the mod has multiple
-         * developers, this field should
-         * be one of their name or a team
-         * name, and the rest of the credits
-         * should be named in `m_credits`
-         * instead.
-         */
-        std::string m_developer;
-        /**
-         * Short & concise description of the
-         * mod.
-         */
-        std::optional<std::string> m_description;
-        /**
-         * Detailed description of the mod, writtenin Markdown (see
-         * <Geode/ui/MDTextArea.hpp>) for more info
-         */
-        std::optional<std::string> m_details;
-        /**
-         * Changelog for the mod, written in Markdown (see
-         * <Geode/ui/MDTextArea.hpp>) for more info
-         */
-        std::optional<std::string> m_changelog;
-        /**
-         * Support info for the mod; this means anything to show ways to
-         * support the mod's development, like donations. Written in Markdown
-         * (see <Geode/ui/MDTextArea.hpp>) for more info
-         */
-        std::optional<std::string> m_supportInfo;
-        /**
-         * Git Repository of the mod
-         */
-        std::optional<std::string> m_repository;
-        /**
-         * Info about where users should report issues and request help
-         */
-        std::optional<IssuesInfo> m_issues;
-        /**
-         * Dependencies
-         */
-        std::vector<Dependency> m_dependencies;
-        /**
-         * Mod spritesheet names
-         */
-        std::vector<std::string> m_spritesheets;
-        /**
-         * Mod settings
-         */
-        std::vector<std::pair<std::string, std::shared_ptr<Setting>>> m_settings;
-        /**
-         * Whether the mod can be disabled or not
-         */
-        bool m_supportsDisabling = true;
-        /**
-         * Whether the mod can be unloaded or not
-         */
-        bool m_supportsUnloading = false;
-        /**
-         * Create ModInfo from a .geode package
-         */
-        static Result<ModInfo> createFromGeodeFile(ghc::filesystem::path const& path);
-        /**
-         * Create ModInfo from a mod.json file
-         */
-        static Result<ModInfo> createFromFile(ghc::filesystem::path const& path);
-        /**
-         * Create ModInfo from a parsed json document
-         */
-        static Result<ModInfo> create(ModJson const& json);
-
-        /**
-         * Convert to JSON. Essentially same as getRawJSON except dynamically 
-         * adds runtime fields like path
-         */
-        ModJson toJSON() const;
-        /**
-         * Get the raw JSON file
-         */
-        ModJson getRawJSON() const;
-
-    private:
-        ModJson m_rawJSON;
-
-        /**
-         * Version is passed for backwards
-         * compatibility if we update the mod.json
-         * format
-         */
-        static Result<ModInfo> createFromSchemaV010(ModJson const& json);
-
-        Result<> addSpecialFiles(ghc::filesystem::path const& dir);
-        Result<> addSpecialFiles(cocos2d::ZipFile& zip);
-
-        std::vector<std::pair<std::string, std::optional<std::string>*>> getSpecialFiles();
-    };
-
-    // For converting ModInfo back to JSON
-    void GEODE_DLL to_json(nlohmann::json& json, ModInfo const& info);
-
     template<class T>
     struct HandleToSaved : public T {
         Mod* m_mod;
@@ -242,7 +62,7 @@ namespace geode {
         /**
          * Whether the mod binary is loaded or not
          */
-        bool m_loaded = false;
+        bool m_binaryLoaded = false;
         /**
          * Whether the mod is loadable or not
          */
@@ -262,39 +82,7 @@ namespace geode {
          * when their dependency is disabled.
          */
         std::vector<Mod*> m_parentDependencies;
-        /**
-         * Pointer to the Mod's implicit load function
-         */
-        geode_load m_implicitLoadFunc = nullptr;
-        /**
-         * Pointer to the Mod's load function
-         */
-        geode_load m_loadFunc = nullptr;
-        /**
-         * Pointer to the Mod's unload function
-         */
-        geode_unload m_unloadFunc = nullptr;
-        /**
-         * Pointer to the Mod's enable function
-         */
-        geode_enable m_enableFunc = nullptr;
-        /**
-         * Pointer to the Mod's enable function
-         */
-        geode_disable m_disableFunc = nullptr;
-        geode_load_data m_loadDataFunc = nullptr;
-        geode_save_data m_saveDataFunc = nullptr;
-        geode_setting_updated m_settingUpdatedFunc = nullptr;
-        /**
-         * Whether temp/<mod id>/resources should be
-         * added to CCFileUtils search paths
-         */
-        bool m_addResourcesToSearchPath = false;
-        /**
-         * Error info in case loading failed
-         */
-        std::string m_loadErrorInfo = "";
-
+        decltype(geode_implicit_load)* m_implicitLoadFunc;
         /**
          * Saved values
          */
@@ -305,13 +93,8 @@ namespace geode {
          */
         Result<> loadPlatformBinary();
         Result<> unloadPlatformBinary();
-
-        Result<> saveSettings();
-        Result<> loadSettings();
-
         Result<> createTempDir();
 
-        static bool validateID(std::string const& id);
         // no copying
         Mod(Mod const&) = delete;
         Mod operator=(Mod const&) = delete;
@@ -337,7 +120,7 @@ namespace geode {
             sharedMod<> = mod;
         }
 
-        friend bool GEODE_CALL ::geode_implicit_load(Mod*);
+        friend void GEODE_CALL ::geode_implicit_load(Mod*);
 
     public:
         std::string getID() const;
@@ -345,7 +128,6 @@ namespace geode {
         std::string getDeveloper() const;
         std::optional<std::string> getDescription() const;
         std::optional<std::string> getDetails() const;
-        [[deprecated("Use Mod::getPackagePath instead")]] std::string getPath() const;
         ghc::filesystem::path getPackagePath() const;
         VersionInfo getVersion() const;
         bool isEnabled() const;
@@ -353,7 +135,6 @@ namespace geode {
         bool supportsDisabling() const;
         bool supportsUnloading() const;
         bool wasSuccesfullyLoaded() const;
-        std::string getLoadErrorInfo() const;
         ModInfo getModInfo() const;
         ghc::filesystem::path getTempDir() const;
         ghc::filesystem::path getBinaryPath() const;
@@ -527,20 +308,20 @@ namespace geode {
         Result<> unpatch(Patch* patch);
 
         /**
-         * Load this mod
+         * Load & enable this mod
          * @returns Successful result on success,
          * errorful result with info on error
          */
-        Result<> load();
+        Result<> loadBinary();
 
         /**
-         * Unload this mod
+         * Disable & unload this mod
          * @warning May crash if the mod doesn't
          * properly handle unloading!
          * @returns Successful result on success,
          * errorful result with info on error
          */
-        Result<> unload();
+        Result<> unloadBinary();
 
         /**
          * Enable this mod
@@ -550,15 +331,17 @@ namespace geode {
         Result<> enable();
 
         /**
-         * Disable this mod if it supports doing so
+         * Disable this mod
          * @returns Successful result on success,
          * errorful result with info on error
          */
         Result<> disable();
 
         /**
-         * Disable & unload this mod (if supported),
-         * then delete the mod's .geode file.
+         * Disable & unload this mod (if supported), then delete the mod's 
+         * .geode package. If unloading isn't supported, the mod's binary 
+         * will stay loaded, and in all cases the Mod* instance will still 
+         * exist and be interactable.
          * @returns Successful result on success,
          * errorful result with info on error
          */

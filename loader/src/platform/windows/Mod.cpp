@@ -2,7 +2,8 @@
 
 #ifdef GEODE_IS_WINDOWS
 
-    #include <Geode/loader/Mod.hpp>
+#include <Geode/loader/Mod.hpp>
+
 USE_GEODE_NAMESPACE();
 
 template <typename T>
@@ -71,48 +72,27 @@ std::string getLastWinError() {
 }
 
 Result<> Mod::loadPlatformBinary() {
-    auto load = LoadLibraryW((this->m_tempDirName / this->m_info.m_binaryName).wstring().c_str());
+    auto load = LoadLibraryW((m_tempDirName / m_info.m_binaryName).wstring().c_str());
     if (load) {
-        this->m_implicitLoadFunc =
-            findSymbolOrMangled<geode_load>(load, "geode_implicit_load", "_geode_implicit_load@4");
-        this->m_loadFunc = findSymbolOrMangled<geode_load>(load, "geode_load", "_geode_load@4");
-        this->m_unloadFunc =
-            findSymbolOrMangled<geode_unload>(load, "geode_unload", "_geode_unload@0");
-        this->m_enableFunc =
-            findSymbolOrMangled<geode_enable>(load, "geode_enable", "_geode_enable@0");
-        this->m_disableFunc =
-            findSymbolOrMangled<geode_disable>(load, "geode_disable", "_geode_disable@0");
-        this->m_saveDataFunc =
-            findSymbolOrMangled<geode_save_data>(load, "geode_save_data", "_geode_save_data@4");
-        this->m_loadDataFunc =
-            findSymbolOrMangled<geode_load_data>(load, "geode_load_data", "_geode_load_data@4");
-        this->m_settingUpdatedFunc = findSymbolOrMangled<geode_setting_updated>(
-            load, "geode_setting_updated", "_geode_setting_updated@8"
-        );
-
-        if (!this->m_implicitLoadFunc && !this->m_loadFunc) {
-            return Err(
-                "Unable to find mod entry point (lacking both implicit & explicit definition)"
-            );
+        if (!(m_implicitLoadFunc = findSymbolOrMangled<decltype(geode_implicit_load)*>(
+            load, "geode_implicit_load", "_geode_implicit_load@4"
+        ))) {
+            return Err("Unable to find mod entry point");
         }
-
-        if (this->m_platformInfo) {
-            delete this->m_platformInfo;
+        if (m_platformInfo) {
+            delete m_platformInfo;
         }
-        this->m_platformInfo = new PlatformInfo { load };
-
+        m_platformInfo = new PlatformInfo { load };
         return Ok();
     }
     return Err("Unable to load the DLL: " + getLastWinError());
 }
 
 Result<> Mod::unloadPlatformBinary() {
-    auto hmod = this->m_platformInfo->m_hmod;
-    delete this->m_platformInfo;
+    auto hmod = m_platformInfo->m_hmod;
+    delete m_platformInfo;
     if (FreeLibrary(hmod)) {
-        this->m_implicitLoadFunc = nullptr;
-        this->m_unloadFunc = nullptr;
-        this->m_loadFunc = nullptr;
+        m_implicitLoadFunc = nullptr;
         return Ok();
     }
     else {

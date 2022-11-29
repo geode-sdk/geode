@@ -11,6 +11,17 @@ static std::string sanitizeDetailsData(std::string const& str) {
     return utils::string::replace(str, "\r", "");
 }
 
+bool ModInfo::validateID(std::string const& id) {
+    // ids may not be empty
+    if (!id.size()) return false;
+    for (auto const& c : id) {
+        if (!(('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9') ||
+              (c == '-') || (c == '_') || (c == '.')))
+            return false;
+    }
+    return true;
+}
+
 Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
     ModInfo info;
 
@@ -25,7 +36,7 @@ Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
 
     using nlohmann::detail::value_t;
 
-    root.needs("id").validate(&Mod::validateID).into(info.m_id);
+    root.needs("id").validate(&ModInfo::validateID).into(info.m_id);
     root.needs("version").validate(&VersionInfo::validate).intoAs<std::string>(info.m_version);
     root.needs("name").into(info.m_name);
     root.needs("developer").into(info.m_developer);
@@ -33,12 +44,13 @@ Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
     root.has("repository").into(info.m_repository);
     root.has("toggleable").into(info.m_supportsDisabling);
     root.has("unloadable").into(info.m_supportsUnloading);
+    root.has("early-load").into(info.m_needsEarlyLoad);
 
     for (auto& dep : root.has("dependencies").iterate()) {
         auto obj = dep.obj();
 
         auto depobj = Dependency {};
-        obj.needs("id").validate(&Mod::validateID).into(depobj.m_id);
+        obj.needs("id").validate(&ModInfo::validateID).into(depobj.m_id);
         obj.needs("version").validate(&VersionInfo::validate).intoAs<std::string>(depobj.m_version);
         obj.has("required").into(depobj.m_required);
         obj.checkUnknownKeys();
@@ -143,83 +155,61 @@ Result<ModInfo> ModInfo::create(ModJson const& json) {
 }
 
 Result<ModInfo> ModInfo::createFromFile(ghc::filesystem::path const& path) {
+    GEODE_UNWRAP_INTO(auto read, utils::file::readString(path));
     try {
-        GEODE_UNWRAP_INTO(auto read, utils::file::readString(path));
-        try {
-            GEODE_UNWRAP_INTO(auto info, ModInfo::create(ModJson::parse(read)));
-            info.m_path = path;
-            if (path.has_parent_path()) {
-                GEODE_UNWRAP(info.addSpecialFiles(path.parent_path()));
-            }
-            return Ok(info);
+        GEODE_UNWRAP_INTO(auto info, ModInfo::create(ModJson::parse(read)));
+        info.m_path = path;
+        if (path.has_parent_path()) {
+            GEODE_UNWRAP(info.addSpecialFiles(path.parent_path()));
         }
-        catch (std::exception& e) {
-            return Err("Unable to parse mod.json: " + std::string(e.what()));
-        }
+        return Ok(info);
     }
-    catch (std::exception const& e) {
-        return Err(e.what());
+    catch (std::exception& e) {
+        return Err("Unable to parse mod.json: " + std::string(e.what()));
     }
 }
 
 Result<ModInfo> ModInfo::createFromGeodeFile(ghc::filesystem::path const& path) {
-    ZipFile unzip(path.string());
-    if (!unzip.isLoaded()) {
-        return Err("\"" + path.string() + "\": Unable to unzip");
-    }
+    GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(path));
+    return ModInfo::createFromGeodeZip(unzip);
+}
+
+Result<ModInfo> ModInfo::createFromGeodeZip(file::Unzip& unzip) {
     // Check if mod.json exists in zip
-    if (!unzip.fileExists("mod.json")) {
-        return Err("\"" + path.string() + "\" is missing mod.json");
+    if (!unzip.hasEntry("mod.json")) {
+        return Err("\"" + unzip.getPath().string() + "\" is missing mod.json");
     }
+
     // Read mod.json & parse if possible
-    unsigned long readSize = 0;
-    auto read = unzip.getFileData("mod.json", &readSize);
-    if (!read || !readSize) {
-        return Err("\"" + path.string() + "\": Unable to read mod.json");
-    }
+    GEODE_UNWRAP_INTO(auto jsonData, unzip.extract("mod.json"));
     ModJson json;
     try {
-        json = ModJson::parse(std::string(read, read + readSize));
+        json = ModJson::parse(std::string(jsonData.begin(), jsonData.end()));
     }
     catch (std::exception const& e) {
-        delete[] read;
         return Err(e.what());
-    }
-
-    delete[] read;
-
-    if (!json.is_object()) {
-        return Err(
-            "\"" + path.string() +
-            "/mod.json\" does not have an "
-            "object at root despite expected"
-        );
     }
 
     auto res = ModInfo::create(json);
     if (!res) {
-        return Err("\"" + path.string() + "\" - " + res.unwrapErr());
+        return Err("\"" + unzip.getPath().string() + "\" - " + res.unwrapErr());
     }
     auto info = res.unwrap();
-    info.m_path = path;
+    info.m_path = unzip.getPath();
 
     GEODE_UNWRAP(info.addSpecialFiles(unzip));
 
     return Ok(info);
 }
 
-Result<> ModInfo::addSpecialFiles(ZipFile& unzip) {
+Result<> ModInfo::addSpecialFiles(file::Unzip& unzip) {
     // unzip known MD files
     for (auto& [file, target] : getSpecialFiles()) {
-        if (unzip.fileExists(file)) {
-            unsigned long readSize = 0;
-            auto fileData = unzip.getFileData(file, &readSize);
-            if (!fileData || !readSize) {
-                return Err("Unable to read \"" + file + "\"");
-            }
-            else {
-                *target = sanitizeDetailsData(std::string(fileData, fileData + readSize));
-            }
+        if (unzip.hasEntry(file)) {
+            GEODE_UNWRAP_INTO(auto data, unzip.extract(file).expect(
+                "Unable to extract \"{}\"", file
+            ));
+            *target = sanitizeDetailsData(std::string(data.begin(), data.end()));
         }
     }
     return Ok();
@@ -256,6 +246,10 @@ ModJson ModInfo::toJSON() const {
 
 ModJson ModInfo::getRawJSON() const {
     return m_rawJSON;
+}
+
+bool ModInfo::operator==(ModInfo const& other) const {
+    return m_id == other.m_id;
 }
 
 void geode::to_json(nlohmann::json& json, ModInfo const& info) {

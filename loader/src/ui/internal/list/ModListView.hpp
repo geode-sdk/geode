@@ -28,14 +28,14 @@ class ModListLayer;
 struct ModObject : public CCObject {
     ModObjectType m_type;
     Mod* m_mod;
-    Loader::FailedModInfo m_info;
+    InvalidGeodeFile m_info;
     IndexItem m_index;
 
     inline ModObject(Mod* mod) : m_mod(mod), m_type(ModObjectType::Mod) {
         this->autorelease();
     };
 
-    inline ModObject(Loader::FailedModInfo const& info) :
+    inline ModObject(InvalidGeodeFile const& info) :
         m_info(info), m_type(ModObjectType::Unloaded) {
         this->autorelease();
     };

@@ -216,6 +216,8 @@ namespace cocos2d
          * @since geode v1.0.0
          */
         bool isLoaded() const;
+
+        bool unzipAllTo(ghc::filesystem::path const& path);
     )
 
         /**

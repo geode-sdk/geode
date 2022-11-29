@@ -1,9 +1,13 @@
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/string.hpp>
+#include <Geode/utils/map.hpp>
 #include <fstream>
 #include <../support/zip_support/ZipUtils.h>
+#include <../support/zip_support/ioapi.h>
+#include <../support/zip_support/unzip.h>
 
 USE_GEODE_NAMESPACE();
+using namespace geode::utils::file;
 
 Result<std::string> utils::file::readString(ghc::filesystem::path const& path) {
 #if _WIN32
@@ -112,46 +116,153 @@ Result<std::vector<std::string>> utils::file::listFilesRecursively(std::string c
 }
 
 Result<> utils::file::unzipTo(ghc::filesystem::path const& from, ghc::filesystem::path const& to) {
-    // unzip downloaded
-    auto unzip = ZipFile(from.string());
-    if (!unzip.isLoaded()) {
-        return Err("Unable to unzip index.zip");
-    }
+    GEODE_UNWRAP_INTO(auto unzip, Unzip::create(from));
+    return unzip.extractAllTo(to);
+}
 
-    if (!ghc::filesystem::exists(to) && !ghc::filesystem::create_directories(to)) {
-        return Err("Unable to create directories \"" + to.string() + "\"");
-    }
+static constexpr auto MAX_ENTRY_PATH_LEN = 256;
 
-    for (auto file : unzip.getAllFiles()) {
-        // this is a very bad check for seeing
-        // if file is a directory. it seems to
-        // work on windows at least. idk why
-        // getAllFiles returns the directories
-        // aswell now
-        if (utils::string::endsWith(file, "\\") || utils::string::endsWith(file, "/")) continue;
+struct ZipEntry {
+    unz_file_pos m_pos;
+    ZPOS64_T m_compressedSize;
+    ZPOS64_T m_uncompressedSize;
+};
 
-        auto zipPath = file;
+class file::UnzipImpl final {
+public:
+    using Path = Unzip::Path;
 
-        // dont include the github repo folder
-        file = file.substr(file.find_first_of("/") + 1);
+private:
+    unzFile m_zip;
+    Path m_zipPath;
+    std::unordered_map<Path, ZipEntry> m_entries;
 
-        auto path = ghc::filesystem::path(file);
-        if (path.has_parent_path()) {
-            auto dir = to / path.parent_path();
-            if (!ghc::filesystem::exists(dir) && !ghc::filesystem::create_directories(dir)) {
-                return Err("Unable to create directories \"" + dir.string() + "\"");
+public:
+    bool loadEntries() {
+        // Clear old entries
+        m_entries.clear();
+
+        char fileName[MAX_ENTRY_PATH_LEN + 1];
+        unz_file_info64 fileInfo;
+
+        // Read first file
+        if (unzGoToFirstFile64(
+            m_zip, &fileInfo, fileName, sizeof(fileName) - 1
+        )) {
+            return false;
+        }
+        // Loop over all files
+        while (true) {
+            // Read file and add to entries
+            unz_file_pos pos;
+            if (unzGetFilePos(m_zip, &pos)) {
+                m_entries.insert({
+                    fileName, ZipEntry {
+                        .m_pos = pos,
+                        .m_compressedSize = fileInfo.compressed_size,
+                        .m_uncompressedSize = fileInfo.uncompressed_size,
+                    }
+                });
+            }
+            // Read next file, or break on error
+            if (unzGoToNextFile64(
+                m_zip, &fileInfo, fileName, sizeof(fileName) - 1)
+            ) {
+                break;
             }
         }
-        unsigned long size;
-        auto data = unzip.getFileData(zipPath, &size);
-        if (!data || !size) {
-            return Err("Unable to read \"" + std::string(zipPath) + "\"");
-        }
-        auto wrt = utils::file::writeBinary(to / file, byte_array(data, data + size));
-        if (!wrt) {
-            return Err("Unable to write \"" + (to / file).string() + "\": " + wrt.unwrapErr());
-        }
+        return true;
     }
 
+    Result<byte_array> extract(Path const& name) {
+        if (!m_entries.count(name)) {
+            return Err("Entry not found");
+        }
+
+        auto entry = m_entries.at(name);
+
+        if (!unzGoToFilePos(m_zip, &entry.m_pos)) {
+            return Err("Unable to navigate to entry");
+        }
+        if (!unzOpenCurrentFile(m_zip)) {
+            return Err("Unable to open entry");
+        }
+        byte_array res;
+        res.reserve(entry.m_uncompressedSize);
+        auto size = unzReadCurrentFile(m_zip, res.data(), entry.m_uncompressedSize);
+        if (size == 0 || size == entry.m_uncompressedSize) {
+            return Err("Unable to extract entry");
+        }
+        unzCloseCurrentFile(m_zip);
+
+        return Ok(res);
+    }
+
+    std::unordered_map<Path, ZipEntry>& entries() {
+        return m_entries;
+    }
+
+    Path& path() {
+        return m_zipPath;
+    }
+
+    UnzipImpl(unzFile zip, Path const& path) : m_zip(zip), m_zipPath(path) {}
+    ~UnzipImpl() {
+        unzClose(m_zip);
+    }
+};
+
+Unzip::Unzip(UnzipImpl* impl) : m_impl(impl) {}
+
+Unzip::~Unzip() {
+    if (m_impl) {
+        delete m_impl;
+    }
+}
+
+Unzip::Unzip(Unzip&& other) : m_impl(other.m_impl) {
+    other.m_impl = nullptr;
+}
+
+Result<Unzip> Unzip::create(Path const& file) {
+    // todo: make sure unicode paths work
+    auto zip = unzOpen(file.generic_string().c_str());
+    if (!zip) {
+        return Err("Unable to open zip file");
+    }
+    auto impl = new UnzipImpl(zip, file);
+    if (!impl->loadEntries()) {
+        return Err("Unable to read zip file");
+    }
+    return Ok(Unzip(impl));
+}
+
+ghc::filesystem::path Unzip::getPath() const {
+    return m_impl->path();
+}
+
+std::vector<ghc::filesystem::path> Unzip::getEntries() const {
+    return map::getKeys(m_impl->entries());
+}
+
+bool Unzip::hasEntry(Path const& name) {
+    return m_impl->entries().count(name);
+}
+
+Result<byte_array> Unzip::extract(Path const& name) {
+    return m_impl->extract(name);
+}
+
+Result<> Unzip::extractTo(Path const& name, Path const& path) {
+    GEODE_UNWRAP_INTO(auto bytes, m_impl->extract(name));
+    GEODE_UNWRAP(file::writeBinary(path, bytes));
+    return Ok();
+}
+
+Result<> Unzip::extractAllTo(Path const& dir) {
+    GEODE_UNWRAP(file::createDirectoryAll(dir));
+    for (auto& [entry, _] : m_impl->entries()) {
+        GEODE_UNWRAP(this->extractTo(entry, dir / entry));
+    }
     return Ok();
 }
