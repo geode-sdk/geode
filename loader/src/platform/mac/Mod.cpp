@@ -21,7 +21,7 @@ Result<> Mod::loadPlatformBinary() {
         dlopen((this->m_tempDirName / this->m_info.m_binaryName).string().c_str(), RTLD_LAZY);
     if (dylib) {
         this->m_implicitLoadFunc =
-            findSymbolOrMangled<geode_load>(dylib, "geode_implicit_load", "_geode_implicit_load");
+            findSymbolOrMangled<decltype(geode_implicit_load)*>(dylib, "geode_implicit_load", "_geode_implicit_load");
 
         if (!this->m_implicitLoadFunc) {
             return Err("Unable to find mod entry point");
