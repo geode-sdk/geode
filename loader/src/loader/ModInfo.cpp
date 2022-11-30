@@ -181,7 +181,10 @@ Result<ModInfo> ModInfo::createFromGeodeZip(file::Unzip& unzip) {
     }
 
     // Read mod.json & parse if possible
-    GEODE_UNWRAP_INTO(auto jsonData, unzip.extract("mod.json"));
+    GEODE_UNWRAP_INTO(
+        auto jsonData,
+        unzip.extract("mod.json").expect("Unable to read mod.json: {error}")
+    );
     ModJson json;
     try {
         json = ModJson::parse(std::string(jsonData.begin(), jsonData.end()));
@@ -197,7 +200,10 @@ Result<ModInfo> ModInfo::createFromGeodeZip(file::Unzip& unzip) {
     auto info = res.unwrap();
     info.m_path = unzip.getPath();
 
-    GEODE_UNWRAP(info.addSpecialFiles(unzip));
+    GEODE_UNWRAP(
+        info.addSpecialFiles(unzip)
+            .expect("Unable to add extra files: {error}")
+    );
 
     return Ok(info);
 }

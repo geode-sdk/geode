@@ -75,11 +75,6 @@ void CCFileUtils::updatePaths() {
         this->addSearchPath(path.c_str());
     }
     DONT_ADD_PATHS = false;
-
-    log::debug("Search Paths: {}", m_searchPathArray.size());
-    for (auto& path : m_searchPathArray) {
-        log::debug("Path: {}", path.c_str());
-    }
 }
 
 #pragma warning(pop)

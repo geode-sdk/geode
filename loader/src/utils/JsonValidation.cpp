@@ -295,8 +295,7 @@ template <class Json>
 void JsonMaybeObject<Json>::checkUnknownKeys() {
     for (auto& [key, _] : self().m_json.items()) {
         if (!m_knownKeys.count(key)) {
-            // log::debug(self().m_hierarchy + " contains unknown key \"" + key + "\"");
-            log::debug("{} contains unknown key \"{}\"", self().m_hierarchy, key);
+            log::warn("{} contains unknown key \"{}\"", self().m_hierarchy, key);
         }
     }
 }

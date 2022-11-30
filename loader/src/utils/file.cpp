@@ -1,6 +1,7 @@
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/map.hpp>
+#include <Geode/loader/Log.hpp>
 #include <fstream>
 #include <../support/zip_support/ZipUtils.h>
 #include <../support/zip_support/ioapi.h>
@@ -155,7 +156,7 @@ public:
         while (true) {
             // Read file and add to entries
             unz_file_pos pos;
-            if (unzGetFilePos(m_zip, &pos)) {
+            if (unzGetFilePos(m_zip, &pos) == UNZ_OK) {
                 m_entries.insert({
                     fileName, ZipEntry {
                         .m_pos = pos,
@@ -166,8 +167,8 @@ public:
             }
             // Read next file, or break on error
             if (unzGoToNextFile64(
-                m_zip, &fileInfo, fileName, sizeof(fileName) - 1)
-            ) {
+                m_zip, &fileInfo, fileName, sizeof(fileName) - 1
+            ) != UNZ_OK) {
                 break;
             }
         }
@@ -181,16 +182,16 @@ public:
 
         auto entry = m_entries.at(name);
 
-        if (!unzGoToFilePos(m_zip, &entry.m_pos)) {
+        if (unzGoToFilePos(m_zip, &entry.m_pos) != UNZ_OK) {
             return Err("Unable to navigate to entry");
         }
-        if (!unzOpenCurrentFile(m_zip)) {
+        if (unzOpenCurrentFile(m_zip) != UNZ_OK) {
             return Err("Unable to open entry");
         }
         byte_array res;
-        res.reserve(entry.m_uncompressedSize);
+        res.resize(entry.m_uncompressedSize);
         auto size = unzReadCurrentFile(m_zip, res.data(), entry.m_uncompressedSize);
-        if (size == 0 || size == entry.m_uncompressedSize) {
+        if (size < 0 || size != entry.m_uncompressedSize) {
             return Err("Unable to extract entry");
         }
         unzCloseCurrentFile(m_zip);
@@ -232,6 +233,7 @@ Result<Unzip> Unzip::create(Path const& file) {
     }
     auto impl = new UnzipImpl(zip, file);
     if (!impl->loadEntries()) {
+        delete impl;
         return Err("Unable to read zip file");
     }
     return Ok(Unzip(impl));

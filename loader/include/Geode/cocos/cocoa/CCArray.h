@@ -184,6 +184,11 @@ public:
         CCString* stringAtIndex(unsigned int index);
     );
 
+    /** 
+     * Returns first element, or null if empty
+     * @note Geode addition
+     */
+    CCObject* firstObject();
     /** Returns last element */
     CCObject* lastObject();
     /** Returns a random element */
@@ -210,6 +215,11 @@ public:
 
     // Removing Objects
 
+    /** 
+     * Remove first object, or do nothing if array is empty
+     * @note Geode addition
+     */
+    void removeFirstObject(bool bReleaseObj = true);
     /** Remove last object */
     void removeLastObject(bool bReleaseObj = true);
     /** Remove a certain object */
