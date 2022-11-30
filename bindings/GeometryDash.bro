@@ -1,3 +1,21 @@
+// geode additions to make stl containers easier
+// clang-format off
+class GDString {
+    void winDtor() = win 0xf6e0;
+    GDString& winAssign(GDString const&, size_t, size_t) = win 0xf720;
+    GDString& winAssign(char const*) = win 0xf680;
+    GDString& winAssign(char const*, size_t) = win 0xf840;
+
+    static uintptr_t macEmptyContainer() {
+        return geode::base::get() + 0x6030d0;
+    }
+    void macCtor(char const*) = mac 0x489fc0;
+    void macCtor(GDString const&) = mac 0x489fcc;
+    GDString& macAssign(char const*) = mac 0x489f96;
+    GDString& macAssign(GDString const&) = mac 0x489f9c;
+    void macDestroy() = mac 0x489f78;
+}
+
 class AchievementBar : cocos2d::CCNodeRGBA {
     static AchievementBar* create(const char* title, const char* desc, const char* icon, bool quest) = mac 0x379f80, win 0x3b120, ios 0x1a4784;
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Geode/binding/GDString.hpp>
 #include <string>
 #include <stdexcept>
 #include <utility>
