@@ -49,7 +49,7 @@ void ipcPipeThread(HANDLE pipe) {
     if (ReadFile(pipe, buffer, sizeof(buffer) - 1, &read, nullptr)) {
         buffer[read] = '\0';
 
-        std::string reply = InternalLoader::processRawIPC(buffer);
+        std::string reply = InternalLoader::processRawIPC((void*)pipe, buffer);
 
         DWORD written;
         WriteFile(pipe, reply.c_str(), reply.size(), &written, nullptr);
