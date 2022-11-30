@@ -8,8 +8,18 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <fs/filesystem.hpp>
 
 #undef snprintf
+
+// for some reason std::filesystem::path doesn't have std::hash defined in C++17 
+// and ghc seems to have inherited this limitation
+template<>
+struct std::hash<ghc::filesystem::path> {
+    std::size_t operator()(ghc::filesystem::path const& path) const noexcept {
+        return ghc::filesystem::hash_value(path);
+    }
+};
 
 namespace geode {
     using byte_array = std::vector<uint8_t>;

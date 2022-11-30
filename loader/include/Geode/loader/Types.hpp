@@ -1,8 +1,11 @@
 #pragma once
 
-#include <Geode/DefaultInclude.hpp>
-#include <Geode/platform/cplatform.h>
+#include "../DefaultInclude.hpp"
+#include "../platform/cplatform.h"
 #include <string>
+
+class InternalLoader;
+class InternalMod;
 
 namespace geode {
     /**
@@ -148,22 +151,33 @@ namespace geode {
         Disabled,
     };
 
-	/**
-	 * These methods will be removed in v1.0.0 and replaced with events
-	 */
+    static constexpr std::string_view GEODE_DIRECTORY = "geode";
+    static constexpr std::string_view GEODE_MOD_DIRECTORY = "mods";
+    static constexpr std::string_view GEODE_LOG_DIRECTORY = "log";
+    static constexpr std::string_view GEODE_RESOURCE_DIRECTORY = "resources";
+    static constexpr std::string_view GEODE_CONFIG_DIRECTORY = "config";
+    static constexpr std::string_view GEODE_TEMP_DIRECTORY = "temp";
+    static constexpr std::string_view GEODE_MOD_EXTENSION = ".geode";
+    static constexpr std::string_view GEODE_INDEX_DIRECTORY = "index";
 
-	/**
-	 * Default Geode load method for C++ 
-	 * mods: The mod receive a pointer to 
-	 * its allocated Mod instance. Return 
-	 * true on a succesful load, 
-	 * return false on error.
-	 */
-	typedef bool(GEODE_CALL* geode_load)(Mod*);
-	typedef void(GEODE_CALL* geode_unload)();
-	typedef bool(GEODE_CALL* geode_enable)();
-	typedef bool(GEODE_CALL* geode_disable)();
-	typedef bool(GEODE_CALL* geode_save_data)(const char*);
-	typedef bool(GEODE_CALL* geode_load_data)(const char*);
-	typedef void(GEODE_CALL* geode_setting_updated)(const char*, Setting*);
+    class Mod;
+    class Loader;
+    class Hook;
+    struct ModInfo;
+    class VersionInfo;
+
+    class Unknown;
+    using unknownmemfn_t = void (Unknown::*)();
+    using unknownfn_t = void (*)();
+
+    namespace modifier {
+        template <class, class>
+        class FieldIntermediate;
+    }
+    
 }
+
+/**
+ * The predeclaration of the implicit entry
+ */
+GEODE_API void GEODE_CALL geode_implicit_load(geode::Mod*);

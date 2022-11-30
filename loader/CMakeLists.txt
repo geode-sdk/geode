@@ -19,10 +19,7 @@ file(GLOB SOURCES CONFIGURE_DEPENDS
 	src/internal/*.cpp
 	src/platform/mac/*.cpp
 	src/platform/ios/*.cpp
-	src/load/*.cpp
-	src/load/windows/*.cpp
-	src/load/mac/*.cpp
-	src/mac/*.cpp
+	src/loader/*.cpp
 	src/main.cpp
 	src/utils/*.cpp
 	src/index/*.cpp
@@ -39,10 +36,6 @@ file(GLOB SOURCES CONFIGURE_DEPENDS
 file(GLOB OBJC_SOURCES
 	src/platform/ios/*.mm
 	src/platform/mac/*.mm
-	src/load/ios/*.mm
-	src/load/mac/*.mm
-	src/utils/ios/*.mm
-	src/utils/mac/*.mm
 )
 set_source_files_properties(${OBJC_SOURCES} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 

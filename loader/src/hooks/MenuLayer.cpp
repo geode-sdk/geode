@@ -33,30 +33,23 @@ static void addUpdateIcon(char const* icon = "updates-available.png"_spr) {
 
 static void updateIndexProgress(UpdateStatus status, std::string const& info, uint8_t progress) {
     if (status == UpdateStatus::Failed) {
-        g_indexUpdateNotif->hide();
+		g_indexUpdateNotif->setIcon(NotificationIcon::Error);
+		g_indexUpdateNotif->setString("Index update failed");
+        g_indexUpdateNotif->setTime(2.f);
         g_indexUpdateNotif = nullptr;
-        NotificationBuilder()
-            .title("Index Update")
-            .text("Index update failed :(")
-            .icon("info-alert.png"_spr)
-            .show();
         addUpdateIcon("updates-failed.png"_spr);
     }
 
     if (status == UpdateStatus::Finished) {
-        g_indexUpdateNotif->hide();
-        g_indexUpdateNotif = nullptr;
+		g_indexUpdateNotif->setIcon(NotificationIcon::Success);
         if (Index::get()->areUpdatesAvailable()) {
-            NotificationBuilder()
-                .title("Updates available")
-                .text("Some mods have updates available!")
-                .icon("updates-available.png"_spr)
-                .clicked([](auto) -> void {
-                    ModListLayer::scene();
-                })
-                .show();
+			g_indexUpdateNotif->setString("Updates Available");
             addUpdateIcon();
-        }
+        } else {
+			g_indexUpdateNotif->setString("Everything Up-to-Date");
+		}
+        g_indexUpdateNotif->setTime(2.f);
+		g_indexUpdateNotif = nullptr;
     }
 }
 
@@ -107,12 +100,15 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 		}
 
 		// show if some mods failed to load
-		auto failed = Loader::get()->getFailedMods();
-		if (failed.size()) {
-			NotificationBuilder()
-				.title("Failed to load")
-				.text("Some mods failed to load")
-				.show();
+		static bool shownFailedNotif = false;
+		if (!shownFailedNotif) {
+			shownFailedNotif = true;
+			if (Loader::get()->getFailedMods().size()) {
+				Notification::create(
+					"Some mods failed to load",
+					NotificationIcon::Error
+				)->show();
+			}
         }
 
 		// show crash info
@@ -140,12 +136,10 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 
 		// update mods index
 		if (!g_indexUpdateNotif && !Index::get()->isIndexUpdated()) {
-			g_indexUpdateNotif = NotificationBuilder()
-				.title("Index Update")
-				.text("Updating index...")
-				.loading()
-				.stay()
-				.show();
+			g_indexUpdateNotif = Notification::create(
+				"Updating Index", NotificationIcon::Loading, 0
+			);
+			g_indexUpdateNotif->show();
 
 			Index::get()->updateIndex(updateIndexProgress);
 		}

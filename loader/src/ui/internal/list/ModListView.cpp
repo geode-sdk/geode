@@ -33,39 +33,37 @@ void ModCell::draw() {
 void ModCell::onFailedInfo(CCObject*) {
     FLAlertLayer::create(
         this, "Error Info",
-        m_obj->m_info.m_reason.size() ? m_obj->m_info.m_reason : m_obj->m_mod->getLoadErrorInfo(),
+        m_obj->m_info.m_reason.size() ? 
+            m_obj->m_info.m_reason : 
+            "Unable to load mod",
         "OK", "Remove file", 360.f
-    )
-        ->show();
+    )->show();
 }
 
 void ModCell::FLAlert_Clicked(FLAlertLayer*, bool btn2) {
     if (btn2) {
         try {
-            if (ghc::filesystem::remove(m_obj->m_info.m_file)) {
+            if (ghc::filesystem::remove(m_obj->m_info.m_path)) {
                 FLAlertLayer::create(
-                    "File removed", "Removed <cy>" + m_obj->m_info.m_file + "</c>", "OK"
-                )
-                    ->show();
+                    "File removed", "Removed <cy>" + m_obj->m_info.m_path.string() + "</c>", "OK"
+                )->show();
             }
             else {
                 FLAlertLayer::create(
                     "Unable to remove file",
-                    "Unable to remove <cy>" + m_obj->m_info.m_file + "</c>", "OK"
-                )
-                    ->show();
+                    "Unable to remove <cy>" + m_obj->m_info.m_path.string() + "</c>", "OK"
+                )->show();
             }
         }
         catch (std::exception& e) {
             FLAlertLayer::create(
                 "Unable to remove file",
-                "Unable to remove <cy>" + m_obj->m_info.m_file + "</c>: <cr>" +
+                "Unable to remove <cy>" + m_obj->m_info.m_path.string() + "</c>: <cr>" +
                     std::string(e.what()) + "</c>",
                 "OK"
-            )
-                ->show();
+            )->show();
         }
-        Loader::get()->refreshMods();
+        (void)Loader::get()->refreshModsList();
         m_list->refreshList();
     }
 }
@@ -83,7 +81,10 @@ void ModCell::setupUnloaded() {
     titleLabel->setPosition(m_height / 2, m_height / 2 + 7.f);
     m_mainLayer->addChild(titleLabel);
 
-    auto pathLabel = CCLabelBMFont::create(m_obj->m_info.m_file.c_str(), "chatFont.fnt");
+    auto pathLabel = CCLabelBMFont::create(
+        m_obj->m_info.m_path.string().c_str(),
+        "chatFont.fnt"
+    );
     pathLabel->setAnchorPoint({ .0f, .5f });
     pathLabel->setScale(.43f);
     pathLabel->setPosition(m_height / 2, m_height / 2 - 7.f);
@@ -297,15 +298,12 @@ void ModCell::onEnable(CCObject* pSender) {
             "still see some effects of the mod left however, and you may "
             "need to <cg>restart</c> the game to have it fully unloaded.",
             "OK"
-        )
-            ->show();
+        )->show();
         m_list->updateAllStates(this);
         return;
     }
     if (!as<CCMenuItemToggler*>(pSender)->isToggled()) {
-        if (tryOrAlert(m_obj->m_mod->load(), "Error loading mod")) {
-            tryOrAlert(m_obj->m_mod->enable(), "Error enabling mod");
-        }
+        tryOrAlert(m_obj->m_mod->enable(), "Error enabling mod");
     }
     else {
         tryOrAlert(m_obj->m_mod->disable(), "Error disabling mod");

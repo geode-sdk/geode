@@ -7,6 +7,7 @@
 #include "../utils/file.hpp"
 #include "../utils/ranges.hpp"
 #include "../utils/cocos.hpp"
+#include "ModInfo.hpp"
 #include <optional>
 #include <regex>
 #include <unordered_set>
@@ -15,8 +16,6 @@
 #pragma warning(disable : 4275)
 
 namespace geode {
-    using ModJson = nlohmann::ordered_json;
-
     class Setting;
     class SettingNode;
     class BoolSetting;

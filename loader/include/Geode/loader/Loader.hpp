@@ -1,132 +1,87 @@
 #pragma once
 
-#include "Log.hpp"
 #include "Types.hpp"
-
-#include <Geode/DefaultInclude.hpp>
-#include <Geode/utils/Result.hpp>
-#include <fs/filesystem.hpp>
-#include <functional>
-#include <string>
-#include <string_view>
-#include <unordered_map>
-#include <unordered_set>
-#include <fs/filesystem.hpp>
 #include "Log.hpp"
+#include "../external/filesystem/fs/filesystem.hpp"
 #include <mutex>
-
-// for some reason std::filesystem::path doesn't have std::hash defined in C++17 
-// and ghc seems to have inherited this limitation
-template<>
-struct std::hash<ghc::filesystem::path> {
-    std::size_t operator()(ghc::filesystem::path const& path) const noexcept {
-        return ghc::filesystem::hash_value(path);
-    }
-};
+#include <atomic>
+#include "../utils/Result.hpp"
+#include "ModInfo.hpp"
 
 namespace geode {
-#pragma warning(disable : 4251)
+    using ScheduledFunction = std::function<void GEODE_CALL(void)>;
 
-    static constexpr std::string_view GEODE_DIRECTORY = "geode";
-    static constexpr std::string_view GEODE_MOD_DIRECTORY = "mods";
-    static constexpr std::string_view GEODE_LOG_DIRECTORY = "log";
-    static constexpr std::string_view GEODE_RESOURCE_DIRECTORY = "resources";
-    static constexpr std::string_view GEODE_CONFIG_DIRECTORY = "config";
-    static constexpr std::string_view GEODE_TEMP_DIRECTORY = "temp";
-    static constexpr std::string_view GEODE_MOD_EXTENSION = ".geode";
-    static constexpr std::string_view GEODE_INDEX_DIRECTORY = "index";
-
-    class Mod;
-    class Hook;
-    struct ModInfo;
-    class VersionInfo;
-
-    namespace modifier {
-        template <class, class>
-        class FieldIntermediate;
-    }
-}
-
-/**
- * The predeclaration of the implicit entry
- */
-GEODE_API bool GEODE_CALL geode_implicit_load(geode::Mod*);
-
-namespace geode {
+    struct InvalidGeodeFile {
+        ghc::filesystem::path m_path;
+        std::string m_reason;
+    };
 
     class GEODE_DLL Loader {
-    public:
-        struct FailedModInfo {
-            // todo: change to path
-            std::string m_file;
-            std::string m_reason;
-        };
-
     protected:
-        struct LoaderSettings {
-            struct ModSettings {
-                bool m_enabled = true;
-            };
-
-            std::unordered_map<std::string, ModSettings> m_mods;
-            // todo: in v1.0.0, make this a customizable option in mod.json
-            std::unordered_set<ghc::filesystem::path> m_earlyLoadMods;
-        };
-
-        using ScheduledFunction = std::function<void GEODE_CALL(void)>;
-
-        std::vector<ScheduledFunction> m_scheduledFunctions;
+        std::vector<ghc::filesystem::path> m_modSearchDirectories;
+        std::vector<ModInfo> m_modsToLoad;
+        std::vector<InvalidGeodeFile> m_invalidMods;
         std::unordered_map<std::string, Mod*> m_mods;
-        std::vector<log::Log> m_logs;
-        std::ofstream m_logStream;
-        std::vector<ghc::filesystem::path> m_modDirectories;
-        std::vector<FailedModInfo> m_erroredMods;
         std::vector<ghc::filesystem::path> m_texturePaths;
-        LoaderSettings m_loadedSettings;
+        std::vector<ScheduledFunction> m_scheduledFunctions;
+        mutable std::mutex m_scheduledFunctionsMutex;
         bool m_isSetup = false;
-        static std::atomic_bool s_unloading;
-        mutable std::mutex m_modLoadMutex;
+        std::atomic_bool m_earlyLoadFinished = false;
 
-        Result<std::string> createTempDirectoryForMod(ModInfo const& info);
-        Result<Mod*> loadModFromFile(std::string const& file);
-        size_t loadModsFromDirectory(ghc::filesystem::path const& path, bool recursive);
         void createDirectories();
 
-        void updateAllDependencies();
-
-        friend class Mod;
-        friend class CustomLoader;
-        friend struct ModInfo;
-
-        size_t getFieldIndexForClass(size_t hash);
-
-        template <class, class>
-        friend class modifier::FieldIntermediate;
-        
         void updateModResources(Mod* mod);
+        void addSearchPaths();
 
-        // used internally in geode_implicit_load
-        void releaseScheduledFunctions(Mod* mod);
+        void dispatchScheduledFunctions(Mod* mod);
+        friend void GEODE_CALL ::geode_implicit_load(Mod*);
 
-        friend bool GEODE_CALL ::geode_implicit_load(Mod*);
+        Result<Mod*> loadModFromInfo(ModInfo const& info);
 
     public:
         ~Loader();
-
-        /**
-         * Get the shared Loader instance
-         * @returns Shared loader instance
-         */
         static Loader* get();
 
-        static VersionInfo getVersion();
-        static std::string getVersionType();
+        Result<> setup();
 
-        Result<> saveSettings();
-        Result<> loadSettings();
         Result<> saveData();
         Result<> loadData();
+
+        static VersionInfo getVersion();
+        static VersionInfo minModVersion();
+        static VersionInfo maxModVersion();
+        static bool isModVersionSupported(VersionInfo const& version);
+
+        Result<Mod*> loadModFromFile(ghc::filesystem::path const& file);
+        Result<> loadModsFromDirectory(
+            ghc::filesystem::path const& dir,
+            bool recursive = true
+        );
+        Result<> refreshModsList();
+        bool isModInstalled(std::string const& id) const;
+        Mod* getInstalledMod(std::string const& id) const;
+        bool isModLoaded(std::string const& id) const;
+        Mod* getLoadedMod(std::string const& id) const;
+        std::vector<Mod*> getAllMods();
+        static Mod* getInternalMod();
+        void updateAllDependencies();
+        std::vector<InvalidGeodeFile> getFailedMods() const;
+
+        void updateResources();
+
+        void queueInGDThread(ScheduledFunction func);
+        void scheduleOnModLoad(Mod* mod, ScheduledFunction func);
+        void waitForModsToBeLoaded();
         
+        /**
+         * Open the platform-specific external console (if one exists)
+         */
+        static void openPlatformConsole();
+        /**
+         * Close the platform-specific external console (if one exists)
+         */
+        static void closePlatfromConsole();
+
         bool didLastLaunchCrash() const;
         ghc::filesystem::path getCrashLogDirectory() const;
 
@@ -146,151 +101,5 @@ namespace geode {
          * Directory where Geode saves its files
          */
         ghc::filesystem::path getGeodeSaveDirectory() const;
-
-        /**
-         * Minimum supported mod version
-         */
-        static VersionInfo minModVersion();
-        /**
-         * Maximum supported mod version
-         */
-        static VersionInfo maxModVersion();
-        /**
-         * Check if a mod's version is within the supported range
-         */
-        static bool supportedModVersion(VersionInfo const& version);
-
-        /**
-         * Whether mod specified with ID is enabled
-         * @param id The ID of the mod
-         */
-        bool shouldLoadMod(std::string const& id) const;
-
-        /**
-         * Set up the Loader.
-         * @returns True if setup was succesful or
-         * has been done before, false if an error
-         * occurred
-         */
-        bool setup();
-
-        /**
-         * Refresh the mods list. Scans all search
-         * directories again for unloaded mods
-         * @returns Amount of new mods loaded
-         */
-        size_t refreshMods();
-
-        /**
-         * Returns true if the Loader is unloading /
-         * currently unloaded. Used for threading;
-         * should be thread-safe
-         * @returns True if the loader is unloading /
-         * unloaded, false otherwise
-         */
-        static bool isUnloading();
-
-        void pushLog(log::Log&& log);
-        void popLog(log::Log* log);
-        std::vector<log::Log*> getLogs(std::initializer_list<Severity> severityFilter = {});
-
-        void clearLogs();
-
-        /**
-         * Do not call manually unless you know what you're doing.
-         */
-        void updateResourcePaths();
-        /**
-         * Do not call manually unless you know what you're doing.
-         */
-        void updateResources();
-        void addTexturePath(ghc::filesystem::path const& path);
-        void removeTexturePath(ghc::filesystem::path const& path);
-        std::vector<ghc::filesystem::path> getTexturePaths() const;
-
-        /**
-         * Check if a mod with an ID is installed. Any
-         * valid .geode file in the mods directory will
-         * be listed as installed
-         * @param id The ID of the mod
-         * @returns True if the mod is installed
-         */
-        bool isModInstalled(std::string const& id) const;
-        /**
-         * Get an installed mod by its ID
-         * @param id The ID of the mod
-         * @returns Pointer to Mod if it was found, or nullptr if
-         * the mod is not installed
-         */
-        Mod* getInstalledMod(std::string const& id) const;
-        /**
-         * Check if a mod with an ID is loaded
-         * @param id The ID of the mod
-         * @returns True if the mod was found, or false if
-         * the mod is not loaded nor installed
-         */
-        bool isModLoaded(std::string const& id) const;
-        /**
-         * Get a loaded mod by its ID
-         * @param id The ID of the mod
-         * @returns Pointer to Mod if it was found, or nullptr if
-         * the mod is not loaded nor installed
-         */
-        Mod* getLoadedMod(std::string const& id) const;
-        /**
-         * Get a list of all installed mods
-         * @returns List of all installed mods
-         */
-        std::vector<Mod*> getAllMods() const;
-        /**
-         * Get all mods that are a serious
-         * disappointment to their parents
-         */
-        std::vector<FailedModInfo> getFailedMods() const;
-        /**
-         * Unload a mod fully. This will remove it
-         * from the mods list and delete the Mod. If
-         * the mod does not properly handle unloading,
-         * this function may cause a crash; Use with
-         * caution!
-         */
-        void unloadMod(Mod* mod);
-
-        /**
-         * Get Geode's internal representation. Use with
-         * caution!
-         * @returns Pointer to InternalMod
-         */
-        static Mod* getInternalMod();
-
-        /**
-         * Run a function in the GD thread. Useful if you're
-         * doing logic in another thread and need to interact
-         * with GUI. The function will be run the next time
-         * `CCScheduler::update` is called
-         * @param func Function to run
-         */
-        void queueInGDThread(ScheduledFunction func);
-
-        /**
-         * Run a function when the Mod is loaded. Useful if for
-         * some reason you need to run some function in
-         * static initialization.
-         * @param func Function to run
-         */
-        void scheduleOnModLoad(Mod* m, ScheduledFunction func);
-
-        /**
-         * Open the platform-specific external console (if one exists)
-         */
-        static void openPlatformConsole();
-        /**
-         * Close the platform-specific external console (if one exists)
-         */
-        static void closePlatfromConsole();
-        
-        void waitForModsToBeLoaded();
-        void setEarlyLoadMod(Mod* mod, bool enabled);
-        bool shouldEarlyLoadMod(Mod* mod) const;
     };
 }

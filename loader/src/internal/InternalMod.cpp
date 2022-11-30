@@ -45,10 +45,7 @@ InternalMod::InternalMod() : Mod(getInternalModInfo()) {
 
     ghc::filesystem::create_directories(m_saveDirPath);
 
-    // make sure spritesheets get added
-    m_addResourcesToSearchPath = true;
-
-    auto sett = this->loadSettings();
+    auto sett = this->loadData();
     if (!sett) {
         log::log(Severity::Error, this, "{}", sett.unwrapErr());
     }

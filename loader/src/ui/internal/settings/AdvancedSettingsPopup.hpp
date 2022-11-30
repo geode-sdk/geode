@@ -11,8 +11,6 @@ protected:
 
     bool setup(Mod* mod) override;
 
-    void onEnableEarlyLoad(CCObject*);
-
 public:
     static AdvancedSettingsPopup* create(Mod* mod);
 };

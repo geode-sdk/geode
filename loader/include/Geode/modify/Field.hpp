@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Traits.hpp"
-
+#include <cocos2d.h>
 #include <Geode/loader/Loader.hpp>
 #include <vector>
 
@@ -47,6 +47,11 @@ namespace geode::modifier {
         // Padding used for guaranteeing any member of parents
         // will be in between sizeof(Intermediate) and sizeof(Parent)
         uintptr_t m_padding;
+        static inline std::unordered_map<size_t, size_t> nextIndex;
+
+        static size_t getFieldIndexForClass(size_t hash) {
+            return nextIndex[hash]++;
+        }
 
     public:
         static void fieldConstructor(void* offsetField) {
@@ -82,7 +87,7 @@ namespace geode::modifier {
                 reinterpret_cast<Parent*>(reinterpret_cast<std::byte*>(this) - sizeof(Base));
             static_assert(sizeof(Base) == offsetof(Parent, m_fields), "offsetof not correct");
             auto container = FieldContainer::from(node);
-            static size_t index = Loader::get()->getFieldIndexForClass(typeid(Base).hash_code());
+            static size_t index = getFieldIndexForClass(typeid(Base).hash_code());
             // this pointer is offset
             auto offsetField = container->getField(index);
             if (!offsetField) {

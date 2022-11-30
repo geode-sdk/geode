@@ -20,6 +20,59 @@ namespace geode::utils::file {
     GEODE_DLL Result<std::vector<std::string>> listFiles(std::string const& path);
     GEODE_DLL Result<std::vector<std::string>> listFilesRecursively(std::string const& path);
 
+    class UnzipImpl;
+
+    class GEODE_DLL Unzip final {
+    private:
+        UnzipImpl* m_impl;
+
+    public:
+        Unzip() = delete;
+        Unzip(Unzip const&) = delete;
+        Unzip(Unzip&& other);
+        Unzip(UnzipImpl* impl);
+        ~Unzip();
+
+        using Path = ghc::filesystem::path;
+
+        /**
+         * Create unzipper for file
+         */
+        static Result<Unzip> create(Path const& file);
+
+        /**
+         * Path to the opened zip
+         */
+        Path getPath() const;
+
+        /**
+         * Get all entries in zip
+         */
+        std::vector<Path> getEntries() const;
+        /**
+         * Check if zip has entry
+         * @param name Entry path in zip
+         */
+        bool hasEntry(Path const& name);
+
+        /**
+         * Extract entry to memory
+         * @param name Entry path in zip
+         */
+        Result<byte_array> extract(Path const& name);
+        /**
+         * Extract entry to file
+         * @param name Entry path in zip
+         * @param path Target file path
+         */
+        Result<> extractTo(Path const& name, Path const& path);
+        /**
+         * Extract all entries to directory
+         * @param dir Directory to unzip the contents to
+         */
+        Result<> extractAllTo(Path const& dir);
+    };
+
     /**
      * Unzip file to directory
      * @param from File to unzip

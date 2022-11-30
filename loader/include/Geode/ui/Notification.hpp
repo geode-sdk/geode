@@ -1,180 +1,89 @@
 #pragma once
 
-#include "../utils/cocos.hpp"
 #include "SceneManager.hpp"
-
-#include <chrono>
 #include <cocos2d.h>
+#include <cocos-ext.h>
+#include <Geode/binding/TextAlertPopup.hpp>
+#include "../utils/cocos.hpp"
 
 namespace geode {
-    enum class NotificationLocation {
-        TopLeft,
-        TopCenter,
-        TopRight,
-        BottomLeft,
-        BottomCenter,
-        BottomRight,
+    constexpr auto NOTIFICATION_DEFAULT_TIME = 1.f;
+
+    enum class NotificationIcon {
+        None,
+        Loading,
+        Success,
+        Warning,
+        Error,
     };
 
-    static constexpr float DEFAULT_NOTIFICATION_TIME = 4.f;
-    static constexpr NotificationLocation PLATFORM_NOTIFICATION_LOCATION =
-#ifdef GEODE_IS_DESKTOP
-        NotificationLocation::BottomRight;
-#else
-        NotificationLocation::TopCenter;
-#endif
-
-    class Notification;
-    class NotificationManager;
-
-    struct GEODE_DLL NotificationBuilder {
-        Mod* m_owner = Mod::get();
-        std::string m_title = "";
-        std::string m_text = "";
-        std::string m_icon = "GJ_infoIcon_001.png";
-        Ref<cocos2d::CCNode> m_iconNode = nullptr;
-        std::string m_bg = "GJ_square02.png";
-        std::function<void(Notification*)> m_callback = nullptr;
-        float m_time = DEFAULT_NOTIFICATION_TIME;
-        NotificationLocation m_location = PLATFORM_NOTIFICATION_LOCATION;
-        bool m_hideOnClick = true;
-
-        inline NotificationBuilder& from(Mod* owner) {
-            m_owner = owner;
-            return *this;
-        }
-
-        inline NotificationBuilder& title(std::string const& title) {
-            m_title = title;
-            return *this;
-        }
-
-        inline NotificationBuilder& text(std::string const& text) {
-            m_text = text;
-            return *this;
-        }
-
-        inline NotificationBuilder& icon(std::string const& icon) {
-            m_icon = icon;
-            m_iconNode = nullptr;
-            return *this;
-        }
-
-        inline NotificationBuilder& icon(cocos2d::CCNode* icon) {
-            m_icon = "";
-            m_iconNode = icon;
-            return *this;
-        }
-
-        inline NotificationBuilder& loading() {
-            auto spr = cocos2d::CCSprite::create("loadingCircle.png");
-            spr->runAction(cocos2d::CCRepeat::create(cocos2d::CCRotateBy::create(1.f, 360.f), 40000)
-            );
-            spr->setBlendFunc({ GL_ONE, GL_ONE });
-            return this->icon(spr);
-        }
-
-        inline NotificationBuilder& bg(std::string const& bg) {
-            m_bg = bg;
-            return *this;
-        }
-
-        inline NotificationBuilder& location(NotificationLocation location) {
-            m_location = location;
-            return *this;
-        }
-
-        inline NotificationBuilder& time(float time) {
-            m_time = time;
-            return *this;
-        }
-
-        inline NotificationBuilder& stay() {
-            m_time = .0f;
-            return *this;
-        }
-
-        inline NotificationBuilder& clicked(
-            std::function<void(Notification*)> cb, bool hide = true
-        ) {
-            m_callback = cb;
-            m_hideOnClick = hide;
-            return *this;
-        }
-
-        Notification* show();
-    };
-
-    class GEODE_DLL Notification : public cocos2d::CCLayer {
+    class GEODE_DLL Notification : public cocos2d::CCNodeRGBA {
     protected:
-        Mod* m_owner;
-        std::function<void(Notification*)> m_callback = nullptr;
+        static Ref<cocos2d::CCArray> s_queue;
         cocos2d::extension::CCScale9Sprite* m_bg;
-        cocos2d::CCNode* m_icon = nullptr;
-        cocos2d::CCLabelBMFont* m_title = nullptr;
-        Ref<cocos2d::CCArray> m_labels = nullptr;
-        cocos2d::CCPoint m_showDest;
-        cocos2d::CCPoint m_hideDest;
-        cocos2d::CCPoint m_posAtTouchStart;
-        NotificationLocation m_location;
+        cocos2d::CCLabelBMFont* m_label;
+        cocos2d::CCSprite* m_icon = nullptr;
         float m_time;
-        bool m_hiding = false;
-        bool m_clicking;
-        bool m_hovered;
-        bool m_hideOnClicked = true;
-        float m_targetScale = 1.f;
+        bool m_showing = false;
 
-        bool init(
-            Mod* owner, std::string const& title, std::string const& text, cocos2d::CCNode* icon,
-            char const* bg, std::function<void(Notification*)> callback, bool hideOnClick
-        );
+        bool init(std::string const& text, cocos2d::CCSprite* icon, float time);
+        void updateLayout();
 
-        Notification();
-        virtual ~Notification();
-
-        bool ccTouchBegan(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
-        void ccTouchEnded(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
-        void ccTouchMoved(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
-        void registerWithTouchDispatcher() override;
-
-        void clicked();
+        static cocos2d::CCSprite* createIcon(NotificationIcon icon);
 
         void animateIn();
         void animateOut();
-        void animateOutClicked();
-        void animateClicking();
-
-        void hidden();
-        void showForReal();
-
-        friend class NotificationManager;
+        void showNextNotification();
+        void wait();
 
     public:
+        /**
+         * Create a notification, similar to TextAlertPopup but more customizable
+         * @param text Notification text
+         * @param icon Icon to show in the notification
+         * @param time Time to show the notification on screen; pass 0 to show 
+         * the notification indefinitely until hide() is called
+         * @returns The new notification. Make sure to call show() to show the 
+         * notification
+         */
         static Notification* create(
-            Mod* owner, std::string const& title, std::string const& text, cocos2d::CCNode* icon,
-            char const* bg, std::function<void(Notification*)> callback, bool hideOnClick
+            std::string const& text,
+            NotificationIcon icon = NotificationIcon::None,
+            float time = NOTIFICATION_DEFAULT_TIME
         );
-        static NotificationBuilder build();
+        /**
+         * Create a notification with a custom icon
+         * @param text Notification text
+         * @param icon Icon to show in the notification
+         * @param time Time to show the notification on screen; pass 0 to show 
+         * the notification indefinitely until hide() is called
+         * @returns The new notification. Make sure to call show() to show the 
+         * notification
+         */
+        static Notification* create(
+            std::string const& text,
+            cocos2d::CCSprite* icon,
+            float time
+        );
 
-        void show(
-            NotificationLocation = PLATFORM_NOTIFICATION_LOCATION,
-            float time = DEFAULT_NOTIFICATION_TIME
-        );
+        void setString(std::string const& text);
+        void setIcon(NotificationIcon icon);
+        void setIcon(cocos2d::CCSprite* icon);
+        void setTime(float time);
+
+        /**
+         * Adds the notification to the current scene if it doesn't have a 
+         * parent yet, and displays the show animation. If the time for the 
+         * notification was specified, the notification waits that time and 
+         * then automatically hides
+        */
+        void show();
+
+        /**
+         * Hide the notification. If you passed a time to the create function, 
+         * this function doesn't need to be called manually, unless you want 
+         * to prematurily hide the notification
+         */
         void hide();
-    };
-
-    class NotificationManager {
-    protected:
-        std::unordered_map<NotificationLocation, std::vector<Ref<Notification>>> m_notifications;
-
-        void push(Notification*);
-        void pop(Notification*);
-
-        bool isInQueue(Notification*);
-
-        friend class Notification;
-
-    public:
-        static NotificationManager* get();
     };
 }

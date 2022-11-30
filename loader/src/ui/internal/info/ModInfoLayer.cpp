@@ -445,23 +445,21 @@ void ModInfoLayer::onEnableMod(CCObject* pSender) {
         return;
     }
     if (as<CCMenuItemToggler*>(pSender)->isToggled()) {
-        auto res = m_mod->load();
+        auto res = m_mod->loadBinary();
         if (!res) {
-            FLAlertLayer::create(nullptr, "Error Loading Mod", res.unwrapErr(), "OK", nullptr)->show();
-        }
-        else {
-            auto res = m_mod->enable();
-            if (!res) {
-                FLAlertLayer::create(nullptr, "Error Enabling Mod", res.unwrapErr(), "OK", nullptr)
-                    ->show();
-            }
+            FLAlertLayer::create(
+                nullptr, "Error Loading Mod",
+                res.unwrapErr(), "OK", nullptr
+            )->show();
         }
     }
     else {
         auto res = m_mod->disable();
         if (!res) {
-            FLAlertLayer::create(nullptr, "Error Disabling Mod", res.unwrapErr(), "OK", nullptr)
-                ->show();
+            FLAlertLayer::create(
+                nullptr, "Error Disabling Mod",
+                res.unwrapErr(), "OK", nullptr
+            )->show();
         }
     }
     if (m_list) m_list->updateAllStates(nullptr);
