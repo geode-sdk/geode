@@ -12,7 +12,6 @@
 #include <Geode/utils/string.hpp>
 #include <InternalMod.hpp>
 #include <about.hpp>
-#include <zlib.h>
 
 USE_GEODE_NAMESPACE();
 
