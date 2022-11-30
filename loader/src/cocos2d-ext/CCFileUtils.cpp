@@ -79,16 +79,14 @@ void CCFileUtils::updatePaths() {
 
 #pragma warning(pop)
 
-#ifdef GEODE_IS_MACOS
-CCFileUtils* CCFileUtils::s_sharedFileUtils = nullptr;
-#endif
-
 class $modify(CCFileUtils) {
     static CCFileUtils* sharedFileUtils() {
-        auto doAddPaths = !s_sharedFileUtils;
+        static bool doAddPaths = true;
         auto ret = CCFileUtils::sharedFileUtils();
+
         if (doAddPaths) {
-            s_sharedFileUtils->updatePaths();
+            ret->updatePaths();
+            doAddPaths = false;
         }
         return ret;
     }
