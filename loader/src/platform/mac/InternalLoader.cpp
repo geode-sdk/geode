@@ -19,7 +19,7 @@ void InternalLoader::platformMessageBox(char const* title, std::string const& in
 void InternalLoader::openPlatformConsole() {
     m_platformConsoleOpen = true;
 
-    for (auto const& log : Loader::get()->getLogs()) {
+    for (auto const& log : log::Logs::list()) {
         std::cout << log->toString(true) << "\n";
     }
 }
