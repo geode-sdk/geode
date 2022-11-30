@@ -23,7 +23,7 @@ bool Notification::init(std::string const& text, CCSprite* icon, float time) {
     m_label->setScale(.6f);
     m_bg->addChild(m_label);
 
-    if (m_icon = icon) {
+    if ((m_icon = icon)) {
         m_bg->addChild(icon);
     }
 
