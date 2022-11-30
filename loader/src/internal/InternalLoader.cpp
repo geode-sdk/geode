@@ -4,6 +4,7 @@
 #include "resources.hpp"
 
 #include <Geode/loader/Loader.hpp>
+#include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/utils/web.hpp>
 #include <Geode/utils/file.hpp>
@@ -180,4 +181,37 @@ bool InternalLoader::verifyLoaderResources(IndexUpdateCallback callback) {
     }
 
     return true;
+}
+
+std::string InternalLoader::processRawIPC(void* rawHandle, std::string const& buffer) {
+    std::string reply;
+
+    try {
+        std::optional<std::string> replyID = std::nullopt;
+
+        // parse received message
+        auto json = nlohmann::json::parse(buffer);
+        if (!json.contains("mod") || !json["mod"].is_string()) {
+            log::warn("Received IPC message without 'mod' field");
+            return reply;
+        }
+        if (!json.contains("message") || !json["message"].is_string()) {
+            log::warn("Received IPC message without 'message' field");
+            return reply;
+        }
+        if (json.contains("reply") && json["reply"].is_string()) {
+            replyID = json["reply"];
+        }
+        nlohmann::json data;
+        if (json.contains("data")) {
+            data = json["data"];
+        }
+        // log::debug("Posting IPC event");
+        // ! warning: if the event system is ever made asynchronous this will break!
+        IPCEvent(rawHandle, json["mod"], json["message"], data, &reply).post();
+    } catch(...) {
+        log::warn("Received IPC message that isn't valid JSON");
+    }
+
+    return reply;
 }

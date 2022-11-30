@@ -7,23 +7,17 @@ IPCEvent::IPCEvent(
     void* rawPipeHandle,
     std::string const& targetModID,
     std::string const& messageID,
-    std::optional<std::string> const& replyID,
-    nlohmann::json const& messageData
+    nlohmann::json const& messageData,
+    std::string* replyString
 ) : m_rawPipeHandle(rawPipeHandle),
     m_targetModID(targetModID),
     m_messageID(messageID),
-    m_replyID(replyID),
+    m_replyString(replyString),
     m_messageData(messageData) {}
 
-IPCEvent::~IPCEvent() {
-    // if no handler was installed for this IPC event, reply with a default null 
-    // value
-    this->reply(nullptr);
-}
+IPCEvent::~IPCEvent() {}
 
-std::optional<std::string> IPCEvent::getReplyID() const {
-    return m_replyID;
-}
+
 
 std::string IPCEvent::getTargetModID() const {
     return m_targetModID;
@@ -33,17 +27,16 @@ std::string IPCEvent::getMessageID() const {
     return m_messageID;
 }
 
-nlohmann::json IPCEvent::getMessageData() const {
-    return m_messageData;
+std::string IPCEvent::getReplyString() const {
+    return *m_replyString;
 }
 
-void IPCEvent::reply(nlohmann::json const& data) {
-    if (!m_replied && m_rawPipeHandle && m_replyID.has_value()) {
-        InternalLoader::get()->postIPCReply(
-            m_rawPipeHandle, m_replyID.value(), data
-        );
-        m_replied = true;
-    }
+void IPCEvent::setReplyString(std::string const& reply) {
+    *m_replyString = reply;
+}
+
+nlohmann::json IPCEvent::getMessageData() const {
+    return m_messageData;
 }
 
 ListenerResult IPCFilter::handle(std::function<Callback> fn, IPCEvent* event) {
@@ -51,7 +44,7 @@ ListenerResult IPCFilter::handle(std::function<Callback> fn, IPCEvent* event) {
         event->getTargetModID() == m_modID &&
         event->getMessageID() == m_messageID
     ) {
-        event->reply(fn(event));
+        event->setReplyString(fn(event));
         return ListenerResult::Stop;
     }
     return ListenerResult::Propagate;

@@ -5,7 +5,11 @@
 
 namespace geode {
     #ifdef GEODE_IS_WINDOWS
-    constexpr const char* IPC_PIPE_NAME = "\\\\.\\pipe\\GeodeIPCPipe";
+    constexpr char const* IPC_PIPE_NAME = "\\\\.\\pipe\\GeodeIPCPipe";
+    #endif
+
+    #ifdef GEODE_IS_MACOS
+    constexpr char const* IPC_PORT_NAME = "GeodeIPCPipe";
     #endif
 
     class IPCFilter;
@@ -23,26 +27,10 @@ namespace geode {
     protected:
         void* m_rawPipeHandle;
         std::string m_targetModID;
-        std::optional<std::string> m_replyID;
         std::string m_messageID;
+        std::string* m_replyString;
         nlohmann::json m_messageData;
         bool m_replied = false;
-
-        /**
-         * Reply to the message. Will post a message back to the application 
-         * the sent this message with the reply ID and provided data.
-         * You can only reply once; after the other application has received 
-         * the reply, it can assume the reply ID can be freed and reused for 
-         * other messages. Calling reply again on this message will not cause 
-         * a new response to be sent.
-         * If reply is not explicitly called, a default response of null will 
-         * be posted back.
-         * @param data The data to send back; will be the under the "data" key 
-         * in the response JSON. The structure may be anything; however, you 
-         * should document what kind of JSON structures applications may expect 
-         * from your mod.
-         */
-        void reply(nlohmann::json const& data);
 
         friend class IPCFilter;
 
@@ -51,14 +39,15 @@ namespace geode {
             void* rawPipeHandle,
             std::string const& targetModID,
             std::string const& messageID,
-            std::optional<std::string> const& replyID,
-            nlohmann::json const& messageData
+            nlohmann::json const& messageData,
+            std::string* replyString = nullptr
         );
         virtual ~IPCEvent();
 
-        std::optional<std::string> getReplyID() const;
         std::string getTargetModID() const;
         std::string getMessageID() const;
+        std::string getReplyString() const;
+        void setReplyString(std::string const& reply);
         nlohmann::json getMessageData() const;
     };
 

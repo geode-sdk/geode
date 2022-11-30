@@ -7,11 +7,13 @@
 #include <Geode/loader/Log.hpp>
 #include <Geode/utils/Result.hpp>
 #include <Geode/external/json/json.hpp>
+
 #include <mutex>
 #include <optional>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <thread>
 
 USE_GEODE_NAMESPACE();
 
@@ -44,11 +46,7 @@ public:
 
     bool setup();
 
-    void postIPCReply(
-        void* rawPipeHandle,
-        std::string const& replyID,
-        nlohmann::json const& data
-    );
+    static std::string processRawIPC(void* rawHandle, std::string const& buffer);
 
     /**
      * Check if a one-time event has been shown to the user,
