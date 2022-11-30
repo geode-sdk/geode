@@ -102,7 +102,7 @@ namespace geode::addresser {
             // check if first instruction is a jmp, i.e. if the func is a thunk
             if (*reinterpret_cast<uint16_t*>(address) == 0x25ff) {
                 // read where the jmp points to and jump there
-                address = *reinterpret_cast<uintptr_t*>(address + 2);
+                address = *reinterpret_cast<uint32_t*>(address + 2);
                 // that then contains the actual address of the func
                 address = *reinterpret_cast<uintptr_t*>(address);
             }
