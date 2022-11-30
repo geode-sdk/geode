@@ -1,4 +1,5 @@
 #include <InternalLoader.hpp>
+#include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Log.hpp>
 #include <iostream>
 #include <InternalMod.hpp>
