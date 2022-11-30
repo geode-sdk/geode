@@ -81,7 +81,6 @@ namespace geode::utils::file {
      */
     GEODE_DLL Result<> unzipTo(ghc::filesystem::path const& from, ghc::filesystem::path const& to);
 
-    GEODE_DLL ghc::filesystem::path geodeRoot();
     GEODE_DLL bool openFolder(ghc::filesystem::path const& path);
 
     enum class PickMode {

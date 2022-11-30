@@ -411,7 +411,7 @@ ghc::filesystem::path Loader::getSaveDirectory() const {
 }
 
 ghc::filesystem::path Loader::getGeodeDirectory() const {
-    return geode::utils::file::geodeRoot() / GEODE_DIRECTORY;
+    return this->getGameDirectory() / GEODE_DIRECTORY;
 }
 
 ghc::filesystem::path Loader::getGeodeSaveDirectory() const {

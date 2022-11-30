@@ -70,10 +70,6 @@ std::string utils::clipboard::read() {
     return text;
 }
 
-ghc::filesystem::path utils::file::geodeRoot() {
-    return ghc::filesystem::path(CCFileUtils::sharedFileUtils()->getWritablePath2().c_str());
-}
-
 bool utils::file::openFolder(ghc::filesystem::path const& path) {
     ShellExecuteA(NULL, "open", path.string().c_str(), NULL, NULL, SW_SHOWDEFAULT);
     return true;
