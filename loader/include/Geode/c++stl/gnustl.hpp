@@ -4,7 +4,6 @@
 #include <map>
 #include <string>
 #include <vector>
-#include <Geode/binding/GDString.hpp>
 
 namespace geode::base {
     uintptr_t get();
