@@ -1,6 +1,7 @@
 
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Mod.hpp>
+#include <Geode/loader/Dirs.hpp>
 #include <InternalLoader.hpp>
 #include <InternalMod.hpp>
 #include <about.hpp>
@@ -20,9 +21,8 @@ Loader::~Loader() {
     }
     m_mods.clear();
     log::Logs::clear();
-    ghc::filesystem::remove_all(
-        this->getGeodeDirectory() / GEODE_TEMP_DIRECTORY
-    );
+    ghc::filesystem::remove_all(dirs::getModRuntimeDir());
+    ghc::filesystem::remove_all(dirs::getTempDir());
 }
 
 VersionInfo Loader::getVersion() {
@@ -49,24 +49,19 @@ bool Loader::isModVersionSupported(VersionInfo const& version) {
 }
 
 void Loader::createDirectories() {
-    auto modDir = this->getGeodeDirectory() / GEODE_MOD_DIRECTORY;
-    auto logDir = this->getGeodeDirectory() / GEODE_LOG_DIRECTORY;
-    auto resDir = this->getGeodeDirectory() / GEODE_RESOURCE_DIRECTORY;
-    auto tempDir = this->getGeodeDirectory() / GEODE_TEMP_DIRECTORY;
-    auto confDir = this->getGeodeDirectory() / GEODE_CONFIG_DIRECTORY;
-
 #ifdef GEODE_IS_MACOS
-    ghc::filesystem::create_directory(this->getSaveDirectory());
+    ghc::filesystem::create_directory(dirs::getSaveDir());
 #endif
 
-    ghc::filesystem::create_directories(resDir);
-    ghc::filesystem::create_directory(confDir);
-    ghc::filesystem::create_directory(modDir);
-    ghc::filesystem::create_directory(logDir);
-    ghc::filesystem::create_directory(tempDir);
+    ghc::filesystem::create_directories(dirs::getGeodeResourcesDir());
+    ghc::filesystem::create_directory(dirs::getModConfigDir());
+    ghc::filesystem::create_directory(dirs::getModsDir());
+    ghc::filesystem::create_directory(dirs::getGeodeLogDir());
+    ghc::filesystem::create_directory(dirs::getTempDir());
+    ghc::filesystem::create_directory(dirs::getModRuntimeDir());
 
-    if (!ranges::contains(m_modSearchDirectories, modDir)) {
-        m_modSearchDirectories.push_back(modDir);
+    if (!ranges::contains(m_modSearchDirectories, dirs::getModsDir())) {
+        m_modSearchDirectories.push_back(dirs::getModsDir());
     }
 }
 
@@ -146,8 +141,7 @@ Result<Mod*> Loader::loadModFromInfo(ModInfo const& info) {
 
     // add mod resources
     this->queueInGDThread([this, mod]() {
-        auto searchPath = this->getGeodeDirectory() /
-            GEODE_TEMP_DIRECTORY / mod->getID() / "resources";
+        auto searchPath = dirs::getModRuntimeDir() / mod->getID() / "resources";
 
         CCFileUtils::get()->addSearchPath(searchPath.string().c_str());
         this->updateModResources(mod);
@@ -326,10 +320,6 @@ bool Loader::didLastLaunchCrash() const {
     return crashlog::didLastLaunchCrash();
 }
 
-ghc::filesystem::path Loader::getCrashLogDirectory() const {
-    return crashlog::getCrashLogDirectory();
-}
-
 void Loader::openPlatformConsole() {
     InternalLoader::get()->openPlatformConsole();
 }
@@ -343,7 +333,7 @@ void Loader::updateModResources(Mod* mod) {
         return;
     }
 
-    auto searchPath = this->getGeodeDirectory() / GEODE_TEMP_DIRECTORY / mod->getID() / "resources";
+    auto searchPath = dirs::getModRuntimeDir() / mod->getID() / "resources";
 
     log::debug("Adding resources for {}", mod->getID());
 
@@ -369,12 +359,8 @@ void Loader::updateModResources(Mod* mod) {
 }
 
 void Loader::addSearchPaths() {
-    CCFileUtils::get()->addPriorityPath(
-        (this->getGeodeDirectory() / GEODE_RESOURCE_DIRECTORY).string().c_str()
-    );
-    CCFileUtils::get()->addPriorityPath(
-        (this->getGeodeDirectory() / GEODE_TEMP_DIRECTORY).string().c_str()
-    );
+    CCFileUtils::get()->addPriorityPath(dirs::getGeodeResourcesDir().string().c_str());
+    CCFileUtils::get()->addPriorityPath(dirs::getModRuntimeDir().string().c_str());
 }
 
 void Loader::updateResources() {
@@ -387,33 +373,4 @@ void Loader::updateResources() {
     for (auto const& [_, mod] : m_mods) {
         this->updateModResources(mod);
     }
-}
-
-ghc::filesystem::path Loader::getGameDirectory() const {
-    return ghc::filesystem::path(CCFileUtils::sharedFileUtils()->getWritablePath2().c_str());
-}
-
-ghc::filesystem::path Loader::getSaveDirectory() const {
-    #ifdef GEODE_IS_MACOS
-        // not using ~/Library/Caches
-        return ghc::filesystem::path("/Users/Shared/Geode");
-    #elif defined(GEODE_IS_WINDOWS)
-        return ghc::filesystem::path(
-            ghc::filesystem::weakly_canonical(
-                CCFileUtils::sharedFileUtils()->getWritablePath().c_str()
-            ).string()
-        );
-    #else
-        return ghc::filesystem::path(
-            CCFileUtils::sharedFileUtils()->getWritablePath().c_str()
-        );
-    #endif
-}
-
-ghc::filesystem::path Loader::getGeodeDirectory() const {
-    return this->getGameDirectory() / GEODE_DIRECTORY;
-}
-
-ghc::filesystem::path Loader::getGeodeSaveDirectory() const {
-    return this->getSaveDirectory() / GEODE_DIRECTORY;
 }

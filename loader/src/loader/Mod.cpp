@@ -2,6 +2,7 @@
 #include <Geode/cocos/support/zip_support/ZipUtils.h>
 #include <Geode/loader/Hook.hpp>
 #include <Geode/loader/Loader.hpp>
+#include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Setting.hpp>
@@ -17,8 +18,7 @@ USE_GEODE_NAMESPACE();
 
 Mod::Mod(ModInfo const& info) {
     m_info = info;
-    m_saveDirPath = Loader::get()->getGeodeSaveDirectory() / 
-        GEODE_MOD_DIRECTORY / info.m_id;
+    m_saveDirPath = dirs::getModsSaveDir() / info.m_id;
     ghc::filesystem::create_directories(m_saveDirPath);
 }
 
@@ -112,15 +112,15 @@ Result<> Mod::createTempDir() {
     }
 
     // Create geode/temp
-    auto tempDir = Loader::get()->getGeodeDirectory() / GEODE_TEMP_DIRECTORY;
+    auto tempDir = dirs::getModRuntimeDir();
     if (!file::createDirectoryAll(tempDir)) {
-        return Err("Unable to create Geode temp directory");
+        return Err("Unable to create mods' runtime directory");
     }
 
     // Create geode/temp/mod.id
     auto tempPath = tempDir / m_info.m_id;
     if (!file::createDirectoryAll(tempPath)) {
-        return Err("Unable to create mod temp directory");
+        return Err("Unable to create mod runtime directory");
     }
 
     // Unzip .geode file into temp dir
@@ -400,7 +400,7 @@ ghc::filesystem::path Mod::getPackagePath() const {
 }
 
 ghc::filesystem::path Mod::getConfigDir(bool create) const {
-    auto dir = Loader::get()->getGeodeDirectory() / GEODE_CONFIG_DIRECTORY / m_info.m_id;
+    auto dir = dirs::getModConfigDir() / m_info.m_id;
     if (create && !ghc::filesystem::exists(dir)) {
         ghc::filesystem::create_directories(dir);
     }

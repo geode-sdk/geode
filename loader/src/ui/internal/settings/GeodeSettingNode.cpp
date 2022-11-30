@@ -6,6 +6,7 @@
 #include <Geode/binding/Slider.hpp>
 #include <Geode/binding/CCMenuItemToggler.hpp>
 #include <Geode/loader/Loader.hpp>
+#include <Geode/loader/Dirs.hpp>
 
 // BoolSettingNode
 
@@ -122,7 +123,7 @@ void FileSettingNode::onPickFile(CCObject*) {
     if (auto path = file::pickFile(
             file::PickMode::OpenFile,
             {
-                Loader::get()->getGameDirectory(),
+                dirs::getGameDir(),
                 setting->getFileFilters().value_or(std::vector<file::FilePickOptions::Filter>())
             }
         )) {

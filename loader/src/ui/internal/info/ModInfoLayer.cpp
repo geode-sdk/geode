@@ -5,6 +5,7 @@
 #include "../settings/ModSettingsPopup.hpp"
 #include "../settings/AdvancedSettingsPopup.hpp"
 #include <InternalLoader.hpp>
+#include <Geode/loader/Dirs.hpp>
 
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/binding/CCTextInputNode.hpp>
@@ -264,9 +265,7 @@ bool ModInfoLayer::init(ModObject* obj, ModListView* list) {
         // Check if a config directory for the mod exists
         // Mod::getConfigDir auto-creates the directory for user convenience, so
         // have to do it manually
-        if (ghc::filesystem::exists(
-                Loader::get()->getGeodeDirectory() / GEODE_CONFIG_DIRECTORY / m_mod->getID()
-            )) {
+        if (ghc::filesystem::exists(m_mod->getConfigDir(false))) {
             auto configSpr = CircleButtonSprite::createWithSpriteFrameName(
                 "pencil.png"_spr, 1.f, CircleBaseColor::Green, CircleBaseSize::Medium2
             );
@@ -809,7 +808,7 @@ void ModInfoLayer::showIssueReportPopup(ModInfo const& info) {
                 "\n\n"
                 "If your issue relates to a <cr>game crash</c>, <cb>please include</c> the "
                 "latest crash log(s) from `" +
-                Loader::get()->getCrashLogDirectory().string() + "`",
+                dirs::getCrashlogsDir().string() + "`",
             "OK", (info.m_issues.value().m_url ? "Open URL" : ""),
             [info](bool btn2) {
                 if (btn2) {
@@ -825,8 +824,7 @@ void ModInfoLayer::showIssueReportPopup(ModInfo const& info) {
             "[#support](https://discord.com/channels/911701438269386882/979352389985390603) "
             "channnel in the [Geode Discord Server](https://discord.gg/9e43WMKzhp)\n\n"
             "If your issue relates to a <cr>game crash</c>, <cb>please include</c> the "
-            "latest crash log(s) from `" +
-                Loader::get()->getCrashLogDirectory().string() + "`",
+            "latest crash log(s) from `" + dirs::getCrashlogsDir().string() + "`",
             "OK"
         )
             ->show();

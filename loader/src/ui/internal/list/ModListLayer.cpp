@@ -13,6 +13,7 @@
 #include <Geode/ui/BasedButton.hpp>
 #include <Geode/ui/Notification.hpp>
 #include <Geode/utils/casts.hpp>
+#include <Geode/loader/Dirs.hpp>
 #include <optional>
 
 static ModListType g_tab = ModListType::Installed;
@@ -382,7 +383,7 @@ void ModListLayer::onFilters(CCObject*) {
 }
 
 void ModListLayer::onOpenFolder(CCObject*) {
-    file::openFolder(ghc::filesystem::canonical(Loader::get()->getGeodeDirectory() / "mods"));
+    file::openFolder(ghc::filesystem::canonical(dirs::getModsDir()));
 }
 
 void ModListLayer::onResetSearch(CCObject*) {

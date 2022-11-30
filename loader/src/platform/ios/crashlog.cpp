@@ -10,7 +10,7 @@ bool crashlog::didLastLaunchCrash() {
     return false;
 }
 
-std::string crashlog::getCrashLogDirectory() {
+ghc::filesystem::path crashlog::getCrashLogDirectory() {
     return "";
 }
 

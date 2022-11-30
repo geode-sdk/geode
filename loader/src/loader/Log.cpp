@@ -1,4 +1,4 @@
-#include <Geode/loader/Loader.hpp>
+#include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/utils/casts.hpp>
@@ -115,11 +115,7 @@ std::string Log::toString(bool logTime) const {
 }
 
 void Logs::setup() {
-    s_logStream = std::ofstream(
-        Loader::get()->getGeodeDirectory() /
-        GEODE_LOG_DIRECTORY /
-        log::generateLogName()
-    );
+    s_logStream = std::ofstream(dirs::getGeodeLogDir() / log::generateLogName());
 }
 
 void Logs::push(Log&& log) {

@@ -5,6 +5,7 @@
 
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
+#include <Geode/loader/Dirs.hpp>
 #include <Geode/utils/web.hpp>
 #include <Geode/utils/file.hpp>
 #include <fmt/format.h>
@@ -94,9 +95,8 @@ void InternalLoader::loadInfoAlerts(nlohmann::json& json) {
 
 void InternalLoader::downloadLoaderResources(IndexUpdateCallback callback) {
     auto version = this->getVersion().toString();
-    auto tempResourcesZip = this->getGeodeDirectory() / GEODE_RESOURCE_DIRECTORY / "new.zip";
-    auto resourcesDir =
-        this->getGeodeDirectory() / GEODE_RESOURCE_DIRECTORY / InternalMod::get()->getID();
+    auto tempResourcesZip = dirs::getTempDir() / "new.zip";
+    auto resourcesDir = dirs::getGeodeResourcesDir() / InternalMod::get()->getID();
 
     web::AsyncWebRequest()
         .join("update-geode-loader-resources")
@@ -142,8 +142,7 @@ bool InternalLoader::verifyLoaderResources(IndexUpdateCallback callback) {
     }
 
     // geode/resources/geode.loader
-    auto resourcesDir =
-        this->getGeodeDirectory() / GEODE_RESOURCE_DIRECTORY / InternalMod::get()->getID();
+    auto resourcesDir = dirs::getGeodeResourcesDir() / InternalMod::get()->getID();
 
     // if the resources dir doesn't exist, then it's probably incorrect
     if (!(ghc::filesystem::exists(resourcesDir) && ghc::filesystem::is_directory(resourcesDir))) {

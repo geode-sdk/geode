@@ -14,7 +14,7 @@ bool crashlog::didLastLaunchCrash() {
     return false;
 }
 
-std::string crashlog::getCrashLogDirectory() {
+ghc::filesystem::path crashlog::getCrashLogDirectory() {
     std::array<char, 1024> path;
     CFStringGetCString(
         (CFStringRef)NSHomeDirectory(), path.data(), path.size(), kCFStringEncodingUTF8

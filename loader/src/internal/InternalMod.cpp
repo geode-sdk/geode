@@ -1,5 +1,5 @@
 #include "InternalMod.hpp"
-
+#include <Geode/loader/Dirs.hpp>
 #include "InternalLoader.hpp"
 #include "about.hpp"
 
@@ -41,7 +41,7 @@ static ModInfo getInternalModInfo() {
 }
 
 InternalMod::InternalMod() : Mod(getInternalModInfo()) {
-    m_saveDirPath = Loader::get()->getGeodeSaveDirectory() / GEODE_MOD_DIRECTORY / m_info.m_id;
+    m_saveDirPath = dirs::getModsSaveDir() / m_info.m_id;
 
     ghc::filesystem::create_directories(m_saveDirPath);
 
