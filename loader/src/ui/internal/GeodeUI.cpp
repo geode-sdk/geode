@@ -1,4 +1,5 @@
-#include "../index/Index.hpp"
+
+#include <Geode/loader/Index.hpp>
 #include "info/ModInfoLayer.hpp"
 #include "list/ModListLayer.hpp"
 #include "settings/ModSettingsPopup.hpp"
@@ -15,8 +16,9 @@ void geode::openInfoPopup(Mod* mod) {
 
 void geode::openIndexPopup(Mod* mod) {
     if (Index::get()->isKnownItem(mod->getID())) {
-        ModInfoLayer::create(new ModObject(Index::get()->getKnownItem(mod->getID())), nullptr)
-            ->show();
+        ModInfoLayer::create(
+            new ModObject(Index::get()->getKnownItem(mod->getID()))
+        )->show();
     }
 }
 

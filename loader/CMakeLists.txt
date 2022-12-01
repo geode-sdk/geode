@@ -22,7 +22,6 @@ file(GLOB SOURCES CONFIGURE_DEPENDS
 	src/loader/*.cpp
 	src/main.cpp
 	src/utils/*.cpp
-	src/index/*.cpp
 	src/ui/nodes/*.cpp
 	src/ui/internal/*.cpp
 	src/ui/internal/credits/*.cpp
@@ -110,7 +109,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 	src/internal/
 	src/platform/
 	src/gui/
-	src/index/
 	md4c/src/
 	hash/
 	./ # lilac

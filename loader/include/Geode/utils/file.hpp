@@ -71,15 +71,20 @@ namespace geode::utils::file {
          * @param dir Directory to unzip the contents to
          */
         Result<> extractAllTo(Path const& dir);
-    };
 
-    /**
-     * Unzip file to directory
-     * @param from File to unzip
-     * @param to Directory to unzip to
-     * @returns Ok on success, Error on error
-     */
-    GEODE_DLL Result<> unzipTo(ghc::filesystem::path const& from, ghc::filesystem::path const& to);
+        /**
+         * Helper method for quickly unzipping a file
+         * @param from ZIP file to unzip
+         * @param to Directory to unzip to
+         * @param deleteZipAfter Whether to delete the zip after unzipping
+         * @returns Succesful result on success, errorful result on error
+         */
+        static Result<> intoDir(
+            Path const& from,
+            Path const& to,
+            bool deleteZipAfter = false
+        );
+    };
 
     GEODE_DLL bool openFolder(ghc::filesystem::path const& path);
 

@@ -1,13 +1,14 @@
+
 #include <InternalLoader.hpp>
 #include <array>
-
-USE_GEODE_NAMESPACE();
-
 #include <Geode/modify/LoadingLayer.hpp>
 #include <fmt/format.h>
 
+USE_GEODE_NAMESPACE();
+
 struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     bool m_updatingResources;
+    EventListener<ResourceDownloadFilter> m_resourceListener;
 
     CustomLoadingLayer() : m_updatingResources(false) {}
 
@@ -27,28 +28,14 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
         label->setID("geode-loaded-info");
         this->addChild(label);
 
+        m_fields->m_resourceListener.bind(std::bind(
+            &CustomLoadingLayer::updateResourcesProgress,
+            this, std::placeholders::_1
+        ));
+
         // verify loader resources
-        if (!InternalLoader::get()->verifyLoaderResources(std::bind(
-                &CustomLoadingLayer::updateResourcesProgress, this, std::placeholders::_1,
-                std::placeholders::_2, std::placeholders::_3
-            ))) {
-            // auto bg = CCScale9Sprite::create(
-            //     "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
-            // );
-            // bg->setScale(.6f);
-            // bg->setColor({ 0, 0, 0 });
-            // bg->setOpacity(150);
-            // bg->setPosition(winSize / 2);
-            // this->addChild(bg);
-
-            // m_fields->m_updatingResourcesBG = bg;
-
-            // auto label = CCLabelBMFont::create("", "goldFont.fnt");
-            // label->setScale(1.1f);
-            // bg->addChild(label);
-
+        if (!InternalLoader::get()->verifyLoaderResources()) {
             m_fields->m_updatingResources = true;
-
             this->setUpdateText("Downloading Resources");
         }
 
@@ -67,30 +54,28 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
         // );
     }
 
-    void updateResourcesProgress(UpdateStatus status, std::string const& info, uint8_t progress) {
-        switch (status) {
-            case UpdateStatus::Progress: {
-                this->setUpdateText("Downloading Resources: " + std::to_string(progress) + "%");
-            } break;
-
-            case UpdateStatus::Finished: {
-                this->setUpdateText("Resources Downloaded");
-                m_fields->m_updatingResources = false;
-                this->loadAssets();
-            } break;
-
-            case UpdateStatus::Failed: {
-                InternalLoader::platformMessageBox(
-                    "Error updating resources",
-                    "Unable to update Geode resources: " + info +
-                        ".\n"
-                        "The game will be loaded as normal, but please be aware "
-                        "that it may very likely crash."
-                );
-                this->setUpdateText("Resource Download Failed");
-                m_fields->m_updatingResources = false;
-                this->loadAssets();
-            } break;
+    void updateResourcesProgress(ResourceDownloadEvent* event) {
+        auto status = event->getStatus();
+        if (std::holds_alternative<UpdateProgress>(status)) {
+            auto prog = std::get<UpdateProgress>(status);
+            this->setUpdateText("Downloading Resources: " + std::to_string(prog.first) + "%");
+        }
+        else if (std::holds_alternative<UpdateFinished>(status)) {
+            this->setUpdateText("Resources Downloaded");
+            m_fields->m_updatingResources = false;
+            this->loadAssets();
+        }
+        else {
+            InternalLoader::platformMessageBox(
+                "Error updating resources",
+                "Unable to update Geode resources: " + 
+                std::get<UpdateError>(status) + ".\n"
+                "The game will be loaded as normal, but please be aware "
+                "that it may very likely crash."
+            );
+            this->setUpdateText("Resource Download Failed");
+            m_fields->m_updatingResources = false;
+            this->loadAssets();
         }
     }
 

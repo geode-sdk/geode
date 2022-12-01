@@ -3,10 +3,11 @@
 #include "casts.hpp"
 #include "../external/json/json.hpp"
 #include "general.hpp"
-#include <Geode/DefaultInclude.hpp>
+#include "../DefaultInclude.hpp"
 #include <cocos2d.h>
 #include <functional>
 #include <type_traits>
+#include "../loader/Event.hpp"
 
 // support converting ccColor3B / ccColor4B to / from json
 namespace cocos2d {
@@ -183,7 +184,7 @@ namespace geode {
     }
 }
 
-// Ref
+// Ref & Bug
 namespace geode {
     /**
      * A smart pointer to a managed CCObject-deriving class. Retains shared

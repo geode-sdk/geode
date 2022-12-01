@@ -3,7 +3,8 @@
 #include <Geode/binding/CustomListView.hpp>
 #include <Geode/binding/FLAlertLayerProtocol.hpp>
 #include <Geode/binding/TableViewCell.hpp>
-#include <Index.hpp>
+#include <Geode/loader/Index.hpp>
+#include <Geode/loader/Loader.hpp>
 #include <optional>
 
 USE_GEODE_NAMESPACE();
@@ -18,7 +19,7 @@ enum class ModListType {
 
 enum class ModObjectType {
     Mod,
-    Unloaded,
+    Invalid,
     Index,
 };
 
@@ -27,22 +28,25 @@ class ModListLayer;
 // Wrapper so you can pass Mods in a CCArray
 struct ModObject : public CCObject {
     ModObjectType m_type;
-    Mod* m_mod;
-    InvalidGeodeFile m_info;
-    IndexItem m_index;
+    std::variant<Mod*, InvalidGeodeFile, IndexItem> m_data;
 
-    inline ModObject(Mod* mod) : m_mod(mod), m_type(ModObjectType::Mod) {
+    inline ModObject(Mod* mod)
+      : m_data(mod), m_type(ModObjectType::Mod)
+    {
         this->autorelease();
-    };
+    }
 
-    inline ModObject(InvalidGeodeFile const& info) :
-        m_info(info), m_type(ModObjectType::Unloaded) {
+    inline ModObject(InvalidGeodeFile const& info)
+      : m_data(info), m_type(ModObjectType::Invalid)
+    {
         this->autorelease();
-    };
+    }
 
-    inline ModObject(IndexItem const& index) : m_index(index), m_type(ModObjectType::Index) {
+    inline ModObject(IndexItem const& index)
+      : m_data(index), m_type(ModObjectType::Index)
+    {
         this->autorelease();
-    };
+    }
 };
 
 class ModListView;

@@ -99,7 +99,8 @@ namespace geode {
     public:
         void postFrom(Mod* sender);
 
-        inline void post() {
+        template<class = void>
+        void post() {
             postFrom(Mod::get());
         }
 

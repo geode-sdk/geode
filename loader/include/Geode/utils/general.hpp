@@ -2,7 +2,7 @@
 
 #include "Result.hpp"
 
-#include <Geode/DefaultInclude.hpp>
+#include "../DefaultInclude.hpp"
 #include <chrono>
 #include <iomanip>
 #include <sstream>

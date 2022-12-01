@@ -3,7 +3,7 @@
 #include "ModListView.hpp"
 
 #include <Geode/binding/TextInputDelegate.hpp>
-#include <Index.hpp>
+#include <Geode/loader/Index.hpp>
 
 USE_GEODE_NAMESPACE();
 

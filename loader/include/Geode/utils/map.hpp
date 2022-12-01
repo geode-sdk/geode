@@ -18,7 +18,6 @@ namespace geode::utils::map {
      *                    beeing looked for, and false if not.
      * @returns True if value matching `containFunc` was found,
      * false if not.
-     * @author HJfod
      */
     template <typename T, typename R>
     bool contains(std::unordered_map<T, R> const& map, std::function<bool(R)> containFunc) {
@@ -38,7 +37,6 @@ namespace geode::utils::map {
      * @returns The value matching `selectFunc` if one was found,
      * otherwise the default value for type R or `nullptr` if R is
      * a pointer.
-     * @author HJfod
      */
     template <class T, class R>
     R select(std::unordered_map<T, R> const& map, std::function<bool(R)> selectFunc) {
@@ -58,7 +56,6 @@ namespace geode::utils::map {
      *                   return true if the item matches what is
      *                   beeing looked for, and false if not.
      * @returns Vector of all values that matched.
-     * @author HJfod
      */
     template <class T, class R>
     std::vector<R> selectAll(
@@ -77,10 +74,9 @@ namespace geode::utils::map {
      * Get all values in a map.
      * @param map Map to get values from
      * @returns Vector of all values.
-     * @author HJfod
      */
     template <class T, class R>
-    std::vector<R> getValues(std::unordered_map<T, R> const& map) {
+    std::vector<R> values(std::unordered_map<T, R> const& map) {
         std::vector<R> res;
         for (auto const& [_, r] : map) {
             res.push_back(r);
@@ -92,10 +88,9 @@ namespace geode::utils::map {
      * Get all keys in a map.
      * @param map Map to get keys from
      * @returns Vector of all keys.
-     * @author HJfod
      */
     template <class T, class R>
-    std::vector<T> getKeys(std::unordered_map<T, R> const& map) {
+    std::vector<T> keys(std::unordered_map<T, R> const& map) {
         std::vector<T> res;
         for (auto const& [t, _] : map) {
             res.push_back(t);

@@ -116,11 +116,6 @@ Result<std::vector<std::string>> utils::file::listFilesRecursively(std::string c
     return Ok(res);
 }
 
-Result<> utils::file::unzipTo(ghc::filesystem::path const& from, ghc::filesystem::path const& to) {
-    GEODE_UNWRAP_INTO(auto unzip, Unzip::create(from));
-    return unzip.extractAllTo(to);
-}
-
 static constexpr auto MAX_ENTRY_PATH_LEN = 256;
 
 struct ZipEntry {
@@ -244,7 +239,7 @@ ghc::filesystem::path Unzip::getPath() const {
 }
 
 std::vector<ghc::filesystem::path> Unzip::getEntries() const {
-    return map::getKeys(m_impl->entries());
+    return map::keys(m_impl->entries());
 }
 
 bool Unzip::hasEntry(Path const& name) {
@@ -265,6 +260,19 @@ Result<> Unzip::extractAllTo(Path const& dir) {
     GEODE_UNWRAP(file::createDirectoryAll(dir));
     for (auto& [entry, _] : m_impl->entries()) {
         GEODE_UNWRAP(this->extractTo(entry, dir / entry));
+    }
+    return Ok();
+}
+
+Result<> Unzip::intoDir(
+    Path const& from,
+    Path const& to,
+    bool deleteZipAfter
+) {
+    GEODE_UNWRAP_INTO(auto unzip, Unzip::create(from));
+    GEODE_UNWRAP(unzip.extractAllTo(to));
+    if (deleteZipAfter) {
+        try { ghc::filesystem::remove(from); } catch(...) {}
     }
     return Ok();
 }

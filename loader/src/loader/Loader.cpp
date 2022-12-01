@@ -275,7 +275,7 @@ Mod* Loader::getLoadedMod(std::string const& id) const {
 }
 
 std::vector<Mod*> Loader::getAllMods() {
-    return map::getValues(m_mods);
+    return map::values(m_mods);
 }
 
 Mod* Loader::getInternalMod() {
