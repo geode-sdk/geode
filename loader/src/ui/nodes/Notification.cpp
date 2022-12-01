@@ -125,7 +125,7 @@ void Notification::setIcon(cocos2d::CCSprite* icon) {
     if (m_icon) {
         m_icon->removeFromParent();
     }
-    if (m_icon = icon) {
+    if ((m_icon = icon)) {
         m_bg->addChild(icon);
     }
     this->updateLayout();

@@ -74,18 +74,20 @@ Result<> utils::file::writeBinary(ghc::filesystem::path const& path, byte_array 
     return Err("Unable to open file");
 }
 
-Result<bool> utils::file::createDirectory(ghc::filesystem::path const& path) {
+Result<> utils::file::createDirectory(ghc::filesystem::path const& path) {
     try {
-        return Ok(ghc::filesystem::create_directory(path));
+        ghc::filesystem::create_directory(path);
+        return Ok();
     }
     catch (...) {
         return Err("Unable to create directory");
     }
 }
 
-Result<bool> utils::file::createDirectoryAll(ghc::filesystem::path const& path) {
+Result<> utils::file::createDirectoryAll(ghc::filesystem::path const& path) {
     try {
-        return Ok(ghc::filesystem::create_directories(path));
+        ghc::filesystem::create_directories(path);
+        return Ok();
     }
     catch (...) {
         return Err("Unable to create directories");
