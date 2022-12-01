@@ -1,6 +1,6 @@
 #include <InternalLoader.hpp>
-#include <Geode/loader/Log.hpp>
 #include <Geode/loader/IPC.hpp>
+#include <Geode/loader/Log.hpp>
 #include <iostream>
 #include <InternalMod.hpp>
 
@@ -39,22 +39,6 @@ void InternalLoader::closePlatformConsole() {
     m_platformConsoleOpen = false;
 }
 
-void InternalLoader::postIPCReply(
-    void* rawPipeHandle,
-    std::string const& replyID,
-    nlohmann::json const& data
-) {
-    auto msgJson = nlohmann::json::object();
-    msgJson["reply"] = replyID;
-    msgJson["data"] = data;
-    auto msg = msgJson.dump();
-
-    DWORD written;
-    WriteFile(rawPipeHandle, msg.c_str(), msg.size(), &written, nullptr);
-
-    // log::debug("Sent message {}", msg);
-}
-
 void ipcPipeThread(HANDLE pipe) {
     char buffer[IPC_BUFFER_SIZE * sizeof(TCHAR)];
     DWORD read;
@@ -64,34 +48,12 @@ void ipcPipeThread(HANDLE pipe) {
     // log::debug("Waiting for I/O");
     if (ReadFile(pipe, buffer, sizeof(buffer) - 1, &read, nullptr)) {
         buffer[read] = '\0';
-        // log::debug("Got message {}", buffer);
-        try {
-            // parse received message
-            auto json = nlohmann::json::parse(buffer);
-            if (!json.contains("mod") || !json["mod"].is_string()) {
-                log::warn("Received IPC message without 'mod' field");
-                goto ipc_done;
-            }
-            if (!json.contains("message") || !json["message"].is_string()) {
-                log::warn("Received IPC message without 'message' field");
-                goto ipc_done;
-            }
-            if (json.contains("reply") && json["reply"].is_string()) {
-                replyID = json["reply"];
-            }
-            nlohmann::json data;
-            if (json.contains("data")) {
-                data = json["data"];
-            }
-            // log::debug("Posting IPC event");
-            // ! warning: if the event system is ever made asynchronous this will break!
-            IPCEvent(pipe, json["mod"], json["message"], replyID, data).post();
-        } catch(...) {
-            log::warn("Received IPC message that isn't valid JSON");
-        }
-    }
 
-ipc_done:
+        std::string reply = InternalLoader::processRawIPC((void*)pipe, buffer);
+
+        DWORD written;
+        WriteFile(pipe, reply.c_str(), reply.size(), &written, nullptr);
+    }
     // log::debug("Connection done");
 
     FlushFileBuffers(pipe);

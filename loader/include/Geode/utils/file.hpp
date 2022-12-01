@@ -15,8 +15,8 @@ namespace geode::utils::file {
     GEODE_DLL Result<> writeString(ghc::filesystem::path const& path, std::string const& data);
     GEODE_DLL Result<> writeBinary(ghc::filesystem::path const& path, byte_array const& data);
 
-    GEODE_DLL Result<> createDirectory(ghc::filesystem::path const& path);
-    GEODE_DLL Result<> createDirectoryAll(ghc::filesystem::path const& path);
+    GEODE_DLL Result<bool> createDirectory(ghc::filesystem::path const& path);
+    GEODE_DLL Result<bool> createDirectoryAll(ghc::filesystem::path const& path);
     GEODE_DLL Result<std::vector<std::string>> listFiles(std::string const& path);
     GEODE_DLL Result<std::vector<std::string>> listFilesRecursively(std::string const& path);
 
