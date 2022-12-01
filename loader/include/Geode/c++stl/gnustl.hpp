@@ -311,7 +311,8 @@ namespace gd {
         }
 
         vector(std::vector<T> input) {
-            auto tmp = new T[input.size()];
+            std::allocator<T> alloc;
+            auto tmp = alloc.allocate(input.size());
 
             m_start = tmp;
             m_finish = m_start + input.size();
@@ -323,7 +324,8 @@ namespace gd {
         }
 
         vector(std::initializer_list<T> const& input) {
-            auto tmp = new T[input.size()];
+            std::allocator<T> alloc;
+            auto tmp = alloc.allocate(input.size());
             m_start = tmp;
             m_finish = m_start + input.size();
             m_capacity_end = m_start + input.size();
@@ -331,11 +333,11 @@ namespace gd {
         }
         
         void clear() {
-            delete[] m_start;
-            auto tmp = new T[0];
-            m_start = tmp;
+            std::allocator<T> alloc;
+            alloc.deallocate(m_start, (m_finish - m_start) / 8);
+            m_start = alloc.allocate(1);
             m_finish = m_start;
-            m_capacity_end = m_start;
+            m_capacity_end = m_start + 8;
         }
 
         T& front() {
@@ -363,7 +365,9 @@ namespace gd {
         vector() : vector(std::vector<T>()) {}
 
         ~vector() {
-            delete[] m_start;
+            for (auto i = m_start; i != m_finish; ++i) {
+                delete i;
+            }
         }
 
     protected:

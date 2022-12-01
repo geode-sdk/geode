@@ -36,6 +36,7 @@ void CCFileUtils::addPriorityPath(const char* path) {
 
 void CCFileUtils::updatePaths() {
     // add search paths that aren't in PATHS or PACKS to PATHS
+
     for (auto& path : m_searchPathArray) {
         bool isKnown = false;
         for (auto& pack : PACKS) {
@@ -60,10 +61,12 @@ void CCFileUtils::updatePaths() {
     }
 
     // clear old paths
+
     m_searchPathArray.clear();
 
     // make sure addSearchPath doesn't add to PACKS or PATHS
     DONT_ADD_PATHS = true;
+
     // add texture packs first
     for (auto& pack : PACKS) {
         for (auto& path : pack.m_paths) {
@@ -75,6 +78,7 @@ void CCFileUtils::updatePaths() {
         this->addSearchPath(path.c_str());
     }
     DONT_ADD_PATHS = false;
+
 }
 
 #pragma warning(pop)
