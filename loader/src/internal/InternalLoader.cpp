@@ -47,6 +47,29 @@ bool InternalLoader::setup() {
     return true;
 }
 
+bool InternalLoader::isReadyToHook() const {
+    return m_readyToHook;
+}
+
+void InternalLoader::addInternalHook(Hook* hook, Mod* mod) {
+    m_internalHooks.push_back({hook, mod});
+}
+
+bool InternalLoader::loadHooks() {
+    m_readyToHook = true;
+    auto thereWereErrors = false;
+    for (auto const& hook : m_internalHooks) {
+        auto res = hook.second->addHook(hook.first);
+        if (!res) {
+            log::log(Severity::Error, hook.second, "{}", res.unwrapErr());
+            thereWereErrors = true;
+        }
+    }
+    // free up memory
+    m_internalHooks.clear();
+    return !thereWereErrors;
+}
+
 void InternalLoader::queueInGDThread(ScheduledFunction func) {
     std::lock_guard<std::mutex> lock(m_gdThreadMutex);
     m_gdThreadQueue.push_back(func);
