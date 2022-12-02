@@ -296,68 +296,88 @@ namespace gd {
         }
     };
 
+    // template <class Type>
+    // using vector = std::vector<Type>;
+
     template <typename T>
     class GEODE_DLL vector {
     public:
         using value_type = T;
 
-        operator std::vector<T>() const {
-            std::vector<T> out;
-
-            for (auto i = m_start; i != m_finish; ++i) {
-                out.push_back(*i);
-            }
-            return out;
+        auto allocator() const {
+            return std::allocator<T>();
         }
 
-        vector(std::vector<T> input) {
-            std::allocator<T> alloc;
-            auto tmp = alloc.allocate(input.size());
+        operator std::vector<T>() const {
+            return std::vector<T>(m_start, m_finish);
+        }
 
-            m_start = tmp;
+        vector(std::vector<T> const& input) {
+            m_start = this->allocator().allocate(input.size());
             m_finish = m_start + input.size();
-            m_capacity_end = m_start + input.size();
-            for (auto i : input) {
-                *tmp = i;
-                tmp++;
-            }
+            m_reserveEnd = m_start + input.size();
+
+            std::copy(input.begin(), input.end(), m_start);
         }
 
         vector(std::initializer_list<T> const& input) {
-            std::allocator<T> alloc;
-            auto tmp = alloc.allocate(input.size());
-            m_start = tmp;
+            m_start = this->allocator().allocate(input.size());
             m_finish = m_start + input.size();
-            m_capacity_end = m_start + input.size();
-            std::copy(input.begin(), input.end(), tmp);
+            m_reserveEnd = m_start + input.size();
+
+            std::copy(input.begin(), input.end(), m_start);
         }
         
         void clear() {
-            std::allocator<T> alloc;
-            alloc.deallocate(m_start, (m_finish - m_start) / 8);
-            m_start = alloc.allocate(1);
+            std::destroy(m_start, m_finish);
+
+            this->allocator().deallocate(m_start, this->size());
+
+            m_start = this->allocator().allocate(16);
             m_finish = m_start;
-            m_capacity_end = m_start + 8;
+            m_reserveEnd = m_start;
+        }
+
+        T& operator[](size_t index) {
+            return m_start[index];
+        }
+
+        T const& operator[](size_t index) const {
+            return m_start[index];
+        }
+
+        T& at(size_t index) {
+            if (index >= this->size()) {
+                throw std::out_of_range("gd::vector::at");
+            }
+            return m_start[index];
+        }
+
+        T const& at(size_t index) const {
+            if (index >= this->size()) {
+                throw std::out_of_range("gd::vector::at");
+            }
+            return m_start[index];
         }
 
         T& front() {
             return *m_start;
         }
 
-        auto begin() {
+        T* begin() {
             return m_start;
         }
 
-        auto end() {
+        T* end() {
             return m_finish;
         }
 
-        auto begin() const {
-            return static_cast<const T*>(m_start);
+        T const* begin() const {
+            return m_start;
         }
 
-        auto end() const {
-            return static_cast<const T*>(m_finish);
+        T const* end() const {
+            return m_finish;
         }
 
         vector(vector const& lol) : vector(std::vector<T>(lol)) {}
@@ -370,10 +390,18 @@ namespace gd {
             }
         }
 
+        size_t size() const {
+            return m_finish - m_start;
+        }
+
+        size_t capacity() const {
+            return m_reserveEnd - m_start;
+        }
+
     protected:
         T* m_start;
         T* m_finish;
-        T* m_capacity_end;
+        T* m_reserveEnd;
     };
 
     struct _bit_reference {
@@ -436,55 +464,55 @@ namespace gd {
         }
     };
 
-    template <>
-    class vector<bool> {
-    protected:
-        _bit_iterator m_start;
-        _bit_iterator m_end;
-        uintptr_t* m_capacity_end;
+    // template <>
+    // class vector<bool> {
+    // protected:
+    //     _bit_iterator m_start;
+    //     _bit_iterator m_end;
+    //     uintptr_t* m_capacity_end;
 
-    public:
-        vector(std::vector<bool> input) : m_start(0), m_end(0) {
-            auto realsize = input.size() / int(sizeof(uintptr_t));
-            auto tmp = new uintptr_t[realsize];
+    // public:
+    //     vector(std::vector<bool> input) : m_start(0), m_end(0) {
+    //         auto realsize = input.size() / int(sizeof(uintptr_t));
+    //         auto tmp = new uintptr_t[realsize];
 
-            m_start = _bit_iterator(tmp);
-            m_end = _bit_iterator(tmp + realsize, input.size() % sizeof(uintptr_t));
-            m_capacity_end = tmp + realsize;
+    //         m_start = _bit_iterator(tmp);
+    //         m_end = _bit_iterator(tmp + realsize, input.size() % sizeof(uintptr_t));
+    //         m_capacity_end = tmp + realsize;
 
-            auto itmp = m_start;
-            for (auto i : input) {
-                *itmp = i;
-                ++itmp;
-            }
-        }
+    //         auto itmp = m_start;
+    //         for (auto i : input) {
+    //             *itmp = i;
+    //             ++itmp;
+    //         }
+    //     }
 
-        vector(vector<bool> const& lol) : vector(std::vector<bool>(lol)) {}
+    //     vector(vector<bool> const& lol) : vector(std::vector<bool>(lol)) {}
 
-        vector() : vector(std::vector<bool>()) {}
+    //     vector() : vector(std::vector<bool>()) {}
 
-        ~vector() {
-            delete[] m_start.m_bitptr;
-        }
+    //     ~vector() {
+    //         delete[] m_start.m_bitptr;
+    //     }
 
-        operator std::vector<bool>() const {
-            std::vector<bool> out;
-            for (auto i = m_start; i != m_end; ++i) {
-                out.push_back(*i);
-            }
-            return out;
-        }
+    //     operator std::vector<bool>() const {
+    //         std::vector<bool> out;
+    //         for (auto i = m_start; i != m_end; ++i) {
+    //             out.push_back(*i);
+    //         }
+    //         return out;
+    //     }
 
-        _bit_reference operator[](size_t index) {
-            const auto real_index = index / sizeof(uintptr_t);
-            const auto offset = index % sizeof(uintptr_t);
-            return _bit_reference(&m_start.m_bitptr[real_index], 1UL << offset);
-        }
+    //     _bit_reference operator[](size_t index) {
+    //         const auto real_index = index / sizeof(uintptr_t);
+    //         const auto offset = index % sizeof(uintptr_t);
+    //         return _bit_reference(&m_start.m_bitptr[real_index], 1UL << offset);
+    //     }
 
-        bool operator[](size_t index) const {
-            return const_cast<vector&>(*this)[index];
-        }
-    };
+    //     bool operator[](size_t index) const {
+    //         return const_cast<vector&>(*this)[index];
+    //     }
+    // };
 };
 
 #elif defined(GEODE_IS_IOS)

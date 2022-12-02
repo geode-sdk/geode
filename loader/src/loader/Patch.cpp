@@ -28,7 +28,7 @@ Result<Patch*> Mod::patch(void* address, byte_array data) {
         return Err("Unable to enable patch at " + std::to_string(p->getAddress()));
     }
     m_patches.push_back(p);
-    return Ok<Patch*>(p);
+    return Ok(p);
 }
 
 Result<> Mod::unpatch(Patch* patch) {

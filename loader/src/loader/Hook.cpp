@@ -78,7 +78,7 @@ Result<Hook*> Mod::addHook(Hook* hook) {
     else {
         internalHooks().push_back({ hook, this });
     }
-    return Ok<Hook*>(hook);
+    return Ok(hook);
 }
 
 bool InternalLoader::loadHooks() {
