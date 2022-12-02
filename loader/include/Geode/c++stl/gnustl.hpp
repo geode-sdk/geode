@@ -335,9 +335,9 @@ namespace gd {
         void clear() {
             std::allocator<T> alloc;
             alloc.deallocate(m_start, (m_finish - m_start) / 8);
-            m_start = alloc.allocate(1);
-            m_finish = m_start;
-            m_capacity_end = m_start + 8;
+            m_start = 0;
+            m_finish = 0;
+            m_capacity_end = 0;
         }
 
         T& front() {
