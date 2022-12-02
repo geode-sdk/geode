@@ -1,5 +1,10 @@
+#include <string>
+#include <optional>
+#include <vector>
+
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Hook.hpp>
+#include <Geode/utils/file.hpp>
 
 #include <InternalLoader.hpp>
 #include <InternalMod.hpp>

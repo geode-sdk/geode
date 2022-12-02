@@ -1,13 +1,3 @@
-#include "InternalLoader.hpp"
-
-#include "InternalMod.hpp"
-#include "resources.hpp"
-
-#include <Geode/loader/Loader.hpp>
-#include <Geode/loader/IPC.hpp>
-#include <Geode/loader/Log.hpp>
-#include <Geode/utils/web.hpp>
-#include <Geode/utils/file.hpp>
 #include <fmt/format.h>
 #include <hash.hpp>
 #include <iostream>
@@ -15,6 +5,16 @@
 #include <string>
 #include <thread>
 #include <vector>
+
+#include <Geode/loader/Loader.hpp>
+#include <Geode/loader/IPC.hpp>
+#include <Geode/loader/Log.hpp>
+#include <Geode/utils/web.hpp>
+#include <Geode/utils/file.hpp>
+
+#include "InternalLoader.hpp"
+#include "InternalMod.hpp"
+#include "resources.hpp"
 
 InternalLoader::InternalLoader() : Loader() {}
 
