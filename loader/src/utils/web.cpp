@@ -125,7 +125,7 @@ Result<std::string> web::fetch(std::string const& url) {
     return Err("Error getting info: " + std::string(curl_easy_strerror(res)));
 }
 
-static std::unordered_map<std::string, SentAsyncWebRequestHandle> RUNNING_REQUESTS {};
+static std::unordered_map<std::string, SentAsyncWebRequestHandle> RUNNING_REQUESTS{};
 static std::mutex RUNNING_REQUESTS_MUTEX;
 
 SentAsyncWebRequest::SentAsyncWebRequest(AsyncWebRequest const& req, std::string const& id) :
@@ -190,10 +190,11 @@ SentAsyncWebRequest::SentAsyncWebRequest(AsyncWebRequest const& req, std::string
         struct ProgressData {
             SentAsyncWebRequest* self;
             std::ofstream* file;
-        } data { this, file.get() };
+        } data{this, file.get()};
 
         curl_easy_setopt(
-            curl, CURLOPT_PROGRESSFUNCTION,
+            curl,
+            CURLOPT_PROGRESSFUNCTION,
             +[](void* ptr, double total, double now, double, double) -> int {
                 auto data = static_cast<ProgressData*>(ptr);
                 while (data->self->m_paused) {}
@@ -350,7 +351,7 @@ SentAsyncWebRequestHandle AsyncWebRequest::send() {
     else {
         auto id = m_joinID.value_or("__anon_request_" + std::to_string(COUNTER++));
         ret = std::make_shared<SentAsyncWebRequest>(*this, id);
-        RUNNING_REQUESTS.insert({ id, ret });
+        RUNNING_REQUESTS.insert({id, ret});
     }
 
     // resume all running requests
@@ -367,32 +368,32 @@ AsyncWebRequest::~AsyncWebRequest() {
 
 AsyncWebResult<std::monostate> AsyncWebResponse::into(std::ostream& stream) {
     m_request.m_target = &stream;
-    return this->as(+[](byte_array const&) -> Result<std::monostate> {
+    return this->as([](byte_array const&) -> Result<std::monostate> {
         return Ok(std::monostate());
     });
 }
 
 AsyncWebResult<std::monostate> AsyncWebResponse::into(ghc::filesystem::path const& path) {
     m_request.m_target = path;
-    return this->as(+[](byte_array const&) -> Result<std::monostate> {
+    return this->as([](byte_array const&) -> Result<std::monostate> {
         return Ok(std::monostate());
     });
 }
 
 AsyncWebResult<std::string> AsyncWebResponse::text() {
-    return this->as(+[](byte_array const& bytes) -> Result<std::string> {
+    return this->as([](byte_array const& bytes) -> Result<std::string> {
         return Ok(std::string(bytes.begin(), bytes.end()));
     });
 }
 
 AsyncWebResult<byte_array> AsyncWebResponse::bytes() {
-    return this->as(+[](byte_array const& bytes) -> Result<byte_array> {
+    return this->as([](byte_array const& bytes) -> Result<byte_array> {
         return Ok(bytes);
     });
 }
 
 AsyncWebResult<nlohmann::json> AsyncWebResponse::json() {
-    return this->as(+[](byte_array const& bytes) -> Result<nlohmann::json> {
+    return this->as([](byte_array const& bytes) -> Result<nlohmann::json> {
         try {
             return Ok(nlohmann::json::parse(bytes.begin(), bytes.end()));
         }
