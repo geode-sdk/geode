@@ -41,17 +41,14 @@ namespace geode::modifier {
             return node->getFieldContainer();
         }
     };
+    
+    GEODE_DLL size_t getFieldIndexForClass(size_t hash);
 
     template <class Parent, class Base>
     class FieldIntermediate {
         // Padding used for guaranteeing any member of parents
         // will be in between sizeof(Intermediate) and sizeof(Parent)
         uintptr_t m_padding;
-        static inline std::unordered_map<size_t, size_t> nextIndex;
-
-        static size_t getFieldIndexForClass(size_t hash) {
-            return nextIndex[hash]++;
-        }
 
     public:
         static void fieldConstructor(void* offsetField) {
