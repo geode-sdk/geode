@@ -1,322 +1,234 @@
 #pragma once
 
 #include "../DefaultInclude.hpp"
+#include "../external/result/result.hpp"
 
+#include <fmt/format.h>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <variant>
-#include <fmt/format.h>
 
-// clang-format off
+// clang-format on
 
 namespace geode {
-    namespace {
-        struct AnyType {
-            explicit AnyType() = delete;
-        };
-
-        template <class V, class RV>
-        concept ConvertibleToResult =
-            std::is_convertible_v<std::remove_reference_t<V>, std::remove_reference_t<RV>> ||
-            std::is_same_v<std::remove_reference_t<V>, std::remove_reference_t<RV>>;
-
+    namespace impl {
         using DefaultValue = std::monostate;
         using DefaultError = std::string;
+        template <class T>
+        using WrappedResult = std::conditional_t<
+            std::is_lvalue_reference_v<T>, std::reference_wrapper<std::remove_reference_t<T>>,
+            std::remove_const_t<T>>;
 
-        template<class T, class E>
-        struct Storage {
-            std::variant<T, E> m_value;
+        template <class E = impl::DefaultError>
+        class [[nodiscard]] Failure {
+        public:
+            WrappedResult<E> m_error;
 
-            bool holdsOk() const {
-                return std::holds_alternative<T>(m_value);
+            Failure() = default;
+
+            template <class E2>
+                requires(std::is_constructible_v<E, E2 const&>)
+            explicit constexpr Failure(E2 const& e) : m_error(e) {}
+
+            template <class E2>
+                requires(std::is_constructible_v<E, E2 &&>)
+            explicit constexpr Failure(E2&& e) : m_error(std::move(e)) {}
+
+            E& error() & noexcept {
+                return m_error;
             }
 
-            T getOk() const requires std::is_copy_constructible_v<T> {
-                return std::get<T>(m_value);
+            E const& error() const& noexcept {
+                return m_error;
             }
 
-            T&& getOk() requires(!std::is_copy_constructible_v<T>) {
-                return std::move(std::get<T>(m_value));
+            E&& error() && noexcept {
+                return static_cast<E&&>(m_error);
             }
 
-            E getErr() const requires std::is_copy_constructible_v<E> {
-                return std::get<E>(m_value);
+            E const&& error() const&& noexcept {
+                return static_cast<E&&>(m_error);
             }
-
-            E&& getErr() requires(!std::is_copy_constructible_v<E>) {
-                return std::move(std::get<E>(m_value));
-            }
-
-            template<class T2, class E2>
-                requires
-                    std::is_convertible_v<T2, T> &&
-                    std::is_convertible_v<E2, E>
-            Storage(Storage<T2, E2> const& other)
-                requires
-                    std::is_copy_constructible_v<T> &&
-                    std::is_copy_constructible_v<E>
-            {
-                if (other.holdsOk()) {
-                    m_value = other.getOk();
-                } else {
-                    m_value = other.getErr();
-                }
-            }
-            
-            Storage(T const& value)
-                requires std::is_copy_constructible_v<T>
-              : m_value(value) {}
-
-            Storage(T&& value)
-                requires std::is_move_constructible_v<T>
-              : m_value(std::forward<T>(value)) {}
-
-            Storage(E const& value, std::monostate)
-                requires std::is_copy_constructible_v<E>
-              : m_value(value) {}
-
-            Storage(E&& value, std::monostate)
-                requires std::is_move_constructible_v<E>
-              : m_value(std::forward<E>(value)) {}
         };
 
-        template<class T>
-        struct Storage<T, T> {
-            bool m_holdsOk;
-            T m_value;
+        template <class T = impl::DefaultValue>
+        class [[nodiscard]] Success {
+        public:
+            WrappedResult<T> m_value;
 
-            bool holdsOk() const {
-                return m_holdsOk;
-            }
+            Success() = default;
 
-            T getOk() const requires std::is_copy_constructible_v<T> {
+            template <class T2>
+                requires(std::is_constructible_v<T, T2 const&>)
+            explicit constexpr Success(T2 const& v) : m_value(v) {}
+
+            template <class T2>
+                requires(std::is_constructible_v<T, T2 &&>)
+            explicit constexpr Success(T2&& v) : m_value(std::forward<T2>(v)) {}
+
+            T& value() & noexcept {
                 return m_value;
             }
 
-            T&& getOk() requires(!std::is_copy_constructible_v<T>) {
-                return std::move(m_value);
-            }
-
-            T getErr() const requires std::is_copy_constructible_v<T> {
+            T const& value() const& noexcept {
                 return m_value;
             }
 
-            T&& getErr() requires(!std::is_copy_constructible_v<T>) {
-                return std::move(m_value);
+            T&& value() && noexcept {
+                return static_cast<T&&>(m_value);
             }
 
-            template<class T2, class E2>
-                requires
-                    std::is_convertible_v<T2, T> &&
-                    std::is_convertible_v<E2, T>
-            Storage(Storage<T2, E2> const& other)
-                requires
-                    std::is_copy_constructible_v<T> &&
-                    std::is_copy_constructible_v<T>
-               : m_value(other.holdsOk() ? other.getOk() : other.getErr()),
-                 m_holdsOk(other.holdsOk()) {}
-            
-            Storage(T const& value)
-                requires std::is_copy_constructible_v<T>
-              : m_value(value),
-                m_holdsOk(true) {}
-
-            Storage(T&& value)
-                requires std::is_move_constructible_v<T>
-              : m_value(std::forward<T>(value)),
-                m_holdsOk(true) {}
-
-            Storage(T const& value, std::monostate)
-                requires std::is_copy_constructible_v<T>
-              : m_value(value),
-                m_holdsOk(false) {}
-
-            Storage(T&& value, std::monostate)
-                requires std::is_move_constructible_v<T>
-              : m_value(std::forward<T>(value)),
-                m_holdsOk(false) {}
+            T const&& value() const&& noexcept {
+                return static_cast<T&&>(m_value);
+            }
         };
     }
 
-    template <class T = DefaultValue, class E = DefaultError>
-    class [[nodiscard]] Result final {
+    template <class T = impl::DefaultValue, class E = impl::DefaultError>
+    class [[nodiscard]] Result : public cpp::result<T, E> {
     public:
-        using value_type = std::remove_reference_t<T>;
-        using error_type = std::remove_reference_t<E>;
+        using Base = cpp::result<T, E>;
+        using ValueType = typename Base::value_type;
+        using ErrorType = typename Base::error_type;
 
-        // for some reason doing requires causes errors with pch...
-        static_assert(
-            std::is_copy_constructible_v<value_type> || std::is_move_constructible_v<value_type>,
-            "T must be copiable or movable!"
-        );
-        static_assert(
-            std::is_copy_constructible_v<error_type> || std::is_move_constructible_v<error_type>,
-            "E must be copiable or movable!"
-        );
+        using Base::result;
 
-    protected:
-        Storage<value_type, error_type> m_value;
+        template <class U>
+            requires(cpp::detail::result_is_implicit_value_convertible<T, U>::value)
+        constexpr Result(U&& value) = delete;
 
-    public:
-        Storage<value_type, error_type> const& _Raw_Storage() const {
-            return m_value;
+        template <class E2>
+            requires(std::is_constructible_v<E, E2 const&>)
+        constexpr Result(impl::Failure<E2> const& e) : Base(cpp::failure<E>(e.error())) {}
+
+        template <class E2>
+            requires(std::is_constructible_v<E, E2 &&>)
+        constexpr Result(impl::Failure<E2>&& e) : Base(cpp::failure<E>(std::move(e.error()))) {}
+
+        template <class T2>
+            requires(std::is_constructible_v<T, T2 const&>)
+        constexpr Result(impl::Success<T2> const& s) : Base(s.value()) {}
+
+        template <class T2>
+            requires(std::is_constructible_v<T, T2 &&>)
+        constexpr Result(impl::Success<T2>&& s) : Base(std::move(s.value())) {}
+
+        [[nodiscard]] constexpr explicit operator bool() const noexcept {
+            return this->operator bool();
         }
 
-        bool isOk() const {
-            return m_value.holdsOk();
+        [[nodiscard]] constexpr bool isOk() const noexcept {
+            return this->has_value();
         }
 
-        bool isErr() const {
-            return !m_value.holdsOk();
+        [[nodiscard]] constexpr bool isErr() const noexcept {
+            return this->has_error();
         }
 
-        template<class ... Args>
-        Result<T, std::string> expect(const char* str, Args&&... args) {
-            if (isErr()) {
-                return Result<T, std::string>(fmt::format(
-                    str,
-                    std::forward<Args>(args)...,
-                    fmt::arg("error", unwrapErr())
-                ), std::monostate());
-            } else {
+        [[nodiscard]] constexpr decltype(auto) unwrap() & {
+            return this->value();
+        }
+
+        [[nodiscard]] constexpr decltype(auto) unwrap() const& {
+            return this->value();
+        }
+
+        [[nodiscard]] constexpr decltype(auto) unwrap() && {
+            return this->value();
+        }
+
+        [[nodiscard]] constexpr decltype(auto) unwrap() const&& {
+            return this->value();
+        }
+
+        [[nodiscard]] constexpr decltype(auto) unwrapErr() & {
+            return this->error();
+        }
+
+        [[nodiscard]] constexpr decltype(auto) unwrapErr() const& {
+            return this->error();
+        }
+
+        [[nodiscard]] constexpr decltype(auto) unwrapErr() && {
+            return this->error();
+        }
+
+        [[nodiscard]] constexpr decltype(auto) unwrapErr() const&& {
+            return this->error();
+        }
+
+        template <class... Args>
+        [[nodiscard]] Result<T, std::string> expect(std::string const& format, Args&&... args)
+            const {
+            if (this->isErr()) {
+                return impl::Failure<std::string>(fmt::format(
+                    fmt::runtime(format), std::forward<Args>(args)...,
+                    fmt::arg("error", this->unwrapErr())
+                ));
+            }
+            else {
                 return *this;
             }
         }
 
-        explicit Result(value_type const& value)
-            requires std::is_copy_constructible_v<value_type>
-          : m_value(value) {}
-
-        explicit Result(value_type&& value)
-            requires std::is_move_constructible_v<value_type>
-          : m_value(std::forward<value_type>(value)) {}
-
-        explicit Result(error_type const& value, std::monostate)
-            requires std::is_copy_constructible_v<error_type>
-          : m_value(value, std::monostate()) {}
-
-        explicit Result(error_type&& value, std::monostate)
-            requires std::is_move_constructible_v<error_type>
-          : m_value(std::forward<error_type>(value), std::monostate()) {}
-
-        Result(Result<T, E> const& other)
-            requires
-                std::is_copy_constructible_v<value_type> &&
-                std::is_copy_constructible_v<error_type>
-            = default;
-
-        Result(Result<T, E>&& other)
-            requires(
-                !std::is_copy_constructible_v<value_type> ||
-                !std::is_copy_constructible_v<error_type>
-            ) = default;
-
-        template<class T2, class E2>
-            requires
-                std::is_convertible_v<T2, T> &&
-                std::is_convertible_v<E2, E>
-        Result(Result<T2, E2> const& other)
-            requires
-                std::is_copy_constructible_v<value_type> &&
-                std::is_copy_constructible_v<error_type>
-          : m_value(other._Raw_Storage()) {}
-
-        template <class T2>
-            requires ConvertibleToResult<T2, T>
-        Result(Result<T2, AnyType> const& other)
-            requires
-                std::is_copy_constructible_v<value_type> &&
-                std::is_copy_constructible_v<error_type>
-          : Result(value_type(other.unwrap())) {}
-
-        template <class E2>
-            requires ConvertibleToResult<E2, E>
-        Result(Result<AnyType, E2> const& other)
-            requires
-                std::is_copy_constructible_v<value_type> &&
-                std::is_copy_constructible_v<error_type>
-          : m_value(std::forward<E2>(other.unwrapErr()), std::monostate()) {}
-
-        template <class T2>
-            requires ConvertibleToResult<T2, T>
-        Result(Result<T2, AnyType>&& other)
-            requires(
-                !std::is_copy_constructible_v<value_type> ||
-                !std::is_copy_constructible_v<error_type>
-            )
-          : m_value(other.unwrap()) {}
-
-        template <class E2>
-            requires ConvertibleToResult<E2, E>
-        Result(Result<AnyType, E2>&& other)
-            requires(
-                !std::is_copy_constructible_v<value_type> ||
-                !std::is_copy_constructible_v<error_type>
-            )
-          : Result(std::forward<error_type>(other.unwrapErr()), std::monostate()) {}
-
-        value_type unwrap() const requires std::is_copy_constructible_v<value_type> {
-            return m_value.getOk();
+        template <class U>
+        [[nodiscard]] constexpr decltype(auto) unwrapOr(U&& val) && {
+            return this->value_or(std::forward<U>(val));
         }
 
-        value_type&& unwrap() requires(!std::is_copy_constructible_v<value_type>) {
-            return std::forward<value_type>(m_value.getOk());
+        template <class U>
+        [[nodiscard]] constexpr decltype(auto) unwrapOr(U&& val) const& {
+            return this->value_or(std::forward<U>(val));
         }
 
-        error_type unwrapErr() const requires std::is_copy_constructible_v<error_type> {
-            return m_value.getErr();
+        template <class U>
+        [[nodiscard]] constexpr decltype(auto) errorOr(U&& val) && {
+            return this->error_or(std::forward<U>(val));
         }
 
-        error_type&& unwrapErr() requires(!std::is_copy_constructible_v<error_type>) {
-            return std::forward<error_type>(m_value.getErr());
-        }
-
-        explicit operator bool() const requires(
-            !std::is_same_v<T, bool> &&
-            !std::is_same_v<E, bool>
-        ) {
-            return this->isOk();
+        template <class U>
+        [[nodiscard]] constexpr decltype(auto) errorOr(U&& val) const& {
+            return this->error_or(std::forward<U>(val));
         }
     };
 
-    template <class T = DefaultValue, class E = AnyType>
-        requires std::is_copy_constructible_v<T>
-    Result<T, E> Ok(T value = T()) {
-        return Result<T, E>(value);
+    template <class T = impl::DefaultValue>
+    constexpr impl::Success<T> Ok() {
+        return impl::Success<T>();
     }
 
-    template <class T = DefaultValue, class E = AnyType>
-        requires(!std::is_copy_constructible_v<T>)
-    Result<T, E> Ok(T&& value) {
-        return Result<T, E>(std::forward<T>(value));
+    template <class T>
+    constexpr impl::Success<T> Ok(T&& value) {
+        return impl::Success<T>(std::forward<T>(value));
     }
 
-    template <class E = DefaultError, class T = AnyType>
-        requires std::is_copy_constructible_v<E>
-    Result<T, E> Err(E error) {
-        return Result<T, E>(error, std::monostate());
+    template <class E>
+    constexpr impl::Failure<E> Err(E&& error) {
+        return impl::Failure<E>(std::forward<E>(error));
     }
 
-    template <class E = DefaultError, class T = AnyType>
-        requires(!std::is_copy_constructible_v<E>)
-    Result<T, E> Err(E&& error) {
-        return Result<T, E>(std::forward<E>(error), std::monostate());
+    template <class... Args>
+    inline impl::Failure<std::string> Err(std::string const& format, Args&&... args) {
+        return impl::Failure<std::string>(
+            fmt::format(fmt::runtime(format), std::forward<Args>(args)...)
+        );
     }
 
-    #define GEODE_UNWRAP_INTO(into, ...)                                            \
+#define GEODE_UNWRAP_INTO(into, ...)                                            \
+    auto GEODE_CONCAT(unwrap_res_, __LINE__) = (__VA_ARGS__);                   \
+    if (GEODE_CONCAT(unwrap_res_, __LINE__).isErr()) {                          \
+        return Err(std::move(GEODE_CONCAT(unwrap_res_, __LINE__).unwrapErr())); \
+    }                                                                           \
+    into = std::move(GEODE_CONCAT(unwrap_res_, __LINE__).unwrap())
+
+#define GEODE_UNWRAP(...)                                                           \
+    {                                                                               \
         auto GEODE_CONCAT(unwrap_res_, __LINE__) = (__VA_ARGS__);                   \
         if (GEODE_CONCAT(unwrap_res_, __LINE__).isErr()) {                          \
             return Err(std::move(GEODE_CONCAT(unwrap_res_, __LINE__).unwrapErr())); \
         }                                                                           \
-        into = std::move(GEODE_CONCAT(unwrap_res_, __LINE__).unwrap())
-
-    #define GEODE_UNWRAP(...)                                                           \
-        {                                                                               \
-            auto GEODE_CONCAT(unwrap_res_, __LINE__) = (__VA_ARGS__);                   \
-            if (GEODE_CONCAT(unwrap_res_, __LINE__).isErr()) {                          \
-                return Err(std::move(GEODE_CONCAT(unwrap_res_, __LINE__).unwrapErr())); \
-            }                                                                           \
-        }
+    }
 }
 
 // clang-format on

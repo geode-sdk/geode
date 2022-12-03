@@ -1,20 +1,17 @@
-#include <string>
-#include <optional>
-#include <vector>
-
-#include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Hook.hpp>
+#include <Geode/loader/Mod.hpp>
 #include <Geode/utils/file.hpp>
-
 #include <InternalLoader.hpp>
 #include <InternalMod.hpp>
+#include <optional>
+#include <string>
+#include <vector>
 
 USE_GEODE_NAMESPACE();
 
 Mod::Mod(ModInfo const& info) {
     m_info = info;
-    m_saveDirPath = Loader::get()->getGeodeSaveDirectory() / 
-        GEODE_MOD_DIRECTORY / info.m_id;
+    m_saveDirPath = Loader::get()->getGeodeSaveDirectory() / GEODE_MOD_DIRECTORY / info.m_id;
     ghc::filesystem::create_directories(m_saveDirPath);
 }
 
@@ -27,57 +24,75 @@ Mod::~Mod() {
 ghc::filesystem::path Mod::getSaveDir() const {
     return m_saveDirPath;
 }
+
 std::string Mod::getID() const {
     return m_info.m_id;
 }
+
 std::string Mod::getName() const {
     return m_info.m_name;
 }
+
 std::string Mod::getDeveloper() const {
     return m_info.m_developer;
 }
+
 std::optional<std::string> Mod::getDescription() const {
     return m_info.m_description;
 }
+
 std::optional<std::string> Mod::getDetails() const {
     return m_info.m_details;
 }
+
 ModInfo Mod::getModInfo() const {
     return m_info;
 }
+
 ghc::filesystem::path Mod::getTempDir() const {
     return m_tempDirName;
 }
+
 ghc::filesystem::path Mod::getBinaryPath() const {
     return m_tempDirName / m_info.m_binaryName;
 }
+
 ghc::filesystem::path Mod::getPackagePath() const {
     return m_info.m_path;
 }
+
 VersionInfo Mod::getVersion() const {
     return m_info.m_version;
 }
+
 bool Mod::isEnabled() const {
     return m_enabled;
 }
+
 bool Mod::isLoaded() const {
     return m_binaryLoaded;
 }
+
 bool Mod::supportsDisabling() const {
     return m_info.m_supportsDisabling;
 }
+
 bool Mod::supportsUnloading() const {
     return m_info.m_supportsUnloading;
 }
+
 bool Mod::wasSuccesfullyLoaded() const {
     return !this->isEnabled() || this->isLoaded();
 }
+
 std::vector<Hook*> Mod::getHooks() const {
     return m_hooks;
 }
+
 bool Mod::hasSettings() const {
     return m_info.m_settings.size();
 }
+
 decltype(ModInfo::m_settings) Mod::getSettings() const {
     return m_info.m_settings;
 }
@@ -104,7 +119,8 @@ Result<> Mod::loadData() {
                     // load its value
                     if (!setting->load(value.json()))
                         return Err("Unable to load value for setting \"" + key + "\"");
-                } else {
+                }
+                else {
                     log::log(
                         Severity::Warning, this,
                         "Encountered unknown setting \"{}\" while loading "
@@ -113,7 +129,8 @@ Result<> Mod::loadData() {
                     );
                 }
             }
-        } catch (std::exception& e) {
+        }
+        catch (std::exception& e) {
             return Err(std::string("Unable to parse settings: ") + e.what());
         }
     }
@@ -124,7 +141,8 @@ Result<> Mod::loadData() {
         GEODE_UNWRAP_INTO(auto data, utils::file::readString(savedPath));
         try {
             m_saved = nlohmann::json::parse(data);
-        } catch(std::exception& e) {
+        }
+        catch (std::exception& e) {
             return Err(std::string("Unable to parse saved values: ") + e.what());
         }
     }
@@ -138,20 +156,13 @@ Result<> Mod::saveData() {
     // Settings
     auto json = nlohmann::json::object();
     for (auto& [key, value] : m_info.m_settings) {
-        if (!value->save(json[key]))
-            return Err("Unable to save setting \"" + key + "\"");
+        if (!value->save(json[key])) return Err("Unable to save setting \"" + key + "\"");
     }
 
-    GEODE_UNWRAP(utils::file::writeString(
-        m_saveDirPath / "settings.json",
-        json.dump(4)
-    ));
+    GEODE_UNWRAP(utils::file::writeString(m_saveDirPath / "settings.json", json.dump(4)));
 
     // Saved values
-    GEODE_UNWRAP(utils::file::writeString(
-        m_saveDirPath / "saved.json",
-        m_saved.dump(4)
-    ));
+    GEODE_UNWRAP(utils::file::writeString(m_saveDirPath / "saved.json", m_saved.dump(4)));
 
     return Ok();
 }
@@ -180,8 +191,7 @@ Result<> Mod::loadBinary() {
     if (!m_binaryLoaded) {
         GEODE_UNWRAP(this->createTempDir().expect("Unable to create temp directory"));
 
-        if (this->hasUnresolvedDependencies())
-            return Err("Mod has unresolved dependencies");
+        if (this->hasUnresolvedDependencies()) return Err("Mod has unresolved dependencies");
 
         GEODE_UNWRAP(this->loadPlatformBinary());
         m_binaryLoaded = true;
@@ -206,9 +216,8 @@ Result<> Mod::loadBinary() {
 
 Result<> Mod::unloadBinary() {
     if (m_binaryLoaded) {
-        if (!m_info.m_supportsUnloading)
-            return Err("Mod does not support unloading");
-        
+        if (!m_info.m_supportsUnloading) return Err("Mod does not support unloading");
+
         GEODE_UNWRAP(this->saveData());
 
         GEODE_UNWRAP(this->disable());
@@ -235,8 +244,7 @@ Result<> Mod::unloadBinary() {
 }
 
 Result<> Mod::enable() {
-    if (!m_binaryLoaded)
-        return this->loadBinary();
+    if (!m_binaryLoaded) return this->loadBinary();
 
     for (auto const& hook : m_hooks) {
         GEODE_UNWRAP(this->enableHook(hook));
@@ -255,8 +263,7 @@ Result<> Mod::enable() {
 
 Result<> Mod::disable() {
     if (m_enabled) {
-        if (!m_info.m_supportsDisabling)
-            return Err("Mod does not support disabling");
+        if (!m_info.m_supportsDisabling) return Err("Mod does not support disabling");
 
         ModStateEvent(this, ModEventType::Disabled).post();
 
@@ -278,8 +285,7 @@ Result<> Mod::uninstall() {
     if (m_info.m_supportsDisabling) {
         GEODE_UNWRAP(this->disable());
 
-        if (m_info.m_supportsUnloading)
-            GEODE_UNWRAP(this->unloadBinary());
+        if (m_info.m_supportsUnloading) GEODE_UNWRAP(this->unloadBinary());
     }
 
     if (!ghc::filesystem::remove(m_info.m_path)) {
@@ -308,15 +314,15 @@ bool Dependency::isUnresolved() const {
 bool Mod::updateDependencyStates() {
     bool hasUnresolved = false;
     for (auto& dep : m_info.m_dependencies) {
-        if (!dep.m_mod)
-            dep.m_mod = Loader::get()->getLoadedMod(dep.m_id);
+        if (!dep.m_mod) dep.m_mod = Loader::get()->getLoadedMod(dep.m_id);
 
         if (dep.m_mod) {
             dep.m_mod->updateDependencyStates();
 
             if (dep.m_mod->hasUnresolvedDependencies()) {
                 dep.m_state = ModResolveState::Unresolved;
-            } else {
+            }
+            else {
                 if (!dep.m_mod->m_resolved) {
                     dep.m_mod->m_resolved = true;
                     dep.m_state = ModResolveState::Resolved;
@@ -325,15 +331,18 @@ bool Mod::updateDependencyStates() {
                         dep.m_state = ModResolveState::Unloaded;
                         log::log(Severity::Error, dep.m_mod, "{}", r.unwrapErr());
                     }
-                } else {
+                }
+                else {
                     if (dep.m_mod->isEnabled()) {
                         dep.m_state = ModResolveState::Loaded;
-                    } else {
+                    }
+                    else {
                         dep.m_state = ModResolveState::Disabled;
                     }
                 }
             }
-        } else {
+        }
+        else {
             dep.m_state = ModResolveState::Unloaded;
         }
         if (dep.isUnresolved()) {
@@ -352,7 +361,8 @@ bool Mod::updateDependencyStates() {
             if (!r) {
                 log::error("{} Error loading: {}", this, r.unwrapErr());
             }
-        } else {
+        }
+        else {
             log::debug("Resolved {}, however not loading it as it is disabled", m_info.m_id);
         }
     }
@@ -361,8 +371,7 @@ bool Mod::updateDependencyStates() {
 
 bool Mod::hasUnresolvedDependencies() const {
     for (auto const& dep : m_info.m_dependencies) {
-        if (dep.isUnresolved())
-            return true;
+        if (dep.isUnresolved()) return true;
     }
     return false;
 }
@@ -370,8 +379,7 @@ bool Mod::hasUnresolvedDependencies() const {
 std::vector<Dependency> Mod::getUnresolvedDependencies() {
     std::vector<Dependency> unresolved;
     for (auto const& dep : m_info.m_dependencies) {
-        if (dep.isUnresolved())
-            unresolved.push_back(dep);
+        if (dep.isUnresolved()) unresolved.push_back(dep);
     }
     return unresolved;
 }
@@ -386,9 +394,8 @@ bool Mod::depends(std::string const& id) const {
 
 Result<> Mod::enableHook(Hook* hook) {
     auto res = hook->enable();
-    if (res)
-        m_hooks.push_back(hook);
-    
+    if (res) m_hooks.push_back(hook);
+
     return res;
 }
 
@@ -403,11 +410,12 @@ Result<Hook*> Mod::addHook(Hook* hook) {
             delete hook;
             return Err("Can't create hook");
         }
-    } else {
+    }
+    else {
         InternalLoader::get()->addInternalHook(hook, this);
     }
 
-    return Ok<Hook*>(hook);
+    return Ok(hook);
 }
 
 Result<> Mod::removeHook(Hook* hook) {
@@ -440,7 +448,7 @@ Result<Patch*> Mod::patch(void* address, byte_array data) {
         return Err("Unable to enable patch at " + std::to_string(p->getAddress()));
     }
     m_patches.push_back(p);
-    return Ok<Patch*>(p);
+    return Ok(p);
 }
 
 Result<> Mod::unpatch(Patch* patch) {
@@ -473,8 +481,7 @@ Result<> Mod::createTempDir() {
         GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(m_info.m_path));
         if (!unzip.hasEntry(m_info.m_binaryName)) {
             return Err(fmt::format(
-                "Unable to find platform binary under the name \"{}\"",
-                m_info.m_binaryName
+                "Unable to find platform binary under the name \"{}\"", m_info.m_binaryName
             ));
         }
         GEODE_UNWRAP(unzip.extractAllTo(tempPath));
@@ -495,10 +502,9 @@ ghc::filesystem::path Mod::getConfigDir(bool create) const {
     return dir;
 }
 
-const char* Mod::expandSpriteName(const char* name) {
-    static std::unordered_map<std::string, const char*> expanded = {};
-    if (expanded.count(name))
-        return expanded[name];
+char const* Mod::expandSpriteName(char const* name) {
+    static std::unordered_map<std::string, char const*> expanded = {};
+    if (expanded.count(name)) return expanded[name];
 
     auto exp = new char[strlen(name) + 2 + m_info.m_id.size()];
     auto exps = m_info.m_id + "/" + name;
