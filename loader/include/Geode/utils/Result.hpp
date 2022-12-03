@@ -9,8 +9,6 @@
 #include <type_traits>
 #include <variant>
 
-// clang-format on
-
 namespace geode {
     namespace impl {
         using DefaultValue = std::monostate;
@@ -115,47 +113,47 @@ namespace geode {
         constexpr Result(impl::Success<T2>&& s) : Base(std::move(s.value())) {}
 
         [[nodiscard]] constexpr explicit operator bool() const noexcept {
-            return this->operator bool();
+            return this->Base::operator bool();
         }
 
         [[nodiscard]] constexpr bool isOk() const noexcept {
-            return this->has_value();
+            return this->Base::has_value();
         }
 
         [[nodiscard]] constexpr bool isErr() const noexcept {
-            return this->has_error();
+            return this->Base::has_error();
         }
 
         [[nodiscard]] constexpr decltype(auto) unwrap() & {
-            return this->value();
+            return this->Base::value();
         }
 
         [[nodiscard]] constexpr decltype(auto) unwrap() const& {
-            return this->value();
+            return this->Base::value();
         }
 
         [[nodiscard]] constexpr decltype(auto) unwrap() && {
-            return this->value();
+            return this->Base::value();
         }
 
         [[nodiscard]] constexpr decltype(auto) unwrap() const&& {
-            return this->value();
+            return this->Base::value();
         }
 
         [[nodiscard]] constexpr decltype(auto) unwrapErr() & {
-            return this->error();
+            return this->Base::error();
         }
 
         [[nodiscard]] constexpr decltype(auto) unwrapErr() const& {
-            return this->error();
+            return this->Base::error();
         }
 
         [[nodiscard]] constexpr decltype(auto) unwrapErr() && {
-            return this->error();
+            return this->Base::error();
         }
 
         [[nodiscard]] constexpr decltype(auto) unwrapErr() const&& {
-            return this->error();
+            return this->Base::error();
         }
 
         template <class... Args>
@@ -174,22 +172,22 @@ namespace geode {
 
         template <class U>
         [[nodiscard]] constexpr decltype(auto) unwrapOr(U&& val) && {
-            return this->value_or(std::forward<U>(val));
+            return this->Base::value_or(std::forward<U>(val));
         }
 
         template <class U>
         [[nodiscard]] constexpr decltype(auto) unwrapOr(U&& val) const& {
-            return this->value_or(std::forward<U>(val));
+            return this->Base::value_or(std::forward<U>(val));
         }
 
         template <class U>
         [[nodiscard]] constexpr decltype(auto) errorOr(U&& val) && {
-            return this->error_or(std::forward<U>(val));
+            return this->Base::error_or(std::forward<U>(val));
         }
 
         template <class U>
         [[nodiscard]] constexpr decltype(auto) errorOr(U&& val) const& {
-            return this->error_or(std::forward<U>(val));
+            return this->Base::error_or(std::forward<U>(val));
         }
     };
 
@@ -230,5 +228,3 @@ namespace geode {
         }                                                                           \
     }
 }
-
-// clang-format on
