@@ -80,7 +80,7 @@ struct ProxyCCNode : Modify<ProxyCCNode, CCNode> {
 };
 
 static inline std::unordered_map<size_t, size_t> s_nextIndex;
-size_t FieldIntermediate::getFieldIndexForClass(size_t hash) {
+size_t modifier::getFieldIndexForClass(size_t hash) {
 	return s_nextIndex[hash]++;
 }
 
