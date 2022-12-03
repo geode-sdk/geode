@@ -64,7 +64,6 @@ public:
 };
 
 // proxy forwards
-// clang-format off
 #include <Geode/modify/CCNode.hpp>
 struct ProxyCCNode : Modify<ProxyCCNode, CCNode> {
     virtual CCObject* getUserObject() {
@@ -80,7 +79,10 @@ struct ProxyCCNode : Modify<ProxyCCNode, CCNode> {
     }
 };
 
-// clang-format on
+static inline std::unordered_map<size_t, size_t> s_nextIndex;
+size_t FieldIntermediate::getFieldIndexForClass(size_t hash) {
+	return s_nextIndex[hash]++;
+}
 
 // not const because might modify contents
 FieldContainer* CCNode::getFieldContainer() {
