@@ -1,13 +1,3 @@
-#include "InternalLoader.hpp"
-
-#include "InternalMod.hpp"
-#include "resources.hpp"
-
-#include <Geode/loader/Loader.hpp>
-#include <Geode/loader/IPC.hpp>
-#include <Geode/loader/Log.hpp>
-#include <Geode/utils/web.hpp>
-#include <Geode/utils/file.hpp>
 #include <fmt/format.h>
 #include <hash.hpp>
 #include <iostream>
@@ -15,6 +5,16 @@
 #include <string>
 #include <thread>
 #include <vector>
+
+#include <Geode/loader/Loader.hpp>
+#include <Geode/loader/IPC.hpp>
+#include <Geode/loader/Log.hpp>
+#include <Geode/utils/web.hpp>
+#include <Geode/utils/file.hpp>
+
+#include "InternalLoader.hpp"
+#include "InternalMod.hpp"
+#include "resources.hpp"
 
 InternalLoader::InternalLoader() : Loader() {}
 
@@ -45,6 +45,29 @@ bool InternalLoader::setup() {
     this->setupIPC();
 
     return true;
+}
+
+bool InternalLoader::isReadyToHook() const {
+    return m_readyToHook;
+}
+
+void InternalLoader::addInternalHook(Hook* hook, Mod* mod) {
+    m_internalHooks.push_back({hook, mod});
+}
+
+bool InternalLoader::loadHooks() {
+    m_readyToHook = true;
+    auto thereWereErrors = false;
+    for (auto const& hook : m_internalHooks) {
+        auto res = hook.second->addHook(hook.first);
+        if (!res) {
+            log::log(Severity::Error, hook.second, "{}", res.unwrapErr());
+            thereWereErrors = true;
+        }
+    }
+    // free up memory
+    m_internalHooks.clear();
+    return !thereWereErrors;
 }
 
 void InternalLoader::queueInGDThread(ScheduledFunction func) {

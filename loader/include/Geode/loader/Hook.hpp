@@ -43,8 +43,15 @@ namespace geode {
         Hook(Hook const&) = delete;
         Hook operator=(Hook const&) = delete;
 
+        // Used by Mod
+        Result<> enable();
+        Result<> disable();
+
         friend class Mod;
         friend class Loader;
+
+        static std::vector<std::pair<Hook*, Mod*>> internalHooks;
+        static bool readyToHook;
 
     public:
         /**

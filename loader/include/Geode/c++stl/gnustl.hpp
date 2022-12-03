@@ -312,30 +312,88 @@ namespace gd {
             return std::vector<T>(m_start, m_finish);
         }
 
-        vector(std::vector<T> const& input) {
-            m_start = this->allocator().allocate(input.size());
-            m_finish = m_start + input.size();
-            m_reserveEnd = m_start + input.size();
-
-            std::copy(input.begin(), input.end(), m_start);
+        vector() {
+            m_start = nullptr;
+            m_finish = nullptr;
+            m_reserveEnd = nullptr;
         }
 
-        vector(std::initializer_list<T> const& input) {
-            m_start = this->allocator().allocate(input.size());
-            m_finish = m_start + input.size();
-            m_reserveEnd = m_start + input.size();
+        vector(std::vector<T> const& input) : vector() {
+            if (input.size()) {
+                m_start = this->allocator().allocate(input.size());
+                m_finish = m_start + input.size();
+                m_reserveEnd = m_start + input.size();
 
-            std::copy(input.begin(), input.end(), m_start);
+                std::copy(input.begin(), input.end(), m_start);
+            }
         }
-        
+
+        vector(gd::vector<T> const& input) : vector() {
+            if (input.size()) {
+                m_start = this->allocator().allocate(input.size());
+                m_finish = m_start + input.size();
+                m_reserveEnd = m_start + input.size();
+
+                std::copy(input.begin(), input.end(), m_start);
+            }
+        }
+
+        vector(gd::vector<T>&& input) : vector() {
+            m_start = input.m_start;
+            m_finish = input.m_finish;
+            m_reserveEnd = input.m_reserveEnd;
+
+            input.m_start = nullptr;
+            input.m_finish = nullptr;
+            input.m_reserveEnd = nullptr;
+        }
+
+        vector& operator=(gd::vector<T> const& input) {
+            this->clear();
+
+            if (input.size()) {
+                m_start = this->allocator().allocate(input.size());
+                m_finish = m_start + input.size();
+                m_reserveEnd = m_start + input.size();
+
+                std::copy(input.begin(), input.end(), m_start);
+            }
+
+            return *this;
+        }
+
+        vector& operator=(gd::vector<T>&& input) {
+            m_start = input.m_start;
+            m_finish = input.m_finish;
+            m_reserveEnd = input.m_reserveEnd;
+
+            input.m_start = nullptr;
+            input.m_finish = nullptr;
+            input.m_reserveEnd = nullptr;
+
+            return *this;
+        }
+
+        vector(std::initializer_list<T> const& input) : vector() {
+            if (input.size()) {
+                m_start = this->allocator().allocate(input.size());
+                m_finish = m_start + input.size();
+                m_reserveEnd = m_start + input.size();
+
+                std::copy(input.begin(), input.end(), m_start);
+            }
+        }
+
         void clear() {
-            std::destroy(m_start, m_finish);
+            if (m_start) {
+                std::destroy(m_start, m_finish);
 
-            this->allocator().deallocate(m_start, this->size());
+                this->allocator().deallocate(m_start, this->size());
+            }
 
-            m_start = this->allocator().allocate(16);
-            m_finish = m_start;
-            m_reserveEnd = m_start;
+            m_start = nullptr;
+            m_finish = nullptr;
+            m_reserveEnd = nullptr;
         }
 
         T& operator[](size_t index) {
@@ -379,10 +437,6 @@ namespace gd {
         T const* end() const {
             return m_finish;
         }
-
-        vector(vector const& lol) : vector(std::vector<T>(lol)) {}
-
-        vector() : vector(std::vector<T>()) {}
 
         ~vector() {
             for (auto i = m_start; i != m_finish; ++i) {
@@ -464,55 +518,63 @@ namespace gd {
         }
     };
 
-    // template <>
-    // class vector<bool> {
-    // protected:
-    //     _bit_iterator m_start;
-    //     _bit_iterator m_end;
-    //     uintptr_t* m_capacity_end;
+    template <>
+    class vector<bool> {
+    protected:
+        _bit_iterator m_start;
+        _bit_iterator m_end;
+        uintptr_t* m_capacity_end;
 
-    // public:
-    //     vector(std::vector<bool> input) : m_start(0), m_end(0) {
-    //         auto realsize = input.size() / int(sizeof(uintptr_t));
-    //         auto tmp = new uintptr_t[realsize];
+    public:
+        auto allocator() const {
+            return std::allocator<uintptr_t>();
+        }
 
-    //         m_start = _bit_iterator(tmp);
-    //         m_end = _bit_iterator(tmp + realsize, input.size() % sizeof(uintptr_t));
-    //         m_capacity_end = tmp + realsize;
+        vector() : m_start(nullptr), m_end(nullptr), m_capacity_end(nullptr) {}
 
-    //         auto itmp = m_start;
-    //         for (auto i : input) {
-    //             *itmp = i;
-    //             ++itmp;
-    //         }
-    //     }
+        // vector(std::vector<bool> input) : vector() {
+        //     auto realsize = input.size() / int(sizeof(uintptr_t));
+        //     auto start = this->allocator().allocate(realsize);
 
-    //     vector(vector<bool> const& lol) : vector(std::vector<bool>(lol)) {}
+        //     m_start = _bit_iterator(start);
+        //     m_end = _bit_iterator(start + realsize, input.size() % sizeof(uintptr_t));
+        //     m_capacity_end = start + realsize;
 
-    //     vector() : vector(std::vector<bool>()) {}
+        //     auto itmp = m_start;
+        //     for (auto i : input) {
+        //         *itmp = i;
+        //         ++itmp;
+        //     }
+        // }
 
-    //     ~vector() {
-    //         delete[] m_start.m_bitptr;
-    //     }
+        // vector(vector<bool> const& input) : vector() {
 
-    //     operator std::vector<bool>() const {
-    //         std::vector<bool> out;
-    //         for (auto i = m_start; i != m_end; ++i) {
-    //             out.push_back(*i);
-    //         }
-    //         return out;
-    //     }
+        // }
 
-    //     _bit_reference operator[](size_t index) {
-    //         const auto real_index = index / sizeof(uintptr_t);
-    //         const auto offset = index % sizeof(uintptr_t);
-    //         return _bit_reference(&m_start.m_bitptr[real_index], 1UL << offset);
-    //     }
+        // vector() : vector(std::vector<bool>()) {}
 
-    //     bool operator[](size_t index) const {
-    //         return const_cast<vector&>(*this)[index];
-    //     }
-    // };
+        ~vector() {
+            delete[] m_start.m_bitptr;
+        }
+
+        operator std::vector<bool>() const {
+            std::vector<bool> out;
+            for (auto i = m_start; i != m_end; ++i) {
+                out.push_back(*i);
+            }
+            return out;
+        }
+
+        _bit_reference operator[](size_t index) {
+            auto const real_index = index / sizeof(uintptr_t);
+            auto const offset = index % sizeof(uintptr_t);
+            return _bit_reference(&m_start.m_bitptr[real_index], 1UL << offset);
+        }
+
+        bool operator[](size_t index) const {
+            return const_cast<vector&>(*this)[index];
+        }
+    };
 };
 
 #elif defined(GEODE_IS_IOS)
@@ -563,7 +625,7 @@ namespace gd {
         operator std::vector<T>() {
             return m_internal;
         }
-        
+
         void clear() {
             m_internal.clear();
         }

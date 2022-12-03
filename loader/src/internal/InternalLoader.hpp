@@ -28,6 +28,9 @@ protected:
     bool m_platformConsoleOpen = false;
     std::unordered_set<std::string> m_shownInfoAlerts;
 
+    std::vector<std::pair<Hook*, Mod*>> m_internalHooks;
+    bool m_readyToHook;
+
     void saveInfoAlerts(nlohmann::json& json);
     void loadInfoAlerts(nlohmann::json& json);
 
@@ -65,6 +68,9 @@ public:
     static void platformMessageBox(char const* title, std::string const& info);
 
     bool verifyLoaderResources(IndexUpdateCallback callback);
+
+    bool isReadyToHook() const;
+    void addInternalHook(Hook* hook, Mod* mod);
 
     friend int geodeEntry(void* platformData);
 };

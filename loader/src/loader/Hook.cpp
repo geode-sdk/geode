@@ -12,33 +12,18 @@
 
 USE_GEODE_NAMESPACE();
 
-struct hook_info {
-    Hook* hook;
-    Mod* mod;
-};
-
-// for some reason this doesn't work as
-// a normal static global. the vector just
-// gets cleared for no reason somewhere
-// between `addHook` and `loadHooks`
-
-GEODE_STATIC_VAR(std::vector<hook_info>, internalHooks);
-GEODE_STATIC_VAR(bool, readyToHook);
-
-Result<> Mod::enableHook(Hook* hook) {
-    if (!hook->isEnabled()) {
-        auto res = std::invoke(hook->m_addFunction, hook->m_address);
+Result<> Hook::enable() {
+    if (!m_enabled) {
+        auto res = std::invoke(m_addFunction, m_address);
         if (res) {
-            log::debug("Enabling hook at function {}", hook->m_displayName);
-            this->m_hooks.push_back(hook);
-            hook->m_enabled = true;
-            hook->m_handle = res.unwrap();
+            log::debug("Enabling hook at function {}", m_displayName);
+            m_enabled = true;
+            m_handle = res.unwrap();
             return Ok();
         }
         else {
             return Err(
-                "Unable to create hook at " +
-                std::to_string(reinterpret_cast<uintptr_t>(hook->m_address))
+                "Unable to create hook at " + std::to_string(reinterpret_cast<uintptr_t>(m_address))
             );
         }
         return Err("Hook already has a handle");
@@ -46,54 +31,14 @@ Result<> Mod::enableHook(Hook* hook) {
     return Ok();
 }
 
-Result<> Mod::disableHook(Hook* hook) {
-    if (hook->isEnabled()) {
-        if (geode::core::hook::remove(hook->m_handle)) {
-            log::debug("Disabling hook at function {}", hook->m_displayName);
-            hook->m_enabled = false;
-            return Ok();
-        }
-        return Err("Unable to remove hook");
+Result<> Hook::disable() {
+    if (m_enabled) {
+        if (!geode::core::hook::remove(m_handle)) return Err("Unable to remove hook");
+
+        log::debug("Disabling hook at function {}", m_displayName);
+        m_enabled = false;
     }
     return Ok();
-}
-
-Result<> Mod::removeHook(Hook* hook) {
-    auto res = this->disableHook(hook);
-    if (res) {
-        ranges::remove(m_hooks, hook);
-        delete hook;
-    }
-    return res;
-}
-
-Result<Hook*> Mod::addHook(Hook* hook) {
-    if (readyToHook()) {
-        auto res = this->enableHook(hook);
-        if (!res) {
-            delete hook;
-            return Err("Can't create hook");
-        }
-    }
-    else {
-        internalHooks().push_back({ hook, this });
-    }
-    return Ok(hook);
-}
-
-bool InternalLoader::loadHooks() {
-    readyToHook() = true;
-    auto thereWereErrors = false;
-    for (auto const& hook : internalHooks()) {
-        auto res = hook.mod->addHook(hook.hook);
-        if (!res) {
-            log::log(Severity::Error, hook.mod, "{}", res.unwrapErr());
-            thereWereErrors = true;
-        }
-    }
-    // free up memory
-    internalHooks().clear();
-    return !thereWereErrors;
 }
 
 nlohmann::json Hook::getRuntimeInfo() const {
