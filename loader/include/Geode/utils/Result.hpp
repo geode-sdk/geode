@@ -33,7 +33,7 @@ namespace geode {
 
             template <class E2>
                 requires(std::is_constructible_v<E, E2 &&>)
-            explicit constexpr Failure(E2&& e) : m_error(std::forward<E>(e)) {}
+            explicit constexpr Failure(E2&& e) : m_error(std::move(e)) {}
 
             E& error() & noexcept {
                 return m_error;
@@ -65,7 +65,7 @@ namespace geode {
 
             template <class T2>
                 requires(std::is_constructible_v<T, T2 &&>)
-            explicit constexpr Success(T2&& v) : m_value(std::forward<T>(v)) {}
+            explicit constexpr Success(T2&& v) : m_value(std::forward<T2>(v)) {}
 
             T& value() & noexcept {
                 return m_value;
@@ -104,7 +104,7 @@ namespace geode {
 
         template <class E2>
             requires(std::is_constructible_v<E, E2 &&>)
-        constexpr Result(impl::Failure<E2>&& e) : Base(cpp::failure<E>(e.error())) {}
+        constexpr Result(impl::Failure<E2>&& e) : Base(cpp::failure<E>(std::move(e.error()))) {}
 
         template <class T2>
             requires(std::is_constructible_v<T, T2 const&>)
@@ -112,7 +112,7 @@ namespace geode {
 
         template <class T2>
             requires(std::is_constructible_v<T, T2 &&>)
-        constexpr Result(impl::Success<T2>&& s) : Base(s.value()) {}
+        constexpr Result(impl::Success<T2>&& s) : Base(std::move(s.value())) {}
 
         [[nodiscard]] constexpr explicit operator bool() const noexcept {
             return this->operator bool();
