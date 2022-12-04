@@ -33,6 +33,31 @@ namespace geode {
 		IndexUpdateFilter();
 	};
 
+    class GEODE_DLL ModInstallEvent : public Event {
+    protected:
+        std::string m_id;
+        UpdateStatus m_status;
+    
+    public:
+        ModInstallEvent(
+            std::string const& id,
+            UpdateStatus status
+        );
+        std::string getModID() const;
+        UpdateStatus getStatus() const;
+    };
+
+	class GEODE_DLL ModInstallFilter : public EventFilter<IndexUpdateEvent> {
+    protected:
+        std::string m_id;
+
+	public:
+		using Callback = void(ModInstallEvent*);
+	
+        ListenerResult handle(std::function<Callback> fn, ModInstallEvent* event);
+		ModInstallFilter(std::string const& id);
+	};
+
     struct GEODE_DLL IndexItem {
         std::string sourceRepository;
         ghc::filesystem::path path;

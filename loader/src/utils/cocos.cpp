@@ -1,5 +1,5 @@
-#include <Geode/utils/cocos.hpp>
 #include <Geode/modify/LoadingLayer.hpp>
+#include <Geode/utils/cocos.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -346,7 +346,7 @@ void geode::cocos::reloadTextures(CreateLayerFunc returnTo) {
     GameManager::get()->reloadAll(false, false, true);
 }
 
-class $modify(LoadingLayer) {
+struct LoadingFinished : Modify<LoadingFinished, LoadingLayer> {
     void loadAssets() {
         // loadFinished is inlined on Macchew OS :sob:
 

@@ -22,6 +22,8 @@ std::string IndexSource::dirname() const {
     return string::replace(this->repository, "/", "_");
 }
 
+// IndexUpdateEvent
+
 IndexUpdateEvent::IndexUpdateEvent(
     std::string const& src,
     UpdateStatus status
@@ -44,6 +46,34 @@ ListenerResult IndexUpdateFilter::handle(
 }
 
 IndexUpdateFilter::IndexUpdateFilter() {}
+
+// ModInstallEvent
+
+ModInstallEvent::ModInstallEvent(
+    std::string const& id,
+    UpdateStatus status
+) : m_id(id), m_status(status) {}
+
+std::string ModInstallEvent::getModID() const {
+    return m_id;
+}
+
+UpdateStatus ModInstallEvent::getStatus() const {
+    return m_status;
+}
+
+ListenerResult ModInstallFilter::handle(std::function<Callback> fn, ModInstallEvent* event) {
+    if (m_id == event->getModID()) {
+        fn(event);
+    }
+    return ListenerResult::Propagate;
+}
+
+ModInstallFilter::ModInstallFilter(
+    std::string const& id
+) : m_id(id) {}
+
+// Index
 
 Index::Index() {
     this->addSource("https://github.com/geode-sdk/index-test");
@@ -81,8 +111,7 @@ bool Index::isUpToDate() const {
 
 void Index::checkSourceUpdates(IndexSource& src) {
     if (src.isUpToDate) {
-        IndexUpdateEvent(src.repository, UpdateFinished()).post();
-        return;
+        return this->updateSourceFromLocal(src);
     }
     IndexUpdateEvent(src.repository, UpdateProgress(0, "Checking status")).post();
     auto data = Mod::get()->getSavedMutable<IndexSaveData>("index");
@@ -176,10 +205,10 @@ void Index::updateSourceFromLocal(IndexSource& src) {
             }
         }
     }
+    this->cleanupItems();
 
     // todo: add shit
 
-    this->cleanupItems();
     src.isUpToDate = true;
     IndexUpdateEvent(src.repository, UpdateFinished()).post();
 }

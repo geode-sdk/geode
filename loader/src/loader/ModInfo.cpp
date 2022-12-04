@@ -123,7 +123,7 @@ Result<ModInfo> ModInfo::create(ModJson const& json) {
     if (schema < Loader::minModVersion()) {
         return Err(
             "[mod.json] is built for an older version (" + schema.toString() +
-            ") of Geode (current: " + Loader::minModVersion().toString() +
+            ") of Geode (current: " + Loader::getVersion().toString() +
             "). Please update the mod to the latest version, "
             "and if the problem persists, contact the developer "
             "to update it."
@@ -132,7 +132,7 @@ Result<ModInfo> ModInfo::create(ModJson const& json) {
     if (schema > Loader::maxModVersion()) {
         return Err(
             "[mod.json] is built for a newer version (" + schema.toString() +
-            ") of Geode (current: " + Loader::maxModVersion().toString() +
+            ") of Geode (current: " + Loader::getVersion().toString() +
             "). You need to update Geode in order to use "
             "this mod."
         );

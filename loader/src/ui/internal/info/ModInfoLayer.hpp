@@ -4,6 +4,7 @@
 #include <Geode/binding/FLAlertLayerProtocol.hpp>
 #include <Geode/ui/MDTextArea.hpp>
 #include <Geode/ui/Scrollbar.hpp>
+#include <Geode/ui/IconButtonSprite.hpp>
 #include <Geode/loader/Index.hpp>
 
 USE_GEODE_NAMESPACE();

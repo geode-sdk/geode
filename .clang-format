@@ -84,7 +84,7 @@ IndentCaseLabels: true
 IndentExternBlock: Indent
 IndentGotoLabels: true
 IndentPPDirectives: BeforeHash
-IndentRequiresClause: false
+IndentRequiresClause: true
 IndentWrappedFunctionNames: false
 # InsertBraces: true
 InsertTrailingCommas: None
@@ -101,6 +101,7 @@ PenaltyBreakBeforeFirstCallParameter: 19
 PenaltyBreakComment: 300
 PenaltyBreakFirstLessLess: 120
 PenaltyBreakString: 1000
+PenaltyBreakOpenParenthesis: 0
 PenaltyBreakTemplateDeclaration: 10
 PenaltyExcessCharacter: 1000000
 PenaltyReturnTypeOnItsOwnLine: 1000000

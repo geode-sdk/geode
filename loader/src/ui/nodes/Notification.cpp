@@ -1,20 +1,19 @@
 #include <Geode/binding/LoadingCircle.hpp>
-#include <Geode/ui/Notification.hpp>
 #include <Geode/loader/Mod.hpp>
+#include <Geode/ui/Notification.hpp>
 
 USE_GEODE_NAMESPACE();
 
-constexpr auto NOTIFICATION_FADEIN  = .3f;
+constexpr auto NOTIFICATION_FADEIN = .3f;
 constexpr auto NOTIFICATION_FADEOUT = 1.f;
 
 Ref<CCArray> Notification::s_queue = CCArray::create();
 
 bool Notification::init(std::string const& text, CCSprite* icon, float time) {
-    if (!CCNodeRGBA::init())
-        return false;
-    
+    if (!CCNodeRGBA::init()) return false;
+
     m_time = time;
-    
+
     m_bg = CCScale9Sprite::create("square02b_small.png", { 0, 0, 40, 40 });
     m_bg->setColor({ 0, 0, 0 });
     this->addChild(m_bg);
@@ -48,7 +47,8 @@ void Notification::updateLayout() {
     if (m_icon) {
         m_icon->setPosition({ size.height / 2, size.height / 2 });
         m_label->setPosition(size / 2 + CCSize { spaceForIcon / 2, .0f });
-    } else {
+    }
+    else {
         m_label->setPosition(size / 2);
     }
 }
@@ -73,9 +73,7 @@ CCSprite* Notification::createIcon(NotificationIcon icon) {
 
         case NotificationIcon::Loading: {
             auto icon = CCSprite::create("loadingCircle.png");
-            icon->runAction(CCRepeatForever::create(
-                CCRotateBy::create(1.f, 360.f)
-            ));
+            icon->runAction(CCRepeatForever::create(CCRotateBy::create(1.f, 360.f)));
             icon->setBlendFunc({ GL_ONE, GL_ONE });
             return icon;
         } break;
@@ -94,11 +92,7 @@ CCSprite* Notification::createIcon(NotificationIcon icon) {
     }
 }
 
-Notification* Notification::create(
-    std::string const& text,
-    NotificationIcon icon,
-    float time
-) {
+Notification* Notification::create(std::string const& text, NotificationIcon icon, float time) {
     return Notification::create(text, createIcon(icon), time);
 }
 
@@ -171,8 +165,7 @@ void Notification::show() {
         CCCallFunc::create(this, callfunc_selector(Notification::animateIn)),
         // wait for fade-in to finish
         CCDelayTime::create(NOTIFICATION_FADEIN),
-        CCCallFunc::create(this, callfunc_selector(Notification::wait)),
-        nullptr
+        CCCallFunc::create(this, callfunc_selector(Notification::wait)), nullptr
     ));
 }
 
@@ -181,8 +174,7 @@ void Notification::wait() {
     if (m_time) {
         this->runAction(CCSequence::create(
             CCDelayTime::create(m_time),
-            CCCallFunc::create(this, callfunc_selector(Notification::hide)),
-            nullptr
+            CCCallFunc::create(this, callfunc_selector(Notification::hide)), nullptr
         ));
     }
 }
@@ -193,8 +185,6 @@ void Notification::hide() {
         CCCallFunc::create(this, callfunc_selector(Notification::animateOut)),
         // wait for fade-out to finish
         CCDelayTime::create(NOTIFICATION_FADEOUT),
-        CCCallFunc::create(this, callfunc_selector(Notification::showNextNotification)),
-        nullptr
+        CCCallFunc::create(this, callfunc_selector(Notification::showNextNotification)), nullptr
     ));
 }
-
