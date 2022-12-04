@@ -100,7 +100,9 @@ BOOL WINAPI DllMain(HINSTANCE lib, DWORD reason, LPVOID) {
 }
 #endif
 
-$execute {
+#define $_ GEODE_CONCAT(unnamedVar_, __LINE__)
+
+static auto $_ =
     listenForSettingChanges<BoolSetting>("show-platform-console", [](BoolSetting* setting) {
         if (setting->getValue()) {
             Loader::get()->openPlatformConsole();
@@ -109,35 +111,38 @@ $execute {
             Loader::get()->closePlatfromConsole();
         }
     });
-    listenForIPC("ipc-test", [](IPCEvent* event) -> nlohmann::json {
-        return "Hello from Geode!";
-    });
-    listenForIPC("loader-info", [](IPCEvent* event) -> nlohmann::json {
-        return Loader::get()->getInternalMod()->getModInfo();
-    });
 
-    listenForIPC("list-mods", [](IPCEvent* event) -> nlohmann::json {
-        std::vector<nlohmann::json> res;
+static auto $_ = listenForIPC("ipc-test", [](IPCEvent* event) -> nlohmann::json {
+    return "Hello from Geode!";
+});
 
-        auto args = event->getMessageData();
-        JsonChecker checker(args);
-        auto root = checker.root("").obj();
+static auto $_ = listenForIPC("loader-info", [](IPCEvent* event) -> nlohmann::json {
+    return Loader::get()->getInternalMod()->getModInfo();
+});
 
-        auto includeRunTimeInfo = root.has("include-runtime-info").template get<bool>();
-        auto dontIncludeLoader = root.has("dont-include-loader").template get<bool>();
+static auto $_ = listenForIPC("list-mods", [](IPCEvent* event) -> nlohmann::json {
+    std::vector<nlohmann::json> res;
 
-        if (!dontIncludeLoader) {
-            auto mod = Loader::get()->getInternalMod();
-            res.push_back(includeRunTimeInfo ? mod->getRuntimeInfo() : mod->getModInfo().toJSON());
-        }
+    auto args = event->getMessageData();
+    JsonChecker checker(args);
+    auto root = checker.root("").obj();
 
-        for (auto& mod : Loader::get()->getAllMods()) {
-            res.push_back(includeRunTimeInfo ? mod->getRuntimeInfo() : mod->getModInfo().toJSON());
-        }
+    auto includeRunTimeInfo = root.has("include-runtime-info").template get<bool>();
+    auto dontIncludeLoader = root.has("dont-include-loader").template get<bool>();
 
-        return res;
-    });
-}
+    if (!dontIncludeLoader) {
+        res.push_back(
+            includeRunTimeInfo ? Loader::get()->getInternalMod()->getRuntimeInfo() :
+                                 Loader::get()->getInternalMod()->getModInfo().toJSON()
+        );
+    }
+
+    for (auto& mod : Loader::get()->getAllMods()) {
+        res.push_back(includeRunTimeInfo ? mod->getRuntimeInfo() : mod->getModInfo().toJSON());
+    }
+
+    return res;
+});
 
 int geodeEntry(void* platformData) {
     // setup internals

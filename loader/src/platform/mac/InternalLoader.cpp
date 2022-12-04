@@ -1,12 +1,12 @@
-#include <InternalLoader.hpp>
-#include <Geode/loader/Log.hpp>
-#include <iostream>
-#include <InternalMod.hpp>
 #include <Geode/loader/IPC.hpp>
+#include <Geode/loader/Log.hpp>
+#include <InternalLoader.hpp>
+#include <InternalMod.hpp>
+#include <iostream>
 
 #ifdef GEODE_IS_MACOS
 
-#include <CoreFoundation/CoreFoundation.h>
+    #include <CoreFoundation/CoreFoundation.h>
 
 void InternalLoader::platformMessageBox(char const* title, std::string const& info) {
     CFStringRef cfTitle = CFStringCreateWithCString(NULL, title, kCFStringEncodingUTF8);
@@ -29,46 +29,37 @@ void InternalLoader::closePlatformConsole() {
     m_platformConsoleOpen = false;
 }
 
-CFDataRef msgPortCallback(
-    CFMessagePortRef port,
-    SInt32 messageID,
-    CFDataRef data,
-    void* info
-) {
-    if(!CFDataGetLength(data))
-        return NULL;
+CFDataRef msgPortCallback(CFMessagePortRef port, SInt32 messageID, CFDataRef data, void* info) {
+    if (!CFDataGetLength(data)) return NULL;
 
-    std::string cdata(
-        reinterpret_cast<char const*>(CFDataGetBytePtr(data)),
-        CFDataGetLength(data)
-    );
+    std::string cdata(reinterpret_cast<char const*>(CFDataGetBytePtr(data)), CFDataGetLength(data));
 
     std::string reply = InternalLoader::processRawIPC(port, cdata);
-    return CFDataCreate(NULL, (const UInt8*)reply.data(), reply.size());
+    return CFDataCreate(NULL, (UInt8 const*)reply.data(), reply.size());
 }
 
 void InternalLoader::setupIPC() {
     std::thread([]() {
         CFStringRef portName = CFStringCreateWithCString(NULL, IPC_PORT_NAME, kCFStringEncodingUTF8);
 
-        CFMessagePortRef localPort = CFMessagePortCreateLocal(
-            NULL,
-            portName,
-            msgPortCallback,
-            NULL,
-            NULL
-        );
+        CFMessagePortRef localPort =
+            CFMessagePortCreateLocal(NULL, portName, msgPortCallback, NULL, NULL);
+        if (localPort == NULL) {
+            log::warn("Unable to create port, quitting IPC");
+            return;
+        }
         CFRunLoopSourceRef runLoopSource = CFMessagePortCreateRunLoopSource(NULL, localPort, 0);
 
-        CFRunLoopAddSource(
-            CFRunLoopGetCurrent(),
-            runLoopSource,
-            kCFRunLoopCommonModes
-        );
+        if (runLoopSource == NULL) {
+            log::warn("Unable to create loop source, quitting IPC");
+            return;
+        }
+
+        CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, kCFRunLoopCommonModes);
         CFRunLoopRun();
         CFRelease(localPort);
     }).detach();
-    log::log(Severity::Warning, InternalMod::get(), "IPC is not supported on this platform");
+    log::debug("IPC set up");
 }
 
 #endif

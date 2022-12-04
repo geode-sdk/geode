@@ -19,7 +19,4 @@ ListenerResult ModStateFilter::handle(std::function<Callback> fn, ModStateEvent*
     return ListenerResult::Propagate;
 }
 
-ModStateFilter::ModStateFilter(
-    Mod* mod,
-    ModEventType type
-) : m_mod(mod), m_type(type) {}
+ModStateFilter::ModStateFilter(Mod* mod, ModEventType type) : m_mod(mod), m_type(type) {}

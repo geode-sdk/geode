@@ -1,8 +1,8 @@
-#include <InternalLoader.hpp>
 #include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Log.hpp>
-#include <iostream>
+#include <InternalLoader.hpp>
 #include <InternalMod.hpp>
+#include <iostream>
 
 USE_GEODE_NAMESPACE();
 
@@ -77,10 +77,10 @@ void InternalLoader::setupIPC() {
                 nullptr
             );
             if (pipe == INVALID_HANDLE_VALUE) {
-                // todo: Rn this quits IPC, but we might wanna change that later 
-                // to just continue trying. however, I'm assuming that if 
-                // CreateNamedPipeA fails, then it will probably fail again if 
-                // you try right after, so changing the break; to continue; might 
+                // todo: Rn this quits IPC, but we might wanna change that later
+                // to just continue trying. however, I'm assuming that if
+                // CreateNamedPipeA fails, then it will probably fail again if
+                // you try right after, so changing the break; to continue; might
                 // just result in the console getting filled with error messages
                 log::warn("Unable to create pipe, quitting IPC");
                 break;
@@ -89,14 +89,15 @@ void InternalLoader::setupIPC() {
             if (ConnectNamedPipe(pipe, nullptr)) {
                 // log::debug("Got connection, creating thread");
                 std::thread(&ipcPipeThread, pipe).detach();
-            } else {
+            }
+            else {
                 // log::debug("No connection, cleaning pipe");
                 CloseHandle(pipe);
             }
         }
     }).detach();
 
-    log::log(Severity::Debug, InternalMod::get(), "IPC set up");
+    log::debug("IPC set up");
 }
 
 #endif

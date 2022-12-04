@@ -69,10 +69,9 @@ namespace cocos2d::extension {}
 #define GEODE_EXPAND(x) x
 #define GEODE_INVOKE(macro, ...) GEODE_EXPAND(macro(__VA_ARGS__))
 
-#define GEODE_FILL_CONSTRUCTOR(Class_, Offset_)                                                    \
-    Class_(std::monostate, size_t fill) :                                                          \
-        Class_({}, std::memset(reinterpret_cast<std::byte*>(this) + Offset_, 0, fill - Offset_)) { \
-    }                                                                                              \
+#define GEODE_FILL_CONSTRUCTOR(Class_, Offset_)                                                     \
+    Class_(std::monostate, size_t fill) :                                                           \
+        Class_({}, std::memset(reinterpret_cast<std::byte*>(this) + Offset_, 0, fill - Offset_)) {} \
     Class_(std::monostate, void*)
 
 #define GEODE_MONOSTATE_CONSTRUCTOR_BEGIN(Class_)    \
@@ -177,7 +176,7 @@ namespace cocos2d::extension {}
     }                                                                                              \
     static inline auto GEODE_CONCAT(Exec, __LINE__) =                                              \
         (Loader::get()->scheduleOnModLoad(                                                         \
-             nullptr,                                                                              \
+             getMod(),                                                                             \
              &GEODE_CONCAT(geodeExecFunction, __LINE__) < GEODE_CONCAT(ExecFuncUnique, __LINE__) > \
          ),                                                                                        \
          0);                                                                                       \

@@ -368,32 +368,32 @@ AsyncWebRequest::~AsyncWebRequest() {
 
 AsyncWebResult<std::monostate> AsyncWebResponse::into(std::ostream& stream) {
     m_request.m_target = &stream;
-    return this->as([](byte_array const&) -> Result<std::monostate> {
+    return this->as(+[](byte_array const&) -> Result<std::monostate> {
         return Ok(std::monostate());
     });
 }
 
 AsyncWebResult<std::monostate> AsyncWebResponse::into(ghc::filesystem::path const& path) {
     m_request.m_target = path;
-    return this->as([](byte_array const&) -> Result<std::monostate> {
+    return this->as(+[](byte_array const&) -> Result<std::monostate> {
         return Ok(std::monostate());
     });
 }
 
 AsyncWebResult<std::string> AsyncWebResponse::text() {
-    return this->as([](byte_array const& bytes) -> Result<std::string> {
+    return this->as(+[](byte_array const& bytes) -> Result<std::string> {
         return Ok(std::string(bytes.begin(), bytes.end()));
     });
 }
 
 AsyncWebResult<byte_array> AsyncWebResponse::bytes() {
-    return this->as([](byte_array const& bytes) -> Result<byte_array> {
+    return this->as(+[](byte_array const& bytes) -> Result<byte_array> {
         return Ok(bytes);
     });
 }
 
 AsyncWebResult<nlohmann::json> AsyncWebResponse::json() {
-    return this->as([](byte_array const& bytes) -> Result<nlohmann::json> {
+    return this->as(+[](byte_array const& bytes) -> Result<nlohmann::json> {
         try {
             return Ok(nlohmann::json::parse(bytes.begin(), bytes.end()));
         }
