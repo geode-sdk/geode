@@ -28,6 +28,22 @@ Result<std::string> utils::file::readString(ghc::filesystem::path const& path) {
     return Err("Unable to open file");
 }
 
+Result<nlohmann::json> utils::file::readJson(ghc::filesystem::path const& path) {
+#if _WIN32
+    std::ifstream in(path.wstring(), std::ios::in | std::ios::binary);
+#else
+    std::ifstream in(path.string(), std::ios::in | std::ios::binary);
+#endif
+    if (in) {
+        try {
+            return Ok(nlohmann::json::parse(in));
+        } catch(std::exception const& e) {
+            return Err("Unable to parse JSON: " + std::string(e.what()));
+        }
+    }
+    return Err("Unable to open file");
+}
+
 Result<byte_array> utils::file::readBinary(ghc::filesystem::path const& path) {
 #if _WIN32
     std::ifstream in(path.wstring(), std::ios::in | std::ios::binary);

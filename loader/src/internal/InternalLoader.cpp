@@ -17,6 +17,10 @@
 #include <thread>
 #include <vector>
 
+ResourceDownloadEvent::ResourceDownloadEvent(
+    UpdateStatus const& status
+) : status(status) {}
+
 ListenerResult ResourceDownloadFilter::handle(
     std::function<Callback> fn,
     ResourceDownloadEvent* event

@@ -3,6 +3,7 @@
 #include "Result.hpp"
 #include "general.hpp"
 
+#include "../external/json/json.hpp"
 #include <Geode/DefaultInclude.hpp>
 #include <fs/filesystem.hpp>
 #include <string>
@@ -10,6 +11,7 @@
 
 namespace geode::utils::file {
     GEODE_DLL Result<std::string> readString(ghc::filesystem::path const& path);
+    GEODE_DLL Result<nlohmann::json> readJson(ghc::filesystem::path const& path);
     GEODE_DLL Result<byte_array> readBinary(ghc::filesystem::path const& path);
 
     GEODE_DLL Result<> writeString(ghc::filesystem::path const& path, std::string const& data);

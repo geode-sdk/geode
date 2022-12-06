@@ -25,9 +25,8 @@ protected:
     CCNode* m_searchBG = nullptr;
     CCTextInputNode* m_searchInput = nullptr;
     LoadingCircle* m_loadingCircle = nullptr;
-    ModListQuery m_query;
     CCMenuItemSpriteExtra* m_filterBtn;
-    bool m_expandedList = false;
+    ModListDisplay m_display = ModListDisplay::Concise;
 
     virtual ~ModListLayer();
 
@@ -43,7 +42,6 @@ protected:
     void onFilters(CCObject*);
     void keyDown(enumKeyCodes) override;
     void textChanged(CCTextInputNode*) override;
-    void indexUpdateProgress(UpdateStatus status, std::string const& info, uint8_t percentage);
     void createSearchControl();
 
     friend class SearchFilterPopup;

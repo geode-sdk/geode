@@ -5,6 +5,7 @@
 #include "ModListView.hpp"
 
 #include <Geode/binding/GameToolbox.hpp>
+#include <Geode/binding/CCMenuItemToggler.hpp>
 #include <Geode/ui/SelectList.hpp>
 
 bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
@@ -53,10 +54,10 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
 
     pos = CCPoint { winSize.width / 2 - 140.f, winSize.height / 2 - 85.f };
 
-    this->addToggle(
-        "Show Installed", menu_selector(SearchFilterPopup::onShowInstalled),
-        layer->m_query.m_showInstalled, 0, pos
-    );
+    // this->addToggle(
+    //     "Show Installed", menu_selector(SearchFilterPopup::onShowInstalled),
+    //     layer->m_query.m_showInstalled, 0, pos
+    // );
 
     // categories
 
@@ -75,23 +76,23 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
 
     pos = CCPoint { winSize.width / 2 + 30.f, winSize.height / 2 + 45.f };
 
-    for (auto& category : Index::get()->getCategories()) {
-        auto toggle = CCMenuItemToggler::createWithStandardSprites(
-            this, menu_selector(SearchFilterPopup::onCategory), .5f
-        );
-        toggle->toggle(m_modLayer->m_query.m_categories.count(category));
-        toggle->setPosition(pos - winSize / 2);
-        toggle->setUserObject(CCString::create(category));
-        m_buttonMenu->addChild(toggle);
+    // for (auto& category : Index::get()->getCategories()) {
+    //     auto toggle = CCMenuItemToggler::createWithStandardSprites(
+    //         this, menu_selector(SearchFilterPopup::onCategory), .5f
+    //     );
+    //     toggle->toggle(m_modLayer->m_query.m_categories.count(category));
+    //     toggle->setPosition(pos - winSize / 2);
+    //     toggle->setUserObject(CCString::create(category));
+    //     m_buttonMenu->addChild(toggle);
 
-        auto label = CategoryNode::create(category, CategoryNodeStyle::Dot);
-        label->setScale(.4f);
-        label->setAnchorPoint({ .0f, .5f });
-        label->setPosition(pos.x + 10.f, pos.y);
-        m_mainLayer->addChild(label);
+    //     auto label = CategoryNode::create(category, CategoryNodeStyle::Dot);
+    //     label->setScale(.4f);
+    //     label->setAnchorPoint({ .0f, .5f });
+    //     label->setPosition(pos.x + 10.f, pos.y);
+    //     m_mainLayer->addChild(label);
 
-        pos.y -= 22.5f;
-    }
+    //     pos.y -= 22.5f;
+    // }
 
     return true;
 }
@@ -99,13 +100,13 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
 void SearchFilterPopup::onCategory(CCObject* sender) {
     try {
         auto toggle = static_cast<CCMenuItemToggler*>(sender);
-        auto category = static_cast<CCString*>(toggle->getUserObject())->getCString();
-        if (!toggle->isToggled()) {
-            m_modLayer->m_query.m_categories.insert(category);
-        }
-        else {
-            m_modLayer->m_query.m_categories.erase(category);
-        }
+        // auto category = static_cast<CCString*>(toggle->getUserObject())->getCString();
+        // if (!toggle->isToggled()) {
+        //     m_modLayer->m_query.m_categories.insert(category);
+        // }
+        // else {
+        //     m_modLayer->m_query.m_categories.erase(category);
+        // }
     }
     catch (...) {
     }
@@ -113,7 +114,7 @@ void SearchFilterPopup::onCategory(CCObject* sender) {
 
 void SearchFilterPopup::onShowInstalled(CCObject* sender) {
     auto toggle = static_cast<CCMenuItemToggler*>(sender);
-    m_modLayer->m_query.m_showInstalled = !toggle->isToggled();
+    // m_modLayer->m_query.m_showInstalled = !toggle->isToggled();
 }
 
 void SearchFilterPopup::enable(CCMenuItemToggler* toggle, ModListType type) {
@@ -137,37 +138,39 @@ CCMenuItemToggler* SearchFilterPopup::addToggle(
 }
 
 CCMenuItemToggler* SearchFilterPopup::addSearchMatch(char const* title, int flag, CCPoint& pos) {
-    return this->addToggle(
-        title, menu_selector(SearchFilterPopup::onSearchToggle),
-        m_modLayer->m_query.m_searchFlags & flag, flag, pos
-    );
+    // return this->addToggle(
+    //     title, menu_selector(SearchFilterPopup::onSearchToggle),
+    //     m_modLayer->m_query.m_searchFlags & flag, flag, pos
+    // );
+    return nullptr;
 }
 
 CCMenuItemToggler* SearchFilterPopup::addPlatformToggle(
     char const* title, PlatformID id, CCPoint& pos
 ) {
-    return this->addToggle(
-        title, menu_selector(SearchFilterPopup::onPlatformToggle),
-        m_modLayer->m_query.m_platforms.count(id), id.to<int>(), pos
-    );
+    // return this->addToggle(
+    //     title, menu_selector(SearchFilterPopup::onPlatformToggle),
+    //     m_modLayer->m_query.m_platforms.count(id), id.to<int>(), pos
+    // );
+    return nullptr;
 }
 
 void SearchFilterPopup::onSearchToggle(CCObject* sender) {
-    if (static_cast<CCMenuItemToggler*>(sender)->isToggled()) {
-        m_modLayer->m_query.m_searchFlags &= ~sender->getTag();
-    }
-    else {
-        m_modLayer->m_query.m_searchFlags |= sender->getTag();
-    }
+    // if (static_cast<CCMenuItemToggler*>(sender)->isToggled()) {
+    //     m_modLayer->m_query.m_searchFlags &= ~sender->getTag();
+    // }
+    // else {
+    //     m_modLayer->m_query.m_searchFlags |= sender->getTag();
+    // }
 }
 
 void SearchFilterPopup::onPlatformToggle(CCObject* sender) {
-    if (static_cast<CCMenuItemToggler*>(sender)->isToggled()) {
-        m_modLayer->m_query.m_platforms.erase(PlatformID::from(sender->getTag()));
-    }
-    else {
-        m_modLayer->m_query.m_platforms.insert(PlatformID::from(sender->getTag()));
-    }
+    // if (static_cast<CCMenuItemToggler*>(sender)->isToggled()) {
+    //     m_modLayer->m_query.m_platforms.erase(PlatformID::from(sender->getTag()));
+    // }
+    // else {
+    //     m_modLayer->m_query.m_platforms.insert(PlatformID::from(sender->getTag()));
+    // }
 }
 
 void SearchFilterPopup::onClose(CCObject* sender) {

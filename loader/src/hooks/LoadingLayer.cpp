@@ -44,39 +44,33 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
 
     void setUpdateText(std::string const& text) {
         m_textArea->setString(text.c_str());
-        // m_fields->m_updatingResources->setString(text.c_str());
-        // m_fields->m_updatingResourcesBG->setContentSize({
-        //     m_fields->m_updatingResources->getScaledContentSize().width + 30.f,
-        //     50.f
-        // });
-        // m_fields->m_updatingResources->setPosition(
-        //     m_fields->m_updatingResourcesBG->getContentSize() / 2
-        // );
     }
 
     void updateResourcesProgress(ResourceDownloadEvent* event) {
-        auto status = event->getStatus();
-        if (std::holds_alternative<UpdateProgress>(status)) {
-            auto prog = std::get<UpdateProgress>(status);
-            this->setUpdateText("Downloading Resources: " + std::to_string(prog.first) + "%");
-        }
-        else if (std::holds_alternative<UpdateFinished>(status)) {
-            this->setUpdateText("Resources Downloaded");
-            m_fields->m_updatingResources = false;
-            this->loadAssets();
-        }
-        else {
-            InternalLoader::platformMessageBox(
-                "Error updating resources",
-                "Unable to update Geode resources: " + 
-                std::get<UpdateError>(status) + ".\n"
-                "The game will be loaded as normal, but please be aware "
-                "that it may very likely crash."
-            );
-            this->setUpdateText("Resource Download Failed");
-            m_fields->m_updatingResources = false;
-            this->loadAssets();
-        }
+        std::visit(makeVisitor {
+            [&](UpdateProgress const& progress) {
+                this->setUpdateText(fmt::format(
+                    "Downloading Resources: {}%", progress.first
+                ));
+            },
+            [&](UpdateFinished) {
+                this->setUpdateText("Resources Downloaded");
+                m_fields->m_updatingResources = false;
+                this->loadAssets();
+            },
+            [&](UpdateError const& error) {
+                InternalLoader::platformMessageBox(
+                    "Error updating resources",
+                    "Unable to update Geode resources: " + 
+                    error + ".\n"
+                    "The game will be loaded as normal, but please be aware "
+                    "that it may very likely crash."
+                );
+                this->setUpdateText("Resource Download Failed");
+                m_fields->m_updatingResources = false;
+                this->loadAssets();
+            }
+        }, event->status);
     }
 
     void loadAssets() {

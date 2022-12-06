@@ -93,18 +93,18 @@ namespace geode {
     };
 
     class GEODE_DLL Event {
+    private:
         static std::unordered_set<EventListenerProtocol*> s_listeners;
-        Mod* m_sender;
         friend EventListenerProtocol;
-    public:
-        void postFrom(Mod* sender);
 
+    public:
+        Mod* sender;
+
+        void postFrom(Mod* sender);
         template<class = void>
         void post() {
             postFrom(Mod::get());
         }
-
-        Mod* getSender();
 
         virtual ~Event();
     };

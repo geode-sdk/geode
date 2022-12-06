@@ -19,15 +19,11 @@ EventListenerProtocol::~EventListenerProtocol() {
 Event::~Event() {}
 
 void Event::postFrom(Mod* m) {
-    if (m) m_sender = m;
+    if (m) this->sender = m;
 
     for (auto h : Event::s_listeners) {
         if (h->passThrough(this) == ListenerResult::Stop) {
             break;
         }
     }
-}
-
-Mod* Event::getSender() {
-    return m_sender;
 }

@@ -17,13 +17,9 @@
 
 USE_GEODE_NAMESPACE();
 
-class ResourceDownloadEvent : public Event {
-protected:
-    UpdateStatus m_status;
-
-public:
-    ResourceDownloadEvent(UpdateStatus status);
-    UpdateStatus getStatus() const;
+struct ResourceDownloadEvent : public Event {
+    const UpdateStatus status;
+    ResourceDownloadEvent(UpdateStatus const& status);
 };
 
 class GEODE_DLL ResourceDownloadFilter : public EventFilter<ResourceDownloadEvent> {

@@ -1,16 +1,17 @@
 
 #include <Geode/utils/cocos.hpp>
-#include "../ui/internal/info/ModInfoLayer.hpp"
 #include "../ui/internal/list/ModListLayer.hpp"
 #include <Geode/ui/BasedButtonSprite.hpp>
-#include <Geode/ui/MDPopup.hpp>
 #include <Geode/ui/Notification.hpp>
+#include <Geode/ui/GeodeUI.hpp>
+#include <Geode/ui/Popup.hpp>
 #include <Geode/utils/cocos.hpp>
-#include <Index.hpp>
+#include <Geode/loader/Index.hpp>
 #include <InternalLoader.hpp>
 #include "../ids/AddIDs.hpp"
 #include <InternalMod.hpp>
 #include <Geode/modify/Modify.hpp>
+#include <Geode/modify/MenuLayer.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -21,39 +22,6 @@ class CustomMenuLayer;
 static Ref<Notification> g_indexUpdateNotif = nullptr;
 static Ref<CCSprite> g_geodeButton = nullptr;
 
-static void addUpdateIcon(char const* icon = "updates-available.png"_spr) {
-    if (g_geodeButton && Index::get()->areUpdatesAvailable()) {
-        auto updateIcon = CCSprite::createWithSpriteFrameName(icon);
-        updateIcon->setPosition(g_geodeButton->getContentSize() - CCSize { 10.f, 10.f });
-        updateIcon->setZOrder(99);
-        updateIcon->setScale(.5f);
-        g_geodeButton->addChild(updateIcon);
-    }
-}
-
-static void updateIndexProgress(UpdateStatus status, std::string const& info, uint8_t progress) {
-    if (status == UpdateStatus::Failed) {
-		g_indexUpdateNotif->setIcon(NotificationIcon::Error);
-		g_indexUpdateNotif->setString("Index update failed");
-        g_indexUpdateNotif->setTime(2.f);
-        g_indexUpdateNotif = nullptr;
-        addUpdateIcon("updates-failed.png"_spr);
-    }
-
-    if (status == UpdateStatus::Finished) {
-		g_indexUpdateNotif->setIcon(NotificationIcon::Success);
-        if (Index::get()->areUpdatesAvailable()) {
-			g_indexUpdateNotif->setString("Updates Available");
-            addUpdateIcon();
-        } else {
-			g_indexUpdateNotif->setString("Everything Up-to-Date");
-		}
-        g_indexUpdateNotif->setTime(2.f);
-		g_indexUpdateNotif = nullptr;
-    }
-}
-
-#include <Geode/modify/MenuLayer.hpp>
 struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 	void destructor() {
 		g_geodeButton = nullptr;
@@ -80,8 +48,6 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 				CircleBaseSize::Medium2
 			))
 			.orMake<ButtonSprite>("!!");
-
-		addUpdateIcon();
 
 		auto bottomMenu = static_cast<CCMenu*>(this->getChildByID("bottom-menu"));
 
@@ -122,9 +88,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 				"No", "Send",
 				[](auto, bool btn2) {
 					if (btn2) {
-						ModInfoLayer::showIssueReportPopup(
-							InternalMod::get()->getModInfo()
-						);
+						geode::openIssueReportPopup(InternalMod::get());
 					}
 				},
 				false
@@ -135,13 +99,13 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 		}
 
 		// update mods index
-		if (!g_indexUpdateNotif && !Index::get()->isIndexUpdated()) {
+		if (!g_indexUpdateNotif && !Index::get()->hasTriedToUpdate()) {
 			g_indexUpdateNotif = Notification::create(
 				"Updating Index", NotificationIcon::Loading, 0
 			);
 			g_indexUpdateNotif->show();
 
-			Index::get()->updateIndex(updateIndexProgress);
+			Index::get()->update();
 		}
 	
 		return true;

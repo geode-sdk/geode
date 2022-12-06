@@ -205,40 +205,6 @@ void ModListLayer::createSearchControl() {
     this->addChild(m_searchInput);
 }
 
-void ModListLayer::indexUpdateProgress(
-    UpdateStatus status, std::string const& info, uint8_t percentage
-) {
-    // if we have a check for updates button
-    // visible, disable it from being clicked
-    // again
-    if (m_checkForUpdatesBtn) {
-        m_checkForUpdatesBtn->setEnabled(false);
-        as<ButtonSprite*>(m_checkForUpdatesBtn->getNormalImage())->setString("Updating Index");
-    }
-
-    // if finished, refresh list
-    if (status == UpdateStatus::Finished) {
-        m_indexUpdateLabel->setVisible(false);
-        this->reloadList();
-
-        // make sure to release global instance
-        // and set it back to null
-        CC_SAFE_RELEASE_NULL(g_instance);
-    }
-    else {
-        m_indexUpdateLabel->setVisible(true);
-        m_indexUpdateLabel->setString(info.c_str());
-    }
-
-    if (status == UpdateStatus::Failed) {
-        FLAlertLayer::create("Error Updating Index", info, "OK")->show();
-
-        // make sure to release global instance
-        // and set it back to null
-        CC_SAFE_RELEASE(g_instance);
-    }
-}
-
 void ModListLayer::reloadList() {
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
@@ -249,25 +215,21 @@ void ModListLayer::reloadList() {
     }
 
     // create new list
-    m_query.m_searchFilter =
-        m_searchInput && m_searchInput->getString() && strlen(m_searchInput->getString())
-        ? std::optional<std::string>(m_searchInput->getString())
-        : std::nullopt;
-    auto list = ModListView::create(g_tab, m_expandedList, 358.f, 190.f, m_query);
+    auto list = ModListView::create(g_tab, m_display);
     list->setLayer(this);
 
     // set list status
-    auto status = list->getStatusAsString();
-    if (status.size()) {
-        m_listLabel->setVisible(true);
-        m_listLabel->setString(status.c_str());
-    }
-    else {
+    // auto status = list->getStatusAsString();
+    // if (status.size()) {
+    //     m_listLabel->setVisible(true);
+    //     m_listLabel->setString(status.c_str());
+    // }
+    // else {
         m_listLabel->setVisible(false);
-    }
+    // }
 
     // update index if needed
-    if (g_tab == ModListType::Download && !Index::get()->isIndexUpdated()) {
+    if (g_tab == ModListType::Download && !Index::get()->isUpToDate()) {
         m_listLabel->setString("Updating index...");
         if (!m_loadingCircle) {
             m_loadingCircle = LoadingCircle::create();
@@ -311,9 +273,9 @@ void ModListLayer::reloadList() {
 
     // check if the user has searched something,
     // and show visual indicator if so
-    auto hasQuery = m_query.m_searchFilter.has_value();
-    m_searchBtn->setVisible(!hasQuery);
-    m_searchClearBtn->setVisible(hasQuery);
+    // auto hasQuery = m_query.m_searchFilter.has_value();
+    // m_searchBtn->setVisible(!hasQuery);
+    // m_searchClearBtn->setVisible(hasQuery);
 
     // add/remove "Check for Updates" button
     if (
@@ -321,7 +283,7 @@ void ModListLayer::reloadList() {
 		g_tab == ModListType::Installed &&
 		// check if index is updated, and if not 
 		// add button if it doesn't exist yet
-		!Index::get()->isIndexUpdated()
+		!Index::get()->isUpToDate()
 	) {
         if (!m_checkForUpdatesBtn) {
             auto checkSpr = ButtonSprite::create("Check for Updates");
@@ -351,11 +313,7 @@ void ModListLayer::onCheckForUpdates(CCObject*) {
     g_instance->retain();
 
     // update index
-    Index::get()->updateIndex(
-        [](UpdateStatus status, std::string const& info, uint8_t progress) -> void {
-            g_instance->indexUpdateProgress(status, info, progress);
-        }
-    );
+    Index::get()->update();
 }
 
 void ModListLayer::textChanged(CCTextInputNode* input) {
@@ -374,7 +332,9 @@ void ModListLayer::onReload(CCObject*) {
 }
 
 void ModListLayer::onExpand(CCObject* sender) {
-    m_expandedList = !static_cast<CCMenuItemToggler*>(sender)->isToggled();
+    m_display = static_cast<CCMenuItemToggler*>(sender)->isToggled() ?
+        ModListDisplay::Concise :
+        ModListDisplay::Expanded;
     this->reloadList();
 }
 
@@ -443,5 +403,5 @@ ModListLayer* ModListLayer::scene() {
 }
 
 ModListLayer::~ModListLayer() {
-    removeAllChildrenWithCleanup(true);
+    this->removeAllChildrenWithCleanup(true);
 }
