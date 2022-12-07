@@ -164,12 +164,14 @@ public:
             // Read file and add to entries
             unz_file_pos pos;
             if (unzGetFilePos(m_zip, &pos) == UNZ_OK) {
-                m_entries.insert({ fileName,
-                                   ZipEntry {
-                                       .m_pos = pos,
-                                       .m_compressedSize = fileInfo.compressed_size,
-                                       .m_uncompressedSize = fileInfo.uncompressed_size,
-                                   } });
+                m_entries.insert({
+                    fileName,
+                    ZipEntry {
+                        .m_pos = pos,
+                        .m_compressedSize = fileInfo.compressed_size,
+                        .m_uncompressedSize = fileInfo.uncompressed_size,
+                    },
+                });
             }
             // Read next file, or break on error
             if (unzGoToNextFile64(m_zip, &fileInfo, fileName, sizeof(fileName) - 1) != UNZ_OK) {

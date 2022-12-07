@@ -4,10 +4,10 @@
 USE_GEODE_NAMESPACE();
 
 void cocos2d::to_json(nlohmann::json& json, ccColor3B const& color) {
-    json = nlohmann::json {
-        { "r", color.r },
-        { "g", color.g },
-        { "b", color.b },
+    json = nlohmann::json{
+        {"r", color.r},
+        {"g", color.g},
+        {"b", color.b},
     };
 }
 
@@ -20,9 +20,7 @@ void cocos2d::from_json(nlohmann::json const& json, ccColor3B& color) {
             json.at(2).get_to(color.b);
         }
         else {
-            throw nlohmann::json::type_error::create(
-                0, "Expected color array to have 3 items", json
-            );
+            throw nlohmann::json::type_error::create(0, "Expected color array to have 3 items", json);
         }
     }
     // object
@@ -57,11 +55,11 @@ void cocos2d::from_json(nlohmann::json const& json, ccColor3B& color) {
 }
 
 void cocos2d::to_json(nlohmann::json& json, ccColor4B const& color) {
-    json = nlohmann::json {
-        { "r", color.r },
-        { "g", color.g },
-        { "b", color.b },
-        { "a", color.a },
+    json = nlohmann::json{
+        {"r", color.r},
+        {"g", color.g},
+        {"b", color.b},
+        {"a", color.a},
     };
 }
 
@@ -75,9 +73,7 @@ void cocos2d::from_json(nlohmann::json const& json, ccColor4B& color) {
             json.at(3).get_to(color.a);
         }
         else {
-            throw nlohmann::json::type_error::create(
-                0, "Expected color array to have 4 items", json
-            );
+            throw nlohmann::json::type_error::create(0, "Expected color array to have 4 items", json);
         }
     }
     // object
@@ -245,7 +241,7 @@ CCRect geode::cocos::calculateNodeCoverage(std::vector<CCNode*> const& nodes) {
     for (auto child : nodes) {
         auto pos = child->getPosition() - child->getScaledContentSize() * child->getAnchorPoint();
         auto csize = child->getPosition() +
-            child->getScaledContentSize() * (CCPoint { 1.f, 1.f } - child->getAnchorPoint());
+            child->getScaledContentSize() * (CCPoint{1.f, 1.f} - child->getAnchorPoint());
         if (pos.x < coverage.origin.x) {
             coverage.origin.x = pos.x;
         }
@@ -267,7 +263,7 @@ CCRect geode::cocos::calculateNodeCoverage(CCArray* nodes) {
     for (auto child : CCArrayExt<CCNode>(nodes)) {
         auto pos = child->getPosition() - child->getScaledContentSize() * child->getAnchorPoint();
         auto csize = child->getPosition() +
-            child->getScaledContentSize() * (CCPoint { 1.f, 1.f } - child->getAnchorPoint());
+            child->getScaledContentSize() * (CCPoint{1.f, 1.f} - child->getAnchorPoint());
         if (pos.x < coverage.origin.x) {
             coverage.origin.x = pos.x;
         }
@@ -288,9 +284,7 @@ CCRect geode::cocos::calculateChildCoverage(CCNode* parent) {
     return calculateNodeCoverage(parent->getChildren());
 }
 
-void geode::cocos::limitNodeSize(
-    cocos2d::CCNode* spr, cocos2d::CCSize const& size, float def, float min
-) {
+void geode::cocos::limitNodeSize(cocos2d::CCNode* spr, cocos2d::CCSize const& size, float def, float min) {
     spr->setScale(1.f);
     auto [cwidth, cheight] = spr->getContentSize();
 

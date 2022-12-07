@@ -14,8 +14,7 @@
         macro(GEODE_CONCAT(begin, 7)), macro(GEODE_CONCAT(begin, 8)),                            \
         macro(GEODE_CONCAT(begin, 9)), macro(GEODE_CONCAT(begin, a)),                            \
         macro(GEODE_CONCAT(begin, b)), macro(GEODE_CONCAT(begin, c)),                            \
-        macro(GEODE_CONCAT(begin, d)), macro(GEODE_CONCAT(begin, e)),                            \
-        macro(GEODE_CONCAT(begin, f))
+        macro(GEODE_CONCAT(begin, d)), macro(GEODE_CONCAT(begin, e)), macro(GEODE_CONCAT(begin, f))
 
 #define GEODE_ADDRESSER_NEST2(macro, begin)                   \
     GEODE_ADDRESSER_NEST1(macro, GEODE_CONCAT(begin, 0)),     \
@@ -53,13 +52,13 @@ namespace {
     using table_table_t = intptr_t[0x100];
 
     struct GEODE_HIDDEN ThunkTable {
-        static inline thunk0_table_t table = { GEODE_ADDRESSER_THUNK0_SET() };
+        static inline thunk0_table_t table = {GEODE_ADDRESSER_THUNK0_SET()};
     };
 
     class GEODE_HIDDEN TableTable {
         friend class geode::addresser::Addresser;
 
-        static inline table_table_t table = { GEODE_ADDRESSER_TABLE_SET() };
+        static inline table_table_t table = {GEODE_ADDRESSER_TABLE_SET()};
     };
 }
 
