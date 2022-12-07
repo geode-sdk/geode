@@ -1,11 +1,11 @@
 #include "../core/Core.hpp"
 
+#include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
-#include <Geode/loader/SettingEvent.hpp>
 #include <Geode/loader/Setting.hpp>
-#include <Geode/loader/IPC.hpp>
+#include <Geode/loader/SettingEvent.hpp>
 #include <InternalLoader.hpp>
 #include <InternalMod.hpp>
 #include <array>
@@ -102,27 +102,25 @@ BOOL WINAPI DllMain(HINSTANCE lib, DWORD reason, LPVOID) {
 
 #define $_ GEODE_CONCAT(unnamedVar_, __LINE__)
 
-static auto $_ = listenForSettingChanges<BoolSetting>(
-    "show-platform-console",
-    [](BoolSetting* setting) {
+static auto $_ =
+    listenForSettingChanges<BoolSetting>("show-platform-console", [](BoolSetting* setting) {
         if (setting->getValue()) {
             Loader::get()->openPlatformConsole();
         }
         else {
             Loader::get()->closePlatfromConsole();
         }
-    }
-);
+    });
 
-static auto $_ = listenForIPC("ipc-test", +[](IPCEvent* event) -> nlohmann::json {
+static auto $_ = listenForIPC("ipc-test", [](IPCEvent* event) -> nlohmann::json {
     return "Hello from Geode!";
 });
 
-static auto $_ = listenForIPC("loader-info", +[](IPCEvent* event) -> nlohmann::json {
+static auto $_ = listenForIPC("loader-info", [](IPCEvent* event) -> nlohmann::json {
     return Loader::get()->getInternalMod()->getModInfo();
 });
 
-static auto $_ = listenForIPC("list-mods", +[](IPCEvent* event) -> nlohmann::json {
+static auto $_ = listenForIPC("list-mods", [](IPCEvent* event) -> nlohmann::json {
     std::vector<nlohmann::json> res;
 
     auto args = event->getMessageData();
@@ -133,18 +131,14 @@ static auto $_ = listenForIPC("list-mods", +[](IPCEvent* event) -> nlohmann::jso
     auto dontIncludeLoader = root.has("dont-include-loader").template get<bool>();
 
     if (!dontIncludeLoader) {
-        res.push_back(includeRunTimeInfo ? 
-            Loader::get()->getInternalMod()->getRuntimeInfo() : 
-            Loader::get()->getInternalMod()->getModInfo().toJSON()
+        res.push_back(
+            includeRunTimeInfo ? Loader::get()->getInternalMod()->getRuntimeInfo() :
+                                 Loader::get()->getInternalMod()->getModInfo().toJSON()
         );
     }
 
     for (auto& mod : Loader::get()->getAllMods()) {
-        res.push_back(
-            includeRunTimeInfo ?
-                mod->getRuntimeInfo() :
-                mod->getModInfo().toJSON()
-        );
+        res.push_back(includeRunTimeInfo ? mod->getRuntimeInfo() : mod->getModInfo().toJSON());
     }
 
     return res;

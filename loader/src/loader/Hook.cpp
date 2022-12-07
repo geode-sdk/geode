@@ -20,10 +20,10 @@ Result<> Hook::enable() {
             m_enabled = true;
             m_handle = res.unwrap();
             return Ok();
-        } else {
+        }
+        else {
             return Err(
-                "Unable to create hook at " +
-                std::to_string(reinterpret_cast<uintptr_t>(m_address))
+                "Unable to create hook at " + std::to_string(reinterpret_cast<uintptr_t>(m_address))
             );
         }
         return Err("Hook already has a handle");
@@ -33,8 +33,7 @@ Result<> Hook::enable() {
 
 Result<> Hook::disable() {
     if (m_enabled) {
-        if (!geode::core::hook::remove(m_handle))
-            return Err("Unable to remove hook");
+        if (!geode::core::hook::remove(m_handle)) return Err("Unable to remove hook");
 
         log::debug("Disabling hook at function {}", m_displayName);
         m_enabled = false;

@@ -1,11 +1,11 @@
-#include <Geode/utils/file.hpp>
-#include <Geode/utils/string.hpp>
-#include <Geode/utils/map.hpp>
-#include <Geode/loader/Log.hpp>
-#include <fstream>
 #include <../support/zip_support/ZipUtils.h>
 #include <../support/zip_support/ioapi.h>
 #include <../support/zip_support/unzip.h>
+#include <Geode/loader/Log.hpp>
+#include <Geode/utils/file.hpp>
+#include <Geode/utils/map.hpp>
+#include <Geode/utils/string.hpp>
+#include <fstream>
 
 USE_GEODE_NAMESPACE();
 using namespace geode::utils::file;
@@ -143,9 +143,7 @@ public:
         unz_file_info64 fileInfo;
 
         // Read first file
-        if (unzGoToFirstFile64(
-            m_zip, &fileInfo, fileName, sizeof(fileName) - 1
-        )) {
+        if (unzGoToFirstFile64(m_zip, &fileInfo, fileName, sizeof(fileName) - 1)) {
             return false;
         }
         // Loop over all files
@@ -154,17 +152,16 @@ public:
             unz_file_pos pos;
             if (unzGetFilePos(m_zip, &pos) == UNZ_OK) {
                 m_entries.insert({
-                    fileName, ZipEntry {
+                    fileName,
+                    ZipEntry {
                         .m_pos = pos,
                         .m_compressedSize = fileInfo.compressed_size,
                         .m_uncompressedSize = fileInfo.uncompressed_size,
-                    }
+                    },
                 });
             }
             // Read next file, or break on error
-            if (unzGoToNextFile64(
-                m_zip, &fileInfo, fileName, sizeof(fileName) - 1
-            ) != UNZ_OK) {
+            if (unzGoToNextFile64(m_zip, &fileInfo, fileName, sizeof(fileName) - 1) != UNZ_OK) {
                 break;
             }
         }
@@ -204,6 +201,7 @@ public:
     }
 
     UnzipImpl(unzFile zip, Path const& path) : m_zip(zip), m_zipPath(path) {}
+
     ~UnzipImpl() {
         unzClose(m_zip);
     }

@@ -1,8 +1,9 @@
 #pragma once
 
-#include "casts.hpp"
 #include "../external/json/json.hpp"
+#include "casts.hpp"
 #include "general.hpp"
+
 #include <Geode/DefaultInclude.hpp>
 #include <cocos2d.h>
 #include <functional>
@@ -139,11 +140,11 @@ namespace geode {
     }
 
     static cocos2d::CCSize operator-(cocos2d::CCSize const& size, float f) {
-        return { size.width - f, size.height - f };
+        return {size.width - f, size.height - f};
     }
 
     static cocos2d::CCSize operator-(cocos2d::CCSize const& size) {
-        return { -size.width, -size.height };
+        return {-size.width, -size.height};
     }
 
     static bool operator==(cocos2d::CCPoint const& p1, cocos2d::CCPoint const& p2) {
@@ -283,6 +284,7 @@ namespace geode {
         bool operator==(T* other) const {
             return m_obj == other;
         }
+
         bool operator==(Ref<T> const& other) const {
             return m_obj == other.m_obj;
         }
@@ -290,6 +292,7 @@ namespace geode {
         bool operator!=(T* other) const {
             return m_obj != other;
         }
+
         bool operator!=(Ref<T> const& other) const {
             return m_obj != other.m_obj;
         }
@@ -298,6 +301,7 @@ namespace geode {
         bool operator<(Ref<T> const& other) const {
             return m_obj < other.m_obj;
         }
+
         bool operator>(Ref<T> const& other) const {
             return m_obj > other.m_obj;
         }
@@ -435,13 +439,13 @@ namespace geode::cocos {
      */
     GEODE_DLL cocos2d::CCScene* switchToScene(cocos2d::CCLayer* layer);
 
-    using CreateLayerFunc = cocos2d::CCLayer*(*)();
+    using CreateLayerFunc = std::function<cocos2d::CCLayer*()>;
 
     /**
-     * Reload textures, overwriting the scene to return to after the loading 
+     * Reload textures, overwriting the scene to return to after the loading
      * screen is finished
-     * @param returnTo A function that returns a new layer. After loading is 
-     * finished, the game switches to the given layer instead of MenuLayer. 
+     * @param returnTo A function that returns a new layer. After loading is
+     * finished, the game switches to the given layer instead of MenuLayer.
      * Leave nullptr to enable default behaviour
      */
     GEODE_DLL void reloadTextures(CreateLayerFunc returnTo = nullptr);
@@ -453,9 +457,7 @@ namespace geode::cocos {
      * @param def Default size
      * @param min Minimum size
      */
-    GEODE_DLL void limitNodeSize(
-        cocos2d::CCNode* node, cocos2d::CCSize const& size, float def, float min
-    );
+    GEODE_DLL void limitNodeSize(cocos2d::CCNode* node, cocos2d::CCSize const& size, float def, float min);
 
     /**
      * Checks if a node is visible (recursively
@@ -478,12 +480,12 @@ namespace geode::cocos {
     GEODE_DLL cocos2d::CCNode* getChildByTagRecursive(cocos2d::CCNode* node, int tag);
 
     /**
-     *  Get first node that conforms to the predicate 
+     *  Get first node that conforms to the predicate
      *  by traversing children recursively
-     * 
+     *
      *  @param node Parent node
      *  @param predicate Predicate used to evaluate nodes
-     * @return Child node if one is found, or null if 
+     * @return Child node if one is found, or null if
      * there is none
      */
     template <class Type = cocos2d::CCNode>
@@ -497,8 +499,7 @@ namespace geode::cocos {
         for (int i = 0; i < children->count(); ++i) {
             auto newParent = static_cast<cocos2d::CCNode*>(children->objectAtIndex(i));
             auto child = findFirstChildRecursive(newParent, predicate);
-            if (child)
-                return child;
+            if (child) return child;
         }
 
         return nullptr;
@@ -602,13 +603,18 @@ namespace geode::cocos {
     }
 
     inline cocos2d::ccColor4B invert4B(cocos2d::ccColor4B const& color) {
-        return { static_cast<GLubyte>(255 - color.r), static_cast<GLubyte>(255 - color.g),
-                 static_cast<GLubyte>(255 - color.b), color.a };
+        return {
+            static_cast<GLubyte>(255 - color.r),
+            static_cast<GLubyte>(255 - color.g),
+            static_cast<GLubyte>(255 - color.b),
+            color.a};
     }
 
     inline cocos2d::ccColor3B invert3B(cocos2d::ccColor3B const& color) {
-        return { static_cast<GLubyte>(255 - color.r), static_cast<GLubyte>(255 - color.g),
-                 static_cast<GLubyte>(255 - color.b) };
+        return {
+            static_cast<GLubyte>(255 - color.r),
+            static_cast<GLubyte>(255 - color.g),
+            static_cast<GLubyte>(255 - color.b)};
     }
 
     inline cocos2d::ccColor3B lighten3B(cocos2d::ccColor3B const& color, int amount) {
@@ -624,34 +630,38 @@ namespace geode::cocos {
     }
 
     inline cocos2d::ccColor3B to3B(cocos2d::ccColor4B const& color) {
-        return { color.r, color.g, color.b };
+        return {color.r, color.g, color.b};
     }
 
     inline cocos2d::ccColor4B to4B(cocos2d::ccColor3B const& color, GLubyte alpha = 255) {
-        return { color.r, color.g, color.b, alpha };
+        return {color.r, color.g, color.b, alpha};
     }
 
     inline cocos2d::ccColor4F to4F(cocos2d::ccColor4B const& color) {
-        return { color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f };
+        return {color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f};
     }
 
     constexpr cocos2d::ccColor3B cc3x(int hexValue) {
         if (hexValue <= 0xf)
-            return cocos2d::ccColor3B { static_cast<GLubyte>(hexValue * 17),
-                                        static_cast<GLubyte>(hexValue * 17),
-                                        static_cast<GLubyte>(hexValue * 17) };
+            return cocos2d::ccColor3B{
+                static_cast<GLubyte>(hexValue * 17),
+                static_cast<GLubyte>(hexValue * 17),
+                static_cast<GLubyte>(hexValue * 17)};
         if (hexValue <= 0xff)
-            return cocos2d::ccColor3B { static_cast<GLubyte>(hexValue),
-                                        static_cast<GLubyte>(hexValue),
-                                        static_cast<GLubyte>(hexValue) };
+            return cocos2d::ccColor3B{
+                static_cast<GLubyte>(hexValue),
+                static_cast<GLubyte>(hexValue),
+                static_cast<GLubyte>(hexValue)};
         if (hexValue <= 0xfff)
-            return cocos2d::ccColor3B { static_cast<GLubyte>((hexValue >> 8 & 0xf) * 17),
-                                        static_cast<GLubyte>((hexValue >> 4 & 0xf) * 17),
-                                        static_cast<GLubyte>((hexValue >> 0 & 0xf) * 17) };
+            return cocos2d::ccColor3B{
+                static_cast<GLubyte>((hexValue >> 8 & 0xf) * 17),
+                static_cast<GLubyte>((hexValue >> 4 & 0xf) * 17),
+                static_cast<GLubyte>((hexValue >> 0 & 0xf) * 17)};
         else
-            return cocos2d::ccColor3B { static_cast<GLubyte>(hexValue >> 16 & 0xff),
-                                        static_cast<GLubyte>(hexValue >> 8 & 0xff),
-                                        static_cast<GLubyte>(hexValue >> 0 & 0xff) };
+            return cocos2d::ccColor3B{
+                static_cast<GLubyte>(hexValue >> 16 & 0xff),
+                static_cast<GLubyte>(hexValue >> 8 & 0xff),
+                static_cast<GLubyte>(hexValue >> 0 & 0xff)};
     }
 
     GEODE_DLL Result<cocos2d::ccColor3B> cc3bFromHexString(std::string const& hexValue);
@@ -668,9 +678,7 @@ namespace geode::cocos {
     }
 
     template <typename T, typename C, typename = std::enable_if_t<std::is_pointer_v<C>>>
-    static cocos2d::CCArray* vectorToCCArray(
-        std::vector<T> const& vec, std::function<C(T)> convFunc
-    ) {
+    static cocos2d::CCArray* vectorToCCArray(std::vector<T> const& vec, std::function<C(T)> convFunc) {
         auto res = cocos2d::CCArray::createWithCapacity(vec.size());
         for (auto const& item : vec)
             res->addObject(convFunc(item));
@@ -680,8 +688,7 @@ namespace geode::cocos {
     template <typename T, typename = std::enable_if_t<std::is_pointer_v<T>>>
     std::vector<T> ccArrayToVector(cocos2d::CCArray* arr) {
         return std::vector<T>(
-            reinterpret_cast<T*>(arr->data->arr),
-            reinterpret_cast<T*>(arr->data->arr) + arr->data->num
+            reinterpret_cast<T*>(arr->data->arr), reinterpret_cast<T*>(arr->data->arr) + arr->data->num
         );
     }
 
@@ -698,9 +705,7 @@ namespace geode::cocos {
     template <
         typename K, typename V, typename C,
         typename = std::enable_if_t<std::is_same_v<C, std::string> || std::is_same_v<C, intptr_t>>>
-    static cocos2d::CCDictionary* mapToCCDict(
-        std::map<K, V> const& map, std::function<C(K)> convFunc
-    ) {
+    static cocos2d::CCDictionary* mapToCCDict(std::map<K, V> const& map, std::function<C(K)> convFunc) {
         auto res = cocos2d::CCDictionary::create();
         for (auto const& [key, value] : map)
             res->setObject(value, convFunc(key));
@@ -725,7 +730,7 @@ namespace geode::cocos {
 // std specializations
 namespace std {
     // enables using Ref as the key in unordered_map etc.
-    template<class T>
+    template <class T>
     struct hash<geode::Ref<T>> {
         size_t operator()(geode::Ref<T> const& ref) const {
             return std::hash<T*>()(ref.data());
@@ -797,6 +802,7 @@ namespace geode::cocos {
             }
             return CCArrayIterator<T*>(reinterpret_cast<T**>(m_arr->data->arr) + m_arr->count());
         }
+
         size_t size() const {
             return m_arr ? m_arr->count() : 0;
         }
@@ -829,10 +835,10 @@ namespace geode::cocos {
 
         std::pair<K, T> operator*() {
             if constexpr (std::is_same<K, std::string>::value) {
-                return { m_ptr->getStrKey(), static_cast<T>(m_ptr->getObject()) };
+                return {m_ptr->getStrKey(), static_cast<T>(m_ptr->getObject())};
             }
             else {
-                return { m_ptr->getIntKey(), static_cast<T>(m_ptr->getObject()) };
+                return {m_ptr->getIntKey(), static_cast<T>(m_ptr->getObject())};
             }
         }
 
@@ -997,7 +1003,7 @@ namespace geode::cocos {
             using Selector = Ret (Base::*)(Args...);
             using Holder = LambdaHolder<Func, Ret, Args...>;
 
-            static inline Holder s_selector {};
+            static inline Holder s_selector{};
 
             Ret selector(Args... args) {
                 return s_selector(std::forward<Args>(args)...);

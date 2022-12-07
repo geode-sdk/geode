@@ -55,21 +55,3 @@
  * Useful for callbacks
  */
 #define $cls std::remove_pointer<decltype(this)>::type
-
-#define GEODE_ONLY_FIELD(type, field_, default_) private: field<type> field_ = default_; public:
-#define GEODE_INTERNAL_FIELD(type, field, name) inline type& name() { return this->*field; }
-//#define GEODE_EXTERNAL_FIELD(type, field, name) static inline type& name##From(void* self) { return reinterpret_cast<decltype(this)>(self)->*field; }
-#define GEODE_FIELD(type, field, name, default_) GEODE_ONLY_FIELD(type, field, default_) GEODE_INTERNAL_FIELD(type, field, name) //GEODE_EXTERNAL_FIELD(type, field, name)
-
-
-#define $execute                                                  \
-template<class>                                                   \
-void GEODE_CONCAT(geodeExecFunction, __LINE__)();                 \
-namespace {                                                       \
-	struct GEODE_CONCAT(ExecFuncUnique, __LINE__) {};             \
-}                                                                 \
-static inline auto GEODE_CONCAT(Exec, __LINE__) = (Loader::get()->scheduleOnModLoad(\
-	nullptr, &GEODE_CONCAT(geodeExecFunction, __LINE__)<GEODE_CONCAT(ExecFuncUnique, __LINE__)> \
-), 0);                                                            \
-template<class>                                                   \
-void GEODE_CONCAT(geodeExecFunction, __LINE__)()

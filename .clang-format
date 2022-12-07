@@ -3,6 +3,7 @@ IndentWidth: 4
 
 AlignAfterOpenBracket: BlockIndent
 AlignEscapedNewlines: Left
+AlignConsecutiveAssignments: false
 AlignOperands: DontAlign
 AlignTrailingComments: false
 
@@ -22,7 +23,7 @@ AlwaysBreakAfterReturnType: None
 AlwaysBreakBeforeMultilineStrings: true
 AlwaysBreakTemplateDeclarations: Yes
 
-BinPackArguments: true
+BinPackArguments: false
 BinPackParameters: true
 
 BraceWrapping:
@@ -49,7 +50,7 @@ BraceWrapping:
 BreakBeforeBinaryOperators: None
 BreakBeforeBraces: Custom
 BreakBeforeConceptDeclarations: true
-BreakBeforeTernaryOperators: true
+BreakBeforeTernaryOperators: false
 BreakConstructorInitializers: AfterColon
 BreakInheritanceList: AfterColon
 BreakStringLiterals: true
@@ -57,7 +58,7 @@ ColumnLimit: 100
 CompactNamespaces: false
 ConstructorInitializerIndentWidth: 4
 ContinuationIndentWidth: 4
-Cpp11BracedListStyle: false
+Cpp11BracedListStyle: true
 
 DeriveLineEnding: false
 UseCRLF: false
@@ -84,7 +85,7 @@ IndentCaseLabels: true
 IndentExternBlock: Indent
 IndentGotoLabels: true
 IndentPPDirectives: BeforeHash
-IndentRequiresClause: false
+IndentRequiresClause: true
 IndentWrappedFunctionNames: false
 # InsertBraces: true
 InsertTrailingCommas: None
@@ -101,8 +102,9 @@ PenaltyBreakBeforeFirstCallParameter: 19
 PenaltyBreakComment: 300
 PenaltyBreakFirstLessLess: 120
 PenaltyBreakString: 1000
+PenaltyBreakOpenParenthesis: 0
 PenaltyBreakTemplateDeclaration: 10
-PenaltyExcessCharacter: 1000000
+PenaltyExcessCharacter: 10
 PenaltyReturnTypeOnItsOwnLine: 1000000
 PenaltyIndentedWhitespace: 0
 
@@ -121,7 +123,7 @@ SpaceAfterTemplateKeyword: true
 SpaceAroundPointerQualifiers: Default
 SpaceBeforeAssignmentOperators: true
 SpaceBeforeCaseColon: false
-SpaceBeforeCpp11BracedList: true
+SpaceBeforeCpp11BracedList: false
 SpaceBeforeCtorInitializerColon: true
 SpaceBeforeInheritanceColon: true
 SpaceBeforeParens: ControlStatements

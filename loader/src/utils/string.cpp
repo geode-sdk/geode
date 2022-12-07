@@ -91,9 +91,7 @@ std::wstring utils::string::toUpper(std::wstring const& str) {
     return utils::string::toUpperIP(ret);
 }
 
-std::string& utils::string::replaceIP(
-    std::string& str, std::string const& orig, std::string const& repl
-) {
+std::string& utils::string::replaceIP(std::string& str, std::string const& orig, std::string const& repl) {
     std::string::size_type n = 0;
     while ((n = str.find(orig, n)) != std::string::npos) {
         str.replace(n, orig.size(), repl);
@@ -248,7 +246,8 @@ std::wstring& utils::string::trimLeftIP(std::wstring& str) {
 std::string& utils::string::trimRightIP(std::string& str) {
     str.erase(
         std::find_if(
-            str.rbegin(), str.rend(),
+            str.rbegin(),
+            str.rend(),
             [](auto ch) {
                 return !std::isspace(ch);
             }
@@ -261,7 +260,8 @@ std::string& utils::string::trimRightIP(std::string& str) {
 std::wstring& utils::string::trimRightIP(std::wstring& str) {
     str.erase(
         std::find_if(
-            str.rbegin(), str.rend(),
+            str.rbegin(),
+            str.rend(),
             [](auto ch) {
                 return !std::isspace(ch);
             }
