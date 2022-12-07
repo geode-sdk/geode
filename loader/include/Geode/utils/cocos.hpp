@@ -306,6 +306,53 @@ namespace geode {
             return m_obj > other.m_obj;
         }
     };
+
+    template <class Filter>
+    class EventListenerNode : public cocos2d::CCNode {
+    protected:
+        EventListener<Filter> m_listener;
+    
+    public:
+        static EventListenerNode* create(EventListener<Filter> listener) {
+            auto ret = new EventListenerNode();
+            if (ret && ret->init()) {
+                ret->m_listener = listener;
+                ret->autorelease();
+                return ret;
+            }
+            CC_SAFE_DELETE(ret);
+            return nullptr;
+        }
+
+        static EventListenerNode* create(typename Filter::Callback callback) {
+            auto ret = new EventListenerNode();
+            if (ret && ret->init()) {
+                ret->m_listener = EventListener(callback);
+                ret->autorelease();
+                return ret;
+            }
+            CC_SAFE_DELETE(ret);
+            return nullptr;
+        }
+
+
+        template <class C>
+        static EventListenerNode* create(
+            C* cls, typename EventListener<Filter>::MemberFn<C> callback
+        ) {
+            // for some reason msvc won't let me just call EventListenerNode::create...
+            // it claims no return value...
+            // despite me writing return EventListenerNode::create()......
+            auto ret = new EventListenerNode();
+            if (ret && ret->init()) {
+                ret->m_listener.bind(cls, callback);
+                ret->autorelease();
+                return ret;
+            }
+            CC_SAFE_DELETE(ret);
+            return nullptr;
+        }
+    };
 }
 
 // Cocos2d utils
@@ -937,133 +984,4 @@ namespace geode::cocos {
             return m_dict->allKeys(key)->count();
         }
     };
-
-    // namespace for storing implementation stuff for
-    // inline member functions
-    namespace {
-        // class that holds the lambda (probably should've just used
-        // std::function but hey, this one's heap-free!)
-        template <class F, class Ret, class... Args>
-        struct LambdaHolder {
-            bool m_assigned = false;
-
-            // lambdas don't implement operator= so we
-            // gotta do this wacky union stuff
-            union {
-                F m_lambda;
-            };
-
-            LambdaHolder() {}
-
-            ~LambdaHolder() {
-                if (m_assigned) {
-                    m_lambda.~F();
-                }
-            }
-
-            LambdaHolder(F&& func) {
-                this->assign(std::forward<F>(func));
-            }
-
-            Ret operator()(Args... args) {
-                if (m_assigned) {
-                    return m_lambda(std::forward<Args>(args)...);
-                }
-                else {
-                    return Ret();
-                }
-            }
-
-            void assign(F&& func) {
-                if (m_assigned) {
-                    m_lambda.~F();
-                }
-                new (&m_lambda) F(func);
-                m_assigned = true;
-            }
-        };
-
-        // Extract parameters and return type from a lambda
-        template <class Func>
-        struct ExtractLambda : public ExtractLambda<decltype(&Func::operator())> {};
-
-        template <class C, class R, class... Args>
-        struct ExtractLambda<R (C::*)(Args...) const> {
-            using Ret = R;
-            using Params = std::tuple<Args...>;
-        };
-
-        // Class for storing the member function
-        template <class Base, class Func, class Args>
-        struct InlineMemberFunction;
-
-        template <class Base, class Func, class... Args>
-        struct InlineMemberFunction<Base, Func, std::tuple<Args...>> : public Base {
-            using Ret = typename ExtractLambda<Func>::Ret;
-            using Selector = Ret (Base::*)(Args...);
-            using Holder = LambdaHolder<Func, Ret, Args...>;
-
-            static inline Holder s_selector{};
-
-            Ret selector(Args... args) {
-                return s_selector(std::forward<Args>(args)...);
-            }
-
-            static Selector get(Func&& function) {
-                s_selector.assign(std::move(function));
-                return static_cast<Selector>(&InlineMemberFunction::selector);
-            }
-        };
-    }
-
-    /**
-     * Wrap a lambda into a member function pointer. Useful for creating
-     * callbacks that have to be members of a class without having to deal
-     * with all of the boilerplate associated with defining a new class
-     * member function.
-     *
-     * Do note that due to implementation problems, captures may have
-     * unexpected side-effects. In practice, lambda member functions with
-     * captures do not work properly in loops. If you assign the same
-     * member lambda to multiple different targets, they will share the
-     * same captured values.
-     */
-    template <class Base, class Func>
-    [[deprecated(
-        "Due to too many implementation problems, "
-        "makeMemberFunction will be removed in the future."
-    )]] static auto
-    makeMemberFunction(Func&& function) {
-        return InlineMemberFunction<Base, Func, typename ExtractLambda<Func>::Params>::get(
-            std::move(function)
-        );
-    }
-
-    /**
-     * Create a SEL_MenuHandler out of a lambda with optional captures. Useful
-     * for adding callbacks to CCMenuItemSpriteExtras without needing to add
-     * the callback as a member to a class. Use the GEODE_MENU_SELECTOR class
-     * for even more concise code.
-     *
-     * Do note that due to implementation problems, captures may have
-     * unexpected side-effects. In practice, **you should not expect to be able
-     * to pass any more information than you can pass to a normal menu selector
-     * through captures**. If you assign the same member lambda to multiple
-     * different targets, they will share the same captured values.
-     */
-    template <class Func>
-    [[deprecated(
-        "Due to too many implementation problems, "
-        "makeMenuSelector will be removed in the future."
-    )]] static cocos2d::SEL_MenuHandler
-    makeMenuSelector(Func&& selector) {
-        return reinterpret_cast<cocos2d::SEL_MenuHandler>(
-            makeMemberFunction<cocos2d::CCObject, Func>(std::move(selector))
-        );
-    }
-
-#define GEODE_MENU_SELECTOR(senderArg, ...) \
-    makeMenuSelector([this](senderArg) {    \
-        __VA_ARGS__;                        \
-    })
 }

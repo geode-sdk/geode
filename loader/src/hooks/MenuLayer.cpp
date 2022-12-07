@@ -19,7 +19,7 @@ USE_GEODE_NAMESPACE();
 
 class CustomMenuLayer;
 
-static Ref<Notification> g_indexUpdateNotif = nullptr;
+static Ref<Notification> INDEX_UPDATE_NOTIF = nullptr;
 static Ref<CCSprite> g_geodeButton = nullptr;
 
 struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
@@ -99,16 +99,37 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 		}
 
 		// update mods index
-		if (!g_indexUpdateNotif && !Index::get()->hasTriedToUpdate()) {
-			g_indexUpdateNotif = Notification::create(
+		if (!INDEX_UPDATE_NOTIF && !Index::get()->hasTriedToUpdate()) {
+			this->addChild(EventListenerNode<IndexUpdateFilter>::create(
+				this, &CustomMenuLayer::onIndexUpdate
+			));
+			INDEX_UPDATE_NOTIF = Notification::create(
 				"Updating Index", NotificationIcon::Loading, 0
 			);
-			g_indexUpdateNotif->show();
-
+			INDEX_UPDATE_NOTIF->show();
 			Index::get()->update();
 		}
 	
 		return true;
+	}
+
+	void onIndexUpdate(IndexUpdateEvent* event) {
+		if (!INDEX_UPDATE_NOTIF) return;
+		std::visit(makeVisitor {
+			[](UpdateProgress const& prog) {},
+			[](UpdateFinished const&) {
+				INDEX_UPDATE_NOTIF->setIcon(NotificationIcon::Success);
+				INDEX_UPDATE_NOTIF->setString("Index Up-to-Date");
+				INDEX_UPDATE_NOTIF->waitAndHide();
+				INDEX_UPDATE_NOTIF = nullptr;
+			},
+			[](UpdateError const& info) {
+				INDEX_UPDATE_NOTIF->setIcon(NotificationIcon::Error);
+				INDEX_UPDATE_NOTIF->setString(info);
+				INDEX_UPDATE_NOTIF->setTime(NOTIFICATION_LONG_TIME);
+				INDEX_UPDATE_NOTIF = nullptr;
+			},
+		}, event->status);
 	}
 
 	void onGeode(CCObject*) {

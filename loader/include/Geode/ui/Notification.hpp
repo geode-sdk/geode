@@ -8,6 +8,7 @@
 
 namespace geode {
     constexpr auto NOTIFICATION_DEFAULT_TIME = 1.f;
+    constexpr auto NOTIFICATION_LONG_TIME = 4.f;
 
     enum class NotificationIcon {
         None,
@@ -70,6 +71,12 @@ namespace geode {
         void setIcon(NotificationIcon icon);
         void setIcon(cocos2d::CCSprite* icon);
         void setTime(float time);
+
+        /**
+         * Set the wait time to default, wait the time and hide the notification. 
+         * Equivalent to setTime(NOTIFICATION_DEFAULT_TIME)
+        */
+        void waitAndHide();
 
         /**
          * Adds the notification to the current scene if it doesn't have a 

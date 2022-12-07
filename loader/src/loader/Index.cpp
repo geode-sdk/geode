@@ -116,7 +116,7 @@ Index::Index() {
         std::bind(&Index::onSourceUpdate, this, std::placeholders::_1),
         SourceUpdateFilter()
     );
-    this->addSource("https://github.com/geode-sdk/index-test");
+    this->addSource("geode-sdk/index-test");
 }
 
 Index* Index::get() {
@@ -261,10 +261,11 @@ void Index::downloadSource(IndexSource& src) {
             }
 
             // unzip new index
-            auto unzip = file::Unzip::intoDir(targetFile, targetDir, true);
+            auto unzip = file::Unzip::intoDir(targetFile, targetDir, true)
+                .expect("Unable to unzip new index");
             if (!unzip) {
                 return SourceUpdateEvent(
-                    src, UpdateError("Unable to unzip new index")
+                    src, UpdateError(unzip.unwrapErr())
                 ).post();
             }
 
@@ -302,26 +303,33 @@ void Index::updateSourceFromLocal(IndexSource& src) {
     this->cleanupItems();
 
     // read directory and add new items
-    for (auto& dir : ghc::filesystem::directory_iterator(src.dirname())) {
-        auto addRes = IndexItem::createFromDir(src.repository, dir);
-        if (!addRes) {
-            log::warn("Unable to add index item from {}: {}", dir, addRes.unwrapErr());
-            continue;
+    try {
+        for (auto& dir : ghc::filesystem::directory_iterator(
+            dirs::getIndexDir() / src.dirname()
+        )) {
+            auto addRes = IndexItem::createFromDir(src.repository, dir);
+            if (!addRes) {
+                log::warn("Unable to add index item from {}: {}", dir, addRes.unwrapErr());
+                continue;
+            }
+            auto add = addRes.unwrap();
+            // check if this major version of this item has already been added 
+            if (m_items[add->info.m_id].count(add->info.m_version.getMajor())) {
+                log::warn(
+                    "Item {}@{} has already been added, skipping",
+                    add->info.m_id, add->info.m_version
+                );
+                continue;
+            }
+            // add new major version of this item
+            m_items[add->info.m_id].insert({
+                add->info.m_version.getMajor(),
+                add
+            });
         }
-        auto add = addRes.unwrap();
-        // check if this major version of this item has already been added 
-        if (m_items[add->info.m_id].count(add->info.m_version.getMajor())) {
-            log::warn(
-                "Item {}@{} has already been added, skipping",
-                add->info.m_id, add->info.m_version
-            );
-            continue;
-        }
-        // add new major version of this item
-        m_items[add->info.m_id].insert({
-            add->info.m_version.getMajor(),
-            add
-        });
+    } catch(std::exception& e) {
+        log::warn("Unable to read index source {}: {}", src.dirname(), e.what());
+        return;
     }
 
     // mark source as finished

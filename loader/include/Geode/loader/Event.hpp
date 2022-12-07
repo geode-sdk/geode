@@ -71,8 +71,9 @@ namespace geode {
             this->enable();
         }
 
-        EventListener(std::function<Callback> fn, T filter = T()) :
-            m_callback(fn), m_filter(filter) {
+        EventListener(std::function<Callback> fn, T filter = T())
+          : m_callback(fn), m_filter(filter)
+        {
             this->enable();
         }
 
@@ -86,14 +87,16 @@ namespace geode {
             this->enable();
         }
 
+        // todo: maybe add these?
+        EventListener(EventListener const& other) = delete;
+        EventListener(EventListener&& other) = delete;
+
         void bind(std::function<Callback> fn) {
-            std::cout << "this: " << this << "\n";
             m_callback = fn;
         }
 
         template <typename C>
         void bind(C* cls, MemberFn<C> fn) {
-            std::cout << "this: " << this << "\n";
             m_callback = std::bind(fn, cls, std::placeholders::_1);
         }
 

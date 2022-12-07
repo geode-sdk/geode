@@ -3,12 +3,12 @@
 #include <array>
 #include <Geode/modify/LoadingLayer.hpp>
 #include <fmt/format.h>
+#include <Geode/utils/cocos.hpp>
 
 USE_GEODE_NAMESPACE();
 
 struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     bool m_updatingResources;
-    EventListener<ResourceDownloadFilter> m_resourceListener;
 
     CustomLoadingLayer() : m_updatingResources(false) {}
 
@@ -28,9 +28,11 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
         label->setID("geode-loaded-info");
         this->addChild(label);
 
-        m_fields->m_resourceListener.bind(
+        // for some reason storing the listener as a field caused the 
+        // destructor for the field not to be run
+        this->addChild(EventListenerNode<ResourceDownloadFilter>::create(
             this, &CustomLoadingLayer::updateResourcesProgress
-        );
+        ));
 
         // verify loader resources
         if (!InternalLoader::get()->verifyLoaderResources()) {

@@ -40,6 +40,7 @@ namespace geode {
     };
 }
 
+// clang-format off
 #define $on_mod(type) \
 template<class>                                                     \
 void GEODE_CONCAT(geodeExecFunction, __LINE__)(ModStateEvent*);     \
@@ -56,3 +57,4 @@ static inline auto GEODE_CONCAT(Exec, __LINE__) = (geode::Loader::get()->schedul
 ), 0);                                                              \
 template<class>                                                     \
 void GEODE_CONCAT(geodeExecFunction, __LINE__)(ModStateEvent*)
+// clang-format on

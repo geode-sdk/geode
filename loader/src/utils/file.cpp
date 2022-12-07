@@ -133,9 +133,10 @@ Result<std::vector<std::string>> utils::file::listFilesRecursively(std::string c
 static constexpr auto MAX_ENTRY_PATH_LEN = 256;
 
 struct ZipEntry {
-    unz_file_pos m_pos;
-    ZPOS64_T m_compressedSize;
-    ZPOS64_T m_uncompressedSize;
+    bool isDirectory;
+    unz_file_pos pos;
+    ZPOS64_T compressedSize;
+    ZPOS64_T uncompressedSize;
 };
 
 class file::UnzipImpl final {
@@ -164,12 +165,17 @@ public:
             // Read file and add to entries
             unz_file_pos pos;
             if (unzGetFilePos(m_zip, &pos) == UNZ_OK) {
+                auto len = strlen(fileName);
                 m_entries.insert({
                     fileName,
                     ZipEntry {
-                        .m_pos = pos,
-                        .m_compressedSize = fileInfo.compressed_size,
-                        .m_uncompressedSize = fileInfo.uncompressed_size,
+                        .isDirectory = 
+                            fileInfo.uncompressed_size == 0 &&
+                            len > 0 &&
+                            (fileName[len - 1] == '/' || fileName[len - 1] == '\\'),
+                        .pos = pos,
+                        .compressedSize = fileInfo.compressed_size,
+                        .uncompressedSize = fileInfo.uncompressed_size,
                     },
                 });
             }
@@ -188,16 +194,20 @@ public:
 
         auto entry = m_entries.at(name);
 
-        if (unzGoToFilePos(m_zip, &entry.m_pos) != UNZ_OK) {
+        if (entry.isDirectory) {
+            return Err("Entry is directory");
+        }
+
+        if (unzGoToFilePos(m_zip, &entry.pos) != UNZ_OK) {
             return Err("Unable to navigate to entry");
         }
         if (unzOpenCurrentFile(m_zip) != UNZ_OK) {
             return Err("Unable to open entry");
         }
         byte_array res;
-        res.resize(entry.m_uncompressedSize);
-        auto size = unzReadCurrentFile(m_zip, res.data(), entry.m_uncompressedSize);
-        if (size < 0 || size != entry.m_uncompressedSize) {
+        res.resize(entry.uncompressedSize);
+        auto size = unzReadCurrentFile(m_zip, res.data(), entry.uncompressedSize);
+        if (size < 0 || size != entry.uncompressedSize) {
             return Err("Unable to extract entry");
         }
         unzCloseCurrentFile(m_zip);
@@ -264,14 +274,31 @@ Result<byte_array> Unzip::extract(Path const& name) {
 
 Result<> Unzip::extractTo(Path const& name, Path const& path) {
     GEODE_UNWRAP_INTO(auto bytes, m_impl->extract(name));
-    GEODE_UNWRAP(file::writeBinary(path, bytes));
+    // create containing directories for target path
+    if (path.has_parent_path()) {
+        GEODE_UNWRAP(file::createDirectoryAll(path.parent_path()));
+    }
+    GEODE_UNWRAP(file::writeBinary(path, bytes).expect("Unable to write file {}: {error}", path.string()));
     return Ok();
 }
 
 Result<> Unzip::extractAllTo(Path const& dir) {
     GEODE_UNWRAP(file::createDirectoryAll(dir));
-    for (auto& [entry, _] : m_impl->entries()) {
-        GEODE_UNWRAP(this->extractTo(entry, dir / entry));
+    for (auto& [entry, info] : m_impl->entries()) {
+        if (info.isDirectory) {
+            GEODE_UNWRAP(file::createDirectoryAll(entry));
+        } else {
+            // make sure zip files like root/../../file.txt don't get extracted to 
+            // avoid zip attacks
+            if (!ghc::filesystem::relative(dir / entry, dir).empty()) {
+                GEODE_UNWRAP(this->extractTo(entry, dir / entry));
+            } else {
+                log::error(
+                    "Zip entry '{}' is not contained within zip bounds",
+                    dir / entry
+                );
+            }
+        }
     }
     return Ok();
 }

@@ -145,6 +145,10 @@ void Notification::animateOut() {
     m_bg->runAction(CCFadeTo::create(NOTIFICATION_FADEOUT, 0));
 }
 
+void Notification::waitAndHide() {
+    this->setTime(NOTIFICATION_DEFAULT_TIME);
+}
+
 void Notification::show() {
     if (!m_showing) {
         if (!s_queue->containsObject(this)) {

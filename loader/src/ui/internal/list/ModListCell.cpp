@@ -193,6 +193,8 @@ void ModCell::updateState() {
 }
 
 void ModCell::loadFromMod(Mod* mod) {
+    m_mod = mod;
+
     this->setupInfo(mod->getModInfo(), false);
 
     auto viewSpr = ButtonSprite::create(
@@ -264,6 +266,8 @@ IndexItemCell* IndexItemCell::create(
 }
 
 void IndexItemCell::loadFromItem(IndexItemHandle item) {
+    m_item = item;
+
     this->setupInfo(item->info, true);
    
     auto viewSpr = ButtonSprite::create(
