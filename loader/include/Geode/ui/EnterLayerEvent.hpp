@@ -11,19 +11,14 @@ namespace geode {
     concept InheritsCCNode = std::is_base_of_v<cocos2d::CCNode, T>;
 
     // Base class; exists so event listeners can be placed dynamically at runtime
-    class GEODE_DLL AEnterLayerEvent : public Event {
-    protected:
-        std::string m_layerID;
-        cocos2d::CCNode* m_layer;
+    struct GEODE_DLL AEnterLayerEvent : public Event {
+        const std::string layerID;
+        cocos2d::CCNode* layer;
     
-    public:
         AEnterLayerEvent(
             std::string const& layerID,
             cocos2d::CCNode* layer
         );
-
-        std::string getID() const;
-        cocos2d::CCNode* getLayer() const;
     };
 
     class GEODE_DLL AEnterLayerFilter : public EventFilter<AEnterLayerEvent> {
@@ -50,7 +45,7 @@ namespace geode {
         ) : AEnterLayerEvent(layerID, layer) {}
 
         T* getLayer() const {
-            return static_cast<T*>(m_layer);
+            return static_cast<T*>(this->layer);
         }
     };
 

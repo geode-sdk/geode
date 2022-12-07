@@ -28,10 +28,9 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
         label->setID("geode-loaded-info");
         this->addChild(label);
 
-        m_fields->m_resourceListener.bind(std::bind(
-            &CustomLoadingLayer::updateResourcesProgress,
-            this, std::placeholders::_1
-        ));
+        m_fields->m_resourceListener.bind(
+            this, &CustomLoadingLayer::updateResourcesProgress
+        );
 
         // verify loader resources
         if (!InternalLoader::get()->verifyLoaderResources()) {

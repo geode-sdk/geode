@@ -59,8 +59,10 @@ namespace geode {
         using MemberFn = typename to_member<C, Callback>::value;
 
         ListenerResult passThrough(Event* e) override {
-            if (auto myev = dynamic_cast<typename T::Event*>(e)) {
-                return m_filter.handle(m_callback, myev);
+            if (m_callback) {
+                if (auto myev = typeinfo_cast<typename T::Event*>(e)) {
+                    return m_filter.handle(m_callback, myev);
+                }
             }
             return ListenerResult::Propagate;
         }
@@ -81,14 +83,16 @@ namespace geode {
         }
 
         void bind(std::function<Callback> fn) {
+            std::cout << "this: " << this << "\n";
             m_callback = fn;
         }
         template <typename C>
         void bind(C* cls, MemberFn<C> fn) {
+            std::cout << "this: " << this << "\n";
             m_callback = std::bind(fn, cls, std::placeholders::_1);
         }
     protected:
-        std::function<Callback> m_callback;
+        std::function<Callback> m_callback = nullptr;
         T m_filter;
     };
 

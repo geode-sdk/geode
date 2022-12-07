@@ -47,7 +47,7 @@ namespace {                                                         \
 }                                                                   \
 static inline auto GEODE_CONCAT(Exec, __LINE__) = (geode::Loader::get()->scheduleOnModLoad(\
 	geode::Mod::get(), []() {                                       \
-        static auto _ = geode::EventListener(                       \
+        new geode::EventListener(                                   \
             &GEODE_CONCAT(geodeExecFunction, __LINE__)<GEODE_CONCAT(ExecFuncUnique, __LINE__)>,\
             geode::ModStateFilter(geode::Mod::get(), geode::ModEventType::type)\
         );                                                          \
