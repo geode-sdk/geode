@@ -122,7 +122,8 @@ Result<> Mod::loadData() {
                 }
                 else {
                     log::log(
-                        Severity::Warning, this,
+                        Severity::Warning,
+                        this,
                         "Encountered unknown setting \"{}\" while loading "
                         "settings",
                         key

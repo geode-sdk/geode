@@ -1,8 +1,8 @@
 #pragma once
 
 #include "../DefaultInclude.hpp"
-#include "Result.hpp"
 #include "../external/json/json.hpp"
+#include "Result.hpp"
 #include "general.hpp"
 
 #include <fs/filesystem.hpp>
@@ -10,7 +10,7 @@
 
 namespace geode::utils::web {
     GEODE_DLL void openLinkInBrowser(std::string const& url);
-    
+
     using FileProgressCallback = std::function<bool(double, double)>;
 
     /**
@@ -38,8 +38,7 @@ namespace geode::utils::web {
      * @returns Returned data as JSON, or error on error
      */
     GEODE_DLL Result<> fetchFile(
-        std::string const& url, ghc::filesystem::path const& into,
-        FileProgressCallback prog = nullptr
+        std::string const& url, ghc::filesystem::path const& into, FileProgressCallback prog = nullptr
     );
 
     /**
