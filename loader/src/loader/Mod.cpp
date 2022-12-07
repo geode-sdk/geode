@@ -178,7 +178,7 @@ bool Mod::hasSetting(std::string const& key) const {
 
 Result<> Mod::loadBinary() {
     if (!m_binaryLoaded) {
-        GEODE_UNWRAP(this->createTempDir().expect("Unable to create temp directory"));
+        GEODE_UNWRAP(this->createTempDir());
 
         if (this->hasUnresolvedDependencies())
             return Err("Mod has unresolved dependencies");
