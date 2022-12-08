@@ -162,7 +162,7 @@ void ModCell::onUnresolvedInfo(CCObject*) {
     for (auto const& dep : m_mod->getUnresolvedDependencies()) {
         info += fmt::format(
             "<cg>{}</c> (<cy>{}</c>), ",
-            dep.m_id, dep.m_version.toString()
+            dep.id, dep.version.toString()
         );
     }
     info.pop_back();

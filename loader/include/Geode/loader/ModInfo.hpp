@@ -12,14 +12,12 @@ namespace geode {
 
     using ModJson = nlohmann::ordered_json;
 
-    struct Dependency {
-        std::string m_id;
-        // todo: Dynamic versions (1.*.*)
-        VersionInfo m_version { 1, 0, 0 };
-        ModResolveState m_state = ModResolveState::Unloaded;
-        bool m_required = false;
-        Mod* m_mod = nullptr;
-        bool isUnresolved() const;
+    struct GEODE_DLL Dependency {
+        std::string id;
+        ComparableVersionInfo version;
+        bool required = false;
+        Mod* mod = nullptr;
+        bool isResolved() const;
     };
 
     struct IssuesInfo {

@@ -66,7 +66,7 @@ protected:
     void onUninstall(CCObject*);
     void onOpenConfigDir(CCObject*);
     void onAdvancedSettings(CCObject*);
-    void uninstall();
+    void doUninstall();
 
     void FLAlert_Clicked(FLAlertLayer*, bool) override;
 
@@ -77,12 +77,17 @@ public:
     static LocalModInfoPopup* create(Mod* mod, ModListLayer* list);
 };
 
-class IndexItemInfoPopup : public ModInfoPopup {
+class IndexItemInfoPopup : public ModInfoPopup, public FLAlertLayerProtocol {
 protected:
     IndexItemHandle m_item;
 
     bool init(IndexItemHandle item, ModListLayer* list);
     
+    void onInstall(CCObject*);
+    void doInstall();
+
+    void FLAlert_Clicked(FLAlertLayer*, bool) override;
+
     CCNode* createLogo(CCSize const& size) override;
     ModInfo getModInfo() const override;
 

@@ -97,12 +97,23 @@ namespace geode {
         std::vector<std::string> getSources() const;
 
         std::vector<IndexItemHandle> getItems() const;
-        bool isKnownItem(std::string const& id, std::optional<size_t> version) const;
-        IndexItemHandle getItem(std::string const& id, std::optional<size_t> version) const;
+        bool isKnownItem(std::string const& id, std::optional<VersionInfo> version) const;
+        IndexItemHandle getItem(
+            std::string const& id,
+            std::optional<VersionInfo> version
+        ) const;
+        IndexItemHandle getItem(
+            std::string const& id,
+            ComparableVersionInfo version
+        ) const;
         IndexItemHandle getItem(ModInfo const& info) const;
         IndexItemHandle getItem(Mod* mod) const;
         bool isUpdateAvailable(IndexItemHandle item) const;
         bool areUpdatesAvailable() const;
+        void install(IndexItemHandle item);
+        Result<std::vector<IndexItemHandle>> getInstallList(
+            IndexItemHandle item
+        ) const;
 
         bool hasTriedToUpdate() const;
         bool isUpToDate() const;

@@ -49,9 +49,7 @@ void geode::openInfoPopup(Mod* mod) {
 }
 
 void geode::openIndexPopup(Mod* mod) {
-    if (auto item = Index::get()->getItem(
-        mod->getID(), mod->getVersion().getMajor()
-    )) {
+    if (auto item = Index::get()->getItem(mod)) {
         IndexItemInfoPopup::create(item, nullptr)->show();
     }
 }

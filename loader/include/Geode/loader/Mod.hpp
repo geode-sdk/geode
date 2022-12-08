@@ -64,10 +64,6 @@ namespace geode {
          */
         bool m_binaryLoaded = false;
         /**
-         * Whether the mod is loadable or not
-         */
-        bool m_resolved = false;
-        /**
          * Mod temp directory name
          */
         ghc::filesystem::path m_tempDirName;
@@ -370,7 +366,7 @@ namespace geode {
          * @returns True if the mod has unresolved
          * dependencies, false if not.
          */
-        bool updateDependencyStates();
+        Result<> updateDependencies();
         /**
          * Get a list of all the unresolved
          * dependencies this mod has

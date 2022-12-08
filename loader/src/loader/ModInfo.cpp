@@ -6,6 +6,17 @@
 
 USE_GEODE_NAMESPACE();
 
+bool Dependency::isResolved() const {
+    return
+        !this->required || 
+        (
+            this->mod &&
+            this->mod->isLoaded() &&
+            this->mod->isEnabled() && 
+            this->version.compare(this->mod->getVersion())
+        );
+}
+
 static std::string sanitizeDetailsData(std::string const& str) {
     // delete CRLF
     return utils::string::replace(str, "\r", "");
@@ -37,7 +48,7 @@ Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
     using nlohmann::detail::value_t;
 
     root.needs("id").validate(&ModInfo::validateID).into(info.m_id);
-    root.needs("version").validate(&VersionInfo::validate).intoAs<std::string>(info.m_version);
+    root.needs("version").validate(&VersionInfo::validate).into(info.m_version);
     root.needs("name").into(info.m_name);
     root.needs("developer").into(info.m_developer);
     root.has("description").into(info.m_description);
@@ -50,9 +61,11 @@ Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
         auto obj = dep.obj();
 
         auto depobj = Dependency {};
-        obj.needs("id").validate(&ModInfo::validateID).into(depobj.m_id);
-        obj.needs("version").validate(&VersionInfo::validate).intoAs<std::string>(depobj.m_version);
-        obj.has("required").into(depobj.m_required);
+        obj.needs("id").validate(&ModInfo::validateID).into(depobj.id);
+        obj.needs("version")
+            .validate(&ComparableVersionInfo::validate)
+            .into(depobj.version);
+        obj.has("required").into(depobj.required);
         obj.checkUnknownKeys();
 
         info.m_dependencies.push_back(depobj);

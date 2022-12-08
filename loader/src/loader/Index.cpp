@@ -454,28 +454,21 @@ std::vector<IndexItemHandle> Index::getItems() const {
 
 bool Index::isKnownItem(
     std::string const& id,
-    std::optional<size_t> version
+    std::optional<VersionInfo> version
 ) const {
-    if (m_items.count(id)) {
-        if (version) {
-            return m_items.at(id).count(version.value());
-        } else {
-            return true;
-        }
-    } else {
-        return false;
-    }
+    return this->getItem(id, version).get();
 }
 
 IndexItemHandle Index::getItem(
     std::string const& id,
-    std::optional<size_t> version
+    std::optional<VersionInfo> version
 ) const {
     if (m_items.count(id)) {
         auto versions = m_items.at(id);
         if (version) {
-            if (versions.count(version.value())) {
-                return versions.at(version.value());
+            auto major = version.value().getMajor();
+            if (versions.count(major)) {
+                return versions.at(major);
             }
         } else {
             if (versions.size()) {
@@ -486,12 +479,27 @@ IndexItemHandle Index::getItem(
     return nullptr;
 }
 
+IndexItemHandle Index::getItem(
+    std::string const& id,
+    ComparableVersionInfo version
+) const {
+    if (m_items.count(id)) {
+        // prefer most major version
+        for (auto& [_, item] : ranges::reverse(m_items.at(id))) {
+            if (version.compare(item->info.m_version)) {
+                return item;
+            }
+        }
+    }
+    return nullptr;
+}
+
 IndexItemHandle Index::getItem(ModInfo const& info) const {
-    return this->getItem(info.m_id, info.m_version.getMajor());
+    return this->getItem(info.m_id, info.m_version);
 }
 
 IndexItemHandle Index::getItem(Mod* mod) const {
-    return this->getItem(mod->getID(), mod->getVersion().getMajor());
+    return this->getItem(mod->getID(), mod->getVersion());
 }
 
 bool Index::isUpdateAvailable(IndexItemHandle item) const {
@@ -510,4 +518,40 @@ bool Index::areUpdatesAvailable() const {
         }
     }
     return false;
+}
+
+Result<std::vector<IndexItemHandle>> Index::getInstallList(
+    IndexItemHandle item
+) const {
+    std::vector<IndexItemHandle> list;
+    for (auto& dep : item->info.m_dependencies) {
+        if (!dep.isResolved()) {
+            // check if this dep is available in the index
+            if (auto depItem = this->getItem(dep.id, dep.version)) {
+                // recursively add dependencies
+                GEODE_UNWRAP_INTO(auto deps, this->getInstallList(depItem));
+                ranges::push(list, deps);
+            }
+            // otherwise user must get this dependency manually from somewhere 
+            // else
+            else {
+                return Err(
+                    "Dependency {} version {} not found in the index! Likely "
+                    "reason is that the version of the dependency this mod "
+                    "depends on is not available. Please let the the developer "
+                    "({}) of the mod know!",
+                    dep.id, dep.version.toString(), item->info.m_developer
+                );
+            }
+        }
+        // if the dep is resolved, then all its dependencies must be installed 
+        // already in order for that to have happened
+    }
+    // add this item to the end of the list
+    list.push_back(item);
+    return Ok(list);
+}
+
+void Index::install(IndexItemHandle item) {
+    // todo
 }

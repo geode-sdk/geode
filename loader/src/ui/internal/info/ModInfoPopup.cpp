@@ -514,7 +514,7 @@ void LocalModInfoPopup::FLAlert_Clicked(FLAlertLayer* layer, bool btn2) {
     switch (layer->getTag()) {
         case TAG_CONFIRM_UNINSTALL: {
             if (btn2) {
-                this->uninstall();
+                this->doUninstall();
             }
         } break;
 
@@ -537,7 +537,7 @@ void LocalModInfoPopup::FLAlert_Clicked(FLAlertLayer* layer, bool btn2) {
     }
 }
 
-void LocalModInfoPopup::uninstall() {
+void LocalModInfoPopup::doUninstall() {
     auto res = m_mod->uninstall();
     if (!res) {
         return FLAlertLayer::create(
@@ -584,7 +584,7 @@ bool IndexItemInfoPopup::init(IndexItemHandle item, ModListLayer* list) {
     m_installBtnSpr->setScale(.6f);
 
     m_installBtn = CCMenuItemSpriteExtra::create(
-        m_installBtnSpr, this, nullptr
+        m_installBtnSpr, this, menu_selector(IndexItemInfoPopup::onInstall)
     );
     m_installBtn->setPosition(-143.0f, 75.f);
     m_buttonMenu->addChild(m_installBtn);
@@ -598,6 +598,48 @@ bool IndexItemInfoPopup::init(IndexItemHandle item, ModListLayer* list) {
     m_mainLayer->addChild(m_installStatus);
     
     return true;
+}
+
+void IndexItemInfoPopup::onInstall(CCObject*) {
+    auto list = Index::get()->getInstallList(m_item);
+    if (!list) {
+        return FLAlertLayer::create(
+            "Unable to Install",
+            list.unwrapErr(),
+            "OK"
+        )->show();
+    }
+    FLAlertLayer::create(
+        this,
+        "Confirm Install",
+        fmt::format(
+            "The following mods will be installed:\n {}",
+            // le nest
+            ranges::join(
+                ranges::map<std::vector<std::string>>(
+                    list.unwrap(),
+                    [](IndexItemHandle handle) {
+                        return fmt::format(
+                            " - <cr>{}</c> (<cy>{}</c>)",
+                            handle->info.m_name, handle->info.m_id
+                        );
+                    }
+                ),
+                "\n "
+            )
+        ),
+        "Cancel", "OK"
+    )->show();
+}
+
+void IndexItemInfoPopup::doInstall() {
+    Index::get()->install(m_item);
+}
+
+void IndexItemInfoPopup::FLAlert_Clicked(FLAlertLayer*, bool btn2) {
+    if (btn2) {
+        this->doInstall();
+    }
 }
 
 CCNode* IndexItemInfoPopup::createLogo(CCSize const& size) {

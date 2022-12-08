@@ -129,25 +129,6 @@ namespace geode {
         }
     };
 
-    /**
-     * Represents if a mod has been loaded &
-     * its dependencies resolved
-     */
-    enum class ModResolveState {
-        // Mod has not been loaded at all
-        Unloaded,
-        // Mod has unresolved dependencies
-        Unresolved,
-        // Mod has all dependencies resolved,
-        // but is not loaded yet
-        Resolved,
-        // Mod is loaded
-        Loaded,
-        // Mod is loaded, however it is also
-        // disabled and therefore can't be used
-        Disabled,
-    };
-
     constexpr std::string_view GEODE_MOD_EXTENSION = ".geode";
     
     class Mod;

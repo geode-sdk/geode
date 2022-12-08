@@ -137,7 +137,7 @@ Result<Mod*> Loader::loadModFromInfo(ModInfo const& info) {
         "should-load-" + info.m_id, true
     );
     // this loads the mod if its dependencies are resolved
-    mod->updateDependencyStates();
+    GEODE_UNWRAP(mod->updateDependencies());
 
     // add mod resources
     this->queueInGDThread([this, mod]() {
@@ -288,7 +288,7 @@ std::vector<InvalidGeodeFile> Loader::getFailedMods() const {
 
 void Loader::updateAllDependencies() {
     for (auto const& [_, mod] : m_mods) {
-        mod->updateDependencyStates();
+        (void)mod->updateDependencies();
     }
 }
 

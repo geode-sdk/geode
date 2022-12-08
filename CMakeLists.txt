@@ -113,6 +113,7 @@ elseif(EXISTS ${GEODE_PLATFORM_BIN_PATH})
 else()
 	message(FATAL_ERROR
 		"No valid loader binary to link to! Install prebuilts with `geode sdk install-prebuilts`, "
-		"or build Geode from source and add `set(GEODE_LINK_NIGHTLY On)` to your CMakeLists.txt."
+		"or build Geode from source and add `set(GEODE_LINK_NIGHTLY On)` to your CMakeLists.txt "
+		"in the line before calling add_subdirectory for Geode."
 	)
 endif()

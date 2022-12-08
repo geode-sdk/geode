@@ -192,71 +192,82 @@ bool Mod::hasSetting(std::string const& key) const {
 // Loading, Toggling, Installing
 
 Result<> Mod::loadBinary() {
-    if (!m_binaryLoaded) {
-        GEODE_UNWRAP(this->createTempDir());
-
-        if (this->hasUnresolvedDependencies()) return Err("Mod has unresolved dependencies");
-
-        GEODE_UNWRAP(this->loadPlatformBinary());
-        m_binaryLoaded = true;
-
-        // Call implicit entry point to place hooks etc.
-        m_implicitLoadFunc(this);
-
-        ModStateEvent(this, ModEventType::Loaded).post();
-
-        auto loadRes = this->loadData();
-        if (!loadRes) {
-            log::warn("Unable to load data for \"{}\": {}", m_info.m_id, loadRes.unwrapErr());
-        }
-
-        Loader::get()->updateAllDependencies();
-
-        GEODE_UNWRAP(this->enable());
+    if (m_binaryLoaded) {
+        return Ok();
     }
+
+    GEODE_UNWRAP(this->createTempDir());
+
+    if (this->hasUnresolvedDependencies()) {
+        return Err("Mod has unresolved dependencies");
+    }
+
+    GEODE_UNWRAP(this->loadPlatformBinary());
+    m_binaryLoaded = true;
+
+    // Call implicit entry point to place hooks etc.
+    m_implicitLoadFunc(this);
+
+    ModStateEvent(this, ModEventType::Loaded).post();
+
+    auto loadRes = this->loadData();
+    if (!loadRes) {
+        log::warn("Unable to load data for \"{}\": {}", m_info.m_id, loadRes.unwrapErr());
+    }
+
+    Loader::get()->updateAllDependencies();
+
+    GEODE_UNWRAP(this->enable());
 
     return Ok();
 }
 
 Result<> Mod::unloadBinary() {
-    if (m_binaryLoaded) {
-        if (!m_info.m_supportsUnloading) return Err("Mod does not support unloading");
-
-        GEODE_UNWRAP(this->saveData());
-
-        GEODE_UNWRAP(this->disable());
-        ModStateEvent(this, ModEventType::Unloaded).post();
-
-        // Disabling unhooks and unpatches already
-        for (auto const& hook : m_hooks) {
-            delete hook;
-        }
-        m_hooks.clear();
-
-        for (auto const& patch : m_patches) {
-            delete patch;
-        }
-        m_patches.clear();
-
-        GEODE_UNWRAP(this->unloadPlatformBinary());
-        m_binaryLoaded = false;
-
-        Loader::get()->updateAllDependencies();
+    if (!m_binaryLoaded) {
+        return Ok();
     }
+
+    if (!m_info.m_supportsUnloading) {
+        return Err("Mod does not support unloading");
+    }
+
+    GEODE_UNWRAP(this->saveData());
+
+    GEODE_UNWRAP(this->disable());
+    ModStateEvent(this, ModEventType::Unloaded).post();
+
+    // Disabling unhooks and unpatches already
+    for (auto const& hook : m_hooks) {
+        delete hook;
+    }
+    m_hooks.clear();
+
+    for (auto const& patch : m_patches) {
+        delete patch;
+    }
+    m_patches.clear();
+
+    GEODE_UNWRAP(this->unloadPlatformBinary());
+    m_binaryLoaded = false;
+
+    Loader::get()->updateAllDependencies();
 
     return Ok();
 }
 
 Result<> Mod::enable() {
-    if (!m_binaryLoaded) return this->loadBinary();
+    if (!m_binaryLoaded) {
+        return this->loadBinary();
+    }
 
     for (auto const& hook : m_hooks) {
         GEODE_UNWRAP(this->enableHook(hook));
     }
 
     for (auto const& patch : m_patches) {
-        if (!patch->apply())
+        if (!patch->apply()) {
             return Err("Unable to apply patch at " + std::to_string(patch->getAddress()));
+        }
     }
 
     ModStateEvent(this, ModEventType::Enabled).post();
@@ -266,21 +277,25 @@ Result<> Mod::enable() {
 }
 
 Result<> Mod::disable() {
-    if (m_enabled) {
-        if (!m_info.m_supportsDisabling) return Err("Mod does not support disabling");
-
-        ModStateEvent(this, ModEventType::Disabled).post();
-
-        for (auto const& hook : m_hooks) {
-            GEODE_UNWRAP(this->disableHook(hook));
-        }
-        for (auto const& patch : m_patches) {
-            if (!patch->restore())
-                return Err("Unable to restore patch at " + std::to_string(patch->getAddress()));
-        }
-
-        m_enabled = false;
+    if (!m_enabled) {
+        return Ok();
     }
+    if (!m_info.m_supportsDisabling) {
+        return Err("Mod does not support disabling");
+    }
+
+    ModStateEvent(this, ModEventType::Disabled).post();
+
+    for (auto const& hook : m_hooks) {
+        GEODE_UNWRAP(this->disableHook(hook));
+    }
+    for (auto const& patch : m_patches) {
+        if (!patch->restore()) {
+            return Err("Unable to restore patch at " + std::to_string(patch->getAddress()));
+        }
+    }
+
+    m_enabled = false;
 
     return Ok();
 }
@@ -309,73 +324,59 @@ bool Mod::isUninstalled() const {
 
 // Dependencies
 
-bool Dependency::isUnresolved() const {
-    return m_required &&
-        (m_state == ModResolveState::Unloaded || m_state == ModResolveState::Unresolved ||
-         m_state == ModResolveState::Disabled);
-}
-
-bool Mod::updateDependencyStates() {
+Result<> Mod::updateDependencies() {
     bool hasUnresolved = false;
     for (auto& dep : m_info.m_dependencies) {
-        if (!dep.m_mod) dep.m_mod = Loader::get()->getLoadedMod(dep.m_id);
-
-        if (dep.m_mod) {
-            dep.m_mod->updateDependencyStates();
-
-            if (dep.m_mod->hasUnresolvedDependencies()) {
-                dep.m_state = ModResolveState::Unresolved;
+        // set the dependency's loaded mod if such exists
+        if (!dep.mod) {
+            dep.mod = Loader::get()->getLoadedMod(dep.id);
+            // verify loaded dependency version
+            if (dep.mod && !dep.version.compare(dep.mod->getVersion())) {
+                dep.mod = nullptr;
             }
-            else {
-                if (!dep.m_mod->m_resolved) {
-                    dep.m_mod->m_resolved = true;
-                    dep.m_state = ModResolveState::Resolved;
-                    auto r = dep.m_mod->loadBinary();
-                    if (!r) {
-                        dep.m_state = ModResolveState::Unloaded;
-                        log::log(Severity::Error, dep.m_mod, "{}", r.unwrapErr());
-                    }
-                }
-                else {
-                    if (dep.m_mod->isEnabled()) {
-                        dep.m_state = ModResolveState::Loaded;
-                    }
-                    else {
-                        dep.m_state = ModResolveState::Disabled;
-                    }
+        }
+
+        // check if the dependency is loaded
+        if (dep.mod) {
+            // update the dependency recursively
+            GEODE_UNWRAP(dep.mod->updateDependencies());
+
+            // enable mod if it's resolved & enabled
+            if (!dep.mod->hasUnresolvedDependencies()) {
+                if (dep.mod->isEnabled()) {
+                    GEODE_UNWRAP(dep.mod->loadBinary()
+                        .expect("Unable to load dependency: {error}")
+                    );
                 }
             }
         }
-        else {
-            dep.m_state = ModResolveState::Unloaded;
-        }
-        if (dep.isUnresolved()) {
-            m_resolved = false;
-            (void)this->unloadBinary();
+        // check if the dependency is resolved now
+        if (!dep.isResolved()) {
+            GEODE_UNWRAP(this->unloadBinary()
+                .expect("Unable to unload mod: {error}")
+            );
             hasUnresolved = true;
         }
     }
-
-    if (!hasUnresolved && !m_resolved) {
+    // load if there weren't any unresolved dependencies
+    if (!hasUnresolved) {
         log::debug("All dependencies for {} found", m_info.m_id);
-        m_resolved = true;
         if (m_enabled) {
             log::debug("Resolved & loading {}", m_info.m_id);
-            auto r = this->loadBinary();
-            if (!r) {
-                log::error("{} Error loading: {}", this, r.unwrapErr());
-            }
+            GEODE_UNWRAP(this->loadBinary());
         }
         else {
             log::debug("Resolved {}, however not loading it as it is disabled", m_info.m_id);
         }
     }
-    return hasUnresolved;
+    return Ok();
 }
 
 bool Mod::hasUnresolvedDependencies() const {
     for (auto const& dep : m_info.m_dependencies) {
-        if (dep.isUnresolved()) return true;
+        if (!dep.isResolved()) {
+            return true;
+        }
     }
     return false;
 }
@@ -383,15 +384,20 @@ bool Mod::hasUnresolvedDependencies() const {
 std::vector<Dependency> Mod::getUnresolvedDependencies() {
     std::vector<Dependency> unresolved;
     for (auto const& dep : m_info.m_dependencies) {
-        if (dep.isUnresolved()) unresolved.push_back(dep);
+        if (!dep.isResolved()) {
+            unresolved.push_back(dep);
+        }
     }
     return unresolved;
 }
 
 bool Mod::depends(std::string const& id) const {
-    return utils::ranges::contains(m_info.m_dependencies, [id](Dependency const& t) {
-        return t.m_id == id;
-    });
+    return utils::ranges::contains(
+        m_info.m_dependencies,
+        [id](Dependency const& t) {
+            return t.id == id;
+        }
+    );
 }
 
 // Hooks
