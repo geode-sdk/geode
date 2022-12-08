@@ -110,22 +110,24 @@ Result<> utils::file::createDirectoryAll(ghc::filesystem::path const& path) {
     }
 }
 
-Result<std::vector<std::string>> utils::file::listFiles(std::string const& path) {
-    if (!ghc::filesystem::exists(path)) return Err("Directory does not exist");
-
-    std::vector<std::string> res;
-    for (auto const& file : ghc::filesystem::directory_iterator(path)) {
-        res.push_back(file.path().string());
+Result<std::vector<ghc::filesystem::path>> utils::file::listFiles(
+    ghc::filesystem::path const& path, bool recursive
+) {
+    if (!ghc::filesystem::exists(path)) {
+        return Err("Directory does not exist");
     }
-    return Ok(res);
-}
-
-Result<std::vector<std::string>> utils::file::listFilesRecursively(std::string const& path) {
-    if (!ghc::filesystem::exists(path)) return Err("Directory does not exist");
-
-    std::vector<std::string> res;
-    for (auto const& file : ghc::filesystem::recursive_directory_iterator(path)) {
-        res.push_back(file.path().string());
+    if (!ghc::filesystem::is_directory(path)) {
+        return Err("Path is not a directory");
+    }
+    std::vector<ghc::filesystem::path> res;
+    if (recursive) {
+        for (auto const& file : ghc::filesystem::recursive_directory_iterator(path)) {
+            res.push_back(file.path());
+        }
+    } else {
+        for (auto const& file : ghc::filesystem::directory_iterator(path)) {
+            res.push_back(file.path());
+        }
     }
     return Ok(res);
 }

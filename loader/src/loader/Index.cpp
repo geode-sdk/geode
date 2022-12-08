@@ -7,7 +7,6 @@
 #include <Geode/utils/map.hpp>
 
 USE_GEODE_NAMESPACE();
-using namespace geode::impl;
 
 // The reason sources have private implementation events that are 
 // turned into the global IndexUpdateEvent is because it makes it much 
@@ -128,6 +127,29 @@ Result<IndexItemHandle> IndexItem::createFromDir(
         return Err(checker.getError());
     }
     return Ok(item);
+}
+
+// Helpers
+
+static Result<> flattenGithubRepo(ghc::filesystem::path const& dir) {
+    // github zipballs have a folder at root, but we already have our 
+    // own folder for that so let's just bring everything from that 
+    // folder to ours
+    GEODE_UNWRAP_INTO(auto files, file::listFiles(dir));
+    try {
+        // only flatten if there is only one file and it's a directory
+        if (files.size() == 1 && ghc::filesystem::is_directory(files[0])) {
+            for (auto& file : ghc::filesystem::directory_iterator(files[0])) {
+                ghc::filesystem::rename(
+                    file, dir / ghc::filesystem::relative(file, files[0])
+                );
+            }
+            ghc::filesystem::remove(files[0]);
+        }
+    } catch(std::exception& e) {
+        return Err(e.what());
+    }
+    return Ok();
 }
 
 // Index
@@ -299,6 +321,9 @@ void Index::downloadSource(IndexSourceImpl* src) {
                     src, UpdateError(unzip.unwrapErr())
                 ).post();
             }
+
+            // remove the directory github adds to the root of the zip
+            (void)flattenGithubRepo(targetDir);
 
             // update index
             this->updateSourceFromLocal(src);

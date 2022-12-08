@@ -19,8 +19,9 @@ namespace geode::utils::file {
 
     GEODE_DLL Result<> createDirectory(ghc::filesystem::path const& path);
     GEODE_DLL Result<> createDirectoryAll(ghc::filesystem::path const& path);
-    GEODE_DLL Result<std::vector<std::string>> listFiles(std::string const& path);
-    GEODE_DLL Result<std::vector<std::string>> listFilesRecursively(std::string const& path);
+    GEODE_DLL Result<std::vector<ghc::filesystem::path>> listFiles(
+        ghc::filesystem::path const& path, bool recursive = false
+    );
 
     class UnzipImpl;
 

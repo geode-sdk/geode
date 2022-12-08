@@ -106,5 +106,4 @@ namespace geode {
         bool isUpToDate() const;
         void update(bool force = false);
     };
-
 }
