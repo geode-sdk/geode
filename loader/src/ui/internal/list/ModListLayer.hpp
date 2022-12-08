@@ -27,6 +27,7 @@ protected:
     LoadingCircle* m_loadingCircle = nullptr;
     CCMenuItemSpriteExtra* m_filterBtn;
     ModListDisplay m_display = ModListDisplay::Concise;
+    EventListener<IndexUpdateFilter> m_indexListener;
 
     virtual ~ModListLayer();
 
@@ -43,6 +44,7 @@ protected:
     void keyDown(enumKeyCodes) override;
     void textChanged(CCTextInputNode*) override;
     void createSearchControl();
+    void onIndexUpdate(IndexUpdateEvent* event);
 
     friend class SearchFilterPopup;
 

@@ -59,7 +59,7 @@ protected:
 public:
     static ModListView* create(CCArray* mods, ModListDisplay display);
     static ModListView* create(ModListType type, ModListDisplay display);
-    static CCArray* getModsForType(ModListType type);
+    static CCArray* modsForType(ModListType type);
 
     void updateAllStates(ModListCell* except = nullptr);
     void setLayer(ModListLayer* layer);

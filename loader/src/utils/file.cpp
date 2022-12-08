@@ -285,19 +285,19 @@ Result<> Unzip::extractTo(Path const& name, Path const& path) {
 Result<> Unzip::extractAllTo(Path const& dir) {
     GEODE_UNWRAP(file::createDirectoryAll(dir));
     for (auto& [entry, info] : m_impl->entries()) {
-        if (info.isDirectory) {
-            GEODE_UNWRAP(file::createDirectoryAll(entry));
-        } else {
-            // make sure zip files like root/../../file.txt don't get extracted to 
-            // avoid zip attacks
-            if (!ghc::filesystem::relative(dir / entry, dir).empty()) {
-                GEODE_UNWRAP(this->extractTo(entry, dir / entry));
+        // make sure zip files like root/../../file.txt don't get extracted to 
+        // avoid zip attacks
+        if (!ghc::filesystem::relative(dir / entry, dir).empty()) {
+            if (info.isDirectory) {
+                GEODE_UNWRAP(file::createDirectoryAll(dir / entry));
             } else {
-                log::error(
-                    "Zip entry '{}' is not contained within zip bounds",
-                    dir / entry
-                );
+                GEODE_UNWRAP(this->extractTo(entry, dir / entry));
             }
+        } else {
+            log::error(
+                "Zip entry '{}' is not contained within zip bounds",
+                dir / entry
+            );
         }
     }
     return Ok();

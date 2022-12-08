@@ -30,7 +30,7 @@ VersionInfo Loader::getVersion() {
 }
 
 VersionInfo Loader::minModVersion() {
-    return VersionInfo { 0, 7, 0 };
+    return VersionInfo { 0, 6, 1 };
 }
 
 VersionInfo Loader::maxModVersion() {

@@ -9,6 +9,48 @@
 USE_GEODE_NAMESPACE();
 using namespace geode::impl;
 
+// The reason sources have private implementation events that are 
+// turned into the global IndexUpdateEvent is because it makes it much 
+// simpler to keep track of progress, what errors were received, etc. 
+// without having to store a ton of members
+
+struct geode::IndexSourceImpl final {
+    std::string repository;
+    bool isUpToDate = false;
+
+    std::string dirname() const {
+        return string::replace(this->repository, "/", "_");
+    }
+
+    ghc::filesystem::path path() const {
+        return dirs::getIndexDir() / this->dirname();
+    }
+};
+
+void IndexSourceImplDeleter::operator()(IndexSourceImpl* src) {
+    delete src;
+}
+
+struct geode::SourceUpdateEvent : public Event {
+    IndexSourceImpl* source;
+    const UpdateStatus status;
+    SourceUpdateEvent(IndexSourceImpl* src, const UpdateStatus status)
+      : source(src), status(status) {}
+};
+
+class SourceUpdateFilter : public EventFilter<SourceUpdateEvent> {
+public:
+    using Callback = void(SourceUpdateEvent*);
+
+    ListenerResult handle(std::function<Callback> fn, SourceUpdateEvent* event) {
+        fn(event);
+        return ListenerResult::Propagate;
+    }
+    SourceUpdateFilter() {}
+};
+
+// Save data
+
 struct IndexSourceSaveData {
     std::string downloadedCommitSHA;
 };
@@ -18,27 +60,6 @@ struct IndexSaveData {
     std::unordered_map<std::string, IndexSourceSaveData> sources;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(IndexSaveData, sources);
-
-std::string IndexSource::dirname() const {
-    return string::replace(this->repository, "/", "_");
-}
-
-// SourceUpdateEvent
-
-SourceUpdateEvent::SourceUpdateEvent(
-    IndexSource const& src,
-    const UpdateStatus status
-) : source(src), status(status) {}
-
-ListenerResult SourceUpdateFilter::handle(
-    std::function<Callback> fn,
-    SourceUpdateEvent* event
-) {
-    fn(event);
-    return ListenerResult::Propagate;
-}
-
-SourceUpdateFilter::SourceUpdateFilter() {}
 
 // ModInstallEvent
 
@@ -120,30 +141,34 @@ Index::Index() {
 }
 
 Index* Index::get() {
-    auto inst = new Index();
+    static auto inst = new Index();
     return inst;
 }
 
 void Index::addSource(std::string const& repository) {
-    m_sources.push_back(IndexSource {
+    m_sources.emplace_back(new IndexSourceImpl {
         .repository = repository
     });
 }
 
 void Index::removeSource(std::string const& repository) {
-    ranges::remove(m_sources, [repository](IndexSource const& src) {
-        return src.repository == repository;
+    ranges::remove(m_sources, [repository](IndexSourcePtr const& src) {
+        return src->repository == repository;
     });
 }
 
-std::vector<IndexSource> Index::getSources() const {
-    return m_sources;
+std::vector<std::string> Index::getSources() const {
+    std::vector<std::string> res;
+    for (auto& src : m_sources) {
+        res.push_back(src->repository);
+    }
+    return res;
 }
 
 void Index::onSourceUpdate(SourceUpdateEvent* event) {
     // save status for aggregating SourceUpdateEvents to a single global 
     // IndexUpdateEvent
-    m_sourceStatuses[event->source.repository] = event->status;
+    m_sourceStatuses[event->source->repository] = event->status;
 
     // figure out aggregate event
     enum { Finished, Progress, Failed, } whatToPost = Finished;
@@ -203,33 +228,39 @@ void Index::onSourceUpdate(SourceUpdateEvent* event) {
     }
 }
 
-void Index::checkSourceUpdates(IndexSource& src) {
-    if (src.isUpToDate) {
+void Index::checkSourceUpdates(IndexSourceImpl* src) {
+    if (src->isUpToDate) {
         return this->updateSourceFromLocal(src);
     }
     SourceUpdateEvent(src, UpdateProgress(0, "Checking status")).post();
     auto data = Mod::get()->getSavedMutable<IndexSaveData>("index");
-    auto oldSHA = data.sources[src.repository].downloadedCommitSHA;
+    auto oldSHA = data.sources[src->repository].downloadedCommitSHA;
     web::AsyncWebRequest()
-        .join(fmt::format("index-update-{}", src.repository))
+        .join(fmt::format("index-update-{}", src->repository))
         .header(fmt::format("If-None-Match: \"{}\"", oldSHA))
         .header("Accept: application/vnd.github.sha")
-        .fetch(fmt::format("https://api.github.com/repos/{}/commits/main", src.repository))
+        .fetch(fmt::format("https://api.github.com/repos/{}/commits/main", src->repository))
         .text()
-        .then([this, &src, oldSHA](std::string const& newSHA) {
-            // if no new hash was given (rate limited) or the new hash is the 
-            // same as old, then just update from local cache
-            if (newSHA.empty() || oldSHA == newSHA) {
+        .then([this, src, oldSHA](std::string const& newSHA) {
+            // check if should just be updated from local cache
+            if (
+                // if no new hash was given (rate limited) or the new hash is the 
+                // same as old
+                (newSHA.empty() || oldSHA == newSHA) &&
+                // make sure the downloaded local copy actually exists
+                ghc::filesystem::exists(src->path()) &&
+                ghc::filesystem::exists(src->path() / "config.json")
+            ) {
                 this->updateSourceFromLocal(src);
             }
             // otherwise save hash and download source
             else {
                 auto data = Mod::get()->getSavedMutable<IndexSaveData>("index");
-                data.sources[src.repository].downloadedCommitSHA = newSHA;
+                data.sources[src->repository].downloadedCommitSHA = newSHA;
                 this->downloadSource(src);
             }
         })
-        .expect([&src](std::string const& err) {
+        .expect([src](std::string const& err) {
             SourceUpdateEvent(
                 src,
                 UpdateError(fmt::format("Error checking for updates: {}", err))
@@ -237,17 +268,17 @@ void Index::checkSourceUpdates(IndexSource& src) {
         });
 }
 
-void Index::downloadSource(IndexSource& src) {
+void Index::downloadSource(IndexSourceImpl* src) {
     SourceUpdateEvent(src, UpdateProgress(0, "Beginning download")).post();
 
-    auto targetFile = dirs::getIndexDir() / fmt::format("{}.zip", src.dirname());
+    auto targetFile = dirs::getIndexDir() / fmt::format("{}.zip", src->dirname());
 
     web::AsyncWebRequest()
-        .join(fmt::format("index-download-{}", src.repository))
-        .fetch(fmt::format("https://github.com/{}/zipball/main", src.repository))
+        .join(fmt::format("index-download-{}", src->repository))
+        .fetch(fmt::format("https://github.com/{}/zipball/main", src->repository))
         .into(targetFile)
-        .then([this, &src, targetFile](auto) {
-            auto targetDir = dirs::getIndexDir() / src.dirname();
+        .then([this, src, targetFile](auto) {
+            auto targetDir = src->path();
             // delete old unzipped index
             try {
                 if (ghc::filesystem::exists(targetDir)) {
@@ -272,12 +303,12 @@ void Index::downloadSource(IndexSource& src) {
             // update index
             this->updateSourceFromLocal(src);
         })
-        .expect([&src](std::string const& err) {
+        .expect([src](std::string const& err) {
             SourceUpdateEvent(
                 src, UpdateError(fmt::format("Error downloading: {}", err))
             ).post();
         })
-        .progress([&src](auto&, double now, double total) {
+        .progress([src](auto&, double now, double total) {
             SourceUpdateEvent(
                 src,
                 UpdateProgress(
@@ -288,12 +319,12 @@ void Index::downloadSource(IndexSource& src) {
         });
 }
 
-void Index::updateSourceFromLocal(IndexSource& src) {
+void Index::updateSourceFromLocal(IndexSourceImpl* src) {
     SourceUpdateEvent(src, UpdateProgress(100, "Updating local cache")).post();
     // delete old items from this url if such exist
     for (auto& [_, versions] : m_items) {
         for (auto it = versions.begin(); it != versions.end(); ) {
-            if (it->second->sourceRepository == src.repository) {
+            if (it->second->sourceRepository == src->repository) {
                 it = versions.erase(it);
             } else {
                 ++it;
@@ -304,10 +335,8 @@ void Index::updateSourceFromLocal(IndexSource& src) {
 
     // read directory and add new items
     try {
-        for (auto& dir : ghc::filesystem::directory_iterator(
-            dirs::getIndexDir() / src.dirname()
-        )) {
-            auto addRes = IndexItem::createFromDir(src.repository, dir);
+        for (auto& dir : ghc::filesystem::directory_iterator(src->path() / "mods")) {
+            auto addRes = IndexItem::createFromDir(src->repository, dir);
             if (!addRes) {
                 log::warn("Unable to add index item from {}: {}", dir, addRes.unwrapErr());
                 continue;
@@ -328,12 +357,14 @@ void Index::updateSourceFromLocal(IndexSource& src) {
             });
         }
     } catch(std::exception& e) {
-        log::warn("Unable to read index source {}: {}", src.dirname(), e.what());
+        SourceUpdateEvent(src, fmt::format(
+            "Unable to read source {}", src->repository
+        )).post();
         return;
     }
 
     // mark source as finished
-    src.isUpToDate = true;
+    src->isUpToDate = true;
     SourceUpdateEvent(src, UpdateFinished()).post();
 }
 
@@ -350,7 +381,7 @@ void Index::cleanupItems() {
 
 bool Index::isUpToDate() const {
     for (auto& source : m_sources) {
-        if (!source.isUpToDate) {
+        if (!source->isUpToDate) {
             return false;
         }
     }
@@ -377,9 +408,9 @@ void Index::update(bool force) {
         // update sources
         for (auto& src : m_sources) {
             if (force) {
-                this->downloadSource(src);
+                this->downloadSource(src.get());
             } else {
-                this->checkSourceUpdates(src);
+                this->checkSourceUpdates(src.get());
             }
         }
     });

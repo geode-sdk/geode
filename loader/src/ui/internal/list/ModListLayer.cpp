@@ -22,6 +22,8 @@ static ModListLayer* g_instance = nullptr;
 bool ModListLayer::init() {
     if (!CCLayer::init()) return false;
 
+    m_indexListener.bind(this, &ModListLayer::onIndexUpdate);
+
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
     // create background
@@ -214,22 +216,23 @@ void ModListLayer::reloadList() {
         m_list->removeFromParent();
     }
 
+    auto items = ModListView::modsForType(g_tab);
+
     // create new list
-    auto list = ModListView::create(g_tab, m_display);
+    auto list = ModListView::create(items, m_display);
     list->setLayer(this);
 
     // set list status
-    // auto status = list->getStatusAsString();
-    // if (status.size()) {
-    //     m_listLabel->setVisible(true);
-    //     m_listLabel->setString(status.c_str());
-    // }
-    // else {
+    if (!items->count()) {
+        m_listLabel->setVisible(true);
+        m_listLabel->setString("No mods found");
+    } else {
         m_listLabel->setVisible(false);
-    // }
+    }
 
     // update index if needed
-    if (g_tab == ModListType::Download && !Index::get()->isUpToDate()) {
+    if (g_tab == ModListType::Download && !Index::get()->hasTriedToUpdate()) {
+        m_listLabel->setVisible(true);
         m_listLabel->setString("Updating index...");
         if (!m_loadingCircle) {
             m_loadingCircle = LoadingCircle::create();
@@ -314,6 +317,18 @@ void ModListLayer::onCheckForUpdates(CCObject*) {
 
     // update index
     Index::get()->update();
+}
+
+void ModListLayer::onIndexUpdate(IndexUpdateEvent* event) {
+    std::visit(makeVisitor {
+        [&](UpdateProgress const& prog) {},
+        [&](UpdateFinished const&) {
+            this->reloadList();
+        },
+        [&](UpdateError const& error) {
+            this->reloadList();
+        }
+    }, event->status);
 }
 
 void ModListLayer::textChanged(CCTextInputNode* input) {

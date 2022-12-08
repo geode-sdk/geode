@@ -41,33 +41,12 @@ namespace geode {
         IndexUpdateFilter();
     };
 
-    namespace impl {
-        // The reason sources have private implementation events that are 
-        // turned into the global IndexUpdateEvent is because it makes it much 
-        // simpler to keep track of progress, what errors were received, etc. 
-        // without having to store a ton of members
-
-        struct GEODE_DLL IndexSource final {
-            std::string repository;
-            bool isUpToDate = false;
-
-            std::string dirname() const;
-        };
-
-        struct GEODE_DLL SourceUpdateEvent : public Event {
-            const IndexSource& source;
-            const UpdateStatus status;
-            SourceUpdateEvent(IndexSource const& src, const UpdateStatus status);
-        };
-
-        class GEODE_DLL SourceUpdateFilter : public EventFilter<SourceUpdateEvent> {
-        public:
-            using Callback = void(SourceUpdateEvent*);
-        
-            ListenerResult handle(std::function<Callback> fn, SourceUpdateEvent* event);
-            SourceUpdateFilter();
-        };
-    }
+    struct IndexSourceImpl;
+    struct GEODE_DLL IndexSourceImplDeleter {
+        void operator()(IndexSourceImpl* src);
+    };
+    struct SourceUpdateEvent;
+    using IndexSourcePtr = std::unique_ptr<IndexSourceImpl, IndexSourceImplDeleter>;
 
     struct GEODE_DLL IndexItem {
         std::string sourceRepository;
@@ -96,17 +75,17 @@ namespace geode {
         // getting the latest version of a mod as easy as items.rbegin())
         using ItemVersions = std::map<size_t, IndexItemHandle>;
 
-        std::vector<impl::IndexSource> m_sources;
+        std::vector<IndexSourcePtr> m_sources;
         std::unordered_map<std::string, UpdateStatus> m_sourceStatuses;
         std::atomic<bool> m_triedToUpdate = false;
         std::unordered_map<std::string, ItemVersions> m_items;
 
         Index();
 
-        void onSourceUpdate(impl::SourceUpdateEvent* event);
-        void checkSourceUpdates(impl::IndexSource& src);
-        void downloadSource(impl::IndexSource& src);
-        void updateSourceFromLocal(impl::IndexSource& src);
+        void onSourceUpdate(SourceUpdateEvent* event);
+        void checkSourceUpdates(IndexSourceImpl* src);
+        void downloadSource(IndexSourceImpl* src);
+        void updateSourceFromLocal(IndexSourceImpl* src);
         void cleanupItems();
 
     public:
@@ -114,7 +93,7 @@ namespace geode {
 
         void addSource(std::string const& repository);
         void removeSource(std::string const& repository);
-        std::vector<impl::IndexSource> getSources() const;
+        std::vector<std::string> getSources() const;
 
         std::vector<IndexItemHandle> getItems() const;
         bool isKnownItem(std::string const& id, std::optional<size_t> version) const;

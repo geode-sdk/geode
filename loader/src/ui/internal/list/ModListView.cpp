@@ -8,6 +8,7 @@
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/binding/TableView.hpp>
 #include <Geode/binding/CCMenuItemToggler.hpp>
+#include <Geode/binding/CCContentLayer.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/cocos.hpp>
@@ -101,7 +102,7 @@ bool ModListView::init(CCArray* mods, ModListDisplay display) {
     return CustomListView::init(mods, BoomListType::Default, 358.f, 190.f);
 }
 
-CCArray* ModListView::getModsForType(ModListType type) {
+CCArray* ModListView::modsForType(ModListType type) {
     auto mods = CCArray::create();
     switch (type) {
         default:
@@ -149,7 +150,7 @@ ModListView* ModListView::create(CCArray* mods, ModListDisplay display) {
 }
 
 ModListView* ModListView::create(ModListType type, ModListDisplay display) {
-    return ModListView::create(getModsForType(type), display);
+    return ModListView::create(modsForType(type), display);
 }
 
 void ModListView::setLayer(ModListLayer* layer) {
