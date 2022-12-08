@@ -308,8 +308,12 @@ Result<> Unzip::intoDir(
     Path const& to,
     bool deleteZipAfter
 ) {
-    GEODE_UNWRAP_INTO(auto unzip, Unzip::create(from));
-    GEODE_UNWRAP(unzip.extractAllTo(to));
+    // scope to ensure the zip is closed after extracting so the zip can be 
+    // removed
+    {
+        GEODE_UNWRAP_INTO(auto unzip, Unzip::create(from));
+        GEODE_UNWRAP(unzip.extractAllTo(to));
+    }
     if (deleteZipAfter) {
         try { ghc::filesystem::remove(from); } catch(...) {}
     }
