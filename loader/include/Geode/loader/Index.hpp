@@ -58,6 +58,7 @@ namespace geode {
             std::unordered_set<PlatformID> platforms;
         } download;
         bool isFeatured;
+        std::unordered_set<std::string> tags;
 
         /**
          * Create IndexItem from a directory

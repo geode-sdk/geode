@@ -1,13 +1,23 @@
 #pragma once
 
-#include "ModListView.hpp"
-
 #include <Geode/binding/TextInputDelegate.hpp>
 #include <Geode/loader/Index.hpp>
 
 USE_GEODE_NAMESPACE();
 
 class SearchFilterPopup;
+class ModListCell;
+
+enum class ModListType {
+    Installed,
+    Download,
+    Featured,
+};
+
+enum class ModListDisplay {
+    Concise,
+    Expanded,
+};
 
 class ModListLayer : public CCLayer, public TextInputDelegate {
 protected:
@@ -46,11 +56,18 @@ protected:
     void createSearchControl();
     void onIndexUpdate(IndexUpdateEvent* event);
 
+    CCArray* createModCells(ModListType type);
+    CCSize getCellSize() const;
+    CCSize getListSize() const;
+
     friend class SearchFilterPopup;
 
 public:
     static ModListLayer* create();
     static ModListLayer* scene();
+    void updateAllStates(ModListCell* except = nullptr);
+
+    ModListDisplay getDisplay() const;
 
     void reloadList();
 };

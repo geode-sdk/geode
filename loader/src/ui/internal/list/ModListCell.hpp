@@ -8,33 +8,45 @@
 
 USE_GEODE_NAMESPACE();
 
-class ModListView;
+class ModListLayer;
 enum class ModListDisplay;
 
-class ModListCell : public TableViewCell {
+/**
+ * Base class for mod list items
+ */
+class ModListCell : public CCLayer {
 protected:
-    ModListView* m_list;
+    float m_width;
+    float m_height;
+    ModListLayer* m_layer;
     CCMenu* m_menu;
+    CCLabelBMFont* m_description;
     CCMenuItemToggler* m_enableToggle = nullptr;
     CCMenuItemSpriteExtra* m_unresolvedExMark;
-    ModListDisplay m_display;
 
-    ModListCell(char const* name, CCSize const& size);
-    bool init(ModListView* list, ModListDisplay display);
-    void setupInfo(ModInfo const& info, bool spaceForCategories);
+    bool init(ModListLayer* list, CCSize const& size);
+    void setupInfo(ModInfo const& info, bool spaceForTags);
     void draw() override;
 
+    float getLogoSize() const;
+
 public:
-    void updateBGColor(int index);
     virtual void updateState() = 0;
     virtual CCNode* createLogo(CCSize const& size) = 0;
 };
 
+/**
+ * Mod list item for a mod
+ */
 class ModCell : public ModListCell {
 protected:
     Mod* m_mod;
 
-    ModCell(char const* name, CCSize const& size);
+    bool init(
+        Mod* mod,
+        ModListLayer* list,
+        CCSize const& size
+    );
 
     void onInfo(CCObject*);
     void onEnable(CCObject*);
@@ -42,50 +54,64 @@ protected:
 
 public:
     static ModCell* create(
-        ModListView* list, ModListDisplay display,
-        const char* key, CCSize const& size
+        Mod* mod,
+        ModListLayer* list,
+        CCSize const& size
     );
 
-    void loadFromMod(Mod* mod);
     void updateState() override;
     CCNode* createLogo(CCSize const& size) override;
 };
 
+/**
+ * Mod list item for an index item
+ */
 class IndexItemCell : public ModListCell {
 protected:
     IndexItemHandle m_item;
 
-    IndexItemCell(char const* name, CCSize const& size);
+    bool init(
+        IndexItemHandle item,
+        ModListLayer* list,
+        CCSize const& size
+    );
 
     void onInfo(CCObject*);
 
 public:
     static IndexItemCell* create(
-        ModListView* list, ModListDisplay display,
-        const char* key, CCSize const& size
+        IndexItemHandle item,
+        ModListLayer* list,
+        CCSize const& size
     );
 
-    void loadFromItem(IndexItemHandle item);
     void updateState() override;
     CCNode* createLogo(CCSize const& size) override;
 };
 
+/**
+ * Mod list item for an invalid Geode package
+ */
 class InvalidGeodeFileCell : public ModListCell, public FLAlertLayerProtocol {
 protected:
     InvalidGeodeFile m_info;
 
-    InvalidGeodeFileCell(char const* name, CCSize const& size);
+    bool init(
+        InvalidGeodeFile const& file,
+        ModListLayer* list,
+        CCSize const& size
+    );
 
     void onInfo(CCObject*);
     void FLAlert_Clicked(FLAlertLayer*, bool btn2) override;
 
 public:
     static InvalidGeodeFileCell* create(
-        ModListView* list, ModListDisplay display,
-        const char* key, CCSize const& size
+        InvalidGeodeFile const& file,
+        ModListLayer* list,
+        CCSize const& size
     );
 
-    void loadFromInfo(InvalidGeodeFile const& file);
     void updateState() override;
     CCNode* createLogo(CCSize const& size) override;
 };

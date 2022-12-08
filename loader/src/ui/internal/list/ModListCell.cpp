@@ -1,5 +1,5 @@
 #include "ModListCell.hpp"
-#include "ModListView.hpp"
+#include "ModListLayer.hpp"
 #include "../info/ModInfoPopup.hpp"
 #include <Geode/binding/StatsCell.hpp>
 #include <Geode/binding/FLAlertLayer.hpp>
@@ -8,6 +8,7 @@
 #include <Geode/binding/CCMenuItemToggler.hpp>
 #include <Geode/ui/GeodeUI.hpp>
 #include <InternalLoader.hpp>
+#include "../info/TagNode.hpp"
 
 template <class T>
 static bool tryOrAlert(Result<T> const& res, char const* title) {
@@ -17,45 +18,46 @@ static bool tryOrAlert(Result<T> const& res, char const* title) {
     return res.isOk();
 }
 
-ModListCell::ModListCell(char const* name, CCSize const& size)
-  : TableViewCell(name, size.width, size.height) {}
-
 void ModListCell::draw() {
     reinterpret_cast<StatsCell*>(this)->StatsCell::draw();
 }
 
-void ModListCell::setupInfo(ModInfo const& info, bool spaceForCategories) {
-    m_mainLayer->setVisible(true);
-    m_backgroundLayer->setOpacity(255);
+float ModListCell::getLogoSize() const {
+    return m_height / 1.5f;
+}
 
+void ModListCell::setupInfo(ModInfo const& info, bool spaceForTags) {
     m_menu = CCMenu::create();
     m_menu->setPosition(m_width - 40.f, m_height / 2);
-    m_mainLayer->addChild(m_menu);
+    this->addChild(m_menu);
 
-    auto logoSize = m_height / 1.5f;
+    auto logoSize = this->getLogoSize();
 
     auto logoSpr = this->createLogo({ logoSize, logoSize });
     logoSpr->setPosition({ logoSize / 2 + 12.f, m_height / 2 });
-    m_mainLayer->addChild(logoSpr);
+    this->addChild(logoSpr);
 
     bool hasDesc =
-        m_display == ModListDisplay::Expanded && 
+        m_layer->getDisplay() == ModListDisplay::Expanded && 
         info.m_description.has_value();
 
     auto titleLabel = CCLabelBMFont::create(info.m_name.c_str(), "bigFont.fnt");
     titleLabel->setAnchorPoint({ .0f, .5f });
     titleLabel->setPositionX(m_height / 2 + logoSize / 2 + 13.f);
-    if (hasDesc && spaceForCategories) {
+    if (hasDesc && spaceForTags) {
         titleLabel->setPositionY(m_height / 2 + 20.f);
     }
-    else if (hasDesc || spaceForCategories) {
+    else if (spaceForTags) {
+        titleLabel->setPositionY(m_height / 2 + 12.f);
+    }
+    else if (hasDesc) {
         titleLabel->setPositionY(m_height / 2 + 15.f);
     }
     else {
         titleLabel->setPositionY(m_height / 2 + 7.f);
     }
     titleLabel->limitLabelWidth(m_width / 2 - 40.f, .5f, .1f);
-    m_mainLayer->addChild(titleLabel);
+    this->addChild(titleLabel);
 
     auto versionLabel = CCLabelBMFont::create(info.m_version.toString().c_str(), "bigFont.fnt");
     versionLabel->setAnchorPoint({ .0f, .5f });
@@ -65,23 +67,23 @@ void ModListCell::setupInfo(ModInfo const& info, bool spaceForCategories) {
         titleLabel->getPositionY() - 1.f
     );
     versionLabel->setColor({ 0, 255, 0 });
-    m_mainLayer->addChild(versionLabel);
+    this->addChild(versionLabel);
 
     auto creatorStr = "by " + info.m_developer;
     auto creatorLabel = CCLabelBMFont::create(creatorStr.c_str(), "goldFont.fnt");
     creatorLabel->setAnchorPoint({ .0f, .5f });
     creatorLabel->setScale(.43f);
     creatorLabel->setPositionX(m_height / 2 + logoSize / 2 + 13.f);
-    if (hasDesc && spaceForCategories) {
+    if (hasDesc && spaceForTags) {
         creatorLabel->setPositionY(m_height / 2 + 7.5f);
     }
-    else if (hasDesc || spaceForCategories) {
+    else if (hasDesc || spaceForTags) {
         creatorLabel->setPositionY(m_height / 2);
     }
     else {
         creatorLabel->setPositionY(m_height / 2 - 7.f);
     }
-    m_mainLayer->addChild(creatorLabel);
+    this->addChild(creatorLabel);
 
     if (hasDesc) {
         auto descBG = CCScale9Sprite::create("square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f });
@@ -90,48 +92,41 @@ void ModListCell::setupInfo(ModInfo const& info, bool spaceForCategories) {
         descBG->setContentSize({ m_width * 2, 60.f });
         descBG->setAnchorPoint({ .0f, .5f });
         descBG->setPositionX(m_height / 2 + logoSize / 2 + 13.f);
-        if (spaceForCategories) {
+        if (spaceForTags) {
             descBG->setPositionY(m_height / 2 - 7.5f);
         }
         else {
             descBG->setPositionY(m_height / 2 - 17.f);
         }
         descBG->setScale(.25f);
-        m_mainLayer->addChild(descBG);
+        this->addChild(descBG);
 
-        auto descText = CCLabelBMFont::create(info.m_description.value().c_str(), "chatFont.fnt");
-        descText->setAnchorPoint({ .0f, .5f });
-        descText->setPosition(m_height / 2 + logoSize / 2 + 18.f, descBG->getPositionY());
-        descText->limitLabelWidth(m_width / 2 - 10.f, .5f, .1f);
-        m_mainLayer->addChild(descText);
+        m_description = CCLabelBMFont::create(info.m_description.value().c_str(), "chatFont.fnt");
+        m_description->setAnchorPoint({ .0f, .5f });
+        m_description->setPosition(m_height / 2 + logoSize / 2 + 18.f, descBG->getPositionY());
+        m_description->limitLabelWidth(m_width / 2 - 10.f, .5f, .1f);
+        this->addChild(m_description);
     }
 }
 
-void ModListCell::updateBGColor(int index) {
-    if (index % 2) {
-        m_backgroundLayer->setColor(ccc3(0xc2, 0x72, 0x3e));
-    }
-    else m_backgroundLayer->setColor(ccc3(0xa1, 0x58, 0x2c));
-    m_backgroundLayer->setOpacity(0xff);
-}
-
-bool ModListCell::init(ModListView* list, ModListDisplay display) {
-    m_list = list;
-    m_display = display;
+bool ModListCell::init(ModListLayer* list, CCSize const& size) {
+    m_width = size.width;
+    m_height = size.height;
+    m_layer = list;
+    this->setContentSize(size);
+    this->setID("mod-list-cell");
     return true;
 }
 
 // ModCell
 
-ModCell::ModCell(const char* name, CCSize const& size)
-  : ModListCell(name, size) {}
-
 ModCell* ModCell::create(
-    ModListView* list, ModListDisplay display,
-    const char* key, CCSize const& size
+    Mod* mod,
+    ModListLayer* list,
+    CCSize const& size
 ) {
-    auto ret = new ModCell(key, size);
-    if (ret && ret->init(list, display)) {
+    auto ret = new ModCell();
+    if (ret && ret->init(mod, list, size)) {
         return ret;
     }
     CC_SAFE_DELETE(ret);
@@ -148,7 +143,7 @@ void ModCell::onEnable(CCObject* sender) {
             "need to <cg>restart</c> the game to have it fully unloaded.",
             "OK"
         )->show();
-        m_list->updateAllStates(this);
+        m_layer->updateAllStates(this);
         return;
     }
     if (!as<CCMenuItemToggler*>(sender)->isToggled()) {
@@ -157,7 +152,7 @@ void ModCell::onEnable(CCObject* sender) {
     else {
         tryOrAlert(m_mod->disable(), "Error disabling mod");
     }
-    m_list->updateAllStates(this);
+    m_layer->updateAllStates(this);
 }
 
 void ModCell::onUnresolvedInfo(CCObject*) {
@@ -176,7 +171,7 @@ void ModCell::onUnresolvedInfo(CCObject*) {
 }
 
 void ModCell::onInfo(CCObject*) {
-    LocalModInfoPopup::create(m_mod, m_list)->show();
+    LocalModInfoPopup::create(m_mod, m_layer)->show();
 }
 
 void ModCell::updateState() {
@@ -192,7 +187,14 @@ void ModCell::updateState() {
     m_unresolvedExMark->setVisible(unresolved);
 }
 
-void ModCell::loadFromMod(Mod* mod) {
+bool ModCell::init(
+    Mod* mod,
+    ModListLayer* list,
+    CCSize const& size
+) {
+    if (!ModListCell::init(list, size))
+        return false;
+
     m_mod = mod;
 
     this->setupInfo(mod->getModInfo(), false);
@@ -238,6 +240,8 @@ void ModCell::loadFromMod(Mod* mod) {
     // }
 
     this->updateState();
+
+    return true;
 }
 
 CCNode* ModCell::createLogo(CCSize const& size) {
@@ -246,29 +250,34 @@ CCNode* ModCell::createLogo(CCSize const& size) {
 
 // IndexItemCell
 
-IndexItemCell::IndexItemCell(char const* name, CCSize const& size)
-  : ModListCell(name, size) {}
-
 void IndexItemCell::onInfo(CCObject*) {
-    IndexItemInfoPopup::create(m_item, m_list)->show();
+    IndexItemInfoPopup::create(m_item, m_layer)->show();
 }
 
 IndexItemCell* IndexItemCell::create(
-    ModListView* list, ModListDisplay display,
-    const char* key, CCSize const& size
+    IndexItemHandle item,
+    ModListLayer* list,
+    CCSize const& size
 ) {
-    auto ret = new IndexItemCell(key, size);
-    if (ret && ret->init(list, display)) {
+    auto ret = new IndexItemCell();
+    if (ret && ret->init(item, list, size)) {
         return ret;
     }
     CC_SAFE_DELETE(ret);
     return nullptr;
 }
 
-void IndexItemCell::loadFromItem(IndexItemHandle item) {
+bool IndexItemCell::init(
+    IndexItemHandle item,
+    ModListLayer* list,
+    CCSize const& size
+) {
+    if (!ModListCell::init(list, size))
+        return false;
+
     m_item = item;
 
-    this->setupInfo(item->info, true);
+    this->setupInfo(item->info, item->tags.size());
    
     auto viewSpr = ButtonSprite::create(
         "View", "bigFont.fnt", "GJ_button_01.png", .8f
@@ -280,26 +289,28 @@ void IndexItemCell::loadFromItem(IndexItemHandle item) {
     );
     m_menu->addChild(viewBtn);
 
-    // if (hasCategories) {
-    //     float x = m_height / 2 + logoSize / 2 + 13.f;
-    //     for (auto& category : modobj->m_index.m_categories) {
-    //         auto node = CategoryNode::create(category);
-    //         node->setAnchorPoint({ .0f, .5f });
-    //         node->setPositionX(x);
-    //         node->setScale(.3f);
-    //         if (hasDesc) {
-    //             node->setPositionY(m_height / 2 - 23.f);
-    //         }
-    //         else {
-    //             node->setPositionY(m_height / 2 - 17.f);
-    //         }
-    //         m_mainLayer->addChild(node);
+    if (item->tags.size()) {
+        float x = m_height / 2 + this->getLogoSize() / 2 + 13.f;
+        for (auto& category : item->tags) {
+            auto node = TagNode::create(category);
+            node->setAnchorPoint({ .0f, .5f });
+            node->setPositionX(x);
+            node->setScale(.3f);
+            if (m_description) {
+                node->setPositionY(m_height / 2 - 23.f);
+            }
+            else {
+                node->setPositionY(m_height / 2 - 12.f);
+            }
+            this->addChild(node);
 
-    //         x += node->getScaledContentSize().width + 5.f;
-    //     }
-    // }
+            x += node->getScaledContentSize().width + 5.f;
+        }
+    }
     
     this->updateState();
+
+    return true;
 }
 
 void IndexItemCell::updateState() {}
@@ -309,9 +320,6 @@ CCNode* IndexItemCell::createLogo(CCSize const& size) {
 }
 
 // InvalidGeodeFileCell
-
-InvalidGeodeFileCell::InvalidGeodeFileCell(const char* name, CCSize const& size)
-  : ModListCell(name, size) {}
 
 void InvalidGeodeFileCell::onInfo(CCObject*) {
     FLAlertLayer::create(
@@ -345,36 +353,29 @@ void InvalidGeodeFileCell::FLAlert_Clicked(FLAlertLayer*, bool btn2) {
             )->show();
         }
         (void)Loader::get()->refreshModsList();
-        m_list->refreshList();
+        m_layer->reloadList();
     }
 }
 
-InvalidGeodeFileCell* InvalidGeodeFileCell::create(
-    ModListView* list, ModListDisplay display,
-    char const* key, CCSize const& size
+bool InvalidGeodeFileCell::init(
+    InvalidGeodeFile const& info,
+    ModListLayer* list,
+    CCSize const& size
 ) {
-    auto ret = new InvalidGeodeFileCell(key, size);
-    if (ret && ret->init(list, display)) {
-        return ret;
-    }
-    CC_SAFE_DELETE(ret);
-    return nullptr;
-}
+    if (!ModListCell::init(list, size))
+        return false;
 
-void InvalidGeodeFileCell::loadFromInfo(InvalidGeodeFile const& info) {
     m_info = info;
-
-    m_mainLayer->setVisible(true);
 
     auto menu = CCMenu::create();
     menu->setPosition(m_width - m_height, m_height / 2);
-    m_mainLayer->addChild(menu);
+    this->addChild(menu);
 
     auto titleLabel = CCLabelBMFont::create("Failed to Load", "bigFont.fnt");
     titleLabel->setAnchorPoint({ .0f, .5f });
     titleLabel->setScale(.5f);
     titleLabel->setPosition(m_height / 2, m_height / 2 + 7.f);
-    m_mainLayer->addChild(titleLabel);
+    this->addChild(titleLabel);
 
     auto pathLabel = CCLabelBMFont::create(
         m_info.m_path.string().c_str(),
@@ -384,7 +385,7 @@ void InvalidGeodeFileCell::loadFromInfo(InvalidGeodeFile const& info) {
     pathLabel->setScale(.43f);
     pathLabel->setPosition(m_height / 2, m_height / 2 - 7.f);
     pathLabel->setColor({ 255, 255, 0 });
-    m_mainLayer->addChild(pathLabel);
+    this->addChild(pathLabel);
 
     auto whySpr = ButtonSprite::create(
         "Info", 0, 0, "bigFont.fnt", "GJ_button_01.png", 0, .8f
@@ -395,6 +396,22 @@ void InvalidGeodeFileCell::loadFromInfo(InvalidGeodeFile const& info) {
         whySpr, this, menu_selector(InvalidGeodeFileCell::onInfo)
     );
     menu->addChild(viewBtn);
+
+    return true;
+}
+
+InvalidGeodeFileCell* InvalidGeodeFileCell::create(
+    InvalidGeodeFile const& file,
+    ModListLayer* list,
+    CCSize const& size
+) {
+    auto ret = new InvalidGeodeFileCell();
+    if (ret && ret->init(file, list, size)) {
+        ret->autorelease();
+        return ret;
+    }
+    CC_SAFE_DELETE(ret);
+    return nullptr;
 }
 
 void InvalidGeodeFileCell::updateState() {}

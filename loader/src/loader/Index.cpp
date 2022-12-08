@@ -122,6 +122,7 @@ Result<IndexItemHandle> IndexItem::createFromDir(
             .platforms = platforms,
         },
         .isFeatured = root.has("is-featured").template get<bool>(),
+        .tags = root.has("tags").template get<std::unordered_set<std::string>>()
     });
     if (checker.isError()) {
         return Err(checker.getError());

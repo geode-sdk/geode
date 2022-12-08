@@ -1,7 +1,7 @@
 #include "ModInfoPopup.hpp"
 
 #include "../dev/HookListLayer.hpp"
-#include "../list/ModListView.hpp"
+#include "../list/ModListLayer.hpp"
 #include "../settings/ModSettingsPopup.hpp"
 #include "../settings/AdvancedSettingsPopup.hpp"
 #include <InternalLoader.hpp>
@@ -17,6 +17,7 @@
 #include <Geode/ui/BasedButton.hpp>
 #include <Geode/ui/IconButtonSprite.hpp>
 #include <Geode/ui/GeodeUI.hpp>
+#include <Geode/ui/MDPopup.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <Geode/utils/web.hpp>
@@ -30,9 +31,9 @@ static constexpr int const TAG_CONFIRM_UNINSTALL = 5;
 static constexpr int const TAG_DELETE_SAVEDATA = 6;
 static const CCSize LAYER_SIZE = { 440.f, 290.f };
 
-bool ModInfoPopup::init(ModInfo const& info, ModListView* list) {
+bool ModInfoPopup::init(ModInfo const& info, ModListLayer* list) {
     m_noElasticity = true;
-    m_list = list;
+    m_layer = list;
 
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
@@ -274,7 +275,7 @@ void ModInfoPopup::onClose(CCObject* pSender) {
 
 // LocalModInfoPopup
 
-bool LocalModInfoPopup::init(Mod* mod, ModListView* list) {
+bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
     m_mod = mod;
 
     if (!ModInfoPopup::init(mod->getModInfo(), list))
@@ -458,7 +459,7 @@ void LocalModInfoPopup::onEnableMod(CCObject* sender) {
             "OK"
         )
             ->show();
-        if (m_list) m_list->updateAllStates(nullptr);
+        if (m_layer) m_layer->updateAllStates(nullptr);
         return;
     }
     if (as<CCMenuItemToggler*>(sender)->isToggled()) {
@@ -479,7 +480,7 @@ void LocalModInfoPopup::onEnableMod(CCObject* sender) {
             )->show();
         }
     }
-    if (m_list) m_list->updateAllStates(nullptr);
+    if (m_layer) m_layer->updateAllStates(nullptr);
     as<CCMenuItemToggler*>(sender)->toggle(m_mod->isEnabled());
 }
 
@@ -530,7 +531,7 @@ void LocalModInfoPopup::FLAlert_Clicked(FLAlertLayer* layer, bool btn2) {
                     )->show();
                 }
             }
-            if (m_list) m_list->refreshList();
+            if (m_layer) m_layer->reloadList();
             this->onClose(nullptr);
         } break;
     }
@@ -556,7 +557,7 @@ void LocalModInfoPopup::uninstall() {
     layer->show();
 }
 
-LocalModInfoPopup* LocalModInfoPopup::create(Mod* mod, ModListView* list) {
+LocalModInfoPopup* LocalModInfoPopup::create(Mod* mod, ModListLayer* list) {
     auto ret = new LocalModInfoPopup;
     if (ret && ret->init(mod, list)) {
         ret->autorelease();
@@ -568,7 +569,7 @@ LocalModInfoPopup* LocalModInfoPopup::create(Mod* mod, ModListView* list) {
 
 // IndexItemInfoPopup
 
-bool IndexItemInfoPopup::init(IndexItemHandle item, ModListView* list) {
+bool IndexItemInfoPopup::init(IndexItemHandle item, ModListLayer* list) {
     m_item = item;
 
     auto winSize = CCDirector::sharedDirector()->getWinSize();
@@ -608,7 +609,7 @@ ModInfo IndexItemInfoPopup::getModInfo() const {
 }
 
 IndexItemInfoPopup* IndexItemInfoPopup::create(
-    IndexItemHandle item, ModListView* list
+    IndexItemHandle item, ModListLayer* list
 ) {
     auto ret = new IndexItemInfoPopup;
     if (ret && ret->init(item, list)) {

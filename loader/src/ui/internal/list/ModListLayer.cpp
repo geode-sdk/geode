@@ -1,5 +1,5 @@
 #include "ModListLayer.hpp"
-
+#include "ModListCell.hpp"
 #include "SearchFilterPopup.hpp"
 
 #include <Geode/binding/ButtonSprite.hpp>
@@ -14,10 +14,41 @@
 #include <Geode/ui/Notification.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/loader/Dirs.hpp>
+#include <Geode/loader/Loader.hpp>
 #include <optional>
+#include <Geode/ui/ListView.hpp>
 
 static ModListType g_tab = ModListType::Installed;
 static ModListLayer* g_instance = nullptr;
+
+static void sortInstalledMods(std::vector<Mod*>& mods) {
+    if (!mods.size()) return;
+    // keep track of first object
+    size_t frontIndex = 0;
+    auto front = mods.front();
+    for (auto mod = mods.begin(); mod != mods.end(); mod++) {
+        // move mods with updates to front
+        if (auto item = Index::get()->getItem(*mod)) {
+            if (Index::get()->updateAvailable(item)) {
+                // swap first object and updatable mod
+                // if the updatable mod is the first object,
+                // nothing changes
+                std::rotate(mods.begin(), mod, mod + 1);
+
+                // get next object at front for next mod
+                // to sort
+                frontIndex++;
+                front = mods[frontIndex];
+            }
+        }
+    }
+}
+
+static std::vector<Mod*> sortedInstalledMods() {
+    auto mods = Loader::get()->getAllMods();
+    sortInstalledMods(mods);
+    return std::move(mods);
+}
 
 bool ModListLayer::init() {
     if (!CCLayer::init()) return false;
@@ -216,11 +247,15 @@ void ModListLayer::reloadList() {
         m_list->removeFromParent();
     }
 
-    auto items = ModListView::modsForType(g_tab);
+    auto items = this->createModCells(g_tab);
 
     // create new list
-    auto list = ModListView::create(items, m_display);
-    list->setLayer(this);
+    auto list = ListView::create(
+        items,
+        this->getCellSize().height,
+        this->getListSize().width,
+        this->getListSize().height
+    );
 
     // set list status
     if (!items->count()) {
@@ -306,6 +341,68 @@ void ModListLayer::reloadList() {
     }
 }
 
+CCSize ModListLayer::getListSize() const {
+    return { 358.f, 190.f };
+}
+
+CCSize ModListLayer::getCellSize() const {
+    return {
+        getListSize().width,
+        m_display == ModListDisplay::Expanded ? 60.f : 40.f
+    };
+}
+
+ModListDisplay ModListLayer::getDisplay() const {
+    return m_display;
+}
+
+CCArray* ModListLayer::createModCells(ModListType type) {
+    auto mods = CCArray::create();
+    switch (type) {
+        default:
+        case ModListType::Installed: {
+            // failed mods first
+            for (auto const& mod : Loader::get()->getFailedMods()) {
+                mods->addObject(InvalidGeodeFileCell::create(mod, this, this->getCellSize()));
+            }
+            // internal geode representation always at the top
+            auto imod = Loader::getInternalMod();
+            mods->addObject(ModCell::create(imod, this, this->getCellSize()));
+
+            // then other mods
+            for (auto const& mod : sortedInstalledMods()) {
+                // if the mod is no longer installed nor
+                // loaded, it's as good as not existing
+                // (because it doesn't)
+                if (mod->isUninstalled() && !mod->isLoaded()) continue;
+                mods->addObject(ModCell::create(mod, this, this->getCellSize()));
+            }
+        } break;
+
+        case ModListType::Download: {
+            for (auto const& item : Index::get()->getItems()) {
+                mods->addObject(IndexItemCell::create(item, this, this->getCellSize()));
+            }
+        } break;
+
+        case ModListType::Featured: {
+            // todo: featured
+        } break;
+    }
+    return mods;
+}
+
+void ModListLayer::updateAllStates(ModListCell* toggled) {
+    for (auto cell : CCArrayExt<GenericListCell>(
+        m_list->m_listView->m_tableView->m_cellArray
+    )) {
+        auto node = static_cast<ModListCell*>(cell->getChildByID("mod-list-cell"));
+        if (toggled != node) {
+            node->updateState();
+        }
+    }
+}
+
 void ModListLayer::onCheckForUpdates(CCObject*) {
     // store instance in a global so the
     // layer stays in memory even if the
@@ -329,10 +426,6 @@ void ModListLayer::onIndexUpdate(IndexUpdateEvent* event) {
             this->reloadList();
         }
     }, event->status);
-}
-
-void ModListLayer::textChanged(CCTextInputNode* input) {
-    this->reloadList();
 }
 
 void ModListLayer::onExit(CCObject*) {
@@ -365,12 +458,6 @@ void ModListLayer::onResetSearch(CCObject*) {
     m_searchInput->setString("");
 }
 
-void ModListLayer::keyDown(enumKeyCodes key) {
-    if (key == KEY_Escape) {
-        this->onExit(nullptr);
-    }
-}
-
 void ModListLayer::onTab(CCObject* pSender) {
     if (pSender) {
         g_tab = static_cast<ModListType>(pSender->getTag());
@@ -392,6 +479,16 @@ void ModListLayer::onTab(CCObject* pSender) {
     toggleTab(m_downloadTabBtn);
     toggleTab(m_installedTabBtn);
     toggleTab(m_featuredTabBtn);
+}
+
+void ModListLayer::keyDown(enumKeyCodes key) {
+    if (key == KEY_Escape) {
+        this->onExit(nullptr);
+    }
+}
+
+void ModListLayer::textChanged(CCTextInputNode* input) {
+    this->reloadList();
 }
 
 ModListLayer* ModListLayer::create() {

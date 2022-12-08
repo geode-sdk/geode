@@ -1,6 +1,9 @@
-#include "CategoryNode.hpp"
+#include "TagNode.hpp"
+#include <Geode/utils/general.hpp>
+#include <cocos-ext.h>
+#include <Geode/loader/Mod.hpp>
 
-ccColor3B CategoryNode::categoryToColor(std::string const& category) {
+ccColor3B TagNode::categoryToColor(std::string const& category) {
     // all we need is to convert a string into some number
     // between 0 and 360 and for that number to always be the
     // same for the same string
@@ -17,8 +20,8 @@ ccColor3B CategoryNode::categoryToColor(std::string const& category) {
              static_cast<GLubyte>(rgb.b * 255) };
 }
 
-bool CategoryNode::init(std::string const& category, CategoryNodeStyle style) {
-    if (style == CategoryNodeStyle::Dot) {
+bool TagNode::init(std::string const& category, TagNodeStyle style) {
+    if (style == TagNodeStyle::Dot) {
         auto dot = CCSprite::createWithSpriteFrameName("category-dot.png"_spr);
         dot->setColor(categoryToColor(category));
         dot->setPosition({ 20.f, 20.f });
@@ -52,8 +55,8 @@ bool CategoryNode::init(std::string const& category, CategoryNodeStyle style) {
     return true;
 }
 
-CategoryNode* CategoryNode::create(std::string const& category, CategoryNodeStyle style) {
-    auto ret = new CategoryNode();
+TagNode* TagNode::create(std::string const& category, TagNodeStyle style) {
+    auto ret = new TagNode();
     if (ret && ret->init(category, style)) {
         ret->autorelease();
         return ret;

@@ -1,8 +1,7 @@
 #include "SearchFilterPopup.hpp"
 
-#include "../info/CategoryNode.hpp"
+#include "../info/TagNode.hpp"
 #include "ModListLayer.hpp"
-#include "ModListView.hpp"
 
 #include <Geode/binding/GameToolbox.hpp>
 #include <Geode/binding/CCMenuItemToggler.hpp>

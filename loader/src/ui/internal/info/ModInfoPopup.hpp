@@ -9,7 +9,7 @@
 
 USE_GEODE_NAMESPACE();
 
-class ModListView;
+class ModListLayer;
 class ModObject;
 
 class DownloadStatusNode : public CCNode {
@@ -28,7 +28,7 @@ public:
 
 class ModInfoPopup : public FLAlertLayer {
 protected:
-    ModListView* m_list = nullptr;
+    ModListLayer* m_layer = nullptr;
     DownloadStatusNode* m_installStatus = nullptr;
     IconButtonSprite* m_installBtnSpr;
     CCMenuItemSpriteExtra* m_installBtn;
@@ -43,7 +43,7 @@ protected:
     void onSupport(CCObject*);
     void onInfo(CCObject*);
 
-    bool init(ModInfo const& info, ModListView* list);
+    bool init(ModInfo const& info, ModListLayer* list);
 
     void keyDown(cocos2d::enumKeyCodes) override;
     void onClose(cocos2d::CCObject*);
@@ -56,7 +56,7 @@ class LocalModInfoPopup : public ModInfoPopup, public FLAlertLayerProtocol {
 protected:
     Mod* m_mod;
 
-    bool init(Mod* mod, ModListView* list);
+    bool init(Mod* mod, ModListLayer* list);
     
     void onIssues(CCObject*);
     void onSettings(CCObject*);
@@ -74,18 +74,18 @@ protected:
     ModInfo getModInfo() const override;
 
 public:
-    static LocalModInfoPopup* create(Mod* mod, ModListView* list);
+    static LocalModInfoPopup* create(Mod* mod, ModListLayer* list);
 };
 
 class IndexItemInfoPopup : public ModInfoPopup {
 protected:
     IndexItemHandle m_item;
 
-    bool init(IndexItemHandle item, ModListView* list);
+    bool init(IndexItemHandle item, ModListLayer* list);
     
     CCNode* createLogo(CCSize const& size) override;
     ModInfo getModInfo() const override;
 
 public:
-    static IndexItemInfoPopup* create(IndexItemHandle item, ModListView* list);
+    static IndexItemInfoPopup* create(IndexItemHandle item, ModListLayer* list);
 };
