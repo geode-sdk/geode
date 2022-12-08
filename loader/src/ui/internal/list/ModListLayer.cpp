@@ -29,7 +29,7 @@ static void sortInstalledMods(std::vector<Mod*>& mods) {
     for (auto mod = mods.begin(); mod != mods.end(); mod++) {
         // move mods with updates to front
         if (auto item = Index::get()->getItem(*mod)) {
-            if (Index::get()->updateAvailable(item)) {
+            if (Index::get()->isUpdateAvailable(item)) {
                 // swap first object and updatable mod
                 // if the updatable mod is the first object,
                 // nothing changes

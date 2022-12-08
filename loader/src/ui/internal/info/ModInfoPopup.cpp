@@ -372,7 +372,7 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
         auto indexItem = Index::get()->getItem(mod->getModInfo());
 
         // todo: show update button on loader that invokes the installer
-        if (indexItem && Index::get()->updateAvailable(indexItem)) {
+        if (indexItem && Index::get()->isUpdateAvailable(indexItem)) {
             m_installBtnSpr = IconButtonSprite::create(
                 "GE_button_01.png"_spr,
                 CCSprite::createWithSpriteFrameName("install.png"_spr),

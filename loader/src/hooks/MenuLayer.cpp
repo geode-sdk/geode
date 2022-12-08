@@ -20,13 +20,30 @@ USE_GEODE_NAMESPACE();
 class CustomMenuLayer;
 
 static Ref<Notification> INDEX_UPDATE_NOTIF = nullptr;
-static Ref<CCSprite> g_geodeButton = nullptr;
+
+$execute {
+	new EventListener<IndexUpdateFilter>(+[](IndexUpdateEvent* event) {
+		if (!INDEX_UPDATE_NOTIF) return;
+		std::visit(makeVisitor {
+			[](UpdateProgress const& prog) {},
+			[](UpdateFinished const&) {
+				INDEX_UPDATE_NOTIF->setIcon(NotificationIcon::Success);
+				INDEX_UPDATE_NOTIF->setString("Index Up-to-Date");
+				INDEX_UPDATE_NOTIF->waitAndHide();
+				INDEX_UPDATE_NOTIF = nullptr;
+			},
+			[](UpdateError const& info) {
+				INDEX_UPDATE_NOTIF->setIcon(NotificationIcon::Error);
+				INDEX_UPDATE_NOTIF->setString(info);
+				INDEX_UPDATE_NOTIF->setTime(NOTIFICATION_LONG_TIME);
+				INDEX_UPDATE_NOTIF = nullptr;
+			},
+		}, event->status);
+	});
+};
 
 struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
-	void destructor() {
-		g_geodeButton = nullptr;
-		MenuLayer::~MenuLayer();
-	}
+	CCSprite* m_geodeButton;
 
 	bool init() {
 		if (!MenuLayer::init())
@@ -40,7 +57,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 
 		// add geode button
 		
-		g_geodeButton = SafeCreate<CCSprite>()
+		m_fields->m_geodeButton = SafeCreate<CCSprite>()
 			.with(CircleButtonSprite::createWithSpriteFrameName(
 				"geode-logo-outline-gold.png"_spr,
 				1.0f,
@@ -52,7 +69,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 		auto bottomMenu = static_cast<CCMenu*>(this->getChildByID("bottom-menu"));
 
 		auto btn = CCMenuItemSpriteExtra::create(
-			g_geodeButton.data(), this, menu_selector(CustomMenuLayer::onGeode)
+			m_fields->m_geodeButton, this, menu_selector(CustomMenuLayer::onGeode)
 		);
 		btn->setID("geode-button"_spr);
 		bottomMenu->addChild(btn);
@@ -109,27 +126,31 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 			INDEX_UPDATE_NOTIF->show();
 			Index::get()->update();
 		}
+
+		this->addUpdateIndicator();
 	
 		return true;
 	}
 
 	void onIndexUpdate(IndexUpdateEvent* event) {
-		if (!INDEX_UPDATE_NOTIF) return;
-		std::visit(makeVisitor {
-			[](UpdateProgress const& prog) {},
-			[](UpdateFinished const&) {
-				INDEX_UPDATE_NOTIF->setIcon(NotificationIcon::Success);
-				INDEX_UPDATE_NOTIF->setString("Index Up-to-Date");
-				INDEX_UPDATE_NOTIF->waitAndHide();
-				INDEX_UPDATE_NOTIF = nullptr;
-			},
-			[](UpdateError const& info) {
-				INDEX_UPDATE_NOTIF->setIcon(NotificationIcon::Error);
-				INDEX_UPDATE_NOTIF->setString(info);
-				INDEX_UPDATE_NOTIF->setTime(NOTIFICATION_LONG_TIME);
-				INDEX_UPDATE_NOTIF = nullptr;
-			},
-		}, event->status);
+		if (
+			std::holds_alternative<UpdateFinished>(event->status) ||
+			std::holds_alternative<UpdateError>(event->status)
+		) {
+			this->addUpdateIndicator();
+		}
+	}
+
+	void addUpdateIndicator() {
+		if (Index::get()->areUpdatesAvailable()) {
+			auto icon = CCSprite::createWithSpriteFrameName("updates-available.png"_spr);
+			icon->setPosition(
+				m_fields->m_geodeButton->getContentSize() - CCSize { 10.f, 10.f }
+			);
+			icon->setZOrder(99);
+			icon->setScale(.5f);
+			m_fields->m_geodeButton->addChild(icon);
+		}
 	}
 
 	void onGeode(CCObject*) {

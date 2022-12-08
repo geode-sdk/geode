@@ -494,10 +494,20 @@ IndexItemHandle Index::getItem(Mod* mod) const {
     return this->getItem(mod->getID(), mod->getVersion().getMajor());
 }
 
-bool Index::updateAvailable(IndexItemHandle item) const {
+bool Index::isUpdateAvailable(IndexItemHandle item) const {
     auto installed = Loader::get()->getInstalledMod(item->info.m_id);
     if (!installed) {
         return false;
     }
     return item->info.m_version > installed->getVersion();
+}
+
+bool Index::areUpdatesAvailable() const {
+    for (auto& mod : Loader::get()->getAllMods()) {
+        auto item = this->getItem(mod);
+        if (item->info.m_version > mod->getVersion()) {
+            return true;
+        }
+    }
+    return false;
 }

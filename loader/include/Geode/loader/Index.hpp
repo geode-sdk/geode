@@ -101,7 +101,8 @@ namespace geode {
         IndexItemHandle getItem(std::string const& id, std::optional<size_t> version) const;
         IndexItemHandle getItem(ModInfo const& info) const;
         IndexItemHandle getItem(Mod* mod) const;
-        bool updateAvailable(IndexItemHandle item) const;
+        bool isUpdateAvailable(IndexItemHandle item) const;
+        bool areUpdatesAvailable() const;
 
         bool hasTriedToUpdate() const;
         bool isUpToDate() const;
