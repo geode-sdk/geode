@@ -116,7 +116,7 @@ namespace geode {
         void postFrom(Mod* sender);
         template<class = void>
         void post() {
-            postFrom(Mod::get());
+            postFrom(getMod());
         }
 
         virtual ~Event();
