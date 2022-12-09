@@ -39,9 +39,9 @@ void ModListCell::setupInfo(ModInfo const& info, bool spaceForTags) {
 
     bool hasDesc =
         m_layer->getDisplay() == ModListDisplay::Expanded && 
-        info.m_description.has_value();
+        info.description.has_value();
 
-    auto titleLabel = CCLabelBMFont::create(info.m_name.c_str(), "bigFont.fnt");
+    auto titleLabel = CCLabelBMFont::create(info.name.c_str(), "bigFont.fnt");
     titleLabel->setAnchorPoint({ .0f, .5f });
     titleLabel->setPositionX(m_height / 2 + logoSize / 2 + 13.f);
     if (hasDesc && spaceForTags) {
@@ -59,7 +59,7 @@ void ModListCell::setupInfo(ModInfo const& info, bool spaceForTags) {
     titleLabel->limitLabelWidth(m_width / 2 - 40.f, .5f, .1f);
     this->addChild(titleLabel);
 
-    auto versionLabel = CCLabelBMFont::create(info.m_version.toString().c_str(), "bigFont.fnt");
+    auto versionLabel = CCLabelBMFont::create(info.version.toString().c_str(), "bigFont.fnt");
     versionLabel->setAnchorPoint({ .0f, .5f });
     versionLabel->setScale(.3f);
     versionLabel->setPosition(
@@ -69,7 +69,7 @@ void ModListCell::setupInfo(ModInfo const& info, bool spaceForTags) {
     versionLabel->setColor({ 0, 255, 0 });
     this->addChild(versionLabel);
 
-    auto creatorStr = "by " + info.m_developer;
+    auto creatorStr = "by " + info.developer;
     auto creatorLabel = CCLabelBMFont::create(creatorStr.c_str(), "goldFont.fnt");
     creatorLabel->setAnchorPoint({ .0f, .5f });
     creatorLabel->setScale(.43f);
@@ -101,7 +101,7 @@ void ModListCell::setupInfo(ModInfo const& info, bool spaceForTags) {
         descBG->setScale(.25f);
         this->addChild(descBG);
 
-        m_description = CCLabelBMFont::create(info.m_description.value().c_str(), "chatFont.fnt");
+        m_description = CCLabelBMFont::create(info.description.value().c_str(), "chatFont.fnt");
         m_description->setAnchorPoint({ .0f, .5f });
         m_description->setPosition(m_height / 2 + logoSize / 2 + 18.f, descBG->getPositionY());
         m_description->limitLabelWidth(m_width / 2 - 10.f, .5f, .1f);
@@ -324,7 +324,7 @@ CCNode* IndexItemCell::createLogo(CCSize const& size) {
 void InvalidGeodeFileCell::onInfo(CCObject*) {
     FLAlertLayer::create(
         this, "Error Info",
-        m_info.m_reason,
+        m_info.reason,
         "OK", "Remove file", 360.f
     )->show();
 }
@@ -332,22 +332,22 @@ void InvalidGeodeFileCell::onInfo(CCObject*) {
 void InvalidGeodeFileCell::FLAlert_Clicked(FLAlertLayer*, bool btn2) {
     if (btn2) {
         try {
-            if (ghc::filesystem::remove(m_info.m_path)) {
+            if (ghc::filesystem::remove(m_info.path)) {
                 FLAlertLayer::create(
-                    "File removed", "Removed <cy>" + m_info.m_path.string() + "</c>", "OK"
+                    "File removed", "Removed <cy>" + m_info.path.string() + "</c>", "OK"
                 )->show();
             }
             else {
                 FLAlertLayer::create(
                     "Unable to remove file",
-                    "Unable to remove <cy>" + m_info.m_path.string() + "</c>", "OK"
+                    "Unable to remove <cy>" + m_info.path.string() + "</c>", "OK"
                 )->show();
             }
         }
         catch (std::exception& e) {
             FLAlertLayer::create(
                 "Unable to remove file",
-                "Unable to remove <cy>" + m_info.m_path.string() + "</c>: <cr>" +
+                "Unable to remove <cy>" + m_info.path.string() + "</c>: <cr>" +
                     std::string(e.what()) + "</c>",
                 "OK"
             )->show();
@@ -378,7 +378,7 @@ bool InvalidGeodeFileCell::init(
     this->addChild(titleLabel);
 
     auto pathLabel = CCLabelBMFont::create(
-        m_info.m_path.string().c_str(),
+        m_info.path.string().c_str(),
         "chatFont.fnt"
     );
     pathLabel->setAnchorPoint({ .0f, .5f });

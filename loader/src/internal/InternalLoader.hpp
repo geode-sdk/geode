@@ -62,7 +62,7 @@ public:
 
     bool setup();
 
-    static std::string processRawIPC(void* rawHandle, std::string const& buffer);
+    static nlohmann::json processRawIPC(void* rawHandle, std::string const& buffer);
 
     /**
      * Check if a one-time event has been shown to the user,

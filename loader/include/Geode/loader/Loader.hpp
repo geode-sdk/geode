@@ -12,8 +12,8 @@ namespace geode {
     using ScheduledFunction = std::function<void GEODE_CALL(void)>;
 
     struct InvalidGeodeFile {
-        ghc::filesystem::path m_path;
-        std::string m_reason;
+        ghc::filesystem::path path;
+        std::string reason;
     };
 
     class GEODE_DLL Loader {

@@ -26,29 +26,24 @@ namespace geode {
     class GEODE_DLL IPCEvent : public Event {
     protected:
         void* m_rawPipeHandle;
-        std::string m_targetModID;
-        std::string m_messageID;
-        std::string* m_replyString;
-        nlohmann::json m_messageData;
         bool m_replied = false;
+    
+    public:
+        std::string targetModID;
+        std::string messageID;
+        nlohmann::json messageData;
+        nlohmann::json& replyData;
 
         friend class IPCFilter;
 
-    public:
         IPCEvent(
             void* rawPipeHandle,
             std::string const& targetModID,
             std::string const& messageID,
             nlohmann::json const& messageData,
-            std::string* replyString = nullptr
+            nlohmann::json& replyData
         );
         virtual ~IPCEvent();
-
-        std::string getTargetModID() const;
-        std::string getMessageID() const;
-        std::string getReplyString() const;
-        void setReplyString(std::string const& reply);
-        nlohmann::json getMessageData() const;
     };
 
     class GEODE_DLL IPCFilter : public EventFilter<IPCEvent> {

@@ -21,8 +21,8 @@ namespace geode {
     };
 
     struct IssuesInfo {
-        std::string m_info;
-        std::optional<std::string> m_url;
+        std::string info;
+        std::optional<std::string> url;
     };
 
     /**
@@ -33,16 +33,16 @@ namespace geode {
         /**
          * Path to the mod file
          */
-        ghc::filesystem::path m_path;
+        ghc::filesystem::path path;
         /**
          * Name of the platform binary within
          * the mod zip
          */
-        std::string m_binaryName;
+        std::string binaryName;
         /**
          * Mod Version. Should follow semver.
          */
-        VersionInfo m_version { 1, 0, 0 };
+        VersionInfo version { 1, 0, 0 };
         /**
          * Human-readable ID of the Mod.
          * Recommended to be in the format
@@ -52,14 +52,14 @@ namespace geode {
          * be restricted to the ASCII
          * character set.
          */
-        std::string m_id;
+        std::string id;
         /**
          * Name of the mod. May contain
          * spaces & punctuation, but should
          * be restricted to the ASCII
          * character set.
          */
-        std::string m_name;
+        std::string name;
         /**
          * The name of the head developer.
          * Should be a single name, like
@@ -71,60 +71,60 @@ namespace geode {
          * should be named in `m_credits`
          * instead.
          */
-        std::string m_developer;
+        std::string developer;
         /**
          * Short & concise description of the
          * mod.
          */
-        std::optional<std::string> m_description;
+        std::optional<std::string> description;
         /**
          * Detailed description of the mod, writtenin Markdown (see
          * <Geode/ui/MDTextArea.hpp>) for more info
          */
-        std::optional<std::string> m_details;
+        std::optional<std::string> details;
         /**
          * Changelog for the mod, written in Markdown (see
          * <Geode/ui/MDTextArea.hpp>) for more info
          */
-        std::optional<std::string> m_changelog;
+        std::optional<std::string> changelog;
         /**
          * Support info for the mod; this means anything to show ways to
          * support the mod's development, like donations. Written in Markdown
          * (see <Geode/ui/MDTextArea.hpp>) for more info
          */
-        std::optional<std::string> m_supportInfo;
+        std::optional<std::string> supportInfo;
         /**
          * Git Repository of the mod
          */
-        std::optional<std::string> m_repository;
+        std::optional<std::string> repository;
         /**
          * Info about where users should report issues and request help
          */
-        std::optional<IssuesInfo> m_issues;
+        std::optional<IssuesInfo> issues;
         /**
          * Dependencies
          */
-        std::vector<Dependency> m_dependencies;
+        std::vector<Dependency> dependencies;
         /**
          * Mod spritesheet names
          */
-        std::vector<std::string> m_spritesheets;
+        std::vector<std::string> spritesheets;
         /**
          * Mod settings
          */
-        std::vector<std::pair<std::string, std::shared_ptr<Setting>>> m_settings;
+        std::vector<std::pair<std::string, std::shared_ptr<Setting>>> settings;
         /**
          * Whether the mod can be disabled or not
          */
-        bool m_supportsDisabling = true;
+        bool supportsDisabling = true;
         /**
          * Whether the mod can be unloaded or not
          */
-        bool m_supportsUnloading = false;
+        bool supportsUnloading = false;
         /**
          * Whether this mod has to be loaded before the loading screen or not
          */
-        bool m_needsEarlyLoad = false;
+        bool needsEarlyLoad = false;
         /**
          * Create ModInfo from an unzipped .geode package
          */

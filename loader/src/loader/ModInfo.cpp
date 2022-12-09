@@ -47,15 +47,15 @@ Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
 
     using nlohmann::detail::value_t;
 
-    root.needs("id").validate(&ModInfo::validateID).into(info.m_id);
-    root.needs("version").validate(&VersionInfo::validate).into(info.m_version);
-    root.needs("name").into(info.m_name);
-    root.needs("developer").into(info.m_developer);
-    root.has("description").into(info.m_description);
-    root.has("repository").into(info.m_repository);
-    root.has("toggleable").into(info.m_supportsDisabling);
-    root.has("unloadable").into(info.m_supportsUnloading);
-    root.has("early-load").into(info.m_needsEarlyLoad);
+    root.needs("id").validate(&ModInfo::validateID).into(info.id);
+    root.needs("version").validate(&VersionInfo::validate).into(info.version);
+    root.needs("name").into(info.name);
+    root.needs("developer").into(info.developer);
+    root.has("description").into(info.description);
+    root.has("repository").into(info.repository);
+    root.has("toggleable").into(info.supportsDisabling);
+    root.has("unloadable").into(info.supportsUnloading);
+    root.has("early-load").into(info.needsEarlyLoad);
 
     for (auto& dep : root.has("dependencies").iterate()) {
         auto obj = dep.obj();
@@ -68,30 +68,30 @@ Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
         obj.has("required").into(depobj.required);
         obj.checkUnknownKeys();
 
-        info.m_dependencies.push_back(depobj);
+        info.dependencies.push_back(depobj);
     }
 
     for (auto& [key, value] : root.has("settings").items()) {
         GEODE_UNWRAP_INTO(auto sett, Setting::parse(key, value.json()));
-        sett->m_modID = info.m_id;
-        info.m_settings.push_back({ key, sett });
+        sett->m_modID = info.id;
+        info.settings.push_back({ key, sett });
     }
 
     if (auto resources = root.has("resources").obj()) {
         for (auto& [key, _] : resources.has("spritesheets").items()) {
-            info.m_spritesheets.push_back(info.m_id + "/" + key);
+            info.spritesheets.push_back(info.id + "/" + key);
         }
     }
 
     if (auto issues = root.has("issues").obj()) {
         IssuesInfo issuesInfo;
-        issues.needs("info").into(issuesInfo.m_info);
-        issues.has("url").intoAs<std::string>(issuesInfo.m_url);
-        info.m_issues = issuesInfo;
+        issues.needs("info").into(issuesInfo.info);
+        issues.has("url").intoAs<std::string>(issuesInfo.url);
+        info.issues = issuesInfo;
     }
 
     // with new cli, binary name is always mod id
-    info.m_binaryName = info.m_id + GEODE_PLATFORM_EXTENSION;
+    info.binaryName = info.id + GEODE_PLATFORM_EXTENSION;
 
     // removed keys
     if (root.has("datastore")) {
@@ -171,7 +171,7 @@ Result<ModInfo> ModInfo::createFromFile(ghc::filesystem::path const& path) {
     GEODE_UNWRAP_INTO(auto read, utils::file::readString(path));
     try {
         GEODE_UNWRAP_INTO(auto info, ModInfo::create(ModJson::parse(read)));
-        info.m_path = path;
+        info.path = path;
         if (path.has_parent_path()) {
             GEODE_UNWRAP(info.addSpecialFiles(path.parent_path()));
         }
@@ -211,7 +211,7 @@ Result<ModInfo> ModInfo::createFromGeodeZip(file::Unzip& unzip) {
         return Err("\"" + unzip.getPath().string() + "\" - " + res.unwrapErr());
     }
     auto info = res.unwrap();
-    info.m_path = unzip.getPath();
+    info.path = unzip.getPath();
 
     GEODE_UNWRAP(
         info.addSpecialFiles(unzip)
@@ -250,16 +250,16 @@ Result<> ModInfo::addSpecialFiles(ghc::filesystem::path const& dir) {
 
 std::vector<std::pair<std::string, std::optional<std::string>*>> ModInfo::getSpecialFiles() {
     return {
-        { "about.md", &m_details },
-        { "changelog.md", &m_changelog },
-        { "support.md", &m_supportInfo },
+        { "about.md", &this->details },
+        { "changelog.md", &this->changelog },
+        { "support.md", &this->supportInfo },
     };
 }
 
 ModJson ModInfo::toJSON() const {
     auto json = m_rawJSON;
-    json["path"] = m_path;
-    json["binary"] = m_binaryName;
+    json["path"] = this->path;
+    json["binary"] = this->binaryName;
     return json;
 }
 
@@ -268,7 +268,7 @@ ModJson ModInfo::getRawJSON() const {
 }
 
 bool ModInfo::operator==(ModInfo const& other) const {
-    return m_id == other.m_id;
+    return this->id == other.id;
 }
 
 void geode::to_json(nlohmann::json& json, ModInfo const& info) {

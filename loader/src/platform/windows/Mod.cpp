@@ -72,7 +72,7 @@ std::string getLastWinError() {
 }
 
 Result<> Mod::loadPlatformBinary() {
-    auto load = LoadLibraryW((m_tempDirName / m_info.m_binaryName).wstring().c_str());
+    auto load = LoadLibraryW((m_tempDirName / m_info.binaryName).wstring().c_str());
     if (load) {
         if (!(m_implicitLoadFunc = findSymbolOrMangled<decltype(geode_implicit_load)*>(
             load, "geode_implicit_load", "_geode_implicit_load@4"

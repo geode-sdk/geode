@@ -126,15 +126,15 @@ Result<> Loader::setup() {
 }
 
 Result<Mod*> Loader::loadModFromInfo(ModInfo const& info) {
-    if (m_mods.count(info.m_id)) {
-        return Err(fmt::format("Mod with ID '{}' already loaded", info.m_id));
+    if (m_mods.count(info.id)) {
+        return Err(fmt::format("Mod with ID '{}' already loaded", info.id));
     }
 
     // create Mod instance
     auto mod = new Mod(info);
-    m_mods.insert({ info.m_id, mod });
+    m_mods.insert({ info.id, mod });
     mod->m_enabled = InternalMod::get()->getSavedValue<bool>(
-        "should-load-" + info.m_id, true
+        "should-load-" + info.id, true
     );
     // this loads the mod if its dependencies are resolved
     GEODE_UNWRAP(mod->updateDependencies());
@@ -154,8 +154,8 @@ Result<Mod*> Loader::loadModFromFile(ghc::filesystem::path const& file) {
     auto res = ModInfo::createFromGeodeFile(file);
     if (!res) {
         m_invalidMods.push_back(InvalidGeodeFile {
-            .m_path = file,
-            .m_reason = res.unwrapErr(),
+            .path = file,
+            .reason = res.unwrapErr(),
         });
         return Err(res.unwrapErr());
     }
@@ -185,7 +185,7 @@ Result<> Loader::loadModsFromDirectory(
         }
         // skip this entry if it's already loaded
         if (map::contains<std::string, Mod*>(m_mods, [entry](Mod* p) -> bool {
-            return p->m_info.m_path == entry.path();
+            return p->m_info.path == entry.path();
         })) {
             continue;
         }
@@ -201,8 +201,8 @@ Result<> Loader::loadModsFromDirectory(
             auto res = ModInfo::createFromGeodeFile(entry.path());
             if (!res) {
                 m_invalidMods.push_back(InvalidGeodeFile {
-                    .m_path = entry.path(),
-                    .m_reason = res.unwrapErr(),
+                    .path = entry.path(),
+                    .reason = res.unwrapErr(),
                 });
                 continue;
             }
@@ -230,7 +230,7 @@ Result<> Loader::refreshModsList() {
     
     // load early-load mods first
     for (auto& mod : m_modsToLoad) {
-        if (mod.m_needsEarlyLoad) {
+        if (mod.needsEarlyLoad) {
             GEODE_UNWRAP(this->loadModFromInfo(mod));
         }
     }
@@ -240,7 +240,7 @@ Result<> Loader::refreshModsList() {
 
     // load the rest of the mods
     for (auto& mod : m_modsToLoad) {
-        if (!mod.m_needsEarlyLoad) {
+        if (!mod.needsEarlyLoad) {
             GEODE_UNWRAP(this->loadModFromInfo(mod));
         }
     }
@@ -329,7 +329,7 @@ void Loader::closePlatfromConsole() {
 }
 
 void Loader::updateModResources(Mod* mod) {
-    if (!mod->m_info.m_spritesheets.size()) {
+    if (!mod->m_info.spritesheets.size()) {
         return;
     }
 
@@ -338,7 +338,7 @@ void Loader::updateModResources(Mod* mod) {
     log::debug("Adding resources for {}", mod->getID());
 
     // add spritesheets
-    for (auto const& sheet : mod->m_info.m_spritesheets) {
+    for (auto const& sheet : mod->m_info.spritesheets) {
         log::debug("Adding sheet {}", sheet);
         auto png = sheet + ".png";
         auto plist = sheet + ".plist";
@@ -348,7 +348,7 @@ void Loader::updateModResources(Mod* mod) {
             plist == std::string(ccfu->fullPathForFilename(plist.c_str(), false))) {
             log::warn(
                 "The resource dir of \"{}\" is missing \"{}\" png and/or plist files",
-                mod->m_info.m_id, sheet
+                mod->m_info.id, sheet
             );
         }
         else {

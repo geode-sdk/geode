@@ -43,13 +43,11 @@ void ipcPipeThread(HANDLE pipe) {
     char buffer[IPC_BUFFER_SIZE * sizeof(TCHAR)];
     DWORD read;
 
-    std::optional<std::string> replyID = std::nullopt;
-
     // log::debug("Waiting for I/O");
     if (ReadFile(pipe, buffer, sizeof(buffer) - 1, &read, nullptr)) {
         buffer[read] = '\0';
 
-        std::string reply = InternalLoader::processRawIPC((void*)pipe, buffer);
+        auto reply = InternalLoader::processRawIPC((void*)pipe, buffer).dump();
 
         DWORD written;
         WriteFile(pipe, reply.c_str(), reply.size(), &written, nullptr);

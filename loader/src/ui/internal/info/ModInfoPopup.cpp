@@ -52,7 +52,7 @@ bool ModInfoPopup::init(ModInfo const& info, ModListLayer* list) {
     constexpr float logoSize = 40.f;
     constexpr float logoOffset = 10.f;
 
-    auto nameLabel = CCLabelBMFont::create(info.m_name.c_str(), "bigFont.fnt");
+    auto nameLabel = CCLabelBMFont::create(info.name.c_str(), "bigFont.fnt");
     nameLabel->setAnchorPoint({ .0f, .5f });
     nameLabel->limitLabelWidth(200.f, .7f, .1f);
     m_mainLayer->addChild(nameLabel, 2);
@@ -60,7 +60,7 @@ bool ModInfoPopup::init(ModInfo const& info, ModListLayer* list) {
     auto logoSpr = this->createLogo({ logoSize, logoSize });
     m_mainLayer->addChild(logoSpr);
 
-    auto developerStr = "by " + info.m_developer;
+    auto developerStr = "by " + info.developer;
     auto developerLabel = CCLabelBMFont::create(developerStr.c_str(), "goldFont.fnt");
     developerLabel->setScale(.5f);
     developerLabel->setAnchorPoint({ .0f, .5f });
@@ -87,7 +87,7 @@ bool ModInfoPopup::init(ModInfo const& info, ModListLayer* list) {
     );
 
     auto versionLabel = CCLabelBMFont::create(
-        info.m_version.toString().c_str(),
+        info.version.toString().c_str(),
         "bigFont.fnt"
     );
     versionLabel->setAnchorPoint({ .0f, .5f });
@@ -103,7 +103,7 @@ bool ModInfoPopup::init(ModInfo const& info, ModListLayer* list) {
     this->registerWithTouchDispatcher();
 
     m_detailsArea = MDTextArea::create(
-        (info.m_details ? info.m_details.value() : "### No description provided."),
+        (info.details ? info.details.value() : "### No description provided."),
         { 350.f, 137.5f }
     );
     m_detailsArea->setPosition(
@@ -120,8 +120,8 @@ bool ModInfoPopup::init(ModInfo const& info, ModListLayer* list) {
     m_mainLayer->addChild(m_scrollbar);
 
     // changelog
-    if (info.m_changelog) {
-        m_changelogArea = MDTextArea::create(info.m_changelog.value(), { 350.f, 137.5f });
+    if (info.changelog) {
+        m_changelogArea = MDTextArea::create(info.changelog.value(), { 350.f, 137.5f });
         m_changelogArea->setPosition(
             -5000.f, winSize.height / 2 -
             m_changelogArea->getScaledContentSize().height / 2 - 20.f
@@ -163,7 +163,7 @@ bool ModInfoPopup::init(ModInfo const& info, ModListLayer* list) {
     m_buttonMenu->addChild(m_infoBtn);
 
     // repo button
-    if (info.m_repository) {
+    if (info.repository) {
         auto repoBtn = CCMenuItemSpriteExtra::create(
             CCSprite::createWithSpriteFrameName("github.png"_spr), this,
             menu_selector(ModInfoPopup::onRepository)
@@ -176,7 +176,7 @@ bool ModInfoPopup::init(ModInfo const& info, ModListLayer* list) {
     }
 
     // support button
-    if (info.m_supportInfo) {
+    if (info.supportInfo) {
         auto supportBtn = CCMenuItemSpriteExtra::create(
             CCSprite::createWithSpriteFrameName("gift.png"_spr), this,
             menu_selector(ModInfoPopup::onSupport)
@@ -208,30 +208,30 @@ bool ModInfoPopup::init(ModInfo const& info, ModListLayer* list) {
 
 void ModInfoPopup::onSupport(CCObject*) {
     MDPopup::create(
-        "Support " + this->getModInfo().m_name,
-        this->getModInfo().m_supportInfo.value(),
+        "Support " + this->getModInfo().name,
+        this->getModInfo().supportInfo.value(),
         "OK"
     )->show();
 }
 
 void ModInfoPopup::onRepository(CCObject*) {
-    web::openLinkInBrowser(this->getModInfo().m_repository.value());
+    web::openLinkInBrowser(this->getModInfo().repository.value());
 }
 
 void ModInfoPopup::onInfo(CCObject*) {
     auto info = this->getModInfo();
     FLAlertLayer::create(
         nullptr,
-        ("About " + info.m_name).c_str(),
+        ("About " + info.name).c_str(),
         fmt::format(
             "<cr>ID: {}</c>\n"
             "<cg>Version: {}</c>\n"
             "<cp>Developer: {}</c>\n"
             "<cb>Path: {}</c>\n",
-            info.m_id,
-            info.m_version.toString(),
-            info.m_developer,
-            info.m_path.string()
+            info.id,
+            info.version.toString(),
+            info.developer,
+            info.path.string()
         ),
         "OK", nullptr, 400.f
     )->show();
@@ -391,7 +391,7 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
             m_mainLayer->addChild(m_installStatus);
 
             m_updateVersionLabel = CCLabelBMFont::create(
-                ("Available: " + indexItem->info.m_version.toString()).c_str(),
+                ("Available: " + indexItem->info.version.toString()).c_str(),
                 "bigFont.fnt"
             );
             m_updateVersionLabel->setScale(.35f);
@@ -405,7 +405,7 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
     }
     
     // issue report button
-    if (mod->getModInfo().m_issues) {
+    if (mod->getModInfo().issues) {
         auto issuesBtnSpr = ButtonSprite::create(
             "Report an Issue", "goldFont.fnt", "GJ_button_04.png", .8f
         );
@@ -569,7 +569,7 @@ IndexItemInfoPopup::IndexItemInfoPopup()
 
 bool IndexItemInfoPopup::init(IndexItemHandle item, ModListLayer* list) {
     m_item = item;
-    m_installListener.setFilter(m_item->info.m_id);
+    m_installListener.setFilter(m_item->info.id);
 
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
@@ -658,7 +658,7 @@ void IndexItemInfoPopup::onInstall(CCObject*) {
                     [](IndexItemHandle handle) {
                         return fmt::format(
                             " - <cr>{}</c> (<cy>{}</c>)",
-                            handle->info.m_name, handle->info.m_id
+                            handle->info.name, handle->info.id
                         );
                     }
                 ),

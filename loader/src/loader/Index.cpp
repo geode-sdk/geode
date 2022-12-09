@@ -376,16 +376,16 @@ void Index::updateSourceFromLocal(IndexSourceImpl* src) {
             }
             auto add = addRes.unwrap();
             // check if this major version of this item has already been added 
-            if (m_items[add->info.m_id].count(add->info.m_version.getMajor())) {
+            if (m_items[add->info.id].count(add->info.version.getMajor())) {
                 log::warn(
                     "Item {}@{} has already been added, skipping",
-                    add->info.m_id, add->info.m_version
+                    add->info.id, add->info.version
                 );
                 continue;
             }
             // add new major version of this item
-            m_items[add->info.m_id].insert({
-                add->info.m_version.getMajor(),
+            m_items[add->info.id].insert({
+                add->info.version.getMajor(),
                 add
             });
         }
@@ -492,7 +492,7 @@ IndexItemHandle Index::getItem(
         if (version) {
             // prefer most major version
             for (auto& [_, item] : ranges::reverse(m_items.at(id))) {
-                if (version.value() == item->info.m_version) {
+                if (version.value() == item->info.version) {
                     return item;
                 }
             }
@@ -512,7 +512,7 @@ IndexItemHandle Index::getItem(
     if (m_items.count(id)) {
         // prefer most major version
         for (auto& [_, item] : ranges::reverse(m_items.at(id))) {
-            if (version.compare(item->info.m_version)) {
+            if (version.compare(item->info.version)) {
                 return item;
             }
         }
@@ -521,7 +521,7 @@ IndexItemHandle Index::getItem(
 }
 
 IndexItemHandle Index::getItem(ModInfo const& info) const {
-    return this->getItem(info.m_id, info.m_version);
+    return this->getItem(info.id, info.version);
 }
 
 IndexItemHandle Index::getItem(Mod* mod) const {
@@ -529,17 +529,17 @@ IndexItemHandle Index::getItem(Mod* mod) const {
 }
 
 bool Index::isUpdateAvailable(IndexItemHandle item) const {
-    auto installed = Loader::get()->getInstalledMod(item->info.m_id);
+    auto installed = Loader::get()->getInstalledMod(item->info.id);
     if (!installed) {
         return false;
     }
-    return item->info.m_version > installed->getVersion();
+    return item->info.version > installed->getVersion();
 }
 
 bool Index::areUpdatesAvailable() const {
     for (auto& mod : Loader::get()->getAllMods()) {
         auto item = this->getItem(mod);
-        if (item && item->info.m_version > mod->getVersion()) {
+        if (item && item->info.version > mod->getVersion()) {
             return true;
         }
     }
@@ -551,7 +551,7 @@ bool Index::areUpdatesAvailable() const {
 Result<IndexInstallList> Index::getInstallList(IndexItemHandle item) const {
     IndexInstallList list;
     list.target = item;
-    for (auto& dep : item->info.m_dependencies) {
+    for (auto& dep : item->info.dependencies) {
         if (!dep.isResolved()) {
             // check if this dep is available in the index
             if (auto depItem = this->getItem(dep.id, dep.version)) {
@@ -573,7 +573,7 @@ Result<IndexInstallList> Index::getInstallList(IndexItemHandle item) const {
                     "reason is that the version of the dependency this mod "
                     "depends on is not available. Please let the the developer "
                     "({}) of the mod know!",
-                    dep.id, dep.version.toString(), item->info.m_developer
+                    dep.id, dep.version.toString(), item->info.developer
                 );
             }
         }
@@ -588,7 +588,7 @@ Result<IndexInstallList> Index::getInstallList(IndexItemHandle item) const {
 void Index::installNext(size_t index, IndexInstallList const& list) {
     auto postError = [this, list](std::string const& error) {
         m_runningInstallations.erase(list.target);
-        ModInstallEvent(list.target->info.m_id, error).post();
+        ModInstallEvent(list.target->info.id, error).post();
     };
 
     // If we're at the end of the list, move the downloaded items to mods
@@ -597,12 +597,12 @@ void Index::installNext(size_t index, IndexInstallList const& list) {
         // Move all downloaded files
         for (auto& item : list.list) {
             // If the mod is already installed, delete the old .geode file
-            if (auto mod = Loader::get()->getInstalledMod(item->info.m_id)) {
+            if (auto mod = Loader::get()->getInstalledMod(item->info.id)) {
                 auto res = mod->uninstall();
                 if (!res) {
                     return postError(fmt::format(
                         "Unable to uninstall old version of {}: {}",
-                        item->info.m_id, res.unwrapErr()
+                        item->info.id, res.unwrapErr()
                     ));
                 }
             }
@@ -610,13 +610,13 @@ void Index::installNext(size_t index, IndexInstallList const& list) {
             // Move the temp file
             try {
                 ghc::filesystem::rename(
-                    dirs::getTempDir() / (item->info.m_id + ".index"),
-                    dirs::getModsDir() / (item->info.m_id + ".geode")
+                    dirs::getTempDir() / (item->info.id + ".index"),
+                    dirs::getModsDir() / (item->info.id + ".geode")
                 );
             } catch(std::exception& e) {
                 return postError(fmt::format(
                     "Unable to install {}: {}",
-                    item->info.m_id, e.what()
+                    item->info.id, e.what()
                 ));
             }
         }
@@ -624,7 +624,7 @@ void Index::installNext(size_t index, IndexInstallList const& list) {
         // load mods
         (void)Loader::get()->refreshModsList();
 
-        ModInstallEvent(list.target->info.m_id, UpdateFinished()).post();
+        ModInstallEvent(list.target->info.id, UpdateFinished()).post();
         return;
     }
 
@@ -635,9 +635,9 @@ void Index::installNext(size_t index, IndexInstallList const& list) {
     };
 
     auto item = list.list.at(index);
-    auto tempFile = dirs::getTempDir() / (item->info.m_id + ".index");
+    auto tempFile = dirs::getTempDir() / (item->info.id + ".index");
     m_runningInstallations[list.target] = web::AsyncWebRequest()
-        .join("install_item_" + item->info.m_id)
+        .join("install_item_" + item->info.id)
         .fetch(item->download.url)
         .into(tempFile)
         .then([=](auto) {
@@ -647,16 +647,16 @@ void Index::installNext(size_t index, IndexInstallList const& list) {
                 return postError(fmt::format(
                     "Binary file download for {} returned \"404 Not found\". "
                     "Report this to the Geode development team.",
-                    item->info.m_id
+                    item->info.id
                 ));
             }
 
             // Verify checksum
             ModInstallEvent(
-                list.target->info.m_id,
+                list.target->info.id,
                 UpdateProgress(
                     scaledProgress(100),
-                    fmt::format("Verifying {}", item->info.m_id)
+                    fmt::format("Verifying {}", item->info.id)
                 )
             ).post();
             
@@ -665,7 +665,7 @@ void Index::installNext(size_t index, IndexInstallList const& list) {
                     "Checksum mismatch with {}! (Downloaded file did not match what "
                     "was expected. Try again, and if the download fails another time, "
                     "report this to the Geode development team.)",
-                    item->info.m_id
+                    item->info.id
                 ));
             }
 
@@ -675,15 +675,15 @@ void Index::installNext(size_t index, IndexInstallList const& list) {
         .expect([postError, list, item](std::string const& err) {
             postError(fmt::format(
                 "Unable to download {}: {}",
-                item->info.m_id, err
+                item->info.id, err
             ));
         })
         .progress([this, item, list, scaledProgress](auto&, double now, double total) {
             ModInstallEvent(
-                list.target->info.m_id,
+                list.target->info.id,
                 UpdateProgress(
                     scaledProgress(now / total * 100.0),
-                    fmt::format("Downloading {}", item->info.m_id)
+                    fmt::format("Downloading {}", item->info.id)
                 )
             ).post();
         })
@@ -718,7 +718,7 @@ void Index::install(IndexItemHandle item) {
             this->install(list.unwrap());
         } else {
             ModInstallEvent(
-                item->info.m_id,
+                item->info.id,
                 UpdateFailed(list.unwrapErr())
             ).post();
         }

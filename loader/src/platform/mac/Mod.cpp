@@ -18,7 +18,7 @@ T findSymbolOrMangled(void* dylib, char const* name, char const* mangled) {
 
 Result<> Mod::loadPlatformBinary() {
     auto dylib =
-        dlopen((this->m_tempDirName / this->m_info.m_binaryName).string().c_str(), RTLD_LAZY);
+        dlopen((this->m_tempDirName / this->m_info.binaryName).string().c_str(), RTLD_LAZY);
     if (dylib) {
         this->m_implicitLoadFunc =
             findSymbolOrMangled<decltype(geode_implicit_load)*>(dylib, "geode_implicit_load", "_geode_implicit_load");

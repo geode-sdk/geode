@@ -148,7 +148,7 @@ namespace geode {
         ghc::filesystem::path getConfigDir(bool create = true) const;
 
         bool hasSettings() const;
-        decltype(ModInfo::m_settings) getSettings() const;
+        decltype(ModInfo::settings) getSettings() const;
         bool hasSetting(std::string const& key) const;
         std::shared_ptr<Setting> getSetting(std::string const& key) const;
 

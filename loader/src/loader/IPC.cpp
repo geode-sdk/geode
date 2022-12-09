@@ -8,43 +8,18 @@ IPCEvent::IPCEvent(
     std::string const& targetModID,
     std::string const& messageID,
     nlohmann::json const& messageData,
-    std::string* replyString
+    nlohmann::json& replyData
 ) : m_rawPipeHandle(rawPipeHandle),
-    m_targetModID(targetModID),
-    m_messageID(messageID),
-    m_replyString(replyString),
-    m_messageData(messageData) {}
+    targetModID(targetModID),
+    messageID(messageID),
+    replyData(replyData),
+    messageData(messageData) {}
 
 IPCEvent::~IPCEvent() {}
 
-
-
-std::string IPCEvent::getTargetModID() const {
-    return m_targetModID;
-}
-
-std::string IPCEvent::getMessageID() const {
-    return m_messageID;
-}
-
-std::string IPCEvent::getReplyString() const {
-    return *m_replyString;
-}
-
-void IPCEvent::setReplyString(std::string const& reply) {
-    *m_replyString = reply;
-}
-
-nlohmann::json IPCEvent::getMessageData() const {
-    return m_messageData;
-}
-
 ListenerResult IPCFilter::handle(std::function<Callback> fn, IPCEvent* event) {
-    if (
-        event->getTargetModID() == m_modID &&
-        event->getMessageID() == m_messageID
-    ) {
-        event->setReplyString(fn(event));
+    if (event->targetModID == m_modID && event->messageID == m_messageID) {
+        event->replyData = fn(event);
         return ListenerResult::Stop;
     }
     return ListenerResult::Propagate;

@@ -216,12 +216,9 @@ bool InternalLoader::verifyLoaderResources() {
     return true;
 }
 
-std::string InternalLoader::processRawIPC(void* rawHandle, std::string const& buffer) {
-    std::string reply;
-
+nlohmann::json InternalLoader::processRawIPC(void* rawHandle, std::string const& buffer) {
+    nlohmann::json reply;
     try {
-        std::optional<std::string> replyID = std::nullopt;
-
         // parse received message
         auto json = nlohmann::json::parse(buffer);
         if (!json.contains("mod") || !json["mod"].is_string()) {
@@ -232,19 +229,15 @@ std::string InternalLoader::processRawIPC(void* rawHandle, std::string const& bu
             log::warn("Received IPC message without 'message' field");
             return reply;
         }
-        if (json.contains("reply") && json["reply"].is_string()) {
-            replyID = json["reply"];
-        }
         nlohmann::json data;
         if (json.contains("data")) {
             data = json["data"];
         }
         // log::debug("Posting IPC event");
         // ! warning: if the event system is ever made asynchronous this will break!
-        IPCEvent(rawHandle, json["mod"], json["message"], data, &reply).post();
+        IPCEvent(rawHandle, json["mod"], json["message"], data, reply).post();
     } catch(...) {
         log::warn("Received IPC message that isn't valid JSON");
     }
-
     return reply;
 }

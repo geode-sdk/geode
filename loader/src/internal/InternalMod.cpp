@@ -23,9 +23,9 @@ static ModInfo getInternalModInfo() {
             exit(1);
         }
         auto info = infoRes.unwrap();
-        info.m_details = LOADER_ABOUT_MD;
-        info.m_supportInfo = SUPPORT_INFO;
-        info.m_supportsDisabling = false;
+        info.details = LOADER_ABOUT_MD;
+        info.supportInfo = SUPPORT_INFO;
+        info.supportsDisabling = false;
         return info;
     }
     catch (std::exception& e) {
@@ -41,7 +41,7 @@ static ModInfo getInternalModInfo() {
 }
 
 InternalMod::InternalMod() : Mod(getInternalModInfo()) {
-    m_saveDirPath = dirs::getModsSaveDir() / m_info.m_id;
+    m_saveDirPath = dirs::getModsSaveDir() / m_info.id;
 
     ghc::filesystem::create_directories(m_saveDirPath);
 
