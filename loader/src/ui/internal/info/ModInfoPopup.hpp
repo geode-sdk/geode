@@ -67,7 +67,6 @@ protected:
     void onEnableMod(CCObject*);
     void onUninstall(CCObject*);
     void onOpenConfigDir(CCObject*);
-    void onAdvancedSettings(CCObject*);
     void doUninstall();
 
     void FLAlert_Clicked(FLAlertLayer*, bool) override;

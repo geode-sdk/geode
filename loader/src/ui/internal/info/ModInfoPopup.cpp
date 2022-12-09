@@ -3,7 +3,6 @@
 #include "../dev/HookListLayer.hpp"
 #include "../list/ModListLayer.hpp"
 #include "../settings/ModSettingsPopup.hpp"
-#include "../settings/AdvancedSettingsPopup.hpp"
 #include <InternalLoader.hpp>
 #include <Geode/loader/Dirs.hpp>
 
@@ -355,19 +354,6 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
     }
 
     if (mod != Loader::get()->getInternalMod()) {
-        // advanced settings
-        auto advSettSpr = CCSprite::createWithSpriteFrameName("GJ_optionsBtn02_001.png");
-        advSettSpr->setScale(.65f);
-
-        auto advSettBtn = CCMenuItemSpriteExtra::create(
-            advSettSpr, this, menu_selector(LocalModInfoPopup::onAdvancedSettings)
-        );
-        advSettBtn->setPosition(
-            m_infoBtn->getPositionX() - 30.f,
-            m_infoBtn->getPositionY()
-        );
-        m_buttonMenu->addChild(advSettBtn);
-
         auto uninstallBtnSpr = ButtonSprite::create(
             "Uninstall", "bigFont.fnt", "GJ_button_05.png", .6f
         );
@@ -516,10 +502,6 @@ void LocalModInfoPopup::onNoSettings(CCObject*) {
         ->show();
 }
 
-void LocalModInfoPopup::onAdvancedSettings(CCObject*) {
-    AdvancedSettingsPopup::create(m_mod)->show();
-}
-
 void LocalModInfoPopup::FLAlert_Clicked(FLAlertLayer* layer, bool btn2) {
     switch (layer->getTag()) {
         case TAG_CONFIRM_UNINSTALL: {
@@ -581,9 +563,9 @@ LocalModInfoPopup* LocalModInfoPopup::create(Mod* mod, ModListLayer* list) {
 
 IndexItemInfoPopup::IndexItemInfoPopup()
   : m_installListener(
-    this, &IndexItemInfoPopup::onInstallProgress,
-    ModInstallFilter("")
-  ) {}
+        this, &IndexItemInfoPopup::onInstallProgress,
+        ModInstallFilter("")
+    ) {}
 
 bool IndexItemInfoPopup::init(IndexItemHandle item, ModListLayer* list) {
     m_item = item;
