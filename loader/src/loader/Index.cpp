@@ -5,8 +5,38 @@
 #include <Geode/utils/web.hpp>
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/map.hpp>
+#include <hash/hash.hpp>
 
 USE_GEODE_NAMESPACE();
+
+// Save data
+
+struct IndexSourceSaveData {
+    std::string downloadedCommitSHA;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(IndexSourceSaveData, downloadedCommitSHA);
+
+struct IndexSaveData {
+    std::unordered_map<std::string, IndexSourceSaveData> sources;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(IndexSaveData, sources);
+
+// ModInstallEvent
+
+ModInstallEvent::ModInstallEvent(
+    std::string const& id, const UpdateStatus status
+) : modID(id), status(status) {}
+
+ListenerResult ModInstallFilter::handle(std::function<Callback> fn, ModInstallEvent* event) {
+    if (m_id == event->modID) {
+        fn(event);
+    }
+    return ListenerResult::Propagate;
+}
+
+ModInstallFilter::ModInstallFilter(std::string const& id) : m_id(id) {}
+
+// IndexUpdateEvent implementation
 
 // The reason sources have private implementation events that are 
 // turned into the global IndexUpdateEvent is because it makes it much 
@@ -48,36 +78,9 @@ public:
     SourceUpdateFilter() {}
 };
 
-// Save data
-
-struct IndexSourceSaveData {
-    std::string downloadedCommitSHA;
-};
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(IndexSourceSaveData, downloadedCommitSHA);
-
-struct IndexSaveData {
-    std::unordered_map<std::string, IndexSourceSaveData> sources;
-};
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(IndexSaveData, sources);
-
-// ModInstallEvent
-
-ListenerResult ModInstallFilter::handle(std::function<Callback> fn, ModInstallEvent* event) {
-    if (m_id == event->modID) {
-        fn(event);
-    }
-    return ListenerResult::Propagate;
-}
-
-ModInstallFilter::ModInstallFilter(
-    std::string const& id
-) : m_id(id) {}
-
 // IndexUpdateEvent
 
-IndexUpdateEvent::IndexUpdateEvent(
-    const UpdateStatus status
-) : status(status) {}
+IndexUpdateEvent::IndexUpdateEvent(const UpdateStatus status) : status(status) {}
 
 ListenerResult IndexUpdateFilter::handle(
     std::function<Callback> fn,
@@ -153,7 +156,7 @@ static Result<> flattenGithubRepo(ghc::filesystem::path const& dir) {
     return Ok();
 }
 
-// Index
+// Index globals
 
 Index::Index() {
     new EventListener(
@@ -167,6 +170,8 @@ Index* Index::get() {
     static auto inst = new Index();
     return inst;
 }
+
+// Sources
 
 void Index::addSource(std::string const& repository) {
     m_sources.emplace_back(new IndexSourceImpl {
@@ -187,6 +192,8 @@ std::vector<std::string> Index::getSources() const {
     }
     return res;
 }
+
+// Updating
 
 void Index::onSourceUpdate(SourceUpdateEvent* event) {
     // save status for aggregating SourceUpdateEvents to a single global 
@@ -424,7 +431,9 @@ void Index::update(bool force) {
 
     m_triedToUpdate = true;
 
-    // update all sources in GD thread
+    // update all sources in GD thread for synchronization (m_sourceStatuses 
+    // and every other member access happens in AsyncWebRequest callbacks 
+    // which are always run in the GD thread aswell)
     Loader::get()->queueInGDThread([force, this]() {
         // check if some sources are already being updated
         if (m_sourceStatuses.size()) {
@@ -442,7 +451,22 @@ void Index::update(bool force) {
     });
 }
 
+// Items
+
 std::vector<IndexItemHandle> Index::getItems() const {
+    std::vector<IndexItemHandle> res;
+    for (auto& items : map::values(m_items)) {
+        if (items.size()) {
+            auto item = items.rbegin()->second;
+            if (item->download.platforms.count(GEODE_PLATFORM_TARGET)) {
+                res.push_back(item);
+            }
+        }
+    }
+    return res;
+}
+
+std::vector<IndexItemHandle> Index::getAllItems() const {
     std::vector<IndexItemHandle> res;
     for (auto& items : map::values(m_items)) {
         if (items.size()) {
@@ -466,9 +490,11 @@ IndexItemHandle Index::getItem(
     if (m_items.count(id)) {
         auto versions = m_items.at(id);
         if (version) {
-            auto major = version.value().getMajor();
-            if (versions.count(major)) {
-                return versions.at(major);
+            // prefer most major version
+            for (auto& [_, item] : ranges::reverse(m_items.at(id))) {
+                if (version.value() == item->info.m_version) {
+                    return item;
+                }
             }
         } else {
             if (versions.size()) {
@@ -513,24 +539,31 @@ bool Index::isUpdateAvailable(IndexItemHandle item) const {
 bool Index::areUpdatesAvailable() const {
     for (auto& mod : Loader::get()->getAllMods()) {
         auto item = this->getItem(mod);
-        if (item->info.m_version > mod->getVersion()) {
+        if (item && item->info.m_version > mod->getVersion()) {
             return true;
         }
     }
     return false;
 }
 
-Result<std::vector<IndexItemHandle>> Index::getInstallList(
-    IndexItemHandle item
-) const {
-    std::vector<IndexItemHandle> list;
+// Item installation
+
+Result<IndexInstallList> Index::getInstallList(IndexItemHandle item) const {
+    IndexInstallList list;
+    list.target = item;
     for (auto& dep : item->info.m_dependencies) {
         if (!dep.isResolved()) {
             // check if this dep is available in the index
             if (auto depItem = this->getItem(dep.id, dep.version)) {
+                if (!depItem->download.platforms.count(GEODE_PLATFORM_TARGET)) {
+                    return Err(
+                        "Dependency {} is not available on {}",
+                        dep.id, GEODE_PLATFORM_NAME
+                    );
+                }
                 // recursively add dependencies
                 GEODE_UNWRAP_INTO(auto deps, this->getInstallList(depItem));
-                ranges::push(list, deps);
+                ranges::push(list.list, deps.list);
             }
             // otherwise user must get this dependency manually from somewhere 
             // else
@@ -548,10 +581,146 @@ Result<std::vector<IndexItemHandle>> Index::getInstallList(
         // already in order for that to have happened
     }
     // add this item to the end of the list
-    list.push_back(item);
+    list.list.push_back(item);
     return Ok(list);
 }
 
+void Index::installNext(size_t index, IndexInstallList const& list) {
+    auto postError = [this, list](std::string const& error) {
+        m_runningInstallations.erase(list.target);
+        ModInstallEvent(list.target->info.m_id, error).post();
+    };
+
+    // If we're at the end of the list, move the downloaded items to mods
+    if (index >= list.list.size()) {
+        m_runningInstallations.erase(list.target);
+        // Move all downloaded files
+        for (auto& item : list.list) {
+            // If the mod is already installed, delete the old .geode file
+            if (auto mod = Loader::get()->getInstalledMod(item->info.m_id)) {
+                auto res = mod->uninstall();
+                if (!res) {
+                    return postError(fmt::format(
+                        "Unable to uninstall old version of {}: {}",
+                        item->info.m_id, res.unwrapErr()
+                    ));
+                }
+            }
+
+            // Move the temp file
+            try {
+                ghc::filesystem::rename(
+                    dirs::getTempDir() / (item->info.m_id + ".index"),
+                    dirs::getModsDir() / (item->info.m_id + ".geode")
+                );
+            } catch(std::exception& e) {
+                return postError(fmt::format(
+                    "Unable to install {}: {}",
+                    item->info.m_id, e.what()
+                ));
+            }
+        }
+        
+        // load mods
+        (void)Loader::get()->refreshModsList();
+
+        ModInstallEvent(list.target->info.m_id, UpdateFinished()).post();
+        return;
+    }
+
+    auto scaledProgress = [index, list](double progress) -> uint8_t {
+        return static_cast<uint8_t>(
+            progress * (static_cast<double>(index + 1) / list.list.size())
+        );
+    };
+
+    auto item = list.list.at(index);
+    auto tempFile = dirs::getTempDir() / (item->info.m_id + ".index");
+    m_runningInstallations[list.target] = web::AsyncWebRequest()
+        .join("install_item_" + item->info.m_id)
+        .fetch(item->download.url)
+        .into(tempFile)
+        .then([=](auto) {
+            // Check for 404
+            auto notFound = utils::file::readString(tempFile);
+            if (notFound && notFound.unwrap() == "Not Found") {
+                return postError(fmt::format(
+                    "Binary file download for {} returned \"404 Not found\". "
+                    "Report this to the Geode development team.",
+                    item->info.m_id
+                ));
+            }
+
+            // Verify checksum
+            ModInstallEvent(
+                list.target->info.m_id,
+                UpdateProgress(
+                    scaledProgress(100),
+                    fmt::format("Verifying {}", item->info.m_id)
+                )
+            ).post();
+            
+            if (::calculateHash(tempFile) != item->download.hash) {
+                return postError(fmt::format(
+                    "Checksum mismatch with {}! (Downloaded file did not match what "
+                    "was expected. Try again, and if the download fails another time, "
+                    "report this to the Geode development team.)",
+                    item->info.m_id
+                ));
+            }
+
+            // Install next item in queue
+            this->installNext(index + 1, list);
+        })
+        .expect([postError, list, item](std::string const& err) {
+            postError(fmt::format(
+                "Unable to download {}: {}",
+                item->info.m_id, err
+            ));
+        })
+        .progress([this, item, list, scaledProgress](auto&, double now, double total) {
+            ModInstallEvent(
+                list.target->info.m_id,
+                UpdateProgress(
+                    scaledProgress(now / total * 100.0),
+                    fmt::format("Downloading {}", item->info.m_id)
+                )
+            ).post();
+        })
+        .cancelled([postError](auto&) {
+            postError("Download cancelled");
+        })
+        .send();
+}
+
+void Index::cancelInstall(IndexItemHandle item) {
+    Loader::get()->queueInGDThread([this, item]() {
+        if (m_runningInstallations.count(item)) {
+            m_runningInstallations.at(item)->cancel();
+            m_runningInstallations.erase(item);
+        }
+    });
+}
+
+void Index::install(IndexInstallList const& list) {
+    Loader::get()->queueInGDThread([this, list]() {
+        this->installNext(0, list);
+    });
+}
+
 void Index::install(IndexItemHandle item) {
-    // todo
+    Loader::get()->queueInGDThread([this, item]() {
+        if (m_runningInstallations.count(item)) {
+            return;
+        }
+        auto list = this->getInstallList(item);
+        if (list) {
+            this->install(list.unwrap());
+        } else {
+            ModInstallEvent(
+                item->info.m_id,
+                UpdateFailed(list.unwrapErr())
+            ).post();
+        }
+    });
 }

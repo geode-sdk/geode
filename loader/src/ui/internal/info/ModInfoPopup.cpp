@@ -273,6 +273,16 @@ void ModInfoPopup::onClose(CCObject* pSender) {
     this->removeFromParentAndCleanup(true);
 };
 
+void ModInfoPopup::setInstallStatus(std::optional<UpdateProgress> const& progress) {
+    if (progress) {
+        m_installStatus->setVisible(true);
+        m_installStatus->setStatus(progress.value().second);
+        m_installStatus->setProgress(progress.value().first);
+    } else {
+        m_installStatus->setVisible(false);
+    }
+}
+
 // LocalModInfoPopup
 
 bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
@@ -569,8 +579,15 @@ LocalModInfoPopup* LocalModInfoPopup::create(Mod* mod, ModListLayer* list) {
 
 // IndexItemInfoPopup
 
+IndexItemInfoPopup::IndexItemInfoPopup()
+  : m_installListener(
+    this, &IndexItemInfoPopup::onInstallProgress,
+    ModInstallFilter("")
+  ) {}
+
 bool IndexItemInfoPopup::init(IndexItemHandle item, ModListLayer* list) {
     m_item = item;
+    m_installListener.setFilter(m_item->info.m_id);
 
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
@@ -600,6 +617,44 @@ bool IndexItemInfoPopup::init(IndexItemHandle item, ModListLayer* list) {
     return true;
 }
 
+void IndexItemInfoPopup::onInstallProgress(ModInstallEvent* event) {
+    std::visit(makeVisitor {
+        [&](UpdateFinished) {
+            this->setInstallStatus(std::nullopt);
+            
+            FLAlertLayer::create(
+                "Install complete",
+                "Mod succesfully installed! :) "
+                "(You may need to <cy>restart the game</c> "
+                "for the mod to take full effect)",
+                "OK"
+            )->show();
+
+            if (m_layer) {
+                m_layer->reloadList();
+            }
+            this->onClose(nullptr);
+        },
+        [&](UpdateProgress const& progress) {
+            this->setInstallStatus(progress);
+        },
+        [&](UpdateFailed const& info) {
+            this->setInstallStatus(std::nullopt);
+
+            FLAlertLayer::create(
+                "Installation failed :(", info, "OK"
+            )->show();
+
+            m_installBtn->setEnabled(true);
+            m_installBtn->setTarget(
+                this, menu_selector(IndexItemInfoPopup::onInstall)
+            );
+            m_installBtnSpr->setString("Install");
+            m_installBtnSpr->setBG("GE_button_01.png"_spr, false);
+        }
+    }, event->status);
+}
+
 void IndexItemInfoPopup::onInstall(CCObject*) {
     auto list = Index::get()->getInstallList(m_item);
     if (!list) {
@@ -617,7 +672,7 @@ void IndexItemInfoPopup::onInstall(CCObject*) {
             // le nest
             ranges::join(
                 ranges::map<std::vector<std::string>>(
-                    list.unwrap(),
+                    list.unwrap().list,
                     [](IndexItemHandle handle) {
                         return fmt::format(
                             " - <cr>{}</c> (<cy>{}</c>)",
@@ -632,7 +687,22 @@ void IndexItemInfoPopup::onInstall(CCObject*) {
     )->show();
 }
 
+void IndexItemInfoPopup::onCancel(CCObject*) {
+    Index::get()->cancelInstall(m_item);
+}
+
 void IndexItemInfoPopup::doInstall() {
+    if (m_updateVersionLabel) {
+        m_updateVersionLabel->setVisible(false);
+    }
+    this->setInstallStatus(UpdateProgress(0, "Starting install"));
+
+    m_installBtn->setTarget(
+        this, menu_selector(IndexItemInfoPopup::onCancel)
+    );
+    m_installBtnSpr->setString("Cancel");
+    m_installBtnSpr->setBG("GJ_button_06.png", false);
+
     Index::get()->install(m_item);
 }
 

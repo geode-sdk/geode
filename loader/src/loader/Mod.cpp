@@ -303,11 +303,14 @@ Result<> Mod::disable() {
 Result<> Mod::uninstall() {
     if (m_info.m_supportsDisabling) {
         GEODE_UNWRAP(this->disable());
-
-        if (m_info.m_supportsUnloading) GEODE_UNWRAP(this->unloadBinary());
+        if (m_info.m_supportsUnloading) {
+            GEODE_UNWRAP(this->unloadBinary());
+        }
     }
 
-    if (!ghc::filesystem::remove(m_info.m_path)) {
+    try {
+        ghc::filesystem::remove(m_info.m_path);
+    } catch(std::exception& e) {
         return Err(
             "Unable to delete mod's .geode file! "
             "This might be due to insufficient permissions - "

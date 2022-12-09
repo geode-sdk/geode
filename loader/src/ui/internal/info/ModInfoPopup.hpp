@@ -48,6 +48,8 @@ protected:
     void keyDown(cocos2d::enumKeyCodes) override;
     void onClose(cocos2d::CCObject*);
 
+    void setInstallStatus(std::optional<UpdateProgress> const& progress);
+
     virtual CCNode* createLogo(CCSize const& size) = 0;
     virtual ModInfo getModInfo() const = 0;
 };
@@ -80,16 +82,21 @@ public:
 class IndexItemInfoPopup : public ModInfoPopup, public FLAlertLayerProtocol {
 protected:
     IndexItemHandle m_item;
+    EventListener<ModInstallFilter> m_installListener;
 
     bool init(IndexItemHandle item, ModListLayer* list);
     
+    void onInstallProgress(ModInstallEvent* event);
     void onInstall(CCObject*);
+    void onCancel(CCObject*);
     void doInstall();
 
     void FLAlert_Clicked(FLAlertLayer*, bool) override;
 
     CCNode* createLogo(CCSize const& size) override;
     ModInfo getModInfo() const override;
+
+    IndexItemInfoPopup();
 
 public:
     static IndexItemInfoPopup* create(IndexItemHandle item, ModListLayer* list);

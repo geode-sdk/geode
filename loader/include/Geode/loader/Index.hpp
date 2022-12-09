@@ -4,6 +4,7 @@
 #include "ModInfo.hpp"
 #include "Event.hpp"
 #include "../utils/Result.hpp"
+#include "../utils/web.hpp"
 #include <unordered_set>
 
 namespace geode {
@@ -15,6 +16,7 @@ namespace geode {
     struct GEODE_DLL ModInstallEvent : public Event {
         const std::string modID;
         const UpdateStatus status;
+        ModInstallEvent(std::string const& id, const UpdateStatus status);
     };
 
 	class GEODE_DLL ModInstallFilter : public EventFilter<ModInstallEvent> {
@@ -70,6 +72,17 @@ namespace geode {
     };
     using IndexItemHandle = std::shared_ptr<IndexItem>;
 
+    struct IndexInstallList {
+        /**
+         * Mod being installed
+         */
+        IndexItemHandle target;
+        /**
+         * The mod, its dependencies, everything needed to install it
+         */
+        std::vector<IndexItemHandle> list;
+    };
+
     class GEODE_DLL Index final {
     protected:
         // for once, the fact that std::map is ordered is useful (this makes 
@@ -78,6 +91,10 @@ namespace geode {
 
         std::vector<IndexSourcePtr> m_sources;
         std::unordered_map<std::string, UpdateStatus> m_sourceStatuses;
+        std::unordered_map<
+            IndexItemHandle,
+            utils::web::SentAsyncWebRequestHandle
+        > m_runningInstallations;
         std::atomic<bool> m_triedToUpdate = false;
         std::unordered_map<std::string, ItemVersions> m_items;
 
@@ -89,6 +106,8 @@ namespace geode {
         void updateSourceFromLocal(IndexSourceImpl* src);
         void cleanupItems();
 
+        void installNext(size_t index, IndexInstallList const& list);
+
     public:
         static Index* get();
 
@@ -96,27 +115,107 @@ namespace geode {
         void removeSource(std::string const& repository);
         std::vector<std::string> getSources() const;
 
+        /**
+         * Get all index items available on this platform
+         */
         std::vector<IndexItemHandle> getItems() const;
-        bool isKnownItem(std::string const& id, std::optional<VersionInfo> version) const;
+        /**
+         * Get all index items regardless of platform
+         */
+        std::vector<IndexItemHandle> getAllItems() const;
+        /**
+         * Check if an item with this ID is found on the index, and optionally 
+         * provide the version sought after
+         */
+        bool isKnownItem(
+            std::string const& id,
+            std::optional<VersionInfo> version
+        ) const;
+        /**
+         * Get an item from the index by its ID and optionally version
+         * @param id ID of the mod
+         * @param version Version to match exactly; if you need to match a range 
+         * of versions, use the getItem overload that takes a 
+         * ComparableVersionInfo
+         * @returns The item, or nullptr if the item was not found
+         */
         IndexItemHandle getItem(
             std::string const& id,
             std::optional<VersionInfo> version
         ) const;
+        /**
+         * Get an item from the index by its ID and version range
+         * @param id ID of the mod
+         * @param version Version to match
+         * @returns The item, or nullptr if the item was not found
+         */
         IndexItemHandle getItem(
             std::string const& id,
             ComparableVersionInfo version
         ) const;
+        /**
+         * Get an item from the index by its mod.json
+         * @param info The mod's info
+         * @returns The item, or nullptr if the item was not found
+         */
         IndexItemHandle getItem(ModInfo const& info) const;
+        /**
+         * Get an item from the index that corresponds to an installed mod
+         * @param mod An installed mod
+         * @returns The item, or nullptr if the item was not found
+         */
         IndexItemHandle getItem(Mod* mod) const;
-        bool isUpdateAvailable(IndexItemHandle item) const;
-        bool areUpdatesAvailable() const;
-        void install(IndexItemHandle item);
-        Result<std::vector<IndexItemHandle>> getInstallList(
-            IndexItemHandle item
-        ) const;
 
+        /**
+         * Check if an item has updates available
+         * @param item Item to check updates for
+         * @returns True if the version of the item on the index is newer than 
+         * its installed counterpart 
+         */
+        bool isUpdateAvailable(IndexItemHandle item) const;
+        /**
+         * Check if any of the mods on the index have updates available
+         */
+        bool areUpdatesAvailable() const;
+        /**
+         * Get the list of items needed to install this item (dependencies, etc.)
+         * @param item Item to get the list for
+         * @returns The list, or an error if some items on the list cannot be installed
+         */
+        Result<IndexInstallList> getInstallList(IndexItemHandle item) const;
+        /**
+         * Install an index item. Add an event listener for the ModInstallEvent 
+         * class to track the installation progress
+         * @param item Item to install
+         */
+        void install(IndexItemHandle item);
+        /**
+         * Install a list of index items. Add an event listener for the 
+         * ModInstallEvent class to track the installation progress
+         * @param list List of items to install
+         */
+        void install(IndexInstallList const& list);
+        /**
+         * Cancel an installation in progress
+         * @param item Installation to cancel
+         */
+        void cancelInstall(IndexItemHandle item);
+
+        /**
+         * Check if it has been attempted to update the index. You can check 
+         * for errors by doing hasTriedToUpdate() && !isUpToDate()
+         */
         bool hasTriedToUpdate() const;
+        /**
+         * Whether the index is up-to-date, i.e. all sources are up-to-date
+         */
         bool isUpToDate() const;
+        /**
+         * Update the index. Add an event listener for the IndexUpdateEvent 
+         * class to track updating progress
+         * @param force Forcefully update all sources, even if some have are 
+         * already up-to-date
+         */
         void update(bool force = false);
     };
 }

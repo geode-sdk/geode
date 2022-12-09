@@ -60,9 +60,11 @@ namespace geode {
         using MemberFn = typename to_member<C, Callback>::value;
 
         ListenerResult passThrough(Event* e) override {
-            // it is so silly to use dynamic cast in an interbinary context
-            if (auto myev = cast::typeinfo_cast<typename T::Event*>(e)) {
-                return m_filter.handle(m_callback, myev);
+            if (m_callback) {
+                // it is so silly to use dynamic cast in an interbinary context
+                if (auto myev = cast::typeinfo_cast<typename T::Event*>(e)) {
+                    return m_filter.handle(m_callback, myev);
+                }
             }
             return ListenerResult::Propagate;
         }
@@ -100,12 +102,16 @@ namespace geode {
             m_callback = std::bind(fn, cls, std::placeholders::_1);
         }
 
+        void setFilter(T filter) {
+            m_filter = filter;
+        }
+
     protected:
         std::function<Callback> m_callback = nullptr;
         T m_filter;
     };
 
-    class GEODE_DLL Event {
+    class GEODE_DLL [[nodiscard]] Event {
     private:
         static std::unordered_set<EventListenerProtocol*> s_listeners;
         friend EventListenerProtocol;
