@@ -202,7 +202,7 @@ void Index::onSourceUpdate(SourceUpdateEvent* event) {
             break;
         }
         // otherwise, if some source failed, then post failed
-        else if (std::holds_alternative<UpdateError>(status)) {
+        else if (std::holds_alternative<UpdateFailed>(status)) {
             if (whatToPost != Progress) {
                 whatToPost = Failed;
             }
@@ -239,14 +239,14 @@ void Index::onSourceUpdate(SourceUpdateEvent* event) {
         case Failed: {
             std::string info = "";
             for (auto& [src, status] : m_sourceStatuses) {
-                if (std::holds_alternative<UpdateError>(status)) {
-                    info += src + ": " + std::get<UpdateError>(status) + "\n";
+                if (std::holds_alternative<UpdateFailed>(status)) {
+                    info += src + ": " + std::get<UpdateFailed>(status) + "\n";
                 }
             }
             // clear source statuses to allow updating index again
             m_sourceStatuses.clear();
             // post finish event
-            IndexUpdateEvent(UpdateError(info)).post();
+            IndexUpdateEvent(UpdateFailed(info)).post();
         } break;
     }
 }
@@ -286,7 +286,7 @@ void Index::checkSourceUpdates(IndexSourceImpl* src) {
         .expect([src](std::string const& err) {
             SourceUpdateEvent(
                 src,
-                UpdateError(fmt::format("Error checking for updates: {}", err))
+                UpdateFailed(fmt::format("Error checking for updates: {}", err))
             ).post();
         });
 }
@@ -310,7 +310,7 @@ void Index::downloadSource(IndexSourceImpl* src) {
             }
             catch(...) {
                 return SourceUpdateEvent(
-                    src, UpdateError("Unable to clear cached index")
+                    src, UpdateFailed("Unable to clear cached index")
                 ).post();
             }
 
@@ -319,7 +319,7 @@ void Index::downloadSource(IndexSourceImpl* src) {
                 .expect("Unable to unzip new index");
             if (!unzip) {
                 return SourceUpdateEvent(
-                    src, UpdateError(unzip.unwrapErr())
+                    src, UpdateFailed(unzip.unwrapErr())
                 ).post();
             }
 
@@ -331,7 +331,7 @@ void Index::downloadSource(IndexSourceImpl* src) {
         })
         .expect([src](std::string const& err) {
             SourceUpdateEvent(
-                src, UpdateError(fmt::format("Error downloading: {}", err))
+                src, UpdateFailed(fmt::format("Error downloading: {}", err))
             ).post();
         })
         .progress([src](auto&, double now, double total) {

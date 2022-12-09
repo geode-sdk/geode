@@ -147,14 +147,14 @@ void InternalLoader::downloadLoaderResources() {
             auto unzip = file::Unzip::intoDir(tempResourcesZip, resourcesDir, true);
             if (!unzip) {
                 return ResourceDownloadEvent(
-                    UpdateError("Unable to unzip new resources: " + unzip.unwrapErr())
+                    UpdateFailed("Unable to unzip new resources: " + unzip.unwrapErr())
                 ).post();
             }
             ResourceDownloadEvent(UpdateFinished()).post();
         })
         .expect([](std::string const& info) {
             ResourceDownloadEvent(
-                UpdateError("Unable to download resources: " + info)
+                UpdateFailed("Unable to download resources: " + info)
             ).post();
         })
         .progress([](auto&, double now, double total) {

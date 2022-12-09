@@ -32,7 +32,7 @@ $execute {
 				INDEX_UPDATE_NOTIF->waitAndHide();
 				INDEX_UPDATE_NOTIF = nullptr;
 			},
-			[](UpdateError const& info) {
+			[](UpdateFailed const& info) {
 				INDEX_UPDATE_NOTIF->setIcon(NotificationIcon::Error);
 				INDEX_UPDATE_NOTIF->setString(info);
 				INDEX_UPDATE_NOTIF->setTime(NOTIFICATION_LONG_TIME);
@@ -135,7 +135,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 	void onIndexUpdate(IndexUpdateEvent* event) {
 		if (
 			std::holds_alternative<UpdateFinished>(event->status) ||
-			std::holds_alternative<UpdateError>(event->status)
+			std::holds_alternative<UpdateFailed>(event->status)
 		) {
 			this->addUpdateIndicator();
 		}

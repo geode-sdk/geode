@@ -422,7 +422,7 @@ void ModListLayer::onIndexUpdate(IndexUpdateEvent* event) {
         [&](UpdateFinished const&) {
             this->reloadList();
         },
-        [&](UpdateError const& error) {
+        [&](UpdateFailed const& error) {
             this->reloadList();
         }
     }, event->status);

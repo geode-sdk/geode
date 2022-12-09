@@ -9,8 +9,8 @@
 namespace geode {
     using UpdateFinished = std::monostate;
     using UpdateProgress = std::pair<uint8_t, std::string>;
-    using UpdateError    = std::string;
-    using UpdateStatus   = std::variant<UpdateFinished, UpdateProgress, UpdateError>;
+    using UpdateFailed   = std::string;
+    using UpdateStatus   = std::variant<UpdateFinished, UpdateProgress, UpdateFailed>;
 
     struct GEODE_DLL ModInstallEvent : public Event {
         const std::string modID;
