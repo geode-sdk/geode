@@ -1,16 +1,16 @@
 #pragma once
 
-#include "Types.hpp"
-#include "Hook.hpp"
-#include "Setting.hpp"
-#include "ModInfo.hpp"
-
 #include "../DefaultInclude.hpp"
+#include "../cocos/support/zip_support/ZipUtils.h"
+#include "../external/json/json.hpp"
 #include "../utils/Result.hpp"
 #include "../utils/VersionInfo.hpp"
-#include "../external/json/json.hpp"
 #include "../utils/general.hpp"
-#include "../cocos/support/zip_support/ZipUtils.h"
+#include "Hook.hpp"
+#include "ModInfo.hpp"
+#include "Setting.hpp"
+#include "Types.hpp"
+
 #include <optional>
 #include <string_view>
 #include <type_traits>
@@ -18,15 +18,14 @@
 #include <vector>
 
 namespace geode {
-    template<class T>
+    template <class T>
     struct HandleToSaved : public T {
         Mod* m_mod;
         std::string m_key;
 
-        HandleToSaved(std::string const& key, Mod* mod, T const& value)
-          : T(value),
-            m_key(key),
-            m_mod(mod) {}
+        HandleToSaved(std::string const& key, Mod* mod, T const& value) :
+            T(value), m_key(key), m_mod(mod) {}
+
         HandleToSaved(HandleToSaved const&) = delete;
         HandleToSaved(HandleToSaved&&) = delete;
         ~HandleToSaved();
@@ -108,7 +107,6 @@ namespace geode {
 
         friend class ::InternalMod;
         friend class Loader;
-        friend class ::InternalLoader;
         friend struct ModInfo;
 
         template <class = void>
@@ -173,46 +171,50 @@ namespace geode {
             return false;
         }
 
-        template<class T>
+        template <class T>
         T getSavedValue(std::string const& key) {
             if (m_saved.count(key)) {
                 try {
                     // json -> T may fail
                     return m_saved.at(key);
-                } catch(...) {}
+                }
+                catch (...) {
+                }
             }
             return T();
         }
 
-        template<class T>
+        template <class T>
         T getSavedValue(std::string const& key, T const& defaultValue) {
             if (m_saved.count(key)) {
                 try {
                     // json -> T may fail
                     return m_saved.at(key);
-                } catch(...) {}
+                }
+                catch (...) {
+                }
             }
             m_saved[key] = defaultValue;
             return defaultValue;
         }
 
-        template<class T>
+        template <class T>
         HandleToSaved<T> getSavedMutable(std::string const& key) {
             return HandleToSaved(key, this, this->getSavedValue<T>(key));
         }
 
-        template<class T>
+        template <class T>
         HandleToSaved<T> getSavedMutable(std::string const& key, T const& defaultValue) {
             return HandleToSaved(key, this, this->getSavedValue<T>(key, defaultValue));
         }
 
         /**
-         * Set the value of an automatically saved variable. When the game is 
+         * Set the value of an automatically saved variable. When the game is
          * closed, the value is automatically saved under the key
          * @param key Key of the saved value
          * @param value Value
          */
-        template<class T>
+        template <class T>
         void setSavedValue(std::string const& key, T const& value) {
             m_saved[key] = value;
         }
@@ -338,9 +340,9 @@ namespace geode {
         Result<> disable();
 
         /**
-         * Disable & unload this mod (if supported), then delete the mod's 
-         * .geode package. If unloading isn't supported, the mod's binary 
-         * will stay loaded, and in all cases the Mod* instance will still 
+         * Disable & unload this mod (if supported), then delete the mod's
+         * .geode package. If unloading isn't supported, the mod's binary
+         * will stay loaded, and in all cases the Mod* instance will still
          * exist and be interactable.
          * @returns Successful result on success,
          * errorful result with info on error
@@ -388,7 +390,7 @@ namespace geode {
         ModJson getRuntimeInfo() const;
     };
 
-    template<class T>
+    template <class T>
     HandleToSaved<T>::~HandleToSaved() {
         m_mod->setSavedValue(m_key, static_cast<T>(*this));
     }

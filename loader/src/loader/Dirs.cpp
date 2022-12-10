@@ -14,8 +14,9 @@ ghc::filesystem::path dirs::getSaveDir() {
         // not using ~/Library/Caches
         return ghc::filesystem::path("/Users/Shared/Geode");
     #elif defined(GEODE_IS_WINDOWS)
+        // this is std::filesystem intentionally because ghc version doesnt want to work with softlinked directories
         return ghc::filesystem::path(
-            ghc::filesystem::weakly_canonical(
+            std::filesystem::weakly_canonical(
                 CCFileUtils::sharedFileUtils()->getWritablePath().c_str()
             ).string()
         );

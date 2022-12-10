@@ -49,7 +49,7 @@ Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
     for (auto& dep : root.has("dependencies").iterate()) {
         auto obj = dep.obj();
 
-        auto depobj = Dependency {};
+        auto depobj = Dependency{};
         obj.needs("id").validate(&ModInfo::validateID).into(depobj.m_id);
         obj.needs("version").validate(&VersionInfo::validate).intoAs<std::string>(depobj.m_version);
         obj.has("required").into(depobj.m_required);
@@ -61,7 +61,7 @@ Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
     for (auto& [key, value] : root.has("settings").items()) {
         GEODE_UNWRAP_INTO(auto sett, Setting::parse(key, value.json()));
         sett->m_modID = info.m_id;
-        info.m_settings.push_back({ key, sett });
+        info.m_settings.push_back({key, sett});
     }
 
     if (auto resources = root.has("resources").obj()) {
@@ -120,19 +120,19 @@ Result<ModInfo> ModInfo::create(ModJson const& json) {
             "specified, or it is invalidally formatted (required: \"[v]X.X.X\")!"
         );
     }
-    if (schema < Loader::minModVersion()) {
+    if (schema < Loader::get()->minModVersion()) {
         return Err(
             "[mod.json] is built for an older version (" + schema.toString() +
-            ") of Geode (current: " + Loader::getVersion().toString() +
+            ") of Geode (current: " + Loader::get()->getVersion().toString() +
             "). Please update the mod to the latest version, "
             "and if the problem persists, contact the developer "
             "to update it."
         );
     }
-    if (schema > Loader::maxModVersion()) {
+    if (schema > Loader::get()->maxModVersion()) {
         return Err(
             "[mod.json] is built for a newer version (" + schema.toString() +
-            ") of Geode (current: " + Loader::getVersion().toString() +
+            ") of Geode (current: " + Loader::get()->getVersion().toString() +
             "). You need to update Geode in order to use "
             "this mod."
         );
@@ -182,8 +182,7 @@ Result<ModInfo> ModInfo::createFromGeodeZip(file::Unzip& unzip) {
 
     // Read mod.json & parse if possible
     GEODE_UNWRAP_INTO(
-        auto jsonData,
-        unzip.extract("mod.json").expect("Unable to read mod.json: {error}")
+        auto jsonData, unzip.extract("mod.json").expect("Unable to read mod.json: {error}")
     );
     ModJson json;
     try {
@@ -200,10 +199,7 @@ Result<ModInfo> ModInfo::createFromGeodeZip(file::Unzip& unzip) {
     auto info = res.unwrap();
     info.m_path = unzip.getPath();
 
-    GEODE_UNWRAP(
-        info.addSpecialFiles(unzip)
-            .expect("Unable to add extra files: {error}")
-    );
+    GEODE_UNWRAP(info.addSpecialFiles(unzip).expect("Unable to add extra files: {error}"));
 
     return Ok(info);
 }
@@ -212,9 +208,7 @@ Result<> ModInfo::addSpecialFiles(file::Unzip& unzip) {
     // unzip known MD files
     for (auto& [file, target] : getSpecialFiles()) {
         if (unzip.hasEntry(file)) {
-            GEODE_UNWRAP_INTO(auto data, unzip.extract(file).expect(
-                "Unable to extract \"{}\"", file
-            ));
+            GEODE_UNWRAP_INTO(auto data, unzip.extract(file).expect("Unable to extract \"{}\"", file));
             *target = sanitizeDetailsData(std::string(data.begin(), data.end()));
         }
     }
@@ -237,9 +231,9 @@ Result<> ModInfo::addSpecialFiles(ghc::filesystem::path const& dir) {
 
 std::vector<std::pair<std::string, std::optional<std::string>*>> ModInfo::getSpecialFiles() {
     return {
-        { "about.md", &m_details },
-        { "changelog.md", &m_changelog },
-        { "support.md", &m_supportInfo },
+        {"about.md", &m_details},
+        {"changelog.md", &m_changelog},
+        {"support.md", &m_supportInfo},
     };
 }
 

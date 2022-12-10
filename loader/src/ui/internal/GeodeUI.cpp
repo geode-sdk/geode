@@ -1,11 +1,12 @@
 
-#include <Geode/loader/Index.hpp>
-#include <Geode/loader/Dirs.hpp>
 #include "info/ModInfoPopup.hpp"
 #include "list/ModListLayer.hpp"
 #include "settings/ModSettingsPopup.hpp"
-#include <Geode/ui/MDPopup.hpp>
+
+#include <Geode/loader/Dirs.hpp>
+#include <Geode/loader/Index.hpp>
 #include <Geode/ui/GeodeUI.hpp>
+#include <Geode/ui/MDPopup.hpp>
 #include <Geode/utils/web.hpp>
 
 void geode::openModsList() {
@@ -21,12 +22,11 @@ void geode::openIssueReportPopup(Mod* mod) {
                 "If your issue relates to a <cr>game crash</c>, <cb>please include</c> the "
                 "latest crash log(s) from `" +
                 dirs::getCrashlogsDir().string() + "`",
-            "OK", (mod->getModInfo().m_issues.value().m_url ? "Open URL" : ""),
+            "OK",
+            (mod->getModInfo().m_issues.value().m_url ? "Open URL" : ""),
             [mod](bool btn2) {
                 if (btn2) {
-                    web::openLinkInBrowser(
-                        mod->getModInfo().m_issues.value().m_url.value()
-                    );
+                    web::openLinkInBrowser(mod->getModInfo().m_issues.value().m_url.value());
                 }
             }
         )->show();
@@ -38,9 +38,11 @@ void geode::openIssueReportPopup(Mod* mod) {
             "[#support](https://discord.com/channels/911701438269386882/979352389985390603) "
             "channnel in the [Geode Discord Server](https://discord.gg/9e43WMKzhp)\n\n"
             "If your issue relates to a <cr>game crash</c>, <cb>please include</c> the "
-            "latest crash log(s) from `" + dirs::getCrashlogsDir().string() + "`",
+            "latest crash log(s) from `" +
+                dirs::getCrashlogsDir().string() + "`",
             "OK"
-        )->show();
+        )
+            ->show();
     }
 }
 
@@ -49,9 +51,7 @@ void geode::openInfoPopup(Mod* mod) {
 }
 
 void geode::openIndexPopup(Mod* mod) {
-    if (auto item = Index::get()->getItem(
-        mod->getID(), mod->getVersion().getMajor()
-    )) {
+    if (auto item = Index::get()->getItem(mod->getID(), mod->getVersion().getMajor())) {
         IndexItemInfoPopup::create(item, nullptr)->show();
     }
 }
@@ -73,13 +73,11 @@ CCNode* geode::createDefaultLogo(CCSize const& size) {
 
 CCNode* geode::createModLogo(Mod* mod, CCSize const& size) {
     CCNode* spr = nullptr;
-    if (mod == Loader::getInternalMod()) {
+    if (mod == Loader::get()->getInternalMod()) {
         spr = CCSprite::createWithSpriteFrameName("geode-logo.png"_spr);
     }
     else {
-        spr = CCSprite::create(
-            fmt::format("{}/logo.png", mod->getID()).c_str()
-        );
+        spr = CCSprite::create(fmt::format("{}/logo.png", mod->getID()).c_str());
     }
     if (!spr) spr = CCSprite::createWithSpriteFrameName("no-logo.png"_spr);
     if (!spr) spr = CCLabelBMFont::create("N/A", "goldFont.fnt");
@@ -103,11 +101,9 @@ CCNode* geode::createIndexItemLogo(IndexItemHandle item, CCSize const& size) {
         auto logoGlow = CCSprite::createWithSpriteFrameName("logo-glow.png"_spr);
         logoGlow->setScaleX(glowSize.width / logoGlow->getContentSize().width);
         logoGlow->setScaleY(glowSize.height / logoGlow->getContentSize().height);
-        
+
         // i dont know why + 1 is needed and its too late for me to figure out why
-        spr->setPosition(
-            logoGlow->getContentSize().width / 2, logoGlow->getContentSize().height / 2
-        );
+        spr->setPosition(logoGlow->getContentSize().width / 2, logoGlow->getContentSize().height / 2);
         // scary mathematics
         spr->setScaleX(size.width / spr->getContentSize().width / logoGlow->getScaleX());
         spr->setScaleY(size.height / spr->getContentSize().height / logoGlow->getScaleY());

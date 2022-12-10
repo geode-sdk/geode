@@ -2,9 +2,9 @@
 
 #include "../DefaultInclude.hpp"
 #include "../platform/cplatform.h"
+
 #include <string>
 
-class InternalLoader;
 class InternalMod;
 
 namespace geode {
@@ -149,7 +149,7 @@ namespace geode {
     };
 
     constexpr std::string_view GEODE_MOD_EXTENSION = ".geode";
-    
+
     class Mod;
     class Setting;
     class Loader;
@@ -165,7 +165,7 @@ namespace geode {
         template <class, class>
         class FieldIntermediate;
     }
-    
+
 }
 
 /**

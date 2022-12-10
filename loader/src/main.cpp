@@ -1,4 +1,5 @@
 #include "../core/Core.hpp"
+#include "loader/LoaderImpl.hpp"
 
 #include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Loader.hpp>
@@ -6,7 +7,6 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Setting.hpp>
 #include <Geode/loader/SettingEvent.hpp>
-#include <InternalLoader.hpp>
 #include <InternalMod.hpp>
 #include <array>
 
@@ -108,7 +108,7 @@ static auto $_ =
             Loader::get()->openPlatformConsole();
         }
         else {
-            Loader::get()->closePlatfromConsole();
+            Loader::get()->closePlatformConsole();
         }
     });
 
@@ -147,18 +147,18 @@ static auto $_ = listenForIPC("list-mods", [](IPCEvent* event) -> nlohmann::json
 int geodeEntry(void* platformData) {
     // setup internals
 
-    if (!InternalLoader::get()) {
-        InternalLoader::platformMessageBox(
+    if (!Loader::get()) {
+        LoaderImpl::get()->platformMessageBox(
             "Unable to Load Geode!",
             "There was an unknown fatal error setting up "
             "internal tools and Geode can not be loaded. "
-            "(InternalLoader::get returned nullptr)"
+            "(Loader::get returned nullptr)"
         );
         return 1;
     }
 
     if (!geode::core::hook::initialize()) {
-        InternalLoader::platformMessageBox(
+        LoaderImpl::get()->platformMessageBox(
             "Unable to load Geode!",
             "There was an unknown fatal error setting up "
             "internal tools and Geode can not be loaded. "
@@ -169,30 +169,14 @@ int geodeEntry(void* platformData) {
 
     geode_implicit_load(InternalMod::get());
 
-    if (!InternalLoader::get()->setup()) {
-        // if we've made it here, Geode will
-        // be gettable (otherwise the call to
-        // setup would've immediately crashed)
-
-        InternalLoader::platformMessageBox(
-            "Unable to Load Geode!",
-            "There was an unknown fatal error setting up "
-            "internal tools and Geode can not be loaded. "
-            "(InternalLoader::setup) returned false"
-        );
-        return 1;
-    }
-
-    log::debug("Loaded internal Geode class");
-
     // set up loader, load mods, etc.
-    if (!Loader::get()->setup()) {
-        InternalLoader::platformMessageBox(
+    if (!LoaderImpl::get()->setup()) {
+        LoaderImpl::get()->platformMessageBox(
             "Unable to Load Geode!",
             "There was an unknown fatal error setting up "
             "the loader and Geode can not be loaded."
         );
-        delete InternalLoader::get();
+        LoaderImpl::get()->reset();
         return 1;
     }
 

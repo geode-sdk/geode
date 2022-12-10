@@ -1,10 +1,11 @@
+#include "LoaderImpl.hpp"
+
+#include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/Hook.hpp>
 #include <Geode/loader/Loader.hpp>
-#include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/utils/file.hpp>
-#include <InternalLoader.hpp>
 #include <InternalMod.hpp>
 #include <optional>
 #include <string>
@@ -408,7 +409,7 @@ Result<> Mod::disableHook(Hook* hook) {
 }
 
 Result<Hook*> Mod::addHook(Hook* hook) {
-    if (InternalLoader::get()->isReadyToHook()) {
+    if (LoaderImpl::get()->isReadyToHook()) {
         auto res = this->enableHook(hook);
         if (!res) {
             delete hook;
@@ -416,7 +417,7 @@ Result<Hook*> Mod::addHook(Hook* hook) {
         }
     }
     else {
-        InternalLoader::get()->addInternalHook(hook, this);
+        LoaderImpl::get()->addInternalHook(hook, this);
     }
 
     return Ok(hook);
@@ -477,7 +478,7 @@ Result<> Mod::createTempDir() {
     if (!file::createDirectoryAll(tempDir)) {
         return Err("Unable to create mods' runtime directory");
     }
-    
+
     // Create geode/temp/mod.id
     auto tempPath = tempDir / m_info.m_id;
     if (!file::createDirectoryAll(tempPath)) {
@@ -487,9 +488,9 @@ Result<> Mod::createTempDir() {
     // Unzip .geode file into temp dir
     GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(m_info.m_path));
     if (!unzip.hasEntry(m_info.m_binaryName)) {
-        return Err(fmt::format(
-            "Unable to find platform binary under the name \"{}\"", m_info.m_binaryName
-        ));
+        return Err(
+            fmt::format("Unable to find platform binary under the name \"{}\"", m_info.m_binaryName)
+        );
     }
     GEODE_UNWRAP(unzip.extractAllTo(tempPath));
 

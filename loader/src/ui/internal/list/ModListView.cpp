@@ -1,20 +1,19 @@
 #include "ModListView.hpp"
 
 #include "../info/CategoryNode.hpp"
-#include "ModListLayer.hpp"
 #include "ModListCell.hpp"
+#include "ModListLayer.hpp"
 
 #include <Geode/binding/ButtonSprite.hpp>
-#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
-#include <Geode/binding/TableView.hpp>
-#include <Geode/binding/CCMenuItemToggler.hpp>
 #include <Geode/binding/CCContentLayer.hpp>
+#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
+#include <Geode/binding/CCMenuItemToggler.hpp>
+#include <Geode/binding/TableView.hpp>
+#include <Geode/loader/Index.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/string.hpp>
-#include <Geode/loader/Index.hpp>
-#include <InternalLoader.hpp>
 
 void ModListView::updateAllStates(ModListCell* toggled) {
     for (auto cell : CCArrayExt<ModListCell>(m_tableView->m_cellArray)) {
@@ -34,10 +33,9 @@ void ModListView::setupList() {
     // fix content layer content size so the
     // list is properly aligned to the top
     auto coverage = calculateChildCoverage(m_tableView->m_contentLayer);
-    m_tableView->m_contentLayer->setContentSize({
-        -coverage.origin.x + coverage.size.width,
-        -coverage.origin.y + coverage.size.height
-    });
+    m_tableView->m_contentLayer->setContentSize(
+        {-coverage.origin.x + coverage.size.width, -coverage.origin.y + coverage.size.height}
+    );
 
     if (m_entries->count() == 1) {
         m_tableView->moveToTopWithOffset(m_itemSeparation * 2);
@@ -51,7 +49,7 @@ void ModListView::setupList() {
 }
 
 TableViewCell* ModListView::getListCell(char const* key) {
-    return ModCell::create(this, m_display, key, { m_width, m_itemSeparation });
+    return ModCell::create(this, m_display, key, {m_width, m_itemSeparation});
 }
 
 void ModListView::loadCell(TableViewCell* cell, unsigned int index) {
@@ -112,7 +110,7 @@ CCArray* ModListView::modsForType(ModListType type) {
                 mods->addObject(new InvalidGeodeFileObject(mod));
             }
             // internal geode representation always at the top
-            auto imod = Loader::getInternalMod();
+            auto imod = Loader::get()->getInternalMod();
             mods->addObject(new ModObject(imod));
 
             // then other mods

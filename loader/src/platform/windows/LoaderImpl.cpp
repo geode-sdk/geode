@@ -1,8 +1,8 @@
 #include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Log.hpp>
-#include <InternalLoader.hpp>
 #include <InternalMod.hpp>
 #include <iostream>
+#include <loader/LoaderImpl.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -10,11 +10,11 @@ USE_GEODE_NAMESPACE();
 
 static constexpr auto IPC_BUFFER_SIZE = 512;
 
-void InternalLoader::platformMessageBox(char const* title, std::string const& info) {
+void Loader::Impl::platformMessageBox(char const* title, std::string const& info) {
     MessageBoxA(nullptr, info.c_str(), title, MB_ICONERROR);
 }
 
-void InternalLoader::openPlatformConsole() {
+void Loader::Impl::openPlatformConsole() {
     if (m_platformConsoleOpen) return;
     if (AllocConsole() == 0) return;
     SetConsoleCP(CP_UTF8);
@@ -29,7 +29,7 @@ void InternalLoader::openPlatformConsole() {
     }
 }
 
-void InternalLoader::closePlatformConsole() {
+void Loader::Impl::closePlatformConsole() {
     if (!m_platformConsoleOpen) return;
 
     fclose(stdin);
@@ -49,7 +49,7 @@ void ipcPipeThread(HANDLE pipe) {
     if (ReadFile(pipe, buffer, sizeof(buffer) - 1, &read, nullptr)) {
         buffer[read] = '\0';
 
-        std::string reply = InternalLoader::processRawIPC((void*)pipe, buffer);
+        std::string reply = LoaderImpl::get()->processRawIPC((void*)pipe, buffer);
 
         DWORD written;
         WriteFile(pipe, reply.c_str(), reply.size(), &written, nullptr);
@@ -63,7 +63,7 @@ void ipcPipeThread(HANDLE pipe) {
     // log::debug("Disconnected pipe");
 }
 
-void InternalLoader::setupIPC() {
+void Loader::Impl::setupIPC() {
     std::thread([]() {
         while (true) {
             auto pipe = CreateNamedPipeA(
