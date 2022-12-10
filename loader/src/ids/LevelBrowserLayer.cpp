@@ -17,8 +17,9 @@ $register_ids(LevelBrowserLayer) {
             setIDSafe(menu, 0, "new-level-button");
 
             if (auto myLevelsBtn = setIDSafe(menu, 1, "my-levels-button")) {
-                detachIntoOwnMenu(this, myLevelsBtn, "my-levels-menu", 
-                    ColumnLayout::create(5.f, 0.f)->setAlignment(Alignment::End)
+                detachAndCreateMenu(this, "my-levels-menu", 
+                    ColumnLayout::create(5.f, 0.f)->setAlignment(Alignment::End),
+                    myLevelsBtn
                 );
             }
 

@@ -25,15 +25,17 @@ $register_ids(CreatorLayer) {
 
         // move vault button to its own menu
         if (auto lockBtn = setIDSafe(menu, -2, "vault-button")) {
-            detachIntoOwnMenu(this, lockBtn, "top-right-menu", 
-                ColumnLayout::create(5.f, 0.f)->setAlignment(Alignment::Begin)
+            detachAndCreateMenu(this, "top-right-menu", 
+                ColumnLayout::create(5.f, 0.f)->setAlignment(Alignment::Begin),
+                lockBtn
             );
         }
 
         // move treasure room button to its own menu
         if (auto roomBtn = setIDSafe(menu, -1, "treasure-room-button")) {
-            detachIntoOwnMenu(this, roomBtn, "bottom-right-menu", 
-                ColumnLayout::create(5.f, 0.f)->setAlignment(Alignment::End)
+            detachAndCreateMenu(this, "bottom-right-menu", 
+                ColumnLayout::create(5.f, 0.f)->setAlignment(Alignment::End),
+                roomBtn
             );
         }
     }

@@ -55,8 +55,9 @@ $register_ids(MenuLayer) {
 		// move daily chest to its own menu
 
 		if (auto dailyChest = setIDSafe(menu, -1, "daily-chest-button")) {
-			detachIntoOwnMenu(this, dailyChest, "right-side-menu", 
-				ColumnLayout::create(0.f, 0.f)
+			detachAndCreateMenu(this, "right-side-menu", 
+				ColumnLayout::create(0.f, 0.f),
+				dailyChest
 			);
 		}
 
@@ -78,8 +79,9 @@ $register_ids(MenuLayer) {
 		// move close button to its own menu
 
 		if (auto closeBtn = setIDSafe(menu, 1, "close-button")) {
-			detachIntoOwnMenu(this, closeBtn, "close-menu", 
-				RowLayout::create(5.f, 0.f)->setAlignment(Alignment::Begin)
+			detachAndCreateMenu(this, "close-menu", 
+				RowLayout::create(5.f, 0.f)->setAlignment(Alignment::Begin),
+				closeBtn
 			);
 		}
 	}
