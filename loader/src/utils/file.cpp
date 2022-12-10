@@ -28,6 +28,22 @@ Result<std::string> utils::file::readString(ghc::filesystem::path const& path) {
     return Err("Unable to open file");
 }
 
+Result<nlohmann::json> utils::file::readJson(ghc::filesystem::path const& path) {
+#if _WIN32
+    std::ifstream in(path.wstring(), std::ios::in | std::ios::binary);
+#else
+    std::ifstream in(path.string(), std::ios::in | std::ios::binary);
+#endif
+    if (in) {
+        try {
+            return Ok(nlohmann::json::parse(in));
+        } catch(std::exception const& e) {
+            return Err("Unable to parse JSON: " + std::string(e.what()));
+        }
+    }
+    return Err("Unable to open file");
+}
+
 Result<byte_array> utils::file::readBinary(ghc::filesystem::path const& path) {
 #if _WIN32
     std::ifstream in(path.wstring(), std::ios::in | std::ios::binary);
@@ -74,55 +90,55 @@ Result<> utils::file::writeBinary(ghc::filesystem::path const& path, byte_array 
     return Err("Unable to open file");
 }
 
-Result<bool> utils::file::createDirectory(ghc::filesystem::path const& path) {
+Result<> utils::file::createDirectory(ghc::filesystem::path const& path) {
     try {
-        return Ok(ghc::filesystem::create_directory(path));
+        ghc::filesystem::create_directory(path);
+        return Ok();
     }
     catch (...) {
         return Err("Unable to create directory");
     }
 }
 
-Result<bool> utils::file::createDirectoryAll(ghc::filesystem::path const& path) {
+Result<> utils::file::createDirectoryAll(ghc::filesystem::path const& path) {
     try {
-        return Ok(ghc::filesystem::create_directories(path));
+        ghc::filesystem::create_directories(path);
+        return Ok();
     }
     catch (...) {
         return Err("Unable to create directories");
     }
 }
 
-Result<std::vector<std::string>> utils::file::listFiles(std::string const& path) {
-    if (!ghc::filesystem::exists(path)) return Err("Directory does not exist");
-
-    std::vector<std::string> res;
-    for (auto const& file : ghc::filesystem::directory_iterator(path)) {
-        res.push_back(file.path().string());
+Result<std::vector<ghc::filesystem::path>> utils::file::listFiles(
+    ghc::filesystem::path const& path, bool recursive
+) {
+    if (!ghc::filesystem::exists(path)) {
+        return Err("Directory does not exist");
+    }
+    if (!ghc::filesystem::is_directory(path)) {
+        return Err("Path is not a directory");
+    }
+    std::vector<ghc::filesystem::path> res;
+    if (recursive) {
+        for (auto const& file : ghc::filesystem::recursive_directory_iterator(path)) {
+            res.push_back(file.path());
+        }
+    } else {
+        for (auto const& file : ghc::filesystem::directory_iterator(path)) {
+            res.push_back(file.path());
+        }
     }
     return Ok(res);
-}
-
-Result<std::vector<std::string>> utils::file::listFilesRecursively(std::string const& path) {
-    if (!ghc::filesystem::exists(path)) return Err("Directory does not exist");
-
-    std::vector<std::string> res;
-    for (auto const& file : ghc::filesystem::recursive_directory_iterator(path)) {
-        res.push_back(file.path().string());
-    }
-    return Ok(res);
-}
-
-Result<> utils::file::unzipTo(ghc::filesystem::path const& from, ghc::filesystem::path const& to) {
-    GEODE_UNWRAP_INTO(auto unzip, Unzip::create(from));
-    return unzip.extractAllTo(to);
 }
 
 static constexpr auto MAX_ENTRY_PATH_LEN = 256;
 
 struct ZipEntry {
-    unz_file_pos m_pos;
-    ZPOS64_T m_compressedSize;
-    ZPOS64_T m_uncompressedSize;
+    bool isDirectory;
+    unz_file_pos pos;
+    ZPOS64_T compressedSize;
+    ZPOS64_T uncompressedSize;
 };
 
 class file::UnzipImpl final {
@@ -151,12 +167,17 @@ public:
             // Read file and add to entries
             unz_file_pos pos;
             if (unzGetFilePos(m_zip, &pos) == UNZ_OK) {
+                auto len = strlen(fileName);
                 m_entries.insert({
                     fileName,
                     ZipEntry {
-                        .m_pos = pos,
-                        .m_compressedSize = fileInfo.compressed_size,
-                        .m_uncompressedSize = fileInfo.uncompressed_size,
+                        .isDirectory = 
+                            fileInfo.uncompressed_size == 0 &&
+                            len > 0 &&
+                            (fileName[len - 1] == '/' || fileName[len - 1] == '\\'),
+                        .pos = pos,
+                        .compressedSize = fileInfo.compressed_size,
+                        .uncompressedSize = fileInfo.uncompressed_size,
                     },
                 });
             }
@@ -175,16 +196,20 @@ public:
 
         auto entry = m_entries.at(name);
 
-        if (unzGoToFilePos(m_zip, &entry.m_pos) != UNZ_OK) {
+        if (entry.isDirectory) {
+            return Err("Entry is directory");
+        }
+
+        if (unzGoToFilePos(m_zip, &entry.pos) != UNZ_OK) {
             return Err("Unable to navigate to entry");
         }
         if (unzOpenCurrentFile(m_zip) != UNZ_OK) {
             return Err("Unable to open entry");
         }
         byte_array res;
-        res.resize(entry.m_uncompressedSize);
-        auto size = unzReadCurrentFile(m_zip, res.data(), entry.m_uncompressedSize);
-        if (size < 0 || size != entry.m_uncompressedSize) {
+        res.resize(entry.uncompressedSize);
+        auto size = unzReadCurrentFile(m_zip, res.data(), entry.uncompressedSize);
+        if (size < 0 || size != entry.uncompressedSize) {
             return Err("Unable to extract entry");
         }
         unzCloseCurrentFile(m_zip);
@@ -238,7 +263,7 @@ ghc::filesystem::path Unzip::getPath() const {
 }
 
 std::vector<ghc::filesystem::path> Unzip::getEntries() const {
-    return map::getKeys(m_impl->entries());
+    return map::keys(m_impl->entries());
 }
 
 bool Unzip::hasEntry(Path const& name) {
@@ -251,14 +276,48 @@ Result<byte_array> Unzip::extract(Path const& name) {
 
 Result<> Unzip::extractTo(Path const& name, Path const& path) {
     GEODE_UNWRAP_INTO(auto bytes, m_impl->extract(name));
-    GEODE_UNWRAP(file::writeBinary(path, bytes));
+    // create containing directories for target path
+    if (path.has_parent_path()) {
+        GEODE_UNWRAP(file::createDirectoryAll(path.parent_path()));
+    }
+    GEODE_UNWRAP(file::writeBinary(path, bytes).expect("Unable to write file {}: {error}", path.string()));
     return Ok();
 }
 
 Result<> Unzip::extractAllTo(Path const& dir) {
     GEODE_UNWRAP(file::createDirectoryAll(dir));
-    for (auto& [entry, _] : m_impl->entries()) {
-        GEODE_UNWRAP(this->extractTo(entry, dir / entry));
+    for (auto& [entry, info] : m_impl->entries()) {
+        // make sure zip files like root/../../file.txt don't get extracted to 
+        // avoid zip attacks
+        if (!ghc::filesystem::relative(dir / entry, dir).empty()) {
+            if (info.isDirectory) {
+                GEODE_UNWRAP(file::createDirectoryAll(dir / entry));
+            } else {
+                GEODE_UNWRAP(this->extractTo(entry, dir / entry));
+            }
+        } else {
+            log::error(
+                "Zip entry '{}' is not contained within zip bounds",
+                dir / entry
+            );
+        }
+    }
+    return Ok();
+}
+
+Result<> Unzip::intoDir(
+    Path const& from,
+    Path const& to,
+    bool deleteZipAfter
+) {
+    // scope to ensure the zip is closed after extracting so the zip can be 
+    // removed
+    {
+        GEODE_UNWRAP_INTO(auto unzip, Unzip::create(from));
+        GEODE_UNWRAP(unzip.extractAllTo(to));
+    }
+    if (deleteZipAfter) {
+        try { ghc::filesystem::remove(from); } catch(...) {}
     }
     return Ok();
 }

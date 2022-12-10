@@ -1,4 +1,7 @@
 #include <Geode/loader/Hook.hpp>
+#include <Geode/loader/Loader.hpp>
+#include <Geode/loader/Dirs.hpp>
+#include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/utils/file.hpp>
 #include <InternalLoader.hpp>
@@ -11,7 +14,7 @@ USE_GEODE_NAMESPACE();
 
 Mod::Mod(ModInfo const& info) {
     m_info = info;
-    m_saveDirPath = Loader::get()->getGeodeSaveDirectory() / GEODE_MOD_DIRECTORY / info.m_id;
+    m_saveDirPath = dirs::getModsSaveDir() / info.m_id;
     ghc::filesystem::create_directories(m_saveDirPath);
 }
 
@@ -190,7 +193,7 @@ bool Mod::hasSetting(std::string const& key) const {
 
 Result<> Mod::loadBinary() {
     if (!m_binaryLoaded) {
-        GEODE_UNWRAP(this->createTempDir().expect("Unable to create temp directory"));
+        GEODE_UNWRAP(this->createTempDir());
 
         if (this->hasUnresolvedDependencies()) return Err("Mod has unresolved dependencies");
 
@@ -465,41 +468,42 @@ Result<> Mod::unpatch(Patch* patch) {
 
 Result<> Mod::createTempDir() {
     // Check if temp dir already exists
-    if (m_tempDirName.string().empty()) {
-        // Create geode/temp
-        auto tempDir = Loader::get()->getGeodeDirectory() / GEODE_TEMP_DIRECTORY;
-        if (!file::createDirectoryAll(tempDir).isOk()) {
-            return Err("Unable to create Geode temp directory");
-        }
-
-        // Create geode/temp/mod.id
-        auto tempPath = tempDir / m_info.m_id;
-        if (!file::createDirectoryAll(tempPath).isOk()) {
-            return Err("Unable to create mod temp directory");
-        }
-
-        // Unzip .geode file into temp dir
-        GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(m_info.m_path));
-        if (!unzip.hasEntry(m_info.m_binaryName)) {
-            return Err(fmt::format(
-                "Unable to find platform binary under the name \"{}\"", m_info.m_binaryName
-            ));
-        }
-        GEODE_UNWRAP(unzip.extractAllTo(tempPath));
-
-        // Mark temp dir creation as succesful
-        m_tempDirName = tempPath;
+    if (!m_tempDirName.string().empty()) {
+        return Ok();
     }
+
+    // Create geode/temp
+    auto tempDir = dirs::getModRuntimeDir();
+    if (!file::createDirectoryAll(tempDir)) {
+        return Err("Unable to create mods' runtime directory");
+    }
+    
+    // Create geode/temp/mod.id
+    auto tempPath = tempDir / m_info.m_id;
+    if (!file::createDirectoryAll(tempPath)) {
+        return Err("Unable to create mod runtime directory");
+    }
+
+    // Unzip .geode file into temp dir
+    GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(m_info.m_path));
+    if (!unzip.hasEntry(m_info.m_binaryName)) {
+        return Err(fmt::format(
+            "Unable to find platform binary under the name \"{}\"", m_info.m_binaryName
+        ));
+    }
+    GEODE_UNWRAP(unzip.extractAllTo(tempPath));
+
+    // Mark temp dir creation as succesful
+    m_tempDirName = tempPath;
 
     return Ok();
 }
 
 ghc::filesystem::path Mod::getConfigDir(bool create) const {
-    auto dir = Loader::get()->getGeodeDirectory() / GEODE_CONFIG_DIRECTORY / m_info.m_id;
-    if (create && !ghc::filesystem::exists(dir)) {
-        ghc::filesystem::create_directories(dir);
+    auto dir = dirs::getModConfigDir() / m_info.m_id;
+    if (create) {
+        (void)file::createDirectoryAll(dir);
     }
-
     return dir;
 }
 

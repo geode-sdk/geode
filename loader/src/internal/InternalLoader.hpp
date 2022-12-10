@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../index/Index.hpp"
 #include "FileWatcher.hpp"
 
+#include <Geode/loader/Index.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/utils/Result.hpp>
@@ -16,6 +16,19 @@
 #include <thread>
 
 USE_GEODE_NAMESPACE();
+
+struct ResourceDownloadEvent : public Event {
+    const UpdateStatus status;
+    ResourceDownloadEvent(UpdateStatus const& status);
+};
+
+class GEODE_DLL ResourceDownloadFilter : public EventFilter<ResourceDownloadEvent> {
+public:
+    using Callback = void(ResourceDownloadEvent*);
+
+    ListenerResult handle(std::function<Callback> fn, ResourceDownloadEvent* event);
+    ResourceDownloadFilter();
+};
 
 /**
  * Internal extension of Loader for private information
@@ -34,7 +47,7 @@ protected:
     void saveInfoAlerts(nlohmann::json& json);
     void loadInfoAlerts(nlohmann::json& json);
 
-    void downloadLoaderResources(IndexUpdateCallback callback);
+    void downloadLoaderResources();
 
     bool loadHooks();
     void setupIPC();
@@ -67,7 +80,7 @@ public:
     void closePlatformConsole();
     static void platformMessageBox(char const* title, std::string const& info);
 
-    bool verifyLoaderResources(IndexUpdateCallback callback);
+    bool verifyLoaderResources();
 
     bool isReadyToHook() const;
     void addInternalHook(Hook* hook, Mod* mod);

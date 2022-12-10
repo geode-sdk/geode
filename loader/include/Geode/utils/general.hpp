@@ -2,7 +2,7 @@
 
 #include "Result.hpp"
 
-#include <Geode/DefaultInclude.hpp>
+#include "../DefaultInclude.hpp"
 #include <chrono>
 #include <iomanip>
 #include <sstream>
@@ -41,6 +41,16 @@ namespace geode {
     using TypeIdentityType = typename TypeIdentity<T>::type;
         
     namespace utils {
+        // helper for std::visit
+        template<class... Ts> struct makeVisitor : Ts... { using Ts::operator()...; };
+        template<class... Ts> makeVisitor(Ts...) -> makeVisitor<Ts...>;
+
+        template<class T, class ... Args>
+        constexpr T getOr(std::variant<Args...> const& variant, T const& defValue) {
+            return std::holds_alternative<T>(variant) ? 
+                std::get<T>(variant) : defValue;
+        }
+
         constexpr unsigned int hash(char const* str, int h = 0) {
             return !str[h] ? 5381 : (hash(str, h + 1) * 33) ^ str[h];
         }

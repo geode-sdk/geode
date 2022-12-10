@@ -1,10 +1,12 @@
 #include <InternalLoader.hpp>
-#include <Geode/loader/Log.hpp>
-#include <iostream>
-#include <InternalMod.hpp>
 
 #ifdef GEODE_IS_IOS
 
+#include <Geode/loader/Loader.hpp>
+#include <Geode/loader/Log.hpp>
+#include <Geode/loader/Dirs.hpp>
+#include <iostream>
+#include <InternalMod.hpp>
 #include <pwd.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -16,7 +18,7 @@ void InternalLoader::platformMessageBox(char const* title, std::string const& in
 void InternalLoader::openPlatformConsole() {
     ghc::filesystem::path(getpwuid(getuid())->pw_dir);
     freopen(
-        ghc::filesystem::path(utils::file::geodeRoot() / "geode_log.txt").string().c_str(), "w",
+        ghc::filesystem::path(dirs::getGeodeDir() / "geode_log.txt").string().c_str(), "w",
         stdout
     );
     InternalLoader::m_platformConsoleOpen = true;

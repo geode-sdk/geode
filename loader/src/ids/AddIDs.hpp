@@ -22,21 +22,54 @@ T* setIDSafe(CCNode* node, int index, const char* id) {
     return nullptr;
 }
 
-static CCMenu* detachIntoOwnMenu(CCNode* parent, CCNode* node, const char* menuID, Layout* layout) {
-    auto oldMenu = node->getParent();
+template <typename ...Args>
+void setIDs(CCNode* node, int startIndex, Args... args) {
+    for (auto i : { args... }) {
+        setIDSafe(node, startIndex, i);
+        ++startIndex;
+    }
+}
+
+static void switchToMenu(CCNode* node, CCMenu* menu) {
+    auto worldPos = node->getParent()->convertToWorldSpace(node->getPosition());
 
     node->retain();
     node->removeFromParent();
 
+    menu->addChild(node);
+    node->setPosition(menu->convertToNodeSpace(worldPos));
+}
+
+static void switchChildToMenu(CCNode* parent, int idx, CCMenu* menu) {
+    switchToMenu(static_cast<CCNode*>(parent->getChildren()->objectAtIndex(idx)), menu);
+}
+
+template <typename ...Args>
+static void switchChildrenToMenu(CCNode* parent, CCMenu* menu, Args... args) {
+    for (auto i : { args... }) {
+        switchChildToMenu(parent, i, menu);
+    }
+}
+
+template <typename T, typename ...Args>
+static CCMenu* detachAndCreateMenu(CCNode* parent, const char* menuID, Layout* layout, T first, Args... args) {
+    auto oldMenu = first->getParent();
+
+    first->retain();
+    first->removeFromParent();
+
     auto newMenu = CCMenu::create();
-    newMenu->setPosition(oldMenu->convertToWorldSpace(node->getPosition()));
+    newMenu->setPosition(parent->convertToNodeSpace(oldMenu->convertToWorldSpace(first->getPosition())));
     newMenu->setID(menuID);
-    node->setPosition(0, 0);
-    newMenu->addChild(node);
+    newMenu->setZOrder(oldMenu->getZOrder());
     newMenu->setLayout(layout);
     parent->addChild(newMenu);
 
-    node->release();
+    first->setPosition(0, 0);
+    newMenu->addChild(first);
+    first->release();
+
+    (switchToMenu(args, newMenu), ...);
 
     return newMenu;
 }

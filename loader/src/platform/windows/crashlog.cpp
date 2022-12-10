@@ -5,7 +5,9 @@
 #ifdef GEODE_IS_WINDOWS
 
 #include <crashlog.hpp>
-
+#include <Geode/loader/Dirs.hpp>
+#include <Geode/loader/Loader.hpp>
+#include <Geode/loader/Mod.hpp>
 #include <DbgHelp.h>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/file.hpp>
@@ -224,7 +226,7 @@ static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
 
     // add a file to let Geode know on next launch that it crashed previously
     // this could also be done by saving a loader setting or smth but eh.
-    (void)utils::file::writeBinary(crashlog::getCrashLogDirectory() + "/last-crashed", {});
+    (void)utils::file::writeBinary(crashlog::getCrashLogDirectory() / "last-crashed", {});
 
     SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
 
@@ -273,7 +275,7 @@ static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
     // save actual file
     std::ofstream actualFile;
     actualFile.open(
-        crashlog::getCrashLogDirectory() + "/" + getDateString(true) + ".log", std::ios::app
+        crashlog::getCrashLogDirectory() / (getDateString(true) + ".log"), std::ios::app
     );
     actualFile << file.rdbuf() << std::flush;
     actualFile.close();
@@ -283,7 +285,7 @@ static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
 
 bool crashlog::setupPlatformHandler() {
     SetUnhandledExceptionFilter(exceptionHandler);
-    auto lastCrashedFile = crashlog::getCrashLogDirectory() + "/last-crashed";
+    auto lastCrashedFile = crashlog::getCrashLogDirectory() / "last-crashed";
     if (ghc::filesystem::exists(lastCrashedFile)) {
         g_lastLaunchCrashed = true;
         try {
@@ -299,9 +301,8 @@ bool crashlog::didLastLaunchCrash() {
     return g_lastLaunchCrashed;
 }
 
-std::string crashlog::getCrashLogDirectory() {
-    static auto dir = (Loader::get()->getGeodeDirectory() / "crashlogs").string();
-    return dir;
+ghc::filesystem::path crashlog::getCrashLogDirectory() {
+    return dirs::getGeodeDir() / "crashlogs";
 }
 
 #endif

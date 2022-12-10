@@ -1,10 +1,11 @@
+
 #include <InternalLoader.hpp>
 #include <array>
-
-USE_GEODE_NAMESPACE();
-
 #include <Geode/modify/LoadingLayer.hpp>
 #include <fmt/format.h>
+#include <Geode/utils/cocos.hpp>
+
+USE_GEODE_NAMESPACE();
 
 struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     bool m_updatingResources;
@@ -27,28 +28,15 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
         label->setID("geode-loaded-info");
         this->addChild(label);
 
+        // for some reason storing the listener as a field caused the 
+        // destructor for the field not to be run
+        this->addChild(EventListenerNode<ResourceDownloadFilter>::create(
+            this, &CustomLoadingLayer::updateResourcesProgress
+        ));
+
         // verify loader resources
-        if (!InternalLoader::get()->verifyLoaderResources(std::bind(
-                &CustomLoadingLayer::updateResourcesProgress, this, std::placeholders::_1,
-                std::placeholders::_2, std::placeholders::_3
-            ))) {
-            // auto bg = CCScale9Sprite::create(
-            //     "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
-            // );
-            // bg->setScale(.6f);
-            // bg->setColor({ 0, 0, 0 });
-            // bg->setOpacity(150);
-            // bg->setPosition(winSize / 2);
-            // this->addChild(bg);
-
-            // m_fields->m_updatingResourcesBG = bg;
-
-            // auto label = CCLabelBMFont::create("", "goldFont.fnt");
-            // label->setScale(1.1f);
-            // bg->addChild(label);
-
+        if (!InternalLoader::get()->verifyLoaderResources()) {
             m_fields->m_updatingResources = true;
-
             this->setUpdateText("Downloading Resources");
         }
 
@@ -57,41 +45,33 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
 
     void setUpdateText(std::string const& text) {
         m_textArea->setString(text.c_str());
-        // m_fields->m_updatingResources->setString(text.c_str());
-        // m_fields->m_updatingResourcesBG->setContentSize({
-        //     m_fields->m_updatingResources->getScaledContentSize().width + 30.f,
-        //     50.f
-        // });
-        // m_fields->m_updatingResources->setPosition(
-        //     m_fields->m_updatingResourcesBG->getContentSize() / 2
-        // );
     }
 
-    void updateResourcesProgress(UpdateStatus status, std::string const& info, uint8_t progress) {
-        switch (status) {
-            case UpdateStatus::Progress: {
-                this->setUpdateText("Downloading Resources: " + std::to_string(progress) + "%");
-            } break;
-
-            case UpdateStatus::Finished: {
+    void updateResourcesProgress(ResourceDownloadEvent* event) {
+        std::visit(makeVisitor {
+            [&](UpdateProgress const& progress) {
+                this->setUpdateText(fmt::format(
+                    "Downloading Resources: {}%", progress.first
+                ));
+            },
+            [&](UpdateFinished) {
                 this->setUpdateText("Resources Downloaded");
                 m_fields->m_updatingResources = false;
                 this->loadAssets();
-            } break;
-
-            case UpdateStatus::Failed: {
+            },
+            [&](UpdateError const& error) {
                 InternalLoader::platformMessageBox(
                     "Error updating resources",
-                    "Unable to update Geode resources: " + info +
-                        ".\n"
-                        "The game will be loaded as normal, but please be aware "
-                        "that it may very likely crash."
+                    "Unable to update Geode resources: " + 
+                    error + ".\n"
+                    "The game will be loaded as normal, but please be aware "
+                    "that it may very likely crash."
                 );
                 this->setUpdateText("Resource Download Failed");
                 m_fields->m_updatingResources = false;
                 this->loadAssets();
-            } break;
-        }
+            }
+        }, event->status);
     }
 
     void loadAssets() {

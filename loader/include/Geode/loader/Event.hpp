@@ -71,8 +71,9 @@ namespace geode {
             this->enable();
         }
 
-        EventListener(std::function<Callback> fn, T filter = T()) :
-            m_callback(fn), m_filter(filter) {
+        EventListener(std::function<Callback> fn, T filter = T())
+          : m_callback(fn), m_filter(filter)
+        {
             this->enable();
         }
 
@@ -86,6 +87,10 @@ namespace geode {
             this->enable();
         }
 
+        // todo: maybe add these?
+        EventListener(EventListener const& other) = delete;
+        EventListener(EventListener&& other) = delete;
+
         void bind(std::function<Callback> fn) {
             m_callback = fn;
         }
@@ -96,23 +101,23 @@ namespace geode {
         }
 
     protected:
-        std::function<Callback> m_callback;
+        std::function<Callback> m_callback = nullptr;
         T m_filter;
     };
 
     class GEODE_DLL Event {
+    private:
         static std::unordered_set<EventListenerProtocol*> s_listeners;
-        Mod* m_sender;
         friend EventListenerProtocol;
 
     public:
+        Mod* sender;
+
         void postFrom(Mod* sender);
-
-        inline void post() {
-            postFrom(Mod::get());
+        template<class = void>
+        void post() {
+            postFrom(getMod());
         }
-
-        Mod* getSender();
 
         virtual ~Event();
     };

@@ -13,6 +13,7 @@
 #include <Geode/ui/BasedButton.hpp>
 #include <Geode/ui/Notification.hpp>
 #include <Geode/utils/casts.hpp>
+#include <Geode/loader/Dirs.hpp>
 #include <optional>
 
 static ModListType g_tab = ModListType::Installed;
@@ -20,6 +21,8 @@ static ModListLayer* g_instance = nullptr;
 
 bool ModListLayer::init() {
     if (!CCLayer::init()) return false;
+
+    m_indexListener.bind(this, &ModListLayer::onIndexUpdate);
 
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
@@ -204,40 +207,6 @@ void ModListLayer::createSearchControl() {
     this->addChild(m_searchInput);
 }
 
-void ModListLayer::indexUpdateProgress(
-    UpdateStatus status, std::string const& info, uint8_t percentage
-) {
-    // if we have a check for updates button
-    // visible, disable it from being clicked
-    // again
-    if (m_checkForUpdatesBtn) {
-        m_checkForUpdatesBtn->setEnabled(false);
-        as<ButtonSprite*>(m_checkForUpdatesBtn->getNormalImage())->setString("Updating Index");
-    }
-
-    // if finished, refresh list
-    if (status == UpdateStatus::Finished) {
-        m_indexUpdateLabel->setVisible(false);
-        this->reloadList();
-
-        // make sure to release global instance
-        // and set it back to null
-        CC_SAFE_RELEASE_NULL(g_instance);
-    }
-    else {
-        m_indexUpdateLabel->setVisible(true);
-        m_indexUpdateLabel->setString(info.c_str());
-    }
-
-    if (status == UpdateStatus::Failed) {
-        FLAlertLayer::create("Error Updating Index", info, "OK")->show();
-
-        // make sure to release global instance
-        // and set it back to null
-        CC_SAFE_RELEASE(g_instance);
-    }
-}
-
 void ModListLayer::reloadList() {
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
@@ -247,26 +216,23 @@ void ModListLayer::reloadList() {
         m_list->removeFromParent();
     }
 
+    auto items = ModListView::modsForType(g_tab);
+
     // create new list
-    m_query.m_searchFilter =
-        m_searchInput && m_searchInput->getString() && strlen(m_searchInput->getString())
-        ? std::optional<std::string>(m_searchInput->getString())
-        : std::nullopt;
-    auto list = ModListView::create(g_tab, m_expandedList, 358.f, 190.f, m_query);
+    auto list = ModListView::create(items, m_display);
     list->setLayer(this);
 
     // set list status
-    auto status = list->getStatusAsString();
-    if (status.size()) {
+    if (!items->count()) {
         m_listLabel->setVisible(true);
-        m_listLabel->setString(status.c_str());
-    }
-    else {
+        m_listLabel->setString("No mods found");
+    } else {
         m_listLabel->setVisible(false);
     }
 
     // update index if needed
-    if (g_tab == ModListType::Download && !Index::get()->isIndexUpdated()) {
+    if (g_tab == ModListType::Download && !Index::get()->hasTriedToUpdate()) {
+        m_listLabel->setVisible(true);
         m_listLabel->setString("Updating index...");
         if (!m_loadingCircle) {
             m_loadingCircle = LoadingCircle::create();
@@ -310,9 +276,9 @@ void ModListLayer::reloadList() {
 
     // check if the user has searched something,
     // and show visual indicator if so
-    auto hasQuery = m_query.m_searchFilter.has_value();
-    m_searchBtn->setVisible(!hasQuery);
-    m_searchClearBtn->setVisible(hasQuery);
+    // auto hasQuery = m_query.m_searchFilter.has_value();
+    // m_searchBtn->setVisible(!hasQuery);
+    // m_searchClearBtn->setVisible(hasQuery);
 
     // add/remove "Check for Updates" button
     if (
@@ -320,7 +286,7 @@ void ModListLayer::reloadList() {
 		g_tab == ModListType::Installed &&
 		// check if index is updated, and if not 
 		// add button if it doesn't exist yet
-		!Index::get()->isIndexUpdated()
+		!Index::get()->isUpToDate()
 	) {
         if (!m_checkForUpdatesBtn) {
             auto checkSpr = ButtonSprite::create("Check for Updates");
@@ -350,11 +316,19 @@ void ModListLayer::onCheckForUpdates(CCObject*) {
     g_instance->retain();
 
     // update index
-    Index::get()->updateIndex(
-        [](UpdateStatus status, std::string const& info, uint8_t progress) -> void {
-            g_instance->indexUpdateProgress(status, info, progress);
+    Index::get()->update();
+}
+
+void ModListLayer::onIndexUpdate(IndexUpdateEvent* event) {
+    std::visit(makeVisitor {
+        [&](UpdateProgress const& prog) {},
+        [&](UpdateFinished const&) {
+            this->reloadList();
+        },
+        [&](UpdateError const& error) {
+            this->reloadList();
         }
-    );
+    }, event->status);
 }
 
 void ModListLayer::textChanged(CCTextInputNode* input) {
@@ -373,7 +347,9 @@ void ModListLayer::onReload(CCObject*) {
 }
 
 void ModListLayer::onExpand(CCObject* sender) {
-    m_expandedList = !static_cast<CCMenuItemToggler*>(sender)->isToggled();
+    m_display = static_cast<CCMenuItemToggler*>(sender)->isToggled() ?
+        ModListDisplay::Concise :
+        ModListDisplay::Expanded;
     this->reloadList();
 }
 
@@ -382,7 +358,7 @@ void ModListLayer::onFilters(CCObject*) {
 }
 
 void ModListLayer::onOpenFolder(CCObject*) {
-    file::openFolder(ghc::filesystem::canonical(Loader::get()->getGeodeDirectory() / "mods"));
+    file::openFolder(ghc::filesystem::canonical(dirs::getModsDir()));
 }
 
 void ModListLayer::onResetSearch(CCObject*) {
@@ -442,5 +418,5 @@ ModListLayer* ModListLayer::scene() {
 }
 
 ModListLayer::~ModListLayer() {
-    removeAllChildrenWithCleanup(true);
+    this->removeAllChildrenWithCleanup(true);
 }

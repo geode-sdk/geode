@@ -3,7 +3,7 @@
 #include "ModListView.hpp"
 
 #include <Geode/binding/TextInputDelegate.hpp>
-#include <Index.hpp>
+#include <Geode/loader/Index.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -25,9 +25,9 @@ protected:
     CCNode* m_searchBG = nullptr;
     CCTextInputNode* m_searchInput = nullptr;
     LoadingCircle* m_loadingCircle = nullptr;
-    ModListQuery m_query;
     CCMenuItemSpriteExtra* m_filterBtn;
-    bool m_expandedList = false;
+    ModListDisplay m_display = ModListDisplay::Concise;
+    EventListener<IndexUpdateFilter> m_indexListener;
 
     virtual ~ModListLayer();
 
@@ -43,8 +43,8 @@ protected:
     void onFilters(CCObject*);
     void keyDown(enumKeyCodes) override;
     void textChanged(CCTextInputNode*) override;
-    void indexUpdateProgress(UpdateStatus status, std::string const& info, uint8_t percentage);
     void createSearchControl();
+    void onIndexUpdate(IndexUpdateEvent* event);
 
     friend class SearchFilterPopup;
 

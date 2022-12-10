@@ -119,8 +119,7 @@ void Notification::setIcon(cocos2d::CCSprite* icon) {
     if (m_icon) {
         m_icon->removeFromParent();
     }
-    m_icon = icon;
-    if (icon) {
+    if ((m_icon = icon)) {
         m_bg->addChild(icon);
     }
     this->updateLayout();
@@ -144,6 +143,10 @@ void Notification::animateOut() {
     m_label->runAction(CCFadeTo::create(NOTIFICATION_FADEOUT, 0));
     m_icon->runAction(CCFadeTo::create(NOTIFICATION_FADEOUT, 0));
     m_bg->runAction(CCFadeTo::create(NOTIFICATION_FADEOUT, 0));
+}
+
+void Notification::waitAndHide() {
+    this->setTime(NOTIFICATION_DEFAULT_TIME);
 }
 
 void Notification::show() {

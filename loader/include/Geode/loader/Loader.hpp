@@ -83,23 +83,5 @@ namespace geode {
         static void closePlatfromConsole();
 
         bool didLastLaunchCrash() const;
-        ghc::filesystem::path getCrashLogDirectory() const;
-
-        /**
-         * Directory where Geometry Dash is
-         */
-        ghc::filesystem::path getGameDirectory() const;
-        /**
-         * Directory where GD saves its files
-         */
-        ghc::filesystem::path getSaveDirectory() const;
-        /**
-         * Directory where Geode is
-         */
-        ghc::filesystem::path getGeodeDirectory() const;
-        /**
-         * Directory where Geode saves its files
-         */
-        ghc::filesystem::path getGeodeSaveDirectory() const;
     };
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Geode/DefaultInclude.hpp>
+#include <fs/filesystem.hpp>
 #include <string>
 
 /**
@@ -22,5 +23,5 @@ namespace crashlog {
      * @returns Path to the directory, or an empty string if the platform does
      * not support crash logs
      */
-    std::string GEODE_DLL getCrashLogDirectory();
+    ghc::filesystem::path GEODE_DLL getCrashLogDirectory();
 }

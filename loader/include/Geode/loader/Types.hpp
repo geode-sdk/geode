@@ -129,9 +129,6 @@ namespace geode {
         }
     };
 
-    class Mod;
-    class Setting;
-
     /**
      * Represents if a mod has been loaded &
      * its dependencies resolved
@@ -151,16 +148,10 @@ namespace geode {
         Disabled,
     };
 
-    static constexpr std::string_view GEODE_DIRECTORY = "geode";
-    static constexpr std::string_view GEODE_MOD_DIRECTORY = "mods";
-    static constexpr std::string_view GEODE_LOG_DIRECTORY = "log";
-    static constexpr std::string_view GEODE_RESOURCE_DIRECTORY = "resources";
-    static constexpr std::string_view GEODE_CONFIG_DIRECTORY = "config";
-    static constexpr std::string_view GEODE_TEMP_DIRECTORY = "temp";
-    static constexpr std::string_view GEODE_MOD_EXTENSION = ".geode";
-    static constexpr std::string_view GEODE_INDEX_DIRECTORY = "index";
-
+    constexpr std::string_view GEODE_MOD_EXTENSION = ".geode";
+    
     class Mod;
+    class Setting;
     class Loader;
     class Hook;
     struct ModInfo;

@@ -4,6 +4,9 @@
 #include <Geode/binding/CCTextInputNode.hpp>
 #include <Geode/binding/ColorChannelSprite.hpp>
 #include <Geode/binding/Slider.hpp>
+#include <Geode/binding/CCMenuItemToggler.hpp>
+#include <Geode/loader/Loader.hpp>
+#include <Geode/loader/Dirs.hpp>
 
 // BoolSettingNode
 
@@ -120,7 +123,7 @@ void FileSettingNode::onPickFile(CCObject*) {
     if (auto path = file::pickFile(
             file::PickMode::OpenFile,
             {
-                file::geodeRoot(),
+                dirs::getGameDir(),
                 setting->getFileFilters().value_or(std::vector<file::FilePickOptions::Filter>())
             }
         )) {

@@ -3,6 +3,7 @@
 #include "Result.hpp"
 #include "general.hpp"
 
+#include "../external/json/json.hpp"
 #include <Geode/DefaultInclude.hpp>
 #include <fs/filesystem.hpp>
 #include <string>
@@ -10,15 +11,17 @@
 
 namespace geode::utils::file {
     GEODE_DLL Result<std::string> readString(ghc::filesystem::path const& path);
+    GEODE_DLL Result<nlohmann::json> readJson(ghc::filesystem::path const& path);
     GEODE_DLL Result<byte_array> readBinary(ghc::filesystem::path const& path);
 
     GEODE_DLL Result<> writeString(ghc::filesystem::path const& path, std::string const& data);
     GEODE_DLL Result<> writeBinary(ghc::filesystem::path const& path, byte_array const& data);
 
-    GEODE_DLL Result<bool> createDirectory(ghc::filesystem::path const& path);
-    GEODE_DLL Result<bool> createDirectoryAll(ghc::filesystem::path const& path);
-    GEODE_DLL Result<std::vector<std::string>> listFiles(std::string const& path);
-    GEODE_DLL Result<std::vector<std::string>> listFilesRecursively(std::string const& path);
+    GEODE_DLL Result<> createDirectory(ghc::filesystem::path const& path);
+    GEODE_DLL Result<> createDirectoryAll(ghc::filesystem::path const& path);
+    GEODE_DLL Result<std::vector<ghc::filesystem::path>> listFiles(
+        ghc::filesystem::path const& path, bool recursive = false
+    );
 
     class UnzipImpl;
 
@@ -71,17 +74,21 @@ namespace geode::utils::file {
          * @param dir Directory to unzip the contents to
          */
         Result<> extractAllTo(Path const& dir);
+
+        /**
+         * Helper method for quickly unzipping a file
+         * @param from ZIP file to unzip
+         * @param to Directory to unzip to
+         * @param deleteZipAfter Whether to delete the zip after unzipping
+         * @returns Succesful result on success, errorful result on error
+         */
+        static Result<> intoDir(
+            Path const& from,
+            Path const& to,
+            bool deleteZipAfter = false
+        );
     };
 
-    /**
-     * Unzip file to directory
-     * @param from File to unzip
-     * @param to Directory to unzip to
-     * @returns Ok on success, Error on error
-     */
-    GEODE_DLL Result<> unzipTo(ghc::filesystem::path const& from, ghc::filesystem::path const& to);
-
-    GEODE_DLL ghc::filesystem::path geodeRoot();
     GEODE_DLL bool openFolder(ghc::filesystem::path const& path);
 
     enum class PickMode {
