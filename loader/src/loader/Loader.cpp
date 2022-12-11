@@ -65,7 +65,7 @@ Result<> Loader::setup() {
     if (!sett) {
         log::warn("Unable to load loader settings: {}", sett.unwrapErr());
     }
-    GEODE_UNWRAP(this->refreshModsList());
+    (void)this->refreshModsList();
 
     this->queueInGDThread([]() {
         Loader::get()->addSearchPaths();
