@@ -3,30 +3,26 @@
 #include <cocos-ext.h>
 #include <Geode/loader/Mod.hpp>
 
-ccColor3B TagNode::categoryToColor(std::string const& category) {
+static std::array<ccColor3B, 6> TAG_COLORS {{
+    { 114, 255, 138, }, // green
+    { 114, 255, 255, }, // aqua
+    { 255, 114, 255, }, // pink
+    { 255, 114, 114, }, // red
+    { 255, 152, 114, }, // orange
+    { 255, 229, 114, }, // yellow
+}};
+
+ccColor3B TagNode::tagToColor(std::string const& category) {
     // all we need is to convert a string into some number
     // between 0 and 360 and for that number to always be the
     // same for the same string
-
-    double hue = pow(hash(category.c_str()), 1.2);
-    // for some reason RGBfromHSV does not wrap around
-    while (hue > 360000.0)
-        hue -= 360000.0;
-    while (hue > 360.0)
-        hue -= 360.0;
-
-    auto rgb = CCControlUtils::RGBfromHSV({ hue, .55, 1.0 });
-    return {
-        static_cast<GLubyte>(rgb.r * 255),
-        static_cast<GLubyte>(rgb.g * 255),
-        static_cast<GLubyte>(rgb.b * 255),
-    };
+    return TAG_COLORS[hash(category.c_str()) % 5932 % TAG_COLORS.size()];
 }
 
 bool TagNode::init(std::string const& category, TagNodeStyle style) {
     if (style == TagNodeStyle::Dot) {
         auto dot = CCSprite::createWithSpriteFrameName("category-dot.png"_spr);
-        dot->setColor(categoryToColor(category));
+        dot->setColor(tagToColor(category));
         dot->setPosition({ 20.f, 20.f });
         dot->setScale(.7f);
         this->addChild(dot);
@@ -48,7 +44,7 @@ bool TagNode::init(std::string const& category, TagNodeStyle style) {
         auto label = CCLabelBMFont::create(category.c_str(), "mdFont.fnt"_spr);
         label->limitLabelWidth(180.f, 1.5f, .1f);
         label->setAnchorPoint({ .5f, .4f });
-        label->setColor(categoryToColor(category));
+        label->setColor(tagToColor(category));
         this->addChild(label);
 
         bg->setContentSize({ label->getScaledContentSize().width + 30.f, 30.f });

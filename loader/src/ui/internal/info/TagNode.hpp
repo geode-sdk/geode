@@ -18,5 +18,5 @@ public:
         std::string const& category, TagNodeStyle style = TagNodeStyle::Tag
     );
 
-    static ccColor3B categoryToColor(std::string const& category);
+    static ccColor3B tagToColor(std::string const& category);
 };
