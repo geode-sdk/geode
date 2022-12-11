@@ -15,9 +15,12 @@ ccColor3B TagNode::categoryToColor(std::string const& category) {
     while (hue > 360.0)
         hue -= 360.0;
 
-    auto rgb = CCControlUtils::RGBfromHSV({ hue, .5, 1.0 });
-    return { static_cast<GLubyte>(rgb.r * 255), static_cast<GLubyte>(rgb.g * 255),
-             static_cast<GLubyte>(rgb.b * 255) };
+    auto rgb = CCControlUtils::RGBfromHSV({ hue, .55, 1.0 });
+    return {
+        static_cast<GLubyte>(rgb.r * 255),
+        static_cast<GLubyte>(rgb.g * 255),
+        static_cast<GLubyte>(rgb.b * 255),
+    };
 }
 
 bool TagNode::init(std::string const& category, TagNodeStyle style) {
@@ -37,16 +40,18 @@ bool TagNode::init(std::string const& category, TagNodeStyle style) {
         this->setContentSize({ label->getScaledContentSize().width + 30.f, 40.f });
     }
     else {
-        auto bg = CCScale9Sprite::createWithSpriteFrameName("category-bg.png"_spr);
-        bg->setColor(categoryToColor(category));
+        auto bg = CCScale9Sprite::create("square02b_small.png");
+        bg->setColor({ 0, 0, 0 });
+        bg->setOpacity(145);
         this->addChild(bg);
 
-        auto label = CCLabelBMFont::create(category.c_str(), "bigFont.fnt");
+        auto label = CCLabelBMFont::create(category.c_str(), "mdFont.fnt"_spr);
         label->limitLabelWidth(180.f, 1.5f, .1f);
         label->setAnchorPoint({ .5f, .4f });
+        label->setColor(categoryToColor(category));
         this->addChild(label);
 
-        bg->setContentSize({ label->getScaledContentSize().width + 30.f, 40.f });
+        bg->setContentSize({ label->getScaledContentSize().width + 30.f, 30.f });
         bg->setPosition(bg->getScaledContentSize() / 2);
         label->setPosition(bg->getScaledContentSize() / 2);
         this->setContentSize(bg->getScaledContentSize());
