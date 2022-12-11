@@ -115,6 +115,8 @@ namespace geode {
         void removeSource(std::string const& repository);
         std::vector<std::string> getSources() const;
 
+        std::unordered_set<std::string> getTags() const;
+
         /**
          * Get all index items available on this platform
          */

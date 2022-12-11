@@ -15,13 +15,11 @@ protected:
     CCMenuItemToggler* addToggle(
         char const* title, SEL_MenuHandler selector, bool toggled, int tag, CCPoint& pos
     );
-    CCMenuItemToggler* addSearchMatch(char const* title, int flag, CCPoint& pos);
     CCMenuItemToggler* addPlatformToggle(char const* title, PlatformID id, CCPoint& pos);
 
-    void onSearchToggle(CCObject*);
     void onPlatformToggle(CCObject*);
     void onShowInstalled(CCObject*);
-    void onCategory(CCObject*);
+    void onTag(CCObject*);
 
     void enable(CCMenuItemToggler* toggle, ModListType type);
 

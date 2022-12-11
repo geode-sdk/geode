@@ -724,3 +724,17 @@ void Index::install(IndexItemHandle item) {
         }
     });
 }
+
+// Item properites
+
+std::unordered_set<std::string> Index::getTags() const {
+    std::unordered_set<std::string> tags;
+    for (auto& [_, versions] : m_items) {
+        for (auto& [_, item] : versions) {
+            for (auto& tag : item->tags) {
+                tags.insert(tag);
+            }
+        }
+    }
+    return tags;
+}

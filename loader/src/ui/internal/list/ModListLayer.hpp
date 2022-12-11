@@ -19,6 +19,27 @@ enum class ModListDisplay {
     Expanded,
 };
 
+struct ModListQuery {
+    /**
+     * Keywords; matches name, id, description, details, developer
+     */
+    std::optional<std::string> keywords;
+    /**
+     * Force mods to be shown on the list unless they explicitly mismatch some 
+     * tags (used to show installed mods on index)
+     */
+    bool forceVisibility;
+    /**
+     * Empty means current platform
+     */
+    std::unordered_set<PlatformID> platforms = { GEODE_PLATFORM_TARGET };
+    std::unordered_set<std::string> tags;
+    /**
+     * Used to filter by dev if you click their name
+     */
+    std::optional<std::string> developer;
+};
+
 class ModListLayer : public CCLayer, public TextInputDelegate {
 protected:
     GJListLayer* m_list = nullptr;
@@ -36,6 +57,7 @@ protected:
     CCTextInputNode* m_searchInput = nullptr;
     LoadingCircle* m_loadingCircle = nullptr;
     CCMenuItemSpriteExtra* m_filterBtn;
+    ModListQuery m_query;
     ModListDisplay m_display = ModListDisplay::Concise;
     EventListener<IndexUpdateFilter> m_indexListener;
 
@@ -56,7 +78,7 @@ protected:
     void createSearchControl();
     void onIndexUpdate(IndexUpdateEvent* event);
 
-    CCArray* createModCells(ModListType type);
+    CCArray* createModCells(ModListType type, ModListQuery const& query);
     CCSize getCellSize() const;
     CCSize getListSize() const;
 
@@ -69,5 +91,5 @@ public:
 
     ModListDisplay getDisplay() const;
 
-    void reloadList();
+    void reloadList(std::optional<ModListQuery> const& query = std::nullopt);
 };
