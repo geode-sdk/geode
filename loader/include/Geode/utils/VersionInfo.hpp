@@ -3,6 +3,7 @@
 #include "../DefaultInclude.hpp"
 #include <string_view>
 #include "../external/json/json.hpp"
+#include <tuple>
 
 namespace geode {
     enum class VersionCompare {
