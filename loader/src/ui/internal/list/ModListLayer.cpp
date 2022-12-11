@@ -185,7 +185,6 @@ CCArray* ModListLayer::createModCells(ModListType type, ModListQuery const& quer
                 if (auto match = queryMatch(query, item)) {
                     sorted.insert({ match.value(), item });
                 }
-                if (!queryMatch(query, item)) continue;
             }
 
             // add the mods sorted
@@ -195,7 +194,19 @@ CCArray* ModListLayer::createModCells(ModListType type, ModListQuery const& quer
         } break;
 
         case ModListType::Featured: {
-            // todo: featured
+            // sort the mods by match score 
+            std::multimap<int, IndexItemHandle> sorted;
+
+            for (auto const& item : Index::get()->getFeaturedItems()) {
+                if (auto match = queryMatch(query, item)) {
+                    sorted.insert({ match.value(), item });
+                }
+            }
+
+            // add the mods sorted
+            for (auto& [score, item] : ranges::reverse(sorted)) {
+                mods->addObject(IndexItemCell::create(item, this, this->getCellSize()));
+            }
         } break;
     }
     return mods;

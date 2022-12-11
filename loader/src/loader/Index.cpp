@@ -9,18 +9,6 @@
 
 USE_GEODE_NAMESPACE();
 
-// Save data
-
-struct IndexSourceSaveData {
-    std::string downloadedCommitSHA;
-};
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(IndexSourceSaveData, downloadedCommitSHA);
-
-struct IndexSaveData {
-    std::unordered_map<std::string, IndexSourceSaveData> sources;
-};
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(IndexSaveData, sources);
-
 // ModInstallEvent
 
 ModInstallEvent::ModInstallEvent(
@@ -53,6 +41,12 @@ struct geode::IndexSourceImpl final {
 
     ghc::filesystem::path path() const {
         return dirs::getIndexDir() / this->dirname();
+    }
+
+    ghc::filesystem::path checksum() const {
+        // not storing this in the source's directory as that gets replaced by 
+        // the newly fetched index
+        return dirs::getIndexDir() / (this->dirname() + ".checksum");
     }
 };
 
@@ -124,7 +118,7 @@ Result<IndexItemHandle> IndexItem::createFromDir(
             .hash = root.has("mod").obj().has("hash").template get<std::string>(),
             .platforms = platforms,
         },
-        .isFeatured = root.has("is-featured").template get<bool>(),
+        .isFeatured = root.has("featured").template get<bool>(),
         .tags = root.has("tags").template get<std::unordered_set<std::string>>()
     });
     if (checker.isError()) {
@@ -219,6 +213,7 @@ void Index::onSourceUpdate(SourceUpdateEvent* event) {
 
     switch (whatToPost) {
         case Finished: {
+            log::debug("Index up-to-date");
             // clear source statuses to allow updating index again
             m_sourceStatuses.clear();
             // post finish event
@@ -250,6 +245,7 @@ void Index::onSourceUpdate(SourceUpdateEvent* event) {
                     info += src + ": " + std::get<UpdateFailed>(status) + "\n";
                 }
             }
+            log::debug("Index update failed: {}", info);
             // clear source statuses to allow updating index again
             m_sourceStatuses.clear();
             // post finish event
@@ -262,9 +258,14 @@ void Index::checkSourceUpdates(IndexSourceImpl* src) {
     if (src->isUpToDate) {
         return this->updateSourceFromLocal(src);
     }
+
+    log::debug("Checking updates for source {}", src->repository);
     SourceUpdateEvent(src, UpdateProgress(0, "Checking status")).post();
-    auto data = Mod::get()->getSavedMutable<IndexSaveData>("index");
-    auto oldSHA = data.sources[src->repository].downloadedCommitSHA;
+
+    // read old commit SHA
+    // not using saved values for this one as we don't want to refetch 
+    // index even if the game crashes
+    auto oldSHA = file::readString(src->checksum()).unwrapOr("");
     web::AsyncWebRequest()
         .join(fmt::format("index-update-{}", src->repository))
         .header(fmt::format("If-None-Match: \"{}\"", oldSHA))
@@ -285,8 +286,7 @@ void Index::checkSourceUpdates(IndexSourceImpl* src) {
             }
             // otherwise save hash and download source
             else {
-                auto data = Mod::get()->getSavedMutable<IndexSaveData>("index");
-                data.sources[src->repository].downloadedCommitSHA = newSHA;
+                (void)file::writeString(src->checksum(), newSHA);
                 this->downloadSource(src);
             }
         })
@@ -299,6 +299,8 @@ void Index::checkSourceUpdates(IndexSourceImpl* src) {
 }
 
 void Index::downloadSource(IndexSourceImpl* src) {
+    log::debug("Downloading source {}", src->repository);
+
     SourceUpdateEvent(src, UpdateProgress(0, "Beginning download")).post();
 
     auto targetFile = dirs::getIndexDir() / fmt::format("{}.zip", src->dirname());
@@ -353,6 +355,7 @@ void Index::downloadSource(IndexSourceImpl* src) {
 }
 
 void Index::updateSourceFromLocal(IndexSourceImpl* src) {
+    log::debug("Updating local cache for source {}", src->repository);
     SourceUpdateEvent(src, UpdateProgress(100, "Updating local cache")).post();
     // delete old items from this url if such exist
     for (auto& [_, versions] : m_items) {
@@ -457,20 +460,19 @@ std::vector<IndexItemHandle> Index::getItems() const {
     std::vector<IndexItemHandle> res;
     for (auto& items : map::values(m_items)) {
         if (items.size()) {
-            auto item = items.rbegin()->second;
-            if (item->download.platforms.count(GEODE_PLATFORM_TARGET)) {
-                res.push_back(item);
-            }
+            res.push_back(items.rbegin()->second);
         }
     }
     return res;
 }
 
-std::vector<IndexItemHandle> Index::getAllItems() const {
+std::vector<IndexItemHandle> Index::getFeaturedItems() const {
     std::vector<IndexItemHandle> res;
     for (auto& items : map::values(m_items)) {
         if (items.size()) {
-            res.push_back(items.rbegin()->second);
+            if (items.rbegin()->second->isFeatured) {
+                res.push_back(items.rbegin()->second);
+            }
         }
     }
     return res;
@@ -549,6 +551,10 @@ bool Index::areUpdatesAvailable() const {
 // Item installation
 
 Result<IndexInstallList> Index::getInstallList(IndexItemHandle item) const {
+    if (!item->download.platforms.count(GEODE_PLATFORM_TARGET)) {
+        return Err("Mod is not available on {}", GEODE_PLATFORM_NAME);
+    }
+    
     IndexInstallList list;
     list.target = item;
     for (auto& dep : item->info.dependencies) {

@@ -115,16 +115,19 @@ namespace geode {
         void removeSource(std::string const& repository);
         std::vector<std::string> getSources() const;
 
+        /**
+         * Get all tags
+         */
         std::unordered_set<std::string> getTags() const;
 
         /**
-         * Get all index items available on this platform
+         * Get all index items
          */
         std::vector<IndexItemHandle> getItems() const;
         /**
-         * Get all index items regardless of platform
+         * Get all featured index items
          */
-        std::vector<IndexItemHandle> getAllItems() const;
+        std::vector<IndexItemHandle> getFeaturedItems() const;
         /**
          * Check if an item with this ID is found on the index, and optionally 
          * provide the version sought after
