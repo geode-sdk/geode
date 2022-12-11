@@ -487,7 +487,10 @@ void ModListLayer::reloadList(std::optional<ModListQuery> const& query) {
 
     // check if the user has searched something,
     // and show visual indicator if so
-    auto hasQuery = m_searchInput->getString() && strlen(m_searchInput->getString());
+    auto hasQuery =
+        (m_searchInput->getString() &&
+        strlen(m_searchInput->getString())) ||
+        m_query.developer;
     m_searchBtn->setVisible(!hasQuery);
     m_searchClearBtn->setVisible(hasQuery);
 
@@ -545,6 +548,10 @@ ModListDisplay ModListLayer::getDisplay() const {
     return m_display;
 }
 
+ModListQuery& ModListLayer::getQuery() {
+    return m_query;
+}
+
 // Callbacks & Vtable impls
 
 void ModListLayer::onCheckForUpdates(CCObject*) {
@@ -599,6 +606,8 @@ void ModListLayer::onOpenFolder(CCObject*) {
 }
 
 void ModListLayer::onResetSearch(CCObject*) {
+    // todo: remove when implementing more reasonable developer view
+    m_query.developer = std::nullopt;
     m_searchInput->setString("");
 }
 

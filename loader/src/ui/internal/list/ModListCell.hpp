@@ -29,10 +29,12 @@ protected:
     void draw() override;
 
     float getLogoSize() const;
+    void onViewDev(CCObject*);
 
 public:
     virtual void updateState() = 0;
     virtual CCNode* createLogo(CCSize const& size) = 0;
+    virtual std::string getDeveloper() const = 0;
 };
 
 /**
@@ -61,6 +63,7 @@ public:
 
     void updateState() override;
     CCNode* createLogo(CCSize const& size) override;
+    std::string getDeveloper() const override;
 };
 
 /**
@@ -87,6 +90,7 @@ public:
 
     void updateState() override;
     CCNode* createLogo(CCSize const& size) override;
+    std::string getDeveloper() const override;
 };
 
 /**
@@ -114,4 +118,5 @@ public:
 
     void updateState() override;
     CCNode* createLogo(CCSize const& size) override;
+    std::string getDeveloper() const override;
 };

@@ -71,19 +71,26 @@ void ModListCell::setupInfo(ModInfo const& info, bool spaceForTags) {
 
     auto creatorStr = "by " + info.developer;
     auto creatorLabel = CCLabelBMFont::create(creatorStr.c_str(), "goldFont.fnt");
-    creatorLabel->setAnchorPoint({ .0f, .5f });
     creatorLabel->setScale(.43f);
-    creatorLabel->setPositionX(m_height / 2 + logoSize / 2 + 13.f);
+
+    auto creatorBtn = CCMenuItemSpriteExtra::create(
+        creatorLabel, this, menu_selector(ModListCell::onViewDev)
+    );
+    creatorBtn->setPositionX(
+        m_height / 2 + logoSize / 2 + 13.f 
+         + creatorLabel->getScaledContentSize().width / 2 
+         - m_menu->getPositionX()
+    );
     if (hasDesc && spaceForTags) {
-        creatorLabel->setPositionY(m_height / 2 + 7.5f);
+        creatorBtn->setPositionY(+7.5f);
     }
     else if (hasDesc || spaceForTags) {
-        creatorLabel->setPositionY(m_height / 2);
+        creatorBtn->setPositionY(0.f);
     }
     else {
-        creatorLabel->setPositionY(m_height / 2 - 7.f);
+        creatorBtn->setPositionY(-7.f);
     }
-    this->addChild(creatorLabel);
+    m_menu->addChild(creatorBtn);
 
     if (hasDesc) {
         auto descBG = CCScale9Sprite::create("square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f });
@@ -107,6 +114,11 @@ void ModListCell::setupInfo(ModInfo const& info, bool spaceForTags) {
         m_description->limitLabelWidth(m_width / 2 - 10.f, .5f, .1f);
         this->addChild(m_description);
     }
+}
+
+void ModListCell::onViewDev(CCObject*) {
+    m_layer->getQuery().developer = this->getDeveloper();
+    m_layer->reloadList();
 }
 
 bool ModListCell::init(ModListLayer* list, CCSize const& size) {
@@ -244,6 +256,10 @@ bool ModCell::init(
     return true;
 }
 
+std::string ModCell::getDeveloper() const {
+    return m_mod->getDeveloper();
+}
+
 CCNode* ModCell::createLogo(CCSize const& size) {
     return geode::createModLogo(m_mod, size);
 }
@@ -314,6 +330,10 @@ bool IndexItemCell::init(
 }
 
 void IndexItemCell::updateState() {}
+
+std::string IndexItemCell::getDeveloper() const {
+    return m_item->info.developer;
+}
 
 CCNode* IndexItemCell::createLogo(CCSize const& size) {
     return geode::createIndexItemLogo(m_item, size);
@@ -415,6 +435,10 @@ InvalidGeodeFileCell* InvalidGeodeFileCell::create(
 }
 
 void InvalidGeodeFileCell::updateState() {}
+
+std::string InvalidGeodeFileCell::getDeveloper() const {
+    return "";
+}
 
 CCNode* InvalidGeodeFileCell::createLogo(CCSize const& size) {
     return nullptr;

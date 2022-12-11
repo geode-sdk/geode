@@ -82,14 +82,13 @@ protected:
     CCSize getCellSize() const;
     CCSize getListSize() const;
 
-    friend class SearchFilterPopup;
-
 public:
     static ModListLayer* create();
     static ModListLayer* scene();
     void updateAllStates(ModListCell* except = nullptr);
 
     ModListDisplay getDisplay() const;
+    ModListQuery& getQuery();
 
     void reloadList(std::optional<ModListQuery> const& query = std::nullopt);
 };

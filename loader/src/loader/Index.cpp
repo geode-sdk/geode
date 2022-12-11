@@ -478,6 +478,20 @@ std::vector<IndexItemHandle> Index::getFeaturedItems() const {
     return res;
 }
 
+std::vector<IndexItemHandle> Index::getItemsByDeveloper(
+    std::string const& name
+) const {
+    std::vector<IndexItemHandle> res;
+    for (auto& items : map::values(m_items)) {
+        if (items.size()) {
+            if (items.rbegin()->second->info.developer == name) {
+                res.push_back(items.rbegin()->second);
+            }
+        }
+    }
+    return res;
+}
+
 bool Index::isKnownItem(
     std::string const& id,
     std::optional<VersionInfo> version

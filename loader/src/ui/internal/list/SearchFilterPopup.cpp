@@ -55,7 +55,7 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
 
     this->addToggle(
         "Show Installed", menu_selector(SearchFilterPopup::onShowInstalled),
-        m_modLayer->m_query.forceVisibility, 0, pos
+        m_modLayer->getQuery().forceVisibility, 0, pos
     );
 
     // tags
@@ -79,7 +79,7 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
         auto toggle = CCMenuItemToggler::createWithStandardSprites(
             this, menu_selector(SearchFilterPopup::onTag), .5f
         );
-        toggle->toggle(m_modLayer->m_query.tags.count(tag));
+        toggle->toggle(m_modLayer->getQuery().tags.count(tag));
         toggle->setPosition(pos - winSize / 2);
         toggle->setUserObject(CCString::create(tag));
         m_buttonMenu->addChild(toggle);
@@ -101,10 +101,10 @@ void SearchFilterPopup::onTag(CCObject* sender) {
         auto toggle = static_cast<CCMenuItemToggler*>(sender);
         auto tag = static_cast<CCString*>(toggle->getUserObject())->getCString();
         if (!toggle->isToggled()) {
-            m_modLayer->m_query.tags.insert(tag);
+            m_modLayer->getQuery().tags.insert(tag);
         }
         else {
-            m_modLayer->m_query.tags.erase(tag);
+            m_modLayer->getQuery().tags.erase(tag);
         }
     }
     catch (...) {
@@ -113,7 +113,7 @@ void SearchFilterPopup::onTag(CCObject* sender) {
 
 void SearchFilterPopup::onShowInstalled(CCObject* sender) {
     auto toggle = static_cast<CCMenuItemToggler*>(sender);
-    m_modLayer->m_query.forceVisibility = !toggle->isToggled();
+    m_modLayer->getQuery().forceVisibility = !toggle->isToggled();
 }
 
 void SearchFilterPopup::enable(CCMenuItemToggler* toggle, ModListType type) {
@@ -141,17 +141,17 @@ CCMenuItemToggler* SearchFilterPopup::addPlatformToggle(
 ) {
     return this->addToggle(
         title, menu_selector(SearchFilterPopup::onPlatformToggle),
-        m_modLayer->m_query.platforms.count(id), id.to<int>(), pos
+        m_modLayer->getQuery().platforms.count(id), id.to<int>(), pos
     );
     return nullptr;
 }
 
 void SearchFilterPopup::onPlatformToggle(CCObject* sender) {
     if (static_cast<CCMenuItemToggler*>(sender)->isToggled()) {
-        m_modLayer->m_query.platforms.erase(PlatformID::from(sender->getTag()));
+        m_modLayer->getQuery().platforms.erase(PlatformID::from(sender->getTag()));
     }
     else {
-        m_modLayer->m_query.platforms.insert(PlatformID::from(sender->getTag()));
+        m_modLayer->getQuery().platforms.insert(PlatformID::from(sender->getTag()));
     }
 }
 
