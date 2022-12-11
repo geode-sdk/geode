@@ -104,7 +104,8 @@ CCNode* geode::createIndexItemLogo(IndexItemHandle item, CCSize const& size) {
         
         // i dont know why + 1 is needed and its too late for me to figure out why
         spr->setPosition(
-            logoGlow->getContentSize().width / 2, logoGlow->getContentSize().height / 2
+            logoGlow->getContentSize().width / 2 + 1,
+            logoGlow->getContentSize().height / 2 - 1
         );
         // scary mathematics
         spr->setScaleX(size.width / spr->getContentSize().width / logoGlow->getScaleX());
