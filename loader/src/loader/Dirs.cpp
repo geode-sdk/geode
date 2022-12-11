@@ -2,6 +2,7 @@
 #include <Geode/loader/Dirs.hpp>
 #include <cocos2d.h>
 #include <crashlog.hpp>
+#include <filesystem>
 
 USE_GEODE_NAMESPACE();
 
@@ -10,31 +11,26 @@ ghc::filesystem::path dirs::getGameDir() {
 }
 
 ghc::filesystem::path dirs::getSaveDir() {
-    #ifdef GEODE_IS_MACOS
-        // not using ~/Library/Caches
-        return ghc::filesystem::path("/Users/Shared/Geode");
-    #elif defined(GEODE_IS_WINDOWS)
-        // this is std::filesystem intentionally because ghc version doesnt want to work with softlinked directories
-        return ghc::filesystem::path(
-            std::filesystem::weakly_canonical(
-                CCFileUtils::sharedFileUtils()->getWritablePath().c_str()
-            ).string()
-        );
-    #else
-        return ghc::filesystem::path(
-            CCFileUtils::sharedFileUtils()->getWritablePath().c_str()
-        );
-    #endif
+#ifdef GEODE_IS_MACOS
+    // not using ~/Library/Caches
+    return ghc::filesystem::path("/Users/Shared/Geode");
+#elif defined(GEODE_IS_WINDOWS)
+    // this is std::filesystem intentionally because ghc version doesnt want to work with softlinked directories
+    return ghc::filesystem::path(
+        std::filesystem::weakly_canonical(CCFileUtils::sharedFileUtils()->getWritablePath().c_str())
+            .string()
+    );
+#else
+    return ghc::filesystem::path(CCFileUtils::sharedFileUtils()->getWritablePath().c_str());
+#endif
 }
 
 ghc::filesystem::path dirs::getGeodeDir() {
-    #ifdef GEODE_IS_MACOS
-    char cwd[PATH_MAX];
-    getcwd(cwd, sizeof(cwd));
-    return ghc::filesystem::path(cwd) / "geode";
-    #else
+#ifdef GEODE_IS_MACOS
+    return ghc::filesystem::current_path() / "geode";
+#else
     return dirs::getGameDir() / "geode";
-    #endif
+#endif
 }
 
 ghc::filesystem::path dirs::getGeodeSaveDir() {
