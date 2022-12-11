@@ -44,11 +44,28 @@ namespace geode {
             return m_patch;
         }
 
-        constexpr std::strong_ordering operator<=>(VersionInfo const& other) const {
-            return std::tie(m_major, m_minor, m_patch) <=>
+        // Apple clang does not support operator<=>! Yippee!
+
+        constexpr bool operator==(VersionInfo const& other) const {
+            return std::tie(m_major, m_minor, m_patch) ==
                 std::tie(other.m_major, other.m_minor, other.m_patch);
         }
-        constexpr bool operator==(VersionInfo const& other) const = default;
+        constexpr bool operator<(VersionInfo const& other) const {
+            return std::tie(m_major, m_minor, m_patch) <
+                std::tie(other.m_major, other.m_minor, other.m_patch);
+        }
+        constexpr bool operator<=(VersionInfo const& other) const {
+            return std::tie(m_major, m_minor, m_patch) <=
+                std::tie(other.m_major, other.m_minor, other.m_patch);
+        }
+        constexpr bool operator>(VersionInfo const& other) const {
+            return std::tie(m_major, m_minor, m_patch) >
+                std::tie(other.m_major, other.m_minor, other.m_patch);
+        }
+        constexpr bool operator>=(VersionInfo const& other) const {
+            return std::tie(m_major, m_minor, m_patch) >=
+                std::tie(other.m_major, other.m_minor, other.m_patch);
+        }
 
         std::string toString() const;
     };
