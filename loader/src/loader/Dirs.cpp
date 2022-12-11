@@ -27,7 +27,13 @@ ghc::filesystem::path dirs::getSaveDir() {
 }
 
 ghc::filesystem::path dirs::getGeodeDir() {
+    #ifdef GEODE_IS_MACOS
+    char cwd[PATH_MAX];
+    getcwd(cwd, sizeof(cwd));
+    return ghc::filesystem::path(cwd) / "geode";
+    #else
     return dirs::getGameDir() / "geode";
+    #endif
 }
 
 ghc::filesystem::path dirs::getGeodeSaveDir() {

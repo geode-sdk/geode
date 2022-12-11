@@ -25,6 +25,88 @@ Loader::~Loader() {
     ghc::filesystem::remove_all(dirs::getTempDir());
 }
 
+// Initialization
+
+void Loader::createDirectories() {
+#ifdef GEODE_IS_MACOS
+    ghc::filesystem::create_directory(dirs::getSaveDir());
+#endif
+
+    ghc::filesystem::create_directories(dirs::getGeodeResourcesDir());
+    ghc::filesystem::create_directory(dirs::getModConfigDir());
+    ghc::filesystem::create_directory(dirs::getModsDir());
+    ghc::filesystem::create_directory(dirs::getGeodeLogDir());
+    ghc::filesystem::create_directory(dirs::getTempDir());
+    ghc::filesystem::create_directory(dirs::getModRuntimeDir());
+
+    if (!ranges::contains(m_modSearchDirectories, dirs::getModsDir())) {
+        m_modSearchDirectories.push_back(dirs::getModsDir());
+    }
+}
+
+Result<> Loader::setup() {
+    if (m_isSetup) {
+        return Ok();
+    }
+
+    log::Logs::setup();
+
+    if (crashlog::setupPlatformHandler()) {
+        log::debug("Set up platform crash logger");
+    }
+    else {
+        log::debug("Unable to set up platform crash logger");
+    }
+
+    log::debug("Setting up Loader...");
+
+    this->createDirectories();
+    auto sett = this->loadData();
+    if (!sett) {
+        log::warn("Unable to load loader settings: {}", sett.unwrapErr());
+    }
+    GEODE_UNWRAP(this->refreshModsList());
+
+    this->queueInGDThread([]() {
+        Loader::get()->addSearchPaths();
+    });
+
+    m_isSetup = true;
+
+    return Ok();
+}
+
+void Loader::addSearchPaths() {
+    CCFileUtils::get()->addPriorityPath(dirs::getGeodeResourcesDir().string().c_str());
+    CCFileUtils::get()->addPriorityPath(dirs::getModRuntimeDir().string().c_str());
+}
+
+void Loader::updateResources() {
+    log::debug("Adding resources");
+
+    // add own spritesheets
+    this->updateModResources(InternalMod::get());
+
+    // add mods' spritesheets
+    for (auto const& [_, mod] : m_mods) {
+        this->updateModResources(mod);
+    }
+}
+
+std::vector<Mod*> Loader::getAllMods() {
+    return map::values(m_mods);
+}
+
+Mod* Loader::getInternalMod() {
+    return InternalMod::get();
+}
+
+std::vector<InvalidGeodeFile> Loader::getFailedMods() const {
+    return m_invalidMods;
+}
+
+// Version info
+
 VersionInfo Loader::getVersion() {
     return LOADER_VERSION;
 }
@@ -48,22 +130,7 @@ bool Loader::isModVersionSupported(VersionInfo const& version) {
         version <= Loader::maxModVersion();
 }
 
-void Loader::createDirectories() {
-#ifdef GEODE_IS_MACOS
-    ghc::filesystem::create_directory(dirs::getSaveDir());
-#endif
-
-    ghc::filesystem::create_directories(dirs::getGeodeResourcesDir());
-    ghc::filesystem::create_directory(dirs::getModConfigDir());
-    ghc::filesystem::create_directory(dirs::getModsDir());
-    ghc::filesystem::create_directory(dirs::getGeodeLogDir());
-    ghc::filesystem::create_directory(dirs::getTempDir());
-    ghc::filesystem::create_directory(dirs::getModRuntimeDir());
-
-    if (!ranges::contains(m_modSearchDirectories, dirs::getModsDir())) {
-        m_modSearchDirectories.push_back(dirs::getModsDir());
-    }
-}
+// Data saving
 
 Result<> Loader::saveData() {
     // save mods' data
@@ -93,37 +160,7 @@ Result<> Loader::loadData() {
     return Ok();
 }
 
-Result<> Loader::setup() {
-    if (m_isSetup) {
-        return Ok();
-    }
-
-    log::Logs::setup();
-
-    if (crashlog::setupPlatformHandler()) {
-        log::debug("Set up platform crash logger");
-    }
-    else {
-        log::debug("Unable to set up platform crash logger");
-    }
-
-    log::debug("Setting up Loader...");
-
-    this->createDirectories();
-    auto sett = this->loadData();
-    if (!sett) {
-        log::warn("Unable to load loader settings: {}", sett.unwrapErr());
-    }
-    (void)this->refreshModsList();
-
-    this->queueInGDThread([]() {
-        Loader::get()->addSearchPaths();
-    });
-
-    m_isSetup = true;
-
-    return Ok();
-}
+// Mod loading
 
 Result<Mod*> Loader::loadModFromInfo(ModInfo const& info) {
     if (m_mods.count(info.id)) {
@@ -161,6 +198,79 @@ Result<Mod*> Loader::loadModFromFile(ghc::filesystem::path const& file) {
     }
     return this->loadModFromInfo(res.unwrap());
 }
+
+bool Loader::isModInstalled(std::string const& id) const {
+    return m_mods.count(id) && !m_mods.at(id)->isUninstalled();
+}
+
+Mod* Loader::getInstalledMod(std::string const& id) const {
+    if (m_mods.count(id) && !m_mods.at(id)->isUninstalled()) {
+        return m_mods.at(id);
+    }
+    return nullptr;
+}
+
+bool Loader::isModLoaded(std::string const& id) const {
+    return m_mods.count(id) && m_mods.at(id)->isLoaded();
+}
+
+Mod* Loader::getLoadedMod(std::string const& id) const {
+    if (m_mods.count(id)) {
+        auto mod = m_mods.at(id);
+        if (mod->isLoaded()) {
+            return mod;
+        }
+    }
+    return nullptr;
+}
+
+void Loader::dispatchScheduledFunctions(Mod* mod) {
+    std::lock_guard _(m_scheduledFunctionsMutex);
+    for (auto& func : m_scheduledFunctions) {
+        func();
+    }
+    m_scheduledFunctions.clear();
+}
+
+void Loader::scheduleOnModLoad(Mod* mod, ScheduledFunction func) {
+    std::lock_guard _(m_scheduledFunctionsMutex);
+    if (mod) {
+        return func();
+    }
+    m_scheduledFunctions.push_back(func);
+}
+
+void Loader::updateModResources(Mod* mod) {
+    if (!mod->m_info.m_spritesheets.size()) {
+        return;
+    }
+
+    auto searchPath = dirs::getModRuntimeDir() / mod->getID() / "resources";
+
+    log::debug("Adding resources for {}", mod->getID());
+
+    // add spritesheets
+    for (auto const& sheet : mod->m_info.m_spritesheets) {
+        log::debug("Adding sheet {}", sheet);
+        auto png = sheet + ".png";
+        auto plist = sheet + ".plist";
+        auto ccfu = CCFileUtils::get();
+
+        if (png == std::string(ccfu->fullPathForFilename(png.c_str(), false)) ||
+            plist == std::string(ccfu->fullPathForFilename(plist.c_str(), false))) {
+            log::warn(
+                "The resource dir of \"{}\" is missing \"{}\" png and/or plist files",
+                mod->m_info.m_id, sheet
+            );
+        }
+        else {
+            CCTextureCache::get()->addImage(png.c_str(), false);
+            CCSpriteFrameCache::get()->addSpriteFramesWithFile(plist.c_str());
+        }
+    }
+}
+
+// Dependencies and refreshing
 
 Result<> Loader::loadModsFromDirectory(
     ghc::filesystem::path const& dir,
@@ -249,43 +359,6 @@ Result<> Loader::refreshModsList() {
     return Ok();
 }
 
-bool Loader::isModInstalled(std::string const& id) const {
-    return m_mods.count(id) && !m_mods.at(id)->isUninstalled();
-}
-
-Mod* Loader::getInstalledMod(std::string const& id) const {
-    if (m_mods.count(id) && !m_mods.at(id)->isUninstalled()) {
-        return m_mods.at(id);
-    }
-    return nullptr;
-}
-
-bool Loader::isModLoaded(std::string const& id) const {
-    return m_mods.count(id) && m_mods.at(id)->isLoaded();
-}
-
-Mod* Loader::getLoadedMod(std::string const& id) const {
-    if (m_mods.count(id)) {
-        auto mod = m_mods.at(id);
-        if (mod->isLoaded()) {
-            return mod;
-        }
-    }
-    return nullptr;
-}
-
-std::vector<Mod*> Loader::getAllMods() {
-    return map::values(m_mods);
-}
-
-Mod* Loader::getInternalMod() {
-    return InternalMod::get();
-}
-
-std::vector<InvalidGeodeFile> Loader::getFailedMods() const {
-    return m_invalidMods;
-}
-
 void Loader::updateAllDependencies() {
     for (auto const& [_, mod] : m_mods) {
         (void)mod->updateDependencies();
@@ -296,24 +369,10 @@ void Loader::waitForModsToBeLoaded() {
     while (!m_earlyLoadFinished) {}
 }
 
-void Loader::dispatchScheduledFunctions(Mod* mod) {
-    std::lock_guard _(m_scheduledFunctionsMutex);
-    for (auto& func : m_scheduledFunctions) {
-        func();
-    }
-    m_scheduledFunctions.clear();
-}
+// Misc
 
 void Loader::queueInGDThread(ScheduledFunction func) {
     InternalLoader::get()->queueInGDThread(func);
-}
-
-void Loader::scheduleOnModLoad(Mod* mod, ScheduledFunction func) {
-    std::lock_guard _(m_scheduledFunctionsMutex);
-    if (mod) {
-        return func();
-    }
-    m_scheduledFunctions.push_back(func);
 }
 
 bool Loader::didLastLaunchCrash() const {
@@ -326,51 +385,4 @@ void Loader::openPlatformConsole() {
 
 void Loader::closePlatfromConsole() {
     InternalLoader::get()->closePlatformConsole();
-}
-
-void Loader::updateModResources(Mod* mod) {
-    if (!mod->m_info.spritesheets.size()) {
-        return;
-    }
-
-    auto searchPath = dirs::getModRuntimeDir() / mod->getID() / "resources";
-
-    log::debug("Adding resources for {}", mod->getID());
-
-    // add spritesheets
-    for (auto const& sheet : mod->m_info.spritesheets) {
-        log::debug("Adding sheet {}", sheet);
-        auto png = sheet + ".png";
-        auto plist = sheet + ".plist";
-        auto ccfu = CCFileUtils::get();
-
-        if (png == std::string(ccfu->fullPathForFilename(png.c_str(), false)) ||
-            plist == std::string(ccfu->fullPathForFilename(plist.c_str(), false))) {
-            log::warn(
-                "The resource dir of \"{}\" is missing \"{}\" png and/or plist files",
-                mod->m_info.id, sheet
-            );
-        }
-        else {
-            CCTextureCache::get()->addImage(png.c_str(), false);
-            CCSpriteFrameCache::get()->addSpriteFramesWithFile(plist.c_str());
-        }
-    }
-}
-
-void Loader::addSearchPaths() {
-    CCFileUtils::get()->addPriorityPath(dirs::getGeodeResourcesDir().string().c_str());
-    CCFileUtils::get()->addPriorityPath(dirs::getModRuntimeDir().string().c_str());
-}
-
-void Loader::updateResources() {
-    log::debug("Adding resources");
-
-    // add own spritesheets
-    this->updateModResources(InternalMod::get());
-
-    // add mods' spritesheets
-    for (auto const& [_, mod] : m_mods) {
-        this->updateModResources(mod);
-    }
 }

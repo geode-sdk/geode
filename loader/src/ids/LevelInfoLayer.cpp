@@ -42,9 +42,10 @@ $register_ids(LevelInfoLayer) {
         menu->setID("right-side-menu");
 
         if (auto name = setIDSafe(menu, 0, "creator-name")) {
-            detachIntoOwnMenu(
-                this, name, "creator-info-menu",
-                ColumnLayout::create()->setAlignment(Alignment::Begin)
+            detachAndCreateMenu(
+                this, "creator-info-menu",
+                ColumnLayout::create()->setAlignment(Alignment::Begin),
+                name
             );
         }
 
