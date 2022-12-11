@@ -241,7 +241,7 @@ void Loader::scheduleOnModLoad(Mod* mod, ScheduledFunction func) {
 }
 
 void Loader::updateModResources(Mod* mod) {
-    if (!mod->m_info.m_spritesheets.size()) {
+    if (!mod->m_info.spritesheets.size()) {
         return;
     }
 
@@ -250,7 +250,7 @@ void Loader::updateModResources(Mod* mod) {
     log::debug("Adding resources for {}", mod->getID());
 
     // add spritesheets
-    for (auto const& sheet : mod->m_info.m_spritesheets) {
+    for (auto const& sheet : mod->m_info.spritesheets) {
         log::debug("Adding sheet {}", sheet);
         auto png = sheet + ".png";
         auto plist = sheet + ".plist";
@@ -260,7 +260,7 @@ void Loader::updateModResources(Mod* mod) {
             plist == std::string(ccfu->fullPathForFilename(plist.c_str(), false))) {
             log::warn(
                 "The resource dir of \"{}\" is missing \"{}\" png and/or plist files",
-                mod->m_info.m_id, sheet
+                mod->m_info.id, sheet
             );
         }
         else {

@@ -123,7 +123,7 @@ static auto $_ = listenForIPC("loader-info", [](IPCEvent* event) -> nlohmann::js
 static auto $_ = listenForIPC("list-mods", [](IPCEvent* event) -> nlohmann::json {
     std::vector<nlohmann::json> res;
 
-    auto args = event->getMessageData();
+    auto args = event->messageData;
     JsonChecker checker(args);
     auto root = checker.root("").obj();
 
