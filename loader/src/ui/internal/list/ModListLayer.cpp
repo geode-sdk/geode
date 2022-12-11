@@ -21,6 +21,8 @@
 static ModListType g_tab = ModListType::Installed;
 static ModListLayer* g_instance = nullptr;
 
+// Mods
+
 static void sortInstalledMods(std::vector<Mod*>& mods) {
     if (!mods.size()) return;
     // keep track of first object
@@ -49,6 +51,44 @@ static std::vector<Mod*> sortedInstalledMods() {
     sortInstalledMods(mods);
     return std::move(mods);
 }
+
+CCArray* ModListLayer::createModCells(ModListType type) {
+    auto mods = CCArray::create();
+    switch (type) {
+        default:
+        case ModListType::Installed: {
+            // failed mods first
+            for (auto const& mod : Loader::get()->getFailedMods()) {
+                mods->addObject(InvalidGeodeFileCell::create(mod, this, this->getCellSize()));
+            }
+            // internal geode representation always at the top
+            auto imod = Loader::getInternalMod();
+            mods->addObject(ModCell::create(imod, this, this->getCellSize()));
+
+            // then other mods
+            for (auto const& mod : sortedInstalledMods()) {
+                // if the mod is no longer installed nor
+                // loaded, it's as good as not existing
+                // (because it doesn't)
+                if (mod->isUninstalled() && !mod->isLoaded()) continue;
+                mods->addObject(ModCell::create(mod, this, this->getCellSize()));
+            }
+        } break;
+
+        case ModListType::Download: {
+            for (auto const& item : Index::get()->getItems()) {
+                mods->addObject(IndexItemCell::create(item, this, this->getCellSize()));
+            }
+        } break;
+
+        case ModListType::Featured: {
+            // todo: featured
+        } break;
+    }
+    return mods;
+}
+
+// UI
 
 bool ModListLayer::init() {
     if (!CCLayer::init()) return false;
@@ -341,6 +381,19 @@ void ModListLayer::reloadList() {
     }
 }
 
+void ModListLayer::updateAllStates(ModListCell* toggled) {
+    for (auto cell : CCArrayExt<GenericListCell>(
+        m_list->m_listView->m_tableView->m_cellArray
+    )) {
+        auto node = static_cast<ModListCell*>(cell->getChildByID("mod-list-cell"));
+        if (toggled != node) {
+            node->updateState();
+        }
+    }
+}
+
+// Getters
+
 CCSize ModListLayer::getListSize() const {
     return { 358.f, 190.f };
 }
@@ -356,52 +409,7 @@ ModListDisplay ModListLayer::getDisplay() const {
     return m_display;
 }
 
-CCArray* ModListLayer::createModCells(ModListType type) {
-    auto mods = CCArray::create();
-    switch (type) {
-        default:
-        case ModListType::Installed: {
-            // failed mods first
-            for (auto const& mod : Loader::get()->getFailedMods()) {
-                mods->addObject(InvalidGeodeFileCell::create(mod, this, this->getCellSize()));
-            }
-            // internal geode representation always at the top
-            auto imod = Loader::getInternalMod();
-            mods->addObject(ModCell::create(imod, this, this->getCellSize()));
-
-            // then other mods
-            for (auto const& mod : sortedInstalledMods()) {
-                // if the mod is no longer installed nor
-                // loaded, it's as good as not existing
-                // (because it doesn't)
-                if (mod->isUninstalled() && !mod->isLoaded()) continue;
-                mods->addObject(ModCell::create(mod, this, this->getCellSize()));
-            }
-        } break;
-
-        case ModListType::Download: {
-            for (auto const& item : Index::get()->getItems()) {
-                mods->addObject(IndexItemCell::create(item, this, this->getCellSize()));
-            }
-        } break;
-
-        case ModListType::Featured: {
-            // todo: featured
-        } break;
-    }
-    return mods;
-}
-
-void ModListLayer::updateAllStates(ModListCell* toggled) {
-    for (auto cell : CCArrayExt<GenericListCell>(
-        m_list->m_listView->m_tableView->m_cellArray
-    )) {
-        auto node = static_cast<ModListCell*>(cell->getChildByID("mod-list-cell"));
-        if (toggled != node) {
-            node->updateState();
-        }
-    }
-}
+// Callbacks & Vtable impls
 
 void ModListLayer::onCheckForUpdates(CCObject*) {
     // store instance in a global so the
@@ -490,6 +498,8 @@ void ModListLayer::keyDown(enumKeyCodes key) {
 void ModListLayer::textChanged(CCTextInputNode* input) {
     this->reloadList();
 }
+
+// Constructors etc.
 
 ModListLayer* ModListLayer::create() {
     // return global instance if one exists
