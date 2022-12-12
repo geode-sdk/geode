@@ -1,6 +1,7 @@
 #include <../support/zip_support/ZipUtils.h>
 #include <../support/zip_support/ioapi.h>
 #include <../support/zip_support/unzip.h>
+#include <../support/zip_support/zip.h>
 #include <Geode/loader/Log.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/map.hpp>
@@ -132,6 +133,8 @@ Result<std::vector<ghc::filesystem::path>> utils::file::listFiles(
     return Ok(res);
 }
 
+// Unzip
+
 static constexpr auto MAX_ENTRY_PATH_LEN = 256;
 
 struct ZipEntry {
@@ -141,7 +144,7 @@ struct ZipEntry {
     ZPOS64_T uncompressedSize;
 };
 
-class file::UnzipImpl final {
+class file::Unzip::Impl final {
 public:
     using Path = Unzip::Path;
 
@@ -210,6 +213,7 @@ public:
         res.resize(entry.uncompressedSize);
         auto size = unzReadCurrentFile(m_zip, res.data(), entry.uncompressedSize);
         if (size < 0 || size != entry.uncompressedSize) {
+            unzCloseCurrentFile(m_zip);
             return Err("Unable to extract entry");
         }
         unzCloseCurrentFile(m_zip);
@@ -225,22 +229,20 @@ public:
         return m_zipPath;
     }
 
-    UnzipImpl(unzFile zip, Path const& path) : m_zip(zip), m_zipPath(path) {}
+    Impl(unzFile zip, Path const& path) : m_zip(zip), m_zipPath(path) {}
 
-    ~UnzipImpl() {
+    ~Impl() {
         unzClose(m_zip);
     }
 };
 
-Unzip::Unzip(UnzipImpl* impl) : m_impl(impl) {}
+Unzip::Unzip() : m_impl(nullptr) {}
 
-Unzip::~Unzip() {
-    if (m_impl) {
-        delete m_impl;
-    }
-}
+Unzip::~Unzip() {}
 
-Unzip::Unzip(Unzip&& other) : m_impl(other.m_impl) {
+Unzip::Unzip(std::unique_ptr<Unzip::Impl>&& impl) : m_impl(std::move(impl)) {}
+
+Unzip::Unzip(Unzip&& other) : m_impl(std::move(other.m_impl)) {
     other.m_impl = nullptr;
 }
 
@@ -250,19 +252,18 @@ Result<Unzip> Unzip::create(Path const& file) {
     if (!zip) {
         return Err("Unable to open zip file");
     }
-    auto impl = new UnzipImpl(zip, file);
+    auto impl = std::make_unique<Unzip::Impl>(zip, file);
     if (!impl->loadEntries()) {
-        delete impl;
         return Err("Unable to read zip file");
     }
-    return Ok(Unzip(impl));
+    return Ok(Unzip(std::move(impl)));
 }
 
-ghc::filesystem::path Unzip::getPath() const {
+Unzip::Path Unzip::getPath() const {
     return m_impl->path();
 }
 
-std::vector<ghc::filesystem::path> Unzip::getEntries() const {
+std::vector<Unzip::Path> Unzip::getEntries() const {
     return map::keys(m_impl->entries());
 }
 
@@ -320,4 +321,128 @@ Result<> Unzip::intoDir(
         try { ghc::filesystem::remove(from); } catch(...) {}
     }
     return Ok();
+}
+
+// Zip
+
+class file::Zip::Impl final {
+public:
+    using Path = Unzip::Path;
+
+private:
+    zipFile m_zip;
+    Path m_zipPath;
+
+public:
+    Path& path() {
+        return m_zipPath;
+    }
+
+    Result<> addFolder(Path const& path) {
+        // a directory in a zip is just a file with no data and which ends in 
+        // a slash
+        auto strPath = path.generic_string();
+        if (!strPath.ends_with("/") && !strPath.ends_with("\\")) {
+            strPath += "/";
+        }
+        if (zipOpenNewFileInZip(
+            m_zip, strPath.c_str(),
+            nullptr, nullptr, 0, nullptr, 0, nullptr,
+            Z_DEFLATED, Z_DEFAULT_COMPRESSION
+        ) != ZIP_OK) {
+            return Err("Unable to create directory " + path.string());
+        }
+        zipCloseFileInZip(m_zip);
+        return Ok();
+    }
+
+    Result<> add(Path const& path, byte_array const& data) {
+        // open entry
+        zip_fileinfo info = { 0 };
+        if (zipOpenNewFileInZip(
+            m_zip, path.generic_string().c_str(),
+            &info, nullptr, 0, nullptr, 0, nullptr,
+            Z_DEFLATED, Z_DEFAULT_COMPRESSION
+        ) != ZIP_OK) {
+            return Err("Unable to create entry " + path.string());
+        }
+
+        // write data
+        if (zipWriteInFileInZip(m_zip, data.data(), data.size()) != ZIP_OK) {
+            zipCloseFileInZip(m_zip);
+            return Err("Unable to write entry " + path.string());
+        }
+
+        // make sure to close!
+        zipCloseFileInZip(m_zip);
+
+        return Ok();
+    }
+
+    Impl(zipFile zip, Path const& path) : m_zip(zip), m_zipPath(path) {}
+
+    ~Impl() {
+        zipClose(m_zip, nullptr);
+    }
+};
+
+Zip::Zip() : m_impl(nullptr) {}
+
+Zip::~Zip() {}
+
+Zip::Zip(std::unique_ptr<Zip::Impl>&& impl) : m_impl(std::move(impl)) {}
+
+Zip::Zip(Zip&& other) : m_impl(std::move(other.m_impl)) {
+    other.m_impl = nullptr;
+}
+
+Result<Zip> Zip::create(Path const& file) {
+    // todo: make sure unicode paths work
+    auto zip = zipOpen(file.generic_string().c_str(), APPEND_STATUS_CREATE);
+    if (!zip) {
+        return Err("Unable to open zip file");
+    }
+    auto impl = std::make_unique<Zip::Impl>(zip, file);
+    return Ok(Zip(std::move(impl)));
+}
+
+Zip::Path Zip::getPath() const {
+    return m_impl->path();
+}
+
+Result<> Zip::add(Path const& path, byte_array const& data) {
+    return m_impl->add(path, data);
+}
+
+Result<> Zip::add(Path const& path, std::string const& data) {
+    return this->add(path, byte_array(data.begin(), data.end()));
+}
+
+Result<> Zip::addFrom(Path const& file, Path const& entryDir) {
+    GEODE_UNWRAP_INTO(auto data, file::readBinary(file));
+    return this->add(entryDir / file.filename(), data);
+}
+
+Result<> Zip::addAllFromRecurse(Path const& dir, Path const& entry) {
+    GEODE_UNWRAP(this->addFolder(entry / dir.filename()));
+    for (auto& file : ghc::filesystem::directory_iterator(dir)) {
+        if (ghc::filesystem::is_directory(file)) {
+            GEODE_UNWRAP(this->addAllFromRecurse(file, entry / dir.filename()));
+        } else {
+            GEODE_UNWRAP_INTO(auto data, file::readBinary(file));
+            GEODE_UNWRAP(this->addFrom(file, entry / dir.filename()));
+        }
+    }
+    return Ok();
+}
+
+Result<> Zip::addAllFrom(Path const& dir) {
+    if (!ghc::filesystem::is_directory(dir)) {
+        return Err("Path is not a directory");
+    }
+    return this->addAllFromRecurse(dir, Path());
+}
+
+Result<> Zip::addFolder(Path const& entry) {
+    return m_impl->addFolder(entry);
 }
