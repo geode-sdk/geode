@@ -380,7 +380,10 @@ void Loader::Impl::updateAllDependencies() {
 }
 
 void Loader::Impl::waitForModsToBeLoaded() {
-    while (!m_earlyLoadFinished) {}
+    auto lock = std::unique_lock(m_earlyLoadFinishedMutex);
+    m_earlyLoadFinishedCV.wait(lock, [this] {
+        return bool(m_earlyLoadFinished);
+    });
 }
 
 bool Loader::Impl::didLastLaunchCrash() const {
