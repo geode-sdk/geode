@@ -237,6 +237,8 @@ class cocos2d::CCIMEDispatcher {
 	static auto sharedDispatcher() = mac 0x2773f0, ios 0x12d170;
 	auto addDelegate(cocos2d::CCIMEDelegate*) = mac 0x277480, ios 0x12d204;
 	auto removeDelegate(cocos2d::CCIMEDelegate*) = mac 0x2775f0, ios 0x12d2c4;
+	void dispatchInsertText(const char* text, int len);
+	void dispatchDeleteBackward();
 }
 
 class cocos2d::CCImage {
