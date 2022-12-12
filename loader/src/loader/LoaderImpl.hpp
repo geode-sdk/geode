@@ -53,18 +53,11 @@ public:
     std::condition_variable m_earlyLoadFinishedCV;
     std::mutex m_earlyLoadFinishedMutex;
     std::atomic_bool m_earlyLoadFinished = false;
-
-    // InternalLoader
     std::vector<std::function<void(void)>> m_gdThreadQueue;
     mutable std::mutex m_gdThreadMutex;
     bool m_platformConsoleOpen = false;
-    std::unordered_set<std::string> m_shownInfoAlerts;
-
     std::vector<std::pair<Hook*, Mod*>> m_internalHooks;
     bool m_readyToHook = false;
-
-    void saveInfoAlerts(nlohmann::json& json);
-    void loadInfoAlerts(nlohmann::json& json);
 
     void downloadLoaderResources();
 
@@ -115,13 +108,6 @@ public:
     bool didLastLaunchCrash() const;
 
     nlohmann::json processRawIPC(void* rawHandle, std::string const& buffer);
-
-    /**
-     * Check if a one-time event has been shown to the user,
-     * and set it to true if not. Will return the previous
-     * state of the event before setting it to true
-     */
-    bool shownInfoAlert(std::string const& key);
 
     void queueInGDThread(ScheduledFunction func);
     void executeGDThreadQueue();

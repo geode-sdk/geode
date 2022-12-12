@@ -13,6 +13,8 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     CustomLoadingLayer() : m_updatingResources(false) {}
 
     bool init(bool fromReload) {
+        Loader::get()->waitForModsToBeLoaded();
+
         if (!LoadingLayer::init(fromReload)) return false;
 
         auto winSize = CCDirector::sharedDirector()->getWinSize();

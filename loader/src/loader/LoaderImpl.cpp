@@ -67,6 +67,19 @@ Result<> Loader::Impl::setup() {
 
     log::debug("Setting up Loader...");
 
+    log::debug("Set up internal mod representation");
+    log::debug("Loading hooks... ");
+
+    if (!this->loadHooks()) {
+        return Err("There were errors loading some hooks, see console for details");
+    }
+
+    log::debug("Loaded hooks");
+
+    log::debug("Setting up IPC...");
+
+    this->setupIPC();
+
     this->createDirectories();
     auto sett = this->loadData();
     if (!sett) {
@@ -455,22 +468,6 @@ void Loader::Impl::logConsoleMessage(std::string const& msg) {
 
 bool Loader::Impl::platformConsoleOpen() const {
     return m_platformConsoleOpen;
-}
-
-bool Loader::Impl::shownInfoAlert(std::string const& key) {
-    if (m_shownInfoAlerts.count(key)) {
-        return true;
-    }
-    m_shownInfoAlerts.insert(key);
-    return false;
-}
-
-void Loader::Impl::saveInfoAlerts(nlohmann::json& json) {
-    json["alerts"] = m_shownInfoAlerts;
-}
-
-void Loader::Impl::loadInfoAlerts(nlohmann::json& json) {
-    m_shownInfoAlerts = json["alerts"].get<std::unordered_set<std::string>>();
 }
 
 void Loader::Impl::downloadLoaderResources() {

@@ -147,7 +147,7 @@ ModCell* ModCell::create(
 }
 
 void ModCell::onEnable(CCObject* sender) {
-    if (!LoaderImpl::get()->shownInfoAlert("mod-disable-vs-unload")) {
+    if (!Mod::get()->setSavedValue("shown-disable-vs-unload-info", true)) {
         FLAlertLayer::create(
             "Notice",
             "<cb>Disabling</c> a <cy>mod</c> removes its hooks & patches and "
