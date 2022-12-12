@@ -45,7 +45,7 @@ NS_CC_EXT_BEGIN
 class CC_DLL CCControlSlider: public CCControl
 {
     //maunally put in the setters
-    /** Contains the receiver¡¯s current value. */
+    /** Contains the receiver's current value. */
     CC_SYNTHESIZE_READONLY(float, m_value, Value);
     virtual void setValue(float val);
     /** Contains the minimum value of the receiver. 
