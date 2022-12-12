@@ -207,10 +207,13 @@ namespace geode {
          * closed, the value is automatically saved under the key
          * @param key Key of the saved value
          * @param value Value
+         * @returns The old value
          */
         template<class T>
-        void setSavedValue(std::string const& key, T const& value) {
+        T setSavedValue(std::string const& key, T const& value) {
+            auto old = this->getSavedValue<T>(key);
             m_saved[key] = value;
+            return old;
         }
 
         /**

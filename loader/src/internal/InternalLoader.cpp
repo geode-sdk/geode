@@ -115,22 +115,6 @@ bool InternalLoader::platformConsoleOpen() const {
     return m_platformConsoleOpen;
 }
 
-bool InternalLoader::shownInfoAlert(std::string const& key) {
-    if (m_shownInfoAlerts.count(key)) {
-        return true;
-    }
-    m_shownInfoAlerts.insert(key);
-    return false;
-}
-
-void InternalLoader::saveInfoAlerts(nlohmann::json& json) {
-    json["alerts"] = m_shownInfoAlerts;
-}
-
-void InternalLoader::loadInfoAlerts(nlohmann::json& json) {
-    m_shownInfoAlerts = json["alerts"].get<std::unordered_set<std::string>>();
-}
-
 void InternalLoader::downloadLoaderResources() {
     auto version = this->getVersion().toString();
     auto tempResourcesZip = dirs::getTempDir() / "new.zip";
