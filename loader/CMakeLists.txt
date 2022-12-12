@@ -118,7 +118,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 )
 
 # For profiling
-set_property(TARGET ${PROJECT_NAME} PROPERTY RULE_LAUNCH_COMPILE "${CMAKE_COMMAND} -E time")
+target_compile_options(${PROJECT_NAME} PUBLIC "-ftime-trace")
+#set_property(TARGET ${PROJECT_NAME} PROPERTY RULE_LAUNCH_COMPILE "${CMAKE_COMMAND} -E time")
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC GEODE_EXPORTING)
 

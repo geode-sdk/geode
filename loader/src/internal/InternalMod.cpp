@@ -49,7 +49,7 @@ InternalMod::InternalMod() : Mod(getInternalModInfo()) {
 
     auto sett = this->loadData();
     if (!sett) {
-        log::log(Severity::Error, this, "{}", sett.unwrapErr());
+        log::internalLog(Severity::Error, this, "{}", sett.unwrapErr());
     }
 }
 

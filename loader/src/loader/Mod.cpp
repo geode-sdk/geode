@@ -125,7 +125,7 @@ Result<> Mod::loadData() {
                         return Err("Unable to load value for setting \"" + key + "\"");
                 }
                 else {
-                    log::log(
+                    log::internalLog(
                         Severity::Warning,
                         this,
                         "Encountered unknown setting \"{}\" while loading "

@@ -4,6 +4,6 @@
 
 GEODE_API void GEODE_CALL geode_implicit_load(geode::Mod* m) {
     geode::Mod::setSharedMod(m);
-    geode::log::releaseSchedules(m);
+    geode::log::Logger::runScheduled(m);
     geode::Loader::get()->dispatchScheduledFunctions(m);
 }

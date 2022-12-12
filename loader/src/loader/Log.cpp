@@ -13,17 +13,7 @@ USE_GEODE_NAMESPACE();
 using namespace geode::log;
 using namespace cocos2d;
 
-std::vector<std::function<void(Mod*)>>& Log::scheduled() {
-    static std::vector<std::function<void(Mod*)>> ret;
-    return ret;
-}
-
-void log::releaseSchedules(Mod* m) {
-    for (auto& func : Log::scheduled()) {
-        func(m);
-    }
-    Log::scheduled().clear();
-}
+// Parse overloads
 
 std::string log::parse(Mod* mod) {
     if (mod) {
@@ -95,7 +85,15 @@ std::string log::parse(cocos2d::ccColor4B const& col) {
     return fmt::format("rgba({}, {}, {}, {})", col.r, col.g, col.b, col.a);
 }
 
+// Log
+
 Log::Log(Mod* mod, Severity sev) : m_sender(mod), m_time(log_clock::now()), m_severity(sev) {}
+
+Log::~Log() {
+    for (auto comp : m_components) {
+        delete comp;
+    }
+}
 
 bool Log::operator==(Log const& l) {
     return this == &l;
@@ -117,36 +115,6 @@ std::string Log::toString(bool logTime) const {
     return res;
 }
 
-void Logs::setup() {
-    s_logStream = std::ofstream(dirs::getGeodeLogDir() / log::generateLogName());
-}
-
-void Logs::push(Log&& log) {
-    std::string logStr = log.toString(true);
-
-    LoaderImpl::get()->logConsoleMessage(logStr);
-    s_logStream << logStr << std::endl;
-
-    s_logs.emplace_back(std::forward<Log>(log));
-}
-
-void Logs::pop(Log* log) {
-    ranges::remove(s_logs, *log);
-}
-
-std::vector<Log*> Logs::list() {
-    std::vector<Log*> logs;
-    logs.reserve(s_logs.size());
-    for (auto& log : s_logs) {
-        logs.push_back(&log);
-    }
-    return logs;
-}
-
-void Logs::clear() {
-    s_logs.clear();
-}
-
 std::vector<ComponentTrait*>& Log::getComponents() {
     return m_components;
 }
@@ -163,26 +131,7 @@ Severity Log::getSeverity() const {
     return m_severity;
 }
 
-Log::~Log() {
-    for (auto comp : m_components) {
-        delete comp;
-    }
-}
-
-std::string geode::log::generateLogName() {
-    return fmt::format("Geode {:%d %b %H.%M.%S}.log", log_clock::now());
-}
-
-void geode::log::vlogImpl(
-    Severity severity, Mod* mod, std::string_view formatStr, std::function<void(Log&)>* components,
-    size_t componentsSize
-) {
-    Log log(mod, severity);
-
-    auto const pushSomething = [](Log& log, auto something) {
-        // i think this line of code is very sad
-        log.getComponents().push_back(new ComponentBase(something));
-    };
+void Log::addFormat(std::string_view formatStr, std::span<ComponentTrait*> components) {
 
     size_t compIndex = 0;
     std::string current;
@@ -197,10 +146,12 @@ void geode::log::vlogImpl(
                 continue;
             }
             if (next == '}') {
-                if (compIndex >= componentsSize)
+                if (compIndex >= components.size())
                     throw std::runtime_error("Not enough arguments for format string");
-                pushSomething(log, current);
-                components[compIndex++](log);
+                
+                m_components.push_back(new ComponentBase(current));
+                m_components.push_back(components[compIndex++]);
+
                 current.clear();
                 ++i;
                 continue;
@@ -221,14 +172,54 @@ void geode::log::vlogImpl(
         current.push_back(formatStr[i]);
     }
 
-    if (!current.empty()) pushSomething(log, current);
+    if (!current.empty())
+        m_components.push_back(new ComponentBase(current));
 
-    if (compIndex != componentsSize) {
+    if (compIndex != components.size()) {
         throw std::runtime_error("You have left over arguments.. silly head");
         // show_silly_error(formatStr);
     }
+}
 
-    // (l.getComponents().push_back(new ComponentBase(args)), ...);
+// Logger
 
-    Logs::push(std::move(log));
+void Logger::setup() {
+    s_logStream = std::ofstream(dirs::getGeodeLogDir() / log::generateLogName());
+}
+
+void Logger::_push(Log&& log) {
+    std::string logStr = log.toString(true);
+
+    LoaderImpl::get()->logConsoleMessage(logStr);
+    s_logStream << logStr << std::endl;
+
+    s_logs.emplace_back(std::forward<Log>(log));
+}
+
+std::vector<Log*> Logger::list() {
+    std::vector<Log*> logs;
+    logs.reserve(s_logs.size());
+    for (auto& log : s_logs) {
+        logs.push_back(&log);
+    }
+    return logs;
+}
+
+void Logger::clear() {
+    s_logs.clear();
+}
+
+void Logger::run(Mod* m, std::vector<Log>& scheduled) {
+    for (auto&& log : scheduled) {
+        log.m_sender = m;
+        Logger::_push(std::move(log));
+    }
+
+    scheduled.clear();
+}
+
+// Misc
+
+std::string geode::log::generateLogName() {
+    return fmt::format("Geode {:%d %b %H.%M.%S}.log", log_clock::now());
 }
