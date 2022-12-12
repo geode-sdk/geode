@@ -6,7 +6,7 @@
 #include <Geode/utils/ranges.hpp>
 #include <ccTypes.h>
 #include <chrono>
-#include <fs/filesystem.hpp>
+#include <ghc/filesystem.hpp>
 #include <sstream>
 #include <vector>
 #include <span>

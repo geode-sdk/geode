@@ -8,7 +8,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include <fs/filesystem.hpp>
+#include <ghc/filesystem.hpp>
 
 #undef snprintf
 
