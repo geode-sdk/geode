@@ -23,17 +23,77 @@ namespace geode::utils::file {
         ghc::filesystem::path const& path, bool recursive = false
     );
 
-    class UnzipImpl;
+    class GEODE_DLL Zip final {
+    public:
+        using Path = ghc::filesystem::path;
+
+    private:
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
+        
+        Zip();
+        Zip(std::unique_ptr<Impl>&& impl);
+
+        Result<> addAllFromRecurse(
+            Path const& dir, Path const& entry
+        );
+    
+    public:
+        Zip(Zip const&) = delete;
+        Zip(Zip&& other);
+        ~Zip();
+
+        /**
+         * Create zipper for file
+         */
+        static Result<Zip> create(Path const& file);
+
+        /**
+         * Path to the opened zip
+         */
+        Path getPath() const;
+
+        /**
+         * Add an entry to the zip with data
+         */
+        Result<> add(Path const& entry, byte_array const& data);
+        /**
+         * Add an entry to the zip with string data
+         */
+        Result<> add(Path const& entry, std::string const& data);
+        /**
+         * Add an entry to the zip from a file on disk. If you want to add the 
+         * file with a different name, read it into memory first and add it 
+         * with Zip::add
+         * @param file File on disk
+         * @param entryDir Folder to place the file in in the zip
+         */
+        Result<> addFrom(Path const& file, Path const& entryDir = Path());
+        /**
+         * Add an entry to the zip from a directory on disk
+         * @param entry Path in the zip
+         * @param dir Directory on disk
+         */
+        Result<> addAllFrom(Path const& dir);
+        /**
+         * Add a folder entry to the zip. If you want to add a folder from disk, 
+         * use Zip::addAllFrom
+         * @param entry Folder path in zip
+         */
+        Result<> addFolder(Path const& entry);
+    };
 
     class GEODE_DLL Unzip final {
     private:
-        UnzipImpl* m_impl;
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
+
+        Unzip();
+        Unzip(std::unique_ptr<Impl>&& impl);
 
     public:
-        Unzip() = delete;
         Unzip(Unzip const&) = delete;
         Unzip(Unzip&& other);
-        Unzip(UnzipImpl* impl);
         ~Unzip();
 
         using Path = ghc::filesystem::path;
