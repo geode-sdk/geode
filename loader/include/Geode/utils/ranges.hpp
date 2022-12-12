@@ -3,6 +3,7 @@
 #include <Geode/DefaultInclude.hpp>
 #include <algorithm>
 #include <string>
+#include <concepts>
 
 #undef min
 #undef max
