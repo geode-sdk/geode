@@ -49,6 +49,9 @@ public:
     std::vector<ScheduledFunction> m_scheduledFunctions;
     mutable std::mutex m_scheduledFunctionsMutex;
     bool m_isSetup = false;
+
+    std::condition_variable m_earlyLoadFinishedCV;
+    std::mutex m_earlyLoadFinishedMutex;
     std::atomic_bool m_earlyLoadFinished = false;
     std::vector<std::function<void(void)>> m_gdThreadQueue;
     mutable std::mutex m_gdThreadMutex;

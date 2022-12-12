@@ -75,20 +75,8 @@ namespace geode::utils::web {
      */
     class SentAsyncWebRequest {
     private:
-        std::string m_id;
-        std::string m_url;
-        std::vector<AsyncThen> m_thens;
-        std::vector<AsyncExpect> m_expects;
-        std::vector<AsyncProgress> m_progresses;
-        std::vector<AsyncCancelled> m_cancelleds;
-        std::atomic<bool> m_paused = true;
-        std::atomic<bool> m_cancelled = false;
-        std::atomic<bool> m_finished = false;
-        std::atomic<bool> m_cleanedUp = false;
-        mutable std::mutex m_mutex;
-        std::variant<std::monostate, std::ostream*, ghc::filesystem::path> m_target =
-            std::monostate();
-        std::vector<std::string> m_httpHeaders;
+        class Impl;
+        std::shared_ptr<Impl> m_impl;
 
         template <class T>
         friend class AsyncWebResult;
@@ -101,9 +89,11 @@ namespace geode::utils::web {
 
     public:
         /**
-         * Do not call this manually.
+         * Do not call these manually.
          */
-        SentAsyncWebRequest(AsyncWebRequest const&, std::string const& id);
+        SentAsyncWebRequest();
+        ~SentAsyncWebRequest();
+        static std::shared_ptr<SentAsyncWebRequest> create(AsyncWebRequest const&, std::string const& id);
 
         /**
          * Cancel the request. Cleans up any downloaded files, but if you run
