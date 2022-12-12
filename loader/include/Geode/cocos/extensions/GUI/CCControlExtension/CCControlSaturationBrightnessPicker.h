@@ -47,9 +47,9 @@ NS_CC_EXT_BEGIN
 
 class CC_DLL CCControlSaturationBrightnessPicker : public CCControl
 {
-    /** Contains the receiver¡¯s current saturation value. */
+    /** Contains the receiver's current saturation value. */
     CC_SYNTHESIZE_READONLY(float, m_saturation, Saturation);
-    /** Contains the receiver¡¯s current brightness value. */
+    /** Contains the receiver's current brightness value. */
     CC_SYNTHESIZE_READONLY(float, m_brightness, Brightness);
 
     //not sure if these need to be there actually. I suppose someone might want to access the sprite?
