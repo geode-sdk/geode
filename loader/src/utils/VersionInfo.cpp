@@ -4,15 +4,8 @@
 
 #include <Geode/utils/VersionInfo.hpp>
 #include <Geode/utils/general.hpp>
-#include <Geode/external/scnlib/include/scn/scn.h>
 
 USE_GEODE_NAMESPACE();
-
-#ifdef GEODE_IS_WINDOWS
-    #define GEODE_SSCANF sscanf_s
-#else
-    #define GEODE_SSCANF sscanf
-#endif
 
 // VersionTag
 
@@ -45,37 +38,57 @@ std::string geode::versionTagToString(VersionTag tag) {
 
 // VersionInfo
 
-bool VersionInfo::validate(std::string const& string) {
-    std::string copy = string;
-    if (copy.starts_with("v")) {
-        copy = string.substr(1);
-    }
-    
-    int buf0, buf1, buf2;
-    std::string bufT;
-    if (scn::scan(copy, "{}.{}.{}-{}", buf0, buf1, buf2, bufT)) {
-        return versionTagFromString(bufT).has_value();
-    }
-    if (scn::scan(copy, "{}.{}.{}", buf0, buf1, buf2)) {
-        return true;
+Result<VersionInfo> VersionInfo::parse(std::string const& string) {
+    std::stringstream str (string);
+
+    // allow leading v
+    if (str.peek() == 'v') {
+        str.get();
     }
 
-    return false;
-}
-
-VersionInfo::VersionInfo(std::string const& string) {
-    std::string copy = string;
-    if (copy.starts_with("v")) {
-        copy = string.substr(1);
+    size_t major;
+    str >> major;
+    if (str.fail()) {
+        return Err("Unable to parse major");
     }
-    std::string tag;
-    scn::scan(copy, "{}.{}.{}-{}", m_major, m_minor, m_patch, tag) ||
-    scn::scan(copy, "{}.{}.{}", m_major, m_minor, m_patch);
-    if (tag.size()) {
-        if (auto t = versionTagFromString(tag)) {
-            m_tag = t;
+
+    if (str.get() != '.') {
+        return Err("Minor version missing");
+    }
+
+    size_t minor;
+    str >> minor;
+    if (str.fail()) {
+        return Err("Unable to parse minor");
+    }
+
+    if (str.get() != '.') {
+        return Err("Patch version missing");
+    }
+
+    size_t patch;
+    str >> patch;
+    if (str.fail()) {
+        return Err("Unable to parse patch");
+    }
+
+    // tag
+    std::optional<VersionTag> tag;
+    if (str.peek() == '-') {
+        str.get();
+        std::string iden;
+        str >> iden;
+        if (str.fail()) {
+            return Err("Unable to parse tag");
+        }
+        if (auto t = versionTagFromString(iden)) {
+            tag = t;
+        }
+        else {
+            return Err("Invalid tag \"" + iden + "\"");
         }
     }
+    return Ok(VersionInfo(major, minor, patch, tag));
 }
 
 std::string VersionInfo::toString(bool includeTag) const {
@@ -94,7 +107,13 @@ void geode::to_json(nlohmann::json& json, VersionInfo const& info) {
 }
 
 void geode::from_json(nlohmann::json const& json, VersionInfo& info) {
-    info = VersionInfo(json.template get<std::string>());
+    auto ver = VersionInfo::parse(json.template get<std::string>());
+    if (!ver) {
+        throw nlohmann::json::type_error::create(
+            0, "Invalid version format: " + ver.unwrapErr(), json
+        );
+    }
+    info = ver.unwrap();
 }
 
 std::ostream& geode::operator<<(std::ostream& stream, VersionInfo const& version) {
@@ -103,35 +122,23 @@ std::ostream& geode::operator<<(std::ostream& stream, VersionInfo const& version
 
 // ComparableVersionInfo
 
-ComparableVersionInfo::ComparableVersionInfo(std::string const& rawStr) {
-    auto version = rawStr;
-    if (version.starts_with("<=")) {
-        m_compare = VersionCompare::LessEq;
-        version.erase(0, 2);
+Result<ComparableVersionInfo> ComparableVersionInfo::parse(std::string const& rawStr) {
+    VersionCompare compare;
+    auto string = rawStr;
+    if (string.starts_with("<=")) {
+        compare = VersionCompare::LessEq;
+        string.erase(0, 2);
     }
-    else if (version.starts_with(">=")) {
-        m_compare = VersionCompare::MoreEq;
-        version.erase(0, 2);
+    else if (string.starts_with(">=")) {
+        compare = VersionCompare::MoreEq;
+        string.erase(0, 2);
     }
-    else if (version.starts_with("==")) {
-        m_compare = VersionCompare::Exact;
-        version.erase(0, 2);
+    else if (string.starts_with("==")) {
+        compare = VersionCompare::Exact;
+        string.erase(0, 2);
     }
-    m_version = VersionInfo(version);
-}
-
-bool ComparableVersionInfo::validate(std::string const& rawStr) {
-    auto version = rawStr;
-    // remove prefix
-    if (
-        version.starts_with("<=") ||
-        version.starts_with(">=") ||
-        version.starts_with("==")
-    ) {
-        version.erase(0, 2);
-    }
-    // otherwise there's no prefix or it's invalid
-    return VersionInfo::validate(version);
+    GEODE_UNWRAP_INTO(auto version, VersionInfo::parse(string));
+    return Ok(ComparableVersionInfo(version, compare));
 }
 
 std::string ComparableVersionInfo::toString() const {
@@ -149,7 +156,13 @@ void geode::to_json(nlohmann::json& json, ComparableVersionInfo const& info) {
 }
 
 void geode::from_json(nlohmann::json const& json, ComparableVersionInfo& info) {
-    info = ComparableVersionInfo(json.template get<std::string>());
+    auto ver = ComparableVersionInfo::parse(json.template get<std::string>());
+    if (!ver) {
+        throw nlohmann::json::type_error::create(
+            0, "Invalid version format: " + ver.unwrapErr(), json
+        );
+    }
+    info = ver.unwrap();
 }
 
 std::ostream& geode::operator<<(std::ostream& stream, ComparableVersionInfo const& version) {

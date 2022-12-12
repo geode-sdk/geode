@@ -48,7 +48,7 @@ Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
     using nlohmann::detail::value_t;
 
     root.needs("id").validate(&ModInfo::validateID).into(info.id);
-    root.needs("version").validate(&VersionInfo::validate).into(info.version);
+    root.needs("version").into(info.version);
     root.needs("name").into(info.name);
     root.needs("developer").into(info.developer);
     root.has("description").into(info.description);
@@ -62,9 +62,7 @@ Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
 
         auto depobj = Dependency {};
         obj.needs("id").validate(&ModInfo::validateID).into(depobj.id);
-        obj.needs("version")
-            .validate(&ComparableVersionInfo::validate)
-            .into(depobj.version);
+        obj.needs("version").into(depobj.version);
         obj.has("required").into(depobj.required);
         obj.checkUnknownKeys();
 
@@ -116,16 +114,10 @@ Result<ModInfo> ModInfo::create(ModJson const& json) {
     // Check mod.json target version
     auto schema = LOADER_VERSION;
     if (json.contains("geode") && json["geode"].is_string()) {
-        auto ver = json["geode"];
-        if (VersionInfo::validate(ver)) {
-            schema = VersionInfo(ver);
-        }
-        else {
-            return Err(
-                "[mod.json] has no target loader version "
-                "specified, or it is invalidally formatted (required: \"[v]X.X.X\")!"
-            );
-        }
+        GEODE_UNWRAP_INTO(
+            schema, VersionInfo::parse(json["geode"])
+                .expect("[mod.json] has invalid target loader version: {error}")
+        );
     }
     else {
         return Err(

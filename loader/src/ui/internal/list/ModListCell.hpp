@@ -25,7 +25,7 @@ protected:
     CCMenuItemSpriteExtra* m_unresolvedExMark;
 
     bool init(ModListLayer* list, CCSize const& size);
-    void setupInfo(ModInfo const& info, bool spaceForTags);
+    void setupInfo(ModInfo const& info, bool spaceForTags, ModListDisplay display);
     void draw() override;
 
     float getLogoSize() const;
@@ -47,6 +47,7 @@ protected:
     bool init(
         Mod* mod,
         ModListLayer* list,
+        ModListDisplay display,
         CCSize const& size
     );
 
@@ -58,6 +59,7 @@ public:
     static ModCell* create(
         Mod* mod,
         ModListLayer* list,
+        ModListDisplay display,
         CCSize const& size
     );
 
@@ -76,6 +78,7 @@ protected:
     bool init(
         IndexItemHandle item,
         ModListLayer* list,
+        ModListDisplay display,
         CCSize const& size
     );
 
@@ -85,6 +88,7 @@ public:
     static IndexItemCell* create(
         IndexItemHandle item,
         ModListLayer* list,
+        ModListDisplay display,
         CCSize const& size
     );
 
@@ -103,6 +107,7 @@ protected:
     bool init(
         InvalidGeodeFile const& file,
         ModListLayer* list,
+        ModListDisplay display,
         CCSize const& size
     );
 
@@ -113,6 +118,7 @@ public:
     static InvalidGeodeFileCell* create(
         InvalidGeodeFile const& file,
         ModListLayer* list,
+        ModListDisplay display,
         CCSize const& size
     );
 
