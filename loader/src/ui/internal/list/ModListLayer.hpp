@@ -34,10 +34,6 @@ struct ModListQuery {
      */
     std::unordered_set<PlatformID> platforms = { GEODE_PLATFORM_TARGET };
     std::unordered_set<std::string> tags;
-    /**
-     * Used to filter by dev if you click their name
-     */
-    std::optional<std::string> developer;
 };
 
 class ModListLayer : public CCLayer, public TextInputDelegate {

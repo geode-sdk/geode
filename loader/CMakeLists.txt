@@ -129,7 +129,7 @@ target_link_libraries(${PROJECT_NAME} md4c)
 
 # Lilac (hooking)
 add_subdirectory(lilac)
-target_link_libraries(${PROJECT_NAME} z lilac_hook geode-sdk scn::scn)
+target_link_libraries(${PROJECT_NAME} z lilac_hook geode-sdk)
 
 # Use precompiled headers for faster builds
 target_precompile_headers(${PROJECT_NAME} PRIVATE

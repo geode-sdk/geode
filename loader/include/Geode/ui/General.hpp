@@ -10,4 +10,13 @@ namespace geode {
      * packs the ability to override this function.
      */
     GEODE_DLL cocos2d::CCSprite* createLayerBG();
+
+    /**
+     * Add the rounded comment borders to a node
+     */
+    GEODE_DLL void addListBorders(
+        cocos2d::CCNode* to,
+        cocos2d::CCPoint const& center,
+        cocos2d::CCSize const& size
+    );
 }

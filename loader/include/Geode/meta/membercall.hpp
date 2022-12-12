@@ -196,7 +196,7 @@ namespace geode::core::meta::x86 {
     class Membercall<Ret, Class, Args...> {
     
     protected:
-        using Sequences = Membercall<Ret*, Class, Ret*, Args...>::Sequences;
+        using Sequences = typename Membercall<Ret*, Class, Ret*, Args...>::Sequences;
 
         // Where all the logic is actually implemented.
         template <class Class, class>

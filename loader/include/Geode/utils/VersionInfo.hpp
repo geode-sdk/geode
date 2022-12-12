@@ -4,6 +4,7 @@
 #include <string_view>
 #include "../external/json/json.hpp"
 #include <tuple>
+#include "../utils/Result.hpp"
 
 namespace geode {
     enum class VersionCompare {
@@ -55,8 +56,8 @@ namespace geode {
             m_patch = patch;
             m_tag = tag;
         }
-        VersionInfo(std::string const& versionString);
-        static bool validate(std::string const& string);
+        
+        static Result<VersionInfo> parse(std::string const& string);
 
         constexpr size_t getMajor() const {
             return m_major;
@@ -114,8 +115,8 @@ namespace geode {
             VersionInfo const& version,
             VersionCompare const& compare
         ) : m_version(version), m_compare(compare) {}
-        ComparableVersionInfo(std::string const& versionString);
-        static bool validate(std::string const& string);
+
+        static Result<ComparableVersionInfo> parse(std::string const& string);
 
         constexpr bool compare(VersionInfo const& version) const {
             switch (m_compare) {

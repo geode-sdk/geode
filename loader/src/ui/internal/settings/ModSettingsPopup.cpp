@@ -5,6 +5,7 @@
 #include <Geode/loader/Setting.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/ui/General.hpp>
 
 bool ModSettingsPopup::setup(Mod* mod) {
     m_noElasticity = true;
@@ -77,29 +78,7 @@ bool ModSettingsPopup::setup(Mod* mod) {
 
     // layer borders
 
-    auto layerTopSpr = CCSprite::createWithSpriteFrameName("GJ_commentTop_001.png");
-    layerTopSpr->setPosition({ winSize.width / 2, winSize.height / 2 + layerSize.height / 2 - 5.f }
-    );
-    m_mainLayer->addChild(layerTopSpr);
-
-    auto layerBottomSpr = CCSprite::createWithSpriteFrameName("GJ_commentTop_001.png");
-    layerBottomSpr->setFlipY(true);
-    layerBottomSpr->setPosition({ winSize.width / 2,
-                                  winSize.height / 2 - layerSize.height / 2 + 5.f });
-    m_mainLayer->addChild(layerBottomSpr);
-
-    auto layerLeftSpr = CCSprite::createWithSpriteFrameName("GJ_commentSide_001.png");
-    layerLeftSpr->setScaleY(6.3f);
-    layerLeftSpr->setPosition({ winSize.width / 2 - layerSize.width / 2 - .5f, winSize.height / 2 }
-    );
-    m_mainLayer->addChild(layerLeftSpr);
-
-    auto layerRightSpr = CCSprite::createWithSpriteFrameName("GJ_commentSide_001.png");
-    layerRightSpr->setScaleY(6.3f);
-    layerRightSpr->setFlipX(true);
-    layerRightSpr->setPosition({ winSize.width / 2 + layerSize.width / 2 + .5f, winSize.height / 2 }
-    );
-    m_mainLayer->addChild(layerRightSpr);
+    addListBorders(m_mainLayer, winSize / 2, layerSize);
 
     // buttons
 
