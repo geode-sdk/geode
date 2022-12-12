@@ -3,7 +3,6 @@
 #include "../dev/HookListLayer.hpp"
 #include "../list/ModListLayer.hpp"
 #include "../settings/ModSettingsPopup.hpp"
-#include <InternalLoader.hpp>
 #include <Geode/loader/Dirs.hpp>
 
 #include <Geode/binding/ButtonSprite.hpp>

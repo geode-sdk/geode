@@ -166,7 +166,7 @@ CCArray* ModListLayer::createModCells(ModListType type, ModListQuery const& quer
             // something matches query better
             // the sorted list is in reverse so adding it last = adding it at the 
             // top
-            auto imod = Loader::getInternalMod();
+            auto imod = Mod::get();
             if (auto match = queryMatch(query, imod)) {
                 sorted.insert({ match.value(), imod });
             }

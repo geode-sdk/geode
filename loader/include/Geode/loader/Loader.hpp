@@ -50,8 +50,8 @@ namespace geode {
         bool isModVersionSupported(VersionInfo const& version);
 
         Result<Mod*> loadModFromFile(ghc::filesystem::path const& file);
-        Result<> loadModsFromDirectory(ghc::filesystem::path const& dir, bool recursive = true);
-        Result<> refreshModsList();
+        void loadModsFromDirectory(ghc::filesystem::path const& dir, bool recursive = true);
+        void refreshModsList();
         bool isModInstalled(std::string const& id) const;
         Mod* getInstalledMod(std::string const& id) const;
         bool isModLoaded(std::string const& id) const;

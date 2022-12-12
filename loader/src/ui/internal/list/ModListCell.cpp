@@ -1,7 +1,6 @@
 #include "ModListCell.hpp"
 #include "ModListLayer.hpp"
 #include "../info/ModInfoPopup.hpp"
-#include "ModListView.hpp"
 
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
@@ -9,7 +8,7 @@
 #include <Geode/binding/FLAlertLayer.hpp>
 #include <Geode/binding/StatsCell.hpp>
 #include <Geode/ui/GeodeUI.hpp>
-#include <InternalLoader.hpp>
+#include "../../../loader/LoaderImpl.hpp" // how should i include this src/loader/LoaderImpl.hpp
 #include "../info/TagNode.hpp"
 
 template <class T>

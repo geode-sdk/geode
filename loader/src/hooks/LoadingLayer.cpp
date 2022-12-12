@@ -58,7 +58,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
                 this->loadAssets();
             },
             [&](UpdateFailed const& error) {
-                InternalLoader::platformMessageBox(
+                LoaderImpl::get()->platformMessageBox(
                     "Error updating resources",
                     "Unable to update Geode resources: " + 
                     error + ".\n"

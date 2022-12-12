@@ -57,11 +57,11 @@ Result<Mod*> Loader::loadModFromFile(ghc::filesystem::path const& file) {
     return m_impl->loadModFromFile(file);
 }
 
-Result<> Loader::loadModsFromDirectory(ghc::filesystem::path const& dir, bool recursive) {
+void Loader::loadModsFromDirectory(ghc::filesystem::path const& dir, bool recursive) {
     return m_impl->loadModsFromDirectory(dir, recursive);
 }
 
-Result<> Loader::refreshModsList() {
+void Loader::refreshModsList() {
     return m_impl->refreshModsList();
 }
 

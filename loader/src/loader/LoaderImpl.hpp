@@ -93,8 +93,8 @@ public:
     bool isModVersionSupported(VersionInfo const& version);
 
     Result<Mod*> loadModFromFile(ghc::filesystem::path const& file);
-    Result<> loadModsFromDirectory(ghc::filesystem::path const& dir, bool recursive = true);
-    Result<> refreshModsList();
+    void loadModsFromDirectory(ghc::filesystem::path const& dir, bool recursive = true);
+    void refreshModsList();
     bool isModInstalled(std::string const& id) const;
     Mod* getInstalledMod(std::string const& id) const;
     bool isModLoaded(std::string const& id) const;
@@ -106,13 +106,12 @@ public:
 
     void updateResources();
 
-    void queueInGDThread(ScheduledFunction func);
     void scheduleOnModLoad(Mod* mod, ScheduledFunction func);
     void waitForModsToBeLoaded();
 
     bool didLastLaunchCrash() const;
 
-    std::string processRawIPC(void* rawHandle, std::string const& buffer);
+    nlohmann::json processRawIPC(void* rawHandle, std::string const& buffer);
 
     /**
      * Check if a one-time event has been shown to the user,
@@ -120,6 +119,8 @@ public:
      * state of the event before setting it to true
      */
     bool shownInfoAlert(std::string const& key);
+
+    void queueInGDThread(ScheduledFunction func);
     void executeGDThreadQueue();
 
     void logConsoleMessage(std::string const& msg);
