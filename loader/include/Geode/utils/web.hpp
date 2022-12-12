@@ -5,7 +5,7 @@
 #include "Result.hpp"
 #include "general.hpp"
 
-#include <fs/filesystem.hpp>
+#include <ghc/filesystem.hpp>
 #include <mutex>
 
 namespace geode::utils::web {
