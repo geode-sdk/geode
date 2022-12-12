@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <string>
 #include <concepts>
+#include <optional>
+#include <iterator>
 
 #undef min
 #undef max

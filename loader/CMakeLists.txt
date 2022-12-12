@@ -117,9 +117,11 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 	./ # lilac
 )
 
-# For profiling
-target_compile_options(${PROJECT_NAME} PUBLIC "-ftime-trace")
-#set_property(TARGET ${PROJECT_NAME} PROPERTY RULE_LAUNCH_COMPILE "${CMAKE_COMMAND} -E time")
+if (APPLE)
+	# For profiling
+	target_compile_options(${PROJECT_NAME} PUBLIC "-ftime-trace")
+	#set_property(TARGET ${PROJECT_NAME} PROPERTY RULE_LAUNCH_COMPILE "${CMAKE_COMMAND} -E time")
+endif()
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC GEODE_EXPORTING)
 
