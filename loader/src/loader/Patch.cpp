@@ -1,14 +1,14 @@
 #include <Geode/loader/Hook.hpp>
-#include <lilac/include/geode/core/hook/hook.hpp>
+// #include <lilac/include/geode/core/hook/hook.hpp>
 
 USE_GEODE_NAMESPACE();
 
 bool Patch::apply() {
-    return lilac::hook::write_memory(m_address, m_patch.data(), m_patch.size());
+    return tulip::hook::write_memory(m_address, m_patch.data(), m_patch.size());
 }
 
 bool Patch::restore() {
-    return lilac::hook::write_memory(m_address, m_original.data(), m_original.size());
+    return tulip::hook::write_memory(m_address, m_original.data(), m_original.size());
 }
 
 nlohmann::json Patch::getRuntimeInfo() const {

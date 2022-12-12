@@ -16,6 +16,7 @@
 #include <type_traits>
 #include <unordered_map>
 #include <vector>
+#include <tulip/TulipHook.hpp>
 
 namespace geode {
     template <class T>
@@ -241,31 +242,20 @@ namespace geode {
          * @param address The absolute address of
          * the function to hook, i.e. gd_base + 0xXXXX
          * @param detour Pointer to your detour function
+         * @param displayName Name of the hook that will be 
+         * displayed in the hook list
+         * @param hookMetadata Metadata of the hook       
          * @returns Successful result containing the
-         * Hook handle, errorful result with info on
+         * Hook pointer, errorful result with info on
          * error
          */
-        template <auto Detour, template <class, class...> class Convention>
-        Result<Hook*> addHook(void* address) {
-            return this->addHook<Detour, Convention>("", address);
-        }
-
-        /**
-         * Create a hook at an address. Call the original
-         * function by calling the original function –
-         * no trampoline needed. Also takes a displayName
-         * parameter to use for when visualizing the hook.
-         * @param address The absolute address of
-         * the function to hook, i.e. gd_base + 0xXXXX
-         * @param detour Pointer to your detour function
-         * @returns Successful result containing the
-         * Hook handle, errorful result with info on
-         * error
-         */
-        template <auto Detour, template <class, class...> class Convention>
-        Result<Hook*> addHook(std::string const& displayName, void* address) {
-            auto hook =
-                Hook::create<Detour, Convention>((decltype(Detour))address, displayName, this);
+        template <class Convention, class DetourType>
+        Result<Hook*> addHook(
+            void* address, DetourType detour, 
+            std::string const& displayName = "", 
+            tulip::hook::HookMetadata const& hookMetadata = tulip::hook::HookMetadata()
+        ) {
+            auto hook = Hook::create<Convention>(this, address, detour, displayName, hookMetadata);
             return this->addHook(hook);
         }
 

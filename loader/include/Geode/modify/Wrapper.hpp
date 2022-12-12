@@ -27,7 +27,7 @@
     public:                                                                                        \
         constexpr static inline auto value = &wrapperImpl;                                         \
         constexpr static inline auto uuid =                                                        \
-            function_uuid<substitute<Return(Parameters...)>(&Class::identifier)>::value;           \
+            FunctionUUID<substitute<Return(Parameters...)>(&Class::identifier)>::value;            \
     };                                                                                             \
     /* Specialization - function Return Class::identifier(Parameters...) is a static function */   \
     template <class Class, class Return, class... Parameters>                                      \
@@ -43,7 +43,7 @@
     public:                                                                                        \
         constexpr static inline auto value = &wrapperImpl;                                         \
         constexpr static inline auto uuid =                                                        \
-            function_uuid<substitute<Return(Parameters...)>(&Class::identifier)>::value;           \
+            FunctionUUID<substitute<Return(Parameters...)>(&Class::identifier)>::value;            \
     };
 
 namespace geode::modifier {

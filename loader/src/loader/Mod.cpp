@@ -419,10 +419,12 @@ Result<> Mod::disableHook(Hook* hook) {
 
 Result<Hook*> Mod::addHook(Hook* hook) {
     if (LoaderImpl::get()->isReadyToHook()) {
-        auto res = this->enableHook(hook);
-        if (!res) {
-            delete hook;
-            return Err("Can't create hook");
+        if (hook->getAutoEnable()) {
+            auto res = this->enableHook(hook);
+            if (!res) {
+                delete hook;
+                return Err("Can't create hook");
+            }
         }
     }
     else {

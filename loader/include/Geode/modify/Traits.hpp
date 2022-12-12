@@ -58,11 +58,11 @@ namespace geode::modifier {
      * function pointers.
      */
     template <auto a>
-    struct function_uuid {
+    struct FunctionUUID {
     private:
         constexpr static void function() {}
 
     public:
-        constexpr static inline void (*value)() = &function_uuid::function;
+        constexpr static inline void (*value)() = &FunctionUUID::function;
     };
 }

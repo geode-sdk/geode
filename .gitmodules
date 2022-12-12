@@ -4,3 +4,6 @@
 [submodule "loader/minhook"]
 	path = loader/minhook
 	url = https://github.com/TsudaKageyu/minhook
+[submodule "loader/tuliphook"]
+	path = loader/tuliphook
+	url = https://github.com/altalk23/TulipHook

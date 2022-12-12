@@ -8,43 +8,58 @@
 #include "InternalMod.hpp"
 
 #include <Geode/hook-core/Hook.hpp>
+#include "HookImpl.hpp"
 
 USE_GEODE_NAMESPACE();
 
-Result<> Hook::enable() {
-    if (!m_enabled) {
-        auto res = std::invoke(m_addFunction, m_address);
-        if (res) {
-            log::debug("Enabling hook at function {}", m_displayName);
-            m_enabled = true;
-            m_handle = res.unwrap();
-            return Ok();
-        }
-        else {
-            return Err(
-                "Unable to create hook at " + std::to_string(reinterpret_cast<uintptr_t>(m_address))
-            );
-        }
-        return Err("Hook already has a handle");
-    }
-    return Ok();
+Hook::Hook(std::shared_ptr<Impl>&& impl) : m_impl(std::move(impl)) {}
+Hook::~Hook() {}
+
+static Hook* Hook::create(Mod* owner, void* address, void* detour, std::string const& displayName, tulip::hook::HandlerMetadata const& handlerMetadata, tulip::hook::HookMetadata const& hookMetadata) {
+    auto impl = std::make_shared<Hook::Impl>(address, detour, displayName, handlerMetadata, hookMetadata, owner);
+    return new Hook(std::move(impl));
 }
 
-Result<> Hook::disable() {
-    if (m_enabled) {
-        if (!geode::core::hook::remove(m_handle)) return Err("Unable to remove hook");
+uintptr_t Hook::getAddress() const {
+    return m_impl->getAddress();
+}
 
-        log::debug("Disabling hook at function {}", m_displayName);
-        m_enabled = false;
-    }
-    return Ok();
+std::string_view Hook::getDisplayName() const {
+    return m_impl->getDisplayName();
+}
+
+bool Hook::isEnabled() const {
+    return m_impl->isEnabled();
+}
+
+Mod* Hook::getOwner() const {
+    return m_impl->getOwner();
 }
 
 nlohmann::json Hook::getRuntimeInfo() const {
-    auto json = nlohmann::json::object();
-    json["address"] = reinterpret_cast<uintptr_t>(m_address);
-    json["detour"] = reinterpret_cast<uintptr_t>(m_detour);
-    json["name"] = m_displayName;
-    json["enabled"] = m_enabled;
-    return json;
+    return m_impl->getRuntimeInfo();
+}
+
+tulip::hook::HookMetadata Hook::getHookMetadata() const {
+    return m_impl->getHookMetadata();
+}
+
+void Hook::setHookMetadata(tulip::hook::HookMetadata const& metadata) {
+    m_impl->setHookMetadata(metadata);
+}
+
+int32_t Hook::getPriority() const {
+    return m_impl->getPriority();
+}
+
+void Hook::setPriority(int32_t priority) {
+    m_impl->setPriority(priority);
+}
+
+bool getAutoEnable() const {
+    return m_impl->getAutoEnable();
+}
+
+void setAutoEnable(bool autoEnable) {
+    m_impl->setAutoEnable(autoEnable);
 }

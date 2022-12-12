@@ -29,11 +29,13 @@ using namespace geode::modifier;
 
 namespace geode::modifier {{
 	{wrap}
-	template<class Derived>
-	struct ModifyDerive<Derived, {class_name}> : ModifyBase<ModifyDerive<Derived, {class_name}>> {{
-		using ModifyBase<ModifyDerive<Derived, {class_name}>>::ModifyBase;
+	template<class Der>
+	struct ModifyDerive<Der, {class_name}> : ModifyBase<ModifyDerive<Der, {class_name}>> {{
+        using BaseModify = ModifyBase<ModifyDerive<Der, {class_name}>>;
+		using ModifyBase<ModifyDerive<Der, {class_name}>>::ModifyBase;
 		using Base = {class_name};
-		static void apply() {{
+        using Derived = Der;
+		void apply() override {{
 			using namespace geode::core::meta;
 
 )GEN";
@@ -104,7 +106,7 @@ std::string generateModifyHeader(Root& root, ghc::filesystem::path const& single
                     format_strings::apply_function, fmt::arg("addr_index", f.field_id),
                     fmt::arg("pure_index", bank.getPure(*begin, c.name)),
                     fmt::arg("class_name", c.name), fmt::arg("function_name", function_name),
-                    fmt::arg("function_convention", codegen::getConvention(f))
+                    fmt::arg("function_convention", codegen::getModifyConvention(f))
                 );
             }
         }

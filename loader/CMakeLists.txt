@@ -125,9 +125,9 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC GEODE_EXPORTING)
 add_subdirectory(md4c)
 target_link_libraries(${PROJECT_NAME} md4c)
 
-# Lilac (hooking)
-add_subdirectory(lilac)
-target_link_libraries(${PROJECT_NAME} z lilac_hook geode-sdk)
+# Tulip hook (hooking)
+add_subdirectory(tuliphook)
+target_link_libraries(${PROJECT_NAME} z TulipHook geode-sdk)
 
 # Use precompiled headers for faster builds
 target_precompile_headers(${PROJECT_NAME} PRIVATE
@@ -153,9 +153,6 @@ if (APPLE)
 	endif()
 elseif (WIN32)
 	add_subdirectory(launcher/windows)
-
-	add_subdirectory(minhook)
-	target_link_libraries(${PROJECT_NAME} minhook)
 
 	# target_include_directories(${PROJECT_NAME} PRIVATE dobby/include)
 	# target_link_directories(${PROJECT_NAME} PRIVATE dobby)

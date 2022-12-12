@@ -18,6 +18,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <tulip/TulipHook.hpp>
 
 struct ResourceDownloadEvent : public Event {
     const UpdateStatus status;
@@ -58,6 +59,13 @@ public:
     bool m_platformConsoleOpen = false;
     std::vector<std::pair<Hook*, Mod*>> m_internalHooks;
     bool m_readyToHook = false;
+
+    std::unordered_set<tulip::hook::HandlerHandle> m_handlerHandles;
+
+    Result<> createHandler(void* address, tulip::hook::HandlerMetadata const& metadata);
+    bool hasHandler(void* address);
+    Result<tulip::hook::HandlerHandle> getHandler(void* address);
+    Result<> removeHandler(void* address);
 
     void downloadLoaderResources();
 
