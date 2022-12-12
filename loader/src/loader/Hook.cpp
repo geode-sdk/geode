@@ -45,7 +45,7 @@ tulip::hook::HookMetadata Hook::getHookMetadata() const {
 }
 
 void Hook::setHookMetadata(tulip::hook::HookMetadata const& metadata) {
-    m_impl->setHookMetadata(metadata);
+    return m_impl->setHookMetadata(metadata);
 }
 
 int32_t Hook::getPriority() const {
@@ -53,7 +53,7 @@ int32_t Hook::getPriority() const {
 }
 
 void Hook::setPriority(int32_t priority) {
-    m_impl->setPriority(priority);
+    return m_impl->setPriority(priority);
 }
 
 bool Hook::getAutoEnable() const {
@@ -61,12 +61,12 @@ bool Hook::getAutoEnable() const {
 }
 
 void Hook::setAutoEnable(bool autoEnable) {
-    m_impl->setAutoEnable(autoEnable);
+    return m_impl->setAutoEnable(autoEnable);
 }
 
 Result<> Hook::enable() {
-    m_impl->enable();
+    return m_impl->enable();
 }
 Result<> Hook::disable() {
-    m_impl->disable();
+    return m_impl->disable();
 }

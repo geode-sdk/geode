@@ -407,6 +407,7 @@ bool Mod::depends(std::string const& id) const {
 // Hooks
 
 Result<> Mod::enableHook(Hook* hook) {
+    log::debug("Enabling hook {} for mod {}", (void*)hook, m_info.id);
     auto res = hook->enable();
     if (res) m_hooks.push_back(hook);
 
@@ -423,7 +424,7 @@ Result<Hook*> Mod::addHook(Hook* hook) {
             auto res = this->enableHook(hook);
             if (!res) {
                 delete hook;
-                return Err("Can't create hook");
+                return Err("Can't create hook: "+ res.unwrapErr());
             }
         }
     }

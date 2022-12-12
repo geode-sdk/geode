@@ -147,6 +147,8 @@ static auto $_ = listenForIPC("list-mods", [](IPCEvent* event) -> nlohmann::json
 int geodeEntry(void* platformData) {
     // setup internals
 
+     Loader::get()->openPlatformConsole();
+
     if (!Loader::get()) {
         LoaderImpl::get()->platformMessageBox(
             "Unable to Load Geode!",
