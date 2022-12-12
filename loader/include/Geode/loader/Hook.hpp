@@ -22,6 +22,9 @@ namespace geode {
         friend class Mod;
         friend class Loader;
 
+        Result<> enable();
+        Result<> disable();
+
     public:
         static Hook* create(Mod* owner, void* address, void* detour, std::string const& displayName, tulip::hook::HandlerMetadata const& handlerMetadata, tulip::hook::HookMetadata const& hookMetadata);
 

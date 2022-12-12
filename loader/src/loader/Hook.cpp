@@ -15,7 +15,7 @@ USE_GEODE_NAMESPACE();
 Hook::Hook(std::shared_ptr<Impl>&& impl) : m_impl(std::move(impl)) {}
 Hook::~Hook() {}
 
-static Hook* Hook::create(Mod* owner, void* address, void* detour, std::string const& displayName, tulip::hook::HandlerMetadata const& handlerMetadata, tulip::hook::HookMetadata const& hookMetadata) {
+Hook* Hook::create(Mod* owner, void* address, void* detour, std::string const& displayName, tulip::hook::HandlerMetadata const& handlerMetadata, tulip::hook::HookMetadata const& hookMetadata) {
     auto impl = std::make_shared<Hook::Impl>(address, detour, displayName, handlerMetadata, hookMetadata, owner);
     return new Hook(std::move(impl));
 }
@@ -56,10 +56,17 @@ void Hook::setPriority(int32_t priority) {
     m_impl->setPriority(priority);
 }
 
-bool getAutoEnable() const {
+bool Hook::getAutoEnable() const {
     return m_impl->getAutoEnable();
 }
 
-void setAutoEnable(bool autoEnable) {
+void Hook::setAutoEnable(bool autoEnable) {
     m_impl->setAutoEnable(autoEnable);
+}
+
+Result<> Hook::enable() {
+    m_impl->enable();
+}
+Result<> Hook::disable() {
+    m_impl->disable();
 }

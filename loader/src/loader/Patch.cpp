@@ -4,11 +4,11 @@
 USE_GEODE_NAMESPACE();
 
 bool Patch::apply() {
-    return tulip::hook::write_memory(m_address, m_patch.data(), m_patch.size());
+    return bool(tulip::hook::writeMemory(m_address, m_patch.data(), m_patch.size()));
 }
 
 bool Patch::restore() {
-    return tulip::hook::write_memory(m_address, m_original.data(), m_original.size());
+    return bool(tulip::hook::writeMemory(m_address, m_original.data(), m_original.size()));
 }
 
 nlohmann::json Patch::getRuntimeInfo() const {

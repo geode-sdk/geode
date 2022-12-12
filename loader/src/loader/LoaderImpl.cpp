@@ -597,32 +597,32 @@ ResourceDownloadFilter::ResourceDownloadFilter() {}
 
 
 Result<> Loader::Impl::createHandler(void* address, tulip::hook::HandlerMetadata const& metadata) {
-    if (m_internalHooks.count(address)) {
-        return Error("Handler already exists at address");
+    if (m_handlerHandles.count(address)) {
+        return Err("Handler already exists at address");
     }
 
     GEODE_UNWRAP_INTO(auto handle, tulip::hook::createHandler(address, metadata));
-    m_internalHooks[address] = handle;
+    m_handlerHandles[address] = handle;
 }
 
-bool hasHandler(void* address) {
-    return m_internalHooks.count(address);
+bool Loader::Impl::hasHandler(void* address) {
+    return m_handlerHandles.count(address) > 0;
 }
 
 Result<tulip::hook::HandlerHandle> Loader::Impl::getHandler(void* address) {
-    if (!m_internalHooks.count(address)) {
-        return Error("Handler does not exist at address");
+    if (!m_handlerHandles.count(address)) {
+        return Err("Handler does not exist at address");
     }
 
-    return Ok(m_internalHooks[address]);
+    return Ok(m_handlerHandles[address]);
 }
 
 Result<> Loader::Impl::removeHandler(void* address) {
-    if (!m_internalHooks.count(address)) {
-        return Error("Handler does not exist at address");
+    if (!m_handlerHandles.count(address)) {
+        return Err("Handler does not exist at address");
     }
 
-    auto handle = m_internalHooks[address];
-    tulip::hook::removeHandler(handle);
-    m_internalHooks.erase(address);
+    auto handle = m_handlerHandles[address];
+    GEODE_UNWRAP(tulip::hook::removeHandler(handle));
+    m_handlerHandles.erase(address);
 }

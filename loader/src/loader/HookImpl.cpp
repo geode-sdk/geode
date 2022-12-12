@@ -1,4 +1,5 @@
 #include "HookImpl.hpp"
+#include "LoaderImpl.hpp"
 
 Hook::Impl::Impl(void* address, void* detour, std::string const& displayName, tulip::hook::HandlerMetadata const& handlerMetadata, tulip::hook::HookMetadata const& hookMetadata, Mod* owner) :
     m_address(address),
@@ -8,7 +9,12 @@ Hook::Impl::Impl(void* address, void* detour, std::string const& displayName, tu
     m_hookMetadata(hookMetadata),
     m_owner(owner) {}
 Hook::Impl::~Impl() {
-    if (m_enabled) this->disable();
+    if (m_enabled) {
+        auto res = this->disable();
+        if (!res) {
+            log::error("Failed to disable hook: {}", res.unwrapErr());
+        }
+    }
 }
 
 uintptr_t Hook::Impl::getAddress() const {
@@ -72,14 +78,20 @@ Result<> Hook::Impl::updateMetadata() {
 }
 void Hook::Impl::setHookMetadata(tulip::hook::HookMetadata const& metadata) {
     m_hookMetadata = metadata;
-    this->updateMetadata();
+    auto res = this->updateMetadata();
+    if (!res) {
+        log::error("Failed to update hook metadata: {}", res.unwrapErr());
+    }
 }
 int32_t Hook::Impl::getPriority() const {
-    return m_hookMetadata.priority;
+    return m_hookMetadata.m_priority;
 }
 void Hook::Impl::setPriority(int32_t priority) {
-    m_hookMetadata.priority = priority;
-    this->updateMetadata();
+    m_hookMetadata.m_priority = priority;
+    auto res = this->updateMetadata();
+    if (!res) {
+        log::error("Failed to update hook priority: {}", res.unwrapErr());
+    }
 }
 
 bool Hook::Impl::getAutoEnable() const {

@@ -60,7 +60,7 @@ public:
     std::vector<std::pair<Hook*, Mod*>> m_internalHooks;
     bool m_readyToHook = false;
 
-    std::unordered_set<tulip::hook::HandlerHandle> m_handlerHandles;
+    std::unordered_map<void*, tulip::hook::HandlerHandle> m_handlerHandles;
 
     Result<> createHandler(void* address, tulip::hook::HandlerMetadata const& metadata);
     bool hasHandler(void* address);
