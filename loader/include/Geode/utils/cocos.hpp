@@ -338,7 +338,7 @@ namespace geode {
 
         template <class C>
         static EventListenerNode* create(
-            C* cls, typename EventListener<Filter>::MemberFn<C> callback
+            C* cls, typename EventListener<Filter>::template MemberFn<C> callback
         ) {
             // for some reason msvc won't let me just call EventListenerNode::create...
             // it claims no return value...

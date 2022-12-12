@@ -1,9 +1,9 @@
 
-#include <InternalLoader.hpp>
-#include <array>
 #include <Geode/modify/LoadingLayer.hpp>
-#include <fmt/format.h>
 #include <Geode/utils/cocos.hpp>
+#include <array>
+#include <fmt/format.h>
+#include <loader/LoaderImpl.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -19,23 +19,21 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
 
         auto count = Loader::get()->getAllMods().size();
 
-        auto label = CCLabelBMFont::create(
-            fmt::format("Geode: Loaded {} mods", count).c_str(),
-            "goldFont.fnt"
-        );
+        auto label =
+            CCLabelBMFont::create(fmt::format("Geode: Loaded {} mods", count).c_str(), "goldFont.fnt");
         label->setPosition(winSize.width / 2, 30.f);
         label->setScale(.45f);
         label->setID("geode-loaded-info");
         this->addChild(label);
 
-        // for some reason storing the listener as a field caused the 
+        // for some reason storing the listener as a field caused the
         // destructor for the field not to be run
         this->addChild(EventListenerNode<ResourceDownloadFilter>::create(
             this, &CustomLoadingLayer::updateResourcesProgress
         ));
 
         // verify loader resources
-        if (!InternalLoader::get()->verifyLoaderResources()) {
+        if (!LoaderImpl::get()->verifyLoaderResources()) {
             m_fields->m_updatingResources = true;
             this->setUpdateText("Downloading Resources");
         }

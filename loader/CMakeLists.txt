@@ -106,6 +106,8 @@ package_geode_resources_now(
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
+	src/
+	src/loader/
 	src/internal/
 	src/platform/
 	src/gui/

@@ -1,4 +1,4 @@
-#include <InternalLoader.hpp>
+#include "../loader/LoaderImpl.hpp"
 
 USE_GEODE_NAMESPACE();
 
@@ -6,7 +6,7 @@ USE_GEODE_NAMESPACE();
 
 struct FunctionQueue : Modify<FunctionQueue, CCScheduler> {
     void update(float dt) {
-        InternalLoader::get()->executeGDThreadQueue();
+        LoaderImpl::get()->executeGDThreadQueue();
         return CCScheduler::update(dt);
     }
 };

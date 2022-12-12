@@ -133,19 +133,19 @@ Result<ModInfo> ModInfo::create(ModJson const& json) {
             "specified, or it is invalidally formatted (required: \"[v]X.X.X\")!"
         );
     }
-    if (schema < Loader::minModVersion()) {
+    if (schema < Loader::get()->minModVersion()) {
         return Err(
             "[mod.json] is built for an older version (" + schema.toString() +
-            ") of Geode (current: " + Loader::getVersion().toString() +
+            ") of Geode (current: " + Loader::get()->getVersion().toString() +
             "). Please update the mod to the latest version, "
             "and if the problem persists, contact the developer "
             "to update it."
         );
     }
-    if (schema > Loader::maxModVersion()) {
+    if (schema > Loader::get()->maxModVersion()) {
         return Err(
             "[mod.json] is built for a newer version (" + schema.toString() +
-            ") of Geode (current: " + Loader::getVersion().toString() +
+            ") of Geode (current: " + Loader::get()->getVersion().toString() +
             "). You need to update Geode in order to use "
             "this mod."
         );
@@ -195,8 +195,7 @@ Result<ModInfo> ModInfo::createFromGeodeZip(file::Unzip& unzip) {
 
     // Read mod.json & parse if possible
     GEODE_UNWRAP_INTO(
-        auto jsonData,
-        unzip.extract("mod.json").expect("Unable to read mod.json: {error}")
+        auto jsonData, unzip.extract("mod.json").expect("Unable to read mod.json: {error}")
     );
     ModJson json;
     try {
@@ -213,10 +212,7 @@ Result<ModInfo> ModInfo::createFromGeodeZip(file::Unzip& unzip) {
     auto info = res.unwrap();
     info.path = unzip.getPath();
 
-    GEODE_UNWRAP(
-        info.addSpecialFiles(unzip)
-            .expect("Unable to add extra files: {error}")
-    );
+    GEODE_UNWRAP(info.addSpecialFiles(unzip).expect("Unable to add extra files: {error}"));
 
     return Ok(info);
 }
@@ -225,9 +221,7 @@ Result<> ModInfo::addSpecialFiles(file::Unzip& unzip) {
     // unzip known MD files
     for (auto& [file, target] : getSpecialFiles()) {
         if (unzip.hasEntry(file)) {
-            GEODE_UNWRAP_INTO(auto data, unzip.extract(file).expect(
-                "Unable to extract \"{}\"", file
-            ));
+            GEODE_UNWRAP_INTO(auto data, unzip.extract(file).expect("Unable to extract \"{}\"", file));
             *target = sanitizeDetailsData(std::string(data.begin(), data.end()));
         }
     }

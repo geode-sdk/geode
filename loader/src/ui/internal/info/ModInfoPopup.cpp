@@ -12,15 +12,17 @@
 #include <Geode/binding/Slider.hpp>
 #include <Geode/binding/SliderThumb.hpp>
 #include <Geode/binding/SliderTouchLogic.hpp>
+#include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/ui/BasedButton.hpp>
+#include <Geode/ui/GeodeUI.hpp>
 #include <Geode/ui/IconButtonSprite.hpp>
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/ui/MDPopup.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <Geode/utils/web.hpp>
-#include <InternalLoader.hpp>
+#include <loader/LoaderImpl.hpp>
 
 // TODO: die
 #undef min
@@ -28,7 +30,7 @@
 
 static constexpr int const TAG_CONFIRM_UNINSTALL = 5;
 static constexpr int const TAG_DELETE_SAVEDATA = 6;
-static const CCSize LAYER_SIZE = { 440.f, 290.f };
+static const CCSize LAYER_SIZE = {440.f, 290.f};
 
 bool ModInfoPopup::init(ModInfo const& info, ModListLayer* list) {
     m_noElasticity = true;
@@ -36,11 +38,11 @@ bool ModInfoPopup::init(ModInfo const& info, ModListLayer* list) {
 
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
-    if (!this->initWithColor({ 0, 0, 0, 105 })) return false;
+    if (!this->initWithColor({0, 0, 0, 105})) return false;
     m_mainLayer = CCLayer::create();
     this->addChild(m_mainLayer);
 
-    auto bg = CCScale9Sprite::create("GJ_square01.png", { 0.0f, 0.0f, 80.0f, 80.0f });
+    auto bg = CCScale9Sprite::create("GJ_square01.png", {0.0f, 0.0f, 80.0f, 80.0f});
     bg->setContentSize(LAYER_SIZE);
     bg->setPosition(winSize.width / 2, winSize.height / 2);
     bg->setZOrder(-10);
@@ -57,33 +59,27 @@ bool ModInfoPopup::init(ModInfo const& info, ModListLayer* list) {
     nameLabel->limitLabelWidth(200.f, .7f, .1f);
     m_mainLayer->addChild(nameLabel, 2);
 
-    auto logoSpr = this->createLogo({ logoSize, logoSize });
+    auto logoSpr = this->createLogo({logoSize, logoSize});
     m_mainLayer->addChild(logoSpr);
 
     auto developerStr = "by " + info.developer;
     auto developerLabel = CCLabelBMFont::create(developerStr.c_str(), "goldFont.fnt");
     developerLabel->setScale(.5f);
-    developerLabel->setAnchorPoint({ .0f, .5f });
+    developerLabel->setAnchorPoint({.0f, .5f});
     m_mainLayer->addChild(developerLabel);
 
     auto logoTitleWidth =
-        std::max(
-            nameLabel->getScaledContentSize().width,
-            developerLabel->getScaledContentSize().width
-        ) +
+        std::max(nameLabel->getScaledContentSize().width, developerLabel->getScaledContentSize().width) +
         logoSize + logoOffset;
 
     nameLabel->setPosition(
-        winSize.width / 2 - logoTitleWidth / 2 + logoSize + logoOffset,
-        winSize.height / 2 + 125.f
+        winSize.width / 2 - logoTitleWidth / 2 + logoSize + logoOffset, winSize.height / 2 + 125.f
     );
-    logoSpr->setPosition({
-        winSize.width / 2 - logoTitleWidth / 2 + logoSize / 2,
-        winSize.height / 2 + 115.f 
-    });
+    logoSpr->setPosition(
+        {winSize.width / 2 - logoTitleWidth / 2 + logoSize / 2, winSize.height / 2 + 115.f}
+    );
     developerLabel->setPosition(
-        winSize.width / 2 - logoTitleWidth / 2 + logoSize + logoOffset,
-        winSize.height / 2 + 105.f
+        winSize.width / 2 - logoTitleWidth / 2 + logoSize + logoOffset, winSize.height / 2 + 105.f
     );
 
     auto versionLabel = CCLabelBMFont::create(
@@ -96,7 +92,7 @@ bool ModInfoPopup::init(ModInfo const& info, ModListLayer* list) {
         nameLabel->getPositionX() + nameLabel->getScaledContentSize().width + 5.f,
         winSize.height / 2 + 125.f
     );
-    versionLabel->setColor({ 0, 255, 0 });
+    versionLabel->setColor({0, 255, 0});
     m_mainLayer->addChild(versionLabel);
 
     CCDirector::sharedDirector()->getTouchDispatcher()->incrementForcePrio(2);
@@ -123,27 +119,33 @@ bool ModInfoPopup::init(ModInfo const& info, ModListLayer* list) {
     if (info.changelog) {
         m_changelogArea = MDTextArea::create(info.changelog.value(), { 350.f, 137.5f });
         m_changelogArea->setPosition(
-            -5000.f, winSize.height / 2 -
-            m_changelogArea->getScaledContentSize().height / 2 - 20.f
+            -5000.f, winSize.height / 2 - m_changelogArea->getScaledContentSize().height / 2 - 20.f
         );
         m_changelogArea->setVisible(false);
         m_mainLayer->addChild(m_changelogArea);
 
         auto changelogBtnOffSpr = ButtonSprite::create(
             CCSprite::createWithSpriteFrameName("changelog.png"_spr),
-            0x20, true, 32.f, "GJ_button_01.png", 1.f
+            0x20,
+            true,
+            32.f,
+            "GJ_button_01.png",
+            1.f
         );
         changelogBtnOffSpr->setScale(.65f);
 
         auto changelogBtnOnSpr = ButtonSprite::create(
             CCSprite::createWithSpriteFrameName("changelog.png"_spr),
-            0x20, true, 32.f, "GJ_button_02.png", 1.f
+            0x20,
+            true,
+            32.f,
+            "GJ_button_02.png",
+            1.f
         );
         changelogBtnOnSpr->setScale(.65f);
 
         auto changelogBtn = CCMenuItemToggler::create(
-            changelogBtnOffSpr, changelogBtnOnSpr,
-            this, menu_selector(ModInfoPopup::onChangelog)
+            changelogBtnOffSpr, changelogBtnOnSpr, this, menu_selector(ModInfoPopup::onChangelog)
         );
         changelogBtn->setPosition(-LAYER_SIZE.width / 2 + 21.5f, .0f);
         m_buttonMenu->addChild(changelogBtn);
@@ -153,51 +155,38 @@ bool ModInfoPopup::init(ModInfo const& info, ModListLayer* list) {
     auto infoSpr = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
     infoSpr->setScale(.85f);
 
-    m_infoBtn = CCMenuItemSpriteExtra::create(
-        infoSpr, this, menu_selector(ModInfoPopup::onInfo)
-    );
-    m_infoBtn->setPosition(
-        LAYER_SIZE.width / 2 - 25.f,
-        LAYER_SIZE.height / 2 - 25.f
-    );
+    m_infoBtn = CCMenuItemSpriteExtra::create(infoSpr, this, menu_selector(ModInfoPopup::onInfo));
+    m_infoBtn->setPosition(LAYER_SIZE.width / 2 - 25.f, LAYER_SIZE.height / 2 - 25.f);
     m_buttonMenu->addChild(m_infoBtn);
 
     // repo button
     if (info.repository) {
         auto repoBtn = CCMenuItemSpriteExtra::create(
-            CCSprite::createWithSpriteFrameName("github.png"_spr), this,
+            CCSprite::createWithSpriteFrameName("github.png"_spr),
+            this,
             menu_selector(ModInfoPopup::onRepository)
         );
-        repoBtn->setPosition(
-            LAYER_SIZE.width / 2 - 25.f,
-            -LAYER_SIZE.height / 2 + 25.f
-        );
+        repoBtn->setPosition(LAYER_SIZE.width / 2 - 25.f, -LAYER_SIZE.height / 2 + 25.f);
         m_buttonMenu->addChild(repoBtn);
     }
 
     // support button
     if (info.supportInfo) {
         auto supportBtn = CCMenuItemSpriteExtra::create(
-            CCSprite::createWithSpriteFrameName("gift.png"_spr), this,
+            CCSprite::createWithSpriteFrameName("gift.png"_spr),
+            this,
             menu_selector(ModInfoPopup::onSupport)
         );
-        supportBtn->setPosition(
-            LAYER_SIZE.width / 2 - 60.f,
-            -LAYER_SIZE.height / 2 + 25.f
-        );
+        supportBtn->setPosition(LAYER_SIZE.width / 2 - 60.f, -LAYER_SIZE.height / 2 + 25.f);
         m_buttonMenu->addChild(supportBtn);
     }
 
     auto closeSpr = CCSprite::createWithSpriteFrameName("GJ_closeBtn_001.png");
     closeSpr->setScale(.8f);
 
-    auto closeBtn = CCMenuItemSpriteExtra::create(
-        closeSpr, this, menu_selector(ModInfoPopup::onClose)
-    );
-    closeBtn->setPosition(
-        -LAYER_SIZE.width / 2 + 3.f,
-        LAYER_SIZE.height / 2 - 3.f
-    );
+    auto closeBtn =
+        CCMenuItemSpriteExtra::create(closeSpr, this, menu_selector(ModInfoPopup::onClose));
+    closeBtn->setPosition(-LAYER_SIZE.width / 2 + 3.f, LAYER_SIZE.height / 2 - 3.f);
     m_buttonMenu->addChild(closeBtn);
 
     this->setKeypadEnabled(true);
@@ -233,8 +222,11 @@ void ModInfoPopup::onInfo(CCObject*) {
             info.developer,
             info.path.string()
         ),
-        "OK", nullptr, 400.f
-    )->show();
+        "OK",
+        nullptr,
+        400.f
+    )
+        ->show();
 }
 
 void ModInfoPopup::onChangelog(CCObject* sender) {
@@ -245,18 +237,16 @@ void ModInfoPopup::onChangelog(CCObject* sender) {
     // as it turns out, cocos2d is stupid and still passes touch
     // events to invisible nodes
     m_detailsArea->setPositionX(
-        toggle->isToggled() ?
-            winSize.width / 2 - m_detailsArea->getScaledContentSize().width / 2 :
-            -5000.f
+        toggle->isToggled() ? winSize.width / 2 - m_detailsArea->getScaledContentSize().width / 2 :
+                              -5000.f
     );
 
     m_changelogArea->setVisible(!toggle->isToggled());
     // as it turns out, cocos2d is stupid and still passes touch
     // events to invisible nodes
     m_changelogArea->setPositionX(
-        !toggle->isToggled() ?
-            winSize.width / 2 - m_changelogArea->getScaledContentSize().width / 2 :
-            -5000.f
+        !toggle->isToggled() ? winSize.width / 2 - m_changelogArea->getScaledContentSize().width / 2 :
+                               -5000.f
     );
 }
 
@@ -287,24 +277,17 @@ void ModInfoPopup::setInstallStatus(std::optional<UpdateProgress> const& progres
 bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
     m_mod = mod;
 
-    if (!ModInfoPopup::init(mod->getModInfo(), list))
-        return false;
+    if (!ModInfoPopup::init(mod->getModInfo(), list)) return false;
 
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
     // mod settings
-    auto settingsSpr = CCSprite::createWithSpriteFrameName(
-        "GJ_optionsBtn_001.png"
-    );
+    auto settingsSpr = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
     settingsSpr->setScale(.65f);
 
-    auto settingsBtn = CCMenuItemSpriteExtra::create(
-        settingsSpr, this, menu_selector(LocalModInfoPopup::onSettings)
-    );
-    settingsBtn->setPosition(
-        -LAYER_SIZE.width / 2 + 25.f,
-        -LAYER_SIZE.height / 2 + 25.f
-    );
+    auto settingsBtn =
+        CCMenuItemSpriteExtra::create(settingsSpr, this, menu_selector(LocalModInfoPopup::onSettings));
+    settingsBtn->setPosition(-LAYER_SIZE.width / 2 + 25.f, -LAYER_SIZE.height / 2 + 25.f);
     m_buttonMenu->addChild(settingsBtn);
 
     // Check if a config directory for the mod exists
@@ -317,31 +300,23 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
         auto configBtn = CCMenuItemSpriteExtra::create(
             configSpr, this, menu_selector(LocalModInfoPopup::onOpenConfigDir)
         );
-        configBtn->setPosition(
-            -LAYER_SIZE.width / 2 + 65.f,
-            -LAYER_SIZE.height / 2 + 25.f
-        );
+        configBtn->setPosition(-LAYER_SIZE.width / 2 + 65.f, -LAYER_SIZE.height / 2 + 25.f);
         m_buttonMenu->addChild(configBtn);
     }
 
     if (!mod->hasSettings()) {
-        settingsSpr->setColor({ 150, 150, 150 });
+        settingsSpr->setColor({150, 150, 150});
         settingsBtn->setTarget(this, menu_selector(LocalModInfoPopup::onNoSettings));
     }
 
-    auto enableBtnSpr = ButtonSprite::create(
-        "Enable", "bigFont.fnt", "GJ_button_01.png", .6f
-    );
+    auto enableBtnSpr = ButtonSprite::create("Enable", "bigFont.fnt", "GJ_button_01.png", .6f);
     enableBtnSpr->setScale(.6f);
 
-    auto disableBtnSpr = ButtonSprite::create(
-        "Disable", "bigFont.fnt", "GJ_button_06.png", .6f
-    );
+    auto disableBtnSpr = ButtonSprite::create("Disable", "bigFont.fnt", "GJ_button_06.png", .6f);
     disableBtnSpr->setScale(.6f);
 
     auto enableBtn = CCMenuItemToggler::create(
-        disableBtnSpr, enableBtnSpr,
-        this, menu_selector(LocalModInfoPopup::onEnableMod)
+        disableBtnSpr, enableBtnSpr, this, menu_selector(LocalModInfoPopup::onEnableMod)
     );
     enableBtn->setPosition(-155.f, 75.f);
     enableBtn->toggle(!mod->isEnabled());
@@ -349,8 +324,8 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
 
     if (!mod->supportsDisabling()) {
         enableBtn->setTarget(this, menu_selector(LocalModInfoPopup::onDisablingNotSupported));
-        enableBtnSpr->setColor({ 150, 150, 150 });
-        disableBtnSpr->setColor({ 150, 150, 150 });
+        enableBtnSpr->setColor({150, 150, 150});
+        disableBtnSpr->setColor({150, 150, 150});
     }
 
     if (mod != Loader::get()->getInternalMod()) {
@@ -372,21 +347,17 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
             m_installBtnSpr = IconButtonSprite::create(
                 "GE_button_01.png"_spr,
                 CCSprite::createWithSpriteFrameName("install.png"_spr),
-                "Update", "bigFont.fnt"
+                "Update",
+                "bigFont.fnt"
             );
             m_installBtnSpr->setScale(.6f);
 
-            m_installBtn = CCMenuItemSpriteExtra::create(
-                m_installBtnSpr, this, nullptr
-            );
+            m_installBtn = CCMenuItemSpriteExtra::create(m_installBtnSpr, this, nullptr);
             m_installBtn->setPosition(-8.0f, 75.f);
             m_buttonMenu->addChild(m_installBtn);
 
             m_installStatus = DownloadStatusNode::create();
-            m_installStatus->setPosition(
-                winSize.width / 2 + 105.f,
-                winSize.height / 2 + 75.f
-            );
+            m_installStatus->setPosition(winSize.width / 2 + 105.f, winSize.height / 2 + 75.f);
             m_installStatus->setVisible(false);
             m_mainLayer->addChild(m_installStatus);
 
@@ -395,15 +366,13 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
                 "bigFont.fnt"
             );
             m_updateVersionLabel->setScale(.35f);
-            m_updateVersionLabel->setAnchorPoint({ .0f, .5f });
-            m_updateVersionLabel->setColor({ 94, 219, 255 });
-            m_updateVersionLabel->setPosition(
-                winSize.width / 2 + 35.f, winSize.height / 2 + 75.f
-            );
+            m_updateVersionLabel->setAnchorPoint({.0f, .5f});
+            m_updateVersionLabel->setColor({94, 219, 255});
+            m_updateVersionLabel->setPosition(winSize.width / 2 + 35.f, winSize.height / 2 + 75.f);
             m_mainLayer->addChild(m_updateVersionLabel);
         }
     }
-    
+
     // issue report button
     if (mod->getModInfo().issues) {
         auto issuesBtnSpr = ButtonSprite::create(
@@ -435,19 +404,18 @@ void LocalModInfoPopup::onIssues(CCObject*) {
 
 void LocalModInfoPopup::onUninstall(CCObject*) {
     auto layer = FLAlertLayer::create(
-        this, "Confirm Uninstall",
-        fmt::format(
-            "Are you sure you want to uninstall <cr>{}</c>?",
-            m_mod->getName()
-        ),
-        "Cancel", "OK"
+        this,
+        "Confirm Uninstall",
+        fmt::format("Are you sure you want to uninstall <cr>{}</c>?", m_mod->getName()),
+        "Cancel",
+        "OK"
     );
     layer->setTag(TAG_CONFIRM_UNINSTALL);
     layer->show();
 }
 
 void LocalModInfoPopup::onEnableMod(CCObject* sender) {
-    if (!InternalLoader::get()->shownInfoAlert("mod-disable-vs-unload")) {
+    if (!LoaderImpl::get()->shownInfoAlert("mod-disable-vs-unload")) {
         FLAlertLayer::create(
             "Notice",
             "You may still see some effects of the mod left, and you may "
@@ -461,19 +429,13 @@ void LocalModInfoPopup::onEnableMod(CCObject* sender) {
     if (as<CCMenuItemToggler*>(sender)->isToggled()) {
         auto res = m_mod->loadBinary();
         if (!res) {
-            FLAlertLayer::create(
-                nullptr, "Error Loading Mod",
-                res.unwrapErr(), "OK", nullptr
-            )->show();
+            FLAlertLayer::create(nullptr, "Error Loading Mod", res.unwrapErr(), "OK", nullptr)->show();
         }
     }
     else {
         auto res = m_mod->disable();
         if (!res) {
-            FLAlertLayer::create(
-                nullptr, "Error Disabling Mod",
-                res.unwrapErr(), "OK", nullptr
-            )->show();
+            FLAlertLayer::create(nullptr, "Error Disabling Mod", res.unwrapErr(), "OK", nullptr)->show();
         }
     }
     if (m_layer) m_layer->updateAllStates(nullptr);
@@ -485,11 +447,7 @@ void LocalModInfoPopup::onOpenConfigDir(CCObject*) {
 }
 
 void LocalModInfoPopup::onDisablingNotSupported(CCObject* pSender) {
-    FLAlertLayer::create(
-        "Unsupported",
-        "<cr>Disabling</c> is not supported for this mod.",
-        "OK"
-    )->show();
+    FLAlertLayer::create("Unsupported", "<cr>Disabling</c> is not supported for this mod.", "OK")->show();
     as<CCMenuItemToggler*>(pSender)->toggle(m_mod->isEnabled());
 }
 
@@ -513,14 +471,10 @@ void LocalModInfoPopup::FLAlert_Clicked(FLAlertLayer* layer, bool btn2) {
         case TAG_DELETE_SAVEDATA: {
             if (btn2) {
                 if (ghc::filesystem::remove_all(m_mod->getSaveDir())) {
-                    FLAlertLayer::create(
-                        "Deleted", "The mod's save data was deleted.", "OK"
-                    )->show();
+                    FLAlertLayer::create("Deleted", "The mod's save data was deleted.", "OK")->show();
                 }
                 else {
-                    FLAlertLayer::create(
-                        "Error", "Unable to delete mod's save directory!", "OK"
-                    )->show();
+                    FLAlertLayer::create("Error", "Unable to delete mod's save directory!", "OK")->show();
                 }
             }
             if (m_layer) m_layer->reloadList();
@@ -532,18 +486,19 @@ void LocalModInfoPopup::FLAlert_Clicked(FLAlertLayer* layer, bool btn2) {
 void LocalModInfoPopup::doUninstall() {
     auto res = m_mod->uninstall();
     if (!res) {
-        return FLAlertLayer::create(
-            "Uninstall failed :(", res.unwrapErr(), "OK"
-        )->show();
+        return FLAlertLayer::create("Uninstall failed :(", res.unwrapErr(), "OK")->show();
     }
     auto layer = FLAlertLayer::create(
-        this, "Uninstall complete",
+        this,
+        "Uninstall complete",
         "Mod was succesfully uninstalled! :) "
         "(You may need to <cy>restart the game</c> "
         "for the mod to take full effect). "
         "<co>Would you also like to delete the mod's "
         "save data?</c>",
-        "Cancel", "Delete", 350.f
+        "Cancel",
+        "Delete",
+        350.f
     );
     layer->setTag(TAG_DELETE_SAVEDATA);
     layer->show();
@@ -573,12 +528,13 @@ bool IndexItemInfoPopup::init(IndexItemHandle item, ModListLayer* list) {
 
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
-    if (!ModInfoPopup::init(item->info, list))
-        return false;
+    if (!ModInfoPopup::init(item->info, list)) return false;
 
     m_installBtnSpr = IconButtonSprite::create(
-        "GE_button_01.png"_spr, CCSprite::createWithSpriteFrameName("install.png"_spr),
-        "Install", "bigFont.fnt"
+        "GE_button_01.png"_spr,
+        CCSprite::createWithSpriteFrameName("install.png"_spr),
+        "Install",
+        "bigFont.fnt"
     );
     m_installBtnSpr->setScale(.6f);
 
@@ -589,13 +545,10 @@ bool IndexItemInfoPopup::init(IndexItemHandle item, ModListLayer* list) {
     m_buttonMenu->addChild(m_installBtn);
 
     m_installStatus = DownloadStatusNode::create();
-    m_installStatus->setPosition(
-        winSize.width / 2 - 25.f,
-        winSize.height / 2 + 75.f
-    );
+    m_installStatus->setPosition(winSize.width / 2 - 25.f, winSize.height / 2 + 75.f);
     m_installStatus->setVisible(false);
     m_mainLayer->addChild(m_installStatus);
-    
+
     return true;
 }
 
