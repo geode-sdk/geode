@@ -55,14 +55,15 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 
 		// add geode button
 		
-		m_fields->m_geodeButton = SafeCreate<CCSprite>()
-			.with(CircleButtonSprite::createWithSpriteFrameName(
-				"geode-logo-outline-gold.png"_spr,
-				1.0f,
-				CircleBaseColor::Green,
-				CircleBaseSize::Medium2
-			))
-			.orMake<ButtonSprite>("!!");
+		m_fields->m_geodeButton = CircleButtonSprite::createWithSpriteFrameName(
+			"geode-logo-outline-gold.png"_spr,
+			1.0f,
+			CircleBaseColor::Green,
+			CircleBaseSize::Medium2
+		);
+		if (!m_fields->m_geodeButton) {
+			m_fields->m_geodeButton = ButtonSprite::create("!!");
+		}
 
         auto bottomMenu = static_cast<CCMenu*>(this->getChildByID("bottom-menu"));
 
