@@ -5,7 +5,6 @@
 #include <Geode/utils/ranges.hpp>
 #include <vector>
 // #include <hook/hook.hpp>
-#include "InternalLoader.hpp"
 #include "InternalMod.hpp"
 
 #include <Geode/hook-core/Hook.hpp>

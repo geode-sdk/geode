@@ -1,5 +1,4 @@
 #include <Geode/loader/IPC.hpp>
-#include <InternalLoader.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -25,8 +24,5 @@ ListenerResult IPCFilter::handle(std::function<Callback> fn, IPCEvent* event) {
     return ListenerResult::Propagate;
 }
 
-IPCFilter::IPCFilter(
-    std::string const& modID,
-    std::string const& messageID
-) : m_modID(modID),
-    m_messageID(messageID) {}
+IPCFilter::IPCFilter(std::string const& modID, std::string const& messageID) :
+    m_modID(modID), m_messageID(messageID) {}

@@ -6,14 +6,14 @@ USE_GEODE_NAMESPACE();
 
 struct SaveLoader : Modify<SaveLoader, AppDelegate> {
     void trySaveGame() {
-        log::log(Severity::Info, Loader::getInternalMod(), "Saving...");
+        log::info("Saving...");
 
         auto r = Loader::get()->saveData();
         if (!r) {
-            log::log(Severity::Error, Loader::getInternalMod(), "{}", r.unwrapErr());
+            log::info("{}", r.unwrapErr());
         }
 
-        log::log(Severity::Info, Loader::getInternalMod(), "Saved");
+        log::info("Saved");
 
         return AppDelegate::trySaveGame();
     }

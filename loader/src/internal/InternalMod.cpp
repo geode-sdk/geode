@@ -1,7 +1,9 @@
 #include "InternalMod.hpp"
-#include <Geode/loader/Dirs.hpp>
-#include "InternalLoader.hpp"
+
 #include "about.hpp"
+
+#include <Geode/loader/Dirs.hpp>
+#include <LoaderImpl.hpp>
 
 static constexpr char const* SUPPORT_INFO = R"MD(
 **Geode** is funded through your gracious <cy>**donations**</c>!
@@ -13,7 +15,7 @@ static ModInfo getInternalModInfo() {
         auto json = ModJson::parse(LOADER_MOD_JSON);
         auto infoRes = ModInfo::create(json);
         if (infoRes.isErr()) {
-            InternalLoader::platformMessageBox(
+            LoaderImpl::get()->platformMessageBox(
                 "Fatal Internal Error",
                 "Unable to parse loader mod.json: \"" + infoRes.unwrapErr() +
                     "\"\n"
@@ -29,7 +31,7 @@ static ModInfo getInternalModInfo() {
         return info;
     }
     catch (std::exception& e) {
-        InternalLoader::platformMessageBox(
+        LoaderImpl::get()->platformMessageBox(
             "Fatal Internal Error",
             "Unable to parse loader mod.json: \"" + std::string(e.what()) +
                 "\"\n"

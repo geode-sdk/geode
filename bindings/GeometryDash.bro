@@ -4747,6 +4747,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     cocos2d::CCSprite* m_unk500;
     cocos2d::CCSprite* m_vehicleSpriteWhitener;
     cocos2d::CCSprite* m_vehicleGlow;
+    PAD = mac 0x8; // idk about windows
     cocos2d::CCMotionStreak* m_regularTrail;
     HardStreak* m_waveTrail;
     double m_xAccel;

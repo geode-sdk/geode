@@ -1,13 +1,14 @@
 #include "ModListCell.hpp"
 #include "ModListLayer.hpp"
 #include "../info/ModInfoPopup.hpp"
-#include <Geode/binding/StatsCell.hpp>
-#include <Geode/binding/FLAlertLayer.hpp>
+
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/binding/CCMenuItemToggler.hpp>
+#include <Geode/binding/FLAlertLayer.hpp>
+#include <Geode/binding/StatsCell.hpp>
 #include <Geode/ui/GeodeUI.hpp>
-#include <InternalLoader.hpp>
+#include "../../../loader/LoaderImpl.hpp" // how should i include this src/loader/LoaderImpl.hpp
 #include "../info/TagNode.hpp"
 
 template <class T>
@@ -93,11 +94,11 @@ void ModListCell::setupInfo(ModInfo const& info, bool spaceForTags) {
     m_menu->addChild(creatorBtn);
 
     if (hasDesc) {
-        auto descBG = CCScale9Sprite::create("square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f });
-        descBG->setColor({ 0, 0, 0 });
+        auto descBG = CCScale9Sprite::create("square02b_001.png", {0.0f, 0.0f, 80.0f, 80.0f});
+        descBG->setColor({0, 0, 0});
         descBG->setOpacity(90);
-        descBG->setContentSize({ m_width * 2, 60.f });
-        descBG->setAnchorPoint({ .0f, .5f });
+        descBG->setContentSize({m_width * 2, 60.f});
+        descBG->setAnchorPoint({.0f, .5f});
         descBG->setPositionX(m_height / 2 + logoSize / 2 + 13.f);
         if (spaceForTags) {
             descBG->setPositionY(m_height / 2 - 7.5f);
@@ -211,20 +212,15 @@ bool ModCell::init(
 
     this->setupInfo(mod->getModInfo(), false);
 
-    auto viewSpr = ButtonSprite::create(
-        "View", "bigFont.fnt", "GJ_button_01.png", .8f
-    );
+    auto viewSpr = ButtonSprite::create("View", "bigFont.fnt", "GJ_button_01.png", .8f);
     viewSpr->setScale(.65f);
 
-    auto viewBtn = CCMenuItemSpriteExtra::create(
-        viewSpr, this, menu_selector(ModCell::onInfo)
-    );
+    auto viewBtn = CCMenuItemSpriteExtra::create(viewSpr, this, menu_selector(ModCell::onInfo));
     m_menu->addChild(viewBtn);
 
     if (m_mod->wasSuccesfullyLoaded() && m_mod->supportsDisabling()) {
-        m_enableToggle = CCMenuItemToggler::createWithStandardSprites(
-            this, menu_selector(ModCell::onEnable), .7f
-        );
+        m_enableToggle =
+            CCMenuItemToggler::createWithStandardSprites(this, menu_selector(ModCell::onEnable), .7f);
         m_enableToggle->setPosition(-45.f, 0.f);
         m_menu->addChild(m_enableToggle);
     }
@@ -232,23 +228,22 @@ bool ModCell::init(
     auto exMark = CCSprite::createWithSpriteFrameName("exMark_001.png");
     exMark->setScale(.5f);
 
-    m_unresolvedExMark = CCMenuItemSpriteExtra::create(
-        exMark, this, menu_selector(ModCell::onUnresolvedInfo)
-    );
+    m_unresolvedExMark =
+        CCMenuItemSpriteExtra::create(exMark, this, menu_selector(ModCell::onUnresolvedInfo));
     m_unresolvedExMark->setPosition(-80.f, 0.f);
     m_unresolvedExMark->setVisible(false);
     m_menu->addChild(m_unresolvedExMark);
 
     // if (m_mod->wasSuccesfullyLoaded()) {
-        // if (Index::get()->isUpdateAvailableForItem(m_obj->m_mod->getID())) {
-        //     viewSpr->updateBGImage("GE_button_01.png"_spr);
+    // if (Index::get()->isUpdateAvailableForItem(m_obj->m_mod->getID())) {
+    //     viewSpr->updateBGImage("GE_button_01.png"_spr);
 
-        //     auto updateIcon = CCSprite::createWithSpriteFrameName("updates-available.png"_spr);
-        //     updateIcon->setPosition(viewSpr->getContentSize() - CCSize { 2.f, 2.f });
-        //     updateIcon->setZOrder(99);
-        //     updateIcon->setScale(.5f);
-        //     viewSpr->addChild(updateIcon);
-        // }
+    //     auto updateIcon = CCSprite::createWithSpriteFrameName("updates-available.png"_spr);
+    //     updateIcon->setPosition(viewSpr->getContentSize() - CCSize { 2.f, 2.f });
+    //     updateIcon->setZOrder(99);
+    //     updateIcon->setScale(.5f);
+    //     viewSpr->addChild(updateIcon);
+    // }
     // }
 
     this->updateState();
@@ -300,9 +295,7 @@ bool IndexItemCell::init(
     );
     viewSpr->setScale(.65f);
 
-    auto viewBtn = CCMenuItemSpriteExtra::create(
-        viewSpr, this, menu_selector(IndexItemCell::onInfo)
-    );
+    auto viewBtn = CCMenuItemSpriteExtra::create(viewSpr, this, menu_selector(IndexItemCell::onInfo));
     m_menu->addChild(viewBtn);
 
     if (item->tags.size()) {
@@ -370,7 +363,8 @@ void InvalidGeodeFileCell::FLAlert_Clicked(FLAlertLayer*, bool btn2) {
                 "Unable to remove <cy>" + m_info.path.string() + "</c>: <cr>" +
                     std::string(e.what()) + "</c>",
                 "OK"
-            )->show();
+            )
+                ->show();
         }
         Loader::get()->refreshModsList();
         m_layer->reloadList();
@@ -392,7 +386,7 @@ bool InvalidGeodeFileCell::init(
     this->addChild(menu);
 
     auto titleLabel = CCLabelBMFont::create("Failed to Load", "bigFont.fnt");
-    titleLabel->setAnchorPoint({ .0f, .5f });
+    titleLabel->setAnchorPoint({.0f, .5f});
     titleLabel->setScale(.5f);
     titleLabel->setPosition(m_height / 2, m_height / 2 + 7.f);
     this->addChild(titleLabel);
@@ -407,14 +401,11 @@ bool InvalidGeodeFileCell::init(
     pathLabel->setColor({ 255, 255, 0 });
     this->addChild(pathLabel);
 
-    auto whySpr = ButtonSprite::create(
-        "Info", 0, 0, "bigFont.fnt", "GJ_button_01.png", 0, .8f
-    );
+    auto whySpr = ButtonSprite::create("Info", 0, 0, "bigFont.fnt", "GJ_button_01.png", 0, .8f);
     whySpr->setScale(.65f);
 
-    auto viewBtn = CCMenuItemSpriteExtra::create(
-        whySpr, this, menu_selector(InvalidGeodeFileCell::onInfo)
-    );
+    auto viewBtn =
+        CCMenuItemSpriteExtra::create(whySpr, this, menu_selector(InvalidGeodeFileCell::onInfo));
     menu->addChild(viewBtn);
 
     return true;

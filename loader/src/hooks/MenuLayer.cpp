@@ -1,17 +1,16 @@
 
-#include <Geode/utils/cocos.hpp>
+#include "../ids/AddIDs.hpp"
 #include "../ui/internal/list/ModListLayer.hpp"
+
+#include <Geode/loader/Index.hpp>
+#include <Geode/modify/MenuLayer.hpp>
+#include <Geode/modify/Modify.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
-#include <Geode/ui/Notification.hpp>
 #include <Geode/ui/GeodeUI.hpp>
+#include <Geode/ui/Notification.hpp>
 #include <Geode/ui/Popup.hpp>
 #include <Geode/utils/cocos.hpp>
-#include <Geode/loader/Index.hpp>
-#include <InternalLoader.hpp>
-#include "../ids/AddIDs.hpp"
 #include <InternalMod.hpp>
-#include <Geode/modify/Modify.hpp>
-#include <Geode/modify/MenuLayer.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -45,15 +44,14 @@ $execute {
 struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 	CCSprite* m_geodeButton;
 
-	bool init() {
-		if (!MenuLayer::init())
-			return false;
-		
-		// make sure to add the string IDs for nodes (Geode has no manual 
-		// hook order support yet so gotta do this to ensure)
-		NodeIDs::provideFor(this);
+    bool init() {
+        if (!MenuLayer::init()) return false;
 
-		auto winSize = CCDirector::sharedDirector()->getWinSize();
+        // make sure to add the string IDs for nodes (Geode has no manual
+        // hook order support yet so gotta do this to ensure)
+        NodeIDs::provideFor(this);
+
+        auto winSize = CCDirector::sharedDirector()->getWinSize();
 
 		// add geode button
 		
@@ -66,7 +64,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 			))
 			.orMake<ButtonSprite>("!!");
 
-		auto bottomMenu = static_cast<CCMenu*>(this->getChildByID("bottom-menu"));
+        auto bottomMenu = static_cast<CCMenu*>(this->getChildByID("bottom-menu"));
 
 		auto btn = CCMenuItemSpriteExtra::create(
 			m_fields->m_geodeButton, this, menu_selector(CustomMenuLayer::onGeode)
@@ -74,46 +72,44 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 		btn->setID("geode-button"_spr);
 		bottomMenu->addChild(btn);
 
-		bottomMenu->updateLayout();
+        bottomMenu->updateLayout();
 
-		if (auto node = this->getChildByID("settings-gamepad-icon")) {
-			node->setPositionX(bottomMenu->getChildByID(
-				"settings-button"
-			)->getPositionX() + winSize.width / 2);
-		}
-
-		// show if some mods failed to load
-		static bool shownFailedNotif = false;
-		if (!shownFailedNotif) {
-			shownFailedNotif = true;
-			if (Loader::get()->getFailedMods().size()) {
-				Notification::create(
-					"Some mods failed to load",
-					NotificationIcon::Error
-				)->show();
-			}
+        if (auto node = this->getChildByID("settings-gamepad-icon")) {
+            node->setPositionX(
+                bottomMenu->getChildByID("settings-button")->getPositionX() + winSize.width / 2
+            );
         }
 
-		// show crash info
-		static bool shownLastCrash = false;
-		if (Loader::get()->didLastLaunchCrash() && !shownLastCrash) {
-			shownLastCrash = true;
-			auto popup = createQuickPopup(
-				"Crashed",
-				"It appears that the last session crashed. Would you like to "
-				"send a <cy>crash report</c>?",
-				"No", "Send",
-				[](auto, bool btn2) {
-					if (btn2) {
-						geode::openIssueReportPopup(InternalMod::get());
-					}
-				},
-				false
-			);
-			popup->m_scene = this;
-			popup->m_noElasticity = true;
-			popup->show();
-		}
+        // show if some mods failed to load
+        static bool shownFailedNotif = false;
+        if (!shownFailedNotif) {
+            shownFailedNotif = true;
+            if (Loader::get()->getFailedMods().size()) {
+                Notification::create("Some mods failed to load", NotificationIcon::Error)->show();
+            }
+        }
+
+        // show crash info
+        static bool shownLastCrash = false;
+        if (Loader::get()->didLastLaunchCrash() && !shownLastCrash) {
+            shownLastCrash = true;
+            auto popup = createQuickPopup(
+                "Crashed",
+                "It appears that the last session crashed. Would you like to "
+                "send a <cy>crash report</c>?",
+                "No",
+                "Send",
+                [](auto, bool btn2) {
+                    if (btn2) {
+                        geode::openIssueReportPopup(InternalMod::get());
+                    }
+                },
+                false
+            );
+            popup->m_scene = this;
+            popup->m_noElasticity = true;
+            popup->show();
+        }
 
 		// update mods index
 		if (!INDEX_UPDATE_NOTIF && !Index::get()->hasTriedToUpdate()) {
@@ -153,7 +149,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 		}
 	}
 
-	void onGeode(CCObject*) {
-		ModListLayer::scene();
-	}
+    void onGeode(CCObject*) {
+        ModListLayer::scene();
+    }
 };

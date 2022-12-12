@@ -1,9 +1,10 @@
+#include "LoaderImpl.hpp"
+
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/general.hpp>
-#include <InternalLoader.hpp>
 #include <fmt/chrono.h>
 #include <fmt/format.h>
 #include <iomanip>
@@ -46,8 +47,13 @@ std::string log::parse(CCNode* obj) {
     if (obj) {
         auto bb = obj->boundingBox();
         return fmt::format(
-            "{{ {}, {}, ({}, {} | {} : {}) }}", typeid(*obj).name(), utils::intToHex(obj),
-            bb.origin.x, bb.origin.y, bb.size.width, bb.size.height
+            "{{ {}, {}, ({}, {} | {} : {}) }}",
+            typeid(*obj).name(),
+            utils::intToHex(obj),
+            bb.origin.x,
+            bb.origin.y,
+            bb.size.width,
+            bb.size.height
         );
     }
     else {
@@ -89,10 +95,7 @@ std::string log::parse(cocos2d::ccColor4B const& col) {
     return fmt::format("rgba({}, {}, {}, {})", col.r, col.g, col.b, col.a);
 }
 
-Log::Log(Mod* mod, Severity sev)
-  : m_sender(mod),
-    m_time(log_clock::now()),
-    m_severity(sev) {}
+Log::Log(Mod* mod, Severity sev) : m_sender(mod), m_time(log_clock::now()), m_severity(sev) {}
 
 bool Log::operator==(Log const& l) {
     return this == &l;
@@ -121,7 +124,7 @@ void Logs::setup() {
 void Logs::push(Log&& log) {
     std::string logStr = log.toString(true);
 
-    InternalLoader::get()->logConsoleMessage(logStr);
+    LoaderImpl::get()->logConsoleMessage(logStr);
     s_logStream << logStr << std::endl;
 
     s_logs.emplace_back(std::forward<Log>(log));
