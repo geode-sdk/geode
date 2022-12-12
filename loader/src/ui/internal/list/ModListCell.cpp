@@ -372,7 +372,7 @@ void InvalidGeodeFileCell::FLAlert_Clicked(FLAlertLayer*, bool btn2) {
                 "OK"
             )->show();
         }
-        (void)Loader::get()->refreshModsList();
+        Loader::get()->refreshModsList();
         m_layer->reloadList();
     }
 }

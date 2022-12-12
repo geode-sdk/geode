@@ -65,7 +65,7 @@ Result<> Loader::setup() {
     if (!sett) {
         log::warn("Unable to load loader settings: {}", sett.unwrapErr());
     }
-    (void)this->refreshModsList();
+    this->refreshModsList();
 
     this->queueInGDThread([]() {
         Loader::get()->addSearchPaths();
@@ -173,8 +173,6 @@ Result<Mod*> Loader::loadModFromInfo(ModInfo const& info) {
     mod->m_enabled = InternalMod::get()->getSavedValue<bool>(
         "should-load-" + info.id, true
     );
-    // this loads the mod if its dependencies are resolved
-    GEODE_UNWRAP(mod->updateDependencies());
 
     // add mod resources
     this->queueInGDThread([this, mod]() {
@@ -183,6 +181,9 @@ Result<Mod*> Loader::loadModFromInfo(ModInfo const& info) {
         CCFileUtils::get()->addSearchPath(searchPath.string().c_str());
         this->updateModResources(mod);
     });
+
+    // this loads the mod if its dependencies are resolved
+    GEODE_UNWRAP(mod->updateDependencies());
 
     return Ok(mod);
 }
@@ -272,7 +273,7 @@ void Loader::updateModResources(Mod* mod) {
 
 // Dependencies and refreshing
 
-Result<> Loader::loadModsFromDirectory(
+void Loader::loadModsFromDirectory(
     ghc::filesystem::path const& dir,
     bool recursive
 ) {
@@ -280,7 +281,7 @@ Result<> Loader::loadModsFromDirectory(
     for (auto const& entry : ghc::filesystem::directory_iterator(dir)) {
         // recursively search directories
         if (ghc::filesystem::is_directory(entry) && recursive) {
-            GEODE_UNWRAP(this->loadModsFromDirectory(entry.path(), true));
+            this->loadModsFromDirectory(entry.path(), true);
             continue;
         }
 
@@ -302,7 +303,10 @@ Result<> Loader::loadModsFromDirectory(
 
         // if mods should be loaded immediately, do that
         if (m_earlyLoadFinished) {
-            GEODE_UNWRAP(this->loadModFromFile(entry));
+            auto load = this->loadModFromFile(entry);
+            if (!load) {
+                log::error("Unable to load {}: {}", entry, load.unwrapErr());
+            }
         }
         // otherwise collect mods to load first to make sure the correct 
         // versions of the mods are loaded and that early-loaded mods are 
@@ -327,21 +331,23 @@ Result<> Loader::loadModsFromDirectory(
             m_modsToLoad.push_back(info);
         }
     }
-    return Ok();
 }
 
-Result<> Loader::refreshModsList() {
+void Loader::refreshModsList() {
     log::debug("Loading mods...");
 
     // find mods
     for (auto& dir : m_modSearchDirectories) {
-        GEODE_UNWRAP(this->loadModsFromDirectory(dir));
+        this->loadModsFromDirectory(dir);
     }
     
     // load early-load mods first
     for (auto& mod : m_modsToLoad) {
         if (mod.needsEarlyLoad) {
-            GEODE_UNWRAP(this->loadModFromInfo(mod));
+            auto load = this->loadModFromInfo(mod);
+            if (!load) {
+                log::error("Unable to load {}: {}", mod.id, load.unwrapErr());
+            }
         }
     }
 
@@ -351,12 +357,13 @@ Result<> Loader::refreshModsList() {
     // load the rest of the mods
     for (auto& mod : m_modsToLoad) {
         if (!mod.needsEarlyLoad) {
-            GEODE_UNWRAP(this->loadModFromInfo(mod));
+            auto load = this->loadModFromInfo(mod);
+            if (!load) {
+                log::error("Unable to load {}: {}", mod.id, load.unwrapErr());
+            }
         }
     }
     m_modsToLoad.clear();
-
-    return Ok();
 }
 
 void Loader::updateAllDependencies() {

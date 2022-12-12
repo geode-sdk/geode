@@ -642,7 +642,7 @@ void Index::installNext(size_t index, IndexInstallList const& list) {
         }
         
         // load mods
-        (void)Loader::get()->refreshModsList();
+        Loader::get()->refreshModsList();
 
         ModInstallEvent(list.target->info.id, UpdateFinished()).post();
         return;

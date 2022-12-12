@@ -586,7 +586,7 @@ void ModListLayer::onExit(CCObject*) {
 }
 
 void ModListLayer::onReload(CCObject*) {
-    (void)Loader::get()->refreshModsList();
+    Loader::get()->refreshModsList();
     this->reloadList();
 }
 
