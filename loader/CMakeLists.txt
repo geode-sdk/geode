@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
 
 project(geode-loader VERSION ${GEODE_VERSION} LANGUAGES C CXX)
-set(PROJECT_VERSION_TYPE Alpha)
+set(PROJECT_VERSION_TYPE geode::VersionTag::Alpha)
+set(PROJECT_VERSION_SUFFIX -alpha)
 
 # Package info file for internal representation
 configure_file(resources/mod.json.in ${CMAKE_CURRENT_SOURCE_DIR}/resources/mod.json)
@@ -127,7 +128,7 @@ target_link_libraries(${PROJECT_NAME} md4c)
 
 # Lilac (hooking)
 add_subdirectory(lilac)
-target_link_libraries(${PROJECT_NAME} z lilac_hook geode-sdk)
+target_link_libraries(${PROJECT_NAME} z lilac_hook geode-sdk scn::scn)
 
 # Use precompiled headers for faster builds
 target_precompile_headers(${PROJECT_NAME} PRIVATE

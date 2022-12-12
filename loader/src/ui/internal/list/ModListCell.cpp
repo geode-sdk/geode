@@ -60,7 +60,10 @@ void ModListCell::setupInfo(ModInfo const& info, bool spaceForTags) {
     titleLabel->limitLabelWidth(m_width / 2 - 40.f, .5f, .1f);
     this->addChild(titleLabel);
 
-    auto versionLabel = CCLabelBMFont::create(info.version.toString().c_str(), "bigFont.fnt");
+    auto versionLabel = CCLabelBMFont::create(
+        info.version.toString(false).c_str(),
+        "bigFont.fnt"
+    );
     versionLabel->setAnchorPoint({ .0f, .5f });
     versionLabel->setScale(.3f);
     versionLabel->setPosition(
@@ -69,6 +72,20 @@ void ModListCell::setupInfo(ModInfo const& info, bool spaceForTags) {
     );
     versionLabel->setColor({ 0, 255, 0 });
     this->addChild(versionLabel);
+
+    if (auto tag = info.version.getTag()) {
+        auto tagLabel = TagNode::create(
+            versionTagToString(tag.value()).c_str()
+        );
+        tagLabel->setAnchorPoint({ .0f, .5f });
+        tagLabel->setScale(.3f);
+        tagLabel->setPosition(
+            versionLabel->getPositionX() + 
+                versionLabel->getScaledContentSize().width + 5.f,
+            versionLabel->getPositionY()
+        );
+        this->addChild(tagLabel);
+    }
 
     auto creatorStr = "by " + info.developer;
     auto creatorLabel = CCLabelBMFont::create(creatorStr.c_str(), "goldFont.fnt");

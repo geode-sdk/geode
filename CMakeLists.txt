@@ -83,6 +83,7 @@ add_definitions(-DFMT_CONSTEVAL=)
 
 add_subdirectory(loader/include/Geode/external/filesystem)
 add_subdirectory(loader/include/Geode/external/fmt)
+add_subdirectory(loader/include/Geode/external/scnlib)
 
 target_link_libraries(${PROJECT_NAME} INTERFACE filesystem fmt)
 

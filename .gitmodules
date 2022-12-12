@@ -4,3 +4,6 @@
 [submodule "loader/minhook"]
 	path = loader/minhook
 	url = https://github.com/TsudaKageyu/minhook
+[submodule "loader/include/Geode/external/scnlib"]
+	path = loader/include/Geode/external/scnlib
+	url = https://github.com/eliaskosunen/scnlib

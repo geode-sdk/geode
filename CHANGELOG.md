@@ -1,5 +1,8 @@
 # Geode Changelog
 
+## v0.7.0
+ - Jesus H. Christmas Kallen there's like 300 new commits since v0.6.1 I don't think there's a point in listing them all, we basically redesigned the whole framework
+
 ## v0.6.1
  - Add `geode::cocos::switchToScene` utility for easily switching to a layer with the default fade transition
  - Add `Mod::getPackagePath` as a replacement for `Mod::getPath`

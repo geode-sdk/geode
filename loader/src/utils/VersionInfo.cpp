@@ -4,6 +4,7 @@
 
 #include <Geode/utils/VersionInfo.hpp>
 #include <Geode/utils/general.hpp>
+#include <Geode/external/scnlib/include/scn/scn.h>
 
 USE_GEODE_NAMESPACE();
 
@@ -13,22 +14,78 @@ USE_GEODE_NAMESPACE();
     #define GEODE_SSCANF sscanf
 #endif
 
-// VersionInfo
+// VersionTag
 
-bool VersionInfo::validate(std::string const& string) {
-    int buf0, buf1, buf2;
-    if (GEODE_SSCANF(string.c_str(), "v%d.%d.%d", &buf0, &buf1, &buf2)) return true;
-    if (GEODE_SSCANF(string.c_str(), "%d.%d.%d", &buf0, &buf1, &buf2)) return true;
-    return false;
-}
-
-VersionInfo::VersionInfo(std::string const& versionString) {
-    if (!GEODE_SSCANF(versionString.c_str(), "v%d.%d.%d", &m_major, &m_minor, &m_patch)) {
-        GEODE_SSCANF(versionString.c_str(), "%d.%d.%d", &m_major, &m_minor, &m_patch);
+std::optional<VersionTag> geode::versionTagFromString(std::string const& str) {
+    switch (hash(str.c_str())) {
+        case hash("alpha"): return VersionTag::Alpha;
+        case hash("beta"): return VersionTag::Beta;
+        case hash("prerelease"): return VersionTag::Prerelease;
+        default: return std::nullopt;
     }
 }
 
-std::string VersionInfo::toString() const {
+std::string geode::versionTagToSuffixString(VersionTag tag) {
+    switch (tag) {
+        case VersionTag::Alpha: return "-alpha";
+        case VersionTag::Beta: return "-beta";
+        case VersionTag::Prerelease: return "-prerelease";
+    }
+    return "";
+}
+
+std::string geode::versionTagToString(VersionTag tag) {
+    switch (tag) {
+        case VersionTag::Alpha: return "Alpha";
+        case VersionTag::Beta: return "Beta";
+        case VersionTag::Prerelease: return "Prerelease";
+    }
+    return "";
+}
+
+// VersionInfo
+
+bool VersionInfo::validate(std::string const& string) {
+    std::string copy = string;
+    if (copy.starts_with("v")) {
+        copy = string.substr(1);
+    }
+    
+    int buf0, buf1, buf2;
+    std::string bufT;
+    if (scn::scan(copy, "{}.{}.{}-{}", buf0, buf1, buf2, bufT)) {
+        return versionTagFromString(bufT).has_value();
+    }
+    if (scn::scan(copy, "{}.{}.{}", buf0, buf1, buf2)) {
+        return true;
+    }
+
+    return false;
+}
+
+VersionInfo::VersionInfo(std::string const& string) {
+    std::string copy = string;
+    if (copy.starts_with("v")) {
+        copy = string.substr(1);
+    }
+    std::string tag;
+    scn::scan(copy, "{}.{}.{}-{}", m_major, m_minor, m_patch, tag) ||
+    scn::scan(copy, "{}.{}.{}", m_major, m_minor, m_patch);
+    if (tag.size()) {
+        if (auto t = versionTagFromString(tag)) {
+            m_tag = t;
+        }
+    }
+}
+
+std::string VersionInfo::toString(bool includeTag) const {
+    if (includeTag && m_tag) {
+        return fmt::format(
+            "v{}.{}.{}{}",
+            m_major, m_minor, m_patch,
+            versionTagToSuffixString(m_tag.value())
+        );
+    }
     return fmt::format("v{}.{}.{}", m_major, m_minor, m_patch);
 }
 
