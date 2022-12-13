@@ -124,7 +124,7 @@ Result<> Mod::loadData() {
                 if (auto setting = this->getSetting(key)) {
                     // load its value
                     if (!setting->load(value.json())) {
-                        log::log(
+                        log::internalLog(
                             Severity::Error,
                             this,
                             "{}: Unable to load value for setting \"{}\"",

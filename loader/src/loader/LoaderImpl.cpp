@@ -582,6 +582,7 @@ void Loader::Impl::provideNextMod(Mod* mod) {
     m_nextModLock.lock();
     m_nextMod = mod;
 }
+
 Mod* Loader::Impl::takeNextMod() {
     if (!m_nextMod) {
         // this means we're hopefully loading the internal mod
@@ -597,6 +598,7 @@ Mod* Loader::Impl::takeNextMod() {
     m_nextModCV.notify_all();
     return ret;
 }
+
 void Loader::Impl::releaseNextMod() {
     auto lock = std::unique_lock<std::mutex>(m_nextModAccessMutex);
     m_nextModCV.wait(lock);
