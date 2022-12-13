@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 project(Codegen LANGUAGES C CXX)
 
-set(CMAKE_CXX_STANDARD 17)
-
 include(../cmake/CPM.cmake)
 
 CPMAddPackage("gh:fmtlib/fmt#9.1.0")
@@ -16,6 +14,7 @@ file(GLOB SOURCES
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
+target_compile_features(Codegen PUBLIC cxx_std_17)
 
 target_link_libraries(Codegen PRIVATE fmt::fmt Broma ghc_filesystem)
 target_include_directories(Codegen PRIVATE 

@@ -73,6 +73,8 @@ endif()
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
+
 make_directory("${GEODE_BIN_PATH}/nightly")
 
 # Prevent SDK from activating a loader build
