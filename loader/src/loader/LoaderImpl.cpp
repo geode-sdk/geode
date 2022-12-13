@@ -358,6 +358,7 @@ void Loader::Impl::refreshModsList() {
 
     // UI can be loaded now
     m_earlyLoadFinished = true;
+    m_earlyLoadFinishedCV.notify_all();
 
     // load the rest of the mods
     for (auto& mod : m_modsToLoad) {
@@ -379,6 +380,7 @@ void Loader::Impl::updateAllDependencies() {
 
 void Loader::Impl::waitForModsToBeLoaded() {
     auto lock = std::unique_lock(m_earlyLoadFinishedMutex);
+    log::debug("Waiting for mods to be loaded... {}", bool(m_earlyLoadFinished));
     m_earlyLoadFinishedCV.wait(lock, [this] {
         return bool(m_earlyLoadFinished);
     });
