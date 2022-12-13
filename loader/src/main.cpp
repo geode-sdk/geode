@@ -26,7 +26,7 @@ std::length_error::~length_error() _NOEXCEPT {} // do not ask...
 // from dynamic to static thats why she needs to define it
 // this is what old versions does to a silly girl
 
-__attribute__((constructor)) void _entry() {
+void dynamicEntry() {
     auto dylib = dlopen("GeodeBootstrapper.dylib", RTLD_NOLOAD);
     dlclose(dylib);
 
@@ -53,6 +53,13 @@ __attribute__((constructor)) void _entry() {
 
     geodeEntry(nullptr);
 }
+
+extern "C" __attribute__((visibility("default"))) void dynamicTrigger() {
+    std::thread(&dynamicEntry).detach();
+}
+
+// remove when we can figure out how to not remove it
+auto dynamicTriggerRef = &dynamicTrigger;
 
 #elif defined(GEODE_IS_WINDOWS)
     #include <Windows.h>
@@ -160,11 +167,12 @@ int geodeEntry(void* platformData) {
     }
 
     // set up loader, load mods, etc.
-    if (!LoaderImpl::get()->setup()) {
+    auto setupRes = LoaderImpl::get()->setup();
+    if (!setupRes) {
         LoaderImpl::get()->platformMessageBox(
             "Unable to Load Geode!",
             "There was an unknown fatal error setting up "
-            "the loader and Geode can not be loaded."
+            "the loader and Geode can not be loaded." + setupRes.unwrapErr()
         );
         LoaderImpl::get()->reset();
         return 1;

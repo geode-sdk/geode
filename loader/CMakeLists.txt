@@ -121,6 +121,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 if (APPLE)
 	# For profiling
 	target_compile_options(${PROJECT_NAME} PUBLIC "-ftime-trace")
+	# target_link_options(${PROJECT_NAME} PRIVATE "-Wl,-e,_dynamicInit")
 	#set_property(TARGET ${PROJECT_NAME} PROPERTY RULE_LAUNCH_COMPILE "${CMAKE_COMMAND} -E time")
 endif()
 
@@ -132,7 +133,7 @@ CPMAddPackage("gh:mity/md4c#e9ff661")
 target_include_directories(${PROJECT_NAME} PRIVATE ${md4c_SOURCE_DIR}/src)
 
 # Tulip hook (hooking)
-CPMAddPackage("gh:altalk23/TulipHook#5ba99a8")
+CPMAddPackage("gh:altalk23/TulipHook#fc1b943")
 
 target_link_libraries(${PROJECT_NAME} md4c z TulipHook geode-sdk)
 
