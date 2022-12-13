@@ -130,7 +130,8 @@ CPMAddPackage("gh:mity/md4c#e9ff661")
 target_include_directories(${PROJECT_NAME} PRIVATE ${md4c_SOURCE_DIR}/src)
 
 # Tulip hook (hooking)
-add_subdirectory(tuliphook)
+CPMAddPackage("gh:altalk23/TulipHook#92b3cca")
+
 target_link_libraries(${PROJECT_NAME} md4c z TulipHook geode-sdk)
 
 # Use precompiled headers for faster builds
