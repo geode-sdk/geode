@@ -64,11 +64,9 @@ namespace geode {
 
     template<class = void>
     std::monostate listenForIPC(std::string const& messageID, nlohmann::json(*callback)(IPCEvent*)) {
-        Loader::get()->scheduleOnModLoad(getMod(), [=]() {
-            new EventListener(
-                callback, IPCFilter(getMod()->getID(), messageID)
-            );
-        });
+        (void) new EventListener(
+            callback, IPCFilter(getMod()->getID(), messageID)
+        );
         return std::monostate();
     }
 }

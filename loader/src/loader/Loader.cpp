@@ -21,10 +21,6 @@ void Loader::addSearchPaths() {
     return m_impl->addSearchPaths();
 }
 
-void Loader::dispatchScheduledFunctions(Mod* mod) {
-    return m_impl->dispatchScheduledFunctions(mod);
-}
-
 Result<Mod*> Loader::loadModFromInfo(ModInfo const& info) {
     return m_impl->loadModFromInfo(info);
 }
@@ -105,10 +101,6 @@ void Loader::queueInGDThread(ScheduledFunction func) {
     return m_impl->queueInGDThread(func);
 }
 
-void Loader::scheduleOnModLoad(Mod* mod, ScheduledFunction func) {
-    return m_impl->scheduleOnModLoad(mod, func);
-}
-
 void Loader::waitForModsToBeLoaded() {
     return m_impl->waitForModsToBeLoaded();
 }
@@ -123,4 +115,8 @@ void Loader::closePlatformConsole() {
 
 bool Loader::didLastLaunchCrash() const {
     return m_impl->didLastLaunchCrash();
+}
+
+Mod* Loader::takeNextMod() {
+    return m_impl->takeNextMod();
 }

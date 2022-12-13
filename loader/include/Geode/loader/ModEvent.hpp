@@ -47,14 +47,10 @@ void GEODE_CONCAT(geodeExecFunction, __LINE__)(ModStateEvent*);     \
 namespace {                                                         \
 	struct GEODE_CONCAT(ExecFuncUnique, __LINE__) {};               \
 }                                                                   \
-static inline auto GEODE_CONCAT(Exec, __LINE__) = (geode::Loader::get()->scheduleOnModLoad(\
-	geode::Mod::get(), []() {                                       \
-        new geode::EventListener(                                   \
+static inline auto GEODE_CONCAT(Exec, __LINE__) = (new geode::EventListener(                                     \
             &GEODE_CONCAT(geodeExecFunction, __LINE__)<GEODE_CONCAT(ExecFuncUnique, __LINE__)>,\
             geode::ModStateFilter(geode::Mod::get(), geode::ModEventType::type)\
-        );                                                          \
-    }                                                               \
-), 0);                                                              \
+        ), 0);                                                              \
 template<class>                                                     \
 void GEODE_CONCAT(geodeExecFunction, __LINE__)(ModStateEvent*)
 // clang-format on

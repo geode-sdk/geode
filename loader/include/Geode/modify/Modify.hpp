@@ -47,16 +47,14 @@ namespace geode::modifier {
 
         // unordered_map<handles> idea
         ModifyBase() {
-            Loader::get()->scheduleOnModLoad(getMod(), [this]() {
-                this->apply();
-                ModifyDerived::Derived::onModify(*this);
-                for (auto& [uuid, hook] : m_hooks) {
-                    auto res = Mod::get()->addHook(hook);
-                    if (!res) {
-                        log::error("Failed to add hook: {}", res.error());
-                    }
+            this->apply();
+            ModifyDerived::Derived::onModify(*this);
+            for (auto& [uuid, hook] : m_hooks) {
+                auto res = Mod::get()->addHook(hook);
+                if (!res) {
+                    log::error("Failed to add hook: {}", res.error());
                 }
-            });
+            }
         }
 
         virtual void apply() {}

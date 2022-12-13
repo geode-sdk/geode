@@ -56,20 +56,16 @@ namespace geode {
     std::monostate listenForSettingChanges(
         std::string const& settingID, void (*callback)(T*)
     ) {
-        Loader::get()->scheduleOnModLoad(getMod(), [=]() {
-            new EventListener(
-                callback, SettingChangedFilter<T>(getMod()->getID(), settingID)
-            );
-        });
+        (void)new EventListener(
+            callback, SettingChangedFilter<T>(getMod()->getID(), settingID)
+        );
         return std::monostate();
     }
 
     static std::monostate listenForAllSettingChanges(void (*callback)(Setting*)) {
-        Loader::get()->scheduleOnModLoad(getMod(), [=]() {
-            new EventListener(
-                callback, SettingChangedFilter(getMod()->getID())
-            );
-        });
+        (void)new EventListener(
+            callback, SettingChangedFilter(getMod()->getID())
+        );
         return std::monostate();
     }
 }

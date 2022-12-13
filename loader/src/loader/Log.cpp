@@ -106,7 +106,7 @@ std::string Log::toString(bool logTime) const {
         res += fmt::format("{:%H:%M:%S}", m_time);
     }
 
-    res += fmt::format(" [{}]: ", m_sender ? m_sender->getName() : "?");
+    res += fmt::format(" [{}]: ", m_sender ? m_sender->getName() : "Geode?");
 
     for (auto& i : m_components) {
         res += i->_toString();
@@ -207,15 +207,6 @@ std::vector<Log*> Logger::list() {
 
 void Logger::clear() {
     s_logs.clear();
-}
-
-void Logger::run(Mod* m, std::vector<Log>& scheduled) {
-    for (auto&& log : scheduled) {
-        log.m_sender = m;
-        Logger::_push(std::move(log));
-    }
-
-    scheduled.clear();
 }
 
 // Misc
