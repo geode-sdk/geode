@@ -2,7 +2,7 @@
 
 #ifdef GEODE_IS_MACOS
 
-    #include <fs/filesystem.hpp>
+    #include <ghc/filesystem.hpp>
 
     #include <Foundation/Foundation.h>
 

@@ -26,7 +26,7 @@ if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
     target_link_libraries(lilac_hook "-F ${CMAKE_CURRENT_SOURCE_DIR}/../ios -framework CydiaSubstrate")
 endif()
 
-target_compile_features(lilac_hook PUBLIC cxx_std_17)
+target_compile_features(lilac_hook PUBLIC cxx_std_20)
 target_include_directories(lilac_hook 
     PRIVATE
         ${lilac_SOURCE_DIR}/include/geode/core/hook

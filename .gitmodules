@@ -1,6 +1,0 @@
-[submodule "loader/md4c"]
-	path = loader/md4c
-	url = https://github.com/mity/md4c
-[submodule "loader/minhook"]
-	path = loader/minhook
-	url = https://github.com/TsudaKageyu/minhook

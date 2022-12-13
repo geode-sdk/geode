@@ -3955,7 +3955,7 @@ T conditional_static_cast(U value)
 
 
 #ifdef JSON_HAS_CPP_17
-    #include "fs/filesystem.hpp"
+    #include "ghc/filesystem.hpp"
     namespace fs = ghc::filesystem;
 #endif
 
@@ -4632,7 +4632,7 @@ class tuple_element<N, ::nlohmann::detail::iteration_proxy_value<IteratorType >>
 
 
 #ifdef JSON_HAS_CPP_17
-    #include "fs/filesystem.hpp"
+    #include "ghc/filesystem.hpp"
 #endif
 
 namespace nlohmann

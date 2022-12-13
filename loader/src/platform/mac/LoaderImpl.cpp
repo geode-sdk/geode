@@ -20,7 +20,7 @@ void Loader::Impl::platformMessageBox(char const* title, std::string const& info
 void Loader::Impl::openPlatformConsole() {
     m_platformConsoleOpen = true;
 
-    for (auto const& log : log::Logs::list()) {
+    for (auto const& log : log::Logger::list()) {
         std::cout << log->toString(true) << "\n";
     }
 }

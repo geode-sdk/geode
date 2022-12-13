@@ -30,9 +30,7 @@ namespace geode::modifier {
     public:
         // unordered_map<handles> idea
         ModifyBase() {
-            Loader::get()->scheduleOnModLoad(getMod(), []() {
-                Derived::apply();
-            });
+            Derived::apply();
         }
         template <class, class>
         friend class ModifyDerive;

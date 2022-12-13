@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../external/filesystem/fs/filesystem.hpp"
+#include <ghc/filesystem.hpp>
 #include "../utils/Result.hpp"
 #include "Log.hpp"
 #include "ModInfo.hpp"
@@ -36,6 +36,8 @@ namespace geode {
         friend void GEODE_CALL ::geode_implicit_load(Mod*);
 
         Result<Mod*> loadModFromInfo(ModInfo const& info);
+        
+        Mod* takeNextMod();
 
     public:
         // TODO: do we want to expose all of these functions?
@@ -64,7 +66,6 @@ namespace geode {
         void updateResources();
 
         void queueInGDThread(ScheduledFunction func);
-        void scheduleOnModLoad(Mod* mod, ScheduledFunction func);
         void waitForModsToBeLoaded();
 
         /**
@@ -79,5 +80,16 @@ namespace geode {
         bool didLastLaunchCrash() const;
 
         friend class LoaderImpl;
+
+        friend Mod* takeNextLoaderMod();
     };
+
+    /**
+     * @brief Take the next mod to load
+     * 
+     * @return Mod* The next mod to load
+    */
+    inline GEODE_HIDDEN Mod* takeNextLoaderMod() {
+        return Loader::get()->takeNextMod();
+    }
 }

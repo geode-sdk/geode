@@ -18,6 +18,21 @@
 #include <vector>
 
 namespace geode {
+    template <class T>
+    struct HandleToSaved : public T {
+        Mod* m_mod;
+        std::string m_key;
+
+        HandleToSaved(std::string const& key, Mod* mod, T const& value) :
+            T(value), m_key(key), m_mod(mod) {}
+
+        HandleToSaved(HandleToSaved const&) = delete;
+        HandleToSaved(HandleToSaved&&) = delete;
+        ~HandleToSaved();
+    };
+
+    inline GEODE_HIDDEN Mod* takeNextLoaderMod();
+
     /**
      * @class Mod
      * Represents a Mod ingame.
@@ -218,6 +233,9 @@ namespace geode {
          */
         template <class = void>
         static inline GEODE_HIDDEN Mod* get() {
+            if (!sharedMod<>) {
+                sharedMod<> = takeNextLoaderMod();
+            }
             return sharedMod<>;
         }
 

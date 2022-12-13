@@ -4,7 +4,7 @@
 #include <broma.hpp>
 #include <fmt/format.h>
 #include <fmt/ranges.h>
-#include <fs/filesystem.hpp> // bruh
+#include <ghc/filesystem.hpp> // bruh
 #include <fstream>
 
 using std::istreambuf_iterator;

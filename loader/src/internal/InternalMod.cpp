@@ -42,15 +42,12 @@ static ModInfo getInternalModInfo() {
     }
 }
 
-InternalMod::InternalMod() : Mod(getInternalModInfo()) {
+InternalMod::InternalMod() : Mod(ModInfo()) {}
+
+void InternalMod::setModInfo() {
+    m_info = getInternalModInfo();
     m_saveDirPath = dirs::getModsSaveDir() / m_info.id;
-
     ghc::filesystem::create_directories(m_saveDirPath);
-
-    auto sett = this->loadData();
-    if (!sett) {
-        log::log(Severity::Error, this, "{}", sett.unwrapErr());
-    }
 }
 
 InternalMod::~InternalMod() {}

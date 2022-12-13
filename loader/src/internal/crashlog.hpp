@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Geode/DefaultInclude.hpp>
-#include <fs/filesystem.hpp>
+#include <ghc/filesystem.hpp>
 #include <string>
 
 /**

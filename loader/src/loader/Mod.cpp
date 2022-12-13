@@ -133,7 +133,7 @@ Result<> Mod::loadData() {
                     }
                 }
                 else {
-                    log::log(
+                    log::internalLog(
                         Severity::Warning,
                         this,
                         "Encountered unknown setting \"{}\" while loading "
@@ -275,6 +275,8 @@ Result<> Mod::loadBinary() {
     if (this->hasUnresolvedDependencies()) {
         return Err("Mod has unresolved dependencies");
     }
+
+    LoaderImpl::get()->provideNextMod(this);
 
     GEODE_UNWRAP(this->loadPlatformBinary());
     m_binaryLoaded = true;

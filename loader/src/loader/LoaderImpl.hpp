@@ -46,8 +46,6 @@ public:
     std::vector<InvalidGeodeFile> m_invalidMods;
     std::unordered_map<std::string, Mod*> m_mods;
     std::vector<ghc::filesystem::path> m_texturePaths;
-    std::vector<ScheduledFunction> m_scheduledFunctions;
-    mutable std::mutex m_scheduledFunctionsMutex;
     bool m_isSetup = false;
 
     std::condition_variable m_earlyLoadFinishedCV;
@@ -58,6 +56,18 @@ public:
     bool m_platformConsoleOpen = false;
     std::vector<std::pair<Hook*, Mod*>> m_internalHooks;
     bool m_readyToHook = false;
+
+    std::mutex m_nextModMutex;
+    std::unique_lock<std::mutex> m_nextModLock = std::unique_lock<std::mutex>(m_nextModMutex, std::defer_lock);
+    std::condition_variable m_nextModCV;
+    std::mutex m_nextModAccessMutex;
+    Mod* m_nextMod = nullptr;
+
+    Result<> setupInternalMod();
+
+    void provideNextMod(Mod* mod);
+    Mod* takeNextMod();
+    void releaseNextMod();
 
     void downloadLoaderResources();
 
@@ -72,7 +82,6 @@ public:
     void updateModResources(Mod* mod);
     void addSearchPaths();
 
-    void dispatchScheduledFunctions(Mod* mod);
     friend void GEODE_CALL ::geode_implicit_load(Mod*);
 
     Result<Mod*> loadModFromInfo(ModInfo const& info);
@@ -102,7 +111,6 @@ public:
 
     void updateResources();
 
-    void scheduleOnModLoad(Mod* mod, ScheduledFunction func);
     void waitForModsToBeLoaded();
 
     bool didLastLaunchCrash() const;

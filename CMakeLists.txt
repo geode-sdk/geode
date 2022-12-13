@@ -19,9 +19,6 @@ message(STATUS "Version: ${GEODE_VERSION}, tag: ${GEODE_VERSION_TAG}")
 
 project(geode-sdk VERSION ${GEODE_VERSION} LANGUAGES CXX C)
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 add_library(${PROJECT_NAME} INTERFACE)
 
 if (NOT DEFINED GEODE_DEBUG AND (CMAKE_BUILD_TYPE STREQUAL Debug OR CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo))
@@ -44,6 +41,7 @@ set(GEODE_LOADER_PATH ${CMAKE_CURRENT_SOURCE_DIR}/loader)
 
 include(cmake/GeodeFile.cmake)
 include(cmake/Platform.cmake)
+include(cmake/CPM.cmake)
 
 target_sources(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/entry.cpp)
 
@@ -94,10 +92,10 @@ target_link_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/lo
 
 add_definitions(-DFMT_CONSTEVAL=)
 
-add_subdirectory(loader/include/Geode/external/filesystem)
-add_subdirectory(loader/include/Geode/external/fmt)
+CPMAddPackage("gh:fmtlib/fmt#9.1.0")
+CPMAddPackage("gh:gulrak/filesystem#3e5b930")
 
-target_link_libraries(${PROJECT_NAME} INTERFACE filesystem fmt)
+target_link_libraries(${PROJECT_NAME} INTERFACE ghc_filesystem fmt)
 
 
 if (NOT EXISTS ${GEODE_BIN_PATH})
@@ -123,6 +121,7 @@ elseif(EXISTS ${GEODE_PLATFORM_BIN_PATH})
 	target_precompile_headers(${PROJECT_NAME} INTERFACE
 		"${GEODE_LOADER_PATH}/include/Geode/DefaultInclude.hpp"
 		"${GEODE_LOADER_PATH}/include/Geode/Loader.hpp"
+		# please stop adding modify here its not here because it makes windows compilation take longer than geode 1.0 release date
 		"${GEODE_LOADER_PATH}/include/Geode/UI.hpp"
 		"${GEODE_LOADER_PATH}/include/Geode/cocos/include/cocos2d.h"
 		"${GEODE_LOADER_PATH}/include/Geode/cocos/extensions/cocos-ext.h"
