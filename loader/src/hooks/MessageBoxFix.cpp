@@ -40,8 +40,10 @@ static CCEGLView* CCEGLView_CCEGLView(CCEGLView* self) {
 }
 
 $execute {
-    (void)Mod::get()->addHook<&CCEGLView_CCEGLView, Thiscall>(
-        "CCEGLView::CCEGLView", CCEGLVIEW_CON_ADDR
+    (void)Mod::get()->addHook<tulip::hook::ThiscallConvention>(
+        CCEGLVIEW_CON_ADDR,
+        &CCEGLView_CCEGLView,
+        "CCEGLView::CCEGLView", 
     );
 }
 
