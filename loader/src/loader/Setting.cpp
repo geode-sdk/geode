@@ -223,6 +223,21 @@ std::string SettingValue::getKey() const {
         return type_##SettingNode::create(this, width);                 \
     }                                                                   \
     template<>                                                          \
+    void GeodeSettingValue<                                             \
+        type_##Setting                                                  \
+    >::setValue(ValueType const& value) {                               \
+        m_value = this->toValid(value).first;                           \
+    }                                                                   \
+    Result<> GeodeSettingValue<                                         \
+        type_##Setting                                                  \
+    >::validate(ValueType const& value) const {                         \
+        auto reason = this->toValid(value).second;                      \
+        if (reason.has_value()) {                                       \
+            return Err(static_cast<std::string>(reason.value()));       \
+        }                                                               \
+        return Ok();                                                    \
+    }                                                                   \
+    template<>                                                          \
     typename type_##Setting::ValueType SettingValueSetter<              \
         typename type_##Setting::ValueType                              \
     >::get(SettingValue* setting) {                                     \
@@ -273,14 +288,6 @@ namespace geode {
     template class GeodeSettingValue<ColorSetting>;
     template class GeodeSettingValue<ColorAlphaSetting>;
 }
-
-IMPL_NODE_AND_SETTERS(Bool);
-IMPL_NODE_AND_SETTERS(Int);
-IMPL_NODE_AND_SETTERS(Float);
-IMPL_NODE_AND_SETTERS(String);
-IMPL_NODE_AND_SETTERS(File);
-IMPL_NODE_AND_SETTERS(Color);
-IMPL_NODE_AND_SETTERS(ColorAlpha);
 
 IMPL_TO_VALID(Bool) {
     return { value, std::nullopt };
@@ -345,6 +352,14 @@ IMPL_TO_VALID(Color) {
 IMPL_TO_VALID(ColorAlpha) {
     return { value, std::nullopt };
 }
+
+IMPL_NODE_AND_SETTERS(Bool);
+IMPL_NODE_AND_SETTERS(Int);
+IMPL_NODE_AND_SETTERS(Float);
+IMPL_NODE_AND_SETTERS(String);
+IMPL_NODE_AND_SETTERS(File);
+IMPL_NODE_AND_SETTERS(Color);
+IMPL_NODE_AND_SETTERS(ColorAlpha);
 
 // SettingChangedEvent
 

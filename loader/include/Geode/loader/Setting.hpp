@@ -214,16 +214,8 @@ namespace geode {
         ValueType getValue() const {
             return m_value;
         }
-        void setValue(ValueType const& value) {
-            m_value = this->toValid(value).first;
-        }
-        Result<> validate(ValueType const& value) const {
-            auto reason = this->toValid(value).second;
-            if (reason.has_value()) {
-                return Err(static_cast<std::string>(reason.value()));
-            }
-            return Ok();
-        }
+        GEODE_DLL void setValue(ValueType const& value);
+        GEODE_DLL Result<> validate(ValueType const& value) const;
     };
 
     using BoolSettingValue       = GeodeSettingValue<BoolSetting>;
