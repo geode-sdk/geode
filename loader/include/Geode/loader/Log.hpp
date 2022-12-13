@@ -6,20 +6,10 @@
 #include <Geode/utils/ranges.hpp>
 #include <ccTypes.h>
 #include <chrono>
-#include <fs/filesystem.hpp>
+#include <ghc/filesystem.hpp>
 #include <sstream>
 #include <vector>
 #include <span>
-
-#ifndef __cpp_lib_concepts
-namespace std {
-    // <concepts> isn't working for me lmao
-    template <class From, class To>
-    concept convertible_to = std::is_convertible_v<From, To> && requires {
-        static_cast<To>(std::declval<From>());
-    };
-}
-#endif
 
 namespace geode {
 #pragma warning(disable : 4251)

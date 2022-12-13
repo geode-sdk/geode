@@ -31,6 +31,7 @@ set(GEODE_LOADER_PATH ${CMAKE_CURRENT_SOURCE_DIR}/loader)
 
 include(cmake/GeodeFile.cmake)
 include(cmake/Platform.cmake)
+include(cmake/CPM.cmake)
 
 target_sources(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/entry.cpp)
 
@@ -81,10 +82,10 @@ target_link_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/lo
 
 add_definitions(-DFMT_CONSTEVAL=)
 
-add_subdirectory(loader/include/Geode/external/filesystem)
-add_subdirectory(loader/include/Geode/external/fmt)
+CPMAddPackage("gh:fmtlib/fmt#9.1.0")
+CPMAddPackage("gh:gulrak/filesystem#3e5b930")
 
-target_link_libraries(${PROJECT_NAME} INTERFACE filesystem fmt)
+target_link_libraries(${PROJECT_NAME} INTERFACE ghc_filesystem fmt)
 
 
 if (NOT EXISTS ${GEODE_BIN_PATH})

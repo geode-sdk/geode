@@ -39,4 +39,4 @@ set_target_properties(Bootstrapper PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY "${GEODE_BIN_PATH}/nightly"
 	ARCHIVE_OUTPUT_DIRECTORY "${GEODE_BIN_PATH}/nightly"
 )
-target_link_libraries(Bootstrapper PUBLIC filesystem)
+target_link_libraries(Bootstrapper PUBLIC ghc_filesystem)

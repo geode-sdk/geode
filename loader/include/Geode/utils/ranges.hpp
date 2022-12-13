@@ -4,9 +4,18 @@
 #include <algorithm>
 #include <string>
 #include <concepts>
+#include <optional>
+#include <iterator>
 
-#undef min
-#undef max
+#ifndef __cpp_lib_concepts
+namespace std {
+    // <concepts> isn't working for me lmao
+    template <class From, class To>
+    concept convertible_to = std::is_convertible_v<From, To> && requires {
+        static_cast<To>(std::declval<From>());
+    };
+}
+#endif
 
 namespace geode::utils::ranges {
     template <class C>

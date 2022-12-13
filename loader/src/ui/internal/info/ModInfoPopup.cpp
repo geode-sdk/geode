@@ -23,10 +23,6 @@
 #include <Geode/utils/web.hpp>
 #include <loader/LoaderImpl.hpp>
 
-// TODO: die
-#undef min
-#undef max
-
 static constexpr int const TAG_CONFIRM_UNINSTALL = 5;
 static constexpr int const TAG_DELETE_SAVEDATA = 6;
 static const CCSize LAYER_SIZE = {440.f, 290.f};

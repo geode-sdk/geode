@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../external/filesystem/fs/filesystem.hpp"
+#include <ghc/filesystem.hpp>
 #include "../utils/Result.hpp"
 #include "Log.hpp"
 #include "ModInfo.hpp"
