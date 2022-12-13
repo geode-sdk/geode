@@ -58,7 +58,7 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Win32")
 		${GEODE_LOADER_PATH}/include/Geode/cocos/cocos2dx/platform/third_party/win32/OGLES
 	)
 
-	target_compile_definitions(${PROJECT_NAME} INTERFACE -DCC_TARGET_OS_WIN32)
+	target_compile_definitions(${PROJECT_NAME} INTERFACE -DCC_TARGET_OS_WIN32 NOMINMAX)
 
 	target_link_libraries(${PROJECT_NAME} INTERFACE 
 		${GEODE_LOADER_PATH}/include/link/libcocos2d.lib

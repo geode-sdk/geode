@@ -10,8 +10,6 @@
 #include <vector>
 #include <ghc/filesystem.hpp>
 
-#undef snprintf
-
 // for some reason std::filesystem::path doesn't have std::hash defined in C++17 
 // and ghc seems to have inherited this limitation
 template<>

@@ -1,10 +1,6 @@
 #include <Geode/ui/Scrollbar.hpp>
 #include <Geode/utils/cocos.hpp>
 
-// TODO: die
-#undef min
-#undef max
-
 USE_GEODE_NAMESPACE();
 
 bool Scrollbar::ccTouchBegan(CCTouch* touch, CCEvent* event) {
