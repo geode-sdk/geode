@@ -147,16 +147,6 @@ static auto $_ = listenForIPC("list-mods", [](IPCEvent* event) -> nlohmann::json
 int geodeEntry(void* platformData) {
     // setup internals
 
-    if (!Loader::get()) {
-        LoaderImpl::get()->platformMessageBox(
-            "Unable to Load Geode!",
-            "There was an unknown fatal error setting up "
-            "internal tools and Geode can not be loaded. "
-            "(Loader::get returned nullptr)"
-        );
-        return 1;
-    }
-
     if (!geode::core::hook::initialize()) {
         LoaderImpl::get()->platformMessageBox(
             "Unable to load Geode!",
@@ -166,8 +156,6 @@ int geodeEntry(void* platformData) {
         );
         return 1;
     }
-
-    geode_implicit_load(InternalMod::get());
 
     // set up loader, load mods, etc.
     if (!LoaderImpl::get()->setup()) {

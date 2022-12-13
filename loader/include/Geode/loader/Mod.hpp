@@ -31,6 +31,8 @@ namespace geode {
         ~HandleToSaved();
     };
 
+    inline GEODE_HIDDEN Mod* takeNextLoaderMod();
+
     /**
      * @class Mod
      * Represents a Mod ingame.
@@ -225,6 +227,9 @@ namespace geode {
          */
         template <class = void>
         static inline GEODE_HIDDEN Mod* get() {
+            if (!sharedMod<>) {
+                sharedMod<> = takeNextLoaderMod();
+            }
             return sharedMod<>;
         }
 

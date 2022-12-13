@@ -245,22 +245,6 @@ Mod* Loader::Impl::getLoadedMod(std::string const& id) const {
     return nullptr;
 }
 
-void Loader::Impl::dispatchScheduledFunctions(Mod* mod) {
-    std::lock_guard _(m_scheduledFunctionsMutex);
-    for (auto& func : m_scheduledFunctions) {
-        func();
-    }
-    m_scheduledFunctions.clear();
-}
-
-void Loader::Impl::scheduleOnModLoad(Mod* mod, ScheduledFunction func) {
-    std::lock_guard _(m_scheduledFunctionsMutex);
-    if (mod) {
-        return func();
-    }
-    m_scheduledFunctions.push_back(func);
-}
-
 void Loader::Impl::updateModResources(Mod* mod) {
     if (!mod->m_info.spritesheets.size()) {
         return;
@@ -594,3 +578,44 @@ ListenerResult ResourceDownloadFilter::handle(
 }
 
 ResourceDownloadFilter::ResourceDownloadFilter() {}
+
+void Loader::Impl::provideNextMod(Mod* mod) {
+    m_nextModLock.lock();
+    m_nextMod = mod;
+}
+Mod* Loader::Impl::takeNextMod() {
+    if (!m_nextMod) {
+        // this means we're hopefully loading the internal mod
+        // TODO: make this less hacky
+        auto res = this->setupInternalMod();
+        if (!res) {
+            log::error("{}", res.unwrapErr());
+            return nullptr;
+        }
+        return m_nextMod;
+    }
+    auto ret = m_nextMod;
+    m_nextModCV.notify_all();
+    return ret;
+}
+void Loader::Impl::releaseNextMod() {
+    auto lock = std::unique_lock<std::mutex>(m_nextModAccessMutex);
+    m_nextModCV.wait(lock);
+
+    m_nextModLock.unlock();
+}
+
+Result<> Loader::Impl::setupInternalMod() {
+    this->provideNextMod(InternalMod::get());
+    (void)Mod::get();
+    m_nextModLock.unlock();
+
+    InternalMod::get()->setModInfo();
+
+    auto sett = Mod::get()->loadData();
+    if (!sett) {
+        log::error("{}", sett.unwrapErr());
+    }
+
+    return Ok();
+}

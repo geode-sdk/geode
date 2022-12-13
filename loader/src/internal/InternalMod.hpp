@@ -13,4 +13,6 @@ protected:
 
 public:
     static InternalMod* get();
+
+    void setModInfo();
 };

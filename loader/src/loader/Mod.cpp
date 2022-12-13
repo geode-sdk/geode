@@ -203,6 +203,8 @@ Result<> Mod::loadBinary() {
         return Err("Mod has unresolved dependencies");
     }
 
+    LoaderImpl::get()->provideNextMod(this);
+
     GEODE_UNWRAP(this->loadPlatformBinary());
     m_binaryLoaded = true;
 

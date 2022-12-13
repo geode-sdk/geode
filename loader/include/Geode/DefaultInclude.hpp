@@ -168,19 +168,16 @@ namespace cocos2d::extension {}
         40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, \
         18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0
 
-#define $execute                                                                                   \
-    template <class>                                                                               \
-    void GEODE_CONCAT(geodeExecFunction, __LINE__)();                                              \
-    namespace {                                                                                    \
-        struct GEODE_CONCAT(ExecFuncUnique, __LINE__) {};                                          \
-    }                                                                                              \
-    static inline auto GEODE_CONCAT(Exec, __LINE__) =                                              \
-        (Loader::get()->scheduleOnModLoad(                                                         \
-             getMod(),                                                                             \
-             &GEODE_CONCAT(geodeExecFunction, __LINE__) < GEODE_CONCAT(ExecFuncUnique, __LINE__) > \
-         ),                                                                                        \
-         0);                                                                                       \
-    template <class>                                                                               \
+#define $execute                                                                                  \
+    template <class>                                                                              \
+    void GEODE_CONCAT(geodeExecFunction, __LINE__)();                                             \
+    namespace {                                                                                   \
+        struct GEODE_CONCAT(ExecFuncUnique, __LINE__) {};                                         \
+    }                                                                                             \
+    static inline auto GEODE_CONCAT(Exec, __LINE__) =                                             \
+        (GEODE_CONCAT(geodeExecFunction, __LINE__) < GEODE_CONCAT(ExecFuncUnique, __LINE__) > (), \
+         0);                                                                                      \
+    template <class>                                                                              \
     void GEODE_CONCAT(geodeExecFunction, __LINE__)()
 
 // #define GEODE_NEST1(macro, begin)           \

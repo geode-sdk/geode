@@ -113,7 +113,7 @@ namespace geode {
 
     class GEODE_DLL [[nodiscard]] Event {
     private:
-        static std::unordered_set<EventListenerProtocol*> s_listeners;
+        static std::unordered_set<EventListenerProtocol*>& listeners();
         friend EventListenerProtocol;
 
     public:

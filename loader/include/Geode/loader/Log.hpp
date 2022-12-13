@@ -114,40 +114,22 @@ namespace geode {
             Logger() = delete;
             ~Logger() = delete;
 
-            // Unscheduled logs
+            // logs
             static void _push(Log&& log);
-
-            // Scheduled functions
-            template <class = void>
-            static inline std::vector<Log>& scheduled() {
-                static std::vector<Log> scheduledLogs;
-                return scheduledLogs;
-            }
-            static void run(Mod* m, std::vector<Log>& scheduled);
 
         public:
             static void setup();
 
             static inline void push(Log&& log) {
-                if (log.m_sender == nullptr)
-                    Logger::scheduled().push_back(std::move(log));
-                else
-                    Logger::_push(std::move(log));
+                Logger::_push(std::move(log));
             }
 
             static inline void pop(Log* log) {
-                if (log->m_sender == nullptr)
-                    geode::utils::ranges::remove(Logger::scheduled(), *log);
-                else
-                    geode::utils::ranges::remove(Logger::s_logs, *log);
+                geode::utils::ranges::remove(Logger::s_logs, *log);
             }
 
             static std::vector<Log*> list();
             static void clear();
-
-            static inline void runScheduled(Mod* m) {
-                Logger::run(m, Logger::scheduled());
-            }
         };
 
         template <typename... Args>
