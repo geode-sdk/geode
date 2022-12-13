@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.3.0)
 
 add_library(ProxyLoader SHARED proxyLoader.c)
+target_compile_features(ProxyLoader PUBLIC cxx_std_17)
 set_target_properties(ProxyLoader PROPERTIES
 	PREFIX "" 
 	OUTPUT_NAME "XInput9_1_0"
@@ -21,6 +22,7 @@ set_target_properties(ProxyLoader PROPERTIES
 )
 
 add_library(Bootstrapper SHARED Bootstrapper.cpp)
+target_compile_features(Bootstrapper PUBLIC cxx_std_17)
 set_target_properties(Bootstrapper PROPERTIES
 	PREFIX "" 
 	OUTPUT_NAME "GeodeBootstrapper"

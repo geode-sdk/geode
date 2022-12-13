@@ -136,7 +136,7 @@ namespace {
                 "Are you sure you want to <cr>reset</c> <cl>" + setting->getDisplayName() +
                     "</c> to <cy>default</c>?",
                 "Cancel", "Reset",
-                [this](auto, bool btn2) {
+                [this](FLAlertLayer*, bool btn2) {
                     if (btn2) this->resetToDefault();
                 }
             );

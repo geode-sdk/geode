@@ -2,6 +2,7 @@
 
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/binding/FLAlertLayer.hpp>
+#include <Geode/utils/MiniFunction.hpp>
 
 namespace geode {
     template <typename... InitArgs>
@@ -89,11 +90,11 @@ namespace geode {
 
     GEODE_DLL FLAlertLayer* createQuickPopup(
         char const* title, std::string const& content, char const* btn1, char const* btn2,
-        std::function<void(FLAlertLayer*, bool)> selected, bool doShow = true
+        utils::MiniFunction<void(FLAlertLayer*, bool)> selected, bool doShow = true
     );
 
     GEODE_DLL FLAlertLayer* createQuickPopup(
         char const* title, std::string const& content, char const* btn1, char const* btn2,
-        float width, std::function<void(FLAlertLayer*, bool)> selected, bool doShow = true
+        float width, utils::MiniFunction<void(FLAlertLayer*, bool)> selected, bool doShow = true
     );
 }
