@@ -1,7 +1,7 @@
 {
     "geode": "@PROJECT_VERSION@",
     "id": "geode.loader",
-    "version": "@PROJECT_VERSION@",
+    "version": "@PROJECT_VERSION@@PROJECT_VERSION_SUFFIX@",
     "name": "Geode",
     "developer": "Geode Team",
     "description": "The Geode mod loader",

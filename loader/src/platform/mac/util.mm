@@ -5,12 +5,9 @@
 
 USE_GEODE_NAMESPACE();
 
-    #include <Cocoa/Cocoa.h>
-    #include <functional>
-    #include <iostream>
-    #include <sstream>
-    #include <Geode/utils/web.hpp>
-    #include <Geode/utils/file.hpp>
+#include <AppKit/AppKit.h>
+#include <Geode/utils/web.hpp>
+#include <Geode/utils/file.hpp>
 
 bool utils::clipboard::write(std::string const& data) {
     [[NSPasteboard generalPasteboard] clearContents];

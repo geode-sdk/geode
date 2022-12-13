@@ -56,7 +56,7 @@ Result<> Loader::Impl::setup() {
         return Ok();
     }
 
-    log::Logs::setup();
+    log::Logger::setup();
 
     if (crashlog::setupPlatformHandler()) {
         log::debug("Set up platform crash logger");
@@ -413,7 +413,7 @@ void Loader::Impl::reset() {
         delete mod;
     }
     m_mods.clear();
-    log::Logs::clear();
+    log::Logger::clear();
     ghc::filesystem::remove_all(dirs::getModRuntimeDir());
     ghc::filesystem::remove_all(dirs::getTempDir());
 }
@@ -431,7 +431,7 @@ bool Loader::Impl::loadHooks() {
     for (auto const& hook : m_internalHooks) {
         auto res = hook.second->addHook(hook.first);
         if (!res) {
-            log::log(Severity::Error, hook.second, "{}", res.unwrapErr());
+            log::internalLog(Severity::Error, hook.second, "{}", res.unwrapErr());
             thereWereErrors = true;
         }
     }

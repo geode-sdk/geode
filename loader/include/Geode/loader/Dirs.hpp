@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../external/filesystem/fs/filesystem.hpp"
+#include <ghc/filesystem.hpp>
 #include "../DefaultInclude.hpp"
 
 namespace geode::dirs {

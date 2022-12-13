@@ -405,53 +405,6 @@ namespace geode::cocos {
         return node ? node : T::create(args...);
     }
 
-    template <class T = cocos2d::CCNode>
-    struct SafeCreate final {
-        T* result;
-
-        SafeCreate<T>& with(T* node) {
-            result = node;
-            return *this;
-        }
-
-        template <class... Args>
-        SafeCreate<T>& make(Args... args) {
-            result = T::create(args...);
-            return *this;
-        }
-
-        // convenience for CCSprite
-        template <class... Args>
-        SafeCreate<T>& makeWithFrame(Args... args) {
-            result = T::createWithSpriteFrameName(args...);
-            return *this;
-        }
-
-        template <class... Args>
-        SafeCreate<T>& makeUsing(T* (*func)(Args...), Args... args) {
-            result = func(args...);
-            return *this;
-        }
-
-        template <class O = T, class... Args>
-        T* orMakeUsing(O* (*func)(Args...), Args... args) {
-            if (result) return result;
-            return func(args...);
-        }
-
-        template <class O = T, class... Args>
-        T* orMake(Args... args) {
-            if (result) return result;
-            return O::create(args...);
-        }
-
-        template <class O = T, class... Args>
-        T* orMakeWithFrame(Args... args) {
-            if (result) return result;
-            return O::createWithSpriteFrameName(args...);
-        }
-    };
-
     /**
      * Get bounds for a set of nodes. Based on content
      * size

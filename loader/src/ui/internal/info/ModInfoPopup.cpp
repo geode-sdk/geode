@@ -23,10 +23,6 @@
 #include <Geode/utils/web.hpp>
 #include <loader/LoaderImpl.hpp>
 
-// TODO: die
-#undef min
-#undef max
-
 static constexpr int const TAG_CONFIRM_UNINSTALL = 5;
 static constexpr int const TAG_DELETE_SAVEDATA = 6;
 static const CCSize LAYER_SIZE = {440.f, 290.f};
@@ -423,7 +419,9 @@ void LocalModInfoPopup::onEnableMod(CCObject* sender) {
             "need to <cg>restart</c> the game to have it fully unloaded.",
             "OK"
         )->show();
-        if (m_layer) m_layer->updateAllStates(nullptr);
+        if (m_layer) {
+            m_layer->updateAllStates(nullptr);
+        }
         return;
     }
     if (as<CCMenuItemToggler*>(sender)->isToggled()) {
@@ -438,7 +436,9 @@ void LocalModInfoPopup::onEnableMod(CCObject* sender) {
             FLAlertLayer::create(nullptr, "Error Disabling Mod", res.unwrapErr(), "OK", nullptr)->show();
         }
     }
-    if (m_layer) m_layer->updateAllStates(nullptr);
+    if (m_layer) {
+        m_layer->updateAllStates(nullptr);
+    }
     as<CCMenuItemToggler*>(sender)->toggle(m_mod->isEnabled());
 }
 
@@ -477,7 +477,9 @@ void LocalModInfoPopup::FLAlert_Clicked(FLAlertLayer* layer, bool btn2) {
                     FLAlertLayer::create("Error", "Unable to delete mod's save directory!", "OK")->show();
                 }
             }
-            if (m_layer) m_layer->reloadList();
+            if (m_layer) {
+                m_layer->reloadList();
+            }
             this->onClose(nullptr);
         } break;
     }

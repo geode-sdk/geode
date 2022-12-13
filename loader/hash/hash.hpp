@@ -6,7 +6,7 @@
 #include "picosha3.h"
 #include "picosha2.h"
 #include <vector>
-#include <fs/filesystem.hpp>
+#include <ghc/filesystem.hpp>
 
 static std::string calculateSHA3_256(ghc::filesystem::path const& path) {
     std::vector<uint8_t> s(picosha3::bits_to_bytes(256));

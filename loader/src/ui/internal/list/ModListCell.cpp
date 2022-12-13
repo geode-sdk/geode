@@ -1,7 +1,7 @@
+
 #include "ModListCell.hpp"
 #include "ModListLayer.hpp"
 #include "../info/ModInfoPopup.hpp"
-
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/binding/CCMenuItemToggler.hpp>
@@ -10,6 +10,7 @@
 #include <Geode/ui/GeodeUI.hpp>
 #include "../../../loader/LoaderImpl.hpp" // how should i include this src/loader/LoaderImpl.hpp
 #include "../info/TagNode.hpp"
+#include "../info/DevProfilePopup.hpp"
 
 template <class T>
 static bool tryOrAlert(Result<T> const& res, char const* title) {
@@ -27,7 +28,11 @@ float ModListCell::getLogoSize() const {
     return m_height / 1.5f;
 }
 
-void ModListCell::setupInfo(ModInfo const& info, bool spaceForTags) {
+void ModListCell::setupInfo(
+    ModInfo const& info,
+    bool spaceForTags,
+    ModListDisplay display
+) {
     m_menu = CCMenu::create();
     m_menu->setPosition(m_width - 40.f, m_height / 2);
     this->addChild(m_menu);
@@ -39,7 +44,7 @@ void ModListCell::setupInfo(ModInfo const& info, bool spaceForTags) {
     this->addChild(logoSpr);
 
     bool hasDesc =
-        m_layer->getDisplay() == ModListDisplay::Expanded && 
+        display == ModListDisplay::Expanded && 
         info.description.has_value();
 
     auto titleLabel = CCLabelBMFont::create(info.name.c_str(), "bigFont.fnt");
@@ -60,7 +65,10 @@ void ModListCell::setupInfo(ModInfo const& info, bool spaceForTags) {
     titleLabel->limitLabelWidth(m_width / 2 - 40.f, .5f, .1f);
     this->addChild(titleLabel);
 
-    auto versionLabel = CCLabelBMFont::create(info.version.toString().c_str(), "bigFont.fnt");
+    auto versionLabel = CCLabelBMFont::create(
+        info.version.toString(false).c_str(),
+        "bigFont.fnt"
+    );
     versionLabel->setAnchorPoint({ .0f, .5f });
     versionLabel->setScale(.3f);
     versionLabel->setPosition(
@@ -69,6 +77,20 @@ void ModListCell::setupInfo(ModInfo const& info, bool spaceForTags) {
     );
     versionLabel->setColor({ 0, 255, 0 });
     this->addChild(versionLabel);
+
+    if (auto tag = info.version.getTag()) {
+        auto tagLabel = TagNode::create(
+            versionTagToString(tag.value()).c_str()
+        );
+        tagLabel->setAnchorPoint({ .0f, .5f });
+        tagLabel->setScale(.3f);
+        tagLabel->setPosition(
+            versionLabel->getPositionX() + 
+                versionLabel->getScaledContentSize().width + 5.f,
+            versionLabel->getPositionY()
+        );
+        this->addChild(tagLabel);
+    }
 
     auto creatorStr = "by " + info.developer;
     auto creatorLabel = CCLabelBMFont::create(creatorStr.c_str(), "goldFont.fnt");
@@ -118,8 +140,7 @@ void ModListCell::setupInfo(ModInfo const& info, bool spaceForTags) {
 }
 
 void ModListCell::onViewDev(CCObject*) {
-    m_layer->getQuery().developer = this->getDeveloper();
-    m_layer->reloadList();
+    DevProfilePopup::create(this->getDeveloper())->show();
 }
 
 bool ModListCell::init(ModListLayer* list, CCSize const& size) {
@@ -136,10 +157,11 @@ bool ModListCell::init(ModListLayer* list, CCSize const& size) {
 ModCell* ModCell::create(
     Mod* mod,
     ModListLayer* list,
+    ModListDisplay display,
     CCSize const& size
 ) {
     auto ret = new ModCell();
-    if (ret && ret->init(mod, list, size)) {
+    if (ret && ret->init(mod, list, display, size)) {
         return ret;
     }
     CC_SAFE_DELETE(ret);
@@ -156,7 +178,9 @@ void ModCell::onEnable(CCObject* sender) {
             "need to <cg>restart</c> the game to have it fully unloaded.",
             "OK"
         )->show();
-        m_layer->updateAllStates(this);
+        if (m_layer) {
+            m_layer->updateAllStates(this);
+        }
         return;
     }
     if (!as<CCMenuItemToggler*>(sender)->isToggled()) {
@@ -165,7 +189,9 @@ void ModCell::onEnable(CCObject* sender) {
     else {
         tryOrAlert(m_mod->disable(), "Error disabling mod");
     }
-    m_layer->updateAllStates(this);
+    if (m_layer) {
+        m_layer->updateAllStates(this);
+    }
 }
 
 void ModCell::onUnresolvedInfo(CCObject*) {
@@ -203,6 +229,7 @@ void ModCell::updateState() {
 bool ModCell::init(
     Mod* mod,
     ModListLayer* list,
+    ModListDisplay display,
     CCSize const& size
 ) {
     if (!ModListCell::init(list, size))
@@ -210,7 +237,7 @@ bool ModCell::init(
 
     m_mod = mod;
 
-    this->setupInfo(mod->getModInfo(), false);
+    this->setupInfo(mod->getModInfo(), false, display);
 
     auto viewSpr = ButtonSprite::create("View", "bigFont.fnt", "GJ_button_01.png", .8f);
     viewSpr->setScale(.65f);
@@ -268,10 +295,11 @@ void IndexItemCell::onInfo(CCObject*) {
 IndexItemCell* IndexItemCell::create(
     IndexItemHandle item,
     ModListLayer* list,
+    ModListDisplay display,
     CCSize const& size
 ) {
     auto ret = new IndexItemCell();
-    if (ret && ret->init(item, list, size)) {
+    if (ret && ret->init(item, list, display, size)) {
         return ret;
     }
     CC_SAFE_DELETE(ret);
@@ -281,6 +309,7 @@ IndexItemCell* IndexItemCell::create(
 bool IndexItemCell::init(
     IndexItemHandle item,
     ModListLayer* list,
+    ModListDisplay display,
     CCSize const& size
 ) {
     if (!ModListCell::init(list, size))
@@ -288,7 +317,7 @@ bool IndexItemCell::init(
 
     m_item = item;
 
-    this->setupInfo(item->info, item->tags.size());
+    this->setupInfo(item->info, item->tags.size(), display);
    
     auto viewSpr = ButtonSprite::create(
         "View", "bigFont.fnt", "GJ_button_01.png", .8f
@@ -367,13 +396,16 @@ void InvalidGeodeFileCell::FLAlert_Clicked(FLAlertLayer*, bool btn2) {
                 ->show();
         }
         Loader::get()->refreshModsList();
-        m_layer->reloadList();
+        if (m_layer) {
+            m_layer->reloadList();
+        }
     }
 }
 
 bool InvalidGeodeFileCell::init(
     InvalidGeodeFile const& info,
     ModListLayer* list,
+    ModListDisplay display,
     CCSize const& size
 ) {
     if (!ModListCell::init(list, size))
@@ -414,10 +446,11 @@ bool InvalidGeodeFileCell::init(
 InvalidGeodeFileCell* InvalidGeodeFileCell::create(
     InvalidGeodeFile const& file,
     ModListLayer* list,
+    ModListDisplay display,
     CCSize const& size
 ) {
     auto ret = new InvalidGeodeFileCell();
-    if (ret && ret->init(file, list, size)) {
+    if (ret && ret->init(file, list, display, size)) {
         ret->autorelease();
         return ret;
     }

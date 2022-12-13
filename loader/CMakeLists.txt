@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
 
 project(geode-loader VERSION ${GEODE_VERSION} LANGUAGES C CXX)
-set(PROJECT_VERSION_TYPE Alpha)
+set(PROJECT_VERSION_TYPE geode::VersionTag::Alpha)
+set(PROJECT_VERSION_SUFFIX -alpha)
 
 # Package info file for internal representation
 configure_file(resources/mod.json.in ${CMAKE_CURRENT_SOURCE_DIR}/resources/mod.json)
@@ -111,23 +112,26 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 	src/internal/
 	src/platform/
 	src/gui/
-	md4c/src/
 	hash/
 	./ # lilac
 )
 
-# For profiling
-set_property(TARGET ${PROJECT_NAME} PROPERTY RULE_LAUNCH_COMPILE "${CMAKE_COMMAND} -E time")
+if (APPLE)
+	# For profiling
+	target_compile_options(${PROJECT_NAME} PUBLIC "-ftime-trace")
+	#set_property(TARGET ${PROJECT_NAME} PROPERTY RULE_LAUNCH_COMPILE "${CMAKE_COMMAND} -E time")
+endif()
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC GEODE_EXPORTING)
 
 # Markdown support
-add_subdirectory(md4c)
-target_link_libraries(${PROJECT_NAME} md4c)
+CPMAddPackage("gh:mity/md4c#e9ff661")
+
+target_include_directories(${PROJECT_NAME} PRIVATE ${md4c_SOURCE_DIR}/src)
 
 # Tulip hook (hooking)
 add_subdirectory(tuliphook)
-target_link_libraries(${PROJECT_NAME} z TulipHook geode-sdk)
+target_link_libraries(${PROJECT_NAME} md4c z TulipHook geode-sdk)
 
 # Use precompiled headers for faster builds
 target_precompile_headers(${PROJECT_NAME} PRIVATE
@@ -136,7 +140,7 @@ target_precompile_headers(${PROJECT_NAME} PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Loader.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/UI.hpp"
 	# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Bindings.hpp"
-	# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Modify.hpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Modify.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/cocos/include/cocos2d.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/cocos/extensions/cocos-ext.h"
 )
@@ -153,6 +157,9 @@ if (APPLE)
 	endif()
 elseif (WIN32)
 	add_subdirectory(launcher/windows)
+
+	CPMAddPackage("gh:TsudaKageyu/minhook#49d03ad")
+	target_link_libraries(${PROJECT_NAME} minhook)
 
 	# target_include_directories(${PROJECT_NAME} PRIVATE dobby/include)
 	# target_link_directories(${PROJECT_NAME} PRIVATE dobby)

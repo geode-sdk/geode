@@ -3864,6 +3864,7 @@ class CustomSongLayerDelegate {
 
 class LevelSettingsLayer : FLAlertLayer, ColorSelectDelegate, SelectArtDelegate, FLAlertLayerProtocol, CustomSongLayerDelegate {
     static LevelSettingsLayer* create(LevelSettingsObject* levelSettings, LevelEditorLayer* editor) = win 0x170d90;
+    bool init(LevelSettingsObject* levelSettings, LevelEditorLayer* editor) = mac 0xa7e00, win 0x170e50;
     PAD = mac 0x50;
     LevelSettingsObject* m_settingsObject;
 }

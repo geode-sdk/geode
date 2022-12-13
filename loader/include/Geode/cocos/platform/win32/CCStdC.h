@@ -35,14 +35,6 @@ THE SOFTWARE.
     #define _USE_MATH_DEFINES       // make M_PI can be use
 #endif
 
-#if !defined(isnan)
-    #define isnan   _isnan
-#endif
-
-#ifndef snprintf
-#define snprintf _snprintf
-#endif
-
 #endif // __MINGW32__
 
 #include <math.h>

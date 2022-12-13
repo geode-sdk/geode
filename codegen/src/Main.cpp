@@ -1,5 +1,5 @@
 #include "Shared.hpp"
-#include <fs/filesystem.hpp> // bruh
+#include <ghc/filesystem.hpp> // bruh
 
 using namespace codegen;
 

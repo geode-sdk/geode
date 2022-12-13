@@ -73,12 +73,9 @@ static std::optional<int> queryMatchKeywords(
 }
 
 static std::optional<int> queryMatch(ModListQuery const& query, Mod* mod) {
-    // Only checking keywords and developer makes sense for mods since their 
+    // Only checking keywords makes sense for mods since their 
     // platform always matches, they are always visible and they don't 
     // currently list their tags
-    if (query.developer && query.developer.value() != mod->getDeveloper()) {
-        return std::nullopt;
-    }
     return queryMatchKeywords(query, mod->getModInfo());
 }
 
@@ -86,10 +83,6 @@ static std::optional<int> queryMatch(ModListQuery const& query, IndexItemHandle 
     // if no force visibility was provided and item is already installed, don't 
     // show it
     if (!query.forceVisibility && Loader::get()->isModInstalled(item->info.id)) {
-        return std::nullopt;
-    }
-    // make sure developer matches
-    if (query.developer && query.developer.value() != item->info.developer) {
         return std::nullopt;
     }
     // make sure all tags match
@@ -127,7 +120,6 @@ static std::optional<int> queryMatch(ModListQuery const& query, IndexItemHandle 
 static std::optional<int> queryMatch(ModListQuery const& query, InvalidGeodeFile const& info) {
     // if any explicit filters were provided, no match
     if (
-        query.developer.has_value() ||
         query.tags.size() ||
         query.keywords.has_value()
     ) {
@@ -144,7 +136,9 @@ CCArray* ModListLayer::createModCells(ModListType type, ModListQuery const& quer
             // failed mods first
             for (auto const& mod : Loader::get()->getFailedMods()) {
                 if (!queryMatch(query, mod)) continue;
-                mods->addObject(InvalidGeodeFileCell::create(mod, this, this->getCellSize()));
+                mods->addObject(InvalidGeodeFileCell::create(
+                    mod, this, m_display, this->getCellSize()
+                ));
             }
 
             // sort the mods by match score 
@@ -173,7 +167,9 @@ CCArray* ModListLayer::createModCells(ModListType type, ModListQuery const& quer
 
             // add the mods sorted
             for (auto& [score, mod] : ranges::reverse(sorted)) {
-                mods->addObject(ModCell::create(mod, this, this->getCellSize()));
+                mods->addObject(ModCell::create(
+                    mod, this, m_display, this->getCellSize()
+                ));
             }
         } break;
 
@@ -189,7 +185,9 @@ CCArray* ModListLayer::createModCells(ModListType type, ModListQuery const& quer
 
             // add the mods sorted
             for (auto& [score, item] : ranges::reverse(sorted)) {
-                mods->addObject(IndexItemCell::create(item, this, this->getCellSize()));
+                mods->addObject(IndexItemCell::create(
+                    item, this, m_display, this->getCellSize()
+                ));
             }
         } break;
 
@@ -205,7 +203,9 @@ CCArray* ModListLayer::createModCells(ModListType type, ModListQuery const& quer
 
             // add the mods sorted
             for (auto& [score, item] : ranges::reverse(sorted)) {
-                mods->addObject(IndexItemCell::create(item, this, this->getCellSize()));
+                mods->addObject(IndexItemCell::create(
+                    item, this, m_display, this->getCellSize()
+                ));
             }
         } break;
     }
@@ -489,8 +489,7 @@ void ModListLayer::reloadList(std::optional<ModListQuery> const& query) {
     // and show visual indicator if so
     auto hasQuery =
         (m_searchInput->getString() &&
-        strlen(m_searchInput->getString())) ||
-        m_query.developer;
+        strlen(m_searchInput->getString()));
     m_searchBtn->setVisible(!hasQuery);
     m_searchClearBtn->setVisible(hasQuery);
 
@@ -606,8 +605,6 @@ void ModListLayer::onOpenFolder(CCObject*) {
 }
 
 void ModListLayer::onResetSearch(CCObject*) {
-    // todo: remove when implementing more reasonable developer view
-    m_query.developer = std::nullopt;
     m_searchInput->setString("");
 }
 

@@ -27,6 +27,8 @@
     #define GEODE_API extern "C" __declspec(dllexport)
     #define GEODE_EXPORT __declspec(dllexport)
 
+    static_assert(sizeof(void*) == 4, "Geode must be compiled in 32-bit for Windows!");
+
     #include "windows.hpp"
 
 #elif defined(GEODE_IS_MACOS)
