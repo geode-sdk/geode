@@ -7,7 +7,9 @@ Hook::Impl::Impl(void* address, void* detour, std::string const& displayName, tu
     m_displayName(displayName),
     m_handlerMetadata(handlerMetadata),
     m_hookMetadata(hookMetadata),
-    m_owner(owner) {}
+    m_owner(owner),
+    m_enabled(false),
+    m_autoEnable(true) {}
 Hook::Impl::~Impl() {
     if (m_enabled) {
         auto res = this->disable();
@@ -46,11 +48,10 @@ Result<> Hook::Impl::enable() {
         if (!LoaderImpl::get()->hasHandler(m_address)) {
             GEODE_UNWRAP(LoaderImpl::get()->createHandler(m_address, m_handlerMetadata));
         }
-
         GEODE_UNWRAP_INTO(auto handler, LoaderImpl::get()->getHandler(m_address));
 
         m_handle = tulip::hook::createHook(handler, m_detour, m_hookMetadata);
-        log::debug("Enabling hook at function {}", m_displayName);
+        log::debug("Enabling hook at function {} with address {}", m_displayName, m_address);
         m_enabled = true;
     }
     return Ok();

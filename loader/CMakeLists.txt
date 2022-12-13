@@ -132,7 +132,7 @@ CPMAddPackage("gh:mity/md4c#e9ff661")
 target_include_directories(${PROJECT_NAME} PRIVATE ${md4c_SOURCE_DIR}/src)
 
 # Tulip hook (hooking)
-CPMAddPackage("gh:altalk23/TulipHook#92b3cca")
+CPMAddPackage("gh:altalk23/TulipHook#5ba99a8")
 
 target_link_libraries(${PROJECT_NAME} md4c z TulipHook geode-sdk)
 
@@ -143,7 +143,6 @@ target_precompile_headers(${PROJECT_NAME} PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Loader.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/UI.hpp"
 	# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Bindings.hpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Modify.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/cocos/include/cocos2d.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/cocos/extensions/cocos-ext.h"
 )

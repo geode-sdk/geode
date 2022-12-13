@@ -409,9 +409,12 @@ bool Mod::depends(std::string const& id) const {
 // Hooks
 
 Result<> Mod::enableHook(Hook* hook) {
-    log::debug("Enabling hook {} for mod {}", (void*)hook, m_info.id);
+    log::debug("Enabling hook {} for mod {} at address {}", (void*)hook, m_info.id, (void*)hook->getAddress());
     auto res = hook->enable();
     if (res) m_hooks.push_back(hook);
+    else {
+        log::error("Can't enable hook {} for mod {}: {}", (void*)hook, m_info.id, res.unwrapErr());
+    }
 
     return res;
 }

@@ -12,7 +12,7 @@
 #include <tulip/TulipHook.hpp>
 
 #define GEODE_APPLY_MODIFY_FOR_FUNCTION(addr_index, pure_index, convention, className, functionName)       \
-    {                                                                                                      \
+    do {                                                                                                   \
         using DerivedWrap = wrap::functionName<Derived, types::pure##pure_index>;                          \
         using BaseWrap = wrap::functionName<Base, types::pure##pure_index>;                                \
         if constexpr (DerivedWrap::uuid != nullptr && (void*)BaseWrap::uuid != (void*)DerivedWrap::uuid) { \
@@ -22,9 +22,9 @@
                 DerivedWrap::value,                                                                        \
                 #className "::" #functionName                                                              \
             );                                                                                             \
-            BaseModify::m_hooks[FunctionUUID<DerivedWrap::value>::value] = hook;                           \
+            this->m_hooks[#className "::" #functionName] = hook;                                           \
         }                                                                                                  \
-    }
+    } while (0);
 
 namespace geode::modifier {
 
@@ -34,25 +34,25 @@ namespace geode::modifier {
     template <class ModifyDerived>
     class ModifyBase {
     public:
-        std::map<void (*)(), Hook*> m_hooks;
+        std::map<std::string, Hook*> m_hooks;
 
-        template <auto Function>
-        Result<Hook*> getHook() {
-            auto uuid = FunctionUUID<Function>::value;
-            if (m_hooks.find(uuid) == m_hooks.end()) {
+        Result<Hook*> getHook(std::string const& name) {
+            if (m_hooks.find(name) == m_hooks.end()) {
                 return Err("Hook not in this modify");
             }
-            return m_hooks[uuid];
+            return Ok(m_hooks[name]);
         }
 
         // unordered_map<handles> idea
         ModifyBase() {
-            this->apply();
+            // i really dont want to recompile codegen
+            auto test = static_cast<ModifyDerived*>(this);
+            test->ModifyDerived::apply();
             ModifyDerived::Derived::onModify(*this);
             for (auto& [uuid, hook] : m_hooks) {
                 auto res = Mod::get()->addHook(hook);
                 if (!res) {
-                    log::error("Failed to add hook: {}", res.error());
+                    log::error("Failed to add hook {}: {}", hook->getDisplayName(), res.error());
                 }
             }
         }

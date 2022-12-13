@@ -172,9 +172,9 @@ int geodeEntry(void* platformData) {
 
     log::debug("Set up loader");
 
-    if (InternalMod::get()->getSettingValue<bool>("show-platform-console")) {
-        Loader::get()->openPlatformConsole();
-    }
+    // if (InternalMod::get()->getSettingValue<bool>("show-platform-console")) {
+    //     Loader::get()->openPlatformConsole();
+    // }
 
     log::debug("Entry done.");
 
