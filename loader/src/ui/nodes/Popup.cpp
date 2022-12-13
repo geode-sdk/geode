@@ -4,7 +4,7 @@ USE_GEODE_NAMESPACE();
 
 class QuickPopup : public FLAlertLayer, public FLAlertLayerProtocol {
 protected:
-    std::function<void(FLAlertLayer*, bool)> m_selected;
+    MiniFunction<void(FLAlertLayer*, bool)> m_selected;
 
     void FLAlert_Clicked(FLAlertLayer* layer, bool btn2) override {
         if (m_selected) {
@@ -15,7 +15,7 @@ protected:
 public:
     static QuickPopup* create(
         char const* title, std::string const& content, char const* btn1, char const* btn2,
-        float width, std::function<void(FLAlertLayer*, bool)> selected
+        float width, MiniFunction<void(FLAlertLayer*, bool)> selected
     ) {
         auto inst = new QuickPopup;
         inst->m_selected = selected;
@@ -30,7 +30,7 @@ public:
 
 FLAlertLayer* geode::createQuickPopup(
     char const* title, std::string const& content, char const* btn1, char const* btn2, float width,
-    std::function<void(FLAlertLayer*, bool)> selected, bool doShow
+    MiniFunction<void(FLAlertLayer*, bool)> selected, bool doShow
 ) {
     auto ret = QuickPopup::create(title, content, btn1, btn2, width, selected);
     if (doShow) {
@@ -41,7 +41,7 @@ FLAlertLayer* geode::createQuickPopup(
 
 FLAlertLayer* geode::createQuickPopup(
     char const* title, std::string const& content, char const* btn1, char const* btn2,
-    std::function<void(FLAlertLayer*, bool)> selected, bool doShow
+    MiniFunction<void(FLAlertLayer*, bool)> selected, bool doShow
 ) {
     return createQuickPopup(title, content, btn1, btn2, 350.f, selected, doShow);
 }
