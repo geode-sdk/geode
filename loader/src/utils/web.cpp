@@ -329,10 +329,12 @@ void SentAsyncWebRequest::Impl::cancel() {
 
 void SentAsyncWebRequest::Impl::pause() {
     m_paused = true;
+    m_statusCV.notify_all();
 }
 
 void SentAsyncWebRequest::Impl::resume() {
     m_paused = false;
+    m_statusCV.notify_all();
 }
 
 bool SentAsyncWebRequest::Impl::finished() const {
