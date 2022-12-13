@@ -222,6 +222,7 @@ std::string SettingValue::getKey() const {
     >::createNode(float width) {                                        \
         return type_##SettingNode::create(this, width);                 \
     }                                                                   \
+    template<>                                                          \
     typename type_##Setting::ValueType SettingValueSetter<              \
         typename type_##Setting::ValueType                              \
     >::get(SettingValue* setting) {                                     \
@@ -230,6 +231,7 @@ std::string SettingValue::getKey() const {
         }                                                               \
         return typename type_##Setting::ValueType();                    \
     }                                                                   \
+    template<>                                                          \
     void SettingValueSetter<                                            \
         typename type_##Setting::ValueType                              \
     >::set(                                                             \
@@ -250,23 +252,27 @@ std::string SettingValue::getKey() const {
 
 // instantiate value setters
 
-template struct SettingValueSetter<typename BoolSetting::ValueType>;
-template struct SettingValueSetter<typename IntSetting::ValueType>;
-template struct SettingValueSetter<typename FloatSetting::ValueType>;
-template struct SettingValueSetter<typename StringSetting::ValueType>;
-template struct SettingValueSetter<typename FileSetting::ValueType>;
-template struct SettingValueSetter<typename ColorSetting::ValueType>;
-template struct SettingValueSetter<typename ColorAlphaSetting::ValueType>;
+namespace geode {
+    template struct SettingValueSetter<typename BoolSetting::ValueType>;
+    template struct SettingValueSetter<typename IntSetting::ValueType>;
+    template struct SettingValueSetter<typename FloatSetting::ValueType>;
+    template struct SettingValueSetter<typename StringSetting::ValueType>;
+    template struct SettingValueSetter<typename FileSetting::ValueType>;
+    template struct SettingValueSetter<typename ColorSetting::ValueType>;
+    template struct SettingValueSetter<typename ColorAlphaSetting::ValueType>;
+}
 
 // instantiate values
 
-template class GeodeSettingValue<BoolSetting>;
-template class GeodeSettingValue<IntSetting>;
-template class GeodeSettingValue<FloatSetting>;
-template class GeodeSettingValue<StringSetting>;
-template class GeodeSettingValue<FileSetting>;
-template class GeodeSettingValue<ColorSetting>;
-template class GeodeSettingValue<ColorAlphaSetting>;
+namespace geode {
+    template class GeodeSettingValue<BoolSetting>;
+    template class GeodeSettingValue<IntSetting>;
+    template class GeodeSettingValue<FloatSetting>;
+    template class GeodeSettingValue<StringSetting>;
+    template class GeodeSettingValue<FileSetting>;
+    template class GeodeSettingValue<ColorSetting>;
+    template class GeodeSettingValue<ColorAlphaSetting>;
+}
 
 IMPL_NODE_AND_SETTERS(Bool);
 IMPL_NODE_AND_SETTERS(Int);
