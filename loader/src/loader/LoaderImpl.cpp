@@ -1,6 +1,6 @@
 
 #include "LoaderImpl.hpp"
-
+#include <cocos2d.h>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Loader.hpp>
@@ -154,7 +154,8 @@ bool Loader::Impl::isModVersionSupported(VersionInfo const& version) {
 
 Result<> Loader::Impl::saveData() {
     // save mods' data
-    for (auto& [_, mod] : m_mods) {
+    for (auto& [id, mod] : m_mods) {
+        InternalMod::get()->setSavedValue("should-load-" + id, mod->isEnabled());
         auto r = mod->saveData();
         if (!r) {
             log::warn("Unable to save data for mod \"{}\": {}", mod->getID(), r.unwrapErr());
@@ -254,10 +255,10 @@ void Loader::Impl::dispatchScheduledFunctions(Mod* mod) {
 }
 
 void Loader::Impl::scheduleOnModLoad(Mod* mod, ScheduledFunction func) {
-    std::lock_guard _(m_scheduledFunctionsMutex);
     if (mod) {
         return func();
     }
+    std::lock_guard _(m_scheduledFunctionsMutex);
     m_scheduledFunctions.push_back(func);
 }
 
@@ -403,9 +404,6 @@ bool Loader::Impl::didLastLaunchCrash() const {
     return crashlog::didLastLaunchCrash();
 }
 
-
-
-
 void Loader::Impl::reset() {
     this->closePlatformConsole();
 
@@ -417,6 +415,7 @@ void Loader::Impl::reset() {
     ghc::filesystem::remove_all(dirs::getModRuntimeDir());
     ghc::filesystem::remove_all(dirs::getTempDir());
 }
+
 bool Loader::Impl::isReadyToHook() const {
     return m_readyToHook;
 }

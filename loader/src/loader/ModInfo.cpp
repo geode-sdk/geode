@@ -70,8 +70,7 @@ Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
     }
 
     for (auto& [key, value] : root.has("settings").items()) {
-        GEODE_UNWRAP_INTO(auto sett, Setting::parse(key, value.json()));
-        sett->m_modID = info.id;
+        GEODE_UNWRAP_INTO(auto sett, Setting::parse(key, value));
         info.settings.push_back({ key, sett });
     }
 

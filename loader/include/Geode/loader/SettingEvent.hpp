@@ -7,67 +7,73 @@
 #include <optional>
 
 namespace geode {
-    class GEODE_DLL SettingChangedEvent : public Event {
-    protected:
-        std::string m_modID;
-        Setting* m_setting;
+    struct GEODE_DLL SettingChangedEvent : public Event {
+        Mod* mod;
+        SettingValue* value;
 
-    public:
-        SettingChangedEvent(std::string const& modID, Setting* setting);
-        std::string getModID() const;
-        Setting* getSetting() const;
+        SettingChangedEvent(Mod* mod, SettingValue* value);
     };
 
-    template <typename T = Setting, typename = std::enable_if_t<std::is_base_of_v<Setting, T>>>
-    class SettingChangedFilter : public EventFilter<SettingChangedEvent> {
+    class GEODE_DLL SettingChangedFilter : public EventFilter<SettingChangedEvent> {
+    protected:
+        std::string m_modID;
+        std::optional<std::string> m_targetKey;
+
     public:
-        using Callback = void(T*);
-        using Event = SettingChangedEvent;
+        using Callback = void(SettingValue*);
+
+        ListenerResult handle(std::function<Callback> fn, SettingChangedEvent* event);
+        /**
+         * Listen to changes on a setting, or all settings
+         * @param modID Mod whose settings to listen to
+         * @param settingID Setting to listen to, or all settings if nullopt
+         */
+        SettingChangedFilter(
+            std::string const& modID,
+            std::optional<std::string> const& settingKey
+        );
+    };
+
+    /**
+     * Listen for built-in setting changes
+     */
+    template<class T>
+    class GeodeSettingChangedFilter : public SettingChangedFilter {
+    public:
+        using Callback = void(T);
 
         ListenerResult handle(std::function<Callback> fn, SettingChangedEvent* event) {
-            if (m_modID == event->getModID() &&
-                (!m_targetKey || m_targetKey.value() == event->getSetting()->getKey())) {
-                fn(static_cast<T*>(event->getSetting()));
+            if (
+                m_modID == event->mod->getID() &&
+                (!m_targetKey || m_targetKey.value() == event->value->getKey())
+            ) {
+                fn(SettingValueSetter<T>::get(event->value));
             }
             return ListenerResult::Propagate;
         }
 
-        /**
-         * Listen to changes on a specific setting
-         */
-        SettingChangedFilter(
-            std::string const& modID, std::string const& settingID
-        ) :
-            m_modID(modID),
-            m_targetKey(settingID) {}
-
-        /**
-         * Listen to changes on all of a mods' settings
-         */
-        SettingChangedFilter(std::string const& modID) :
-            m_modID(modID), m_targetKey(std::nullopt) {}
-    protected:
-        std::string m_modID;
-        std::optional<std::string> m_targetKey;
+        GeodeSettingChangedFilter(
+            std::string const& modID,
+            std::string const& settingID
+        ) : SettingChangedFilter(modID, settingID) {}
     };
 
     template <class T>
-    requires std::is_base_of_v<Setting, T>
     std::monostate listenForSettingChanges(
-        std::string const& settingID, void (*callback)(T*)
+        std::string const& settingKey, void (*callback)(T)
     ) {
         Loader::get()->scheduleOnModLoad(getMod(), [=]() {
             new EventListener(
-                callback, SettingChangedFilter<T>(getMod()->getID(), settingID)
+                callback, GeodeSettingChangedFilter<T>(getMod()->getID(), settingKey)
             );
         });
         return std::monostate();
     }
 
-    static std::monostate listenForAllSettingChanges(void (*callback)(Setting*)) {
+    static std::monostate listenForAllSettingChanges(void (*callback)(SettingValue*)) {
         Loader::get()->scheduleOnModLoad(getMod(), [=]() {
             new EventListener(
-                callback, SettingChangedFilter(getMod()->getID())
+                callback, SettingChangedFilter(getMod()->getID(), std::nullopt)
             );
         });
         return std::monostate();

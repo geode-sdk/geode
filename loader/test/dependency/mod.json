@@ -76,6 +76,9 @@
                     }
                 ]
             }
+        },
+        "overcast-skies": {
+            "type": "custom"
         }
     }
 }

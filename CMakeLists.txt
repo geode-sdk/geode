@@ -1,8 +1,21 @@
 cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
 
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build libraries static" FORCE)
+
+# Read version
 file(READ VERSION GEODE_VERSION)
 string(STRIP "${GEODE_VERSION}" GEODE_VERSION)
+
+# Check if version has a tag like v1.0.0-alpha
+string(FIND ${GEODE_VERSION} "-" GEODE_VERSION_HAS_TAG)
+if (GEODE_VERSION_HAS_TAG)
+	string(REGEX MATCH "[a-z]+[0-9]?$" GEODE_VERSION_TAG ${GEODE_VERSION})
+	string(SUBSTRING "${GEODE_VERSION}" 0 ${GEODE_VERSION_HAS_TAG} GEODE_VERSION)
+else()
+	set(GEODE_VERSION_TAG "")
+endif()
+
+message(STATUS "Version: ${GEODE_VERSION}, tag: ${GEODE_VERSION_TAG}")
 
 project(geode-sdk VERSION ${GEODE_VERSION} LANGUAGES CXX C)
 

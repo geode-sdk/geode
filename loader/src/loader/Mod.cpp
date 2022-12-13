@@ -17,6 +17,14 @@ Mod::Mod(ModInfo const& info) {
     m_info = info;
     m_saveDirPath = dirs::getModsSaveDir() / info.id;
     ghc::filesystem::create_directories(m_saveDirPath);
+    this->setupSettings();
+    auto loadRes = this->loadData();
+    if (!loadRes) {
+        log::warn(
+            "Unable to load data for \"{}\": {}",
+            info.id, loadRes.unwrapErr()
+        );
+    }
 }
 
 Mod::~Mod() {
@@ -93,14 +101,6 @@ std::vector<Hook*> Mod::getHooks() const {
     return m_hooks;
 }
 
-bool Mod::hasSettings() const {
-    return m_info.settings.size();
-}
-
-decltype(ModInfo::settings) Mod::getSettings() const {
-    return m_info.settings;
-}
-
 // Settings and saved values
 
 Result<> Mod::loadData() {
@@ -117,12 +117,20 @@ Result<> Mod::loadData() {
             JsonChecker checker(json);
             auto root = checker.root("[settings.json]");
 
+            m_savedSettingsData = json;
+
             for (auto& [key, value] : root.items()) {
                 // check if this is a known setting
                 if (auto setting = this->getSetting(key)) {
                     // load its value
-                    if (!setting->load(value.json()))
-                        return Err("Unable to load value for setting \"" + key + "\"");
+                    if (!setting->load(value.json())) {
+                        log::log(
+                            Severity::Error,
+                            this,
+                            "{}: Unable to load value for setting \"{}\"",
+                            m_info.id, key
+                        );
+                    }
                 }
                 else {
                     log::log(
@@ -158,25 +166,90 @@ Result<> Mod::loadData() {
 Result<> Mod::saveData() {
     ModStateEvent(this, ModEventType::DataSaved).post();
 
+    // Data saving should be fully fail-safe
+
+    std::unordered_set<std::string> coveredSettings;
+
     // Settings
     auto json = nlohmann::json::object();
-    for (auto& [key, value] : m_info.settings) {
-        if (!value->save(json[key])) return Err("Unable to save setting \"" + key + "\"");
+    for (auto& [key, value] : m_settings) {
+        coveredSettings.insert(key);
+        if (!value->save(json[key])) {
+            log::error("Unable to save setting \"" + key + "\"");
+        }
     }
 
-    GEODE_UNWRAP(utils::file::writeString(m_saveDirPath / "settings.json", json.dump(4)));
+    // if some settings weren't provided a custom settings handler (for example, 
+    // the mod was not loaded) then make sure to save their previous state in 
+    // order to not lose data
+    try {
+        log::debug("Check covered");
+        for (auto& [key, value] : m_savedSettingsData.items()) {
+            log::debug("Check if {} is saved", key);
+            if (!coveredSettings.count(key)) {
+                json[key] = value;
+            }
+        }
+    } catch(...) {}
 
-    // Saved values
-    GEODE_UNWRAP(utils::file::writeString(m_saveDirPath / "saved.json", m_saved.dump(4)));
+    auto res = utils::file::writeString(m_saveDirPath / "settings.json", json.dump(4));
+    if (!res) {
+        log::error("Unable to save settings: {}", res.unwrapErr());
+    }
+
+    auto res2 = utils::file::writeString(m_saveDirPath / "saved.json", m_saved.dump(4));
+    if (!res2) {
+        log::error("Unable to save values: {}", res2.unwrapErr());
+    }
 
     return Ok();
 }
 
-std::shared_ptr<Setting> Mod::getSetting(std::string const& key) const {
+void Mod::setupSettings() {
+    for (auto& [key, sett] : m_info.settings) {
+        if (auto value = sett.createDefaultValue()) {
+            m_settings.emplace(key, std::move(value));
+        }
+    }
+}
+
+void Mod::registerCustomSetting(
+    std::string const& key,
+    std::unique_ptr<SettingValue> value
+) {
+    if (!m_settings.count(key)) {
+        // load data
+        if (m_savedSettingsData.count(key)) {
+            value->load(m_savedSettingsData.at(key));
+        }
+        m_settings.emplace(key, std::move(value));
+    }
+}
+
+bool Mod::hasSettings() const {
+    return m_info.settings.size();
+}
+
+std::vector<std::string> Mod::getSettingKeys() const {
+    std::vector<std::string> keys;
+    for (auto& [key, _] : m_info.settings) {
+        keys.push_back(key);
+    }
+    return keys;
+}
+
+std::optional<Setting> Mod::getSettingDefinition(std::string const& key) const {
     for (auto& setting : m_info.settings) {
         if (setting.first == key) {
             return setting.second;
         }
+    }
+    return std::nullopt;
+}
+
+SettingValue* Mod::getSetting(std::string const& key) const {
+    if (m_settings.count(key)) {
+        return m_settings.at(key).get();
     }
     return nullptr;
 }
@@ -210,11 +283,6 @@ Result<> Mod::loadBinary() {
     m_implicitLoadFunc(this);
 
     ModStateEvent(this, ModEventType::Loaded).post();
-
-    auto loadRes = this->loadData();
-    if (!loadRes) {
-        log::warn("Unable to load data for \"{}\": {}", m_info.id, loadRes.unwrapErr());
-    }
 
     Loader::get()->updateAllDependencies();
 

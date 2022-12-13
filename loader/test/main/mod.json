@@ -8,7 +8,7 @@
     "dependencies": [
         {
             "id": "geode.testdep",
-            "version": "1.0.*",
+            "version": ">=1.0.0",
             "required": true
         }
     ]

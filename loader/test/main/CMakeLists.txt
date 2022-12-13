@@ -16,4 +16,4 @@ target_link_libraries(
     geode-sdk
 )
 
-create_geode_file(${PROJECT_NAME} DONT_INSTALL)
+create_geode_file(${PROJECT_NAME})

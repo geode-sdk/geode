@@ -3,12 +3,20 @@
 
 USE_GEODE_NAMESPACE();
 
-void SettingNodeDelegate::settingValueChanged(SettingNode* node) {}
+void SettingNode::dispatchChanged() {
+    if (m_delegate) {
+        m_delegate->settingValueChanged(this);
+    }
+}
 
-void SettingNodeDelegate::settingValueCommitted(SettingNode* node) {}
+void SettingNode::dispatchCommitted() {
+    if (m_delegate) {
+        m_delegate->settingValueCommitted(this);
+    }
+}
 
-bool SettingNode::init(std::shared_ptr<Setting> setting) {
-    m_setting = setting;
+bool SettingNode::init(SettingValue* value) {
+    m_value = value;
     return true;
 }
 

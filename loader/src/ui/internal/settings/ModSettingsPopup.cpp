@@ -6,6 +6,7 @@
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/ui/General.hpp>
+#include "GeodeSettingNode.hpp"
 
 bool ModSettingsPopup::setup(Mod* mod) {
     m_noElasticity = true;
@@ -31,8 +32,14 @@ bool ModSettingsPopup::setup(Mod* mod) {
     float totalHeight = .0f;
     std::vector<CCNode*> rendered;
     bool hasBG = true;
-    for (auto& [_, sett] : mod->getSettings()) {
-        auto node = sett->createNode(layerSize.width);
+    for (auto& key : mod->getSettingKeys()) {
+        SettingNode* node;
+        if (auto sett = mod->getSetting(key)) {
+            node = sett->createNode(layerSize.width);
+        }
+        else {
+            node = CustomSettingPlaceholderNode::create(key, layerSize.width);
+        }
         node->setDelegate(this);
 
         totalHeight += node->getScaledContentSize().height;
@@ -142,6 +149,17 @@ void ModSettingsPopup::onResetAll(CCObject*) {
             }
         }
     );
+}
+
+void ModSettingsPopup::settingValueCommitted(SettingNode*) {
+    if (this->hasUncommitted()) {
+        m_applyBtnSpr->setColor(cc3x(0xf));
+        m_applyBtn->setEnabled(true);
+    }
+    else {
+        m_applyBtnSpr->setColor(cc3x(0x4));
+        m_applyBtn->setEnabled(false);
+    }
 }
 
 void ModSettingsPopup::settingValueChanged(SettingNode*) {

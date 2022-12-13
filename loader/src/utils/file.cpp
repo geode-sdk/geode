@@ -11,6 +11,14 @@
 USE_GEODE_NAMESPACE();
 using namespace geode::utils::file;
 
+void ghc::filesystem::to_json(nlohmann::json& json, path const& path) {
+    json = path.string();
+}
+
+void ghc::filesystem::from_json(nlohmann::json const& json, path& path) {
+    path = json.get<std::string>();
+}
+
 Result<std::string> utils::file::readString(ghc::filesystem::path const& path) {
 #if _WIN32
     std::ifstream in(path.wstring(), std::ios::in | std::ios::binary);

@@ -9,6 +9,12 @@
 #include <string>
 #include <unordered_set>
 
+// allow converting ghc filesystem to json and back
+namespace ghc::filesystem {
+    void GEODE_DLL to_json(nlohmann::json& json, path const& path);
+    void GEODE_DLL from_json(nlohmann::json const& json, path& path);
+}
+
 namespace geode::utils::file {
     GEODE_DLL Result<std::string> readString(ghc::filesystem::path const& path);
     GEODE_DLL Result<nlohmann::json> readJson(ghc::filesystem::path const& path);

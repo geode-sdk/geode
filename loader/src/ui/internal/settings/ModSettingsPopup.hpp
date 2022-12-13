@@ -13,7 +13,8 @@ protected:
     CCMenuItemSpriteExtra* m_applyBtn;
     ButtonSprite* m_applyBtnSpr;
 
-    void settingValueChanged(SettingNode* node) override;
+    void settingValueChanged(SettingNode*) override;
+    void settingValueCommitted(SettingNode*) override;
 
     bool setup(Mod* mod) override;
     bool hasUncommitted() const;

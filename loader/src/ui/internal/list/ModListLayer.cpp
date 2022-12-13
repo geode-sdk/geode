@@ -14,6 +14,7 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/ui/ListView.hpp>
 #include <Geode/utils/string.hpp>
+#include <Geode/utils/ranges.hpp>
 
 #define FTS_FUZZY_MATCH_IMPLEMENTATION
 #include <Geode/external/fts/fts_fuzzy_match.h>

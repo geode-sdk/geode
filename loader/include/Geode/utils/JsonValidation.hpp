@@ -105,6 +105,7 @@ namespace geode {
         );
 
         GEODE_DLL bool isError() const;
+        GEODE_DLL std::string getError() const;
 
         GEODE_DLL operator bool() const;
     };

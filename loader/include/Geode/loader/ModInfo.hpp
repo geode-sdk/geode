@@ -10,8 +10,6 @@ namespace geode {
         class Unzip;
     }
 
-    using ModJson = nlohmann::ordered_json;
-
     struct GEODE_DLL Dependency {
         std::string id;
         ComparableVersionInfo version;
@@ -111,8 +109,9 @@ namespace geode {
         std::vector<std::string> spritesheets;
         /**
          * Mod settings
+         * @note Not a map because insertion order must be preserved
          */
-        std::vector<std::pair<std::string, std::shared_ptr<Setting>>> settings;
+        std::vector<std::pair<std::string, Setting>> settings;
         /**
          * Whether the mod can be disabled or not
          */

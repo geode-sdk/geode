@@ -18,19 +18,6 @@
 #include <vector>
 
 namespace geode {
-    template <class T>
-    struct HandleToSaved : public T {
-        Mod* m_mod;
-        std::string m_key;
-
-        HandleToSaved(std::string const& key, Mod* mod, T const& value) :
-            T(value), m_key(key), m_mod(mod) {}
-
-        HandleToSaved(HandleToSaved const&) = delete;
-        HandleToSaved(HandleToSaved&&) = delete;
-        ~HandleToSaved();
-    };
-
     /**
      * @class Mod
      * Represents a Mod ingame.
@@ -82,6 +69,14 @@ namespace geode {
          * Saved values
          */
         nlohmann::json m_saved;
+        /**
+         * Setting values
+         */
+        std::unordered_map<std::string, std::unique_ptr<SettingValue>> m_settings;
+        /**
+         * Settings save data. Stored for efficient loading of custom settings
+         */
+        nlohmann::json m_savedSettingsData;
 
         /**
          * Load the platform binary
@@ -89,6 +84,8 @@ namespace geode {
         Result<> loadPlatformBinary();
         Result<> unloadPlatformBinary();
         Result<> createTempDir();
+
+        void setupSettings();
 
         // no copying
         Mod(Mod const&) = delete;
@@ -146,25 +143,31 @@ namespace geode {
         ghc::filesystem::path getConfigDir(bool create = true) const;
 
         bool hasSettings() const;
-        decltype(ModInfo::settings) getSettings() const;
+        std::vector<std::string> getSettingKeys() const;
         bool hasSetting(std::string const& key) const;
-        std::shared_ptr<Setting> getSetting(std::string const& key) const;
+        std::optional<Setting> getSettingDefinition(std::string const& key) const;
+        SettingValue* getSetting(std::string const& key) const;
+        void registerCustomSetting(
+            std::string const& key,
+            std::unique_ptr<SettingValue> value
+        );
 
         template <class T>
         T getSettingValue(std::string const& key) const {
-            if (this->hasSetting(key)) {
-                return geode::getBuiltInSettingValue<T>(this->getSetting(key));
+            if (auto sett = this->getSetting(key)) {
+                return SettingValueSetter<T>::get(sett);
             }
             return T();
         }
 
         template <class T>
-        bool setSettingValue(std::string const& key, T const& value) {
-            if (this->hasSetting(key)) {
-                geode::setBuiltInSettingValue<T>(this->getSetting(key), value);
-                return true;
+        T setSettingValue(std::string const& key, T const& value) {
+            if (auto sett = this->getSetting(key)) {
+                auto old = this->getSettingValue<T>(sett);
+                SettingValueSetter<T>::set(sett, value);
+                return old;
             }
-            return false;
+            return T();
         }
 
         template <class T>
@@ -192,16 +195,6 @@ namespace geode {
             }
             m_saved[key] = defaultValue;
             return defaultValue;
-        }
-
-        template <class T>
-        HandleToSaved<T> getSavedMutable(std::string const& key) {
-            return HandleToSaved(key, this, this->getSavedValue<T>(key));
-        }
-
-        template <class T>
-        HandleToSaved<T> getSavedMutable(std::string const& key, T const& defaultValue) {
-            return HandleToSaved(key, this, this->getSavedValue<T>(key, defaultValue));
         }
 
         /**
@@ -388,11 +381,6 @@ namespace geode {
          */
         ModJson getRuntimeInfo() const;
     };
-
-    template <class T>
-    HandleToSaved<T>::~HandleToSaved() {
-        m_mod->setSavedValue(m_key, static_cast<T>(*this));
-    }
 
     /**
      * To bypass the need for cyclic dependencies,

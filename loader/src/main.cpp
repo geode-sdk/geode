@@ -99,50 +99,48 @@ BOOL WINAPI DllMain(HINSTANCE lib, DWORD reason, LPVOID) {
     return TRUE;
 }
 #endif
-
-#define $_ GEODE_CONCAT(unnamedVar_, __LINE__)
-
-static auto $_ =
-    listenForSettingChanges<BoolSetting>("show-platform-console", [](BoolSetting* setting) {
-        if (setting->getValue()) {
+$execute {
+    listenForSettingChanges("show-platform-console", +[](bool value) {
+        if (value) {
             Loader::get()->openPlatformConsole();
         }
         else {
             Loader::get()->closePlatformConsole();
         }
     });
+    
+    listenForIPC("ipc-test", [](IPCEvent* event) -> nlohmann::json {
+        return "Hello from Geode!";
+    });
 
-static auto $_ = listenForIPC("ipc-test", [](IPCEvent* event) -> nlohmann::json {
-    return "Hello from Geode!";
-});
+    listenForIPC("loader-info", [](IPCEvent* event) -> nlohmann::json {
+        return Loader::get()->getInternalMod()->getModInfo();
+    });
 
-static auto $_ = listenForIPC("loader-info", [](IPCEvent* event) -> nlohmann::json {
-    return Loader::get()->getInternalMod()->getModInfo();
-});
+    listenForIPC("list-mods", [](IPCEvent* event) -> nlohmann::json {
+        std::vector<nlohmann::json> res;
 
-static auto $_ = listenForIPC("list-mods", [](IPCEvent* event) -> nlohmann::json {
-    std::vector<nlohmann::json> res;
+        auto args = event->messageData;
+        JsonChecker checker(args);
+        auto root = checker.root("").obj();
 
-    auto args = event->messageData;
-    JsonChecker checker(args);
-    auto root = checker.root("").obj();
+        auto includeRunTimeInfo = root.has("include-runtime-info").template get<bool>();
+        auto dontIncludeLoader = root.has("dont-include-loader").template get<bool>();
 
-    auto includeRunTimeInfo = root.has("include-runtime-info").template get<bool>();
-    auto dontIncludeLoader = root.has("dont-include-loader").template get<bool>();
+        if (!dontIncludeLoader) {
+            res.push_back(
+                includeRunTimeInfo ? Loader::get()->getInternalMod()->getRuntimeInfo() :
+                                    Loader::get()->getInternalMod()->getModInfo().toJSON()
+            );
+        }
 
-    if (!dontIncludeLoader) {
-        res.push_back(
-            includeRunTimeInfo ? Loader::get()->getInternalMod()->getRuntimeInfo() :
-                                 Loader::get()->getInternalMod()->getModInfo().toJSON()
-        );
-    }
+        for (auto& mod : Loader::get()->getAllMods()) {
+            res.push_back(includeRunTimeInfo ? mod->getRuntimeInfo() : mod->getModInfo().toJSON());
+        }
 
-    for (auto& mod : Loader::get()->getAllMods()) {
-        res.push_back(includeRunTimeInfo ? mod->getRuntimeInfo() : mod->getModInfo().toJSON());
-    }
-
-    return res;
-});
+        return res;
+    });
+}
 
 int geodeEntry(void* platformData) {
     // setup internals
