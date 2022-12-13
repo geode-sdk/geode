@@ -228,6 +228,7 @@ std::string SettingValue::getKey() const {
     >::setValue(ValueType const& value) {                               \
         m_value = this->toValid(value).first;                           \
     }                                                                   \
+    template<>                                                          \
     Result<> GeodeSettingValue<                                         \
         type_##Setting                                                  \
     >::validate(ValueType const& value) const {                         \
