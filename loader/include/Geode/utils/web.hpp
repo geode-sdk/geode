@@ -18,7 +18,7 @@ namespace geode::utils::web {
      * @param url URL to fetch
      * @returns Returned data as bytes, or error on error
      */
-    GEODE_DLL Result<byte_array> fetchBytes(std::string const& url);
+    GEODE_DLL Result<ByteVector> fetchBytes(std::string const& url);
 
     /**
      * Synchronously fetch data from the internet
@@ -66,7 +66,7 @@ namespace geode::utils::web {
 
     using AsyncProgress = std::function<void(SentAsyncWebRequest&, double, double)>;
     using AsyncExpect = std::function<void(std::string const&)>;
-    using AsyncThen = std::function<void(SentAsyncWebRequest&, byte_array const&)>;
+    using AsyncThen = std::function<void(SentAsyncWebRequest&, ByteVector const&)>;
     using AsyncCancelled = std::function<void(SentAsyncWebRequest&)>;
 
     /**
@@ -110,7 +110,7 @@ namespace geode::utils::web {
     using SentAsyncWebRequestHandle = std::shared_ptr<SentAsyncWebRequest>;
 
     template <class T>
-    using DataConverter = Result<T> (*)(byte_array const&);
+    using DataConverter = Result<T> (*)(ByteVector const&);
 
     /**
      * An asynchronous, thread-safe web request. Downloads data from the
@@ -272,7 +272,7 @@ namespace geode::utils::web {
          * @returns AsyncWebResult, where you can specify the `then` action for
          * after the download is finished
          */
-        AsyncWebResult<byte_array> bytes();
+        AsyncWebResult<ByteVector> bytes();
         /**
          * Download into memory as JSON
          * @returns AsyncWebResult, where you can specify the `then` action for
@@ -298,7 +298,7 @@ namespace geode::utils::web {
     template <class T>
     AsyncWebRequest& AsyncWebResult<T>::then(std::function<void(T)> handle) {
         m_request.m_then = [converter = m_converter,
-                            handle](SentAsyncWebRequest& req, byte_array const& arr) {
+                            handle](SentAsyncWebRequest& req, ByteVector const& arr) {
             auto conv = converter(arr);
             if (conv) {
                 handle(conv.unwrap());
@@ -313,7 +313,7 @@ namespace geode::utils::web {
     template <class T>
     AsyncWebRequest& AsyncWebResult<T>::then(std::function<void(SentAsyncWebRequest&, T)> handle) {
         m_request.m_then = [converter = m_converter,
-                            handle](SentAsyncWebRequest& req, byte_array const& arr) {
+                            handle](SentAsyncWebRequest& req, ByteVector const& arr) {
             auto conv = converter(arr);
             if (conv) {
                 handle(req, conv.value());

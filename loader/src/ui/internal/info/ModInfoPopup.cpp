@@ -323,7 +323,7 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
         disableBtnSpr->setColor({150, 150, 150});
     }
 
-    if (mod != Loader::get()->getInternalMod()) {
+    if (mod != Loader::get()->getModImpl()) {
         auto uninstallBtnSpr = ButtonSprite::create(
             "Uninstall", "bigFont.fnt", "GJ_button_05.png", .6f
         );

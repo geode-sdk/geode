@@ -311,12 +311,14 @@ namespace geode {
     class EventListenerNode : public cocos2d::CCNode {
     protected:
         EventListener<Filter> m_listener;
+
+        EventListenerNode(EventListener<Filter>&& listener)
+          : m_listener(std::move(listener)) {}
     
     public:
         static EventListenerNode* create(EventListener<Filter> listener) {
-            auto ret = new EventListenerNode();
+            auto ret = new EventListenerNode(std::move(listener));
             if (ret && ret->init()) {
-                ret->m_listener = listener;
                 ret->autorelease();
                 return ret;
             }
@@ -325,9 +327,8 @@ namespace geode {
         }
 
         static EventListenerNode* create(typename Filter::Callback callback) {
-            auto ret = new EventListenerNode();
+            auto ret = new EventListenerNode(EventListener<Filter>(callback));
             if (ret && ret->init()) {
-                ret->m_listener = EventListener(callback);
                 ret->autorelease();
                 return ret;
             }
@@ -343,9 +344,8 @@ namespace geode {
             // for some reason msvc won't let me just call EventListenerNode::create...
             // it claims no return value...
             // despite me writing return EventListenerNode::create()......
-            auto ret = new EventListenerNode();
+            auto ret = new EventListenerNode(EventListener<Filter>(cls, callback));
             if (ret && ret->init()) {
-                ret->m_listener.bind(cls, callback);
                 ret->autorelease();
                 return ret;
             }

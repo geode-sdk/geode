@@ -20,11 +20,11 @@ struct std::hash<ghc::filesystem::path> {
 };
 
 namespace geode {
-    using byte_array = std::vector<uint8_t>;
+    using ByteVector = std::vector<uint8_t>;
 
     template <typename T>
-    byte_array to_byte_array(T const& a) {
-        byte_array out;
+    ByteVector to_byte_array(T const& a) {
+        ByteVector out;
         out.resize(sizeof(T));
         std::memcpy(out.data(), &a, sizeof(T));
         return out;

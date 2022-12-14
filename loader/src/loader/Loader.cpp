@@ -1,5 +1,7 @@
 #include "LoaderImpl.hpp"
 
+USE_GEODE_NAMESPACE();
+
 Loader::Loader() : m_impl(new Impl) {}
 
 Loader::~Loader() {}
@@ -81,8 +83,8 @@ std::vector<Mod*> Loader::getAllMods() {
     return m_impl->getAllMods();
 }
 
-Mod* Loader::getInternalMod() {
-    return m_impl->getInternalMod();
+Mod* Loader::getModImpl() {
+    return m_impl->getModImpl();
 }
 
 void Loader::updateAllDependencies() {

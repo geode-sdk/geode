@@ -20,6 +20,11 @@ bool JsonMaybeSomething<Json>::isError() const {
 }
 
 template <class Json>
+std::string JsonMaybeSomething<Json>::getError() const {
+    return m_checker.getError();
+}
+
+template <class Json>
 JsonMaybeSomething<Json>::operator bool() const {
     return !isError();
 }

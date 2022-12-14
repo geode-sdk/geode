@@ -130,6 +130,9 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC GEODE_EXPORTING)
 # Markdown support
 CPMAddPackage("gh:mity/md4c#e9ff661")
 
+# Regex support
+CPMAddPackage("gh:google/re2#954656f")
+
 target_include_directories(${PROJECT_NAME} PRIVATE ${md4c_SOURCE_DIR}/src)
 
 # Tulip hook (hooking)

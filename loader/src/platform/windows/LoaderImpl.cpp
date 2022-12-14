@@ -1,6 +1,6 @@
 #include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Log.hpp>
-#include <InternalMod.hpp>
+#include <loader/ModImpl.hpp>
 #include <iostream>
 #include <loader/LoaderImpl.hpp>
 

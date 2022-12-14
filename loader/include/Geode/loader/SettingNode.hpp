@@ -7,17 +7,19 @@
 namespace geode {
     class SettingNode;
 
-    struct GEODE_DLL SettingNodeDelegate {
-        virtual void settingValueChanged(SettingNode* node);
-        virtual void settingValueCommitted(SettingNode* node);
+    struct SettingNodeDelegate {
+        virtual void settingValueChanged(SettingNode* node) {}
+        virtual void settingValueCommitted(SettingNode* node) {}
     };
 
     class GEODE_DLL SettingNode : public cocos2d::CCNode {
     protected:
-        std::shared_ptr<Setting> m_setting;
+        SettingValue* m_value;
         SettingNodeDelegate* m_delegate = nullptr;
 
-        bool init(std::shared_ptr<Setting> setting);
+        bool init(SettingValue* value);
+        void dispatchChanged();
+        void dispatchCommitted();
 
     public:
         void setDelegate(SettingNodeDelegate* delegate);

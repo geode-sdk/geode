@@ -89,10 +89,6 @@ namespace geode {
             this->enable();
         }
 
-        // todo: maybe add these?
-        EventListener(EventListener const& other) = delete;
-        EventListener(EventListener&& other) = delete;
-
         void bind(std::function<Callback> fn) {
             m_callback = fn;
         }

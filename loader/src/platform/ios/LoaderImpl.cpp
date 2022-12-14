@@ -5,7 +5,7 @@
     #include <Geode/loader/Dirs.hpp>
     #include <Geode/loader/Loader.hpp>
     #include <Geode/loader/Log.hpp>
-    #include <InternalMod.hpp>
+    #include <loader/ModImpl.hpp>
     #include <iostream>
     #include <pwd.h>
     #include <sys/types.h>

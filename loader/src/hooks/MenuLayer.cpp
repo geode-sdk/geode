@@ -10,7 +10,7 @@
 #include <Geode/ui/Notification.hpp>
 #include <Geode/ui/Popup.hpp>
 #include <Geode/utils/cocos.hpp>
-#include <InternalMod.hpp>
+#include <loader/ModImpl.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -102,7 +102,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
                 "Send",
                 [](auto, bool btn2) {
                     if (btn2) {
-                        geode::openIssueReportPopup(InternalMod::get());
+                        geode::openIssueReportPopup(Mod::get());
                     }
                 },
                 false

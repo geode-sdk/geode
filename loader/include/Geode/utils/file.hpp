@@ -9,13 +9,19 @@
 #include <string>
 #include <unordered_set>
 
+// allow converting ghc filesystem to json and back
+namespace ghc::filesystem {
+    void GEODE_DLL to_json(nlohmann::json& json, path const& path);
+    void GEODE_DLL from_json(nlohmann::json const& json, path& path);
+}
+
 namespace geode::utils::file {
     GEODE_DLL Result<std::string> readString(ghc::filesystem::path const& path);
     GEODE_DLL Result<nlohmann::json> readJson(ghc::filesystem::path const& path);
-    GEODE_DLL Result<byte_array> readBinary(ghc::filesystem::path const& path);
+    GEODE_DLL Result<ByteVector> readBinary(ghc::filesystem::path const& path);
 
     GEODE_DLL Result<> writeString(ghc::filesystem::path const& path, std::string const& data);
-    GEODE_DLL Result<> writeBinary(ghc::filesystem::path const& path, byte_array const& data);
+    GEODE_DLL Result<> writeBinary(ghc::filesystem::path const& path, ByteVector const& data);
 
     GEODE_DLL Result<> createDirectory(ghc::filesystem::path const& path);
     GEODE_DLL Result<> createDirectoryAll(ghc::filesystem::path const& path);
@@ -56,7 +62,7 @@ namespace geode::utils::file {
         /**
          * Add an entry to the zip with data
          */
-        Result<> add(Path const& entry, byte_array const& data);
+        Result<> add(Path const& entry, ByteVector const& data);
         /**
          * Add an entry to the zip with string data
          */
@@ -122,7 +128,7 @@ namespace geode::utils::file {
          * Extract entry to memory
          * @param name Entry path in zip
          */
-        Result<byte_array> extract(Path const& name);
+        Result<ByteVector> extract(Path const& name);
         /**
          * Extract entry to file
          * @param name Entry path in zip

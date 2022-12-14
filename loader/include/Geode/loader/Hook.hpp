@@ -111,8 +111,8 @@ namespace geode {
     protected:
         Mod* m_owner;
         void* m_address;
-        byte_array m_original;
-        byte_array m_patch;
+        ByteVector m_original;
+        ByteVector m_patch;
         bool m_applied;
 
         // Only allow friend classes to create

@@ -8,7 +8,7 @@
 #include <Geode/binding/FLAlertLayer.hpp>
 #include <Geode/binding/StatsCell.hpp>
 #include <Geode/ui/GeodeUI.hpp>
-#include "../../../loader/LoaderImpl.hpp" // how should i include this src/loader/LoaderImpl.hpp
+#include <loader/LoaderImpl.hpp>
 #include "../info/TagNode.hpp"
 #include "../info/DevProfilePopup.hpp"
 

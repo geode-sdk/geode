@@ -11,6 +11,14 @@
 USE_GEODE_NAMESPACE();
 using namespace geode::utils::file;
 
+void ghc::filesystem::to_json(nlohmann::json& json, path const& path) {
+    json = path.string();
+}
+
+void ghc::filesystem::from_json(nlohmann::json const& json, path& path) {
+    path = json.get<std::string>();
+}
+
 Result<std::string> utils::file::readString(ghc::filesystem::path const& path) {
 #if _WIN32
     std::ifstream in(path.wstring(), std::ios::in | std::ios::binary);
@@ -45,14 +53,14 @@ Result<nlohmann::json> utils::file::readJson(ghc::filesystem::path const& path) 
     return Err("Unable to open file");
 }
 
-Result<byte_array> utils::file::readBinary(ghc::filesystem::path const& path) {
+Result<ByteVector> utils::file::readBinary(ghc::filesystem::path const& path) {
 #if _WIN32
     std::ifstream in(path.wstring(), std::ios::in | std::ios::binary);
 #else
     std::ifstream in(path.string(), std::ios::in | std::ios::binary);
 #endif
     if (in) {
-        return Ok(byte_array(std::istreambuf_iterator<char>(in), {}));
+        return Ok(ByteVector(std::istreambuf_iterator<char>(in), {}));
     }
     return Err("Unable to open file");
 }
@@ -74,7 +82,7 @@ Result<> utils::file::writeString(ghc::filesystem::path const& path, std::string
     return Err("Unable to open file");
 }
 
-Result<> utils::file::writeBinary(ghc::filesystem::path const& path, byte_array const& data) {
+Result<> utils::file::writeBinary(ghc::filesystem::path const& path, ByteVector const& data) {
     std::ofstream file;
 #if _WIN32
     file.open(path.wstring(), std::ios::out | std::ios::binary);
@@ -192,7 +200,7 @@ public:
         return true;
     }
 
-    Result<byte_array> extract(Path const& name) {
+    Result<ByteVector> extract(Path const& name) {
         if (!m_entries.count(name)) {
             return Err("Entry not found");
         }
@@ -209,7 +217,7 @@ public:
         if (unzOpenCurrentFile(m_zip) != UNZ_OK) {
             return Err("Unable to open entry");
         }
-        byte_array res;
+        ByteVector res;
         res.resize(entry.uncompressedSize);
         auto size = unzReadCurrentFile(m_zip, res.data(), entry.uncompressedSize);
         if (size < 0 || size != entry.uncompressedSize) {
@@ -271,7 +279,7 @@ bool Unzip::hasEntry(Path const& name) {
     return m_impl->entries().count(name);
 }
 
-Result<byte_array> Unzip::extract(Path const& name) {
+Result<ByteVector> Unzip::extract(Path const& name) {
     return m_impl->extract(name);
 }
 
@@ -356,7 +364,7 @@ public:
         return Ok();
     }
 
-    Result<> add(Path const& path, byte_array const& data) {
+    Result<> add(Path const& path, ByteVector const& data) {
         // open entry
         zip_fileinfo info = { 0 };
         if (zipOpenNewFileInZip(
@@ -410,12 +418,12 @@ Zip::Path Zip::getPath() const {
     return m_impl->path();
 }
 
-Result<> Zip::add(Path const& path, byte_array const& data) {
+Result<> Zip::add(Path const& path, ByteVector const& data) {
     return m_impl->add(path, data);
 }
 
 Result<> Zip::add(Path const& path, std::string const& data) {
-    return this->add(path, byte_array(data.begin(), data.end()));
+    return this->add(path, ByteVector(data.begin(), data.end()));
 }
 
 Result<> Zip::addFrom(Path const& file, Path const& entryDir) {

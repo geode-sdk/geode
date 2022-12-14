@@ -9,7 +9,7 @@ using namespace web;
 
 namespace geode::utils::fetch {
     static size_t writeBytes(char* data, size_t size, size_t nmemb, void* str) {
-        as<byte_array*>(str)->insert(as<byte_array*>(str)->end(), data, data + size * nmemb);
+        as<ByteVector*>(str)->insert(as<ByteVector*>(str)->end(), data, data + size * nmemb);
         return size * nmemb;
     }
 
@@ -69,12 +69,12 @@ Result<> web::fetchFile(
     return Err("Error getting info: " + std::string(curl_easy_strerror(res)));
 }
 
-Result<byte_array> web::fetchBytes(std::string const& url) {
+Result<ByteVector> web::fetchBytes(std::string const& url) {
     auto curl = curl_easy_init();
 
     if (!curl) return Err("Curl not initialized!");
 
-    byte_array ret;
+    ByteVector ret;
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
@@ -204,7 +204,7 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
         }
 
         // resulting byte array
-        byte_array ret;
+        ByteVector ret;
         // output file if downloading to file. unique_ptr because not always
         // initialized but don't wanna manually managed memory
         std::unique_ptr<std::ofstream> file = nullptr;
@@ -461,32 +461,32 @@ AsyncWebRequest::~AsyncWebRequest() {
 
 AsyncWebResult<std::monostate> AsyncWebResponse::into(std::ostream& stream) {
     m_request.m_target = &stream;
-    return this->as(+[](byte_array const&) -> Result<std::monostate> {
+    return this->as(+[](ByteVector const&) -> Result<std::monostate> {
         return Ok(std::monostate());
     });
 }
 
 AsyncWebResult<std::monostate> AsyncWebResponse::into(ghc::filesystem::path const& path) {
     m_request.m_target = path;
-    return this->as(+[](byte_array const&) -> Result<std::monostate> {
+    return this->as(+[](ByteVector const&) -> Result<std::monostate> {
         return Ok(std::monostate());
     });
 }
 
 AsyncWebResult<std::string> AsyncWebResponse::text() {
-    return this->as(+[](byte_array const& bytes) -> Result<std::string> {
+    return this->as(+[](ByteVector const& bytes) -> Result<std::string> {
         return Ok(std::string(bytes.begin(), bytes.end()));
     });
 }
 
-AsyncWebResult<byte_array> AsyncWebResponse::bytes() {
-    return this->as(+[](byte_array const& bytes) -> Result<byte_array> {
+AsyncWebResult<ByteVector> AsyncWebResponse::bytes() {
+    return this->as(+[](ByteVector const& bytes) -> Result<ByteVector> {
         return Ok(bytes);
     });
 }
 
 AsyncWebResult<nlohmann::json> AsyncWebResponse::json() {
-    return this->as(+[](byte_array const& bytes) -> Result<nlohmann::json> {
+    return this->as(+[](ByteVector const& bytes) -> Result<nlohmann::json> {
         try {
             return Ok(nlohmann::json::parse(bytes.begin(), bytes.end()));
         }

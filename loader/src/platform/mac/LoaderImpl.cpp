@@ -1,12 +1,14 @@
 #include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Log.hpp>
-#include <InternalMod.hpp>
 #include <iostream>
 #include <loader/LoaderImpl.hpp>
+#include <loader/ModImpl.hpp>
 
 #ifdef GEODE_IS_MACOS
 
     #include <CoreFoundation/CoreFoundation.h>
+
+USE_GEODE_NAMESPACE();
 
 void Loader::Impl::platformMessageBox(char const* title, std::string const& info) {
     CFStringRef cfTitle = CFStringCreateWithCString(NULL, title, kCFStringEncodingUTF8);

@@ -1,6 +1,6 @@
 
 #include "LoaderImpl.hpp"
-
+#include <cocos2d.h>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Loader.hpp>
@@ -10,7 +10,7 @@
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <Geode/utils/web.hpp>
-#include <InternalMod.hpp>
+#include "ModImpl.hpp"
 #include <about.hpp>
 #include <crashlog.hpp>
 #include <fmt/format.h>
@@ -105,7 +105,7 @@ void Loader::Impl::updateResources() {
     log::debug("Adding resources");
 
     // add own spritesheets
-    this->updateModResources(InternalMod::get());
+    this->updateModResources(Mod::get());
 
     // add mods' spritesheets
     for (auto const& [_, mod] : m_mods) {
@@ -117,8 +117,8 @@ std::vector<Mod*> Loader::Impl::getAllMods() {
     return map::values(m_mods);
 }
 
-Mod* Loader::Impl::getInternalMod() {
-    return InternalMod::get();
+Mod* Loader::Impl::getModImpl() {
+    return Mod::get();
 }
 
 std::vector<InvalidGeodeFile> Loader::Impl::getFailedMods() const {
@@ -154,20 +154,21 @@ bool Loader::Impl::isModVersionSupported(VersionInfo const& version) {
 
 Result<> Loader::Impl::saveData() {
     // save mods' data
-    for (auto& [_, mod] : m_mods) {
+    for (auto& [id, mod] : m_mods) {
+        Mod::get()->setSavedValue("should-load-" + id, mod->isEnabled());
         auto r = mod->saveData();
         if (!r) {
             log::warn("Unable to save data for mod \"{}\": {}", mod->getID(), r.unwrapErr());
         }
     }
     // save loader data
-    GEODE_UNWRAP(InternalMod::get()->saveData());
+    GEODE_UNWRAP(Mod::get()->saveData());
     
     return Ok();
 }
 
 Result<> Loader::Impl::loadData() {
-    auto e = InternalMod::get()->loadData();
+    auto e = Mod::get()->loadData();
     if (!e) {
         log::warn("Unable to load loader settings: {}", e.unwrapErr());
     }
@@ -189,8 +190,16 @@ Result<Mod*> Loader::Impl::loadModFromInfo(ModInfo const& info) {
 
     // create Mod instance
     auto mod = new Mod(info);
+    auto setupRes = mod->m_impl->setup();
+    if (!setupRes) {
+        return Err(fmt::format(
+            "Unable to setup mod '{}': {}",
+            info.id, setupRes.unwrapErr()
+        ));
+    }
+
     m_mods.insert({ info.id, mod });
-    mod->m_enabled = InternalMod::get()->getSavedValue<bool>(
+    mod->m_impl->m_enabled = Mod::get()->getSavedValue<bool>(
         "should-load-" + info.id, true
     );
 
@@ -246,7 +255,7 @@ Mod* Loader::Impl::getLoadedMod(std::string const& id) const {
 }
 
 void Loader::Impl::updateModResources(Mod* mod) {
-    if (!mod->m_info.spritesheets.size()) {
+    if (!mod->m_impl->m_info.spritesheets.size()) {
         return;
     }
 
@@ -255,7 +264,7 @@ void Loader::Impl::updateModResources(Mod* mod) {
     log::debug("Adding resources for {}", mod->getID());
 
     // add spritesheets
-    for (auto const& sheet : mod->m_info.spritesheets) {
+    for (auto const& sheet : mod->m_impl->m_info.spritesheets) {
         log::debug("Adding sheet {}", sheet);
         auto png = sheet + ".png";
         auto plist = sheet + ".plist";
@@ -265,7 +274,7 @@ void Loader::Impl::updateModResources(Mod* mod) {
             plist == std::string(ccfu->fullPathForFilename(plist.c_str(), false))) {
             log::warn(
                 "The resource dir of \"{}\" is missing \"{}\" png and/or plist files",
-                mod->m_info.id, sheet
+                mod->m_impl->m_info.id, sheet
             );
         }
         else {
@@ -300,7 +309,7 @@ void Loader::Impl::loadModsFromDirectory(
         }
         // skip this entry if it's already loaded
         if (map::contains<std::string, Mod*>(m_mods, [entry](Mod* p) -> bool {
-            return p->m_info.path == entry.path();
+            return p->m_impl->m_info.path == entry.path();
         })) {
             continue;
         }
@@ -389,9 +398,6 @@ bool Loader::Impl::didLastLaunchCrash() const {
     return crashlog::didLastLaunchCrash();
 }
 
-
-
-
 void Loader::Impl::reset() {
     this->closePlatformConsole();
 
@@ -403,6 +409,7 @@ void Loader::Impl::reset() {
     ghc::filesystem::remove_all(dirs::getModRuntimeDir());
     ghc::filesystem::remove_all(dirs::getTempDir());
 }
+
 bool Loader::Impl::isReadyToHook() const {
     return m_readyToHook;
 }
@@ -459,7 +466,7 @@ bool Loader::Impl::platformConsoleOpen() const {
 void Loader::Impl::downloadLoaderResources() {
     auto version = this->getVersion().toString();
     auto tempResourcesZip = dirs::getTempDir() / "new.zip";
-    auto resourcesDir = dirs::getGeodeResourcesDir() / InternalMod::get()->getID();
+    auto resourcesDir = dirs::getGeodeResourcesDir() / Mod::get()->getID();
 
     web::AsyncWebRequest()
         .join("update-geode-loader-resources")
@@ -499,7 +506,7 @@ bool Loader::Impl::verifyLoaderResources() {
     }
 
     // geode/resources/geode.loader
-    auto resourcesDir = dirs::getGeodeResourcesDir() / InternalMod::get()->getID();
+    auto resourcesDir = dirs::getGeodeResourcesDir() / Mod::get()->getID();
 
     // if the resources dir doesn't exist, then it's probably incorrect
     if (!(
@@ -585,24 +592,18 @@ void Loader::Impl::provideNextMod(Mod* mod) {
     m_nextModLock.lock();
     m_nextMod = mod;
 }
+
 Mod* Loader::Impl::takeNextMod() {
     if (!m_nextMod) {
-        // this means we're hopefully loading the internal mod
-        // TODO: make this less hacky
-        auto res = this->setupInternalMod();
-        if (!res) {
-            log::error("{}", res.unwrapErr());
-            return nullptr;
-        }
-        return m_nextMod;
+        this->setupInternalMod();
+        m_nextMod = Mod::sharedMod<>;
     }
     auto ret = m_nextMod;
-    m_nextModCV.notify_all();
     return ret;
 }
+
 void Loader::Impl::releaseNextMod() {
-    auto lock = std::unique_lock<std::mutex>(m_nextModAccessMutex);
-    m_nextModCV.wait(lock);
+    m_nextMod = nullptr;
 
     m_nextModLock.unlock();
 }

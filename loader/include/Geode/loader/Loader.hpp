@@ -59,7 +59,7 @@ namespace geode {
         bool isModLoaded(std::string const& id) const;
         Mod* getLoadedMod(std::string const& id) const;
         std::vector<Mod*> getAllMods();
-        Mod* getInternalMod();
+        Mod* getModImpl();
         void updateAllDependencies();
         std::vector<InvalidGeodeFile> getFailedMods() const;
 

@@ -9,7 +9,7 @@
 #include <Geode/utils/Result.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/ranges.hpp>
-#include <InternalMod.hpp>
+#include "ModImpl.hpp"
 #include <about.hpp>
 #include <crashlog.hpp>
 #include <mutex>
@@ -20,127 +20,125 @@
 #include <vector>
 #include <tulip/TulipHook.hpp>
 
-struct ResourceDownloadEvent : public Event {
-    const UpdateStatus status;
-    ResourceDownloadEvent(UpdateStatus const& status);
-};
-
-class GEODE_DLL ResourceDownloadFilter : public EventFilter<ResourceDownloadEvent> {
-public:
-    using Callback = void(ResourceDownloadEvent*);
-
-    ListenerResult handle(std::function<Callback> fn, ResourceDownloadEvent* event);
-    ResourceDownloadFilter();
-};
-
 // TODO: Find a file convention for impl headers
 namespace geode {
-    class LoaderImpl;
-}
+    struct ResourceDownloadEvent : public Event {
+        const UpdateStatus status;
+        ResourceDownloadEvent(UpdateStatus const& status);
+    };
 
-class Loader::Impl {
-public:
-    mutable std::mutex m_mutex;
+    class GEODE_DLL ResourceDownloadFilter : public EventFilter<ResourceDownloadEvent> {
+    public:
+        using Callback = void(ResourceDownloadEvent*);
 
-    std::vector<ghc::filesystem::path> m_modSearchDirectories;
-    std::vector<ModInfo> m_modsToLoad;
-    std::vector<InvalidGeodeFile> m_invalidMods;
-    std::unordered_map<std::string, Mod*> m_mods;
-    std::vector<ghc::filesystem::path> m_texturePaths;
-    bool m_isSetup = false;
+        ListenerResult handle(std::function<Callback> fn, ResourceDownloadEvent* event);
+        ResourceDownloadFilter();
+    };
 
-    std::condition_variable m_earlyLoadFinishedCV;
-    std::mutex m_earlyLoadFinishedMutex;
-    std::atomic_bool m_earlyLoadFinished = false;
-    std::vector<std::function<void(void)>> m_gdThreadQueue;
-    mutable std::mutex m_gdThreadMutex;
-    bool m_platformConsoleOpen = false;
-    std::vector<std::pair<Hook*, Mod*>> m_internalHooks;
-    bool m_readyToHook = false;
+    class Loader::Impl {
+    public:
+        mutable std::mutex m_mutex;
 
-    std::mutex m_nextModMutex;
-    std::unique_lock<std::mutex> m_nextModLock = std::unique_lock<std::mutex>(m_nextModMutex, std::defer_lock);
-    std::condition_variable m_nextModCV;
-    std::mutex m_nextModAccessMutex;
-    Mod* m_nextMod = nullptr;
+        std::vector<ghc::filesystem::path> m_modSearchDirectories;
+        std::vector<ModInfo> m_modsToLoad;
+        std::vector<InvalidGeodeFile> m_invalidMods;
+        std::unordered_map<std::string, Mod*> m_mods;
+        std::vector<ghc::filesystem::path> m_texturePaths;
+        bool m_isSetup = false;
 
-    Result<> setupInternalMod();
+        std::condition_variable m_earlyLoadFinishedCV;
+        std::mutex m_earlyLoadFinishedMutex;
+        std::atomic_bool m_earlyLoadFinished = false;
+        std::vector<std::function<void(void)>> m_gdThreadQueue;
+        mutable std::mutex m_gdThreadMutex;
+        bool m_platformConsoleOpen = false;
+        std::vector<std::pair<Hook*, Mod*>> m_internalHooks;
+        bool m_readyToHook = false;
 
-    void provideNextMod(Mod* mod);
-    Mod* takeNextMod();
-    void releaseNextMod();
+        std::mutex m_nextModMutex;
+        std::unique_lock<std::mutex> m_nextModLock = std::unique_lock<std::mutex>(m_nextModMutex, std::defer_lock);
+        std::condition_variable m_nextModCV;
+        std::mutex m_nextModAccessMutex;
+        Mod* m_nextMod = nullptr;
 
-    std::unordered_map<void*, tulip::hook::HandlerHandle> m_handlerHandles;
+        Result<> setupInternalMod();
 
-    Result<> createHandler(void* address, tulip::hook::HandlerMetadata const& metadata);
-    bool hasHandler(void* address);
-    Result<tulip::hook::HandlerHandle> getHandler(void* address);
-    Result<> removeHandler(void* address);
+        void provideNextMod(Mod* mod);
+        Mod* takeNextMod();
+        void releaseNextMod();
 
-    void downloadLoaderResources();
+        std::unordered_map<void*, tulip::hook::HandlerHandle> m_handlerHandles;
 
-    bool loadHooks();
-    void setupIPC();
+        Result<> createHandler(void* address, tulip::hook::HandlerMetadata const& metadata);
+        bool hasHandler(void* address);
+        Result<tulip::hook::HandlerHandle> getHandler(void* address);
+        Result<> removeHandler(void* address);
 
-    Impl();
-    ~Impl();
+        void downloadLoaderResources();
 
-    void createDirectories();
+        bool loadHooks();
+        void setupIPC();
 
-    void updateModResources(Mod* mod);
-    void addSearchPaths();
+        Impl();
+        ~Impl();
 
-    friend void GEODE_CALL ::geode_implicit_load(Mod*);
+        void createDirectories();
 
-    Result<Mod*> loadModFromInfo(ModInfo const& info);
+        void updateModResources(Mod* mod);
+        void addSearchPaths();
 
-    Result<> setup();
-    void reset();
+        friend void GEODE_CALL ::geode_implicit_load(Mod*);
 
-    Result<> saveData();
-    Result<> loadData();
+        Result<Mod*> loadModFromInfo(ModInfo const& info);
 
-    VersionInfo getVersion();
-    VersionInfo minModVersion();
-    VersionInfo maxModVersion();
-    bool isModVersionSupported(VersionInfo const& version);
+        Result<> setup();
+        void reset();
 
-    Result<Mod*> loadModFromFile(ghc::filesystem::path const& file);
-    void loadModsFromDirectory(ghc::filesystem::path const& dir, bool recursive = true);
-    void refreshModsList();
-    bool isModInstalled(std::string const& id) const;
-    Mod* getInstalledMod(std::string const& id) const;
-    bool isModLoaded(std::string const& id) const;
-    Mod* getLoadedMod(std::string const& id) const;
-    std::vector<Mod*> getAllMods();
-    Mod* getInternalMod();
-    void updateAllDependencies();
-    std::vector<InvalidGeodeFile> getFailedMods() const;
+        Result<> saveData();
+        Result<> loadData();
 
-    void updateResources();
+        VersionInfo getVersion();
+        VersionInfo minModVersion();
+        VersionInfo maxModVersion();
+        bool isModVersionSupported(VersionInfo const& version);
 
-    void waitForModsToBeLoaded();
+        Result<Mod*> loadModFromFile(ghc::filesystem::path const& file);
+        void loadModsFromDirectory(ghc::filesystem::path const& dir, bool recursive = true);
+        void refreshModsList();
+        bool isModInstalled(std::string const& id) const;
+        Mod* getInstalledMod(std::string const& id) const;
+        bool isModLoaded(std::string const& id) const;
+        Mod* getLoadedMod(std::string const& id) const;
+        std::vector<Mod*> getAllMods();
+        Mod* getModImpl();
+        void updateAllDependencies();
+        std::vector<InvalidGeodeFile> getFailedMods() const;
 
-    bool didLastLaunchCrash() const;
+        void updateResources();
 
-    nlohmann::json processRawIPC(void* rawHandle, std::string const& buffer);
+        void waitForModsToBeLoaded();
 
-    void queueInGDThread(ScheduledFunction func);
-    void executeGDThreadQueue();
+        bool didLastLaunchCrash() const;
 
-    void logConsoleMessage(std::string const& msg);
-    bool platformConsoleOpen() const;
-    void openPlatformConsole();
-    void closePlatformConsole();
-    void platformMessageBox(char const* title, std::string const& info);
+        nlohmann::json processRawIPC(void* rawHandle, std::string const& buffer);
 
-    bool verifyLoaderResources();
+        void queueInGDThread(ScheduledFunction func);
+        void executeGDThreadQueue();
 
-    bool isReadyToHook() const;
-    void addInternalHook(Hook* hook, Mod* mod);
-};
+        void logConsoleMessage(std::string const& msg);
+        bool platformConsoleOpen() const;
+        void openPlatformConsole();
+        void closePlatformConsole();
+        void platformMessageBox(char const* title, std::string const& info);
 
-namespace geode {
+        bool verifyLoaderResources();
+
+        bool isReadyToHook() const;
+        void addInternalHook(Hook* hook, Mod* mod);
+
+        void setupInternalMod();
+    };
+
     class LoaderImpl {
     public:
         static Loader::Impl* get();
