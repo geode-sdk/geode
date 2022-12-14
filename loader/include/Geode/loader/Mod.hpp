@@ -31,7 +31,7 @@ namespace geode {
         ~HandleToSaved();
     };
 
-    inline GEODE_HIDDEN Mod* takeNextLoaderMod();
+    GEODE_HIDDEN Mod* takeNextLoaderMod();
 
     /**
      * @class Mod

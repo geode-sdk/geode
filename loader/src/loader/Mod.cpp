@@ -25,7 +25,7 @@ Result<> Mod::setup() {
     if (!loadRes) {
         log::warn(
             "Unable to load data for \"{}\": {}",
-            info.id, loadRes.unwrapErr()
+            m_info.id, loadRes.unwrapErr()
         );
     }
     return Ok();
@@ -284,6 +284,8 @@ Result<> Mod::loadBinary() {
 
     GEODE_UNWRAP(this->loadPlatformBinary());
     m_binaryLoaded = true;
+
+    LoaderImpl::get()->releaseNextMod();
 
     // Call implicit entry point to place hooks etc.
     m_implicitLoadFunc(this);

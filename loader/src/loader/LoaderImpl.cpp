@@ -190,8 +190,14 @@ Result<Mod*> Loader::Impl::loadModFromInfo(ModInfo const& info) {
 
     // create Mod instance
     auto mod = new Mod(info);
-    mod->setup();
-    
+    auto setupRes = mod->setup();
+    if (!setupRes) {
+        return Err(fmt::format(
+            "Unable to setup mod '{}': {}",
+            info.id, setupRes.unwrapErr()
+        ));
+    }
+
     m_mods.insert({ info.id, mod });
     mod->m_enabled = InternalMod::get()->getSavedValue<bool>(
         "should-load-" + info.id, true
@@ -589,38 +595,14 @@ void Loader::Impl::provideNextMod(Mod* mod) {
 
 Mod* Loader::Impl::takeNextMod() {
     if (!m_nextMod) {
-        // this means we're hopefully loading the internal mod
-        // TODO: make this less hacky
-        auto res = this->setupInternalMod();
-        if (!res) {
-            log::error("{}", res.unwrapErr());
-            return nullptr;
-        }
-        return m_nextMod;
+        return InternalMod::get();
     }
     auto ret = m_nextMod;
-    m_nextModCV.notify_all();
     return ret;
 }
 
 void Loader::Impl::releaseNextMod() {
-    auto lock = std::unique_lock<std::mutex>(m_nextModAccessMutex);
-    m_nextModCV.wait(lock);
+    m_nextMod = nullptr;
 
     m_nextModLock.unlock();
-}
-
-Result<> Loader::Impl::setupInternalMod() {
-    this->provideNextMod(InternalMod::get());
-    (void)Mod::get();
-    m_nextModLock.unlock();
-
-    InternalMod::get()->setModInfo();
-
-    auto sett = Mod::get()->loadData();
-    if (!sett) {
-        log::error("{}", sett.unwrapErr());
-    }
-
-    return Ok();
 }

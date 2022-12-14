@@ -42,18 +42,16 @@ static ModInfo getInternalModInfo() {
     }
 }
 
-InternalMod::InternalMod() : Mod(ModInfo()) {}
+Mod* InternalMod::get() {
+    auto& mod = Mod::sharedMod<>;
+    if (mod) return mod;
 
-void InternalMod::setModInfo() {
-    m_info = getInternalModInfo();
-    m_saveDirPath = dirs::getModsSaveDir() / m_info.id;
-    ghc::filesystem::create_directories(m_saveDirPath);
-}
+    mod = new Mod(getInternalModInfo());
 
-InternalMod::~InternalMod() {}
-
-InternalMod* InternalMod::get() {
-    static auto g_mod = new InternalMod;
-    g_mod->setup();
-    return g_mod;
+    auto setupRes = mod->setup();
+    if (!setupRes) {
+        log::error("Failed to setup internal mod! ({})", setupRes.unwrapErr());
+        return mod;
+    }
+    return mod;
 }

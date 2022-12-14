@@ -63,8 +63,6 @@ public:
     std::mutex m_nextModAccessMutex;
     Mod* m_nextMod = nullptr;
 
-    Result<> setupInternalMod();
-
     void provideNextMod(Mod* mod);
     Mod* takeNextMod();
     void releaseNextMod();
