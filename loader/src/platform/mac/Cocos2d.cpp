@@ -662,7 +662,7 @@ CCObject* CCArray::randomObject()
         return NULL;
     }
 
-    float r = CCRANDOM_0_1();
+    float r = ((float)rand()/(float)RAND_MAX);
     
     if (r == 1) // to prevent from accessing data-arr[data->num], out of range.
     {

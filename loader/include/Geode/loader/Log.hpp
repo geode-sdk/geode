@@ -15,7 +15,7 @@ namespace geode {
 #pragma warning(disable : 4251)
 
     class Mod;
-    inline Mod* getMod();
+    Mod* getMod();
 
     namespace log {
         using log_clock = std::chrono::system_clock;

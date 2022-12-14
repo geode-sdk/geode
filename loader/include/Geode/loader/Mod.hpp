@@ -336,16 +336,6 @@ namespace geode {
 
         friend class ModImpl;
     };
-
-    /**
-     * To bypass the need for cyclic dependencies,
-     * this function does the exact same as Mod::get()
-     * However, it can be externed, unlike Mod::get()
-     * @returns Same thing Mod::get() returns
-     */
-    inline GEODE_HIDDEN Mod* getMod() {
-        return Mod::get();
-    }
 }
 
 inline char const* operator"" _spr(char const* str, size_t) {

@@ -126,6 +126,7 @@ elseif(EXISTS ${GEODE_PLATFORM_BIN_PATH})
 	target_precompile_headers(${PROJECT_NAME} INTERFACE
 		"${GEODE_LOADER_PATH}/include/Geode/DefaultInclude.hpp"
 		"${GEODE_LOADER_PATH}/include/Geode/Loader.hpp"
+		"${GEODE_LOADER_PATH}/include/Geode/Utils.hpp"
 		# please stop adding modify here its not here because it makes windows compilation take longer than geode 1.0 release date
 		"${GEODE_LOADER_PATH}/include/Geode/UI.hpp"
 		"${GEODE_LOADER_PATH}/include/Geode/cocos/include/cocos2d.h"

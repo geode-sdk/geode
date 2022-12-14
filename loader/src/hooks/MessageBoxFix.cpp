@@ -34,7 +34,7 @@ static CCEGLView* CCEGLView_CCEGLView(CCEGLView* self) {
     reinterpret_cast<CCEGLView*(__thiscall*)(CCEGLView*)>(CCEGLVIEW_CON_ADDR)(self);
     static auto p = Mod::get()->patch(
         reinterpret_cast<void*>(geode::base::getCocos() + 0x19feec),
-        to_byte_array(&fixedErrorHandler)
+        toByteArray(&fixedErrorHandler)
     );
     return self;
 }

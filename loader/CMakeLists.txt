@@ -136,14 +136,14 @@ CPMAddPackage("gh:google/re2#954656f")
 target_include_directories(${PROJECT_NAME} PRIVATE ${md4c_SOURCE_DIR}/src)
 
 # Tulip hook (hooking)
-CPMAddPackage("gh:altalk23/TulipHook#ecbe8d7")
+CPMAddPackage("gh:altalk23/TulipHook#2a97005")
 
 target_link_libraries(${PROJECT_NAME} md4c z TulipHook geode-sdk re2)
 
 # Use precompiled headers for faster builds
 target_precompile_headers(${PROJECT_NAME} PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/DefaultInclude.hpp"
-	# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Utils.hpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Utils.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Loader.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/UI.hpp"
 	# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Bindings.hpp"
