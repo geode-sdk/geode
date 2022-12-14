@@ -1,5 +1,5 @@
 
-#include "InternalLoader.hpp"
+#include "LoaderImpl.hpp"
 #include <cocos2d.h>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/IPC.hpp>
@@ -10,7 +10,7 @@
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <Geode/utils/web.hpp>
-#include "InternalMod.hpp"
+#include "ModImpl.hpp"
 #include <about.hpp>
 #include <crashlog.hpp>
 #include <fmt/format.h>
@@ -24,7 +24,7 @@
 
 USE_GEODE_NAMESPACE();
 
-Loader::Impl* InternalLoader::get() {
+Loader::Impl* LoaderImpl::get() {
     return Loader::get()->m_impl.get();
 }
 
@@ -105,7 +105,7 @@ void Loader::Impl::updateResources() {
     log::debug("Adding resources");
 
     // add own spritesheets
-    this->updateModResources(InternalMod::get());
+    this->updateModResources(Mod::get());
 
     // add mods' spritesheets
     for (auto const& [_, mod] : m_mods) {
@@ -117,8 +117,8 @@ std::vector<Mod*> Loader::Impl::getAllMods() {
     return map::values(m_mods);
 }
 
-Mod* Loader::Impl::getInternalMod() {
-    return InternalMod::get();
+Mod* Loader::Impl::getModImpl() {
+    return Mod::get();
 }
 
 std::vector<InvalidGeodeFile> Loader::Impl::getFailedMods() const {
@@ -155,20 +155,20 @@ bool Loader::Impl::isModVersionSupported(VersionInfo const& version) {
 Result<> Loader::Impl::saveData() {
     // save mods' data
     for (auto& [id, mod] : m_mods) {
-        InternalMod::get()->setSavedValue("should-load-" + id, mod->isEnabled());
+        Mod::get()->setSavedValue("should-load-" + id, mod->isEnabled());
         auto r = mod->saveData();
         if (!r) {
             log::warn("Unable to save data for mod \"{}\": {}", mod->getID(), r.unwrapErr());
         }
     }
     // save loader data
-    GEODE_UNWRAP(InternalMod::get()->saveData());
+    GEODE_UNWRAP(Mod::get()->saveData());
     
     return Ok();
 }
 
 Result<> Loader::Impl::loadData() {
-    auto e = InternalMod::get()->loadData();
+    auto e = Mod::get()->loadData();
     if (!e) {
         log::warn("Unable to load loader settings: {}", e.unwrapErr());
     }
@@ -199,7 +199,7 @@ Result<Mod*> Loader::Impl::loadModFromInfo(ModInfo const& info) {
     }
 
     m_mods.insert({ info.id, mod });
-    mod->m_impl->m_enabled = InternalMod::get()->getSavedValue<bool>(
+    mod->m_impl->m_enabled = Mod::get()->getSavedValue<bool>(
         "should-load-" + info.id, true
     );
 
@@ -466,7 +466,7 @@ bool Loader::Impl::platformConsoleOpen() const {
 void Loader::Impl::downloadLoaderResources() {
     auto version = this->getVersion().toString();
     auto tempResourcesZip = dirs::getTempDir() / "new.zip";
-    auto resourcesDir = dirs::getGeodeResourcesDir() / InternalMod::get()->getID();
+    auto resourcesDir = dirs::getGeodeResourcesDir() / Mod::get()->getID();
 
     web::AsyncWebRequest()
         .join("update-geode-loader-resources")
@@ -506,7 +506,7 @@ bool Loader::Impl::verifyLoaderResources() {
     }
 
     // geode/resources/geode.loader
-    auto resourcesDir = dirs::getGeodeResourcesDir() / InternalMod::get()->getID();
+    auto resourcesDir = dirs::getGeodeResourcesDir() / Mod::get()->getID();
 
     // if the resources dir doesn't exist, then it's probably incorrect
     if (!(
@@ -595,7 +595,8 @@ void Loader::Impl::provideNextMod(Mod* mod) {
 
 Mod* Loader::Impl::takeNextMod() {
     if (!m_nextMod) {
-        return InternalMod::get();
+        this->setupInternalMod();
+        m_nextMod = Mod::sharedMod<>;
     }
     auto ret = m_nextMod;
     return ret;

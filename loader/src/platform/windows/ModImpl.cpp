@@ -3,7 +3,7 @@
 #ifdef GEODE_IS_WINDOWS
 
 #include <Geode/loader/Mod.hpp>
-#include <loader/InternalMod.hpp>
+#include <loader/ModImpl.hpp>
 
 USE_GEODE_NAMESPACE();
 

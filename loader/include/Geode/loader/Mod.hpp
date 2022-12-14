@@ -33,7 +33,7 @@ namespace geode {
 
     GEODE_HIDDEN Mod* takeNextLoaderMod();
 
-    class InternalMod;
+    class ModImpl;
 
     /**
      * @class Mod
@@ -344,7 +344,7 @@ namespace geode {
          */
         ModJson getRuntimeInfo() const;
 
-        friend class InternalMod;
+        friend class ModImpl;
     };
 
     /**

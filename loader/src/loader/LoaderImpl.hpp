@@ -9,7 +9,7 @@
 #include <Geode/utils/Result.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/ranges.hpp>
-#include "InternalMod.hpp"
+#include "ModImpl.hpp"
 #include <about.hpp>
 #include <crashlog.hpp>
 #include <mutex>
@@ -100,7 +100,7 @@ namespace geode {
         bool isModLoaded(std::string const& id) const;
         Mod* getLoadedMod(std::string const& id) const;
         std::vector<Mod*> getAllMods();
-        Mod* getInternalMod();
+        Mod* getModImpl();
         void updateAllDependencies();
         std::vector<InvalidGeodeFile> getFailedMods() const;
 
@@ -125,9 +125,11 @@ namespace geode {
 
         bool isReadyToHook() const;
         void addInternalHook(Hook* hook, Mod* mod);
+
+        void setupInternalMod();
     };
 
-    class InternalLoader {
+    class LoaderImpl {
     public:
         static Loader::Impl* get();
     };

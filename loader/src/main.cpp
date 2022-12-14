@@ -1,5 +1,5 @@
 #include "../core/Core.hpp"
-#include "loader/InternalLoader.hpp"
+#include "loader/LoaderImpl.hpp"
 
 #include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Loader.hpp>
@@ -7,7 +7,7 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Setting.hpp>
 #include <Geode/loader/SettingEvent.hpp>
-#include <loader/InternalMod.hpp>
+#include <loader/ModImpl.hpp>
 #include <array>
 
 USE_GEODE_NAMESPACE();
@@ -114,7 +114,7 @@ $execute {
     });
 
     listenForIPC("loader-info", [](IPCEvent* event) -> nlohmann::json {
-        return Loader::get()->getInternalMod()->getModInfo();
+        return Loader::get()->getModImpl()->getModInfo();
     });
 
     listenForIPC("list-mods", [](IPCEvent* event) -> nlohmann::json {
@@ -129,8 +129,8 @@ $execute {
 
         if (!dontIncludeLoader) {
             res.push_back(
-                includeRunTimeInfo ? Loader::get()->getInternalMod()->getRuntimeInfo() :
-                                    Loader::get()->getInternalMod()->getModInfo().toJSON()
+                includeRunTimeInfo ? Loader::get()->getModImpl()->getRuntimeInfo() :
+                                    Loader::get()->getModImpl()->getModInfo().toJSON()
             );
         }
 
@@ -146,7 +146,7 @@ int geodeEntry(void* platformData) {
     // setup internals
 
     if (!geode::core::hook::initialize()) {
-        InternalLoader::get()->platformMessageBox(
+        LoaderImpl::get()->platformMessageBox(
             "Unable to load Geode!",
             "There was an unknown fatal error setting up "
             "internal tools and Geode can not be loaded. "
@@ -156,19 +156,19 @@ int geodeEntry(void* platformData) {
     }
 
     // set up loader, load mods, etc.
-    if (!InternalLoader::get()->setup()) {
-        InternalLoader::get()->platformMessageBox(
+    if (!LoaderImpl::get()->setup()) {
+        LoaderImpl::get()->platformMessageBox(
             "Unable to Load Geode!",
             "There was an unknown fatal error setting up "
             "the loader and Geode can not be loaded."
         );
-        InternalLoader::get()->reset();
+        LoaderImpl::get()->reset();
         return 1;
     }
 
     log::debug("Set up loader");
 
-    if (InternalMod::get()->getSettingValue<bool>("show-platform-console")) {
+    if (Mod::get()->getSettingValue<bool>("show-platform-console")) {
         Loader::get()->openPlatformConsole();
     }
 

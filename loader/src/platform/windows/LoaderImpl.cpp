@@ -1,8 +1,8 @@
 #include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Log.hpp>
-#include <loader/InternalMod.hpp>
+#include <loader/ModImpl.hpp>
 #include <iostream>
-#include <loader/InternalLoader.hpp>
+#include <loader/LoaderImpl.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -49,7 +49,7 @@ void ipcPipeThread(HANDLE pipe) {
     if (ReadFile(pipe, buffer, sizeof(buffer) - 1, &read, nullptr)) {
         buffer[read] = '\0';
 
-        std::string reply = InternalLoader::get()->processRawIPC((void*)pipe, buffer);
+        std::string reply = LoaderImpl::get()->processRawIPC((void*)pipe, buffer);
 
         DWORD written;
         WriteFile(pipe, reply.c_str(), reply.size(), &written, nullptr);

@@ -1,11 +1,11 @@
-#include <loader/InternalLoader.hpp>
+#include <loader/LoaderImpl.hpp>
 
 #ifdef GEODE_IS_IOS
 
     #include <Geode/loader/Dirs.hpp>
     #include <Geode/loader/Loader.hpp>
     #include <Geode/loader/Log.hpp>
-    #include <loader/InternalMod.hpp>
+    #include <loader/ModImpl.hpp>
     #include <iostream>
     #include <pwd.h>
     #include <sys/types.h>

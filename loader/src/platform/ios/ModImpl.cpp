@@ -1,9 +1,9 @@
 #include <Geode/DefaultInclude.hpp>
 
-#ifdef GEODE_IS_MACOS
+#ifdef GEODE_IS_IOS
 
     #include <Geode/loader/Mod.hpp>
-    #include <loader/InternalMod.hpp>
+    #include <loader/ModImpl.hpp>
     #include <dlfcn.h>
 
 USE_GEODE_NAMESPACE();

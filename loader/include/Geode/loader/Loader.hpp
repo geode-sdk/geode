@@ -17,7 +17,7 @@ namespace geode {
         std::string reason;
     };
 
-    class InternalLoader;
+    class LoaderImpl;
 
     class GEODE_DLL Loader {
     private:
@@ -59,7 +59,7 @@ namespace geode {
         bool isModLoaded(std::string const& id) const;
         Mod* getLoadedMod(std::string const& id) const;
         std::vector<Mod*> getAllMods();
-        Mod* getInternalMod();
+        Mod* getModImpl();
         void updateAllDependencies();
         std::vector<InvalidGeodeFile> getFailedMods() const;
 
@@ -79,7 +79,7 @@ namespace geode {
 
         bool didLastLaunchCrash() const;
 
-        friend class InternalLoader;
+        friend class LoaderImpl;
 
         friend Mod* takeNextLoaderMod();
     };

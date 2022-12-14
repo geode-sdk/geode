@@ -21,7 +21,7 @@
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <Geode/utils/web.hpp>
-#include <loader/InternalLoader.hpp>
+#include <loader/LoaderImpl.hpp>
 
 static constexpr int const TAG_CONFIRM_UNINSTALL = 5;
 static constexpr int const TAG_DELETE_SAVEDATA = 6;
@@ -323,7 +323,7 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
         disableBtnSpr->setColor({150, 150, 150});
     }
 
-    if (mod != Loader::get()->getInternalMod()) {
+    if (mod != Loader::get()->getModImpl()) {
         auto uninstallBtnSpr = ButtonSprite::create(
             "Uninstall", "bigFont.fnt", "GJ_button_05.png", .6f
         );
