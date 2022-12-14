@@ -190,6 +190,8 @@ Result<Mod*> Loader::Impl::loadModFromInfo(ModInfo const& info) {
 
     // create Mod instance
     auto mod = new Mod(info);
+    mod->setup();
+    
     m_mods.insert({ info.id, mod });
     mod->m_enabled = InternalMod::get()->getSavedValue<bool>(
         "should-load-" + info.id, true

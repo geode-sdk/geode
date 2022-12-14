@@ -54,5 +54,6 @@ InternalMod::~InternalMod() {}
 
 InternalMod* InternalMod::get() {
     static auto g_mod = new InternalMod;
+    g_mod->setup();
     return g_mod;
 }

@@ -129,6 +129,9 @@ namespace geode {
         friend void GEODE_CALL ::geode_implicit_load(Mod*);
 
     public:
+        // TODO: impl pimpl
+        Result<> setup();
+
         std::string getID() const;
         std::string getName() const;
         std::string getDeveloper() const;

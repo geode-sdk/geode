@@ -17,6 +17,9 @@ Mod::Mod(ModInfo const& info) {
     m_info = info;
     m_saveDirPath = dirs::getModsSaveDir() / info.id;
     ghc::filesystem::create_directories(m_saveDirPath);
+}
+
+Result<> Mod::setup() {
     this->setupSettings();
     auto loadRes = this->loadData();
     if (!loadRes) {
@@ -25,6 +28,7 @@ Mod::Mod(ModInfo const& info) {
             info.id, loadRes.unwrapErr()
         );
     }
+    return Ok();
 }
 
 Mod::~Mod() {
