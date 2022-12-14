@@ -608,21 +608,6 @@ void Loader::Impl::releaseNextMod() {
     m_nextModLock.unlock();
 }
 
-Result<> Loader::Impl::setupInternalMod() {
-    this->provideNextMod(InternalMod::get());
-    (void)Mod::get();
-    m_nextModLock.unlock();
-
-    InternalMod::get()->setModInfo();
-
-    auto sett = Mod::get()->loadData();
-    if (!sett) {
-        log::error("{}", sett.unwrapErr());
-    }
-
-    return Ok();
-}
-
 
 Result<> Loader::Impl::createHandler(void* address, tulip::hook::HandlerMetadata const& metadata) {
     if (m_handlerHandles.count(address)) {
