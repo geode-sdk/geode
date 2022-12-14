@@ -4,7 +4,7 @@
 #include <Geode/loader/SettingEvent.hpp>
 #include <Geode/loader/SettingNode.hpp>
 #include <Geode/utils/general.hpp>
-#include <regex>
+#include <re2/re2.h>
 
 USE_GEODE_NAMESPACE();
 
@@ -328,8 +328,7 @@ IMPL_TO_VALID(Float) {
 
 IMPL_TO_VALID(String) {
     if (m_definition.match) {
-        auto regex = std::regex(m_definition.match.value());
-        if (!std::regex_match(value, regex)) {
+        if (!re2::RE2::FullMatch(value, m_definition.match.value())) {
             return {
                 m_definition.defaultValue,
                 fmt::format(
