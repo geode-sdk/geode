@@ -3,6 +3,7 @@
 #ifdef GEODE_IS_WINDOWS
 
 #include <Geode/loader/Mod.hpp>
+#include <loader/InternalMod.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -71,14 +72,9 @@ std::string getLastWinError() {
     return msg + " (" + std::to_string(err) + ")";
 }
 
-Result<> Mod::loadPlatformBinary() {
+Result<> Mod::Impl::loadPlatformBinary() {
     auto load = LoadLibraryW((m_tempDirName / m_info.binaryName).wstring().c_str());
     if (load) {
-        if (!(m_implicitLoadFunc = findSymbolOrMangled<decltype(geode_implicit_load)*>(
-            load, "geode_implicit_load", "_geode_implicit_load@4"
-        ))) {
-            return Err("Unable to find mod entry point");
-        }
         if (m_platformInfo) {
             delete m_platformInfo;
         }
@@ -88,11 +84,10 @@ Result<> Mod::loadPlatformBinary() {
     return Err("Unable to load the DLL: " + getLastWinError());
 }
 
-Result<> Mod::unloadPlatformBinary() {
+Result<> Mod::Impl::unloadPlatformBinary() {
     auto hmod = m_platformInfo->m_hmod;
     delete m_platformInfo;
     if (FreeLibrary(hmod)) {
-        m_implicitLoadFunc = nullptr;
         return Ok();
     }
     else {

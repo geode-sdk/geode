@@ -1,4 +1,6 @@
-#include "LoaderImpl.hpp"
+#include "InternalLoader.hpp"
+
+USE_GEODE_NAMESPACE();
 
 Loader::Loader() : m_impl(new Impl) {}
 

@@ -1,5 +1,5 @@
 
-#include "LoaderImpl.hpp"
+#include "InternalLoader.hpp"
 #include <cocos2d.h>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/IPC.hpp>
@@ -10,7 +10,7 @@
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <Geode/utils/web.hpp>
-#include <InternalMod.hpp>
+#include "InternalMod.hpp"
 #include <about.hpp>
 #include <crashlog.hpp>
 #include <fmt/format.h>
@@ -24,7 +24,7 @@
 
 USE_GEODE_NAMESPACE();
 
-Loader::Impl* LoaderImpl::get() {
+Loader::Impl* InternalLoader::get() {
     return Loader::get()->m_impl.get();
 }
 
@@ -190,7 +190,7 @@ Result<Mod*> Loader::Impl::loadModFromInfo(ModInfo const& info) {
 
     // create Mod instance
     auto mod = new Mod(info);
-    auto setupRes = mod->setup();
+    auto setupRes = mod->m_impl->setup();
     if (!setupRes) {
         return Err(fmt::format(
             "Unable to setup mod '{}': {}",
@@ -199,7 +199,7 @@ Result<Mod*> Loader::Impl::loadModFromInfo(ModInfo const& info) {
     }
 
     m_mods.insert({ info.id, mod });
-    mod->m_enabled = InternalMod::get()->getSavedValue<bool>(
+    mod->m_impl->m_enabled = InternalMod::get()->getSavedValue<bool>(
         "should-load-" + info.id, true
     );
 
@@ -255,7 +255,7 @@ Mod* Loader::Impl::getLoadedMod(std::string const& id) const {
 }
 
 void Loader::Impl::updateModResources(Mod* mod) {
-    if (!mod->m_info.spritesheets.size()) {
+    if (!mod->m_impl->m_info.spritesheets.size()) {
         return;
     }
 
@@ -264,7 +264,7 @@ void Loader::Impl::updateModResources(Mod* mod) {
     log::debug("Adding resources for {}", mod->getID());
 
     // add spritesheets
-    for (auto const& sheet : mod->m_info.spritesheets) {
+    for (auto const& sheet : mod->m_impl->m_info.spritesheets) {
         log::debug("Adding sheet {}", sheet);
         auto png = sheet + ".png";
         auto plist = sheet + ".plist";
@@ -274,7 +274,7 @@ void Loader::Impl::updateModResources(Mod* mod) {
             plist == std::string(ccfu->fullPathForFilename(plist.c_str(), false))) {
             log::warn(
                 "The resource dir of \"{}\" is missing \"{}\" png and/or plist files",
-                mod->m_info.id, sheet
+                mod->m_impl->m_info.id, sheet
             );
         }
         else {
@@ -309,7 +309,7 @@ void Loader::Impl::loadModsFromDirectory(
         }
         // skip this entry if it's already loaded
         if (map::contains<std::string, Mod*>(m_mods, [entry](Mod* p) -> bool {
-            return p->m_info.path == entry.path();
+            return p->m_impl->m_info.path == entry.path();
         })) {
             continue;
         }

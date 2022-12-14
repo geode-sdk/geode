@@ -6,8 +6,6 @@
 
 #include <string>
 
-class InternalMod;
-
 namespace geode {
     /**
      * Describes the severity of the log

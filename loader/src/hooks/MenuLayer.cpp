@@ -10,7 +10,7 @@
 #include <Geode/ui/Notification.hpp>
 #include <Geode/ui/Popup.hpp>
 #include <Geode/utils/cocos.hpp>
-#include <InternalMod.hpp>
+#include <loader/InternalMod.hpp>
 
 USE_GEODE_NAMESPACE();
 

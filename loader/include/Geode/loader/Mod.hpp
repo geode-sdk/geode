@@ -33,87 +33,17 @@ namespace geode {
 
     GEODE_HIDDEN Mod* takeNextLoaderMod();
 
+    class InternalMod;
+
     /**
      * @class Mod
      * Represents a Mod ingame.
-     * @abstract
      */
     class GEODE_DLL Mod {
     protected:
-        /**
-         * Mod info
-         */
-        ModInfo m_info;
-        /**
-         * Platform-specific info
-         */
-        PlatformInfo* m_platformInfo = nullptr;
-        /**
-         * Hooks owned by this mod
-         */
-        std::vector<Hook*> m_hooks;
-        /**
-         * Patches owned by this mod
-         */
-        std::vector<Patch*> m_patches;
-        /**
-         * Whether the mod is enabled or not
-         */
-        bool m_enabled = false;
-        /**
-         * Whether the mod binary is loaded or not
-         */
-        bool m_binaryLoaded = false;
-        /**
-         * Mod temp directory name
-         */
-        ghc::filesystem::path m_tempDirName;
-        /**
-         * Mod save directory name
-         */
-        ghc::filesystem::path m_saveDirPath;
-        /**
-         * Pointers to mods that depend on
-         * this Mod. Makes it possible to
-         * enable / disable them automatically,
-         * when their dependency is disabled.
-         */
-        std::vector<Mod*> m_parentDependencies;
-        decltype(geode_implicit_load)* m_implicitLoadFunc;
-        /**
-         * Saved values
-         */
-        nlohmann::json m_saved;
-        /**
-         * Setting values
-         */
-        std::unordered_map<std::string, std::unique_ptr<SettingValue>> m_settings;
-        /**
-         * Settings save data. Stored for efficient loading of custom settings
-         */
-        nlohmann::json m_savedSettingsData;
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
 
-        /**
-         * Load the platform binary
-         */
-        Result<> loadPlatformBinary();
-        Result<> unloadPlatformBinary();
-        Result<> createTempDir();
-
-        void setupSettings();
-
-        // no copying
-        Mod(Mod const&) = delete;
-        Mod operator=(Mod const&) = delete;
-
-        /**
-         * Protected constructor/destructor
-         */
-        Mod() = delete;
-        Mod(ModInfo const& info);
-        virtual ~Mod();
-
-        friend class ::InternalMod;
         friend class Loader;
         friend struct ModInfo;
 
@@ -129,8 +59,15 @@ namespace geode {
         friend void GEODE_CALL ::geode_implicit_load(Mod*);
 
     public:
-        // TODO: impl pimpl
-        Result<> setup();
+        // no copying
+        Mod(Mod const&) = delete;
+        Mod operator=(Mod const&) = delete;
+
+        // Protected constructor/destructor
+        Mod() = delete;
+        Mod(ModInfo const& info);
+        ~Mod();
+        
 
         std::string getID() const;
         std::string getName() const;
@@ -170,6 +107,8 @@ namespace geode {
             std::unique_ptr<SettingValue> value
         );
 
+        nlohmann::json& getSaveContainer();
+
         template <class T>
         T getSettingValue(std::string const& key) const {
             if (auto sett = this->getSetting(key)) {
@@ -190,10 +129,11 @@ namespace geode {
 
         template <class T>
         T getSavedValue(std::string const& key) {
-            if (m_saved.count(key)) {
+            auto& saved = this->getSaveContainer();
+            if (saved.count(key)) {
                 try {
                     // json -> T may fail
-                    return m_saved.at(key);
+                    return saved.at(key);
                 }
                 catch (...) {
                 }
@@ -203,15 +143,16 @@ namespace geode {
 
         template <class T>
         T getSavedValue(std::string const& key, T const& defaultValue) {
-            if (m_saved.count(key)) {
+            auto& saved = this->getSaveContainer();
+            if (saved.count(key)) {
                 try {
                     // json -> T may fail
-                    return m_saved.at(key);
+                    return saved.at(key);
                 }
                 catch (...) {
                 }
             }
-            m_saved[key] = defaultValue;
+            saved[key] = defaultValue;
             return defaultValue;
         }
 
@@ -224,8 +165,9 @@ namespace geode {
          */
         template<class T>
         T setSavedValue(std::string const& key, T const& value) {
+            auto& saved = this->getSaveContainer();
             auto old = this->getSavedValue<T>(key);
-            m_saved[key] = value;
+            saved[key] = value;
             return old;
         }
 
@@ -313,7 +255,7 @@ namespace geode {
          * @returns Successful result on success,
          * errorful result with info on error
          */
-        Result<Patch*> patch(void* address, byte_array data);
+        Result<Patch*> patch(void* address, ByteVector const& data);
 
         /**
          * Remove a patch owned by this Mod
@@ -401,6 +343,8 @@ namespace geode {
          * @note For IPC
          */
         ModJson getRuntimeInfo() const;
+
+        friend class InternalMod;
     };
 
     /**

@@ -21,7 +21,7 @@
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <Geode/utils/web.hpp>
-#include <loader/LoaderImpl.hpp>
+#include <loader/InternalLoader.hpp>
 
 static constexpr int const TAG_CONFIRM_UNINSTALL = 5;
 static constexpr int const TAG_DELETE_SAVEDATA = 6;

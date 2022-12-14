@@ -1,4 +1,4 @@
-#include "LoaderImpl.hpp"
+#include "InternalLoader.hpp"
 
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/Log.hpp>
@@ -190,7 +190,7 @@ void Logger::setup() {
 void Logger::_push(Log&& log) {
     std::string logStr = log.toString(true);
 
-    LoaderImpl::get()->logConsoleMessage(logStr);
+    InternalLoader::get()->logConsoleMessage(logStr);
     s_logStream << logStr << std::endl;
 
     s_logs.emplace_back(std::forward<Log>(log));

@@ -17,7 +17,7 @@ namespace geode {
         std::string reason;
     };
 
-    class LoaderImpl;
+    class InternalLoader;
 
     class GEODE_DLL Loader {
     private:
@@ -79,7 +79,7 @@ namespace geode {
 
         bool didLastLaunchCrash() const;
 
-        friend class LoaderImpl;
+        friend class InternalLoader;
 
         friend Mod* takeNextLoaderMod();
     };

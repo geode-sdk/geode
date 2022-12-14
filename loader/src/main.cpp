@@ -1,5 +1,5 @@
 #include "../core/Core.hpp"
-#include "loader/LoaderImpl.hpp"
+#include "loader/InternalLoader.hpp"
 
 #include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Loader.hpp>
@@ -7,7 +7,7 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Setting.hpp>
 #include <Geode/loader/SettingEvent.hpp>
-#include <InternalMod.hpp>
+#include <loader/InternalMod.hpp>
 #include <array>
 
 USE_GEODE_NAMESPACE();
@@ -146,7 +146,7 @@ int geodeEntry(void* platformData) {
     // setup internals
 
     if (!geode::core::hook::initialize()) {
-        LoaderImpl::get()->platformMessageBox(
+        InternalLoader::get()->platformMessageBox(
             "Unable to load Geode!",
             "There was an unknown fatal error setting up "
             "internal tools and Geode can not be loaded. "
@@ -156,13 +156,13 @@ int geodeEntry(void* platformData) {
     }
 
     // set up loader, load mods, etc.
-    if (!LoaderImpl::get()->setup()) {
-        LoaderImpl::get()->platformMessageBox(
+    if (!InternalLoader::get()->setup()) {
+        InternalLoader::get()->platformMessageBox(
             "Unable to Load Geode!",
             "There was an unknown fatal error setting up "
             "the loader and Geode can not be loaded."
         );
-        LoaderImpl::get()->reset();
+        InternalLoader::get()->reset();
         return 1;
     }
 
