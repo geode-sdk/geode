@@ -89,6 +89,22 @@ namespace geode {
             this->enable();
         }
 
+        EventListener(EventListener&& other)
+          : m_callback(std::move(other.m_callback)),
+            m_filter(std::move(other.m_filter))
+        {
+            other.disable();
+            this->enable();
+        }
+
+        EventListener(EventListener const& other)
+          : m_callback(other.m_callback),
+            m_filter(other.m_filter)
+        {
+            other.disable();
+            this->enable();
+        }
+
         void bind(std::function<Callback> fn) {
             m_callback = fn;
         }
