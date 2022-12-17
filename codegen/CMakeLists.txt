@@ -4,10 +4,7 @@ project(Codegen LANGUAGES C CXX)
 include(../cmake/CPM.cmake)
 
 CPMAddPackage("gh:fmtlib/fmt#9.1.0")
-CPMAddPackage("gh:gulrak/filesystem#3e5b930")
-CPMAddPackage("gh:matcool/PEGTL#8faeb5d")
-
-add_subdirectory(Broma)
+CPMAddPackage("gh:camila314/Broma#1.0.0")
 
 file(GLOB SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
@@ -16,7 +13,7 @@ file(GLOB SOURCES
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_compile_features(Codegen PUBLIC cxx_std_17)
 
-target_link_libraries(Codegen PRIVATE fmt::fmt Broma ghc_filesystem)
+target_link_libraries(Codegen PRIVATE fmt::fmt Broma)
 target_include_directories(Codegen PRIVATE 
 	${CMAKE_CURRENT_SOURCE_DIR}/src
 )

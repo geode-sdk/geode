@@ -1,5 +1,5 @@
 #include <Geode/loader/Mod.hpp>
-#include "InternalMod.hpp"
+#include "ModImpl.hpp"
 
 USE_GEODE_NAMESPACE();
 

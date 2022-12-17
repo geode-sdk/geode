@@ -3,7 +3,7 @@
 #include <Geode/utils/cocos.hpp>
 #include <array>
 #include <fmt/format.h>
-#include <loader/InternalLoader.hpp>
+#include <loader/LoaderImpl.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -36,7 +36,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
         ));
 
         // verify loader resources
-        if (!InternalLoader::get()->verifyLoaderResources()) {
+        if (!LoaderImpl::get()->verifyLoaderResources()) {
             m_fields->m_updatingResources = true;
             this->setUpdateText("Downloading Resources");
         }
@@ -61,7 +61,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
                 this->loadAssets();
             },
             [&](UpdateFailed const& error) {
-                InternalLoader::get()->platformMessageBox(
+                LoaderImpl::get()->platformMessageBox(
                     "Error updating resources",
                     error + ".\n"
                     "You will have to install resources manually by downloading resources.zip "

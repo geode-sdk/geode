@@ -8,7 +8,7 @@
 #include <Geode/binding/FLAlertLayer.hpp>
 #include <Geode/binding/StatsCell.hpp>
 #include <Geode/ui/GeodeUI.hpp>
-#include <loader/InternalLoader.hpp>
+#include <loader/LoaderImpl.hpp>
 #include "../info/TagNode.hpp"
 #include "../info/DevProfilePopup.hpp"
 

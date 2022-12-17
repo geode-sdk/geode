@@ -74,7 +74,7 @@ CCNode* geode::createDefaultLogo(CCSize const& size) {
 
 CCNode* geode::createModLogo(Mod* mod, CCSize const& size) {
     CCNode* spr = nullptr;
-    if (mod == Loader::get()->getInternalMod()) {
+    if (mod == Loader::get()->getModImpl()) {
         spr = CCSprite::createWithSpriteFrameName("geode-logo.png"_spr);
     }
     else {

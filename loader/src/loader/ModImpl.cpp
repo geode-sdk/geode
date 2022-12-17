@@ -1,5 +1,5 @@
-#include "InternalMod.hpp"
-#include "InternalLoader.hpp"
+#include "ModImpl.hpp"
+#include "LoaderImpl.hpp"
 #include "about.hpp"
 
 #include <Geode/loader/Dirs.hpp>
@@ -14,7 +14,7 @@
 
 USE_GEODE_NAMESPACE();
 
-Mod::Impl* InternalMod::getImpl(Mod* mod)  {
+Mod::Impl* ModImpl::getImpl(Mod* mod)  {
     return mod->m_impl.get();
 }
 
@@ -285,12 +285,12 @@ Result<> Mod::Impl::loadBinary() {
         return Err("Mod has unresolved dependencies");
     }
 
-    InternalLoader::get()->provideNextMod(this->m_self);
+    LoaderImpl::get()->provideNextMod(this->m_self);
 
     GEODE_UNWRAP(this->loadPlatformBinary());
     m_binaryLoaded = true;
 
-    InternalLoader::get()->releaseNextMod();
+    LoaderImpl::get()->releaseNextMod();
 
     ModStateEvent(this->m_self, ModEventType::Loaded).post();
 
@@ -402,7 +402,7 @@ Result<> Mod::Impl::uninstall() {
 }
 
 bool Mod::Impl::isUninstalled() const {
-    return this->m_self != InternalMod::get() && !ghc::filesystem::exists(m_info.path);
+    return this->m_self != Mod::get() && !ghc::filesystem::exists(m_info.path);
 }
 
 // Dependencies
@@ -490,7 +490,7 @@ Result<> Mod::Impl::disableHook(Hook* hook) {
 }
 
 Result<Hook*> Mod::Impl::addHook(Hook* hook) {
-    if (InternalLoader::get()->isReadyToHook()) {
+    if (LoaderImpl::get()->isReadyToHook()) {
         auto res = this->enableHook(hook);
         if (!res) {
             delete hook;
@@ -498,7 +498,7 @@ Result<Hook*> Mod::Impl::addHook(Hook* hook) {
         }
     }
     else {
-        InternalLoader::get()->addInternalHook(hook, this->m_self);
+        LoaderImpl::get()->addInternalHook(hook, this->m_self);
     }
 
     return Ok(hook);
@@ -630,12 +630,12 @@ static constexpr char const* SUPPORT_INFO = R"MD(
 You can support our work by sending <cp>**catgirl pictures**</c> to [HJfod](https://youtu.be/LOHSF9MmBDw) :))
 )MD";
 
-static ModInfo getInternalModInfo() {
+static ModInfo getModImplInfo() {
     try {
         auto json = ModJson::parse(LOADER_MOD_JSON);
         auto infoRes = ModInfo::create(json);
         if (infoRes.isErr()) {
-            InternalLoader::get()->platformMessageBox(
+            LoaderImpl::get()->platformMessageBox(
                 "Fatal Internal Error",
                 "Unable to parse loader mod.json: \"" + infoRes.unwrapErr() +
                     "\"\n"
@@ -651,7 +651,7 @@ static ModInfo getInternalModInfo() {
         return info;
     }
     catch (std::exception& e) {
-        InternalLoader::get()->platformMessageBox(
+        LoaderImpl::get()->platformMessageBox(
             "Fatal Internal Error",
             "Unable to parse loader mod.json: \"" + std::string(e.what()) +
                 "\"\n"
@@ -662,16 +662,13 @@ static ModInfo getInternalModInfo() {
     }
 }
 
-Mod* InternalMod::get() {
+void Loader::Impl::setupInternalMod() {
     auto& mod = Mod::sharedMod<>;
-    if (mod) return mod;
-
-    mod = new Mod(getInternalModInfo());
+    if (mod) return;
+    mod = new Mod(getModImplInfo());
 
     auto setupRes = mod->m_impl->setup();
     if (!setupRes) {
         log::error("Failed to setup internal mod! ({})", setupRes.unwrapErr());
-        return mod;
     }
-    return mod;
 }

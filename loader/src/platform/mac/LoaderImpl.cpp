@@ -1,8 +1,8 @@
 #include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Log.hpp>
 #include <iostream>
-#include <loader/InternalLoader.hpp>
-#include <loader/InternalMod.hpp>
+#include <loader/LoaderImpl.hpp>
+#include <loader/ModImpl.hpp>
 
 #ifdef GEODE_IS_MACOS
 
@@ -36,7 +36,7 @@ CFDataRef msgPortCallback(CFMessagePortRef port, SInt32 messageID, CFDataRef dat
 
     std::string cdata(reinterpret_cast<char const*>(CFDataGetBytePtr(data)), CFDataGetLength(data));
 
-    std::string reply = InternalLoader::get()->processRawIPC(port, cdata);
+    std::string reply = LoaderImpl::get()->processRawIPC(port, cdata);
     return CFDataCreate(NULL, (UInt8 const*)reply.data(), reply.size());
 }
 

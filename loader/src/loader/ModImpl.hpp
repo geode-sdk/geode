@@ -120,7 +120,7 @@ namespace geode {
         ModJson getRuntimeInfo() const;
     };
 
-    class InternalMod : public Mod {
+    class ModImpl : public Mod {
     public:
         static Mod* get();
 
