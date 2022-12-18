@@ -747,7 +747,7 @@ class ColorSelectPopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, 
     ColorSelectPopup() {}
     bool init(EffectGameObject* triggerObj, cocos2d::CCArray* triggerObjs, ColorAction* colorAction) = mac 0x41ee70, win 0x43ae0;
     void updateColorValue() = win 0x46f30;
-    void updateCopyColorTextInputLabel() = win 0x479c0;
+    void updateCopyColorTextInputLabel() = win 0x479c0, mac 0x422ed0;
     void closeColorSelect(cocos2d::CCObject* sender) = mac 0x421af0, win 0x46d80;
 
     cocos2d::extension::CCControlColourPicker* m_colorPicker;
@@ -5014,12 +5014,12 @@ class SetupPickupTriggerPopup : FLAlertLayer {
 }
 
 class SetupPulsePopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, TextInputDelegate, GJSpecialColorSelectDelegate {
-    virtual void colorValueChanged(cocos2d::ccColor3B color) = win 0x242660;
+    virtual void colorValueChanged(cocos2d::ccColor3B color) = win 0x242660, mac 0x1ec680;
     SetupPulsePopup() {}
 
-    bool init(EffectGameObject* triggerObj, cocos2d::CCArray* triggerObjs) = win 0x23e980;
+    bool init(EffectGameObject* triggerObj, cocos2d::CCArray* triggerObjs) = win 0x23e980, mac 0x1e7010;
     void updateColorValue() = win 0x2426b0;
-    void onSelectPulseMode(cocos2d::CCObject*) = win 0x241420;
+    void onSelectPulseMode(cocos2d::CCObject*) = win 0x241420, mac 0x1eb020;
     void updatePulseMode() = win 0x242cf0;
 
 
