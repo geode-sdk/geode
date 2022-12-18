@@ -744,7 +744,7 @@ class ColorSelectLiveOverlay : FLAlertLayer {
 
 class ColorSelectPopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, TextInputDelegate, GJSpecialColorSelectDelegate {
     virtual void colorValueChanged(cocos2d::ccColor3B color) = mac 0x423520, win 0x46ee0;
-
+    ColorSelectPopup() {}
     bool init(EffectGameObject* triggerObj, cocos2d::CCArray* triggerObjs, ColorAction* colorAction) = mac 0x41ee70, win 0x43ae0;
     void updateColorValue() = win 0x46f30;
     void updateCopyColorTextInputLabel() = win 0x479c0;
@@ -5015,6 +5015,7 @@ class SetupPickupTriggerPopup : FLAlertLayer {
 
 class SetupPulsePopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, TextInputDelegate, GJSpecialColorSelectDelegate {
     virtual void colorValueChanged(cocos2d::ccColor3B color) = win 0x242660;
+    SetupPulsePopup() {}
 
     bool init(EffectGameObject* triggerObj, cocos2d::CCArray* triggerObjs) = win 0x23e980;
     void updateColorValue() = win 0x2426b0;
