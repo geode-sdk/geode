@@ -21,7 +21,7 @@ namespace geode::core::meta::x86 {
 
     public:
         class Sequences {
-        public:
+        private:
             // These are required for proper reordering.
             static constexpr size_t length = sizeof...(Args);
 
@@ -138,27 +138,6 @@ namespace geode::core::meta::x86 {
             using from = typename MyConv::template arr_to_seq<from_arr>;
         };
 
-        template <class Type>
-        struct TinyWrapper {
-            Type m_value;
-
-            TinyWrapper(Type value) : m_value(value) {}
-
-            // to make sure this class doesn't get registered as a hva
-            TinyWrapper(TinyWrapper const& other) : m_value(other.m_value) {}
-        };
-
-        template <class Type, size_t idx>
-        struct TypeReplace {
-            using type = Type;
-        };
-
-        template <class Type, size_t idx>
-        requires (std::is_floating_point_v<Type> && idx > Sequences::SSES && idx < Sequences::length)
-        struct TypeReplace<Type, idx> {
-            using type = TinyWrapper<Type>;
-        };
-
     protected:
         // Where all the logic is actually implemented.
         template <class Class, class>
@@ -175,7 +154,7 @@ namespace geode::core::meta::x86 {
         public:
             static Ret invoke(void* address, Tuple<Args..., float, int> const& all) {
                 return reinterpret_cast<Ret(__vectorcall*)(
-                    typename TypeReplace<typename Tuple<Args..., float, int>::template type_at<to>, to>::type...
+                    typename Tuple<Args..., float, int>::template type_at<to>...
                 )>(address)(all.template at<to>()...);
             }
 
@@ -184,7 +163,7 @@ namespace geode::core::meta::x86 {
                 /* It's wrapped to stop MSVC from giving me error messages with internal compiler
                  * info. WTF.
                  */
-                typename TypeReplace<typename Tuple<Args..., float, int>::template type_at_wrap<to>, to>::type... raw
+                typename Tuple<Args..., float, int>::template type_at_wrap<to>... raw
             ) {
                 auto all = Tuple<>::make(raw...);
                 return detour(all.template at<from>()...);
@@ -218,27 +197,6 @@ namespace geode::core::meta::x86 {
     
     protected:
         using Sequences = typename Membercall<Ret*, Class, Ret*, Args...>::Sequences;
-        
-        template <class Type>
-        struct TinyWrapper {
-            Type m_value;
-
-            TinyWrapper(Type value) : m_value(value) {}
-
-            // to make sure this class doesn't get registered as a hva
-            TinyWrapper(TinyWrapper const& other) : m_value(other.m_value) {}
-        };
-
-        template <class Type, size_t idx>
-        struct TypeReplace {
-            using type = Type;
-        };
-
-        template <class Type, size_t idx>
-        requires (std::is_floating_point_v<Type> && idx > Sequences::SSES && idx < Sequences::length)
-        struct TypeReplace<Type, idx> {
-            using type = TinyWrapper<Type>;
-        };
 
         // Where all the logic is actually implemented.
         template <class Class, class>
@@ -255,7 +213,7 @@ namespace geode::core::meta::x86 {
         public:
             static Ret* invoke(void* address, Tuple<Class, Ret*, Args..., float, int> const& all) {
                 return reinterpret_cast<Ret*(__vectorcall*)(
-                    typename TypeReplace<typename Tuple<Class, Ret*, Args..., float, int>::template type_at<to>, to>::type...
+                    typename Tuple<Class, Ret*, Args..., float, int>::template type_at<to>...
                 )>(address)(all.template at<to>()...);
             }
 
@@ -264,7 +222,7 @@ namespace geode::core::meta::x86 {
                 /* It's wrapped to stop MSVC from giving me error messages with internal compiler
                  * info. WTF.
                  */
-                typename TypeReplace<typename Tuple<Class, Ret*, Args..., float, int>::template type_at_wrap<to>, to>::type... raw
+                typename Tuple<Class, Ret*, Args..., float, int>::template type_at_wrap<to>... raw
             ) {
                 auto all = Tuple<>::make(raw...);
                 return reinterpret_cast<Ret*(*)(Class, Ret*, Args...)>(detour)(all.template at<from>()...);

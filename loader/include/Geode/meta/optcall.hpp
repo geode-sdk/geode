@@ -15,7 +15,7 @@ namespace geode::core::meta::x86 {
     private:
         // These go in a class to not pollute the namespace.
         class Sequences {
-        public:
+        private:
             // These are required for proper reordering.
             static constexpr size_t length = sizeof...(Args);
 
@@ -152,27 +152,6 @@ namespace geode::core::meta::x86 {
             using stack = typename MyConv::template arr_to_seq<stack_arr>;
         };
 
-        template <class Type>
-        struct TinyWrapper {
-            Type m_value;
-
-            TinyWrapper(Type value) : m_value(value) {}
-
-            // to make sure this class doesn't get registered as a hva
-            TinyWrapper(TinyWrapper const& other) : m_value(other.m_value) {}
-        };
-
-        template <class Type, size_t idx>
-        struct TypeReplace {
-            using type = Type;
-        };
-
-        template <class Type, size_t idx>
-        requires (std::is_floating_point_v<Type> && idx > Sequences::SSES && idx < Sequences::length)
-        struct TypeReplace<Type, idx> {
-            using type = TinyWrapper<Type>;
-        };
-
     private:
         // Where all the logic is actually implemented.
         template <class Class, class, class>
@@ -196,9 +175,9 @@ namespace geode::core::meta::x86 {
             static Ret invoke(void* address, Tuple<Args..., float> const& all) {
                 if constexpr (!std::is_same_v<Ret, void>) {
                     Ret ret =
-                        reinterpret_cast<Ret(__vectorcall*)(
-                            typename TypeReplace<typename Tuple<Args..., float>::template type_at<to>, to>::type...
-                        )>(address)(all.template at<to>()...);
+                        reinterpret_cast<Ret(__vectorcall*)(decltype(all.template at<to>())...)>(
+                            address
+                        )(all.template at<to>()...);
 
                     if constexpr (fix != 0) {
                         __asm add esp, [fix]
@@ -207,9 +186,8 @@ namespace geode::core::meta::x86 {
                     return ret;
                 }
                 else {
-                    reinterpret_cast<Ret(__vectorcall*)(
-                        typename TypeReplace<typename Tuple<Args..., float>::template type_at<to>, to>::type...
-                    )>(address)(all.template at<to>()...);
+                    reinterpret_cast<Ret(__vectorcall*)(decltype(all.template at<to>())...)>(address
+                    )(all.template at<to>()...);
 
                     if constexpr (fix != 0) {
                         __asm add esp, [fix]
