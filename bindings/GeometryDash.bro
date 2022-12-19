@@ -1463,6 +1463,7 @@ class EndLevelLayer {
     static EndLevelLayer* create() = mac 0x2787d0, win 0x94b50;
 
     void onMenu(cocos2d::CCObject* sender) = mac 0x27a500, win 0x96c10;
+    void onEdit(cocos2d::CCObject* sender) = mac 0x27a640, win 0x96d30;
 }
 
 class EndPortalObject : GameObject {
