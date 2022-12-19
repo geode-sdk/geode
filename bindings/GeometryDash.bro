@@ -3690,6 +3690,9 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
     void updateToggledGroups() = mac 0x9bb10;
     void updateVisibility(float) = mac 0x92c70, win 0x1632b0;
 
+    void groupStickyObjects(cocos2d::CCArray* objects) = mac 0x99dd0, win 0x164860;
+    void ungroupStickyObjects(cocos2d::CCArray* objects) = mac 0x99ee0;
+
     void setStartPosObject(StartPosObject* obj) {
         CC_SAFE_RETAIN(obj);
         CC_SAFE_RELEASE(m_currentStartPos);
