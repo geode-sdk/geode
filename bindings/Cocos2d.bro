@@ -961,6 +961,9 @@ class cocos2d::extension::CCControlColourPicker {
     auto ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x1aae10;
     auto init() = mac 0x1aa400;
     static auto colourPicker() = mac 0x1aaa30;
+    cocos2d::ccColor3B const& getColorValue() const {
+    	return m_rgb;
+    }
 
 }
 
