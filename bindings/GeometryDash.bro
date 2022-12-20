@@ -4821,7 +4821,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     cocos2d::CCLayer* m_unk65C;
     bool m_isSliding;
     bool m_isRising;
-    bool m_unk662;
+    bool m_isLocked;
     cocos2d::CCPoint m_lastGroundedPos;
     cocos2d::CCArray* m_touchingRings;
     GameObject* m_lastActivatedPortal;
