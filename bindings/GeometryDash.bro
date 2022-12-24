@@ -1140,6 +1140,7 @@ class EditorPauseLayer : CCBlockLayer, FLAlertLayerProtocol {
     void onSave(cocos2d::CCObject* sender) = mac 0x13e290, win 0x755a0;
     void onExitNoSave(cocos2d::CCObject* sender) = win 0x75700;
     void uncheckAllPortals(cocos2d::CCObject* sender) = win 0x74760;
+    void onOptions(cocos2d::CCObject *sender) = win 0x74740;
     void onResetUnusedColors(cocos2d::CCObject* sender) = win 0x74810;
     void doResetUnused() = win 0x165070;
 
@@ -3793,6 +3794,7 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
 class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDelegate, RateLevelDelegate, LikeItemDelegate, FLAlertLayerProtocol, LevelDeleteDelegate, NumberInputDelegate, SetIDPopupDelegate {
     static LevelInfoLayer* create(GJGameLevel* level) = mac 0x15f290, win 0x175d50;
     bool init(GJGameLevel* level) = win 0x175df0, mac 0x15f520;
+    void updateLabelValues() = win 0x17B170;
     void onGarage(cocos2d::CCObject* sender) = win 0x177c10;
     void onViewProfile(cocos2d::CCObject* sender) = win 0x17ac90;
     void onLevelInfo(cocos2d::CCObject* sender) = win 0x17acf0;
@@ -4164,6 +4166,9 @@ class OptionsLayer : GJDropDownLayer, FLAlertLayerProtocol {
     virtual void customSetup() = mac 0x43dc70, win 0x1dd420;
     virtual void layerHidden() = mac 0x43f200, win 0x1de6d0;
 
+    void musicSliderChanged(cocos2d::CCObject*) = win 0x1dde20;
+    void onOptions(cocos2d::CCObject*) = win 0x1de120; 
+
     cocos2d::CCMenu* m_optionsMenu;
 }
 
@@ -4178,6 +4183,9 @@ class PauseLayer : CCBlockLayer {
 
     void onRestart(cocos2d::CCObject* sender) = win 0x1e6040;
     void keyDown(cocos2d::enumKeyCodes) = mac 0x20cc80, win 0x1E6580;
+
+    void musicSliderChanged(cocos2d::CCObject*) = win 0x1E5CE0;
+    void onPracticeQuit(cocos2d::CCObject*) = win 0x1e5f60;
     
     bool m_unknown;
     bool m_unknown2;
