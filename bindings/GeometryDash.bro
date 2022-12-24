@@ -3591,7 +3591,7 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
     static cocos2d::CCScene* scene(GJGameLevel* level) {
         auto scene = cocos2d::CCScene::create();
         scene->addChild(LevelEditorLayer::create(level));
-        scene->setObjType(CCObjectType::LevelEditorLayer);
+        scene->setObjType(cocos2d::CCObjectType::LevelEditorLayer);
 
         AppDelegate::get()->m_runningScene = scene;
         return scene;
@@ -4304,7 +4304,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     static cocos2d::CCScene* scene(GJGameLevel* level) {
         auto scene = cocos2d::CCScene::create();
         scene->addChild(PlayLayer::create(level));
-        scene->setObjType(CCObjectType::PlayLayer);
+        scene->setObjType(cocos2d::CCObjectType::PlayLayer);
 
         AppDelegate::get()->m_runningScene = scene;
         return scene;
