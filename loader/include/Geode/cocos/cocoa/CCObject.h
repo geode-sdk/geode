@@ -48,11 +48,12 @@ NS_CC_BEGIN
  */
 
 RT_ADD(
-    typedef enum {
-        kCCObjectTypePlayLayer = 5,
-        kCCObjectTypeLevelEditorLayer = 6,
-        kCCObjectTypeMenuLayer = 15,
-    } CCObjectType;
+    // please someone tell we why in higher being(s)'s name rob did this
+    enum class CCObjectType {
+        PlayLayer = 5,
+        LevelEditorLayer = 6,
+        MenuLayer = 15,
+    };
 )
 
 class CCZone;
@@ -156,8 +157,6 @@ public:
         inline void setObjType(CCObjectType type) {
         	m_eObjType = type;
         }
-    
-        //i have no idea if vtable function order matters so 
     )
 
     friend class CCAutoreleasePool;
