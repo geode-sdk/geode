@@ -56,6 +56,17 @@ namespace geode {
         static inline auto s_applyRef = &Modify::s_apply;
 
     public:
+        // abusing the internal stuff
+        // basically we dont want modify to invoke base ctors and dtors
+        // we already have utilities for these, which are ccdestructor
+        // and the monostate constructor
+        Modify() : Base(std::monostate(), sizeof(Base)) {}
+        ~Modify() {
+            cocos2d::CCDestructor::lock(this) = true;
+        }
+        Modify(Modify const&) = delete;
+        Modify(Modify&&) = delete;
+
         modifier::FieldIntermediate<Derived, Base> m_fields;
     };
 }
