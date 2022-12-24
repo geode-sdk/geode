@@ -1078,14 +1078,12 @@ class EditButtonBar : cocos2d::CCNode {
 }
 
 class EditLevelLayer : cocos2d::CCLayer, FLAlertLayerProtocol, TextInputDelegate, UploadActionDelegate, UploadPopupDelegate, SetIDPopupDelegate {
-    static void scene(GJGameLevel* level) {
+    static cocos2d::CCScene* scene(GJGameLevel* level) {
         auto scene = cocos2d::CCScene::create();
-    
         scene->addChild(EditLevelLayer::create(level));
-    
-        cocos2d::CCDirector::sharedDirector()->replaceScene(
-            cocos2d::CCTransitionFade::create(.5f, scene)
-        );
+
+        AppDelegate::get()->m_runningScene = scene;
+        return scene;
     }
 
     static EditLevelLayer* create(GJGameLevel* level) = mac 0xe1e50, win 0x6f530, ios 0x82420;
@@ -3533,14 +3531,12 @@ class LeaderboardsLayer : cocos2d::CCLayer {
 }
 
 class LevelBrowserLayer : cocos2d::CCLayer {
-    static void scene(GJSearchObject* search) {
+    static cocos2d::CCScene* scene(GJSearchObject* search) {
         auto scene = cocos2d::CCScene::create();
-    
         scene->addChild(LevelBrowserLayer::create(search));
 
-        cocos2d::CCDirector::sharedDirector()->pushScene(
-            cocos2d::CCTransitionFade::create(.5f, scene)
-        );
+        AppDelegate::get()->m_runningScene = scene;
+        return scene;
     }
 
     bool init(GJSearchObject* search) = mac 0x2513f0, win 0x15a040;
@@ -3594,13 +3590,10 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
     }
     static cocos2d::CCScene* scene(GJGameLevel* level) {
         auto scene = cocos2d::CCScene::create();
-    
         scene->addChild(LevelEditorLayer::create(level));
-        scene->setObjType(cocos2d::kCCObjectTypeLevelEditorLayer);
-    
-        cocos2d::CCDirector::sharedDirector()->replaceScene(
-            cocos2d::CCTransitionFade::create(0.5f, scene)
-        );
+        scene->setObjType(cocos2d::CCObjectType::LevelEditorLayer);
+
+        AppDelegate::get()->m_runningScene = scene;
         return scene;
     }
 
@@ -3959,6 +3952,7 @@ class LoadingLayer : cocos2d::CCLayer {
     static cocos2d::CCScene* scene(bool fromReload) {
         auto scene = cocos2d::CCScene::create();
         scene->addChild(LoadingLayer::create(fromReload));
+
         return scene;
     }
 
@@ -4306,7 +4300,16 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     void resume() = mac 0x80480, win 0x20d5c0;
     void resumeAndRestart() = mac 0x80400, win 0x20d4c0;
     void saveRecordAction(bool, PlayerObject*) = mac 0x78750, win 0x20ad40;
-    static cocos2d::CCScene* scene(GJGameLevel*) = mac 0x6b500, win 0x1fb690;
+
+    static cocos2d::CCScene* scene(GJGameLevel* level) {
+        auto scene = cocos2d::CCScene::create();
+        scene->addChild(PlayLayer::create(level));
+        scene->setObjType(cocos2d::CCObjectType::PlayLayer);
+
+        AppDelegate::get()->m_runningScene = scene;
+        return scene;
+    }
+
     void setupLevelStart(LevelSettingsObject*) = mac 0x6f560, win 0x1fb780;
     void setupReplay(gd::string) = mac 0x7e1e0;
     void shakeCamera(float, float, float) = mac 0x744a0, win 0x1ff210;
