@@ -4773,7 +4773,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     PAD = mac 0x24, win 0x24;
     float m_decelerationRate;
     PAD = mac 0x14, win 0x14;
-    GameObject* m_unk59C;
+    GameObject* m_snappedObject;
     PAD = mac 0x10, win 0x8;
     GJRobotSprite* m_robotSprite;
     GJSpiderSprite* m_spiderSprite;
@@ -4825,7 +4825,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     cocos2d::CCLayer* m_unk65C;
     bool m_isSliding;
     bool m_isRising;
-    bool m_unk662;
+    bool m_isLocked;
     cocos2d::CCPoint m_lastGroundedPos;
     cocos2d::CCArray* m_touchingRings;
     GameObject* m_lastActivatedPortal;
