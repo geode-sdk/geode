@@ -1,4 +1,4 @@
-#include <Geode/Modify.hpp>
+#include <Geode/modify/GJGarageLayer.hpp>
 #include <Geode/Bindings.hpp>
 #include <Geode/utils/cocos.hpp>
 #include "AddIDs.hpp"

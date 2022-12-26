@@ -1,4 +1,5 @@
 #include <Geode/binding/ProfilePage.hpp>
+#include <Geode/binding/CCContentLayer.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/ui/MDTextArea.hpp>
 #include <Geode/utils/casts.hpp>
@@ -446,6 +447,7 @@ struct MDParser {
             case MD_BLOCKTYPE::MD_BLOCK_UL:
                 {
                     renderer->popIndent();
+                    renderer->breakLine();
                 }
                 break;
 
@@ -488,6 +490,7 @@ struct MDParser {
 
             case MD_BLOCKTYPE::MD_BLOCK_LI:
                 {
+                    renderer->breakLine();
                 }
                 break;
 

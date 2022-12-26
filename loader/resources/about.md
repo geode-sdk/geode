@@ -17,29 +17,19 @@ See [Documentation](https://geode-sdk.github.io/docs) for info about developing 
 Developed by
 
  * [PoweredByPie](https://github.com/poweredbypie/)
- 
  * [Mat](https://github.com/matcool/)
-
  * [HJfod](user:104257)
-
  * [Camila314](https://github.com/camila314/)
-
  * [Alk1m123](https://github.com/altalk23/)
-
  * [FireCubez](https://github.com/FireCubez)
-
  * [fig](https://github.com/FigmentBoy)
 
 Using
 
  * [Cocos2d-x](https://github.com/cocos2d/cocos2d-x/tree/cocos2d-x-2.2.3)
-
  * [FMOD](https://www.fmod.com/)
-
  * [fmt](https://fmt.dev/latest/index.html)
-
  * [PEGTL](https://github.com/taocpp/PEGTL)
-
  * [md4c](https://github.com/mity/md4c)
 
 Special thanks to [RobTop Games](https://twitter.com/RobTopGames/) for making this amazing game and providing us and so many others with hours of entertainment <3

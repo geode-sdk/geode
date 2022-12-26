@@ -228,11 +228,17 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
             curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, utils::fetch::writeBytes);
         }
         curl_easy_setopt(curl, CURLOPT_URL, m_url.c_str());
+        // No need to verify SSL, we trust our domains :-)
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
+        // Github User Agent
         curl_easy_setopt(curl, CURLOPT_USERAGENT, "github_api/1.0");
+        // Track progress
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
+        // Follow redirects
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
+        // Fail if response code is 4XX or 5XX
+        curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
 
         curl_slist* headers = nullptr;
         for (auto& header : m_httpHeaders) {
@@ -272,6 +278,7 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
         curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &data);
         auto res = curl_easy_perform(curl);
         if (res != CURLE_OK) {
+            curl_easy_cleanup(curl);
             return this->error("Fetch failed: " + std::string(curl_easy_strerror(res)));
         }
         curl_easy_cleanup(curl);
@@ -344,14 +351,16 @@ bool SentAsyncWebRequest::Impl::finished() const {
 void SentAsyncWebRequest::Impl::error(std::string const& error) {
     auto lock = std::unique_lock(m_statusMutex);
     m_statusCV.wait(lock, [this]() { 
-        return bool(m_paused); 
+        return !m_paused; 
     });
     Loader::get()->queueInGDThread([this, error]() {
-        std::lock_guard _(m_mutex);
-        for (auto& expect : m_expects) {
-            expect(error);
+        {
+            std::lock_guard _(m_mutex);
+            for (auto& expect : m_expects) {
+                expect(error);
+            }
         }
-        std::lock_guard __(RUNNING_REQUESTS_MUTEX);
+        std::lock_guard _(RUNNING_REQUESTS_MUTEX);
         RUNNING_REQUESTS.erase(m_id);
     });
 }

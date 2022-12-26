@@ -744,10 +744,10 @@ class ColorSelectLiveOverlay : FLAlertLayer {
 
 class ColorSelectPopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, TextInputDelegate, GJSpecialColorSelectDelegate {
     virtual void colorValueChanged(cocos2d::ccColor3B color) = mac 0x423520, win 0x46ee0;
-
+    ColorSelectPopup() {}
     bool init(EffectGameObject* triggerObj, cocos2d::CCArray* triggerObjs, ColorAction* colorAction) = mac 0x41ee70, win 0x43ae0;
     void updateColorValue() = win 0x46f30;
-    void updateCopyColorTextInputLabel() = win 0x479c0;
+    void updateCopyColorTextInputLabel() = win 0x479c0, mac 0x422ed0;
     void closeColorSelect(cocos2d::CCObject* sender) = mac 0x421af0, win 0x46d80;
 
     cocos2d::extension::CCControlColourPicker* m_colorPicker;
@@ -1078,14 +1078,12 @@ class EditButtonBar : cocos2d::CCNode {
 }
 
 class EditLevelLayer : cocos2d::CCLayer, FLAlertLayerProtocol, TextInputDelegate, UploadActionDelegate, UploadPopupDelegate, SetIDPopupDelegate {
-    static void scene(GJGameLevel* level) {
+    static cocos2d::CCScene* scene(GJGameLevel* level) {
         auto scene = cocos2d::CCScene::create();
-    
         scene->addChild(EditLevelLayer::create(level));
-    
-        cocos2d::CCDirector::sharedDirector()->replaceScene(
-            cocos2d::CCTransitionFade::create(.5f, scene)
-        );
+
+        AppDelegate::get()->m_runningScene = scene;
+        return scene;
     }
 
     static EditLevelLayer* create(GJGameLevel* level) = mac 0xe1e50, win 0x6f530, ios 0x82420;
@@ -1463,6 +1461,7 @@ class EndLevelLayer {
     static EndLevelLayer* create() = mac 0x2787d0, win 0x94b50;
 
     void onMenu(cocos2d::CCObject* sender) = mac 0x27a500, win 0x96c10;
+    void onEdit(cocos2d::CCObject* sender) = mac 0x27a640, win 0x96d30;
 }
 
 class EndPortalObject : GameObject {
@@ -3532,14 +3531,12 @@ class LeaderboardsLayer : cocos2d::CCLayer {
 }
 
 class LevelBrowserLayer : cocos2d::CCLayer {
-    static void scene(GJSearchObject* search) {
+    static cocos2d::CCScene* scene(GJSearchObject* search) {
         auto scene = cocos2d::CCScene::create();
-    
         scene->addChild(LevelBrowserLayer::create(search));
 
-        cocos2d::CCDirector::sharedDirector()->pushScene(
-            cocos2d::CCTransitionFade::create(.5f, scene)
-        );
+        AppDelegate::get()->m_runningScene = scene;
+        return scene;
     }
 
     bool init(GJSearchObject* search) = mac 0x2513f0, win 0x15a040;
@@ -3593,13 +3590,10 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
     }
     static cocos2d::CCScene* scene(GJGameLevel* level) {
         auto scene = cocos2d::CCScene::create();
-    
         scene->addChild(LevelEditorLayer::create(level));
-        scene->setObjType(cocos2d::kCCObjectTypeLevelEditorLayer);
-    
-        cocos2d::CCDirector::sharedDirector()->replaceScene(
-            cocos2d::CCTransitionFade::create(0.5f, scene)
-        );
+        scene->setObjType(cocos2d::CCObjectType::LevelEditorLayer);
+
+        AppDelegate::get()->m_runningScene = scene;
         return scene;
     }
 
@@ -3689,6 +3683,9 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
     void updateOptions() = mac 0x91ed0, win 0x15fcc0;
     void updateToggledGroups() = mac 0x9bb10;
     void updateVisibility(float) = mac 0x92c70, win 0x1632b0;
+
+    void groupStickyObjects(cocos2d::CCArray* objects) = mac 0x99dd0, win 0x164860;
+    void ungroupStickyObjects(cocos2d::CCArray* objects) = mac 0x99ee0, win 0x164950;
 
     void setStartPosObject(StartPosObject* obj) {
         CC_SAFE_RETAIN(obj);
@@ -3955,6 +3952,7 @@ class LoadingLayer : cocos2d::CCLayer {
     static cocos2d::CCScene* scene(bool fromReload) {
         auto scene = cocos2d::CCScene::create();
         scene->addChild(LoadingLayer::create(fromReload));
+
         return scene;
     }
 
@@ -4302,7 +4300,16 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     void resume() = mac 0x80480, win 0x20d5c0;
     void resumeAndRestart() = mac 0x80400, win 0x20d4c0;
     void saveRecordAction(bool, PlayerObject*) = mac 0x78750, win 0x20ad40;
-    static cocos2d::CCScene* scene(GJGameLevel*) = mac 0x6b500, win 0x1fb690;
+
+    static cocos2d::CCScene* scene(GJGameLevel* level) {
+        auto scene = cocos2d::CCScene::create();
+        scene->addChild(PlayLayer::create(level));
+        scene->setObjType(cocos2d::CCObjectType::PlayLayer);
+
+        AppDelegate::get()->m_runningScene = scene;
+        return scene;
+    }
+
     void setupLevelStart(LevelSettingsObject*) = mac 0x6f560, win 0x1fb780;
     void setupReplay(gd::string) = mac 0x7e1e0;
     void shakeCamera(float, float, float) = mac 0x744a0, win 0x1ff210;
@@ -4769,7 +4776,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     PAD = mac 0x24, win 0x24;
     float m_decelerationRate;
     PAD = mac 0x14, win 0x14;
-    GameObject* m_unk59C;
+    GameObject* m_snappedObject;
     PAD = mac 0x10, win 0x8;
     GJRobotSprite* m_robotSprite;
     GJSpiderSprite* m_spiderSprite;
@@ -4821,7 +4828,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     cocos2d::CCLayer* m_unk65C;
     bool m_isSliding;
     bool m_isRising;
-    bool m_unk662;
+    bool m_isLocked;
     cocos2d::CCPoint m_lastGroundedPos;
     cocos2d::CCArray* m_touchingRings;
     GameObject* m_lastActivatedPortal;
@@ -5014,11 +5021,12 @@ class SetupPickupTriggerPopup : FLAlertLayer {
 }
 
 class SetupPulsePopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, TextInputDelegate, GJSpecialColorSelectDelegate {
-    virtual void colorValueChanged(cocos2d::ccColor3B color) = win 0x242660;
+    virtual void colorValueChanged(cocos2d::ccColor3B color) = win 0x242660, mac 0x1ec680;
+    SetupPulsePopup() {}
 
-    bool init(EffectGameObject* triggerObj, cocos2d::CCArray* triggerObjs) = win 0x23e980;
+    bool init(EffectGameObject* triggerObj, cocos2d::CCArray* triggerObjs) = win 0x23e980, mac 0x1e7010;
     void updateColorValue() = win 0x2426b0;
-    void onSelectPulseMode(cocos2d::CCObject*) = win 0x241420;
+    void onSelectPulseMode(cocos2d::CCObject*) = win 0x241420, mac 0x1eb020;
     void updatePulseMode() = win 0x242cf0;
 
 
