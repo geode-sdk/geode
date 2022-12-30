@@ -4776,7 +4776,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     PAD = mac 0x24, win 0x24;
     float m_decelerationRate;
     PAD = mac 0x14, win 0x14;
-    GameObject* m_snappedObject;
+    GameObject* m_lastCollidedSolid;
     PAD = mac 0x10, win 0x8;
     GJRobotSprite* m_robotSprite;
     GJSpiderSprite* m_spiderSprite;
