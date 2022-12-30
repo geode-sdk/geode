@@ -139,16 +139,18 @@ add_subdirectory(lilac)
 target_link_libraries(${PROJECT_NAME} md4c z lilac_hook geode-sdk re2)
 
 # Use precompiled headers for faster builds
-target_precompile_headers(${PROJECT_NAME} PRIVATE
-	"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/DefaultInclude.hpp"
-	# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Utils.hpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Loader.hpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/UI.hpp"
-	# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Bindings.hpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Modify.hpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/cocos/include/cocos2d.h"
-	"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/cocos/extensions/cocos-ext.h"
-)
+if (NOT GEODE_DISABLE_PRECOMPILED_HEADERS)
+	target_precompile_headers(${PROJECT_NAME} PRIVATE
+		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/DefaultInclude.hpp"
+		# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Utils.hpp"
+		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Loader.hpp"
+		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/UI.hpp"
+		# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Bindings.hpp"
+		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Modify.hpp"
+		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/cocos/include/cocos2d.h"
+		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/cocos/extensions/cocos-ext.h"
+	)
+endif()
 
 # Create launcher
 if (APPLE) 
