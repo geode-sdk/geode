@@ -139,7 +139,7 @@ function(package_geode_resources_now proname src dest header_dest)
         set(HEADER_FILE
             "#include <unordered_map>\n\n"
             "static const std::unordered_map<std::string, std::string> "
-            "LOADER_RESOURCE_HASHES {};\n"
+            "LOADER_RESOURCE_HASHES {}\;\n"
         )
         file(WRITE ${header_dest} ${HEADER_FILE})
         message(STATUS "Wrote fake resource hashes to ${header_dest}")
