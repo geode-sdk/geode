@@ -1,15 +1,6 @@
 #pragma once
 
 namespace geode {
-    enum class SeedOrdering {
-        VRS,
-        VSR,
-        RVS,
-        RSV,
-        SVR,
-        SRV,
-    };
-
     class BaseSeedValue {
     protected:
         int m_v1 = 0;
@@ -26,9 +17,6 @@ namespace geode {
         BaseSeedValue& operator=(BaseSeedValue&& other) = default;
     };
 
-    template <SeedOrdering Ordering = SeedOrdering::RSV>
-    class SeedValue {};
-
 #define GEODE_SEED_VALUE_COMMON_OPS()                        \
     SeedValue& operator=(int value) {                        \
         internalValue() = value;                             \
@@ -41,9 +29,9 @@ namespace geode {
     }                                                        \
     operator int() { return this->value(); }
 
-    template <>
-    class SeedValue<SeedOrdering::VRS> : public BaseSeedValue {
+    class SeedValueVRS : public BaseSeedValue {
     private:
+        using SeedValue = SeedValueVRS;
         int& internalValue() {
             return m_v1;
         }
@@ -59,14 +47,14 @@ namespace geode {
     public:
         using BaseSeedValue::BaseSeedValue;
 
-        SeedValue(int value, int seed) : BaseSeedValue(value, value + seed, seed) {}
+        SeedValueVRS(int value, int seed) : BaseSeedValue(value, value + seed, seed) {}
 
         GEODE_SEED_VALUE_COMMON_OPS();
     };
 
-    template <>
-    class SeedValue<SeedOrdering::VSR> : public BaseSeedValue {
+    class SeedValueVSR : public BaseSeedValue {
     private:
+        using SeedValue = SeedValueVSR;
         int& internalValue() {
             return m_v1;
         }
@@ -82,14 +70,14 @@ namespace geode {
     public:
         using BaseSeedValue::BaseSeedValue;
 
-        SeedValue(int value, int seed) : BaseSeedValue(value, seed, value + seed) {}
+        SeedValueVSR(int value, int seed) : BaseSeedValue(value, seed, value + seed) {}
 
         GEODE_SEED_VALUE_COMMON_OPS();
     };
 
-    template <>
-    class SeedValue<SeedOrdering::RVS> : public BaseSeedValue {
+    class SeedValueRVS : public BaseSeedValue {
     private:
+        using SeedValue = SeedValueRVS;
         int& internalRandom() {
             return m_v1;
         }
@@ -105,14 +93,14 @@ namespace geode {
     public:
         using BaseSeedValue::BaseSeedValue;
 
-        SeedValue(int value, int seed) : BaseSeedValue(value + seed, value, seed) {}
+        SeedValueRVS(int value, int seed) : BaseSeedValue(value + seed, value, seed) {}
 
         GEODE_SEED_VALUE_COMMON_OPS();
     };
 
-    template <>
-    class SeedValue<SeedOrdering::RSV> : public BaseSeedValue {
+    class SeedValueRSV : public BaseSeedValue {
     private:
+        using SeedValue = SeedValueRSV;
         int& internalRandom() {
             return m_v1;
         }
@@ -128,14 +116,14 @@ namespace geode {
     public:
         using BaseSeedValue::BaseSeedValue;
 
-        SeedValue(int value, int seed) : BaseSeedValue(value + seed, seed, value) {}
+        SeedValueRSV(int value, int seed) : BaseSeedValue(value + seed, seed, value) {}
 
         GEODE_SEED_VALUE_COMMON_OPS();
     };
 
-    template <>
-    class SeedValue<SeedOrdering::SVR> : public BaseSeedValue {
+    class SeedValueSVR : public BaseSeedValue {
     private:
+        using SeedValue = SeedValueSVR;
         int& internalSeed() {
             return m_v1;
         }
@@ -151,14 +139,14 @@ namespace geode {
     public:
         using BaseSeedValue::BaseSeedValue;
 
-        SeedValue(int value, int seed) : BaseSeedValue(seed, value, value + seed) {}
+        SeedValueSVR(int value, int seed) : BaseSeedValue(seed, value, value + seed) {}
 
         GEODE_SEED_VALUE_COMMON_OPS();
     };
 
-    template <>
-    class SeedValue<SeedOrdering::SRV> : public BaseSeedValue {
+    class SeedValueSRV : public BaseSeedValue {
     private:
+        using SeedValue = SeedValueSRV;
         int& internalSeed() {
             return m_v1;
         }
@@ -174,17 +162,10 @@ namespace geode {
     public:
         using BaseSeedValue::BaseSeedValue;
 
-        SeedValue(int value, int seed) : BaseSeedValue(seed, value + seed, value) {}
+        SeedValueSRV(int value, int seed) : BaseSeedValue(seed, value + seed, value) {}
 
         GEODE_SEED_VALUE_COMMON_OPS();
     };
-
-    using SeedValueRSV = SeedValue<SeedOrdering::RSV>;
-    using SeedValueSRV = SeedValue<SeedOrdering::SRV>;
-    using SeedValueVRS = SeedValue<SeedOrdering::VRS>;
-    using SeedValueVSR = SeedValue<SeedOrdering::VSR>;
-    using SeedValueRVS = SeedValue<SeedOrdering::RVS>;
-    using SeedValueSVR = SeedValue<SeedOrdering::SVR>;
 
 #undef GEODE_SEED_VALUE_COMMON_OPS
 } // namespace geode
