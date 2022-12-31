@@ -689,12 +689,12 @@ CCScrollLayerExt* MDTextArea::getScrollLayer() const {
 }
 
 void MDTextArea::setString(char const* text) {
-    this->m_text = text;
+    m_text = text;
     this->updateLabel();
 }
 
 char const* MDTextArea::getString() {
-    return this->m_text.c_str();
+    return m_text.c_str();
 }
 
 MDTextArea* MDTextArea::create(std::string const& str, CCSize const& size) {

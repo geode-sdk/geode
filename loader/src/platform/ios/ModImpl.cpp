@@ -19,12 +19,12 @@ T findSymbolOrMangled(void* dylib, char const* name, char const* mangled) {
 
 Result<> Mod::Impl::loadPlatformBinary() {
     auto dylib =
-        dlopen((this->m_tempDirName / this->m_info.binaryName).string().c_str(), RTLD_LAZY);
+        dlopen((m_tempDirName / m_info.binaryName).string().c_str(), RTLD_LAZY);
     if (dylib) {
-        if (this->m_platformInfo) {
-            delete this->m_platformInfo;
+        if (m_platformInfo) {
+            delete m_platformInfo;
         }
-        this->m_platformInfo = new PlatformInfo { dylib };
+        m_platformInfo = new PlatformInfo { dylib };
 
         return Ok();
     }
@@ -33,9 +33,9 @@ Result<> Mod::Impl::loadPlatformBinary() {
 }
 
 Result<> Mod::Impl::unloadPlatformBinary() {
-    auto dylib = this->m_platformInfo->m_dylib;
-    delete this->m_platformInfo;
-    this->m_platformInfo = nullptr;
+    auto dylib = m_platformInfo->m_dylib;
+    delete m_platformInfo;
+    m_platformInfo = nullptr;
     if (dlclose(dylib) == 0) {
         return Ok();
     }

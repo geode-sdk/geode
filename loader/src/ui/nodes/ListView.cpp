@@ -49,7 +49,7 @@ void ListView::setupList() {
 }
 
 TableViewCell* ListView::getListCell(char const* key) {
-    return GenericListCell::create(key, { this->m_width, this->m_itemSeparation });
+    return GenericListCell::create(key, { m_width, m_itemSeparation });
 }
 
 void ListView::loadCell(TableViewCell* cell, unsigned int index) {

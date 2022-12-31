@@ -326,18 +326,18 @@ class CCLightFlash {
 
 class CCMenuItemSpriteExtra : cocos2d::CCMenuItemSprite {
     void useAnimationType(MenuAnimationType type) {
-        this->m_startPosition = this->getNormalImage()->getPosition();
-        this->m_animationType = type;
+        m_startPosition = this->getNormalImage()->getPosition();
+        m_animationType = type;
     }
     void setDestination(cocos2d::CCPoint const& pos) {
-        this->m_destPosition = pos;
+        m_destPosition = pos;
     }
     void setOffset(cocos2d::CCPoint const& pos) {
-        this->m_offset = pos;
+        m_offset = pos;
     }
     void setScale(float scale) {
         this->CCMenuItemSprite::setScale(scale);
-        this->m_baseScale = scale;
+        m_baseScale = scale;
     }
 
     static CCMenuItemSpriteExtra* create(cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCObject*, cocos2d::SEL_MenuHandler) = mac 0x1253c0, win 0x18ee0, ios 0xe0740;
@@ -463,11 +463,11 @@ class CCScrollLayerExt : cocos2d::CCLayer {
     }
     float getMinY() {
         return this->getContentSize().height -
-            this->m_contentLayer->getContentSize().height -
-            this->m_scrollLimitTop;
+            m_contentLayer->getContentSize().height -
+            m_scrollLimitTop;
     }
     float getMaxY() {
-        return this->m_scrollLimitBottom;
+        return m_scrollLimitBottom;
     }
 
     // todo: add this back when CCDestructor works and 
@@ -1048,12 +1048,12 @@ class DrawGridLayer : cocos2d::CCLayer {
 
 class EditButtonBar : cocos2d::CCNode {
     void removeAllItems() {
-        this->m_buttonArray->removeAllObjects();
+        m_buttonArray->removeAllObjects();
         this->reloadItemsInNormalSize();
     }
     void reloadItems(int rowCount, int columnCount) {
-        if (this->m_buttonArray)
-            this->loadFromItems(this->m_buttonArray, rowCount, columnCount, this->m_unknown);
+        if (m_buttonArray)
+            this->loadFromItems(m_buttonArray, rowCount, columnCount, m_unknown);
     }
     void reloadItemsInNormalSize() {
         // TODO: fix this
@@ -1063,8 +1063,8 @@ class EditButtonBar : cocos2d::CCNode {
         // );
     }
     void addButton(CCMenuItemSpriteExtra* btn, bool reload) {
-        if (this->m_buttonArray)
-            this->m_buttonArray->addObject(btn);
+        if (m_buttonArray)
+            m_buttonArray->addObject(btn);
         if (reload)
             this->reloadItemsInNormalSize();
     }
@@ -1361,19 +1361,19 @@ class EffectGameObject : GameObject {
     void updateLabel() {
         auto label = static_cast<cocos2d::CCLabelBMFont*>(this->getChildByTag(999));
         if (label) {
-            switch (this->m_objectID) {
+            switch (m_objectID) {
                 // instant count, collision block, pickup
                 case 0x713: [[fallthrough]];
                 case 0x718: [[fallthrough]];
                 case 0x716: 
                     label->setString(
-                        cocos2d::CCString::createWithFormat("%i", this->m_itemBlockAID)->getCString()
+                        cocos2d::CCString::createWithFormat("%i", m_itemBlockAID)->getCString()
                     );
                     break;
                 //   color,    pulse
                 case 899: [[fallthrough]];
                 case 1006: {
-                    int target = this->m_objectID == 1006 ? m_targetGroupID : m_targetColorID;
+                    int target = m_objectID == 1006 ? m_targetGroupID : m_targetColorID;
                     if (target > 999) {
                         label->setString(GJSpecialColorSelect::textForColorIdx(target));
                     } else {
@@ -1385,7 +1385,7 @@ class EffectGameObject : GameObject {
                     } break;
                 default:
                     label->setString(
-                        cocos2d::CCString::createWithFormat("%i", this->m_targetGroupID)->getCString()
+                        cocos2d::CCString::createWithFormat("%i", m_targetGroupID)->getCString()
                     );
             }
         }
@@ -1632,7 +1632,7 @@ class GJBaseGameLayer : cocos2d::CCLayer, TriggerEffectDelegate {
         return m_objectLayer;
     }
     cocos2d::CCArray* getAllObjects() {
-        return this->m_objects;
+        return m_objects;
     }
 
     static GJBaseGameLayer* get() {
@@ -2353,10 +2353,10 @@ class GJRobotSprite : CCAnimatedSprite {
 
 class GJRotationControl : cocos2d::CCLayer {
     void setAngle(float angle) {
-        this->m_sliderPosition = cocos2d::CCPointMake(sinf(angle) * 60.0f, cosf(angle) * 60.0f);
-        this->m_angle = angle;
+        m_sliderPosition = cocos2d::CCPointMake(sinf(angle) * 60.0f, cosf(angle) * 60.0f);
+        m_angle = angle;
     
-        this->m_sliderThumb->setPosition(this->m_sliderPosition);
+        m_sliderThumb->setPosition(m_sliderPosition);
     }
 
     void updateSliderPosition(cocos2d::CCPoint const& pos) = win 0x94020;
@@ -2408,7 +2408,7 @@ class GJScoreCell : TableViewCell {
 
 class GJSearchObject : cocos2d::CCNode {
     SearchType getType() {
-        return this->m_searchType;
+        return m_searchType;
     }
 
     static GJSearchObject* create(SearchType nID) = win 0xc2b90;
@@ -2468,46 +2468,46 @@ class GJUserCell : TableViewCell {
 
 class GJUserScore : cocos2d::CCNode {
     IconType getIconType() const { 
-        return this->m_iconType; 
+        return m_iconType; 
     }
     int getPlayerCube() const { 
-        return this->m_playerCube; 
+        return m_playerCube; 
     }
     int getPlayerShip() const { 
-        return this->m_playerShip;
+        return m_playerShip;
     }
     int getPlayerBall() const {
-        return this->m_playerBall;
+        return m_playerBall;
     }
     int getPlayerUfo() const {
-        return this->m_playerUfo;
+        return m_playerUfo;
     }
     int getPlayerWave() const { 
-        return this->m_playerWave; 
+        return m_playerWave; 
     }
     int getPlayerRobot() const { 
-        return this->m_playerRobot; 
+        return m_playerRobot; 
     }
     int getPlayerSpider() const { 
-        return this->m_playerSpider; 
+        return m_playerSpider; 
     }
     int getPlayerStreak() const { 
-        return this->m_playerStreak; 
+        return m_playerStreak; 
     }
     bool getGlowEnabled() const { 
-        return this->m_glowEnabled; 
+        return m_glowEnabled; 
     }
     int getPlayerExplosion() const { 
-        return this->m_playerExplosion; 
+        return m_playerExplosion; 
     }
     int getPlayerColor1() const { 
-        return this->m_color1;
+        return m_color1;
     }
     int getPlayerColor2() const { 
-        return this->m_color2; 
+        return m_color2; 
     }
     gd::string getPlayerName() const { 
-        return this->m_userName; 
+        return m_userName; 
     }
     static GJUserScore* create() = win 0xc1660;
     static GJUserScore* create(cocos2d::CCDictionary*) = win 0xc0750;
@@ -4991,10 +4991,10 @@ class SimplePlayer : cocos2d::CCSprite {
 
 class Slider : cocos2d::CCLayer {
     void setValue(float val) {
-        this->m_touchLogic->getThumb()->setValue(val);
+        m_touchLogic->getThumb()->setValue(val);
     }
     void setBarVisibility(bool v) {
-        this->m_sliderBar->setVisible(v);
+        m_sliderBar->setVisible(v);
     }
     static Slider* create(cocos2d::CCNode* target, cocos2d::SEL_MenuHandler click, float scale) {
         return create(target, click, "sliderBar.png", "slidergroove.png", "sliderthumb.png", "sliderthumbsel.png", scale);
@@ -5014,11 +5014,11 @@ class Slider : cocos2d::CCLayer {
 class SliderThumb : cocos2d::CCMenuItemImage {
     void setValue(float val) = mac 0x18ce80, win 0x2e1b0, ios 0x210db4;
     float getValue() {
-        return (m_fScaleX * this->m_length * .5f +
+        return (m_fScaleX * m_length * .5f +
                 (m_vertical ?
                     this->getPositionY() : 
                     this->getPositionX())
-            ) / (m_fScaleX * this->m_length);
+            ) / (m_fScaleX * m_length);
     }
 
     float m_length;

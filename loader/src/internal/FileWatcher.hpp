@@ -17,7 +17,7 @@ protected:
     ErrorCallback m_error;
     bool m_filemode = false;
 
-    void* m_platform_handle;
+    void* m_platformHandle;
     bool m_exiting = false;
     void watch();
 

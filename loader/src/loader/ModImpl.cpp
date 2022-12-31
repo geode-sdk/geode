@@ -113,7 +113,7 @@ std::vector<Hook*> Mod::Impl::getHooks() const {
 // Settings and saved values
 
 Result<> Mod::Impl::loadData() {
-    ModStateEvent(this->m_self, ModEventType::DataLoaded).post();
+    ModStateEvent(m_self, ModEventType::DataLoaded).post();
 
     // Settings
     // Check if settings exist
@@ -135,7 +135,7 @@ Result<> Mod::Impl::loadData() {
                     if (!setting->load(value.json())) {
                         log::internalLog(
                             Severity::Error,
-                            this->m_self,
+                            m_self,
                             "{}: Unable to load value for setting \"{}\"",
                             m_info.id,
                             key
@@ -145,7 +145,7 @@ Result<> Mod::Impl::loadData() {
                 else {
                     log::internalLog(
                         Severity::Warning,
-                        this->m_self,
+                        m_self,
                         "Encountered unknown setting \"{}\" while loading "
                         "settings",
                         key
@@ -174,7 +174,7 @@ Result<> Mod::Impl::loadData() {
 }
 
 Result<> Mod::Impl::saveData() {
-    ModStateEvent(this->m_self, ModEventType::DataSaved).post();
+    ModStateEvent(m_self, ModEventType::DataSaved).post();
 
     // Data saving should be fully fail-safe
 
@@ -285,14 +285,14 @@ Result<> Mod::Impl::loadBinary() {
         return Err("Mod has unresolved dependencies");
     }
 
-    LoaderImpl::get()->provideNextMod(this->m_self);
+    LoaderImpl::get()->provideNextMod(m_self);
 
     GEODE_UNWRAP(this->loadPlatformBinary());
     m_binaryLoaded = true;
 
     LoaderImpl::get()->releaseNextMod();
 
-    ModStateEvent(this->m_self, ModEventType::Loaded).post();
+    ModStateEvent(m_self, ModEventType::Loaded).post();
 
     Loader::get()->updateAllDependencies();
 
@@ -313,7 +313,7 @@ Result<> Mod::Impl::unloadBinary() {
     GEODE_UNWRAP(this->saveData());
 
     GEODE_UNWRAP(this->disable());
-    ModStateEvent(this->m_self, ModEventType::Unloaded).post();
+    ModStateEvent(m_self, ModEventType::Unloaded).post();
 
     // Disabling unhooks and unpatches already
     for (auto const& hook : m_hooks) {
@@ -349,7 +349,7 @@ Result<> Mod::Impl::enable() {
         }
     }
 
-    ModStateEvent(this->m_self, ModEventType::Enabled).post();
+    ModStateEvent(m_self, ModEventType::Enabled).post();
     m_enabled = true;
 
     return Ok();
@@ -363,7 +363,7 @@ Result<> Mod::Impl::disable() {
         return Err("Mod does not support disabling");
     }
 
-    ModStateEvent(this->m_self, ModEventType::Disabled).post();
+    ModStateEvent(m_self, ModEventType::Disabled).post();
 
     for (auto const& hook : m_hooks) {
         GEODE_UNWRAP(this->disableHook(hook));
@@ -402,7 +402,7 @@ Result<> Mod::Impl::uninstall() {
 }
 
 bool Mod::Impl::isUninstalled() const {
-    return this->m_self != Mod::get() && !ghc::filesystem::exists(m_info.path);
+    return m_self != Mod::get() && !ghc::filesystem::exists(m_info.path);
 }
 
 // Dependencies
@@ -498,7 +498,7 @@ Result<Hook*> Mod::Impl::addHook(Hook* hook) {
         }
     }
     else {
-        LoaderImpl::get()->addInternalHook(hook, this->m_self);
+        LoaderImpl::get()->addInternalHook(hook, m_self);
     }
 
     return Ok(hook);
@@ -528,7 +528,7 @@ Result<Patch*> Mod::Impl::patch(void* address, ByteVector const& data) {
     auto p = new Patch;
     p->m_address = address;
     p->m_original = readMemory(address, data.size());
-    p->m_owner = this->m_self;
+    p->m_owner = m_self;
     p->m_patch = data;
     if (!p->apply()) {
         delete p;

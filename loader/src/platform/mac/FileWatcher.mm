@@ -12,23 +12,23 @@
 FileWatcher::FileWatcher(
     ghc::filesystem::path const& file, FileWatchCallback callback, ErrorCallback error
 ) {
-    this->m_filemode = ghc::filesystem::is_regular_file(file);
+    m_filemode = ghc::filesystem::is_regular_file(file);
 
-    this->m_platform_handle = NULL;
-    this->m_file = file;
-    this->m_callback = callback;
-    this->m_error = error;
+    m_platformHandle = NULL;
+    m_file = file;
+    m_callback = callback;
+    m_error = error;
     this->watch();
 }
 
 FileWatcher::~FileWatcher() {
-    dispatch_source_cancel(reinterpret_cast<dispatch_source_t>(this->m_platform_handle));
-    this->m_platform_handle = NULL;
+    dispatch_source_cancel(reinterpret_cast<dispatch_source_t>(m_platformHandle));
+    m_platformHandle = NULL;
 }
 
 void FileWatcher::watch() {
     dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-    int fildes = open(this->m_file.string().c_str(), O_EVTONLY);
+    int fildes = open(m_file.string().c_str(), O_EVTONLY);
 
     __block dispatch_source_t source = dispatch_source_create(
         DISPATCH_SOURCE_TYPE_VNODE, fildes,
@@ -38,11 +38,11 @@ void FileWatcher::watch() {
         queue
     );
 
-    this->m_platform_handle = static_cast<void*>(source);
+    m_platformHandle = static_cast<void*>(source);
 
     dispatch_source_set_event_handler(source, ^{
-      if (this->m_callback) {
-          this->m_callback(this->m_file);
+      if (m_callback) {
+          m_callback(m_file);
       }
     });
     dispatch_source_set_cancel_handler(source, ^(void) { close(fildes); });
@@ -50,7 +50,7 @@ void FileWatcher::watch() {
 }
 
 bool FileWatcher::watching() const {
-    return this->m_platform_handle != NULL;
+    return m_platformHandle != NULL;
 }
 
 #endif
