@@ -2149,9 +2149,8 @@ class GJGameLevel : cocos2d::CCNode {
     int m_workingTime2;
     bool m_lowDetailMode;
     bool m_lowDetailModeToggled;
-    int m_isVerifiedRand;
-    int m_isVerifiedSeed;
-    bool m_isVerified;
+    geode::SeedValueRS m_isVerified;
+    bool m_isVerifiedRaw; // honestly i dont think this is need to be used
     bool m_isUploaded;
     bool m_hasBeenModified;
     int m_levelVersion;
@@ -2181,8 +2180,7 @@ class GJGameLevel : cocos2d::CCNode {
     bool m_autoLevel;
     int m_coins;
     geode::SeedValueRSV m_coinsVerified;
-    int m_passwordRand;
-    int m_passwordSeed;
+    geode::SeedValueRS m_password;
     geode::SeedValueRSV m_originalLevel;
     bool m_twoPlayerMode;
     int m_failedPasswordAttempts;
@@ -2866,10 +2864,8 @@ class GameManager : GManager {
     geode::SeedValueRSV m_playerColor2;
     geode::SeedValueRSV m_playerStreak;
     geode::SeedValueRSV m_playerDeathEffect;
-    int m_chkSeed;
-    int m_chkRand;
-    int m_secretNumberSeed;
-    int m_secretNumberRand;
+    geode::SeedValueSR m_chk;
+    geode::SeedValueSR m_secretNumber;
     bool m_playerGlow;
     IconType m_playerIconType;
     bool m_everyPlaySetup;
@@ -4288,8 +4284,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     float unused4c8;
     bool unused4cc;
     bool m_hasCheated;
-    int m_dontSaveRand;
-    int m_dontSaveSeed;
+    geode::SeedValueRS m_dontSave;
     int unknown4d8;
     bool m_debugPauseOff;
     bool m_shouldSmoothCamera;

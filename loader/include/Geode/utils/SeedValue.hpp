@@ -1,15 +1,10 @@
 #pragma once
 
+#include <array>
+
 namespace geode {
     class BaseSeedValue {
-    protected:
-        int m_v1 = 0;
-        int m_v2 = 0;
-        int m_v3 = 0;
-
     public:
-        BaseSeedValue(int v1, int v2, int v3) : m_v1(v1), m_v2(v2), m_v3(v3) {}
-
         BaseSeedValue() = default;
         BaseSeedValue(BaseSeedValue const& other) = default;
         BaseSeedValue(BaseSeedValue&& other) = default;
@@ -29,25 +24,92 @@ namespace geode {
     }                                                        \
     operator int() { return this->value(); }
 
-    class SeedValueVRS : public BaseSeedValue {
+    class SeedValueSR : public BaseSeedValue {
     private:
-        using SeedValue = SeedValueVRS;
-        int& internalValue() {
-            return m_v1;
+        using SeedValue = SeedValueSR;
+        std::array<int, 2> m_values;
+
+        int& internalSeed() {
+            return m_values[0];
         }
 
         int& internalRandom() {
-            return m_v2;
+            return m_values[1];
+        }
+
+    public:
+
+        using BaseSeedValue::BaseSeedValue;
+
+        SeedValueSR(int value, int seed) : m_values({seed, value + seed}) {}
+
+        SeedValue& operator=(int value) {
+            internalRandom() = value + internalSeed();
+            return *this;
+        }
+
+        int value() {
+            return internalRandom() - internalSeed();
+        }
+
+        operator int() {
+            return this->value();
+        }
+    };
+
+    class SeedValueRS : public BaseSeedValue {
+    private:
+        using SeedValue = SeedValueRS;
+        std::array<int, 2> m_values;
+
+        int& internalRandom() {
+            return m_values[0];
         }
 
         int& internalSeed() {
-            return m_v3;
+            return m_values[1];
         }
 
     public:
         using BaseSeedValue::BaseSeedValue;
 
-        SeedValueVRS(int value, int seed) : BaseSeedValue(value, value + seed, seed) {}
+        SeedValueRS(int value, int seed) : m_values({value + seed, seed}) {}
+
+        SeedValue& operator=(int value) {
+            internalRandom() = value + internalSeed();
+            return *this;
+        }
+
+        int value() {
+            return internalRandom() - internalSeed();
+        }
+
+        operator int() {
+            return this->value();
+        }
+    };
+
+    class SeedValueVRS : public BaseSeedValue {
+    private:
+        using SeedValue = SeedValueVRS;
+        std::array<int, 3> m_values;
+
+        int& internalValue() {
+            return m_values[0];
+        }
+
+        int& internalRandom() {
+            return m_values[1];
+        }
+
+        int& internalSeed() {
+            return m_values[2];
+        }
+
+    public:
+        using BaseSeedValue::BaseSeedValue;
+
+        SeedValueVRS(int value, int seed) : m_values({value, value + seed, seed}) {}
 
         GEODE_SEED_VALUE_COMMON_OPS();
     };
@@ -55,22 +117,24 @@ namespace geode {
     class SeedValueVSR : public BaseSeedValue {
     private:
         using SeedValue = SeedValueVSR;
+        std::array<int, 3> m_values;
+
         int& internalValue() {
-            return m_v1;
+            return m_values[0];
         }
 
         int& internalSeed() {
-            return m_v2;
+            return m_values[1];
         }
 
         int& internalRandom() {
-            return m_v3;
+            return m_values[2];
         }
 
     public:
         using BaseSeedValue::BaseSeedValue;
 
-        SeedValueVSR(int value, int seed) : BaseSeedValue(value, seed, value + seed) {}
+        SeedValueVSR(int value, int seed) : m_values({value, seed, value + seed}) {}
 
         GEODE_SEED_VALUE_COMMON_OPS();
     };
@@ -78,22 +142,24 @@ namespace geode {
     class SeedValueRVS : public BaseSeedValue {
     private:
         using SeedValue = SeedValueRVS;
+        std::array<int, 3> m_values;
+
         int& internalRandom() {
-            return m_v1;
+            return m_values[0];
         }
 
         int& internalValue() {
-            return m_v2;
+            return m_values[1];
         }
 
         int& internalSeed() {
-            return m_v3;
+            return m_values[2];
         }
 
     public:
         using BaseSeedValue::BaseSeedValue;
 
-        SeedValueRVS(int value, int seed) : BaseSeedValue(value + seed, value, seed) {}
+        SeedValueRVS(int value, int seed) : m_values({value + seed, value, seed}) {}
 
         GEODE_SEED_VALUE_COMMON_OPS();
     };
@@ -101,22 +167,24 @@ namespace geode {
     class SeedValueRSV : public BaseSeedValue {
     private:
         using SeedValue = SeedValueRSV;
+        std::array<int, 3> m_values;
+
         int& internalRandom() {
-            return m_v1;
+            return m_values[0];
         }
 
         int& internalSeed() {
-            return m_v2;
+            return m_values[1];
         }
 
         int& internalValue() {
-            return m_v3;
+            return m_values[2];
         }
 
     public:
         using BaseSeedValue::BaseSeedValue;
 
-        SeedValueRSV(int value, int seed) : BaseSeedValue(value + seed, seed, value) {}
+        SeedValueRSV(int value, int seed) : m_values({value + seed, seed, value}) {}
 
         GEODE_SEED_VALUE_COMMON_OPS();
     };
@@ -124,22 +192,24 @@ namespace geode {
     class SeedValueSVR : public BaseSeedValue {
     private:
         using SeedValue = SeedValueSVR;
+        std::array<int, 3> m_values;
+
         int& internalSeed() {
-            return m_v1;
+            return m_values[0];
         }
 
         int& internalValue() {
-            return m_v2;
+            return m_values[1];
         }
 
         int& internalRandom() {
-            return m_v3;
+            return m_values[2];
         }
 
     public:
         using BaseSeedValue::BaseSeedValue;
 
-        SeedValueSVR(int value, int seed) : BaseSeedValue(seed, value, value + seed) {}
+        SeedValueSVR(int value, int seed) : m_values({seed, value, value + seed}) {}
 
         GEODE_SEED_VALUE_COMMON_OPS();
     };
@@ -147,22 +217,24 @@ namespace geode {
     class SeedValueSRV : public BaseSeedValue {
     private:
         using SeedValue = SeedValueSRV;
+        std::array<int, 3> m_values;
+
         int& internalSeed() {
-            return m_v1;
+            return m_values[0];
         }
 
         int& internalRandom() {
-            return m_v2;
+            return m_values[1];
         }
 
         int& internalValue() {
-            return m_v3;
+            return m_values[2];
         }
 
     public:
         using BaseSeedValue::BaseSeedValue;
 
-        SeedValueSRV(int value, int seed) : BaseSeedValue(seed, value + seed, value) {}
+        SeedValueSRV(int value, int seed) : m_values({seed, value + seed, value}) {}
 
         GEODE_SEED_VALUE_COMMON_OPS();
     };
