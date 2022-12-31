@@ -15,7 +15,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 	${GEODE_LOADER_PATH}/include/Geode/fmod
 )
 
-# For non existing pads
+target_compile_definitions(${PROJECT_NAME} PRIVATE -DGEODE_DONT_WARN_INCORRECT_MEMBERS)
+
 target_link_libraries(${PROJECT_NAME} PRIVATE ghc_filesystem)
 
 add_dependencies(${PROJECT_NAME} CodegenRun)

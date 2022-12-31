@@ -57,6 +57,8 @@ ExternalProject_Add(CodegenProject
 
 file(GLOB CODEGEN_DEPENDS CONFIGURE_DEPENDS 
 	${CMAKE_CURRENT_SOURCE_DIR}/bindings/*.bro
+	${CMAKE_CURRENT_SOURCE_DIR}/codegen/src/*.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/codegen/src/*.hpp
 )
 
 add_custom_command(

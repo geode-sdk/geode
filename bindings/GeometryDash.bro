@@ -75,7 +75,7 @@ class AnimatedShopKeeper : CCAnimatedSprite {
 }
 
 class AnimatedSpriteDelegate {
-    virtual void animationFinished(const char*);
+    virtual void animationFinished(const char*) {}
 }
 
 class AppDelegate : cocos2d::CCApplication {
@@ -4704,7 +4704,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     void runRotateAction() = win 0x1e9bf0;
     void runBallRotation() = win 0x1e9d10;
 
-    PAD = mac 0x18, win 0x14;
+    PAD = mac 0x14, win 0x14;
     bool m_unk480;
     cocos2d::CCNode* m_unk484;
     cocos2d::CCDictionary* m_collisionLog;
