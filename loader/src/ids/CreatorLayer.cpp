@@ -1,7 +1,8 @@
-#include <Geode/Modify.hpp>
-#include <Geode/Bindings.hpp>
-#include <Geode/utils/cocos.hpp>
 #include "AddIDs.hpp"
+
+#include <Geode/Bindings.hpp>
+#include <Geode/Modify.hpp>
+#include <Geode/utils/cocos.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -21,11 +22,13 @@ $register_ids(CreatorLayer) {
         setIDSafe(menu, 7, "hall-of-fame-button");
         setIDSafe(menu, 8, "map-packs-button");
         setIDSafe(menu, 9, "search-button");
-        setIDSafe(menu, 10,"gauntlets-button");
+        setIDSafe(menu, 10, "gauntlets-button");
 
         // move vault button to its own menu
         if (auto lockBtn = setIDSafe(menu, -2, "vault-button")) {
-            detachAndCreateMenu(this, "top-right-menu", 
+            detachAndCreateMenu(
+                this,
+                "top-right-menu",
                 ColumnLayout::create(5.f, 0.f)->setAlignment(Alignment::Begin),
                 lockBtn
             );
@@ -33,7 +36,9 @@ $register_ids(CreatorLayer) {
 
         // move treasure room button to its own menu
         if (auto roomBtn = setIDSafe(menu, -1, "treasure-room-button")) {
-            detachAndCreateMenu(this, "bottom-right-menu", 
+            detachAndCreateMenu(
+                this,
+                "bottom-right-menu",
                 ColumnLayout::create(5.f, 0.f)->setAlignment(Alignment::End),
                 roomBtn
             );
@@ -46,11 +51,10 @@ $register_ids(CreatorLayer) {
     }
 }
 
-class $modify(CreatorLayer) {
+struct CreatorLayerIDs : Modify<CreatorLayerIDs, CreatorLayer> {
     bool init() {
-        if (!CreatorLayer::init())
-            return false;
-        
+        if (!CreatorLayer::init()) return false;
+
         NodeIDs::get()->provide(this);
 
         return true;

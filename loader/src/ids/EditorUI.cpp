@@ -1,12 +1,12 @@
-#include <Geode/modify/EditorUI.hpp>
-#include <Geode/Bindings.hpp>
-#include <Geode/utils/cocos.hpp>
 #include "AddIDs.hpp"
+
+#include <Geode/Bindings.hpp>
+#include <Geode/modify/EditorUI.hpp>
+#include <Geode/utils/cocos.hpp>
 
 USE_GEODE_NAMESPACE();
 
 $register_ids(EditorUI) {
-
     setIDSafe(this, 0, "position-slider");
     setIDSafe(this, this->getChildrenCount() - 2, "layer-index-label");
     setIDSafe(this, this->getChildrenCount() - 1, "object-info-label");
@@ -14,7 +14,9 @@ $register_ids(EditorUI) {
     if (auto menu = getChildOfType<CCMenu>(this, 0)) {
         menu->setID("toolbar-categories-menu");
 
-        setIDs(menu, 0, 
+        setIDs(
+            menu,
+            0,
             "build-button",
             "edit-button",
             "delete-button",
@@ -42,7 +44,7 @@ $register_ids(EditorUI) {
 
         detachAndCreateMenu(
             this,
-            "toolbar-toggles-menu", 
+            "toolbar-toggles-menu",
             GridLayout::create(2, GridAlignment::Begin, GridDirection::Column),
             menu->getChildByID("swipe-button"),
             menu->getChildByID("free-move-button"),
@@ -60,10 +62,7 @@ $register_ids(EditorUI) {
         );
 
         detachAndCreateMenu(
-            this,
-            "playback-menu",
-            RowLayout::create(),
-            menu->getChildByID("music-playback-button")
+            this, "playback-menu", RowLayout::create(), menu->getChildByID("music-playback-button")
         );
 
         detachAndCreateMenu(
@@ -94,7 +93,9 @@ $register_ids(EditorUI) {
     if (auto menu = getChildOfType<CCMenu>(this, 1)) {
         menu->setID("delete-category-menu");
 
-        setIDs(menu, 0, 
+        setIDs(
+            menu,
+            0,
             "delete-button",
             "delete-startpos-button",
             "delete-all-of-button",
@@ -130,7 +131,9 @@ $register_ids(EditorUI) {
     if (auto menu = getChildOfType<CCMenu>(this, 2)) {
         menu->setID("build-tabs-menu");
 
-        setIDs(menu, 0,
+        setIDs(
+            menu,
+            0,
             "static-tab-1",
             "static-tab-2",
             "static-tab-3",
@@ -148,7 +151,9 @@ $register_ids(EditorUI) {
     }
 
     if (auto menu = getChildOfType<CCMenu>(this, 3)) {
-        setIDs(menu, 0,
+        setIDs(
+            menu,
+            0,
             "pause-button",
             "settings-button",
             "copy-paste-button",
@@ -194,7 +199,7 @@ $register_ids(EditorUI) {
             menu->getChildByID("copy-values-button"),
             menu->getChildByID("hsv-button")
         );
-        
+
         detachAndCreateMenu(
             this,
             "layer-menu",
@@ -207,11 +212,10 @@ $register_ids(EditorUI) {
     }
 }
 
-class $modify(EditorUI) {
+struct EditorUIIDs : Modify<EditorUIIDs, EditorUI> {
     bool init(LevelEditorLayer* lel) {
-        if (!EditorUI::init(lel))
-            return false;
-        
+        if (!EditorUI::init(lel)) return false;
+
         NodeIDs::get()->provide(this);
 
         return true;

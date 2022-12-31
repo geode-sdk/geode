@@ -1,18 +1,21 @@
-#include <Geode/modify/GJGarageLayer.hpp>
-#include <Geode/Bindings.hpp>
-#include <Geode/utils/cocos.hpp>
 #include "AddIDs.hpp"
+
+#include <Geode/Bindings.hpp>
+#include <Geode/modify/GJGarageLayer.hpp>
+#include <Geode/utils/cocos.hpp>
 
 USE_GEODE_NAMESPACE();
 
 $register_ids(GJGarageLayer) {
-	setIDSafe(this, 2, "username-label");
+    setIDSafe(this, 2, "username-label");
     setIDSafe(this, 6, "player-icon");
 
     if (auto menu = getChildOfType<CCMenu>(this, 0)) {
         menu->setID("icon-select-menu");
 
-        setIDs(menu, 0,
+        setIDs(
+            menu,
+            0,
             "cube-button",
             "ship-button",
             "ball-button",
@@ -25,7 +28,9 @@ $register_ids(GJGarageLayer) {
         );
     }
 
-    setIDs(this, 10,
+    setIDs(
+        this,
+        10,
         "cube-selection-menu",
         "ship-selection-menu",
         "ball-selection-menu",
@@ -45,26 +50,18 @@ $register_ids(GJGarageLayer) {
     if (auto menu = getChildOfType<CCMenu>(this, 11)) {
         menu->setID("top-left-menu");
 
-        setIDs(menu, 0,
-            "back-button",
-            "shop-button",
-            "shards-button"
-        );
+        setIDs(menu, 0, "back-button", "shop-button", "shards-button");
 
         detachAndCreateMenu(
-            menu,
-            "shards-button-menu",
-            ColumnLayout::create(),
-            menu->getChildByID("shards-button")
+            menu, "shards-button-menu", ColumnLayout::create(), menu->getChildByID("shards-button")
         );
     }
 }
 
-class $modify(GJGarageLayer) {
+struct GJGarageLayerIDs : Modify<GJGarageLayerIDs, GJGarageLayer> {
     bool init() {
-        if (!GJGarageLayer::init())
-            return false;
-        
+        if (!GJGarageLayer::init()) return false;
+
         NodeIDs::get()->provide(this);
 
         return true;

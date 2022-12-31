@@ -1,12 +1,15 @@
-#include <Geode/modify/EditLevelLayer.hpp>
-#include <Geode/Bindings.hpp>
-#include <Geode/utils/cocos.hpp>
 #include "AddIDs.hpp"
+
+#include <Geode/Bindings.hpp>
+#include <Geode/modify/EditLevelLayer.hpp>
+#include <Geode/utils/cocos.hpp>
 
 USE_GEODE_NAMESPACE();
 
 $register_ids(EditLevelLayer) {
-    setIDs(this, 0,
+    setIDs(
+        this,
+        0,
         "background",
         "bottom-left-art",
         "bottom-right-art",
@@ -27,15 +30,13 @@ $register_ids(EditLevelLayer) {
     );
 
     if (auto menu = this->getChildByID("level-action-menu")) {
-        setIDs(menu, 0,
-            "edit-button",
-            "play-button",
-            "share-button"
-        );
+        setIDs(menu, 0, "edit-button", "play-button", "share-button");
     }
 
     if (auto menu = this->getChildByID("right-side-menu")) {
-        setIDs(menu, 0,
+        setIDs(
+            menu,
+            0,
             "delete-button",
             "help-button",
             "duplicate-button",
@@ -43,25 +44,20 @@ $register_ids(EditLevelLayer) {
             "folder-button"
         );
 
-        detachAndCreateMenu(menu,
-            "folder-menu",
-            ColumnLayout::create(),
-            menu->getChildByID("folder-button")
+        detachAndCreateMenu(
+            menu, "folder-menu", ColumnLayout::create(), menu->getChildByID("folder-button")
         );
     }
 
-    if (auto menu = this->getChildByID("back-button-menu"))
-        setIDSafe(menu, 0, "back-button");
+    if (auto menu = this->getChildByID("back-button-menu")) setIDSafe(menu, 0, "back-button");
 
-    if (auto menu = this->getChildByID("info-button-menu"))
-        setIDSafe(menu, 0, "info-button");
+    if (auto menu = this->getChildByID("info-button-menu")) setIDSafe(menu, 0, "info-button");
 }
 
-class $modify(EditLevelLayer) {
+struct EditLevelLayerIDs : Modify<EditLevelLayerIDs, EditLevelLayer> {
     bool init(GJGameLevel* l) {
-        if (!EditLevelLayer::init(l))
-            return false;
-        
+        if (!EditLevelLayer::init(l)) return false;
+
         NodeIDs::get()->provide(this);
 
         return true;
