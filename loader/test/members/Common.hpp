@@ -18,7 +18,7 @@ struct MemberIsOffsetBy<Difference, Class, Member, true> {
 
 template <class Member, class Class, int Offset, int Expected>
 struct SingleChecker {
-    using IsOffsetBy = MemberIsOffsetBy<Expected - Offset, Class, Member, Expected == Offset>;
+    using IsOffsetBy = MemberIsOffsetBy<Offset - Expected, Class, Member, Expected == Offset>;
 };
 
 #define GEODE_MEMBER_CHECK(Class_, Member_, Offset_) class Member_; SingleChecker<Member_, Class_, offsetof(Class_, Member_), Offset_>::IsOffsetBy GEODE_CONCAT(OffsetBy, __LINE__)
