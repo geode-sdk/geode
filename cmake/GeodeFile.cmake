@@ -132,9 +132,18 @@ function(package_geode_resources_now proname src dest header_dest)
     if (GEODE_DISABLE_CLI_CALLS)
         message(WARNING
             "package_geode_resources_now called, but GEODE_DISABLE_CLI_CALLS 
-            is set to true - Ignoring it as this function requires CLI calls 
-            in order to work"
+            is set to true - Faking output result in case you only wish to 
+            analyze the project statically, do not expect built project to 
+            function properly"
         )
+        set(HEADER_FILE
+            "#include <unordered_map>\n\n"
+            "static const std::unordered_map<std::string, std::string> "
+            "LOADER_RESOURCE_HASHES {}\;\n"
+        )
+        file(WRITE ${header_dest} ${HEADER_FILE})
+        message(STATUS "Wrote fake resource hashes to ${header_dest}")
+        return()
     endif()
 
     if(GEODE_CLI STREQUAL "GEODE_CLI-NOTFOUND")

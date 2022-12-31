@@ -1,0 +1,55 @@
+
+# Configuration file for the Flash C++ documentation generator.
+# https://github.com/hjfod/flash
+
+[project]
+name = "Geode"
+version = "v1.0.0-beta"
+repository = "https://github.com/geode-sdk/geode"
+
+[docs]
+include = [
+    "loader/include/Geode/**/*.hpp",
+    "loader/include/Geode/**/*.h",
+    "build/codegenned/Geode/binding/*.hpp"
+]
+exclude = [
+    "loader/include/Geode/modify/Comparer.hpp",
+    "loader/include/Geode/platform/*.hpp",
+    "loader/include/Geode/c++stl/*.hpp",
+    # All of the relevant cocos headers are included through Geode headers
+    "loader/include/Geode/cocos/**/*.h"
+]
+tree = "https://github.com/geode-sdk/geode/tree/main"
+
+# Root folders to show in the navigation browser
+
+[[browser.roots]]
+path = "loader/include/Geode"
+include-prefix = "Geode"
+name = "Geode"
+
+[[browser.roots]]
+path = "build/codegenned/Geode/binding"
+include-prefix = "Geode/binding"
+name = "Bindings"
+
+[cmake]
+config-args = [
+    "-G", "Ninja",
+    "-DCMAKE_CXX_COMPILER=Clang",
+    "-DCMAKE_C_COMPILER=Clang",
+    "-DGEODE_DISABLE_CLI_CALLS=On",
+    "-DGEODE_PLATFORM_NAME=Win32",
+    "-DCMAKE_EXPORT_COMPILE_COMMANDS=On",
+    "-DGEODE_DISABLE_PRECOMPILED_HEADERS=On",
+    "-DGEODE_CODEGEN_CMAKE_ARGS=-DCMAKE_CXX_COMPILER=Clang;-DCMAKE_C_COMPILER=Clang",
+    "-DCMAKE_C_FLAGS=-m32",
+    "-DCMAKE_CXX_FLAGS=-m32",
+    "-DWIN32=On"
+]
+build = true
+build-args = [
+    "--target", "CodegenRun"
+]
+infer-args-from = "loader/src/main.cpp"

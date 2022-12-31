@@ -199,10 +199,10 @@ namespace geode::core::meta::x86 {
         using Sequences = typename Membercall<Ret*, Class, Ret*, Args...>::Sequences;
 
         // Where all the logic is actually implemented.
-        template <class Class, class>
+        template <class ImplClass, class>
         class Impl {
             static_assert(
-                always_false<Class>,
+                always_false<ImplClass>,
                 "Please report a bug to the Geode developers! This should never be reached.\n"
                 "SFINAE didn't reach the right overload!"
             );

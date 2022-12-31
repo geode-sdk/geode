@@ -9,40 +9,42 @@
 namespace geode {
     // Mod interoperability
 
-    template <typename... Args>
-    class DispatchEvent : public Event {
-        std::string m_selector;
-        std::tuple<Args...> m_args;
+    // todo: update to new event system
 
-    public:
-        DispatchEvent(std::string const& name, Args... args) :
-            m_selector(name), m_args(std::make_tuple(args...)) {}
+    // template <typename... Args>
+    // class DispatchEvent : public Event {
+    //     std::string m_selector;
+    //     std::tuple<Args...> m_args;
 
-        std::string const& selector() {
-            return m_selector;
-        }
-    };
+    // public:
+    //     DispatchEvent(std::string const& name, Args... args) :
+    //         m_selector(name), m_args(std::make_tuple(args...)) {}
 
-    template <typename... Args>
-    class DispatchHandler : public EventHandler<DispatchEvent<Args...>> {
-        std::string m_selector;
-        std::function<void(Args...)> m_callback;
+    //     std::string const& selector() {
+    //         return m_selector;
+    //     }
+    // };
 
-        DispatchHandler(std::string const& name, std::function<void(Args...)> callback) :
-            m_selector(name), m_callback(callback) {}
+    // template <typename... Args>
+    // class DispatchHandler : public EventHandler<DispatchEvent<Args...>> {
+    //     std::string m_selector;
+    //     std::function<void(Args...)> m_callback;
 
-    public:
-        bool handle(DispatchEvent<Args...>* ev) {
-            if (ev->name() == m_selector) {
-                std::apply(m_callback, ev->m_args);
-            }
-            return true;
-        }
+    //     DispatchHandler(std::string const& name, std::function<void(Args...)> callback) :
+    //         m_selector(name), m_callback(callback) {}
 
-        static DispatchHandler* create(
-            std::string const& name, std::function<void(Args...)> callback
-        ) {
-            return new DispatchHandler(name, callback);
-        }
-    };
+    // public:
+    //     bool handle(DispatchEvent<Args...>* ev) {
+    //         if (ev->name() == m_selector) {
+    //             std::apply(m_callback, ev->m_args);
+    //         }
+    //         return true;
+    //     }
+
+    //     static DispatchHandler* create(
+    //         std::string const& name, std::function<void(Args...)> callback
+    //     ) {
+    //         return new DispatchHandler(name, callback);
+    //     }
+    // };
 }
