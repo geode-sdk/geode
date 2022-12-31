@@ -1260,10 +1260,10 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     virtual void scrollWheel(float vertical, float horizontal) = win 0x921d0, mac 0x31370, ios 0x2c4884;
     void createMoveMenu() = mac 0x275e0, win 0x8c0d0;
 
+    bool m_isPlayingMusic;
     EditButtonBar* m_buttonBar;
     PAD = mac 0x8, win 0x4;
     cocos2d::CCArray* m_hideableUIElementArray;
-    PAD = mac 0x8, win 0x4;
     float m_gridSize;
     PAD = mac 0x18, win 0x14;
     bool m_moveModifier;
@@ -1716,14 +1716,6 @@ class GJBaseGameLayer : cocos2d::CCLayer, TriggerEffectDelegate {
     void updateQueuedLabels() = mac 0xb9f30, win 0x111b00;
     virtual ~GJBaseGameLayer() = mac 0xaf990, win 0x10add0;
 
-    // GJEffectManager* effectManager = mac 0x180;
-    // cocos2d::CCLayer* objectLayer = mac 0x188;
-    // cocos2d::CCArray* objects = mac 0x3a0;
-    // cocos2d::CCArray* sections = mac 0x3a8;
-    // PlayerObject* player1 = mac 0x380;
-    // PlayerObject* player2 = mac 0x388;
-    // LevelSettingsObject* levelSettings = mac 0x390;
-    // cocos2d::CCDictionary* unknownDict = mac 0x398;
     OBB2D* m_boundingBox;
     GJEffectManager* m_effectManager;
     cocos2d::CCLayer* m_objectLayer;
@@ -4336,7 +4328,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     float unknown5c4;
     GJGroundLayer* m_bottomGround;
     GJGroundLayer* m_topGround;
-    double m_completelyUninitializedData;
+    PAD = mac 0x8, win 0x8;
     bool m_isDead;
     bool m_startCameraAtCorner;
     bool m_cameraYLocked;
@@ -4370,6 +4362,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     void* unknown680;
     int m_activeGravityEffects;
     int m_gravityEffectStatus; // ??
+    PAD = mac 0x4, win 0x4;
     cocos2d::CCArray* m_gravitySprites;
     bool unk428;
     bool m_shouldRecordActions;
