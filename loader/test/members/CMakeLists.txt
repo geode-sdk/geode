@@ -7,7 +7,15 @@ project(${PROJECT_NAME} VERSION 1.0.0)
 add_library(${PROJECT_NAME} SHARED MacOS.cpp Windows.cpp)
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
 
-target_link_libraries(
-    ${PROJECT_NAME}
-    geode-sdk
+target_include_directories(${PROJECT_NAME} PRIVATE
+	${GEODE_CODEGEN_PATH}
+	${GEODE_LOADER_PATH}/include
+	${GEODE_LOADER_PATH}/include/Geode/cocos/include
+	${GEODE_LOADER_PATH}/include/Geode/cocos/extensions
+	${GEODE_LOADER_PATH}/include/Geode/fmod
 )
+
+# For non existing pads
+target_link_libraries(${PROJECT_NAME} PRIVATE ghc_filesystem)
+
+add_dependencies(${PROJECT_NAME} CodegenRun)

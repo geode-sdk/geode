@@ -45,19 +45,21 @@ include(cmake/CPM.cmake)
 
 target_sources(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/entry.cpp)
 
-
 include(ExternalProject)
-
 set(GEODE_CODEGEN_BINARY_OUT ${CMAKE_CURRENT_BINARY_DIR}/codegen)
 ExternalProject_Add(CodegenProject
+	BUILD_ALWAYS ON
 	SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/codegen
 	CMAKE_CACHE_ARGS "-DCMAKE_INSTALL_PREFIX:STRING=${GEODE_CODEGEN_BINARY_OUT}"
 )
 
+
+file(GLOB CODEGEN_DEPENDS CONFIGURE_DEPENDS 
+	${CMAKE_CURRENT_SOURCE_DIR}/bindings/*.bro
+)
+
 add_custom_command(
-	DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/bindings/GeometryDash.bro
-			${CMAKE_CURRENT_SOURCE_DIR}/bindings/Cocos2d.bro
-			${CMAKE_CURRENT_SOURCE_DIR}/bindings/Entry.bro
+	DEPENDS ${CODEGEN_DEPENDS}
 	DEPENDS CodegenProject
 	COMMAND ${GEODE_CODEGEN_BINARY_OUT}/Codegen ${GEODE_TARGET_PLATFORM} bindings ${GEODE_CODEGEN_PATH}
 	COMMAND echo codegen > ${GEODE_CODEGEN_PATH}/.stamp

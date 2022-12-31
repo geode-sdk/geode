@@ -6,7 +6,8 @@ namespace { namespace format_strings {
 #include <Geode/Bindings.hpp>
 #include <Geode/utils/addresser.hpp>
 #include <Geode/utils/casts.hpp>
-#include <Geode/modify/Addresses.hpp>
+#include <Geode/meta/meta.hpp>   
+#include <Geode/modify/Addresses.hpp> 
 #include <Geode/modify/Types.hpp>
 using namespace geode;
 using namespace geode::cast;
