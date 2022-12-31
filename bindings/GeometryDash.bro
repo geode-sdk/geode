@@ -1829,15 +1829,9 @@ class GJChallengeDelegate {}
 class GJChallengeItem : cocos2d::CCObject {
 
     GJChallengeType m_challengeType;
-    int m_countSeed;
-    int m_countRand;
-    int m_count;
-    int m_rewardSeed;
-    int m_rewardRand;
-    int m_reward;
-    int m_goalSeed;
-    int m_goalRand;
-    int m_goal;
+    geode::SeedValueSRV m_count;
+    geode::SeedValueSRV m_reward;
+    geode::SeedValueSRV m_goal;
     int m_timeLeft;
     bool m_canClaim;
     int m_position;
@@ -2128,9 +2122,7 @@ class GJGameLevel : cocos2d::CCNode {
     }
 
     cocos2d::CCDictionary* m_lastBuildSave;
-    int m_levelIDRand;
-    int m_levelIDSeed;
-    int m_levelID;
+    geode::SeedValueRSV m_levelID;
     gd::string m_levelName;
     gd::string m_levelDesc;
     gd::string m_levelString;
@@ -2138,20 +2130,14 @@ class GJGameLevel : cocos2d::CCNode {
     gd::string m_recordString;
     gd::string m_uploadDate;
     gd::string m_updateDate;
-    int m_userIDRand;
-    int m_userIDSeed;
-    int m_userID;
-    int m_accountIDRand;
-    int m_accountIDSeed;
-    int m_accountID;
+    geode::SeedValueRSV m_userID;
+    geode::SeedValueRSV m_accountID;
     GJDifficulty m_difficulty;
     int m_audioTrack;
     int m_songID;
     int m_levelRev;
     bool m_unlisted;
-    int m_objectCountRand;
-    int m_objectCountSeed;
-    int m_objectCount;
+    geode::SeedValueRSV m_objectCount;
     int m_levelIndex;
     int m_ratings;
     int m_ratingsSum;
@@ -2170,30 +2156,16 @@ class GJGameLevel : cocos2d::CCNode {
     bool m_hasBeenModified;
     int m_levelVersion;
     int m_gameVersion;
-    int m_attemptsRand;
-    int m_attemptsSeed;
-    int m_attempts;
-    int m_jumpsRand;
-    int m_jumpsSeed;
-    int m_jumps;
-    int m_clicksRand;
-    int m_clicksSeed;
-    int m_clicks;
-    int m_attemptTimeRand;
-    int m_attemptTimeSeed;
-    int m_attemptTime;
+    geode::SeedValueRSV m_attempts;
+    geode::SeedValueRSV m_jumps;
+    geode::SeedValueRSV m_clicks;
+    geode::SeedValueRSV m_attemptTime;
     int m_chk;
     bool m_isChkValid;
     bool m_isCompletionLegitimate;
-    int m_normalPercent;
-    int m_normalPercentSeed;
-    int m_normalPercentRand;
-    int m_orbCompletionRand;
-    int m_orbCompletionSeed;
-    int m_orbCompletion;
-    int m_newNormalPercent2Rand;
-    int m_newNormalPercent2Seed;
-    int m_newNormalPercent2;
+    geode::SeedValueVSR m_normalPercent;
+    geode::SeedValueRSV m_orbCompletion;
+    geode::SeedValueRSV m_newNormalPercent2;
     int m_practicePercent;
     int m_likes;
     int m_dislikes;
@@ -2202,37 +2174,21 @@ class GJGameLevel : cocos2d::CCNode {
     bool m_isEpic;
     bool m_levelFavorited;
     int m_levelFolder;
-    int m_dailyIDRand;
-    int m_dailyIDSeed;
-    int m_dailyID;
-    int m_demonRand;
-    int m_demonSeed;
-    int m_demon;
+    geode::SeedValueRSV m_dailyID;
+    geode::SeedValueRSV m_demon;
     int m_demonDifficulty;
-    int m_starsRand;
-    int m_starsSeed;
-    int m_stars;
+    geode::SeedValueRSV m_stars;
     bool m_autoLevel;
     int m_coins;
-    int m_coinsVerifiedRand;
-    int m_coinsVerifiedSeed;
-    int m_coinsVerified;
+    geode::SeedValueRSV m_coinsVerified;
     int m_passwordRand;
     int m_passwordSeed;
-    int m_originalLevelRand;
-    int m_originalLevelSeed;
-    int m_originalLevel;
+    geode::SeedValueRSV m_originalLevel;
     bool m_twoPlayerMode;
     int m_failedPasswordAttempts;
-    int m_firstCoinVerifiedRand;
-    int m_firstCoinVerifiedSeed;
-    int m_firstCoinVerified;
-    int m_secondCoinVerifiedRand;
-    int m_secondCoinVerifiedSeed;
-    int m_secondCoinVerified;
-    int m_thirdCoinVerifiedRand;
-    int m_thirdCoinVerifiedSeed;
-    int m_thirdCoinVerified;
+    geode::SeedValueRSV m_firstCoinVerified;
+    geode::SeedValueRSV m_secondCoinVerified;
+    geode::SeedValueRSV m_thirdCoinVerified;
     int m_starsRequested;
     bool m_showedSongWarning;
     int m_starRatings;
@@ -2755,47 +2711,36 @@ class GameManager : GManager {
     }
     void setPlayerFrame(int id) {
         m_playerFrame = id;
-        m_playerFrameRand1 = id + m_playerFrameRand2;
     }
     void setPlayerShip(int id) {
         m_playerShip = id;
-        m_playerShipRand1 = id + m_playerShipRand2;
     }
     void setPlayerBall(int id) {
         m_playerBall = id;
-        m_playerBallRand1 = id + m_playerBallRand2;
     }
     void setPlayerBird(int id) {
         m_playerBird = id;
-        m_playerBirdRand1 = id + m_playerBirdRand2;
     }
     void setPlayerDart(int id) {
         m_playerDart = id;
-        m_playerDartRand1 = id + m_playerDartRand2;
     }
     void setPlayerRobot(int id) {
         m_playerRobot = id;
-        m_playerRobotRand1 = id + m_playerRobotRand2;
     }
     void setPlayerSpider(int id) {
         m_playerSpider = id;
-        m_playerSpiderRand1 = id + m_playerSpiderRand2;
     }
     void setPlayerStreak(int id) {
         m_playerStreak = id;
-        m_playerStreakRand1 = id + m_playerStreakRand2;
     }
     void setPlayerDeathEffect(int id) {
         m_playerDeathEffect = id;
-        m_playerDeathEffectRand1 = id + m_playerDeathEffectRand2;
     }
     void setPlayerColor(int id) {
         m_playerColor = id;
-        m_playerColorRand1 = id + m_playerColorRand2;
     }
     void setPlayerColor2(int id) {
         m_playerColor2 = id;
-        m_playerColor2Rand1 = id + m_playerColor2Rand2;
     }
     void setPlayerGlow(bool v) {
         m_playerGlow = v;
@@ -2892,9 +2837,7 @@ class GameManager : GManager {
     gd::string m_playerUDID;
     gd::string m_playerName;
     bool m_commentsEnabled;
-    int m_playerUserIDRand1;
-    int m_playerUserIDRand2;
-    int m_playerUserID;
+    geode::SeedValueRSV m_playerUserID;
     float m_backgroundMusicVolume;
     float m_effectsVolume;
     float m_timeOffset;
@@ -2912,39 +2855,17 @@ class GameManager : GManager {
     int m_sceneEnum;
     int m_searchObjectType;
     bool m_unknownBool6;
-    int m_playerFrameRand1;
-    int m_playerFrameRand2;
-    int m_playerFrame;
-    int m_playerShipRand1;
-    int m_playerShipRand2;
-    int m_playerShip;
-    int m_playerBallRand1;
-    int m_playerBallRand2;
-    int m_playerBall;
-    int m_playerBirdRand1;
-    int m_playerBirdRand2;
-    int m_playerBird;
-    int m_playerDartRand1;
-    int m_playerDartRand2;
-    int m_playerDart;
-    int m_playerRobotRand1;
-    int m_playerRobotRand2;
-    int m_playerRobot;
-    int m_playerSpiderRand1;
-    int m_playerSpiderRand2;
-    int m_playerSpider;
-    int m_playerColorRand1;
-    int m_playerColorRand2;
-    int m_playerColor;
-    int m_playerColor2Rand1;
-    int m_playerColor2Rand2;
-    int m_playerColor2;
-    int m_playerStreakRand1;
-    int m_playerStreakRand2;
-    int m_playerStreak;
-    int m_playerDeathEffectRand1;
-    int m_playerDeathEffectRand2;
-    int m_playerDeathEffect;
+    geode::SeedValueRSV m_playerFrame;
+    geode::SeedValueRSV m_playerShip;
+    geode::SeedValueRSV m_playerBall;
+    geode::SeedValueRSV m_playerBird;
+    geode::SeedValueRSV m_playerDart;
+    geode::SeedValueRSV m_playerRobot;
+    geode::SeedValueRSV m_playerSpider;
+    geode::SeedValueRSV m_playerColor;
+    geode::SeedValueRSV m_playerColor2;
+    geode::SeedValueRSV m_playerStreak;
+    geode::SeedValueRSV m_playerDeathEffect;
     int m_chkSeed;
     int m_chkRand;
     int m_secretNumberSeed;
@@ -2973,9 +2894,7 @@ class GameManager : GManager {
     bool m_unk2;
     bool m_gameCenterEnabled;
     bool m_smoothFix;
-    int m_ratePowerSeed;
-    int m_ratePowerRand;
-    int m_ratePower;
+    geode::SeedValueSRV m_ratePower;
     bool m_canGetLevelSaveData;
     int m_resolution;
     cocos2d::TextureQuality m_quality;
@@ -3388,9 +3307,7 @@ class GameStatsManager : cocos2d::CCNode {
     cocos2d::CCDictionary* m_completedMappacks;
     cocos2d::CCDictionary* m_weeklyChest;
     cocos2d::CCDictionary* m_treasureRoomChests;
-    int m_bonusKeySeed;
-    int m_bonusKeyRand;
-    int m_bonusKey;
+    geode::SeedValueSRV m_bonusKey;
     cocos2d::CCDictionary* m_miscChests;
 }
 
@@ -3725,9 +3642,7 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
     cocos2d::CCArray* m_unkArray12;
     bool field_14;
     bool field_31D;
-    int m_coinCountRand1;
-    int m_coinCountRand2;
-    int m_coinCount;
+    geode::SeedValueRSV m_coinCount;
     bool m_moveTrigger;
     bool m_colorTrigger;
     bool m_pulseTrigger;
@@ -3758,9 +3673,7 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
     cocos2d::CCArray* m_undoObjects;
     cocos2d::CCArray* m_redoObjects;
     cocos2d::CCPoint m_unkPoint1;
-    int m_objectCountRand1;
-    int m_objectCountRand2;
-    int m_objectCount;
+    geode::SeedValueRSV m_objectCount;
     DrawGridLayer* m_drawGridLayer;
     GJGameLevel* m_level;
     PlaybackMode m_playbackMode;

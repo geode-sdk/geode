@@ -14,6 +14,7 @@ namespace { namespace format_strings {
 #include <cocos-ext.h>
 #include <Geode/GeneratedPredeclare.hpp>
 #include <Geode/Enums.hpp>
+#include <Geode/utils/SeedValue.hpp>
 
 )GEN";
 
