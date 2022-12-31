@@ -74,7 +74,9 @@ class AnimatedShopKeeper : CCAnimatedSprite {
     bool m_unknown;
 }
 
-class AnimatedSpriteDelegate {}
+class AnimatedSpriteDelegate {
+    virtual void animationFinished(const char*);
+}
 
 class AppDelegate : cocos2d::CCApplication {
     void bgScale() = mac 0x3aaab0;
@@ -4702,34 +4704,6 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     void runRotateAction() = win 0x1e9bf0;
     void runBallRotation() = win 0x1e9d10;
 
-    // HardStreak* waveStreak = mac 0x600;
-    // double speed = mac 0x608;
-    // double gravity = mac 0x618;
-    // bool inPlayLayer = mac 0x62c;
-    // GJRobotSprite* robotSprite = mac 0x6a8;
-    // GJSpiderSprite* spiderSprite = mac 0x6b0;
-    // bool isHolding = mac 0x745;
-    // bool hasJustHeld = mac 0x746;
-    // double yAccel = mac 0x760;
-    // bool isShip = mac 0x770;
-    // bool isBird = mac 0x771;
-    // bool isBall = mac 0x772;
-    // bool isDart = mac 0x773;
-    // bool isRobot = mac 0x774;
-    // bool isSpider = mac 0x775;
-    // bool upsideDown = mac 0x776;
-    // bool dead = mac 0x777;
-    // bool onGround = mac 0x778;
-    // float vehicleSize = mac 0x77c;
-    // cocos2d::CCPoint lastPortalLocation = mac 0x78c;
-    // bool isSliding = mac 0x7a0;
-    // bool isRising = mac 0x7a1;
-    // cocos2d::CCPoint lastHitGround = mac 0x7a4;
-    // GameObject* lastPortal = mac 0x7b8;
-    // cocos2d::_ccColor3B col1 = mac 0x7c2;
-    // cocos2d::_ccColor3B col2 = mac 0x7c5;
-    // float xPos = mac 0x7c8;
-    // float yPos = mac 0x7cc;
     PAD = mac 0x18, win 0x14;
     bool m_unk480;
     cocos2d::CCNode* m_unk484;
@@ -4755,7 +4729,6 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     cocos2d::CCSprite* m_unk500;
     cocos2d::CCSprite* m_vehicleSpriteWhitener;
     cocos2d::CCSprite* m_vehicleGlow;
-    PAD = mac 0x8; // idk about windows
     cocos2d::CCMotionStreak* m_regularTrail;
     HardStreak* m_waveTrail;
     double m_xAccel;
