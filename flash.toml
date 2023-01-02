@@ -27,11 +27,13 @@ exclude = [
 
 [[sources]]
 name = "Bindings"
-strip-include-prefix = "build/codegenned"
-dir = "build/codegenned/Geode/binding"
+dir = "build-docs/codegenned/Geode/binding"
+strip-include-prefix = "build-docs/codegenned"
 include = [
     "*.hpp"
 ]
+# Bindings are generated at compile time
+exists-online = false
 
 # CMake options
 
