@@ -47,8 +47,8 @@ GEODE_MEMBER_CHECK(EffectGameObject, m_hsvValue, 0x560);
 GEODE_MEMBER_CHECK(EffectGameObject, m_spawnDelay, 0x588);
 GEODE_MEMBER_CHECK(EffectGameObject, m_itemBlockAID, 0x5b0);
 
-// TeleportGameObject
-GEODE_MEMBER_CHECK(TeleportGameObject, m_orangePortal, 0x4f8);
+// TeleportPortalObject
+GEODE_MEMBER_CHECK(TeleportPortalObject, m_orangePortal, 0x4f8);
 
 // StartPosObject
 GEODE_MEMBER_CHECK(StartPosObject, m_levelSettings, 0x5e0);
