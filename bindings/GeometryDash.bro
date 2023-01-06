@@ -4359,7 +4359,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     cocos2d::CCSprite* m_sliderGrooveSprite;
     cocos2d::CCSprite* m_sliderBarSprite;
     cocos2d::CCSize m_sliderSize;
-    void* unknown680;
+    int unknown680;
     int m_activeGravityEffects;
     int m_gravityEffectStatus; // ??
     PAD = mac 0x4, win 0x4;
