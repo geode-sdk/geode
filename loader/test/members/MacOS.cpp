@@ -30,4 +30,27 @@ GEODE_MEMBER_CHECK(GameManager, m_playLayer, 0x180);
 GEODE_MEMBER_CHECK(GameManager, m_levelEditorLayer, 0x188);
 // GEODE_MEMBER_CHECK(GameManager, m_clickedGarage, 0x2a2); // todo: find why this is not 0x2a2
 
+// GameObject
+GEODE_MEMBER_CHECK(GameObject, m_baseColorID, 0x27c);
+GEODE_MEMBER_CHECK(GameObject, m_detailColorID, 0x280);
+GEODE_MEMBER_CHECK(GameObject, m_active, 0x2e5);
+GEODE_MEMBER_CHECK(GameObject, m_baseSprite, 0x348);
+GEODE_MEMBER_CHECK(GameObject, m_startPosition, 0x37c);
+GEODE_MEMBER_CHECK(GameObject, m_baseColor, 0x410);
+GEODE_MEMBER_CHECK(GameObject, m_groups, 0x458);
+GEODE_MEMBER_CHECK(GameObject, m_effectManager, 0x4d8);
+
+// EffectGameObject
+GEODE_MEMBER_CHECK(EffectGameObject, m_duration, 0x4f0);
+GEODE_MEMBER_CHECK(EffectGameObject, m_followMod, 0x530);
+GEODE_MEMBER_CHECK(EffectGameObject, m_hsvValue, 0x560);
+GEODE_MEMBER_CHECK(EffectGameObject, m_spawnDelay, 0x588);
+GEODE_MEMBER_CHECK(EffectGameObject, m_itemBlockAID, 0x5b0);
+
+// TeleportGameObject
+GEODE_MEMBER_CHECK(TeleportGameObject, m_orangePortal, 0x4f8);
+
+// StartPosObject
+GEODE_MEMBER_CHECK(StartPosObject, m_levelSettings, 0x5e0);
+
 #endif
