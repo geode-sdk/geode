@@ -1,0 +1,62 @@
+
+# Configuration file for the Flash C++ documentation generator.
+# https://github.com/hjfod/flash
+
+[project]
+name = "Geode"
+version = "v1.0.0-beta"
+repository = "https://github.com/geode-sdk/geode"
+tree = "https://github.com/geode-sdk/geode/tree/main"
+
+[[sources]]
+name = "Geode"
+dir = "loader/include/Geode"
+# todo: Make flash infer this from cmake
+strip-include-prefix = "loader/include"
+include = [
+    "**/*.hpp",
+    "**/*.h",
+]
+exclude = [
+    "modify/Comparer.hpp",
+    "platform/*.hpp",
+    "c++stl/*.hpp",
+    # All of the relevant cocos headers are included through Geode headers
+    "cocos/**/*.h"
+]
+
+[[sources]]
+name = "Bindings"
+dir = "build-docs/codegenned/Geode/binding"
+strip-include-prefix = "build-docs/codegenned"
+include = [
+    "*.hpp"
+]
+# Bindings are generated at compile time
+exists-online = false
+
+# CMake options
+
+[cmake]
+config-args = [
+    "-G", "Ninja",
+    "-DCMAKE_CXX_COMPILER=Clang",
+    "-DCMAKE_C_COMPILER=Clang",
+    "-DGEODE_DISABLE_CLI_CALLS=On",
+    "-DGEODE_PLATFORM_NAME=Win32",
+    "-DCMAKE_EXPORT_COMPILE_COMMANDS=On",
+    "-DGEODE_DISABLE_PRECOMPILED_HEADERS=On",
+    "-DGEODE_CODEGEN_CMAKE_ARGS=-DCMAKE_CXX_COMPILER=Clang;-DCMAKE_C_COMPILER=Clang",
+    "-DCMAKE_C_FLAGS=-m32",
+    "-DCMAKE_CXX_FLAGS=-m32",
+    "-DWIN32=On"
+]
+# We want to build codegen in order to get the bindings
+build = true
+build-dir = "build-docs"
+build-args = [
+    "--target", "CodegenRun"
+]
+
+# The file we use to get all the include paths and such
+infer-args-from = "loader/src/main.cpp"

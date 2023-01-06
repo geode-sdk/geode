@@ -2,6 +2,7 @@
 
 #ifdef GEODE_IS_MACOS
 
+    #include <array>
     #include <ghc/filesystem.hpp>
 
     #include <Foundation/Foundation.h>

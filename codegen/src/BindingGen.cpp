@@ -14,6 +14,7 @@ namespace { namespace format_strings {
 #include <cocos-ext.h>
 #include <Geode/GeneratedPredeclare.hpp>
 #include <Geode/Enums.hpp>
+#include <Geode/utils/SeedValue.hpp>
 
 )GEN";
 
@@ -46,7 +47,10 @@ public:
     }}
 )GEN";
 
-    char const* error_definition_virtual = R"GEN(    [[deprecated("Use of undefined virtual function - will crash at runtime!!!")]]
+    char const* error_definition_virtual = R"GEN(    
+    #ifndef GEODE_DONT_WARN_INCORRECT_MEMBERS
+    [[deprecated("Use of undefined virtual function - will crash at runtime!!!")]]
+    #endif
     {virtual}{return_type} {function_name}({parameters}){const}{{
         #ifdef GEODE_NO_UNDEFINED_VIRTUALS
         static_assert(false, "Undefined virtual function - implement in GeometryDash.bro");
@@ -54,6 +58,12 @@ public:
         throw std::runtime_error("Use of undefined virtual function " + GEODE_PRETTY_FUNCTION);
     }}
 )GEN";
+
+    char const* warn_offset_member = R"GEN(
+    #ifndef GEODE_DONT_WARN_INCORRECT_MEMBERS
+    [[deprecated("Member placed incorrectly - will crash at runtime!!!")]]
+    #endif
+    )GEN";
 
     char const* structor_definition = R"GEN(
     {function_name}({parameters});)GEN";
@@ -126,7 +136,7 @@ std::string generateBindingHeader(Root& root, ghc::filesystem::path const& singl
                 single_output += "\t" + i->inner + "\n";
                 continue;
             } else if (auto m = field.get_as<MemberField>()) {
-                if (unimplementedField) single_output += "\t[[deprecated(\"Member placed incorrectly - will crash at runtime!!!\")]]\n";
+                if (unimplementedField) single_output += format_strings::warn_offset_member;
                 single_output += fmt::format(format_strings::member_definition,
                     fmt::arg("type", m->type.name),
                     fmt::arg("member_name", m->name + str_if(fmt::format("[{}]", m->count), m->count))

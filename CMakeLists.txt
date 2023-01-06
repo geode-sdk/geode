@@ -49,20 +49,24 @@ include(cmake/CPM.cmake)
 
 target_sources(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/entry.cpp)
 
-
 include(ExternalProject)
-
 set(GEODE_CODEGEN_BINARY_OUT ${CMAKE_CURRENT_BINARY_DIR}/codegen)
 ExternalProject_Add(CodegenProject
+	BUILD_ALWAYS ON
 	SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/codegen
 	CMAKE_CACHE_ARGS "-DCMAKE_INSTALL_PREFIX:STRING=${GEODE_CODEGEN_BINARY_OUT}"
-	BUILD_ALWAYS ${GEODE_ALWAYS_BUILD_CODEGEN}
+	CMAKE_ARGS ${GEODE_CODEGEN_CMAKE_ARGS}
+)
+
+
+file(GLOB CODEGEN_DEPENDS CONFIGURE_DEPENDS 
+	${CMAKE_CURRENT_SOURCE_DIR}/bindings/*.bro
+	${CMAKE_CURRENT_SOURCE_DIR}/codegen/src/*.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/codegen/src/*.hpp
 )
 
 add_custom_command(
-	DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/bindings/GeometryDash.bro
-			${CMAKE_CURRENT_SOURCE_DIR}/bindings/Cocos2d.bro
-			${CMAKE_CURRENT_SOURCE_DIR}/bindings/Entry.bro
+	DEPENDS ${CODEGEN_DEPENDS}
 	DEPENDS CodegenProject
 	COMMAND ${GEODE_CODEGEN_BINARY_OUT}/Codegen ${GEODE_TARGET_PLATFORM} bindings ${GEODE_CODEGEN_PATH}
 	COMMAND echo codegen > ${GEODE_CODEGEN_PATH}/.stamp
@@ -95,7 +99,6 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 )
 target_link_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/loader/include/link)
 
-add_definitions(-DFMT_CONSTEVAL=)
 
 CPMAddPackage("gh:fmtlib/fmt#9.1.0")
 CPMAddPackage("gh:gulrak/filesystem#3e5b930")

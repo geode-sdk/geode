@@ -74,9 +74,11 @@ class AnimatedShopKeeper : CCAnimatedSprite {
     bool m_unknown;
 }
 
-class AnimatedSpriteDelegate {}
+class AnimatedSpriteDelegate {
+    virtual void animationFinished(const char*) {}
+}
 
-class AppDelegate : cocos2d::CCApplication {
+class AppDelegate : cocos2d::CCApplication, cocos2d::CCSceneDelegate {
     void bgScale() = mac 0x3aaab0;
     virtual bool applicationDidFinishLaunching() = mac 0x3aa900, win 0x3cbb0;
     virtual void applicationDidEnterBackground() = mac 0x3aabe0, win 0x3cf40;
@@ -324,18 +326,18 @@ class CCLightFlash {
 
 class CCMenuItemSpriteExtra : cocos2d::CCMenuItemSprite {
     void useAnimationType(MenuAnimationType type) {
-        this->m_startPosition = this->getNormalImage()->getPosition();
-        this->m_animationType = type;
+        m_startPosition = this->getNormalImage()->getPosition();
+        m_animationType = type;
     }
     void setDestination(cocos2d::CCPoint const& pos) {
-        this->m_destPosition = pos;
+        m_destPosition = pos;
     }
     void setOffset(cocos2d::CCPoint const& pos) {
-        this->m_offset = pos;
+        m_offset = pos;
     }
     void setScale(float scale) {
         this->CCMenuItemSprite::setScale(scale);
-        this->m_baseScale = scale;
+        m_baseScale = scale;
     }
 
     static CCMenuItemSpriteExtra* create(cocos2d::CCNode*, cocos2d::CCNode*, cocos2d::CCObject*, cocos2d::SEL_MenuHandler) = mac 0x1253c0, win 0x18ee0, ios 0xe0740;
@@ -461,11 +463,11 @@ class CCScrollLayerExt : cocos2d::CCLayer {
     }
     float getMinY() {
         return this->getContentSize().height -
-            this->m_contentLayer->getContentSize().height -
-            this->m_scrollLimitTop;
+            m_contentLayer->getContentSize().height -
+            m_scrollLimitTop;
     }
     float getMaxY() {
-        return this->m_scrollLimitBottom;
+        return m_scrollLimitBottom;
     }
 
     // todo: add this back when CCDestructor works and 
@@ -1046,12 +1048,12 @@ class DrawGridLayer : cocos2d::CCLayer {
 
 class EditButtonBar : cocos2d::CCNode {
     void removeAllItems() {
-        this->m_buttonArray->removeAllObjects();
+        m_buttonArray->removeAllObjects();
         this->reloadItemsInNormalSize();
     }
     void reloadItems(int rowCount, int columnCount) {
-        if (this->m_buttonArray)
-            this->loadFromItems(this->m_buttonArray, rowCount, columnCount, this->m_unknown);
+        if (m_buttonArray)
+            this->loadFromItems(m_buttonArray, rowCount, columnCount, m_unknown);
     }
     void reloadItemsInNormalSize() {
         // TODO: fix this
@@ -1061,8 +1063,8 @@ class EditButtonBar : cocos2d::CCNode {
         // );
     }
     void addButton(CCMenuItemSpriteExtra* btn, bool reload) {
-        if (this->m_buttonArray)
-            this->m_buttonArray->addObject(btn);
+        if (m_buttonArray)
+            m_buttonArray->addObject(btn);
         if (reload)
             this->reloadItemsInNormalSize();
     }
@@ -1258,10 +1260,10 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     virtual void scrollWheel(float vertical, float horizontal) = win 0x921d0, mac 0x31370, ios 0x2c4884;
     void createMoveMenu() = mac 0x275e0, win 0x8c0d0;
 
+    bool m_isPlayingMusic;
     EditButtonBar* m_buttonBar;
     PAD = mac 0x8, win 0x4;
     cocos2d::CCArray* m_hideableUIElementArray;
-    PAD = mac 0x8, win 0x4;
     float m_gridSize;
     PAD = mac 0x18, win 0x14;
     bool m_moveModifier;
@@ -1359,19 +1361,19 @@ class EffectGameObject : GameObject {
     void updateLabel() {
         auto label = static_cast<cocos2d::CCLabelBMFont*>(this->getChildByTag(999));
         if (label) {
-            switch (this->m_objectID) {
+            switch (m_objectID) {
                 // instant count, collision block, pickup
                 case 0x713: [[fallthrough]];
                 case 0x718: [[fallthrough]];
                 case 0x716: 
                     label->setString(
-                        cocos2d::CCString::createWithFormat("%i", this->m_itemBlockAID)->getCString()
+                        cocos2d::CCString::createWithFormat("%i", m_itemBlockAID)->getCString()
                     );
                     break;
                 //   color,    pulse
                 case 899: [[fallthrough]];
                 case 1006: {
-                    int target = this->m_objectID == 1006 ? m_targetGroupID : m_targetColorID;
+                    int target = m_objectID == 1006 ? m_targetGroupID : m_targetColorID;
                     if (target > 999) {
                         label->setString(GJSpecialColorSelect::textForColorIdx(target));
                     } else {
@@ -1383,7 +1385,7 @@ class EffectGameObject : GameObject {
                     } break;
                 default:
                     label->setString(
-                        cocos2d::CCString::createWithFormat("%i", this->m_targetGroupID)->getCString()
+                        cocos2d::CCString::createWithFormat("%i", m_targetGroupID)->getCString()
                     );
             }
         }
@@ -1630,7 +1632,7 @@ class GJBaseGameLayer : cocos2d::CCLayer, TriggerEffectDelegate {
         return m_objectLayer;
     }
     cocos2d::CCArray* getAllObjects() {
-        return this->m_objects;
+        return m_objects;
     }
 
     static GJBaseGameLayer* get() {
@@ -1714,14 +1716,6 @@ class GJBaseGameLayer : cocos2d::CCLayer, TriggerEffectDelegate {
     void updateQueuedLabels() = mac 0xb9f30, win 0x111b00;
     virtual ~GJBaseGameLayer() = mac 0xaf990, win 0x10add0;
 
-    // GJEffectManager* effectManager = mac 0x180;
-    // cocos2d::CCLayer* objectLayer = mac 0x188;
-    // cocos2d::CCArray* objects = mac 0x3a0;
-    // cocos2d::CCArray* sections = mac 0x3a8;
-    // PlayerObject* player1 = mac 0x380;
-    // PlayerObject* player2 = mac 0x388;
-    // LevelSettingsObject* levelSettings = mac 0x390;
-    // cocos2d::CCDictionary* unknownDict = mac 0x398;
     OBB2D* m_boundingBox;
     GJEffectManager* m_effectManager;
     cocos2d::CCLayer* m_objectLayer;
@@ -1827,15 +1821,9 @@ class GJChallengeDelegate {}
 class GJChallengeItem : cocos2d::CCObject {
 
     GJChallengeType m_challengeType;
-    int m_countSeed;
-    int m_countRand;
-    int m_count;
-    int m_rewardSeed;
-    int m_rewardRand;
-    int m_reward;
-    int m_goalSeed;
-    int m_goalRand;
-    int m_goal;
+    geode::SeedValueSRV m_count;
+    geode::SeedValueSRV m_reward;
+    geode::SeedValueSRV m_goal;
     int m_timeLeft;
     bool m_canClaim;
     int m_position;
@@ -2126,9 +2114,7 @@ class GJGameLevel : cocos2d::CCNode {
     }
 
     cocos2d::CCDictionary* m_lastBuildSave;
-    int m_levelIDRand;
-    int m_levelIDSeed;
-    int m_levelID;
+    geode::SeedValueRSV m_levelID;
     gd::string m_levelName;
     gd::string m_levelDesc;
     gd::string m_levelString;
@@ -2136,20 +2122,14 @@ class GJGameLevel : cocos2d::CCNode {
     gd::string m_recordString;
     gd::string m_uploadDate;
     gd::string m_updateDate;
-    int m_userIDRand;
-    int m_userIDSeed;
-    int m_userID;
-    int m_accountIDRand;
-    int m_accountIDSeed;
-    int m_accountID;
+    geode::SeedValueRSV m_userID;
+    geode::SeedValueRSV m_accountID;
     GJDifficulty m_difficulty;
     int m_audioTrack;
     int m_songID;
     int m_levelRev;
     bool m_unlisted;
-    int m_objectCountRand;
-    int m_objectCountSeed;
-    int m_objectCount;
+    geode::SeedValueRSV m_objectCount;
     int m_levelIndex;
     int m_ratings;
     int m_ratingsSum;
@@ -2161,37 +2141,22 @@ class GJGameLevel : cocos2d::CCNode {
     int m_workingTime2;
     bool m_lowDetailMode;
     bool m_lowDetailModeToggled;
-    int m_isVerifiedRand;
-    int m_isVerifiedSeed;
-    bool m_isVerified;
+    geode::SeedValueRS m_isVerified;
+    bool m_isVerifiedRaw; // honestly i dont think this is need to be used
     bool m_isUploaded;
     bool m_hasBeenModified;
     int m_levelVersion;
     int m_gameVersion;
-    int m_attemptsRand;
-    int m_attemptsSeed;
-    int m_attempts;
-    int m_jumpsRand;
-    int m_jumpsSeed;
-    int m_jumps;
-    int m_clicksRand;
-    int m_clicksSeed;
-    int m_clicks;
-    int m_attemptTimeRand;
-    int m_attemptTimeSeed;
-    int m_attemptTime;
+    geode::SeedValueRSV m_attempts;
+    geode::SeedValueRSV m_jumps;
+    geode::SeedValueRSV m_clicks;
+    geode::SeedValueRSV m_attemptTime;
     int m_chk;
     bool m_isChkValid;
     bool m_isCompletionLegitimate;
-    int m_normalPercent;
-    int m_normalPercentSeed;
-    int m_normalPercentRand;
-    int m_orbCompletionRand;
-    int m_orbCompletionSeed;
-    int m_orbCompletion;
-    int m_newNormalPercent2Rand;
-    int m_newNormalPercent2Seed;
-    int m_newNormalPercent2;
+    geode::SeedValueVSR m_normalPercent;
+    geode::SeedValueRSV m_orbCompletion;
+    geode::SeedValueRSV m_newNormalPercent2;
     int m_practicePercent;
     int m_likes;
     int m_dislikes;
@@ -2200,37 +2165,20 @@ class GJGameLevel : cocos2d::CCNode {
     bool m_isEpic;
     bool m_levelFavorited;
     int m_levelFolder;
-    int m_dailyIDRand;
-    int m_dailyIDSeed;
-    int m_dailyID;
-    int m_demonRand;
-    int m_demonSeed;
-    int m_demon;
+    geode::SeedValueRSV m_dailyID;
+    geode::SeedValueRSV m_demon;
     int m_demonDifficulty;
-    int m_starsRand;
-    int m_starsSeed;
-    int m_stars;
+    geode::SeedValueRSV m_stars;
     bool m_autoLevel;
     int m_coins;
-    int m_coinsVerifiedRand;
-    int m_coinsVerifiedSeed;
-    int m_coinsVerified;
-    int m_passwordRand;
-    int m_passwordSeed;
-    int m_originalLevelRand;
-    int m_originalLevelSeed;
-    int m_originalLevel;
+    geode::SeedValueRSV m_coinsVerified;
+    geode::SeedValueRS m_password;
+    geode::SeedValueRSV m_originalLevel;
     bool m_twoPlayerMode;
     int m_failedPasswordAttempts;
-    int m_firstCoinVerifiedRand;
-    int m_firstCoinVerifiedSeed;
-    int m_firstCoinVerified;
-    int m_secondCoinVerifiedRand;
-    int m_secondCoinVerifiedSeed;
-    int m_secondCoinVerified;
-    int m_thirdCoinVerifiedRand;
-    int m_thirdCoinVerifiedSeed;
-    int m_thirdCoinVerified;
+    geode::SeedValueRSV m_firstCoinVerified;
+    geode::SeedValueRSV m_secondCoinVerified;
+    geode::SeedValueRSV m_thirdCoinVerified;
     int m_starsRequested;
     bool m_showedSongWarning;
     int m_starRatings;
@@ -2397,10 +2345,10 @@ class GJRobotSprite : CCAnimatedSprite {
 
 class GJRotationControl : cocos2d::CCLayer {
     void setAngle(float angle) {
-        this->m_sliderPosition = cocos2d::CCPointMake(sinf(angle) * 60.0f, cosf(angle) * 60.0f);
-        this->m_angle = angle;
+        m_sliderPosition = cocos2d::CCPointMake(sinf(angle) * 60.0f, cosf(angle) * 60.0f);
+        m_angle = angle;
     
-        this->m_sliderThumb->setPosition(this->m_sliderPosition);
+        m_sliderThumb->setPosition(m_sliderPosition);
     }
 
     void updateSliderPosition(cocos2d::CCPoint const& pos) = win 0x94020;
@@ -2452,7 +2400,7 @@ class GJScoreCell : TableViewCell {
 
 class GJSearchObject : cocos2d::CCNode {
     SearchType getType() {
-        return this->m_searchType;
+        return m_searchType;
     }
 
     static GJSearchObject* create(SearchType nID) = win 0xc2b90;
@@ -2512,46 +2460,46 @@ class GJUserCell : TableViewCell {
 
 class GJUserScore : cocos2d::CCNode {
     IconType getIconType() const { 
-        return this->m_iconType; 
+        return m_iconType; 
     }
     int getPlayerCube() const { 
-        return this->m_playerCube; 
+        return m_playerCube; 
     }
     int getPlayerShip() const { 
-        return this->m_playerShip;
+        return m_playerShip;
     }
     int getPlayerBall() const {
-        return this->m_playerBall;
+        return m_playerBall;
     }
     int getPlayerUfo() const {
-        return this->m_playerUfo;
+        return m_playerUfo;
     }
     int getPlayerWave() const { 
-        return this->m_playerWave; 
+        return m_playerWave; 
     }
     int getPlayerRobot() const { 
-        return this->m_playerRobot; 
+        return m_playerRobot; 
     }
     int getPlayerSpider() const { 
-        return this->m_playerSpider; 
+        return m_playerSpider; 
     }
     int getPlayerStreak() const { 
-        return this->m_playerStreak; 
+        return m_playerStreak; 
     }
     bool getGlowEnabled() const { 
-        return this->m_glowEnabled; 
+        return m_glowEnabled; 
     }
     int getPlayerExplosion() const { 
-        return this->m_playerExplosion; 
+        return m_playerExplosion; 
     }
     int getPlayerColor1() const { 
-        return this->m_color1;
+        return m_color1;
     }
     int getPlayerColor2() const { 
-        return this->m_color2; 
+        return m_color2; 
     }
     gd::string getPlayerName() const { 
-        return this->m_userName; 
+        return m_userName; 
     }
     static GJUserScore* create() = win 0xc1660;
     static GJUserScore* create(cocos2d::CCDictionary*) = win 0xc0750;
@@ -2753,47 +2701,36 @@ class GameManager : GManager {
     }
     void setPlayerFrame(int id) {
         m_playerFrame = id;
-        m_playerFrameRand1 = id + m_playerFrameRand2;
     }
     void setPlayerShip(int id) {
         m_playerShip = id;
-        m_playerShipRand1 = id + m_playerShipRand2;
     }
     void setPlayerBall(int id) {
         m_playerBall = id;
-        m_playerBallRand1 = id + m_playerBallRand2;
     }
     void setPlayerBird(int id) {
         m_playerBird = id;
-        m_playerBirdRand1 = id + m_playerBirdRand2;
     }
     void setPlayerDart(int id) {
         m_playerDart = id;
-        m_playerDartRand1 = id + m_playerDartRand2;
     }
     void setPlayerRobot(int id) {
         m_playerRobot = id;
-        m_playerRobotRand1 = id + m_playerRobotRand2;
     }
     void setPlayerSpider(int id) {
         m_playerSpider = id;
-        m_playerSpiderRand1 = id + m_playerSpiderRand2;
     }
     void setPlayerStreak(int id) {
         m_playerStreak = id;
-        m_playerStreakRand1 = id + m_playerStreakRand2;
     }
     void setPlayerDeathEffect(int id) {
         m_playerDeathEffect = id;
-        m_playerDeathEffectRand1 = id + m_playerDeathEffectRand2;
     }
     void setPlayerColor(int id) {
         m_playerColor = id;
-        m_playerColorRand1 = id + m_playerColorRand2;
     }
     void setPlayerColor2(int id) {
         m_playerColor2 = id;
-        m_playerColor2Rand1 = id + m_playerColor2Rand2;
     }
     void setPlayerGlow(bool v) {
         m_playerGlow = v;
@@ -2890,9 +2827,7 @@ class GameManager : GManager {
     gd::string m_playerUDID;
     gd::string m_playerName;
     bool m_commentsEnabled;
-    int m_playerUserIDRand1;
-    int m_playerUserIDRand2;
-    int m_playerUserID;
+    geode::SeedValueRSV m_playerUserID;
     float m_backgroundMusicVolume;
     float m_effectsVolume;
     float m_timeOffset;
@@ -2910,43 +2845,19 @@ class GameManager : GManager {
     int m_sceneEnum;
     int m_searchObjectType;
     bool m_unknownBool6;
-    int m_playerFrameRand1;
-    int m_playerFrameRand2;
-    int m_playerFrame;
-    int m_playerShipRand1;
-    int m_playerShipRand2;
-    int m_playerShip;
-    int m_playerBallRand1;
-    int m_playerBallRand2;
-    int m_playerBall;
-    int m_playerBirdRand1;
-    int m_playerBirdRand2;
-    int m_playerBird;
-    int m_playerDartRand1;
-    int m_playerDartRand2;
-    int m_playerDart;
-    int m_playerRobotRand1;
-    int m_playerRobotRand2;
-    int m_playerRobot;
-    int m_playerSpiderRand1;
-    int m_playerSpiderRand2;
-    int m_playerSpider;
-    int m_playerColorRand1;
-    int m_playerColorRand2;
-    int m_playerColor;
-    int m_playerColor2Rand1;
-    int m_playerColor2Rand2;
-    int m_playerColor2;
-    int m_playerStreakRand1;
-    int m_playerStreakRand2;
-    int m_playerStreak;
-    int m_playerDeathEffectRand1;
-    int m_playerDeathEffectRand2;
-    int m_playerDeathEffect;
-    int m_chkSeed;
-    int m_chkRand;
-    int m_secretNumberSeed;
-    int m_secretNumberRand;
+    geode::SeedValueRSV m_playerFrame;
+    geode::SeedValueRSV m_playerShip;
+    geode::SeedValueRSV m_playerBall;
+    geode::SeedValueRSV m_playerBird;
+    geode::SeedValueRSV m_playerDart;
+    geode::SeedValueRSV m_playerRobot;
+    geode::SeedValueRSV m_playerSpider;
+    geode::SeedValueRSV m_playerColor;
+    geode::SeedValueRSV m_playerColor2;
+    geode::SeedValueRSV m_playerStreak;
+    geode::SeedValueRSV m_playerDeathEffect;
+    geode::SeedValueSR m_chk;
+    geode::SeedValueSR m_secretNumber;
     bool m_playerGlow;
     IconType m_playerIconType;
     bool m_everyPlaySetup;
@@ -2971,9 +2882,7 @@ class GameManager : GManager {
     bool m_unk2;
     bool m_gameCenterEnabled;
     bool m_smoothFix;
-    int m_ratePowerSeed;
-    int m_ratePowerRand;
-    int m_ratePower;
+    geode::SeedValueSRV m_ratePower;
     bool m_canGetLevelSaveData;
     int m_resolution;
     cocos2d::TextureQuality m_quality;
@@ -3386,9 +3295,7 @@ class GameStatsManager : cocos2d::CCNode {
     cocos2d::CCDictionary* m_completedMappacks;
     cocos2d::CCDictionary* m_weeklyChest;
     cocos2d::CCDictionary* m_treasureRoomChests;
-    int m_bonusKeySeed;
-    int m_bonusKeyRand;
-    int m_bonusKey;
+    geode::SeedValueSRV m_bonusKey;
     cocos2d::CCDictionary* m_miscChests;
 }
 
@@ -3723,9 +3630,7 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
     cocos2d::CCArray* m_unkArray12;
     bool field_14;
     bool field_31D;
-    int m_coinCountRand1;
-    int m_coinCountRand2;
-    int m_coinCount;
+    geode::SeedValueRSV m_coinCount;
     bool m_moveTrigger;
     bool m_colorTrigger;
     bool m_pulseTrigger;
@@ -3756,9 +3661,7 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
     cocos2d::CCArray* m_undoObjects;
     cocos2d::CCArray* m_redoObjects;
     cocos2d::CCPoint m_unkPoint1;
-    int m_objectCountRand1;
-    int m_objectCountRand2;
-    int m_objectCount;
+    geode::SeedValueRSV m_objectCount;
     DrawGridLayer* m_drawGridLayer;
     GJGameLevel* m_level;
     PlaybackMode m_playbackMode;
@@ -4373,8 +4276,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     float unused4c8;
     bool unused4cc;
     bool m_hasCheated;
-    int m_dontSaveRand;
-    int m_dontSaveSeed;
+    geode::SeedValueRS m_dontSave;
     int unknown4d8;
     bool m_debugPauseOff;
     bool m_shouldSmoothCamera;
@@ -4426,7 +4328,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     float unknown5c4;
     GJGroundLayer* m_bottomGround;
     GJGroundLayer* m_topGround;
-    double m_completelyUninitializedData;
+    PAD = mac 0x8, win 0x8;
     bool m_isDead;
     bool m_startCameraAtCorner;
     bool m_cameraYLocked;
@@ -4457,9 +4359,10 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     cocos2d::CCSprite* m_sliderGrooveSprite;
     cocos2d::CCSprite* m_sliderBarSprite;
     cocos2d::CCSize m_sliderSize;
-    void* unknown680;
+    int unknown680;
     int m_activeGravityEffects;
     int m_gravityEffectStatus; // ??
+    PAD = mac 0x4, win 0x4;
     cocos2d::CCArray* m_gravitySprites;
     bool unk428;
     bool m_shouldRecordActions;
@@ -4702,35 +4605,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     void runRotateAction() = win 0x1e9bf0;
     void runBallRotation() = win 0x1e9d10;
 
-    // HardStreak* waveStreak = mac 0x600;
-    // double speed = mac 0x608;
-    // double gravity = mac 0x618;
-    // bool inPlayLayer = mac 0x62c;
-    // GJRobotSprite* robotSprite = mac 0x6a8;
-    // GJSpiderSprite* spiderSprite = mac 0x6b0;
-    // bool isHolding = mac 0x745;
-    // bool hasJustHeld = mac 0x746;
-    // double yAccel = mac 0x760;
-    // bool isShip = mac 0x770;
-    // bool isBird = mac 0x771;
-    // bool isBall = mac 0x772;
-    // bool isDart = mac 0x773;
-    // bool isRobot = mac 0x774;
-    // bool isSpider = mac 0x775;
-    // bool upsideDown = mac 0x776;
-    // bool dead = mac 0x777;
-    // bool onGround = mac 0x778;
-    // float vehicleSize = mac 0x77c;
-    // cocos2d::CCPoint lastPortalLocation = mac 0x78c;
-    // bool isSliding = mac 0x7a0;
-    // bool isRising = mac 0x7a1;
-    // cocos2d::CCPoint lastHitGround = mac 0x7a4;
-    // GameObject* lastPortal = mac 0x7b8;
-    // cocos2d::_ccColor3B col1 = mac 0x7c2;
-    // cocos2d::_ccColor3B col2 = mac 0x7c5;
-    // float xPos = mac 0x7c8;
-    // float yPos = mac 0x7cc;
-    PAD = mac 0x18, win 0x14;
+    PAD = mac 0x14, win 0x14;
     bool m_unk480;
     cocos2d::CCNode* m_unk484;
     cocos2d::CCDictionary* m_collisionLog;
@@ -4755,7 +4630,6 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     cocos2d::CCSprite* m_unk500;
     cocos2d::CCSprite* m_vehicleSpriteWhitener;
     cocos2d::CCSprite* m_vehicleGlow;
-    PAD = mac 0x8; // idk about windows
     cocos2d::CCMotionStreak* m_regularTrail;
     HardStreak* m_waveTrail;
     double m_xAccel;
@@ -4776,7 +4650,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     PAD = mac 0x24, win 0x24;
     float m_decelerationRate;
     PAD = mac 0x14, win 0x14;
-    GameObject* m_snappedObject;
+    GameObject* m_lastCollidedSolid;
     PAD = mac 0x10, win 0x8;
     GJRobotSprite* m_robotSprite;
     GJSpiderSprite* m_spiderSprite;
@@ -5110,10 +4984,10 @@ class SimplePlayer : cocos2d::CCSprite {
 
 class Slider : cocos2d::CCLayer {
     void setValue(float val) {
-        this->m_touchLogic->getThumb()->setValue(val);
+        m_touchLogic->getThumb()->setValue(val);
     }
     void setBarVisibility(bool v) {
-        this->m_sliderBar->setVisible(v);
+        m_sliderBar->setVisible(v);
     }
     static Slider* create(cocos2d::CCNode* target, cocos2d::SEL_MenuHandler click, float scale) {
         return create(target, click, "sliderBar.png", "slidergroove.png", "sliderthumb.png", "sliderthumbsel.png", scale);
@@ -5133,11 +5007,11 @@ class Slider : cocos2d::CCLayer {
 class SliderThumb : cocos2d::CCMenuItemImage {
     void setValue(float val) = mac 0x18ce80, win 0x2e1b0, ios 0x210db4;
     float getValue() {
-        return (m_fScaleX * this->m_length * .5f +
+        return (m_fScaleX * m_length * .5f +
                 (m_vertical ?
                     this->getPositionY() : 
                     this->getPositionX())
-            ) / (m_fScaleX * this->m_length);
+            ) / (m_fScaleX * m_length);
     }
 
     float m_length;

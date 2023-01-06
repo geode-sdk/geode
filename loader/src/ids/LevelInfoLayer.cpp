@@ -1,4 +1,5 @@
 #include "AddIDs.hpp"
+
 #include <Geode/binding/LevelInfoLayer.hpp>
 #include <Geode/modify/LevelInfoLayer.hpp>
 
@@ -35,7 +36,7 @@ $register_ids(LevelInfoLayer) {
 
     if (auto menu = getChildOfType<CCMenu>(this, 0)) {
         menu->setID("exit-menu");
-		setIDSafe(menu, 0, "exit-button");
+        setIDSafe(menu, 0, "exit-button");
     }
 
     if (auto menu = getChildOfType<CCMenu>(this, 1)) {
@@ -43,9 +44,7 @@ $register_ids(LevelInfoLayer) {
 
         if (auto name = setIDSafe(menu, 0, "creator-name")) {
             detachAndCreateMenu(
-                this, "creator-info-menu",
-                ColumnLayout::create()->setAlignment(Alignment::Begin),
-                name
+                this, "creator-info-menu", ColumnLayout::create()->setAlignment(Alignment::Begin), name
             );
         }
 
@@ -56,7 +55,7 @@ $register_ids(LevelInfoLayer) {
         this->addChild(leftSideMenu);
 
         menu->setPosition(winSize / 2 + ccp(254.f, 0.f));
-        
+
         for (auto child : CCArrayExt<CCNode>(menu->getChildren())) {
             if (child->getPositionX() < 0.f) {
                 child->retain();
@@ -81,11 +80,10 @@ $register_ids(LevelInfoLayer) {
     }
 }
 
-class $modify(LevelInfoLayer) {
+struct LevelInfoLayerIDs : Modify<LevelInfoLayerIDs, LevelInfoLayer> {
     bool init(GJGameLevel* level) {
-        if (!LevelInfoLayer::init(level))
-            return false;
-        
+        if (!LevelInfoLayer::init(level)) return false;
+
         NodeIDs::get()->provide(this);
 
         return true;

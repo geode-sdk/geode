@@ -1,7 +1,7 @@
 
-#include <cocos2d.h>
 #include <Geode/modify/CCFileUtils.hpp>
 #include <Geode/utils/ranges.hpp>
+#include <cocos2d.h>
 
 USE_GEODE_NAMESPACE();
 
@@ -29,7 +29,7 @@ void CCFileUtils::removeTexturePack(std::string const& id) {
     this->updatePaths();
 }
 
-void CCFileUtils::addPriorityPath(const char* path) {
+void CCFileUtils::addPriorityPath(char const* path) {
     PATHS.insert(PATHS.begin(), path);
     this->updatePaths();
 }
@@ -78,12 +78,11 @@ void CCFileUtils::updatePaths() {
         this->addSearchPath(path.c_str());
     }
     DONT_ADD_PATHS = false;
-
 }
 
 #pragma warning(pop)
 
-class $modify(CCFileUtils) {
+struct FileUtilsUpdatePaths : Modify<FileUtilsUpdatePaths, CCFileUtils> {
     static CCFileUtils* sharedFileUtils() {
         static bool doAddPaths = true;
         auto ret = CCFileUtils::sharedFileUtils();

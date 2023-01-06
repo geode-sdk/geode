@@ -4,10 +4,7 @@
  * Adapted from https://gist.github.com/altalk23/29b97969e9f0624f783b673f6c1cd279
  */
 
-#include "../loader/Log.hpp"
-#include "../loader/Mod.hpp"
 #include "casts.hpp"
-#include "general.hpp"
 
 #include <Geode/DefaultInclude.hpp>
 #include <cstdlib>
@@ -89,10 +86,10 @@ namespace geode::addresser {
 
             // log::debug("[[" + utils::intToHex((void*)ins) + " + " + utils::intToHex(thunk) + "] +
             // " + utils::intToHex(index) + "]");
-            log::debug(
-                "[[{} + {}] + {}]", utils::intToHex((void*)ins), utils::intToHex(thunk),
-                utils::intToHex(index)
-            );
+            // log::debug(
+            //     "[[{} + {}] + {}]", utils::intToHex((void*)ins), utils::intToHex(thunk),
+            //     utils::intToHex(index)
+            // );
 
             // [[this + thunk] + offset] is the f we want
             auto address =
@@ -179,23 +176,23 @@ namespace geode::addresser {
 #else
     template <typename T>
     inline intptr_t getVirtual(T func) {
-        log::debug(
-            "Get virtual function address from {}",
-            utils::intToHex(geode::cast::reference_cast<intptr_t>(func))
-        );
+        // log::debug(
+        //     "Get virtual function address from {}",
+        //     utils::intToHex(geode::cast::reference_cast<intptr_t>(func))
+        // );
         auto addr = Addresser::addressOfVirtual(func);
-        log::debug("The address is: {}", utils::intToHex(addr));
+        // log::debug("The address is: {}", utils::intToHex(addr));
         return addr;
     }
 
     template <typename T>
     inline intptr_t getNonVirtual(T func) {
-        log::debug(
-            "Get non-virtual function address from {}",
-            utils::intToHex(geode::cast::reference_cast<intptr_t>(func))
-        );
+        // log::debug(
+        //     "Get non-virtual function address from {}",
+        //     utils::intToHex(geode::cast::reference_cast<intptr_t>(func))
+        // );
         auto addr = Addresser::addressOfNonVirtual(func);
-        log::debug("The address is: {}", utils::intToHex(addr));
+        // log::debug("The address is: {}", utils::intToHex(addr));
         return addr;
     }
 

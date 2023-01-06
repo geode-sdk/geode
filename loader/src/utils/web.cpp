@@ -292,7 +292,7 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
         Loader::get()->queueInGDThread([this, ret]() {
             std::lock_guard _(m_mutex);
             for (auto& then : m_thens) {
-                then(*this->m_self, ret);
+                then(*m_self, ret);
             }
             std::lock_guard __(RUNNING_REQUESTS_MUTEX);
             RUNNING_REQUESTS.erase(m_id);
@@ -319,7 +319,7 @@ void SentAsyncWebRequest::Impl::doCancel() {
     Loader::get()->queueInGDThread([this]() {
         std::lock_guard _(m_mutex);
         for (auto& canc : m_cancelleds) {
-            canc(*this->m_self);
+            canc(*m_self);
         }
     });
 

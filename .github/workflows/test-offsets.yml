@@ -1,0 +1,58 @@
+name: Test Offsets
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+    - '**'              # every branch
+    - '!no-build-**'    # unless marked as no-build
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - name: Windows
+          os_identifier: win
+          os: windows-2019
+          prefixes: ''
+          extra_flags: -A win32 -DGEODE_DEBUG=On
+
+        - name: macOS
+          os_identifier: mac
+          os: macos-latest
+          prefixes: PATH="/usr/local/opt/ccache/libexec:$PATH"
+          extra_flags: -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug -DGEODE_DEBUG=On
+          
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x86
+      if: matrix.config.os_identifier == 'win'
+
+    - name: Configure ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: ${{ matrix.config.os }}
+
+    - name: Configure CMake
+      run: >
+        ${{ matrix.config.prefixes }} cmake -B 
+        ${{ github.workspace }}/build 
+        ${{ matrix.config.extra_flags }} 
+        -D GEODE_DISABLE_CLI_CALLS=ON 
+        -D CMAKE_C_COMPILER_LAUNCHER=ccache
+        -D CMAKE_CXX_COMPILER_LAUNCHER=ccache
+
+    - name: Build member test
+      run: |
+        cd build
+        cmake --build . --config RelWithDebInfo --parallel --target TestMembers

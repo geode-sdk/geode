@@ -4,6 +4,7 @@
 #include "../external/json/json.hpp"
 #include "../utils/VersionInfo.hpp"
 #include "../utils/Result.hpp"
+#include "Setting.hpp"
 
 namespace geode {
     namespace utils::file {
