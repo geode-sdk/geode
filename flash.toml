@@ -6,33 +6,36 @@
 name = "Geode"
 version = "v1.0.0-beta"
 repository = "https://github.com/geode-sdk/geode"
-
-[docs]
-include = [
-    "loader/include/Geode/**/*.hpp",
-    "loader/include/Geode/**/*.h",
-    "build/codegenned/Geode/binding/*.hpp"
-]
-exclude = [
-    "loader/include/Geode/modify/Comparer.hpp",
-    "loader/include/Geode/platform/*.hpp",
-    "loader/include/Geode/c++stl/*.hpp",
-    # All of the relevant cocos headers are included through Geode headers
-    "loader/include/Geode/cocos/**/*.h"
-]
 tree = "https://github.com/geode-sdk/geode/tree/main"
 
-# Root folders to show in the navigation browser
-
-[[browser.roots]]
-path = "loader/include/Geode"
-include-prefix = "Geode"
+[[sources]]
 name = "Geode"
+dir = "loader/include/Geode"
+# todo: Make flash infer this from cmake
+strip-include-prefix = "loader/include"
+include = [
+    "**/*.hpp",
+    "**/*.h",
+]
+exclude = [
+    "modify/Comparer.hpp",
+    "platform/*.hpp",
+    "c++stl/*.hpp",
+    # All of the relevant cocos headers are included through Geode headers
+    "cocos/**/*.h"
+]
 
-[[browser.roots]]
-path = "build/codegenned/Geode/binding"
-include-prefix = "Geode/binding"
+[[sources]]
 name = "Bindings"
+dir = "build-docs/codegenned/Geode/binding"
+strip-include-prefix = "build-docs/codegenned"
+include = [
+    "*.hpp"
+]
+# Bindings are generated at compile time
+exists-online = false
+
+# CMake options
 
 [cmake]
 config-args = [
@@ -48,8 +51,12 @@ config-args = [
     "-DCMAKE_CXX_FLAGS=-m32",
     "-DWIN32=On"
 ]
+# We want to build codegen in order to get the bindings
 build = true
+build-dir = "build-docs"
 build-args = [
     "--target", "CodegenRun"
 ]
+
+# The file we use to get all the include paths and such
 infer-args-from = "loader/src/main.cpp"
