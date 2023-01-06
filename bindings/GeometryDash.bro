@@ -78,7 +78,7 @@ class AnimatedSpriteDelegate {
     virtual void animationFinished(const char*) {}
 }
 
-class AppDelegate : cocos2d::CCApplication {
+class AppDelegate : cocos2d::CCApplication, cocos2d::CCSceneDelegate {
     void bgScale() = mac 0x3aaab0;
     virtual bool applicationDidFinishLaunching() = mac 0x3aa900, win 0x3cbb0;
     virtual void applicationDidEnterBackground() = mac 0x3aabe0, win 0x3cf40;
