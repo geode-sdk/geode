@@ -4376,7 +4376,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     int unknown6b8;
     int unknown6bc;
     bool unk460;
-    bool unk461;
+    bool m_isAudioMeteringSupported;
     cocos2d::CCDictionary* unk464;
     gd::map<short, bool> unk468;
     bool m_collisionDisabled;
