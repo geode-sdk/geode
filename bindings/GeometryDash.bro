@@ -4282,7 +4282,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     bool m_shouldSmoothCamera;
     float unused_4e0;
     PAD = mac 0x4, win 0x4;
-    cocos2d::CCObject* unknown4e8;
+    cocos2d::CCDrawNode* unknown4e8;
     float m_camera4f0;
     int unused4f4;
     float m_somegroup4f8;
@@ -4620,7 +4620,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     bool m_isHidden;
     int m_hasGhostTrail;
     GhostTrailEffect* m_ghostTrail;
-    void* m_unknown;
+    cocos2d::CCSprite* m_unknownSprite;
     cocos2d::CCSprite* m_iconSprite;
     cocos2d::CCSprite* m_iconSpriteSecondary;
     cocos2d::CCSprite* m_iconSpriteWhitener;
