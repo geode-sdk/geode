@@ -135,10 +135,8 @@ CPMAddPackage("gh:google/re2#954656f")
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${md4c_SOURCE_DIR}/src)
 
-# Tulip hook (hooking)
-CPMAddPackage("gh:altalk23/TulipHook#2347311")
-
 target_link_libraries(${PROJECT_NAME} md4c z TulipHook geode-sdk re2)
+
 
 # Use precompiled headers for faster builds
 if (NOT GEODE_DISABLE_PRECOMPILED_HEADERS)

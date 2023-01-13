@@ -103,7 +103,10 @@ target_link_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/lo
 CPMAddPackage("gh:fmtlib/fmt#9.1.0")
 CPMAddPackage("gh:gulrak/filesystem#3e5b930")
 
-target_link_libraries(${PROJECT_NAME} INTERFACE ghc_filesystem fmt)
+# Tulip hook (hooking)
+CPMAddPackage("gh:altalk23/TulipHook#d911a46")
+
+target_link_libraries(${PROJECT_NAME} INTERFACE ghc_filesystem fmt TulipHookInclude)
 
 
 if (NOT EXISTS ${GEODE_BIN_PATH})
