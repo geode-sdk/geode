@@ -18,14 +18,14 @@ using namespace geode::modifier; // types
 )CAC";
 
 	char const* declare_member = R"GEN(
-types::ret{ret_index} {class_name}::{function_name}({parameters}){const} {{
+auto {class_name}::{function_name}({parameters}){const} -> decltype({function_name}({arguments})) {{
 	auto func = Function<types::meta{meta_index}, {convention}>({{addresses::address{addr_index}()}});
 	return func(this{parameter_comma}{arguments});
 }}
 )GEN";
 
 	char const* declare_virtual = R"GEN(
-types::ret{ret_index} {class_name}::{function_name}({parameters}){const} {{
+auto {class_name}::{function_name}({parameters}){const} -> decltype({function_name}({arguments})) {{
 	auto self = addresser::thunkAdjust((types::member{member_index})(&{class_name}::{function_name}), this);
 	auto func = Function<types::meta{meta_index}, {convention}>({{addresses::address{addr_index}()}});
 	return func(self{parameter_comma}{arguments});
@@ -33,7 +33,7 @@ types::ret{ret_index} {class_name}::{function_name}({parameters}){const} {{
 )GEN";
 
 	char const* declare_static = R"GEN(
-types::ret{ret_index} {class_name}::{function_name}({parameters}){const} {{
+auto {class_name}::{function_name}({parameters}){const} -> decltype({function_name}({arguments})) {{
 	auto func = Function<types::meta{meta_index}, {convention}>({{addresses::address{addr_index}()}});
 	return func({arguments});
 }}

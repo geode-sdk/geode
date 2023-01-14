@@ -41,14 +41,17 @@ public:
     char const* function_definition = R"GEN({docs}    {static}{virtual}{return_type} {function_name}({parameters}){const};
 )GEN";
 
-    char const* error_definition = R"GEN(    template <bool T=false>
+    char const* error_definition = R"GEN(    
+    #ifdef GEODE_WARN_INCORRECT_MEMBERS
+    [[deprecated("Function is not implemented - will throw at runtime!!!")]]
+    #endif
     {static}{return_type} {function_name}({parameters}){const}{{
-        static_assert(T, "Implement {class_name}::{function_name}");
+        throw std::runtime_error("Use of undefined function " + GEODE_PRETTY_FUNCTION);
     }}
 )GEN";
 
     char const* error_definition_virtual = R"GEN(    
-    #ifndef GEODE_DONT_WARN_INCORRECT_MEMBERS
+    #ifdef GEODE_WARN_INCORRECT_MEMBERS
     [[deprecated("Use of undefined virtual function - will crash at runtime!!!")]]
     #endif
     {virtual}{return_type} {function_name}({parameters}){const}{{
@@ -60,7 +63,7 @@ public:
 )GEN";
 
     char const* warn_offset_member = R"GEN(
-    #ifndef GEODE_DONT_WARN_INCORRECT_MEMBERS
+    #ifdef GEODE_WARN_INCORRECT_MEMBERS
     [[deprecated("Member placed incorrectly - will crash at runtime!!!")]]
     #endif
     )GEN";

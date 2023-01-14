@@ -1,7 +1,7 @@
 #include "AddIDs.hpp"
 
 #include <Geode/Bindings.hpp>
-#include <Geode/Modify.hpp>
+#include <Geode/modify/LevelSettingsLayer.hpp>
 #include <Geode/utils/cocos.hpp>
 
 USE_GEODE_NAMESPACE();
@@ -205,3 +205,25 @@ struct LevelSettingsLayerIDs : Modify<LevelSettingsLayerIDs, LevelSettingsLayer>
         return true;
     }
 };
+
+
+ template <class... Params>
+    struct Resolve2 {
+        template <class Return>
+        static constexpr auto func(Return(*ptr)(float)) {
+            return ptr;
+        }
+
+        template <class Return, class Class>
+        static constexpr auto func(Return(Class::*ptr)(float)) {
+            return ptr;
+        }
+
+        template <class Return, class Class>
+        static constexpr auto func(Return(Class::*ptr)(float) const) {
+            return ptr;
+        }
+    };
+
+#include <Geode/modify/PlayerObject.hpp>
+constexpr auto b = Resolve2<float>::func(&PlayerObject::runBallRotation);

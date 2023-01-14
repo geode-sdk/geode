@@ -57,7 +57,6 @@ NS_CC_BEGIN
 
 class CC_DLL CCLabelTTF : public CCSprite, public CCLabelProtocol
 {
-    GEODE_FRIEND_MODIFY
 	GEODE_FRIEND_MODIFY
 public:
     /**
