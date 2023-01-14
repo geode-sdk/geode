@@ -2,7 +2,7 @@
 
 #include "../DefaultInclude.hpp"
 #include <string_view>
-#include "../external/json/json.hpp"
+#include "../external/json/json_fwd.hpp"
 #include <tuple>
 #include "../utils/Result.hpp"
 

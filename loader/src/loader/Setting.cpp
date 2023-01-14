@@ -4,6 +4,7 @@
 #include <Geode/loader/SettingEvent.hpp>
 #include <Geode/loader/SettingNode.hpp>
 #include <Geode/utils/general.hpp>
+#include <Geode/utils/JsonValidation.hpp>
 #include <re2/re2.h>
 
 USE_GEODE_NAMESPACE();

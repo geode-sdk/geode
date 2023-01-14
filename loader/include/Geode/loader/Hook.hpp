@@ -3,7 +3,7 @@
 #include "../DefaultInclude.hpp"
 #include "../hook-core/Hook.hpp"
 #include "../utils/general.hpp"
-#include "../external/json/json.hpp"
+#include "../external/json/json_fwd.hpp"
 #include <inttypes.h>
 #include <string_view>
 #include <tulip/TulipHook.hpp>

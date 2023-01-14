@@ -8,6 +8,7 @@ namespace { namespace format_strings {
 )GEN";
 
     char const* class_includes = R"GEN(#pragma once
+#include <stdexcept>
 #include <Geode/platform/platform.hpp>
 #include <Geode/c++stl/gdstdlib.hpp>
 #include <cocos2d.h>

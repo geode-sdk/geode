@@ -11,6 +11,7 @@ namespace {
 #include <Geode/modify/Modify.hpp>
 #include <Geode/modify/Field.hpp>
 #include <Geode/modify/InternalMacros.hpp>
+#include <Geode/modify/Addresses.hpp>
 {class_include}
 using namespace geode::modifier;
 namespace geode::modifier {{

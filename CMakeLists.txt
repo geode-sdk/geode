@@ -88,7 +88,13 @@ if (NOT EXISTS ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp)
 	file(TOUCH ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp)
 endif()
 
-target_sources(${PROJECT_NAME} INTERFACE ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp)
+if (NOT EXISTS ${GEODE_CODEGEN_PATH}/Geode/GeneratedAddress.cpp)
+	make_directory(${GEODE_CODEGEN_PATH})
+	make_directory(${GEODE_CODEGEN_PATH}/Geode)
+	file(TOUCH ${GEODE_CODEGEN_PATH}/Geode/GeneratedAddress.cpp)
+endif()
+
+target_sources(${PROJECT_NAME} INTERFACE ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp ${GEODE_CODEGEN_PATH}/Geode/GeneratedAddress.cpp)
 
 target_include_directories(${PROJECT_NAME} INTERFACE
 	${GEODE_CODEGEN_PATH}
@@ -131,10 +137,8 @@ elseif(EXISTS ${GEODE_PLATFORM_BIN_PATH})
 	target_link_libraries(${PROJECT_NAME} INTERFACE "${GEODE_PLATFORM_BIN_PATH}")
 	target_precompile_headers(${PROJECT_NAME} INTERFACE
 		"${GEODE_LOADER_PATH}/include/Geode/DefaultInclude.hpp"
-		"${GEODE_LOADER_PATH}/include/Geode/Loader.hpp"
-		"${GEODE_LOADER_PATH}/include/Geode/Utils.hpp"
+		"${GEODE_LOADER_PATH}/include/Geode/Geode.hpp"
 		# please stop adding modify here its not here because it makes windows compilation take longer than geode 1.0 release date
-		"${GEODE_LOADER_PATH}/include/Geode/UI.hpp"
 		"${GEODE_LOADER_PATH}/include/Geode/cocos/include/cocos2d.h"
 		"${GEODE_LOADER_PATH}/include/Geode/cocos/extensions/cocos-ext.h"
 	)

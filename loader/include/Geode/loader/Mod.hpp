@@ -2,7 +2,7 @@
 
 #include "../DefaultInclude.hpp"
 #include "../cocos/support/zip_support/ZipUtils.h"
-#include "../external/json/json.hpp"
+#include "../external/json/json_fwd.hpp"
 #include "../utils/Result.hpp"
 #include "../utils/VersionInfo.hpp"
 #include "../utils/general.hpp"
@@ -111,51 +111,16 @@ namespace geode {
         nlohmann::json& getSaveContainer();
 
         template <class T>
-        T getSettingValue(std::string const& key) const {
-            if (auto sett = this->getSetting(key)) {
-                return SettingValueSetter<T>::get(sett);
-            }
-            return T();
-        }
+        T getSettingValue(std::string const& key) const;
 
         template <class T>
-        T setSettingValue(std::string const& key, T const& value) {
-            if (auto sett = this->getSetting(key)) {
-                auto old = this->getSettingValue<T>(sett);
-                SettingValueSetter<T>::set(sett, value);
-                return old;
-            }
-            return T();
-        }
+        T setSettingValue(std::string const& key, T const& value);
 
         template <class T>
-        T getSavedValue(std::string const& key) {
-            auto& saved = this->getSaveContainer();
-            if (saved.count(key)) {
-                try {
-                    // json -> T may fail
-                    return saved.at(key);
-                }
-                catch (...) {
-                }
-            }
-            return T();
-        }
+        T getSavedValue(std::string const& key);
 
         template <class T>
-        T getSavedValue(std::string const& key, T const& defaultValue) {
-            auto& saved = this->getSaveContainer();
-            if (saved.count(key)) {
-                try {
-                    // json -> T may fail
-                    return saved.at(key);
-                }
-                catch (...) {
-                }
-            }
-            saved[key] = defaultValue;
-            return defaultValue;
-        }
+        T getSavedValue(std::string const& key, T const& defaultValue);
 
         /**
          * Set the value of an automatically saved variable. When the game is
@@ -165,12 +130,7 @@ namespace geode {
          * @returns The old value
          */
         template<class T>
-        T setSavedValue(std::string const& key, T const& value) {
-            auto& saved = this->getSaveContainer();
-            auto old = this->getSavedValue<T>(key);
-            saved[key] = value;
-            return old;
-        }
+        T setSavedValue(std::string const& key, T const& value);
 
         /**
          * Get the mod container stored in the Interface

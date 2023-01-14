@@ -1,6 +1,5 @@
 #pragma once
 #include "../meta/meta.hpp"
-#include "Addresses.hpp"
 #include "AsStaticFunction.hpp"
 #include "Field.hpp"
 #include "IDManager.hpp"
@@ -18,7 +17,7 @@
         if constexpr (Unique::different<b, d>()) {                                                  \
             auto hook = Hook::create<Convention_>(                                                  \
                 Mod::get(),                                                                         \
-                reinterpret_cast<void*>(addresses::address##AddressIndex_()),                       \
+                reinterpret_cast<void*>(address<AddressIndex_>()),                                  \
                 AsStaticFunction_##FunctionName_<Derived, d>::value,                                \
                 #ClassName_ "::" #FunctionName_                                                     \
             );                                                                                      \
@@ -32,7 +31,7 @@
             constexpr auto d = Resolve<__VA_ARGS__>::func(&Derived::constructor);       \
             auto hook = Hook::create<Convention_>(                                      \
                 Mod::get(),                                                             \
-                reinterpret_cast<void*>(addresses::address##AddressIndex_()),           \
+                reinterpret_cast<void*>(address<AddressIndex_>()),                      \
                 AsStaticFunction_##constructor<Derived, d>::value,                      \
                 #ClassName_ "::" #ClassName_                                            \
             );                                                                          \
@@ -46,7 +45,7 @@
             constexpr auto d = Resolve<>::func(&Derived::destructor);             \
             auto hook = Hook::create<Convention_>(                                \
                 Mod::get(),                                                       \
-                reinterpret_cast<void*>(addresses::address##AddressIndex_()),     \
+                reinterpret_cast<void*>(address<AddressIndex_>()),                \
                 AsStaticFunction_##destructor<Derived, d>::value,                 \
                 #ClassName_ "::" #ClassName_                                      \
             );                                                                    \

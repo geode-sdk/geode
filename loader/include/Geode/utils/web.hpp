@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../DefaultInclude.hpp"
-#include "../external/json/json.hpp"
+#include "../external/json/json_fwd.hpp"
 #include "Result.hpp"
 #include "general.hpp"
 
@@ -46,17 +46,7 @@ namespace geode::utils::web {
      * @param url URL to fetch
      * @returns Returned data as JSON, or error on error
      */
-    template <class Json = nlohmann::json>
-    Result<Json> fetchJSON(std::string const& url) {
-        std::string res;
-        GEODE_UNWRAP_INTO(res, fetch(url));
-        try {
-            return Ok(Json::parse(res));
-        }
-        catch (std::exception& e) {
-            return Err(e.what());
-        }
-    }
+    Result<nlohmann::json> fetchJSON(std::string const& url);
 
     class SentAsyncWebRequest;
     template <class T>

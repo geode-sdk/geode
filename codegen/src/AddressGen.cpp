@@ -3,8 +3,13 @@
 
 namespace { namespace format_strings {
 
+	char const* address_begin = R"GEN(
+#include <Geode/modify/Addresses.hpp>
+)GEN";
+
 	char const* declare_address = R"GEN(
-GEODE_INLINE GEODE_HIDDEN static uintptr_t address{index}() {{
+template <>
+uintptr_t geode::modifier::address<{index}>() {{
 	static uintptr_t ret = {address};
 	return ret;
 }}
@@ -17,6 +22,7 @@ std::string generateAddressHeader(Root& root) {
 
 	TypeBank bank;
 	bank.loadFrom(root);
+	output += format_strings::address_begin;
 
 	for (auto& c : root.classes) {
 

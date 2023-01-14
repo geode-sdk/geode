@@ -2,10 +2,9 @@
 
 #include "Types.hpp"
 #include "../DefaultInclude.hpp"
-#include "../utils/JsonValidation.hpp"
 #include "../utils/Result.hpp"
 #include "../utils/file.hpp"
-#include "../external/json/json.hpp"
+#include "../external/json/json_fwd.hpp"
 #include <optional>
 #include <unordered_set>
 
@@ -15,6 +14,11 @@
 namespace geode {
     class SettingNode;
     class SettingValue;
+
+    template <class Json>
+    struct JsonMaybeObject;
+    template <class Json>
+    struct JsonMaybeValue;
 
     struct GEODE_DLL BoolSetting final {
         using ValueType = bool;
@@ -114,7 +118,8 @@ namespace geode {
     };
 
     struct GEODE_DLL CustomSetting final {
-        ModJson json;
+        // todo: make this an unique_ptr
+        std::unique_ptr<ModJson> json;
     };
 
     using SettingKind = std::variant<
@@ -190,18 +195,8 @@ namespace geode {
             m_definition(definition),
             m_value(definition.defaultValue) {}
 
-        bool load(nlohmann::json const& json) override {
-            try {
-                m_value = json.get<ValueType>();
-                return true;
-            } catch(...) {
-                return false;
-            }
-        }
-        bool save(nlohmann::json& json) const {
-            json = m_value;
-            return true;
-        }
+        bool load(nlohmann::json const& json) override;
+        bool save(nlohmann::json& json) const;
 
         GEODE_DLL SettingNode* createNode(float width) override;
         T castDefinition() const {

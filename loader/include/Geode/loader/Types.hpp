@@ -2,7 +2,7 @@
 
 #include "../DefaultInclude.hpp"
 #include "../platform/cplatform.h"
-#include "../external/json/json.hpp"
+#include "../external/json/json_fwd.hpp"
 
 #include <string>
 

@@ -97,6 +97,17 @@ Result<ByteVector> web::fetchBytes(std::string const& url) {
     return Err("Error getting info: " + std::string(curl_easy_strerror(res)));
 }
 
+Result<nlohmann::json> web::fetchJSON(std::string const& url) {
+    std::string res;
+    GEODE_UNWRAP_INTO(res, fetch(url));
+    try {
+        return Ok(nlohmann::json::parse(res));
+    }
+    catch (std::exception& e) {
+        return Err(e.what());
+    }
+}
+
 Result<std::string> web::fetch(std::string const& url) {
     auto curl = curl_easy_init();
 
