@@ -157,8 +157,7 @@ namespace geode {
         static bool validateID(std::string const& id);
 
     private:
-        // todo: make this a unique_ptr
-        std::unique_ptr<ModJson> m_rawJSON;
+        std::shared_ptr<ModJson> m_rawJSON;
 
         /**
          * Version is passed for backwards

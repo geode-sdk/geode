@@ -4,6 +4,7 @@
 namespace { namespace format_strings {
 
 	char const* address_begin = R"GEN(
+#include <Geode/Bindings.hpp>
 #include <Geode/modify/Addresses.hpp>
 )GEN";
 

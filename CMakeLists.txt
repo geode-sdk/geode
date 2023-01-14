@@ -94,7 +94,20 @@ if (NOT EXISTS ${GEODE_CODEGEN_PATH}/Geode/GeneratedAddress.cpp)
 	file(TOUCH ${GEODE_CODEGEN_PATH}/Geode/GeneratedAddress.cpp)
 endif()
 
-target_sources(${PROJECT_NAME} INTERFACE ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp ${GEODE_CODEGEN_PATH}/Geode/GeneratedAddress.cpp)
+add_library(GeodeCodegenSources ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp ${GEODE_CODEGEN_PATH}/Geode/GeneratedAddress.cpp)
+target_link_directories(GeodeCodegenSources PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/loader/include/link)
+target_link_libraries(GeodeCodegenSources PRIVATE ghc_filesystem fmt TulipHookInclude)
+target_include_directories(GeodeCodegenSources PRIVATE
+	${GEODE_CODEGEN_PATH}
+	${GEODE_LOADER_PATH}/include
+	${GEODE_LOADER_PATH}/include/Geode/cocos/include
+	${GEODE_LOADER_PATH}/include/Geode/cocos/extensions
+	${GEODE_LOADER_PATH}/include/Geode/fmod
+)
+target_compile_features(GeodeCodegenSources PUBLIC cxx_std_20)
+target_precompile_headers(GeodeCodegenSources INTERFACE
+	"${GEODE_LOADER_PATH}/include/Geode/Bindings.hpp"
+)
 
 target_include_directories(${PROJECT_NAME} INTERFACE
 	${GEODE_CODEGEN_PATH}
@@ -112,7 +125,7 @@ CPMAddPackage("gh:gulrak/filesystem#3e5b930")
 # Tulip hook (hooking)
 CPMAddPackage("gh:altalk23/TulipHook#298d572")
 
-target_link_libraries(${PROJECT_NAME} INTERFACE ghc_filesystem fmt TulipHookInclude)
+target_link_libraries(${PROJECT_NAME} INTERFACE ghc_filesystem fmt TulipHookInclude GeodeCodegenSources)
 
 
 if (NOT EXISTS ${GEODE_BIN_PATH})
@@ -139,8 +152,6 @@ elseif(EXISTS ${GEODE_PLATFORM_BIN_PATH})
 		"${GEODE_LOADER_PATH}/include/Geode/DefaultInclude.hpp"
 		"${GEODE_LOADER_PATH}/include/Geode/Geode.hpp"
 		# please stop adding modify here its not here because it makes windows compilation take longer than geode 1.0 release date
-		"${GEODE_LOADER_PATH}/include/Geode/cocos/include/cocos2d.h"
-		"${GEODE_LOADER_PATH}/include/Geode/cocos/extensions/cocos-ext.h"
 	)
 else()
 	message(FATAL_ERROR

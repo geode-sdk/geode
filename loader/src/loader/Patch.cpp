@@ -1,5 +1,5 @@
 #include <Geode/loader/Hook.hpp>
-// #include <lilac/include/geode/core/hook/hook.hpp>
+#include <Geode/external/json/json.hpp>
 
 USE_GEODE_NAMESPACE();
 

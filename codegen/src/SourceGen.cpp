@@ -6,24 +6,32 @@ namespace { namespace format_strings {
 #include <stdexcept>
 #include <Geode/Bindings.hpp>
 #include <Geode/utils/addresser.hpp>
-#include <Geode/utils/casts.hpp>
-#include <Geode/meta/meta.hpp>   
-#include <Geode/modify/Addresses.hpp> 
-#include <Geode/modify/Types.hpp>
+#include <Geode/modify/Addresses.hpp>
 #include <Geode/modify/Traits.hpp>
 #include <tulip/TulipHook.hpp>
-#include <Geode/loader/Log.hpp>
+
 using namespace geode;
-using namespace geode::cast;
+using namespace geode::modifier;
 using cocos2d::CCDestructor;
-using namespace geode::core::meta; // Default convention
-using namespace geode::core::meta::x86; // Windows x86 conventions, Function
-using namespace geode::modifier; // types
+
+std::unordered_map<void*, bool>& CCDestructor::destructorLock() {{
+	static auto ret = new std::unordered_map<void*, bool>;
+	return *ret;
+}}
+bool& CCDestructor::globalLock() {{
+	static thread_local bool ret = false;
+	return ret; 
+}}
+bool& CCDestructor::lock(void* self) {
+	return destructorLock()[self];
+}
+CCDestructor::~CCDestructor() {{
+	destructorLock().erase(this);
+}}
 
 auto wrapFunction(uintptr_t address, tulip::hook::WrapperMetadata const& metadata) {
 	auto wrapped = tulip::hook::createWrapper(reinterpret_cast<void*>(address), metadata);
 	if (wrapped.isErr()) {{
-		log::error("Failed to wrap function {} with error {}", GEODE_PRETTY_FUNCTION, wrapped.unwrapErr());
 		throw std::runtime_error(wrapped.unwrapErr());
 	}}
 	return wrapped.unwrap();

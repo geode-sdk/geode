@@ -118,8 +118,7 @@ namespace geode {
     };
 
     struct GEODE_DLL CustomSetting final {
-        // todo: make this an unique_ptr
-        std::unique_ptr<ModJson> json;
+        std::shared_ptr<ModJson> json;
     };
 
     using SettingKind = std::variant<

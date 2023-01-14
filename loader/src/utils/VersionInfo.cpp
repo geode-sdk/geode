@@ -4,6 +4,7 @@
 
 #include <Geode/utils/VersionInfo.hpp>
 #include <Geode/utils/general.hpp>
+#include <Geode/external/json/json.hpp>
 
 USE_GEODE_NAMESPACE();
 

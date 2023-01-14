@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Geode/external/json/json.hpp>
+
 namespace geode {
     class Mod::Impl {
     public:

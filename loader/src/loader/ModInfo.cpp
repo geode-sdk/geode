@@ -2,6 +2,9 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/string.hpp>
+#include <Geode/external/json/json.hpp>
+#include <Geode/utils/JsonValidation.hpp>
+
 #include <about.hpp>
 
 USE_GEODE_NAMESPACE();
@@ -36,10 +39,9 @@ bool ModInfo::validateID(std::string const& id) {
 Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
     ModInfo info;
 
-    auto json = rawJson;
-    info.m_rawJSON = rawJson;
+    info.m_rawJSON = std::make_unique<ModJson>(rawJson);
 
-    JsonChecker checker(json);
+    JsonChecker checker(*info.m_rawJSON);
     auto root = checker.root("[mod.json]").obj();
 
     root.addKnownKey("geode");
@@ -242,14 +244,14 @@ std::vector<std::pair<std::string, std::optional<std::string>*>> ModInfo::getSpe
 }
 
 ModJson ModInfo::toJSON() const {
-    auto json = m_rawJSON;
+    auto json = *m_rawJSON;
     json["path"] = this->path;
     json["binary"] = this->binaryName;
     return json;
 }
 
 ModJson ModInfo::getRawJSON() const {
-    return m_rawJSON;
+    return *m_rawJSON;
 }
 
 bool ModInfo::operator==(ModInfo const& other) const {

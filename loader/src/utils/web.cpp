@@ -2,6 +2,7 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/web.hpp>
+#include <Geode/external/json/json.hpp>
 #include <thread>
 
 USE_GEODE_NAMESPACE();

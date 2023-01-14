@@ -8,6 +8,8 @@
 #include <Geode/loader/Setting.hpp>
 #include <Geode/loader/SettingEvent.hpp>
 #include <loader/ModImpl.hpp>
+#include <Geode/loader/ModJsonTest.hpp>
+#include <Geode/utils/JsonValidation.hpp>
 #include <array>
 
 USE_GEODE_NAMESPACE();
@@ -127,7 +129,7 @@ $execute {
     listenForIPC("list-mods", [](IPCEvent* event) -> nlohmann::json {
         std::vector<nlohmann::json> res;
 
-        auto args = event->messageData;
+        auto args = *event->messageData;
         JsonChecker checker(args);
         auto root = checker.root("").obj();
 

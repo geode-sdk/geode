@@ -3,7 +3,6 @@
 #include "AsStaticFunction.hpp"
 #include "Field.hpp"
 #include "IDManager.hpp"
-#include "Types.hpp"
 
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Mod.hpp>

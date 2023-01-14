@@ -3,7 +3,7 @@
 
 namespace geode {
     template<class T>
-    bool GeodeSettingValue<T>::load(nlohmann::json const& json) override {
+    bool GeodeSettingValue<T>::load(nlohmann::json const& json) {
         try {
             m_value = json.get<ValueType>();
             return true;

@@ -1,5 +1,6 @@
 #include <Geode/modify/LoadingLayer.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/external/json/json.hpp>
 
 USE_GEODE_NAMESPACE();
 

@@ -1,6 +1,14 @@
 #include <Geode/loader/IPC.hpp>
+#include <Geode/external/json/json.hpp>
 
 USE_GEODE_NAMESPACE();
+
+std::monostate geode::listenForIPC(std::string const& messageID, nlohmann::json(*callback)(IPCEvent*)) {
+    (void) new EventListener(
+        callback, IPCFilter(getMod()->getID(), messageID)
+    );
+    return std::monostate();
+}
 
 IPCEvent::IPCEvent(
     void* rawPipeHandle,

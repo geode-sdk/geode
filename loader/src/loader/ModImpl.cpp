@@ -8,6 +8,7 @@
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/utils/file.hpp>
+#include <Geode/utils/JsonValidation.hpp>
 #include <optional>
 #include <string>
 #include <vector>

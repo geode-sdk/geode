@@ -6,6 +6,7 @@
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/string.hpp>
+#include <Geode/external/json/json.hpp>
 #include <fstream>
 
 USE_GEODE_NAMESPACE();
