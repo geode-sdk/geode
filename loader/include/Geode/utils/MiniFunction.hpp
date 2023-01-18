@@ -31,6 +31,11 @@ namespace geode::utils {
             return new MiniFunctionState(*this);
         }
     };
+    
+    template <class Callable, class Ret, class... Args>
+    concept MiniFunctionCallable = requires(Callable&& func, Args... args) {
+        { func(args...) } -> std::same_as<Ret>;
+    };
 
     template <class Ret, class... Args>
     class MiniFunction<Ret(Args...)> {
@@ -56,9 +61,7 @@ namespace geode::utils {
         }
 
         template <class Callable>
-            requires requires(Callable&& func, Args... args) {
-                         { func(args...) } -> std::same_as<Ret>;
-                     }
+        requires(MiniFunctionCallable<Callable, Ret, Args...> && !std::is_same_v<Callable, MiniFunction<Ret, Args...>>)
         MiniFunction(Callable&& func) :
             m_state(new MiniFunctionState<std::decay_t<Callable>, Ret, Args...>(std::forward<Callable>(func))) {}
 
