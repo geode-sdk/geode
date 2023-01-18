@@ -61,7 +61,7 @@ namespace geode::utils {
         }
 
         template <class Callable>
-        requires(MiniFunctionCallable<Callable, Ret, Args...> && !std::is_same_v<Callable, MiniFunction<FunctionType>>)
+        requires(MiniFunctionCallable<Callable, Ret, Args...> && !std::is_same_v<std::decay_t<Callable>, MiniFunction<FunctionType>>)
         MiniFunction(Callable&& func) :
             m_state(new MiniFunctionState<std::decay_t<Callable>, Ret, Args...>(std::forward<Callable>(func))) {}
 
