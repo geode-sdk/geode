@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Geode/binding/GDString.hpp>
+#include <cstring>
 #include <string>
 #include <stdexcept>
 #include <utility>
@@ -33,22 +34,44 @@ namespace gd {
         }
 
     public:
-        template <class... Params>
-        string(Params&&... params) {
-            m_data.m_pointer = 0;
-            m_data.m_length = 0;
-            m_data.m_capacity = 15;
-
-            auto val = std::string(std::forward<Params>(params)...);
-            (void)this->winAssign(val.c_str(), val.size());
+        string(string const& param) : string() {
+            (void)this->winAssign(param.c_str(), param.size());
+        }
+            
+        string(string&& param) : string() {
+            (void)this->winAssign(param.c_str(), param.size());
+        }
+        
+        string(char const* param) : string() {
+            (void)this->winAssign(param, std::strlen(param));
+        }
+        
+        string(std::string const& param) : string() {
+            (void)this->winAssign(param.c_str(), param.size());
+        }
+            
+        string& operator=(string const& param) {
+            (void)this->winAssign(param.c_str(), param.size());
+            return *this;
+        }
+            
+        string& operator=(string&& param) {
+            (void)this->winAssign(param.c_str(), param.size());
+            return *this;
+        }
+        
+        string& operator=(char const* param) {
+            (void)this->winAssign(param, std::strlen(param));
+            return *this;
+        }
+            
+        string& operator=(std::string const& param) {
+            (void)this->winAssign(param.c_str(), param.size());
+            return *this;
         }
 
-        template <class Param>
-        string& operator=(Param&& param) {
-            std::string val;
-            val = std::forward<Param>(param);
-            (void)this->winAssign(val.c_str(), val.size());
-            return *this;
+        void clear() {
+            (void)this->winDtor();
         }
 
         ~string() {
