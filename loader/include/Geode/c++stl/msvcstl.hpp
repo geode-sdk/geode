@@ -34,6 +34,12 @@ namespace gd {
         }
 
     public:
+        string() {
+            m_data.m_storage[0] = 0;
+            m_data.m_length = 0;
+            m_data.m_capacity = 15;
+        }
+            
         string(string const& param) : string() {
             (void)this->winAssign(param.c_str(), param.size());
         }
