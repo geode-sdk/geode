@@ -21,6 +21,7 @@ namespace { namespace format_strings {
 
     char const* class_no_includes = R"GEN(#pragma once
 #include <Geode/platform/platform.hpp>
+#include <stdexcept>
 
 )GEN";
     

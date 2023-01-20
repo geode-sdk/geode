@@ -6,6 +6,7 @@ namespace { namespace format_strings {
 	char const* address_begin = R"GEN(
 #include <Geode/Bindings.hpp>
 #include <Geode/modify/Addresses.hpp>
+#include <Geode/modify/Traits.hpp>
 )GEN";
 
 	char const* declare_address = R"GEN(
@@ -39,9 +40,9 @@ std::string generateAddressHeader(Root& root) {
 			if (codegen::getStatus(field) == BindStatus::Binded) {
 				const auto ids = bank.getIDs(fn->beginning, c.name);
 
-				address_str = fmt::format("addresser::get{}Virtual((types::member{})(&{}::{}))",
+				address_str = fmt::format("addresser::get{}Virtual(Resolve<{}>::func(&{}::{}))",
 					str_if("Non", !fn->beginning.is_virtual),
-					ids.member,
+					codegen::getParameterTypes(fn->beginning),
 					field.parent,
 					fn->beginning.name
 				);

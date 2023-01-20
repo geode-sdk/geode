@@ -114,6 +114,8 @@ It's new in cocos2d-x since v0.99.5
  */
 class GeodeNodeMetadata;
 
+#include <stdint.h>
+
 namespace geode {
     struct modify;
 
@@ -123,6 +125,9 @@ namespace geode {
 
         template <class Derived, class Base>
         class ModifyDerive;
+
+        template <uint32_t>
+        uintptr_t address();
     }
 }
 
@@ -131,7 +136,9 @@ namespace geode {
     template <class Derived, class Base>          \
     friend class ::geode::modifier::ModifyDerive; \
     friend struct ::geode::modifier::types;       \
-    friend class ::GeodeNodeMetadata;
+    friend class ::GeodeNodeMetadata;             \
+    template <uint32_t>                           \
+    friend uintptr_t geode::modifier::address();
 #define GEODE_ADD(...) __VA_ARGS__
 
 #ifdef __cplusplus
