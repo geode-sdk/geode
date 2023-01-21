@@ -6,7 +6,7 @@
 
 namespace geode {
     class Mod;
-    inline Mod* getMod();
+    Mod* getMod();
 
     enum class ModEventType {
         Loaded,
