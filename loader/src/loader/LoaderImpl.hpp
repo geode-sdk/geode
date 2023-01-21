@@ -135,7 +135,7 @@ namespace geode {
         void addInternalHook(Hook* hook, Mod* mod);
 
         Mod* createInternalMod();
-        void setupInternalMod();
+        Result<> setupInternalMod();
     };
 
     class LoaderImpl {

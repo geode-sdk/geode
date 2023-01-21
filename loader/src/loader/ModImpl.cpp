@@ -676,9 +676,6 @@ Mod* Loader::Impl::createInternalMod() {
     return mod;
 }
 
-void Loader::Impl::setupInternalMod() {
-    auto setupRes = Mod::get()->m_impl->setup();
-    if (!setupRes) {
-        log::error("Failed to setup internal mod! ({})", setupRes.unwrapErr());
-    }
+Result<> Loader::Impl::setupInternalMod() {
+    return Mod::get()->m_impl->setup();
 }
