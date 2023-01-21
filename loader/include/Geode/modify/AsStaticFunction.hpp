@@ -13,18 +13,18 @@ namespace geode::modifier {
         struct Impl {};                                                                           \
         template <class Return, class... Params>                                                  \
         struct Impl<Return (*)(Params...)> {                                                      \
-            static Return function(Params... params) { return Class2::FunctionName_(params...); } \
+            static Return GEODE_CDECL_CALL function(Params... params) { return Class2::FunctionName_(params...); } \
         };                                                                                        \
         template <class Return, class Class, class... Params>                                     \
         struct Impl<Return (Class::*)(Params...)> {                                               \
-            static Return function(Class* self, Params... params) {                               \
+            static Return GEODE_CDECL_CALL function(Class* self, Params... params) {              \
                 auto self2 = addresser::rthunkAdjust(Function, self);                             \
                 return self2->Class2::FunctionName_(params...);                                   \
             }                                                                                     \
         };                                                                                        \
         template <class Return, class Class, class... Params>                                     \
         struct Impl<Return (Class::*)(Params...) const> {                                         \
-            static Return function(Class const* self, Params... params) {                         \
+            static Return GEODE_CDECL_CALL function(Class const* self, Params... params) {        \
                 auto self2 = addresser::rthunkAdjust(Function, self);                             \
                 return self2->Class2::FunctionName_(params...);                                   \
             }                                                                                     \
