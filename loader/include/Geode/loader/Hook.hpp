@@ -26,15 +26,50 @@ namespace geode {
         Result<> disable();
 
     public:
-        static Hook* create(Mod* owner, void* address, void* detour, std::string const& displayName, tulip::hook::HandlerMetadata const& handlerMetadata, tulip::hook::HookMetadata const& hookMetadata);
+        /**
+         * Create a hook at an address. The hook is enabled immediately. By 
+         * default, the hook is placed at the end of the detour list; however, 
+         * this can be controlled using metadata settings.
+         * @param owner The mod that owns this hook; must be provided
+         * @param address The address to hook
+         * @param detour The detour to run when the hook is hit. The detour's 
+         * calling convention should be cdecl
+         * @param displayName A human-readable name describing the hook, 
+         * usually the fully qualified name of the function being hooked
+         * @param handlerMetadata Metadata for the hook handler
+         * @param hookMetadata Metadata for the hook itself
+         * @returns The created hook, or an error. Make sure to add the created 
+         * hook to the mod that owns it using mod->addHook!
+         */
+        static Hook* create(
+            Mod* owner,
+            void* address,
+            void* detour,
+            std::string const& displayName,
+            tulip::hook::HandlerMetadata const& handlerMetadata,
+            tulip::hook::HookMetadata const& hookMetadata
+        );
 
         template <class Convention, class DetourType>
-        static Hook* create(Mod* owner, void* address, DetourType detour, std::string const& displayName, tulip::hook::HookMetadata const& hookMetadata = tulip::hook::HookMetadata()) {
+        static Hook* create(
+            Mod* owner,
+            void* address,
+            DetourType detour,
+            std::string const& displayName,
+            tulip::hook::HookMetadata const& hookMetadata = tulip::hook::HookMetadata()
+        ) {
             auto handlerMetadata = tulip::hook::HandlerMetadata{
                 .m_convention = std::make_shared<Convention>(),
                 .m_abstract = tulip::hook::AbstractFunction::from(detour)
             };
-            return Hook::create(owner, address, reinterpret_cast<void*>(detour), displayName, handlerMetadata, hookMetadata);
+            return Hook::create(
+                owner,
+                address,
+                reinterpret_cast<void*>(detour),
+                displayName,
+                handlerMetadata,
+                hookMetadata
+            );
         }
 
         Hook(Hook const&) = delete;

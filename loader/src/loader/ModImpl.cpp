@@ -7,6 +7,7 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
+#include <Geode/loader/ModEvent.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/JsonValidation.hpp>
 #include <optional>

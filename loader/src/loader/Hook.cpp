@@ -15,8 +15,17 @@ USE_GEODE_NAMESPACE();
 Hook::Hook(std::shared_ptr<Impl>&& impl) : m_impl(std::move(impl)) {}
 Hook::~Hook() {}
 
-Hook* Hook::create(Mod* owner, void* address, void* detour, std::string const& displayName, tulip::hook::HandlerMetadata const& handlerMetadata, tulip::hook::HookMetadata const& hookMetadata) {
-    auto impl = std::make_shared<Hook::Impl>(address, detour, displayName, handlerMetadata, hookMetadata, owner);
+Hook* Hook::create(
+    Mod* owner,
+    void* address,
+    void* detour,
+    std::string const& displayName,
+    tulip::hook::HandlerMetadata const& handlerMetadata,
+    tulip::hook::HookMetadata const& hookMetadata
+) {
+    auto impl = std::make_shared<Hook::Impl>(
+        address, detour, displayName, handlerMetadata, hookMetadata, owner
+    );
     return new Hook(std::move(impl));
 }
 

@@ -13,7 +13,14 @@ USE_GEODE_NAMESPACE();
 
 class Hook::Impl {
 public:
-    Impl(void* address, void* detour, std::string const& displayName, tulip::hook::HandlerMetadata const& handlerMetadata, tulip::hook::HookMetadata const& hookMetadata, Mod* owner);
+    Impl(
+        void* address,
+        void* detour,
+        std::string const& displayName,
+        tulip::hook::HandlerMetadata const& handlerMetadata,
+        tulip::hook::HookMetadata const& hookMetadata,
+        Mod* owner
+    );
     ~Impl();
 
     
