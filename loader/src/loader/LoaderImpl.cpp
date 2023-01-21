@@ -591,13 +591,14 @@ ResourceDownloadFilter::ResourceDownloadFilter() {}
 
 void Loader::Impl::provideNextMod(Mod* mod) {
     m_nextModLock.lock();
-    m_nextMod = mod;
+    if (mod) {
+        m_nextMod = mod;
+    }
 }
 
 Mod* Loader::Impl::takeNextMod() {
     if (!m_nextMod) {
-        this->setupInternalMod();
-        m_nextMod = Mod::sharedMod<>;
+        m_nextMod = this->createInternalMod();
     }
     auto ret = m_nextMod;
     return ret;

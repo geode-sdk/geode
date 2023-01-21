@@ -134,6 +134,7 @@ namespace geode {
         bool isReadyToHook() const;
         void addInternalHook(Hook* hook, Mod* mod);
 
+        Mod* createInternalMod();
         void setupInternalMod();
     };
 
