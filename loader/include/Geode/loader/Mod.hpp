@@ -133,9 +133,8 @@ namespace geode {
         T setSavedValue(std::string const& key, T const& value);
 
         /**
-         * Get the mod container stored in the Interface
-         * @returns nullptr if Interface is not initialized,
-         * the mod pointer if it is initialized
+         * Get the Mod of the current mod being developed
+         * @returns The current mod
          */
         template <class = void>
         static inline GEODE_HIDDEN Mod* get() {

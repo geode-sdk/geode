@@ -21,8 +21,6 @@ Mod::Impl* ModImpl::getImpl(Mod* mod)  {
 }
 
 Mod::Impl::Impl(Mod* self, ModInfo const& info) : m_self(self), m_info(info) {
-    m_saveDirPath = dirs::getModsSaveDir() / info.id;
-    ghc::filesystem::create_directories(m_saveDirPath);
 }
 
 Mod::Impl::~Impl() {
@@ -30,6 +28,9 @@ Mod::Impl::~Impl() {
 }
 
 Result<> Mod::Impl::setup() {
+    m_saveDirPath = dirs::getModsSaveDir() / m_info.id;
+    ghc::filesystem::create_directories(m_saveDirPath);
+    
     this->setupSettings();
     auto loadRes = this->loadData();
     if (!loadRes) {
@@ -673,9 +674,4 @@ void Loader::Impl::setupInternalMod() {
     auto& mod = Mod::sharedMod<>;
     if (mod) return;
     mod = new Mod(getModImplInfo());
-
-    auto setupRes = mod->m_impl->setup();
-    if (!setupRes) {
-        log::error("Failed to setup internal mod! ({})", setupRes.unwrapErr());
-    }
 }
