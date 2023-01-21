@@ -36,6 +36,15 @@ NS_CC_BEGIN
  * @{
  */
 
+// geode should use the cocos2d-x-gd imo
+class CCScene;
+
+class CC_DLL CCSceneDelegate {
+public: 
+    virtual void willSwitchToScene(CCScene* scene) {}
+};
+
+
 /** @brief CCScene is a subclass of CCNode that is used only as an abstract concept.
 
 CCScene an CCNode are almost identical with the difference that CCScene has it's
@@ -71,8 +80,7 @@ public:
 
         int getHighestChildZ(void);
 
-    protected:
-        void* m_pIDK;
+        CCSceneDelegate* m_pDelegate;
     )
 };
 

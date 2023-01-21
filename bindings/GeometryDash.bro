@@ -78,7 +78,7 @@ class AnimatedSpriteDelegate {
     virtual void animationFinished(const char*) {}
 }
 
-class AppDelegate : cocos2d::CCApplication {
+class AppDelegate : cocos2d::CCApplication, cocos2d::CCSceneDelegate {
     void bgScale() = mac 0x3aaab0;
     virtual bool applicationDidFinishLaunching() = mac 0x3aa900, win 0x3cbb0;
     virtual void applicationDidEnterBackground() = mac 0x3aabe0, win 0x3cf40;
@@ -4282,7 +4282,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     bool m_shouldSmoothCamera;
     float unused_4e0;
     PAD = mac 0x4, win 0x4;
-    cocos2d::CCObject* unknown4e8;
+    cocos2d::CCDrawNode* unknown4e8;
     float m_camera4f0;
     int unused4f4;
     float m_somegroup4f8;
@@ -4359,7 +4359,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     cocos2d::CCSprite* m_sliderGrooveSprite;
     cocos2d::CCSprite* m_sliderBarSprite;
     cocos2d::CCSize m_sliderSize;
-    void* unknown680;
+    int unknown680;
     int m_activeGravityEffects;
     int m_gravityEffectStatus; // ??
     PAD = mac 0x4, win 0x4;
@@ -4376,7 +4376,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     int unknown6b8;
     int unknown6bc;
     bool unk460;
-    bool unk461;
+    bool m_isAudioMeteringSupported;
     cocos2d::CCDictionary* unk464;
     gd::map<short, bool> unk468;
     bool m_collisionDisabled;
@@ -4620,7 +4620,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     bool m_isHidden;
     int m_hasGhostTrail;
     GhostTrailEffect* m_ghostTrail;
-    void* m_unknown;
+    cocos2d::CCSprite* m_unknownSprite;
     cocos2d::CCSprite* m_iconSprite;
     cocos2d::CCSprite* m_iconSpriteSecondary;
     cocos2d::CCSprite* m_iconSpriteWhitener;
