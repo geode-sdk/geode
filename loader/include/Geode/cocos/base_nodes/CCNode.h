@@ -1375,7 +1375,7 @@ public:
      *
      *  @note The additional transform will be concatenated at the end of nodeToParentTransform.
      *        It could be used to simulate `parent-child` relationship between two nodes (e.g. one is in BatchNode, another isn't).
-     *  @code
+     *  @example
         // create a batchNode
         CCSpriteBatchNode* batch= CCSpriteBatchNode::create("Icon-114.png");
         this->addChild(batch);
@@ -1416,7 +1416,6 @@ public:
      
         // Sets the additional transform to spriteB, spriteB's rotation will based on its pseudo parent i.e. spriteA.
         spriteB->setAdditionalTransform(t);
-     *  @endcode
      */
     void setAdditionalTransform(const CCAffineTransform& additionalTransform);
     

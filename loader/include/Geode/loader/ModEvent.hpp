@@ -1,11 +1,13 @@
 #pragma once
 
 #include "Event.hpp"
-#include "Mod.hpp"
 
 #include <optional>
 
 namespace geode {
+    class Mod;
+    inline Mod* getMod();
+
     enum class ModEventType {
         Loaded,
         Unloaded,
@@ -49,7 +51,7 @@ namespace {                                                         \
 }                                                                   \
 static inline auto GEODE_CONCAT(Exec, __LINE__) = (new geode::EventListener(                                     \
             &GEODE_CONCAT(geodeExecFunction, __LINE__)<GEODE_CONCAT(ExecFuncUnique, __LINE__)>,\
-            geode::ModStateFilter(geode::Mod::get(), geode::ModEventType::type)\
+            geode::ModStateFilter(geode::getMod(), geode::ModEventType::type)\
         ), 0);                                                              \
 template<class>                                                     \
 void GEODE_CONCAT(geodeExecFunction, __LINE__)(ModStateEvent*)

@@ -193,13 +193,57 @@ namespace geode {
      *
      * Use-cases include, for example, non-CCNode class members, or nodes that
      * are not always in the scene tree.
+     * 
+     * @tparam T A type that inherits from CCObject.
      *
-     * @example class MyNode : public CCNode {
+     * @example[flash] 
+     * #include <Geode/utils/cocos.hpp>
+     * 
+     * USE_GEODE_NAMESPACE();
+     * 
+     * //!flash-snippet-start
+     * class MyNode : public CCNode {
      * protected:
      *      // no need to manually call retain or
      *      // release on this array; Ref manages it
      *      // for you :3
      *      Ref<CCArray> m_list = CCArray::create();
+     * 
+     *      bool init() {
+     *          if (!CCNode::init())
+     *              return false;
+     * 
+     *          // No need to do m_list = CCArray::create()
+     *          // or m_list->retain() :3
+     * 
+     *          return true;
+     *      }
+     * };
+     * //!flash-snippet-end
+     *
+     * @example[flash]
+     * #include <Geode/utils/cocos.hpp>
+     * #include <Geode/modify/MenuLayer.hpp>
+     * 
+     * USE_GEODE_NAMESPACE();
+     * 
+     * class ModifyMenuLayer : public MenuLayer {
+     *      bool init() {
+     *          if (!MenuLayer::init())
+     *              return false;
+     * 
+     *          //!flash-snippet-start
+     *          // Save a child from the current layer into a menu
+     *          Ref<CCMenu> menu = static_cast<CCMenu*>(this->getChildByID("main-menu"));
+     *          
+     *          // Remove the menu from its parent
+     *          menu->removeFromParent();
+     *          
+     *          // Menu will still point to a valid CCMenu as long as the menu variable exist
+     *          //!flash-snippet-end
+     * 
+     *          return true;
+     *      }
      * };
      */
     template <class T>
@@ -215,6 +259,7 @@ namespace geode {
         /**
          * Construct a Ref of an object. The object will be retained and
          * managed until Ref goes out of scope
+         * @param obj Object to construct the Ref from
          */
         Ref(T* obj) : m_obj(obj) {
             CC_SAFE_RETAIN(obj);

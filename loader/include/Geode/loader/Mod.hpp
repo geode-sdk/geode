@@ -37,8 +37,8 @@ namespace geode {
     class ModImpl;
 
     /**
-     * @class Mod
      * Represents a Mod ingame.
+     * @class Mod
      */
     class GEODE_DLL Mod {
     protected:
@@ -301,6 +301,3 @@ namespace geode {
 inline char const* operator"" _spr(char const* str, size_t) {
     return geode::Mod::get()->expandSpriteName(str);
 }
-
-// this header uses Mod
-#include "ModEvent.hpp"
