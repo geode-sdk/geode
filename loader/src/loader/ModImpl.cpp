@@ -669,12 +669,15 @@ static ModInfo getModImplInfo() {
     }
 }
 
-void Loader::Impl::setupInternalMod() {
+Mod* Loader::Impl::createInternalMod() {
     auto& mod = Mod::sharedMod<>;
-    if (mod) return;
+    if (mod) return mod;
     mod = new Mod(getModImplInfo());
+    return mod;
+}
 
-    auto setupRes = mod->m_impl->setup();
+void Loader::Impl::setupInternalMod() {
+    auto setupRes = Mod::get()->m_impl->setup();
     if (!setupRes) {
         log::error("Failed to setup internal mod! ({})", setupRes.unwrapErr());
     }

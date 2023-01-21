@@ -164,6 +164,17 @@ int geodeEntry(void* platformData) {
         return 1;
     }
 
+    // set up internal mod, settings and data
+    if (!LoaderImpl::get()->setup()) {
+        LoaderImpl::get()->setupInternalMod(
+            "Unable to Load Geode!",
+            "There was an unknown fatal error setting up "
+            "the internal mod and Geode can not be loaded."
+        );
+        LoaderImpl::get()->reset();
+        return 1;
+    }
+
     // set up loader, load mods, etc.
     auto setupRes = LoaderImpl::get()->setup();
     if (!setupRes) {

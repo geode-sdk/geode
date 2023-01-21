@@ -3799,6 +3799,7 @@ class LevelSettingsObject : cocos2d::CCNode {
     int m_groundIndex;
     int m_fontIndex;
     bool m_startsWithStartPos;
+    bool m_isFlipped;
     GJGameLevel* m_level;
     gd::string m_guidelineString;
     int m_unknown;
