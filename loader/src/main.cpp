@@ -154,18 +154,6 @@ $execute {
 int geodeEntry(void* platformData) {
     // setup internals
 
-    auto intModSetupRes = ModImpl::getImpl(Mod::get())->setup();
-    if (!intModSetupRes) {
-        LoaderImpl::get()->platformMessageBox(
-            "Unable to load Geode!",
-            "There was an unknown fatal error setting up "
-            "the internal mod representation and Geode can "
-            "not be loaded. "
-            "(" + intModSetupRes.unwrapErr() + ")"
-        );
-        return 1;
-    }
-
     if (!geode::core::hook::initialize()) {
         LoaderImpl::get()->platformMessageBox(
             "Unable to load Geode!",
@@ -177,22 +165,26 @@ int geodeEntry(void* platformData) {
     }
 
     // set up internal mod, settings and data
-    if (!LoaderImpl::get()->setupInternalMod()) {
+    auto setupIntMod = LoaderImpl::get()->setupInternalMod();
+    if (!setupIntMod) {
         LoaderImpl::get()->platformMessageBox(
             "Unable to Load Geode!",
             "There was an unknown fatal error setting up "
-            "the internal mod and Geode can not be loaded."
+            "the internal mod and Geode can not be loaded. "
+            "(" + setupIntMod.unwrapErr() + ")"
         );
         LoaderImpl::get()->reset();
         return 1;
     }
 
     // set up loader, load mods, etc.
-    if (!LoaderImpl::get()->setup()) {
+    auto setupRes = LoaderImpl::get()->setup();
+    if (!setupRes) {
         LoaderImpl::get()->platformMessageBox(
             "Unable to Load Geode!",
             "There was an unknown fatal error setting up "
-            "the loader and Geode can not be loaded." + setupRes.unwrapErr()
+            "the loader and Geode can not be loaded. " 
+            "(" + setupRes.unwrapErr() + ")"
         );
         LoaderImpl::get()->reset();
         return 1;
