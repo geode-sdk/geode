@@ -17,8 +17,10 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
             Loader::get()->waitForModsToBeLoaded();
         }
 
-        if (!LoadingLayer::init(fromReload)) return false;
+        CCFileUtils::get()->updatePaths();
 
+        if (!LoadingLayer::init(fromReload)) return false;
+        
         if (!fromReload) {
             auto winSize = CCDirector::sharedDirector()->getWinSize();
 

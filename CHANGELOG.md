@@ -1,5 +1,9 @@
 # Geode Changelog
 
+## v1.0.0-alpha
+
+ - Major rework of the entire framework; most notable changes include switching to a whole new hooking framework (TulipHook), simplifying many parts of the framework, and making it production-ready.
+
 ## v0.7.0
  - Jesus H. Christmas Kallen there's like 300 new commits since v0.6.1 I don't think there's a point in listing them all, we basically redesigned the whole framework
 

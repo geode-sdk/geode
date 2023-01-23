@@ -23,13 +23,13 @@ namespace geode {
 
     class GEODE_DLL AEnterLayerFilter : public EventFilter<AEnterLayerEvent> {
 	public:
-		using Callback = std::function<void(AEnterLayerEvent*)>;
+		using Callback = void(AEnterLayerEvent*);
     
     protected:
 		std::optional<std::string> m_targetID;
 	
 	public:
-        ListenerResult handle(Callback fn, AEnterLayerEvent* event);
+        ListenerResult handle(std::function<Callback> fn, AEnterLayerEvent* event);
 
 		AEnterLayerFilter(
 			std::optional<std::string> const& id
