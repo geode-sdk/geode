@@ -2580,6 +2580,8 @@ class GameLevelManager : cocos2d::CCNode {
     void getTopArtistsKey(int) = mac 0x2ce7a0;
     void makeTimeStamp(char const*) = mac 0x2bfd90, win 0xa3f00;
     GJGameLevel* getMainLevel(int id, bool unk) = win 0xa0940;
+    bool hasLikedItemFullCheck(LikeItemType type, int itemID, int commentSourceID) = mac 0x2d83d0;
+    bool hasRatedLevelStars(int levelID) = mac 0x2ca3a0;
     void ProcessHttpRequest(gd::string, gd::string, gd::string, int) = mac 0x2a8670, win 0x9f8e0;
     cocos2d::CCDictionary* responseToDict(gd::string response, bool comment) = win 0xbba50;
     void storeUserNames(gd::string) = win 0xa1840;
@@ -3258,7 +3260,7 @@ class GameStatsManager : cocos2d::CCNode {
     const char* getCoinKey(int) = win 0xbda50;
     GJChallengeItem* getChallenge(int id) = win 0xa2fb0;
     void getSecretCoinKey(char const*) = mac 0x429f0;
-    void getStat(char const*) = mac 0x3d310, win 0xf3580;
+    int getStat(char const*) = mac 0x3d310, win 0xf3580;
     void hasPendingUserCoin(char const*) = mac 0x42730, win 0xf7c50;
     void hasSecretCoin(char const*) = mac 0x40730, win 0xf7dc0;
     void hasUserCoin(char const*) = mac 0x427e0, win 0xf7ae0;
@@ -3470,7 +3472,7 @@ class LevelCell : TableViewCell {
     bool m_cellDrawn;
 
     void onViewProfile(cocos2d::CCObject*) = win 0x5c790;
-    void loadCustomLevelCell() = win 0x5a020;
+    void loadCustomLevelCell() = mac 0x1183b0, win 0x5a020;
     void updateBGColor(unsigned int index) = win 0x5c6b0;
 }
 
@@ -3816,6 +3818,16 @@ class LevelUpdateDelegate {
 
 class LikeItemDelegate {
     virtual void likedItem(LikeItemType, int, bool) {}
+}
+
+class LikeItemLayer : FLAlertLayer {
+    LikeItemType m_itemType;
+    int m_itemID;
+    int m_commentSourceID;
+    LikeItemDelegate* m_likeDelegate;
+
+    static LikeItemLayer* create(LikeItemType type, int itemID, int commentSourceID) = mac 0x35f760;
+    bool init(LikeItemType type, int itemID, int commentSourceID) = mac 0x35f900;
 }
 
 class ListButtonBar : cocos2d::CCNode {
@@ -4752,6 +4764,24 @@ class RateLevelDelegate {
     virtual void rateLevelClosed() {}
 }
 
+class RateStarsLayer : FLAlertLayer, UploadPopupDelegate, UploadActionDelegate {
+    bool m_uploadFinished;
+    bool m_isModSuggest;
+    bool m_selectedFeature;
+    CCMenuItemSpriteExtra* m_confirmBtn;
+    cocos2d::CCArray* m_starBtns;
+    cocos2d::CCSprite* m_difficultySprite;
+    int m_levelID;
+    int m_selectedRating;
+    bool m_selectedCoin;
+    cocos2d::CCSprite* m_featureSprite;
+    UploadActionPopup* m_rateAction;
+    RateLevelDelegate* m_rateDelegate;
+
+    static RateStarsLayer* create(int levelID, bool isModSuggest) = mac 0x135e50;
+    bool init(int levelID, bool isModSuggest) = mac 0x136050;
+}
+
 class RetryLevelLayer {
     static RetryLevelLayer* create() = mac 0x28dd60, win 0x216390;
 }
@@ -5282,6 +5312,13 @@ class UndoObject : cocos2d::CCObject {
 class UploadActionDelegate {
     virtual void uploadActionFinished(int, int) {}
     virtual void uploadActionFailed(int, int) {}
+}
+
+class UploadActionPopup : FLAlertLayer {
+    UploadPopupDelegate* m_popupDelegate;
+    TextArea* m_messageArea;
+    LoadingCircle* m_loadingCircle;
+    CCMenuItemSpriteExtra* m_closeBtn;
 }
 
 class UploadMessageDelegate {}
