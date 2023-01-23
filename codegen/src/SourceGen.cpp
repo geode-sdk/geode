@@ -8,7 +8,7 @@ namespace { namespace format_strings {
 #include <Geode/utils/addresser.hpp>
 #include <Geode/modify/Addresses.hpp>
 #include <Geode/modify/Traits.hpp>
-#include <tulip/TulipHook.hpp>
+#include <Geode/loader/Loader.hpp>
 
 using namespace geode;
 using namespace geode::modifier;
@@ -30,7 +30,7 @@ CCDestructor::~CCDestructor() {{
 }}
 
 auto wrapFunction(uintptr_t address, tulip::hook::WrapperMetadata const& metadata) {
-	auto wrapped = tulip::hook::createWrapper(reinterpret_cast<void*>(address), metadata);
+	auto wrapped = Loader::get()->createWrapper(reinterpret_cast<void*>(address), metadata);
 	if (wrapped.isErr()) {{
 		throw std::runtime_error(wrapped.unwrapErr());
 	}}
@@ -42,7 +42,7 @@ auto wrapFunction(uintptr_t address, tulip::hook::WrapperMetadata const& metadat
 auto {class_name}::{function_name}({parameters}){const} -> decltype({function_name}({arguments})) {{
 	using FunctionType = decltype({function_name}({arguments}))(*)({class_name}{const}*{parameter_comma}{parameter_types});
 	static auto func = wrapFunction(address<{addr_index}>(), tulip::hook::WrapperMetadata{{
-		.m_convention = std::make_shared<{convention}>(),
+		.m_convention = Loader::get()->createConvention(tulip::hook::TulipConvention::{convention}),
 		.m_abstract = tulip::hook::AbstractFunction::from(FunctionType(nullptr)),
 	}});
 	return reinterpret_cast<FunctionType>(func)(this{parameter_comma}{arguments});
@@ -54,7 +54,7 @@ auto {class_name}::{function_name}({parameters}){const} -> decltype({function_na
 	auto self = addresser::thunkAdjust(Resolve<{parameter_types}>::func(&{class_name}::{function_name}), this);
 	using FunctionType = decltype({function_name}({arguments}))(*)({class_name}{const}*{parameter_comma}{parameter_types});
 	static auto func = wrapFunction(address<{addr_index}>(), tulip::hook::WrapperMetadata{{
-		.m_convention = std::make_shared<{convention}>(),
+		.m_convention = Loader::get()->createConvention(tulip::hook::TulipConvention::{convention}),
 		.m_abstract = tulip::hook::AbstractFunction::from(FunctionType(nullptr)),
 	}});
 	return reinterpret_cast<FunctionType>(func)(self{parameter_comma}{arguments});
@@ -65,7 +65,7 @@ auto {class_name}::{function_name}({parameters}){const} -> decltype({function_na
 auto {class_name}::{function_name}({parameters}){const} -> decltype({function_name}({arguments})) {{
 	using FunctionType = decltype({function_name}({arguments}))(*)({parameter_types});
 	static auto func = wrapFunction(address<{addr_index}>(), tulip::hook::WrapperMetadata{{
-		.m_convention = std::make_shared<{convention}>(),
+		.m_convention = Loader::get()->createConvention(tulip::hook::TulipConvention::{convention}),
 		.m_abstract = tulip::hook::AbstractFunction::from(FunctionType(nullptr)),
 	}});
 	return reinterpret_cast<FunctionType>(func)({arguments});
@@ -79,7 +79,7 @@ auto {class_name}::{function_name}({parameters}){const} -> decltype({function_na
 	if (CCDestructor::lock(this)) return;
 	using FunctionType = void(*)({class_name}*{parameter_comma}{parameter_types});
 	static auto func = wrapFunction(address<{addr_index}>(), tulip::hook::WrapperMetadata{{
-		.m_convention = std::make_shared<{convention}>(),
+		.m_convention = Loader::get()->createConvention(tulip::hook::TulipConvention::{convention}),
 		.m_abstract = tulip::hook::AbstractFunction::from(FunctionType(nullptr)),
 	}});
 	reinterpret_cast<FunctionType>(func)(this{parameter_comma}{arguments});
@@ -99,7 +99,7 @@ auto {class_name}::{function_name}({parameters}){const} -> decltype({function_na
 	{class_name}::~{unqualified_class_name}();
 	using FunctionType = void(*)({class_name}*{parameter_comma}{parameter_types});
 	static auto func = wrapFunction(address<{addr_index}>(), tulip::hook::WrapperMetadata{{
-		.m_convention = std::make_shared<{convention}>(),
+		.m_convention = Loader::get()->createConvention(tulip::hook::TulipConvention::{convention}),
 		.m_abstract = tulip::hook::AbstractFunction::from(FunctionType(nullptr)),
 	}});
 	reinterpret_cast<FunctionType>(func)(this{parameter_comma}{arguments});
@@ -190,7 +190,7 @@ std::string generateBindingSource(Root& root) {
 					fmt::arg("class_name", c.name),
 					fmt::arg("unqualified_class_name", codegen::getUnqualifiedClassName(c.name)),
 					fmt::arg("const", str_if(" const ", fn->beginning.is_const)),
-					fmt::arg("convention", codegen::getModifyConvention(f)),
+					fmt::arg("convention", codegen::getModifyConventionName(f)),
 					fmt::arg("function_name", fn->beginning.name),
 					fmt::arg("meta_index", ids.meta),
 					fmt::arg("member_index", ids.member),

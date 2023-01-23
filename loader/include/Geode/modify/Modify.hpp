@@ -14,11 +14,12 @@
         constexpr auto b = Resolve<__VA_ARGS__>::func(&Base::FunctionName_);                        \
         constexpr auto d = Resolve<__VA_ARGS__>::func(&Derived::FunctionName_);                     \
         if constexpr (Unique::different<b, d>()) {                                                  \
-            auto hook = Hook::create<Convention_>(                                                  \
+            auto hook = Hook::create(                                                               \
                 Mod::get(),                                                                         \
                 reinterpret_cast<void*>(address<AddressIndex_>()),                                  \
                 AsStaticFunction_##FunctionName_<Derived, d>::value,                                \
-                #ClassName_ "::" #FunctionName_                                                     \
+                #ClassName_ "::" #FunctionName_,                                                    \
+                tulip::hook::TulipConvention::Convention_                                           \
             );                                                                                      \
             this->m_hooks[#ClassName_ "::" #FunctionName_] = hook;                                  \
         }                                                                                           \
@@ -28,11 +29,12 @@
     do {                                                                                \
         if constexpr (HasConstructor<Derived>) {                                        \
             constexpr auto d = Resolve<__VA_ARGS__>::func(&Derived::constructor);       \
-            auto hook = Hook::create<Convention_>(                                      \
+            auto hook = Hook::create(                                                   \
                 Mod::get(),                                                             \
                 reinterpret_cast<void*>(address<AddressIndex_>()),                      \
                 AsStaticFunction_##constructor<Derived, d>::value,                      \
-                #ClassName_ "::" #ClassName_                                            \
+                #ClassName_ "::" #ClassName_,                                           \
+                tulip::hook::TulipConvention::Convention_                               \
             );                                                                          \
             this->m_hooks[#ClassName_ "::" #ClassName_] = hook;                         \
         }                                                                               \
@@ -42,11 +44,12 @@
     do {                                                                          \
         if constexpr (HasDestructor<Derived>) {                                   \
             constexpr auto d = Resolve<>::func(&Derived::destructor);             \
-            auto hook = Hook::create<Convention_>(                                \
+            auto hook = Hook::create(                                             \
                 Mod::get(),                                                       \
                 reinterpret_cast<void*>(address<AddressIndex_>()),                \
                 AsStaticFunction_##destructor<Derived, d>::value,                 \
-                #ClassName_ "::" #ClassName_                                      \
+                #ClassName_ "::" #ClassName_,                                     \
+                tulip::hook::TulipConvention::Convention_                         \
             );                                                                    \
             this->m_hooks[#ClassName_ "::" #ClassName_] = hook;                   \
         }                                                                         \

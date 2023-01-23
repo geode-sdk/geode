@@ -50,16 +50,17 @@ namespace geode {
             tulip::hook::HookMetadata const& hookMetadata
         );
 
-        template <class Convention, class DetourType>
+        template <class DetourType>
         static Hook* create(
             Mod* owner,
             void* address,
             DetourType detour,
             std::string const& displayName,
+            tulip::hook::TulipConvention convention,
             tulip::hook::HookMetadata const& hookMetadata = tulip::hook::HookMetadata()
         ) {
             auto handlerMetadata = tulip::hook::HandlerMetadata{
-                .m_convention = std::make_shared<Convention>(),
+                .m_convention = Loader::get()->createConvention(convention),
                 .m_abstract = tulip::hook::AbstractFunction::from(detour)
             };
             return Hook::create(
