@@ -9,6 +9,7 @@ struct ResourcesUpdate : Modify<ResourcesUpdate, LoadingLayer> {
         LoadingLayer::loadAssets();
         // this is in case the user refreshes texture quality at runtime
         if (m_loadStep == 10) {
+            CCFileUtils::get()->updatePaths();
             Loader::get()->updateResources();
         }
     }

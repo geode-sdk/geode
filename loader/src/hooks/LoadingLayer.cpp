@@ -13,32 +13,36 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     CustomLoadingLayer() : m_updatingResources(false) {}
 
     bool init(bool fromReload) {
-        Loader::get()->waitForModsToBeLoaded();
+        if (!fromReload) {
+            Loader::get()->waitForModsToBeLoaded();
+        }
 
         if (!LoadingLayer::init(fromReload)) return false;
 
-        auto winSize = CCDirector::sharedDirector()->getWinSize();
+        if (!fromReload) {
+            auto winSize = CCDirector::sharedDirector()->getWinSize();
 
-        auto count = Loader::get()->getAllMods().size();
+            auto count = Loader::get()->getAllMods().size();
 
-        auto label = CCLabelBMFont::create(
-            fmt::format("Geode: Loaded {} mods", count).c_str(),
-            "goldFont.fnt"
-        );
-        label->setPosition(winSize.width / 2, 30.f);
-        label->setScale(.45f);
-        label->setID("geode-loaded-info");
-        this->addChild(label);
+            auto label = CCLabelBMFont::create(
+                fmt::format("Geode: Loaded {} mods", count).c_str(),
+                "goldFont.fnt"
+            );
+            label->setPosition(winSize.width / 2, 30.f);
+            label->setScale(.45f);
+            label->setID("geode-loaded-info");
+            this->addChild(label);
 
-        // fields have unpredictable destructors
-        this->addChild(EventListenerNode<ResourceDownloadFilter>::create(
-            this, &CustomLoadingLayer::updateResourcesProgress
-        ));
+            // fields have unpredictable destructors
+            this->addChild(EventListenerNode<ResourceDownloadFilter>::create(
+                this, &CustomLoadingLayer::updateResourcesProgress
+            ));
 
-        // verify loader resources
-        if (!LoaderImpl::get()->verifyLoaderResources()) {
-            m_fields->m_updatingResources = true;
-            this->setUpdateText("Downloading Resources");
+            // verify loader resources
+            if (!LoaderImpl::get()->verifyLoaderResources()) {
+                m_fields->m_updatingResources = true;
+                this->setUpdateText("Downloading Resources");
+            }
         }
 
         return true;
