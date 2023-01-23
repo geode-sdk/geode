@@ -115,7 +115,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 	src/platform/
 	src/gui/
 	hash/
-	./ # lilac
+	./
 )
 
 if (APPLE)

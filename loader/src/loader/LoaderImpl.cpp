@@ -133,7 +133,7 @@ VersionInfo Loader::Impl::getVersion() {
 }
 
 VersionInfo Loader::Impl::minModVersion() {
-    return VersionInfo { 0, 3, 1 };
+    return VersionInfo { 1, 0, 0 };
 }
 
 VersionInfo Loader::Impl::maxModVersion() {
