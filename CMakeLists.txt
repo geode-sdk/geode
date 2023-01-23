@@ -123,7 +123,7 @@ CPMAddPackage("gh:fmtlib/fmt#9.1.0")
 CPMAddPackage("gh:gulrak/filesystem#3e5b930")
 
 # Tulip hook (hooking)
-CPMAddPackage("gh:geode-sdk/TulipHook#65457c6")
+CPMAddPackage("gh:geode-sdk/TulipHook#9980bcf")
 
 target_link_libraries(${PROJECT_NAME} INTERFACE ghc_filesystem fmt TulipHookInclude GeodeCodegenSources)
 

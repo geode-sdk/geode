@@ -31,7 +31,7 @@ namespace geode::modifier {{
         char const* statics_declare_identifier = R"GEN(
 	#ifndef GEODE_STATICS_{function_name}
 		#define GEODE_STATICS_{function_name}
-		{macro_name}({function_name}) 
+		GEODE_AS_STATIC_FUNCTION({function_name}) 
 	#endif
 )GEN";
 
@@ -94,10 +94,6 @@ std::string generateModifyHeader(Root& root, ghc::filesystem::path const& single
                     statics += fmt::format(
                         format_strings::statics_declare_identifier,
                         fmt::arg("function_name", fn->name),
-                        fmt::arg("macro_name",
-                            (fn->is_virtual ? "GEODE_VIRTUAL_AS_STATIC_FUNCTION" :
-                            "GEODE_AS_STATIC_FUNCTION")
-                        )
                     );
                 }
             }
