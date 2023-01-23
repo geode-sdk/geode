@@ -1,6 +1,7 @@
 #pragma once
 #include "../utils/addresser.hpp"
 #include "Traits.hpp"
+#include "../loader/Log.hpp"
 
 namespace geode::modifier {
 /**
@@ -13,12 +14,48 @@ namespace geode::modifier {
         struct Impl {};                                                                           \
         template <class Return, class... Params>                                                  \
         struct Impl<Return (*)(Params...)> {                                                      \
-            static Return GEODE_CDECL_CALL function(Params... params) { return Class2::FunctionName_(params...); } \
+            static Return GEODE_CDECL_CALL function(Params... params) {                           \
+                return Class2::FunctionName_(params...);                                          \
+            }                                                                                     \
         };                                                                                        \
         template <class Return, class Class, class... Params>                                     \
         struct Impl<Return (Class::*)(Params...)> {                                               \
             static Return GEODE_CDECL_CALL function(Class* self, Params... params) {              \
                 auto self2 = addresser::rthunkAdjust(Function, self);                             \
+                log::debug("{}", __FUNCTION__);\
+                log::debug("self {} -> self2 {}", (void*)(self), (void*)(self2));\
+                return self2->Class2::FunctionName_(params...);                                   \
+            }                                                                                     \
+        };                                                                                        \
+        template <class Return, class Class, class... Params>                                     \
+        struct Impl<Return (Class::*)(Params...) const> {                                         \
+            static Return GEODE_CDECL_CALL function(Class const* self, Params... params) {        \
+                auto self2 = addresser::rthunkAdjust(Function, self);                             \
+                log::debug("{}", __FUNCTION__);\
+                log::debug("self {} -> self2 {}", (void*)(self), (void*)(self2));\
+                return self2->Class2::FunctionName_(params...);                                   \
+            }                                                                                     \
+        };                                                                                        \
+        static constexpr auto value = &Impl<decltype(Function)>::function;                        \
+    };
+
+#define GEODE_VIRTUAL_AS_STATIC_FUNCTION(FunctionName_)                                           \
+    template <class Class2, auto Function>                                                        \
+    struct AsStaticFunction_##FunctionName_ {                                                     \
+        template <class FunctionType2>                                                            \
+        struct Impl {};                                                                           \
+        template <class Return, class... Params>                                                  \
+        struct Impl<Return (*)(Params...)> {                                                      \
+            static Return GEODE_CDECL_CALL function(Params... params) {                           \
+                return Class2::FunctionName_(params...);                                          \
+            }                                                                                     \
+        };                                                                                        \
+        template <class Return, class Class, class... Params>                                     \
+        struct Impl<Return (Class::*)(Params...)> {                                               \
+            static Return GEODE_CDECL_CALL function(Class* self, Params... params) {              \
+                auto self2 = addresser::rthunkAdjust(Function, self);                             \
+                log::debug("{}", __FUNCTION__);\
+                log::debug("self {} -> self2 {}", (void*)(self), (void*)(self2));\
                 return self2->Class2::FunctionName_(params...);                                   \
             }                                                                                     \
         };                                                                                        \

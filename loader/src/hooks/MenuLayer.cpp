@@ -45,6 +45,8 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 	CCSprite* m_geodeButton;
 
     bool init() {
+		log::debug("this: {}", this);
+
         if (!MenuLayer::init()) return false;
 
         // make sure to add the string IDs for nodes (Geode has no manual
