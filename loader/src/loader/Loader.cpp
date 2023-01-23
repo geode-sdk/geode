@@ -122,19 +122,3 @@ bool Loader::didLastLaunchCrash() const {
 Mod* Loader::takeNextMod() {
     return m_impl->takeNextMod();
 }
-
-Result<void*> Loader::createWrapper(void* address, tulip::hook::WrapperMetadata const& metadata) noexcept {
-    auto res = tulip::hook::createWrapper(address, metadata);
-    if (res) {
-        return Ok(res.unwrap());
-    }
-    else {
-        return Err(res.unwrapErr());
-    }
-}
-
-std::shared_ptr<tulip::hook::CallingConvention> Loader::createConvention(
-    tulip::hook::TulipConvention convention
-) noexcept {
-    return tulip::hook::createConvention(convention);
-}

@@ -5,7 +5,6 @@
 #include "Log.hpp"
 #include "ModInfo.hpp"
 #include "Types.hpp"
-#include <tulip/TulipHook.hpp>
 
 #include <atomic>
 #include <mutex>
@@ -79,20 +78,6 @@ namespace geode {
         void closePlatformConsole();
 
         bool didLastLaunchCrash() const;
-
-        /**
-         * Create a calling convention wrapper for a function.
-         */
-        Result<void*> createWrapper(
-            void* address,
-            tulip::hook::WrapperMetadata const& metadata
-        ) noexcept;
-        /**
-         * Create an abstract calling convention handler for TulipHook
-         */
-        std::shared_ptr<tulip::hook::CallingConvention> createConvention(
-            tulip::hook::TulipConvention convention
-        ) noexcept;
 
         friend class LoaderImpl;
 

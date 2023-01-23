@@ -4,6 +4,7 @@
 #include "../hook-core/Hook.hpp"
 #include "../utils/general.hpp"
 #include "../external/json/json_fwd.hpp"
+#include "Tulip.hpp"
 #include <inttypes.h>
 #include <string_view>
 #include <tulip/TulipHook.hpp>
@@ -60,7 +61,7 @@ namespace geode {
             tulip::hook::HookMetadata const& hookMetadata = tulip::hook::HookMetadata()
         ) {
             auto handlerMetadata = tulip::hook::HandlerMetadata{
-                .m_convention = Loader::get()->createConvention(convention),
+                .m_convention = geode::hook::createConvention(convention),
                 .m_abstract = tulip::hook::AbstractFunction::from(detour)
             };
             return Hook::create(
