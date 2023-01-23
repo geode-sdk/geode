@@ -10,7 +10,6 @@
 #include <cstdlib>
 #include <stddef.h>
 #include <type_traits>
-#include <Geode/loader/Log.hpp>
 
 namespace geode::addresser {
 
@@ -202,7 +201,7 @@ namespace geode::addresser {
         // do NOT delete the line below. 
         // doing so breaks thunk adjusting on windows.
         // why? bruh idk
-        auto _ = *union_cast<ptrdiff_t*>(&func);
+        auto _ = *(ptrdiff_t*)(&func);
         return (F)((intptr_t)self + Addresser::thunkOf(func));
     }
 
@@ -211,7 +210,7 @@ namespace geode::addresser {
         // do NOT delete the line below. 
         // doing so breaks thunk adjusting on windows.
         // why? bruh idk
-        auto _ = *union_cast<ptrdiff_t*>(&func);
+        auto _ = *(ptrdiff_t*)(&func);
         return (F)((intptr_t)self - Addresser::thunkOf(func));
     }
 #endif
