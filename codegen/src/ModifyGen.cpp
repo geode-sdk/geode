@@ -93,7 +93,7 @@ std::string generateModifyHeader(Root& root, ghc::filesystem::path const& single
                     used.insert(fn->name);
                     statics += fmt::format(
                         format_strings::statics_declare_identifier,
-                        fmt::arg("function_name", fn->name),
+                        fmt::arg("function_name", fn->name)
                     );
                 }
             }
