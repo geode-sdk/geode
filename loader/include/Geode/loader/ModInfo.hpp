@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Types.hpp"
-#include "../external/json/json.hpp"
+#include "../external/json/json_fwd.hpp"
 #include "../utils/VersionInfo.hpp"
 #include "../utils/Result.hpp"
 #include "Setting.hpp"
@@ -157,7 +157,7 @@ namespace geode {
         static bool validateID(std::string const& id);
 
     private:
-        ModJson m_rawJSON;
+        std::shared_ptr<ModJson> m_rawJSON;
 
         /**
          * Version is passed for backwards

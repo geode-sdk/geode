@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../external/json/json.hpp"
+#include "../external/json/json_fwd.hpp"
 #include "casts.hpp"
 #include "general.hpp"
 #include "../DefaultInclude.hpp"

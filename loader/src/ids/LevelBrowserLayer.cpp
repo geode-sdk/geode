@@ -1,7 +1,7 @@
 #include "AddIDs.hpp"
 
 #include <Geode/Bindings.hpp>
-#include <Geode/Modify.hpp>
+#include <Geode/modify/LevelBrowserLayer.hpp>
 #include <Geode/utils/cocos.hpp>
 
 USE_GEODE_NAMESPACE();

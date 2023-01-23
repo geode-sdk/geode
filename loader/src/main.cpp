@@ -8,6 +8,8 @@
 #include <Geode/loader/Setting.hpp>
 #include <Geode/loader/SettingEvent.hpp>
 #include <loader/ModImpl.hpp>
+#include <Geode/loader/ModJsonTest.hpp>
+#include <Geode/utils/JsonValidation.hpp>
 #include <array>
 
 USE_GEODE_NAMESPACE();
@@ -26,7 +28,7 @@ std::length_error::~length_error() _NOEXCEPT {} // do not ask...
 // from dynamic to static thats why she needs to define it
 // this is what old versions does to a silly girl
 
-__attribute__((constructor)) void _entry() {
+void dynamicEntry() {
     auto dylib = dlopen("GeodeBootstrapper.dylib", RTLD_NOLOAD);
     dlclose(dylib);
 
@@ -53,6 +55,13 @@ __attribute__((constructor)) void _entry() {
 
     geodeEntry(nullptr);
 }
+
+extern "C" __attribute__((visibility("default"))) void dynamicTrigger() {
+    std::thread(&dynamicEntry).detach();
+}
+
+// remove when we can figure out how to not remove it
+auto dynamicTriggerRef = &dynamicTrigger;
 
 #elif defined(GEODE_IS_WINDOWS)
     #include <Windows.h>
@@ -120,7 +129,7 @@ $execute {
     listenForIPC("list-mods", [](IPCEvent* event) -> nlohmann::json {
         std::vector<nlohmann::json> res;
 
-        auto args = event->messageData;
+        auto args = *event->messageData;
         JsonChecker checker(args);
         auto root = checker.root("").obj();
 
@@ -155,12 +164,26 @@ int geodeEntry(void* platformData) {
         return 1;
     }
 
-    // set up loader, load mods, etc.
-    if (!LoaderImpl::get()->setup()) {
+    // set up internal mod, settings and data
+    auto internalSetupRes = LoaderImpl::get()->setupInternalMod();
+    if (!internalSetupRes) {
         LoaderImpl::get()->platformMessageBox(
             "Unable to Load Geode!",
             "There was an unknown fatal error setting up "
-            "the loader and Geode can not be loaded."
+            "the internal mod and Geode can not be loaded." + internalSetupRes.unwrapErr()
+        );
+        LoaderImpl::get()->reset();
+        return 1;
+    }
+
+    // set up loader, load mods, etc.
+    auto setupRes = LoaderImpl::get()->setup();
+    if (!setupRes) {
+        LoaderImpl::get()->platformMessageBox(
+            "Unable to Load Geode!",
+            "There was an unknown fatal error setting up "
+            "the loader and Geode can not be loaded. " 
+            "(" + setupRes.unwrapErr() + ")"
         );
         LoaderImpl::get()->reset();
         return 1;

@@ -2,7 +2,7 @@
 #include <Geode/Bindings.hpp>
 
 namespace geode::modifier {
-    struct types {
-#include <Geode/GeneratedType.hpp>
-    };
+//     struct types {
+//  #include <Geode/GeneratedType.hpp>
+//     };
 }

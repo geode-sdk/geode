@@ -7,7 +7,9 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
+#include <Geode/loader/ModEvent.hpp>
 #include <Geode/utils/file.hpp>
+#include <Geode/utils/JsonValidation.hpp>
 #include <optional>
 #include <string>
 #include <vector>
@@ -19,8 +21,6 @@ Mod::Impl* ModImpl::getImpl(Mod* mod)  {
 }
 
 Mod::Impl::Impl(Mod* self, ModInfo const& info) : m_self(self), m_info(info) {
-    m_saveDirPath = dirs::getModsSaveDir() / info.id;
-    ghc::filesystem::create_directories(m_saveDirPath);
 }
 
 Mod::Impl::~Impl() {
@@ -28,6 +28,9 @@ Mod::Impl::~Impl() {
 }
 
 Result<> Mod::Impl::setup() {
+    m_saveDirPath = dirs::getModsSaveDir() / m_info.id;
+    ghc::filesystem::create_directories(m_saveDirPath);
+    
     this->setupSettings();
     auto loadRes = this->loadData();
     if (!loadRes) {
@@ -481,6 +484,9 @@ bool Mod::Impl::depends(std::string const& id) const {
 Result<> Mod::Impl::enableHook(Hook* hook) {
     auto res = hook->enable();
     if (res) m_hooks.push_back(hook);
+    else {
+        log::error("Can't enable hook {} for mod {}: {}", m_info.id, res.unwrapErr());
+    }
 
     return res;
 }
@@ -491,10 +497,12 @@ Result<> Mod::Impl::disableHook(Hook* hook) {
 
 Result<Hook*> Mod::Impl::addHook(Hook* hook) {
     if (LoaderImpl::get()->isReadyToHook()) {
-        auto res = this->enableHook(hook);
-        if (!res) {
-            delete hook;
-            return Err("Can't create hook");
+        if (hook->getAutoEnable()) {
+            auto res = this->enableHook(hook);
+            if (!res) {
+                delete hook;
+                return Err("Can't create hook: "+ res.unwrapErr());
+            }
         }
     }
     else {
@@ -662,13 +670,14 @@ static ModInfo getModImplInfo() {
     }
 }
 
-void Loader::Impl::setupInternalMod() {
+Mod* Loader::Impl::createInternalMod() {
     auto& mod = Mod::sharedMod<>;
-    if (mod) return;
-    mod = new Mod(getModImplInfo());
-
-    auto setupRes = mod->m_impl->setup();
-    if (!setupRes) {
-        log::error("Failed to setup internal mod! ({})", setupRes.unwrapErr());
+    if (!mod) {
+        mod = new Mod(getModImplInfo());
     }
+    return mod;
+}
+
+Result<> Loader::Impl::setupInternalMod() {
+    return Mod::get()->m_impl->setup();
 }

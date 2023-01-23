@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../utils/casts.hpp"
-#include "Mod.hpp"
 
 #include <Geode/DefaultInclude.hpp>
 #include <type_traits>
@@ -10,6 +9,8 @@
 namespace geode {
     class Mod;
     class Event;
+
+    Mod* getMod();
 
     enum class ListenerResult {
         Propagate,

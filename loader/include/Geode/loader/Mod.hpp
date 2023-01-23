@@ -2,7 +2,7 @@
 
 #include "../DefaultInclude.hpp"
 #include "../cocos/support/zip_support/ZipUtils.h"
-#include "../external/json/json.hpp"
+#include "../external/json/json_fwd.hpp"
 #include "../utils/Result.hpp"
 #include "../utils/VersionInfo.hpp"
 #include "../utils/general.hpp"
@@ -16,6 +16,7 @@
 #include <type_traits>
 #include <unordered_map>
 #include <vector>
+#include <tulip/TulipHook.hpp>
 
 namespace geode {
     template <class T>
@@ -110,51 +111,16 @@ namespace geode {
         nlohmann::json& getSaveContainer();
 
         template <class T>
-        T getSettingValue(std::string const& key) const {
-            if (auto sett = this->getSetting(key)) {
-                return SettingValueSetter<T>::get(sett);
-            }
-            return T();
-        }
+        T getSettingValue(std::string const& key) const;
 
         template <class T>
-        T setSettingValue(std::string const& key, T const& value) {
-            if (auto sett = this->getSetting(key)) {
-                auto old = this->getSettingValue<T>(sett);
-                SettingValueSetter<T>::set(sett, value);
-                return old;
-            }
-            return T();
-        }
+        T setSettingValue(std::string const& key, T const& value);
 
         template <class T>
-        T getSavedValue(std::string const& key) {
-            auto& saved = this->getSaveContainer();
-            if (saved.count(key)) {
-                try {
-                    // json -> T may fail
-                    return saved.at(key);
-                }
-                catch (...) {
-                }
-            }
-            return T();
-        }
+        T getSavedValue(std::string const& key);
 
         template <class T>
-        T getSavedValue(std::string const& key, T const& defaultValue) {
-            auto& saved = this->getSaveContainer();
-            if (saved.count(key)) {
-                try {
-                    // json -> T may fail
-                    return saved.at(key);
-                }
-                catch (...) {
-                }
-            }
-            saved[key] = defaultValue;
-            return defaultValue;
-        }
+        T getSavedValue(std::string const& key, T const& defaultValue);
 
         /**
          * Set the value of an automatically saved variable. When the game is
@@ -164,17 +130,11 @@ namespace geode {
          * @returns The old value
          */
         template<class T>
-        T setSavedValue(std::string const& key, T const& value) {
-            auto& saved = this->getSaveContainer();
-            auto old = this->getSavedValue<T>(key);
-            saved[key] = value;
-            return old;
-        }
+        T setSavedValue(std::string const& key, T const& value);
 
         /**
-         * Get the mod container stored in the Interface
-         * @returns nullptr if Interface is not initialized,
-         * the mod pointer if it is initialized
+         * Get the Mod of the current mod being developed
+         * @returns The current mod
          */
         template <class = void>
         static inline GEODE_HIDDEN Mod* get() {
@@ -197,31 +157,20 @@ namespace geode {
          * @param address The absolute address of
          * the function to hook, i.e. gd_base + 0xXXXX
          * @param detour Pointer to your detour function
+         * @param displayName Name of the hook that will be 
+         * displayed in the hook list
+         * @param hookMetadata Metadata of the hook       
          * @returns Successful result containing the
-         * Hook handle, errorful result with info on
+         * Hook pointer, errorful result with info on
          * error
          */
-        template <auto Detour, template <class, class...> class Convention>
-        Result<Hook*> addHook(void* address) {
-            return this->addHook<Detour, Convention>("", address);
-        }
-
-        /**
-         * Create a hook at an address. Call the original
-         * function by calling the original function –
-         * no trampoline needed. Also takes a displayName
-         * parameter to use for when visualizing the hook.
-         * @param address The absolute address of
-         * the function to hook, i.e. gd_base + 0xXXXX
-         * @param detour Pointer to your detour function
-         * @returns Successful result containing the
-         * Hook handle, errorful result with info on
-         * error
-         */
-        template <auto Detour, template <class, class...> class Convention>
-        Result<Hook*> addHook(std::string const& displayName, void* address) {
-            auto hook =
-                Hook::create<Detour, Convention>((decltype(Detour))address, displayName, this);
+        template <class Convention, class DetourType>
+        Result<Hook*> addHook(
+            void* address, DetourType detour, 
+            std::string const& displayName = "", 
+            tulip::hook::HookMetadata const& hookMetadata = tulip::hook::HookMetadata()
+        ) {
+            auto hook = Hook::create<Convention>(this, address, detour, displayName, hookMetadata);
             return this->addHook(hook);
         }
 
@@ -346,16 +295,6 @@ namespace geode {
 
         friend class ModImpl;
     };
-
-    /**
-     * To bypass the need for cyclic dependencies,
-     * this function does the exact same as Mod::get()
-     * However, it can be externed, unlike Mod::get()
-     * @returns Same thing Mod::get() returns
-     */
-    inline GEODE_HIDDEN Mod* getMod() {
-        return Mod::get();
-    }
 }
 
 inline char const* operator"" _spr(char const* str, size_t) {

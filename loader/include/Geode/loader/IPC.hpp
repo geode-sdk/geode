@@ -2,6 +2,7 @@
 
 #include "Event.hpp"
 #include "Loader.hpp"
+#include "../external/json/json_fwd.hpp"
 
 namespace geode {
     #ifdef GEODE_IS_WINDOWS
@@ -31,7 +32,7 @@ namespace geode {
     public:
         std::string targetModID;
         std::string messageID;
-        nlohmann::json messageData;
+        std::unique_ptr<nlohmann::json> messageData;
         nlohmann::json& replyData;
 
         friend class IPCFilter;
@@ -62,11 +63,5 @@ namespace geode {
         );
     };
 
-    template<class = void>
-    std::monostate listenForIPC(std::string const& messageID, nlohmann::json(*callback)(IPCEvent*)) {
-        (void) new EventListener(
-            callback, IPCFilter(getMod()->getID(), messageID)
-        );
-        return std::monostate();
-    }
+    std::monostate listenForIPC(std::string const& messageID, nlohmann::json(*callback)(IPCEvent*));
 }

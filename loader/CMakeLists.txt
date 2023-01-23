@@ -121,6 +121,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 if (APPLE)
 	# For profiling
 	target_compile_options(${PROJECT_NAME} PUBLIC "-ftime-trace")
+	# target_link_options(${PROJECT_NAME} PRIVATE "-Wl,-e,_dynamicInit")
 	#set_property(TARGET ${PROJECT_NAME} PROPERTY RULE_LAUNCH_COMPILE "${CMAKE_COMMAND} -E time")
 endif()
 
@@ -134,9 +135,8 @@ CPMAddPackage("gh:google/re2#954656f")
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${md4c_SOURCE_DIR}/src)
 
-# Lilac (hooking)
-add_subdirectory(lilac)
-target_link_libraries(${PROJECT_NAME} md4c z lilac_hook geode-sdk re2)
+target_link_libraries(${PROJECT_NAME} md4c z TulipHook geode-sdk re2)
+
 
 # Use precompiled headers for faster builds
 if (NOT GEODE_DISABLE_PRECOMPILED_HEADERS)
@@ -146,7 +146,6 @@ if (NOT GEODE_DISABLE_PRECOMPILED_HEADERS)
 		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Loader.hpp"
 		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/UI.hpp"
 		# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Bindings.hpp"
-		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Modify.hpp"
 		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/cocos/include/cocos2d.h"
 		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/cocos/extensions/cocos-ext.h"
 	)

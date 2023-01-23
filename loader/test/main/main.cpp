@@ -1,4 +1,6 @@
 #include <Geode/Loader.hpp>
+#include <Geode/loader/ModJsonTest.hpp>
+#include <Geode/loader/ModEvent.hpp>
 
 USE_GEODE_NAMESPACE();
 

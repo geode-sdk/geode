@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <stddef.h>
 #include <type_traits>
+#include "../utils/casts.hpp"
 
 namespace geode::addresser {
 
@@ -198,11 +199,19 @@ namespace geode::addresser {
 
     template <typename T, typename F>
     inline F thunkAdjust(T func, F self) {
+        // do NOT delete the line below. 
+        // doing so breaks thunk adjusting on windows.
+        // why? bruh idk
+        auto _ = *geode::cast::template union_cast<ptrdiff_t*>(&func);
         return (F)((intptr_t)self + Addresser::thunkOf(func));
     }
 
     template <typename T, typename F>
     inline F rthunkAdjust(T func, F self) {
+        // do NOT delete the line below. 
+        // doing so breaks thunk adjusting on windows.
+        // why? bruh idk
+        auto _ = *geode::cast::template union_cast<ptrdiff_t*>(&func);
         return (F)((intptr_t)self - Addresser::thunkOf(func));
     }
 #endif

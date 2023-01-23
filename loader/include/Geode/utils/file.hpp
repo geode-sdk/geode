@@ -3,7 +3,7 @@
 #include "Result.hpp"
 #include "general.hpp"
 
-#include "../external/json/json.hpp"
+#include "../external/json/json_fwd.hpp"
 #include <Geode/DefaultInclude.hpp>
 #include <ghc/filesystem.hpp>
 #include <string>

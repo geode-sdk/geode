@@ -14,11 +14,17 @@ void displayError(std::string alertMessage) {
 }
 
 void loadGeode() {
-    auto dylib = dlopen("Geode.dylib", RTLD_LAZY);
-    if (dylib) return;
-
-    displayError(std::string("Couldn't open Geode: ") + dlerror());
-
+    auto dylib = dlopen("Geode.dylib", RTLD_NOW);
+    if (!dylib)  {
+        displayError(std::string("Couldn't load Geode: ") + dlerror());
+        return;
+    }
+    auto trigger = dlsym(dylib, "dynamicTrigger");
+    if (!trigger)  {
+        displayError(std::string("Couldn't start Geode: ") + dlerror());
+        return;
+    }
+    reinterpret_cast<void(*)()>(trigger)();
     return;
 }
 

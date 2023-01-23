@@ -6,6 +6,8 @@
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/map.hpp>
 #include <hash/hash.hpp>
+#include <Geode/utils/JsonValidation.hpp>
+
 
 USE_GEODE_NAMESPACE();
 

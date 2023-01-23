@@ -6,6 +6,7 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
+#include <Geode/loader/ModJsonTest.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/ranges.hpp>
@@ -590,13 +591,14 @@ ResourceDownloadFilter::ResourceDownloadFilter() {}
 
 void Loader::Impl::provideNextMod(Mod* mod) {
     m_nextModLock.lock();
-    m_nextMod = mod;
+    if (mod) {
+        m_nextMod = mod;
+    }
 }
 
 Mod* Loader::Impl::takeNextMod() {
     if (!m_nextMod) {
-        this->setupInternalMod();
-        m_nextMod = Mod::sharedMod<>;
+        m_nextMod = this->createInternalMod();
     }
     auto ret = m_nextMod;
     return ret;
@@ -606,4 +608,38 @@ void Loader::Impl::releaseNextMod() {
     m_nextMod = nullptr;
 
     m_nextModLock.unlock();
+}
+
+
+Result<> Loader::Impl::createHandler(void* address, tulip::hook::HandlerMetadata const& metadata) {
+    if (m_handlerHandles.count(address)) {
+        return Err("Handler already exists at address");
+    }
+
+    GEODE_UNWRAP_INTO(auto handle, tulip::hook::createHandler(address, metadata));
+    m_handlerHandles[address] = handle;
+    return Ok();
+}
+
+bool Loader::Impl::hasHandler(void* address) {
+    return m_handlerHandles.count(address) > 0;
+}
+
+Result<tulip::hook::HandlerHandle> Loader::Impl::getHandler(void* address) {
+    if (!m_handlerHandles.count(address)) {
+        return Err("Handler does not exist at address");
+    }
+
+    return Ok(m_handlerHandles[address]);
+}
+
+Result<> Loader::Impl::removeHandler(void* address) {
+    if (!m_handlerHandles.count(address)) {
+        return Err("Handler does not exist at address");
+    }
+
+    auto handle = m_handlerHandles[address];
+    GEODE_UNWRAP(tulip::hook::removeHandler(handle));
+    m_handlerHandles.erase(address);
+    return Ok();
 }

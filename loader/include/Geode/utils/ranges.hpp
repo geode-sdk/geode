@@ -17,6 +17,9 @@ namespace std {
 }
 #endif
 
+#undef min
+#undef max
+
 namespace geode::utils::ranges {
     template <class C>
     concept ValidConstContainer = requires(C const& c) {

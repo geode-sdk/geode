@@ -4,6 +4,8 @@ USE_GEODE_NAMESPACE();
 
 #include <Geode/modify/MenuLayer.hpp>
 #include <Geode/loader/SettingNode.hpp>
+#include <Geode/loader/ModJsonTest.hpp>
+
 
 enum class Icon {
     Steve,

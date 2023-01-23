@@ -79,21 +79,11 @@ public:
  */
 class CCDestructor : public CCCopying {
 private:
-	static inline auto& destructorLock() {
-		static auto ret = new std::unordered_map<void*, bool>;
-		return *ret;
-	}
+	static std::unordered_map<void*, bool>& destructorLock();
 public:
-	static inline bool& globalLock() {
-		static thread_local bool ret = false;
-		return ret; 
-	}
-	static inline bool& lock(void* self) {
-		return destructorLock()[self];
-	}
-	inline ~CCDestructor() {
-		destructorLock().erase(this);
-	}
+	static bool& globalLock();
+	static bool& lock(void* self);
+	~CCDestructor();
 };
 
 #pragma warning(push)

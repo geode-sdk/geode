@@ -18,6 +18,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <tulip/TulipHook.hpp>
 
 // TODO: Find a file convention for impl headers
 namespace geode {
@@ -63,6 +64,13 @@ namespace geode {
         void provideNextMod(Mod* mod);
         Mod* takeNextMod();
         void releaseNextMod();
+
+        std::unordered_map<void*, tulip::hook::HandlerHandle> m_handlerHandles;
+
+        Result<> createHandler(void* address, tulip::hook::HandlerMetadata const& metadata);
+        bool hasHandler(void* address);
+        Result<tulip::hook::HandlerHandle> getHandler(void* address);
+        Result<> removeHandler(void* address);
 
         void downloadLoaderResources();
 
@@ -126,7 +134,8 @@ namespace geode {
         bool isReadyToHook() const;
         void addInternalHook(Hook* hook, Mod* mod);
 
-        void setupInternalMod();
+        Mod* createInternalMod();
+        Result<> setupInternalMod();
     };
 
     class LoaderImpl {
