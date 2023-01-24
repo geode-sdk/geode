@@ -21,6 +21,12 @@ $register_ids(UILayer) {
 }
 
 struct UILayerIDs : Modify<UILayerIDs, UILayer> {
+    static void onModify(auto& self) {
+        if (!self.setHookPriority("UILayer::init", GEODE_ID_PRIORITY)) {
+            log::warn("Failed to set UILayer::init hook priority, node IDs may not work properly");
+        }
+    }
+
     bool init() {
         if (!UILayer::init()) return false;
 

@@ -43,6 +43,12 @@ $execute {
 };
 
 struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
+	static void onModify(auto& self) {
+		if (!self.setHookPriority("MenuLayer::init", GEODE_ID_PRIORITY)) {
+            log::warn("Failed to set MenuLayer::init hook priority, node IDs may not work properly");
+        }
+    }
+
 	CCSprite* m_geodeButton;
 
     bool init() {

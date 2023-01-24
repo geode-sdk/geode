@@ -72,6 +72,15 @@ namespace geode::modifier {
             return Ok(m_hooks[name]);
         }
 
+        Result<> setHookPriority(std::string const& name, int32_t priority) {
+            auto res = this->getHook(name);
+            if (!res) {
+                return Err(res.unwrapErr());
+            }
+            res.unwrap()->setPriority(priority);
+            return Ok();
+        }
+
         // unordered_map<handles> idea
         ModifyBase() {
             // i really dont want to recompile codegen

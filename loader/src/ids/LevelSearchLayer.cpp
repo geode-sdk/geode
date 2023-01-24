@@ -66,6 +66,12 @@ $register_ids(LevelSearchLayer) {
 }
 
 struct LevelSearchLayerIDs : Modify<LevelSearchLayerIDs, LevelSearchLayer> {
+    static void onModify(auto& self) {
+        if (!self.setHookPriority("LevelSearchLayer::init", GEODE_ID_PRIORITY)) {
+            log::warn("Failed to set LevelSearchLayer::init hook priority, node IDs may not work properly");
+        }
+    }
+
     bool init() {
         if (!LevelSearchLayer::init()) return false;
 

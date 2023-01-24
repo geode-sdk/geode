@@ -197,6 +197,12 @@ $register_ids(LevelSettingsLayer) {
 }
 
 struct LevelSettingsLayerIDs : Modify<LevelSettingsLayerIDs, LevelSettingsLayer> {
+    static void onModify(auto& self) {
+        if (!self.setHookPriority("LevelSettingsLayer::init", GEODE_ID_PRIORITY)) {
+            log::warn("Failed to set LevelSettingsLayer::init hook priority, node IDs may not work properly");
+        }
+    }
+
     bool init(LevelSettingsObject* levelSettings, LevelEditorLayer* editor) {
         if (!LevelSettingsLayer::init(levelSettings, editor)) return false;
 
@@ -205,25 +211,3 @@ struct LevelSettingsLayerIDs : Modify<LevelSettingsLayerIDs, LevelSettingsLayer>
         return true;
     }
 };
-
-
- template <class... Params>
-    struct Resolve2 {
-        template <class Return>
-        static constexpr auto func(Return(*ptr)(float)) {
-            return ptr;
-        }
-
-        template <class Return, class Class>
-        static constexpr auto func(Return(Class::*ptr)(float)) {
-            return ptr;
-        }
-
-        template <class Return, class Class>
-        static constexpr auto func(Return(Class::*ptr)(float) const) {
-            return ptr;
-        }
-    };
-
-#include <Geode/modify/PlayerObject.hpp>
-constexpr auto b = Resolve2<float>::func(&PlayerObject::runBallRotation);
