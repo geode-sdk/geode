@@ -604,6 +604,11 @@ void Loader::Impl::checkForLoaderUpdates() {
                 return;
             }
 
+            // don't auto-update major versions
+            if (ver.getMajor() > this->getVersion().getMajor()) {
+                return;
+            }
+
             // find release asset
             for (auto asset : root.needs("assets").iterate()) {
                 auto obj = asset.obj();
