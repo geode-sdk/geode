@@ -4,11 +4,6 @@
 #pragma warning(disable : 4251) // dll-interface
 #pragma warning(disable : 4244) // narrowing conversion
 
-#include <Geode/meta/cdecl.hpp>
-#include <Geode/meta/function.hpp>
-#include <Geode/meta/membercall.hpp>
-#include <Geode/meta/optcall.hpp>
-#include <Geode/meta/thiscall.hpp>
 #include <Windows.h>
 #include <cstring>
 #include <type_traits>
