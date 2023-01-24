@@ -196,12 +196,7 @@ namespace geode {
      * 
      * @tparam T A type that inherits from CCObject.
      *
-     * @example[flash] 
-     * #include <Geode/utils/cocos.hpp>
-     * 
-     * USE_GEODE_NAMESPACE();
-     * 
-     * //!flash-snippet-start
+     * @example
      * class MyNode : public CCNode {
      * protected:
      *      // no need to manually call retain or
@@ -219,32 +214,15 @@ namespace geode {
      *          return true;
      *      }
      * };
-     * //!flash-snippet-end
      *
-     * @example[flash]
-     * #include <Geode/utils/cocos.hpp>
-     * #include <Geode/modify/MenuLayer.hpp>
-     * 
-     * USE_GEODE_NAMESPACE();
-     * 
-     * class ModifyMenuLayer : public MenuLayer {
-     *      bool init() {
-     *          if (!MenuLayer::init())
-     *              return false;
-     * 
-     *          //!flash-snippet-start
-     *          // Save a child from the current layer into a menu
-     *          Ref<CCMenu> menu = static_cast<CCMenu*>(this->getChildByID("main-menu"));
+     * @example
+     * // Save a child from the current layer into a menu
+     * Ref<CCMenu> menu = static_cast<CCMenu*>(this->getChildByID("main-menu"));
      *          
-     *          // Remove the menu from its parent
-     *          menu->removeFromParent();
+     * // Remove the menu from its parent
+     * menu->removeFromParent();
      *          
-     *          // Menu will still point to a valid CCMenu as long as the menu variable exist
-     *          //!flash-snippet-end
-     * 
-     *          return true;
-     *      }
-     * };
+     * // Menu will still point to a valid CCMenu as long as the menu variable exist
      */
     template <class T>
     class Ref final {
