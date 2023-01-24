@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../DefaultInclude.hpp"
-#include "../hook-core/Hook.hpp"
 #include "../utils/general.hpp"
 #include "../external/json/json_fwd.hpp"
 #include "Tulip.hpp"

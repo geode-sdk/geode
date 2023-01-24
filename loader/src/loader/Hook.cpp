@@ -4,10 +4,7 @@
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <vector>
-// #include <hook/hook.hpp>
 #include "ModImpl.hpp"
-
-#include <Geode/hook-core/Hook.hpp>
 #include "HookImpl.hpp"
 
 USE_GEODE_NAMESPACE();
