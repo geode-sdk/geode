@@ -213,6 +213,12 @@ $register_ids(EditorUI) {
 }
 
 struct EditorUIIDs : Modify<EditorUIIDs, EditorUI> {
+    static void onModify(auto& self) {
+        if (!self.setHookPriority("EditorUI::init", GEODE_ID_PRIORITY)) {
+            log::warn("Failed to set EditorUI::init hook priority, node IDs may not work properly");
+        }
+    }
+
     bool init(LevelEditorLayer* lel) {
         if (!EditorUI::init(lel)) return false;
 

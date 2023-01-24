@@ -59,6 +59,12 @@ $register_ids(PauseLayer) {
 }
 
 struct PauseLayerIDs : Modify<PauseLayerIDs, PauseLayer> {
+    static void onModify(auto& self) {
+        if (!self.setHookPriority("PauseLayer::customSetup", GEODE_ID_PRIORITY)) {
+            log::warn("Failed to set PauseLayer::customSetup hook priority, node IDs may not work properly");
+        }
+    }
+
     void customSetup() {
         PauseLayer::customSetup();
 

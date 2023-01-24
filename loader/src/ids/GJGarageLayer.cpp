@@ -59,6 +59,12 @@ $register_ids(GJGarageLayer) {
 }
 
 struct GJGarageLayerIDs : Modify<GJGarageLayerIDs, GJGarageLayer> {
+    static void onModify(auto& self) {
+        if (!self.setHookPriority("GJGarageLayer::init", GEODE_ID_PRIORITY)) {
+            log::warn("Failed to set GJGarageLayer::init hook priority, node IDs may not work properly");
+        }
+    }
+
     bool init() {
         if (!GJGarageLayer::init()) return false;
 
