@@ -191,8 +191,14 @@ int geodeEntry(void* platformData) {
 
     log::debug("Set up loader");
 
+    // open console
     if (Mod::get()->getSettingValue<bool>("show-platform-console")) {
         Loader::get()->openPlatformConsole();
+    }
+
+    // download and install new loader update in the background
+    if (Mod::get()->getSettingValue<bool>("auto-check-updates")) {
+        LoaderImpl::get()->checkForLoaderUpdates();
     }
 
     log::debug("Entry done.");

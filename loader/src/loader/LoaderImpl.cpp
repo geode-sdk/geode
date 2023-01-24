@@ -10,7 +10,9 @@
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/ranges.hpp>
+#include <Geode/utils/string.hpp>
 #include <Geode/utils/web.hpp>
+#include <Geode/utils/JsonValidation.hpp>
 #include "ModImpl.hpp"
 #include <about.hpp>
 #include <crashlog.hpp>
@@ -549,6 +551,88 @@ bool Loader::Impl::verifyLoaderResources() {
     return true;
 }
 
+void Loader::Impl::downloadLoaderUpdate(std::string const& url) {
+    auto updateZip = dirs::getTempDir() / "loader-update.zip";
+    auto targetDir = dirs::getGeodeDir() / "update";
+
+    web::AsyncWebRequest()
+        .join("loader-update-download")
+        .fetch(url)
+        .into(updateZip)
+        .then([this, updateZip, targetDir](auto) {
+            // unzip resources zip
+            auto unzip = file::Unzip::intoDir(updateZip, targetDir, true);
+            if (!unzip) {
+                return LoaderUpdateEvent(
+                    UpdateFailed("Unable to unzip update: " + unzip.unwrapErr())
+                ).post();
+            }
+            m_isNewUpdateDownloaded = true;
+            LoaderUpdateEvent(UpdateFinished()).post();
+        })
+        .expect([](std::string const& info) {
+            LoaderUpdateEvent(
+                UpdateFailed("Unable to download update: " + info)
+            ).post();
+        })
+        .progress([](auto&, double now, double total) {
+            LoaderUpdateEvent(
+                UpdateProgress(
+                    static_cast<uint8_t>(now / total * 100.0),
+                    "Downloading update"
+                )
+            ).post();
+        });
+}
+
+void Loader::Impl::checkForLoaderUpdates() {
+    // Check for updates in the background
+    web::AsyncWebRequest()
+        .join("loader-auto-update-check")
+        .fetch("https://api.github.com/repos/geode-sdk/geode/releases/latest")
+        .json()
+        .then([this](nlohmann::json const& raw) {
+            auto json = raw;
+            JsonChecker checker(json);
+            auto root = checker.root("[]").obj();
+
+            VersionInfo ver { 0, 0, 0 };
+            root.needs("tag_name").into(ver);
+
+            // make sure release is newer
+            if (ver <= this->getVersion()) {
+                return;
+            }
+
+            // find release asset
+            for (auto asset : root.needs("assets").iterate()) {
+                auto obj = asset.obj();
+                if (string::contains(
+                    obj.needs("name").template get<std::string>(),
+                    GEODE_PLATFORM_SHORT_IDENTIFIER
+                )) {
+                    this->downloadLoaderUpdate(
+                        obj.needs("browser_download_url").template get<std::string>()
+                    );
+                    return;
+                }
+            }
+
+            LoaderUpdateEvent(
+                UpdateFailed("Unable to find release asset for " GEODE_PLATFORM_NAME)
+            ).post();
+        })
+        .expect([](std::string const& info) {
+            LoaderUpdateEvent(
+                UpdateFailed("Unable to check for updates: " + info)
+            ).post();
+        });
+}
+
+bool Loader::Impl::isNewUpdateDownloaded() const {
+    return m_isNewUpdateDownloaded;
+}
+
 nlohmann::json Loader::Impl::processRawIPC(void* rawHandle, std::string const& buffer) {
     nlohmann::json reply;
     try {
@@ -588,6 +672,20 @@ ListenerResult ResourceDownloadFilter::handle(
 }
 
 ResourceDownloadFilter::ResourceDownloadFilter() {}
+
+LoaderUpdateEvent::LoaderUpdateEvent(
+    UpdateStatus const& status
+) : status(status) {}
+
+ListenerResult LoaderUpdateFilter::handle(
+    std::function<Callback> fn,
+    LoaderUpdateEvent* event
+) {
+    fn(event);
+    return ListenerResult::Propagate;
+}
+
+LoaderUpdateFilter::LoaderUpdateFilter() {}
 
 void Loader::Impl::provideNextMod(Mod* mod) {
     m_nextModLock.lock();

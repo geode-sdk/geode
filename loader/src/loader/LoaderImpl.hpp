@@ -27,12 +27,25 @@ namespace geode {
         ResourceDownloadEvent(UpdateStatus const& status);
     };
 
-    class GEODE_DLL ResourceDownloadFilter : public EventFilter<ResourceDownloadEvent> {
+    class ResourceDownloadFilter : public EventFilter<ResourceDownloadEvent> {
     public:
         using Callback = void(ResourceDownloadEvent*);
 
         ListenerResult handle(std::function<Callback> fn, ResourceDownloadEvent* event);
         ResourceDownloadFilter();
+    };
+
+    struct LoaderUpdateEvent : public Event {
+        const UpdateStatus status;
+        LoaderUpdateEvent(UpdateStatus const& status);
+    };
+
+    class LoaderUpdateFilter : public EventFilter<LoaderUpdateEvent> {
+    public:
+        using Callback = void(LoaderUpdateEvent*);
+
+        ListenerResult handle(std::function<Callback> fn, LoaderUpdateEvent* event);
+        LoaderUpdateFilter();
     };
 
     class Loader::Impl {
@@ -45,6 +58,8 @@ namespace geode {
         std::unordered_map<std::string, Mod*> m_mods;
         std::vector<ghc::filesystem::path> m_texturePaths;
         bool m_isSetup = false;
+
+        bool m_isNewUpdateDownloaded = false;
 
         std::condition_variable m_earlyLoadFinishedCV;
         std::mutex m_earlyLoadFinishedMutex;
@@ -73,6 +88,7 @@ namespace geode {
         Result<> removeHandler(void* address);
 
         void downloadLoaderResources();
+        void downloadLoaderUpdate(std::string const& url);
 
         bool loadHooks();
         void setupIPC();
@@ -130,6 +146,8 @@ namespace geode {
         void platformMessageBox(char const* title, std::string const& info);
 
         bool verifyLoaderResources();
+        void checkForLoaderUpdates();
+        bool isNewUpdateDownloaded() const;
 
         bool isReadyToHook() const;
         void addInternalHook(Hook* hook, Mod* mod);

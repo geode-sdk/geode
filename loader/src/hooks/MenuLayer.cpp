@@ -11,6 +11,7 @@
 #include <Geode/ui/Popup.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <loader/ModImpl.hpp>
+#include <loader/LoaderImpl.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -109,6 +110,21 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 				popup->m_noElasticity = true;
 				popup->show();
 			}
+		}
+
+		// show auto update message
+		static bool shownUpdateInfo = false;
+		if (LoaderImpl::get()->isNewUpdateDownloaded() && !shownUpdateInfo) {
+			shownUpdateInfo = true;
+			auto popup = FLAlertLayer::create(
+				"Update downloaded",
+				"A new <cy>update</c> for Geode has been installed! "
+				"Please <cy>restart the game</c> to apply.",
+				"OK"
+			);
+			popup->m_scene = this;
+			popup->m_noElasticity = true;
+			popup->show();
 		}
 
         // show crash info
