@@ -1,5 +1,4 @@
 #pragma once
-#include "../meta/meta.hpp"
 #include "AsStaticFunction.hpp"
 #include "Field.hpp"
 #include "IDManager.hpp"
@@ -96,7 +95,7 @@ namespace geode::modifier {
     class ModifyDerive {
     public:
         ModifyDerive() {
-            static_assert(core::meta::always_false<Derived>, "Custom Modify not implemented.");
+            static_assert(alwaysFalse<Derived>, "Custom Modify not implemented.");
         }
     };
 }

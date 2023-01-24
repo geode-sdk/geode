@@ -1,4 +1,3 @@
-#include "../core/Core.hpp"
 #include "loader/LoaderImpl.hpp"
 
 #include <Geode/loader/IPC.hpp>
@@ -7,7 +6,6 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Setting.hpp>
 #include <Geode/loader/SettingEvent.hpp>
-#include <loader/ModImpl.hpp>
 #include <Geode/loader/ModJsonTest.hpp>
 #include <Geode/utils/JsonValidation.hpp>
 #include <array>
@@ -152,17 +150,6 @@ $execute {
 }
 
 int geodeEntry(void* platformData) {
-    // setup internals
-
-    if (!geode::core::hook::initialize()) {
-        LoaderImpl::get()->platformMessageBox(
-            "Unable to load Geode!",
-            "There was an unknown fatal error setting up "
-            "internal tools and Geode can not be loaded. "
-            "(Unable to set up hook manager)"
-        );
-        return 1;
-    }
 
     // set up internal mod, settings and data
     auto internalSetupRes = LoaderImpl::get()->setupInternalMod();
