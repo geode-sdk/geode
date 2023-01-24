@@ -159,7 +159,7 @@ Index::Index() {
         std::bind(&Index::onSourceUpdate, this, std::placeholders::_1),
         SourceUpdateFilter()
     );
-    this->addSource("geode-sdk/index-test");
+    this->addSource("geode-sdk/mods");
 }
 
 Index* Index::get() {
