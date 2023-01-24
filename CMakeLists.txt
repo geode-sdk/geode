@@ -2,6 +2,13 @@ cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
 
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build libraries static" FORCE)
 
+# Docs flags
+if (GEODE_BUILDING_DOCS)
+	set(GEODE_DISABLE_CLI_CALLS On)
+	set(CMAKE_EXPORT_COMPILE_COMMANDS On)
+	set(GEODE_DISABLE_PRECOMPILED_HEADERS On)
+endif()
+
 # Read version
 file(READ VERSION GEODE_VERSION)
 string(STRIP "${GEODE_VERSION}" GEODE_VERSION)
@@ -105,9 +112,11 @@ target_include_directories(GeodeCodegenSources PRIVATE
 	${GEODE_LOADER_PATH}/include/Geode/fmod
 )
 target_compile_features(GeodeCodegenSources PUBLIC cxx_std_20)
-target_precompile_headers(GeodeCodegenSources INTERFACE
-	"${GEODE_LOADER_PATH}/include/Geode/Bindings.hpp"
-)
+if (NOT GEODE_DISABLE_PRECOMPILED_HEADERS)
+	target_precompile_headers(GeodeCodegenSources INTERFACE
+		"${GEODE_LOADER_PATH}/include/Geode/Bindings.hpp"
+	)
+endif()
 
 target_include_directories(${PROJECT_NAME} INTERFACE
 	${GEODE_CODEGEN_PATH}
@@ -123,7 +132,7 @@ CPMAddPackage("gh:fmtlib/fmt#9.1.0")
 CPMAddPackage("gh:gulrak/filesystem#3e5b930")
 
 # Tulip hook (hooking)
-if (PROJECT_IS_TOP_LEVEL)
+if (PROJECT_IS_TOP_LEVEL AND NOT GEODE_BUILDING_DOCS)
 	set(TULIP_LINK_SOURCE ON)
 endif()
 CPMAddPackage("gh:geode-sdk/TulipHook#f4ef6b2")
