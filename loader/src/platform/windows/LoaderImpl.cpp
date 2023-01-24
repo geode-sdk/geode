@@ -3,10 +3,13 @@
 #include <loader/ModImpl.hpp>
 #include <iostream>
 #include <loader/LoaderImpl.hpp>
+#include <Geode/utils/string.hpp>
 
 USE_GEODE_NAMESPACE();
 
 #ifdef GEODE_IS_WINDOWS
+
+#include <Psapi.h>
 
 static constexpr auto IPC_BUFFER_SIZE = 512;
 
@@ -98,6 +101,62 @@ void Loader::Impl::setupIPC() {
     }).detach();
 
     log::debug("IPC set up");
+}
+
+bool Loader::Impl::userTriedToLoadDLLs() const {
+    static std::unordered_set<std::string> KNOWN_MOD_DLLS {
+        "betteredit-v4.0.5.dll",
+        "betteredit-v4.0.5-min.dll",
+        "betteredit-v4.0.3.dll",
+        "betteredit.dll",
+        "gdshare-v0.3.4.dll",
+        "gdshare.dll",
+        "hackpro.dll",
+        "hackproldr.dll",
+        "quickldr.dll",
+        "minhook.x32.dll",
+        "iconsave.dll",
+        "menuanim.dll",
+        "volumecontrol.dll",
+        "customsplash.dll",
+        "scrollanyinput-v1.1.dll",
+        "alttabfix-v1.0.dll",
+        "sceneswitcher-v1.1.dll",
+        "gdantialiasing.dll",
+        "textureldr.dll",
+        "run-info.dll",
+    };
+
+    bool triedToLoadDLLs = false;
+
+    // Check for .DLLs in mods dir
+    if (auto files = file::listFiles(dirs::getModsDir(), true)) {
+        for (auto& file : files.unwrap()) {
+            if (file.extension() == ".dll") {
+                triedToLoadDLLs = true;
+            }
+        }
+    }
+
+    // Check all loaded DLLs in the process
+    std::array<HMODULE, 1024> mods;
+    DWORD needed;
+    auto process = GetCurrentProcess();
+
+    if (EnumProcessModules(process, mods.data(), mods.size(), &needed)) {
+        for (auto i = 0; i < (needed / sizeof(HMODULE)); i++) {
+            std::array<char, MAX_PATH> modName;
+            if (GetModuleFileNameExA(process, mods[i], modName.data(), modName.size())) {
+                if (KNOWN_MOD_DLLS.count(string::trim(string::toLower(
+                    ghc::filesystem::path(modName.data()).filename().string()
+                )))) {
+                    triedToLoadDLLs = true;
+                }
+            }
+        }
+    }
+
+    return triedToLoadDLLs;
 }
 
 #endif

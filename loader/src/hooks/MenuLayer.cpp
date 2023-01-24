@@ -90,6 +90,28 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             }
         }
 
+		// show if the user tried to be naughty and load arbitary DLLs
+		static bool shownTriedToLoadDlls = false;
+		if (!shownTriedToLoadDlls) {
+			shownTriedToLoadDlls = true;
+			if (Loader::get()->userTriedToLoadDLLs()) {
+				log::debug("did try to load");
+				auto popup = FLAlertLayer::create(
+					"Hold up!",
+					"It appears that you have tried to <cr>load DLLs</c> with Geode. "
+					"Please note that <cy>Geode is incompatible with ALL DLLs</c>, "
+					"as they can cause Geode mods to <cr>error</c>, or even "
+					"<cr>crash</c>.\n\n"
+					"Remove the DLLs / other mod loaders you have, or <cr>proceed at "
+					"your own risk.</c>",
+					"OK"
+				);
+				popup->m_scene = this;
+				popup->m_noElasticity = true;
+				popup->show();
+			}
+		}
+
         // show crash info
         static bool shownLastCrash = false;
         if (Loader::get()->didLastLaunchCrash() && !shownLastCrash) {

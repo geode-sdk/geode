@@ -122,3 +122,7 @@ bool Loader::didLastLaunchCrash() const {
 Mod* Loader::takeNextMod() {
     return m_impl->takeNextMod();
 }
+
+bool Loader::userTriedToLoadDLLs() const {
+    return m_impl->userTriedToLoadDLLs();
+}

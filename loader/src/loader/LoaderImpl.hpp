@@ -136,6 +136,8 @@ namespace geode {
 
         Mod* createInternalMod();
         Result<> setupInternalMod();
+
+        bool userTriedToLoadDLLs() const;
     };
 
     class LoaderImpl {

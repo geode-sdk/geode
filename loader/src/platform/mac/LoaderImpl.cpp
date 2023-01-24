@@ -64,4 +64,8 @@ void Loader::Impl::setupIPC() {
     log::debug("IPC set up");
 }
 
+std::optional<std::vector<std::string>> Loader::Impl::userTriedToLoadDLLs() const {
+    return std::nullopt;
+}
+
 #endif

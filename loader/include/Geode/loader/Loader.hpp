@@ -79,6 +79,8 @@ namespace geode {
 
         bool didLastLaunchCrash() const;
 
+        bool userTriedToLoadDLLs() const;
+
         friend class LoaderImpl;
 
         friend Mod* takeNextLoaderMod();
