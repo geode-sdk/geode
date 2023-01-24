@@ -1,8 +1,10 @@
-![Geode Logo](https://github.com/geode-sdk.png?size=80) 
+![Geode Logo](title.png)
 
-# Geode SDK
+### [Home page](https://geode-sdk.org)
 
-**Geode** is a [Geometry Dash](https://store.steampowered.com/app/322170/Geometry_Dash/) **mod loader** and **modding SDK** with a modern approach towards mod development. Unlike previous mod loaders, which merely inject the DLLs and let devs handle the rest, Geode aims to be a more comprehensive project, which manages loaded mods & hooks itself. Geode has been built to ensure performance, compatibility, portability and ease of use. For devs, Geode means **easy development and portability**; for end users, **a uniform and easy experience** using mods.
+**Geode** is a [Geometry Dash](https://store.steampowered.com/app/322170/Geometry_Dash/) **mod loader** and **modding SDK** with a modern approach towards mod development. Unlike previous mod loaders, which merely inject the DLLs and let devs handle the rest, Geode aims to be a more comprehensive project that provides all the tools needed for creating mods in one package.
+
+Geode's goal is to solve **mod incompatability** - to ensure that mods work together without buttons getting misplaced or hooks mysteriously disappearing.
 
 ## Why Geode?
 
@@ -25,17 +27,17 @@ class $modify(MenuLayer) {
 };
 ```
 
-This code hooks the "More Games" button in Geometry Dash, and makes it show a different popup when clicked.
-
-> :warning: It is important to note that Geode is **not meant to make learning to mod easier**. To make a good GD mod, you will still need to learn the ins and outs of C++, reverse engineering, byte patching, and everything else. Geode is merely a collection of tools that make modding more enjoyable for people who are already familiar with it; not a magic wand for making mods without the hours of experience and practice required.
+This code changes what happens when the "More Games" button is clicked in Geometry Dash, showing a popup.
 
 ## Documentation
 
-Detailed documentation, tutorials, and references on using the Geode SDK can be found [here](https://geode-sdk.github.io/docs/).
+Detailed documentation, tutorials, and installation instructions on using Geode can be found [here](https://docs.geode-sdk.org).
+
+New to modding GD? Geode's documentation also comes with a handy [tutorial book](https://docs.geode-sdk.org/#/handbook/chap0) that explains all the basics of GD modding!
 
 ## Contribution
 
-You can contribute to Geode by opening a [Pull Request](https://github.com/geode-sdk/geode/pulls)!
+You can contribute to Geode by opening a [Pull Request](https://github.com/geode-sdk/geode/pulls)! Please follow the contribution guidelines.
 
 ## Questions, help, etc.
 
