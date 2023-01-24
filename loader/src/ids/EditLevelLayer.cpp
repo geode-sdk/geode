@@ -55,6 +55,12 @@ $register_ids(EditLevelLayer) {
 }
 
 struct EditLevelLayerIDs : Modify<EditLevelLayerIDs, EditLevelLayer> {
+    static void onModify(auto& self) {
+        if (!self.setHookPriority("EditLevelLayer::init", GEODE_ID_PRIORITY)) {
+            log::warn("Failed to set EditLevelLayer::init hook priority, node IDs may not work properly");
+        }
+    }
+
     bool init(GJGameLevel* l) {
         if (!EditLevelLayer::init(l)) return false;
 

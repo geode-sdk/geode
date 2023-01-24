@@ -81,6 +81,12 @@ $register_ids(LevelInfoLayer) {
 }
 
 struct LevelInfoLayerIDs : Modify<LevelInfoLayerIDs, LevelInfoLayer> {
+    static void onModify(auto& self) {
+        if (!self.setHookPriority("LevelInfoLayer::init", GEODE_ID_PRIORITY)) {
+            log::warn("Failed to set LevelInfoLayer::init hook priority, node IDs may not work properly");
+        }
+    }
+
     bool init(GJGameLevel* level) {
         if (!LevelInfoLayer::init(level)) return false;
 

@@ -81,7 +81,7 @@ namespace geode::cast {
     }
 
     inline void* traverseTypeinfoFor(
-        void* ptr, ClassTypeinfoType* typeinfo, char const* afterIdent
+        void* ptr, ClassTypeinfoType const* typeinfo, char const* afterIdent
     ) {
         DummySingleClass dummySingleClass;
         DummyMultipleClass dummyMultipleClass;
@@ -93,11 +93,11 @@ namespace geode::cast {
             }
         }
         if (typeinfo->m_typeinfoVtable == typeinfoVtableOf(&dummySingleClass)) {
-            auto siTypeinfo = static_cast<SingleClassTypeinfoType*>(typeinfo);
+            auto siTypeinfo = static_cast<SingleClassTypeinfoType const*>(typeinfo);
             return traverseTypeinfoFor(ptr, siTypeinfo->m_baseClassTypeinfo, afterIdent);
         }
         else if (typeinfo->m_typeinfoVtable == typeinfoVtableOf(&dummyMultipleClass)) {
-            auto vmiTypeinfo = static_cast<MultipleClassTypeinfoType*>(typeinfo);
+            auto vmiTypeinfo = static_cast<MultipleClassTypeinfoType const*>(typeinfo);
             for (int i = 0; i < vmiTypeinfo->m_numBaseClass; ++i) {
                 auto& entry = vmiTypeinfo->m_baseClasses[i];
                 auto optionPtr = reinterpret_cast<std::byte*>(ptr) + entry.m_offset;
@@ -109,20 +109,31 @@ namespace geode::cast {
         return nullptr;
     }
 
+    inline void* typeinfoCastInternal(void* ptr, ClassTypeinfoType const* beforeTypeinfo, ClassTypeinfoType const* afterTypeinfo, size_t hint) {
+        // we're not using either because uhhh idk
+        // hint is for diamond inheritance iirc which is never 
+        // used in gd, so should be pretty safe to ignore
+        (void)beforeTypeinfo;
+        (void)hint;
+
+        auto vftable = *reinterpret_cast<VtableType**>(ptr);
+        auto dataPointer = static_cast<VtableTypeinfoType*>(static_cast<CompleteVtableType*>(vftable));
+        auto typeinfo = dataPointer->m_typeinfo;
+        auto basePtr = static_cast<std::byte*>(ptr) + dataPointer->m_offset;
+
+        auto afterIdent = afterTypeinfo->m_typeinfoName;
+
+        return traverseTypeinfoFor(basePtr, typeinfo, afterIdent);
+    }
+
     template <class After, class Before>
     inline After typeinfo_cast(Before ptr) {
         static_assert(
-            std::is_polymorphic_v<std::remove_pointer_t<Before>>, "Input is not a polymorphic type"
+            std::is_polymorphic_v<std::remove_pointer_t<Before>> && std::is_polymorphic_v<std::remove_pointer_t<After>>, 
+            "Input is not a polymorphic type"
         );
-        auto basePtr = dynamic_cast<void*>(ptr);
-        auto vftable = *reinterpret_cast<VtableType**>(basePtr);
-        auto typeinfo =
-            static_cast<VtableTypeinfoType*>(static_cast<CompleteVtableType*>(vftable))->m_typeinfo;
-
-        auto afterTypeinfo =
-            reinterpret_cast<ClassTypeinfoType const*>(&typeid(std::remove_pointer_t<After>));
-        auto afterIdent = afterTypeinfo->m_typeinfoName;
-
-        return static_cast<After>(traverseTypeinfoFor(basePtr, typeinfo, afterIdent));
+        auto beforeTypeinfo = reinterpret_cast<ClassTypeinfoType const*>(&typeid(std::remove_pointer_t<Before>));
+        auto afterTypeinfo = reinterpret_cast<ClassTypeinfoType const*>(&typeid(std::remove_pointer_t<After>));
+        return static_cast<After>(typeinfoCastInternal(ptr, beforeTypeinfo, afterTypeinfo, 0));
     }
 }

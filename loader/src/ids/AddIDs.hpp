@@ -5,6 +5,8 @@
 
 USE_GEODE_NAMESPACE();
 
+static constexpr int32_t GEODE_ID_PRIORITY = 0x100000;
+
 template<class T = CCNode>
     requires std::is_base_of_v<CCNode, T>
 T* setIDSafe(CCNode* node, int index, const char* id) {
