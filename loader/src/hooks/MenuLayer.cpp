@@ -95,7 +95,6 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 		if (!shownTriedToLoadDlls) {
 			shownTriedToLoadDlls = true;
 			if (Loader::get()->userTriedToLoadDLLs()) {
-				log::debug("did try to load");
 				auto popup = FLAlertLayer::create(
 					"Hold up!",
 					"It appears that you have tried to <cr>load DLLs</c> with Geode. "
