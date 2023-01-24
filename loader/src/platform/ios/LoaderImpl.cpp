@@ -32,7 +32,7 @@ void Loader::Impl::setupIPC() {
     log::warning("IPC is not supported on this platform");
 }
 
-std::optional<std::vector<std::string>> Loader::Impl::userTriedToLoadDLLs() const {
+bool Loader::Impl::userTriedToLoadDLLs() const {
     return std::nullopt;
 }
 
