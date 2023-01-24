@@ -65,7 +65,7 @@ void Loader::Impl::setupIPC() {
 }
 
 bool Loader::Impl::userTriedToLoadDLLs() const {
-    return std::nullopt;
+    return false;
 }
 
 #endif
