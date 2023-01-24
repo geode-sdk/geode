@@ -140,7 +140,6 @@ Result<std::string> web::fetch(std::string const& url) {
 class SentAsyncWebRequest::Impl {
 private:
     enum class Status {
-
         Paused,
         Running,
         Finished,
@@ -150,7 +149,7 @@ private:
     std::string m_id;
     std::string m_url;
     std::vector<AsyncThen> m_thens;
-    std::vector<AsyncExpect> m_expects;
+    std::vector<AsyncExpectCode> m_expects;
     std::vector<AsyncProgress> m_progresses;
     std::vector<AsyncCancelled> m_cancelleds;
     Status m_status = Status::Paused;
@@ -173,7 +172,7 @@ private:
 
     void pause();
     void resume();
-    void error(std::string const& error);
+    void error(std::string const& error, int code);
     void doCancel();
 
 public:
@@ -212,7 +211,7 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
 
         auto curl = curl_easy_init();
         if (!curl) {
-            return this->error("Curl not initialized");
+            return this->error("Curl not initialized", -1);
         }
 
         // resulting byte array
@@ -290,8 +289,10 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
         curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &data);
         auto res = curl_easy_perform(curl);
         if (res != CURLE_OK) {
+            long code = 0;
+            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &code);
             curl_easy_cleanup(curl);
-            return this->error("Fetch failed: " + std::string(curl_easy_strerror(res)));
+            return this->error("Fetch failed: " + std::string(curl_easy_strerror(res)), code);
         }
         curl_easy_cleanup(curl);
 
@@ -335,7 +336,7 @@ void SentAsyncWebRequest::Impl::doCancel() {
         }
     });
 
-    this->error("Request cancelled");
+    this->error("Request cancelled", -1);
 }
 
 void SentAsyncWebRequest::Impl::cancel() {
@@ -360,16 +361,16 @@ bool SentAsyncWebRequest::Impl::finished() const {
     return m_finished;
 }
 
-void SentAsyncWebRequest::Impl::error(std::string const& error) {
+void SentAsyncWebRequest::Impl::error(std::string const& error, int code) {
     auto lock = std::unique_lock(m_statusMutex);
     m_statusCV.wait(lock, [this]() { 
         return !m_paused; 
     });
-    Loader::get()->queueInGDThread([this, error]() {
+    Loader::get()->queueInGDThread([this, error, code]() {
         {
             std::lock_guard _(m_mutex);
             for (auto& expect : m_expects) {
-                expect(error);
+                expect(error, code);
             }
         }
         std::lock_guard _(RUNNING_REQUESTS_MUTEX);
@@ -405,8 +406,8 @@ bool SentAsyncWebRequest::finished() const {
     return m_impl->finished();
 }
 
-void SentAsyncWebRequest::error(std::string const& error) {
-    return m_impl->error(error);
+void SentAsyncWebRequest::error(std::string const& error, int code) {
+    return m_impl->error(error, code);
 }
 
 AsyncWebRequest& AsyncWebRequest::join(std::string const& requestID) {
@@ -424,7 +425,14 @@ AsyncWebResponse AsyncWebRequest::fetch(std::string const& url) {
     return AsyncWebResponse(*this);
 }
 
-AsyncWebRequest& AsyncWebRequest::expect(std::function<void(std::string const&)> handler) {
+AsyncWebRequest& AsyncWebRequest::expect(AsyncExpect handler) {
+    m_expect = [handler](std::string const& info, auto) {
+        return handler(info);
+    };
+    return *this;
+}
+
+AsyncWebRequest& AsyncWebRequest::expect(AsyncExpectCode handler) {
     m_expect = handler;
     return *this;
 }

@@ -56,6 +56,7 @@ namespace geode::utils::web {
 
     using AsyncProgress = std::function<void(SentAsyncWebRequest&, double, double)>;
     using AsyncExpect = std::function<void(std::string const&)>;
+    using AsyncExpectCode = std::function<void(std::string const&, int)>;
     using AsyncThen = std::function<void(SentAsyncWebRequest&, ByteVector const&)>;
     using AsyncCancelled = std::function<void(SentAsyncWebRequest&)>;
 
@@ -74,7 +75,7 @@ namespace geode::utils::web {
 
         void pause();
         void resume();
-        void error(std::string const& error);
+        void error(std::string const& error, int code);
         void doCancel();
 
     public:
@@ -112,7 +113,7 @@ namespace geode::utils::web {
         std::optional<std::string> m_joinID;
         std::string m_url;
         AsyncThen m_then = nullptr;
-        AsyncExpect m_expect = nullptr;
+        AsyncExpectCode m_expect = nullptr;
         AsyncProgress m_progress = nullptr;
         AsyncCancelled m_cancelled = nullptr;
         bool m_sent = false;
@@ -157,25 +158,32 @@ namespace geode::utils::web {
          */
         AsyncWebResponse fetch(std::string const& url);
         /**
-         * Specify a callback to run if the download fails. Runs in the GD
-         * thread, so interacting with UI is safe
+         * Specify a callback to run if the download fails. The callback is
+         * always ran in the GD thread, so interacting with UI is safe
          * @param handler Callback to run if the download fails
          * @returns Same AsyncWebRequest
          */
         AsyncWebRequest& expect(AsyncExpect handler);
         /**
-         * Specify a callback to run when the download progresses. Runs in the
-         * GD thread, so interacting with UI is safe
+         * Specify a callback to run if the download fails. The callback is
+         * always ran in the GD thread, so interacting with UI is safe
+         * @param handler Callback to run if the download fails
+         * @returns Same AsyncWebRequest
+         */
+        AsyncWebRequest& expect(AsyncExpectCode handler);
+        /**
+         * Specify a callback to run when the download progresses. The callback is
+         * always ran in the GD thread, so interacting with UI is safe
          * @param handler Callback to run when the download progresses
          * @returns Same AsyncWebRequest
          */
         AsyncWebRequest& progress(AsyncProgress handler);
         /**
-         * Specify a callback to run if the download is cancelled. Runs in the
-         * GD thread, so interacting with UI is safe. Web requests may be
-         * cancelled after they are finished (for example, if downloading files
-         * in bulk and one fails). In that case, handle freeing up the results
-         * of `then` in this handler
+         * Specify a callback to run if the download is cancelled. The callback is
+         * always ran in the GD thread, so interacting with UI is safe. Web 
+         * requests may be cancelled after they are finished (for example, if 
+         * downloading files in bulk and one fails). In that case, handle 
+         * freeing up the results of `then` in this handler
          * @param handler Callback to run if the download is cancelled
          * @returns Same AsyncWebRequest
          */
@@ -294,7 +302,7 @@ namespace geode::utils::web {
                 handle(conv.unwrap());
             }
             else {
-                req.error("Unable to convert value: " + conv.unwrapErr());
+                req.error("Unable to convert value: " + conv.unwrapErr(), -1);
             }
         };
         return m_request;
@@ -309,7 +317,7 @@ namespace geode::utils::web {
                 handle(req, conv.value());
             }
             else {
-                req.error("Unable to convert value: " + conv.error());
+                req.error("Unable to convert value: " + conv.error(), -1);
             }
         };
         return m_request;

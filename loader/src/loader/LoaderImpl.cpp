@@ -466,16 +466,35 @@ bool Loader::Impl::platformConsoleOpen() const {
     return m_platformConsoleOpen;
 }
 
-void Loader::Impl::downloadLoaderResources() {
-    auto version = this->getVersion().toString();
+void Loader::Impl::fetchLatestGithubRelease(
+    std::function<void(nlohmann::json const&)> then,
+    std::function<void(std::string const&)> expect
+) {
+    if (m_latestGithubRelease) {
+        return then(m_latestGithubRelease.value());
+    }
+    web::AsyncWebRequest()
+        .join("loader-auto-update-check")
+        .fetch("https://api.github.com/repos/geode-sdk/geode/releases/latest")
+        .json()
+        .then([this, then](nlohmann::json const& json) {
+            m_latestGithubRelease = json;
+            then(json);
+        })
+        .expect(expect);
+}
+
+void Loader::Impl::tryDownloadLoaderResources(
+    std::string const& url,
+    bool tryLatestOnError
+) {
     auto tempResourcesZip = dirs::getTempDir() / "new.zip";
     auto resourcesDir = dirs::getGeodeResourcesDir() / Mod::get()->getID();
 
     web::AsyncWebRequest()
-        .join("update-geode-loader-resources")
-        .fetch(fmt::format(
-            "https://github.com/geode-sdk/geode/releases/download/{}/resources.zip", version
-        ))
+        // use the url as a join handle
+        .join(url)
+        .fetch(url)
         .into(tempResourcesZip)
         .then([tempResourcesZip, resourcesDir](auto) {
             // unzip resources zip
@@ -487,10 +506,17 @@ void Loader::Impl::downloadLoaderResources() {
             }
             ResourceDownloadEvent(UpdateFinished()).post();
         })
-        .expect([](std::string const& info) {
-            ResourceDownloadEvent(
-                UpdateFailed("Unable to download resources: " + info)
-            ).post();
+        .expect([this, tryLatestOnError](std::string const& info, int code) {
+            // if the url was not found, try downloading latest release instead
+            // (for development versions)
+            if (code == 404 && tryLatestOnError) {
+                this->downloadLoaderResources(true);
+            }
+            else {
+                ResourceDownloadEvent(
+                    UpdateFailed("Unable to download resources: " + info)
+                ).post();
+            }
         })
         .progress([](auto&, double now, double total) {
             ResourceDownloadEvent(
@@ -500,6 +526,45 @@ void Loader::Impl::downloadLoaderResources() {
                 )
             ).post();
         });
+}
+
+void Loader::Impl::downloadLoaderResources(bool useLatestRelease) {
+    if (!useLatestRelease) {
+        this->tryDownloadLoaderResources(fmt::format(
+            "https://github.com/geode-sdk/geode/releases/download/{}/resources.zip",
+            this->getVersion().toString()
+        ));
+    }
+    else {
+        fetchLatestGithubRelease(
+            [this](nlohmann::json const& raw) {
+                auto json = raw;
+                JsonChecker checker(json);
+                auto root = checker.root("[]").obj();
+
+                // find release asset
+                for (auto asset : root.needs("assets").iterate()) {
+                    auto obj = asset.obj();
+                    if (obj.needs("name").template get<std::string>() == "resources.zip") {
+                        this->tryDownloadLoaderResources(
+                            obj.needs("browser_download_url").template get<std::string>(),
+                            false
+                        );
+                        return;
+                    }
+                }
+
+                ResourceDownloadEvent(
+                    UpdateFailed("Unable to find resources in latest GitHub release")
+                ).post();
+            },
+            [this](std::string const& info) {
+                ResourceDownloadEvent(
+                    UpdateFailed("Unable to download resources: " + info)
+                ).post();
+            }
+        );
+    }
 }
 
 bool Loader::Impl::verifyLoaderResources() {
@@ -587,11 +652,8 @@ void Loader::Impl::downloadLoaderUpdate(std::string const& url) {
 
 void Loader::Impl::checkForLoaderUpdates() {
     // Check for updates in the background
-    web::AsyncWebRequest()
-        .join("loader-auto-update-check")
-        .fetch("https://api.github.com/repos/geode-sdk/geode/releases/latest")
-        .json()
-        .then([this](nlohmann::json const& raw) {
+    fetchLatestGithubRelease(
+        [this](nlohmann::json const& raw) {
             auto json = raw;
             JsonChecker checker(json);
             auto root = checker.root("[]").obj();
@@ -626,12 +688,13 @@ void Loader::Impl::checkForLoaderUpdates() {
             LoaderUpdateEvent(
                 UpdateFailed("Unable to find release asset for " GEODE_PLATFORM_NAME)
             ).post();
-        })
-        .expect([](std::string const& info) {
+        },
+        [](std::string const& info) {
             LoaderUpdateEvent(
                 UpdateFailed("Unable to check for updates: " + info)
             ).post();
-        });
+        }
+    );
 }
 
 bool Loader::Impl::isNewUpdateDownloaded() const {

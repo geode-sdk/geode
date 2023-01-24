@@ -59,6 +59,9 @@ namespace geode {
         std::vector<ghc::filesystem::path> m_texturePaths;
         bool m_isSetup = false;
 
+        // cache for the json of the latest github release to avoid hitting 
+        // the github api too much
+        std::optional<nlohmann::json> m_latestGithubRelease;
         bool m_isNewUpdateDownloaded = false;
 
         std::condition_variable m_earlyLoadFinishedCV;
@@ -87,8 +90,13 @@ namespace geode {
         Result<tulip::hook::HandlerHandle> getHandler(void* address);
         Result<> removeHandler(void* address);
 
-        void downloadLoaderResources();
+        void tryDownloadLoaderResources(std::string const& url, bool tryLatestOnError = true);
+        void downloadLoaderResources(bool useLatestRelease = false);
         void downloadLoaderUpdate(std::string const& url);
+        void fetchLatestGithubRelease(
+            std::function<void(nlohmann::json const&)> then,
+            std::function<void(std::string const&)> expect
+        );
 
         bool loadHooks();
         void setupIPC();
