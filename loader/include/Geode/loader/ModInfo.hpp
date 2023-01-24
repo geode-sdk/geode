@@ -89,7 +89,7 @@ namespace geode {
         /**
          * Support info for the mod; this means anything to show ways to
          * support the mod's development, like donations. Written in Markdown
-         * (see <Geode/ui/MDTextArea.hpp>) for more info
+         * (see MDTextArea for more info)
          */
         std::optional<std::string> supportInfo;
         /**
