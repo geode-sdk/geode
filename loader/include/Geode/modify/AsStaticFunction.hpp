@@ -22,6 +22,7 @@ namespace geode::modifier {
         struct Impl<Return (Class::*)(Params...)> {                                               \
             static Return GEODE_CDECL_CALL function(Class* self, Params... params) {              \
                 auto self2 = addresser::rthunkAdjust(Function, self);                             \
+                log::info("adjusted, normal {}, {}", self2, self);\
                 return self2->Class2::FunctionName_(params...);                                   \
             }                                                                                     \
         };                                                                                        \
