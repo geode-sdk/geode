@@ -5,7 +5,7 @@
 
 namespace geode {
     /**
-     * FLAlertLayer with support for Markdown. See <Geode/ui/MDTextArea.hpp>
+     * FLAlertLayer with support for Markdown. See MDTextArea
      * for details on what features of MD are supported.
      */
     class MDPopup :

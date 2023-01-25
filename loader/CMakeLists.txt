@@ -23,6 +23,7 @@ file(GLOB SOURCES CONFIGURE_DEPENDS
 	src/loader/*.cpp
 	src/main.cpp
 	src/utils/*.cpp
+	src/ui/*.cpp
 	src/ui/nodes/*.cpp
 	src/ui/internal/*.cpp
 	src/ui/internal/credits/*.cpp
