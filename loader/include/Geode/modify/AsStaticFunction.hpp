@@ -8,7 +8,7 @@ namespace geode::modifier {
  * A helper struct that generates a static function that calls the given function.
  */
 #define GEODE_AS_STATIC_FUNCTION(FunctionName_)                                                   \
-    template <class Class2>                                                                       \
+    template <class Class2, auto Function>                                                        \
     struct AsStaticFunction_##FunctionName_ {                                                     \
         template <class FunctionType2>                                                            \
         struct Impl {};                                                                           \
