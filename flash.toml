@@ -9,6 +9,9 @@ repository = "https://github.com/geode-sdk/geode"
 tree = "https://github.com/geode-sdk/geode/tree/main"
 icon = "loader/resources/logos/geode-circle.png"
 
+[tutorials]
+dir = "docs"
+
 [[sources]]
 name = "Geode"
 dir = "loader/include"
