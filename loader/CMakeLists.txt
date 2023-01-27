@@ -128,15 +128,20 @@ endif()
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC GEODE_EXPORTING)
 
-# Markdown support
-CPMAddPackage("gh:mity/md4c#e9ff661")
+# These are only needed for building source :-)
+if (NOT GEODE_BUILDING_DOCS)
+	# Markdown support
+	CPMAddPackage("gh:mity/md4c#e9ff661")
 
-# Regex support
-CPMAddPackage("gh:google/re2#954656f")
+	# Regex support
+	CPMAddPackage("gh:google/re2#954656f")
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${md4c_SOURCE_DIR}/src)
+	target_include_directories(${PROJECT_NAME} PRIVATE ${md4c_SOURCE_DIR}/src)
 
-target_link_libraries(${PROJECT_NAME} md4c z TulipHook geode-sdk re2)
+	target_link_libraries(${PROJECT_NAME} md4c re2)
+endif()
+
+target_link_libraries(${PROJECT_NAME} z TulipHook geode-sdk)
 
 
 # Use precompiled headers for faster builds
