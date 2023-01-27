@@ -467,7 +467,7 @@ bool Loader::Impl::platformConsoleOpen() const {
 }
 
 void Loader::Impl::fetchLatestGithubRelease(
-    std::function<void(nlohmann::json const&)> then,
+    std::function<void(json::Value const&)> then,
     std::function<void(std::string const&)> expect
 ) {
     if (m_latestGithubRelease) {
@@ -477,7 +477,7 @@ void Loader::Impl::fetchLatestGithubRelease(
         .join("loader-auto-update-check")
         .fetch("https://api.github.com/repos/geode-sdk/geode/releases/latest")
         .json()
-        .then([this, then](nlohmann::json const& json) {
+        .then([this, then](json::Value const& json) {
             m_latestGithubRelease = json;
             then(json);
         })
@@ -537,7 +537,7 @@ void Loader::Impl::downloadLoaderResources(bool useLatestRelease) {
     }
     else {
         fetchLatestGithubRelease(
-            [this](nlohmann::json const& raw) {
+            [this](json::Value const& raw) {
                 auto json = raw;
                 JsonChecker checker(json);
                 auto root = checker.root("[]").obj();
@@ -653,7 +653,7 @@ void Loader::Impl::downloadLoaderUpdate(std::string const& url) {
 void Loader::Impl::checkForLoaderUpdates() {
     // Check for updates in the background
     fetchLatestGithubRelease(
-        [this](nlohmann::json const& raw) {
+        [this](json::Value const& raw) {
             auto json = raw;
             JsonChecker checker(json);
             auto root = checker.root("[]").obj();
@@ -700,30 +700,33 @@ void Loader::Impl::checkForLoaderUpdates() {
 bool Loader::Impl::isNewUpdateDownloaded() const {
     return m_isNewUpdateDownloaded;
 }
+    
+json::Value Loader::Impl::processRawIPC(void* rawHandle, std::string const& buffer) {
+    json::Value reply;
 
-nlohmann::json Loader::Impl::processRawIPC(void* rawHandle, std::string const& buffer) {
-    nlohmann::json reply;
+    json::Value json;
     try {
-        // parse received message
-        auto json = nlohmann::json::parse(buffer);
-        if (!json.contains("mod") || !json["mod"].is_string()) {
-            log::warn("Received IPC message without 'mod' field");
-            return reply;
-        }
-        if (!json.contains("message") || !json["message"].is_string()) {
-            log::warn("Received IPC message without 'message' field");
-            return reply;
-        }
-        nlohmann::json data;
-        if (json.contains("data")) {
-            data = json["data"];
-        }
-        // log::debug("Posting IPC event");
-        // ! warning: if the event system is ever made asynchronous this will break!
-        IPCEvent(rawHandle, json["mod"], json["message"], data, reply).post();
-    } catch(...) {
+        json = json::parse(buffer);
+    } catch (...) {
         log::warn("Received IPC message that isn't valid JSON");
+        return reply;
     }
+
+    if (!json.contains("mod") || !json["mod"].is_string()) {
+        log::warn("Received IPC message without 'mod' field");
+        return reply;
+    }
+    if (!json.contains("message") || !json["message"].is_string()) {
+        log::warn("Received IPC message without 'message' field");
+        return reply;
+    }
+    json::Value data;
+    if (json.contains("data")) {
+        data = json["data"];
+    }
+    // log::debug("Posting IPC event");
+    // ! warning: if the event system is ever made asynchronous this will break!
+    IPCEvent(rawHandle, json["mod"].as_string(), json["message"].as_string(), data, reply).post();
     return reply;
 }
 

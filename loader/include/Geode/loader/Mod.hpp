@@ -2,7 +2,7 @@
 
 #include "../DefaultInclude.hpp"
 #include "../cocos/support/zip_support/ZipUtils.h"
-#include "../external/json/json_fwd.hpp"
+#include <json.hpp>
 #include "../utils/Result.hpp"
 #include "../utils/VersionInfo.hpp"
 #include "../utils/general.hpp"
@@ -108,7 +108,7 @@ namespace geode {
             std::unique_ptr<SettingValue> value
         );
 
-        nlohmann::json& getSaveContainer();
+        json::Value& getSaveContainer();
 
         template <class T>
         T getSettingValue(std::string const& key) const;

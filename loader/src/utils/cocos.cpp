@@ -1,112 +1,108 @@
 #include <Geode/modify/LoadingLayer.hpp>
 #include <Geode/utils/cocos.hpp>
-#include <Geode/external/json/json.hpp>
+#include <json.hpp>
 
 USE_GEODE_NAMESPACE();
 
-void cocos2d::to_json(nlohmann::json& json, ccColor3B const& color) {
-    json = nlohmann::json{
-        {"r", color.r},
-        {"g", color.g},
-        {"b", color.b},
+json::Value json::Serialize<ccColor3B>::to_json(ccColor3B const& color) {
+    return json::Object {
+        { "r", color.r },
+        { "g", color.g },
+        { "b", color.b }
     };
 }
 
-void cocos2d::from_json(nlohmann::json const& json, ccColor3B& color) {
+ccColor3B json::Serialize<ccColor3B>::from_json(json::Value const& json) {
+    ccColor3B color;
     // array
     if (json.is_array()) {
-        if (json.size() == 3) {
-            json.at(0).get_to(color.r);
-            json.at(1).get_to(color.g);
-            json.at(2).get_to(color.b);
+        if (json.as_array().size() == 3) {
+            color.r = json[0].as_int();
+            color.g = json[1].as_int();
+            color.b = json[2].as_int();
         }
         else {
-            throw nlohmann::json::type_error::create(0, "Expected color array to have 3 items", json);
+            throw json::JsonException("Expected color array to have 3 items");
         }
     }
     // object
     else if (json.is_object()) {
-        json.at("r").get_to(color.r);
-        json.at("g").get_to(color.g);
-        json.at("b").get_to(color.b);
+        color.r = json["r"].as_int();
+        color.g = json["g"].as_int();
+        color.b = json["b"].as_int();
     }
     // hex string
     else if (json.is_string()) {
-        std::string str = json;
+        std::string str = json.as_string();
         if (str[0] == '#') {
             str.erase(str.begin());
         }
         if (str.size() > 6) {
-            throw nlohmann::json::type_error::create(0, "Hex string for color too long", json);
+            throw json::JsonException("Hex string for color too long");
         }
         auto c = cc3bFromHexString(str);
         if (!c) {
-            throw nlohmann::json::type_error::create(
-                0, "Invalid color hex string: " + c.unwrapErr(), json
-            );
+            throw json::JsonException("Invalid color hex string");
         }
         color = c.unwrap();
     }
     // bad
     else {
-        throw nlohmann::json::type_error::create(
-            0, "Expected color to be array, object or hex string", json
-        );
+        throw json::JsonException("Expected color to be array, object or hex string");
     }
+    return color;
 }
 
-void cocos2d::to_json(nlohmann::json& json, ccColor4B const& color) {
-    json = nlohmann::json{
-        {"r", color.r},
-        {"g", color.g},
-        {"b", color.b},
-        {"a", color.a},
+json::Value json::Serialize<ccColor4B>::to_json(ccColor4B const& color) {
+    return json::Object {
+        { "r", color.r },
+        { "g", color.g },
+        { "b", color.b },
+        { "a", color.a }
     };
 }
 
-void cocos2d::from_json(nlohmann::json const& json, ccColor4B& color) {
+ccColor4B json::Serialize<ccColor4B>::from_json(json::Value const& json) {
+    ccColor4B color;
     // array
     if (json.is_array()) {
-        if (json.size() == 4) {
-            json.at(0).get_to(color.r);
-            json.at(1).get_to(color.g);
-            json.at(2).get_to(color.b);
-            json.at(3).get_to(color.a);
+        if (json.as_array().size() == 4) {
+            color.r = json[0].as_int();
+            color.g = json[1].as_int();
+            color.b = json[2].as_int();
+            color.a = json[3].as_int();
         }
         else {
-            throw nlohmann::json::type_error::create(0, "Expected color array to have 4 items", json);
+            throw json::JsonException("Expected color array to have 4 items");
         }
     }
     // object
     else if (json.is_object()) {
-        json.at("r").get_to(color.r);
-        json.at("g").get_to(color.g);
-        json.at("b").get_to(color.b);
-        json.at("a").get_to(color.a);
+        color.r = json["r"].as_int();
+        color.g = json["g"].as_int();
+        color.b = json["b"].as_int();
+        color.a = json["a"].as_int();
     }
     // hex string
     else if (json.is_string()) {
-        std::string str = json;
+        std::string str = json.as_string();
         if (str[0] == '#') {
             str.erase(str.begin());
         }
         if (str.size() > 8) {
-            throw nlohmann::json::type_error::create(0, "Hex string for color too long", json);
+            throw json::JsonException("Hex string for color too long");
         }
         auto c = cc4bFromHexString(str);
         if (!c) {
-            throw nlohmann::json::type_error::create(
-                0, "Invalid color hex string: " + c.unwrapErr(), json
-            );
+            throw json::JsonException("Invalid color hex string: " + c.unwrapErr());
         }
         color = c.unwrap();
     }
     // bad
     else {
-        throw nlohmann::json::type_error::create(
-            0, "Expected color to be array, object or hex string", json
-        );
+        throw json::JsonException("Expected color to be array, object or hex string");
     }
+    return color;
 }
 
 Result<ccColor3B> geode::cocos::cc3bFromHexString(std::string const& hexValue) {

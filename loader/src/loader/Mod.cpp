@@ -35,7 +35,7 @@ VersionInfo Mod::getVersion() const {
     return m_impl->getVersion();
 }
 
-nlohmann::json& Mod::getSaveContainer() {
+json::Value& Mod::getSaveContainer() {
     return m_impl->getSaveContainer();
 }
 

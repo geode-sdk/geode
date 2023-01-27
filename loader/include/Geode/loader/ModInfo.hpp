@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Types.hpp"
-#include "../external/json/json_fwd.hpp"
+#include <json.hpp>
 #include "../utils/VersionInfo.hpp"
 #include "../utils/Result.hpp"
 #include "Setting.hpp"
@@ -171,7 +171,11 @@ namespace geode {
 
         std::vector<std::pair<std::string, std::optional<std::string>*>> getSpecialFiles();
     };
-
-    // For converting ModInfo back to JSON
-    void GEODE_DLL to_json(nlohmann::json& json, ModInfo const& info);
 }
+
+template <>
+struct json::Serialize<geode::ModInfo> {
+    static json::Value to_json(geode::ModInfo const& info) {
+        return info.toJSON();
+    }
+};

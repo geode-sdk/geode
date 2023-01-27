@@ -127,7 +127,7 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 )
 target_link_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/loader/include/link)
 
-
+CPMAddPackage("gh:geode-sdk/json#85be630")
 CPMAddPackage("gh:fmtlib/fmt#9.1.0")
 CPMAddPackage("gh:gulrak/filesystem#3e5b930")
 
@@ -137,7 +137,7 @@ if (PROJECT_IS_TOP_LEVEL AND NOT GEODE_BUILDING_DOCS)
 endif()
 CPMAddPackage("gh:geode-sdk/TulipHook#f4ef6b2")
 
-target_link_libraries(${PROJECT_NAME} INTERFACE ghc_filesystem fmt TulipHookInclude GeodeCodegenSources)
+target_link_libraries(${PROJECT_NAME} INTERFACE ghc_filesystem fmt TulipHookInclude GeodeCodegenSources mat-json)
 
 
 if (NOT EXISTS ${GEODE_BIN_PATH})

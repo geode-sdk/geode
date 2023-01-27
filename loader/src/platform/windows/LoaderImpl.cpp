@@ -52,7 +52,7 @@ void ipcPipeThread(HANDLE pipe) {
     if (ReadFile(pipe, buffer, sizeof(buffer) - 1, &read, nullptr)) {
         buffer[read] = '\0';
 
-        std::string reply = LoaderImpl::get()->processRawIPC((void*)pipe, buffer);
+        std::string reply = LoaderImpl::get()->processRawIPC((void*)pipe, buffer).dump();
 
         DWORD written;
         WriteFile(pipe, reply.c_str(), reply.size(), &written, nullptr);

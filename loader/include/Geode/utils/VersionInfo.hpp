@@ -2,7 +2,7 @@
 
 #include "../DefaultInclude.hpp"
 #include <string_view>
-#include "../external/json/json_fwd.hpp"
+#include <json.hpp>
 #include <tuple>
 #include "../utils/Result.hpp"
 
@@ -100,8 +100,6 @@ namespace geode {
 
         std::string toString(bool includeTag = true) const;
     };
-    void GEODE_DLL to_json(nlohmann::json& json, VersionInfo const& info);
-    void GEODE_DLL from_json(nlohmann::json const& json, VersionInfo& info);
     GEODE_DLL std::ostream& operator<<(std::ostream& stream, VersionInfo const& version);
 
     class GEODE_DLL ComparableVersionInfo final {
@@ -129,7 +127,23 @@ namespace geode {
 
         std::string toString() const;
     };
-    void GEODE_DLL to_json(nlohmann::json& json, ComparableVersionInfo const& info);
-    void GEODE_DLL from_json(nlohmann::json const& json, ComparableVersionInfo& info);
     GEODE_DLL std::ostream& operator<<(std::ostream& stream, ComparableVersionInfo const& version);
 }
+
+template <class V>
+requires std::is_same_v<V, geode::VersionInfo> || std::is_same_v<V, geode::ComparableVersionInfo>
+struct json::Serialize<V> {
+    static json::Value to_json(V const& info) {
+        return info.toString();
+    }
+
+    static V from_json(json::Value const& json) {
+        auto ver = V::parse(json.as_string());
+        if (!ver) {
+            throw json::JsonException(
+                "Invalid version format: " + ver.unwrapErr()
+            );
+        }
+        return ver.unwrap();
+    }
+};

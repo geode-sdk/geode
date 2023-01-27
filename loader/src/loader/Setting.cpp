@@ -72,7 +72,14 @@ Result<FileSetting> FileSetting::parse(JsonMaybeObject<ModJson>& obj) {
             if (auto iobj = item.obj()) {
                 Filter filter;
                 iobj.has("description").into(filter.description);
-                iobj.has("files").into(filter.files);
+
+                std::vector<json::Value> files;
+                iobj.has("files").into(files);
+
+                for (auto& i : files) {
+                    filter.files.insert(i.as<std::string>());
+                }
+
                 sett.controls.filters.push_back(filter);
             }
         }

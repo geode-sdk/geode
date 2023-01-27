@@ -141,7 +141,7 @@ if (NOT GEODE_BUILDING_DOCS)
 	target_link_libraries(${PROJECT_NAME} md4c re2)
 endif()
 
-target_link_libraries(${PROJECT_NAME} z TulipHook geode-sdk)
+target_link_libraries(${PROJECT_NAME} z TulipHook geode-sdk mat-json)
 
 
 # Use precompiled headers for faster builds

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../external/json/json.hpp"
+#include <json.hpp>
 #include "../loader/Log.hpp"
 
 #include <set>
@@ -22,56 +22,52 @@ namespace geode {
     constexpr bool is_iterable_v = is_iterable<T>::value;
 
     namespace {
-        using value_t = nlohmann::detail::value_t;
+        using value_t = json::Type;
 
         constexpr char const* jsonValueTypeToString(value_t type) {
             switch (type) {
                 default:
-                case value_t::null: return "null";
-                case value_t::object: return "object";
-                case value_t::array: return "array";
-                case value_t::string: return "string";
-                case value_t::boolean: return "boolean";
-                case value_t::binary: return "binary";
-                case value_t::discarded: return "discarded";
-                case value_t::number_integer: return "integer";
-                case value_t::number_unsigned: return "integer";
-                case value_t::number_float: return "number";
+                case value_t::Null: return "null";
+                case value_t::Object: return "object";
+                case value_t::Array: return "array";
+                case value_t::String: return "string";
+                case value_t::Bool: return "boolean";
+                case value_t::Number: return "number";
             }
         }
 
         template <class T>
         constexpr value_t getJsonType() {
             if constexpr (std::is_same_v<T, bool>) {
-                return value_t::boolean;
+                return value_t::Bool;
             }
             else if constexpr (std::is_floating_point_v<T>) {
-                return value_t::number_float;
+                return value_t::Number;
             }
             else if constexpr (std::is_unsigned_v<T>) {
-                return value_t::number_unsigned;
+                return value_t::Number;
             }
             else if constexpr (std::is_integral_v<T>) {
-                return value_t::number_integer;
+                return value_t::Number;
             }
             else if constexpr (std::is_constructible_v<T, std::string>) {
-                return value_t::string;
+                return value_t::String;
             }
             else if constexpr (is_iterable_v<T>) {
-                return value_t::array;
+                return value_t::Array;
             }
-            return value_t::null;
+            return value_t::Null;
         }
 
         bool jsonConvertibleTo(value_t value, value_t to) {
             // if we don't know the type we're passing into,
             // everything's valid
-            if (to == value_t::null) return true;
-            if (value == value_t::number_float || value == value_t::number_integer ||
-                value == value_t::number_unsigned) {
-                return to == value_t::number_float || to == value_t::number_integer ||
-                    to == value_t::number_unsigned;
+            if (to == value_t::Null) return true;
+
+            if (value == value_t::Number) {
+                return to == value_t::Number;
             }
+
             return value == to;
         }
     }
@@ -120,12 +116,12 @@ namespace geode {
 
         GEODE_DLL JsonMaybeSomething<Json>& self();
 
-        template <nlohmann::detail::value_t T>
+        template <json::Type T>
         JsonMaybeValue<Json>& as() {
             if (this->isError()) return *this;
             if (!jsonConvertibleTo(self().m_json.type(), T)) {
                 this->setError(
-                    self().m_hierarchy + ": Invalid type \"" + self().m_json.type_name() +
+                    self().m_hierarchy + ": Invalid type \"" + jsonValueTypeToString(self().m_json.type()) +
                     "\", expected \"" + jsonValueTypeToString(T) + "\""
                 );
             }
@@ -135,13 +131,13 @@ namespace geode {
 
         GEODE_DLL JsonMaybeValue<Json>& array();
 
-        template <nlohmann::detail::value_t... T>
+        template <json::Type... T>
         JsonMaybeValue<Json>& asOneOf() {
             if (this->isError()) return *this;
             bool isOneOf = (... || jsonConvertibleTo(self().m_json.type(), T));
             if (!isOneOf) {
                 this->setError(
-                    self().m_hierarchy + ": Invalid type \"" + self().m_json.type_name() +
+                    self().m_hierarchy + ": Invalid type \"" + jsonValueTypeToString(self().m_json.type()) +
                     "\", expected one of \"" + (jsonValueTypeToString(T), ...) + "\""
                 );
             }
@@ -149,7 +145,7 @@ namespace geode {
             return *this;
         }
 
-        template <nlohmann::detail::value_t T>
+        template <json::Type T>
         JsonMaybeValue<Json>& is() {
             if (this->isError()) return *this;
             self().m_hasValue = jsonConvertibleTo(self().m_json.type(), T);
@@ -161,14 +157,14 @@ namespace geode {
         JsonMaybeValue<Json>& validate(JsonValueValidator<T> validator) {
             if (this->isError()) return *this;
             try {
-                if (!validator(self().m_json.template get<T>())) {
+                if (!validator(self().m_json.template as<T>())) {
                     this->setError(self().m_hierarchy + ": Invalid value format");
                 }
             }
             catch (...) {
                 this->setError(
                     self().m_hierarchy + ": Invalid type \"" +
-                    std::string(self().m_json.type_name()) + "\""
+                    std::string(jsonValueTypeToString(self().m_json.type())) + "\""
                 );
             }
             return *this;
@@ -206,15 +202,17 @@ namespace geode {
         JsonMaybeValue<Json>& intoAs(T& target) {
             this->inferType<A>();
             if (this->isError()) return *this;
+
             try {
-                target = self().m_json.template get<A>();
+                target = self().m_json.template as<A>();
             }
             catch (...) {
                 this->setError(
                     self().m_hierarchy + ": Invalid type \"" +
-                    std::string(self().m_json.type_name()) + "\""
+                    jsonValueTypeToString(self().m_json.type()) + "\""
                 );
             }
+
             return *this;
         }
 
@@ -223,12 +221,21 @@ namespace geode {
             this->inferType<T>();
             if (this->isError()) return T();
             try {
-                return self().m_json.template get<T>();
+
+                constexpr auto type = getJsonType<T>();
+
+                if constexpr (type == value_t::Number) {
+                    return self().m_json.as_double();
+                } else if constexpr (type == value_t::Bool) {
+                    return self().m_json.as_bool();
+                } else if constexpr (type == value_t::String) {
+                    return self().m_json.as_string();
+                }
             }
             catch (...) {
                 this->setError(
                     self().m_hierarchy + ": Invalid type to get \"" +
-                    std::string(self().m_json.type_name()) + "\""
+                    std::string(jsonValueTypeToString(self().m_json.type())) + "\""
                 );
             }
             return T();
@@ -290,7 +297,7 @@ namespace geode {
         GEODE_DLL void checkUnknownKeys();
     };
 
-    template <class Json = nlohmann::json>
+    template <class Json = json::Value>
     struct JsonChecker {
         std::variant<std::monostate, std::string> m_result;
         Json& m_json;
