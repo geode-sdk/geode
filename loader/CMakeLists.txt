@@ -159,6 +159,12 @@ endif()
 
 # Create launcher
 if (APPLE) 
+	set_target_properties(geode-loader PROPERTIES 
+		SYSTEM_NAME MacOS
+		OSX_DEPLOYMENT_TARGET 10.9
+		APPLE_SILICON_PROCESSOR x86_64
+	)
+
 	add_subdirectory(launcher/mac)
 
 	if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm" OR GEODE_TARGET_PLATFORM STREQUAL "iOS")
