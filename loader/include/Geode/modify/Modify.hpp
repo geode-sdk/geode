@@ -10,13 +10,15 @@
 
 #define GEODE_APPLY_MODIFY_FOR_FUNCTION(AddressIndex_, Convention_, ClassName_, FunctionName_, ...) \
     do {                                                                                            \
-        constexpr auto b = Resolve<__VA_ARGS__>::func(&Base::FunctionName_);                        \
-        constexpr auto d = Resolve<__VA_ARGS__>::func(&Derived::FunctionName_);                     \
-        if constexpr (Unique::different<b, d>()) {                                                  \
+        if constexpr (Unique::different<                                                            \
+                          Resolve<__VA_ARGS__>::func(&Base::FunctionName_),                         \
+                          Resolve<__VA_ARGS__>::func(&Derived::FunctionName_)>()) {                 \
             auto hook = Hook::create(                                                               \
                 Mod::get(),                                                                         \
                 reinterpret_cast<void*>(address<AddressIndex_>()),                                  \
-                AsStaticFunction_##FunctionName_<Derived, d>::value,                                \
+                AsStaticFunction_##FunctionName_<                                                   \
+                    Derived,                                                                        \
+                    decltype(Resolve<__VA_ARGS__>::func(&Derived::FunctionName_))>::value,          \
                 #ClassName_ "::" #FunctionName_,                                                    \
                 tulip::hook::TulipConvention::Convention_                                           \
             );                                                                                      \
@@ -24,34 +26,34 @@
         }                                                                                           \
     } while (0);
 
-#define GEODE_APPLY_MODIFY_FOR_CONSTRUCTOR(AddressIndex_, Convention_, ClassName_, ...) \
-    do {                                                                                \
-        if constexpr (HasConstructor<Derived>) {                                        \
-            constexpr auto d = Resolve<__VA_ARGS__>::func(&Derived::constructor);       \
-            auto hook = Hook::create(                                                   \
-                Mod::get(),                                                             \
-                reinterpret_cast<void*>(address<AddressIndex_>()),                      \
-                AsStaticFunction_##constructor<Derived, d>::value,                      \
-                #ClassName_ "::" #ClassName_,                                           \
-                tulip::hook::TulipConvention::Convention_                               \
-            );                                                                          \
-            this->m_hooks[#ClassName_ "::" #ClassName_] = hook;                         \
-        }                                                                               \
+#define GEODE_APPLY_MODIFY_FOR_CONSTRUCTOR(AddressIndex_, Convention_, ClassName_, ...)  \
+    do {                                                                                 \
+        if constexpr (HasConstructor<Derived>) {                                         \
+            auto hook = Hook::create(                                                    \
+                Mod::get(),                                                              \
+                reinterpret_cast<void*>(address<AddressIndex_>()),                       \
+                AsStaticFunction_##constructor<                                          \
+                    Derived,                                                             \
+                    decltype(Resolve<__VA_ARGS__>::func(&Derived::constructor))>::value, \
+                #ClassName_ "::" #ClassName_,                                            \
+                tulip::hook::TulipConvention::Convention_                                \
+            );                                                                           \
+            this->m_hooks[#ClassName_ "::" #ClassName_] = hook;                          \
+        }                                                                                \
     } while (0);
 
-#define GEODE_APPLY_MODIFY_FOR_DESTRUCTOR(AddressIndex_, Convention_, ClassName_) \
-    do {                                                                          \
-        if constexpr (HasDestructor<Derived>) {                                   \
-            constexpr auto d = Resolve<>::func(&Derived::destructor);             \
-            auto hook = Hook::create(                                             \
-                Mod::get(),                                                       \
-                reinterpret_cast<void*>(address<AddressIndex_>()),                \
-                AsStaticFunction_##destructor<Derived, d>::value,                 \
-                #ClassName_ "::" #ClassName_,                                     \
-                tulip::hook::TulipConvention::Convention_                         \
-            );                                                                    \
-            this->m_hooks[#ClassName_ "::" #ClassName_] = hook;                   \
-        }                                                                         \
+#define GEODE_APPLY_MODIFY_FOR_DESTRUCTOR(AddressIndex_, Convention_, ClassName_)                               \
+    do {                                                                                                        \
+        if constexpr (HasDestructor<Derived>) {                                                                 \
+            auto hook = Hook::create(                                                                           \
+                Mod::get(),                                                                                     \
+                reinterpret_cast<void*>(address<AddressIndex_>()),                                              \
+                AsStaticFunction_##destructor<Derived, decltype(Resolve<>::func(&Derived::destructor))>::value, \
+                #ClassName_ "::" #ClassName_,                                                                   \
+                tulip::hook::TulipConvention::Convention_                                                       \
+            );                                                                                                  \
+            this->m_hooks[#ClassName_ "::" #ClassName_] = hook;                                                 \
+        }                                                                                                       \
     } while (0);
 
 namespace geode::modifier {

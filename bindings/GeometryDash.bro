@@ -1016,6 +1016,8 @@ class DrawGridLayer : cocos2d::CCLayer {
         m_player2NodePoints->removeAllObjects();
     }
 
+    void loadTimeMarkers(gd::string guidelines) = mac 0x94010;
+
     std::array<cocos2d::CCPoint, 400>* m_commonLines;
     std::array<cocos2d::CCPoint, 200>* m_yellowGuidelines;
     std::array<cocos2d::CCPoint, 200>* m_greenGuidelines;
