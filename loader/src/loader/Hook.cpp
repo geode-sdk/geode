@@ -42,7 +42,7 @@ Mod* Hook::getOwner() const {
     return m_impl->getOwner();
 }
 
-nlohmann::json Hook::getRuntimeInfo() const {
+json::Value Hook::getRuntimeInfo() const {
     return m_impl->getRuntimeInfo();
 }
 

@@ -24,7 +24,7 @@ void Loader::Impl::openPlatformConsole() {
 void Loader::Impl::closePlatformConsole() {}
 
 void Loader::Impl::postIPCReply(
-    void* rawPipeHandle, std::string const& replyID, nlohmann::json const& data
+    void* rawPipeHandle, std::string const& replyID, json::Value const& data
 ) {}
 
 void Loader::Impl::setupIPC() {

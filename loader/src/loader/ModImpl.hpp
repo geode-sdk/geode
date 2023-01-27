@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Geode/external/json/json.hpp>
+#include <json.hpp>
 
 namespace geode {
     class Mod::Impl {
@@ -48,7 +48,7 @@ namespace geode {
         /**
          * Saved values
          */
-        nlohmann::json m_saved;
+        json::Value m_saved;
         /**
          * Setting values
          */
@@ -56,7 +56,7 @@ namespace geode {
         /**
          * Settings save data. Stored for efficient loading of custom settings
          */
-        nlohmann::json m_savedSettingsData;
+        json::Value m_savedSettingsData;
 
         Impl(Mod* self, ModInfo const& info);
         ~Impl();
@@ -85,7 +85,7 @@ namespace geode {
         ghc::filesystem::path getTempDir() const;
         ghc::filesystem::path getBinaryPath() const;
 
-        nlohmann::json& getSaveContainer();
+        json::Value& getSaveContainer();
 
         Result<> saveData();
         Result<> loadData();

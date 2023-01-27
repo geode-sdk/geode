@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../DefaultInclude.hpp"
-#include "../external/json/json_fwd.hpp"
+#include <json.hpp>
 #include "Result.hpp"
 #include "general.hpp"
 
@@ -46,7 +46,7 @@ namespace geode::utils::web {
      * @param url URL to fetch
      * @returns Returned data as JSON, or error on error
      */
-    Result<nlohmann::json> fetchJSON(std::string const& url);
+    Result<json::Value> fetchJSON(std::string const& url);
 
     class SentAsyncWebRequest;
     template <class T>
@@ -276,7 +276,7 @@ namespace geode::utils::web {
          * @returns AsyncWebResult, where you can specify the `then` action for
          * after the download is finished
          */
-        AsyncWebResult<nlohmann::json> json();
+        AsyncWebResult<json::Value> json();
 
         /**
          * Download into memory as a custom type. The data will first be

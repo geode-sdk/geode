@@ -31,10 +31,10 @@ bool Hook::Impl::isEnabled() const {
 Mod* Hook::Impl::getOwner() const {
     return m_owner;
 }
-nlohmann::json Hook::Impl::getRuntimeInfo() const {
-    auto json = nlohmann::json::object();
-    json["address"] = reinterpret_cast<uintptr_t>(m_address);
-    json["detour"] = reinterpret_cast<uintptr_t>(m_detour);
+json::Value Hook::Impl::getRuntimeInfo() const {
+    auto json = json::Object();
+    json["address"] = std::to_string(reinterpret_cast<uintptr_t>(m_address));
+    json["detour"] = std::to_string(reinterpret_cast<uintptr_t>(m_detour));
     json["name"] = m_displayName;
     json["enabled"] = m_enabled;
     return json;

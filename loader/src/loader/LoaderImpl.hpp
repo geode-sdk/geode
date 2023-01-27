@@ -1,6 +1,6 @@
 #include "FileWatcher.hpp"
 
-#include <Geode/external/json/json.hpp>
+#include <json.hpp>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/Index.hpp>
 #include <Geode/loader/Loader.hpp>
@@ -61,7 +61,7 @@ namespace geode {
 
         // cache for the json of the latest github release to avoid hitting 
         // the github api too much
-        std::optional<nlohmann::json> m_latestGithubRelease;
+        std::optional<json::Value> m_latestGithubRelease;
         bool m_isNewUpdateDownloaded = false;
 
         std::condition_variable m_earlyLoadFinishedCV;
@@ -94,7 +94,7 @@ namespace geode {
         void downloadLoaderResources(bool useLatestRelease = false);
         void downloadLoaderUpdate(std::string const& url);
         void fetchLatestGithubRelease(
-            std::function<void(nlohmann::json const&)> then,
+            std::function<void(json::Value const&)> then,
             std::function<void(std::string const&)> expect
         );
 
@@ -142,7 +142,7 @@ namespace geode {
 
         bool didLastLaunchCrash() const;
 
-        nlohmann::json processRawIPC(void* rawHandle, std::string const& buffer);
+        json::Value processRawIPC(void* rawHandle, std::string const& buffer);
 
         void queueInGDThread(ScheduledFunction func);
         void executeGDThreadQueue();

@@ -6,19 +6,11 @@
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/string.hpp>
-#include <Geode/external/json/json.hpp>
+#include <json.hpp>
 #include <fstream>
 
 USE_GEODE_NAMESPACE();
 using namespace geode::utils::file;
-
-void ghc::filesystem::to_json(nlohmann::json& json, path const& path) {
-    json = path.string();
-}
-
-void ghc::filesystem::from_json(nlohmann::json const& json, path& path) {
-    path = json.get<std::string>();
-}
 
 Result<std::string> utils::file::readString(ghc::filesystem::path const& path) {
 #if _WIN32
@@ -38,20 +30,19 @@ Result<std::string> utils::file::readString(ghc::filesystem::path const& path) {
     return Err("Unable to open file");
 }
 
-Result<nlohmann::json> utils::file::readJson(ghc::filesystem::path const& path) {
-#if _WIN32
-    std::ifstream in(path.wstring(), std::ios::in | std::ios::binary);
-#else
-    std::ifstream in(path.string(), std::ios::in | std::ios::binary);
-#endif
-    if (in) {
+Result<json::Value> utils::file::readJson(ghc::filesystem::path const& path) {
+
+    auto str = utils::file::readString(path);
+
+    if (str) {
         try {
-            return Ok(nlohmann::json::parse(in));
+            return Ok(json::parse(str.value()));
         } catch(std::exception const& e) {
             return Err("Unable to parse JSON: " + std::string(e.what()));
         }
+    } else {
+        return Err("Unable to open file");
     }
-    return Err("Unable to open file");
 }
 
 Result<ByteVector> utils::file::readBinary(ghc::filesystem::path const& path) {

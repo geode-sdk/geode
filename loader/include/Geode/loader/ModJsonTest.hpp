@@ -1,5 +1,5 @@
 #include "Mod.hpp"
-#include "../external/json/json.hpp"
+#include <json.hpp>
 
 namespace geode {
     template <class T>
@@ -23,10 +23,10 @@ namespace geode {
     template <class T>
     T Mod::getSavedValue(std::string const& key) {
         auto& saved = this->getSaveContainer();
-        if (saved.count(key)) {
+        if (saved.contains(key)) {
             try {
                 // json -> T may fail
-                return saved.at(key);
+                return saved.get<T>(key);
             }
             catch (...) {
             }
@@ -37,10 +37,10 @@ namespace geode {
     template <class T>
     T Mod::getSavedValue(std::string const& key, T const& defaultValue) {
         auto& saved = this->getSaveContainer();
-        if (saved.count(key)) {
+        if (saved.contains(key)) {
             try {
                 // json -> T may fail
-                return saved.at(key);
+                return saved.get<T>(key);
             }
             catch (...) {
             }

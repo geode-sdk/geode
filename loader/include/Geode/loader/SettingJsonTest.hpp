@@ -1,11 +1,11 @@
 #include "Setting.hpp"
-#include "../external/json/json.hpp"
+#include <json.hpp>
 
 namespace geode {
     template<class T>
-    bool GeodeSettingValue<T>::load(nlohmann::json const& json) {
+    bool GeodeSettingValue<T>::load(json::Value const& json) {
         try {
-            m_value = json.get<ValueType>();
+            m_value = json.as<ValueType>();
             return true;
         }
         catch (...) {
@@ -14,7 +14,7 @@ namespace geode {
     }
 
     template<class T>
-    bool GeodeSettingValue<T>::save(nlohmann::json& json) const {
+    bool GeodeSettingValue<T>::save(json::Value& json) const {
         json = m_value;
         return true;
     }

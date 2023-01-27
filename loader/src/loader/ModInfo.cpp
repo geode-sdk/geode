@@ -2,8 +2,9 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/string.hpp>
-#include <Geode/external/json/json.hpp>
+#include <json.hpp>
 #include <Geode/utils/JsonValidation.hpp>
+#include <Geode/utils/VersionInfo.hpp>
 
 #include <about.hpp>
 
@@ -46,8 +47,6 @@ Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& rawJson) {
 
     root.addKnownKey("geode");
     root.addKnownKey("binary");
-
-    using nlohmann::detail::value_t;
 
     root.needs("id").validate(&ModInfo::validateID).into(info.id);
     root.needs("version").into(info.version);
@@ -116,7 +115,7 @@ Result<ModInfo> ModInfo::create(ModJson const& json) {
     auto schema = LOADER_VERSION;
     if (json.contains("geode") && json["geode"].is_string()) {
         GEODE_UNWRAP_INTO(
-            schema, VersionInfo::parse(json["geode"])
+            schema, VersionInfo::parse(json["geode"].as_string())
                 .expect("[mod.json] has invalid target loader version: {error}")
         );
     }
@@ -162,16 +161,18 @@ Result<ModInfo> ModInfo::create(ModJson const& json) {
 
 Result<ModInfo> ModInfo::createFromFile(ghc::filesystem::path const& path) {
     GEODE_UNWRAP_INTO(auto read, utils::file::readString(path));
+    
     try {
-        GEODE_UNWRAP_INTO(auto info, ModInfo::create(ModJson::parse(read)));
+        GEODE_UNWRAP_INTO(auto info, ModInfo::create(json::parse(read)));
+
         info.path = path;
         if (path.has_parent_path()) {
             GEODE_UNWRAP(info.addSpecialFiles(path.parent_path()));
         }
         return Ok(info);
     }
-    catch (std::exception& e) {
-        return Err("Unable to parse mod.json: " + std::string(e.what()));
+    catch (std::exception& err) {
+        return Err(std::string("Unable to parse mod.json: ") + err.what());
     }
 }
 
@@ -190,12 +191,14 @@ Result<ModInfo> ModInfo::createFromGeodeZip(file::Unzip& unzip) {
     GEODE_UNWRAP_INTO(
         auto jsonData, unzip.extract("mod.json").expect("Unable to read mod.json: {error}")
     );
+
+    std::string err;
     ModJson json;
     try {
-        json = ModJson::parse(std::string(jsonData.begin(), jsonData.end()));
+        json = json::parse(std::string(jsonData.begin(), jsonData.end()));
     }
-    catch (std::exception const& e) {
-        return Err(e.what());
+    catch (std::exception& err) {
+        return Err(err.what());
     }
 
     auto res = ModInfo::create(json);
@@ -245,7 +248,7 @@ std::vector<std::pair<std::string, std::optional<std::string>*>> ModInfo::getSpe
 
 ModJson ModInfo::toJSON() const {
     auto json = *m_rawJSON;
-    json["path"] = this->path;
+    json["path"] = this->path.string();
     json["binary"] = this->binaryName;
     return json;
 }
@@ -256,8 +259,4 @@ ModJson ModInfo::getRawJSON() const {
 
 bool ModInfo::operator==(ModInfo const& other) const {
     return this->id == other.id;
-}
-
-void geode::to_json(nlohmann::json& json, ModInfo const& info) {
-    json = info.toJSON();
 }

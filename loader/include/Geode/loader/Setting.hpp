@@ -4,7 +4,7 @@
 #include "../DefaultInclude.hpp"
 #include "../utils/Result.hpp"
 #include "../utils/file.hpp"
-#include "../external/json/json_fwd.hpp"
+#include <json.hpp>
 #include <optional>
 #include <unordered_set>
 
@@ -168,8 +168,8 @@ namespace geode {
     
     public:
         virtual ~SettingValue() = default;
-        virtual bool load(nlohmann::json const& json) = 0;
-        virtual bool save(nlohmann::json& json) const = 0;
+        virtual bool load(json::Value const& json) = 0;
+        virtual bool save(json::Value& json) const = 0;
         virtual SettingNode* createNode(float width) = 0;
 
         std::string getKey() const;
@@ -194,8 +194,8 @@ namespace geode {
             m_definition(definition),
             m_value(definition.defaultValue) {}
 
-        bool load(nlohmann::json const& json) override;
-        bool save(nlohmann::json& json) const;
+        bool load(json::Value const& json) override;
+        bool save(json::Value& json) const;
 
         GEODE_DLL SettingNode* createNode(float width) override;
         T castDefinition() const {

@@ -41,7 +41,7 @@ public:
     std::string_view getDisplayName() const;
     bool isEnabled() const;
     Mod* getOwner() const;
-    nlohmann::json getRuntimeInfo() const;
+    json::Value getRuntimeInfo() const;
     tulip::hook::HookMetadata getHookMetadata() const;
     void setHookMetadata(tulip::hook::HookMetadata const& metadata);
     int32_t getPriority() const;
