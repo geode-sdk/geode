@@ -48,7 +48,7 @@ namespace geode {
         /**
          * Saved values
          */
-        json::Value m_saved;
+        json::Value m_saved = json::Object();
         /**
          * Setting values
          */
@@ -56,7 +56,7 @@ namespace geode {
         /**
          * Settings save data. Stored for efficient loading of custom settings
          */
-        json::Value m_savedSettingsData;
+        json::Value m_savedSettingsData = json::Object();
 
         Impl(Mod* self, ModInfo const& info);
         ~Impl();
