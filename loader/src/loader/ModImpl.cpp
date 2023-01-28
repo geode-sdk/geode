@@ -298,7 +298,12 @@ Result<> Mod::Impl::loadBinary() {
 
     LoaderImpl::get()->provideNextMod(m_self);
 
-    GEODE_UNWRAP(this->loadPlatformBinary());
+    auto res = this->loadPlatformBinary();
+    if (!res) {
+        // make sure to free up the next mod mutex
+        LoaderImpl::get()->releaseNextMod();
+        return res;
+    }
     m_binaryLoaded = true;
 
     LoaderImpl::get()->releaseNextMod();
