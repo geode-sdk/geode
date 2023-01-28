@@ -11,6 +11,7 @@ icon = "loader/resources/logos/geode-circle.png"
 
 [tutorials]
 dir = "docs"
+assets = ["docs/assets/*.png"]
 
 [[sources]]
 name = "Geode"
