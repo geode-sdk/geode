@@ -135,7 +135,7 @@ CPMAddPackage("gh:gulrak/filesystem#3e5b930")
 if (PROJECT_IS_TOP_LEVEL AND NOT GEODE_BUILDING_DOCS)
 	set(TULIP_LINK_SOURCE ON)
 endif()
-CPMAddPackage("gh:geode-sdk/TulipHook#f4ef6b2")
+CPMAddPackage("gh:geode-sdk/TulipHook#76984a4")
 
 target_link_libraries(${PROJECT_NAME} INTERFACE ghc_filesystem fmt TulipHookInclude GeodeCodegenSources mat-json)
 
