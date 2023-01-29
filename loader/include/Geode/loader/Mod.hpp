@@ -2,7 +2,6 @@
 
 #include "../DefaultInclude.hpp"
 #include "../cocos/support/zip_support/ZipUtils.h"
-#include <json.hpp>
 #include "../utils/Result.hpp"
 #include "../utils/VersionInfo.hpp"
 #include "../utils/general.hpp"
@@ -11,12 +10,13 @@
 #include "Setting.hpp"
 #include "Types.hpp"
 
+#include <json.hpp>
 #include <optional>
 #include <string_view>
+#include <tulip/TulipHook.hpp>
 #include <type_traits>
 #include <unordered_map>
 #include <vector>
-#include <tulip/TulipHook.hpp>
 
 namespace geode {
     template <class T>
@@ -68,7 +68,6 @@ namespace geode {
         Mod() = delete;
         Mod(ModInfo const& info);
         ~Mod();
-        
 
         std::string getID() const;
         std::string getName() const;
@@ -103,24 +102,56 @@ namespace geode {
         bool hasSetting(std::string const& key) const;
         std::optional<Setting> getSettingDefinition(std::string const& key) const;
         SettingValue* getSetting(std::string const& key) const;
-        void registerCustomSetting(
-            std::string const& key,
-            std::unique_ptr<SettingValue> value
-        );
+        void registerCustomSetting(std::string const& key, std::unique_ptr<SettingValue> value);
 
         json::Value& getSaveContainer();
 
         template <class T>
-        T getSettingValue(std::string const& key) const;
+        T getSettingValue(std::string const& key) const {
+            if (auto sett = this->getSetting(key)) {
+                return SettingValueSetter<T>::get(sett);
+            }
+            return T();
+        }
 
         template <class T>
-        T setSettingValue(std::string const& key, T const& value);
+        T setSettingValue(std::string const& key, T const& value) {
+            if (auto sett = this->getSetting(key)) {
+                auto old = this->getSettingValue<T>(sett);
+                SettingValueSetter<T>::set(sett, value);
+                return old;
+            }
+            return T();
+        }
 
         template <class T>
-        T getSavedValue(std::string const& key);
+        T getSavedValue(std::string const& key) {
+            auto& saved = this->getSaveContainer();
+            if (saved.contains(key)) {
+                try {
+                    // json -> T may fail
+                    return saved.get<T>(key);
+                }
+                catch (...) {
+                }
+            }
+            return T();
+        }
 
         template <class T>
-        T getSavedValue(std::string const& key, T const& defaultValue);
+        T getSavedValue(std::string const& key, T const& defaultValue) {
+            auto& saved = this->getSaveContainer();
+            if (saved.contains(key)) {
+                try {
+                    // json -> T may fail
+                    return saved.get<T>(key);
+                }
+                catch (...) {
+                }
+            }
+            saved[key] = defaultValue;
+            return defaultValue;
+        }
 
         /**
          * Set the value of an automatically saved variable. When the game is
@@ -129,8 +160,13 @@ namespace geode {
          * @param value Value
          * @returns The old value
          */
-        template<class T>
-        T setSavedValue(std::string const& key, T const& value);
+        template <class T>
+        T setSavedValue(std::string const& key, T const& value) {
+            auto& saved = this->getSaveContainer();
+            auto old = this->getSavedValue<T>(key);
+            saved[key] = value;
+            return old;
+        }
 
         /**
          * Get the Mod of the current mod being developed
@@ -157,17 +193,16 @@ namespace geode {
          * @param address The absolute address of
          * the function to hook, i.e. gd_base + 0xXXXX
          * @param detour Pointer to your detour function
-         * @param displayName Name of the hook that will be 
+         * @param displayName Name of the hook that will be
          * displayed in the hook list
-         * @param hookMetadata Metadata of the hook       
+         * @param hookMetadata Metadata of the hook
          * @returns Successful result containing the
          * Hook pointer, errorful result with info on
          * error
          */
         template <class Convention, class DetourType>
         Result<Hook*> addHook(
-            void* address, DetourType detour, 
-            std::string const& displayName = "", 
+            void* address, DetourType detour, std::string const& displayName = "",
             tulip::hook::HookMetadata const& hookMetadata = tulip::hook::HookMetadata()
         ) {
             auto hook = Hook::create<Convention>(this, address, detour, displayName, hookMetadata);
