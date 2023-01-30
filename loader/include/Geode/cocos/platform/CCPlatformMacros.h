@@ -112,6 +112,7 @@ class GeodeNodeMetadata;
 
 #include <stdint.h>
 #include <string>
+#include <type_traits>
 #include <variant>
 
 namespace tulip::hook {
@@ -136,7 +137,8 @@ namespace geode {
 
     namespace addresser {
         template <class Class>
-        Class* friendCreate();
+        Class* friendCreate(typename std::enable_if_t<
+                            std::is_same_v<decltype(&Class::create), Class* (*)()>>*);
     }
 }
 
@@ -149,7 +151,9 @@ namespace geode {
     friend geode::Result<tulip::hook::HandlerMetadata, std::string> \
     geode::modifier::handlerMetadataForAddress(uintptr_t address);  \
     template <class Class>                                          \
-    friend Class* geode::addresser::friendCreate();
+    friend Class*                                                   \
+    geode::addresser::friendCreate(typename std::enable_if_t<       \
+                                   std::is_same_v<decltype(&Class::create), Class* (*)()>>*);
 
 #define GEODE_ADD(...) __VA_ARGS__
 
@@ -168,9 +172,9 @@ namespace geode {
  @param varType : the type of variable.
  @param varName : variable name.
  @param funName : "get + funName" is the name of the getter.
- @warning : The getter is a public virtual function, you should rewrite it first.
- The variables and methods declared after CC_PROPERTY_READONLY are all public.
- If you need protected or private, please declare.
+ @warning : The getter is a public virtual function, you should rewrite
+ it first. The variables and methods declared after CC_PROPERTY_READONLY
+ are all public. If you need protected or private, please declare.
  */
 #define CC_PROPERTY_READONLY(varType, varName, funName) \
                                                         \
@@ -189,14 +193,16 @@ public:                                                             \
     virtual const varType& get##funName(void);
 
 /** CC_PROPERTY is used to declare a protected variable.
- We can use getter to read the variable, and use the setter to change the variable.
+ We can use getter to read the variable, and use the setter to change
+ the variable.
  @param varType : the type of variable.
  @param varName : variable name.
  @param funName : "get + funName" is the name of the getter.
  "set + funName" is the name of the setter.
- @warning : The getter and setter are public virtual functions, you should rewrite them first.
- The variables and methods declared after CC_PROPERTY are all public.
- If you need protected or private, please declare.
+ @warning : The getter and setter are public virtual functions, you
+ should rewrite them first. The variables and methods declared after
+ CC_PROPERTY are all public. If you need protected or private, please
+ declare.
  */
 #define CC_PROPERTY(varType, varName, funName) \
                                                \
@@ -226,8 +232,8 @@ public:                                                    \
  @param varName : variable name.
  @param funName : "get + funName" is the name of the getter.
  @warning : The getter is a public inline function.
- The variables and methods declared after CC_SYNTHESIZE_READONLY are all public.
- If you need protected or private, please declare.
+ The variables and methods declared after CC_SYNTHESIZE_READONLY are all
+ public. If you need protected or private, please declare.
  */
 #define CC_SYNTHESIZE_READONLY(varType, varName, funName) \
                                                           \
@@ -419,11 +425,11 @@ public:                                                          \
 #if defined(__GNUC__) && (__GNUC__ >= 4)
     #define CC_FORMAT_PRINTF(formatPos, argPos) \
         __attribute__((__format__(printf, formatPos, argPos)))
-/** CC_FORMAT_PRINTF
- * Visual Studio 2019 has __has_attribute,
- * but __has_attribute(format) is undefined,
- * leaving CC_FORMAT_PRINTF undefined by default.
- */
+    /** CC_FORMAT_PRINTF
+     * Visual Studio 2019 has __has_attribute,
+     * but __has_attribute(format) is undefined,
+     * leaving CC_FORMAT_PRINTF undefined by default.
+     */
 #elif defined(__has_attribute)
     #if __has_attribute(format)
         #define CC_FORMAT_PRINTF(formatPos, argPos) \

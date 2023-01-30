@@ -28,12 +28,14 @@ namespace geode::addresser {
     inline F rthunkAdjust(T func, F self);
 
     template <class Class>
-    Class* friendCreate() {
+    Class* friendCreate(typename std::enable_if_t<std::is_same_v<decltype(&Class::create), Class* (*)()>>*) {
         return Class::create();
     }
 
     template <class Class>
-    concept HasCreate = requires() { friendCreate<Class>(); };
+    concept HasCreate = requires() {
+                            { friendCreate<Class>(nullptr) } -> std::same_as<Class*>;
+                        };
 
     class GEODE_DLL Addresser final {
         template <char C>
@@ -74,7 +76,7 @@ namespace geode::addresser {
         // I gave up
         template <HasCreate Class>
         static Class* generateInstance() {
-            return friendCreate<Class>();
+            return friendCreate<Class>(nullptr);
         }
 
         template <class Class>
