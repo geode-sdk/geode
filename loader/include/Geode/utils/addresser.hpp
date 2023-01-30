@@ -27,6 +27,9 @@ namespace geode::addresser {
     template <typename T, typename F>
     inline F rthunkAdjust(T func, F self);
 
+    template <class Class>
+    concept HasCreate = requires() { Class::create(); };
+
     class GEODE_DLL Addresser final {
         template <char C>
         struct SingleInheritance {
@@ -63,6 +66,41 @@ namespace geode::addresser {
             return thunk;
         }
 
+        // I gave up
+        template <class Class>
+            requires(HasCreate<Class>)
+        static Class* generateInstance() {
+            return Class::create();
+        }
+
+        template <class Class>
+            requires(!HasCreate<Class>)
+        static Class* generateInstance() {
+            // Create a random memory block with the size of Class
+            // Assign a pointer to that block and cast it to type Class*
+            uint8_t dum[sizeof(Class)]{};
+            auto ptr = reinterpret_cast<Class*>(dum);
+            // Now you have a object of Class that actually isn't an object of Class and is just a
+            // random memory But C++ doesn't know that of course So now you can copy an object
+            // that wasn't there in the first place
+            // ((oh also get the offsets of the virtual tables))
+            auto ins = new Class(*ptr);
+            // this is how the first human was made
+            return ins;
+        }
+
+        template <class Class>
+            requires(HasCreate<Class>)
+        static void releaseInstance(Class* ins) {}
+
+        template <class Class>
+            requires(!HasCreate<Class>)
+        static void releaseInstance(Class* ins) {
+            // And we delete the new instance because we are good girls
+            // and we don't leak memories
+            operator delete(ins);
+        }
+
         /**
          * Specialized functionss
          */
@@ -72,26 +110,9 @@ namespace geode::addresser {
         ) {
             using geode::cast::reference_cast;
 
-            // exceptions, can't be bothered to have a proper fix because there is None
-            T* ins;
-            if constexpr (std::is_same_v<T, cocos2d::CCSet>) {
-                ins = cocos2d::CCSet::create();
-            }
-            else {
-                // Create a random memory block with the size of T
-                // Assign a pointer to that block and cast it to type T*
-                uint8_t dum[sizeof(T)]{};
-                auto ptr = reinterpret_cast<T*>(dum);
-                // Now you have a object of T that actually isn't an object of T and is just a
-                // random memory But C++ doesn't know that of course So now you can copy an object
-                // that wasn't there in the first place
-                // ((oh also get the offsets of the virtual tables))
-                ins = new T(*ptr);
-                // this is how the first human was made
-            }
-
             auto index = indexOf(func);
             auto thunk = thunkOf(func);
+            auto ins = generateInstance<T>();
 
             // log::debug("[[" + utils::intToHex((void*)ins) + " + " + utils::intToHex(thunk) + "] +
             // " + utils::intToHex(index) + "]");
@@ -112,10 +133,7 @@ namespace geode::addresser {
                 address = *reinterpret_cast<uintptr_t*>(address);
             }
 #endif
-
-            // And we delete the new instance because we are good girls
-            // and we don't leak memories
-            operator delete(ins);
+            releaseInstance<T>(ins);
 
             return address;
         }
