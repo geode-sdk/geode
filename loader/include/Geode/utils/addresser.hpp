@@ -28,7 +28,12 @@ namespace geode::addresser {
     inline F rthunkAdjust(T func, F self);
 
     template <class Class>
-    concept HasCreate = requires() { Class::create(); };
+    Class* friendCreate() {
+        return Class::create();
+    }
+
+    template <class Class>
+    concept HasCreate = requires() { addresserFriendCreate<Class>(); };
 
     class GEODE_DLL Addresser final {
         template <char C>
@@ -70,7 +75,7 @@ namespace geode::addresser {
         template <class Class>
             requires(HasCreate<Class>)
         static Class* generateInstance() {
-            return Class::create();
+            return friendCreate<Class>();
         }
 
         template <class Class>

@@ -133,6 +133,11 @@ namespace geode {
 
         Result<tulip::hook::HandlerMetadata, std::string> handlerMetadataForAddress(uintptr_t address);
     }
+
+    namespace addresser {
+        template <class Class>
+        Class* friendCreate();
+    }
 }
 
 #define GEODE_FRIEND_MODIFY                                         \
@@ -142,7 +147,9 @@ namespace geode {
     template <uint32_t>                                             \
     friend uintptr_t geode::modifier::address();                    \
     friend geode::Result<tulip::hook::HandlerMetadata, std::string> \
-    geode::modifier::handlerMetadataForAddress(uintptr_t address);
+    geode::modifier::handlerMetadataForAddress(uintptr_t address);  \
+    template <class Class>                                          \
+    friend Class* geode::addresser::friendCreate();
 
 #define GEODE_ADD(...) __VA_ARGS__
 
