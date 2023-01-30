@@ -4,13 +4,14 @@
  * Adapted from https://gist.github.com/altalk23/29b97969e9f0624f783b673f6c1cd279
  */
 
+#include "../utils/casts.hpp"
 #include "casts.hpp"
 
 #include <Geode/DefaultInclude.hpp>
+#include <cocos2d.h>
 #include <cstdlib>
 #include <stddef.h>
 #include <type_traits>
-#include "../utils/casts.hpp"
 
 namespace geode::addresser {
 
@@ -71,16 +72,23 @@ namespace geode::addresser {
         ) {
             using geode::cast::reference_cast;
 
-            // Create a random memory block with the size of T
-            // Assign a pointer to that block and cast it to type T*
-            uint8_t dum[sizeof(T)] {};
-            auto ptr = reinterpret_cast<T*>(dum);
-            // Now you have a object of T that actually isn't an object of T and is just a random
-            // memory But C++ doesn't know that of course So now you can copy an object that wasn't
-            // there in the first place
-            // ((oh also get the offsets of the virtual tables))
-            auto ins = new T(*ptr);
-            // this is how the first human was made
+            // exceptions, can't be bothered to have a proper fix because there is None
+            T* ins;
+            if constexpr (std::is_same_v<T, cocos2d::CCSet>) {
+                ins = cocos2d::CCSet::create();
+            }
+            else {
+                // Create a random memory block with the size of T
+                // Assign a pointer to that block and cast it to type T*
+                uint8_t dum[sizeof(T)]{};
+                auto ptr = reinterpret_cast<T*>(dum);
+                // Now you have a object of T that actually isn't an object of T and is just a
+                // random memory But C++ doesn't know that of course So now you can copy an object
+                // that wasn't there in the first place
+                // ((oh also get the offsets of the virtual tables))
+                ins = new T(*ptr);
+                // this is how the first human was made
+            }
 
             auto index = indexOf(func);
             auto thunk = thunkOf(func);
@@ -93,8 +101,7 @@ namespace geode::addresser {
             // );
 
             // [[this + thunk] + offset] is the f we want
-            auto address =
-                *(intptr_t*)(*(intptr_t*)(reference_cast<intptr_t>(ins) + thunk) + index);
+            auto address = *(intptr_t*)(*(intptr_t*)(reference_cast<intptr_t>(ins) + thunk) + index);
 
 #ifdef GEODE_IS_WINDOWS
             // check if first instruction is a jmp, i.e. if the func is a thunk
@@ -116,8 +123,7 @@ namespace geode::addresser {
         template <typename R, typename T, typename... Ps>
         static intptr_t addressOfVirtual(
             R (T::*func)(Ps...) const,
-            typename std::enable_if_t<std::is_copy_constructible_v<T> && !std::is_abstract_v<T>>* =
-                0
+            typename std::enable_if_t<std::is_copy_constructible_v<T> && !std::is_abstract_v<T>>* = 0
         ) {
             return addressOfVirtual(reinterpret_cast<R (T::*)(Ps...)>(func));
         }
@@ -199,7 +205,7 @@ namespace geode::addresser {
 
     template <typename T, typename F>
     inline F thunkAdjust(T func, F self) {
-        // do NOT delete the line below. 
+        // do NOT delete the line below.
         // doing so breaks thunk adjusting on windows.
         // why? bruh idk
         auto _ = *geode::cast::template union_cast<ptrdiff_t*>(&func);
@@ -208,7 +214,7 @@ namespace geode::addresser {
 
     template <typename T, typename F>
     inline F rthunkAdjust(T func, F self) {
-        // do NOT delete the line below. 
+        // do NOT delete the line below.
         // doing so breaks thunk adjusting on windows.
         // why? bruh idk
         auto _ = *geode::cast::template union_cast<ptrdiff_t*>(&func);
