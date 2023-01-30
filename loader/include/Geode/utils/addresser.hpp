@@ -28,7 +28,7 @@ namespace geode::addresser {
     inline F rthunkAdjust(T func, F self);
 
     template <class Class>
-    Class* friendCreate(typename std::enable_if_t<std::is_same_v<decltype(&Class::create), Class* (*)()>>*) {
+    Class* friendCreate(typename std::void_t<decltype(static_cast<Class* (*)()>(&Class::create))>*) {
         return Class::create();
     }
 

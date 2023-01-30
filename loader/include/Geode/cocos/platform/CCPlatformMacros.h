@@ -137,8 +137,7 @@ namespace geode {
 
     namespace addresser {
         template <class Class>
-        Class* friendCreate(typename std::enable_if_t<
-                            std::is_same_v<decltype(&Class::create), Class* (*)()>>*);
+        Class* friendCreate(typename std::void_t<decltype(static_cast<Class* (*)()>(&Class::create))>*);
     }
 }
 
@@ -151,9 +150,8 @@ namespace geode {
     friend geode::Result<tulip::hook::HandlerMetadata, std::string> \
     geode::modifier::handlerMetadataForAddress(uintptr_t address);  \
     template <class Class>                                          \
-    friend Class*                                                   \
-    geode::addresser::friendCreate(typename std::enable_if_t<       \
-                                   std::is_same_v<decltype(&Class::create), Class* (*)()>>*);
+    friend Class* geode::addresser::                                \
+        friendCreate(typename std::void_t<decltype(static_cast<Class* (*)()>(&Class::create))>*);
 
 #define GEODE_ADD(...) __VA_ARGS__
 
