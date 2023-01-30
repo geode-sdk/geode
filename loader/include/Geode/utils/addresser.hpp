@@ -12,6 +12,7 @@
 #include <cstdlib>
 #include <stddef.h>
 #include <type_traits>
+#include <concepts>
 
 namespace geode::addresser {
 
