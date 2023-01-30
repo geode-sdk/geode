@@ -29,7 +29,9 @@ namespace geode::addresser {
 
     template <class Class>
     Class* friendCreate(typename std::void_t<decltype(static_cast<Class* (*)()>(&Class::create))>*) {
-        return Class::create();
+        auto ret = Class::create();
+        ret->retain();
+        return ret;
     }
 
     template <class Class>
@@ -94,14 +96,10 @@ namespace geode::addresser {
             return ins;
         }
 
-        template <HasCreate Class>
-        static void releaseInstance(Class* ins) {}
-
         template <class Class>
-        static void releaseInstance(Class* ins) {
-            // And we delete the new instance because we are good girls
-            // and we don't leak memories
-            operator delete(ins);
+        static Class* cachedInstance() {
+            static auto ret = generateInstance<Class>();
+            return ret;
         }
 
         /**
@@ -115,7 +113,7 @@ namespace geode::addresser {
 
             auto index = indexOf(func);
             auto thunk = thunkOf(func);
-            auto ins = generateInstance<T>();
+            auto ins = cachedInstance<T>();
 
             // log::debug("[[" + utils::intToHex((void*)ins) + " + " + utils::intToHex(thunk) + "] +
             // " + utils::intToHex(index) + "]");
@@ -136,7 +134,6 @@ namespace geode::addresser {
                 address = *reinterpret_cast<uintptr_t*>(address);
             }
 #endif
-            releaseInstance<T>(ins);
 
             return address;
         }
