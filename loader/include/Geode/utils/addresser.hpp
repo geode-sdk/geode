@@ -8,7 +8,7 @@
 #include "casts.hpp"
 
 #include <Geode/DefaultInclude.hpp>
-#include <cocos2d.h>
+#include <cocos-ext.h>
 #include <cstdlib>
 #include <stddef.h>
 #include <type_traits>
@@ -77,12 +77,17 @@ namespace geode::addresser {
 
         // I gave up
         template <HasCreate Class>
-        static Class* generateInstance() {
+        static Class* generateInstance(Class*) {
             return friendCreate<Class>(nullptr);
         }
 
+        // I extra gave up
+        static cocos2d::extension::CCScrollView* generateInstance(cocos2d::extension::CCScrollView*) {
+            return cocos2d::extension::CCScrollView::create({0.0f, 0.0f}, cocos2d::CCLayer::create());
+        }
+
         template <class Class>
-        static Class* generateInstance() {
+        static Class* generateInstance(Class*) {
             // Create a random memory block with the size of Class
             // Assign a pointer to that block and cast it to type Class*
             uint8_t dum[sizeof(Class)]{};
@@ -98,7 +103,7 @@ namespace geode::addresser {
 
         template <class Class>
         static Class* cachedInstance() {
-            static auto ret = generateInstance<Class>();
+            static auto ret = generateInstance<Class>(nullptr);
             return ret;
         }
 
