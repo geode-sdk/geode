@@ -33,7 +33,7 @@ namespace geode::addresser {
     }
 
     template <class Class>
-    concept HasCreate = requires() { addresserFriendCreate<Class>(); };
+    concept HasCreate = requires() { friendCreate<Class>(); };
 
     class GEODE_DLL Addresser final {
         template <char C>
@@ -72,14 +72,12 @@ namespace geode::addresser {
         }
 
         // I gave up
-        template <class Class>
-            requires(HasCreate<Class>)
+        template <HasCreate Class>
         static Class* generateInstance() {
             return friendCreate<Class>();
         }
 
         template <class Class>
-            requires(!HasCreate<Class>)
         static Class* generateInstance() {
             // Create a random memory block with the size of Class
             // Assign a pointer to that block and cast it to type Class*
@@ -94,12 +92,10 @@ namespace geode::addresser {
             return ins;
         }
 
-        template <class Class>
-            requires(HasCreate<Class>)
+        template <HasCreate Class>
         static void releaseInstance(Class* ins) {}
 
         template <class Class>
-            requires(!HasCreate<Class>)
         static void releaseInstance(Class* ins) {
             // And we delete the new instance because we are good girls
             // and we don't leak memories
