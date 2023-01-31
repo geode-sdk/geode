@@ -1,4 +1,4 @@
-set(GEODE_CLI_MINIMUM_VERSION 1.2.0)
+set(GEODE_CLI_MINIMUM_VERSION 1.0.5)
 
 # for passing CLI through CMake arguments
 if (DEFINED CLI_PATH)
@@ -32,6 +32,9 @@ else()
             "https://github.com/geode-sdk/cli/releases/latest"
         )
     endif()
+
+    # Cache version so it's available to other functions
+    set(GEODE_CLI_VERSION "${GEODE_CLI_VERSION}" CACHE INTERNAL "GEODE_CLI_VERSION")
 
     message(STATUS "Found Geode CLI: ${GEODE_CLI} (version ${GEODE_CLI_VERSION})")
 endif()
@@ -74,6 +77,7 @@ function(setup_geode_mod proname)
     string(JSON MOD_ID GET "${MOD_JSON}" "id")
     string(JSON MOD_VERSION GET "${MOD_JSON}" "version")
     string(JSON MOD_HAS_API ERROR_VARIABLE MOD_DOESNT_HAVE_API GET "${MOD_JSON}" "api")
+    string(JSON MOD_HAS_DEPS ERROR_VARIABLE MOD_DOESNT_HAVE_DEPS GET "${MOD_JSON}" "dependencies")
 
     # Add this mod to the list of known externals mods
     list(APPEND GEODE_MODS_BEING_BUILT "${MOD_ID}:${MOD_VERSION}")
@@ -86,10 +90,17 @@ function(setup_geode_mod proname)
     endif()
 
     # Check dependencies using CLI
-    execute_process(
-        COMMAND ${GEODE_CLI} package setup ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
-            --externals ${GEODE_MODS_BEING_BUILT}
-    )
+    if (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "1.4.0")
+        execute_process(
+            COMMAND ${GEODE_CLI} package setup ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
+                --externals ${GEODE_MODS_BEING_BUILT}
+        )
+    elseif (MOD_HAS_DEPS)
+        message(FATAL_ERROR
+            "CLI is version ${GEODE_CLI_VERSION}, but using dependencies "
+            "requires at least 1.4.0 - please update your CLI"
+        )
+    endif()
     
     # Check if --install should be passed
     if (SETUP_GEODE_MOD_DONT_INSTALL)
@@ -110,14 +121,28 @@ function(setup_geode_mod proname)
     # Add package target + make output name the mod id
     set_target_properties(${proname} PROPERTIES PREFIX "")
     set_target_properties(${proname} PROPERTIES OUTPUT_NAME ${MOD_ID})
-    add_custom_target(${proname}_PACKAGE ALL
-        DEPENDS ${proname} ${CMAKE_CURRENT_SOURCE_DIR}/mod.json
-        COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR} 
-            --binary $<TARGET_FILE:${proname}> $<$<BOOL:${HAS_HEADERS}>:$<TARGET_LINKER_FILE:${proname}>>
-            --output $<TARGET_FILE_DIR:${proname}>/${proname}.geode
-            ${INSTALL_ARG}
-        VERBATIM USES_TERMINAL
-    )
+
+    # todo: figure out how to either not make cmake shit itself and print out --binary path/to/dll "" or 
+    # make cli not shit itself when it sees that
+    if (HAS_HEADERS)
+        add_custom_target(${proname}_PACKAGE ALL
+            DEPENDS ${proname} ${CMAKE_CURRENT_SOURCE_DIR}/mod.json
+            COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR} 
+                --binary $<TARGET_FILE:${proname}> $<TARGET_LINKER_FILE:${proname}>
+                --output $<TARGET_FILE_DIR:${proname}>/${proname}.geode
+                ${INSTALL_ARG}
+            VERBATIM USES_TERMINAL
+        )
+    else()
+        add_custom_target(${proname}_PACKAGE ALL
+            DEPENDS ${proname} ${CMAKE_CURRENT_SOURCE_DIR}/mod.json
+            COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR} 
+                --binary $<TARGET_FILE:${proname}>
+                --output $<TARGET_FILE_DIR:${proname}>/${proname}.geode
+                ${INSTALL_ARG}
+            VERBATIM USES_TERMINAL
+        )
+    endif()
 
     # Add dependency dir to include path
     if (EXISTS "${CMAKE_CURRENT_BINARY_DIR}/geode-deps")

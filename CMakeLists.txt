@@ -53,6 +53,9 @@ set(GEODE_LOADER_PATH ${CMAKE_CURRENT_SOURCE_DIR}/loader)
 include(cmake/GeodeFile.cmake)
 include(cmake/Platform.cmake)
 include(cmake/CPM.cmake)
+include(cmake/GdString.cmake)
+
+geode_relink_gd_string(${PROJECT_NAME})
 
 target_sources(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/entry.cpp)
 
