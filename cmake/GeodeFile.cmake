@@ -1,4 +1,4 @@
-set(GEODE_CLI_MINIMUM_VERSION 1.0.5)
+set(GEODE_CLI_MINIMUM_VERSION 1.2.0)
 
 # for passing CLI through CMake arguments
 if (DEFINED CLI_PATH)
@@ -12,7 +12,7 @@ endif()
 
 # Check if CLI was found
 if (GEODE_CLI STREQUAL "GEODE_CLI-NOTFOUND")
-	message(STATUS "Unable to find Geode CLI")
+	message(WARNING "Unable to find Geode CLI")
 else()
     # `geode --version` returns `geode x.x.x\n` so gotta do some wacky shit
     execute_process(
@@ -36,40 +36,30 @@ else()
     message(STATUS "Found Geode CLI: ${GEODE_CLI} (version ${GEODE_CLI_VERSION})")
 endif()
 
-function(create_geode_file_old proname)
-    message(
-        DEPRECATION
-        "create_geode_file_old has been deprecated. "
-        "Please update to the new (v1.x.x) version of Geode CLI."
-    )
+# Clear cache of mods being built so mods from earlier 
+# configures dont appear on the list
+set(GEODE_MODS_BEING_BUILT "" CACHE INTERNAL "GEODE_MODS_BEING_BUILT")
+
+# todo: add EXTERNAL argument that takes a list of external mod ids
+# current workaround is to manually append to GEODE_MODS_BEING_BUILT before 
+# calling setup_geode_mod if the mod depends on external dependencies that 
+# aren't being built
+function(setup_geode_mod proname)
+    # Get DONT_INSTALL argument
+    set(options DONT_INSTALL)
+    set(multiValueArgs EXTERNALS)
+    cmake_parse_arguments(SETUP_GEODE_MOD "${options}" "" "${multiValueArgs}" ${ARGN})
 
     if (GEODE_DISABLE_CLI_CALLS)
-        message("Skipping creating geode file")
+        message("Skipping setting up geode mod ${proname}")
         return()
     endif()
 
-    message(STATUS "Creating geode file")
-
     if(GEODE_CLI STREQUAL "GEODE_CLI-NOTFOUND")
-        message(WARNING "create_geode_file called, but Geode CLI was not found - You will need to manually package the .geode files")
-    else()
-
-        add_custom_target(${proname}_PACKAGE ALL
-            DEPENDS ${proname}
-            COMMAND ${GEODE_CLI} pkg ${CMAKE_CURRENT_SOURCE_DIR} $<TARGET_FILE_DIR:${proname}> $<TARGET_FILE_DIR:${proname}>/${proname}.geode --install --cached
-            VERBATIM USES_TERMINAL
+        message(FATAL_ERROR
+            "setup_geode_mod called, but Geode CLI was not found - "
+            "Please install CLI: https://docs.geode-sdk.org/info/installcli/"
         )
-    endif()
-    
-endfunction()
-
-function(create_geode_file proname)
-    # Get DONT_INSTALL argument
-    set(options DONT_INSTALL)
-    cmake_parse_arguments(CREATE_GEODE_FILE "${options}" "" "" ${ARGN})
-
-    if (GEODE_DISABLE_CLI_CALLS)
-        message("Skipping creating geode file for ${proname}")
         return()
     endif()
 
@@ -77,31 +67,91 @@ function(create_geode_file proname)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/mod.json ${CMAKE_CURRENT_BINARY_DIR}/what.txt)
     set_target_properties(${proname} PROPERTIES CMAKE_CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/mod.json)
 
-    if(GEODE_CLI STREQUAL "GEODE_CLI-NOTFOUND")
-        message(WARNING "create_geode_file called, but Geode CLI was not found - You will need to manually package the .geode files")
-        return()
+    message(STATUS "Setting up ${proname}")
+
+    # Read mod.json
+    file(READ "${CMAKE_CURRENT_SOURCE_DIR}/mod.json" MOD_JSON)
+    string(JSON MOD_ID GET "${MOD_JSON}" "id")
+    string(JSON MOD_VERSION GET "${MOD_JSON}" "version")
+    string(JSON MOD_HAS_API ERROR_VARIABLE MOD_DOESNT_HAVE_API GET "${MOD_JSON}" "api")
+
+    # Add this mod to the list of known externals mods
+    list(APPEND GEODE_MODS_BEING_BUILT "${MOD_ID}:${MOD_VERSION}")
+    # Ensure that the list of mods being built is global (persists between setup_geode_mod calls)
+    set(GEODE_MODS_BEING_BUILT ${GEODE_MODS_BEING_BUILT} CACHE INTERNAL "GEODE_MODS_BEING_BUILT")
+
+    # Add function arg externals to the list but don't cache that
+    if (SETUP_GEODE_MOD_EXTERNALS)
+        list(APPEND GEODE_MODS_BEING_BUILT ${SETUP_GEODE_MOD_EXTERNALS})
     endif()
 
-    message(STATUS "Creating geode file for ${proname}")
-
+    # Check dependencies using CLI
     execute_process(
-        COMMAND ${GEODE_CLI} package get-id ${CMAKE_CURRENT_SOURCE_DIR} --raw
-        OUTPUT_VARIABLE MOD_ID
+        COMMAND ${GEODE_CLI} package setup ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
+            --externals ${GEODE_MODS_BEING_BUILT}
     )
-
-    if (CREATE_GEODE_FILE_DONT_INSTALL)
+    
+    # Check if --install should be passed
+    if (SETUP_GEODE_MOD_DONT_INSTALL)
+        message(STATUS "Skipping installing ${proname}")
         set(INSTALL_ARG "")
     else()
         set(INSTALL_ARG "--install")
     endif()
 
+    # The lib binary should be passed only if some headers were provided
+    if (MOD_HAS_API)
+        message(STATUS "Including library & headers with ${proname}")
+        set(HAS_HEADERS On)
+    else()
+        set(HAS_HEADERS Off)
+    endif()
+
+    # Add package target + make output name the mod id
     set_target_properties(${proname} PROPERTIES PREFIX "")
     set_target_properties(${proname} PROPERTIES OUTPUT_NAME ${MOD_ID})
     add_custom_target(${proname}_PACKAGE ALL
         DEPENDS ${proname} ${CMAKE_CURRENT_SOURCE_DIR}/mod.json
-        COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR} --binary $<TARGET_FILE:${proname}> --output $<TARGET_FILE_DIR:${proname}>/${proname}.geode ${INSTALL_ARG}
+        COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR} 
+            --binary $<TARGET_FILE:${proname}> $<$<BOOL:${HAS_HEADERS}>:$<TARGET_LINKER_FILE:${proname}>>
+            --output $<TARGET_FILE_DIR:${proname}>/${proname}.geode
+            ${INSTALL_ARG}
         VERBATIM USES_TERMINAL
     )
+
+    # Add dependency dir to include path
+    if (EXISTS "${CMAKE_CURRENT_BINARY_DIR}/geode-deps")
+
+        if (WIN32)
+            file(GLOB libs ${CMAKE_CURRENT_BINARY_DIR}/geode-deps/*/*.lib)
+        elseif (APPLE)
+            file(GLOB libs ${CMAKE_CURRENT_BINARY_DIR}/geode-deps/*/*.dylib)
+        else()
+            message(FATAL_ERROR "Library extension not defined on this platform")
+        endif()
+        
+        message(STATUS "libs: ${libs}")
+
+        # Link all libs
+        target_include_directories(${proname} PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/geode-deps")
+        target_link_libraries(${proname} ${libs})
+        
+    endif()
+
+    # Link Geode to the mod
+    target_link_libraries(${proname} geode-sdk)
+
+endfunction()
+
+function(create_geode_file proname)
+    # todo: deprecate at some point ig
+    # message(DEPRECATION
+    #     "create_geode_file has been replaced with setup_geode_mod - "
+    #     "please replace the function call"
+    # )
+
+    # forward all args
+    setup_geode_mod(${proname} ${ARGN})
 endfunction()
 
 function(package_geode_resources proname src dest)

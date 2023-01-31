@@ -126,6 +126,10 @@ namespace geode {
          */
         bool needsEarlyLoad = false;
         /**
+         * Whether this mod is an API or not
+         */
+        bool isAPI = false;
+        /**
          * Create ModInfo from an unzipped .geode package
          */
         static Result<ModInfo> createFromGeodeZip(utils::file::Unzip& zip);

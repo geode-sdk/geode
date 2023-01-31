@@ -157,6 +157,21 @@ namespace geode {
         }
 
         template <class... Args>
+            requires(std::is_constructible_v<T, T &&>)
+        [[nodiscard]] Result<T, std::string> expect(std::string const& format, Args&&... args) {
+            if (this->isErr()) {
+                return impl::Failure<std::string>(fmt::format(
+                    fmt::runtime(format), std::forward<Args>(args)...,
+                    fmt::arg("error", this->unwrapErr())
+                ));
+            }
+            else {
+                return std::move(*this);
+            }
+        }
+
+        template <class... Args>
+            requires(std::is_constructible_v<T, T const&>)
         [[nodiscard]] Result<T, std::string> expect(std::string const& format, Args&&... args)
             const {
             if (this->isErr()) {

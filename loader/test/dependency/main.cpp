@@ -5,7 +5,8 @@ USE_GEODE_NAMESPACE();
 #include <Geode/modify/MenuLayer.hpp>
 #include <Geode/loader/SettingNode.hpp>
 #include <Geode/loader/ModJsonTest.hpp>
-
+#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
+#include <Geode/binding/FLAlertLayer.hpp>
 
 enum class Icon {
     Steve,

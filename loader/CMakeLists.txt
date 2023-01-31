@@ -133,12 +133,15 @@ if (NOT GEODE_BUILDING_DOCS)
 	# Markdown support
 	CPMAddPackage("gh:mity/md4c#e9ff661")
 
+	# Zip support (needed for in-memory streams, which zlib's minizip doesn't support)
+	CPMAddPackage("gh:zlib-ng/minizip-ng#cee6d8c")
+
 	# Regex support
 	CPMAddPackage("gh:google/re2#954656f")
 
 	target_include_directories(${PROJECT_NAME} PRIVATE ${md4c_SOURCE_DIR}/src)
 
-	target_link_libraries(${PROJECT_NAME} md4c re2)
+	target_link_libraries(${PROJECT_NAME} md4c re2 minizip)
 endif()
 
 target_link_libraries(${PROJECT_NAME} z TulipHook geode-sdk mat-json)
