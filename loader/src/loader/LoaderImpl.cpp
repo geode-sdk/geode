@@ -187,8 +187,8 @@ Result<> Loader::Impl::loadData() {
 // Mod loading
 
 Result<Mod*> Loader::Impl::loadModFromInfo(ModInfo const& info) {
-    if (m_mods.count(info.id)) {
-        return Err(fmt::format("Mod with ID '{}' already loaded", info.id));
+    if (m_mods.count(info.id())) {
+        return Err(fmt::format("Mod with ID '{}' already loaded", info.id()));
     }
 
     // create Mod instance
@@ -197,13 +197,13 @@ Result<Mod*> Loader::Impl::loadModFromInfo(ModInfo const& info) {
     if (!setupRes) {
         return Err(fmt::format(
             "Unable to setup mod '{}': {}",
-            info.id, setupRes.unwrapErr()
+            info.id(), setupRes.unwrapErr()
         ));
     }
 
-    m_mods.insert({ info.id, mod });
+    m_mods.insert({ info.id(), mod });
     mod->m_impl->m_enabled = Mod::get()->getSavedValue<bool>(
-        "should-load-" + info.id, true
+        "should-load-" + info.id(), true
     );
 
     // add mod resources
@@ -258,7 +258,7 @@ Mod* Loader::Impl::getLoadedMod(std::string const& id) const {
 }
 
 void Loader::Impl::updateModResources(Mod* mod) {
-    if (!mod->m_impl->m_info.spritesheets.size()) {
+    if (!mod->m_impl->m_info.spritesheets().size()) {
         return;
     }
 
@@ -267,7 +267,7 @@ void Loader::Impl::updateModResources(Mod* mod) {
     log::debug("Adding resources for {}", mod->getID());
 
     // add spritesheets
-    for (auto const& sheet : mod->m_impl->m_info.spritesheets) {
+    for (auto const& sheet : mod->m_impl->m_info.spritesheets()) {
         log::debug("Adding sheet {}", sheet);
         auto png = sheet + ".png";
         auto plist = sheet + ".plist";
@@ -277,7 +277,7 @@ void Loader::Impl::updateModResources(Mod* mod) {
             plist == std::string(ccfu->fullPathForFilename(plist.c_str(), false))) {
             log::warn(
                 "The resource dir of \"{}\" is missing \"{}\" png and/or plist files",
-                mod->m_impl->m_info.id, sheet
+                mod->m_impl->m_info.id(), sheet
             );
         }
         else {
@@ -312,7 +312,7 @@ void Loader::Impl::loadModsFromDirectory(
         }
         // skip this entry if it's already loaded
         if (map::contains<std::string, Mod*>(m_mods, [entry](Mod* p) -> bool {
-            return p->m_impl->m_info.path == entry.path();
+            return p->m_impl->m_info.path() == entry.path();
         })) {
             continue;
         }
@@ -359,10 +359,10 @@ void Loader::Impl::refreshModsList() {
     
     // load early-load mods first
     for (auto& mod : m_modsToLoad) {
-        if (mod.needsEarlyLoad) {
+        if (mod.needsEarlyLoad()) {
             auto load = this->loadModFromInfo(mod);
             if (!load) {
-                log::error("Unable to load {}: {}", mod.id, load.unwrapErr());
+                log::error("Unable to load {}: {}", mod.id(), load.unwrapErr());
             }
         }
     }
@@ -373,10 +373,10 @@ void Loader::Impl::refreshModsList() {
 
     // load the rest of the mods
     for (auto& mod : m_modsToLoad) {
-        if (!mod.needsEarlyLoad) {
+        if (!mod.needsEarlyLoad()) {
             auto load = this->loadModFromInfo(mod);
             if (!load) {
-                log::error("Unable to load {}: {}", mod.id, load.unwrapErr());
+                log::error("Unable to load {}: {}", mod.id(), load.unwrapErr());
             }
         }
     }

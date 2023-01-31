@@ -45,9 +45,9 @@ void ModListCell::setupInfo(
 
     bool hasDesc =
         display == ModListDisplay::Expanded && 
-        info.description.has_value();
+        info.description().has_value();
 
-    auto titleLabel = CCLabelBMFont::create(info.name.c_str(), "bigFont.fnt");
+    auto titleLabel = CCLabelBMFont::create(info.name().c_str(), "bigFont.fnt");
     titleLabel->setAnchorPoint({ .0f, .5f });
     titleLabel->setPositionX(m_height / 2 + logoSize / 2 + 13.f);
     if (hasDesc && spaceForTags) {
@@ -66,7 +66,7 @@ void ModListCell::setupInfo(
     this->addChild(titleLabel);
 
     auto versionLabel = CCLabelBMFont::create(
-        info.version.toString(false).c_str(),
+        info.version().toString(false).c_str(),
         "bigFont.fnt"
     );
     versionLabel->setAnchorPoint({ .0f, .5f });
@@ -78,7 +78,7 @@ void ModListCell::setupInfo(
     versionLabel->setColor({ 0, 255, 0 });
     this->addChild(versionLabel);
 
-    if (auto tag = info.version.getTag()) {
+    if (auto tag = info.version().getTag()) {
         auto tagLabel = TagNode::create(
             versionTagToString(tag.value()).c_str()
         );
@@ -92,7 +92,7 @@ void ModListCell::setupInfo(
         this->addChild(tagLabel);
     }
 
-    auto creatorStr = "by " + info.developer;
+    auto creatorStr = "by " + info.developer();
     auto creatorLabel = CCLabelBMFont::create(creatorStr.c_str(), "goldFont.fnt");
     creatorLabel->setScale(.43f);
 
@@ -131,7 +131,7 @@ void ModListCell::setupInfo(
         descBG->setScale(.25f);
         this->addChild(descBG);
 
-        m_description = CCLabelBMFont::create(info.description.value().c_str(), "chatFont.fnt");
+        m_description = CCLabelBMFont::create(info.description().value().c_str(), "chatFont.fnt");
         m_description->setAnchorPoint({ .0f, .5f });
         m_description->setPosition(m_height / 2 + logoSize / 2 + 18.f, descBG->getPositionY());
         m_description->limitLabelWidth(m_width / 2 - 10.f, .5f, .1f);
@@ -354,7 +354,7 @@ bool IndexItemCell::init(
 void IndexItemCell::updateState() {}
 
 std::string IndexItemCell::getDeveloper() const {
-    return m_item->info.developer;
+    return m_item->info.developer();
 }
 
 CCNode* IndexItemCell::createLogo(CCSize const& size) {
