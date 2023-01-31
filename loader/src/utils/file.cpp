@@ -295,6 +295,11 @@ public:
             .expect("Unable to open entry (code {error})")
         );
 
+        // if the file is empty, its data is empty (duh)
+        if (!entry.uncompressedSize) {
+            return Ok(ByteVector());
+        }
+
         ByteVector res;
         res.resize(entry.uncompressedSize);
         auto read = mz_zip_entry_read(m_handle, res.data(), entry.uncompressedSize);
@@ -421,11 +426,11 @@ bool Unzip::hasEntry(Path const& name) {
 }
 
 Result<ByteVector> Unzip::extract(Path const& name) {
-    return m_impl->extract(name);
+    return m_impl->extract(name).expect("{error} (entry {})", name.string());
 }
 
 Result<> Unzip::extractTo(Path const& name, Path const& path) {
-    GEODE_UNWRAP_INTO(auto bytes, m_impl->extract(name));
+    GEODE_UNWRAP_INTO(auto bytes, m_impl->extract(name).expect("{error} (entry {})", name.string()));
     // create containing directories for target path
     if (path.has_parent_path()) {
         GEODE_UNWRAP(file::createDirectoryAll(path.parent_path()));
