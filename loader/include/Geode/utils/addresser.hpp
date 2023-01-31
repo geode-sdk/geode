@@ -4,13 +4,15 @@
  * Adapted from https://gist.github.com/altalk23/29b97969e9f0624f783b673f6c1cd279
  */
 
+#include "../utils/casts.hpp"
 #include "casts.hpp"
 
 #include <Geode/DefaultInclude.hpp>
+#include <cocos-ext.h>
 #include <cstdlib>
 #include <stddef.h>
 #include <type_traits>
-#include "../utils/casts.hpp"
+#include <concepts>
 
 namespace geode::addresser {
 
@@ -25,6 +27,18 @@ namespace geode::addresser {
 
     template <typename T, typename F>
     inline F rthunkAdjust(T func, F self);
+
+    template <class Class>
+    Class* friendCreate(typename std::void_t<decltype(static_cast<Class* (*)()>(&Class::create))>*) {
+        auto ret = Class::create();
+        ret->retain();
+        return ret;
+    }
+
+    template <class Class>
+    concept HasCreate = requires() {
+                            { friendCreate<Class>(nullptr) } -> std::same_as<Class*>;
+                        };
 
     class GEODE_DLL Addresser final {
         template <char C>
@@ -62,6 +76,38 @@ namespace geode::addresser {
             return thunk;
         }
 
+        // I gave up
+        template <HasCreate Class>
+        static Class* generateInstance(Class*) {
+            return friendCreate<Class>(nullptr);
+        }
+
+        // I extra gave up
+        static cocos2d::extension::CCScrollView* generateInstance(cocos2d::extension::CCScrollView*) {
+            return cocos2d::extension::CCScrollView::create({0.0f, 0.0f}, cocos2d::CCLayer::create());
+        }
+
+        template <class Class>
+        static Class* generateInstance(Class*) {
+            // Create a random memory block with the size of Class
+            // Assign a pointer to that block and cast it to type Class*
+            uint8_t dum[sizeof(Class)]{};
+            auto ptr = reinterpret_cast<Class*>(dum);
+            // Now you have a object of Class that actually isn't an object of Class and is just a
+            // random memory But C++ doesn't know that of course So now you can copy an object
+            // that wasn't there in the first place
+            // ((oh also get the offsets of the virtual tables))
+            auto ins = new Class(*ptr);
+            // this is how the first human was made
+            return ins;
+        }
+
+        template <class Class>
+        static Class* cachedInstance() {
+            static auto ret = generateInstance<Class>(nullptr);
+            return ret;
+        }
+
         /**
          * Specialized functionss
          */
@@ -71,19 +117,9 @@ namespace geode::addresser {
         ) {
             using geode::cast::reference_cast;
 
-            // Create a random memory block with the size of T
-            // Assign a pointer to that block and cast it to type T*
-            uint8_t dum[sizeof(T)] {};
-            auto ptr = reinterpret_cast<T*>(dum);
-            // Now you have a object of T that actually isn't an object of T and is just a random
-            // memory But C++ doesn't know that of course So now you can copy an object that wasn't
-            // there in the first place
-            // ((oh also get the offsets of the virtual tables))
-            auto ins = new T(*ptr);
-            // this is how the first human was made
-
             auto index = indexOf(func);
             auto thunk = thunkOf(func);
+            auto ins = cachedInstance<T>();
 
             // log::debug("[[" + utils::intToHex((void*)ins) + " + " + utils::intToHex(thunk) + "] +
             // " + utils::intToHex(index) + "]");
@@ -93,8 +129,7 @@ namespace geode::addresser {
             // );
 
             // [[this + thunk] + offset] is the f we want
-            auto address =
-                *(intptr_t*)(*(intptr_t*)(reference_cast<intptr_t>(ins) + thunk) + index);
+            auto address = *(intptr_t*)(*(intptr_t*)(reference_cast<intptr_t>(ins) + thunk) + index);
 
 #ifdef GEODE_IS_WINDOWS
             // check if first instruction is a jmp, i.e. if the func is a thunk
@@ -106,18 +141,13 @@ namespace geode::addresser {
             }
 #endif
 
-            // And we delete the new instance because we are good girls
-            // and we don't leak memories
-            operator delete(ins);
-
             return address;
         }
 
         template <typename R, typename T, typename... Ps>
         static intptr_t addressOfVirtual(
             R (T::*func)(Ps...) const,
-            typename std::enable_if_t<std::is_copy_constructible_v<T> && !std::is_abstract_v<T>>* =
-                0
+            typename std::enable_if_t<std::is_copy_constructible_v<T> && !std::is_abstract_v<T>>* = 0
         ) {
             return addressOfVirtual(reinterpret_cast<R (T::*)(Ps...)>(func));
         }
@@ -199,7 +229,7 @@ namespace geode::addresser {
 
     template <typename T, typename F>
     inline F thunkAdjust(T func, F self) {
-        // do NOT delete the line below. 
+        // do NOT delete the line below.
         // doing so breaks thunk adjusting on windows.
         // why? bruh idk
         auto _ = *geode::cast::template union_cast<ptrdiff_t*>(&func);
@@ -208,7 +238,7 @@ namespace geode::addresser {
 
     template <typename T, typename F>
     inline F rthunkAdjust(T func, F self) {
-        // do NOT delete the line below. 
+        // do NOT delete the line below.
         // doing so breaks thunk adjusting on windows.
         // why? bruh idk
         auto _ = *geode::cast::template union_cast<ptrdiff_t*>(&func);

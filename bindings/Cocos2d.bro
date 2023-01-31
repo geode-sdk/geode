@@ -1,3 +1,5 @@
+// clang-format off
+
 class cocos2d::CCActionTween {
 	static cocos2d::CCActionTween* create(float, char const*, float, float) = mac 0x447590;
 }
@@ -495,11 +497,11 @@ class cocos2d::CCNode {
     virtual auto addChild(cocos2d::CCNode*, int, int) = mac 0x1232a0, ios 0x15e4e4;
     virtual auto addComponent(cocos2d::CCComponent*) = mac 0x124a40, ios 0x15f6a4;
     virtual auto cleanup() = mac 0x123100, ios 0x15e3a4;
-    virtual auto convertToNodeSpace(cocos2d::CCPoint const&) = mac 0x124750, ios 0x15f55c;
-    virtual auto convertToWorldSpace(cocos2d::CCPoint const&) = mac 0x124790;
+    auto convertToNodeSpace(cocos2d::CCPoint const&) = mac 0x124750, ios 0x15f55c;
+    auto convertToWorldSpace(cocos2d::CCPoint const&) = mac 0x124790;
     static cocos2d::CCNode* create() = mac 0x1230a0;
     virtual auto draw() = mac 0x123840, ios 0x15e974;
-    virtual auto getActionByTag(int) = mac 0x123ee0;
+    auto getActionByTag(int) = mac 0x123ee0;
     virtual auto getActionManager() = mac 0x123e50, ios 0x15ef54;
     virtual auto getAnchorPoint() = mac 0x122d80, ios 0x15e090;
     virtual auto getAnchorPointInPoints() = mac 0x122d70, ios 0x15e088;
@@ -543,7 +545,7 @@ class cocos2d::CCNode {
     virtual auto onExit() = mac 0x123ca0, ios 0x15edb0;
     virtual auto onExitTransitionDidStart() = mac 0x123c00, ios 0x15ed18;
     virtual auto parentToNodeTransform() = mac 0x1245d0, ios 0x15f410;
-    virtual auto pauseSchedulerAndActions() = mac 0x123d60;
+    auto pauseSchedulerAndActions() = mac 0x123d60;
     virtual auto registerScriptHandler(int) = mac 0x123d90, ios 0x15ee94;
     virtual auto removeAllChildren() = mac 0x123600, ios 0x15e788;
     virtual auto removeAllChildrenWithCleanup(bool) = mac 0x123620, ios 0x15e798;
@@ -558,11 +560,11 @@ class cocos2d::CCNode {
     virtual auto removeFromParentAndCleanup(bool) = mac 0x123410, ios 0x15e5f8;
     virtual auto removeMeAndCleanup() = mac 0x123440, ios 0x15e620;
     virtual auto reorderChild(cocos2d::CCNode*, int) = mac 0x123760, ios 0x15e87c;
-    virtual auto resumeSchedulerAndActions() = mac 0x123b60;
-    virtual auto runAction(cocos2d::CCAction*) = mac 0x123e60;
-    virtual auto schedule(cocos2d::SEL_SCHEDULE) = mac 0x1240b0;
-    virtual auto schedule(cocos2d::SEL_SCHEDULE, float) = mac 0x124120;
-    virtual auto scheduleUpdate() = mac 0x123f80;
+    auto resumeSchedulerAndActions() = mac 0x123b60;
+    auto runAction(cocos2d::CCAction*) = mac 0x123e60;
+    auto schedule(cocos2d::SEL_SCHEDULE) = mac 0x1240b0;
+    auto schedule(cocos2d::SEL_SCHEDULE, float) = mac 0x124120;
+    auto scheduleUpdate() = mac 0x123f80;
     virtual auto setActionManager(cocos2d::CCActionManager*) = mac 0x123e00, ios 0x15ef04;
     virtual auto setAnchorPoint(cocos2d::CCPoint const&) = mac 0x122d90, ios 0x15e098;
     virtual auto setContentSize(cocos2d::CCSize const&) = mac 0x122e50, ios 0x15e158;
@@ -591,12 +593,12 @@ class cocos2d::CCNode {
     virtual auto setVisible(bool) = mac 0x122d60, ios 0x15e080;
     virtual auto setZOrder(int) = mac 0x1229a0, ios 0x15dd84;
     virtual auto sortAllChildren() = mac 0x1237b0, ios 0x15e8d4;
-    virtual auto stopActionByTag(int) = mac 0x123ec0;
-    virtual auto stopAllActions() = mac 0x123190;
+    auto stopActionByTag(int) = mac 0x123ec0;
+    auto stopAllActions() = mac 0x123190;
     virtual auto unregisterScriptHandler() = mac 0x123dc0, ios 0x15eec4;
-    virtual auto unschedule(cocos2d::SEL_SCHEDULE) = mac 0x124180;
-    virtual auto unscheduleAllSelectors() = mac 0x1231b0;
-    virtual auto unscheduleUpdate() = mac 0x124060;
+    auto unschedule(cocos2d::SEL_SCHEDULE) = mac 0x124180;
+    auto unscheduleAllSelectors() = mac 0x1231b0;
+    auto unscheduleUpdate() = mac 0x124060;
     virtual auto update(float) = mac 0x1241a0, ios 0x15f124;
     virtual auto updateTransform() = mac 0x1249d0, ios 0x15f648;
     virtual auto updateTweenAction(float, char const*) = mac 0x1249c0, ios 0x15f644;
@@ -1047,3 +1049,5 @@ class cocos2d {
 // 	int getIntegerForKey(char const*) = mac 0xc1610;
 // 	void setIntegerForKey(char const*, int) = mac 0xc26b0;
 // }
+
+// clang-format on

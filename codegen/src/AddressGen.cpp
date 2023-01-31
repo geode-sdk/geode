@@ -30,7 +30,7 @@ Result<tulip::hook::HandlerMetadata> geode::modifier::handlerMetadataForAddress(
         char const* declare_metadata = R"GEN(
         {{
         	using FunctionType = {return}(*)({class_name}{const}*{parameter_comma}{parameter_types});
-			ret[{address}] = +[](){{
+			ret[modifier::address<{index}>()] = +[](){{
 				return tulip::hook::HandlerMetadata{{
 					.m_convention = geode::hook::createConvention(tulip::hook::TulipConvention::{convention}),
 					.m_abstract = tulip::hook::AbstractFunction::from(FunctionType(nullptr)),
@@ -42,7 +42,7 @@ Result<tulip::hook::HandlerMetadata> geode::modifier::handlerMetadataForAddress(
         char const* declare_metadata_static = R"GEN(
         {{
         	using FunctionType = {return}(*)({parameter_types});
-			ret[{address}] = +[](){{
+			ret[modifier::address<{index}>()] = +[](){{
 				return tulip::hook::HandlerMetadata{{
 					.m_convention = geode::hook::createConvention(tulip::hook::TulipConvention::{convention}),
 					.m_abstract = tulip::hook::AbstractFunction::from(FunctionType(nullptr)),
@@ -54,7 +54,7 @@ Result<tulip::hook::HandlerMetadata> geode::modifier::handlerMetadataForAddress(
         char const* declare_metadata_structor = R"GEN(
         {{
         	using FunctionType = void(*)({class_name}*{parameter_comma}{parameter_types});
-			ret[{address}] = +[](){{
+			ret[modifier::address<{index}>()] = +[](){{
 				return tulip::hook::HandlerMetadata{{
 					.m_convention = geode::hook::createConvention(tulip::hook::TulipConvention::{convention}),
 					.m_abstract = tulip::hook::AbstractFunction::from(FunctionType(nullptr)),
@@ -170,7 +170,8 @@ std::string generateAddressHeader(Root& root) {
                 fmt::arg("parameters", codegen::getParameters(fn->beginning)),
                 fmt::arg("parameter_types", codegen::getParameterTypes(fn->beginning)),
                 fmt::arg("arguments", codegen::getParameterNames(fn->beginning)),
-                fmt::arg("parameter_comma", str_if(", ", !fn->beginning.args.empty()))
+                fmt::arg("parameter_comma", str_if(", ", !fn->beginning.args.empty())),
+                fmt::arg("index", field.field_id)
             );
         }
     }
