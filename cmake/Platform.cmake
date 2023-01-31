@@ -31,7 +31,7 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
 	)
 
 	# only exists as a global property
-	set(CMAKE_OSX_DEPLOYMENT_TARGET 10.9)
+	set(CMAKE_OSX_DEPLOYMENT_TARGET 10.14)
 
 	target_link_libraries(${PROJECT_NAME} INTERFACE curl "-framework Cocoa")
 	target_compile_options(${PROJECT_NAME} INTERFACE -fms-extensions #[[-Wno-deprecated]] -Wno-ignored-attributes -Os #[[-flto]] #[[-fvisibility=internal]])
