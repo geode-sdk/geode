@@ -134,6 +134,7 @@ if (NOT GEODE_BUILDING_DOCS)
 	CPMAddPackage("gh:mity/md4c#e9ff661")
 
 	# Zip support (needed for in-memory streams, which zlib's minizip doesn't support)
+	set(MZ_LZMA Off CACHE INTERNAL "Enables LZMA & XZ compression")
 	CPMAddPackage("gh:zlib-ng/minizip-ng#cee6d8c")
 
 	# Regex support

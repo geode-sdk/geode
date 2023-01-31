@@ -324,7 +324,9 @@ public:
         info.filename = reinterpret_cast<const char*>(strPath.c_str());
         info.uncompressed_size = 0;
         info.flag = MZ_ZIP_FLAG_UTF8;
+    #ifdef GEODE_IS_WINDOWS
         info.external_fa = FILE_ATTRIBUTE_DIRECTORY;
+    #endif
         info.aes_version = MZ_AES_VERSION;
 
 
