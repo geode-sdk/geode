@@ -147,19 +147,49 @@ function(setup_geode_mod proname)
     # Add dependency dir to include path
     if (EXISTS "${CMAKE_CURRENT_BINARY_DIR}/geode-deps")
 
-        if (WIN32)
-            file(GLOB libs ${CMAKE_CURRENT_BINARY_DIR}/geode-deps/*/*.lib)
-        elseif (APPLE)
-            file(GLOB libs ${CMAKE_CURRENT_BINARY_DIR}/geode-deps/*/*.dylib)
-        else()
-            message(FATAL_ERROR "Library extension not defined on this platform")
-        endif()
-        
-        message(STATUS "libs: ${libs}")
+        file(GLOB dirs ${CMAKE_CURRENT_BINARY_DIR}/geode-deps/*)
 
-        # Link all libs
+        set(libs_to_link "")
+
+        # Iterate dependency directories
+        foreach(dir ${dirs})
+            if (IS_DIRECTORY ${dir})
+                
+                # v1.4.1 fixes optional dependencies
+                if (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "1.4.1")
+                    # Read dep info
+                    file(READ "${dir}/geode-dep-options.json" DEP_JSON)
+                    string(JSON required GET "${DEP_JSON}" "required")
+
+                    # If this is not a required dependency, don't link it
+                    if (NOT ${required})
+                        continue()
+                    endif()
+                else()
+                    message(WARNING
+                        "You are using CLI v1.4.0, which has a bug with optional "
+                        "dependencies - update to v1.4.1 if you want to use "
+                        "optional dependencies!"
+                    )
+                endif()
+
+                # Otherwise add all .libs or whatever the platform's library type is
+                if (WIN32)
+                    file(GLOB libs ${dir}/*.lib)
+                    list(APPEND libs_to_link ${libs})
+                elseif (APPLE)
+                    file(GLOB libs ${dir}/*.dylib)
+                    list(APPEND libs_to_link ${libs})
+                else()
+                    message(FATAL_ERROR "Library extension not defined on this platform")
+                endif()
+
+            endif()
+        endforeach()
+
+        # Link libs
         target_include_directories(${proname} PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/geode-deps")
-        target_link_libraries(${proname} ${libs})
+        target_link_libraries(${proname} ${libs_to_link})
         
     endif()
 
