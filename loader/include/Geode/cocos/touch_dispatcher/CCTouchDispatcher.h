@@ -138,9 +138,7 @@ public:
     {}
 
 public:
-    GEODE_ADD(
-        static CCTouchDispatcher* get();
-    );
+    static GEODE_DLL CCTouchDispatcher* get();
 
     /** Whether or not the events are going to be dispatched. Default: true */
     bool isDispatchEvents(void);

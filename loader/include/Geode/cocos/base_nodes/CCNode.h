@@ -847,8 +847,8 @@ public:
 private:
     friend class geode::modifier::FieldContainer;
 
-    geode::modifier::FieldContainer* getFieldContainer();
-    std::optional<std::any> getAttributeInternal(std::string const& attribute);
+    GEODE_DLL geode::modifier::FieldContainer* getFieldContainer();
+    GEODE_DLL std::optional<std::any> getAttributeInternal(std::string const& attribute);
 
 public:
     /**
@@ -856,7 +856,7 @@ public:
      * @returns The ID, or an empty string if the node has no ID.
      * @note Geode addition
      */
-    std::string getID();
+    GEODE_DLL std::string getID();
     /**
      * Set the string ID of this node. String IDs are a Geode addition 
      * that are much safer to use to get nodes than absolute indexes
@@ -865,7 +865,7 @@ public:
      * by a mod, use the _spr literal to append the mod ID to it
      * @note Geode addition
      */
-    void setID(std::string const& id);
+    GEODE_DLL void setID(std::string const& id);
 
     /**
      * Get a child by its string ID
@@ -873,7 +873,7 @@ public:
      * @returns The child, or nullptr if none was found
      * @note Geode addition
      */
-    CCNode* getChildByID(std::string const& id);
+    GEODE_DLL CCNode* getChildByID(std::string const& id);
 
     /**
      * Get a child by its string ID. Recursively searches all the children
@@ -881,7 +881,7 @@ public:
      * @returns The child, or nullptr if none was found
      * @note Geode addition
      */
-    CCNode* getChildByIDRecursive(std::string const& id);
+    GEODE_DLL CCNode* getChildByIDRecursive(std::string const& id);
 
     /**
      * Set an attribute on a node. Attributes are a system added by Geode, 
@@ -895,7 +895,7 @@ public:
      * @param value The value of the attribute
      * @note Geode addition
      */
-    void setAttribute(std::string const& attribute, std::any value);
+    GEODE_DLL void setAttribute(std::string const& attribute, std::any value);
     /**
      * Get an attribute from the node. Attributes may be anything
      * @param attribute The attribute key
@@ -923,19 +923,19 @@ public:
      * @param apply Whether to call updateLayout now or not
      * @note Geode addition
      */
-    void setLayout(Layout* layout, bool apply = true);
+    GEODE_DLL void setLayout(Layout* layout, bool apply = true);
     /**
      * Get the Layout for this node
      * @returns The current layout, or nullptr if no layout is set
      * @note Geode addition
      */
-    Layout* getLayout();
+    GEODE_DLL Layout* getLayout();
     /**
      * Update the layout of this node using the current Layout. If no layout is 
      * set, nothing happens
      * @note Geode addition
      */
-    void updateLayout();
+    GEODE_DLL void updateLayout();
 
     /**
      * Give a hint to the current Layout about where this node should be 
@@ -946,12 +946,12 @@ public:
      * given
      * @note Geode addition
      */
-    void setPositionHint(PositionHint hint);
+    GEODE_DLL void setPositionHint(PositionHint hint);
     /**
      * Get the current position hint for this node
      * @note Geode addition
      */
-    PositionHint getPositionHint();
+    GEODE_DLL PositionHint getPositionHint();
 
     /**
      * Swap two children
@@ -959,7 +959,7 @@ public:
      * @param second One of the nodes to swap
      * @note Geode addition
      */
-    void swapChildIndices(CCNode* first, CCNode* second);
+    GEODE_DLL void swapChildIndices(CCNode* first, CCNode* second);
     
     /// @{
     /// @name Shader Program

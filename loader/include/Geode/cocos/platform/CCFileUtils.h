@@ -40,12 +40,10 @@ class CCArray;
  * @{
  */
 
-GEODE_ADD(
-  struct CCTexturePack {
-    std::string m_id;
-    std::vector<std::string> m_paths;
-  };
-)
+struct CCTexturePack {
+  std::string m_id;
+  std::vector<std::string> m_paths;
+};
 
 //! @brief  Helper class to handle file operations
 class CC_DLL CCFileUtils : public TypeInfo
@@ -72,9 +70,7 @@ public:
      */
     static CCFileUtils* sharedFileUtils();
 
-    GEODE_ADD(
-        static CCFileUtils* get();
-    );
+    static GEODE_DLL CCFileUtils* get();
     
     /**
      *  Destroys the instance of CCFileUtils.
@@ -275,33 +271,35 @@ public:
      */
     virtual void setSearchPaths(const gd::vector<gd::string>& searchPaths);
 
-    GEODE_ADD(
-      /**
-       * Add a texture pack. Texture packs are prioritized over other search 
-       * paths, so if a texture pack has a replacement for a file, it will be 
-       * used over others. Contrary to addSearchPath, this function adds the 
-       * pack to the front of the list. If the pack has already been added, 
-       * it's moved to the front of the list (equivalent to removing and 
-       * re-adding the pack)
-       * @param pack Pack to add
-       */
-      void addTexturePack(CCTexturePack const& pack);
-      /**
-       * Remove texture pack by ID
-       * @param id ID of the texture pack
-       */
-      void removeTexturePack(std::string const& id);
-      /**
-       * Add a search path to the front of the list
-       * @param path Path to add
-       */
-      void addPriorityPath(const char* path);
-      /**
-       * Update search path order; texture packs are added first, then other  
-       * paths
-       */
-      void updatePaths();
-    )
+    /**
+     * Add a texture pack. Texture packs are prioritized over other search 
+     * paths, so if a texture pack has a replacement for a file, it will be 
+     * used over others. Contrary to addSearchPath, this function adds the 
+     * pack to the front of the list. If the pack has already been added, 
+     * it's moved to the front of the list (equivalent to removing and 
+     * re-adding the pack)
+     * @param pack Pack to add
+     * @note Geode addition
+     */
+    void GEODE_DLL addTexturePack(CCTexturePack const& pack);
+    /**
+     * Remove texture pack by ID
+     * @param id ID of the texture pack
+     * @note Geode addition
+     */
+    void GEODE_DLL removeTexturePack(std::string const& id);
+    /**
+     * Add a search path to the front of the list
+     * @param path Path to add
+     * @note Geode addition
+     */
+    void GEODE_DLL addPriorityPath(const char* path);
+    /**
+     * Update search path order; texture packs are added first, then other  
+     * paths
+     * @note Geode addition
+     */
+    void GEODE_DLL updatePaths();
     
     /**
       * Adds a path to search paths.

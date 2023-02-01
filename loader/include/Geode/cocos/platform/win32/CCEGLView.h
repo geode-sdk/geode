@@ -96,9 +96,7 @@ public:
     */
     static CCEGLView* sharedOpenGLView();
 
-    GEODE_ADD(
-        static CCEGLView* get();
-    );
+    static GEODE_DLL CCEGLView* get();
 
     RT_ADD( static CCEGLView* create(const gd::string&);   )
 

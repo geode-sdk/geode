@@ -51,6 +51,7 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Win32")
 		${GEODE_LOADER_PATH}/include/link/libExtensions.lib
 		${GEODE_LOADER_PATH}/include/link/libcurl.lib
 		${GEODE_LOADER_PATH}/include/link/glew32.lib
+		${GEODE_LOADER_PATH}/include/link/gdstring.lib
 		${GEODE_LOADER_PATH}/include/link/fmod.lib
 	)
 

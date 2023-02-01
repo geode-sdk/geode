@@ -50,9 +50,7 @@ public:
     */
     static CCEGLView* sharedOpenGLView();
     
-    GEODE_ADD(
-        static CCEGLView* get();
-    );
+    static GEODE_DLL CCEGLView* get();
 };
 
 NS_CC_END

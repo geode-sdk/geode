@@ -32,9 +32,7 @@ public:
     */
     static CCApplication* sharedApplication();
 
-    GEODE_ADD(
-        static CCApplication* get();
-    );
+    static GEODE_DLL CCApplication* get();
 
     /**
     @brief Get current language config
