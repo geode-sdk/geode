@@ -45,7 +45,7 @@ namespace geode {
         /**
          * Human-readable ID of the Mod.
          * Recommended to be in the format
-         * "com.developer.mod". Not
+         * "developer.mod". Not
          * guaranteed to be either case-
          * nor space-sensitive. Should
          * be restricted to the ASCII
