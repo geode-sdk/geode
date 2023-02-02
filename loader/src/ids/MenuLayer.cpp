@@ -44,7 +44,7 @@ $register_ids(MenuLayer) {
             pfp->setPositionHint(PositionHint::Absolute);
         }
 
-        menu->setLayout(RowLayout::create(18.f, 0.f));
+        menu->setLayout(RowLayout::create()->setGap(18.f));
     }
     // bottom menu
     if (auto menu = getChildOfType<CCMenu>(this, 1)) {
@@ -57,10 +57,10 @@ $register_ids(MenuLayer) {
         // move daily chest to its own menu
 
         if (auto dailyChest = setIDSafe(menu, -1, "daily-chest-button")) {
-            detachAndCreateMenu(this, "right-side-menu", ColumnLayout::create(0.f, 0.f), dailyChest);
+            detachAndCreateMenu(this, "right-side-menu", ColumnLayout::create(), dailyChest);
         }
 
-        menu->setLayout(RowLayout::create(5.f, ach->getPositionY()));
+        menu->setLayout(RowLayout::create());
     }
     // social media menu
     if (auto menu = getChildOfType<CCMenu>(this, 2)) {
@@ -79,8 +79,8 @@ $register_ids(MenuLayer) {
 
         if (auto closeBtn = setIDSafe(menu, 1, "close-button")) {
             detachAndCreateMenu(
-                this, "close-menu", RowLayout::create(5.f, 0.f)->setAlignment(Alignment::Begin), closeBtn
-            );
+                this, "close-menu", RowLayout::create(), closeBtn
+            )->setAnchorPoint({ 0.f, .5f });
         }
     }
 }
