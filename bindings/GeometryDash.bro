@@ -3429,6 +3429,10 @@ class KeybindingsLayer : FLAlertLayer {
     cocos2d::CCNode* m_rightArrow;
 }
 
+class KeysLayer : cocos2d::CCLayer {
+    virtual bool init() = win 0x154560;
+}
+
 class LabelGameObject : GameObject {
     virtual bool init() = mac 0x2f5520, win 0x25b7c0;
     void setObjectColor(cocos2d::_ccColor3B const&) = mac 0xdbca0;
