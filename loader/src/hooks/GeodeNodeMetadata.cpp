@@ -118,13 +118,7 @@ CCNode* CCNode::getChildByIDRecursive(std::string const& id) {
     return nullptr;
 }
 
-void CCNode::setLayout(Layout* layout, bool apply, bool respectAnchor) {
-    if (respectAnchor && this->isIgnoreAnchorPointForPosition()) {
-        for (auto child : CCArrayExt<CCNode>(m_pChildren)) {
-            child->setPosition(child->getPosition() + this->getScaledContentSize());
-        }
-        this->ignoreAnchorPointForPosition(false);
-    }
+void CCNode::setLayout(Layout* layout, bool apply) {
     GeodeNodeMetadata::set(this)->m_layout.reset(layout);
     if (apply) {
         this->updateLayout();
@@ -137,7 +131,15 @@ Layout* CCNode::getLayout() {
 
 void CCNode::updateLayout() {
     if (auto layout = GeodeNodeMetadata::set(this)->m_layout.get()) {
-        layout->apply(this);
+        // nodes with absolute position should never be rearranged
+        auto filtered = CCArray::create();
+        for (auto& child : CCArrayExt<CCNode>(m_pChildren)) {
+            if (child->getPositionHint() != PositionHint::Absolute) {
+                filtered->addObject(child);
+            }
+        }
+        layout->apply(filtered, m_obContentSize);
+        filtered->release();
     }
 }
 

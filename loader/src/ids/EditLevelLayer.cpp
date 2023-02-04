@@ -3,7 +3,6 @@
 #include <Geode/Bindings.hpp>
 #include <Geode/modify/EditLevelLayer.hpp>
 #include <Geode/utils/cocos.hpp>
-#include <Geode/ui/BasedButtonSprite.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -46,30 +45,8 @@ $register_ids(EditLevelLayer) {
         );
 
         detachAndCreateMenu(
-            this, "folder-menu", ColumnLayout::create(), menu->getChildByID("folder-button")
+            menu, "folder-menu", ColumnLayout::create(), menu->getChildByID("folder-button")
         );
-        menu->setPosition(
-            menu->getPositionX() + static_cast<CCNode*>(
-                menu->getChildren()->firstObject()
-            )->getPositionX(),
-            285.f
-        );
-        menu->setLayout(
-            ColumnLayout::create()
-                ->setGap(7.f)
-                ->setReverse(true)
-                ->setAlignment(Alignment::Begin)
-                ->setAlignHorizontally(0.f)
-        );
-        menu->setZOrder(1);
-
-        for (int i = 0; i < rand() % 4; i++) {
-            auto btn = CircleButtonSprite::create(
-                CCLabelBMFont::create(std::to_string(i).c_str(), "bigFont.fnt")
-            );
-            menu->addChild(btn);
-        }
-        menu->updateLayout();
     }
 
     if (auto menu = this->getChildByID("back-button-menu")) setIDSafe(menu, 0, "back-button");

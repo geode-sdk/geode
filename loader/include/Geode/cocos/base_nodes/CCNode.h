@@ -921,14 +921,9 @@ public:
      * has been added, call updateLayout
      * @param layout Layout to set to this node
      * @param apply Whether to call updateLayout now or not
-     * @param respectAnchor If true, if the target node is 
-     * isIgnoreAnchorPointForPosition, then it is set to false and the children 
-     * are automatically moved to match where they should be positioned. 
-     * Visually, this should result in no difference; however, when dealing with 
-     * CCLayers / CCMenus, this will change where the children are located
      * @note Geode addition
      */
-    GEODE_DLL void setLayout(Layout* layout, bool apply = true, bool respectAnchor = true);
+    GEODE_DLL void setLayout(Layout* layout, bool apply = true);
     /**
      * Get the Layout for this node
      * @returns The current layout, or nullptr if no layout is set

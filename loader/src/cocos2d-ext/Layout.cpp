@@ -1,7 +1,5 @@
 #include <cocos2d.h>
 #include <Geode/utils/cocos.hpp>
-#include <Geode/utils/ranges.hpp>
-#include <Geode/loader/Log.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -11,56 +9,15 @@ void CCNode::swapChildIndices(CCNode* first, CCNode* second) {
     m_pChildren->exchangeObject(first, second);
 }
 
-CCArray* Layout::getNodesToPosition(CCNode* on) {
-    auto filtered = CCArray::create();
-    for (auto& child : CCArrayExt<CCNode>(on->getChildren())) {
-        if (child->getPositionHint() != PositionHint::Absolute) {
-            filtered->addObject(child);
-        }
-    }
-    return filtered;
-}
-
-void RowLayout::apply(CCNode* on) {
-
-    auto nodes = getNodesToPosition(on);
-    if (m_reverse) {
-        nodes->reverseObjects();
-    }
-
-    auto availableWidth = m_maxAutoScale.has_value() ?
-        on->getScaledContentSize().width :
-        on->getContentSize().width;
-
-    size_t ix = 0;
+void RowLayout::apply(CCArray* nodes, CCSize const& availableSize) {
     float totalWidth = .0f;
+    size_t ix = 0;
     for (auto& node : CCArrayExt<CCNode*>(nodes)) {
-        // if no need to fit fully inside, figure out what part may overflow 
-        // for first item
-        if (ix == 0 && !m_fitInside) {
-            totalWidth += node->getScaledContentSize().width
-             * (1.f - node->getAnchorPoint().x);
-        }
-        // if no need to fit fully inside, figure out what part may overflow
-        // for last item
-        else if (ix == nodes->count() - 1 && !m_fitInside) {
-            totalWidth += node->getScaledContentSize().width
-             * node->getAnchorPoint().x;
-        }
-        // otherwise either we need to fit fully inside or this node is not 
-        // at the start or end
-        else {
-            totalWidth += node->getScaledContentSize().width;
-        }
+        totalWidth += node->getScaledContentSize().width;
         if (ix) {
             totalWidth += m_gap;
         }
         ix++;
-    }
-
-    auto squeeze = availableSize.width / totalWidth;
-    if (squeeze > 1.f) {
-        squeeze = 1.f;
     }
 
     float pos;
@@ -83,16 +40,22 @@ void RowLayout::apply(CCNode* on) {
         if (m_alignVertically) {
             node->setPositionY(m_alignVertically.value());
         }
-        pos += (sw + m_gap) * squeeze;
+        pos += sw + m_gap;
     }
 }
 
-RowLayout* RowLayout::create() {
-    return new RowLayout();
+RowLayout* RowLayout::create(
+    float gap,
+    std::optional<float> alignVertically
+) {
+    auto ret = new RowLayout;
+    ret->m_gap = gap;
+    ret->m_alignVertically = alignVertically;
+    return ret;
 }
 
-RowLayout* RowLayout::setVAlignment(std::optional<Alignment> align) {
-    m_vAlignment = align;
+RowLayout* RowLayout::setAlignment(Alignment align) {
+    m_alignment = align;
     return this;
 }
 
@@ -101,39 +64,19 @@ RowLayout* RowLayout::setGap(float gap) {
     return this;
 }
 
-RowLayout* RowLayout::setReverse(bool reverse) {
-    m_reverse = reverse;
+RowLayout* RowLayout::setAlignVertically(std::optional<float> align) {
+    m_alignVertically = align;
     return this;
 }
 
-RowLayout* RowLayout::setMaxAutoScale(std::optional<float> scale) {
-    m_maxAutoScale = scale;
-    return this;
-}
-
-RowLayout* RowLayout::setFitInside(bool fit) {
-    m_fitInside = fit;
-    return this;
-}
-
-void ColumnLayout::apply(CCNode* on) {
+void ColumnLayout::apply(CCArray* nodes, CCSize const& availableSize) {
     float totalHeight = .0f;
     size_t ix = 0;
-    auto nodes = getNodesToPosition(on);
-    auto availableSize = on->getScaledContentSize();
     for (auto& node : CCArrayExt<CCNode*>(nodes)) {
         totalHeight += node->getScaledContentSize().height;
         if (ix) {
             totalHeight += m_gap;
         }
-    }
-
-    auto squeeze = availableSize.height / totalHeight;
-    if (squeeze > 1.f) {
-        squeeze = 1.f;
-    }
-    if (totalHeight > availableSize.height) {
-        totalHeight = availableSize.height;
     }
 
     float pos;
@@ -143,37 +86,35 @@ void ColumnLayout::apply(CCNode* on) {
         case Alignment::Begin: pos = -totalHeight; break;
         case Alignment::End: pos = 0.f; break;
     }
-    if (m_reverse) {
-        nodes->reverseObjects();
-    }
-    log::debug("start pos: {}", pos);
-    log::debug("squeeze: {}", squeeze);
     for (auto& node : CCArrayExt<CCNode*>(nodes)) {
         auto sh = node->getScaledContentSize().height;
         float disp;
         switch (m_alignment) {
             default:
             case Alignment::Center: disp = sh * node->getAnchorPoint().y; break;
-            case Alignment::Begin:  disp = (m_reverse ? 0.f : sh); break;
-            case Alignment::End:    disp = (m_reverse ? sh : 0.f); break;
+            case Alignment::Begin:  disp = sh; break;
+            case Alignment::End:    disp = 0.f; break;
         }
-        log::debug("positioning at: {}", pos + disp);
         node->setPositionY(pos + disp);
         if (m_alignHorizontally) {
             node->setPositionX(m_alignHorizontally.value());
         }
-        auto opos = pos;
-        pos += (sh + m_gap) * squeeze;
-        log::debug("pos: {} -> {}", opos, pos);
+        pos += sh + m_gap;
     }
 }
 
-ColumnLayout* ColumnLayout::create() {
-    return new ColumnLayout();
+ColumnLayout* ColumnLayout::create(
+    float gap,
+    std::optional<float> alignHorizontally
+) {
+    auto ret = new ColumnLayout;
+    ret->m_gap = gap;
+    ret->m_alignHorizontally = alignHorizontally;
+    return ret;
 }
 
-ColumnLayout* ColumnLayout::setHAlignment(std::optional<Alignment> align) {
-    m_hAlignment = align;
+ColumnLayout* ColumnLayout::setAlignment(Alignment align) {
+    m_alignment = align;
     return this;
 }
 
@@ -182,22 +123,12 @@ ColumnLayout* ColumnLayout::setGap(float gap) {
     return this;
 }
 
-ColumnLayout* ColumnLayout::setReverse(bool reverse) {
-    m_reverse = reverse;
+ColumnLayout* ColumnLayout::setAlignHorizontally(std::optional<float> align) {
+    m_alignHorizontally = align;
     return this;
 }
 
-ColumnLayout* ColumnLayout::setMaxAutoScale(std::optional<float> scale) {
-    m_maxAutoScale = scale;
-    return this;
-}
-
-ColumnLayout* ColumnLayout::setFitInside(bool fit) {
-    m_fitInside = fit;
-    return this;
-}
-
-void GridLayout::apply(CCNode* on) {
+void GridLayout::apply(CCArray* nodes, CCSize const& availableSize) {
     // todo
 }
 

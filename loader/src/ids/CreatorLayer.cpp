@@ -29,9 +29,9 @@ $register_ids(CreatorLayer) {
             detachAndCreateMenu(
                 this,
                 "top-right-menu",
-                ColumnLayout::create(),
+                ColumnLayout::create(5.f, 0.f)->setAlignment(Alignment::Begin),
                 lockBtn
-            )->setAnchorPoint({ 0.f, 0.f });
+            );
         }
 
         // move treasure room button to its own menu
