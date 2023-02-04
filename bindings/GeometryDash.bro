@@ -5373,7 +5373,7 @@ class LevelTools {
     static gd::string base64DecodeString(gd::string) = mac 0x294510, win 0x18b3b0;
     static GJGameLevel *getLevel(int, bool) = win 0x189370;
     static bool verifyLevelIntegrity(gd::string, int) = win 0x18b180;
-    static float xPosForTime(float, CCArray *, int) = win 0x18acd0;
-    static float timeForXPos(float, CCArray *, int) = win 0x18ae70;
+    static float xPosForTime(float, cocos2d::CCArray*, int) = win 0x18acd0;
+    static float timeForXPos(float, cocos2d::CCArray*, int) = win 0x18ae70;
 }
 // clang-format on
