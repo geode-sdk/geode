@@ -2467,7 +2467,7 @@ class GJUserCell : TableViewCell {
 }
 
 class GJUserMessage : cocos2d::CCNode {
-    virtual bool init() = 0x33b40;
+    virtual bool init() = win 0x33b40;
 }
 
 class GJUserScore : cocos2d::CCNode {
@@ -3915,7 +3915,7 @@ class LocalLevelManager : cocos2d::CCNode {
 
 class MapPackCell : TableViewCell {
     void updateBGColor(unsigned int index) = win 0x5c6b0;
-    void loadFromMapPack(GJMapPack *) = win 0x5cac0
+    void loadFromMapPack(GJMapPack *) = win 0x5cac0;
 }
 
 class MenuGameLayer {
