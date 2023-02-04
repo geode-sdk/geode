@@ -57,10 +57,11 @@ $register_ids(EditLevelLayer) {
         menu->setLayout(
             ColumnLayout::create()
                 ->setGap(7.f)
+                ->setFitInside(false)
+                ->setAxisAlignment(Alignment::Begin)
                 ->setReverse(true)
-                ->setAlignment(Alignment::Begin)
-                ->setAlignHorizontally(0.f)
         );
+        menu->setAnchorPoint({ .5f, 0.f });
         menu->setZOrder(1);
 
         for (int i = 0; i < rand() % 4; i++) {

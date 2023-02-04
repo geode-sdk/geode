@@ -21,12 +21,19 @@ $register_ids(LevelBrowserLayer) {
                 detachAndCreateMenu(
                     this,
                     "my-levels-menu",
-                    ColumnLayout::create(5.f, 0.f)->setAlignment(Alignment::End),
+                    ColumnLayout::create()
+                        ->setFitInside(false)
+                        ->setAxisAlignment(Alignment::End),
                     myLevelsBtn
-                );
+                )->setAnchorPoint({ .5f, 1.f });
             }
 
-            menu->setLayout(ColumnLayout::create(5.f, 0.f)->setAlignment(Alignment::End));
+            menu->setLayout(
+                ColumnLayout::create()
+                    ->setFitInside(false)
+                    ->setAxisAlignment(Alignment::End)
+            );
+            menu->setAnchorPoint({ .5f, 1.f });
         }
     }
 }

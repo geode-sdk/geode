@@ -177,10 +177,12 @@ $register_ids(EditorUI) {
         detachAndCreateMenu(
             this,
             "top-right-menu",
-            RowLayout::create()->setAlignment(Alignment::End),
+            RowLayout::create()
+                ->setFitInside(false)
+                ->setAxisAlignment(Alignment::End),
             menu->getChildByID("pause-button"),
             menu->getChildByID("settings-button")
-        );
+        )->setAnchorPoint({ 1.f, .5f });
 
         detachAndCreateMenu(
             this,

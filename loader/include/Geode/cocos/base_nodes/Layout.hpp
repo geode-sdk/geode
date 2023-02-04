@@ -56,28 +56,27 @@ enum class Alignment {
     End,
 };
 
-/**
- * Simple layout for arranging nodes in a row (horizontal line)
- */
-class GEODE_DLL RowLayout : public Layout {
+class GEODE_DLL AxisLayout : public Layout {
+public:
+    enum Axis : bool {
+        Row,
+        Column,
+    };
+
 protected:
-    std::optional<Alignment> m_vAlignment = Alignment::Center;
-    float m_gap;
-    std::optional<float> m_maxAutoScale = std::nullopt;
+    Axis m_axis;
+    Alignment m_axisAlignment = Alignment::Center;
+    Alignment m_crossAlignment = Alignment::Center;
+    float m_gap = 5.f;
+    bool m_autoScale = true;
+    bool m_shrinkCrossAxis = true;
     bool m_reverse = false;
     bool m_fitInside = false;
 
+    AxisLayout(Axis);
+
 public:
     void apply(CCNode* on) override;
-
-    /**
-     * Create a new RowLayout. Note that this class is not automatically 
-     * managed by default, so you must assign it to a CCNode or manually 
-     * manage the memory yourself. See the chainable setters on RowLayout for 
-     * what options you can customize for the layout
-     * @returns Created RowLayout
-     */
-    static RowLayout* create();
 
     /**
      * Sets where to align nodes on the Y-axis. If nullopt, the 
@@ -89,16 +88,17 @@ public:
      * @param align Value
      * @returns The same RowLayout this was applied on
      */
-    RowLayout* setVAlignment(std::optional<Alignment> align);
+    AxisLayout* setCrossAxisAlignment(Alignment align);
+    AxisLayout* setAxisAlignment(Alignment align);
     /**
      * The spacing between the children of the node this layout applies to. 
      * Measured as the space between their edges, not centres
      */
-    RowLayout* setGap(float gap);
+    AxisLayout* setGap(float gap);
     /**
      * Whether to reverse the direction of the children in this layout or not
      */
-    RowLayout* setReverse(bool reverse);
+    AxisLayout* setReverse(bool reverse);
     /**
      * If a value is provided, then the node this layout applies to may be 
      * automatically rescaled to fit its contents better. By default the value 
@@ -109,30 +109,43 @@ public:
      * inside of, and scales to fit that space. If the value is nullopt, the 
      * unscaled content size is used instead
      */
-    RowLayout* setMaxAutoScale(std::optional<float> scale);
+    AxisLayout* setAutoScale(bool enable);
     /**
      * If true, the children of the node this layout is applied to will be 
      * contained entirely within the bounds of the node's content size. If 
      * false, the children's positions will be within the bounds, but they may 
      * visually overflow depending on their anchor point
      */
-    RowLayout* setFitInside(bool fit);
+    AxisLayout* setFitInside(bool fit);
+    AxisLayout* setShrinkCrossAxis(bool shrink);
+};
+
+/**
+ * Simple layout for arranging nodes in a row (horizontal line)
+ */
+class GEODE_DLL RowLayout : public AxisLayout {
+protected:
+    RowLayout();
+
+public:
+    /**
+     * Create a new RowLayout. Note that this class is not automatically 
+     * managed by default, so you must assign it to a CCNode or manually 
+     * manage the memory yourself. See the chainable setters on RowLayout for 
+     * what options you can customize for the layout
+     * @returns Created RowLayout
+     */
+    static RowLayout* create();
 };
 
 /**
  * Simple layout for arranging nodes in a column (vertical line)
  */
-class GEODE_DLL ColumnLayout : public Layout {
+class GEODE_DLL ColumnLayout : public AxisLayout {
 protected:
-    std::optional<Alignment> m_hAlignment = Alignment::Center;
-    float m_gap;
-    std::optional<float> m_maxAutoScale = std::nullopt;
-    bool m_reverse = false;
-    bool m_fitInside = false;
+    ColumnLayout();
 
 public:
-    void apply(CCNode* on) override;
-
     /**
      * Create a new ColumnLayout. Note that this class is not automatically 
      * managed by default, so you must assign it to a CCNode or manually 
@@ -141,42 +154,6 @@ public:
      * @returns Created ColumnLayout
      */
     static ColumnLayout* create();
-
-    /**
-     * Sets where to align nodes on the X-axis. If nullopt, the 
-     * nodes' X-position will not be affected, and the width of the node this 
-     * layout applies to isn't altered. If an alignment is given, the width 
-     * of the node this layout applies to is shrunk to fit the width of the 
-     * nodes and no more. Any nodes that don't fit inside this space are 
-     * aligned based on the value
-     * @param align Value
-     * @returns The same RowLayout this was applied on
-     */
-    ColumnLayout* setHAlignment(std::optional<Alignment> align);
-    /**
-     * The spacing between the children of the node this layout applies to. 
-     * Measured as the space between their edges, not centres
-     */
-    ColumnLayout* setGap(float gap);
-    /**
-     * Whether to reverse the direction of the children in this layout or not
-     */
-    ColumnLayout* setReverse(bool reverse);
-    /**
-     * If a value is provided, then the node this layout applies to may be 
-     * automatically rescaled to fit its contents better. By default the value 
-     * is nullopt, which means that the layout doesn't affect the node's scale 
-     * in any way, and any nodes that might overflow will be squished using 
-     * other methods
-     */
-    ColumnLayout* setMaxAutoScale(std::optional<float> scale);
-    /**
-     * If true, the children of the node this layout is applied to will be 
-     * contained entirely within the bounds of the node's content size. If 
-     * false, the children's positions will be within the bounds, but they may 
-     * visually overflow depending on their anchor point
-     */
-    ColumnLayout* setFitInside(bool fit);
 };
 
 /**

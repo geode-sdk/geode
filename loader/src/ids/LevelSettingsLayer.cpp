@@ -165,9 +165,11 @@ $register_ids(LevelSettingsLayer) {
             detachAndCreateMenu(
                 this,
                 "font-button-menu",
-                RowLayout::create()->setAlignment(Alignment::End),
+                RowLayout::create()
+                    ->setFitInside(false)
+                    ->setAxisAlignment(Alignment::End),
                 menu->getChildByID("font-button")
-            );
+            )->setAnchorPoint({ .5f, 1.f });
         }
     }
 

@@ -44,8 +44,13 @@ $register_ids(LevelInfoLayer) {
 
         if (auto name = setIDSafe(menu, 0, "creator-name")) {
             detachAndCreateMenu(
-                this, "creator-info-menu", ColumnLayout::create()->setAlignment(Alignment::Begin), name
-            );
+                this,
+                "creator-info-menu",
+                ColumnLayout::create()
+                    ->setFitInside(false)
+                    ->setAxisAlignment(Alignment::Begin),
+                name
+            )->setAnchorPoint({ .5f, 0.f });
         }
 
         auto leftSideMenu = CCMenu::create();

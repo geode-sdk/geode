@@ -64,12 +64,13 @@ static CCMenu* detachAndCreateMenu(CCNode* parent, const char* menuID, Layout* l
     newMenu->setPosition(parent->convertToNodeSpace(oldMenu->convertToWorldSpace(first->getPosition())));
     newMenu->setID(menuID);
     newMenu->setZOrder(oldMenu->getZOrder());
-    newMenu->setLayout(layout);
     parent->addChild(newMenu);
 
     first->setPosition(0, 0);
     newMenu->addChild(first);
     first->release();
+    
+    newMenu->setLayout(layout);
 
     (switchToMenu(args, newMenu), ...);
 
