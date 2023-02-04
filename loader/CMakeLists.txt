@@ -135,6 +135,7 @@ if (NOT GEODE_BUILDING_DOCS)
 
 	# Zip support (needed for in-memory streams, which zlib's minizip doesn't support)
 	set(MZ_LZMA Off CACHE INTERNAL "Enables LZMA & XZ compression")
+	set(MZ_ZSTD Off CACHE INTERNAL "")
 	CPMAddPackage("gh:zlib-ng/minizip-ng#cee6d8c")
 
 	# Regex support
