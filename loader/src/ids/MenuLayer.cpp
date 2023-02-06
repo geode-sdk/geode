@@ -41,18 +41,27 @@ $register_ids(MenuLayer) {
         setIDSafe(menu, 2, "editor-button");
 
         if (auto pfp = setIDSafe(menu, 3, "profile-button")) {
-            detachAndCreateMenu(
+            auto profileMenu = detachAndCreateMenu(
                 this, "profile-menu",
                 ColumnLayout::create()
-                    ->setFitInside(false)
-                    ->setAxisAlignment(Alignment::Begin)
-                    ->setReverse(true),
+                    ->setAxisAlignment(AxisAlignment::Start)
+                    ->setAxisReverse(true),
                 pfp
-            )->setAnchorPoint({ .5f, .0f });
+            );
+            profileMenu->setContentSize({ 50.f, 200.f });
+            profileMenu->setPositionY(
+                profileMenu->getPositionY() + 200.f / 2 - 
+                    pfp->getScaledContentSize().height / 2
+            );
+            profileMenu->updateLayout();
         }
 
         menu->setContentSize({ 400.f, 65.f });
-        menu->setLayout(RowLayout::create()->setGap(18.f));
+        menu->setLayout(
+            RowLayout::create()
+                ->setGap(18.f)
+                ->setCrossAxisOverflow(true)
+        );
     }
     // bottom menu
     if (auto menu = getChildOfType<CCMenu>(this, 1)) {
@@ -68,7 +77,7 @@ $register_ids(MenuLayer) {
             auto menu = detachAndCreateMenu(
                 this,
                 "right-side-menu",
-                ColumnLayout::create()->setFitInside(true),
+                ColumnLayout::create(),
                 dailyChest
             );
             menu->setContentSize({ 65.f, 180.f });
@@ -76,7 +85,7 @@ $register_ids(MenuLayer) {
         }
 
         menu->setContentSize({ 360.f, 65.f });
-        menu->setLayout(RowLayout::create()->setFitInside(true));
+        menu->setLayout(RowLayout::create());
     }
     // social media menu
     if (auto menu = getChildOfType<CCMenu>(this, 2)) {
@@ -94,14 +103,19 @@ $register_ids(MenuLayer) {
         // move close button to its own menu
 
         if (auto closeBtn = setIDSafe(menu, 1, "close-button")) {
-            detachAndCreateMenu(
+            auto closeMenu = detachAndCreateMenu(
                 this,
                 "close-menu",
                 RowLayout::create()
-                    ->setFitInside(false)
-                    ->setAxisAlignment(Alignment::Begin),
+                    ->setAxisAlignment(AxisAlignment::Start),
                 closeBtn
-            )->setAnchorPoint({ 0.f, .5f });
+            );
+            closeMenu->setContentSize({ 200.f, 50.f });
+            closeMenu->setPositionX(
+                closeMenu->getPositionX() + 200.f / 2 - 
+                    closeBtn->getScaledContentSize().width / 2
+            );
+            closeMenu->updateLayout();
         }
     }
 }

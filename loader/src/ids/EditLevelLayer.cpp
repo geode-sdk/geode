@@ -30,6 +30,8 @@ $register_ids(EditLevelLayer) {
         "info-button-menu"
     );
 
+    auto winSize = CCDirector::get()->getWinSize();
+
     if (auto menu = this->getChildByID("level-action-menu")) {
         setIDs(menu, 0, "edit-button", "play-button", "share-button");
     }
@@ -52,16 +54,15 @@ $register_ids(EditLevelLayer) {
             menu->getPositionX() + static_cast<CCNode*>(
                 menu->getChildren()->firstObject()
             )->getPositionX(),
-            285.f
+            winSize.height / 2
         );
+        menu->setContentSize({ 60.f, winSize.height - 50.f });
         menu->setLayout(
             ColumnLayout::create()
                 ->setGap(7.f)
-                ->setFitInside(false)
-                ->setAxisAlignment(Alignment::Begin)
-                ->setReverse(true)
+                ->setAxisAlignment(AxisAlignment::Start)
+                ->setAxisReverse(true)
         );
-        menu->setAnchorPoint({ .5f, 0.f });
         menu->setZOrder(1);
 
         for (int i = 0; i < rand() % 4; i++) {

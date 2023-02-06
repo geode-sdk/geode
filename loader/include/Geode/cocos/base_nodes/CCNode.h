@@ -941,6 +941,21 @@ public:
      * @note Geode addition
      */
     GEODE_DLL void updateLayout();
+    /**
+     * Set the layout options for this node. Layout options can be used to 
+     * control how this node is positioned in its parent's Layout, for example 
+     * setting the grow size for a flex layout
+     * @param options The layout options
+     * @param apply Whether to update the layout of the parent node
+     * @note Geode addition
+     */
+    GEODE_DLL void setLayoutOptions(LayoutOptions* options, bool apply = true);
+    /**
+     * Get the layout options for this node
+     * @returns The current layout options, or nullptr if no options are set
+     * @note Geode addition
+     */
+    GEODE_DLL LayoutOptions* getLayoutOptions();
 
     /**
      * Give a hint to the current Layout about where this node should be 

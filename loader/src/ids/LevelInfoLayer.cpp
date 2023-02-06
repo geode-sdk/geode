@@ -43,14 +43,16 @@ $register_ids(LevelInfoLayer) {
         menu->setID("right-side-menu");
 
         if (auto name = setIDSafe(menu, 0, "creator-name")) {
-            detachAndCreateMenu(
+            auto menu = detachAndCreateMenu(
                 this,
                 "creator-info-menu",
                 ColumnLayout::create()
-                    ->setFitInside(false)
-                    ->setAxisAlignment(Alignment::Begin),
+                    ->setAxisAlignment(AxisAlignment::Start),
                 name
-            )->setAnchorPoint({ .5f, 0.f });
+            );
+            menu->setPositionY(menu->getPositionY() + 100.f / 2);
+            menu->setContentSize({ 60.f, 100.f });
+            menu->updateLayout();
         }
 
         auto leftSideMenu = CCMenu::create();

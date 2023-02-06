@@ -32,6 +32,13 @@ public:
      * have their PositionHint marked as absolute
      */
     virtual void apply(CCNode* on) = 0;
+
+    virtual ~Layout() = default;
+};
+
+class GEODE_DLL LayoutOptions {
+public:
+    virtual ~LayoutOptions() = default;
 };
 
 /**
@@ -47,31 +54,49 @@ enum class PositionHint {
     Absolute,
 };
 
+enum class Axis {
+    Row,
+    Column,
+};
+
 /**
  * Specifies the alignment of something
  */
-enum class Alignment {
-    Begin,
+enum class AxisAlignment {
+    // Align items to the start
+    // |ooo......|
+    Start,
+    // All items are centered
+    // |...ooo...|
     Center,
+    // Align items to the end
+    // |......ooo|
     End,
+    // Each item gets the same portion from the layout (disregards gap)
+    // |.o..o..o.|
+    Even,
 };
 
+/**
+ * Layout for arranging nodes along an axis. Used to implement row, column, and 
+ * grid layouts
+ */
 class GEODE_DLL AxisLayout : public Layout {
-public:
-    enum Axis : bool {
-        Row,
-        Column,
-    };
-
 protected:
     Axis m_axis;
-    Alignment m_axisAlignment = Alignment::Center;
-    Alignment m_crossAlignment = Alignment::Center;
+    AxisAlignment m_axisAlignment = AxisAlignment::Center;
+    AxisAlignment m_crossAlignment = AxisAlignment::Center;
     float m_gap = 5.f;
     bool m_autoScale = true;
-    bool m_shrinkCrossAxis = true;
-    bool m_reverse = false;
-    bool m_fitInside = false;
+    bool m_axisReverse = false;
+    bool m_crossReverse = false;
+    bool m_allowCrossAxisOverflow = true;
+    bool m_growCrossAxis = false;
+
+    struct Row;
+
+    Row* fitInRow(CCNode* on, CCArray* nodes, float scale, float squish) const;
+    void tryFitLayout(CCNode* on, CCArray* nodes, float scale, float squish) const;
 
     AxisLayout(Axis);
 
@@ -79,45 +104,44 @@ public:
     void apply(CCNode* on) override;
 
     /**
-     * Sets where to align nodes on the Y-axis. If nullopt, the 
-     * nodes' Y-position will not be affected, and the height of the node this 
-     * layout applies to isn't altered. If an alignment is given, the height 
-     * of the node this layout applies to is shrunk to fit the height of the 
-     * nodes and no more. Any nodes that don't fit inside this space are 
-     * aligned based on the value
-     * @param align Value
-     * @returns The same RowLayout this was applied on
+     * Sets where to align the target node's children on the cross-axis (Y for 
+     * Row, X for Column)
      */
-    AxisLayout* setCrossAxisAlignment(Alignment align);
-    AxisLayout* setAxisAlignment(Alignment align);
+    AxisLayout* setCrossAxisAlignment(AxisAlignment align);
+    /**
+     * Sets where to align the target node's children on the main axis (X for 
+     * Row, Y for Column)
+     */
+    AxisLayout* setAxisAlignment(AxisAlignment align);
     /**
      * The spacing between the children of the node this layout applies to. 
-     * Measured as the space between their edges, not centres
+     * Measured as the space between their edges, not centres. Does not apply 
+     * on the main / cross axis if their alignment is AxisAlignment::Even
      */
     AxisLayout* setGap(float gap);
     /**
      * Whether to reverse the direction of the children in this layout or not
      */
-    AxisLayout* setReverse(bool reverse);
+    AxisLayout* setAxisReverse(bool reverse);
     /**
-     * If a value is provided, then the node this layout applies to may be 
-     * automatically rescaled to fit its contents better. By default the value 
-     * is nullopt, which means that the layout doesn't affect the node's scale 
-     * in any way, and any nodes that might overflow will be squished using 
-     * other methods. If the value is set, the layout assumes that the scaled 
-     * content size of the target node is what the content should be fit 
-     * inside of, and scales to fit that space. If the value is nullopt, the 
-     * unscaled content size is used instead
+     * Whether to reverse the direction of the rows on the cross-axis or not
+     */
+    AxisLayout* setCrossAxisReverse(bool reverse);
+    /**
+     * If enabled, then the layout may scale the target's children if they are 
+     * about to overflow. Assumes that all the childrens' intended scale is 1
      */
     AxisLayout* setAutoScale(bool enable);
     /**
-     * If true, the children of the node this layout is applied to will be 
-     * contained entirely within the bounds of the node's content size. If 
-     * false, the children's positions will be within the bounds, but they may 
-     * visually overflow depending on their anchor point
+     * If true, if the main axis overflows extra nodes will be placed on new 
+     * rows/columns on the cross-axis
      */
-    AxisLayout* setFitInside(bool fit);
-    AxisLayout* setShrinkCrossAxis(bool shrink);
+    AxisLayout* setGrowCrossAxis(bool expand);
+    /**
+     * If true, the cross-axis content size of the target node will be 
+     * automatically adjusted to fit the children
+     */
+    AxisLayout* setCrossAxisOverflow(bool allow);
 };
 
 /**
@@ -154,52 +178,6 @@ public:
      * @returns Created ColumnLayout
      */
     static ColumnLayout* create();
-};
-
-/**
- * Grid direction; which direction the grid should add its next row to if the 
- * current row is full
- */
-enum class GridDirection {
-    // Downward
-    Column,
-    // Upward
-    ReverseColumn,
-    // Right
-    Row,
-    // Left
-    ReverseRow,
-};
-
-/**
- * Grid alignment; same as normal Alignment but also features the "Stretch" 
- * option which will stretch the row out to be the same size as the others
-*/
-enum class GridAlignment {
-    Begin,
-    Center,
-    Stretch,
-    End,
-};
-
-class GEODE_DLL GridLayout : public Layout {
-protected:
-    GridDirection m_direction = GridDirection::Column;
-    GridAlignment m_alignment = GridAlignment::Center;
-    std::optional<size_t> m_rowSize;
-
-public:
-    void apply(CCNode* on) override;
-
-    static GridLayout* create(
-        std::optional<size_t> rowSize,
-        GridAlignment alignment = GridAlignment::Center,
-        GridDirection direction = GridDirection::Column
-    );
-
-    GridLayout* setDirection(GridDirection direction);
-    GridLayout* setAlignment(GridAlignment alignment);
-    GridLayout* setRowSize(std::optional<size_t> rowSize);
 };
 
 NS_CC_END

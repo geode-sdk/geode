@@ -18,22 +18,40 @@ $register_ids(LevelBrowserLayer) {
             setIDSafe(menu, 0, "new-level-button");
 
             if (auto myLevelsBtn = setIDSafe(menu, 1, "my-levels-button")) {
-                detachAndCreateMenu(
+                auto menu = detachAndCreateMenu(
                     this,
                     "my-levels-menu",
                     ColumnLayout::create()
-                        ->setFitInside(false)
-                        ->setAxisAlignment(Alignment::End),
+                        ->setAxisAlignment(AxisAlignment::Start),
                     myLevelsBtn
-                )->setAnchorPoint({ .5f, 1.f });
+                );
+                menu->setPositionY(menu->getPositionY() + 100.f / 2);
+                menu->setContentSize({ 50.f, 100.f });
+                menu->updateLayout();
             }
 
             menu->setLayout(
                 ColumnLayout::create()
-                    ->setFitInside(false)
-                    ->setAxisAlignment(Alignment::End)
+                    ->setAxisAlignment(AxisAlignment::Start)
             );
-            menu->setAnchorPoint({ .5f, 1.f });
+            menu->setPositionY(menu->getPositionY() + 150.f / 2);
+            menu->setContentSize({ 50.f, 150.f });
+            menu->updateLayout();
+        }
+
+        if (auto menu = getChildOfType<CCMenu>(this, 1)) {
+            if (auto searchBtn = setIDSafe(menu, 5, "search-button")) {
+                auto menu = detachAndCreateMenu(
+                    this,
+                    "search-menu",
+                    ColumnLayout::create()
+                        ->setAxisAlignment(AxisAlignment::Start),
+                    searchBtn
+                );
+                menu->setPositionY(menu->getPositionY() + 50.f / 2);
+                menu->setContentSize({ 50.f, 50.f });
+                menu->updateLayout();
+            }
         }
     }
 }

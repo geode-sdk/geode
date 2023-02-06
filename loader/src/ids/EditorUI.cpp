@@ -42,15 +42,23 @@ $register_ids(EditorUI) {
             "unlink-button"
         );
 
-        detachAndCreateMenu(
+        auto toolbarTogglesMenu = detachAndCreateMenu(
             this,
             "toolbar-toggles-menu",
-            GridLayout::create(2, GridAlignment::Begin, GridDirection::Column),
+            ColumnLayout::create()
+                ->setCrossAxisOverflow(false)
+                ->setAxisAlignment(AxisAlignment::Even)
+                ->setCrossAxisAlignment(AxisAlignment::Even),
             menu->getChildByID("swipe-button"),
             menu->getChildByID("free-move-button"),
             menu->getChildByID("snap-button"),
             menu->getChildByID("rotate-button")
         );
+        toolbarTogglesMenu->setPosition(
+            toolbarTogglesMenu->getPosition() - CCPoint { 50.f, 50.f }
+        );
+        toolbarTogglesMenu->setContentSize({ 100.f, 100.f });
+        toolbarTogglesMenu->updateLayout();
 
         detachAndCreateMenu(
             this,
@@ -108,24 +116,40 @@ $register_ids(EditorUI) {
             "delete-help-icon"
         );
 
-        detachAndCreateMenu(
+        auto deleteButtonMenu = detachAndCreateMenu(
             menu,
             "delete-button-menu",
-            GridLayout::create(2, GridAlignment::Begin, GridDirection::Column),
+            ColumnLayout::create()
+                ->setCrossAxisOverflow(false)
+                ->setAxisAlignment(AxisAlignment::Even)
+                ->setCrossAxisAlignment(AxisAlignment::Even),
             menu->getChildByID("delete-button"),
             menu->getChildByID("delete-all-of-button"),
             menu->getChildByID("delete-startpos-button")
         );
+        deleteButtonMenu->setPosition(
+            deleteButtonMenu->getPosition() - CCPoint { 50.f, 50.f }
+        );
+        deleteButtonMenu->setContentSize({ 100.f, 100.f });
+        deleteButtonMenu->updateLayout();
 
-        detachAndCreateMenu(
+        auto deleteFilterMenu = detachAndCreateMenu(
             menu,
             "delete-filter-menu",
-            GridLayout::create(2, GridAlignment::Begin, GridDirection::Column),
+            ColumnLayout::create()
+                ->setCrossAxisOverflow(false)
+                ->setAxisAlignment(AxisAlignment::Even)
+                ->setCrossAxisAlignment(AxisAlignment::Even),
             menu->getChildByID("delete-filter-none"),
             menu->getChildByID("delete-filter-static"),
             menu->getChildByID("delete-filter-detail"),
             menu->getChildByID("delete-filter-custom")
         );
+        deleteFilterMenu->setPosition(
+            deleteFilterMenu->getPosition() - CCPoint { 50.f, 50.f }
+        );
+        deleteFilterMenu->setContentSize({ 100.f, 100.f });
+        deleteFilterMenu->updateLayout();
     }
 
     if (auto menu = getChildOfType<CCMenu>(this, 2)) {
@@ -174,20 +198,25 @@ $register_ids(EditorUI) {
             "all-layers-button"
         );
 
-        detachAndCreateMenu(
+        auto topRightMenu = detachAndCreateMenu(
             this,
             "top-right-menu",
             RowLayout::create()
-                ->setFitInside(false)
-                ->setAxisAlignment(Alignment::End),
+                ->setAxisAlignment(AxisAlignment::End),
             menu->getChildByID("pause-button"),
             menu->getChildByID("settings-button")
-        )->setAnchorPoint({ 1.f, .5f });
+        );
+        topRightMenu->setContentSize({ 60.f, 125.f });
+        topRightMenu->setPositionX(topRightMenu->getPositionX() - 125.f / 2);
+        topRightMenu->updateLayout();
 
-        detachAndCreateMenu(
+        auto rightMenu = detachAndCreateMenu(
             this,
             "editor-buttons-menu",
-            GridLayout::create(4, GridAlignment::End, GridDirection::Column),
+            ColumnLayout::create()
+                ->setAxisAlignment(AxisAlignment::Even)
+                ->setCrossAxisAlignment(AxisAlignment::End)
+                ->setCrossAxisReverse(true),
             menu->getChildByID("copy-paste-button"),
             menu->getChildByID("edit-object-button"),
             menu->getChildByID("paste-color-button"),
@@ -201,6 +230,9 @@ $register_ids(EditorUI) {
             menu->getChildByID("copy-values-button"),
             menu->getChildByID("hsv-button")
         );
+        rightMenu->setContentSize({ 125.f, 125.f });
+        rightMenu->setPosition(rightMenu->getPosition() - CCPoint { 125.f, 125.f });
+        rightMenu->updateLayout();
 
         detachAndCreateMenu(
             this,
