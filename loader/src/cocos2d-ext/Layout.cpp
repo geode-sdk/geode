@@ -54,21 +54,21 @@ static AxisPosition nodeAxis(CCNode* node, Axis axis, float scale) {
 
 struct AxisLayout::Row : public CCObject {
     float nextOverflowScaleDownFactor;
-    float nextOverflowSquichFactor;
     float axisLength;
     float crossLength;
+    float endsLength;
     Ref<CCArray> nodes;
 
     Row(
         float scaleFactor,
-        float squishFactor,
         float axisLength,
         float crossLength,
+        float endsLength,
         CCArray* nodes
     ) : nextOverflowScaleDownFactor(scaleFactor),
-        nextOverflowSquichFactor(squishFactor),
         axisLength(axisLength),
         crossLength(crossLength),
+        endsLength(endsLength),
         nodes(nodes)
     {
         this->autorelease();
@@ -84,6 +84,9 @@ AxisLayout::Row* AxisLayout::fitInRow(CCNode* on, CCArray* nodes, float scale, f
     auto available = nodeAxis(on, m_axis, 1.f);
     size_t ix = 0;
     for (auto& node : CCArrayExt<CCNode*>(nodes)) {
+        if (m_autoScale) {
+            node->setScale(1);
+        }
         auto pos = nodeAxis(node, m_axis, scale * squish);
         nextAxisLength += pos.axisLength;
         // if multiple rows are allowed and this row is full, time for the 
@@ -92,10 +95,9 @@ AxisLayout::Row* AxisLayout::fitInRow(CCNode* on, CCArray* nodes, float scale, f
             break;
         }
         res->addObject(node);
-        nodes->removeFirstObject();
         if (ix) {
-            nextAxisLength += m_gap * squish;
-            axisLength += m_gap * squish;
+            nextAxisLength += m_gap * scale * squish;
+            axisLength += m_gap * scale * squish;
         }
         axisLength += pos.axisLength;
         if (pos.crossLength > crossLength) {
@@ -104,19 +106,29 @@ AxisLayout::Row* AxisLayout::fitInRow(CCNode* on, CCArray* nodes, float scale, f
         ix++;
     }
 
+    // whoops! removing objects from a CCArray while iterating is totes potes UB
+    for (int i = 0; i < res->count(); i++) {
+        nodes->removeFirstObject();
+    }
+
     // reverse row if needed
     if (m_axisReverse) {
         res->reverseObjects();
     }
 
+    auto endsLength = static_cast<CCNode*>(
+            res->firstObject()
+        )->getScaledContentSize().width * scale / 2 +
+        static_cast<CCNode*>(
+            res->lastObject()
+        )->getScaledContentSize().width * scale / 2;
+
     return new Row(
         // how much should the nodes be scaled down to fit the next row
-        available.axisLength / (
-            nextAxisLength - m_gap * (res->count() - 1)
-        ) * scale * squish,
-        available.axisLength / nextAxisLength * scale * squish,
+        available.axisLength / nextAxisLength,
         axisLength,
         crossLength,
+        endsLength,
         res
     );
 }
@@ -124,8 +136,7 @@ AxisLayout::Row* AxisLayout::fitInRow(CCNode* on, CCArray* nodes, float scale, f
 void AxisLayout::tryFitLayout(CCNode* on, CCArray* nodes, float scale, float squish) const {
     auto rows = CCArray::create();
     float totalRowCrossLength = 0.f;
-    float crossScaleDownFactor = AXIS_MIN_SCALE;
-    float squishFactor = 1.f;
+    float crossScaleDownFactor = 0.f;
     size_t ix = 0;
 
     // fit everything into rows while possible
@@ -138,9 +149,6 @@ void AxisLayout::tryFitLayout(CCNode* on, CCArray* nodes, float scale, float squ
             crossScaleDownFactor < 1.f
         ) {
             crossScaleDownFactor = row->nextOverflowScaleDownFactor;
-        }
-        if (row->nextOverflowSquichFactor < squishFactor) {
-            squishFactor = row->nextOverflowSquichFactor;
         }
         totalRowCrossLength += row->crossLength;
         if (ix) {
@@ -161,12 +169,12 @@ void AxisLayout::tryFitLayout(CCNode* on, CCArray* nodes, float scale, float squ
     }
 
     // if we're still overflowing, squeeze nodes closer together
-    if (totalRowCrossLength > available.crossLength) {
+    if (!m_allowCrossAxisOverflow && totalRowCrossLength > available.crossLength) {
         // if squishing rows would take less squishing that squishing columns, 
         // then squish rows
-        if (totalRowCrossLength / available.crossLength < squishFactor) {
+        if (totalRowCrossLength / available.crossLength < crossScaleDownFactor) {
             rows->release();
-            return this->tryFitLayout(on, nodes, scale, squishFactor);
+            return this->tryFitLayout(on, nodes, scale, crossScaleDownFactor);
         }
     }
 
@@ -180,7 +188,6 @@ void AxisLayout::tryFitLayout(CCNode* on, CCArray* nodes, float scale, float squ
     if (m_allowCrossAxisOverflow) {
         available.crossLength = totalRowCrossLength;
         if (m_axis == Axis::Row) {
-            log::debug("axisLength: {}, totalRowCrossLength: {}", available.axisLength, totalRowCrossLength);
             on->setContentSize({
                 available.axisLength,
                 totalRowCrossLength,
@@ -214,6 +221,26 @@ void AxisLayout::tryFitLayout(CCNode* on, CCArray* nodes, float scale, float squ
     }
 
     for (auto row : CCArrayExt<Row*>(rows)) {
+        // scale down & squish row if it overflows main axis
+        float rowScale = scale;
+        float rowSquish = squish;
+        if (row->axisLength > available.axisLength) {
+            if (m_autoScale) {
+                rowScale = (available.axisLength - row->endsLength / 2) / row->axisLength;
+                if (rowScale < AXIS_MIN_SCALE) {
+                    rowScale = AXIS_MIN_SCALE;
+                }
+                row->axisLength *= rowScale;
+            }
+            if (row->axisLength > available.axisLength) {
+                rowSquish = (available.axisLength - row->endsLength / 2) / row->axisLength;
+            }
+            row->axisLength = available.axisLength;
+        }
+
+        log::debug("rowScale: {}, rowSquish: {}", rowScale, rowSquish);
+        log::debug("row->axisLength: {}", row->axisLength);
+        
         float rowAxisPos;
         switch (m_axisAlignment) {
             case AxisAlignment::Start: { 
@@ -233,16 +260,17 @@ void AxisLayout::tryFitLayout(CCNode* on, CCArray* nodes, float scale, float squ
             } break;
         }
 
+        size_t ix = 0;
         for (auto& node : CCArrayExt<CCNode*>(row->nodes)) {
             // rescale node if overflowing
             if (m_autoScale) {
                 // CCMenuItemSpriteExtra is quirky af
                 if (auto btn = typeinfo_cast<CCMenuItemSpriteExtra*>(node)) {
-                    btn->m_baseScale = scale;
+                    btn->m_baseScale = rowScale;
                 }
-                node->setScale(scale);
+                node->setScale(rowScale);
             }
-            auto pos = nodeAxis(node, m_axis, scale * squish);
+            auto pos = nodeAxis(node, m_axis, 1.f);
             float axisPos = rowAxisPos + pos.axisLength * pos.axisAnchor;
             float crossPos;
             switch (m_crossAlignment) {
@@ -258,15 +286,14 @@ void AxisLayout::tryFitLayout(CCNode* on, CCArray* nodes, float scale, float squ
                     crossPos = row->crossLength - pos.crossLength * (1.f - pos.crossAnchor);
                 } break;
             }
-            log::debug("axisPos: {}", axisPos);
-            log::debug("crossPos: {}", crossPos);
             if (m_axis == Axis::Row) {
                 node->setPosition(axisPos, crossPos);
             }
             else {
                 node->setPosition(crossPos, axisPos);
             }
-            rowAxisPos += pos.axisLength + m_gap * squish;
+            rowAxisPos += pos.axisLength * rowSquish + m_gap * rowScale * rowSquish;
+            ix++;
         }
     }
 }

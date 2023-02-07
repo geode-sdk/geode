@@ -2,6 +2,7 @@
 
 #include <Geode/modify/MenuLayer.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/ui/BasedButtonSprite.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -98,7 +99,7 @@ $register_ids(MenuLayer) {
     // more games menu
     if (auto menu = getChildOfType<CCMenu>(this, 3)) {
         menu->setID("more-games-menu");
-        setIDSafe(menu, 0, "more-games-button");
+        auto moreGamesBtn = setIDSafe(menu, 0, "more-games-button");
 
         // move close button to its own menu
 
@@ -117,7 +118,38 @@ $register_ids(MenuLayer) {
             );
             closeMenu->updateLayout();
         }
+    
+        menu->setContentSize({ 100.f, 50.f });
+        menu->setPositionX(
+            menu->getPositionX() - 100.f / 2 + 
+                moreGamesBtn->getScaledContentSize().width / 2
+        );
+        menu->setLayout(
+            RowLayout::create()
+                ->setAxisAlignment(AxisAlignment::End)
+                ->setAxisReverse(true)
+        );
     }
 }
+
+struct $modify(MenuLayer) {
+    void onMoreGames(CCObject*) {
+		auto thisDogFuckedUpBrah = CircleButtonSprite::createWithSpriteFrameName(
+			"geode-logo-outline-gold.png"_spr,
+			1.0f,
+			CircleBaseColor::Green,
+			CircleBaseSize::Medium2
+		);
+
+        auto bottomMenu = static_cast<CCMenu*>(this->getChildByID("bottom-menu"));
+
+		auto btn = CCMenuItemSpriteExtra::create(
+			thisDogFuckedUpBrah, this, nullptr
+		);
+		bottomMenu->addChild(btn);
+
+        bottomMenu->updateLayout();
+    }
+};
 
 // MenuLayer::init is hooked in ../hooks/MenuLayer.cpp
