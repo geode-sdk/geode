@@ -69,6 +69,7 @@ target_sources(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/entry.cpp)
 
 # Filesystem implementation in a separate target because i couldnt disable pch
 add_library(GeodeFilesystemImpl ${CMAKE_CURRENT_SOURCE_DIR}/FilesystemImpl.cpp)
+target_compile_features(GeodeFilesystemImpl PUBLIC cxx_std_20)
 target_link_libraries(GeodeFilesystemImpl PUBLIC ghc_filesystem)
 
 include(ExternalProject)
