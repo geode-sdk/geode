@@ -159,7 +159,8 @@ namespace geode {
         /**
          * Whether this mod is an API or not
          */
-        bool isAPI = false;
+        bool& isAPI();
+        bool const& isAPI() const;
         /**
          * Create ModInfo from an unzipped .geode package
          */

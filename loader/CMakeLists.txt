@@ -40,6 +40,7 @@ file(GLOB OBJC_SOURCES
 )
 set_source_files_properties(${OBJC_SOURCES} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 
+
 # Add platform sources
 if (WIN32)
 

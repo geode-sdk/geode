@@ -54,7 +54,22 @@ include(cmake/GeodeFile.cmake)
 include(cmake/Platform.cmake)
 include(cmake/CPM.cmake)
 
+CPMAddPackage("gh:geode-sdk/json#2b76460")
+CPMAddPackage("gh:fmtlib/fmt#9.1.0")
+CPMAddPackage("gh:gulrak/filesystem#3e5b930")
+
+# Tulip hook (hooking)
+if (PROJECT_IS_TOP_LEVEL AND NOT GEODE_BUILDING_DOCS)
+	set(TULIP_LINK_SOURCE ON)
+endif()
+CPMAddPackage("gh:geode-sdk/TulipHook#76984a4")
+
+
 target_sources(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/entry.cpp)
+
+# Filesystem implementation in a separate target because i couldnt disable pch
+add_library(GeodeFilesystemImpl ${CMAKE_CURRENT_SOURCE_DIR}/FilesystemImpl.cpp)
+target_link_libraries(GeodeFilesystemImpl PUBLIC ghc_filesystem)
 
 include(ExternalProject)
 set(GEODE_CODEGEN_BINARY_OUT ${CMAKE_CURRENT_BINARY_DIR}/codegen)
@@ -103,7 +118,7 @@ endif()
 
 add_library(GeodeCodegenSources ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp ${GEODE_CODEGEN_PATH}/Geode/GeneratedAddress.cpp)
 target_link_directories(GeodeCodegenSources PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/loader/include/link)
-target_link_libraries(GeodeCodegenSources PRIVATE ghc_filesystem fmt TulipHookInclude)
+target_link_libraries(GeodeCodegenSources PRIVATE ghc_filesystem GeodeFilesystemImpl fmt TulipHookInclude)
 target_include_directories(GeodeCodegenSources PRIVATE
 	${GEODE_CODEGEN_PATH}
 	${GEODE_LOADER_PATH}/include
@@ -127,17 +142,7 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 )
 target_link_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/loader/include/link)
 
-CPMAddPackage("gh:geode-sdk/json#2b76460")
-CPMAddPackage("gh:fmtlib/fmt#9.1.0")
-CPMAddPackage("gh:gulrak/filesystem#3e5b930")
-
-# Tulip hook (hooking)
-if (PROJECT_IS_TOP_LEVEL AND NOT GEODE_BUILDING_DOCS)
-	set(TULIP_LINK_SOURCE ON)
-endif()
-CPMAddPackage("gh:geode-sdk/TulipHook#76984a4")
-
-target_link_libraries(${PROJECT_NAME} INTERFACE ghc_filesystem fmt TulipHookInclude GeodeCodegenSources mat-json)
+target_link_libraries(${PROJECT_NAME} INTERFACE ghc_filesystem fmt TulipHookInclude GeodeCodegenSources mat-json GeodeFilesystemImpl)
 
 
 if (NOT EXISTS ${GEODE_BIN_PATH})

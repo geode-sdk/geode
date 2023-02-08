@@ -40,6 +40,7 @@ public:
     bool m_supportsDisabling = true;
     bool m_supportsUnloading = false;
     bool m_needsEarlyLoad = false;
+    bool m_isAPI = false;
 
     std::shared_ptr<ModJson> m_rawJSON;
 
@@ -96,7 +97,8 @@ Result<ModInfo> ModInfo::Impl::createFromSchemaV010(ModJson const& rawJson) {
     root.has("unloadable").into(impl->m_supportsUnloading);
     root.has("early-load").into(impl->m_needsEarlyLoad);
     if (root.has("api")) {
-        impl->isAPI = true;
+        // TODO: figure out what got wiped with merge
+        // impl->isAPI = true;
     }
 
     for (auto& dep : root.has("dependencies").iterate()) {
@@ -430,6 +432,13 @@ bool& ModInfo::needsEarlyLoad() {
 }
 bool const& ModInfo::needsEarlyLoad() const {
     return m_impl->m_needsEarlyLoad;
+}
+
+bool& ModInfo::isAPI() {
+    return m_impl->m_isAPI;
+}
+bool const& ModInfo::isAPI() const {
+    return m_impl->m_isAPI;
 }
 
 Result<ModInfo> ModInfo::createFromGeodeZip(utils::file::Unzip& zip) {
