@@ -42,7 +42,7 @@ public:
     bool m_needsEarlyLoad = false;
     bool m_isAPI = false;
 
-    std::shared_ptr<ModJson> m_rawJSON;
+    ModJson m_rawJSON;
 
     static Result<ModInfo> createFromGeodeZip(utils::file::Unzip& zip);
     static Result<ModInfo> createFromGeodeFile(ghc::filesystem::path const& path);
@@ -80,9 +80,9 @@ Result<ModInfo> ModInfo::Impl::createFromSchemaV010(ModJson const& rawJson) {
 
     auto impl = info.m_impl.get();
 
-    impl->m_rawJSON = std::make_unique<ModJson>(rawJson);
+    impl->m_rawJSON = rawJson;
 
-    JsonChecker checker(*impl->m_rawJSON);
+    JsonChecker checker(impl->m_rawJSON);
     auto root = checker.root("[mod.json]").obj();
 
     root.addKnownKey("geode");
@@ -189,7 +189,7 @@ Result<ModInfo> ModInfo::Impl::create(ModJson const& json) {
 
     // Handle mod.json data based on target
     if (schema >= VersionInfo(0, 1, 0)) {
-        return ModInfo::createFromSchemaV010(json);
+        return Impl::createFromSchemaV010(json);
     }
 
     return Err(
@@ -294,14 +294,14 @@ std::vector<std::pair<std::string, std::optional<std::string>*>> ModInfo::Impl::
 }
 
 ModJson ModInfo::Impl::toJSON() const {
-    auto json = *m_rawJSON;
+    auto json = m_rawJSON;
     json["path"] = this->m_path.string();
     json["binary"] = this->m_binaryName;
     return json;
 }
 
 ModJson ModInfo::Impl::getRawJSON() const {
-    return *m_rawJSON;
+    return m_rawJSON;
 }
 
 bool ModInfo::Impl::operator==(ModInfo::Impl const& other) const {
@@ -474,10 +474,10 @@ bool ModInfo::validateID(std::string const& id) {
 }
 
 ModJson& ModInfo::rawJSON() {
-    return *m_impl->m_rawJSON;
+    return m_impl->m_rawJSON;
 }
 ModJson const& ModInfo::rawJSON() const {
-    return *m_impl->m_rawJSON;
+    return m_impl->m_rawJSON;
 }
 
 Result<ModInfo> ModInfo::createFromSchemaV010(ModJson const& json) {
@@ -495,7 +495,7 @@ std::vector<std::pair<std::string, std::optional<std::string>*>> ModInfo::getSpe
     return m_impl->getSpecialFiles();
 }
 
-ModInfo::ModInfo() : m_impl() {}
+ModInfo::ModInfo() : m_impl(std::make_unique<Impl>()) {}
 
 ModInfo::ModInfo(ModInfo const& other) : m_impl(std::make_unique<Impl>(*other.m_impl)) {}
 
