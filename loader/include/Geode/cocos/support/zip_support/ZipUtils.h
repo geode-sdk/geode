@@ -25,7 +25,7 @@ THE SOFTWARE.
 #define __SUPPORT_ZIPUTILS_H__
 
 #include <string>
-#include <ghc/filesystem.hpp>
+#include <ghc/fs_fwd.hpp>
 #include "../../platform/CCPlatformDefine.h"
 #include "../../platform/CCPlatformConfig.h"
 #include "../../include/ccMacros.h"

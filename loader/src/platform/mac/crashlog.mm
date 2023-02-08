@@ -2,10 +2,10 @@
 
 #ifdef GEODE_IS_MACOS
 
-    #include <array>
-    #include <ghc/filesystem.hpp>
+#include <array>
+#include <ghc/fs_fwd.hpp>
 
-    #include <Foundation/Foundation.h>
+#include <Foundation/Foundation.h>
 
 bool crashlog::setupPlatformHandler() {
     return true;

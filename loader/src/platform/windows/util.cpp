@@ -6,7 +6,7 @@
 USE_GEODE_NAMESPACE();
 
 #include "nfdwin.hpp"
-#include <ghc/filesystem.hpp>
+#include <ghc/fs_fwd.hpp>
 #include <Windows.h>
 #include <iostream>
 #include <shlwapi.h>

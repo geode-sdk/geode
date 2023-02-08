@@ -1,4 +1,4 @@
-#include <ghc/filesystem.hpp>
+#include <ghc/fs_fwd.hpp>
 #include <mach-o/dyld.h>
 #include <unistd.h>
 #include <dlfcn.h>

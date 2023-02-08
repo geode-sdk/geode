@@ -1,6 +1,6 @@
 #include <Windows.h>
 #include <iostream>
-#include <ghc/filesystem.hpp>
+#include <ghc/fs_fwd.hpp>
 
 void showError(std::string const& error) {
 	MessageBoxA(nullptr, error.c_str(), "Error Loading Geode", MB_ICONERROR);
