@@ -467,8 +467,8 @@ bool Loader::Impl::platformConsoleOpen() const {
 }
 
 void Loader::Impl::fetchLatestGithubRelease(
-    std::function<void(json::Value const&)> then,
-    std::function<void(std::string const&)> expect
+    utils::MiniFunction<void(json::Value const&)> then,
+    utils::MiniFunction<void(std::string const&)> expect
 ) {
     if (m_latestGithubRelease) {
         return then(m_latestGithubRelease.value());
@@ -735,7 +735,7 @@ ResourceDownloadEvent::ResourceDownloadEvent(
 ) : status(status) {}
 
 ListenerResult ResourceDownloadFilter::handle(
-    std::function<Callback> fn,
+    utils::MiniFunction<Callback> fn,
     ResourceDownloadEvent* event
 ) {
     fn(event);
@@ -749,7 +749,7 @@ LoaderUpdateEvent::LoaderUpdateEvent(
 ) : status(status) {}
 
 ListenerResult LoaderUpdateFilter::handle(
-    std::function<Callback> fn,
+    utils::MiniFunction<Callback> fn,
     LoaderUpdateEvent* event
 ) {
     fn(event);

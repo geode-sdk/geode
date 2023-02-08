@@ -6,7 +6,7 @@ USE_GEODE_NAMESPACE();
 
 bool MDPopup::setup(
     std::string const& title, std::string const& info, char const* btn1Text, char const* btn2Text,
-    std::function<void(bool)> onClick
+    utils::MiniFunction<void(bool)> onClick
 ) {
     this->setTitle(title.c_str(), "goldFont.fnt", .9f, 33.f);
 
@@ -65,7 +65,7 @@ float MDPopup::estimateHeight(std::string const& content) {
 
 MDPopup* MDPopup::create(
     std::string const& title, std::string const& content, char const* btn1, char const* btn2,
-    std::function<void(bool)> onClick
+    utils::MiniFunction<void(bool)> onClick
 ) {
     auto ret = new MDPopup();
     if (ret &&

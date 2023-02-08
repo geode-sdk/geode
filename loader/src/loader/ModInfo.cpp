@@ -87,7 +87,7 @@ Result<ModInfo> ModInfo::Impl::createFromSchemaV010(ModJson const& rawJson) {
 
     root.addKnownKey("geode");
 
-    root.needs("id").validate(&ModInfo::validateID).into(impl->m_id);
+    root.needs("id").validate(MiniFunction<bool(std::string const&)>(&ModInfo::validateID)).into(impl->m_id);
     root.needs("version").into(impl->m_version);
     root.needs("name").into(impl->m_name);
     root.needs("developer").into(impl->m_developer);
@@ -105,7 +105,7 @@ Result<ModInfo> ModInfo::Impl::createFromSchemaV010(ModJson const& rawJson) {
         auto obj = dep.obj();
 
         auto depobj = Dependency{};
-        obj.needs("id").validate(&ModInfo::validateID).into(depobj.id);
+        obj.needs("id").validate(MiniFunction<bool(std::string const&)>(&ModInfo::validateID)).into(depobj.id);
         obj.needs("version").into(depobj.version);
         obj.has("required").into(depobj.required);
         obj.checkUnknownKeys();

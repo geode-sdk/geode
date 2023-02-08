@@ -28,9 +28,9 @@ namespace geode {
     // template <typename... Args>
     // class DispatchHandler : public EventHandler<DispatchEvent<Args...>> {
     //     std::string m_selector;
-    //     std::function<void(Args...)> m_callback;
+    //     utils::MiniFunction<void(Args...)> m_callback;
 
-    //     DispatchHandler(std::string const& name, std::function<void(Args...)> callback) :
+    //     DispatchHandler(std::string const& name, utils::MiniFunction<void(Args...)> callback) :
     //         m_selector(name), m_callback(callback) {}
 
     // public:
@@ -42,7 +42,7 @@ namespace geode {
     //     }
 
     //     static DispatchHandler* create(
-    //         std::string const& name, std::function<void(Args...)> callback
+    //         std::string const& name, utils::MiniFunction<void(Args...)> callback
     //     ) {
     //         return new DispatchHandler(name, callback);
     //     }

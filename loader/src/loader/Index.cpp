@@ -17,7 +17,7 @@ ModInstallEvent::ModInstallEvent(
     std::string const& id, const UpdateStatus status
 ) : modID(id), status(status) {}
 
-ListenerResult ModInstallFilter::handle(std::function<Callback> fn, ModInstallEvent* event) {
+ListenerResult ModInstallFilter::handle(utils::MiniFunction<Callback> fn, ModInstallEvent* event) {
     if (m_id == event->modID) {
         fn(event);
     }
@@ -67,7 +67,7 @@ class SourceUpdateFilter : public EventFilter<SourceUpdateEvent> {
 public:
     using Callback = void(SourceUpdateEvent*);
 
-    ListenerResult handle(std::function<Callback> fn, SourceUpdateEvent* event) {
+    ListenerResult handle(utils::MiniFunction<Callback> fn, SourceUpdateEvent* event) {
         fn(event);
         return ListenerResult::Propagate;
     }
@@ -79,7 +79,7 @@ public:
 IndexUpdateEvent::IndexUpdateEvent(const UpdateStatus status) : status(status) {}
 
 ListenerResult IndexUpdateFilter::handle(
-    std::function<Callback> fn,
+    utils::MiniFunction<Callback> fn,
     IndexUpdateEvent* event
 ) {
     fn(event);
