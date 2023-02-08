@@ -1,15 +1,16 @@
 #pragma once
 
 #include <Geode/DefaultInclude.hpp>
-#include <Geode/utils/general.hpp>
-#include <ghc/filesystem.hpp>
+//#include <Geode/utils/general.hpp>
+#include <Geode/utils/MiniFunction.hpp>
+#include <ghc/fs_fwd.hpp>
 #include <functional>
 #include <string>
 
 class FileWatcher {
 public:
-    using FileWatchCallback = std::function<void(ghc::filesystem::path)>;
-    using ErrorCallback = std::function<void(std::string)>;
+    using FileWatchCallback = geode::utils::MiniFunction<void(ghc::filesystem::path)>;
+    using ErrorCallback = geode::utils::MiniFunction<void(std::string)>;
 
 protected:
     ghc::filesystem::path m_file;

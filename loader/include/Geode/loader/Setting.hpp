@@ -15,9 +15,7 @@ namespace geode {
     class SettingNode;
     class SettingValue;
 
-    template <class Json>
     struct JsonMaybeObject;
-    template <class Json>
     struct JsonMaybeValue;
 
     struct GEODE_DLL BoolSetting final {
@@ -27,7 +25,7 @@ namespace geode {
         std::optional<std::string> description;
         bool defaultValue;
 
-        static Result<BoolSetting> parse(JsonMaybeObject<ModJson>& obj);
+        static Result<BoolSetting> parse(JsonMaybeObject& obj);
     };
 
     struct GEODE_DLL IntSetting final {
@@ -48,7 +46,7 @@ namespace geode {
             bool input = true;
         } controls;
 
-        static Result<IntSetting> parse(JsonMaybeObject<ModJson>& obj);
+        static Result<IntSetting> parse(JsonMaybeObject& obj);
     };
 
     struct GEODE_DLL FloatSetting final {
@@ -69,7 +67,7 @@ namespace geode {
             bool input = true;
         } controls;
 
-        static Result<FloatSetting> parse(JsonMaybeObject<ModJson>& obj);
+        static Result<FloatSetting> parse(JsonMaybeObject& obj);
     };
 
     struct GEODE_DLL StringSetting final {
@@ -80,7 +78,7 @@ namespace geode {
         ValueType defaultValue;
         std::optional<std::string> match;
 
-        static Result<StringSetting> parse(JsonMaybeObject<ModJson>& obj);
+        static Result<StringSetting> parse(JsonMaybeObject& obj);
     };
 
     struct GEODE_DLL FileSetting final {
@@ -94,7 +92,7 @@ namespace geode {
             std::vector<Filter> filters;
         } controls;
 
-        static Result<FileSetting> parse(JsonMaybeObject<ModJson>& obj);
+        static Result<FileSetting> parse(JsonMaybeObject& obj);
     };
 
     struct GEODE_DLL ColorSetting final {
@@ -104,7 +102,7 @@ namespace geode {
         std::optional<std::string> description;
         ValueType defaultValue;
 
-        static Result<ColorSetting> parse(JsonMaybeObject<ModJson>& obj);
+        static Result<ColorSetting> parse(JsonMaybeObject& obj);
     };
 
     struct GEODE_DLL ColorAlphaSetting final {
@@ -114,7 +112,7 @@ namespace geode {
         std::optional<std::string> description;
         ValueType defaultValue;
 
-        static Result<ColorAlphaSetting> parse(JsonMaybeObject<ModJson>& obj);
+        static Result<ColorAlphaSetting> parse(JsonMaybeObject& obj);
     };
 
     struct GEODE_DLL CustomSetting final {
@@ -142,7 +140,7 @@ namespace geode {
     public:
         static Result<Setting> parse(
             std::string const& key,
-            JsonMaybeValue<ModJson>& obj
+            JsonMaybeValue& obj
         );
         Setting(std::string const& key, SettingKind const& kind);
 

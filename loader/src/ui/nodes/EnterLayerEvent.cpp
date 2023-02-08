@@ -8,7 +8,7 @@ AEnterLayerEvent::AEnterLayerEvent(
 ) : layerID(layerID),
     layer(layer) {}
 
-ListenerResult AEnterLayerFilter::handle(std::function<Callback> fn, AEnterLayerEvent* event) {
+ListenerResult AEnterLayerFilter::handle(utils::MiniFunction<Callback> fn, AEnterLayerEvent* event) {
     if (m_targetID == event->layerID) {
         fn(event);
     }

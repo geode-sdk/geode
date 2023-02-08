@@ -9,6 +9,7 @@
 #include <Geode/utils/Result.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/ranges.hpp>
+#include <Geode/utils/MiniFunction.hpp>
 #include "ModImpl.hpp"
 #include <about.hpp>
 #include <crashlog.hpp>
@@ -31,7 +32,7 @@ namespace geode {
     public:
         using Callback = void(ResourceDownloadEvent*);
 
-        ListenerResult handle(std::function<Callback> fn, ResourceDownloadEvent* event);
+        ListenerResult handle(utils::MiniFunction<Callback> fn, ResourceDownloadEvent* event);
         ResourceDownloadFilter();
     };
 
@@ -44,7 +45,7 @@ namespace geode {
     public:
         using Callback = void(LoaderUpdateEvent*);
 
-        ListenerResult handle(std::function<Callback> fn, LoaderUpdateEvent* event);
+        ListenerResult handle(utils::MiniFunction<Callback> fn, LoaderUpdateEvent* event);
         LoaderUpdateFilter();
     };
 
@@ -67,7 +68,7 @@ namespace geode {
         std::condition_variable m_earlyLoadFinishedCV;
         std::mutex m_earlyLoadFinishedMutex;
         std::atomic_bool m_earlyLoadFinished = false;
-        std::vector<std::function<void(void)>> m_gdThreadQueue;
+        std::vector<utils::MiniFunction<void(void)>> m_gdThreadQueue;
         mutable std::mutex m_gdThreadMutex;
         bool m_platformConsoleOpen = false;
         std::vector<std::pair<Hook*, Mod*>> m_internalHooks;
@@ -94,8 +95,8 @@ namespace geode {
         void downloadLoaderResources(bool useLatestRelease = false);
         void downloadLoaderUpdate(std::string const& url);
         void fetchLatestGithubRelease(
-            std::function<void(json::Value const&)> then,
-            std::function<void(std::string const&)> expect
+            utils::MiniFunction<void(json::Value const&)> then,
+            utils::MiniFunction<void(std::string const&)> expect
         );
 
         bool loadHooks();

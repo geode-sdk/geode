@@ -8,6 +8,7 @@
 #include <functional>
 #include <type_traits>
 #include "../loader/Event.hpp"
+#include "MiniFunction.hpp"
 
 // support converting ccColor3B / ccColor4B to / from json
 
@@ -468,7 +469,7 @@ namespace geode::cocos {
      */
     GEODE_DLL cocos2d::CCScene* switchToScene(cocos2d::CCLayer* layer);
 
-    using CreateLayerFunc = std::function<cocos2d::CCLayer*()>;
+    using CreateLayerFunc = utils::MiniFunction<cocos2d::CCLayer*()>;
 
     /**
      * Reload textures, overwriting the scene to return to after the loading
@@ -518,7 +519,7 @@ namespace geode::cocos {
      * there is none
      */
     template <class Type = cocos2d::CCNode>
-    Type* findFirstChildRecursive(cocos2d::CCNode* node, std::function<bool(Type*)> predicate) {
+    Type* findFirstChildRecursive(cocos2d::CCNode* node, utils::MiniFunction<bool(Type*)> predicate) {
         if (cast::safe_cast<Type*>(node) && predicate(static_cast<Type*>(node)))
             return static_cast<Type*>(node);
 
@@ -707,7 +708,7 @@ namespace geode::cocos {
     }
 
     template <typename T, typename C, typename = std::enable_if_t<std::is_pointer_v<C>>>
-    static cocos2d::CCArray* vectorToCCArray(std::vector<T> const& vec, std::function<C(T)> convFunc) {
+    static cocos2d::CCArray* vectorToCCArray(std::vector<T> const& vec, utils::MiniFunction<C(T)> convFunc) {
         auto res = cocos2d::CCArray::createWithCapacity(vec.size());
         for (auto const& item : vec)
             res->addObject(convFunc(item));
@@ -734,7 +735,7 @@ namespace geode::cocos {
     template <
         typename K, typename V, typename C,
         typename = std::enable_if_t<std::is_same_v<C, std::string> || std::is_same_v<C, intptr_t>>>
-    static cocos2d::CCDictionary* mapToCCDict(std::map<K, V> const& map, std::function<C(K)> convFunc) {
+    static cocos2d::CCDictionary* mapToCCDict(std::map<K, V> const& map, utils::MiniFunction<C(K)> convFunc) {
         auto res = cocos2d::CCDictionary::create();
         for (auto const& [key, value] : map)
             res->setObject(value, convFunc(key));

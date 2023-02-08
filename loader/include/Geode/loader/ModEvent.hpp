@@ -37,7 +37,7 @@ namespace geode {
         Mod* m_mod;
 
     public:
-        ListenerResult handle(std::function<Callback> fn, ModStateEvent* event);
+        ListenerResult handle(utils::MiniFunction<Callback> fn, ModStateEvent* event);
         ModStateFilter(Mod* mod, ModEventType type);
     };
 }

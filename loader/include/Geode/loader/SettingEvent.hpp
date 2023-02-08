@@ -22,7 +22,7 @@ namespace geode {
     public:
         using Callback = void(SettingValue*);
 
-        ListenerResult handle(std::function<Callback> fn, SettingChangedEvent* event);
+        ListenerResult handle(utils::MiniFunction<Callback> fn, SettingChangedEvent* event);
         /**
          * Listen to changes on a setting, or all settings
          * @param modID Mod whose settings to listen to
@@ -42,7 +42,7 @@ namespace geode {
     public:
         using Callback = void(T);
 
-        ListenerResult handle(std::function<Callback> fn, SettingChangedEvent* event) {
+        ListenerResult handle(utils::MiniFunction<Callback> fn, SettingChangedEvent* event) {
             if (
                 m_modID == event->mod->getID() &&
                 (!m_targetKey || m_targetKey.value() == event->value->getKey())

@@ -1,17 +1,18 @@
 #pragma once
 
 #include "../DefaultInclude.hpp"
+#include "MiniFunction.hpp"
 #include <json.hpp>
 #include "Result.hpp"
 #include "general.hpp"
 
-#include <ghc/filesystem.hpp>
+#include <ghc/fs_fwd.hpp>
 #include <mutex>
 
 namespace geode::utils::web {
     GEODE_DLL void openLinkInBrowser(std::string const& url);
 
-    using FileProgressCallback = std::function<bool(double, double)>;
+    using FileProgressCallback = utils::MiniFunction<bool(double, double)>;
 
     /**
      * Synchronously fetch data from the internet
@@ -54,11 +55,11 @@ namespace geode::utils::web {
     class AsyncWebResponse;
     class AsyncWebRequest;
 
-    using AsyncProgress = std::function<void(SentAsyncWebRequest&, double, double)>;
-    using AsyncExpect = std::function<void(std::string const&)>;
-    using AsyncExpectCode = std::function<void(std::string const&, int)>;
-    using AsyncThen = std::function<void(SentAsyncWebRequest&, ByteVector const&)>;
-    using AsyncCancelled = std::function<void(SentAsyncWebRequest&)>;
+    using AsyncProgress = utils::MiniFunction<void(SentAsyncWebRequest&, double, double)>;
+    using AsyncExpect = utils::MiniFunction<void(std::string const&)>;
+    using AsyncExpectCode = utils::MiniFunction<void(std::string const&, int)>;
+    using AsyncThen = utils::MiniFunction<void(SentAsyncWebRequest&, ByteVector const&)>;
+    using AsyncCancelled = utils::MiniFunction<void(SentAsyncWebRequest&)>;
 
     /**
      * A handle to an in-progress sent asynchronous web request. Use this to
@@ -217,7 +218,7 @@ namespace geode::utils::web {
          * @returns The original AsyncWebRequest, where you can specify more
          * aspects about the request like failure and progress callbacks
          */
-        AsyncWebRequest& then(std::function<void(T)> handle);
+        AsyncWebRequest& then(utils::MiniFunction<void(T)> handle);
         /**
          * Specify a callback to run after a download is finished. Runs in the
          * GD thread, so interacting with UI is safe
@@ -225,7 +226,7 @@ namespace geode::utils::web {
          * @returns The original AsyncWebRequest, where you can specify more
          * aspects about the request like failure and progress callbacks
          */
-        AsyncWebRequest& then(std::function<void(SentAsyncWebRequest&, T)> handle);
+        AsyncWebRequest& then(utils::MiniFunction<void(SentAsyncWebRequest&, T)> handle);
     };
 
     class GEODE_DLL AsyncWebResponse {
@@ -294,7 +295,7 @@ namespace geode::utils::web {
     };
 
     template <class T>
-    AsyncWebRequest& AsyncWebResult<T>::then(std::function<void(T)> handle) {
+    AsyncWebRequest& AsyncWebResult<T>::then(utils::MiniFunction<void(T)> handle) {
         m_request.m_then = [converter = m_converter,
                             handle](SentAsyncWebRequest& req, ByteVector const& arr) {
             auto conv = converter(arr);
@@ -309,7 +310,7 @@ namespace geode::utils::web {
     }
 
     template <class T>
-    AsyncWebRequest& AsyncWebResult<T>::then(std::function<void(SentAsyncWebRequest&, T)> handle) {
+    AsyncWebRequest& AsyncWebResult<T>::then(utils::MiniFunction<void(SentAsyncWebRequest&, T)> handle) {
         m_request.m_then = [converter = m_converter,
                             handle](SentAsyncWebRequest& req, ByteVector const& arr) {
             auto conv = converter(arr);

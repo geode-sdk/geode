@@ -52,11 +52,11 @@ static std::optional<int> queryMatchKeywords(
     // fuzzy match keywords
     if (query.keywords) {
         bool someMatched = false;
-        WEIGHTED_MATCH(info.name, 2);
-        WEIGHTED_MATCH(info.id, 1.5);
-        WEIGHTED_MATCH(info.developer, 1);
-        WEIGHTED_MATCH(info.details.value_or(""), 2);
-        WEIGHTED_MATCH(info.description.value_or(""), 1);
+        WEIGHTED_MATCH(info.name(), 2);
+        WEIGHTED_MATCH(info.id(), 1.5);
+        WEIGHTED_MATCH(info.developer(), 1);
+        WEIGHTED_MATCH(info.details().value_or(""), 2);
+        WEIGHTED_MATCH(info.description().value_or(""), 1);
         if (!someMatched) {
             return std::nullopt;
         }
@@ -66,7 +66,7 @@ static std::optional<int> queryMatchKeywords(
         // sorted, at least enough so that if you're scrolling it based on 
         // alphabetical order you will find the part you're looking for easily 
         // so it's fine
-        weighted = -tolower(info.name[0]);
+        weighted = -tolower(info.name()[0]);
     }
 
     // empty keywords always match
@@ -83,7 +83,7 @@ static std::optional<int> queryMatch(ModListQuery const& query, Mod* mod) {
 static std::optional<int> queryMatch(ModListQuery const& query, IndexItemHandle item) {
     // if no force visibility was provided and item is already installed, don't 
     // show it
-    if (!query.forceVisibility && Loader::get()->isModInstalled(item->info.id)) {
+    if (!query.forceVisibility && Loader::get()->isModInstalled(item->info.id())) {
         return std::nullopt;
     }
     // make sure all tags match
