@@ -5,7 +5,7 @@
 
 USE_GEODE_NAMESPACE();
 
-#include <AppKit/AppKit.h>
+#import <AppKit/AppKit.h>
 #include <Geode/utils/web.hpp>
 #include <Geode/utils/file.hpp>
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Geode/DefaultInclude.hpp>
-#include <Geode/utils/general.hpp>
+//#include <Geode/utils/general.hpp>
 #include <ghc/fs_fwd.hpp>
 #include <functional>
 #include <string>
