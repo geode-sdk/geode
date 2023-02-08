@@ -40,6 +40,7 @@ file(GLOB OBJC_SOURCES
 )
 set_source_files_properties(${OBJC_SOURCES} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 
+
 # Add platform sources
 if (WIN32)
 
@@ -152,13 +153,13 @@ target_link_libraries(${PROJECT_NAME} z TulipHook geode-sdk mat-json)
 # Use precompiled headers for faster builds
 if (NOT GEODE_DISABLE_PRECOMPILED_HEADERS)
 	target_precompile_headers(${PROJECT_NAME} PRIVATE
-		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/DefaultInclude.hpp"
+		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Geode.hpp"
 		# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Utils.hpp"
-		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Loader.hpp"
-		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/UI.hpp"
+		# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Loader.hpp"
+		# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/UI.hpp"
 		# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Bindings.hpp"
-		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/cocos/include/cocos2d.h"
-		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/cocos/extensions/cocos-ext.h"
+		# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/cocos/include/cocos2d.h"
+		# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/cocos/extensions/cocos-ext.h"
 	)
 endif()
 

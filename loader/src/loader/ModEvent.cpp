@@ -12,7 +12,7 @@ Mod* ModStateEvent::getMod() const {
     return m_mod;
 }
 
-ListenerResult ModStateFilter::handle(std::function<Callback> fn, ModStateEvent* event) {
+ListenerResult ModStateFilter::handle(utils::MiniFunction<Callback> fn, ModStateEvent* event) {
     if (event->getMod() == m_mod && event->getType() == m_type) {
         fn(event);
     }

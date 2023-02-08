@@ -5,7 +5,7 @@
 
 #include <json.hpp>
 #include <Geode/DefaultInclude.hpp>
-#include <ghc/filesystem.hpp>
+#include <ghc/fs_fwd.hpp>
 #include <string>
 #include <unordered_set>
 

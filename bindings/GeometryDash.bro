@@ -3701,7 +3701,7 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
     bool m_previewMode;
     GJGroundLayer* m_groundLayer;
     std::string m_rawLevelString;
-    void* m_triggerHitbox;
+    void* m_triggerHitbox; // why are these std vector bruh
     std::vector<GameObject*> m_objectVector;
     std::vector<GameObject*> m_groupVector;
     std::vector<cocos2d::CCArray*> m_nestedObjects;

@@ -17,7 +17,7 @@ ModInstallEvent::ModInstallEvent(
     std::string const& id, const UpdateStatus status
 ) : modID(id), status(status) {}
 
-ListenerResult ModInstallFilter::handle(std::function<Callback> fn, ModInstallEvent* event) {
+ListenerResult ModInstallFilter::handle(utils::MiniFunction<Callback> fn, ModInstallEvent* event) {
     if (m_id == event->modID) {
         fn(event);
     }
@@ -67,7 +67,7 @@ class SourceUpdateFilter : public EventFilter<SourceUpdateEvent> {
 public:
     using Callback = void(SourceUpdateEvent*);
 
-    ListenerResult handle(std::function<Callback> fn, SourceUpdateEvent* event) {
+    ListenerResult handle(utils::MiniFunction<Callback> fn, SourceUpdateEvent* event) {
         fn(event);
         return ListenerResult::Propagate;
     }
@@ -79,7 +79,7 @@ public:
 IndexUpdateEvent::IndexUpdateEvent(const UpdateStatus status) : status(status) {}
 
 ListenerResult IndexUpdateFilter::handle(
-    std::function<Callback> fn,
+    utils::MiniFunction<Callback> fn,
     IndexUpdateEvent* event
 ) {
     fn(event);
@@ -381,16 +381,16 @@ void Index::updateSourceFromLocal(IndexSourceImpl* src) {
             }
             auto add = addRes.unwrap();
             // check if this major version of this item has already been added 
-            if (m_items[add->info.id].count(add->info.version.getMajor())) {
+            if (m_items[add->info.id()].count(add->info.version().getMajor())) {
                 log::warn(
                     "Item {}@{} has already been added, skipping",
-                    add->info.id, add->info.version
+                    add->info.id(), add->info.version()
                 );
                 continue;
             }
             // add new major version of this item
-            m_items[add->info.id].insert({
-                add->info.version.getMajor(),
+            m_items[add->info.id()].insert({
+                add->info.version().getMajor(),
                 add
             });
         }
@@ -486,7 +486,7 @@ std::vector<IndexItemHandle> Index::getItemsByDeveloper(
     std::vector<IndexItemHandle> res;
     for (auto& items : map::values(m_items)) {
         if (items.size()) {
-            if (items.rbegin()->second->info.developer == name) {
+            if (items.rbegin()->second->info.developer() == name) {
                 res.push_back(items.rbegin()->second);
             }
         }
@@ -510,7 +510,7 @@ IndexItemHandle Index::getItem(
         if (version) {
             // prefer most major version
             for (auto& [_, item] : ranges::reverse(m_items.at(id))) {
-                if (version.value() == item->info.version) {
+                if (version.value() == item->info.version()) {
                     return item;
                 }
             }
@@ -530,7 +530,7 @@ IndexItemHandle Index::getItem(
     if (m_items.count(id)) {
         // prefer most major version
         for (auto& [_, item] : ranges::reverse(m_items.at(id))) {
-            if (version.compare(item->info.version)) {
+            if (version.compare(item->info.version())) {
                 return item;
             }
         }
@@ -539,7 +539,7 @@ IndexItemHandle Index::getItem(
 }
 
 IndexItemHandle Index::getItem(ModInfo const& info) const {
-    return this->getItem(info.id, info.version);
+    return this->getItem(info.id(), info.version());
 }
 
 IndexItemHandle Index::getItem(Mod* mod) const {
@@ -547,17 +547,17 @@ IndexItemHandle Index::getItem(Mod* mod) const {
 }
 
 bool Index::isUpdateAvailable(IndexItemHandle item) const {
-    auto installed = Loader::get()->getInstalledMod(item->info.id);
+    auto installed = Loader::get()->getInstalledMod(item->info.id());
     if (!installed) {
         return false;
     }
-    return item->info.version > installed->getVersion();
+    return item->info.version() > installed->getVersion();
 }
 
 bool Index::areUpdatesAvailable() const {
     for (auto& mod : Loader::get()->getAllMods()) {
         auto item = this->getItem(mod);
-        if (item && item->info.version > mod->getVersion()) {
+        if (item && item->info.version() > mod->getVersion()) {
             return true;
         }
     }
@@ -573,7 +573,7 @@ Result<IndexInstallList> Index::getInstallList(IndexItemHandle item) const {
     
     IndexInstallList list;
     list.target = item;
-    for (auto& dep : item->info.dependencies) {
+    for (auto& dep : item->info.dependencies()) {
         if (!dep.isResolved()) {
             // check if this dep is available in the index
             if (auto depItem = this->getItem(dep.id, dep.version)) {
@@ -595,7 +595,7 @@ Result<IndexInstallList> Index::getInstallList(IndexItemHandle item) const {
                     "reason is that the version of the dependency this mod "
                     "depends on is not available. Please let the the developer "
                     "({}) of the mod know!",
-                    dep.id, dep.version.toString(), item->info.developer
+                    dep.id, dep.version.toString(), item->info.developer()
                 );
             }
         }
@@ -610,7 +610,7 @@ Result<IndexInstallList> Index::getInstallList(IndexItemHandle item) const {
 void Index::installNext(size_t index, IndexInstallList const& list) {
     auto postError = [this, list](std::string const& error) {
         m_runningInstallations.erase(list.target);
-        ModInstallEvent(list.target->info.id, error).post();
+        ModInstallEvent(list.target->info.id(), error).post();
     };
 
     // If we're at the end of the list, move the downloaded items to mods
@@ -619,12 +619,12 @@ void Index::installNext(size_t index, IndexInstallList const& list) {
         // Move all downloaded files
         for (auto& item : list.list) {
             // If the mod is already installed, delete the old .geode file
-            if (auto mod = Loader::get()->getInstalledMod(item->info.id)) {
+            if (auto mod = Loader::get()->getInstalledMod(item->info.id())) {
                 auto res = mod->uninstall();
                 if (!res) {
                     return postError(fmt::format(
                         "Unable to uninstall old version of {}: {}",
-                        item->info.id, res.unwrapErr()
+                        item->info.id(), res.unwrapErr()
                     ));
                 }
             }
@@ -632,13 +632,13 @@ void Index::installNext(size_t index, IndexInstallList const& list) {
             // Move the temp file
             try {
                 ghc::filesystem::rename(
-                    dirs::getTempDir() / (item->info.id + ".index"),
-                    dirs::getModsDir() / (item->info.id + ".geode")
+                    dirs::getTempDir() / (item->info.id() + ".index"),
+                    dirs::getModsDir() / (item->info.id() + ".geode")
                 );
             } catch(std::exception& e) {
                 return postError(fmt::format(
                     "Unable to install {}: {}",
-                    item->info.id, e.what()
+                    item->info.id(), e.what()
                 ));
             }
         }
@@ -646,7 +646,7 @@ void Index::installNext(size_t index, IndexInstallList const& list) {
         // load mods
         Loader::get()->refreshModsList();
 
-        ModInstallEvent(list.target->info.id, UpdateFinished()).post();
+        ModInstallEvent(list.target->info.id(), UpdateFinished()).post();
         return;
     }
 
@@ -657,9 +657,9 @@ void Index::installNext(size_t index, IndexInstallList const& list) {
     };
 
     auto item = list.list.at(index);
-    auto tempFile = dirs::getTempDir() / (item->info.id + ".index");
+    auto tempFile = dirs::getTempDir() / (item->info.id() + ".index");
     m_runningInstallations[list.target] = web::AsyncWebRequest()
-        .join("install_item_" + item->info.id)
+        .join("install_item_" + item->info.id())
         .fetch(item->download.url)
         .into(tempFile)
         .then([=](auto) {
@@ -669,16 +669,16 @@ void Index::installNext(size_t index, IndexInstallList const& list) {
                 return postError(fmt::format(
                     "Binary file download for {} returned \"404 Not found\". "
                     "Report this to the Geode development team.",
-                    item->info.id
+                    item->info.id()
                 ));
             }
 
             // Verify checksum
             ModInstallEvent(
-                list.target->info.id,
+                list.target->info.id(),
                 UpdateProgress(
                     scaledProgress(100),
-                    fmt::format("Verifying {}", item->info.id)
+                    fmt::format("Verifying {}", item->info.id())
                 )
             ).post();
             
@@ -687,7 +687,7 @@ void Index::installNext(size_t index, IndexInstallList const& list) {
                     "Checksum mismatch with {}! (Downloaded file did not match what "
                     "was expected. Try again, and if the download fails another time, "
                     "report this to the Geode development team.)",
-                    item->info.id
+                    item->info.id()
                 ));
             }
 
@@ -697,15 +697,15 @@ void Index::installNext(size_t index, IndexInstallList const& list) {
         .expect([postError, list, item](std::string const& err) {
             postError(fmt::format(
                 "Unable to download {}: {}",
-                item->info.id, err
+                item->info.id(), err
             ));
         })
         .progress([this, item, list, scaledProgress](auto&, double now, double total) {
             ModInstallEvent(
-                list.target->info.id,
+                list.target->info.id(),
                 UpdateProgress(
                     scaledProgress(now / total * 100.0),
-                    fmt::format("Downloading {}", item->info.id)
+                    fmt::format("Downloading {}", item->info.id())
                 )
             ).post();
         })
@@ -740,7 +740,7 @@ void Index::install(IndexItemHandle item) {
             this->install(list.unwrap());
         } else {
             ModInstallEvent(
-                item->info.id,
+                item->info.id(),
                 UpdateFailed(list.unwrapErr())
             ).post();
         }

@@ -26,7 +26,7 @@ namespace geode {
 	public:
 		using Callback = void(ModInstallEvent*);
 	
-        ListenerResult handle(std::function<Callback> fn, ModInstallEvent* event);
+        ListenerResult handle(utils::MiniFunction<Callback> fn, ModInstallEvent* event);
 		ModInstallFilter(std::string const& id);
 	};
 
@@ -39,7 +39,7 @@ namespace geode {
     public:
         using Callback = void(IndexUpdateEvent*);
     
-        ListenerResult handle(std::function<Callback> fn, IndexUpdateEvent* event);
+        ListenerResult handle(utils::MiniFunction<Callback> fn, IndexUpdateEvent* event);
         IndexUpdateFilter();
     };
 

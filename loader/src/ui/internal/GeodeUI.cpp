@@ -14,19 +14,19 @@ void geode::openModsList() {
 }
 
 void geode::openIssueReportPopup(Mod* mod) {
-    if (mod->getModInfo().issues) {
+    if (mod->getModInfo().issues()) {
         MDPopup::create(
             "Issue Report",
-            mod->getModInfo().issues.value().info +
+            mod->getModInfo().issues().value().info +
                 "\n\n"
                 "If your issue relates to a <cr>game crash</c>, <cb>please include</c> the "
                 "latest crash log(s) from `" +
                 dirs::getCrashlogsDir().string() + "`",
-            "OK", (mod->getModInfo().issues.value().url ? "Open URL" : ""),
+            "OK", (mod->getModInfo().issues().value().url ? "Open URL" : ""),
             [mod](bool btn2) {
                 if (btn2) {
                     web::openLinkInBrowser(
-                        mod->getModInfo().issues.value().url.value()
+                        mod->getModInfo().issues().value().url.value()
                     );
                 }
             }
