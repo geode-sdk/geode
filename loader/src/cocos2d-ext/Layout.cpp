@@ -56,28 +56,28 @@ struct AxisLayout::Row : public CCObject {
     float nextOverflowScaleDownFactor;
     float axisLength;
     float crossLength;
-    float endsLength;
+    float axisEndsLength;
     Ref<CCArray> nodes;
 
     Row(
         float scaleFactor,
         float axisLength,
         float crossLength,
-        float endsLength,
+        float axisEndsLength,
         CCArray* nodes
     ) : nextOverflowScaleDownFactor(scaleFactor),
         axisLength(axisLength),
         crossLength(crossLength),
-        endsLength(endsLength),
+        axisEndsLength(axisEndsLength),
         nodes(nodes)
     {
         this->autorelease();
     }
 };
 
-AxisLayout::Row* AxisLayout::fitInRow(CCNode* on, CCArray* nodes, float scale, float squish) const {    
+AxisLayout::Row* AxisLayout::fitInRow(CCNode* on, CCArray* nodes, float scale, float squish) const {
     float nextAxisLength = 0.f;
-    float axisLength;
+    float axisLength = 0.f;
     float crossLength = 0.f;
     auto res = CCArray::create();
 
@@ -116,37 +116,45 @@ AxisLayout::Row* AxisLayout::fitInRow(CCNode* on, CCArray* nodes, float scale, f
         res->reverseObjects();
     }
 
-    auto endsLength = static_cast<CCNode*>(
-            res->firstObject()
-        )->getScaledContentSize().width * scale / 2 +
-        static_cast<CCNode*>(
-            res->lastObject()
-        )->getScaledContentSize().width * scale / 2;
+    float axisEndsLength = 0.f;
+    if (res->count()) {
+        auto first = static_cast<CCNode*>(res->firstObject());
+        auto last = static_cast<CCNode*>(res->lastObject());
+        axisEndsLength = (
+            first->getScaledContentSize().width * scale / 2 +
+            last->getScaledContentSize().width * scale / 2
+        );
+    }
 
     return new Row(
         // how much should the nodes be scaled down to fit the next row
-        available.axisLength / nextAxisLength,
+        available.axisLength / nextAxisLength * scale * squish,
         axisLength,
         crossLength,
-        endsLength,
+        axisEndsLength,
         res
     );
 }
 
 void AxisLayout::tryFitLayout(CCNode* on, CCArray* nodes, float scale, float squish) const {
+    // where do all of these magical calculations come from?
+    // idk i got tired of doing the math but they work so ¯\_(ツ)_/¯ 
+    // like i genuinely have no clue fr why some of these work tho, 
+    // i just threw in random equations and numbers until it worked
+
     auto rows = CCArray::create();
     float totalRowCrossLength = 0.f;
     float crossScaleDownFactor = 0.f;
-    size_t ix = 0;
 
     // fit everything into rows while possible
+    size_t ix = 0;
     auto newNodes = nodes->shallowCopy();
     while (newNodes->count()) {
         auto row = this->fitInRow(on, newNodes, scale, squish);
         rows->addObject(row);
         if (
             row->nextOverflowScaleDownFactor > crossScaleDownFactor &&
-            crossScaleDownFactor < 1.f
+            row->nextOverflowScaleDownFactor < scale
         ) {
             crossScaleDownFactor = row->nextOverflowScaleDownFactor;
         }
@@ -162,7 +170,7 @@ void AxisLayout::tryFitLayout(CCNode* on, CCArray* nodes, float scale, float squ
 
     // if cross axis overflow not allowed, try to scale down layout
     if (!m_allowCrossAxisOverflow && totalRowCrossLength > available.crossLength) {
-        if (m_autoScale && scale > AXIS_MIN_SCALE) {
+        if (m_autoScale && crossScaleDownFactor > AXIS_MIN_SCALE) {
             rows->release();
             return this->tryFitLayout(on, nodes, crossScaleDownFactor, squish);
         }
@@ -201,33 +209,48 @@ void AxisLayout::tryFitLayout(CCNode* on, CCArray* nodes, float scale, float squ
         }
     }
 
-    float crossPos;
+    float columnSquish = 1.f;
+    if (!m_allowCrossAxisOverflow && totalRowCrossLength > available.crossLength) {
+        columnSquish = available.crossLength / totalRowCrossLength;
+        totalRowCrossLength *= columnSquish;
+    }
+
+    float rowsEndsLength = 0.f;
+    if (rows->count()) {
+        auto first = static_cast<Row*>(rows->firstObject());
+        auto last = static_cast<Row*>(rows->lastObject());
+        rowsEndsLength = first->crossLength / 2 + last->crossLength / 2;
+    }
+
+    float rowCrossPos;
     switch (m_crossAlignment) {
         case AxisAlignment::Start: {
-            crossPos = 0.f;
-        } break;
-
-        case AxisAlignment::Center: {
-            crossPos = available.crossLength / 2 - totalRowCrossLength / 2;
-        } break;
-
-        case AxisAlignment::End: {
-            crossPos = available.crossLength - totalRowCrossLength;
+            rowCrossPos = totalRowCrossLength - rowsEndsLength * 1.5f * scale * (1.f - columnSquish);
         } break;
 
         case AxisAlignment::Even: {
-            crossPos = 0.f;
+            rowCrossPos = totalRowCrossLength - rowsEndsLength * 1.5f * scale * (1.f - columnSquish);
+        } break;
+
+        case AxisAlignment::Center: {
+            rowCrossPos = available.crossLength / 2 + totalRowCrossLength / 2 - 
+                rowsEndsLength * 1.5f * scale * (1.f - columnSquish);
+        } break;
+
+        case AxisAlignment::End: {
+            rowCrossPos = available.crossLength - 
+                rowsEndsLength * 1.5f * scale * (1.f - columnSquish);
         } break;
     }
 
     for (auto row : CCArrayExt<Row*>(rows)) {
-        // where do all of these magical calculations come from?
-        // idk i got tired of doing the math but they work so ¯\_(ツ)_/¯ 
+        rowCrossPos -= row->crossLength * columnSquish;
 
         // scale down & squish row if it overflows main axis
         float rowScale = scale;
         float rowSquish = squish;
         if (row->axisLength > available.axisLength) {
+            row->axisLength /= scale * squish;
             if (m_autoScale) {
                 rowScale = available.axisLength / row->axisLength;
                 if (rowScale < AXIS_MIN_SCALE) {
@@ -242,27 +265,24 @@ void AxisLayout::tryFitLayout(CCNode* on, CCArray* nodes, float scale, float squ
             row->axisLength *= rowSquish;
         }
 
-        log::debug("rowScale: {}, rowSquish: {}", rowScale, rowSquish);
-        log::debug("row->axisLength: {}", row->axisLength);
-        
         float rowAxisPos;
         switch (m_axisAlignment) {
             case AxisAlignment::Start: { 
-                rowAxisPos = row->endsLength * rowScale / 2 * (1.f - rowSquish);
+                rowAxisPos = row->axisEndsLength * rowScale / 2 * (1.f - rowSquish);
             } break;
 
             case AxisAlignment::Even: { 
-                rowAxisPos = row->endsLength * rowScale / 2 * (1.f - rowSquish);
+                rowAxisPos = row->axisEndsLength * rowScale / 2 * (1.f - rowSquish);
             } break;
 
             case AxisAlignment::Center: {
                 rowAxisPos = available.axisLength / 2 - row->axisLength / 2 + 
-                    row->endsLength * rowScale / 2 * (1.f - rowSquish);
+                    row->axisEndsLength * rowScale / 2 * (1.f - rowSquish);
             } break;
 
             case AxisAlignment::End: {
                 rowAxisPos = available.axisLength - row->axisLength + 
-                    row->endsLength * rowScale / 2 * (1.f - rowSquish);
+                    row->axisEndsLength * rowScale / 2 * (1.f - rowSquish);
             } break;
         }
 
@@ -278,30 +298,33 @@ void AxisLayout::tryFitLayout(CCNode* on, CCArray* nodes, float scale, float squ
             }
             auto pos = nodeAxis(node, m_axis, rowSquish);
             float axisPos = rowAxisPos + pos.axisLength * pos.axisAnchor;
-            float crossPos;
+            float crossOffset;
             switch (m_crossAlignment) {
                 case AxisAlignment::Start: {
-                    crossPos = pos.crossLength * pos.crossAnchor;
+                    crossOffset = pos.crossLength * pos.crossAnchor;
                 } break;
 
                 case AxisAlignment::Center: case AxisAlignment::Even: {
-                    crossPos = row->crossLength / 2 - pos.crossLength * (.5f - pos.crossAnchor);
+                    crossOffset = row->crossLength / 2 - pos.crossLength * (.5f - pos.crossAnchor);
                 } break;
 
                 case AxisAlignment::End: {
-                    crossPos = row->crossLength - pos.crossLength * (1.f - pos.crossAnchor);
+                    crossOffset = row->crossLength - pos.crossLength * (1.f - pos.crossAnchor);
                 } break;
             }
             if (m_axis == Axis::Row) {
-                node->setPosition(axisPos, crossPos);
+                node->setPosition(axisPos, rowCrossPos + crossOffset);
             }
             else {
-                node->setPosition(crossPos, axisPos);
+                node->setPosition(rowCrossPos + crossOffset, axisPos);
             }
             rowAxisPos += pos.axisLength + m_gap * rowScale * rowSquish - 
-                row->endsLength * rowScale * (1.f - rowSquish) * 1.f / nodes->count();
+                row->axisEndsLength * rowScale * (1.f - rowSquish) * 1.f / nodes->count();
             ix++;
         }
+    
+        rowCrossPos -= m_gap * columnSquish - 
+            rowsEndsLength * 1.5f * scale * (1.f - columnSquish) * 1.f / rows->count();
     }
 }
 

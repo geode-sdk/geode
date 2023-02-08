@@ -86,7 +86,11 @@ $register_ids(MenuLayer) {
         }
 
         menu->setContentSize({ 360.f, 65.f });
-        menu->setLayout(RowLayout::create());
+        menu->setLayout(
+            RowLayout::create()
+                ->setGrowCrossAxis(true)
+                ->setCrossAxisOverflow(false)
+        );
     }
     // social media menu
     if (auto menu = getChildOfType<CCMenu>(this, 2)) {
