@@ -859,7 +859,16 @@ class CreatorLayer : cocos2d::CCLayer {
     void onChallenge(cocos2d::CCObject*) = win 0x4f1b0;
     void onLeaderboards(cocos2d::CCObject*) = win 0x4ed20;
     void onMyLevels(cocos2d::CCObject*) = mac 0x142b70, win 0x4eaa0;
-    void onSavedLevels(cocos2d::CCObject*) = mac 0x142860;
+    void onSavedLevels(cocos2d::CCObject*) = mac 0x142860, win 0x4ebe0;
+    void onDailyLevel(cocos2d::CCObject*) = win 0x4f170;
+    void onWeeklyLevel(cocos2d::CCObject*) = win 0x4f190;
+    void onFeaturedLevels(cocos2d::CCObject*) = win 0x4edf0;
+    void onFameLevels(cocos2d::CCObject*) = win 0x4ee70;
+    void onMapPacks(cocos2d::CCObject*) = win 0x4efb0;
+    void onOnlineLevels(cocos2d::CCObject*) = win 0x4ef60;
+    void onGauntlets(cocos2d::CCObject*) = win 0x4f0a0;
+    void onSecretVault(cocos2d::CCObject*) = win 0x4f1d0;
+    void onTreasureRoom(cocos2d::CCObject*) = win 0x4f540;
     virtual void sceneWillResume() = win 0x4fb50;
     virtual bool init() = mac 0x141c10, win 0x4de40;
     static CreatorLayer* create() = win 0x4dda0;
@@ -5156,6 +5165,10 @@ class StatsCell : TableViewCell {
     inline StatsCell(char const* identifier, float parentHeight, float height) : TableViewCell(identifier, parentHeight, height) {}
     void updateBGColor(unsigned int index) = win 0x59cf0;
     virtual void draw() = mac 0x11bf80, win 0x59d40;
+}
+
+class StatsLayer : GJDropDownLayer {
+    static StatsLayer* create() = win 0x25BCF0;
 }
 
 class TableView : CCScrollLayerExt, CCScrollLayerExtDelegate {
