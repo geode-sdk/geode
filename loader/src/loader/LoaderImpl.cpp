@@ -195,6 +195,8 @@ Result<Mod*> Loader::Impl::loadModFromInfo(ModInfo const& info) {
     auto mod = new Mod(info);
     auto setupRes = mod->m_impl->setup();
     if (!setupRes) {
+        // old code artifcat, idk why we are not using unique_ptr TBH
+        delete mod;
         return Err(fmt::format(
             "Unable to setup mod '{}': {}",
             info.id(), setupRes.unwrapErr()
@@ -202,9 +204,18 @@ Result<Mod*> Loader::Impl::loadModFromInfo(ModInfo const& info) {
     }
 
     m_mods.insert({ info.id(), mod });
+
     mod->m_impl->m_enabled = Mod::get()->getSavedValue<bool>(
         "should-load-" + info.id(), true
     );
+
+    // this loads the mod if its dependencies are resolved
+    auto dependenciesRes = mod->updateDependencies();
+    if (!dependenciesRes) {
+        delete mod;
+        m_mods.erase(info.id());
+        return Err("Unable to update dependencies and load: " + dependenciesRes.unwrapErr());
+    }
 
     // add mod resources
     this->queueInGDThread([this, mod]() {
@@ -213,9 +224,6 @@ Result<Mod*> Loader::Impl::loadModFromInfo(ModInfo const& info) {
         CCFileUtils::get()->addSearchPath(searchPath.string().c_str());
         this->updateModResources(mod);
     });
-
-    // this loads the mod if its dependencies are resolved
-    GEODE_UNWRAP(mod->updateDependencies());
 
     return Ok(mod);
 }
@@ -363,6 +371,11 @@ void Loader::Impl::refreshModsList() {
             auto load = this->loadModFromInfo(mod);
             if (!load) {
                 log::error("Unable to load {}: {}", mod.id(), load.unwrapErr());
+
+                m_invalidMods.push_back(InvalidGeodeFile {
+                    .path = mod.path(),
+                    .reason = load.unwrapErr(),
+                });
             }
         }
     }
@@ -377,6 +390,11 @@ void Loader::Impl::refreshModsList() {
             auto load = this->loadModFromInfo(mod);
             if (!load) {
                 log::error("Unable to load {}: {}", mod.id(), load.unwrapErr());
+
+                m_invalidMods.push_back(InvalidGeodeFile {
+                    .path = mod.path(),
+                    .reason = load.unwrapErr(),
+                });
             }
         }
     }
