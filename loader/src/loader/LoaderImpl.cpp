@@ -214,7 +214,7 @@ Result<Mod*> Loader::Impl::loadModFromInfo(ModInfo const& info) {
     if (!dependenciesRes) {
         delete mod;
         m_mods.erase(info.id());
-        return Err("Unable to update dependencies and load: " + dependenciesRes.unwrapErr());
+        return Err(dependenciesRes.unwrapErr());
     }
 
     // add mod resources
