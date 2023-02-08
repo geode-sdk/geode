@@ -31,9 +31,7 @@ public:
     */
     static CCApplication* sharedApplication();
 
-    GEODE_ADD(
-        static CCApplication* get();
-    );
+    static GEODE_DLL CCApplication* get();
 
     /* override functions */
     virtual void setAnimationInterval(double interval);

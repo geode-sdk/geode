@@ -1,13 +1,16 @@
-#include <../support/zip_support/ZipUtils.h>
-#include <../support/zip_support/ioapi.h>
-#include <../support/zip_support/unzip.h>
-#include <../support/zip_support/zip.h>
+
 #include <Geode/loader/Log.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/string.hpp>
 #include <json.hpp>
 #include <fstream>
+#include <mz.h>
+#include <mz_os.h>
+#include <mz_strm.h>
+#include <mz_strm_os.h>
+#include <mz_strm_mem.h>
+#include <mz_zip.h>
 
 USE_GEODE_NAMESPACE();
 using namespace geode::utils::file;
@@ -139,57 +142,129 @@ static constexpr auto MAX_ENTRY_PATH_LEN = 256;
 
 struct ZipEntry {
     bool isDirectory;
-    unz_file_pos pos;
-    ZPOS64_T compressedSize;
-    ZPOS64_T uncompressedSize;
+    int64_t compressedSize;
+    int64_t uncompressedSize;
 };
 
-class file::Unzip::Impl final {
+class Zip::Impl final {
 public:
-    using Path = Unzip::Path;
+    using Path = Zip::Path;
 
 private:
-    unzFile m_zip;
-    Path m_zipPath;
+    void* m_handle = nullptr;
+    void* m_stream = nullptr;
+    int32_t m_mode;
+    std::variant<Path, ByteVector> m_srcDest;
     std::unordered_map<Path, ZipEntry> m_entries;
 
-public:
+    Result<> init() {
+        // open stream from file
+        if (std::holds_alternative<Path>(m_srcDest)) {
+            auto& path = std::get<Path>(m_srcDest);
+            // open file
+            if (!mz_stream_os_create(&m_stream)) {
+                return Err("Unable to open file");
+            }
+            if (mz_stream_os_open(
+                m_stream,
+                reinterpret_cast<const char*>(path.u8string().c_str()),
+                m_mode
+            ) != MZ_OK) {
+                return Err("Unable to read file");
+            }
+        }
+        // open stream from memory stream
+        else {
+            auto& src = std::get<ByteVector>(m_srcDest);
+            if (!mz_stream_mem_create(&m_stream)) {
+                return Err("Unable to create memory stream");
+            }
+            // mz_stream_mem_set_buffer doesn't memcpy so we gotta store the data 
+            // elsewhere
+            if (m_mode == MZ_OPEN_MODE_READ) {
+                mz_stream_mem_set_buffer(m_stream, src.data(), src.size());
+            }
+            else {
+                mz_stream_mem_set_grow_size(m_stream, 128 * 1024);
+            }
+            if (mz_stream_open(m_stream, nullptr, m_mode) != MZ_OK) {
+                return Err("Unable to read memory stream");
+            }
+        }
+
+        // open zip
+        if (!mz_zip_create(&m_handle)) {
+            return Err("Unable to create zip handler");
+        }
+        if (mz_zip_open(m_handle, m_stream, m_mode) != MZ_OK) {
+            return Err("Unable to open zip");
+        }
+
+        // get list of entries
+        if (!this->loadEntries()) {
+            return Err("Unable to read zip");
+        }
+
+        return Ok();
+    }
+
     bool loadEntries() {
-        // Clear old entries
-        m_entries.clear();
-
-        char fileName[MAX_ENTRY_PATH_LEN + 1];
-        unz_file_info64 fileInfo;
-
-        // Read first file
-        if (unzGoToFirstFile64(m_zip, &fileInfo, fileName, sizeof(fileName) - 1)) {
+        uint64_t entryCount;
+        if (mz_zip_get_number_entry(m_handle, &entryCount) != MZ_OK) {
             return false;
         }
-        // Loop over all files
-        while (true) {
-            // Read file and add to entries
-            unz_file_pos pos;
-            if (unzGetFilePos(m_zip, &pos) == UNZ_OK) {
-                auto len = strlen(fileName);
-                m_entries.insert({
-                    fileName,
-                    ZipEntry {
-                        .isDirectory = 
-                            fileInfo.uncompressed_size == 0 &&
-                            len > 0 &&
-                            (fileName[len - 1] == '/' || fileName[len - 1] == '\\'),
-                        .pos = pos,
-                        .compressedSize = fileInfo.compressed_size,
-                        .uncompressedSize = fileInfo.uncompressed_size,
-                    },
-                });
+        auto err = mz_zip_goto_first_entry(m_handle) != MZ_OK;
+        while (err == MZ_OK) {
+            mz_zip_file* info = nullptr;
+            if (mz_zip_entry_get_info(m_handle, &info) != MZ_OK) {
+                return false;
             }
-            // Read next file, or break on error
-            if (unzGoToNextFile64(m_zip, &fileInfo, fileName, sizeof(fileName) - 1) != UNZ_OK) {
-                break;
-            }
+
+            Path filePath;
+            filePath.assign(info->filename, info->filename + info->filename_size);
+            m_entries.insert({ filePath, ZipEntry {
+                .isDirectory = mz_zip_entry_is_dir(m_handle) == MZ_OK,
+                .compressedSize = info->compressed_size,
+                .uncompressedSize = info->uncompressed_size,
+            } });
+
+            err = mz_zip_goto_next_entry(m_handle);
         }
         return true;
+    }
+
+    static Result<> mzTry(int32_t code) {
+        if (code == MZ_OK) {
+            return Ok();
+        }
+        else {
+            return Err(std::to_string(code));
+        }
+    }
+
+public:
+    static Result<std::unique_ptr<Impl>> inFile(Path const& path, int32_t mode) {
+        auto ret = std::make_unique<Impl>();
+        ret->m_mode = mode;
+        ret->m_srcDest = path;
+        GEODE_UNWRAP(ret->init());
+        return Ok(std::move(ret));
+    }
+
+    static Result<std::unique_ptr<Impl>> fromMemory(ByteVector const& raw) {
+        auto ret = std::make_unique<Impl>();
+        ret->m_mode = MZ_OPEN_MODE_READ;
+        ret->m_srcDest = raw;
+        GEODE_UNWRAP(ret->init());
+        return Ok(std::move(ret));
+    }
+
+    static Result<std::unique_ptr<Impl>> intoMemory() {
+        auto ret = std::make_unique<Impl>();
+        ret->m_mode = MZ_OPEN_MODE_CREATE;
+        ret->m_srcDest = ByteVector();
+        GEODE_UNWRAP(ret->init());
+        return Ok(std::move(ret));
     }
 
     Result<ByteVector> extract(Path const& name) {
@@ -198,41 +273,125 @@ public:
         }
 
         auto entry = m_entries.at(name);
-
         if (entry.isDirectory) {
             return Err("Entry is directory");
         }
 
-        if (unzGoToFilePos(m_zip, &entry.pos) != UNZ_OK) {
-            return Err("Unable to navigate to entry");
+        GEODE_UNWRAP(
+            mzTry(mz_zip_goto_first_entry(m_handle))
+            .expect("Unable to navigate to first entry (code {error})")
+        );
+
+        GEODE_UNWRAP(
+            mzTry(mz_zip_locate_entry(
+                m_handle,
+                reinterpret_cast<const char*>(name.u8string().c_str()),
+                1
+            )).expect("Unable to navigate to entry (code {error})")
+        );
+
+        GEODE_UNWRAP(
+            mzTry(mz_zip_entry_read_open(m_handle, 0, nullptr))
+            .expect("Unable to open entry (code {error})")
+        );
+
+        // if the file is empty, its data is empty (duh)
+        if (!entry.uncompressedSize) {
+            return Ok(ByteVector());
         }
-        if (unzOpenCurrentFile(m_zip) != UNZ_OK) {
-            return Err("Unable to open entry");
-        }
+
         ByteVector res;
         res.resize(entry.uncompressedSize);
-        auto size = unzReadCurrentFile(m_zip, res.data(), entry.uncompressedSize);
-        if (size < 0 || size != entry.uncompressedSize) {
-            unzCloseCurrentFile(m_zip);
-            return Err("Unable to extract entry");
+        auto read = mz_zip_entry_read(m_handle, res.data(), entry.uncompressedSize);
+        if (read < 0) {
+            mz_zip_entry_close(m_handle);
+            return Err("Unable to read entry (code " + std::to_string(read) + ")");
         }
-        unzCloseCurrentFile(m_zip);
+        mz_zip_entry_close(m_handle);
 
         return Ok(res);
     }
 
-    std::unordered_map<Path, ZipEntry>& entries() {
+    Result<> addFolder(Path const& path) {
+        auto strPath = path.u8string();
+        if (!strPath.ends_with(u8"/") && !strPath.ends_with(u8"\\")) {
+            strPath += u8"/";
+        }
+
+        mz_zip_file info = { 0 };
+        info.version_madeby = MZ_VERSION_MADEBY;
+        info.compression_method = MZ_COMPRESS_METHOD_DEFLATE;
+        info.filename = reinterpret_cast<const char*>(strPath.c_str());
+        info.uncompressed_size = 0;
+        info.flag = MZ_ZIP_FLAG_UTF8;
+    #ifdef GEODE_IS_WINDOWS
+        info.external_fa = FILE_ATTRIBUTE_DIRECTORY;
+    #endif
+        info.aes_version = MZ_AES_VERSION;
+
+
+        GEODE_UNWRAP(
+            mzTry(mz_zip_entry_write_open(m_handle, &info, MZ_COMPRESS_LEVEL_DEFAULT, 0, nullptr))
+            .expect("Unable to open entry for writing (code {error})")
+        );
+        mz_zip_entry_close(m_handle);
+
+        return Ok();
+    }
+
+    Result<> add(Path const& path, ByteVector const& data) {
+        mz_zip_file info = { 0 };
+        info.version_madeby = MZ_VERSION_MADEBY;
+        info.compression_method = MZ_COMPRESS_METHOD_DEFLATE;
+        info.filename = reinterpret_cast<const char*>(path.u8string().c_str());
+        info.uncompressed_size = data.size();
+        info.aes_version = MZ_AES_VERSION;
+
+        GEODE_UNWRAP(
+            mzTry(mz_zip_entry_write_open(m_handle, &info, MZ_COMPRESS_LEVEL_DEFAULT, 0, nullptr))
+            .expect("Unable to open entry for writing (code {error})")
+        );
+        auto written = mz_zip_entry_write(m_handle, data.data(), data.size());
+        if (written < 0) {
+            mz_zip_entry_close(m_handle);
+            return Err("Unable to write entry data (code " + std::to_string(written) + ")");
+        }
+        mz_zip_entry_close(m_handle);
+
+        return Ok();
+    }
+
+    ByteVector compressedData() const {
+        if (!std::holds_alternative<ByteVector>(m_srcDest)) {
+            return ByteVector();
+        }
+        const uint8_t* buf = nullptr;
+        mz_stream_mem_get_buffer(m_stream, reinterpret_cast<const void**>(&buf));
+        mz_stream_mem_seek(m_stream, 0, MZ_SEEK_END);
+        auto size = mz_stream_mem_tell(m_stream);
+        return ByteVector(buf, buf + size);
+    }
+
+    Path getPath() const {
+        if (std::holds_alternative<Path>(m_srcDest)) {
+            return std::get<Path>(m_srcDest);
+        }
+        return Path();
+    }
+
+    std::unordered_map<Path, ZipEntry> getEntries() const {
         return m_entries;
     }
 
-    Path& path() {
-        return m_zipPath;
-    }
-
-    Impl(unzFile zip, Path const& path) : m_zip(zip), m_zipPath(path) {}
-
     ~Impl() {
-        unzClose(m_zip);
+        if (m_handle) {
+            mz_zip_close(m_handle);
+            mz_zip_delete(&m_handle);
+        }
+        if (m_stream) {
+            mz_stream_close(m_stream);
+            mz_stream_delete(&m_stream);
+        }
     }
 };
 
@@ -247,36 +406,33 @@ Unzip::Unzip(Unzip&& other) : m_impl(std::move(other.m_impl)) {
 }
 
 Result<Unzip> Unzip::create(Path const& file) {
-    // todo: make sure unicode paths work
-    auto zip = unzOpen(file.generic_string().c_str());
-    if (!zip) {
-        return Err("Unable to open zip file");
-    }
-    auto impl = std::make_unique<Unzip::Impl>(zip, file);
-    if (!impl->loadEntries()) {
-        return Err("Unable to read zip file");
-    }
+    GEODE_UNWRAP_INTO(auto impl, Zip::Impl::inFile(file, MZ_OPEN_MODE_READ));
+    return Ok(Unzip(std::move(impl)));
+}
+
+Result<Unzip> Unzip::create(ByteVector const& data) {
+    GEODE_UNWRAP_INTO(auto impl, Zip::Impl::fromMemory(data));
     return Ok(Unzip(std::move(impl)));
 }
 
 Unzip::Path Unzip::getPath() const {
-    return m_impl->path();
+    return m_impl->getPath();
 }
 
 std::vector<Unzip::Path> Unzip::getEntries() const {
-    return map::keys(m_impl->entries());
+    return map::keys(m_impl->getEntries());
 }
 
 bool Unzip::hasEntry(Path const& name) {
-    return m_impl->entries().count(name);
+    return m_impl->getEntries().count(name);
 }
 
 Result<ByteVector> Unzip::extract(Path const& name) {
-    return m_impl->extract(name);
+    return m_impl->extract(name).expect("{error} (entry {})", name.string());
 }
 
 Result<> Unzip::extractTo(Path const& name, Path const& path) {
-    GEODE_UNWRAP_INTO(auto bytes, m_impl->extract(name));
+    GEODE_UNWRAP_INTO(auto bytes, m_impl->extract(name).expect("{error} (entry {})", name.string()));
     // create containing directories for target path
     if (path.has_parent_path()) {
         GEODE_UNWRAP(file::createDirectoryAll(path.parent_path()));
@@ -287,7 +443,7 @@ Result<> Unzip::extractTo(Path const& name, Path const& path) {
 
 Result<> Unzip::extractAllTo(Path const& dir) {
     GEODE_UNWRAP(file::createDirectoryAll(dir));
-    for (auto& [entry, info] : m_impl->entries()) {
+    for (auto& [entry, info] : m_impl->getEntries()) {
         // make sure zip files like root/../../file.txt don't get extracted to 
         // avoid zip attacks
         if (!ghc::filesystem::relative(dir / entry, dir).empty()) {
@@ -325,67 +481,6 @@ Result<> Unzip::intoDir(
 
 // Zip
 
-class file::Zip::Impl final {
-public:
-    using Path = Unzip::Path;
-
-private:
-    zipFile m_zip;
-    Path m_zipPath;
-
-public:
-    Path& path() {
-        return m_zipPath;
-    }
-
-    Result<> addFolder(Path const& path) {
-        // a directory in a zip is just a file with no data and which ends in 
-        // a slash
-        auto strPath = path.generic_string();
-        if (!strPath.ends_with("/") && !strPath.ends_with("\\")) {
-            strPath += "/";
-        }
-        if (zipOpenNewFileInZip(
-            m_zip, strPath.c_str(),
-            nullptr, nullptr, 0, nullptr, 0, nullptr,
-            Z_DEFLATED, Z_DEFAULT_COMPRESSION
-        ) != ZIP_OK) {
-            return Err("Unable to create directory " + path.string());
-        }
-        zipCloseFileInZip(m_zip);
-        return Ok();
-    }
-
-    Result<> add(Path const& path, ByteVector const& data) {
-        // open entry
-        zip_fileinfo info = { 0 };
-        if (zipOpenNewFileInZip(
-            m_zip, path.generic_string().c_str(),
-            &info, nullptr, 0, nullptr, 0, nullptr,
-            Z_DEFLATED, Z_DEFAULT_COMPRESSION
-        ) != ZIP_OK) {
-            return Err("Unable to create entry " + path.string());
-        }
-
-        // write data
-        if (zipWriteInFileInZip(m_zip, data.data(), data.size()) != ZIP_OK) {
-            zipCloseFileInZip(m_zip);
-            return Err("Unable to write entry " + path.string());
-        }
-
-        // make sure to close!
-        zipCloseFileInZip(m_zip);
-
-        return Ok();
-    }
-
-    Impl(zipFile zip, Path const& path) : m_zip(zip), m_zipPath(path) {}
-
-    ~Impl() {
-        zipClose(m_zip, nullptr);
-    }
-};
-
 Zip::Zip() : m_impl(nullptr) {}
 
 Zip::~Zip() {}
@@ -397,17 +492,21 @@ Zip::Zip(Zip&& other) : m_impl(std::move(other.m_impl)) {
 }
 
 Result<Zip> Zip::create(Path const& file) {
-    // todo: make sure unicode paths work
-    auto zip = zipOpen(file.generic_string().c_str(), APPEND_STATUS_CREATE);
-    if (!zip) {
-        return Err("Unable to open zip file");
-    }
-    auto impl = std::make_unique<Zip::Impl>(zip, file);
+    GEODE_UNWRAP_INTO(auto impl, Zip::Impl::inFile(file, MZ_OPEN_MODE_CREATE | MZ_OPEN_MODE_WRITE));
+    return Ok(Zip(std::move(impl)));
+}
+
+Result<Zip> Zip::create() {
+    GEODE_UNWRAP_INTO(auto impl, Zip::Impl::intoMemory());
     return Ok(Zip(std::move(impl)));
 }
 
 Zip::Path Zip::getPath() const {
-    return m_impl->path();
+    return m_impl->getPath();
+}
+
+ByteVector Zip::getData() const {
+    return m_impl->compressedData();
 }
 
 Result<> Zip::add(Path const& path, ByteVector const& data) {

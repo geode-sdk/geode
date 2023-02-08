@@ -40,9 +40,7 @@ class CC_DLL CCEGLView : public CCEGLViewProtocol
 public:
     static CCEGLView* sharedOpenGLView(void);
     
-    GEODE_ADD(
-        static CCEGLView* get();
-    );
+    static GEODE_DLL CCEGLView* get();
 
     virtual ~CCEGLView(void);
     

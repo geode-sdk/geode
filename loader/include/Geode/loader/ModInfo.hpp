@@ -61,7 +61,7 @@ namespace geode {
         /**
          * Human-readable ID of the Mod.
          * Recommended to be in the format
-         * "com.developer.mod". Not
+         * "developer.mod". Not
          * guaranteed to be either case-
          * nor space-sensitive. Should
          * be restricted to the ASCII
@@ -156,6 +156,10 @@ namespace geode {
          */
         bool& needsEarlyLoad();
         bool const& needsEarlyLoad() const;
+        /**
+         * Whether this mod is an API or not
+         */
+        bool isAPI = false;
         /**
          * Create ModInfo from an unzipped .geode package
          */

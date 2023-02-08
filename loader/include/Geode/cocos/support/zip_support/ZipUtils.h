@@ -55,7 +55,7 @@ namespace cocos2d
         CCZ_COMPRESSION_NONE,               // plain (not supported yet)
     };
 
-    class CC_ZIP_DLL ZipUtils
+    class CC_DLL ZipUtils
     {
     public:
         /** 
@@ -149,21 +149,19 @@ namespace cocos2d
         */
         static void ccSetPvrEncryptionKey(unsigned int keyPart1, unsigned int keyPart2, unsigned int keyPart3, unsigned int keyPart4);
 
-        RT_ADD(
-            static gd::string base64DecodeEnc(gd::string, gd::string);
-            static gd::string base64EncodeEnc(gd::string, gd::string);
-            static gd::string base64URLDecode(gd::string);
-            static gd::string base64URLEncode(gd::string);
-            static int ccDeflateMemory(unsigned char*, unsigned int, unsigned char**);
-            static int ccDeflateMemoryWithHint(unsigned char*, unsigned int, unsigned char**, unsigned int);
-            static gd::string compressString(gd::string, bool, int);
-            static gd::string decompressString(gd::string, bool, int);
-            static gd::string decompressString2(unsigned char*, bool, int, int);
-            static gd::string encryptDecrypt(gd::string, int);
-            static gd::string encryptDecryptWKey(gd::string, gd::string);
-            static unsigned char hexToChar(const gd::string&);
-            static gd::string urlDecode(const gd::string&);
-        )
+        static gd::string base64DecodeEnc(gd::string, gd::string);
+        static gd::string base64EncodeEnc(gd::string, gd::string);
+        static gd::string base64URLDecode(gd::string);
+        static gd::string base64URLEncode(gd::string);
+        static int ccDeflateMemory(unsigned char*, unsigned int, unsigned char**);
+        static int ccDeflateMemoryWithHint(unsigned char*, unsigned int, unsigned char**, unsigned int);
+        static gd::string compressString(gd::string, bool, int);
+        static gd::string decompressString(gd::string, bool, int);
+        static gd::string decompressString2(unsigned char*, bool, int, int);
+        static gd::string encryptDecrypt(gd::string, int);
+        static gd::string encryptDecryptWKey(gd::string, gd::string);
+        static unsigned char hexToChar(const gd::string&);
+        static gd::string urlDecode(const gd::string&);
 
     private:
         static int ccInflateMemoryWithHint(unsigned char *in, unsigned int inLength, unsigned char **out, unsigned int *outLength, 
@@ -187,7 +185,7 @@ namespace cocos2d
     *
     * @since v2.0.5
     */
-    class CC_ZIP_DLL ZipFile
+    class GEODE_DLL ZipFile
     {
     public:
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
@@ -206,7 +204,6 @@ namespace cocos2d
         ZipFile(const std::string &zipFile, const std::string &filter = std::string());
         virtual ~ZipFile();
     
-    GEODE_ADD(
         /**
          * Custom function added for geode; returns if the 
          * zip file was succesfully decoded.
@@ -219,7 +216,6 @@ namespace cocos2d
         bool isLoaded() const;
 
         bool unzipAllTo(ghc::filesystem::path const& path);
-    )
 
         /**
         * Regenerate accessible file list based on a new filter string.
@@ -253,7 +249,6 @@ namespace cocos2d
         */
         unsigned char *getFileData(const std::string &fileName, unsigned long *pSize);
 
-    GEODE_ADD(
         /**
          * Custom function added for geode; returns all of 
          * the files in the zip that match the current filter.
@@ -263,7 +258,6 @@ namespace cocos2d
          * @since geode v1.0.0
          */
         std::vector<std::string> getAllFiles() const;
-    )
 
     private:
         bool setFilter(const std::string &filer, ZipFilePrivate *data);

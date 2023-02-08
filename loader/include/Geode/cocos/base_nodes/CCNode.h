@@ -844,64 +844,122 @@ public:
     
     /// @} end of Tag & User Data
     
-    GEODE_ADD(
-    private:
-        friend class geode::modifier::FieldContainer;
+private:
+    friend class geode::modifier::FieldContainer;
 
-        geode::modifier::FieldContainer* getFieldContainer();
-        std::optional<std::any> getAttributeInternal(std::string const& attribute);
-    
-    public:
-        /**
-         * Get the string ID of this node
-         * @returns The ID, or an empty string if the node has no ID.
-         */
-        std::string getID();
-        /**
-         * Set the string ID of this node. String IDs are a Geode addition 
-         * that are much safer to use to get nodes than absolute indexes
-         * @param id The ID of the node, recommended to be in kebab case 
-         * without any spaces or uppercase letters. If the node is added 
-         * by a mod, use the _spr literal to append the mod ID to it
-         */
-        void setID(std::string const& id);
+    GEODE_DLL geode::modifier::FieldContainer* getFieldContainer();
+    GEODE_DLL std::optional<std::any> getAttributeInternal(std::string const& attribute);
 
-        /**
-         * Get a child by its string ID
-         * @param id ID of the child
-         * @returns The child, or nullptr if none was found
-         */
-        CCNode* getChildByID(std::string const& id);
+public:
+    /**
+     * Get the string ID of this node
+     * @returns The ID, or an empty string if the node has no ID.
+     * @note Geode addition
+     */
+    GEODE_DLL std::string getID();
+    /**
+     * Set the string ID of this node. String IDs are a Geode addition 
+     * that are much safer to use to get nodes than absolute indexes
+     * @param id The ID of the node, recommended to be in kebab case 
+     * without any spaces or uppercase letters. If the node is added 
+     * by a mod, use the _spr literal to append the mod ID to it
+     * @note Geode addition
+     */
+    GEODE_DLL void setID(std::string const& id);
 
-        /**
-         * Get a child by its string ID. Recursively searches all the children
-         * @param id ID of the child
-         * @returns The child, or nullptr if none was found
-         */
-        CCNode* getChildByIDRecursive(std::string const& id);
+    /**
+     * Get a child by its string ID
+     * @param id ID of the child
+     * @returns The child, or nullptr if none was found
+     * @note Geode addition
+     */
+    GEODE_DLL CCNode* getChildByID(std::string const& id);
 
-        void setAttribute(std::string const& attribute, std::any value);
-        template<class T>
-        std::optional<T> getAttribute(std::string const& attribute) {
-            if (auto value = this->getAttributeInternal(attribute)) {
-                try {
-                    return std::any_cast<T>(value.value());
-                } catch(...) {
-                    return std::nullopt;
-                }
+    /**
+     * Get a child by its string ID. Recursively searches all the children
+     * @param id ID of the child
+     * @returns The child, or nullptr if none was found
+     * @note Geode addition
+     */
+    GEODE_DLL CCNode* getChildByIDRecursive(std::string const& id);
+
+    /**
+     * Set an attribute on a node. Attributes are a system added by Geode, 
+     * where a node may have any sort of extra data associated with it. Used 
+     * for mod intercommunication. For example, a mod that adds scrollbars to 
+     * layers might check if the layer has an attribute set for whether the 
+     * scrollbar should be disabled. The key of the attribute should be 
+     * prefixed with the mod ID, like hjfod.cool-scrollbars/enable. 
+     * @param attribute The attribute key. Should be prefixed with the mod ID, 
+     * like hjfod.cool-scrollbars/enable
+     * @param value The value of the attribute
+     * @note Geode addition
+     */
+    GEODE_DLL void setAttribute(std::string const& attribute, std::any value);
+    /**
+     * Get an attribute from the node. Attributes may be anything
+     * @param attribute The attribute key
+     * @returns The value, or nullopt if the attribute doesn't exist or if the 
+     * type didn't match
+     * @note Geode addition
+     */
+    template<class T>
+    std::optional<T> getAttribute(std::string const& attribute) {
+        if (auto value = this->getAttributeInternal(attribute)) {
+            try {
+                return std::any_cast<T>(value.value());
+            } catch(...) {
+                return std::nullopt;
             }
-            return std::nullopt;
         }
+        return std::nullopt;
+    }
 
-        void setLayout(Layout* layout, bool apply = true);
-        Layout* getLayout();
-        void updateLayout();
+    /**
+     * Set the Layout for this node. Used to automatically position children, 
+     * based on the selected layout. In order to apply the layout after a child 
+     * has been added, call updateLayout
+     * @param layout Layout to set to this node
+     * @param apply Whether to call updateLayout now or not
+     * @note Geode addition
+     */
+    GEODE_DLL void setLayout(Layout* layout, bool apply = true);
+    /**
+     * Get the Layout for this node
+     * @returns The current layout, or nullptr if no layout is set
+     * @note Geode addition
+     */
+    GEODE_DLL Layout* getLayout();
+    /**
+     * Update the layout of this node using the current Layout. If no layout is 
+     * set, nothing happens
+     * @note Geode addition
+     */
+    GEODE_DLL void updateLayout();
 
-        void setPositionHint(PositionHint hint);
-        PositionHint getPositionHint();
+    /**
+     * Give a hint to the current Layout about where this node should be 
+     * positioned in it. Allows detaching the node from the current 
+     * layout by setting position to absolute
+     * @param hint The hint to set
+     * @note The layout definitely should, but might not respect the hint 
+     * given
+     * @note Geode addition
+     */
+    GEODE_DLL void setPositionHint(PositionHint hint);
+    /**
+     * Get the current position hint for this node
+     * @note Geode addition
+     */
+    GEODE_DLL PositionHint getPositionHint();
 
-        void swapChildIndices(CCNode* first, CCNode* second);
-    );
+    /**
+     * Swap two children
+     * @param first One of the nodes to swap
+     * @param second One of the nodes to swap
+     * @note Geode addition
+     */
+    GEODE_DLL void swapChildIndices(CCNode* first, CCNode* second);
     
     /// @{
     /// @name Shader Program

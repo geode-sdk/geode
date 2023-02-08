@@ -117,6 +117,10 @@ namespace geode {
         static Result<ComparableVersionInfo> parse(std::string const& string);
 
         constexpr bool compare(VersionInfo const& version) const {
+            // opposing major versions never match
+            if (m_version.getMajor() != version.getMajor()) {
+                return false;
+            }
             switch (m_compare) {
                 case VersionCompare::Exact:    return m_version == version; break;
                 case VersionCompare::LessEq:   return m_version <= version; break;

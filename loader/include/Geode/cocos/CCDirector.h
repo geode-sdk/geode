@@ -136,9 +136,7 @@ public:
 		return id;
     }
 
-    GEODE_ADD(
-        static CCDirector* get();
-    )
+    static GEODE_DLL CCDirector* get();
 
     // attribute
 

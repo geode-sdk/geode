@@ -120,9 +120,9 @@ Result<ComparableVersionInfo> ComparableVersionInfo::parse(std::string const& ra
         compare = VersionCompare::MoreEq;
         string.erase(0, 2);
     }
-    else if (string.starts_with("==")) {
+    else if (string.starts_with("=")) {
         compare = VersionCompare::Exact;
-        string.erase(0, 2);
+        string.erase(0, 1);
     }
     GEODE_UNWRAP_INTO(auto version, VersionInfo::parse(string));
     return Ok(ComparableVersionInfo(version, compare));
@@ -131,7 +131,7 @@ Result<ComparableVersionInfo> ComparableVersionInfo::parse(std::string const& ra
 std::string ComparableVersionInfo::toString() const {
     std::string prefix = "";
     switch (m_compare) {
-        case VersionCompare::Exact:  prefix = "=="; break;
+        case VersionCompare::Exact:  prefix = "="; break;
         case VersionCompare::LessEq: prefix = "<="; break;
         case VersionCompare::MoreEq: prefix = ">="; break;
     }

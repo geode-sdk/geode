@@ -19,7 +19,9 @@ Event::~Event() {}
 void Event::postFrom(Mod* m) {
     if (m) this->sender = m;
 
-    for (auto h : Event::listeners()) {
+    std::unordered_set<EventListenerProtocol*> listeners_copy = Event::listeners();
+
+    for (auto h : listeners_copy) {
         if (h->passThrough(this) == ListenerResult::Stop) {
             break;
         }

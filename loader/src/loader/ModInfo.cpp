@@ -85,7 +85,6 @@ Result<ModInfo> ModInfo::Impl::createFromSchemaV010(ModJson const& rawJson) {
     auto root = checker.root("[mod.json]").obj();
 
     root.addKnownKey("geode");
-    root.addKnownKey("binary");
 
     root.needs("id").validate(&ModInfo::validateID).into(impl->m_id);
     root.needs("version").into(impl->m_version);
@@ -96,6 +95,9 @@ Result<ModInfo> ModInfo::Impl::createFromSchemaV010(ModJson const& rawJson) {
     root.has("toggleable").into(impl->m_supportsDisabling);
     root.has("unloadable").into(impl->m_supportsUnloading);
     root.has("early-load").into(impl->m_needsEarlyLoad);
+    if (root.has("api")) {
+        impl->isAPI = true;
+    }
 
     for (auto& dep : root.has("dependencies").iterate()) {
         auto obj = dep.obj();

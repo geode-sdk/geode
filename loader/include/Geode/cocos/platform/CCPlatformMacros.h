@@ -153,8 +153,6 @@ namespace geode {
     friend Class* geode::addresser::                                \
         friendCreate(typename std::void_t<decltype(static_cast<Class* (*)()>(&Class::create))>*);
 
-#define GEODE_ADD(...) __VA_ARGS__
-
 #ifdef __cplusplus
     #define NS_CC_BEGIN namespace cocos2d {
     #define NS_CC_END }

@@ -33,6 +33,8 @@ namespace geode::utils::file {
         ghc::filesystem::path const& path, bool recursive = false
     );
 
+    class Unzip;
+
     class GEODE_DLL Zip final {
     public:
         using Path = ghc::filesystem::path;
@@ -47,6 +49,9 @@ namespace geode::utils::file {
         Result<> addAllFromRecurse(
             Path const& dir, Path const& entry
         );
+
+        // for sharing Impl
+        friend class Unzip;
     
     public:
         Zip(Zip const&) = delete;
@@ -59,9 +64,21 @@ namespace geode::utils::file {
         static Result<Zip> create(Path const& file);
 
         /**
-         * Path to the opened zip
+         * Create zipper for in-memory data
+         */
+        static Result<Zip> create();
+
+        /**
+         * Path to the created zip
+         * @returns The path to the zip that is being created, or an empty path 
+         * if the zip was opened in memory
          */
         Path getPath() const;
+
+        /**
+         * Get the zipped data
+         */
+        ByteVector getData() const;
 
         /**
          * Add an entry to the zip with data
@@ -95,7 +112,7 @@ namespace geode::utils::file {
 
     class GEODE_DLL Unzip final {
     private:
-        class Impl;
+        using Impl = Zip::Impl;
         std::unique_ptr<Impl> m_impl;
 
         Unzip();
@@ -114,7 +131,14 @@ namespace geode::utils::file {
         static Result<Unzip> create(Path const& file);
 
         /**
+         * Create unzipper for data in-memory
+         */
+        static Result<Unzip> create(ByteVector const& data);
+
+        /**
          * Path to the opened zip
+         * @returns The path to the zip that is being read, or an empty path 
+         * if the zip was opened in memory
          */
         Path getPath() const;
 
