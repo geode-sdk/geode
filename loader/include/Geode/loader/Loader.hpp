@@ -11,7 +11,7 @@
 #include <mutex>
 
 namespace geode {
-    using ScheduledFunction = utils::MiniFunction<void GEODE_CALL(void)>;
+    using ScheduledFunction = utils::MiniFunction<void()>;
 
     struct InvalidGeodeFile {
         ghc::filesystem::path path;
