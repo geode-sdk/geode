@@ -35,8 +35,7 @@ file(GLOB SOURCES CONFIGURE_DEPENDS
 
 # Obj-c sources
 file(GLOB OBJC_SOURCES
-	src/platform/ios/*.mm
-	src/platform/mac/*.mm
+	src/platform/Objcpp.mm
 )
 set_source_files_properties(${OBJC_SOURCES} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 
