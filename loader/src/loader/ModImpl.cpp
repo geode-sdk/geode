@@ -124,8 +124,6 @@ Result<> Mod::Impl::loadData() {
     if (ghc::filesystem::exists(settingPath)) {
         GEODE_UNWRAP_INTO(auto settingData, utils::file::readString(settingPath));
         try {
-            std::string err;
-
             // parse settings.json
             auto json = json::parse(settingData);
 
@@ -169,13 +167,15 @@ Result<> Mod::Impl::loadData() {
     if (ghc::filesystem::exists(savedPath)) {
         GEODE_UNWRAP_INTO(auto data, utils::file::readString(savedPath));
 
-        std::string err;
         try {
             m_saved = json::parse(data);
         } catch (std::exception& err) {
             return Err(std::string("Unable to parse saved values: ") + err.what());
         }
-        
+        if (!m_saved.is_object()) {
+            log::warn("saved.json was somehow not an object, forcing it to one");
+            m_saved = json::Object();
+        }
     }
 
     return Ok();
