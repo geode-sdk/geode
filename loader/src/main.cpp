@@ -8,6 +8,7 @@
 #include <Geode/loader/SettingEvent.hpp>
 #include <Geode/loader/ModJsonTest.hpp>
 #include <Geode/utils/JsonValidation.hpp>
+
 #include <array>
 
 USE_GEODE_NAMESPACE();

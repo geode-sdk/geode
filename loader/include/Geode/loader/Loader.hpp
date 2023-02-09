@@ -1,7 +1,8 @@
 #pragma once
 
-#include <ghc/filesystem.hpp>
+#include <ghc/fs_fwd.hpp>
 #include "../utils/Result.hpp"
+#include "../utils/MiniFunction.hpp"
 #include "Log.hpp"
 #include "ModInfo.hpp"
 #include "Types.hpp"
@@ -10,7 +11,7 @@
 #include <mutex>
 
 namespace geode {
-    using ScheduledFunction = std::function<void GEODE_CALL(void)>;
+    using ScheduledFunction = utils::MiniFunction<void()>;
 
     struct InvalidGeodeFile {
         ghc::filesystem::path path;

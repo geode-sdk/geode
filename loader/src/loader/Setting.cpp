@@ -11,19 +11,19 @@
 USE_GEODE_NAMESPACE();
 
 template<class T>
-static void parseCommon(T& sett, JsonMaybeObject<ModJson>& obj) {
+static void parseCommon(T& sett, JsonMaybeObject& obj) {
     obj.has("name").into(sett.name);
     obj.has("description").into(sett.description);
     obj.has("default").into(sett.defaultValue);
 }
 
-Result<BoolSetting> BoolSetting::parse(JsonMaybeObject<ModJson>& obj) {
+Result<BoolSetting> BoolSetting::parse(JsonMaybeObject& obj) {
     BoolSetting sett;
     parseCommon(sett, obj);
     return Ok(sett);
 }
 
-Result<IntSetting> IntSetting::parse(JsonMaybeObject<ModJson>& obj) {
+Result<IntSetting> IntSetting::parse(JsonMaybeObject& obj) {
     IntSetting sett;
     parseCommon(sett, obj);
     obj.has("min").into(sett.min);
@@ -40,7 +40,7 @@ Result<IntSetting> IntSetting::parse(JsonMaybeObject<ModJson>& obj) {
     return Ok(sett);
 }
 
-Result<FloatSetting> FloatSetting::parse(JsonMaybeObject<ModJson>& obj) {
+Result<FloatSetting> FloatSetting::parse(JsonMaybeObject& obj) {
     FloatSetting sett;
     parseCommon(sett, obj);
     obj.has("min").into(sett.min);
@@ -57,14 +57,14 @@ Result<FloatSetting> FloatSetting::parse(JsonMaybeObject<ModJson>& obj) {
     return Ok(sett);
 }
 
-Result<StringSetting> StringSetting::parse(JsonMaybeObject<ModJson>& obj) {
+Result<StringSetting> StringSetting::parse(JsonMaybeObject& obj) {
     StringSetting sett;
     parseCommon(sett, obj);
     obj.has("match").into(sett.match);
     return Ok(sett);
 }
 
-Result<FileSetting> FileSetting::parse(JsonMaybeObject<ModJson>& obj) {
+Result<FileSetting> FileSetting::parse(JsonMaybeObject& obj) {
     FileSetting sett;
     parseCommon(sett, obj);
     if (auto controls = obj.has("control").obj()) {
@@ -87,13 +87,13 @@ Result<FileSetting> FileSetting::parse(JsonMaybeObject<ModJson>& obj) {
     return Ok(sett);
 }
 
-Result<ColorSetting> ColorSetting::parse(JsonMaybeObject<ModJson>& obj) {
+Result<ColorSetting> ColorSetting::parse(JsonMaybeObject& obj) {
     ColorSetting sett;
     parseCommon(sett, obj);
     return Ok(sett);
 }
 
-Result<ColorAlphaSetting> ColorAlphaSetting::parse(JsonMaybeObject<ModJson>& obj) {
+Result<ColorAlphaSetting> ColorAlphaSetting::parse(JsonMaybeObject& obj) {
     ColorAlphaSetting sett;
     parseCommon(sett, obj);
     return Ok(sett);
@@ -101,7 +101,7 @@ Result<ColorAlphaSetting> ColorAlphaSetting::parse(JsonMaybeObject<ModJson>& obj
 
 Result<Setting> Setting::parse(
     std::string const& key,
-    JsonMaybeValue<ModJson>& value
+    JsonMaybeValue& value
 ) {
     auto sett = Setting();
     sett.m_key = key;
@@ -378,7 +378,7 @@ SettingChangedEvent::SettingChangedEvent(Mod* mod, SettingValue* value)
 // SettingChangedFilter
 
 ListenerResult SettingChangedFilter::handle(
-    std::function<Callback> fn, SettingChangedEvent* event
+    utils::MiniFunction<Callback> fn, SettingChangedEvent* event
 ) {
     if (m_modID == event->mod->getID() &&
         (!m_targetKey || m_targetKey.value() == event->value->getKey())

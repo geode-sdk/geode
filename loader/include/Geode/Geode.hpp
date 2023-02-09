@@ -2,6 +2,6 @@
 
 #include "Bindings.hpp"
 #include "Loader.hpp"
-#include "Utils.hpp"
-// #include "Modify.hpp"
 #include "UI.hpp"
+#include "Utils.hpp"
+#include "modify/Modify.hpp" // doesn't include generated modify

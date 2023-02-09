@@ -20,7 +20,7 @@ namespace geode::utils::map {
      * false if not.
      */
     template <typename T, typename R>
-    bool contains(std::unordered_map<T, R> const& map, std::function<bool(R)> containFunc) {
+    bool contains(std::unordered_map<T, R> const& map, utils::MiniFunction<bool(R)> containFunc) {
         for (auto const& [_, r] : map) {
             if (containFunc(r)) return true;
         }
@@ -39,7 +39,7 @@ namespace geode::utils::map {
      * a pointer.
      */
     template <class T, class R>
-    R select(std::unordered_map<T, R> const& map, std::function<bool(R)> selectFunc) {
+    R select(std::unordered_map<T, R> const& map, utils::MiniFunction<bool(R)> selectFunc) {
         for (auto const& [_, r] : map) {
             if (selectFunc(r)) return r;
         }
@@ -59,7 +59,7 @@ namespace geode::utils::map {
      */
     template <class T, class R>
     std::vector<R> selectAll(
-        std::unordered_map<T, R> const& map, std::function<bool(R)> selectFunc
+        std::unordered_map<T, R> const& map, utils::MiniFunction<bool(R)> selectFunc
     ) {
         std::vector<R> res;
         for (auto const& [_, r] : map) {
@@ -111,7 +111,7 @@ namespace geode::utils::map {
     template <class T1, class V1, class T2, class V2>
     std::unordered_map<T2, V2> remap(
         std::unordered_map<T1, V1> const& map,
-        std::function<std::pair<T2, V2>(std::pair<T1, V1>)> remapFunc
+        utils::MiniFunction<std::pair<T2, V2>(std::pair<T1, V1>)> remapFunc
     ) {
         std::unordered_map<T2, V2> res;
         for (auto const& [t, v] : map) {

@@ -3,8 +3,8 @@
 
 #ifdef GEODE_IS_WINDOWS
 
-#include <Geode/modify/InternalMacros.hpp>
-#include <Geode/loader/Mod.hpp>
+    #include <Geode/loader/Mod.hpp>
+    #include <Geode/modify/Modify.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -19,16 +19,18 @@ static void __cdecl fixedErrorHandler(int code, char const* description) {
         fmt::format(
             "GLFWError #{}: {}\nPlease contact the "
             "Geode Development Team for more information.",
-            code, description
-        ).c_str(),
-        "OpenGL Error", MB_ICONERROR
+            code,
+            description
+        )
+            .c_str(),
+        "OpenGL Error",
+        MB_ICONERROR
     );
 }
 
 $execute {
     (void)Mod::get()->patch(
-        reinterpret_cast<void*>(geode::base::getCocos() + 0x19feec),
-        toByteArray(&fixedErrorHandler)
+        reinterpret_cast<void*>(geode::base::getCocos() + 0x19feec), toByteArray(&fixedErrorHandler)
     );
 }
 

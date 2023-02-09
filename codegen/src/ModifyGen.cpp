@@ -10,7 +10,6 @@ namespace {
         char const* modify_start = R"GEN(#pragma once
 #include <Geode/modify/Modify.hpp>
 #include <Geode/modify/Field.hpp>
-#include <Geode/modify/InternalMacros.hpp>
 #include <Geode/modify/Addresses.hpp>
 {class_include}
 using namespace geode::modifier;
@@ -92,8 +91,7 @@ std::string generateModifyHeader(Root& root, ghc::filesystem::path const& single
                 if (fn->type == FunctionType::Normal && !used.count(fn->name)) {
                     used.insert(fn->name);
                     statics += fmt::format(
-                        format_strings::statics_declare_identifier,
-                        fmt::arg("function_name", fn->name)
+                        format_strings::statics_declare_identifier, fmt::arg("function_name", fn->name)
                     );
                 }
             }
