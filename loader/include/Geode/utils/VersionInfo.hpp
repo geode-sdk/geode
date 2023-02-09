@@ -121,12 +121,15 @@ namespace geode {
             if (m_version.getMajor() != version.getMajor()) {
                 return false;
             }
+
             switch (m_compare) {
-                case VersionCompare::Exact:    return m_version == version; break;
-                case VersionCompare::LessEq:   return m_version <= version; break;
-                case VersionCompare::MoreEq:   return m_version >= version; break;
+                case VersionCompare::LessEq:
+                    return m_version <= version;
+                case VersionCompare::MoreEq:
+                    return m_version >= version;
+                default:
+                    return m_version == version;
             }
-            return false;
         }
 
         std::string toString() const;
