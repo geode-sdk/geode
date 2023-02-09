@@ -77,8 +77,10 @@ set(GEODE_CODEGEN_BINARY_OUT ${CMAKE_CURRENT_BINARY_DIR}/codegen)
 ExternalProject_Add(CodegenProject
 	BUILD_ALWAYS ON
 	SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/codegen
-	CMAKE_CACHE_ARGS "-DCMAKE_INSTALL_PREFIX:STRING=${GEODE_CODEGEN_BINARY_OUT}"
-	CMAKE_ARGS ${GEODE_CODEGEN_CMAKE_ARGS}
+	# manually set configure command as to not inherit generator used by geode,
+	# this should hopefully fix generator cache mismatch between different projects, however
+	# it causes a warning to be shown every time. if you know a better solution please tell us ok thx
+	CONFIGURE_COMMAND ${CMAKE_COMMAND} ${GEODE_CODEGEN_CMAKE_ARGS} -DCMAKE_INSTALL_PREFIX:STRING=${GEODE_CODEGEN_BINARY_OUT} -S <SOURCE_DIR> -B <BINARY_DIR>
 )
 
 
