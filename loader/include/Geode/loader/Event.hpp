@@ -41,7 +41,7 @@ namespace geode {
         using Callback = ListenerResult(T*);
         using Event = T;
 
-        ListenerResult handle(std::function<Callback> fn, T* e) {
+        ListenerResult handle(utils::MiniFunction<Callback> fn, T* e) {
             return fn(e);
         }
     };
@@ -74,7 +74,7 @@ namespace geode {
             this->enable();
         }
 
-        EventListener(std::function<Callback> fn, T filter = T())
+        EventListener(utils::MiniFunction<Callback> fn, T filter = T())
           : m_callback(fn), m_filter(filter)
         {
             this->enable();
@@ -106,7 +106,7 @@ namespace geode {
             this->enable();
         }
 
-        void bind(std::function<Callback> fn) {
+        void bind(utils::MiniFunction<Callback> fn) {
             m_callback = fn;
         }
 
@@ -120,7 +120,7 @@ namespace geode {
         }
 
     protected:
-        std::function<Callback> m_callback = nullptr;
+        utils::MiniFunction<Callback> m_callback = nullptr;
         T m_filter;
     };
 

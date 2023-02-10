@@ -35,10 +35,10 @@ file(GLOB SOURCES CONFIGURE_DEPENDS
 
 # Obj-c sources
 file(GLOB OBJC_SOURCES
-	src/platform/ios/*.mm
-	src/platform/mac/*.mm
+	src/platform/Objcpp.mm
 )
 set_source_files_properties(${OBJC_SOURCES} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+
 
 # Add platform sources
 if (WIN32)
@@ -135,6 +135,7 @@ if (NOT GEODE_BUILDING_DOCS)
 
 	# Zip support (needed for in-memory streams, which zlib's minizip doesn't support)
 	set(MZ_LZMA Off CACHE INTERNAL "Enables LZMA & XZ compression")
+	set(MZ_ZSTD Off CACHE INTERNAL "")
 	CPMAddPackage("gh:zlib-ng/minizip-ng#cee6d8c")
 
 	# Regex support
@@ -151,13 +152,13 @@ target_link_libraries(${PROJECT_NAME} z TulipHook geode-sdk mat-json)
 # Use precompiled headers for faster builds
 if (NOT GEODE_DISABLE_PRECOMPILED_HEADERS)
 	target_precompile_headers(${PROJECT_NAME} PRIVATE
-		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/DefaultInclude.hpp"
+		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Geode.hpp"
 		# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Utils.hpp"
-		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Loader.hpp"
-		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/UI.hpp"
+		# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Loader.hpp"
+		# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/UI.hpp"
 		# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Bindings.hpp"
-		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/cocos/include/cocos2d.h"
-		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/cocos/extensions/cocos-ext.h"
+		# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/cocos/include/cocos2d.h"
+		# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/cocos/extensions/cocos-ext.h"
 	)
 endif()
 

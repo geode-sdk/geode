@@ -115,15 +115,16 @@ Result<ComparableVersionInfo> ComparableVersionInfo::parse(std::string const& ra
     if (string.starts_with("<=")) {
         compare = VersionCompare::LessEq;
         string.erase(0, 2);
-    }
-    else if (string.starts_with(">=")) {
+    } else if (string.starts_with(">=")) {
         compare = VersionCompare::MoreEq;
         string.erase(0, 2);
-    }
-    else if (string.starts_with("=")) {
+    } else if (string.starts_with("=")) {
         compare = VersionCompare::Exact;
         string.erase(0, 1);
+    } else {
+        compare = VersionCompare::MoreEq;
     }
+
     GEODE_UNWRAP_INTO(auto version, VersionInfo::parse(string));
     return Ok(ComparableVersionInfo(version, compare));
 }
