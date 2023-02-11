@@ -101,6 +101,18 @@ protected:
     AxisLayout(Axis);
 
 public:
+    /**
+     * Create a new AxisLayout. Note that this class is not automatically 
+     * managed by default, so you must assign it to a CCNode or manually 
+     * manage the memory yourself. See the chainable setters on AxisLayout for 
+     * what options you can customize for the layout
+     * @param axis The direction of the layout
+     * @note For convenience, you can use the RowLayout and ColumnLayout 
+     * classes, which are just thin wrappers over AxisLayout
+     * @returns Created AxisLayout
+     */
+    static AxisLayout* create(Axis axis = Axis::Row);
+
     void apply(CCNode* on) override;
 
     Axis getAxis() const;
@@ -113,6 +125,7 @@ public:
     bool getGrowCrossAxis() const;
     bool getCrossAxisOverflow() const;
 
+    AxisLayout* setAxis(Axis axis);
     /**
      * Sets where to align the target node's children on the main axis (X for 
      * Row, Y for Column)

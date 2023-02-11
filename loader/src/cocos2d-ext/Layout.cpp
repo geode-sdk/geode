@@ -373,6 +373,11 @@ bool AxisLayout::getCrossAxisOverflow() const {
     return m_allowCrossAxisOverflow;
 }
 
+AxisLayout* AxisLayout::setAxis(Axis axis) {
+    m_axis = axis;
+    return this;
+}
+
 AxisLayout* AxisLayout::setCrossAxisAlignment(AxisAlignment align) {
     m_crossAlignment = align;
     return this;
@@ -411,6 +416,10 @@ AxisLayout* AxisLayout::setAutoScale(bool scale) {
 AxisLayout* AxisLayout::setGrowCrossAxis(bool shrink) {
     m_growCrossAxis = shrink;
     return this;
+}
+
+AxisLayout* AxisLayout::create(Axis axis) {
+    return new AxisLayout(axis);
 }
 
 RowLayout::RowLayout() : AxisLayout(Axis::Row) {}
