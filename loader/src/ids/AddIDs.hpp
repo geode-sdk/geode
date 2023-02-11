@@ -37,6 +37,7 @@ static void switchToMenu(CCNode* node, CCMenu* menu) {
 
     node->retain();
     node->removeFromParent();
+    node->setZOrder(0);
 
     menu->addChild(node);
     node->setPosition(menu->convertToNodeSpace(worldPos));
@@ -67,6 +68,7 @@ static CCMenu* detachAndCreateMenu(CCNode* parent, const char* menuID, Layout* l
     parent->addChild(newMenu);
 
     first->setPosition(0, 0);
+    first->setZOrder(0);
     newMenu->addChild(first);
     first->release();
     
