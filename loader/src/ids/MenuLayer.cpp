@@ -35,27 +35,26 @@ $register_ids(MenuLayer) {
         auto playBtn = setIDSafe(menu, 0, "play-button");
         auto iconBtn = setIDSafe(menu, 1, "icon-kit-button");
 
-        // the buttons are added in order play, icon, editor which doesn't work
-        // well with setLayout that deals with children in order
-        menu->swapChildIndices(playBtn, iconBtn);
-
         setIDSafe(menu, 2, "editor-button");
 
         if (auto pfp = setIDSafe(menu, 3, "profile-button")) {
             auto profileMenu = detachAndCreateMenu(
                 this, "profile-menu",
-                ColumnLayout::create()
-                    ->setAxisAlignment(AxisAlignment::Start)
-                    ->setAxisReverse(true),
+                RowLayout::create()
+                    ->setAxisAlignment(AxisAlignment::Start),
                 pfp
             );
-            profileMenu->setContentSize({ 50.f, 200.f });
-            profileMenu->setPositionY(
-                profileMenu->getPositionY() + 200.f / 2 - 
+            profileMenu->setContentSize({ 200.f, 50.f });
+            profileMenu->setPositionX(
+                profileMenu->getPositionX() + 200.f / 2 - 
                     pfp->getScaledContentSize().height / 2
             );
             profileMenu->updateLayout();
         }
+
+        // the buttons are added in order play, icon, editor which doesn't work
+        // well with setLayout that deals with children in order
+        menu->swapChildIndices(playBtn, iconBtn);
 
         menu->setContentSize({ 400.f, 65.f });
         menu->setLayout(
