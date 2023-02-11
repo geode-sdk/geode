@@ -8,7 +8,7 @@ USE_GEODE_NAMESPACE();
 
 $register_ids(LevelBrowserLayer) {
     if (auto menu = getChildOfType<CCMenu>(this, 0)) {
-        menu->setID("go-back-menu");
+        menu->setID("back-menu");
         setIDSafe(menu, 0, "back-button");
     }
 
@@ -38,10 +38,10 @@ $register_ids(LevelBrowserLayer) {
                     ->setAxisAlignment(AxisAlignment::Start)
             );
             menu->setPositionY(
-                menu->getPositionY() + 150.f / 2 - 
+                menu->getPositionY() + 130.f / 2 - 
                     newLvlBtn->getScaledContentSize().height / 2
             );
-            menu->setContentSize({ 50.f, 150.f });
+            menu->setContentSize({ 50.f, 130.f });
             menu->updateLayout();
         }
 
@@ -77,6 +77,29 @@ $register_ids(LevelBrowserLayer) {
                 );
                 searchMenu->setContentSize({ 80.f, 80.f });
                 searchMenu->updateLayout();
+            }
+
+            if (auto pageBtn = setIDSafe(menu, 2, "page-button")) {
+                auto folderBtn = setIDSafe(menu, 3, "folder-button");
+                auto lastPageBtn = setIDSafe(menu, 4, "last-page-button");
+                auto pageMenu = detachAndCreateMenu(
+                    this,
+                    "page-menu",
+                    ColumnLayout::create()
+                        ->setAxisReverse(true)
+                        ->setGrowCrossAxis(true)
+                        ->setAxisAlignment(AxisAlignment::End),
+                    pageBtn,
+                    folderBtn,
+                    lastPageBtn
+                );
+                pageMenu->setContentSize({ 40.f, 110.f });
+                pageMenu->setAnchorPoint({ 1.f, .5f });
+                pageMenu->setPosition(
+                    pageMenu->getPositionX() + 20.f,
+                    pageMenu->getPositionY() - 110.f / 2 + 12.5f
+                );
+                pageMenu->updateLayout();
             }
         }
     }

@@ -26,7 +26,7 @@ $register_ids(EditLevelLayer) {
         "version-label",
         "level-id-label",
         "level-actions-menu",
-        "back-button-menu",
+        "back-menu",
         "info-button-menu"
     );
 
@@ -35,7 +35,7 @@ $register_ids(EditLevelLayer) {
     if (auto menu = this->getChildByID("level-edit-menu")) {
         setIDs(menu, 0, "edit-button", "play-button", "share-button");
         menu->setContentSize({ winSize.width - 160.f, 100.f });
-        menu->setLayout(RowLayout::create()->setGap(10.f));
+        menu->setLayout(RowLayout::create()->setGap(25.f));
     }
 
     if (auto menu = this->getChildByID("level-actions-menu")) {
@@ -73,7 +73,18 @@ $register_ids(EditLevelLayer) {
         menu->setZOrder(1);
     }
 
-    if (auto menu = this->getChildByID("back-button-menu")) setIDSafe(menu, 0, "back-button");
+    if (auto menu = this->getChildByID("back-menu")) {
+        auto backBtn = setIDSafe(menu, 0, "back-button");
+        menu->setPositionX(
+            menu->getPositionX() + 100.f / 2 - 
+                backBtn->getScaledContentSize().width / 2
+        );
+        menu->setContentSize({ 100.f, 50.f });
+        menu->setLayout(
+            RowLayout::create()
+                ->setAxisAlignment(AxisAlignment::Start)
+        );
+    }
 
     if (auto menu = this->getChildByID("info-button-menu")) setIDSafe(menu, 0, "info-button");
 }
