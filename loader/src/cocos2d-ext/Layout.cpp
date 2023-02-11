@@ -93,7 +93,9 @@ AxisLayout::Row* AxisLayout::fitInRow(CCNode* on, CCArray* nodes, float scale, f
         nextAxisLength += pos.axisLength;
         // if multiple rows are allowed and this row is full, time for the 
         // next row
-        if (m_growCrossAxis && nextAxisLength > available.axisLength) {
+        // also force at least one object to be added to this row, because if 
+        // it's too large for this row it's gonna be too large for all rows
+        if (m_growCrossAxis && nextAxisLength > available.axisLength && ix != 0) {
             break;
         }
         res->addObject(node);
