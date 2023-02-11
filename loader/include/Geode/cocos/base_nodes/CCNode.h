@@ -761,7 +761,7 @@ public:
      * Returns a tag that is used to identify the node easily.
      *
      * You can set tags to node then identify them easily.
-     * @code
+     * @example
      * #define TAG_PLAYER  1
      * #define TAG_MONSTER 2
      * #define TAG_BOSS    3
@@ -786,9 +786,7 @@ public:
      *             break;
      *     }
      * }
-     * @endcode
-     *
-     * @return A interger that identifies the node.
+     * @returns A interger that identifies the node.
      */
     RT_REMOVE(  virtual int getTag() const; )
     /**
@@ -882,6 +880,26 @@ public:
      * @note Geode addition
      */
     GEODE_DLL CCNode* getChildByIDRecursive(std::string const& id);
+
+    /**
+     * Add a child before a specified existing child
+     * @param child The node to add. The node may not be a child of another  
+     * node already
+     * @param before The child the node is added before of. If this is null or 
+     * not a child of this node, the new child will be placed at the end of the 
+     * child list
+     */
+    GEODE_DLL void insertBefore(CCNode* child, CCNode* before);
+
+    /**
+     * Add a child after an specified existing child
+     * @param child The node to add. The node may not be a child of another  
+     * node already
+     * @param after The child the node is added after of. If this is null or 
+     * not a child of this node, the new child will be placed at the end of the 
+     * child list
+     */
+    GEODE_DLL void insertAfter(CCNode* child, CCNode* after);
 
     /**
      * Set an attribute on a node. Attributes are a system added by Geode, 

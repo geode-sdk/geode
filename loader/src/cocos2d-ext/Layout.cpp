@@ -14,6 +14,22 @@ void CCNode::swapChildIndices(CCNode* first, CCNode* second) {
     std::swap(first->m_uOrderOfArrival, second->m_uOrderOfArrival);
 }
 
+void CCNode::insertBefore(CCNode* child, CCNode* before) {
+    this->addChild(child);
+    if (m_pChildren->containsObject(before)) {
+        child->setZOrder(before->getZOrder());
+        child->setOrderOfArrival(before->getOrderOfArrival() - 1);
+    }
+}
+
+void CCNode::insertAfter(CCNode* child, CCNode* after) {
+    this->addChild(child);
+    if (m_pChildren->containsObject(after)) {
+        child->setZOrder(after->getZOrder());
+        child->setOrderOfArrival(after->getOrderOfArrival() + 1);
+    }
+}
+
 CCArray* Layout::getNodesToPosition(CCNode* on) {
     auto filtered = CCArray::create();
     for (auto& child : CCArrayExt<CCNode>(on->getChildren())) {
