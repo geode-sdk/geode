@@ -19,24 +19,26 @@ $register_ids(EditLevelLayer) {
         "description-background",
         "description-input",
         "description-text-area",
-        "level-action-menu",
+        "level-edit-menu",
         "level-length",
         "level-song",
         "level-verified",
         "version-label",
         "level-id-label",
-        "right-side-menu",
+        "level-actions-menu",
         "back-button-menu",
         "info-button-menu"
     );
 
     auto winSize = CCDirector::get()->getWinSize();
 
-    if (auto menu = this->getChildByID("level-action-menu")) {
+    if (auto menu = this->getChildByID("level-edit-menu")) {
         setIDs(menu, 0, "edit-button", "play-button", "share-button");
+        menu->setContentSize({ winSize.width - 160.f, 100.f });
+        menu->setLayout(RowLayout::create()->setGap(10.f));
     }
 
-    if (auto menu = this->getChildByID("right-side-menu")) {
+    if (auto menu = this->getChildByID("level-actions-menu")) {
         setIDs(
             menu,
             0,
@@ -47,31 +49,28 @@ $register_ids(EditLevelLayer) {
             "folder-button"
         );
 
-        detachAndCreateMenu(
-            this, "folder-menu", ColumnLayout::create(), menu->getChildByID("folder-button")
+        auto folderMenu = detachAndCreateMenu(
+            this, "folder-menu",
+            ColumnLayout::create(),
+            menu->getChildByID("folder-button")
         );
+        folderMenu->setContentSize({ 50.f, 215.f });
+        folderMenu->updateLayout();
+
         menu->setPosition(
             menu->getPositionX() + static_cast<CCNode*>(
                 menu->getChildren()->firstObject()
             )->getPositionX(),
             winSize.height / 2
         );
-        menu->setContentSize({ 60.f, winSize.height - 50.f });
+        menu->setContentSize({ 60.f, winSize.height - 15.f });
         menu->setLayout(
             ColumnLayout::create()
                 ->setGap(7.f)
-                ->setAxisAlignment(AxisAlignment::Start)
+                ->setAxisAlignment(AxisAlignment::End)
                 ->setAxisReverse(true)
         );
         menu->setZOrder(1);
-
-        for (int i = 0; i < rand() % 4; i++) {
-            auto btn = CircleButtonSprite::create(
-                CCLabelBMFont::create(std::to_string(i).c_str(), "bigFont.fnt")
-            );
-            menu->addChild(btn);
-        }
-        menu->updateLayout();
     }
 
     if (auto menu = this->getChildByID("back-button-menu")) setIDSafe(menu, 0, "back-button");

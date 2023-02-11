@@ -15,7 +15,7 @@ $register_ids(LevelBrowserLayer) {
     if (m_searchObject->m_searchType == SearchType::MyLevels) {
         if (auto menu = getChildOfType<CCMenu>(this, 2)) {
             menu->setID("new-level-menu");
-            setIDSafe(menu, 0, "new-level-button");
+            auto newLvlBtn = setIDSafe(menu, 0, "new-level-button");
 
             if (auto myLevelsBtn = setIDSafe(menu, 1, "my-levels-button")) {
                 auto menu = detachAndCreateMenu(
@@ -25,7 +25,10 @@ $register_ids(LevelBrowserLayer) {
                         ->setAxisAlignment(AxisAlignment::Start),
                     myLevelsBtn
                 );
-                menu->setPositionY(menu->getPositionY() + 100.f / 2);
+                menu->setPositionY(
+                    menu->getPositionY() + 100.f / 2 - 
+                        myLevelsBtn->getScaledContentSize().height / 2
+                );
                 menu->setContentSize({ 50.f, 100.f });
                 menu->updateLayout();
             }
@@ -34,23 +37,46 @@ $register_ids(LevelBrowserLayer) {
                 ColumnLayout::create()
                     ->setAxisAlignment(AxisAlignment::Start)
             );
-            menu->setPositionY(menu->getPositionY() + 150.f / 2);
+            menu->setPositionY(
+                menu->getPositionY() + 150.f / 2 - 
+                    newLvlBtn->getScaledContentSize().height / 2
+            );
             menu->setContentSize({ 50.f, 150.f });
             menu->updateLayout();
         }
 
         if (auto menu = getChildOfType<CCMenu>(this, 1)) {
             if (auto searchBtn = setIDSafe(menu, 5, "search-button")) {
-                auto menu = detachAndCreateMenu(
+                auto clearBtn = setIDSafe(menu, 6, "clear-search-button");
+                // this is a hacky fix because for some reason adding children 
+                // before the clear button is made visible is inconsistent
+                if (clearBtn) {
+                    searchBtn->setZOrder(-1);
+                    clearBtn->setZOrder(-1);
+                }
+                auto searchMenu = detachAndCreateMenu(
                     this,
                     "search-menu",
                     ColumnLayout::create()
-                        ->setAxisAlignment(AxisAlignment::Start),
-                    searchBtn
+                        ->setAxisReverse(true)
+                        ->setCrossAxisReverse(true)
+                        ->setGrowCrossAxis(true)
+                        ->setCrossAxisOverflow(false)
+                        ->setCrossAxisAlignment(AxisAlignment::Start)
+                        ->setAxisAlignment(AxisAlignment::End),
+                    searchBtn,
+                    clearBtn
                 );
-                menu->setPositionY(menu->getPositionY() + 50.f / 2);
-                menu->setContentSize({ 50.f, 50.f });
-                menu->updateLayout();
+                searchMenu->setPositionX(
+                    searchMenu->getPositionX() + 80.f / 2 - 
+                        searchBtn->getScaledContentSize().width / 2
+                );
+                searchMenu->setPositionY(
+                    searchMenu->getPositionY() - 80.f / 2 + 
+                        searchBtn->getScaledContentSize().height / 2
+                );
+                searchMenu->setContentSize({ 80.f, 80.f });
+                searchMenu->updateLayout();
             }
         }
     }

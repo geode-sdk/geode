@@ -11,6 +11,8 @@ $register_ids(MenuLayer) {
     setIDSafe(this, 0, "main-menu-bg");
     setIDSafe<CCSprite>(this, 0, "main-title");
 
+    auto winSize = CCDirector::get()->getWinSize();
+
     // controller
     if (PlatformToolbox::isControllerConnected()) {
         setIDSafe<CCSprite>(this, 1, "play-gamepad-icon");
@@ -133,6 +135,19 @@ $register_ids(MenuLayer) {
                 ->setAxisReverse(true)
         );
     }
+
+    // add a menu to the top right corner that is empty but prolly a place mods 
+    // want to add stuff to since it's symmetrically opposite to the close button
+    auto menu = CCMenu::create();
+    menu->setPosition(winSize.width - 200.f / 2, winSize.height - 50.f / 2);
+    menu->setID("top-right-menu");
+    menu->setContentSize({ 200.f, 50.f });
+    menu->setLayout(
+        RowLayout::create()
+            ->setAxisReverse(true)
+            ->setAxisAlignment(AxisAlignment::End)
+    );
+    this->addChild(menu);
 }
 
 struct $modify(MenuLayer) {
