@@ -10,6 +10,8 @@ USE_GEODE_NAMESPACE();
 
 void CCNode::swapChildIndices(CCNode* first, CCNode* second) {
     m_pChildren->exchangeObject(first, second);
+    std::swap(first->m_nZOrder, second->m_nZOrder);
+    std::swap(first->m_uOrderOfArrival, second->m_uOrderOfArrival);
 }
 
 CCArray* Layout::getNodesToPosition(CCNode* on) {
