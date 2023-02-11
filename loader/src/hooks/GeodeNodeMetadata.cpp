@@ -147,7 +147,10 @@ LayoutOptions* CCNode::getLayoutOptions() {
     return GeodeNodeMetadata::set(this)->m_layoutOptions.get();
 }
 
-void CCNode::updateLayout() {
+void CCNode::updateLayout(bool updateChildOrder) {
+    if (updateChildOrder) {
+        this->sortAllChildren();
+    }
     if (auto layout = GeodeNodeMetadata::set(this)->m_layout.get()) {
         layout->apply(this);
     }

@@ -940,7 +940,7 @@ public:
      * set, nothing happens
      * @note Geode addition
      */
-    GEODE_DLL void updateLayout();
+    GEODE_DLL void updateLayout(bool updateChildOrder = true);
     /**
      * Set the layout options for this node. Layout options can be used to 
      * control how this node is positioned in its parent's Layout, for example 
