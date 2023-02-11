@@ -231,6 +231,7 @@ void AxisLayout::tryFitLayout(CCNode* on, CCArray* nodes, float scale, float squ
         } break;
 
         case AxisAlignment::Even: {
+            totalRowCrossLength = available.crossLength;
             rowCrossPos = totalRowCrossLength - rowsEndsLength * 1.5f * scale * (1.f - columnSquish);
         } break;
 
@@ -245,8 +246,15 @@ void AxisLayout::tryFitLayout(CCNode* on, CCArray* nodes, float scale, float squ
         } break;
     }
 
+    float rowEvenSpace = available.crossLength / rows->count();
+
     for (auto row : CCArrayExt<Row*>(rows)) {
-        rowCrossPos -= row->crossLength * columnSquish;
+        if (m_crossAlignment == AxisAlignment::Even) {
+            rowCrossPos -= rowEvenSpace / 2 + row->crossLength / 2;
+        }
+        else {
+            rowCrossPos -= row->crossLength * columnSquish;
+        }
 
         // scale down & squish row if it overflows main axis
         float rowScale = scale;
@@ -288,6 +296,8 @@ void AxisLayout::tryFitLayout(CCNode* on, CCArray* nodes, float scale, float squ
             } break;
         }
 
+        float evenSpace = available.axisLength / row->nodes->count();
+
         size_t ix = 0;
         for (auto& node : CCArrayExt<CCNode*>(row->nodes)) {
             // rescale node if overflowing
@@ -299,7 +309,17 @@ void AxisLayout::tryFitLayout(CCNode* on, CCArray* nodes, float scale, float squ
                 node->setScale(rowScale);
             }
             auto pos = nodeAxis(node, m_axis, rowSquish);
-            float axisPos = rowAxisPos + pos.axisLength * pos.axisAnchor;
+            float axisPos;
+            if (m_axisAlignment == AxisAlignment::Even) {
+                axisPos = rowAxisPos + evenSpace / 2 - pos.axisLength * (.5f - pos.axisAnchor);
+                rowAxisPos += evenSpace - 
+                    row->axisEndsLength * rowScale * (1.f - rowSquish) * 1.f / nodes->count();
+            }
+            else {
+                axisPos = rowAxisPos + pos.axisLength * pos.axisAnchor;
+                rowAxisPos += pos.axisLength + m_gap * rowScale * rowSquish - 
+                    row->axisEndsLength * rowScale * (1.f - rowSquish) * 1.f / nodes->count();
+            }
             float crossOffset;
             switch (m_crossAlignment) {
                 case AxisAlignment::Start: {
@@ -320,13 +340,17 @@ void AxisLayout::tryFitLayout(CCNode* on, CCArray* nodes, float scale, float squ
             else {
                 node->setPosition(rowCrossPos + crossOffset, axisPos);
             }
-            rowAxisPos += pos.axisLength + m_gap * rowScale * rowSquish - 
-                row->axisEndsLength * rowScale * (1.f - rowSquish) * 1.f / nodes->count();
             ix++;
         }
     
-        rowCrossPos -= m_gap * columnSquish - 
-            rowsEndsLength * 1.5f * scale * (1.f - columnSquish) * 1.f / rows->count();
+        if (m_crossAlignment == AxisAlignment::Even) {
+            rowCrossPos -= rowEvenSpace / 2 - row->crossLength / 2 - 
+                rowsEndsLength * 1.5f * scale * (1.f - columnSquish) * 1.f / rows->count();
+        }
+        else {
+            rowCrossPos -= m_gap * columnSquish - 
+                rowsEndsLength * 1.5f * scale * (1.f - columnSquish) * 1.f / rows->count();
+        }
     }
 }
 
