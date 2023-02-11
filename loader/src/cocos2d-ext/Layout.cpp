@@ -335,6 +335,42 @@ void AxisLayout::apply(CCNode* on) {
 
 AxisLayout::AxisLayout(Axis axis) : m_axis(axis) {}
 
+Axis AxisLayout::getAxis() const {
+    return m_axis;
+}
+
+AxisAlignment AxisLayout::getCrossAxisAlignment() const {
+    return m_crossAlignment;
+}
+
+AxisAlignment AxisLayout::getAxisAlignment() const {
+    return m_axisAlignment;
+}
+
+float AxisLayout::getGap() const {
+    return m_gap;
+}
+
+bool AxisLayout::getAxisReverse() const {
+    return m_axisReverse;
+}
+
+bool AxisLayout::getCrossAxisReverse() const {
+    return m_crossReverse;
+}
+
+bool AxisLayout::getAutoScale() const {
+    return m_autoScale;
+}
+
+bool AxisLayout::getGrowCrossAxis() const {
+    return m_growCrossAxis;
+}
+
+bool AxisLayout::getCrossAxisOverflow() const {
+    return m_allowCrossAxisOverflow;
+}
+
 AxisLayout* AxisLayout::setCrossAxisAlignment(AxisAlignment align) {
     m_crossAlignment = align;
     return this;

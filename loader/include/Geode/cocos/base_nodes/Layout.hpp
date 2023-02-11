@@ -103,16 +103,26 @@ protected:
 public:
     void apply(CCNode* on) override;
 
-    /**
-     * Sets where to align the target node's children on the cross-axis (Y for 
-     * Row, X for Column)
-     */
-    AxisLayout* setCrossAxisAlignment(AxisAlignment align);
+    Axis getAxis() const;
+    AxisAlignment getAxisAlignment() const;
+    AxisAlignment getCrossAxisAlignment() const;
+    float getGap() const;
+    bool getAxisReverse() const;
+    bool getCrossAxisReverse() const;
+    bool getAutoScale() const;
+    bool getGrowCrossAxis() const;
+    bool getCrossAxisOverflow() const;
+
     /**
      * Sets where to align the target node's children on the main axis (X for 
      * Row, Y for Column)
      */
     AxisLayout* setAxisAlignment(AxisAlignment align);
+    /**
+     * Sets where to align the target node's children on the cross-axis (Y for 
+     * Row, X for Column)
+     */
+    AxisLayout* setCrossAxisAlignment(AxisAlignment align);
     /**
      * The spacing between the children of the node this layout applies to. 
      * Measured as the space between their edges, not centres. Does not apply 
