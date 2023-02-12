@@ -10,8 +10,10 @@ $register_ids(GJGarageLayer) {
     setIDSafe(this, 2, "username-label");
     setIDSafe(this, 6, "player-icon");
 
+    auto winSize = CCDirector::get()->getWinSize();
+
     if (auto menu = getChildOfType<CCMenu>(this, 0)) {
-        menu->setID("icon-select-menu");
+        menu->setID("category-menu");
 
         setIDs(
             menu,
@@ -25,6 +27,13 @@ $register_ids(GJGarageLayer) {
             "spider-button",
             "trail-button",
             "death-effect-button"
+        );
+
+        menu->setContentSize({ 320.f, 50.f });
+        menu->setLayout(
+            RowLayout::create()
+                ->setAxisAlignment(AxisAlignment::Start)
+                ->setGap(-4.f)
         );
     }
 
@@ -47,15 +56,62 @@ $register_ids(GJGarageLayer) {
         "color-selection-menu"
     );
 
-    if (auto menu = getChildOfType<CCMenu>(this, 11)) {
+    if (auto menu = getChildOfType<CCMenu>(this, 1)) {
         menu->setID("top-left-menu");
 
         setIDs(menu, 0, "back-button", "shop-button", "shards-button");
 
-        detachAndCreateMenu(
-            menu, "shards-button-menu", ColumnLayout::create(), menu->getChildByID("shards-button")
+        auto backBtn = menu->getChildByID("back-button");
+        auto backMenu = detachAndCreateMenu(
+            this,
+            "back-menu",
+            RowLayout::create()
+                ->setAxisAlignment(AxisAlignment::Start),
+            backBtn
         );
+        backMenu->setContentSize({ 100.f, 50.f });
+        backMenu->setPositionX(
+            backMenu->getPositionX() + 100.f / 2 - 
+                getSizeSafe(backBtn).width / 2
+        );
+        backMenu->updateLayout();
+
+        auto shardsBtn = menu->getChildByID("shards-button");
+        auto shardsMenu = detachAndCreateMenu(
+            this,
+            "shards-menu",
+            ColumnLayout::create()
+                ->setAxisReverse(true)
+                ->setAxisAlignment(AxisAlignment::End),
+            shardsBtn
+        );
+        shardsMenu->setContentSize({ 50.f, 100.f });
+        shardsMenu->setPositionY(
+            shardsMenu->getPositionY() - 100.f / 2 + 
+                getSizeSafe(shardsBtn).height / 2
+        );
+        shardsMenu->updateLayout();
     }
+
+    auto bottomLeftMenu = CCMenu::create();
+    bottomLeftMenu->setID("bottom-left-menu");
+    bottomLeftMenu->setContentSize({ 50.f, 70.f });
+    bottomLeftMenu->setPosition(30.f, 115.f);
+    bottomLeftMenu->setLayout(
+        ColumnLayout::create()
+            ->setAxisAlignment(AxisAlignment::Start)
+    );
+    this->addChild(bottomLeftMenu);
+
+    auto bottomRightMenu = CCMenu::create();
+    bottomRightMenu->setID("bottom-right-menu");
+    bottomRightMenu->setContentSize({ 50.f, 110.f });
+    bottomRightMenu->setPosition(winSize.width - 30.f, 135.f);
+    bottomRightMenu->setLayout(
+        ColumnLayout::create()
+            ->setAxisAlignment(AxisAlignment::Start)
+    );
+    this->addChild(bottomRightMenu);
 }
 
 struct GJGarageLayerIDs : Modify<GJGarageLayerIDs, GJGarageLayer> {

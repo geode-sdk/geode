@@ -91,7 +91,7 @@ $register_ids(CreatorLayer) {
         auto exitBtn = setIDSafe(menu, 0, "exit-button");
         menu->setPositionY(
             menu->getPositionY() - 125.f / 2 + 
-                exitBtn->getScaledContentSize().height / 2
+                getSizeSafe(exitBtn).height / 2
         );
         menu->setContentSize({ 60.f, 125.f });
         menu->setLayout(

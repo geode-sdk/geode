@@ -4560,7 +4560,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     void modeDidChange() = mac 0x22bfd0;
     void placeStreakPoint() = mac 0x21af90, win 0x1f95e0;
     void playBurstEffect() = mac 0x21c780, win 0x1f6790;
-    void playDeathEffect() = mac 0x225930, win 0x2efbe0;
+    void playDeathEffect() = mac 0x225930, win 0x1efbe0;
     void playDynamicSpiderRun() = mac 0x222ec0, win 0x1f9d80;
     void playerDestroyed(bool) = mac 0x2256d0, win 0x1efaa0;
     bool playerIsFalling() = mac 0x21c730, win 0x1f5d60;

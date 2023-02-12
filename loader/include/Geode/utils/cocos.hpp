@@ -410,16 +410,31 @@ namespace geode::cocos {
      * or nullptr if index exceeds bounds
      */
     template <class Type = cocos2d::CCNode>
-    static Type* getChildOfType(cocos2d::CCNode* node, size_t index) {
+    static Type* getChildOfType(cocos2d::CCNode* node, int index) {
         size_t indexCounter = 0;
 
-        for (size_t i = 0; i < node->getChildrenCount(); ++i) {
-            auto obj = cast::typeinfo_cast<Type*>(node->getChildren()->objectAtIndex(i));
-            if (obj != nullptr) {
-                if (indexCounter == index) {
-                    return obj;
+        // start from end for negative index
+        if (index < 0) {
+            index = -index - 1;
+            for (size_t i = node->getChildrenCount() - 1; i >= 0; i--) {
+                auto obj = cast::typeinfo_cast<Type*>(node->getChildren()->objectAtIndex(i));
+                if (obj != nullptr) {
+                    if (indexCounter == index) {
+                        return obj;
+                    }
+                    ++indexCounter;
                 }
-                ++indexCounter;
+            }
+        }
+        else {
+            for (size_t i = 0; i < node->getChildrenCount(); i++) {
+                auto obj = cast::typeinfo_cast<Type*>(node->getChildren()->objectAtIndex(i));
+                if (obj != nullptr) {
+                    if (indexCounter == index) {
+                        return obj;
+                    }
+                    ++indexCounter;
+                }
             }
         }
 

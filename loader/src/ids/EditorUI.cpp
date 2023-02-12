@@ -11,6 +11,9 @@ $register_ids(EditorUI) {
     setIDSafe(this, this->getChildrenCount() - 2, "layer-index-label");
     setIDSafe(this, this->getChildrenCount() - 1, "object-info-label");
 
+    auto winSize = CCDirector::get()->getWinSize();
+    auto topMenuWidth = winSize.width / 2 - 90.f;
+
     if (auto menu = getChildOfType<CCMenu>(this, 0)) {
         menu->setID("toolbar-categories-menu");
 
@@ -28,7 +31,7 @@ $register_ids(EditorUI) {
 
             "undo-button",
             "redo-button",
-            "delete-button",
+            "delete-trash-button",
 
             "music-playback-button",
 
@@ -45,10 +48,11 @@ $register_ids(EditorUI) {
         auto toolbarTogglesMenu = detachAndCreateMenu(
             this,
             "toolbar-toggles-menu",
-            ColumnLayout::create()
-                ->setCrossAxisOverflow(false)
-                ->setAxisAlignment(AxisAlignment::Even)
-                ->setCrossAxisAlignment(AxisAlignment::Even),
+            // ColumnLayout::create()
+            //     ->setCrossAxisOverflow(false)
+            //     ->setAxisAlignment(AxisAlignment::Even)
+            //     ->setCrossAxisAlignment(AxisAlignment::Even),
+            nullptr,
             menu->getChildByID("swipe-button"),
             menu->getChildByID("free-move-button"),
             menu->getChildByID("snap-button"),
@@ -60,42 +64,82 @@ $register_ids(EditorUI) {
         toolbarTogglesMenu->setContentSize({ 100.f, 100.f });
         toolbarTogglesMenu->updateLayout();
 
-        detachAndCreateMenu(
+        auto undoMenu = detachAndCreateMenu(
             this,
-            "top-left-menu",
-            RowLayout::create(),
+            "undo-menu",
+            RowLayout::create()
+                ->setAxisAlignment(AxisAlignment::Start)
+                ->setGap(10.f),
             menu->getChildByID("undo-button"),
             menu->getChildByID("redo-button"),
-            menu->getChildByID("delete-button")
+            menu->getChildByID("delete-trash-button")
         );
-
-        detachAndCreateMenu(
-            this, "playback-menu", RowLayout::create(), menu->getChildByID("music-playback-button")
+        undoMenu->setContentSize({ topMenuWidth, 50.f });
+        undoMenu->setPositionX(
+            undoMenu->getPositionX() + topMenuWidth / 2 - 
+                getSizeSafe(undoMenu->getChildByID("undo-button")).width / 2
         );
+        undoMenu->updateLayout();
 
-        detachAndCreateMenu(
+        auto playBackMenu = detachAndCreateMenu(
+            this,
+            "playback-menu",
+            RowLayout::create()
+                ->setAxisAlignment(AxisAlignment::Start),
+            menu->getChildByID("music-playback-button")
+        );
+        playBackMenu->setContentSize({ 100.f, 50.f });
+        playBackMenu->setPositionX(
+            playBackMenu->getPositionX() + 100.f / 2 - 
+                getSizeSafe(playBackMenu->getChildByID("music-playback-button")).width / 2
+        );
+        playBackMenu->updateLayout();
+
+        auto playTestMenu = detachAndCreateMenu(
             this,
             "playtest-menu",
-            RowLayout::create(),
+            RowLayout::create()
+                ->setAxisAlignment(AxisAlignment::Start),
             menu->getChildByID("playtest-button"),
             menu->getChildByID("stop-playtest-button")
         );
+        playTestMenu->setContentSize({ 100.f, 50.f });
+        playTestMenu->setPositionX(
+            playTestMenu->getPositionX() + 100.f / 2 - 
+                getSizeSafe(playTestMenu->getChildByID("playtest-button")).width / 2
+        );
+        playTestMenu->updateLayout();
 
-        detachAndCreateMenu(
+        auto zoomMenu = detachAndCreateMenu(
             this,
             "zoom-menu",
-            ColumnLayout::create(),
-            menu->getChildByID("zoom-in-button"),
-            menu->getChildByID("zoom-out-button")
+            ColumnLayout::create()
+                ->setAxisAlignment(AxisAlignment::Start),
+            menu->getChildByID("zoom-out-button"),
+            menu->getChildByID("zoom-in-button")
         );
+        zoomMenu->setPositionY(
+            zoomMenu->getPositionY() + 75.f / 2 - 
+                getSizeSafe(zoomMenu->getChildByID("zoom-out-button")).height / 2
+        );
+        zoomMenu->setContentSize({ 50.f, 75.f });
+        zoomMenu->updateLayout();
 
-        detachAndCreateMenu(
+        auto linkMenu = detachAndCreateMenu(
             this,
             "link-menu",
-            ColumnLayout::create(),
-            menu->getChildByID("link-button"),
-            menu->getChildByID("unlink-button")
+            ColumnLayout::create()
+                ->setAxisAlignment(AxisAlignment::Start)
+                ->setGrowCrossAxis(true),
+            menu->getChildByID("unlink-button"),
+            menu->getChildByID("link-button")
         );
+        linkMenu->setPositionY(
+            linkMenu->getPositionY() + 75.f / 2 -
+                getSizeSafe(linkMenu->getChildByID("unlink-button")).height / 2
+        );
+        linkMenu->setContentSize({ 125.f, 75.f });
+        linkMenu->updateLayout();
     }
 
     if (auto menu = getChildOfType<CCMenu>(this, 1)) {
@@ -119,10 +163,11 @@ $register_ids(EditorUI) {
         auto deleteButtonMenu = detachAndCreateMenu(
             menu,
             "delete-button-menu",
-            ColumnLayout::create()
-                ->setCrossAxisOverflow(false)
-                ->setAxisAlignment(AxisAlignment::Even)
-                ->setCrossAxisAlignment(AxisAlignment::Even),
+            // ColumnLayout::create()
+            //     ->setCrossAxisOverflow(false)
+            //     ->setAxisAlignment(AxisAlignment::Even)
+            //     ->setCrossAxisAlignment(AxisAlignment::Even),
+            nullptr,
             menu->getChildByID("delete-button"),
             menu->getChildByID("delete-all-of-button"),
             menu->getChildByID("delete-startpos-button")
@@ -136,10 +181,11 @@ $register_ids(EditorUI) {
         auto deleteFilterMenu = detachAndCreateMenu(
             menu,
             "delete-filter-menu",
-            ColumnLayout::create()
-                ->setCrossAxisOverflow(false)
-                ->setAxisAlignment(AxisAlignment::Even)
-                ->setCrossAxisAlignment(AxisAlignment::Even),
+            // ColumnLayout::create()
+            //     ->setCrossAxisOverflow(false)
+            //     ->setAxisAlignment(AxisAlignment::Even)
+            //     ->setCrossAxisAlignment(AxisAlignment::Even),
+            nullptr,
             menu->getChildByID("delete-filter-none"),
             menu->getChildByID("delete-filter-static"),
             menu->getChildByID("delete-filter-detail"),
@@ -200,44 +246,58 @@ $register_ids(EditorUI) {
 
         auto topRightMenu = detachAndCreateMenu(
             this,
-            "top-right-menu",
+            "settings-menu",
             RowLayout::create()
+                ->setAxisReverse(true)
                 ->setAxisAlignment(AxisAlignment::End),
             menu->getChildByID("pause-button"),
             menu->getChildByID("settings-button")
         );
-        topRightMenu->setContentSize({ 60.f, 125.f });
-        topRightMenu->setPositionX(topRightMenu->getPositionX() - 125.f / 2);
+        topRightMenu->setContentSize({ topMenuWidth, 60.f });
+        topRightMenu->setPositionX(
+            topRightMenu->getPositionX() - topMenuWidth / 2 + 
+                getSizeSafe(topRightMenu->getChildByID("pause-button")).width / 2
+        );
         topRightMenu->updateLayout();
 
         auto rightMenu = detachAndCreateMenu(
             this,
             "editor-buttons-menu",
             ColumnLayout::create()
-                ->setAxisAlignment(AxisAlignment::Even)
+                ->setAxisAlignment(AxisAlignment::Center)
                 ->setCrossAxisAlignment(AxisAlignment::End)
+                ->setGap(-3.5f)
+                ->setGrowCrossAxis(true)
+                ->setCrossAxisOverflow(false)
                 ->setCrossAxisReverse(true),
-            menu->getChildByID("copy-paste-button"),
-            menu->getChildByID("edit-object-button"),
-            menu->getChildByID("paste-color-button"),
-            menu->getChildByID("deselect-button"),
-            menu->getChildByID("paste-button"),
-            menu->getChildByID("edit-group-button"),
-            menu->getChildByID("paste-state-button"),
-            menu->getChildByID("go-to-layer-button"),
             menu->getChildByID("copy-button"),
+            menu->getChildByID("paste-button"),
+            menu->getChildByID("copy-paste-button"),
             menu->getChildByID("edit-special-button"),
+            menu->getChildByID("edit-group-button"),
+            menu->getChildByID("edit-object-button"),
             menu->getChildByID("copy-values-button"),
-            menu->getChildByID("hsv-button")
+            menu->getChildByID("paste-state-button"),
+            menu->getChildByID("paste-color-button"),
+            menu->getChildByID("hsv-button"),
+            menu->getChildByID("go-to-layer-button"),
+            menu->getChildByID("deselect-button")
         );
-        rightMenu->setContentSize({ 125.f, 125.f });
-        rightMenu->setPosition(rightMenu->getPosition() - CCPoint { 125.f, 125.f });
+        for (auto btn : CCArrayExt<CCNode>(rightMenu->getChildren())) {
+            btn->setContentSize({ 40.f, 40.f });
+        }
+        rightMenu->setContentSize({ 210.f, 160.f });
+        rightMenu->setPosition(
+            winSize.width - 210.f / 2 - 5.f,
+            winSize.height / 2 + 50.f
+        );
         rightMenu->updateLayout();
 
         detachAndCreateMenu(
             this,
             "layer-menu",
-            RowLayout::create(),
+            // RowLayout::create(),
+            nullptr,
             menu->getChildByID("all-layers-button"),
             menu->getChildByID("prev-layer-button"),
             this->getChildByID("layer-index-label"),

@@ -77,7 +77,7 @@ $register_ids(EditLevelLayer) {
         auto backBtn = setIDSafe(menu, 0, "back-button");
         menu->setPositionX(
             menu->getPositionX() + 100.f / 2 - 
-                backBtn->getScaledContentSize().width / 2
+                getSizeSafe(backBtn).width / 2
         );
         menu->setContentSize({ 100.f, 50.f });
         menu->setLayout(

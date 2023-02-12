@@ -7,9 +7,20 @@
 USE_GEODE_NAMESPACE();
 
 $register_ids(LevelBrowserLayer) {
+    auto winSize = CCDirector::get()->getWinSize();
+
     if (auto menu = getChildOfType<CCMenu>(this, 0)) {
         menu->setID("back-menu");
-        setIDSafe(menu, 0, "back-button");
+        auto btn = setIDSafe(menu, 0, "back-button");
+        menu->setContentSize({ 100.f, 50.f });
+        menu->setPositionX(
+            menu->getPositionX() + 100.f / 2 - 
+                getSizeSafe(btn).width / 2
+        );
+        menu->setLayout(
+            RowLayout::create()
+                ->setAxisAlignment(AxisAlignment::Start)
+        );
     }
 
     if (m_searchObject->m_searchType == SearchType::MyLevels) {
@@ -26,10 +37,10 @@ $register_ids(LevelBrowserLayer) {
                     myLevelsBtn
                 );
                 menu->setPositionY(
-                    menu->getPositionY() + 100.f / 2 - 
+                    menu->getPositionY() + 125.f / 2 - 
                         myLevelsBtn->getScaledContentSize().height / 2
                 );
-                menu->setContentSize({ 50.f, 100.f });
+                menu->setContentSize({ 50.f, 125.f });
                 menu->updateLayout();
             }
 
@@ -39,7 +50,7 @@ $register_ids(LevelBrowserLayer) {
             );
             menu->setPositionY(
                 menu->getPositionY() + 130.f / 2 - 
-                    newLvlBtn->getScaledContentSize().height / 2
+                    getSizeSafe(newLvlBtn).height / 2
             );
             menu->setContentSize({ 50.f, 130.f });
             menu->updateLayout();
@@ -101,8 +112,47 @@ $register_ids(LevelBrowserLayer) {
                 );
                 pageMenu->updateLayout();
             }
+
+            if (auto prevPageBtn = setIDSafe(menu, 0, "prev-page-button")) {
+                auto navMenu = detachAndCreateMenu(
+                    this,
+                    "prev-page-menu",
+                    RowLayout::create()
+                        ->setAxisAlignment(AxisAlignment::Start),
+                    prevPageBtn
+                );
+                prevPageBtn->setZOrder(-1);
+                navMenu->setContentSize({ 90.f, 40.f });
+                navMenu->setPositionX(
+                    navMenu->getPositionX() + 90.f / 2 - 
+                        prevPageBtn->getScaledContentSize().width / 2
+                );
+                navMenu->updateLayout();
+            }
+
+            auto nextPageBtn = setIDSafe(menu, 0, "next-page-button");
+
+            menu->setID("next-page-menu");
+            menu->setLayout(
+                RowLayout::create()
+                    ->setAxisReverse(true)
+                    ->setAxisAlignment(AxisAlignment::End)
+            );
+            menu->setContentSize({ 90.f, 40.f });
+            menu->setPositionX(
+                winSize.width - 90.f / 2 - 5.f
+            );
+            menu->updateLayout();
         }
     }
+
+    auto bottomMenu = CCMenu::create();
+    bottomMenu->setID("bottom-menu");
+    bottomMenu->setContentSize({ 375.f, 50.f });
+    bottomMenu->setPosition(winSize.width / 2, 28.f);
+    bottomMenu->setZOrder(15);
+    bottomMenu->setLayout(RowLayout::create());
+    this->addChild(bottomMenu);
 }
 
 struct LevelBrowserLayerIDs : Modify<LevelBrowserLayerIDs, LevelBrowserLayer> {

@@ -35,8 +35,22 @@ $register_ids(LevelInfoLayer) {
     setIDSafe<CustomSongWidget>(this, 0, "custom-songs-widget");
 
     if (auto menu = getChildOfType<CCMenu>(this, 0)) {
-        menu->setID("exit-menu");
-        setIDSafe(menu, 0, "exit-button");
+        menu->setID("play-menu");
+        setIDSafe(menu, 0, "play-button");
+    }
+
+    if (auto menu = getChildOfType<CCMenu>(this, 2)) {
+        menu->setID("back-menu");
+        auto backBtn = setIDSafe(menu, 0, "back-button");
+        menu->setPositionX(
+            menu->getPositionX() + 100.f / 2 - 
+                getSizeSafe(backBtn).width / 2
+        );
+        menu->setContentSize({ 100.f, 50.f });
+        menu->setLayout(
+            RowLayout::create()
+                ->setAxisAlignment(AxisAlignment::Start)
+        );
     }
 
     if (auto menu = getChildOfType<CCMenu>(this, 1)) {
@@ -47,18 +61,23 @@ $register_ids(LevelInfoLayer) {
                 this,
                 "creator-info-menu",
                 ColumnLayout::create()
-                    ->setAxisAlignment(AxisAlignment::Start),
+                    ->setAxisReverse(true)
+                    ->setAxisAlignment(AxisAlignment::End),
                 name
             );
-            menu->setPositionY(menu->getPositionY() + 100.f / 2);
-            menu->setContentSize({ 60.f, 100.f });
+            menu->setPositionY(
+                menu->getPositionY() - 40.f / 2 + 
+                    name->getScaledContentSize().height / 2
+            );
+            menu->setContentSize({ 60.f, 40.f });
             menu->updateLayout();
         }
 
         auto leftSideMenu = CCMenu::create();
-        leftSideMenu->setPosition(winSize / 2 + ccp(-254.f, 30.f));
+        leftSideMenu->setPosition(winSize / 2 + ccp(-254.f, 0.f));
         leftSideMenu->setLayout(ColumnLayout::create());
         leftSideMenu->setID("left-side-menu");
+        leftSideMenu->setContentSize({ 50.f, 225.f });
         this->addChild(leftSideMenu);
 
         menu->setPosition(winSize / 2 + ccp(254.f, 0.f));
@@ -79,6 +98,20 @@ $register_ids(LevelInfoLayer) {
         setIDSafe(menu, 3, "leaderboards-button");
         setIDSafe(menu, 4, "like-button");
         setIDSafe(menu, 5, "rate-button");
+
+        menu->setPosition(
+            menu->getPositionX() + static_cast<CCNode*>(
+                menu->getChildren()->firstObject()
+            )->getPositionX(),
+            winSize.height / 2
+        );
+        menu->setContentSize({ 60.f, winSize.height - 15.f });
+        menu->setLayout(
+            ColumnLayout::create()
+                ->setGap(3.f)
+                ->setAxisAlignment(AxisAlignment::End)
+                ->setAxisReverse(true)
+        );
 
         setIDSafe(leftSideMenu, 0, "copy-button");
 

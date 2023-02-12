@@ -46,9 +46,9 @@ $register_ids(MenuLayer) {
                     ->setAxisAlignment(AxisAlignment::Start),
                 pfp
             );
-            profileMenu->setContentSize({ 200.f, 50.f });
+            profileMenu->setContentSize({ 150.f, 50.f });
             profileMenu->setPositionX(
-                profileMenu->getPositionX() + 200.f / 2 - 
+                profileMenu->getPositionX() + 150.f / 2 - 
                     pfp->getScaledContentSize().height / 2
             );
             profileMenu->updateLayout();
@@ -127,7 +127,7 @@ $register_ids(MenuLayer) {
         menu->setContentSize({ 100.f, 50.f });
         menu->setPositionX(
             menu->getPositionX() - 100.f / 2 + 
-                moreGamesBtn->getScaledContentSize().width / 2
+                getSizeSafe(moreGamesBtn).width / 2
         );
         menu->setLayout(
             RowLayout::create()
@@ -136,18 +136,26 @@ $register_ids(MenuLayer) {
         );
     }
 
-    // add a menu to the top right corner that is empty but prolly a place mods 
-    // want to add stuff to since it's symmetrically opposite to the close button
-    auto menu = CCMenu::create();
-    menu->setPosition(winSize.width - 200.f / 2, winSize.height - 50.f / 2);
-    menu->setID("top-right-menu");
-    menu->setContentSize({ 200.f, 50.f });
-    menu->setLayout(
+    // add a menu to the top right corner and middle left that are empty 
+    // but prolly a place mods want to add stuff
+
+    auto topRightMenu = CCMenu::create();
+    topRightMenu->setPosition(winSize.width - 200.f / 2, winSize.height - 50.f / 2);
+    topRightMenu->setID("top-right-menu");
+    topRightMenu->setContentSize({ 200.f, 50.f });
+    topRightMenu->setLayout(
         RowLayout::create()
             ->setAxisReverse(true)
             ->setAxisAlignment(AxisAlignment::End)
     );
-    this->addChild(menu);
+    this->addChild(topRightMenu);
+
+    auto middleLeftMenu = CCMenu::create();
+    middleLeftMenu->setPosition(25.f, 215.f);
+    middleLeftMenu->setID("side-menu");
+    middleLeftMenu->setContentSize({ 50.f, 120.f });
+    middleLeftMenu->setLayout(ColumnLayout::create());
+    this->addChild(middleLeftMenu);
 }
 
 struct $modify(MenuLayer) {

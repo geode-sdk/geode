@@ -33,6 +33,8 @@ void setIDs(CCNode* node, int startIndex, Args... args) {
 }
 
 static void switchToMenu(CCNode* node, CCMenu* menu) {
+    if (!node || !menu) return;
+    
     auto worldPos = node->getParent()->convertToWorldSpace(node->getPosition());
 
     node->retain();
@@ -56,6 +58,14 @@ static void switchChildrenToMenu(CCNode* parent, CCMenu* menu, Args... args) {
 
 template <typename T, typename ...Args>
 static CCMenu* detachAndCreateMenu(CCNode* parent, const char* menuID, Layout* layout, T first, Args... args) {
+    if (!first) {
+        auto menu = CCMenu::create();
+        menu->setID(menuID);
+        menu->setLayout(layout);
+        parent->addChild(menu);
+        return menu;
+    }
+
     auto oldMenu = first->getParent();
 
     first->retain();
@@ -77,4 +87,13 @@ static CCMenu* detachAndCreateMenu(CCNode* parent, const char* menuID, Layout* l
     (switchToMenu(args, newMenu), ...);
 
     return newMenu;
+}
+
+static CCSize getSizeSafe(CCNode* node) {
+    if (node) {
+        return node->getScaledContentSize();
+    }
+    else {
+        return CCSizeZero;
+    }
 }
