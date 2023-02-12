@@ -108,25 +108,19 @@ namespace geode {
 
         class GEODE_DLL Logger {
         private:
-            static inline std::vector<Log> s_logs;
-            static inline std::ofstream s_logStream;
+            static std::vector<Log>& logs();
+            static std::ofstream& logStream();
 
             Logger() = delete;
             ~Logger() = delete;
 
             // logs
-            static void _push(Log&& log);
-
         public:
             static void setup();
 
-            static inline void push(Log&& log) {
-                Logger::_push(std::move(log));
-            }
+            static void push(Log&& log);
 
-            static inline void pop(Log* log) {
-                geode::utils::ranges::remove(Logger::s_logs, *log);
-            }
+            static void pop(Log* log);
 
             static std::vector<Log*> list();
             static void clear();
