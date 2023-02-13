@@ -2818,7 +2818,7 @@ class GameManager : GManager {
     void getGTexture(int) = mac 0x1cca40, win 0xc9a50;
     virtual bool init() = mac 0x1c2ec0, win 0xc4ad0;
     void reportAchievementWithID(char const*, int, bool) = mac 0x1c6460, win 0xc64c0;
-    cocos2d::CCSize* resolutionForKey(cocos2d::CCSize*, int) = mac 0x1d0b40, win 0xceca0;
+    cocos2d::CCSize resolutionForKey(int) = mac 0x1d0b40, win 0xceca0;
     virtual void update(float) = mac 0x1d0270, win 0xce440;
     bool isColorUnlocked(int _id, bool _type) = mac 0x1c3b90, win 0xc53f0;
     bool isIconUnlocked(int _id, IconType _type) = mac 0x1c35b0, win 0xc4fc0;

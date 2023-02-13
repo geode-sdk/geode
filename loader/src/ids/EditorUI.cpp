@@ -12,7 +12,6 @@ $register_ids(EditorUI) {
     setIDSafe(this, this->getChildrenCount() - 1, "object-info-label");
 
     auto winSize = CCDirector::get()->getWinSize();
-    auto topMenuWidth = winSize.width / 2 - 90.f;
 
     if (auto menu = getChildOfType<CCMenu>(this, 0)) {
         menu->setID("toolbar-categories-menu");
@@ -64,6 +63,7 @@ $register_ids(EditorUI) {
         toolbarTogglesMenu->setContentSize({ 100.f, 100.f });
         toolbarTogglesMenu->updateLayout();
 
+        auto undoMenuWidth = winSize.width / 2 - 90.f;
         auto undoMenu = detachAndCreateMenu(
             this,
             "undo-menu",
@@ -74,9 +74,9 @@ $register_ids(EditorUI) {
             menu->getChildByID("redo-button"),
             menu->getChildByID("delete-trash-button")
         );
-        undoMenu->setContentSize({ topMenuWidth, 50.f });
+        undoMenu->setContentSize({ undoMenuWidth, 50.f });
         undoMenu->setPositionX(
-            undoMenu->getPositionX() + topMenuWidth / 2 - 
+            undoMenu->getPositionX() + undoMenuWidth / 2 - 
                 getSizeSafe(undoMenu->getChildByID("undo-button")).width / 2
         );
         undoMenu->updateLayout();
@@ -244,6 +244,7 @@ $register_ids(EditorUI) {
             "all-layers-button"
         );
 
+        auto topRightMenuWidth = winSize.width / 2 - 140.f;
         auto topRightMenu = detachAndCreateMenu(
             this,
             "settings-menu",
@@ -253,9 +254,9 @@ $register_ids(EditorUI) {
             menu->getChildByID("pause-button"),
             menu->getChildByID("settings-button")
         );
-        topRightMenu->setContentSize({ topMenuWidth, 60.f });
+        topRightMenu->setContentSize({ topRightMenuWidth, 60.f });
         topRightMenu->setPositionX(
-            topRightMenu->getPositionX() - topMenuWidth / 2 + 
+            topRightMenu->getPositionX() - topRightMenuWidth / 2 + 
                 getSizeSafe(topRightMenu->getChildByID("pause-button")).width / 2
         );
         topRightMenu->updateLayout();
