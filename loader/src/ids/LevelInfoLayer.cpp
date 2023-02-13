@@ -74,13 +74,13 @@ $register_ids(LevelInfoLayer) {
         }
 
         auto leftSideMenu = CCMenu::create();
-        leftSideMenu->setPosition(winSize / 2 + ccp(-254.f, 0.f));
+        leftSideMenu->setPosition(30.f, winSize.height / 2);
         leftSideMenu->setLayout(ColumnLayout::create());
         leftSideMenu->setID("left-side-menu");
         leftSideMenu->setContentSize({ 50.f, 225.f });
         this->addChild(leftSideMenu);
 
-        menu->setPosition(winSize / 2 + ccp(254.f, 0.f));
+        menu->setPosition(winSize.width - 30.f, winSize.height / 2);
 
         for (auto child : CCArrayExt<CCNode>(menu->getChildren())) {
             if (child->getPositionX() < 0.f) {

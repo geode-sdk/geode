@@ -31,6 +31,7 @@ $register_ids(MenuLayer) {
     else {
         setIDSafe<CCLabelBMFont>(this, 0, "player-username");
     }
+    
     // main menu
     if (auto menu = getChildOfType<CCMenu>(this, 0)) {
         menu->setID("main-menu");
@@ -58,13 +59,14 @@ $register_ids(MenuLayer) {
         // well with setLayout that deals with children in order
         menu->swapChildIndices(playBtn, iconBtn);
 
-        menu->setContentSize({ 400.f, 65.f });
+        menu->setContentSize({ winSize.width - 140.f, 65.f });
         menu->setLayout(
             RowLayout::create()
                 ->setGap(18.f)
                 ->setCrossAxisOverflow(true)
         );
     }
+
     // bottom menu
     if (auto menu = getChildOfType<CCMenu>(this, 1)) {
         menu->setID("bottom-menu");
@@ -86,13 +88,14 @@ $register_ids(MenuLayer) {
             menu->updateLayout();
         }
 
-        menu->setContentSize({ 360.f, 65.f });
+        menu->setContentSize({ winSize.width - 220.f, 65.f });
         menu->setLayout(
             RowLayout::create()
                 ->setGrowCrossAxis(true)
                 ->setCrossAxisOverflow(false)
         );
     }
+    
     // social media menu
     if (auto menu = getChildOfType<CCMenu>(this, 2)) {
         menu->setID("social-media-menu");
@@ -101,6 +104,7 @@ $register_ids(MenuLayer) {
         setIDSafe(menu, 2, "twitter-button");
         setIDSafe(menu, 3, "youtube-button");
     }
+    
     // more games menu
     if (auto menu = getChildOfType<CCMenu>(this, 3)) {
         menu->setID("more-games-menu");

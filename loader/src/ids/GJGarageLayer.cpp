@@ -112,6 +112,45 @@ $register_ids(GJGarageLayer) {
             ->setAxisAlignment(AxisAlignment::Start)
     );
     this->addChild(bottomRightMenu);
+
+    // aspect ratio responsiveness
+    if (winSize.width / winSize.height <= 5.1f / 3.f) {
+        bottomLeftMenu->setPosition(15.f, 115.f);
+        bottomRightMenu->setPosition(winSize.width - 15.f, 135.f);
+
+        if (auto shardsMenu = this->getChildByID("shards-menu")) {
+            shardsMenu->setContentSize({ 110.f, 50.f });
+            shardsMenu->setPosition(
+                shardsMenu->getPosition() + ccp(50.f, 30.f)
+            );
+            shardsMenu->setLayout(
+                RowLayout::create()
+                    ->setAxisAlignment(AxisAlignment::Start)
+            );
+        }
+    }
+    if (winSize.width / winSize.height <= 4.1f / 3.f) {
+        bottomLeftMenu->setContentSize({ 90.f, 50.f });
+        bottomLeftMenu->setPosition(
+            15.f + 110.f / 2,
+            85.f
+        );
+        bottomLeftMenu->setLayout(
+            RowLayout::create()
+                ->setAxisAlignment(AxisAlignment::Start)
+        );
+
+        bottomRightMenu->setContentSize({ 90.f, 50.f });
+        bottomRightMenu->setPosition(
+            winSize.width - 15.f - 110.f / 2,
+            85.f
+        );
+        bottomRightMenu->setLayout(
+            RowLayout::create()
+                ->setAxisReverse(true)
+                ->setAxisAlignment(AxisAlignment::End)
+        );
+    }
 }
 
 struct GJGarageLayerIDs : Modify<GJGarageLayerIDs, GJGarageLayer> {

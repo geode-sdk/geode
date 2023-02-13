@@ -78,15 +78,14 @@ $register_ids(LevelBrowserLayer) {
                     searchBtn,
                     clearBtn
                 );
-                searchMenu->setPositionX(
-                    searchMenu->getPositionX() + 80.f / 2 - 
-                        searchBtn->getScaledContentSize().width / 2
-                );
-                searchMenu->setPositionY(
+                auto width = 45.f * winSize.aspect();
+                searchMenu->setPosition(
+                    searchMenu->getPositionX() + width / 2 - 
+                        searchBtn->getScaledContentSize().width / 2,
                     searchMenu->getPositionY() - 80.f / 2 + 
                         searchBtn->getScaledContentSize().height / 2
                 );
-                searchMenu->setContentSize({ 80.f, 80.f });
+                searchMenu->setContentSize({ width, 80.f });
                 searchMenu->updateLayout();
             }
 
@@ -113,6 +112,8 @@ $register_ids(LevelBrowserLayer) {
                 pageMenu->updateLayout();
             }
 
+            auto navMenuWidth = 50.f * winSize.aspect();
+
             if (auto prevPageBtn = setIDSafe(menu, 0, "prev-page-button")) {
                 auto navMenu = detachAndCreateMenu(
                     this,
@@ -122,9 +123,9 @@ $register_ids(LevelBrowserLayer) {
                     prevPageBtn
                 );
                 prevPageBtn->setZOrder(-1);
-                navMenu->setContentSize({ 90.f, 40.f });
+                navMenu->setContentSize({ navMenuWidth, 40.f });
                 navMenu->setPositionX(
-                    navMenu->getPositionX() + 90.f / 2 - 
+                    navMenu->getPositionX() + navMenuWidth / 2 - 
                         prevPageBtn->getScaledContentSize().width / 2
                 );
                 navMenu->updateLayout();
@@ -138,9 +139,9 @@ $register_ids(LevelBrowserLayer) {
                     ->setAxisReverse(true)
                     ->setAxisAlignment(AxisAlignment::End)
             );
-            menu->setContentSize({ 90.f, 40.f });
+            menu->setContentSize({ navMenuWidth, 40.f });
             menu->setPositionX(
-                winSize.width - 90.f / 2 - 5.f
+                winSize.width - navMenuWidth / 2 - 5.f
             );
             menu->updateLayout();
         }
@@ -148,7 +149,7 @@ $register_ids(LevelBrowserLayer) {
 
     auto bottomMenu = CCMenu::create();
     bottomMenu->setID("bottom-menu");
-    bottomMenu->setContentSize({ 375.f, 50.f });
+    bottomMenu->setContentSize({ 325.f + 20.f * winSize.aspect(), 50.f });
     bottomMenu->setPosition(winSize.width / 2, 28.f);
     bottomMenu->setZOrder(15);
     bottomMenu->setLayout(RowLayout::create());

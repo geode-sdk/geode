@@ -20,6 +20,8 @@ static void reorderButtons(Args... args) {
 $register_ids(CreatorLayer) {
     setIDSafe<CCSprite>(this, 0, "background");
 
+    auto winSize = CCDirector::get()->getWinSize();
+
     if (auto menu = getChildOfType<CCMenu>(this, 0)) {
         menu->setID("creator-buttons-menu");
 
@@ -76,7 +78,12 @@ $register_ids(CreatorLayer) {
             setIDSafe(menu, 2, "scores-button")
         );
 
-        menu->setContentSize({ 470.f, 310.f });
+        if (winSize.width / winSize.height <= 5.1f / 3.f) {
+            menu->setContentSize({ winSize.width - 80.f, 310.f });
+        }
+        else {
+            menu->setContentSize({ winSize.width - 120.f, 310.f });
+        }
         menu->setLayout(
             RowLayout::create()
                 ->setGap(12.f)
