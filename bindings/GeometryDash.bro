@@ -866,7 +866,7 @@ class CreatorLayer : cocos2d::CCLayer {
     void onFameLevels(cocos2d::CCObject*) = win 0x4ee70;
     void onMapPacks(cocos2d::CCObject*) = win 0x4efb0;
     void onOnlineLevels(cocos2d::CCObject*) = win 0x4ef60;
-    void onGauntlets(cocos2d::CCObject*) = win 0x4f0a0;
+    void onGauntlets(cocos2d::CCObject*) = mac 0x142b20, win 0x4f0a0;
     void onSecretVault(cocos2d::CCObject*) = win 0x4f1d0;
     void onTreasureRoom(cocos2d::CCObject*) = win 0x4f540;
     virtual void sceneWillResume() = win 0x4fb50;
