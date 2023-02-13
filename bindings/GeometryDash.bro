@@ -5382,11 +5382,15 @@ class VideoOptionsLayer : FLAlertLayer {
 }
 
 class LevelTools {
-    static gd::string base64EncodeString(gd::string) = win 0x18b310;
+    static gd::string base64EncodeString(gd::string) = mac 0x294470, win 0x18b310;
     static gd::string base64DecodeString(gd::string) = mac 0x294510, win 0x18b3b0;
-    static GJGameLevel *getLevel(int, bool) = win 0x189370;
-    static bool verifyLevelIntegrity(gd::string, int) = win 0x18b180;
-    static float xPosForTime(float, cocos2d::CCArray*, int) = win 0x18acd0;
-    static float timeForXPos(float, cocos2d::CCArray*, int) = win 0x18ae70;
+    static GJGameLevel* getLevel(int, bool) = win 0x189370;
+    static bool verifyLevelIntegrity(gd::string, int) = mac 0x294360, win 0x18b180;
+    static float xPosForTime(float, cocos2d::CCArray*, int) = mac 0x293d90, win 0x18acd0;
+    static float timeForXPos(float, cocos2d::CCArray*, int) = mac 0x293eb0, win 0x18ae70;
+    static const char* getAudioFilename(LevelTools* self, int) = mac 0x292840;
+    static const char* getAudioTitle(LevelTools* self, int) = mac 0x2922f0;
+    static const char* getArtistForAudio(LevelTools* self, int) = mac 0x292d90;
+    static const char* getURLForAudio(LevelTools* self, int) = mac 0x292f10;
 }
 // clang-format on
