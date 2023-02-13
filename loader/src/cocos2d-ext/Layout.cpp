@@ -51,10 +51,14 @@ struct AxisPosition {
 
 static AxisPosition nodeAxis(CCNode* node, Axis axis, float scale) {
     auto scaledSize = node->getScaledContentSize() * scale;
+    std::optional<float> axisLength = std::nullopt;
+    if (auto opts = typeinfo_cast<AxisLayoutOptions*>(node->getLayoutOptions())) {
+        axisLength = opts->getLength();
+    }
     auto anchor = node->getAnchorPoint();
     if (axis == Axis::Row) {
         return AxisPosition {
-            .axisLength = scaledSize.width,
+            .axisLength = axisLength.value_or(scaledSize.width),
             .axisAnchor = anchor.x,
             .crossLength = scaledSize.height,
             .crossAnchor = anchor.y,
@@ -62,7 +66,7 @@ static AxisPosition nodeAxis(CCNode* node, Axis axis, float scale) {
     }
     else {
         return AxisPosition {
-            .axisLength = scaledSize.height,
+            .axisLength = axisLength.value_or(scaledSize.height),
             .axisAnchor = anchor.y,
             .crossLength = scaledSize.width,
             .crossAnchor = anchor.x,
@@ -103,7 +107,14 @@ AxisLayout::Row* AxisLayout::fitInRow(CCNode* on, CCArray* nodes, float scale, f
     size_t ix = 0;
     for (auto& node : CCArrayExt<CCNode*>(nodes)) {
         if (m_autoScale) {
-            node->setScale(1);
+            if (auto opts = typeinfo_cast<AxisLayoutOptions*>(node->getLayoutOptions())) {
+                if (auto max = opts->getMaxScale()) {
+                    node->setScale(max.value());
+                }
+            }
+            else {
+                node->setScale(1);
+            }
         }
         auto pos = nodeAxis(node, m_axis, scale * squish);
         nextAxisLength += pos.axisLength;
@@ -318,25 +329,36 @@ void AxisLayout::tryFitLayout(CCNode* on, CCArray* nodes, float scale, float squ
 
         size_t ix = 0;
         for (auto& node : CCArrayExt<CCNode*>(row->nodes)) {
+            auto scale = rowScale;
             // rescale node if overflowing
             if (m_autoScale) {
+                if (auto opts = typeinfo_cast<AxisLayoutOptions*>(node->getLayoutOptions())) {
+                    if (auto max = opts->getMaxScale()) {
+                        if (scale > max.value()) {
+                            scale = max.value();
+                        }
+                    }
+                    else {
+                        scale = node->getScale();
+                    }
+                }
                 // CCMenuItemSpriteExtra is quirky af
                 if (auto btn = typeinfo_cast<CCMenuItemSpriteExtra*>(node)) {
-                    btn->m_baseScale = rowScale;
+                    btn->m_baseScale = scale;
                 }
-                node->setScale(rowScale);
+                node->setScale(scale);
             }
             auto pos = nodeAxis(node, m_axis, rowSquish);
             float axisPos;
             if (m_axisAlignment == AxisAlignment::Even) {
                 axisPos = rowAxisPos + evenSpace / 2 - pos.axisLength * (.5f - pos.axisAnchor);
                 rowAxisPos += evenSpace - 
-                    row->axisEndsLength * rowScale * (1.f - rowSquish) * 1.f / nodes->count();
+                    row->axisEndsLength * scale * (1.f - rowSquish) * 1.f / nodes->count();
             }
             else {
                 axisPos = rowAxisPos + pos.axisLength * pos.axisAnchor;
-                rowAxisPos += pos.axisLength + m_gap * rowScale * rowSquish - 
-                    row->axisEndsLength * rowScale * (1.f - rowSquish) * 1.f / nodes->count();
+                rowAxisPos += pos.axisLength + m_gap * scale * rowSquish - 
+                    row->axisEndsLength * scale * (1.f - rowSquish) * 1.f / nodes->count();
             }
             float crossOffset;
             switch (m_crossAlignment) {
@@ -474,4 +496,31 @@ ColumnLayout::ColumnLayout() : AxisLayout(Axis::Column) {}
 
 ColumnLayout* ColumnLayout::create() {
     return new ColumnLayout();
+}
+
+AxisLayoutOptions* AxisLayoutOptions::create() {
+    return new AxisLayoutOptions();
+}
+
+std::optional<float> AxisLayoutOptions::getMaxScale() {
+    return m_maxScale;
+}
+
+std::optional<float> AxisLayoutOptions::getLength() {
+    return m_length;
+}
+
+AxisLayoutOptions* AxisLayoutOptions::setMaxScale(float scale) {
+    m_maxScale = scale;
+    return this;
+}
+
+AxisLayoutOptions* AxisLayoutOptions::disableAutoScale() {
+    m_maxScale = std::nullopt;
+    return this;
+}
+
+AxisLayoutOptions* AxisLayoutOptions::setLength(std::optional<float> length) {
+    m_length = length;
+    return this;
 }

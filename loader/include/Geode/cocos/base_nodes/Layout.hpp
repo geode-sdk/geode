@@ -77,6 +77,37 @@ enum class AxisAlignment {
     Even,
 };
 
+class GEODE_DLL AxisLayoutOptions : public LayoutOptions {
+protected:
+    std::optional<float> m_maxScale = 1.f;
+    std::optional<float> m_length = std::nullopt;
+
+public:
+    static AxisLayoutOptions* create();
+
+    std::optional<float> getMaxScale();
+    std::optional<float> getLength();
+
+    /**
+     * Set the maximum scale this node can be if it's contained in an 
+     * auto-scaled layout. Default is 1
+     */
+    AxisLayoutOptions* setMaxScale(float scale);
+
+    /**
+     * Disables auto-scaling for this node, even if the layout the node is 
+     * contained in has it enabled. To enable auto-scaling, provide a max 
+     * scale for the node in setMaxScale
+    */
+    AxisLayoutOptions* disableAutoScale();
+
+    /**
+     * Set an absolute length for this node. If nullopt, the length will be 
+     * dynamically calculated based on content size
+     */
+    AxisLayoutOptions* setLength(std::optional<float> length);
+};
+
 /**
  * Layout for arranging nodes along an axis. Used to implement row, column, and 
  * grid layouts
