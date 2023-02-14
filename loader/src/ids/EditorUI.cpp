@@ -111,6 +111,7 @@ $register_ids(EditorUI) {
         );
         playTestMenu->updateLayout();
 
+        auto zoomMenuHeight = winSize.height - 245.f;
         auto zoomMenu = detachAndCreateMenu(
             this,
             "zoom-menu",
@@ -119,11 +120,8 @@ $register_ids(EditorUI) {
             menu->getChildByID("zoom-out-button"),
             menu->getChildByID("zoom-in-button")
         );
-        zoomMenu->setPositionY(
-            zoomMenu->getPositionY() + 75.f / 2 - 
-                getSizeSafe(zoomMenu->getChildByID("zoom-out-button")).height / 2
-        );
-        zoomMenu->setContentSize({ 50.f, 75.f });
+        zoomMenu->setPositionY(150.f * winSize.height / 320);
+        zoomMenu->setContentSize({ 50.f, zoomMenuHeight });
         zoomMenu->updateLayout();
 
         auto linkMenu = detachAndCreateMenu(
@@ -135,11 +133,8 @@ $register_ids(EditorUI) {
             menu->getChildByID("unlink-button"),
             menu->getChildByID("link-button")
         );
-        linkMenu->setPositionY(
-            linkMenu->getPositionY() + 75.f / 2 -
-                getSizeSafe(linkMenu->getChildByID("unlink-button")).height / 2
-        );
-        linkMenu->setContentSize({ 125.f, 75.f });
+        linkMenu->setPositionY(150.f * winSize.height / 320);
+        linkMenu->setContentSize({ 125.f, zoomMenuHeight });
         linkMenu->updateLayout();
 
         menu->setPosition(42.f, 45.f);
@@ -184,24 +179,27 @@ $register_ids(EditorUI) {
             menu->getChildByID("delete-startpos-button")
         );
         deleteButtonMenu->setPosition(-88.5f, 0.f);
-        deleteButtonMenu->setContentSize({ winSize.width, 80.f });
+        deleteButtonMenu->setContentSize({ winSize.width / 2 - 120.f, 80.f });
         deleteButtonMenu->updateLayout();
-
+    	
+        auto filterMenuWidth = winSize.width / 2 - 150.f;
         auto deleteFilterMenu = detachAndCreateMenu(
             menu,
             "delete-filter-menu",
-            RowLayout::create()
+            ColumnLayout::create()
                 ->setCrossAxisOverflow(false)
                 ->setGrowCrossAxis(true)
+                ->setAxisReverse(true)
+                ->setCrossAxisReverse(true)
                 ->setAxisAlignment(AxisAlignment::End)
-                ->setCrossAxisAlignment(AxisAlignment::Center),
+                ->setCrossAxisAlignment(AxisAlignment::Start),
             menu->getChildByID("delete-filter-none"),
             menu->getChildByID("delete-filter-static"),
             menu->getChildByID("delete-filter-detail"),
             menu->getChildByID("delete-filter-custom")
         );
-        deleteFilterMenu->setPosition(88.5f, 0.f);
-        deleteFilterMenu->setContentSize({ 80.f, 80.f });
+        deleteFilterMenu->setPosition(48.5f + filterMenuWidth / 2, 0.f);
+        deleteFilterMenu->setContentSize({ filterMenuWidth, 80.f });
         deleteFilterMenu->updateLayout();
     }
 
@@ -211,19 +209,26 @@ $register_ids(EditorUI) {
         setIDs(
             menu,
             0,
-            "static-tab-1",
-            "static-tab-2",
-            "static-tab-3",
+            "block-tab",
+            "half-block-tab",
+            "outline-tab",
             "slope-tab",
             "hazard-tab",
             "3d-tab",
             "portal-tab",
-            "deco-tab-1",
-            "deco-tab-2",
+            "ground-deco-tab",
+            "air-deco-tab",
             "pulse-deco-tab",
             "sawblade-tab",
             "trigger-tab",
             "custom-tab"
+        );
+
+        menu->setPosition(winSize.width / 2, 100.f);
+        menu->setContentSize({ winSize.width, 50.f });
+        menu->setLayout(
+            RowLayout::create()
+                ->setGap(0.f)
         );
     }
 
