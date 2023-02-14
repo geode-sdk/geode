@@ -3,6 +3,7 @@
 #include <Geode/utils/ranges.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
+#include <Geode/binding/CCMenuItemToggler.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -40,6 +41,18 @@ CCArray* Layout::getNodesToPosition(CCNode* on) {
     return filtered;
 }
 
+static AxisLayoutOptions* axisOpts(CCNode* node) {
+    if (!node) return nullptr;
+    return typeinfo_cast<AxisLayoutOptions*>(node->getLayoutOptions());
+}
+
+static bool isOptsBreakLine(CCNode* node) {
+    if (auto opts = axisOpts(node)) {
+        return opts->getBreakLine();
+    }
+    return false;
+}
+
 static constexpr float AXIS_MIN_SCALE = 0.65f;
 
 struct AxisPosition {
@@ -52,8 +65,12 @@ struct AxisPosition {
 static AxisPosition nodeAxis(CCNode* node, Axis axis, float scale) {
     auto scaledSize = node->getScaledContentSize() * scale;
     std::optional<float> axisLength = std::nullopt;
-    if (auto opts = typeinfo_cast<AxisLayoutOptions*>(node->getLayoutOptions())) {
+    if (auto opts = axisOpts(node)) {
         axisLength = opts->getLength();
+    }
+    // CCMenuItemToggler is a common quirky class
+    if (auto toggle = typeinfo_cast<CCMenuItemToggler*>(node)) {
+        scaledSize = toggle->m_offButton->getScaledContentSize();
     }
     auto anchor = node->getAnchorPoint();
     if (axis == Axis::Row) {
@@ -104,10 +121,11 @@ AxisLayout::Row* AxisLayout::fitInRow(CCNode* on, CCArray* nodes, float scale, f
     auto res = CCArray::create();
 
     auto available = nodeAxis(on, m_axis, 1.f);
+    CCNode* prev = nullptr;
     size_t ix = 0;
     for (auto& node : CCArrayExt<CCNode*>(nodes)) {
         if (m_autoScale) {
-            if (auto opts = typeinfo_cast<AxisLayoutOptions*>(node->getLayoutOptions())) {
+            if (auto opts = axisOpts(node)) {
                 if (auto max = opts->getMaxScale()) {
                     node->setScale(max.value());
                 }
@@ -122,7 +140,12 @@ AxisLayout::Row* AxisLayout::fitInRow(CCNode* on, CCArray* nodes, float scale, f
         // next row
         // also force at least one object to be added to this row, because if 
         // it's too large for this row it's gonna be too large for all rows
-        if (m_growCrossAxis && nextAxisLength > available.axisLength && ix != 0) {
+        if (
+            m_growCrossAxis && (
+                (nextAxisLength > available.axisLength || isOptsBreakLine(prev)) && 
+                ix != 0
+            )
+        ) {
             break;
         }
         res->addObject(node);
@@ -134,6 +157,7 @@ AxisLayout::Row* AxisLayout::fitInRow(CCNode* on, CCArray* nodes, float scale, f
         if (pos.crossLength > crossLength) {
             crossLength = pos.crossLength;
         }
+        prev = node;
         ix++;
     }
 
@@ -502,12 +526,16 @@ AxisLayoutOptions* AxisLayoutOptions::create() {
     return new AxisLayoutOptions();
 }
 
-std::optional<float> AxisLayoutOptions::getMaxScale() {
+std::optional<float> AxisLayoutOptions::getMaxScale() const {
     return m_maxScale;
 }
 
-std::optional<float> AxisLayoutOptions::getLength() {
+std::optional<float> AxisLayoutOptions::getLength() const {
     return m_length;
+}
+
+bool AxisLayoutOptions::getBreakLine() const {
+    return m_breakLine;
 }
 
 AxisLayoutOptions* AxisLayoutOptions::setMaxScale(float scale) {
@@ -522,5 +550,10 @@ AxisLayoutOptions* AxisLayoutOptions::disableAutoScale() {
 
 AxisLayoutOptions* AxisLayoutOptions::setLength(std::optional<float> length) {
     m_length = length;
+    return this;
+}
+
+AxisLayoutOptions* AxisLayoutOptions::setBreakLine(bool enable) {
+    m_breakLine = enable;
     return this;
 }

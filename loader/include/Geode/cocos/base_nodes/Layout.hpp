@@ -81,12 +81,14 @@ class GEODE_DLL AxisLayoutOptions : public LayoutOptions {
 protected:
     std::optional<float> m_maxScale = 1.f;
     std::optional<float> m_length = std::nullopt;
+    bool m_breakLine = false;
 
 public:
     static AxisLayoutOptions* create();
 
-    std::optional<float> getMaxScale();
-    std::optional<float> getLength();
+    std::optional<float> getMaxScale() const;
+    std::optional<float> getLength() const;
+    bool getBreakLine() const;
 
     /**
      * Set the maximum scale this node can be if it's contained in an 
@@ -106,6 +108,12 @@ public:
      * dynamically calculated based on content size
      */
     AxisLayoutOptions* setLength(std::optional<float> length);
+
+    /**
+     * If enabled, the node will always cause a growable axis layout to break 
+     * into a new line even if the current line could've fit the next node
+     */
+    AxisLayoutOptions* setBreakLine(bool enable);
 };
 
 /**

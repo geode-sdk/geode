@@ -81,10 +81,10 @@ static CCMenu* detachAndCreateMenu(CCNode* parent, const char* menuID, Layout* l
     first->setZOrder(0);
     newMenu->addChild(first);
     first->release();
-    
-    newMenu->setLayout(layout);
 
     (switchToMenu(args, newMenu), ...);
+    
+    newMenu->setLayout(layout);
 
     return newMenu;
 }

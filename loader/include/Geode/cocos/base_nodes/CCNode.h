@@ -616,17 +616,15 @@ public:
      * Return an array of children
      *
      * Composing a "tree" structure is a very important feature of CCNode
-     * Here's a sample code of traversing children array:
-     * @code
+     * @example
+     * // Here's a sample code of traversing children array:
      * CCNode* node = NULL;
      * CCARRAY_FOREACH(parent->getChildren(), node)
      * {
      *     node->setPosition(0,0);
      * }
-     * @endcode
-     * This sample code traverses all children nodes, and set theie position to (0,0)
-     *
-     * @return An array of children
+     * // This sample code traverses all children nodes, and set theie position to (0,0)
+     * @returns An array of children
      */
     virtual CCArray* getChildren();
     
