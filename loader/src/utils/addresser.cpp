@@ -65,3 +65,16 @@ namespace {
 Addresser::MultipleInheritance* Addresser::instance() {
     return reinterpret_cast<Addresser::MultipleInheritance*>(&TableTable::table);
 }
+
+intptr_t Addresser::followThunkFunction(intptr_t address) {
+#ifdef GEODE_IS_WINDOWS
+    // check if first instruction is a jmp dword ptr [....], i.e. if the func is a thunk
+    if (*reinterpret_cast<uint8_t*>(address) == 0xFF && *reinterpret_cast<uint8_t*>(address + 1) == 0x25) {
+        // read where the jmp reads from
+        address = *reinterpret_cast<uint32_t*>(address + 2);
+        // that then contains the actual address of the func
+        address = *reinterpret_cast<uintptr_t*>(address);
+    }
+#endif
+    return address;
+}
