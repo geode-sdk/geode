@@ -212,12 +212,7 @@ protected:
     bool m_growCrossAxis = false;
 
     struct Row;
-
-    std::tuple<
-        std::pair<int, int>,
-        std::pair<float, float>,
-        bool
-    > findProps(CCArray* nodes) const;
+    
     bool shouldAutoScale(AxisLayoutOptions* opts) const;
     float nextGap(AxisLayoutOptions* now, AxisLayoutOptions* next) const;
     Row* fitInRow(

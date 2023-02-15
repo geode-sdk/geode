@@ -80,6 +80,7 @@ static float optsMaxScale(AxisLayoutOptions* opts) {
 
 struct AxisLayout::Row : public CCObject {
     float nextOverflowScaleDownFactor;
+    float nextOverflowSquishFactor;
     float axisLength;
     float crossLength;
     float axisEndsLength;
@@ -88,11 +89,13 @@ struct AxisLayout::Row : public CCObject {
 
     Row(
         float scaleFactor,
+        float squishFactor,
         float axisLength,
         float crossLength,
         float axisEndsLength,
         CCArray* nodes
     ) : nextOverflowScaleDownFactor(scaleFactor),
+        nextOverflowSquishFactor(squishFactor),
         axisLength(axisLength),
         crossLength(crossLength),
         axisEndsLength(axisEndsLength),
@@ -152,50 +155,6 @@ float AxisLayout::nextGap(AxisLayoutOptions* now, AxisLayoutOptions* next) const
 bool AxisLayout::shouldAutoScale(AxisLayoutOptions* opts) const {
     if (!opts) return m_autoScale;
     return opts->getAutoScale().value_or(m_autoScale);
-}
-
-std::tuple<
-    std::pair<int, int>,
-    std::pair<float, float>,
-    bool
-> AxisLayout::findProps(CCArray* nodes) const {
-    std::pair<int, int> minMaxPrio;
-    std::pair<float, float> minMaxScale;
-    bool doAutoScale = m_autoScale;
-    bool first = true;
-    for (auto node : CCArrayExt<CCNode>(nodes)) {
-        int prio = 0;
-        float max = 1.f;
-        float min = AXISLAYOUT_DEFAULT_MIN_SCALE;
-        if (auto opts = axisOpts(node)) {
-            prio = opts->getScalePriority();
-            max = opts->getMaxScale();
-            min = opts->getMinScale();
-            if (opts->getAutoScale().value_or(false)) {
-                doAutoScale = true;
-            }
-        }
-        if (first) {
-            minMaxPrio = { prio, prio };
-            minMaxScale = { min, max };
-            first = false;
-        }
-        else {
-            if (prio < minMaxPrio.first) {
-                minMaxPrio.first = prio;
-            }
-            if (prio > minMaxPrio.second) {
-                minMaxPrio.second = prio;
-            }
-            if (min < minMaxPrio.first) {
-                minMaxPrio.first = min;
-            }
-            if (max > minMaxPrio.second) {
-                minMaxPrio.second = max;
-            }
-        }
-    }
-    return { minMaxPrio, minMaxScale, doAutoScale };
 }
 
 AxisLayout::Row* AxisLayout::fitInRow(
@@ -304,6 +263,9 @@ AxisLayout::Row* AxisLayout::fitInRow(
     return new Row(
         // how much should the nodes be scaled down to fit the next row
         available.axisLength / nextAxisLength * scale * squish,
+        // how much should the nodes be squished to fit the next item in this 
+        // row
+        available.axisLength / nextAxisLength * scale * squish,
         axisLength,
         crossLength,
         axisEndsLength,
@@ -323,9 +285,12 @@ void AxisLayout::tryFitLayout(
     // like i genuinely have no clue fr why some of these work tho, 
     // i just threw in random equations and numbers until it worked
 
+    log::debug("scale: {}, squish: {}, prio: {}", scale, squish, prio);
+
     auto rows = CCArray::create();
     float totalRowCrossLength = 0.f;
     float crossScaleDownFactor = 0.f;
+    float crossSquishFactor = 0.f;
 
     // fit everything into rows while possible
     size_t ix = 0;
@@ -343,6 +308,12 @@ void AxisLayout::tryFitLayout(
         ) {
             crossScaleDownFactor = row->nextOverflowScaleDownFactor;
         }
+        if (
+            row->nextOverflowSquishFactor > crossSquishFactor &&
+            row->nextOverflowSquishFactor < squish
+        ) {
+            crossSquishFactor = row->nextOverflowSquishFactor;
+        }
         totalRowCrossLength += row->crossLength;
         if (ix) {
             totalRowCrossLength += m_gap;
@@ -353,7 +324,9 @@ void AxisLayout::tryFitLayout(
 
     auto available = nodeAxis(on, m_axis, 1.f);
 
-    // if cross axis overflow not allowed, try to scale down layout
+    // if cross axis overflow not allowed and it's overflowing, try to scale 
+    // down layout if there are any nodes with auto-scale enabled (or 
+    // auto-scale is enabled by default)
     if (
         !m_allowCrossAxisOverflow && 
         doAutoScale && 
@@ -361,16 +334,21 @@ void AxisLayout::tryFitLayout(
     ) {
         bool attemptRescale = false;
         if (
+            // if the scale is less than the lowest min scale allowed, then 
+            // trying to scale will have no effect and not help anywmore
             crossScaleDownFactor < minMaxScales.first ||
             // if the scale down factor is the same as before, then we've 
             // entered an infinite loop
             crossScaleDownFactor == scale
         ) {
+            // is there still some lower priority nodes we could try scaling?
             if (prio > minMaxPrios.first) {
                 prio -= 1;
                 attemptRescale = true;
             }
+            // otherwise we're just gonna squish
         }
+        // otherwise scale as usual
         else {
             attemptRescale = true;
         }
@@ -388,12 +366,12 @@ void AxisLayout::tryFitLayout(
     if (!m_allowCrossAxisOverflow && totalRowCrossLength > available.crossLength) {
         // if squishing rows would take less squishing that squishing columns, 
         // then squish rows
-        if (totalRowCrossLength / available.crossLength < crossScaleDownFactor) {
+        if (totalRowCrossLength / available.crossLength < crossSquishFactor) {
             rows->release();
             return this->tryFitLayout(
                 on, nodes,
                 minMaxScales, minMaxPrios, doAutoScale,
-                scale, crossScaleDownFactor, prio
+                scale, crossSquishFactor, prio
             );
         }
     }
@@ -582,8 +560,56 @@ void AxisLayout::tryFitLayout(
 
 void AxisLayout::apply(CCNode* on) {
     auto nodes = getNodesToPosition(on);
-    auto [prios, scales, doAutoScale] = findProps(nodes);
-    this->tryFitLayout(on, nodes, scales, prios, doAutoScale, scales.second, 1.f, prios.second);
+    
+    std::pair<float, float> minMaxScale;
+    std::pair<int, int> minMaxPrio;
+    bool doAutoScale = false;
+
+    bool first = true;
+    for (auto node : CCArrayExt<CCNode>(nodes)) {
+        int prio = 0;
+        float max = 1.f;
+        float min = AXISLAYOUT_DEFAULT_MIN_SCALE;
+        if (auto opts = axisOpts(node)) {
+            prio = opts->getScalePriority();
+            max = opts->getMaxScale();
+            min = opts->getMinScale();
+            // this does cause a recheck of m_autoScale every iteration but it 
+            // should be pretty fast and this correctly handles the situation 
+            // where auto-scale is enabled on the layout but explicitly 
+            // disabled on all its children
+            if (opts->getAutoScale().value_or(m_autoScale)) {
+                doAutoScale = true;
+            }
+        }
+        if (first) {
+            minMaxPrio = { prio, prio };
+            minMaxScale = { min, max };
+            first = false;
+        }
+        else {
+            if (prio < minMaxPrio.first) {
+                minMaxPrio.first = prio;
+            }
+            if (prio > minMaxPrio.second) {
+                minMaxPrio.second = prio;
+            }
+            if (min < minMaxScale.first) {
+                minMaxScale.first = min;
+            }
+            if (max > minMaxScale.second) {
+                minMaxScale.second = max;
+            }
+        }
+    }
+
+    log::debug("minMaxScale: {}, minMaxPrio: {}", minMaxScale, minMaxPrio);
+
+    this->tryFitLayout(
+        on, nodes,
+        minMaxScale, minMaxPrio, doAutoScale,
+        minMaxScale.second, 1.f, minMaxPrio.second
+    );
 }
 
 AxisLayout::AxisLayout(Axis axis) : m_axis(axis) {}

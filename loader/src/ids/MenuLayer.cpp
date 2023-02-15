@@ -91,8 +91,6 @@ $register_ids(MenuLayer) {
         menu->setContentSize({ winSize.width - 220.f, 65.f });
         menu->setLayout(
             RowLayout::create()
-                ->setGrowCrossAxis(true)
-                ->setCrossAxisOverflow(false)
         );
     }
     
