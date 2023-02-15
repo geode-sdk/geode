@@ -21,7 +21,6 @@ private:
     std::string m_id = "";
     std::unique_ptr<Layout> m_layout = nullptr;
     std::unique_ptr<LayoutOptions> m_layoutOptions = nullptr;
-    PositionHint m_positionHint = PositionHint::Default;
     std::unordered_map<std::string, std::any> m_attributes;
 
     friend class ProxyCCNode;
@@ -154,14 +153,6 @@ void CCNode::updateLayout(bool updateChildOrder) {
     if (auto layout = GeodeNodeMetadata::set(this)->m_layout.get()) {
         layout->apply(this);
     }
-}
-
-void CCNode::setPositionHint(PositionHint hint) {
-    GeodeNodeMetadata::set(this)->m_positionHint = hint;
-}
-
-PositionHint CCNode::getPositionHint() {
-    return GeodeNodeMetadata::set(this)->m_positionHint;
 }
 
 void CCNode::setAttribute(std::string const& attr, std::any value) {

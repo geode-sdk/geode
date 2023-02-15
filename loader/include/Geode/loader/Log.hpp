@@ -58,6 +58,17 @@ namespace geode {
             return buf.str();
         }
 
+        template <class T>
+            requires requires(T t) {
+                parse(t);
+            }
+        std::string parse(std::optional<T> const& thing) {
+            if (thing.has_value()) {
+                return "opt(" + parse(thing.value()) + ")";
+            }
+            return "nullopt";
+        }
+
         // Log component system
 
         struct GEODE_DLL ComponentTrait {

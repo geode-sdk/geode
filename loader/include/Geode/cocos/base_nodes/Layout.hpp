@@ -28,8 +28,7 @@ public:
      * @param on Node to apply the layout on. Position's the node's children 
      * according to the layout. The content size of the node should be 
      * respected as a boundary the layout shouldn't overflow. The node may be 
-     * rescaled to better fit its contents. Layouts should respect nodes that 
-     * have their PositionHint marked as absolute
+     * rescaled to better fit its contents
      */
     virtual void apply(CCNode* on) = 0;
 
@@ -42,25 +41,15 @@ public:
 };
 
 /**
- * Determines how a node should be positioned within its parent, if that 
- * parent has an automatically positioning layout
+ * The direction of an AxisLayout
  */
-enum class PositionHint {
-    // The container can determine the best position 
-    // for this node
-    Default,
-    // The container's layout should not affect the 
-    // position of this node
-    Absolute,
-};
-
 enum class Axis {
     Row,
     Column,
 };
 
 /**
- * Specifies the alignment of something
+ * Specifies the alignment of something in an AxisLayout
  */
 enum class AxisAlignment {
     // Align items to the start
@@ -77,18 +66,46 @@ enum class AxisAlignment {
     Even,
 };
 
+constexpr float AXISLAYOUT_DEFAULT_MIN_SCALE = 0.65f;
+constexpr int AXISLAYOUT_DEFAULT_PRIORITY = 0;
+
+/**
+ * Options for controlling the behaviour of individual nodes in an AxisLayout
+ * @example
+ * auto node = CCNode::create();
+ * // this node will have 10 units of spacing between it and the next one
+ * node->setLayoutOptions(
+ *     AxisLayoutOptions::create()
+ *         ->setNextGap(10.f)
+ * );
+ * someNodeWithALayout->addChild(node);
+ */
 class GEODE_DLL AxisLayoutOptions : public LayoutOptions {
 protected:
-    std::optional<float> m_maxScale = 1.f;
+    std::optional<bool> m_autoScale = std::nullopt;
+    float m_maxScale = 1.f;
+    float m_minScale = AXISLAYOUT_DEFAULT_MIN_SCALE;
+    float m_relativeScale = 1.f;
     std::optional<float> m_length = std::nullopt;
+    std::optional<float> m_nextGap = std::nullopt;
+    std::optional<float> m_prevGap = std::nullopt;
     bool m_breakLine = false;
+    bool m_sameLine = false;
+    int m_scalePriority = AXISLAYOUT_DEFAULT_PRIORITY;
 
 public:
     static AxisLayoutOptions* create();
 
-    std::optional<float> getMaxScale() const;
+    std::optional<bool> getAutoScale() const;
+    float getMaxScale() const;
+    float getMinScale() const;
+    float getRelativeScale() const;
     std::optional<float> getLength() const;
+    std::optional<float> getPrevGap() const;
+    std::optional<float> getNextGap() const;
     bool getBreakLine() const;
+    bool getSameLine() const;
+    int getScalePriority() const;
 
     /**
      * Set the maximum scale this node can be if it's contained in an 
@@ -97,11 +114,22 @@ public:
     AxisLayoutOptions* setMaxScale(float scale);
 
     /**
-     * Disables auto-scaling for this node, even if the layout the node is 
-     * contained in has it enabled. To enable auto-scaling, provide a max 
-     * scale for the node in setMaxScale
+     * Set the minimum scale this node can be if it's contained in an 
+     * auto-scaled layout. Default is AXISLAYOUT_DEFAULT_MIN_SCALE
+     */
+    AxisLayoutOptions* setMinScale(float scale);
+
+    /**
+     * Set the relative scale of this node compared to other nodes if it's 
+     * contained in an auto-scaled layout. Default is 1
+     */
+    AxisLayoutOptions* setRelativeScale(float scale);
+
+    /**
+     * Set auto-scaling for this node, overriding the layout's auto-scale 
+     * setting. If nullopt, the layout's auto-scale options will be used
     */
-    AxisLayoutOptions* disableAutoScale();
+    AxisLayoutOptions* setAutoScale(std::optional<bool> enabled);
 
     /**
      * Set an absolute length for this node. If nullopt, the length will be 
@@ -110,15 +138,66 @@ public:
     AxisLayoutOptions* setLength(std::optional<float> length);
 
     /**
+     * Override the default gap in the layout between this node and the 
+     * previous one. If nullopt, the default gap of the layout will be used
+     */
+    AxisLayoutOptions* setPrevGap(std::optional<float> gap);
+
+    /**
+     * Override the default gap in the layout between this node and the next 
+     * one. If nullopt, the default gap of the layout will be used
+     */
+    AxisLayoutOptions* setNextGap(std::optional<float> gap);
+
+    /**
      * If enabled, the node will always cause a growable axis layout to break 
      * into a new line even if the current line could've fit the next node
      */
     AxisLayoutOptions* setBreakLine(bool enable);
+
+    /**
+     * If enabled, the node will be forced to be on the same line as the 
+     * previous node even if doing this would overflow
+     */
+    AxisLayoutOptions* setSameLine(bool enable);
+
+    /**
+     * Set the scale priority of this node. Nodes with higher priority will be 
+     * scaled down first before nodes with lower priority when an auto-scaled 
+     * layout attempts to fit its contents. Default is 
+     * AXISLAYOUT_DEFAULT_PRIORITY
+     * @note For optimal performance, the priorities should all be close to 
+     * each other with no gaps
+     */
+    AxisLayoutOptions* setScalePriority(int priority);
 };
 
 /**
- * Layout for arranging nodes along an axis. Used to implement row, column, and 
- * grid layouts
+ * A multi-purpose dynamic layout for arranging nodes along an axis. Can be 
+ * used to arrange nodes in a single line, a grid, or a flex layout. The 
+ * RowLayout and ColumnLayout classes function as simple thin wrappers over 
+ * AxisLayout. The positioning of individual nodes in the layout can be 
+ * further controlled using AxisLayoutOptions
+ * @warning Calculating layouts can get increasingly expensive for large 
+ * amounts of child nodes being fit into a small space - while this should 
+ * never prove a real performance concern as most layouts only have a few 
+ * hundred children at the very most, be aware that you probably shouldn't 
+ * call CCNode::updateLayout every frame for a menu with thousands of children
+ * @example
+ * auto menu = CCMenu::create();
+ * // The menu's children will be arranged horizontally, unless they overflow 
+ * // the content size width in which case a new line will be inserted and 
+ * // aligned to the left. The menu automatically will automatically grow in 
+ * // height to fit all the rows
+ * menu->setLayout(
+ *     RowLayout::create()
+ *         ->setGap(10.f)
+ *         ->setGrowCrossAxis(true)
+ *         ->setAxisAlignment(AxisAlignment::Start)
+ * );
+ * menu->setContentSize({ 200.f, 0.f });
+ * menu->addChild(...);
+ * menu->updateLayout();
  */
 class GEODE_DLL AxisLayout : public Layout {
 protected:
@@ -134,8 +213,27 @@ protected:
 
     struct Row;
 
-    Row* fitInRow(CCNode* on, CCArray* nodes, float scale, float squish) const;
-    void tryFitLayout(CCNode* on, CCArray* nodes, float scale, float squish) const;
+    std::tuple<
+        std::pair<int, int>,
+        std::pair<float, float>,
+        bool
+    > findProps(CCArray* nodes) const;
+    bool shouldAutoScale(AxisLayoutOptions* opts) const;
+    float nextGap(AxisLayoutOptions* now, AxisLayoutOptions* next) const;
+    Row* fitInRow(
+        CCNode* on, CCArray* nodes,
+        std::pair<float, float> const& minMaxScales,
+        std::pair<int, int> const& minMaxPrios,
+        bool doAutoScale,
+        float scale, float squish, int prio
+    ) const;
+    void tryFitLayout(
+        CCNode* on, CCArray* nodes,
+        std::pair<float, float> const& minMaxScales,
+        std::pair<int, int> const& minMaxPrios,
+        bool doAutoScale,
+        float scale, float squish, int prio
+    ) const;
 
     AxisLayout(Axis);
 

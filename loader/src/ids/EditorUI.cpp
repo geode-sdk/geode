@@ -308,7 +308,7 @@ $register_ids(EditorUI) {
 
         this->getChildByID("layer-index-label")->setLayoutOptions(
             AxisLayoutOptions::create()
-                ->disableAutoScale()
+                ->setAutoScale(false)
                 ->setLength(25.f)
         );
 

@@ -974,22 +974,6 @@ public:
     GEODE_DLL LayoutOptions* getLayoutOptions();
 
     /**
-     * Give a hint to the current Layout about where this node should be 
-     * positioned in it. Allows detaching the node from the current 
-     * layout by setting position to absolute
-     * @param hint The hint to set
-     * @note The layout definitely should, but might not respect the hint 
-     * given
-     * @note Geode addition
-     */
-    GEODE_DLL void setPositionHint(PositionHint hint);
-    /**
-     * Get the current position hint for this node
-     * @note Geode addition
-     */
-    GEODE_DLL PositionHint getPositionHint();
-
-    /**
      * Swap two children
      * @param first One of the nodes to swap
      * @param second One of the nodes to swap

@@ -103,7 +103,7 @@ $register_ids(EditorPauseLayer) {
         auto optionsMenu = detachAndCreateMenu(
             this,
             "options-menu",
-            ColumnLayout::create()
+            RowLayout::create()
                 ->setGap(-1.f)
                 ->setAxisAlignment(AxisAlignment::Start)
                 ->setGrowCrossAxis(true)
@@ -129,6 +129,8 @@ $register_ids(EditorPauseLayer) {
                 label->setLayoutOptions(
                     AxisLayoutOptions::create()
                         ->setBreakLine(true)
+                        ->setSameLine(true)
+                        ->setRelativeScale(.5f)
                 );
             }
         }

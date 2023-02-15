@@ -32,13 +32,10 @@ void CCNode::insertAfter(CCNode* child, CCNode* after) {
 }
 
 CCArray* Layout::getNodesToPosition(CCNode* on) {
-    auto filtered = CCArray::create();
-    for (auto& child : CCArrayExt<CCNode>(on->getChildren())) {
-        if (child->getPositionHint() != PositionHint::Absolute) {
-            filtered->addObject(child);
-        }
+    if (!on->getChildren()) {
+        return CCArray::create();
     }
-    return filtered;
+    return on->getChildren()->shallowCopy();
 }
 
 static AxisLayoutOptions* axisOpts(CCNode* node) {
@@ -46,14 +43,64 @@ static AxisLayoutOptions* axisOpts(CCNode* node) {
     return typeinfo_cast<AxisLayoutOptions*>(node->getLayoutOptions());
 }
 
-static bool isOptsBreakLine(CCNode* node) {
-    if (auto opts = axisOpts(node)) {
+static bool isOptsBreakLine(AxisLayoutOptions* opts) {
+    if (opts) {
         return opts->getBreakLine();
     }
     return false;
 }
 
-static constexpr float AXIS_MIN_SCALE = 0.65f;
+static bool isOptsSameLine(AxisLayoutOptions* opts) {
+    if (opts) {
+        return opts->getSameLine();
+    }
+    return false;
+}
+
+static int optsScalePrio(AxisLayoutOptions* opts) {
+    if (opts) {
+        return opts->getScalePriority();
+    }
+    return 0;
+}
+
+static float optsMinScale(AxisLayoutOptions* opts) {
+    if (opts) {
+        return opts->getMinScale();
+    }
+    return AXISLAYOUT_DEFAULT_MIN_SCALE;
+}
+
+static float optsMaxScale(AxisLayoutOptions* opts) {
+    if (opts) {
+        return opts->getMaxScale();
+    }
+    return 1.f;
+}
+
+struct AxisLayout::Row : public CCObject {
+    float nextOverflowScaleDownFactor;
+    float axisLength;
+    float crossLength;
+    float axisEndsLength;
+    // all layout calculations happen within a single frame so no Ref needed
+    CCArray* nodes;
+
+    Row(
+        float scaleFactor,
+        float axisLength,
+        float crossLength,
+        float axisEndsLength,
+        CCArray* nodes
+    ) : nextOverflowScaleDownFactor(scaleFactor),
+        axisLength(axisLength),
+        crossLength(crossLength),
+        axisEndsLength(axisEndsLength),
+        nodes(nodes)
+    {
+        this->autorelease();
+    }
+};
 
 struct AxisPosition {
     float axisLength;
@@ -91,73 +138,146 @@ static AxisPosition nodeAxis(CCNode* node, Axis axis, float scale) {
     }
 }
 
-struct AxisLayout::Row : public CCObject {
-    float nextOverflowScaleDownFactor;
-    float axisLength;
-    float crossLength;
-    float axisEndsLength;
-    Ref<CCArray> nodes;
-
-    Row(
-        float scaleFactor,
-        float axisLength,
-        float crossLength,
-        float axisEndsLength,
-        CCArray* nodes
-    ) : nextOverflowScaleDownFactor(scaleFactor),
-        axisLength(axisLength),
-        crossLength(crossLength),
-        axisEndsLength(axisEndsLength),
-        nodes(nodes)
-    {
-        this->autorelease();
+float AxisLayout::nextGap(AxisLayoutOptions* now, AxisLayoutOptions* next) const {
+    std::optional<float> gap;
+    if (now) {
+        gap = now->getNextGap();
     }
-};
+    if (next && (!gap || gap.value() < next->getPrevGap())) {
+        gap = next->getPrevGap();
+    }
+    return gap.value_or(m_gap);
+}
 
-AxisLayout::Row* AxisLayout::fitInRow(CCNode* on, CCArray* nodes, float scale, float squish) const {
+bool AxisLayout::shouldAutoScale(AxisLayoutOptions* opts) const {
+    if (!opts) return m_autoScale;
+    return opts->getAutoScale().value_or(m_autoScale);
+}
+
+std::tuple<
+    std::pair<int, int>,
+    std::pair<float, float>,
+    bool
+> AxisLayout::findProps(CCArray* nodes) const {
+    std::pair<int, int> minMaxPrio;
+    std::pair<float, float> minMaxScale;
+    bool doAutoScale = m_autoScale;
+    bool first = true;
+    for (auto node : CCArrayExt<CCNode>(nodes)) {
+        int prio = 0;
+        float max = 1.f;
+        float min = AXISLAYOUT_DEFAULT_MIN_SCALE;
+        if (auto opts = axisOpts(node)) {
+            prio = opts->getScalePriority();
+            max = opts->getMaxScale();
+            min = opts->getMinScale();
+            if (opts->getAutoScale().value_or(false)) {
+                doAutoScale = true;
+            }
+        }
+        if (first) {
+            minMaxPrio = { prio, prio };
+            minMaxScale = { min, max };
+            first = false;
+        }
+        else {
+            if (prio < minMaxPrio.first) {
+                minMaxPrio.first = prio;
+            }
+            if (prio > minMaxPrio.second) {
+                minMaxPrio.second = prio;
+            }
+            if (min < minMaxPrio.first) {
+                minMaxPrio.first = min;
+            }
+            if (max > minMaxPrio.second) {
+                minMaxPrio.second = max;
+            }
+        }
+    }
+    return { minMaxPrio, minMaxScale, doAutoScale };
+}
+
+AxisLayout::Row* AxisLayout::fitInRow(
+    CCNode* on, CCArray* nodes,
+    std::pair<float, float> const& minMaxScales,
+    std::pair<int, int> const& minMaxPrios,
+    bool doAutoScale,
+    float scale, float squish, int prio
+) const {
     float nextAxisLength = 0.f;
     float axisLength = 0.f;
     float crossLength = 0.f;
     auto res = CCArray::create();
 
     auto available = nodeAxis(on, m_axis, 1.f);
-    CCNode* prev = nullptr;
+    AxisLayoutOptions* prev = nullptr;
     size_t ix = 0;
     for (auto& node : CCArrayExt<CCNode*>(nodes)) {
-        if (m_autoScale) {
-            if (auto opts = axisOpts(node)) {
-                if (auto max = opts->getMaxScale()) {
-                    node->setScale(max.value());
-                }
+        auto opts = axisOpts(node);
+        if (this->shouldAutoScale(opts)) {
+            if (opts) {
+                node->setScale(opts->getMaxScale() * opts->getRelativeScale());
             }
             else {
                 node->setScale(1);
             }
         }
-        auto pos = nodeAxis(node, m_axis, scale * squish);
+        AxisPosition pos;
+        // if this node's scale prio is higher than current, don't scale it 
+        // down
+        if (prio > optsScalePrio(opts)) {
+            pos = nodeAxis(node, m_axis, squish);
+        }
+        // otherwise if it matches scale it down by the factor
+        else if (prio == optsScalePrio(opts)) {
+            auto trueScale = scale;
+            auto min = optsMinScale(opts);
+            auto max = optsMaxScale(opts);
+            if (trueScale < min) {
+                trueScale = min;
+            }
+            if (trueScale > max) {
+                trueScale = max;
+            }
+            pos = nodeAxis(node, m_axis, trueScale * squish);
+        }
+        // otherwise it's been scaled down to minimum
+        else {
+            pos = nodeAxis(node, m_axis, optsMinScale(opts) * squish);
+        }
         nextAxisLength += pos.axisLength;
         // if multiple rows are allowed and this row is full, time for the 
         // next row
         // also force at least one object to be added to this row, because if 
         // it's too large for this row it's gonna be too large for all rows
         if (
-            m_growCrossAxis && (
-                (nextAxisLength > available.axisLength || isOptsBreakLine(prev)) && 
-                ix != 0
-            )
+            m_growCrossAxis && ((
+                (nextAxisLength > available.axisLength) && 
+                ix != 0 &&
+                !isOptsSameLine(opts)
+            ) || isOptsBreakLine(prev))
         ) {
             break;
         }
         res->addObject(node);
         if (ix) {
-            nextAxisLength += m_gap * scale * squish;
-            axisLength += m_gap * scale * squish;
+            auto gap = nextGap(prev, opts);
+            // if we've exhausted all priority scale options, scale gap too
+            if (prio == minMaxPrios.first) {
+                nextAxisLength += gap * scale * squish;
+                axisLength += gap * scale * squish;
+            }
+            else {
+                nextAxisLength += gap * squish;
+                axisLength += gap * squish;
+            }
         }
         axisLength += pos.axisLength;
         if (pos.crossLength > crossLength) {
             crossLength = pos.crossLength;
         }
-        prev = node;
+        prev = opts;
         ix++;
     }
 
@@ -191,7 +311,13 @@ AxisLayout::Row* AxisLayout::fitInRow(CCNode* on, CCArray* nodes, float scale, f
     );
 }
 
-void AxisLayout::tryFitLayout(CCNode* on, CCArray* nodes, float scale, float squish) const {
+void AxisLayout::tryFitLayout(
+    CCNode* on, CCArray* nodes,
+    std::pair<float, float> const& minMaxScales,
+    std::pair<int, int> const& minMaxPrios,
+    bool doAutoScale,
+    float scale, float squish, int prio
+) const {
     // where do all of these magical calculations come from?
     // idk i got tired of doing the math but they work so ¯\_(ツ)_/¯ 
     // like i genuinely have no clue fr why some of these work tho, 
@@ -205,7 +331,11 @@ void AxisLayout::tryFitLayout(CCNode* on, CCArray* nodes, float scale, float squ
     size_t ix = 0;
     auto newNodes = nodes->shallowCopy();
     while (newNodes->count()) {
-        auto row = this->fitInRow(on, newNodes, scale, squish);
+        auto row = this->fitInRow(
+            on, newNodes,
+            minMaxScales, minMaxPrios, doAutoScale,
+            scale, squish, prio
+        );
         rows->addObject(row);
         if (
             row->nextOverflowScaleDownFactor > crossScaleDownFactor &&
@@ -224,10 +354,33 @@ void AxisLayout::tryFitLayout(CCNode* on, CCArray* nodes, float scale, float squ
     auto available = nodeAxis(on, m_axis, 1.f);
 
     // if cross axis overflow not allowed, try to scale down layout
-    if (!m_allowCrossAxisOverflow && totalRowCrossLength > available.crossLength) {
-        if (m_autoScale && crossScaleDownFactor > AXIS_MIN_SCALE) {
+    if (
+        !m_allowCrossAxisOverflow && 
+        doAutoScale && 
+        totalRowCrossLength > available.crossLength
+    ) {
+        bool attemptRescale = false;
+        if (
+            crossScaleDownFactor < minMaxScales.first ||
+            // if the scale down factor is the same as before, then we've 
+            // entered an infinite loop
+            crossScaleDownFactor == scale
+        ) {
+            if (prio > minMaxPrios.first) {
+                prio -= 1;
+                attemptRescale = true;
+            }
+        }
+        else {
+            attemptRescale = true;
+        }
+        if (attemptRescale) {
             rows->release();
-            return this->tryFitLayout(on, nodes, crossScaleDownFactor, squish);
+            return this->tryFitLayout(
+                on, nodes,
+                minMaxScales, minMaxPrios, doAutoScale,
+                crossScaleDownFactor, squish, prio
+            );
         }
     }
 
@@ -237,7 +390,11 @@ void AxisLayout::tryFitLayout(CCNode* on, CCArray* nodes, float scale, float squ
         // then squish rows
         if (totalRowCrossLength / available.crossLength < crossScaleDownFactor) {
             rows->release();
-            return this->tryFitLayout(on, nodes, scale, crossScaleDownFactor);
+            return this->tryFitLayout(
+                on, nodes,
+                minMaxScales, minMaxPrios, doAutoScale,
+                scale, crossScaleDownFactor, prio
+            );
         }
     }
 
@@ -316,8 +473,8 @@ void AxisLayout::tryFitLayout(CCNode* on, CCArray* nodes, float scale, float squ
             row->axisLength /= scale * squish;
             if (m_autoScale) {
                 rowScale = available.axisLength / row->axisLength;
-                if (rowScale < AXIS_MIN_SCALE) {
-                    rowScale = AXIS_MIN_SCALE;
+                if (rowScale < AXISLAYOUT_DEFAULT_MIN_SCALE) {
+                    rowScale = AXISLAYOUT_DEFAULT_MIN_SCALE;
                 }
                 row->axisLength *= rowScale;
             }
@@ -352,19 +509,20 @@ void AxisLayout::tryFitLayout(CCNode* on, CCArray* nodes, float scale, float squ
         float evenSpace = available.axisLength / row->nodes->count();
 
         size_t ix = 0;
+        AxisLayoutOptions* prev = nullptr;
         for (auto& node : CCArrayExt<CCNode*>(row->nodes)) {
             auto scale = rowScale;
+            auto opts = axisOpts(node);
             // rescale node if overflowing
-            if (m_autoScale) {
-                if (auto opts = typeinfo_cast<AxisLayoutOptions*>(node->getLayoutOptions())) {
-                    if (auto max = opts->getMaxScale()) {
-                        if (scale > max.value()) {
-                            scale = max.value();
-                        }
+            if (this->shouldAutoScale(opts)) {
+                if (opts) {
+                    if (scale > opts->getMaxScale()) {
+                        scale = opts->getMaxScale();
                     }
                     else {
                         scale = node->getScale();
                     }
+                    scale *= opts->getRelativeScale();
                 }
                 // CCMenuItemSpriteExtra is quirky af
                 if (auto btn = typeinfo_cast<CCMenuItemSpriteExtra*>(node)) {
@@ -380,8 +538,11 @@ void AxisLayout::tryFitLayout(CCNode* on, CCArray* nodes, float scale, float squ
                     row->axisEndsLength * scale * (1.f - rowSquish) * 1.f / nodes->count();
             }
             else {
+                if (ix) {
+                    rowAxisPos += this->nextGap(prev, opts) * scale * rowSquish;
+                }
                 axisPos = rowAxisPos + pos.axisLength * pos.axisAnchor;
-                rowAxisPos += pos.axisLength + m_gap * scale * rowSquish - 
+                rowAxisPos += pos.axisLength - 
                     row->axisEndsLength * scale * (1.f - rowSquish) * 1.f / nodes->count();
             }
             float crossOffset;
@@ -404,6 +565,7 @@ void AxisLayout::tryFitLayout(CCNode* on, CCArray* nodes, float scale, float squ
             else {
                 node->setPosition(rowCrossPos + crossOffset, axisPos);
             }
+            prev = opts;
             ix++;
         }
     
@@ -420,7 +582,8 @@ void AxisLayout::tryFitLayout(CCNode* on, CCArray* nodes, float scale, float squ
 
 void AxisLayout::apply(CCNode* on) {
     auto nodes = getNodesToPosition(on);
-    this->tryFitLayout(on, nodes, 1.f, 1.f);
+    auto [prios, scales, doAutoScale] = findProps(nodes);
+    this->tryFitLayout(on, nodes, scales, prios, doAutoScale, scales.second, 1.f, prios.second);
 }
 
 AxisLayout::AxisLayout(Axis axis) : m_axis(axis) {}
@@ -510,11 +673,15 @@ AxisLayout* AxisLayout::create(Axis axis) {
     return new AxisLayout(axis);
 }
 
+// RowLayout
+
 RowLayout::RowLayout() : AxisLayout(Axis::Row) {}
 
 RowLayout* RowLayout::create() {
     return new RowLayout();
 }
+
+// ColumnLayout
 
 ColumnLayout::ColumnLayout() : AxisLayout(Axis::Column) {}
 
@@ -522,20 +689,50 @@ ColumnLayout* ColumnLayout::create() {
     return new ColumnLayout();
 }
 
+// AxisLayoutOptions
+
 AxisLayoutOptions* AxisLayoutOptions::create() {
     return new AxisLayoutOptions();
 }
 
-std::optional<float> AxisLayoutOptions::getMaxScale() const {
+std::optional<bool> AxisLayoutOptions::getAutoScale() const {
+    return m_autoScale;
+}
+
+float AxisLayoutOptions::getMaxScale() const {
     return m_maxScale;
+}
+
+float AxisLayoutOptions::getMinScale() const {
+    return m_minScale;
+}
+
+float AxisLayoutOptions::getRelativeScale() const {
+    return m_relativeScale;
 }
 
 std::optional<float> AxisLayoutOptions::getLength() const {
     return m_length;
 }
 
+std::optional<float> AxisLayoutOptions::getPrevGap() const {
+    return m_prevGap;
+}
+
+std::optional<float> AxisLayoutOptions::getNextGap() const {
+    return m_nextGap;
+}
+
 bool AxisLayoutOptions::getBreakLine() const {
     return m_breakLine;
+}
+
+bool AxisLayoutOptions::getSameLine() const {
+    return m_sameLine;
+}
+
+int AxisLayoutOptions::getScalePriority() const {
+    return m_scalePriority;
 }
 
 AxisLayoutOptions* AxisLayoutOptions::setMaxScale(float scale) {
@@ -543,8 +740,18 @@ AxisLayoutOptions* AxisLayoutOptions::setMaxScale(float scale) {
     return this;
 }
 
-AxisLayoutOptions* AxisLayoutOptions::disableAutoScale() {
-    m_maxScale = std::nullopt;
+AxisLayoutOptions* AxisLayoutOptions::setMinScale(float scale) {
+    m_minScale = scale;
+    return this;
+}
+
+AxisLayoutOptions* AxisLayoutOptions::setRelativeScale(float scale) {
+    m_relativeScale = scale;
+    return this;
+}
+
+AxisLayoutOptions* AxisLayoutOptions::setAutoScale(std::optional<bool> enabled) {
+    m_autoScale = enabled;
     return this;
 }
 
@@ -553,7 +760,27 @@ AxisLayoutOptions* AxisLayoutOptions::setLength(std::optional<float> length) {
     return this;
 }
 
+AxisLayoutOptions* AxisLayoutOptions::setPrevGap(std::optional<float> gap) {
+    m_prevGap = gap;
+    return this;
+}
+
+AxisLayoutOptions* AxisLayoutOptions::setNextGap(std::optional<float> gap) {
+    m_nextGap = gap;
+    return this;
+}
+
 AxisLayoutOptions* AxisLayoutOptions::setBreakLine(bool enable) {
     m_breakLine = enable;
+    return this;
+}
+
+AxisLayoutOptions* AxisLayoutOptions::setSameLine(bool enable) {
+    m_sameLine = enable;
+    return this;
+}
+
+AxisLayoutOptions* AxisLayoutOptions::setScalePriority(int priority) {
+    m_scalePriority = priority;
     return this;
 }
