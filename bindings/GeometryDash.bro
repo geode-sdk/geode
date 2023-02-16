@@ -5384,7 +5384,7 @@ class VideoOptionsLayer : FLAlertLayer {
 class LevelTools {
     static gd::string base64EncodeString(gd::string) = mac 0x294470, win 0x18b310;
     static gd::string base64DecodeString(gd::string) = mac 0x294510, win 0x18b3b0;
-    static GJGameLevel* getLevel(int, bool) = win 0x189370;
+    static GJGameLevel* getLevel(int, bool) = mac 0x2908c0, win 0x189370;
     static bool verifyLevelIntegrity(gd::string, int) = mac 0x294360, win 0x18b180;
     static float xPosForTime(float, cocos2d::CCArray*, int) = mac 0x293d90, win 0x18acd0;
     static float timeForXPos(float, cocos2d::CCArray*, int) = mac 0x293eb0, win 0x18ae70;
