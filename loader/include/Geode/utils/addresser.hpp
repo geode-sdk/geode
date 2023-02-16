@@ -163,18 +163,7 @@ namespace geode::addresser {
             return addressOfNonVirtual(reinterpret_cast<R (T::*)(Ps...)>(func));
         }
 
-        static inline intptr_t followThunkFunction(intptr_t address) {
-#ifdef GEODE_IS_WINDOWS
-            // check if first instruction is a jmp dword ptr [....], i.e. if the func is a thunk
-            if (*reinterpret_cast<uint8_t*>(address) == 0xFF && *reinterpret_cast<uint8_t*>(address + 1) == 0x25) {
-                // read where the jmp reads from
-                address = *reinterpret_cast<uint32_t*>(address + 2);
-                // that then contains the actual address of the func
-                address = *reinterpret_cast<uintptr_t*>(address);
-            }
-#endif
-            return address;
-        }
+        static intptr_t followThunkFunction(intptr_t address);
 
         template <typename R, typename T, typename... Ps>
         static intptr_t addressOfNonVirtual(R (T::*func)(Ps...)) {
