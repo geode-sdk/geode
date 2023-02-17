@@ -213,18 +213,19 @@ protected:
 
     struct Row;
     
-    bool shouldAutoScale(AxisLayoutOptions* opts) const;
-    float nextGap(AxisLayoutOptions* now, AxisLayoutOptions* next) const;
+    float minScaleForPrio(CCArray* nodes, int prio) const;
+    float maxScaleForPrio(CCArray* nodes, int prio) const;
+    bool shouldAutoScale(AxisLayoutOptions const* opts) const;
+    float nextGap(AxisLayoutOptions const* now, AxisLayoutOptions const* next) const;
     Row* fitInRow(
         CCNode* on, CCArray* nodes,
-        std::pair<float, float> const& minMaxScales,
         std::pair<int, int> const& minMaxPrios,
         bool doAutoScale,
-        float scale, float squish, int prio
+        float scale, float squish, int prio,
+        bool finalPosCalc
     ) const;
     void tryFitLayout(
         CCNode* on, CCArray* nodes,
-        std::pair<float, float> const& minMaxScales,
         std::pair<int, int> const& minMaxPrios,
         bool doAutoScale,
         float scale, float squish, int prio
