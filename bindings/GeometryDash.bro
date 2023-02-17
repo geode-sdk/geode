@@ -3915,6 +3915,7 @@ class LocalLevelManager : cocos2d::CCNode {
     inline static LocalLevelManager* get() {
         return LocalLevelManager::sharedState();
     }
+    bool init(GJGameLevel* level, int) = mac 0x2384e0;
 
     PAD = mac 0x10, win 0x1C;
     cocos2d::CCDictionary* m_loadData;
