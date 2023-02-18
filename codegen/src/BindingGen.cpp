@@ -195,8 +195,6 @@ std::string generateBindingHeader(Root& root, ghc::filesystem::path const& singl
 
             std::string addressDocs;
 
-            std::string docs = generateDocs(fb->docs);
-
             if (auto i = field.get_as<InlineField>()) {
                 single_output += "\t" + i->inner + "\n";
                 continue;
@@ -235,6 +233,8 @@ std::string generateBindingHeader(Root& root, ghc::filesystem::path const& singl
 
                 addressDocs = generateAddressDocs(field, fn);
             }
+
+            std::string docs = generateDocs(fb->docs);
 
             single_output += fmt::format(used_format,
                 fmt::arg("virtual", str_if("virtual ", fb->is_virtual)),
