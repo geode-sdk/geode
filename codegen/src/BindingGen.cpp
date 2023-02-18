@@ -42,7 +42,7 @@ public:
 
     char const* function_definition = R"GEN(
     /**
-{docs_addresses}{docs}     */
+{docs}{docs_addresses}     */
     {static}{virtual}{return_type} {function_name}({parameters}){const};
 )GEN";
 
@@ -51,7 +51,7 @@ public:
     [[deprecated("Function is not implemented - will throw at runtime!!!")]]
     #endif
     /**
-{docs_addresses}{docs}     */
+{docs}{docs_addresses}     */
     {static}{return_type} {function_name}({parameters}){const}{{
         throw std::runtime_error("Use of undefined function " + GEODE_PRETTY_FUNCTION);
     }}
@@ -62,7 +62,7 @@ public:
     [[deprecated("Use of undefined virtual function - will crash at runtime!!!")]]
     #endif
     /**
-{docs_addresses}{docs}     */
+{docs}{docs_addresses}     */
     {virtual}{return_type} {function_name}({parameters}){const}{{
         #ifdef GEODE_NO_UNDEFINED_VIRTUALS
         static_assert(false, "Undefined virtual function - implement in GeometryDash.bro");
@@ -79,7 +79,7 @@ public:
 
     char const* structor_definition = R"GEN(
     /**
-{docs_addresses}{docs}     */
+{docs}{docs_addresses}     */
     {function_name}({parameters});
 )GEN";
     
