@@ -186,15 +186,13 @@ class ButtonSprite : cocos2d::CCSprite {
     ) = win 0x134b0, mac 0x4f1d0;
 
     [[docs("
-    /**
-    * Create a ButtonSprite with a top sprite and a texture.
-    * @param topSprite The top sprite to add on top of the sprite
-    * @param width Sprite width; ignored if `absolute` is false
-    * @param absolute Whether to use absolute width or not
-    * @param texture The name of the background sprite file (can't be in a spritesheet)
-    * @param height The height of the button, leave 0 for automatic
-    * @param scale Scale of top sprite
-    */
+        Create a ButtonSprite with a top sprite and a texture.
+        @param topSprite The top sprite to add on top of the sprite
+        @param width Sprite width; ignored if `absolute` is false
+        @param absolute Whether to use absolute width or not
+        @param texture The name of the background sprite file (can't be in a spritesheet)
+        @param height The height of the button, leave 0 for automatic
+        @param scale Scale of top sprite
     ")]]
     static ButtonSprite* create(
         cocos2d::CCSprite* topSprite,
@@ -208,26 +206,27 @@ class ButtonSprite : cocos2d::CCSprite {
     }
 
     [[docs("
-    /**
-    * Create a ButtonSprite with text, a font and a texture.
-    * @param caption The text of the ButtonSprite
-    * @param width Sprite width; ignored if `absolute` is false
-    * @param absolute Whether to use absolute width or not
-    * @param font The name of the BM font file to use
-    * @param texture The name of the background sprite file (can't be in a spritesheet)
-    * @param height The height of the button, leave 0 for automatic
-    * @param scale Scale of text
-    * @returns Pointer to the created ButtonSprite, or nullptr on error
-    */
+        Create a ButtonSprite with text, a font and a texture.
+        @param caption The text of the ButtonSprite
+        @param width Sprite width; ignored if `absolute` is false
+        @param absolute Whether to use absolute width or not
+        @param font The name of the BM font file to use
+        @param texture The name of the background sprite file (can't be in a spritesheet)
+        @param height The height of the button, leave 0 for automatic
+        @param scale Scale of text
+        @returns Pointer to the created ButtonSprite, or nullptr on error
     ")]]
     static ButtonSprite* create(const char* caption, int width, bool absolute, const char* font, const char* texture, float height, float scale) {
         return create(caption, width, 0, scale, absolute, font, texture, height);
     }
 
-    inline static ButtonSprite* create(char const* caption) {
+    static ButtonSprite* create(char const* caption) {
         return ButtonSprite::create(caption, 0, 0, "goldFont.fnt", "GJ_button_01.png", .0f, 1.f);
     }
-    inline static ButtonSprite* create(char const* caption, const char* font, const char* texture, float scale = 1.f) {
+    static ButtonSprite* create(char const* caption, const char* font, const char* texture) {
+        return ButtonSprite::create(caption, 0, 0, font, texture, .0f, 1.f);
+    }
+    static ButtonSprite* create(char const* caption, const char* font, const char* texture, float scale) {
         return ButtonSprite::create(caption, 0, 0, font, texture, .0f, scale);
     }
     static ButtonSprite* create(char const*, int, int, float, bool) = mac 0x4fa40;
@@ -1268,6 +1267,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     void onUngroupSticky(cocos2d::CCObject* sender) = mac 0xc1d0, win 0x87ac0;
     void onGoToLayer(cocos2d::CCObject* sender) = win 0x886b0;
     void onGoToBaseLayer(cocos2d::CCObject* sender) = win 0x88790;
+    void onToggleGuide(cocos2d::CCObject* sender) = mac 0x19da0, win 0x79160;
     void editColor(cocos2d::CCObject* sender) = mac 0x19190, win 0x8d3c0;
     void alignObjects(cocos2d::CCArray* objs, bool alignY) = mac 0x2cea0, win 0x8f320;
     virtual void scrollWheel(float vertical, float horizontal) = win 0x921d0, mac 0x31370, ios 0x2c4884;
