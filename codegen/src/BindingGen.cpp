@@ -130,19 +130,13 @@ std::string generateAddressDocs(Field const& field, FunctionBindField* fn) {
 }
 
 std::string generateDocs(std::string const& docs) {
-    if (docs.size() > 0) {
-        std::cout << docs << "\n";
-    }
     if (docs.size() < 7) return "";
-    auto ret = docs.substr(1, docs.size() - 5); // i hate this but idk how to generalize
+    auto ret = docs.substr(1, docs.size() - 6); // i hate this but idk how to generalize
 
     for (auto next = ret.find("        "); next != std::string::npos; next = ret.find("        ")) {
         ret.replace(next, 8, "     * ");
     }
-
-
-    std::cout << ret << "\n";
-    
+        
     return ret;
 }
 
