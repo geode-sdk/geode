@@ -2591,7 +2591,7 @@ class GooglePlayDelegate {
 class GooglePlayManager : cocos2d::CCNode {
     virtual bool init() = win 0x11070;
 
-    static GooglePlayManager *sharedState() = win 0x4295a0;
+    static GooglePlayManager* sharedState() = win 0x295a0;
 }
 
 class GameLevelManager : cocos2d::CCNode {
