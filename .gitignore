@@ -42,6 +42,7 @@
 build
 build-docs/
 bin
+b
 
 docs/**
 
