@@ -87,6 +87,7 @@ ExternalProject_Add(CodegenProject
 	# this should hopefully fix generator cache mismatch between different projects, however
 	# it causes a warning to be shown every time. if you know a better solution please tell us ok thx
 	CONFIGURE_COMMAND ${CMAKE_COMMAND} ${GEODE_CODEGEN_CMAKE_ARGS} -DCMAKE_INSTALL_PREFIX:STRING=${GEODE_CODEGEN_BINARY_OUT} -S <SOURCE_DIR> -B <BINARY_DIR>
+	INSTALL_COMMAND ${CMAKE_COMMAND} --install <BINARY_DIR> --config $<CONFIGURATION>
 )
 
 
