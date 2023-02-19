@@ -106,7 +106,7 @@ namespace geode::modifier {
     class ModifyDerive {
     public:
         ModifyDerive() {
-            static_assert(alwaysFalse<Derived>, "Custom Modify not implemented.");
+            static_assert(alwaysFalse<Derived>, "Modified class not recognized, please include <Geode/modify/ClassName.hpp> to be able to use it.");
         }
     };
 }

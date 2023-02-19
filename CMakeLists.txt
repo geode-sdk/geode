@@ -54,6 +54,12 @@ include(cmake/GeodeFile.cmake)
 include(cmake/Platform.cmake)
 include(cmake/CPM.cmake)
 
+# this is needed for cross compilation on linux,
+# since fmtlib will fail to compile otherwise
+if (GEODE_DISABLE_FMT_CONSTEVAL)
+	target_compile_definitions(${PROJECT_NAME} INTERFACE -DFMT_CONSTEVAL=)
+endif()
+
 CPMAddPackage("gh:geode-sdk/json#2b76460")
 CPMAddPackage("gh:fmtlib/fmt#9.1.0")
 CPMAddPackage("gh:gulrak/filesystem#3e5b930")
@@ -81,6 +87,7 @@ ExternalProject_Add(CodegenProject
 	# this should hopefully fix generator cache mismatch between different projects, however
 	# it causes a warning to be shown every time. if you know a better solution please tell us ok thx
 	CONFIGURE_COMMAND ${CMAKE_COMMAND} ${GEODE_CODEGEN_CMAKE_ARGS} -DCMAKE_INSTALL_PREFIX:STRING=${GEODE_CODEGEN_BINARY_OUT} -S <SOURCE_DIR> -B <BINARY_DIR>
+	INSTALL_COMMAND ${CMAKE_COMMAND} --install <BINARY_DIR> --config $<CONFIGURATION>
 )
 
 

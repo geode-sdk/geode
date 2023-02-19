@@ -275,18 +275,6 @@ std::string SettingValue::getKey() const {
         typename type_##Setting::ValueType const& value \
     ) const
 
-// instantiate value setters
-
-namespace geode {
-    template struct SettingValueSetter<typename BoolSetting::ValueType>;
-    template struct SettingValueSetter<typename IntSetting::ValueType>;
-    template struct SettingValueSetter<typename FloatSetting::ValueType>;
-    template struct SettingValueSetter<typename StringSetting::ValueType>;
-    template struct SettingValueSetter<typename FileSetting::ValueType>;
-    template struct SettingValueSetter<typename ColorSetting::ValueType>;
-    template struct SettingValueSetter<typename ColorAlphaSetting::ValueType>;
-}
-
 // instantiate values
 
 namespace geode {
@@ -369,6 +357,18 @@ IMPL_NODE_AND_SETTERS(String);
 IMPL_NODE_AND_SETTERS(File);
 IMPL_NODE_AND_SETTERS(Color);
 IMPL_NODE_AND_SETTERS(ColorAlpha);
+
+// instantiate value setters
+
+namespace geode {
+    template struct SettingValueSetter<typename BoolSetting::ValueType>;
+    template struct SettingValueSetter<typename IntSetting::ValueType>;
+    template struct SettingValueSetter<typename FloatSetting::ValueType>;
+    template struct SettingValueSetter<typename StringSetting::ValueType>;
+    template struct SettingValueSetter<typename FileSetting::ValueType>;
+    template struct SettingValueSetter<typename ColorSetting::ValueType>;
+    template struct SettingValueSetter<typename ColorAlphaSetting::ValueType>;
+}
 
 // SettingChangedEvent
 
