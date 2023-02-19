@@ -1120,7 +1120,7 @@ class EditorPauseLayer : CCBlockLayer, FLAlertLayerProtocol {
         if (!EditorUI::get()) return nullptr;
 
         auto editor = LevelEditorLayer::get();
-        for (auto i = 0; i < editor->getChildrenCount(); ++i) {
+        for (auto i = 0u; i < editor->getChildrenCount(); ++i) {
             if (auto layer = cast::safe_cast<EditorPauseLayer*>(editor->getChildren()->objectAtIndex(i))) {
                 return layer;
             }
