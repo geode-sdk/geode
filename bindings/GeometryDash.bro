@@ -3763,7 +3763,7 @@ class LevelPage {
 
 class LevelSearchLayer : cocos2d::CCLayer {
     static LevelSearchLayer* create() = win 0x17d9c0;
-    bool init() = mac 0x384770, win 0x17da60;
+    virtual bool init() = mac 0x384770, win 0x17da60;
     GJSearchObject* getSearchObject(SearchType, gd::string) = mac 0x388a50, win 0x1805f0;
     void onMoreOptions(cocos2d::CCObject*) = win 0x17f500;
     void onSearch(cocos2d::CCObject*) = win 0x180fc0;
@@ -3931,7 +3931,7 @@ class MapPackCell : TableViewCell {
 class MenuGameLayer {
     void resetPlayer() = mac 0x28fdc0, win 0x18f4b0;
     void destroyPlayer() = win 0x190100;
-    void update(float) = mac 0x28fa70, win 0x18f190;
+    virtual void update(float) = mac 0x28fa70, win 0x18f190;
     virtual bool init() = win 0x18e770;
     void updateColors() = win 0x18edd0;
 }
@@ -3972,12 +3972,12 @@ class MessageListDelegate {}
 
 class MoreSearchLayer : FLAlertLayer {
     static MoreSearchLayer* create() = win 0x182520;
-    bool init() = win 0x1825c0;
+    virtual bool init() = win 0x1825c0;
 }
 
 class MoreOptionsLayer {
     static MoreOptionsLayer* create() = win 0x1de850;
-    bool init() = mac 0x43f470, win 0x1DE8F0;
+    virtual bool init() = mac 0x43f470, win 0x1DE8F0;
     void addToggle(const char* name, const char* key, const char* info) = mac 0x440430, win 0x1df6b0;
     void onKeybindings(cocos2d::CCObject* sender) = win 0x749d0;
     void onToggle(cocos2d::CCObject* sender) = mac 0x441370;
