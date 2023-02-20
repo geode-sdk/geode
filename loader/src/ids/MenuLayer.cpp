@@ -160,24 +160,4 @@ $register_ids(MenuLayer) {
     this->addChild(middleLeftMenu);
 }
 
-struct $modify(MenuLayer) {
-    void onMoreGames(CCObject*) {
-		auto thisDogFuckedUpBrah = CircleButtonSprite::createWithSpriteFrameName(
-			"geode-logo-outline-gold.png"_spr,
-			1.0f,
-			CircleBaseColor::Green,
-			CircleBaseSize::Medium2
-		);
-
-        auto bottomMenu = static_cast<CCMenu*>(this->getChildByID("bottom-menu"));
-
-		auto btn = CCMenuItemSpriteExtra::create(
-			thisDogFuckedUpBrah, this, nullptr
-		);
-		bottomMenu->addChild(btn);
-
-        bottomMenu->updateLayout();
-    }
-};
-
 // MenuLayer::init is hooked in ../hooks/MenuLayer.cpp
