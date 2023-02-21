@@ -77,10 +77,10 @@ namespace geode::addresser {
         }
 
         // I gave up
-        template <HasCreate Class>
-        static Class* generateInstance(Class*) {
-            return friendCreate<Class>(nullptr);
-        }
+        // template <HasCreate Class>
+        // static Class* generateInstance(Class*) {
+        //     return friendCreate<Class>(nullptr);
+        // }
 
         // I extra gave up
         static cocos2d::extension::CCScrollView* generateInstance(cocos2d::extension::CCScrollView*) {
