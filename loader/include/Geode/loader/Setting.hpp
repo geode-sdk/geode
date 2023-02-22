@@ -219,9 +219,9 @@ namespace geode {
     using ColorAlphaSettingValue = GeodeSettingValue<ColorAlphaSetting>;
 
     template<class T>
-    struct SettingValueSetter {
-        static GEODE_DLL T get(SettingValue* setting);
-        static GEODE_DLL void set(SettingValue* setting, T const& value);
+    struct GEODE_DLL SettingValueSetter {
+        static T get(SettingValue* setting);
+        static void set(SettingValue* setting, T const& value);
     };
 }
 

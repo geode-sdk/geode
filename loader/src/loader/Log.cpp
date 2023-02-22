@@ -183,30 +183,43 @@ void Log::addFormat(std::string_view formatStr, std::span<ComponentTrait*> compo
 
 // Logger
 
-void Logger::setup() {
-    s_logStream = std::ofstream(dirs::getGeodeLogDir() / log::generateLogName());
+std::vector<Log>& Logger::logs() {
+    static std::vector<Log> logs;
+    return logs;
+}
+std::ofstream& Logger::logStream() {
+    static std::ofstream logStream;
+    return logStream;
 }
 
-void Logger::_push(Log&& log) {
+void Logger::setup() {
+    logStream() = std::ofstream(dirs::getGeodeLogDir() / log::generateLogName());
+}
+
+void Logger::push(Log&& log) {
     std::string logStr = log.toString(true);
 
     LoaderImpl::get()->logConsoleMessage(logStr);
-    s_logStream << logStr << std::endl;
+    logStream() << logStr << std::endl;
 
-    s_logs.emplace_back(std::forward<Log>(log));
+    logs().emplace_back(std::forward<Log>(log));
+}
+
+void Logger::pop(Log* log) {
+    geode::utils::ranges::remove(Logger::logs(), *log);
 }
 
 std::vector<Log*> Logger::list() {
-    std::vector<Log*> logs;
-    logs.reserve(s_logs.size());
-    for (auto& log : s_logs) {
-        logs.push_back(&log);
+    std::vector<Log*> logs_;
+    logs_.reserve(logs().size());
+    for (auto& log : logs()) {
+        logs_.push_back(&log);
     }
-    return logs;
+    return logs_;
 }
 
 void Logger::clear() {
-    s_logs.clear();
+    logs().clear();
 }
 
 // Misc

@@ -70,22 +70,26 @@ namespace codegen {
 
     inline Platform platform;
 
-    inline uintptr_t platformNumber(PlatformNumber const& p) {
-        switch (codegen::platform) {
-            case Platform::Mac: return p.mac;
-            case Platform::Windows: return p.win;
-            case Platform::iOS: return p.ios;
-            case Platform::Android: return p.android;
+    inline uintptr_t platformNumberWithPlatform(Platform p, PlatformNumber const& pn) {
+        switch (p) {
+            case Platform::Mac: return pn.mac;
+            case Platform::Windows: return pn.win;
+            case Platform::iOS: return pn.ios;
+            case Platform::Android: return pn.android;
             default: // unreachable
-                return p.win;
+                return pn.win;
         }
     }
 
-    inline BindStatus getStatus(Field const& field) {
+    inline uintptr_t platformNumber(PlatformNumber const& p) {
+        return platformNumberWithPlatform(codegen::platform, p);
+    }
+
+    inline BindStatus getStatusWithPlatform(Platform p, Field const& field) {
         FunctionBegin const* fb;
 
         if (auto fn = field.get_as<FunctionBindField>()) {
-            if (platformNumber(fn->binds)) return BindStatus::NeedsBinding;
+            if (platformNumberWithPlatform(p, fn->binds)) return BindStatus::NeedsBinding;
 
             fb = &fn->beginning;
         }
@@ -96,7 +100,7 @@ namespace codegen {
 
         // if (field.parent.rfind("GDString", 0) == 0) return BindStatus::NeedsBinding;
 
-        if (platform == Platform::Android) {
+        if (p == Platform::Android) {
             for (auto& [type, name] : fb->args) {
                 if (type.name.find("gd::") != std::string::npos) return BindStatus::NeedsBinding;
             }
@@ -108,11 +112,15 @@ namespace codegen {
 
         if (fb->type == FunctionType::Normal) {
             if (field.parent.rfind("fmod::", 0) == 0) return BindStatus::Binded;
-            if (field.parent.rfind("cocos2d::", 0) == 0 && platform == Platform::Windows)
+            if (field.parent.rfind("cocos2d::", 0) == 0 && p == Platform::Windows)
                 return BindStatus::Binded;
         }
 
         return BindStatus::Unbindable;
+    }
+
+    inline BindStatus getStatus(Field const& field) {
+        return getStatusWithPlatform(codegen::platform, field);
     }
 
     inline std::string getParameters(FunctionBegin const& f) { // int p0, float p1

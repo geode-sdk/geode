@@ -77,10 +77,10 @@ namespace geode::addresser {
         }
 
         // I gave up
-        template <HasCreate Class>
-        static Class* generateInstance(Class*) {
-            return friendCreate<Class>(nullptr);
-        }
+        // template <HasCreate Class>
+        // static Class* generateInstance(Class*) {
+        //     return friendCreate<Class>(nullptr);
+        // }
 
         // I extra gave up
         static cocos2d::extension::CCScrollView* generateInstance(cocos2d::extension::CCScrollView*) {
@@ -131,15 +131,7 @@ namespace geode::addresser {
             // [[this + thunk] + offset] is the f we want
             auto address = *(intptr_t*)(*(intptr_t*)(reference_cast<intptr_t>(ins) + thunk) + index);
 
-#ifdef GEODE_IS_WINDOWS
-            // check if first instruction is a jmp, i.e. if the func is a thunk
-            if (*reinterpret_cast<uint16_t*>(address) == 0x25ff) {
-                // read where the jmp points to and jump there
-                address = *reinterpret_cast<uint32_t*>(address + 2);
-                // that then contains the actual address of the func
-                address = *reinterpret_cast<uintptr_t*>(address);
-            }
-#endif
+            address = followThunkFunction(address);
 
             return address;
         }
@@ -171,14 +163,16 @@ namespace geode::addresser {
             return addressOfNonVirtual(reinterpret_cast<R (T::*)(Ps...)>(func));
         }
 
+        static intptr_t followThunkFunction(intptr_t address);
+
         template <typename R, typename T, typename... Ps>
         static intptr_t addressOfNonVirtual(R (T::*func)(Ps...)) {
-            return geode::cast::reference_cast<intptr_t>(func);
+            return followThunkFunction(geode::cast::reference_cast<intptr_t>(func));
         }
 
         template <typename R, typename... Ps>
         static intptr_t addressOfNonVirtual(R (*func)(Ps...)) {
-            return geode::cast::reference_cast<intptr_t>(func);
+            return followThunkFunction(geode::cast::reference_cast<intptr_t>(func));
         }
 
         template <typename T>

@@ -40,13 +40,18 @@ public:
 	char const* monostate_constructor_cutoff = R"GEN(    GEODE_MONOSTATE_CONSTRUCTOR_CUTOFF({class_name}, {first_base})
 )GEN";
 
-    char const* function_definition = R"GEN({docs}    {static}{virtual}{return_type} {function_name}({parameters}){const};
+    char const* function_definition = R"GEN(
+    /**
+{docs}{docs_addresses}     */
+    {static}{virtual}{return_type} {function_name}({parameters}){const};
 )GEN";
 
     char const* error_definition = R"GEN(    
     #ifdef GEODE_WARN_INCORRECT_MEMBERS
     [[deprecated("Function is not implemented - will throw at runtime!!!")]]
     #endif
+    /**
+{docs}{docs_addresses}     */
     {static}{return_type} {function_name}({parameters}){const}{{
         throw std::runtime_error("Use of undefined function " + GEODE_PRETTY_FUNCTION);
     }}
@@ -56,6 +61,8 @@ public:
     #ifdef GEODE_WARN_INCORRECT_MEMBERS
     [[deprecated("Use of undefined virtual function - will crash at runtime!!!")]]
     #endif
+    /**
+{docs}{docs_addresses}     */
     {virtual}{return_type} {function_name}({parameters}){const}{{
         #ifdef GEODE_NO_UNDEFINED_VIRTUALS
         static_assert(false, "Undefined virtual function - implement in GeometryDash.bro");
@@ -68,10 +75,13 @@ public:
     #ifdef GEODE_WARN_INCORRECT_MEMBERS
     [[deprecated("Member placed incorrectly - will crash at runtime!!!")]]
     #endif
-    )GEN";
+)GEN";
 
     char const* structor_definition = R"GEN(
-    {function_name}({parameters});)GEN";
+    /**
+{docs}{docs_addresses}     */
+    {function_name}({parameters});
+)GEN";
     
     // requires: type, member_name, array
     char const* member_definition = R"GEN(    {type} {member_name};
@@ -83,6 +93,52 @@ public:
     char const* class_end = R"GEN(};
 )GEN";
 }}
+
+inline std::string nameForPlatform(Platform platform) {
+    switch (platform) {
+        case Platform::Mac: return "MacOS";
+        case Platform::Windows: return "Windows";
+        case Platform::iOS: return "iOS";
+        case Platform::Android: return "Android";
+        default: // unreachable
+            return "Windows";
+    }
+}
+
+
+std::string generateAddressDocs(Field const& field, FunctionBindField* fn) {
+    std::string ret;
+
+    for (auto platform : {Platform::Mac, Platform::Windows, Platform::iOS, Platform::Android}) {
+        auto status = codegen::getStatusWithPlatform(platform, field);
+
+        if (status == BindStatus::NeedsBinding) {
+            ret += fmt::format("     * @note[short] {}: 0x{:x}\n", 
+                nameForPlatform(platform),
+                codegen::platformNumberWithPlatform(platform, fn->binds)
+            );
+        }
+        else if (status == BindStatus::Binded) {
+            ret += fmt::format("     * @note[short] {}\n", 
+                nameForPlatform(platform)
+            );
+        }
+        
+    }
+
+    return ret;
+}
+
+std::string generateDocs(std::string const& docs) {
+    if (docs.size() < 7) return "";
+    auto ret = docs.substr(1, docs.size() - 6); // i hate this but idk how to generalize
+
+    for (auto next = ret.find("        "); next != std::string::npos; next = ret.find("        ")) {
+        ret.replace(next, 8, "     * ");
+    }
+        
+    return ret;
+}
 
 std::string generateBindingHeader(Root& root, ghc::filesystem::path const& singleFolder) {
     std::string output;
@@ -137,6 +193,8 @@ std::string generateBindingHeader(Root& root, ghc::filesystem::path const& singl
             FunctionBegin* fb;
             char const* used_format = format_strings::function_definition;
 
+            std::string addressDocs;
+
             if (auto i = field.get_as<InlineField>()) {
                 single_output += "\t" + i->inner + "\n";
                 continue;
@@ -158,6 +216,8 @@ std::string generateBindingHeader(Root& root, ghc::filesystem::path const& singl
                 continue;
             } else if (auto fn = field.get_as<OutOfLineField>()) {
                 fb = &fn->beginning;
+                addressDocs = "     * @note[short] Out of line\n";
+
             } else if (auto fn = field.get_as<FunctionBindField>()) {
                 fb = &fn->beginning;
 
@@ -170,7 +230,11 @@ std::string generateBindingHeader(Root& root, ghc::filesystem::path const& singl
                     if (fb->type != FunctionType::Normal)
                         continue;
                 }
+
+                addressDocs = generateAddressDocs(field, fn);
             }
+
+            std::string docs = generateDocs(fb->docs);
 
             single_output += fmt::format(used_format,
                 fmt::arg("virtual", str_if("virtual ", fb->is_virtual)),
@@ -181,7 +245,8 @@ std::string generateBindingHeader(Root& root, ghc::filesystem::path const& singl
                 fmt::arg("index", field.field_id),
                 fmt::arg("parameters", codegen::getParameters(*fb)),
                 fmt::arg("return_type", fb->ret.name),
-                fmt::arg("docs", fb->docs)
+                fmt::arg("docs_addresses", addressDocs),
+                fmt::arg("docs", docs)
             );
         }
 

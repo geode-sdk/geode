@@ -186,15 +186,13 @@ class ButtonSprite : cocos2d::CCSprite {
     ) = win 0x134b0, mac 0x4f1d0;
 
     [[docs("
-    /**
-    * Create a ButtonSprite with a top sprite and a texture.
-    * @param topSprite The top sprite to add on top of the sprite
-    * @param width Sprite width; ignored if `absolute` is false
-    * @param absolute Whether to use absolute width or not
-    * @param texture The name of the background sprite file (can't be in a spritesheet)
-    * @param height The height of the button, leave 0 for automatic
-    * @param scale Scale of top sprite
-    */
+        Create a ButtonSprite with a top sprite and a texture.
+        @param topSprite The top sprite to add on top of the sprite
+        @param width Sprite width; ignored if `absolute` is false
+        @param absolute Whether to use absolute width or not
+        @param texture The name of the background sprite file (can't be in a spritesheet)
+        @param height The height of the button, leave 0 for automatic
+        @param scale Scale of top sprite
     ")]]
     static ButtonSprite* create(
         cocos2d::CCSprite* topSprite,
@@ -208,26 +206,27 @@ class ButtonSprite : cocos2d::CCSprite {
     }
 
     [[docs("
-    /**
-    * Create a ButtonSprite with text, a font and a texture.
-    * @param caption The text of the ButtonSprite
-    * @param width Sprite width; ignored if `absolute` is false
-    * @param absolute Whether to use absolute width or not
-    * @param font The name of the BM font file to use
-    * @param texture The name of the background sprite file (can't be in a spritesheet)
-    * @param height The height of the button, leave 0 for automatic
-    * @param scale Scale of text
-    * @returns Pointer to the created ButtonSprite, or nullptr on error
-    */
+        Create a ButtonSprite with text, a font and a texture.
+        @param caption The text of the ButtonSprite
+        @param width Sprite width; ignored if `absolute` is false
+        @param absolute Whether to use absolute width or not
+        @param font The name of the BM font file to use
+        @param texture The name of the background sprite file (can't be in a spritesheet)
+        @param height The height of the button, leave 0 for automatic
+        @param scale Scale of text
+        @returns Pointer to the created ButtonSprite, or nullptr on error
     ")]]
     static ButtonSprite* create(const char* caption, int width, bool absolute, const char* font, const char* texture, float height, float scale) {
         return create(caption, width, 0, scale, absolute, font, texture, height);
     }
 
-    inline static ButtonSprite* create(char const* caption) {
+    static ButtonSprite* create(char const* caption) {
         return ButtonSprite::create(caption, 0, 0, "goldFont.fnt", "GJ_button_01.png", .0f, 1.f);
     }
-    inline static ButtonSprite* create(char const* caption, const char* font, const char* texture, float scale = 1.f) {
+    static ButtonSprite* create(char const* caption, const char* font, const char* texture) {
+        return ButtonSprite::create(caption, 0, 0, font, texture, .0f, 1.f);
+    }
+    static ButtonSprite* create(char const* caption, const char* font, const char* texture, float scale) {
         return ButtonSprite::create(caption, 0, 0, font, texture, .0f, scale);
     }
     static ButtonSprite* create(char const*, int, int, float, bool) = mac 0x4fa40;
@@ -1235,6 +1234,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     void editObject2(cocos2d::CCObject* sender) = win 0x8d1b0;
     void editGroup(cocos2d::CCObject* sender) = win 0x8d720;
     void moveObjectCall(cocos2d::CCObject* sender) = mac 0x29830, win 0x8db30;
+    void moveObjectCall(EditCommand) = win 0x8db50;
     void transformObjectCall(cocos2d::CCObject* sender) = mac 0x29860, win 0x8def0;
     void onDelete(cocos2d::CCObject* sender) = mac 0x1b3d0, win 0x7b8d0;
     void onDeleteSelected(cocos2d::CCObject* sender) = mac 0xb990, win 0x7bf50;
@@ -1268,6 +1268,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     void onUngroupSticky(cocos2d::CCObject* sender) = mac 0xc1d0, win 0x87ac0;
     void onGoToLayer(cocos2d::CCObject* sender) = win 0x886b0;
     void onGoToBaseLayer(cocos2d::CCObject* sender) = win 0x88790;
+    void onToggleGuide(cocos2d::CCObject* sender) = mac 0x19da0, win 0x79160;
     void editColor(cocos2d::CCObject* sender) = mac 0x19190, win 0x8d3c0;
     void alignObjects(cocos2d::CCArray* objs, bool alignY) = mac 0x2cea0, win 0x8f320;
     virtual void scrollWheel(float vertical, float horizontal) = win 0x921d0, mac 0x31370, ios 0x2c4884;
@@ -2590,7 +2591,7 @@ class GooglePlayDelegate {
 class GooglePlayManager : cocos2d::CCNode {
     virtual bool init() = win 0x11070;
 
-    static GooglePlayManager *sharedState() = win 0x4295a0;
+    static GooglePlayManager* sharedState() = win 0x295a0;
 }
 
 class GameLevelManager : cocos2d::CCNode {
@@ -3763,7 +3764,7 @@ class LevelPage {
 
 class LevelSearchLayer : cocos2d::CCLayer {
     static LevelSearchLayer* create() = win 0x17d9c0;
-    bool init() = mac 0x384770, win 0x17da60;
+    virtual bool init() = mac 0x384770, win 0x17da60;
     GJSearchObject* getSearchObject(SearchType, gd::string) = mac 0x388a50, win 0x1805f0;
     void onMoreOptions(cocos2d::CCObject*) = win 0x17f500;
     void onSearch(cocos2d::CCObject*) = win 0x180fc0;
@@ -3931,7 +3932,7 @@ class MapPackCell : TableViewCell {
 class MenuGameLayer {
     void resetPlayer() = mac 0x28fdc0, win 0x18f4b0;
     void destroyPlayer() = win 0x190100;
-    void update(float) = mac 0x28fa70, win 0x18f190;
+    virtual void update(float) = mac 0x28fa70, win 0x18f190;
     virtual bool init() = win 0x18e770;
     void updateColors() = win 0x18edd0;
 }
@@ -3972,12 +3973,12 @@ class MessageListDelegate {}
 
 class MoreSearchLayer : FLAlertLayer {
     static MoreSearchLayer* create() = win 0x182520;
-    bool init() = win 0x1825c0;
+    virtual bool init() = win 0x1825c0;
 }
 
 class MoreOptionsLayer {
     static MoreOptionsLayer* create() = win 0x1de850;
-    bool init() = mac 0x43f470, win 0x1DE8F0;
+    virtual bool init() = mac 0x43f470, win 0x1DE8F0;
     void addToggle(const char* name, const char* key, const char* info) = mac 0x440430, win 0x1df6b0;
     void onKeybindings(cocos2d::CCObject* sender) = win 0x749d0;
     void onToggle(cocos2d::CCObject* sender) = mac 0x441370;
@@ -4127,7 +4128,7 @@ class PauseLayer : CCBlockLayer {
     virtual void customSetup() = mac 0x20b300, win 0x1e4620;
 
     void onRestart(cocos2d::CCObject* sender) = win 0x1e6040;
-    void keyDown(cocos2d::enumKeyCodes) = mac 0x20cc80, win 0x1E6580;
+    virtual void keyDown(cocos2d::enumKeyCodes) = mac 0x20cc80, win 0x1E6580;
     
     bool m_unknown;
     bool m_unknown2;

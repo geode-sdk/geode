@@ -13,6 +13,14 @@ body:
     validations:
       required: true
   - type: input
+    id: commit
+    attributes:
+      label: SDK commit
+      description: The commit you used to compile your code with. If the bug is not related with your mod, you can leave this field empty.
+      placeholder: "Example: a674b97"
+    validations:
+      required: false
+  - type: input
     id: version
     attributes:
       label: Geode Version
