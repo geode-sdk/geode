@@ -1,5 +1,5 @@
 {
-    "geode": "@PROJECT_VERSION@",
+    "geode": "@PROJECT_VERSION@@PROJECT_VERSION_SUFFIX@",
     "id": "geode.loader",
     "version": "@PROJECT_VERSION@@PROJECT_VERSION_SUFFIX@",
     "name": "Geode",
