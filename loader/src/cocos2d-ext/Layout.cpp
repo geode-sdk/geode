@@ -269,8 +269,9 @@ AxisLayout::Row* AxisLayout::fitInRow(
             }
         }
         axisLength += pos.axisLength;
-        if (pos.crossLength > crossLength) {
-            crossLength = pos.crossLength;
+        // squishing doesn't affect cross length, that's done separately
+        if (pos.crossLength / squish > crossLength) {
+            crossLength = pos.crossLength / squish;
         }
         prev = opts;
         ix++;
@@ -303,7 +304,7 @@ AxisLayout::Row* AxisLayout::fitInRow(
         available.axisLength / nextAxisLength * scale * squish,
         // how much should the nodes be squished to fit the next item in this 
         // row
-        available.axisLength / nextAxisLength * scale * squish,
+        available.axisLength / nextAxisLength,
         axisLength,
         crossLength,
         axisEndsLength,
@@ -321,6 +322,8 @@ void AxisLayout::tryFitLayout(
     // idk i got tired of doing the math but they work so ¯\_(ツ)_/¯ 
     // like i genuinely have no clue fr why some of these work tho, 
     // i just threw in random equations and numbers until it worked
+
+    log::debug("tryFitLayout -> scale: {}, squish: {}, prio: {}", scale, squish, prio);
 
     auto rows = CCArray::create();
     float totalRowCrossLength = 0.f;
@@ -358,16 +361,32 @@ void AxisLayout::tryFitLayout(
     }
     newNodes->release();
 
+    if (!rows->count()) {
+        return;
+    }
+
+    log::debug("crossScaleDownFactor: {}, crossSquishFactor: {}", crossScaleDownFactor, crossSquishFactor);
+
     auto available = nodeAxis(on, m_axis, 1.f);
+
+    if (available.axisLength <= 0.f || available.crossLength <= 0.f) {
+        return;
+    }
 
     // if cross axis overflow not allowed and it's overflowing, try to scale 
     // down layout if there are any nodes with auto-scale enabled (or 
     // auto-scale is enabled by default)
     if (
-        !m_allowCrossAxisOverflow && 
-        doAutoScale && 
-        totalRowCrossLength > available.crossLength
+        (
+            !m_allowCrossAxisOverflow && 
+            doAutoScale && 
+            totalRowCrossLength > available.crossLength
+        ) || (
+            !m_growCrossAxis && 
+            static_cast<Row*>(rows->firstObject())->axisLength > available.axisLength
+        )
     ) {
+        log::debug("scaling");
         bool attemptRescale = false;
         auto minScaleForPrio = this->minScaleForPrio(nodes, prio);
         if (
@@ -379,7 +398,9 @@ void AxisLayout::tryFitLayout(
             crossScaleDownFactor == scale
         ) {
             // is there still some lower priority nodes we could try scaling?
+            log::debug("prio: {} :: scale: {}", prio, scale);
             if (prio > minMaxPrios.first) {
+                log::debug("scale to max");
                 while (true) {
                     prio -= 1;
                     auto scale = this->maxScaleForPrio(nodes, prio);
@@ -391,13 +412,17 @@ void AxisLayout::tryFitLayout(
                 }
                 attemptRescale = true;
             }
-            // otherwise we're just gonna squish
+            // otherwise set scale to min and squish
+            else {
+                scale = minScaleForPrio;
+            }
         }
         // otherwise scale as usual
         else {
             attemptRescale = true;
         }
         if (attemptRescale) {
+            log::debug("gonna try with scale {} from {}", crossScaleDownFactor, scale);
             rows->release();
             return this->tryFitLayout(
                 on, nodes,
@@ -408,10 +433,21 @@ void AxisLayout::tryFitLayout(
     }
 
     // if we're still overflowing, squeeze nodes closer together
-    if (!m_allowCrossAxisOverflow && totalRowCrossLength > available.crossLength) {
+    if (
+        (
+            !m_allowCrossAxisOverflow &&
+            totalRowCrossLength > available.crossLength
+        ) || (
+            !m_growCrossAxis && 
+            static_cast<Row*>(rows->firstObject())->axisLength > available.axisLength
+        )
+    ) {
+        log::debug("gonna try with squish {} from {}", crossSquishFactor, squish);
         // if squishing rows would take less squishing that squishing columns, 
         // then squish rows
-        if (totalRowCrossLength / available.crossLength < crossSquishFactor) {
+        if (
+            !m_growCrossAxis || totalRowCrossLength / available.crossLength < crossSquishFactor
+        ) {
             rows->release();
             return this->tryFitLayout(
                 on, nodes,
@@ -489,25 +525,6 @@ void AxisLayout::tryFitLayout(
             rowCrossPos -= row->crossLength * columnSquish;
         }
 
-        // scale down & squish row if it overflows main axis
-        float rowScale = scale;
-        float rowSquish = squish;
-        if (row->axisLength > available.axisLength) {
-            row->axisLength /= scale * squish;
-            if (m_autoScale) {
-                rowScale = available.axisLength / row->axisLength;
-                if (rowScale < AXISLAYOUT_DEFAULT_MIN_SCALE) {
-                    rowScale = AXISLAYOUT_DEFAULT_MIN_SCALE;
-                }
-                row->axisLength *= rowScale;
-            }
-            // squishing needs to take into account the row ends
-            if (row->axisLength > available.axisLength) {
-                rowSquish = available.axisLength / row->axisLength;
-            }
-            row->axisLength *= rowSquish;
-        }
-
         float rowAxisPos;
         switch (m_axisAlignment) {
             case AxisAlignment::Start: { 
@@ -532,34 +549,33 @@ void AxisLayout::tryFitLayout(
         size_t ix = 0;
         AxisLayoutOptions const* prev = nullptr;
         for (auto& node : CCArrayExt<CCNode*>(row->nodes)) {
-            auto scale = rowScale;
             auto opts = axisOpts(node);
             // rescale node if overflowing
             if (this->shouldAutoScale(opts)) {
-                scale = scaleByOpts(opts, scale, prio);
+                auto nodeScale = scaleByOpts(opts, scale, prio);
                 // CCMenuItemSpriteExtra is quirky af
                 if (auto btn = typeinfo_cast<CCMenuItemSpriteExtra*>(node)) {
-                    btn->m_baseScale = scale;
+                    btn->m_baseScale = nodeScale;
                 }
-                node->setScale(scale);
+                node->setScale(nodeScale);
             }
             if (!ix) {
-                rowAxisPos += row->axisEndsLength * scale / 2 * (1.f - rowSquish);
+                rowAxisPos += row->axisEndsLength * scale / 2 * (1.f - squish);
             }
-            auto pos = nodeAxis(node, m_axis, rowSquish);
+            auto pos = nodeAxis(node, m_axis, squish);
             float axisPos;
             if (m_axisAlignment == AxisAlignment::Even) {
                 axisPos = rowAxisPos + evenSpace / 2 - pos.axisLength * (.5f - pos.axisAnchor);
                 rowAxisPos += evenSpace - 
-                    row->axisEndsLength * scale * (1.f - rowSquish) * 1.f / nodes->count();
+                    row->axisEndsLength * scale * (1.f - squish) * 1.f / nodes->count();
             }
             else {
                 if (ix) {
-                    rowAxisPos += this->nextGap(prev, opts) * scale * rowSquish;
+                    rowAxisPos += this->nextGap(prev, opts) * scale * squish;
                 }
                 axisPos = rowAxisPos + pos.axisLength * pos.axisAnchor;
                 rowAxisPos += pos.axisLength - 
-                    row->axisEndsLength * scale * (1.f - rowSquish) * 1.f / nodes->count();
+                    row->axisEndsLength * scale * (1.f - squish) * 1.f / nodes->count();
             }
             float crossOffset;
             switch (m_crossAlignment) {
@@ -634,6 +650,7 @@ void AxisLayout::apply(CCNode* on) {
         }
     }
 
+    log::debug("applying");
     this->tryFitLayout(
         on, nodes,
         minMaxPrio, doAutoScale,
