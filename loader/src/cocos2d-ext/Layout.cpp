@@ -17,7 +17,10 @@ void CCNode::swapChildIndices(CCNode* first, CCNode* second) {
 
 void CCNode::insertBefore(CCNode* child, CCNode* before) {
     this->addChild(child);
-    if (m_pChildren->containsObject(before)) {
+    if (
+        (before && m_pChildren->containsObject(before)) ||
+        (before = static_cast<CCNode*>(m_pChildren->firstObject()))
+    ) {
         child->setZOrder(before->getZOrder());
         child->setOrderOfArrival(before->getOrderOfArrival() - 1);
     }

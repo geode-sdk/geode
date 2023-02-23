@@ -884,7 +884,7 @@ public:
      * @param child The node to add. The node may not be a child of another  
      * node already
      * @param before The child the node is added before of. If this is null or 
-     * not a child of this node, the new child will be placed at the end of the 
+     * not a child of this node, the new child will be placed at the start of the 
      * child list
      */
     GEODE_DLL void insertBefore(CCNode* child, CCNode* before);
