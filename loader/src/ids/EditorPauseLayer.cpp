@@ -4,6 +4,48 @@
 
 USE_GEODE_NAMESPACE();
 
+// special class for this because making it a CCMenuItemToggler would be very UB 
+// (not gonna reinterpret_cast that into the members)
+class GuidelinesButton : public CCMenuItemSpriteExtra {
+protected:
+    bool init() {
+        if (!CCMenuItemSpriteExtra::init(
+            CCSprite::createWithSpriteFrameName("GJ_audioOffBtn_001.png"),
+            nullptr,
+            this, nullptr
+        )) return false;
+
+        this->updateSprite();
+        
+        return true;
+    }
+
+    void updateSprite() {
+        this->setNormalImage(CCSprite::createWithSpriteFrameName(
+            GameManager::get()->m_showSongMarkers ? 
+                "GJ_audioOnBtn_001.png" :
+                "GJ_audioOffBtn_001.png"
+        ));
+    }
+
+    void activate() override {
+        CCMenuItemSpriteExtra::activate();
+        GameManager::get()->m_showSongMarkers ^= 1;
+        this->updateSprite();
+    }
+
+public:
+    static GuidelinesButton* create() {
+        auto ret = new GuidelinesButton();
+        if (ret && ret->init()) {
+            ret->autorelease();
+            return ret;
+        }
+        CC_SAFE_DELETE(ret);
+        return nullptr;
+    }
+};
+
 $register_ids(EditorPauseLayer) {
     auto winSize = CCDirector::get()->getWinSize();
 
@@ -22,7 +64,7 @@ $register_ids(EditorPauseLayer) {
         menu->setContentSize({ 100.f, 220.f });
         menu->setLayout(
             ColumnLayout::create()
-                ->setGap(10.f)
+                ->setGap(12.5f)
                 ->setAxisReverse(true)
         );
     }
@@ -79,58 +121,74 @@ $register_ids(EditorPauseLayer) {
         auto smallActionsMenu = detachAndCreateMenu(
             this,
             "small-actions-menu",
-            ColumnLayout::create(),
+            ColumnLayout::create()
+                ->setAxisAlignment(AxisAlignment::Start)
+                ->setAxisReverse(true),
             menu->getChildByID("align-x-button"),
             menu->getChildByID("align-y-button"),
             menu->getChildByID("select-all-button"),
             menu->getChildByID("select-all-left-button"),
             menu->getChildByID("select-all-right-button")
         );
+        smallActionsMenu->setContentSize({ 100.f, 240.f });
+        smallActionsMenu->setPositionY(130.f);
+        smallActionsMenu->updateLayout();
 
         auto actionsMenu = detachAndCreateMenu(
             this,
             "actions-menu",
-            ColumnLayout::create(),
-            menu->getChildByID("uncheck-portals-button"),
-            menu->getChildByID("reset-unused-button"),
-            menu->getChildByID("create-edges-button"),
-            menu->getChildByID("create-outlines-button"),
-            menu->getChildByID("create-base-button"),
+            ColumnLayout::create()
+                ->setAxisAlignment(AxisAlignment::Start)
+                ->setAxisReverse(true),
+            menu->getChildByID("keys-button"),
             menu->getChildByID("build-helper-button"),
-            menu->getChildByID("keys-button")
+            menu->getChildByID("create-base-button"),
+            menu->getChildByID("create-outlines-button"),
+            menu->getChildByID("create-edges-button"),
+            menu->getChildByID("reset-unused-button"),
+            menu->getChildByID("uncheck-portals-button")
         );
+        if (auto keysBtn = actionsMenu->getChildByID("keys-button")) {
+            keysBtn->setLayoutOptions(AxisLayoutOptions::create()->setPrevGap(10.f));
+        }
+        actionsMenu->setContentSize({ 100.f, 240.f });
+        actionsMenu->setPositionY(130.f);
+        actionsMenu->updateLayout();
 
         auto optionsMenu = detachAndCreateMenu(
             this,
             "options-menu",
             RowLayout::create()
-                ->setGap(-1.f)
+                ->setGap(0.f)
                 ->setAxisAlignment(AxisAlignment::Start)
                 ->setGrowCrossAxis(true)
                 ->setCrossAxisAlignment(AxisAlignment::Start)
                 ->setCrossAxisOverflow(false),
-            menu->getChildByID("ignore-damage-toggle"),
-            this->getChildByID("ignore-damage-label"),
-            menu->getChildByID("follow-player-toggle"),
-            this->getChildByID("follow-player-label"),
-            menu->getChildByID("select-filter-toggle"),
-            this->getChildByID("select-filter-label"),
-            menu->getChildByID("show-grid-toggle"),
-            this->getChildByID("show-grid-label"),
-            menu->getChildByID("show-object-info-toggle"),
-            this->getChildByID("show-object-info-label"),
+            menu->getChildByID("preview-mode-toggle"),
+            this->getChildByID("preview-mode-label"),
             menu->getChildByID("show-ground-toggle"),
             this->getChildByID("show-ground-label"),
-            menu->getChildByID("preview-mode-toggle"),
-            this->getChildByID("preview-mode-label")
+            menu->getChildByID("show-object-info-toggle"),
+            this->getChildByID("show-object-info-label"),
+            menu->getChildByID("show-grid-toggle"),
+            this->getChildByID("show-grid-label"),
+            menu->getChildByID("select-filter-toggle"),
+            this->getChildByID("select-filter-label"),
+            menu->getChildByID("follow-player-toggle"),
+            this->getChildByID("follow-player-label"),
+            menu->getChildByID("ignore-damage-toggle"),
+            this->getChildByID("ignore-damage-label")
         );
         for (auto node : CCArrayExt<CCNode>(optionsMenu->getChildren())) {
             if (auto label = typeinfo_cast<CCLabelBMFont*>(node)) {
                 label->setLayoutOptions(
                     AxisLayoutOptions::create()
-                        ->setBreakLine(true)
                         ->setSameLine(true)
-                        ->setRelativeScale(.5f)
+                        ->setBreakLine(true)
+                        ->setPrevGap(5.f)
+                        ->setMinScale(.1f)
+                        ->setMaxScale(.5f)
+                        ->setScalePriority(1)
                 );
             }
         }
@@ -145,6 +203,56 @@ $register_ids(EditorPauseLayer) {
                 ->setAxisReverse(true),
             menu->getChildByID("settings-button")
         );
+        settingsMenu->setContentSize({ 95.f, 50.f });
+        settingsMenu->updateLayout();
+
+        auto guidelinesMenu = menu;
+
+        // replace the two guidelines buttons with a single toggle
+        guidelinesMenu->getChildByID("guidelines-enable-button")->removeFromParent();
+        guidelinesMenu->getChildByID("guidelines-disable-button")->removeFromParent();
+        
+        auto glToggle = GuidelinesButton::create();
+        glToggle->setID("guidelines-enable-toggle");
+        guidelinesMenu->insertBefore(glToggle, nullptr);
+        m_guidelinesOffButton = m_guidelinesOnButton = glToggle;
+        this->updateSongButton();
+
+        guidelinesMenu->setID("guidelines-menu");
+        guidelinesMenu->setContentSize({ winSize.width / 2, 50.f });
+        guidelinesMenu->setLayout(RowLayout::create());
+
+        auto topMenu = CCMenu::create();
+        topMenu->setContentSize({ winSize.width / 2, 50.f });
+        topMenu->setPosition(winSize.width / 2, winSize.height - 30.f);
+        topMenu->setID("top-menu");
+        topMenu->setLayout(RowLayout::create());
+        this->addChild(topMenu);
+    }
+
+    if (auto menu = detachAndCreateMenu(
+        this, "info-menu",
+        ColumnLayout::create()
+            ->setGap(10.f)
+            ->setAxisAlignment(AxisAlignment::End)
+            ->setAxisReverse(true)
+            ->setCrossAxisOverflow(false)
+            ->setCrossAxisLineAlignment(AxisAlignment::Start),
+        this->getChildByID("object-count-label"),
+        this->getChildByID("length-label"),
+        this->getChildByID("length-name-label")
+    )) {
+        for (auto child : CCArrayExt<CCNode>(menu->getChildren())) {
+            child->setLayoutOptions(
+                AxisLayoutOptions::create()
+                    ->setMinScale(.1f)
+                    ->setMaxScale(.6f)
+                    ->setBreakLine(true)
+            );
+        }
+        menu->setContentSize({ 165.f, 100.f });
+        menu->setPosition(85.f, winSize.height - 55.f);
+        menu->updateLayout();
     }
 }
 
