@@ -296,6 +296,7 @@ class CCCircleWave : cocos2d::CCNode {
     PAD = win 0x4;
     float m_currentRadius;
     float m_currentOpacity;
+    cocos2d::ccColor3B m_color;
     cocos2d::CCPoint m_circleCenter;
     int m_filled;
     int m_lineWidth;
@@ -2614,6 +2615,9 @@ class GameLevelManager : cocos2d::CCNode {
     void storeUserNames(gd::string) = win 0xa1840;
     gd::string userNameForUserID(int id) = win 0xa1c20;
     void updateUserScore() = win 0xada60;
+    void downloadLevel(int id, bool downloadData) = win 0xaa730;
+    bool hasDownloadedLevel(int id) = win 0xab830;
+    GJGameLevel* getSavedLevel(int id) = win 0xa2ee0;
 
     inline static GameLevelManager* get() {
         return GameLevelManager::sharedState();
@@ -3269,6 +3273,9 @@ class GameSoundManager : cocos2d::CCNode {
     void asynchronousSetup() = win 0x25520;
     ~GameSoundManager() = mac 0x362c00, win 0x25640;
     static GameSoundManager* sharedManager() = mac 0x3610f0, win 0x24800;
+    inline static GameSoundManager* get() {
+        return GameSoundManager::sharedManager();
+    }
 
     cocos2d::CCDictionary* m_dictionary1;
     cocos2d::CCDictionary* m_dictionary2;
@@ -3960,6 +3967,9 @@ class MenuLayer : cocos2d::CCLayer, FLAlertLayerProtocol, GooglePlayDelegate {
     void onYouTube(cocos2d::CCObject*) = win 0x1919A0;
     static cocos2d::CCScene* scene(bool) = mac 0x1d12d0, win 0x190720, ios 0x19e57c;
     static MenuLayer* node() = win 0x190550;
+    inline static MenuLayer* create() {
+        return MenuLayer::node();
+    }
 
     cocos2d::CCSprite* m_googlePlaySprite;
     cocos2d::CCSprite* m_viewProfileInfoText;
