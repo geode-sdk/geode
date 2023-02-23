@@ -1155,11 +1155,13 @@ class EditorPauseLayer : CCBlockLayer, FLAlertLayerProtocol {
     void uncheckAllPortals(cocos2d::CCObject* sender) = win 0x74760;
     void onResetUnusedColors(cocos2d::CCObject* sender) = win 0x74810;
     void doResetUnused() = win 0x165070;
+    void updateSongButton() = win 0x74f10, mac 0x13e530;
+    void onSong(cocos2d::CCObject*) = win 0x74e70, mac 0x13e470;
 
     bool m_saved;
     PAD = mac 0x8, win 0x4;
-    CCMenuItemSpriteExtra* m_button0;
-    CCMenuItemSpriteExtra* m_button1;
+    CCMenuItemSpriteExtra* m_guidelinesOffButton;
+    CCMenuItemSpriteExtra* m_guidelinesOnButton;
     LevelEditorLayer* m_editorLayer;
 }
 
