@@ -636,7 +636,7 @@ void AxisLayout::tryFitLayout(
                     row->axisEndsLength * row->scale * (1.f - row->squish) * 1.f / nodes->count();
             }
             float crossOffset;
-            switch (m_crossAlignment) {
+            switch (m_crossLineAlignment) {
                 case AxisAlignment::Start: {
                     crossOffset = pos.crossLength * pos.crossAnchor;
                 } break;
@@ -725,6 +725,10 @@ AxisAlignment AxisLayout::getCrossAxisAlignment() const {
     return m_crossAlignment;
 }
 
+AxisAlignment AxisLayout::getCrossAxisLineAlignment() const {
+    return m_crossLineAlignment;
+}
+
 AxisAlignment AxisLayout::getAxisAlignment() const {
     return m_axisAlignment;
 }
@@ -760,6 +764,11 @@ AxisLayout* AxisLayout::setAxis(Axis axis) {
 
 AxisLayout* AxisLayout::setCrossAxisAlignment(AxisAlignment align) {
     m_crossAlignment = align;
+    return this;
+}
+
+AxisLayout* AxisLayout::setCrossAxisLineAlignment(AxisAlignment align) {
+    m_crossLineAlignment = align;
     return this;
 }
 

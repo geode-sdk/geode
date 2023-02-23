@@ -204,6 +204,7 @@ protected:
     Axis m_axis;
     AxisAlignment m_axisAlignment = AxisAlignment::Center;
     AxisAlignment m_crossAlignment = AxisAlignment::Center;
+    AxisAlignment m_crossLineAlignment = AxisAlignment::Center;
     float m_gap = 5.f;
     bool m_autoScale = true;
     bool m_axisReverse = false;
@@ -256,6 +257,7 @@ public:
     Axis getAxis() const;
     AxisAlignment getAxisAlignment() const;
     AxisAlignment getCrossAxisAlignment() const;
+    AxisAlignment getCrossAxisLineAlignment() const;
     float getGap() const;
     bool getAxisReverse() const;
     bool getCrossAxisReverse() const;
@@ -265,15 +267,20 @@ public:
 
     AxisLayout* setAxis(Axis axis);
     /**
-     * Sets where to align the target node's children on the main axis (X for 
-     * Row, Y for Column)
+     * Sets where to align the target node's children on the main axis (X-axis 
+     * for Row, Y-axis for Column)
      */
     AxisLayout* setAxisAlignment(AxisAlignment align);
     /**
-     * Sets where to align the target node's children on the cross-axis (Y for 
-     * Row, X for Column)
+     * Sets where to align the target node's children on the cross-axis (Y-axis 
+     * for Row, X-axis for Column)
      */
     AxisLayout* setCrossAxisAlignment(AxisAlignment align);
+    /**
+     * Sets where to align the target node's children on the cross-axis for 
+     * each row (Y-axis for Row, X-axis for Column)
+     */
+    AxisLayout* setCrossAxisLineAlignment(AxisAlignment align);
     /**
      * The spacing between the children of the node this layout applies to. 
      * Measured as the space between their edges, not centres. Does not apply 
