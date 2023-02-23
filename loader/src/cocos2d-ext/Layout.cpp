@@ -397,11 +397,11 @@ bool AxisLayout::canTryScalingDown(
         if (prio > minMaxPrios.first) {
             while (true) {
                 prio -= 1;
-                auto scale = this->maxScaleForPrio(nodes, prio);
-                if (!scale) {
+                auto mscale = this->maxScaleForPrio(nodes, prio);
+                if (!mscale) {
                     continue;
                 }
-                crossScaleDownFactor = scale;
+                scale = mscale;
                 break;
             }
             attemptRescale = true;
@@ -493,7 +493,7 @@ void AxisLayout::tryFitLayout(
             return this->tryFitLayout(
                 on, nodes,
                 minMaxPrios, doAutoScale,
-                crossScaleDownFactor, squish, prio
+                scale, squish, prio
             );
         }
     }
@@ -632,7 +632,12 @@ void AxisLayout::tryFitLayout(
             }
             else {
                 if (ix) {
-                    rowAxisPos += this->nextGap(prev, opts) * row->scale * row->squish;
+                    if (row->prio == minMaxPrios.first) {
+                        rowAxisPos += this->nextGap(prev, opts) * row->scale * row->squish;
+                    }
+                    else {
+                        rowAxisPos += this->nextGap(prev, opts) * row->squish;
+                    }
                 }
                 axisPos = rowAxisPos + pos.axisLength * pos.axisAnchor;
                 rowAxisPos += pos.axisLength - 
