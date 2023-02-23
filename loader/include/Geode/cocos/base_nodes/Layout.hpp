@@ -221,8 +221,7 @@ protected:
         CCNode* on, CCArray* nodes,
         std::pair<int, int> const& minMaxPrios,
         bool doAutoScale,
-        float scale, float squish, int prio,
-        bool finalPosCalc
+        float scale, float squish, int prio
     ) const;
     void tryFitLayout(
         CCNode* on, CCArray* nodes,

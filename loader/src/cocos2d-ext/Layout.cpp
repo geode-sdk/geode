@@ -85,12 +85,12 @@ static float optsRelScale(AxisLayoutOptions const* opts) {
     return 1.f;
 }
 
-static float scaleByOpts(AxisLayoutOptions const* opts, float scale, int prio) {
+static float scaleByOpts(AxisLayoutOptions const* opts, float scale, int prio, bool squishMode) {
     if (prio > optsScalePrio(opts)) {
         return optsMaxScale(opts) * optsRelScale(opts);
     }
     // otherwise if it matches scale it down by the factor
-    else if (prio == optsScalePrio(opts)) {
+    else if (!squishMode && prio == optsScalePrio(opts)) {
         auto trueScale = scale;
         auto min = optsMinScale(opts);
         auto max = optsMaxScale(opts);
@@ -223,10 +223,10 @@ AxisLayout::Row* AxisLayout::fitInRow(
     CCNode* on, CCArray* nodes,
     std::pair<int, int> const& minMaxPrios,
     bool doAutoScale,
-    float scale, float squish, int prio,
-    bool finalPosCalc
+    float scale, float squish, int prio
 ) const {
     float nextAxisLength = 0.f;
+    float axisUnsquishedLength = 0.f;
     float axisLength = 0.f;
     float crossLength = 0.f;
     auto res = CCArray::create();
@@ -239,15 +239,16 @@ AxisLayout::Row* AxisLayout::fitInRow(
         if (this->shouldAutoScale(opts)) {
             node->setScale(optsMaxScale(opts) * optsRelScale(opts));
         }
-        auto nodeScale = scaleByOpts(opts, scale, prio);
+        auto nodeScale = scaleByOpts(opts, scale, prio, false);
         auto pos = nodeAxis(node, m_axis, nodeScale * squish);
+        auto squishPos = nodeAxis(node, m_axis, scaleByOpts(opts, scale, prio, true));
         nextAxisLength += pos.axisLength;
         // if multiple rows are allowed and this row is full, time for the 
         // next row
         // also force at least one object to be added to this row, because if 
         // it's too large for this row it's gonna be too large for all rows
         if (
-            !finalPosCalc && m_growCrossAxis && ((
+            m_growCrossAxis && ((
                 (nextAxisLength > available.axisLength) && 
                 ix != 0 &&
                 !isOptsSameLine(opts)
@@ -262,13 +263,16 @@ AxisLayout::Row* AxisLayout::fitInRow(
             if (prio == minMaxPrios.first) {
                 nextAxisLength += gap * scale * squish;
                 axisLength += gap * scale * squish;
+                axisUnsquishedLength += gap * scale;
             }
             else {
                 nextAxisLength += gap * squish;
                 axisLength += gap * squish;
+                axisUnsquishedLength += gap;
             }
         }
         axisLength += pos.axisLength;
+        axisUnsquishedLength += squishPos.axisLength;
         // squishing doesn't affect cross length, that's done separately
         if (pos.crossLength / squish > crossLength) {
             crossLength = pos.crossLength / squish;
@@ -277,34 +281,35 @@ AxisLayout::Row* AxisLayout::fitInRow(
         ix++;
     }
 
-    float axisEndsLength = 0.f;
-    if (!finalPosCalc) {
-        // whoops! removing objects from a CCArray while iterating is totes potes UB
-        for (int i = 0; i < res->count(); i++) {
-            nodes->removeFirstObject();
-        }
+    // whoops! removing objects from a CCArray while iterating is totes potes UB
+    for (int i = 0; i < res->count(); i++) {
+        nodes->removeFirstObject();
+    }
 
-        // reverse row if needed
-        if (m_axisReverse) {
-            res->reverseObjects();
-        }
-    
-        if (res->count()) {
-            auto first = static_cast<CCNode*>(res->firstObject());
-            auto last = static_cast<CCNode*>(res->lastObject());
-            axisEndsLength = (
-                first->getScaledContentSize().width * scale / 2 +
-                last->getScaledContentSize().width * scale / 2
-            );
-        }
+    // reverse row if needed
+    if (m_axisReverse) {
+        res->reverseObjects();
+    }
+
+    float axisEndsLength = 0.f;
+    if (res->count()) {
+        auto first = static_cast<CCNode*>(res->firstObject());
+        auto last = static_cast<CCNode*>(res->lastObject());
+        axisEndsLength = (
+            first->getScaledContentSize().width * scale / 2 +
+            last->getScaledContentSize().width * scale / 2
+        );
     }
 
     return new Row(
         // how much should the nodes be scaled down to fit the next row
-        available.axisLength / nextAxisLength * scale * squish,
+        // the .01f is because floating point arithmetic is imprecise and you 
+        // end up in a situation where it confidently tells you that
+        // 241 > 241 == true
+        available.axisLength / (nextAxisLength + .01f) * scale,
         // how much should the nodes be squished to fit the next item in this 
         // row
-        available.axisLength / nextAxisLength,
+        available.axisLength / (axisUnsquishedLength + .01f) * squish,
         axisLength,
         crossLength,
         axisEndsLength,
@@ -323,7 +328,10 @@ void AxisLayout::tryFitLayout(
     // like i genuinely have no clue fr why some of these work tho, 
     // i just threw in random equations and numbers until it worked
 
-    log::debug("tryFitLayout -> scale: {}, squish: {}, prio: {}", scale, squish, prio);
+    static int RECURSION_LEVEL = 0;
+    static int RECURSION_LIMIT = 100;
+
+    RECURSION_LEVEL += 1;
 
     auto rows = CCArray::create();
     float totalRowCrossLength = 0.f;
@@ -337,19 +345,18 @@ void AxisLayout::tryFitLayout(
         auto row = this->fitInRow(
             on, newNodes,
             minMaxPrios, doAutoScale,
-            scale, squish, prio,
-            false
+            scale, squish, prio
         );
         rows->addObject(row);
         if (
             row->nextOverflowScaleDownFactor > crossScaleDownFactor &&
-            row->nextOverflowScaleDownFactor < scale
+            row->nextOverflowScaleDownFactor <= scale
         ) {
             crossScaleDownFactor = row->nextOverflowScaleDownFactor;
         }
         if (
             row->nextOverflowSquishFactor > crossSquishFactor &&
-            row->nextOverflowSquishFactor < squish
+            row->nextOverflowSquishFactor <= squish
         ) {
             crossSquishFactor = row->nextOverflowSquishFactor;
         }
@@ -365,11 +372,9 @@ void AxisLayout::tryFitLayout(
         return;
     }
 
-    log::debug("crossScaleDownFactor: {}, crossSquishFactor: {}", crossScaleDownFactor, crossSquishFactor);
-
     auto available = nodeAxis(on, m_axis, 1.f);
 
-    if (available.axisLength <= 0.f || available.crossLength <= 0.f) {
+    if (available.axisLength <= 0.f) {
         return;
     }
 
@@ -384,9 +389,8 @@ void AxisLayout::tryFitLayout(
         ) || (
             !m_growCrossAxis && 
             static_cast<Row*>(rows->firstObject())->axisLength > available.axisLength
-        )
+        ) && RECURSION_LEVEL < RECURSION_LIMIT
     ) {
-        log::debug("scaling");
         bool attemptRescale = false;
         auto minScaleForPrio = this->minScaleForPrio(nodes, prio);
         if (
@@ -398,9 +402,7 @@ void AxisLayout::tryFitLayout(
             crossScaleDownFactor == scale
         ) {
             // is there still some lower priority nodes we could try scaling?
-            log::debug("prio: {} :: scale: {}", prio, scale);
             if (prio > minMaxPrios.first) {
-                log::debug("scale to max");
                 while (true) {
                     prio -= 1;
                     auto scale = this->maxScaleForPrio(nodes, prio);
@@ -422,7 +424,6 @@ void AxisLayout::tryFitLayout(
             attemptRescale = true;
         }
         if (attemptRescale) {
-            log::debug("gonna try with scale {} from {}", crossScaleDownFactor, scale);
             rows->release();
             return this->tryFitLayout(
                 on, nodes,
@@ -440,9 +441,8 @@ void AxisLayout::tryFitLayout(
         ) || (
             !m_growCrossAxis && 
             static_cast<Row*>(rows->firstObject())->axisLength > available.axisLength
-        )
+        ) && RECURSION_LEVEL < RECURSION_LIMIT
     ) {
-        log::debug("gonna try with squish {} from {}", crossSquishFactor, squish);
         // if squishing rows would take less squishing that squishing columns, 
         // then squish rows
         if (
@@ -456,6 +456,8 @@ void AxisLayout::tryFitLayout(
             );
         }
     }
+
+    RECURSION_LEVEL = 0;
 
     // if we're here, the nodes are ready to be positioned
 
@@ -552,7 +554,7 @@ void AxisLayout::tryFitLayout(
             auto opts = axisOpts(node);
             // rescale node if overflowing
             if (this->shouldAutoScale(opts)) {
-                auto nodeScale = scaleByOpts(opts, scale, prio);
+                auto nodeScale = scaleByOpts(opts, scale, prio, false);
                 // CCMenuItemSpriteExtra is quirky af
                 if (auto btn = typeinfo_cast<CCMenuItemSpriteExtra*>(node)) {
                     btn->m_baseScale = nodeScale;
@@ -650,7 +652,6 @@ void AxisLayout::apply(CCNode* on) {
         }
     }
 
-    log::debug("applying");
     this->tryFitLayout(
         on, nodes,
         minMaxPrio, doAutoScale,
