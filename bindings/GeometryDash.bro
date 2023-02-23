@@ -3749,7 +3749,7 @@ class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDeleg
 class LevelLeaderboard : FLAlertLayer {
     void onChangeType(cocos2d::CCObject* sender) = win 0x17d090;
     void onGarage(cocos2d::CCObject* sender) = win 0x17d1b0;
-    bool init(GJGameLevel* level, int type) = mac 0x20d71, win 0x17c4f0;
+    bool init(GJGameLevel* level, int type) = mac 0x20d710, win 0x17c4f0;
     static LevelLeaderboard* create(GJGameLevel* level, LevelLeaderboardType leaderboardType) = win 0x17c440;
 }
 
