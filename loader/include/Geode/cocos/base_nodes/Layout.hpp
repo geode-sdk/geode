@@ -216,6 +216,12 @@ protected:
     float minScaleForPrio(CCArray* nodes, int prio) const;
     float maxScaleForPrio(CCArray* nodes, int prio) const;
     bool shouldAutoScale(AxisLayoutOptions const* opts) const;
+    bool canTryScalingDown(
+        CCArray* nodes,
+        int& prio, float& scale,
+        float crossScaleDownFactor,
+        std::pair<int, int> const& minMaxPrios
+    ) const;
     float nextGap(AxisLayoutOptions const* now, AxisLayoutOptions const* next) const;
     Row* fitInRow(
         CCNode* on, CCArray* nodes,
