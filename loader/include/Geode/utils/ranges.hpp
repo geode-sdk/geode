@@ -289,23 +289,21 @@ namespace geode::utils::ranges {
         return member(*it);
     }
 
-    template <ValidConstContainer C>
-    struct ConstReverseWrapper {
-        C const& iter;
+    template <class C>
+    struct ReverseWrapper {
+        C iter;
+
+        decltype(auto) begin() {
+            return std::rbegin(iter);
+        }
+
+        decltype(auto) end() {
+            return std::rend(iter);
+        }
     };
 
-    template <ValidConstContainer C>
-    auto begin(ConstReverseWrapper<C> const& c) {
-        return std::rbegin(c.iter);
-    }
-
-    template <ValidConstContainer C>
-    auto end(ConstReverseWrapper<C> const& c) {
-        return std::rend(c.iter);
-    }
-
-    template <ValidConstContainer C>
-    ConstReverseWrapper<C> reverse(C const& iter) {
-        return { iter };
+    template <class C>
+    auto reverse(C&& iter) {
+        return ReverseWrapper<C>{std::forward<C>(iter)};
     }
 }

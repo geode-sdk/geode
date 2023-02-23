@@ -360,6 +360,13 @@ public:
     inline bool equals(const CCSize& target) const {
         return (fabs(this->width  - target.width)  < FLT_EPSILON) && (fabs(this->height - target.height) < FLT_EPSILON);
     }
+    /**
+     * Get the aspect ratio of this CCSize
+     * @note Geode addition
+     */
+    inline float aspect() const {
+        return this->width / this->height;
+    }
 };
 
 // alk cont

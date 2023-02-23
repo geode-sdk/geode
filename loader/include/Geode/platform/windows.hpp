@@ -75,6 +75,10 @@ namespace geode::cast {
             std::is_polymorphic_v<std::remove_pointer_t<Before>>, "Input is not a polymorphic type"
         );
 
+        if (!ptr) {
+            return After();
+        }
+
         auto basePtr = dynamic_cast<void*>(ptr);
         auto vftable = *reinterpret_cast<VftableType**>(basePtr);
 

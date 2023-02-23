@@ -410,16 +410,31 @@ namespace geode::cocos {
      * or nullptr if index exceeds bounds
      */
     template <class Type = cocos2d::CCNode>
-    static Type* getChildOfType(cocos2d::CCNode* node, size_t index) {
+    static Type* getChildOfType(cocos2d::CCNode* node, int index) {
         size_t indexCounter = 0;
 
-        for (size_t i = 0; i < node->getChildrenCount(); ++i) {
-            auto obj = cast::typeinfo_cast<Type*>(node->getChildren()->objectAtIndex(i));
-            if (obj != nullptr) {
-                if (indexCounter == index) {
-                    return obj;
+        // start from end for negative index
+        if (index < 0) {
+            index = -index - 1;
+            for (size_t i = node->getChildrenCount() - 1; i >= 0; i--) {
+                auto obj = cast::typeinfo_cast<Type*>(node->getChildren()->objectAtIndex(i));
+                if (obj != nullptr) {
+                    if (indexCounter == index) {
+                        return obj;
+                    }
+                    ++indexCounter;
                 }
-                ++indexCounter;
+            }
+        }
+        else {
+            for (size_t i = 0; i < node->getChildrenCount(); i++) {
+                auto obj = cast::typeinfo_cast<Type*>(node->getChildren()->objectAtIndex(i));
+                if (obj != nullptr) {
+                    if (indexCounter == index) {
+                        return obj;
+                    }
+                    ++indexCounter;
+                }
             }
         }
 
@@ -547,86 +562,6 @@ namespace geode::cocos {
      * }
      */
     GEODE_DLL bool fileExistsInSearchPaths(char const* filename);
-
-    template <typename T>
-    struct CCArrayIterator {
-    public:
-        CCArrayIterator(T* p) : m_ptr(p) {}
-
-        T* m_ptr;
-
-        auto& operator*() {
-            return *m_ptr;
-        }
-
-        auto& operator*() const {
-            return *m_ptr;
-        }
-
-        auto operator->() {
-            return m_ptr;
-        }
-
-        auto operator->() const {
-            return m_ptr;
-        }
-
-        auto& operator++() {
-            ++m_ptr;
-            return *this;
-        }
-
-        auto& operator--() {
-            --m_ptr;
-            return *this;
-        }
-
-        auto& operator+=(size_t val) {
-            m_ptr += val;
-            return *this;
-        }
-
-        auto& operator-=(size_t val) {
-            m_ptr -= val;
-            return *this;
-        }
-
-        auto operator+(size_t val) const {
-            return CCArrayIterator<T>(m_ptr + val);
-        }
-
-        auto operator-(size_t val) const {
-            return CCArrayIterator<T>(m_ptr - val);
-        }
-
-        auto operator-(CCArrayIterator<T> const& other) const {
-            return m_ptr - other.m_ptr;
-        }
-
-        bool operator<(CCArrayIterator<T> const& other) const {
-            return m_ptr < other.m_ptr;
-        }
-
-        bool operator>(CCArrayIterator<T> const& other) const {
-            return m_ptr > other.m_ptr;
-        }
-
-        bool operator<=(CCArrayIterator<T> const& other) const {
-            return m_ptr <= other.m_ptr;
-        }
-
-        bool operator>=(CCArrayIterator<T> const& other) const {
-            return m_ptr >= other.m_ptr;
-        }
-
-        bool operator==(CCArrayIterator<T> const& other) const {
-            return m_ptr == other.m_ptr;
-        }
-
-        bool operator!=(CCArrayIterator<T> const& other) const {
-            return m_ptr != other.m_ptr;
-        }
-    };
 
     inline void ccDrawColor4B(cocos2d::ccColor4B const& color) {
         cocos2d::ccDrawColor4B(color.r, color.g, color.b, color.a);
@@ -766,16 +701,6 @@ namespace std {
             return std::hash<T*>()(ref.data());
         }
     };
-
-    template <typename T>
-    struct iterator_traits<geode::cocos::CCArrayIterator<T>> {
-        using difference_type = ptrdiff_t;
-        using value_type = T;
-        using pointer = T*;
-        using reference = T&;
-        using iterator_category =
-            std::random_access_iterator_tag; // its random access but im too lazy to implement it
-    };
 }
 
 // more utils
@@ -807,9 +732,14 @@ namespace geode::cocos {
         using T = std::remove_pointer_t<_Type>;
 
     public:
+        using value_type = T;
+        using iterator = T**;
+        using const_iterator = const T**;
+
         CCArrayExt() : m_arr(cocos2d::CCArray::create()) {}
 
-        CCArrayExt(cocos2d::CCArray* arr) : m_arr(arr) {}
+        CCArrayExt(cocos2d::CCArray* arr)
+          : m_arr(arr) {}
 
         CCArrayExt(CCArrayExt const& a) : m_arr(a.m_arr) {}
 
@@ -819,18 +749,26 @@ namespace geode::cocos {
 
         ~CCArrayExt() {}
 
-        auto begin() {
+        T** begin() const {
             if (!m_arr) {
-                return CCArrayIterator<T*>(nullptr);
+                return nullptr;
             }
-            return CCArrayIterator<T*>(reinterpret_cast<T**>(m_arr->data->arr));
+            return reinterpret_cast<T**>(m_arr->data->arr);
         }
 
-        auto end() {
+        T** end() const {
             if (!m_arr) {
-                return CCArrayIterator<T*>(nullptr);
+                return nullptr;
             }
-            return CCArrayIterator<T*>(reinterpret_cast<T**>(m_arr->data->arr) + m_arr->count());
+            return reinterpret_cast<T**>(m_arr->data->arr) + m_arr->count();
+        }
+
+        auto rbegin() const {
+            return std::reverse_iterator(this->end());
+        }
+
+        auto rend() const {
+            return std::reverse_iterator(this->begin());
         }
 
         size_t size() const {

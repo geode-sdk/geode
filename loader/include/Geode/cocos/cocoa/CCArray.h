@@ -234,13 +234,11 @@ public:
     void fastRemoveObject(CCObject* object);
     /** Fast way to remove an element with a certain index */
     void fastRemoveObjectAtIndex(unsigned int index);
-
-    RT_ADD(
-        /** 
-         * Rob modification
-         * Fast way to remove an element with a certain index */
-        void fastRemoveObjectAtIndexNew(unsigned int index);
-    );
+    /** 
+     * Fast way to remove an element with a certain index
+     * @note RobTop addition
+     */
+    void fastRemoveObjectAtIndexNew(unsigned int index);
 
     // Rearranging Content
 
@@ -262,6 +260,13 @@ public:
      *  @lua NA
      */
     virtual CCObject* copyWithZone(CCZone* pZone);
+
+    /**
+     * Creates a shallow copy of this array, aka only clones the pointers to 
+     * the array members and not the members themselves
+     * @returns New array with same members
+     */
+    GEODE_DLL CCArray* shallowCopy();
 
     /* override functions */
     virtual void acceptVisitor(CCDataVisitor &visitor);

@@ -2,6 +2,8 @@
 
 #include <cocos2d.h>
 
+#pragma warning(disable: 4275)
+
 namespace geode {
     enum class CircleBaseSize {
         Tiny = 0, // Equivalent to the tiny delete button
