@@ -107,6 +107,7 @@ BOOL WINAPI DllMain(HINSTANCE lib, DWORD reason, LPVOID) {
     return TRUE;
 }
 #endif
+
 $execute {
     listenForSettingChanges("show-platform-console", +[](bool value) {
         if (value) {

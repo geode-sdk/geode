@@ -113,7 +113,7 @@ Result<ModInfo> ModInfo::Impl::createFromSchemaV010(ModJson const& rawJson) {
     }
 
     for (auto& [key, value] : root.has("settings").items()) {
-        GEODE_UNWRAP_INTO(auto sett, Setting::parse(key, value));
+        GEODE_UNWRAP_INTO(auto sett, Setting::parse(key, impl->m_id, value));
         impl->m_settings.push_back({key, sett});
     }
 
