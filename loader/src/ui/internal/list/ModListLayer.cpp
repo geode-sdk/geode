@@ -157,15 +157,6 @@ CCArray* ModListLayer::createModCells(ModListType type, ModListQuery const& quer
                 }
             }
 
-            // internal geode representation always at the top by default unless 
-            // something matches query better
-            // the sorted list is in reverse so adding it last = adding it at the 
-            // top
-            auto imod = Mod::get();
-            if (auto match = queryMatch(query, imod)) {
-                sorted.insert({ match.value(), imod });
-            }
-
             // add the mods sorted
             for (auto& [score, mod] : ranges::reverse(sorted)) {
                 mods->addObject(ModCell::create(
