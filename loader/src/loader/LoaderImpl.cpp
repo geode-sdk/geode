@@ -270,7 +270,7 @@ void Loader::Impl::updateModResources(Mod* mod) {
         return;
     }
 
-    auto searchPath = dirs::getModRuntimeDir() / mod->getID() / "resources";
+    auto searchPath = mod->getResourcesDir();
 
     log::debug("Adding resources for {}", mod->getID());
 

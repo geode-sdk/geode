@@ -83,7 +83,16 @@ namespace geode {
         bool wasSuccesfullyLoaded() const;
         ModInfo getModInfo() const;
         ghc::filesystem::path getTempDir() const;
+        /**
+         * Get the path to the mod's platform binary (.dll on Windows, .dylib 
+         * on Mac & iOS, .so on Android)
+         */
         ghc::filesystem::path getBinaryPath() const;
+        /**
+         * Get the path to the mod's runtime resources directory (contains all 
+         * of its resources)
+         */
+        ghc::filesystem::path getResourcesDir() const;
 
         Result<> saveData();
         Result<> loadData();
