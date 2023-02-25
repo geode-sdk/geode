@@ -2621,6 +2621,7 @@ class GameLevelManager : cocos2d::CCNode {
     void downloadLevel(int id, bool downloadData) = win 0xaa730;
     bool hasDownloadedLevel(int id) = win 0xab830;
     GJGameLevel* getSavedLevel(int id) = win 0xa2ee0;
+    void saveLevel(GJGameLevel* level) = win 0xa31c0;
 
     inline static GameLevelManager* get() {
         return GameLevelManager::sharedState();
@@ -3737,6 +3738,7 @@ class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDeleg
     void onViewProfile(cocos2d::CCObject* sender) = win 0x17ac90;
     void onLevelInfo(cocos2d::CCObject* sender) = win 0x17acf0;
     void setupProgressBars() = win 0x177fc0;
+    void downloadLevel() = win 0x177d90;
 
     PAD = win 0x4;
     cocos2d::CCMenu* m_playBtnMenu;
