@@ -83,28 +83,39 @@ namespace geode::addresser {
         // }
 
         // I extra gave up
+        template <class = void>
         static cocos2d::extension::CCScrollView* generateInstance(cocos2d::extension::CCScrollView*) {
             return cocos2d::extension::CCScrollView::create({0.0f, 0.0f}, cocos2d::CCLayer::create());
         }
 
+        template <class = void>
+        static cocos2d::CCFileUtils* generateInstance(cocos2d::CCFileUtils*) {
+            return cocos2d::CCFileUtils::sharedFileUtils();
+        }
+
         template <class Class>
         static Class* generateInstance(Class*) {
-            // Create a random memory block with the size of Class
-            // Assign a pointer to that block and cast it to type Class*
-            uint8_t dum[sizeof(Class)]{};
-            auto ptr = reinterpret_cast<Class*>(dum);
-            // Now you have a object of Class that actually isn't an object of Class and is just a
-            // random memory But C++ doesn't know that of course So now you can copy an object
-            // that wasn't there in the first place
-            // ((oh also get the offsets of the virtual tables))
-            auto ins = new Class(*ptr);
-            // this is how the first human was made
-            return ins;
+            if constexpr (std::is_abstract_v<Class>) {
+                // Cant construct abstract classes, so fail early
+                return nullptr;
+            } else {
+                // Create a random memory block with the size of Class
+                // Assign a pointer to that block and cast it to type Class*
+                uint8_t dum[sizeof(Class)]{};
+                auto ptr = reinterpret_cast<Class*>(dum);
+                // Now you have a object of Class that actually isn't an object of Class and is just a
+                // random memory But C++ doesn't know that of course So now you can copy an object
+                // that wasn't there in the first place
+                // ((oh also get the offsets of the virtual tables))
+                auto ins = new Class(*ptr);
+                // this is how the first human was made
+                return ins;
+            }
         }
 
         template <class Class>
         static Class* cachedInstance() {
-            static auto ret = generateInstance<Class>(nullptr);
+            static auto ret = generateInstance(static_cast<Class*>(nullptr));
             return ret;
         }
 
@@ -112,24 +123,20 @@ namespace geode::addresser {
          * Specialized functionss
          */
         template <typename R, typename T, typename... Ps>
-        static intptr_t addressOfVirtual(
-            R (T::*func)(Ps...), typename std::enable_if_t<!std::is_abstract_v<T>>* = 0
-        ) {
+        static intptr_t addressOfVirtual(R (T::*func)(Ps...)) {
             using geode::cast::reference_cast;
 
+            auto ins = cachedInstance<T>();
+            // generateInstance will return nullptr on most abstract classes,
+            // so dont bother getting the address
+            if (ins == nullptr) {
+                return 0;
+            }
             auto index = indexOf(func);
             auto thunk = thunkOf(func);
-            auto ins = cachedInstance<T>();
 
-            // log::debug("[[" + utils::intToHex((void*)ins) + " + " + utils::intToHex(thunk) + "] +
-            // " + utils::intToHex(index) + "]");
-            // log::debug(
-            //     "[[{} + {}] + {}]", utils::intToHex((void*)ins), utils::intToHex(thunk),
-            //     utils::intToHex(index)
-            // );
-
-            // [[this + thunk] + offset] is the f we want
-            auto address = *(intptr_t*)(*(intptr_t*)(reference_cast<intptr_t>(ins) + thunk) + index);
+            // [[this + thunk] + offset] is the function we want
+            auto address = *reinterpret_cast<intptr_t*>(*reinterpret_cast<intptr_t*>(reinterpret_cast<intptr_t>(ins) + thunk) + index);
 
             address = followThunkFunction(address);
 
@@ -137,25 +144,8 @@ namespace geode::addresser {
         }
 
         template <typename R, typename T, typename... Ps>
-        static intptr_t addressOfVirtual(
-            R (T::*func)(Ps...) const,
-            typename std::enable_if_t<std::is_copy_constructible_v<T> && !std::is_abstract_v<T>>* = 0
-        ) {
+        static intptr_t addressOfVirtual(R (T::*func)(Ps...) const) {
             return addressOfVirtual(reinterpret_cast<R (T::*)(Ps...)>(func));
-        }
-
-        template <typename R, typename T, typename... Ps>
-        static intptr_t addressOfVirtual(
-            R (T::*func)(Ps...), typename std::enable_if_t<std::is_abstract_v<T>>* = 0
-        ) {
-            return 0;
-        }
-
-        template <typename R, typename T, typename... Ps>
-        static intptr_t addressOfVirtual(
-            R (T::*func)(Ps...) const, typename std::enable_if_t<std::is_abstract_v<T>>* = 0
-        ) {
-            return 0;
         }
 
         template <typename R, typename T, typename... Ps>
