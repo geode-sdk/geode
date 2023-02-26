@@ -7,6 +7,7 @@ static constexpr const char* LOADER_VERSION_STR = "@PROJECT_VERSION@@PROJECT_VER
 static constexpr int LOADER_VERSION_MAJOR = @PROJECT_VERSION_MAJOR@;
 static constexpr int LOADER_VERSION_MINOR = @PROJECT_VERSION_MINOR@;
 static constexpr int LOADER_VERSION_PATCH = @PROJECT_VERSION_PATCH@;
+static constexpr const char* LOADER_COMMIT_HASH = "@GEODE_COMMIT_HASH@";
 static constexpr geode::VersionInfo LOADER_VERSION = {
     @PROJECT_VERSION_MAJOR@,
     @PROJECT_VERSION_MINOR@,

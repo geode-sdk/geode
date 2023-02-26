@@ -366,6 +366,13 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
             m_updateVersionLabel->setPosition(winSize.width / 2 + 35.f, winSize.height / 2 + 75.f);
             m_mainLayer->addChild(m_updateVersionLabel);
         }
+    } else {
+        auto* label = CCLabelBMFont::create(LOADER_COMMIT_HASH, "chatFont.fnt");
+        label->setAnchorPoint(ccp(1, 0));
+        label->setScale(0.775f);
+        label->setPosition(winSize.width - 1.f, 1.f);
+        label->setOpacity(89);
+        m_mainLayer->addChild(label);
     }
 
     // issue report button
