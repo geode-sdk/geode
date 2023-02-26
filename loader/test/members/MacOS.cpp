@@ -28,7 +28,11 @@ GEODE_MEMBER_CHECK(PlayLayer, m_shouldTryToKick, 0x7a8);
 // GameManager
 GEODE_MEMBER_CHECK(GameManager, m_playLayer, 0x180);
 GEODE_MEMBER_CHECK(GameManager, m_levelEditorLayer, 0x188);
-// GEODE_MEMBER_CHECK(GameManager, m_clickedGarage, 0x2a2); // todo: find why this is not 0x2a2
+GEODE_MEMBER_CHECK(GameManager, m_menuLayer, 0x198);
+GEODE_MEMBER_CHECK(GameManager, m_playerUDID, 0x1b8);
+GEODE_MEMBER_CHECK(GameManager, m_playerUserID, 0x1cc);
+GEODE_MEMBER_CHECK(GameManager, m_playerFrame, 0x200);
+GEODE_MEMBER_CHECK(GameManager, m_clickedGarage, 0x2a2); // todo: find why this is not 0x2a2
 
 // GameObject
 GEODE_MEMBER_CHECK(GameObject, m_baseColorID, 0x27c);

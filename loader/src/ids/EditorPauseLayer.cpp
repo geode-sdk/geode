@@ -8,7 +8,7 @@ USE_GEODE_NAMESPACE();
 // (not gonna reinterpret_cast that into the members)
 class GuidelinesButton : public CCMenuItemSpriteExtra {
 protected:
-    bool init() {
+    bool init() override {
         if (!CCMenuItemSpriteExtra::init(
             CCSprite::createWithSpriteFrameName("GJ_audioOffBtn_001.png"),
             nullptr,
@@ -215,8 +215,8 @@ $register_ids(EditorPauseLayer) {
         auto glToggle = GuidelinesButton::create();
         glToggle->setID("guidelines-enable-toggle");
         guidelinesMenu->insertBefore(glToggle, nullptr);
-        m_guidelinesOffButton = m_guidelinesOnButton = glToggle;
-        this->updateSongButton();
+        m_guidelinesOffButton = m_guidelinesOnButton = nullptr;
+        // this->updateSongButton();
 
         guidelinesMenu->setID("guidelines-menu");
         guidelinesMenu->setContentSize({ winSize.width / 2, 50.f });
@@ -246,12 +246,12 @@ $register_ids(EditorPauseLayer) {
             child->setLayoutOptions(
                 AxisLayoutOptions::create()
                     ->setMinScale(.1f)
-                    ->setMaxScale(.6f)
+                    ->setMaxScale(.5f)
                     ->setBreakLine(true)
             );
         }
         menu->setContentSize({ 165.f, 100.f });
-        menu->setPosition(85.f, winSize.height - 55.f);
+        menu->setPosition(75.f, winSize.height - 55.f);
         menu->updateLayout();
     }
 }

@@ -2857,8 +2857,8 @@ class GameManager : GManager {
     LevelEditorLayer* m_levelEditorLayer;
     int m_unknown1;
     MenuLayer* m_menuLayer;
-    bool m_unknownBool2;
-    int m_unknownInt2;
+    bool m_inMenuLayer;
+    void* m_unknownVariable;
     bool m_unknownBool3;
     bool m_unknownPlayLayerBool;
     bool m_unknownBool4;
