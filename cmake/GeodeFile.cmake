@@ -90,11 +90,16 @@ function(setup_geode_mod proname)
     endif()
 
     # Check dependencies using CLI
-    if (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "1.4.0")
+    if (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "2.0.0")
         execute_process(
             COMMAND ${GEODE_CLI} project check ${CMAKE_CURRENT_BINARY_DIR}
                 --externals ${GEODE_MODS_BEING_BUILT}
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        )
+    elseif (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "1.4.0")
+        execute_process(
+            COMMAND ${GEODE_CLI} package setup ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
+                --externals ${GEODE_MODS_BEING_BUILT}
         )
     elseif (MOD_HAS_DEPS)
         message(FATAL_ERROR
@@ -130,7 +135,7 @@ function(setup_geode_mod proname)
             DEPENDS ${proname} ${CMAKE_CURRENT_SOURCE_DIR}/mod.json
             COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR} 
                 --binary $<TARGET_FILE:${proname}> $<TARGET_LINKER_FILE:${proname}>
-                --output $<TARGET_FILE_DIR:${proname}>/${proname}.geode
+                --output ${CMAKE_CURRENT_BINARY_DIR}/${MOD_ID}.geode
                 ${INSTALL_ARG}
             VERBATIM USES_TERMINAL
         )
@@ -139,7 +144,7 @@ function(setup_geode_mod proname)
             DEPENDS ${proname} ${CMAKE_CURRENT_SOURCE_DIR}/mod.json
             COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR} 
                 --binary $<TARGET_FILE:${proname}>
-                --output $<TARGET_FILE_DIR:${proname}>/${proname}.geode
+                --output ${CMAKE_CURRENT_BINARY_DIR}/${MOD_ID}.geode
                 ${INSTALL_ARG}
             VERBATIM USES_TERMINAL
         )
