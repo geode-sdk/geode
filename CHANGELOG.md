@@ -5,7 +5,7 @@
  * Deprecate `file::listFiles` for `file::readDirectory` (9f60091)
  * Fix getting virtual function addresses for CCFileUtils (c183a35)
  * Rename `BasedButtonSprite` sprite names to be more expressive (4d2daec)
- * Fix `typeinfo_cast` causing a crash if passed a `nullptr` on MacOS (860724e)
+ * Fix `typeinfo_cast` causing a crash if passed a `nullptr` on MacOS (d024dbb)
 
 ## v1.0.0-beta.6
 
