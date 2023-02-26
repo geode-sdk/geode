@@ -2121,6 +2121,7 @@ class GJGameLevel : cocos2d::CCNode {
     void dataLoaded(DS_Dictionary* dict) = mac 0x2922f0, win 0xbded0, ios 0x6fca4;
     GJDifficulty getAverageDifficulty() = win 0xbd9b0;
     gd::string getUnpackedLevelDescription() = win 0xbf890;
+    gd::string lengthKeyToString(int key) = win 0xbd910;
 
     static GJGameLevel* getCurrent() {
         auto playLayer = PlayLayer::get();
