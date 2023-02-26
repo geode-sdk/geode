@@ -92,8 +92,9 @@ function(setup_geode_mod proname)
     # Check dependencies using CLI
     if (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "1.4.0")
         execute_process(
-            COMMAND ${GEODE_CLI} package setup ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
+            COMMAND ${GEODE_CLI} project check ${CMAKE_CURRENT_BINARY_DIR}
                 --externals ${GEODE_MODS_BEING_BUILT}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         )
     elseif (MOD_HAS_DEPS)
         message(FATAL_ERROR
