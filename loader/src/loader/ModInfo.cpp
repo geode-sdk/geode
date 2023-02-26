@@ -97,8 +97,7 @@ Result<ModInfo> ModInfo::Impl::createFromSchemaV010(ModJson const& rawJson) {
     root.has("unloadable").into(impl->m_supportsUnloading);
     root.has("early-load").into(impl->m_needsEarlyLoad);
     if (root.has("api")) {
-        // TODO: figure out what got wiped with merge
-        // impl->isAPI = true;
+        impl->m_isAPI = true;
     }
 
     for (auto& dep : root.has("dependencies").iterate()) {
@@ -114,7 +113,7 @@ Result<ModInfo> ModInfo::Impl::createFromSchemaV010(ModJson const& rawJson) {
     }
 
     for (auto& [key, value] : root.has("settings").items()) {
-        GEODE_UNWRAP_INTO(auto sett, Setting::parse(key, value));
+        GEODE_UNWRAP_INTO(auto sett, Setting::parse(key, impl->m_id, value));
         impl->m_settings.push_back({key, sett});
     }
 
@@ -194,11 +193,9 @@ Result<ModInfo> ModInfo::Impl::create(ModJson const& json) {
 
     return Err(
         "[mod.json] targets a version (" + schema.toString() +
-        ") that isn't "
-        "supported by this version (v" +
+        ") that isn't supported by this version (v" +
         LOADER_VERSION_STR +
-        ") of geode. "
-        "This is probably a bug; report it to "
+        ") of geode. This is probably a bug; report it to "
         "the Geode Development Team."
     );
 }

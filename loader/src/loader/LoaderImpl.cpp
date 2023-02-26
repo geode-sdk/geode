@@ -252,13 +252,13 @@ Mod* Loader::Impl::getInstalledMod(std::string const& id) const {
 }
 
 bool Loader::Impl::isModLoaded(std::string const& id) const {
-    return m_mods.count(id) && m_mods.at(id)->isLoaded();
+    return m_mods.count(id) && m_mods.at(id)->isLoaded() && m_mods.at(id)->isEnabled();
 }
 
 Mod* Loader::Impl::getLoadedMod(std::string const& id) const {
     if (m_mods.count(id)) {
         auto mod = m_mods.at(id);
-        if (mod->isLoaded()) {
+        if (mod->isLoaded() && mod->isEnabled()) {
             return mod;
         }
     }
@@ -270,7 +270,7 @@ void Loader::Impl::updateModResources(Mod* mod) {
         return;
     }
 
-    auto searchPath = dirs::getModRuntimeDir() / mod->getID() / "resources";
+    auto searchPath = mod->getResourcesDir();
 
     log::debug("Adding resources for {}", mod->getID());
 

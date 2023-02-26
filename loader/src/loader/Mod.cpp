@@ -1,4 +1,5 @@
 #include <Geode/loader/Mod.hpp>
+#include <Geode/loader/Dirs.hpp>
 #include "ModImpl.hpp"
 
 USE_GEODE_NAMESPACE();
@@ -69,6 +70,10 @@ ghc::filesystem::path Mod::getTempDir() const {
 
 ghc::filesystem::path Mod::getBinaryPath() const {
     return m_impl->getBinaryPath();
+}
+
+ghc::filesystem::path Mod::getResourcesDir() const {
+    return dirs::getModRuntimeDir() / this->getID() / "resources";
 }
 
 Result<> Mod::saveData() {

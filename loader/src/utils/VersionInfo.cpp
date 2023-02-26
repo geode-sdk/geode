@@ -10,31 +10,57 @@ USE_GEODE_NAMESPACE();
 
 // VersionTag
 
-std::optional<VersionTag> geode::versionTagFromString(std::string const& str) {
-    switch (hash(str.c_str())) {
-        case hash("alpha"): return VersionTag::Alpha;
-        case hash("beta"): return VersionTag::Beta;
-        case hash("prerelease"): return VersionTag::Prerelease;
-        default: return std::nullopt;
+Result<VersionTag> VersionTag::parse(std::stringstream& str) {
+    std::string iden;
+    while ('a' <= str.peek() && str.peek() <= 'z') {
+        iden += str.get();
     }
+    if (str.fail()) {
+        return Err("Unable to parse tag");
+    }
+    VersionTag tag = VersionTag::Alpha;
+    switch (hash(iden.c_str())) {
+        case hash("alpha"): tag = VersionTag::Alpha; break;
+        case hash("beta"): tag = VersionTag::Beta; break;
+        case hash("prerelease"): case hash("pr"): tag = VersionTag::Prerelease; break;
+        default: return Err("Invalid tag \"" + iden + "\"");
+    }
+    if (str.peek() == '.') {
+        str.get();
+        size_t num;
+        str >> num;
+        if (str.fail()) {
+            return Err("Unable to parse tag number");
+        }
+        tag.number = num;
+    }
+    return Ok(tag);
 }
 
-std::string geode::versionTagToSuffixString(VersionTag tag) {
-    switch (tag) {
-        case VersionTag::Alpha: return "-alpha";
-        case VersionTag::Beta: return "-beta";
-        case VersionTag::Prerelease: return "-prerelease";
+std::string VersionTag::toSuffixString() const {
+    std::string res = "";
+    switch (value) {
+        case Alpha: res += "-alpha"; break;
+        case Beta: res += "-beta"; break;
+        case Prerelease: res += "-prerelease"; break;
     }
-    return "";
+    if (number) {
+        res += "." + std::to_string(number.value());
+    }
+    return res;
 }
 
-std::string geode::versionTagToString(VersionTag tag) {
-    switch (tag) {
-        case VersionTag::Alpha: return "Alpha";
-        case VersionTag::Beta: return "Beta";
-        case VersionTag::Prerelease: return "Prerelease";
+std::string VersionTag::toString() const {
+    std::string res = "";
+    switch (value) {
+        case Alpha: res += "Alpha"; break;
+        case Beta: res += "Beta"; break;
+        case Prerelease: res += "Prerelease"; break;
     }
-    return "";
+    if (number) {
+        res += " " + std::to_string(number.value());
+    }
+    return res;
 }
 
 // VersionInfo
@@ -77,18 +103,13 @@ Result<VersionInfo> VersionInfo::parse(std::string const& string) {
     std::optional<VersionTag> tag;
     if (str.peek() == '-') {
         str.get();
-        std::string iden;
-        str >> iden;
-        if (str.fail()) {
-            return Err("Unable to parse tag");
-        }
-        if (auto t = versionTagFromString(iden)) {
-            tag = t;
-        }
-        else {
-            return Err("Invalid tag \"" + iden + "\"");
-        }
+        GEODE_UNWRAP_INTO(tag, VersionTag::parse(str));
     }
+
+    if (!str.eof()) {
+        return Err("Expected end of version, found '" + std::string(1, str.get()) + "'");
+    }
+
     return Ok(VersionInfo(major, minor, patch, tag));
 }
 
@@ -97,7 +118,7 @@ std::string VersionInfo::toString(bool includeTag) const {
         return fmt::format(
             "v{}.{}.{}{}",
             m_major, m_minor, m_patch,
-            versionTagToSuffixString(m_tag.value())
+            m_tag.value().toSuffixString()
         );
     }
     return fmt::format("v{}.{}.{}", m_major, m_minor, m_patch);

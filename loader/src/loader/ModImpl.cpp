@@ -689,6 +689,9 @@ Mod* Loader::Impl::createInternalMod() {
     auto& mod = Mod::sharedMod<>;
     if (!mod) {
         mod = new Mod(getModImplInfo());
+        mod->m_impl->m_binaryLoaded = true;
+        mod->m_impl->m_enabled = true;
+        m_mods.insert({ mod->getID(), mod });
     }
     return mod;
 }

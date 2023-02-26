@@ -29,7 +29,11 @@ namespace geode::utils::file {
 
     GEODE_DLL Result<> createDirectory(ghc::filesystem::path const& path);
     GEODE_DLL Result<> createDirectoryAll(ghc::filesystem::path const& path);
+    [[deprecated("Use file::readDirectory")]]
     GEODE_DLL Result<std::vector<ghc::filesystem::path>> listFiles(
+        ghc::filesystem::path const& path, bool recursive = false
+    );
+    GEODE_DLL Result<std::vector<ghc::filesystem::path>> readDirectory(
         ghc::filesystem::path const& path, bool recursive = false
     );
 

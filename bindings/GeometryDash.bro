@@ -296,6 +296,7 @@ class CCCircleWave : cocos2d::CCNode {
     PAD = win 0x4;
     float m_currentRadius;
     float m_currentOpacity;
+    cocos2d::ccColor3B m_color;
     cocos2d::CCPoint m_circleCenter;
     int m_filled;
     int m_lineWidth;
@@ -1120,7 +1121,7 @@ class EditorPauseLayer : CCBlockLayer, FLAlertLayerProtocol {
         if (!EditorUI::get()) return nullptr;
 
         auto editor = LevelEditorLayer::get();
-        for (auto i = 0; i < editor->getChildrenCount(); ++i) {
+        for (auto i = 0u; i < editor->getChildrenCount(); ++i) {
             if (auto layer = cast::safe_cast<EditorPauseLayer*>(editor->getChildren()->objectAtIndex(i))) {
                 return layer;
             }
@@ -1154,6 +1155,8 @@ class EditorPauseLayer : CCBlockLayer, FLAlertLayerProtocol {
     void uncheckAllPortals(cocos2d::CCObject* sender) = win 0x74760;
     void onResetUnusedColors(cocos2d::CCObject* sender) = win 0x74810;
     void doResetUnused() = win 0x165070;
+    void updateSongButton() = win 0x74f10, mac 0x13e530;
+    void onSong(cocos2d::CCObject*) = win 0x74e70, mac 0x13e470;
 
     bool m_saved;
     PAD = mac 0x4, win 0x4;
@@ -2118,6 +2121,7 @@ class GJGameLevel : cocos2d::CCNode {
     void dataLoaded(DS_Dictionary* dict) = mac 0x2922f0, win 0xbded0, ios 0x6fca4;
     GJDifficulty getAverageDifficulty() = win 0xbd9b0;
     gd::string getUnpackedLevelDescription() = win 0xbf890;
+    gd::string lengthKeyToString(int key) = win 0xbd910;
 
     static GJGameLevel* getCurrent() {
         auto playLayer = PlayLayer::get();
@@ -2615,6 +2619,10 @@ class GameLevelManager : cocos2d::CCNode {
     void storeUserNames(gd::string) = win 0xa1840;
     gd::string userNameForUserID(int id) = win 0xa1c20;
     void updateUserScore() = win 0xada60;
+    void downloadLevel(int id, bool downloadData) = win 0xaa730;
+    bool hasDownloadedLevel(int id) = win 0xab830;
+    GJGameLevel* getSavedLevel(int id) = win 0xa2ee0;
+    void saveLevel(GJGameLevel* level) = win 0xa31c0;
 
     inline static GameLevelManager* get() {
         return GameLevelManager::sharedState();
@@ -2800,6 +2808,7 @@ class GameManager : GManager {
     void fadeInMusic(const char*) = mac 0x1c2ff0, win 0xc4bd0;
     void getBGTexture(int) = mac 0x1cca00;
     void getFontFile(int) = mac 0x1cc5f0;
+    void getFontTexture(int) = mac 0x1cc640;
     bool getGameVariable(const char*) = mac 0x1cccd0, win 0xc9d30;
     int getIntGameVariable(const char*) = mac 0x1cd1d0, win 0xca330;
     bool getUGV(const char*) = mac 0x1ccfa0, win 0xca0d0;
@@ -2819,7 +2828,7 @@ class GameManager : GManager {
     void getGTexture(int) = mac 0x1cca40, win 0xc9a50;
     virtual bool init() = mac 0x1c2ec0, win 0xc4ad0;
     void reportAchievementWithID(char const*, int, bool) = mac 0x1c6460, win 0xc64c0;
-    cocos2d::CCSize* resolutionForKey(cocos2d::CCSize*, int) = mac 0x1d0b40, win 0xceca0;
+    cocos2d::CCSize resolutionForKey(int) = mac 0x1d0b40, win 0xceca0;
     virtual void update(float) = mac 0x1d0270, win 0xce440;
     bool isColorUnlocked(int _id, bool _type) = mac 0x1c3b90, win 0xc53f0;
     bool isIconUnlocked(int _id, IconType _type) = mac 0x1c35b0, win 0xc4fc0;
@@ -3270,6 +3279,9 @@ class GameSoundManager : cocos2d::CCNode {
     void asynchronousSetup() = win 0x25520;
     ~GameSoundManager() = mac 0x362c00, win 0x25640;
     static GameSoundManager* sharedManager() = mac 0x3610f0, win 0x24800;
+    inline static GameSoundManager* get() {
+        return GameSoundManager::sharedManager();
+    }
 
     cocos2d::CCDictionary* m_dictionary1;
     cocos2d::CCDictionary* m_dictionary2;
@@ -3727,6 +3739,7 @@ class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDeleg
     void onViewProfile(cocos2d::CCObject* sender) = win 0x17ac90;
     void onLevelInfo(cocos2d::CCObject* sender) = win 0x17acf0;
     void setupProgressBars() = win 0x177fc0;
+    void downloadLevel() = win 0x177d90;
 
     PAD = win 0x4;
     cocos2d::CCMenu* m_playBtnMenu;
@@ -3961,6 +3974,9 @@ class MenuLayer : cocos2d::CCLayer, FLAlertLayerProtocol, GooglePlayDelegate {
     void onYouTube(cocos2d::CCObject*) = win 0x1919A0;
     static cocos2d::CCScene* scene(bool) = mac 0x1d12d0, win 0x190720, ios 0x19e57c;
     static MenuLayer* node() = win 0x190550;
+    inline static MenuLayer* create() {
+        return MenuLayer::node();
+    }
 
     cocos2d::CCSprite* m_googlePlaySprite;
     cocos2d::CCSprite* m_viewProfileInfoText;
@@ -4442,7 +4458,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     bool unk496;
     bool unk497;
     cocos2d::CCArray* unk498;
-    bool unk49C;
+    bool m_unk49C;
     cocos2d::CCPoint m_playerStartPosition;
     int m_currentAttempt;
     int m_jumpCount;
@@ -4561,7 +4577,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     void modeDidChange() = mac 0x22bfd0;
     void placeStreakPoint() = mac 0x21af90, win 0x1f95e0;
     void playBurstEffect() = mac 0x21c780, win 0x1f6790;
-    void playDeathEffect() = mac 0x225930, win 0x2efbe0;
+    void playDeathEffect() = mac 0x225930, win 0x1efbe0;
     void playDynamicSpiderRun() = mac 0x222ec0, win 0x1f9d80;
     void playerDestroyed(bool) = mac 0x2256d0, win 0x1efaa0;
     bool playerIsFalling() = mac 0x21c730, win 0x1f5d60;
@@ -4659,7 +4675,8 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     cocos2d::CCNode* m_unk484;
     cocos2d::CCDictionary* m_collisionLog;
     cocos2d::CCDictionary* m_collisionLog1;
-    PAD = mac 0x38, win 0x20;
+    GameObject* m_collidedSlope;
+    PAD = mac 0x30, win 0x1c;
     bool m_unk4B0;
     cocos2d::CCSprite* m_unk4B4;
     PAD = mac 0x1c, win 0x1c;
@@ -4693,14 +4710,18 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     bool m_unk53D;
     bool m_unk53E;
     bool m_unk53F;
-    PAD = mac 0x10, win 0x10;
+    bool m_isCheckpointQueued;
+    PAD = mac 0xf, win 0xf;
     double m_lastJumpTime;
     double m_unk558;
-    PAD = mac 0x24, win 0x24;
+    double m_unk560;
+    PAD = mac 0x1c, win 0x1c;
     float m_decelerationRate;
-    PAD = mac 0x14, win 0x14;
-    GameObject* m_lastCollidedSolid;
-    PAD = mac 0x10, win 0x8;
+    PAD = mac 0x13, win 0x13;
+    bool m_hasHitRing;
+    GameObject* m_objectSnappedTo;
+    CheckpointObject* m_checkpoint;
+    int m_unknown6a0;
     GJRobotSprite* m_robotSprite;
     GJSpiderSprite* m_spiderSprite;
     bool m_unk5B0;
@@ -4711,7 +4732,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     cocos2d::CCParticleSystemQuad* m_unk5C4;
     cocos2d::CCParticleSystemQuad* m_unk5C8;
     cocos2d::CCParticleSystemQuad* m_unk5CC;
-    PAD = mac 0x8, win 0x4;
+    void* m_unk5D0;
     cocos2d::CCParticleSystemQuad* m_unk5D4;
     cocos2d::CCParticleSystemQuad* m_unk5D8;
     PAD = mac 0x20, win 0x20;
@@ -4720,9 +4741,11 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     // PAD = win 0x10;
     bool m_unk5FC;
     bool m_unk5FD;
-    bool m_unk5FE;
-    PAD = mac 0x11, win 0x11;
-    bool m_unk610;
+    bool m_hasHitPortal;
+    PAD = mac 0xb, win 0xb;
+    bool m_unknown73d;
+    cocos2d::_ccColor3B m_unknown73e;
+    cocos2d::_ccColor3B m_unknown741;
     bool m_isHolding;
     bool m_hasJustHeld;
     bool m_isHolding2;
@@ -4732,8 +4755,8 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     int m_unk620;
     bool m_canRobotJump;
     double m_yAccel;
-    bool m_unk630;
-    bool m_unk631;
+    bool m_isOnSlope;
+    bool m_wasOnSlope;
     float m_unk634;
     bool m_isShip;
     bool m_isBird;

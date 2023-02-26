@@ -79,9 +79,7 @@ void ModListCell::setupInfo(
     this->addChild(versionLabel);
 
     if (auto tag = info.version().getTag()) {
-        auto tagLabel = TagNode::create(
-            versionTagToString(tag.value()).c_str()
-        );
+        auto tagLabel = TagNode::create(tag.value().toString().c_str());
         tagLabel->setAnchorPoint({ .0f, .5f });
         tagLabel->setScale(.3f);
         tagLabel->setPosition(

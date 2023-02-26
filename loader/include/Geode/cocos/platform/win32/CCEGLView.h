@@ -96,18 +96,35 @@ public:
     */
     static CCEGLView* sharedOpenGLView();
 
+    /**
+     * @note Geode addition
+     */
     static GEODE_DLL CCEGLView* get();
 
-    RT_ADD( static CCEGLView* create(const gd::string&);   )
+    /**
+     * @note RobTop addition
+     */
+    static CCEGLView* create(const gd::string&);
 
-    RT_ADD(
-        //actually this is my function but i dont wanna make a new macro for it
-        inline CCPoint getMousePosition() { return { m_fMouseX, m_fMouseY }; }
+    /**
+     * @note Geode addition
+     */
+    inline CCPoint getMousePosition() { return { m_fMouseX, m_fMouseY }; }
 
-        void toggleFullScreen(bool fullscreen);
+    /**
+     * @note RobTop addition
+     */
+    void toggleFullScreen(bool fullscreen);
 
-        GLFWwindow* getWindow(void) const;
-    )
+    /**
+     * @note RobTop addition
+     */
+    GLFWwindow* getWindow(void) const;
+
+    /**
+     * @note RobTop addition
+     */
+    CCSize getDisplaySize();
 
 protected:
 	static CCEGLView* s_pEglView;
