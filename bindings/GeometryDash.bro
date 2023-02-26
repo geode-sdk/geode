@@ -2614,7 +2614,7 @@ class GameLevelManager : cocos2d::CCNode {
     GJGameLevel* getMainLevel(int id, bool unk) = win 0xa0940;
     bool hasLikedItemFullCheck(LikeItemType type, int itemID, int commentSourceID) = mac 0x2d83d0;
     bool hasRatedLevelStars(int levelID) = mac 0x2ca3a0;
-    void ProcessHttpRequest(gd::string, gd::string, gd::string, int) = mac 0x2a8670, win 0x9f8e0;
+    callback void ProcessHttpRequest(gd::string, gd::string, gd::string, int) = mac 0x2a8670, win 0x9f8e0;
     cocos2d::CCDictionary* responseToDict(gd::string response, bool comment) = win 0xbba50;
     void storeUserNames(gd::string) = win 0xa1840;
     gd::string userNameForUserID(int id) = win 0xa1c20;
