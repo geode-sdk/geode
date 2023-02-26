@@ -1,13 +1,188 @@
 #include <Geode/ui/BasedButtonSprite.hpp>
 #include <Geode/loader/Mod.hpp>
+#include <Geode/utils/cocos.hpp>
 
 USE_GEODE_NAMESPACE();
 
-bool BasedButtonSprite::init(CCNode* ontop, int type, int size, int color) {
-    if (!CCSprite::initWithSpriteFrameName(Mod::get()->expandSpriteName(
-        fmt::format("GEODE_blank{:02}_{:02}_{:02}.png", type, size, color).c_str()
-    )))
-        return false;
+const char* geode::baseEnumToString(CircleBaseSize value) {
+    switch (value) {
+        case CircleBaseSize::Tiny: return "Tiny";
+        case CircleBaseSize::Small: return "Small";
+        case CircleBaseSize::SmallAlt: return "SmallAlt";
+        case CircleBaseSize::Medium: return "Medium";
+        case CircleBaseSize::MediumAlt: return "MediumAlt";
+        case CircleBaseSize::Big: return "Big";
+        case CircleBaseSize::BigAlt: return "BigAlt";
+        case CircleBaseSize::Large: return "Large";
+    }
+    return "Unknown";
+}
+
+const char* geode::baseEnumToString(CircleBaseColor value) {
+    switch (value) {
+        case CircleBaseColor::Green: return "Green";
+        case CircleBaseColor::Pink: return "Pink";
+        case CircleBaseColor::Gray: return "Gray";
+        case CircleBaseColor::Blue: return "Blue";
+        case CircleBaseColor::Cyan: return "Cyan";
+        case CircleBaseColor::Geode: return "Geode";
+    }
+    return "Unknown";
+}
+
+const char* geode::baseEnumToString(CrossBaseSize value) {
+    switch (value) {
+        case CrossBaseSize::Small: return "Small";
+        case CrossBaseSize::Huge: return "Huge";
+    }
+    return "Unknown";
+}
+
+const char* geode::baseEnumToString(CrossBaseColor value) {
+    switch (value) {
+        case CrossBaseColor::Green: return "Green";
+    }
+    return "Unknown";
+}
+
+const char* geode::baseEnumToString(AccountBaseSize value) {
+    switch (value) {
+        case AccountBaseSize::Normal: return "Normal";
+    }
+    return "Unknown";
+}
+
+const char* geode::baseEnumToString(AccountBaseColor value) {
+    switch (value) {
+        case AccountBaseColor::Blue: return "Blue";
+        case AccountBaseColor::Gray: return "Gray";
+        case AccountBaseColor::Purple: return "Purple";
+    }
+    return "Unknown";
+}
+
+const char* geode::baseEnumToString(IconSelectBaseSize value) {
+    switch (value) {
+        case IconSelectBaseSize::Normal: return "Normal";
+    }
+    return "Unknown";
+}
+
+const char* geode::baseEnumToString(IconSelectBaseColor value) {
+    switch (value) {
+        case IconSelectBaseColor::Unselected: return "Unselected";
+        case IconSelectBaseColor::Selected: return "Selected";
+    }
+    return "Unknown";
+}
+
+const char* geode::baseEnumToString(EditorBaseSize value) {
+    switch (value) {
+        case EditorBaseSize::Normal: return "Normal";
+    }
+    return "Unknown";
+}
+
+const char* geode::baseEnumToString(EditorBaseColor value) {
+    switch (value) {
+        case EditorBaseColor::LightBlue: return "LightBlue";
+        case EditorBaseColor::Green: return "Green";
+        case EditorBaseColor::Orange: return "Orange";
+        case EditorBaseColor::DarkGray: return "DarkGray";
+        case EditorBaseColor::Gray: return "Gray";
+        case EditorBaseColor::Pink: return "Pink";
+        case EditorBaseColor::Teal: return "Teal";
+        case EditorBaseColor::Aqua: return "Aqua";
+        case EditorBaseColor::Cyan: return "Cyan";
+    }
+    return "Unknown";
+}
+
+const char* geode::baseEnumToString(TabBaseSize value) {
+    switch (value) {
+        case TabBaseSize::Normal: return "Normal";
+    }
+    return "Unknown";
+}
+
+const char* geode::baseEnumToString(TabBaseColor value) {
+    switch (value) {
+        case TabBaseColor::Unselected: return "Unselected";
+        case TabBaseColor::UnselectedDark: return "UnselectedDark";
+        case TabBaseColor::Selected: return "Selected";
+    }
+    return "Unknown";
+}
+
+const char* geode::baseEnumToString(LeaderboardBaseSize value) {
+    switch (value) {
+        case LeaderboardBaseSize::Normal: return "Normal";
+    }
+    return "Unknown";
+}
+
+const char* geode::baseEnumToString(LeaderboardBaseColor value) {
+    switch (value) {
+        case LeaderboardBaseColor::Blue: return "Blue";
+    }
+    return "Unknown";
+}
+
+const char* geode::baseEnumToString(CategoryBaseSize value) {
+    switch (value) {
+        case CategoryBaseSize::Big: return "Big";
+    }
+    return "Unknown";
+}
+
+const char* geode::baseEnumToString(CategoryBaseColor value) {
+    switch (value) {
+        case CategoryBaseColor::Green: return "Green";
+    }
+    return "Unknown";
+}
+
+const char* geode::baseEnumToString(BaseType value) {
+    switch (value) {
+        case BaseType::Circle: return "Circle";
+        case BaseType::Cross: return "Cross";
+        case BaseType::Account: return "Account";
+        case BaseType::IconSelect: return "IconSelect";
+        case BaseType::Leaderboard: return "Leaderboard";
+        case BaseType::Editor: return "Editor";
+        case BaseType::Tab: return "Tab";
+        case BaseType::Category: return "Category";
+    }
+    return "Unknown";
+}
+
+static std::string baseEnumsToString(BaseType type, int size, int color) {
+#define ENUMS_TO_STRING(ty_)    \
+    case BaseType::ty_: {       \
+        sizeStr = baseEnumToString(static_cast<ty_##BaseSize>(size));\
+        colorStr = baseEnumToString(static_cast<ty_##BaseColor>(color));\
+    } break
+
+    const char* typeStr = baseEnumToString(type);
+    const char* sizeStr;
+    const char* colorStr;
+    switch (type) {
+        ENUMS_TO_STRING(Circle);
+        ENUMS_TO_STRING(Cross);
+        ENUMS_TO_STRING(Account);
+        ENUMS_TO_STRING(IconSelect);
+        ENUMS_TO_STRING(Leaderboard);
+        ENUMS_TO_STRING(Editor);
+        ENUMS_TO_STRING(Tab);
+        ENUMS_TO_STRING(Category);
+    }
+    return fmt::format("base{}_{}_{}.png", typeStr, sizeStr, colorStr);
+}
+
+bool BasedButtonSprite::init(CCNode* ontop, BaseType type, int size, int color) {
+    if (!CCSprite::initWithSpriteFrameName(
+        Mod::get()->expandSpriteName(baseEnumsToString(type, size, color).c_str())
+    )) return false;
 
     m_type = type;
     m_size = size;
@@ -15,9 +190,13 @@ bool BasedButtonSprite::init(CCNode* ontop, int type, int size, int color) {
 
     if (ontop) {
         m_onTop = ontop;
-        m_onTop->retain();
-        this->addChild(m_onTop);
         m_onTop->setPosition(this->getContentSize() / 2 + this->getTopOffset());
+        limitNodeSize(
+            m_onTop,
+            m_obContentSize - CCSize(18.f, 18.f),
+            m_onTop->getScale(), .1f
+        );
+        this->addChild(m_onTop);
     }
 
     return true;
@@ -28,7 +207,7 @@ CCPoint BasedButtonSprite::getTopOffset() const {
 }
 
 bool BasedButtonSprite::initWithSprite(
-    char const* sprName, float sprScale, int type, int size, int color
+    char const* sprName, float sprScale, BaseType type, int size, int color
 ) {
     auto spr = CCSprite::create(sprName);
     if (!spr) return false;
@@ -37,7 +216,7 @@ bool BasedButtonSprite::initWithSprite(
 }
 
 bool BasedButtonSprite::initWithSpriteFrameName(
-    char const* sprName, float sprScale, int type, int size, int color
+    char const* sprName, float sprScale, BaseType type, int size, int color
 ) {
     auto spr = CCSprite::createWithSpriteFrameName(sprName);
     if (!spr) return false;
@@ -49,11 +228,9 @@ CCNode* BasedButtonSprite::getTopNode() const {
     return m_onTop;
 }
 
-BasedButtonSprite::~BasedButtonSprite() {
-    CC_SAFE_RELEASE(m_onTop);
-}
+BasedButtonSprite::~BasedButtonSprite() {}
 
-BasedButtonSprite* BasedButtonSprite::create(CCNode* ontop, int type, int size, int color) {
+BasedButtonSprite* BasedButtonSprite::create(CCNode* ontop, BaseType type, int size, int color) {
     auto ret = new BasedButtonSprite();
     if (ret && ret->init(ontop, type, size, color)) {
         ret->autorelease();
@@ -63,98 +240,77 @@ BasedButtonSprite* BasedButtonSprite::create(CCNode* ontop, int type, int size, 
     return nullptr;
 }
 
-EditorButtonSprite* EditorButtonSprite::create(cocos2d::CCNode* top, EditorBaseColor color) {
-    auto ret = new EditorButtonSprite();
-    if (ret && ret->init(top, static_cast<int>(BaseType::Editor), 0, static_cast<int>(color))) {
-        ret->autorelease();
-        return ret;
+#define DECL_BASED_CREATE(ty_) \
+    ty_##ButtonSprite* ty_##ButtonSprite::create(                       \
+        cocos2d::CCNode* top, ty_##BaseColor color, ty_##BaseSize size  \
+    ) {                                                                 \
+        auto ret = new ty_##ButtonSprite();                             \
+        if (ret && ret->init(                                           \
+            top, BaseType::ty_,                                         \
+            static_cast<int>(size), static_cast<int>(color)             \
+        )) {                                                            \
+            ret->autorelease();                                         \
+            return ret;                                                 \
+        }                                                               \
+        CC_SAFE_DELETE(ret);                                            \
+        return nullptr;                                                 \
     }
-    CC_SAFE_DELETE(ret);
-    return nullptr;
-}
 
-EditorButtonSprite* EditorButtonSprite::createWithSprite(
-    char const* sprName, float sprScale, EditorBaseColor color
-) {
-    auto ret = new EditorButtonSprite();
-    if (ret &&
-        ret->initWithSprite(
-            sprName, sprScale, static_cast<int>(BaseType::Editor), 0, static_cast<int>(color)
-        )) {
-        ret->autorelease();
-        return ret;
+#define DECL_BASED_CREATE_WITH_SPRITE(ty_)                  \
+    ty_##ButtonSprite* ty_##ButtonSprite::createWithSprite( \
+        const char* sprName, float sprScale,                \
+        ty_##BaseColor color, ty_##BaseSize size            \
+    ) {                                                     \
+        auto ret = new ty_##ButtonSprite();                 \
+        if (ret && ret->initWithSprite(                     \
+            sprName, sprScale, BaseType::ty_,               \
+            static_cast<int>(size), static_cast<int>(color) \
+        )) {                                                \
+            ret->autorelease();                             \
+            return ret;                                     \
+        }                                                   \
+        CC_SAFE_DELETE(ret);                                \
+        return nullptr;                                     \
     }
-    CC_SAFE_DELETE(ret);
-    return nullptr;
-}
 
-EditorButtonSprite* EditorButtonSprite::createWithSpriteFrameName(
-    char const* sprName, float sprScale, EditorBaseColor color
-) {
-    auto ret = new EditorButtonSprite();
-    if (ret &&
-        ret->initWithSpriteFrameName(
-            sprName, sprScale, static_cast<int>(BaseType::Editor), 0, static_cast<int>(color)
-        )) {
-        ret->autorelease();
-        return ret;
+#define DECL_BASED_CREATE_WITH_SPRITE_FRAME_NAME(ty_)               \
+    ty_##ButtonSprite* ty_##ButtonSprite::createWithSpriteFrameName(\
+        const char* sprName, float sprScale,                        \
+        ty_##BaseColor color, ty_##BaseSize size                    \
+    ) {                                                             \
+        auto ret = new ty_##ButtonSprite();                         \
+        if (ret && ret->initWithSpriteFrameName(                    \
+            sprName, sprScale, BaseType::ty_,                       \
+            static_cast<int>(size), static_cast<int>(color)         \
+        )) {                                                        \
+            ret->autorelease();                                     \
+            return ret;                                             \
+        }                                                           \
+        CC_SAFE_DELETE(ret);                                        \
+        return nullptr;                                             \
     }
-    CC_SAFE_DELETE(ret);
-    return nullptr;
-}
 
-CircleButtonSprite* CircleButtonSprite::create(
-    cocos2d::CCNode* top, CircleBaseColor color, CircleBaseSize size
-) {
-    auto ret = new CircleButtonSprite();
-    if (ret &&
-        ret->init(
-            top, static_cast<int>(BaseType::Circle), static_cast<int>(size), static_cast<int>(color)
-        )) {
-        ret->autorelease();
-        return ret;
-    }
-    CC_SAFE_DELETE(ret);
-    return nullptr;
-}
+#define DECL_BASED_CREATE_FUNS(ty_)                 \
+    DECL_BASED_CREATE(ty_);                         \
+    DECL_BASED_CREATE_WITH_SPRITE(ty_);             \
+    DECL_BASED_CREATE_WITH_SPRITE_FRAME_NAME(ty_);  \
 
-CircleButtonSprite* CircleButtonSprite::createWithSprite(
-    char const* sprName, float sprScale, CircleBaseColor color, CircleBaseSize size
-) {
-    auto ret = new CircleButtonSprite();
-    if (ret &&
-        ret->initWithSprite(
-            sprName, sprScale, static_cast<int>(BaseType::Circle), static_cast<int>(size),
-            static_cast<int>(color)
-        )) {
-        ret->autorelease();
-        return ret;
-    }
-    CC_SAFE_DELETE(ret);
-    return nullptr;
-}
+DECL_BASED_CREATE_FUNS(Circle);
+DECL_BASED_CREATE_FUNS(Cross);
+DECL_BASED_CREATE_FUNS(Account);
+DECL_BASED_CREATE_FUNS(IconSelect);
+DECL_BASED_CREATE_FUNS(Leaderboard);
+DECL_BASED_CREATE_FUNS(Editor);
+DECL_BASED_CREATE_FUNS(Category);
 
-CircleButtonSprite* CircleButtonSprite::createWithSpriteFrameName(
-    char const* sprName, float sprScale, CircleBaseColor color, CircleBaseSize size
-) {
-    auto ret = new CircleButtonSprite();
-    if (ret &&
-        ret->initWithSpriteFrameName(
-            sprName, sprScale, static_cast<int>(BaseType::Circle), static_cast<int>(size),
-            static_cast<int>(color)
-        )) {
-        ret->autorelease();
-        return ret;
-    }
-    CC_SAFE_DELETE(ret);
-    return nullptr;
-}
-
-TabButtonSprite* TabButtonSprite::create(char const* text, TabBaseColor color) {
+TabButtonSprite* TabButtonSprite::create(char const* text, TabBaseColor color, TabBaseSize size) {
     auto ret = new TabButtonSprite();
     auto label = CCLabelBMFont::create(text, "bigFont.fnt");
     label->limitLabelWidth(75.f, .6f, .1f);
-    if (ret && ret->init(label, static_cast<int>(BaseType::Tab), 0, static_cast<int>(color))) {
+    if (ret && ret->init(
+        label, BaseType::Tab, 
+        static_cast<int>(size), static_cast<int>(color)
+    )) {
         ret->autorelease();
         return ret;
     }

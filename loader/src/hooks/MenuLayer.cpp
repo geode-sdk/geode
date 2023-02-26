@@ -67,7 +67,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 			"geode-logo-outline-gold.png"_spr,
 			1.0f,
 			CircleBaseColor::Green,
-			CircleBaseSize::Medium2
+			CircleBaseSize::MediumAlt
 		);
 		auto geodeBtnSelector = &CustomMenuLayer::onGeode;
 		if (!m_fields->m_geodeButton) {
