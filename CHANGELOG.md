@@ -1,7 +1,9 @@
 # Geode Changelog
 
 ## v1.0.0-beta.8
+ * Unload the mod even when first time warning pops up (63b4774)
  * Make log not throw, but warn on invalid format (6aba7cf)
+ * Error when address of a function returns nullptr when hooking (724a9d3)
 
 ## v1.0.0-beta.7
  * Add `Mod::getResourcesDir` for getting the mod resources directory (0055032)
