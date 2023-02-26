@@ -1,5 +1,7 @@
 # Geode Changelog
 
+## v1.0.0-beta.8
+
 ## v1.0.0-beta.7
  * Add `Mod::getResourcesDir` for getting the mod resources directory (0055032)
  * Deprecate `file::listFiles` for `file::readDirectory` (9f60091)
