@@ -13,6 +13,12 @@
         if constexpr (Unique::different<                                                            \
                           Resolve<__VA_ARGS__>::func(&Base::FunctionName_),                         \
                           Resolve<__VA_ARGS__>::func(&Derived::FunctionName_)>()) {                 \
+            if (address<AddressIndex_>() == 0) {                                                    \
+                log::error(                                                                         \
+                    "Address of {} returned nullptr, can't hook", #ClassName_ "::" #FunctionName_   \
+                );                                                                                  \
+                break;                                                                              \
+            }                                                                                       \
             auto hook = Hook::create(                                                               \
                 Mod::get(),                                                                         \
                 reinterpret_cast<void*>(address<AddressIndex_>()),                                  \
@@ -106,7 +112,11 @@ namespace geode::modifier {
     class ModifyDerive {
     public:
         ModifyDerive() {
-            static_assert(alwaysFalse<Derived>, "Modified class not recognized, please include <Geode/modify/ClassName.hpp> to be able to use it.");
+            static_assert(
+                alwaysFalse<Derived>,
+                "Modified class not recognized, please include <Geode/modify/ClassName.hpp> to be "
+                "able to use it."
+            );
         }
     };
 }

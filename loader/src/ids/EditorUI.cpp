@@ -228,7 +228,7 @@ $register_ids(EditorUI) {
         menu->setContentSize({ winSize.width, 50.f });
         menu->setLayout(
             RowLayout::create()
-                ->setGap(0.f)
+                ->setGap(-4.f)
         );
     }
 

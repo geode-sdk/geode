@@ -426,10 +426,6 @@ void LocalModInfoPopup::onEnableMod(CCObject* sender) {
             "need to <cg>restart</c> the game to have it fully unloaded.",
             "OK"
         )->show();
-        if (m_layer) {
-            m_layer->updateAllStates(nullptr);
-        }
-        return;
     }
     if (as<CCMenuItemToggler*>(sender)->isToggled()) {
         auto res = m_mod->loadBinary();

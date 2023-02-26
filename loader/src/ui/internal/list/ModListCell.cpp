@@ -176,10 +176,6 @@ void ModCell::onEnable(CCObject* sender) {
             "need to <cg>restart</c> the game to have it fully unloaded.",
             "OK"
         )->show();
-        if (m_layer) {
-            m_layer->updateAllStates(this);
-        }
-        return;
     }
     if (!as<CCMenuItemToggler*>(sender)->isToggled()) {
         tryOrAlert(m_mod->enable(), "Error enabling mod");

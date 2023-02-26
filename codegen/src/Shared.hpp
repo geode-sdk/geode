@@ -163,7 +163,7 @@ namespace codegen {
                 if (status == BindStatus::Binded) return "x86::Cdecl";
                 else return "x86::Optcall";
             }
-            else if (fn->is_virtual) {
+            else if (fn->is_virtual || fn->is_callback) {
                 return "x86::Thiscall";
             }
             else {
