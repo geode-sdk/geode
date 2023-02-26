@@ -1,5 +1,75 @@
 # Geode Changelog
 
+## v1.0.0-beta.7
+ * Add `Mod::getResourcesDir` for getting the mod resources directory (0055032)
+ * Deprecate `file::listFiles` for `file::readDirectory` (9f60091)
+ * Fix getting virtual function addresses for CCFileUtils (c183a35)
+ * Rename `BasedButtonSprite` sprite names to be more expressive (4d2daec)
+ * Fix `typeinfo_cast` causing a crash if passed a `nullptr` on MacOS (860724e)
+
+## v1.0.0-beta.6
+
+ * Reworked layouts from the ground up - see [the docs page](https://docs.geode-sdk.org/tutorials/layouts) for more information about how the new system works (#137)
+ * Update the IDs for a bunch of layers, aswell as adding some predefined layouts (3f64b98, ef9e741, a78bc0c, cb1a6f1, ea037a9, f7ddf0a, ...)
+ * Add IDs & layouts to `EditorPauseLayer` (12d88ae)
+ * Add `CCNode::insertBefore` and `CCNode::insertAfter` for adding children before/after existing ones (eb10eca, 4613af6)
+ * Add `CCSize::aspect` convenience method
+ * Add `Mod::getResourcesDir` for getting a mod's runtime resources directory (where `[mod.json].resources.files` are placed) (0055032)
+ * Add `Mod::addCustomSetting` for convenience in registering custom settings (7089194)
+ * Add `file::readDirectory` as a sanely named alternative to `file::listFiles` (9f60091)
+ * Move `GEODE_DLL` to the structs themselves in `JsonValidation` (06bc6fd)
+ * Versions now support tag numbers & version tags are now used in comparisons. This change does not affect old betas, which still internally report their version as just `v1.0.0-beta`, but starting with this beta the version is correctly reported as `v1.0.0-beta.6` and correctly compared against other versions (bbbf332)
+ * `Loader::getLoadedMod` and `Loader::isModLoaded` now only return if the mod is also enabled (3222097)
+ * Geode's internal mod representation is now included in the loader's loaded mods list (4261e99)
+ * Fix settings value changes not being broadcast. This causes an API break relating to custom settings; `SettingValue` now requires the owner mod ID in its constructor (7089194)
+ * Fix some warnings (9c9706b, f7bfa21)
+ * Fix `CCNode::swapChildIndices` (ba0851e)
+ * Fix `typeinfo_cast` causing a crash if passed a `nullptr` (f4a3258)
+ * Fix `ranges::reverse` causing UB (ffd50eb)
+ * Other fixes & improvements (cb00c21)
+
+## v1.0.0-beta.5
+
+- Make ModInfo Pimpl 51990ad89b25cecbabaf748a5bcb279227fce090
+- Fix crash with event listeners 1f7d50a9b9140d02f6a9afb97734eb9761b6a0d4
+- Some bindings 4a9f6ba52a3d756d9bc28c1809afc92479783673
+- Make mods binaries not silently fail to load 0eb5f01ca81435cb90f2bc9d8d97a86405dadd1c
+- Assume dependency version is >= comparison by default 41aef57758d7b858d5fa7cb22ab1ffe603ff365f
+- Fix not following thunks 65f2cbb286cc1e5af57e43451862a2233d66453e
+
+## v1.0.0-beta.4
+
+- add some bindings
+- fix macOS libzstd crash
+
+## v1.0.0-beta.3
+
+ - Better support for dependencies with [Geode CLI v1.4.x](https://github.com/geode-sdk/cli/releases/latest): mod dependencies are now automatically installed from the mods index by simply declaring them in your `mod.json`. See [the tutorial page in docs](https://docs.geode-sdk.org/mods/dependencies/) for more (f32aaa8b124bdd040a453bc25d31a4e463cf1309)
+ - The `create_geode_file` CMake function has been replaced by `setup_geode_mod`. The old `create_geode_file` function is still available, but will be deprecated in the future (f32aaa8b124bdd040a453bc25d31a4e463cf1309)
+ - `Result::except` now works with non-copyable types (f32aaa8b124bdd040a453bc25d31a4e463cf1309)
+ - `Zip` and `Unzip` now support in-memory ZIP extraction and creation (f32aaa8b124bdd040a453bc25d31a4e463cf1309)
+ - `ComparableVersionInfo::compare` now always returns false if the major versions are different (f32aaa8b124bdd040a453bc25d31a4e463cf1309)
+ - `ComparableVersionInfo` parsing now expects equal to be marked with a single `=` instead of two (`==v1.2.3` => `=v1.2.3`) (6d3847d9e13fdf69cea0b9a69376ebcd88e71725)
+ - Fix `DS_Dictionary`-related `gd::string` Cocos2d functions not being linked (ab0030136ab8c20731fe768ef5f3b16ae4245583)
+ - `CC_DLL` no longer expands to dllexport/dllimport (ab0030136ab8c20731fe768ef5f3b16ae4245583)
+ - The JSON lib now default constructs to object, hopefully fixing uncaught bugs (30101fc0b5112317aac3c9eeea0aab888ca8b30d)
+ - Something related to codegen and addresser? I have no clue what it does, so you probably won't have either (ae1eb8bb7162342f598e047a459e3808801f731a, 1e9faac5aa5a32b0cb5e6ffaac0c5cbfc217e9cb, fea049cca069a08181ab66cacda6f2417c006a2f, ad261846919e503cc3faf75d777ab2f2882bc6bb, ...)
+ - MacOS minimum version bumped to 10.14 (916f54063008c6bdf892d02f8bcd92b58606817e)
+
+## v1.0.0-beta.2
+
+ * Fixed bug where `Mod::getSavedValue` would cause a crash due to trying operator on a null JSON value (5bbd34c)
+ * Fixed bug where loading would crash if one of the mods' binaries failed to load (ef86ae0)
+
+## v1.0.0-beta.1
+
+ * Switched to [a new custom-built JSON library](https://github.com/geode-sdk/json) to replace `nlohmann::json` for compile-time improvements; if you were using the old JSON library, you can add & link to `nlohmann::json` in your own project, or update to use the new API. (deab672)
+ * Fix resources not being downloaded automatically by using a fallback to latest release (a418828)
+ * Add a new clear instruction popup in case downloading still fails (30dc9ad)
+ * String ID hooks now have higher priority, so they should always be applied regardless of if you call `NodeIDs::provideFor` or not (though it can still be called to absolutely ensure the IDs are there!) (b6a6e4d)
+ * Various internal bugfixes & improvements (ceb02e9, a90b3e1, b00ab40, c644b43)
+
+
 ## v1.0.0-alpha
 
  - Major rework of the entire framework; most notable changes include switching to a whole new hooking framework (TulipHook), simplifying many parts of the framework, and making it production-ready.
