@@ -6,6 +6,10 @@
  * Fix getting virtual function addresses for CCFileUtils (c183a35)
  * Rename `BasedButtonSprite` sprite names to be more expressive (4d2daec)
  * Fix `typeinfo_cast` causing a crash if passed a `nullptr` on MacOS (d024dbb)
+ * Fix settings not getting broadcasted (7089194)
+ * Make `Loader::getLoadedMod` and `Loader::isModLoaded` also check if mod is enabled (3222097)
+ * Display Geode commit hash in the bottom right of the mod info layer (1dfa907)
+ * Fix `EditorPauseLayer` info labels on the top left being too big (f5983a2)
 
 ## v1.0.0-beta.6
 
