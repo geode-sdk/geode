@@ -1,6 +1,7 @@
 # Geode Changelog
 
 ## v1.0.0-beta.8
+ * Make log not throw, but warn on invalid format (6aba7cf)
 
 ## v1.0.0-beta.7
  * Add `Mod::getResourcesDir` for getting the mod resources directory (0055032)
