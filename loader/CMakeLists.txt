@@ -17,6 +17,15 @@ else()
 	set(PROJECT_VERSION_SUFFIX "")
 endif()
 
+# https://stackoverflow.com/a/63924044/9124836
+execute_process(
+	COMMAND git rev-parse --short HEAD
+	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+	OUTPUT_VARIABLE GEODE_COMMIT_HASH
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+	ERROR_QUIET
+)
+
 # Package info file for internal representation
 configure_file(resources/mod.json.in ${CMAKE_CURRENT_SOURCE_DIR}/resources/mod.json)
 file(READ resources/mod.json LOADER_MOD_JSON)
