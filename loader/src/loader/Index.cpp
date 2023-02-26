@@ -135,7 +135,7 @@ static Result<> flattenGithubRepo(ghc::filesystem::path const& dir) {
     // github zipballs have a folder at root, but we already have our 
     // own folder for that so let's just bring everything from that 
     // folder to ours
-    GEODE_UNWRAP_INTO(auto files, file::listFiles(dir));
+    GEODE_UNWRAP_INTO(auto files, file::readDirectory(dir));
     try {
         // only flatten if there is only one file and it's a directory
         if (files.size() == 1 && ghc::filesystem::is_directory(files[0])) {

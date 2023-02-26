@@ -1156,9 +1156,9 @@ class EditorPauseLayer : CCBlockLayer, FLAlertLayerProtocol {
     void doResetUnused() = win 0x165070;
 
     bool m_saved;
-    PAD = mac 0x8, win 0x4;
-    CCMenuItemSpriteExtra* m_button0;
-    CCMenuItemSpriteExtra* m_button1;
+    PAD = mac 0x4, win 0x4;
+    CCMenuItemSpriteExtra* m_guidelinesOffButton;
+    CCMenuItemSpriteExtra* m_guidelinesOnButton;
     LevelEditorLayer* m_editorLayer;
 }
 
