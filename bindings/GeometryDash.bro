@@ -1159,7 +1159,6 @@ class EditorPauseLayer : CCBlockLayer, FLAlertLayerProtocol {
     void onSong(cocos2d::CCObject*) = win 0x74e70, mac 0x13e470;
 
     bool m_saved;
-    PAD = mac 0x4, win 0x4;
     CCMenuItemSpriteExtra* m_guidelinesOffButton;
     CCMenuItemSpriteExtra* m_guidelinesOnButton;
     LevelEditorLayer* m_editorLayer;
