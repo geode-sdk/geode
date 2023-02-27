@@ -1275,6 +1275,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     void alignObjects(cocos2d::CCArray* objs, bool alignY) = mac 0x2cea0, win 0x8f320;
     virtual void scrollWheel(float vertical, float horizontal) = win 0x921d0, mac 0x31370, ios 0x2c4884;
     void createMoveMenu() = mac 0x275e0, win 0x8c0d0;
+    void sliderChanged(cocos2d::CCObject* slider) = win 0x78cc0;
 
     bool m_isPlayingMusic;
     EditButtonBar* m_buttonBar;
