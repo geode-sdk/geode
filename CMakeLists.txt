@@ -15,14 +15,32 @@ string(STRIP "${GEODE_VERSION}" GEODE_VERSION)
 
 # Check if version has a tag like v1.0.0-alpha
 string(FIND ${GEODE_VERSION} "-" GEODE_VERSION_HAS_TAG)
-if (GEODE_VERSION_HAS_TAG)
-	string(REGEX MATCH "[a-z]+[0-9]?$" GEODE_VERSION_TAG ${GEODE_VERSION})
+if (NOT ${GEODE_VERSION_HAS_TAG} EQUAL "-1")
+	string(REGEX MATCH "[a-z]+(\.[0-9]+)?$" GEODE_VERSION_TAG ${GEODE_VERSION})
 	string(SUBSTRING "${GEODE_VERSION}" 0 ${GEODE_VERSION_HAS_TAG} GEODE_VERSION)
+	string(FIND ${GEODE_VERSION_TAG} "." GEODE_VERSION_TAG_HAS_NUMBER)
+
+	# Extract tag type and number from tag
+	if (NOT ${GEODE_VERSION_TAG_HAS_NUMBER} EQUAL "-1")
+		string(SUBSTRING "${GEODE_VERSION_TAG}" 0 ${GEODE_VERSION_TAG_HAS_NUMBER} GEODE_VERSION_TAG_TYPE)
+		math(EXPR GEODE_VERSION_TAG_HAS_NUMBER "${GEODE_VERSION_TAG_HAS_NUMBER} + 1")
+		string(SUBSTRING "${GEODE_VERSION_TAG}" ${GEODE_VERSION_TAG_HAS_NUMBER} -1 GEODE_VERSION_TAG_NUMBER)
+	else()
+		set(GEODE_VERSION_TAG_TYPE "${GEODE_VERSION_TAG}")
+		set(GEODE_VERSION_TAG_NUMBER "")
+	endif()
+
+	# Capitalize first letter of tag type
+	string(SUBSTRING ${GEODE_VERSION_TAG_TYPE} 0 1 FIRST_LETTER)
+	string(TOUPPER ${FIRST_LETTER} FIRST_LETTER)
+	string(REGEX REPLACE "^.(.*)" "${FIRST_LETTER}\\1" GEODE_VERSION_TAG_TYPE "${GEODE_VERSION_TAG_TYPE}")
 else()
 	set(GEODE_VERSION_TAG "")
+	set(GEODE_VERSION_TAG_TYPE "")
+	set(GEODE_VERSION_TAG_NUMBER "")
 endif()
 
-message(STATUS "Version: ${GEODE_VERSION}, tag: ${GEODE_VERSION_TAG}")
+message(STATUS "Version: ${GEODE_VERSION}, tag: ${GEODE_VERSION_TAG} (type: ${GEODE_VERSION_TAG_TYPE}, number: ${GEODE_VERSION_TAG_NUMBER})")
 
 project(geode-sdk VERSION ${GEODE_VERSION} LANGUAGES CXX C)
 
@@ -60,7 +78,7 @@ if (GEODE_DISABLE_FMT_CONSTEVAL)
 	target_compile_definitions(${PROJECT_NAME} INTERFACE -DFMT_CONSTEVAL=)
 endif()
 
-CPMAddPackage("gh:geode-sdk/json#2b76460")
+CPMAddPackage("gh:geode-sdk/json#cef9c64")
 CPMAddPackage("gh:fmtlib/fmt#9.1.0")
 CPMAddPackage("gh:gulrak/filesystem#3e5b930")
 
@@ -87,6 +105,7 @@ ExternalProject_Add(CodegenProject
 	# this should hopefully fix generator cache mismatch between different projects, however
 	# it causes a warning to be shown every time. if you know a better solution please tell us ok thx
 	CONFIGURE_COMMAND ${CMAKE_COMMAND} ${GEODE_CODEGEN_CMAKE_ARGS} -DCMAKE_INSTALL_PREFIX:STRING=${GEODE_CODEGEN_BINARY_OUT} -S <SOURCE_DIR> -B <BINARY_DIR>
+	INSTALL_COMMAND ${CMAKE_COMMAND} --install <BINARY_DIR> --config $<CONFIGURATION>
 )
 
 

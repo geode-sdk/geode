@@ -18,6 +18,9 @@ namespace geode {
     struct JsonMaybeObject;
     struct JsonMaybeValue;
 
+    /**
+     * A Setting for a boolean value. Represented in-game as a simple toggle
+     */
     struct GEODE_DLL BoolSetting final {
         using ValueType = bool;
 
@@ -28,6 +31,10 @@ namespace geode {
         static Result<BoolSetting> parse(JsonMaybeObject& obj);
     };
 
+    /**
+     * A Setting for an integer value. The value can be limited using the min 
+     * and max options
+     */
     struct GEODE_DLL IntSetting final {
         using ValueType = int64_t;
 
@@ -49,6 +56,10 @@ namespace geode {
         static Result<IntSetting> parse(JsonMaybeObject& obj);
     };
 
+    /**
+     * A Setting for a float value. The value can be limited using the min 
+     * and max options
+     */
     struct GEODE_DLL FloatSetting final {
         using ValueType = double;
 
@@ -70,17 +81,27 @@ namespace geode {
         static Result<FloatSetting> parse(JsonMaybeObject& obj);
     };
 
+    /**
+     * A Setting for a string value
+     */
     struct GEODE_DLL StringSetting final {
         using ValueType = std::string;
 
         std::optional<std::string> name;
         std::optional<std::string> description;
         ValueType defaultValue;
+        /**
+         * A regex the string must succesfully match against
+         */
         std::optional<std::string> match;
 
         static Result<StringSetting> parse(JsonMaybeObject& obj);
     };
 
+    /**
+     * A Setting for a file input. Lets the user select a file from their 
+     * local device
+     */
     struct GEODE_DLL FileSetting final {
         using ValueType = ghc::filesystem::path;
         using Filter = utils::file::FilePickOptions::Filter;
@@ -95,6 +116,10 @@ namespace geode {
         static Result<FileSetting> parse(JsonMaybeObject& obj);
     };
 
+    /**
+     * A Setting for an RGB color. See ColorAlphaSetting for a setting that 
+     * also allows customizing alpha
+     */
     struct GEODE_DLL ColorSetting final {
         using ValueType = cocos2d::ccColor3B;
 
@@ -105,6 +130,10 @@ namespace geode {
         static Result<ColorSetting> parse(JsonMaybeObject& obj);
     };
 
+    /**
+     * A Setting for an RGBA color. See ColorSetting for a setting that doesn't 
+     * have alpha
+     */
     struct GEODE_DLL ColorAlphaSetting final {
         using ValueType = cocos2d::ccColor4B;
 
@@ -115,6 +144,11 @@ namespace geode {
         static Result<ColorAlphaSetting> parse(JsonMaybeObject& obj);
     };
 
+    /**
+     * A custom setting, defined by the mod. See 
+     * [the tutorial page](https://docs.geode-sdk.org/mods/settings) for more 
+     * information about how to create custom settings
+     */
     struct GEODE_DLL CustomSetting final {
         std::shared_ptr<ModJson> json;
     };
@@ -130,9 +164,19 @@ namespace geode {
         CustomSetting
     >;
 
+    /**
+     * Represents a saved value for a mod that can be customized by the user 
+     * through an in-game UI. This class is for modeling the setting's 
+     * definition - what values are accepted, its name etc.
+     * See [the tutorial page](https://docs.geode-sdk.org/mods/settings) 
+     * for more information about how settings work
+     * @see SettingValue
+     * @see SettingNode
+     */
     struct GEODE_DLL Setting final {
     private:
         std::string m_key;
+        std::string m_modID;
         SettingKind m_kind;
 
         Setting() = default;
@@ -140,9 +184,14 @@ namespace geode {
     public:
         static Result<Setting> parse(
             std::string const& key,
+            std::string const& mod,
             JsonMaybeValue& obj
         );
-        Setting(std::string const& key, SettingKind const& kind);
+        Setting(
+            std::string const& key,
+            std::string const& mod,
+            SettingKind const& kind
+        );
 
         template<class T>
         std::optional<T> get() {
@@ -156,13 +205,22 @@ namespace geode {
         bool isCustom() const;
         std::string getDisplayName() const;
         std::optional<std::string> getDescription() const;
+        std::string getModID() const;
     };
 
+    /**
+     * Stores the actual, current value of a Setting. See 
+     * [the tutorial page](https://docs.geode-sdk.org/mods/settings) for more 
+     * information, and how to create custom settings
+     */
     class GEODE_DLL SettingValue {
     protected:
         std::string m_key;
+        std::string m_modID;
 
-        SettingValue(std::string const& key);
+        SettingValue(std::string const& key, std::string const& mod);
+
+        void valueChanged();
     
     public:
         virtual ~SettingValue() = default;
@@ -171,6 +229,7 @@ namespace geode {
         virtual SettingNode* createNode(float width) = 0;
 
         std::string getKey() const;
+        std::string getModID() const;
     };
 
     template<class T>
@@ -187,8 +246,8 @@ namespace geode {
         GEODE_DLL Valid toValid(ValueType const& value) const;
 
     public:
-        GeodeSettingValue(std::string const& key, T const& definition)
-          : SettingValue(key),
+        GeodeSettingValue(std::string const& key, std::string const& modID, T const& definition)
+          : SettingValue(key, modID),
             m_definition(definition),
             m_value(definition.defaultValue) {}
 
@@ -200,7 +259,7 @@ namespace geode {
             return m_definition;
         }
         Setting getDefinition() const {
-            return Setting(m_key, m_definition);
+            return Setting(m_key, m_modID, m_definition);
         }
 
         ValueType getValue() const {

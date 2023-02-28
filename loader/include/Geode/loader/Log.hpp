@@ -58,6 +58,44 @@ namespace geode {
             return buf.str();
         }
 
+        // todo: maybe add a debugParse function for these?
+
+        template <class T>
+            requires requires(T t) {
+                parse(t);
+            }
+        std::string parse(std::optional<T> const& thing) {
+            if (thing.has_value()) {
+                return "opt(" + parse(thing.value()) + ")";
+            }
+            return "nullopt";
+        }
+
+        template <class A, class B>
+            requires requires(A a, B b) {
+                parse(a);
+                parse(b);
+            }
+        std::string parse(std::pair<A, B> const& thing) {
+            return "(" + parse(thing.first) + ", " + parse(thing.second) + ")";
+        }
+
+        template <class... T, std::size_t... Is>
+        std::string parseTupleImpl(std::tuple<T...> const& tuple, std::index_sequence<Is...>) {
+            std::string ret = "(";
+            ((ret += (Is == 0 ? "" : ", ") + parse(std::get<Is>(tuple))), ...);
+            ret += ")";
+            return ret;
+        }
+
+        template <class... T>
+            requires requires(T... t) {
+                (parse(t), ...);
+            }
+        std::string parse(std::tuple<T...> const& tuple) {
+            return parseTupleImpl(tuple, std::index_sequence_for<T...> {});
+        }
+
         // Log component system
 
         struct GEODE_DLL ComponentTrait {
@@ -103,7 +141,10 @@ namespace geode {
             Mod* getSender() const;
             Severity getSeverity() const;
 
+            [[deprecated("Will be removed in next version")]]
             void addFormat(std::string_view formatStr, std::span<ComponentTrait*> comps);
+
+            Result<> addFormatNew(std::string_view formatStr, std::span<ComponentTrait*> comps);
         };
 
         class GEODE_DLL Logger {
@@ -134,7 +175,12 @@ namespace geode {
             Log l(m, sev);
 
             std::array<ComponentTrait*, sizeof...(Args)> comps = { static_cast<ComponentTrait*>(new ComponentBase(args))... };
-            l.addFormat(formatStr, comps);
+            auto res = l.addFormatNew(formatStr, comps);
+
+            if (res.isErr()) {
+                internalLog(Severity::Warning, getMod(), "Error parsing log format \"{}\": {}", formatStr, res.unwrapErr());
+                return;
+            }
 
             Logger::push(std::move(l));
         }

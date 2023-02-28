@@ -288,7 +288,7 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
     // Check if a config directory for the mod exists
     if (ghc::filesystem::exists(mod->getConfigDir(false))) {
         auto configSpr = CircleButtonSprite::createWithSpriteFrameName(
-            "pencil.png"_spr, 1.f, CircleBaseColor::Green, CircleBaseSize::Medium2
+            "pencil.png"_spr, 1.f, CircleBaseColor::Green, CircleBaseSize::MediumAlt
         );
         configSpr->setScale(.65f);
 
@@ -366,6 +366,13 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
             m_updateVersionLabel->setPosition(winSize.width / 2 + 35.f, winSize.height / 2 + 75.f);
             m_mainLayer->addChild(m_updateVersionLabel);
         }
+    } else {
+        auto* label = CCLabelBMFont::create(LOADER_COMMIT_HASH, "chatFont.fnt");
+        label->setAnchorPoint(ccp(1, 0));
+        label->setScale(0.775f);
+        label->setPosition(winSize.width - 1.f, 1.f);
+        label->setOpacity(89);
+        m_mainLayer->addChild(label);
     }
 
     // issue report button
@@ -419,10 +426,6 @@ void LocalModInfoPopup::onEnableMod(CCObject* sender) {
             "need to <cg>restart</c> the game to have it fully unloaded.",
             "OK"
         )->show();
-        if (m_layer) {
-            m_layer->updateAllStates(nullptr);
-        }
-        return;
     }
     if (as<CCMenuItemToggler*>(sender)->isToggled()) {
         auto res = m_mod->loadBinary();

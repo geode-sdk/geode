@@ -77,7 +77,7 @@ namespace geode {
     struct JsonMaybeObject;
     struct JsonMaybeValue;
 
-    struct JsonMaybeSomething {
+    struct GEODE_DLL JsonMaybeSomething {
     protected:
         JsonChecker& m_checker;
         json::Value& m_json;
@@ -87,29 +87,29 @@ namespace geode {
         friend struct JsonMaybeObject;
         friend struct JsonMaybeValue;
 
-        GEODE_DLL void setError(std::string const& error);
+        void setError(std::string const& error);
 
     public:
-        GEODE_DLL json::Value& json();
+        json::Value& json();
 
-        GEODE_DLL JsonMaybeSomething(
+        JsonMaybeSomething(
             JsonChecker& checker, json::Value& json, std::string const& hierarchy, bool hasValue
         );
 
-        GEODE_DLL bool isError() const;
-        GEODE_DLL std::string getError() const;
+        bool isError() const;
+        std::string getError() const;
 
-        GEODE_DLL operator bool() const;
+        operator bool() const;
     };
 
-    struct JsonMaybeValue : public JsonMaybeSomething {
+    struct GEODE_DLL JsonMaybeValue : public JsonMaybeSomething {
         bool m_inferType = true;
 
-        GEODE_DLL JsonMaybeValue(
+        JsonMaybeValue(
             JsonChecker& checker, json::Value& json, std::string const& hierarchy, bool hasValue
         );
 
-        GEODE_DLL JsonMaybeSomething& self();
+        JsonMaybeSomething& self();
 
         template <json::Type T>
         JsonMaybeValue& as() {
@@ -124,7 +124,7 @@ namespace geode {
             return *this;
         }
 
-        GEODE_DLL JsonMaybeValue& array();
+        JsonMaybeValue& array();
 
         template <json::Type... T>
         JsonMaybeValue& asOneOf() {
@@ -231,7 +231,7 @@ namespace geode {
             return T();
         }
 
-        GEODE_DLL JsonMaybeObject obj();
+        JsonMaybeObject obj();
 
         template <class T>
         struct Iterator {
@@ -257,46 +257,46 @@ namespace geode {
             }
         };
 
-        GEODE_DLL JsonMaybeValue at(size_t i);
+        JsonMaybeValue at(size_t i);
 
-        GEODE_DLL Iterator<JsonMaybeValue> iterate();
+        Iterator<JsonMaybeValue> iterate();
 
-        GEODE_DLL Iterator<std::pair<std::string, JsonMaybeValue>> items();
+        Iterator<std::pair<std::string, JsonMaybeValue>> items();
     };
 
-    struct JsonMaybeObject : JsonMaybeSomething {
+    struct GEODE_DLL JsonMaybeObject : JsonMaybeSomething {
         std::set<std::string> m_knownKeys;
 
-        GEODE_DLL JsonMaybeObject(
+        JsonMaybeObject(
             JsonChecker& checker, json::Value& json, std::string const& hierarchy, bool hasValue
         );
 
-        GEODE_DLL JsonMaybeSomething& self();
+        JsonMaybeSomething& self();
 
-        GEODE_DLL void addKnownKey(std::string const& key);
+        void addKnownKey(std::string const& key);
 
-        GEODE_DLL json::Value& json();
+        json::Value& json();
 
-        GEODE_DLL JsonMaybeValue emptyValue();
+        JsonMaybeValue emptyValue();
 
-        GEODE_DLL JsonMaybeValue has(std::string const& key);
+        JsonMaybeValue has(std::string const& key);
 
-        GEODE_DLL JsonMaybeValue needs(std::string const& key);
+        JsonMaybeValue needs(std::string const& key);
 
-        GEODE_DLL void checkUnknownKeys();
+        void checkUnknownKeys();
     };
 
-    struct JsonChecker {
+    struct GEODE_DLL JsonChecker {
         std::variant<std::monostate, std::string> m_result;
         json::Value& m_json;
 
-        GEODE_DLL JsonChecker(json::Value& json);
+        JsonChecker(json::Value& json);
 
-        GEODE_DLL bool isError() const;
+        bool isError() const;
 
-        GEODE_DLL std::string getError() const;
+        std::string getError() const;
 
-        GEODE_DLL JsonMaybeValue root(std::string const& hierarchy);
+        JsonMaybeValue root(std::string const& hierarchy);
     };
 
 }

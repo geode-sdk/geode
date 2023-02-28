@@ -23,8 +23,8 @@ protected:
     Icon m_icon;
 
 public:
-    MySettingValue(std::string const& key, Icon icon)
-      : SettingValue(key), m_icon(icon) {}
+    MySettingValue(std::string const& key, std::string const& modID, Icon icon)
+      : SettingValue(key, modID), m_icon(icon) {}
 
     bool load(json::Value const& json) override {
         try {
@@ -151,10 +151,7 @@ struct MyMenuLayer : Modify<MyMenuLayer, MenuLayer> {
 };
 
 $on_mod(Loaded) {
-    Mod::get()->registerCustomSetting(
-        "overcast-skies",
-        std::make_unique<MySettingValue>("overcast-skies", DEFAULT_ICON)
-    );
+    Mod::get()->addCustomSetting<MySettingValue>("overcast-skies", DEFAULT_ICON);
 
     // Dispatcher::get()->addFunction<void(GJGarageLayer*)>("test-garage-open", [](GJGarageLayer*
     // gl) { 	auto label = CCLabelBMFont::create("Dispatcher works!", "bigFont.fnt");

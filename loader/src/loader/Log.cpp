@@ -132,13 +132,20 @@ Severity Log::getSeverity() const {
 }
 
 void Log::addFormat(std::string_view formatStr, std::span<ComponentTrait*> components) {
+    auto res = this->addFormatNew(formatStr, components);
+    if (res.isErr()) {
+        throw std::runtime_error(res.unwrapErr());
+    }
+}
 
+Result<> Log::addFormatNew(std::string_view formatStr, std::span<ComponentTrait*> components) {
     size_t compIndex = 0;
     std::string current;
     for (size_t i = 0; i < formatStr.size(); ++i) {
         if (formatStr[i] == '{') {
-            if (i == formatStr.size() - 1)
-                throw std::runtime_error("Unescaped { at the end of format string");
+            if (i == formatStr.size() - 1) {
+                return Err("Unescaped { at the end of format string");
+            }
             auto const next = formatStr[i + 1];
             if (next == '{') {
                 current.push_back('{');
@@ -146,8 +153,9 @@ void Log::addFormat(std::string_view formatStr, std::span<ComponentTrait*> compo
                 continue;
             }
             if (next == '}') {
-                if (compIndex >= components.size())
-                    throw std::runtime_error("Not enough arguments for format string");
+                if (compIndex >= components.size()) {
+                    return Err("Not enough arguments for format string");
+                }
                 
                 m_components.push_back(new ComponentBase(current));
                 m_components.push_back(components[compIndex++]);
@@ -156,17 +164,18 @@ void Log::addFormat(std::string_view formatStr, std::span<ComponentTrait*> compo
                 ++i;
                 continue;
             }
-            throw std::runtime_error("You put something in between {} silly head");
+            return Err("You put something in between {} silly head");
         }
         if (formatStr[i] == '}') {
-            if (i == formatStr.size() - 1)
-                throw std::runtime_error("Unescaped } at the end of format string");
+            if (i == formatStr.size() - 1) {
+                return Err("Unescaped } at the end of format string");
+            }
             if (formatStr[i + 1] == '}') {
                 current.push_back('}');
                 ++i;
                 continue;
             }
-            throw std::runtime_error("You have an unescaped }");
+            return Err("You have an unescaped }");
         }
 
         current.push_back(formatStr[i]);
@@ -176,9 +185,10 @@ void Log::addFormat(std::string_view formatStr, std::span<ComponentTrait*> compo
         m_components.push_back(new ComponentBase(current));
 
     if (compIndex != components.size()) {
-        throw std::runtime_error("You have left over arguments.. silly head");
-        // show_silly_error(formatStr);
+        return Err("You have left over arguments.. silly head");
     }
+
+    return Ok();
 }
 
 // Logger

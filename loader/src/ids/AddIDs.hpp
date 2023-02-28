@@ -33,10 +33,13 @@ void setIDs(CCNode* node, int startIndex, Args... args) {
 }
 
 static void switchToMenu(CCNode* node, CCMenu* menu) {
+    if (!node || !menu) return;
+    
     auto worldPos = node->getParent()->convertToWorldSpace(node->getPosition());
 
     node->retain();
     node->removeFromParent();
+    node->setZOrder(0);
 
     menu->addChild(node);
     node->setPosition(menu->convertToNodeSpace(worldPos));
@@ -55,6 +58,14 @@ static void switchChildrenToMenu(CCNode* parent, CCMenu* menu, Args... args) {
 
 template <typename T, typename ...Args>
 static CCMenu* detachAndCreateMenu(CCNode* parent, const char* menuID, Layout* layout, T first, Args... args) {
+    if (!first) {
+        auto menu = CCMenu::create();
+        menu->setID(menuID);
+        menu->setLayout(layout);
+        parent->addChild(menu);
+        return menu;
+    }
+
     auto oldMenu = first->getParent();
 
     first->retain();
@@ -64,14 +75,25 @@ static CCMenu* detachAndCreateMenu(CCNode* parent, const char* menuID, Layout* l
     newMenu->setPosition(parent->convertToNodeSpace(oldMenu->convertToWorldSpace(first->getPosition())));
     newMenu->setID(menuID);
     newMenu->setZOrder(oldMenu->getZOrder());
-    newMenu->setLayout(layout);
     parent->addChild(newMenu);
 
     first->setPosition(0, 0);
+    first->setZOrder(0);
     newMenu->addChild(first);
     first->release();
 
     (switchToMenu(args, newMenu), ...);
+    
+    newMenu->setLayout(layout);
 
     return newMenu;
+}
+
+static CCSize getSizeSafe(CCNode* node) {
+    if (node) {
+        return node->getScaledContentSize();
+    }
+    else {
+        return CCSizeZero;
+    }
 }

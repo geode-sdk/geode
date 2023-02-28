@@ -470,7 +470,7 @@ class cocos2d::CCMotionStreak {
 }
 
 class cocos2d::CCMouseDispatcher {
-    bool dispatchScrollMSG(float x, float y);
+    bool dispatchScrollMSG(float x, float y) = mac 0x2e8f40;
     void removeDelegate(cocos2d::CCMouseDelegate* delegate);
 }
 

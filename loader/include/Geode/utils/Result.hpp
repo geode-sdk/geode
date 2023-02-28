@@ -204,6 +204,50 @@ namespace geode {
         [[nodiscard]] constexpr decltype(auto) errorOr(U&& val) const& {
             return this->Base::error_or(std::forward<U>(val));
         }
+
+        /**
+         * Convert the result into an optional containing the value if Ok, and 
+         * nullopt if Err
+         */
+        [[nodiscard]] constexpr decltype(auto) ok() const& {
+            if (this->isOk()) {
+                return std::optional(this->unwrap());
+            }
+            return std::nullopt;
+        }
+
+        /**
+         * Convert the result into an optional containing the value if Ok, and 
+         * nullopt if Err
+         */
+        [[nodiscard]] constexpr decltype(auto) ok() && {
+            if (this->isOk()) {
+                return std::optional(this->unwrap());
+            }
+            return std::nullopt;
+        }
+
+        /**
+         * Convert the result into an optional containing the error if Err, and 
+         * nullopt if Ok
+         */
+        [[nodiscard]] constexpr decltype(auto) err() const& {
+            if (this->isErr()) {
+                return std::optional(this->unwrapErr());
+            }
+            return std::nullopt;
+        }
+
+        /**
+         * Convert the result into an optional containing the error if Err, and 
+         * nullopt if Ok
+         */
+        [[nodiscard]] constexpr decltype(auto) err() && {
+            if (this->isErr()) {
+                return std::optional(this->unwrapErr());
+            }
+            return std::nullopt;
+        }
     };
 
     template <class T = impl::DefaultValue>

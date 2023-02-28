@@ -83,7 +83,16 @@ namespace geode {
         bool wasSuccesfullyLoaded() const;
         ModInfo getModInfo() const;
         ghc::filesystem::path getTempDir() const;
+        /**
+         * Get the path to the mod's platform binary (.dll on Windows, .dylib 
+         * on Mac & iOS, .so on Android)
+         */
         ghc::filesystem::path getBinaryPath() const;
+        /**
+         * Get the path to the mod's runtime resources directory (contains all 
+         * of its resources)
+         */
+        ghc::filesystem::path getResourcesDir() const;
 
         Result<> saveData();
         Result<> loadData();
@@ -102,7 +111,34 @@ namespace geode {
         bool hasSetting(std::string const& key) const;
         std::optional<Setting> getSettingDefinition(std::string const& key) const;
         SettingValue* getSetting(std::string const& key) const;
+
+        /**
+         * Register a custom setting's value class. See Mod::addCustomSetting 
+         * for a convenience wrapper that creates the value in-place to avoid 
+         * code duplication. Also see 
+         * [the tutorial page](https://docs.geode-sdk.org/mods/settings) for 
+         * more information about custom settings
+         * @param key The setting's key
+         * @param value The SettingValue class that shall handle this setting
+         * @see addCustomSetting
+         */
         void registerCustomSetting(std::string const& key, std::unique_ptr<SettingValue> value);
+        /**
+         * Register a custom setting's value class. The new SettingValue class 
+         * will be created in-place using `std::make_unique`. See 
+         * [the tutorial page](https://docs.geode-sdk.org/mods/settings) for 
+         * more information about custom settings
+         * @param key The setting's key
+         * @param value The value of the custom setting
+         * @example
+         * $on_mod(Loaded) {
+         *     Mod::get()->addCustomSetting<MySettingValue>("setting-key", DEFAULT_VALUE);
+         * }
+         */
+        template <class T, class V>
+        void addCustomSetting(std::string const& key, V const& value) {
+            this->registerCustomSetting(key, std::make_unique<T>(key, this->getID(), value));
+        }
 
         json::Value& getSaveContainer();
 

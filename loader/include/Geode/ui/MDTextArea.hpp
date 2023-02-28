@@ -18,7 +18,7 @@ namespace geode {
      *  - Paragraphs
      *  - Code blocks
      *  - Code spans
-     *  - TextArea color tags (<cr>, <cy>, etc.)
+     *  - TextArea color tags (&lt;cr&gt;, &lt;cy&gt;, etc.)
      *  - Strikethrough
      *  - Underline
      *  - Bold & italic

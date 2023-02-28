@@ -79,9 +79,7 @@ void ModListCell::setupInfo(
     this->addChild(versionLabel);
 
     if (auto tag = info.version().getTag()) {
-        auto tagLabel = TagNode::create(
-            versionTagToString(tag.value()).c_str()
-        );
+        auto tagLabel = TagNode::create(tag.value().toString().c_str());
         tagLabel->setAnchorPoint({ .0f, .5f });
         tagLabel->setScale(.3f);
         tagLabel->setPosition(
@@ -178,10 +176,6 @@ void ModCell::onEnable(CCObject* sender) {
             "need to <cg>restart</c> the game to have it fully unloaded.",
             "OK"
         )->show();
-        if (m_layer) {
-            m_layer->updateAllStates(this);
-        }
-        return;
     }
     if (!as<CCMenuItemToggler*>(sender)->isToggled()) {
         tryOrAlert(m_mod->enable(), "Error enabling mod");

@@ -1,8 +1,30 @@
 cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
 
 project(geode-loader VERSION ${GEODE_VERSION} LANGUAGES C CXX)
-set(PROJECT_VERSION_TYPE geode::VersionTag::Beta)
-set(PROJECT_VERSION_SUFFIX -beta)
+if (GEODE_VERSION_TAG_TYPE)
+	if (GEODE_VERSION_TAG_NUMBER)
+		set(PROJECT_VERSION_TAG_CONSTR "geode::VersionTag(geode::VersionTag::${GEODE_VERSION_TAG_TYPE}, ${GEODE_VERSION_TAG_NUMBER})")
+	else()
+		set(PROJECT_VERSION_TAG_CONSTR "geode::VersionTag::${GEODE_VERSION_TAG_TYPE}")
+	endif()
+else()
+	set(PROJECT_VERSION_TAG_CONSTR "std::nullopt")
+endif()
+
+if (GEODE_VERSION_TAG)
+	set(PROJECT_VERSION_SUFFIX "-${GEODE_VERSION_TAG}")
+else()
+	set(PROJECT_VERSION_SUFFIX "")
+endif()
+
+# https://stackoverflow.com/a/63924044/9124836
+execute_process(
+	COMMAND git rev-parse --short HEAD
+	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+	OUTPUT_VARIABLE GEODE_COMMIT_HASH
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+	ERROR_QUIET
+)
 
 # Package info file for internal representation
 configure_file(resources/mod.json.in ${CMAKE_CURRENT_SOURCE_DIR}/resources/mod.json)

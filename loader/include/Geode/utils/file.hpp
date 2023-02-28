@@ -29,7 +29,11 @@ namespace geode::utils::file {
 
     GEODE_DLL Result<> createDirectory(ghc::filesystem::path const& path);
     GEODE_DLL Result<> createDirectoryAll(ghc::filesystem::path const& path);
+    [[deprecated("Use file::readDirectory")]]
     GEODE_DLL Result<std::vector<ghc::filesystem::path>> listFiles(
+        ghc::filesystem::path const& path, bool recursive = false
+    );
+    GEODE_DLL Result<std::vector<ghc::filesystem::path>> readDirectory(
         ghc::filesystem::path const& path, bool recursive = false
     );
 
@@ -183,6 +187,10 @@ namespace geode::utils::file {
         );
     };
 
+    /**
+     * Open a folder / file in the system's file explorer
+     * @param path Folder / file to open
+     */
     GEODE_DLL bool openFolder(ghc::filesystem::path const& path);
 
     enum class PickMode {
@@ -199,10 +207,27 @@ namespace geode::utils::file {
             std::unordered_set<std::string> files;
         };
 
-        ghc::filesystem::path defaultPath;
+        /**
+         * On PickMode::SaveFile and PickMode::OpenFile, last item is assumed 
+         * to be a filename, unless it points to an extant directory.
+         * On PickMode::OpenFolder, path is treated as leading up to a directory
+         */
+        std::optional<ghc::filesystem::path> defaultPath;
+        /**
+         * File extension filters to show on the file picker
+         */
         std::vector<Filter> filters;
     };
 
+    /**
+     * Prompt the user to pick a file using the system's file system picker
+     * @param mode Type of file selection prompt to show
+     * @param options Picker options
+     */
     GEODE_DLL Result<ghc::filesystem::path> pickFile(PickMode mode, FilePickOptions const& options);
+    /**
+     * Prompt the user to pick a bunch of files for opening using the system's file system picker
+     * @param options Picker options
+     */
     GEODE_DLL Result<std::vector<ghc::filesystem::path>> pickFiles(FilePickOptions const& options);
 }

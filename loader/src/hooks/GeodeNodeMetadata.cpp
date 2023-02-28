@@ -20,7 +20,7 @@ private:
     Ref<cocos2d::CCObject> m_userObject;
     std::string m_id = "";
     std::unique_ptr<Layout> m_layout = nullptr;
-    PositionHint m_positionHint = PositionHint::Default;
+    std::unique_ptr<LayoutOptions> m_layoutOptions = nullptr;
     std::unordered_map<std::string, std::any> m_attributes;
 
     friend class ProxyCCNode;
@@ -118,7 +118,13 @@ CCNode* CCNode::getChildByIDRecursive(std::string const& id) {
     return nullptr;
 }
 
-void CCNode::setLayout(Layout* layout, bool apply) {
+void CCNode::setLayout(Layout* layout, bool apply, bool respectAnchor) {
+    if (respectAnchor && this->isIgnoreAnchorPointForPosition()) {
+        for (auto child : CCArrayExt<CCNode>(m_pChildren)) {
+            child->setPosition(child->getPosition() + this->getScaledContentSize());
+        }
+        this->ignoreAnchorPointForPosition(false);
+    }
     GeodeNodeMetadata::set(this)->m_layout.reset(layout);
     if (apply) {
         this->updateLayout();
@@ -129,26 +135,24 @@ Layout* CCNode::getLayout() {
     return GeodeNodeMetadata::set(this)->m_layout.get();
 }
 
-void CCNode::updateLayout() {
-    if (auto layout = GeodeNodeMetadata::set(this)->m_layout.get()) {
-        // nodes with absolute position should never be rearranged
-        auto filtered = CCArray::create();
-        for (auto& child : CCArrayExt<CCNode>(m_pChildren)) {
-            if (child->getPositionHint() != PositionHint::Absolute) {
-                filtered->addObject(child);
-            }
-        }
-        layout->apply(filtered, m_obContentSize);
-        filtered->release();
+void CCNode::setLayoutOptions(LayoutOptions* options, bool apply) {
+    GeodeNodeMetadata::set(this)->m_layoutOptions.reset(options);
+    if (apply && m_pParent) {
+        m_pParent->updateLayout();
     }
 }
 
-void CCNode::setPositionHint(PositionHint hint) {
-    GeodeNodeMetadata::set(this)->m_positionHint = hint;
+LayoutOptions* CCNode::getLayoutOptions() {
+    return GeodeNodeMetadata::set(this)->m_layoutOptions.get();
 }
 
-PositionHint CCNode::getPositionHint() {
-    return GeodeNodeMetadata::set(this)->m_positionHint;
+void CCNode::updateLayout(bool updateChildOrder) {
+    if (updateChildOrder) {
+        this->sortAllChildren();
+    }
+    if (auto layout = GeodeNodeMetadata::set(this)->m_layout.get()) {
+        layout->apply(this);
+    }
 }
 
 void CCNode::setAttribute(std::string const& attr, std::any value) {

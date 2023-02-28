@@ -162,12 +162,15 @@ $register_ids(LevelSettingsLayer) {
                 menu->getChildByID("2-player-toggle")
             );
 
-            detachAndCreateMenu(
+            auto fontButtonMenu = detachAndCreateMenu(
                 this,
                 "font-button-menu",
-                RowLayout::create()->setAlignment(Alignment::End),
+                RowLayout::create()
+                    ->setAxisAlignment(AxisAlignment::End),
                 menu->getChildByID("font-button")
             );
+            fontButtonMenu->setPositionY(fontButtonMenu->getPositionY() - 100.f / 2);
+            fontButtonMenu->setContentSize({ 50.f, 100.f });
         }
     }
 
