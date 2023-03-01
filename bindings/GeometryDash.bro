@@ -5413,9 +5413,9 @@ class LevelTools {
     static bool verifyLevelIntegrity(gd::string, int) = mac 0x294360, win 0x18b180;
     static float xPosForTime(float, cocos2d::CCArray*, int) = mac 0x293d90, win 0x18acd0;
     static float timeForXPos(float, cocos2d::CCArray*, int) = mac 0x293eb0, win 0x18ae70;
-    static std::string getAudioFilename(int) = mac 0x292840;
-    static std::string getAudioTitle(int) = mac 0x2922f0;
-    static std::string getArtistForAudio(int) = mac 0x292d90;
-    static std::string getURLForAudio(int) = mac 0x292f10;
+    static gd::string getAudioFilename(int) = mac 0x292840;
+    static gd::string getAudioTitle(int) = mac 0x2922f0;
+    static gd::string getArtistForAudio(int) = mac 0x292d90;
+    static gd::string getURLForAudio(int) = mac 0x292f10;
 }
 // clang-format on
