@@ -125,6 +125,14 @@ static bool setDefaultPath(
     return true;
 }
 
+static bool setDefaultFile(
+    IFileDialog* dialog,
+    ghc::filesystem::path const& fileName
+) {
+    dialog->SetFileName(fileName.wstring().c_str());
+    return true;
+}
+
 template<class T>
 struct Holder {
     T m_deallocator;
@@ -173,8 +181,24 @@ Result<> nfdPick(
     if (!addFiltersToDialog(dialog, options.filters)) {
         return Err("Unable to add filters to dialog");
     }
-    if (!setDefaultPath(dialog, options.defaultPath)) {
-        return Err("Unable to set default path to dialog");
+    if (options.defaultPath && options.defaultPath.value().wstring().size()) {
+        ghc::filesystem::path path = options.defaultPath.value();
+        if (mode == NFDMode::OpenFile || mode == NFDMode::SaveFile) {
+            if (!ghc::filesystem::exists(path) || !ghc::filesystem::is_directory(path)) {
+                if (path.has_filename()) {
+                    setDefaultFile(dialog, path.filename());
+                }
+                if (path.has_parent_path()) {
+                    path = path.parent_path();
+                }
+                else {
+                    path = "";
+                }
+            }
+        }
+        if (path.wstring().size() && !setDefaultPath(dialog, path)) {
+            return Err("Unable to set default path to dialog");
+        }
     }
 
     if (mode == NFDMode::OpenFiles) {

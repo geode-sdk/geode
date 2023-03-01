@@ -866,7 +866,7 @@ class CreatorLayer : cocos2d::CCLayer {
     void onFameLevels(cocos2d::CCObject*) = win 0x4ee70;
     void onMapPacks(cocos2d::CCObject*) = win 0x4efb0;
     void onOnlineLevels(cocos2d::CCObject*) = win 0x4ef60;
-    void onGauntlets(cocos2d::CCObject*) = win 0x4f0a0;
+    void onGauntlets(cocos2d::CCObject*) = mac 0x142b20, win 0x4f0a0;
     void onSecretVault(cocos2d::CCObject*) = win 0x4f1d0;
     void onTreasureRoom(cocos2d::CCObject*) = win 0x4f540;
     virtual void sceneWillResume() = win 0x4fb50;
@@ -1159,7 +1159,6 @@ class EditorPauseLayer : CCBlockLayer, FLAlertLayerProtocol {
     void onSong(cocos2d::CCObject*) = win 0x74e70, mac 0x13e470;
 
     bool m_saved;
-    PAD = mac 0x4, win 0x4;
     CCMenuItemSpriteExtra* m_guidelinesOffButton;
     CCMenuItemSpriteExtra* m_guidelinesOnButton;
     LevelEditorLayer* m_editorLayer;
@@ -1276,6 +1275,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     void alignObjects(cocos2d::CCArray* objs, bool alignY) = mac 0x2cea0, win 0x8f320;
     virtual void scrollWheel(float vertical, float horizontal) = win 0x921d0, mac 0x31370, ios 0x2c4884;
     void createMoveMenu() = mac 0x275e0, win 0x8c0d0;
+    void sliderChanged(cocos2d::CCObject* slider) = win 0x78cc0;
 
     bool m_isPlayingMusic;
     EditButtonBar* m_buttonBar;
@@ -3476,7 +3476,7 @@ class LeaderboardManagerDelegate {}
 
 class LeaderboardsLayer : cocos2d::CCLayer {
     static LeaderboardsLayer* create(LeaderboardState state) = win 0x158710;
-    bool init(LeaderboardState state) = win 0x1587b0;
+    bool init(LeaderboardState state) = mac 0x29f6d0, win 0x1587b0;
 }
 
 class LevelBrowserLayer : cocos2d::CCLayer {
@@ -3763,7 +3763,7 @@ class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDeleg
 class LevelLeaderboard : FLAlertLayer {
     void onChangeType(cocos2d::CCObject* sender) = win 0x17d090;
     void onGarage(cocos2d::CCObject* sender) = win 0x17d1b0;
-    bool init(GJGameLevel* level, int type) = win 0x17c4f0;
+    bool init(GJGameLevel* level, int type) = mac 0x20d710, win 0x17c4f0;
     static LevelLeaderboard* create(GJGameLevel* level, LevelLeaderboardType leaderboardType) = win 0x17c440;
 }
 
@@ -3929,6 +3929,7 @@ class LocalLevelManager : cocos2d::CCNode {
     inline static LocalLevelManager* get() {
         return LocalLevelManager::sharedState();
     }
+    bool init() = mac 0x2384e0;
 
     PAD = mac 0x10, win 0x1C;
     cocos2d::CCDictionary* m_loadData;
@@ -5406,11 +5407,15 @@ class VideoOptionsLayer : FLAlertLayer {
 }
 
 class LevelTools {
-    static gd::string base64EncodeString(gd::string) = win 0x18b310;
+    static gd::string base64EncodeString(gd::string) = mac 0x294470, win 0x18b310;
     static gd::string base64DecodeString(gd::string) = mac 0x294510, win 0x18b3b0;
-    static GJGameLevel *getLevel(int, bool) = win 0x189370;
-    static bool verifyLevelIntegrity(gd::string, int) = win 0x18b180;
-    static float xPosForTime(float, cocos2d::CCArray*, int) = win 0x18acd0;
-    static float timeForXPos(float, cocos2d::CCArray*, int) = win 0x18ae70;
+    static GJGameLevel* getLevel(int, bool) = mac 0x2908c0, win 0x189370;
+    static bool verifyLevelIntegrity(gd::string, int) = mac 0x294360, win 0x18b180;
+    static float xPosForTime(float, cocos2d::CCArray*, int) = mac 0x293d90, win 0x18acd0;
+    static float timeForXPos(float, cocos2d::CCArray*, int) = mac 0x293eb0, win 0x18ae70;
+    static gd::string getAudioFilename(int) = mac 0x292840;
+    static gd::string getAudioTitle(int) = mac 0x2922f0;
+    static gd::string getArtistForAudio(int) = mac 0x292d90;
+    static gd::string getURLForAudio(int) = mac 0x292f10;
 }
 // clang-format on
