@@ -85,7 +85,7 @@ size_t modifier::getFieldIndexForClass(char const* name) {
 }
 
 size_t modifier::getFieldIndexForClass(size_t hash) {
-	return s_nextIndex[std::string(hash)]++;
+	return s_nextIndex[std::to_string(hash)]++;
 }
 
 // not const because might modify contents
