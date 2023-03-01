@@ -1,9 +1,16 @@
 # Geode Changelog
 
+## v1.0.0-beta.9
+ * Fix multiple modifiers not being able to have fields on same class due to having same field index (7710fa9)
+ * Add `Result::ok` and `Result::err` for converting the `Result` into `std::optional` (4a15afc)
+
 ## v1.0.0-beta.8
  * Unload the mod even when first time warning pops up (63b4774)
- * Make log not throw, but warn on invalid format (6aba7cf)
  * Error when address of a function returns nullptr when hooking (724a9d3)
+ * Add support for Geode CLI v2.0.0 (which has not been released yet) (088ac7b, deadb58)
+ * Logging no longer causes a crash on invalid formats, but instead just warns (6aba7cf)
+ * `file::pickFile` now uses the last item in the default path as the default filename to save/open (5c9ee08)
+ * Fix `EditorPauseLayer` crashing constantly due to some members being accidentally set to `nullptr` (33a91d6)
 
 ## v1.0.0-beta.7
  * Add `Mod::getResourcesDir` for getting the mod resources directory (0055032)
