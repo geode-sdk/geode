@@ -91,7 +91,6 @@ namespace geode::modifier {
             static_cast<Parent*>(parent)->Parent::~Parent();
         }
 
-        template <class = std::enable_if_t<true>>
         operator Parent*() {
             // get the this pointer of the base
             // field intermediate is the first member of Modify
@@ -122,8 +121,6 @@ namespace geode::modifier {
             );
         }
 
-
-        template <class = std::enable_if_t<true>>
         Parent* operator->() {
             return this->operator Parent*();
         }
