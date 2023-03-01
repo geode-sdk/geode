@@ -251,7 +251,7 @@ $register_ids(EditorPauseLayer) {
             );
         }
         menu->setContentSize({ 165.f, 100.f });
-        menu->setPosition(75.f, winSize.height - 55.f);
+        menu->setPosition(70.f, winSize.height - 55.f);
         menu->updateLayout();
     }
 }
