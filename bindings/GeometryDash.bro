@@ -3929,7 +3929,7 @@ class LocalLevelManager : cocos2d::CCNode {
     inline static LocalLevelManager* get() {
         return LocalLevelManager::sharedState();
     }
-    bool init(GJGameLevel* level, int) = mac 0x2384e0;
+    bool init() = mac 0x2384e0;
 
     PAD = mac 0x10, win 0x1C;
     cocos2d::CCDictionary* m_loadData;
@@ -5413,9 +5413,9 @@ class LevelTools {
     static bool verifyLevelIntegrity(gd::string, int) = mac 0x294360, win 0x18b180;
     static float xPosForTime(float, cocos2d::CCArray*, int) = mac 0x293d90, win 0x18acd0;
     static float timeForXPos(float, cocos2d::CCArray*, int) = mac 0x293eb0, win 0x18ae70;
-    static const char* getAudioFilename(LevelTools* self, int) = mac 0x292840;
-    static const char* getAudioTitle(LevelTools* self, int) = mac 0x2922f0;
-    static const char* getArtistForAudio(LevelTools* self, int) = mac 0x292d90;
-    static const char* getURLForAudio(LevelTools* self, int) = mac 0x292f10;
+    static std::string getAudioFilename(int) = mac 0x292840;
+    static std::string getAudioTitle(int) = mac 0x2922f0;
+    static std::string getArtistForAudio(int) = mac 0x292d90;
+    static std::string getURLForAudio(int) = mac 0x292f10;
 }
 // clang-format on
