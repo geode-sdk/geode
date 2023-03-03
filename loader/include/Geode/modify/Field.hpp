@@ -120,6 +120,10 @@ namespace geode::modifier {
                 reinterpret_cast<std::byte*>(offsetField) - sizeof(Intermediate)
             );
         }
+        
+        Parent* self() {
+            return this->operator Parent*();
+        }
 
         Parent* operator->() {
             return this->operator Parent*();
