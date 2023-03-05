@@ -168,7 +168,7 @@ public:
      * @js ctor
      */
     CCSprite(void);
-    GEODE_MONOSTATE_CONSTRUCTOR_COCOS(CCSprite, CCNodeRGBA)
+    GEODE_ZERO_CONSTRUCTOR(CCSprite, CCNodeRGBA)
     
     /**
      * Default destructor

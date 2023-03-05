@@ -47,6 +47,7 @@ class CC_DLL CCString : public CCObject
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_ZERO_CONSTRUCTOR(CCString, CCObject)
     /**
      * @lua NA
      */

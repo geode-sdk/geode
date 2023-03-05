@@ -34,10 +34,7 @@ public:
     static constexpr auto CLASS_NAME = "{class_name}";
 )GEN";
 
-	char const* monostate_constructor = R"GEN(    GEODE_MONOSTATE_CONSTRUCTOR_GD({class_name}, {first_base})
-)GEN";
-
-	char const* monostate_constructor_cutoff = R"GEN(    GEODE_MONOSTATE_CONSTRUCTOR_CUTOFF({class_name}, {first_base})
+	char const* zero_constructor = R"GEN(    GEODE_ZERO_CONSTRUCTOR({class_name}, {first_base})
 )GEN";
 
     char const* function_definition = R"GEN(
@@ -180,9 +177,7 @@ std::string generateBindingHeader(Root& root, ghc::filesystem::path const& singl
         // what.
         if (!cls.superclasses.empty()) {
             single_output += fmt::format(
-                can_find(cls.superclasses[0], "cocos2d") 
-                    ? format_strings::monostate_constructor_cutoff
-                    : format_strings::monostate_constructor,
+                format_strings::zero_constructor,
                 fmt::arg("class_name", cls.name),
                 fmt::arg("first_base", cls.superclasses[0])
             );
