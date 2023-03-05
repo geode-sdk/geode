@@ -16,7 +16,7 @@ if (GEODE_CLI STREQUAL "GEODE_CLI-NOTFOUND")
 else()
     # `geode --version` returns `geode x.x.x\n` so gotta do some wacky shit
     execute_process(
-        COMMAND ${GEODE_CLI} --version
+        COMMAND "${GEODE_CLI}" --version
         OUTPUT_VARIABLE GEODE_CLI_VERSION
     )
     # Remove trailing newline
