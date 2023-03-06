@@ -46,7 +46,7 @@ public:
      * @lua NA
      */
     CCSet(void);
-    GEODE_MONOSTATE_CONSTRUCTOR_COCOS(CCSet, CCObject)
+    GEODE_ZERO_CONSTRUCTOR(CCSet, CCObject)
     /**
      * @lua NA
      */

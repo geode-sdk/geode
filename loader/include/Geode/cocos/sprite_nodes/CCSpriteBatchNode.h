@@ -68,7 +68,7 @@ public:
      *  @js ctor
      */
     CCSpriteBatchNode();
-    GEODE_MONOSTATE_CONSTRUCTOR_COCOS(CCSpriteBatchNode, CCNode)
+    GEODE_ZERO_CONSTRUCTOR(CCSpriteBatchNode, CCNode)
     /**
      * @js NA
      * @lua NA

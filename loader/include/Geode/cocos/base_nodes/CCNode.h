@@ -140,7 +140,7 @@ public:
      * @js ctor
      */
     CCNode(void);
-    GEODE_MONOSTATE_CONSTRUCTOR_COCOS(CCNode, CCObject)
+    GEODE_ZERO_CONSTRUCTOR(CCNode, CCObject)
     
     /**
      * Default destructor
@@ -1638,7 +1638,7 @@ public:
      *  @js ctor
      */
     CCNodeRGBA();
-    GEODE_MONOSTATE_CONSTRUCTOR_COCOS(CCNodeRGBA, CCNode)
+    GEODE_ZERO_CONSTRUCTOR(CCNodeRGBA, CCNode)
     /**
      *  @js NA
      *  @lua NA

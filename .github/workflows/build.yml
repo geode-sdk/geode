@@ -17,7 +17,7 @@ jobs:
           os_identifier: "win"
           os: windows-2019
           prefixes: ''
-          extra_flags: '-G "Visual Studio 16 2019" -T host=x86 -A win32 -DGEODE_DEBUG=On'
+          extra_flags: '-T host=x86 -A win32 -DGEODE_DEBUG=On'
           out_paths: './bin/nightly/Geode.dll ./bin/nightly/GeodeBootstrapper.dll ./bin/nightly/Geode.lib ./bin/nightly/XInput9_1_0.dll'
           cli_cmd: ''
 
@@ -141,5 +141,6 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           files: ./geode-nightly-mac.zip ./geode-nightly-win.zip
-          release: Nightly
+          release: nightly
+          tag: nightly
           prerelease: true

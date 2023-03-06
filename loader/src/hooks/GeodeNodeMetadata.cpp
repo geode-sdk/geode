@@ -79,9 +79,13 @@ struct ProxyCCNode : Modify<ProxyCCNode, CCNode> {
     }
 };
 
-static inline std::unordered_map<size_t, size_t> s_nextIndex;
+static inline std::unordered_map<std::string, size_t> s_nextIndex;
+size_t modifier::getFieldIndexForClass(char const* name) {
+	return s_nextIndex[name]++;
+}
+
 size_t modifier::getFieldIndexForClass(size_t hash) {
-	return s_nextIndex[hash]++;
+	return s_nextIndex[std::to_string(hash)]++;
 }
 
 // not const because might modify contents

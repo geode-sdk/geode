@@ -69,28 +69,21 @@ namespace cocos2d::extension {}
 #define GEODE_EXPAND(x) x
 #define GEODE_INVOKE(macro, ...) GEODE_EXPAND(macro(__VA_ARGS__))
 
-#define GEODE_FILL_CONSTRUCTOR(Class_, Offset_)                                                     \
-    Class_(std::monostate, size_t fill) :                                                           \
-        Class_({}, std::memset(reinterpret_cast<std::byte*>(this) + Offset_, 0, fill - Offset_)) {} \
-    Class_(std::monostate, void*)
+namespace geode {
+    struct ZeroConstructorType {};
 
-#define GEODE_MONOSTATE_CONSTRUCTOR_BEGIN(Class_)    \
-    GEODE_MACOS(GEODE_FILL_CONSTRUCTOR(Class_, 0){}) \
-    GEODE_IOS(GEODE_FILL_CONSTRUCTOR(Class_, 0){})
+    static constexpr auto ZeroConstructor = ZeroConstructorType();
+}
 
-#define GEODE_MONOSTATE_CONSTRUCTOR_COCOS(Class_, Base_)                 \
-    GEODE_MACOS(Class_(std::monostate, size_t fill) : Base_({}, fill){}) \
-    GEODE_IOS(Class_(std::monostate, size_t fill) : Base_({}, fill){})
+#define GEODE_ZERO_CONSTRUCTOR_BEGIN(Class_)                                              \
+    Class_(geode::ZeroConstructorType, void*) {}                                          \
+    Class_(geode::ZeroConstructorType, size_t fill) :                                     \
+        Class_(geode::ZeroConstructor, std::memset(static_cast<void*>(this), 0, fill)) {} \
+    Class_(geode::ZeroConstructorType) : Class_(geode::ZeroConstructor, nullptr) {}
 
-#define GEODE_MONOSTATE_CONSTRUCTOR_GD(Class_, Base_)                      \
-    GEODE_WINDOWS(Class_(std::monostate, size_t fill) : Base_({}, fill){}) \
-    GEODE_MACOS(Class_(std::monostate, size_t fill) : Base_({}, fill){})   \
-    GEODE_IOS(Class_(std::monostate, size_t fill) : Base_({}, fill){})
-
-#define GEODE_MONOSTATE_CONSTRUCTOR_CUTOFF(Class_, Base_)                    \
-    GEODE_WINDOWS(GEODE_FILL_CONSTRUCTOR(Class_, sizeof(Base_)) : Base_(){}) \
-    GEODE_MACOS(Class_(std::monostate, size_t fill) : Base_({}, fill){})     \
-    GEODE_IOS(Class_(std::monostate, size_t fill) : Base_({}, fill){})
+#define GEODE_ZERO_CONSTRUCTOR(Class_, Base_)                                                \
+    Class_(geode::ZeroConstructorType, size_t fill) : Base_(geode::ZeroConstructor, fill) {} \
+    Class_(geode::ZeroConstructorType) : Base_(geode::ZeroConstructor, sizeof(Class_)) {}
 
 #define GEODE_NUMBER_OF_ARGS(...) \
     GEODE_EXPAND(GEODE_NUMBER_OF_ARGS_(__VA_ARGS__, GEODE_NUMBER_SEQUENCE(), ))

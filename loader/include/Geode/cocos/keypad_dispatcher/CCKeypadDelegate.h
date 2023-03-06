@@ -59,7 +59,7 @@ class CC_DLL CCKeypadHandler : public CCObject
 {
     GEODE_FRIEND_MODIFY
 public:
-	GEODE_MONOSTATE_CONSTRUCTOR_COCOS(CCKeypadHandler, CCObject)
+	GEODE_ZERO_CONSTRUCTOR(CCKeypadHandler, CCObject)
 	inline CCKeypadHandler() = default;
     virtual ~CCKeypadHandler(void);
 
