@@ -139,7 +139,7 @@ public:
      *  @js ctor
      */
     CCControl();
-    GEODE_ZERO_CONSTRUCTOR(CCControl, CCLayerRGBA)
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCControl, CCLayerRGBA)
     
     virtual bool init(void);
     /**

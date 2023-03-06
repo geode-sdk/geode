@@ -46,7 +46,7 @@ public:
      @js ctor
      */
     CCImage();
-    GEODE_ZERO_CONSTRUCTOR(CCImage, CCObject)
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCImage, CCObject)
     /**
      * @js NA
      * @lua NA

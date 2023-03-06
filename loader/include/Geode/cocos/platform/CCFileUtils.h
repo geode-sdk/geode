@@ -53,7 +53,7 @@ class CC_DLL CCFileUtils : public TypeInfo
     friend class CCDictionary;
 public:
 
-    GEODE_ZERO_CONSTRUCTOR_BEGIN(CCFileUtils) 
+    GEODE_CUSTOM_CONSTRUCTOR_BEGIN(CCFileUtils) 
     /**
      *  Returns an unique ID for this class.
      *  @note It's only used for JSBindings now.

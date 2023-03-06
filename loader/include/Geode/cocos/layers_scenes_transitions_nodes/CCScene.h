@@ -63,7 +63,7 @@ public:
      *  @js ctor
      */
     CCScene();
-    GEODE_ZERO_CONSTRUCTOR(CCScene, CCNode)
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCScene, CCNode)
     /**
      *  @js NA
      *  @lua NA

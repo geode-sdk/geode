@@ -58,7 +58,7 @@ public:
         virtual void setColorValue(ccColor3B const&);
     )
 
-    GEODE_ZERO_CONSTRUCTOR(CCControlColourPicker, CCControl)
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCControlColourPicker, CCControl)
     CCControlColourPicker();
     virtual ~CCControlColourPicker();
 

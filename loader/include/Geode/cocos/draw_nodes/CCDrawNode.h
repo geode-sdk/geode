@@ -94,7 +94,7 @@ public:
     void setBlendFunc(const ccBlendFunc &blendFunc);
     
     CCDrawNode();
-    GEODE_ZERO_CONSTRUCTOR(CCDrawNode, CCNodeRGBA)
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCDrawNode, CCNodeRGBA)
 
     /** listen the event that coming to foreground on Android  
      * @js NA

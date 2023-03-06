@@ -121,7 +121,7 @@ public:
      *  @js ctor
      */
     CCDirector(void);
-    GEODE_ZERO_CONSTRUCTOR(CCDirector, CCObject)
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCDirector, CCObject)
     /**
      *  @js NA
      *  @lua NA
