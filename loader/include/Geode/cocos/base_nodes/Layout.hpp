@@ -234,7 +234,8 @@ protected:
         CCNode* on, CCArray* nodes,
         std::pair<int, int> const& minMaxPrios,
         bool doAutoScale,
-        float scale, float squish, int prio
+        float scale, float squish, int prio,
+        size_t depth
     ) const;
 
     AxisLayout(Axis);

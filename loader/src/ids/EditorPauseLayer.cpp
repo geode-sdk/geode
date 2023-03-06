@@ -237,6 +237,7 @@ $register_ids(EditorPauseLayer) {
             ->setAxisAlignment(AxisAlignment::End)
             ->setAxisReverse(true)
             ->setCrossAxisOverflow(false)
+            ->setCrossAxisAlignment(AxisAlignment::Start)
             ->setCrossAxisLineAlignment(AxisAlignment::Start),
         this->getChildByID("object-count-label"),
         this->getChildByID("length-label"),
@@ -250,8 +251,8 @@ $register_ids(EditorPauseLayer) {
                     ->setBreakLine(true)
             );
         }
-        menu->setContentSize({ 165.f, 100.f });
-        menu->setPosition(70.f, winSize.height - 55.f);
+        menu->setContentSize({ 180.f, 100.f });
+        menu->setPosition(100.f, winSize.height - 55.f);
         menu->updateLayout();
     }
 }
