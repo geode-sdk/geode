@@ -878,6 +878,13 @@ class CurrencyRewardLayer : cocos2d::CCLayer {
     inline CurrencyRewardLayer() {}
     ~CurrencyRewardLayer() = mac 0x447950, win 0x4ffb0;
     virtual void update(float) = mac 0x44a5c0, win 0x52350;
+
+    static CurrencyRewardLayer* create(
+        int, int, int,
+        CurrencySpriteType, int,
+        CurrencySpriteType, int,
+        cocos2d::CCPoint, CurrencyRewardType, float
+    ) = win 0x50050;
 }
 
 class CurrencyRewardDelegate {
@@ -4284,7 +4291,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     void shouldBlend(int) = mac 0x771b0;
     void showCompleteEffect() = mac 0x738e0, win 0x1fe060;
     void showCompleteText() = mac 0x73be0, win 0x1fda90;
-    void showEndLayer() = mac 0x74450;
+    void showEndLayer() = mac 0x74450, win 0x1ffd00;
     void showHint() = mac 0x7deb0;
     void showNewBest(bool, int, int, bool, bool, bool) = mac 0x74580, win 0x1fe3a0;
     void showRetryLayer() = mac 0x75ba0;

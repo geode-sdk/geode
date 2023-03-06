@@ -122,6 +122,14 @@ enum class BoomListType {
     Artist = 0x14,
 };
 
+enum class CurrencySpriteType {
+    // todo
+};
+
+enum class CurrencyRewardType {
+    // todo
+};
+
 enum class MenuAnimationType {
     Scale = 0,
     Move = 1,
