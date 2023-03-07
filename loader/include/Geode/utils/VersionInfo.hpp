@@ -78,28 +78,28 @@ namespace geode {
     };
 
     constexpr bool operator<(std::optional<VersionTag> const& a, std::optional<VersionTag> const& b) {
-        if (a && b) return a < b;
+        if (a && b) return *a < *b;
         if (a) return true;
         if (b) return false;
         return false;
     }
 
     constexpr bool operator<=(std::optional<VersionTag> const& a, std::optional<VersionTag> const& b) {
-        if (a && b) return a <= b;
+        if (a && b) return *a <= *b;
         if (a) return true;
         if (b) return false;
         return true;
     }
 
     constexpr bool operator>(std::optional<VersionTag> const& a, std::optional<VersionTag> const& b) {
-        if (a && b) return a > b;
+        if (a && b) return *a > *b;
         if (a) return false;
         if (b) return true;
         return false;
     }
 
     constexpr bool operator>=(std::optional<VersionTag> const& a, std::optional<VersionTag> const& b) {
-        if (a && b) return a >= b;
+        if (a && b) return *a >= *b;
         if (a) return false;
         if (b) return true;
         return true;
