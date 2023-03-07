@@ -331,9 +331,14 @@ namespace geode {
         bool operator<(Ref<T> const& other) const {
             return m_obj < other.m_obj;
         }
-
+        bool operator<=(Ref<T> const& other) const {
+            return m_obj <= other.m_obj;
+        }
         bool operator>(Ref<T> const& other) const {
             return m_obj > other.m_obj;
+        }
+        bool operator>=(Ref<T> const& other) const {
+            return m_obj >= other.m_obj;
         }
     };
 

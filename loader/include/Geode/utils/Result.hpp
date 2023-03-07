@@ -209,9 +209,9 @@ namespace geode {
          * Convert the result into an optional containing the value if Ok, and 
          * nullopt if Err
          */
-        [[nodiscard]] constexpr decltype(auto) ok() const& {
+        [[nodiscard]] constexpr std::optional<T> ok() const& {
             if (this->isOk()) {
-                return std::optional(this->unwrap());
+                return this->unwrap();
             }
             return std::nullopt;
         }
@@ -220,9 +220,9 @@ namespace geode {
          * Convert the result into an optional containing the value if Ok, and 
          * nullopt if Err
          */
-        [[nodiscard]] constexpr decltype(auto) ok() && {
+        [[nodiscard]] constexpr std::optional<T> ok() && {
             if (this->isOk()) {
-                return std::optional(this->unwrap());
+                return this->unwrap();
             }
             return std::nullopt;
         }
@@ -231,9 +231,9 @@ namespace geode {
          * Convert the result into an optional containing the error if Err, and 
          * nullopt if Ok
          */
-        [[nodiscard]] constexpr decltype(auto) err() const& {
+        [[nodiscard]] constexpr std::optional<E> err() const& {
             if (this->isErr()) {
-                return std::optional(this->unwrapErr());
+                return this->unwrapErr();
             }
             return std::nullopt;
         }
@@ -242,9 +242,9 @@ namespace geode {
          * Convert the result into an optional containing the error if Err, and 
          * nullopt if Ok
          */
-        [[nodiscard]] constexpr decltype(auto) err() && {
+        [[nodiscard]] constexpr std::optional<E> err() && {
             if (this->isErr()) {
-                return std::optional(this->unwrapErr());
+                return this->unwrapErr();
             }
             return std::nullopt;
         }
