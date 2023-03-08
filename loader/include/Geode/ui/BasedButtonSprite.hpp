@@ -158,6 +158,7 @@ namespace geode {
         );
 
         cocos2d::CCPoint getTopOffset() const;
+        virtual cocos2d::CCSize getMaxTopSize() const;
 
         virtual ~BasedButtonSprite();
 
@@ -316,6 +317,7 @@ namespace geode {
             EditorBaseColor color = EditorBaseColor::Green,
             EditorBaseSize size = EditorBaseSize::Normal
         );
+        cocos2d::CCSize getMaxTopSize() const override;
     };
 
     /**

@@ -191,15 +191,15 @@ bool BasedButtonSprite::init(CCNode* ontop, BaseType type, int size, int color) 
     if (ontop) {
         m_onTop = ontop;
         m_onTop->setPosition(this->getContentSize() / 2 + this->getTopOffset());
-        limitNodeSize(
-            m_onTop,
-            m_obContentSize - CCSize(18.f, 18.f),
-            m_onTop->getScale(), .1f
-        );
+        limitNodeSize(m_onTop, this->getMaxTopSize(), m_onTop->getScale(), .1f);
         this->addChild(m_onTop);
     }
 
     return true;
+}
+
+CCSize BasedButtonSprite::getMaxTopSize() const {
+    return m_obContentSize - CCSize(18.f, 18.f);
 }
 
 CCPoint BasedButtonSprite::getTopOffset() const {
@@ -302,6 +302,10 @@ DECL_BASED_CREATE_FUNS(IconSelect);
 DECL_BASED_CREATE_FUNS(Leaderboard);
 DECL_BASED_CREATE_FUNS(Editor);
 DECL_BASED_CREATE_FUNS(Category);
+
+CCSize EditorButtonSprite::getMaxTopSize() const {
+    return m_obContentSize - CCSize { 8.f, 8.f };
+}
 
 TabButtonSprite* TabButtonSprite::create(char const* text, TabBaseColor color, TabBaseSize size) {
     auto ret = new TabButtonSprite();
