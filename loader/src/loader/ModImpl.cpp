@@ -500,7 +500,7 @@ Result<> Mod::Impl::enableHook(Hook* hook) {
     auto res = hook->enable();
     if (res) m_hooks.push_back(hook);
     else {
-        log::error("Can't enable hook {} for mod {}: {}", m_info.id(), res.unwrapErr());
+        log::error("Can't enable hook {} for mod {}: {}", hook->getDisplayName(), m_info.id(), res.unwrapErr());
     }
 
     return res;
