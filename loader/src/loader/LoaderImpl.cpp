@@ -42,6 +42,9 @@ void Loader::Impl::createDirectories() {
     ghc::filesystem::create_directory(dirs::getSaveDir());
 #endif
 
+    // try deleting geode/unzipped if it already exists
+    try { ghc::filesystem::remove_all(dirs::getModRuntimeDir()); } catch(...) {}
+
     ghc::filesystem::create_directories(dirs::getGeodeResourcesDir());
     ghc::filesystem::create_directory(dirs::getModConfigDir());
     ghc::filesystem::create_directory(dirs::getModsDir());
