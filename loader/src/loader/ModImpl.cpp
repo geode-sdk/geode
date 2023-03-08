@@ -356,7 +356,9 @@ Result<> Mod::Impl::enable() {
     }
 
     for (auto const& hook : m_hooks) {
-        GEODE_UNWRAP(this->enableHook(hook));
+        if (hook->getAutoEnable()) {
+            GEODE_UNWRAP(this->enableHook(hook));
+        }
     }
 
     for (auto const& patch : m_patches) {

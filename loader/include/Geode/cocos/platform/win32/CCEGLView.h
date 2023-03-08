@@ -45,6 +45,7 @@ protected:
     RT_ADD( virtual ~CCEGLView(); )
 public:
     CCEGLView();
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEGLView, CCObject)
     RT_REMOVE(  virtual ~CCEGLView();   )
 
     /* override functions */

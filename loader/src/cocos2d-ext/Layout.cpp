@@ -9,6 +9,9 @@ USE_GEODE_NAMESPACE();
 
 #pragma warning(disable: 4273)
 
+// if 5k iterations isn't enough to fit the layout, then something is wrong
+static size_t RECURSION_DEPTH_LIMIT = 5000;
+
 void CCNode::swapChildIndices(CCNode* first, CCNode* second) {
     m_pChildren->exchangeObject(first, second);
     std::swap(first->m_nZOrder, second->m_nZOrder);
@@ -277,11 +280,10 @@ AxisLayout::Row* AxisLayout::fitInRow(
             // also force at least one object to be added to this row, because if 
             // it's too large for this row it's gonna be too large for all rows
             if (
-                m_growCrossAxis && ((
+                m_growCrossAxis && (
                     (nextAxisScalableLength + nextAxisUnscalableLength > available.axisLength) && 
-                    ix != 0 &&
-                    !isOptsSameLine(opts)
-                ))
+                    ix != 0 && !isOptsSameLine(opts)
+                )
             ) {
                 break;
             }
@@ -323,16 +325,17 @@ AxisLayout::Row* AxisLayout::fitInRow(
         nodes->removeFirstObject();
     }
 
-    auto scaleDownFactor = scale - .025f;
+    // todo: make this calculation more smart to avoid so much unnecessary recursion
+    auto scaleDownFactor = scale - .0125f;
     auto squishFactor = available.axisLength / (axisUnsquishedLength + .01f) * squish;
 
     // calculate row scale, squish, and prio
     int tries = 1000;
     while (axisLength > available.axisLength) {
         if (this->canTryScalingDown(
-            res, prio, scale, scale - .025f, minMaxPrios
+            res, prio, scale, scale - .0125f, minMaxPrios
         )) {
-            scale -= .025f;
+            scale -= .0125f;
         }
         else {
             squish = available.axisLength / (axisUnsquishedLength + .01f) * squish;
@@ -366,7 +369,6 @@ AxisLayout::Row* AxisLayout::fitInRow(
         // the .01f is because floating point arithmetic is imprecise and you 
         // end up in a situation where it confidently tells you that
         // 241 > 241 == true
-        // todo: make this calculation more smart to avoid so much unnecessary recursion
         scaleDownFactor,
         // how much should the nodes be squished to fit the next item in this 
         // row
@@ -389,9 +391,9 @@ bool AxisLayout::canTryScalingDown(
         // if the scale is less than the lowest min scale allowed, then 
         // trying to scale will have no effect and not help anywmore
         crossScaleDownFactor < minScaleForPrio ||
-        // if the scale down factor is the same as before, then we've 
-        // entered an infinite loop
-        crossScaleDownFactor == scale
+        // if the scale down factor is really close to the same as before, 
+        // then we've entered an infinite loop (float == float is unreliable)
+        (fabsf(crossScaleDownFactor - scale) < .001f)
     ) {
         // is there still some lower priority nodes we could try scaling?
         if (prio > minMaxPrios.first) {
@@ -414,6 +416,7 @@ bool AxisLayout::canTryScalingDown(
     // otherwise scale as usual
     else {
         attemptRescale = true;
+        scale = crossScaleDownFactor;
     }
     return attemptRescale;
 }
@@ -422,7 +425,8 @@ void AxisLayout::tryFitLayout(
     CCNode* on, CCArray* nodes,
     std::pair<int, int> const& minMaxPrios,
     bool doAutoScale,
-    float scale, float squish, int prio
+    float scale, float squish, int prio,
+    size_t depth
 ) const {
     // where do all of these magical calculations come from?
     // idk i got tired of doing the math but they work so ¯\_(ツ)_/¯ 
@@ -447,13 +451,13 @@ void AxisLayout::tryFitLayout(
         rows->addObject(row);
         if (
             row->nextOverflowScaleDownFactor > crossScaleDownFactor &&
-            row->nextOverflowScaleDownFactor <= scale
+            row->nextOverflowScaleDownFactor < scale
         ) {
             crossScaleDownFactor = row->nextOverflowScaleDownFactor;
         }
         if (
             row->nextOverflowSquishFactor > crossSquishFactor &&
-            row->nextOverflowSquishFactor <= squish
+            row->nextOverflowSquishFactor < squish
         ) {
             crossSquishFactor = row->nextOverflowSquishFactor;
         }
@@ -484,7 +488,8 @@ void AxisLayout::tryFitLayout(
     if (
         !m_allowCrossAxisOverflow && 
         doAutoScale && 
-        totalRowCrossLength > available.crossLength
+        totalRowCrossLength > available.crossLength && 
+        depth < RECURSION_DEPTH_LIMIT
     ) {
         if (this->canTryScalingDown(
             nodes, prio, scale, crossScaleDownFactor, minMaxPrios
@@ -493,7 +498,8 @@ void AxisLayout::tryFitLayout(
             return this->tryFitLayout(
                 on, nodes,
                 minMaxPrios, doAutoScale,
-                scale, squish, prio
+                scale, squish, prio,
+                depth + 1
             );
         }
     }
@@ -501,7 +507,8 @@ void AxisLayout::tryFitLayout(
     // if we're still overflowing, squeeze nodes closer together
     if (
         !m_allowCrossAxisOverflow &&
-        totalRowCrossLength > available.crossLength
+        totalRowCrossLength > available.crossLength && 
+        depth < RECURSION_DEPTH_LIMIT
     ) {
         // if squishing rows would take less squishing that squishing columns, 
         // then squish rows
@@ -513,7 +520,8 @@ void AxisLayout::tryFitLayout(
             return this->tryFitLayout(
                 on, nodes,
                 minMaxPrios, doAutoScale,
-                scale, crossSquishFactor, prio
+                scale, crossSquishFactor, prio,
+                depth + 1
             );
         }
     }
@@ -719,7 +727,8 @@ void AxisLayout::apply(CCNode* on) {
     this->tryFitLayout(
         on, nodes,
         minMaxPrio, doAutoScale,
-        this->maxScaleForPrio(nodes, minMaxPrio.second), 1.f, minMaxPrio.second
+        this->maxScaleForPrio(nodes, minMaxPrio.second), 1.f, minMaxPrio.second,
+        0
     );
 }
 

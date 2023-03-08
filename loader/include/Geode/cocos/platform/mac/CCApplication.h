@@ -35,7 +35,7 @@ class CC_DLL CCApplication : public CCApplicationProtocol
 {
     GEODE_FRIEND_MODIFY
 public:
-	GEODE_MONOSTATE_CONSTRUCTOR_BEGIN(CCApplication)
+	GEODE_CUSTOM_CONSTRUCTOR_BEGIN(CCApplication)
     CCApplication();
     virtual ~CCApplication();
         

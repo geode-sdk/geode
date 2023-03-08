@@ -117,7 +117,7 @@ public:
      * @js ctor
      */
     CCTexture2D();
-    GEODE_MONOSTATE_CONSTRUCTOR_COCOS(CCTexture2D, CCObject)
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTexture2D, CCObject)
     /**
      * @js NA
      * @lua NA

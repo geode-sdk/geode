@@ -112,7 +112,7 @@ protected:
         int m_nUnknown;
     )
 public:
-	GEODE_MONOSTATE_CONSTRUCTOR_BEGIN(CCObject)
+	GEODE_CUSTOM_CONSTRUCTOR_BEGIN(CCObject)
     CCObject(void);
     /**
      *  @lua NA

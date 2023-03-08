@@ -134,8 +134,8 @@ namespace geode {
         // abusing the internal stuff
         // basically we dont want modify to invoke base ctors and dtors
         // we already have utilities for these, which are ccdestructor
-        // and the monostate constructor
-        Modify() : Base(std::monostate(), sizeof(Base)) {}
+        // and the cutoff constructor
+        Modify() : Base(CutoffConstructor, sizeof(Base)) {}
 
         ~Modify() {
             cocos2d::CCDestructor::lock(this) = true;

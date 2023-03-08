@@ -85,13 +85,13 @@ auto {class_name}::{function_name}({parameters}){const} -> decltype({function_na
 	reinterpret_cast<FunctionType>(func)(this{parameter_comma}{arguments});
 	// we need to construct it back so that it uhhh ummm doesnt crash
 	// while going to the child destructors
-	auto thing = new (this) {class_name}(std::monostate(), sizeof({class_name}));
+	auto thing = new (this) {class_name}(geode::CutoffConstructor, sizeof({class_name}));
 	CCDestructor::lock(this) = true;
 }}
 )GEN";
 
 	char const* declare_constructor = R"GEN(
-{class_name}::{function_name}({parameters}) : {class_name}(std::monostate(), sizeof({class_name})) {{
+{class_name}::{function_name}({parameters}) : {class_name}(geode::CutoffConstructor, sizeof({class_name})) {{
 	// here we construct it as normal as we can, then destruct it
 	// using the generated functions. this ensures no memory gets leaked
 	// no crashes :pray:

@@ -141,6 +141,7 @@ class CC_DLL CCScheduler : public CCObject
     GEODE_FRIEND_MODIFY
 public:
     CCScheduler();
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCScheduler, CCObject)
     /**
      *  @js NA
      *  @lua NA

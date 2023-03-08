@@ -56,8 +56,8 @@ namespace geode {
         constexpr bool operator>(VersionTag const& other) const {
             if (value == other.value) {
                 if (number && other.number) return number > other.number;
-                if (number) return true;
-                if (other.number) return false;
+                if (number) return false;
+                if (other.number) return true;
                 return false;
             }
             return value > other.value;
@@ -65,8 +65,8 @@ namespace geode {
         constexpr bool operator>=(VersionTag const& other) const {
             if (value == other.value) {
                 if (number && other.number) return number >= other.number;
-                if (number) return true;
-                if (other.number) return false;
+                if (number) return false;
+                if (other.number) return true;
                 return true;
             }
             return value >= other.value;
@@ -76,6 +76,34 @@ namespace geode {
         std::string toSuffixString() const;
         std::string toString() const;
     };
+
+    constexpr bool operator<(std::optional<VersionTag> const& a, std::optional<VersionTag> const& b) {
+        if (a && b) return *a < *b;
+        if (a) return true;
+        if (b) return false;
+        return false;
+    }
+
+    constexpr bool operator<=(std::optional<VersionTag> const& a, std::optional<VersionTag> const& b) {
+        if (a && b) return *a <= *b;
+        if (a) return true;
+        if (b) return false;
+        return true;
+    }
+
+    constexpr bool operator>(std::optional<VersionTag> const& a, std::optional<VersionTag> const& b) {
+        if (a && b) return *a > *b;
+        if (a) return false;
+        if (b) return true;
+        return false;
+    }
+
+    constexpr bool operator>=(std::optional<VersionTag> const& a, std::optional<VersionTag> const& b) {
+        if (a && b) return *a >= *b;
+        if (a) return false;
+        if (b) return true;
+        return true;
+    }
 
     /**
      * Class representing version information. Uses a limited subset of SemVer;  

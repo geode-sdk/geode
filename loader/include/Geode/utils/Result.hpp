@@ -8,6 +8,7 @@
 #include <string_view>
 #include <type_traits>
 #include <variant>
+#include <optional>
 
 namespace geode {
     namespace impl {
