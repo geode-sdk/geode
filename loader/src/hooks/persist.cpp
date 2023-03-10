@@ -1,6 +1,6 @@
 #include <Geode/ui/SceneManager.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 #include <Geode/modify/AchievementNotifier.hpp>
 

@@ -4,7 +4,7 @@
 #include <Geode/modify/LevelSettingsLayer.hpp>
 #include <Geode/utils/cocos.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 $register_ids(LevelSettingsLayer) {
     bool startPos = m_mainLayer->getChildrenCount() < 10;

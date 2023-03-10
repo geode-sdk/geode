@@ -1,7 +1,7 @@
 #include <Geode/loader/Hook.hpp>
 #include <json.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 bool Patch::apply() {
     return bool(tulip::hook::writeMemory(m_address, m_patch.data(), m_patch.size()));

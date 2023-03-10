@@ -9,7 +9,7 @@
 #include <Geode/utils/JsonValidation.hpp>
 
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 // ModInstallEvent
 

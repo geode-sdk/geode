@@ -5,7 +5,7 @@
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/cocos.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 GenericListCell::GenericListCell(char const* name, CCSize size) :
     TableViewCell(name, size.width, size.height) {}

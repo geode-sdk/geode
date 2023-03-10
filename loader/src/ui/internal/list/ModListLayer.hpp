@@ -3,7 +3,7 @@
 #include <Geode/binding/TextInputDelegate.hpp>
 #include <Geode/loader/Index.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 class SearchFilterPopup;
 class ModListCell;

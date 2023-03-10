@@ -6,7 +6,7 @@
 #include <Geode/loader/ModInfo.hpp>
 #include <Geode/loader/Index.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 class ModListLayer;
 enum class ModListDisplay;

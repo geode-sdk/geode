@@ -2,7 +2,7 @@
 #include <Geode/utils/cocos.hpp>
 #include <json.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 json::Value json::Serialize<ccColor3B>::to_json(ccColor3B const& color) {
     return json::Object {

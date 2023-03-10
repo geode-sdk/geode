@@ -4,7 +4,7 @@
 #include <Geode/modify/CreatorLayer.hpp>
 #include <Geode/utils/cocos.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 template<class... Args>
 static void reorderButtons(Args... args) {

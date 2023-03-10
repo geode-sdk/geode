@@ -11,7 +11,7 @@
 
 #include <array>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 int geodeEntry(void* platformData);
 // platform-specific entry points

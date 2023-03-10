@@ -3,7 +3,7 @@
 
 #ifdef GEODE_IS_MACOS
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 #import <AppKit/AppKit.h>
 #include <Geode/utils/web.hpp>

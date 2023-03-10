@@ -13,7 +13,7 @@
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/string.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 #define IMPL_SETT_CREATE(type_) \
     static type_##SettingNode* create(              \

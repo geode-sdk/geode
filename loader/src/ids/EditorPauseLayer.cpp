@@ -2,7 +2,7 @@
 
 #include <Geode/modify/EditorPauseLayer.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 // special class for this because making it a CCMenuItemToggler would be very UB 
 // (not gonna reinterpret_cast that into the members)

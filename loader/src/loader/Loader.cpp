@@ -1,6 +1,6 @@
 #include "LoaderImpl.hpp"
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 Loader::Loader() : m_impl(new Impl) {}
 

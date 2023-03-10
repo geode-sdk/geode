@@ -5,7 +5,7 @@
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/binding/CCMenuItemToggler.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 #pragma warning(disable: 4273)
 

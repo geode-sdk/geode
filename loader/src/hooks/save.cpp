@@ -1,6 +1,6 @@
 #include <Geode/loader/Loader.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 #include <Geode/modify/AppDelegate.hpp>
 

@@ -1,7 +1,7 @@
 #include <Geode/ui/General.hpp>
 #include <cocos-ext.h>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 CCSprite* geode::createLayerBG() {
     auto winSize = CCDirector::get()->getWinSize();

@@ -2,7 +2,7 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/utils/cocos.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 const char* geode::baseEnumToString(CircleBaseSize value) {
     switch (value) {

@@ -4,7 +4,7 @@
 #include <crashlog.hpp>
 #include <filesystem>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 ghc::filesystem::path dirs::getGameDir() {
     return ghc::filesystem::path(CCFileUtils::sharedFileUtils()->getWritablePath2().c_str());

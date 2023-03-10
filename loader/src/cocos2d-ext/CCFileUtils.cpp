@@ -3,7 +3,7 @@
 #include <Geode/utils/ranges.hpp>
 #include <cocos2d.h>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 static std::vector<CCTexturePack> PACKS;
 static std::vector<std::string> PATHS;

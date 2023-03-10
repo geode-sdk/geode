@@ -12,7 +12,7 @@
 #include <mz_strm_mem.h>
 #include <mz_zip.h>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 using namespace geode::utils::file;
 
 Result<std::string> utils::file::readString(ghc::filesystem::path const& path) {

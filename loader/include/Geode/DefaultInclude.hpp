@@ -1,46 +1,9 @@
 #pragma once
 
+#include <Geode/Prelude.hpp>
 #include <Geode/c++stl/gdstdlib.hpp>
 #include <Geode/platform/platform.hpp>
 #include <variant>
-
-// Because C++ doesn't like using a
-// namespace that doesn't exist
-
-namespace geode {}
-
-namespace geode::addresser {}
-
-namespace geode::cast {}
-
-namespace geode::cocos {}
-
-namespace geode::utils {}
-
-namespace geode::helper {}
-
-namespace geode::op {}
-
-namespace geode::stream {}
-
-namespace geode::view {}
-
-namespace cocos2d {}
-
-namespace cocos2d::extension {}
-
-#define USE_GEODE_NAMESPACE()         \
-    using namespace geode;            \
-    using namespace geode::addresser; \
-    using namespace geode::cast;      \
-    using namespace geode::cocos;     \
-    using namespace geode::helper;    \
-    using namespace geode::utils;     \
-    using namespace geode::op;        \
-    using namespace geode::stream;    \
-    using namespace geode::view;      \
-    using namespace cocos2d;          \
-    using namespace cocos2d::extension;
 
 #define GEODE_STATIC_PTR(type, name)          \
     static type* s_##name;                    \

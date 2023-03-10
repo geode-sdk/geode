@@ -2,7 +2,7 @@
 
 #ifdef GEODE_IS_MACOS
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
     #include <Geode/loader/Mod.hpp>
     #include <Geode/modify/Modify.hpp>

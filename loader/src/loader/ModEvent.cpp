@@ -1,6 +1,6 @@
 #include <Geode/loader/ModEvent.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 ModStateEvent::ModStateEvent(Mod* mod, ModEventType type) : m_mod(mod), m_type(type) {}
 

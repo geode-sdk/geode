@@ -1,6 +1,6 @@
 #include <Geode/loader/Event.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 void EventListenerProtocol::enable() {
     Event::listeners().insert(this);

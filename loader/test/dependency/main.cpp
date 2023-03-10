@@ -1,6 +1,6 @@
 #include <Geode/Loader.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 #include <Geode/modify/MenuLayer.hpp>
 #include <Geode/loader/SettingNode.hpp>

@@ -20,7 +20,7 @@
 #include <iostream>
 #include <string>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 static bool g_lastLaunchCrashed = false;
 static bool g_symbolsInitialized = false;

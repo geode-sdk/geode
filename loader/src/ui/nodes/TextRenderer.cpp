@@ -3,7 +3,7 @@
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/string.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 using namespace std::string_literals;
 
 bool TextDecorationWrapper::init(

@@ -14,7 +14,7 @@ Here's a **Hello World** mod in Geode:
 #include <Geode/Bindings.hpp>
 #include <Geode/modify/MenuLayer.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 class $modify(MenuLayer) {
 	void onMoreGames(CCObject*) {

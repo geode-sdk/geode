@@ -5,7 +5,7 @@
 #include <Geode/loader/Mod.hpp>
 #include <loader/ModImpl.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 template <typename T>
 T findSymbolOrMangled(HMODULE load, char const* name, char const* mangled) {

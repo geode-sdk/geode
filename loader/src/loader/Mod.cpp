@@ -2,7 +2,7 @@
 #include <Geode/loader/Dirs.hpp>
 #include "ModImpl.hpp"
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 Mod::Mod(ModInfo const& info) : m_impl(std::make_unique<Impl>(this, info)) {}
 

@@ -3,13 +3,13 @@
 #include <Geode/Bindings.hpp>
 #include <Geode/utils/cocos.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 static constexpr int32_t GEODE_ID_PRIORITY = 0x100000;
 
-template<class T = CCNode>
+template <class T = CCNode>
     requires std::is_base_of_v<CCNode, T>
-T* setIDSafe(CCNode* node, int index, const char* id) {
+T* setIDSafe(CCNode* node, int index, char const* id) {
     if constexpr (std::is_same_v<CCNode, T>) {
         if (auto child = getChild(node, index)) {
             child->setID(id);
@@ -56,8 +56,10 @@ static void switchChildrenToMenu(CCNode* parent, CCMenu* menu, Args... args) {
     }
 }
 
-template <typename T, typename ...Args>
-static CCMenu* detachAndCreateMenu(CCNode* parent, const char* menuID, Layout* layout, T first, Args... args) {
+template <typename T, typename... Args>
+static CCMenu* detachAndCreateMenu(
+    CCNode* parent, char const* menuID, Layout* layout, T first, Args... args
+) {
     if (!first) {
         auto menu = CCMenu::create();
         menu->setID(menuID);

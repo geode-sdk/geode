@@ -14,7 +14,7 @@
 #include <loader/ModImpl.hpp>
 #include <loader/LoaderImpl.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 #pragma warning(disable : 4217)
 

@@ -2,7 +2,7 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/ui/Notification.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 constexpr auto NOTIFICATION_FADEIN = .3f;
 constexpr auto NOTIFICATION_FADEOUT = 1.f;

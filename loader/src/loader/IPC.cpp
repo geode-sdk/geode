@@ -1,7 +1,7 @@
 #include <Geode/loader/IPC.hpp>
 #include <json.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 std::monostate geode::listenForIPC(std::string const& messageID, json::Value(*callback)(IPCEvent*)) {
     (void) new EventListener(

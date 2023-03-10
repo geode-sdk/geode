@@ -5,7 +5,7 @@
 #include <fmt/format.h>
 #include <loader/LoaderImpl.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     bool m_updatingResources;

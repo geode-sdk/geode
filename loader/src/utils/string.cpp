@@ -1,7 +1,7 @@
 #include <Geode/utils/string.hpp>
 #include <algorithm>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 #ifdef GEODE_IS_WINDOWS
 

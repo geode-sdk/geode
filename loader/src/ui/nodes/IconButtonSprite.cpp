@@ -1,7 +1,7 @@
 #include <Geode/ui/IconButtonSprite.hpp>
 #include <Geode/utils/cocos.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 bool IconButtonSprite::init(
     char const* bg, bool bgIsFrame, cocos2d::CCNode* icon, char const* text, char const* font

@@ -3,7 +3,7 @@
 
 #ifdef GEODE_IS_IOS
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
     #include <UIKit/UIKit.h>
     #include <iostream>

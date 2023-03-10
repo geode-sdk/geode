@@ -2,7 +2,7 @@
 #include <Geode/platform/platform.hpp>
 #include <Geode/utils/general.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 PlatformID PlatformID::from(const char* str) {
     switch (hash(str)) {
