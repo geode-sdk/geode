@@ -880,7 +880,7 @@ namespace geode::cocos {
             if (m_dict) m_dict->release();
         }
 
-        CCDictionaryExt const& operator=(cocos2d::CCDictionary* d) {
+        CCDictionaryExt& operator=(cocos2d::CCDictionary* d) {
             m_dict->release();
             m_dict = d;
             m_dict->retain();
