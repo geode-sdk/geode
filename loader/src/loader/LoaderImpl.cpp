@@ -25,7 +25,7 @@
 #include <thread>
 #include <vector>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 Loader::Impl* LoaderImpl::get() {
     return Loader::get()->m_impl.get();

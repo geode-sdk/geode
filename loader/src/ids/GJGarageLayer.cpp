@@ -4,7 +4,7 @@
 #include <Geode/modify/GJGarageLayer.hpp>
 #include <Geode/utils/cocos.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 $register_ids(GJGarageLayer) {
     setIDSafe(this, 2, "username-label");

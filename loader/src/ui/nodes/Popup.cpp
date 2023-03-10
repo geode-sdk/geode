@@ -1,6 +1,6 @@
 #include <Geode/ui/Popup.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 class QuickPopup : public FLAlertLayer, public FLAlertLayerProtocol {
 protected:

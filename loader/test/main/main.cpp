@@ -2,7 +2,7 @@
 #include <Geode/loader/ModJsonTest.hpp>
 #include <Geode/loader/ModEvent.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 auto test = []() {
     log::info("Static logged");

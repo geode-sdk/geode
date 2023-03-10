@@ -14,7 +14,7 @@
 #include <string>
 #include <vector>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 Mod::Impl* ModImpl::getImpl(Mod* mod)  {
     return mod->m_impl.get();

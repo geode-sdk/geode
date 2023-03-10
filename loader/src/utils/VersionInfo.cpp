@@ -6,7 +6,7 @@
 #include <Geode/utils/general.hpp>
 #include <json.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 // VersionTag
 

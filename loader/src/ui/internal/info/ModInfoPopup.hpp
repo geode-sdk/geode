@@ -7,7 +7,7 @@
 #include <Geode/ui/IconButtonSprite.hpp>
 #include <Geode/loader/Index.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 class ModListLayer;
 class ModObject;

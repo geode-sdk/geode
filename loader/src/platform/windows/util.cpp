@@ -3,7 +3,7 @@
 
 #ifdef GEODE_IS_WINDOWS
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 #include "nfdwin.hpp"
 #include <ghc/fs_fwd.hpp>

@@ -5,7 +5,7 @@
 #include <loader/LoaderImpl.hpp>
 #include <Geode/utils/string.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 #ifdef GEODE_IS_WINDOWS
 

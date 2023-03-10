@@ -5,7 +5,7 @@
 #include <Geode/utils/cocos.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 $register_ids(EditLevelLayer) {
     setIDs(

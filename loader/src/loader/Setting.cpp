@@ -9,7 +9,7 @@
 #include <Geode/utils/JsonValidation.hpp>
 #include <re2/re2.h>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 template<class T>
 static void parseCommon(T& sett, JsonMaybeObject& obj) {

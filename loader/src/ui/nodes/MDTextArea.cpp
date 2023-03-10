@@ -9,7 +9,7 @@
 #include <Geode/utils/string.hpp>
 #include <md4c.h>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 static constexpr float g_fontScale = .5f;
 static constexpr float g_paragraphPadding = 7.f;

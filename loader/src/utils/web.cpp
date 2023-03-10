@@ -5,7 +5,7 @@
 #include <json.hpp>
 #include <thread>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 using namespace web;
 
 namespace geode::utils::fetch {

@@ -6,7 +6,7 @@
     #include <Geode/loader/Mod.hpp>
     #include <Geode/modify/Modify.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 // for some reason RobTop uses MessageBoxW in his GLFW error handler.
 // no one knows how this is possible (he passes char* to wchar_t*).

@@ -7,7 +7,7 @@
 #include "ModImpl.hpp"
 #include "HookImpl.hpp"
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 Hook::Hook(std::shared_ptr<Impl>&& impl) : m_impl(std::move(impl)) {}
 Hook::~Hook() {}

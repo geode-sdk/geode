@@ -2,7 +2,7 @@
 #include <Geode/ui/MDPopup.hpp>
 #include <Geode/utils/string.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 bool MDPopup::setup(
     std::string const& title, std::string const& info, char const* btn1Text, char const* btn2Text,

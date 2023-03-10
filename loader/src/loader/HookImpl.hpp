@@ -6,7 +6,7 @@
 #include <vector>
 #include "ModImpl.hpp"
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 class Hook::Impl {
 public:

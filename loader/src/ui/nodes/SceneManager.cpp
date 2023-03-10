@@ -1,7 +1,7 @@
 #include <Geode/ui/SceneManager.hpp>
 #include <Geode/utils/cocos.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 bool SceneManager::setup() {
     m_persistedNodes = CCArray::create();

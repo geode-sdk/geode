@@ -1,7 +1,7 @@
 #include <Geode/binding/CCTextInputNode.hpp>
 #include <Geode/ui/InputNode.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 char const* InputNode::getString() {
     return m_input->getString();

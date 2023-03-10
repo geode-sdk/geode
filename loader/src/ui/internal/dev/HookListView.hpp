@@ -3,7 +3,7 @@
 #include <Geode/binding/CustomListView.hpp>
 #include <Geode/binding/TableViewCell.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 static constexpr const BoomListType kBoomListType_Hooks = static_cast<BoomListType>(0x358);
 

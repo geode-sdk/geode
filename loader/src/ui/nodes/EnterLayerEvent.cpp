@@ -1,6 +1,6 @@
 #include <Geode/ui/EnterLayerEvent.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 AEnterLayerEvent::AEnterLayerEvent(
     std::string const& layerID,

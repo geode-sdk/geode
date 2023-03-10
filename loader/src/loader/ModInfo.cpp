@@ -7,7 +7,7 @@
 #include <about.hpp>
 #include <json.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 bool Dependency::isResolved() const {
     return !this->required ||

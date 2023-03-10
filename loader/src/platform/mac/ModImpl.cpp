@@ -6,7 +6,7 @@
     #include <loader/ModImpl.hpp>
     #include <dlfcn.h>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 template <typename T>
 T findSymbolOrMangled(void* dylib, char const* name, char const* mangled) {

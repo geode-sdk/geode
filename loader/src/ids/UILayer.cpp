@@ -4,7 +4,7 @@
 #include <Geode/modify/UILayer.hpp>
 #include <Geode/utils/cocos.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 $register_ids(UILayer) {
     if (auto menu = getChildOfType<CCMenu>(this, 0)) {

@@ -2,7 +2,7 @@
 #include <Geode/modify/LoadingLayer.hpp>
 #include <Geode/modify/GameManager.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 struct ResourcesUpdate : Modify<ResourcesUpdate, LoadingLayer> {
     void loadAssets() {

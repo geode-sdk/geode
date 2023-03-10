@@ -8,7 +8,7 @@
 
     #include <CoreFoundation/CoreFoundation.h>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 void Loader::Impl::platformMessageBox(char const* title, std::string const& info) {
     CFStringRef cfTitle = CFStringCreateWithCString(NULL, title, kCFStringEncodingUTF8);
