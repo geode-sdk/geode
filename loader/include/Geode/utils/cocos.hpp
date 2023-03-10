@@ -884,6 +884,8 @@ namespace geode::cocos {
             m_dict->release();
             m_dict = d;
             m_dict->retain();
+            
+            return *this;
         }
 
         auto begin() {
