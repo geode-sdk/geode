@@ -700,6 +700,12 @@ public:
      */
     virtual void removeChildByTag(int tag, bool cleanup);
     /** 
+     * Removes a child from the container by its ID.
+     * @param id The ID of the node
+     * @note Geode addition
+     */
+    void removeChildByID(std::string const& id);
+    /** 
      * Removes all children from the container with a cleanup.
      *
      * @see removeAllChildrenWithCleanup(bool)

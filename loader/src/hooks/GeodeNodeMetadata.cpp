@@ -122,6 +122,12 @@ CCNode* CCNode::getChildByIDRecursive(std::string const& id) {
     return nullptr;
 }
 
+void CCNode::removeChildByID(std::string const& id) {
+    if (auto child = this->getChildByID(id)) {
+        this->removeChild(child);
+    }
+}
+
 void CCNode::setLayout(Layout* layout, bool apply, bool respectAnchor) {
     if (respectAnchor && this->isIgnoreAnchorPointForPosition()) {
         for (auto child : CCArrayExt<CCNode>(m_pChildren)) {
