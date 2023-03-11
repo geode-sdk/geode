@@ -682,19 +682,12 @@ namespace geode::cocos {
         return res;
     }
 
-    //   template<typename K, typename V,
-    // typename = std::enable_if_t<std::is_same_v<K, std::string> || std::is_same_v<K, intptr_t>> >
-    //   static std::map<K, V> ccDictToMap(cocos2d::CCDictionary* dict) {
-    //       auto res = std::map<K, V>();
-    //       cocos2d::CCDictElement* element = nullptr;
-    //       CCDICT_FOREACH(dict, element) {
-    //       	if constexpr (std::is_same_v<K, std::string>)
-    //       		res[element->getStrKey()] = element->getObject();
-    //       	if constexpr (std::is_same_v<K, intptr_t>)
-    //       		res[element->getIntKey()] = element->getObject();
-    //       }
-    //       return res;
-    //   }
+    /**
+     * Gets the mouse position in cocos2d coordinates.
+     * On mobile platforms this will probably return (0, 0)
+     * @returns The mouse position
+     */
+    GEODE_DLL cocos2d::CCPoint getMousePos();
 }
 
 // std specializations
