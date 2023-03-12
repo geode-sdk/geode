@@ -162,7 +162,7 @@ namespace geode {
     template <class Derived, class Base>
     class Modify : public Base {
     public:
-        Derived* m_fields;
+        modifier::FieldIntermediate<Derived, Base> m_fields;
     };
 
 #endif
