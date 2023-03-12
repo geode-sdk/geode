@@ -4152,6 +4152,9 @@ class PauseLayer : CCBlockLayer {
 
     void onRestart(cocos2d::CCObject* sender) = win 0x1e6040;
     virtual void keyDown(cocos2d::enumKeyCodes) = mac 0x20cc80, win 0x1E6580;
+
+    void musicSliderChanged(cocos2d::CCObject* sender) = win 0x1e5ce0;
+    void sfxSliderChanged(cocos2d::CCObject* sender) = win 0x1ddfa0;
     
     bool m_unknown;
     bool m_unknown2;
