@@ -1234,6 +1234,8 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     void zoomIn(cocos2d::CCObject* sender) = mac 0xc0c0, win 0x877c0;
     void zoomOut(cocos2d::CCObject* sender) = mac 0xc120, win 0x87830;
     void rotateObjects(cocos2d::CCArray* objects, float angle, cocos2d::CCPoint center) = mac 0x236a0, win 0x8ee80;
+    void flipObjectsX(cocos2d::CCArray* objects) = win 0x8e550;
+    void flipObjectsY(cocos2d::CCArray* objects) = win 0x8e9e0;
     void updateGridNodeSize() = mac 0x1c8a0, win 0x78f60;
     void updateSpecialUIElements() = win 0x87030;
     void constrainGameLayerPosition(float x, float y) = mac 0x18890, win 0x8f920;
