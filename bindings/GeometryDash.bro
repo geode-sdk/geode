@@ -4719,7 +4719,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     cocos2d::CCSprite* m_vehicleGlow;
     cocos2d::CCMotionStreak* m_regularTrail;
     HardStreak* m_waveTrail;
-    double m_xAccel;
+    double m_xVelocity;
     double m_jumpAccel;
     double m_gravity;
     double m_unknown20;
