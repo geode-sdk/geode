@@ -123,6 +123,12 @@ namespace geode::modifier {
 
 namespace geode {
 
+// The intellisense compiler is quite dumb, and will very often error on modify classes
+// with an error of "incomplete type is not allowed", despite not being an issue in actual compilation.
+// So as a workaround use the compiler defined "__INTELLISENSE__" macro, which gets set to 1 on the intellisense pass.
+// See https://learn.microsoft.com/en-us/cpp/preprocessor/predefined-macros?view=msvc-170#microsoft-specific-predefined-macros
+#if __INTELLISENSE__ != 1
+
     template <class Derived, class Base>
     class Modify : public Base {
     private:
@@ -150,6 +156,16 @@ namespace geode {
 
         static void onModify(auto& self) {}
     };
+
+#else
+
+    template <class Derived, class Base>
+    class Modify : public Base {
+    public:
+        modifier::FieldIntermediate<Derived, Base> m_fields;
+    };
+
+#endif
 }
 
 /**
@@ -170,6 +186,8 @@ namespace geode {
  * I am bad at this stuff
  */
 
+#if __INTELLISENSE__ != 1
+
 #define GEODE_MODIFY_DECLARE_ANONYMOUS(base, derived) \
     derived##Dummy;                                   \
     template <class>                                  \
@@ -183,6 +201,18 @@ namespace geode {
 #define GEODE_MODIFY_DECLARE(base, derived) \
     derived##Dummy;                         \
     struct GEODE_HIDDEN derived : geode::Modify<derived, base>
+
+#else
+
+// Simplify the modify macro for intellisense, to hopefully help perfomance a bit
+
+#define GEODE_MODIFY_DECLARE(base, derived) \
+    derived##Dummy; \
+    struct derived : geode::Modify<derived, base>
+
+#define GEODE_MODIFY_DECLARE_ANONYMOUS(base, derived) GEODE_MODIFY_DECLARE(base, derived)
+
+#endif
 
 #define GEODE_MODIFY_REDIRECT4(base, derived) GEODE_MODIFY_DECLARE(base, derived)
 #define GEODE_MODIFY_REDIRECT3(base, derived) GEODE_MODIFY_DECLARE_ANONYMOUS(base, derived)
