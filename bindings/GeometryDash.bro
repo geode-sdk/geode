@@ -4523,7 +4523,7 @@ class PlayerCheckpoint : cocos2d::CCNode {
     static PlayerCheckpoint* create() = mac 0x7e8c0, win 0x20dc40;
 
     cocos2d::CCPoint m_position;
-    float m_yAccel;
+    float m_yVelocity;
     bool m_isUpsideDown;
     bool m_isShip;
     bool m_isBall;
@@ -4775,7 +4775,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     float m_unk61C;
     int m_unk620;
     bool m_canRobotJump;
-    double m_yAccel;
+    double m_yVelocity;
     bool m_isOnSlope;
     bool m_wasOnSlope;
     float m_unk634;
