@@ -1237,7 +1237,15 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     void flipObjectsX(cocos2d::CCArray* objects) = win 0x8e550;
     void flipObjectsY(cocos2d::CCArray* objects) = win 0x8e9e0;
     void updateGridNodeSize() = mac 0x1c8a0, win 0x78f60;
-    void updateSpecialUIElements() = win 0x87030;
+    void updateScaleControl() {
+        if (m_scaleControl->isVisible()) {
+            m_scaleControl->loadValues(m_selectedObject, m_selectedObjects);
+        }
+    }
+    void updateSpecialUIElements() {
+        this->updateObjectInfoLabel();
+        this->updateScaleControl();
+    }
     void constrainGameLayerPosition(float x, float y) = mac 0x18890, win 0x8f920;
     void moveGameLayer(cocos2d::CCPoint const& pos) = mac 0x1ca90, win 0x79290;
     void showUI(bool show) = mac 0x245b0, win 0x87180;
@@ -1266,7 +1274,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     void selectBuildTab(int tab) = mac 0x1fb90, win 0x88810;
     void onPause(cocos2d::CCObject* sender) = mac 0x18650, win 0x78020;
     void onSettings(cocos2d::CCObject* sender) = win 0x77fe0;
-    void activateRotationControl(cocos2d::CCObject* sender) = win 0x8fe70;
+    void activateRotationControl(cocos2d::CCObject* sender) = win 0x8fe70, mac 0x24480;
     void activateScaleControl(cocos2d::CCObject* sender) = win 0x889b0;
     void dynamicGroupUpdate(bool idk) = win 0x8ad10;
     void createRockOutline() = win 0x89c10;
@@ -2406,7 +2414,7 @@ class GJScaleControl : cocos2d::CCLayer {
     virtual void ccTouchEnded(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x31fb0, win 0x94940;
     virtual void ccTouchCancelled(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x32060, win 0x2dea0; // shared with many others
     void updateLabel(float value) = win 0x94990;
-    void loadValues(GameObject* obj, cocos2d::CCArray* objs) = win 0x94590;
+    void loadValues(GameObject* obj, cocos2d::CCArray* objs) = win 0x94590, mac 0x24f40;
 
     Slider* m_slider;
     unsigned int m_touchID;
