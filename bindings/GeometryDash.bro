@@ -692,20 +692,19 @@ class ColorAction : cocos2d::CCNode {
     void setupFromDict(cocos2d::CCDictionary*) = mac 0x17f310, win 0x11b7c0;
     void setupFromString(gd::string) = mac 0x17f270, win 0x11b730;
 
-    PAD = mac 0xc, win 0xc;
+    bool m_stepFinished;
+    cocos2d::ccColor3B m_fromColor;
+    float m_currentOpacity;
+    float m_deltaTime;
     cocos2d::ccColor3B m_color;
-    cocos2d::ccColor3B m_color2;
-    float m_unk100;
+    cocos2d::ccColor3B m_targetColor;
+    float m_duration;
     bool m_blending;
     int m_playerColor;
     int m_colorID;
     float m_opacity;
-    float m_unk114;
-    float m_copyHue;
-    float m_copySaturation;
-    float m_copyBrightness;
-    bool m_saturationChecked;
-    bool m_brightnessChecked;
+    float m_targetOpacity;
+    cocos2d::ccHSVValue m_copyHSV;
     int m_copyID;
     PAD = mac 0x1;
     bool m_copyOpacity;
@@ -759,14 +758,14 @@ class ColorSelectPopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, 
     cocos2d::CCLabelBMFont* m_label;
     Slider* m_unk1E4;
     Slider* m_slider;
-    EffectGameObject* m_effectGameObject;
-    cocos2d::CCArray* m_unk1F0;
+    EffectGameObject* m_targetObject;
+    cocos2d::CCArray* m_targetObjects;
     CCMenuItemToggler* m_toggler1;
     CCMenuItemToggler* m_toggler2;
     unsigned int m_rgbLastColor;
     cocos2d::CCSprite* m_unk200;
     cocos2d::CCSprite* m_unk204;
-    unsigned int m_bgrColor; // TODO: are u sure this isnt just a cccolor3b
+    cocos2d::ccColor3B m_selectedColor;
     GJColorSetupLayer* m_colorSetupLayer;
     float m_fadeTime;
     int m_playerColor;
@@ -799,7 +798,9 @@ class ColorSelectPopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, 
     bool m_copyColor;
 }
 
-class ColorSetupDelegate {}
+class ColorSetupDelegate {
+    virtual void colorSetupClosed(int channel) {}
+}
 
 class CommentCell : TableViewCell {
     void loadFromComment(GJComment*) = mac 0x111c70, win 0x5f3d0;
@@ -933,8 +934,15 @@ class CustomizeObjectLayer : FLAlertLayer, TextInputDelegate, HSVWidgetPopupDele
     void onNextColorChannel(cocos2d::CCObject* sender) = win 0x56c80;
     void onSelectColor(cocos2d::CCObject* sender) = win 0x577b0;
     int getActiveMode(bool unknown) = win 0x57210;
+    void onClose(cocos2d::CCObject*) = win 0x57ac0;
+    void updateSelected(int channelID) = win 0x57850;
+    bool init(GameObject* target, cocos2d::CCArray* targets) = win 0x53e00;
+    void onHSV(cocos2d::CCObject* sender) = win 0x567c0;
+    virtual void hsvPopupClosed(HSVWidgetPopup* popup, cocos2d::ccHSVValue value) = win 0x56990;
+    inline CustomizeObjectLayer() {}
+    ~CustomizeObjectLayer() = win 0x53c30;
 
-    EffectGameObject* m_targetObject;
+    GameObject* m_targetObject;
     cocos2d::CCArray* m_targetObjects;
     cocos2d::CCArray* m_colorButtons;
     cocos2d::CCArray* m_colorNodes;
@@ -1980,7 +1988,11 @@ class GJEffectManager : cocos2d::CCNode {
     void calculateBaseActiveColors() = mac 0x180f70, win 0x11c7c0;
     void calculateInheritedColor(int, ColorAction*) = mac 0x1818f0, win 0x11cb80;
     void calculateLightBGColor(cocos2d::_ccColor3B) = mac 0x185b90, win 0x11f420;
-    void colorActionChanged(ColorAction*) = mac 0x181dc0;
+    void colorActionChanged(ColorAction* action) {
+        if (0 < action->m_copyID) {
+
+        }
+    }
     void colorExists(int) = mac 0x181da0;
     void colorForEffect(cocos2d::_ccColor3B, cocos2d::_ccHSVValue) = mac 0x182650;
     cocos2d::_ccColor3B colorForGroupID(int, cocos2d::_ccColor3B const&, bool) = mac 0x184f90;
@@ -3403,11 +3415,16 @@ class GauntletSelectLayer {
 class GhostTrailEffect {}
 
 class HSVWidgetPopup : FLAlertLayer {
+    bool init(cocos2d::_ccHSVValue value, HSVWidgetPopupDelegate* delegate, gd::string title);
+    void onClose(cocos2d::CCObject* sender) = win 0x4a280;
+
     ConfigureHSVWidget* m_configureWidget;
     HSVWidgetPopupDelegate* m_delegate;
 }
 
-class HSVWidgetPopupDelegate {}
+class HSVWidgetPopupDelegate {
+    virtual void hsvPopupClosed(HSVWidgetPopup* popup, cocos2d::ccHSVValue value) {}
+}
 
 class HardStreak : cocos2d::CCDrawNode {
     // ~HardStreak() = mac 0x5bf00; inlined on windows

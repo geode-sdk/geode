@@ -186,8 +186,22 @@ namespace geode {
         return c1.r != c2.r || c1.g != c2.g || c1.b != c2.b || c1.a != c2.a;
     }
 
+    static bool operator==(cocos2d::ccColor3B const& c1, cocos2d::ccColor3B const& c2) {
+        return c1.r == c2.r && c1.g == c2.g && c1.b == c2.b;
+    }
+
     static bool operator!=(cocos2d::ccColor3B const& c1, cocos2d::ccColor3B const& c2) {
         return c1.r != c2.r || c1.g != c2.g || c1.b != c2.b;
+    }
+
+    static bool operator==(cocos2d::ccHSVValue const& c1, cocos2d::ccHSVValue const& c2) {
+        return c1.h == c2.h && c1.s == c2.s && c1.v == c2.v && 
+            c1.absoluteSaturation == c2.absoluteSaturation && 
+            c1.absoluteBrightness == c2.absoluteBrightness;
+    }
+
+    static bool operator!=(cocos2d::ccHSVValue const& c1, cocos2d::ccHSVValue const& c2) {
+        return !(c1 == c2);
     }
 }
 
