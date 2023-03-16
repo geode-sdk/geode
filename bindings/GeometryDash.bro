@@ -1217,7 +1217,9 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     void playtestStopped() = mac 0x24790, win 0x87720;
     void redoLastAction(cocos2d::CCObject*) = mac 0xb8e0, win 0x870f0;
     void replaceGroupID(GameObject*, int, int) = mac 0x27470;
-    void scaleChanged(float) = mac 0x25490, win 0x88df0;
+    virtual void scaleChangeBegin() = win 0x88d50;
+    virtual void scaleChanged(float) = mac 0x25490, win 0x88df0;
+    virtual void scaleChangeEnded() = win 0x88de0;
     void scaleObjects(cocos2d::CCArray*, float, cocos2d::CCPoint) = mac 0x252e0, win 0x8f150;
     void selectObjects(cocos2d::CCArray*, bool) = mac 0x23940, win 0x864a0;
     void setupCreateMenu() = mac 0xcb50, win 0x7caf0;
@@ -1261,8 +1263,10 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     void editObject2(cocos2d::CCObject* sender) = win 0x8d1b0;
     void editGroup(cocos2d::CCObject* sender) = win 0x8d720;
     void moveObjectCall(cocos2d::CCObject* sender) = mac 0x29830, win 0x8db30;
-    void moveObjectCall(EditCommand) = win 0x8db50;
+    void moveObjectCall(EditCommand command) = win 0x8db50;
     void transformObjectCall(cocos2d::CCObject* sender) = mac 0x29860, win 0x8def0;
+    void transformObjectCall(EditCommand command) = mac 0x29d90, win 0x8df10;
+    void transformObject(GameObject* obj, EditCommand command, bool snap) = win 0x8e250;
     void onDelete(cocos2d::CCObject* sender) = mac 0x1b3d0, win 0x7b8d0;
     void onDeleteSelected(cocos2d::CCObject* sender) = mac 0xb990, win 0x7bf50;
     void onDeleteSelectedType(cocos2d::CCObject* sender) = mac 0x1e7a0, win 0x7c480;
@@ -3625,7 +3629,6 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
     void onResumePlaytest() = mac 0xa15e0, win 0x169D90;
     void onPausePlaytest() = mac 0xa1570, win 0x169CC0;
     void onStopPlaytest() = mac 0xa1780, win 0x169F10;
-    void pasteAttributeState(GameObject* obj, cocos2d::CCArray* objs) = win 0x16b740;
     void playMusic() = mac 0xa13c0, win 0x169b00;
     void recreateGroups() = mac 0x9dbf0, win 0x167450;
     void redoLastAction() = mac 0x97750;
@@ -3669,6 +3672,11 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
 
     void groupStickyObjects(cocos2d::CCArray* objects) = mac 0x99dd0, win 0x164860;
     void ungroupStickyObjects(cocos2d::CCArray* objects) = mac 0x99ee0, win 0x164950;
+
+    void copyObjectState(GameObject* target) = win 0x16b600;
+    // sic
+    void pasteAtributeState(GameObject* target, cocos2d::CCArray* targets) = win 0x16b740;
+    void pasteColorState(GameObject* target, cocos2d::CCArray* targets) = win 0x16b6c0;
 
     void setStartPosObject(StartPosObject* obj) {
         CC_SAFE_RETAIN(obj);
