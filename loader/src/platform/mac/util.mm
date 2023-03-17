@@ -142,8 +142,10 @@ Result<std::vector<ghc::filesystem::path>> utils::file::pickFiles(
 }
 
 CCPoint cocos::getMousePos() {
+    auto frame = NSApp.mainWindow.frame;
+    auto scaleFactor = CCPoint(CCDirector::get()->getWinSize()) / ccp(frame.size.width, frame.size.height);
     auto mouse = [NSEvent mouseLocation];
-    return ccp(mouse.x, mouse.y);
+    return ccp(mouse.x - frame.origin.x, mouse.y - frame.origin.y) * scaleFactor;
 }
 
 #endif
