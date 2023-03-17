@@ -746,7 +746,7 @@ class ColorSelectLiveOverlay : FLAlertLayer {
 }
 
 class ColorSelectPopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, TextInputDelegate, GJSpecialColorSelectDelegate {
-    virtual void colorValueChanged(cocos2d::ccColor3B color) = mac 0x423520, win 0x46ee0;
+    virtual void colorValueChanged(cocos2d::ccColor3B color) = mac 0x423320, win 0x46ee0;
     ColorSelectPopup() {}
     bool init(EffectGameObject* triggerObj, cocos2d::CCArray* triggerObjs, ColorAction* colorAction) = mac 0x41ee70, win 0x43ae0;
     void updateColorValue() = win 0x46f30;
