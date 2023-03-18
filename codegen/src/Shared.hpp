@@ -84,6 +84,36 @@ namespace codegen {
     inline uintptr_t platformNumber(PlatformNumber const& p) {
         return platformNumberWithPlatform(codegen::platform, p);
     }
+    
+    inline bool isBindedWithPlatform(Platform p, FunctionBegin const* fb) {
+        if (p == Platform::Android) {
+            for (auto& [type, name] : fb->args) {
+                if (type.name.find("gd::") != std::string::npos) return false;
+            }
+
+            if (field.parent.rfind("cocos2d::CCEGLView", 0) == 0) return false;
+
+            return true;
+        }
+        
+        if (fb->type == FunctionType::Normal) {
+            if (field.parent.rfind("fmod::", 0) == 0) return true;
+            if (field.parent.rfind("cocos2d::", 0) == 0 && p == Platform::Windows)
+                return true;
+        }
+        return false;
+    }
+    
+    inline bool isBinded(FunctionBegin const* fb) {
+        return isBindedWithPlatform(codegen::platform, fb);
+    }
+    
+    inline bool isBinded(Field const& field) {
+        if (auto fn = field.get_as<FunctionBindField>()) {
+            return isBinded(&fn->beginning);
+        }
+        return false;
+    }
 
     inline BindStatus getStatusWithPlatform(Platform p, Field const& field) {
         FunctionBegin const* fb;
@@ -100,20 +130,8 @@ namespace codegen {
 
         // if (field.parent.rfind("GDString", 0) == 0) return BindStatus::NeedsBinding;
 
-        if (p == Platform::Android) {
-            for (auto& [type, name] : fb->args) {
-                if (type.name.find("gd::") != std::string::npos) return BindStatus::NeedsBinding;
-            }
-
-            if (field.parent.rfind("cocos2d::CCEGLView", 0) == 0) return BindStatus::Unbindable;
-
+        if (isBindedWithPlatform(p, fb)) {
             return BindStatus::Binded;
-        }
-
-        if (fb->type == FunctionType::Normal) {
-            if (field.parent.rfind("fmod::", 0) == 0) return BindStatus::Binded;
-            if (field.parent.rfind("cocos2d::", 0) == 0 && p == Platform::Windows)
-                return BindStatus::Binded;
         }
 
         return BindStatus::Unbindable;
