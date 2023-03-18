@@ -164,6 +164,11 @@ std::string generateBindingSource(Root& root) {
 			} else if (auto fn = f.get_as<FunctionBindField>()) {
 				if (codegen::getStatus(f) != BindStatus::NeedsBinding)
 					continue;
+				
+				// no cocos2d definitions on windows
+				if (codegen::platform == Platform::Windows && f.parent.rfind("cocos2d::", 0) == 0) {
+					continue;
+				}
 
 				char const* used_declare_format;
 
