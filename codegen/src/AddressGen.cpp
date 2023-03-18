@@ -103,7 +103,12 @@ std::string generateAddressHeader(Root& root) {
                 );
             }
             else if (codegen::getStatus(field) == BindStatus::NeedsBinding) {
-                address_str = fmt::format("base::get() + 0x{:x}", codegen::platformNumber(fn->binds));
+		if (field.parent.rfind("cocos2d::", 0) == 0 && codegen::platform == Platform::Windows) {
+		    address_str = fmt::format("base::getCocos() + 0x{:x}", codegen::platformNumber(fn->binds));
+		}
+		else {
+		    address_str = fmt::format("base::get() + 0x{:x}", codegen::platformNumber(fn->binds));
+		}
             }
             else {
                 continue;
