@@ -13,6 +13,7 @@ using namespace geode::prelude;
 #include <shobjidl.h>
 #include <sstream>
 #include <Geode/utils/web.hpp>
+#include <Geode/utils/cocos.hpp>
 
 bool utils::clipboard::write(std::string const& data) {
     if (!OpenClipboard(nullptr)) return false;
@@ -103,6 +104,15 @@ Result<std::vector<ghc::filesystem::path>> utils::file::pickFiles(
 
 void utils::web::openLinkInBrowser(std::string const& url) {
     ShellExecuteA(0, 0, url.c_str(), 0, 0, SW_SHOW);
+}
+
+CCPoint cocos::getMousePos() {
+    auto* director = CCDirector::get();
+    auto* gl = director->getOpenGLView();
+    auto winSize = director->getWinSize();
+    auto frameSize = gl->getFrameSize();
+    auto mouse = gl->getMousePosition() / frameSize;
+    return ccp(mouse.x, 1.f - mouse.y) * winSize;
 }
 
 #endif
