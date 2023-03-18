@@ -737,12 +737,14 @@ class ColorSelectDelegate {
 class ColorSelectLiveOverlay : FLAlertLayer {
     bool init(ColorAction*, ColorAction*, EffectGameObject*) = mac 0x2e2790, win 0x41db0;
     void sliderChanged(cocos2d::CCObject*) = mac 0x2e3830;
+    void onSelectTab(cocos2d::CCObject*) = win 0x430f0;
     EffectGameObject* m_effectGameObject;
     cocos2d::CCArray* m_barSprites;
     cocos2d::CCArray* m_12buttons;
     ColorAction* m_baseColorAction;
     ColorAction* m_detailColorAction;
-
+    PAD = win 0x64;
+    bool m_detailMode;
 }
 
 class ColorSelectPopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, TextInputDelegate, GJSpecialColorSelectDelegate {
@@ -1212,6 +1214,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     void onDuplicate(cocos2d::CCObject*) = mac 0x18ba0, win 0x87d20;
     bool onCreate() = mac 0x1b960, win 0x85680;
     void onCreateObject(int) = mac 0x200d0, win 0x85750;
+    void copyObjects(cocos2d::CCArray* objects) = win 0x87ea0;
     cocos2d::CCArray* pasteObjects(gd::string) = mac 0x232d0, win 0x88240;
     void playerTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x2ebf0, win 0x90680;
     void playtestStopped() = mac 0x24790, win 0x87720;
@@ -1394,7 +1397,9 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     cocos2d::CCPoint m_caremaTest;
     PAD = mac 0x8, win 0x8;
     GameObject* m_selectedObject;
-    PAD = mac 0x10, win 0x8;
+    PAD = mac 0x8, win 0x4;
+    bool m_unk2cc;
+    bool m_freeMovingObject;
     gd::string m_clipboard;
     PAD = mac 0x10, win 0x8;
     int m_selectedTab;
@@ -4923,9 +4928,11 @@ class SetGroupIDLayer : FLAlertLayer, TextInputDelegate {
     void updateEditorLayerID() = win 0x22e0b0;
     void updateEditorLayerID2() = win 0x22e110;
     void updateZOrder() = win 0x22e3d0;
+    void onAddGroup(cocos2d::CCObject* sender) = win 0x22de20;
+    void onClose(cocos2d::CCObject* sender) = win 0x22e830;
 
-    GameObject* m_obj;
-    cocos2d::CCArray* m_objs;
+    GameObject* m_targetObject;
+    cocos2d::CCArray* m_targetObjects;
     cocos2d::CCArray* m_array0;
     cocos2d::CCArray* m_array1;
     cocos2d::CCLabelBMFont* m_editorLayerText;
@@ -4987,6 +4994,8 @@ class SetupCollisionTriggerPopup : FLAlertLayer {
     void onTargetIDArrow(cocos2d::CCObject*) = mac 0x1d77b0;
     void textChanged(CCTextInputNode*) = mac 0x1d84d0;
     void updateTargetID() = mac 0x1d82b0;
+    bool init(EffectGameObject*, cocos2d::CCArray*) = win 0x2341f0;
+    void onClose(cocos2d::CCObject*) = win 0x235970;
 }
 
 class SetupCountTriggerPopup : FLAlertLayer {
