@@ -282,17 +282,17 @@ class CCBlockLayer : cocos2d::CCLayerColor {
 }
 
 class CCCircleWave : cocos2d::CCNode {
-    static CCCircleWave* create(float, float, float, bool) = mac 0xbd270, win 0x16c00;
+    static CCCircleWave* create(float, float, float, bool) = mac 0xbd270;
     static CCCircleWave* create(float, float, float, bool, bool) = mac 0xbd290, win 0x16c00;
     bool init(float, float, float, bool, bool) = mac 0xbd380, win 0x16cd0;
     void followObject(cocos2d::CCNode*, bool) = mac 0xbd670, win 0x16f20;
-    void updatePosition(float) = mac 0xbd630, win 0x16f00;
-    void setPosition(cocos2d::CCPoint const& pos) = mac 0xbd600, win 0x16ed0;
-    void removeMeAndCleanup() = mac 0xbdac0, win 0x17280;
-    void draw() = mac 0xbd960, win 0x17100;
-    void updateTweenAction(float dt, const char* key) = mac 0xbd960, win 0x16f90;
+    callback void updatePosition(float) = mac 0xbd630, win 0x16f00;
+    virtual void setPosition(cocos2d::CCPoint const& pos) = mac 0xbd600, win 0x16ed0;
+    virtual void removeMeAndCleanup() = mac 0xbdac0, win 0x17280;
+    virtual void draw() = mac 0xbd960, win 0x17100;
+    virtual void updateTweenAction(float dt, const char* key) = mac 0xbd960, win 0x16f90;
 
-    cocos2d::CCArray* m_children;
+    cocos2d::CCNode* m_child;
     PAD = win 0x4;
     float m_currentRadius;
     float m_currentOpacity;
@@ -3060,7 +3060,7 @@ class GameObject : CCSpritePlus {
     virtual void setOrientedRectDirty(bool) = mac 0xdc200, win 0x989d0;
     virtual GameObjectType getType() const = mac 0xdc210, win 0x989e0;
     virtual void setType(GameObjectType) = mac 0xdc220, win 0x989f0;
-    virtual cocos2d::CCPoint const& getStartPos() const = mac 0xdc230, win 0x98a00;
+    virtual cocos2d::CCPoint getStartPos() const = mac 0xdc230, win 0x98a00;
     void activatedByPlayer(GameObject*) = mac 0x342a20;
     void addColorSprite() = mac 0x2f7fe0, win 0xd0670;
     void addColorSpriteToParent(bool) = mac 0x2fb470, win 0xeb3f0;
@@ -3242,6 +3242,7 @@ class GameObject : CCSpritePlus {
     bool m_unk36A;
     bool m_isDontEnter;
     bool m_isDontFade;
+    bool m_unk36D;
     int m_defaultZOrder;
     bool m_useSecondSheet;
     bool m_isPortal;
@@ -4401,7 +4402,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     void updateEffectPositions() = mac 0x7a6d0, win 0x20aab0;
     void updateLevelColors() = mac 0x6f1e0, win 0x203a90;
     void updateMoveObjectsLastPosition() = mac 0x7a720;
-    void updateProgressbar() = mac 0x6ed70, win 0x69b40;
+    void updateProgressbar() = mac 0x6ed70, win 0x208020;
     void updateReplay(float) = mac 0x78b60, win 0x20af40;
     void updateTimeMod(float, bool) = mac 0x786f0;
     virtual void updateTweenAction(float, char const*) = mac 0x7ffb0, win 0x20d1f0;
@@ -4738,7 +4739,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     void updateSlopeYVelocity(float) = mac 0x22e920;
     void updateSpecial(float) = mac 0x21a790, win 0x1e8ab0;
     void updateStateVariables() = mac 0x21a770;
-    void updateTimeMod(float) = mac 0x2185e0, win 0x1f94e0;
+    void updateTimeMod(float) = mac 0x2185e0, win 0x1f9a20;
     void usingWallLimitedMode() = mac 0x22df00;
     void yStartDown() = mac 0x22e9b0;
     void yStartUp() = mac 0x22e990;
