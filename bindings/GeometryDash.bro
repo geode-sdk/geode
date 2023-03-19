@@ -4943,6 +4943,22 @@ class SelectArtLayer {
     static SelectArtLayer* create(SelectArtType type) = win 0x174b00;
 }
 
+class SelectFontLayer : FLAlertLayer {
+    static SelectFontLayer* create(LevelEditorLayer* lel) = win 0x137270;
+    bool init(LevelEditorLayer* lel) = win 0x137310;
+    void onChangeFont(cocos2d::CCObject* sender) = win 0x1379b0;
+    void updateFontLabel() = win 0x137880;
+    // Shared with many other classes
+    void onClose(cocos2d::CCObject* sender) = win 0x137a30;
+    // Shared with many other classes
+    virtual void keyBackClicked() = win 0x137a60;
+    virtual ~SelectFontLayer() = win 0x1371b0;
+
+    int m_selectedFont;
+    LevelEditorLayer* m_editorLayer;
+    cocos2d::CCLabelBMFont* m_fontLabel;
+}
+
 class SetGroupIDLayer : FLAlertLayer, TextInputDelegate {
     bool init(GameObject* object, cocos2d::CCArray* objects) = mac 0x1947c0, win 0x22b670; 
     void onNextGroupID1(cocos2d::CCObject*) = mac 0x1967a0, win 0x22d790;
