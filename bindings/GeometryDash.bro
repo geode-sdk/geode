@@ -3645,6 +3645,7 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
     void resetObjectVector() = mac 0x9c4b0;
     void resetToggledGroups() = mac 0x9aa70;
     void resetToggledGroupsAndObjects() = mac 0x9c3c0, win 0x166b80;
+    void resetEffectTriggerOptim(GameObject* obj, cocos2d::CCArray* objs) = win 0x167e00;
     void resetUnusedColorChannels() = mac 0x9a870;
     void rotationForSlopeNearObject(GameObject*) = mac 0x95cd0, win 0x161130;
     void runColorEffect(EffectGameObject*, int, float, float, bool) = mac 0x9bd30;
