@@ -456,7 +456,7 @@ Result<> Mod::Impl::updateDependencies() {
         }
     }
     // load if there weren't any unresolved dependencies
-    if (!hasUnresolved) {
+    if (!hasUnresolved && !m_binaryLoaded) {
         log::debug("All dependencies for {} found", m_info.id());
         if (m_enabled) {
             log::debug("Resolved & loading {}", m_info.id());
