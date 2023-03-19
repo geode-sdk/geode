@@ -110,10 +110,21 @@ class ArtistCell : TableViewCell {
     void* m_idk;
 }
 
-class AudioEffectsLayer {
+class AudioEffectsLayer : cocos2d::CCLayerColor {
     void audioStep(float) = mac 0x271f40, win 0x3daa0;
     static AudioEffectsLayer* create(gd::string) = mac 0x271a00, win 0x3d850;
-    void resetAudioVars() = mac 0x271ee0;
+    void resetAudioVars() = mac 0x271ee0, win 0x3da40;
+    void goingDown() = win 0x3dd40;
+    virtual void updateTweenAction(float, const char*) = win 0x3dc70;
+
+    int m_unk198;
+    cocos2d::CCArray* m_unk19C;
+    cocos2d::CCArray* m_unk1A0;
+    float m_unk1A4;
+    float m_unk1A8;
+    bool m_unk1AC;
+    float m_unk1B0;
+    bool m_unk1B4;
 }
 
 class BoomListView : cocos2d::CCLayer, TableViewDelegate, TableViewDataSource {
@@ -4760,7 +4771,9 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     PAD = mac 0x30, win 0x1c;
     bool m_unk4B0;
     cocos2d::CCSprite* m_unk4B4;
-    PAD = mac 0x1c, win 0x1c;
+    int m_unk4B8;
+    int m_unk4BC;
+    PAD = mac 0x14, win 0x14;
     bool m_unk4D4;
     cocos2d::CCArray* m_particleSystems;
     bool m_unk4DC;
@@ -4806,12 +4819,12 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     GJRobotSprite* m_robotSprite;
     GJSpiderSprite* m_spiderSprite;
     bool m_unk5B0;
-    cocos2d::CCParticleSystemQuad* m_unk5B4;
+    cocos2d::CCParticleSystemQuad* m_playerGroundParticles;
     cocos2d::CCParticleSystemQuad* m_unk5B8;
-    cocos2d::CCParticleSystemQuad* m_unk5BC;
-    cocos2d::CCParticleSystemQuad* m_unk5C0;
+    cocos2d::CCParticleSystemQuad* m_shipBoostParticles;
+    cocos2d::CCParticleSystemQuad* m_vehicleGroundParticles;
     cocos2d::CCParticleSystemQuad* m_unk5C4;
-    cocos2d::CCParticleSystemQuad* m_unk5C8;
+    cocos2d::CCParticleSystemQuad* m_robotJumpParticles;
     cocos2d::CCParticleSystemQuad* m_unk5CC;
     void* m_unk5D0;
     cocos2d::CCParticleSystemQuad* m_unk5D4;

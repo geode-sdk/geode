@@ -48,4 +48,6 @@ GEODE_MEMBER_CHECK(GJBaseGameLayer, m_groups, 0x274);
 GEODE_MEMBER_CHECK(GJBaseGameLayer, m_attemptClickCount, 0x2b4);
 static_assert(sizeof(GJBaseGameLayer) == 0x2cc);
 
+GEODE_MEMBER_CHECK(AudioEffectsLayer, m_unk19C, 0x19c);
+
 #endif
