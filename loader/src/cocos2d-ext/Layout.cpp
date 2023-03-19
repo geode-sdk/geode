@@ -825,7 +825,9 @@ AxisLayout* AxisLayout::setGrowCrossAxis(bool shrink) {
 }
 
 AxisLayout* AxisLayout::create(Axis axis) {
-    return new AxisLayout(axis);
+    auto ret = new AxisLayout(axis);
+    ret->autorelease();
+    return ret;
 }
 
 // RowLayout
@@ -833,7 +835,9 @@ AxisLayout* AxisLayout::create(Axis axis) {
 RowLayout::RowLayout() : AxisLayout(Axis::Row) {}
 
 RowLayout* RowLayout::create() {
-    return new RowLayout();
+    auto ret = new RowLayout();
+    ret->autorelease();
+    return ret;
 }
 
 // ColumnLayout
@@ -841,7 +845,9 @@ RowLayout* RowLayout::create() {
 ColumnLayout::ColumnLayout() : AxisLayout(Axis::Column) {}
 
 ColumnLayout* ColumnLayout::create() {
-    return new ColumnLayout();
+    auto ret = new ColumnLayout();
+    ret->autorelease();
+    return ret;
 }
 
 // AxisLayoutOptions

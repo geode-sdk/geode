@@ -19,7 +19,7 @@ private:
     FieldContainer* m_fieldContainer;
     Ref<cocos2d::CCObject> m_userObject;
     std::string m_id = "";
-    std::unique_ptr<Layout> m_layout = nullptr;
+    Ref<Layout> m_layout = nullptr;
     std::unique_ptr<LayoutOptions> m_layoutOptions = nullptr;
     std::unordered_map<std::string, std::any> m_attributes;
 
@@ -135,14 +135,14 @@ void CCNode::setLayout(Layout* layout, bool apply, bool respectAnchor) {
         }
         this->ignoreAnchorPointForPosition(false);
     }
-    GeodeNodeMetadata::set(this)->m_layout.reset(layout);
+    GeodeNodeMetadata::set(this)->m_layout = layout;
     if (apply) {
         this->updateLayout();
     }
 }
 
 Layout* CCNode::getLayout() {
-    return GeodeNodeMetadata::set(this)->m_layout.get();
+    return GeodeNodeMetadata::set(this)->m_layout.data();
 }
 
 void CCNode::setLayoutOptions(LayoutOptions* options, bool apply) {
@@ -160,7 +160,7 @@ void CCNode::updateLayout(bool updateChildOrder) {
     if (updateChildOrder) {
         this->sortAllChildren();
     }
-    if (auto layout = GeodeNodeMetadata::set(this)->m_layout.get()) {
+    if (auto layout = GeodeNodeMetadata::set(this)->m_layout.data()) {
         layout->apply(this);
     }
 }

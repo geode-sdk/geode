@@ -11,6 +11,9 @@ NS_CC_BEGIN
 
 class CCNode;
 
+#pragma warning(push)
+#pragma warning(disable: 4275)
+
 /**
  * Layouts automatically handle the positioning of nodes. Use CCNode::setLayout 
  * to apply a layout to a node, and then use CCNode::updateLayout to apply 
@@ -18,7 +21,7 @@ class CCNode;
  * RowLayout, ColumnLayout, and GridLayout, but if you need a different kind 
  * of layout you can inherit from the Layout class.
  */
-class GEODE_DLL Layout {
+class GEODE_DLL Layout : public CCObject {
 protected:
     static CCArray* getNodesToPosition(CCNode* forNode);
 
@@ -348,5 +351,7 @@ public:
      */
     static ColumnLayout* create();
 };
+
+#pragma warning(pop)
 
 NS_CC_END
