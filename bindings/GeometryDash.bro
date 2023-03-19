@@ -3856,8 +3856,31 @@ class CustomSongLayerDelegate {
 class LevelSettingsLayer : FLAlertLayer, ColorSelectDelegate, SelectArtDelegate, FLAlertLayerProtocol, CustomSongLayerDelegate {
     static LevelSettingsLayer* create(LevelSettingsObject* levelSettings, LevelEditorLayer* editor) = win 0x170d90;
     bool init(LevelSettingsObject* levelSettings, LevelEditorLayer* editor) = mac 0xa7e00, win 0x170e50;
-    PAD = mac 0x50;
-    LevelSettingsObject* m_settingsObject;
+    void onClose(cocos2d::CCObject* sender) = win 0x173ec0;
+	int m_songIndex;
+	Speed m_speed;
+	ColorChannelSprite* m_backgroundChannelSprite;
+	ColorChannelSprite* m_ground1ChannelSprite;
+	ColorChannelSprite* m_ground2ChannelSprite;
+	ColorChannelSprite* m_lineChannelSprite;
+	ColorChannelSprite* m_objectChannelSprite;
+	ColorChannelSprite* m_3DChannelSprite;
+	cocos2d::CCSprite* m_colourBtnSprite;
+	cocos2d::CCSprite* m_backgroundSprite;
+	cocos2d::CCSprite* m_groundSprite;
+	LevelSettingsObject* m_settingsObject;
+	cocos2d::CCLabelBMFont* m_mainSongLabel;
+	cocos2d::CCArray* m_gameModeArray;
+	cocos2d::CCArray* m_speedArray;
+	LevelSettingsDelegate* m_levelSettingsDelegate;
+	LevelEditorLayer* m_editorLayer;
+	cocos2d::CCArray* m_mainSongArray;
+	cocos2d::CCArray* m_btnArray;
+	CCMenuItemSpriteExtra* m_mainSongBtn;
+	CCMenuItemSpriteExtra* m_customSongBtn;
+	CCMenuItemSpriteExtra* m_selectCustomSongBtn;
+	CCMenuItemSpriteExtra* m_changeSongBtn;
+	CustomSongWidget* m_customSongWidget;
 }
 
 class LevelSettingsObject : cocos2d::CCNode {
@@ -3879,7 +3902,7 @@ class LevelSettingsObject : cocos2d::CCNode {
     GJEffectManager* m_effectManager;
     // TODO: make enums for these
     int m_startMode;
-    int m_startSpeed;
+    Speed m_startSpeed;
     bool m_startMini;
     bool m_startDual;
     bool m_twoPlayerMode;
