@@ -1308,6 +1308,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     virtual void scrollWheel(float vertical, float horizontal) = win 0x921d0, mac 0x31370, ios 0x2c4884;
     void createMoveMenu() = mac 0x275e0, win 0x8c0d0;
     void sliderChanged(cocos2d::CCObject* slider) = win 0x78cc0;
+    virtual void draw() = win 0x8fbe0;
 
     bool m_isPlayingMusic;
     EditButtonBar* m_buttonBar;
@@ -1316,6 +1317,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     float m_gridSize;
     PAD = mac 0x18, win 0x14;
     bool m_moveModifier;
+    bool m_swipeModifier;
     int m_rotationTouchID;
     int m_scaleTouchID;
     int m_touchID;
@@ -1332,9 +1334,11 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     float m_minYLimit;
     float m_unknown2;
     bool m_swipeEnabled;
-    PAD = mac 0x3, win 0x3, android 0x3;
+    bool m_swiping;
+    PAD = mac 0x2, win 0x2, android 0x2;
     bool m_freeMoveEnabled;
-    PAD = mac 0xb, win 0xb, android 0xa;
+    bool m_unkSwipeRelated;
+    PAD = mac 0xa, win 0xa, android 0x9;
     bool m_updateTimeMarkers;
     cocos2d::CCArray* m_unknownArray2;
     PAD = mac 0x8, win 0x8, android 0x8;
@@ -1393,8 +1397,9 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     LevelEditorLayer* m_editorLayer;
     cocos2d::CCPoint m_swipeStart;
     cocos2d::CCPoint m_swipeEnd;
-    PAD = mac 0x10, win 0x10;
-    cocos2d::CCPoint m_caremaTest;
+    PAD = mac 0x8, win 0x8;
+    cocos2d::CCPoint m_lastTouchPoint;
+    cocos2d::CCPoint m_cameraTest;
     PAD = mac 0x8, win 0x8;
     GameObject* m_selectedObject;
     PAD = mac 0x8, win 0x4;
@@ -3630,7 +3635,7 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
     bool init(GJGameLevel*) = mac 0x91010, win 0x15EE00;
     void objectAtPosition(cocos2d::CCPoint) = mac 0x960c0, win 0x161300;
     void objectMoved(GameObject*) = mac 0x999f0, win 0x162d40;
-    void objectsInRect(cocos2d::CCRect, bool) = mac 0x95e60, win 0x161ad0;
+    cocos2d::CCArray* objectsInRect(cocos2d::CCRect rect, bool ignoreLayer) = mac 0x95e60, win 0x161ad0;
     void onPlaytest() = mac 0xa06b0, win 0x1695A0;
     void onResumePlaytest() = mac 0xa15e0, win 0x169D90;
     void onPausePlaytest() = mac 0xa1570, win 0x169CC0;

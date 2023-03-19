@@ -396,6 +396,9 @@ public:
     inline CCRect(float x, float y, float width, float height) {
         setRect(x, y, width, height);
     }
+    inline CCRect(CCPoint const& a, CCPoint const& b) {
+        setRect(a.x, a.y, b.x, b.y);
+    }
     /**
      * @lua NA
      */
