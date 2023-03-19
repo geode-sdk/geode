@@ -1,12 +1,19 @@
-![Geode Logo](title.png)
+<p align="center">
+	<img src="/title.png" />
+	<h3 align="center">
+		<a href="https://geode-sdk.org">Home page</a>
+	</h3>
+</p>
 
-### [Home page](https://geode-sdk.org)
+<p align="center"><b>Geode</b> is a <a href="https://store.steampowered.com/app/322170/Geometry_Dash/">Geometry Dash</a> <b>mod loader</b> and <b>modding SDK</b> with a modern approach towards mod development.</p>
 
-**Geode** is a [Geometry Dash](https://store.steampowered.com/app/322170/Geometry_Dash/) **mod loader** and **modding SDK** with a modern approach towards mod development. Unlike previous mod loaders, which merely inject the DLLs and let devs handle the rest, Geode aims to be a more comprehensive project that provides all the tools needed for creating mods in one package.
+## Why Geode?
+
+Unlike previous mod loaders, which merely inject the DLLs and let devs handle the rest, Geode aims to be a more comprehensive project that provides all the tools needed for creating mods in one package.
 
 Geode's goal is to solve **mod incompatability** - to ensure that mods work together without buttons getting misplaced or hooks mysteriously disappearing.
 
-## Why Geode?
+## "Hello World!" Example
 
 Here's a **Hello World** mod in Geode:
 
@@ -27,7 +34,7 @@ class $modify(MenuLayer) {
 };
 ```
 
-This code changes what happens when the "More Games" button is clicked in Geometry Dash, showing a popup.
+This code modifies what happens when the "More Games" button is clicked on the home scene in Geometry Dash, showing a custom popup.
 
 ## Documentation
 
