@@ -18,7 +18,7 @@ jobs:
           os: windows-2019
           prefixes: ''
           extra_flags: '-T host=x86 -A win32 -DGEODE_DEBUG=On'
-          out_paths: './bin/nightly/Geode.dll ./bin/nightly/GeodeBootstrapper.dll ./bin/nightly/Geode.lib ./bin/nightly/XInput9_1_0.dll'
+          out_paths: './bin/nightly/Geode.pdb ./bin/nightly/Geode.dll ./bin/nightly/GeodeBootstrapper.dll ./bin/nightly/Geode.lib ./bin/nightly/XInput9_1_0.dll'
           cli_cmd: ''
 
         - name: "macOS"
