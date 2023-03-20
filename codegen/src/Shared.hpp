@@ -184,7 +184,7 @@ namespace codegen {
                 if (status == BindStatus::Binded) return "tulip::hook::CdeclConvention";
                 else return "tulip::hook::OptcallConvention";
             }
-            else if (fn->is_virtual) {
+            else if (fn->is_virtual || fn->is_callback) {
                 return "tulip::hook::ThiscallConvention";
             }
             else {
@@ -205,7 +205,7 @@ namespace codegen {
                 if (status == BindStatus::Binded) return "Cdecl";
                 else return "Optcall";
             }
-            else if (fn->is_virtual) {
+            else if (fn->is_virtual || fn->is_callback) {
                 return "Thiscall";
             }
             else {

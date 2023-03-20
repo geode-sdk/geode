@@ -3692,7 +3692,7 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
     }
     void updateOptions() = mac 0x91ed0, win 0x15fcc0;
     void updateToggledGroups() = mac 0x9bb10;
-    void updateVisibility(float) = mac 0x92c70, win 0x1632b0;
+    callback void updateVisibility(float delta) = mac 0x92c70, win 0x1632b0;
 
     void groupStickyObjects(cocos2d::CCArray* objects) = mac 0x99dd0, win 0x164860;
     void ungroupStickyObjects(cocos2d::CCArray* objects) = mac 0x99ee0, win 0x164950;
