@@ -1239,6 +1239,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     void setupCreateMenu() = mac 0xcb50, win 0x7caf0;
     void undoLastAction(cocos2d::CCObject*) = mac 0xb830, win 0x87070;
     void updateButtons() = mac 0x1a300, win 0x78280;
+    void updateEditMenu() = win 0x8b010;
     void updateObjectInfoLabel() = mac 0x1cb10, win 0x793b0;
     void updateSlider() = mac 0x18a90, win 0x78f10;
     void updateZoom(float) = mac 0x248c0, win 0x878a0;
