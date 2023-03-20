@@ -3644,7 +3644,8 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
     bool hasAction(bool) = mac 0x96ff0;
     void handleAction(bool, cocos2d::CCArray*) = mac 0x97020, win 0x162010;
     bool init(GJGameLevel*) = mac 0x91010, win 0x15EE00;
-    void objectAtPosition(cocos2d::CCPoint) = mac 0x960c0, win 0x161300;
+    GameObject* objectAtPosition(cocos2d::CCPoint position) = mac 0x960c0, win 0x161300;
+    cocos2d::CCArray* objectsAtPosition(cocos2d::CCPoint position) = win 0x1614d0;
     void objectMoved(GameObject*) = mac 0x999f0, win 0x162d40;
     cocos2d::CCArray* objectsInRect(cocos2d::CCRect rect, bool ignoreLayer) = mac 0x95e60, win 0x161ad0;
     void onPlaytest() = mac 0xa06b0, win 0x1695A0;
