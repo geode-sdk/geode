@@ -153,48 +153,6 @@ namespace codegen {
         return fmt::format("{}", fmt::join(parameters, ", "));
     }
 
-    inline std::string getConvention(Field& f) {
-        if (codegen::platform != Platform::Windows) return "DefaultConv";
-
-        if (auto fn = f.get_fn()) {
-            auto status = getStatus(f);
-
-            if (fn->is_static) {
-                if (status == BindStatus::Binded) return "x86::Cdecl";
-                else return "x86::Optcall";
-            }
-            else if (fn->is_virtual || fn->is_callback) {
-                return "x86::Thiscall";
-            }
-            else {
-                if (status == BindStatus::Binded) return "x86::Thiscall";
-                else return "x86::Membercall";
-            }
-        }
-        else throw codegen::error("Tried to get convention of non-function");
-    }
-
-    inline std::string getModifyConvention(Field& f) {
-        if (codegen::platform != Platform::Windows) return "tulip::hook::DefaultConvention";
-
-        if (auto fn = f.get_fn()) {
-            auto status = getStatus(f);
-
-            if (fn->is_static) {
-                if (status == BindStatus::Binded) return "tulip::hook::CdeclConvention";
-                else return "tulip::hook::OptcallConvention";
-            }
-            else if (fn->is_virtual || fn->is_callback) {
-                return "tulip::hook::ThiscallConvention";
-            }
-            else {
-                if (status == BindStatus::Binded) return "tulip::hook::ThiscallConvention";
-                else return "tulip::hook::MembercallConvention";
-            }
-        }
-        else throw codegen::error("Tried to get convention of non-function");
-    }
-
     inline std::string getModifyConventionName(Field& f) {
         if (codegen::platform != Platform::Windows) return "Default";
 
@@ -214,6 +172,18 @@ namespace codegen {
             }
         }
         else throw codegen::error("Tried to get convention of non-function");
+    }
+
+    inline std::string getConvention(Field& f) {
+        if (codegen::platform != Platform::Windows) return "DefaultConv";
+
+        return std::string("x86::") + getModifyConventionName(f);
+    }
+
+    inline std::string getModifyConvention(Field& f) {
+        if (codegen::platform != Platform::Windows) return "tulip::hook::DefaultConvention";
+
+        return std::string("tulip::hook::") + getModifyConventionName(f) + "Convention";
     }
 
     inline std::string getUnqualifiedClassName(std::string const& s) {
