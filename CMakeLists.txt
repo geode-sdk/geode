@@ -86,7 +86,7 @@ CPMAddPackage("gh:gulrak/filesystem#3e5b930")
 if (PROJECT_IS_TOP_LEVEL AND NOT GEODE_BUILDING_DOCS)
 	set(TULIP_LINK_SOURCE ON)
 endif()
-CPMAddPackage("gh:geode-sdk/TulipHook#a2c16d0")
+CPMAddPackage("gh:geode-sdk/TulipHook#9019b0b")
 
 
 target_sources(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/entry.cpp)

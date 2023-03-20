@@ -344,7 +344,7 @@ enum class LeaderboardState {
 };
 
 // Wylie Addition (https://github.com/Wyliemaster/GD-Decompiled/blob/main/GD/code/headers/Layers/LevelSettingsLayer.h)
-enum Speed {
+enum class Speed {
 	Normal = 0,
 	Slow = 1,
 	Fast = 2,
