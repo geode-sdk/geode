@@ -53,6 +53,13 @@ function(setup_geode_mod proname)
     set(multiValueArgs EXTERNALS)
     cmake_parse_arguments(SETUP_GEODE_MOD "${options}" "" "${multiValueArgs}" ${ARGN})
 
+    # Add package target + make output name the mod id
+    set_target_properties(${proname} PROPERTIES PREFIX "")
+    set_target_properties(${proname} PROPERTIES OUTPUT_NAME ${MOD_ID})
+
+    # Link Geode to the mod
+    target_link_libraries(${proname} geode-sdk)
+
     if (GEODE_DISABLE_CLI_CALLS)
         message("Skipping setting up geode mod ${proname}")
         return()
@@ -124,10 +131,6 @@ function(setup_geode_mod proname)
         set(HAS_HEADERS Off)
     endif()
 
-    # Add package target + make output name the mod id
-    set_target_properties(${proname} PROPERTIES PREFIX "")
-    set_target_properties(${proname} PROPERTIES OUTPUT_NAME ${MOD_ID})
-
     # todo: figure out how to either not make cmake shit itself and print out --binary path/to/dll "" or 
     # make cli not shit itself when it sees that
     if (HAS_HEADERS)
@@ -198,9 +201,6 @@ function(setup_geode_mod proname)
         target_link_libraries(${proname} ${libs_to_link})
         
     endif()
-
-    # Link Geode to the mod
-    target_link_libraries(${proname} geode-sdk)
 
 endfunction()
 
