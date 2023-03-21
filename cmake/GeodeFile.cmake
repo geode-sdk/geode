@@ -53,10 +53,6 @@ function(setup_geode_mod proname)
     set(multiValueArgs EXTERNALS)
     cmake_parse_arguments(SETUP_GEODE_MOD "${options}" "" "${multiValueArgs}" ${ARGN})
 
-    # Add package target + make output name the mod id
-    set_target_properties(${proname} PROPERTIES PREFIX "")
-    set_target_properties(${proname} PROPERTIES OUTPUT_NAME ${MOD_ID})
-
     # Link Geode to the mod
     target_link_libraries(${proname} geode-sdk)
 
@@ -201,6 +197,10 @@ function(setup_geode_mod proname)
         target_link_libraries(${proname} ${libs_to_link})
         
     endif()
+
+    # Add package target + make output name the mod id
+    set_target_properties(${proname} PROPERTIES PREFIX "")
+    set_target_properties(${proname} PROPERTIES OUTPUT_NAME ${MOD_ID})
 
 endfunction()
 
