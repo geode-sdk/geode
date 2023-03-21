@@ -1,13 +1,8 @@
 set(GEODE_CLI_MINIMUM_VERSION 1.0.5)
 
-# for passing CLI through CMake arguments
-if (DEFINED CLI_PATH)
-    list(APPEND CMAKE_PROGRAM_PATH ${CLI_PATH}) 
-endif()
-
 # Find Geode CLI
 if (NOT DEFINED GEODE_CLI)
-    find_program(GEODE_CLI NAMES geode.exe geode-cli.exe geode geode-cli)
+    find_program(GEODE_CLI NAMES geode.exe geode-cli.exe geode geode-cli PATHS ${CLI_PATH})
 endif()
 
 # Check if CLI was found
@@ -52,6 +47,9 @@ function(setup_geode_mod proname)
     set(options DONT_INSTALL)
     set(multiValueArgs EXTERNALS)
     cmake_parse_arguments(SETUP_GEODE_MOD "${options}" "" "${multiValueArgs}" ${ARGN})
+
+    # Link Geode to the mod
+    target_link_libraries(${proname} geode-sdk)
 
     if (GEODE_DISABLE_CLI_CALLS)
         message("Skipping setting up geode mod ${proname}")
@@ -109,7 +107,7 @@ function(setup_geode_mod proname)
     endif()
     
     # Check if --install should be passed
-    if (SETUP_GEODE_MOD_DONT_INSTALL)
+    if (SETUP_GEODE_MOD_DONT_INSTALL OR GEODE_DONT_INSTALL_MODS)
         message(STATUS "Skipping installing ${proname}")
         set(INSTALL_ARG "")
     else()
@@ -123,10 +121,6 @@ function(setup_geode_mod proname)
     else()
         set(HAS_HEADERS Off)
     endif()
-
-    # Add package target + make output name the mod id
-    set_target_properties(${proname} PROPERTIES PREFIX "")
-    set_target_properties(${proname} PROPERTIES OUTPUT_NAME ${MOD_ID})
 
     # todo: figure out how to either not make cmake shit itself and print out --binary path/to/dll "" or 
     # make cli not shit itself when it sees that
@@ -199,8 +193,9 @@ function(setup_geode_mod proname)
         
     endif()
 
-    # Link Geode to the mod
-    target_link_libraries(${proname} geode-sdk)
+    # Add package target + make output name the mod id
+    set_target_properties(${proname} PROPERTIES PREFIX "")
+    set_target_properties(${proname} PROPERTIES OUTPUT_NAME ${MOD_ID})
 
 endfunction()
 
