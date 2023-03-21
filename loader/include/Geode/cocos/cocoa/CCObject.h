@@ -47,14 +47,13 @@ NS_CC_BEGIN
  * @{
  */
 
-RT_ADD(
-    // please someone tell we why in higher being(s)'s name rob did this
-    enum class CCObjectType {
-        PlayLayer = 5,
-        LevelEditorLayer = 6,
-        MenuLayer = 15,
-    };
-)
+// please someone tell we why in higher being(s)'s name rob did this
+enum class CCObjectType {
+    PlayLayer = 5,
+    LevelEditorLayer = 6,
+    GameObject = 13,
+    MenuLayer = 15,
+};
 
 class CCZone;
 class CCObject;
