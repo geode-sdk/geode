@@ -112,7 +112,7 @@ function(setup_geode_mod proname)
     endif()
     
     # Check if --install should be passed
-    if (SETUP_GEODE_MOD_DONT_INSTALL)
+    if (SETUP_GEODE_MOD_DONT_INSTALL OR GEODE_DONT_INSTALL_MODS)
         message(STATUS "Skipping installing ${proname}")
         set(INSTALL_ARG "")
     else()
