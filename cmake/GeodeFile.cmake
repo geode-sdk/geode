@@ -1,13 +1,8 @@
 set(GEODE_CLI_MINIMUM_VERSION 1.0.5)
 
-# for passing CLI through CMake arguments
-if (DEFINED CLI_PATH)
-    list(APPEND CMAKE_PROGRAM_PATH ${CLI_PATH}) 
-endif()
-
 # Find Geode CLI
 if (NOT DEFINED GEODE_CLI)
-    find_program(GEODE_CLI NAMES geode.exe geode-cli.exe geode geode-cli)
+    find_program(GEODE_CLI NAMES geode.exe geode-cli.exe geode geode-cli PATHS ${CLI_PATH})
 endif()
 
 # Check if CLI was found
