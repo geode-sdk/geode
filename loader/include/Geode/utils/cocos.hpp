@@ -25,7 +25,7 @@ struct json::Serialize<cocos2d::ccColor4B> {
 };
 
 // operators for CC geometry
-namespace geode {
+namespace cocos2d {
     static cocos2d::CCPoint& operator*=(cocos2d::CCPoint& pos, float mul) {
         pos.x *= mul;
         pos.y *= mul;
