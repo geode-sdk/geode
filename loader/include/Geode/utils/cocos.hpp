@@ -375,8 +375,8 @@ namespace geode {
             return nullptr;
         }
 
-        static EventListenerNode* create(typename Filter::Callback callback) {
-            auto ret = new EventListenerNode(EventListener<Filter>(callback));
+        static EventListenerNode* create(typename Filter::Callback callback, Filter filter = Filter()) {
+            auto ret = new EventListenerNode(EventListener<Filter>(callback, filter));
             if (ret && ret->init()) {
                 ret->autorelease();
                 return ret;
@@ -384,7 +384,6 @@ namespace geode {
             CC_SAFE_DELETE(ret);
             return nullptr;
         }
-
 
         template <class C>
         static EventListenerNode* create(
