@@ -176,6 +176,7 @@ class cocos2d::CCEGLView {
 	static cocos2d::CCEGLView* sharedOpenGLView() = mac 0x295320;
 	virtual void swapBuffers() = mac 0x295510;
 	void updateWindow(int width, int height);
+	void setupWindow(cocos2d::CCRect);
 	void toggleFullScreen(bool fullscreen);
 	void pollEvents();
     void onGLFWCharCallback(GLFWwindow* window, unsigned int entered);
