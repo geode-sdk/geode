@@ -22,6 +22,7 @@ private:
     Ref<Layout> m_layout = nullptr;
     std::unique_ptr<LayoutOptions> m_layoutOptions = nullptr;
     std::unordered_map<std::string, std::any> m_attributes;
+    std::vector<EventListenerProtocol*> m_eventListeners;
 
     friend class ProxyCCNode;
     friend class cocos2d::CCNode;
@@ -30,6 +31,9 @@ private:
 
     virtual ~GeodeNodeMetadata() {
         delete m_fieldContainer;
+        for (auto& listener : m_eventListeners) {
+            delete listener;
+        }
     }
 
 public:
@@ -175,6 +179,10 @@ std::optional<std::any> CCNode::getAttributeInternal(std::string const& attr) {
         return meta->m_attributes.at(attr);
     }
     return std::nullopt;
+}
+
+void CCNode::addEventListenerInternal(EventListenerProtocol* protocol) {
+    GeodeNodeMetadata::set(this)->m_eventListeners.push_back(protocol);
 }
 
 #pragma warning(pop)

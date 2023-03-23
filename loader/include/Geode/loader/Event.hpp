@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../utils/casts.hpp"
+#include "../utils/MiniFunction.hpp"
 
 #include <Geode/DefaultInclude.hpp>
 #include <type_traits>
@@ -126,7 +127,7 @@ namespace geode {
 
     class GEODE_DLL [[nodiscard]] Event {
     private:
-        static std::unordered_set<EventListenerProtocol*>& listeners();
+        static std::vector<EventListenerProtocol*>& listeners();
         friend EventListenerProtocol;
 
     public:
@@ -137,7 +138,7 @@ namespace geode {
         void post() {
             postFrom(getMod());
         }
-
+        
         virtual ~Event();
     };
 }

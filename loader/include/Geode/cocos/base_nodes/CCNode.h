@@ -39,6 +39,7 @@
 #include "../include/CCProtocols.h"
 #include "Layout.hpp"
 #include <any>
+#include "../../loader/Event.hpp"
 
 NS_CC_BEGIN
 
@@ -851,6 +852,7 @@ private:
 
     GEODE_DLL geode::modifier::FieldContainer* getFieldContainer();
     GEODE_DLL std::optional<std::any> getAttributeInternal(std::string const& attribute);
+    GEODE_DLL void addEventListenerInternal(geode::EventListenerProtocol* protocol);
 
 public:
     /**
@@ -986,6 +988,13 @@ public:
      * @note Geode addition
      */
     GEODE_DLL void swapChildIndices(CCNode* first, CCNode* second);
+
+    template <class Filter, class... Args>
+    void addEventListener(Filter::Callback listener, Args&&... args) {
+        this->addEventListenerInternal(new geode::EventListener<Filter>(
+            listener, Filter(this, std::forward<Args>(args)...)
+        ));
+    }
     
     /// @{
     /// @name Shader Program
