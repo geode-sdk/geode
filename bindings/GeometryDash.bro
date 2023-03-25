@@ -97,7 +97,10 @@ class AppDelegate : cocos2d::CCApplication, cocos2d::CCSceneDelegate {
     void resumeSound() = win 0x3d4d0;
     void setupGLView() = win 0x3c950;
 
+    PAD = win 0x4;
     cocos2d::CCScene* m_runningScene;
+    bool m_loadingFinished;
+    // there's 0x18 more on Windows
 }
 
 class ArtistCell : TableViewCell {

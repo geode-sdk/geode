@@ -168,7 +168,7 @@ std::string generateBindingHeader(Root& root, ghc::filesystem::path const& singl
         }
 
         std::string supers = str_if(
-            fmt::format(" : public {}", fmt::join(cls.superclasses, ", ")),
+            fmt::format(" : public {}", fmt::join(cls.superclasses, ", public ")),
             !cls.superclasses.empty()
         );
 
