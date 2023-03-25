@@ -531,6 +531,10 @@ class CCScrollLayerExtDelegate {
     virtual void scrollViewTouchEnd(CCScrollLayerExt*) {}
 }
 
+class CCSpritePart : CCSpritePlus {
+
+}
+
 class CCSpritePlus : cocos2d::CCSprite {
     bool initWithSpriteFrameName(const char*) = mac 0x248670, win 0x1c1e0;
     void setScaleX(float scale) = win 0x1c440;
@@ -2424,8 +2428,16 @@ class GJRobotSprite : CCAnimatedSprite {
     void updateFrame(int) = mac 0x34bdd0, win 0x146700;
     void hideGlow() = mac 0x34b860;
 
-    PAD = win 0x8;
+    cocos2d::CCArray* m_unk244;
+    bool m_unk248;
+    cocos2d::ccColor3B m_mainColor;
     cocos2d::ccColor3B m_secondaryColor;
+    cocos2d::CCArray* m_unk250;
+    cocos2d::CCSprite* m_glowSprite;
+    cocos2d::CCSprite* m_unk258;
+    PAD = win 0x4;
+    cocos2d::CCSprite* m_flameSprite;
+    CCSpritePart* m_headSpritePart;
 }
 
 class GJRotationControl : cocos2d::CCLayer {
@@ -3415,6 +3427,7 @@ class GameToolbox {
     static void alignItemsHorisontally(cocos2d::CCArray* array, bool idk, cocos2d::CCPoint start, float pad) = win 0x25b20;
     static cocos2d::_ccHSVValue hsvFromString(gd::string, char const*) = mac 0x28cc30, win 0x26da0;
     static gd::map<gd::string, gd::string> stringSetupToMap(gd::string, char const*) = mac 0x28d4c0;
+    static cocos2d::ccColor3B multipliedColorValue(cocos2d::ccColor3B color1, cocos2d::ccColor3B color2, float factor) = win 0x26CE0;
 }
 
 class GaragePage : cocos2d::CCLayer, ListButtonBarDelegate {
@@ -3465,7 +3478,7 @@ class HardStreak : cocos2d::CCDrawNode {
     // ~HardStreak() = mac 0x5bf00; inlined on windows
     virtual bool init() = mac 0x5c090, win 0x14e430;
     void addPoint(cocos2d::CCPoint) = mac 0x5c950, win 0x14ebc0;
-    void clearBehindXPos(float) = mac 0x5cb40;
+    void clearBehindXPos(float) = mac 0x5cb40, win 0x14ec00;
     static HardStreak* create() = mac 0x5bfd0, win 0x14e390;
     void firstSetup() = mac 0x5c160, win 0x14e490;
     double normalizeAngle(double) = mac 0x5cbe0;
@@ -4649,7 +4662,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     void convertToClosestRotation(float) = mac 0x21c860, win 0x1e9ac0;
     void copyAttributes(PlayerObject*) = mac 0x22dc70, win 0x1f93f0;
     static PlayerObject* create(int, int, cocos2d::CCLayer*) = mac 0x217260, win 0x1e6cf0;
-    void deactivateParticle() = mac 0x21a540;
+    void deactivateParticle() = mac 0x21a540, win 0x1e8f50;
     void deactivateStreak(bool) = mac 0x218b30;
     void fadeOutStreak2(float) = mac 0x225890, win 0x1f9110;
     void flashPlayer(float, float, cocos2d::_ccColor3B, cocos2d::_ccColor3B) = mac 0x221c80;
@@ -4671,7 +4684,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     void isSafeMode(float) = mac 0x2209b0;
     void isSafeSpiderFlip(float) = mac 0x221be0;
     void levelFlipFinished() = mac 0x21b060, win 0x1e8e70;
-    void levelFlipping() = mac 0x21a510, win 0x1f6820;
+    bool levelFlipping() = mac 0x21a510, win 0x1f6820;
     void levelWillFlip() = mac 0x21b020;
     void loadFromCheckpoint(PlayerCheckpoint*) = mac 0x22e420, win 0x1fa080;
     void lockPlayer() = mac 0x22d680;
@@ -4741,7 +4754,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     void updateCollide(bool, int) = mac 0x220f10;
     void updateCollideBottom(float, int) = mac 0x221790;
     void updateCollideTop(float, int) = mac 0x221c20;
-    void updateDashAnimation() = mac 0x21a570;
+    void updateDashAnimation() = mac 0x21a570, win 0x1eea80;
     void updateDashArt() = mac 0x222520, win 0x1ee3c0;
     void updateGlowColor() = mac 0x22cf10;
     void updateJump(float) = mac 0x219680, win 0x1e8f80;
@@ -4854,6 +4867,8 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     bool m_hasJustHeld;
     bool m_isHolding2;
     bool m_hasJustHeld2;
+    bool m_unk615;
+    bool m_unk616;
     int m_unk618;
     float m_unk61C;
     int m_unk620;
@@ -4869,6 +4884,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     bool m_isRobot;
     bool m_isSpider;
     bool m_isUpsideDown;
+    bool m_unk63F;
     bool m_isOnGround;
     bool m_isDashing;
     float m_vehicleSize;
