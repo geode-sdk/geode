@@ -127,7 +127,6 @@ namespace geode {
 
     class GEODE_DLL [[nodiscard]] Event {
     private:
-        static std::vector<EventListenerProtocol*>& listeners();
         friend EventListenerProtocol;
 
     public:
@@ -140,5 +139,12 @@ namespace geode {
         }
         
         virtual ~Event();
+
+        static std::vector<EventListenerProtocol*>& listeners();
+        /**
+         * Move an event listener to the front of the queue so it is always hit 
+         * first
+         */
+        static void prioritize(EventListenerProtocol* listener);
     };
 }

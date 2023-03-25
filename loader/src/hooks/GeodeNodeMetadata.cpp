@@ -181,8 +181,12 @@ std::optional<std::any> CCNode::getAttributeInternal(std::string const& attr) {
     return std::nullopt;
 }
 
-void CCNode::addEventListenerInternal(EventListenerProtocol* protocol) {
-    GeodeNodeMetadata::set(this)->m_eventListeners.push_back(protocol);
+void CCNode::addEventListenerInternal(EventListenerProtocol* listener) {
+    GeodeNodeMetadata::set(this)->m_eventListeners.push_back(listener);
+}
+
+void CCNode::removeEventListener(EventListenerProtocol* listener) {
+    ranges::remove(GeodeNodeMetadata::set(this)->m_eventListeners, listener);
 }
 
 #pragma warning(pop)

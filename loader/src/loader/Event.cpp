@@ -33,3 +33,7 @@ std::vector<EventListenerProtocol*>& Event::listeners() {
     static std::vector<EventListenerProtocol*> listeners;
     return listeners;
 }
+
+void Event::prioritize(EventListenerProtocol* listener) {
+    ranges::move(Event::listeners(), listener, 0);
+}
