@@ -2354,7 +2354,12 @@ class GJGroundLayer : cocos2d::CCLayer {
     void updateGroundWidth() = mac 0x356790, win 0x12dda0;
 }
 
-class GJItemIcon {
+class GJItemIcon : cocos2d::CCSprite {
+    bool init(
+        UnlockType, int, cocos2d::ccColor3B, cocos2d::ccColor3B,
+        bool, bool, bool, cocos2d::ccColor3B
+    ) = win 0x12ccf0;
+
     GJItemIcon* createBrowserIcon(UnlockType _type, int _id) {
         return GJItemIcon::create(_type, _id,
             { 0xaf, 0xaf, 0xaf }, { 0xff, 0xff, 0xff },
@@ -3378,6 +3383,7 @@ class GameStatsManager : cocos2d::CCNode {
     void storePendingUserCoin(char const*) = mac 0x42940;
     void storeSecretCoin(char const*) = mac 0x42a10;
     void storeUserCoin(char const*) = mac 0x42890;
+    bool isItemUnlocked(UnlockType type, int id) = win 0xfbb80;
 
     PAD = win 0x28;
     cocos2d::CCDictionary* m_dailyChests;
