@@ -990,12 +990,23 @@ public:
     GEODE_DLL void swapChildIndices(CCNode* first, CCNode* second);
 
     template <class Filter, class... Args>
-    geode::EventListenerProtocol* addEventListener(typename Filter::Callback callback, Args&&... args) {
+    geode::EventListenerProtocol* addEventListener(
+        geode::utils::MiniFunction<typename Filter::Callback> callback, Args&&... args
+    ) {
         auto listener = new geode::EventListener<Filter>(
             callback, Filter(this, std::forward<Args>(args)...)
         );
         this->addEventListenerInternal(listener);
         return listener;
+    }
+    template <class Ev, class... Args>
+    geode::EventListenerProtocol* addEventListener(
+        geode::utils::MiniFunction<geode::ListenerResult(Ev*)> callback,
+        Args&&... args
+    ) {
+        return this->template addEventListener<typename Ev::Filter>(
+            callback, std::forward<Args>(args)...
+        );
     }
     GEODE_DLL void removeEventListener(geode::EventListenerProtocol* listener);
     

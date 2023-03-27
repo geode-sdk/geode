@@ -120,6 +120,10 @@ namespace geode {
             m_filter = filter;
         }
 
+        T getFilter() const {
+            return m_filter;
+        }
+
     protected:
         utils::MiniFunction<Callback> m_callback = nullptr;
         T m_filter;
