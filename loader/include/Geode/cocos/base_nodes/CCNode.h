@@ -852,7 +852,10 @@ private:
 
     GEODE_DLL geode::modifier::FieldContainer* getFieldContainer();
     GEODE_DLL std::optional<json::Value> getAttributeInternal(std::string const& attribute);
-    GEODE_DLL void addEventListenerInternal(geode::EventListenerProtocol* protocol);
+    GEODE_DLL void addEventListenerInternal(
+        std::string const& id,
+        geode::EventListenerProtocol* protocol
+    );
 
 public:
     /**
@@ -1003,24 +1006,28 @@ public:
 
     template <class Filter, class... Args>
     geode::EventListenerProtocol* addEventListener(
-        geode::utils::MiniFunction<typename Filter::Callback> callback, Args&&... args
+        std::string const& id,
+        geode::utils::MiniFunction<typename Filter::Callback> callback,
+        Args&&... args
     ) {
         auto listener = new geode::EventListener<Filter>(
             callback, Filter(this, std::forward<Args>(args)...)
         );
-        this->addEventListenerInternal(listener);
+        this->addEventListenerInternal(id, listener);
         return listener;
     }
-    template <class Ev, class... Args>
+    template <class Filter, class... Args>
     geode::EventListenerProtocol* addEventListener(
-        geode::utils::MiniFunction<geode::ListenerResult(Ev*)> callback,
+        geode::utils::MiniFunction<typename Filter::Callback> callback,
         Args&&... args
     ) {
-        return this->template addEventListener<typename Ev::Filter>(
-            callback, std::forward<Args>(args)...
+        return this->template addEventListener<Filter, Args...>(
+            "", callback, std::forward<Args>(args)...
         );
     }
     GEODE_DLL void removeEventListener(geode::EventListenerProtocol* listener);
+    GEODE_DLL void removeEventListener(std::string const& id);
+    GEODE_DLL geode::EventListenerProtocol* getEventListener(std::string const& id);
     
     /// @{
     /// @name Shader Program

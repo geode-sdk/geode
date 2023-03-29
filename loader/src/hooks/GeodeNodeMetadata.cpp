@@ -22,7 +22,8 @@ private:
     Ref<Layout> m_layout = nullptr;
     std::unique_ptr<LayoutOptions> m_layoutOptions = nullptr;
     std::unordered_map<std::string, json::Value> m_attributes;
-    std::vector<EventListenerProtocol*> m_eventListeners;
+    std::unordered_set<std::unique_ptr<EventListenerProtocol>> m_eventListeners;
+    std::unordered_map<std::string, std::unique_ptr<EventListenerProtocol>> m_idEventListeners;
 
     friend class ProxyCCNode;
     friend class cocos2d::CCNode;
@@ -31,9 +32,6 @@ private:
 
     virtual ~GeodeNodeMetadata() {
         delete m_fieldContainer;
-        for (auto& listener : m_eventListeners) {
-            delete listener;
-        }
     }
 
 public:
@@ -195,12 +193,44 @@ std::optional<json::Value> CCNode::getAttributeInternal(std::string const& attr)
     return std::nullopt;
 }
 
-void CCNode::addEventListenerInternal(EventListenerProtocol* listener) {
-    GeodeNodeMetadata::set(this)->m_eventListeners.push_back(listener);
+void CCNode::addEventListenerInternal(std::string const& id, EventListenerProtocol* listener) {
+    auto meta = GeodeNodeMetadata::set(this);
+    if (id.size()) {
+        if (meta->m_idEventListeners.contains(id)) {
+            meta->m_idEventListeners.at(id).reset(listener);
+        }
+        else {
+            meta->m_idEventListeners.emplace(id, listener);
+        }
+    }
+    else {
+        std::erase_if(meta->m_eventListeners, [=](auto& l) {
+            return l.get() == listener;
+        });
+        meta->m_eventListeners.emplace(listener);
+    }
 }
 
 void CCNode::removeEventListener(EventListenerProtocol* listener) {
-    ranges::remove(GeodeNodeMetadata::set(this)->m_eventListeners, listener);
+    auto meta = GeodeNodeMetadata::set(this);
+    std::erase_if(meta->m_eventListeners, [=](auto& l) {
+        return l.get() == listener;
+    });
+    std::erase_if(meta->m_idEventListeners, [=](auto& l) {
+        return l.second.get() == listener;
+    });
+}
+
+void CCNode::removeEventListener(std::string const& id) {
+    GeodeNodeMetadata::set(this)->m_idEventListeners.erase(id);
+}
+
+EventListenerProtocol* CCNode::getEventListener(std::string const& id) {
+    auto meta = GeodeNodeMetadata::set(this);
+    if (meta->m_idEventListeners.contains(id)) {
+        return meta->m_idEventListeners.at(id).get();
+    }
+    return nullptr;
 }
 
 #pragma warning(pop)
