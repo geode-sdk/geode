@@ -21,7 +21,7 @@ private:
     std::string m_id = "";
     Ref<Layout> m_layout = nullptr;
     std::unique_ptr<LayoutOptions> m_layoutOptions = nullptr;
-    std::unordered_map<std::string, std::any> m_attributes;
+    std::unordered_map<std::string, json::Value> m_attributes;
     std::vector<EventListenerProtocol*> m_eventListeners;
 
     friend class ProxyCCNode;
@@ -169,11 +169,11 @@ void CCNode::updateLayout(bool updateChildOrder) {
     }
 }
 
-void CCNode::setAttribute(std::string const& attr, std::any value) {
+void CCNode::setAttribute(std::string const& attr, json::Value const& value) {
     GeodeNodeMetadata::set(this)->m_attributes[attr] = value;
 }
 
-std::optional<std::any> CCNode::getAttributeInternal(std::string const& attr) {
+std::optional<json::Value> CCNode::getAttributeInternal(std::string const& attr) {
     auto meta = GeodeNodeMetadata::set(this);
     if (meta->m_attributes.count(attr)) {
         return meta->m_attributes.at(attr);

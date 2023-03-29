@@ -38,8 +38,8 @@
 #include "../script_support/CCScriptSupport.h"
 #include "../include/CCProtocols.h"
 #include "Layout.hpp"
-#include <any>
 #include "../../loader/Event.hpp"
+#include <json.hpp>
 
 NS_CC_BEGIN
 
@@ -851,7 +851,7 @@ private:
     friend class geode::modifier::FieldContainer;
 
     GEODE_DLL geode::modifier::FieldContainer* getFieldContainer();
-    GEODE_DLL std::optional<std::any> getAttributeInternal(std::string const& attribute);
+    GEODE_DLL std::optional<json::Value> getAttributeInternal(std::string const& attribute);
     GEODE_DLL void addEventListenerInternal(geode::EventListenerProtocol* protocol);
 
 public:
@@ -931,7 +931,7 @@ public:
      * @param value The value of the attribute
      * @note Geode addition
      */
-    GEODE_DLL void setAttribute(std::string const& attribute, std::any value);
+    GEODE_DLL void setAttribute(std::string const& attribute, json::Value const& value);
     /**
      * Get an attribute from the node. Attributes may be anything
      * @param attribute The attribute key
@@ -943,7 +943,7 @@ public:
     std::optional<T> getAttribute(std::string const& attribute) {
         if (auto value = this->getAttributeInternal(attribute)) {
             try {
-                return std::any_cast<T>(value.value());
+                return value.value().template as<T>();
             } catch(...) {
                 return std::nullopt;
             }
