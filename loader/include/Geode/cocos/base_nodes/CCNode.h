@@ -894,6 +894,7 @@ public:
      * @param before The child the node is added before of. If this is null or 
      * not a child of this node, the new child will be placed at the start of the 
      * child list
+     * @note Geode addition
      */
     GEODE_DLL void insertBefore(CCNode* child, CCNode* before);
 
@@ -904,8 +905,19 @@ public:
      * @param after The child the node is added after of. If this is null or 
      * not a child of this node, the new child will be placed at the end of the 
      * child list
+     * @note Geode addition
      */
     GEODE_DLL void insertAfter(CCNode* child, CCNode* after);
+
+    /**
+     * Check if this node's parent or its parents' parent is the given node
+     * @param ancestor The node whose child or subchild this node should be. If 
+     * nullptr, returns true if the node is in the current scene, otherwise 
+     * false.
+     * @returns True if ancestor is an ancestor of this node
+     * @note Geode addition
+     */
+    GEODE_DLL bool hasAncestor(CCNode* ancestor);
 
     /**
      * Set an attribute on a node. Attributes are a system added by Geode, 

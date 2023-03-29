@@ -37,4 +37,12 @@ CCTextureCache* CCTextureCache::get() {
     return CCTextureCache::sharedTextureCache();
 }
 
+CCScene* CCScene::get() {
+    return CCDirector::get()->getRunningScene();
+}
+
+CCScheduler* CCScheduler::get() {
+    return CCDirector::get()->getScheduler();
+}
+
 #pragma warning(pop)
