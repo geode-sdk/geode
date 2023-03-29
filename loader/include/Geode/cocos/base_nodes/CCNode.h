@@ -1725,4 +1725,27 @@ protected:
 
 NS_CC_END
 
+namespace geode {
+    struct GEODE_DLL AttributeSetEvent : public Event {
+        cocos2d::CCNode* node;
+        const std::string id;
+        json::Value& value;
+
+        AttributeSetEvent(cocos2d::CCNode* node, std::string const& id, json::Value& value);
+    };
+
+    class GEODE_DLL AttributeSetFilter : public EventFilter<AttributeSetEvent> {
+	public:
+		using Callback = void(AttributeSetEvent*);
+    
+    protected:
+		std::string m_targetID;
+	
+	public:
+        ListenerResult handle(utils::MiniFunction<Callback> fn, AttributeSetEvent* event);
+
+		AttributeSetFilter(std::string const& id);
+    };
+}
+
 #endif // __PLATFORM_CCNODE_H__

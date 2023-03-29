@@ -169,8 +169,22 @@ void CCNode::updateLayout(bool updateChildOrder) {
     }
 }
 
+AttributeSetEvent::AttributeSetEvent(CCNode* node, std::string const& id, json::Value& value)
+  : node(node), id(id), value(value) {}
+
+ListenerResult AttributeSetFilter::handle(MiniFunction<Callback> fn, AttributeSetEvent* event) {
+    if (event->id == m_targetID) {
+        fn(event);
+    }
+    return ListenerResult::Propagate;
+}
+
+AttributeSetFilter::AttributeSetFilter(std::string const& id) : m_targetID(id) {}
+
 void CCNode::setAttribute(std::string const& attr, json::Value const& value) {
-    GeodeNodeMetadata::set(this)->m_attributes[attr] = value;
+    auto meta = GeodeNodeMetadata::set(this);
+    meta->m_attributes[attr] = value;
+    AttributeSetEvent(this, attr, meta->m_attributes.at(attr)).post();
 }
 
 std::optional<json::Value> CCNode::getAttributeInternal(std::string const& attr) {
