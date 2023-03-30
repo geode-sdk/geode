@@ -111,11 +111,17 @@ void Scrollbar::draw() {
 
     if (fHeightTop() > 0.0f) {
         thumbHeight -= fHeightTop();
+        if (thumbHeight < 15.f) {
+            thumbHeight = 15.f;
+        }
         thumbPosY -= fHeightTop();
     }
 
     if (fHeightBottom() < 0.f) {
         thumbHeight += fHeightBottom();
+        if (thumbHeight < 15.f) {
+            thumbHeight = 15.f;
+        }
         thumbPosY -= fHeightBottom();
     }
 
