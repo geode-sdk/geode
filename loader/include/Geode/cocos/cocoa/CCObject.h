@@ -100,16 +100,14 @@ public:
     int                 m_nLuaID;
 protected:
     // the object's tag
-    RT_ADD( int m_nTag; )
+    int m_nTag;
     // count of references
     unsigned int        m_uReference;
     // count of autorelease
     unsigned int        m_uAutoReleaseCount;
 
-    RT_ADD(
-        CCObjectType m_eObjType;
-        int m_nUnknown;
-    )
+    CCObjectType m_eObjType;
+    int m_nUnknown;
 public:
 	GEODE_CUSTOM_CONSTRUCTOR_BEGIN(CCObject)
     CCObject(void);
