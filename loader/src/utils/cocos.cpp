@@ -253,7 +253,7 @@ bool WeakRefPool::isManaged(CCObject* obj) {
 }
 
 void WeakRefPool::manage(CCObject* obj) {
-    if (obj) {
+    if (obj && !m_pool.contains(obj)) {
         obj->retain();
         m_pool.insert(obj);
     }
