@@ -636,9 +636,6 @@ class cocos2d::CCObject {
     auto isEqual(cocos2d::CCObject const*) = mac 0x250f20, ios 0x439e4;
     auto release() = mac 0x250ea0, ios 0x43984;
     auto retain() = mac 0x250ec0, ios 0x439a8;
-    unsigned int retainCount() const {
-    	return m_uReference;
-    }
 
     virtual auto setTag(int) = mac 0x250f60, ios 0x43a10;
     ~CCObject() = mac 0x250d20, ios 0x6ac0;
