@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../utils/casts.hpp"
+#include "../utils/MiniFunction.hpp"
 
 #include <Geode/DefaultInclude.hpp>
 #include <type_traits>
@@ -119,6 +120,10 @@ namespace geode {
             m_filter = filter;
         }
 
+        T getFilter() const {
+            return m_filter;
+        }
+
     protected:
         utils::MiniFunction<Callback> m_callback = nullptr;
         T m_filter;
@@ -126,7 +131,6 @@ namespace geode {
 
     class GEODE_DLL [[nodiscard]] Event {
     private:
-        static std::unordered_set<EventListenerProtocol*>& listeners();
         friend EventListenerProtocol;
 
     public:
@@ -137,7 +141,14 @@ namespace geode {
         void post() {
             postFrom(getMod());
         }
-
+        
         virtual ~Event();
+
+        static std::vector<EventListenerProtocol*>& listeners();
+        /**
+         * Move an event listener to the front of the queue so it is always hit 
+         * first
+         */
+        static void prioritize(EventListenerProtocol* listener);
     };
 }

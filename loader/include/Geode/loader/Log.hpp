@@ -71,6 +71,24 @@ namespace geode {
             return "nullopt";
         }
 
+        template <class T>
+            requires requires(T t) {
+                parse(t);
+            }
+        std::string parse(std::vector<T> const& thing) {
+            std::string res = "[";
+            bool first = true;
+            for (auto& t : thing) {
+                if (!first) {
+                    res += ", ";
+                }
+                first = false;
+                res += parse(t);
+            }
+            res += "]";
+            return res;
+        }
+
         template <class A, class B>
             requires requires(A a, B b) {
                 parse(a);

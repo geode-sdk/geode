@@ -71,17 +71,19 @@ public:
     virtual ~CCScene();
     bool init();
 
-    static CCScene *create(void);
+    static CCScene* create(void);
+    /**
+     * Get the running scene
+     * @note Geode addition
+     */
+    static GEODE_DLL CCScene* get();
 
-    RT_ADD(
-        CCScene(const CCScene&);
-        
-        CCScene& operator=(const CCScene&);
+    CCScene(const CCScene&);
+    CCScene& operator=(const CCScene&);
 
-        int getHighestChildZ(void);
+    int getHighestChildZ(void);
 
-        CCSceneDelegate* m_pDelegate;
-    )
+    CCSceneDelegate* m_pDelegate;
 };
 
 // end of scene group

@@ -97,7 +97,10 @@ class AppDelegate : cocos2d::CCApplication, cocos2d::CCSceneDelegate {
     void resumeSound() = win 0x3d4d0;
     void setupGLView() = win 0x3c950;
 
+    PAD = win 0x4;
     cocos2d::CCScene* m_runningScene;
+    bool m_loadingFinished;
+    // there's 0x18 more on Windows
 }
 
 class ArtistCell : TableViewCell {
@@ -1245,7 +1248,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     virtual void scaleChanged(float) = mac 0x25490, win 0x88df0;
     virtual void scaleChangeEnded() = win 0x88de0;
     void scaleObjects(cocos2d::CCArray*, float, cocos2d::CCPoint) = mac 0x252e0, win 0x8f150;
-    void selectObjects(cocos2d::CCArray*, bool) = mac 0x23940, win 0x864a0;
+    void selectObjects(cocos2d::CCArray* objs, bool ignoreFilters) = mac 0x23940, win 0x864a0;
     void setupCreateMenu() = mac 0xcb50, win 0x7caf0;
     void undoLastAction(cocos2d::CCObject*) = mac 0xb830, win 0x87070;
     void updateButtons() = mac 0x1a300, win 0x78280;
@@ -2355,7 +2358,12 @@ class GJGroundLayer : cocos2d::CCLayer {
     void updateGroundWidth() = mac 0x356790, win 0x12dda0;
 }
 
-class GJItemIcon {
+class GJItemIcon : cocos2d::CCSprite {
+    bool init(
+        UnlockType, int, cocos2d::ccColor3B, cocos2d::ccColor3B,
+        bool, bool, bool, cocos2d::ccColor3B
+    ) = win 0x12ccf0;
+
     GJItemIcon* createBrowserIcon(UnlockType _type, int _id) {
         return GJItemIcon::create(_type, _id,
             { 0xaf, 0xaf, 0xaf }, { 0xff, 0xff, 0xff },
@@ -3183,8 +3191,8 @@ class GameObject : CCSpritePlus {
     bool m_isEffectObject;
     bool m_randomisedAnimStart;
     float m_animSpeed;
-    bool m_blackChild;
-    bool m_unkOutlineMaybe;
+    bool m_isBlackObject;
+    bool m_isBlackObjectWithOutline;
     float m_blackChildOpacity;
     bool field_21C;
     bool m_editor;
@@ -3387,6 +3395,7 @@ class GameStatsManager : cocos2d::CCNode {
     void storePendingUserCoin(char const*) = mac 0x42940;
     void storeSecretCoin(char const*) = mac 0x42a10;
     void storeUserCoin(char const*) = mac 0x42890;
+    bool isItemUnlocked(UnlockType type, int id) = win 0xfbb80;
 
     PAD = win 0x28;
     cocos2d::CCDictionary* m_dailyChests;

@@ -73,7 +73,7 @@ ghc::filesystem::path Mod::getBinaryPath() const {
 }
 
 ghc::filesystem::path Mod::getResourcesDir() const {
-    return dirs::getModRuntimeDir() / this->getID() / "resources";
+    return dirs::getModRuntimeDir() / this->getID() / "resources" / this->getID();
 }
 
 Result<> Mod::saveData() {

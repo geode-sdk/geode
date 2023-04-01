@@ -408,12 +408,12 @@ class cocos2d::CCMenu {
     virtual auto registerWithTouchDispatcher() = mac 0x438cd0, ios 0x131f8c;
     virtual auto onExit() = mac 0x438bd0, ios 0x131ed4;
     virtual auto removeChild(cocos2d::CCNode*, bool) = mac 0x438c20, ios 0x15e630;
-    auto initWithArray(cocos2d::CCArray*) = mac 0x4389f0, ios 0x131d04;
-    auto itemForTouch(cocos2d::CCTouch*) = mac 0x438dd0;
+    bool initWithArray(cocos2d::CCArray*) = mac 0x4389f0, ios 0x131d04;
+    cocos2d::CCMenuItem* itemForTouch(cocos2d::CCTouch*) = mac 0x438dd0;
 }
 
 class cocos2d::CCMenuItem {
-	auto initWithTarget(cocos2d::CCObject*, cocos2d::SEL_MenuHandler) = mac 0x1fb7f0;
+	bool initWithTarget(cocos2d::CCObject*, cocos2d::SEL_MenuHandler) = mac 0x1fb7f0;
 	virtual ~CCMenuItem() = mac 0x1fb8e0, ios 0x2cdf4;
 	virtual auto activate() = mac 0x1fba70, ios 0x2ceb0;
 	virtual auto selected() = mac 0x1fb9e0, ios 0x2ce2e;
@@ -636,9 +636,6 @@ class cocos2d::CCObject {
     auto isEqual(cocos2d::CCObject const*) = mac 0x250f20, ios 0x439e4;
     auto release() = mac 0x250ea0, ios 0x43984;
     auto retain() = mac 0x250ec0, ios 0x439a8;
-    unsigned int retainCount() const {
-    	return m_uReference;
-    }
 
     virtual auto setTag(int) = mac 0x250f60, ios 0x43a10;
     ~CCObject() = mac 0x250d20, ios 0x6ac0;

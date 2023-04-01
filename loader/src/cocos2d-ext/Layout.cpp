@@ -37,6 +37,19 @@ void CCNode::insertAfter(CCNode* child, CCNode* after) {
     }
 }
 
+bool CCNode::hasAncestor(CCNode* ancestor) {
+    if (!ancestor) {
+        ancestor = CCScene::get();
+    }
+    if (m_pParent == ancestor) {
+        return true;
+    }
+    if (m_pParent) {
+        return m_pParent->hasAncestor(ancestor);
+    }
+    return false;
+}
+
 CCArray* Layout::getNodesToPosition(CCNode* on) {
     if (!on->getChildren()) {
         return CCArray::create();

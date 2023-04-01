@@ -100,16 +100,14 @@ public:
     int                 m_nLuaID;
 protected:
     // the object's tag
-    RT_ADD( int m_nTag; )
+    int m_nTag;
     // count of references
     unsigned int        m_uReference;
     // count of autorelease
     unsigned int        m_uAutoReleaseCount;
 
-    RT_ADD(
-        CCObjectType m_eObjType;
-        int m_nUnknown;
-    )
+    CCObjectType m_eObjType;
+    int m_nUnknown;
 public:
 	GEODE_CUSTOM_CONSTRUCTOR_BEGIN(CCObject)
     CCObject(void);
@@ -123,7 +121,9 @@ public:
     CCObject* autorelease(void);
     CCObject* copy(void);
     bool isSingleReference(void) const;
-    inline unsigned int retainCount(void) const;
+    inline unsigned int retainCount(void) const {
+        return m_uReference;
+    }
     virtual bool isEqual(const CCObject* pObject);
 
     virtual void acceptVisitor(CCDataVisitor &visitor);

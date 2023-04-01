@@ -285,6 +285,12 @@ public:
      */
     void resumeTargets(CCSet* targetsToResume);
 
+    /**
+     * Get the shared scheduler from CCDirector
+     * @note Geode addition
+     */
+    static GEODE_DLL CCScheduler* get();
+
 private:
     void removeHashElement(struct _hashSelectorEntry *pElement);
     void removeUpdateFromHash(struct _listEntry *entry);
