@@ -1244,7 +1244,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     virtual void scaleChanged(float) = mac 0x25490, win 0x88df0;
     virtual void scaleChangeEnded() = win 0x88de0;
     void scaleObjects(cocos2d::CCArray*, float, cocos2d::CCPoint) = mac 0x252e0, win 0x8f150;
-    void selectObjects(cocos2d::CCArray*, bool) = mac 0x23940, win 0x864a0;
+    void selectObjects(cocos2d::CCArray* objs, bool ignoreFilters) = mac 0x23940, win 0x864a0;
     void setupCreateMenu() = mac 0xcb50, win 0x7caf0;
     void undoLastAction(cocos2d::CCObject*) = mac 0xb830, win 0x87070;
     void updateButtons() = mac 0x1a300, win 0x78280;
@@ -3179,8 +3179,8 @@ class GameObject : CCSpritePlus {
     bool m_isEffectObject;
     bool m_randomisedAnimStart;
     float m_animSpeed;
-    bool m_blackChild;
-    bool m_unkOutlineMaybe;
+    bool m_isBlackObject;
+    bool m_isBlackObjectWithOutline;
     float m_blackChildOpacity;
     bool field_21C;
     bool m_editor;

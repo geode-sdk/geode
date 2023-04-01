@@ -203,6 +203,7 @@ namespace geode {
             CircleBaseColor color = CircleBaseColor::Green,
             CircleBaseSize size = CircleBaseSize::Medium
         );
+        cocos2d::CCSize getMaxTopSize() const override;
     };
 
     /**
