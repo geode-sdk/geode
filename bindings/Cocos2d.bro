@@ -64,14 +64,18 @@ class cocos2d::CCCallFuncO {
 	static auto create(cocos2d::CCObject*, cocos2d::SEL_CallFuncO, cocos2d::CCObject*) = mac 0x455940;
 }
 
-class cocos2d::CCClippingNode : cocos2d::CCNode {
-	inline CCClippingNode() : cocos2d::CCNode(), m_pStencil(nullptr), m_fAlphaThreshold(1.f), m_bInverted(false) {}
+class cocos2d::CCClippingNode {
+	CCClippingNode() {
+		m_pStencil = nullptr;
+		m_fAlphaThreshold = 1.f;
+		m_bInverted = false;
+	}
 	static cocos2d::CCClippingNode* create() = mac 0x4192a0;
 	static cocos2d::CCClippingNode* create(cocos2d::CCNode*) = mac 0x419330;
 	// Inlined in create() call
-	virtual bool init() = mac 0x4193e0;
+	auto init() = mac 0x4193e0;
 	// Inlined in create() call
-	virtual bool init(cocos2d::CCNode* stencil) = mac 0x419400;
+	auto init(cocos2d::CCNode* stencil) = mac 0x419400;
 	auto getAlphaThreshold() const = mac 0x419a10;
 	auto getStencil() const = mac 0x4199c0;
 	auto isInverted() const = mac 0x419a30;
@@ -159,14 +163,14 @@ class cocos2d::CCDrawNode {
 class cocos2d::CCAction {
 	CCAction() = mac 0x35b610;
 	virtual ~CCAction() = mac 0x35b6b0;
-    virtual void stop() = mac 0x35b860;
+    auto stop() = mac 0x35b860;
 }
 
 class cocos2d::CCActionInterval {
-	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone* zone) = mac 0x1f2550;
-	virtual bool isDone() = mac 0x1f2640;
-    virtual void startWithTarget(cocos2d::CCNode* pTarget) = mac 0x1f2700;
-	virtual void step(float dt) = mac 0x1f2660;
+	auto copyWithZone(cocos2d::CCZone* zone) = mac 0x1f2550;
+	auto isDone() = mac 0x1f2640;
+    auto startWithTarget(cocos2d::CCNode* pTarget) = mac 0x1f2700;
+	auto step(float dt) = mac 0x1f2660;
 	bool initWithDuration(float d) = mac 0x1f2510;
 }
 
