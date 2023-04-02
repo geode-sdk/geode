@@ -86,7 +86,7 @@ class cocos2d::CCClippingNode {
 	auto setAlphaThreshold(float) = mac 0x419a20;
 	auto setInverted(bool) = mac 0x419a40;
 	auto setStencil(cocos2d::CCNode*) = mac 0x4199d0;
-	void visit() = mac 0x419530;
+	auto visit() = mac 0x419530;
 }
 
 class cocos2d::CCDelayTime {
@@ -164,6 +164,12 @@ class cocos2d::CCAction {
 	CCAction() = mac 0x35b610;
 	virtual ~CCAction() = mac 0x35b6b0;
     auto stop() = mac 0x35b860;
+	auto copyWithZone(cocos2d::CCZone* zone) = mac 0x35b7a0;
+	auto reverse() = 0x1f2720;
+	auto startWithTarget(cocos2d::CCNode* target) = mac 0x35b850;
+	auto step(float dt) = mac 0x35b880;
+	auto isDone() = mac 0x35b870;
+	auto update() = mac 0x35b890;
 }
 
 class cocos2d::CCActionInterval {
