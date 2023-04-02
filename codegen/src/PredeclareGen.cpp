@@ -10,7 +10,7 @@ std::string generatePredeclareHeader(Root& root) {
     std::string output("#pragma once\n");
 
     for (auto& cls : root.classes) {
-        if (can_find(cls.name, "cocos2d"))
+        if (is_cocos_class(cls.name))
             continue;
 
         output += fmt::format(::format_strings::class_predeclare,

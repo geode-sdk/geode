@@ -51,6 +51,10 @@ inline bool can_find(std::string const& str, char const* text) {
     return str.find(text) != std::string::npos;
 }
 
+inline bool is_cocos_class(std::string const& str) {
+    return can_find(str, "cocos2d") || str == "DS_Dictionary";
+}
+
 enum class BindStatus {
     Binded,
     NeedsBinding,
@@ -112,8 +116,10 @@ namespace codegen {
         
         if (fb->type == FunctionType::Normal) {
             if (field.parent.rfind("fmod::", 0) == 0) return BindStatus::Binded;
-            if (field.parent.rfind("cocos2d::", 0) == 0 && p == Platform::Windows)
-                return BindStatus::Binded;
+            if (
+                (field.parent.rfind("cocos2d::", 0) == 0 || field.parent == "DS_Dictionary") &&
+                p == Platform::Windows
+            ) return BindStatus::Binded;
         }
 
         return BindStatus::Unbindable;

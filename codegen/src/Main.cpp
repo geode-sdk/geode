@@ -25,7 +25,7 @@ int main(int argc, char** argv) try {
 
     for (auto cls : root.classes) {
         for (auto dep : cls.depends) {
-            if(!can_find(dep, "cocos2d::") && std::find(root.classes.begin(), root.classes.end(), dep) == root.classes.end()) {
+            if(!is_cocos_class(dep) && std::find(root.classes.begin(), root.classes.end(), dep) == root.classes.end()) {
                 throw codegen::error("Class {} depends on unknown class {}", cls.name, dep);
             }
         }

@@ -964,6 +964,7 @@ class cocos2d::CCTransitionFade {
 class cocos2d::ZipUtils {
 	static auto compressString(gd::string, bool, int) = mac 0xe9a50;
 	static auto decompressString(gd::string, bool, int) = mac 0xea380;
+	static int ccDeflateMemory(unsigned char*, unsigned int, unsigned char**) = mac 0xe9cf0;
 }
 
 class cocos2d::extension::CCControl {
@@ -1080,10 +1081,14 @@ class cocos2d {
 	static void ccDrawColor4B(GLubyte, GLubyte, GLubyte, GLubyte) = mac 0xeddd0;
 }
 
-// class DS_Dictionary {
-// 	DS_Dictionary() = mac 0xbe9a0;
-// 	int getIntegerForKey(char const*) = mac 0xc1610;
-// 	void setIntegerForKey(char const*, int) = mac 0xc26b0;
-// }
+class DS_Dictionary {
+	DS_Dictionary() = mac 0xbe9a0;
+	~DS_Dictionary() = mac 0x393c30;
+	bool saveRootSubDictToString() = mac 0xc09c0;
+	bool loadRootSubDictFromString(gd::string) = mac 0xbfd80;
+	bool stepIntoSubDictWithKey(char const*) = mac 0xc0cd0;
+	int getIntegerForKey(char const*) = mac 0xc1610;
+	void setIntegerForKey(char const*, int) = mac 0xc26b0;
+}
 
 // clang-format on
