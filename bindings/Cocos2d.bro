@@ -165,7 +165,7 @@ class cocos2d::CCAction {
 	virtual ~CCAction() = mac 0x35b6b0;
     auto stop() = mac 0x35b860;
 	auto copyWithZone(cocos2d::CCZone* zone) = mac 0x35b7a0;
-	auto reverse() = 0x1f2720;
+	auto reverse() = mac 0x1f2720;
 	auto startWithTarget(cocos2d::CCNode* target) = mac 0x35b850;
 	auto step(float dt) = mac 0x35b880;
 	auto isDone() = mac 0x35b870;
