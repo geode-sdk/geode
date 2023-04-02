@@ -115,6 +115,8 @@ public:
     bool isInverted() const;
     void setInverted(bool bInverted);
     
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCClippingNode, CCNode);
+
 protected:
     CCClippingNode();
 };
