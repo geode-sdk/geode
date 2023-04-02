@@ -70,6 +70,7 @@ class cocos2d::CCClippingNode {
 		m_fAlphaThreshold = 1.f;
 		m_bInverted = false;
 	}
+	~CCClippingNode() = mac 0x4191e0;
 	static cocos2d::CCClippingNode* create() = mac 0x4192a0;
 	static cocos2d::CCClippingNode* create(cocos2d::CCNode*) = mac 0x419330;
 	// Inlined in create() call
@@ -169,6 +170,11 @@ class cocos2d::CCAction {
 	auto step(float dt) = mac 0x35b880;
 	auto isDone() = mac 0x35b870;
 	auto update(float time) = mac 0x35b890;
+}
+
+class cocos2d::CCFiniteTimeAction {
+	// same as CCActionInterval::reverse i think
+	auto reverse() = mac 0x1f2720;
 }
 
 class cocos2d::CCActionInterval {
