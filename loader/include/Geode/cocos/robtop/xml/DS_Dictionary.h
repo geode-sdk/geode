@@ -21,6 +21,7 @@ public:
 public:
 	DS_Dictionary();
 	~DS_Dictionary();
+    GEODE_CUSTOM_CONSTRUCTOR_BEGIN(DS_Dictionary)
 
 	static void copyFile(const char*, const char*);
 
