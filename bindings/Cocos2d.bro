@@ -165,7 +165,6 @@ class cocos2d::CCAction {
 	virtual ~CCAction() = mac 0x35b6b0;
     auto stop() = mac 0x35b860;
 	auto copyWithZone(cocos2d::CCZone* zone) = mac 0x35b7a0;
-	auto reverse() = mac 0x1f2720;
 	auto startWithTarget(cocos2d::CCNode* target) = mac 0x35b850;
 	auto step(float dt) = mac 0x35b880;
 	auto isDone() = mac 0x35b870;
@@ -177,6 +176,7 @@ class cocos2d::CCActionInterval {
 	auto isDone() = mac 0x1f2640;
     auto startWithTarget(cocos2d::CCNode* pTarget) = mac 0x1f2700;
 	auto step(float dt) = mac 0x1f2660;
+	auto reverse() = mac 0x1f2720;
 	bool initWithDuration(float d) = mac 0x1f2510;
 }
 
