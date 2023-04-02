@@ -205,9 +205,7 @@ namespace geode {
 
         template <typename... Args>
         void debug(Args... args) {
-#ifdef GEODE_DEBUG
             internalLog(Severity::Debug, getMod(), args...);
-#endif
         }
 
         template <typename... Args>
