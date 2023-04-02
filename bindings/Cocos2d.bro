@@ -64,8 +64,8 @@ class cocos2d::CCCallFuncO {
 	static auto create(cocos2d::CCObject*, cocos2d::SEL_CallFuncO, cocos2d::CCObject*) = mac 0x455940;
 }
 
-class cocos2d::CCClippingNode : CCNode {
-	inline CCClippingNode() : CCNode(), m_pStencil(nullptr), m_fAlphaThreshold(1.f), m_bInverted(false) {}
+class cocos2d::CCClippingNode : cocos2d::CCNode {
+	inline CCClippingNode() : cocos2d::CCNode(), m_pStencil(nullptr), m_fAlphaThreshold(1.f), m_bInverted(false) {}
 	static cocos2d::CCClippingNode* create() = mac 0x4192a0;
 	static cocos2d::CCClippingNode* create(cocos2d::CCNode*) = mac 0x419330;
 	// Inlined in create() call
