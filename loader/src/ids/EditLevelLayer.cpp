@@ -31,9 +31,29 @@ $register_ids(EditLevelLayer) {
     );
 
     auto winSize = CCDirector::get()->getWinSize();
+    auto descBG = this->getChildByID("description-background");
+
+    auto descMenu = CCMenu::create();
+    descMenu->setID("description-menu");
+    descMenu->setLayout(ColumnLayout::create()); 
+    descMenu->setPosition(
+        descBG->getPositionX() - descBG->getScaledContentSize().width / 2 - 35.f,
+        descBG->getPositionY()
+    );
+    descMenu->setContentSize({ 40.f, 80.f });
+    this->addChild(descMenu);
 
     if (auto menu = this->getChildByID("level-edit-menu")) {
         setIDs(menu, 0, "edit-button", "play-button", "share-button");
+        if (menu->getChildrenCount() == 4) {
+            auto btn = static_cast<CCNode*>(menu->getChildren()->objectAtIndex(3));
+            btn->setID("update-desc-button");
+            btn->retain();
+            btn->removeFromParent();
+            descMenu->addChild(btn);
+            btn->release();
+            descMenu->updateLayout();
+        }
         menu->setContentSize({ winSize.width - 160.f, 100.f });
         menu->setLayout(RowLayout::create()->setGap(25.f));
     }
