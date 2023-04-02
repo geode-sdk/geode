@@ -23,7 +23,9 @@ class CCNode;
  */
 class GEODE_DLL Layout : public CCObject {
 protected:
-    static CCArray* getNodesToPosition(CCNode* forNode);
+    CCArray* getNodesToPosition(CCNode* forNode);
+
+    bool m_ignoreInvisibleChildren = false;
 
 public:
     /**
@@ -34,6 +36,9 @@ public:
      * rescaled to better fit its contents
      */
     virtual void apply(CCNode* on) = 0;
+
+    void ignoreInvisibleChildren(bool ignore);
+    bool isIgnoreInvisibleChildren() const;
 
     virtual ~Layout() = default;
 };

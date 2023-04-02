@@ -51,10 +51,21 @@ bool CCNode::hasAncestor(CCNode* ancestor) {
 }
 
 CCArray* Layout::getNodesToPosition(CCNode* on) {
-    if (!on->getChildren()) {
-        return CCArray::create();
+    auto arr = CCArray::create();
+    for (auto child : CCArrayExt<CCNode>(on->getChildren())) {
+        if (!m_ignoreInvisibleChildren || child->isVisible()) {
+            arr->addObject(child);
+        }
     }
-    return on->getChildren()->shallowCopy();
+    return arr;
+}
+
+void Layout::ignoreInvisibleChildren(bool ignore) {
+    m_ignoreInvisibleChildren = ignore;
+}
+
+bool Layout::isIgnoreInvisibleChildren() const {
+    return m_ignoreInvisibleChildren;
 }
 
 static AxisLayoutOptions const* axisOpts(CCNode* node) {
