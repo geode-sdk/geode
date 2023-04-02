@@ -52,7 +52,7 @@ inline bool can_find(std::string const& str, char const* text) {
 }
 
 inline bool is_cocos_class(std::string const& str) {
-    return can_find(str, "cocos2d") || str == "DS_Dictionary";
+    return can_find(str, "cocos2d") || can_find(str, "pugi::") || str == "DS_Dictionary";
 }
 
 enum class BindStatus {

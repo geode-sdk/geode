@@ -1091,4 +1091,9 @@ class DS_Dictionary {
 	void setIntegerForKey(char const*, int) = mac 0xc26b0;
 }
 
+class pugi::xml_document {
+	xml_document() = mac 0x393a80;
+	~xml_document() = mac 0x393b50;
+}
+
 // clang-format on
