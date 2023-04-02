@@ -165,7 +165,7 @@ class cocos2d::CCAction {
 class cocos2d::CCActionInterval {
 	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone* zone) = mac 0x1f2550;
 	virtual bool isDone() = mac 0x1f2640;
-    virtual void startWithTarget(CCNode* pTarget) = mac 0x1f2700;
+    virtual void startWithTarget(cocos2d::CCNode* pTarget) = mac 0x1f2700;
 	virtual void step(float dt) = mac 0x1f2660;
 	bool initWithDuration(float d) = mac 0x1f2510;
 }
