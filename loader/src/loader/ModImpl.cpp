@@ -316,6 +316,7 @@ Result<> Mod::Impl::loadBinary() {
     });
 
     Loader::get()->updateAllDependencies();
+    Loader::get()->updateResources();
 
     GEODE_UNWRAP(this->enable());
 
