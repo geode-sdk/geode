@@ -64,9 +64,14 @@ class cocos2d::CCCallFuncO {
 	static auto create(cocos2d::CCObject*, cocos2d::SEL_CallFuncO, cocos2d::CCObject*) = mac 0x455940;
 }
 
-class cocos2d::CCClippingNode {
+class cocos2d::CCClippingNode : CCNode {
+	inline CCClippingNode() : CCNode(), m_pStencil(nullptr), m_fAlphaThreshold(1.f), m_bInverted(false) {}
 	static cocos2d::CCClippingNode* create() = mac 0x4192a0;
 	static cocos2d::CCClippingNode* create(cocos2d::CCNode*) = mac 0x419330;
+	// Inlined in create() call
+	virtual bool init() = mac 0x4193e0;
+	// Inlined in create() call
+	virtual bool init(cocos2d::CCNode* stencil) = mac 0x419400;
 	auto getAlphaThreshold() const = mac 0x419a10;
 	auto getStencil() const = mac 0x4199c0;
 	auto isInverted() const = mac 0x419a30;
@@ -77,7 +82,7 @@ class cocos2d::CCClippingNode {
 	auto setAlphaThreshold(float) = mac 0x419a20;
 	auto setInverted(bool) = mac 0x419a40;
 	auto setStencil(cocos2d::CCNode*) = mac 0x4199d0;
-	auto visit() = mac 0x419530;
+	void visit() = mac 0x419530;
 }
 
 class cocos2d::CCDelayTime {
@@ -149,6 +154,20 @@ class cocos2d::CCDrawNode {
 	auto setBlendFunc(cocos2d::_ccBlendFunc const&) = mac 0x379eb0;
 	auto draw() = mac 0x379020;
 	virtual ~CCDrawNode() = mac 0x378cc0;
+}
+
+class cocos2d::CCAction {
+	CCAction() = mac 0x35b610;
+	virtual ~CCAction() = mac 0x35b6b0;
+    virtual void stop() = mac 0x35b860;
+}
+
+class cocos2d::CCActionInterval {
+	virtual cocos2d::CCObject* copyWithZone(cocos2d::CCZone* zone) = mac 0x1f2550;
+	virtual bool isDone() = mac 0x1f2640;
+    virtual void startWithTarget(CCNode* pTarget) = mac 0x1f2700;
+	virtual void step(float dt) = mac 0x1f2660;
+	bool initWithDuration(float d) = mac 0x1f2510;
 }
 
 class cocos2d::CCEaseBackIn {

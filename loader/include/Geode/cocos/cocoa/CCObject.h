@@ -130,23 +130,23 @@ public:
 
     virtual void update(float dt) {CC_UNUSED_PARAM(dt);};
     
-    RT_ADD(
-        virtual void encodeWithCoder(DS_Dictionary*);
+    virtual void encodeWithCoder(DS_Dictionary*);
 
-        static CCObject* createWithCoder(DS_Dictionary*);
-        
-        virtual bool canEncode();
+    static CCObject* createWithCoder(DS_Dictionary*);
+    
+    virtual bool canEncode();
 
-        CCObjectType getObjType() const;
-        
-        virtual int getTag() const;
+    inline CCObjectType getObjType() const {
+        return m_eObjType;
+    }
+ 
+    virtual int getTag() const;
 
-        virtual void setTag(int nTag);
-       
-        inline void setObjType(CCObjectType type) {
-        	m_eObjType = type;
-        }
-    )
+    virtual void setTag(int nTag);
+    
+    inline void setObjType(CCObjectType type) {
+        m_eObjType = type;
+    }
 
     friend class CCAutoreleasePool;
 };
