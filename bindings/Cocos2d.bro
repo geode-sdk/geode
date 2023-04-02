@@ -168,7 +168,7 @@ class cocos2d::CCAction {
 	auto startWithTarget(cocos2d::CCNode* target) = mac 0x35b850;
 	auto step(float dt) = mac 0x35b880;
 	auto isDone() = mac 0x35b870;
-	auto update() = mac 0x35b890;
+	auto update(float time) = mac 0x35b890;
 }
 
 class cocos2d::CCActionInterval {
