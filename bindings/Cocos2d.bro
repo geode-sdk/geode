@@ -734,6 +734,8 @@ class cocos2d::CCScheduler {
 	auto scheduleUpdateForTarget(cocos2d::CCObject*, int, bool) = mac 0x2438d0;
 	auto unscheduleAllForTarget(cocos2d::CCObject*) = mac 0x243e40;
 	auto unscheduleUpdateForTarget(cocos2d::CCObject const*) = mac 0x243c60;
+	auto resumeTargets(cocos2d::CCSet*) = mac 0x244680;
+	auto pauseAllTargets() = mac 0x244550;
 	virtual void update(float delta) = mac 0x2446d0;
 }
 
