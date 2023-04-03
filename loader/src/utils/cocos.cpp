@@ -328,8 +328,12 @@ void geode::cocos::limitNodeSize(cocos2d::CCNode* spr, cocos2d::CCSize const& si
 }
 
 bool geode::cocos::nodeIsVisible(cocos2d::CCNode* node) {
-    if (!node->isVisible()) return false;
-    if (node->getParent()) return nodeIsVisible(node->getParent());
+    if (!node->isVisible()) {
+        return false;
+    }
+    if (node->getParent()) {
+        return nodeIsVisible(node->getParent());
+    }
     return true;
 }
 
