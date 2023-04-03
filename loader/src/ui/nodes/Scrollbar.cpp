@@ -99,6 +99,10 @@ void Scrollbar::draw() {
     auto y = m_target->m_contentLayer->getPositionY();
 
     auto thumbHeight = m_resizeThumb ? std::min(p, 1.f) * targetHeight / .4f : 0;
+    if (thumbHeight < 15.f) {
+        thumbHeight = 15.f;
+    }
+
     auto thumbPosY = -targetHeight / 2 + thumbHeight / 4 - 5.0f +
         (h ? (-y) / h : 1.f) * (targetHeight - thumbHeight / 2 + 10.0f);
 

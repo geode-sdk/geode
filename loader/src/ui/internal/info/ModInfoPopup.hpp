@@ -35,7 +35,7 @@ protected:
     CCMenuItemSpriteExtra* m_infoBtn;
     CCLabelBMFont* m_updateVersionLabel = nullptr;
     MDTextArea* m_detailsArea;
-    MDTextArea* m_changelogArea;
+    MDTextArea* m_changelogArea = nullptr;
     Scrollbar* m_scrollbar;
 
     void onChangelog(CCObject*);

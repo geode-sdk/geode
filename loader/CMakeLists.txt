@@ -30,6 +30,7 @@ execute_process(
 configure_file(resources/mod.json.in ${CMAKE_CURRENT_SOURCE_DIR}/resources/mod.json)
 file(READ resources/mod.json LOADER_MOD_JSON)
 file(READ resources/about.md LOADER_ABOUT_MD)
+file(READ ${GEODE_ROOT_PATH}/CHANGELOG.md LOADER_CHANGELOG_MD)
 configure_file(src/internal/about.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/src/internal/about.hpp)
 
 # Source files

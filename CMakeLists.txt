@@ -67,6 +67,7 @@ target_compile_definitions(${PROJECT_NAME} INTERFACE -DPROJECT_NAME=${CMAKE_PROJ
 set(GEODE_CODEGEN_PATH ${CMAKE_CURRENT_BINARY_DIR}/codegenned)
 set(GEODE_BIN_PATH ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 set(GEODE_LOADER_PATH ${CMAKE_CURRENT_SOURCE_DIR}/loader)
+set(GEODE_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 
 include(cmake/GeodeFile.cmake)
 include(cmake/Platform.cmake)

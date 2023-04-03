@@ -51,6 +51,7 @@ loader/src/internal/about.hpp
 loader/src/internal/resources.hpp
 loader/resources/mod.json
 loader/resources/blanks/rename.js
+loader/resources/changelog.md
 fods-catgirl-hideout.txt
 
 # krita files too because alk is funny

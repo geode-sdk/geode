@@ -694,6 +694,7 @@ static ModInfo getModImplInfo() {
     }
     auto info = infoRes.unwrap();
     info.details() = LOADER_ABOUT_MD;
+    info.changelog() = LOADER_CHANGELOG_MD;
     info.supportInfo() = SUPPORT_INFO;
     info.supportsDisabling() = false;
     return info;
