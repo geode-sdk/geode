@@ -1,5 +1,46 @@
 # Geode Changelog
 
+## v1.0.0-beta.12
+ * Fix crash when installing mods (2efe772)
+ * FMOD is now linked on MacOS (f662251)
+ * `GEODE_DEBUG` on longer needs to be defined for `log::debug` to work (ab2abcd)
+
+## v1.0.0-beta.11
+ * New `geode::prelude` namespace to replace the old `USE_GEODE_NAMESPACE()` macro (5af15fb)
+ * Add `CCNode::removeChildByID` (5f3c658)
+ * Add `CCNode::hasAncestor` (38575ac)
+ * Add `CCScene::get` and `CCScheduler::get` (38575ac)
+ * Add `geode::cocos::getMousePos` (306fde7)
+ * Add `GEODE_DONT_INSTALL_MODS` option to CMake (7ca9959)
+ * Add logging `std::vector` with `log::` functions (7305445)
+ * Add `EventListener::getFilter` (5cdfbc3)
+ * Add `AttributeSetEvent` for detecting when attributes are added to nodes (69bd0d9)
+ * Add `CCNode::addEventListener` (along with other related functions) as convenience methods for adding event listeners that target nodes (35f7f86)
+ * Add `WeakRef` as a weak pointer alternative to `Ref` (see [the docs](https://docs.geode-sdk.org/tutorials/memory#weakref) for a tutorial) (e92541a, 0e46362)
+ * Add option to ignore invisible children to `Layout` (152f90c)
+ * `CCNode` attributes now use `json::Value` over `std::any` for ABI compatability (7963469)
+ * Implement file picker on Mac (d7b0e09)
+ * Define `CCNode::retainCount` inline (57947a9, 72448e1)
+ * `Layout` now inherits from `CCObject`, allowing you to share layouts across multiple nodes (81472c9)
+ * Update TulipHook version (3d339ef)
+ * Make sure mod load/enable/etc. events are only ever posted in the GD thread (93fd396)
+ * `Mod::getResourcesDir` now returns `geode/unzipped/{mod.id}/resources/{mod.id}` in conjunction with [CLI v2.1.0](https://github.com/geode-sdk/cli/releases/tag/v2.1.1) (22a6745)
+ * Give a name to `ccTouchType` (e2e1da0)
+ * Fix `Scrollbar` being funky sometimes (585a9de, 83b0850)
+ * Fix mod resources not being loaded if the mod is enabled at runtime (9fb5051)
+ * Fix `EditLevelLayer` description update button ID & layout (21ee689)
+ * Fix hooking functions with unpredictable calling conventions (94138f3, 33a2883)
+ * Fix `setup_geode_mod` not linking to Geode if CLI calls are disabled (4318a8d)
+ * Fix code editors showing a ton of warnings with `$modify` (cf1371f)
+ * Fix top sprite sizes of `CircleButtonSprite` and `EditorButtonSprite` (0a37b01, eabb68b)
+ * Fix `Mod::enableHook` error message (162979c)
+ * Lots of bindings on both Windows & Mac (50+ commits related to bindings)
+
+## v1.0.0-beta.10
+ * Fix loader minimum mod version preventing the loader itself from loading (ebfa7b2)
+ * Fix recursive comparison in VersionTag (1b2c760)
+ * `geode/unzipped` is now deleted on startup if it exists (eb0e4b6)
+
 ## v1.0.0-beta.9
  * Fix multiple modifiers not being able to have fields on same class due to having same field index (7710fa9)
  * Add `Result::ok` and `Result::err` for converting the `Result` into `std::optional` (4a15afc)
@@ -24,7 +65,6 @@
  * Fix `EditorPauseLayer` info labels on the top left being too big (f5983a2)
 
 ## v1.0.0-beta.6
-
  * Reworked layouts from the ground up - see [the docs page](https://docs.geode-sdk.org/tutorials/layouts) for more information about how the new system works (#137)
  * Update the IDs for a bunch of layers, aswell as adding some predefined layouts (3f64b98, ef9e741, a78bc0c, cb1a6f1, ea037a9, f7ddf0a, ...)
  * Add IDs & layouts to `EditorPauseLayer` (12d88ae)
@@ -45,7 +85,6 @@
  * Other fixes & improvements (cb00c21)
 
 ## v1.0.0-beta.5
-
 - Make ModInfo Pimpl 51990ad89b25cecbabaf748a5bcb279227fce090
 - Fix crash with event listeners 1f7d50a9b9140d02f6a9afb97734eb9761b6a0d4
 - Some bindings 4a9f6ba52a3d756d9bc28c1809afc92479783673
@@ -54,12 +93,10 @@
 - Fix not following thunks 65f2cbb286cc1e5af57e43451862a2233d66453e
 
 ## v1.0.0-beta.4
-
-- add some bindings
-- fix macOS libzstd crash
+- Add some bindings
+- Fix macOS libzstd crash
 
 ## v1.0.0-beta.3
-
  - Better support for dependencies with [Geode CLI v1.4.x](https://github.com/geode-sdk/cli/releases/latest): mod dependencies are now automatically installed from the mods index by simply declaring them in your `mod.json`. See [the tutorial page in docs](https://docs.geode-sdk.org/mods/dependencies/) for more (f32aaa8b124bdd040a453bc25d31a4e463cf1309)
  - The `create_geode_file` CMake function has been replaced by `setup_geode_mod`. The old `create_geode_file` function is still available, but will be deprecated in the future (f32aaa8b124bdd040a453bc25d31a4e463cf1309)
  - `Result::except` now works with non-copyable types (f32aaa8b124bdd040a453bc25d31a4e463cf1309)
@@ -73,12 +110,10 @@
  - MacOS minimum version bumped to 10.14 (916f54063008c6bdf892d02f8bcd92b58606817e)
 
 ## v1.0.0-beta.2
-
  * Fixed bug where `Mod::getSavedValue` would cause a crash due to trying operator on a null JSON value (5bbd34c)
  * Fixed bug where loading would crash if one of the mods' binaries failed to load (ef86ae0)
 
 ## v1.0.0-beta.1
-
  * Switched to [a new custom-built JSON library](https://github.com/geode-sdk/json) to replace `nlohmann::json` for compile-time improvements; if you were using the old JSON library, you can add & link to `nlohmann::json` in your own project, or update to use the new API. (deab672)
  * Fix resources not being downloaded automatically by using a fallback to latest release (a418828)
  * Add a new clear instruction popup in case downloading still fails (30dc9ad)
@@ -87,7 +122,6 @@
 
 
 ## v1.0.0-alpha
-
  - Major rework of the entire framework; most notable changes include switching to a whole new hooking framework (TulipHook), simplifying many parts of the framework, and making it production-ready.
 
 ## v0.7.0
@@ -105,7 +139,6 @@
  - Add more bindings
 
 ## v0.6.0
-
  - Mod resource loading has been reworked again, with the intent of adding support for texture pack loaders
  - Added `Loader::addTexturePath` and `Loader::removeTexturePath` to work with additional resource paths
  - Mods that work with Cocos2d search paths directly should convert to using the above functions
@@ -121,7 +154,6 @@
  - Add IDs to `LevelSearchLayer` (thank you @Jollycistaken)
 
 ## v0.5.0
-
  - Added `CCFileUtils::get`
  - Fix crashes related to setting IDs in `MenuLayer`
  - Remove `Loader::updateModResourcePaths` and `Loader::updateResourcePaths`. The minimum mod target version is still v0.4.0 however, as you should never have been using these functions.
@@ -130,17 +162,14 @@
  - Finally added a license to Geode! The framework is now licensed under BSL v1.0.
 
 ## v0.4.8
-
  - CLI issues fixed in v1.0.6 so loader again verifies if loader resources are missing / corrupt on startup
  - Resource download text is no longer a popup on top of the title but instead just replaces the loading text
  - Add delegates to `EditLevelLayer`
 
 ## v0.4.7
-
  - Loader resources check would always fail due to CLI issues, so for now loader just checks if the resources folder exists
 
 ## v0.4.6
-
  - Automatically checks & downloads loader resources if they are missing / corrupt on startup
  - CMake rework; `GeodeFile.cmake` now checks and verifies CLI version
  - Add optional `DONT_INSTALL` parameter to `create_geode_file`
@@ -150,7 +179,6 @@
  - Change `CCArrayExt` to use `Ref`
 
 ## v0.4.5
-
  - Rework bindings and codegen to improve compile times, now individual bindings can be included with `<Geode/binding/{ClassName}.hpp>`
  - Modify has also been separated, you can now include individual modifiers with `<Geode/modify/{ClassName}.hpp>`
  - Various other fixes to improve compile times
@@ -175,25 +203,21 @@
  - Remove automatic mod updating for now, however automatic update checking for mods is still there
 
 ## v0.4.4
-
  - New `listenForSettingChanges` API for more ergonomically listening for setting changes
  - Fixed bug where GD was unopenable through Steam
  - Various other internal fixes
 
 ## v0.4.3
-
  - Simplified the minimum and maximum loader versions, loader will now load any mod whose target version major and minor match. In practice, this means that for example mods whose target version is v0.4.8 can be loaded by loader of version v0.4.6.
  - Add `Geode/ui/GeodeUI.hpp` header for exposing some access to internal Geode UI like opening a mod's settings popup
  - Fix crash with settings that could have a slider control
 
 ## v0.4.2
-
  - Moved SDK version to its own file so CLI can query it
  - md4c is now linked statically on MacOS
  - Fix log filenames
 
 ## v0.4.1
-
  - Initial dev release of Geode.
 
 ---
@@ -201,51 +225,39 @@
 Note that from here on, changes to the framework were not tracked by versions as the framework was still considered to be in heavy development and not released. Instead, major changes are listed by dates.
 
 ## 2022/10/10
-
  - Geode released for developers
 
 ## 2022/10/08
-
  - `ui` branch merged to `main`
 
 ## 2022/10/03
-
  - New CLI finished
  - `ui` branch finished
 
 ## 2022/08/01
-
  - CLI redesign started
 
 ## 2022/07/30
-
  - `sdk`, `loader` and `api` repos all merged into one `geode` repo
 
 ## 2022/05/24
-
  - Geode announced to be merging with Hyperdash, later on it turned out we were all pathological liars
 
 ## 2022/05/02
-
  - Installer on Windows
 
 ## 2022/04/30
-
  - Installing mods in-game works
 
 ## 2022/01/23
-
  - CLI started
 
 ## 2022/01/19
-
  - Lilac and Cacao merged and renamed to Geode
 
 ## 2021/07/30
-
  - Lilac started by Mat, HJfod and Pie
 
 ## 2021/01/25
-
  - CacaoSDK started by Camila, based on CappuccinoSDK
 
