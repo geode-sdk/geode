@@ -133,6 +133,8 @@ namespace geode {
     private:
         friend EventListenerProtocol;
 
+        static std::unordered_set<EventListenerProtocol*>& removedListeners();
+
     public:
         Mod* sender;
 
@@ -144,6 +146,12 @@ namespace geode {
         
         virtual ~Event();
 
+        /**
+         * Get all active event listeners. You may use this to sort listeners 
+         * that have an explicit order. You should never add/remove listeners 
+         * manually however - use the enable() and disable() functions for that
+         * @warning Do not add/remove listeners manually
+         */
         static std::vector<EventListenerProtocol*>& listeners();
         /**
          * Move an event listener to the front of the queue so it is always hit 

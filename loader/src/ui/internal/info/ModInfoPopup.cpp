@@ -559,7 +559,7 @@ bool IndexItemInfoPopup::init(IndexItemHandle item, ModListLayer* list) {
 
 void IndexItemInfoPopup::onInstallProgress(ModInstallEvent* event) {
     std::visit(makeVisitor {
-        [&](UpdateFinished) {
+        [&](UpdateFinished const&) {
             this->setInstallStatus(std::nullopt);
             
             FLAlertLayer::create(
