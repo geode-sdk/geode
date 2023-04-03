@@ -5,6 +5,9 @@
  * FMOD is now linked on MacOS 
  * `GEODE_DEBUG` on longer needs to be defined for `log::debug` to work 
  * Make Geode changelog visible in-game
+ * Make the changelog only be loaded once the changelog button is pressed in ModInfoPopup
+ * Fix the scrollbar not working for the changelog in ModInfoPopup
+ * Fix visual issues with scrollbars
 
 ## v1.0.0-beta.11
  * New `geode::prelude` namespace to replace the old `USE_GEODE_NAMESPACE()` macro 
