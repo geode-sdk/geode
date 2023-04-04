@@ -124,6 +124,10 @@ namespace geode {
             return m_filter;
         }
 
+        utils::MiniFunction<Callback>& getCallback() {
+            return m_callback;
+        }
+
     protected:
         utils::MiniFunction<Callback> m_callback = nullptr;
         T m_filter;
