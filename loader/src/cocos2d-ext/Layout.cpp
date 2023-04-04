@@ -50,7 +50,7 @@ bool CCNode::hasAncestor(CCNode* ancestor) {
     return false;
 }
 
-CCArray* Layout::getNodesToPosition(CCNode* on) {
+CCArray* Layout::getNodesToPosition(CCNode* on) const {
     auto arr = CCArray::create();
     for (auto child : CCArrayExt<CCNode>(on->getChildren())) {
         if (!m_ignoreInvisibleChildren || child->isVisible()) {
@@ -176,6 +176,32 @@ struct AxisLayout::Row : public CCObject {
     {
         this->autorelease();
     }
+
+    void accountSpacers(Axis axis, float availableLength) {
+        std::vector<SpacerNode*> spacers;
+        for (auto& node : CCArrayExt<CCNode>(nodes)) {
+            if (auto spacer = typeinfo_cast<SpacerNode*>(node)) {
+                spacers.push_back(spacer);
+            }
+        }
+        if (spacers.size()) {
+            auto unusedSpace = availableLength - this->axisLength;
+            size_t sum = 0;
+            for (auto& spacer : spacers) {
+                sum += spacer->getGrow();
+            }
+            for (auto& spacer : spacers) {
+                auto size = unusedSpace * spacer->getGrow() / static_cast<float>(sum);
+                if (axis == Axis::Row) {
+                    spacer->setContentSize({ size, this->crossLength });
+                }
+                else {
+                    spacer->setContentSize({ this->crossLength, size });
+                }
+            }
+            this->axisLength = availableLength;
+        }
+    }
 };
 
 struct AxisPosition {
@@ -194,6 +220,9 @@ static AxisPosition nodeAxis(CCNode* node, Axis axis, float scale) {
     // CCMenuItemToggler is a common quirky class
     if (auto toggle = typeinfo_cast<CCMenuItemToggler*>(node)) {
         scaledSize = toggle->m_offButton->getScaledContentSize();
+    }
+    if (auto spacer = typeinfo_cast<SpacerNode*>(node)) {
+        scaledSize = CCSizeZero;
     }
     auto anchor = node->getAnchorPoint();
     if (axis == Axis::Row) {
@@ -611,6 +640,8 @@ void AxisLayout::tryFitLayout(
     float rowEvenSpace = available.crossLength / rows->count();
 
     for (auto row : CCArrayExt<Row*>(rows)) {
+        row->accountSpacers(m_axis, available.axisLength);
+
         if (m_crossAlignment == AxisAlignment::Even) {
             rowCrossPos -= rowEvenSpace / 2 + row->crossLength / 2;
         }
@@ -754,6 +785,24 @@ void AxisLayout::apply(CCNode* on) {
         this->maxScaleForPrio(nodes, minMaxPrio.second), 1.f, minMaxPrio.second,
         0
     );
+}
+
+CCSize AxisLayout::getSizeHint(CCNode* on) const {
+    // Ideal is single row / column with no scaling
+    auto nodes = getNodesToPosition(on);
+    float length = 0.f;
+    float cross = 0.f;
+    for (auto& node : CCArrayExt<CCNode*>(nodes)) {
+        auto axis = nodeAxis(node, m_axis, 1.f);
+        length += axis.axisLength;
+        cross += axis.crossLength;
+    }
+    if (m_axis == Axis::Row) {
+        return { length, cross };
+    }
+    else {
+        return { cross, length };
+    }
 }
 
 AxisLayout::AxisLayout(Axis axis) : m_axis(axis) {}
@@ -968,4 +1017,31 @@ AxisLayoutOptions* AxisLayoutOptions::setSameLine(bool enable) {
 AxisLayoutOptions* AxisLayoutOptions::setScalePriority(int priority) {
     m_scalePriority = priority;
     return this;
+}
+
+bool SpacerNode::init(size_t grow) {
+    if (!CCNode::init())
+        return false;
+    
+    m_grow = grow;
+
+    return true;
+}
+
+SpacerNode* SpacerNode::create(size_t grow) {
+    auto ret = new SpacerNode;
+    if (ret && ret->init(grow)) {
+        ret->autorelease();
+        return ret;
+    }
+    CC_SAFE_DELETE(ret);
+    return nullptr;
+}
+
+void SpacerNode::setGrow(size_t grow) {
+    m_grow = grow;
+}
+
+size_t SpacerNode::getGrow() const {
+    return m_grow;
 }

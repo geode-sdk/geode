@@ -9,42 +9,41 @@
 namespace geode {
     // Mod interoperability
 
-    // todo: update to new event system
+    template <class... Args>
+    class DispatchEvent : public Event {
+    protected:
+        std::string m_id;
+        std::tuple<Args...> m_args;
+    
+    public:
+        DispatchEvent(std::string const& id, Args&&... args)
+          : m_id(id), m_args(std::make_tuple(args...)) {}
+        
+        std::tuple<Args...> getArgs() const {
+            return m_args;
+        }
 
-    // template <typename... Args>
-    // class DispatchEvent : public Event {
-    //     std::string m_selector;
-    //     std::tuple<Args...> m_args;
+        std::string getID() const {
+            return m_id;
+        }
+    };
 
-    // public:
-    //     DispatchEvent(std::string const& name, Args... args) :
-    //         m_selector(name), m_args(std::make_tuple(args...)) {}
+    template <class... Args>
+    class DispatchFilter : public EventFilter<DispatchEvent<Args...>> {
+    protected:
+        std::string m_id;
 
-    //     std::string const& selector() {
-    //         return m_selector;
-    //     }
-    // };
+    public:
+        using Ev = DispatchEvent<Args...>;
+        using Callback = ListenerResult(Args...);
 
-    // template <typename... Args>
-    // class DispatchHandler : public EventHandler<DispatchEvent<Args...>> {
-    //     std::string m_selector;
-    //     utils::MiniFunction<void(Args...)> m_callback;
+        ListenerResult handle(utils::MiniFunction<Callback> fn, Ev* event) {
+            if (event->getID() == m_id) {
+                return std::apply(fn, event->getArgs());
+            }
+            return ListenerResult::Propagate;
+        }
 
-    //     DispatchHandler(std::string const& name, utils::MiniFunction<void(Args...)> callback) :
-    //         m_selector(name), m_callback(callback) {}
-
-    // public:
-    //     bool handle(DispatchEvent<Args...>* ev) {
-    //         if (ev->name() == m_selector) {
-    //             std::apply(m_callback, ev->m_args);
-    //         }
-    //         return true;
-    //     }
-
-    //     static DispatchHandler* create(
-    //         std::string const& name, utils::MiniFunction<void(Args...)> callback
-    //     ) {
-    //         return new DispatchHandler(name, callback);
-    //     }
-    // };
+        DispatchFilter(std::string const& id) : m_id(id) {}
+    };
 }
