@@ -10,6 +10,7 @@
 namespace geode {
     class Mod;
     class Event;
+    class EventListenerProtocol;
 
     Mod* getMod();
 
@@ -18,10 +19,40 @@ namespace geode {
         Stop
     };
 
+    struct GEODE_DLL EventListenerPool {
+        virtual bool add(EventListenerProtocol* listener) = 0;
+        virtual void remove(EventListenerProtocol* listener) = 0;
+        virtual void handle(Event* event) = 0;
+        virtual ~EventListenerPool() = default;
+
+        EventListenerPool() = default;
+        EventListenerPool(EventListenerPool const&) = delete;
+        EventListenerPool(EventListenerPool&&) = delete;
+
+        static EventListenerPool* getDefault();
+    };
+    
+    class GEODE_DLL DefaultEventListenerPool : public EventListenerPool {
+    protected:
+        std::atomic_size_t m_locked = 0;
+        std::vector<EventListenerProtocol*> m_listeners;
+        std::unordered_set<EventListenerProtocol*> m_toAdd;
+        std::unordered_set<EventListenerProtocol*> m_toRemove;
+
+    public:
+        bool add(EventListenerProtocol* listener) override;
+        void remove(EventListenerProtocol* listener) override;
+        void handle(Event* event) override;
+
+        static DefaultEventListenerPool* get();
+    };
+
     struct GEODE_DLL EventListenerProtocol {
-        virtual void enable();
-        virtual void disable();
-        virtual ListenerResult passThrough(Event*) = 0;
+        bool enable();
+        void disable();
+
+        virtual EventListenerPool* getPool() const;
+        virtual ListenerResult handle(Event*) = 0;
         virtual ~EventListenerProtocol();
     };
 
@@ -45,6 +76,10 @@ namespace geode {
         ListenerResult handle(utils::MiniFunction<Callback> fn, T* e) {
             return fn(e);
         }
+
+        EventListenerPool* getPool() const {
+            return EventListenerPool::getDefault();
+        }
     };
 
     template <typename T>
@@ -61,14 +96,17 @@ namespace geode {
             requires std::is_class_v<C>
         using MemberFn = typename to_member<C, Callback>::value;
 
-        ListenerResult passThrough(Event* e) override {
+        ListenerResult handle(Event* e) override {
             if (m_callback) {
-                // it is so silly to use dynamic cast in an interbinary context
                 if (auto myev = cast::typeinfo_cast<typename T::Event*>(e)) {
                     return m_filter.handle(m_callback, myev);
                 }
             }
             return ListenerResult::Propagate;
+        }
+
+        EventListenerPool* getPool() const override {
+            return m_filter.getPool();
         }
 
         EventListener(T filter = T()) {
@@ -137,7 +175,8 @@ namespace geode {
     private:
         friend EventListenerProtocol;
 
-        static std::unordered_set<EventListenerProtocol*>& removedListeners();
+    protected:
+        virtual EventListenerPool* getPool() const;
 
     public:
         Mod* sender;
@@ -149,18 +188,5 @@ namespace geode {
         }
         
         virtual ~Event();
-
-        /**
-         * Get all active event listeners. You may use this to sort listeners 
-         * that have an explicit order. You should never add/remove listeners 
-         * manually however - use the enable() and disable() functions for that
-         * @warning Do not add/remove listeners manually
-         */
-        static std::vector<EventListenerProtocol*>& listeners();
-        /**
-         * Move an event listener to the front of the queue so it is always hit 
-         * first
-         */
-        static void prioritize(EventListenerProtocol* listener);
     };
 }

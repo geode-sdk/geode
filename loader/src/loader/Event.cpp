@@ -1,17 +1,71 @@
 #include <Geode/loader/Event.hpp>
 #include <Geode/utils/ranges.hpp>
+#include <mutex>
 
 using namespace geode::prelude;
 
-void EventListenerProtocol::enable() {
-    if (!ranges::contains(Event::listeners(), this)) {
-        Event::listeners().push_back(this);
+bool DefaultEventListenerPool::add(EventListenerProtocol* listener) {
+    if (m_locked) {
+        m_toAdd.insert(listener);
+    }
+    else {
+        m_listeners.push_back(listener);
+    }
+    return true;
+}
+
+void DefaultEventListenerPool::remove(EventListenerProtocol* listener) {
+    if (m_locked) {
+        m_toRemove.insert(listener);
+    }
+    else {
+        ranges::remove(m_listeners, listener);
     }
 }
 
+void DefaultEventListenerPool::handle(Event* event) {
+    m_locked += 1;
+    for (auto h : m_listeners) {
+        // if an event listener gets destroyed in the middle of this loop, we 
+        // need to handle that
+        if (m_toRemove.contains(h)) continue;
+        if (h->handle(event) == ListenerResult::Stop) {
+            break;
+        }
+    }
+    m_locked -= 1;
+    // only clear listeners once nothing is iterating (if there are recursive handle calls)
+    if (m_locked == 0) {
+        for (auto listener : m_toAdd) {
+            m_listeners.push_back(listener);
+        }
+        for (auto listener : m_toRemove) {
+            ranges::remove(m_listeners, listener);
+        }
+        m_toAdd.clear();
+        m_toRemove.clear();
+    }
+}
+
+DefaultEventListenerPool* DefaultEventListenerPool::get() {
+    static auto inst = new DefaultEventListenerPool();
+    return inst;
+}
+
+EventListenerPool* EventListenerPool::getDefault() {
+    return DefaultEventListenerPool::get();
+}
+
+EventListenerPool* EventListenerProtocol::getPool() const {
+    return EventListenerPool::getDefault();
+}
+
+bool EventListenerProtocol::enable() {
+    return this->getPool()->add(this);
+}
+
 void EventListenerProtocol::disable() {
-    Event::removedListeners().insert(this);
-    ranges::remove(Event::listeners(), this);
+    this->getPool()->remove(this);
 }
 
 EventListenerProtocol::~EventListenerProtocol() {
@@ -20,39 +74,11 @@ EventListenerProtocol::~EventListenerProtocol() {
 
 Event::~Event() {}
 
+EventListenerPool* Event::getPool() const {
+    return EventListenerPool::getDefault();
+}
+
 void Event::postFrom(Mod* m) {
     if (m) this->sender = m;
-    auto& listeners = Event::listeners();
-    listeners.erase(std::remove_if(
-        listeners.begin(),
-        listeners.end(),
-        [](auto& a) {
-            return Event::removedListeners().contains(a);
-        }
-    ), listeners.end());
-    Event::removedListeners().clear();
-    
-    std::vector<EventListenerProtocol*> listeners_copy = Event::listeners();
-    for (auto h : listeners_copy) {
-        // if an event listener gets destroyed in the middle of this loop, we 
-        // need to handle that
-        if (Event::removedListeners().count(h)) continue;
-        if (h->passThrough(this) == ListenerResult::Stop) {
-            break;
-        }
-    }
-}
-
-std::unordered_set<EventListenerProtocol*>& Event::removedListeners() {
-    static std::unordered_set<EventListenerProtocol*> listeners;
-    return listeners;
-}
-
-std::vector<EventListenerProtocol*>& Event::listeners() {
-    static std::vector<EventListenerProtocol*> listeners;
-    return listeners;
-}
-
-void Event::prioritize(EventListenerProtocol* listener) {
-    ranges::move(Event::listeners(), listener, 0);
+    this->getPool()->handle(this);
 }
