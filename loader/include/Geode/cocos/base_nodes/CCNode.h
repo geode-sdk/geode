@@ -1028,6 +1028,7 @@ public:
     GEODE_DLL void removeEventListener(geode::EventListenerProtocol* listener);
     GEODE_DLL void removeEventListener(std::string const& id);
     GEODE_DLL geode::EventListenerProtocol* getEventListener(std::string const& id);
+    GEODE_DLL size_t getEventListenerCount();
     
     /// @{
     /// @name Shader Program

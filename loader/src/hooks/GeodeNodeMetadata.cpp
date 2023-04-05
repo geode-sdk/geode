@@ -233,4 +233,9 @@ EventListenerProtocol* CCNode::getEventListener(std::string const& id) {
     return nullptr;
 }
 
+size_t CCNode::getEventListenerCount() {
+    return GeodeNodeMetadata::set(this)->m_idEventListeners.size() +
+        GeodeNodeMetadata::set(this)->m_eventListeners.size();
+}
+
 #pragma warning(pop)
