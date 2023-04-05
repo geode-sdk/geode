@@ -42,14 +42,11 @@ public:
      */
     virtual TargetPlatform getTargetPlatform();
 
-    RT_ADD(
-        virtual void openURL(const char* url);
-        virtual int run();
-        virtual void setupGLView();
-        virtual void platformShutdown();
-        void toggleVerticalSync(bool);
-        bool getVerticalSyncEnabled() const;
-    )
+    virtual void openURL(const char* url);
+    virtual int run();
+    virtual void setupGLView();
+    virtual void platformShutdown();
+    void toggleVerticalSync(bool);
 
     /**
      *  Sets the Resource root path.
@@ -65,8 +62,6 @@ public:
 
     void setStartupScriptFilename(const gd::string& startupScriptFile);
     
-    bool getControllerConnected() const;
-
     const gd::string& getStartupScriptFilename(void)
     {
         return m_startupScriptFilename;
@@ -76,8 +71,24 @@ protected:
     HINSTANCE           m_hInstance;
     HACCEL              m_hAccelTable;
     LARGE_INTEGER       m_nAnimationInterval;
-    gd::string         m_resourceRootPath;
-    gd::string         m_startupScriptFilename;
+    PAD(4);
+    std::string         m_resourceRootPath;
+    std::string         m_startupScriptFilename;
+    void* m_pUnknown;
+    bool m_bUpdateController;
+    CC_SYNTHESIZE_NV(bool, m_bShutdownCalled, ShutdownCalled);
+    INPUT m_iInput;
+    CCPoint m_obUnknown1;
+    CCPoint m_obUnknown2;
+    bool m_bMouseControl;
+    float m_fOldAnimationInterval;
+    float m_fAnimationInterval;
+    CC_SYNTHESIZE_READONLY_NV(bool, m_bVerticalSyncEnabled, VerticalSyncEnabled);
+    CC_SYNTHESIZE_READONLY_NV(bool, m_bControllerConnected, ControllerConnected);
+    CC_SYNTHESIZE_NV(bool, m_bSleepMode, SleepMode);
+    CC_SYNTHESIZE_NV(bool, m_bForceTimer, ForceTimer);
+    CC_SYNTHESIZE_NV(bool, m_bSmoothFix, SmoothFix);
+    CC_SYNTHESIZE_NV(bool, m_bFullscreen, Fullscreen);
 
     static CCApplication * sm_pSharedApplication;
 };

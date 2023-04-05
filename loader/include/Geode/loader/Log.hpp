@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Types.hpp"
+#include "../utils/Result.hpp"
 
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/utils/ranges.hpp>
@@ -69,6 +70,24 @@ namespace geode {
                 return "opt(" + parse(thing.value()) + ")";
             }
             return "nullopt";
+        }
+
+        template <class T>
+            requires requires(T t) {
+                parse(t);
+            }
+        std::string parse(std::vector<T> const& thing) {
+            std::string res = "[";
+            bool first = true;
+            for (auto& t : thing) {
+                if (!first) {
+                    res += ", ";
+                }
+                first = false;
+                res += parse(t);
+            }
+            res += "]";
+            return res;
         }
 
         template <class A, class B>
@@ -187,9 +206,7 @@ namespace geode {
 
         template <typename... Args>
         void debug(Args... args) {
-#ifdef GEODE_DEBUG
             internalLog(Severity::Debug, getMod(), args...);
-#endif
         }
 
         template <typename... Args>

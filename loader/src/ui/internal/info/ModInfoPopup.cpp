@@ -112,12 +112,8 @@ bool ModInfoPopup::init(ModInfo const& info, ModListLayer* list) {
 
     // changelog
     if (info.changelog()) {
-        m_changelogArea = MDTextArea::create(info.changelog().value(), { 350.f, 137.5f });
-        m_changelogArea->setPosition(
-            -5000.f, winSize.height / 2 - m_changelogArea->getScaledContentSize().height / 2 - 20.f
-        );
-        m_changelogArea->setVisible(false);
-        m_mainLayer->addChild(m_changelogArea);
+        // m_changelogArea is only created if the changelog button is clicked 
+        // because changelogs can get really long and take a while to load
 
         auto changelogBtnOffSpr = ButtonSprite::create(
             CCSprite::createWithSpriteFrameName("changelog.png"_spr),
@@ -225,8 +221,18 @@ void ModInfoPopup::onInfo(CCObject*) {
 }
 
 void ModInfoPopup::onChangelog(CCObject* sender) {
-    auto toggle = static_cast<CCMenuItemToggler*>(sender);
     auto winSize = CCDirector::get()->getWinSize();
+
+    if (!m_changelogArea) {
+        m_changelogArea = MDTextArea::create(Mod::get()->getModInfo().changelog().value(), { 350.f, 137.5f });
+        m_changelogArea->setPosition(
+            -5000.f, winSize.height / 2 - m_changelogArea->getScaledContentSize().height / 2 - 20.f
+        );
+        m_changelogArea->setVisible(false);
+        m_mainLayer->addChild(m_changelogArea);
+    }
+
+    auto toggle = static_cast<CCMenuItemToggler*>(sender);
 
     m_detailsArea->setVisible(toggle->isToggled());
     // as it turns out, cocos2d is stupid and still passes touch
@@ -242,6 +248,12 @@ void ModInfoPopup::onChangelog(CCObject* sender) {
     m_changelogArea->setPositionX(
         !toggle->isToggled() ? winSize.width / 2 - m_changelogArea->getScaledContentSize().width / 2 :
                                -5000.f
+    );
+
+    m_scrollbar->setTarget(
+        toggle->isToggled() ?
+            m_detailsArea->getScrollLayer() :
+            m_changelogArea->getScrollLayer()
     );
 }
 
@@ -559,7 +571,7 @@ bool IndexItemInfoPopup::init(IndexItemHandle item, ModListLayer* list) {
 
 void IndexItemInfoPopup::onInstallProgress(ModInstallEvent* event) {
     std::visit(makeVisitor {
-        [&](UpdateFinished) {
+        [&](UpdateFinished const&) {
             this->setInstallStatus(std::nullopt);
             
             FLAlertLayer::create(

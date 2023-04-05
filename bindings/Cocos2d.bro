@@ -65,8 +65,18 @@ class cocos2d::CCCallFuncO {
 }
 
 class cocos2d::CCClippingNode {
+	CCClippingNode() {
+		m_pStencil = nullptr;
+		m_fAlphaThreshold = 1.f;
+		m_bInverted = false;
+	}
+	~CCClippingNode() = mac 0x4191e0;
 	static cocos2d::CCClippingNode* create() = mac 0x4192a0;
 	static cocos2d::CCClippingNode* create(cocos2d::CCNode*) = mac 0x419330;
+	// Inlined in create() call
+	auto init() = mac 0x4193e0;
+	// Inlined in create() call
+	auto init(cocos2d::CCNode* stencil) = mac 0x419400;
 	auto getAlphaThreshold() const = mac 0x419a10;
 	auto getStencil() const = mac 0x4199c0;
 	auto isInverted() const = mac 0x419a30;
@@ -151,6 +161,31 @@ class cocos2d::CCDrawNode {
 	virtual ~CCDrawNode() = mac 0x378cc0;
 }
 
+class cocos2d::CCAction {
+	CCAction() = mac 0x35b610;
+	virtual ~CCAction() = mac 0x35b6b0;
+    auto stop() = mac 0x35b860;
+	auto copyWithZone(cocos2d::CCZone* zone) = mac 0x35b7a0;
+	auto startWithTarget(cocos2d::CCNode* target) = mac 0x35b850;
+	auto step(float dt) = mac 0x35b880;
+	auto isDone() = mac 0x35b870;
+	auto update(float time) = mac 0x35b890;
+}
+
+class cocos2d::CCFiniteTimeAction {
+	// same as CCActionInterval::reverse i think
+	auto reverse() = mac 0x1f2720;
+}
+
+class cocos2d::CCActionInterval {
+	auto copyWithZone(cocos2d::CCZone* zone) = mac 0x1f2550;
+	auto isDone() = mac 0x1f2640;
+    auto startWithTarget(cocos2d::CCNode* pTarget) = mac 0x1f2700;
+	auto step(float dt) = mac 0x1f2660;
+	auto reverse() = mac 0x1f2720;
+	bool initWithDuration(float d) = mac 0x1f2510;
+}
+
 class cocos2d::CCEaseBackIn {
 	static cocos2d::CCEaseBackIn* create(cocos2d::CCActionInterval*) = mac 0x2a41b0;
 }
@@ -176,6 +211,7 @@ class cocos2d::CCEGLView {
 	static cocos2d::CCEGLView* sharedOpenGLView() = mac 0x295320;
 	virtual void swapBuffers() = mac 0x295510;
 	void updateWindow(int width, int height);
+	void setupWindow(cocos2d::CCRect);
 	void toggleFullScreen(bool fullscreen);
 	void pollEvents();
     void onGLFWCharCallback(GLFWwindow* window, unsigned int entered);
@@ -407,12 +443,12 @@ class cocos2d::CCMenu {
     virtual auto registerWithTouchDispatcher() = mac 0x438cd0, ios 0x131f8c;
     virtual auto onExit() = mac 0x438bd0, ios 0x131ed4;
     virtual auto removeChild(cocos2d::CCNode*, bool) = mac 0x438c20, ios 0x15e630;
-    auto initWithArray(cocos2d::CCArray*) = mac 0x4389f0, ios 0x131d04;
-    auto itemForTouch(cocos2d::CCTouch*) = mac 0x438dd0;
+    bool initWithArray(cocos2d::CCArray*) = mac 0x4389f0, ios 0x131d04;
+    cocos2d::CCMenuItem* itemForTouch(cocos2d::CCTouch*) = mac 0x438dd0;
 }
 
 class cocos2d::CCMenuItem {
-	auto initWithTarget(cocos2d::CCObject*, cocos2d::SEL_MenuHandler) = mac 0x1fb7f0;
+	bool initWithTarget(cocos2d::CCObject*, cocos2d::SEL_MenuHandler) = mac 0x1fb7f0;
 	virtual ~CCMenuItem() = mac 0x1fb8e0, ios 0x2cdf4;
 	virtual auto activate() = mac 0x1fba70, ios 0x2ceb0;
 	virtual auto selected() = mac 0x1fb9e0, ios 0x2ce2e;
@@ -635,9 +671,6 @@ class cocos2d::CCObject {
     auto isEqual(cocos2d::CCObject const*) = mac 0x250f20, ios 0x439e4;
     auto release() = mac 0x250ea0, ios 0x43984;
     auto retain() = mac 0x250ec0, ios 0x439a8;
-    unsigned int retainCount() const {
-    	return m_uReference;
-    }
 
     virtual auto setTag(int) = mac 0x250f60, ios 0x43a10;
     ~CCObject() = mac 0x250d20, ios 0x6ac0;
@@ -701,6 +734,8 @@ class cocos2d::CCScheduler {
 	auto scheduleUpdateForTarget(cocos2d::CCObject*, int, bool) = mac 0x2438d0;
 	auto unscheduleAllForTarget(cocos2d::CCObject*) = mac 0x243e40;
 	auto unscheduleUpdateForTarget(cocos2d::CCObject const*) = mac 0x243c60;
+	auto resumeTargets(cocos2d::CCSet*) = mac 0x244680;
+	auto pauseAllTargets() = mac 0x244550;
 	virtual void update(float delta) = mac 0x2446d0;
 }
 
@@ -931,6 +966,7 @@ class cocos2d::CCTransitionFade {
 class cocos2d::ZipUtils {
 	static auto compressString(gd::string, bool, int) = mac 0xe9a50;
 	static auto decompressString(gd::string, bool, int) = mac 0xea380;
+	static int ccDeflateMemory(unsigned char*, unsigned int, unsigned char**) = mac 0xe9cf0;
 }
 
 class cocos2d::extension::CCControl {
@@ -1042,12 +1078,24 @@ class cocos2d {
 	static auto ccDrawSolidRect(cocos2d::CCPoint, cocos2d::CCPoint, cocos2d::_ccColor4F) = mac 0xecf00;
 	static auto ccGLEnableVertexAttribs(unsigned int) = mac 0x1ae740;
 	static auto ccGLBindTexture2D(GLuint) = mac 0x1ae610;
+	static float ccpDistance(cocos2d::CCPoint const&, cocos2d::CCPoint const&) = mac 0x1aaf90;
+	static void ccDrawPoly(cocos2d::CCPoint const*, unsigned int, bool) = mac 0xed0a0;
+	static void ccDrawColor4B(GLubyte, GLubyte, GLubyte, GLubyte) = mac 0xeddd0;
 }
 
-// class DS_Dictionary {
-// 	DS_Dictionary() = mac 0xbe9a0;
-// 	int getIntegerForKey(char const*) = mac 0xc1610;
-// 	void setIntegerForKey(char const*, int) = mac 0xc26b0;
-// }
+class DS_Dictionary {
+	DS_Dictionary() = mac 0xbe9a0;
+	~DS_Dictionary() = mac 0x393c30;
+	bool saveRootSubDictToString() = mac 0xc09c0;
+	bool loadRootSubDictFromString(gd::string) = mac 0xbfd80;
+	bool stepIntoSubDictWithKey(char const*) = mac 0xc0cd0;
+	int getIntegerForKey(char const*) = mac 0xc1610;
+	void setIntegerForKey(char const*, int) = mac 0xc26b0;
+}
+
+class pugi::xml_document {
+	xml_document() = mac 0x393a80;
+	~xml_document() = mac 0x393b50;
+}
 
 // clang-format on

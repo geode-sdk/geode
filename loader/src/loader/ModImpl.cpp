@@ -116,7 +116,9 @@ std::vector<Hook*> Mod::Impl::getHooks() const {
 // Settings and saved values
 
 Result<> Mod::Impl::loadData() {
-    ModStateEvent(m_self, ModEventType::DataLoaded).post();
+    Loader::get()->queueInGDThread([&]() {
+        ModStateEvent(m_self, ModEventType::DataLoaded).post();
+    });
 
     // Settings
     // Check if settings exist
@@ -182,6 +184,7 @@ Result<> Mod::Impl::loadData() {
 }
 
 Result<> Mod::Impl::saveData() {
+    // saveData is expected to be synchronous, and always called from GD thread
     ModStateEvent(m_self, ModEventType::DataSaved).post();
 
     // Data saving should be fully fail-safe
@@ -308,9 +311,12 @@ Result<> Mod::Impl::loadBinary() {
 
     LoaderImpl::get()->releaseNextMod();
 
-    ModStateEvent(m_self, ModEventType::Loaded).post();
+    Loader::get()->queueInGDThread([&]() {
+        ModStateEvent(m_self, ModEventType::Loaded).post();
+    });
 
     Loader::get()->updateAllDependencies();
+    Loader::get()->updateResources();
 
     GEODE_UNWRAP(this->enable());
 
@@ -329,7 +335,9 @@ Result<> Mod::Impl::unloadBinary() {
     GEODE_UNWRAP(this->saveData());
 
     GEODE_UNWRAP(this->disable());
-    ModStateEvent(m_self, ModEventType::Unloaded).post();
+    Loader::get()->queueInGDThread([&]() {
+        ModStateEvent(m_self, ModEventType::Unloaded).post();
+    });
 
     // Disabling unhooks and unpatches already
     for (auto const& hook : m_hooks) {
@@ -367,7 +375,9 @@ Result<> Mod::Impl::enable() {
         }
     }
 
-    ModStateEvent(m_self, ModEventType::Enabled).post();
+    Loader::get()->queueInGDThread([&]() {
+        ModStateEvent(m_self, ModEventType::Enabled).post();
+    });
     m_enabled = true;
 
     return Ok();
@@ -381,7 +391,9 @@ Result<> Mod::Impl::disable() {
         return Err("Mod does not support disabling");
     }
 
-    ModStateEvent(m_self, ModEventType::Disabled).post();
+    Loader::get()->queueInGDThread([&]() {
+        ModStateEvent(m_self, ModEventType::Disabled).post();
+    });
 
     for (auto const& hook : m_hooks) {
         GEODE_UNWRAP(this->disableHook(hook));
@@ -682,6 +694,7 @@ static ModInfo getModImplInfo() {
     }
     auto info = infoRes.unwrap();
     info.details() = LOADER_ABOUT_MD;
+    info.changelog() = LOADER_CHANGELOG_MD;
     info.supportInfo() = SUPPORT_INFO;
     info.supportsDisabling() = false;
     return info;

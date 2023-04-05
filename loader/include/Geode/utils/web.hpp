@@ -65,7 +65,7 @@ namespace geode::utils::web {
      * A handle to an in-progress sent asynchronous web request. Use this to
      * cancel the request / query information about it
      */
-    class SentAsyncWebRequest {
+    class GEODE_DLL SentAsyncWebRequest {
     private:
         class Impl;
         std::shared_ptr<Impl> m_impl;

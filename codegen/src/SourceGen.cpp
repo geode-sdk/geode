@@ -126,7 +126,7 @@ std::string generateBindingSource(Root& root) {
 		for (auto& f : c.fields) {
 			if (auto i = f.get_as<InlineField>()) {
 				if (codegen::platform == Platform::Mac || codegen::platform == Platform::iOS) {
-					if (can_find(c.name, "cocos2d"))
+					if (is_cocos_class(c.name))
 						output += i->inner + "\n";
 				}
 			} else if (auto fn = f.get_as<OutOfLineField>()) {
@@ -134,7 +134,7 @@ std::string generateBindingSource(Root& root) {
 					continue;
 
 				// no cocos2d definitions on windows
-				if (codegen::platform == Platform::Windows && f.parent.rfind("cocos2d::", 0) == 0) {
+				if (codegen::platform == Platform::Windows && is_cocos_class(f.parent)) {
 					continue;
 				}
 
@@ -166,7 +166,7 @@ std::string generateBindingSource(Root& root) {
 					continue;
 				
 				// no cocos2d definitions on windows
-				if (codegen::platform == Platform::Windows && f.parent.rfind("cocos2d::", 0) == 0) {
+				if (codegen::platform == Platform::Windows && is_cocos_class(f.parent)) {
 					continue;
 				}
 

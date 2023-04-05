@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../utils/casts.hpp"
+#include "../utils/MiniFunction.hpp"
 
 #include <Geode/DefaultInclude.hpp>
 #include <type_traits>
@@ -9,6 +10,7 @@
 namespace geode {
     class Mod;
     class Event;
+    class EventListenerProtocol;
 
     Mod* getMod();
 
@@ -17,10 +19,41 @@ namespace geode {
         Stop
     };
 
-    struct GEODE_DLL EventListenerProtocol {
-        virtual void enable();
-        virtual void disable();
-        virtual ListenerResult passThrough(Event*) = 0;
+    struct GEODE_DLL EventListenerPool {
+        virtual bool add(EventListenerProtocol* listener) = 0;
+        virtual void remove(EventListenerProtocol* listener) = 0;
+        virtual void handle(Event* event) = 0;
+        virtual ~EventListenerPool() = default;
+
+        EventListenerPool() = default;
+        EventListenerPool(EventListenerPool const&) = delete;
+        EventListenerPool(EventListenerPool&&) = delete;
+    };
+    
+    class GEODE_DLL DefaultEventListenerPool : public EventListenerPool {
+    protected:
+        std::atomic_size_t m_locked = 0;
+        std::vector<EventListenerProtocol*> m_listeners;
+        std::vector<EventListenerProtocol*> m_toAdd;
+
+    public:
+        bool add(EventListenerProtocol* listener) override;
+        void remove(EventListenerProtocol* listener) override;
+        void handle(Event* event) override;
+
+        static DefaultEventListenerPool* get();
+    };
+
+    class GEODE_DLL EventListenerProtocol {
+    private:
+        EventListenerPool* m_pool = nullptr;
+
+    public:
+        bool enable();
+        void disable();
+
+        virtual EventListenerPool* getPool() const;
+        virtual ListenerResult handle(Event*) = 0;
         virtual ~EventListenerProtocol();
     };
 
@@ -44,6 +77,10 @@ namespace geode {
         ListenerResult handle(utils::MiniFunction<Callback> fn, T* e) {
             return fn(e);
         }
+
+        EventListenerPool* getPool() const {
+            return DefaultEventListenerPool::get();
+        }
     };
 
     template <typename T>
@@ -60,14 +97,17 @@ namespace geode {
             requires std::is_class_v<C>
         using MemberFn = typename to_member<C, Callback>::value;
 
-        ListenerResult passThrough(Event* e) override {
+        ListenerResult handle(Event* e) override {
             if (m_callback) {
-                // it is so silly to use dynamic cast in an interbinary context
                 if (auto myev = cast::typeinfo_cast<typename T::Event*>(e)) {
                     return m_filter.handle(m_callback, myev);
                 }
             }
             return ListenerResult::Propagate;
+        }
+
+        EventListenerPool* getPool() const override {
+            return m_filter.getPool();
         }
 
         EventListener(T filter = T()) {
@@ -119,6 +159,14 @@ namespace geode {
             m_filter = filter;
         }
 
+        T getFilter() const {
+            return m_filter;
+        }
+
+        utils::MiniFunction<Callback>& getCallback() {
+            return m_callback;
+        }
+
     protected:
         utils::MiniFunction<Callback> m_callback = nullptr;
         T m_filter;
@@ -126,8 +174,10 @@ namespace geode {
 
     class GEODE_DLL [[nodiscard]] Event {
     private:
-        static std::unordered_set<EventListenerProtocol*>& listeners();
         friend EventListenerProtocol;
+
+    protected:
+        virtual EventListenerPool* getPool() const;
 
     public:
         Mod* sender;
@@ -137,7 +187,7 @@ namespace geode {
         void post() {
             postFrom(getMod());
         }
-
+        
         virtual ~Event();
     };
 }

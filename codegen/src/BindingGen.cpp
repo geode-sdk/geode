@@ -144,7 +144,7 @@ std::string generateBindingHeader(Root& root, ghc::filesystem::path const& singl
     std::string output;
 
    	for (auto& cls : root.classes) {
-        if (can_find(cls.name, "cocos2d"))
+        if (is_cocos_class(cls.name))
             continue;
 
         std::string filename = (codegen::getUnqualifiedClassName(cls.name) + ".hpp");
@@ -168,7 +168,7 @@ std::string generateBindingHeader(Root& root, ghc::filesystem::path const& singl
         }
 
         std::string supers = str_if(
-            fmt::format(" : public {}", fmt::join(cls.superclasses, ", ")),
+            fmt::format(" : public {}", fmt::join(cls.superclasses, ", public ")),
             !cls.superclasses.empty()
         );
 
@@ -180,7 +180,7 @@ std::string generateBindingHeader(Root& root, ghc::filesystem::path const& singl
         // what.
         if (!cls.superclasses.empty()) {
             single_output += fmt::format(
-                can_find(cls.superclasses[0], "cocos2d") 
+                is_cocos_class(cls.superclasses[0]) 
                     ? format_strings::custom_constructor_cutoff
                     : format_strings::custom_constructor,
                 fmt::arg("class_name", cls.name),

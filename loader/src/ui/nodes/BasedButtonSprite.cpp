@@ -303,6 +303,10 @@ DECL_BASED_CREATE_FUNS(Leaderboard);
 DECL_BASED_CREATE_FUNS(Editor);
 DECL_BASED_CREATE_FUNS(Category);
 
+CCSize CircleButtonSprite::getMaxTopSize() const {
+    return m_obContentSize * .65f;
+}
+
 CCSize EditorButtonSprite::getMaxTopSize() const {
     return m_obContentSize - CCSize { 8.f, 8.f };
 }

@@ -233,6 +233,32 @@ std::string geode::cocos::cc4bToHexString(ccColor4B const& color) {
     return output;
 }
 
+WeakRefPool* WeakRefPool::get() {
+    static auto inst = new WeakRefPool();
+    return inst;
+}
+
+void WeakRefPool::check(CCObject* obj) {
+    // if this object's only reference is the WeakRefPool aka only weak 
+    // references exist to it, then release it
+    if (m_pool.contains(obj) && obj->retainCount() == 1) {
+        obj->release();
+        m_pool.erase(obj);
+    }
+}
+
+bool WeakRefPool::isManaged(CCObject* obj) {
+    this->check(obj);
+    return m_pool.contains(obj);
+}
+
+void WeakRefPool::manage(CCObject* obj) {
+    if (obj && !m_pool.contains(obj)) {
+        obj->retain();
+        m_pool.insert(obj);
+    }
+}
+
 CCRect geode::cocos::calculateNodeCoverage(std::vector<CCNode*> const& nodes) {
     CCRect coverage;
     for (auto child : nodes) {
@@ -302,8 +328,12 @@ void geode::cocos::limitNodeSize(cocos2d::CCNode* spr, cocos2d::CCSize const& si
 }
 
 bool geode::cocos::nodeIsVisible(cocos2d::CCNode* node) {
-    if (!node->isVisible()) return false;
-    if (node->getParent()) return nodeIsVisible(node->getParent());
+    if (!node->isVisible()) {
+        return false;
+    }
+    if (node->getParent()) {
+        return nodeIsVisible(node->getParent());
+    }
     return true;
 }
 

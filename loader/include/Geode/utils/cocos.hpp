@@ -25,7 +25,7 @@ struct json::Serialize<cocos2d::ccColor4B> {
 };
 
 // operators for CC geometry
-namespace geode {
+namespace cocos2d {
     static cocos2d::CCPoint& operator*=(cocos2d::CCPoint& pos, float mul) {
         pos.x *= mul;
         pos.y *= mul;
@@ -356,6 +356,151 @@ namespace geode {
         }
     };
 
+    class GEODE_DLL WeakRefPool {
+        std::unordered_set<cocos2d::CCObject*> m_pool;
+    
+    public:
+        static WeakRefPool* get();
+
+        bool isManaged(cocos2d::CCObject* obj);
+        void manage(cocos2d::CCObject* obj);
+        void check(cocos2d::CCObject* obj);
+    };
+
+    /**
+     * A smart pointer to a managed CCObject-deriving class. Like Ref, except 
+     * only holds a weak reference to the targeted object. When all non-weak 
+     * references (Refs, manual retain() calls) to the object are dropped, so 
+     * are all weak references.
+     * 
+     * In essence, WeakRef is like a raw pointer, except that you can know if 
+     * the pointer is still valid or not, as WeakRef::lock() returns nullptr if 
+     * the pointed-to-object has already been freed.
+     *
+     * Note that an object pointed to by WeakRef is only released once some 
+     * WeakRef pointing to it checks for it after all other references to the 
+     * object have been dropped. If you store WeakRefs in a global map, you may 
+     * want to periodically lock all of them to make sure any memory that should 
+     * be freed is freed.
+     * 
+     * @tparam T A type that inherits from CCObject.
+     */
+    template <class T>
+    class WeakRef final {
+        static_assert(
+            std::is_base_of_v<cocos2d::CCObject, T>,
+            "WeakRef can only be used with a CCObject-inheriting class!"
+        );
+
+        T* m_obj = nullptr;
+
+    public:
+        /**
+         * Construct a WeakRef of an object. A weak reference is one that will 
+         * be valid as long as the object is referenced by other strong 
+         * references (such as Ref or manual retain calls), but once all strong 
+         * references are dropped, so are all weak references. The object is 
+         * freed once no strong references exist to it, and any WeakRef pointing 
+         * to it is freed or locked
+         * @param obj Object to construct the WeakRef from
+         */
+        WeakRef(T* obj) : m_obj(obj) {
+            WeakRefPool::get()->manage(obj);
+        }
+
+        WeakRef(WeakRef<T> const& other) : WeakRef(other.m_obj) {}
+
+        WeakRef(WeakRef<T>&& other) : m_obj(other.m_obj) {
+            other.m_obj = nullptr;
+        }
+
+        /**
+         * Construct an empty WeakRef (the object will be null)
+         */
+        WeakRef() = default;
+        ~WeakRef() {
+            WeakRefPool::get()->check(m_obj);
+        }
+
+        /**
+         * Lock the WeakRef, returning a Ref if the pointed object is valid or 
+         * a null Ref if the object has been freed
+         */
+        Ref<T> lock() const {
+            if (WeakRefPool::get()->isManaged(m_obj)) {
+                return Ref(m_obj);
+            }
+            return Ref<T>(nullptr);
+        }
+
+        /**
+         * Check if the WeakRef points to a valid object
+         */
+        bool valid() const {
+            return WeakRefPool::get()->isManaged(m_obj);
+        }
+
+        /**
+         * Swap the managed object with another object. The managed object
+         * will be released, and the new object retained
+         * @param other The new object to swap to
+         */
+        void swap(T* other) {
+            WeakRefPool::get()->check(m_obj);
+            m_obj = other;
+            WeakRefPool::get()->manage(other);
+        }
+
+        Ref<T> operator=(T* obj) {
+            this->swap(obj);
+            return this->lock();
+        }
+
+        WeakRef<T>& operator=(WeakRef<T> const& other) {
+            this->swap(other.m_obj);
+            return *this;
+        }
+
+        WeakRef<T>& operator=(WeakRef<T>&& other) {
+            this->swap(other.m_obj);
+            return *this;
+        }
+
+        explicit operator bool() const noexcept {
+            return this->valid();
+        }
+
+        bool operator==(T* other) const {
+            return m_obj == other;
+        }
+
+        bool operator==(WeakRef<T> const& other) const {
+            return m_obj == other.m_obj;
+        }
+
+        bool operator!=(T* other) const {
+            return m_obj != other;
+        }
+
+        bool operator!=(WeakRef<T> const& other) const {
+            return m_obj != other.m_obj;
+        }
+
+        // for containers
+        bool operator<(WeakRef<T> const& other) const {
+            return m_obj < other.m_obj;
+        }
+        bool operator<=(WeakRef<T> const& other) const {
+            return m_obj <= other.m_obj;
+        }
+        bool operator>(WeakRef<T> const& other) const {
+            return m_obj > other.m_obj;
+        }
+        bool operator>=(WeakRef<T> const& other) const {
+            return m_obj >= other.m_obj;
+        }
+    };
+
     template <class Filter>
     class EventListenerNode : public cocos2d::CCNode {
     protected:
@@ -375,8 +520,8 @@ namespace geode {
             return nullptr;
         }
 
-        static EventListenerNode* create(typename Filter::Callback callback) {
-            auto ret = new EventListenerNode(EventListener<Filter>(callback));
+        static EventListenerNode* create(typename Filter::Callback callback, Filter filter = Filter()) {
+            auto ret = new EventListenerNode(EventListener<Filter>(callback, filter));
             if (ret && ret->init()) {
                 ret->autorelease();
                 return ret;
@@ -384,7 +529,6 @@ namespace geode {
             CC_SAFE_DELETE(ret);
             return nullptr;
         }
-
 
         template <class C>
         static EventListenerNode* create(

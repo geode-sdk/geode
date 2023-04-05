@@ -47,14 +47,13 @@ NS_CC_BEGIN
  * @{
  */
 
-RT_ADD(
-    // please someone tell we why in higher being(s)'s name rob did this
-    enum class CCObjectType {
-        PlayLayer = 5,
-        LevelEditorLayer = 6,
-        MenuLayer = 15,
-    };
-)
+// please someone tell we why in higher being(s)'s name rob did this
+enum class CCObjectType {
+    PlayLayer = 5,
+    LevelEditorLayer = 6,
+    GameObject = 13,
+    MenuLayer = 15,
+};
 
 class CCZone;
 class CCObject;
@@ -101,16 +100,14 @@ public:
     int                 m_nLuaID;
 protected:
     // the object's tag
-    RT_ADD( int m_nTag; )
+    int m_nTag;
     // count of references
     unsigned int        m_uReference;
     // count of autorelease
     unsigned int        m_uAutoReleaseCount;
 
-    RT_ADD(
-        CCObjectType m_eObjType;
-        int m_nUnknown;
-    )
+    CCObjectType m_eObjType;
+    int m_nUnknown;
 public:
 	GEODE_CUSTOM_CONSTRUCTOR_BEGIN(CCObject)
     CCObject(void);
@@ -124,30 +121,32 @@ public:
     CCObject* autorelease(void);
     CCObject* copy(void);
     bool isSingleReference(void) const;
-    inline unsigned int retainCount(void) const;
+    inline unsigned int retainCount(void) const {
+        return m_uReference;
+    }
     virtual bool isEqual(const CCObject* pObject);
 
     virtual void acceptVisitor(CCDataVisitor &visitor);
 
     virtual void update(float dt) {CC_UNUSED_PARAM(dt);};
     
-    RT_ADD(
-        virtual void encodeWithCoder(DS_Dictionary*);
+    virtual void encodeWithCoder(DS_Dictionary*);
 
-        static CCObject* createWithCoder(DS_Dictionary*);
-        
-        virtual bool canEncode();
+    static CCObject* createWithCoder(DS_Dictionary*);
+    
+    virtual bool canEncode();
 
-        CCObjectType getObjType() const;
-        
-        virtual int getTag() const;
+    inline CCObjectType getObjType() const {
+        return m_eObjType;
+    }
+ 
+    virtual int getTag() const;
 
-        virtual void setTag(int nTag);
-       
-        inline void setObjType(CCObjectType type) {
-        	m_eObjType = type;
-        }
-    )
+    virtual void setTag(int nTag);
+    
+    inline void setObjType(CCObjectType type) {
+        m_eObjType = type;
+    }
 
     friend class CCAutoreleasePool;
 };

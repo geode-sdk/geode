@@ -17,6 +17,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE -DGEODE_DONT_WARN_INCORRECT_MEMBERS)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE ghc_filesystem)
+target_link_libraries(${PROJECT_NAME} PRIVATE ghc_filesystem mat-json)
 
 add_dependencies(${PROJECT_NAME} CodegenRun)

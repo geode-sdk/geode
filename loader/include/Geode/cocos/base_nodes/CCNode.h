@@ -38,7 +38,8 @@
 #include "../script_support/CCScriptSupport.h"
 #include "../include/CCProtocols.h"
 #include "Layout.hpp"
-#include <any>
+#include "../../loader/Event.hpp"
+#include <json.hpp>
 
 NS_CC_BEGIN
 
@@ -850,7 +851,11 @@ private:
     friend class geode::modifier::FieldContainer;
 
     GEODE_DLL geode::modifier::FieldContainer* getFieldContainer();
-    GEODE_DLL std::optional<std::any> getAttributeInternal(std::string const& attribute);
+    GEODE_DLL std::optional<json::Value> getAttributeInternal(std::string const& attribute);
+    GEODE_DLL void addEventListenerInternal(
+        std::string const& id,
+        geode::EventListenerProtocol* protocol
+    );
 
 public:
     /**
@@ -892,6 +897,7 @@ public:
      * @param before The child the node is added before of. If this is null or 
      * not a child of this node, the new child will be placed at the start of the 
      * child list
+     * @note Geode addition
      */
     GEODE_DLL void insertBefore(CCNode* child, CCNode* before);
 
@@ -902,8 +908,19 @@ public:
      * @param after The child the node is added after of. If this is null or 
      * not a child of this node, the new child will be placed at the end of the 
      * child list
+     * @note Geode addition
      */
     GEODE_DLL void insertAfter(CCNode* child, CCNode* after);
+
+    /**
+     * Check if this node's parent or its parents' parent is the given node
+     * @param ancestor The node whose child or subchild this node should be. If 
+     * nullptr, returns true if the node is in the current scene, otherwise 
+     * false.
+     * @returns True if ancestor is an ancestor of this node
+     * @note Geode addition
+     */
+    GEODE_DLL bool hasAncestor(CCNode* ancestor);
 
     /**
      * Set an attribute on a node. Attributes are a system added by Geode, 
@@ -917,7 +934,7 @@ public:
      * @param value The value of the attribute
      * @note Geode addition
      */
-    GEODE_DLL void setAttribute(std::string const& attribute, std::any value);
+    GEODE_DLL void setAttribute(std::string const& attribute, json::Value const& value);
     /**
      * Get an attribute from the node. Attributes may be anything
      * @param attribute The attribute key
@@ -929,7 +946,7 @@ public:
     std::optional<T> getAttribute(std::string const& attribute) {
         if (auto value = this->getAttributeInternal(attribute)) {
             try {
-                return std::any_cast<T>(value.value());
+                return value.value().template as<T>();
             } catch(...) {
                 return std::nullopt;
             }
@@ -986,6 +1003,32 @@ public:
      * @note Geode addition
      */
     GEODE_DLL void swapChildIndices(CCNode* first, CCNode* second);
+
+    template <class Filter, class... Args>
+    geode::EventListenerProtocol* addEventListener(
+        std::string const& id,
+        geode::utils::MiniFunction<typename Filter::Callback> callback,
+        Args&&... args
+    ) {
+        auto listener = new geode::EventListener<Filter>(
+            callback, Filter(this, std::forward<Args>(args)...)
+        );
+        this->addEventListenerInternal(id, listener);
+        return listener;
+    }
+    template <class Filter, class... Args>
+    geode::EventListenerProtocol* addEventListener(
+        geode::utils::MiniFunction<typename Filter::Callback> callback,
+        Args&&... args
+    ) {
+        return this->template addEventListener<Filter, Args...>(
+            "", callback, std::forward<Args>(args)...
+        );
+    }
+    GEODE_DLL void removeEventListener(geode::EventListenerProtocol* listener);
+    GEODE_DLL void removeEventListener(std::string const& id);
+    GEODE_DLL geode::EventListenerProtocol* getEventListener(std::string const& id);
+    GEODE_DLL size_t getEventListenerCount();
     
     /// @{
     /// @name Shader Program
@@ -1689,5 +1732,28 @@ protected:
 /// @}
 
 NS_CC_END
+
+namespace geode {
+    struct GEODE_DLL AttributeSetEvent : public Event {
+        cocos2d::CCNode* node;
+        const std::string id;
+        json::Value& value;
+
+        AttributeSetEvent(cocos2d::CCNode* node, std::string const& id, json::Value& value);
+    };
+
+    class GEODE_DLL AttributeSetFilter : public EventFilter<AttributeSetEvent> {
+	public:
+		using Callback = void(AttributeSetEvent*);
+    
+    protected:
+		std::string m_targetID;
+	
+	public:
+        ListenerResult handle(utils::MiniFunction<Callback> fn, AttributeSetEvent* event);
+
+		AttributeSetFilter(std::string const& id);
+    };
+}
 
 #endif // __PLATFORM_CCNODE_H__

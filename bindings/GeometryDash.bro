@@ -97,7 +97,10 @@ class AppDelegate : cocos2d::CCApplication, cocos2d::CCSceneDelegate {
     void resumeSound() = win 0x3d4d0;
     void setupGLView() = win 0x3c950;
 
+    PAD = win 0x4;
     cocos2d::CCScene* m_runningScene;
+    bool m_loadingFinished;
+    // there's 0x18 more on Windows
 }
 
 class ArtistCell : TableViewCell {
@@ -531,6 +534,10 @@ class CCScrollLayerExtDelegate {
     virtual void scrollViewTouchEnd(CCScrollLayerExt*) {}
 }
 
+class CCSpritePart : CCSpritePlus {
+
+}
+
 class CCSpritePlus : cocos2d::CCSprite {
     bool initWithSpriteFrameName(const char*) = mac 0x248670, win 0x1c1e0;
     void setScaleX(float scale) = win 0x1c440;
@@ -932,6 +939,7 @@ class CustomSongLayer : FLAlertLayer, FLAlertLayerProtocol, TextInputDelegate, G
 }
 
 class CustomSongWidget : cocos2d::CCNode, MusicDownloadDelegate, FLAlertLayerProtocol {
+    bool init(SongInfoObject*, LevelSettingsObject*, bool, bool, bool, bool, bool hideBackground) = mac 0x37be20, win 0x685b0;
     void FLAlert_Clicked(FLAlertLayer*, bool) {}
     void loadSongInfoFinished(SongInfoObject*) {}
 
@@ -1111,6 +1119,12 @@ class EditButtonBar : cocos2d::CCNode {
     }
 
     void loadFromItems(cocos2d::CCArray* buttons, int rowCount, int columnCount, bool idk) = mac 0x351010, win 0x6e5e0, ios 0x2dd060;
+    static EditButtonBar* create(
+        cocos2d::CCArray* buttons,
+        cocos2d::CCPoint point,
+        int idk, bool idk0,
+        int rowCount, int columnCount
+    ) = win 0x6e450;
 
     cocos2d::CCPoint m_position;
     int m_unknown;
@@ -1235,10 +1249,11 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     virtual void scaleChanged(float) = mac 0x25490, win 0x88df0;
     virtual void scaleChangeEnded() = win 0x88de0;
     void scaleObjects(cocos2d::CCArray*, float, cocos2d::CCPoint) = mac 0x252e0, win 0x8f150;
-    void selectObjects(cocos2d::CCArray*, bool) = mac 0x23940, win 0x864a0;
+    void selectObjects(cocos2d::CCArray* objs, bool ignoreFilters) = mac 0x23940, win 0x864a0;
     void setupCreateMenu() = mac 0xcb50, win 0x7caf0;
     void undoLastAction(cocos2d::CCObject*) = mac 0xb830, win 0x87070;
     void updateButtons() = mac 0x1a300, win 0x78280;
+    void updateEditMenu() = win 0x8b010;
     void updateObjectInfoLabel() = mac 0x1cb10, win 0x793b0;
     void updateSlider() = mac 0x18a90, win 0x78f10;
     void updateZoom(float) = mac 0x248c0, win 0x878a0;
@@ -1248,6 +1263,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     void selectAll() = win 0x86c40;
     void selectAllWithDirection(bool left) = win 0x86d80;
     cocos2d::CCPoint getTouchPoint(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) = win 0x90620;
+    cocos2d::CCPoint getGridSnappedPos(cocos2d::CCPoint pos) = win 0x90550;
     void onSelectBuildTab(cocos2d::CCObject* sender) = win 0x887f0;
     void onCreateButton(cocos2d::CCObject* sender) = win 0x854f0;
     CCMenuItemSpriteExtra* getSpriteButton(const char* sprite, cocos2d::SEL_MenuHandler callback, cocos2d::CCMenu* menu, float scale) = mac 0xb500, win 0x78bf0;
@@ -1319,6 +1335,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     virtual void scrollWheel(float vertical, float horizontal) = win 0x921d0, mac 0x31370, ios 0x2c4884;
     void createMoveMenu() = mac 0x275e0, win 0x8c0d0;
     void sliderChanged(cocos2d::CCObject* slider) = win 0x78cc0;
+    void repositionObjectsToCenter(cocos2d::CCArray* objs, cocos2d::CCPoint center, bool ignoreGroupParent) = win 0x88410;
     virtual void draw() = win 0x8fbe0;
 
     bool m_isPlayingMusic;
@@ -2342,7 +2359,12 @@ class GJGroundLayer : cocos2d::CCLayer {
     void updateGroundWidth() = mac 0x356790, win 0x12dda0;
 }
 
-class GJItemIcon {
+class GJItemIcon : cocos2d::CCSprite {
+    bool init(
+        UnlockType, int, cocos2d::ccColor3B, cocos2d::ccColor3B,
+        bool, bool, bool, cocos2d::ccColor3B
+    ) = win 0x12ccf0;
+
     GJItemIcon* createBrowserIcon(UnlockType _type, int _id) {
         return GJItemIcon::create(_type, _id,
             { 0xaf, 0xaf, 0xaf }, { 0xff, 0xff, 0xff },
@@ -2415,8 +2437,16 @@ class GJRobotSprite : CCAnimatedSprite {
     void updateFrame(int) = mac 0x34bdd0, win 0x146700;
     void hideGlow() = mac 0x34b860;
 
-    PAD = win 0x8;
+    cocos2d::CCArray* m_unk244;
+    bool m_unk248;
+    cocos2d::ccColor3B m_mainColor;
     cocos2d::ccColor3B m_secondaryColor;
+    cocos2d::CCArray* m_unk250;
+    cocos2d::CCSprite* m_glowSprite;
+    cocos2d::CCSprite* m_unk258;
+    PAD = win 0x4;
+    cocos2d::CCSprite* m_flameSprite;
+    CCSpritePart* m_headSpritePart;
 }
 
 class GJRotationControl : cocos2d::CCLayer {
@@ -3162,8 +3192,8 @@ class GameObject : CCSpritePlus {
     bool m_isEffectObject;
     bool m_randomisedAnimStart;
     float m_animSpeed;
-    bool m_blackChild;
-    bool m_unkOutlineMaybe;
+    bool m_isBlackObject;
+    bool m_isBlackObjectWithOutline;
     float m_blackChildOpacity;
     bool field_21C;
     bool m_editor;
@@ -3367,6 +3397,7 @@ class GameStatsManager : cocos2d::CCNode {
     void storePendingUserCoin(char const*) = mac 0x42940;
     void storeSecretCoin(char const*) = mac 0x42a10;
     void storeUserCoin(char const*) = mac 0x42890;
+    bool isItemUnlocked(UnlockType type, int id) = win 0xfbb80;
 
     PAD = win 0x28;
     cocos2d::CCDictionary* m_dailyChests;
@@ -3407,6 +3438,7 @@ class GameToolbox {
     static void alignItemsHorisontally(cocos2d::CCArray* array, bool idk, cocos2d::CCPoint start, float pad) = win 0x25b20;
     static cocos2d::_ccHSVValue hsvFromString(gd::string, char const*) = mac 0x28cc30, win 0x26da0;
     static gd::map<gd::string, gd::string> stringSetupToMap(gd::string, char const*) = mac 0x28d4c0;
+    static cocos2d::ccColor3B multipliedColorValue(cocos2d::ccColor3B color1, cocos2d::ccColor3B color2, float factor) = win 0x26CE0;
 }
 
 class GaragePage : cocos2d::CCLayer, ListButtonBarDelegate {
@@ -3457,7 +3489,7 @@ class HardStreak : cocos2d::CCDrawNode {
     // ~HardStreak() = mac 0x5bf00; inlined on windows
     virtual bool init() = mac 0x5c090, win 0x14e430;
     void addPoint(cocos2d::CCPoint) = mac 0x5c950, win 0x14ebc0;
-    void clearBehindXPos(float) = mac 0x5cb40;
+    void clearBehindXPos(float) = mac 0x5cb40, win 0x14ec00;
     static HardStreak* create() = mac 0x5bfd0, win 0x14e390;
     void firstSetup() = mac 0x5c160, win 0x14e490;
     double normalizeAngle(double) = mac 0x5cbe0;
@@ -3640,12 +3672,13 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
     void getNextFreeBlockID(cocos2d::CCArray*) = mac 0x9a4e0;
     int getNextFreeGroupID(cocos2d::CCArray*) = mac 0x9a1b0, win 0x164ae0;
     void getNextFreeItemID(cocos2d::CCArray*) = mac 0x9a390;
-    void getObjectRect(GameObject*, bool) = mac 0x96240, win 0x1616b0;
+    cocos2d::CCRect getObjectRect(GameObject* obj, bool updateRect) = mac 0x96240, win 0x1616b0;
     void getRelativeOffset(GameObject*) = mac 0x96840;
     bool hasAction(bool) = mac 0x96ff0;
     void handleAction(bool, cocos2d::CCArray*) = mac 0x97020, win 0x162010;
     bool init(GJGameLevel*) = mac 0x91010, win 0x15EE00;
-    void objectAtPosition(cocos2d::CCPoint) = mac 0x960c0, win 0x161300;
+    GameObject* objectAtPosition(cocos2d::CCPoint position) = mac 0x960c0, win 0x161300;
+    cocos2d::CCArray* objectsAtPosition(cocos2d::CCPoint position) = win 0x1614d0;
     void objectMoved(GameObject*) = mac 0x999f0, win 0x162d40;
     cocos2d::CCArray* objectsInRect(cocos2d::CCRect rect, bool ignoreLayer) = mac 0x95e60, win 0x161ad0;
     void onPlaytest() = mac 0xa06b0, win 0x1695A0;
@@ -3692,7 +3725,7 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
     }
     void updateOptions() = mac 0x91ed0, win 0x15fcc0;
     void updateToggledGroups() = mac 0x9bb10;
-    void updateVisibility(float) = mac 0x92c70, win 0x1632b0;
+    callback void updateVisibility(float delta) = mac 0x92c70, win 0x1632b0;
 
     void groupStickyObjects(cocos2d::CCArray* objects) = mac 0x99dd0, win 0x164860;
     void ungroupStickyObjects(cocos2d::CCArray* objects) = mac 0x99ee0, win 0x164950;
@@ -4640,7 +4673,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     void convertToClosestRotation(float) = mac 0x21c860, win 0x1e9ac0;
     void copyAttributes(PlayerObject*) = mac 0x22dc70, win 0x1f93f0;
     static PlayerObject* create(int, int, cocos2d::CCLayer*) = mac 0x217260, win 0x1e6cf0;
-    void deactivateParticle() = mac 0x21a540;
+    void deactivateParticle() = mac 0x21a540, win 0x1e8f50;
     void deactivateStreak(bool) = mac 0x218b30;
     void fadeOutStreak2(float) = mac 0x225890, win 0x1f9110;
     void flashPlayer(float, float, cocos2d::_ccColor3B, cocos2d::_ccColor3B) = mac 0x221c80;
@@ -4662,7 +4695,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     void isSafeMode(float) = mac 0x2209b0;
     void isSafeSpiderFlip(float) = mac 0x221be0;
     void levelFlipFinished() = mac 0x21b060, win 0x1e8e70;
-    void levelFlipping() = mac 0x21a510, win 0x1f6820;
+    bool levelFlipping() = mac 0x21a510, win 0x1f6820;
     void levelWillFlip() = mac 0x21b020;
     void loadFromCheckpoint(PlayerCheckpoint*) = mac 0x22e420, win 0x1fa080;
     void lockPlayer() = mac 0x22d680;
@@ -4732,7 +4765,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     void updateCollide(bool, int) = mac 0x220f10;
     void updateCollideBottom(float, int) = mac 0x221790;
     void updateCollideTop(float, int) = mac 0x221c20;
-    void updateDashAnimation() = mac 0x21a570;
+    void updateDashAnimation() = mac 0x21a570, win 0x1eea80;
     void updateDashArt() = mac 0x222520, win 0x1ee3c0;
     void updateGlowColor() = mac 0x22cf10;
     void updateJump(float) = mac 0x219680, win 0x1e8f80;
@@ -4845,6 +4878,8 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     bool m_hasJustHeld;
     bool m_isHolding2;
     bool m_hasJustHeld2;
+    bool m_unk615;
+    bool m_unk616;
     int m_unk618;
     float m_unk61C;
     int m_unk620;
@@ -4860,6 +4895,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     bool m_isRobot;
     bool m_isSpider;
     bool m_isUpsideDown;
+    bool m_unk63F;
     bool m_isOnGround;
     bool m_isDashing;
     float m_vehicleSize;
@@ -5417,7 +5453,7 @@ class TextArea : cocos2d::CCSprite {
     virtual void draw() {}
     virtual void setOpacity(unsigned char) = mac 0x19f760, win 0x33800;
     bool init(gd::string str, char const* font, float width, float height, cocos2d::CCPoint anchor, float scale, bool disableColor) = mac 0x19ec70, win 0x33370, ios 0x92444;
-    static TextArea* create(gd::string str, char const* font, float scale, float width, cocos2d::CCPoint anchor, float height, bool disableColor) = mac 0x19eb40, win 0x33270;
+    static TextArea* create(gd::string str, char const* font, float scale, float width, cocos2d::CCPoint anchor, float lineHeight, bool disableColor) = mac 0x19eb40, win 0x33270;
     void colorAllCharactersTo(cocos2d::ccColor3B color) = win 0x33830;
     void setString(gd::string str) = mac 0x19eda0, win 0x33480;
 

@@ -4,10 +4,13 @@
 
 GEODE_MEMBER_CHECK(GameObject, m_effectPlistName, 0x278);
 GEODE_MEMBER_CHECK(GameObject, m_effectManager, 0x454);
+GEODE_MEMBER_CHECK(GameObject, m_firstPosition, 0x424);
 
 GEODE_MEMBER_CHECK(PlayerObject, m_unk484, 0x484);
 GEODE_MEMBER_CHECK(PlayerObject, m_ghostTrail, 0x4E4);
 GEODE_MEMBER_CHECK(PlayerObject, m_waveTrail, 0x514);
+GEODE_MEMBER_CHECK(PlayerObject, m_isDart, 0x63b);
+GEODE_MEMBER_CHECK(PlayerObject, m_isDashing, 0x641);
 
 GEODE_MEMBER_CHECK(EditorUI, m_buttonBar, 0x134);
 GEODE_MEMBER_CHECK(EditorUI, m_hideableUIElementArray, 0x13c);

@@ -1,6 +1,7 @@
 #include <Geode/Loader.hpp>
 #include <Geode/loader/ModJsonTest.hpp>
 #include <Geode/loader/ModEvent.hpp>
+#include "../dependency/main.hpp"
 
 using namespace geode::prelude;
 
@@ -21,6 +22,13 @@ $on_mod(Loaded) {
 }
 $on_mod(Unloaded) {
     log::info("Unloaded");
+}
+
+// Events
+$execute {
+    new EventListener<TestEventFilter>(+[](TestEvent* event) {
+        log::info("Received event: {}", event->getData());
+    });
 }
 
 // Modify

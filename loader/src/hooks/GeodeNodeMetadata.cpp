@@ -21,7 +21,9 @@ private:
     std::string m_id = "";
     Ref<Layout> m_layout = nullptr;
     std::unique_ptr<LayoutOptions> m_layoutOptions = nullptr;
-    std::unordered_map<std::string, std::any> m_attributes;
+    std::unordered_map<std::string, json::Value> m_attributes;
+    std::unordered_set<std::unique_ptr<EventListenerProtocol>> m_eventListeners;
+    std::unordered_map<std::string, std::unique_ptr<EventListenerProtocol>> m_idEventListeners;
 
     friend class ProxyCCNode;
     friend class cocos2d::CCNode;
@@ -165,16 +167,75 @@ void CCNode::updateLayout(bool updateChildOrder) {
     }
 }
 
-void CCNode::setAttribute(std::string const& attr, std::any value) {
-    GeodeNodeMetadata::set(this)->m_attributes[attr] = value;
+AttributeSetEvent::AttributeSetEvent(CCNode* node, std::string const& id, json::Value& value)
+  : node(node), id(id), value(value) {}
+
+ListenerResult AttributeSetFilter::handle(MiniFunction<Callback> fn, AttributeSetEvent* event) {
+    if (event->id == m_targetID) {
+        fn(event);
+    }
+    return ListenerResult::Propagate;
 }
 
-std::optional<std::any> CCNode::getAttributeInternal(std::string const& attr) {
+AttributeSetFilter::AttributeSetFilter(std::string const& id) : m_targetID(id) {}
+
+void CCNode::setAttribute(std::string const& attr, json::Value const& value) {
+    auto meta = GeodeNodeMetadata::set(this);
+    meta->m_attributes[attr] = value;
+    AttributeSetEvent(this, attr, meta->m_attributes.at(attr)).post();
+}
+
+std::optional<json::Value> CCNode::getAttributeInternal(std::string const& attr) {
     auto meta = GeodeNodeMetadata::set(this);
     if (meta->m_attributes.count(attr)) {
         return meta->m_attributes.at(attr);
     }
     return std::nullopt;
+}
+
+void CCNode::addEventListenerInternal(std::string const& id, EventListenerProtocol* listener) {
+    auto meta = GeodeNodeMetadata::set(this);
+    if (id.size()) {
+        if (meta->m_idEventListeners.contains(id)) {
+            meta->m_idEventListeners.at(id).reset(listener);
+        }
+        else {
+            meta->m_idEventListeners.emplace(id, listener);
+        }
+    }
+    else {
+        std::erase_if(meta->m_eventListeners, [=](auto& l) {
+            return l.get() == listener;
+        });
+        meta->m_eventListeners.emplace(listener);
+    }
+}
+
+void CCNode::removeEventListener(EventListenerProtocol* listener) {
+    auto meta = GeodeNodeMetadata::set(this);
+    std::erase_if(meta->m_eventListeners, [=](auto& l) {
+        return l.get() == listener;
+    });
+    std::erase_if(meta->m_idEventListeners, [=](auto& l) {
+        return l.second.get() == listener;
+    });
+}
+
+void CCNode::removeEventListener(std::string const& id) {
+    GeodeNodeMetadata::set(this)->m_idEventListeners.erase(id);
+}
+
+EventListenerProtocol* CCNode::getEventListener(std::string const& id) {
+    auto meta = GeodeNodeMetadata::set(this);
+    if (meta->m_idEventListeners.contains(id)) {
+        return meta->m_idEventListeners.at(id).get();
+    }
+    return nullptr;
+}
+
+size_t CCNode::getEventListenerCount() {
+    return GeodeNodeMetadata::set(this)->m_idEventListeners.size() +
+        GeodeNodeMetadata::set(this)->m_eventListeners.size();
 }
 
 #pragma warning(pop)

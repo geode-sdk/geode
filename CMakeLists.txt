@@ -67,6 +67,7 @@ target_compile_definitions(${PROJECT_NAME} INTERFACE -DPROJECT_NAME=${CMAKE_PROJ
 set(GEODE_CODEGEN_PATH ${CMAKE_CURRENT_BINARY_DIR}/codegenned)
 set(GEODE_BIN_PATH ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 set(GEODE_LOADER_PATH ${CMAKE_CURRENT_SOURCE_DIR}/loader)
+set(GEODE_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 
 include(cmake/GeodeFile.cmake)
 include(cmake/Platform.cmake)
@@ -146,7 +147,7 @@ endif()
 
 add_library(GeodeCodegenSources ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp ${GEODE_CODEGEN_PATH}/Geode/GeneratedAddress.cpp)
 target_link_directories(GeodeCodegenSources PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/loader/include/link)
-target_link_libraries(GeodeCodegenSources PRIVATE ghc_filesystem GeodeFilesystemImpl fmt TulipHookInclude)
+target_link_libraries(GeodeCodegenSources PRIVATE ghc_filesystem GeodeFilesystemImpl fmt TulipHookInclude mat-json)
 target_include_directories(GeodeCodegenSources PRIVATE
 	${GEODE_CODEGEN_PATH}
 	${GEODE_LOADER_PATH}/include

@@ -1,12 +1,25 @@
 #include <Geode/Loader.hpp>
-
-using namespace geode::prelude;
-
 #include <Geode/modify/MenuLayer.hpp>
 #include <Geode/loader/SettingNode.hpp>
 #include <Geode/loader/ModJsonTest.hpp>
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/binding/FLAlertLayer.hpp>
+#include "main.hpp"
+
+using namespace geode::prelude;
+
+std::string TestEvent::getData() const {
+    return data;
+}
+
+TestEvent::TestEvent(std::string const& data) : data(data) {}
+
+ListenerResult TestEventFilter::handle(utils::MiniFunction<Callback> fn, TestEvent* event) {
+    fn(event);
+    return ListenerResult::Propagate;
+}
+
+TestEventFilter::TestEventFilter() {}
 
 enum class Icon {
     Steve,
@@ -137,6 +150,7 @@ SettingNode* MySettingValue::createNode(float width) {
 
 struct MyMenuLayer : Modify<MyMenuLayer, MenuLayer> {
     void onMoreGames(CCObject*) {
+        TestEvent("Event system works!").post();
         if (Mod::get()->getSettingValue<bool>("its-raining-after-all")) {
             FLAlertLayer::create("Damn", ":(", "OK")->show();
         }

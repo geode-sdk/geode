@@ -63,6 +63,8 @@ public:
 
 protected:
     RT_REMOVE(  virtual bool Create();  )
+    void setupWindow(cocos2d::CCRect rect);
+
 public:
     bool initGL();
     void destroyGL();

@@ -6,8 +6,6 @@ using namespace geode::prelude;
 bool Scrollbar::ccTouchBegan(CCTouch* touch, CCEvent* event) {
     // hitbox
     auto rect = this->boundingBox();
-    // since anchor point is 0.5, 0.5 it's offset
-    rect.origin -= this->getScaledContentSize() / 2;
     if (!m_target || !rect.containsPoint(touch->getLocation())) return false;
 
     // trigger scrollbar thumb move
@@ -40,7 +38,7 @@ void Scrollbar::ccTouchMoved(CCTouch* touch, CCEvent*) {
     auto thumbHeight = m_resizeThumb ? std::min(p, 1.f) * targetHeight / .4f : 0;
 
     auto posY = h *
-        ((-pos.y - targetHeight / 2 + thumbHeight / 4 - 5) / (targetHeight - thumbHeight / 2 + 10));
+        ((-pos.y + thumbHeight / 4 - 5) / (targetHeight - thumbHeight / 2 + 10));
 
     if (posY > 0.0f) posY = 0.0f;
     if (posY < -h) posY = -h;
@@ -73,7 +71,7 @@ void Scrollbar::draw() {
         m_track->setContentSize({ m_width / m_track->getScale(),
                                   targetHeight / m_track->getScale() });
     }
-    m_track->setPosition(.0f, .0f);
+    m_track->setPosition(m_obContentSize / 2);
 
     this->setContentSize({ m_width, targetHeight });
 
@@ -101,6 +99,10 @@ void Scrollbar::draw() {
     auto y = m_target->m_contentLayer->getPositionY();
 
     auto thumbHeight = m_resizeThumb ? std::min(p, 1.f) * targetHeight / .4f : 0;
+    if (thumbHeight < 15.f) {
+        thumbHeight = 15.f;
+    }
+
     auto thumbPosY = -targetHeight / 2 + thumbHeight / 4 - 5.0f +
         (h ? (-y) / h : 1.f) * (targetHeight - thumbHeight / 2 + 10.0f);
 
@@ -113,15 +115,21 @@ void Scrollbar::draw() {
 
     if (fHeightTop() > 0.0f) {
         thumbHeight -= fHeightTop();
+        if (thumbHeight < 15.f) {
+            thumbHeight = 15.f;
+        }
         thumbPosY -= fHeightTop();
     }
 
     if (fHeightBottom() < 0.f) {
         thumbHeight += fHeightBottom();
+        if (thumbHeight < 15.f) {
+            thumbHeight = 15.f;
+        }
         thumbPosY -= fHeightBottom();
     }
 
-    m_thumb->setPosition(0.f, thumbPosY);
+    m_thumb->setPosition(m_obContentSize / 2 + ccp(0.f, thumbPosY));
     if (m_resizeThumb) {
         m_thumb->setContentSize({ m_width, thumbHeight });
     }
@@ -133,6 +141,8 @@ void Scrollbar::setTarget(CCScrollLayerExt* target) {
 
 bool Scrollbar::init(CCScrollLayerExt* target) {
     if (!this->CCLayer::init()) return false;
+
+    this->ignoreAnchorPointForPosition(false);
 
     m_target = target;
 

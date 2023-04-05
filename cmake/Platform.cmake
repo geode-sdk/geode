@@ -30,10 +30,16 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
 		APPLE_SILICON_PROCESSOR x86_64
 	)
 
+	# this should be set globally
+	set(CMAKE_OSX_ARCHITECTURES "x86_64")
+
 	# only exists as a global property
 	set(CMAKE_OSX_DEPLOYMENT_TARGET 10.14)
 
-	target_link_libraries(${PROJECT_NAME} INTERFACE curl "-framework Cocoa")
+	target_link_libraries(${PROJECT_NAME} INTERFACE
+		curl "-framework Cocoa"
+		${GEODE_LOADER_PATH}/include/link/libfmod.dylib
+	)
 	target_compile_options(${PROJECT_NAME} INTERFACE -fms-extensions #[[-Wno-deprecated]] -Wno-ignored-attributes -Os #[[-flto]] #[[-fvisibility=internal]])
 
 	set(GEODE_PLATFORM_BINARY "Geode.dylib")

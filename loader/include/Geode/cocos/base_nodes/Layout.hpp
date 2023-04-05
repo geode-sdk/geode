@@ -23,7 +23,9 @@ class CCNode;
  */
 class GEODE_DLL Layout : public CCObject {
 protected:
-    static CCArray* getNodesToPosition(CCNode* forNode);
+    CCArray* getNodesToPosition(CCNode* forNode) const;
+
+    bool m_ignoreInvisibleChildren = false;
 
 public:
     /**
@@ -34,6 +36,14 @@ public:
      * rescaled to better fit its contents
      */
     virtual void apply(CCNode* on) = 0;
+
+    /**
+     * Get how much space this layout would like to take up for a given target
+     */
+    virtual CCSize getSizeHint(CCNode* on) const = 0;
+
+    void ignoreInvisibleChildren(bool ignore);
+    bool isIgnoreInvisibleChildren() const;
 
     virtual ~Layout() = default;
 };
@@ -257,6 +267,7 @@ public:
     static AxisLayout* create(Axis axis = Axis::Row);
 
     void apply(CCNode* on) override;
+    CCSize getSizeHint(CCNode* on) const override;
 
     Axis getAxis() const;
     AxisAlignment getAxisAlignment() const;
