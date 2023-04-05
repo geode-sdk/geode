@@ -6,7 +6,7 @@ using namespace geode::prelude;
 
 bool DefaultEventListenerPool::add(EventListenerProtocol* listener) {
     if (m_locked) {
-        m_toAdd.insert(listener);
+        m_toAdd.push_back(listener);
     }
     else {
         m_listeners.push_back(listener);
@@ -15,35 +15,31 @@ bool DefaultEventListenerPool::add(EventListenerProtocol* listener) {
 }
 
 void DefaultEventListenerPool::remove(EventListenerProtocol* listener) {
-    if (m_locked) {
-        m_toRemove.insert(listener);
-    }
-    else {
-        ranges::remove(m_listeners, listener);
+    for (size_t i = 0; i < m_listeners.size(); i++) {
+        if (m_listeners[i] == listener) {
+            m_listeners[i] = nullptr;
+        }
     }
 }
 
 void DefaultEventListenerPool::handle(Event* event) {
     m_locked += 1;
     for (auto h : m_listeners) {
-        // if an event listener gets destroyed in the middle of this loop, we 
-        // need to handle that
-        if (m_toRemove.contains(h)) continue;
-        if (h->handle(event) == ListenerResult::Stop) {
+        // if an event listener gets destroyed in the middle of this loop, it 
+        // gets set to null
+        if (h && h->handle(event) == ListenerResult::Stop) {
             break;
         }
     }
     m_locked -= 1;
-    // only clear listeners once nothing is iterating (if there are recursive handle calls)
+    // only mutate listeners once nothing is iterating 
+    // (if there are recursive handle calls)
     if (m_locked == 0) {
+        ranges::remove(m_listeners, nullptr);
         for (auto listener : m_toAdd) {
             m_listeners.push_back(listener);
         }
-        for (auto listener : m_toRemove) {
-            ranges::remove(m_listeners, listener);
-        }
         m_toAdd.clear();
-        m_toRemove.clear();
     }
 }
 
@@ -52,20 +48,27 @@ DefaultEventListenerPool* DefaultEventListenerPool::get() {
     return inst;
 }
 
-EventListenerPool* EventListenerPool::getDefault() {
+EventListenerPool* EventListenerProtocol::getPool() const {
     return DefaultEventListenerPool::get();
 }
 
-EventListenerPool* EventListenerProtocol::getPool() const {
-    return EventListenerPool::getDefault();
-}
-
 bool EventListenerProtocol::enable() {
-    return this->getPool()->add(this);
+    // virtual calls from destructors always call the base class so we gotta 
+    // store the subclass' pool in a member to be able to access it in disable
+    // this is actually better because now regardless of what getPool() does 
+    // we can always be assured that whatever pool it returns this listener 
+    // will be removed from that pool and can't be in multiple pools at once
+    if (m_pool || !(m_pool = this->getPool())) {
+        return false;
+    }
+    return m_pool->add(this);
 }
 
 void EventListenerProtocol::disable() {
-    this->getPool()->remove(this);
+    if (m_pool) {
+        m_pool->remove(this);
+        m_pool = nullptr;
+    }
 }
 
 EventListenerProtocol::~EventListenerProtocol() {
@@ -75,7 +78,7 @@ EventListenerProtocol::~EventListenerProtocol() {
 Event::~Event() {}
 
 EventListenerPool* Event::getPool() const {
-    return EventListenerPool::getDefault();
+    return DefaultEventListenerPool::get();
 }
 
 void Event::postFrom(Mod* m) {

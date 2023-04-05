@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Types.hpp"
+#include "../utils/Result.hpp"
 
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/utils/ranges.hpp>

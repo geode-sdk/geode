@@ -28,16 +28,13 @@ namespace geode {
         EventListenerPool() = default;
         EventListenerPool(EventListenerPool const&) = delete;
         EventListenerPool(EventListenerPool&&) = delete;
-
-        static EventListenerPool* getDefault();
     };
     
     class GEODE_DLL DefaultEventListenerPool : public EventListenerPool {
     protected:
         std::atomic_size_t m_locked = 0;
         std::vector<EventListenerProtocol*> m_listeners;
-        std::unordered_set<EventListenerProtocol*> m_toAdd;
-        std::unordered_set<EventListenerProtocol*> m_toRemove;
+        std::vector<EventListenerProtocol*> m_toAdd;
 
     public:
         bool add(EventListenerProtocol* listener) override;
@@ -47,7 +44,11 @@ namespace geode {
         static DefaultEventListenerPool* get();
     };
 
-    struct GEODE_DLL EventListenerProtocol {
+    class GEODE_DLL EventListenerProtocol {
+    private:
+        EventListenerPool* m_pool = nullptr;
+
+    public:
         bool enable();
         void disable();
 
@@ -78,7 +79,7 @@ namespace geode {
         }
 
         EventListenerPool* getPool() const {
-            return EventListenerPool::getDefault();
+            return DefaultEventListenerPool::get();
         }
     };
 
