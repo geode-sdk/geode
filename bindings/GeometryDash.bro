@@ -3320,6 +3320,7 @@ class GameObjectCopy : cocos2d::CCObject {
     virtual ~GameObjectCopy() = mac 0xa3290;
     static GameObjectCopy* create(GameObject*) = mac 0x975a0, win 0x16c020;
     void resetObject() = mac 0x976a0;
+    GameObject* m_object;
 }
 
 class GameRateDelegate {}
@@ -5486,7 +5487,7 @@ class UndoObject : cocos2d::CCObject {
     static UndoObject* createWithArray(cocos2d::CCArray*, UndoCommand) = mac 0x96ee0, win 0x16bee0;
     static UndoObject* createWithTransformObjects(cocos2d::CCArray* pObjects, UndoCommand nCommand) = win 0x16bcd0;
 
-    GameObject* m_gameObject;
+    GameObjectCopy* m_objectCopy;
     UndoCommand m_command;
     cocos2d::CCArray* m_objects;
     bool m_redo;
