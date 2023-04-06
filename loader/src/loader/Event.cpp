@@ -9,7 +9,8 @@ bool DefaultEventListenerPool::add(EventListenerProtocol* listener) {
         m_toAdd.push_back(listener);
     }
     else {
-        m_listeners.push_back(listener);
+        // insert listeners at the start so new listeners get priority
+        m_listeners.insert(m_listeners.begin(), listener);
     }
     return true;
 }
@@ -37,7 +38,7 @@ void DefaultEventListenerPool::handle(Event* event) {
     if (m_locked == 0) {
         ranges::remove(m_listeners, nullptr);
         for (auto listener : m_toAdd) {
-            m_listeners.push_back(listener);
+            m_listeners.insert(m_listeners.begin(), listener);
         }
         m_toAdd.clear();
     }
