@@ -178,7 +178,11 @@ namespace geode {
             m_filter.setListener(this);
         }
 
-        T getFilter() const {
+        T& getFilter() {
+            return m_filter;
+        }
+
+        T const& getFilter() const {
             return m_filter;
         }
 
