@@ -23,6 +23,7 @@ protected:
     CCLabelBMFont* m_description;
     CCMenuItemToggler* m_enableToggle = nullptr;
     CCMenuItemSpriteExtra* m_unresolvedExMark;
+    CCMenuItemSpriteExtra* m_developerBtn;
 
     bool init(ModListLayer* list, CCSize const& size);
     void setupInfo(ModInfo const& info, bool spaceForTags, ModListDisplay display);
@@ -35,6 +36,8 @@ public:
     virtual void updateState() = 0;
     virtual CCNode* createLogo(CCSize const& size) = 0;
     virtual std::string getDeveloper() const = 0;
+    
+    void disableDeveloperButton();
 };
 
 /**

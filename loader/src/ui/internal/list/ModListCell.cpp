@@ -94,24 +94,24 @@ void ModListCell::setupInfo(
     auto creatorLabel = CCLabelBMFont::create(creatorStr.c_str(), "goldFont.fnt");
     creatorLabel->setScale(.43f);
 
-    auto creatorBtn = CCMenuItemSpriteExtra::create(
+    m_developerBtn = CCMenuItemSpriteExtra::create(
         creatorLabel, this, menu_selector(ModListCell::onViewDev)
     );
-    creatorBtn->setPositionX(
+    m_developerBtn->setPositionX(
         m_height / 2 + logoSize / 2 + 13.f 
          + creatorLabel->getScaledContentSize().width / 2 
          - m_menu->getPositionX()
     );
     if (hasDesc && spaceForTags) {
-        creatorBtn->setPositionY(+7.5f);
+        m_developerBtn->setPositionY(+7.5f);
     }
     else if (hasDesc || spaceForTags) {
-        creatorBtn->setPositionY(0.f);
+        m_developerBtn->setPositionY(0.f);
     }
     else {
-        creatorBtn->setPositionY(-7.f);
+        m_developerBtn->setPositionY(-7.f);
     }
-    m_menu->addChild(creatorBtn);
+    m_menu->addChild(m_developerBtn);
 
     if (hasDesc) {
         auto descBG = CCScale9Sprite::create("square02b_001.png", {0.0f, 0.0f, 80.0f, 80.0f});
@@ -148,6 +148,10 @@ bool ModListCell::init(ModListLayer* list, CCSize const& size) {
     this->setContentSize(size);
     this->setID("mod-list-cell");
     return true;
+}
+
+void ModListCell::disableDeveloperButton() {
+    m_developerBtn->setEnabled(false);
 }
 
 // ModCell
