@@ -1,5 +1,18 @@
 # Geode Changelog
 
+## v1.0.0-beta.13
+ * Add `SpacerNode` for layouts
+ * Add the `Dispatch` system for using events without linking to optional dependencies
+ * Add `EventFilter::getCallback` and make `EventListener::getFilter` return a reference
+ * Add `CCNode::getEventListenerCount`
+ * Add IDs to `CustomSongWidget`
+ * Rework event listeners to have them not all be placed in the same queue aswell as fixing issues with dangling pointers
+ * Make `SentAsyncWebRequest` dllexported, allowing mods to use async web requests
+ * Fix issues with `WeakRef`
+ * Fix being able to recursively click on developer names to open the list of their created mods
+
+Thank you to [Fleeym](https://github.com/Fleeym/Fleeym) for contributing to this release!
+
 ## v1.0.0-beta.12
  * Fix crash when installing mods 
  * FMOD is now linked on MacOS 
