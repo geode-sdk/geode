@@ -16,7 +16,7 @@ namespace geode {
         std::tuple<Args...> m_args;
     
     public:
-        DispatchEvent(std::string const& id, Args&&... args)
+        DispatchEvent(std::string const& id, Args... args)
           : m_id(id), m_args(std::make_tuple(args...)) {}
         
         std::tuple<Args...> getArgs() const {
