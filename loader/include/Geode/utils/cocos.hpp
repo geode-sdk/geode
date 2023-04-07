@@ -356,15 +356,36 @@ namespace geode {
         }
     };
 
-    class GEODE_DLL WeakRefPool {
-        std::unordered_set<cocos2d::CCObject*> m_pool;
+    class WeakRefPool;
+
+    class GEODE_DLL WeakRefController final {
+    private:
+        cocos2d::CCObject* m_obj;
+
+        WeakRefController(WeakRefController const&) = delete;
+        WeakRefController(WeakRefController&&) = delete;
+
+        friend class WeakRefPool;
     
     public:
-        static WeakRefPool* get();
+        WeakRefController() = default;
+        
+        bool isManaged();
+        void swap(cocos2d::CCObject* other);
+        cocos2d::CCObject* get() const;
+    };
 
-        bool isManaged(cocos2d::CCObject* obj);
-        void manage(cocos2d::CCObject* obj);
+    class GEODE_DLL WeakRefPool final {
+        std::unordered_map<cocos2d::CCObject*, std::shared_ptr<WeakRefController>> m_pool;
+    
         void check(cocos2d::CCObject* obj);
+
+        friend class WeakRefController;
+
+    public:
+        static WeakRefPool* get();
+        
+        std::shared_ptr<WeakRefController> manage(cocos2d::CCObject* obj);
     };
 
     /**
@@ -392,7 +413,9 @@ namespace geode {
             "WeakRef can only be used with a CCObject-inheriting class!"
         );
 
-        T* m_obj = nullptr;
+        std::shared_ptr<WeakRefController> m_controller;
+
+        WeakRef(std::shared_ptr<WeakRefController> obj) : m_controller(obj) {}
 
     public:
         /**
@@ -404,14 +427,12 @@ namespace geode {
          * to it is freed or locked
          * @param obj Object to construct the WeakRef from
          */
-        WeakRef(T* obj) : m_obj(obj) {
-            WeakRefPool::get()->manage(obj);
-        }
+        WeakRef(T* obj) : m_controller(WeakRefPool::get()->manage(obj)) {}
 
-        WeakRef(WeakRef<T> const& other) : WeakRef(other.m_obj) {}
+        WeakRef(WeakRef<T> const& other) : WeakRef(other.m_controller) {}
 
-        WeakRef(WeakRef<T>&& other) : m_obj(other.m_obj) {
-            other.m_obj = nullptr;
+        WeakRef(WeakRef<T>&& other) : m_controller(std::move(other.m_controller)) {
+            other.m_controller = nullptr;
         }
 
         /**
@@ -419,7 +440,10 @@ namespace geode {
          */
         WeakRef() = default;
         ~WeakRef() {
-            WeakRefPool::get()->check(m_obj);
+            // If the WeakRef is moved, m_controller is null
+            if (m_controller) {
+                m_controller->isManaged();
+            }
         }
 
         /**
@@ -427,8 +451,8 @@ namespace geode {
          * a null Ref if the object has been freed
          */
         Ref<T> lock() const {
-            if (WeakRefPool::get()->isManaged(m_obj)) {
-                return Ref(m_obj);
+            if (m_controller->isManaged()) {
+                return Ref(static_cast<T*>(m_controller->get()));
             }
             return Ref<T>(nullptr);
         }
@@ -437,7 +461,7 @@ namespace geode {
          * Check if the WeakRef points to a valid object
          */
         bool valid() const {
-            return WeakRefPool::get()->isManaged(m_obj);
+            return m_controller->isManaged();
         }
 
         /**
@@ -446,9 +470,7 @@ namespace geode {
          * @param other The new object to swap to
          */
         void swap(T* other) {
-            WeakRefPool::get()->check(m_obj);
-            m_obj = other;
-            WeakRefPool::get()->manage(other);
+            m_controller->swap(other);
         }
 
         Ref<T> operator=(T* obj) {
@@ -457,12 +479,12 @@ namespace geode {
         }
 
         WeakRef<T>& operator=(WeakRef<T> const& other) {
-            this->swap(other.m_obj);
+            this->swap(static_cast<T*>(other.m_controller->get()));
             return *this;
         }
 
         WeakRef<T>& operator=(WeakRef<T>&& other) {
-            this->swap(other.m_obj);
+            this->swap(static_cast<T*>(other.m_controller->get()));
             return *this;
         }
 
@@ -471,33 +493,33 @@ namespace geode {
         }
 
         bool operator==(T* other) const {
-            return m_obj == other;
+            return m_controller->get() == other;
         }
 
         bool operator==(WeakRef<T> const& other) const {
-            return m_obj == other.m_obj;
+            return m_controller->get() == other.m_controller->get();
         }
 
         bool operator!=(T* other) const {
-            return m_obj != other;
+            return m_controller->get() != other;
         }
 
         bool operator!=(WeakRef<T> const& other) const {
-            return m_obj != other.m_obj;
+            return m_controller->get() != other.m_controller->get();
         }
 
         // for containers
         bool operator<(WeakRef<T> const& other) const {
-            return m_obj < other.m_obj;
+            return m_controller->get() < other.m_controller->get();
         }
         bool operator<=(WeakRef<T> const& other) const {
-            return m_obj <= other.m_obj;
+            return m_controller->get() <= other.m_controller->get();
         }
         bool operator>(WeakRef<T> const& other) const {
-            return m_obj > other.m_obj;
+            return m_controller->get() > other.m_controller->get();
         }
         bool operator>=(WeakRef<T> const& other) const {
-            return m_obj >= other.m_obj;
+            return m_controller->get() >= other.m_controller->get();
         }
     };
 
