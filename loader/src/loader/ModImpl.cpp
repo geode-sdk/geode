@@ -364,6 +364,10 @@ Result<> Mod::Impl::enable() {
     }
 
     for (auto const& hook : m_hooks) {
+        if (!hook) {
+            log::warn("Hook is null in mod \"{}\"", m_info.name());
+            continue;
+        }
         if (hook->getAutoEnable()) {
             GEODE_UNWRAP(this->enableHook(hook));
         }
