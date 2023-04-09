@@ -17,6 +17,9 @@ namespace geode {
         DataSaved,
     };
 
+    /**
+     * Event that is fired when a mod is loaded / unloaded / enabled / disabled
+     */
     class GEODE_DLL ModStateEvent : public Event {
     protected:
         ModEventType m_type;
@@ -28,6 +31,9 @@ namespace geode {
         Mod* getMod() const;
     };
 
+    /**
+     * Listener for mod load/enable/disable/unload/data save events
+     */
     class GEODE_DLL ModStateFilter : public EventFilter<ModStateEvent> {
     public:
         using Callback = void(ModStateEvent*);
@@ -38,6 +44,13 @@ namespace geode {
 
     public:
         ListenerResult handle(utils::MiniFunction<Callback> fn, ModStateEvent* event);
+
+        /**
+         * Create a mod state listener
+         * @param mod The mod whose events to listen to, or nullptr to listen to 
+         * all mods' all state events
+         * @param type Type of event to listen to. Ignored if mod is nullptr
+         */
         ModStateFilter(Mod* mod, ModEventType type);
     };
 }
