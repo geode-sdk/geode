@@ -1234,6 +1234,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     virtual void ccTouchMoved(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x2f3d0, win 0x90cd0;
     virtual void ccTouchEnded(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x2fb00, win 0x911a0;
     virtual void keyDown(cocos2d::enumKeyCodes) = mac 0x30790, win 0x91a30;
+    virtual void keyUp(cocos2d::enumKeyCodes) = mac 0x312b0, win 0x92180;
     CreateMenuItem* menuItemFromObjectString(gd::string, int) = mac 0x1e130, win 0x84d00;
     void moveObject(GameObject*, cocos2d::CCPoint) = mac 0x24b10, win 0x8ddb0;
     void onDuplicate(cocos2d::CCObject*) = mac 0x18ba0, win 0x87d20;

@@ -23,12 +23,14 @@ void DefaultEventListenerPool::remove(EventListenerProtocol* listener) {
     }
 }
 
-void DefaultEventListenerPool::handle(Event* event) {
+ListenerResult DefaultEventListenerPool::handle(Event* event) {
+    auto res = ListenerResult::Propagate;
     m_locked += 1;
     for (auto h : m_listeners) {
         // if an event listener gets destroyed in the middle of this loop, it 
         // gets set to null
         if (h && h->handle(event) == ListenerResult::Stop) {
+            res = ListenerResult::Stop;
             break;
         }
     }
@@ -42,6 +44,7 @@ void DefaultEventListenerPool::handle(Event* event) {
         }
         m_toAdd.clear();
     }
+    return res;
 }
 
 DefaultEventListenerPool* DefaultEventListenerPool::get() {
@@ -82,7 +85,7 @@ EventListenerPool* Event::getPool() const {
     return DefaultEventListenerPool::get();
 }
 
-void Event::postFrom(Mod* m) {
+ListenerResult Event::postFromMod(Mod* m) {
     if (m) this->sender = m;
-    this->getPool()->handle(this);
+    return this->getPool()->handle(this);
 }

@@ -320,18 +320,20 @@ void Index::downloadSource(IndexSourceImpl* src) {
                 }
             }
             catch(...) {
-                return SourceUpdateEvent(
+                SourceUpdateEvent(
                     src, UpdateFailed("Unable to clear cached index")
                 ).post();
+                return;
             }
 
             // unzip new index
             auto unzip = file::Unzip::intoDir(targetFile, targetDir, true)
                 .expect("Unable to unzip new index");
             if (!unzip) {
-                return SourceUpdateEvent(
+                SourceUpdateEvent(
                     src, UpdateFailed(unzip.unwrapErr())
                 ).post();
+                return;
             }
 
             // remove the directory github adds to the root of the zip

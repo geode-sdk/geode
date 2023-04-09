@@ -521,9 +521,10 @@ void Loader::Impl::tryDownloadLoaderResources(
             // unzip resources zip
             auto unzip = file::Unzip::intoDir(tempResourcesZip, resourcesDir, true);
             if (!unzip) {
-                return ResourceDownloadEvent(
+                ResourceDownloadEvent(
                     UpdateFailed("Unable to unzip new resources: " + unzip.unwrapErr())
                 ).post();
+                return;
             }
             ResourceDownloadEvent(UpdateFinished()).post();
         })
@@ -649,9 +650,10 @@ void Loader::Impl::downloadLoaderUpdate(std::string const& url) {
             // unzip resources zip
             auto unzip = file::Unzip::intoDir(updateZip, targetDir, true);
             if (!unzip) {
-                return LoaderUpdateEvent(
+                LoaderUpdateEvent(
                     UpdateFailed("Unable to unzip update: " + unzip.unwrapErr())
                 ).post();
+                return;
             }
             m_isNewUpdateDownloaded = true;
             LoaderUpdateEvent(UpdateFinished()).post();

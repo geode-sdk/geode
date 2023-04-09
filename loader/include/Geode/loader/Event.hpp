@@ -22,7 +22,7 @@ namespace geode {
     struct GEODE_DLL EventListenerPool {
         virtual bool add(EventListenerProtocol* listener) = 0;
         virtual void remove(EventListenerProtocol* listener) = 0;
-        virtual void handle(Event* event) = 0;
+        virtual ListenerResult handle(Event* event) = 0;
         virtual ~EventListenerPool() = default;
 
         EventListenerPool() = default;
@@ -39,7 +39,7 @@ namespace geode {
     public:
         bool add(EventListenerProtocol* listener) override;
         void remove(EventListenerProtocol* listener) override;
-        void handle(Event* event) override;
+        ListenerResult handle(Event* event) override;
 
         static DefaultEventListenerPool* get();
     };
@@ -205,10 +205,10 @@ namespace geode {
     public:
         Mod* sender;
 
-        void postFrom(Mod* sender);
+        ListenerResult postFromMod(Mod* sender);
         template<class = void>
-        void post() {
-            postFrom(getMod());
+        ListenerResult post() {
+            return postFromMod(getMod());
         }
         
         virtual ~Event();
