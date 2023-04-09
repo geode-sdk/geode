@@ -17,9 +17,11 @@ bool DevProfilePopup::setup(std::string const& developer) {
     // installed mods
     for (auto& mod : Loader::get()->getAllMods()) {
         if (mod->getDeveloper() == developer) {
-            items->addObject(ModCell::create(
+            auto cell = ModCell::create(
                 mod, nullptr, ModListDisplay::Concise, { 358.f, 40.f }
-            ));
+            );
+            cell->disableDeveloperButton();
+            items->addObject(cell);
         }
     }
 
@@ -28,9 +30,11 @@ bool DevProfilePopup::setup(std::string const& developer) {
         if (Loader::get()->isModInstalled(item->info.id())) {
             continue;
         }
-        items->addObject(IndexItemCell::create(
+        auto cell = IndexItemCell::create(
             item, nullptr, ModListDisplay::Concise, { 358.f, 40.f }
-        ));
+        );
+        cell->disableDeveloperButton();
+        items->addObject(cell);
     }
 
     // mods list

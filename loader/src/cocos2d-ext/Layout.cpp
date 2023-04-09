@@ -795,7 +795,12 @@ CCSize AxisLayout::getSizeHint(CCNode* on) const {
     for (auto& node : CCArrayExt<CCNode*>(nodes)) {
         auto axis = nodeAxis(node, m_axis, 1.f);
         length += axis.axisLength;
-        cross += axis.crossLength;
+        if (axis.crossLength > cross) {
+            axis.crossLength = cross;
+        }
+    }
+    if (!m_allowCrossAxisOverflow) {
+        cross = nodeAxis(on, m_axis, 1.f).crossLength;
     }
     if (m_axis == Axis::Row) {
         return { length, cross };

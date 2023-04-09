@@ -67,9 +67,12 @@ namespace geode {
 
     template <typename T>
     concept is_event = std::is_base_of_v<Event, T>;
-
+    
     template <is_event T>
     class EventFilter {
+    protected:
+        EventListenerProtocol* m_listener = nullptr;
+
     public:
         using Callback = ListenerResult(T*);
         using Event = T;
@@ -80,6 +83,14 @@ namespace geode {
 
         EventListenerPool* getPool() const {
             return DefaultEventListenerPool::get();
+        }
+
+        void setListener(EventListenerProtocol* listener) {
+            m_listener = listener;
+        }
+
+        EventListenerProtocol* getListener() const {
+            return m_listener;
         }
     };
 
@@ -110,23 +121,28 @@ namespace geode {
             return m_filter.getPool();
         }
 
-        EventListener(T filter = T()) {
+        EventListener(T filter = T()) : m_filter(filter) {
+            m_filter.setListener(this);
             this->enable();
         }
 
         EventListener(utils::MiniFunction<Callback> fn, T filter = T())
           : m_callback(fn), m_filter(filter)
         {
+            m_filter.setListener(this);
             this->enable();
         }
 
         EventListener(Callback* fnptr, T filter = T()) : m_callback(fnptr), m_filter(filter) {
+            m_filter.setListener(this);
             this->enable();
         }
 
         template <class C>
         EventListener(C* cls, MemberFn<C> fn, T filter = T()) :
-            EventListener(std::bind(fn, cls, std::placeholders::_1), filter) {
+            EventListener(std::bind(fn, cls, std::placeholders::_1), filter)
+        {
+            m_filter.setListener(this);
             this->enable();
         }
 
@@ -134,6 +150,7 @@ namespace geode {
           : m_callback(std::move(other.m_callback)),
             m_filter(std::move(other.m_filter))
         {
+            m_filter.setListener(this);
             other.disable();
             this->enable();
         }
@@ -142,6 +159,7 @@ namespace geode {
           : m_callback(other.m_callback),
             m_filter(other.m_filter)
         {
+            m_filter.setListener(this);
             other.disable();
             this->enable();
         }
@@ -157,9 +175,14 @@ namespace geode {
 
         void setFilter(T filter) {
             m_filter = filter;
+            m_filter.setListener(this);
         }
 
-        T getFilter() const {
+        T& getFilter() {
+            return m_filter;
+        }
+
+        T const& getFilter() const {
             return m_filter;
         }
 
