@@ -160,7 +160,6 @@ namespace geode {
             m_filter(other.m_filter)
         {
             m_filter.setListener(this);
-            other.disable();
             this->enable();
         }
 
