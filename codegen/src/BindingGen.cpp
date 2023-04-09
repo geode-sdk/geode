@@ -47,12 +47,9 @@ public:
 )GEN";
 
     char const* error_definition = R"GEN(    
-    #ifdef GEODE_WARN_INCORRECT_MEMBERS
-    [[deprecated("Function is not implemented - will throw at runtime!!!")]]
-    #endif
-    /**
-{docs}{docs_addresses}     */
+    template <bool Value = false>
     {static}{return_type} {function_name}({parameters}){const}{{
+        static_assert(Value, "{class_name}::{function_name} not implemented");
         throw std::runtime_error("Use of undefined function " + GEODE_PRETTY_FUNCTION);
     }}
 )GEN";

@@ -943,7 +943,7 @@ class CustomSongWidget : cocos2d::CCNode, MusicDownloadDelegate, FLAlertLayerPro
     void FLAlert_Clicked(FLAlertLayer*, bool) {}
     void loadSongInfoFinished(SongInfoObject*) {}
 
-    void updateSongObject(SongInfoObject* song) = win 0x69280;
+    void updateSongObject(SongInfoObject* song) = win 0x69280, mac 0x37d690;
 
     SongInfoObject* m_songInfo;
     PAD = win 0x1C;
@@ -1293,7 +1293,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     void editObject2(cocos2d::CCObject* sender) = win 0x8d1b0;
     void editGroup(cocos2d::CCObject* sender) = win 0x8d720;
     void moveObjectCall(cocos2d::CCObject* sender) = mac 0x29830, win 0x8db30;
-    void moveObjectCall(EditCommand command) = win 0x8db50;
+    void moveObjectCall(EditCommand command) = mac 0x29b80, win 0x8db50;
     void transformObjectCall(cocos2d::CCObject* sender) = mac 0x29860, win 0x8def0;
     void transformObjectCall(EditCommand command) = mac 0x29d90, win 0x8df10;
     void transformObject(GameObject* obj, EditCommand command, bool snap) = win 0x8e250;
@@ -3072,7 +3072,6 @@ class GameObject : CCSpritePlus {
     virtual void resetObject() = mac 0x2fa620, win 0xd1470, ios 0xd1470;
     virtual void triggerObject(GJBaseGameLayer*) = mac 0x2fa8f0, win 0xd1790;
     virtual void activateObject() = mac 0x2faf60, win 0xd1870;
-    void activateObject(PlayerObject*) = win 0xef0e0;
     virtual void deactivateObject(bool) = mac 0x2fb8f0, win 0xd19b0;
     virtual cocos2d::CCRect const& getObjectRect() = mac 0x3352b0, win 0xe4a40;
     virtual cocos2d::CCRect getObjectRect(float, float) = mac 0x3352d0, win 0xe4a70;
@@ -3107,7 +3106,7 @@ class GameObject : CCSpritePlus {
     virtual GameObjectType getType() const = mac 0xdc210, win 0x989e0;
     virtual void setType(GameObjectType) = mac 0xdc220, win 0x989f0;
     virtual cocos2d::CCPoint getStartPos() const = mac 0xdc230, win 0x98a00;
-    void activatedByPlayer(GameObject*) = mac 0x342a20;
+    void activatedByPlayer(GameObject*) = mac 0x342a20, win 0xef0e0;
     void addColorSprite() = mac 0x2f7fe0, win 0xd0670;
     void addColorSpriteToParent(bool) = mac 0x2fb470, win 0xeb3f0;
     void addGlow() = mac 0x2f5c10;
@@ -4096,10 +4095,6 @@ class MenuLayer : cocos2d::CCLayer, FLAlertLayerProtocol, GooglePlayDelegate {
     void onTwitter(cocos2d::CCObject*) = win 0x191980;
     void onYouTube(cocos2d::CCObject*) = win 0x1919A0;
     static cocos2d::CCScene* scene(bool) = mac 0x1d12d0, win 0x190720, ios 0x19e57c;
-    static MenuLayer* node() = win 0x190550;
-    inline static MenuLayer* create() {
-        return MenuLayer::node();
-    }
 
     cocos2d::CCSprite* m_googlePlaySprite;
     cocos2d::CCSprite* m_viewProfileInfoText;
