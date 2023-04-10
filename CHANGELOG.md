@@ -1,5 +1,13 @@
 # Geode Changelog
 
+## v1.0.0-beta.14
+ * Error on trying to use missing bindings at compile time
+ * Fix every resources getting reloaded every time a mod is loaded
+ * Fix every listener getting called on every event post
+ * Fix `CCTextInputNode` content size to be off
+ * Return `ListenerResult` from events
+ * Log severity with colors on MacOS
+
 ## v1.0.0-beta.13
  * Add `SpacerNode` for layouts
  * Add the `Dispatch` system for using events without linking to optional dependencies
