@@ -137,6 +137,7 @@ class cocos2d::CCDirector {
 	auto calculateDeltaTime() = mac 0x2497a0;
 	auto calculateMPF() = mac 0x19eac0;
 	auto convertToGL(cocos2d::CCPoint const&) = mac 0x24a210;
+	auto convertToUI(cocos2d::CCPoint const&) = mac 0x24a340;
 	auto drawScene() = mac 0x249690;
 	auto willSwitchToScene(cocos2d::CCScene* scene);
 
@@ -188,6 +189,10 @@ class cocos2d::CCActionInterval {
 
 class cocos2d::CCEaseBackIn {
 	static cocos2d::CCEaseBackIn* create(cocos2d::CCActionInterval*) = mac 0x2a41b0;
+}
+
+class cocos2d::CCEaseElasticIn {
+	static cocos2d::CCEaseElasticIn* create(cocos2d::CCActionInterval*, float) = mac 0x2a2e00;
 }
 
 class cocos2d::CCEaseElasticOut {
@@ -724,6 +729,11 @@ class cocos2d::CCScaleTo {
 	static cocos2d::CCScaleTo* create(float, float, float) = mac 0x1f70f0;
 }
 
+class cocos2d::CCScaleBy {
+	static cocos2d::CCScaleTo* create(float, float) = mac 0x1f73c0;
+	static cocos2d::CCScaleTo* create(float, float, float) = mac 0x1f7480;
+}
+
 class cocos2d::CCScene {
 	static cocos2d::CCScene* create() = mac 0x13c140, ios 0x163070;
 	auto getHighestChildZ() = mac 0x13c200, ios 0x1630e4;
@@ -745,6 +755,8 @@ class cocos2d::CCSequence {
 
 class cocos2d::CCSet {
 	CCSet() = mac 0x45ad80, ios 0x10e870;
+	static auto create() = mac 0x45b0b0;
+	auto addObject(cocos2d::CCObject*) = mac 0x45b1f0;
 	virtual ~CCSet() = mac 0x45b050, ios 0x10ebcc;
 	virtual auto acceptVisitor(cocos2d::CCDataVisitor&) = mac 0x45b090, ios 0x10ec04;
 	auto anyObject() = mac 0x45b410;
