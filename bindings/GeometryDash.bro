@@ -4789,8 +4789,6 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     void usingWallLimitedMode() = mac 0x22df00;
     void yStartDown() = mac 0x22e9b0;
     void yStartUp() = mac 0x22e990;
-    void runRotateAction() = win 0x1e9bf0;
-    void runBallRotation() = win 0x1e9d10;
 
     PAD = mac 0x14, win 0x14;
     bool m_unk480;

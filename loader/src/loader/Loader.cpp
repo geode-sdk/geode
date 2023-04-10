@@ -99,6 +99,10 @@ void Loader::updateResources() {
     return m_impl->updateResources();
 }
 
+void Loader::updateResources(bool forceReload) {
+    return m_impl->updateResources(forceReload);
+}
+
 void Loader::queueInGDThread(ScheduledFunction func) {
     return m_impl->queueInGDThread(func);
 }

@@ -108,14 +108,18 @@ void Loader::Impl::addSearchPaths() {
 }
 
 void Loader::Impl::updateResources() {
-    log::debug("Adding resources");
+    this->updateResources(true);
+}
 
-    // add own spritesheets
-    this->updateModResources(Mod::get());
+void Loader::Impl::updateResources(bool forceReload) {
+    log::debug("Adding resources");
 
     // add mods' spritesheets
     for (auto const& [_, mod] : m_mods) {
-        this->updateModResources(mod);
+        if (forceReload || !ModImpl::getImpl(mod)->m_resourcesLoaded) {
+            this->updateModResources(mod);
+            ModImpl::getImpl(mod)->m_resourcesLoaded = true;
+        }
     }
 }
 

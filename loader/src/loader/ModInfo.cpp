@@ -87,6 +87,9 @@ Result<ModInfo> ModInfo::Impl::createFromSchemaV010(ModJson const& rawJson) {
 
     root.addKnownKey("geode");
 
+    // don't think its used locally yet
+    root.addKnownKey("tags"); 
+
     root.needs("id").validate(MiniFunction<bool(std::string const&)>(&ModInfo::validateID)).into(impl->m_id);
     root.needs("version").into(impl->m_version);
     root.needs("name").into(impl->m_name);

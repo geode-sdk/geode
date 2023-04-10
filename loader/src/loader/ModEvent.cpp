@@ -13,10 +13,13 @@ Mod* ModStateEvent::getMod() const {
 }
 
 ListenerResult ModStateFilter::handle(utils::MiniFunction<Callback> fn, ModStateEvent* event) {
-    if (!m_mod || (event->getMod() == m_mod && event->getType() == m_type)) {
+    // log::debug("Event mod filter: {}, {}, {}, {}", m_mod, static_cast<int>(m_type), event->getMod(), static_cast<int>(event->getType()));
+    if ((!m_mod || event->getMod() == m_mod) && event->getType() == m_type) {
         fn(event);
     }
     return ListenerResult::Propagate;
 }
 
 ModStateFilter::ModStateFilter(Mod* mod, ModEventType type) : m_mod(mod), m_type(type) {}
+
+ModStateFilter::ModStateFilter(ModStateFilter const& other) : m_mod(other.m_mod), m_type(other.m_type) {}

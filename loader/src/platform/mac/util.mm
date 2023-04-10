@@ -108,7 +108,7 @@ void utils::web::openLinkInBrowser(std::string const& url) {
 
     int result = [panel runModal];
 
-    if (result == NSFileHandlingPanelOKButton) {
+    if (result == NSModalResponseOK) {
         std::vector<ghc::filesystem::path> fileURLs;
 
         for (NSURL* i in panel.URLs) {

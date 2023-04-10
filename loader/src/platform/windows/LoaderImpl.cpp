@@ -17,6 +17,12 @@ void Loader::Impl::platformMessageBox(char const* title, std::string const& info
     MessageBoxA(nullptr, info.c_str(), title, MB_ICONERROR);
 }
 
+void Loader::Impl::logConsoleMessageWithSeverity(std::string const& msg, Severity severity) {
+    if (m_platformConsoleOpen) {
+        std::cout << msg << "\n" << std::flush;
+    }
+}
+
 void Loader::Impl::openPlatformConsole() {
     if (m_platformConsoleOpen) return;
     if (AllocConsole() == 0) return;

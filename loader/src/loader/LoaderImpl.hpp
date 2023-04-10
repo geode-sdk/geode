@@ -138,6 +138,7 @@ namespace geode {
         std::vector<InvalidGeodeFile> getFailedMods() const;
 
         void updateResources();
+        void updateResources(bool forceReload);
 
         void waitForModsToBeLoaded();
 
@@ -149,6 +150,8 @@ namespace geode {
         void executeGDThreadQueue();
 
         void logConsoleMessage(std::string const& msg);
+        void logConsoleMessageWithSeverity(std::string const& msg, Severity severity);
+
         bool platformConsoleOpen() const;
         void openPlatformConsole();
         void closePlatformConsole();

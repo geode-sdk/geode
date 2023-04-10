@@ -209,7 +209,7 @@ void Logger::setup() {
 void Logger::push(Log&& log) {
     std::string logStr = log.toString(true);
 
-    LoaderImpl::get()->logConsoleMessage(logStr);
+    LoaderImpl::get()->logConsoleMessageWithSeverity(logStr, log.getSeverity());
     logStream() << logStr << std::endl;
 
     logs().emplace_back(std::forward<Log>(log));

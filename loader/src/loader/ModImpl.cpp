@@ -289,6 +289,7 @@ bool Mod::Impl::hasSetting(std::string const& key) const {
 // Loading, Toggling, Installing
 
 Result<> Mod::Impl::loadBinary() {
+    log::debug("Loading binary for mod {}", m_info.id());
     if (m_binaryLoaded) {
         return Ok();
     }
@@ -305,6 +306,7 @@ Result<> Mod::Impl::loadBinary() {
     if (!res) {
         // make sure to free up the next mod mutex
         LoaderImpl::get()->releaseNextMod();
+        log::warn("Failed to load binary for mod {}: {}", m_info.id(), res.unwrapErr());
         return res;
     }
     m_binaryLoaded = true;
@@ -316,8 +318,11 @@ Result<> Mod::Impl::loadBinary() {
     });
 
     Loader::get()->updateAllDependencies();
-    Loader::get()->updateResources();
-
+    if (LoaderImpl::get()->m_isSetup) {
+        Loader::get()->updateResources(false);
+    }
+    
+    log::debug("Enabling mod {}", m_info.id());
     GEODE_UNWRAP(this->enable());
 
     return Ok();
@@ -375,7 +380,8 @@ Result<> Mod::Impl::enable() {
 
     for (auto const& patch : m_patches) {
         if (!patch->apply()) {
-            return Err("Unable to apply patch at " + std::to_string(patch->getAddress()));
+            log::warn("Unable to apply patch at {}", patch->getAddress());
+            continue;
         }
     }
 

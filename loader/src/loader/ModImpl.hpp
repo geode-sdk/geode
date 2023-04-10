@@ -58,6 +58,11 @@ namespace geode {
          */
         json::Value m_savedSettingsData = json::Object();
 
+        /**
+         * Whether the mod resources are loaded or not
+         */
+        bool m_resourcesLoaded = false;
+
         Impl(Mod* self, ModInfo const& info);
         ~Impl();
 

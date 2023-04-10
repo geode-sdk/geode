@@ -65,6 +65,7 @@ namespace geode {
         std::vector<InvalidGeodeFile> getFailedMods() const;
 
         void updateResources();
+        void updateResources(bool forceReload);
 
         void queueInGDThread(ScheduledFunction func);
         void waitForModsToBeLoaded();

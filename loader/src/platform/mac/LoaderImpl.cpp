@@ -19,11 +19,27 @@ void Loader::Impl::platformMessageBox(char const* title, std::string const& info
     );
 }
 
+void Loader::Impl::logConsoleMessageWithSeverity(std::string const& msg, Severity severity) {
+    if (m_platformConsoleOpen) {
+        int colorcode = 0;
+        switch (severity) {
+            case Severity::Debug: colorcode = 36; break;
+            case Severity::Info: colorcode = 34; break;
+            case Severity::Warning: colorcode = 33; break;
+            case Severity::Error: colorcode = 31; break;
+            default: colorcode = 35; break;
+        }
+        auto newMsg = "\033[1;" + std::to_string(colorcode) + "m" + msg.substr(0, 8) + "\033[0m" + msg.substr(8);
+
+        std::cout << newMsg << "\n" << std::flush;
+    }
+}
+
 void Loader::Impl::openPlatformConsole() {
     m_platformConsoleOpen = true;
 
     for (auto const& log : log::Logger::list()) {
-        std::cout << log->toString(true) << "\n";
+        this->logConsoleMessageWithSeverity(log->toString(true), log->getSeverity());
     }
 }
 
