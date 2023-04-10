@@ -29,4 +29,5 @@ public:
 
     ListenerResult handle(utils::MiniFunction<Callback> fn, TestEvent* event);
     TestEventFilter();
+    TestEventFilter(TestEventFilter const&) = default;
 };

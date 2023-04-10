@@ -28,6 +28,7 @@ namespace geode {
 	
         ListenerResult handle(utils::MiniFunction<Callback> fn, ModInstallEvent* event);
 		ModInstallFilter(std::string const& id);
+        ModInstallFilter(ModInstallFilter const&) = default;
 	};
 
     struct GEODE_DLL IndexUpdateEvent : public Event {
@@ -41,6 +42,7 @@ namespace geode {
     
         ListenerResult handle(utils::MiniFunction<Callback> fn, IndexUpdateEvent* event);
         IndexUpdateFilter();
+        IndexUpdateFilter(IndexUpdateFilter const&) = default;
     };
 
     struct IndexSourceImpl;

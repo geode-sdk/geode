@@ -45,5 +45,6 @@ namespace geode {
         }
 
         DispatchFilter(std::string const& id) : m_id(id) {}
+        DispatchFilter(DispatchFilter const&) = default;
     };
 }

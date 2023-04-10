@@ -61,6 +61,7 @@ namespace geode {
             std::string const& modID,
             std::string const& messageID
         );
+        IPCFilter(IPCFilter const&) = default;
     };
 
     std::monostate listenForIPC(std::string const& messageID, json::Value(*callback)(IPCEvent*));

@@ -34,6 +34,7 @@ namespace geode {
 		AEnterLayerFilter(
 			std::optional<std::string> const& id
 		);
+        AEnterLayerFilter(AEnterLayerFilter const&) = default;
     };
 
     template<InheritsCCNode T>
@@ -71,5 +72,6 @@ namespace geode {
 		EnterLayerFilter(
 			std::optional<std::string> const& id
 		) : m_targetID(id) {}
+        EnterLayerFilter(EnterLayerFilter const&) = default;
 	};
 }

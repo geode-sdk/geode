@@ -32,6 +32,7 @@ namespace geode {
             std::string const& modID,
             std::optional<std::string> const& settingKey
         );
+        SettingChangedFilter(SettingChangedFilter const&) = default;
     };
 
     /**
@@ -56,6 +57,7 @@ namespace geode {
             std::string const& modID,
             std::string const& settingID
         ) : SettingChangedFilter(modID, settingID) {}
+        GeodeSettingChangedFilter(GeodeSettingChangedFilter const&) = default;
     };
 
     template <class T>
