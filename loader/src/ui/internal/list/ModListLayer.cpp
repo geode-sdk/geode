@@ -60,7 +60,8 @@ static std::optional<int> queryMatchKeywords(
         if (!someMatched) {
             return std::nullopt;
         }
-    } else {
+    }
+    else {
         // this is like the dumbest way you could possibly sort alphabetically 
         // but it does enough to make the mods list somewhat alphabetically 
         // sorted, at least enough so that if you're scrolling it based on 
@@ -120,10 +121,7 @@ static std::optional<int> queryMatch(ModListQuery const& query, IndexItemHandle 
 
 static std::optional<int> queryMatch(ModListQuery const& query, InvalidGeodeFile const& info) {
     // if any explicit filters were provided, no match
-    if (
-        query.tags.size() ||
-        query.keywords.has_value()
-    ) {
+    if (query.tags.size() || query.keywords.has_value()) {
         return std::nullopt;
     }
     return 0;
