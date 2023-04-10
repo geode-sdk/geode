@@ -21,5 +21,3 @@ ListenerResult ModStateFilter::handle(utils::MiniFunction<Callback> fn, ModState
 }
 
 ModStateFilter::ModStateFilter(Mod* mod, ModEventType type) : m_mod(mod), m_type(type) {}
-
-ModStateFilter::ModStateFilter(ModStateFilter const& other) : m_mod(other.m_mod), m_type(other.m_type) {}
