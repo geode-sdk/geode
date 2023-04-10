@@ -795,6 +795,7 @@ void Loader::Impl::provideNextMod(Mod* mod) {
 Mod* Loader::Impl::takeNextMod() {
     if (!m_nextMod) {
         m_nextMod = this->createInternalMod();
+        log::debug("Created internal mod {}", m_nextMod->getName());
     }
     auto ret = m_nextMod;
     return ret;

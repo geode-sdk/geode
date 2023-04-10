@@ -520,8 +520,7 @@ bool Mod::Impl::depends(std::string const& id) const {
 
 Result<> Mod::Impl::enableHook(Hook* hook) {
     auto res = hook->enable();
-    if (res) m_hooks.push_back(hook);
-    else {
+    if (!res) {
         log::error("Can't enable hook {} for mod {}: {}", hook->getDisplayName(), m_info.id(), res.unwrapErr());
     }
 
@@ -533,6 +532,7 @@ Result<> Mod::Impl::disableHook(Hook* hook) {
 }
 
 Result<Hook*> Mod::Impl::addHook(Hook* hook) {
+    m_hooks.push_back(hook);
     if (LoaderImpl::get()->isReadyToHook()) {
         if (hook->getAutoEnable()) {
             auto res = this->enableHook(hook);

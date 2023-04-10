@@ -152,7 +152,6 @@ $execute {
 }
 
 int geodeEntry(void* platformData) {
-
     // set up internal mod, settings and data
     auto internalSetupRes = LoaderImpl::get()->setupInternalMod();
     if (!internalSetupRes) {
@@ -178,7 +177,7 @@ int geodeEntry(void* platformData) {
         return 1;
     }
 
-    log::debug("Set up loader");
+    log::info("Set up loader");
 
     // open console
     if (Mod::get()->getSettingValue<bool>("show-platform-console")) {
