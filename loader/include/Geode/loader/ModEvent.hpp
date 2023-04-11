@@ -52,7 +52,7 @@ namespace geode {
          * @param type Type of event to listen to. Ignored if mod is nullptr
          */
         ModStateFilter(Mod* mod, ModEventType type);
-        ModStateFilter(ModStateFilter const&);
+        ModStateFilter(ModStateFilter const&) = default;
     };
 }
 

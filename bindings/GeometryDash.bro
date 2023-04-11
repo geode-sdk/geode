@@ -4676,7 +4676,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     void flipGravity(bool, bool) = mac 0x21c090, win 0x1f59d0;
     void flipMod() = mac 0x21a4c0;
     void getActiveMode() = mac 0x22b950, win 0x1f5df0;
-    void getModifiedSlopeYVel() = mac 0x21bff0, win 0x1ea870;
+    float getModifiedSlopeYVel() = mac 0x21bff0, win 0x1ea870;
     void getOldPosition(float) = mac 0x21a830;
     void getSecondColor() = mac 0x22cee0;
     void gravityDown() = mac 0x22e930;
