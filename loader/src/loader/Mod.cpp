@@ -191,3 +191,7 @@ char const* Mod::expandSpriteName(char const* name) {
 ModJson Mod::getRuntimeInfo() const {
     return m_impl->getRuntimeInfo();
 }
+
+bool Mod::hasSavedValue(std::string const& key) {
+    return this->getSaveContainer().contains(key);
+}
