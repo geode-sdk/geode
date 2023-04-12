@@ -1891,7 +1891,7 @@ class GJBaseGameLayer : cocos2d::CCLayer, TriggerEffectDelegate {
     cocos2d::CCDictionary* m_spawnedGroups;
     bool m_didUpdateNormalCapacity;
     bool m_isDualMode;
-    int m_unk2AC;
+    int m_activeEnterEffect;
     bool m_activeDualTouch;
     int m_attemptClickCount;
     int m_lastVisibleSection;
