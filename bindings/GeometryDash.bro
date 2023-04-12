@@ -3510,7 +3510,7 @@ class InfoAlertButton {
     bool init(gd::string const& title, gd::string const& text, float scale) = win 0x14ef50;
     void activate() = win 0x14f050;
     inline InfoAlertButton() {}
-    static InfoAlertButton* create(gd::string const& title, gd::string const& text, float scale) = win 0x14ed20;
+    static InfoAlertButton* create(gd::string const& title, gd::string const& text, float scale) = win 0x14ed20, mac 0x2ecad0;
 }
 
 class InfoLayer : FLAlertLayer, LevelCommentDelegate, CommentUploadDelegate, FLAlertLayerProtocol {
