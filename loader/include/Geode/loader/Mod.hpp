@@ -160,6 +160,8 @@ namespace geode {
             return T();
         }
 
+        bool hasSavedValue(std::string const& key);
+
         template <class T>
         T getSavedValue(std::string const& key) {
             auto& saved = this->getSaveContainer();

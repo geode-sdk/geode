@@ -15,10 +15,8 @@ RT_ADD(
     typedef enum
     {
         // this one might not actually exist in gd itself
-        HJ_ADD( 
-        	KEY_What = -0x01,
-        	KEY_None = 0x00,
-        )
+        KEY_Unknown = -0x01,
+        KEY_None = 0x00,
         KEY_Backspace = 0x08,
         KEY_Tab = 0x09,
         KEY_Clear = 0x0C,
