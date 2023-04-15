@@ -132,16 +132,22 @@ void Notification::setTime(float time) {
 
 void Notification::animateIn() {
     m_label->setOpacity(0);
-    m_icon->setOpacity(0);
+    if (m_icon) {
+        m_icon->setOpacity(0);
+    }
     m_bg->setOpacity(0);
     m_label->runAction(CCFadeTo::create(NOTIFICATION_FADEIN, 255));
-    m_icon->runAction(CCFadeTo::create(NOTIFICATION_FADEIN, 255));
+    if (m_icon) {
+        m_icon->runAction(CCFadeTo::create(NOTIFICATION_FADEIN, 255));
+    }
     m_bg->runAction(CCFadeTo::create(NOTIFICATION_FADEIN, 150));
 }
 
 void Notification::animateOut() {
     m_label->runAction(CCFadeTo::create(NOTIFICATION_FADEOUT, 0));
-    m_icon->runAction(CCFadeTo::create(NOTIFICATION_FADEOUT, 0));
+    if (m_icon) {
+        m_icon->runAction(CCFadeTo::create(NOTIFICATION_FADEOUT, 0));
+    }
     m_bg->runAction(CCFadeTo::create(NOTIFICATION_FADEOUT, 0));
 }
 

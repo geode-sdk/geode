@@ -67,11 +67,11 @@ public:
         return m_startupScriptFilename;
     }
 
-protected:
+public:
     HINSTANCE           m_hInstance;
     HACCEL              m_hAccelTable;
     LARGE_INTEGER       m_nAnimationInterval;
-    PAD(4);
+    PAD(8);
     std::string         m_resourceRootPath;
     std::string         m_startupScriptFilename;
     void* m_pUnknown;
