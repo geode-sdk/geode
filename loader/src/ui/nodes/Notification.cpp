@@ -166,7 +166,8 @@ void Notification::show() {
         if (!this->getParent()) {
             auto winSize = CCDirector::get()->getWinSize();
             this->setPosition(winSize.width / 2, winSize.height / 4);
-            CCDirector::get()->getRunningScene()->addChild(this);
+            this->setZOrder(CCScene::get()->getHighestChildZ() + 100);
+            CCScene::get()->addChild(this);
         }
         SceneManager::get()->keepAcrossScenes(this);
         m_showing = true;
