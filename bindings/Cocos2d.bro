@@ -745,7 +745,7 @@ class cocos2d::CCScheduler {
 	void scheduleSelector(cocos2d::SEL_SCHEDULE selector, cocos2d::CCObject* target, float interval, bool paused) {
 		this->scheduleSelector(selector, target, interval, kCCRepeatForever, 0, paused);
 	}
-    void unscheduleSelector(SEL_SCHEDULE pfnSelector, CCObject *pTarget) = mac 0x2425f0;
+    void unscheduleSelector(cocos2d::SEL_SCHEDULE pfnSelector, cocos2d::CCObject *pTarget) = mac 0x2425f0;
 	auto scheduleUpdateForTarget(cocos2d::CCObject*, int, bool) = mac 0x2438d0;
 	auto unscheduleAllForTarget(cocos2d::CCObject*) = mac 0x243e40;
 	auto unscheduleUpdateForTarget(cocos2d::CCObject const*) = mac 0x243c60;
