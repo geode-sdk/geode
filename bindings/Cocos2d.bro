@@ -22,6 +22,7 @@ class cocos2d::CCApplication {
 	virtual auto openURL(char const*) = mac 0x1a4550, ios 0x10e7a4;
 	virtual auto setAnimationInterval(double) = mac 0x1a3ee0, ios 0x10e494;
 	static auto sharedApplication() = mac 0x1a3f30;
+	bool getControllerConnected() const = mac 0x27d1b0;
 	// ~CCApplication() = mac 0x1a3d10, ios 0x10e384;
 	CCApplication() {}
 	~CCApplication() {}
