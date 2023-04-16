@@ -176,7 +176,8 @@ void Notification::show() {
         CCCallFunc::create(this, callfunc_selector(Notification::animateIn)),
         // wait for fade-in to finish
         CCDelayTime::create(NOTIFICATION_FADEIN),
-        CCCallFunc::create(this, callfunc_selector(Notification::wait)), nullptr
+        CCCallFunc::create(this, callfunc_selector(Notification::wait)),
+        nullptr
     ));
 }
 
@@ -185,7 +186,8 @@ void Notification::wait() {
     if (m_time) {
         this->runAction(CCSequence::create(
             CCDelayTime::create(m_time),
-            CCCallFunc::create(this, callfunc_selector(Notification::hide)), nullptr
+            CCCallFunc::create(this, callfunc_selector(Notification::hide)),
+            nullptr
         ));
     }
 }
@@ -196,6 +198,7 @@ void Notification::hide() {
         CCCallFunc::create(this, callfunc_selector(Notification::animateOut)),
         // wait for fade-out to finish
         CCDelayTime::create(NOTIFICATION_FADEOUT),
-        CCCallFunc::create(this, callfunc_selector(Notification::showNextNotification)), nullptr
+        CCCallFunc::create(this, callfunc_selector(Notification::showNextNotification)),
+        nullptr
     ));
 }
