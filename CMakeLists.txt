@@ -79,7 +79,7 @@ if (GEODE_DISABLE_FMT_CONSTEVAL)
 	target_compile_definitions(${PROJECT_NAME} INTERFACE -DFMT_CONSTEVAL=)
 endif()
 
-CPMAddPackage("gh:geode-sdk/json#74347f3")
+CPMAddPackage("gh:geode-sdk/json#19cf6f4")
 CPMAddPackage("gh:fmtlib/fmt#9.1.0")
 CPMAddPackage("gh:gulrak/filesystem#3e5b930")
 
