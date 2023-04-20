@@ -21,6 +21,7 @@ void DefaultEventListenerPool::remove(EventListenerProtocol* listener) {
             m_listeners[i] = nullptr;
         }
     }
+    ranges::remove(m_toAdd, listener);
 }
 
 ListenerResult DefaultEventListenerPool::handle(Event* event) {
