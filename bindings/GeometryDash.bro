@@ -1123,7 +1123,7 @@ class EditButtonBar : cocos2d::CCNode {
         cocos2d::CCPoint point,
         int idk, bool idk0,
         int rowCount, int columnCount
-    ) = win 0x6e450;
+    ) = mac 0x350e60, win 0x6e450;
 
     cocos2d::CCPoint m_position;
     int m_unknown;
@@ -1264,7 +1264,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     void selectAllWithDirection(bool left) = win 0x86d80;
     cocos2d::CCPoint getTouchPoint(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) = win 0x90620;
     cocos2d::CCPoint getGridSnappedPos(cocos2d::CCPoint pos) = win 0x90550;
-    void onSelectBuildTab(cocos2d::CCObject* sender) = win 0x887f0;
+    void onSelectBuildTab(cocos2d::CCObject* sender) = mac 0x1fb60, win 0x887f0;
     void onCreateButton(cocos2d::CCObject* sender) = win 0x854f0;
     CCMenuItemSpriteExtra* getSpriteButton(const char* sprite, cocos2d::SEL_MenuHandler callback, cocos2d::CCMenu* menu, float scale) = mac 0xb500, win 0x78bf0;
     cocos2d::CCPoint offsetForKey(int objID) = win 0x92310;
