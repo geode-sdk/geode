@@ -1262,7 +1262,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     void deleteObject(GameObject* object, bool filter) = mac 0x1f130, win 0x7bed0;
     void selectAll() = win 0x86c40;
     void selectAllWithDirection(bool left) = win 0x86d80;
-    cocos2d::CCPoint getTouchPoint(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) = win 0x90620;
+    cocos2d::CCPoint getTouchPoint(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) = mac 0x2eb80, win 0x90620;
     cocos2d::CCPoint getGridSnappedPos(cocos2d::CCPoint pos) = win 0x90550;
     void onSelectBuildTab(cocos2d::CCObject* sender) = mac 0x1fb60, win 0x887f0;
     void onCreateButton(cocos2d::CCObject* sender) = win 0x854f0;
@@ -3677,7 +3677,7 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
     void handleAction(bool, cocos2d::CCArray*) = mac 0x97020, win 0x162010;
     bool init(GJGameLevel*) = mac 0x91010, win 0x15EE00;
     GameObject* objectAtPosition(cocos2d::CCPoint position) = mac 0x960c0, win 0x161300;
-    cocos2d::CCArray* objectsAtPosition(cocos2d::CCPoint position) = win 0x1614d0;
+    cocos2d::CCArray* objectsAtPosition(cocos2d::CCPoint position) = mac 0x96690, win 0x1614d0;
     void objectMoved(GameObject*) = mac 0x999f0, win 0x162d40;
     cocos2d::CCArray* objectsInRect(cocos2d::CCRect rect, bool ignoreLayer) = mac 0x95e60, win 0x161ad0;
     void onPlaytest() = mac 0xa06b0, win 0x1695A0;
