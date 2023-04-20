@@ -752,9 +752,9 @@ class ColorSelectDelegate {
 }
 
 class ColorSelectLiveOverlay : FLAlertLayer {
-    bool init(ColorAction*, ColorAction*, EffectGameObject*) = mac 0x2e2790, win 0x41db0;
+    bool init(ColorAction*, ColorAction*, EffectGameObject*) = mac , win 0x41db0;
     void sliderChanged(cocos2d::CCObject*) = mac 0x2e3830;
-    void onSelectTab(cocos2d::CCObject*) = win 0x430f0;
+    void onSelectTab(cocos2d::CCObject*) = mac 0x2e3f40, win 0x430f0;
     EffectGameObject* m_effectGameObject;
     cocos2d::CCArray* m_barSprites;
     cocos2d::CCArray* m_12buttons;
