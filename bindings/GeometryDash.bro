@@ -953,8 +953,8 @@ class CustomSongWidget : cocos2d::CCNode, MusicDownloadDelegate, FLAlertLayerPro
 class CustomizeObjectLayer : FLAlertLayer, TextInputDelegate, HSVWidgetPopupDelegate, ColorSelectDelegate, ColorSetupDelegate {
     void onNextColorChannel(cocos2d::CCObject* sender) = win 0x56c80;
     void onSelectColor(cocos2d::CCObject* sender) = win 0x577b0;
-    int getActiveMode(bool unknown) = mac 0xdf660, win 0x57210;
-    void onClose(cocos2d::CCObject*) = win 0x57ac0;
+    int getActiveMode(bool unknown) = win 0x57210;
+    void onClose(cocos2d::CCObject*) = mac 0xdf660, win 0x57ac0;
     void updateSelected(int channelID) = win 0x57850;
     bool init(GameObject* target, cocos2d::CCArray* targets) = mac 0xdd560, win 0x53e00;
     void onHSV(cocos2d::CCObject* sender) = win 0x567c0;
