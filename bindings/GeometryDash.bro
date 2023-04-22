@@ -1260,8 +1260,8 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     void selectObject(GameObject* obj, bool filter) = mac 0x1bd60, win 0x86250;
     void deselectObject(GameObject* object) = mac 0x1f220, win 0x86a50;
     void deleteObject(GameObject* object, bool filter) = mac 0x1f130, win 0x7bed0;
-    void selectAll() = win 0x86c40;
-    void selectAllWithDirection(bool left) = win 0x86d80;
+    void selectAll() = mac 0x23fd0, win 0x86c40;
+    void selectAllWithDirection(bool left) = mac 0x24210, win 0x86d80;
     cocos2d::CCPoint getTouchPoint(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) = mac 0x2eb80, win 0x90620;
     cocos2d::CCPoint getGridSnappedPos(cocos2d::CCPoint pos) = win 0x90550;
     void onSelectBuildTab(cocos2d::CCObject* sender) = mac 0x1fb60, win 0x887f0;
@@ -1317,7 +1317,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     void onPause(cocos2d::CCObject* sender) = mac 0x18650, win 0x78020;
     void onSettings(cocos2d::CCObject* sender) = win 0x77fe0;
     void activateRotationControl(cocos2d::CCObject* sender) = win 0x8fe70, mac 0x24480;
-    void activateScaleControl(cocos2d::CCObject* sender) = win 0x889b0;
+    void activateScaleControl(cocos2d::CCObject* sender) = mac 0x24c80, win 0x889b0;
     void dynamicGroupUpdate(bool idk) = win 0x8ad10;
     void createRockOutline() = win 0x89c10;
     void createRockEdges() = win 0x88ec0;
