@@ -2707,6 +2707,7 @@ class GameLevelManager : cocos2d::CCNode {
     bool hasDownloadedLevel(int id) = win 0xab830;
     GJGameLevel* getSavedLevel(int id) = win 0xa2ee0;
     void saveLevel(GJGameLevel* level) = win 0xa31c0;
+    void deleteLevel(GJGameLevel* level) = mac 0x2b88d0, win 0xa1640;
 
     inline static GameLevelManager* get() {
         return GameLevelManager::sharedState();
@@ -4045,12 +4046,14 @@ class LoadingLayer : cocos2d::CCLayer {
     bool m_fromRefresh;
 }
 
-class LocalLevelManager : cocos2d::CCNode {
+class LocalLevelManager : GManager {
     static LocalLevelManager* sharedState() = mac 0x35dd60, win 0x18d260;
     inline static LocalLevelManager* get() {
         return LocalLevelManager::sharedState();
     }
     bool init() = mac 0x2384e0;
+    virtual void encodeDataTo(DS_Dictionary* data) = mac 0x35ed60, win 0x18e040;
+    virtual void dataLoaded(DS_Dictionary* data) = mac 0x35eda0, win 0x18e070;
 
     PAD = mac 0x10, win 0x1C;
     cocos2d::CCDictionary* m_loadData;
