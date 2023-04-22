@@ -1263,7 +1263,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     void selectAll() = mac 0x23fd0, win 0x86c40;
     void selectAllWithDirection(bool left) = mac 0x24210, win 0x86d80;
     cocos2d::CCPoint getTouchPoint(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) = mac 0x2eb80, win 0x90620;
-    cocos2d::CCPoint getGridSnappedPos(cocos2d::CCPoint pos) = win 0x90550;
+    cocos2d::CCPoint getGridSnappedPos(cocos2d::CCPoint pos) = mac 0x20b10, win 0x90550;
     void onSelectBuildTab(cocos2d::CCObject* sender) = mac 0x1fb60, win 0x887f0;
     void onCreateButton(cocos2d::CCObject* sender) = win 0x854f0;
     CCMenuItemSpriteExtra* getSpriteButton(const char* sprite, cocos2d::SEL_MenuHandler callback, cocos2d::CCMenu* menu, float scale) = mac 0xb500, win 0x78bf0;
