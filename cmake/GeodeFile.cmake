@@ -90,10 +90,8 @@ function(setup_geode_mod proname)
     # For CLI >=v2.4.0, there's an option to disable updating index because 
     # Github Actions on Mac just returns 403 for no reason
     if (GEODE_DONT_UPDATE_INDEX AND (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "2.4.0"))
-        message(STATUS "yeahh")
         set(DONT_UPDATE_INDEX_ARG "--dont-update-index")
     else()
-        message(STATUS "nahh")
         set(DONT_UPDATE_INDEX_ARG "")
     endif()
 
