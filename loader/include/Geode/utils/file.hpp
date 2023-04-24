@@ -41,7 +41,7 @@ namespace geode::utils::file {
     template <class T>
     Result<> writeToJson(ghc::filesystem::path const& path, T const& data) {
         try {
-            GEODE_UNWRAP(writeString(json::Value(data).dump()));
+            GEODE_UNWRAP(writeString(path, json::Value(data).dump()));
             return Ok();
         }
         catch(std::exception& e) {
