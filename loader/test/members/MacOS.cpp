@@ -57,4 +57,7 @@ GEODE_MEMBER_CHECK(TeleportPortalObject, m_orangePortal, 0x4f8);
 // StartPosObject
 GEODE_MEMBER_CHECK(StartPosObject, m_levelSettings, 0x5e0);
 
+// SetupPulsePopup
+GEODE_MEMBER_CHECK(SetupPulsePopup, m_pulseMode, 0x38c);
+
 #endif
