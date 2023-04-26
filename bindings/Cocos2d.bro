@@ -22,6 +22,7 @@ class cocos2d::CCApplication {
 	virtual auto openURL(char const*) = mac 0x1a4550, ios 0x10e7a4;
 	virtual auto setAnimationInterval(double) = mac 0x1a3ee0, ios 0x10e494;
 	static auto sharedApplication() = mac 0x1a3f30;
+	bool getControllerConnected() const = mac 0x27d1b0;
 	// ~CCApplication() = mac 0x1a3d10, ios 0x10e384;
 	CCApplication() {}
 	~CCApplication() {}
@@ -741,6 +742,10 @@ class cocos2d::CCScene {
 
 class cocos2d::CCScheduler {
 	auto scheduleSelector(cocos2d::SEL_SCHEDULE, cocos2d::CCObject*, float, unsigned int, float, bool) = mac 0x242b20;
+	void scheduleSelector(cocos2d::SEL_SCHEDULE selector, cocos2d::CCObject* target, float interval, bool paused) {
+		this->scheduleSelector(selector, target, interval, kCCRepeatForever, 0, paused);
+	}
+    void unscheduleSelector(cocos2d::SEL_SCHEDULE pfnSelector, cocos2d::CCObject *pTarget) = mac 0x2425f0;
 	auto scheduleUpdateForTarget(cocos2d::CCObject*, int, bool) = mac 0x2438d0;
 	auto unscheduleAllForTarget(cocos2d::CCObject*) = mac 0x243e40;
 	auto unscheduleUpdateForTarget(cocos2d::CCObject const*) = mac 0x243c60;
@@ -961,8 +966,6 @@ class cocos2d::CCTouchDispatcher {
 	auto decrementForcePrio(int) = mac 0x280f70, ios 0xcc280;
 	auto incrementForcePrio(int) = mac 0x280f60, ios 0xcc268;
 	void touches(cocos2d::CCSet*, cocos2d::CCEvent*, unsigned int) = mac 0x281a60;
-    
-
 }
 
 class cocos2d::CCTouchHandler {

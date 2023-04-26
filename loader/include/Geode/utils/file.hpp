@@ -24,8 +24,30 @@ namespace geode::utils::file {
     GEODE_DLL Result<json::Value> readJson(ghc::filesystem::path const& path);
     GEODE_DLL Result<ByteVector> readBinary(ghc::filesystem::path const& path);
 
+    template <class T>
+    Result<T> readFromJson(ghc::filesystem::path const& file) {
+        GEODE_UNWRAP_INTO(auto json, readJson(file));
+        try {
+            return json.template as<T>();
+        }
+        catch(std::exception& e) {
+            return Err("Error parsing JSON: {}", e.what());
+        }
+    }
+
     GEODE_DLL Result<> writeString(ghc::filesystem::path const& path, std::string const& data);
     GEODE_DLL Result<> writeBinary(ghc::filesystem::path const& path, ByteVector const& data);
+
+    template <class T>
+    Result<> writeToJson(ghc::filesystem::path const& path, T const& data) {
+        try {
+            GEODE_UNWRAP(writeString(path, json::Value(data).dump()));
+            return Ok();
+        }
+        catch(std::exception& e) {
+            return Err("Error serializing JSON: {}", e.what());
+        }
+    }
 
     GEODE_DLL Result<> createDirectory(ghc::filesystem::path const& path);
     GEODE_DLL Result<> createDirectoryAll(ghc::filesystem::path const& path);

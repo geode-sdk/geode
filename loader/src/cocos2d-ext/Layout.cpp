@@ -304,7 +304,7 @@ AxisLayout::Row* AxisLayout::fitInRow(
     float crossLength;
     auto res = CCArray::create();
 
-    auto available = nodeAxis(on, m_axis, 1.f);
+    auto available = nodeAxis(on, m_axis, 1.f / on->getScale());
 
     auto fit = [&](CCArray* nodes) {
         nextAxisScalableLength = 0.f;
@@ -529,8 +529,7 @@ void AxisLayout::tryFitLayout(
         return;
     }
 
-    auto available = nodeAxis(on, m_axis, 1.f);
-
+    auto available = nodeAxis(on, m_axis, 1.f / on->getScale());
     if (available.axisLength <= 0.f) {
         return;
     }

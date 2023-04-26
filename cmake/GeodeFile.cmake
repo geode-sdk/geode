@@ -87,11 +87,19 @@ function(setup_geode_mod proname)
         list(APPEND GEODE_MODS_BEING_BUILT ${SETUP_GEODE_MOD_EXTERNALS})
     endif()
 
+    # For CLI >=v2.4.0, there's an option to disable updating index because 
+    # Github Actions on Mac just returns 403 for no reason
+    if (GEODE_DONT_UPDATE_INDEX AND (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "2.4.0"))
+        set(DONT_UPDATE_INDEX_ARG "--dont-update-index")
+    else()
+        set(DONT_UPDATE_INDEX_ARG "")
+    endif()
+
     # Check dependencies using CLI
     if (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "2.0.0")
         execute_process(
             COMMAND ${GEODE_CLI} project check ${CMAKE_CURRENT_BINARY_DIR}
-                --externals ${GEODE_MODS_BEING_BUILT}
+                --externals ${GEODE_MODS_BEING_BUILT} ${DONT_UPDATE_INDEX_ARG}
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         )
     elseif (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "1.4.0")

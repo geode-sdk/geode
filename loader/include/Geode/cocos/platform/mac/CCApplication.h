@@ -91,6 +91,8 @@ public:
 
     //Robtop modification
     virtual void openURL(char const* link);
+
+    bool getControllerConnected() const;
     
 protected:
     static CCApplication * sm_pSharedApplication;
