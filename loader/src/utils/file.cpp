@@ -11,6 +11,7 @@
 #include <mz_strm_os.h>
 #include <mz_strm_mem.h>
 #include <mz_zip.h>
+#include <internal/FileWatcher.hpp>
 
 using namespace geode::prelude;
 using namespace geode::utils::file;
@@ -550,4 +551,55 @@ Result<> Zip::addAllFrom(Path const& dir) {
 
 Result<> Zip::addFolder(Path const& entry) {
     return m_impl->addFolder(entry);
+}
+
+FileWatchEvent::FileWatchEvent(ghc::filesystem::path const& path)
+  : m_path(path) {}
+
+ghc::filesystem::path FileWatchEvent::getPath() const {
+    return m_path;
+}
+
+ListenerResult FileWatchFilter::handle(
+    MiniFunction<Callback> callback,
+    FileWatchEvent* event
+) {
+    std::error_code ec;
+    if (ghc::filesystem::equivalent(event->getPath(), m_path, ec)) {
+        callback(event);
+    }
+    return ListenerResult::Propagate;
+}
+
+FileWatchFilter::FileWatchFilter(ghc::filesystem::path const& path) 
+  : m_path(path) {}
+
+// This is a vector because need to use ghc::filesystem::equivalent for 
+// comparisons and removal is not exactly performance-critical here
+// (who's going to add and remove 500 file watchers every frame)
+static std::vector<std::unique_ptr<FileWatcher>> FILE_WATCHERS {};
+
+Result<> file::watchFile(ghc::filesystem::path const& file) {
+    if (!ghc::filesystem::exists(file)) {
+        return Err("File does not exist");
+    }
+    auto watcher = std::make_unique<FileWatcher>(
+        file,
+        [](auto const& path) {
+            Loader::get()->queueInGDThread([=] {
+                FileWatchEvent(path).post();
+            });
+        }
+    );
+    if (!watcher->watching()) {
+        return Err("Unknown error watching file");
+    }
+    FILE_WATCHERS.emplace_back(std::move(watcher));
+    return Ok();
+}
+
+void file::unwatchFile(ghc::filesystem::path const& file) {
+    ranges::remove(FILE_WATCHERS, [=](std::unique_ptr<FileWatcher> const& watcher) {
+        return ghc::filesystem::equivalent(file, watcher->path());
+    });
 }

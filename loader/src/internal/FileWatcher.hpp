@@ -25,12 +25,28 @@ protected:
 public:
     bool watching() const;
 
-    ghc::filesystem::path path() {
+    ghc::filesystem::path path() const {
         return m_file;
     }
 
     FileWatcher(
-        ghc::filesystem::path const& file, FileWatchCallback callback, ErrorCallback error = nullptr
+        ghc::filesystem::path const& file,
+        FileWatchCallback callback,
+        ErrorCallback error = nullptr
     );
+    FileWatcher(FileWatcher const&) = delete;
+    inline FileWatcher(FileWatcher&& other)
+      : m_file(std::move(other.m_file)),
+        m_callback(std::move(other.m_callback)),
+        m_error(std::move(other.m_error)),
+        m_filemode(other.m_filemode),
+        m_platformHandle(other.m_platformHandle),
+        m_exiting(other.m_exiting)
+    {
+        other.m_callback = nullptr;
+        other.m_error = nullptr;
+        other.m_platformHandle = nullptr;
+        other.m_exiting = true;
+    }
     ~FileWatcher();
 };
