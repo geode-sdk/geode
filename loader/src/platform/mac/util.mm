@@ -77,7 +77,7 @@ void utils::web::openLinkInBrowser(std::string const& url) {
     NSOpenPanel* panel = [NSOpenPanel openPanel];
 
     // allowed files
-    NSMutableArray* allowed;
+    NSMutableArray* allowed = [NSMutableArray array];
 
     for (auto& f : options.filters) {
         for (auto& i : f.files) {

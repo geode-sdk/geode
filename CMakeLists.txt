@@ -116,6 +116,10 @@ file(GLOB CODEGEN_DEPENDS CONFIGURE_DEPENDS
 	${CMAKE_CURRENT_SOURCE_DIR}/codegen/src/*.hpp
 )
 
+file(GLOB CODEGEN_OUTPUTS CONFIGURE_DEPENDS 
+	${GEODE_CODEGEN_PATH}/Geode/binding/*.hpp
+)
+
 add_custom_command(
 	DEPENDS ${CODEGEN_DEPENDS}
 	DEPENDS CodegenProject
@@ -123,7 +127,7 @@ add_custom_command(
 	COMMAND echo codegen > ${GEODE_CODEGEN_PATH}/.stamp
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 	COMMENT "Run Codegen"
-	OUTPUT ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp ${GEODE_CODEGEN_PATH}/Geode/GeneratedAddress.cpp ${GEODE_CODEGEN_PATH}/.stamp
+	OUTPUT ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp ${GEODE_CODEGEN_PATH}/Geode/GeneratedAddress.cpp ${GEODE_CODEGEN_PATH}/.stamp ${CODEGEN_OUTPUTS}
 )
 
 add_custom_target(CodegenRun

@@ -38,6 +38,12 @@ static std::optional<int> fuzzyMatch(std::string const& kw, std::string const& s
         someMatched = true;                                     \
     }
 
+#define WEIGHTED_MATCH_MAX(str_, weight_) \
+    if (auto match = fuzzyMatch(query.keywords.value(), str_)) {        \
+        weighted = std::max<double>(match.value() * weight_, weighted); \
+        someMatched = true;                                             \
+    }
+
 #define WEIGHTED_MATCH_ADD(str_, weight_) \
     if (auto match = fuzzyMatch(query.keywords.value(), str_)) {\
         weighted += match.value() * weight_;                    \
@@ -52,11 +58,11 @@ static std::optional<int> queryMatchKeywords(
     // fuzzy match keywords
     if (query.keywords) {
         bool someMatched = false;
-        WEIGHTED_MATCH(info.name(), 2);
-        WEIGHTED_MATCH(info.id(), 1.5);
-        WEIGHTED_MATCH(info.developer(), 1);
-        WEIGHTED_MATCH(info.details().value_or(""), 2);
-        WEIGHTED_MATCH(info.description().value_or(""), 1);
+        WEIGHTED_MATCH_MAX(info.name(), 2);
+        WEIGHTED_MATCH_MAX(info.id(), 1);
+        WEIGHTED_MATCH_MAX(info.developer(), 0.5);
+        WEIGHTED_MATCH_MAX(info.details().value_or(""), 0.05);
+        WEIGHTED_MATCH_MAX(info.description().value_or(""), 0.2);
         if (!someMatched) {
             return std::nullopt;
         }
@@ -67,7 +73,12 @@ static std::optional<int> queryMatchKeywords(
         // sorted, at least enough so that if you're scrolling it based on 
         // alphabetical order you will find the part you're looking for easily 
         // so it's fine
-        weighted = -tolower(info.name()[0]);
+        return static_cast<int>(-tolower(info.name()[0]));
+    }
+
+    // if the weight is relatively small we can ignore it
+    if (weighted < 2) {
+        return std::nullopt;
     }
 
     // empty keywords always match

@@ -803,14 +803,14 @@ class ColorSelectPopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, 
     int m_copyChannelID;
     bool m_copyOpacity;
     ConfigureHSVWidget* m_hsvWidget;
-    PAD = win 0x10;
+    PAD = win 0x10, mac 0x10;
     cocos2d::CCArray* m_unk254;
     cocos2d::CCArray* m_unk258;
     CCTextInputNode* m_textInput2;
-    PAD = win 0x4;
+    PAD = win 0x4, mac 0x8;
     CCMenuItemToggler* m_toggler3;
     CCMenuItemToggler* m_toggler4;
-    PAD = win 0x8;
+    PAD = win 0x8, mac 0x10;
     cocos2d::CCArray* m_unk274;
     bool m_spawnTrigger;
     bool m_multiTrigger;
@@ -5148,11 +5148,11 @@ class SetupPulsePopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, T
 
 
     cocos2d::extension::CCControlColourPicker* m_colorPicker;
-    PAD = win 0x30;
+    PAD = win 0x30, mac 0x60;
     cocos2d::CCSprite* m_currentColorSpr;
     cocos2d::CCSprite* m_prevColorSpr;
-    PAD = win 0x64;
-    int m_pulseMode;
+    PAD = win 0x64, mac 0xac;
+    int m_pulseMode; // 0x38c on mac
 }
 
 class SetupShakePopup : FLAlertLayer {
