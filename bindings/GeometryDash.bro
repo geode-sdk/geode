@@ -5148,10 +5148,10 @@ class SetupPulsePopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, T
 
 
     cocos2d::extension::CCControlColourPicker* m_colorPicker;
-    PAD = win 0x30, mac 0x58;
+    PAD = win 0x30, mac 0x60;
     cocos2d::CCSprite* m_currentColorSpr;
     cocos2d::CCSprite* m_prevColorSpr;
-    PAD = win 0x64, mac 0xb4;
+    PAD = win 0x64, mac 0xac;
     int m_pulseMode; // 0x38c on mac
 }
 
