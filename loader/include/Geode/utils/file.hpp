@@ -2,6 +2,7 @@
 
 #include "Result.hpp"
 #include "general.hpp"
+#include "../loader/Event.hpp"
 
 #include <json.hpp>
 #include <Geode/DefaultInclude.hpp>
