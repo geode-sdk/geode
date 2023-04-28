@@ -80,7 +80,7 @@ CPMAddPackage("gh:gulrak/filesystem#3e5b930")
 # this is needed for cross compilation on linux,
 # since fmtlib will fail to compile otherwise
 if (GEODE_DISABLE_FMT_CONSTEVAL)
-	message(STATUS "Disabling FMT_CONSTEVAL")
+	message(VERBOSE "Disabling FMT_CONSTEVAL")
 	target_compile_definitions(fmt PUBLIC -DFMT_CONSTEVAL=)
 endif()
 
