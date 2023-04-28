@@ -85,6 +85,10 @@ std::string log::parse(cocos2d::ccColor4B const& col) {
     return fmt::format("rgba({}, {}, {}, {})", col.r, col.g, col.b, col.a);
 }
 
+std::string log::parse(gd::string const& str) {
+    return fmt::format("{}", std::string(str));
+}
+
 // Log
 
 Log::Log(Mod* mod, Severity sev) : m_sender(mod), m_time(log_clock::now()), m_severity(sev) {}

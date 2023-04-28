@@ -33,7 +33,7 @@ namespace geode {
         GEODE_DLL std::string parse(cocos2d::CCRect const&);
         GEODE_DLL std::string parse(cocos2d::CCSize const&);
         GEODE_DLL std::string parse(Mod*);
-
+        GEODE_DLL std::string parse(gd::string const&);
 
         template <class T>
             requires std::convertible_to<T*, cocos2d::CCNode*>
