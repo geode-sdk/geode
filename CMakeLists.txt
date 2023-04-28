@@ -69,14 +69,15 @@ set(GEODE_BIN_PATH ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 set(GEODE_LOADER_PATH ${CMAKE_CURRENT_SOURCE_DIR}/loader)
 set(GEODE_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 
-include(cmake/GeodeFile.cmake)
-include(cmake/Platform.cmake)
-include(cmake/CPM.cmake)
+CPMAddPackage("gh:geode-sdk/json#cef9c64")
+CPMAddPackage("gh:fmtlib/fmt#9.1.0")
+CPMAddPackage("gh:gulrak/filesystem#3e5b930")
 
 # this is needed for cross compilation on linux,
 # since fmtlib will fail to compile otherwise
 if (GEODE_DISABLE_FMT_CONSTEVAL)
-	target_compile_definitions(${PROJECT_NAME} INTERFACE -DFMT_CONSTEVAL=)
+	message(VERBOSE "Disabling FMT_CONSTEVAL")
+	target_compile_definitions(fmt PUBLIC -DFMT_CONSTEVAL=)
 endif()
 
 CPMAddPackage("gh:geode-sdk/json#19cf6f4")
