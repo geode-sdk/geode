@@ -11,6 +11,8 @@ namespace geode {
         LessEq,
         Exact,
         MoreEq,
+        Less,
+        More,
     };
 
     /**
@@ -206,7 +208,11 @@ namespace geode {
                     return version <= m_version;
                 case VersionCompare::MoreEq:
                     return version >= m_version;
-                default:
+                case VersionCompare::Less:
+                    return version < m_version;
+                case VersionCompare::More:
+                    return version > m_version;
+                case VersionCompare::Exact:
                     return version == m_version;
             }
         }

@@ -5,6 +5,7 @@
 
 using namespace geode::prelude;
 
+#include <Geode/loader/Dirs.hpp>
 #import <AppKit/AppKit.h>
 #include <Geode/utils/web.hpp>
 #include <Geode/utils/file.hpp>
@@ -148,7 +149,7 @@ CCPoint cocos::getMousePos() {
     return ccp(mouse.x - frame.origin.x, mouse.y - frame.origin.y) * scaleFactor;
 }
 
-ghc::filesystem::path utils::file::current_path() {
+ghc::filesystem::path dirs::getGameDir() {
     std::array<char, PATH_MAX> gddir;
 
     uint32_t out = PATH_MAX;

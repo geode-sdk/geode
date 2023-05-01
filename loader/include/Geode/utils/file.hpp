@@ -60,8 +60,6 @@ namespace geode::utils::file {
         ghc::filesystem::path const& path, bool recursive = false
     );
 
-    GEODE_DLL ghc::filesystem::path current_path();
-
     class Unzip;
 
     class GEODE_DLL Zip final {

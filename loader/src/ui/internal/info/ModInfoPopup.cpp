@@ -347,7 +347,10 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
         uninstallBtn->setPosition(-85.f, 75.f);
         m_buttonMenu->addChild(uninstallBtn);
 
-        auto indexItem = Index::get()->getItem(mod->getModInfo());
+        auto indexItem = Index::get()->getItem(
+            mod->getModInfo().id(),
+            ComparableVersionInfo(mod->getModInfo().version(), VersionCompare::More)
+        );
 
         // todo: show update button on loader that invokes the installer
         if (indexItem && Index::get()->isUpdateAvailable(indexItem)) {

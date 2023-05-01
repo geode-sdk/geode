@@ -4,7 +4,7 @@
 #ifdef GEODE_IS_WINDOWS
 
 using namespace geode::prelude;
-
+#include <Geode/loader/Dirs.hpp>
 #include "nfdwin.hpp"
 #include <ghc/fs_fwd.hpp>
 #include <Windows.h>
@@ -115,7 +115,7 @@ CCPoint cocos::getMousePos() {
     return ccp(mouse.x, 1.f - mouse.y) * winSize;
 }
 
-ghc::filesystem::path utils::file::current_path() {
+ghc::filesystem::path dirs::getGameDir() {
     std::array<TCHAR, MAX_PATH> szFileName;
     GetModuleFileName(NULL, szFileName.data(), MAX_PATH);
 

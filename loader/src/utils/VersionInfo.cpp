@@ -136,13 +136,24 @@ Result<ComparableVersionInfo> ComparableVersionInfo::parse(std::string const& ra
     if (string.starts_with("<=")) {
         compare = VersionCompare::LessEq;
         string.erase(0, 2);
-    } else if (string.starts_with(">=")) {
+    }
+    else if (string.starts_with(">=")) {
         compare = VersionCompare::MoreEq;
         string.erase(0, 2);
-    } else if (string.starts_with("=")) {
+    }
+    else if (string.starts_with("=")) {
         compare = VersionCompare::Exact;
         string.erase(0, 1);
-    } else {
+    }
+    else if (string.starts_with("<")) {
+        compare = VersionCompare::Less;
+        string.erase(0, 1);
+    }
+    else if (string.starts_with(">")) {
+        compare = VersionCompare::More;
+        string.erase(0, 1);
+    }
+    else {
         compare = VersionCompare::MoreEq;
     }
 
@@ -156,6 +167,8 @@ std::string ComparableVersionInfo::toString() const {
         case VersionCompare::Exact:  prefix = "="; break;
         case VersionCompare::LessEq: prefix = "<="; break;
         case VersionCompare::MoreEq: prefix = ">="; break;
+        case VersionCompare::Less:   prefix = "<"; break;
+        case VersionCompare::More:   prefix = ">"; break;
     }
     return prefix + m_version.toString();
 }
