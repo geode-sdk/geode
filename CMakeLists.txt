@@ -73,7 +73,7 @@ include(cmake/GeodeFile.cmake)
 include(cmake/Platform.cmake)
 include(cmake/CPM.cmake)
 
-CPMAddPackage("gh:geode-sdk/json#cef9c64")
+CPMAddPackage("gh:geode-sdk/json#19cf6f4")
 CPMAddPackage("gh:fmtlib/fmt#9.1.0")
 CPMAddPackage("gh:gulrak/filesystem#3e5b930")
 
