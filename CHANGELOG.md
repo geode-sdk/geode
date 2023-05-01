@@ -1,7 +1,8 @@
 # Geode Changelog
 
 ## v1.0.0-beta.16
- * Fix mod.json not loading because of broken working directory on MacOS
+ * Fix mod.json not loading because of broken working directory on MacOS (d7ccfde)
+ * Fix markdown resources not updating between versions (b0cf6dc)
 
 ## v1.0.0-beta.15
  * Fix `ghc::filesystem::create_directories` crash on wine (c174f81)
