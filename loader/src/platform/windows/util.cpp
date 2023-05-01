@@ -119,7 +119,7 @@ ghc::filesystem::path dirs::getGameDir() {
     std::array<TCHAR, MAX_PATH> szFileName;
     GetModuleFileName(NULL, szFileName.data(), MAX_PATH);
 
-    ghc::filesystem::path path(szFileName);
+    ghc::filesystem::path path(szFileName.data());
     auto currentPath = path.parent_path();
     return currentPath;
 }
