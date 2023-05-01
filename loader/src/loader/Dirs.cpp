@@ -44,10 +44,6 @@ ghc::filesystem::path dirs::getGeodeSaveDir() {
 }
 
 ghc::filesystem::path dirs::getGeodeResourcesDir() {
-    LoaderImpl::get()->platformMessageBox(
-        "Fatal Internal Error",
-        (dirs::getGeodeDir() / "resources").string()
-    );
     return dirs::getGeodeDir() / "resources";
 }
 
