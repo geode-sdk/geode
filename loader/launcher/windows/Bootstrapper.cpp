@@ -20,7 +20,7 @@ DWORD WINAPI load(PVOID module) {
 	std::array<TCHAR, MAX_PATH> szFileName;
     GetModuleFileName(NULL, szFileName.data(), MAX_PATH);
 
-    ghc::filesystem::path path(szFileName);
+    ghc::filesystem::path path(szFileName.data());
     auto workingDir = path.parent_path();
 	auto updatesDir = workingDir / "geode" / "update";
 	auto resourcesDir = workingDir / "geode" / "resources";
