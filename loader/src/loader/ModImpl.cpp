@@ -1,5 +1,6 @@
 #include "ModImpl.hpp"
 #include "LoaderImpl.hpp"
+#include "ModInfoImpl.hpp"
 #include "about.hpp"
 
 #include <Geode/loader/Dirs.hpp>
@@ -670,50 +671,53 @@ ModJson Mod::Impl::getRuntimeInfo() const {
     return json;
 }
 
-static constexpr char const* SUPPORT_INFO = R"MD(
-**Geode** is funded through your gracious <cy>**donations**</c>!
-You can support our work by sending <cp>**catgirl pictures**</c> to [HJfod](https://youtu.be/LOHSF9MmBDw) :))
-)MD";
-
-static ModInfo getModImplInfo() {
+static Result<ModInfo> getModImplInfo() {
     std::string err;
     json::Value json;
+    auto resourcesDir = dirs::getGeodeResourcesDir() / "geode.loader";
+    auto jsonPath = resourcesDir / "mod.json";
     try {
-        json = json::parse(LOADER_MOD_JSON);
+        if (ghc::filesystem::exists(jsonPath)) {
+            auto data = file::readString(jsonPath);
+            if (!data) {
+                return Err("Unable to read mod.json: " + data.unwrapErr());
+            }
+            json = json::parse(data.unwrap());
+        }
+        else {
+            return Err("Unable to find mod.json");
+        }
     } catch (std::exception& err) {
-        LoaderImpl::get()->platformMessageBox(
-            "Fatal Internal Error",
-            "Unable to parse loader mod.json: \"" + std::string(err.what()) +
-                "\"\n"
-                "This is a fatal internal error in the loader, please "
-                "contact Geode developers immediately!"
-        );
-        return ModInfo();
+        return Err("Unable to parse mod.json: " + std::string(err.what()));
     }
 
-    auto infoRes = ModInfo::create(json);
-    if (infoRes.isErr()) {
-        LoaderImpl::get()->platformMessageBox(
-            "Fatal Internal Error",
-            "Unable to parse loader mod.json: \"" + infoRes.unwrapErr() +
-                "\"\n"
-                "This is a fatal internal error in the loader, please "
-                "contact Geode developers immediately!"
-        );
-        return ModInfo();
-    }
-    auto info = infoRes.unwrap();
-    info.details() = LOADER_ABOUT_MD;
-    info.changelog() = LOADER_CHANGELOG_MD;
-    info.supportInfo() = SUPPORT_INFO;
+    GEODE_UNWRAP_INTO(auto info, ModInfo::create(json));
+
+    GEODE_UNWRAP(ModInfoImpl::getImpl(info).addSpecialFiles(resourcesDir));
+
     info.supportsDisabling() = false;
-    return info;
+    return Ok(info);
 }
 
 Mod* Loader::Impl::createInternalMod() {
     auto& mod = Mod::sharedMod<>;
     if (!mod) {
-        mod = new Mod(getModImplInfo());
+        auto infoRes = getModImplInfo();
+        if (!infoRes) {
+            LoaderImpl::get()->platformMessageBox(
+                "Fatal Internal Error",
+                "Unable to create internal mod info: \"" + infoRes.unwrapErr() +
+                    "\"\n"
+                    "This is a fatal internal error in the loader, please "
+                    "contact Geode developers immediately!"
+            );
+            auto info = ModInfo();
+            info.id() = "geode.loader";
+            mod = new Mod(info);
+        }
+        else {
+            mod = new Mod(infoRes.unwrap());
+        }
         mod->m_impl->m_binaryLoaded = true;
         mod->m_impl->m_enabled = true;
         m_mods.insert({ mod->getID(), mod });

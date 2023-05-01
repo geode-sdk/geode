@@ -26,6 +26,8 @@ namespace geode {
         std::optional<std::string> url;
     };
 
+    class ModInfoImpl;
+
     /**
      * Represents all the data gatherable
      * from mod.json
@@ -206,6 +208,8 @@ namespace geode {
         Result<> addSpecialFiles(utils::file::Unzip& zip);
 
         std::vector<std::pair<std::string, std::optional<std::string>*>> getSpecialFiles();
+
+        friend class ModInfoImpl;
     };
 }
 
