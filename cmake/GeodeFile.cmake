@@ -297,6 +297,7 @@ function(package_geode_resources_now proname src dest header_dest)
     list(APPEND HASHED_EXTENSIONS ".png")
     list(APPEND HASHED_EXTENSIONS ".mp3")
     list(APPEND HASHED_EXTENSIONS ".ogg")
+    list(APPEND HASHED_EXTENSIONS ".md")
 
     foreach(file ${RESOURCE_FILES})
         cmake_path(GET file FILENAME FILE_NAME)
