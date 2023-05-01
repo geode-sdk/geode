@@ -116,12 +116,17 @@ CCPoint cocos::getMousePos() {
 }
 
 ghc::filesystem::path dirs::getGameDir() {
-    std::array<TCHAR, MAX_PATH> szFileName;
-    GetModuleFileName(NULL, szFileName.data(), MAX_PATH);
+    // only fetch the path once, since ofc it'll never change
+    // throughout the execution
+    static const auto path = [] {
+        std::array<WCHAR, MAX_PATH> buffer;
+        GetModuleFileNameW(NULL, buffer.data(), MAX_PATH);
 
-    ghc::filesystem::path path(szFileName.data());
-    auto currentPath = path.parent_path();
-    return currentPath;
+        const ghc::filesystem::path path(buffer.data());
+        return path.parent_path();
+    }();
+
+    return path;
 }
 
 #endif
