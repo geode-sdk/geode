@@ -96,7 +96,6 @@ jobs:
     - name: Delete resource cache file
       run: |
         rm ./bin/nightly/resources/.geode_cache
-        rm ./bin/nightly/resources/dont-update.txt
     - name: Upload resources
       uses: actions/upload-artifact@v2
       with:
