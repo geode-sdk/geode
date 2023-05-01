@@ -129,7 +129,7 @@ namespace geode {
 
     class ModImpl : public Mod {
     public:
-        static Mod* get();
+        static Mod::Impl* get();
 
         static Mod::Impl* getImpl(Mod* mod);
     };

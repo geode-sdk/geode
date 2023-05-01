@@ -1,3 +1,5 @@
+#pragma once
+
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/utils/JsonValidation.hpp>

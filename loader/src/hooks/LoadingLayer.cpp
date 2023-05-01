@@ -45,6 +45,9 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
                 m_fields->m_updatingResources = true;
                 this->setUpdateText("Downloading Resources");
             }
+            else {
+                LoaderImpl::get()->updateSpecialFiles();
+            }
         }
 
         return true;

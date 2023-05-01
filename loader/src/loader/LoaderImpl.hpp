@@ -91,6 +91,7 @@ namespace geode {
         Result<tulip::hook::HandlerHandle> getHandler(void* address);
         Result<> removeHandler(void* address);
 
+        void updateSpecialFiles();
         void tryDownloadLoaderResources(std::string const& url, bool tryLatestOnError = true);
         void downloadLoaderResources(bool useLatestRelease = false);
         void downloadLoaderUpdate(std::string const& url);

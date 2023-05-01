@@ -28,6 +28,7 @@ execute_process(
 
 # Package info file for internal representation
 configure_file(resources/mod.json.in ${CMAKE_CURRENT_SOURCE_DIR}/resources/mod.json)
+file(READ resources/mod.json LOADER_MOD_JSON)
 configure_file(${GEODE_ROOT_PATH}/CHANGELOG.md ${CMAKE_CURRENT_SOURCE_DIR}/resources/changelog.md COPYONLY)
 configure_file(src/internal/about.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/src/internal/about.hpp)
 

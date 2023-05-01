@@ -17,6 +17,10 @@
 
 using namespace geode::prelude;
 
+Mod::Impl* ModImpl::get() {
+    return Mod::get()->m_impl.get();
+}
+
 Mod::Impl* ModImpl::getImpl(Mod* mod)  {
     return mod->m_impl.get();
 }
@@ -674,27 +678,13 @@ ModJson Mod::Impl::getRuntimeInfo() const {
 static Result<ModInfo> getModImplInfo() {
     std::string err;
     json::Value json;
-    auto resourcesDir = dirs::getGeodeResourcesDir() / "geode.loader";
-    auto jsonPath = resourcesDir / "mod.json";
     try {
-        if (ghc::filesystem::exists(jsonPath)) {
-            auto data = file::readString(jsonPath);
-            if (!data) {
-                return Err("Unable to read mod.json: " + data.unwrapErr());
-            }
-            json = json::parse(data.unwrap());
-        }
-        else {
-            return Err("Unable to find mod.json at " + jsonPath.string());
-        }
+        json = json::parse(LOADER_MOD_JSON);
     } catch (std::exception& err) {
         return Err("Unable to parse mod.json: " + std::string(err.what()));
     }
 
     GEODE_UNWRAP_INTO(auto info, ModInfo::create(json));
-
-    GEODE_UNWRAP(ModInfoImpl::getImpl(info).addSpecialFiles(resourcesDir));
-
     info.supportsDisabling() = false;
     return Ok(info);
 }

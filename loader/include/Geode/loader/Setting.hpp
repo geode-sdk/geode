@@ -7,6 +7,7 @@
 #include <json.hpp>
 #include <optional>
 #include <unordered_set>
+#include <cocos2d.h>
 
 #pragma warning(push)
 #pragma warning(disable : 4275)

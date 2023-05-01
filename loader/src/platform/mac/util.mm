@@ -149,7 +149,8 @@ CCPoint cocos::getMousePos() {
 }
 
 ghc::filesystem::path utils::file::current_path() {
-    if (ghc::filesystem::current_path().empty()) {
+    // if it's just a slash because for some reason it is
+    if (ghc::filesystem::current_path().string().size() < 2) {
         std::array<char, PATH_MAX> gddir;
 
         uint32_t out = PATH_MAX;
