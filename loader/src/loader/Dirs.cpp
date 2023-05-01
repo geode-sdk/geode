@@ -19,7 +19,7 @@ namespace {
 }
 
 ghc::filesystem::path dirs::getGameDir() {
-    return weaklyCanonical(CCFileUtils::sharedFileUtils()->getWritablePath2().c_str());
+    return utils::file::current_path();
 }
 
 ghc::filesystem::path dirs::getSaveDir() {

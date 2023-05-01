@@ -116,7 +116,12 @@ CCPoint cocos::getMousePos() {
 }
 
 ghc::filesystem::path utils::file::current_path() {
-    return ghc::filesystem::current_path();
+    std::array<TCHAR, MAX_PATH> szFileName;
+    GetModuleFileName(NULL, szFileName.data(), MAX_PATH);
+
+    ghc::filesystem::path path(szFileName);
+    auto currentPath = path.parent_path();
+    return currentPath;
 }
 
 #endif
