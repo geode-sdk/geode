@@ -33,7 +33,8 @@ protected:
     IconButtonSprite* m_installBtnSpr;
     CCMenuItemSpriteExtra* m_installBtn;
     CCMenuItemSpriteExtra* m_infoBtn;
-    CCLabelBMFont* m_updateVersionLabel = nullptr;
+    CCLabelBMFont* m_latestVersionLabel = nullptr;
+    CCLabelBMFont* m_minorVersionLabel = nullptr;
     MDTextArea* m_detailsArea;
     MDTextArea* m_changelogArea = nullptr;
     Scrollbar* m_scrollbar;

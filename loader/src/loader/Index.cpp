@@ -463,8 +463,8 @@ void Index::update(bool force) {
 std::vector<IndexItemHandle> Index::getItems() const {
     std::vector<IndexItemHandle> res;
     for (auto& items : map::values(m_items)) {
-        if (items.size()) {
-            res.push_back(items.rbegin()->second);
+        for (auto& item : items) {
+            res.push_back(item.second);
         }
     }
     return res;
@@ -473,9 +473,9 @@ std::vector<IndexItemHandle> Index::getItems() const {
 std::vector<IndexItemHandle> Index::getFeaturedItems() const {
     std::vector<IndexItemHandle> res;
     for (auto& items : map::values(m_items)) {
-        if (items.size()) {
-            if (items.rbegin()->second->isFeatured) {
-                res.push_back(items.rbegin()->second);
+        for (auto& item : items) {
+            if (item.second->isFeatured) {
+                res.push_back(item.second);
             }
         }
     }
@@ -487,9 +487,9 @@ std::vector<IndexItemHandle> Index::getItemsByDeveloper(
 ) const {
     std::vector<IndexItemHandle> res;
     for (auto& items : map::values(m_items)) {
-        if (items.size()) {
-            if (items.rbegin()->second->info.developer() == name) {
-                res.push_back(items.rbegin()->second);
+        for (auto& item : items) {
+            if (item.second->info.developer() == name) {
+                res.push_back(item.second);
             }
         }
     }
@@ -501,6 +501,15 @@ bool Index::isKnownItem(
     std::optional<VersionInfo> version
 ) const {
     return this->getItem(id, version).get();
+}
+
+IndexItemHandle Index::getMajorItem(
+    std::string const& id
+) const {
+    if (m_items.count(id)) {
+        return m_items.at(id).rbegin()->second;
+    }
+    return nullptr;
 }
 
 IndexItemHandle Index::getItem(
@@ -558,7 +567,7 @@ bool Index::isUpdateAvailable(IndexItemHandle item) const {
 
 bool Index::areUpdatesAvailable() const {
     for (auto& mod : Loader::get()->getAllMods()) {
-        auto item = this->getItem(mod);
+        auto item = this->getMajorItem(mod->getID());
         if (item && item->info.version() > mod->getVersion()) {
             return true;
         }

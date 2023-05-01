@@ -624,6 +624,15 @@ bool Loader::Impl::verifyLoaderResources() {
         return false;
     }
 
+    // TODO: actually have a proper way to disable checking resources
+    // for development builds
+    if (ghc::filesystem::exists(resourcesDir / "dont-update.txt")) {
+        // this is kind of a hack, but it's the easiest way to prevent
+        // auto update while developing
+        log::debug("Not updating resources since dont-update.txt exists");
+        return true;
+    }
+
     // make sure every file was covered
     size_t coverage = 0;
 

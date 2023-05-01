@@ -50,6 +50,7 @@ docs
 loader/src/internal/about.hpp
 loader/src/internal/resources.hpp
 loader/resources/mod.json
+loader/resources/version
 loader/resources/blanks/rename.js
 loader/resources/changelog.md
 fods-catgirl-hideout.txt

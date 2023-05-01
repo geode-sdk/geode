@@ -347,13 +347,12 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
         uninstallBtn->setPosition(-85.f, 75.f);
         m_buttonMenu->addChild(uninstallBtn);
 
-        auto indexItem = Index::get()->getItem(
-            mod->getModInfo().id(),
-            ComparableVersionInfo(mod->getModInfo().version(), VersionCompare::More)
+        auto latestIndexItem = Index::get()->getMajorItem(
+            mod->getModInfo().id()
         );
 
         // todo: show update button on loader that invokes the installer
-        if (indexItem && Index::get()->isUpdateAvailable(indexItem)) {
+        if (latestIndexItem && Index::get()->isUpdateAvailable(latestIndexItem)) {
             m_installBtnSpr = IconButtonSprite::create(
                 "GE_button_01.png"_spr,
                 CCSprite::createWithSpriteFrameName("install.png"_spr),
@@ -371,15 +370,49 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
             m_installStatus->setVisible(false);
             m_mainLayer->addChild(m_installStatus);
 
-            m_updateVersionLabel = CCLabelBMFont::create(
-                ("Available: " + indexItem->info.version().toString()).c_str(),
-                "bigFont.fnt"
+            auto minorIndexItem = Index::get()->getItem(
+                mod->getModInfo().id(),
+                ComparableVersionInfo(mod->getModInfo().version(), VersionCompare::MoreEq)
             );
-            m_updateVersionLabel->setScale(.35f);
-            m_updateVersionLabel->setAnchorPoint({.0f, .5f});
-            m_updateVersionLabel->setColor({94, 219, 255});
-            m_updateVersionLabel->setPosition(winSize.width / 2 + 35.f, winSize.height / 2 + 75.f);
-            m_mainLayer->addChild(m_updateVersionLabel);
+
+            // TODO: use column layout here?
+
+            if (latestIndexItem->info.version().getMajor() > minorIndexItem->info.version().getMajor()) {
+                // has major update
+                m_latestVersionLabel = CCLabelBMFont::create(
+                    ("Available: " + latestIndexItem->info.version().toString()).c_str(),
+                    "bigFont.fnt"
+                );
+                m_latestVersionLabel->setScale(.35f);
+                m_latestVersionLabel->setAnchorPoint({.0f, .5f});
+                m_latestVersionLabel->setColor({94, 219, 255});
+                m_latestVersionLabel->setPosition(winSize.width / 2 + 35.f, winSize.height / 2 + 75.f);
+                m_mainLayer->addChild(m_latestVersionLabel);
+            }
+
+            if (minorIndexItem->info.version() > mod->getModInfo().version()) {
+                // has minor update
+                m_minorVersionLabel = CCLabelBMFont::create(
+                    ("Available: " + minorIndexItem->info.version().toString()).c_str(),
+                    "bigFont.fnt"
+                );
+                m_minorVersionLabel->setScale(.35f);
+                m_minorVersionLabel->setAnchorPoint({.0f, .5f});
+                m_minorVersionLabel->setColor({94, 219, 255});
+                if (m_latestVersionLabel) {
+                    m_latestVersionLabel->setPosition(
+                        winSize.width / 2 + 35.f, winSize.height / 2 + 81.f
+                    );
+                    m_minorVersionLabel->setPosition(
+                        winSize.width / 2 + 35.f, winSize.height / 2 + 69.f
+                    );
+                } else {
+                    m_minorVersionLabel->setPosition(
+                        winSize.width / 2 + 35.f, winSize.height / 2 + 75.f
+                    );
+                }
+                m_mainLayer->addChild(m_minorVersionLabel);
+            }
         }
     } else {
         auto* label = CCLabelBMFont::create(LOADER_COMMIT_HASH, "chatFont.fnt");
@@ -647,8 +680,8 @@ void IndexItemInfoPopup::onCancel(CCObject*) {
 }
 
 void IndexItemInfoPopup::doInstall() {
-    if (m_updateVersionLabel) {
-        m_updateVersionLabel->setVisible(false);
+    if (m_latestVersionLabel) {
+        m_latestVersionLabel->setVisible(false);
     }
     this->setInstallStatus(UpdateProgress(0, "Starting install"));
 

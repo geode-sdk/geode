@@ -260,19 +260,26 @@ bool ModCell::init(
     m_menu->addChild(m_unresolvedExMark);
 
     if (m_mod->wasSuccesfullyLoaded()) {
-        auto indexItem = Index::get()->getItem(
-            mod->getModInfo().id(),
-            ComparableVersionInfo(mod->getModInfo().version(), VersionCompare::More)
+    
+        auto latestIndexItem = Index::get()->getMajorItem(
+            mod->getModInfo().id()
         );
         
-        if (indexItem) {
+        if (latestIndexItem && Index::get()->isUpdateAvailable(latestIndexItem)) {
             viewSpr->updateBGImage("GE_button_01.png"_spr);
 
-            auto updateIcon = CCSprite::createWithSpriteFrameName("updates-available.png"_spr);
-            updateIcon->setPosition(viewSpr->getContentSize() - CCSize { 2.f, 2.f });
-            updateIcon->setZOrder(99);
-            updateIcon->setScale(.5f);
-            viewSpr->addChild(updateIcon);
+            auto minorIndexItem = Index::get()->getItem(
+                mod->getModInfo().id(),
+                ComparableVersionInfo(mod->getModInfo().version(), VersionCompare::MoreEq)
+            );
+
+            if (latestIndexItem->info.version().getMajor() > minorIndexItem->info.version().getMajor()) {
+                auto updateIcon = CCSprite::createWithSpriteFrameName("updates-available.png"_spr);
+                updateIcon->setPosition(viewSpr->getContentSize() - CCSize { 2.f, 2.f });
+                updateIcon->setZOrder(99);
+                updateIcon->setScale(.5f);
+                viewSpr->addChild(updateIcon);
+            }
         }
     }
 

@@ -37,7 +37,8 @@
             "about.md",
             "changelog.md",
             "support.md",
-            "mod.json"
+            "mod.json",
+            "version"
         ],
         "spritesheets": {
             "LogoSheet": [
