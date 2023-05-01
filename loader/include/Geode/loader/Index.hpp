@@ -167,6 +167,14 @@ namespace geode {
             ComparableVersionInfo version
         ) const;
         /**
+         * Get the most major item from the index by its ID
+         * @param id ID of the mod
+         * @returns The item, or nullptr if the item was not found
+         */
+        IndexItemHandle getMajorItem(
+            std::string const& id
+        ) const;
+        /**
          * Get an item from the index by its mod.json
          * @param info The mod's info
          * @returns The item, or nullptr if the item was not found
