@@ -1,5 +1,17 @@
 # Geode Changelog
 
+## v1.0.0-beta.15
+ * Fix `ghc::filesystem::create_directories` crash on wine (c174f81)
+ * Fix fuzzy search giving meaningless results (7af062f)
+ * Add logging for gd::string (e7ab46c)
+ * Fix `ComparableVersionInfo` comparison being inverted (e7ab46c)
+ * Add `FileWatchEvent` for file watching (50ff15c)
+ * Fix `geode::utils::file::pickFile` on MacOS (8842e8f)
+ * Fix `geode::utils::file::writeToJson` (1c699c3)
+ * Fix notifications not being at the top (4754994)
+ * Fix filter copy constructors (4cec5d7)
+ * Update json library
+
 ## v1.0.0-beta.14
  * Error on trying to use missing bindings at compile time
  * Fix every resources getting reloaded every time a mod is loaded
