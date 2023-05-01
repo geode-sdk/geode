@@ -73,15 +73,16 @@ include(cmake/GeodeFile.cmake)
 include(cmake/Platform.cmake)
 include(cmake/CPM.cmake)
 
+CPMAddPackage("gh:geode-sdk/json#cef9c64")
+CPMAddPackage("gh:fmtlib/fmt#9.1.0")
+CPMAddPackage("gh:gulrak/filesystem#3e5b930")
+
 # this is needed for cross compilation on linux,
 # since fmtlib will fail to compile otherwise
 if (GEODE_DISABLE_FMT_CONSTEVAL)
-	target_compile_definitions(${PROJECT_NAME} INTERFACE -DFMT_CONSTEVAL=)
+	message(VERBOSE "Disabling FMT_CONSTEVAL")
+	target_compile_definitions(fmt PUBLIC -DFMT_CONSTEVAL=)
 endif()
-
-CPMAddPackage("gh:geode-sdk/json#19cf6f4")
-CPMAddPackage("gh:fmtlib/fmt#9.1.0")
-CPMAddPackage("gh:gulrak/filesystem#3e5b930")
 
 # Tulip hook (hooking)
 if (PROJECT_IS_TOP_LEVEL AND NOT GEODE_BUILDING_DOCS)
