@@ -1,5 +1,6 @@
 #include <Windows.h>
 #include <iostream>
+#include <array>
 #include <ghc/filesystem.hpp>
 
 void showError(std::string const& error) {
@@ -17,7 +18,7 @@ int loadGeode(PVOID module) {
 }
 
 DWORD WINAPI load(PVOID module) {
-	std::array<TCHAR, MAX_PATH> szFileName;
+    std::array<TCHAR, MAX_PATH> szFileName;
     GetModuleFileName(NULL, szFileName.data(), MAX_PATH);
 
     ghc::filesystem::path path(szFileName.data());
