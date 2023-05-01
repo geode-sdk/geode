@@ -28,4 +28,8 @@ void geode_nslog(uintptr_t x) {
     NSLog(@"geode %lx", x);
 }
 
+ghc::filesystem::path utils::file::current_path() {
+    return ghc::filesystem::current_path();
+}
+
 #endif

@@ -148,4 +148,17 @@ CCPoint cocos::getMousePos() {
     return ccp(mouse.x - frame.origin.x, mouse.y - frame.origin.y) * scaleFactor;
 }
 
+ghc::filesystem::path utils::file::current_path() {
+    if (ghc::filesystem::current_path().empty()) {
+        std::array<char, PATH_MAX> gddir;
+
+        uint32_t out = PATH_MAX;
+        _NSGetExecutablePath(gddir.data(), &out);
+
+        ghc::filesystem::path gdpath = gddir.data();
+        ghc::filesystem::current_path(gdpath.parent_path().parent_path());
+    }
+    return ghc::filesystem::current_path();
+}
+
 #endif

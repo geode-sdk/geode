@@ -685,7 +685,7 @@ static Result<ModInfo> getModImplInfo() {
             json = json::parse(data.unwrap());
         }
         else {
-            return Err("Unable to find mod.json");
+            return Err("Unable to find mod.json at " + jsonPath.string());
         }
     } catch (std::exception& err) {
         return Err("Unable to parse mod.json: " + std::string(err.what()));

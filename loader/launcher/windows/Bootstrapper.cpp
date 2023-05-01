@@ -17,7 +17,7 @@ int loadGeode(PVOID module) {
 }
 
 DWORD WINAPI load(PVOID module) {
-	auto workingDir = ghc::filesystem::current_path();
+	auto workingDir = utils::file::current_path();
 	auto updatesDir = workingDir / "geode" / "update";
 	auto resourcesDir = workingDir / "geode" / "resources";
 

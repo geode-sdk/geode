@@ -3,6 +3,7 @@
 #include <cocos2d.h>
 #include <crashlog.hpp>
 #include <filesystem>
+#include "LoaderImpl.hpp"
 
 using namespace geode::prelude;
 
@@ -32,7 +33,7 @@ ghc::filesystem::path dirs::getSaveDir() {
 
 ghc::filesystem::path dirs::getGeodeDir() {
 #ifdef GEODE_IS_MACOS
-    return ghc::filesystem::current_path() / "geode";
+    return utils::file::current_path() / "geode";
 #else
     return dirs::getGameDir() / "geode";
 #endif
@@ -43,6 +44,10 @@ ghc::filesystem::path dirs::getGeodeSaveDir() {
 }
 
 ghc::filesystem::path dirs::getGeodeResourcesDir() {
+    LoaderImpl::get()->platformMessageBox(
+        "Fatal Internal Error",
+        (dirs::getGeodeDir() / "resources").string()
+    );
     return dirs::getGeodeDir() / "resources";
 }
 

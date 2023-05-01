@@ -115,4 +115,8 @@ CCPoint cocos::getMousePos() {
     return ccp(mouse.x, 1.f - mouse.y) * winSize;
 }
 
+ghc::filesystem::path utils::file::current_path() {
+    return ghc::filesystem::current_path();
+}
+
 #endif
