@@ -858,9 +858,11 @@ class CountTriggerAction : cocos2d::CCNode {
 }
 
 class CreateGuidelinesLayer : FLAlertLayer, FLAlertLayerProtocol {
-    void onStop(cocos2d::CCObject* sender) = win 0x4d2c0;
-
-    PAD = win 0x24;
+    void doClearGuidelines() = win 0x4cf60, mac 0x299690;
+    void onStop(cocos2d::CCObject* sender) = win 0x4d2c0, mac 0x2990f0;
+    PAD = win 0x4, mac 0x8;
+    LevelSettingsObject* m_levelSettings;
+    PAD = win 0x1c;
     gd::string m_guidelineString;
 }
 
@@ -3506,7 +3508,7 @@ class HardStreak : cocos2d::CCDrawNode {
     bool m_isSolid;
 }
 
-class InfoAlertButton {
+class InfoAlertButton : CCMenuItemSpriteExtra {
     bool init(gd::string const& title, gd::string const& text, float scale) = win 0x14ef50;
     void activate() = win 0x14f050;
     inline InfoAlertButton() {}
@@ -4054,6 +4056,8 @@ class LocalLevelManager : GManager {
     bool init() = mac 0x2384e0;
     virtual void encodeDataTo(DS_Dictionary* data) = mac 0x35ed60, win 0x18e040;
     virtual void dataLoaded(DS_Dictionary* data) = mac 0x35eda0, win 0x18e070;
+
+    cocos2d::CCDictionary* getAllLevelsInDict() = mac 0x35e3d0, win 0x18d7c0;
 
     PAD = mac 0x10, win 0x1C;
     cocos2d::CCDictionary* m_loadData;
