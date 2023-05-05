@@ -1034,8 +1034,10 @@ class DialogDelegate {
 }
 
 class DialogObject : cocos2d::CCObject {
+    DialogObject() {}
+
     static DialogObject* create(gd::string title, gd::string text, int portrait, float text_scale, bool is_unskippable, cocos2d::ccColor3B text_color) = win 0x6D160;
-    bool init(DialogObject*, gd::string title, gd::string text, int portrait, float text_scale, bool is_unskippable, cocos2d::ccColor3B text_color) = win 0x6D2E0;
+    bool init(gd::string title, gd::string text, int portrait, float text_scale, bool is_unskippable, cocos2d::ccColor3B text_color) = win 0x6D2E0;
 
     gd::string m_text;
     gd::string m_title;
@@ -4665,8 +4667,11 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     void bumpPlayer(float, int) = mac 0x22d890;
     void buttonDown(PlayerButton) = mac 0x22b7e0;
     void checkSnapJumpToObject(GameObject*) = mac 0x2217f0;
-    bool collidedWithObject(float, GameObject*) = mac 0x21d880;
-    bool collidedWithObject(float, GameObject*, cocos2d::CCRect) = mac 0x21f0b0;
+    bool collidedWithObject(float fl, GameObject* obj) {
+        auto rect = obj->getObjectRect();
+        return collidedWithObject(fl, obj, rect);
+    }
+    bool collidedWithObject(float, GameObject*, cocos2d::CCRect) = mac 0x21f0b0, win 0x1ebdd0;
     bool collidedWithSlope(float, GameObject*, bool) = mac 0x21d8d0;
     void convertToClosestRotation(float) = mac 0x21c860, win 0x1e9ac0;
     void copyAttributes(PlayerObject*) = mac 0x22dc70, win 0x1f93f0;
