@@ -18,15 +18,6 @@ namespace {
     }
 }
 
-ghc::filesystem::path dirs::getSaveDir() {
-#ifdef GEODE_IS_MACOS
-    // not using ~/Library/Caches
-    return ghc::filesystem::path("/Users/Shared/Geode");
-#else
-    return weaklyCanonical(CCFileUtils::sharedFileUtils()->getWritablePath().c_str());
-#endif
-}
-
 ghc::filesystem::path dirs::getGeodeDir() {
     return dirs::getGameDir() / "geode";
 }

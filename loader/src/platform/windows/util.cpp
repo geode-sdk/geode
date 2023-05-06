@@ -9,6 +9,7 @@ using namespace geode::prelude;
 #include <ghc/fs_fwd.hpp>
 #include <Windows.h>
 #include <iostream>
+#include <ShlObj.h>
 #include <shlwapi.h>
 #include <shobjidl.h>
 #include <sstream>
@@ -124,6 +125,32 @@ ghc::filesystem::path dirs::getGameDir() {
 
         const ghc::filesystem::path path(buffer.data());
         return path.parent_path();
+    }();
+
+    return path;
+}
+
+ghc::filesystem::path dirs::getSaveDir() {
+    // only fetch the path once, since ofc it'll never change
+    // throughout the execution
+    static const auto path = [] {
+        std::array<WCHAR, MAX_PATH + 1> buffer;
+        GetModuleFileNameW(NULL, buffer.data(), MAX_PATH + 1);
+
+        auto executablePath = ghc::filesystem::path(buffer.data());
+        auto executableName = executablePath.filename().wstring();
+        executableName = executableName.substr(0, executableName.find_last_of(L"."));
+
+        if (SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, SHGFP_TYPE_CURRENT, buffer.data()) >= 0) {
+            auto appdataPath = ghc::filesystem::path(buffer.data());
+            auto savePath = appdataPath / executableName;
+
+            if (SHCreateDirectoryExW(NULL, savePath.wstring().c_str(), NULL) >= 0) {
+                return savePath;
+            }
+        }
+        
+        return executablePath.parent_path();
     }();
 
     return path;

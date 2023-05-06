@@ -33,4 +33,8 @@ ghc::filesystem::path dirs::getGameDir() {
     return ghc::filesystem::current_path();
 }
 
+ghc::filesystem::path dirs::getSaveDir() {
+    return weaklyCanonical(CCFileUtils::sharedFileUtils()->getWritablePath().c_str());
+}
+
 #endif

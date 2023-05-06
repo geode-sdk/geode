@@ -150,14 +150,23 @@ CCPoint cocos::getMousePos() {
 }
 
 ghc::filesystem::path dirs::getGameDir() {
-    std::array<char, PATH_MAX> gddir;
+    static auto path = [] {
+        std::array<char, PATH_MAX> gddir;
 
-    uint32_t out = PATH_MAX;
-    _NSGetExecutablePath(gddir.data(), &out);
+        uint32_t out = PATH_MAX;
+        _NSGetExecutablePath(gddir.data(), &out);
 
-    ghc::filesystem::path gdpath = gddir.data();
-    auto currentPath = gdpath.parent_path().parent_path();    
-    return currentPath;
+        ghc::filesystem::path gdpath = gddir.data();
+        auto currentPath = gdpath.parent_path().parent_path();    
+        return currentPath;
+    }();
+
+    return path;
+}
+
+ghc::filesystem::path dirs::getSaveDir() {
+    // not using ~/Library/Caches
+    return ghc::filesystem::path("/Users/Shared/Geode");
 }
 
 #endif
