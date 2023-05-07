@@ -4320,7 +4320,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     void cameraMoveY(float, float, float) = mac 0x7cc60, win 0x207c80;
     void checkCollisions(PlayerObject*, float) = mac 0x78c90, win 0x203CD0;
     void circleWaveWillBeRemoved(CCCircleWave*) = mac 0x7e110, win 0x20aa90;
-    void unclaimParticle(const char*, cocos2d::CCParticleSystemQuad*) = mac 0x76ba0, win 0x200fb0;
+    cocos2d::CCParticleSystemQuad* claimParticle(gd::string) = mac 0x76ba0, win 0x200dd0;
     void clearPickedUpItems() = mac 0x7cfa0;
     void colorObject(int, cocos2d::_ccColor3B) = mac 0x77810;
     void commitJumps() = mac 0x737e0;
@@ -4445,7 +4445,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     void togglePracticeMode(bool) = mac 0x7f9e0, win 0x20d0d0;
     void toggleProgressbar() = mac 0x6eeb0, win 0x208160;
     void tryStartRecord() = mac 0x7fe00;
-    cocos2d::CCParticleSystemQuad* claimParticle(gd::string) = mac 0x76e00, win 0x200dd0;
+    void unclaimParticle(char const*, cocos2d::CCParticleSystemQuad*) = mac 0x76e00, win 0x200fb0;
     void unregisterActiveObject(GameObject*) = mac 0x77660;
     void unregisterStateObject(GameObject*) = mac 0x777f0;
     virtual void update(float) = mac 0x77900, win 0x2029C0, ios 0xb2f08;
