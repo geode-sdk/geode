@@ -4320,7 +4320,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     void cameraMoveY(float, float, float) = mac 0x7cc60, win 0x207c80;
     void checkCollisions(PlayerObject*, float) = mac 0x78c90, win 0x203CD0;
     void circleWaveWillBeRemoved(CCCircleWave*) = mac 0x7e110, win 0x20aa90;
-    void unclaimParticle(const char* particleName, cocos2d::CCParticleSystemQuad* quad) = mac 0x76ba0, win 0x200fb0;
+    void unclaimParticle(const char*, cocos2d::CCParticleSystemQuad*) = mac 0x76ba0, win 0x200fb0;
     void clearPickedUpItems() = mac 0x7cfa0;
     void colorObject(int, cocos2d::_ccColor3B) = mac 0x77810;
     void commitJumps() = mac 0x737e0;
