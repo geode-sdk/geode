@@ -4445,7 +4445,6 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     void togglePracticeMode(bool) = mac 0x7f9e0, win 0x20d0d0;
     void toggleProgressbar() = mac 0x6eeb0, win 0x208160;
     void tryStartRecord() = mac 0x7fe00;
-    // three middle ints are unused, final int is apparently
     cocos2d::CCParticleSystemQuad* claimParticle(gd::string) = mac 0x76e00, win 0x200dd0;
     void unregisterActiveObject(GameObject*) = mac 0x77660;
     void unregisterStateObject(GameObject*) = mac 0x777f0;
