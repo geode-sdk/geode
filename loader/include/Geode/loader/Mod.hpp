@@ -233,17 +233,19 @@ namespace geode {
          * @param detour Pointer to your detour function
          * @param displayName Name of the hook that will be
          * displayed in the hook list
+         * @param convention Calling convention of the hook
          * @param hookMetadata Metadata of the hook
          * @returns Successful result containing the
          * Hook pointer, errorful result with info on
          * error
          */
-        template <class Convention, class DetourType>
+        template <class DetourType>
         Result<Hook*> addHook(
             void* address, DetourType detour, std::string const& displayName = "",
+            tulip::hook::TulipConvention convention = tulip::hook::TulipConvention::Default,
             tulip::hook::HookMetadata const& hookMetadata = tulip::hook::HookMetadata()
         ) {
-            auto hook = Hook::create<Convention>(this, address, detour, displayName, hookMetadata);
+            auto hook = Hook::create(this, address, detour, displayName, convention, hookMetadata);
             return this->addHook(hook);
         }
 
