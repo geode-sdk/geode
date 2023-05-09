@@ -17,9 +17,26 @@ void Loader::Impl::platformMessageBox(char const* title, std::string const& info
     MessageBoxA(nullptr, info.c_str(), title, MB_ICONERROR);
 }
 
+bool hasAnsiColorSupport = false;
+
 void Loader::Impl::logConsoleMessageWithSeverity(std::string const& msg, Severity severity) {
     if (m_platformConsoleOpen) {
-        std::cout << msg << "\n" << std::flush;
+        if (hasAnsiColorSupport) {
+            int color = 0;
+            switch (severity) {
+                case Severity::Debug: color = 243; break;
+                case Severity::Info: color = 33; break;
+                case Severity::Warning: color = 229; break;
+                case Severity::Error: color = 9; break;
+                default: color = 7; break;
+            }
+            auto const colorStr = fmt::format("\x1b[38;5;{}m", color);
+            auto const newMsg = fmt::format("{}{}\x1b[0m{}", colorStr, msg.substr(0, 8), msg.substr(8));
+
+            std::cout << newMsg << "\n" << std::flush;
+        } else {
+            std::cout << msg << "\n" << std::flush;
+        }
     }
 }
 
@@ -31,10 +48,21 @@ void Loader::Impl::openPlatformConsole() {
     freopen_s(reinterpret_cast<FILE**>(stdout), "CONOUT$", "w", stdout);
     freopen_s(reinterpret_cast<FILE**>(stdin), "CONIN$", "r", stdin);
 
+    // Set output mode to handle ansi color sequences
+    auto handleStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+
+    DWORD consoleMode = 0;
+    if (GetConsoleMode(handleStdout, &consoleMode)) {
+        consoleMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+        if (SetConsoleMode(handleStdout, consoleMode)) {
+            hasAnsiColorSupport = true;
+        }
+    }
+
     m_platformConsoleOpen = true;
 
     for (auto const& log : log::Logger::list()) {
-        std::cout << log->toString(true) << "\n";
+        this->logConsoleMessageWithSeverity(log->toString(true), log->getSeverity());
     }
 }
 
