@@ -3,6 +3,7 @@
 ## v1.0.0-beta.17
  * Fix `Mod::addHook` (372e2aa)
  * Enable ANSI color support on Windows for logs (af8d4a0)
+ * Better unicode support for paths on Windows (a1e9ac4)
 
 ## v1.0.0-beta.16
  * Fix mod.json not loading because of broken working directory on MacOS (d7ccfde)
