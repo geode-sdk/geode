@@ -24,7 +24,8 @@
 #include <loader/LoaderImpl.hpp>
 
 static constexpr int const TAG_CONFIRM_UNINSTALL = 5;
-static constexpr int const TAG_DELETE_SAVEDATA = 6;
+static constexpr int const TAG_CONFIRM_UPDATE = 6;
+static constexpr int const TAG_DELETE_SAVEDATA = 7;
 static const CCSize LAYER_SIZE = {440.f, 290.f};
 
 bool ModInfoPopup::init(ModInfo const& info, ModListLayer* list) {
@@ -280,8 +281,17 @@ void ModInfoPopup::setInstallStatus(std::optional<UpdateProgress> const& progres
 }
 
 // LocalModInfoPopup
+LocalModInfoPopup::LocalModInfoPopup()
+  : m_installListener(
+        this, &LocalModInfoPopup::onUpdateProgress,
+        ModInstallFilter("")
+    ) {}
+
 
 bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
+    m_item = Index::get()->getMajorItem(mod->getModInfo().id());
+    if (m_item)
+        m_installListener.setFilter(m_item->info.id());
     m_mod = mod;
 
     if (!ModInfoPopup::init(mod->getModInfo(), list)) return false;
@@ -347,12 +357,8 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
         uninstallBtn->setPosition(-85.f, 75.f);
         m_buttonMenu->addChild(uninstallBtn);
 
-        auto latestIndexItem = Index::get()->getMajorItem(
-            mod->getModInfo().id()
-        );
-
         // todo: show update button on loader that invokes the installer
-        if (latestIndexItem && Index::get()->isUpdateAvailable(latestIndexItem)) {
+        if (m_item && Index::get()->isUpdateAvailable(m_item)) {
             m_installBtnSpr = IconButtonSprite::create(
                 "GE_button_01.png"_spr,
                 CCSprite::createWithSpriteFrameName("install.png"_spr),
@@ -361,7 +367,7 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
             );
             m_installBtnSpr->setScale(.6f);
 
-            m_installBtn = CCMenuItemSpriteExtra::create(m_installBtnSpr, this, nullptr);
+            m_installBtn = CCMenuItemSpriteExtra::create(m_installBtnSpr, this, menu_selector(LocalModInfoPopup::onUpdate));
             m_installBtn->setPosition(-8.0f, 75.f);
             m_buttonMenu->addChild(m_installBtn);
 
@@ -377,10 +383,10 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
 
             // TODO: use column layout here?
 
-            if (latestIndexItem->info.version().getMajor() > minorIndexItem->info.version().getMajor()) {
+            if (m_item->info.version().getMajor() > minorIndexItem->info.version().getMajor()) {
                 // has major update
                 m_latestVersionLabel = CCLabelBMFont::create(
-                    ("Available: " + latestIndexItem->info.version().toString()).c_str(),
+                    ("Available: " + m_item->info.version().toString()).c_str(),
                     "bigFont.fnt"
                 );
                 m_latestVersionLabel->setScale(.35f);
@@ -450,6 +456,101 @@ ModInfo LocalModInfoPopup::getModInfo() const {
 
 void LocalModInfoPopup::onIssues(CCObject*) {
     geode::openIssueReportPopup(m_mod);
+}
+
+void LocalModInfoPopup::onUpdateProgress(ModInstallEvent* event) {
+    std::visit(makeVisitor {
+        [&](UpdateFinished const&) {
+            this->setInstallStatus(std::nullopt);
+            
+            FLAlertLayer::create(
+                "Update complete",
+                "Mod succesfully updated! :) "
+                "(You may need to <cy>restart the game</c> "
+                "for the mod to take full effect)",
+                "OK"
+            )->show();
+
+            if (m_layer) {
+                m_layer->reloadList();
+            }
+            this->onClose(nullptr);
+        },
+        [&](UpdateProgress const& progress) {
+            this->setInstallStatus(progress);
+        },
+        [&](UpdateFailed const& info) {
+            this->setInstallStatus(std::nullopt);
+
+            FLAlertLayer::create(
+                "Update failed :(", info, "OK"
+            )->show();
+
+            m_installBtn->setEnabled(true);
+            m_installBtn->setTarget(
+                this, menu_selector(LocalModInfoPopup::onUpdate)
+            );
+            m_installBtnSpr->setString("Update");
+            m_installBtnSpr->setBG("GE_button_01.png"_spr, false);
+        }
+    }, event->status);
+}
+
+void LocalModInfoPopup::onUpdate(CCObject*) {
+    auto list = Index::get()->getInstallList(m_item);
+    if (!list) {
+        return FLAlertLayer::create(
+            "Unable to Update",
+            list.unwrapErr(),
+            "OK"
+        )->show();
+    }
+    auto layer = FLAlertLayer::create(
+        this,
+        "Confirm Update",
+        fmt::format(
+            "The following mods will be updated:\n {}",
+            // le nest
+            ranges::join(
+                ranges::map<std::vector<std::string>>(
+                    list.unwrap().list,
+                    [](IndexItemHandle handle) {
+                        return fmt::format(
+                            " - <cr>{}</c> (<cy>{}</c>)",
+                            handle->info.name(), handle->info.id()
+                        );
+                    }
+                ),
+                "\n "
+            )
+        ),
+        "Cancel", "OK"
+    );
+    layer->setTag(TAG_CONFIRM_UPDATE);
+    layer->show();
+}
+
+void LocalModInfoPopup::onCancel(CCObject*) {
+    Index::get()->cancelInstall(m_item);
+}
+
+void LocalModInfoPopup::doUpdate() {
+    if (m_latestVersionLabel) {
+        m_latestVersionLabel->setVisible(false);
+    }
+
+    if (m_minorVersionLabel) {
+        m_minorVersionLabel->setVisible(false);
+    }
+    this->setInstallStatus(UpdateProgress(0, "Starting update"));
+
+    m_installBtn->setTarget(
+        this, menu_selector(LocalModInfoPopup::onCancel)
+    );
+    m_installBtnSpr->setString("Cancel");
+    m_installBtnSpr->setBG("GJ_button_06.png", false);
+
+    Index::get()->install(m_item);
 }
 
 void LocalModInfoPopup::onUninstall(CCObject*) {
@@ -532,6 +633,12 @@ void LocalModInfoPopup::FLAlert_Clicked(FLAlertLayer* layer, bool btn2) {
                 m_layer->reloadList();
             }
             this->onClose(nullptr);
+        } break;
+
+        case TAG_CONFIRM_UPDATE: {
+            if (btn2) {
+                this->doUpdate();
+            }
         } break;
     }
 }
