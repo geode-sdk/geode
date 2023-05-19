@@ -204,17 +204,6 @@ if (APPLE)
 elseif (WIN32)
 	add_subdirectory(launcher/windows)
 
-	CPMAddPackage("gh:TsudaKageyu/minhook#49d03ad")
-	target_link_libraries(${PROJECT_NAME} minhook)
-
-	# target_include_directories(${PROJECT_NAME} PRIVATE dobby/include)
-	# target_link_directories(${PROJECT_NAME} PRIVATE dobby)
-	# target_link_libraries(${PROJECT_NAME} dobby)
-
-	# set(DOBBY_GENERATE_SHARED OFF CACHE BOOL "Build dobby shared library" FORCE)
-	# # set(DOBBY_DEBUG ON CACHE BOOL "Build dobby shared library" FORCE)
-	# add_subdirectory(dobby)
-
 	target_link_libraries(${PROJECT_NAME} dbghelp)
 
 	# disable warnings about CCNode::setID
