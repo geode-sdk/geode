@@ -710,10 +710,10 @@ class ColorAction : cocos2d::CCNode {
     void setupFromString(gd::string) = mac 0x17f270, win 0x11b730;
 
     bool m_stepFinished;
-    cocos2d::ccColor3B m_fromColor;
+    cocos2d::ccColor3B m_color;
     float m_currentOpacity;
     float m_deltaTime;
-    cocos2d::ccColor3B m_color;
+    cocos2d::ccColor3B m_fromColor;
     cocos2d::ccColor3B m_targetColor;
     float m_duration;
     bool m_blending;
