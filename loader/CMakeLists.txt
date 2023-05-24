@@ -149,7 +149,7 @@ if (APPLE)
 	#set_property(TARGET ${PROJECT_NAME} PROPERTY RULE_LAUNCH_COMPILE "${CMAKE_COMMAND} -E time")
 endif()
 
-target_compile_definitions(${PROJECT_NAME} PUBLIC GEODE_EXPORTING)
+target_compile_definitions(${PROJECT_NAME} PUBLIC GEODE_EXPORTING MAT_JSON_EXPORTING)
 
 # These are only needed for building source :-)
 if (NOT GEODE_BUILDING_DOCS)
