@@ -3059,7 +3059,7 @@ class GameObject : CCSpritePlus {
 
     GameObject() = mac 0xdc4c0, win 0x983e0; // yeah why is this here wtf, seems life ego ctor created this
     ~GameObject() = mac 0x2f4ca0, win 0xcf340;
-    virtual void update(float) = mac 0x2fbb90, win 0xce440;
+    virtual void update(float) = mac 0x2fbb90, win 0x30e00;
     virtual void setScaleX(float) = mac 0x335b00, win 0xe5050;
     virtual void setScaleY(float) = mac 0x335b90, win 0xe50e0;
     virtual void setScale(float) = mac 0x335c20, win 0xe5170;
