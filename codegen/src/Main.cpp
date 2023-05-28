@@ -1,10 +1,12 @@
 #include "Shared.hpp"
+
 #include <ghc/filesystem.hpp> // bruh
 
 using namespace codegen;
 
 int main(int argc, char** argv) try {
-	if (argc != 4) throw codegen::error("Invalid number of parameters (expected 3 found {})", argc-1);
+    if (argc != 4)
+        throw codegen::error("Invalid number of parameters (expected 3 found {})", argc - 1);
 
     std::string p = argv[1];
 
@@ -14,7 +16,8 @@ int main(int argc, char** argv) try {
     else if (p == "Android") codegen::platform = Platform::Android;
     else throw codegen::error("Invalid platform {}\n", p);
 
-    chdir(argv[2]);
+    auto rootDir = ghc::filesystem::path(argv[2]);
+    ghc::filesystem::current_path(rootDir);
 
     auto writeDir = ghc::filesystem::path(argv[3]) / "Geode";
     ghc::filesystem::create_directories(writeDir);
@@ -25,7 +28,8 @@ int main(int argc, char** argv) try {
 
     for (auto cls : root.classes) {
         for (auto dep : cls.depends) {
-            if(!is_cocos_class(dep) && std::find(root.classes.begin(), root.classes.end(), dep) == root.classes.end()) {
+            if (!is_cocos_class(dep) &&
+                std::find(root.classes.begin(), root.classes.end(), dep) == root.classes.end()) {
                 throw codegen::error("Class {} depends on unknown class {}", cls.name, dep);
             }
         }
@@ -38,7 +42,9 @@ int main(int argc, char** argv) try {
     writeFile(writeDir / "GeneratedBinding.hpp", generateBindingHeader(root, writeDir / "binding"));
     writeFile(writeDir / "GeneratedPredeclare.hpp", generatePredeclareHeader(root));
     writeFile(writeDir / "GeneratedSource.cpp", generateBindingSource(root));
-} catch(std::exception& e) {
+}
+
+catch (std::exception& e) {
     std::cout << "Codegen error: " << e.what() << "\n";
     return 1;
 }

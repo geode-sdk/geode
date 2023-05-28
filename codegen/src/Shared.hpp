@@ -4,19 +4,13 @@
 #include <broma.hpp>
 #include <fmt/format.h>
 #include <fmt/ranges.h>
-#include <ghc/filesystem.hpp>
 #include <fstream>
+#include <ghc/filesystem.hpp>
 
 using std::istreambuf_iterator;
 
 #ifdef _MSC_VER
     #pragma warning(disable : 4996)
-#endif
-
-#if _WIN32
-    #include <direct.h>
-#else
-    #include <unistd.h>
 #endif
 
 std::string generateAddressHeader(Root& root);
@@ -113,13 +107,12 @@ namespace codegen {
 
             return BindStatus::Binded;
         }
-        
+
         if (fb->type == FunctionType::Normal) {
             if (field.parent.rfind("fmod::", 0) == 0) return BindStatus::Binded;
-            if (
-                (field.parent.rfind("cocos2d::", 0) == 0 || field.parent == "DS_Dictionary") &&
-                p == Platform::Windows
-            ) return BindStatus::Binded;
+            if ((field.parent.rfind("cocos2d::", 0) == 0 || field.parent == "DS_Dictionary") &&
+                p == Platform::Windows)
+                return BindStatus::Binded;
         }
 
         return BindStatus::Unbindable;
