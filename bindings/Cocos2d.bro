@@ -683,10 +683,10 @@ class cocos2d::CCObject {
 }
 
 class cocos2d::CCParticleSystem {
-	CCParticleSystem() = mac 0x0;
-	virtual ~CCParticleSystem() = mac 0x0;
-	virtual auto update(float) = mac 0x0;
-	auto initParticle(cocos2d::tCCParticle*) = mac 0x0;
+	CCParticleSystem();
+	virtual ~CCParticleSystem();
+	virtual auto update(float);
+	auto initParticle(cocos2d::tCCParticle*);
 	auto resetSystem() = mac 0x46bd50;
 	auto resumeSystem() = mac 0x46bd40;
 	auto stopSystem() = mac 0x46bd10;
