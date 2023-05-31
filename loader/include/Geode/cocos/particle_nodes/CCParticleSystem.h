@@ -173,7 +173,8 @@ emitter.startSpin = 0;
 
 */
 class CC_DLL CCParticleSystem : public CCNode, public CCTextureProtocol
-{    
+{
+    GEODE_FRIEND_MODIFY
 protected:
     gd::string m_sPlistFile;
     //! time elapsed since the start of the system (in seconds)
@@ -235,8 +236,12 @@ protected:
     /** weak reference to the CCSpriteBatchNode that renders the CCSprite */
     CC_PROPERTY(CCParticleBatchNode*, m_pBatchNode, BatchNode);
 
-    // RobTop removed this
-    ///CC_SYNTHESIZE(unsigned int, m_uAtlasIndex, AtlasIndex);
+    RT_REMOVE(
+        CC_SYNTHESIZE(unsigned int, m_uAtlasIndex, AtlasIndex);
+    )
+    RT_ADD(
+        CC_SYNTHESIZE_NV(unsigned int, m_uAtlasIndex, AtlasIndex);
+    )
 
     //true if scaled or rotated
     bool m_bTransformSystemDirty;
@@ -373,6 +378,7 @@ public:
      * @js ctor
      */
     CCParticleSystem();
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCParticleSystem, CCNode)
     /**
      * @js NA
      * @lua NA
