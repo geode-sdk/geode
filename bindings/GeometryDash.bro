@@ -5555,9 +5555,27 @@ class UploadPopupDelegate {
 class UserInfoDelegate {}
 
 class VideoOptionsLayer : FLAlertLayer {
-    PAD = win 0x18;
+    VideoOptionsLayer* create() = win 0x1e0d70;
+    bool init() = win 0x1e0e10;
+    void onAdvanced(cocos2d::CCObject*) = win 0x1e1b40;
+    void onFullscreen(cocos2d::CCObject*) = win 0x1e1b60;
+    void onTextureQualityNext(cocos2d::CCObject*) = win 0x1e1b80;
+    void onTextureQualityPrev(cocos2d::CCObject*) = win 0x1e1b90;
+    void updateTextureQuality(int index) = win 0x1e1ba0;
+    void onResolutionPrev(cocos2d::CCObject*) = win 0x1e1c40;
+    void onResolutionNext(cocos2d::CCObject*) = win 0x1e1c50;
+    void updateResolution(int index) = win 0x1e1c60;
+    void toggleResolution() = win 0x1e1d90;
+    void onApply(cocos2d::CCObject*) = win 0x1e1e70;
+
+    CCMenuItemSpriteExtra* m_prevResolution;
+    CCMenuItemSpriteExtra* m_nextResolution;
+    cocos2d::CCLabelBMFont* m_resolutionLabel;
+    cocos2d::CCLabelBMFont* m_resolutionText;
+    cocos2d::CCLabelBMFont* m_qualityLabel;
+    cocos2d::TextureQuality m_quality;
     cocos2d::CCArray* m_resolutions;
-    PAD = win 0x4;
+    bool m_isFullscreen;
     int m_currentResolution;
 }
 

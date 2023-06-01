@@ -153,7 +153,13 @@ protected:
     RT_ADD(
         GLFWwindow* m_pMainWindow;
         GLFWmonitor* m_pPrimaryMonitor;
-        CCSize m_obWindowedSize;
+    )
+public:
+    RT_ADD(
+        CC_SYNTHESIZE_NV(CCSize, m_obWindowedSize, WindowedSize);
+    )
+protected:
+    RT_ADD(
         float m_fMouseX;
         float m_fMouseY;
         bool m_bIsFullscreen;
