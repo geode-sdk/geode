@@ -288,6 +288,8 @@ class cocos2d::CCIMEDispatcher {
 class cocos2d::CCImage {
 	CCImage() = mac 0x24fa00;
 	virtual ~CCImage() = mac 0x24fa80;
+	auto initWithImageFile(const char*, cocos2d::CCImage::EImageFormat imageType);
+	auto initWithImageFileThreadSafe(const char*, cocos2d::CCImage::EImageFormat imageType);
 	auto initWithImageData(void*, int, cocos2d::CCImage::EImageFormat, int, int, int) = mac 0x24fcb0;
 }
 
@@ -929,6 +931,8 @@ class cocos2d::CCTexture2D {
 	auto initWithData(void const*, cocos2d::CCTexture2DPixelFormat, unsigned int, unsigned int, cocos2d::CCSize const&) = mac 0x2465d0;
 	auto setAliasTexParameters() = mac 0x247a20;
 	auto setAntiAliasTexParameters() = mac 0x247a80;
+	static void setDefaultAlphaPixelFormat(cocos2d::CCTexture2DPixelFormat);
+	static cocos2d::CCTexture2DPixelFormat defaultAlphaPixelFormat();
 	auto setMaxS(float) = mac 0x2464f0;
 	auto setMaxT(float) = mac 0x246510;
 	auto setShaderProgram(cocos2d::CCGLProgram*) = mac 0x246530;
