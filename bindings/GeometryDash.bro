@@ -3002,7 +3002,7 @@ class GameManager : GManager {
     bool m_showedRateDiffDialog;
     bool m_showedRateStarDialog;
     bool m_showedLowDetailDialog;
-    PAD = mac 0x30, win 0x30;
+    PAD = mac 0x3c, win 0x30;
     int m_bootups;
     bool m_hasRatedGame;
     bool m_unk0;
@@ -4297,6 +4297,8 @@ class PlatformToolbox {
             return false;
         #endif
     }
+    static void toggleFullScreen(bool fullscreen) = mac 0x27cf90;
+    static void resizeWindow() = mac 0x27cfe0;
 }
 
 class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate, DialogDelegate {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Geode/DefaultInclude.hpp>
+#include <Geode/Loader.hpp>
 #include <ghc/fs_fwd.hpp>
 #include <string>
 
@@ -24,4 +24,6 @@ namespace crashlog {
      * not support crash logs
      */
     ghc::filesystem::path GEODE_DLL getCrashLogDirectory();
+
+    void GEODE_DLL writeCrashlog(geode::Mod* faultyMod, std::string const& info, std::string const& stacktrace, std::string const& registers);
 }

@@ -144,7 +144,8 @@ static void printAddr(std::ostream& stream, void const* addr, bool fullPath = tr
 }
 
 // https://stackoverflow.com/a/50208684/9124836
-static void walkStack(std::ostream& stream, PCONTEXT context) {
+static std::string walkStack(PCONTEXT context) {
+    std::stringstream stream;
     STACKFRAME64 stack;
     memset(&stack, 0, sizeof(STACKFRAME64));
 
@@ -169,9 +170,11 @@ static void walkStack(std::ostream& stream, PCONTEXT context) {
         printAddr(stream, reinterpret_cast<void*>(stack.AddrPC.Offset));
         stream << std::endl;
     }
+    return stream.str();
 }
 
-static void printRegisters(std::ostream& stream, PCONTEXT context) {
+static std::string getRegisters(PCONTEXT context) {
+    std::stringstream stream;
     stream << std::hex << "EAX: " << context->Eax << "\n"
            << "EBX: " << context->Ebx << "\n"
            << "ECX: " << context->Ecx << "\n"
@@ -182,9 +185,11 @@ static void printRegisters(std::ostream& stream, PCONTEXT context) {
            << "ESI: " << context->Esi << "\n"
            << "EIP: " << context->Eip << "\n"
            << std::dec;
+    return stream.str();
 }
 
-static void printInfo(std::ostream& stream, LPEXCEPTION_POINTERS info, Mod* faultyMod) {
+static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod) {
+    std::stringstream stream;
     stream << "Faulty Module: "
            << getModuleName(handleFromAddress(info->ExceptionRecord->ExceptionAddress), true)
            << "\n"
@@ -198,87 +203,20 @@ static void printInfo(std::ostream& stream, LPEXCEPTION_POINTERS info, Mod* faul
     stream << ")"
            << "\n"
            << "Number Parameters: " << info->ExceptionRecord->NumberParameters << "\n";
-}
-
-static void printGeodeInfo(std::ostream& stream) {
-    stream << "Loader Version: " << Loader::get()->getVersion().toString() << "\n"
-           << "Installed mods: " << Loader::get()->getAllMods().size() << "\n"
-           << "Failed mods: " << Loader::get()->getFailedMods().size() << "\n";
-}
-
-static void printMods(std::ostream& stream) {
-    auto mods = Loader::get()->getAllMods();
-    if (!mods.size()) {
-        stream << "<None>\n";
-    }
-    for (auto& mod : mods) {
-        stream << mod->getID() << " | " << mod->getDeveloper() << " | "
-               << mod->getVersion().toString() << " | "
-               << (mod->isEnabled() ? "Enabled" : "Disabled") << " | "
-               << (mod->isLoaded() ? "Loaded" : "Unloaded") << " | "
-               << "\n";
-    }
+    return stream.str();
 }
 
 static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
-    // make sure crashlog directory exists
-    (void)utils::file::createDirectoryAll(crashlog::getCrashLogDirectory());
-
-    // add a file to let Geode know on next launch that it crashed previously
-    // this could also be done by saving a loader setting or smth but eh.
-    (void)utils::file::writeBinary(crashlog::getCrashLogDirectory() / "last-crashed", {});
-
+    
     SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
-
-    std::stringstream file;
 
     // init symbols so we can get some juicy debug info
     g_symbolsInitialized = SymInitialize(static_cast<HMODULE>(GetCurrentProcess()), nullptr, true);
 
     auto faultyMod = modFromAddress(info->ExceptionRecord->ExceptionAddress);
 
-    file << getDateString(false) << "\n"
-         << std::showbase << "Whoopsies! An exception has occurred while running Geode.\n";
-
-    if (faultyMod) {
-        file << "It appears that the crash occurred while executing code from "
-             << "the \"" << faultyMod->getID() << "\" mod. "
-             << "Please submit this crash report to its developer (" << faultyMod->getDeveloper()
-             << ") for assistance.\n";
-    }
-
-    // geode info
-    file << "\n== Geode Information ==\n";
-    printGeodeInfo(file);
-
-    // exception info
-    file << "\n== Exception Information ==\n";
-    printInfo(file, info, faultyMod);
-
-    // registers
-    file << "\n== Register States ==\n";
-    printRegisters(file, info->ContextRecord);
-
-    // stack trace
-    file << "\n== Stack Trace ==\n";
-    walkStack(file, info->ContextRecord);
-
-    // mods
-    file << "\n== Installed Mods ==\n";
-    printMods(file);
-
-    // show message box on debug mode
-    #ifdef GEODE_DEBUG
-    MessageBoxA(nullptr, file.str().c_str(), "Geode Crashed", MB_ICONERROR);
-    #endif
-
-    // save actual file
-    std::ofstream actualFile;
-    actualFile.open(
-        crashlog::getCrashLogDirectory() / (getDateString(true) + ".log"), std::ios::app
-    );
-    actualFile << file.rdbuf() << std::flush;
-    actualFile.close();
+    crashlog::writeCrashlog(faultyMod, getInfo(info, faultyMod), getStacktrace(info->ContextRecord), getRegisters(info->ContextRecord));
+    
 
     return EXCEPTION_CONTINUE_SEARCH;
 }

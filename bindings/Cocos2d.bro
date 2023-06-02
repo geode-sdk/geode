@@ -141,6 +141,8 @@ class cocos2d::CCDirector {
 	auto convertToUI(cocos2d::CCPoint const&) = mac 0x24a340;
 	auto drawScene() = mac 0x249690;
 	auto willSwitchToScene(cocos2d::CCScene* scene);
+	auto setOpenGLView(cocos2d::CCEGLView *pobOpenGLView) = mac 0x249be0;
+	auto updateScreenScale(cocos2d::CCSize) = mac 0x249f10;
 
 	auto setNextScene() = mac 0x2498d0;
 	auto showStats() = mac 0x2499e0;
@@ -238,6 +240,7 @@ class cocos2d::CCEGLViewProtocol {
     auto getViewPortRect() const = mac 0x29e2f0;
     auto getScaleX() const = mac 0x29e300;
     auto getScaleY() const = mac 0x29e310;
+	auto setFrameSize(float, float) = mac 0x29d960;
 }
 
 class cocos2d::CCFadeOut {
