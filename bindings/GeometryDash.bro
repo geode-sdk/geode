@@ -1016,8 +1016,9 @@ class DialogLayer : cocos2d::CCLayerColor {
     }
 
     static DialogLayer* createDialogLayer(DialogObject*, cocos2d::CCArray*, int) = mac 0x2047d0, win 0x6D470, ios 0x459d0;
-    bool init(DialogLayer*, DialogObject*, cocos2d::CCArray*, int) = win 0x6D520;
-    cocos2d::CCAction* animateIn(int location) = win 0x6E130;
+    bool init(DialogObject*, cocos2d::CCArray*, int) = win 0x6D520;
+    void animateIn(DialogAnimationType location) = win 0x6E130, mac 0x205a70;
+    void updateChatPlacement(DialogChatPlacement placement) = mac 0x205360;
 
     ~DialogLayer() = mac 0x204720;
     virtual void onEnter() = mac 0x205900, win 0x23750; // same as every other FLAlertLayer
