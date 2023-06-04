@@ -276,7 +276,7 @@ namespace geode {
 #define GEODE_UNWRAP_INTO(into, ...)                                            \
     auto GEODE_CONCAT(unwrap_res_, __LINE__) = (__VA_ARGS__);                   \
     if (GEODE_CONCAT(unwrap_res_, __LINE__).isErr()) {                          \
-        return Err(std::move(GEODE_CONCAT(unwrap_res_, __LINE__).unwrapErr())); \
+        return geode::Err(std::move(GEODE_CONCAT(unwrap_res_, __LINE__).unwrapErr())); \
     }                                                                           \
     into = std::move(GEODE_CONCAT(unwrap_res_, __LINE__).unwrap())
 
@@ -284,7 +284,7 @@ namespace geode {
     {                                                                               \
         auto GEODE_CONCAT(unwrap_res_, __LINE__) = (__VA_ARGS__);                   \
         if (GEODE_CONCAT(unwrap_res_, __LINE__).isErr()) {                          \
-            return Err(std::move(GEODE_CONCAT(unwrap_res_, __LINE__).unwrapErr())); \
+            return geode::Err(std::move(GEODE_CONCAT(unwrap_res_, __LINE__).unwrapErr())); \
         }                                                                           \
     }
 }
