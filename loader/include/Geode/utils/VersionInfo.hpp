@@ -214,6 +214,8 @@ namespace geode {
                     return version > m_version;
                 case VersionCompare::Exact:
                     return version == m_version;
+                default:
+                    return false;
             }
         }
 
