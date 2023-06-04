@@ -3900,6 +3900,14 @@ class LevelSettingsDelegate {
     virtual void levelSettingsUpdated() {}
 }
 
+class SecretLayer4 : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol, DialogDelegate {
+    static SecretLayer4* create() = mac 0x1ed500;
+    static cocos2d::CCScene* scene() = mac 0x1ed4c0;
+
+    bool init() = mac 0x1ed640;
+    void showDialog(int message) = mac 0x1effd0;
+}
+
 class SelectArtDelegate {
     virtual void selectArtClosed(SelectArtLayer*) {}
 }
