@@ -149,7 +149,7 @@ class BoomListView : cocos2d::CCLayer, TableViewDelegate, TableViewDataSource {
     virtual void TableViewCommitCellEditingStyleForRowAtIndexPath(TableView*, TableViewCellEditingStyle, CCIndexPath&) {}
     virtual void TableViewWillReloadCellForRowAtIndexPath(CCIndexPath&, TableViewCell*, TableView*) {}
     virtual TableViewCell* getListCell(const char*) = mac 0x18f200, win 0x10ed0;
-    virtual void loadCell(TableViewCell*, unsigned int) = mac 0x18f4a0, win 0x10ff0;
+    virtual void loadCell(TableViewCell*, int) = mac 0x18f4a0, win 0x10ff0;
     inline bool init(cocos2d::CCArray* entries, BoomListType type, float width, float height) {
         return this->init(entries, height, width, 0, type);
     }
@@ -919,7 +919,7 @@ class CustomListView : BoomListView {
         return CustomListView::create(entries, width, height, 0, type);
     }
     virtual TableViewCell* getListCell(const char*) = mac 0x10d560, win 0x58050;
-    virtual void loadCell(TableViewCell*, unsigned int) = mac 0x10e610, win 0x585c0;
+    virtual void loadCell(TableViewCell*, int) = mac 0x10e610, win 0x585c0;
     virtual void setupList() = mac 0x116e70, win 0x58870;
     inline CustomListView() {}
 }
@@ -2382,7 +2382,7 @@ class GJItemIcon : cocos2d::CCSprite {
 }
 
 class GJLevelScoreCell : TableViewCell {
-    void updateBGColor(unsigned int index) = win 0x5c6b0;
+    void updateBGColor(int index) = win 0x5c6b0;
 }
 
 class GJListLayer : cocos2d::CCLayerColor {
@@ -2410,7 +2410,7 @@ class GJMapPack : cocos2d::CCNode {
 }
 
 class GJMessageCell : TableViewCell {
-    void updateBGColor(unsigned int index) = win 0x5c6b0;
+    void updateBGColor(int index) = win 0x5c6b0;
     void loadFromMessage(GJUserMessage *) = win 0x64b60;
 }
 
@@ -2420,7 +2420,7 @@ class GJOptionsLayer : FLAlertLayer {
 }
 
 class GJRequestCell : TableViewCell {
-    void updateBGColor(unsigned int index) = win 0x5c6b0;
+    void updateBGColor(int index) = win 0x5c6b0;
 }
 
 class GJRewardDelegate {}
@@ -2506,7 +2506,7 @@ class GJScoreCell : TableViewCell {
     virtual void FLAlert_Clicked(FLAlertLayer*, bool) = win 0x624a0;
     void loadFromScore(GJUserScore* score) = win 0x61440;
     void onViewProfile(cocos2d::CCObject* sender) = win 0x62380;
-    void updateBGColor(unsigned int index) = win 0x5c6b0;
+    void updateBGColor(int index) = win 0x5c6b0;
 }
 
 class GJSearchObject : cocos2d::CCNode {
@@ -2566,7 +2566,7 @@ class GJSpriteColor : cocos2d::CCNode {
 }
 
 class GJUserCell : TableViewCell {
-    void updateBGColor(unsigned int index) = win 0x5c6b0;
+    void updateBGColor(int index) = win 0x5c6b0;
 }
 
 class GJUserMessage : cocos2d::CCNode {
@@ -3611,7 +3611,7 @@ class LevelCell : TableViewCell {
 
     void onViewProfile(cocos2d::CCObject*) = win 0x5c790;
     void loadCustomLevelCell() = mac 0x1183b0, win 0x5a020;
-    void updateBGColor(unsigned int index) = win 0x5c6b0;
+    void updateBGColor(int index) = win 0x5c6b0;
 }
 
 class LevelCommentDelegate {
@@ -4077,7 +4077,7 @@ class LocalLevelManager : GManager {
 }
 
 class MapPackCell : TableViewCell {
-    void updateBGColor(unsigned int index) = win 0x5c6b0;
+    void updateBGColor(int index) = win 0x5c6b0;
     void loadFromMapPack(GJMapPack *) = win 0x5cac0;
 }
 
@@ -5292,7 +5292,7 @@ class SliderTouchLogic : cocos2d::CCMenu {
 }
 
 class SongCell : TableViewCell {
-    void updateBGColor(unsigned int index) = win 0x5c6b0;
+    void updateBGColor(int index) = win 0x5c6b0;
 }
 
 class SongInfoLayer : FLAlertLayer {
@@ -5352,7 +5352,7 @@ class StartPosObject : EffectGameObject {
 class StatsCell : TableViewCell {
     inline StatsCell() {}
     inline StatsCell(char const* identifier, float parentHeight, float height) : TableViewCell(identifier, parentHeight, height) {}
-    void updateBGColor(unsigned int index) = win 0x59cf0;
+    void updateBGColor(int index) = win 0x59cf0;
     virtual void draw() = mac 0x11bf80, win 0x59d40;
 }
 

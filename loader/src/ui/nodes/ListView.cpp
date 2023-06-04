@@ -52,7 +52,7 @@ TableViewCell* ListView::getListCell(char const* key) {
     return GenericListCell::create(key, { m_width, m_itemSeparation });
 }
 
-void ListView::loadCell(TableViewCell* cell, unsigned int index) {
+void ListView::loadCell(TableViewCell* cell, int index) {
     auto node = dynamic_cast<CCNode*>(m_entries->objectAtIndex(index));
     if (node) {
         auto lcell = as<GenericListCell*>(cell);
