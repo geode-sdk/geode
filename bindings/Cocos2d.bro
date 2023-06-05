@@ -157,9 +157,9 @@ class cocos2d::CCDrawNode {
 	auto drawDot(cocos2d::CCPoint const&, float, cocos2d::_ccColor4F const&) = mac 0x379100;
 
 	auto getBlendFunc() const = mac 0x379ea0;
-	auto init() = mac 0x378e00;
+	virtual auto init() = mac 0x378e00;
 	auto setBlendFunc(cocos2d::_ccBlendFunc const&) = mac 0x379eb0;
-	auto draw() = mac 0x379020;
+	virtual auto draw() = mac 0x379020;
 	virtual ~CCDrawNode() = mac 0x378cc0;
 }
 
@@ -218,6 +218,7 @@ class cocos2d::CCEGLView {
 	virtual void swapBuffers() = mac 0x295510;
 	void updateWindow(int width, int height);
 	void setupWindow(cocos2d::CCRect);
+	bool initGlew();
 	void toggleFullScreen(bool fullscreen);
 	void pollEvents();
     void onGLFWCharCallback(GLFWwindow* window, unsigned int entered);
@@ -396,7 +397,7 @@ class cocos2d::CCLayer {
 }
 
 class cocos2d::CCLayerColor {
-    CCLayerColor() = mac 0x274320, ios 0xc8aec, win 0xa1710;
+    CCLayerColor() = mac 0x274320, ios 0xc8aec;
     static cocos2d::CCLayerColor* create(cocos2d::_ccColor4B const&, float, float) = mac 0x2745e0;
     static cocos2d::CCLayerColor* create(cocos2d::_ccColor4B const&) = mac 0x2744c0;
     virtual auto draw() = mac 0x274b50, ios 0xc8fe0;
@@ -409,7 +410,7 @@ class cocos2d::CCLayerColor {
     virtual auto setContentSize(cocos2d::CCSize const&) = mac 0x2749f0, ios 0xc8f64;
     virtual auto setOpacity(unsigned char) = mac 0x274db0, ios 0xc9108;
     virtual auto updateColor() = mac 0x274ae0, ios 0xc8f80;
-    virtual ~CCLayerColor() = mac 0x2743d0, ios 0x2743e0, win 0xa1a20;
+    virtual ~CCLayerColor() = mac 0x2743d0, ios 0x2743e0;
 }
 
 class cocos2d::CCLayerRGBA {
@@ -511,6 +512,7 @@ class cocos2d::CCMotionStreak {
 	auto resumeStroke() = mac 0x2edb30;
 	auto stopStroke() = mac 0x2edb20;
 	bool initWithFade(float fade, float minSeg, float stroke, cocos2d::ccColor3B const& color, cocos2d::CCTexture2D* texture) = mac 0x2ed6f0;
+	virtual auto draw();
 }
 
 class cocos2d::CCMouseDispatcher {
@@ -688,6 +690,7 @@ class cocos2d::CCParticleSystem {
 	CCParticleSystem();
 	virtual ~CCParticleSystem();
 	virtual auto update(float);
+	virtual auto draw();
 	auto initParticle(cocos2d::tCCParticle*);
 	auto resetSystem() = mac 0x46bd50;
 	auto resumeSystem() = mac 0x46bd40;
@@ -695,7 +698,11 @@ class cocos2d::CCParticleSystem {
 }
 
 class cocos2d::CCParticleSystemQuad {
+	CCParticleSystemQuad();
+	virtual ~CCParticleSystemQuad();
 	static cocos2d::CCParticleSystemQuad* create(char const*) = mac 0x36b000;
+	virtual auto draw();
+	auto setupVBO();
 }
 
 class cocos2d::CCPoolManager {
@@ -938,6 +945,13 @@ class cocos2d::CCTexture2D {
 	auto setShaderProgram(cocos2d::CCGLProgram*) = mac 0x246530;
 	auto initWithImage(cocos2d::CCImage*) = mac 0x246940;
 	auto setTexParameters(cocos2d::_ccTexParams*) = mac 0x247980;
+}
+
+class cocos2d::CCTextureAtlas {
+	CCTextureAtlas();
+	virtual ~CCTextureAtlas();
+	auto drawNumberOfQuads(unsigned int, unsigned int);
+	auto mapBuffers();
 }
 
 class cocos2d::CCTextFieldTTF {

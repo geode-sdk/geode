@@ -81,6 +81,7 @@ public:
      * @js ctor
      */
     CCTextureAtlas();
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTextureAtlas, CCObject)
     /**
      *  @js NA
      *  @lua NA

@@ -424,6 +424,9 @@ public:
     void stopSystem();
     //! Kill all living particles.
     void resetSystem();
+    RT_ADD(
+        void resumeSystem();
+    )
     //! whether or not the system is full
     bool isFull();
 
@@ -437,13 +440,26 @@ public:
 
 protected:
     virtual void updateBlendFunc();
+
+    RT_ADD(
+        // saved/loaded in loadDefaults, loadScaledDefaults and saveDefaults
+
+        float m_fDefaultStartSize;
+        float m_fDefaultStartSizeVar;
+        // saved as m_fEndSize but not loaded,
+        // probably was supposed to be m_fDefaultEndSizeVar and saved and loaded as m_fEndSizeVar but was scrapped?
+        float m_fDefaultEndSize2;
+        float m_fDefaultEndSize;
+        float m_fDefaultModeASpeed;
+        float m_fDefaultModeASpeedVar;
+        CCPoint m_tDefaultPosVar;
+    )
 public:
     RT_ADD(
+        void saveDefaults(void);
         void loadDefaults(void);
         void loadScaledDefaults(float);
-        void resumeSystem(void);
-        void saveDefaults(void);
-    );
+    )
 };
 
 // end of particle_nodes group
