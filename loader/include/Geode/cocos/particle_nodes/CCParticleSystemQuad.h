@@ -55,7 +55,6 @@ class CC_DLL CCParticleSystemQuad : public CCParticleSystem
     GEODE_FRIEND_MODIFY
 protected:
 
-    PAD(0x20);
     ccV3F_C4B_T2F_Quad    *m_pQuads;        // quads to be rendered
     GLushort            *m_pIndices;    // indices
 
