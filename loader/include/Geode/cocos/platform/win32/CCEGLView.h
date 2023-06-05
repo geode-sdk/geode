@@ -64,10 +64,11 @@ public:
 protected:
     RT_REMOVE(  virtual bool Create();  )
     void setupWindow(cocos2d::CCRect rect);
+    RT_ADD(bool initGlew();)
 
 public:
-    bool initGL();
-    void destroyGL();
+    RT_REMOVE(bool initGL();)
+    RT_REMOVE(void destroyGL();)
 
     RT_REMOVE(  virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam); )
 
