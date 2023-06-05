@@ -12,6 +12,7 @@ class CC_DLL CCApplication : public CCApplicationProtocol
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_BEGIN(CCApplication)
     CCApplication();
     virtual ~CCApplication();
 
@@ -44,6 +45,8 @@ public:
      @brief Get target platform
      */
     virtual TargetPlatform getTargetPlatform();
+
+    virtual void openURL(char const* url) override;
 
 protected:
     static CCApplication * sm_pSharedApplication;

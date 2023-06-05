@@ -313,6 +313,10 @@ enum class LevelLeaderboardType {
     Weekly = 2
 };
 
+enum class GJHttpType {
+
+};
+
 enum class DialogChatPlacement {
     Center = 0,
     Top = 1,
