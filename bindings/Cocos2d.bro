@@ -397,7 +397,7 @@ class cocos2d::CCLayer {
 }
 
 class cocos2d::CCLayerColor {
-    CCLayerColor() = mac 0x274320, ios 0xc8aec, win 0xa1710;
+    CCLayerColor() = mac 0x274320, ios 0xc8aec;
     static cocos2d::CCLayerColor* create(cocos2d::_ccColor4B const&, float, float) = mac 0x2745e0;
     static cocos2d::CCLayerColor* create(cocos2d::_ccColor4B const&) = mac 0x2744c0;
     virtual auto draw() = mac 0x274b50, ios 0xc8fe0;
@@ -410,7 +410,7 @@ class cocos2d::CCLayerColor {
     virtual auto setContentSize(cocos2d::CCSize const&) = mac 0x2749f0, ios 0xc8f64;
     virtual auto setOpacity(unsigned char) = mac 0x274db0, ios 0xc9108;
     virtual auto updateColor() = mac 0x274ae0, ios 0xc8f80;
-    virtual ~CCLayerColor() = mac 0x2743d0, ios 0x2743e0, win 0xa1a20;
+    virtual ~CCLayerColor() = mac 0x2743d0, ios 0x2743e0;
 }
 
 class cocos2d::CCLayerRGBA {
