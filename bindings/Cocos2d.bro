@@ -1118,6 +1118,7 @@ class cocos2d {
 	static float ccpDistance(cocos2d::CCPoint const&, cocos2d::CCPoint const&) = mac 0x1aaf90;
 	static void ccDrawPoly(cocos2d::CCPoint const*, unsigned int, bool) = mac 0xed0a0;
 	static void ccDrawColor4B(GLubyte, GLubyte, GLubyte, GLubyte) = mac 0xeddd0;
+	static void CCMessageBox(const char* msg, const char* title) = mac 0xbabc0;
 }
 
 class DS_Dictionary {
