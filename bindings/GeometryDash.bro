@@ -328,7 +328,7 @@ class CCContentLayer : cocos2d::CCLayerColor {
 }
 
 class CCIndexPath : cocos2d::CCObject {
-    static CCIndexPath* CCIndexPathWithSectionRow(unsigned int idk1, int idk2) = win 0x30e40;
+    static CCIndexPath* CCIndexPathWithSectionRow(int idk1, int idk2) = win 0x30e40;
     inline CCIndexPath() = default;
     int m_unknown1;
     int m_unknown2;
@@ -1292,7 +1292,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
         this->updateScaleControl();
     }
     void constrainGameLayerPosition(float x, float y) = mac 0x18890, win 0x8f920;
-    void moveGameLayer(cocos2d::CCPoint pos) = mac 0x1ca90, win 0x79290;
+    void moveGamelayer(cocos2d::CCPoint pos) = mac 0x1ca90, win 0x79290;
     void showUI(bool show) = mac 0x245b0, win 0x87180;
     void resetUI() = mac 0x18520, win 0x7ac10;
     void editObject2(cocos2d::CCObject* sender) = win 0x8d1b0;
@@ -4079,7 +4079,7 @@ class MapPackCell : TableViewCell {
     void loadFromMapPack(GJMapPack *) = win 0x5cac0;
 }
 
-class MenuGameLayer {
+class MenuGameLayer : cocos2d::CCLayer {
     void resetPlayer() = mac 0x28fdc0, win 0x18f4b0;
     void destroyPlayer() = win 0x190100;
     virtual void update(float) = mac 0x28fa70, win 0x18f190;
