@@ -43,6 +43,7 @@ file(GLOB SOURCES CONFIGURE_DEPENDS
 	src/internal/*.cpp
 	src/platform/mac/*.cpp
 	src/platform/ios/*.cpp
+	src/platform/android/*.cpp
 	src/loader/*.cpp
 	src/main.cpp
 	src/utils/*.cpp
@@ -86,6 +87,13 @@ elseif(APPLE)
 	)
 	list(APPEND SOURCES ${MAC_SOURCES})
 	list(APPEND SOURCES ${OBJC_SOURCES})
+
+elseif(ANDROID)
+
+	file(GLOB ANDROID_SOURCES CONFIGURE_DEPENDS
+		src/platform/android/*.cpp
+	)
+	list(APPEND SOURCES ${ANDROID_SOURCES})
 
 endif()
 

@@ -20,7 +20,7 @@ public:
     @brief    Callback by CCDirector to limit FPS.
     @interval       The time, expressed in seconds, between current frame and next. 
     */
-    void setAnimationInterval(double interval);
+    virtual void setAnimationInterval(double interval) override;
 
     /**
     @brief    Run the message loop.
@@ -39,12 +39,12 @@ public:
     @brief Get current language config
     @return Current language config
     */
-    virtual ccLanguageType getCurrentLanguage();
+    virtual ccLanguageType getCurrentLanguage() override;
     
     /**
      @brief Get target platform
      */
-    virtual TargetPlatform getTargetPlatform();
+    virtual TargetPlatform getTargetPlatform() override;
 
     virtual void openURL(char const* url) override;
 
