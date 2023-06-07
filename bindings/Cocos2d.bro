@@ -236,9 +236,12 @@ class cocos2d::CCEGLView {
 }
 
 class cocos2d::CCEGLViewProtocol {
+    CCEGLViewProtocol();
+    virtual ~CCEGLViewProtocol();
     auto getViewPortRect() const = mac 0x29e2f0;
     auto getScaleX() const = mac 0x29e300;
     auto getScaleY() const = mac 0x29e310;
+    virtual auto setDesignResolutionSize(float, float, ResolutionPolicy);
 }
 
 class cocos2d::CCFadeOut {
