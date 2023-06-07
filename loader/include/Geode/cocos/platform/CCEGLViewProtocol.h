@@ -49,6 +49,7 @@ public:
      * @lua NA
      */
     CCEGLViewProtocol();
+    GEODE_CUSTOM_CONSTRUCTOR_BEGIN(CCEGLViewProtocol)
     /**
      * @lua NA
      */
@@ -57,22 +58,22 @@ public:
     /** Force destroying EGL view, subclass must implement this method. 
      * @lua NA
      */
-    virtual void    end() = 0;
+    virtual void    end() {}
 
     /** Get whether opengl render system is ready, subclass must implement this method. 
      * @lua NA
      */
-    virtual bool    isOpenGLReady() = 0;
+    virtual bool    isOpenGLReady() { return false; }
 
     /** Exchanges the front and back buffers, subclass must implement this method. 
      * @lua NA
      */
-    virtual void    swapBuffers() = 0;
+    virtual void    swapBuffers() {}
 
     /** Open or close IME keyboard , subclass must implement this method. 
      * @lua NA
      */
-    virtual void    setIMEKeyboardState(bool bOpen) = 0;
+    virtual void    setIMEKeyboardState(bool bOpen) {}
 
     /**
      * Get the frame size of EGL view.
