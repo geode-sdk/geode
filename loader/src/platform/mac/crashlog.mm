@@ -240,33 +240,39 @@ static std::string getStacktrace() {
 
         stream >> index;
 
-        std::getline(lines, line);
+        if (!lines.eof()) {
+            std::getline(lines, line);
+        }
         std::getline(stream, binary);
         auto cutoff = binary.find("0x");
         stream = std::stringstream(binary.substr(cutoff));
         binary = geode::utils::string::trim(binary.substr(0, cutoff));
         stream >> std::hex >> address >> std::dec;
 
-        // std::getline(stream, function);
-        // cutoff = function.find("+");
-        // stream = std::stringstream(function.substr(cutoff));
-        // stream >> offset;
-        // function = geode::utils::string::trim(function.substr(0, cutoff));
+        if (!line.empty()) {
+            stacktrace << " @ " << std::showbase << std::hex << address << std::dec;
+            stacktrace << ": " << line << "\n";
+        }
+        else {
+            std::getline(stream, function);
+            cutoff = function.find("+");
+            stream = std::stringstream(function.substr(cutoff));
+            stream >> offset;
+            function = geode::utils::string::trim(function.substr(0, cutoff));
 
-        // {
-        //     int status;
-        //     auto demangle = abi::__cxa_demangle(function.c_str(), 0, 0, &status);
-        //     if (status == 0) {
-        //         function = demangle;
-        //     }
-        //     free(demangle);
-        // }
-
-        // stacktrace << "- " << binary;
-        stacktrace << " @ " << std::showbase << std::hex << address << std::dec;
-        stacktrace << ": " << line << "\n";
-        // stacktrace << " (" << function << " + " << offset << ")\n";
-        // todo: debug symbols with line number maybe?
+            {
+                int status;
+                auto demangle = abi::__cxa_demangle(function.c_str(), 0, 0, &status);
+                if (status == 0) {
+                    function = demangle;
+                }
+                free(demangle);
+            }
+            
+            stacktrace << "- " << binary;
+            stacktrace << " @ " << std::showbase << std::hex << address << std::dec;
+            stacktrace << " (" << function << " + " << offset << ")\n";
+        }
     }
 
     free(messages);
