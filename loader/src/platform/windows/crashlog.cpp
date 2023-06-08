@@ -144,7 +144,7 @@ static void printAddr(std::ostream& stream, void const* addr, bool fullPath = tr
 }
 
 // https://stackoverflow.com/a/50208684/9124836
-static std::string walkStack(PCONTEXT context) {
+static std::string getStacktrace(PCONTEXT context) {
     std::stringstream stream;
     STACKFRAME64 stack;
     memset(&stack, 0, sizeof(STACKFRAME64));
