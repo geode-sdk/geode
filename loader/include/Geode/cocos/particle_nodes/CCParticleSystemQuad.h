@@ -55,7 +55,6 @@ class CC_DLL CCParticleSystemQuad : public CCParticleSystem
     GEODE_FRIEND_MODIFY
 protected:
 
-
     ccV3F_C4B_T2F_Quad    *m_pQuads;        // quads to be rendered
     GLushort            *m_pIndices;    // indices
 
@@ -70,6 +69,7 @@ public:
      * @js ctor
      */
     CCParticleSystemQuad();
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCParticleSystemQuad, CCParticleSystem)
     /**
      * @js NA
      * @lua NA

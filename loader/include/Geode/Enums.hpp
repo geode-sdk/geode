@@ -313,6 +313,25 @@ enum class LevelLeaderboardType {
     Weekly = 2
 };
 
+enum class GJHttpType {
+
+};
+
+enum class DialogChatPlacement {
+    Center = 0,
+    Top = 1,
+    Bottom = 2,
+};
+
+enum class DialogAnimationType {
+    Instant = 0,
+    FromCenter = 1,
+    FromLeft = 2,
+    FromRight = 3,
+    FromTop = 4,
+    // a 5th type is defined which acts exactly the same as FromTop
+};
+
 // Geode Addition
 enum class ComparisonType {
     Equals = 0,

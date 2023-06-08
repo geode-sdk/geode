@@ -64,10 +64,11 @@ public:
 protected:
     RT_REMOVE(  virtual bool Create();  )
     void setupWindow(cocos2d::CCRect rect);
+    RT_ADD(bool initGlew();)
 
 public:
-    bool initGL();
-    void destroyGL();
+    RT_REMOVE(bool initGL();)
+    RT_REMOVE(void destroyGL();)
 
     RT_REMOVE(  virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam); )
 
@@ -153,7 +154,13 @@ protected:
     RT_ADD(
         GLFWwindow* m_pMainWindow;
         GLFWmonitor* m_pPrimaryMonitor;
-        CCSize m_obWindowedSize;
+    )
+public:
+    RT_ADD(
+        CC_SYNTHESIZE_NV(CCSize, m_obWindowedSize, WindowedSize);
+    )
+protected:
+    RT_ADD(
         float m_fMouseX;
         float m_fMouseY;
         bool m_bIsFullscreen;

@@ -54,6 +54,15 @@ extern "C" __attribute__((visibility("default"))) void dynamicTrigger() {
 // remove when we can figure out how to not remove it
 auto dynamicTriggerRef = &dynamicTrigger;
 
+#elif defined(GEODE_IS_ANDROID)
+
+#include <jni.h>
+
+extern "C" [[gnu::visibility("default")]] jint JNI_OnLoad(JavaVM* vm, void* reserved) {
+    geodeEntry(nullptr);
+    return JNI_VERSION_1_1;
+}
+
 #elif defined(GEODE_IS_WINDOWS)
     #include <Windows.h>
 

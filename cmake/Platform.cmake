@@ -7,6 +7,8 @@ if (NOT DEFINED GEODE_TARGET_PLATFORM)
 		endif()
 	elseif(WIN32)
 		set(GEODE_TARGET_PLATFORM "Win32")
+	elseif(ANDROID)
+		set(GEODE_TARGET_PLATFORM "Android")
 	else()
 		message(FATAL_ERROR "Unable to detect platform, please set GEODE_TARGET_PLATFORM in the root CMake file.")
 	endif()
@@ -64,5 +66,17 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Win32")
 	# Windows links against .lib and not .dll
 	set(GEODE_PLATFORM_BINARY "Geode.lib")
 elseif (GEODE_TARGET_PLATFORM STREQUAL "Android")
-	message(FATAL_ERROR "IDK figure it out")
+	set_target_properties(${PROJECT_NAME} PROPERTIES
+		SYSTEM_NAME Android
+	)
+
+	target_link_libraries(${PROJECT_NAME} INTERFACE
+		${GEODE_LOADER_PATH}/include/link/android/libcocos2dcpp.so
+		${GEODE_LOADER_PATH}/include/link/android/libcurl.a
+		${GEODE_LOADER_PATH}/include/link/android/libssl.a
+		${GEODE_LOADER_PATH}/include/link/android/libcrypto.a
+		log
+	)
+
+	set(GEODE_PLATFORM_BINARY "Geode.so")
 endif()

@@ -153,7 +153,7 @@ namespace geode {
         template <class T>
         T setSettingValue(std::string const& key, T const& value) {
             if (auto sett = this->getSetting(key)) {
-                auto old = this->getSettingValue<T>(sett);
+                auto old = this->getSettingValue<T>(key);
                 SettingValueSetter<T>::set(sett, value);
                 return old;
             }

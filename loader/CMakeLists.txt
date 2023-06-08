@@ -43,6 +43,7 @@ file(GLOB SOURCES CONFIGURE_DEPENDS
 	src/internal/*.cpp
 	src/platform/mac/*.cpp
 	src/platform/ios/*.cpp
+	src/platform/android/*.cpp
 	src/loader/*.cpp
 	src/main.cpp
 	src/utils/*.cpp
@@ -86,6 +87,13 @@ elseif(APPLE)
 	)
 	list(APPEND SOURCES ${MAC_SOURCES})
 	list(APPEND SOURCES ${OBJC_SOURCES})
+
+elseif(ANDROID)
+
+	file(GLOB ANDROID_SOURCES CONFIGURE_DEPENDS
+		src/platform/android/*.cpp
+	)
+	list(APPEND SOURCES ${ANDROID_SOURCES})
 
 endif()
 
@@ -149,7 +157,7 @@ if (APPLE)
 	#set_property(TARGET ${PROJECT_NAME} PROPERTY RULE_LAUNCH_COMPILE "${CMAKE_COMMAND} -E time")
 endif()
 
-target_compile_definitions(${PROJECT_NAME} PUBLIC GEODE_EXPORTING)
+target_compile_definitions(${PROJECT_NAME} PUBLIC GEODE_EXPORTING MAT_JSON_EXPORTING)
 
 # These are only needed for building source :-)
 if (NOT GEODE_BUILDING_DOCS)
@@ -203,17 +211,6 @@ if (APPLE)
 	endif()
 elseif (WIN32)
 	add_subdirectory(launcher/windows)
-
-	CPMAddPackage("gh:TsudaKageyu/minhook#49d03ad")
-	target_link_libraries(${PROJECT_NAME} minhook)
-
-	# target_include_directories(${PROJECT_NAME} PRIVATE dobby/include)
-	# target_link_directories(${PROJECT_NAME} PRIVATE dobby)
-	# target_link_libraries(${PROJECT_NAME} dobby)
-
-	# set(DOBBY_GENERATE_SHARED OFF CACHE BOOL "Build dobby shared library" FORCE)
-	# # set(DOBBY_DEBUG ON CACHE BOOL "Build dobby shared library" FORCE)
-	# add_subdirectory(dobby)
 
 	target_link_libraries(${PROJECT_NAME} dbghelp)
 

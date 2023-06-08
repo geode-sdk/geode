@@ -8,6 +8,7 @@
 #else
     #define CC_DLL 
 #endif
+#define ACTUAL_CC_DLL CC_DLL
 
 
 #if CC_DISABLE_ASSERT > 0

@@ -58,15 +58,15 @@ namespace geode {
 
 // clang-format off
 #define $on_mod(type) \
-template<class>                                                     \
-void GEODE_CONCAT(geodeExecFunction, __LINE__)(ModStateEvent*);     \
-namespace {                                                         \
-	struct GEODE_CONCAT(ExecFuncUnique, __LINE__) {};               \
-}                                                                   \
-static inline auto GEODE_CONCAT(Exec, __LINE__) = (new geode::EventListener(                                     \
-            &GEODE_CONCAT(geodeExecFunction, __LINE__)<GEODE_CONCAT(ExecFuncUnique, __LINE__)>,\
-            geode::ModStateFilter(geode::getMod(), geode::ModEventType::type)\
-        ), 0);                                                              \
-template<class>                                                     \
-void GEODE_CONCAT(geodeExecFunction, __LINE__)(ModStateEvent*)
+template<class>                                                        \
+void GEODE_CONCAT(geodeExecFunction, __LINE__)(geode::ModStateEvent*); \
+namespace {                                                            \
+	struct GEODE_CONCAT(ExecFuncUnique, __LINE__) {};                  \
+}                                                                      \
+static inline auto GEODE_CONCAT(Exec, __LINE__) = (new geode::EventListener(  \
+            &GEODE_CONCAT(geodeExecFunction, __LINE__)<GEODE_CONCAT(ExecFuncUnique, __LINE__)>, \
+            geode::ModStateFilter(geode::getMod(), geode::ModEventType::type) \
+        ), 0);                                                         \
+template<class>                                                        \
+void GEODE_CONCAT(geodeExecFunction, __LINE__)(geode::ModStateEvent*)
 // clang-format on

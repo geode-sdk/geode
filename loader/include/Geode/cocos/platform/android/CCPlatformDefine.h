@@ -8,6 +8,7 @@
 #else
     #define CC_DLL 
 #endif
+#define ACTUAL_CC_DLL CC_DLL
 
 #define CC_NO_MESSAGE_PSEUDOASSERT(cond)                        \
     if (!(cond)) {                                              \

@@ -458,7 +458,7 @@ protected:
     void setNextScene(void);
     
     void showStats();
-    void createStatsLabel();
+    RT_REMOVE(void createStatsLabel();)
     void calculateMPF();
     void getFPSImageData(unsigned char** datapointer, unsigned int* length);
     

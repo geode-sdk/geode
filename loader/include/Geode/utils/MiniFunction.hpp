@@ -2,6 +2,7 @@
 
 #include <Geode/DefaultInclude.hpp>
 #include <memory>
+#include <concepts>
 
 namespace geode::utils {
 

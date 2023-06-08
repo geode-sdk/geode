@@ -173,7 +173,8 @@ emitter.startSpin = 0;
 
 */
 class CC_DLL CCParticleSystem : public CCNode, public CCTextureProtocol
-{    
+{
+    GEODE_FRIEND_MODIFY
 protected:
     gd::string m_sPlistFile;
     //! time elapsed since the start of the system (in seconds)
@@ -235,8 +236,12 @@ protected:
     /** weak reference to the CCSpriteBatchNode that renders the CCSprite */
     CC_PROPERTY(CCParticleBatchNode*, m_pBatchNode, BatchNode);
 
-    // RobTop removed this
-    ///CC_SYNTHESIZE(unsigned int, m_uAtlasIndex, AtlasIndex);
+    RT_REMOVE(
+        CC_SYNTHESIZE(unsigned int, m_uAtlasIndex, AtlasIndex);
+    )
+    RT_ADD(
+        CC_SYNTHESIZE_NV(unsigned int, m_uAtlasIndex, AtlasIndex);
+    )
 
     //true if scaled or rotated
     bool m_bTransformSystemDirty;
@@ -373,6 +378,7 @@ public:
      * @js ctor
      */
     CCParticleSystem();
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCParticleSystem, CCNode)
     /**
      * @js NA
      * @lua NA
@@ -418,6 +424,9 @@ public:
     void stopSystem();
     //! Kill all living particles.
     void resetSystem();
+    RT_ADD(
+        void resumeSystem();
+    )
     //! whether or not the system is full
     bool isFull();
 
@@ -431,13 +440,26 @@ public:
 
 protected:
     virtual void updateBlendFunc();
+
+    RT_ADD(
+        // saved/loaded in loadDefaults, loadScaledDefaults and saveDefaults
+
+        float m_fDefaultStartSize;
+        float m_fDefaultStartSizeVar;
+        // saved as m_fEndSize but not loaded,
+        // probably was supposed to be m_fDefaultEndSizeVar and saved and loaded as m_fEndSizeVar but was scrapped?
+        float m_fDefaultEndSize2;
+        float m_fDefaultEndSize;
+        float m_fDefaultModeASpeed;
+        float m_fDefaultModeASpeedVar;
+        CCPoint m_tDefaultPosVar;
+    )
 public:
     RT_ADD(
+        void saveDefaults(void);
         void loadDefaults(void);
         void loadScaledDefaults(float);
-        void resumeSystem(void);
-        void saveDefaults(void);
-    );
+    )
 };
 
 // end of particle_nodes group
