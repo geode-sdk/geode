@@ -56,6 +56,7 @@ static std::string_view getSignalCodeString() {
             }
         case SIGTERM: return "SIGTERM: a termination request was sent to the program";
         case SIGABRT: return "SIGABRT: usually caused by an abort() or assert()";
+        case SIGBUS: return "SIGBUS: Bus error (bad memory access)";
         default: return "Unknown signal code";
     }
 }
@@ -250,7 +251,7 @@ static std::string getStacktrace() {
         stream >> std::hex >> address >> std::dec;
 
         if (!line.empty()) {
-            stacktrace << " @ " << std::showbase << std::hex << address << std::dec;
+            stacktrace << " - " << std::showbase << std::hex << address << std::dec;
             stacktrace << ": " << line << "\n";
         }
         else {
@@ -328,6 +329,8 @@ static void handlerThread() {
     }
 
     auto text = crashlog::writeCrashlog(faultyMod, getInfo(signalAddress, faultyMod), getStacktrace(), getRegisters());
+
+    log::error("Geode crashed!\n{}" + text);
     
     s_signal = 0;
     s_cv.notify_all();
@@ -347,6 +350,7 @@ bool crashlog::setupPlatformHandler() {
     sigaction(SIGILL, &action, nullptr);
     sigaction(SIGTERM, &action, nullptr);
     sigaction(SIGABRT, &action, nullptr);
+    sigaction(SIGBUS, &action, nullptr);
 
     std::thread(&handlerThread).detach();
 	
