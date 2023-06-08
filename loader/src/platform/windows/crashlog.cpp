@@ -215,8 +215,12 @@ static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
 
     auto faultyMod = modFromAddress(info->ExceptionRecord->ExceptionAddress);
 
-    crashlog::writeCrashlog(faultyMod, getInfo(info, faultyMod), getStacktrace(info->ContextRecord), getRegisters(info->ContextRecord));
+    auto text = crashlog::writeCrashlog(faultyMod, getInfo(info, faultyMod), getStacktrace(info->ContextRecord), getRegisters(info->ContextRecord));
     
+    // show message box on debug mode
+    #ifdef GEODE_DEBUG
+    MessageBoxA(nullptr, text.c_str(), "Geode Crashed", MB_ICONERROR);
+    #endif
 
     return EXCEPTION_CONTINUE_SEARCH;
 }

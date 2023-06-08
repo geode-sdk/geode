@@ -35,7 +35,7 @@ static void printMods(std::stringstream& stream) {
     }
 }
 
-void crashlog::writeCrashlog(geode::Mod* faultyMod, std::string const& info, std::string const& stacktrace, std::string const& registers) {
+std::string crashlog::writeCrashlog(geode::Mod* faultyMod, std::string const& info, std::string const& stacktrace, std::string const& registers) {
     // make sure crashlog directory exists
     (void)utils::file::createDirectoryAll(crashlog::getCrashLogDirectory());
 
@@ -75,11 +75,6 @@ void crashlog::writeCrashlog(geode::Mod* faultyMod, std::string const& info, std
     file << "\n== Installed Mods ==\n";
     printMods(file);
 
-    // show message box on debug mode
-    #ifdef GEODE_DEBUG
-    MessageBoxA(nullptr, file.str().c_str(), "Geode Crashed", MB_ICONERROR);
-    #endif
-
     // save actual file
     std::ofstream actualFile;
     actualFile.open(
@@ -87,4 +82,6 @@ void crashlog::writeCrashlog(geode::Mod* faultyMod, std::string const& info, std
     );
     actualFile << file.rdbuf() << std::flush;
     actualFile.close();
+
+    return file.str();
 }

@@ -25,5 +25,5 @@ namespace crashlog {
      */
     ghc::filesystem::path GEODE_DLL getCrashLogDirectory();
 
-    void GEODE_DLL writeCrashlog(geode::Mod* faultyMod, std::string const& info, std::string const& stacktrace, std::string const& registers);
+    std::string GEODE_DLL writeCrashlog(geode::Mod* faultyMod, std::string const& info, std::string const& stacktrace, std::string const& registers);
 }

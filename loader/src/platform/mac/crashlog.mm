@@ -4,7 +4,7 @@
 
 #include <array>
 #include <ghc/fs_fwd.hpp>
-
+#include <execinfo.h>
 #import <Foundation/Foundation.h>
 
 // https://gist.github.com/jvranish/4441299
@@ -48,58 +48,70 @@ static std::string getInfo(int sig, siginfo_t* siginfo, ucontext_t* context, Mod
     void* address = reinterpret_cast<void*>(context->uc_mcontext->__ss.__rip);
     stream // << "Faulty Lib: " << getModuleName(handleFromAddress(address), true) << "\n"
            << "Faulty Mod: " << (faultyMod ? faultyMod->getID() : "<Unknown>") << "\n"
-           << "Signal Code: " << std::hex << sig << " (" << getSignalCodeString(sig, siginfo) << ")" << std::dec << "\n"
+           << "Signal Code: " << std::hex << sig << " (" << getSignalCodeString(sig, siginfo) << ")" << std::dec << "\n";
     return stream.str();
 }
 
 extern "C" void signalHandler(int signal, siginfo_t* signal_info, void* vcontext) {
 	auto context = reinterpret_cast<ucontext_t*>(vcontext);
 
-	auto array = std::array<void*, 20>();
-	auto size = backtrace(array.data(), 20);
+    static constexpr size_t frameSize = 64;
 
-#ifdef __APPLE__
+	auto array = std::array<void*, frameSize>();
+	auto size = backtrace(array.data(), frameSize);
+
+    // for some reason this is needed, dont ask me why
 	array[2] = reinterpret_cast<void*>(context->uc_mcontext->__ss.__rip);
-#else
-	array[1] = reinterpret_cast<void*>(context->uc_mcontext.gregs[REG_RIP]);
-#endif
 
-	if (size < 20) {
+	if (size < frameSize) {
 		array[size] = nullptr;
 	}
 
 	auto messages = backtrace_symbols(array.data(), size);
-	if (size < 20) {
+	if (size < frameSize) {
 		messages[size] = nullptr;
 	}
-
-	ServerLoop::get()->m_panicBacktrace.store(messages);
-
-	ServerLoop::get()->m_signalExit.notify();
-
-	ServerLoop::get()->m_signalFinish.wait();
 
 	free(messages);
 
 	std::abort();
 }
 
+static bool s_lastLaunchCrashed;
+
 bool crashlog::setupPlatformHandler() {
+    struct sigaction action;
+    action.sa_sigaction = signalHandler;
+    action.sa_flags = SA_SIGINFO;
+    sigemptyset(&action.sa_mask);
+    sigaction(SIGSEGV, &action, nullptr);
+    // I'd rather not track interrupt lol
+    // sigaction(SIGINT, &action, nullptr);
+    sigaction(SIGFPE, &action, nullptr);
+    sigaction(SIGILL, &action, nullptr);
+    sigaction(SIGTERM, &action, nullptr);
+    sigaction(SIGABRT, &action, nullptr);
+
+
+    auto lastCrashedFile = crashlog::getCrashLogDirectory() / "last-crashed";
+    if (ghc::filesystem::exists(lastCrashedFile)) {
+        s_lastLaunchCrashed = true;
+        try {
+            ghc::filesystem::remove(lastCrashedFile);
+        }
+        catch (...) {
+        }
+    }
     return true;
 }
 
 bool crashlog::didLastLaunchCrash() {
-    return false;
+    return s_lastLaunchCrashed;
 }
 
 ghc::filesystem::path crashlog::getCrashLogDirectory() {
-    std::array<char, 1024> path;
-    CFStringGetCString(
-        (CFStringRef)NSHomeDirectory(), path.data(), path.size(), kCFStringEncodingUTF8
-    );
-    auto crashlogDir =
-        ghc::filesystem::path(path.data()) / "Library" / "Logs" / "DiagnosticReports";
-    return crashlogDir.string();
+    return dirs::getGeodeDir() / "crashlogs";
 }
+
 
 #endif
