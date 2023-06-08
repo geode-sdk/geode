@@ -233,8 +233,6 @@ bool ModCell::init(
     if (!ModListCell::init(list, size))
         return false;
 
-    __builtin_trap();    
-
     m_mod = mod;
 
     this->setupInfo(mod->getModInfo(), false, display);
