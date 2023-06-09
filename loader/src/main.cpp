@@ -99,7 +99,7 @@ extern "C" __declspec(dllexport) DWORD WINAPI loadGeode(void* arg) {
     auto process = GetCurrentProcess();
 
     auto patchAddr = reinterpret_cast<void*>(geode::base::get() + 0x260ff8);
-    constexpr SIZE_T patchLength = 13;
+    constexpr size_t patchLength = 13;
     auto detourAddr = reinterpret_cast<uintptr_t>(&gdMainHook) - geode::base::get() - 0x261005;
     auto detourAddrPtr = reinterpret_cast<uint8_t*>(&detourAddr);
 
