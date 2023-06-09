@@ -66,14 +66,15 @@ extern "C" [[gnu::visibility("default")]] jint JNI_OnLoad(JavaVM* vm, void* rese
 #elif defined(GEODE_IS_WINDOWS)
     #include <Windows.h>
 
-int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow) {
+int updateGeode() {
     auto workingDir = dirs::getGameDir();
     auto updatesDir = workingDir / "geode" / "update";
 
     auto error = std::error_code();
 
-    if (ghc::filesystem::exists(updatesDir / "GeodeUpdater.exe", error) && !error) {
-        ghc::filesystem::rename(updatesDir / "GeodeUpdater.exe", workingDir / "GeodeUpdater.exe", error);
+    if (!ghc::filesystem::is_empty(updatesDir, error) && !error) {
+        if (ghc::filesystem::exists(updatesDir / "GeodeUpdater.exe", error) && !error)
+            ghc::filesystem::rename(updatesDir / "GeodeUpdater.exe", workingDir / "GeodeUpdater.exe", error);
         if (error)
             return error.value();
 
@@ -89,9 +90,21 @@ int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
         exit(0);
         return 0;
     }
-    int exitCode = geodeEntry(hInstance);
+    if (error)
+        return error.value();
+
+    return 0;
+}
+
+int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow) {
+    int exitCode = updateGeode();
     if (exitCode != 0)
         return exitCode;
+
+    exitCode = geodeEntry(hInstance);
+    if (exitCode != 0)
+        return exitCode;
+
     return reinterpret_cast<decltype(&wWinMain)>(geode::base::get() + 0x260ff8)(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
 }
 
@@ -128,6 +141,25 @@ extern "C" __declspec(dllexport) DWORD WINAPI loadGeode(void* arg) {
 
     return 0;
 }
+
+DWORD WINAPI upgradeThread(void*) {
+    return updateGeode() == 0;
+}
+BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID) {
+    if (reason == DLL_PROCESS_ATTACH) {
+        DisableThreadLibraryCalls(module);
+
+        // if we find the old bootstrapper dll, don't load geode, copy new updater and let it do the rest
+        auto workingDir = dirs::getGameDir();
+        auto error = std::error_code();
+        if (ghc::filesystem::exists(workingDir / "GeodeBootstrapper.dll", error) && !error)
+            CreateThread(nullptr, 0, upgradeThread, nullptr, 0, nullptr);
+        if (error)
+            return FALSE;
+    }
+    return TRUE;
+}
+
 #endif
 
 $execute {

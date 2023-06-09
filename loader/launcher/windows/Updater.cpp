@@ -69,6 +69,14 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
+	if (ghc::filesystem::exists(workingDir / "GeodeBootstrapper.dll", error) && !error) {
+		ghc::filesystem::remove(workingDir / "GeodeBootstrapper.dll", error);
+		if (error) {
+			showError("Unable to update Geode: Unable to delete GeodeBootstrapper.dll - " + error.message());
+			return error.value();
+		}
+	}
+
 	if(argc < 2)
 		return 0;
 
