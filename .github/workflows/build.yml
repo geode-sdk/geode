@@ -133,7 +133,7 @@ jobs:
 
       - uses: vimtor/action-zip@v1
         with:
-          files: geode-v${{ steps.version.outputs.content }}-win/Geode.dll geode-v${{ steps.version.outputs.content }}-win/GeodeBootstrapper.dll geode-v${{ steps.version.outputs.content }}-win/Geode.lib
+          files: geode-v${{ steps.version.outputs.content }}-win/XInput9_1_0.dll geode-v${{ steps.version.outputs.content }}-win/Geode.dll geode-v${{ steps.version.outputs.content }}-win/GeodeUpdater.exe geode-v${{ steps.version.outputs.content }}-win/Geode.lib
           dest: geode-nightly-win.zip
 
       - name: Update release
