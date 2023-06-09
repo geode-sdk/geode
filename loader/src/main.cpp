@@ -77,18 +77,13 @@ int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
         if (error)
             return error.value();
 
-        // launch updater
-        auto updaterPath = (workingDir / "GeodeUpdater.exe").string().c_str();
-
         char gdPath[MAX_PATH];
         GetModuleFileName(nullptr, gdPath, MAX_PATH);
+        auto gdName = ghc::filesystem::path(gdPath).filename().string();
 
-        // for some reason updater receives garbage as the arg if i dont copy the string like that first
-        auto gdName = ghc::filesystem::path(gdPath).filename().string().c_str();
-        char gdName2[MAX_PATH];
-        strcpy(gdName2, gdName);
-
-        ShellExecute(NULL, "open", updaterPath, gdName2, workingDir.string().c_str(), FALSE);
+        // launch updater
+        auto updaterPath = (workingDir / "GeodeUpdater.exe").string();
+        ShellExecute(NULL, "open", updaterPath.c_str(), gdName.c_str(), workingDir.string().c_str(), FALSE);
 
         // quit gd before it can even start
         exit(0);
