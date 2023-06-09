@@ -218,6 +218,11 @@ int geodeEntry(void* platformData) {
         return 1;
     }
 
+    // open console
+    if (Mod::get()->getSettingValue<bool>("show-platform-console")) {
+        Loader::get()->openPlatformConsole();
+    }
+
     // set up loader, load mods, etc.
     auto setupRes = LoaderImpl::get()->setup();
     if (!setupRes) {
@@ -232,11 +237,6 @@ int geodeEntry(void* platformData) {
     }
 
     log::info("Set up loader");
-
-    // open console
-    if (Mod::get()->getSettingValue<bool>("show-platform-console")) {
-        Loader::get()->openPlatformConsole();
-    }
 
     // download and install new loader update in the background
     if (Mod::get()->getSettingValue<bool>("auto-check-updates")) {
