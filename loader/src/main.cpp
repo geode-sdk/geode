@@ -66,46 +66,72 @@ extern "C" [[gnu::visibility("default")]] jint JNI_OnLoad(JavaVM* vm, void* rese
 #elif defined(GEODE_IS_WINDOWS)
     #include <Windows.h>
 
-DWORD WINAPI loadThread(void* arg) {
-    bool canMoveBootstrapper = true;
-    if (auto mod = GetModuleHandleA("GeodeBootstrapper.dll")) {
-        if (WaitForSingleObject(mod, 1000) != WAIT_OBJECT_0) {
-            canMoveBootstrapper = false;
-        }
+int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow) {
+    auto workingDir = dirs::getGameDir();
+    auto updatesDir = workingDir / "geode" / "update";
+
+    auto error = std::error_code();
+
+    if (ghc::filesystem::exists(updatesDir / "GeodeUpdater.exe", error) && !error) {
+        ghc::filesystem::rename(updatesDir / "GeodeUpdater.exe", workingDir / "GeodeUpdater.exe", error);
+        if (error)
+            return error.value();
+
+        // launch updater
+        auto updaterPath = (workingDir / "GeodeUpdater.exe").string().c_str();
+
+        char gdPath[MAX_PATH];
+        GetModuleFileName(nullptr, gdPath, MAX_PATH);
+
+        // for some reason updater receives garbage as the arg if i dont copy the string like that first
+        auto gdName = ghc::filesystem::path(gdPath).filename().string().c_str();
+        char gdName2[MAX_PATH];
+        strcpy(gdName2, gdName);
+
+        ShellExecute(NULL, "open", updaterPath, gdName2, workingDir.string().c_str(), FALSE);
+
+        // quit gd before it can even start
+        exit(0);
+        return 0;
     }
-
-    if (canMoveBootstrapper) {
-        auto workingDir = dirs::getGameDir();
-        auto updatesDir = workingDir / "geode" / "update";
-
-        auto error = std::error_code();
-
-        if (ghc::filesystem::exists(updatesDir / "GeodeBootstrapper.dll", error) && !error) {
-            ghc::filesystem::rename(
-                updatesDir / "GeodeBootstrapper.dll", workingDir / "GeodeBootstrapper.dll", error
-            );
-            if (error) return error.value();
-        }
-    }
-
-    return geodeEntry(arg);
+    int exitCode = geodeEntry(hInstance);
+    if (exitCode != 0)
+        return exitCode;
+    return reinterpret_cast<decltype(&wWinMain)>(geode::base::get() + 0x260ff8)(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
 }
 
-BOOL WINAPI DllMain(HINSTANCE lib, DWORD reason, LPVOID) {
-    switch (reason) {
-        case DLL_PROCESS_ATTACH:
-            // Prevents threads from notifying this DLL on creation or destruction.
-            // Kind of redundant for a game that isn't multi-threaded but will provide
-            // some slight optimizations if a mod frequently creates and deletes threads.
-            DisableThreadLibraryCalls(lib);
+extern "C" __declspec(dllexport) DWORD WINAPI loadGeode(void* arg) {
+    auto process = GetCurrentProcess();
 
-            // loading thread
-            HANDLE _ = CreateThread(0, 0, loadThread, lib, 0, nullptr);
-            if (_) CloseHandle(_);
+    auto patchAddr = reinterpret_cast<void*>(geode::base::get() + 0x260ff8);
+    constexpr SIZE_T patchLength = 13;
+    auto detourAddr = reinterpret_cast<uintptr_t>(&gdMainHook) - geode::base::get() - 0x261005;
+    auto detourAddrPtr = reinterpret_cast<uint8_t*>(&detourAddr);
 
-            break;
+    uint8_t patchBytes[patchLength] = {
+        0x55,
+        0x8b, 0xec,
+        0x83, 0xe4, 0xf8,
+        0xeb, 0x06,
+        0xe9, detourAddrPtr[0], detourAddrPtr[1], detourAddrPtr[2], detourAddrPtr[3]
+    };
+
+    DWORD oldProtect;
+    BOOL res = TRUE;
+    res = res && VirtualProtectEx(process, patchAddr, patchLength, PAGE_EXECUTE_READWRITE, &oldProtect);
+    res = res && WriteProcessMemory(process, patchAddr, patchBytes, patchLength, nullptr);
+    res = res && VirtualProtectEx(process, patchAddr, patchLength, oldProtect, &oldProtect);
+
+    if (!res) {
+        LoaderImpl::get()->platformMessageBox(
+            "Unable to Load Geode!",
+            "There was an unknown fatal error hooking "
+            "the GD main function and Geode can not be loaded."
+        );
+        return 1;
     }
-    return TRUE;
+
+    return 0;
 }
 #endif
 
