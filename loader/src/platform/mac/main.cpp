@@ -2,6 +2,7 @@
 
 #if defined(GEODE_IS_MACOS)
 
+#include "../load.hpp"
 #include <dlfcn.h>
 #include <mach-o/dyld.h>
 #include <unistd.h>

@@ -2,6 +2,7 @@
 
 #if defined(GEODE_IS_IOS)
 
+#include "../load.hpp"
 #include <dlfcn.h>
 #include <mach-o/dyld.h>
 #include <unistd.h>
