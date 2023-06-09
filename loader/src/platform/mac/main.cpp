@@ -7,6 +7,8 @@
 #include <mach-o/dyld.h>
 #include <unistd.h>
 
+#include <thread>
+
 using namespace geode::prelude;
 
 std::length_error::~length_error() _NOEXCEPT {} // do not ask...
