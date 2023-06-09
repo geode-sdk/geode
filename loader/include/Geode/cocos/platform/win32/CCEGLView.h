@@ -45,7 +45,17 @@ protected:
     RT_ADD( virtual ~CCEGLView(); )
 public:
     CCEGLView();
-    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEGLView, CCObject)
+
+    CCEGLView(geode::ZeroConstructorType, size_t fill) :
+        CCEGLViewProtocol(geode::ZeroConstructor, fill),
+        CCObject(geode::ZeroConstructor, fill - sizeof(CCEGLViewProtocol)) {}
+
+    CCEGLView(geode::ZeroConstructorType) :
+        CCEGLViewProtocol(geode::ZeroConstructor, sizeof(CCEGLView)),
+        CCObject(geode::ZeroConstructor, sizeof(CCEGLView) - sizeof(CCEGLViewProtocol)) {}
+
+    CCEGLView(geode::CutoffConstructorType, size_t fill) : CCEGLView() {}
+
     RT_REMOVE(  virtual ~CCEGLView();   )
 
     /* override functions */
