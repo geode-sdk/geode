@@ -45,7 +45,7 @@ file(GLOB SOURCES CONFIGURE_DEPENDS
 	src/platform/ios/*.cpp
 	src/platform/android/*.cpp
 	src/loader/*.cpp
-	src/main.cpp
+	src/load.cpp
 	src/utils/*.cpp
 	src/ui/*.cpp
 	src/ui/nodes/*.cpp

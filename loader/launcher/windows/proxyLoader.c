@@ -11,24 +11,16 @@ DWORD XInputGetDSoundAudioDeviceGuids(DWORD user, GUID* render, GUID* capture) {
 
 #pragma comment(linker, "/export:XInputGetDSoundAudioDeviceGuids=_XInputGetDSoundAudioDeviceGuids")
 
-DWORD WINAPI load(PVOID _) {
-	if (!LoadLibraryW(L"GeodeBootstrapper.dll")) {
-		char msg[256];
-		sprintf(msg,
-			"Unable to load Geode: Unable to load "
-			"bootstrapper (error code %d)", GetLastError()
-		);
-		MessageBoxA(NULL, msg, "Error Loading Geode", MB_ICONERROR);
-	}
-	return 0;
-}
-
+__declspec(dllimport) DWORD WINAPI loadGeode(void*);
 BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID _) {
 	if (reason == DLL_PROCESS_ATTACH) {
-		HANDLE handle = CreateThread(NULL, 0, load, module, 0, NULL);
-		if (handle)
-			CloseHandle(handle);
-		else
+		// Prevents threads from notifying this DLL on creation or destruction.
+		// Kind of redundant for a game that isn't multi-threaded but will provide
+		// some slight optimizations if a mod frequently creates and deletes threads.
+		DisableThreadLibraryCalls(module);
+
+		DWORD code = loadGeode(module);
+		if (code != 0)
 			return FALSE;
 	}
 	return TRUE;

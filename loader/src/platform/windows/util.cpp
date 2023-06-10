@@ -16,6 +16,8 @@ using namespace geode::prelude;
 #include <Geode/utils/web.hpp>
 #include <Geode/utils/cocos.hpp>
 
+#include <filesystem>
+
 bool utils::clipboard::write(std::string const& data) {
     if (!OpenClipboard(nullptr)) return false;
     if (!EmptyClipboard()) {
@@ -124,7 +126,7 @@ ghc::filesystem::path dirs::getGameDir() {
         GetModuleFileNameW(NULL, buffer.data(), MAX_PATH);
 
         const ghc::filesystem::path path(buffer.data());
-        return path.parent_path();
+        return std::filesystem::weakly_canonical(path.parent_path().wstring()).wstring();
     }();
 
     return path;
@@ -146,11 +148,11 @@ ghc::filesystem::path dirs::getSaveDir() {
             auto savePath = appdataPath / executableName;
 
             if (SHCreateDirectoryExW(NULL, savePath.wstring().c_str(), NULL) >= 0) {
-                return savePath;
+                return std::filesystem::weakly_canonical(savePath.wstring()).wstring();
             }
         }
         
-        return executablePath.parent_path();
+        return std::filesystem::weakly_canonical(executablePath.parent_path().wstring()).wstring();
     }();
 
     return path;

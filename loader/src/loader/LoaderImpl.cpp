@@ -568,10 +568,32 @@ void Loader::Impl::updateSpecialFiles() {
 
 void Loader::Impl::downloadLoaderResources(bool useLatestRelease) {
     if (!useLatestRelease) {
-        this->tryDownloadLoaderResources(fmt::format(
-            "https://github.com/geode-sdk/geode/releases/download/{}/resources.zip",
-            this->getVersion().toString()
-        ));
+        web::AsyncWebRequest()
+            .join("loader-tag-exists-check")
+            .fetch(fmt::format(
+                "https://api.github.com/repos/geode-sdk/geode/git/ref/tags/{}",
+                this->getVersion().toString()
+            ))
+            .json()
+            .then([this](json::Value const& json) {
+                this->tryDownloadLoaderResources(fmt::format(
+                    "https://github.com/geode-sdk/geode/releases/download/{}/resources.zip",
+                    this->getVersion().toString()
+                ), true);  
+            })
+            .expect([this](std::string const& info, int code) {
+                if (code == 404) {
+                    log::debug("Loader version {} does not exist on Github, not downloading the resources", this->getVersion().toString());
+                    ResourceDownloadEvent(
+                        UpdateFinished()
+                    ).post();
+                }
+                else {
+                    ResourceDownloadEvent(
+                        UpdateFailed("Unable to check if tag exists: " + info)
+                    ).post();
+                }
+            });
     }
     else {
         fetchLatestGithubRelease(
