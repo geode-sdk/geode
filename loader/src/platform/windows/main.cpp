@@ -42,7 +42,7 @@ int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
     return reinterpret_cast<decltype(&wWinMain)>(geode::base::get() + 0x260ff8)(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
 }
 
-extern "C" __declspec(dllexport) DWORD WINAPI loadGeode(void* arg) {
+bool loadGeode(void* arg) {
     auto process = GetCurrentProcess();
 
     auto patchAddr = reinterpret_cast<void*>(geode::base::get() + 0x260ff8);
@@ -68,10 +68,10 @@ extern "C" __declspec(dllexport) DWORD WINAPI loadGeode(void* arg) {
             "There was an unknown fatal error hooking "
             "the GD main function and Geode can not be loaded."
         );
-        return 1;
+        return false;
     }
 
-    return 0;
+    return true;
 }
 
 DWORD WINAPI upgradeThread(void*) {
@@ -79,16 +79,23 @@ DWORD WINAPI upgradeThread(void*) {
     return 0;
 }
 
+extern "C" __declspec(dllexport) void fake() { }
 BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID) {
     if (reason == DLL_PROCESS_ATTACH) {
+        // Prevents threads from notifying this DLL on creation or destruction.
+        // Kind of redundant for a game that isn't multi-threaded but will provide
+        // some slight optimizations if a mod frequently creates and deletes threads.
         DisableThreadLibraryCalls(module);
 
         // if we find the old bootstrapper dll, don't load geode, copy new updater and let it do the rest
         auto workingDir = dirs::getGameDir();
         auto error = std::error_code();
-        if (ghc::filesystem::exists(workingDir / "GeodeBootstrapper.dll", error) && !error)
+        bool oldBootstrapperExists = ghc::filesystem::exists(workingDir / "GeodeBootstrapper.dll", error);
+        if (oldBootstrapperExists && !error)
             CreateThread(nullptr, 0, upgradeThread, nullptr, 0, nullptr);
-        if (error)
+        else if (error)
+            return FALSE;
+        else if (!loadGeode(module))
             return FALSE;
     }
     return TRUE;
