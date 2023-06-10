@@ -42,7 +42,7 @@ int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
     return reinterpret_cast<decltype(&wWinMain)>(geode::base::get() + 0x260ff8)(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
 }
 
-bool loadGeode(void* arg) {
+bool loadGeode() {
     auto process = GetCurrentProcess();
 
     auto patchAddr = reinterpret_cast<void*>(geode::base::get() + 0x260ff8);
@@ -59,18 +59,10 @@ bool loadGeode(void* arg) {
     };
 
     DWORD oldProtect;
-    if (VirtualProtectEx(process, patchAddr, patchLength, PAGE_EXECUTE_READWRITE, &oldProtect)) {
-        std::memcpy(patchAddr, patchBytes, patchLength);
-        VirtualProtectEx(process, patchAddr, patchLength, oldProtect, &oldProtect);
-    } else {
-        LoaderImpl::get()->platformMessageBox(
-            "Unable to Load Geode!",
-            "There was an unknown fatal error hooking "
-            "the GD main function and Geode can not be loaded."
-        );
+    if (!VirtualProtectEx(process, patchAddr, patchLength, PAGE_EXECUTE_READWRITE, &oldProtect))
         return false;
-    }
-
+    std::memcpy(patchAddr, patchBytes, patchLength);
+    VirtualProtectEx(process, patchAddr, patchLength, oldProtect, &oldProtect);
     return true;
 }
 
@@ -79,25 +71,45 @@ DWORD WINAPI upgradeThread(void*) {
     return 0;
 }
 
+void earlyError(std::string message) {
+    // try to write a file and display a message box
+    // wine might not display the message box but *should* write a file
+    std::ofstream fout("_geode_early_error.txt");
+    fout << message;
+    fout.close();
+    LoaderImpl::get()->platformMessageBox("Unable to Load Geode!", message);
+}
+
 extern "C" __declspec(dllexport) void fake() { }
 BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID) {
-    if (reason == DLL_PROCESS_ATTACH) {
-        // Prevents threads from notifying this DLL on creation or destruction.
-        // Kind of redundant for a game that isn't multi-threaded but will provide
-        // some slight optimizations if a mod frequently creates and deletes threads.
-        DisableThreadLibraryCalls(module);
+    if (reason != DLL_PROCESS_ATTACH)
+        return TRUE;
+    // Prevents threads from notifying this DLL on creation or destruction.
+    // Kind of redundant for a game that isn't multi-threaded but will provide
+    // some slight optimizations if a mod frequently creates and deletes threads.
+    DisableThreadLibraryCalls(module);
 
+    try {
         // if we find the old bootstrapper dll, don't load geode, copy new updater and let it do the rest
         auto workingDir = dirs::getGameDir();
-        auto error = std::error_code();
+        std::error_code error;
         bool oldBootstrapperExists = ghc::filesystem::exists(workingDir / "GeodeBootstrapper.dll", error);
-        if (oldBootstrapperExists && !error)
+        if (error) {
+            earlyError("There was an error checking whether the old GeodeBootstrapper.dll exists: " + error.message());
+            return FALSE;
+        }
+        else if (oldBootstrapperExists)
             CreateThread(nullptr, 0, upgradeThread, nullptr, 0, nullptr);
-        else if (error)
+        else if (!loadGeode()) {
+            earlyError("There was an unknown error hooking the GD main function.");
             return FALSE;
-        else if (!loadGeode(module))
-            return FALSE;
+        }
     }
+    catch(...) {
+        earlyError("There was an unknown error somewhere very very early and this is really really bad.");
+        return FALSE;
+    }
+
     return TRUE;
 }
 
