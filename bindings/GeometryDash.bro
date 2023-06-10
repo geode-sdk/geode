@@ -4901,8 +4901,8 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     PAD = mac 0x30, win 0x1c;
     bool m_unk4B0;
     cocos2d::CCSprite* m_unk4B4;
-    int m_unk4B8;
-    int m_unk4BC;
+    int m_collidedGroundObjectUniqueID;
+    int m_collidedCeilObjectUniqueID;
     PAD = mac 0x14, win 0x14;
     bool m_unk4D4;
     cocos2d::CCArray* m_particleSystems;
