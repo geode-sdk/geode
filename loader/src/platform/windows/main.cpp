@@ -8,42 +8,32 @@
 #include "loader/LoaderImpl.hpp"
 using namespace geode::prelude;
 
-int updateGeode() {
-    auto workingDir = dirs::getGameDir();
-    auto updatesDir = workingDir / "geode" / "update";
+void updateGeode() {
+    const auto workingDir = dirs::getGameDir();
+    const auto geodeDir = dirs::getGeodeDir();
+    const auto updatesDir = geodeDir / "update";
 
-    auto error = std::error_code();
+    if (ghc::filesystem::exists(geodeDir) && ghc::filesystem::exists(updatesDir) && !ghc::filesystem::is_empty(updatesDir)) {
+        if (ghc::filesystem::exists(updatesDir / "GeodeUpdater.exe"))
+            ghc::filesystem::rename(updatesDir / "GeodeUpdater.exe", workingDir / "GeodeUpdater.exe");
 
-    if (!ghc::filesystem::is_empty(updatesDir, error) && !error) {
-        if (ghc::filesystem::exists(updatesDir / "GeodeUpdater.exe", error) && !error)
-            ghc::filesystem::rename(updatesDir / "GeodeUpdater.exe", workingDir / "GeodeUpdater.exe", error);
-        if (error)
-            return error.value();
-
-        char gdPath[MAX_PATH];
-        GetModuleFileName(nullptr, gdPath, MAX_PATH);
-        auto gdName = ghc::filesystem::path(gdPath).filename().string();
+        wchar_t buffer[MAX_PATH];
+        GetModuleFileNameW(nullptr, buffer, MAX_PATH);
+        const auto gdName = ghc::filesystem::path(buffer).filename().string();
 
         // launch updater
-        auto updaterPath = (workingDir / "GeodeUpdater.exe").string();
-        ShellExecute(NULL, "open", updaterPath.c_str(), gdName.c_str(), workingDir.string().c_str(), FALSE);
+        const auto updaterPath = (workingDir / "GeodeUpdater.exe").string();
+        ShellExecuteA(nullptr, "open", updaterPath.c_str(), gdName.c_str(), workingDir.string().c_str(), false);
 
         // quit gd before it can even start
         exit(0);
-        return 0;
     }
-    if (error)
-        return error.value();
-
-    return 0;
 }
 
 int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow) {
-    int exitCode = updateGeode();
-    if (exitCode != 0)
-        return exitCode;
+    updateGeode();
 
-    exitCode = geodeEntry(hInstance);
+    int exitCode = geodeEntry(hInstance);
     if (exitCode != 0)
         return exitCode;
 
@@ -67,7 +57,7 @@ extern "C" __declspec(dllexport) DWORD WINAPI loadGeode(void* arg) {
     };
 
     DWORD oldProtect;
-    BOOL res = TRUE;
+    bool res = true;
     res = res && VirtualProtectEx(process, patchAddr, patchLength, PAGE_EXECUTE_READWRITE, &oldProtect);
     res = res && WriteProcessMemory(process, patchAddr, patchBytes, patchLength, nullptr);
     res = res && VirtualProtectEx(process, patchAddr, patchLength, oldProtect, &oldProtect);
@@ -85,8 +75,10 @@ extern "C" __declspec(dllexport) DWORD WINAPI loadGeode(void* arg) {
 }
 
 DWORD WINAPI upgradeThread(void*) {
-    return updateGeode() == 0;
+    updateGeode();
+    return 0;
 }
+
 BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID) {
     if (reason == DLL_PROCESS_ATTACH) {
         DisableThreadLibraryCalls(module);
