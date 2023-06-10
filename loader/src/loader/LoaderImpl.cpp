@@ -571,7 +571,7 @@ void Loader::Impl::downloadLoaderResources(bool useLatestRelease) {
         this->tryDownloadLoaderResources(fmt::format(
             "https://github.com/geode-sdk/geode/releases/download/{}/resources.zip",
             this->getVersion().toString()
-        ));
+        ), false);
     }
     else {
         fetchLatestGithubRelease(
