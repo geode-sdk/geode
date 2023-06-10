@@ -94,6 +94,7 @@ jobs:
       id: version
       
     - name: Trim whitespace from version
+      shell: bash
       run: echo "VERSION_TRIM=$(echo '${{ steps.version.outputs.content }}' | xargs)" >> $GITHUB_ENV
 
     - name: Delete resource cache file
@@ -126,6 +127,7 @@ jobs:
         id: version
         
       - name: Trim whitespace from version
+        shell: bash
         run: echo "VERSION_TRIM=$(echo '${{ steps.version.outputs.content }}' | xargs)" >> $GITHUB_ENV
 
       - uses: actions/download-artifact@v3
