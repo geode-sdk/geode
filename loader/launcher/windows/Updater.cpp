@@ -58,6 +58,8 @@ void removePath(ghc::filesystem::path const& path) {
 	if (path.has_filename() && !waitForFile(path))
 		return;
 
+	if (ghc::filesystem::is_directory(path) && !ghc::filesystem::is_empty(path))
+		ghc::filesystem::remove_all(path, error);
 	ghc::filesystem::remove(path, error);
 	if (error) {
 		if (path.has_filename())
