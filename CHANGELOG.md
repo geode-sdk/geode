@@ -4,6 +4,8 @@
  * Fix GLFW headers for Windows (6ada069)
  * Add crashlog to MacOS (9b58b33)
  * Implement a new updater / bootstrapper for Windows (b47870e)
+ * Don't download resources if the tag doesn't exist (991e714)
+ * Fix MacOS wine by using `std::filesystem::weakly_canonical` (46fab0e)
 
 ## v1.0.0-beta.18
  * Fix pickup bounds checks
