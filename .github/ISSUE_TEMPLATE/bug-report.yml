@@ -1,5 +1,5 @@
 name: Bug Report
-description: Report a bug where something is not working as expected, which does not crash the game.
+description: Report a bug where something is not working as expected in Geode Loader (not specific mods), which does not crash the game.
 labels: [ "unverified", "bug" ]
 body:
   - type: dropdown
