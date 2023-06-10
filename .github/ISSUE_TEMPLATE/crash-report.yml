@@ -1,5 +1,5 @@
 name: Crash Report
-description: Report a bug that crashes the game or prevents startup.
+description: Report a bug that crashes the game or prevents startup caused by Geode Loader (not individual mods).
 labels: [ "unverified", "crash" ]
 body:
   - type: dropdown
