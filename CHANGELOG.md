@@ -1,5 +1,13 @@
 # Geode Changelog
 
+## v1.0.0
+ * Fix GLFW headers for Windows (6ada069)
+ * Add crashlog to MacOS (9b58b33)
+ * Implement a new updater / bootstrapper for Windows (b47870e)
+
+## v1.0.0-beta.18
+ * Fix pickup bounds checks
+
 ## v1.0.0-beta.17
  * Fix `Mod::addHook` (372e2aa)
  * Enable ANSI color support on Windows for logs (af8d4a0)
