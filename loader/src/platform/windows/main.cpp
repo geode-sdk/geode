@@ -57,12 +57,10 @@ extern "C" __declspec(dllexport) DWORD WINAPI loadGeode(void* arg) {
     };
 
     DWORD oldProtect;
-    bool res = true;
-    res = res && VirtualProtectEx(process, patchAddr, patchLength, PAGE_EXECUTE_READWRITE, &oldProtect);
-    res = res && WriteProcessMemory(process, patchAddr, patchBytes, patchLength, nullptr);
-    res = res && VirtualProtectEx(process, patchAddr, patchLength, oldProtect, &oldProtect);
-
-    if (!res) {
+    if (VirtualProtectEx(process, patchAddr, patchLength, PAGE_EXECUTE_READWRITE, &oldProtect)) {
+        std::memcpy(patchAddr, patchBytes, patchLength);
+        VirtualProtectEx(process, patchAddr, patchLength, oldProtect, &oldProtect);
+    } else {
         LoaderImpl::get()->platformMessageBox(
             "Unable to Load Geode!",
             "There was an unknown fatal error hooking "
