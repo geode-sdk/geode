@@ -92,6 +92,9 @@ jobs:
       with:
         path: ${{ github.workspace }}/VERSION
       id: version
+      
+    - name: Trim whitespace from version
+      run: echo "VERSION_TRIM=$(echo '${{ steps.version.outputs.content }}' | xargs)" >> $GITHUB_ENV
 
     - name: Delete resource cache file
       run: |
@@ -106,7 +109,7 @@ jobs:
     - name: Upload Artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: geode-v${{ steps.version.outputs.content }}-${{ matrix.config.os_identifier }}
+        name: geode-v${{ env.VERSION_TRIM }}-${{ matrix.config.os_identifier }}
         path: ./out
 
   publish:
@@ -121,6 +124,9 @@ jobs:
         with:
           path: ${{ github.workspace }}/VERSION
         id: version
+        
+      - name: Trim whitespace from version
+        run: echo "VERSION_TRIM=$(echo '${{ steps.version.outputs.content }}' | xargs)" >> $GITHUB_ENV
 
       - uses: actions/download-artifact@v3
         with:
@@ -128,12 +134,12 @@ jobs:
 
       - uses: vimtor/action-zip@v1
         with:
-          files: geode-v${{ steps.version.outputs.content }}-mac/Geode.dylib geode-v${{ steps.version.outputs.content }}-mac/GeodeBootstrapper.dylib
+          files: geode-v${{ env.VERSION_TRIM }}-mac/Geode.dylib geode-v${{ env.VERSION_TRIM }}-mac/GeodeBootstrapper.dylib
           dest: geode-nightly-mac.zip
 
       - uses: vimtor/action-zip@v1
         with:
-          files: geode-v${{ steps.version.outputs.content }}-win/XInput9_1_0.dll geode-v${{ steps.version.outputs.content }}-win/Geode.dll geode-v${{ steps.version.outputs.content }}-win/GeodeUpdater.exe geode-v${{ steps.version.outputs.content }}-win/Geode.lib
+          files: geode-v${{ env.VERSION_TRIM }}-win/XInput9_1_0.dll geode-v${{ env.VERSION_TRIM }}-win/Geode.dll geode-v${{ env.VERSION_TRIM }}-win/GeodeUpdater.exe geode-v${{ env.VERSION_TRIM }}-win/Geode.lib
           dest: geode-nightly-win.zip
 
       - name: Update release
