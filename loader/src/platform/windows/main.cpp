@@ -13,7 +13,9 @@ void updateGeode() {
     const auto geodeDir = dirs::getGeodeDir();
     const auto updatesDir = geodeDir / "update";
 
-    if (ghc::filesystem::exists(geodeDir) && ghc::filesystem::exists(updatesDir) && !ghc::filesystem::is_empty(updatesDir)) {
+    // updater deletes the update folder so it's fine to not check if it's empty
+    if (ghc::filesystem::exists(geodeDir) && ghc::filesystem::exists(updatesDir)) {
+        // update updater
         if (ghc::filesystem::exists(updatesDir / "GeodeUpdater.exe"))
             ghc::filesystem::rename(updatesDir / "GeodeUpdater.exe", workingDir / "GeodeUpdater.exe");
 

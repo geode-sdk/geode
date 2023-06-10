@@ -3,25 +3,25 @@
 #include <array>
 #include <ghc/filesystem.hpp>
 
+ghc::filesystem::path workingDir;
+ghc::filesystem::path geodeDir;
+ghc::filesystem::path updatesDir;
+ghc::filesystem::path resourcesDir;
+
 void showError(std::string const& error) {
 	MessageBoxA(nullptr, error.c_str(), "Error Loading Geode", MB_ICONERROR);
 }
 
-int main(int argc, char* argv[]) {
-	std::array<WCHAR, MAX_PATH> szFileName;
-	GetModuleFileNameW(NULL, szFileName.data(), MAX_PATH);
+bool waitForFile(ghc::filesystem::path const& path) {
+	if (!path.has_filename())
+		return false;
 
-	const ghc::filesystem::path path(szFileName.data());
-	auto workingDir = path.parent_path();
-	auto updatesDir = workingDir / "geode" / "update";
-	auto resourcesDir = workingDir / "geode" / "resources";
-
-	// wait for geode.dll to be writable
 	int delay = 10;
 	HANDLE hFile;
-	while ((hFile = CreateFile((workingDir / "Geode.dll").string().c_str(), FILE_GENERIC_WRITE, FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL)) == INVALID_HANDLE_VALUE) {
+	while ((hFile = CreateFile(path.string().c_str(), FILE_GENERIC_WRITE, FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL)) == INVALID_HANDLE_VALUE) {
 		if (GetLastError() == ERROR_SHARING_VIOLATION) {
 			Sleep(delay);
+			// the delay would raise and go up to about 5 seconds, after which it will fail
 			if (delay < 5120)
 				delay *= 2;
 		}
@@ -31,50 +31,87 @@ int main(int argc, char* argv[]) {
 	if (hFile)
 		CloseHandle(hFile);
 	else {
-		showError("Unable to update Geode: Geode.dll is open by another process.");
-		return 1;
+		showError("Unable to update Geode: " + path.filename().string() + " is open by another process.");
+		return false;
 	}
+	return true;
+}
 
+void updateFile(std::string const& name) {
 	auto error = std::error_code();
+	if (!ghc::filesystem::exists(updatesDir / name, error) || error)
+		return;
+	if (!waitForFile(workingDir / name))
+		return;
 
-	if (ghc::filesystem::exists(updatesDir / "Geode.dll", error) && !error) {
-		ghc::filesystem::rename(updatesDir / "Geode.dll", workingDir / "Geode.dll", error);
-		if (error) {
-			showError("Unable to update Geode: Unable to move Geode.dll - " + error.message());
-			return error.value();
-		}
+	ghc::filesystem::rename(updatesDir / name, workingDir / name, error);
+	if (error) {
+		showError("Unable to update Geode: Unable to move " + name + " - " + error.message());
+		return;
+	}
+}
+
+void removePath(ghc::filesystem::path const& path) {
+	auto error = std::error_code();
+	if (!ghc::filesystem::exists(path, error) || error)
+		return;
+	if (path.has_filename() && !waitForFile(path))
+		return;
+
+	ghc::filesystem::remove(path, error);
+	if (error) {
+		if (path.has_filename())
+			showError("Unable to update Geode: Unable to remove " + path.filename().string() + " - " + error.message());
+		else
+			showError("Unable to update Geode: Unable to remove " + path.string() + " - " + error.message());
+		return;
+	}
+}
+
+void removeDirectory(std::string const& name) {
+	auto error = std::error_code();
+	if (!ghc::filesystem::exists(workingDir / name, error) || error)
+		return;
+	if (!waitForFile(workingDir / name))
+		return;
+
+	ghc::filesystem::remove(workingDir / name, error);
+	if (error) {
+		showError("Unable to update Geode: Unable to remove " + name + " - " + error.message());
+		return;
+	}
+}
+
+void updateResources() {
+	auto error = std::error_code();
+	if (!ghc::filesystem::exists(updatesDir / "resources", error) || error)
+		return;
+
+	ghc::filesystem::remove_all(resourcesDir / "geode.loader", error);
+	if (error) {
+		showError("Unable to update Geode resources:" + error.message());
+		return;
 	}
 
-	if (ghc::filesystem::exists(updatesDir / "XInput9_1_0.dll", error) && !error) {
-		ghc::filesystem::rename(updatesDir / "XInput9_1_0.dll", workingDir / "XInput9_1_0.dll", error);
-		if (error) {
-			showError("Unable to update Geode: Unable to move XInput9_1_0.dll - " + error.message());
-			return error.value();
-		}
+	ghc::filesystem::rename(updatesDir / "resources", resourcesDir / "geode.loader", error);
+	if (error) {
+		showError("Unable to update Geode resources: " + error.message());
+		return;
 	}
+}
 
-	if (ghc::filesystem::exists(updatesDir / "resources", error) && !error) {
-		ghc::filesystem::remove_all(resourcesDir / "geode.loader", error);
+int main(int argc, char* argv[]) {
+	workingDir = ghc::filesystem::current_path();
+	geodeDir = workingDir / "geode";
+	updatesDir = geodeDir / "update";
+	resourcesDir = geodeDir / "resources";
 
-		if (error) {
-			showError("Unable to update Geode resources: " + error.message());
-		} else {
-			ghc::filesystem::rename(
-				updatesDir / "resources", 
-				resourcesDir / "geode.loader", error
-			);
-			if (error) {
-				showError("Unable to update Geode resources: " + error.message());
-			}
-		}
-	}
-
-	if (ghc::filesystem::exists(workingDir / "GeodeBootstrapper.dll", error) && !error) {
-		ghc::filesystem::remove(workingDir / "GeodeBootstrapper.dll", error);
-		if (error) {
-			showError("Unable to update Geode: Unable to delete GeodeBootstrapper.dll - " + error.message());
-			return error.value();
-		}
+	if (ghc::filesystem::exists(geodeDir) && ghc::filesystem::exists(updatesDir)) {
+		removePath(workingDir / "GeodeBootstrapper.dll");
+		updateFile("XInput9_1_0.dll");
+		updateFile("Geode.dll");
+		updateResources();
+		removePath(updatesDir);
 	}
 
 	if(argc < 2)
