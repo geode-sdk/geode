@@ -91,6 +91,13 @@ class cocos2d::CCClippingNode {
 	auto visit() = mac 0x419530;
 }
 
+// not sure how the entire class is supposed to be added to only windows cuz idk if it even exists on mac
+//class cocos2d::CCControllerHandler {
+//	CCControllerHandler(int userIndex) = win 0xc7f50;
+//	cocos2d::CCControllerState getState() = win 0xc7f80;
+//	void updateConnected() = win 0xc7fb0;
+//}
+
 class cocos2d::CCDelayTime {
 	static cocos2d::CCDelayTime* create(float) = mac 0x1f4380;
 }
