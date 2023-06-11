@@ -2,7 +2,7 @@
 
 #ifdef GEODE_IS_WINDOWS
 
-GEODE_MEMBER_CHECK(cocos2d::CCApplication, m_fAnimationInterval, 0x8c);
+GEODE_MEMBER_CHECK(cocos2d::CCApplication, m_fVsyncInterval, 0x8c);
 GEODE_MEMBER_CHECK(AppDelegate, m_runningScene, 0xa0);
 
 GEODE_MEMBER_CHECK(GameObject, m_effectPlistName, 0x278);
