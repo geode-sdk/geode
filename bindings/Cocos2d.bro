@@ -17,6 +17,7 @@ class cocos2d::CCAnimation {
 }
 
 class cocos2d::CCApplication {
+	virtual auto run();
 	virtual auto getCurrentLanguage() = mac 0x1a3f40, ios 0x10e508;
 	virtual auto getTargetPlatform() = mac 0x1a3f20, ios 0x10e57c;
 	virtual auto openURL(char const*) = mac 0x1a4550, ios 0x10e7a4;

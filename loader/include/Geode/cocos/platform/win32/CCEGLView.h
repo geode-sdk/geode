@@ -95,6 +95,7 @@ public:
 	float getFrameZoomFactor();
     RT_REMOVE(  virtual void centerWindow();    )
     RT_ADD(     void centerWindow();            )
+    RT_ADD(     bool windowShouldClose();       )
 
     RT_ADD(     void showCursor(bool state);    )
 	    
@@ -169,7 +170,7 @@ public:
     RT_ADD(
         CC_SYNTHESIZE_NV(CCSize, m_obWindowedSize, WindowedSize);
     )
-protected:
+
     RT_ADD(
         float m_fMouseX;
         float m_fMouseY;
@@ -178,6 +179,7 @@ protected:
         bool m_bShouldCallGLFinish;
     )
 
+protected:
     RT_ADD(
         void onGLFWCharCallback(GLFWwindow* window, unsigned int entered);
         void onGLFWCursorEnterFunCallback(GLFWwindow* window, int entered);

@@ -48,6 +48,11 @@ public:
     virtual void setupGLView();
     virtual void platformShutdown();
     void toggleVerticalSync(bool);
+    RT_ADD(
+        void setupVerticalSync();
+        void updateVerticalSync();
+        void updateControllerKeys();
+    )
 
     /**
      *  Sets the Resource root path.
@@ -82,8 +87,8 @@ public:
     CCPoint m_obLeftThumb;
     CCPoint m_obRightThumb;
     bool m_bMouseControl;
-    float m_fOldAnimationInterval;
     float m_fAnimationInterval;
+    float m_fVsyncInterval;
     CC_SYNTHESIZE_READONLY_NV(bool, m_bVerticalSyncEnabled, VerticalSyncEnabled);
     CC_SYNTHESIZE_READONLY_NV(bool, m_bControllerConnected, ControllerConnected);
     CC_SYNTHESIZE_NV(bool, m_bSleepMode, SleepMode);
