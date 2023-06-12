@@ -151,6 +151,7 @@ class cocos2d::CCDirector {
 	auto willSwitchToScene(cocos2d::CCScene* scene);
 	auto setOpenGLView(cocos2d::CCEGLView *pobOpenGLView) = mac 0x249be0;
 	auto updateScreenScale(cocos2d::CCSize) = mac 0x249f10;
+	auto setContentScaleFactor(float);
 
 	auto setNextScene() = mac 0x2498d0;
 	auto showStats() = mac 0x2499e0;
