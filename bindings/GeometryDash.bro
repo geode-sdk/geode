@@ -458,6 +458,28 @@ class CCMenuItemToggler : cocos2d::CCMenuItem {
 class CCMoveCNode : cocos2d::CCNode {
     static CCMoveCNode* create() = mac 0x1842a0;
     ~CCMoveCNode() = mac 0x18b2c0;
+
+    int m_unkEC;
+    int m_unkF0;
+    float m_staticRotation;
+    bool m_lockRotation;
+    bool m_unkF9;
+    bool m_unkFA;
+    bool m_unkFB;
+    int m_groupId;
+    bool m_forceUpdate;
+    int m_unk104;
+    float m_unk108;
+    float m_unk10C;
+    bool m_unk110;
+    int m_unk114;
+    int m_unk118;
+    float m_optimizedRotation;
+    int m_unk120;
+    int m_unk124;
+    int m_unk128;
+    int m_unk12C;
+    int m_unk130;
 }
 
 class CCNodeContainer : cocos2d::CCNode {
@@ -2168,12 +2190,12 @@ class GJEffectManager : cocos2d::CCNode {
     cocos2d::CCDictionary* m_followActions;
     cocos2d::CCArray* m_spawnActions;
     cocos2d::CCArray* m_moveActions;
-    cocos2d::CCArray* m_f1c28;
+    cocos2d::CCArray* m_groupCommands; // array of GroupCommandObject
     cocos2d::CCNode* m_f1c30;
-    cocos2d::CCDictionary* m_f1c38;
-    cocos2d::CCDictionary* m_f1c40;
-    cocos2d::CCDictionary* m_f1c48;
-    cocos2d::CCDictionary* m_f1c50;
+    cocos2d::CCDictionary* m_moveNodes;
+    cocos2d::CCDictionary* m_rotationNodes;
+    cocos2d::CCDictionary* m_followNodes;
+    cocos2d::CCDictionary* m_idkNodes;
     float m_time;
     float m_velocity;
     float m_acceleration;
@@ -3255,6 +3277,7 @@ class GameObject : CCSpritePlus {
     bool m_hasBeenActivatedP2;
     bool m_hasDetailColor;
     bool m_isPulseStick;
+    bool m_hasOrientedBox;
     int m_linkedGroup;
     bool m_isSaw;
     int m_customRotateSpeed;
@@ -3321,7 +3344,7 @@ class GameObject : CCSpritePlus {
     float m_realOpacity;
     GJSpriteColor* m_baseColor;
     GJSpriteColor* m_detailColor;
-    int m_unknown420;                                                                                                                                                                                                               
+    int m_unknown420;
     ZLayer m_defaultZLayer;
     ZLayer m_zLayer;
     int m_gameZOrder;
@@ -3345,14 +3368,27 @@ class GameObject : CCSpritePlus {
     int m_unk414;
     PAD = mac 0xc, win 0xc;
     cocos2d::CCPoint m_firstPosition;
-    PAD = mac 0x15, win 0x15;
+    bool m_unk42C;
+    bool m_unk42D;
+    PAD = mac 0x6, win 0x6;
+    bool m_isAnimated;
+    PAD = mac 0x7, win 0x7;
+    bool m_hasEffectLine;
+    bool m_specialUnk43d;
+    PAD = mac 0x1, win 0x1;
+    bool m_hasDurationLine;
     bool m_isTriggerable;
+    bool m_triggeredInEditor;
     PAD = mac 0x6, win 0x6;
     bool m_highDetail;
     ColorActionSprite* m_colorActionSpriteBase;
     ColorActionSprite* m_colorActionSpriteDetail;
     GJEffectManager* m_effectManager;
-    PAD = mac 0xc, win 0xc;
+    bool m_unk458;
+    bool m_unk459;
+    bool m_unk45A;
+    bool m_wasForcedRotatedPositionUpdateIdk;
+    PAD = mac 0x8, win 0x8;
     bool m_orbMultiActivate;
 }
 
