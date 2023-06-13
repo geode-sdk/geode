@@ -456,30 +456,65 @@ class CCMenuItemToggler : cocos2d::CCMenuItem {
 }
 
 class CCMoveCNode : cocos2d::CCNode {
-    static CCMoveCNode* create() = mac 0x1842a0;
+    static CCMoveCNode* create() = mac 0x1842a0, win 0x121c70;
     ~CCMoveCNode() = mac 0x18b2c0;
 
-    int m_unkEC;
-    int m_unkF0;
+    float m_staticMoveX;
+    float m_staticMoveY;
     float m_staticRotation;
-    bool m_lockRotation;
-    bool m_unkF9;
-    bool m_unkFA;
-    bool m_unkFB;
-    int m_groupId;
+    bool m_lockObjectRotation;
+    int m_parentGroupId;
     bool m_forceUpdate;
     int m_unk104;
-    float m_unk108;
-    float m_unk10C;
+    float m_followXMod;
+    float m_followYMod;
     bool m_unk110;
-    int m_unk114;
-    int m_unk118;
+    float m_optimizedMoveX;
+    float m_optimizedMoveY;
     float m_optimizedRotation;
-    int m_unk120;
-    int m_unk124;
-    int m_unk128;
-    int m_unk12C;
-    int m_unk130;
+    float m_playerFollowSpeed;
+    float m_playerFollowDelay;
+    float m_playerFollowOffset;
+    float m_playerFollowMaxSpeed;
+    GroupCommandObject* m_followCommand;
+}
+
+class GroupCommandObject : cocos2d::CCNode {
+    // too lazy to re rn
+    // the ints are definitely real members but idk their types
+    cocos2d::CCPoint m_ec;
+    int m_f4;
+    int m_f8;
+    int m_fc;
+    int m_100;
+    int m_104;
+    int m_108;
+    cocos2d::CCPoint m_10c;
+    cocos2d::CCPoint m_114;
+    cocos2d::CCPoint m_11c;
+    int m_124;
+    int m_128;
+    int m_12c;
+    int m_130;
+    int m_134;
+    bool m_138;
+    float m_13c;
+    float m_140;
+    bool m_144;
+    int m_148;
+    int m_14c;
+    int m_150;
+    int m_154;
+    int m_158;
+    int m_15c;
+    cocos2d::CCPoint m_160;
+    cocos2d::CCPoint m_168;
+    int m_170;
+    int m_174;
+    int m_178;
+    int m_17c;
+    int m_180;
+    bool m_184;
 }
 
 class CCNodeContainer : cocos2d::CCNode {
@@ -2192,10 +2227,10 @@ class GJEffectManager : cocos2d::CCNode {
     cocos2d::CCArray* m_moveActions;
     cocos2d::CCArray* m_groupCommands; // array of GroupCommandObject
     cocos2d::CCNode* m_f1c30;
-    cocos2d::CCDictionary* m_moveNodes;
-    cocos2d::CCDictionary* m_rotationNodes;
-    cocos2d::CCDictionary* m_followNodes;
-    cocos2d::CCDictionary* m_idkNodes;
+    cocos2d::CCDictionary* m_moveNodes; // dict of CCMoveCNode
+    cocos2d::CCDictionary* m_rotationNodes; // dict of CCMoveCNode
+    cocos2d::CCDictionary* m_followNodes; // dict of CCMoveCNode
+    cocos2d::CCDictionary* m_playerFollowNodes; // dict of CCMoveCNode
     float m_time;
     float m_velocity;
     float m_acceleration;
