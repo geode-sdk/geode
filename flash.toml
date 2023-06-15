@@ -60,4 +60,4 @@ build-args = [
 ]
 
 # The file we use to get all the include paths and such
-infer-args-from = "loader/src/main.cpp"
+infer-args-from = "loader/src/load.cpp"
