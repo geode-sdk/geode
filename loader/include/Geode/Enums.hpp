@@ -21,6 +21,12 @@ enum class SearchType {
     HallOfFame = 16,
     FeaturedGDW = 17,
     Similar = 18,
+    ListsOnClick = 19,
+    Lists = 20,
+    DailyVault = 21,
+    WeeklyVault = 22,
+    EventVault = 23,
+    Reported = 24,
     MyLevels = 98,
     SavedLevels = 99,
     FavouriteLevels = 100
