@@ -289,6 +289,13 @@ enum class GJLevelType {
     Saved = 3
 };
 
+enum class GJRewardType
+{
+    Unknown = 0x0,
+    Small = 0x1,
+    Large = 0x2
+};
+
 enum class IconType {
     Cube = 0,
     Ship = 1,

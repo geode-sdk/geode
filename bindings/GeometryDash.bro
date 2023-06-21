@@ -2436,7 +2436,7 @@ class GJItemIcon : cocos2d::CCSprite {
         bool, bool, bool, cocos2d::ccColor3B
     ) = win 0x12ccf0;
 
-    GJItemIcon* createBrowserIcon(UnlockType _type, int _id) {
+    static GJItemIcon* createBrowserIcon(UnlockType _type, int _id) {
         return GJItemIcon::create(_type, _id,
             { 0xaf, 0xaf, 0xaf }, { 0xff, 0xff, 0xff },
             false, true, true,
@@ -2490,6 +2490,14 @@ class GJRequestCell : TableViewCell {
 }
 
 class GJRewardDelegate {}
+
+class GJRewardItem : cocos2d::CCObject {
+    int m_chestID;
+    int m_timeRemaining;
+    GJRewardType m_rewardType;
+    cocos2d::CCArray* m_rewardObjects;
+    bool m_unk;
+}
 
 class GJRewardObject : cocos2d::CCObject {
     SpecialRewardItem m_specialRewardItem;
@@ -5118,6 +5126,10 @@ class RateStarsLayer : FLAlertLayer, UploadPopupDelegate, UploadActionDelegate {
 
 class RetryLevelLayer {
     static RetryLevelLayer* create() = mac 0x28dd60, win 0x216390;
+}
+
+class RewardsPage : FLAlertLayer {
+    bool init() = win 0x2178F0;
 }
 
 class RingObject : EffectGameObject {
