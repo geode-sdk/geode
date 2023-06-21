@@ -2762,6 +2762,7 @@ class GameLevelManager : cocos2d::CCNode {
     cocos2d::CCArray* createAndGetScores(gd::string, GJScoreType) = win 0xa2780;
     GJGameLevel* createNewLevel() = mac 0x2b8180, win 0xa0db0;
     static GameLevelManager* sharedState() = mac 0x2a8340, win 0x9f860;
+    void limitSavedLevels() = win 0xA43B0;
     cocos2d::CCArray* getCompletedLevels(bool newFilter) = win 0xa2d20;
     void getGJUserInfo(int) = win 0xb00b0;
     void getOnlineLevels(GJSearchObject*) = win 0xa7bc0;
