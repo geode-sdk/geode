@@ -2745,9 +2745,8 @@ class GManager : cocos2d::CCNode {
     virtual void firstLoad() {}
 
     void save() {
-        save(m_fileName);
+        saveGMTo(m_fileName);
     }
-    void save(gd::string) = mac 0x26f300, win 0x29250;
     void saveData(DS_Dictionary*, gd::string) = mac 0x26f4b0;
     void saveGMTo(gd::string) = mac 0x26f3b0, win 0x29250;
 
