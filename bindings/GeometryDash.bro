@@ -5239,7 +5239,7 @@ class SetTargetIDLayer {
 }
 
 class SetTextPopupDelegate {
-    virtual void setIDPopupClosed(void*, std::string) {}
+    virtual void setIDPopupClosed(void*, gd::string) {}
 }
 
 class SetupAnimationPopup : FLAlertLayer {
