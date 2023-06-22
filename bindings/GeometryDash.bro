@@ -2744,7 +2744,10 @@ class GManager : cocos2d::CCNode {
     virtual void dataLoaded(DS_Dictionary* data) {}
     virtual void firstLoad() {}
 
-    void save() = mac 0x26f300, win 0x29250;
+    void save() {
+        save(m_fileName);
+    }
+    void save(gd::string) = mac 0x26f300, win 0x29250;
     void saveData(DS_Dictionary*, gd::string) = mac 0x26f4b0;
     void saveGMTo(gd::string) = mac 0x26f3b0, win 0x29250;
 
@@ -2773,6 +2776,7 @@ class GameLevelManager : cocos2d::CCNode {
     void limitSavedLevels() = win 0xA43B0;
     cocos2d::CCArray* getCompletedLevels(bool newFilter) = win 0xa2d20;
     void getGJUserInfo(int) = win 0xb00b0;
+    void getLevelLeaderboard(GJGameLevel* level, LevelLeaderboardType leaderboardType) = win 0xAED70;
     void getOnlineLevels(GJSearchObject*) = win 0xa7bc0;
     void getPageInfo(char const*) = mac 0x2c0050;
     cocos2d::CCArray* getSavedLevels(bool favorite, int levelFolder) = win 0xa2960;
