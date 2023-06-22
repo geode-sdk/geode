@@ -2739,7 +2739,7 @@ class GJUserScore : cocos2d::CCNode {
 }
 
 class GManager : cocos2d::CCNode {
-    virtual void setup() {}
+    virtual void setup() = win 0x28F60;
     virtual void encodeDataTo(DS_Dictionary* data) {}
     virtual void dataLoaded(DS_Dictionary* data) {}
     virtual void firstLoad() {}
