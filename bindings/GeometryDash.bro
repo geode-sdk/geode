@@ -885,8 +885,8 @@ class ColorSetupDelegate {
 
 class CommentCell : TableViewCell, LikeItemDelegate, FLAlertLayerProtocol {
     void loadFromComment(GJComment*) = mac 0x111c70, win 0x5f3d0;
-    void onConfirmDelete(cocos2d::CCObject* sender) = win 0x61140;
-    void onLike(cocos2d::CCObject* sender) = win 0x60F90;
+    void onConfirmDelete(cocos2d::CCObject* sender) = mac 0x25ec80, win 0x61140;
+    void onLike(cocos2d::CCObject* sender) = mac 0x11d000, win 0x60F90;
     virtual void FLAlert_Clicked(FLAlertLayer* layer, bool btn) = win 0x61260;
     virtual void likedItem(LikeItemType type, int id, bool special) = win 0x61070;
 
@@ -943,7 +943,7 @@ class CreateMenuItem : CCMenuItemSpriteExtra {
 //TODO: inherits cocos2d::CCSceneTransitionDelegate
 class CreatorLayer : cocos2d::CCLayer {
     void onBack(cocos2d::CCObject*) = win 0x4fae0;
-    void onChallenge(cocos2d::CCObject*) = win 0x4f1b0;
+    void onChallenge(cocos2d::CCObject*) = mac 0x142960, win 0x4f1b0;
     void onLeaderboards(cocos2d::CCObject*) = win 0x4ed20;
     void onMyLevels(cocos2d::CCObject*) = mac 0x142b70, win 0x4eaa0;
     void onSavedLevels(cocos2d::CCObject*) = mac 0x142860, win 0x4ebe0;
@@ -1063,7 +1063,7 @@ class CustomizeObjectLayer : FLAlertLayer, TextInputDelegate, HSVWidgetPopupDele
 
 class DailyLevelPage : FLAlertLayer {
     static DailyLevelPage* create(bool weekly) = win 0x6a860;
-    bool init(bool weekly) = win 0x6a900;
+    bool init(bool weekly) = mac 0x10abb0, win 0x6a900;
     virtual void updateTimers(float) = win 0x6bef0;
     virtual void show() = mac 0x10a4b0, win 0x3f360;
 
@@ -1214,7 +1214,7 @@ class EditLevelLayer : cocos2d::CCLayer, FLAlertLayerProtocol, TextInputDelegate
 
     static EditLevelLayer* create(GJGameLevel* level) = mac 0xe1e50, win 0x6f530, ios 0x82420;
     bool init(GJGameLevel* level) = mac 0xe1fd0, win 0x6f5d0;
-    void onLevelInfo(cocos2d::CCObject*) = win 0x70660;
+    void onLevelInfo(cocos2d::CCObject*) = mac 0xe4f60, win 0x70660;
 
     cocos2d::CCMenu* m_buttonMenu;
     GJGameLevel* m_level;
@@ -3634,12 +3634,12 @@ class InfoAlertButton : CCMenuItemSpriteExtra {
 }
 
 class InfoLayer : FLAlertLayer, LevelCommentDelegate, CommentUploadDelegate, FLAlertLayerProtocol {
-    bool init(GJGameLevel* level, GJUserScore* score) = win 0x14f5a0;
-    void setupCommentsBrowser(cocos2d::CCArray* comments) = win 0x152270;
+    bool init(GJGameLevel* level, GJUserScore* score) = mac 0x456850, win 0x14f5a0;
+    void setupCommentsBrowser(cocos2d::CCArray* comments) = mac 0x458590, win 0x152270;
     void onMore(cocos2d::CCObject* sender) = win 0x151500;
-    void onLevelInfo(cocos2d::CCObject* sender) = win 0x151850;
+    void onLevelInfo(cocos2d::CCObject* sender) = mac 0x459400, win 0x151850;
     void loadPage(int page, bool) = win 0x151e70;
-    static InfoLayer* create(GJGameLevel* level, GJUserScore* score) = win 0x14f4f0;
+    static InfoLayer* create(GJGameLevel* level, GJUserScore* score) = mac 0x456600, win 0x14f4f0;
 
     GJGameLevel* m_level;
     GJUserScore* m_score;
@@ -3738,7 +3738,7 @@ class LevelCell : TableViewCell {
     GJGameLevel* m_level;
     bool m_cellDrawn;
 
-    void onViewProfile(cocos2d::CCObject*) = win 0x5c790;
+    void onViewProfile(cocos2d::CCObject*) = mac 0x11a4a0, win 0x5c790;
     void loadCustomLevelCell() = mac 0x1183b0, win 0x5a020;
     void updateBGColor(int index) = win 0x5c6b0;
     void loadFromLevel(GJGameLevel* level) = win 0x59FD0;
@@ -3970,8 +3970,8 @@ class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDeleg
     static LevelInfoLayer* create(GJGameLevel* level) = mac 0x15f290, win 0x175d50;
     bool init(GJGameLevel* level) = win 0x175df0, mac 0x15f520;
     void onGarage(cocos2d::CCObject* sender) = win 0x177c10;
-    void onViewProfile(cocos2d::CCObject* sender) = win 0x17ac90;
-    void onLevelInfo(cocos2d::CCObject* sender) = win 0x17acf0;
+    void onViewProfile(cocos2d::CCObject* sender) = mac 0x1617d0, win 0x17ac90;
+    void onLevelInfo(cocos2d::CCObject* sender) = mac 0x163880, win 0x17acf0;
     void setupProgressBars() = win 0x177fc0;
     void downloadLevel() = win 0x177d90;
 
@@ -4260,7 +4260,7 @@ class MessageListDelegate {}
 
 class MoreSearchLayer : FLAlertLayer {
     static MoreSearchLayer* create() = win 0x182520;
-    virtual bool init() = win 0x1825c0;
+    virtual bool init() = mac 0x3896b0, win 0x1825c0;
 }
 
 class MoreOptionsLayer : FLAlertLayer, TextInputDelegate, GooglePlayDelegate {
@@ -5090,7 +5090,7 @@ class ProfilePage : FLAlertLayer, FLAlertLayerProtocol, LevelCommentDelegate, Co
     bool init(int accountID, bool idk) = mac 0x45f170, win 0x20ef00;
     void onMyLevels(cocos2d::CCObject*) = win 0x211bb0;
     void onUpdate(cocos2d::CCObject*) = win 0x20fa20;
-    void onClose(cocos2d::CCObject*) = win 0x49C60;
+    void onClose(cocos2d::CCObject*) = mac 0x45fd20, win 0x49C60;
     virtual void keyBackClicked() = win 0x49C80;
     void loadPageFromUserInfo(GJUserScore* score) = win 0x210040;
 
@@ -5132,7 +5132,7 @@ class RetryLevelLayer {
 }
 
 class RewardsPage : FLAlertLayer {
-    bool init() = win 0x2178F0;
+    bool init() = mac 0xf3800, win 0x2178F0;
 }
 
 class RingObject : EffectGameObject {
