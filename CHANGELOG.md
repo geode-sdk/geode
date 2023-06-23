@@ -1,6 +1,7 @@
 # Geode Changelog
 
 ## v1.0.0
+ * Make JSON library exported (a2b8f27)
  * Fix GLFW headers for Windows (6ada069)
  * Add crashlog to MacOS (9b58b33)
  * Implement a new updater / bootstrapper for Windows (b47870e)

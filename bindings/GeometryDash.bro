@@ -97,9 +97,14 @@ class AppDelegate : cocos2d::CCApplication, cocos2d::CCSceneDelegate {
     void resumeSound() = win 0x3d4d0;
     void setupGLView() = win 0x3c950;
 
+    bool m_unk0;
+    bool m_unk1;
     cocos2d::CCScene* m_runningScene;
     bool m_loadingFinished;
-    // there's 0x18 more on Windows
+    bool m_unk2;
+    bool m_unk3;
+    bool m_use16BitFormatForColorPicker;
+    bool m_unk4;
 }
 
 class ArtistCell : TableViewCell {
@@ -451,8 +456,65 @@ class CCMenuItemToggler : cocos2d::CCMenuItem {
 }
 
 class CCMoveCNode : cocos2d::CCNode {
-    static CCMoveCNode* create() = mac 0x1842a0;
+    static CCMoveCNode* create() = mac 0x1842a0, win 0x121c70;
     ~CCMoveCNode() = mac 0x18b2c0;
+
+    float m_staticMoveX;
+    float m_staticMoveY;
+    float m_staticRotation;
+    bool m_lockObjectRotation;
+    int m_parentGroupId;
+    bool m_forceUpdate;
+    int m_unk104;
+    float m_followXMod;
+    float m_followYMod;
+    bool m_unk110;
+    float m_optimizedMoveX;
+    float m_optimizedMoveY;
+    float m_optimizedRotation;
+    float m_playerFollowSpeed;
+    float m_playerFollowDelay;
+    float m_playerFollowOffset;
+    float m_playerFollowMaxSpeed;
+    GroupCommandObject* m_followCommand;
+}
+
+class GroupCommandObject : cocos2d::CCNode {
+    // too lazy to re rn
+    // the ints are definitely real members but idk their types
+    cocos2d::CCPoint m_ec;
+    int m_f4;
+    int m_f8;
+    int m_fc;
+    int m_100;
+    int m_104;
+    int m_108;
+    cocos2d::CCPoint m_10c;
+    cocos2d::CCPoint m_114;
+    cocos2d::CCPoint m_11c;
+    int m_124;
+    int m_128;
+    int m_12c;
+    int m_130;
+    int m_134;
+    bool m_138;
+    float m_13c;
+    float m_140;
+    bool m_144;
+    int m_148;
+    int m_14c;
+    int m_150;
+    int m_154;
+    int m_158;
+    int m_15c;
+    cocos2d::CCPoint m_160;
+    cocos2d::CCPoint m_168;
+    int m_170;
+    int m_174;
+    int m_178;
+    int m_17c;
+    int m_180;
+    bool m_184;
 }
 
 class CCNodeContainer : cocos2d::CCNode {
@@ -2163,12 +2225,12 @@ class GJEffectManager : cocos2d::CCNode {
     cocos2d::CCDictionary* m_followActions;
     cocos2d::CCArray* m_spawnActions;
     cocos2d::CCArray* m_moveActions;
-    cocos2d::CCArray* m_f1c28;
+    cocos2d::CCArray* m_groupCommands; // array of GroupCommandObject
     cocos2d::CCNode* m_f1c30;
-    cocos2d::CCDictionary* m_f1c38;
-    cocos2d::CCDictionary* m_f1c40;
-    cocos2d::CCDictionary* m_f1c48;
-    cocos2d::CCDictionary* m_f1c50;
+    cocos2d::CCDictionary* m_moveNodes; // dict of CCMoveCNode
+    cocos2d::CCDictionary* m_rotationNodes; // dict of CCMoveCNode
+    cocos2d::CCDictionary* m_followNodes; // dict of CCMoveCNode
+    cocos2d::CCDictionary* m_playerFollowNodes; // dict of CCMoveCNode
     float m_time;
     float m_velocity;
     float m_acceleration;
@@ -3250,6 +3312,7 @@ class GameObject : CCSpritePlus {
     bool m_hasBeenActivatedP2;
     bool m_hasDetailColor;
     bool m_isPulseStick;
+    bool m_hasOrientedBox;
     int m_linkedGroup;
     bool m_isSaw;
     int m_customRotateSpeed;
@@ -3316,7 +3379,7 @@ class GameObject : CCSpritePlus {
     float m_realOpacity;
     GJSpriteColor* m_baseColor;
     GJSpriteColor* m_detailColor;
-    int m_unknown420;                                                                                                                                                                                                               
+    int m_unknown420;
     ZLayer m_defaultZLayer;
     ZLayer m_zLayer;
     int m_gameZOrder;
@@ -3340,14 +3403,27 @@ class GameObject : CCSpritePlus {
     int m_unk414;
     PAD = mac 0xc, win 0xc;
     cocos2d::CCPoint m_firstPosition;
-    PAD = mac 0x15, win 0x15;
+    bool m_unk42C;
+    bool m_unk42D;
+    PAD = mac 0x6, win 0x6;
+    bool m_isAnimated;
+    PAD = mac 0x7, win 0x7;
+    bool m_hasEffectLine;
+    bool m_specialUnk43d;
+    PAD = mac 0x1, win 0x1;
+    bool m_hasDurationLine;
     bool m_isTriggerable;
+    bool m_triggeredInEditor;
     PAD = mac 0x6, win 0x6;
     bool m_highDetail;
     ColorActionSprite* m_colorActionSpriteBase;
     ColorActionSprite* m_colorActionSpriteDetail;
     GJEffectManager* m_effectManager;
-    PAD = mac 0xc, win 0xc;
+    bool m_unk458;
+    bool m_unk459;
+    bool m_unk45A;
+    bool m_wasForcedRotatedPositionUpdateIdk;
+    PAD = mac 0x8, win 0x8;
     bool m_orbMultiActivate;
 }
 

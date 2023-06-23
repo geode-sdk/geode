@@ -5,6 +5,7 @@
 #include "CCStdC.h"
 #include "../CCCommon.h"
 #include "../CCApplicationProtocol.h"
+#include "CCControllerHandler.h"
 #include <string>
 
 NS_CC_BEGIN
@@ -47,6 +48,11 @@ public:
     virtual void setupGLView();
     virtual void platformShutdown();
     void toggleVerticalSync(bool);
+    RT_ADD(
+        void setupVerticalSync();
+        void updateVerticalSync();
+        void updateControllerKeys();
+    )
 
     /**
      *  Sets the Resource root path.
@@ -71,18 +77,18 @@ public:
     HINSTANCE           m_hInstance;
     HACCEL              m_hAccelTable;
     LARGE_INTEGER       m_nAnimationInterval;
-    PAD(8);
+    LARGE_INTEGER       m_nVsyncInterval;
     std::string         m_resourceRootPath;
     std::string         m_startupScriptFilename;
-    void* m_pUnknown;
+    CCControllerHandler* m_pControllerHandler;
     bool m_bUpdateController;
     CC_SYNTHESIZE_NV(bool, m_bShutdownCalled, ShutdownCalled);
     INPUT m_iInput;
-    CCPoint m_obUnknown1;
-    CCPoint m_obUnknown2;
+    CCPoint m_obLeftThumb;
+    CCPoint m_obRightThumb;
     bool m_bMouseControl;
-    float m_fOldAnimationInterval;
     float m_fAnimationInterval;
+    float m_fVsyncInterval;
     CC_SYNTHESIZE_READONLY_NV(bool, m_bVerticalSyncEnabled, VerticalSyncEnabled);
     CC_SYNTHESIZE_READONLY_NV(bool, m_bControllerConnected, ControllerConnected);
     CC_SYNTHESIZE_NV(bool, m_bSleepMode, SleepMode);

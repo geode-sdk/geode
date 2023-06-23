@@ -348,13 +348,13 @@ public:
 protected:
     virtual void mainLoop(void) {}
 
+public:
     /** The size in pixels of the surface. It could be different than the screen size.
     High-res devices might have a higher surface size than the screen size.
     Only available when compiled using SDK >= 4.0.
     @since v0.99.4
     */
     void setContentScaleFactor(float scaleFactor);
-public:
     inline float getContentScaleFactor(void) { return m_fContentScaleFactor; }
 
     RT_ADD(
