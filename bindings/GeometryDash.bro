@@ -4259,7 +4259,7 @@ class MenuLayer : cocos2d::CCLayer, FLAlertLayerProtocol, GooglePlayDelegate {
 class MessageListDelegate {}
 
 class MoreSearchLayer : FLAlertLayer {
-    static MoreSearchLayer* create() = win 0x182520;
+    static MoreSearchLayer* create() = mac 0x38ab40, win 0x182520;
     virtual bool init() = mac 0x3896b0, win 0x1825c0;
 }
 
