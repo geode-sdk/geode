@@ -145,7 +145,7 @@ jobs:
           dest: geode-nightly-win.zip
 
       - name: Update release
-        uses: IsaacShelton/update-existing-release@v1.3.1
+        uses: IsaacShelton/update-existing-release@v1.3.2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           files: ./geode-nightly-mac.zip ./geode-nightly-win.zip
