@@ -4144,7 +4144,7 @@ class LocalLevelManager : GManager {
 
     cocos2d::CCDictionary* getAllLevelsInDict() = mac 0x35e3d0, win 0x18d7c0;
 
-    PAD = mac 0x10, win 0x1C;
+    PAD = mac 0x4, win 0x1C;
     cocos2d::CCDictionary* m_loadData;
     cocos2d::CCDictionary* m_levelData;
     cocos2d::CCArray* m_localLevels;

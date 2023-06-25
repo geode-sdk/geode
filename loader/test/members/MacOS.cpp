@@ -72,4 +72,7 @@ GEODE_MEMBER_CHECK(LevelBrowserLayer, m_leftArrow, 0x1a8);
 GEODE_MEMBER_CHECK(LevelBrowserLayer, m_searchObject, 0x1d8);
 GEODE_MEMBER_CHECK(LevelBrowserLayer, m_itemCount, 0x208);
 
+// LocalLevelManager
+GEODE_MEMBER_CHECK(LocalLevelManager, m_localLevels, 0x140);
+
 #endif
