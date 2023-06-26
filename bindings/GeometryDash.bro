@@ -2256,7 +2256,7 @@ class GJGameLevel : cocos2d::CCNode {
     void getNormalPercent() = mac 0x2b8b20;
     void levelWasAltered() = mac 0x2db530, win 0xbd550;
     void savePercentage(int, bool, int, int, bool) = mac 0x2db700;
-    void dataLoaded(DS_Dictionary* dict) = mac 0x2922f0, win 0xbded0, ios 0x6fca4;
+    void dataLoaded(DS_Dictionary* dict) = mac 0x2dc0e0, win 0xbded0, ios 0x6fca4;
     GJDifficulty getAverageDifficulty() = win 0xbd9b0;
     gd::string getUnpackedLevelDescription() = win 0xbf890;
     gd::string lengthKeyToString(int key) = win 0xbd910;
@@ -2310,7 +2310,7 @@ class GJGameLevel : cocos2d::CCNode {
     int m_chk;
     bool m_isChkValid;
     bool m_isCompletionLegitimate;
-    geode::SeedValueVSR m_normalPercent;
+    geode::SeedValueVRS m_normalPercent;
     geode::SeedValueRSV m_orbCompletion;
     geode::SeedValueRSV m_newNormalPercent2;
     int m_practicePercent;
@@ -2576,8 +2576,8 @@ class GJSearchObject : cocos2d::CCNode {
         return m_searchType;
     }
 
-    static GJSearchObject* create(SearchType nID) = win 0xc2b90;
-    static GJSearchObject* create(SearchType nID, gd::string str) = win 0xc2c80;
+    static GJSearchObject* create(SearchType nID) = win 0xc2b90, mac 0x2df120;
+    static GJSearchObject* create(SearchType nID, gd::string str) = win 0xc2c80, mac 0x2df310;
 
     SearchType m_searchType;
     gd::string m_searchQuery;
@@ -3670,13 +3670,13 @@ class LevelBrowserLayer : cocos2d::CCLayer {
     void updateLevelsLabel() = win 0x15c350;
     static LevelBrowserLayer* create(GJSearchObject* search) = mac 0x251210, win 0x159fa0, ios 0x2d0a00;
 
-    PAD = win 0x18;
+    PAD = win 0x18, mac 0x30;
     GJListLayer* m_list;
     CCMenuItemSpriteExtra* m_leftArrow;
     CCMenuItemSpriteExtra* m_rightArrow;
-    PAD = win 0x10;
+    PAD = win 0x10, mac 0x20;
     GJSearchObject* m_searchObject;
-    PAD = win 0x14;
+    PAD = win 0x14, mac 0x28;
     int m_itemCount;
     int m_pageStartIdx;
     int m_pageEndIdx;
@@ -3923,14 +3923,14 @@ class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDeleg
     void setupProgressBars() = win 0x177fc0;
     void downloadLevel() = win 0x177d90;
 
-    PAD = win 0x4;
+    PAD = win 0x4, mac 0x8;
     cocos2d::CCMenu* m_playBtnMenu;
     GJGameLevel* m_level;
     cocos2d::CCArray* m_unknown;
     CCMenuItemSpriteExtra* m_likeBtn;
     CCMenuItemSpriteExtra* m_starRateBtn;
     CCMenuItemSpriteExtra* m_demonRateBtn;
-    PAD = win 0x4;
+    PAD = win 0x4, mac 0x8;
     CCMenuItemToggler* m_toggler;
     cocos2d::CCLabelBMFont* m_label0;
     cocos2d::CCLabelBMFont* m_label1;
@@ -3939,7 +3939,7 @@ class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDeleg
     cocos2d::CCLabelBMFont* m_label4;
     cocos2d::CCLabelBMFont* m_label5;
     CCMenuItemSpriteExtra* m_cloneBtn;
-    PAD = win 0x4;
+    PAD = win 0x4, mac 0x8;
 }
 
 class LevelLeaderboard : FLAlertLayer {
@@ -4148,7 +4148,7 @@ class LocalLevelManager : GManager {
 
     cocos2d::CCDictionary* getAllLevelsInDict() = mac 0x35e3d0, win 0x18d7c0;
 
-    PAD = mac 0x10, win 0x1C;
+    PAD = mac 0x4, win 0x1C;
     cocos2d::CCDictionary* m_loadData;
     cocos2d::CCDictionary* m_levelData;
     cocos2d::CCArray* m_localLevels;
