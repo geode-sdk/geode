@@ -1960,8 +1960,8 @@ class GJBaseGameLayer : cocos2d::CCLayer, TriggerEffectDelegate {
     int m_activeEnterEffect;
     bool m_activeDualTouch;
     int m_attemptClickCount;
-    int m_lastVisibleSection;
     int m_firstVisibleSection;
+    int m_lastVisibleSection;
     bool m_objectsAreDisabled;
     bool m_blending;
     PAD = mac 0x8, win 0x8;
@@ -2090,7 +2090,7 @@ class GJEffectManager : cocos2d::CCNode {
     }
 
     virtual bool init() = mac 0x180230, win 0x11c1b0;
-    void activeColorForIndex(int) = mac 0x180cb0, win 0x11c6e0;
+    cocos2d::_ccColor3B activeColorForIndex(int) = mac 0x180cb0, win 0x11c6e0;
     void activeOpacityForIndex(int) = mac 0x180e10;
     void addAllInheritedColorActions(cocos2d::CCArray*) = mac 0x1817a0;
     void addGroupPulseEffect(PulseEffectAction*) = mac 0x184c10;
@@ -2120,7 +2120,7 @@ class GJEffectManager : cocos2d::CCNode {
     const cocos2d::_ccColor3B& getColorSprite(int) = mac 0x180d00, win 0x11ce20;
     void getCurrentStateString() = mac 0x1867e0, win 0x11fac0;
     void getLoadedMoveOffset() = mac 0x184390;
-    void getMixedColor(cocos2d::_ccColor3B, cocos2d::_ccColor3B, float) = mac 0x185d30;
+    static cocos2d::_ccColor3B getMixedColor(cocos2d::_ccColor3B, cocos2d::_ccColor3B, float) = mac 0x185d30, win 0x11f610;
     uint8_t getOpacityActionForGroup(int) = mac 0x1845b0;
     gd::string getSaveString() = mac 0x185e90;
     void handleObjectCollision(bool, int, int) = mac 0x1828f0, win 0x11d2a0;
@@ -3181,14 +3181,15 @@ class GameObject : CCSpritePlus {
     void addToTempOffset(float, float) = mac 0x335700;
     void calculateOrientedBox() = mac 0x342b20, win 0xef1a0;
     void canChangeCustomColor() = mac 0x342db0;
-    void colorForMode(int, bool) = mac 0x343460;
+    cocos2d::_ccColor3B& colorForMode(int, bool) = mac 0x343460, win 0xef8d0;
+    float groupOpacityMod() = win 0xebda0;
     void commonSetup() = mac 0x2f5570, win 0xcfac0;
     void copyGroups(GameObject*) = mac 0x33ae30, win 0xeb9d0;
     static GameObject* createWithFrame(const char*) = mac 0x2f5490, win 0xcf8f0;
     static GameObject* createWithKey(int) = mac 0x2f4ce0, win 0xcf4f0;
     void destroyObject() = mac 0x336a00;
     void determineSlopeDirection() = mac 0x33a9e0, win 0xeb670;
-    void getActiveColorForMode(int, bool) = mac 0x343860, win 0xefb10;
+    cocos2d::_ccColor3B& getActiveColorForMode(int, bool) = mac 0x343860, win 0xefb10;
     void getBallFrame(int) = mac 0x341bf0;
     cocos2d::CCPoint getBoxOffset() = mac 0x3353d0, win 0xef350;
     const cocos2d::_ccColor3B& getColorIndex() = mac 0x343b90;
@@ -3322,7 +3323,7 @@ class GameObject : CCSpritePlus {
     bool m_unknownVisibility347;
     cocos2d::CCSprite* m_baseSprite;
     cocos2d::CCSprite* m_detailSprite;
-    PAD = mac 0x4, win 0x4;
+    bool m_unk2e8;
     float m_objectRadius;
     bool m_isRotatedSide;
     float m_unk2F4;
@@ -3350,7 +3351,10 @@ class GameObject : CCSpritePlus {
     int m_targetColorID;
     float m_scale;
     int m_objectID;
-    int m_unknown3c8;
+    bool m_unk364;
+    bool m_unk365;
+    bool m_unk366;
+    bool m_ignoreFade;
     bool m_unk368;
     bool m_unk369;
     bool m_unk36A;
@@ -3360,10 +3364,10 @@ class GameObject : CCSpritePlus {
     int m_defaultZOrder;
     bool m_useSecondSheet;
     bool m_isPortal;
-    bool m_lockColourAsChild;
     bool m_customAudioScale;
-    int m_minAudioScale;
-    int m_maxAudioScale;
+    bool m_lockColourAsChild;
+    float m_minAudioScale;
+    float m_maxAudioScale;
     bool m_unkParticleSystem2;
     int m_secretCoinID;
     int m_unkUnusedSaveStringKey53;
@@ -3379,7 +3383,7 @@ class GameObject : CCSpritePlus {
     float m_realOpacity;
     GJSpriteColor* m_baseColor;
     GJSpriteColor* m_detailColor;
-    int m_unknown420;
+    bool m_unk3b0;
     ZLayer m_defaultZLayer;
     ZLayer m_zLayer;
     int m_gameZOrder;
@@ -3439,7 +3443,7 @@ class GameRateDelegate {}
 class GameSoundManager : cocos2d::CCNode {
     void disableMetering() = mac 0x362d80, win 0x257D0;
     void enableMetering() = mac 0x362d00, win 0x256F0;
-    void getMeteringValue() = mac 0x362db0, win 0x258f0;
+    float getMeteringValue() = mac 0x362db0, win 0x258f0;
     void playBackgroundMusic(gd::string, bool, bool) = mac 0x362070, win 0x252B0;
     void playEffect(gd::string, float, float, float) = mac 0x3623d0, win 0x25450;
     void stopBackgroundMusic() = mac 0x362130, win 0x253A0;
@@ -4588,7 +4592,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     bool unk350;
     cocos2d::CCArray* unk354;
     cocos2d::CCArray* unk358;
-    cocos2d::CCArray* unk35C;
+    cocos2d::CCArray* m_objectsToUpdate;
     cocos2d::CCArray* unk360;
     bool m_isMute;
     bool unk365;
@@ -4651,14 +4655,14 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     bool unk42C;
     bool m_isPlayer2Frozen;
     gd::string m_previousRecords;
-    void* unknown6a8;
+    double unknown6a8;
     double m_time;
     int unknown6b8;
     int unknown6bc;
     bool unk460;
     bool m_isAudioMeteringSupported;
     cocos2d::CCDictionary* unk464;
-    gd::map<short, bool> unk468;
+    gd::map<short, bool> m_hasColors;
     bool m_collisionDisabled;
     bool unknown701;
     GameObject* m_latestVehicle;
@@ -4985,7 +4989,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     bool m_isRobot;
     bool m_isSpider;
     bool m_isUpsideDown;
-    bool m_unk63F;
+    bool m_isDead;
     bool m_isOnGround;
     bool m_isDashing;
     float m_vehicleSize;
@@ -5007,7 +5011,8 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     bool m_unk684;
     bool m_unk685;
     double m_unk688;
-    PAD = win 0x8;
+    PAD = win 0x4;
+    float m_meteringValue;
     float m_groundHeight;
     float m_unk69C;
     PAD = win 0x4;
