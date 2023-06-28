@@ -112,6 +112,18 @@ jobs:
       with:
         name: geode-v${{ env.VERSION_TRIM }}-${{ matrix.config.os_identifier }}
         path: ./out
+        
+    - name: Package MacOS
+      run: |
+        "./installer/mac/package.sh ./out ./out/geode-installer-v${{ env.VERSION_TRIM }}-${{ matrix.config.os_identifier }}.pkg"
+      if: matrix.config.os_identifier == 'mac'
+      
+    - name: Publish MacOS Installer
+      uses: actions/upload-artifact@v2
+      with:
+        name: geode-installer-v${{ env.VERSION_TRIM }}-${{ matrix.config.os_identifier }}
+        path: ./out/geode-installer-v${{ env.VERSION_TRIM }}-${{ matrix.config.os_identifier }}.pkg
+      if: matrix.config.os_identifier == 'mac'
 
   publish:
     runs-on: ubuntu-latest
