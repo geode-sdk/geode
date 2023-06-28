@@ -115,7 +115,7 @@ jobs:
         
     - name: Package MacOS
       run: |
-        cp ./bin/nightly/resources ./out/resources
+        cp -R ./bin/nightly/resources ./out/resources
         ./installer/mac/package.sh ./out ./out/geode-installer-v${{ env.VERSION_TRIM }}-${{ matrix.config.os_identifier }}.pkg
       if: matrix.config.os_identifier == 'mac'
       
