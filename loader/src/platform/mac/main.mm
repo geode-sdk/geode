@@ -8,7 +8,7 @@
 #include <mach-o/dyld.h>
 #include <unistd.h>
 #include <tulip/TulipHook.hpp>
-#include <iostream>
+#include <array>
 
 #include <thread>
 
