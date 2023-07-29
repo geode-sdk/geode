@@ -1017,11 +1017,13 @@ class CustomSongWidget : cocos2d::CCNode, MusicDownloadDelegate, FLAlertLayerPro
 class CustomizeObjectLayer : FLAlertLayer, TextInputDelegate, HSVWidgetPopupDelegate, ColorSelectDelegate, ColorSetupDelegate {
     void onNextColorChannel(cocos2d::CCObject* sender) = win 0x56c80;
     void onSelectColor(cocos2d::CCObject* sender) = win 0x577b0;
+    void onSelectMode(cocos2d::CCObject* sender) = mac 0xdf820, win 0x56db0;
     int getActiveMode(bool unknown) = win 0x57210;
     void onClose(cocos2d::CCObject*) = mac 0xdf660, win 0x57ac0;
     void updateSelected(int channelID) = win 0x57850;
     bool init(GameObject* target, cocos2d::CCArray* targets) = mac 0xdd560, win 0x53e00;
     void onHSV(cocos2d::CCObject* sender) = win 0x567c0;
+    void toggleVisible() = mac 0xe1140, win 0x56fb0;
     virtual void hsvPopupClosed(HSVWidgetPopup* popup, cocos2d::ccHSVValue value) = win 0x56990;
     inline CustomizeObjectLayer() {}
     ~CustomizeObjectLayer() = win 0x53c30;
@@ -1029,10 +1031,10 @@ class CustomizeObjectLayer : FLAlertLayer, TextInputDelegate, HSVWidgetPopupDele
     GameObject* m_targetObject;
     cocos2d::CCArray* m_targetObjects;
     cocos2d::CCArray* m_colorButtons;
-    cocos2d::CCArray* m_colorNodes;
-    cocos2d::CCArray* m_textInputNodes;
+    cocos2d::CCArray* m_baseTabNodes;
+    cocos2d::CCArray* m_textTabNodes;
     PAD = win 0x4;
-    cocos2d::CCArray* m_detailColorButtons;
+    cocos2d::CCArray* m_detailTabNodes;
     int m_selectedMode;
     int m_customColorChannel;
     bool m_unk0x200;

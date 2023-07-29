@@ -205,7 +205,7 @@ $register_ids(CustomizeObjectLayer) {
     textActionsMenu->setPositionX(winSize.width / 2 + 110.f);
     textActionsMenu->updateLayout();
 
-    detachAndCreateMenu(
+    auto clearTextMenu = detachAndCreateMenu(
         m_mainLayer,
         "clear-text-menu",
         nullptr,
@@ -280,11 +280,41 @@ struct CustomizeObjectLayerIDs : Modify<CustomizeObjectLayerIDs, CustomizeObject
         }
     }
 
+    void toggleMenuIf(const char* id, int mode) {
+        if (auto menu = m_mainLayer->getChildByID(id)) {
+            menu->setVisible(m_selectedMode == mode);
+        }
+    }
+
+    void toggleMenuIfNot(const char* id, int mode) {
+        if (auto menu = m_mainLayer->getChildByID(id)) {
+            menu->setVisible(m_selectedMode != mode);
+        }
+    }
+
+    void toggleVisible() {
+        CustomizeObjectLayer::toggleVisible();
+        // have to manually toggle menu visibility to allow touches being correctly passed
+        this->toggleMenuIf("base-hsv-menu", 1);
+        this->toggleMenuIf("detail-hsv-menu", 2);
+        this->toggleMenuIf("text-actions-menu", 3);
+        this->toggleMenuIf("clear-text-menu", 3);
+        this->toggleMenuIfNot("next-free-menu", 3);
+        this->toggleMenuIfNot("toggles-menu", 3);
+        this->toggleMenuIfNot("channels-menu", 3);
+        this->toggleMenuIfNot("special-channels-menu", 3);
+        this->toggleMenuIfNot("selected-channel-menu", 3);
+        this->toggleMenuIfNot("browse-menu", 3);
+        this->toggleMenuIfNot("copy-paste-menu", 3);
+        this->toggleMenuIfNot("select-channel-menu", 3);
+    }
+
     bool init(GameObject* obj, CCArray* objs) {
         if (!CustomizeObjectLayer::init(obj, objs))
             return false;
 
         NodeIDs::get()->provide(this);
+        this->toggleVisible();
 
         return true;
     }
