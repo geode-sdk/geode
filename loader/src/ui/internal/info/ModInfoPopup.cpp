@@ -91,8 +91,7 @@ bool ModInfoPopup::init(ModInfo const& info, ModListLayer* list) {
     versionLabel->setColor({0, 255, 0});
     m_mainLayer->addChild(versionLabel);
 
-    CCDirector::sharedDirector()->getTouchDispatcher()->incrementForcePrio(2);
-    this->registerWithTouchDispatcher();
+    this->setTouchEnabled(true);
 
     m_detailsArea = MDTextArea::create(
         (info.details() ? info.details().value() : "### No description provided."),

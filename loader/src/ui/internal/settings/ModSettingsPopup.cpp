@@ -25,9 +25,7 @@ bool ModSettingsPopup::setup(Mod* mod) {
 
     auto layer = ScrollLayer::create(layerSize);
     layer->setPosition(winSize / 2 - layerSize / 2);
-
-    CCDirector::sharedDirector()->getTouchDispatcher()->incrementForcePrio(2);
-    layer->registerWithTouchDispatcher();
+    layer->setTouchEnabled(true);
 
     float totalHeight = .0f;
     std::vector<CCNode*> rendered;

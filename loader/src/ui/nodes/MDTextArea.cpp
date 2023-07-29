@@ -128,8 +128,7 @@ bool MDTextArea::init(std::string const& str, CCSize const& size) {
     m_content->setZOrder(2);
     m_scrollLayer->m_contentLayer->addChild(m_content);
 
-    CCDirector::sharedDirector()->getTouchDispatcher()->incrementForcePrio(2);
-    m_scrollLayer->registerWithTouchDispatcher();
+    m_scrollLayer->setTouchEnabled(true);
 
     this->addChild(m_scrollLayer);
 
