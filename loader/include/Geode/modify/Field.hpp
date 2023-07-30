@@ -31,7 +31,7 @@ namespace geode::modifier {
         }
 
         void* getField(size_t index) {
-            if (m_containedFields.size() <= index) {
+            while (m_containedFields.size() <= index) {
                 m_containedFields.push_back(nullptr);
                 m_destructorFunctions.push_back(nullptr);
             }
