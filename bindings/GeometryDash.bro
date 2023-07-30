@@ -1031,7 +1031,7 @@ class CustomizeObjectLayer : FLAlertLayer, TextInputDelegate, HSVWidgetPopupDele
     GameObject* m_targetObject;
     cocos2d::CCArray* m_targetObjects;
     cocos2d::CCArray* m_colorButtons;
-    cocos2d::CCArray* m_baseTabNodes;
+    cocos2d::CCArray* m_colorTabNodes;
     cocos2d::CCArray* m_textTabNodes;
     PAD = win 0x4;
     cocos2d::CCArray* m_detailTabNodes;
