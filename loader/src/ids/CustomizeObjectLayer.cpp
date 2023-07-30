@@ -47,7 +47,7 @@ $register_ids(CustomizeObjectLayer) {
         "channel-7-button",
         "channel-8-button",
         "channel-9-button",
-        "channel-10-button",
+        "channel-custom-button",
 
         "select-channel-up-button",
         "select-channel-down-button",
@@ -119,7 +119,7 @@ $register_ids(CustomizeObjectLayer) {
         m_buttonMenu->getChildByID("channel-7-button"),
         m_buttonMenu->getChildByID("channel-8-button"),
         m_buttonMenu->getChildByID("channel-9-button"),
-        m_buttonMenu->getChildByID("channel-10-button")
+        m_buttonMenu->getChildByID("channel-custom-button")
     );
     channelsMenu->setContentSize({ 350.f, 100.f });
     channelsMenu->setPosition(winSize.width / 2, winSize.height / 2 - 25.f);
