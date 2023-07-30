@@ -1016,7 +1016,7 @@ class CustomSongWidget : cocos2d::CCNode, MusicDownloadDelegate, FLAlertLayerPro
 
 class CustomizeObjectLayer : FLAlertLayer, TextInputDelegate, HSVWidgetPopupDelegate, ColorSelectDelegate, ColorSetupDelegate {
     void onNextColorChannel(cocos2d::CCObject* sender) = win 0x56c80;
-    void onSelectColor(cocos2d::CCObject* sender) = win 0x577b0;
+    void onSelectColor(cocos2d::CCObject* sender) = mac 0xdfdc0, win 0x577b0;
     void onSelectMode(cocos2d::CCObject* sender) = mac 0xdf820, win 0x56db0;
     int getActiveMode(bool unknown) = win 0x57210;
     void onClose(cocos2d::CCObject*) = mac 0xdf660, win 0x57ac0;
@@ -1024,7 +1024,15 @@ class CustomizeObjectLayer : FLAlertLayer, TextInputDelegate, HSVWidgetPopupDele
     bool init(GameObject* target, cocos2d::CCArray* targets) = mac 0xdd560, win 0x53e00;
     void onHSV(cocos2d::CCObject* sender) = win 0x567c0;
     void toggleVisible() = mac 0xe1140, win 0x56fb0;
+    void highlightSelected(ButtonSprite* target) = mac 0xe0aa0, win 0x579d0;
+    void updateCustomColorLabels() = mac 0xdff40, win 0x576d0;
+    void onUpdateCustomColor(cocos2d::CCObject* sender) = mac 0xdfe70, win 0x57350;
+    void updateColorSprite() = mac 0xe0610, win 0x56370;
+    // inlined in most places
+    void updateChannelLabel(int channel) = mac 0xe06e0, win 0x56f50;
     virtual void hsvPopupClosed(HSVWidgetPopup* popup, cocos2d::ccHSVValue value) = win 0x56990;
+    virtual void colorSelectClosed(cocos2d::CCNode*) = mac 0xe0c70, win 0x564a0;
+    virtual void textChanged(CCTextInputNode* input) = mac 0xe16a0, win 0x574d0;
     inline CustomizeObjectLayer() {}
     ~CustomizeObjectLayer() = win 0x53c30;
 
