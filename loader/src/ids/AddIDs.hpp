@@ -35,7 +35,9 @@ void setIDs(CCNode* node, int startIndex, Args... args) {
 static void switchToMenu(CCNode* node, CCMenu* menu) {
     if (!node || !menu) return;
     
-    auto worldPos = node->getParent()->convertToWorldSpace(node->getPosition());
+    auto worldPos = node->getParent() ?
+        node->getParent()->convertToWorldSpace(node->getPosition()) : 
+        node->getPosition();
 
     node->retain();
     node->removeFromParent();

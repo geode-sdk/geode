@@ -51,8 +51,7 @@ namespace geode {
 
             this->updateLabel();
 
-            cocos2d::CCDirector::sharedDirector()->getTouchDispatcher()->incrementForcePrio(2);
-            this->registerWithTouchDispatcher();
+            this->setTouchEnabled(true);
 
             return true;
         }

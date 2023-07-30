@@ -10,4 +10,13 @@ set_target_properties(Bootstrapper PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY "${GEODE_BIN_PATH}/nightly"
 )
 
-target_link_libraries(Bootstrapper PRIVATE "-framework CoreFoundation" ghc_filesystem)
+target_link_libraries(Bootstrapper PRIVATE)
+
+add_library(FakeGeode SHARED FakeGeode.cpp)
+target_compile_features(FakeGeode PUBLIC cxx_std_17)
+set_target_properties(FakeGeode PROPERTIES
+	PREFIX "" 
+	OUTPUT_NAME "Geode"
+)
+
+target_link_libraries(Bootstrapper PRIVATE geode-loader)

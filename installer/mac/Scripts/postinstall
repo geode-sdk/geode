@@ -1,0 +1,67 @@
+#!/usr/bin/env osascript
+
+
+set tmpPath to POSIX path of "/tmp/"
+set binPath to POSIX path of (tmpPath & "geode-install/")
+
+on ExitWithMessage(message)
+    display dialog message
+    do shell script "rm -rf " & binPath
+    error number -128
+end ExitWithMessage
+
+try
+    set gdPath to (the POSIX path of (choose file with prompt "Please choose the Geometry Dash application to install Geode to:" of type {"app"}))
+on error
+    ExitWithMessage ("Prompt cancelled.")
+end try
+
+set execPath to (gdPath & "Contents/MacOS/Geometry Dash")
+set frameworkPath to POSIX path of (gdPath & "Contents/Frameworks/")
+set fmodPath to "libfmod.dylib"
+set fmodOriginalPath to "libfmod-original.dylib"
+set geodePath to "Geode.dylib"
+set bootstrapperPath to "GeodeBootstrapper.dylib"
+set resourcesPath to "resources/"
+set newGeodePath to "Contents/geode/"
+set newResourcesPath to (newGeodePath & "resources/geode.loader/")
+
+try
+    tell application "System Events"
+        if not exists file execPath then
+            ExitWithMessage ("Not a valid Geometry Dash installation (executable missing): " & gdPath)
+        end if
+
+        if not exists file (frameworkPath & fmodPath) then
+            ExitWithMessage ("Not a valid Geometry Dash installation (fmod missing): " & gdPath)
+        end if
+    end tell
+on error
+    ExitWithMessage ("Not a valid Geometry Dash installation: " & gdPath)
+end try
+
+try
+    do shell script "mv -n " & (frameworkPath & fmodPath) & " " & (frameworkPath & fmodOriginalPath)
+on error
+    ExitWithMessage ("Moving original fmod failed: " & (frameworkPath & fmodPath))
+end try
+
+try
+    do shell script "mv " & (binPath & geodePath) & " " & (frameworkPath & geodePath)
+    do shell script "mv " & (binPath & bootstrapperPath) & " " & (frameworkPath & bootstrapperPath)
+    do shell script "mv " & (binPath & fmodPath) & " " & (frameworkPath & fmodPath)
+    do shell script "INSTALLER_USER=$(stat -f '%Su' $HOME) && sudo chown -R $INSTALLER_USER " & frameworkPath
+on error
+    ExitWithMessage ("Moving libraries failed: " & frameworkPath)
+end try
+
+try
+    do shell script "mkdir -p " & (gdPath & newResourcesPath)
+    do shell script "mv " & (binPath & resourcesPath) & "* " & (gdPath & newResourcesPath)
+    do shell script "INSTALLER_USER=$(stat -f '%Su' $HOME) && sudo chown -R $INSTALLER_USER " & (gdPath & newGeodePath)
+on error
+    ExitWithMessage ("Moving resources failed: " & (gdPath & newResourcesPath))
+end try
+
+
+do shell script "rm -rf " & binPath

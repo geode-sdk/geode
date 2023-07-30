@@ -737,6 +737,7 @@ class cocos2d::CCRenderTexture {
 	static cocos2d::CCRenderTexture* create(int, int, cocos2d::CCTexture2DPixelFormat) = mac 0x35c720;
 	auto newCCImage(bool) = mac 0x35d7d0;
 	auto saveToFile(char const*) = mac 0x35dab0;
+	auto beginWithClear(float r, float g, float b, float a) = mac 0x35d010;
 }
 
 class cocos2d::CCRepeat {

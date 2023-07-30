@@ -5,6 +5,7 @@ using namespace geode::prelude;
 
 #if defined(GEODE_IS_MACOS)
 
+#include "mac/main.mm"
 #include "mac/crashlog.mm"
 #include "mac/FileWatcher.mm"
 #include "mac/util.mm"

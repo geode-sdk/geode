@@ -107,8 +107,7 @@ protected:
         );
         m_menu->addChild(m_resetBtn);
 
-        CCDirector::sharedDirector()->getTouchDispatcher()->incrementForcePrio(2);
-        m_menu->registerWithTouchDispatcher();
+        m_menu->setTouchEnabled(true);
 
         if (!this->setup(setting, width)) return false;
 

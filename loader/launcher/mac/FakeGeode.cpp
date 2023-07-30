@@ -1,0 +1,1 @@
+extern "C" void fake() {}

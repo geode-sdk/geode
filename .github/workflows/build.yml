@@ -112,6 +112,19 @@ jobs:
       with:
         name: geode-v${{ env.VERSION_TRIM }}-${{ matrix.config.os_identifier }}
         path: ./out
+        
+    - name: Package MacOS
+      run: |
+        cp -R ./bin/nightly/resources ./out/resources
+        ./installer/mac/package.sh ./out ./out/geode-installer-v${{ env.VERSION_TRIM }}-${{ matrix.config.os_identifier }}.pkg
+      if: matrix.config.os_identifier == 'mac'
+      
+    - name: Publish MacOS Installer
+      uses: actions/upload-artifact@v2
+      with:
+        name: geode-installer-v${{ env.VERSION_TRIM }}-${{ matrix.config.os_identifier }}
+        path: ./out/geode-installer-v${{ env.VERSION_TRIM }}-${{ matrix.config.os_identifier }}.pkg
+      if: matrix.config.os_identifier == 'mac'
 
   publish:
     runs-on: ubuntu-latest
@@ -145,7 +158,7 @@ jobs:
           dest: geode-nightly-win.zip
 
       - name: Update release
-        uses: IsaacShelton/update-existing-release@v1.3.1
+        uses: IsaacShelton/update-existing-release@v1.3.2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           files: ./geode-nightly-mac.zip ./geode-nightly-win.zip

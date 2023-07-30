@@ -7,7 +7,7 @@ using namespace geode::prelude;
 constexpr auto NOTIFICATION_FADEIN = .3f;
 constexpr auto NOTIFICATION_FADEOUT = 1.f;
 
-Ref<CCArray> Notification::s_queue = CCArray::create();
+Ref<CCArray> Notification::s_queue = nullptr;
 
 bool Notification::init(std::string const& text, CCSprite* icon, float time) {
     if (!CCNodeRGBA::init()) return false;
@@ -55,6 +55,9 @@ void Notification::updateLayout() {
 
 void Notification::showNextNotification() {
     m_showing = false;
+    if (!s_queue) {
+        s_queue = CCArray::create();
+    }
     SceneManager::get()->forget(this);
     // remove self from front of queue
     s_queue->removeFirstObject();
@@ -156,6 +159,9 @@ void Notification::waitAndHide() {
 }
 
 void Notification::show() {
+    if (!s_queue) {
+        s_queue = CCArray::create();
+    }
     if (!m_showing) {
         if (!s_queue->containsObject(this)) {
             s_queue->addObject(this);

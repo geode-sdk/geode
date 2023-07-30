@@ -75,25 +75,14 @@ void utils::web::openLinkInBrowser(std::string const& url) {
 
 @implementation FileDialog
 +(Result<std::vector<ghc::filesystem::path>>) filePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult {
-    NSOpenPanel* panel = [NSOpenPanel openPanel];
+    NSSavePanel* panel;
+    if (mode == file::PickMode::SaveFile)
+        panel = [NSSavePanel savePanel];
+    else
+        panel = [NSOpenPanel openPanel];
 
-    // allowed files
-    NSMutableArray* allowed = [NSMutableArray array];
+    [panel setCanCreateDirectories: TRUE];
 
-    for (auto& f : options.filters) {
-        for (auto& i : f.files) {
-            auto nsstr = [NSString stringWithUTF8String: i.c_str()];
-
-            if (![allowed containsObject: nsstr])
-                [allowed addObject: nsstr];
-        }
-    }
-
-    if (options.filters.size())
-        [panel setAllowedFileTypes: allowed];
-
-    // multiple
-    [panel setAllowsMultipleSelection: mult];
 
     // default path
     if (options.defaultPath) {
@@ -102,8 +91,36 @@ void utils::web::openLinkInBrowser(std::string const& url) {
     }
 
     // other
-    [panel setCanChooseDirectories: NO];
-    [panel setCanChooseFiles: YES];
+    if (mode != file::PickMode::SaveFile) {
+        auto openPanel = (NSOpenPanel*)panel;
+
+        if (mode == file::PickMode::OpenFile){
+            [openPanel setCanChooseDirectories: NO];
+            [openPanel setCanChooseFiles: YES];
+        }
+        else {
+            [openPanel setCanChooseDirectories: YES];
+            [openPanel setCanChooseFiles: NO];
+        }
+
+        [openPanel setAllowsMultipleSelection: mult];
+
+        // allowed files
+        // TODO: allowed files using the NSOpenSavePanelDelegate xd
+        // NSMutableArray* allowed = [NSMutableArray array];
+
+        // for (auto& f : options.filters) {
+        //     for (auto& i : f.files) {
+        //         auto nsstr = [NSString stringWithUTF8String: i.c_str()];
+
+        //         if (![allowed containsObject: nsstr])
+        //             [allowed addObject: nsstr];
+        //     }
+        // }
+
+        // if (options.filters.size())
+        //     [panel setAllowedFileTypes: allowed];
+    }
 
     // run thing
 
@@ -111,11 +128,16 @@ void utils::web::openLinkInBrowser(std::string const& url) {
 
     if (result == NSModalResponseOK) {
         std::vector<ghc::filesystem::path> fileURLs;
-
-        for (NSURL* i in panel.URLs) {
-            fileURLs.push_back(std::string(i.path.UTF8String));
+        if (mode == file::PickMode::SaveFile) {
+            fileURLs.push_back(std::string([[[panel URL] path] UTF8String]));
         }
+        else {
+            auto openPanel = (NSOpenPanel*)panel;
 
+            for (NSURL* i in openPanel.URLs) {
+                fileURLs.push_back(std::string(i.path.UTF8String));
+            }
+        }
         return Ok(fileURLs);
     } else {
         return Err("File picker cancelled");
@@ -143,10 +165,11 @@ Result<std::vector<ghc::filesystem::path>> utils::file::pickFiles(
 }
 
 CCPoint cocos::getMousePos() {
-    auto frame = NSApp.mainWindow.frame;
-    auto scaleFactor = CCPoint(CCDirector::get()->getWinSize()) / ccp(frame.size.width, frame.size.height);
+    auto windowFrame = NSApp.mainWindow.frame;
+    auto viewFrame = NSApp.mainWindow.contentView.frame;
+    auto scaleFactor = CCPoint(CCDirector::get()->getWinSize()) / ccp(viewFrame.size.width, viewFrame.size.height);
     auto mouse = [NSEvent mouseLocation];
-    return ccp(mouse.x - frame.origin.x, mouse.y - frame.origin.y) * scaleFactor;
+    return ccp(mouse.x - windowFrame.origin.x, mouse.y - windowFrame.origin.y) * scaleFactor;
 }
 
 ghc::filesystem::path dirs::getGameDir() {

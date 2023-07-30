@@ -64,4 +64,15 @@ GEODE_MEMBER_CHECK(SetupPulsePopup, m_pulseMode, 0x38c);
 // ColorSelectPopup
 GEODE_MEMBER_CHECK(ColorSelectPopup, m_copyColor, 0x372);
 
+// LevelInfoLayer
+GEODE_MEMBER_CHECK(LevelInfoLayer, m_level, 0x1c0);
+
+// LevelBrowserLayer
+GEODE_MEMBER_CHECK(LevelBrowserLayer, m_leftArrow, 0x1a8);
+GEODE_MEMBER_CHECK(LevelBrowserLayer, m_searchObject, 0x1d8);
+GEODE_MEMBER_CHECK(LevelBrowserLayer, m_itemCount, 0x208);
+
+// LocalLevelManager
+GEODE_MEMBER_CHECK(LocalLevelManager, m_localLevels, 0x140);
+
 #endif
