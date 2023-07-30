@@ -253,18 +253,11 @@ $register_ids(CustomizeObjectLayer) {
         m_mainLayer,
         "select-channel-menu",
         nullptr,
-        m_mainLayer->getChildByID("channel-input-bg"),
-        m_mainLayer->getChildByID("channel-input"),
         m_buttonMenu->getChildByID("select-channel-up-button"),
         m_buttonMenu->getChildByID("select-channel-down-button")
     );
+    selectChannelMenu->setPosition(m_customColorInputBG->getPosition());
     selectChannelMenu->setContentSize({ 60.f, 140.f });
-    if (auto bg = selectChannelMenu->getChildByID("channel-input-bg")) {
-        bg->setPosition({ 30.f, 70.f });
-    }
-    if (auto input = selectChannelMenu->getChildByID("channel-input")) {
-        input->setPosition({ 30.f, 70.f });
-    }
     if (auto btn = selectChannelMenu->getChildByID("select-channel-up-button")) {
         btn->setPosition({ 30.f, 110.f });
     }
