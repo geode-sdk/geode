@@ -883,14 +883,17 @@ class ColorSetupDelegate {
     virtual void colorSetupClosed(int channel) {}
 }
 
-class CommentCell : TableViewCell {
+class CommentCell : TableViewCell, LikeItemDelegate, FLAlertLayerProtocol {
     void loadFromComment(GJComment*) = mac 0x111c70, win 0x5f3d0;
+    void onConfirmDelete(cocos2d::CCObject* sender) = mac 0x25ec80, win 0x61140;
+    void onLike(cocos2d::CCObject* sender) = mac 0x11d000, win 0x60F90;
+    virtual void FLAlert_Clicked(FLAlertLayer* layer, bool btn) = win 0x61260;
+    virtual void likedItem(LikeItemType type, int id, bool special) = win 0x61070;
 
-    PAD = win 0x4;
     cocos2d::CCSprite* m_iconSprite;
     cocos2d::CCLabelBMFont* m_likeLabel;
     GJComment* m_comment;
-    PAD = win 0x4;
+    bool m_accountComment;
 }
 
 class CommentUploadDelegate {
@@ -940,7 +943,7 @@ class CreateMenuItem : CCMenuItemSpriteExtra {
 //TODO: inherits cocos2d::CCSceneTransitionDelegate
 class CreatorLayer : cocos2d::CCLayer {
     void onBack(cocos2d::CCObject*) = win 0x4fae0;
-    void onChallenge(cocos2d::CCObject*) = win 0x4f1b0;
+    void onChallenge(cocos2d::CCObject*) = mac 0x142960, win 0x4f1b0;
     void onLeaderboards(cocos2d::CCObject*) = win 0x4ed20;
     void onMyLevels(cocos2d::CCObject*) = mac 0x142b70, win 0x4eaa0;
     void onSavedLevels(cocos2d::CCObject*) = mac 0x142860, win 0x4ebe0;
@@ -1062,8 +1065,8 @@ class CustomizeObjectLayer : FLAlertLayer, TextInputDelegate, HSVWidgetPopupDele
 
 class DailyLevelPage : FLAlertLayer {
     static DailyLevelPage* create(bool weekly) = win 0x6a860;
-    bool init(bool weekly) = win 0x6a900;
-    void updateTimers(float) = win 0x6bef0;
+    bool init(bool weekly) = mac 0x10abb0, win 0x6a900;
+    virtual void updateTimers(float) = win 0x6bef0;
     virtual void show() = mac 0x10a4b0, win 0x3f360;
 
     PAD = win 0x21;
@@ -1213,7 +1216,7 @@ class EditLevelLayer : cocos2d::CCLayer, FLAlertLayerProtocol, TextInputDelegate
 
     static EditLevelLayer* create(GJGameLevel* level) = mac 0xe1e50, win 0x6f530, ios 0x82420;
     bool init(GJGameLevel* level) = mac 0xe1fd0, win 0x6f5d0;
-    void onLevelInfo(cocos2d::CCObject*) = win 0x70660;
+    void onLevelInfo(cocos2d::CCObject*) = mac 0xe4f60, win 0x70660;
 
     cocos2d::CCMenu* m_buttonMenu;
     GJGameLevel* m_level;
@@ -1675,6 +1678,7 @@ class FLAlertLayer : cocos2d::CCLayerColor {
     static FLAlertLayer* create(FLAlertLayerProtocol* protocol, char const* title, gd::string content, char const* btn1, char const* btn2, float width, bool scrollable, float height) = mac 0x25dec0, win 0x227e0;
     void onBtn1(cocos2d::CCObject*) = mac 0x25ec20, win 0x23340;
     void onBtn2(cocos2d::CCObject*) = mac 0x25ec80, win 0x23380;
+    void onClose(cocos2d::CCObject*) = win 0x49C60;
 
     cocos2d::CCMenu* m_buttonMenu;
     int m_controlConnected;
@@ -2434,7 +2438,7 @@ class GJItemIcon : cocos2d::CCSprite {
         bool, bool, bool, cocos2d::ccColor3B
     ) = win 0x12ccf0;
 
-    GJItemIcon* createBrowserIcon(UnlockType _type, int _id) {
+    static GJItemIcon* createBrowserIcon(UnlockType _type, int _id) {
         return GJItemIcon::create(_type, _id,
             { 0xaf, 0xaf, 0xaf }, { 0xff, 0xff, 0xff },
             false, true, true,
@@ -2488,6 +2492,14 @@ class GJRequestCell : TableViewCell {
 }
 
 class GJRewardDelegate {}
+
+class GJRewardItem : cocos2d::CCObject {
+    int m_chestID;
+    int m_timeRemaining;
+    GJRewardType m_rewardType;
+    cocos2d::CCArray* m_rewardObjects;
+    bool m_unk;
+}
 
 class GJRewardObject : cocos2d::CCObject {
     SpecialRewardItem m_specialRewardItem;
@@ -2578,8 +2590,11 @@ class GJSearchObject : cocos2d::CCNode {
         return m_searchType;
     }
 
-    static GJSearchObject* create(SearchType nID) = win 0xc2b90, mac 0x2df120;
+    static GJSearchObject* create(SearchType nID) = win 0xc2b90;
     static GJSearchObject* create(SearchType nID, gd::string str) = win 0xc2c80, mac 0x2df310;
+    static GJSearchObject* createFromKey(const char* key) = win 0xC2760;
+    const char* getKey() = win 0xC30A0;
+    const char* getNextPageKey() = win 0xC31F0;
 
     SearchType m_searchType;
     gd::string m_searchQuery;
@@ -2726,14 +2741,18 @@ class GJUserScore : cocos2d::CCNode {
 }
 
 class GManager : cocos2d::CCNode {
-    virtual void setup() {}
-    void encodeDataTo(DS_Dictionary* data) {}
-    void dataLoaded(DS_Dictionary* data) {}
-    void firstLoad() {}
+    virtual void setup() = win 0x28F60;
+    virtual void encodeDataTo(DS_Dictionary* data) {}
+    virtual void dataLoaded(DS_Dictionary* data) {}
+    virtual void firstLoad() {}
 
-    void save() = mac 0x26f300, win 0x29250;
+    void save() {
+        saveGMTo(m_fileName);
+    }
     void saveData(DS_Dictionary*, gd::string) = mac 0x26f4b0;
     void saveGMTo(gd::string) = mac 0x26f3b0, win 0x29250;
+
+    inline GManager() {}
 
     gd::string m_fileName;
     bool m_setup;
@@ -2755,8 +2774,10 @@ class GameLevelManager : cocos2d::CCNode {
     cocos2d::CCArray* createAndGetScores(gd::string, GJScoreType) = win 0xa2780;
     GJGameLevel* createNewLevel() = mac 0x2b8180, win 0xa0db0;
     static GameLevelManager* sharedState() = mac 0x2a8340, win 0x9f860;
-    void getCompletedLevels(bool newFilter) = win 0xa2d20;
+    void limitSavedLevels() = win 0xA43B0;
+    cocos2d::CCArray* getCompletedLevels(bool newFilter) = win 0xa2d20;
     void getGJUserInfo(int) = win 0xb00b0;
+    void getLevelLeaderboard(GJGameLevel* level, LevelLeaderboardType leaderboardType) = win 0xAED70;
     void getOnlineLevels(GJSearchObject*) = win 0xa7bc0;
     void getPageInfo(char const*) = mac 0x2c0050;
     cocos2d::CCArray* getSavedLevels(bool favorite, int levelFolder) = win 0xa2960;
@@ -2765,11 +2786,12 @@ class GameLevelManager : cocos2d::CCNode {
     void getTopArtistsKey(int) = mac 0x2ce7a0;
     void makeTimeStamp(char const*) = mac 0x2bfd90, win 0xa3f00;
     GJGameLevel* getMainLevel(int id, bool unk) = win 0xa0940;
-    bool hasLikedItemFullCheck(LikeItemType type, int itemID, int commentSourceID) = mac 0x2d83d0;
+    bool hasLikedItemFullCheck(LikeItemType type, int itemID, int commentSourceID) = mac 0x2d83d0, win 0xB86B0;
     bool hasRatedLevelStars(int levelID) = mac 0x2ca3a0;
     callback void ProcessHttpRequest(gd::string, gd::string, gd::string, GJHttpType) = mac 0x2a8670, win 0x9f8e0;
     cocos2d::CCDictionary* responseToDict(gd::string response, bool comment) = win 0xbba50;
     void storeUserNames(gd::string) = win 0xa1840;
+    void storeUserName(int userID, int accountID, gd::string str) = win 0xa1a70;
     gd::string userNameForUserID(int id) = win 0xa1c20;
     void updateUserScore() = win 0xada60;
     void downloadLevel(int id, bool downloadData) = win 0xaa730;
@@ -2777,6 +2799,25 @@ class GameLevelManager : cocos2d::CCNode {
     GJGameLevel* getSavedLevel(int id) = win 0xa2ee0;
     void saveLevel(GJGameLevel* level) = win 0xa31c0;
     void deleteLevel(GJGameLevel* level) = mac 0x2b88d0, win 0xa1640;
+    void resetCommentTimersForLevelID(int id, bool commentHistory) = win 0xB3F10;
+    void resetStoredUserInfo(int id) {
+        m_storedUserInfo->removeObjectForKey(id);
+    }
+    void resetAccountComments(int id){
+        int i = 0;
+        while(true){
+            auto key = this->getAccountCommentKey(id, i++);
+            auto levels = getStoredOnlineLevels(key);
+            if(levels != nullptr){
+                m_storedLevels->removeObjectForKey(key);
+            }else{
+                break;
+            }
+        }
+    }
+    const char* getAccountCommentKey(int a2, int a3){
+        return cocos2d::CCString::createWithFormat("a_%i_%i", a2, a3)->getCString();
+    }
 
     inline static GameLevelManager* get() {
         return GameLevelManager::sharedState();
@@ -3599,12 +3640,12 @@ class InfoAlertButton : CCMenuItemSpriteExtra {
 }
 
 class InfoLayer : FLAlertLayer, LevelCommentDelegate, CommentUploadDelegate, FLAlertLayerProtocol {
-    bool init(GJGameLevel* level, GJUserScore* score) = win 0x14f5a0;
-    void setupCommentsBrowser(cocos2d::CCArray* comments) = win 0x152270;
+    bool init(GJGameLevel* level, GJUserScore* score) = mac 0x456850, win 0x14f5a0;
+    void setupCommentsBrowser(cocos2d::CCArray* comments) = mac 0x458590, win 0x152270;
     void onMore(cocos2d::CCObject* sender) = win 0x151500;
-    void onLevelInfo(cocos2d::CCObject* sender) = win 0x151850;
+    void onLevelInfo(cocos2d::CCObject* sender) = mac 0x459400, win 0x151850;
     void loadPage(int page, bool) = win 0x151e70;
-    static InfoLayer* create(GJGameLevel* level, GJUserScore* score) = win 0x14f4f0;
+    static InfoLayer* create(GJGameLevel* level, GJUserScore* score) = mac 0x456600, win 0x14f4f0;
 
     GJGameLevel* m_level;
     GJUserScore* m_score;
@@ -3613,8 +3654,8 @@ class InfoLayer : FLAlertLayer, LevelCommentDelegate, CommentUploadDelegate, FLA
     cocos2d::CCLabelBMFont* m_pageLabel;
     cocos2d::CCLabelBMFont* m_commentsGoldLabel;
     GJCommentListLayer* m_list;
-    CCMenuItemSpriteExtra* m_leftArrow;
     CCMenuItemSpriteExtra* m_rightArrow;
+    CCMenuItemSpriteExtra* m_leftArrow;
     CCMenuItemSpriteExtra* m_likeBtn;
     CCMenuItemSpriteExtra* m_timeBtn;
     CCMenuItemSpriteExtra* m_reportBtn;
@@ -3650,14 +3691,19 @@ class LabelGameObject : GameObject {
     void setObjectColor(cocos2d::_ccColor3B const&) = mac 0xdbca0;
 }
 
-class LeaderboardManagerDelegate {}
+class LeaderboardManagerDelegate {
+    virtual void updateUserScoreFinished() {}
+    virtual void updateUserScoreFailed() {}
+    virtual void loadLeaderboardFinished(cocos2d::CCArray*, const char*) {}
+    virtual void loadLeaderboardFailed(const char*) {}
+}
 
 class LeaderboardsLayer : cocos2d::CCLayer {
     static LeaderboardsLayer* create(LeaderboardState state) = win 0x158710;
     bool init(LeaderboardState state) = mac 0x29f6d0, win 0x1587b0;
 }
 
-class LevelBrowserLayer : cocos2d::CCLayer {
+class LevelBrowserLayer : cocos2d::CCLayer, LevelManagerDelegate, FLAlertLayerProtocol, SetIDPopupDelegate, SetTextPopupDelegate {
     static cocos2d::CCScene* scene(GJSearchObject* search) {
         auto scene = cocos2d::CCScene::create();
         scene->addChild(LevelBrowserLayer::create(search));
@@ -3672,13 +3718,21 @@ class LevelBrowserLayer : cocos2d::CCLayer {
     void updateLevelsLabel() = win 0x15c350;
     static LevelBrowserLayer* create(GJSearchObject* search) = mac 0x251210, win 0x159fa0, ios 0x2d0a00;
 
-    PAD = win 0x18, mac 0x30;
+    PAD = win 0x4, mac 0x8;
+    TextArea* m_noInternet;
     GJListLayer* m_list;
-    CCMenuItemSpriteExtra* m_leftArrow;
     CCMenuItemSpriteExtra* m_rightArrow;
-    PAD = win 0x10, mac 0x20;
+    CCMenuItemSpriteExtra* m_leftArrow;
+    CCMenuItemSpriteExtra* m_lastBtn;
+    CCMenuItemSpriteExtra* m_cancelSearchBtn;
+    void* m_unk4;
+    cocos2d::CCArray* m_array;
     GJSearchObject* m_searchObject;
-    PAD = win 0x14, mac 0x28;
+    cocos2d::CCLabelBMFont* m_countText;
+    cocos2d::CCLabelBMFont* m_pageText;
+    CCMenuItemSpriteExtra* m_pageBtn;
+    cocos2d::CCLabelBMFont* m_folderText;
+    CCMenuItemSpriteExtra* m_folderBtn;
     int m_itemCount;
     int m_pageStartIdx;
     int m_pageEndIdx;
@@ -3689,9 +3743,10 @@ class LevelCell : TableViewCell {
     GJGameLevel* m_level;
     bool m_cellDrawn;
 
-    void onViewProfile(cocos2d::CCObject*) = win 0x5c790;
+    void onViewProfile(cocos2d::CCObject*) = mac 0x11a4a0, win 0x5c790;
     void loadCustomLevelCell() = mac 0x1183b0, win 0x5a020;
     void updateBGColor(int index) = win 0x5c6b0;
+    void loadFromLevel(GJGameLevel* level) = win 0x59FD0;
 }
 
 class LevelCommentDelegate {
@@ -3920,8 +3975,8 @@ class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDeleg
     static LevelInfoLayer* create(GJGameLevel* level) = mac 0x15f290, win 0x175d50;
     bool init(GJGameLevel* level) = win 0x175df0, mac 0x15f520;
     void onGarage(cocos2d::CCObject* sender) = win 0x177c10;
-    void onViewProfile(cocos2d::CCObject* sender) = win 0x17ac90;
-    void onLevelInfo(cocos2d::CCObject* sender) = win 0x17acf0;
+    void onViewProfile(cocos2d::CCObject* sender) = mac 0x1617d0, win 0x17ac90;
+    void onLevelInfo(cocos2d::CCObject* sender) = mac 0x163880, win 0x17acf0;
     void setupProgressBars() = win 0x177fc0;
     void downloadLevel() = win 0x177d90;
 
@@ -3949,13 +4004,23 @@ class LevelLeaderboard : FLAlertLayer {
     void onUpdate(cocos2d::CCObject* sender) = win 0x17d1b0;
     bool init(GJGameLevel* level, LevelLeaderboardType type) = mac 0x20d710, win 0x17c4f0;
     static LevelLeaderboard* create(GJGameLevel* level, LevelLeaderboardType leaderboardType) = win 0x17c440;
+
+    PAD = win 0x4;
+    GJGameLevel* m_level;
+    LevelLeaderboardType m_type;
 }
 
-class LevelManagerDelegate {}
+class LevelManagerDelegate {
+    virtual void loadLevelsFailed(char const*) {}
+    virtual void loadLevelsFinished(cocos2d::CCArray *,char const*) {}
+    virtual void setupPageInfo(std::string,char const*) {}
+}
 
 class LevelPage {
     PAD = win 0x124;
     GJGameLevel* m_level;
+
+    void onInfo(cocos2d::CCObject* sender) = win 0x189070;
 }
 
 class LevelSearchLayer : cocos2d::CCLayer {
@@ -4082,7 +4147,7 @@ class LikeItemLayer : FLAlertLayer {
     int m_commentSourceID;
     LikeItemDelegate* m_likeDelegate;
 
-    static LikeItemLayer* create(LikeItemType type, int itemID, int commentSourceID) = mac 0x35f760;
+    static LikeItemLayer* create(LikeItemType type, int itemID, int commentSourceID) = mac 0x35f760, win 0x18B940;
     bool init(LikeItemType type, int itemID, int commentSourceID) = mac 0x35f900;
 }
 
@@ -4203,8 +4268,8 @@ class MenuLayer : cocos2d::CCLayer, FLAlertLayerProtocol, GooglePlayDelegate {
 class MessageListDelegate {}
 
 class MoreSearchLayer : FLAlertLayer {
-    static MoreSearchLayer* create() = win 0x182520;
-    virtual bool init() = win 0x1825c0;
+    static MoreSearchLayer* create() = mac 0x38ab40, win 0x182520;
+    virtual bool init() = mac 0x3896b0, win 0x1825c0;
 }
 
 class MoreOptionsLayer : FLAlertLayer, TextInputDelegate, GooglePlayDelegate {
@@ -5030,10 +5095,13 @@ class PointNode : cocos2d::CCObject {
 
 class ProfilePage : FLAlertLayer, FLAlertLayerProtocol, LevelCommentDelegate, CommentUploadDelegate, UserInfoDelegate, UploadActionDelegate, UploadPopupDelegate, LeaderboardManagerDelegate {
     static ProfilePage* create(int accountID, bool idk) = mac 0x45eed0, win 0x20ee50;
-    void getUserInfoFailed(int) = win 0x2133e0;
+    virtual void getUserInfoFailed(int) = win 0x2133e0;
+    virtual void getUserInfoChanged(GJUserScore*) = win 0x213430;
     bool init(int accountID, bool idk) = mac 0x45f170, win 0x20ef00;
     void onMyLevels(cocos2d::CCObject*) = win 0x211bb0;
     void onUpdate(cocos2d::CCObject*) = win 0x20fa20;
+    void onClose(cocos2d::CCObject*) = mac 0x45fd20, win 0x49C60;
+    virtual void keyBackClicked() = win 0x49C80;
     void loadPageFromUserInfo(GJUserScore* score) = win 0x210040;
 
     GJUserScore* m_score;
@@ -5071,6 +5139,10 @@ class RateStarsLayer : FLAlertLayer, UploadPopupDelegate, UploadActionDelegate {
 
 class RetryLevelLayer {
     static RetryLevelLayer* create() = mac 0x28dd60, win 0x216390;
+}
+
+class RewardsPage : FLAlertLayer {
+    bool init() = mac 0xf3800, win 0x2178F0;
 }
 
 class RingObject : EffectGameObject {
@@ -5173,6 +5245,10 @@ class SetTargetIDLayer {
     void onTargetIDArrow(cocos2d::CCObject*) = mac 0x15aed0;
     void textChanged(CCTextInputNode*) = mac 0x15b6c0;
     void updateTargetID() = mac 0x15b4a0;
+}
+
+class SetTextPopupDelegate {
+    virtual void setIDPopupClosed(void*, gd::string) {}
 }
 
 class SetupAnimationPopup : FLAlertLayer {
@@ -5502,6 +5578,18 @@ class TableViewCell : cocos2d::CCLayer {
         // = mac 0x383de0, win 0x32e70;
     }
 
+    static TableViewCell* create(const char* name, float width, float height) {
+        auto pRet = new TableViewCell(name, width, height);
+
+        if (pRet) {
+            pRet->autorelease();
+            return pRet;
+        }
+
+        CC_SAFE_DELETE(pRet);
+        return nullptr;
+    }
+
     bool m_unknown;
     TableView* m_tableView;
     CCIndexPath m_indexPath;
@@ -5644,7 +5732,11 @@ class UploadPopupDelegate {
     virtual void onClosePopup() {}
 }
 
-class UserInfoDelegate {}
+class UserInfoDelegate {
+    virtual void getUserInfoFinished(GJUserScore *) {}
+    virtual void getUserInfoFailed(int) {}
+    virtual void getUserInfoChanged(GJUserScore *) {}
+}
 
 class VideoOptionsLayer : FLAlertLayer {
     VideoOptionsLayer* create() = win 0x1e0d70;
