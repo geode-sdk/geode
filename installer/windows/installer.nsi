@@ -356,7 +356,16 @@ Function .onVerifyInstDir
         SendMessage $3 ${WM_SETTEXT} "" "STR:$(^DirText)"
         LockWindow off
 FunctionEnd
-Section
+
+Section "Visual Studio Runtime"
+    SetOutPath $INSTDIR
+    ; needs to be downloaded from https://aka.ms/vs/17/release/vc_redist.x86.exe before compiling installer
+    File VC_redist.x86.exe
+    ExecWait "$INSTDIR\VC_redist.x86.exe /install /quiet /norestart"
+    Delete "$INSTDIR\VC_redist.x86.exe"
+SectionEnd
+
+Section "Geode"
     SetOutPath $INSTDIR
 
     File ${BINDIR}\Geode.dll
