@@ -2598,7 +2598,7 @@ class GJSearchObject : cocos2d::CCNode {
         return m_searchType;
     }
 
-    static GJSearchObject* create(SearchType nID) = win 0xc2b90;
+    static GJSearchObject* create(SearchType nID) = win 0xc2b90, mac 0x2df120;
     static GJSearchObject* create(SearchType nID, gd::string str) = win 0xc2c80, mac 0x2df310;
     static GJSearchObject* createFromKey(const char* key) = win 0xC2760;
     const char* getKey() = win 0xC30A0;
