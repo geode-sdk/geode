@@ -10,7 +10,7 @@
     InstallDir "$PROGRAMFILES32\Steam\steamapps\common\Geometry Dash\" ; set default path to the most common one
     XPStyle on
     RequestExecutionLevel user
-    ManifestSupportedOS Win8
+    ManifestSupportedOS Win7
 
 ; ui settings
     !define MUI_ABORTWARNING
