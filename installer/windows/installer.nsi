@@ -298,11 +298,18 @@ FunctionEnd
 Function .onInit
     !insertmacro MUI_LANGDLL_DISPLAY
 
-    Call FindGamePath
-    IfErrors 0 +3
-        StrCpy $GamePath ""
+    StrCpy $0 "$WINDIR\System32\XInput1_4.dll"
+    IfFileExists $0 findGamePath 0
+        MessageBox MB_ICONSTOP|MB_OK "$0 was not found. Geode is only compatible with Windows 8 and newer."
+        Abort
         Return
-    StrCpy $INSTDIR $GamePath
+
+    findGamePath:
+        Call FindGamePath
+        IfErrors 0 +3
+            StrCpy $GamePath ""
+            Return
+        StrCpy $INSTDIR $GamePath
 FunctionEnd
 Function .onVerifyInstDir
     ; https://stackoverflow.com/a/61486726
