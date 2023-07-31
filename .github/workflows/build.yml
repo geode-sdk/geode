@@ -126,15 +126,6 @@ jobs:
         path: ./out/geode-installer-v${{ env.VERSION_TRIM }}-${{ matrix.config.os_identifier }}.pkg
       if: matrix.config.os_identifier == 'mac'
 
-    - name: Install NSIS
-      run: |
-        iwr -useb get.scoop.sh -outfile 'install.ps1'
-        .\install.ps1 -RunAsAdmin
-        scoop update
-        scoop bucket add extras
-        scoop install nsis
-      if: matrix.config.os_identifier == 'win'
-
     - name: Package Windows
       run: |
         cp -R ./bin/nightly/resources ./out/resources
