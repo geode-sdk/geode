@@ -18,6 +18,7 @@
     !define MUI_LANGDLL_ALLLANGUAGES
     !define MUI_FINISHPAGE_NOAUTOCLOSE
     !define MUI_UNFINISHPAGE_NOAUTOCLOSE
+    !define MUI_FINISHPAGE_NOREBOOTSUPPORT
     !define MUI_ICON logo_inst.ico
     !define MUI_UNICON logo_uninst.ico
     !define MUI_WELCOMEFINISHPAGE_BITMAP banner.bmp
