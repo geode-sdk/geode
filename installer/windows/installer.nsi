@@ -282,38 +282,38 @@ Function .onVerifyInstDir
 
     ; check if there's any exe and libcocos2d.dll (GeometryDash.exe won't work because of GDPSes)
     IfFileExists $INSTDIR\*.exe 0 noGameNoLife
-        IfFileExists $INSTDIR\libcocos2d.dll 0 noGameNoLife
+    IfFileExists $INSTDIR\libcocos2d.dll 0 noGameNoLife
 
-    ; check if xinput doesn't exist or geode is already installed
-    IfFileExists $INSTDIR\XInput9_1_0.dll 0 valid
-        IfFileExists $INSTDIR\Geode.dll valid modLoader
+    ; check if geode is already installed
+    IfFileExists $INSTDIR\Geode.dll valid
 
-    modLoader:
-        IfFileExists $INSTDIR\hackpro.dll megahack other
+    ; check mod loaders/mod menus
+    IfFileExists $INSTDIR\hackpro.dll megahack
+    IfFileExists $INSTDIR\ToastedMarshmellow.dll other
+    IfFileExists $INSTDIR\quickldr.dll other
+    IfFileExists $INSTDIR\XInput9_1_0.dll other
 
-    megahack:
-        SendMessage $geode.DirectoryPage.ErrorText ${WM_SETTEXT} "" "STR:$(GEODE_TEXT_MH_ALREADY_INSTALLED)"
-        ShowWindow $geode.DirectoryPage.ErrorText 1
+    ; all checks passed
+    valid:
+        ShowWindow $geode.DirectoryPage.ErrorText 0
         LockWindow off
-        Abort
-        Return
-    other:
-        SendMessage $geode.DirectoryPage.ErrorText ${WM_SETTEXT} "" "STR:$(GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED)"
-        ShowWindow $geode.DirectoryPage.ErrorText 1
-        LockWindow off
-        Abort
         Return
 
     noGameNoLife:
         SendMessage $geode.DirectoryPage.ErrorText ${WM_SETTEXT} "" "STR:$(GEODE_TEXT_GD_MISSING)"
+        Goto error
+    megahack:
+        SendMessage $geode.DirectoryPage.ErrorText ${WM_SETTEXT} "" "STR:$(GEODE_TEXT_MH_ALREADY_INSTALLED)"
+        Goto error
+    other:
+        SendMessage $geode.DirectoryPage.ErrorText ${WM_SETTEXT} "" "STR:$(GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED)"
+        Goto error
+
+    error:
         ShowWindow $geode.DirectoryPage.ErrorText 1
         LockWindow off
         Abort
         Return
-
-    valid:
-        ShowWindow $geode.DirectoryPage.ErrorText 0
-        LockWindow off
 FunctionEnd
 
 Section "Visual Studio Runtime"
