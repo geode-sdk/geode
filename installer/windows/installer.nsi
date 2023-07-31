@@ -47,7 +47,7 @@
     ;!insertmacro GEODE_LANGUAGE "Spanish"
     ;!insertmacro GEODE_LANGUAGE "SpanishInternational" (idk what's the difference)
     ;!insertmacro GEODE_LANGUAGE "Swedish"
-    ;!insertmacro GEODE_LANGUAGE "Finnish"
+    !insertmacro GEODE_LANGUAGE "Finnish"
     !insertmacro GEODE_LANGUAGE "Russian"
     ;!insertmacro GEODE_LANGUAGE "Portuguese"
     ;!insertmacro GEODE_LANGUAGE "PortugueseBR" (idk what's the difference)
@@ -332,7 +332,11 @@ Section "Geode"
     File ${BINDIR}\GeodeUpdater.exe
     File ${BINDIR}\XInput9_1_0.dll
 
-    CreateDirectory $INSTDIR\geode
+    CreateDirectory $INSTDIR\geode\resources\geode.loader
+    SetOutPath $INSTDIR\geode\resources\geode.loader
+
+    File /r ${BINDIR}\resources\*
+
     WriteUninstaller "geode\Uninstall.exe"
 SectionEnd
 
