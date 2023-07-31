@@ -252,7 +252,7 @@ Function .onInit
 
     StrCpy $0 "$WINDIR\System32\xinput1_3.dll"
     IfFileExists $0 findGamePath 0
-        MessageBox MB_ICONSTOP|MB_OK "$0$(GEODE_TEXT_SYSTEM_XINPUT_MISSING)"
+        MessageBox MB_ICONSTOP|MB_OK $(GEODE_TEXT_SYSTEM_XINPUT_MISSING)
         Abort
         Return
 
