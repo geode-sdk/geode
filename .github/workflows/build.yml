@@ -136,7 +136,10 @@ jobs:
       if: matrix.config.os_identifier == 'win'
 
     - name: Package Windows
-      run: .\installer\windows\package.ps1
+      run: |
+        cp -R ./bin/nightly/resources ./out/resources
+        iwr -useb https://aka.ms/vs/17/release/vc_redist.x86.exe -outfile './installer/windows/VC_redist.x86.exe'
+        makensis -WX -V3 ./installer/windows/installer.nsi
       if: matrix.config.os_identifier == 'win'
 
     - name: Publish Windows Installer

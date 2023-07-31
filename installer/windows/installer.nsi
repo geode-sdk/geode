@@ -191,7 +191,7 @@
 
 ; actual code
 
-!define BINDIR ..\..\bin\nightly
+!define BINDIR ..\..\out
 
 ; installer
 
