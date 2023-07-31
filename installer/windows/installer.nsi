@@ -251,7 +251,7 @@ FunctionEnd
 Function .onInit
     !insertmacro MUI_LANGDLL_DISPLAY
 
-    StrCpy $0 "$WINDIR\System32\XInput1_4.dll"
+    StrCpy $0 "$WINDIR\System32\xinput1_3.dll"
     IfFileExists $0 findGamePath 0
         MessageBox MB_ICONSTOP|MB_OK "$0$(GEODE_TEXT_SYSTEM_XINPUT_MISSING)"
         Abort

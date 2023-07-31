@@ -9,7 +9,7 @@ ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Setup will guide you through the i
 ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Setup will guide you through the uninstallation of $(^NameDA).$\r$\n$\r$\nBefore starting the uninstallation, make sure Geometry Dash is not running.$\r$\n$\r$\n$_CLICK"
 !pragma warning default 6030
 
-${LangFileString} GEODE_TEXT_SYSTEM_XINPUT_MISSING " was not found. Geode is only compatible with Windows 8 and newer."
+${LangFileString} GEODE_TEXT_SYSTEM_XINPUT_MISSING " was not found. Geode is only compatible with Windows 7 and newer."
 ${LangFileString} GEODE_TEXT_MH_ALREADY_INSTALLED "This path already has Mega Hack v6/v7 installed!$\r$\nGeode doesn't work with MHv6/v7 (MHv8 WILL be compatible with Geode).$\r$\nPlease, uninstall it before proceeding."
 ${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "This path already has another mod loader installed!$\r$\nGeode doesn't work with any other mod loader.$\r$\nPlease, uninstall it before proceeding."
 ${LangFileString} GEODE_TEXT_GD_MISSING "$\r$\n$\r$\nThis path does not have Geometry Dash installed!"
