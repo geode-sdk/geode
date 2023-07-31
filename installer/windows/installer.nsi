@@ -20,15 +20,9 @@
     !define MUI_WELCOMEFINISHPAGE_BITMAP banner.bmp
     !define MUI_UNWELCOMEFINISHPAGE_BITMAP banner.bmp
 
-; remember language
-    !define MUI_LANGDLL_REGISTRY_ROOT "HKCU" 
-    !define MUI_LANGDLL_REGISTRY_KEY "Software\Geode"
-    !define MUI_LANGDLL_REGISTRY_VALUENAME "Installer Language"
-
 ; pages
     !insertmacro MUI_PAGE_WELCOME
     !insertmacro MUI_PAGE_LICENSE "..\..\LICENSE.txt"
-    !define MUI_PAGE_CUSTOMFUNCTION_PRE FindAndApplyGamePath
     !insertmacro MUI_PAGE_DIRECTORY
     !insertmacro MUI_PAGE_INSTFILES
     !insertmacro MUI_PAGE_FINISH
@@ -108,13 +102,6 @@
     !insertmacro MUI_LANGUAGE "Hindi"
 
     !insertmacro MUI_RESERVEFILE_LANGDLL
-
-    Function .onInit
-        !insertmacro MUI_LANGDLL_DISPLAY
-    FunctionEnd
-    Function un.onInit
-        !insertmacro MUI_UNGETLANGUAGE
-    FunctionEnd
 
 ; random shit
     ; https://nsis.sourceforge.io/StrReplace
@@ -255,6 +242,8 @@
 
 !define BINDIR ..\..\bin\nightly
 
+; installer
+
 Var GamePath
 Function FindGamePath
     Push $0
@@ -306,16 +295,17 @@ Function FindGamePath
     Pop $0
 FunctionEnd
 
-Function FindAndApplyGamePath
+Function .onInit
+    !insertmacro MUI_LANGDLL_DISPLAY
+
     Call FindGamePath
     IfErrors 0 +3
         StrCpy $GamePath ""
         Return
     StrCpy $INSTDIR $GamePath
 FunctionEnd
-
-; https://stackoverflow.com/a/61486726
 Function .onVerifyInstDir
+    ; https://stackoverflow.com/a/61486726
     FindWindow $9 "#32770" "" $HWNDPARENT
     GetDlgItem $3 $9 1006 ; IDC_INTROTEXT
     LockWindow on
@@ -356,7 +346,6 @@ Function .onVerifyInstDir
         SendMessage $3 ${WM_SETTEXT} "" "STR:$(^DirText)"
         LockWindow off
 FunctionEnd
-
 Section
     SetOutPath $INSTDIR
 
@@ -369,8 +358,29 @@ Section
     WriteUninstaller "geode\Uninstall.exe"
 SectionEnd
 
+; uninstaller
+
+Function un.onInit
+    !insertmacro MUI_UNGETLANGUAGE
+
+    StrCpy $INSTDIR $INSTDIR -5 ; remove "geode/" at the end
+
+    ; verify uninst dir
+
+    ; check if there's any exe and libcocos2d.dll (GeometryDash.exe won't work because of GDPSes)
+    IfFileExists $INSTDIR\*.exe 0 invalid
+    IfFileExists $INSTDIR\libcocos2d.dll 0 invalid
+
+    ; check if xinput and geode exist
+    IfFileExists $INSTDIR\XInput9_1_0.dll 0 invalid
+    IfFileExists $INSTDIR\Geode.dll 0 invalid
+        Return
+
+    invalid:
+        MessageBox MB_ICONSTOP|MB_OK "This path does not have Geode installed!"
+        Abort
+FunctionEnd
 Section "Uninstall"
-    StrCpy $INSTDIR "$INSTDIR\.." ; TODO fix hack bad !!!!!!!
     Delete $INSTDIR\Geode.dll
     Delete $INSTDIR\Geode.pdb
     Delete $INSTDIR\GeodeUpdater.exe
