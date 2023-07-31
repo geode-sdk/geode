@@ -49,8 +49,7 @@
     ;!insertmacro GEODE_LANGUAGE "Swedish"
     !insertmacro GEODE_LANGUAGE "Finnish"
     !insertmacro GEODE_LANGUAGE "Russian"
-    ;!insertmacro GEODE_LANGUAGE "Portuguese"
-    ;!insertmacro GEODE_LANGUAGE "PortugueseBR" (idk what's the difference)
+    !insertmacro GEODE_LANGUAGE "PortugueseBR"
 
     !insertmacro MUI_RESERVEFILE_LANGDLL
 
