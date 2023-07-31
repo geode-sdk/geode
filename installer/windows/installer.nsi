@@ -18,10 +18,10 @@
     !define MUI_FINISHPAGE_NOAUTOCLOSE
     !define MUI_UNFINISHPAGE_NOAUTOCLOSE
     !define MUI_FINISHPAGE_NOREBOOTSUPPORT
-    !define MUI_ICON logo_inst.ico
-    !define MUI_UNICON logo_uninst.ico
-    !define MUI_WELCOMEFINISHPAGE_BITMAP banner.bmp
-    !define MUI_UNWELCOMEFINISHPAGE_BITMAP banner.bmp
+    !define MUI_ICON Graphics\logo_inst.ico
+    !define MUI_UNICON Graphics\logo_uninst.ico
+    !define MUI_WELCOMEFINISHPAGE_BITMAP Graphics\banner.bmp
+    !define MUI_UNWELCOMEFINISHPAGE_BITMAP Graphics\banner.bmp
 
 ; pages
     !insertmacro MUI_PAGE_WELCOME
@@ -37,73 +37,20 @@
     !insertmacro MUI_UNPAGE_FINISH
 
 ; languages
-    !insertmacro MUI_LANGUAGE "English"
-    !insertmacro MUI_LANGUAGE "French"
-    !insertmacro MUI_LANGUAGE "German"
-    !insertmacro MUI_LANGUAGE "Spanish"
-    !insertmacro MUI_LANGUAGE "SpanishInternational"
-    !insertmacro MUI_LANGUAGE "SimpChinese"
-    !insertmacro MUI_LANGUAGE "TradChinese"
-    !insertmacro MUI_LANGUAGE "Japanese"
-    !insertmacro MUI_LANGUAGE "Korean"
-    !insertmacro MUI_LANGUAGE "Italian"
-    !insertmacro MUI_LANGUAGE "Dutch"
-    !insertmacro MUI_LANGUAGE "Danish"
-    !insertmacro MUI_LANGUAGE "Swedish"
-    !insertmacro MUI_LANGUAGE "Norwegian"
-    !insertmacro MUI_LANGUAGE "NorwegianNynorsk"
-    !insertmacro MUI_LANGUAGE "Finnish"
-    !insertmacro MUI_LANGUAGE "Greek"
-    !insertmacro MUI_LANGUAGE "Russian"
-    !insertmacro MUI_LANGUAGE "Portuguese"
-    !insertmacro MUI_LANGUAGE "PortugueseBR"
-    !insertmacro MUI_LANGUAGE "Polish"
-    !insertmacro MUI_LANGUAGE "Ukrainian"
-    !insertmacro MUI_LANGUAGE "Czech"
-    !insertmacro MUI_LANGUAGE "Slovak"
-    !insertmacro MUI_LANGUAGE "Croatian"
-    !insertmacro MUI_LANGUAGE "Bulgarian"
-    !insertmacro MUI_LANGUAGE "Hungarian"
-    !insertmacro MUI_LANGUAGE "Thai"
-    !insertmacro MUI_LANGUAGE "Romanian"
-    !insertmacro MUI_LANGUAGE "Latvian"
-    !insertmacro MUI_LANGUAGE "Macedonian"
-    !insertmacro MUI_LANGUAGE "Estonian"
-    !insertmacro MUI_LANGUAGE "Turkish"
-    !insertmacro MUI_LANGUAGE "Lithuanian"
-    !insertmacro MUI_LANGUAGE "Slovenian"
-    !insertmacro MUI_LANGUAGE "Serbian"
-    !insertmacro MUI_LANGUAGE "SerbianLatin"
-    !insertmacro MUI_LANGUAGE "Arabic"
-    !insertmacro MUI_LANGUAGE "Farsi"
-    !insertmacro MUI_LANGUAGE "Hebrew"
-    !insertmacro MUI_LANGUAGE "Indonesian"
-    !insertmacro MUI_LANGUAGE "Mongolian"
-    !insertmacro MUI_LANGUAGE "Luxembourgish"
-    !insertmacro MUI_LANGUAGE "Albanian"
-    !insertmacro MUI_LANGUAGE "Breton"
-    !insertmacro MUI_LANGUAGE "Belarusian"
-    !insertmacro MUI_LANGUAGE "Icelandic"
-    !insertmacro MUI_LANGUAGE "Malay"
-    !insertmacro MUI_LANGUAGE "Bosnian"
-    !insertmacro MUI_LANGUAGE "Kurdish"
-    !insertmacro MUI_LANGUAGE "Irish"
-    !insertmacro MUI_LANGUAGE "Uzbek"
-    !insertmacro MUI_LANGUAGE "Galician"
-    !insertmacro MUI_LANGUAGE "Afrikaans"
-    !insertmacro MUI_LANGUAGE "Catalan"
-    !insertmacro MUI_LANGUAGE "Esperanto"
-    !insertmacro MUI_LANGUAGE "Asturian"
-    !insertmacro MUI_LANGUAGE "Basque"
-    !insertmacro MUI_LANGUAGE "Pashto"
-    !insertmacro MUI_LANGUAGE "ScotsGaelic"
-    !insertmacro MUI_LANGUAGE "Georgian"
-    !insertmacro MUI_LANGUAGE "Vietnamese"
-    !insertmacro MUI_LANGUAGE "Welsh"
-    !insertmacro MUI_LANGUAGE "Armenian"
-    !insertmacro MUI_LANGUAGE "Corsican"
-    !insertmacro MUI_LANGUAGE "Tatar"
-    !insertmacro MUI_LANGUAGE "Hindi"
+    !macro GEODE_LANGUAGE NSFID
+        !insertmacro MUI_LANGUAGE ${NSFID}
+        !insertmacro LANGFILE_INCLUDE "Language Files\${NSFID}Extra.nsh"
+    !macroend
+
+    ; TODO: add the commented out languages (other available languages are listed here: https://nsis.sourceforge.io/Examples/Modern%20UI/MultiLanguage.nsi)
+    !insertmacro GEODE_LANGUAGE "English"
+    ;!insertmacro GEODE_LANGUAGE "Spanish"
+    ;!insertmacro GEODE_LANGUAGE "SpanishInternational" (idk what's the difference)
+    ;!insertmacro GEODE_LANGUAGE "Swedish"
+    ;!insertmacro GEODE_LANGUAGE "Finnish"
+    !insertmacro GEODE_LANGUAGE "Russian"
+    ;!insertmacro GEODE_LANGUAGE "Portugese"
+    ;!insertmacro GEODE_LANGUAGE "PortugeseBR" (idk what's the difference)
 
     !insertmacro MUI_RESERVEFILE_LANGDLL
 
@@ -306,7 +253,7 @@ Function .onInit
 
     StrCpy $0 "$WINDIR\System32\XInput1_4.dll"
     IfFileExists $0 findGamePath 0
-        MessageBox MB_ICONSTOP|MB_OK "$0 was not found. Geode is only compatible with Windows 8 and newer."
+        MessageBox MB_ICONSTOP|MB_OK "$0$(GEODE_TEXT_SYSTEM_XINPUT_MISSING)"
         Abort
         Return
 
@@ -319,7 +266,7 @@ Function .onInit
 FunctionEnd
 
 Function DirectoryPageShow
-    System::Call 'USER32::CreateWindowEx(i${__NSD_Label_EXSTYLE}, t"${__NSD_Label_CLASS}", t"hiiii", i${__NSD_Label_STYLE}, i0, i70, i300, i40, p$mui.DirectoryPage, p0, p0, p0)p.s'
+    System::Call 'USER32::CreateWindowEx(i${__NSD_Label_EXSTYLE}, t"${__NSD_Label_CLASS}", t"", i${__NSD_Label_STYLE}, i0, i70, i400, i40, p$mui.DirectoryPage, p0, p0, p0)p.s'
     Pop $geode.DirectoryPage.ErrorText
     ShowWindow $geode.DirectoryPage.ErrorText 0
     SendMessage $mui.DirectoryPage ${WM_GETFONT} 0 0 $0
@@ -345,20 +292,20 @@ Function .onVerifyInstDir
         IfFileExists $INSTDIR\hackpro.dll megahack other
 
     megahack:
-        SendMessage $geode.DirectoryPage.ErrorText ${WM_SETTEXT} "" "STR:This path already has Mega Hack v6/v7 installed!$\r$\nGeode doesn't work with MHv6/v7.$\r$\nPlease, uninstall it before proceeding."
+        SendMessage $geode.DirectoryPage.ErrorText ${WM_SETTEXT} "" "STR:$(GEODE_TEXT_MH_ALREADY_INSTALLED)"
         ShowWindow $geode.DirectoryPage.ErrorText 1
         LockWindow off
         Abort
         Return
     other:
-        SendMessage $geode.DirectoryPage.ErrorText ${WM_SETTEXT} "" "STR:This path already has another mod loader installed!$\r$\nGeode doesn't work with any other mod loader.$\r$\nPlease, uninstall it before proceeding."
+        SendMessage $geode.DirectoryPage.ErrorText ${WM_SETTEXT} "" "STR:$(GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED)"
         ShowWindow $geode.DirectoryPage.ErrorText 1
         LockWindow off
         Abort
         Return
 
     noGameNoLife:
-        SendMessage $geode.DirectoryPage.ErrorText ${WM_SETTEXT} "" "STR:$\r$\n$\r$\nThis path does not have Geometry Dash installed!"
+        SendMessage $geode.DirectoryPage.ErrorText ${WM_SETTEXT} "" "STR:$(GEODE_TEXT_GD_MISSING)"
         ShowWindow $geode.DirectoryPage.ErrorText 1
         LockWindow off
         Abort
@@ -408,7 +355,7 @@ Function un.onInit
         Return
 
     invalid:
-        MessageBox MB_ICONSTOP|MB_OK "This path does not have Geode installed!"
+        MessageBox MB_ICONSTOP|MB_OK $(GEODE_UNTEXT_GEODE_MISSING)
         Abort
 FunctionEnd
 Section "Uninstall"
