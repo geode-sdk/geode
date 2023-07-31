@@ -1,8 +1,7 @@
 ; includes
     !include MUI2.nsh
+    !include nsDialogs.nsh
     !include WinMessages.nsh
-    !define /IfNDef EM_SHOWBALLOONTIP 0x1503
-    !define /IfNDef EM_HIDEBALLOONTIP 0x1504
 
 ; settings
     Name "Geode"
@@ -27,6 +26,7 @@
 ; pages
     !insertmacro MUI_PAGE_WELCOME
     !insertmacro MUI_PAGE_LICENSE "..\..\LICENSE.txt"
+    !define MUI_PAGE_CUSTOMFUNCTION_SHOW DirectoryPageShow
     !insertmacro MUI_PAGE_DIRECTORY
     !insertmacro MUI_PAGE_INSTFILES
     !insertmacro MUI_PAGE_FINISH
@@ -248,6 +248,8 @@
 
 ; installer
 
+Var geode.DirectoryPage.ErrorText
+
 Var GamePath
 Function FindGamePath
     Push $0
@@ -315,10 +317,20 @@ Function .onInit
             Return
         StrCpy $INSTDIR $GamePath
 FunctionEnd
+
+Function DirectoryPageShow
+    System::Call 'USER32::CreateWindowEx(i${__NSD_Label_EXSTYLE}, t"${__NSD_Label_CLASS}", t"hiiii", i${__NSD_Label_STYLE}, i0, i70, i300, i40, p$mui.DirectoryPage, p0, p0, p0)p.s'
+    Pop $geode.DirectoryPage.ErrorText
+    ShowWindow $geode.DirectoryPage.ErrorText 0
+    SendMessage $mui.DirectoryPage ${WM_GETFONT} 0 0 $0
+    SendMessage $geode.DirectoryPage.ErrorText ${WM_SETFONT} $0 1
+    SetCtlColors $geode.DirectoryPage.ErrorText ff0000 transparent
+    ; place the label at the top
+    System::Call 'USER32::SetWindowPos(p$geode.DirectoryPage.ErrorText, p0, i0, i0, i0, i0, i3)i'
+    Pop $0
+FunctionEnd
+
 Function .onVerifyInstDir
-    ; https://stackoverflow.com/a/61486726
-    FindWindow $9 "#32770" "" $HWNDPARENT
-    GetDlgItem $3 $9 1006 ; IDC_INTROTEXT
     LockWindow on
 
     ; check if there's any exe and libcocos2d.dll (GeometryDash.exe won't work because of GDPSes)
@@ -333,28 +345,27 @@ Function .onVerifyInstDir
         IfFileExists $INSTDIR\hackpro.dll megahack other
 
     megahack:
-        SetCtlColors $3 ff0000 transparent
-        SendMessage $3 ${WM_SETTEXT} "" "STR:This path already has Mega Hack v6/v7 installed!$\r$\nGeode doesn't work with MHv6/v7.$\r$\nPlease, uninstall it before proceeding."
+        SendMessage $geode.DirectoryPage.ErrorText ${WM_SETTEXT} "" "STR:This path already has Mega Hack v6/v7 installed!$\r$\nGeode doesn't work with MHv6/v7.$\r$\nPlease, uninstall it before proceeding."
+        ShowWindow $geode.DirectoryPage.ErrorText 1
         LockWindow off
         Abort
         Return
     other:
-        SetCtlColors $3 ff0000 transparent
-        SendMessage $3 ${WM_SETTEXT} "" "STR:This path already has another mod loader installed!$\r$\nGeode doesn't work with any other mod loader.$\r$\nPlease, uninstall it before proceeding."
+        SendMessage $geode.DirectoryPage.ErrorText ${WM_SETTEXT} "" "STR:This path already has another mod loader installed!$\r$\nGeode doesn't work with any other mod loader.$\r$\nPlease, uninstall it before proceeding."
+        ShowWindow $geode.DirectoryPage.ErrorText 1
         LockWindow off
         Abort
         Return
 
     noGameNoLife:
-        SetCtlColors $3 ff0000 transparent
-        SendMessage $3 ${WM_SETTEXT} "" "STR:This path does not have Geometry Dash installed!"
+        SendMessage $geode.DirectoryPage.ErrorText ${WM_SETTEXT} "" "STR:$\r$\n$\r$\nThis path does not have Geometry Dash installed!"
+        ShowWindow $geode.DirectoryPage.ErrorText 1
         LockWindow off
         Abort
         Return
 
     valid:
-        SetCtlColors $3 SYSCLR:18 SYSCLR:15
-        SendMessage $3 ${WM_SETTEXT} "" "STR:$(^DirText)"
+        ShowWindow $geode.DirectoryPage.ErrorText 0
         LockWindow off
 FunctionEnd
 
