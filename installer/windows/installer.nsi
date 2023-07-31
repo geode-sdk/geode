@@ -7,7 +7,7 @@
     Name "Geode"
     OutFile "GeodeInstaller.exe"
     Unicode true
-    InstallDir "$PROGRAMFILES32\Steam\steamapps\common\Geometry Dash" ; set default path to the most common one
+    InstallDir "$PROGRAMFILES32\Steam\steamapps\common\Geometry Dash\" ; set default path to the most common one
     XPStyle on
     RequestExecutionLevel user
     ManifestSupportedOS Win8
@@ -315,7 +315,7 @@ Function .onInit
         IfErrors 0 +3
             StrCpy $GamePath ""
             Return
-        StrCpy $INSTDIR $GamePath
+        StrCpy $INSTDIR "$GamePath\"
 FunctionEnd
 
 Function DirectoryPageShow
