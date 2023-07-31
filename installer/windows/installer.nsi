@@ -50,6 +50,7 @@
     !insertmacro GEODE_LANGUAGE "Finnish"
     !insertmacro GEODE_LANGUAGE "Russian"
     !insertmacro GEODE_LANGUAGE "PortugueseBR"
+    !insertmacro GEODE_LANGUAGE "Czech"
 
     !insertmacro MUI_RESERVEFILE_LANGDLL
 
