@@ -43,7 +43,7 @@ set_target_properties(Updater PROPERTIES
 target_link_libraries(Updater PUBLIC ghc_filesystem)
 
 if (MSVC)
-	target_link_options(fake-geode-loader PRIVATE /NOIMPLIB /NOEXP /DEBUG:NONE)
+	target_link_options(fake-geode-loader PRIVATE /NOEXP /DEBUG:NONE)
 	target_link_options(ProxyLoader PRIVATE /NOIMPLIB /NOEXP /DEBUG:NONE)
 	target_link_options(Updater PRIVATE /DEBUG:NONE)
 endif()
