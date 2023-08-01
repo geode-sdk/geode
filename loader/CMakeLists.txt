@@ -220,6 +220,11 @@ elseif (WIN32)
 
 		# disable outputting .exp file
 		target_link_options(${PROJECT_NAME} PRIVATE /NOEXP)
+
+		# disable incremental link in CI builds
+		if (DEFINED ENV{GEODE_CI})
+			target_link_options(${PROJECT_NAME} PRIVATE /INCREMENTAL:NO)
+		endif()
 	endif()
 endif()
 

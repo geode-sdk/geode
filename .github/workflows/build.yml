@@ -14,8 +14,8 @@ on:
     - '!no-build-**'    # unless marked as no-build
 
 env:
+  GEODE_CI: ''
   CCACHE_ACTION_CI: true
-  SCCACHE_GHA_ENABLED: "on"
 
 jobs:
   build:
@@ -26,8 +26,7 @@ jobs:
         - name: Windows
           os: windows-latest
           os_identifier: win
-          cache_variant: sccache
-          extra_flags: '-T host=x86 -A win32 -DGEODE_DEBUG=On'
+          extra_flags: '-G Ninja -T host=x86 -A win32 -DGEODE_DEBUG=On'
           cli_cmd: ''
           package_cmd: 'makensis -WX -V3 ./installer/windows/installer.nsi'
           installer_path: './installer/windows/geode-installer-win.exe'
@@ -35,7 +34,6 @@ jobs:
         - name: macOS
           os: macos-latest
           os_identifier: mac
-          cache_variant: ccache
           extra_flags: '-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug -DGEODE_DEBUG=On -DCMAKE_OSX_DEPLOYMENT_TARGET=10.13'
           cli_cmd: 'chmod +x $GITHUB_WORKSPACE/cli/geode'
           package_cmd: './installer/mac/package.sh ./bin/nightly ./installer/mac/geode-installer-mac.pkg'
@@ -52,11 +50,15 @@ jobs:
     - uses: hendrikmuhs/ccache-action@v1
       with:
         key: ${{ matrix.config.os }}
-        variant: ${{ matrix.config.cache_variant }}
 
     - uses: ilammy/msvc-dev-cmd@v1
       with:
         arch: x86
+      if: matrix.config.os_identifier == 'win'
+
+    - name: Install ninja
+      shell: bash
+      run: choco install ninja
       if: matrix.config.os_identifier == 'win'
 
     - name: Download CLI
@@ -77,12 +79,11 @@ jobs:
 
     - name: Configure CMake
       run: >
-        cmake
+        cmake -B ${{ github.workspace }}/build
         ${{ matrix.config.extra_flags }}
         -DCLI_PATH="${{ github.workspace }}/cli"
-        -DCMAKE_C_COMPILER_LAUNCHER=${{ matrix.config.cache_variant }}
-        -DCMAKE_CXX_COMPILER_LAUNCHER=${{ matrix.config.cache_variant }}
-        -B ${{ github.workspace }}/build
+        -DCMAKE_C_COMPILER_LAUNCHER=ccache
+        -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
     - name: Build
       run: |
