@@ -42,7 +42,7 @@ jobs:
     runs-on: ${{ matrix.config.os }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         submodules: recursive
 
@@ -55,7 +55,7 @@ jobs:
       if: matrix.config.os_identifier == 'win'
 
     - name: Download CLI
-      uses: robinraju/release-downloader@v1.5
+      uses: robinraju/release-downloader@v1
       with:
         repository: geode-sdk/cli
         latest: true
@@ -88,7 +88,7 @@ jobs:
       run: rm ./bin/nightly/resources/.geode_cache
 
     - name: Upload Artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: geode-${{ matrix.config.os_identifier }}
         path: ./bin/nightly
@@ -97,7 +97,7 @@ jobs:
       run: ${{ matrix.config.package_cmd }}
 
     - name: Publish Installer
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: geode-installer-${{ matrix.config.os_identifier }}
         path: ${{ matrix.config.installer_path }}
@@ -107,7 +107,7 @@ jobs:
     needs: build
     if: github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Declare version and commit hash
         id: ref
