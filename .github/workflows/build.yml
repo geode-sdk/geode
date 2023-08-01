@@ -2,6 +2,12 @@ name: Build Binaries
 
 on:
   workflow_dispatch:
+    inputs:
+      draft:
+        description: Create a draft release
+        required: false
+        type: boolean
+        default: false
   push:
     branches:
     - '**'              # every branch
@@ -15,11 +21,11 @@ jobs:
         config:
         - name: "Windows"
           os_identifier: "win"
-          os: windows-2019
+          os: windows-latest
           prefixes: ''
           extra_flags: '-T host=x86 -A win32 -DGEODE_DEBUG=On'
-          out_paths: './bin/nightly/Geode.pdb ./bin/nightly/Geode.dll ./bin/nightly/GeodeUpdater.exe ./bin/nightly/Geode.lib ./bin/nightly/XInput9_1_0.dll'
           cli_cmd: ''
+          package_cmd: 'makensis -WX -V3 ./installer/windows/installer.nsi'
           installer_path: './installer/windows/geode-installer-win.exe'
 
         - name: "macOS"
@@ -27,9 +33,9 @@ jobs:
           os: macos-latest
           prefixes: 'PATH="/usr/local/opt/ccache/libexec:$PATH"'
           extra_flags: "-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug -DGEODE_DEBUG=On -DCMAKE_OSX_DEPLOYMENT_TARGET=10.13"
-          out_paths: './bin/nightly/Geode.dylib ./bin/nightly/GeodeBootstrapper.dylib ./loader/include/link/libfmod.dylib'
           cli_cmd: 'chmod +x $GITHUB_WORKSPACE/cli/geode'
-          installer_path: './out/geode-installer-mac.pkg'
+          package_cmd: './installer/mac/package.sh ./bin/nightly ./installer/mac/geode-installer-mac.pkg'
+          installer_path: './installer/mac/geode-installer-mac.pkg'
 
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
@@ -57,23 +63,20 @@ jobs:
         fileName: "*-${{ matrix.config.os_identifier }}.zip"
         tarBall: false
         zipBall: false
-        out-file-path: "cli" 
+        out-file-path: "cli"
 
-    - name: Unzip CLI
+    - name: Setup CLI
       run: |
         7z x "${{ github.workspace }}/cli/*-${{ matrix.config.os_identifier }}.zip" -o"${{ github.workspace }}/cli"
-
-    - name: Add CLI to Path
-      run: |
         ${{ matrix.config.cli_cmd }}
         echo "${{ github.workspace }}/cli" >> $GITHUB_PATH
 
     - name: Configure CMake
       run: >
-        ${{ matrix.config.prefixes }} cmake -B 
-        ${{ github.workspace }}/build 
-        ${{ matrix.config.extra_flags }} 
-        -DCLI_PATH="${{ github.workspace }}/cli" 
+        ${{ matrix.config.prefixes }} cmake -B
+        ${{ github.workspace }}/build
+        ${{ matrix.config.extra_flags }}
+        -DCLI_PATH="${{ github.workspace }}/cli"
         -D CMAKE_C_COMPILER_LAUNCHER=ccache
         -D CMAKE_CXX_COMPILER_LAUNCHER=ccache
 
@@ -82,46 +85,19 @@ jobs:
         cd build
         cmake --build . --config RelWithDebInfo --parallel
 
-    - name: Move to output folder
-      shell: bash
-      working-directory: ${{ github.workspace }}
-      run: |
-        mkdir ./out
-        mv ${{ matrix.config.out_paths }} ./out
-
     - name: Delete resource cache file
-      run: |
-        rm ./bin/nightly/resources/.geode_cache
-      
-    - name: Upload resources
-      uses: actions/upload-artifact@v2
-      with:
-        name: resources
-        path: ./bin/nightly/resources
-      if: matrix.config.os_identifier == 'win'
+      run: rm ./bin/nightly/resources/.geode_cache
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v2
       with:
         name: geode-${{ matrix.config.os_identifier }}
-        path: ./out
+        path: ./bin/nightly
 
-    # Make these a script
-    - name: Package MacOS
-      run: |
-        cp -R ./bin/nightly/resources ./out/resources
-        ./installer/mac/package.sh ./out ./out/geode-installer-mac.pkg
-      if: matrix.config.os_identifier == 'mac'
+    - name: Package
+      run: ${{ matrix.config.package_cmd }}
 
-    - name: Package Windows
-      run: |
-        cp -R ./bin/nightly/resources ./out/resources
-        iwr -useb https://aka.ms/vs/17/release/vc_redist.x86.exe -outfile './installer/windows/VC_redist.x86.exe'
-        makensis -WX -V3 ./installer/windows/installer.nsi
-        mv ./installer/windows/GeodeInstaller.exe ./installer/windows/geode-installer-win.exe
-      if: matrix.config.os_identifier == 'win'
-
-    - name: Publish Installers
+    - name: Publish Installer
       uses: actions/upload-artifact@v2
       with:
         name: geode-installer-${{ matrix.config.os_identifier }}
@@ -133,35 +109,37 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v2
-      
-      - name: Declare commit hash
+
+      - name: Declare version and commit hash
+        id: ref
         shell: bash
         run: |
-          echo "SHA_SHORT=$(git rev-parse --short "$GITHUB_SHA")" >> "$GITHUB_ENV"
+          echo "version=$(cat ${{ github.workspace }}/VERSION | xargs)" >> $GITHUB_OUTPUT
+          echo "hash=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_OUTPUT
 
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
           path: ${{ github.workspace }}
-          
+
       - name: Move installers
         run: |
-          mv geode-installer-mac/geode-installer-mac.pkg geode-installer-${{ env.SHA_SHORT }}-mac.pkg
-          mv geode-installer-win/geode-installer-win.exe geode-installer-${{ env.SHA_SHORT }}-win.exe
+          mv geode-installer-mac/geode-installer-mac.pkg geode-installer-${{ steps.ref.outputs.hash }}-mac.pkg
+          mv geode-installer-win/geode-installer-win.exe geode-installer-${{ steps.ref.outputs.hash }}-win.exe
 
       - name: Zip MacOS artifacts
         uses: vimtor/action-zip@v1
         with:
           files: geode-mac/Geode.dylib geode-mac/GeodeBootstrapper.dylib
-          dest: geode-${{ env.SHA_SHORT }}-mac.zip
+          dest: geode-${{ steps.ref.outputs.hash }}-mac.zip
 
       - name: Zip Windows artifacts
         uses: vimtor/action-zip@v1
         with:
           files: geode-win/XInput9_1_0.dll geode-win/Geode.dll geode-win/GeodeUpdater.exe geode-win/Geode.lib
-          dest: geode-${{ env.SHA_SHORT }}-win.zip
-          
-      - name: Update Nightly Release
+          dest: geode-${{ steps.ref.outputs.hash }}-win.zip
+
+      - name: Update Nightly release
         uses: andelf/nightly-release@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -173,7 +151,28 @@ jobs:
           body: |
             Dev release of Geode. Will not install the resources automatically, so you should use the installers to install them.
           files: |
-            ./geode-${{ env.SHA_SHORT }}-mac.zip
-            ./geode-${{ env.SHA_SHORT }}-win.zip
-            ./geode-installer-${{ env.SHA_SHORT }}-mac.pkg
-            ./geode-installer-${{ env.SHA_SHORT }}-win.exe
+            ./geode-${{ steps.ref.outputs.hash }}-mac.zip
+            ./geode-${{ steps.ref.outputs.hash }}-win.zip
+            ./geode-installer-${{ steps.ref.outputs.hash }}-mac.pkg
+            ./geode-installer-${{ steps.ref.outputs.hash }}-win.exe
+
+      - name: Create draft release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: ${{ inputs.draft }}
+        with:
+          tag_name: v${{ steps.ref.outputs.version }}
+          name: Geode v${{ steps.ref.outputs.version }}
+          body: |
+            TODO before publishing:
+             - mark if pre-release
+             - add changelog
+             - remove this
+          draft: true
+          files: |
+            ./geode-${{ steps.ref.outputs.version }}-mac.zip
+            ./geode-${{ steps.ref.outputs.version }}-win.zip
+            ./geode-installer-${{ steps.ref.outputs.version }}-mac.pkg
+            ./geode-installer-${{ steps.ref.outputs.version }}-win.exe
+

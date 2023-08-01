@@ -3,10 +3,8 @@ cmake_minimum_required(VERSION 3.3.0)
 add_library(ProxyLoader SHARED proxyLoader.c)
 target_compile_features(ProxyLoader PUBLIC cxx_std_17)
 set_target_properties(ProxyLoader PROPERTIES
-	PREFIX "" 
+	PREFIX ""
 	OUTPUT_NAME "XInput9_1_0"
-	RUNTIME_OUTPUT_DIRECTORY "${GEODE_BIN_PATH}/nightly"
-	LIBRARY_OUTPUT_DIRECTORY "${GEODE_BIN_PATH}/nightly"
 	LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO "${GEODE_BIN_PATH}/nightly"
 	RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${GEODE_BIN_PATH}/nightly"
 	ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO "${GEODE_BIN_PATH}/nightly"
@@ -27,10 +25,8 @@ target_link_libraries(ProxyLoader PRIVATE fake-geode-loader)
 add_executable(Updater Updater.cpp)
 target_compile_features(Updater PUBLIC cxx_std_17)
 set_target_properties(Updater PROPERTIES
-	PREFIX "" 
+	PREFIX ""
 	OUTPUT_NAME "GeodeUpdater"
-	RUNTIME_OUTPUT_DIRECTORY "${GEODE_BIN_PATH}/nightly"
-	LIBRARY_OUTPUT_DIRECTORY "${GEODE_BIN_PATH}/nightly"
 	RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${GEODE_BIN_PATH}/nightly"
 	ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO "${GEODE_BIN_PATH}/nightly"
 	LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO "${GEODE_BIN_PATH}/nightly"
@@ -45,3 +41,9 @@ set_target_properties(Updater PROPERTIES
 	ARCHIVE_OUTPUT_DIRECTORY "${GEODE_BIN_PATH}/nightly"
 )
 target_link_libraries(Updater PUBLIC ghc_filesystem)
+
+if (MSVC)
+	target_link_options(fake-geode-loader PRIVATE /NOIMPLIB /NOEXP /DEBUG:NONE)
+	target_link_options(ProxyLoader PRIVATE /NOIMPLIB /NOEXP /DEBUG:NONE)
+	target_link_options(Updater PRIVATE /DEBUG:NONE)
+endif()

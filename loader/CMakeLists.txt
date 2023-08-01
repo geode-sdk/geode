@@ -110,8 +110,8 @@ target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
 make_directory("${GEODE_BIN_PATH}/nightly")
 
 # Prevent SDK from activating a loader build
-set_target_properties(${PROJECT_NAME} PROPERTIES 
-	PREFIX "" 
+set_target_properties(${PROJECT_NAME} PROPERTIES
+	PREFIX ""
 	OUTPUT_NAME "Geode"
 	# i'm going to say a slur that not a single soul has uttered in the last 200 years
 	LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO "${GEODE_BIN_PATH}/nightly"
@@ -194,7 +194,7 @@ if (NOT GEODE_DISABLE_PRECOMPILED_HEADERS)
 endif()
 
 # Create launcher
-if (APPLE) 
+if (APPLE)
 	set_target_properties(geode-loader PROPERTIES 
 		SYSTEM_NAME MacOS
 		OSX_DEPLOYMENT_TARGET 10.9
@@ -205,18 +205,21 @@ if (APPLE)
 
 	if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm" OR GEODE_TARGET_PLATFORM STREQUAL "iOS")
 		add_custom_command(TARGET geode-loader
-		    POST_BUILD COMMAND 
-		    ${CMAKE_INSTALL_NAME_TOOL} -id \"/Library/MobileSubstrate/DynamicLibraries/Geode.dylib\"
-		    $<TARGET_FILE:geode-loader>)
+			POST_BUILD COMMAND
+			${CMAKE_INSTALL_NAME_TOOL} -id \"/Library/MobileSubstrate/DynamicLibraries/Geode.dylib\"
+			$<TARGET_FILE:geode-loader>)
 	endif()
 elseif (WIN32)
 	add_subdirectory(launcher/windows)
 
 	target_link_libraries(${PROJECT_NAME} dbghelp)
 
-	# disable warnings about CCNode::setID
 	if (MSVC)
+		# disable warnings about CCNode::setID
 		target_link_options(${PROJECT_NAME} PUBLIC /ignore:4217)
+
+		# disable outputting .exp file
+		target_link_options(${PROJECT_NAME} PRIVATE /NOEXP)
 	endif()
 endif()
 

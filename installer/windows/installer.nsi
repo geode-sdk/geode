@@ -5,7 +5,7 @@
 
 ; settings
     Name "Geode"
-    OutFile "GeodeInstaller.exe"
+    OutFile "geode-installer-win.exe"
     Unicode true
     InstallDir "$PROGRAMFILES32\Steam\steamapps\common\Geometry Dash\" ; set default path to the most common one
     XPStyle on
@@ -191,7 +191,7 @@
 
 ; actual code
 
-!define BINDIR ..\..\out
+!define BINDIR ..\..\bin\nightly
 
 ; installer
 
@@ -316,9 +316,10 @@ Function .onVerifyInstDir
         Return
 FunctionEnd
 
+; download vc redist in compile-time
+!execute "pwsh -nol -noni -nop dl-vcr.ps1"
 Section "Visual Studio Runtime"
     SetOutPath $INSTDIR
-    ; needs to be downloaded from https://aka.ms/vs/17/release/vc_redist.x86.exe before compiling installer
     File VC_redist.x86.exe
     ExecWait "$INSTDIR\VC_redist.x86.exe /install /quiet /norestart"
     Delete "$INSTDIR\VC_redist.x86.exe"
