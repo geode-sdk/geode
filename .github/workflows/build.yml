@@ -20,7 +20,7 @@ jobs:
           extra_flags: '-T host=x86 -A win32 -DGEODE_DEBUG=On'
           out_paths: './bin/nightly/Geode.pdb ./bin/nightly/Geode.dll ./bin/nightly/GeodeUpdater.exe ./bin/nightly/Geode.lib ./bin/nightly/XInput9_1_0.dll'
           cli_cmd: ''
-          installer_path: './out/geode-installer-mac.pkg'
+          installer_path: './installer/windows/geode-installer-win.exe'
 
         - name: "macOS"
           os_identifier: "mac"
@@ -29,7 +29,7 @@ jobs:
           extra_flags: "-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug -DGEODE_DEBUG=On -DCMAKE_OSX_DEPLOYMENT_TARGET=10.13"
           out_paths: './bin/nightly/Geode.dylib ./bin/nightly/GeodeBootstrapper.dylib ./loader/include/link/libfmod.dylib'
           cli_cmd: 'chmod +x $GITHUB_WORKSPACE/cli/geode'
-          installer_path: './installer/windows/geode-installer-win.exe'
+          installer_path: './out/geode-installer-mac.pkg'
 
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
