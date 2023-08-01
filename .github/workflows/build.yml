@@ -116,14 +116,14 @@ jobs:
     - name: Package MacOS
       run: |
         cp -R ./bin/nightly/resources ./out/resources
-        ./installer/mac/package.sh ./out ./out/geode-installer-v${{ env.VERSION_TRIM }}-${{ matrix.config.os_identifier }}.pkg
+        ./installer/mac/package.sh ./out ./out/geode-installer-v${{ env.VERSION_TRIM }}-mac.pkg
       if: matrix.config.os_identifier == 'mac'
 
     - name: Publish MacOS Installer
       uses: actions/upload-artifact@v2
       with:
-        name: geode-installer-v${{ env.VERSION_TRIM }}-${{ matrix.config.os_identifier }}
-        path: ./out/geode-installer-v${{ env.VERSION_TRIM }}-${{ matrix.config.os_identifier }}.pkg
+        name: geode-installer-v${{ env.VERSION_TRIM }}-mac
+        path: ./out/geode-installer-v${{ env.VERSION_TRIM }}-mac.pkg
       if: matrix.config.os_identifier == 'mac'
 
     - name: Package Windows
@@ -131,13 +131,14 @@ jobs:
         cp -R ./bin/nightly/resources ./out/resources
         iwr -useb https://aka.ms/vs/17/release/vc_redist.x86.exe -outfile './installer/windows/VC_redist.x86.exe'
         makensis -WX -V3 ./installer/windows/installer.nsi
+        mv ./installer/windows/GeodeInstaller.exe ./installer/windows/geode-installer-v${{ env.VERSION_TRIM }}-win.exe
       if: matrix.config.os_identifier == 'win'
 
     - name: Publish Windows Installer
       uses: actions/upload-artifact@v2
       with:
-        name: GeodeInstaller_v${{ env.VERSION_TRIM }}-${{ matrix.config.os_identifier }}
-        path: ./installer/windows/GeodeInstaller.exe
+        name: geode-installer-v${{ env.VERSION_TRIM }}-win
+        path: ./installer/windows/geode-installer-v${{ env.VERSION_TRIM }}-win.exe
       if: matrix.config.os_identifier == 'win'
 
   publish:
@@ -157,25 +158,41 @@ jobs:
         shell: bash
         run: echo "VERSION_TRIM=$(echo '${{ steps.version.outputs.content }}' | xargs)" >> $GITHUB_ENV
 
+      - name: Download artifacts
       - uses: actions/download-artifact@v3
         with:
           path: ${{ github.workspace }}
+          
+      - name: Move installers
+        run: |
+          mv geode-installer-v${{ env.VERSION_TRIM }}-mac.pkg geode-installer-nightly-mac.pkg
+          mv geode-installer-v${{ env.VERSION_TRIM }}-win.exe geode-installer-nightly-win.exe
 
+      - name: Zip MacOS artifacts
       - uses: vimtor/action-zip@v1
         with:
           files: geode-v${{ env.VERSION_TRIM }}-mac/Geode.dylib geode-v${{ env.VERSION_TRIM }}-mac/GeodeBootstrapper.dylib
           dest: geode-nightly-mac.zip
 
+      - name: Zip Windows artifacts
       - uses: vimtor/action-zip@v1
         with:
           files: geode-v${{ env.VERSION_TRIM }}-win/XInput9_1_0.dll geode-v${{ env.VERSION_TRIM }}-win/Geode.dll geode-v${{ env.VERSION_TRIM }}-win/GeodeUpdater.exe geode-v${{ env.VERSION_TRIM }}-win/Geode.lib
           dest: geode-nightly-win.zip
-
-      - name: Update release
-        uses: IsaacShelton/update-existing-release@v1.3.2
+          
+      - name: Update Nightly Release
+        uses: andelf/nightly-release@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          files: ./geode-nightly-mac.zip ./geode-nightly-win.zip
-          release: nightly
-          tag: nightly
+          tag_name: nightly
+          name: 'Dev Release'
+          draft: false
           prerelease: true
+          body: |
+            Dev release of Geode. Will not install the resources automatically, so you should use the installers to install them.
+          files: |
+            ./geode-nightly-mac.zip
+            ./geode-nightly-win.zip
+            ./geode-installer-nightly-mac.pkg
+            ./geode-installer-nightly-win.exe
