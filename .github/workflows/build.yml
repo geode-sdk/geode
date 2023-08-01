@@ -20,6 +20,7 @@ jobs:
           extra_flags: '-T host=x86 -A win32 -DGEODE_DEBUG=On'
           out_paths: './bin/nightly/Geode.pdb ./bin/nightly/Geode.dll ./bin/nightly/GeodeUpdater.exe ./bin/nightly/Geode.lib ./bin/nightly/XInput9_1_0.dll'
           cli_cmd: ''
+          installer_path: './out/geode-installer-mac.pkg'
 
         - name: "macOS"
           os_identifier: "mac"
@@ -28,6 +29,7 @@ jobs:
           extra_flags: "-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug -DGEODE_DEBUG=On -DCMAKE_OSX_DEPLOYMENT_TARGET=10.13"
           out_paths: './bin/nightly/Geode.dylib ./bin/nightly/GeodeBootstrapper.dylib ./loader/include/link/libfmod.dylib'
           cli_cmd: 'chmod +x $GITHUB_WORKSPACE/cli/geode'
+          installer_path: './installer/windows/geode-installer-win.exe'
 
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
@@ -87,19 +89,10 @@ jobs:
         mkdir ./out
         mv ${{ matrix.config.out_paths }} ./out
 
-    - name: Get version
-      uses: juliangruber/read-file-action@v1.1.6
-      with:
-        path: ${{ github.workspace }}/VERSION
-      id: version
-
-    - name: Trim whitespace from version
-      shell: bash
-      run: echo "VERSION_TRIM=$(echo '${{ steps.version.outputs.content }}' | xargs)" >> $GITHUB_ENV
-
     - name: Delete resource cache file
       run: |
         rm ./bin/nightly/resources/.geode_cache
+      
     - name: Upload resources
       uses: actions/upload-artifact@v2
       with:
@@ -110,20 +103,14 @@ jobs:
     - name: Upload Artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: geode-v${{ env.VERSION_TRIM }}-${{ matrix.config.os_identifier }}
+        name: geode-${{ matrix.config.os_identifier }}
         path: ./out
 
+    # Make these a script
     - name: Package MacOS
       run: |
         cp -R ./bin/nightly/resources ./out/resources
-        ./installer/mac/package.sh ./out ./out/geode-installer-v${{ env.VERSION_TRIM }}-mac.pkg
-      if: matrix.config.os_identifier == 'mac'
-
-    - name: Publish MacOS Installer
-      uses: actions/upload-artifact@v2
-      with:
-        name: geode-installer-v${{ env.VERSION_TRIM }}-mac
-        path: ./out/geode-installer-v${{ env.VERSION_TRIM }}-mac.pkg
+        ./installer/mac/package.sh ./out ./out/geode-installer-mac.pkg
       if: matrix.config.os_identifier == 'mac'
 
     - name: Package Windows
@@ -131,15 +118,14 @@ jobs:
         cp -R ./bin/nightly/resources ./out/resources
         iwr -useb https://aka.ms/vs/17/release/vc_redist.x86.exe -outfile './installer/windows/VC_redist.x86.exe'
         makensis -WX -V3 ./installer/windows/installer.nsi
-        mv ./installer/windows/GeodeInstaller.exe ./installer/windows/geode-installer-v${{ env.VERSION_TRIM }}-win.exe
+        mv ./installer/windows/GeodeInstaller.exe ./installer/windows/geode-installer-win.exe
       if: matrix.config.os_identifier == 'win'
 
-    - name: Publish Windows Installer
+    - name: Publish Installers
       uses: actions/upload-artifact@v2
       with:
-        name: geode-installer-v${{ env.VERSION_TRIM }}-win
-        path: ./installer/windows/geode-installer-v${{ env.VERSION_TRIM }}-win.exe
-      if: matrix.config.os_identifier == 'win'
+        name: geode-installer-${{ matrix.config.os_identifier }}
+        path: ${{ matrix.config.installer_path }}
 
   publish:
     runs-on: ubuntu-latest
@@ -147,16 +133,11 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v2
-
-      - name: Get version
-        uses: juliangruber/read-file-action@v1.1.6
-        with:
-          path: ${{ github.workspace }}/VERSION
-        id: version
-
-      - name: Trim whitespace from version
+      
+      - name: Declare commit hash
         shell: bash
-        run: echo "VERSION_TRIM=$(echo '${{ steps.version.outputs.content }}' | xargs)" >> $GITHUB_ENV
+        run: |
+          echo "SHA_SHORT=$(git rev-parse --short "$GITHUB_SHA")" >> "$GITHUB_ENV"
 
       - name: Download artifacts
         uses: actions/download-artifact@v3
@@ -165,20 +146,26 @@ jobs:
           
       - name: Move installers
         run: |
-          mv geode-installer-v${{ env.VERSION_TRIM }}-mac.pkg geode-installer-nightly-mac.pkg
-          mv geode-installer-v${{ env.VERSION_TRIM }}-win.exe geode-installer-nightly-win.exe
+          mv geode-installer-mac/geode-installer-mac.pkg geode-installer-${{ env.SHA_SHORT }}-mac.pkg
+          mv geode-installer-win/geode-installer-win.exe geode-installer-${{ env.SHA_SHORT }}-win.exe
 
       - name: Zip MacOS artifacts
         uses: vimtor/action-zip@v1
         with:
-          files: geode-v${{ env.VERSION_TRIM }}-mac/Geode.dylib geode-v${{ env.VERSION_TRIM }}-mac/GeodeBootstrapper.dylib
-          dest: geode-nightly-mac.zip
+          files: |
+            geode-mac/Geode.dylib
+            geode-mac/GeodeBootstrapper.dylib
+          dest: geode-${{ env.SHA_SHORT }}-mac.zip
 
       - name: Zip Windows artifacts
         uses: vimtor/action-zip@v1
         with:
-          files: geode-v${{ env.VERSION_TRIM }}-win/XInput9_1_0.dll geode-v${{ env.VERSION_TRIM }}-win/Geode.dll geode-v${{ env.VERSION_TRIM }}-win/GeodeUpdater.exe geode-v${{ env.VERSION_TRIM }}-win/Geode.lib
-          dest: geode-nightly-win.zip
+          files: | 
+            geode-win/XInput9_1_0.dll 
+            geode-win/Geode.dll 
+            geode-win/GeodeUpdater.exe 
+            geode-win/Geode.lib
+          dest: geode-${{ env.SHA_SHORT }}-win.zip
           
       - name: Update Nightly Release
         uses: andelf/nightly-release@main
@@ -192,7 +179,7 @@ jobs:
           body: |
             Dev release of Geode. Will not install the resources automatically, so you should use the installers to install them.
           files: |
-            ./geode-nightly-mac.zip
-            ./geode-nightly-win.zip
-            ./geode-installer-nightly-mac.pkg
-            ./geode-installer-nightly-win.exe
+            ./geode-${{ env.SHA_SHORT }}-mac.zip
+            ./geode-${{ env.SHA_SHORT }}-win.zip
+            ./geode-installer-${{ env.SHA_SHORT }}-mac.pkg
+            ./geode-installer-${{ env.SHA_SHORT }}-win.exe
