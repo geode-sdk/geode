@@ -55,7 +55,7 @@ jobs:
       if: matrix.config.os_identifier == 'win'
 
     - name: Download CLI
-      uses: robinraju/release-downloader@v1
+      uses: robinraju/release-downloader@v1.8
       with:
         repository: geode-sdk/cli
         latest: true
