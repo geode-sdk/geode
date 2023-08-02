@@ -9,7 +9,7 @@
     Unicode true
     InstallDir "$PROGRAMFILES32\Steam\steamapps\common\Geometry Dash\" ; set default path to the most common one
     XPStyle on
-    RequestExecutionLevel user
+    RequestExecutionLevel admin
     ManifestSupportedOS Win7
 
 ; ui settings
