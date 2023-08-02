@@ -44,6 +44,7 @@ message(STATUS "Version: ${GEODE_VERSION}, tag: ${GEODE_VERSION_TAG} (type: ${GE
 
 project(geode-sdk VERSION ${GEODE_VERSION} LANGUAGES CXX C)
 
+# Change debug format to embedded
 if (MSVC)
 	string(REPLACE "/Zi" "/Z7" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
 	string(REPLACE "/Zi" "/Z7" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
@@ -100,8 +101,17 @@ endif()
 if (PROJECT_IS_TOP_LEVEL AND NOT GEODE_BUILDING_DOCS)
 	set(TULIP_LINK_SOURCE ON)
 endif()
+set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "" FORCE)
 CPMAddPackage("gh:geode-sdk/TulipHook#4369d05")
+set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
 
+# Silence warnings from dependencies
+include(CheckCXXCompilerFlag)
+check_cxx_compiler_flag(-Wno-everything SUPPORTS_W_NO_EVERYTHING)
+if (SUPPORTS_W_NO_EVERYTHING)
+	target_compile_options(capstone-static PRIVATE -Wno-everything)
+	target_compile_options(keystone PRIVATE -Wno-everything)
+endif()
 
 target_sources(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/entry.cpp)
 

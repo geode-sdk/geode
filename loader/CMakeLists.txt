@@ -167,7 +167,22 @@ if (NOT GEODE_BUILDING_DOCS)
 	# Zip support (needed for in-memory streams, which zlib's minizip doesn't support)
 	set(MZ_LZMA Off CACHE INTERNAL "Enables LZMA & XZ compression")
 	set(MZ_ZSTD Off CACHE INTERNAL "")
-	CPMAddPackage("gh:zlib-ng/minizip-ng#cee6d8c")
+	set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "" FORCE)
+	CPMAddPackage(
+		GITHUB_REPOSITORY zlib-ng/minizip-ng
+		GIT_TAG cee6d8c
+		OPTIONS "CMAKE_POLICY_DEFAULT_CMP0048 OLD"
+	)
+	set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
+
+	# Silence warnings from dependencies
+	include(CheckCXXCompilerFlag)
+	check_cxx_compiler_flag(-Wno-everything SUPPORTS_W_NO_EVERYTHING)
+	if (SUPPORTS_W_NO_EVERYTHING)
+		target_compile_options(md4c PRIVATE -Wno-everything)
+		target_compile_options(zlib PRIVATE -Wno-everything)
+		target_compile_options(zlibstatic PRIVATE -Wno-everything)
+	endif()
 
 	# Regex support
 	CPMAddPackage("gh:google/re2#954656f")
@@ -179,6 +194,19 @@ endif()
 
 target_link_libraries(${PROJECT_NAME} z TulipHook geode-sdk mat-json)
 
+if (MSVC)
+	# Disable outputting .exp file
+	include(CheckLinkerFlag)
+	check_linker_flag(CXX /NOEXP SUPPORTS_NOEXP)
+	if (SUPPORTS_NOEXP)
+		target_link_options(${PROJECT_NAME} PRIVATE /NOEXP)
+	endif()
+
+	# Disable incremental link in CI builds
+	if (DEFINED ENV{GEODE_CI})
+		target_link_options(${PROJECT_NAME} PRIVATE /INCREMENTAL:NO)
+	endif()
+endif()
 
 # Use precompiled headers for faster builds
 if (NOT GEODE_DISABLE_PRECOMPILED_HEADERS)
@@ -217,14 +245,6 @@ elseif (WIN32)
 	if (MSVC)
 		# disable warnings about CCNode::setID
 		target_link_options(${PROJECT_NAME} PUBLIC /ignore:4217)
-
-		# disable outputting .exp file
-		target_link_options(${PROJECT_NAME} PRIVATE /NOEXP)
-
-		# disable incremental link in CI builds
-		if (DEFINED ENV{GEODE_CI})
-			target_link_options(${PROJECT_NAME} PRIVATE /INCREMENTAL:NO)
-		endif()
 	endif()
 endif()
 
