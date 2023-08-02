@@ -25,7 +25,7 @@ jobs:
         config:
         - name: Windows
           os: windows-latest
-          os_identifier: win
+          id: win
           extra_flags: '-DCMAKE_BUILD_TYPE=RelWithDebInfo -DGEODE_DEBUG=On'
           cli_cmd: ''
           package_cmd: 'makensis -WX -V3 ./installer/windows/installer.nsi'
@@ -33,8 +33,8 @@ jobs:
 
         - name: macOS
           os: macos-latest
-          os_identifier: mac
-          extra_flags: |
+          id: mac
+          extra_flags: >
             -DCMAKE_C_COMPILER=clang
             -DCMAKE_CXX_COMPILER=clang++
             -DCMAKE_C_COMPILER_LAUNCHER=ccache
@@ -55,25 +55,26 @@ jobs:
     - uses: hendrikmuhs/ccache-action@v1
       with:
         key: ${{ matrix.config.os }}
+      if: matrix.config.id == 'mac'
 
     - uses: ilammy/msvc-dev-cmd@v1.12.1
       with:
         arch: amd64_x86
-      if: matrix.config.os_identifier == 'win'
+      if: matrix.config.id == 'win'
 
     - name: Download CLI
       uses: robinraju/release-downloader@v1.8
       with:
         repository: geode-sdk/cli
         latest: true
-        fileName: '*-${{ matrix.config.os_identifier }}.zip'
+        fileName: '*-${{ matrix.config.id }}.zip'
         tarBall: false
         zipBall: false
         out-file-path: "cli"
 
     - name: Setup CLI
       run: |
-        7z x "${{ github.workspace }}/cli/*-${{ matrix.config.os_identifier }}.zip" -o"${{ github.workspace }}/cli"
+        7z x "${{ github.workspace }}/cli/*-${{ matrix.config.id }}.zip" -o"${{ github.workspace }}/cli"
         ${{ matrix.config.cli_cmd }}
         echo "${{ github.workspace }}/cli" >> $GITHUB_PATH
 
@@ -94,7 +95,7 @@ jobs:
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: geode-${{ matrix.config.os_identifier }}
+        name: geode-${{ matrix.config.id }}
         path: ./bin/nightly
 
     - name: Package Installer
@@ -103,7 +104,7 @@ jobs:
     - name: Upload Installer
       uses: actions/upload-artifact@v3
       with:
-        name: geode-installer-${{ matrix.config.os_identifier }}
+        name: geode-installer-${{ matrix.config.id }}
         path: ${{ matrix.config.installer_path }}
 
   publish:
