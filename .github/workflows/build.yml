@@ -26,7 +26,7 @@ jobs:
         - name: Windows
           os: windows-latest
           id: win
-          extra_flags: -T host=x64 -A x86 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DGEODE_DEBUG=On
+          extra_flags: -T host=x64 -A win32 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DGEODE_DEBUG=On
           # uncomment to use vs clang-cl and ninja
           #extra_flags: >
           #  --no-warn-unused-cli
@@ -41,7 +41,8 @@ jobs:
           os: macos-latest
           id: mac
           extra_flags: >
-            -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+            -DCMAKE_C_COMPILER=clang
+            -DCMAKE_CXX_COMPILER=clang++
             -DCMAKE_C_COMPILER_LAUNCHER=ccache
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
             -DCMAKE_BUILD_TYPE=RelWithDebInfo -DGEODE_DEBUG=On -DCMAKE_OSX_DEPLOYMENT_TARGET=10.13
@@ -87,17 +88,18 @@ jobs:
         echo "${{ github.workspace }}/cli" >> $GITHUB_PATH
 
     - name: Configure
-      run: cmake -B ${{ github.workspace }}/build -DCLI_PATH="${{ github.workspace }}/cli" ${{ matrix.config.extra_flags }}
+      run: >
+        cmake -B ${{ github.workspace }}/build
+        -DCLI_PATH="${{ github.workspace }}/cli"
+        ${{ matrix.config.extra_flags }}
 
     - name: Build
       run: |
         cd ${{ github.workspace }}/build
         cmake --build . --config RelWithDebInfo --parallel
-        rm ./bin/nightly/resources/.geode_cache
 
-    - name: Log ccache Stats
-      run: ccache -sv
-      if: matrix.config.id == 'mac'
+    - name: Clean Up Resources
+      run: rm ./bin/nightly/resources/.geode_cache
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
@@ -187,4 +189,3 @@ jobs:
             ./geode-${{ steps.ref.outputs.version }}-win.zip
             ./geode-installer-${{ steps.ref.outputs.version }}-mac.pkg
             ./geode-installer-${{ steps.ref.outputs.version }}-win.exe
-
