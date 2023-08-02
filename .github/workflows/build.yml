@@ -28,8 +28,8 @@ jobs:
           id: win
           extra_flags: >
             --no-warn-unused-cli
-            "-DCMAKE_C_COMPILER:FILEPATH=$env:VCINSTALLDIR\Tools\Llvm\bin\clang-cl.exe"
-            "-DCMAKE_CXX_COMPILER:FILEPATH=$env:VCINSTALLDIR\Tools\Llvm\bin\clang-cl.exe"
+            "-DCMAKE_C_COMPILER:FILEPATH=$VCINSTALLDIR\Tools\Llvm\bin\clang-cl.exe"
+            "-DCMAKE_CXX_COMPILER:FILEPATH=$VCINSTALLDIR\Tools\Llvm\bin\clang-cl.exe"
             -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DGEODE_DEBUG=On
           cli_cmd: ''
           package_cmd: 'makensis -WX -V3 ./installer/windows/installer.nsi'
@@ -79,6 +79,7 @@ jobs:
         echo "${{ github.workspace }}/cli" >> $GITHUB_PATH
 
     - name: Configure CMake
+      shell: bash
       run: >
         cmake -B ${{ github.workspace }}/build
         -DCLI_PATH="${{ github.workspace }}/cli"
@@ -87,6 +88,7 @@ jobs:
         ${{ matrix.config.extra_flags }}
 
     - name: Build
+      shell: bash
       run: |
         cd ${{ github.workspace }}/build
         cmake --build . --config RelWithDebInfo --parallel
