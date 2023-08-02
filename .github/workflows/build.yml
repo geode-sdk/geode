@@ -97,9 +97,7 @@ jobs:
       run: |
         cd ${{ github.workspace }}/build
         cmake --build . --config RelWithDebInfo --parallel
-
-    - name: Clean Up Resources
-      run: rm ./bin/nightly/resources/.geode_cache
+        rm ./bin/nightly/resources/.geode_cache
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
