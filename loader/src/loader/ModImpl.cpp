@@ -36,11 +36,18 @@ Result<> Mod::Impl::setup() {
     m_saveDirPath = dirs::getModsSaveDir() / m_info.id();
     ghc::filesystem::create_directories(m_saveDirPath);
     
+    // always create temp dir for all mods, even if disabled, so resources can be loaded
+    GEODE_UNWRAP(this->createTempDir().expect("Unable to create temp dir: {error}"));
+
     this->setupSettings();
     auto loadRes = this->loadData();
     if (!loadRes) {
         log::warn("Unable to load data for \"{}\": {}", m_info.id(), loadRes.unwrapErr());
     }
+    if (LoaderImpl::get()->m_isSetup) {
+        Loader::get()->updateResources(false);
+    }
+
     return Ok();
 }
 
@@ -299,8 +306,6 @@ Result<> Mod::Impl::loadBinary() {
         return Ok();
     }
 
-    GEODE_UNWRAP(this->createTempDir());
-
     if (this->hasUnresolvedDependencies()) {
         return Err("Mod has unresolved dependencies");
     }
@@ -323,9 +328,6 @@ Result<> Mod::Impl::loadBinary() {
     });
 
     Loader::get()->updateAllDependencies();
-    if (LoaderImpl::get()->m_isSetup) {
-        Loader::get()->updateResources(false);
-    }
     
     log::debug("Enabling mod {}", m_info.id());
     GEODE_UNWRAP(this->enable());
@@ -602,6 +604,11 @@ Result<> Mod::Impl::unpatch(Patch* patch) {
 Result<> Mod::Impl::createTempDir() {
     // Check if temp dir already exists
     if (!m_tempDirName.string().empty()) {
+        return Ok();
+    }
+
+    // If the info doesn't specify a path, don't do anything
+    if (m_info.path().string().empty()) {
         return Ok();
     }
 
