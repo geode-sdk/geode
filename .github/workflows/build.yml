@@ -16,8 +16,6 @@ on:
 env:
   GEODE_CI: ''
   CCACHE_ACTION_CI: true
-  CMAKE_C_COMPILER_LAUNCHER: ccache
-  CMAKE_CXX_COMPILER_LAUNCHER: ccache
 
 jobs:
   build:
@@ -28,6 +26,7 @@ jobs:
         - name: Windows
           os: windows-latest
           id: win
+          #extra_flags: -T host=x64 -A x86 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DGEODE_DEBUG=On
           extra_flags: >
             --no-warn-unused-cli
             "-DCMAKE_C_COMPILER:FILEPATH=$env:VCINSTALLDIR\Tools\Llvm\bin\clang-cl.exe"
@@ -42,6 +41,8 @@ jobs:
           id: mac
           extra_flags: >
             -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
             -DCMAKE_BUILD_TYPE=RelWithDebInfo -DGEODE_DEBUG=On -DCMAKE_OSX_DEPLOYMENT_TARGET=10.13
           cli_cmd: 'chmod +x $GITHUB_WORKSPACE/cli/geode'
           package_cmd: './installer/mac/package.sh ./bin/nightly ./installer/mac/geode-installer-mac.pkg'
@@ -56,14 +57,11 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Install ccache
-      run: choco install ccache
-      if: matrix.config.id == 'win'
-
     - name: Setup ccache
       uses: hendrikmuhs/ccache-action@v1
       with:
         key: ${{ matrix.config.os }}
+      if: matrix.config.id == 'mac'
 
     - name: Setup MSVC
       uses: ilammy/msvc-dev-cmd@v1.12.1
@@ -93,10 +91,11 @@ jobs:
     - name: Build
       run: |
         cd build
-        cmake --build . --config RelWithDebInfo --parallel 14
+        cmake --build . --config RelWithDebInfo --parallel
 
     - name: Log ccache Stats
       run: ccache -sv
+      if: matrix.config.id == 'mac'
 
     - name: Clean Up Resources
       run: rm ./bin/nightly/resources/.geode_cache
