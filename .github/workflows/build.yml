@@ -26,7 +26,7 @@ jobs:
         - name: Windows
           os: windows-latest
           id: win
-          extra_flags: '-DCMAKE_BUILD_TYPE=RelWithDebInfo -DGEODE_DEBUG=On'
+          extra_flags: '-T host=x64 -A win32 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DGEODE_DEBUG=On'
           cli_cmd: ''
           package_cmd: 'makensis -WX -V3 ./installer/windows/installer.nsi'
           installer_path: './installer/windows/geode-installer-win.exe'
