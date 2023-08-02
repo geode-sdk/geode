@@ -333,12 +333,12 @@ Section "Geode"
     File ${BINDIR}\GeodeUpdater.exe
     File ${BINDIR}\XInput9_1_0.dll
 
+    WriteUninstaller "geode\Uninstall.exe"
+
     CreateDirectory $INSTDIR\geode\resources\geode.loader
     SetOutPath $INSTDIR\geode\resources\geode.loader
 
     File /r ${BINDIR}\resources\*
-
-    WriteUninstaller "geode\Uninstall.exe"
 SectionEnd
 
 ; uninstaller
