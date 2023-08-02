@@ -86,12 +86,12 @@ jobs:
         ${{ matrix.config.cli_cmd }}
         echo "${{ github.workspace }}/cli" >> $GITHUB_PATH
 
-    - name: Configure CMake
-      run: cmake -B build -DCLI_PATH="${{ github.workspace }}/cli" ${{ matrix.config.extra_flags }}
+    - name: Configure
+      run: cmake -B ${{ github.workspace }}/build -DCLI_PATH="${{ github.workspace }}/cli" ${{ matrix.config.extra_flags }}
 
     - name: Build
       run: |
-        cd build
+        cd ${{ github.workspace }}/build
         cmake --build . --config RelWithDebInfo --parallel
         rm ./bin/nightly/resources/.geode_cache
 
