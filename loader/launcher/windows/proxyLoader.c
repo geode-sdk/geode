@@ -7,6 +7,4 @@
 #pragma comment(linker, "/export:XInputGetDSoundAudioDeviceGuids=xinput1_3.XInputGetDSoundAudioDeviceGuids")
 
 __declspec(dllimport) void fake();
-void impasta() {
-	fake();
-}
+__declspec(dllexport) void sussy_impostor_sus_red_sus_vote_red_red_was_not_the_impostor() { fake(); }
