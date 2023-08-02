@@ -54,6 +54,7 @@ loader/resources/version
 loader/resources/blanks/rename.js
 loader/resources/changelog.md
 fods-catgirl-hideout.txt
+test-docs.bat
 
 # krita files too because alk is funny
 **/*.kra

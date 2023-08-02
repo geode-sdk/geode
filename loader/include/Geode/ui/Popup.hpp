@@ -33,8 +33,7 @@ namespace geode {
             m_buttonMenu->setZOrder(100);
             m_mainLayer->addChild(m_buttonMenu);
 
-            cocos2d::CCDirector::sharedDirector()->getTouchDispatcher()->incrementForcePrio(2);
-            this->registerWithTouchDispatcher();
+            this->setTouchEnabled(true);
 
             auto closeSpr = cocos2d::CCSprite::createWithSpriteFrameName("GJ_closeBtn_001.png");
             closeSpr->setScale(.8f);

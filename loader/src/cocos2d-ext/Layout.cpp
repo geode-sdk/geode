@@ -221,9 +221,6 @@ static AxisPosition nodeAxis(CCNode* node, Axis axis, float scale) {
     if (auto toggle = typeinfo_cast<CCMenuItemToggler*>(node)) {
         scaledSize = toggle->m_offButton->getScaledContentSize();
     }
-    if (auto spacer = typeinfo_cast<SpacerNode*>(node)) {
-        scaledSize = CCSizeZero;
-    }
     auto anchor = node->getAnchorPoint();
     if (axis == Axis::Row) {
         return AxisPosition {
@@ -492,6 +489,13 @@ void AxisLayout::tryFitLayout(
     float crossScaleDownFactor = 0.f;
     float crossSquishFactor = 0.f;
 
+    // make spacers have zero size so they don't affect spacing calculations
+    for (auto& node : CCArrayExt<CCNode>(nodes)) {
+        if (auto spacer = typeinfo_cast<SpacerNode*>(node)) {
+            spacer->setContentSize(CCSizeZero);
+        }
+    }
+    
     // fit everything into rows while possible
     size_t ix = 0;
     auto newNodes = nodes->shallowCopy();

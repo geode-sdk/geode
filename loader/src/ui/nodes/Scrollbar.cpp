@@ -177,7 +177,7 @@ bool Scrollbar::init(CCScrollLayerExt* target) {
     this->addChild(m_track);
     this->addChild(m_thumb);
 
-    this->registerWithTouchDispatcher();
+    this->setTouchEnabled(true);
 
     return true;
 }

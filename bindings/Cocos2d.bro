@@ -111,6 +111,7 @@ class cocos2d::CCDictionary {
 	auto objectForKey(gd::string const&) = mac 0x190870, ios 0x2de988;
 	auto removeAllObjects() = mac 0x190220;
 	auto removeObjectForKey(intptr_t) = mac 0x1921d0;
+	auto removeObjectForKey(gd::string const&) = mac 0x191d40;
 	auto setObject(cocos2d::CCObject*, intptr_t) = mac 0x191790, ios 0x2df734;
 	auto setObject(cocos2d::CCObject*, gd::string const&) = mac 0x190dc0, ios 0x2dee7c;
 	auto valueForKey(intptr_t) = mac 0x190cf0;

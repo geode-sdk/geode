@@ -32,10 +32,12 @@ void setIDs(CCNode* node, int startIndex, Args... args) {
     }
 }
 
-static void switchToMenu(CCNode* node, CCMenu* menu) {
+static void switchToMenu(CCNode* node, CCNode* menu) {
     if (!node || !menu) return;
     
-    auto worldPos = node->getParent()->convertToWorldSpace(node->getPosition());
+    auto worldPos = node->getParent() ?
+        node->getParent()->convertToWorldSpace(node->getPosition()) : 
+        node->getPosition();
 
     node->retain();
     node->removeFromParent();
@@ -45,23 +47,23 @@ static void switchToMenu(CCNode* node, CCMenu* menu) {
     node->setPosition(menu->convertToNodeSpace(worldPos));
 }
 
-static void switchChildToMenu(CCNode* parent, int idx, CCMenu* menu) {
+static void switchChildToMenu(CCNode* parent, int idx, CCNode* menu) {
     switchToMenu(static_cast<CCNode*>(parent->getChildren()->objectAtIndex(idx)), menu);
 }
 
 template <typename ...Args>
-static void switchChildrenToMenu(CCNode* parent, CCMenu* menu, Args... args) {
+static void switchChildrenToMenu(CCNode* parent, CCNode* menu, Args... args) {
     for (auto i : { args... }) {
         switchChildToMenu(parent, i, menu);
     }
 }
 
-template <typename T, typename... Args>
-static CCMenu* detachAndCreateMenu(
+template <class N, typename T, typename... Args>
+static N* detachAndCreateNode(
     CCNode* parent, char const* menuID, Layout* layout, T first, Args... args
 ) {
     if (!first) {
-        auto menu = CCMenu::create();
+        auto menu = N::create();
         menu->setID(menuID);
         menu->setLayout(layout);
         parent->addChild(menu);
@@ -73,7 +75,7 @@ static CCMenu* detachAndCreateMenu(
     first->retain();
     first->removeFromParent();
 
-    auto newMenu = CCMenu::create();
+    auto newMenu = N::create();
     newMenu->setPosition(parent->convertToNodeSpace(oldMenu->convertToWorldSpace(first->getPosition())));
     newMenu->setID(menuID);
     newMenu->setZOrder(oldMenu->getZOrder());
@@ -89,6 +91,13 @@ static CCMenu* detachAndCreateMenu(
     newMenu->setLayout(layout);
 
     return newMenu;
+}
+
+template <typename T, typename... Args>
+static CCMenu* detachAndCreateMenu(
+    CCNode* parent, char const* menuID, Layout* layout, T first, Args... args
+) {
+    return detachAndCreateNode<CCMenu>(parent, menuID, layout, first, args...);
 }
 
 static CCSize getSizeSafe(CCNode* node) {
