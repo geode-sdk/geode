@@ -93,7 +93,10 @@ jobs:
     - name: Build
       run: |
         cd build
-        cmake --build . --config RelWithDebInfo --parallel
+        cmake --build . --config RelWithDebInfo --parallel 14
+
+    - name: Log ccache Stats
+      run: ccache -sv
 
     - name: Clean Up Resources
       run: rm ./bin/nightly/resources/.geode_cache
