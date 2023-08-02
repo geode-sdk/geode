@@ -26,10 +26,13 @@ jobs:
         - name: Windows
           os: windows-latest
           id: win
-          extra_flags: >
-            -DCMAKE_C_COMPILER=%VCINSTALLDIR%\Tools\Llvm\bin\clang-cl.exe
-            -DCMAKE_CXX_COMPILER=%VCINSTALLDIR%\Tools\Llvm\bin\clang-cl.exe
-            -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DGEODE_DEBUG=On
+          extra_flags: -T host=x64 -A win32 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DGEODE_DEBUG=On
+          # uncomment to use vs clang-cl and ninja
+          #extra_flags: >
+          #  --no-warn-unused-cli
+          #  "-DCMAKE_C_COMPILER:FILEPATH=$env:VCINSTALLDIR\Tools\Llvm\bin\clang-cl.exe"
+          #  "-DCMAKE_CXX_COMPILER:FILEPATH=$env:VCINSTALLDIR\Tools\Llvm\bin\clang-cl.exe"
+          #  -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DGEODE_DEBUG=On
           cli_cmd: ''
           package_cmd: 'makensis -WX -V3 ./installer/windows/installer.nsi'
           installer_path: './installer/windows/geode-installer-win.exe'
@@ -38,7 +41,10 @@ jobs:
           os: macos-latest
           id: mac
           extra_flags: >
-            -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+            -DCMAKE_C_COMPILER=clang
+            -DCMAKE_CXX_COMPILER=clang++
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
             -DCMAKE_BUILD_TYPE=RelWithDebInfo -DGEODE_DEBUG=On -DCMAKE_OSX_DEPLOYMENT_TARGET=10.13
           cli_cmd: 'chmod +x $GITHUB_WORKSPACE/cli/geode'
           package_cmd: './installer/mac/package.sh ./bin/nightly ./installer/mac/geode-installer-mac.pkg'
@@ -48,15 +54,19 @@ jobs:
     runs-on: ${{ matrix.config.os }}
 
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout
+      uses: actions/checkout@v3
       with:
         submodules: recursive
 
-    - uses: hendrikmuhs/ccache-action@v1
+    - name: Setup ccache
+      uses: hendrikmuhs/ccache-action@v1
       with:
         key: ${{ matrix.config.os }}
+      if: matrix.config.id == 'mac'
 
-    - uses: ilammy/msvc-dev-cmd@v1.12.1
+    - name: Setup MSVC
+      uses: ilammy/msvc-dev-cmd@v1.12.1
       with:
         arch: amd64_x86
       if: matrix.config.id == 'win'
@@ -77,12 +87,10 @@ jobs:
         ${{ matrix.config.cli_cmd }}
         echo "${{ github.workspace }}/cli" >> $GITHUB_PATH
 
-    - name: Configure CMake
+    - name: Configure
       run: >
         cmake -B ${{ github.workspace }}/build
         -DCLI_PATH="${{ github.workspace }}/cli"
-        -DCMAKE_C_COMPILER_LAUNCHER=ccache
-        -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
         ${{ matrix.config.extra_flags }}
 
     - name: Build
@@ -113,7 +121,8 @@ jobs:
     needs: build
     if: github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
       - name: Declare Version Variables
         id: ref
@@ -180,4 +189,3 @@ jobs:
             ./geode-${{ steps.ref.outputs.version }}-win.zip
             ./geode-installer-${{ steps.ref.outputs.version }}-mac.pkg
             ./geode-installer-${{ steps.ref.outputs.version }}-win.exe
-
