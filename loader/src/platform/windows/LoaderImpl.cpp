@@ -164,7 +164,7 @@ bool Loader::Impl::userTriedToLoadDLLs() const {
     bool triedToLoadDLLs = false;
 
     // Check for .DLLs in mods dir
-    if (auto files = file::listFiles(dirs::getModsDir(), true)) {
+    if (auto files = file::readDirectory(dirs::getModsDir(), true)) {
         for (auto& file : files.unwrap()) {
             if (file.extension() == ".dll") {
                 triedToLoadDLLs = true;

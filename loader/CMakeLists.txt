@@ -159,6 +159,8 @@ endif()
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC GEODE_EXPORTING MAT_JSON_EXPORTING)
 
+target_compile_definitions(${PROJECT_NAME} PRIVATE _CRT_SECURE_NO_WARNINGS)
+
 # These are only needed for building source :-)
 if (NOT GEODE_BUILDING_DOCS)
 	# Markdown support

@@ -78,8 +78,8 @@ public:
     HACCEL              m_hAccelTable;
     LARGE_INTEGER       m_nAnimationInterval;
     LARGE_INTEGER       m_nVsyncInterval;
-    std::string         m_resourceRootPath;
-    std::string         m_startupScriptFilename;
+    gd::string          m_resourceRootPath;
+    gd::string          m_startupScriptFilename;
     CCControllerHandler* m_pControllerHandler;
     bool m_bUpdateController;
     CC_SYNTHESIZE_NV(bool, m_bShutdownCalled, ShutdownCalled);
