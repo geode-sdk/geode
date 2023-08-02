@@ -16,6 +16,8 @@ on:
 env:
   GEODE_CI: ''
   CCACHE_ACTION_CI: true
+  CMAKE_C_COMPILER_LAUNCHER: ccache
+  CMAKE_CXX_COMPILER_LAUNCHER: ccache
 
 jobs:
   build:
@@ -86,12 +88,7 @@ jobs:
         echo "${{ github.workspace }}/cli" >> $GITHUB_PATH
 
     - name: Configure CMake
-      run: >
-        cmake -B build
-        -DCLI_PATH="${{ github.workspace }}/cli"
-        -DCMAKE_C_COMPILER_LAUNCHER=ccache
-        -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-        ${{ matrix.config.extra_flags }}
+      run: cmake -B build -DCLI_PATH="${{ github.workspace }}/cli" ${{ matrix.config.extra_flags }}
 
     - name: Build
       run: |
