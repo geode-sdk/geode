@@ -81,7 +81,7 @@ jobs:
     - name: Configure CMake
       shell: bash
       run: >
-        cmake -B ${{ github.workspace }}/build
+        cmake -B build
         -DCLI_PATH="${{ github.workspace }}/cli"
         -DCMAKE_C_COMPILER_LAUNCHER=ccache
         -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
@@ -90,7 +90,7 @@ jobs:
     - name: Build
       shell: bash
       run: |
-        cd ${{ github.workspace }}/build
+        cd build
         cmake --build . --config RelWithDebInfo --parallel
 
     - name: Clean Up Resources
