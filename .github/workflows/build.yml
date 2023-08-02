@@ -89,7 +89,7 @@ jobs:
         cd ${{ github.workspace }}/build
         cmake --build . --config RelWithDebInfo --parallel
 
-    - name: Delete resource cache file
+    - name: Clean Up Resources
       run: rm ./bin/nightly/resources/.geode_cache
 
     - name: Upload Artifacts
