@@ -49,15 +49,22 @@ jobs:
     runs-on: ${{ matrix.config.os }}
 
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout
+      uses: actions/checkout@v3
       with:
         submodules: recursive
 
-    - uses: hendrikmuhs/ccache-action@v1
+    - name: Install ccache
+      run: choco install ccache
+      if: matrix.config.id == 'win'
+
+    - name: Setup ccache
+      uses: hendrikmuhs/ccache-action@v1
       with:
         key: ${{ matrix.config.os }}
 
-    - uses: ilammy/msvc-dev-cmd@v1.12.1
+    - name: Setup MSVC
+      uses: ilammy/msvc-dev-cmd@v1.12.1
       with:
         arch: amd64_x86
       if: matrix.config.id == 'win'
@@ -79,7 +86,6 @@ jobs:
         echo "${{ github.workspace }}/cli" >> $GITHUB_PATH
 
     - name: Configure CMake
-      shell: bash
       run: >
         cmake -B build
         -DCLI_PATH="${{ github.workspace }}/cli"
@@ -88,7 +94,6 @@ jobs:
         ${{ matrix.config.extra_flags }}
 
     - name: Build
-      shell: bash
       run: |
         cd build
         cmake --build . --config RelWithDebInfo --parallel
@@ -116,7 +121,8 @@ jobs:
     needs: build
     if: github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
       - name: Declare Version Variables
         id: ref
