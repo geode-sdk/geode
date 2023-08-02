@@ -81,8 +81,8 @@ jobs:
     - name: Configure CMake
       run: >
         cmake -B ${{ github.workspace }}/build
-        ${{ matrix.config.extra_flags }}
         -DCLI_PATH="${{ github.workspace }}/cli"
+        ${{ matrix.config.extra_flags }}
 
     - name: Build
       run: |
