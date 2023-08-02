@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       draft:
-        description: Create a draft release
+        description: Draft Release
         required: false
         type: boolean
         default: false
