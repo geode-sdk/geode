@@ -26,12 +26,13 @@ jobs:
         - name: Windows
           os: windows-latest
           id: win
-          #extra_flags: -T host=x64 -A x86 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DGEODE_DEBUG=On
-          extra_flags: >
-            --no-warn-unused-cli
-            "-DCMAKE_C_COMPILER:FILEPATH=$env:VCINSTALLDIR\Tools\Llvm\bin\clang-cl.exe"
-            "-DCMAKE_CXX_COMPILER:FILEPATH=$env:VCINSTALLDIR\Tools\Llvm\bin\clang-cl.exe"
-            -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DGEODE_DEBUG=On
+          extra_flags: -T host=x64 -A x86 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DGEODE_DEBUG=On
+          # uncomment to use vs clang-cl and ninja
+          #extra_flags: >
+          #  --no-warn-unused-cli
+          #  "-DCMAKE_C_COMPILER:FILEPATH=$env:VCINSTALLDIR\Tools\Llvm\bin\clang-cl.exe"
+          #  "-DCMAKE_CXX_COMPILER:FILEPATH=$env:VCINSTALLDIR\Tools\Llvm\bin\clang-cl.exe"
+          #  -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DGEODE_DEBUG=On
           cli_cmd: ''
           package_cmd: 'makensis -WX -V3 ./installer/windows/installer.nsi'
           installer_path: './installer/windows/geode-installer-win.exe'
@@ -92,13 +93,11 @@ jobs:
       run: |
         cd build
         cmake --build . --config RelWithDebInfo --parallel
+        rm ./bin/nightly/resources/.geode_cache
 
     - name: Log ccache Stats
       run: ccache -sv
       if: matrix.config.id == 'mac'
-
-    - name: Clean Up Resources
-      run: rm ./bin/nightly/resources/.geode_cache
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
