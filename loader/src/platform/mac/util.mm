@@ -188,8 +188,16 @@ ghc::filesystem::path dirs::getGameDir() {
 }
 
 ghc::filesystem::path dirs::getSaveDir() {
-    // not using ~/Library/Caches
-    return ghc::filesystem::path("/Users/Shared/Geode");
+    static auto path = [] {
+        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
+        NSString *applicationSupportDirectory = [paths firstObject];
+
+        ghc::filesystem::path supportPath = [applicationSupportDirectory UTF8String];
+        auto currentPath = supportPath / "GeometryDash";
+        return currentPath;
+    }();
+
+    return path;
 }
 
 #endif
