@@ -97,10 +97,10 @@ jobs:
         name: geode-${{ matrix.config.os_identifier }}
         path: ./bin/nightly
 
-    - name: Package
+    - name: Package Installer
       run: ${{ matrix.config.package_cmd }}
 
-    - name: Publish Installer
+    - name: Upload Installer
       uses: actions/upload-artifact@v3
       with:
         name: geode-installer-${{ matrix.config.os_identifier }}
@@ -113,36 +113,36 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Declare version and commit hash
+      - name: Declare Version Variables
         id: ref
         shell: bash
         run: |
           echo "version=$(cat ${{ github.workspace }}/VERSION | xargs)" >> $GITHUB_OUTPUT
           echo "hash=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_OUTPUT
 
-      - name: Download artifacts
+      - name: Download Artifacts
         uses: actions/download-artifact@v3
         with:
           path: ${{ github.workspace }}
 
-      - name: Move installers
+      - name: Move Installers
         run: |
           mv geode-installer-mac/geode-installer-mac.pkg geode-installer-${{ steps.ref.outputs.hash }}-mac.pkg
           mv geode-installer-win/geode-installer-win.exe geode-installer-${{ steps.ref.outputs.hash }}-win.exe
 
-      - name: Zip MacOS artifacts
+      - name: Zip MacOS Artifacts
         uses: vimtor/action-zip@v1
         with:
           files: geode-mac/Geode.dylib geode-mac/GeodeBootstrapper.dylib
           dest: geode-${{ steps.ref.outputs.hash }}-mac.zip
 
-      - name: Zip Windows artifacts
+      - name: Zip Windows Artifacts
         uses: vimtor/action-zip@v1
         with:
           files: geode-win/XInput9_1_0.dll geode-win/Geode.dll geode-win/GeodeUpdater.exe geode-win/Geode.lib
           dest: geode-${{ steps.ref.outputs.hash }}-win.zip
 
-      - name: Update Nightly release
+      - name: Update Nightly Release
         uses: andelf/nightly-release@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -159,7 +159,7 @@ jobs:
             ./geode-installer-${{ steps.ref.outputs.hash }}-mac.pkg
             ./geode-installer-${{ steps.ref.outputs.hash }}-win.exe
 
-      - name: Create draft release
+      - name: Create Draft Release
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
