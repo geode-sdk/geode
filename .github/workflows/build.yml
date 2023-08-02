@@ -28,8 +28,8 @@ jobs:
           id: win
           extra_flags: >
             --no-warn-unused-cli
-            "-DCMAKE_C_COMPILER=%VCINSTALLDIR%\Tools\Llvm\bin\clang-cl.exe"
-            "-DCMAKE_CXX_COMPILER=%VCINSTALLDIR%\Tools\Llvm\bin\clang-cl.exe"
+            "-DCMAKE_C_COMPILER=$ENV{VCINSTALLDIR}Tools\Llvm\bin\clang-cl.exe"
+            "-DCMAKE_CXX_COMPILER=$ENV{VCINSTALLDIR}Tools\Llvm\bin\clang-cl.exe"
             -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DGEODE_DEBUG=On
           cli_cmd: ''
           package_cmd: 'makensis -WX -V3 ./installer/windows/installer.nsi'
