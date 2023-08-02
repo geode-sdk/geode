@@ -27,7 +27,8 @@ jobs:
           os: windows-latest
           id: win
           extra_flags: >
-            -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl
+            -DCMAKE_C_COMPILER=$VCINSTALLDIR\Tools\Llvm\bin\clang-cl.exe
+            -DCMAKE_CXX_COMPILER=$VCINSTALLDIR\Tools\Llvm\bin\clang-cl.exe
             -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DGEODE_DEBUG=On
           cli_cmd: ''
           package_cmd: 'makensis -WX -V3 ./installer/windows/installer.nsi'
@@ -58,11 +59,6 @@ jobs:
     - uses: ilammy/msvc-dev-cmd@v1.12.1
       with:
         arch: amd64_x86
-      if: matrix.config.id == 'win'
-
-    - name: Install ninja
-      shell: bash
-      run: choco install ninja
       if: matrix.config.id == 'win'
 
     - name: Download CLI
