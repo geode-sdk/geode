@@ -55,6 +55,7 @@ file(GLOB SOURCES CONFIGURE_DEPENDS
 	src/ui/internal/info/*.cpp
 	src/ui/internal/list/*.cpp
 	src/ui/internal/settings/*.cpp
+	hash/hash.cpp
 )
 
 # Obj-c sources
