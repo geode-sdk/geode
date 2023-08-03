@@ -6,10 +6,7 @@
 
 #include "sha3.h"
 
-// big endian architectures need #define __BYTE_ORDER __BIG_ENDIAN
-#ifndef _MSC_VER
-#include <endian.h>
-#endif
+#include <bit>
 
 #include <iostream>
 
@@ -76,6 +73,14 @@ namespace
             (x << 56);
   }
 
+  inline uint64_t littleEndian(uint64_t x) {
+    if constexpr (std::endian::native == std::endian::little) {
+      return x;
+    } else {
+      return swap(x);
+    }
+  }
+
 
   /// return x % 5 for 0 <= x <= 9
   unsigned int mod5(unsigned int x)
@@ -91,16 +96,10 @@ namespace
 /// process a full block
 void SHA3::processBlock(const void* data)
 {
-#if defined(__BYTE_ORDER) && (__BYTE_ORDER != 0) && (__BYTE_ORDER == __BIG_ENDIAN)
-#define LITTLEENDIAN(x) swap(x)
-#else
-#define LITTLEENDIAN(x) (x)
-#endif
-
   const uint64_t* data64 = (const uint64_t*) data;
   // mix data into state
   for (unsigned int i = 0; i < m_blockSize / 8; i++)
-    m_hash[i] ^= LITTLEENDIAN(data64[i]);
+    m_hash[i] ^= littleEndian(data64[i]);
 
   // re-compute state
   for (unsigned int round = 0; round < Rounds; round++)
