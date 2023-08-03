@@ -53,33 +53,33 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Setup ccache
-      uses: hendrikmuhs/ccache-action@v1
-      with:
-        key: ${{ matrix.config.os }}
-      if: matrix.config.id == 'mac'
+    #- name: Setup ccache
+    #  uses: hendrikmuhs/ccache-action@v1
+    #  with:
+    #    key: ${{ matrix.config.os }}
+    #  if: matrix.config.id == 'mac'
 
-    - name: Setup MSVC
-      uses: ilammy/msvc-dev-cmd@v1.12.1
-      with:
-        arch: amd64_x86
-      if: matrix.config.id == 'win'
+    #- name: Setup MSVC
+    #  uses: ilammy/msvc-dev-cmd@v1.12.1
+    #  with:
+    #    arch: amd64_x86
+    #  if: matrix.config.id == 'win'
 
-    - name: Download CLI
-      uses: robinraju/release-downloader@v1.8
-      with:
-        repository: geode-sdk/cli
-        latest: true
-        fileName: '*-${{ matrix.config.id }}.zip'
-        tarBall: false
-        zipBall: false
-        out-file-path: "cli"
+    #- name: Download CLI
+    #  uses: robinraju/release-downloader@v1.8
+    #  with:
+    #    repository: geode-sdk/cli
+    #    latest: true
+    #    fileName: '*-${{ matrix.config.id }}.zip'
+    #    tarBall: false
+    #    zipBall: false
+    #    out-file-path: "cli"
 
-    - name: Setup CLI
-      run: |
-        7z x "${{ github.workspace }}/cli/*-${{ matrix.config.id }}.zip" -o"${{ github.workspace }}/cli"
-        ${{ matrix.config.cli_cmd }}
-        echo "${{ github.workspace }}/cli" >> $GITHUB_PATH
+    #- name: Setup CLI
+    #  run: |
+    #    7z x "${{ github.workspace }}/cli/*-${{ matrix.config.id }}.zip" -o"${{ github.workspace }}/cli"
+    #    ${{ matrix.config.cli_cmd }}
+    #    echo "${{ github.workspace }}/cli" >> $GITHUB_PATH
 
     #- name: Configure
     #  run: >
@@ -112,6 +112,7 @@ jobs:
         touch ./bin/nightly/Geode.pdb
         touch ./bin/nightly/Geode.lib
         touch ./bin/nightly/GeodeUpdater.exe
+        touch ./bin/nightly/XInput9_1_0.dll
       if: matrix.config.id == 'win'
 
     - name: Upload Artifacts
