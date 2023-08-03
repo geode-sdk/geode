@@ -140,6 +140,11 @@ package_geode_resources_now(
 	${CMAKE_CURRENT_SOURCE_DIR}/src/internal/resources.hpp
 )
 
+if (APPLE) 
+	# I don't care a single bit where to put this
+	file(COPY ${GEODE_LOADER_PATH}/include/link/libfmod.dylib DESTINATION ${GEODE_BIN_PATH}/nightly)
+endif()
+
 target_include_directories(${PROJECT_NAME} PRIVATE
 	src/
 	src/loader/
