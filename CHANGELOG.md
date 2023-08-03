@@ -7,6 +7,11 @@
  * Implement a new updater / bootstrapper for Windows (b47870e)
  * Don't download resources if the tag doesn't exist (991e714)
  * Fix MacOS wine by using `std::filesystem::weakly_canonical` (46fab0e)
+ * Make the Index pimpl aswell as remove ability for multiple sources (7a0ade2)
+ * All mods including disabled ones are now always unzipped in order to load their logos (0a6d31e)
+ * Add IDs and layouts for `CustomizeObjectLayer` (6d92bb8, 138fdbb, f8da816)
+ * Add option to disable the Last Crashed popup (e00b3a6)
+ * Fix `SpacerNode` not actually taking up any space (8ca2b99)
 
 ## v1.0.0-beta.18
  * Fix pickup bounds checks
