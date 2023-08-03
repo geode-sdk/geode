@@ -4,6 +4,7 @@
  * New textures for list tabs (8ce1227)
  * Switch libraries for SHA3 256 (bbf2608)
  * Fix MacOS installer (ea5a5f0)
+ * Add mod ids to deprecated keys logs of ModInfo (fc72c24)
 
 ## v1.0.0
  * Make JSON library exported (a2b8f27)
