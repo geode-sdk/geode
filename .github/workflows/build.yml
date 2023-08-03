@@ -161,7 +161,7 @@ jobs:
           draft: false
           prerelease: true
           body: |
-            Geode dev release for commit $GITHUB_SHA. Since this is not a regular release, Geode will not install the resources automatically, so you should use the installer if you want them.
+            Geode dev release for commit ${{ github.sha }}. Since this is not a regular release, Geode will not install the resources automatically, so you should use the installer if you want them.
           files: |
             ./geode-${{ steps.ref.outputs.hash }}-mac.zip
             ./geode-${{ steps.ref.outputs.hash }}-win.zip
