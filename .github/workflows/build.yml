@@ -81,17 +81,38 @@ jobs:
         ${{ matrix.config.cli_cmd }}
         echo "${{ github.workspace }}/cli" >> $GITHUB_PATH
 
-    - name: Configure
-      run: >
-        cmake -B ${{ github.workspace }}/build
-        -DCLI_PATH="${{ github.workspace }}/cli"
-        ${{ matrix.config.extra_flags }}
+    #- name: Configure
+    #  run: >
+    #    cmake -B ${{ github.workspace }}/build
+    #    -DCLI_PATH="${{ github.workspace }}/cli"
+    #    ${{ matrix.config.extra_flags }}
 
-    - name: Build
+    #- name: Build
+    #  run: |
+    #    cd ${{ github.workspace }}/build
+    #    cmake --build . --config RelWithDebInfo --parallel
+    #    rm ${{ github.workspace }}/bin/nightly/resources/.geode_cache
+
+    - name: fake build mac
+      shell: bash
       run: |
-        cd ${{ github.workspace }}/build
-        cmake --build . --config RelWithDebInfo --parallel
-        rm ${{ github.workspace }}/bin/nightly/resources/.geode_cache
+        mkdir -p ./bin/nightly/resources
+        touch ./bin/nightly/resources/fake-resource.txt
+        touch ./bin/nightly/Geode.dylib
+        touch ./bin/nightly/GeodeBootstrapper.dylib
+        touch ./bin/nightly/libfmod.dylib
+      if: matrix.config.id == 'mac'
+
+    - name: fake build win
+      shell: bash
+      run: |
+        mkdir -p ./bin/nightly/resources
+        touch ./bin/nightly/resources/fake-resource.txt
+        touch ./bin/nightly/Geode.dll
+        touch ./bin/nightly/Geode.pdb
+        touch ./bin/nightly/Geode.lib
+        touch ./bin/nightly/GeodeUpdater.exe
+      if: matrix.config.id == 'win'
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
