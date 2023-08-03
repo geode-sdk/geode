@@ -13,23 +13,27 @@ void updateGeode() {
     const auto geodeDir = dirs::getGeodeDir();
     const auto updatesDir = geodeDir / "update";
 
-    // updater deletes the update folder so it's fine to not check if it's empty
-    if (ghc::filesystem::exists(geodeDir) && ghc::filesystem::exists(updatesDir)) {
-        // update updater
-        if (ghc::filesystem::exists(updatesDir / "GeodeUpdater.exe"))
-            ghc::filesystem::rename(updatesDir / "GeodeUpdater.exe", workingDir / "GeodeUpdater.exe");
+    bool bootstrapperExists = ghc::filesystem::exists(workingDir / "GeodeBootstrapper.dll");
+    bool updatesDirExists = ghc::filesystem::exists(geodeDir) && ghc::filesystem::exists(updatesDir);
 
-        wchar_t buffer[MAX_PATH];
-        GetModuleFileNameW(nullptr, buffer, MAX_PATH);
-        const auto gdName = ghc::filesystem::path(buffer).filename().string();
+    if (!bootstrapperExists && !updatesDirExists)
+        return;
 
-        // launch updater
-        const auto updaterPath = (workingDir / "GeodeUpdater.exe").string();
-        ShellExecuteA(nullptr, "open", updaterPath.c_str(), gdName.c_str(), workingDir.string().c_str(), false);
+    // update updater
+    if (ghc::filesystem::exists(updatesDir) &&
+        ghc::filesystem::exists(updatesDir / "GeodeUpdater.exe"))
+        ghc::filesystem::rename(updatesDir / "GeodeUpdater.exe", workingDir / "GeodeUpdater.exe");
 
-        // quit gd before it can even start
-        exit(0);
-    }
+    wchar_t buffer[MAX_PATH];
+    GetModuleFileNameW(nullptr, buffer, MAX_PATH);
+    const auto gdName = ghc::filesystem::path(buffer).filename().string();
+
+    // launch updater
+    const auto updaterPath = (workingDir / "GeodeUpdater.exe").string();
+    ShellExecuteA(nullptr, "open", updaterPath.c_str(), gdName.c_str(), workingDir.string().c_str(), false);
+
+    // quit gd before it can even start
+    exit(0);
 }
 
 int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow) {

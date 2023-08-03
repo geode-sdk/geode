@@ -108,8 +108,10 @@ int main(int argc, char* argv[]) {
 	updatesDir = geodeDir / "update";
 	resourcesDir = geodeDir / "resources";
 
-	if (std::filesystem::exists(geodeDir) && std::filesystem::exists(updatesDir)) {
+	if (std::filesystem::exists(workingDir / "GeodeBootstrapper.dll"))
 		removePath(workingDir / "GeodeBootstrapper.dll");
+
+	if (std::filesystem::exists(geodeDir) && std::filesystem::exists(updatesDir)) {
 		updateFile("XInput9_1_0.dll");
 		updateFile("Geode.dll");
 		updateResources();
