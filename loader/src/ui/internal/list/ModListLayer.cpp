@@ -335,6 +335,7 @@ bool ModListLayer::init() {
     m_tabsGradientNode->addChild(m_tabsGradientSprite);
 
     m_tabsGradientStencil = CCSprite::create("tab-gradient-mask.png"_spr);
+    m_tabsGradientStencil->setAnchorPoint({0.f, 0.f});
     m_tabsGradientNode->setStencil(m_tabsGradientStencil);
 
     // add menus
@@ -647,7 +648,7 @@ void ModListLayer::onTab(CCObject* pSender) {
             member->release();
         }
         if (isSelected)
-            m_tabsGradientStencil->setPosition(member->m_onButton->convertToWorldSpaceAR({0.f, -1.f}));
+            m_tabsGradientStencil->setPosition(member->m_onButton->convertToWorldSpace({0.f, -1.f}));
     };
 
     toggleTab(m_downloadTabBtn);
