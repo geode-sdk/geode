@@ -16,20 +16,19 @@ jobs:
           zipBall: true
           out-file-path: 'dev'
 
-      - name: Declare Version Variables
+      - name: Declare Version Variable
         id: ref
         shell: bash
         run: |
-          7z x "${{ github.workspace }}/dev/geode-nightly.zip" -o"${{ github.workspace }}/dev"
+          unzip "${{ github.workspace }}/dev/geode-nightly.zip"
           echo "version=$(cat ${{ github.workspace }}/dev/geode-nightly/VERSION | xargs)" >> $GITHUB_OUTPUT
-          echo "hash=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_OUTPUT
 
       - name: Move Files
         run: |
-          mv dev/geode-${{ steps.ref.outputs.hash }}-mac.zip geode-${{ steps.ref.outputs.version }}-mac.zip
-          mv dev/geode-${{ steps.ref.outputs.hash }}-win.zip geode-${{ steps.ref.outputs.version }}-win.zip
-          mv dev/geode-installer-${{ steps.ref.outputs.hash }}-mac.pkg geode-installer-${{ steps.ref.outputs.version }}-mac.pkg
-          mv dev/geode-installer-${{ steps.ref.outputs.hash }}-win.exe geode-installer-${{ steps.ref.outputs.version }}-win.exe
+          mv dev/geode-installer-*-mac.pkg geode-installer-${{ steps.ref.outputs.version }}-mac.pkg
+          mv dev/geode-installer-*-win.exe geode-installer-${{ steps.ref.outputs.version }}-win.exe
+          mv dev/geode-*-mac.zip geode-${{ steps.ref.outputs.version }}-mac.zip
+          mv dev/geode-*-win.zip geode-${{ steps.ref.outputs.version }}-win.zip
 
       - name: Create Draft Release
         uses: softprops/action-gh-release@v1
