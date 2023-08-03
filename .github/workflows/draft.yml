@@ -21,7 +21,7 @@ jobs:
         shell: bash
         run: |
           7z x "${{ github.workspace }}/dev/geode-nightly.zip" -o"${{ github.workspace }}/dev"
-          echo "version=$(cat ${{ github.workspace }}/dev/VERSION | xargs)" >> $GITHUB_OUTPUT
+          echo "version=$(cat ${{ github.workspace }}/dev/geode-nightly/VERSION | xargs)" >> $GITHUB_OUTPUT
           echo "hash=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_OUTPUT
 
       - name: Move Files
