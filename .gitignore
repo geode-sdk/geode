@@ -36,6 +36,7 @@
 **/*.sublime-workspace
 **/*.sublime-project
 .vscode
+.idea
 
 # Ignore build folders
 **/build
