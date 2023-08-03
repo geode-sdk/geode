@@ -322,11 +322,28 @@ bool ModListLayer::init() {
     m_featuredTabBtn->setTag(static_cast<int>(ModListType::Featured));
     m_menu->addChild(m_featuredTabBtn);
 
+    // tabs gradient
+    m_tabsGradientNode = CCClippingNode::create();
+    m_tabsGradientNode->setContentSize(this->getContentSize());
+    m_tabsGradientNode->setAnchorPoint({0.5f, 0.5f});
+    m_tabsGradientNode->ignoreAnchorPointForPosition(true);
+    m_tabsGradientNode->setZOrder(9);
+    m_tabsGradientNode->setInverted(false);
+    m_tabsGradientNode->setAlphaThreshold(0.f);
+
+    m_tabsGradientSprite = CCSprite::create("tab-gradient.png"_spr);
+    m_tabsGradientNode->addChild(m_tabsGradientSprite);
+
+    m_tabsGradientStencil = CCSprite::create("tab-gradient-mask.png"_spr);
+    m_tabsGradientNode->setStencil(m_tabsGradientStencil);
+
     // add menus
     m_menu->setZOrder(0);
     m_topMenu->setZOrder(10);
 
     this->addChild(m_menu);
+    this->addChild(m_tabsGradientNode);
+    this->addChild(m_tabsGradientStencil);
     this->addChild(m_topMenu);
 
     // select first tab
@@ -469,6 +486,10 @@ void ModListLayer::reloadList(std::optional<ModListQuery> const& query) {
     m_list->setZOrder(2);
     m_list->setPosition(winSize / 2 - m_list->getScaledContentSize() / 2);
     this->addChild(m_list);
+
+    // position gradient sprite
+    if (m_tabsGradientSprite)
+        m_tabsGradientSprite->setPosition(m_list->getPosition() + CCPoint{179.f, 235.f});
 
     // add search input to list
     if (!m_searchInput) {
@@ -625,6 +646,8 @@ void ModListLayer::onTab(CCObject* pSender) {
             targetMenu->addChild(member);
             member->release();
         }
+        if (isSelected)
+            m_tabsGradientStencil->setPosition(member->m_onButton->convertToWorldSpaceAR({0.f, -1.f}));
     };
 
     toggleTab(m_downloadTabBtn);
