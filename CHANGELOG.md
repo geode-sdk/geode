@@ -5,6 +5,10 @@
  * Switch libraries for SHA3 256 (bbf2608)
  * Fix MacOS installer (ea5a5f0)
  * Add mod ids to deprecated keys logs of ModInfo (fc72c24)
+ * Rename platform labels: (MacOS -> macOS, iOS -> IOS) (cf3ed32)
+ * Fix Geode not loading when GeodeBootsrapper.dll exists (c2aacd9)
+ * Hide tag from version in cmake when it doesnt exist (fc8a8e1)
+ * Change MacOS installer fmod original name for compatibility with the old installer (44d5aff)
 
 ## v1.0.0
  * Make JSON library exported (a2b8f27)
