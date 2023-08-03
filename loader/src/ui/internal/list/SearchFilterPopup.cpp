@@ -32,8 +32,8 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
     m_mainLayer->addChild(platformBG);
 
     this->enable(this->addPlatformToggle("Windows", PlatformID::Windows, pos), type);
-    this->enable(this->addPlatformToggle("MacOS", PlatformID::MacOS, pos), type);
-    this->enable(this->addPlatformToggle("iOS", PlatformID::iOS, pos), type);
+    this->enable(this->addPlatformToggle("macOS", PlatformID::MacOS, pos), type);
+    this->enable(this->addPlatformToggle("IOS", PlatformID::iOS, pos), type);
     this->enable(this->addPlatformToggle("Android", PlatformID::Android, pos), type);
 
     // show installed
