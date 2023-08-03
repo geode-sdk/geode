@@ -63,7 +63,7 @@
             "type": "bool",
             "default": true,
             "name": "Check For Updates",
-            "description": "Automatically check for <cy>updates</c> to Geode on startup"
+            "description": "Automatically check for <cy>Geode</c> updates on startup"
         },
         "auto-update-mods": {
             "type": "bool",
