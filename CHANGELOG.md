@@ -1,5 +1,10 @@
 # Geode Changelog
 
+## v1.0.1
+ * New textures for list tabs (8ce1227)
+ * Switch libraries for SHA3 256 (bbf2608)
+ * Fix MacOS installer (ea5a5f0)
+
 ## v1.0.0
  * Make JSON library exported (a2b8f27)
  * Fix GLFW headers for Windows (6ada069)
