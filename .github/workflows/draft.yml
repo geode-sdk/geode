@@ -1,4 +1,4 @@
-name: Build Binaries
+name: Draft Release
 
 on:
   workflow_dispatch:
