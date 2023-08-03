@@ -21,7 +21,7 @@ jobs:
         shell: bash
         run: |
           unzip "${{ github.workspace }}/dev/geode-nightly.zip"
-          echo "version=$(cat ${{ github.workspace }}/dev/geode-nightly/VERSION | xargs)" >> $GITHUB_OUTPUT
+          echo "version=$(cat ${{ github.workspace }}/dev/geode-nightly/geode-sdk-geode-*/VERSION | xargs)" >> $GITHUB_OUTPUT
 
       - name: Move Files
         run: |
