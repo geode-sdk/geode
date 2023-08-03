@@ -19,7 +19,7 @@ end try
 set execPath to (gdPath & "Contents/MacOS/Geometry Dash")
 set frameworkPath to POSIX path of (gdPath & "Contents/Frameworks/")
 set fmodPath to "libfmod.dylib"
-set fmodOriginalPath to "libfmod-original.dylib"
+set fmodOriginalPath to "restore_fmod.dylib"
 set geodePath to "Geode.dylib"
 set bootstrapperPath to "GeodeBootstrapper.dylib"
 set resourcesPath to "resources/"
