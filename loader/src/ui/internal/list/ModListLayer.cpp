@@ -95,33 +95,33 @@ static std::optional<int> queryMatch(ModListQuery const& query, Mod* mod) {
 static std::optional<int> queryMatch(ModListQuery const& query, IndexItemHandle item) {
     // if no force visibility was provided and item is already installed, don't 
     // show it
-    if (!query.forceVisibility && Loader::get()->isModInstalled(item->info.id())) {
+    if (!query.forceVisibility && Loader::get()->isModInstalled(item->getModInfo().id())) {
         return std::nullopt;
     }
     // make sure all tags match
     for (auto& tag : query.tags) {
-        if (!item->tags.count(tag)) {
+        if (!item->getTags().count(tag)) {
             return std::nullopt;
         }
     }
     // make sure at least some platform matches
     if (!ranges::contains(query.platforms, [item](PlatformID id) {
-        return item->download.platforms.count(id);
+        return item->getAvailablePlatforms().count(id);
     })) {
         return std::nullopt;
     }
     // otherwise match keywords
-    if (auto match = queryMatchKeywords(query, item->info)) {
+    if (auto match = queryMatchKeywords(query, item->getModInfo())) {
         auto weighted = match.value();
         // add extra weight on tag matches
         if (query.keywords) {
-            WEIGHTED_MATCH_ADD(ranges::join(item->tags, " "), 1.4);
+            WEIGHTED_MATCH_ADD(ranges::join(item->getTags(), " "), 1.4);
         }
         // add extra weight to featured items to keep power consolidated in the 
         // hands of the rich Geode bourgeoisie
         // the number 420 is a reference to the number one bourgeois of modern 
         // society, elon musk
-        weighted += item->isFeatured ? 420 : 0;
+        weighted += item->isFeatured() ? 420 : 0;
         return static_cast<int>(weighted);
     }
     // keywords must match bruh

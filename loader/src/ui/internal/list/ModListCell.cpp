@@ -273,7 +273,7 @@ bool ModCell::init(
                 ComparableVersionInfo(mod->getModInfo().version(), VersionCompare::MoreEq)
             );
 
-            if (latestIndexItem->info.version().getMajor() > minorIndexItem->info.version().getMajor()) {
+            if (latestIndexItem->getModInfo().version().getMajor() > minorIndexItem->getModInfo().version().getMajor()) {
                 auto updateIcon = CCSprite::createWithSpriteFrameName("updates-available.png"_spr);
                 updateIcon->setPosition(viewSpr->getContentSize() - CCSize { 2.f, 2.f });
                 updateIcon->setZOrder(99);
@@ -327,7 +327,7 @@ bool IndexItemCell::init(
 
     m_item = item;
 
-    this->setupInfo(item->info, item->tags.size(), display);
+    this->setupInfo(item->getModInfo(), item->getTags().size(), display);
    
     auto viewSpr = ButtonSprite::create(
         "View", "bigFont.fnt", "GJ_button_01.png", .8f
@@ -337,9 +337,9 @@ bool IndexItemCell::init(
     auto viewBtn = CCMenuItemSpriteExtra::create(viewSpr, this, menu_selector(IndexItemCell::onInfo));
     m_menu->addChild(viewBtn);
 
-    if (item->tags.size()) {
+    if (item->getTags().size()) {
         float x = m_height / 2 + this->getLogoSize() / 2 + 13.f;
-        for (auto& category : item->tags) {
+        for (auto& category : item->getTags()) {
             auto node = TagNode::create(category);
             node->setAnchorPoint({ .0f, .5f });
             node->setPositionX(x);
@@ -364,7 +364,7 @@ bool IndexItemCell::init(
 void IndexItemCell::updateState() {}
 
 std::string IndexItemCell::getDeveloper() const {
-    return m_item->info.developer();
+    return m_item->getModInfo().developer();
 }
 
 CCNode* IndexItemCell::createLogo(CCSize const& size) {

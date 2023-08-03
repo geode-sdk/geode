@@ -88,7 +88,7 @@ CCNode* geode::createModLogo(Mod* mod, CCSize const& size) {
 
 CCNode* geode::createIndexItemLogo(IndexItemHandle item, CCSize const& size) {
     CCNode* spr = nullptr;
-    auto logoPath = ghc::filesystem::absolute(item->path / "logo.png");
+    auto logoPath = ghc::filesystem::absolute(item->getPath() / "logo.png");
     spr = CCSprite::create(logoPath.string().c_str());
     if (!spr) {
         spr = CCSprite::createWithSpriteFrameName("no-logo.png"_spr);
@@ -96,7 +96,7 @@ CCNode* geode::createIndexItemLogo(IndexItemHandle item, CCSize const& size) {
     if (!spr) {
         spr = CCLabelBMFont::create("N/A", "goldFont.fnt");
     }
-    if (item->isFeatured) {
+    if (item->isFeatured()) {
         auto glowSize = size + CCSize(4.f, 4.f);
 
         auto logoGlow = CCSprite::createWithSpriteFrameName("logo-glow.png"_spr);

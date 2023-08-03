@@ -8,7 +8,6 @@
 #include <hash/hash.hpp>
 #include <Geode/utils/JsonValidation.hpp>
 
-
 using namespace geode::prelude;
 
 // ModInstallEvent
@@ -26,54 +25,6 @@ ListenerResult ModInstallFilter::handle(utils::MiniFunction<Callback> fn, ModIns
 
 ModInstallFilter::ModInstallFilter(std::string const& id) : m_id(id) {}
 
-// IndexUpdateEvent implementation
-
-// The reason sources have private implementation events that are 
-// turned into the global IndexUpdateEvent is because it makes it much 
-// simpler to keep track of progress, what errors were received, etc. 
-// without having to store a ton of members
-
-struct geode::IndexSourceImpl final {
-    std::string repository;
-    bool isUpToDate = false;
-
-    std::string dirname() const {
-        return string::replace(this->repository, "/", "_");
-    }
-
-    ghc::filesystem::path path() const {
-        return dirs::getIndexDir() / this->dirname();
-    }
-
-    ghc::filesystem::path checksum() const {
-        // not storing this in the source's directory as that gets replaced by 
-        // the newly fetched index
-        return dirs::getIndexDir() / (this->dirname() + ".checksum");
-    }
-};
-
-void IndexSourceImplDeleter::operator()(IndexSourceImpl* src) {
-    delete src;
-}
-
-struct geode::SourceUpdateEvent : public Event {
-    IndexSourceImpl* source;
-    const UpdateStatus status;
-    SourceUpdateEvent(IndexSourceImpl* src, const UpdateStatus status)
-      : source(src), status(status) {}
-};
-
-class SourceUpdateFilter : public EventFilter<SourceUpdateEvent> {
-public:
-    using Callback = void(SourceUpdateEvent*);
-
-    ListenerResult handle(utils::MiniFunction<Callback> fn, SourceUpdateEvent* event) {
-        fn(event);
-        return ListenerResult::Propagate;
-    }
-    SourceUpdateFilter() {}
-};
-
 // IndexUpdateEvent
 
 IndexUpdateEvent::IndexUpdateEvent(const UpdateStatus status) : status(status) {}
@@ -90,10 +41,59 @@ IndexUpdateFilter::IndexUpdateFilter() {}
 
 // IndexItem
 
-Result<IndexItemHandle> IndexItem::createFromDir(
-    std::string const& sourceRepository,
-    ghc::filesystem::path const& dir
-) {
+class IndexItem::Impl final {
+private:
+    ghc::filesystem::path m_path;
+    ModInfo m_info;
+    std::string m_downloadURL;
+    std::string m_downloadHash;
+    std::unordered_set<PlatformID> m_platforms;
+    bool m_isFeatured;
+    std::unordered_set<std::string> m_tags;
+
+    friend class IndexItem;
+
+public:
+    /**
+     * Create IndexItem from a directory
+     */
+    static Result<std::shared_ptr<IndexItem>> create(
+        ghc::filesystem::path const& dir
+    );
+};
+
+IndexItem::IndexItem() : m_impl(std::make_unique<Impl>()) {}
+IndexItem::~IndexItem() = default;
+
+ghc::filesystem::path IndexItem::getPath() const {
+    return m_impl->m_path;
+}
+
+ModInfo IndexItem::getModInfo() const {
+    return m_impl->m_info;
+}
+
+std::string IndexItem::getDownloadURL() const {
+    return m_impl->m_downloadURL;
+}
+
+std::string IndexItem::getPackageHash() const {
+    return m_impl->m_downloadHash;
+}
+
+std::unordered_set<PlatformID> IndexItem::getAvailablePlatforms() const {
+    return m_impl->m_platforms;
+}
+
+bool IndexItem::isFeatured() const {
+    return m_impl->m_isFeatured;
+}
+
+std::unordered_set<std::string> IndexItem::getTags() const {
+    return m_impl->m_tags;
+}
+
+Result<IndexItemHandle> IndexItem::Impl::create(ghc::filesystem::path const& dir) {
     GEODE_UNWRAP_INTO(
         auto entry, file::readJson(dir / "entry.json")
             .expect("Unable to read entry.json")
@@ -111,18 +111,15 @@ Result<IndexItemHandle> IndexItem::createFromDir(
         platforms.insert(PlatformID::from(plat.template get<std::string>()));
     }
 
-    auto item = std::make_shared<IndexItem>(IndexItem {
-        .sourceRepository = sourceRepository,
-        .path = dir,
-        .info = info,
-        .download = {
-            .url = root.has("mod").obj().has("download").template get<std::string>(),
-            .hash = root.has("mod").obj().has("hash").template get<std::string>(),
-            .platforms = platforms,
-        },
-        .isFeatured = root.has("featured").template get<bool>(),
-        .tags = root.has("tags").template get<std::unordered_set<std::string>>()
-    });
+    auto item = std::make_shared<IndexItem>();
+    item->m_impl->m_path = dir;
+    item->m_impl->m_info = info;
+    item->m_impl->m_downloadURL = root.has("mod").obj().has("download").template get<std::string>();
+    item->m_impl->m_downloadHash = root.has("mod").obj().has("hash").template get<std::string>();
+    item->m_impl->m_platforms = platforms;
+    item->m_impl->m_isFeatured = root.has("featured").template get<bool>();
+    item->m_impl->m_tags = root.has("tags").template get<std::unordered_set<std::string>>();
+
     if (checker.isError()) {
         return Err(checker.getError());
     }
@@ -152,263 +149,53 @@ static Result<> flattenGithubRepo(ghc::filesystem::path const& dir) {
     return Ok();
 }
 
+// Index impl
+
+class Index::Impl final {
+public:
+    // for once, the fact that std::map is ordered is useful (this makes 
+    // getting the latest version of a mod as easy as items.rbegin())
+    using ItemVersions = std::map<size_t, IndexItemHandle>;
+
+private:
+    std::unordered_map<
+        IndexItemHandle,
+        utils::web::SentAsyncWebRequestHandle
+    > m_runningInstallations;
+    std::atomic<bool> m_isUpToDate = false;
+    std::atomic<bool> m_updating = false;
+    std::atomic<bool> m_triedToUpdate = false;
+    std::unordered_map<std::string, ItemVersions> m_items;
+
+    friend class Index;
+
+    void cleanupItems();
+    void downloadIndex();
+    void checkForUpdates();
+    void updateFromLocalTree();
+    void installNext(size_t index, IndexInstallList const& list);
+
+public:
+    Impl() {
+        new EventListener<IndexUpdateFilter>([this](IndexUpdateEvent* ev) {
+            m_updating = std::holds_alternative<UpdateProgress>(ev->status);
+        });
+    }
+};
+
 // Index globals
 
-Index::Index() {
-    new EventListener(
-        std::bind(&Index::onSourceUpdate, this, std::placeholders::_1),
-        SourceUpdateFilter()
-    );
-    this->addSource("geode-sdk/mods");
-}
+Index::Index() : m_impl(std::make_unique<Impl>()) {}
+Index::~Index() = default;
 
 Index* Index::get() {
     static auto inst = new Index();
     return inst;
 }
 
-// Sources
-
-void Index::addSource(std::string const& repository) {
-    m_sources.emplace_back(new IndexSourceImpl {
-        .repository = repository
-    });
-}
-
-void Index::removeSource(std::string const& repository) {
-    ranges::remove(m_sources, [repository](IndexSourcePtr const& src) {
-        return src->repository == repository;
-    });
-}
-
-std::vector<std::string> Index::getSources() const {
-    std::vector<std::string> res;
-    for (auto& src : m_sources) {
-        res.push_back(src->repository);
-    }
-    return res;
-}
-
 // Updating
 
-void Index::onSourceUpdate(SourceUpdateEvent* event) {
-    // save status for aggregating SourceUpdateEvents to a single global 
-    // IndexUpdateEvent
-    m_sourceStatuses[event->source->repository] = event->status;
-
-    // figure out aggregate event
-    enum { Finished, Progress, Failed, } whatToPost = Finished;
-    for (auto& [src, status] : m_sourceStatuses) {
-        // if some source is still updating, post progress
-        if (std::holds_alternative<UpdateProgress>(status)) {
-            whatToPost = Progress;
-            break;
-        }
-        // otherwise, if some source failed, then post failed
-        else if (std::holds_alternative<UpdateFailed>(status)) {
-            if (whatToPost != Progress) {
-                whatToPost = Failed;
-            }
-        }
-        // otherwise if all are finished, whatToPost is already set to that
-    }
-
-    switch (whatToPost) {
-        case Finished: {
-            log::debug("Index up-to-date");
-            // clear source statuses to allow updating index again
-            m_sourceStatuses.clear();
-            // post finish event
-            IndexUpdateEvent(UpdateFinished()).post();
-        } break;
-
-        case Progress: {
-            // get total progress
-            size_t total = 0;
-            for (auto& [src, status] : m_sourceStatuses) {
-                if (std::holds_alternative<UpdateProgress>(status)) {
-                    total += std::get<UpdateProgress>(status).first;
-                } else {
-                    total += 100;
-                }
-            }
-            IndexUpdateEvent(
-                UpdateProgress(
-                    static_cast<uint8_t>(total / m_sourceStatuses.size()),
-                    "Downloading"
-                )
-            ).post();
-        } break;
-
-        case Failed: {
-            std::string info = "";
-            for (auto& [src, status] : m_sourceStatuses) {
-                if (std::holds_alternative<UpdateFailed>(status)) {
-                    info += src + ": " + std::get<UpdateFailed>(status) + "\n";
-                }
-            }
-            log::debug("Index update failed: {}", info);
-            // clear source statuses to allow updating index again
-            m_sourceStatuses.clear();
-            // post finish event
-            IndexUpdateEvent(UpdateFailed(info)).post();
-        } break;
-    }
-}
-
-void Index::checkSourceUpdates(IndexSourceImpl* src) {
-    if (src->isUpToDate) {
-        return this->updateSourceFromLocal(src);
-    }
-
-    log::debug("Checking updates for source {}", src->repository);
-    SourceUpdateEvent(src, UpdateProgress(0, "Checking status")).post();
-
-    // read old commit SHA
-    // not using saved values for this one as we don't want to refetch 
-    // index even if the game crashes
-    auto oldSHA = file::readString(src->checksum()).unwrapOr("");
-    web::AsyncWebRequest()
-        .join(fmt::format("index-update-{}", src->repository))
-        .header(fmt::format("If-None-Match: \"{}\"", oldSHA))
-        .header("Accept: application/vnd.github.sha")
-        .fetch(fmt::format("https://api.github.com/repos/{}/commits/main", src->repository))
-        .text()
-        .then([this, src, oldSHA](std::string const& newSHA) {
-            // check if should just be updated from local cache
-            if (
-                // if no new hash was given (rate limited) or the new hash is the 
-                // same as old
-                (newSHA.empty() || oldSHA == newSHA) &&
-                // make sure the downloaded local copy actually exists
-                ghc::filesystem::exists(src->path()) &&
-                ghc::filesystem::exists(src->path() / "config.json")
-            ) {
-                this->updateSourceFromLocal(src);
-            }
-            // otherwise save hash and download source
-            else {
-                (void)file::writeString(src->checksum(), newSHA);
-                this->downloadSource(src);
-            }
-        })
-        .expect([src](std::string const& err) {
-            SourceUpdateEvent(
-                src,
-                UpdateFailed(fmt::format("Error checking for updates: {}", err))
-            ).post();
-        });
-}
-
-void Index::downloadSource(IndexSourceImpl* src) {
-    log::debug("Downloading source {}", src->repository);
-
-    SourceUpdateEvent(src, UpdateProgress(0, "Beginning download")).post();
-
-    auto targetFile = dirs::getIndexDir() / fmt::format("{}.zip", src->dirname());
-
-    web::AsyncWebRequest()
-        .join(fmt::format("index-download-{}", src->repository))
-        .fetch(fmt::format("https://github.com/{}/zipball/main", src->repository))
-        .into(targetFile)
-        .then([this, src, targetFile](auto) {
-            auto targetDir = src->path();
-            // delete old unzipped index
-            try {
-                if (ghc::filesystem::exists(targetDir)) {
-                    ghc::filesystem::remove_all(targetDir);
-                }
-            }
-            catch(...) {
-                SourceUpdateEvent(
-                    src, UpdateFailed("Unable to clear cached index")
-                ).post();
-                return;
-            }
-
-            // unzip new index
-            auto unzip = file::Unzip::intoDir(targetFile, targetDir, true)
-                .expect("Unable to unzip new index");
-            if (!unzip) {
-                SourceUpdateEvent(
-                    src, UpdateFailed(unzip.unwrapErr())
-                ).post();
-                return;
-            }
-
-            // remove the directory github adds to the root of the zip
-            (void)flattenGithubRepo(targetDir);
-
-            // update index
-            this->updateSourceFromLocal(src);
-        })
-        .expect([src](std::string const& err) {
-            SourceUpdateEvent(
-                src, UpdateFailed(fmt::format("Error downloading: {}", err))
-            ).post();
-        })
-        .progress([src](auto&, double now, double total) {
-            SourceUpdateEvent(
-                src,
-                UpdateProgress(
-                    static_cast<uint8_t>(now / total * 100.0),
-                    "Downloading"
-                )
-            ).post();
-        });
-}
-
-void Index::updateSourceFromLocal(IndexSourceImpl* src) {
-    log::debug("Updating local cache for source {}", src->repository);
-    SourceUpdateEvent(src, UpdateProgress(100, "Updating local cache")).post();
-    // delete old items from this url if such exist
-    for (auto& [_, versions] : m_items) {
-        for (auto it = versions.begin(); it != versions.end(); ) {
-            if (it->second->sourceRepository == src->repository) {
-                it = versions.erase(it);
-            } else {
-                ++it;
-            }
-        }
-    }
-    this->cleanupItems();
-
-    // read directory and add new items
-    try {
-        for (auto& dir : ghc::filesystem::directory_iterator(src->path() / "mods")) {
-            auto addRes = IndexItem::createFromDir(src->repository, dir);
-            if (!addRes) {
-                log::warn("Unable to add index item from {}: {}", dir, addRes.unwrapErr());
-                continue;
-            }
-            auto add = addRes.unwrap();
-            // check if this major version of this item has already been added 
-            if (m_items[add->info.id()].count(add->info.version().getMajor())) {
-                log::warn(
-                    "Item {}@{} has already been added, skipping",
-                    add->info.id(), add->info.version()
-                );
-                continue;
-            }
-            // add new major version of this item
-            m_items[add->info.id()].insert({
-                add->info.version().getMajor(),
-                add
-            });
-        }
-    } catch(std::exception& e) {
-        SourceUpdateEvent(src, fmt::format(
-            "Unable to read source {}", src->repository
-        )).post();
-        return;
-    }
-
-    // mark source as finished
-    src->isUpToDate = true;
-    SourceUpdateEvent(src, UpdateFinished()).post();
-}
-
-void Index::cleanupItems() {
+void Index::Impl::cleanupItems() {
     // delete mods with no versions
     for (auto it = m_items.begin(); it != m_items.end(); ) {
         if (!it->second.size()) {
@@ -420,49 +207,173 @@ void Index::cleanupItems() {
 }
 
 bool Index::isUpToDate() const {
-    for (auto& source : m_sources) {
-        if (!source->isUpToDate) {
-            return false;
-        }
-    }
-    return true;
+    return m_impl->m_isUpToDate;
 }
 
 bool Index::hasTriedToUpdate() const {
-    return m_triedToUpdate;
+    return m_impl->m_triedToUpdate;
+}
+
+void Index::Impl::downloadIndex() {
+    log::debug("Downloading index");
+
+    IndexUpdateEvent(UpdateProgress(0, "Beginning download")).post();
+
+    auto targetFile = dirs::getTempDir() / "updated-index.zip";
+
+    web::AsyncWebRequest()
+        .join("index-download")
+        .fetch("https://github.com/geode-sdk/mods/zipball/main")
+        .into(targetFile)
+        .then([this, targetFile](auto) {
+            auto targetDir = dirs::getIndexDir() / "v0";
+            // delete old unzipped index
+            try {
+                if (ghc::filesystem::exists(targetDir)) {
+                    ghc::filesystem::remove_all(targetDir);
+                }
+            }
+            catch(...) {
+                IndexUpdateEvent(UpdateFailed("Unable to clear cached index")).post();
+                return;
+            }
+
+            // unzip new index
+            auto unzip = file::Unzip::intoDir(targetFile, targetDir, true)
+                .expect("Unable to unzip new index");
+            if (!unzip) {
+                IndexUpdateEvent(UpdateFailed(unzip.unwrapErr())).post();
+                return;
+            }
+
+            // remove the directory github adds to the root of the zip
+            (void)flattenGithubRepo(targetDir);
+
+            // update index
+            this->updateFromLocalTree();
+        })
+        .expect([](std::string const& err) {
+            IndexUpdateEvent(UpdateFailed(fmt::format("Error downloading: {}", err))).post();
+        })
+        .progress([](auto&, double now, double total) {
+            IndexUpdateEvent(
+                UpdateProgress(
+                    static_cast<uint8_t>(now / total * 100.0),
+                    "Downloading"
+                )
+            ).post();
+        });
+}
+
+void Index::Impl::checkForUpdates() {
+    if (m_isUpToDate) {
+        return this->updateFromLocalTree();
+    }
+
+    log::debug("Checking updates for index");
+    IndexUpdateEvent(UpdateProgress(0, "Checking status")).post();
+
+    auto checksum = dirs::getIndexDir() / ".checksum";
+
+    // read old commit SHA
+    // not using saved values for this one as we don't want to refetch 
+    // index even if the game crashes
+    auto oldSHA = file::readString(checksum).unwrapOr("");
+    web::AsyncWebRequest()
+        .join("index-update")
+        .header(fmt::format("If-None-Match: \"{}\"", oldSHA))
+        .header("Accept: application/vnd.github.sha")
+        .fetch("https://api.github.com/repos/geode-sdk/mods/commits/main")
+        .text()
+        .then([this, checksum, oldSHA](std::string const& newSHA) {
+            // check if should just be updated from local cache
+            if (
+                // if no new hash was given (rate limited) or the new hash is the 
+                // same as old
+                (newSHA.empty() || oldSHA == newSHA) &&
+                // make sure the downloaded local copy actually exists
+                ghc::filesystem::exists(dirs::getIndexDir() / "v0" / "config.json")
+            ) {
+                this->updateFromLocalTree();
+            }
+            // otherwise save hash and download source
+            else {
+                (void)file::writeString(checksum, newSHA);
+                this->downloadIndex();
+            }
+        })
+        .expect([](std::string const& err) {
+            IndexUpdateEvent(
+                UpdateFailed(fmt::format("Error checking for updates: {}", err))
+            ).post();
+        });
+}
+
+void Index::Impl::updateFromLocalTree() {
+    log::debug("Updating local index cache");
+    IndexUpdateEvent(UpdateProgress(100, "Updating local cache")).post();
+    // delete old items
+    m_items.clear();
+
+    // read directory and add new items
+    try {
+        for (auto& dir : ghc::filesystem::directory_iterator(dirs::getIndexDir() / "v0" / "mods")) {
+            auto addRes = IndexItem::Impl::create(dir);
+            if (!addRes) {
+                log::warn("Unable to add index item from {}: {}", dir, addRes.unwrapErr());
+                continue;
+            }
+            auto add = addRes.unwrap();
+            auto info = add->getModInfo();
+            // check if this major version of this item has already been added 
+            if (m_items[info.id()].count(info.version().getMajor())) {
+                log::warn(
+                    "Item {}@{} has already been added, skipping",
+                    info.id(), info.version()
+                );
+                continue;
+            }
+            // add new major version of this item
+            m_items[info.id()].insert({
+                info.version().getMajor(),
+                add
+            });
+        }
+    } catch(std::exception& e) {
+        IndexUpdateEvent("Unable to read local index tree").post();
+        return;
+    }
+
+    // mark source as finished
+    m_isUpToDate = true;
+    IndexUpdateEvent(UpdateFinished()).post();
 }
 
 void Index::update(bool force) {
     // create index dir if it doesn't exist
     (void)file::createDirectoryAll(dirs::getIndexDir());
 
-    m_triedToUpdate = true;
+    m_impl->m_triedToUpdate = true;
 
-    // update all sources in GD thread for synchronization (m_sourceStatuses 
-    // and every other member access happens in AsyncWebRequest callbacks 
-    // which are always run in the GD thread aswell)
-    Loader::get()->queueInGDThread([force, this]() {
-        // check if some sources are already being updated
-        if (m_sourceStatuses.size()) {
-            return;
-        }
+    // check if update is already happening
+    if (m_impl->m_updating) {
+        return;
+    }
+    m_impl->m_updating = true;
 
-        // update sources
-        for (auto& src : m_sources) {
-            if (force) {
-                this->downloadSource(src.get());
-            } else {
-                this->checkSourceUpdates(src.get());
-            }
-        }
-    });
+    // update sources
+    if (force) {
+        m_impl->downloadIndex();
+    } else {
+        m_impl->checkForUpdates();
+    }
 }
 
 // Items
 
 std::vector<IndexItemHandle> Index::getItems() const {
     std::vector<IndexItemHandle> res;
-    for (auto& items : map::values(m_items)) {
+    for (auto& items : map::values(m_impl->m_items)) {
         for (auto& item : items) {
             res.push_back(item.second);
         }
@@ -472,9 +383,9 @@ std::vector<IndexItemHandle> Index::getItems() const {
 
 std::vector<IndexItemHandle> Index::getFeaturedItems() const {
     std::vector<IndexItemHandle> res;
-    for (auto& items : map::values(m_items)) {
+    for (auto& items : map::values(m_impl->m_items)) {
         for (auto& item : items) {
-            if (item.second->isFeatured) {
+            if (item.second->isFeatured()) {
                 res.push_back(item.second);
             }
         }
@@ -486,9 +397,9 @@ std::vector<IndexItemHandle> Index::getItemsByDeveloper(
     std::string const& name
 ) const {
     std::vector<IndexItemHandle> res;
-    for (auto& items : map::values(m_items)) {
+    for (auto& items : map::values(m_impl->m_items)) {
         for (auto& item : items) {
-            if (item.second->info.developer() == name) {
+            if (item.second->getModInfo().developer() == name) {
                 res.push_back(item.second);
             }
         }
@@ -506,8 +417,8 @@ bool Index::isKnownItem(
 IndexItemHandle Index::getMajorItem(
     std::string const& id
 ) const {
-    if (m_items.count(id)) {
-        return m_items.at(id).rbegin()->second;
+    if (m_impl->m_items.count(id)) {
+        return m_impl->m_items.at(id).rbegin()->second;
     }
     return nullptr;
 }
@@ -516,18 +427,18 @@ IndexItemHandle Index::getItem(
     std::string const& id,
     std::optional<VersionInfo> version
 ) const {
-    if (m_items.count(id)) {
-        auto versions = m_items.at(id);
+    if (m_impl->m_items.count(id)) {
+        auto versions = m_impl->m_items.at(id);
         if (version) {
             // prefer most major version
-            for (auto& [_, item] : ranges::reverse(m_items.at(id))) {
-                if (version.value() == item->info.version()) {
+            for (auto& [_, item] : ranges::reverse(m_impl->m_items.at(id))) {
+                if (version.value() == item->getModInfo().version()) {
                     return item;
                 }
             }
         } else {
             if (versions.size()) {
-                return m_items.at(id).rbegin()->second;
+                return m_impl->m_items.at(id).rbegin()->second;
             }
         }
     }
@@ -538,10 +449,10 @@ IndexItemHandle Index::getItem(
     std::string const& id,
     ComparableVersionInfo version
 ) const {
-    if (m_items.count(id)) {
+    if (m_impl->m_items.count(id)) {
         // prefer most major version
-        for (auto& [_, item] : ranges::reverse(m_items.at(id))) {
-            if (version.compare(item->info.version())) {
+        for (auto& [_, item] : ranges::reverse(m_impl->m_items.at(id))) {
+            if (version.compare(item->getModInfo().version())) {
                 return item;
             }
         }
@@ -558,17 +469,17 @@ IndexItemHandle Index::getItem(Mod* mod) const {
 }
 
 bool Index::isUpdateAvailable(IndexItemHandle item) const {
-    auto installed = Loader::get()->getInstalledMod(item->info.id());
+    auto installed = Loader::get()->getInstalledMod(item->getModInfo().id());
     if (!installed) {
         return false;
     }
-    return item->info.version() > installed->getVersion();
+    return item->getModInfo().version() > installed->getVersion();
 }
 
 bool Index::areUpdatesAvailable() const {
     for (auto& mod : Loader::get()->getAllMods()) {
         auto item = this->getMajorItem(mod->getID());
-        if (item && item->info.version() > mod->getVersion()) {
+        if (item && item->getModInfo().version() > mod->getVersion()) {
             return true;
         }
     }
@@ -578,17 +489,17 @@ bool Index::areUpdatesAvailable() const {
 // Item installation
 
 Result<IndexInstallList> Index::getInstallList(IndexItemHandle item) const {
-    if (!item->download.platforms.count(GEODE_PLATFORM_TARGET)) {
+    if (!item->getAvailablePlatforms().count(GEODE_PLATFORM_TARGET)) {
         return Err("Mod is not available on {}", GEODE_PLATFORM_NAME);
     }
     
     IndexInstallList list;
     list.target = item;
-    for (auto& dep : item->info.dependencies()) {
+    for (auto& dep : item->getModInfo().dependencies()) {
         if (!dep.isResolved()) {
             // check if this dep is available in the index
             if (auto depItem = this->getItem(dep.id, dep.version)) {
-                if (!depItem->download.platforms.count(GEODE_PLATFORM_TARGET)) {
+                if (!depItem->getAvailablePlatforms().count(GEODE_PLATFORM_TARGET)) {
                     return Err(
                         "Dependency {} is not available on {}",
                         dep.id, GEODE_PLATFORM_NAME
@@ -606,7 +517,7 @@ Result<IndexInstallList> Index::getInstallList(IndexItemHandle item) const {
                     "reason is that the version of the dependency this mod "
                     "depends on is not available. Please let the the developer "
                     "({}) of the mod know!",
-                    dep.id, dep.version.toString(), item->info.developer()
+                    dep.id, dep.version.toString(), item->getModInfo().developer()
                 );
             }
         }
@@ -618,10 +529,10 @@ Result<IndexInstallList> Index::getInstallList(IndexItemHandle item) const {
     return Ok(list);
 }
 
-void Index::installNext(size_t index, IndexInstallList const& list) {
+void Index::Impl::installNext(size_t index, IndexInstallList const& list) {
     auto postError = [this, list](std::string const& error) {
         m_runningInstallations.erase(list.target);
-        ModInstallEvent(list.target->info.id(), error).post();
+        ModInstallEvent(list.target->getModInfo().id(), error).post();
     };
 
     // If we're at the end of the list, move the downloaded items to mods
@@ -630,12 +541,12 @@ void Index::installNext(size_t index, IndexInstallList const& list) {
         // Move all downloaded files
         for (auto& item : list.list) {
             // If the mod is already installed, delete the old .geode file
-            if (auto mod = Loader::get()->getInstalledMod(item->info.id())) {
+            if (auto mod = Loader::get()->getInstalledMod(item->getModInfo().id())) {
                 auto res = mod->uninstall();
                 if (!res) {
                     return postError(fmt::format(
                         "Unable to uninstall old version of {}: {}",
-                        item->info.id(), res.unwrapErr()
+                        item->getModInfo().id(), res.unwrapErr()
                     ));
                 }
             }
@@ -643,13 +554,13 @@ void Index::installNext(size_t index, IndexInstallList const& list) {
             // Move the temp file
             try {
                 ghc::filesystem::rename(
-                    dirs::getTempDir() / (item->info.id() + ".index"),
-                    dirs::getModsDir() / (item->info.id() + ".geode")
+                    dirs::getTempDir() / (item->getModInfo().id() + ".index"),
+                    dirs::getModsDir() / (item->getModInfo().id() + ".geode")
                 );
             } catch(std::exception& e) {
                 return postError(fmt::format(
                     "Unable to install {}: {}",
-                    item->info.id(), e.what()
+                    item->getModInfo().id(), e.what()
                 ));
             }
         }
@@ -657,7 +568,7 @@ void Index::installNext(size_t index, IndexInstallList const& list) {
         // load mods
         Loader::get()->refreshModsList();
 
-        ModInstallEvent(list.target->info.id(), UpdateFinished()).post();
+        ModInstallEvent(list.target->getModInfo().id(), UpdateFinished()).post();
         return;
     }
 
@@ -668,10 +579,10 @@ void Index::installNext(size_t index, IndexInstallList const& list) {
     };
 
     auto item = list.list.at(index);
-    auto tempFile = dirs::getTempDir() / (item->info.id() + ".index");
+    auto tempFile = dirs::getTempDir() / (item->getModInfo().id() + ".index");
     m_runningInstallations[list.target] = web::AsyncWebRequest()
-        .join("install_item_" + item->info.id())
-        .fetch(item->download.url)
+        .join("install_item_" + item->getModInfo().id())
+        .fetch(item->getDownloadURL())
         .into(tempFile)
         .then([=](auto) {
             // Check for 404
@@ -680,25 +591,25 @@ void Index::installNext(size_t index, IndexInstallList const& list) {
                 return postError(fmt::format(
                     "Binary file download for {} returned \"404 Not found\". "
                     "Report this to the Geode development team.",
-                    item->info.id()
+                    item->getModInfo().id()
                 ));
             }
 
             // Verify checksum
             ModInstallEvent(
-                list.target->info.id(),
+                list.target->getModInfo().id(),
                 UpdateProgress(
                     scaledProgress(100),
-                    fmt::format("Verifying {}", item->info.id())
+                    fmt::format("Verifying {}", item->getModInfo().id())
                 )
             ).post();
             
-            if (::calculateHash(tempFile) != item->download.hash) {
+            if (::calculateHash(tempFile) != item->getPackageHash()) {
                 return postError(fmt::format(
                     "Checksum mismatch with {}! (Downloaded file did not match what "
                     "was expected. Try again, and if the download fails another time, "
                     "report this to the Geode development team.)",
-                    item->info.id()
+                    item->getModInfo().id()
                 ));
             }
 
@@ -708,15 +619,15 @@ void Index::installNext(size_t index, IndexInstallList const& list) {
         .expect([postError, list, item](std::string const& err) {
             postError(fmt::format(
                 "Unable to download {}: {}",
-                item->info.id(), err
+                item->getModInfo().id(), err
             ));
         })
         .progress([this, item, list, scaledProgress](auto&, double now, double total) {
             ModInstallEvent(
-                list.target->info.id(),
+                list.target->getModInfo().id(),
                 UpdateProgress(
                     scaledProgress(now / total * 100.0),
-                    fmt::format("Downloading {}", item->info.id())
+                    fmt::format("Downloading {}", item->getModInfo().id())
                 )
             ).post();
         })
@@ -728,22 +639,22 @@ void Index::installNext(size_t index, IndexInstallList const& list) {
 
 void Index::cancelInstall(IndexItemHandle item) {
     Loader::get()->queueInGDThread([this, item]() {
-        if (m_runningInstallations.count(item)) {
-            m_runningInstallations.at(item)->cancel();
-            m_runningInstallations.erase(item);
+        if (m_impl->m_runningInstallations.count(item)) {
+            m_impl->m_runningInstallations.at(item)->cancel();
+            m_impl->m_runningInstallations.erase(item);
         }
     });
 }
 
 void Index::install(IndexInstallList const& list) {
     Loader::get()->queueInGDThread([this, list]() {
-        this->installNext(0, list);
+        m_impl->installNext(0, list);
     });
 }
 
 void Index::install(IndexItemHandle item) {
     Loader::get()->queueInGDThread([this, item]() {
-        if (m_runningInstallations.count(item)) {
+        if (m_impl->m_runningInstallations.count(item)) {
             return;
         }
         auto list = this->getInstallList(item);
@@ -751,7 +662,7 @@ void Index::install(IndexItemHandle item) {
             this->install(list.unwrap());
         } else {
             ModInstallEvent(
-                item->info.id(),
+                item->getModInfo().id(),
                 UpdateFailed(list.unwrapErr())
             ).post();
         }
@@ -762,9 +673,9 @@ void Index::install(IndexItemHandle item) {
 
 std::unordered_set<std::string> Index::getTags() const {
     std::unordered_set<std::string> tags;
-    for (auto& [_, versions] : m_items) {
+    for (auto& [_, versions] : m_impl->m_items) {
         for (auto& [_, item] : versions) {
-            for (auto& tag : item->tags) {
+            for (auto& tag : item->getTags()) {
                 tags.insert(tag);
             }
         }
