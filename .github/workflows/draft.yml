@@ -19,9 +19,7 @@ jobs:
       - name: Declare Version Variable
         id: ref
         shell: bash
-        run: |
-          unzip "${{ github.workspace }}/dev/geode-nightly.zip"
-          echo "version=$(cat ${{ github.workspace }}/dev/geode-nightly/geode-sdk-geode-*/VERSION | xargs)" >> $GITHUB_OUTPUT
+        run: echo "version=$(unzip -p ${{ github.workspace }}/dev/geode-nightly.zip geode-sdk-geode-*/VERSION | xargs)" >> $GITHUB_OUTPUT
 
       - name: Move Files
         run: |
