@@ -55,6 +55,7 @@ file(GLOB SOURCES CONFIGURE_DEPENDS
 	src/ui/internal/info/*.cpp
 	src/ui/internal/list/*.cpp
 	src/ui/internal/settings/*.cpp
+	hash/hash.cpp
 )
 
 # Obj-c sources
@@ -139,6 +140,11 @@ package_geode_resources_now(
 	${GEODE_BIN_PATH}/nightly/resources
 	${CMAKE_CURRENT_SOURCE_DIR}/src/internal/resources.hpp
 )
+
+if (APPLE) 
+	# I don't care a single bit where to put this
+	file(COPY ${GEODE_LOADER_PATH}/include/link/libfmod.dylib DESTINATION ${GEODE_BIN_PATH}/nightly)
+endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE
 	src/

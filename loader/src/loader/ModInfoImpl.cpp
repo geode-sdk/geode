@@ -101,12 +101,12 @@ Result<ModInfo> ModInfo::Impl::createFromSchemaV010(ModJson const& rawJson) {
     // removed keys
     if (root.has("datastore")) {
         log::error(
-            "[mod.json].datastore has been deprecated "
-            "and removed. Use Saved Values instead (see TODO: DOCS LINK)"
+            "{}: [mod.json].datastore has been deprecated "
+            "and removed. Use Saved Values instead (see TODO: DOCS LINK)", impl->m_id
         );
     }
     if (root.has("binary")) {
-        log::error("[mod.json].binary has been deprecated and removed.");
+        log::error("{}: [mod.json].binary has been deprecated and removed.", impl->m_id);
     }
 
     if (checker.isError()) {

@@ -1,12 +1,12 @@
 #!/usr/bin/env osascript
 
 
-set tmpPath to POSIX path of "/tmp/"
-set binPath to POSIX path of (tmpPath & "geode-install/")
+set tmpPath to (POSIX path of "/tmp/")
+set binPath to (tmpPath & "geode-install/")
 
 on ExitWithMessage(message)
     display dialog message
-    do shell script "rm -rf " & binPath
+    do shell script "sudo rm -rf \"" & binPath & "\""
     error number -128
 end ExitWithMessage
 
@@ -41,27 +41,27 @@ on error
 end try
 
 try
-    do shell script "mv -n " & (frameworkPath & fmodPath) & " " & (frameworkPath & fmodOriginalPath)
+    do shell script "mv -n \"" & (frameworkPath & fmodPath) & "\" \"" & (frameworkPath & fmodOriginalPath) & "\""
 on error
     ExitWithMessage ("Moving original fmod failed: " & (frameworkPath & fmodPath))
 end try
 
 try
-    do shell script "mv " & (binPath & geodePath) & " " & (frameworkPath & geodePath)
-    do shell script "mv " & (binPath & bootstrapperPath) & " " & (frameworkPath & bootstrapperPath)
-    do shell script "mv " & (binPath & fmodPath) & " " & (frameworkPath & fmodPath)
-    do shell script "INSTALLER_USER=$(stat -f '%Su' $HOME) && sudo chown -R $INSTALLER_USER " & frameworkPath
+    do shell script "sudo mv \"" & (binPath & geodePath) & "\" \"" & (frameworkPath & geodePath) & "\""
+    do shell script "sudo mv \"" & (binPath & bootstrapperPath) & "\" \"" & (frameworkPath & bootstrapperPath) & "\""
+    do shell script "sudo mv \"" & (binPath & fmodPath) & "\" \"" & (frameworkPath & fmodPath) & "\""
+    do shell script "INSTALLER_USER=$(stat -f '%Su' $HOME) && sudo chown -R $INSTALLER_USER \"" & frameworkPath & "\""
 on error
     ExitWithMessage ("Moving libraries failed: " & frameworkPath)
 end try
 
 try
-    do shell script "mkdir -p " & (gdPath & newResourcesPath)
-    do shell script "mv " & (binPath & resourcesPath) & "* " & (gdPath & newResourcesPath)
-    do shell script "INSTALLER_USER=$(stat -f '%Su' $HOME) && sudo chown -R $INSTALLER_USER " & (gdPath & newGeodePath)
+    do shell script "sudo mkdir -p \"" & (gdPath & newResourcesPath) & "\""
+    do shell script "sudo mv \"" & (binPath & resourcesPath) & "\"* \"" & (gdPath & newResourcesPath) & "\""
+    do shell script "INSTALLER_USER=$(stat -f '%Su' $HOME) && sudo chown -R $INSTALLER_USER \"" & (gdPath & newGeodePath) & "\""
 on error
     ExitWithMessage ("Moving resources failed: " & (gdPath & newResourcesPath))
 end try
 
 
-do shell script "rm -rf " & binPath
+do shell script "sudo rm -rf \"" & binPath & "\""
