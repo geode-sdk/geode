@@ -1,0 +1,51 @@
+name: Build Binaries
+
+on:
+  workflow_dispatch:
+
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Development Release
+        uses: robinraju/release-downloader@v1.8
+        with:
+          tag: nightly
+          fileName: '*'
+          tarBall: false
+          zipBall: true
+          out-file-path: 'dev'
+
+      - name: Declare Version Variables
+        id: ref
+        shell: bash
+        run: |
+          7z x "${{ github.workspace }}/dev/geode-nightly.zip" -o"${{ github.workspace }}/dev"
+          echo "version=$(cat ${{ github.workspace }}/dev/VERSION | xargs)" >> $GITHUB_OUTPUT
+          echo "hash=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_OUTPUT
+
+      - name: Move Files
+        run: |
+          mv dev/geode-${{ steps.ref.outputs.hash }}-mac.zip geode-${{ steps.ref.outputs.version }}-mac.zip
+          mv dev/geode-${{ steps.ref.outputs.hash }}-win.zip geode-${{ steps.ref.outputs.version }}-win.zip
+          mv dev/geode-installer-${{ steps.ref.outputs.hash }}-mac.pkg geode-installer-${{ steps.ref.outputs.version }}-mac.pkg
+          mv dev/geode-installer-${{ steps.ref.outputs.hash }}-win.exe geode-installer-${{ steps.ref.outputs.version }}-win.exe
+
+      - name: Create Draft Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.ref.outputs.version }}
+          name: Geode v${{ steps.ref.outputs.version }}
+          body: |
+            TODO before publishing:
+             - mark if pre-release
+             - add changelog
+             - remove this
+          draft: true
+          files: |
+            ./geode-${{ steps.ref.outputs.version }}-mac.zip
+            ./geode-${{ steps.ref.outputs.version }}-win.zip
+            ./geode-installer-${{ steps.ref.outputs.version }}-mac.pkg
+            ./geode-installer-${{ steps.ref.outputs.version }}-win.exe

@@ -2,12 +2,6 @@ name: Build Binaries
 
 on:
   workflow_dispatch:
-    inputs:
-      draft:
-        description: Draft Release
-        required: false
-        type: boolean
-        default: false
   push:
     branches:
     - '**'              # every branch
