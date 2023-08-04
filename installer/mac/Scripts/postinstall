@@ -24,6 +24,8 @@ tell application "System Events"
         set libraryPath to POSIX path of (path to home folder from user domain)
         set steamPath to (libraryPath & "/Library/Application Support/Steam/steamapps/common/Geometry Dash/")
 
+        display dialog "Steam path: " & steamPath
+
         if exists folder steamPath then
             set gdPath to (the POSIX path of (choose file with prompt "Please choose the Geometry Dash application to install Geode to:" of type {"app"} default location steamPath))
         else 
