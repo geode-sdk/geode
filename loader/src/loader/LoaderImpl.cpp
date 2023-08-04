@@ -745,9 +745,9 @@ void Loader::Impl::checkForLoaderUpdates() {
             // find release asset
             for (auto asset : root.needs("assets").iterate()) {
                 auto obj = asset.obj();
-                if (string::contains(
+                if (string::endsWith(
                     obj.needs("name").template get<std::string>(),
-                    GEODE_PLATFORM_SHORT_IDENTIFIER
+                    GEODE_PLATFORM_SHORT_IDENTIFIER ".zip"
                 )) {
                     this->downloadLoaderUpdate(
                         obj.needs("browser_download_url").template get<std::string>()
