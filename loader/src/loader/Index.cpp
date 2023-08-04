@@ -8,6 +8,10 @@
 #include <hash/hash.hpp>
 #include <Geode/utils/JsonValidation.hpp>
 
+#ifdef GEODE_IS_WINDOWS
+#include <filesystem>
+#endif
+
 using namespace geode::prelude;
 
 // ModInstallEvent
@@ -137,8 +141,13 @@ static Result<> flattenGithubRepo(ghc::filesystem::path const& dir) {
         // only flatten if there is only one file and it's a directory
         if (files.size() == 1 && ghc::filesystem::is_directory(files[0])) {
             for (auto& file : ghc::filesystem::directory_iterator(files[0])) {
+                #ifdef GEODE_IS_WINDOWS
+                ghc::filesystem::path const relative = std::filesystem::relative(file.path().wstring(), files[0].wstring()).wstring();
+                #else
+                auto const relative = ghc::filesystem::relative(file, files[0]);
+                #endif
                 ghc::filesystem::rename(
-                    file, dir / ghc::filesystem::relative(file, files[0])
+                    file, dir / relative
                 );
             }
             ghc::filesystem::remove(files[0]);
@@ -351,7 +360,7 @@ void Index::Impl::updateFromLocalTree() {
 
 void Index::update(bool force) {
     // create index dir if it doesn't exist
-    (void)file::createDirectoryAll(dirs::getIndexDir());
+    (void) file::createDirectoryAll(dirs::getIndexDir());
 
     m_impl->m_triedToUpdate = true;
 

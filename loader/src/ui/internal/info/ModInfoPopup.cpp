@@ -224,7 +224,7 @@ void ModInfoPopup::onChangelog(CCObject* sender) {
     auto winSize = CCDirector::get()->getWinSize();
 
     if (!m_changelogArea) {
-        m_changelogArea = MDTextArea::create(Mod::get()->getModInfo().changelog().value(), { 350.f, 137.5f });
+        m_changelogArea = MDTextArea::create(this->getModInfo().changelog().value(), { 350.f, 137.5f });
         m_changelogArea->setPosition(
             -5000.f, winSize.height / 2 - m_changelogArea->getScaledContentSize().height / 2 - 20.f
         );

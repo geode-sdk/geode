@@ -34,7 +34,7 @@ Mod::Impl::~Impl() {
 
 Result<> Mod::Impl::setup() {
     m_saveDirPath = dirs::getModsSaveDir() / m_info.id();
-    ghc::filesystem::create_directories(m_saveDirPath);
+    (void) utils::file::createDirectoryAll(m_saveDirPath);
     
     // always create temp dir for all mods, even if disabled, so resources can be loaded
     GEODE_UNWRAP(this->createTempDir().expect("Unable to create temp dir: {error}"));
