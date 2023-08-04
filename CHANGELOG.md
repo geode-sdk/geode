@@ -1,5 +1,8 @@
 # Geode Changelog
 
+## v1.0.2
+ * Fix auto-updating (1f7e6da)
+
 ## v1.0.1
  * New textures for list tabs (8ce1227)
  * Switch libraries for SHA3 256 (bbf2608)
