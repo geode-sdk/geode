@@ -251,12 +251,11 @@ FunctionEnd
 Function .onInit
     !insertmacro MUI_LANGDLL_DISPLAY
 
-    findGamePath:
-        Call FindGamePath
-        IfErrors 0 +3
-            StrCpy $GamePath ""
-            Return
-        StrCpy $INSTDIR "$GamePath\"
+    Call FindGamePath
+    IfErrors 0 +3
+        StrCpy $GamePath ""
+        Return
+    StrCpy $INSTDIR "$GamePath\"
 FunctionEnd
 
 Function DirectoryPageShow
