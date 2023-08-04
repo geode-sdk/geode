@@ -159,10 +159,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: nightly
-          name: 'Dev Release'
-          prerelease: true
+          name: 'Development Release'
           body: |
-            Geode dev release for commit ${{ github.sha }}. Since this is not a regular release, Geode will not install the resources automatically, so you should use the installer if you want them.
+            Geode development release for commit ${{ github.sha }}. Since this is not a regular release, Geode will not install the resources automatically, so you should use the installer if you want them.
           files: |
             ./geode-installer-${{ steps.ref.outputs.hash }}-mac.pkg
             ./geode-installer-${{ steps.ref.outputs.hash }}-win.exe
