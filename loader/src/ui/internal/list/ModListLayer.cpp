@@ -19,6 +19,10 @@
 #define FTS_FUZZY_MATCH_IMPLEMENTATION
 #include <Geode/external/fts/fts_fuzzy_match.h>
 
+#ifdef GEODE_IS_WINDOWS
+#include <filesystem>
+#endif
+
 static ModListType g_tab = ModListType::Installed;
 static ModListLayer* g_instance = nullptr;
 
@@ -624,7 +628,11 @@ void ModListLayer::onFilters(CCObject*) {
 }
 
 void ModListLayer::onOpenFolder(CCObject*) {
+#ifdef GEODE_IS_WINDOWS
+    file::openFolder(std::filesystem::canonical(dirs::getModsDir().wstring()).wstring());
+#else
     file::openFolder(ghc::filesystem::canonical(dirs::getModsDir()));
+#endif
 }
 
 void ModListLayer::onResetSearch(CCObject*) {
