@@ -53,67 +53,45 @@ jobs:
       with:
         submodules: recursive
 
-    #- name: Setup ccache
-    #  uses: hendrikmuhs/ccache-action@v1
-    #  with:
-    #    key: ${{ matrix.config.os }}
-    #  if: matrix.config.id == 'mac'
-
-    #- name: Setup MSVC
-    #  uses: ilammy/msvc-dev-cmd@v1.12.1
-    #  with:
-    #    arch: amd64_x86
-    #  if: matrix.config.id == 'win'
-
-    #- name: Download CLI
-    #  uses: robinraju/release-downloader@v1.8
-    #  with:
-    #    repository: geode-sdk/cli
-    #    latest: true
-    #    fileName: '*-${{ matrix.config.id }}.zip'
-    #    tarBall: false
-    #    zipBall: false
-    #    out-file-path: "cli"
-
-    #- name: Setup CLI
-    #  run: |
-    #    7z x "${{ github.workspace }}/cli/*-${{ matrix.config.id }}.zip" -o"${{ github.workspace }}/cli"
-    #    ${{ matrix.config.cli_cmd }}
-    #    echo "${{ github.workspace }}/cli" >> $GITHUB_PATH
-
-    #- name: Configure
-    #  run: >
-    #    cmake -B ${{ github.workspace }}/build
-    #    -DCLI_PATH="${{ github.workspace }}/cli"
-    #    ${{ matrix.config.extra_flags }}
-
-    #- name: Build
-    #  run: |
-    #    cd ${{ github.workspace }}/build
-    #    cmake --build . --config RelWithDebInfo --parallel
-    #    rm ${{ github.workspace }}/bin/nightly/resources/.geode_cache
-
-    - name: fake build mac
-      shell: bash
-      run: |
-        mkdir -p ./bin/nightly/resources
-        touch ./bin/nightly/resources/fake-resource-mac.txt
-        touch ./bin/nightly/Geode.dylib
-        touch ./bin/nightly/GeodeBootstrapper.dylib
-        touch ./bin/nightly/libfmod.dylib
+    - name: Setup ccache
+      uses: hendrikmuhs/ccache-action@v1
+      with:
+        key: ${{ matrix.config.os }}
       if: matrix.config.id == 'mac'
 
-    - name: fake build win
-      shell: bash
-      run: |
-        mkdir -p ./bin/nightly/resources
-        touch ./bin/nightly/resources/fake-resource-win.txt
-        touch ./bin/nightly/Geode.dll
-        touch ./bin/nightly/Geode.pdb
-        touch ./bin/nightly/Geode.lib
-        touch ./bin/nightly/GeodeUpdater.exe
-        touch ./bin/nightly/XInput9_1_0.dll
+    - name: Setup MSVC
+      uses: ilammy/msvc-dev-cmd@v1.12.1
+      with:
+        arch: amd64_x86
       if: matrix.config.id == 'win'
+
+    - name: Download CLI
+      uses: robinraju/release-downloader@v1.8
+      with:
+        repository: geode-sdk/cli
+        latest: true
+        fileName: '*-${{ matrix.config.id }}.zip'
+        tarBall: false
+        zipBall: false
+        out-file-path: "cli"
+
+    - name: Setup CLI
+      run: |
+        7z x "${{ github.workspace }}/cli/*-${{ matrix.config.id }}.zip" -o"${{ github.workspace }}/cli"
+        ${{ matrix.config.cli_cmd }}
+        echo "${{ github.workspace }}/cli" >> $GITHUB_PATH
+
+    - name: Configure
+      run: >
+        cmake -B ${{ github.workspace }}/build
+        -DCLI_PATH="${{ github.workspace }}/cli"
+        ${{ matrix.config.extra_flags }}
+
+    - name: Build
+      run: |
+        cd ${{ github.workspace }}/build
+        cmake --build . --config RelWithDebInfo --parallel
+        rm ${{ github.workspace }}/bin/nightly/resources/.geode_cache
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
@@ -133,7 +111,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     needs: build
-    if: github.ref == 'refs/heads/resources-fix'
+    if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -179,10 +157,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: nightly-test
-          name: 'Dev Release Test'
+          tag_name: nightly
+          name: 'Dev Release'
           prerelease: true
-          body: ignore this
+          body: |
+            Geode dev release for commit ${{ github.sha }}. Since this is not a regular release, Geode will not install the resources automatically, so you should use the installer if you want them.
           files: |
             ./geode-installer-${{ steps.ref.outputs.hash }}-mac.pkg
             ./geode-installer-${{ steps.ref.outputs.hash }}-win.exe
