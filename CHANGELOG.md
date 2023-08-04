@@ -1,9 +1,12 @@
 # Geode Changelog
 
 ## v1.0.3
- * Fix mod changelogs only showing Geode's own changelog (29454227)
- * Fix some filesystem functions for Geode running under wine (7a83354c)
- * Lazy load the real XInput9 dll, removing the need for an XInput 1.3 (041d44cf)
+ * Fix mod changelogs only showing Geode's own changelog (2945422)
+ * Fix some filesystem functions for Geode running under wine (7a83354)
+ * Lazy load the real XInput9 dll, removing the need for an XInput 1.3 (041d44c)
+ * Fix MacOS requiring openssl@3 directly from homebrew (e489681)
+ * Default to Steam installation on MacOS installer (072a18c)
+ * Implement uninstaller for MacOS (072a18c)
 
 ## v1.0.2
  * Fix auto-updating (1f7e6da)
