@@ -940,8 +940,7 @@ class CreateMenuItem : CCMenuItemSpriteExtra {
     int m_buildTab;
 }
 
-//TODO: inherits cocos2d::CCSceneTransitionDelegate
-class CreatorLayer : cocos2d::CCLayer {
+class CreatorLayer : cocos2d::CCLayer, cocos2d::CCSceneTransitionDelegate, DialogDelegate {
     void onBack(cocos2d::CCObject*) = win 0x4fae0;
     void onChallenge(cocos2d::CCObject*) = mac 0x142960, win 0x4f1b0;
     void onLeaderboards(cocos2d::CCObject*) = win 0x4ed20;

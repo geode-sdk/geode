@@ -8,6 +8,7 @@ RT_ADD(
 
 	class CC_DLL CCSceneTransitionDelegate
 	{
+	public:
 		CCSceneTransitionDelegate(const CCSceneTransitionDelegate&);
 		CCSceneTransitionDelegate();
 
