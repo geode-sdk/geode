@@ -38,8 +38,15 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
 	# only exists as a global property
 	set(CMAKE_OSX_DEPLOYMENT_TARGET 10.14)
 
+	find_package(CURL REQUIRED) 
+
+	target_include_directories(${PROJECT_NAME} INTERFACE
+		${CURL_INCLUDE_DIR}
+	)
+
 	target_link_libraries(${PROJECT_NAME} INTERFACE
-		curl "-framework Cocoa"
+		"-framework Cocoa"
+		${CURL_LIBRARIES}
 		${GEODE_LOADER_PATH}/include/link/libfmod.dylib
 	)
 	target_compile_options(${PROJECT_NAME} INTERFACE -fms-extensions #[[-Wno-deprecated]] -Wno-ignored-attributes -Os #[[-flto]] #[[-fvisibility=internal]])

@@ -175,6 +175,8 @@ if (NOT GEODE_BUILDING_DOCS)
 	# Zip support (needed for in-memory streams, which zlib's minizip doesn't support)
 	set(MZ_LZMA Off CACHE INTERNAL "Enables LZMA & XZ compression")
 	set(MZ_ZSTD Off CACHE INTERNAL "")
+	set(MZ_OPENSSL Off CACHE INTERNAL "")
+	set(MZ_LIBBSD Off CACHE INTERNAL "")
 	set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "" FORCE)
 	CPMAddPackage(
 		GITHUB_REPOSITORY zlib-ng/minizip-ng

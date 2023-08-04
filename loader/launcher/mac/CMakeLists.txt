@@ -19,4 +19,10 @@ set_target_properties(FakeGeode PROPERTIES
 	OUTPUT_NAME "Geode"
 )
 
-target_link_libraries(GeodeBootstrapper PRIVATE geode-loader)
+set_target_properties(GeodeBootstrapper PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
+set_target_properties(GeodeBootstrapper PROPERTIES INSTALL_RPATH "./")
+
+set_target_properties(FakeGeode PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
+set_target_properties(FakeGeode PROPERTIES INSTALL_RPATH "./")
+
+target_link_libraries(GeodeBootstrapper PRIVATE FakeGeode)
