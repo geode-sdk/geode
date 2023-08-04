@@ -6,15 +6,9 @@
 RT_ADD(
 	NS_CC_BEGIN
 
-	class CC_DLL CCSceneTransitionDelegate
-	{
+	class CC_DLL CCSceneTransitionDelegate {
 	public:
-		CCSceneTransitionDelegate(const CCSceneTransitionDelegate&);
-		CCSceneTransitionDelegate();
-
-		CCSceneTransitionDelegate& operator=(const CCSceneTransitionDelegate&);
-
-		virtual void sceneWillResume(void);
+		virtual void sceneWillResume(void) {}
 	};
 
 	NS_CC_END
