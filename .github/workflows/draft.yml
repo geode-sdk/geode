@@ -5,6 +5,7 @@ on:
 
 jobs:
   draft:
+    name: Draft Release
     runs-on: ubuntu-latest
     steps:
       - name: Download Development Release
@@ -23,10 +24,11 @@ jobs:
 
       - name: Move Files
         run: |
-          mv dev/geode-installer-*-mac.pkg geode-installer-${{ steps.ref.outputs.version }}-mac.pkg
-          mv dev/geode-installer-*-win.exe geode-installer-${{ steps.ref.outputs.version }}-win.exe
-          mv dev/geode-*-mac.zip geode-${{ steps.ref.outputs.version }}-mac.zip
-          mv dev/geode-*-win.zip geode-${{ steps.ref.outputs.version }}-win.zip
+          mv dev/geode-installer-*-mac.pkg geode-installer-v${{ steps.ref.outputs.version }}-mac.pkg
+          mv dev/geode-installer-*-win.exe geode-installer-v${{ steps.ref.outputs.version }}-win.exe
+          mv dev/geode-*-mac.zip geode-v${{ steps.ref.outputs.version }}-mac.zip
+          mv dev/geode-*-win.zip geode-v${{ steps.ref.outputs.version }}-win.zip
+          mv dev/resources.zip resources.zip
 
       - name: Create Draft Release
         uses: softprops/action-gh-release@v1
@@ -42,7 +44,8 @@ jobs:
              - remove this
           draft: true
           files: |
-            ./geode-${{ steps.ref.outputs.version }}-mac.zip
-            ./geode-${{ steps.ref.outputs.version }}-win.zip
-            ./geode-installer-${{ steps.ref.outputs.version }}-mac.pkg
-            ./geode-installer-${{ steps.ref.outputs.version }}-win.exe
+            ./geode-installer-v${{ steps.ref.outputs.version }}-mac.pkg
+            ./geode-installer-v${{ steps.ref.outputs.version }}-win.exe
+            ./geode-v${{ steps.ref.outputs.version }}-mac.zip
+            ./geode-v${{ steps.ref.outputs.version }}-win.zip
+            ./resources.zip

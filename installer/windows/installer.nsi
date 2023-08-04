@@ -251,18 +251,11 @@ FunctionEnd
 Function .onInit
     !insertmacro MUI_LANGDLL_DISPLAY
 
-    StrCpy $0 "$WINDIR\System32\xinput1_3.dll"
-    IfFileExists $0 findGamePath 0
-        MessageBox MB_ICONSTOP|MB_OK $(GEODE_TEXT_SYSTEM_XINPUT_MISSING)
-        Abort
+    Call FindGamePath
+    IfErrors 0 +3
+        StrCpy $GamePath ""
         Return
-
-    findGamePath:
-        Call FindGamePath
-        IfErrors 0 +3
-            StrCpy $GamePath ""
-            Return
-        StrCpy $INSTDIR "$GamePath\"
+    StrCpy $INSTDIR "$GamePath\"
 FunctionEnd
 
 Function DirectoryPageShow

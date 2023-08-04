@@ -1,5 +1,13 @@
 # Geode Changelog
 
+## v1.0.3
+ * Fix mod changelogs only showing Geode's own changelog (29454227)
+ * Fix some filesystem functions for Geode running under wine (7a83354c)
+ * Lazy load the real XInput9 dll, removing the need for an XInput 1.3 (041d44cf)
+
+## v1.0.2
+ * Fix auto-updating (1f7e6da)
+
 ## v1.0.1
  * New textures for list tabs (8ce1227)
  * Switch libraries for SHA3 256 (bbf2608)

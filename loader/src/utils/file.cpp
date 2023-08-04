@@ -13,6 +13,10 @@
 #include <mz_zip.h>
 #include <internal/FileWatcher.hpp>
 
+#ifdef GEODE_IS_WINDOWS
+#include <filesystem>
+#endif
+
 using namespace geode::prelude;
 using namespace geode::utils::file;
 
@@ -97,7 +101,11 @@ Result<> utils::file::writeBinary(ghc::filesystem::path const& path, ByteVector 
 
 Result<> utils::file::createDirectory(ghc::filesystem::path const& path) {
     try {
+#ifdef GEODE_IS_WINDOWS
+        std::filesystem::create_directory(path.wstring());
+#else
         ghc::filesystem::create_directory(path);
+#endif
         return Ok();
     }
     catch (...) {
@@ -107,7 +115,11 @@ Result<> utils::file::createDirectory(ghc::filesystem::path const& path) {
 
 Result<> utils::file::createDirectoryAll(ghc::filesystem::path const& path) {
     try {
+#ifdef GEODE_IS_WINDOWS
+        std::filesystem::create_directories(path.wstring());
+#else
         ghc::filesystem::create_directories(path);
+#endif
         return Ok();
     }
     catch (...) {
@@ -453,7 +465,11 @@ Result<> Unzip::extractAllTo(Path const& dir) {
     for (auto& [entry, info] : m_impl->getEntries()) {
         // make sure zip files like root/../../file.txt don't get extracted to 
         // avoid zip attacks
+#ifdef GEODE_IS_WINDOWS
+        if (!std::filesystem::relative((dir / entry).wstring(), dir.wstring()).empty()) {
+#else
         if (!ghc::filesystem::relative(dir / entry, dir).empty()) {
+#endif
             if (info.isDirectory) {
                 GEODE_UNWRAP(file::createDirectoryAll(dir / entry));
             } else {

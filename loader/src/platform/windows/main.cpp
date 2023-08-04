@@ -84,7 +84,37 @@ void earlyError(std::string message) {
     LoaderImpl::get()->platformMessageBox("Unable to Load Geode!", message);
 }
 
-extern "C" __declspec(dllexport) void fake() { }
+DWORD WINAPI sus(void*) {
+    ShellExecuteA(nullptr, nullptr, "https://media.tenor.com/cW1jA2hYdfcAAAAC/among-us-funny.gif", nullptr, nullptr, SW_SHOW);
+    MessageBoxA(
+        nullptr,
+        "Red sus. Red suuuus. I\r\n"
+        "said red, sus,\r\n"
+        "hahahahahaha. Why\r\n"
+        "arent you laughing? I\r\n"
+        "just made a reference\r\n"
+        "to the popular game\r\n"
+        "\"Among Us\"! How can\r\n"
+        "you not laugh at it?\r\n"
+        "Emergency meeting!\r\n"
+        "Guys, this here guy\r\n"
+        "doesn't laugh at my\r\n"
+        "funny Among Us\r\n"
+        "memes! Let's beat him\r\n"
+        "to death! Dead body\r\n"
+        "reported! Skip! Skip!\r\n"
+        "Vote blue! Blue was\r\n"
+        "not an impostor.\r\n",
+        "AMONG US ACTIVATED REAL !!!!!!!!!",
+        MB_OK
+    );
+    return 0;
+}
+extern "C" __declspec(dllexport) void fake() {
+    for (int i = 0; i < 5; i++)
+        CreateThread(nullptr, 0, sus, nullptr, 0, nullptr);
+}
+
 BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID) {
     if (reason != DLL_PROCESS_ATTACH)
         return TRUE;

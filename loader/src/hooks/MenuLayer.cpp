@@ -205,9 +205,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 		
 	#ifdef GEODE_IS_DESKTOP
 
-		try {
-			ghc::filesystem::create_directories(dirs::getGeodeDir() / "update" / "resources");
-		} catch(...) {}
+		(void) utils::file::createDirectoryAll(dirs::getGeodeDir() / "update" / "resources");
 
 		createQuickPopup(
 			"Missing Textures",
