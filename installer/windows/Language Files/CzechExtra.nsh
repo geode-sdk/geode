@@ -7,8 +7,6 @@ ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Tento průvodce vás provede odi
 
 ; installer
 
-${LangFileString} GEODE_TEXT_SYSTEM_XINPUT_MISSING "$0 nebyl nalezen. Geode je kompatibilní pouze s Windows 7 a vyšším."
-
 ${LangFileString} GEODE_TEXT_GD_MISSING "$\r$\n$\r$\nV této cestě se nenachází Geometry Dash!"
 ${LangFileString} GEODE_TEXT_MH_ALREADY_INSTALLED "V této cestě je již nainstalován Mega Hack v6/v7!$\r$\nGeode nefunguje s MHv6/v7 (MHv8 ale již kompatibilní bude).$\r$\nProsím, odinstalujte jej, než budete pokračovat."
 ${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "V této cestě je již nainstalován jiný mod loader!$\r$\nGeode s žádným jiným mod loaderem dohromady nefunguje.$\r$\nProsím, odinstalujte jej, než budete pokračovat."
