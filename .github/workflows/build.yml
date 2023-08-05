@@ -147,11 +147,18 @@ jobs:
           dest: geode-${{ steps.ref.outputs.hash }}-win.zip
 
       # TODO change in 2.0.0
-      - name: Zip Resources
+      - name: Zip Windows Resources
         uses: vimtor/action-zip@v1.1
         with:
           files: geode-win/resources
-          dest: resources.zip
+          dest: resources-win.zip
+
+      # This is basically a hack because of line endings. Blame windows.
+      - name: Zip MacOS Resources
+        uses: vimtor/action-zip@v1.1
+        with:
+          files: geode-mac/resources
+          dest: resources-mac.zip
 
       - name: Update Nightly Release
         uses: andelf/nightly-release@main
@@ -167,4 +174,5 @@ jobs:
             ./geode-installer-${{ steps.ref.outputs.hash }}-win.exe
             ./geode-${{ steps.ref.outputs.hash }}-mac.zip
             ./geode-${{ steps.ref.outputs.hash }}-win.zip
-            ./resources.zip
+            ./resources-win.zip
+            ./resources-mac.zip
