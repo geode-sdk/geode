@@ -127,29 +127,61 @@ std::wstring utils::string::replace(
 
 std::vector<std::string> utils::string::split(std::string const& str, std::string const& split) {
     std::vector<std::string> res;
-    if (str.size()) {
-        auto s = str;
-        size_t pos = 0;
-        while ((pos = s.find(split)) != std::string::npos) {
-            res.push_back(s.substr(0, pos));
-            s.erase(0, pos + split.length());
-        }
-        res.push_back(s);
+    if (str.empty()) return res;
+    auto s = str;
+    size_t pos;
+    while ((pos = s.find(split)) != std::string::npos) {
+        res.push_back(s.substr(0, pos));
+        s.erase(0, pos + split.length());
     }
+    res.push_back(s);
     return res;
 }
 
 std::vector<std::wstring> utils::string::split(std::wstring const& str, std::wstring const& split) {
     std::vector<std::wstring> res;
-    if (str.size()) {
-        auto s = str;
-        size_t pos = 0;
-        while ((pos = s.find(split)) != std::wstring::npos) {
-            res.push_back(s.substr(0, pos));
-            s.erase(0, pos + split.length());
-        }
-        res.push_back(s);
+    if (str.empty()) return res;
+    auto s = str;
+    size_t pos;
+    while ((pos = s.find(split)) != std::wstring::npos) {
+        res.push_back(s.substr(0, pos));
+        s.erase(0, pos + split.length());
     }
+    res.push_back(s);
+        return res;
+}
+
+std::string utils::string::join(std::vector<std::string> const& strs, std::string const& separator) {
+    std::string res;
+    if (strs.empty())
+        return res;
+    if (strs.size() == 1)
+        return strs[0];
+    // idk if less allocations but an extra loop is faster but
+    size_t size = 0;
+    for (auto const& str : strs)
+        size += str.size() + separator.size();
+    res.reserve(size);
+    for (auto const& str : strs)
+        res += str + separator;
+    res.erase(res.size() - separator.size());
+    return res;
+}
+
+std::wstring utils::string::join(std::vector<std::wstring> const& strs, std::wstring const& separator) {
+    std::wstring res;
+    if (strs.empty())
+        return res;
+    if (strs.size() == 1)
+        return strs[0];
+    // idk if less allocations but an extra loop is faster but
+    size_t size = 0;
+    for (auto const& str : strs)
+        size += str.size() + separator.size();
+    res.reserve(size);
+    for (auto const& str : strs)
+        res += str + separator;
+    res.erase(res.size() - separator.size());
     return res;
 }
 
