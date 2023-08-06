@@ -3293,7 +3293,7 @@ class GameObject : CCSpritePlus {
     void updateState() = mac 0x3369e0;
     void updateSyncedAnimation(float) = mac 0x337f00, win 0xe7320;
     void updateTextObject(gd::string, bool) = mac 0x2f58d0, win 0xcfc60;
-    void deselectObject() = mac 0x3423a0, win 0xeee50;
+    void deselectObject() = mac 0x3423a0, win 0xeee40;
     cocos2d::CCRepeatForever* createRotateAction(float f, int n) = win 0xe49b0;
     void setMyAction(cocos2d::CCAction* pAction) = win 0xd1b90;
     bool canAllowMultiActivate() = mac 0x343ca0, win 0xf06b0;
