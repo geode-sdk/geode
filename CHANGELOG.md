@@ -1,5 +1,10 @@
 # Geode Changelog
 
+## v1.1.0
+ * Fix json library not actually being dynamically exported/imported (5f65d97)
+ * Update TulipHook, gets rid of keystone dependency and adds stdcall support (efcbf58, 7b90903)
+ * Make resources.zip platform dependent (e41784e)
+
 ## v1.0.3
  * Fix mod changelogs only showing Geode's own changelog (2945422)
  * Fix some filesystem functions for Geode running under wine (7a83354)

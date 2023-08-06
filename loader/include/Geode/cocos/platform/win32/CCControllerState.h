@@ -12,8 +12,8 @@ class CC_DLL CCControllerState
 public:
     DWORD m_packetNumber;
     WORD m_buttons;
-    byte m_leftTrigger;
-    byte m_rightTrigger;
+    unsigned char m_leftTrigger;
+    unsigned char m_rightTrigger;
     short m_thumbLX;
     short m_thumbLY;
     short m_thumbRX;
