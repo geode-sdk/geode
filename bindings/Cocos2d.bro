@@ -332,6 +332,9 @@ class cocos2d::CCKeypadHandler {
 class cocos2d::CCLabelBMFont {
 	static cocos2d::CCLabelBMFont* create(char const*, char const*) = mac 0x347660;
 	auto limitLabelWidth(float, float, float) = mac 0x34a6e0, ios 0x21b740;
+	auto setFntFile(char const*) = mac 0x34a5f0;
+	auto createFontChars() = mac 0x347fc0;
+	static auto create() = mac 0x3473f0;
 
 	virtual auto init() = mac 0x347b10, ios 0x2198e0;
 	bool initWithString(const char* str, const char* fnt, float width, cocos2d::CCTextAlignment align, cocos2d::CCPoint offset);
@@ -1130,6 +1133,7 @@ class cocos2d::extension::CCScrollView {
 }
 
 class cocos2d {
+	static auto FNTConfigLoadFile(char const*) = mac 0x344f10;
 	static auto ccGLBlendFunc(GLenum, GLenum) = mac 0x1ae560;
 	static auto ccDrawSolidRect(cocos2d::CCPoint, cocos2d::CCPoint, cocos2d::_ccColor4F) = mac 0xecf00;
 	static auto ccGLEnableVertexAttribs(unsigned int) = mac 0x1ae740;
