@@ -60,3 +60,5 @@ test-docs.bat
 # krita files too because alk is funny
 **/*.kra
 
+installer/mac/*.pkg
+installer/windows/*.exe
