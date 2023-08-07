@@ -6,6 +6,9 @@ class cocos2d::CCActionTween {
 
 class cocos2d::CCActionManager {
 	auto addAction(cocos2d::CCAction*, cocos2d::CCNode*, bool) = mac 0x10bed0;
+	auto pauseTarget(cocos2d::CCObject*) = mac 0x10bc50;
+	auto resumeTargets(cocos2d::CCSet*) = mac 0x10be80;
+	auto resumeTarget(cocos2d::CCObject*) = mac 0x10bd20;
 }
 
 class cocos2d::CCAnimate {
