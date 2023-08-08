@@ -22,11 +22,9 @@ bool ModMetadata::Dependency::isResolved() const {
 }
 
 bool ModMetadata::Incompatibility::isResolved() const {
-    return !this->mod || !this->mod->isLoaded() || !this->version.compare(this->mod->getVersion());
+    return !this->mod || !this->version.compare(this->mod->getVersion());
 }
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 ModMetadata::Dependency::operator geode::Dependency() {
     return {id, version, importance == Importance::Required, mod};
 }
@@ -53,7 +51,6 @@ ModMetadata::Dependency ModMetadata::Dependency::fromDeprecated(geode::Dependenc
 ModMetadata::IssuesInfo ModMetadata::IssuesInfo::fromDeprecated(geode::IssuesInfo const& value) {
     return {value.info, value.url};
 }
-#pragma clang diagnostic pop
 
 static std::string sanitizeDetailsData(std::string const& str) {
     // delete CRLF
@@ -473,8 +470,6 @@ ModMetadata& ModMetadata::operator=(ModMetadata&& other) noexcept {
     return *this;
 }
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 ModMetadata::operator ModInfo() {
     ModInfo info;
     auto infoImpl = ModInfoImpl::getImpl(info);
@@ -493,7 +488,6 @@ ModMetadata::operator ModInfo() const {
         infoImpl.m_dependencies.push_back(dep);
     return info;
 }
-#pragma clang diagnostic pop
 
 ModMetadata::~ModMetadata() = default;
 
@@ -504,6 +498,7 @@ struct json::Serialize<geode::ModMetadata::Dependency::Importance> {
             case geode::ModMetadata::Dependency::Importance::Required: return {"required"};
             case geode::ModMetadata::Dependency::Importance::Recommended: return {"recommended"};
             case geode::ModMetadata::Dependency::Importance::Suggested: return {"suggested"};
+            default: return {"unknown"};
         }
     }
     static geode::ModMetadata::Dependency::Importance GEODE_DLL from_json(json::Value const& importance) {

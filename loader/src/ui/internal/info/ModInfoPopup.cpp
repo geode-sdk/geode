@@ -573,9 +573,9 @@ void LocalModInfoPopup::onEnableMod(CCObject* sender) {
         )->show();
     }
     if (as<CCMenuItemToggler*>(sender)->isToggled()) {
-        auto res = m_mod->loadBinary();
+        auto res = m_mod->enable();
         if (!res) {
-            FLAlertLayer::create(nullptr, "Error Loading Mod", res.unwrapErr(), "OK", nullptr)->show();
+            FLAlertLayer::create(nullptr, "Error Enabling Mod", res.unwrapErr(), "OK", nullptr)->show();
         }
     }
     else {
@@ -585,7 +585,7 @@ void LocalModInfoPopup::onEnableMod(CCObject* sender) {
         }
     }
     if (m_layer) {
-        m_layer->updateAllStates(nullptr);
+        m_layer->updateAllStates();
     }
     as<CCMenuItemToggler*>(sender)->toggle(m_mod->isEnabled());
 }

@@ -55,6 +55,7 @@ protected:
     );
 
     void onInfo(CCObject*);
+    void onRestart(CCObject*);
     void onEnable(CCObject*);
     void onUnresolvedInfo(CCObject*);
 
@@ -86,6 +87,7 @@ protected:
     );
 
     void onInfo(CCObject*);
+    void onRestart(CCObject*);
 
 public:
     static IndexItemCell* create(

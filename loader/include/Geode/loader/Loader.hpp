@@ -4,6 +4,7 @@
 #include "../utils/Result.hpp"
 #include "../utils/MiniFunction.hpp"
 #include "Log.hpp"
+#include "ModEvent.hpp"
 #include "ModInfo.hpp"
 #include "ModMetadata.hpp"
 #include "Types.hpp"
@@ -17,6 +18,24 @@ namespace geode {
     struct InvalidGeodeFile {
         ghc::filesystem::path path;
         std::string reason;
+    };
+
+    struct LoadProblem {
+        enum class Type : uint8_t {
+            Unknown,
+            Suggestion,
+            Recommendation,
+            InvalidFile,
+            Duplicate,
+            SetupFailed,
+            LoadFailed,
+            EnableFailed,
+            MissingDependency,
+            PresentIncompatibility
+        };
+        Type type;
+        std::variant<ghc::filesystem::path, ModMetadata, Mod*> cause;
+        std::string message;
     };
 
     class LoaderImpl;
@@ -37,8 +56,8 @@ namespace geode {
         void dispatchScheduledFunctions(Mod* mod);
         friend void GEODE_CALL ::geode_implicit_load(Mod*);
 
-        Result<Mod*> loadModFromInfo(ModInfo const& info);
-        
+        [[deprecated]] Result<Mod*> loadModFromInfo(ModInfo const& info);
+
         Mod* takeNextMod();
 
     public:
@@ -53,16 +72,18 @@ namespace geode {
         VersionInfo maxModVersion();
         bool isModVersionSupported(VersionInfo const& version);
 
-        Result<Mod*> loadModFromFile(ghc::filesystem::path const& file);
-        void loadModsFromDirectory(ghc::filesystem::path const& dir, bool recursive = true);
-        void refreshModsList();
+        [[deprecated]] Result<Mod*> loadModFromFile(ghc::filesystem::path const& file);
+        [[deprecated]] void loadModsFromDirectory(ghc::filesystem::path const& dir, bool recursive = true);
+        [[deprecated]] void refreshModsList();
         bool isModInstalled(std::string const& id) const;
         Mod* getInstalledMod(std::string const& id) const;
         bool isModLoaded(std::string const& id) const;
         Mod* getLoadedMod(std::string const& id) const;
         std::vector<Mod*> getAllMods();
-        Mod* getModImpl();
         [[deprecated("use Mod::get instead")]] Mod* getModImpl();
+        [[deprecated]] void updateAllDependencies();
+        [[deprecated("use getProblems instead")]] std::vector<InvalidGeodeFile> getFailedMods() const;
+        std::vector<LoadProblem> getProblems() const;
 
         void updateResources();
         void updateResources(bool forceReload);

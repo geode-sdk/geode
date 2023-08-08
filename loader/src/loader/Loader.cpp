@@ -95,6 +95,10 @@ std::vector<InvalidGeodeFile> Loader::getFailedMods() const {
     return m_impl->getFailedMods();
 }
 
+std::vector<LoadProblem> Loader::getProblems() const {
+    return m_impl->getProblems();
+}
+
 void Loader::updateResources() {
     return m_impl->updateResources();
 }

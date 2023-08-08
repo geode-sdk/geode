@@ -84,7 +84,7 @@ protected:
 public:
     static ModListLayer* create();
     static ModListLayer* scene();
-    void updateAllStates(ModListCell* except = nullptr);
+    void updateAllStates();
 
     ModListDisplay getDisplay() const;
     ModListQuery& getQuery();

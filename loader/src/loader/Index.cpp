@@ -64,6 +64,8 @@ public:
     static Result<std::shared_ptr<IndexItem>> create(
         ghc::filesystem::path const& dir
     );
+
+    bool isInstalled() const;
 };
 
 IndexItem::IndexItem() : m_impl(std::make_unique<Impl>()) {}
@@ -101,6 +103,10 @@ std::unordered_set<std::string> IndexItem::getTags() const {
     return m_impl->m_tags;
 }
 
+bool IndexItem::isInstalled() const {
+    return m_impl->isInstalled();
+}
+
 Result<IndexItemHandle> IndexItem::Impl::create(ghc::filesystem::path const& dir) {
     GEODE_UNWRAP_INTO(
         auto entry, file::readJson(dir / "entry.json")
@@ -132,6 +138,10 @@ Result<IndexItemHandle> IndexItem::Impl::create(ghc::filesystem::path const& dir
         return Err(checker.getError());
     }
     return Ok(item);
+}
+
+bool IndexItem::Impl::isInstalled() const {
+    return ghc::filesystem::exists(dirs::getModsDir() / (m_metadata.getID() + ".geode"));
 }
 
 // Helpers
@@ -594,9 +604,6 @@ void Index::Impl::installNext(size_t index, IndexInstallList const& list) {
                 ));
             }
         }
-
-        // load mods
-        Loader::get()->refreshModsList();
 
         auto const& eventModID = list.target->getMetadata().getID();
         Loader::get()->queueInGDThread([eventModID]() {

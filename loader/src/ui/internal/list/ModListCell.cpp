@@ -31,7 +31,8 @@ float ModListCell::getLogoSize() const {
 void ModListCell::setupInfo(
     ModMetadata const& metadata,
     bool spaceForTags,
-    ModListDisplay display
+    ModListDisplay display,
+    bool inactive
 ) {
     m_menu = CCMenu::create();
     m_menu->setPosition(m_width - 40.f, m_height / 2);
@@ -41,6 +42,10 @@ void ModListCell::setupInfo(
 
     auto logoSpr = this->createLogo({ logoSize, logoSize });
     logoSpr->setPosition({ logoSize / 2 + 12.f, m_height / 2 });
+    auto logoSprColor = typeinfo_cast<CCRGBAProtocol*>(logoSpr);
+    if (inactive && logoSprColor) {
+        logoSprColor->setColor({ 163, 163, 163 });
+    }
     this->addChild(logoSpr);
 
     bool hasDesc =
@@ -63,6 +68,9 @@ void ModListCell::setupInfo(
         titleLabel->setPositionY(m_height / 2 + 7.f);
     }
     titleLabel->limitLabelWidth(m_width / 2 - 40.f, .5f, .1f);
+    if (inactive) {
+        titleLabel->setColor({ 163, 163, 163 });
+    }
     this->addChild(titleLabel);
 
     auto versionLabel = CCLabelBMFont::create(
@@ -76,6 +84,9 @@ void ModListCell::setupInfo(
         titleLabel->getPositionY() - 1.f
     );
     versionLabel->setColor({ 0, 255, 0 });
+    if (inactive) {
+        versionLabel->setColor({ 0, 163, 0 });
+    }
     this->addChild(versionLabel);
 
     if (auto tag = metadata.getVersion().getTag()) {
@@ -93,6 +104,9 @@ void ModListCell::setupInfo(
     auto creatorStr = "by " + metadata.getDeveloper();
     auto creatorLabel = CCLabelBMFont::create(creatorStr.c_str(), "goldFont.fnt");
     creatorLabel->setScale(.43f);
+    if (inactive) {
+        creatorLabel->setColor({ 163, 163, 163 });
+    }
 
     m_developerBtn = CCMenuItemSpriteExtra::create(
         creatorLabel, this, menu_selector(ModListCell::onViewDev)
@@ -133,6 +147,9 @@ void ModListCell::setupInfo(
         m_description->setAnchorPoint({ .0f, .5f });
         m_description->setPosition(m_height / 2 + logoSize / 2 + 18.f, descBG->getPositionY());
         m_description->limitLabelWidth(m_width / 2 - 10.f, .5f, .1f);
+        if (inactive) {
+            m_description->setColor({ 163, 163, 163 });
+        }
         this->addChild(m_description);
     }
 }
@@ -187,11 +204,14 @@ void ModCell::onEnable(CCObject* sender) {
     else {
         tryOrAlert(m_mod->disable(), "Error disabling mod");
     }
-    if (m_layer) {
-        m_layer->updateAllStates(this);
-    }
+    Loader::get()->queueInGDThread([this]() {
+        if (m_layer) {
+            m_layer->updateAllStates();
+        }
+    });
 }
 
+// TODO: for fod maybe :3 show problems related to this mod
 void ModCell::onUnresolvedInfo(CCObject*) {
     std::string info =
         "This mod has the following "
@@ -211,6 +231,11 @@ void ModCell::onInfo(CCObject*) {
     LocalModInfoPopup::create(m_mod, m_layer)->show();
 }
 
+void ModCell::onRestart(CCObject*) {
+    utils::game::restart();
+}
+
+// TODO: for fod maybe :3 check if there are any problems related to this mod
 void ModCell::updateState() {
     bool unresolved = m_mod->hasUnresolvedDependencies();
     if (m_enableToggle) {
@@ -232,18 +257,50 @@ bool ModCell::init(
 ) {
     if (!ModListCell::init(list, size))
         return false;
-
     m_mod = mod;
 
     this->setupInfo(mod->getMetadata(), false, display, m_mod->isUninstalled());
 
-    auto viewSpr = ButtonSprite::create("View", "bigFont.fnt", "GJ_button_01.png", .8f);
-    viewSpr->setScale(.65f);
+    if (mod->isUninstalled()) {
+        auto restartSpr = ButtonSprite::create("Restart", "bigFont.fnt", "GJ_button_03.png", .8f);
+        restartSpr->setScale(.65f);
 
-    auto viewBtn = CCMenuItemSpriteExtra::create(viewSpr, this, menu_selector(ModCell::onInfo));
-    m_menu->addChild(viewBtn);
+        auto restartBtn = CCMenuItemSpriteExtra::create(restartSpr, this, menu_selector(ModCell::onRestart));
+        restartBtn->setPositionX(-16.f);
+        m_menu->addChild(restartBtn);
+    }
+    else {
+        auto viewSpr = ButtonSprite::create("View", "bigFont.fnt", "GJ_button_01.png", .8f);
+        viewSpr->setScale(.65f);
 
-    if (m_mod->wasSuccesfullyLoaded() && m_mod->supportsDisabling()) {
+        auto viewBtn = CCMenuItemSpriteExtra::create(viewSpr, this, menu_selector(ModCell::onInfo));
+        m_menu->addChild(viewBtn);
+
+        if (m_mod->wasSuccessfullyLoaded()) {
+            auto latestIndexItem = Index::get()->getMajorItem(
+                mod->getMetadata().getID()
+            );
+
+            if (latestIndexItem && Index::get()->isUpdateAvailable(latestIndexItem)) {
+                viewSpr->updateBGImage("GE_button_01.png"_spr);
+
+                auto minorIndexItem = Index::get()->getItem(
+                    mod->getMetadata().getID(),
+                    ComparableVersionInfo(mod->getMetadata().getVersion(), VersionCompare::MoreEq)
+                );
+
+                if (latestIndexItem->getMetadata().getVersion().getMajor() > minorIndexItem->getMetadata().getVersion().getMajor()) {
+                    auto updateIcon = CCSprite::createWithSpriteFrameName("updates-available.png"_spr);
+                    updateIcon->setPosition(viewSpr->getContentSize() - CCSize { 2.f, 2.f });
+                    updateIcon->setZOrder(99);
+                    updateIcon->setScale(.5f);
+                    viewSpr->addChild(updateIcon);
+                }
+            }
+        }
+    }
+
+    if (m_mod->wasSuccessfullyLoaded() && m_mod->supportsDisabling() && !m_mod->isUninstalled()) {
         m_enableToggle =
             CCMenuItemToggler::createWithStandardSprites(this, menu_selector(ModCell::onEnable), .7f);
         m_enableToggle->setPosition(-45.f, 0.f);
@@ -258,30 +315,6 @@ bool ModCell::init(
     m_unresolvedExMark->setPosition(-80.f, 0.f);
     m_unresolvedExMark->setVisible(false);
     m_menu->addChild(m_unresolvedExMark);
-
-    if (m_mod->wasSuccesfullyLoaded()) {
-    
-        auto latestIndexItem = Index::get()->getMajorItem(
-            mod->getModInfo().id()
-        );
-        
-        if (latestIndexItem && Index::get()->isUpdateAvailable(latestIndexItem)) {
-            viewSpr->updateBGImage("GE_button_01.png"_spr);
-
-            auto minorIndexItem = Index::get()->getItem(
-                mod->getModInfo().id(),
-                ComparableVersionInfo(mod->getModInfo().version(), VersionCompare::MoreEq)
-            );
-
-            if (latestIndexItem->getModInfo().version().getMajor() > minorIndexItem->getModInfo().version().getMajor()) {
-                auto updateIcon = CCSprite::createWithSpriteFrameName("updates-available.png"_spr);
-                updateIcon->setPosition(viewSpr->getContentSize() - CCSize { 2.f, 2.f });
-                updateIcon->setZOrder(99);
-                updateIcon->setScale(.5f);
-                viewSpr->addChild(updateIcon);
-            }
-        }
-    }
 
     this->updateState();
 
@@ -300,6 +333,10 @@ CCNode* ModCell::createLogo(CCSize const& size) {
 
 void IndexItemCell::onInfo(CCObject*) {
     IndexItemInfoPopup::create(m_item, m_layer)->show();
+}
+
+void IndexItemCell::onRestart(CCObject*) {
+    utils::game::restart();
 }
 
 IndexItemCell* IndexItemCell::create(
@@ -327,11 +364,24 @@ bool IndexItemCell::init(
 
     m_item = item;
 
-    this->setupInfo(item->getModInfo(), item->getTags().size(), display);
     this->setupInfo(item->getMetadata(), item->getTags().size(), display, item->isInstalled());
 
-    auto viewBtn = CCMenuItemSpriteExtra::create(viewSpr, this, menu_selector(IndexItemCell::onInfo));
-    m_menu->addChild(viewBtn);
+    if (item->isInstalled()) {
+        auto restartSpr = ButtonSprite::create("Restart", "bigFont.fnt", "GJ_button_03.png", .8f);
+        restartSpr->setScale(.65f);
+
+        auto restartBtn = CCMenuItemSpriteExtra::create(restartSpr, this, menu_selector(IndexItemCell::onRestart));
+        restartBtn->setPositionX(-16.f);
+        m_menu->addChild(restartBtn);
+    }
+    else {
+        auto viewSpr = ButtonSprite::create("View", "bigFont.fnt", "GJ_button_01.png", .8f);
+        viewSpr->setScale(.65f);
+
+        auto viewBtn =
+            CCMenuItemSpriteExtra::create(viewSpr, this, menu_selector(IndexItemCell::onInfo));
+        m_menu->addChild(viewBtn);
+    }
 
     if (item->getTags().size()) {
         float x = m_height / 2 + this->getLogoSize() / 2 + 13.f;
@@ -401,7 +451,6 @@ void InvalidGeodeFileCell::FLAlert_Clicked(FLAlertLayer*, bool btn2) {
             )
                 ->show();
         }
-        Loader::get()->refreshModsList();
         if (m_layer) {
             m_layer->reloadList();
         }

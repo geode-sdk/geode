@@ -155,26 +155,32 @@ CCArray* ModListLayer::createModCells(ModListType type, ModListQuery const& quer
                 ));
             }
 
-            // sort the mods by match score 
-            std::multimap<int, Mod*> sorted;
+            // sort the mods by match score
+            std::multimap<int, ModListCell*> sorted;
 
             // then other mods
+
+            // newly installed
+            for (auto const& item : Index::get()->getItems()) {
+                if (!item->isInstalled())
+                    continue;
+                if (auto match = queryMatch(query, item)) {
+                    auto cell = IndexItemCell::create(item, this, m_display, this->getCellSize());
+                    sorted.insert({ match.value(), cell });
+                }
+            }
+
+            // loaded
             for (auto const& mod : Loader::get()->getAllMods()) {
-                // if the mod is no longer installed nor
-                // loaded, it's as good as not existing
-                // (because it doesn't)
-                if (mod->isUninstalled() && !mod->isLoaded()) continue;
-                // only show mods that match query in list
                 if (auto match = queryMatch(query, mod)) {
-                    sorted.insert({ match.value(), mod });
+                    auto cell = ModCell::create(mod, this, m_display, this->getCellSize());
+                    sorted.insert({ match.value(), cell });
                 }
             }
 
             // add the mods sorted
-            for (auto& [score, mod] : ranges::reverse(sorted)) {
-                mods->addObject(ModCell::create(
-                    mod, this, m_display, this->getCellSize()
-                ));
+            for (auto& [score, cell] : ranges::reverse(sorted)) {
+                mods->addObject(cell);
             }
         } break;
 
@@ -546,14 +552,11 @@ void ModListLayer::reloadList(std::optional<ModListQuery> const& query) {
     }
 }
 
-void ModListLayer::updateAllStates(ModListCell* toggled) {
+void ModListLayer::updateAllStates() {
     for (auto cell : CCArrayExt<GenericListCell>(
         m_list->m_listView->m_tableView->m_cellArray
     )) {
-        auto node = static_cast<ModListCell*>(cell->getChildByID("mod-list-cell"));
-        if (toggled != node) {
-            node->updateState();
-        }
+        static_cast<ModListCell*>(cell->getChildByID("mod-list-cell"))->updateState();
     }
 }
 
@@ -612,7 +615,6 @@ void ModListLayer::onExit(CCObject*) {
 }
 
 void ModListLayer::onReload(CCObject*) {
-    Loader::get()->refreshModsList();
     this->reloadList();
 }
 

@@ -39,12 +39,11 @@ namespace geode {
          */
         ghc::filesystem::path m_saveDirPath;
         /**
-         * Pointers to mods that depend on
-         * this Mod. Makes it possible to
-         * enable / disable them automatically,
+         * Pointers to mods that depend on this Mod.
+         * Makes it possible to enable / disable them automatically,
          * when their dependency is disabled.
          */
-        std::vector<Mod*> m_parentDependencies;
+        std::vector<Mod*> m_dependants;
         /**
          * Saved values
          */
@@ -84,8 +83,8 @@ namespace geode {
         bool isEnabled() const;
         bool isLoaded() const;
         bool supportsDisabling() const;
-        bool wasSuccesfullyLoaded() const;
-        ModInfo getModInfo() const;
+        bool canDisable() const;
+        bool canEnable() const;
         bool wasSuccessfullyLoaded() const;
         ModMetadata getMetadata() const;
         ghc::filesystem::path getTempDir() const;
@@ -113,16 +112,17 @@ namespace geode {
         Result<> removeHook(Hook* hook);
         Result<Patch*> patch(void* address, ByteVector const& data);
         Result<> unpatch(Patch* patch);
-        Result<> loadBinary();
-        Result<> unloadBinary();
         Result<> enable();
         Result<> disable();
         Result<> uninstall();
         bool isUninstalled() const;
         bool depends(std::string const& id) const;
-        bool hasUnresolvedDependencies() const;
         Result<> updateDependencies();
-        std::vector<Dependency> getUnresolvedDependencies();
+        bool hasUnresolvedDependencies() const;
+        bool hasUnresolvedIncompatibilities() const;
+        [[deprecated]] std::vector<Dependency> getUnresolvedDependencies();
+
+        Result<> loadBinary();
 
         char const* expandSpriteName(char const* name);
         ModJson getRuntimeInfo() const;

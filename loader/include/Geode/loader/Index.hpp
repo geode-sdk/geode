@@ -115,6 +115,7 @@ namespace geode {
         std::unordered_set<PlatformID> getAvailablePlatforms() const;
         bool isFeatured() const;
         std::unordered_set<std::string> getTags() const;
+        bool isInstalled() const;
 
         IndexItem();
         ~IndexItem();

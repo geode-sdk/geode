@@ -5,8 +5,7 @@
 
 #include "ModInfoImpl.hpp"
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#pragma warning(disable : 4996) // deprecation
 
 using namespace geode::prelude;
 
@@ -18,34 +17,6 @@ bool Dependency::isResolved() const {
     return !this->required ||
         (this->mod && this->mod->isLoaded() && this->mod->isEnabled() &&
          this->version.compare(this->mod->getVersion()));
-}
-
-bool ModInfo::Impl::validateID(std::string const& id) {
-    return ModMetadata::Impl::validateID(id);
-}
-
-Result<ModInfo> ModInfo::Impl::create(ModJson const& json) {
-    return ModMetadata::Impl::create(json);
-}
-
-Result<ModInfo> ModInfo::Impl::createFromFile(ghc::filesystem::path const& path) {
-    return ModMetadata::Impl::createFromFile(path);
-}
-
-Result<ModInfo> ModInfo::Impl::createFromGeodeFile(ghc::filesystem::path const& path) {
-    return ModMetadata::Impl::createFromGeodeFile(path);
-}
-
-Result<ModInfo> ModInfo::Impl::createFromGeodeZip(file::Unzip& unzip) {
-    return ModMetadata::Impl::createFromGeodeZip(unzip);
-}
-
-ModJson ModInfo::Impl::toJSON() const {
-    return m_metadata.m_rawJSON;
-}
-
-ModJson ModInfo::Impl::getRawJSON() const {
-    return m_metadata.m_rawJSON;
 }
 
 bool ModInfo::Impl::operator==(ModInfo::Impl const& other) const {
@@ -186,33 +157,34 @@ bool const& ModInfo::isAPI() const {
 }
 
 Result<ModInfo> ModInfo::createFromGeodeZip(utils::file::Unzip& zip) {
-    return Impl::createFromGeodeZip(zip);
+    return ModMetadata::Impl::createFromGeodeZip(zip);
 }
 
 Result<ModInfo> ModInfo::createFromGeodeFile(ghc::filesystem::path const& path) {
-    return Impl::createFromGeodeFile(path);
+    return ModMetadata::Impl::createFromGeodeFile(path);
 }
 
 Result<ModInfo> ModInfo::createFromFile(ghc::filesystem::path const& path) {
-    return Impl::createFromFile(path);
+    return ModMetadata::Impl::createFromFile(path);
 }
 
 Result<ModInfo> ModInfo::create(ModJson const& json) {
-    return Impl::create(json);
+    return ModMetadata::Impl::create(json);
 }
 
 ModJson ModInfo::toJSON() const {
-    return m_impl->toJSON();
+    return m_impl->m_metadata.m_rawJSON;
 }
 
 ModJson ModInfo::getRawJSON() const {
-    return m_impl->getRawJSON();
+    return m_impl->m_metadata.m_rawJSON;
 }
 
 bool ModInfo::operator==(ModInfo const& other) const {
     return m_impl->operator==(*other.m_impl);
 }
 
+#pragma warning(suppress : 4996)
 ModInfo::ModInfo() : m_impl(std::make_unique<Impl>()) {}
 
 ModInfo::ModInfo(ModInfo const& other) : m_impl(std::make_unique<Impl>(*other.m_impl)) {}
@@ -247,6 +219,26 @@ ModInfo::operator ModMetadata() const {
     return metadata;
 }
 
-ModInfo::~ModInfo() = default;
+ModJson& ModInfo::rawJSON() {
+    return m_impl->m_metadata.m_rawJSON;
+}
+ModJson const& ModInfo::rawJSON() const {
+    return m_impl->m_metadata.m_rawJSON;
+}
 
-#pragma clang diagnostic pop
+Result<ModInfo> ModInfo::createFromSchemaV010(geode::ModJson const& json) {
+    return ModMetadata::Impl::createFromSchemaV010(json);
+}
+
+Result<> ModInfo::addSpecialFiles(ghc::filesystem::path const& dir) {
+    return m_impl->m_metadata.addSpecialFiles(dir);
+}
+Result<> ModInfo::addSpecialFiles(utils::file::Unzip& zip) {
+    return m_impl->m_metadata.addSpecialFiles(zip);
+}
+
+std::vector<std::pair<std::string, std::optional<std::string>*>> ModInfo::getSpecialFiles() {
+    return m_impl->m_metadata.getSpecialFiles();
+}
+
+ModInfo::~ModInfo() = default;
