@@ -1,6 +1,6 @@
 #include "ModImpl.hpp"
 #include "LoaderImpl.hpp"
-#include "ModInfoImpl.hpp"
+#include "ModMetadataImpl.hpp"
 #include "about.hpp"
 
 #include <Geode/loader/Dirs.hpp>
@@ -25,7 +25,7 @@ Mod::Impl* ModImpl::getImpl(Mod* mod)  {
     return mod->m_impl.get();
 }
 
-Mod::Impl::Impl(Mod* self, ModInfo const& info) : m_self(self), m_info(info) {
+Mod::Impl::Impl(Mod* self, ModMetadata const& metadata) : m_self(self), m_metadata(metadata) {
 }
 
 Mod::Impl::~Impl() {
@@ -33,16 +33,16 @@ Mod::Impl::~Impl() {
 }
 
 Result<> Mod::Impl::setup() {
-    m_saveDirPath = dirs::getModsSaveDir() / m_info.id();
+    m_saveDirPath = dirs::getModsSaveDir() / m_metadata.getID();
     (void) utils::file::createDirectoryAll(m_saveDirPath);
-    
+
     // always create temp dir for all mods, even if disabled, so resources can be loaded
     GEODE_UNWRAP(this->createTempDir().expect("Unable to create temp dir: {error}"));
 
     this->setupSettings();
     auto loadRes = this->loadData();
     if (!loadRes) {
-        log::warn("Unable to load data for \"{}\": {}", m_info.id(), loadRes.unwrapErr());
+        log::warn("Unable to load data for \"{}\": {}", m_metadata.getID(), loadRes.unwrapErr());
     }
     if (LoaderImpl::get()->m_isSetup) {
         Loader::get()->updateResources(false);
@@ -58,27 +58,27 @@ ghc::filesystem::path Mod::Impl::getSaveDir() const {
 }
 
 std::string Mod::Impl::getID() const {
-    return m_info.id();
+    return m_metadata.getID();
 }
 
 std::string Mod::Impl::getName() const {
-    return m_info.name();
+    return m_metadata.getName();
 }
 
 std::string Mod::Impl::getDeveloper() const {
-    return m_info.developer();
+    return m_metadata.getDeveloper();
 }
 
 std::optional<std::string> Mod::Impl::getDescription() const {
-    return m_info.description();
+    return m_metadata.getDescription();
 }
 
 std::optional<std::string> Mod::Impl::getDetails() const {
-    return m_info.details();
+    return m_metadata.getDetails();
 }
 
-ModInfo Mod::Impl::getModInfo() const {
-    return m_info;
+ModMetadata Mod::Impl::getMetadata() const {
+    return m_metadata;
 }
 
 ghc::filesystem::path Mod::Impl::getTempDir() const {
@@ -86,15 +86,15 @@ ghc::filesystem::path Mod::Impl::getTempDir() const {
 }
 
 ghc::filesystem::path Mod::Impl::getBinaryPath() const {
-    return m_tempDirName / m_info.binaryName();
+    return m_tempDirName / m_metadata.getBinaryName();
 }
 
 ghc::filesystem::path Mod::Impl::getPackagePath() const {
-    return m_info.path();
+    return m_metadata.getPath();
 }
 
 VersionInfo Mod::Impl::getVersion() const {
-    return m_info.version();
+    return m_metadata.getVersion();
 }
 
 json::Value& Mod::Impl::getSaveContainer() {
@@ -117,7 +117,7 @@ bool Mod::Impl::supportsUnloading() const {
     return m_info.supportsUnloading();
 }
 
-bool Mod::Impl::wasSuccesfullyLoaded() const {
+bool Mod::Impl::wasSuccessfullyLoaded() const {
     return !this->isEnabled() || this->isLoaded();
 }
 
@@ -155,7 +155,7 @@ Result<> Mod::Impl::loadData() {
                             Severity::Error,
                             m_self,
                             "{}: Unable to load value for setting \"{}\"",
-                            m_info.id(),
+                            m_metadata.getID(),
                             key
                         );
                     }
@@ -244,7 +244,7 @@ Result<> Mod::Impl::saveData() {
 }
 
 void Mod::Impl::setupSettings() {
-    for (auto& [key, sett] : m_info.settings()) {
+    for (auto& [key, sett] : m_metadata.getSettings()) {
         if (auto value = sett.createDefaultValue()) {
             m_settings.emplace(key, std::move(value));
         }
@@ -262,19 +262,19 @@ void Mod::Impl::registerCustomSetting(std::string const& key, std::unique_ptr<Se
 }
 
 bool Mod::Impl::hasSettings() const {
-    return m_info.settings().size();
+    return m_metadata.getSettings().size();
 }
 
 std::vector<std::string> Mod::Impl::getSettingKeys() const {
     std::vector<std::string> keys;
-    for (auto& [key, _] : m_info.settings()) {
+    for (auto& [key, _] : m_metadata.getSettings()) {
         keys.push_back(key);
     }
     return keys;
 }
 
 std::optional<Setting> Mod::Impl::getSettingDefinition(std::string const& key) const {
-    for (auto& setting : m_info.settings()) {
+    for (auto& setting : m_metadata.getSettings()) {
         if (setting.first == key) {
             return setting.second;
         }
@@ -290,7 +290,7 @@ SettingValue* Mod::Impl::getSetting(std::string const& key) const {
 }
 
 bool Mod::Impl::hasSetting(std::string const& key) const {
-    for (auto& setting : m_info.settings()) {
+    for (auto& setting : m_metadata.getSettings()) {
         if (setting.first == key) {
             return true;
         }
@@ -301,8 +301,8 @@ bool Mod::Impl::hasSetting(std::string const& key) const {
 // Loading, Toggling, Installing
 
 Result<> Mod::Impl::loadBinary() {
-    log::debug("Loading binary for mod {}", m_info.id());
-    if (m_binaryLoaded) {
+    log::debug("Loading binary for mod {}", m_metadata.getID());
+    if (m_binaryLoaded)
         return Ok();
     }
 
@@ -316,7 +316,7 @@ Result<> Mod::Impl::loadBinary() {
     if (!res) {
         // make sure to free up the next mod mutex
         LoaderImpl::get()->releaseNextMod();
-        log::warn("Failed to load binary for mod {}: {}", m_info.id(), res.unwrapErr());
+        log::error("Failed to load binary for mod {}: {}", m_metadata.getID(), res.unwrapErr());
         return res;
     }
     m_binaryLoaded = true;
@@ -377,7 +377,7 @@ Result<> Mod::Impl::enable() {
 
     for (auto const& hook : m_hooks) {
         if (!hook) {
-            log::warn("Hook is null in mod \"{}\"", m_info.name());
+            log::warn("Hook is null in mod \"{}\"", m_metadata.getName());
             continue;
         }
         if (hook->getAutoEnable()) {
@@ -449,7 +449,7 @@ Result<> Mod::Impl::uninstall() {
 }
 
 bool Mod::Impl::isUninstalled() const {
-    return m_self != Mod::get() && !ghc::filesystem::exists(m_info.path());
+    return m_self != Mod::get() && !ghc::filesystem::exists(m_metadata.getPath());
 }
 
 // Dependencies
@@ -509,7 +509,7 @@ bool Mod::Impl::hasUnresolvedDependencies() const {
 
 std::vector<Dependency> Mod::Impl::getUnresolvedDependencies() {
     std::vector<Dependency> unresolved;
-    for (auto const& dep : m_info.dependencies()) {
+    for (auto const& dep : m_metadata.getDependencies()) {
         if (!dep.isResolved()) {
             unresolved.push_back(dep);
         }
@@ -518,7 +518,7 @@ std::vector<Dependency> Mod::Impl::getUnresolvedDependencies() {
 }
 
 bool Mod::Impl::depends(std::string const& id) const {
-    return utils::ranges::contains(m_info.dependencies(), [id](Dependency const& t) {
+    return utils::ranges::contains(m_metadata.getDependencies(), [id](ModMetadata::Dependency const& t) {
         return t.id == id;
     });
 }
@@ -528,7 +528,7 @@ bool Mod::Impl::depends(std::string const& id) const {
 Result<> Mod::Impl::enableHook(Hook* hook) {
     auto res = hook->enable();
     if (!res) {
-        log::error("Can't enable hook {} for mod {}: {}", hook->getDisplayName(), m_info.id(), res.unwrapErr());
+        log::error("Can't enable hook {} for mod {}: {}", hook->getDisplayName(), m_metadata.getID(), res.unwrapErr());
     }
 
     return res;
@@ -608,7 +608,7 @@ Result<> Mod::Impl::createTempDir() {
     }
 
     // If the info doesn't specify a path, don't do anything
-    if (m_info.path().string().empty()) {
+    if (m_metadata.getPath().string().empty()) {
         return Ok();
     }
 
@@ -619,16 +619,16 @@ Result<> Mod::Impl::createTempDir() {
     }
 
     // Create geode/temp/mod.id
-    auto tempPath = tempDir / m_info.id();
+    auto tempPath = tempDir / m_metadata.getID();
     if (!file::createDirectoryAll(tempPath)) {
         return Err("Unable to create mod runtime directory");
     }
 
     // Unzip .geode file into temp dir
-    GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(m_info.path()));
-    if (!unzip.hasEntry(m_info.binaryName())) {
+    GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(m_metadata.getPath()));
+    if (!unzip.hasEntry(m_metadata.getBinaryName())) {
         return Err(
-            fmt::format("Unable to find platform binary under the name \"{}\"", m_info.binaryName())
+            fmt::format("Unable to find platform binary under the name \"{}\"", m_metadata.getBinaryName())
         );
     }
     GEODE_UNWRAP(unzip.extractAllTo(tempPath));
@@ -640,7 +640,7 @@ Result<> Mod::Impl::createTempDir() {
 }
 
 ghc::filesystem::path Mod::Impl::getConfigDir(bool create) const {
-    auto dir = dirs::getModConfigDir() / m_info.id();
+    auto dir = dirs::getModConfigDir() / m_metadata.getID();
     if (create) {
         (void)file::createDirectoryAll(dir);
     }
@@ -651,8 +651,8 @@ char const* Mod::Impl::expandSpriteName(char const* name) {
     static std::unordered_map<std::string, char const*> expanded = {};
     if (expanded.count(name)) return expanded[name];
 
-    auto exp = new char[strlen(name) + 2 + m_info.id().size()];
-    auto exps = m_info.id() + "/" + name;
+    auto exp = new char[strlen(name) + 2 + m_metadata.getID().size()];
+    auto exps = m_metadata.getID() + "/" + name;
     memcpy(exp, exps.c_str(), exps.size() + 1);
 
     expanded[name] = exp;
@@ -661,7 +661,7 @@ char const* Mod::Impl::expandSpriteName(char const* name) {
 }
 
 ModJson Mod::Impl::getRuntimeInfo() const {
-    auto json = m_info.toJSON();
+    auto json = m_metadata.toJSON();
 
     auto obj = json::Object();
     obj["hooks"] = json::Array();
@@ -682,7 +682,7 @@ ModJson Mod::Impl::getRuntimeInfo() const {
     return json;
 }
 
-static Result<ModInfo> getModImplInfo() {
+static Result<ModMetadata> getModImplInfo() {
     std::string err;
     json::Value json;
     try {
@@ -691,8 +691,7 @@ static Result<ModInfo> getModImplInfo() {
         return Err("Unable to parse mod.json: " + std::string(err.what()));
     }
 
-    GEODE_UNWRAP_INTO(auto info, ModInfo::create(json));
-    info.supportsDisabling() = false;
+    GEODE_UNWRAP_INTO(auto info, ModMetadata::create(json));
     return Ok(info);
 }
 

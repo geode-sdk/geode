@@ -1,6 +1,10 @@
 
 #include "LoaderImpl.hpp"
 #include <cocos2d.h>
+
+#include "ModImpl.hpp"
+#include "ModMetadataImpl.hpp"
+
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Loader.hpp>
@@ -274,16 +278,15 @@ Mod* Loader::Impl::getLoadedMod(std::string const& id) const {
 }
 
 void Loader::Impl::updateModResources(Mod* mod) {
-    if (!mod->m_impl->m_info.spritesheets().size()) {
+    if (mod->getMetadata().getSpritesheets().empty())
         return;
-    }
 
     auto searchPath = mod->getResourcesDir();
 
     log::debug("Adding resources for {}", mod->getID());
 
     // add spritesheets
-    for (auto const& sheet : mod->m_impl->m_info.spritesheets()) {
+    for (auto const& sheet : mod->getMetadata().getSpritesheets()) {
         log::debug("Adding sheet {}", sheet);
         auto png = sheet + ".png";
         auto plist = sheet + ".plist";
@@ -292,8 +295,8 @@ void Loader::Impl::updateModResources(Mod* mod) {
         if (png == std::string(ccfu->fullPathForFilename(png.c_str(), false)) ||
             plist == std::string(ccfu->fullPathForFilename(plist.c_str(), false))) {
             log::warn(
-                "The resource dir of \"{}\" is missing \"{}\" png and/or plist files",
-                mod->m_impl->m_info.id(), sheet
+                R"(The resource dir of "{}" is missing "{}" png and/or plist files)",
+                mod->getID(), sheet
             );
         }
         else {
@@ -560,7 +563,7 @@ void Loader::Impl::tryDownloadLoaderResources(
 
 void Loader::Impl::updateSpecialFiles() {
     auto resourcesDir = dirs::getGeodeResourcesDir() / Mod::get()->getID();
-    auto res = ModInfoImpl::getImpl(ModImpl::get()->m_info).addSpecialFiles(resourcesDir);
+    auto res = ModMetadataImpl::getImpl(ModImpl::get()->m_metadata).addSpecialFiles(resourcesDir);
     if (res.isErr()) {
         log::warn("Unable to add special files: {}", res.unwrapErr());
     }

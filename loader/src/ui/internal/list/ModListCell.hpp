@@ -3,7 +3,7 @@
 #include <Geode/binding/TableViewCell.hpp>
 #include <Geode/binding/FLAlertLayerProtocol.hpp>
 #include <Geode/loader/Loader.hpp>
-#include <Geode/loader/ModInfo.hpp>
+#include <Geode/loader/ModMetadata.hpp>
 #include <Geode/loader/Index.hpp>
 
 using namespace geode::prelude;
@@ -26,7 +26,7 @@ protected:
     CCMenuItemSpriteExtra* m_developerBtn;
 
     bool init(ModListLayer* list, CCSize const& size);
-    void setupInfo(ModInfo const& info, bool spaceForTags, ModListDisplay display);
+    void setupInfo(ModMetadata const& metadata, bool spaceForTags, ModListDisplay display, bool inactive);
     void draw() override;
 
     float getLogoSize() const;

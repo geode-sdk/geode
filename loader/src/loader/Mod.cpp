@@ -5,6 +5,7 @@
 using namespace geode::prelude;
 
 Mod::Mod(ModInfo const& info) : m_impl(std::make_unique<Impl>(this, info)) {}
+Mod::Mod(ModMetadata const& metadata) : m_impl(std::make_unique<Impl>(this, metadata)) {}
 
 Mod::~Mod() {}
 
@@ -53,15 +54,22 @@ bool Mod::supportsDisabling() const {
 }
 
 bool Mod::supportsUnloading() const {
-    return m_impl->supportsUnloading();
+    return false;
 }
 
 bool Mod::wasSuccesfullyLoaded() const {
-    return m_impl->wasSuccesfullyLoaded();
+    return this->wasSuccessfullyLoaded();
+}
+bool Mod::wasSuccessfullyLoaded() const {
+    return m_impl->wasSuccessfullyLoaded();
 }
 
 ModInfo Mod::getModInfo() const {
-    return m_impl->getModInfo();
+    return this->getMetadata();
+}
+
+ModMetadata Mod::getMetadata() const {
+    return m_impl->getMetadata();
 }
 
 ghc::filesystem::path Mod::getTempDir() const {

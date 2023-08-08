@@ -55,18 +55,18 @@ static std::optional<int> fuzzyMatch(std::string const& kw, std::string const& s
 
 static std::optional<int> queryMatchKeywords(
     ModListQuery const& query,
-    ModInfo const& info
+    ModMetadata const& metadata
 ) {
     double weighted = 0;
 
     // fuzzy match keywords
     if (query.keywords) {
         bool someMatched = false;
-        WEIGHTED_MATCH_MAX(info.name(), 2);
-        WEIGHTED_MATCH_MAX(info.id(), 1);
-        WEIGHTED_MATCH_MAX(info.developer(), 0.5);
-        WEIGHTED_MATCH_MAX(info.details().value_or(""), 0.05);
-        WEIGHTED_MATCH_MAX(info.description().value_or(""), 0.2);
+        WEIGHTED_MATCH_MAX(metadata.getName(), 2);
+        WEIGHTED_MATCH_MAX(metadata.getID(), 1);
+        WEIGHTED_MATCH_MAX(metadata.getDeveloper(), 0.5);
+        WEIGHTED_MATCH_MAX(metadata.getDetails().value_or(""), 0.05);
+        WEIGHTED_MATCH_MAX(metadata.getDescription().value_or(""), 0.2);
         if (!someMatched) {
             return std::nullopt;
         }
@@ -77,7 +77,7 @@ static std::optional<int> queryMatchKeywords(
         // sorted, at least enough so that if you're scrolling it based on 
         // alphabetical order you will find the part you're looking for easily 
         // so it's fine
-        return static_cast<int>(-tolower(info.name()[0]));
+        return static_cast<int>(-tolower(metadata.getName()[0]));
     }
 
     // if the weight is relatively small we can ignore it
@@ -93,13 +93,13 @@ static std::optional<int> queryMatch(ModListQuery const& query, Mod* mod) {
     // Only checking keywords makes sense for mods since their 
     // platform always matches, they are always visible and they don't 
     // currently list their tags
-    return queryMatchKeywords(query, mod->getModInfo());
+    return queryMatchKeywords(query, mod->getMetadata());
 }
 
 static std::optional<int> queryMatch(ModListQuery const& query, IndexItemHandle item) {
     // if no force visibility was provided and item is already installed, don't 
     // show it
-    if (!query.forceVisibility && Loader::get()->isModInstalled(item->getModInfo().id())) {
+    if (!query.forceVisibility && Loader::get()->isModInstalled(item->getMetadata().getID())) {
         return std::nullopt;
     }
     // make sure all tags match
@@ -115,7 +115,7 @@ static std::optional<int> queryMatch(ModListQuery const& query, IndexItemHandle 
         return std::nullopt;
     }
     // otherwise match keywords
-    if (auto match = queryMatchKeywords(query, item->getModInfo())) {
+    if (auto match = queryMatchKeywords(query, item->getMetadata())) {
         auto weighted = match.value();
         // add extra weight on tag matches
         if (query.keywords) {

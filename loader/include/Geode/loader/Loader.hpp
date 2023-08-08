@@ -5,6 +5,7 @@
 #include "../utils/MiniFunction.hpp"
 #include "Log.hpp"
 #include "ModInfo.hpp"
+#include "ModMetadata.hpp"
 #include "Types.hpp"
 
 #include <atomic>
@@ -61,8 +62,7 @@ namespace geode {
         Mod* getLoadedMod(std::string const& id) const;
         std::vector<Mod*> getAllMods();
         Mod* getModImpl();
-        void updateAllDependencies();
-        std::vector<InvalidGeodeFile> getFailedMods() const;
+        [[deprecated("use Mod::get instead")]] Mod* getModImpl();
 
         void updateResources();
         void updateResources(bool forceReload);

@@ -14,19 +14,19 @@ void geode::openModsList() {
 }
 
 void geode::openIssueReportPopup(Mod* mod) {
-    if (mod->getModInfo().issues()) {
+    if (mod->getMetadata().getIssues()) {
         MDPopup::create(
             "Issue Report",
-            mod->getModInfo().issues().value().info +
+            mod->getMetadata().getIssues().value().info +
                 "\n\n"
                 "If your issue relates to a <cr>game crash</c>, <cb>please include</c> the "
                 "latest crash log(s) from `" +
                 dirs::getCrashlogsDir().string() + "`",
-            "OK", (mod->getModInfo().issues().value().url ? "Open URL" : ""),
+            "OK", (mod->getMetadata().getIssues().value().url ? "Open URL" : ""),
             [mod](bool btn2) {
                 if (btn2) {
                     web::openLinkInBrowser(
-                        mod->getModInfo().issues().value().url.value()
+                        mod->getMetadata().getIssues().value().url.value()
                     );
                 }
             }
@@ -73,13 +73,9 @@ CCNode* geode::createDefaultLogo(CCSize const& size) {
 }
 
 CCNode* geode::createModLogo(Mod* mod, CCSize const& size) {
-    CCNode* spr = nullptr;
-    if (mod == Loader::get()->getModImpl()) {
-        spr = CCSprite::createWithSpriteFrameName("geode-logo.png"_spr);
-    }
-    else {
-        spr = CCSprite::create(fmt::format("{}/logo.png", mod->getID()).c_str());
-    }
+    CCNode* spr = mod == Mod::get() ?
+        CCSprite::createWithSpriteFrameName("geode-logo.png"_spr) :
+        CCSprite::create(fmt::format("{}/logo.png", mod->getID()).c_str());
     if (!spr) spr = CCSprite::createWithSpriteFrameName("no-logo.png"_spr);
     if (!spr) spr = CCLabelBMFont::create("N/A", "goldFont.fnt");
     limitNodeSize(spr, size, 1.f, .1f);
@@ -87,9 +83,8 @@ CCNode* geode::createModLogo(Mod* mod, CCSize const& size) {
 }
 
 CCNode* geode::createIndexItemLogo(IndexItemHandle item, CCSize const& size) {
-    CCNode* spr = nullptr;
     auto logoPath = ghc::filesystem::absolute(item->getPath() / "logo.png");
-    spr = CCSprite::create(logoPath.string().c_str());
+    CCNode* spr = CCSprite::create(logoPath.string().c_str());
     if (!spr) {
         spr = CCSprite::createWithSpriteFrameName("no-logo.png"_spr);
     }

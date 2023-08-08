@@ -29,7 +29,7 @@ float ModListCell::getLogoSize() const {
 }
 
 void ModListCell::setupInfo(
-    ModInfo const& info,
+    ModMetadata const& metadata,
     bool spaceForTags,
     ModListDisplay display
 ) {
@@ -45,9 +45,9 @@ void ModListCell::setupInfo(
 
     bool hasDesc =
         display == ModListDisplay::Expanded && 
-        info.description().has_value();
+        metadata.getDescription().has_value();
 
-    auto titleLabel = CCLabelBMFont::create(info.name().c_str(), "bigFont.fnt");
+    auto titleLabel = CCLabelBMFont::create(metadata.getName().c_str(), "bigFont.fnt");
     titleLabel->setAnchorPoint({ .0f, .5f });
     titleLabel->setPositionX(m_height / 2 + logoSize / 2 + 13.f);
     if (hasDesc && spaceForTags) {
@@ -66,7 +66,7 @@ void ModListCell::setupInfo(
     this->addChild(titleLabel);
 
     auto versionLabel = CCLabelBMFont::create(
-        info.version().toString(false).c_str(),
+        metadata.getVersion().toString(false).c_str(),
         "bigFont.fnt"
     );
     versionLabel->setAnchorPoint({ .0f, .5f });
@@ -78,7 +78,7 @@ void ModListCell::setupInfo(
     versionLabel->setColor({ 0, 255, 0 });
     this->addChild(versionLabel);
 
-    if (auto tag = info.version().getTag()) {
+    if (auto tag = metadata.getVersion().getTag()) {
         auto tagLabel = TagNode::create(tag.value().toString().c_str());
         tagLabel->setAnchorPoint({ .0f, .5f });
         tagLabel->setScale(.3f);
@@ -90,7 +90,7 @@ void ModListCell::setupInfo(
         this->addChild(tagLabel);
     }
 
-    auto creatorStr = "by " + info.developer();
+    auto creatorStr = "by " + metadata.getDeveloper();
     auto creatorLabel = CCLabelBMFont::create(creatorStr.c_str(), "goldFont.fnt");
     creatorLabel->setScale(.43f);
 
@@ -129,7 +129,7 @@ void ModListCell::setupInfo(
         descBG->setScale(.25f);
         this->addChild(descBG);
 
-        m_description = CCLabelBMFont::create(info.description().value().c_str(), "chatFont.fnt");
+        m_description = CCLabelBMFont::create(metadata.getDescription().value().c_str(), "chatFont.fnt");
         m_description->setAnchorPoint({ .0f, .5f });
         m_description->setPosition(m_height / 2 + logoSize / 2 + 18.f, descBG->getPositionY());
         m_description->limitLabelWidth(m_width / 2 - 10.f, .5f, .1f);
@@ -235,7 +235,7 @@ bool ModCell::init(
 
     m_mod = mod;
 
-    this->setupInfo(mod->getModInfo(), false, display);
+    this->setupInfo(mod->getMetadata(), false, display, m_mod->isUninstalled());
 
     auto viewSpr = ButtonSprite::create("View", "bigFont.fnt", "GJ_button_01.png", .8f);
     viewSpr->setScale(.65f);
@@ -328,11 +328,7 @@ bool IndexItemCell::init(
     m_item = item;
 
     this->setupInfo(item->getModInfo(), item->getTags().size(), display);
-   
-    auto viewSpr = ButtonSprite::create(
-        "View", "bigFont.fnt", "GJ_button_01.png", .8f
-    );
-    viewSpr->setScale(.65f);
+    this->setupInfo(item->getMetadata(), item->getTags().size(), display, item->isInstalled());
 
     auto viewBtn = CCMenuItemSpriteExtra::create(viewSpr, this, menu_selector(IndexItemCell::onInfo));
     m_menu->addChild(viewBtn);
@@ -355,7 +351,7 @@ bool IndexItemCell::init(
             x += node->getScaledContentSize().width + 5.f;
         }
     }
-    
+
     this->updateState();
 
     return true;
@@ -364,7 +360,7 @@ bool IndexItemCell::init(
 void IndexItemCell::updateState() {}
 
 std::string IndexItemCell::getDeveloper() const {
-    return m_item->getModInfo().developer();
+    return m_item->getMetadata().getDeveloper();
 }
 
 CCNode* IndexItemCell::createLogo(CCSize const& size) {

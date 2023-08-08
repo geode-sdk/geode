@@ -13,7 +13,9 @@ namespace geode {
         class Unzip;
     }
 
-    struct GEODE_DLL Dependency {
+    class ModMetadata;
+
+    struct GEODE_DLL [[deprecated("use ModMetadata::Dependency instead")]] Dependency {
         std::string id;
         ComparableVersionInfo version;
         bool required = false;
@@ -21,7 +23,7 @@ namespace geode {
         bool isResolved() const;
     };
 
-    struct IssuesInfo {
+    struct [[deprecated("use ModMetadata::IssuesInfo instead")]] IssuesInfo {
         std::string info;
         std::optional<std::string> url;
     };
@@ -29,10 +31,10 @@ namespace geode {
     class ModInfoImpl;
 
     /**
-     * Represents all the data gatherable
+     * Represents all the data gather-able
      * from mod.json
      */
-    class GEODE_DLL ModInfo {
+    class GEODE_DLL [[deprecated("use ModMetadata instead")]] ModInfo {
         class Impl;
         std::unique_ptr<Impl> m_impl;
 
@@ -82,7 +84,7 @@ namespace geode {
         /**
          * The name of the head developer.
          * Should be a single name, like
-         * "HJfod" or "The Geode Team".
+         * "HJfod" or "Geode Team".
          * If the mod has multiple
          * developers, this field should
          * be one of their name or a team
@@ -194,28 +196,22 @@ namespace geode {
 
         static bool validateID(std::string const& id);
 
+        operator ModMetadata();
+        operator ModMetadata() const;
+
     private:
-        ModJson& rawJSON();
-        ModJson const& rawJSON() const;
-        /**
-         * Version is passed for backwards
-         * compatibility if we update the mod.json
-         * format
-         */
-        static Result<ModInfo> createFromSchemaV010(ModJson const& json);
-
-        Result<> addSpecialFiles(ghc::filesystem::path const& dir);
-        Result<> addSpecialFiles(utils::file::Unzip& zip);
-
-        std::vector<std::pair<std::string, std::optional<std::string>*>> getSpecialFiles();
-
         friend class ModInfoImpl;
+
+        friend class ModMetadata;
     };
 }
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 template <>
 struct json::Serialize<geode::ModInfo> {
     static json::Value to_json(geode::ModInfo const& info) {
         return info.toJSON();
     }
 };
+#pragma clang diagnostic pop

@@ -7,9 +7,9 @@ namespace geode {
     public:
         Mod* m_self;
         /**
-         * Mod info
+         * Mod metadata
          */
-        ModInfo m_info;
+        ModMetadata m_metadata;
         /**
          * Platform-specific info
          */
@@ -63,7 +63,7 @@ namespace geode {
          */
         bool m_resourcesLoaded = false;
 
-        Impl(Mod* self, ModInfo const& info);
+        Impl(Mod* self, ModMetadata const& metadata);
         ~Impl();
 
         Result<> setup();
@@ -84,9 +84,10 @@ namespace geode {
         bool isEnabled() const;
         bool isLoaded() const;
         bool supportsDisabling() const;
-        bool supportsUnloading() const;
         bool wasSuccesfullyLoaded() const;
         ModInfo getModInfo() const;
+        bool wasSuccessfullyLoaded() const;
+        ModMetadata getMetadata() const;
         ghc::filesystem::path getTempDir() const;
         ghc::filesystem::path getBinaryPath() const;
 

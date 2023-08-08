@@ -7,6 +7,7 @@
 #include "../utils/general.hpp"
 #include "Hook.hpp"
 #include "ModInfo.hpp"
+#include "ModMetadata.hpp"
 #include "Setting.hpp"
 #include "Types.hpp"
 
@@ -46,7 +47,6 @@ namespace geode {
         std::unique_ptr<Impl> m_impl;
 
         friend class Loader;
-        friend struct ModInfo;
 
         template <class = void>
         static inline GEODE_HIDDEN Mod* sharedMod = nullptr;
@@ -66,7 +66,8 @@ namespace geode {
 
         // Protected constructor/destructor
         Mod() = delete;
-        Mod(ModInfo const& info);
+        [[deprecated]] Mod(ModInfo const& info);
+        Mod(ModMetadata const& metadata);
         ~Mod();
 
         std::string getID() const;
@@ -82,6 +83,11 @@ namespace geode {
         bool supportsUnloading() const;
         bool wasSuccesfullyLoaded() const;
         ModInfo getModInfo() const;
+        [[deprecated]] bool supportsUnloading() const;
+        [[deprecated("wasSuccessfullyLoaded")]] bool wasSuccesfullyLoaded() const;
+        bool wasSuccessfullyLoaded() const;
+        [[deprecated("use getMetadata instead")]] ModInfo getModInfo() const;
+        ModMetadata getMetadata() const;
         ghc::filesystem::path getTempDir() const;
         /**
          * Get the path to the mod's platform binary (.dll on Windows, .dylib 

@@ -2,6 +2,7 @@
 
 #include "Types.hpp"
 #include "ModInfo.hpp"
+#include "ModMetadata.hpp"
 #include "Event.hpp"
 #include "../utils/Result.hpp"
 #include "../utils/web.hpp"
@@ -107,7 +108,8 @@ namespace geode {
 
     public:
         ghc::filesystem::path getPath() const;
-        ModInfo getModInfo() const;
+        [[deprecated("use getMetadata instead")]] ModInfo getModInfo() const;
+        ModMetadata getMetadata() const;
         std::string getDownloadURL() const;
         std::string getPackageHash() const;
         std::unordered_set<PlatformID> getAvailablePlatforms() const;
@@ -204,8 +206,15 @@ namespace geode {
          * Get an item from the index by its mod.json
          * @param info The mod's info
          * @returns The item, or nullptr if the item was not found
+         * @deprecated Use the ModMetadata overload instead
          */
-        IndexItemHandle getItem(ModInfo const& info) const;
+        [[deprecated]] IndexItemHandle getItem(ModInfo const& info) const;
+        /**
+         * Get an item from the index by its mod.json
+         * @param info The mod's metadata
+         * @returns The item, or nullptr if the item was not found
+         */
+        IndexItemHandle getItem(ModMetadata const& metadata) const;
         /**
          * Get an item from the index that corresponds to an installed mod
          * @param mod An installed mod

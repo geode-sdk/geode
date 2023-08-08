@@ -84,7 +84,7 @@ std::vector<Mod*> Loader::getAllMods() {
 }
 
 Mod* Loader::getModImpl() {
-    return m_impl->getModImpl();
+    return Mod::get();
 }
 
 void Loader::updateAllDependencies() {
