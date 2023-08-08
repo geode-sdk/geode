@@ -116,7 +116,7 @@ namespace geode {
         Result<Mod*> loadModFromInfo(ModInfo const& info);
 
         Result<> setup();
-        void reset();
+        void forceReset();
 
         Result<> saveData();
         Result<> loadData();

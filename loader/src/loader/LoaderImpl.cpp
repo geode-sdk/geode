@@ -430,9 +430,8 @@ bool Loader::Impl::didLastLaunchCrash() const {
     return crashlog::didLastLaunchCrash();
 }
 
-void Loader::Impl::reset() {
+void Loader::Impl::forceReset() {
     this->closePlatformConsole();
-
     for (auto& [_, mod] : m_mods) {
         delete mod;
     }
@@ -447,7 +446,7 @@ bool Loader::Impl::isReadyToHook() const {
 }
 
 void Loader::Impl::addInternalHook(Hook* hook, Mod* mod) {
-    m_internalHooks.push_back({hook, mod});
+    m_internalHooks.emplace_back(hook, mod);
 }
 
 bool Loader::Impl::loadHooks() {

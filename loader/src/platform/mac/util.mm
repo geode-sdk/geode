@@ -10,6 +10,7 @@ using namespace geode::prelude;
 #include <Geode/utils/web.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/binding/GameManager.hpp>
 
 bool utils::clipboard::write(std::string const& data) {
     [[NSPasteboard generalPasteboard] clearContents];
@@ -180,7 +181,7 @@ ghc::filesystem::path dirs::getGameDir() {
         _NSGetExecutablePath(gddir.data(), &out);
 
         ghc::filesystem::path gdpath = gddir.data();
-        auto currentPath = gdpath.parent_path().parent_path();    
+        auto currentPath = gdpath.parent_path().parent_path();
         return currentPath;
     }();
 
@@ -198,6 +199,17 @@ ghc::filesystem::path dirs::getSaveDir() {
     }();
 
     return path;
+}
+
+void geode::utils::game::restart() {
+    if (CCApplication::sharedApplication() &&
+        (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
+        log::error("Cannot restart in PlayLayer or LevelEditorLayer!");
+        return;
+    }
+
+    // TODO: implement restarting on mac
+    log::warn("Restarting is not yet implemented on macOS!");
 }
 
 #endif

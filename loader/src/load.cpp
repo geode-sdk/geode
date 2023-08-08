@@ -66,7 +66,7 @@ int geodeEntry(void* platformData) {
             "There was a fatal error setting up "
             "the internal mod and Geode can not be loaded: " + internalSetupRes.unwrapErr()
         );
-        LoaderImpl::get()->reset();
+        LoaderImpl::get()->forceReset();
         return 1;
     }
 
@@ -84,7 +84,7 @@ int geodeEntry(void* platformData) {
             "the loader and Geode can not be loaded. " 
             "(" + setupRes.unwrapErr() + ")"
         );
-        LoaderImpl::get()->reset();
+        LoaderImpl::get()->forceReset();
         return 1;
     }
 

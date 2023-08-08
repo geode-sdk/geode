@@ -158,4 +158,30 @@ ghc::filesystem::path dirs::getSaveDir() {
     return path;
 }
 
+void geode::utils::game::restart() {
+    if (CCApplication::sharedApplication() &&
+        (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
+        log::error("Cannot restart in PlayLayer or LevelEditorLayer!");
+        return;
+    }
+
+    const auto workingDir = dirs::getGameDir();
+
+    wchar_t buffer[MAX_PATH];
+    GetModuleFileNameW(nullptr, buffer, MAX_PATH);
+    const auto gdName = ghc::filesystem::path(buffer).filename().string();
+
+    // launch updater
+    const auto updaterPath = (workingDir / "GeodeUpdater.exe").string();
+    ShellExecuteA(nullptr, "open", updaterPath.c_str(), gdName.c_str(), workingDir.string().c_str(), false);
+
+    if (CCApplication::sharedApplication())
+        // please forgive me..
+        // manually set the closed flag
+        // TODO: actually call glfwSetWindowShouldClose
+        *reinterpret_cast<bool*>(reinterpret_cast<uintptr_t>(CCEGLView::sharedOpenGLView()->getWindow()) + 0xa) = true;
+    else
+        exit(0);
+}
+
 #endif
