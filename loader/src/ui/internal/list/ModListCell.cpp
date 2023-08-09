@@ -89,17 +89,40 @@ void ModListCell::setupInfo(
     }
     this->addChild(versionLabel);
 
+    TagNode* apiLabel = nullptr;
+    if (metadata.isAPI()) {
+        apiLabel = TagNode::create("API");
+        apiLabel->setAnchorPoint({ .0f, .5f });
+        apiLabel->setScale(.3f);
+        apiLabel->setPosition(
+            versionLabel->getPositionX() +
+                versionLabel->getScaledContentSize().width + 5.f,
+            versionLabel->getPositionY()
+        );
+    }
+
     if (auto tag = metadata.getVersion().getTag()) {
         auto tagLabel = TagNode::create(tag.value().toString().c_str());
         tagLabel->setAnchorPoint({ .0f, .5f });
         tagLabel->setScale(.3f);
         tagLabel->setPosition(
-            versionLabel->getPositionX() + 
+            versionLabel->getPositionX() +
                 versionLabel->getScaledContentSize().width + 5.f,
             versionLabel->getPositionY()
         );
         this->addChild(tagLabel);
+
+        if (apiLabel) {
+            apiLabel->setPosition(
+                tagLabel->getPositionX() +
+                    tagLabel->getScaledContentSize().width + 5.f,
+                tagLabel->getPositionY()
+            );
+        }
     }
+
+    if (apiLabel)
+        this->addChild(apiLabel);
 
     auto creatorStr = "by " + metadata.getDeveloper();
     auto creatorLabel = CCLabelBMFont::create(creatorStr.c_str(), "goldFont.fnt");
