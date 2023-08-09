@@ -486,12 +486,24 @@ void Loader::Impl::findProblems() {
         for (auto const& dep : mod->getMetadata().getIncompatibilities()) {
             if (!dep.mod || !dep.version.compare(dep.mod->getVersion()))
                 continue;
-            m_problems.push_back({
-                LoadProblem::Type::PresentIncompatibility,
-                mod,
-                fmt::format("{} {}", dep.id, dep.version.toString())
-            });
-            log::error("{} is incompatible with {} {}", id, dep.id, dep.version);
+            switch(dep.importance) {
+                case ModMetadata::Incompatibility::Importance::Conflicting:
+                    m_problems.push_back({
+                        LoadProblem::Type::Conflict,
+                        mod,
+                        fmt::format("{} {}", dep.id, dep.version.toString())
+                    });
+                    log::warn("{} conflicts with {} {}", id, dep.id, dep.version);
+                    break;
+                case ModMetadata::Incompatibility::Importance::Breaking:
+                    m_problems.push_back({
+                        LoadProblem::Type::PresentIncompatibility,
+                        mod,
+                        fmt::format("{} {}", dep.id, dep.version.toString())
+                    });
+                    log::error("{} breaks {} {}", id, dep.id, dep.version);
+                    break;
+            }
         }
 
         Mod* myEpicMod = mod; // clang fix

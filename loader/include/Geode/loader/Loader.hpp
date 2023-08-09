@@ -25,6 +25,7 @@ namespace geode {
             Unknown,
             Suggestion,
             Recommendation,
+            Conflict,
             InvalidFile,
             Duplicate,
             SetupFailed,

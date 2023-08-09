@@ -51,8 +51,13 @@ namespace geode {
         };
 
         struct GEODE_DLL Incompatibility {
+            enum class Importance : uint8_t {
+                Breaking,
+                Conflicting
+            };
             std::string id;
             ComparableVersionInfo version;
+            Importance importance = Importance::Breaking;
             Mod* mod = nullptr;
             [[nodiscard]] bool isResolved() const;
         };

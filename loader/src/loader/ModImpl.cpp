@@ -349,7 +349,7 @@ Result<> Mod::Impl::enable() {
 
     bool enabledDependencies = true;
     for (auto const& item : m_metadata.getDependencies()) {
-        if (!item.isResolved())
+        if (!item.isResolved() || !item.mod)
             continue;
         auto res = item.mod->enable();
         if (!res) {

@@ -18,11 +18,12 @@ ModMetadata::Impl& ModMetadataImpl::getImpl(ModMetadata& info)  {
 
 bool ModMetadata::Dependency::isResolved() const {
     return this->importance != Importance::Required ||
-        (this->mod && this->mod->isLoaded() && this->version.compare(this->mod->getVersion()));
+        this->mod && this->mod->isLoaded() && this->version.compare(this->mod->getVersion());
 }
 
 bool ModMetadata::Incompatibility::isResolved() const {
-    return !this->mod || !this->version.compare(this->mod->getVersion());
+    return this->importance != Importance::Breaking ||
+        (!this->mod || !this->version.compare(this->mod->getVersion()));
 }
 
 ModMetadata::Dependency::operator geode::Dependency() {
@@ -138,6 +139,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
         Incompatibility incompatibility;
         obj.needs("id").validate(MiniFunction<bool(std::string const&)>(&ModMetadata::validateID)).into(incompatibility.id);
         obj.needs("version").into(incompatibility.version);
+        obj.has("importance").into(incompatibility.importance);
         obj.checkUnknownKeys();
 
         impl->m_incompatibilities.push_back(incompatibility);
@@ -510,5 +512,24 @@ struct json::Serialize<geode::ModMetadata::Dependency::Importance> {
         if (impStr == "suggested")
             return geode::ModMetadata::Dependency::Importance::Suggested;
         throw json::JsonException(R"(Expected importance to be "required", "recommended" or "suggested")");
+    }
+};
+
+template <>
+struct json::Serialize<geode::ModMetadata::Incompatibility::Importance> {
+    static json::Value GEODE_DLL to_json(geode::ModMetadata::Incompatibility::Importance const& importance) {
+        switch (importance) {
+            case geode::ModMetadata::Incompatibility::Importance::Breaking: return {"breaking"};
+            case geode::ModMetadata::Incompatibility::Importance::Conflicting: return {"conflicting"};
+            default: return {"unknown"};
+        }
+    }
+    static geode::ModMetadata::Incompatibility::Importance GEODE_DLL from_json(json::Value const& importance) {
+        auto impStr = importance.as_string();
+        if (impStr == "breaking")
+            return geode::ModMetadata::Incompatibility::Importance::Breaking;
+        if (impStr == "conflicting")
+            return geode::ModMetadata::Incompatibility::Importance::Conflicting;
+        throw json::JsonException(R"(Expected importance to be "breaking" or "conflicting")");
     }
 };
