@@ -122,17 +122,22 @@ Result<IndexItemHandle> IndexItem::Impl::create(ghc::filesystem::path const& dir
 
     std::unordered_set<PlatformID> platforms;
     for (auto& plat : root.has("platforms").iterate()) {
-        platforms.insert(PlatformID::from(plat.template get<std::string>()));
+        platforms.insert(PlatformID::from(plat.get<std::string>()));
+    }
+
+    std::unordered_set<std::string> tags;
+    for (auto& tag : root.has("tags").iterate()) {
+        tags.insert(tag.get<std::string>());
     }
 
     auto item = std::make_shared<IndexItem>();
     item->m_impl->m_path = dir;
     item->m_impl->m_metadata = metadata;
-    item->m_impl->m_downloadURL = root.has("mod").obj().has("download").template get<std::string>();
-    item->m_impl->m_downloadHash = root.has("mod").obj().has("hash").template get<std::string>();
     item->m_impl->m_platforms = platforms;
-    item->m_impl->m_isFeatured = root.has("featured").template get<bool>();
-    item->m_impl->m_tags = root.has("tags").template get<std::unordered_set<std::string>>();
+    item->m_impl->m_tags = tags;
+    root.has("mod").obj().has("download").into(item->m_impl->m_downloadURL);
+    root.has("mod").obj().has("hash").into(item->m_impl->m_downloadHash);
+    root.has("featured").into(item->m_impl->m_isFeatured);
 
     if (checker.isError()) {
         return Err(checker.getError());
@@ -363,6 +368,7 @@ void Index::Impl::updateFromLocalTree() {
             });
         }
     } catch(std::exception& e) {
+        log::error("Unable to read local index tree: {}", e.what());
         IndexUpdateEvent("Unable to read local index tree").post();
         return;
     }
