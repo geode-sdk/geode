@@ -1750,7 +1750,7 @@ class FMODSound : cocos2d::CCNode {
 class FriendRequestDelegate {}
 
 class FriendsProfilePage : FLAlertLayer, FLAlertLayerProtocol, UploadActionDelegate, UploadPopupDelegate, UserListDelegate {
-    static FriendsProfilePage* create(UserListType) = win 0x9af30;
+    static FriendsProfilePage* create(UserListType) = win 0x9ce80;
     bool init(UserListType) = win 0x9cf30;
 }
 
