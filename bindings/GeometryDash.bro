@@ -1749,6 +1749,11 @@ class FMODSound : cocos2d::CCNode {
 
 class FriendRequestDelegate {}
 
+class FriendsProfilePage : FLAlertLayer, FLAlertLayerProtocol, UploadActionDelegate, UploadPopupDelegate, UserListDelegate {
+    static FriendsProfilePage* create(UserListType) = win 0x9ce80;
+    bool init(UserListType) = win 0x9cf30;
+}
+
 class GJAccountBackupDelegate {
     virtual bool backupAccountFailed(BackupAccountError) {
         return false;
@@ -5744,6 +5749,13 @@ class UserInfoDelegate {
     virtual void getUserInfoFailed(int) {}
     virtual void getUserInfoChanged(GJUserScore *) {}
 }
+
+class UserListDelegate {
+    virtual void forceReloadList(UserListType) {}
+    virtual void getUserListFailed(UserListType, GJErrorCode) {}
+    virtual void getUserListFinished(cocos2d::CCArray*, UserListType) {}
+    virtual void userListChanged(cocos2d::CCArray*, UserListType) {}
+};
 
 class VideoOptionsLayer : FLAlertLayer {
     VideoOptionsLayer* create() = win 0x1e0d70;
