@@ -107,6 +107,32 @@ bool IndexItem::isInstalled() const {
     return m_impl->isInstalled();
 }
 
+#if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
+void IndexItem::setMetadata(ModMetadata const& value) {
+    m_impl->m_metadata = value;
+}
+
+void IndexItem::setDownloadURL(std::string const& value) {
+    m_impl->m_downloadURL = value;
+}
+
+void IndexItem::setPackageHash(std::string const& value) {
+    m_impl->m_downloadHash = value;
+}
+
+void IndexItem::setAvailablePlatforms(std::unordered_set<PlatformID> const& value) {
+    m_impl->m_platforms = value;
+}
+
+void IndexItem::setIsFeatured(bool const& value) {
+    m_impl->m_isFeatured = value;
+}
+
+void IndexItem::setTags(std::unordered_set<std::string> const& value) {
+    m_impl->m_tags = value;
+}
+#endif
+
 Result<IndexItemHandle> IndexItem::Impl::create(ghc::filesystem::path const& dir) {
     GEODE_UNWRAP_INTO(
         auto entry, file::readJson(dir / "entry.json")

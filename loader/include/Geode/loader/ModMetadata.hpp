@@ -163,11 +163,33 @@ namespace geode {
         /**
          * Whether this mod has to be loaded before the loading screen or not
          */
-        [[ nodiscard]] bool needsEarlyLoad() const;
+        [[nodiscard]] bool needsEarlyLoad() const;
         /**
          * Whether this mod is an API or not
          */
         [[nodiscard]] bool isAPI() const;
+
+#if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
+        void setPath(ghc::filesystem::path const& value);
+        void setBinaryName(std::string const& value);
+        void setVersion(VersionInfo const& value);
+        void setID(std::string const& value);
+        void setName(std::string const& value);
+        void setDeveloper(std::string const& value);
+        void setDescription(std::optional<std::string> const& value);
+        void setDetails(std::optional<std::string> const& value);
+        void setChangelog(std::optional<std::string> const& value);
+        void setSupportInfo(std::optional<std::string> const& value);
+        void setRepository(std::optional<std::string> const& value);
+        void setIssues(std::optional<IssuesInfo> const& value);
+        void setDependencies(std::vector<Dependency> const& value);
+        void setIncompatibilities(std::vector<Incompatibility> const& value);
+        void setSpritesheets(std::vector<std::string> const& value);
+        void setSettings(std::vector<std::pair<std::string, Setting>> const& value);
+        void setNeedsEarlyLoad(bool const& value);
+        void setIsAPI(bool const& value);
+#endif
+
         /**
          * Create ModInfo from an unzipped .geode package
          */

@@ -93,6 +93,11 @@ namespace geode {
 
         json::Value& getSaveContainer();
 
+#if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
+        void setMetadata(ModMetadata const& metadata);
+        std::vector<Mod*> getDependants() const;
+#endif
+
         Result<> saveData();
         Result<> loadData();
 

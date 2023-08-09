@@ -79,6 +79,15 @@ ModMetadata Mod::Impl::getMetadata() const {
     return m_metadata;
 }
 
+#if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
+void Mod::Impl::setMetadata(ModMetadata const& metadata) {
+    m_metadata = metadata;
+}
+std::vector<Mod*> Mod::Impl::getDependants() const {
+    return m_dependants;
+}
+#endif
+
 ghc::filesystem::path Mod::Impl::getTempDir() const {
     return m_tempDirName;
 }

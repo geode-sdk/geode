@@ -97,6 +97,15 @@ ghc::filesystem::path Mod::getResourcesDir() const {
     return dirs::getModRuntimeDir() / this->getID() / "resources" / this->getID();
 }
 
+#if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
+void Mod::setMetadata(ModMetadata const& metadata) {
+    m_impl->setMetadata(metadata);
+}
+std::vector<Mod*> Mod::getDependants() const {
+    return m_impl->getDependants();
+}
+#endif
+
 Result<> Mod::saveData() {
     return m_impl->saveData();
 }

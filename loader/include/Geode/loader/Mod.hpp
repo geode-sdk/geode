@@ -100,6 +100,11 @@ namespace geode {
          */
         ghc::filesystem::path getResourcesDir() const;
 
+#if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
+        void setMetadata(ModMetadata const& metadata);
+        std::vector<Mod*> getDependants() const;
+#endif
+
         Result<> saveData();
         Result<> loadData();
 

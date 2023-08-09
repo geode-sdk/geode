@@ -117,6 +117,15 @@ namespace geode {
         std::unordered_set<std::string> getTags() const;
         bool isInstalled() const;
 
+#if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
+        void setMetadata(ModMetadata const& value);
+        void setDownloadURL(std::string const& value);
+        void setPackageHash(std::string const& value);
+        void setAvailablePlatforms(std::unordered_set<PlatformID> const& value);
+        void setIsFeatured(bool const& value);
+        void setTags(std::unordered_set<std::string> const& value);
+#endif
+
         IndexItem();
         ~IndexItem();
     };

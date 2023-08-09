@@ -410,6 +410,80 @@ bool ModMetadata::isAPI() const {
     return m_impl->m_isAPI;
 }
 
+#if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
+void ModMetadata::setPath(ghc::filesystem::path const& value) {
+    m_impl->m_path = value;
+}
+
+void ModMetadata::setBinaryName(std::string const& value) {
+    m_impl->m_binaryName = value;
+}
+
+void ModMetadata::setVersion(VersionInfo const& value) {
+    m_impl->m_version = value;
+}
+
+void ModMetadata::setID(std::string const& value) {
+    m_impl->m_id = value;
+}
+
+void ModMetadata::setName(std::string const& value) {
+    m_impl->m_name = value;
+}
+
+void ModMetadata::setDeveloper(std::string const& value) {
+    m_impl->m_developer = value;
+}
+
+void ModMetadata::setDescription(std::optional<std::string> const& value) {
+    m_impl->m_description = value;
+}
+
+void ModMetadata::setDetails(std::optional<std::string> const& value) {
+    m_impl->m_details = value;
+}
+
+void ModMetadata::setChangelog(std::optional<std::string> const& value) {
+    m_impl->m_changelog = value;
+}
+
+void ModMetadata::setSupportInfo(std::optional<std::string> const& value) {
+    m_impl->m_supportInfo = value;
+}
+
+void ModMetadata::setRepository(std::optional<std::string> const& value) {
+    m_impl->m_repository = value;
+}
+
+void ModMetadata::setIssues(std::optional<IssuesInfo> const& value) {
+    m_impl->m_issues = value;
+}
+
+void ModMetadata::setDependencies(std::vector<Dependency> const& value) {
+    m_impl->m_dependencies = value;
+}
+
+void ModMetadata::setIncompatibilities(std::vector<Incompatibility> const& value) {
+    m_impl->m_incompatibilities = value;
+}
+
+void ModMetadata::setSpritesheets(std::vector<std::string> const& value) {
+    m_impl->m_spritesheets = value;
+}
+
+void ModMetadata::setSettings(std::vector<std::pair<std::string, Setting>> const& value) {
+    m_impl->m_settings = value;
+}
+
+void ModMetadata::setNeedsEarlyLoad(bool const& value) {
+    m_impl->m_needsEarlyLoad = value;
+}
+
+void ModMetadata::setIsAPI(bool const& value) {
+    m_impl->m_isAPI = value;
+}
+#endif
+
 Result<ModMetadata> ModMetadata::createFromGeodeZip(utils::file::Unzip& zip) {
     return Impl::createFromGeodeZip(zip);
 }
