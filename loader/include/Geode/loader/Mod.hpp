@@ -82,6 +82,7 @@ namespace geode {
         bool supportsDisabling() const;
         bool canDisable() const;
         bool canEnable() const;
+        bool needsEarlyLoad() const;
         [[deprecated]] bool supportsUnloading() const;
         [[deprecated("use wasSuccessfullyLoaded instead")]] bool wasSuccesfullyLoaded() const;
         bool wasSuccessfullyLoaded() const;

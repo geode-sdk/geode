@@ -63,6 +63,10 @@ void Loader::refreshModsList() {
     return m_impl->refreshModsList();
 }
 
+Loader::LoadingState Loader::getLoadingState() {
+    return m_impl->m_loadingState;
+}
+
 bool Loader::isModInstalled(std::string const& id) const {
     return m_impl->isModInstalled(id);
 }

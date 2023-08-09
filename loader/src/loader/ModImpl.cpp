@@ -127,6 +127,14 @@ bool Mod::Impl::canEnable() const {
            }));
 }
 
+bool Mod::Impl::needsEarlyLoad() const {
+    auto deps = m_dependants;
+    return getMetadata().needsEarlyLoad() ||
+        !deps.empty() && std::any_of(deps.begin(), deps.end(), [&](auto& item) {
+             return item->needsEarlyLoad();
+         });
+}
+
 bool Mod::Impl::wasSuccessfullyLoaded() const {
     return !this->isEnabled() || this->isLoaded();
 }

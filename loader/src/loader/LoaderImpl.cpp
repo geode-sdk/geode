@@ -293,6 +293,7 @@ void Loader::Impl::queueMods(std::vector<ModMetadata>& modQueue) {
 
             log::debug("id: {}", modMetadata.getID());
             log::debug("version: {}", modMetadata.getVersion());
+            log::debug("early: {}", modMetadata.needsEarlyLoad() ? "yes" : "no");
 
             if (std::find_if(modQueue.begin(), modQueue.end(), [&](auto& item) {
                     return modMetadata.getID() == item.getID();
@@ -387,7 +388,12 @@ void Loader::Impl::buildModGraph() {
     }
 }
 
-void Loader::Impl::loadModGraph(Mod* node) {
+void Loader::Impl::loadModGraph(Mod* node, bool early) {
+    if (early && !node->needsEarlyLoad()) {
+        m_modsToLoad.push(node);
+        return;
+    }
+
     if (node->hasUnresolvedDependencies())
         return;
     if (node->hasUnresolvedIncompatibilities())
@@ -398,7 +404,7 @@ void Loader::Impl::loadModGraph(Mod* node) {
 
     if (node->isLoaded()) {
         for (auto const& dep : node->m_impl->m_dependants) {
-            this->loadModGraph(dep);
+            this->loadModGraph(dep, early);
         }
         log::popNest();
         return;
@@ -434,7 +440,7 @@ void Loader::Impl::loadModGraph(Mod* node) {
         }
 
         for (auto const& dep : node->m_impl->m_dependants) {
-            this->loadModGraph(dep);
+            this->loadModGraph(dep, early);
         }
     }
 
@@ -512,6 +518,8 @@ void Loader::Impl::refreshModGraph() {
     log::info("Refreshing mod graph...");
     log::pushNest();
 
+    auto begin = std::chrono::high_resolution_clock::now();
+
     if (m_mods.size() > 1) {
         log::error("Cannot refresh mod graph after startup");
         log::popNest();
@@ -520,38 +528,89 @@ void Loader::Impl::refreshModGraph() {
 
     m_problems.clear();
 
+    m_loadingState = LoadingState::Queue;
     log::debug("Queueing mods");
     log::pushNest();
     std::vector<ModMetadata> modQueue;
     this->queueMods(modQueue);
     log::popNest();
 
+    m_loadingState = LoadingState::List;
     log::debug("Populating mod list");
     log::pushNest();
     this->populateModList(modQueue);
     modQueue.clear();
     log::popNest();
 
+    m_loadingState = LoadingState::Graph;
     log::debug("Building mod graph");
     log::pushNest();
     this->buildModGraph();
     log::popNest();
 
-    // TODO: not early load
-    log::debug("Loading mods");
+    m_loadingState = LoadingState::EarlyMods;
+    log::debug("Loading early mods");
     log::pushNest();
     for (auto const& dep : Mod::get()->m_impl->m_dependants) {
-        this->loadModGraph(dep);
+        this->loadModGraph(dep, true);
     }
     log::popNest();
 
-    log::debug("Finding problems");
-    log::pushNest();
-    this->findProblems();
+    auto end = std::chrono::high_resolution_clock::now();
+    auto time = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
+    log::info("Took {}s. Continuing next frame...", static_cast<float>(time) / 1000.f);
+
     log::popNest();
 
-    m_earlyLoadFinished = true;
-    m_earlyLoadFinishedCV.notify_all();
+    if (m_modsToLoad.empty())
+        m_loadingState = LoadingState::Problems;
+    else
+        m_loadingState = LoadingState::Mods;
+
+    queueInGDThread([]() {
+        Loader::get()->m_impl->continueRefreshModGraph();
+    });
+}
+
+void Loader::Impl::continueRefreshModGraph() {
+    log::info("Continuing mod graph refresh...");
+    log::pushNest();
+
+    auto begin = std::chrono::high_resolution_clock::now();
+
+    switch (m_loadingState) {
+        case LoadingState::Mods:
+            log::debug("Loading mods");
+            log::pushNest();
+            this->loadModGraph(m_modsToLoad.front(), false);
+            log::popNest();
+            m_modsToLoad.pop();
+            if (m_modsToLoad.empty())
+                m_loadingState = LoadingState::Problems;
+            break;
+        case LoadingState::Problems:
+            log::debug("Finding problems");
+            log::pushNest();
+            this->findProblems();
+            log::popNest();
+            m_loadingState = LoadingState::Done;
+            break;
+        default:
+            m_loadingState = LoadingState::Done;
+            log::warn("Impossible loading state, resetting to 'Done'! "
+                "Was Loader::Impl::continueRefreshModGraph() called from the wrong place?");
+            break;
+    }
+
+    auto end = std::chrono::high_resolution_clock::now();
+    auto time = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
+    log::info("Took {}s", static_cast<float>(time) / 1000.f);
+
+    if (m_loadingState != LoadingState::Done) {
+        queueInGDThread([]() {
+            Loader::get()->m_impl->continueRefreshModGraph();
+        });
+    }
 
     log::popNest();
 }
@@ -561,11 +620,9 @@ std::vector<LoadProblem> Loader::Impl::getProblems() const {
 }
 
 void Loader::Impl::waitForModsToBeLoaded() {
-    auto lock = std::unique_lock(m_earlyLoadFinishedMutex);
-    log::debug("Waiting for mods to be loaded... {}", bool(m_earlyLoadFinished));
-    m_earlyLoadFinishedCV.wait(lock, [this] {
-        return bool(m_earlyLoadFinished);
-    });
+    log::debug("Waiting for mods to be loaded...");
+    // genius
+    log::warn("waitForModsToBeLoaded() does not wait for mods to be loaded!");
 }
 
 bool Loader::Impl::didLastLaunchCrash() const {

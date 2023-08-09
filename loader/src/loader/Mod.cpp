@@ -62,6 +62,10 @@ bool Mod::canEnable() const {
     return m_impl->canEnable();
 }
 
+bool Mod::needsEarlyLoad() const {
+    return m_impl->needsEarlyLoad();
+}
+
 bool Mod::supportsUnloading() const {
     return false;
 }

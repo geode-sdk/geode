@@ -19,6 +19,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <queue>
 #include <tulip/TulipHook.hpp>
 
 // TODO: Find a file convention for impl headers
@@ -56,6 +57,7 @@ namespace geode {
         std::vector<ghc::filesystem::path> m_modSearchDirectories;
         std::vector<LoadProblem> m_problems;
         std::unordered_map<std::string, Mod*> m_mods;
+        std::queue<Mod*> m_modsToLoad;
         std::vector<ghc::filesystem::path> m_texturePaths;
         bool m_isSetup = false;
 
@@ -64,9 +66,8 @@ namespace geode {
         std::optional<json::Value> m_latestGithubRelease;
         bool m_isNewUpdateDownloaded = false;
 
-        std::condition_variable m_earlyLoadFinishedCV;
-        std::mutex m_earlyLoadFinishedMutex;
-        std::atomic_bool m_earlyLoadFinished = false;
+        LoadingState m_loadingState;
+
         std::vector<utils::MiniFunction<void(void)>> m_gdThreadQueue;
         mutable std::mutex m_gdThreadMutex;
         bool m_platformConsoleOpen = false;
@@ -131,9 +132,11 @@ namespace geode {
         void queueMods(std::vector<ModMetadata>& modQueue);
         void populateModList(std::vector<ModMetadata>& modQueue);
         void buildModGraph();
-        void loadModGraph(Mod* node);
+        void loadModGraph(Mod* node, bool early);
         void findProblems();
         void refreshModGraph();
+        void continueRefreshModGraph();
+
         bool isModInstalled(std::string const& id) const;
         Mod* getInstalledMod(std::string const& id) const;
         bool isModLoaded(std::string const& id) const;

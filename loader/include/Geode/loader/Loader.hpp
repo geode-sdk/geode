@@ -64,6 +64,17 @@ namespace geode {
         // TODO: do we want to expose all of these functions?
         static Loader* get();
 
+        enum class LoadingState : uint8_t {
+            None,
+            Queue,
+            List,
+            Graph,
+            EarlyMods,
+            Mods,
+            Problems,
+            Done
+        };
+
         Result<> saveData();
         Result<> loadData();
 
@@ -75,6 +86,7 @@ namespace geode {
         [[deprecated]] Result<Mod*> loadModFromFile(ghc::filesystem::path const& file);
         [[deprecated]] void loadModsFromDirectory(ghc::filesystem::path const& dir, bool recursive = true);
         [[deprecated]] void refreshModsList();
+        LoadingState getLoadingState();
         bool isModInstalled(std::string const& id) const;
         Mod* getInstalledMod(std::string const& id) const;
         bool isModLoaded(std::string const& id) const;
