@@ -5755,7 +5755,7 @@ class UserListDelegate {
     virtual void getUserListFailed(UserListType, GJErrorCode) {}
     virtual void getUserListFinished(cocos2d::CCArray*, UserListType) {}
     virtual void userListChanged(cocos2d::CCArray*, UserListType) {}
-};
+}
 
 class VideoOptionsLayer : FLAlertLayer {
     VideoOptionsLayer* create() = win 0x1e0d70;
