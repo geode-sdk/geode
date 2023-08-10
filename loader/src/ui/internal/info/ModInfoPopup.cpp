@@ -686,6 +686,8 @@ bool IndexItemInfoPopup::init(IndexItemHandle item, ModListLayer* list) {
 
     if (!ModInfoPopup::init(item->getMetadata(), list)) return false;
 
+    if (item->isInstalled()) return true;
+
     m_installBtnSpr = IconButtonSprite::create(
         "GE_button_01.png"_spr,
         CCSprite::createWithSpriteFrameName("install.png"_spr),

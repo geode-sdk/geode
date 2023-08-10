@@ -136,7 +136,7 @@ static std::optional<int> queryMatch(ModListQuery const& query, IndexItemHandle 
 
 static std::optional<int> queryMatch(ModListQuery const& query, InvalidGeodeFile const& info) {
     // if any explicit filters were provided, no match
-    if (query.tags.size() || query.keywords.has_value()) {
+    if (!query.tags.empty() || query.keywords.has_value()) {
         return std::nullopt;
     }
     return 0;
@@ -162,9 +162,11 @@ CCArray* ModListLayer::createModCells(ModListType type, ModListQuery const& quer
 
             // newly installed
             for (auto const& item : Index::get()->getItems()) {
-                if (!item->isInstalled())
+                if (!item->isInstalled() ||
+                    Loader::get()->isModInstalled(item->getMetadata().getID()))
                     continue;
-                if (auto match = queryMatch(query, item)) {
+                // match the same as other installed mods
+                if (auto match = queryMatchKeywords(query, item->getMetadata())) {
                     auto cell = IndexItemCell::create(item, this, m_display, this->getCellSize());
                     sorted.insert({ match.value(), cell });
                 }

@@ -387,9 +387,11 @@ bool IndexItemCell::init(
 
     m_item = item;
 
-    this->setupInfo(item->getMetadata(), item->getTags().size(), display, item->isInstalled());
+    bool justInstalled = item->isInstalled() && !Loader::get()->isModInstalled(item->getMetadata().getID());
 
-    if (item->isInstalled()) {
+    this->setupInfo(item->getMetadata(), item->getTags().size(), display, justInstalled);
+
+    if (justInstalled) {
         auto restartSpr = ButtonSprite::create("Restart", "bigFont.fnt", "GJ_button_03.png", .8f);
         restartSpr->setScale(.65f);
 
