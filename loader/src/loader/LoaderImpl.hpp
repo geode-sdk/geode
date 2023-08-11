@@ -1,3 +1,5 @@
+#pragma once
+
 #include "FileWatcher.hpp"
 
 #include <json.hpp>
