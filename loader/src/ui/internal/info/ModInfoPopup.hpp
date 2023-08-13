@@ -89,7 +89,7 @@ public:
     static LocalModInfoPopup* create(Mod* mod, ModListLayer* list);
 };
 
-class IndexItemInfoPopup : public ModInfoPopup, public FLAlertLayerProtocol {
+class IndexItemInfoPopup : public ModInfoPopup {
 protected:
     IndexItemHandle m_item;
     EventListener<ModInstallFilter> m_installListener;
@@ -99,9 +99,6 @@ protected:
     void onInstallProgress(ModInstallEvent* event);
     void onInstall(CCObject*);
     void onCancel(CCObject*);
-    void doInstall();
-
-    void FLAlert_Clicked(FLAlertLayer*, bool) override;
 
     CCNode* createLogo(CCSize const& size) override;
     ModMetadata getMetadata() const override;

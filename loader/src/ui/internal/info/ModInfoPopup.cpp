@@ -20,6 +20,7 @@
 #include <Geode/utils/ranges.hpp>
 #include <Geode/utils/web.hpp>
 #include <loader/LoaderImpl.hpp>
+#include <ui/internal/list/InstallListPopup.hpp>
 
 static constexpr int const TAG_CONFIRM_UNINSTALL = 5;
 static constexpr int const TAG_CONFIRM_UPDATE = 6;
@@ -749,61 +750,24 @@ void IndexItemInfoPopup::onInstallProgress(ModInstallEvent* event) {
 }
 
 void IndexItemInfoPopup::onInstall(CCObject*) {
-    auto list = Index::get()->getInstallList(m_item);
-    if (!list) {
-        return FLAlertLayer::create(
-            "Unable to Install",
-            list.unwrapErr(),
-            "OK"
-        )->show();
-    }
-    FLAlertLayer::create(
-        this,
-        "Confirm Install",
-        fmt::format(
-            "The following mods will be installed:\n {}",
-            // le nest
-            ranges::join(
-                ranges::map<std::vector<std::string>>(
-                    list.unwrap().list,
-                    [](IndexItemHandle handle) {
-                        return fmt::format(
-                            " - <cr>{}</c> (<cy>{}</c>)",
-                            handle->getMetadata().getName(),
-                            handle->getMetadata().getID()
-                        );
-                    }
-                ),
-                "\n "
-            )
-        ),
-        "Cancel", "OK"
-    )->show();
+    InstallListPopup::create(m_item, [&](IndexInstallList const& list) {
+        if (m_latestVersionLabel) {
+            m_latestVersionLabel->setVisible(false);
+        }
+        this->setInstallStatus(UpdateProgress(0, "Starting install"));
+
+        m_installBtn->setTarget(
+            this, menu_selector(IndexItemInfoPopup::onCancel)
+        );
+        m_installBtnSpr->setString("Cancel");
+        m_installBtnSpr->setBG("GJ_button_06.png", false);
+
+        Index::get()->install(list);
+    })->show();
 }
 
 void IndexItemInfoPopup::onCancel(CCObject*) {
     Index::get()->cancelInstall(m_item);
-}
-
-void IndexItemInfoPopup::doInstall() {
-    if (m_latestVersionLabel) {
-        m_latestVersionLabel->setVisible(false);
-    }
-    this->setInstallStatus(UpdateProgress(0, "Starting install"));
-
-    m_installBtn->setTarget(
-        this, menu_selector(IndexItemInfoPopup::onCancel)
-    );
-    m_installBtnSpr->setString("Cancel");
-    m_installBtnSpr->setBG("GJ_button_06.png", false);
-
-    Index::get()->install(m_item);
-}
-
-void IndexItemInfoPopup::FLAlert_Clicked(FLAlertLayer*, bool btn2) {
-    if (btn2) {
-        this->doInstall();
-    }
 }
 
 CCNode* IndexItemInfoPopup::createLogo(CCSize const& size) {
