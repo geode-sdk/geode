@@ -651,19 +651,7 @@ void Index::Impl::installNext(size_t index, IndexInstallList const& list) {
                         item->getMetadata().getID(), res.unwrapErr()
                     ));
                 }
-
-                // If the mod is already loaded, enable it
-                if (mod->isLoaded()) {
-                    res = mod->enable();
-                    if (!res) {
-                        return postError(fmt::format(
-                            "Unable to enable {}: {}",
-                            item->getMetadata().getID(), res.unwrapErr()
-                        ));
-                    }
-                }
             }
-
 
             // Move the temp file
             try {

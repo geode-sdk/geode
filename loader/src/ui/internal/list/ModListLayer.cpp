@@ -172,7 +172,8 @@ CCArray* ModListLayer::createModCells(ModListType type, ModListQuery const& quer
             // newly installed
             for (auto const& item : Index::get()->getItems()) {
                 if (!item->isInstalled() ||
-                    Loader::get()->isModInstalled(item->getMetadata().getID()))
+                    Loader::get()->isModInstalled(item->getMetadata().getID()) ||
+                    Loader::get()->isModLoaded(item->getMetadata().getID()))
                     continue;
                 // match the same as other installed mods
                 if (auto match = queryMatchKeywords(query, item->getMetadata())) {

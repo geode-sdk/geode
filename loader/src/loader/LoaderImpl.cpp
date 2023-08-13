@@ -202,13 +202,13 @@ Mod* Loader::Impl::getInstalledMod(std::string const& id) const {
 }
 
 bool Loader::Impl::isModLoaded(std::string const& id) const {
-    return m_mods.count(id) && m_mods.at(id)->isLoaded() && m_mods.at(id)->isEnabled();
+    return m_mods.count(id) && m_mods.at(id)->isLoaded();
 }
 
 Mod* Loader::Impl::getLoadedMod(std::string const& id) const {
     if (m_mods.count(id)) {
         auto mod = m_mods.at(id);
-        if (mod->isLoaded() && mod->isEnabled()) {
+        if (mod->isLoaded()) {
             return mod;
         }
     }
