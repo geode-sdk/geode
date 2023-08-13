@@ -229,7 +229,7 @@ bool IndexItemInstallListCell::init(
 
         if (importance != ModMetadata::Dependency::Importance::Required) {
             message->setCString("N/A (Optional)");
-            message->setColor({ 120, 15, 15 });
+            message->setColor({ 163, 24, 24 });
         }
     }
 
@@ -297,7 +297,7 @@ bool UnknownInstallListCell::init(
     message->setColor({ 240, 31, 31 });
     if (optional) {
         message->setCString("Missing (Optional)");
-        message->setColor({ 120, 15, 15 });
+        message->setColor({ 163, 24, 24 });
     }
     this->addChild(message);
     return true;

@@ -244,6 +244,12 @@ namespace geode {
          */
         bool areUpdatesAvailable() const;
         /**
+         * Checks if the mod and its required dependencies can be installed
+         * @param item Item to get the list for
+         * @returns Success if the mod and its required dependencies can be installed, an error otherwise
+         */
+        Result<> canInstall(IndexItemHandle item) const;
+        /**
          * Get the list of items needed to install this item (dependencies, etc.)
          * @param item Item to get the list for
          * @returns The list, or an error if some items on the list cannot be installed

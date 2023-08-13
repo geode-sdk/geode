@@ -97,8 +97,7 @@ static std::optional<int> queryMatch(ModListQuery const& query, Mod* mod) {
 }
 
 static std::optional<int> queryMatch(ModListQuery const& query, IndexItemHandle item) {
-    // if no force visibility was provided and item is already installed, don't 
-    // show it
+    // if no force visibility was provided and item is already installed, don't show it
     if (!query.forceVisibility && Loader::get()->isModInstalled(item->getMetadata().getID())) {
         return std::nullopt;
     }
@@ -112,6 +111,16 @@ static std::optional<int> queryMatch(ModListQuery const& query, IndexItemHandle 
     if (!ranges::contains(query.platforms, [item](PlatformID id) {
         return item->getAvailablePlatforms().count(id);
     })) {
+        return std::nullopt;
+    }
+    // if no force visibility was provided and item is already installed, don't show it
+    auto canInstall = Index::get()->canInstall(item);
+    if (!query.forceInvalid && !canInstall) {
+        log::warn(
+            "Removing {} from the list because it cannot be installed: {}",
+            item->getMetadata().getID(),
+            canInstall.unwrapErr()
+        );
         return std::nullopt;
     }
     // otherwise match keywords
@@ -190,7 +199,8 @@ CCArray* ModListLayer::createModCells(ModListType type, ModListQuery const& quer
             // sort the mods by match score 
             std::multimap<int, IndexItemHandle> sorted;
 
-            for (auto const& item : Index::get()->getItems()) {
+            auto index = Index::get();
+            for (auto const& item : index->getItems()) {
                 if (auto match = queryMatch(query, item)) {
                     sorted.insert({ match.value(), item });
                 }

@@ -547,18 +547,17 @@ bool Index::areUpdatesAvailable() const {
 
 // Item installation
 
-Result<IndexInstallList> Index::getInstallList(IndexItemHandle item) const {
+Result<> Index::canInstall(IndexItemHandle item) const {
     if (!item->getAvailablePlatforms().count(GEODE_PLATFORM_TARGET)) {
         return Err("Mod is not available on {}", GEODE_PLATFORM_NAME);
     }
 
-    IndexInstallList list;
-    list.target = item;
-    // TODO: ui for picking recommended and suggested mods
     for (auto& dep : item->getMetadata().getDependencies()) {
         // if the dep is resolved, then all its dependencies must be installed
         // already in order for that to have happened
         if (dep.isResolved()) continue;
+
+        if (dep.importance != ModMetadata::Dependency::Importance::Required) continue;
 
         // check if this dep is available in the index
         if (auto depItem = this->getItem(dep.id, dep.version)) {
@@ -569,12 +568,55 @@ Result<IndexInstallList> Index::getInstallList(IndexItemHandle item) const {
                 );
             }
             // recursively add dependencies
+            GEODE_UNWRAP_INTO(auto deps, this->canInstall(depItem));
+        }
+        // otherwise user must get this dependency manually from somewhere
+        else {
+            return Err(
+                "Dependency {} version {} not found in the index! Likely "
+                "reason is that the version of the dependency this mod "
+                "depends on is not available. Please let the developer "
+                "of the mod ({}) know!",
+                dep.id, dep.version.toString(), item->getMetadata().getDeveloper()
+            );
+        }
+    }
+
+    return Ok();
+}
+
+Result<IndexInstallList> Index::getInstallList(IndexItemHandle item) const {
+    if (!item->getAvailablePlatforms().count(GEODE_PLATFORM_TARGET)) {
+        return Err("Mod is not available on {}", GEODE_PLATFORM_NAME);
+    }
+
+    IndexInstallList list;
+    list.target = item;
+    for (auto& dep : item->getMetadata().getDependencies()) {
+        // if the dep is resolved, then all its dependencies must be installed
+        // already in order for that to have happened
+        if (dep.isResolved()) continue;
+
+        if (dep.importance == ModMetadata::Dependency::Importance::Suggested) continue;
+
+        // check if this dep is available in the index
+        if (auto depItem = this->getItem(dep.id, dep.version)) {
+            if (!depItem->getAvailablePlatforms().count(GEODE_PLATFORM_TARGET)) {
+                // it's fine to not install optional dependencies
+                if (dep.importance != ModMetadata::Dependency::Importance::Required) continue;
+                return Err(
+                    "Dependency {} is not available on {}",
+                    dep.id, GEODE_PLATFORM_NAME
+                );
+            }
+            // recursively add dependencies
             GEODE_UNWRAP_INTO(auto deps, this->getInstallList(depItem));
             ranges::push(list.list, deps.list);
         }
         // otherwise user must get this dependency manually from somewhere
-        // else
         else {
+            // it's fine to not install optional dependencies
+            if (dep.importance != ModMetadata::Dependency::Importance::Required) continue;
             return Err(
                 "Dependency {} version {} not found in the index! Likely "
                 "reason is that the version of the dependency this mod "

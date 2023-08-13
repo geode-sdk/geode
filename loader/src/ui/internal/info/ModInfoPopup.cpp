@@ -750,20 +750,47 @@ void IndexItemInfoPopup::onInstallProgress(ModInstallEvent* event) {
 }
 
 void IndexItemInfoPopup::onInstall(CCObject*) {
-    InstallListPopup::create(m_item, [&](IndexInstallList const& list) {
-        if (m_latestVersionLabel) {
-            m_latestVersionLabel->setVisible(false);
-        }
-        this->setInstallStatus(UpdateProgress(0, "Starting install"));
+    createQuickPopup(
+        "Confirm Install",
+        "Installing this mod requires a few other mods to be installed. "
+        "Would you like to continue with <cy>recommended settings</c> or "
+        "<cb>customize</c> which mods to install?",
+        "Recommended", "Customize", 320.f,
+        [&](FLAlertLayer*, bool btn2) {
+            if (!btn2) {
+                auto canInstall = Index::get()->canInstall(m_item);
+                if (!canInstall) {
+                    FLAlertLayer::create(
+                        "Unable to Install",
+                        canInstall.unwrapErr(),
+                        "OK"
+                    )->show();
+                    return;
+                }
+                this->preInstall();
+                Index::get()->install(m_item);
+            }
+            else {
+                InstallListPopup::create(m_item, [&](IndexInstallList const& list) {
+                    this->preInstall();
+                    Index::get()->install(list);
+                })->show();
+            }
+        }, true, true
+    );
+}
 
-        m_installBtn->setTarget(
-            this, menu_selector(IndexItemInfoPopup::onCancel)
-        );
-        m_installBtnSpr->setString("Cancel");
-        m_installBtnSpr->setBG("GJ_button_06.png", false);
+void IndexItemInfoPopup::preInstall() {
+    if (m_latestVersionLabel) {
+        m_latestVersionLabel->setVisible(false);
+    }
+    this->setInstallStatus(UpdateProgress(0, "Starting install"));
 
-        Index::get()->install(list);
-    })->show();
+    m_installBtn->setTarget(
+        this, menu_selector(IndexItemInfoPopup::onCancel)
+    );
+    m_installBtnSpr->setString("Cancel");
+    m_installBtnSpr->setBG("GJ_button_06.png", false);
 }
 
 void IndexItemInfoPopup::onCancel(CCObject*) {

@@ -100,6 +100,8 @@ protected:
     void onInstall(CCObject*);
     void onCancel(CCObject*);
 
+    void preInstall();
+
     CCNode* createLogo(CCSize const& size) override;
     ModMetadata getMetadata() const override;
 

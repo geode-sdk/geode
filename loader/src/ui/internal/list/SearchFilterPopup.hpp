@@ -19,6 +19,7 @@ protected:
 
     void onPlatformToggle(CCObject*);
     void onShowInstalled(CCObject*);
+    void onShowInvalid(CCObject*);
     void onTag(CCObject*);
 
     void enable(CCMenuItemToggler* toggle, ModListType type);
