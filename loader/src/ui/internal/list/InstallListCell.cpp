@@ -11,14 +11,6 @@
 #include "../info/TagNode.hpp"
 #include "../info/DevProfilePopup.hpp"
 
-template <class T>
-static bool tryOrAlert(Result<T> const& res, char const* title) {
-    if (!res) {
-        FLAlertLayer::create(title, res.unwrapErr(), "OK")->show();
-    }
-    return res.isOk();
-}
-
 // InstallListCell
 
 void InstallListCell::draw() {

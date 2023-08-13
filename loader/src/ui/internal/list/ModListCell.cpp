@@ -1,4 +1,3 @@
-
 #include "ModListCell.hpp"
 #include "ModListLayer.hpp"
 #include "../info/ModInfoPopup.hpp"
@@ -11,6 +10,7 @@
 #include <loader/LoaderImpl.hpp>
 #include "../info/TagNode.hpp"
 #include "../info/DevProfilePopup.hpp"
+#include "ProblemsListPopup.hpp"
 
 template <class T>
 static bool tryOrAlert(Result<T> const& res, char const* title) {
@@ -234,20 +234,8 @@ void ModCell::onEnable(CCObject* sender) {
     });
 }
 
-// TODO: for fod maybe :3 show problems related to this mod
 void ModCell::onUnresolvedInfo(CCObject*) {
-    std::string info =
-        "This mod has the following "
-        "<cr>unresolved dependencies</c>: ";
-    for (auto const& dep : m_mod->getUnresolvedDependencies()) {
-        info += fmt::format(
-            "<cg>{}</c> (<cy>{}</c>), ",
-            dep.id, dep.version.toString()
-        );
-    }
-    info.pop_back();
-    info.pop_back();
-    FLAlertLayer::create(nullptr, "Unresolved Dependencies", info, "OK", nullptr, 400.f)->show();
+    ProblemsListPopup::create(m_mod)->show();
 }
 
 void ModCell::onInfo(CCObject*) {
@@ -258,7 +246,6 @@ void ModCell::onRestart(CCObject*) {
     utils::game::restart();
 }
 
-// TODO: for fod maybe :3 check if there are any problems related to this mod
 void ModCell::updateState() {
     bool unresolved = m_mod->hasUnresolvedDependencies();
     if (m_enableToggle) {
@@ -269,7 +256,16 @@ void ModCell::updateState() {
         m_enableToggle->m_onButton->setOpacity(unresolved ? 100 : 255);
         m_enableToggle->m_onButton->setColor(unresolved ? cc3x(155) : cc3x(255));
     }
-    m_unresolvedExMark->setVisible(unresolved);
+    bool hasProblems = false;
+    for (auto const& item : Loader::get()->getProblems()) {
+        if (!std::holds_alternative<Mod*>(item.cause) ||
+            std::get<Mod*>(item.cause) != m_mod ||
+            item.type <= LoadProblem::Type::Recommendation)
+            continue;
+        hasProblems = true;
+        break;
+    }
+    m_unresolvedExMark->setVisible(hasProblems);
 }
 
 bool ModCell::init(
@@ -513,7 +509,7 @@ bool InvalidGeodeFileCell::init(
     pathLabel->setColor({ 255, 255, 0 });
     this->addChild(pathLabel);
 
-    auto whySpr = ButtonSprite::create("Info", 0, 0, "bigFont.fnt", "GJ_button_01.png", 0, .8f);
+    auto whySpr = ButtonSprite::create("Info", 0, false, "bigFont.fnt", "GJ_button_01.png", 0, .8f);
     whySpr->setScale(.65f);
 
     auto viewBtn =
@@ -545,5 +541,114 @@ std::string InvalidGeodeFileCell::getDeveloper() const {
 }
 
 CCNode* InvalidGeodeFileCell::createLogo(CCSize const& size) {
+    return nullptr;
+}
+
+// ProblemsCell
+
+void ProblemsCell::onInfo(CCObject*) {
+    ProblemsListPopup::create(nullptr)->show();
+}
+
+bool ProblemsCell::init(
+    ModListLayer* list,
+    ModListDisplay display,
+    CCSize const& size
+) {
+    if (!ModListCell::init(list, size))
+        return false;
+
+    LoadProblem::Type problemType = LoadProblem::Type::Unknown;
+    // iterate problems to find the most important severity
+    for (auto const& problem : Loader::get()->getProblems()) {
+        if (problemType < problem.type)
+            problemType = problem.type;
+        // already found the most important one (error)
+        if (problemType > LoadProblem::Type::Conflict)
+            break;
+    }
+
+    std::string icon;
+    std::string title;
+    switch (problemType) {
+        case LoadProblem::Type::Unknown:
+            title = "?????";
+            break;
+        case LoadProblem::Type::Suggestion:
+            icon = "GJ_infoIcon_001.png";
+            title = "You have suggested mods";
+            m_color = { 66, 135, 245 };
+            break;
+        case LoadProblem::Type::Recommendation:
+            icon = "GJ_infoIcon_001.png";
+            title = "You have recommended mods";
+            m_color = { 66, 135, 245 };
+            break;
+        case LoadProblem::Type::Conflict:
+            icon = "info-warning.png"_spr;
+            title = "Some mods had warnings when loading";
+            m_color = { 250, 176, 37 };
+            break;
+        default:
+            icon = "info-alert.png"_spr;
+            title = "Some mods had problems loading";
+            m_color = { 245, 66, 66 };
+            break;
+    }
+
+    m_menu = CCMenu::create();
+    m_menu->setPosition(m_width - 40.f, m_height / 2);
+    this->addChild(m_menu);
+
+    auto logoSize = this->getLogoSize();
+
+    if (!icon.empty()) {
+        auto logoSpr = CCSprite::createWithSpriteFrameName(icon.c_str());
+        limitNodeSize(logoSpr, size, 1.f, .1f);
+        logoSpr->setPosition({logoSize / 2 + 12.f, m_height / 2});
+        this->addChild(logoSpr);
+    }
+
+    auto titleLabel = CCLabelBMFont::create(title.c_str(), "bigFont.fnt");
+    titleLabel->setAnchorPoint({ .0f, .5f });
+    titleLabel->setPosition(m_height / 2 + logoSize / 2 + 13.f, m_height / 2);
+    titleLabel->limitLabelWidth(m_width - 120.f, 1.f, .1f);
+    this->addChild(titleLabel);
+
+    auto viewSpr = ButtonSprite::create("View", "bigFont.fnt", "GJ_button_01.png", .8f);
+    viewSpr->setScale(.65f);
+
+    auto viewBtn =
+        CCMenuItemSpriteExtra::create(viewSpr, this, menu_selector(ProblemsCell::onInfo));
+    m_menu->addChild(viewBtn);
+
+    return true;
+}
+
+std::optional<ccColor3B> ProblemsCell::getColor() {
+    return m_color;
+}
+
+ProblemsCell* ProblemsCell::create(
+    ModListLayer* list,
+    ModListDisplay display,
+    CCSize const& size
+) {
+    auto ret = new ProblemsCell();
+    if (ret->init(list, display, size)) {
+        ret->autorelease();
+        return ret;
+    }
+    CC_SAFE_DELETE(ret);
+    return nullptr;
+}
+
+void ProblemsCell::updateState() {}
+
+std::string ProblemsCell::getDeveloper() const {
+    return "";
+}
+
+CCNode* ProblemsCell::createLogo(CCSize const& size) {
     return nullptr;
 }

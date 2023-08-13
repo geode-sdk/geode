@@ -301,7 +301,7 @@ void Loader::Impl::queueMods(std::vector<ModMetadata>& modQueue) {
                 m_problems.push_back({
                     LoadProblem::Type::Duplicate,
                     modMetadata,
-                    "a mod with the same ID is already present"
+                    "A mod with the same ID is already present."
                 });
                 log::error("Failed to queue: a mod with the same ID is already queued");
                 log::popNest();

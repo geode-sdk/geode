@@ -156,12 +156,9 @@ CCArray* ModListLayer::createModCells(ModListType type, ModListQuery const& quer
     switch (type) {
         default:
         case ModListType::Installed: {
-            // failed mods first
-            for (auto const& mod : Loader::get()->getFailedMods()) {
-                if (!queryMatch(query, mod)) continue;
-                mods->addObject(InvalidGeodeFileCell::create(
-                    mod, this, m_display, this->getCellSize()
-                ));
+            // problems first
+            if (!Loader::get()->getProblems().empty()) {
+                mods->addObject(ProblemsCell::create(this, m_display, this->getCellSize()));
             }
 
             // sort the mods by match score
@@ -474,6 +471,15 @@ void ModListLayer::reloadList(std::optional<ModListQuery> const& query) {
         this->getListSize().width,
         this->getListSize().height
     );
+    // please forgive me for this code
+    auto problemsCell = typeinfo_cast<ProblemsCell*>(list->m_entries->objectAtIndex(0));
+    if (problemsCell) {
+        auto cellView =
+            typeinfo_cast<TableViewCell*>(list->m_tableView->m_cellArray->objectAtIndex(0));
+        if (cellView && problemsCell->getColor()) {
+            cellView->m_backgroundLayer->setColor(*problemsCell->getColor());
+        }
+    }
 
     // set list status
     if (!items->count()) {

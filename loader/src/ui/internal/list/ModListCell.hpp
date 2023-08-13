@@ -131,3 +131,32 @@ public:
     CCNode* createLogo(CCSize const& size) override;
     std::string getDeveloper() const override;
 };
+
+/**
+ * Mod list item for an invalid Geode package
+ */
+class ProblemsCell : public ModListCell {
+protected:
+    std::optional<ccColor3B> m_color;
+
+    bool init(
+        ModListLayer* list,
+        ModListDisplay display,
+        CCSize const& size
+    );
+
+    void onInfo(CCObject*);
+
+public:
+    static ProblemsCell* create(
+        ModListLayer* list,
+        ModListDisplay display,
+        CCSize const& size
+    );
+
+    std::optional<ccColor3B> getColor();
+
+    void updateState() override;
+    CCNode* createLogo(CCSize const& size) override;
+    std::string getDeveloper() const override;
+};
