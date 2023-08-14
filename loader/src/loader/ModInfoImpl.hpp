@@ -14,7 +14,7 @@ using namespace geode::prelude;
 namespace geode {
     class [[deprecated]] ModInfo::Impl {
     public:
-        ModMetadata::Impl m_metadata;
+        ModMetadataImpl m_metadata;
         std::optional<IssuesInfo> m_issues;
         std::vector<Dependency> m_dependencies;
         bool m_supportsDisabling = true;
@@ -23,7 +23,7 @@ namespace geode {
         bool operator==(ModInfo::Impl const& other) const;
     };
 
-    class [[deprecated]] ModInfoImpl {
+    class [[deprecated]] ModInfoImpl : public ModInfo::Impl {
     public:
         static ModInfo::Impl& getImpl(ModInfo& info);
     };

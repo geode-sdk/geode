@@ -182,7 +182,7 @@ namespace geode {
         bool userTriedToLoadDLLs() const;
     };
 
-    class LoaderImpl {
+    class LoaderImpl : public Loader::Impl {
     public:
         static Loader::Impl* get();
     };

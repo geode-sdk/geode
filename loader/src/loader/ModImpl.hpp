@@ -134,7 +134,7 @@ namespace geode {
         ModJson getRuntimeInfo() const;
     };
 
-    class ModImpl : public Mod {
+    class ModImpl : public Mod::Impl {
     public:
         static Mod::Impl* get();
 

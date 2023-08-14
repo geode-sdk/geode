@@ -51,7 +51,7 @@ namespace geode {
         std::vector<std::pair<std::string, std::optional<std::string>*>> getSpecialFiles();
     };
 
-    class ModMetadataImpl {
+    class ModMetadataImpl : public ModMetadata::Impl {
     public:
         static ModMetadata::Impl& getImpl(ModMetadata& info);
     };

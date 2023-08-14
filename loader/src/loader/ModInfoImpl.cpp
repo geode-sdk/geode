@@ -157,19 +157,19 @@ bool const& ModInfo::isAPI() const {
 }
 
 Result<ModInfo> ModInfo::createFromGeodeZip(utils::file::Unzip& zip) {
-    return ModMetadata::Impl::createFromGeodeZip(zip);
+    return ModMetadataImpl::createFromGeodeZip(zip);
 }
 
 Result<ModInfo> ModInfo::createFromGeodeFile(ghc::filesystem::path const& path) {
-    return ModMetadata::Impl::createFromGeodeFile(path);
+    return ModMetadataImpl::createFromGeodeFile(path);
 }
 
 Result<ModInfo> ModInfo::createFromFile(ghc::filesystem::path const& path) {
-    return ModMetadata::Impl::createFromFile(path);
+    return ModMetadataImpl::createFromFile(path);
 }
 
 Result<ModInfo> ModInfo::create(ModJson const& json) {
-    return ModMetadata::Impl::create(json);
+    return ModMetadataImpl::create(json);
 }
 
 ModJson ModInfo::toJSON() const {
@@ -227,7 +227,7 @@ ModJson const& ModInfo::rawJSON() const {
 }
 
 Result<ModInfo> ModInfo::createFromSchemaV010(geode::ModJson const& json) {
-    return ModMetadata::Impl::createFromSchemaV010(json);
+    return ModMetadataImpl::createFromSchemaV010(json);
 }
 
 Result<> ModInfo::addSpecialFiles(ghc::filesystem::path const& dir) {

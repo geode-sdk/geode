@@ -549,7 +549,7 @@ ModMetadata& ModMetadata::operator=(ModMetadata&& other) noexcept {
 ModMetadata::operator ModInfo() {
     ModInfo info;
     auto infoImpl = ModInfoImpl::getImpl(info);
-    infoImpl.m_metadata = *m_impl;
+    infoImpl.m_metadata.Impl::operator=(*m_impl); // im gonna cry what is this hack why are you not using pointers
     infoImpl.m_issues = m_impl->m_issues;
     for (auto& dep : m_impl->m_dependencies)
         infoImpl.m_dependencies.push_back(dep);
@@ -558,7 +558,7 @@ ModMetadata::operator ModInfo() {
 ModMetadata::operator ModInfo() const {
     ModInfo info;
     auto infoImpl = ModInfoImpl::getImpl(info);
-    infoImpl.m_metadata = *m_impl;
+    infoImpl.m_metadata.Impl::operator=(*m_impl);
     infoImpl.m_issues = m_impl->m_issues;
     for (auto& dep : m_impl->m_dependencies)
         infoImpl.m_dependencies.push_back(dep);
