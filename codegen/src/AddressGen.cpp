@@ -1,5 +1,4 @@
 #include "Shared.hpp"
-#include "TypeOpt.hpp"
 
 namespace {
     namespace format_strings {
@@ -76,9 +75,6 @@ Result<tulip::hook::HandlerMetadata> geode::modifier::handlerMetadataForAddress(
 
 std::string generateAddressHeader(Root& root) {
     std::string output;
-
-    TypeBank bank;
-    bank.loadFrom(root);
     output += format_strings::address_begin;
 
     for (auto& c : root.classes) {
@@ -92,14 +88,12 @@ std::string generateAddressHeader(Root& root) {
             }
 
             if (codegen::getStatus(field) == BindStatus::Binded) {
-                auto const ids = bank.getIDs(fn->beginning, c.name);
-
                 address_str = fmt::format(
                     "addresser::get{}Virtual(Resolve<{}>::func(&{}::{}))",
-                    str_if("Non", !fn->beginning.is_virtual),
-                    codegen::getParameterTypes(fn->beginning),
+                    str_if("Non", !fn->prototype.is_virtual),
+                    codegen::getParameterTypes(fn->prototype),
                     field.parent,
-                    fn->beginning.name
+                    fn->prototype.name
                 );
             }
             else if (codegen::getStatus(field) == BindStatus::NeedsBinding) {

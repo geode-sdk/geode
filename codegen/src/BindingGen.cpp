@@ -187,7 +187,7 @@ std::string generateBindingHeader(Root& root, ghc::filesystem::path const& singl
 
         bool unimplementedField = false;
         for (auto field : cls.fields) {
-            FunctionBegin* fb;
+            MemberFunctionProto* fb;
             char const* used_format = format_strings::function_definition;
 
             std::string addressDocs;
@@ -212,11 +212,11 @@ std::string generateBindingHeader(Root& root, ghc::filesystem::path const& singl
                 }
                 continue;
             } else if (auto fn = field.get_as<OutOfLineField>()) {
-                fb = &fn->beginning;
+                fb = &fn->prototype;
                 addressDocs = "     * @note[short] Out of line\n";
 
             } else if (auto fn = field.get_as<FunctionBindField>()) {
-                fb = &fn->beginning;
+                fb = &fn->prototype;
 
                 if (!codegen::platformNumber(fn->binds)) {
                     used_format = format_strings::error_definition;

@@ -1,5 +1,4 @@
 #include "Shared.hpp"
-#include "TypeOpt.hpp"
 
 #include <iostream>
 #include <set>
@@ -58,9 +57,6 @@ namespace geode::modifier {{
 std::string generateModifyHeader(Root& root, ghc::filesystem::path const& singleFolder) {
     std::string output;
 
-    TypeBank bank;
-    bank.loadFrom(root);
-
     for (auto c : root.classes) {
         if (c.name == "cocos2d") continue;
 
@@ -108,7 +104,6 @@ std::string generateModifyHeader(Root& root, ghc::filesystem::path const& single
         for (auto& f : c.fields) {
             if (codegen::getStatus(f) != BindStatus::Unbindable) {
                 auto begin = f.get_fn();
-                auto func = TypeBank::makeFunc(*begin, c.name);
 
                 std::string format_string;
 
@@ -127,11 +122,10 @@ std::string generateModifyHeader(Root& root, ghc::filesystem::path const& single
                 single_output += fmt::format(
                     format_string,
                     fmt::arg("addr_index", f.field_id),
-                    fmt::arg("pure_index", bank.getPure(*begin, c.name)),
                     fmt::arg("class_name", c.name),
                     fmt::arg("function_name", begin->name),
                     fmt::arg("function_convention", codegen::getModifyConventionName(f)),
-                    fmt::arg("parameter_types", fmt::join(func.parameter_types, ", "))
+                    fmt::arg("parameter_types", codegen::getParameterTypes(*begin))
                 );
             }
         }

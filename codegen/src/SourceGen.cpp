@@ -1,5 +1,4 @@
 #include "Shared.hpp"
-#include "TypeOpt.hpp"
 
 namespace { namespace format_strings {
 	char const* source_start = R"CAC(
@@ -118,9 +117,6 @@ auto {class_name}::{function_name}({parameters}){const} -> decltype({function_na
 std::string generateBindingSource(Root& root) {
 	std::string output(format_strings::source_start);
 
-	TypeBank bank;
-	bank.loadFrom(root);
-
 	for (auto& c : root.classes) {
 
 		for (auto& f : c.fields) {
@@ -138,25 +134,25 @@ std::string generateBindingSource(Root& root) {
 					continue;
 				}
 
-				switch (fn->beginning.type) {
+				switch (fn->prototype.type) {
 					case FunctionType::Ctor:
 					case FunctionType::Dtor:
 						output += fmt::format(format_strings::ool_structor_function_definition,
-							fmt::arg("function_name", fn->beginning.name),
-							fmt::arg("const", str_if(" const ", fn->beginning.is_const)),
+							fmt::arg("function_name", fn->prototype.name),
+							fmt::arg("const", str_if(" const ", fn->prototype.is_const)),
 							fmt::arg("class_name", c.name),
-		                    fmt::arg("parameters", codegen::getParameters(fn->beginning)),
+		                    fmt::arg("parameters", codegen::getParameters(fn->prototype)),
 							fmt::arg("definition", fn->inner)
 						);
 						break;
 					default:
 						output += fmt::format(format_strings::ool_function_definition,
-							fmt::arg("function_name", fn->beginning.name),
-							fmt::arg("const", str_if(" const ", fn->beginning.is_const)),
+							fmt::arg("function_name", fn->prototype.name),
+							fmt::arg("const", str_if(" const ", fn->prototype.is_const)),
 							fmt::arg("class_name", c.name),
-		                    fmt::arg("parameters", codegen::getParameters(fn->beginning)),
+		                    fmt::arg("parameters", codegen::getParameters(fn->prototype)),
 							fmt::arg("definition", fn->inner),
-						    fmt::arg("return", fn->beginning.ret.name)
+						    fmt::arg("return", fn->prototype.ret.name)
 						);
 						break;
 				}
@@ -172,7 +168,7 @@ std::string generateBindingSource(Root& root) {
 
 				char const* used_declare_format;
 
-				switch (fn->beginning.type) {
+				switch (fn->prototype.type) {
 					case FunctionType::Normal:
 						used_declare_format = format_strings::declare_member;
 						break;
@@ -184,27 +180,22 @@ std::string generateBindingSource(Root& root) {
 						break;
 				}
 
-				if (fn->beginning.is_static)
+				if (fn->prototype.is_static)
 					used_declare_format = format_strings::declare_static;
-				if (fn->beginning.is_virtual && fn->beginning.type != FunctionType::Dtor)
+				if (fn->prototype.is_virtual && fn->prototype.type != FunctionType::Dtor)
 					used_declare_format = format_strings::declare_virtual;
-
-				auto ids = bank.getIDs(fn->beginning, c.name);
 
 				output += fmt::format(used_declare_format,
 					fmt::arg("class_name", c.name),
 					fmt::arg("unqualified_class_name", codegen::getUnqualifiedClassName(c.name)),
-					fmt::arg("const", str_if(" const ", fn->beginning.is_const)),
+					fmt::arg("const", str_if(" const ", fn->prototype.is_const)),
 					fmt::arg("convention", codegen::getModifyConventionName(f)),
-					fmt::arg("function_name", fn->beginning.name),
-					fmt::arg("meta_index", ids.meta),
-					fmt::arg("member_index", ids.member),
-					fmt::arg("ret_index", ids.ret),
+					fmt::arg("function_name", fn->prototype.name),
 					fmt::arg("addr_index", f.field_id),
-					fmt::arg("parameters", codegen::getParameters(fn->beginning)),
-					fmt::arg("parameter_types", codegen::getParameterTypes(fn->beginning)),
-					fmt::arg("arguments", codegen::getParameterNames(fn->beginning)),
-					fmt::arg("parameter_comma", str_if(", ", !fn->beginning.args.empty()))
+					fmt::arg("parameters", codegen::getParameters(fn->prototype)),
+					fmt::arg("parameter_types", codegen::getParameterTypes(fn->prototype)),
+					fmt::arg("arguments", codegen::getParameterNames(fn->prototype)),
+					fmt::arg("parameter_comma", str_if(", ", !fn->prototype.args.empty()))
 				);
 			}
 		}

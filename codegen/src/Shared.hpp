@@ -13,6 +13,8 @@ using std::istreambuf_iterator;
     #pragma warning(disable : 4996)
 #endif
 
+using namespace broma;
+
 std::string generateAddressHeader(Root& root);
 std::string generateModifyHeader(Root& root, ghc::filesystem::path const& singleFolder);
 std::string generateWrapperHeader(Root& root);
@@ -84,15 +86,15 @@ namespace codegen {
     }
 
     inline BindStatus getStatusWithPlatform(Platform p, Field const& field) {
-        FunctionBegin const* fb;
+        MemberFunctionProto const* fb;
 
         if (auto fn = field.get_as<FunctionBindField>()) {
             if (platformNumberWithPlatform(p, fn->binds)) return BindStatus::NeedsBinding;
 
-            fb = &fn->beginning;
+            fb = &fn->prototype;
         }
         else if (auto fn = field.get_as<OutOfLineField>()) {
-            fb = &fn->beginning;
+            fb = &fn->prototype;
         }
         else return BindStatus::Unbindable;
 
@@ -122,7 +124,7 @@ namespace codegen {
         return getStatusWithPlatform(codegen::platform, field);
     }
 
-    inline std::string getParameters(FunctionBegin const& f) { // int p0, float p1
+    inline std::string getParameters(FunctionProto const& f) { // int p0, float p1
         std::vector<std::string> parameters;
 
         for (auto& [t, n] : f.args) {
@@ -132,7 +134,7 @@ namespace codegen {
         return fmt::format("{}", fmt::join(parameters, ", "));
     }
 
-    inline std::string getParameterTypes(FunctionBegin const& f) { // int, float
+    inline std::string getParameterTypes(FunctionProto const& f) { // int, float
         std::vector<std::string> parameters;
 
         for (auto& [t, n] : f.args) {
@@ -142,7 +144,7 @@ namespace codegen {
         return fmt::format("{}", fmt::join(parameters, ", "));
     }
 
-    inline std::string getParameterNames(FunctionBegin const& f) { // p0, p1
+    inline std::string getParameterNames(FunctionProto const& f) { // p0, p1
         std::vector<std::string> parameters;
 
         for (auto& [t, n] : f.args) {
