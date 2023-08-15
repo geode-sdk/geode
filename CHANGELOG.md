@@ -7,6 +7,8 @@
  * Fix MacOS HSV button missing in `CustomizeObjectLayer` (d98cb2d)
  * Make missing functions and members private (d98cb2d)
  * Update Broma to latest version (0a58432)
+ * Implement standalone function support in codegen (a552160)
+ * Add link attribute to codegen for functions linked from elsewhere (a552160)
 
 ## v1.0.3
  * Fix mod changelogs only showing Geode's own changelog (2945422)
