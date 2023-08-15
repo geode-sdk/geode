@@ -5412,7 +5412,7 @@ class SimplePlayer : cocos2d::CCSprite {
     cocos2d::CCSprite* m_detailSprite;
     GJRobotSprite* m_robotSprite;
     GJSpiderSprite* m_spiderSprite;
-    PAD = win 0x4;
+    int m_unknown;
     bool m_hasGlowOutline;
 }
 
