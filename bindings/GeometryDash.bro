@@ -16,6 +16,8 @@ class GDString {
     void macDestroy() = mac 0x489f78;
 }
 
+void testFunction(int a) = mac 0x100000;
+
 class AchievementBar : cocos2d::CCNodeRGBA {
     static AchievementBar* create(const char* title, const char* desc, const char* icon, bool quest) = mac 0x379f80, win 0x3b120, ios 0x1a4784;
 

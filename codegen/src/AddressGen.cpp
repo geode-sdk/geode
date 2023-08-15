@@ -73,9 +73,33 @@ Result<tulip::hook::HandlerMetadata> geode::modifier::handlerMetadataForAddress(
     }
 }
 
-std::string generateAddressHeader(Root& root) {
+std::string generateAddressHeader(Root const& root) {
     std::string output;
     output += format_strings::address_begin;
+
+    for (auto& f : root.functions) {
+        std::string address_str;
+
+        if (codegen::getStatus(f) == BindStatus::Binded) {
+            address_str = fmt::format(
+                "addresser::getNonVirtual(Resolve<{}>::func(&{}))",
+                codegen::getParameterTypes(f.prototype),
+                f.prototype.name
+            );
+        }
+        else if (codegen::getStatus(f) == BindStatus::NeedsBinding) {
+            address_str = fmt::format("base::get() + 0x{:x}", codegen::platformNumber(f.binds));
+        }
+        else {
+            continue;
+        }
+
+        output += fmt::format(
+            format_strings::declare_address,
+            fmt::arg("address", address_str),
+            fmt::arg("index", codegen::getId(&f))
+        );
+    }
 
     for (auto& c : root.classes) {
         for (auto& field : c.fields) {
@@ -87,7 +111,16 @@ std::string generateAddressHeader(Root& root) {
                 continue;
             }
 
-            if (codegen::getStatus(field) == BindStatus::Binded) {
+            
+            if (codegen::getStatus(field) == BindStatus::NeedsBinding || codegen::platformNumber(field)) {
+                if (is_cocos_class(field.parent) && codegen::platform == Platform::Windows) {
+                    address_str = fmt::format("base::getCocos() + 0x{:x}", codegen::platformNumber(fn->binds));
+                }
+                else {
+                    address_str = fmt::format("base::get() + 0x{:x}", codegen::platformNumber(fn->binds));
+                }
+            }
+            else if (codegen::getStatus(field) == BindStatus::Binded && fn->prototype.type == FunctionType::Normal) {
                 address_str = fmt::format(
                     "addresser::get{}Virtual(Resolve<{}>::func(&{}::{}))",
                     str_if("Non", !fn->prototype.is_virtual),
@@ -96,22 +129,14 @@ std::string generateAddressHeader(Root& root) {
                     fn->prototype.name
                 );
             }
-            else if (codegen::getStatus(field) == BindStatus::NeedsBinding) {
-		if (is_cocos_class(field.parent) && codegen::platform == Platform::Windows) {
-		    address_str = fmt::format("base::getCocos() + 0x{:x}", codegen::platformNumber(fn->binds));
-		}
-		else {
-		    address_str = fmt::format("base::get() + 0x{:x}", codegen::platformNumber(fn->binds));
-		}
-            }
             else {
                 continue;
             }
 
             output += fmt::format(
-                ::format_strings::declare_address,
+                format_strings::declare_address,
                 fmt::arg("address", address_str),
-                fmt::arg("index", field.field_id)
+                fmt::arg("index", codegen::getId(&field))
             );
         }
     }

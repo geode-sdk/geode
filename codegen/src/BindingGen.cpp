@@ -83,17 +83,17 @@ inline std::string nameForPlatform(Platform platform) {
     }
 }
 
-
-std::string generateAddressDocs(Field const& field, FunctionBindField* fn) {
+template <class T>
+std::string generateAddressDocs(T const& f, PlatformNumber pn) {
     std::string ret;
 
     for (auto platform : {Platform::Mac, Platform::Windows, Platform::iOS, Platform::Android}) {
-        auto status = codegen::getStatusWithPlatform(platform, field);
+        auto status = codegen::getStatusWithPlatform(platform, f);
 
         if (status == BindStatus::NeedsBinding) {
             ret += fmt::format("     * @note[short] {}: 0x{:x}\n", 
                 nameForPlatform(platform),
-                codegen::platformNumberWithPlatform(platform, fn->binds)
+                codegen::platformNumberWithPlatform(platform, pn)
             );
         }
         else if (status == BindStatus::Binded) {
@@ -118,8 +118,41 @@ std::string generateDocs(std::string const& docs) {
     return ret;
 }
 
-std::string generateBindingHeader(Root& root, ghc::filesystem::path const& singleFolder) {
+std::string generateBindingHeader(Root const& root, ghc::filesystem::path const& singleFolder) {
     std::string output;
+
+    {
+        std::string filename = "Standalones.hpp";
+        output += fmt::format(format_strings::binding_include, 
+            fmt::arg("file_name", filename)
+        );
+
+        std::string single_output;
+        single_output += format_strings::class_includes;
+
+        for (auto& f : root.functions) {
+            FunctionProto const* fb = &f.prototype;
+            char const* used_format = format_strings::function_definition;
+
+            std::string addressDocs = generateAddressDocs(f, f.binds);
+            std::string docs = generateDocs(fb->docs);
+
+            single_output += fmt::format(used_format,
+                fmt::arg("virtual", ""),
+                fmt::arg("static", ""),
+                fmt::arg("class_name", ""),
+                fmt::arg("const", ""),
+                fmt::arg("function_name", fb->name),
+                fmt::arg("parameters", codegen::getParameters(*fb)),
+                fmt::arg("return_type", fb->ret.name),
+                fmt::arg("docs_addresses", addressDocs),
+                fmt::arg("docs", docs)
+            );
+
+        }
+
+        writeFile(singleFolder / filename, single_output);
+    }
 
    	for (auto& cls : root.classes) {
         if (is_cocos_class(cls.name))
@@ -207,7 +240,7 @@ std::string generateBindingHeader(Root& root, ghc::filesystem::path const& singl
                         continue;
                 }
 
-                addressDocs = generateAddressDocs(field, fn);
+                addressDocs = generateAddressDocs(field, fn->binds);
             }
 
             std::string docs = generateDocs(fb->docs);
@@ -218,7 +251,6 @@ std::string generateBindingHeader(Root& root, ghc::filesystem::path const& singl
                 fmt::arg("class_name", cls.name),
                 fmt::arg("const", str_if(" const ", fb->is_const)),
                 fmt::arg("function_name", fb->name),
-                fmt::arg("index", field.field_id),
                 fmt::arg("parameters", codegen::getParameters(*fb)),
                 fmt::arg("return_type", fb->ret.name),
                 fmt::arg("docs_addresses", addressDocs),
