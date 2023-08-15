@@ -47,31 +47,12 @@ public:
 )GEN";
 
     char const* error_definition = R"GEN(    
-    template <bool Value = false>
-    {static}{return_type} {function_name}({parameters}){const}{{
-        static_assert(Value, "{class_name}::{function_name} not implemented");
-        throw std::runtime_error("Use of undefined function " + GEODE_PRETTY_FUNCTION);
-    }}
-)GEN";
-
-    char const* error_definition_virtual = R"GEN(    
-    #ifdef GEODE_WARN_INCORRECT_MEMBERS
-    [[deprecated("Use of undefined virtual function - will crash at runtime!!!")]]
-    #endif
+private:
+    [[deprecated("{class_name}::{function_name} not implemented")]]
     /**
 {docs}{docs_addresses}     */
-    {virtual}{return_type} {function_name}({parameters}){const}{{
-        #ifdef GEODE_NO_UNDEFINED_VIRTUALS
-        static_assert(false, "Undefined virtual function - implement in GeometryDash.bro");
-        #endif
-        throw std::runtime_error("Use of undefined virtual function " + GEODE_PRETTY_FUNCTION);
-    }}
-)GEN";
-
-    char const* warn_offset_member = R"GEN(
-    #ifdef GEODE_WARN_INCORRECT_MEMBERS
-    [[deprecated("Member placed incorrectly - will crash at runtime!!!")]]
-    #endif
+    {static}{virtual}{return_type} {function_name}({parameters}){const};
+public:
 )GEN";
 
     char const* structor_definition = R"GEN(
@@ -81,7 +62,7 @@ public:
 )GEN";
     
     // requires: type, member_name, array
-    char const* member_definition = R"GEN(    {type} {member_name};
+    char const* member_definition = R"GEN({private}    {type} {member_name};{public}
 )GEN";
 
     char const* pad_definition = R"GEN(    GEODE_PAD({hardcode});
@@ -196,8 +177,9 @@ std::string generateBindingHeader(Root& root, ghc::filesystem::path const& singl
                 single_output += "\t" + i->inner + "\n";
                 continue;
             } else if (auto m = field.get_as<MemberField>()) {
-                if (unimplementedField) single_output += format_strings::warn_offset_member;
                 single_output += fmt::format(format_strings::member_definition,
+                    fmt::arg("private", unimplementedField ? "private:\n" : ""),
+                    fmt::arg("public", unimplementedField ? "\npublic:" : ""),
                     fmt::arg("type", m->type.name),
                     fmt::arg("member_name", m->name + str_if(fmt::format("[{}]", m->count), m->count))
                 );
@@ -220,9 +202,6 @@ std::string generateBindingHeader(Root& root, ghc::filesystem::path const& singl
 
                 if (!codegen::platformNumber(fn->binds)) {
                     used_format = format_strings::error_definition;
-
-                    if (fb->is_virtual)
-                        used_format = format_strings::error_definition_virtual;
 
                     if (fb->type != FunctionType::Normal)
                         continue;

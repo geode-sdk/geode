@@ -600,15 +600,15 @@ class CCSpritePart : CCSpritePlus {
 }
 
 class CCSpritePlus : cocos2d::CCSprite {
-    bool initWithSpriteFrameName(const char*) = mac 0x248670, win 0x1c1e0;
-    void setScaleX(float scale) = win 0x1c440;
-    void setScaleY(float scale) = win 0x1c4c0;
-    void setScale(float scale) = win 0x1c540;
-    void setPosition(const cocos2d::CCPoint& pos) = win 0x1c220;
-    void setRotation(float rotation) = win 0x1c280;
-    bool initWithTexture(cocos2d::CCTexture2D* texture) = win 0x1c200;
-    void setFlipX(bool flip) = win 0x1c300;
-    void setFlipY(bool flip) = win 0x1c3a0;
+    virtual bool initWithSpriteFrameName(const char*) = mac 0x248670, win 0x1c1e0;
+    virtual void setScaleX(float scale) = win 0x1c440;
+    virtual void setScaleY(float scale) = win 0x1c4c0;
+    virtual void setScale(float scale) = win 0x1c540;
+    virtual void setPosition(const cocos2d::CCPoint& pos) = win 0x1c220;
+    virtual void setRotation(float rotation) = win 0x1c280;
+    virtual bool initWithTexture(cocos2d::CCTexture2D* texture) = win 0x1c200;
+    virtual void setFlipX(bool flip) = win 0x1c300;
+    virtual void setFlipY(bool flip) = win 0x1c3a0;
     static CCSpritePlus* createWithSpriteFrame(cocos2d::CCSpriteFrame* frame) = win 0x1c130;
 
     cocos2d::CCArray* m_followers;
@@ -1043,7 +1043,7 @@ class CustomizeObjectLayer : FLAlertLayer, TextInputDelegate, HSVWidgetPopupDele
     cocos2d::CCArray* m_colorButtons;
     cocos2d::CCArray* m_colorTabNodes;
     cocos2d::CCArray* m_textTabNodes;
-    PAD = win 0x4;
+    PAD = win 0x4, mac 0x8;
     cocos2d::CCArray* m_detailTabNodes;
     int m_selectedMode;
     int m_customColorChannel;
@@ -1558,10 +1558,10 @@ class EffectGameObject : GameObject {
     bool init(char const*) = win 0x253CD0;
     void getTargetColorIndex() = mac 0xca1f0;
     virtual void triggerObject(GJBaseGameLayer*) = mac 0xc9870, win 0x253d60;
-    gd::string getSaveString() = win 0x257560;
+    virtual gd::string getSaveString() = win 0x257560;
     void updateSpecialColor() = win 0x254980;
-    void spawnXPosition() = win 0x254A00;
-    void triggerActivated(float) = win 0x254A30;
+    virtual void spawnXPosition() = win 0x254A00;
+    virtual void triggerActivated(float) = win 0x254A30;
 
     cocos2d::ccColor3B m_colColor;
     float m_duration;
@@ -5400,8 +5400,8 @@ class SimplePlayer : cocos2d::CCSprite {
     void updatePlayerFrame(int iconID, IconType iconType) = mac 0x1b62f0, win 0x12c650;
     void updateColors() = mac 0x1ba1f0, win 0x12c440, ios 0x224f2c;
     void setFrames(const char* firstLayer, const char* secondLayer, const char* birdDome, const char* outlineSprite, const char* detailSprite) = win 0x12c9e0;
-    void setColor(const cocos2d::ccColor3B& color) = mac 0x1bc9b0, win 0x12c410;
-    void setOpacity(unsigned char opacity) = win 0x12cb90;
+    virtual void setColor(const cocos2d::ccColor3B& color) = mac 0x1bc9b0, win 0x12c410;
+    virtual void setOpacity(unsigned char opacity) = win 0x12cb90;
 
     cocos2d::CCSprite* m_firstLayer;
     cocos2d::CCSprite* m_secondLayer;

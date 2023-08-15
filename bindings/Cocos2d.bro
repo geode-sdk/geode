@@ -714,7 +714,6 @@ class cocos2d::CCParticleSystem {
 	CCParticleSystem() = win 0xb6650;
 	virtual ~CCParticleSystem() = win 0xb68e0;
 	virtual auto update(float);
-	virtual auto draw();
 	auto initParticle(cocos2d::tCCParticle*);
 	auto resetSystem() = mac 0x46bd50;
 	auto resumeSystem() = mac 0x46bd40;

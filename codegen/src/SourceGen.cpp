@@ -105,6 +105,12 @@ auto {class_name}::{function_name}({parameters}){const} -> decltype({function_na
 }}
 )GEN";
 
+	char const* declare_virtual_error = R"GEN(
+auto {class_name}::{function_name}({parameters}){const} -> decltype({function_name}({arguments})) {{
+	throw std::runtime_error("{class_name}::{function_name} not implemented");
+}}
+)GEN";
+
 	char const* ool_function_definition = R"GEN(
 {return} {class_name}::{function_name}({parameters}){const} {definition}
 )GEN";
@@ -158,32 +164,38 @@ std::string generateBindingSource(Root& root) {
 				}
 				
 			} else if (auto fn = f.get_as<FunctionBindField>()) {
-				if (codegen::getStatus(f) != BindStatus::NeedsBinding)
-					continue;
-				
-				// no cocos2d definitions on windows
+				char const* used_declare_format = nullptr;
+
 				if (codegen::platform == Platform::Windows && is_cocos_class(f.parent)) {
+					// no cocos2d definitions on windows
 					continue;
 				}
-
-				char const* used_declare_format;
-
-				switch (fn->prototype.type) {
-					case FunctionType::Normal:
-						used_declare_format = format_strings::declare_member;
-						break;
-					case FunctionType::Ctor:
-						used_declare_format = format_strings::declare_constructor;
-						break;
-					case FunctionType::Dtor:
-						used_declare_format = format_strings::declare_destructor;
-						break;
+				else if (!codegen::platformNumber(fn->binds) && fn->prototype.is_virtual && fn->prototype.type != FunctionType::Dtor) {
+					used_declare_format = format_strings::declare_virtual_error;
 				}
+				else if (codegen::getStatus(f) != BindStatus::NeedsBinding) {
+					continue;
+				}
+				
 
-				if (fn->prototype.is_static)
-					used_declare_format = format_strings::declare_static;
-				if (fn->prototype.is_virtual && fn->prototype.type != FunctionType::Dtor)
-					used_declare_format = format_strings::declare_virtual;
+				if (!used_declare_format) {
+					switch (fn->prototype.type) {
+						case FunctionType::Normal:
+							used_declare_format = format_strings::declare_member;
+							break;
+						case FunctionType::Ctor:
+							used_declare_format = format_strings::declare_constructor;
+							break;
+						case FunctionType::Dtor:
+							used_declare_format = format_strings::declare_destructor;
+							break;
+					}
+
+					if (fn->prototype.is_static)
+						used_declare_format = format_strings::declare_static;
+					if (fn->prototype.is_virtual && fn->prototype.type != FunctionType::Dtor)
+						used_declare_format = format_strings::declare_virtual;
+				}
 
 				output += fmt::format(used_declare_format,
 					fmt::arg("class_name", c.name),
