@@ -4,6 +4,27 @@
  * Fix json library not actually being dynamically exported/imported (5f65d97)
  * Update TulipHook, gets rid of keystone dependency and adds stdcall support (efcbf58, 7b90903)
  * Make resources.zip platform dependent (e41784e)
+ * Add utils::string::join (82e128bb)
+ * Add logger nesting: log::pushNest, log::pushNest (7d74f16c)
+ * Add "any" version to comparable versions (2b1dc178)
+ * Deprecate ModInfo, replaced with ModMetadata (53b52eae)
+ * Add utils::game::restart (7f449b99, 0e1d6390)
+ * Rework the way dependencies and mod loading works (52001285)
+   * Early load loads mods before the game starts, while non-early load loads on the loading screen now (e7180695)
+   * Add support for specifying incompatibilities (52001285, 89082352)
+   * Add support for specifying suggested and recommended optional dependencies (52001285)
+     * Add UI to select which mods to install (37074183, 73169fbf, cd772bd0)
+   * Dependencies/dependants automatically get toggled on toggle (52001285, 6ab542d5)
+   * Add problems list (52001285, aee84c0f)
+   * Show amount of currently loaded mods on the loading screen while they're loading (e7180695, 1d5fae8f)
+ * Improve index-related UI (73169fbf)
+   * Remove Android and iOS filters for now
+   * Add filter to show non-installable mods
+   * API in quick popups to distinguish between pressing button 1 and the Escape key
+ * Add "API" label to API mods (cb8759be)
+ * Fix index not displaying tags (ed5b5c96)
+ * Change "Cancel" to say "Keep" in the remove mod data on mod uninstall dialogue (cd772bd0)
+ * Fix typos in the word "successfully" (52001285, f316c867)
 
 ## v1.0.3
  * Fix mod changelogs only showing Geode's own changelog (2945422)
