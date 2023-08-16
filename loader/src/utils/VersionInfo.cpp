@@ -133,6 +133,11 @@ std::ostream& geode::operator<<(std::ostream& stream, VersionInfo const& version
 Result<ComparableVersionInfo> ComparableVersionInfo::parse(std::string const& rawStr) {
     VersionCompare compare;
     auto string = rawStr;
+
+    if (string == "*") {
+        return Ok(ComparableVersionInfo({0, 0, 0}, VersionCompare::Any));
+    }
+
     if (string.starts_with("<=")) {
         compare = VersionCompare::LessEq;
         string.erase(0, 2);
@@ -162,13 +167,14 @@ Result<ComparableVersionInfo> ComparableVersionInfo::parse(std::string const& ra
 }
 
 std::string ComparableVersionInfo::toString() const {
-    std::string prefix = "";
+    std::string prefix;
     switch (m_compare) {
-        case VersionCompare::Exact:  prefix = "="; break;
+        case VersionCompare::Exact: prefix = "="; break;
         case VersionCompare::LessEq: prefix = "<="; break;
         case VersionCompare::MoreEq: prefix = ">="; break;
-        case VersionCompare::Less:   prefix = "<"; break;
-        case VersionCompare::More:   prefix = ">"; break;
+        case VersionCompare::Less: prefix = "<"; break;
+        case VersionCompare::More: prefix = ">"; break;
+        case VersionCompare::Any: return "*";
     }
     return prefix + m_version.toString();
 }

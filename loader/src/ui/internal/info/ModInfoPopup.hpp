@@ -44,7 +44,7 @@ protected:
     void onSupport(CCObject*);
     void onInfo(CCObject*);
 
-    bool init(ModInfo const& info, ModListLayer* list);
+    bool init(ModMetadata const& metadata, ModListLayer* list);
 
     void keyDown(cocos2d::enumKeyCodes) override;
     void onClose(cocos2d::CCObject*);
@@ -52,7 +52,7 @@ protected:
     void setInstallStatus(std::optional<UpdateProgress> const& progress);
 
     virtual CCNode* createLogo(CCSize const& size) = 0;
-    virtual ModInfo getModInfo() const = 0;
+    virtual ModMetadata getMetadata() const = 0;
 };
 
 class LocalModInfoPopup : public ModInfoPopup, public FLAlertLayerProtocol {
@@ -62,7 +62,7 @@ protected:
     Mod* m_mod;
 
     bool init(Mod* mod, ModListLayer* list);
-    
+
     void onIssues(CCObject*);
     void onSettings(CCObject*);
     void onNoSettings(CCObject*);
@@ -81,7 +81,7 @@ protected:
     void FLAlert_Clicked(FLAlertLayer*, bool) override;
 
     CCNode* createLogo(CCSize const& size) override;
-    ModInfo getModInfo() const override;
+    ModMetadata getMetadata() const override;
 
     LocalModInfoPopup();
 
@@ -89,22 +89,21 @@ public:
     static LocalModInfoPopup* create(Mod* mod, ModListLayer* list);
 };
 
-class IndexItemInfoPopup : public ModInfoPopup, public FLAlertLayerProtocol {
+class IndexItemInfoPopup : public ModInfoPopup {
 protected:
     IndexItemHandle m_item;
     EventListener<ModInstallFilter> m_installListener;
 
     bool init(IndexItemHandle item, ModListLayer* list);
-    
+
     void onInstallProgress(ModInstallEvent* event);
     void onInstall(CCObject*);
     void onCancel(CCObject*);
-    void doInstall();
 
-    void FLAlert_Clicked(FLAlertLayer*, bool) override;
+    void preInstall();
 
     CCNode* createLogo(CCSize const& size) override;
-    ModInfo getModInfo() const override;
+    ModMetadata getMetadata() const override;
 
     IndexItemInfoPopup();
 

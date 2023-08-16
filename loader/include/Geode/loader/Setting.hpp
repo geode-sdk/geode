@@ -92,7 +92,7 @@ namespace geode {
         std::optional<std::string> description;
         ValueType defaultValue;
         /**
-         * A regex the string must succesfully match against
+         * A regex the string must successfully match against
          */
         std::optional<std::string> match;
 

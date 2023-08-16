@@ -101,7 +101,7 @@ void ipcPipeThread(HANDLE pipe) {
 }
 
 void Loader::Impl::setupIPC() {
-    std::thread([]() {
+    std::thread ipcThread([]() {
         while (true) {
             auto pipe = CreateNamedPipeA(
                 IPC_PIPE_NAME,
@@ -125,14 +125,18 @@ void Loader::Impl::setupIPC() {
             // log::debug("Waiting for pipe connections");
             if (ConnectNamedPipe(pipe, nullptr)) {
                 // log::debug("Got connection, creating thread");
-                std::thread(&ipcPipeThread, pipe).detach();
+                std::thread pipeThread(&ipcPipeThread, pipe);
+                SetThreadDescription(pipeThread.native_handle(), L"Geode IPC Pipe");
+                pipeThread.detach();
             }
             else {
                 // log::debug("No connection, cleaning pipe");
                 CloseHandle(pipe);
             }
         }
-    }).detach();
+    });
+    SetThreadDescription(ipcThread.native_handle(), L"Geode Main IPC");
+    ipcThread.detach();
 
     log::debug("IPC set up");
 }

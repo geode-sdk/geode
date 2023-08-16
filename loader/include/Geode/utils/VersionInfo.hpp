@@ -13,6 +13,7 @@ namespace geode {
         MoreEq,
         Less,
         More,
+        Any
     };
 
     /**
@@ -185,7 +186,7 @@ namespace geode {
     protected:
         VersionInfo m_version;
         VersionCompare m_compare = VersionCompare::Exact;
-    
+
     public:
         constexpr ComparableVersionInfo() = default;
         constexpr ComparableVersionInfo(
@@ -196,12 +197,16 @@ namespace geode {
         static Result<ComparableVersionInfo> parse(std::string const& string);
 
         constexpr bool compare(VersionInfo const& version) const {
+            if (m_compare == VersionCompare::Any) {
+                return true;
+            }
+
             // opposing major versions never match
             if (m_version.getMajor() != version.getMajor()) {
                 return false;
             }
 
-            // the comparison works invertedly as a version like "v1.2.0" 
+            // the comparison works invertedly as a version like "v1.2.0"
             // should return true for "<=v1.3.0"
             switch (m_compare) {
                 case VersionCompare::LessEq:

@@ -4,7 +4,6 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
-#include <Geode/loader/Setting.hpp>
 #include <Geode/loader/SettingEvent.hpp>
 #include <Geode/loader/ModJsonTest.hpp>
 #include <Geode/utils/JsonValidation.hpp>
@@ -30,7 +29,7 @@ $execute {
     });
 
     listenForIPC("loader-info", [](IPCEvent* event) -> json::Value {
-        return Loader::get()->getModImpl()->getModInfo();
+        return Mod::get()->getMetadata();
     });
 
     listenForIPC("list-mods", [](IPCEvent* event) -> json::Value {
@@ -45,13 +44,13 @@ $execute {
 
         if (!dontIncludeLoader) {
             res.push_back(
-                includeRunTimeInfo ? Loader::get()->getModImpl()->getRuntimeInfo() :
-                                    Loader::get()->getModImpl()->getModInfo().toJSON()
+                includeRunTimeInfo ? Mod::get()->getRuntimeInfo() :
+                                     Mod::get()->getMetadata().toJSON()
             );
         }
 
         for (auto& mod : Loader::get()->getAllMods()) {
-            res.push_back(includeRunTimeInfo ? mod->getRuntimeInfo() : mod->getModInfo().toJSON());
+            res.push_back(includeRunTimeInfo ? mod->getRuntimeInfo() : mod->getMetadata().toJSON());
         }
 
         return res;
@@ -67,7 +66,7 @@ int geodeEntry(void* platformData) {
             "There was a fatal error setting up "
             "the internal mod and Geode can not be loaded: " + internalSetupRes.unwrapErr()
         );
-        LoaderImpl::get()->reset();
+        LoaderImpl::get()->forceReset();
         return 1;
     }
 
@@ -85,7 +84,7 @@ int geodeEntry(void* platformData) {
             "the loader and Geode can not be loaded. " 
             "(" + setupRes.unwrapErr() + ")"
         );
-        LoaderImpl::get()->reset();
+        LoaderImpl::get()->forceReset();
         return 1;
     }
 

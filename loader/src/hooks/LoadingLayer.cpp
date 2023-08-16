@@ -8,46 +8,48 @@
 using namespace geode::prelude;
 
 struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
+    CCLabelBMFont* m_loadedModsLabel;
     bool m_updatingResources;
 
-    CustomLoadingLayer() : m_updatingResources(false) {}
+    CustomLoadingLayer() : m_loadedModsLabel(nullptr), m_updatingResources(false) {}
+
+    void updateLoadedModsLabel() {
+        auto allMods = Loader::get()->getAllMods();
+        auto count = std::count_if(allMods.begin(), allMods.end(), [&](auto& item) {
+            return item->isLoaded();
+        });
+        auto str = fmt::format("Geode: Loaded {}/{} mods", count, allMods.size());
+        m_fields->m_loadedModsLabel->setCString(str.c_str());
+    }
 
     bool init(bool fromReload) {
-        if (!fromReload) {
-            Loader::get()->waitForModsToBeLoaded();
-        }
-
         CCFileUtils::get()->updatePaths();
 
         if (!LoadingLayer::init(fromReload)) return false;
-        
-        if (!fromReload) {
-            auto winSize = CCDirector::sharedDirector()->getWinSize();
 
-            auto count = Loader::get()->getAllMods().size();
+        if (fromReload) return true;
 
-            auto label = CCLabelBMFont::create(
-                fmt::format("Geode: Loaded {} mods", count).c_str(),
-                "goldFont.fnt"
-            );
-            label->setPosition(winSize.width / 2, 30.f);
-            label->setScale(.45f);
-            label->setID("geode-loaded-info");
-            this->addChild(label);
+        auto winSize = CCDirector::sharedDirector()->getWinSize();
 
-            // fields have unpredictable destructors
-            this->addChild(EventListenerNode<ResourceDownloadFilter>::create(
-                this, &CustomLoadingLayer::updateResourcesProgress
-            ));
+        m_fields->m_loadedModsLabel = CCLabelBMFont::create("Geode: Loaded 0/0 mods", "goldFont.fnt");
+        m_fields->m_loadedModsLabel->setPosition(winSize.width / 2, 30.f);
+        m_fields->m_loadedModsLabel->setScale(.45f);
+        m_fields->m_loadedModsLabel->setID("geode-loaded-info");
+        this->addChild(m_fields->m_loadedModsLabel);
+        this->updateLoadedModsLabel();
 
-            // verify loader resources
-            if (!LoaderImpl::get()->verifyLoaderResources()) {
-                m_fields->m_updatingResources = true;
-                this->setUpdateText("Downloading Resources");
-            }
-            else {
-                LoaderImpl::get()->updateSpecialFiles();
-            }
+        // fields have unpredictable destructors
+        this->addChild(EventListenerNode<ResourceDownloadFilter>::create(
+            this, &CustomLoadingLayer::updateResourcesProgress
+        ));
+
+        // verify loader resources
+        if (!LoaderImpl::get()->verifyLoaderResources()) {
+            m_fields->m_updatingResources = true;
+            this->setUpdateText("Downloading Resources");
+        }
+        else {
+            LoaderImpl::get()->updateSpecialFiles();
         }
 
         return true;
@@ -87,6 +89,13 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     }
 
     void loadAssets() {
+        if (Loader::get()->getLoadingState() != Loader::LoadingState::Done) {
+            this->updateLoadedModsLabel();
+            Loader::get()->queueInGDThread([this]() {
+                this->loadAssets();
+            });
+            return;
+        }
         if (m_fields->m_updatingResources) {
             return;
         }

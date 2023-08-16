@@ -55,18 +55,18 @@ static std::optional<int> fuzzyMatch(std::string const& kw, std::string const& s
 
 static std::optional<int> queryMatchKeywords(
     ModListQuery const& query,
-    ModInfo const& info
+    ModMetadata const& metadata
 ) {
     double weighted = 0;
 
     // fuzzy match keywords
     if (query.keywords) {
         bool someMatched = false;
-        WEIGHTED_MATCH_MAX(info.name(), 2);
-        WEIGHTED_MATCH_MAX(info.id(), 1);
-        WEIGHTED_MATCH_MAX(info.developer(), 0.5);
-        WEIGHTED_MATCH_MAX(info.details().value_or(""), 0.05);
-        WEIGHTED_MATCH_MAX(info.description().value_or(""), 0.2);
+        WEIGHTED_MATCH_MAX(metadata.getName(), 2);
+        WEIGHTED_MATCH_MAX(metadata.getID(), 1);
+        WEIGHTED_MATCH_MAX(metadata.getDeveloper(), 0.5);
+        WEIGHTED_MATCH_MAX(metadata.getDetails().value_or(""), 0.05);
+        WEIGHTED_MATCH_MAX(metadata.getDescription().value_or(""), 0.2);
         if (!someMatched) {
             return std::nullopt;
         }
@@ -77,7 +77,7 @@ static std::optional<int> queryMatchKeywords(
         // sorted, at least enough so that if you're scrolling it based on 
         // alphabetical order you will find the part you're looking for easily 
         // so it's fine
-        return static_cast<int>(-tolower(info.name()[0]));
+        return static_cast<int>(-tolower(metadata.getName()[0]));
     }
 
     // if the weight is relatively small we can ignore it
@@ -93,13 +93,12 @@ static std::optional<int> queryMatch(ModListQuery const& query, Mod* mod) {
     // Only checking keywords makes sense for mods since their 
     // platform always matches, they are always visible and they don't 
     // currently list their tags
-    return queryMatchKeywords(query, mod->getModInfo());
+    return queryMatchKeywords(query, mod->getMetadata());
 }
 
 static std::optional<int> queryMatch(ModListQuery const& query, IndexItemHandle item) {
-    // if no force visibility was provided and item is already installed, don't 
-    // show it
-    if (!query.forceVisibility && Loader::get()->isModInstalled(item->getModInfo().id())) {
+    // if no force visibility was provided and item is already installed, don't show it
+    if (!query.forceVisibility && Loader::get()->isModInstalled(item->getMetadata().getID())) {
         return std::nullopt;
     }
     // make sure all tags match
@@ -114,8 +113,18 @@ static std::optional<int> queryMatch(ModListQuery const& query, IndexItemHandle 
     })) {
         return std::nullopt;
     }
+    // if no force visibility was provided and item is already installed, don't show it
+    auto canInstall = Index::get()->canInstall(item);
+    if (!query.forceInvalid && !canInstall) {
+        log::warn(
+            "Removing {} from the list because it cannot be installed: {}",
+            item->getMetadata().getID(),
+            canInstall.unwrapErr()
+        );
+        return std::nullopt;
+    }
     // otherwise match keywords
-    if (auto match = queryMatchKeywords(query, item->getModInfo())) {
+    if (auto match = queryMatchKeywords(query, item->getMetadata())) {
         auto weighted = match.value();
         // add extra weight on tag matches
         if (query.keywords) {
@@ -136,7 +145,7 @@ static std::optional<int> queryMatch(ModListQuery const& query, IndexItemHandle 
 
 static std::optional<int> queryMatch(ModListQuery const& query, InvalidGeodeFile const& info) {
     // if any explicit filters were provided, no match
-    if (query.tags.size() || query.keywords.has_value()) {
+    if (!query.tags.empty() || query.keywords.has_value()) {
         return std::nullopt;
     }
     return 0;
@@ -147,34 +156,40 @@ CCArray* ModListLayer::createModCells(ModListType type, ModListQuery const& quer
     switch (type) {
         default:
         case ModListType::Installed: {
-            // failed mods first
-            for (auto const& mod : Loader::get()->getFailedMods()) {
-                if (!queryMatch(query, mod)) continue;
-                mods->addObject(InvalidGeodeFileCell::create(
-                    mod, this, m_display, this->getCellSize()
-                ));
+            // problems first
+            if (!Loader::get()->getProblems().empty()) {
+                mods->addObject(ProblemsCell::create(this, m_display, this->getCellSize()));
             }
 
-            // sort the mods by match score 
-            std::multimap<int, Mod*> sorted;
+            // sort the mods by match score
+            std::multimap<int, ModListCell*> sorted;
 
             // then other mods
+
+            // newly installed
+            for (auto const& item : Index::get()->getItems()) {
+                if (!item->isInstalled() ||
+                    Loader::get()->isModInstalled(item->getMetadata().getID()) ||
+                    Loader::get()->isModLoaded(item->getMetadata().getID()))
+                    continue;
+                // match the same as other installed mods
+                if (auto match = queryMatchKeywords(query, item->getMetadata())) {
+                    auto cell = IndexItemCell::create(item, this, m_display, this->getCellSize());
+                    sorted.insert({ match.value(), cell });
+                }
+            }
+
+            // loaded
             for (auto const& mod : Loader::get()->getAllMods()) {
-                // if the mod is no longer installed nor
-                // loaded, it's as good as not existing
-                // (because it doesn't)
-                if (mod->isUninstalled() && !mod->isLoaded()) continue;
-                // only show mods that match query in list
                 if (auto match = queryMatch(query, mod)) {
-                    sorted.insert({ match.value(), mod });
+                    auto cell = ModCell::create(mod, this, m_display, this->getCellSize());
+                    sorted.insert({ match.value(), cell });
                 }
             }
 
             // add the mods sorted
-            for (auto& [score, mod] : ranges::reverse(sorted)) {
-                mods->addObject(ModCell::create(
-                    mod, this, m_display, this->getCellSize()
-                ));
+            for (auto& [score, cell] : ranges::reverse(sorted)) {
+                mods->addObject(cell);
             }
         } break;
 
@@ -182,7 +197,8 @@ CCArray* ModListLayer::createModCells(ModListType type, ModListQuery const& quer
             // sort the mods by match score 
             std::multimap<int, IndexItemHandle> sorted;
 
-            for (auto const& item : Index::get()->getItems()) {
+            auto index = Index::get();
+            for (auto const& item : index->getItems()) {
                 if (auto match = queryMatch(query, item)) {
                     sorted.insert({ match.value(), item });
                 }
@@ -455,6 +471,15 @@ void ModListLayer::reloadList(std::optional<ModListQuery> const& query) {
         this->getListSize().width,
         this->getListSize().height
     );
+    // please forgive me for this code
+    auto problemsCell = typeinfo_cast<ProblemsCell*>(list->m_entries->objectAtIndex(0));
+    if (problemsCell) {
+        auto cellView =
+            typeinfo_cast<TableViewCell*>(list->m_tableView->m_cellArray->objectAtIndex(0));
+        if (cellView && problemsCell->getColor()) {
+            cellView->m_backgroundLayer->setColor(*problemsCell->getColor());
+        }
+    }
 
     // set list status
     if (!items->count()) {
@@ -546,14 +571,11 @@ void ModListLayer::reloadList(std::optional<ModListQuery> const& query) {
     }
 }
 
-void ModListLayer::updateAllStates(ModListCell* toggled) {
+void ModListLayer::updateAllStates() {
     for (auto cell : CCArrayExt<GenericListCell>(
         m_list->m_listView->m_tableView->m_cellArray
     )) {
-        auto node = static_cast<ModListCell*>(cell->getChildByID("mod-list-cell"));
-        if (toggled != node) {
-            node->updateState();
-        }
+        static_cast<ModListCell*>(cell->getChildByID("mod-list-cell"))->updateState();
     }
 }
 
@@ -612,7 +634,6 @@ void ModListLayer::onExit(CCObject*) {
 }
 
 void ModListLayer::onReload(CCObject*) {
-    Loader::get()->refreshModsList();
     this->reloadList();
 }
 

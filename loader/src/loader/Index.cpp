@@ -48,7 +48,7 @@ IndexUpdateFilter::IndexUpdateFilter() {}
 class IndexItem::Impl final {
 private:
     ghc::filesystem::path m_path;
-    ModInfo m_info;
+    ModMetadata m_metadata;
     std::string m_downloadURL;
     std::string m_downloadHash;
     std::unordered_set<PlatformID> m_platforms;
@@ -64,6 +64,8 @@ public:
     static Result<std::shared_ptr<IndexItem>> create(
         ghc::filesystem::path const& dir
     );
+
+    bool isInstalled() const;
 };
 
 IndexItem::IndexItem() : m_impl(std::make_unique<Impl>()) {}
@@ -74,7 +76,11 @@ ghc::filesystem::path IndexItem::getPath() const {
 }
 
 ModInfo IndexItem::getModInfo() const {
-    return m_impl->m_info;
+    return this->getMetadata();
+}
+
+ModMetadata IndexItem::getMetadata() const {
+    return m_impl->m_metadata;
 }
 
 std::string IndexItem::getDownloadURL() const {
@@ -97,13 +103,43 @@ std::unordered_set<std::string> IndexItem::getTags() const {
     return m_impl->m_tags;
 }
 
+bool IndexItem::isInstalled() const {
+    return m_impl->isInstalled();
+}
+
+#if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
+void IndexItem::setMetadata(ModMetadata const& value) {
+    m_impl->m_metadata = value;
+}
+
+void IndexItem::setDownloadURL(std::string const& value) {
+    m_impl->m_downloadURL = value;
+}
+
+void IndexItem::setPackageHash(std::string const& value) {
+    m_impl->m_downloadHash = value;
+}
+
+void IndexItem::setAvailablePlatforms(std::unordered_set<PlatformID> const& value) {
+    m_impl->m_platforms = value;
+}
+
+void IndexItem::setIsFeatured(bool const& value) {
+    m_impl->m_isFeatured = value;
+}
+
+void IndexItem::setTags(std::unordered_set<std::string> const& value) {
+    m_impl->m_tags = value;
+}
+#endif
+
 Result<IndexItemHandle> IndexItem::Impl::create(ghc::filesystem::path const& dir) {
     GEODE_UNWRAP_INTO(
         auto entry, file::readJson(dir / "entry.json")
             .expect("Unable to read entry.json")
     );
     GEODE_UNWRAP_INTO(
-        auto info, ModInfo::createFromFile(dir / "mod.json")
+        auto metadata, ModMetadata::createFromFile(dir / "mod.json")
             .expect("Unable to read mod.json: {error}")
     );
 
@@ -112,22 +148,31 @@ Result<IndexItemHandle> IndexItem::Impl::create(ghc::filesystem::path const& dir
 
     std::unordered_set<PlatformID> platforms;
     for (auto& plat : root.has("platforms").iterate()) {
-        platforms.insert(PlatformID::from(plat.template get<std::string>()));
+        platforms.insert(PlatformID::from(plat.get<std::string>()));
+    }
+
+    std::unordered_set<std::string> tags;
+    for (auto& tag : root.has("tags").iterate()) {
+        tags.insert(tag.get<std::string>());
     }
 
     auto item = std::make_shared<IndexItem>();
     item->m_impl->m_path = dir;
-    item->m_impl->m_info = info;
-    item->m_impl->m_downloadURL = root.has("mod").obj().has("download").template get<std::string>();
-    item->m_impl->m_downloadHash = root.has("mod").obj().has("hash").template get<std::string>();
+    item->m_impl->m_metadata = metadata;
     item->m_impl->m_platforms = platforms;
-    item->m_impl->m_isFeatured = root.has("featured").template get<bool>();
-    item->m_impl->m_tags = root.has("tags").template get<std::unordered_set<std::string>>();
+    item->m_impl->m_tags = tags;
+    root.has("mod").obj().has("download").into(item->m_impl->m_downloadURL);
+    root.has("mod").obj().has("hash").into(item->m_impl->m_downloadHash);
+    root.has("featured").into(item->m_impl->m_isFeatured);
 
     if (checker.isError()) {
         return Err(checker.getError());
     }
     return Ok(item);
+}
+
+bool IndexItem::Impl::isInstalled() const {
+    return ghc::filesystem::exists(dirs::getModsDir() / (m_metadata.getID() + ".geode"));
 }
 
 // Helpers
@@ -333,22 +378,23 @@ void Index::Impl::updateFromLocalTree() {
                 continue;
             }
             auto add = addRes.unwrap();
-            auto info = add->getModInfo();
+            auto metadata = add->getMetadata();
             // check if this major version of this item has already been added 
-            if (m_items[info.id()].count(info.version().getMajor())) {
+            if (m_items[metadata.getID()].count(metadata.getVersion().getMajor())) {
                 log::warn(
                     "Item {}@{} has already been added, skipping",
-                    info.id(), info.version()
+                    metadata.getID(),
+                    metadata.getVersion()
                 );
                 continue;
             }
             // add new major version of this item
-            m_items[info.id()].insert({
-                info.version().getMajor(),
+            m_items[metadata.getID()].insert({metadata.getVersion().getMajor(),
                 add
             });
         }
     } catch(std::exception& e) {
+        log::error("Unable to read local index tree: {}", e.what());
         IndexUpdateEvent("Unable to read local index tree").post();
         return;
     }
@@ -408,7 +454,7 @@ std::vector<IndexItemHandle> Index::getItemsByDeveloper(
     std::vector<IndexItemHandle> res;
     for (auto& items : map::values(m_impl->m_items)) {
         for (auto& item : items) {
-            if (item.second->getModInfo().developer() == name) {
+            if (item.second->getMetadata().getDeveloper() == name) {
                 res.push_back(item.second);
             }
         }
@@ -441,12 +487,12 @@ IndexItemHandle Index::getItem(
         if (version) {
             // prefer most major version
             for (auto& [_, item] : ranges::reverse(m_impl->m_items.at(id))) {
-                if (version.value() == item->getModInfo().version()) {
+                if (version.value() == item->getMetadata().getVersion()) {
                     return item;
                 }
             }
         } else {
-            if (versions.size()) {
+            if (!versions.empty()) {
                 return m_impl->m_items.at(id).rbegin()->second;
             }
         }
@@ -461,7 +507,7 @@ IndexItemHandle Index::getItem(
     if (m_impl->m_items.count(id)) {
         // prefer most major version
         for (auto& [_, item] : ranges::reverse(m_impl->m_items.at(id))) {
-            if (version.compare(item->getModInfo().version())) {
+            if (version.compare(item->getMetadata().getVersion())) {
                 return item;
             }
         }
@@ -473,22 +519,26 @@ IndexItemHandle Index::getItem(ModInfo const& info) const {
     return this->getItem(info.id(), info.version());
 }
 
+IndexItemHandle Index::getItem(ModMetadata const& metadata) const {
+    return this->getItem(metadata.getID(), metadata.getVersion());
+}
+
 IndexItemHandle Index::getItem(Mod* mod) const {
     return this->getItem(mod->getID(), mod->getVersion());
 }
 
 bool Index::isUpdateAvailable(IndexItemHandle item) const {
-    auto installed = Loader::get()->getInstalledMod(item->getModInfo().id());
+    auto installed = Loader::get()->getInstalledMod(item->getMetadata().getID());
     if (!installed) {
         return false;
     }
-    return item->getModInfo().version() > installed->getVersion();
+    return item->getMetadata().getVersion() > installed->getVersion();
 }
 
 bool Index::areUpdatesAvailable() const {
     for (auto& mod : Loader::get()->getAllMods()) {
         auto item = this->getMajorItem(mod->getID());
-        if (item && item->getModInfo().version() > mod->getVersion()) {
+        if (item && item->getMetadata().getVersion() > mod->getVersion()) {
             return true;
         }
     }
@@ -497,41 +547,84 @@ bool Index::areUpdatesAvailable() const {
 
 // Item installation
 
+Result<> Index::canInstall(IndexItemHandle item) const {
+    if (!item->getAvailablePlatforms().count(GEODE_PLATFORM_TARGET)) {
+        return Err("Mod is not available on {}", GEODE_PLATFORM_NAME);
+    }
+
+    for (auto& dep : item->getMetadata().getDependencies()) {
+        // if the dep is resolved, then all its dependencies must be installed
+        // already in order for that to have happened
+        if (dep.isResolved()) continue;
+
+        if (dep.importance != ModMetadata::Dependency::Importance::Required) continue;
+
+        // check if this dep is available in the index
+        if (auto depItem = this->getItem(dep.id, dep.version)) {
+            if (!depItem->getAvailablePlatforms().count(GEODE_PLATFORM_TARGET)) {
+                return Err(
+                    "Dependency {} is not available on {}",
+                    dep.id, GEODE_PLATFORM_NAME
+                );
+            }
+            // recursively add dependencies
+            GEODE_UNWRAP_INTO(auto deps, this->canInstall(depItem));
+        }
+        // otherwise user must get this dependency manually from somewhere
+        else {
+            return Err(
+                "Dependency {} version {} not found in the index! Likely "
+                "reason is that the version of the dependency this mod "
+                "depends on is not available. Please let the developer "
+                "of the mod ({}) know!",
+                dep.id, dep.version.toString(), item->getMetadata().getDeveloper()
+            );
+        }
+    }
+
+    return Ok();
+}
+
 Result<IndexInstallList> Index::getInstallList(IndexItemHandle item) const {
     if (!item->getAvailablePlatforms().count(GEODE_PLATFORM_TARGET)) {
         return Err("Mod is not available on {}", GEODE_PLATFORM_NAME);
     }
-    
+
     IndexInstallList list;
     list.target = item;
-    for (auto& dep : item->getModInfo().dependencies()) {
-        if (!dep.isResolved()) {
-            // check if this dep is available in the index
-            if (auto depItem = this->getItem(dep.id, dep.version)) {
-                if (!depItem->getAvailablePlatforms().count(GEODE_PLATFORM_TARGET)) {
-                    return Err(
-                        "Dependency {} is not available on {}",
-                        dep.id, GEODE_PLATFORM_NAME
-                    );
-                }
-                // recursively add dependencies
-                GEODE_UNWRAP_INTO(auto deps, this->getInstallList(depItem));
-                ranges::push(list.list, deps.list);
-            }
-            // otherwise user must get this dependency manually from somewhere 
-            // else
-            else {
+    for (auto& dep : item->getMetadata().getDependencies()) {
+        // if the dep is resolved, then all its dependencies must be installed
+        // already in order for that to have happened
+        if (dep.isResolved()) continue;
+
+        if (dep.importance == ModMetadata::Dependency::Importance::Suggested) continue;
+
+        // check if this dep is available in the index
+        if (auto depItem = this->getItem(dep.id, dep.version)) {
+            if (!depItem->getAvailablePlatforms().count(GEODE_PLATFORM_TARGET)) {
+                // it's fine to not install optional dependencies
+                if (dep.importance != ModMetadata::Dependency::Importance::Required) continue;
                 return Err(
-                    "Dependency {} version {} not found in the index! Likely "
-                    "reason is that the version of the dependency this mod "
-                    "depends on is not available. Please let the the developer "
-                    "({}) of the mod know!",
-                    dep.id, dep.version.toString(), item->getModInfo().developer()
+                    "Dependency {} is not available on {}",
+                    dep.id, GEODE_PLATFORM_NAME
                 );
             }
+            // recursively add dependencies
+            GEODE_UNWRAP_INTO(auto deps, this->getInstallList(depItem));
+            ranges::push(list.list, deps.list);
         }
-        // if the dep is resolved, then all its dependencies must be installed 
-        // already in order for that to have happened
+        // otherwise user must get this dependency manually from somewhere
+        else {
+            // it's fine to not install optional dependencies
+            if (dep.importance != ModMetadata::Dependency::Importance::Required) continue;
+            return Err(
+                "Dependency {} version {} not found in the index! Likely "
+                "reason is that the version of the dependency this mod "
+                "depends on is not available. Please let the developer "
+                "of the mod ({}) know!",
+                dep.id, dep.version.toString(), item->getMetadata().getDeveloper()
+            );
+        }
     }
     // add this item to the end of the list
     list.list.push_back(item);
@@ -541,7 +634,7 @@ Result<IndexInstallList> Index::getInstallList(IndexItemHandle item) const {
 void Index::Impl::installNext(size_t index, IndexInstallList const& list) {
     auto postError = [this, list](std::string const& error) {
         m_runningInstallations.erase(list.target);
-        ModInstallEvent(list.target->getModInfo().id(), error).post();
+        ModInstallEvent(list.target->getMetadata().getID(), error).post();
     };
 
     // If we're at the end of the list, move the downloaded items to mods
@@ -550,12 +643,12 @@ void Index::Impl::installNext(size_t index, IndexInstallList const& list) {
         // Move all downloaded files
         for (auto& item : list.list) {
             // If the mod is already installed, delete the old .geode file
-            if (auto mod = Loader::get()->getInstalledMod(item->getModInfo().id())) {
+            if (auto mod = Loader::get()->getInstalledMod(item->getMetadata().getID())) {
                 auto res = mod->uninstall();
                 if (!res) {
                     return postError(fmt::format(
                         "Unable to uninstall old version of {}: {}",
-                        item->getModInfo().id(), res.unwrapErr()
+                        item->getMetadata().getID(), res.unwrapErr()
                     ));
                 }
             }
@@ -563,21 +656,22 @@ void Index::Impl::installNext(size_t index, IndexInstallList const& list) {
             // Move the temp file
             try {
                 ghc::filesystem::rename(
-                    dirs::getTempDir() / (item->getModInfo().id() + ".index"),
-                    dirs::getModsDir() / (item->getModInfo().id() + ".geode")
+                    dirs::getTempDir() / (item->getMetadata().getID() + ".index"),
+                    dirs::getModsDir() / (item->getMetadata().getID() + ".geode")
                 );
             } catch(std::exception& e) {
                 return postError(fmt::format(
                     "Unable to install {}: {}",
-                    item->getModInfo().id(), e.what()
+                    item->getMetadata().getID(), e.what()
                 ));
             }
         }
-        
-        // load mods
-        Loader::get()->refreshModsList();
 
-        ModInstallEvent(list.target->getModInfo().id(), UpdateFinished()).post();
+        auto const& eventModID = list.target->getMetadata().getID();
+        Loader::get()->queueInGDThread([eventModID]() {
+            ModInstallEvent(eventModID, UpdateFinished()).post();
+        });
+
         return;
     }
 
@@ -588,9 +682,9 @@ void Index::Impl::installNext(size_t index, IndexInstallList const& list) {
     };
 
     auto item = list.list.at(index);
-    auto tempFile = dirs::getTempDir() / (item->getModInfo().id() + ".index");
+    auto tempFile = dirs::getTempDir() / (item->getMetadata().getID() + ".index");
     m_runningInstallations[list.target] = web::AsyncWebRequest()
-        .join("install_item_" + item->getModInfo().id())
+        .join("install_item_" + item->getMetadata().getID())
         .fetch(item->getDownloadURL())
         .into(tempFile)
         .then([=](auto) {
@@ -600,25 +694,25 @@ void Index::Impl::installNext(size_t index, IndexInstallList const& list) {
                 return postError(fmt::format(
                     "Binary file download for {} returned \"404 Not found\". "
                     "Report this to the Geode development team.",
-                    item->getModInfo().id()
+                    item->getMetadata().getID()
                 ));
             }
 
             // Verify checksum
             ModInstallEvent(
-                list.target->getModInfo().id(),
+                list.target->getMetadata().getID(),
                 UpdateProgress(
                     scaledProgress(100),
-                    fmt::format("Verifying {}", item->getModInfo().id())
+                    fmt::format("Verifying {}", item->getMetadata().getID())
                 )
             ).post();
-            
+
             if (::calculateHash(tempFile) != item->getPackageHash()) {
                 return postError(fmt::format(
                     "Checksum mismatch with {}! (Downloaded file did not match what "
                     "was expected. Try again, and if the download fails another time, "
                     "report this to the Geode development team.)",
-                    item->getModInfo().id()
+                    item->getMetadata().getID()
                 ));
             }
 
@@ -628,15 +722,15 @@ void Index::Impl::installNext(size_t index, IndexInstallList const& list) {
         .expect([postError, list, item](std::string const& err) {
             postError(fmt::format(
                 "Unable to download {}: {}",
-                item->getModInfo().id(), err
+                item->getMetadata().getID(), err
             ));
         })
         .progress([this, item, list, scaledProgress](auto&, double now, double total) {
             ModInstallEvent(
-                list.target->getModInfo().id(),
+                list.target->getMetadata().getID(),
                 UpdateProgress(
                     scaledProgress(now / total * 100.0),
-                    fmt::format("Downloading {}", item->getModInfo().id())
+                    fmt::format("Downloading {}", item->getMetadata().getID())
                 )
             ).post();
         })
@@ -671,7 +765,7 @@ void Index::install(IndexItemHandle item) {
             this->install(list.unwrap());
         } else {
             ModInstallEvent(
-                item->getModInfo().id(),
+                item->getMetadata().getID(),
                 UpdateFailed(list.unwrapErr())
             ).post();
         }

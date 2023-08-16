@@ -107,6 +107,11 @@ int main(int argc, char* argv[]) {
     if (argc < 2)
         return 0;
 
+    if (!waitForFile(workingDir / argv[1])) {
+        showError("There was an error restarting GD. Please, restart the game manually.");
+        return 0;
+    }
+
     // restart gd using the provided path
     ShellExecuteA(NULL, "open", (workingDir / argv[1]).string().c_str(), "", workingDir.string().c_str(), TRUE);
     return 0;

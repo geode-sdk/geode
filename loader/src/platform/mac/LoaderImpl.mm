@@ -3,10 +3,7 @@
 #include <iostream>
 #include <loader/LoaderImpl.hpp>
 #include <loader/ModImpl.hpp>
-
-#ifdef GEODE_IS_MACOS
-
-    #include <CoreFoundation/CoreFoundation.h>
+#import <Foundation/Foundation.h>
 
 using namespace geode::prelude;
 
@@ -36,6 +33,9 @@ void Loader::Impl::logConsoleMessageWithSeverity(std::string const& msg, Severit
 }
 
 void Loader::Impl::openPlatformConsole() {
+    // it's not possible to redirect stdout to a terminal
+    // and the console.app is too clunky
+    
     m_platformConsoleOpen = true;
 
     for (auto const& log : log::Logger::list()) {
@@ -83,5 +83,3 @@ void Loader::Impl::setupIPC() {
 bool Loader::Impl::userTriedToLoadDLLs() const {
     return false;
 }
-
-#endif

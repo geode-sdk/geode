@@ -104,6 +104,9 @@ bool Log::operator==(Log const& l) {
 }
 
 std::string Log::toString(bool logTime) const {
+    return toString(logTime, 0);
+}
+std::string Log::toString(bool logTime, uint32_t nestLevel) const {
     std::string res;
 
     if (logTime) {
@@ -111,6 +114,10 @@ std::string Log::toString(bool logTime) const {
     }
 
     res += fmt::format(" [{}]: ", m_sender ? m_sender->getName() : "Geode?");
+
+    for (uint32_t i = 0; i < nestLevel; i++) {
+        res += "  ";
+    }
 
     for (auto& i : m_components) {
         res += i->_toString();
@@ -205,13 +212,17 @@ std::ofstream& Logger::logStream() {
     static std::ofstream logStream;
     return logStream;
 }
+uint32_t& Logger::nestLevel() {
+    static std::uint32_t nestLevel = 0;
+    return nestLevel;
+}
 
 void Logger::setup() {
     logStream() = std::ofstream(dirs::getGeodeLogDir() / log::generateLogName());
 }
 
 void Logger::push(Log&& log) {
-    std::string logStr = log.toString(true);
+    std::string logStr = log.toString(true, nestLevel());
 
     LoaderImpl::get()->logConsoleMessageWithSeverity(logStr, log.getSeverity());
     logStream() << logStr << std::endl;
@@ -221,6 +232,17 @@ void Logger::push(Log&& log) {
 
 void Logger::pop(Log* log) {
     geode::utils::ranges::remove(Logger::logs(), *log);
+}
+
+void Logger::pushNest() {
+    if (nestLevel() == std::numeric_limits<uint32_t>::max())
+        return;
+    nestLevel()++;
+}
+void Logger::popNest() {
+    if (nestLevel() == 0)
+        return;
+    nestLevel()--;
 }
 
 std::vector<Log*> Logger::list() {

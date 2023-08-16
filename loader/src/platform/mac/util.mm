@@ -10,6 +10,7 @@ using namespace geode::prelude;
 #include <Geode/utils/web.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/binding/GameManager.hpp>
 
 bool utils::clipboard::write(std::string const& data) {
     [[NSPasteboard generalPasteboard] clearContents];
@@ -180,7 +181,7 @@ ghc::filesystem::path dirs::getGameDir() {
         _NSGetExecutablePath(gddir.data(), &out);
 
         ghc::filesystem::path gdpath = gddir.data();
-        auto currentPath = gdpath.parent_path().parent_path();    
+        auto currentPath = ghc::filesystem::canonical(gdpath.parent_path().parent_path());
         return currentPath;
     }();
 
@@ -198,6 +199,40 @@ ghc::filesystem::path dirs::getSaveDir() {
     }();
 
     return path;
+}
+
+void geode::utils::game::restart() {
+    if (CCApplication::sharedApplication() &&
+        (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
+        log::error("Cannot restart in PlayLayer or LevelEditorLayer!");
+        return;
+    }
+
+    auto restart = +[] {
+        log::info("Restarting game...");
+        auto gdExec = dirs::getGameDir() / "MacOS" / "Geometry Dash";
+
+        NSTask *task = [NSTask new];
+        [task setLaunchPath: [NSString stringWithUTF8String: gdExec.string().c_str()]];
+        [task launch];
+    };
+
+    class Exit : public CCObject {
+    public:
+        void shutdown() {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wobjc-method-access"
+            [[[NSClassFromString(@"AppControllerManager") sharedInstance] controller] shutdownGame];
+#pragma clang diagnostic pop
+        }
+    };
+
+    std::atexit(restart);
+    CCDirector::get()->getActionManager()->addAction(CCSequence::create(
+        CCDelayTime::create(0.5f),
+        CCCallFunc::create(nullptr, callfunc_selector(Exit::shutdown)),
+        nullptr
+    ), CCDirector::get()->getRunningScene(), false);
 }
 
 #endif
