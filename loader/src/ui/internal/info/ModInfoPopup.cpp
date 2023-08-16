@@ -653,7 +653,7 @@ void LocalModInfoPopup::doUninstall() {
         "for the mod to take full effect). "
         "<co>Would you also like to delete the mod's "
         "save data?</c>",
-        "Cancel",
+        "Keep",
         "Delete",
         350.f
     );
@@ -755,9 +755,9 @@ void IndexItemInfoPopup::onInstall(CCObject*) {
         "Installing this mod requires a few other mods to be installed. "
         "Would you like to continue with <cy>recommended settings</c> or "
         "<cb>customize</c> which mods to install?",
-        "Recommended", "Customize", 320.f,
+        "Customize", "Recommended", 320.f,
         [&](FLAlertLayer*, bool btn2) {
-            if (!btn2) {
+            if (btn2) {
                 auto canInstall = Index::get()->canInstall(m_item);
                 if (!canInstall) {
                     FLAlertLayer::create(
