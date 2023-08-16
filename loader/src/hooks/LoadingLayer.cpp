@@ -13,13 +13,13 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
 
     CustomLoadingLayer() : m_loadedModsLabel(nullptr), m_updatingResources(false) {}
 
-    void updateLoadedModsLabel() const {
+    void updateLoadedModsLabel() {
         auto allMods = Loader::get()->getAllMods();
         auto count = std::count_if(allMods.begin(), allMods.end(), [&](auto& item) {
             return item->isLoaded();
         });
         auto str = fmt::format("Geode: Loaded {}/{} mods", count, allMods.size());
-        m_loadedModsLabel->setCString(str.c_str());
+        m_fields->m_loadedModsLabel->setCString(str.c_str());
     }
 
     bool init(bool fromReload) {
@@ -31,11 +31,11 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
 
         auto winSize = CCDirector::sharedDirector()->getWinSize();
 
-        m_loadedModsLabel = CCLabelBMFont::create("Geode: Loaded 0/0 mods", "goldFont.fnt");
-        m_loadedModsLabel->setPosition(winSize.width / 2, 30.f);
-        m_loadedModsLabel->setScale(.45f);
-        m_loadedModsLabel->setID("geode-loaded-info");
-        this->addChild(m_loadedModsLabel);
+        m_fields->m_loadedModsLabel = CCLabelBMFont::create("Geode: Loaded 0/0 mods", "goldFont.fnt");
+        m_fields->m_loadedModsLabel->setPosition(winSize.width / 2, 30.f);
+        m_fields->m_loadedModsLabel->setScale(.45f);
+        m_fields->m_loadedModsLabel->setID("geode-loaded-info");
+        this->addChild(m_fields->m_loadedModsLabel);
         this->updateLoadedModsLabel();
 
         // fields have unpredictable destructors
