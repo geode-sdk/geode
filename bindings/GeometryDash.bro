@@ -16,6 +16,8 @@ class GDString {
     void macDestroy() = mac 0x489f78;
 }
 
+void testFunction(int a) = mac 0x100000;
+
 class AchievementBar : cocos2d::CCNodeRGBA {
     static AchievementBar* create(const char* title, const char* desc, const char* icon, bool quest) = mac 0x379f80, win 0x3b120, ios 0x1a4784;
 
@@ -600,15 +602,15 @@ class CCSpritePart : CCSpritePlus {
 }
 
 class CCSpritePlus : cocos2d::CCSprite {
-    bool initWithSpriteFrameName(const char*) = mac 0x248670, win 0x1c1e0;
-    void setScaleX(float scale) = win 0x1c440;
-    void setScaleY(float scale) = win 0x1c4c0;
-    void setScale(float scale) = win 0x1c540;
-    void setPosition(const cocos2d::CCPoint& pos) = win 0x1c220;
-    void setRotation(float rotation) = win 0x1c280;
-    bool initWithTexture(cocos2d::CCTexture2D* texture) = win 0x1c200;
-    void setFlipX(bool flip) = win 0x1c300;
-    void setFlipY(bool flip) = win 0x1c3a0;
+    virtual bool initWithSpriteFrameName(const char*) = mac 0x248670, win 0x1c1e0;
+    virtual void setScaleX(float scale) = win 0x1c440;
+    virtual void setScaleY(float scale) = win 0x1c4c0;
+    virtual void setScale(float scale) = win 0x1c540;
+    virtual void setPosition(const cocos2d::CCPoint& pos) = win 0x1c220;
+    virtual void setRotation(float rotation) = win 0x1c280;
+    virtual bool initWithTexture(cocos2d::CCTexture2D* texture) = win 0x1c200;
+    virtual void setFlipX(bool flip) = win 0x1c300;
+    virtual void setFlipY(bool flip) = win 0x1c3a0;
     static CCSpritePlus* createWithSpriteFrame(cocos2d::CCSpriteFrame* frame) = win 0x1c130;
 
     cocos2d::CCArray* m_followers;
@@ -1043,7 +1045,7 @@ class CustomizeObjectLayer : FLAlertLayer, TextInputDelegate, HSVWidgetPopupDele
     cocos2d::CCArray* m_colorButtons;
     cocos2d::CCArray* m_colorTabNodes;
     cocos2d::CCArray* m_textTabNodes;
-    PAD = win 0x4;
+    PAD = win 0x4, mac 0x8;
     cocos2d::CCArray* m_detailTabNodes;
     int m_selectedMode;
     int m_customColorChannel;
@@ -1558,10 +1560,10 @@ class EffectGameObject : GameObject {
     bool init(char const*) = win 0x253CD0;
     void getTargetColorIndex() = mac 0xca1f0;
     virtual void triggerObject(GJBaseGameLayer*) = mac 0xc9870, win 0x253d60;
-    gd::string getSaveString() = win 0x257560;
+    virtual gd::string getSaveString() = win 0x257560;
     void updateSpecialColor() = win 0x254980;
-    void spawnXPosition() = win 0x254A00;
-    void triggerActivated(float) = win 0x254A30;
+    virtual void spawnXPosition() = win 0x254A00;
+    virtual void triggerActivated(float) = win 0x254A30;
 
     cocos2d::ccColor3B m_colColor;
     float m_duration;
@@ -1748,6 +1750,11 @@ class FMODSound : cocos2d::CCNode {
 }
 
 class FriendRequestDelegate {}
+
+class FriendsProfilePage : FLAlertLayer, FLAlertLayerProtocol, UploadActionDelegate, UploadPopupDelegate, UserListDelegate {
+    static FriendsProfilePage* create(UserListType) = win 0x9ce80;
+    bool init(UserListType) = win 0x9cf30;
+}
 
 class GJAccountBackupDelegate {
     virtual bool backupAccountFailed(BackupAccountError) {
@@ -3293,7 +3300,7 @@ class GameObject : CCSpritePlus {
     void updateState() = mac 0x3369e0;
     void updateSyncedAnimation(float) = mac 0x337f00, win 0xe7320;
     void updateTextObject(gd::string, bool) = mac 0x2f58d0, win 0xcfc60;
-    void deselectObject() = mac 0x3423a0, win 0xeee50;
+    void deselectObject() = mac 0x3423a0, win 0xeee40;
     cocos2d::CCRepeatForever* createRotateAction(float f, int n) = win 0xe49b0;
     void setMyAction(cocos2d::CCAction* pAction) = win 0xd1b90;
     bool canAllowMultiActivate() = mac 0x343ca0, win 0xf06b0;
@@ -5395,8 +5402,8 @@ class SimplePlayer : cocos2d::CCSprite {
     void updatePlayerFrame(int iconID, IconType iconType) = mac 0x1b62f0, win 0x12c650;
     void updateColors() = mac 0x1ba1f0, win 0x12c440, ios 0x224f2c;
     void setFrames(const char* firstLayer, const char* secondLayer, const char* birdDome, const char* outlineSprite, const char* detailSprite) = win 0x12c9e0;
-    void setColor(const cocos2d::ccColor3B& color) = mac 0x1bc9b0, win 0x12c410;
-    void setOpacity(unsigned char opacity) = win 0x12cb90;
+    virtual void setColor(const cocos2d::ccColor3B& color) = mac 0x1bc9b0, win 0x12c410;
+    virtual void setOpacity(unsigned char opacity) = win 0x12cb90;
 
     cocos2d::CCSprite* m_firstLayer;
     cocos2d::CCSprite* m_secondLayer;
@@ -5405,7 +5412,7 @@ class SimplePlayer : cocos2d::CCSprite {
     cocos2d::CCSprite* m_detailSprite;
     GJRobotSprite* m_robotSprite;
     GJSpiderSprite* m_spiderSprite;
-    PAD = win 0x4;
+    int m_unknown;
     bool m_hasGlowOutline;
 }
 
@@ -5743,6 +5750,13 @@ class UserInfoDelegate {
     virtual void getUserInfoFinished(GJUserScore *) {}
     virtual void getUserInfoFailed(int) {}
     virtual void getUserInfoChanged(GJUserScore *) {}
+}
+
+class UserListDelegate {
+    virtual void forceReloadList(UserListType) {}
+    virtual void getUserListFailed(UserListType, GJErrorCode) {}
+    virtual void getUserListFinished(cocos2d::CCArray*, UserListType) {}
+    virtual void userListChanged(cocos2d::CCArray*, UserListType) {}
 }
 
 class VideoOptionsLayer : FLAlertLayer {

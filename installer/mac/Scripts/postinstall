@@ -90,6 +90,8 @@ if installerAnswer is "Install Geode" then
         ExitWithMessage ("Moving resources failed: " & (gdPath & newResourcesPath))
     end try
 
+    do shell script "sudo xattr -dr com.apple.quarantine \"" & gdPath & "\""
+
 else if installerAnswer is "Uninstall Geode" then
 
     try

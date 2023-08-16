@@ -4,6 +4,8 @@
 
 using namespace codegen;
 
+std::map<void const*, size_t> codegen::idMap;
+
 int main(int argc, char** argv) try {
     if (argc != 4)
         throw codegen::error("Invalid number of parameters (expected 3 found {})", argc - 1);
@@ -35,10 +37,10 @@ int main(int argc, char** argv) try {
         }
     }
 
+    codegen::populateIds(root);
+
     writeFile(writeDir / "GeneratedAddress.cpp", generateAddressHeader(root));
     writeFile(writeDir / "GeneratedModify.hpp", generateModifyHeader(root, writeDir / "modify"));
-    // writeFile(writeDir / "GeneratedWrapper.hpp", generateWrapperHeader(root));
-    // writeFile(writeDir / "GeneratedType.hpp", generateTypeHeader(root));
     writeFile(writeDir / "GeneratedBinding.hpp", generateBindingHeader(root, writeDir / "binding"));
     writeFile(writeDir / "GeneratedPredeclare.hpp", generatePredeclareHeader(root));
     writeFile(writeDir / "GeneratedSource.cpp", generateBindingSource(root));

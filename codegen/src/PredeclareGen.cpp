@@ -6,7 +6,7 @@ namespace { namespace format_strings {
 	char const* class_predeclare = "class {class_name};\n";
 }}
 
-std::string generatePredeclareHeader(Root& root) {
+std::string generatePredeclareHeader(Root const& root) {
     std::string output("#pragma once\n");
 
     for (auto& cls : root.classes) {

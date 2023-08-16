@@ -377,7 +377,6 @@ public:
         void setupScreenScale(CCSize, CCSize, TextureQuality);
         void updateContentScale(TextureQuality);
         void updateScreenScale(CCSize);
-        TextureQuality getLoadedTextureQuality(void) const;
 
     protected:
         CC_SYNTHESIZE_READONLY_NV(float, m_fScreenScaleFactor, ScreenScaleFactor);
@@ -531,7 +530,7 @@ protected:
         CC_SYNTHESIZE(CCSceneDelegate*, m_pAppDelegate, SceneDelegate);
         CCSize m_obScaleFactor;
         CCSize m_obResolutionInPixels;
-        TextureQuality m_eTextureQuality;
+        CC_SYNTHESIZE_READONLY_NV(TextureQuality, m_eTextureQuality, LoadedTextureQuality);
         CC_SYNTHESIZE_NV(bool, m_bDontCallWillSwitch, DontCallWillSwitch);
     )
     

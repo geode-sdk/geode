@@ -86,6 +86,8 @@ enum class GhostType {
 enum class TableViewCellEditingStyle {
 };
 enum class UserListType {
+    Friends = 0,
+    Blocked = 1,
 };
 enum class GJErrorCode {
 };
