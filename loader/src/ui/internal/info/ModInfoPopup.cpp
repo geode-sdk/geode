@@ -648,7 +648,7 @@ void LocalModInfoPopup::doUninstall() {
     auto layer = FLAlertLayer::create(
         this,
         "Uninstall complete",
-        "Mod was succesfully uninstalled! :) "
+        "Mod was successfully uninstalled! :) "
         "(You may need to <cy>restart the game</c> "
         "for the mod to take full effect). "
         "<co>Would you also like to delete the mod's "
@@ -718,7 +718,7 @@ void IndexItemInfoPopup::onInstallProgress(ModInstallEvent* event) {
             
             FLAlertLayer::create(
                 "Install complete",
-                "Mod succesfully installed! :) "
+                "Mod successfully installed! :) "
                 "(You may need to <cy>restart the game</c> "
                 "for the mod to take full effect)",
                 "OK"

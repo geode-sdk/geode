@@ -10,7 +10,7 @@
 namespace crashlog {
     /**
      * Setup platform-specific crashlog handler
-     * @returns True if the handler was succesfully installed, false otherwise
+     * @returns True if the handler was successfully installed, false otherwise
      */
     bool GEODE_DLL setupPlatformHandler();
     /**
