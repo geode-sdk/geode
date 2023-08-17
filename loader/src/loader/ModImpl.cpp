@@ -345,9 +345,7 @@ Result<> Mod::Impl::loadBinary() {
 
     LoaderImpl::get()->releaseNextMod();
 
-    Loader::get()->queueInGDThread([&]() {
-        ModStateEvent(m_self, ModEventType::Loaded).post();
-    });
+    ModStateEvent(m_self, ModEventType::Loaded).post();
 
     return Ok();
 }
@@ -390,10 +388,8 @@ Result<> Mod::Impl::enable() {
         }
     }
 
-    Loader::get()->queueInGDThread([&]() {
-        ModStateEvent(m_self, ModEventType::Enabled).post();
-    });
     m_enabled = true;
+    ModStateEvent(m_self, ModEventType::Enabled).post();
 
     return Ok();
 }
@@ -421,10 +417,6 @@ Result<> Mod::Impl::disable() {
     if (!disabledDependants)
         return Err("Mod cannot be disabled because one or more of its dependants cannot be disabled.");
 
-    Loader::get()->queueInGDThread([&]() {
-        ModStateEvent(m_self, ModEventType::Disabled).post();
-    });
-
     std::vector<std::string> errors;
     for (auto const& hook : m_hooks) {
         auto res = this->disableHook(hook);
@@ -438,6 +430,7 @@ Result<> Mod::Impl::disable() {
     }
 
     m_enabled = false;
+    ModStateEvent(m_self, ModEventType::Disabled).post();
 
     if (!errors.empty())
         return Err(utils::string::join(errors, "\n"));
