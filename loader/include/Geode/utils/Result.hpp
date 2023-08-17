@@ -281,10 +281,10 @@ namespace geode {
     into = std::move(GEODE_CONCAT(unwrap_res_, __LINE__).unwrap())
 
 #define GEODE_UNWRAP(...)                                                           \
-    {                                                                               \
+    do {                                                                            \
         auto GEODE_CONCAT(unwrap_res_, __LINE__) = (__VA_ARGS__);                   \
         if (GEODE_CONCAT(unwrap_res_, __LINE__).isErr()) {                          \
             return geode::Err(std::move(GEODE_CONCAT(unwrap_res_, __LINE__).unwrapErr())); \
         }                                                                           \
-    }
+    } while(false)
 }
