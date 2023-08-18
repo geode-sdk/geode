@@ -347,7 +347,7 @@ void Loader::Impl::populateModList(std::vector<ModMetadata>& modQueue) {
 
         m_mods.insert({metadata.getID(), mod});
 
-        queueInGDThread([this, mod]() {
+        queueInMainThread([this, mod]() {
             auto searchPath = dirs::getModRuntimeDir() / mod->getID() / "resources";
             CCFileUtils::get()->addSearchPath(searchPath.string().c_str());
             updateModResources(mod);
@@ -579,7 +579,7 @@ void Loader::Impl::refreshModGraph() {
     else
         m_loadingState = LoadingState::Mods;
 
-    queueInGDThread([]() {
+    queueInMainThread([]() {
         Loader::get()->m_impl->continueRefreshModGraph();
     });
 }
@@ -619,7 +619,7 @@ void Loader::Impl::continueRefreshModGraph() {
     log::info("Took {}s", static_cast<float>(time) / 1000.f);
 
     if (m_loadingState != LoadingState::Done) {
-        queueInGDThread([]() {
+        queueInMainThread([]() {
             Loader::get()->m_impl->continueRefreshModGraph();
         });
     }
@@ -675,7 +675,7 @@ bool Loader::Impl::loadHooks() {
     return !thereWereErrors;
 }
 
-void Loader::Impl::queueInGDThread(ScheduledFunction func) {
+void Loader::Impl::queueInMainThread(ScheduledFunction func) {
     std::lock_guard<std::mutex> lock(m_gdThreadMutex);
     m_gdThreadQueue.push_back(func);
 }

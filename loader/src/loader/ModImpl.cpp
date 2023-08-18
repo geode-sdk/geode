@@ -155,7 +155,7 @@ std::vector<Hook*> Mod::Impl::getHooks() const {
 // Settings and saved values
 
 Result<> Mod::Impl::loadData() {
-    Loader::get()->queueInGDThread([&]() {
+    Loader::get()->queueInMainThread([&]() {
         ModStateEvent(m_self, ModEventType::DataLoaded).post();
     });
 

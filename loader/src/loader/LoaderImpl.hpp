@@ -158,7 +158,8 @@ namespace geode {
 
         json::Value processRawIPC(void* rawHandle, std::string const& buffer);
 
-        void queueInGDThread(ScheduledFunction func);
+        void queueInMainThread(ScheduledFunction func);
+        void queueInMainThread(ScheduledFunction func);
         void executeGDThreadQueue();
 
         void logConsoleMessage(std::string const& msg);

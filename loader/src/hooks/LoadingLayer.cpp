@@ -91,7 +91,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     void loadAssets() {
         if (Loader::get()->getLoadingState() != Loader::LoadingState::Done) {
             this->updateLoadedModsLabel();
-            Loader::get()->queueInGDThread([this]() {
+            Loader::get()->queueInMainThread([this]() {
                 this->loadAssets();
             });
             return;
