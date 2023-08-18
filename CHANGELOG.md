@@ -1,5 +1,13 @@
 # Geode Changelog
 
+## v1.1.1
+ * Improve installation confirmation popup (3ec44cf)
+ * Remove unnecessary main thread queues for mod events (38cc38c)
+ * Fix search and filter buttons being not clickable when over the view/restart button of a mod (e616336)
+ * Improve tab textures (00d30de)
+   * Properly align the borders
+   * Make the selected and unselected tabs the same height
+
 ## v1.1.0
  * Fix json library not actually being dynamically exported/imported (5f65d97)
  * Update TulipHook, gets rid of keystone dependency and adds stdcall support (efcbf58, 7b90903)
