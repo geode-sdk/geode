@@ -2597,6 +2597,7 @@ class GJScoreCell : TableViewCell {
     void loadFromScore(GJUserScore* score) = win 0x61440;
     void onViewProfile(cocos2d::CCObject* sender) = win 0x62380;
     void updateBGColor(int index) = win 0x5c6b0;
+    GJScoreCell(char const* key, float width, float height) = win 0x613C0;
 }
 
 class GJSearchObject : cocos2d::CCNode {
@@ -3761,6 +3762,7 @@ class LevelCell : TableViewCell {
     void loadCustomLevelCell() = mac 0x1183b0, win 0x5a020;
     void updateBGColor(int index) = win 0x5c6b0;
     void loadFromLevel(GJGameLevel* level) = win 0x59FD0;
+    LevelCell(char const* key, float width, float height) = win 0x59F40;
 }
 
 class LevelCommentDelegate {
