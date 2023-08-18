@@ -1,10 +1,10 @@
 # Geode Changelog
 
 ## v1.1.1
- * Improve installation confirmation popup (3ec44cf)
+ * Improve installation confirmation popup (9192769)
  * Remove unnecessary main thread queues for mod events (38cc38c)
- * Fix search and filter buttons being not clickable when over the view/restart button of a mod (e616336)
- * Improve tab textures (00d30de)
+ * Fix search and filter buttons being not clickable when over the view/restart button of a mod (ef1f1d1)
+ * Improve tab textures (108f56a)
    * Properly align the borders
    * Make the selected and unselected tabs the same height
 
