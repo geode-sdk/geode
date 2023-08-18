@@ -2330,7 +2330,7 @@ class GJGameLevel : cocos2d::CCNode {
     int m_chk;
     bool m_isChkValid;
     bool m_isCompletionLegitimate;
-    geode::SeedValueVRS m_normalPercent;
+    geode::SeedValueVSR m_normalPercent;
     geode::SeedValueRSV m_orbCompletion;
     geode::SeedValueRSV m_newNormalPercent2;
     int m_practicePercent;
