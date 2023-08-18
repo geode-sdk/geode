@@ -14,7 +14,6 @@
 #include "../../loader/LoaderImpl.hpp"
 #include <thread>
 #include <variant>
-#include <objc/runtime.h>
 
 using namespace geode::prelude;
 
@@ -112,26 +111,38 @@ void updateGeode() {
 
 extern "C" void fake() {}
 
-static IMP s_applicationDidFinishLaunching;
-void applicationDidFinishLaunching(id self, SEL sel, NSNotification* notification) {
+void applicationDidFinishLaunchingHook(void* self, SEL sel, NSNotification* notification) {
     updateGeode();
 
+    std::array<uint8_t, 6> patchBytes = {
+        0x55,
+        0x48, 0x89, 0xe5,
+        0x41, 0x57
+    };
+
+    auto res = tulip::hook::writeMemory((void*)(base::get() + 0x69a0), patchBytes.data(), 6);
+    if (!res)
+        return;
+    
     int exitCode = geodeEntry(nullptr);
     if (exitCode != 0)
         return;
-    
-    using Type = decltype(&applicationDidFinishLaunching);
-    return reinterpret_cast<Type>(s_applicationDidFinishLaunching)(self, sel, notification);
+
+    return reinterpret_cast<void(*)(void*, SEL, NSNotification*)>(geode::base::get() + 0x69a0)(self, sel, notification);
 }
 
 
 bool loadGeode() {
-    Class class_ = objc_getClass("AppController");
-    SEL selector = @selector(applicationDidFinishLaunching:);
-    IMP function = (IMP)applicationDidFinishLaunching;
-    using Type = decltype(&applicationDidFinishLaunching);
+    auto detourAddr = reinterpret_cast<uintptr_t>(&applicationDidFinishLaunchingHook) - geode::base::get() - 0x69a5;
+    auto detourAddrPtr = reinterpret_cast<uint8_t*>(&detourAddr);
 
-    s_applicationDidFinishLaunching = class_replaceMethod(class_, selector, function, @encode(Type));
+    std::array<uint8_t, 5> patchBytes = {
+        0xe9, detourAddrPtr[0], detourAddrPtr[1], detourAddrPtr[2], detourAddrPtr[3]
+    };
+
+    auto res = tulip::hook::writeMemory((void*)(base::get() + 0x69a0), patchBytes.data(), 5);
+    if (!res)
+        return false;
     
     return true;
 }
