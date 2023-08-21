@@ -2,6 +2,7 @@
 
 #include "Types.hpp"
 #include "ModInfo.hpp"
+#include "ModMetadata.hpp"
 #include "Event.hpp"
 #include "../utils/Result.hpp"
 #include "../utils/web.hpp"
@@ -107,12 +108,23 @@ namespace geode {
 
     public:
         ghc::filesystem::path getPath() const;
-        ModInfo getModInfo() const;
+        [[deprecated("use getMetadata instead")]] ModInfo getModInfo() const;
+        ModMetadata getMetadata() const;
         std::string getDownloadURL() const;
         std::string getPackageHash() const;
         std::unordered_set<PlatformID> getAvailablePlatforms() const;
         bool isFeatured() const;
         std::unordered_set<std::string> getTags() const;
+        bool isInstalled() const;
+
+#if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
+        void setMetadata(ModMetadata const& value);
+        void setDownloadURL(std::string const& value);
+        void setPackageHash(std::string const& value);
+        void setAvailablePlatforms(std::unordered_set<PlatformID> const& value);
+        void setIsFeatured(bool const& value);
+        void setTags(std::unordered_set<std::string> const& value);
+#endif
 
         IndexItem();
         ~IndexItem();
@@ -204,8 +216,15 @@ namespace geode {
          * Get an item from the index by its mod.json
          * @param info The mod's info
          * @returns The item, or nullptr if the item was not found
+         * @deprecated Use the ModMetadata overload instead
          */
-        IndexItemHandle getItem(ModInfo const& info) const;
+        [[deprecated]] IndexItemHandle getItem(ModInfo const& info) const;
+        /**
+         * Get an item from the index by its mod.json
+         * @param info The mod's metadata
+         * @returns The item, or nullptr if the item was not found
+         */
+        IndexItemHandle getItem(ModMetadata const& metadata) const;
         /**
          * Get an item from the index that corresponds to an installed mod
          * @param mod An installed mod
@@ -224,6 +243,12 @@ namespace geode {
          * Check if any of the mods on the index have updates available
          */
         bool areUpdatesAvailable() const;
+        /**
+         * Checks if the mod and its required dependencies can be installed
+         * @param item Item to get the list for
+         * @returns Success if the mod and its required dependencies can be installed, an error otherwise
+         */
+        Result<> canInstall(IndexItemHandle item) const;
         /**
          * Get the list of items needed to install this item (dependencies, etc.)
          * @param item Item to get the list for

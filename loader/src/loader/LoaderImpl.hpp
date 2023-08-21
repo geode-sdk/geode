@@ -1,3 +1,5 @@
+#pragma once
+
 #include "FileWatcher.hpp"
 
 #include <json.hpp>
@@ -19,6 +21,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <queue>
 #include <tulip/TulipHook.hpp>
 
 // TODO: Find a file convention for impl headers
@@ -54,9 +57,9 @@ namespace geode {
         mutable std::mutex m_mutex;
 
         std::vector<ghc::filesystem::path> m_modSearchDirectories;
-        std::vector<ModInfo> m_modsToLoad;
-        std::vector<InvalidGeodeFile> m_invalidMods;
+        std::vector<LoadProblem> m_problems;
         std::unordered_map<std::string, Mod*> m_mods;
+        std::queue<Mod*> m_modsToLoad;
         std::vector<ghc::filesystem::path> m_texturePaths;
         bool m_isSetup = false;
 
@@ -65,9 +68,8 @@ namespace geode {
         std::optional<json::Value> m_latestGithubRelease;
         bool m_isNewUpdateDownloaded = false;
 
-        std::condition_variable m_earlyLoadFinishedCV;
-        std::mutex m_earlyLoadFinishedMutex;
-        std::atomic_bool m_earlyLoadFinished = false;
+        LoadingState m_loadingState;
+
         std::vector<utils::MiniFunction<void(void)>> m_gdThreadQueue;
         mutable std::mutex m_gdThreadMutex;
         bool m_platformConsoleOpen = false;
@@ -113,10 +115,10 @@ namespace geode {
 
         friend void GEODE_CALL ::geode_implicit_load(Mod*);
 
-        Result<Mod*> loadModFromInfo(ModInfo const& info);
+        [[deprecated]] Result<Mod*> loadModFromInfo(ModInfo const& info);
 
         Result<> setup();
-        void reset();
+        void forceReset();
 
         Result<> saveData();
         Result<> loadData();
@@ -126,17 +128,26 @@ namespace geode {
         VersionInfo maxModVersion();
         bool isModVersionSupported(VersionInfo const& version);
 
-        Result<Mod*> loadModFromFile(ghc::filesystem::path const& file);
-        void loadModsFromDirectory(ghc::filesystem::path const& dir, bool recursive = true);
-        void refreshModsList();
+        [[deprecated]] Result<Mod*> loadModFromFile(ghc::filesystem::path const& file);
+        [[deprecated]] void loadModsFromDirectory(ghc::filesystem::path const& dir, bool recursive = true);
+        [[deprecated]] void refreshModsList();
+        void queueMods(std::vector<ModMetadata>& modQueue);
+        void populateModList(std::vector<ModMetadata>& modQueue);
+        void buildModGraph();
+        void loadModGraph(Mod* node, bool early);
+        void findProblems();
+        void refreshModGraph();
+        void continueRefreshModGraph();
+
         bool isModInstalled(std::string const& id) const;
         Mod* getInstalledMod(std::string const& id) const;
         bool isModLoaded(std::string const& id) const;
         Mod* getLoadedMod(std::string const& id) const;
         std::vector<Mod*> getAllMods();
-        Mod* getModImpl();
-        void updateAllDependencies();
-        std::vector<InvalidGeodeFile> getFailedMods() const;
+        [[deprecated]] Mod* getModImpl();
+        [[deprecated]] void updateAllDependencies();
+        [[deprecated]] std::vector<InvalidGeodeFile> getFailedMods() const;
+        std::vector<LoadProblem> getProblems() const;
 
         void updateResources();
         void updateResources(bool forceReload);
@@ -171,7 +182,7 @@ namespace geode {
         bool userTriedToLoadDLLs() const;
     };
 
-    class LoaderImpl {
+    class LoaderImpl : public Loader::Impl {
     public:
         static Loader::Impl* get();
     };

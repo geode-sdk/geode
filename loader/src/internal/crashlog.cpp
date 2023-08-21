@@ -18,7 +18,7 @@ static std::string getDateString(bool filesafe) {
 static void printGeodeInfo(std::stringstream& stream) {
     stream << "Loader Version: " << Loader::get()->getVersion().toString() << "\n"
            << "Installed mods: " << Loader::get()->getAllMods().size() << "\n"
-           << "Failed mods: " << Loader::get()->getFailedMods().size() << "\n";
+           << "Problems: " << Loader::get()->getProblems().size() << "\n";
 }
 
 static void printMods(std::stringstream& stream) {

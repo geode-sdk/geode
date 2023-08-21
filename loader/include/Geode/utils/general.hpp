@@ -127,3 +127,7 @@ namespace geode::utils::clipboard {
     GEODE_DLL bool write(std::string const& data);
     GEODE_DLL std::string read();
 }
+
+namespace geode::utils::game {
+    GEODE_DLL void restart();
+}

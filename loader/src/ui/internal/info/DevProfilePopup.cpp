@@ -27,7 +27,7 @@ bool DevProfilePopup::setup(std::string const& developer) {
 
     // index mods
     for (auto& item : Index::get()->getItemsByDeveloper(developer)) {
-        if (Loader::get()->isModInstalled(item->getModInfo().id())) {
+        if (Loader::get()->isModInstalled(item->getMetadata().getID())) {
             continue;
         }
         auto cell = IndexItemCell::create(

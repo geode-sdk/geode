@@ -48,6 +48,9 @@ namespace geode::utils::string {
     GEODE_DLL std::vector<std::string> split(std::string const& str, std::string const& split);
     GEODE_DLL std::vector<std::wstring> split(std::wstring const& str, std::wstring const& split);
 
+    GEODE_DLL std::string join(std::vector<std::string> const& strs, std::string const& separator);
+    GEODE_DLL std::wstring join(std::vector<std::wstring> const& strs, std::wstring const& separator);
+
     GEODE_DLL std::vector<char> split(std::string const& str);
     GEODE_DLL std::vector<wchar_t> split(std::wstring const& str);
 

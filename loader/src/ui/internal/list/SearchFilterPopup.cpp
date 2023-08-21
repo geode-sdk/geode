@@ -5,7 +5,9 @@
 
 #include <Geode/binding/GameToolbox.hpp>
 #include <Geode/binding/CCMenuItemToggler.hpp>
-#include <Geode/ui/SelectList.hpp>
+
+// re-add when we actually add the platforms
+const float iosAndAndroidSize = 45.f;
 
 bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
     m_noElasticity = true;
@@ -14,66 +16,77 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
     this->setTitle("Search Filters");
 
     auto winSize = CCDirector::sharedDirector()->getWinSize();
-    auto pos = CCPoint { winSize.width / 2 - 140.f, winSize.height / 2 + 45.f };
+    auto pos = CCPoint { winSize.width / 2 - 140.f, winSize.height / 2 + 45.f - iosAndAndroidSize * 0.25f };
 
     // platforms
 
     auto platformTitle = CCLabelBMFont::create("Platforms", "goldFont.fnt");
-    platformTitle->setPosition(winSize.width / 2 - 85.f, winSize.height / 2 + 75.f);
+    platformTitle->setAnchorPoint({ 0.5f, 1.f });
+    platformTitle->setPosition(winSize.width / 2 - 85.f, winSize.height / 2 + 81.5f - iosAndAndroidSize * 0.25f);
     platformTitle->setScale(.5f);
     m_mainLayer->addChild(platformTitle);
 
     auto platformBG = CCScale9Sprite::create("square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f });
     platformBG->setColor({ 0, 0, 0 });
     platformBG->setOpacity(90);
-    platformBG->setContentSize({ 290.f, 205.f });
-    platformBG->setPosition(winSize.width / 2 - 85.f, winSize.height / 2 + 11.f);
+    platformBG->setContentSize({ 290.f, 205.f - iosAndAndroidSize * 2.f });
+    platformBG->setAnchorPoint({ 0.5f, 1.f });
+    platformBG->setPosition(winSize.width / 2 - 85.f, winSize.height / 2 + 62.25f - iosAndAndroidSize * 0.25f);
     platformBG->setScale(.5f);
     m_mainLayer->addChild(platformBG);
 
     this->enable(this->addPlatformToggle("Windows", PlatformID::Windows, pos), type);
     this->enable(this->addPlatformToggle("macOS", PlatformID::MacOS, pos), type);
-    this->enable(this->addPlatformToggle("IOS", PlatformID::iOS, pos), type);
-    this->enable(this->addPlatformToggle("Android", PlatformID::Android, pos), type);
+    //this->enable(this->addPlatformToggle("IOS", PlatformID::iOS, pos), type);
+    //this->enable(this->addPlatformToggle("Android", PlatformID::Android, pos), type);
 
     // show installed
 
     auto installedTitle = CCLabelBMFont::create("Other", "goldFont.fnt");
-    installedTitle->setPosition(winSize.width / 2 - 85.f, winSize.height / 2 - 57.f);
+    installedTitle->setAnchorPoint({ 0.5f, 1.f });
+    installedTitle->setPosition(winSize.width / 2 - 85.f, winSize.height / 2 - 50.5f + iosAndAndroidSize - iosAndAndroidSize * 0.25f);
     installedTitle->setScale(.5f);
     m_mainLayer->addChild(installedTitle);
 
     auto installedBG = CCScale9Sprite::create("square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f });
     installedBG->setColor({ 0, 0, 0 });
     installedBG->setOpacity(90);
-    installedBG->setContentSize({ 290.f, 65.f });
-    installedBG->setPosition(winSize.width / 2 - 85.f, winSize.height / 2 - 85.f);
+    installedBG->setContentSize({ 290.f, 110.f });
+    installedBG->setAnchorPoint({ 0.5f, 1.f });
+    installedBG->setPosition(winSize.width / 2 - 85.f, winSize.height / 2 - 68.75f + iosAndAndroidSize - iosAndAndroidSize * 0.25f);
     installedBG->setScale(.5f);
     m_mainLayer->addChild(installedBG);
 
-    pos = CCPoint { winSize.width / 2 - 140.f, winSize.height / 2 - 85.f };
+    pos = CCPoint { winSize.width / 2 - 140.f, winSize.height / 2 - 85.f + iosAndAndroidSize - iosAndAndroidSize * 0.25f };
 
     this->addToggle(
         "Show Installed", menu_selector(SearchFilterPopup::onShowInstalled),
         m_modLayer->getQuery().forceVisibility, 0, pos
     );
 
+    this->addToggle(
+        "Show Invalid", menu_selector(SearchFilterPopup::onShowInvalid),
+        m_modLayer->getQuery().forceInvalid, 1, pos
+    );
+
     // tags
 
     auto tagsTitle = CCLabelBMFont::create("Tags", "goldFont.fnt");
-    tagsTitle->setPosition(winSize.width / 2 + 85.f, winSize.height / 2 + 75.f);
+    tagsTitle->setAnchorPoint({ 0.5f, 1.f });
+    tagsTitle->setPosition(winSize.width / 2 + 85.f, winSize.height / 2 + 81.5f - iosAndAndroidSize * 0.25f);
     tagsTitle->setScale(.5f);
     m_mainLayer->addChild(tagsTitle);
 
     auto tagsBG = CCScale9Sprite::create("square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f });
     tagsBG->setColor({ 0, 0, 0 });
     tagsBG->setOpacity(90);
-    tagsBG->setContentSize({ 290.f, 328.f });
-    tagsBG->setPosition(winSize.width / 2 + 85.f, winSize.height / 2 - 19.5f);
+    tagsBG->setContentSize({ 290.f, 328.f - iosAndAndroidSize });
+    tagsBG->setAnchorPoint({ 0.5f, 1.f });
+    tagsBG->setPosition(winSize.width / 2 + 85.f, winSize.height / 2 + 62.5f - iosAndAndroidSize * 0.25f);
     tagsBG->setScale(.5f);
     m_mainLayer->addChild(tagsBG);
 
-    pos = CCPoint { winSize.width / 2 + 30.f, winSize.height / 2 + 45.f };
+    pos = CCPoint { winSize.width / 2 + 30.f, winSize.height / 2 + 45.f - iosAndAndroidSize * 0.25f };
 
     for (auto& tag : Index::get()->getTags()) {
         auto toggle = CCMenuItemToggler::createWithStandardSprites(
@@ -114,6 +127,11 @@ void SearchFilterPopup::onTag(CCObject* sender) {
 void SearchFilterPopup::onShowInstalled(CCObject* sender) {
     auto toggle = static_cast<CCMenuItemToggler*>(sender);
     m_modLayer->getQuery().forceVisibility = !toggle->isToggled();
+}
+
+void SearchFilterPopup::onShowInvalid(CCObject* sender) {
+    auto toggle = static_cast<CCMenuItemToggler*>(sender);
+    m_modLayer->getQuery().forceInvalid = !toggle->isToggled();
 }
 
 void SearchFilterPopup::enable(CCMenuItemToggler* toggle, ModListType type) {
@@ -162,7 +180,7 @@ void SearchFilterPopup::onClose(CCObject* sender) {
 
 SearchFilterPopup* SearchFilterPopup::create(ModListLayer* layer, ModListType type) {
     auto ret = new SearchFilterPopup();
-    if (ret && ret->init(350.f, 240.f, layer, type)) {
+    if (ret && ret->init(350.f, 240.f - iosAndAndroidSize * 0.5f, layer, type)) {
         ret->autorelease();
         return ret;
     }

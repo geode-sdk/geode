@@ -25,10 +25,15 @@ struct ModListQuery {
      */
     std::optional<std::string> keywords;
     /**
-     * Force mods to be shown on the list unless they explicitly mismatch some 
+     * Force already installed mods to be shown on the list unless they explicitly mismatch some
      * tags (used to show installed mods on index)
      */
     bool forceVisibility;
+    /**
+     * Force not installable mods to be shown on the list unless they explicitly mismatch some
+     * tags (used to show installed mods on index)
+     */
+    bool forceInvalid;
     /**
      * Empty means current platform
      */
@@ -84,7 +89,7 @@ protected:
 public:
     static ModListLayer* create();
     static ModListLayer* scene();
-    void updateAllStates(ModListCell* except = nullptr);
+    void updateAllStates();
 
     ModListDisplay getDisplay() const;
     ModListQuery& getQuery();

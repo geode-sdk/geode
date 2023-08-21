@@ -96,4 +96,14 @@ namespace geode {
         char const* title, std::string const& content, char const* btn1, char const* btn2,
         float width, utils::MiniFunction<void(FLAlertLayer*, bool)> selected, bool doShow = true
     );
+
+    GEODE_DLL FLAlertLayer* createQuickPopup(
+        char const* title, std::string const& content, char const* btn1, char const* btn2,
+        utils::MiniFunction<void(FLAlertLayer*, bool)> selected, bool doShow, bool cancelledByEscape
+    );
+
+    GEODE_DLL FLAlertLayer* createQuickPopup(
+        char const* title, std::string const& content, char const* btn1, char const* btn2,
+        float width, utils::MiniFunction<void(FLAlertLayer*, bool)> selected, bool doShow, bool cancelledByEscape
+    );
 }

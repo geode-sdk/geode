@@ -63,6 +63,10 @@ void Loader::refreshModsList() {
     return m_impl->refreshModsList();
 }
 
+Loader::LoadingState Loader::getLoadingState() {
+    return m_impl->m_loadingState;
+}
+
 bool Loader::isModInstalled(std::string const& id) const {
     return m_impl->isModInstalled(id);
 }
@@ -84,7 +88,7 @@ std::vector<Mod*> Loader::getAllMods() {
 }
 
 Mod* Loader::getModImpl() {
-    return m_impl->getModImpl();
+    return Mod::get();
 }
 
 void Loader::updateAllDependencies() {
@@ -93,6 +97,10 @@ void Loader::updateAllDependencies() {
 
 std::vector<InvalidGeodeFile> Loader::getFailedMods() const {
     return m_impl->getFailedMods();
+}
+
+std::vector<LoadProblem> Loader::getProblems() const {
+    return m_impl->getProblems();
 }
 
 void Loader::updateResources() {

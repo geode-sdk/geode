@@ -4,7 +4,9 @@
 
 using namespace geode::prelude;
 
+#pragma warning(suppress : 4996)
 Mod::Mod(ModInfo const& info) : m_impl(std::make_unique<Impl>(this, info)) {}
+Mod::Mod(ModMetadata const& metadata) : m_impl(std::make_unique<Impl>(this, metadata)) {}
 
 Mod::~Mod() {}
 
@@ -52,16 +54,35 @@ bool Mod::supportsDisabling() const {
     return m_impl->supportsDisabling();
 }
 
+bool Mod::canDisable() const {
+    return m_impl->canDisable();
+}
+
+bool Mod::canEnable() const {
+    return m_impl->canEnable();
+}
+
+bool Mod::needsEarlyLoad() const {
+    return m_impl->needsEarlyLoad();
+}
+
 bool Mod::supportsUnloading() const {
-    return m_impl->supportsUnloading();
+    return false;
 }
 
 bool Mod::wasSuccesfullyLoaded() const {
-    return m_impl->wasSuccesfullyLoaded();
+    return this->wasSuccessfullyLoaded();
+}
+bool Mod::wasSuccessfullyLoaded() const {
+    return m_impl->wasSuccessfullyLoaded();
 }
 
 ModInfo Mod::getModInfo() const {
-    return m_impl->getModInfo();
+    return this->getMetadata();
+}
+
+ModMetadata Mod::getMetadata() const {
+    return m_impl->getMetadata();
 }
 
 ghc::filesystem::path Mod::getTempDir() const {
@@ -75,6 +96,15 @@ ghc::filesystem::path Mod::getBinaryPath() const {
 ghc::filesystem::path Mod::getResourcesDir() const {
     return dirs::getModRuntimeDir() / this->getID() / "resources" / this->getID();
 }
+
+#if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
+void Mod::setMetadata(ModMetadata const& metadata) {
+    m_impl->setMetadata(metadata);
+}
+std::vector<Mod*> Mod::getDependants() const {
+    return m_impl->getDependants();
+}
+#endif
 
 Result<> Mod::saveData() {
     return m_impl->saveData();
@@ -145,11 +175,11 @@ Result<> Mod::unpatch(Patch* patch) {
 }
 
 Result<> Mod::loadBinary() {
-    return m_impl->loadBinary();
+    return Err("Load mod binaries after startup is not supported");
 }
 
 Result<> Mod::unloadBinary() {
-    return m_impl->unloadBinary();
+    return Err("Unloading mod binaries is not supported");
 }
 
 Result<> Mod::enable() {
@@ -172,14 +202,19 @@ bool Mod::depends(std::string const& id) const {
     return m_impl->depends(id);
 }
 
-bool Mod::hasUnresolvedDependencies() const {
-    return m_impl->hasUnresolvedDependencies();
-}
-
 Result<> Mod::updateDependencies() {
     return m_impl->updateDependencies();
 }
 
+bool Mod::hasUnresolvedDependencies() const {
+    return m_impl->hasUnresolvedDependencies();
+}
+
+bool Mod::hasUnresolvedIncompatibilities() const {
+    return m_impl->hasUnresolvedIncompatibilities();
+}
+
+#pragma warning(suppress : 4996)
 std::vector<Dependency> Mod::getUnresolvedDependencies() {
     return m_impl->getUnresolvedDependencies();
 }

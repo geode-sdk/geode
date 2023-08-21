@@ -7,6 +7,7 @@
 #include "../utils/general.hpp"
 #include "Hook.hpp"
 #include "ModInfo.hpp"
+#include "ModMetadata.hpp"
 #include "Setting.hpp"
 #include "Types.hpp"
 
@@ -46,7 +47,6 @@ namespace geode {
         std::unique_ptr<Impl> m_impl;
 
         friend class Loader;
-        friend struct ModInfo;
 
         template <class = void>
         static inline GEODE_HIDDEN Mod* sharedMod = nullptr;
@@ -66,7 +66,8 @@ namespace geode {
 
         // Protected constructor/destructor
         Mod() = delete;
-        Mod(ModInfo const& info);
+        [[deprecated]] Mod(ModInfo const& info);
+        Mod(ModMetadata const& metadata);
         ~Mod();
 
         std::string getID() const;
@@ -79,9 +80,14 @@ namespace geode {
         bool isEnabled() const;
         bool isLoaded() const;
         bool supportsDisabling() const;
-        bool supportsUnloading() const;
-        bool wasSuccesfullyLoaded() const;
-        ModInfo getModInfo() const;
+        bool canDisable() const;
+        bool canEnable() const;
+        bool needsEarlyLoad() const;
+        [[deprecated]] bool supportsUnloading() const;
+        [[deprecated("use wasSuccessfullyLoaded instead")]] bool wasSuccesfullyLoaded() const;
+        bool wasSuccessfullyLoaded() const;
+        [[deprecated("use getMetadata instead")]] ModInfo getModInfo() const;
+        ModMetadata getMetadata() const;
         ghc::filesystem::path getTempDir() const;
         /**
          * Get the path to the mod's platform binary (.dll on Windows, .dylib 
@@ -93,6 +99,11 @@ namespace geode {
          * of its resources)
          */
         ghc::filesystem::path getResourcesDir() const;
+
+#if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
+        void setMetadata(ModMetadata const& metadata);
+        std::vector<Mod*> getDependants() const;
+#endif
 
         Result<> saveData();
         Result<> loadData();
@@ -293,7 +304,7 @@ namespace geode {
          * @returns Successful result on success,
          * errorful result with info on error
          */
-        Result<> loadBinary();
+        [[deprecated]] Result<> loadBinary();
 
         /**
          * Disable & unload this mod
@@ -302,7 +313,7 @@ namespace geode {
          * @returns Successful result on success,
          * errorful result with info on error
          */
-        Result<> unloadBinary();
+        [[deprecated]] Result<> unloadBinary();
 
         /**
          * Enable this mod
@@ -319,10 +330,7 @@ namespace geode {
         Result<> disable();
 
         /**
-         * Disable & unload this mod (if supported), then delete the mod's
-         * .geode package. If unloading isn't supported, the mod's binary
-         * will stay loaded, and in all cases the Mod* instance will still
-         * exist and be interactable.
+         * Disable this mod (if supported), then delete the mod's .geode package.
          * @returns Successful result on success,
          * errorful result with info on error
          */
@@ -336,6 +344,16 @@ namespace geode {
         bool depends(std::string const& id) const;
 
         /**
+         * Update the state of each of the
+         * dependencies. Depending on if the
+         * mod has unresolved dependencies,
+         * it will either be loaded or unloaded
+         * @returns Error.
+         * @deprecated No longer needed.
+         */
+        [[deprecated("no longer needed")]] Result<> updateDependencies();
+
+        /**
          * Check whether all the required
          * dependencies for this mod have
          * been loaded or not
@@ -344,21 +362,20 @@ namespace geode {
          */
         bool hasUnresolvedDependencies() const;
         /**
-         * Update the state of each of the
-         * dependencies. Depending on if the
-         * mod has unresolved dependencies,
-         * it will either be loaded or unloaded
+         * Check whether none of the
+         * incompatibilities with this mod are loaded
          * @returns True if the mod has unresolved
-         * dependencies, false if not.
+         * incompatibilities, false if not.
          */
-        Result<> updateDependencies();
+        bool hasUnresolvedIncompatibilities() const;
         /**
          * Get a list of all the unresolved
          * dependencies this mod has
          * @returns List of all the unresolved
          * dependencies
+         * @deprecated Use Loader::getProblems instead.
          */
-        std::vector<Dependency> getUnresolvedDependencies();
+        [[deprecated("use Loader::getProblems instead")]] std::vector<Dependency> getUnresolvedDependencies();
 
         char const* expandSpriteName(char const* name);
 
