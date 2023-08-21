@@ -4909,12 +4909,12 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     void saveToCheckpoint(PlayerCheckpoint*) = mac 0x22e2f0, win 0x1f9ee0;
     void setSecondColor(cocos2d::_ccColor3B const&) = mac 0x219610, win 0x1f7870;
     void setupStreak() = mac 0x218720, win 0x1e7e90;
-    void spawnCircle() = mac 0x225480;
+    void spawnCircle() = mac 0x2251b0;
     void spawnCircle2() = mac 0x2252a0;
     void spawnDualCircle() = mac 0x2255c0;
     void spawnFromPlayer(PlayerObject*) = mac 0x22dde0, win 0x1f9540;
     void spawnPortalCircle(cocos2d::_ccColor3B, float) = mac 0x225350, win 0x1ef680;
-    void spawnScaleCircle() = mac 0x2251b0, win 0x1ef810;
+    void spawnScaleCircle() = mac 0x225480, win 0x1ef810;
     void specialGroundHit() = mac 0x22dbf0;
     void speedDown() = mac 0x22e970;
     void speedUp() = mac 0x22e950;
