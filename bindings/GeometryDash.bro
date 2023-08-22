@@ -1226,6 +1226,9 @@ class EditLevelLayer : cocos2d::CCLayer, FLAlertLayerProtocol, TextInputDelegate
     static EditLevelLayer* create(GJGameLevel* level) = mac 0xe1e50, win 0x6f530, ios 0x82420;
     bool init(GJGameLevel* level) = mac 0xe1fd0, win 0x6f5d0;
     void onLevelInfo(cocos2d::CCObject*) = mac 0xe4f60, win 0x70660;
+    void onPlay(cocos2d::CCObject*) = mac 0xe3ae0, win 0x71700;
+    void onEdit(cocos2d::CCObject*) = mac 0xe3970, win 0x71ac0;
+    void onShare(cocos2d::CCObject*) = mac 0xe3c60, win 0x71be0;
 
     cocos2d::CCMenu* m_buttonMenu;
     GJGameLevel* m_level;
@@ -4739,7 +4742,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     bool unk42C;
     bool m_isPlayer2Frozen;
     gd::string m_previousRecords;
-    double unknown6a8;
+    cocos2d::CCArray* m_replayInputs;
     double m_time;
     int unknown6b8;
     int unknown6bc;
