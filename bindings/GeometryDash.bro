@@ -1447,8 +1447,9 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     PAD = mac 0x2, win 0x2, android 0x2;
     bool m_freeMoveEnabled;
     bool m_unkSwipeRelated;
-    PAD = mac 0xa, win 0xa, android 0x9;
+    PAD = mac 0x2, win 0x2, android 0x2;
     bool m_updateTimeMarkers;
+    PAD = mac 0x8, win 0x8, android 0x2;
     cocos2d::CCArray* m_unknownArray2;
     PAD = mac 0x8, win 0x8, android 0x8;
     cocos2d::CCArray* m_selectedObjects;
