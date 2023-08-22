@@ -3998,7 +3998,12 @@ class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDeleg
     void onViewProfile(cocos2d::CCObject* sender) = mac 0x1617d0, win 0x17ac90;
     void onLevelInfo(cocos2d::CCObject* sender) = mac 0x163880, win 0x17acf0;
     void setupProgressBars() = win 0x177fc0;
+    void setupLevelInfo() = mac 0x161C80, win 0x178680;
     void downloadLevel() = win 0x177d90;
+    void onPlay(cocos2d::CCObject* sender) = mac 0x161840, win 0x179730;
+    virtual void levelDownloadFinished(GJGameLevel*) = mac 0x164C00, win 0x1790C0;
+    virtual void levelUpdateFinished(GJGameLevel*, UpdateResponse) = mac 0x164E60, win 0x1792B0;
+    void showUpdateAlert(UpdateResponse) = mac 0x164ED0, win 0x179300;
 
     PAD = win 0x4, mac 0x8;
     cocos2d::CCMenu* m_playBtnMenu;
