@@ -2331,7 +2331,7 @@ class GJGameLevel : cocos2d::CCNode {
     int m_chk;
     bool m_isChkValid;
     bool m_isCompletionLegitimate;
-    geode::SeedValueVRS m_normalPercent;
+    geode::SeedValueVSR m_normalPercent;
     geode::SeedValueRSV m_orbCompletion;
     geode::SeedValueRSV m_newNormalPercent2;
     int m_practicePercent;
@@ -2598,6 +2598,7 @@ class GJScoreCell : TableViewCell {
     void loadFromScore(GJUserScore* score) = win 0x61440;
     void onViewProfile(cocos2d::CCObject* sender) = win 0x62380;
     void updateBGColor(int index) = win 0x5c6b0;
+    GJScoreCell(char const* key, float width, float height) = win 0x613C0;
 }
 
 class GJSearchObject : cocos2d::CCNode {
@@ -3762,6 +3763,7 @@ class LevelCell : TableViewCell {
     void loadCustomLevelCell() = mac 0x1183b0, win 0x5a020;
     void updateBGColor(int index) = win 0x5c6b0;
     void loadFromLevel(GJGameLevel* level) = win 0x59FD0;
+    LevelCell(char const* key, float width, float height) = win 0x59F40;
 }
 
 class LevelCommentDelegate {
@@ -4910,12 +4912,12 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     void saveToCheckpoint(PlayerCheckpoint*) = mac 0x22e2f0, win 0x1f9ee0;
     void setSecondColor(cocos2d::_ccColor3B const&) = mac 0x219610, win 0x1f7870;
     void setupStreak() = mac 0x218720, win 0x1e7e90;
-    void spawnCircle() = mac 0x225480;
+    void spawnCircle() = mac 0x2251b0;
     void spawnCircle2() = mac 0x2252a0;
     void spawnDualCircle() = mac 0x2255c0;
     void spawnFromPlayer(PlayerObject*) = mac 0x22dde0, win 0x1f9540;
     void spawnPortalCircle(cocos2d::_ccColor3B, float) = mac 0x225350, win 0x1ef680;
-    void spawnScaleCircle() = mac 0x2251b0, win 0x1ef810;
+    void spawnScaleCircle() = mac 0x225480, win 0x1ef810;
     void specialGroundHit() = mac 0x22dbf0;
     void speedDown() = mac 0x22e970;
     void speedUp() = mac 0x22e950;

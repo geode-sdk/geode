@@ -250,7 +250,7 @@ if (APPLE)
 
 	add_subdirectory(launcher/mac)
 
-	if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm" OR GEODE_TARGET_PLATFORM STREQUAL "iOS")
+	if(GEODE_TARGET_PLATFORM STREQUAL "iOS")
 		add_custom_command(TARGET geode-loader
 			POST_BUILD COMMAND
 			${CMAKE_INSTALL_NAME_TOOL} -id \"/Library/MobileSubstrate/DynamicLibraries/Geode.dylib\"
