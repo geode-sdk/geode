@@ -25,7 +25,7 @@ GEODE_MEMBER_CHECK(LevelEditorLayer, m_level, 0x618);
 GEODE_MEMBER_CHECK(PlayLayer, unknown518, 0x518);
 GEODE_MEMBER_CHECK(PlayLayer, unknown5f4, 0x5f4);
 GEODE_MEMBER_CHECK(PlayLayer, unknown680, 0x680);
-GEODE_MEMBER_CHECK(PlayLayer, unknown6a8, 0x6a8);
+GEODE_MEMBER_CHECK(PlayLayer, m_replayInputs, 0x6a8);
 GEODE_MEMBER_CHECK(PlayLayer, m_level, 0x728);
 GEODE_MEMBER_CHECK(PlayLayer, m_shouldTryToKick, 0x7a8);
 
