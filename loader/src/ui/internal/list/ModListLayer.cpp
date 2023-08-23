@@ -428,6 +428,9 @@ void ModListLayer::createSearchControl() {
     inputBG->setScale(.5f);
     m_searchBG->addChild(inputBG);
 
+    if (m_searchInput)
+        return;
+
     m_searchInput =
         CCTextInputNode::create(310.f - buttonSpace, 20.f, "Search Mods...", "bigFont.fnt");
     m_searchInput->setLabelPlaceholderColor({ 150, 150, 150 });
@@ -457,10 +460,7 @@ void ModListLayer::reloadList(std::optional<ModListQuery> const& query) {
             std::nullopt;
 
     // remove old list
-    if (m_list) {
-        if (m_searchBG) m_searchBG->retain();
-        m_list->removeFromParent();
-    }
+    if (m_list) m_list->removeFromParent();
 
     auto items = this->createModCells(g_tab, m_query);
 
@@ -522,13 +522,7 @@ void ModListLayer::reloadList(std::optional<ModListQuery> const& query) {
         m_tabsGradientSprite->setPosition(m_list->getPosition() + CCPoint{179.f, 235.f});
 
     // add search input to list
-    if (!m_searchInput) {
-        this->createSearchControl();
-    }
-    else {
-        m_list->addChild(m_searchBG);
-        m_searchBG->release();
-    }
+    this->createSearchControl();
 
     // enable filter button
     m_filterBtn->setEnabled(g_tab != ModListType::Installed);

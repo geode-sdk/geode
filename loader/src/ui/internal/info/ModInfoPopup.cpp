@@ -750,34 +750,75 @@ void IndexItemInfoPopup::onInstallProgress(ModInstallEvent* event) {
 }
 
 void IndexItemInfoPopup::onInstall(CCObject*) {
-    createQuickPopup(
-        "Confirm Install",
-        "Installing this mod requires a few other mods to be installed. "
-        "Would you like to continue with <cy>recommended settings</c> or "
-        "<cb>customize</c> which mods to install?",
-        "Customize", "Recommended", 320.f,
-        [&](FLAlertLayer*, bool btn2) {
-            if (btn2) {
-                auto canInstall = Index::get()->canInstall(m_item);
-                if (!canInstall) {
-                    FLAlertLayer::create(
-                        "Unable to Install",
-                        canInstall.unwrapErr(),
-                        "OK"
-                    )->show();
-                    return;
-                }
+    auto deps = m_item->getMetadata().getDependencies();
+    enum class DepState {
+        None,
+        HasOnlyRequired,
+        HasOptional
+    } depState = DepState::None;
+    for (auto const& item : deps) {
+        // resolved means it's already installed, so
+        // no need to ask the user whether they want to install it
+        if (Loader::get()->isModLoaded(item.id))
+            continue;
+        if (item.importance != ModMetadata::Dependency::Importance::Required) {
+            depState = DepState::HasOptional;
+            break;
+        }
+        depState = DepState::HasOnlyRequired;
+    }
+
+    std::string content;
+    char const* btn1;
+    char const* btn2;
+    switch (depState) {
+        case DepState::None:
+            content = fmt::format(
+                "Are you sure you want to install <cg>{}</c>?",
+                m_item->getMetadata().getName()
+            );
+            btn1 = "Info";
+            btn2 = "Install";
+            break;
+        case DepState::HasOnlyRequired:
+            content =
+                "Installing this mod requires other mods to be installed. "
+                "Would you like to <cy>proceed</c> with the installation or "
+                "<cb>view</c> which mods are going to be installed?";
+            btn1 = "View";
+            btn2 = "Proceed";
+            break;
+        case DepState::HasOptional:
+            content =
+                "This mod recommends installing other mods alongside it. "
+                "Would you like to continue with <cy>recommended settings</c> or "
+                "<cb>customize</c> which mods to install?";
+            btn1 = "Customize";
+            btn2 = "Recommended";
+            break;
+    }
+
+    createQuickPopup("Confirm Install", content, btn1, btn2, 320.f, [&](FLAlertLayer*, bool btn2) {
+        if (btn2) {
+            auto canInstall = Index::get()->canInstall(m_item);
+            if (!canInstall) {
+                FLAlertLayer::create(
+                    "Unable to Install",
+                    canInstall.unwrapErr(),
+                    "OK"
+                )->show();
+                return;
+            }
+            this->preInstall();
+            Index::get()->install(m_item);
+        }
+        else {
+            InstallListPopup::create(m_item, [&](IndexInstallList const& list) {
                 this->preInstall();
-                Index::get()->install(m_item);
-            }
-            else {
-                InstallListPopup::create(m_item, [&](IndexInstallList const& list) {
-                    this->preInstall();
-                    Index::get()->install(list);
-                })->show();
-            }
-        }, true, true
-    );
+                Index::get()->install(list);
+            })->show();
+        }
+    }, true, true);
 }
 
 void IndexItemInfoPopup::preInstall() {

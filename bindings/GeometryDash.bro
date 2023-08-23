@@ -1226,6 +1226,9 @@ class EditLevelLayer : cocos2d::CCLayer, FLAlertLayerProtocol, TextInputDelegate
     static EditLevelLayer* create(GJGameLevel* level) = mac 0xe1e50, win 0x6f530, ios 0x82420;
     bool init(GJGameLevel* level) = mac 0xe1fd0, win 0x6f5d0;
     void onLevelInfo(cocos2d::CCObject*) = mac 0xe4f60, win 0x70660;
+    void onPlay(cocos2d::CCObject*) = mac 0xe3ae0, win 0x71700;
+    void onEdit(cocos2d::CCObject*) = mac 0xe3970, win 0x71ac0;
+    void onShare(cocos2d::CCObject*) = mac 0xe3c60, win 0x71be0;
 
     cocos2d::CCMenu* m_buttonMenu;
     GJGameLevel* m_level;
@@ -1447,8 +1450,9 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     PAD = mac 0x2, win 0x2, android 0x2;
     bool m_freeMoveEnabled;
     bool m_unkSwipeRelated;
-    PAD = mac 0xa, win 0xa, android 0x9;
+    PAD = mac 0x2, win 0x2, android 0x2;
     bool m_updateTimeMarkers;
+    PAD = mac 0x8, win 0x8, android 0x2;
     cocos2d::CCArray* m_unknownArray2;
     PAD = mac 0x8, win 0x8, android 0x8;
     cocos2d::CCArray* m_selectedObjects;
@@ -2330,7 +2334,7 @@ class GJGameLevel : cocos2d::CCNode {
     int m_chk;
     bool m_isChkValid;
     bool m_isCompletionLegitimate;
-    geode::SeedValueVRS m_normalPercent;
+    geode::SeedValueVSR m_normalPercent;
     geode::SeedValueRSV m_orbCompletion;
     geode::SeedValueRSV m_newNormalPercent2;
     int m_practicePercent;
@@ -2597,6 +2601,7 @@ class GJScoreCell : TableViewCell {
     void loadFromScore(GJUserScore* score) = win 0x61440;
     void onViewProfile(cocos2d::CCObject* sender) = win 0x62380;
     void updateBGColor(int index) = win 0x5c6b0;
+    GJScoreCell(char const* key, float width, float height) = win 0x613C0;
 }
 
 class GJSearchObject : cocos2d::CCNode {
@@ -3761,6 +3766,7 @@ class LevelCell : TableViewCell {
     void loadCustomLevelCell() = mac 0x1183b0, win 0x5a020;
     void updateBGColor(int index) = win 0x5c6b0;
     void loadFromLevel(GJGameLevel* level) = win 0x59FD0;
+    LevelCell(char const* key, float width, float height) = win 0x59F40;
 }
 
 class LevelCommentDelegate {
@@ -4736,7 +4742,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     bool unk42C;
     bool m_isPlayer2Frozen;
     gd::string m_previousRecords;
-    double unknown6a8;
+    cocos2d::CCArray* m_replayInputs;
     double m_time;
     int unknown6b8;
     int unknown6bc;
@@ -4909,12 +4915,12 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     void saveToCheckpoint(PlayerCheckpoint*) = mac 0x22e2f0, win 0x1f9ee0;
     void setSecondColor(cocos2d::_ccColor3B const&) = mac 0x219610, win 0x1f7870;
     void setupStreak() = mac 0x218720, win 0x1e7e90;
-    void spawnCircle() = mac 0x225480;
+    void spawnCircle() = mac 0x2251b0;
     void spawnCircle2() = mac 0x2252a0;
     void spawnDualCircle() = mac 0x2255c0;
     void spawnFromPlayer(PlayerObject*) = mac 0x22dde0, win 0x1f9540;
     void spawnPortalCircle(cocos2d::_ccColor3B, float) = mac 0x225350, win 0x1ef680;
-    void spawnScaleCircle() = mac 0x2251b0, win 0x1ef810;
+    void spawnScaleCircle() = mac 0x225480, win 0x1ef810;
     void specialGroundHit() = mac 0x22dbf0;
     void speedDown() = mac 0x22e970;
     void speedUp() = mac 0x22e950;
