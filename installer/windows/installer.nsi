@@ -26,6 +26,8 @@
 ; pages
     !insertmacro MUI_PAGE_WELCOME
     !insertmacro MUI_PAGE_LICENSE "..\..\LICENSE.txt"
+    !define MUI_COMPONENTSPAGE_NODESC
+    !insertmacro MUI_PAGE_COMPONENTS
     !define MUI_PAGE_CUSTOMFUNCTION_SHOW DirectoryPageShow
     !insertmacro MUI_PAGE_DIRECTORY
     !insertmacro MUI_PAGE_INSTFILES
@@ -374,16 +376,6 @@ Function FindGamePath
     Pop $0
 FunctionEnd
 
-Function .onInit
-    !insertmacro MUI_LANGDLL_DISPLAY
-
-    Call FindGamePath
-    IfErrors 0 +3
-        StrCpy $GamePath ""
-        Return
-    StrCpy $INSTDIR "$GamePath\"
-FunctionEnd
-
 Function DirectoryPageShow
     System::Call 'USER32::CreateWindowEx(i${__NSD_Label_EXSTYLE}, t"${__NSD_Label_CLASS}", t"", i${__NSD_Label_STYLE}, i0, i70, i400, i40, p$mui.DirectoryPage, p0, p0, p0)p.s'
     Pop $geode.DirectoryPage.ErrorText
@@ -435,6 +427,25 @@ Function .onVerifyInstDir
         Return
 FunctionEnd
 
+SectionGroup "Geode"
+    Section "Loader" LOADER_SECTION
+        SetOutPath $INSTDIR
+
+        File ${BINDIR}\Geode.dll
+        File ${BINDIR}\Geode.pdb
+        File ${BINDIR}\GeodeUpdater.exe
+        File ${BINDIR}\XInput9_1_0.dll
+
+        WriteUninstaller "GeodeUninstaller.exe"
+    SectionEnd
+
+    Section "Resources"
+        CreateDirectory $INSTDIR\geode\resources\geode.loader
+        SetOutPath $INSTDIR\geode\resources\geode.loader
+        File /r ${BINDIR}\resources\*
+    SectionEnd
+SectionGroupEnd
+
 ; download vc redist in compile-time
 !execute "pwsh -nol -noni -nop dl-vcr.ps1"
 Section "Visual Studio Runtime"
@@ -444,21 +455,18 @@ Section "Visual Studio Runtime"
     Delete "$INSTDIR\VC_redist.x86.exe"
 SectionEnd
 
-Section "Geode"
-    SetOutPath $INSTDIR
+Function .onInit
+    !insertmacro MUI_LANGDLL_DISPLAY
 
-    File ${BINDIR}\Geode.dll
-    File ${BINDIR}\Geode.pdb
-    File ${BINDIR}\GeodeUpdater.exe
-    File ${BINDIR}\XInput9_1_0.dll
+    IntOp $0 ${SF_SELECTED} | ${SF_RO}
+    SectionSetFlags ${LOADER_SECTION} $0
 
-    WriteUninstaller "GeodeUninstaller.exe"
-
-    CreateDirectory $INSTDIR\geode\resources\geode.loader
-    SetOutPath $INSTDIR\geode\resources\geode.loader
-
-    File /r ${BINDIR}\resources\*
-SectionEnd
+    Call FindGamePath
+    IfErrors 0 +3
+        StrCpy $GamePath ""
+        Return
+    StrCpy $INSTDIR "$GamePath\"
+FunctionEnd
 
 ; uninstaller
 
