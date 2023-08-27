@@ -330,7 +330,7 @@ static void handlerThread() {
 
     auto text = crashlog::writeCrashlog(faultyMod, getInfo(signalAddress, faultyMod), getStacktrace(), getRegisters());
 
-    log::error("Geode crashed!\n{}" + text);
+    log::error("Geode crashed!\n{}", text);
     
     s_signal = 0;
     s_cv.notify_all();

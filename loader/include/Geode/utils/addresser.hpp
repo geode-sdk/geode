@@ -91,6 +91,14 @@ namespace geode::addresser {
                 *reinterpret_cast<intptr_t*>(reinterpret_cast<intptr_t>(ins) + thunk) + index
             );
 
+            #ifdef GEODE_IS_WINDOWS
+            // if the first instruction is a long jmp then this might still be a thunk
+            if (*reinterpret_cast<uint8_t*>(address) == 0xE9) {
+                auto relative = *reinterpret_cast<uint32_t*>(address + 1);
+                address = address + relative + 5;
+            }
+            #endif
+
             address = followThunkFunction(address);
 
             return address;

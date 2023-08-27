@@ -68,6 +68,8 @@ public:
      */
     ~CCActionManager(void);
 
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCActionManager, CCObject);
+
     // actions
     
     /** Adds an action with a target. 

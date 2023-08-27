@@ -7,6 +7,14 @@ class cocos2d::CCActionTween {
 
 [[link(win)]]
 class cocos2d::CCActionManager {
+	CCActionManager() {
+		m_pTargets = nullptr;
+		m_pCurrentTarget = nullptr;
+		m_bCurrentTargetSalvaged = false;
+	}
+	~CCActionManager() {}
+
+	virtual auto update(float) = mac 0x10c9a0;
 	auto addAction(cocos2d::CCAction*, cocos2d::CCNode*, bool) = mac 0x10bed0;
 	auto pauseTarget(cocos2d::CCObject*) = mac 0x10bc50;
 	auto resumeTargets(cocos2d::CCSet*) = mac 0x10be80;
@@ -302,7 +310,7 @@ class cocos2d::CCFileUtils : cocos2d::TypeInfo {
 	static void purgeFileUtils();
     virtual void addSearchPath(const char* path);
 	virtual void removeSearchPath(const char *path);
-    virtual std::string fullPathForFilename(const char* filename, bool unk);
+    virtual gd::string fullPathForFilename(const char* filename, bool unk) = mac 0x23f940;
     void removeAllPaths() = mac 0x241600;
 }
 
@@ -1250,6 +1258,8 @@ class DS_Dictionary {
 	bool stepIntoSubDictWithKey(char const*) = mac 0xc0cd0;
 	int getIntegerForKey(char const*) = mac 0xc1610;
 	void setIntegerForKey(char const*, int) = mac 0xc26b0;
+	void setDictForKey(char const*, cocos2d::CCDictionary*) = mac 0xC4EA0;
+	auto getObjectForKey(char const*) = mac 0xC4BB0;
 }
 
 [[link(win)]]
