@@ -192,7 +192,8 @@ namespace gd {
         V& operator[](K const& __k) {
             iterator __i = lower_bound(__k);
             if (__i == end() || compare(__k, (*__i).first)) {
-                __i = insert_pair(std::pair<K, V>(__k, V()));
+                insert_pair(std::pair<K, V>(__k, V()));
+                __i = lower_bound(__k);
             }
             return (*__i).second;
         }

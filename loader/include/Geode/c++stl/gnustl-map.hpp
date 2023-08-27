@@ -37,11 +37,11 @@ namespace geode::stl {
         explicit _rb_tree_iterator(_Base_ptr __x) noexcept : m_node(__x) {}
 
         reference operator*() const noexcept {
-            return *static_cast<_Link_type>(m_node)->m_value;
+            return static_cast<_Link_type>(m_node)->m_value;
         }
 
         pointer operator->() const noexcept {
-            return static_cast<_Link_type>(m_node)->m_value;
+            return &static_cast<_Link_type>(m_node)->m_value;
         }
 
         _Self& operator++() noexcept {
