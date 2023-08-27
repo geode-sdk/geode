@@ -103,6 +103,10 @@ namespace gd {
             ++m_nodecount;
         }
 
+        void insert(std::pair<K, V> const& val) {
+            insert_pair(val);
+        }
+
         void insert_pair(std::pair<K, V> const& val) {
             _tree_node x = static_cast<_tree_node>(m_header.m_parent);
             _tree_node y = static_cast<_tree_node>(&m_header);
@@ -188,7 +192,7 @@ namespace gd {
         V& operator[](K const& __k) {
             iterator __i = lower_bound(__k);
             if (__i == end() || compare(__k, (*__i).first)) {
-                __i = insert(__i, std::pair<K, V>(__k, V()));
+                __i = insert_pair(std::pair<K, V>(__k, V()));
             }
             return (*__i).second;
         }
