@@ -98,11 +98,12 @@ struct FileUtilsUpdatePaths : Modify<FileUtilsUpdatePaths, CCFileUtils> {
         using namespace std::string_literals;
         using namespace std::string_view_literals;
 
-        // this filename in particular is never cached because its not actually present anywhere.
+        // this filename in particular (cc_2x2_white_image) is never cached because its not actually present anywhere.
         // this is only an issue because cocos itself requests the full path for this in CCSprite,
         // and with a lot of search paths (specially ones added by geode), this can cause a significant amount of lag.
-        if (filename == "cc_2x2_white_image"sv) {
-            return "cc_2x2_white_image"s;
+        // GJ_GameSheetIcons.png comes from an improper plist distributed in GDS :P
+        if (filename == "cc_2x2_white_image"sv || filename == "GJ_GameSheetIcons.png"sv) {
+            return filename;
         }
 
         return CCFileUtils::fullPathForFilename(filename, unk);
