@@ -185,6 +185,14 @@ namespace gd {
             --m_nodecount;
         }
 
+        V& operator[](K const& __k) {
+            iterator __i = lower_bound(__k);
+            if (__i == end() || compare(__k, (*__i).first)) {
+                __i = insert(__i, std::pair<K, V>(__k, V()));
+            }
+            return (*__i).second;
+        }
+
         iterator begin() noexcept {
             return iterator(m_header.m_left);
         }
