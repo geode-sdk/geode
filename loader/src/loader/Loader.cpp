@@ -112,7 +112,11 @@ void Loader::updateResources(bool forceReload) {
 }
 
 void Loader::queueInGDThread(ScheduledFunction func) {
-    return m_impl->queueInGDThread(func);
+    return m_impl->queueInMainThread(func);
+}
+
+void Loader::queueInMainThread(ScheduledFunction func) {
+    return m_impl->queueInMainThread(func);
 }
 
 void Loader::waitForModsToBeLoaded() {

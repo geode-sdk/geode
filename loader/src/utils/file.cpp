@@ -602,7 +602,7 @@ Result<> file::watchFile(ghc::filesystem::path const& file) {
     auto watcher = std::make_unique<FileWatcher>(
         file,
         [](auto const& path) {
-            Loader::get()->queueInGDThread([=] {
+            Loader::get()->queueInMainThread([=] {
                 FileWatchEvent(path).post();
             });
         }

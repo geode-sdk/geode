@@ -7,10 +7,9 @@ using namespace geode::prelude;
 
 #include <Geode/loader/Dirs.hpp>
 #import <AppKit/AppKit.h>
-#include <Geode/utils/web.hpp>
-#include <Geode/utils/file.hpp>
-#include <Geode/utils/cocos.hpp>
+#include <Geode/Utils.hpp>
 #include <Geode/binding/GameManager.hpp>
+#include <objc/runtime.h>
 
 bool utils::clipboard::write(std::string const& data) {
     [[NSPasteboard generalPasteboard] clearContents];
@@ -233,6 +232,31 @@ void geode::utils::game::restart() {
         CCCallFunc::create(nullptr, callfunc_selector(Exit::shutdown)),
         nullptr
     ), CCDirector::get()->getRunningScene(), false);
+}
+
+Result<> geode::hook::addObjcMethod(std::string const& className, std::string const& selectorName, void* imp) {
+    auto cls = objc_getClass(className.c_str());
+    if (!cls)
+        return Err("Class not found");
+    
+    auto sel = sel_registerName(selectorName.c_str());
+    
+    class_addMethod(cls, sel, (IMP)imp, "v@:");
+
+    return Ok();
+}
+Result<void*> geode::hook::getObjcMethodImp(std::string const& className, std::string const& selectorName) {
+    auto cls = objc_getClass(className.c_str());
+    if (!cls)
+        return Err("Class not found");
+    
+    auto sel = sel_registerName(selectorName.c_str());
+    
+    auto method = class_getInstanceMethod(cls, sel);
+    if (!method)
+        return Err("Method not found");
+
+    return Ok((void*)method_getImplementation(method));
 }
 
 #endif
