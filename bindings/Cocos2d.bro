@@ -310,7 +310,7 @@ class cocos2d::CCFileUtils : cocos2d::TypeInfo {
 	static void purgeFileUtils();
     virtual void addSearchPath(const char* path);
 	virtual void removeSearchPath(const char *path);
-    virtual std::string fullPathForFilename(const char* filename, bool unk);
+    virtual gd::string fullPathForFilename(const char* filename, bool unk) = mac 0x23f940;
     void removeAllPaths() = mac 0x241600;
 }
 
