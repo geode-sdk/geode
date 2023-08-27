@@ -147,16 +147,15 @@ namespace gd {
             }
         }
 
-        std::pair<iterator, iterator> equal_range(const K& __k) {
+        std::pair<iterator, iterator> equal_range(K const& __k) {
             return std::pair<iterator, iterator>(lower_bound(__k), upper_bound(__k));
         }
 
         size_t erase(K const& __x) {
             std::pair<iterator, iterator> __p = equal_range(__x);
-            size_t __n = 0;
-            distance(__p.first, __p.second, __n);
+            size_t __old = size();
             erase(__p.first, __p.second);
-            return __n;
+            return __old - size();
         }
 
         void clear() {
@@ -180,7 +179,8 @@ namespace gd {
 
         void erase(iterator __pos) {
             _tree_node __y = static_cast<_tree_node>(_rb_rebalance_for_erase(
-                __pos.m_node, m_header.m_parent, m_header.m_left, m_header.m_right));
+                __pos.m_node, m_header
+            ));
             delete __y;
             --m_nodecount;
         }
