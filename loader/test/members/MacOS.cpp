@@ -25,7 +25,7 @@ GEODE_MEMBER_CHECK(LevelEditorLayer, m_level, 0x618);
 GEODE_MEMBER_CHECK(PlayLayer, unknown518, 0x518);
 GEODE_MEMBER_CHECK(PlayLayer, unknown5f4, 0x5f4);
 GEODE_MEMBER_CHECK(PlayLayer, unknown680, 0x680);
-GEODE_MEMBER_CHECK(PlayLayer, unknown6a8, 0x6a8);
+GEODE_MEMBER_CHECK(PlayLayer, m_replayInputs, 0x6a8);
 GEODE_MEMBER_CHECK(PlayLayer, m_level, 0x728);
 GEODE_MEMBER_CHECK(PlayLayer, m_shouldTryToKick, 0x7a8);
 
@@ -79,5 +79,20 @@ GEODE_MEMBER_CHECK(LevelBrowserLayer, m_itemCount, 0x208);
 
 // LocalLevelManager
 GEODE_MEMBER_CHECK(LocalLevelManager, m_localLevels, 0x140);
+
+// GameStatsManager
+GEODE_MEMBER_CHECK(GameStatsManager, m_dailyChests, 0x170);
+GEODE_MEMBER_CHECK(GameStatsManager, m_completedLevels, 0x200);
+GEODE_MEMBER_CHECK(GameStatsManager, m_weeklyChest, 0x278);
+
+// DailyLevelPage
+GEODE_MEMBER_CHECK(DailyLevelPage, m_weekly, 0x291);
+
+// GameLevelManager
+GEODE_MEMBER_CHECK(GameLevelManager, m_weeklyID, 0x1a8);
+GEODE_MEMBER_CHECK(GameLevelManager, m_gauntletLevels, 0x1b0);
+GEODE_MEMBER_CHECK(GameLevelManager, m_timerDict, 0x1e8);
+GEODE_MEMBER_CHECK(GameLevelManager, m_accountIDtoUserIDDict, 0x1f8);
+GEODE_MEMBER_CHECK(GameLevelManager, m_userIDtoAccountIDDict, 0x200);
 
 #endif

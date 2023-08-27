@@ -1258,6 +1258,8 @@ class DS_Dictionary {
 	bool stepIntoSubDictWithKey(char const*) = mac 0xc0cd0;
 	int getIntegerForKey(char const*) = mac 0xc1610;
 	void setIntegerForKey(char const*, int) = mac 0xc26b0;
+	void setDictForKey(char const*, cocos2d::CCDictionary*) = mac 0xC4EA0;
+	auto getObjectForKey(char const*) = mac 0xC4BB0;
 }
 
 [[link(win)]]
