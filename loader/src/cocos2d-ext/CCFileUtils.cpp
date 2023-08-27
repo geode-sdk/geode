@@ -101,9 +101,9 @@ struct FileUtilsUpdatePaths : Modify<FileUtilsUpdatePaths, CCFileUtils> {
         // this filename in particular is never cached because its not actually present anywhere.
         // this is only an issue because cocos itself requests the full path for this in CCSprite,
         // and with a lot of search paths (specially ones added by geode), this can cause a significant amount of lag.
-        if (filename == "cc_2x2_white_image"sv) {
-            return "cc_2x2_white_image"s;
-        }
+        // if (filename == "cc_2x2_white_image"sv) {
+        //     return "cc_2x2_white_image"s;
+        // }
 
         return CCFileUtils::fullPathForFilename(filename, unk);
     }
