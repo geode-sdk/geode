@@ -56,4 +56,10 @@ static_assert(sizeof(GJBaseGameLayer) == 0x2cc);
 
 GEODE_MEMBER_CHECK(AudioEffectsLayer, m_unk19C, 0x19c);
 
+GEODE_MEMBER_CHECK(GameStatsManager, m_dailyChests, 0x114);
+GEODE_MEMBER_CHECK(GameStatsManager, m_completedLevels, 0x144);
+
+GEODE_MEMBER_CHECK(DailyLevelPage, m_weekly, 0x1ed);
+
+
 #endif
