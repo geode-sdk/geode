@@ -227,7 +227,7 @@ void ModCell::onEnable(CCObject* sender) {
     else {
         tryOrAlert(m_mod->disable(), "Error disabling mod");
     }
-    Loader::get()->queueInGDThread([this]() {
+    Loader::get()->queueInMainThread([this]() {
         if (m_layer) {
             m_layer->updateAllStates();
         }

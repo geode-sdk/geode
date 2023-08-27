@@ -277,7 +277,7 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
                     }
                     return 1;
                 }
-                Loader::get()->queueInGDThread([self = data->self, now, total]() {
+                Loader::get()->queueInMainThread([self = data->self, now, total]() {
                     std::lock_guard _(self->m_mutex);
                     for (auto& prog : self->m_progresses) {
                         prog(*self->m_self, now, total);
@@ -302,7 +302,7 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
         // request, then they may still cancel it
         m_finished = true;
 
-        Loader::get()->queueInGDThread([this, ret]() {
+        Loader::get()->queueInMainThread([this, ret]() {
             std::lock_guard _(m_mutex);
             for (auto& then : m_thens) {
                 then(*m_self, ret);
@@ -329,7 +329,7 @@ void SentAsyncWebRequest::Impl::doCancel() {
         }
     }
 
-    Loader::get()->queueInGDThread([this]() {
+    Loader::get()->queueInMainThread([this]() {
         std::lock_guard _(m_mutex);
         for (auto& canc : m_cancelleds) {
             canc(*m_self);
@@ -366,7 +366,7 @@ void SentAsyncWebRequest::Impl::error(std::string const& error, int code) {
     m_statusCV.wait(lock, [this]() { 
         return !m_paused; 
     });
-    Loader::get()->queueInGDThread([this, error, code]() {
+    Loader::get()->queueInMainThread([this, error, code]() {
         {
             std::lock_guard _(m_mutex);
             for (auto& expect : m_expects) {
