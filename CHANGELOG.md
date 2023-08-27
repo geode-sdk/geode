@@ -1,5 +1,15 @@
 # Geode Changelog
 
+## v1.2.0
+ * Add Objective-C hooking utilities (a31d072)
+ * Rename queueInGDThread to queueInMainThread (277f68b)
+ * Fix build on apple silicon (dd16797)
+ * Move windows uninstaller to gd folder (bdf11a2)
+ * Option to pick features on windows installer (4cc9164)
+ * Improve lag in some places due to search paths (9875f5d)
+ * Some missing methods for macOS gd::map (db02c3d)
+ * Some missing methods for windows gd::string (7139ac4)
+
 ## v1.1.1
  * Improve installation confirmation popup (9192769)
  * Remove unnecessary main thread queues for mod events (38cc38c)
