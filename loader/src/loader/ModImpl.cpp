@@ -493,20 +493,6 @@ bool Mod::Impl::hasUnresolvedIncompatibilities() const {
     return false;
 }
 
-// msvc stop fucking screaming please i BEG YOU
-#pragma warning(suppress : 4996)
-std::vector<Dependency> Mod::Impl::getUnresolvedDependencies() {
-#pragma warning(suppress : 4996)
-    std::vector<Dependency> unresolved;
-    for (auto const& dep : m_metadata.getDependencies()) {
-        if (!dep.isResolved()) {
-#pragma warning(suppress : 4996)
-            unresolved.push_back(dep);
-        }
-    }
-    return unresolved;
-}
-
 bool Mod::Impl::depends(std::string const& id) const {
     return utils::ranges::contains(m_metadata.getDependencies(), [id](ModMetadata::Dependency const& t) {
         return t.id == id;
@@ -535,7 +521,7 @@ Result<Hook*> Mod::Impl::addHook(Hook* hook) {
             auto res = this->enableHook(hook);
             if (!res) {
                 delete hook;
-                return Err("Can't create hook: "+ res.unwrapErr());
+                return Err("Can't create hook: " + res.unwrapErr());
             }
         }
     }

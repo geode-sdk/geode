@@ -49,8 +49,6 @@ namespace geode::modifier {
         }
     };
 
-    [[deprecated("Will be removed in 1.0.0")]]
-    GEODE_DLL size_t getFieldIndexForClass(size_t hash);
     GEODE_DLL size_t getFieldIndexForClass(char const* name);
 
     template <class Parent, class Base>

@@ -127,12 +127,6 @@ Result<> utils::file::createDirectoryAll(ghc::filesystem::path const& path) {
     }
 }
 
-Result<std::vector<ghc::filesystem::path>> utils::file::listFiles(
-    ghc::filesystem::path const& path, bool recursive
-) {
-    return file::readDirectory(path, recursive);
-}
-
 Result<std::vector<ghc::filesystem::path>> utils::file::readDirectory(
     ghc::filesystem::path const& path, bool recursive
 ) {

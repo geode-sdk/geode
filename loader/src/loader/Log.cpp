@@ -142,14 +142,7 @@ Severity Log::getSeverity() const {
     return m_severity;
 }
 
-void Log::addFormat(std::string_view formatStr, std::span<ComponentTrait*> components) {
-    auto res = this->addFormatNew(formatStr, components);
-    if (res.isErr()) {
-        throw std::runtime_error(res.unwrapErr());
-    }
-}
-
-Result<> Log::addFormatNew(std::string_view formatStr, std::span<ComponentTrait*> components) {
+Result<> Log::addFormat(std::string_view formatStr, std::span<ComponentTrait*> components) {
     size_t compIndex = 0;
     std::string current;
     for (size_t i = 0; i < formatStr.size(); ++i) {

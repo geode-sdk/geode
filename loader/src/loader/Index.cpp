@@ -75,10 +75,6 @@ ghc::filesystem::path IndexItem::getPath() const {
     return m_impl->m_path;
 }
 
-ModInfo IndexItem::getModInfo() const {
-    return this->getMetadata();
-}
-
 ModMetadata IndexItem::getMetadata() const {
     return m_impl->m_metadata;
 }
@@ -513,10 +509,6 @@ IndexItemHandle Index::getItem(
         }
     }
     return nullptr;
-}
-
-IndexItemHandle Index::getItem(ModInfo const& info) const {
-    return this->getItem(info.id(), info.version());
 }
 
 IndexItemHandle Index::getItem(ModMetadata const& metadata) const {

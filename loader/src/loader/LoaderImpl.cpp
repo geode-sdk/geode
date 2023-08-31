@@ -121,21 +121,6 @@ std::vector<Mod*> Loader::Impl::getAllMods() {
     return map::values(m_mods);
 }
 
-std::vector<InvalidGeodeFile> Loader::Impl::getFailedMods() const {
-    std::vector<InvalidGeodeFile> inv;
-    for (auto const& item : this->getProblems()) {
-        if (item.type != LoadProblem::Type::InvalidFile)
-            continue;
-        if (!holds_alternative<ghc::filesystem::path>(item.cause))
-            continue;
-        inv.push_back({
-            std::get<ghc::filesystem::path>(item.cause),
-            item.message
-        });
-    }
-    return inv;
-}
-
 // Version info
 
 VersionInfo Loader::Impl::getVersion() {
@@ -245,26 +230,6 @@ void Loader::Impl::updateModResources(Mod* mod) {
 }
 
 // Dependencies and refreshing
-
-Result<Mod*> Loader::Impl::loadModFromInfo(ModInfo const& info) {
-    return Err("Loader::loadModFromInfo is deprecated");
-}
-
-Result<Mod*> Loader::Impl::loadModFromFile(ghc::filesystem::path const& file) {
-    return Err("Loader::loadModFromFile is deprecated");
-}
-
-void Loader::Impl::loadModsFromDirectory(ghc::filesystem::path const& dir, bool recursive) {
-    log::error("Called deprecated stub: Loader::loadModsFromDirectory");
-}
-
-void Loader::Impl::refreshModsList() {
-    log::error("Called deprecated stub: Loader::refreshModsList");
-}
-
-void Loader::Impl::updateAllDependencies() {
-    log::error("Called deprecated stub: Loader::updateAllDependencies");
-}
 
 void Loader::Impl::queueMods(std::vector<ModMetadata>& modQueue) {
     for (auto const& dir : m_modSearchDirectories) {

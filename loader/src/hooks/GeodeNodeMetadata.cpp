@@ -86,10 +86,6 @@ size_t modifier::getFieldIndexForClass(char const* name) {
 	return s_nextIndex[name]++;
 }
 
-size_t modifier::getFieldIndexForClass(size_t hash) {
-	return s_nextIndex[std::to_string(hash)]++;
-}
-
 // not const because might modify contents
 FieldContainer* CCNode::getFieldContainer() {
     return GeodeNodeMetadata::set(this)->getFieldContainer();

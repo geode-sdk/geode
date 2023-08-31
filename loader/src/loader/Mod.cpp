@@ -4,8 +4,6 @@
 
 using namespace geode::prelude;
 
-#pragma warning(suppress : 4996)
-Mod::Mod(ModInfo const& info) : m_impl(std::make_unique<Impl>(this, info)) {}
 Mod::Mod(ModMetadata const& metadata) : m_impl(std::make_unique<Impl>(this, metadata)) {}
 
 Mod::~Mod() {}
@@ -66,19 +64,8 @@ bool Mod::needsEarlyLoad() const {
     return m_impl->needsEarlyLoad();
 }
 
-bool Mod::supportsUnloading() const {
-    return false;
-}
-
-bool Mod::wasSuccesfullyLoaded() const {
-    return this->wasSuccessfullyLoaded();
-}
 bool Mod::wasSuccessfullyLoaded() const {
     return m_impl->wasSuccessfullyLoaded();
-}
-
-ModInfo Mod::getModInfo() const {
-    return this->getMetadata();
 }
 
 ModMetadata Mod::getMetadata() const {
@@ -174,14 +161,6 @@ Result<> Mod::unpatch(Patch* patch) {
     return m_impl->unpatch(patch);
 }
 
-Result<> Mod::loadBinary() {
-    return Err("Load mod binaries after startup is not supported");
-}
-
-Result<> Mod::unloadBinary() {
-    return Err("Unloading mod binaries is not supported");
-}
-
 Result<> Mod::enable() {
     return m_impl->enable();
 }
@@ -202,21 +181,12 @@ bool Mod::depends(std::string const& id) const {
     return m_impl->depends(id);
 }
 
-Result<> Mod::updateDependencies() {
-    return m_impl->updateDependencies();
-}
-
 bool Mod::hasUnresolvedDependencies() const {
     return m_impl->hasUnresolvedDependencies();
 }
 
 bool Mod::hasUnresolvedIncompatibilities() const {
     return m_impl->hasUnresolvedIncompatibilities();
-}
-
-#pragma warning(suppress : 4996)
-std::vector<Dependency> Mod::getUnresolvedDependencies() {
-    return m_impl->getUnresolvedDependencies();
 }
 
 char const* Mod::expandSpriteName(char const* name) {

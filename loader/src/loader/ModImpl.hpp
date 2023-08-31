@@ -126,7 +126,6 @@ namespace geode {
         Result<> updateDependencies();
         bool hasUnresolvedDependencies() const;
         bool hasUnresolvedIncompatibilities() const;
-        [[deprecated]] std::vector<Dependency> getUnresolvedDependencies();
 
         Result<> loadBinary();
 

@@ -161,10 +161,7 @@ namespace geode {
             Mod* getSender() const;
             Severity getSeverity() const;
 
-            [[deprecated("Will be removed in next version")]]
-            void addFormat(std::string_view formatStr, std::span<ComponentTrait*> comps);
-
-            Result<> addFormatNew(std::string_view formatStr, std::span<ComponentTrait*> comps);
+            Result<> addFormat(std::string_view formatStr, std::span<ComponentTrait*> comps);
         };
 
         class GEODE_DLL Logger {
@@ -198,7 +195,7 @@ namespace geode {
             Log l(m, sev);
 
             std::array<ComponentTrait*, sizeof...(Args)> comps = { static_cast<ComponentTrait*>(new ComponentBase(args))... };
-            auto res = l.addFormatNew(formatStr, comps);
+            auto res = l.addFormat(formatStr, comps);
 
             if (res.isErr()) {
                 internalLog(Severity::Warning, getMod(), "Error parsing log format \"{}\": {}", formatStr, res.unwrapErr());

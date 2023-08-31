@@ -23,10 +23,6 @@ void Loader::addSearchPaths() {
     return m_impl->addSearchPaths();
 }
 
-Result<Mod*> Loader::loadModFromInfo(ModInfo const& info) {
-    return m_impl->loadModFromInfo(info);
-}
-
 Result<> Loader::saveData() {
     return m_impl->saveData();
 }
@@ -49,18 +45,6 @@ VersionInfo Loader::maxModVersion() {
 
 bool Loader::isModVersionSupported(VersionInfo const& version) {
     return m_impl->isModVersionSupported(version);
-}
-
-Result<Mod*> Loader::loadModFromFile(ghc::filesystem::path const& file) {
-    return m_impl->loadModFromFile(file);
-}
-
-void Loader::loadModsFromDirectory(ghc::filesystem::path const& dir, bool recursive) {
-    return m_impl->loadModsFromDirectory(dir, recursive);
-}
-
-void Loader::refreshModsList() {
-    return m_impl->refreshModsList();
 }
 
 Loader::LoadingState Loader::getLoadingState() {
@@ -87,18 +71,6 @@ std::vector<Mod*> Loader::getAllMods() {
     return m_impl->getAllMods();
 }
 
-Mod* Loader::getModImpl() {
-    return Mod::get();
-}
-
-void Loader::updateAllDependencies() {
-    return m_impl->updateAllDependencies();
-}
-
-std::vector<InvalidGeodeFile> Loader::getFailedMods() const {
-    return m_impl->getFailedMods();
-}
-
 std::vector<LoadProblem> Loader::getProblems() const {
     return m_impl->getProblems();
 }
@@ -109,10 +81,6 @@ void Loader::updateResources() {
 
 void Loader::updateResources(bool forceReload) {
     return m_impl->updateResources(forceReload);
-}
-
-void Loader::queueInGDThread(ScheduledFunction func) {
-    return m_impl->queueInMainThread(func);
 }
 
 void Loader::queueInMainThread(ScheduledFunction func) {
