@@ -28,3 +28,24 @@ public:
 
     static InstallListPopup* create(IndexItemHandle item, MiniFunction<void(IndexInstallList const&)> onInstall);
 };
+
+class SelectVersionPopup : public Popup<std::string const&, IndexItemInstallListCell*> {
+protected:
+    std::string m_modID;
+    CCNode* m_listParent;
+    ListView* m_list;
+    IndexItemInstallListCell* m_installCell;
+
+    bool setup(std::string const& modID, IndexItemInstallListCell* installCell) override;
+
+    void createList();
+    CCArray* createCells();
+    CCSize getCellSize() const;
+    CCSize getListSize() const;
+
+    
+public:
+    void selectItem(IndexItemHandle item);
+
+    static SelectVersionPopup* create(std::string const& modID, IndexItemInstallListCell* installCell);
+};

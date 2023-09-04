@@ -183,7 +183,14 @@ Result<IndexItemHandle> IndexItem::Impl::create(ghc::filesystem::path const& roo
 }
 
 bool IndexItem::Impl::isInstalled() const {
-    return ghc::filesystem::exists(dirs::getModsDir() / (m_metadata.getID() + ".geode"));
+    if (!Loader::get()->isModInstalled(m_metadata.getID())) {
+        return false;
+    }
+    auto installed = Loader::get()->getInstalledMod(m_metadata.getID());
+    if (installed->getVersion() != m_metadata.getVersion()) {
+        return false;
+    }
+    return true;
 }
 
 // Helpers
@@ -449,6 +456,14 @@ std::vector<IndexItemHandle> Index::getItems() const {
     return res;
 }
 
+std::vector<IndexItemHandle> Index::getLatestItems() const {
+    std::vector<IndexItemHandle> res;
+    for (auto& [modID, versions] : m_impl->m_items) {
+        res.push_back(this->getMajorItem(modID));
+    }
+    return res;
+}
+
 std::vector<IndexItemHandle> Index::getFeaturedItems() const {
     std::vector<IndexItemHandle> res;
     for (auto& items : map::values(m_impl->m_items)) {
@@ -470,6 +485,18 @@ std::vector<IndexItemHandle> Index::getItemsByDeveloper(
             if (item.second->getMetadata().getDeveloper() == name) {
                 res.push_back(item.second);
             }
+        }
+    }
+    return res;
+}
+
+std::vector<IndexItemHandle> Index::getItemsByModID(
+    std::string const& modID
+) const {
+    std::vector<IndexItemHandle> res;
+    if (m_impl->m_items.count(modID)) {
+        for (auto& [versionStr, item] : m_impl->m_items[modID]) {
+            res.push_back(item);
         }
     }
     return res;
@@ -758,6 +785,10 @@ void Index::cancelInstall(IndexItemHandle item) {
 }
 
 void Index::install(IndexInstallList const& list) {
+    if (list.list.empty()) {
+        ModInstallEvent(list.target->getMetadata().getID(), UpdateFinished()).post();
+        return;
+    }
     Loader::get()->queueInMainThread([this, list]() {
         m_impl->installNext(0, list);
     });

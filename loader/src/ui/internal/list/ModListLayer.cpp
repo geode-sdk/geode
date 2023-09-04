@@ -198,7 +198,7 @@ CCArray* ModListLayer::createModCells(ModListType type, ModListQuery const& quer
             std::multimap<int, IndexItemHandle> sorted;
 
             auto index = Index::get();
-            for (auto const& item : index->getItems()) {
+            for (auto const& item : index->getLatestItems()) {
                 if (auto match = queryMatch(query, item)) {
                     sorted.insert({ match.value(), item });
                 }

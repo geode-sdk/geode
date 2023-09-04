@@ -179,10 +179,20 @@ namespace geode {
          */
         std::vector<IndexItemHandle> getFeaturedItems() const;
         /**
+         * Get all latest index items
+         */
+        std::vector<IndexItemHandle> getLatestItems() const;
+        /**
          * Get all index items by a developer
          */
         std::vector<IndexItemHandle> getItemsByDeveloper(
             std::string const& name
+        ) const;
+        /**
+         * Get all index items for a specific mod
+         */
+        std::vector<IndexItemHandle> getItemsByModID(
+            std::string const& modID
         ) const;
         /**
          * Check if an item with this ID is found on the index, and optionally 

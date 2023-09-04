@@ -6,6 +6,8 @@
 #include <Geode/loader/ModMetadata.hpp>
 #include <Geode/loader/Index.hpp>
 
+#include "../info/TagNode.hpp"
+
 using namespace geode::prelude;
 
 class InstallListPopup;
@@ -17,10 +19,14 @@ class InstallListCell : public CCLayer {
 protected:
     float m_width;
     float m_height;
-    InstallListPopup* m_layer;
-    CCMenu* m_menu;
-    CCMenuItemSpriteExtra* m_developerBtn;
+    InstallListPopup* m_layer = nullptr;
+    CCMenu* m_menu = nullptr;
+    CCMenuItemSpriteExtra* m_developerBtn = nullptr;
+    CCLabelBMFont* m_titleLabel = nullptr;
+    CCLabelBMFont* m_versionLabel = nullptr;
+    TagNode* m_tagLabel = nullptr;
     CCMenuItemToggler* m_toggle = nullptr;
+    bool m_inactive = false;
 
     void setupInfo(
         std::string name,
@@ -28,6 +34,8 @@ protected:
         std::variant<VersionInfo, ComparableVersionInfo> version,
         bool inactive
     );
+
+    void setupVersion(std::variant<VersionInfo, ComparableVersionInfo> version);
 
     bool init(InstallListPopup* list, CCSize const& size);
     void setupInfo(ModMetadata const& metadata, bool inactive);
@@ -90,6 +98,9 @@ public:
     [[nodiscard]] std::string getDeveloper() const override;
 
     IndexItemHandle getItem();
+    void setVersionFromItem(IndexItemHandle item);
+
+    void onSelectVersion(CCObject*);
 };
 
 /**
@@ -107,6 +118,26 @@ public:
         InstallListPopup* list,
         CCSize const& size
     );
+
+    CCNode* createLogo(CCSize const& size) override;
+    [[nodiscard]] std::string getID() const override;
+    [[nodiscard]] std::string getDeveloper() const override;
+};
+
+class SelectVersionPopup;
+/**
+ * Select version list item
+ */
+class SelectVersionCell : public InstallListCell {
+protected:
+    IndexItemHandle m_item;
+    SelectVersionPopup* m_versionPopup;
+
+    bool init(IndexItemHandle item, SelectVersionPopup* versionPopup, CCSize const& size);
+
+    void onSelected(CCObject*);
+public:
+    static SelectVersionCell* create(IndexItemHandle item, SelectVersionPopup* versionPopup, CCSize const& size);
 
     CCNode* createLogo(CCSize const& size) override;
     [[nodiscard]] std::string getID() const override;
