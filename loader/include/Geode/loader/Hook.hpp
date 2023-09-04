@@ -144,6 +144,7 @@ namespace geode {
     };
 
     class GEODE_DLL Patch final {
+    // Change to private in 2.0.0
     protected:
         Mod* m_owner;
         void* m_address;
@@ -158,6 +159,7 @@ namespace geode {
         // m_owner, m_address, m_original and
         // m_patch.
         Patch();
+        ~Patch();
 
         // no copying
         Patch(Patch const&) = delete;

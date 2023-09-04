@@ -33,6 +33,8 @@ Mod* Patch::getOwner() const {
     return m_owner;
 }
 
+Patch::~Patch() {}
+
 template <>
 struct json::Serialize<ByteVector> {
     static json::Value to_json(ByteVector const& bytes) {
