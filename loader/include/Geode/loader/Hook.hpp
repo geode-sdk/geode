@@ -171,17 +171,13 @@ namespace geode {
          * Get the address of the patch.
          * @returns Address
          */
-        uintptr_t getAddress() const {
-            return reinterpret_cast<uintptr_t>(m_address);
-        }
+        uintptr_t getAddress() const;
 
         /**
          * Get whether the patch is applied or not.
          * @returns True if applied, false if not.
          */
-        bool isApplied() const {
-            return m_applied;
-        }
+        bool isApplied() const;
 
         bool apply();
         bool restore();
@@ -190,9 +186,7 @@ namespace geode {
          * Get the owner of this patch.
          * @returns Pointer to the owner's Mod handle.
          */
-        Mod* getOwner() const {
-            return m_owner;
-        }
+        Mod* getOwner() const;
 
         /**
          * Get info about the patch as JSON

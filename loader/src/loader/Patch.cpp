@@ -21,6 +21,18 @@ bool Patch::getAutoEnable() const {
     return m_autoEnable;
 }
 
+uintptr_t Patch::getAddress() const {
+    return reinterpret_cast<uintptr_t>(m_address);
+}
+
+bool Patch::isApplied() const {
+    return m_applied;
+}
+
+Mod* Patch::getOwner() const {
+    return m_owner;
+}
+
 template <>
 struct json::Serialize<ByteVector> {
     static json::Value to_json(ByteVector const& bytes) {
