@@ -56,7 +56,7 @@ $register_ids(CustomizeObjectLayer) {
         "split-text-button",
         "clear-text-button",
         // 26
-        "next-free-button",
+        "next-free-button"
         // 27
     );
 
