@@ -218,6 +218,12 @@ Mod* Loader::Impl::getLoadedMod(std::string const& id) const {
 void Loader::Impl::updateModResources(Mod* mod) {
     if (mod->getMetadata().getSpritesheets().empty())
         return;
+    
+    if (mod != Mod::get()) {
+        // geode.loader resource is stored somewhere else, which is already added anyway
+        auto searchPathRoot = dirs::getModRuntimeDir() / mod->getID() / "resources";
+        CCFileUtils::get()->addSearchPath(searchPathRoot.string().c_str());
+    }
 
     auto searchPath = mod->getResourcesDir();
 
@@ -346,12 +352,6 @@ void Loader::Impl::populateModList(std::vector<ModMetadata>& modQueue) {
         }
 
         m_mods.insert({metadata.getID(), mod});
-
-        queueInMainThread([this, mod]() {
-            auto searchPath = dirs::getModRuntimeDir() / mod->getID() / "resources";
-            CCFileUtils::get()->addSearchPath(searchPath.string().c_str());
-            updateModResources(mod);
-        });
 
         log::popNest();
     }
