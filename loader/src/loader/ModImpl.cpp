@@ -335,8 +335,6 @@ Result<> Mod::Impl::loadBinary() {
     }
     m_binaryLoaded = true;
 
-    ModStateEvent(m_self, ModEventType::Loaded).post();
-
     LoaderImpl::get()->releaseNextMod();
 
     for (auto const& hook : m_hooks) {
@@ -361,6 +359,7 @@ Result<> Mod::Impl::loadBinary() {
 
     m_enabled = true;
 
+    ModStateEvent(m_self, ModEventType::Loaded).post();
     ModStateEvent(m_self, ModEventType::Enabled).post();
 
     return Ok();
