@@ -209,7 +209,7 @@ class Index::Impl final {
 public:
     // for once, the fact that std::map is ordered is useful (this makes 
     // getting the latest version of a mod as easy as items.rbegin())
-    using ItemVersions = std::map<size_t, IndexItemHandle>;
+    using ItemVersions = std::map<VersionInfo, IndexItemHandle>;
 
 private:
     std::unordered_map<
@@ -369,9 +369,24 @@ void Index::Impl::updateFromLocalTree() {
     // delete old items
     m_items.clear();
 
-    // read directory and add new items
-    try {
-        for (auto& dir : ghc::filesystem::directory_iterator(dirs::getIndexDir() / "v0" / "mods")) {
+    auto indexRoot = dirs::getIndexDir() / "v0";
+    auto entriesRoot = indexRoot / "mods-v2";
+
+    auto configRes = file::readJson(indexRoot / "config.json");
+    if (!configRes) {
+        IndexUpdateEvent("Unable to read index config").post();
+        return;
+    }
+    auto config = configRes.unwrap();
+
+    JsonChecker checker(config);
+    auto root = checker.root("[config.json]").obj();
+
+    for (auto& [modID, entry] : root.has("entries").items()) {
+        for (auto& version : entry.obj().has("versions").iterate()) {
+            log::debug("Adding index item for {} {}", modID, version.get<std::string>());
+            auto dir = entriesRoot / modID / version.get<std::string>();
+
             auto addRes = IndexItem::Impl::create(dir);
             if (!addRes) {
                 log::warn("Unable to add index item from {}: {}", dir, addRes.unwrapErr());
@@ -379,24 +394,11 @@ void Index::Impl::updateFromLocalTree() {
             }
             auto add = addRes.unwrap();
             auto metadata = add->getMetadata();
-            // check if this major version of this item has already been added 
-            if (m_items[metadata.getID()].count(metadata.getVersion().getMajor())) {
-                log::warn(
-                    "Item {}@{} has already been added, skipping",
-                    metadata.getID(),
-                    metadata.getVersion()
-                );
-                continue;
-            }
-            // add new major version of this item
-            m_items[metadata.getID()].insert({metadata.getVersion().getMajor(),
+
+            m_items[modID].insert({metadata.getVersion(),
                 add
             });
         }
-    } catch(std::exception& e) {
-        log::error("Unable to read local index tree: {}", e.what());
-        IndexUpdateEvent("Unable to read local index tree").post();
-        return;
     }
 
     // mark source as finished
