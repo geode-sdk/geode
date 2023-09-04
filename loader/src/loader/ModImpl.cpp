@@ -351,9 +351,15 @@ Result<> Mod::Impl::loadBinary() {
     }
 
     for (auto const& patch : m_patches) {
-        if (!patch->apply()) {
-            log::warn("Unable to apply patch at {}", patch->getAddress());
+        if (!patch) {
+            log::warn("Patch is null in mod \"{}\"", m_metadata.getName());
             continue;
+        }
+        if (patch->getAutoEnable()) {
+            if (!patch->apply()) {
+                log::warn("Unable to apply patch at {}", patch->getAddress());
+                continue;
+            }
         }
     }
 

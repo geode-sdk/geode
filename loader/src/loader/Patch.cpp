@@ -11,6 +11,16 @@ bool Patch::restore() {
     return bool(tulip::hook::writeMemory(m_address, m_original.data(), m_original.size()));
 }
 
+Patch::Patch() : m_owner(nullptr), m_address(nullptr), m_applied(false), m_autoEnable(true) {}
+
+void Patch::setAutoEnable(bool autoEnable) {
+    m_autoEnable = autoEnable;
+}
+
+bool Patch::getAutoEnable() const {
+    return m_autoEnable;
+}
+
 template <>
 struct json::Serialize<ByteVector> {
     static json::Value to_json(ByteVector const& bytes) {
