@@ -473,8 +473,6 @@ FunctionEnd
 Function un.onInit
     !insertmacro MUI_UNGETLANGUAGE
 
-    StrCpy $INSTDIR $INSTDIR -5 ; remove "geode/" at the end
-
     ; verify uninst dir
 
     ; check if there's any exe and libcocos2d.dll (GeometryDash.exe won't work because of GDPSes)
