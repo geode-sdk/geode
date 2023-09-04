@@ -198,6 +198,10 @@ bool Mod::isUninstalled() const {
     return m_impl->isUninstalled();
 }
 
+ModRequestedAction Mod::getRequestedAction() const {
+    return m_impl->getRequestedAction();
+}
+
 bool Mod::depends(std::string const& id) const {
     return m_impl->depends(id);
 }
