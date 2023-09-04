@@ -83,7 +83,7 @@ CCNode* geode::createModLogo(Mod* mod, CCSize const& size) {
 }
 
 CCNode* geode::createIndexItemLogo(IndexItemHandle item, CCSize const& size) {
-    auto logoPath = ghc::filesystem::absolute(item->getPath() / "logo.png");
+    auto logoPath = ghc::filesystem::absolute(item->getRootPath() / "logo.png");
     CCNode* spr = CCSprite::create(logoPath.string().c_str());
     if (!spr) {
         spr = CCSprite::createWithSpriteFrameName("no-logo.png"_spr);

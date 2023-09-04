@@ -47,6 +47,7 @@ IndexUpdateFilter::IndexUpdateFilter() {}
 
 class IndexItem::Impl final {
 private:
+    ghc::filesystem::path m_rootPath;
     ghc::filesystem::path m_path;
     ModMetadata m_metadata;
     std::string m_downloadURL;
@@ -62,6 +63,7 @@ public:
      * Create IndexItem from a directory
      */
     static Result<std::shared_ptr<IndexItem>> create(
+        ghc::filesystem::path const& rootDir,
         ghc::filesystem::path const& dir
     );
 
@@ -70,6 +72,10 @@ public:
 
 IndexItem::IndexItem() : m_impl(std::make_unique<Impl>()) {}
 IndexItem::~IndexItem() = default;
+
+ghc::filesystem::path IndexItem::getRootPath() const {
+    return m_impl->m_rootPath;
+}
 
 ghc::filesystem::path IndexItem::getPath() const {
     return m_impl->m_path;
@@ -133,7 +139,7 @@ void IndexItem::setTags(std::unordered_set<std::string> const& value) {
 }
 #endif
 
-Result<IndexItemHandle> IndexItem::Impl::create(ghc::filesystem::path const& dir) {
+Result<IndexItemHandle> IndexItem::Impl::create(ghc::filesystem::path const& rootDir, ghc::filesystem::path const& dir) {
     GEODE_UNWRAP_INTO(
         auto entry, file::readJson(dir / "entry.json")
             .expect("Unable to read entry.json")
@@ -142,6 +148,10 @@ Result<IndexItemHandle> IndexItem::Impl::create(ghc::filesystem::path const& dir
         auto metadata, ModMetadata::createFromFile(dir / "mod.json")
             .expect("Unable to read mod.json: {error}")
     );
+    auto metadataRes = metadata.addSpecialFiles(rootDir);
+    if (!metadataRes) {
+        log::warn("Unable to add special files from {}: {}", rootDir, metadataRes.unwrapErr());
+    }
 
     JsonChecker checker(entry);
     auto root = checker.root("[entry.json]").obj();
@@ -157,6 +167,7 @@ Result<IndexItemHandle> IndexItem::Impl::create(ghc::filesystem::path const& dir
     }
 
     auto item = std::make_shared<IndexItem>();
+    item->m_impl->m_rootPath = rootDir;
     item->m_impl->m_path = dir;
     item->m_impl->m_metadata = metadata;
     item->m_impl->m_platforms = platforms;
@@ -384,10 +395,10 @@ void Index::Impl::updateFromLocalTree() {
 
     for (auto& [modID, entry] : root.has("entries").items()) {
         for (auto& version : entry.obj().has("versions").iterate()) {
-            log::debug("Adding index item for {} {}", modID, version.get<std::string>());
-            auto dir = entriesRoot / modID / version.get<std::string>();
+            auto rootDir = entriesRoot / modID;
+            auto dir = rootDir / version.get<std::string>();
 
-            auto addRes = IndexItem::Impl::create(dir);
+            auto addRes = IndexItem::Impl::create(rootDir, dir);
             if (!addRes) {
                 log::warn("Unable to add index item from {}: {}", dir, addRes.unwrapErr());
                 continue;
@@ -487,19 +498,14 @@ IndexItemHandle Index::getItem(
     if (m_impl->m_items.count(id)) {
         auto versions = m_impl->m_items.at(id);
         if (version) {
-            // prefer most major version
             for (auto& [_, item] : ranges::reverse(m_impl->m_items.at(id))) {
                 if (version.value() == item->getMetadata().getVersion()) {
                     return item;
                 }
             }
-        } else {
-            if (!versions.empty()) {
-                return m_impl->m_items.at(id).rbegin()->second;
-            }
         }
     }
-    return nullptr;
+    return this->getMajorItem(id);
 }
 
 IndexItemHandle Index::getItem(

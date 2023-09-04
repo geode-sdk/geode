@@ -107,6 +107,14 @@ namespace geode {
         std::unique_ptr<Impl> m_impl;
 
     public:
+        /**
+         * Returns the path that contains all the versions
+         */
+        ghc::filesystem::path getRootPath() const;
+
+        /**
+         * Returns the path to the specific version
+         */
         ghc::filesystem::path getPath() const;
         [[deprecated("use getMetadata instead")]] ModInfo getModInfo() const;
         ModMetadata getMetadata() const;
@@ -128,6 +136,8 @@ namespace geode {
 
         IndexItem();
         ~IndexItem();
+
+        friend class ModMetadata;
     };
     using IndexItemHandle = std::shared_ptr<IndexItem>;
 
