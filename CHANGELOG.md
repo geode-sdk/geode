@@ -1,5 +1,13 @@
 # Geode Changelog
 
+## v1.2.1
+ * Mods now target macOS 10.13 instead of 10.14 (7cc1cd4)
+ * Fix CustomizeObjectLayer ids moving around when multiple objects are selected (9ee0994, 87749d4)
+ * Fix Windows uninstaller trying to uninstall from parent directory instead of current (bcb8a6f)
+ * Fix search paths on reload (65b4364)
+ * Fix search paths missing for mods without spritesheets (e78eaf0)
+ * Fix dependencies getting installed again when they're already installed (4f2835a)
+
 ## v1.2.0
  * Add Objective-C hooking utilities (a31d072)
  * Rename queueInGDThread to queueInMainThread (277f68b)
