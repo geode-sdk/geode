@@ -599,6 +599,8 @@ Result<IndexInstallList> Index::getInstallList(IndexItemHandle item) const {
 
         if (dep.importance == ModMetadata::Dependency::Importance::Suggested) continue;
 
+        if (Loader::get()->isModInstalled(dep.id)) continue;
+
         // check if this dep is available in the index
         if (auto depItem = this->getItem(dep.id, dep.version)) {
             if (!depItem->getAvailablePlatforms().count(GEODE_PLATFORM_TARGET)) {
@@ -668,7 +670,7 @@ void Index::Impl::installNext(size_t index, IndexInstallList const& list) {
         }
 
         auto const& eventModID = list.target->getMetadata().getID();
-        Loader::get()->queueInGDThread([eventModID]() {
+        Loader::get()->queueInMainThread([eventModID]() {
             ModInstallEvent(eventModID, UpdateFinished()).post();
         });
 
@@ -741,7 +743,7 @@ void Index::Impl::installNext(size_t index, IndexInstallList const& list) {
 }
 
 void Index::cancelInstall(IndexItemHandle item) {
-    Loader::get()->queueInGDThread([this, item]() {
+    Loader::get()->queueInMainThread([this, item]() {
         if (m_impl->m_runningInstallations.count(item)) {
             m_impl->m_runningInstallations.at(item)->cancel();
             m_impl->m_runningInstallations.erase(item);
@@ -750,13 +752,13 @@ void Index::cancelInstall(IndexItemHandle item) {
 }
 
 void Index::install(IndexInstallList const& list) {
-    Loader::get()->queueInGDThread([this, list]() {
+    Loader::get()->queueInMainThread([this, list]() {
         m_impl->installNext(0, list);
     });
 }
 
 void Index::install(IndexItemHandle item) {
-    Loader::get()->queueInGDThread([this, item]() {
+    Loader::get()->queueInMainThread([this, item]() {
         if (m_impl->m_runningInstallations.count(item)) {
             return;
         }

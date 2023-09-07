@@ -26,6 +26,8 @@
 ; pages
     !insertmacro MUI_PAGE_WELCOME
     !insertmacro MUI_PAGE_LICENSE "..\..\LICENSE.txt"
+    !define MUI_COMPONENTSPAGE_NODESC
+    !insertmacro MUI_PAGE_COMPONENTS
     !define MUI_PAGE_CUSTOMFUNCTION_SHOW DirectoryPageShow
     !insertmacro MUI_PAGE_DIRECTORY
     !insertmacro MUI_PAGE_INSTFILES
@@ -189,6 +191,132 @@
             Exch $R0
     !macroend
 
+    ; https://nsis.sourceforge.io/StrStr
+    Function un.StrStr
+        Exch $R0
+        Exch
+        Exch $R1
+        Push $R2
+        Push $R3
+        Push $R4
+        Push $R5
+
+        StrLen $R2 $R0
+        StrLen $R3 $R1
+
+        StrCpy $R4 0
+
+        loop:
+            StrCpy $R5 $R1 $R2 $R4
+            StrCmp $R5 $R0 done
+            IntCmp $R4 $R3 done 0 done
+            IntOp $R4 $R4 + 1
+            Goto loop
+        done:
+            StrCpy $R0 $R1 `` $R4
+
+        Pop $R5
+        Pop $R4
+        Pop $R3
+        Pop $R2
+        Pop $R1
+        Exch $R0
+    FunctionEnd
+
+    ; https://nsis.sourceforge.io/Get_command_line_parameters
+    Function un.GetParameters
+        Push $R0
+        Push $R1
+        Push $R2
+        Push $R3
+
+        StrCpy $R2 1
+        StrLen $R3 $CMDLINE
+
+        StrCpy $R0 $CMDLINE $R2
+        StrCmp $R0 '"' 0 +3
+            StrCpy $R1 '"'
+            Goto loop
+        StrCpy $R1 " "
+
+        loop:
+            IntOp $R2 $R2 + 1
+            StrCpy $R0 $CMDLINE 1 $R2
+            StrCmp $R0 $R1 get
+            StrCmp $R2 $R3 get
+            Goto loop
+
+        get:
+            IntOp $R2 $R2 + 1
+            StrCpy $R0 $CMDLINE 1 $R2
+            StrCmp $R0 " " get
+            StrCpy $R0 $CMDLINE "" $R2
+
+        Pop $R3
+        Pop $R2
+        Pop $R1
+        Exch $R0
+    FunctionEnd
+
+    ; https://nsis.sourceforge.io/Get_command_line_parameter_by_name
+    Function un.GetParameterValue
+        Exch $R0
+        Exch
+        Exch $R1
+
+        Push $R2
+        Push $R3
+        Push $R4
+        Push $R5
+
+        Strlen $R2 $R1+2
+
+        Call un.GetParameters
+        Pop $R3
+
+        StrCpy $R5 '"'
+        Push $R3
+        Push '"/$R1='
+        Call un.StrStr
+        Pop $R4
+        StrCpy $R4 $R4 "" 1
+        StrCmp $R4 "" "" next
+
+        StrCpy $R5 ' '
+        Push $R3
+        Push '/$R1='
+        Call un.StrStr
+        Pop $R4
+
+        next:
+            StrCmp $R4 "" check_for_switch
+            StrCpy $R0 $R4 "" $R2
+            Push $R0
+            Push $R5
+            Call un.StrStr
+            Pop $R4
+            StrCmp $R4 "" done
+            StrLen $R4 $R4
+            StrCpy $R0 $R0 -$R4
+            goto done
+
+        check_for_switch:
+            Push $R3
+            Push '/$R1'
+            Call un.StrStr
+            Pop $R4
+            StrCmp $R4 "" done
+            StrCpy $R0 ""
+
+        done:
+            Pop $R5
+            Pop $R4
+            Pop $R3
+            Pop $R2
+            Pop $R1
+            Exch $R0
+    FunctionEnd
+
 ; actual code
 
 !define BINDIR ..\..\bin\nightly
@@ -248,16 +376,6 @@ Function FindGamePath
     Pop $0
 FunctionEnd
 
-Function .onInit
-    !insertmacro MUI_LANGDLL_DISPLAY
-
-    Call FindGamePath
-    IfErrors 0 +3
-        StrCpy $GamePath ""
-        Return
-    StrCpy $INSTDIR "$GamePath\"
-FunctionEnd
-
 Function DirectoryPageShow
     System::Call 'USER32::CreateWindowEx(i${__NSD_Label_EXSTYLE}, t"${__NSD_Label_CLASS}", t"", i${__NSD_Label_STYLE}, i0, i70, i400, i40, p$mui.DirectoryPage, p0, p0, p0)p.s'
     Pop $geode.DirectoryPage.ErrorText
@@ -309,6 +427,25 @@ Function .onVerifyInstDir
         Return
 FunctionEnd
 
+SectionGroup "Geode"
+    Section "Loader" LOADER_SECTION
+        SetOutPath $INSTDIR
+
+        File ${BINDIR}\Geode.dll
+        File ${BINDIR}\Geode.pdb
+        File ${BINDIR}\GeodeUpdater.exe
+        File ${BINDIR}\XInput9_1_0.dll
+
+        WriteUninstaller "GeodeUninstaller.exe"
+    SectionEnd
+
+    Section "Resources"
+        CreateDirectory $INSTDIR\geode\resources\geode.loader
+        SetOutPath $INSTDIR\geode\resources\geode.loader
+        File /r ${BINDIR}\resources\*
+    SectionEnd
+SectionGroupEnd
+
 ; download vc redist in compile-time
 !execute "pwsh -nol -noni -nop dl-vcr.ps1"
 Section "Visual Studio Runtime"
@@ -318,28 +455,23 @@ Section "Visual Studio Runtime"
     Delete "$INSTDIR\VC_redist.x86.exe"
 SectionEnd
 
-Section "Geode"
-    SetOutPath $INSTDIR
+Function .onInit
+    !insertmacro MUI_LANGDLL_DISPLAY
 
-    File ${BINDIR}\Geode.dll
-    File ${BINDIR}\Geode.pdb
-    File ${BINDIR}\GeodeUpdater.exe
-    File ${BINDIR}\XInput9_1_0.dll
+    IntOp $0 ${SF_SELECTED} | ${SF_RO}
+    SectionSetFlags ${LOADER_SECTION} $0
 
-    WriteUninstaller "geode\Uninstall.exe"
-
-    CreateDirectory $INSTDIR\geode\resources\geode.loader
-    SetOutPath $INSTDIR\geode\resources\geode.loader
-
-    File /r ${BINDIR}\resources\*
-SectionEnd
+    Call FindGamePath
+    IfErrors 0 +3
+        StrCpy $GamePath ""
+        Return
+    StrCpy $INSTDIR "$GamePath\"
+FunctionEnd
 
 ; uninstaller
 
 Function un.onInit
     !insertmacro MUI_UNGETLANGUAGE
-
-    StrCpy $INSTDIR $INSTDIR -5 ; remove "geode/" at the end
 
     ; verify uninst dir
 
@@ -357,10 +489,47 @@ Function un.onInit
         Abort
 FunctionEnd
 Section "Uninstall"
+    DeleteRegKey /ifempty HKCU "Software\Geode"
     Delete $INSTDIR\Geode.dll
     Delete $INSTDIR\Geode.pdb
     Delete $INSTDIR\GeodeUpdater.exe
     Delete $INSTDIR\XInput9_1_0.dll
-    RMdir /r $INSTDIR\geode
-    DeleteRegKey /ifempty HKCU "Software\Geode"
+
+    # default value of DATA is an empty string
+    # if DATA is empty, keep user data
+    # otherwise, delete the entire geode and DATA\geode\mods dirs
+    # the reason we're deleting DATA\geode\mods instead of just passing
+    # that dir directly to DATA is so that in case someone (either accidentally or maliciously)
+    # passes the wrong directory, the uninstaller doesn't just blindly clear it
+    # it will also check for the presence of CCGameManager.dat and CCLocalLevels.dat in DATA
+
+    Push "DATA"
+    Push ""
+    Call un.GetParameterValue
+    Pop $0
+    StrCmp $0 "" keep_data remove_data
+
+    keep_data:
+        # keep configs, mods, logs and crash logs
+        RMdir /r $INSTDIR\geode\index
+        RMdir /r $INSTDIR\geode\resources
+        RMdir /r $INSTDIR\geode\temp
+        RMdir /r $INSTDIR\geode\unzipped
+        RMdir /r $INSTDIR\geode\update
+        Return
+
+    remove_data:
+        RMdir /r $INSTDIR\geode
+        IfFileExists $0\CCGameManager.dat 0 invalid
+        IfFileExists $0\CCLocalLevels.dat 0 invalid
+        RMdir /r $0\geode\mods ; delete DATA\geode\mods
+        RMdir $0\geode ; then delete DATA\geode non-recursively, assuming mods is the only directory in DATA\geode
+        Return
+
+    invalid:
+        # this message doesnt rly need translatable as
+        # its only supposed to be used internally by geode itself
+        MessageBox MB_ICONSTOP|MB_OK "The path passed to DATA is not a valid Geometry Dash data folder!"
+        Abort
+
 SectionEnd

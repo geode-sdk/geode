@@ -184,4 +184,11 @@ void geode::utils::game::restart() {
         exit(0);
 }
 
+Result<> geode::hook::addObjcMethod(std::string const& className, std::string const& selectorName, void* imp) {
+    return Err("Wrong platform");
+}
+Result<void*> geode::hook::getObjcMethodImp(std::string const& className, std::string const& selectorName) {
+    return Err("Wrong platform");
+}
+
 #endif

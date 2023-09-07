@@ -216,6 +216,13 @@ Mod* Loader::Impl::getLoadedMod(std::string const& id) const {
 }
 
 void Loader::Impl::updateModResources(Mod* mod) {
+    if (mod != Mod::get()) {
+        // geode.loader resource is stored somewhere else, which is already added anyway
+        auto searchPathRoot = dirs::getModRuntimeDir() / mod->getID() / "resources";
+        CCFileUtils::get()->addSearchPath(searchPathRoot.string().c_str());
+    }
+
+    // only thing needs previous setup is spritesheets
     if (mod->getMetadata().getSpritesheets().empty())
         return;
 
@@ -346,12 +353,6 @@ void Loader::Impl::populateModList(std::vector<ModMetadata>& modQueue) {
         }
 
         m_mods.insert({metadata.getID(), mod});
-
-        queueInGDThread([this, mod]() {
-            auto searchPath = dirs::getModRuntimeDir() / mod->getID() / "resources";
-            CCFileUtils::get()->addSearchPath(searchPath.string().c_str());
-            updateModResources(mod);
-        });
 
         log::popNest();
     }
@@ -579,7 +580,7 @@ void Loader::Impl::refreshModGraph() {
     else
         m_loadingState = LoadingState::Mods;
 
-    queueInGDThread([]() {
+    queueInMainThread([]() {
         Loader::get()->m_impl->continueRefreshModGraph();
     });
 }
@@ -619,7 +620,7 @@ void Loader::Impl::continueRefreshModGraph() {
     log::info("Took {}s", static_cast<float>(time) / 1000.f);
 
     if (m_loadingState != LoadingState::Done) {
-        queueInGDThread([]() {
+        queueInMainThread([]() {
             Loader::get()->m_impl->continueRefreshModGraph();
         });
     }
@@ -675,7 +676,7 @@ bool Loader::Impl::loadHooks() {
     return !thereWereErrors;
 }
 
-void Loader::Impl::queueInGDThread(ScheduledFunction func) {
+void Loader::Impl::queueInMainThread(ScheduledFunction func) {
     std::lock_guard<std::mutex> lock(m_gdThreadMutex);
     m_gdThreadQueue.push_back(func);
 }

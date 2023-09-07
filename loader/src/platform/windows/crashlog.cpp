@@ -19,6 +19,7 @@
 #include <iomanip>
 #include <iostream>
 #include <string>
+#include <fmt/core.h>
 
 using namespace geode::prelude;
 
@@ -174,18 +175,26 @@ static std::string getStacktrace(PCONTEXT context) {
 }
 
 static std::string getRegisters(PCONTEXT context) {
-    std::stringstream stream;
-    stream << std::hex << "EAX: " << context->Eax << "\n"
-           << "EBX: " << context->Ebx << "\n"
-           << "ECX: " << context->Ecx << "\n"
-           << "EDX: " << context->Edx << "\n"
-           << "EBP: " << context->Ebp << "\n"
-           << "ESP: " << context->Esp << "\n"
-           << "EDI: " << context->Edi << "\n"
-           << "ESI: " << context->Esi << "\n"
-           << "EIP: " << context->Eip << "\n"
-           << std::dec;
-    return stream.str();
+    return fmt::format(
+        "EAX: {:08x}\n"
+        "EBX: {:08x}\n"
+        "ECX: {:08x}\n"
+        "EDX: {:08x}\n"
+        "EBP: {:08x}\n"
+        "ESP: {:08x}\n"
+        "EDI: {:08x}\n"
+        "ESI: {:08x}\n"
+        "EIP: {:08x}\n",
+        context->Eax,
+        context->Ebx,
+        context->Ecx,
+        context->Edx,
+        context->Ebp,
+        context->Esp,
+        context->Edi,
+        context->Esi,
+        context->Eip
+    );
 }
 
 static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod) {

@@ -1,4 +1,5 @@
 #include "crashlog.hpp"
+#include <fmt/core.h>
 
 using namespace geode::prelude;
 
@@ -26,12 +27,13 @@ static void printMods(std::stringstream& stream) {
     if (!mods.size()) {
         stream << "<None>\n";
     }
+    using namespace std::string_view_literals;
     for (auto& mod : mods) {
-        stream << mod->getID() << " | " << mod->getDeveloper() << " | "
-               << mod->getVersion().toString() << " | "
-               << (mod->isEnabled() ? "Enabled" : "Disabled") << " | "
-               << (mod->isLoaded() ? "Loaded" : "Unloaded") << " | "
-               << "\n";
+        stream << fmt::format("{:>8} | {:>8} | [{}] {}\n",
+            mod->isLoaded() ? "Loaded"sv : "Unloaded"sv,
+            mod->isEnabled() ? "Enabled"sv : "Disabled"sv,
+            mod->getVersion().toString(), mod->getID()
+        );
     }
 }
 

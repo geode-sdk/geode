@@ -10,7 +10,12 @@ namespace geode::base {
 }
 
 #if defined(GEODE_IS_MACOS) || defined(GEODE_IS_ANDROID)
+
+    #include "gnustl-map.hpp"
+
 namespace gd {
+    using namespace geode::stl;
+
     struct _internal_string {
         size_t m_len;
         size_t m_capacity;
@@ -48,18 +53,6 @@ namespace gd {
         _internal_string* m_data;
     };
 
-    struct _rb_tree_base {
-        bool m_isblack;
-        _rb_tree_base* m_parent;
-        _rb_tree_base* m_left;
-        _rb_tree_base* m_right;
-    };
-
-    template <typename T>
-    struct _rb_tree_node : public _rb_tree_base {
-        T m_value;
-    };
-
     template <typename K, typename V>
     class GEODE_DLL map {
     protected:
@@ -69,26 +62,204 @@ namespace gd {
 
     public:
         typedef _rb_tree_node<std::pair<K, V>>* _tree_node;
+        typedef _rb_tree_iterator<std::pair<K, V>> iterator;
 
-        std::map<K, V> std();
+        std::map<K, V> std() {
+            return (std::map<K, V>)(*this);
+        }
 
-        operator std::map<K, V>();
+        operator std::map<K, V>() {
+            auto iter_node = static_cast<_tree_node>(m_header.m_left);
+            auto end_node = static_cast<_tree_node>(&m_header);
+            std::map<K, V> out;
+            for (; iter_node != end_node;
+                 iter_node = static_cast<_tree_node>(_rb_increment(iter_node))) {
+                out[iter_node->m_value.first] = iter_node->m_value.second;
+            }
 
-        operator std::map<K, V>() const;
+            return out;
+        }
 
-        void insert(_tree_node x, _tree_node p, std::pair<K, V> const& val);
+        operator std::map<K, V>() const {
+            auto iter_node = static_cast<_tree_node>(m_header.m_left);
+            auto end_node = (_tree_node)(&m_header);
+            std::map<K, V> out;
+            for (; iter_node != end_node;
+                 iter_node = static_cast<_tree_node>(_rb_increment(iter_node))) {
+                out[iter_node->m_value.first] = iter_node->m_value.second;
+            }
 
-        void insert_pair(std::pair<K, V> const& val);
+            return out;
+        }
 
-        map(std::map<K, V> input);
+        void insert(_tree_node x, _tree_node p, std::pair<K, V> const& val) {
+            bool insert_left =
+                (x != 0 || p == static_cast<_tree_node>(&m_header) || val.first < p->m_value.first);
 
-        void erase(_tree_node x);
+            _tree_node z = new _rb_tree_node<std::pair<K, V>>();
+            z->m_value = val;
 
-        map(map const& lol);
+            _rb_insert_rebalance(insert_left, z, p, m_header);
+            ++m_nodecount;
+        }
 
-        map();
+        void insert(std::pair<K, V> const& val) {
+            insert_pair(val);
+        }
 
-        ~map();
+        void insert_pair(std::pair<K, V> const& val) {
+            _tree_node x = static_cast<_tree_node>(m_header.m_parent);
+            _tree_node y = static_cast<_tree_node>(&m_header);
+            bool comp = true;
+            while (x != 0) {
+                y = x;
+                comp = val.first < x->m_value.first;
+                x = comp ? static_cast<_tree_node>(x->m_left) : static_cast<_tree_node>(x->m_right);
+            }
+            auto iter = y;
+
+            if (comp) {
+                if (iter == static_cast<_tree_node>(m_header.m_left)) {
+                    insert(x, y, val);
+                }
+                else {
+                    iter = static_cast<_tree_node>(_rb_decrement(iter));
+                }
+            }
+            if (iter->m_value.first < val.first) {
+                insert(x, y, val);
+            }
+        }
+
+        map(std::map<K, V> input) {
+            m_header.m_isblack = false;
+            m_header.m_parent = 0;
+            m_header.m_left = &m_header;
+            m_header.m_right = &m_header;
+
+            for (auto i : input) {
+                insert_pair(i);
+            }
+        }
+
+        void erase(_tree_node x) {
+            while (x != 0) {
+                erase(static_cast<_tree_node>(x->m_right));
+                auto y = static_cast<_tree_node>(x->m_left);
+                delete y;
+                x = y;
+            }
+        }
+
+        std::pair<iterator, iterator> equal_range(K const& __k) {
+            return std::pair<iterator, iterator>(lower_bound(__k), upper_bound(__k));
+        }
+
+        size_t erase(K const& __x) {
+            std::pair<iterator, iterator> __p = equal_range(__x);
+            size_t __old = size();
+            erase(__p.first, __p.second);
+            return __old - size();
+        }
+
+        void clear() {
+            erase(static_cast<_tree_node>(m_header.m_parent));
+            m_header.m_parent = 0;
+            m_header.m_left = &m_header;
+            m_header.m_right = &m_header;
+            m_nodecount = 0;
+        }
+
+        void erase(iterator __first, iterator __last) {
+            if (__first == begin() && __last == end()) {
+                clear();
+            }
+            else {
+                while (__first != __last) {
+                    erase(__first++);
+                }
+            }
+        }
+
+        void erase(iterator __pos) {
+            _tree_node __y = static_cast<_tree_node>(_rb_rebalance_for_erase(
+                __pos.m_node, m_header
+            ));
+            delete __y;
+            --m_nodecount;
+        }
+
+        V& operator[](K const& __k) {
+            iterator __i = lower_bound(__k);
+            if (__i == end() || compare(__k, (*__i).first)) {
+                insert_pair(std::pair<K, V>(__k, V()));
+                __i = lower_bound(__k);
+            }
+            return (*__i).second;
+        }
+
+        iterator begin() noexcept {
+            return iterator(m_header.m_left);
+        }
+
+        iterator end() noexcept {
+            return iterator(&m_header);
+        }
+
+        bool empty() const noexcept {
+            return m_nodecount == 0;
+        }
+
+        size_t size() const noexcept {
+            return m_nodecount;
+        }
+
+        iterator lower_bound(K const& __x) {
+            _tree_node __j = static_cast<_tree_node>(m_header.m_left);
+            _tree_node __k = static_cast<_tree_node>(&m_header);
+            while (__j != nullptr) {
+                if (!compare(__j->m_value.first, __x)) {
+                    __k = __j;
+                    __j = static_cast<_tree_node>(__j->m_left);
+                }
+                else {
+                    __j = static_cast<_tree_node>(__j->m_right);
+                }
+            }
+            return iterator(__k);
+        }
+
+        iterator upper_bound(K const& __x) {
+            _tree_node __j = static_cast<_tree_node>(m_header.m_left);
+            _tree_node __k = static_cast<_tree_node>(&m_header);
+            while (__j != nullptr) {
+                if (compare(__x, __j->m_value.first)) {
+                    __k = __j;
+                    __j = static_cast<_tree_node>(__j->m_left);
+                }
+                else {
+                    __j = static_cast<_tree_node>(__j->m_right);
+                }
+            }
+            return iterator(__k);
+        }
+
+        iterator find(K const& __x) {
+            iterator __j = lower_bound(__x);
+            return (__j == end() || compare(__x, (*__j).first)) ? end() : __j;
+        }
+
+        size_t count(K const& __x) {
+            return find(__x) != end() ? 1 : 0;
+        }
+
+        map(map const& lol) : map(std::map<K, V>(lol)) {}
+
+        map() : map(std::map<K, V>()) {}
+
+        ~map() {
+            erase(static_cast<_tree_node>(m_header.m_parent));
+        }
     };
 
     // template <class Type>

@@ -101,7 +101,8 @@ namespace geode {
         void updateResources();
         void updateResources(bool forceReload);
 
-        void queueInGDThread(ScheduledFunction func);
+        [[deprecated("use queueInMainThread instead")]] void queueInGDThread(ScheduledFunction func);
+        void queueInMainThread(ScheduledFunction func);
         void waitForModsToBeLoaded();
 
         /**
