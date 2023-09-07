@@ -4318,6 +4318,7 @@ class MusicDownloadManager : cocos2d::CCNode, PlatformDownloadDelegate {
     gd::string pathForSong(int id) = mac 0x2f1140, win 0x1960e0;
     cocos2d::CCArray* getDownloadedSongs() = win 0x195640;
     void songStateChanged() = win 0x194d90;
+    void onGetSongInfoCompleted(gd::string, gd::string) = mac 0x2eec60;
 
     cocos2d::CCDictionary* m_unknownDict;
     cocos2d::CCArray* m_handlers;

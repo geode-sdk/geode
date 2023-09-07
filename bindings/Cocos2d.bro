@@ -880,6 +880,11 @@ class cocos2d::CCSet {
 	virtual ~CCSet() = mac 0x45b050, ios 0x10ebcc, win 0x69a80;
 	virtual auto acceptVisitor(cocos2d::CCDataVisitor&) = mac 0x45b090, ios 0x10ec04;
 	auto anyObject() = mac 0x45b410;
+
+	void removeObject(cocos2d::CCObject* obj) {
+		m_pSet->erase(obj);
+		CC_SAFE_RELEASE(obj);
+	}
 }
 
 [[link(win)]]
@@ -1095,7 +1100,8 @@ class cocos2d::CCTouch {
 	auto getLocationInView() const = mac 0x38250;
 	auto getPreviousLocationInView() const = mac 0x38270;
 	auto getLocation() const = mac 0x382b0, ios 0x21ce78;
-	auto getStartLocation() const = mac 0x382e0;
+	auto getPreviousLocation() const = mac 0x382e0;
+	auto getStartLocation() const = mac 0x38310;
 }
 
 [[link(win)]]
@@ -1112,6 +1118,9 @@ class cocos2d::CCTouchDispatcher {
 class cocos2d::CCTouchHandler {
     virtual auto initWithDelegate(cocos2d::CCTouchDelegate*, int) = mac 0x247d10, ios 0x69f8;
     auto getPriority() = mac 0x247c20;
+    cocos2d::CCTouchDelegate* getDelegate() {
+    	return m_pDelegate;
+    }
     ~CCTouchHandler() = mac 0x247de0, ios 0x6ac0;
 }
 
