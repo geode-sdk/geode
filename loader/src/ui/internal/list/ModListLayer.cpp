@@ -669,7 +669,7 @@ void ModListLayer::onTab(CCObject* pSender) {
     if (pSender) {
         g_tab = static_cast<ModListType>(pSender->getTag());
     }
-    this->reloadList();
+    this->reloadList(false);
 
     auto toggleTab = [this](CCMenuItemToggler* member) -> void {
         auto isSelected = member->getTag() == static_cast<int>(g_tab);
@@ -681,7 +681,7 @@ void ModListLayer::onTab(CCObject* pSender) {
             targetMenu->addChild(member);
             member->release();
         }
-        if (isSelected)
+        if (isSelected && m_tabsGradientStencil)
             m_tabsGradientStencil->setPosition(member->m_onButton->convertToWorldSpace({0.f, -1.f}));
     };
 
