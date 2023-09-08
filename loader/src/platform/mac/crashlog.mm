@@ -251,7 +251,20 @@ static std::string getStacktrace() {
         stream >> std::hex >> address >> std::dec;
 
         if (!line.empty()) {
-            stacktrace << " - " << std::showbase << std::hex << address << std::dec;
+            // log::debug("address: {}", address);
+            auto image = imageFromAddress(reinterpret_cast<void*>(address));
+            // log::debug("image: {}", image);
+            stacktrace << " - " << std::showbase << std::hex;
+
+            if (image) {
+                auto baseAddress = image->imageLoadAddress;
+                auto imageName = getImageName(image);
+                stacktrace << imageName << " + " << (address - (uintptr_t)baseAddress);   
+            }
+            else {
+                stacktrace << address;
+            }
+            stacktrace << std::dec;
             stacktrace << ": " << line << "\n";
         }
         else {
@@ -319,14 +332,15 @@ static void handlerThread() {
     s_cv.wait(lock, [] { return s_signal != 0; });
 
     auto signalAddress = reinterpret_cast<void*>(s_context->uc_mcontext->__ss.__rip);
-    Mod* faultyMod = nullptr;
-    for (int i = 1; i < s_backtraceSize; ++i) {
-        auto mod = modFromAddress(s_backtrace[i]);
-        if (mod != nullptr) {
-            faultyMod = mod;
-            break;
-        }
-    }
+    // Mod* faultyMod = nullptr;
+    // for (int i = 1; i < s_backtraceSize; ++i) {
+    //     auto mod = modFromAddress(s_backtrace[i]);
+    //     if (mod != nullptr) {
+    //         faultyMod = mod;
+    //         break;
+    //     }
+    // }
+    Mod* faultyMod = modFromAddress(signalAddress);
 
     auto text = crashlog::writeCrashlog(faultyMod, getInfo(signalAddress, faultyMod), getStacktrace(), getRegisters());
 
@@ -334,6 +348,8 @@ static void handlerThread() {
     
     s_signal = 0;
     s_cv.notify_all();
+
+    log::debug("Notified");
 }
 
 static bool s_lastLaunchCrashed;
