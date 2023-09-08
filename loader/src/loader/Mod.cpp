@@ -231,6 +231,14 @@ ModJson Mod::getRuntimeInfo() const {
     return m_impl->getRuntimeInfo();
 }
 
+bool Mod::isLoggingEnabled() const {
+    return m_impl->isLoggingEnabled();
+}
+
+void Mod::setLoggingEnabled(bool enabled) {
+    m_impl->setLoggingEnabled(enabled);
+}
+
 bool Mod::hasSavedValue(std::string const& key) {
     return this->getSaveContainer().contains(key);
 }

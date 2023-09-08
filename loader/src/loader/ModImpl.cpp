@@ -622,6 +622,14 @@ ModJson Mod::Impl::getRuntimeInfo() const {
     return json;
 }
 
+bool Mod::Impl::isLoggingEnabled() const {
+    return m_loggingEnabled;
+}
+
+void Mod::Impl::setLoggingEnabled(bool enabled) {
+    m_loggingEnabled = enabled;
+}
+
 static Result<ModMetadata> getModImplInfo() {
     std::string err;
     json::Value json;

@@ -56,11 +56,15 @@ namespace geode {
          * Settings save data. Stored for efficient loading of custom settings
          */
         json::Value m_savedSettingsData = json::Object();
-
         /**
          * Whether the mod resources are loaded or not
          */
         bool m_resourcesLoaded = false;
+        /**
+         * Whether logging is enabled for this mod
+         */
+        bool m_loggingEnabled = true;
+
 
 
         ModRequestedAction m_requestedAction = ModRequestedAction::None;
@@ -139,6 +143,9 @@ namespace geode {
 
         char const* expandSpriteName(char const* name);
         ModJson getRuntimeInfo() const;
+
+        bool isLoggingEnabled() const;
+        void setLoggingEnabled(bool enabled);
     };
 
     class ModImpl : public Mod::Impl {

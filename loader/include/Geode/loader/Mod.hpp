@@ -394,6 +394,9 @@ namespace geode {
          */
         ModJson getRuntimeInfo() const;
 
+        bool isLoggingEnabled() const;
+        void setLoggingEnabled(bool enabled);
+
         friend class ModImpl;
     };
 }
