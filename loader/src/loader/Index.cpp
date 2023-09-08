@@ -53,7 +53,8 @@ private:
     std::string m_downloadURL;
     std::string m_downloadHash;
     std::unordered_set<PlatformID> m_platforms;
-    bool m_isFeatured;
+    bool m_isFeatured = false;
+    bool m_isInstalled = false;
     std::unordered_set<std::string> m_tags;
 
     friend class IndexItem;
@@ -137,6 +138,10 @@ void IndexItem::setIsFeatured(bool const& value) {
 void IndexItem::setTags(std::unordered_set<std::string> const& value) {
     m_impl->m_tags = value;
 }
+
+void IndexItem::setIsInstalled(bool const& value) {
+    m_impl->m_isInstalled = value;
+}
 #endif
 
 Result<IndexItemHandle> IndexItem::Impl::create(ghc::filesystem::path const& rootDir, ghc::filesystem::path const& dir) {
@@ -183,6 +188,9 @@ Result<IndexItemHandle> IndexItem::Impl::create(ghc::filesystem::path const& roo
 }
 
 bool IndexItem::Impl::isInstalled() const {
+    if (m_isInstalled) {
+        return true;
+    }
     if (!Loader::get()->isModInstalled(m_metadata.getID())) {
         return false;
     }
@@ -750,6 +758,8 @@ void Index::Impl::installNext(size_t index, IndexInstallList const& list) {
                     item->getMetadata().getID()
                 ));
             }
+
+            item->setIsInstalled(true);
 
             // Install next item in queue
             this->installNext(index + 1, list);

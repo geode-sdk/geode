@@ -132,12 +132,14 @@ namespace geode {
         void setAvailablePlatforms(std::unordered_set<PlatformID> const& value);
         void setIsFeatured(bool const& value);
         void setTags(std::unordered_set<std::string> const& value);
+        void setIsInstalled(bool const& value);
 #endif
 
         IndexItem();
         ~IndexItem();
 
         friend class ModMetadata;
+        friend class Index;
     };
     using IndexItemHandle = std::shared_ptr<IndexItem>;
 
