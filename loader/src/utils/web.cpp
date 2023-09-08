@@ -541,6 +541,7 @@ SentAsyncWebRequestHandle AsyncWebRequest::send() {
 
 AsyncWebRequest::~AsyncWebRequest() {
     this->send();
+    delete m_extra;
 }
 
 AsyncWebResult<std::monostate> AsyncWebResponse::into(std::ostream& stream) {
