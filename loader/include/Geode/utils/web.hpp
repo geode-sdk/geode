@@ -106,12 +106,12 @@ namespace geode::utils::web {
 
     // Hack until 2.0.0 to store extra members in AsyncWebRequest
     struct AsyncWebRequestData {
-        std::variant<std::monostate, std::ostream*, ghc::filesystem::path> m_target;
         std::string m_userAgent;
         std::string m_customRequest;
         bool m_isPostRequest = false;
         std::string m_postFields;
         bool m_isJsonRequest = false;
+        bool m_sent = false;
     };
 
     /**
@@ -130,8 +130,8 @@ namespace geode::utils::web {
         AsyncExpectCode m_expect = nullptr;
         AsyncProgress m_progress = nullptr;
         AsyncCancelled m_cancelled = nullptr;
-        bool m_sent = false;
-        mutable std::variant<std::monostate, AsyncWebRequestData> m_extra;
+        AsyncWebRequestData* m_extra = nullptr;
+        std::variant<std::monostate, std::ostream*, ghc::filesystem::path> m_target;
         std::vector<std::string> m_httpHeaders;
 
         AsyncWebRequestData& extra();

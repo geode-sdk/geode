@@ -427,17 +427,17 @@ void SentAsyncWebRequest::error(std::string const& error, int code) {
 }
 
 AsyncWebRequestData& AsyncWebRequest::extra() {
-    if (!std::holds_alternative<AsyncWebRequestData>(m_extra)) {
-        m_extra = AsyncWebRequestData();
+    if (!m_extra) {
+        m_extra = new AsyncWebRequestData();
     }
-    return std::get<AsyncWebRequestData>(m_extra);
+    return *m_extra;
 }
 
 AsyncWebRequestData const& AsyncWebRequest::extra() const {
-    if (!std::holds_alternative<AsyncWebRequestData>(m_extra)) {
-        m_extra = AsyncWebRequestData();
+    if (!m_extra) {
+        m_extra = new AsyncWebRequestData();
     }
-    return std::get<AsyncWebRequestData>(m_extra);
+    return *m_extra;
 }
 
 AsyncWebRequest& AsyncWebRequest::join(std::string const& requestID) {
@@ -503,8 +503,8 @@ AsyncWebRequest& AsyncWebRequest::cancelled(AsyncCancelled cancelledFunc) {
 }
 
 SentAsyncWebRequestHandle AsyncWebRequest::send() {
-    if (m_sent) return nullptr;
-    m_sent = true;
+    if (this->extra().m_sent) return nullptr;
+    this->extra().m_sent = true;
 
     std::lock_guard __(RUNNING_REQUESTS_MUTEX);
 
