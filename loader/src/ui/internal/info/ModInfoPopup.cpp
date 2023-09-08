@@ -551,8 +551,8 @@ void LocalModInfoPopup::onUpdateProgress(ModInstallEvent* event) {
             FLAlertLayer::create(
                 "Update complete",
                 "Mod successfully updated! :) "
-                "(You may need to <cy>restart the game</c> "
-                "for the mod to take full effect)",
+                "(You have to <cy>restart the game</c> "
+                "for the mod to take effect)",
                 "OK"
             )->show();
 
@@ -678,8 +678,8 @@ void LocalModInfoPopup::doUninstall() {
         this,
         "Uninstall complete",
         "Mod was successfully uninstalled! :) "
-        "(You may need to <cy>restart the game</c> "
-        "for the mod to take full effect). "
+        "(You have to <cy>restart the game</c> "
+        "for the mod to take effect). "
         "<co>Would you also like to delete the mod's "
         "save data?</c>",
         "Keep",
@@ -749,8 +749,8 @@ void IndexItemInfoPopup::onInstallProgress(ModInstallEvent* event) {
             FLAlertLayer::create(
                 "Install complete",
                 "Mod successfully installed! :) "
-                "(You may need to <cy>restart the game</c> "
-                "for the mod to take full effect)",
+                "(You have to <cy>restart the game</c> "
+                "for the mod to take effect)",
                 "OK"
             )->show();
 
