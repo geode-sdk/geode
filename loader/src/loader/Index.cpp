@@ -642,6 +642,8 @@ Result<IndexInstallList> Index::getInstallList(IndexItemHandle item) const {
 
         if (dep.importance == ModMetadata::Dependency::Importance::Suggested) continue;
 
+        if (Loader::get()->isModInstalled(dep.id)) continue;
+
         // check if this dep is available in the index
         if (auto depItem = this->getItem(dep.id, dep.version)) {
             if (!depItem->getAvailablePlatforms().count(GEODE_PLATFORM_TARGET)) {
