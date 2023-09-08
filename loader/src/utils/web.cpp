@@ -160,6 +160,7 @@ private:
 
     mutable std::mutex m_mutex;
     AsyncWebRequestData m_extra;
+    std::variant<std::monostate, std::ostream*, ghc::filesystem::path> m_target;
     std::vector<std::string> m_httpHeaders;
     
 
@@ -184,7 +185,7 @@ static std::unordered_map<std::string, SentAsyncWebRequestHandle> RUNNING_REQUES
 static std::mutex RUNNING_REQUESTS_MUTEX;
 
 SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const& req, std::string const& id) :
-    m_id(id), m_url(req.m_url), m_extra(req.extra()), m_httpHeaders(req.m_httpHeaders) {
+    m_id(id), m_url(req.m_url), m_target(req.m_target), m_extra(req.extra()), m_httpHeaders(req.m_httpHeaders) {
 
 #define AWAIT_RESUME()    \
     {\
@@ -218,16 +219,16 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
         std::unique_ptr<std::ofstream> file = nullptr;
 
         // into file
-        if (std::holds_alternative<ghc::filesystem::path>(m_extra.m_target)) {
+        if (std::holds_alternative<ghc::filesystem::path>(m_target)) {
             file = std::make_unique<std::ofstream>(
-                std::get<ghc::filesystem::path>(m_extra.m_target), std::ios::out | std::ios::binary
+                std::get<ghc::filesystem::path>(m_target), std::ios::out | std::ios::binary
             );
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, file.get());
             curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, utils::fetch::writeBinaryData);
         }
         // into stream
-        else if (std::holds_alternative<std::ostream*>(m_extra.m_target)) {
-            curl_easy_setopt(curl, CURLOPT_WRITEDATA, std::get<std::ostream*>(m_extra.m_target));
+        else if (std::holds_alternative<std::ostream*>(m_target)) {
+            curl_easy_setopt(curl, CURLOPT_WRITEDATA, std::get<std::ostream*>(m_target));
             curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, utils::fetch::writeBinaryData);
         }
         // into memory
@@ -334,8 +335,8 @@ void SentAsyncWebRequest::Impl::doCancel() {
     m_cleanedUp = true;
 
     // remove file if downloaded to one
-    if (std::holds_alternative<ghc::filesystem::path>(m_extra.m_target)) {
-        auto path = std::get<ghc::filesystem::path>(m_extra.m_target);
+    if (std::holds_alternative<ghc::filesystem::path>(m_target)) {
+        auto path = std::get<ghc::filesystem::path>(m_target);
         if (ghc::filesystem::exists(path)) {
             try {
                 ghc::filesystem::remove(path);

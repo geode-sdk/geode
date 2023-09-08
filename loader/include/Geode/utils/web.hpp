@@ -130,7 +130,7 @@ namespace geode::utils::web {
         AsyncExpectCode m_expect = nullptr;
         AsyncProgress m_progress = nullptr;
         AsyncCancelled m_cancelled = nullptr;
-        AsyncWebRequestData* m_extra = nullptr;
+        mutable AsyncWebRequestData* m_extra = nullptr;
         std::variant<std::monostate, std::ostream*, ghc::filesystem::path> m_target;
         std::vector<std::string> m_httpHeaders;
 
