@@ -117,23 +117,15 @@ bool Mod::Impl::isLoaded() const {
 }
 
 bool Mod::Impl::supportsDisabling() const {
-    return m_metadata.getID() != "geode.loader" && !m_metadata.isAPI();
+    return m_metadata.getID() != "geode.loader";
 }
 
 bool Mod::Impl::canDisable() const {
-    auto deps = m_dependants;
-    return this->supportsDisabling() &&
-        (deps.empty() || std::all_of(deps.begin(), deps.end(), [&](auto& item) {
-               return item->canDisable();
-           }));
+    return true;
 }
 
 bool Mod::Impl::canEnable() const {
-    auto deps = m_metadata.getDependencies();
-    return !this->isUninstalled() &&
-        (deps.empty() || std::all_of(deps.begin(), deps.end(), [&](auto& item) {
-                return item.isResolved();
-           }));
+    return true;
 }
 
 bool Mod::Impl::needsEarlyLoad() const {
@@ -345,119 +337,74 @@ Result<> Mod::Impl::loadBinary() {
 
     LoaderImpl::get()->releaseNextMod();
 
-    ModStateEvent(m_self, ModEventType::Loaded).post();
-
-    return Ok();
-}
-
-Result<> Mod::Impl::enable() {
-    if (!m_binaryLoaded)
-        return Err("Tried to enable {} but its binary is not loaded", m_metadata.getID());
-
-    bool enabledDependencies = true;
-    for (auto const& item : m_metadata.getDependencies()) {
-        if (!item.isResolved() || !item.mod)
-            continue;
-        auto res = item.mod->enable();
-        if (!res) {
-            enabledDependencies = false;
-            log::error("Failed to enable {}: {}", item.id, res.unwrapErr());
-        }
-    }
-
-    if (!enabledDependencies)
-        return Err("Mod cannot be enabled because one or more of its dependencies cannot be enabled.");
-
-    if (!this->canEnable())
-        return Err("Mod cannot be enabled because it has unresolved dependencies.");
-
     for (auto const& hook : m_hooks) {
         if (!hook) {
             log::warn("Hook is null in mod \"{}\"", m_metadata.getName());
             continue;
         }
         if (hook->getAutoEnable()) {
-            GEODE_UNWRAP(this->enableHook(hook));
+            auto res = this->enableHook(hook);
+            if (!res) {
+                log::error("Can't enable hook {} for mod {}: {}", hook->getDisplayName(), m_metadata.getID(), res.unwrapErr());
+            }
         }
     }
 
     for (auto const& patch : m_patches) {
-        if (!patch->apply()) {
-            log::warn("Unable to apply patch at {}", patch->getAddress());
+        if (!patch) {
+            log::warn("Patch is null in mod \"{}\"", m_metadata.getName());
             continue;
+        }
+        if (patch->getAutoEnable()) {
+            if (!patch->apply()) {
+                log::warn("Unable to apply patch at {}", patch->getAddress());
+                continue;
+            }
         }
     }
 
     m_enabled = true;
+
+    ModStateEvent(m_self, ModEventType::Loaded).post();
     ModStateEvent(m_self, ModEventType::Enabled).post();
 
     return Ok();
 }
 
+Result<> Mod::Impl::enable() {
+    if (m_requestedAction != ModRequestedAction::None) {
+        return Err("Mod already has a requested action");
+    }
+
+    m_requestedAction = ModRequestedAction::Enable;
+    Mod::get()->setSavedValue("should-load-" + m_metadata.getID(), true);
+
+    return Ok();
+}
+
 Result<> Mod::Impl::disable() {
-    if (!m_enabled)
-        return Ok();
-
-    if (!this->supportsDisabling())
-        return Err("Mod does not support disabling.");
-
-    if (!this->canDisable())
-        return Err("Mod cannot be disabled because one or more of its dependants cannot be disabled.");
-
-    // disable dependants
-    bool disabledDependants = true;
-    for (auto& item : m_dependants) {
-        auto res = item->disable();
-        if (res)
-            continue;
-        disabledDependants = false;
-        log::error("Failed to disable {}: {}", item->getID(), res.unwrapErr());
+    if (m_requestedAction != ModRequestedAction::None) {
+        return Err("Mod already has a requested action");
     }
 
-    if (!disabledDependants)
-        return Err("Mod cannot be disabled because one or more of its dependants cannot be disabled.");
-
-    std::vector<std::string> errors;
-    for (auto const& hook : m_hooks) {
-        auto res = this->disableHook(hook);
-        if (!res)
-            errors.push_back(res.unwrapErr());
-    }
-    for (auto const& patch : m_patches) {
-        auto res = this->unpatch(patch);
-        if (!res)
-            errors.push_back(res.unwrapErr());
-    }
-
-    m_enabled = false;
-    ModStateEvent(m_self, ModEventType::Disabled).post();
-
-    if (!errors.empty())
-        return Err(utils::string::join(errors, "\n"));
+    m_requestedAction = ModRequestedAction::Disable;
+    Mod::get()->setSavedValue("should-load-" + m_metadata.getID(), false);
 
     return Ok();
 }
 
 Result<> Mod::Impl::uninstall() {
-    if (supportsDisabling()) {
-        GEODE_UNWRAP(this->disable());
-    }
-    else {
-        for (auto& item : m_dependants) {
-            if (!item->canDisable())
-                continue;
-            GEODE_UNWRAP(item->disable());
-        }
+    if (m_requestedAction != ModRequestedAction::None) {
+        return Err("Mod already has a requested action");
     }
 
-    try {
-        ghc::filesystem::remove(m_metadata.getPath());
-    }
-    catch (std::exception& e) {
+    m_requestedAction = ModRequestedAction::Uninstall;
+
+    std::error_code ec;
+    ghc::filesystem::remove(m_metadata.getPath(), ec);
+    if (ec) {
         return Err(
-            "Unable to delete mod's .geode file! "
-            "This might be due to insufficient permissions - "
-            "try running GD as administrator."
+            "Unable to delete mod's .geode file: " + ec.message()
         );
     }
 
@@ -465,7 +412,11 @@ Result<> Mod::Impl::uninstall() {
 }
 
 bool Mod::Impl::isUninstalled() const {
-    return m_self != Mod::get() && !ghc::filesystem::exists(m_metadata.getPath());
+    return m_requestedAction == ModRequestedAction::Uninstall;
+}
+
+ModRequestedAction Mod::Impl::getRequestedAction() const {
+    return m_requestedAction;
 }
 
 // Dependencies
@@ -661,7 +612,7 @@ ModJson Mod::Impl::getRuntimeInfo() const {
     for (auto patch : m_patches) {
         obj["patches"].as_array().push_back(ModJson(patch->getRuntimeInfo()));
     }
-    obj["enabled"] = m_enabled;
+    // obj["enabled"] = m_enabled;
     obj["loaded"] = m_binaryLoaded;
     obj["temp-dir"] = this->getTempDir();
     obj["save-dir"] = this->getSaveDir();

@@ -94,5 +94,5 @@ public:
     ModListDisplay getDisplay() const;
     ModListQuery& getQuery();
 
-    void reloadList(std::optional<ModListQuery> const& query = std::nullopt);
+    void reloadList(bool keepScroll = true, std::optional<ModListQuery> const& query = std::nullopt);
 };

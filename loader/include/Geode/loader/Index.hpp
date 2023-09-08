@@ -107,6 +107,14 @@ namespace geode {
         std::unique_ptr<Impl> m_impl;
 
     public:
+        /**
+         * Returns the path that contains all the versions
+         */
+        ghc::filesystem::path getRootPath() const;
+
+        /**
+         * Returns the path to the specific version
+         */
         ghc::filesystem::path getPath() const;
         [[deprecated("use getMetadata instead")]] ModInfo getModInfo() const;
         ModMetadata getMetadata() const;
@@ -124,10 +132,14 @@ namespace geode {
         void setAvailablePlatforms(std::unordered_set<PlatformID> const& value);
         void setIsFeatured(bool const& value);
         void setTags(std::unordered_set<std::string> const& value);
+        void setIsInstalled(bool const& value);
 #endif
 
         IndexItem();
         ~IndexItem();
+
+        friend class ModMetadata;
+        friend class Index;
     };
     using IndexItemHandle = std::shared_ptr<IndexItem>;
 
@@ -169,10 +181,20 @@ namespace geode {
          */
         std::vector<IndexItemHandle> getFeaturedItems() const;
         /**
+         * Get all latest index items
+         */
+        std::vector<IndexItemHandle> getLatestItems() const;
+        /**
          * Get all index items by a developer
          */
         std::vector<IndexItemHandle> getItemsByDeveloper(
             std::string const& name
+        ) const;
+        /**
+         * Get all index items for a specific mod
+         */
+        std::vector<IndexItemHandle> getItemsByModID(
+            std::string const& modID
         ) const;
         /**
          * Check if an item with this ID is found on the index, and optionally 

@@ -1,5 +1,17 @@
 # Geode Changelog
 
+## v1.3.0
+ * Completely remove runtime enabling & disabling of mods (d817749)
+ * Patches auto enabling can be disabled (69821f3)
+ * Move ModEventType::Loaded to after hooks & patches are enabled (23c3095)
+ * Update index to be able to store multiple versions of the same mod (5572f9c)
+ * Implement UI for selection of downloading specific mod versions (5d15eb0)
+ * Change install & uninstall popups to reflect the new changes (d40f467)
+ * Keep the scroll when enabling, installing etc. a mod (b3d444a)
+ * Update MacOS crashlog to include base and offset (7816c43)
+ * Add user agent to AsyncWebRequest (c256207)
+ * Add post and custom requests to AsyncWebRequest (c256207)
+
 ## v1.2.1
  * Mods now target macOS 10.13 instead of 10.14 (7cc1cd4)
  * Fix CustomizeObjectLayer ids moving around when multiple objects are selected (9ee0994, 87749d4)

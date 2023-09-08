@@ -198,7 +198,7 @@ CCArray* ModListLayer::createModCells(ModListType type, ModListQuery const& quer
             std::multimap<int, IndexItemHandle> sorted;
 
             auto index = Index::get();
-            for (auto const& item : index->getItems()) {
+            for (auto const& item : index->getLatestItems()) {
                 if (auto match = queryMatch(query, item)) {
                     sorted.insert({ match.value(), item });
                 }
@@ -444,11 +444,16 @@ void ModListLayer::createSearchControl() {
     this->addChild(m_searchInput);
 }
 
-void ModListLayer::reloadList(std::optional<ModListQuery> const& query) {
+void ModListLayer::reloadList(bool keepScroll, std::optional<ModListQuery> const& query) {
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
     if (query) {
         m_query = query.value();
+    }
+
+    float scroll = 0.0f;
+    if (keepScroll && m_list) {
+        scroll = m_list->m_listView->m_tableView->m_contentLayer->getPositionY();
     }
 
     // set search query
@@ -487,6 +492,12 @@ void ModListLayer::reloadList(std::optional<ModListQuery> const& query) {
         m_listLabel->setString("No mods found");
     } else {
         m_listLabel->setVisible(false);
+    }
+
+    if (keepScroll) {
+        list->m_tableView->m_contentLayer->setPosition(
+            { 0.0f, scroll }
+        );
     }
 
     // update index if needed
@@ -658,7 +669,7 @@ void ModListLayer::onTab(CCObject* pSender) {
     if (pSender) {
         g_tab = static_cast<ModListType>(pSender->getTag());
     }
-    this->reloadList();
+    this->reloadList(false);
 
     auto toggleTab = [this](CCMenuItemToggler* member) -> void {
         auto isSelected = member->getTag() == static_cast<int>(g_tab);
@@ -670,7 +681,7 @@ void ModListLayer::onTab(CCObject* pSender) {
             targetMenu->addChild(member);
             member->release();
         }
-        if (isSelected)
+        if (isSelected && m_tabsGradientStencil)
             m_tabsGradientStencil->setPosition(member->m_onButton->convertToWorldSpace({0.f, -1.f}));
     };
 
@@ -686,7 +697,7 @@ void ModListLayer::keyDown(enumKeyCodes key) {
 }
 
 void ModListLayer::textChanged(CCTextInputNode* input) {
-    this->reloadList();
+    this->reloadList(false);
 }
 
 // Constructors etc.
