@@ -8,6 +8,7 @@
  * Implement UI for selection of downloading specific mod versions (5d15eb0)
  * Change install & uninstall popups to reflect the new changes (d40f467)
  * Keep the scroll when enabling, installing etc. a mod (b3d444a)
+ * Update MacOS crashlog to include base and offset (7816c43)
 
 ## v1.2.1
  * Mods now target macOS 10.13 instead of 10.14 (7cc1cd4)

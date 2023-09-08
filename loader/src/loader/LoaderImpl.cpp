@@ -700,6 +700,7 @@ void Loader::Impl::fetchLatestGithubRelease(
     // TODO: add header to not get rate limited
     web::AsyncWebRequest()
         .join("loader-auto-update-check")
+        .userAgent("github_api/1.0")
         .fetch("https://api.github.com/repos/geode-sdk/geode/releases/latest")
         .json()
         .then([this, then](json::Value const& json) {
@@ -768,6 +769,7 @@ void Loader::Impl::downloadLoaderResources(bool useLatestRelease) {
     if (!useLatestRelease) {
         web::AsyncWebRequest()
             .join("loader-tag-exists-check")
+            .userAgent("github_api/1.0")
             .fetch(fmt::format(
                 "https://api.github.com/repos/geode-sdk/geode/git/ref/tags/{}",
                 this->getVersion().toString()

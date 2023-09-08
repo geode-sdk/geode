@@ -361,6 +361,7 @@ void Index::Impl::checkForUpdates() {
     auto oldSHA = file::readString(checksum).unwrapOr("");
     web::AsyncWebRequest()
         .join("index-update")
+        .userAgent("github_api/1.0")
         .header(fmt::format("If-None-Match: \"{}\"", oldSHA))
         .header("Accept: application/vnd.github.sha")
         .fetch("https://api.github.com/repos/geode-sdk/mods/commits/main")
