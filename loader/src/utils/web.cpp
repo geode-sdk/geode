@@ -546,14 +546,14 @@ AsyncWebRequest::~AsyncWebRequest() {
 }
 
 AsyncWebResult<std::monostate> AsyncWebResponse::into(std::ostream& stream) {
-    m_request.extra().m_target = &stream;
+    m_request.m_target = &stream;
     return this->as(+[](ByteVector const&) -> Result<std::monostate> {
         return Ok(std::monostate());
     });
 }
 
 AsyncWebResult<std::monostate> AsyncWebResponse::into(ghc::filesystem::path const& path) {
-    m_request.extra().m_target = path;
+    m_request.m_target = path;
     return this->as(+[](ByteVector const&) -> Result<std::monostate> {
         return Ok(std::monostate());
     });
