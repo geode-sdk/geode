@@ -8,7 +8,6 @@
 #include <Geode/ui/GeodeUI.hpp>
 #include <loader/LoaderImpl.hpp>
 #include <utility>
-#include "../info/TagNode.hpp"
 #include "../info/DevProfilePopup.hpp"
 
 // InstallListCell
@@ -27,8 +26,11 @@ void InstallListCell::setupInfo(
     std::variant<VersionInfo, ComparableVersionInfo> version,
     bool inactive
 ) {
+    m_inactive = inactive;
     m_menu = CCMenu::create();
-    m_menu->setPosition(m_width - 10.f, m_height / 2);
+    m_menu->setPosition(0, 0);
+    m_menu->setAnchorPoint({ .0f, .0f });
+    m_menu->setContentSize({m_width, m_height});
     this->addChild(m_menu);
 
     auto logoSize = this->getLogoSize();
@@ -41,15 +43,15 @@ void InstallListCell::setupInfo(
     }
     this->addChild(logoSpr);
 
-    auto titleLabel = CCLabelBMFont::create(name.c_str(), "bigFont.fnt");
-    titleLabel->setAnchorPoint({ .0f, .5f });
-    titleLabel->setPositionX(m_height / 2 + logoSize / 2 + 13.f);
-    titleLabel->setPositionY(m_height / 2);
-    titleLabel->limitLabelWidth(m_width / 2 - 70.f, .4f, .1f);
+    m_titleLabel = CCLabelBMFont::create(name.c_str(), "bigFont.fnt");
+    m_titleLabel->setAnchorPoint({ .0f, .5f });
+    m_titleLabel->setPositionX(m_height / 2 + logoSize / 2 + 13.f);
+    m_titleLabel->setPositionY(m_height / 2);
+    m_titleLabel->limitLabelWidth(m_width / 2 - 70.f, .4f, .1f);
     if (inactive) {
-        titleLabel->setColor({ 163, 163, 163 });
+        m_titleLabel->setColor({ 163, 163, 163 });
     }
-    this->addChild(titleLabel);
+    this->addChild(m_titleLabel);
 
     m_developerBtn = nullptr;
     if (developer) {
@@ -64,43 +66,55 @@ void InstallListCell::setupInfo(
             creatorLabel, this, menu_selector(InstallListCell::onViewDev)
         );
         m_developerBtn->setPosition(
-            titleLabel->getPositionX() + titleLabel->getScaledContentSize().width + 3.f +
-                creatorLabel->getScaledContentSize().width / 2 -
-                m_menu->getPositionX(),
-            -0.5f
+            m_titleLabel->getPositionX() + m_titleLabel->getScaledContentSize().width + 3.f +
+                creatorLabel->getScaledContentSize().width / 2,
+            m_height / 2
         );
         m_menu->addChild(m_developerBtn);
     }
 
-    auto versionLabel = CCLabelBMFont::create(
+    this->setupVersion(version);
+}
+
+void InstallListCell::setupVersion(std::variant<VersionInfo, ComparableVersionInfo> version) {
+    if (m_versionLabel) {
+        m_versionLabel->removeFromParent();
+        m_versionLabel = nullptr;
+    }
+    if (m_tagLabel) {
+        m_tagLabel->removeFromParent();
+        m_tagLabel = nullptr;
+    }
+
+    m_versionLabel = CCLabelBMFont::create(
         std::holds_alternative<VersionInfo>(version) ?
             std::get<VersionInfo>(version).toString(false).c_str() :
             std::get<ComparableVersionInfo>(version).toString().c_str(),
         "bigFont.fnt"
     );
-    versionLabel->setAnchorPoint({ .0f, .5f });
-    versionLabel->setScale(.2f);
-    versionLabel->setPosition(
-        titleLabel->getPositionX() + titleLabel->getScaledContentSize().width + 3.f +
+    m_versionLabel->setAnchorPoint({ .0f, .5f });
+    m_versionLabel->setScale(.2f);
+    m_versionLabel->setPosition(
+        m_titleLabel->getPositionX() + m_titleLabel->getScaledContentSize().width + 3.f +
             (m_developerBtn ? m_developerBtn->getScaledContentSize().width + 3.f : 0.f),
-        titleLabel->getPositionY() - 1.f
+        m_titleLabel->getPositionY() - 1.f
     );
-    versionLabel->setColor({ 0, 255, 0 });
-    if (inactive) {
-        versionLabel->setColor({ 0, 163, 0 });
+    m_versionLabel->setColor({ 0, 255, 0 });
+    if (m_inactive) {
+        m_versionLabel->setColor({ 0, 163, 0 });
     }
-    this->addChild(versionLabel);
+    this->addChild(m_versionLabel);
 
     if (!std::holds_alternative<VersionInfo>(version)) return;
     if (auto tag = std::get<VersionInfo>(version).getTag()) {
-        auto tagLabel = TagNode::create(tag->toString());
-        tagLabel->setAnchorPoint({.0f, .5f});
-        tagLabel->setScale(.2f);
-        tagLabel->setPosition(
-            versionLabel->getPositionX() + versionLabel->getScaledContentSize().width + 3.f,
-            versionLabel->getPositionY()
+        m_tagLabel = TagNode::create(tag->toString());
+        m_tagLabel->setAnchorPoint({.0f, .5f});
+        m_tagLabel->setScale(.2f);
+        m_tagLabel->setPosition(
+            m_versionLabel->getPositionX() + m_versionLabel->getScaledContentSize().width + 3.f,
+            m_versionLabel->getPositionY()
         );
-        this->addChild(tagLabel);
+        this->addChild(m_tagLabel);
     }
 }
 
@@ -134,7 +148,7 @@ bool ModInstallListCell::init(Mod* mod, InstallListPopup* list, CCSize const& si
     this->setupInfo(mod->getMetadata(), true);
     auto message = CCLabelBMFont::create("Installed", "bigFont.fnt");
     message->setAnchorPoint({ 1.f, .5f });
-    message->setPositionX(m_menu->getPositionX());
+    message->setPositionX(m_width - 10.0f);
     message->setPositionY(16.f);
     message->setScale(0.4f);
     message->setColor({ 163, 163, 163 });
@@ -174,23 +188,38 @@ bool IndexItemInstallListCell::init(
         return false;
     m_item = item;
     this->setupInfo(item->getMetadata(), item->isInstalled());
-    if (item->isInstalled()) {
-        auto message = CCLabelBMFont::create("Installed", "bigFont.fnt");
-        message->setAnchorPoint({ 1.f, .5f });
-        message->setPositionX(m_menu->getPositionX());
-        message->setPositionY(16.f);
-        message->setScale(0.4f);
-        message->setColor({ 163, 163, 163 });
-        this->addChild(message);
-        return true;
-    }
+
+    // TODO: show installed label properly
+    // if (item->isInstalled()) {
+    //     auto message = CCLabelBMFont::create("Installed", "bigFont.fnt");
+    //     message->setAnchorPoint({ 1.f, .5f });
+    //     message->setPositionX(m_width - 10.0f);
+    //     message->setPositionY(16.f);
+    //     message->setScale(0.4f);
+    //     message->setColor({ 163, 163, 163 });
+    //     this->addChild(message);
+    //     return true;
+    // }
 
     m_toggle = CCMenuItemToggler::createWithStandardSprites(
         m_layer,
         menu_selector(InstallListPopup::onCellToggle),
         .6f
     );
-    m_toggle->setPosition(-m_toggle->getScaledContentSize().width / 2, 0.f);
+    m_toggle->setAnchorPoint({1.f, .5f});
+    m_toggle->setPosition(m_width - 5, m_height / 2);
+
+    // recycling sprites in my Geode?? noo never
+    auto versionSelectSpr = EditorButtonSprite::createWithSpriteFrameName(
+        "filters.png"_spr, 1.0f, EditorBaseColor::Gray
+    );
+    versionSelectSpr->setScale(.7f);
+
+    auto versionSelectBtn =
+        CCMenuItemSpriteExtra::create(versionSelectSpr, this, menu_selector(IndexItemInstallListCell::onSelectVersion));
+    versionSelectBtn->setAnchorPoint({1.f, .5f});
+    versionSelectBtn->setPosition({m_toggle->getPositionX() - m_toggle->getContentSize().width - 5, m_height / 2});
+    m_menu->addChild(versionSelectBtn);
 
     switch (importance) {
         case ModMetadata::Dependency::Importance::Required:
@@ -207,13 +236,18 @@ bool IndexItemInstallListCell::init(
             break;
     }
 
+    if (item->isInstalled()) {
+        m_toggle->setClickable(false);
+        m_toggle->toggle(true);
+    }
+
     if (m_item->getAvailablePlatforms().count(GEODE_PLATFORM_TARGET) == 0) {
         m_toggle->setClickable(false);
         m_toggle->toggle(false);
 
         auto message = CCLabelBMFont::create("N/A", "bigFont.fnt");
         message->setAnchorPoint({ 1.f, .5f });
-        message->setPositionX(m_menu->getPositionX() - m_toggle->getScaledContentSize().width - 5.f);
+        message->setPositionX(m_width - 5.f);
         message->setPositionY(16.f);
         message->setScale(0.4f);
         message->setColor({ 240, 31, 31 });
@@ -269,6 +303,15 @@ IndexItemHandle IndexItemInstallListCell::getItem() {
     return m_item;
 }
 
+void IndexItemInstallListCell::setVersionFromItem(IndexItemHandle item) {
+    this->setupVersion(item->getMetadata().getVersion());
+    m_item = item;
+}
+
+void IndexItemInstallListCell::onSelectVersion(CCObject*) {
+    SelectVersionPopup::create(m_item->getMetadata().getID(), this)->show();
+}
+
 // UnknownInstallListCell
 
 bool UnknownInstallListCell::init(
@@ -316,4 +359,51 @@ std::string UnknownInstallListCell::getID() const {
 }
 std::string UnknownInstallListCell::getDeveloper() const {
     return "";
+}
+
+// SelectVersionCell
+
+bool SelectVersionCell::init(IndexItemHandle item, SelectVersionPopup* versionPopup, CCSize const& size) {
+    if (!InstallListCell::init(nullptr, size))
+        return false;
+    m_item = item;
+    m_versionPopup = versionPopup;
+    this->setupInfo(item->getMetadata(), item->isInstalled());
+
+    auto selectSpr = ButtonSprite::create(
+        "Select", 0, 0, "bigFont.fnt", "GJ_button_01.png", 0, .6f
+    );
+    selectSpr->setScale(.6f);
+
+    auto selectBtn = CCMenuItemSpriteExtra::create(
+        selectSpr, this, menu_selector(SelectVersionCell::onSelected)
+    );
+    selectBtn->setAnchorPoint({1.f, .5f});
+    selectBtn->setPosition({m_width - 5, m_height / 2});
+    m_menu->addChild(selectBtn);
+
+    return true;
+}
+
+void SelectVersionCell::onSelected(CCObject*) {
+    m_versionPopup->selectItem(m_item);
+}
+
+SelectVersionCell* SelectVersionCell::create(IndexItemHandle item, SelectVersionPopup* versionPopup, CCSize const& size) {
+    auto ret = new SelectVersionCell();
+    if (ret->init(item, versionPopup, size)) {
+        return ret;
+    }
+    CC_SAFE_DELETE(ret);
+    return nullptr;
+}
+
+CCNode* SelectVersionCell::createLogo(CCSize const& size) {
+    return geode::createIndexItemLogo(m_item, size);
+}
+std::string SelectVersionCell::getID() const {
+    return m_item->getMetadata().getID();
+}
+std::string SelectVersionCell::getDeveloper() const {
+    return m_item->getMetadata().getDeveloper();
 }

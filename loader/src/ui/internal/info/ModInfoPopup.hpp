@@ -38,6 +38,7 @@ protected:
     MDTextArea* m_detailsArea;
     MDTextArea* m_changelogArea = nullptr;
     Scrollbar* m_scrollbar;
+    IndexItemHandle m_item;
 
     void onChangelog(CCObject*);
     void onRepository(CCObject*);
@@ -51,13 +52,16 @@ protected:
 
     void setInstallStatus(std::optional<UpdateProgress> const& progress);
 
+    void popupInstallItem(IndexItemHandle item);
+    void preInstall();
+    void onCancelInstall(CCObject*);
+
     virtual CCNode* createLogo(CCSize const& size) = 0;
     virtual ModMetadata getMetadata() const = 0;
 };
 
 class LocalModInfoPopup : public ModInfoPopup, public FLAlertLayerProtocol {
 protected:
-    IndexItemHandle m_item;
     EventListener<ModInstallFilter> m_installListener;
     Mod* m_mod;
 
@@ -74,8 +78,6 @@ protected:
 
     void onUpdateProgress(ModInstallEvent* event);
     void onUpdate(CCObject*);
-    void onCancel(CCObject*);
-    void doUpdate();
 
 
     void FLAlert_Clicked(FLAlertLayer*, bool) override;
@@ -91,16 +93,12 @@ public:
 
 class IndexItemInfoPopup : public ModInfoPopup {
 protected:
-    IndexItemHandle m_item;
     EventListener<ModInstallFilter> m_installListener;
 
     bool init(IndexItemHandle item, ModListLayer* list);
 
     void onInstallProgress(ModInstallEvent* event);
     void onInstall(CCObject*);
-    void onCancel(CCObject*);
-
-    void preInstall();
 
     CCNode* createLogo(CCSize const& size) override;
     ModMetadata getMetadata() const override;

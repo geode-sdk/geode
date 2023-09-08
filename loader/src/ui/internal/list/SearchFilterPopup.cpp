@@ -175,7 +175,7 @@ void SearchFilterPopup::onPlatformToggle(CCObject* sender) {
 
 void SearchFilterPopup::onClose(CCObject* sender) {
     Popup::onClose(sender);
-    m_modLayer->reloadList();
+    m_modLayer->reloadList(false);
 }
 
 SearchFilterPopup* SearchFilterPopup::create(ModListLayer* layer, ModListType type) {

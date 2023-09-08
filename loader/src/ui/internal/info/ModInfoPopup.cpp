@@ -277,6 +277,95 @@ void ModInfoPopup::setInstallStatus(std::optional<UpdateProgress> const& progres
     }
 }
 
+void ModInfoPopup::popupInstallItem(IndexItemHandle item) {
+    auto deps = item->getMetadata().getDependencies();
+    enum class DepState {
+        None,
+        HasOnlyRequired,
+        HasOptional
+    } depState = DepState::None;
+    for (auto const& dep : deps) {
+        // resolved means it's already installed, so
+        // no need to ask the user whether they want to install it
+        if (Loader::get()->isModLoaded(dep.id))
+            continue;
+        if (dep.importance != ModMetadata::Dependency::Importance::Required) {
+            depState = DepState::HasOptional;
+            break;
+        }
+        depState = DepState::HasOnlyRequired;
+    }
+
+    std::string content;
+    char const* btn1;
+    char const* btn2;
+    switch (depState) {
+        case DepState::None:
+            content = fmt::format(
+                "Are you sure you want to install <cg>{}</c>?",
+                item->getMetadata().getName()
+            );
+            btn1 = "Info";
+            btn2 = "Install";
+            break;
+        case DepState::HasOnlyRequired:
+            content =
+                "Installing this mod requires other mods to be installed. "
+                "Would you like to <cy>proceed</c> with the installation or "
+                "<cb>view</c> which mods are going to be installed?";
+            btn1 = "View";
+            btn2 = "Proceed";
+            break;
+        case DepState::HasOptional:
+            content =
+                "This mod recommends installing other mods alongside it. "
+                "Would you like to continue with <cy>recommended settings</c> or "
+                "<cb>customize</c> which mods to install?";
+            btn1 = "Customize";
+            btn2 = "Recommended";
+            break;
+    }
+
+    createQuickPopup("Confirm Install", content, btn1, btn2, 320.f, [&](FLAlertLayer*, bool btn2) {
+        if (btn2) {
+            auto canInstall = Index::get()->canInstall(m_item);
+            if (!canInstall) {
+                FLAlertLayer::create(
+                    "Unable to Install",
+                    canInstall.unwrapErr(),
+                    "OK"
+                )->show();
+                return;
+            }
+            this->preInstall();
+            Index::get()->install(m_item);
+        }
+        else {
+            InstallListPopup::create(m_item, [&](IndexInstallList const& list) {
+                this->preInstall();
+                Index::get()->install(list);
+            })->show();
+        }
+    }, true, true);
+}
+
+void ModInfoPopup::preInstall() {
+    if (m_latestVersionLabel) {
+        m_latestVersionLabel->setVisible(false);
+    }
+    this->setInstallStatus(UpdateProgress(0, "Starting install"));
+
+    m_installBtn->setTarget(
+        this, menu_selector(ModInfoPopup::onCancelInstall)
+    );
+    m_installBtnSpr->setString("Cancel");
+    m_installBtnSpr->setBG("GJ_button_06.png", false);
+}
+
+void ModInfoPopup::onCancelInstall(CCObject*) {
+    Index::get()->cancelInstall(m_item);
+}
+
 // LocalModInfoPopup
 LocalModInfoPopup::LocalModInfoPopup()
   : m_installListener(
@@ -462,8 +551,8 @@ void LocalModInfoPopup::onUpdateProgress(ModInstallEvent* event) {
             FLAlertLayer::create(
                 "Update complete",
                 "Mod successfully updated! :) "
-                "(You may need to <cy>restart the game</c> "
-                "for the mod to take full effect)",
+                "(You have to <cy>restart the game</c> "
+                "for the mod to take effect)",
                 "OK"
             )->show();
 
@@ -493,61 +582,7 @@ void LocalModInfoPopup::onUpdateProgress(ModInstallEvent* event) {
 }
 
 void LocalModInfoPopup::onUpdate(CCObject*) {
-    auto list = Index::get()->getInstallList(m_item);
-    if (!list) {
-        return FLAlertLayer::create(
-            "Unable to Update",
-            list.unwrapErr(),
-            "OK"
-        )->show();
-    }
-    auto layer = FLAlertLayer::create(
-        this,
-        "Confirm Update",
-        fmt::format(
-            "The following mods will be updated:\n {}",
-            // le nest
-            ranges::join(
-                ranges::map<std::vector<std::string>>(
-                    list.unwrap().list,
-                    [](IndexItemHandle handle) {
-                        return fmt::format(
-                            " - <cr>{}</c> (<cy>{}</c>)",
-                            handle->getMetadata().getName(),
-                            handle->getMetadata().getID()
-                        );
-                    }
-                ),
-                "\n "
-            )
-        ),
-        "Cancel", "OK"
-    );
-    layer->setTag(TAG_CONFIRM_UPDATE);
-    layer->show();
-}
-
-void LocalModInfoPopup::onCancel(CCObject*) {
-    Index::get()->cancelInstall(m_item);
-}
-
-void LocalModInfoPopup::doUpdate() {
-    if (m_latestVersionLabel) {
-        m_latestVersionLabel->setVisible(false);
-    }
-
-    if (m_minorVersionLabel) {
-        m_minorVersionLabel->setVisible(false);
-    }
-    this->setInstallStatus(UpdateProgress(0, "Starting update"));
-
-    m_installBtn->setTarget(
-        this, menu_selector(LocalModInfoPopup::onCancel)
-    );
-    m_installBtnSpr->setString("Cancel");
-    m_installBtnSpr->setBG("GJ_button_06.png", false);
-
-    Index::get()->install(m_item);
+    this->popupInstallItem(m_item);
 }
 
 void LocalModInfoPopup::onUninstall(CCObject*) {
@@ -631,12 +666,6 @@ void LocalModInfoPopup::FLAlert_Clicked(FLAlertLayer* layer, bool btn2) {
             }
             this->onClose(nullptr);
         } break;
-
-        case TAG_CONFIRM_UPDATE: {
-            if (btn2) {
-                this->doUpdate();
-            }
-        } break;
     }
 }
 
@@ -649,8 +678,8 @@ void LocalModInfoPopup::doUninstall() {
         this,
         "Uninstall complete",
         "Mod was successfully uninstalled! :) "
-        "(You may need to <cy>restart the game</c> "
-        "for the mod to take full effect). "
+        "(You have to <cy>restart the game</c> "
+        "for the mod to take effect). "
         "<co>Would you also like to delete the mod's "
         "save data?</c>",
         "Keep",
@@ -687,7 +716,8 @@ bool IndexItemInfoPopup::init(IndexItemHandle item, ModListLayer* list) {
 
     if (!ModInfoPopup::init(item->getMetadata(), list)) return false;
 
-    if (item->isInstalled()) return true;
+    // bruh why is this here if we are allowing for browsing already installed mods
+    // if (item->isInstalled()) return true;
 
     m_installBtnSpr = IconButtonSprite::create(
         "GE_button_01.png"_spr,
@@ -719,8 +749,8 @@ void IndexItemInfoPopup::onInstallProgress(ModInstallEvent* event) {
             FLAlertLayer::create(
                 "Install complete",
                 "Mod successfully installed! :) "
-                "(You may need to <cy>restart the game</c> "
-                "for the mod to take full effect)",
+                "(You have to <cy>restart the game</c> "
+                "for the mod to take effect)",
                 "OK"
             )->show();
 
@@ -750,92 +780,7 @@ void IndexItemInfoPopup::onInstallProgress(ModInstallEvent* event) {
 }
 
 void IndexItemInfoPopup::onInstall(CCObject*) {
-    auto deps = m_item->getMetadata().getDependencies();
-    enum class DepState {
-        None,
-        HasOnlyRequired,
-        HasOptional
-    } depState = DepState::None;
-    for (auto const& item : deps) {
-        // resolved means it's already installed, so
-        // no need to ask the user whether they want to install it
-        if (Loader::get()->isModLoaded(item.id))
-            continue;
-        if (item.importance != ModMetadata::Dependency::Importance::Required) {
-            depState = DepState::HasOptional;
-            break;
-        }
-        depState = DepState::HasOnlyRequired;
-    }
-
-    std::string content;
-    char const* btn1;
-    char const* btn2;
-    switch (depState) {
-        case DepState::None:
-            content = fmt::format(
-                "Are you sure you want to install <cg>{}</c>?",
-                m_item->getMetadata().getName()
-            );
-            btn1 = "Info";
-            btn2 = "Install";
-            break;
-        case DepState::HasOnlyRequired:
-            content =
-                "Installing this mod requires other mods to be installed. "
-                "Would you like to <cy>proceed</c> with the installation or "
-                "<cb>view</c> which mods are going to be installed?";
-            btn1 = "View";
-            btn2 = "Proceed";
-            break;
-        case DepState::HasOptional:
-            content =
-                "This mod recommends installing other mods alongside it. "
-                "Would you like to continue with <cy>recommended settings</c> or "
-                "<cb>customize</c> which mods to install?";
-            btn1 = "Customize";
-            btn2 = "Recommended";
-            break;
-    }
-
-    createQuickPopup("Confirm Install", content, btn1, btn2, 320.f, [&](FLAlertLayer*, bool btn2) {
-        if (btn2) {
-            auto canInstall = Index::get()->canInstall(m_item);
-            if (!canInstall) {
-                FLAlertLayer::create(
-                    "Unable to Install",
-                    canInstall.unwrapErr(),
-                    "OK"
-                )->show();
-                return;
-            }
-            this->preInstall();
-            Index::get()->install(m_item);
-        }
-        else {
-            InstallListPopup::create(m_item, [&](IndexInstallList const& list) {
-                this->preInstall();
-                Index::get()->install(list);
-            })->show();
-        }
-    }, true, true);
-}
-
-void IndexItemInfoPopup::preInstall() {
-    if (m_latestVersionLabel) {
-        m_latestVersionLabel->setVisible(false);
-    }
-    this->setInstallStatus(UpdateProgress(0, "Starting install"));
-
-    m_installBtn->setTarget(
-        this, menu_selector(IndexItemInfoPopup::onCancel)
-    );
-    m_installBtnSpr->setString("Cancel");
-    m_installBtnSpr->setBG("GJ_button_06.png", false);
-}
-
-void IndexItemInfoPopup::onCancel(CCObject*) {
-    Index::get()->cancelInstall(m_item);
+    this->popupInstallItem(m_item);
 }
 
 CCNode* IndexItemInfoPopup::createLogo(CCSize const& size) {

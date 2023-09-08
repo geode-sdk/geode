@@ -227,11 +227,7 @@ void ModCell::onEnable(CCObject* sender) {
     else {
         tryOrAlert(m_mod->disable(), "Error disabling mod");
     }
-    Loader::get()->queueInMainThread([this]() {
-        if (m_layer) {
-            m_layer->updateAllStates();
-        }
-    });
+    m_layer->reloadList();
 }
 
 void ModCell::onUnresolvedInfo(CCObject*) {
@@ -278,9 +274,9 @@ bool ModCell::init(
         return false;
     m_mod = mod;
 
-    this->setupInfo(mod->getMetadata(), false, display, m_mod->isUninstalled());
+    this->setupInfo(mod->getMetadata(), false, display, mod->getRequestedAction() != ModRequestedAction::None);
 
-    if (mod->isUninstalled()) {
+    if (mod->getRequestedAction() != ModRequestedAction::None) {
         auto restartSpr = ButtonSprite::create("Restart", "bigFont.fnt", "GJ_button_03.png", .8f);
         restartSpr->setScale(.65f);
 
@@ -317,14 +313,16 @@ bool ModCell::init(
                 }
             }
         }
+
+        if (m_mod->wasSuccessfullyLoaded() && m_mod->getMetadata().getID() != "geode.loader") {
+            m_enableToggle =
+                CCMenuItemToggler::createWithStandardSprites(this, menu_selector(ModCell::onEnable), .7f);
+            m_enableToggle->setPosition(-45.f, 0.f);
+            m_menu->addChild(m_enableToggle);
+        }
     }
 
-    if (m_mod->wasSuccessfullyLoaded() && m_mod->supportsDisabling() && !m_mod->isUninstalled()) {
-        m_enableToggle =
-            CCMenuItemToggler::createWithStandardSprites(this, menu_selector(ModCell::onEnable), .7f);
-        m_enableToggle->setPosition(-45.f, 0.f);
-        m_menu->addChild(m_enableToggle);
-    }
+    
 
     auto exMark = CCSprite::createWithSpriteFrameName("exMark_001.png");
     exMark->setScale(.5f);

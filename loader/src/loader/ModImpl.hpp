@@ -62,6 +62,9 @@ namespace geode {
          */
         bool m_resourcesLoaded = false;
 
+
+        ModRequestedAction m_requestedAction = ModRequestedAction::None;
+
         Impl(Mod* self, ModMetadata const& metadata);
         ~Impl();
 
@@ -122,6 +125,10 @@ namespace geode {
         Result<> disable();
         Result<> uninstall();
         bool isUninstalled() const;
+
+        // 1.3.0 additions
+        ModRequestedAction getRequestedAction() const;
+
         bool depends(std::string const& id) const;
         Result<> updateDependencies();
         bool hasUnresolvedDependencies() const;

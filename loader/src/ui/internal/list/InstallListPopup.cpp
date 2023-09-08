@@ -112,7 +112,8 @@ CCArray* InstallListPopup::createCells(std::unordered_map<std::string, InstallLi
         queued.insert(item.id);
 
         // installed
-        if (item.mod && !item.mod->isUninstalled()) {
+        // TODO: we should be able to select a different version even if its installed
+        if (/*item.mod && !item.mod->isUninstalled()*/item.mod->getMetadata().getID() == "geode.loader") {
             bottom.push_back(ModInstallListCell::create(item.mod, this, this->getCellSize()));
             for (auto const& dep : item.mod->getMetadata().getDependencies()) {
                 queue.push(dep);
@@ -204,7 +205,7 @@ void InstallListPopup::onInstall(cocos2d::CCObject* obj) {
     CCArray* entries = m_list->m_entries;
     for (size_t i = entries->count(); i > 0; i--) {
         auto* itemCell = typeinfo_cast<IndexItemInstallListCell*>(entries->objectAtIndex(i - 1));
-        if (!itemCell || !itemCell->isIncluded())
+        if (!itemCell || !itemCell->isIncluded() || itemCell->getItem()->isInstalled())
             continue;
         IndexItemHandle item = itemCell->getItem();
         list.list.push_back(item);
@@ -221,6 +222,73 @@ InstallListPopup* InstallListPopup::create(
 ) {
     auto ret = new InstallListPopup();
     if (!ret->init(380.f, 250.f, std::move(item), std::move(onInstall))) {
+        CC_SAFE_DELETE(ret);
+        return nullptr;
+    }
+    ret->autorelease();
+    return ret;
+}
+
+// SelectVersionPopup
+
+bool SelectVersionPopup::setup(std::string const& modID, IndexItemInstallListCell* installCell) {
+    m_modID = modID;
+    m_installCell = installCell;
+
+    this->setTitle("Select Version");
+
+    this->createList();
+
+    return true;
+}
+
+void SelectVersionPopup::createList() {
+    auto winSize = CCDirector::sharedDirector()->getWinSize();
+
+    if (m_listParent) {
+        m_listParent->removeFromParent();
+    }
+
+    m_listParent = CCNode::create();
+    m_mainLayer->addChild(m_listParent);
+
+    auto items = this->createCells();
+    m_list = ListView::create(
+        items,
+        this->getCellSize().height,
+        this->getListSize().width,
+        this->getListSize().height
+    );
+    m_list->setPosition(winSize / 2 - m_list->getScaledContentSize() / 2);
+    m_listParent->addChild(m_list);
+
+    addListBorders(m_listParent, winSize / 2, m_list->getScaledContentSize());
+}
+
+CCArray* SelectVersionPopup::createCells() {
+    auto cells = CCArray::create();
+    for (auto& item : ranges::reverse(Index::get()->getItemsByModID(m_modID))) {
+        cells->addObject(SelectVersionCell::create(item, this, this->getCellSize()));
+    }
+    return cells;
+}
+
+CCSize SelectVersionPopup::getCellSize() const {
+    return { getListSize().width, 30.f };
+}
+CCSize SelectVersionPopup::getListSize() const {
+    return { 340.f, 170.f };
+}
+
+void SelectVersionPopup::selectItem(IndexItemHandle item) {
+    this->onBtn2(nullptr);
+
+    m_installCell->setVersionFromItem(item);
+}
+
+SelectVersionPopup* SelectVersionPopup::create(std::string const& modID, IndexItemInstallListCell* installCell) {
+    auto ret = new SelectVersionPopup();
+    if (!ret->init(380.f, 250.f, modID, installCell)) {
         CC_SAFE_DELETE(ret);
         return nullptr;
     }

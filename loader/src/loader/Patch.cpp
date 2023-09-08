@@ -4,12 +4,42 @@
 using namespace geode::prelude;
 
 bool Patch::apply() {
-    return bool(tulip::hook::writeMemory(m_address, m_patch.data(), m_patch.size()));
+    bool res = bool(tulip::hook::writeMemory(m_address, m_patch.data(), m_patch.size()));
+    if (res)
+        m_applied = true;
+    return res;
 }
 
 bool Patch::restore() {
-    return bool(tulip::hook::writeMemory(m_address, m_original.data(), m_original.size()));
+    bool res = bool(tulip::hook::writeMemory(m_address, m_original.data(), m_original.size()));
+    if (res)
+        m_applied = false;
+    return res;
 }
+
+Patch::Patch() : m_owner(nullptr), m_address(nullptr), m_applied(false), m_autoEnable(true) {}
+
+void Patch::setAutoEnable(bool autoEnable) {
+    m_autoEnable = autoEnable;
+}
+
+bool Patch::getAutoEnable() const {
+    return m_autoEnable;
+}
+
+uintptr_t Patch::getAddress() const {
+    return reinterpret_cast<uintptr_t>(m_address);
+}
+
+bool Patch::isApplied() const {
+    return m_applied;
+}
+
+Mod* Patch::getOwner() const {
+    return m_owner;
+}
+
+Patch::~Patch() {}
 
 template <>
 struct json::Serialize<ByteVector> {

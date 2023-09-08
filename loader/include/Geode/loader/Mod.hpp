@@ -33,6 +33,13 @@ namespace geode {
         ~HandleToSaved();
     };
 
+    enum class ModRequestedAction {
+        None,
+        Enable,
+        Disable,
+        Uninstall,
+    };
+
     GEODE_HIDDEN Mod* takeNextLoaderMod();
 
     class ModImpl;
@@ -336,6 +343,8 @@ namespace geode {
          */
         Result<> uninstall();
         bool isUninstalled() const;
+
+        ModRequestedAction getRequestedAction() const;
 
         /**
          * Check whether or not this Mod
