@@ -73,7 +73,7 @@ void ModListCell::setupInfo(
     m_labelMenu->setLayout(
         RowLayout::create()
             ->setAxisAlignment(AxisAlignment::Start)
-            ->setAutoScale(false)
+            ->setAutoScale(true)
     );
     m_labelMenu->setLayoutOptions(
         AxisLayoutOptions::create()
@@ -90,7 +90,7 @@ void ModListCell::setupInfo(
     titleLabel->limitLabelWidth(m_width / 2 - 40.f, .5f, .1f);
     titleLabel->setLayoutOptions(
         AxisLayoutOptions::create()
-            ->setAutoScale(true)
+            ->setScalePriority(1)
             ->setMaxScale(0.5f)
             ->setMinScale(0.1f)
     );
@@ -103,11 +103,15 @@ void ModListCell::setupInfo(
         metadata.getVersion().toString(false).c_str(),
         "bigFont.fnt"
     );
-    versionLabel->setScale(.3f);
     versionLabel->setColor({ 0, 255, 0 });
     if (inactive) {
         versionLabel->setColor({ 0, 163, 0 });
     }
+    versionLabel->setLayoutOptions(
+        AxisLayoutOptions::create()
+            ->setMaxScale(0.3)
+            ->setMinScale(0.1)
+    );
     m_labelMenu->addChild(versionLabel);
 
     TagNode* apiLabel = nullptr;
@@ -115,13 +119,21 @@ void ModListCell::setupInfo(
 
     if (auto tag = metadata.getVersion().getTag()) {
         auto tagLabel = TagNode::create(tag.value().toString().c_str());
-        tagLabel->setScale(.3f);
+        tagLabel->setLayoutOptions(
+            AxisLayoutOptions::create()
+                ->setMaxScale(0.3)
+                ->setMinScale(0.1)
+        );
         m_labelMenu->addChild(tagLabel);
     }
 
     if (metadata.isAPI()) {
         apiLabel = TagNode::create("API");
-        apiLabel->setScale(.3f);
+        apiLabel->setLayoutOptions(
+            AxisLayoutOptions::create()
+                ->setMaxScale(0.3)
+                ->setMinScale(0.1)
+        );
         m_labelMenu->addChild(apiLabel);
     }
 
