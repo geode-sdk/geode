@@ -72,9 +72,11 @@ namespace geode {
 
         std::vector<utils::MiniFunction<void(void)>> m_gdThreadQueue;
         mutable std::mutex m_gdThreadMutex;
-        bool m_platformConsoleOpen = false;
         std::vector<std::pair<Hook*, Mod*>> m_internalHooks;
         bool m_readyToHook = false;
+
+        bool m_platformConsoleOpen = false;
+        void* m_platformData = nullptr;
 
         std::mutex m_nextModMutex;
         std::unique_lock<std::mutex> m_nextModLock = std::unique_lock<std::mutex>(m_nextModMutex, std::defer_lock);
