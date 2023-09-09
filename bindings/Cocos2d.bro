@@ -291,7 +291,7 @@ class cocos2d::CCEGLViewProtocol {
     auto getScaleX() const = mac 0x29e300;
     auto getScaleY() const = mac 0x29e310;
     virtual auto setDesignResolutionSize(float, float, ResolutionPolicy);
-	auto setFrameSize(float, float) = mac 0x29d960;
+	virtual void setFrameSize(float, float) = mac 0x29d960;
 }
 
 [[link(win)]]
