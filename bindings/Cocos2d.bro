@@ -892,6 +892,7 @@ class cocos2d::CCSet {
 class cocos2d::CCShaderCache {
 	static auto sharedShaderCache() = mac 0xe6d10;
 	auto programForKey(const char*) = mac 0xe7d40;
+	void reloadDefaultShaders();
 }
 
 [[link(win)]]

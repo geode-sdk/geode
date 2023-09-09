@@ -3045,7 +3045,9 @@ class GameManager : GManager {
     void loadGround(int) = mac 0x1cc8e0, win 0xc9a50;
     void reloadAll(bool, bool, bool) = mac 0x1d08a0, win 0xce950;
     void reloadAllStep2() = mac 0x1d0940, win 0xce9e0, ios 0x23b1f4;
-    void reloadAllStep5() = mac 0x1d0b00;
+    void reloadAllStep3() = win 0xceb10;
+    void reloadAllStep4() = win 0xceb80;
+    void reloadAllStep5() = mac 0x1d0b00, win 0xcebf0;
     void reportPercentageForLevel(int, int, bool) = mac 0x1c5b00;
     void setGameVariable(const char*, bool) = mac 0x1cca80, win 0xc9b50;
     void setIntGameVariable(const char*, int) = mac 0x1cd0e0, win 0xca230;
