@@ -343,28 +343,28 @@ bool ModListLayer::init() {
     m_menu->addChild(m_featuredTabBtn);
 
     // tabs gradient
-    // m_tabsGradientNode = CCClippingNode::create();
-    // m_tabsGradientNode->setContentSize(this->getContentSize());
-    // m_tabsGradientNode->setAnchorPoint({0.5f, 0.5f});
-    // m_tabsGradientNode->ignoreAnchorPointForPosition(true);
-    // m_tabsGradientNode->setZOrder(9);
-    // m_tabsGradientNode->setInverted(false);
-    // m_tabsGradientNode->setAlphaThreshold(0.f);
+    m_tabsGradientNode = CCClippingNode::create();
+    m_tabsGradientNode->setContentSize(this->getContentSize());
+    m_tabsGradientNode->setAnchorPoint({0.5f, 0.5f});
+    m_tabsGradientNode->ignoreAnchorPointForPosition(true);
+    m_tabsGradientNode->setZOrder(9);
+    m_tabsGradientNode->setInverted(false);
+    m_tabsGradientNode->setAlphaThreshold(0.f);
 
-    // m_tabsGradientSprite = CCSprite::create("tab-gradient.png"_spr);
-    // m_tabsGradientNode->addChild(m_tabsGradientSprite);
+    m_tabsGradientSprite = CCSprite::create("tab-gradient.png"_spr);
+    m_tabsGradientNode->addChild(m_tabsGradientSprite);
 
-    // m_tabsGradientStencil = CCSprite::create("tab-gradient-mask.png"_spr);
-    // m_tabsGradientStencil->setAnchorPoint({0.f, 0.f});
-    // m_tabsGradientNode->setStencil(m_tabsGradientStencil);
+    m_tabsGradientStencil = CCSprite::create("tab-gradient-mask.png"_spr);
+    m_tabsGradientStencil->setAnchorPoint({0.f, 0.f});
+    m_tabsGradientNode->setStencil(m_tabsGradientStencil);
 
     // add menus
     m_menu->setZOrder(0);
     m_topMenu->setZOrder(10);
 
     this->addChild(m_menu);
-    // this->addChild(m_tabsGradientNode);
-    // this->addChild(m_tabsGradientStencil);
+    this->addChild(m_tabsGradientNode);
+    this->addChild(m_tabsGradientStencil);
     this->addChild(m_topMenu);
 
     // select first tab
