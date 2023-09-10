@@ -291,7 +291,7 @@ class cocos2d::CCEGLViewProtocol {
     auto getScaleX() const = mac 0x29e300;
     auto getScaleY() const = mac 0x29e310;
     virtual auto setDesignResolutionSize(float, float, ResolutionPolicy);
-	auto setFrameSize(float, float) = mac 0x29d960;
+	virtual void setFrameSize(float, float) = mac 0x29d960;
 }
 
 [[link(win)]]
@@ -318,6 +318,7 @@ class cocos2d::CCFileUtils : cocos2d::TypeInfo {
 class cocos2d::CCGLProgram {
 	auto setUniformsForBuiltins() = mac 0x232c70;
 	auto use() = mac 0x231d70;
+	bool compileShader(unsigned int* shader, unsigned int type, const char* source);
 }
 
 [[link(win)]]
@@ -891,6 +892,7 @@ class cocos2d::CCSet {
 class cocos2d::CCShaderCache {
 	static auto sharedShaderCache() = mac 0xe6d10;
 	auto programForKey(const char*) = mac 0xe7d40;
+	void reloadDefaultShaders();
 }
 
 [[link(win)]]
