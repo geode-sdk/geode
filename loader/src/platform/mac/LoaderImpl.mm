@@ -51,16 +51,14 @@ void Loader::Impl::openPlatformConsole() {
         echo -n -e "\033]0;Geode Console {}\007"
         tail -f {} &
         trap "" SIGINT
-        while [ $(lsof -t {} 2>/dev/null | wc -l) -gt 1 ]
-        do :
-            sleep 2
-        done
+        lsof -p {} +r 1 &>/dev/null
+        pkill -P $$
         osascript -e 'tell application "Terminal"
             close (every window whose name contains "Geode Console {}")
             if (count windows) is 0 then quit
         end tell' &
         exit
-    )", getpid(), outFile, outFile, getpid());
+    )", getpid(), outFile, getpid(), getpid());
 
     if (file::writeString(script, scriptContent)) {
         chmod(script.c_str(), 0777);
