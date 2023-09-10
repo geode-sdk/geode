@@ -493,19 +493,21 @@ void Loader::Impl::findProblems() {
 
         Mod* myEpicMod = mod; // clang fix
         // if the mod is not loaded but there are no problems related to it
-        // if (!mod->isLoaded() && !std::any_of(m_problems.begin(), m_problems.end(), [myEpicMod](auto& item) {
-        //         return std::holds_alternative<ModMetadata>(item.cause) &&
-        //             std::get<ModMetadata>(item.cause).getID() == myEpicMod->getID() ||
-        //             std::holds_alternative<Mod*>(item.cause) &&
-        //             std::get<Mod*>(item.cause) == myEpicMod;
-        //     })) {
-        //     m_problems.push_back({
-        //         LoadProblem::Type::Unknown,
-        //         mod,
-        //         ""
-        //     });
-        //     log::error("{} failed to load for an unknown reason", id);
-        // }
+        if (!mod->isLoaded() &&
+            Mod::get()->getSavedValue<bool>("should-load-" + mod->getID(), true) &&
+            !std::any_of(m_problems.begin(), m_problems.end(), [myEpicMod](auto& item) {
+                return std::holds_alternative<ModMetadata>(item.cause) &&
+                    std::get<ModMetadata>(item.cause).getID() == myEpicMod->getID() ||
+                    std::holds_alternative<Mod*>(item.cause) &&
+                    std::get<Mod*>(item.cause) == myEpicMod;
+            })) {
+            m_problems.push_back({
+                LoadProblem::Type::Unknown,
+                mod,
+                ""
+            });
+            log::error("{} failed to load for an unknown reason", id);
+        }
 
         log::popNest();
     }
