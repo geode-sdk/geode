@@ -42,39 +42,42 @@ void Loader::Impl::logConsoleMessageWithSeverity(std::string const& msg, Severit
 void Loader::Impl::openPlatformConsole() {
     if (m_platformConsoleOpen) return;
 
-    // std::string outFile = "/tmp/command_output_XXXXXX";
-    // int outFd = mkstemp(&outFile[0]);
+    std::string outFile = "/tmp/command_output_XXXXXX";
+    int outFd = mkstemp(&outFile[0]);
 
-    // auto script = outFile + ".command";
-    // auto scriptContent = fmt::format(R"(
-    //     #!/bin/sh
-    //     echo -n -e "\033]0;Geode Console\007"
-    //     tail -f {} &
-    //     trap "" SIGINT
-    //     while [ $(lsof -t {} 2>/dev/null | wc -l) -gt 1 ]; do :; done
-    //     osascript -e 'tell application "Terminal"
-    //         close (every window whose name contains "Geode Console")
-    //         if (count windows) is 0 then quit
-    //     end tell' &
-    //     exit
-    // )", outFile, outFile);
+    auto script = outFile + ".command";
+    auto scriptContent = fmt::format(R"(
+        #!/bin/sh
+        echo -n -e "\033]0;Geode Console {}\007"
+        tail -f {} &
+        trap "" SIGINT
+        while [ $(lsof -t {} 2>/dev/null | wc -l) -gt 1 ]
+        do :
+            sleep 2
+        done
+        osascript -e 'tell application "Terminal"
+            close (every window whose name contains "Geode Console {}")
+            if (count windows) is 0 then quit
+        end tell' &
+        exit
+    )", getpid(), outFile, outFile, getpid());
 
-    // if (file::writeString(script, scriptContent)) {
-    //     chmod(script.c_str(), 0777);
-    //     dup2(outFd, 1);
-    //     dup2(outFd, 2);
+    if (file::writeString(script, scriptContent)) {
+        chmod(script.c_str(), 0777);
+        dup2(outFd, 1);
+        dup2(outFd, 2);
 
-    //     NSTask *task = [[NSTask alloc] init];
-    //     task.launchPath = @"/usr/bin/open";
-    //     task.arguments = @[[NSString stringWithUTF8String:script.c_str()]];
-    //     [task launch];
+        NSTask *task = [[NSTask alloc] init];
+        task.launchPath = @"/usr/bin/open";
+        task.arguments = @[[NSString stringWithUTF8String:script.c_str()]];
+        [task launch];
 
-    //     m_platformData = new MacConsoleData {
-    //         outFile,
-    //         script,
-    //         outFd
-    //     };
-    // }
+        m_platformData = new MacConsoleData {
+            outFile,
+            script,
+            outFd
+        };
+    }
 
     m_platformConsoleOpen = true;
 
