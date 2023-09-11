@@ -24,14 +24,13 @@ static void printGeodeInfo(std::stringstream& stream) {
 
 static void printMods(std::stringstream& stream) {
     auto mods = Loader::get()->getAllMods();
-    if (!mods.size()) {
+    if (mods.empty()) {
         stream << "<None>\n";
     }
     using namespace std::string_view_literals;
     for (auto& mod : mods) {
-        stream << fmt::format("{:>8} | {:>8} | [{}] {}\n",
-            mod->isLoaded() ? "Loaded"sv : "Unloaded"sv,
-            mod->isEnabled() ? "Enabled"sv : "Disabled"sv,
+        stream << fmt::format("{} | [{}] {}\n",
+            mod->isLoaded() ? "x"sv : " "sv,
             mod->getVersion().toString(), mod->getID()
         );
     }
