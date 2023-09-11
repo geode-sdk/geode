@@ -30,7 +30,7 @@ static void printMods(std::stringstream& stream) {
     using namespace std::string_view_literals;
     for (auto& mod : mods) {
         stream << fmt::format("{} | [{}] {}\n",
-            mod->isLoaded() ? "x"sv : " "sv,
+            mod->isEnabled() ? "x"sv : " "sv,
             mod->getVersion().toString(), mod->getID()
         );
     }
