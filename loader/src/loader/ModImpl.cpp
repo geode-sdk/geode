@@ -42,8 +42,9 @@ Result<> Mod::Impl::setup() {
     if (!loadRes) {
         log::warn("Unable to load data for \"{}\": {}", m_metadata.getID(), loadRes.unwrapErr());
     }
-    if (LoaderImpl::get()->m_isSetup) {
-        Loader::get()->updateResources(false);
+    if (!m_resourcesLoaded) {
+        LoaderImpl::get()->updateModResources(m_self);
+        m_resourcesLoaded = true;
     }
 
     return Ok();

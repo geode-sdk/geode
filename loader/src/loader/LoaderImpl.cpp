@@ -225,8 +225,6 @@ void Loader::Impl::updateModResources(Mod* mod) {
     if (mod->getMetadata().getSpritesheets().empty())
         return;
 
-    auto searchPath = mod->getResourcesDir();
-
     log::debug("Adding resources for {}", mod->getID());
 
     // add spritesheets
