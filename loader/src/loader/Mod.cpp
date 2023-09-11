@@ -191,7 +191,10 @@ Result<> Mod::disable() {
 }
 
 Result<> Mod::uninstall() {
-    return m_impl->uninstall();
+    return m_impl->uninstall(false);
+}
+Result<> Mod::uninstall(bool deleteSaveData) {
+    return m_impl->uninstall(deleteSaveData);
 }
 
 bool Mod::isUninstalled() const {

@@ -24,7 +24,7 @@
 
 static constexpr int const TAG_CONFIRM_UNINSTALL = 5;
 static constexpr int const TAG_CONFIRM_UPDATE = 6;
-static constexpr int const TAG_DELETE_SAVEDATA = 7;
+static constexpr int const TAG_CONFIRM_UNINSTALL_WITH_SAVEDATA = 7;
 static const CCSize LAYER_SIZE = {440.f, 290.f};
 
 bool ModInfoPopup::init(ModMetadata const& metadata, ModListLayer* list) {
@@ -431,7 +431,12 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
         disableBtnSpr->setColor({150, 150, 150});
     }
 
-    if (mod != Mod::get()) {
+    bool shouldShowUninstall = mod != Mod::get();
+#if defined(GEODE_IS_WINDOWS)
+    shouldShowUninstall = shouldShowUninstall ||
+        exists((dirs::getGameDir() / "GeodeUninstaller.exe"));
+#endif
+    if (shouldShowUninstall) {
         auto uninstallBtnSpr =
             ButtonSprite::create("Uninstall", "bigFont.fnt", "GJ_button_05.png", .6f);
         uninstallBtnSpr->setScale(.6f);
@@ -589,7 +594,10 @@ void LocalModInfoPopup::onUninstall(CCObject*) {
     auto layer = FLAlertLayer::create(
         this,
         "Confirm Uninstall",
-        fmt::format("Are you sure you want to uninstall <cr>{}</c>?", m_mod->getName()),
+        fmt::format("Are you sure you want to uninstall <cr>{}</c>?{}",
+            m_mod->getName(), m_mod == Mod::get() ?
+            "\nThis will close the game and launch the <co>Geode Uninstaller</c>. "
+            "You will have to restart the game <cy>manually</c> after that." : ""),
         "Cancel",
         "OK"
     );
@@ -648,18 +656,23 @@ void LocalModInfoPopup::FLAlert_Clicked(FLAlertLayer* layer, bool btn2) {
     switch (layer->getTag()) {
         case TAG_CONFIRM_UNINSTALL: {
             if (btn2) {
-                this->doUninstall();
+                auto layer2 = FLAlertLayer::create(
+                    this,
+                    "Confirm Uninstall",
+                    "Would you also like to <cr>delete</c> the mod's <co>save data</c>?",
+                    "Keep",
+                    "Delete",
+                    350.f
+                );
+                layer2->setTag(TAG_CONFIRM_UNINSTALL_WITH_SAVEDATA);
+                layer2->show();
             }
         } break;
 
-        case TAG_DELETE_SAVEDATA: {
-            if (btn2) {
-                if (ghc::filesystem::remove_all(m_mod->getSaveDir())) {
-                    FLAlertLayer::create("Deleted", "The mod's save data was deleted.", "OK")->show();
-                }
-                else {
-                    FLAlertLayer::create("Error", "Unable to delete mod's save directory!", "OK")->show();
-                }
+        case TAG_CONFIRM_UNINSTALL_WITH_SAVEDATA: {
+            auto res = m_mod->uninstall(btn2);
+            if (!res) {
+                return FLAlertLayer::create("Uninstall failed :(", res.unwrapErr(), "OK")->show();
             }
             if (m_layer) {
                 m_layer->reloadList();
@@ -667,27 +680,6 @@ void LocalModInfoPopup::FLAlert_Clicked(FLAlertLayer* layer, bool btn2) {
             this->onClose(nullptr);
         } break;
     }
-}
-
-void LocalModInfoPopup::doUninstall() {
-    auto res = m_mod->uninstall();
-    if (!res) {
-        return FLAlertLayer::create("Uninstall failed :(", res.unwrapErr(), "OK")->show();
-    }
-    auto layer = FLAlertLayer::create(
-        this,
-        "Uninstall complete",
-        "Mod was successfully uninstalled! :) "
-        "(You have to <cy>restart the game</c> "
-        "for the mod to take effect). "
-        "<co>Would you also like to delete the mod's "
-        "save data?</c>",
-        "Keep",
-        "Delete",
-        350.f
-    );
-    layer->setTag(TAG_DELETE_SAVEDATA);
-    layer->show();
 }
 
 LocalModInfoPopup* LocalModInfoPopup::create(Mod* mod, ModListLayer* list) {

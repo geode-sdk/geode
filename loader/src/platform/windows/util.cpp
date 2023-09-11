@@ -158,6 +158,22 @@ ghc::filesystem::path dirs::getSaveDir() {
     return path;
 }
 
+void geode::utils::game::exit() {
+    if (CCApplication::sharedApplication() &&
+        (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
+        log::error("Cannot exit in PlayLayer or LevelEditorLayer!");
+        return;
+    }
+
+    if (CCApplication::sharedApplication())
+        // please forgive me..
+        // manually set the closed flag
+        // TODO: actually call glfwSetWindowShouldClose
+        *reinterpret_cast<bool*>(reinterpret_cast<uintptr_t>(CCEGLView::sharedOpenGLView()->getWindow()) + 0xa) = true;
+    else
+        std::exit(0);
+}
+
 void geode::utils::game::restart() {
     if (CCApplication::sharedApplication() &&
         (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
@@ -175,13 +191,25 @@ void geode::utils::game::restart() {
     const auto updaterPath = (workingDir / "GeodeUpdater.exe").string();
     ShellExecuteA(nullptr, "open", updaterPath.c_str(), gdName.c_str(), workingDir.string().c_str(), false);
 
-    if (CCApplication::sharedApplication())
-        // please forgive me..
-        // manually set the closed flag
-        // TODO: actually call glfwSetWindowShouldClose
-        *reinterpret_cast<bool*>(reinterpret_cast<uintptr_t>(CCEGLView::sharedOpenGLView()->getWindow()) + 0xa) = true;
-    else
-        exit(0);
+    exit();
+}
+
+void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
+    const auto workingDir = dirs::getGameDir();
+
+    if (!exists((workingDir / "GeodeUninstaller.exe"))) {
+        log::error("Uninstaller not found! Not launching.");
+        return;
+    }
+
+    std::string params;
+    if (deleteSaveData) {
+        params = "\"/DATA=" + dirs::getSaveDir().string() + "\"";
+    }
+
+    // launch uninstaller
+    const auto uninstallerPath = (workingDir / "GeodeUninstaller.exe").string();
+    ShellExecuteA(nullptr, "open", uninstallerPath.c_str(), params.c_str(), workingDir.string().c_str(), false);
 }
 
 Result<> geode::hook::addObjcMethod(std::string const& className, std::string const& selectorName, void* imp) {
