@@ -54,6 +54,30 @@ public:
     size_t getGrow() const;
 };
 
+/**
+ * A spacer node that updates the content size of its child to match its own
+ * @note This is useful for making a spacer node that takes up the remaining
+ * space in a layout
+ */
+class GEODE_DLL SpacerNodeChild : public SpacerNode {
+protected:
+    CCNode* m_child = nullptr;
+
+    bool init(CCNode* child, size_t grow);
+
+public:
+    /**
+     * Create a new spacer node. When the layout is applied, 
+     * if there is space left over the remaining space is distributed among 
+     * all spacer nodes in proportion to the sum of all the spacers' grow 
+     * factors (akin to CSS flew grow)
+     * @param grow The grow factor for this node. Default is 1
+    */
+    static SpacerNodeChild* create(CCNode* child, size_t grow = 1);
+
+    void setContentSize(CCSize const& size) override;
+};
+
 #pragma warning(pop)
 
 NS_CC_END

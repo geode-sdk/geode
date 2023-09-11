@@ -1,5 +1,8 @@
 # Geode Changelog
 
+## v1.3.1
+ * Fix TulipHook not relocating RIP relative operands on MacOS (6cad19d)
+
 ## v1.3.0
  * Completely remove runtime enabling & disabling of mods (d817749)
  * Patches auto enabling can be disabled (69821f3)

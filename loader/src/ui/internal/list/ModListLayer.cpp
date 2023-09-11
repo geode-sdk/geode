@@ -349,7 +349,7 @@ bool ModListLayer::init() {
     m_tabsGradientNode->ignoreAnchorPointForPosition(true);
     m_tabsGradientNode->setZOrder(9);
     m_tabsGradientNode->setInverted(false);
-    m_tabsGradientNode->setAlphaThreshold(0.f);
+    m_tabsGradientNode->setAlphaThreshold(0.7f);
 
     m_tabsGradientSprite = CCSprite::create("tab-gradient.png"_spr);
     m_tabsGradientNode->addChild(m_tabsGradientSprite);
@@ -646,7 +646,7 @@ void ModListLayer::onExpand(CCObject* sender) {
     m_display = static_cast<CCMenuItemToggler*>(sender)->isToggled() ?
         ModListDisplay::Concise :
         ModListDisplay::Expanded;
-    this->reloadList();
+    this->reloadList(false);
 }
 
 void ModListLayer::onFilters(CCObject*) {
@@ -682,7 +682,7 @@ void ModListLayer::onTab(CCObject* pSender) {
             member->release();
         }
         if (isSelected && m_tabsGradientStencil)
-            m_tabsGradientStencil->setPosition(member->m_onButton->convertToWorldSpace({0.f, -1.f}));
+            m_tabsGradientStencil->setPosition(member->m_onButton->convertToWorldSpace({0.f, 0.f}));
     };
 
     toggleTab(m_downloadTabBtn);

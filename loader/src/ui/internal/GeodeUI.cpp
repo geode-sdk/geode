@@ -79,7 +79,13 @@ CCNode* geode::createModLogo(Mod* mod, CCSize const& size) {
     if (!spr) spr = CCSprite::createWithSpriteFrameName("no-logo.png"_spr);
     if (!spr) spr = CCLabelBMFont::create("N/A", "goldFont.fnt");
     limitNodeSize(spr, size, 1.f, .1f);
-    return spr;
+    spr->setPosition(size/2);
+    spr->setAnchorPoint({.5f, .5f});
+
+    auto node = CCNode::create();
+    node->addChild(spr);
+    node->setContentSize(size);
+    return node;
 }
 
 CCNode* geode::createIndexItemLogo(IndexItemHandle item, CCSize const& size) {
@@ -112,5 +118,11 @@ CCNode* geode::createIndexItemLogo(IndexItemHandle item, CCSize const& size) {
     else {
         limitNodeSize(spr, size, 1.f, .1f);
     }
-    return spr;
+    spr->setPosition(size/2);
+    spr->setAnchorPoint({.5f, .5f});
+
+    auto node = CCNode::create();
+    node->addChild(spr);
+    node->setContentSize(size);
+    return node;
 }

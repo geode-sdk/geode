@@ -201,13 +201,13 @@ Mod* Loader::Impl::getInstalledMod(std::string const& id) const {
 }
 
 bool Loader::Impl::isModLoaded(std::string const& id) const {
-    return m_mods.count(id) && m_mods.at(id)->isLoaded();
+    return m_mods.count(id) && m_mods.at(id)->isEnabled();
 }
 
 Mod* Loader::Impl::getLoadedMod(std::string const& id) const {
     if (m_mods.count(id)) {
         auto mod = m_mods.at(id);
-        if (mod->isLoaded()) {
+        if (mod->isEnabled()) {
             return mod;
         }
     }
@@ -224,8 +224,6 @@ void Loader::Impl::updateModResources(Mod* mod) {
     // only thing needs previous setup is spritesheets
     if (mod->getMetadata().getSpritesheets().empty())
         return;
-
-    auto searchPath = mod->getResourcesDir();
 
     log::debug("Adding resources for {}", mod->getID());
 
@@ -402,7 +400,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
     log::debug("{} {}", node->getID(), node->getVersion());
     log::pushNest();
 
-    if (node->isLoaded()) {
+    if (node->isEnabled()) {
         for (auto const& dep : node->m_impl->m_dependants) {
             this->loadModGraph(dep, early);
         }
@@ -438,7 +436,7 @@ void Loader::Impl::findProblems() {
         log::pushNest();
 
         for (auto const& dep : mod->getMetadata().getDependencies()) {
-            if (dep.mod && dep.mod->isLoaded() && dep.version.compare(dep.mod->getVersion()))
+            if (dep.mod && dep.mod->isEnabled() && dep.version.compare(dep.mod->getVersion()))
                 continue;
             switch(dep.importance) {
                 case ModMetadata::Dependency::Importance::Suggested:
@@ -493,19 +491,21 @@ void Loader::Impl::findProblems() {
 
         Mod* myEpicMod = mod; // clang fix
         // if the mod is not loaded but there are no problems related to it
-        // if (!mod->isLoaded() && !std::any_of(m_problems.begin(), m_problems.end(), [myEpicMod](auto& item) {
-        //         return std::holds_alternative<ModMetadata>(item.cause) &&
-        //             std::get<ModMetadata>(item.cause).getID() == myEpicMod->getID() ||
-        //             std::holds_alternative<Mod*>(item.cause) &&
-        //             std::get<Mod*>(item.cause) == myEpicMod;
-        //     })) {
-        //     m_problems.push_back({
-        //         LoadProblem::Type::Unknown,
-        //         mod,
-        //         ""
-        //     });
-        //     log::error("{} failed to load for an unknown reason", id);
-        // }
+        if (!mod->isEnabled() &&
+            Mod::get()->getSavedValue<bool>("should-load-" + mod->getID(), true) &&
+            !std::any_of(m_problems.begin(), m_problems.end(), [myEpicMod](auto& item) {
+                return std::holds_alternative<ModMetadata>(item.cause) &&
+                    std::get<ModMetadata>(item.cause).getID() == myEpicMod->getID() ||
+                    std::holds_alternative<Mod*>(item.cause) &&
+                    std::get<Mod*>(item.cause) == myEpicMod;
+            })) {
+            m_problems.push_back({
+                LoadProblem::Type::Unknown,
+                mod,
+                ""
+            });
+            log::error("{} failed to load for an unknown reason", id);
+        }
 
         log::popNest();
     }

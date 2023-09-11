@@ -8,6 +8,8 @@
 #include <hash/hash.hpp>
 #include <Geode/utils/JsonValidation.hpp>
 
+#include <thread>
+
 #ifdef GEODE_IS_WINDOWS
 #include <filesystem>
 #endif
@@ -318,19 +320,25 @@ void Index::Impl::downloadIndex() {
                 return;
             }
 
-            // unzip new index
-            auto unzip = file::Unzip::intoDir(targetFile, targetDir, true)
-                .expect("Unable to unzip new index");
-            if (!unzip) {
-                IndexUpdateEvent(UpdateFailed(unzip.unwrapErr())).post();
-                return;
-            }
+            std::thread([=, this]() {
+                // unzip new index
+                auto unzip = file::Unzip::intoDir(targetFile, targetDir, true)
+                    .expect("Unable to unzip new index");
+                if (!unzip) {
+                    Loader::get()->queueInMainThread([unzip] {
+                        IndexUpdateEvent(UpdateFailed(unzip.unwrapErr())).post();
+                    });
+                    return;
+                }
 
-            // remove the directory github adds to the root of the zip
-            (void)flattenGithubRepo(targetDir);
+                // remove the directory github adds to the root of the zip
+                (void)flattenGithubRepo(targetDir);
 
-            // update index
-            this->updateFromLocalTree();
+                Loader::get()->queueInMainThread([this] {
+                    // update index
+                    this->updateFromLocalTree();
+                });
+            }).detach();
         })
         .expect([](std::string const& err) {
             IndexUpdateEvent(UpdateFailed(fmt::format("Error downloading: {}", err))).post();
@@ -448,7 +456,8 @@ void Index::update(bool force) {
     // update sources
     if (force) {
         m_impl->downloadIndex();
-    } else {
+    }
+    else {
         m_impl->checkForUpdates();
     }
 }

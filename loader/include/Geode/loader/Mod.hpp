@@ -38,6 +38,7 @@ namespace geode {
         Enable,
         Disable,
         Uninstall,
+        UninstallWithSaveData
     };
 
     GEODE_HIDDEN Mod* takeNextLoaderMod();
@@ -85,14 +86,14 @@ namespace geode {
         ghc::filesystem::path getPackagePath() const;
         VersionInfo getVersion() const;
         bool isEnabled() const;
-        bool isLoaded() const;
+        [[deprecated("use isEnabled instead")]] bool isLoaded() const;
         bool supportsDisabling() const;
-        bool canDisable() const;
-        bool canEnable() const;
+        [[deprecated("always true")]] bool canDisable() const;
+        [[deprecated("always true")]] bool canEnable() const;
         bool needsEarlyLoad() const;
-        [[deprecated]] bool supportsUnloading() const;
-        [[deprecated("use wasSuccessfullyLoaded instead")]] bool wasSuccesfullyLoaded() const;
-        bool wasSuccessfullyLoaded() const;
+        [[deprecated("always false")]] bool supportsUnloading() const;
+        [[deprecated("use isEnabled instead")]] bool wasSuccesfullyLoaded() const;
+        [[deprecated("use isEnabled instead")]] bool wasSuccessfullyLoaded() const;
         [[deprecated("use getMetadata instead")]] ModInfo getModInfo() const;
         ModMetadata getMetadata() const;
         ghc::filesystem::path getTempDir() const;
@@ -336,12 +337,20 @@ namespace geode {
          */
         Result<> disable();
 
+        // TODO: in 2.0.0 make this use an optional arg instead
         /**
-         * Disable this mod (if supported), then delete the mod's .geode package.
+         * Delete the mod's .geode package.
          * @returns Successful result on success,
          * errorful result with info on error
          */
         Result<> uninstall();
+        /**
+         * Delete the mod's .geode package.
+         * @param deleteSaveData Whether should also delete the mod's save data
+         * @returns Successful result on success,
+         * errorful result with info on error
+         */
+        Result<> uninstall(bool deleteSaveData);
         bool isUninstalled() const;
 
         ModRequestedAction getRequestedAction() const;

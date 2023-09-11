@@ -48,16 +48,17 @@ void Loader::Impl::openPlatformConsole() {
     auto script = outFile + ".command";
     auto scriptContent = fmt::format(R"(
         #!/bin/sh
-        echo -n -e "\033]0;Geode Console\007"
+        echo -n -e "\033]0;Geode Console {}\007"
         tail -f {} &
         trap "" SIGINT
-        while [ $(lsof -t {} 2>/dev/null | wc -l) -gt 1 ]; do :; done
+        lsof -p {} +r 1 &>/dev/null
+        pkill -P $$
         osascript -e 'tell application "Terminal"
-            close (every window whose name contains "Geode Console")
+            close (every window whose name contains "Geode Console {}")
             if (count windows) is 0 then quit
         end tell' &
         exit
-    )", outFile, outFile);
+    )", getpid(), outFile, getpid(), getpid());
 
     if (file::writeString(script, scriptContent)) {
         chmod(script.c_str(), 0777);

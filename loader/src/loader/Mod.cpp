@@ -47,7 +47,7 @@ bool Mod::isEnabled() const {
 }
 
 bool Mod::isLoaded() const {
-    return m_impl->isLoaded();
+    return this->isEnabled();
 }
 
 bool Mod::supportsDisabling() const {
@@ -55,11 +55,11 @@ bool Mod::supportsDisabling() const {
 }
 
 bool Mod::canDisable() const {
-    return m_impl->canDisable();
+    return true;
 }
 
 bool Mod::canEnable() const {
-    return m_impl->canEnable();
+    return true;
 }
 
 bool Mod::needsEarlyLoad() const {
@@ -71,10 +71,10 @@ bool Mod::supportsUnloading() const {
 }
 
 bool Mod::wasSuccesfullyLoaded() const {
-    return this->wasSuccessfullyLoaded();
+    return this->isEnabled();
 }
 bool Mod::wasSuccessfullyLoaded() const {
-    return m_impl->wasSuccessfullyLoaded();
+    return this->isEnabled();
 }
 
 ModInfo Mod::getModInfo() const {
@@ -191,7 +191,10 @@ Result<> Mod::disable() {
 }
 
 Result<> Mod::uninstall() {
-    return m_impl->uninstall();
+    return m_impl->uninstall(false);
+}
+Result<> Mod::uninstall(bool deleteSaveData) {
+    return m_impl->uninstall(deleteSaveData);
 }
 
 bool Mod::isUninstalled() const {

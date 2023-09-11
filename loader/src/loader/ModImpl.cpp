@@ -42,8 +42,9 @@ Result<> Mod::Impl::setup() {
     if (!loadRes) {
         log::warn("Unable to load data for \"{}\": {}", m_metadata.getID(), loadRes.unwrapErr());
     }
-    if (LoaderImpl::get()->m_isSetup) {
-        Loader::get()->updateResources(false);
+    if (!m_resourcesLoaded) {
+        LoaderImpl::get()->updateModResources(m_self);
+        m_resourcesLoaded = true;
     }
 
     return Ok();
@@ -112,20 +113,8 @@ bool Mod::Impl::isEnabled() const {
     return m_enabled;
 }
 
-bool Mod::Impl::isLoaded() const {
-    return m_binaryLoaded;
-}
-
 bool Mod::Impl::supportsDisabling() const {
     return m_metadata.getID() != "geode.loader";
-}
-
-bool Mod::Impl::canDisable() const {
-    return true;
-}
-
-bool Mod::Impl::canEnable() const {
-    return true;
 }
 
 bool Mod::Impl::needsEarlyLoad() const {
@@ -134,10 +123,6 @@ bool Mod::Impl::needsEarlyLoad() const {
         !deps.empty() && std::any_of(deps.begin(), deps.end(), [&](auto& item) {
              return item->needsEarlyLoad();
          });
-}
-
-bool Mod::Impl::wasSuccessfullyLoaded() const {
-    return !this->isEnabled() || this->isLoaded();
 }
 
 std::vector<Hook*> Mod::Impl::getHooks() const {
@@ -321,7 +306,7 @@ bool Mod::Impl::hasSetting(std::string const& key) const {
 
 Result<> Mod::Impl::loadBinary() {
     log::debug("Loading binary for mod {}", m_metadata.getID());
-    if (m_binaryLoaded)
+    if (m_enabled)
         return Ok();
 
     LoaderImpl::get()->provideNextMod(m_self);
@@ -333,7 +318,6 @@ Result<> Mod::Impl::loadBinary() {
         log::error("Failed to load binary for mod {}: {}", m_metadata.getID(), res.unwrapErr());
         return res;
     }
-    m_binaryLoaded = true;
 
     LoaderImpl::get()->releaseNextMod();
 
@@ -393,12 +377,20 @@ Result<> Mod::Impl::disable() {
     return Ok();
 }
 
-Result<> Mod::Impl::uninstall() {
+Result<> Mod::Impl::uninstall(bool deleteSaveData) {
     if (m_requestedAction != ModRequestedAction::None) {
         return Err("Mod already has a requested action");
     }
 
-    m_requestedAction = ModRequestedAction::Uninstall;
+    if (this->getID() == "geode.loader") {
+        utils::game::launchLoaderUninstaller(deleteSaveData);
+        utils::game::exit();
+        return Ok();
+    }
+
+    m_requestedAction = deleteSaveData ?
+        ModRequestedAction::UninstallWithSaveData :
+        ModRequestedAction::Uninstall;
 
     std::error_code ec;
     ghc::filesystem::remove(m_metadata.getPath(), ec);
@@ -408,11 +400,21 @@ Result<> Mod::Impl::uninstall() {
         );
     }
 
+    if (deleteSaveData) {
+        ghc::filesystem::remove_all(this->getSaveDir(), ec);
+        if (ec) {
+            return Err(
+                "Unable to delete mod's save directory: " + ec.message()
+            );
+        }
+    }
+
     return Ok();
 }
 
 bool Mod::Impl::isUninstalled() const {
-    return m_requestedAction == ModRequestedAction::Uninstall;
+    return m_requestedAction == ModRequestedAction::Uninstall ||
+        m_requestedAction == ModRequestedAction::UninstallWithSaveData;
 }
 
 ModRequestedAction Mod::Impl::getRequestedAction() const {
@@ -612,8 +614,9 @@ ModJson Mod::Impl::getRuntimeInfo() const {
     for (auto patch : m_patches) {
         obj["patches"].as_array().push_back(ModJson(patch->getRuntimeInfo()));
     }
+    // TODO: so which one is it
     // obj["enabled"] = m_enabled;
-    obj["loaded"] = m_binaryLoaded;
+    obj["loaded"] = m_enabled;
     obj["temp-dir"] = this->getTempDir();
     obj["save-dir"] = this->getSaveDir();
     obj["config-dir"] = this->getConfigDir(false);
@@ -660,7 +663,6 @@ Mod* Loader::Impl::createInternalMod() {
     else {
         mod = new Mod(infoRes.unwrap());
     }
-    mod->m_impl->m_binaryLoaded = true;
     mod->m_impl->m_enabled = true;
     m_mods.insert({ mod->getID(), mod });
     return mod;

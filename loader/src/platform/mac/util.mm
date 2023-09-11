@@ -200,6 +200,30 @@ ghc::filesystem::path dirs::getSaveDir() {
     return path;
 }
 
+void geode::utils::game::exit() {
+    if (CCApplication::sharedApplication() &&
+        (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
+        log::error("Cannot restart in PlayLayer or LevelEditorLayer!");
+        return;
+    }
+
+    class Exit : public CCObject {
+    public:
+        void shutdown() {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wobjc-method-access"
+            [[[NSClassFromString(@"AppControllerManager") sharedInstance] controller] shutdownGame];
+#pragma clang diagnostic pop
+        }
+    };
+
+    CCDirector::get()->getActionManager()->addAction(CCSequence::create(
+        CCDelayTime::create(0.5f),
+        CCCallFunc::create(nullptr, callfunc_selector(Exit::shutdown)),
+        nullptr
+    ), CCDirector::get()->getRunningScene(), false);
+}
+
 void geode::utils::game::restart() {
     if (CCApplication::sharedApplication() &&
         (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
@@ -216,22 +240,12 @@ void geode::utils::game::restart() {
         [task launch];
     };
 
-    class Exit : public CCObject {
-    public:
-        void shutdown() {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wobjc-method-access"
-            [[[NSClassFromString(@"AppControllerManager") sharedInstance] controller] shutdownGame];
-#pragma clang diagnostic pop
-        }
-    };
-
     std::atexit(restart);
-    CCDirector::get()->getActionManager()->addAction(CCSequence::create(
-        CCDelayTime::create(0.5f),
-        CCCallFunc::create(nullptr, callfunc_selector(Exit::shutdown)),
-        nullptr
-    ), CCDirector::get()->getRunningScene(), false);
+    exit();
+}
+
+void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
+    log::error("Launching Geode uninstaller is not supported on macOS");
 }
 
 Result<> geode::hook::addObjcMethod(std::string const& className, std::string const& selectorName, void* imp) {
