@@ -219,13 +219,11 @@ ModCell* ModCell::create(
 }
 
 void ModCell::onEnable(CCObject* sender) {
-    if (!Mod::get()->setSavedValue("shown-disable-vs-unload-info", true)) {
+    if (!Mod::get()->getSavedValue("shown-mod-toggle-info", true)) {
         FLAlertLayer::create(
             "Notice",
-            "<cb>Disabling</c> a <cy>mod</c> removes its hooks & patches and "
-            "calls its user-defined disable function if one exists. You may "
-            "still see some effects of the mod left however, and you may "
-            "need to <cg>restart</c> the game to have it fully unloaded.",
+            "<cb>Toggling</c> a mod requires you to <cg>restart</c> the game.\n"
+            "When a mod is <cr>disabled</c>, it will not get loaded at all.",
             "OK"
         )->show();
     }
@@ -455,19 +453,19 @@ void InvalidGeodeFileCell::FLAlert_Clicked(FLAlertLayer*, bool btn2) {
         try {
             if (ghc::filesystem::remove(m_info.path)) {
                 FLAlertLayer::create(
-                    "File removed", "Removed <cy>" + m_info.path.string() + "</c>", "OK"
+                    "File Removed", "Removed <cy>" + m_info.path.string() + "</c>", "OK"
                 )->show();
             }
             else {
                 FLAlertLayer::create(
-                    "Unable to remove file",
+                    "Unable to Remove File",
                     "Unable to remove <cy>" + m_info.path.string() + "</c>", "OK"
                 )->show();
             }
         }
         catch (std::exception& e) {
             FLAlertLayer::create(
-                "Unable to remove file",
+                "Unable to Remove File",
                 "Unable to remove <cy>" + m_info.path.string() + "</c>: <cr>" +
                     std::string(e.what()) + "</c>",
                 "OK"

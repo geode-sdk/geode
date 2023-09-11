@@ -552,12 +552,11 @@ void LocalModInfoPopup::onUpdateProgress(ModInstallEvent* event) {
     std::visit(makeVisitor {
         [&](UpdateFinished const&) {
             this->setInstallStatus(std::nullopt);
-            
+
             FLAlertLayer::create(
-                "Update complete",
-                "Mod successfully updated! :) "
-                "(You have to <cy>restart the game</c> "
-                "for the mod to take effect)",
+                "Update Complete",
+                "Mod updated successfully!\n"
+                "<cy>Restart</c> the game to apply changes.",
                 "OK"
             )->show();
 
@@ -573,7 +572,7 @@ void LocalModInfoPopup::onUpdateProgress(ModInstallEvent* event) {
             this->setInstallStatus(std::nullopt);
 
             FLAlertLayer::create(
-                "Update failed :(", info, "OK"
+                "Update Failed", info, "OK"
             )->show();
 
             m_installBtn->setEnabled(true);
@@ -594,8 +593,8 @@ void LocalModInfoPopup::onUninstall(CCObject*) {
     auto layer = FLAlertLayer::create(
         this,
         "Confirm Uninstall",
-        fmt::format("Are you sure you want to uninstall <cr>{}</c>?{}",
-            m_mod->getName(), m_mod == Mod::get() ?
+        fmt::format("Are you sure you want to uninstall <cr>{}</c>?{}", m_mod->getName(),
+            m_mod == Mod::get() ?
             "\nThis will close the game and launch the <co>Geode Uninstaller</c>. "
             "You will have to restart the game <cy>manually</c> after that." : ""),
         "Cancel",
@@ -606,13 +605,11 @@ void LocalModInfoPopup::onUninstall(CCObject*) {
 }
 
 void LocalModInfoPopup::onEnableMod(CCObject* sender) {
-    if (!Mod::get()->setSavedValue("shown-disable-vs-unload-info", true)) {
+    if (!Mod::get()->setSavedValue("shown-mod-toggle-info", true)) {
         FLAlertLayer::create(
             "Notice",
-            "<cb>Disabling</c> a <cy>mod</c> removes its hooks & patches and "
-            "calls its user-defined disable function if one exists. You may "
-            "still see some effects of the mod left however, and you may "
-            "need to <cg>restart</c> the game to have it fully unloaded.",
+            "<cb>Toggling</c> a mod requires you to <cg>restart</c> the game.\n"
+            "When a mod is <cr>disabled</c>, it will not get loaded at all.",
             "OK"
         )->show();
     }
@@ -672,7 +669,7 @@ void LocalModInfoPopup::FLAlert_Clicked(FLAlertLayer* layer, bool btn2) {
         case TAG_CONFIRM_UNINSTALL_WITH_SAVEDATA: {
             auto res = m_mod->uninstall(btn2);
             if (!res) {
-                return FLAlertLayer::create("Uninstall failed :(", res.unwrapErr(), "OK")->show();
+                return FLAlertLayer::create("Uninstall Failed", res.unwrapErr(), "OK")->show();
             }
             if (m_layer) {
                 m_layer->reloadList();
@@ -737,12 +734,11 @@ void IndexItemInfoPopup::onInstallProgress(ModInstallEvent* event) {
     std::visit(makeVisitor {
         [&](UpdateFinished const&) {
             this->setInstallStatus(std::nullopt);
-            
+
             FLAlertLayer::create(
-                "Install complete",
-                "Mod successfully installed! :) "
-                "(You have to <cy>restart the game</c> "
-                "for the mod to take effect)",
+                "Install Complete",
+                "Mod installed successfully!\n"
+                "<cy>Restart</c> the game to apply changes.",
                 "OK"
             )->show();
 
@@ -758,7 +754,7 @@ void IndexItemInfoPopup::onInstallProgress(ModInstallEvent* event) {
             this->setInstallStatus(std::nullopt);
 
             FLAlertLayer::create(
-                "Installation failed :(", info, "OK"
+                "Installation Failed", info, "OK"
             )->show();
 
             m_installBtn->setEnabled(true);
