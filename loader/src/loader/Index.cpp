@@ -8,6 +8,8 @@
 #include <hash/hash.hpp>
 #include <Geode/utils/JsonValidation.hpp>
 
+#include <thread>
+
 #ifdef GEODE_IS_WINDOWS
 #include <filesystem>
 #endif
