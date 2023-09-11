@@ -54,7 +54,7 @@ void ModListCell::setupInfo(
     if (inactive && logoSprColor) {
         logoSprColor->setColor({ 163, 163, 163 });
     }
-    m_menu->addChild(logoSpr);   
+    m_menu->addChild(logoSpr);
 
     m_columnMenu = CCMenu::create();
     m_columnMenu->setContentSize({m_width, m_height});
@@ -115,7 +115,7 @@ void ModListCell::setupInfo(
     m_labelMenu->addChild(versionLabel);
 
     TagNode* apiLabel = nullptr;
-    
+
 
     if (auto tag = metadata.getVersion().getTag()) {
         auto tagLabel = TagNode::create(tag.value().toString().c_str());
@@ -302,7 +302,7 @@ bool ModCell::init(
         m_menu->addChild(restartBtn);
     }
     else {
-        if (m_mod->wasSuccessfullyLoaded() && m_mod->getMetadata().getID() != "geode.loader") {
+        if (m_mod->getMetadata().getID() != "geode.loader") {
             m_enableToggle =
                 CCMenuItemToggler::createWithStandardSprites(this, menu_selector(ModCell::onEnable), .7f);
             m_menu->addChild(m_enableToggle);
@@ -314,7 +314,7 @@ bool ModCell::init(
         auto viewBtn = CCMenuItemSpriteExtra::create(viewSpr, this, menu_selector(ModCell::onInfo));
         m_menu->addChild(viewBtn);
 
-        if (m_mod->wasSuccessfullyLoaded()) {
+        if (m_mod->isEnabled()) {
             auto latestIndexItem = Index::get()->getMajorItem(
                 mod->getMetadata().getID()
             );

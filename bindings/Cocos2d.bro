@@ -174,7 +174,7 @@ class cocos2d::CCDirector {
 	auto convertToGL(cocos2d::CCPoint const&) = mac 0x24a210;
 	auto convertToUI(cocos2d::CCPoint const&) = mac 0x24a340;
 	auto drawScene() = mac 0x249690;
-	auto willSwitchToScene(cocos2d::CCScene* scene);
+	auto willSwitchToScene(cocos2d::CCScene* scene) = mac 0x24a520;
 	auto setOpenGLView(cocos2d::CCEGLView *pobOpenGLView) = mac 0x249be0;
 	auto updateScreenScale(cocos2d::CCSize) = mac 0x249f10;
 	auto setContentScaleFactor(float);
