@@ -353,6 +353,9 @@ void ModInfoPopup::preInstall() {
     if (m_latestVersionLabel) {
         m_latestVersionLabel->setVisible(false);
     }
+    if (m_minorVersionLabel) {
+        m_minorVersionLabel->setVisible(false);
+    }
     this->setInstallStatus(UpdateProgress(0, "Starting install"));
 
     m_installBtn->setTarget(

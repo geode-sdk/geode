@@ -64,7 +64,7 @@ void Loader::Impl::openPlatformConsole() {
         dup2(outFd, 1);
         dup2(outFd, 2);
 
-        NSTask *task = [[NSTask alloc] init];
+        NSTask* task = [[NSTask alloc] init];
         task.launchPath = @"/usr/bin/open";
         task.arguments = @[[NSString stringWithUTF8String:script.c_str()]];
         [task launch];
