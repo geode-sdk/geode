@@ -341,8 +341,8 @@ std::vector<TextRenderer::Label> TextRenderer::renderStringEx(
     auto lastIndent =
         m_indentationStack.size() > 1 ? m_indentationStack.at(m_indentationStack.size() - 1) : .0f;
 
-    if (m_cursor.x == m_origin.x + lastIndent && this->getCurrentIndent() > .0f) {
-        m_cursor.x += this->getCurrentIndent();
+    if (m_cursor.x < m_origin.x + this->getCurrentIndent()) {
+        m_cursor.x = this->getCurrentIndent();
     }
 
     auto createLabel = [&]() -> bool {
@@ -487,7 +487,7 @@ void TextRenderer::breakLine(float incY) {
     }
     if (h > y) y = h;
     m_cursor.y -= y;
-    m_cursor.x = m_origin.x + getCurrentIndent();
+    m_cursor.x = m_origin.x;
 }
 
 float TextRenderer::adjustLineAlignment() {
