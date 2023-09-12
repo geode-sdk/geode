@@ -311,9 +311,6 @@ bool ModCell::init(
         auto viewSpr = ButtonSprite::create("View", "bigFont.fnt", "GJ_button_01.png", .8f);
         viewSpr->setScale(.65f);
 
-        auto viewBtn = CCMenuItemSpriteExtra::create(viewSpr, this, menu_selector(ModCell::onInfo));
-        m_menu->addChild(viewBtn);
-
         if (m_mod->isEnabled()) {
             auto latestIndexItem = Index::get()->getMajorItem(
                 mod->getMetadata().getID()
@@ -335,6 +332,9 @@ bool ModCell::init(
                 }
             }
         }
+
+        auto viewBtn = CCMenuItemSpriteExtra::create(viewSpr, this, menu_selector(ModCell::onInfo));
+        m_menu->addChild(viewBtn);
     }
 
     this->updateState();
