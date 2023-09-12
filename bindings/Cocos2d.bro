@@ -1250,6 +1250,7 @@ class cocos2d::extension::CCScrollView {
 [[link(win)]]
 class cocos2d {
 	static auto FNTConfigLoadFile(char const*) = mac 0x344f10;
+	static auto ccGLUseProgram(GLuint) = mac 0x1ae540;
 	static auto ccGLBlendFunc(GLenum, GLenum) = mac 0x1ae560;
 	static auto ccDrawSolidRect(cocos2d::CCPoint, cocos2d::CCPoint, cocos2d::_ccColor4F) = mac 0xecf00;
 	static auto ccGLEnableVertexAttribs(unsigned int) = mac 0x1ae740;
