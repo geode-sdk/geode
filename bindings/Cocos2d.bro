@@ -1259,7 +1259,6 @@ class cocos2d {
 	static void ccDrawPoly(cocos2d::CCPoint const*, unsigned int, bool) = mac 0xed0a0;
 	static void ccDrawColor4B(GLubyte, GLubyte, GLubyte, GLubyte) = mac 0xeddd0;
 	static void CCMessageBox(const char* msg, const char* title) = mac 0xbabc0;
-	static void ccGLUseProgram(GLuint program) = mac 0x1ae540;
 }
 
 [[link(win)]]
