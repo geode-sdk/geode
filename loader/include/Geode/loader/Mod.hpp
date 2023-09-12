@@ -406,6 +406,8 @@ namespace geode {
         bool isLoggingEnabled() const;
         void setLoggingEnabled(bool enabled);
 
+        bool shouldLoad() const;
+
         friend class ModImpl;
     };
 }

@@ -43,7 +43,9 @@ Result<> Mod::Impl::setup() {
         log::warn("Unable to load data for \"{}\": {}", m_metadata.getID(), loadRes.unwrapErr());
     }
     if (!m_resourcesLoaded) {
-        LoaderImpl::get()->updateModResources(m_self);
+        auto searchPathRoot = dirs::getModRuntimeDir() / m_metadata.getID() / "resources";
+        CCFileUtils::get()->addSearchPath(searchPathRoot.string().c_str());
+
         m_resourcesLoaded = true;
     }
 
@@ -631,6 +633,10 @@ bool Mod::Impl::isLoggingEnabled() const {
 
 void Mod::Impl::setLoggingEnabled(bool enabled) {
     m_loggingEnabled = enabled;
+}
+
+bool Mod::Impl::shouldLoad() const {
+    return Mod::get()->getSavedValue<bool>("should-load-" + m_metadata.getID(), true);
 }
 
 static Result<ModMetadata> getModImplInfo() {

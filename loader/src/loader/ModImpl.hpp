@@ -137,6 +137,8 @@ namespace geode {
 
         bool isLoggingEnabled() const;
         void setLoggingEnabled(bool enabled);
+
+        bool shouldLoad() const;
     };
 
     class ModImpl : public Mod::Impl {
