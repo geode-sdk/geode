@@ -61,6 +61,8 @@ namespace geode {
          */
         bool m_loggingEnabled = true;
 
+        std::unordered_map<std::string, char const*> m_expandedSprites;
+
 
         ModRequestedAction m_requestedAction = ModRequestedAction::None;
 
