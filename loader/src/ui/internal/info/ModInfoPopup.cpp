@@ -425,7 +425,7 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
         disableBtnSpr, enableBtnSpr, this, menu_selector(LocalModInfoPopup::onEnableMod)
     );
     enableBtn->setPosition(-155.f, 75.f);
-    enableBtn->toggle(!mod->isEnabled());
+    enableBtn->toggle(!mod->shouldLoad());
     m_buttonMenu->addChild(enableBtn);
 
     if (!mod->supportsDisabling()) {
@@ -629,9 +629,9 @@ void LocalModInfoPopup::onEnableMod(CCObject* sender) {
         }
     }
     if (m_layer) {
-        m_layer->updateAllStates();
+        m_layer->reloadList();
     }
-    as<CCMenuItemToggler*>(sender)->toggle(m_mod->isEnabled());
+    as<CCMenuItemToggler*>(sender)->toggle(m_mod->shouldLoad());
 }
 
 void LocalModInfoPopup::onOpenConfigDir(CCObject*) {
@@ -640,7 +640,7 @@ void LocalModInfoPopup::onOpenConfigDir(CCObject*) {
 
 void LocalModInfoPopup::onDisablingNotSupported(CCObject* pSender) {
     FLAlertLayer::create("Unsupported", "<cr>Disabling</c> is not supported for this mod.", "OK")->show();
-    as<CCMenuItemToggler*>(pSender)->toggle(m_mod->isEnabled());
+    as<CCMenuItemToggler*>(pSender)->toggle(m_mod->shouldLoad());
 }
 
 void LocalModInfoPopup::onSettings(CCObject*) {
