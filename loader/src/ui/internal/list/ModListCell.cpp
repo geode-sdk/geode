@@ -251,13 +251,14 @@ void ModCell::onRestart(CCObject*) {
 void ModCell::updateState() {
     bool unresolved = m_mod->hasUnresolvedDependencies();
     bool shouldLoad = m_mod->shouldLoad();
+    auto toggleable = !unresolved || !shouldLoad;
     if (m_enableToggle) {
         m_enableToggle->toggle(m_mod->isEnabled());
-        m_enableToggle->setEnabled(!unresolved || shouldLoad);
-        m_enableToggle->m_offButton->setOpacity(unresolved ? 100 : 255);
-        m_enableToggle->m_offButton->setColor(unresolved ? cc3x(155) : cc3x(255));
-        m_enableToggle->m_onButton->setOpacity(unresolved ? 100 : 255);
-        m_enableToggle->m_onButton->setColor(unresolved ? cc3x(155) : cc3x(255));
+        m_enableToggle->setEnabled(toggleable);
+        m_enableToggle->m_offButton->setOpacity(toggleable ? 100 : 255);
+        m_enableToggle->m_offButton->setColor(toggleable ? cc3x(155) : cc3x(255));
+        m_enableToggle->m_onButton->setOpacity(toggleable ? 100 : 255);
+        m_enableToggle->m_onButton->setColor(toggleable ? cc3x(155) : cc3x(255));
     }
     bool hasProblems = false;
     for (auto const& item : Loader::get()->getProblems()) {
