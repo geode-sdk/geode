@@ -255,10 +255,10 @@ void ModCell::updateState() {
     if (m_enableToggle) {
         m_enableToggle->toggle(m_mod->isEnabled());
         m_enableToggle->setEnabled(toggleable);
-        m_enableToggle->m_offButton->setOpacity(toggleable ? 100 : 255);
-        m_enableToggle->m_offButton->setColor(toggleable ? cc3x(155) : cc3x(255));
-        m_enableToggle->m_onButton->setOpacity(toggleable ? 100 : 255);
-        m_enableToggle->m_onButton->setColor(toggleable ? cc3x(155) : cc3x(255));
+        m_enableToggle->m_offButton->setOpacity(!toggleable ? 100 : 255);
+        m_enableToggle->m_offButton->setColor(!toggleable ? cc3x(155) : cc3x(255));
+        m_enableToggle->m_onButton->setOpacity(!toggleable ? 100 : 255);
+        m_enableToggle->m_onButton->setColor(!toggleable ? cc3x(155) : cc3x(255));
     }
     bool hasProblems = false;
     for (auto const& item : Loader::get()->getProblems()) {
