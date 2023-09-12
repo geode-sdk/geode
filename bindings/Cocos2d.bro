@@ -318,7 +318,7 @@ class cocos2d::CCFileUtils : cocos2d::TypeInfo {
 class cocos2d::CCGLProgram {
 	auto setUniformsForBuiltins() = mac 0x232c70;
 	auto use() = mac 0x231d70;
-	bool compileShader(unsigned int* shader, unsigned int type, const char* source);
+	bool compileShader(unsigned int* shader, unsigned int type, const char* source) = mac 0x231a30;
 }
 
 [[link(win)]]
@@ -1250,6 +1250,7 @@ class cocos2d::extension::CCScrollView {
 [[link(win)]]
 class cocos2d {
 	static auto FNTConfigLoadFile(char const*) = mac 0x344f10;
+	static auto ccGLUseProgram(GLuint) = mac 0x1ae540;
 	static auto ccGLBlendFunc(GLenum, GLenum) = mac 0x1ae560;
 	static auto ccDrawSolidRect(cocos2d::CCPoint, cocos2d::CCPoint, cocos2d::_ccColor4F) = mac 0xecf00;
 	static auto ccGLEnableVertexAttribs(unsigned int) = mac 0x1ae740;
@@ -1258,6 +1259,7 @@ class cocos2d {
 	static void ccDrawPoly(cocos2d::CCPoint const*, unsigned int, bool) = mac 0xed0a0;
 	static void ccDrawColor4B(GLubyte, GLubyte, GLubyte, GLubyte) = mac 0xeddd0;
 	static void CCMessageBox(const char* msg, const char* title) = mac 0xbabc0;
+	static void ccGLUseProgram(GLuint program) = mac 0x1ae540;
 }
 
 [[link(win)]]
