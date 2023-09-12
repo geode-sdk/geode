@@ -49,45 +49,51 @@ bool ModInfoPopup::init(ModMetadata const& metadata, ModListLayer* list) {
     constexpr float logoSize = 40.f;
     constexpr float logoOffset = 10.f;
 
-    auto nameLabel = CCLabelBMFont::create(metadata.getName().c_str(), "bigFont.fnt");
-    nameLabel->setAnchorPoint({ .0f, .5f });
-    nameLabel->limitLabelWidth(200.f, .7f, .1f);
-    m_mainLayer->addChild(nameLabel, 2);
+    auto topNode = CCNode::create();
+    topNode->setContentSize({350.f, 80.f});
+    topNode->setLayout(
+        RowLayout::create()
+            ->setAxisAlignment(AxisAlignment::Center)
+            ->setAutoScale(false)
+            ->setCrossAxisOverflow(true)
+    ); 
+    m_mainLayer->addChild(topNode);
+    topNode->setAnchorPoint({.5f, .5f});
+    topNode->setPosition(winSize.width / 2, winSize.height / 2 + 115.f);
 
     auto logoSpr = this->createLogo({logoSize, logoSize});
-    m_mainLayer->addChild(logoSpr);
+    topNode->addChild(logoSpr);
+
+    auto labelNode = CCNode::create();
+    labelNode->setLayout(
+        ColumnLayout::create()
+            ->setAxisAlignment(AxisAlignment::Center)
+            ->setCrossAxisLineAlignment(AxisAlignment::Start)
+            ->setGap(0.f)
+            ->setAutoScale(false)
+            ->setCrossAxisOverflow(true)
+    );
+    labelNode->setContentSize({200.f, 80.f});
+    topNode->addChild(labelNode);
+
+    auto nameLabel = CCLabelBMFont::create(metadata.getName().c_str(), "bigFont.fnt");
+    nameLabel->limitLabelWidth(200.f, .7f, .1f);
+    labelNode->addChild(nameLabel, 2);
 
     auto developerStr = "by " + metadata.getDeveloper();
     auto developerLabel = CCLabelBMFont::create(developerStr.c_str(), "goldFont.fnt");
     developerLabel->setScale(.5f);
-    developerLabel->setAnchorPoint({.0f, .5f});
-    m_mainLayer->addChild(developerLabel);
-
-    auto logoTitleWidth =
-        std::max(nameLabel->getScaledContentSize().width, developerLabel->getScaledContentSize().width) +
-        logoSize + logoOffset;
-
-    nameLabel->setPosition(
-        winSize.width / 2 - logoTitleWidth / 2 + logoSize + logoOffset, winSize.height / 2 + 125.f
-    );
-    logoSpr->setPosition(
-        {winSize.width / 2 - logoTitleWidth / 2 + logoSize / 2, winSize.height / 2 + 115.f}
-    );
-    developerLabel->setPosition(
-        winSize.width / 2 - logoTitleWidth / 2 + logoSize + logoOffset, winSize.height / 2 + 105.f
-    );
+    labelNode->addChild(developerLabel);
 
     auto versionLabel = CCLabelBMFont::create(metadata.getVersion().toString().c_str(),
         "bigFont.fnt"
     );
-    versionLabel->setAnchorPoint({ .0f, .5f });
     versionLabel->setScale(.4f);
-    versionLabel->setPosition(
-        nameLabel->getPositionX() + nameLabel->getScaledContentSize().width + 5.f,
-        winSize.height / 2 + 125.f
-    );
     versionLabel->setColor({0, 255, 0});
-    m_mainLayer->addChild(versionLabel);
+    topNode->addChild(versionLabel);
+
+    labelNode->updateLayout();
+    topNode->updateLayout();
 
     this->setTouchEnabled(true);
 
