@@ -291,7 +291,7 @@ bool ModCell::init(
         auto viewBtn = CCMenuItemSpriteExtra::create(viewSpr, this, menu_selector(ModCell::onInfo));
         m_menu->addChild(viewBtn);
 
-        if (m_mod->wasSuccessfullyLoaded()) {
+        if (m_mod->isEnabled()) {
             auto latestIndexItem = Index::get()->getMajorItem(
                 mod->getMetadata().getID()
             );
@@ -314,15 +314,13 @@ bool ModCell::init(
             }
         }
 
-        if (m_mod->wasSuccessfullyLoaded() && m_mod->getMetadata().getID() != "geode.loader") {
+        if (m_mod->getMetadata().getID() != "geode.loader") {
             m_enableToggle =
                 CCMenuItemToggler::createWithStandardSprites(this, menu_selector(ModCell::onEnable), .7f);
             m_enableToggle->setPosition(-45.f, 0.f);
             m_menu->addChild(m_enableToggle);
         }
     }
-
-    
 
     auto exMark = CCSprite::createWithSpriteFrameName("exMark_001.png");
     exMark->setScale(.5f);

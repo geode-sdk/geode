@@ -27,10 +27,6 @@ namespace geode {
          */
         bool m_enabled = false;
         /**
-         * Whether the mod binary is loaded or not
-         */
-        bool m_binaryLoaded = false;
-        /**
          * Mod temp directory name
          */
         ghc::filesystem::path m_tempDirName;
@@ -62,7 +58,6 @@ namespace geode {
          */
         bool m_resourcesLoaded = false;
 
-
         ModRequestedAction m_requestedAction = ModRequestedAction::None;
 
         Impl(Mod* self, ModMetadata const& metadata);
@@ -84,12 +79,8 @@ namespace geode {
         ghc::filesystem::path getPackagePath() const;
         VersionInfo getVersion() const;
         bool isEnabled() const;
-        bool isLoaded() const;
         bool supportsDisabling() const;
-        bool canDisable() const;
-        bool canEnable() const;
         bool needsEarlyLoad() const;
-        bool wasSuccessfullyLoaded() const;
         ModMetadata getMetadata() const;
         ghc::filesystem::path getTempDir() const;
         ghc::filesystem::path getBinaryPath() const;
