@@ -572,14 +572,13 @@ ghc::filesystem::path Mod::Impl::getConfigDir(bool create) const {
 }
 
 char const* Mod::Impl::expandSpriteName(char const* name) {
-    static std::unordered_map<std::string, char const*> expanded = {};
-    if (expanded.count(name)) return expanded[name];
+    if (m_expandedSprites.count(name)) return m_expandedSprites[name];
 
     auto exp = new char[strlen(name) + 2 + m_metadata.getID().size()];
     auto exps = m_metadata.getID() + "/" + name;
     memcpy(exp, exps.c_str(), exps.size() + 1);
 
-    expanded[name] = exp;
+    m_expandedSprites[name] = exp;
 
     return exp;
 }

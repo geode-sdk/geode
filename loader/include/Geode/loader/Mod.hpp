@@ -398,6 +398,6 @@ namespace geode {
     };
 }
 
-inline char const* operator"" _spr(char const* str, size_t) {
+GEODE_HIDDEN inline char const* operator"" _spr(char const* str, size_t) {
     return geode::Mod::get()->expandSpriteName(str);
 }

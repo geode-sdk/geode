@@ -57,6 +57,13 @@ namespace geode {
          * Whether the mod resources are loaded or not
          */
         bool m_resourcesLoaded = false;
+        /**
+         * Whether logging is enabled for this mod
+         */
+        bool m_loggingEnabled = true;
+
+        std::unordered_map<std::string, char const*> m_expandedSprites;
+
 
         ModRequestedAction m_requestedAction = ModRequestedAction::None;
 
