@@ -126,7 +126,7 @@ void Loader::Impl::setupIPC() {
             if (ConnectNamedPipe(pipe, nullptr)) {
                 // log::debug("Got connection, creating thread");
                 std::thread pipeThread(&ipcPipeThread, pipe);
-                SetThreadDescription(pipeThread.native_handle(), L"Geode IPC Pipe");
+                // SetThreadDescription(pipeThread.native_handle(), L"Geode IPC Pipe");
                 pipeThread.detach();
             }
             else {
@@ -135,7 +135,7 @@ void Loader::Impl::setupIPC() {
             }
         }
     });
-    SetThreadDescription(ipcThread.native_handle(), L"Geode Main IPC");
+    // SetThreadDescription(ipcThread.native_handle(), L"Geode Main IPC");
     ipcThread.detach();
 
     log::debug("IPC set up");

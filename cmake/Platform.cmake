@@ -46,6 +46,7 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
 
 	target_link_libraries(${PROJECT_NAME} INTERFACE
 		"-framework Cocoa"
+		"-framework OpenGL"
 		${CURL_LIBRARIES}
 		${GEODE_LOADER_PATH}/include/link/libfmod.dylib
 	)
