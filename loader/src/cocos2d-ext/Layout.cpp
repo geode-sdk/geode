@@ -177,7 +177,7 @@ struct AxisLayout::Row : public CCObject {
         this->autorelease();
     }
 
-    void accountSpacers(Axis axis, float availableLength) {
+    void accountSpacers(Axis axis, float availableLength, float crossLength) {
         std::vector<SpacerNode*> spacers;
         for (auto& node : CCArrayExt<CCNode>(nodes)) {
             if (auto spacer = typeinfo_cast<SpacerNode*>(node)) {
@@ -193,10 +193,10 @@ struct AxisLayout::Row : public CCObject {
             for (auto& spacer : spacers) {
                 auto size = unusedSpace * spacer->getGrow() / static_cast<float>(sum);
                 if (axis == Axis::Row) {
-                    spacer->setContentSize({ size, this->crossLength });
+                    spacer->setContentSize({ size, crossLength });
                 }
                 else {
-                    spacer->setContentSize({ this->crossLength, size });
+                    spacer->setContentSize({ crossLength, size });
                 }
             }
             this->axisLength = availableLength;
@@ -376,16 +376,16 @@ AxisLayout::Row* AxisLayout::fitInRow(
     }
 
     // todo: make this calculation more smart to avoid so much unnecessary recursion
-    auto scaleDownFactor = scale - .0125f;
+    auto scaleDownFactor = scale - .002f;
     auto squishFactor = available.axisLength / (axisUnsquishedLength + .01f) * squish;
 
     // calculate row scale, squish, and prio
     int tries = 1000;
     while (axisLength > available.axisLength) {
         if (this->canTryScalingDown(
-            res, prio, scale, scale - .0125f, minMaxPrios
+            res, prio, scale, scale - .002f, minMaxPrios
         )) {
-            scale -= .0125f;
+            scale -= .002f;
         }
         else {
             squish = available.axisLength / (axisUnsquishedLength + .01f) * squish;
@@ -643,7 +643,7 @@ void AxisLayout::tryFitLayout(
     float rowEvenSpace = available.crossLength / rows->count();
 
     for (auto row : CCArrayExt<Row*>(rows)) {
-        row->accountSpacers(m_axis, available.axisLength);
+        row->accountSpacers(m_axis, available.axisLength, available.crossLength);
 
         if (m_crossAlignment == AxisAlignment::Even) {
             rowCrossPos -= rowEvenSpace / 2 + row->crossLength / 2;
@@ -1052,4 +1052,35 @@ void SpacerNode::setGrow(size_t grow) {
 
 size_t SpacerNode::getGrow() const {
     return m_grow;
+}
+
+bool SpacerNodeChild::init(CCNode* child, size_t grow) {
+    if (!SpacerNode::init(grow))
+        return false;
+    
+    if (child) {
+        this->addChild(child);
+        m_child = child;
+    }
+
+    return true;
+}
+
+SpacerNodeChild* SpacerNodeChild::create(CCNode* child, size_t grow) {
+    auto ret = new SpacerNodeChild;
+    if (ret && ret->init(child, grow)) {
+        ret->autorelease();
+        return ret;
+    }
+    CC_SAFE_DELETE(ret);
+    return nullptr;
+}
+
+void SpacerNodeChild::setContentSize(CCSize const& size) {
+    CCNode::setContentSize(size);
+    if (m_child) {
+        m_child->setPosition(CCPointZero);
+        m_child->setContentSize(size);
+        m_child->setAnchorPoint(CCPointZero);
+    }
 }

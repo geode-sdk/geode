@@ -68,7 +68,7 @@ CCNode* geode::createDefaultLogo(CCSize const& size) {
     if (!spr) {
         spr = CCLabelBMFont::create("OwO", "goldFont.fnt");
     }
-    limitNodeSize(spr, size, 1.f, .1f);
+    limitNodeSize(spr, size, 1.f, .01f);
     return spr;
 }
 
@@ -78,12 +78,18 @@ CCNode* geode::createModLogo(Mod* mod, CCSize const& size) {
         CCSprite::create(fmt::format("{}/logo.png", mod->getID()).c_str());
     if (!spr) spr = CCSprite::createWithSpriteFrameName("no-logo.png"_spr);
     if (!spr) spr = CCLabelBMFont::create("N/A", "goldFont.fnt");
-    limitNodeSize(spr, size, 1.f, .1f);
-    return spr;
+    limitNodeSize(spr, size, 1.f, .01f);
+    spr->setPosition(size/2);
+    spr->setAnchorPoint({.5f, .5f});
+
+    auto node = CCNode::create();
+    node->addChild(spr);
+    node->setContentSize(size);
+    return node;
 }
 
 CCNode* geode::createIndexItemLogo(IndexItemHandle item, CCSize const& size) {
-    auto logoPath = ghc::filesystem::absolute(item->getPath() / "logo.png");
+    auto logoPath = ghc::filesystem::absolute(item->getRootPath() / "logo.png");
     CCNode* spr = CCSprite::create(logoPath.string().c_str());
     if (!spr) {
         spr = CCSprite::createWithSpriteFrameName("no-logo.png"_spr);
@@ -110,7 +116,13 @@ CCNode* geode::createIndexItemLogo(IndexItemHandle item, CCSize const& size) {
         spr = logoGlow;
     }
     else {
-        limitNodeSize(spr, size, 1.f, .1f);
+        limitNodeSize(spr, size, 1.f, .01f);
     }
-    return spr;
+    spr->setPosition(size/2);
+    spr->setAnchorPoint({.5f, .5f});
+
+    auto node = CCNode::create();
+    node->addChild(spr);
+    node->setContentSize(size);
+    return node;
 }

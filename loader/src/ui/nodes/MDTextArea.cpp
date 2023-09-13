@@ -209,6 +209,7 @@ struct MDParser {
     static float s_codeStart;
     static size_t s_orderedListNum;
     static std::vector<TextRenderer::Label> s_codeSpans;
+    static bool s_breakListLine;
 
     static int parseText(MD_TEXTTYPE type, MD_CHAR const* rawText, MD_SIZE size, void* mdtextarea) {
         auto textarea = static_cast<MDTextArea*>(mdtextarea);
@@ -364,6 +365,10 @@ struct MDParser {
                     renderer->pushIndent(g_indent);
                     s_isOrderedList = type == MD_BLOCKTYPE::MD_BLOCK_OL;
                     s_orderedListNum = 0;
+                    if (s_breakListLine) {
+                        renderer->breakLine();
+                        s_breakListLine = false;
+                    }
                 }
                 break;
 
@@ -377,6 +382,10 @@ struct MDParser {
 
             case MD_BLOCKTYPE::MD_BLOCK_LI:
                 {
+                    if (s_breakListLine) {
+                        renderer->breakLine();
+                        s_breakListLine = false;
+                    }
                     renderer->pushOpacity(renderer->getCurrentOpacity() / 2);
                     auto lidetail = static_cast<MD_BLOCK_LI_DETAIL*>(detail);
                     if (s_isOrderedList) {
@@ -387,6 +396,7 @@ struct MDParser {
                         renderer->renderString("• ");
                     }
                     renderer->popOpacity();
+                    s_breakListLine = true;
                 }
                 break;
 
@@ -446,7 +456,13 @@ struct MDParser {
             case MD_BLOCKTYPE::MD_BLOCK_UL:
                 {
                     renderer->popIndent();
-                    renderer->breakLine();
+                    if (s_breakListLine) {
+                        renderer->breakLine();
+                        s_breakListLine = false;
+                    }
+                    if (renderer->getCurrentIndent() == 0) {
+                        renderer->breakLine();
+                    }
                 }
                 break;
 
@@ -489,7 +505,6 @@ struct MDParser {
 
             case MD_BLOCKTYPE::MD_BLOCK_LI:
                 {
-                    renderer->breakLine();
                 }
                 break;
 
@@ -626,6 +641,7 @@ size_t MDParser::s_orderedListNum = 0;
 bool MDParser::s_isCodeBlock = false;
 float MDParser::s_codeStart = 0;
 decltype(MDParser::s_codeSpans) MDParser::s_codeSpans = {};
+bool MDParser::s_breakListLine = false;
 
 void MDTextArea::updateLabel() {
     m_renderer->begin(m_content, CCPointZero, m_size);

@@ -27,13 +27,13 @@ $register_ids(CustomizeObjectLayer) {
         0,
         "ok-button",
         "info-button",
-
+        // 2
         "base-tab-button",
         "detail-tab-button",
         "base-hsv-button",
         "detail-hsv-button",
         "text-tab-button",
-
+        // 7
         "player-color-1-button",
         "player-color-2-button",
         "light-bg-button",
@@ -48,23 +48,39 @@ $register_ids(CustomizeObjectLayer) {
         "channel-8-button",
         "channel-9-button",
         "channel-custom-button",
-
+        // 21
         "select-channel-up-button",
         "select-channel-down-button",
         "select-channel-button",
-
+        // 24
         "split-text-button",
         "clear-text-button",
-
-        "next-free-button",
-
-        "copy-button",
-        "paste-button",
-
-        "browse-button",
-
-        "glow-toggle"
+        // 26
+        "next-free-button"
+        // 27
     );
+
+    if (m_targetObject) {
+        setIDs(
+            m_buttonMenu,
+            27,
+            "copy-button",
+            "paste-button",
+
+            "browse-button",
+
+            "glow-toggle"
+        );
+    }
+    else {
+        setIDs(
+            m_buttonMenu,
+            27,
+            "browse-button",
+
+            "glow-toggle"
+        );
+    }
 
     auto tabsLayout = RowLayout::create()
         ->setAxisAlignment(AxisAlignment::Center)

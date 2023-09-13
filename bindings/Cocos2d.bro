@@ -174,7 +174,7 @@ class cocos2d::CCDirector {
 	auto convertToGL(cocos2d::CCPoint const&) = mac 0x24a210;
 	auto convertToUI(cocos2d::CCPoint const&) = mac 0x24a340;
 	auto drawScene() = mac 0x249690;
-	auto willSwitchToScene(cocos2d::CCScene* scene);
+	auto willSwitchToScene(cocos2d::CCScene* scene) = mac 0x24a520;
 	auto setOpenGLView(cocos2d::CCEGLView *pobOpenGLView) = mac 0x249be0;
 	auto updateScreenScale(cocos2d::CCSize) = mac 0x249f10;
 	auto setContentScaleFactor(float);
@@ -291,7 +291,7 @@ class cocos2d::CCEGLViewProtocol {
     auto getScaleX() const = mac 0x29e300;
     auto getScaleY() const = mac 0x29e310;
     virtual auto setDesignResolutionSize(float, float, ResolutionPolicy);
-	auto setFrameSize(float, float) = mac 0x29d960;
+	virtual void setFrameSize(float, float) = mac 0x29d960;
 }
 
 [[link(win)]]
@@ -318,6 +318,7 @@ class cocos2d::CCFileUtils : cocos2d::TypeInfo {
 class cocos2d::CCGLProgram {
 	auto setUniformsForBuiltins() = mac 0x232c70;
 	auto use() = mac 0x231d70;
+	bool compileShader(unsigned int* shader, unsigned int type, const char* source) = mac 0x231a30;
 }
 
 [[link(win)]]
@@ -880,12 +881,18 @@ class cocos2d::CCSet {
 	virtual ~CCSet() = mac 0x45b050, ios 0x10ebcc, win 0x69a80;
 	virtual auto acceptVisitor(cocos2d::CCDataVisitor&) = mac 0x45b090, ios 0x10ec04;
 	auto anyObject() = mac 0x45b410;
+
+	void removeObject(cocos2d::CCObject* obj) {
+		m_pSet->erase(obj);
+		CC_SAFE_RELEASE(obj);
+	}
 }
 
 [[link(win)]]
 class cocos2d::CCShaderCache {
 	static auto sharedShaderCache() = mac 0xe6d10;
 	auto programForKey(const char*) = mac 0xe7d40;
+	void reloadDefaultShaders();
 }
 
 [[link(win)]]
@@ -1095,7 +1102,8 @@ class cocos2d::CCTouch {
 	auto getLocationInView() const = mac 0x38250;
 	auto getPreviousLocationInView() const = mac 0x38270;
 	auto getLocation() const = mac 0x382b0, ios 0x21ce78;
-	auto getStartLocation() const = mac 0x382e0;
+	auto getPreviousLocation() const = mac 0x382e0;
+	auto getStartLocation() const = mac 0x38310;
 }
 
 [[link(win)]]
@@ -1112,6 +1120,9 @@ class cocos2d::CCTouchDispatcher {
 class cocos2d::CCTouchHandler {
     virtual auto initWithDelegate(cocos2d::CCTouchDelegate*, int) = mac 0x247d10, ios 0x69f8;
     auto getPriority() = mac 0x247c20;
+    cocos2d::CCTouchDelegate* getDelegate() {
+    	return m_pDelegate;
+    }
     ~CCTouchHandler() = mac 0x247de0, ios 0x6ac0;
 }
 
@@ -1239,6 +1250,7 @@ class cocos2d::extension::CCScrollView {
 [[link(win)]]
 class cocos2d {
 	static auto FNTConfigLoadFile(char const*) = mac 0x344f10;
+	static auto ccGLUseProgram(GLuint) = mac 0x1ae540;
 	static auto ccGLBlendFunc(GLenum, GLenum) = mac 0x1ae560;
 	static auto ccDrawSolidRect(cocos2d::CCPoint, cocos2d::CCPoint, cocos2d::_ccColor4F) = mac 0xecf00;
 	static auto ccGLEnableVertexAttribs(unsigned int) = mac 0x1ae740;

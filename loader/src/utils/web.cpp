@@ -48,7 +48,6 @@ Result<> web::fetchFile(
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &file);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, utils::fetch::writeBinaryData);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, "github_api/1.0");
     if (prog) {
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
         curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, utils::fetch::progress);
@@ -81,7 +80,6 @@ Result<ByteVector> web::fetchBytes(std::string const& url) {
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &ret);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, utils::fetch::writeBytes);
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, "github_api/1.0");
     auto res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
         curl_easy_cleanup(curl);
@@ -120,7 +118,6 @@ Result<std::string> web::fetch(std::string const& url) {
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &ret);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, utils::fetch::writeString);
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, "github_api/1.0");
     auto res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
         curl_easy_cleanup(curl);
@@ -162,9 +159,10 @@ private:
     SentAsyncWebRequest* m_self;
 
     mutable std::mutex m_mutex;
-    std::variant<std::monostate, std::ostream*, ghc::filesystem::path> m_target =
-        std::monostate();
+    AsyncWebRequestData m_extra;
+    std::variant<std::monostate, std::ostream*, ghc::filesystem::path> m_target;
     std::vector<std::string> m_httpHeaders;
+    
 
     template <class T>
     friend class AsyncWebResult;
@@ -187,7 +185,7 @@ static std::unordered_map<std::string, SentAsyncWebRequestHandle> RUNNING_REQUES
 static std::mutex RUNNING_REQUESTS_MUTEX;
 
 SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const& req, std::string const& id) :
-    m_id(id), m_url(req.m_url), m_target(req.m_target), m_httpHeaders(req.m_httpHeaders) {
+    m_id(id), m_url(req.m_url), m_target(req.m_target), m_extra(req.extra()), m_httpHeaders(req.m_httpHeaders) {
 
 #define AWAIT_RESUME()    \
     {\
@@ -242,8 +240,30 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
         // No need to verify SSL, we trust our domains :-)
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
-        // Github User Agent
-        curl_easy_setopt(curl, CURLOPT_USERAGENT, "github_api/1.0");
+        // User Agent
+        curl_easy_setopt(curl, CURLOPT_USERAGENT, m_extra.m_userAgent.c_str());
+
+        // Headers
+        curl_slist* headers = nullptr;
+        for (auto& header : m_httpHeaders) {
+            headers = curl_slist_append(headers, header.c_str());
+        }
+
+        // Post request
+        if (m_extra.m_isPostRequest || m_extra.m_customRequest.size()) {
+            if (m_extra.m_isPostRequest) {
+                curl_easy_setopt(curl, CURLOPT_POST, 1L);
+            }
+            else {
+                curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, m_extra.m_customRequest.c_str());
+            }
+            if (m_extra.m_isJsonRequest) {
+                headers = curl_slist_append(headers, "Content-Type: application/json");
+            }
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, m_extra.m_postFields.c_str());
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, m_extra.m_postFields.size());
+        }
+
         // Track progress
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
         // Follow redirects
@@ -251,10 +271,7 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
         // Fail if response code is 4XX or 5XX
         curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
 
-        curl_slist* headers = nullptr;
-        for (auto& header : m_httpHeaders) {
-            headers = curl_slist_append(headers, header.c_str());
-        }
+        // Headers end
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
         struct ProgressData {
@@ -410,9 +427,48 @@ void SentAsyncWebRequest::error(std::string const& error, int code) {
     return m_impl->error(error, code);
 }
 
+AsyncWebRequestData& AsyncWebRequest::extra() {
+    if (!m_extra) {
+        m_extra = new AsyncWebRequestData();
+    }
+    return *m_extra;
+}
+
+AsyncWebRequestData const& AsyncWebRequest::extra() const {
+    if (!m_extra) {
+        m_extra = new AsyncWebRequestData();
+    }
+    return *m_extra;
+}
+
 AsyncWebRequest& AsyncWebRequest::join(std::string const& requestID) {
     m_joinID = requestID;
     return *this;
+}
+
+AsyncWebRequest& AsyncWebRequest::userAgent(std::string const& userAgent) {
+    this->extra().m_userAgent = userAgent;
+    return *this;
+}
+
+AsyncWebRequest& AsyncWebRequest::postRequest() {
+    this->extra().m_isPostRequest = true;
+    return *this;
+}
+
+AsyncWebRequest& AsyncWebRequest::customRequest(std::string const& request) {
+    this->extra().m_customRequest = request;
+    return *this;
+}
+
+AsyncWebRequest& AsyncWebRequest::postFields(std::string const& fields) {
+    this->extra().m_postFields = fields;
+    return *this;
+}
+
+AsyncWebRequest& AsyncWebRequest::postFields(json::Value const& fields) {
+    this->extra().m_isJsonRequest = true;
+    return this->postFields(fields.dump());
 }
 
 AsyncWebRequest& AsyncWebRequest::header(std::string const& header) {
@@ -448,8 +504,8 @@ AsyncWebRequest& AsyncWebRequest::cancelled(AsyncCancelled cancelledFunc) {
 }
 
 SentAsyncWebRequestHandle AsyncWebRequest::send() {
-    if (m_sent) return nullptr;
-    m_sent = true;
+    if (this->extra().m_sent) return nullptr;
+    this->extra().m_sent = true;
 
     std::lock_guard __(RUNNING_REQUESTS_MUTEX);
 
@@ -486,6 +542,7 @@ SentAsyncWebRequestHandle AsyncWebRequest::send() {
 
 AsyncWebRequest::~AsyncWebRequest() {
     this->send();
+    delete m_extra;
 }
 
 AsyncWebResult<std::monostate> AsyncWebResponse::into(std::ostream& stream) {

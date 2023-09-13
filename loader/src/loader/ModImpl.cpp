@@ -42,8 +42,11 @@ Result<> Mod::Impl::setup() {
     if (!loadRes) {
         log::warn("Unable to load data for \"{}\": {}", m_metadata.getID(), loadRes.unwrapErr());
     }
-    if (LoaderImpl::get()->m_isSetup) {
-        Loader::get()->updateResources(false);
+    if (!m_resourcesLoaded) {
+        auto searchPathRoot = dirs::getModRuntimeDir() / m_metadata.getID() / "resources";
+        CCFileUtils::get()->addSearchPath(searchPathRoot.string().c_str());
+
+        m_resourcesLoaded = true;
     }
 
     return Ok();
@@ -112,28 +115,8 @@ bool Mod::Impl::isEnabled() const {
     return m_enabled;
 }
 
-bool Mod::Impl::isLoaded() const {
-    return m_binaryLoaded;
-}
-
 bool Mod::Impl::supportsDisabling() const {
-    return m_metadata.getID() != "geode.loader" && !m_metadata.isAPI();
-}
-
-bool Mod::Impl::canDisable() const {
-    auto deps = m_dependants;
-    return this->supportsDisabling() &&
-        (deps.empty() || std::all_of(deps.begin(), deps.end(), [&](auto& item) {
-               return item->canDisable();
-           }));
-}
-
-bool Mod::Impl::canEnable() const {
-    auto deps = m_metadata.getDependencies();
-    return !this->isUninstalled() &&
-        (deps.empty() || std::all_of(deps.begin(), deps.end(), [&](auto& item) {
-                return item.isResolved();
-           }));
+    return m_metadata.getID() != "geode.loader";
 }
 
 bool Mod::Impl::needsEarlyLoad() const {
@@ -142,10 +125,6 @@ bool Mod::Impl::needsEarlyLoad() const {
         !deps.empty() && std::any_of(deps.begin(), deps.end(), [&](auto& item) {
              return item->needsEarlyLoad();
          });
-}
-
-bool Mod::Impl::wasSuccessfullyLoaded() const {
-    return !this->isEnabled() || this->isLoaded();
 }
 
 std::vector<Hook*> Mod::Impl::getHooks() const {
@@ -329,7 +308,7 @@ bool Mod::Impl::hasSetting(std::string const& key) const {
 
 Result<> Mod::Impl::loadBinary() {
     log::debug("Loading binary for mod {}", m_metadata.getID());
-    if (m_binaryLoaded)
+    if (m_enabled)
         return Ok();
 
     LoaderImpl::get()->provideNextMod(m_self);
@@ -341,35 +320,8 @@ Result<> Mod::Impl::loadBinary() {
         log::error("Failed to load binary for mod {}: {}", m_metadata.getID(), res.unwrapErr());
         return res;
     }
-    m_binaryLoaded = true;
 
     LoaderImpl::get()->releaseNextMod();
-
-    ModStateEvent(m_self, ModEventType::Loaded).post();
-
-    return Ok();
-}
-
-Result<> Mod::Impl::enable() {
-    if (!m_binaryLoaded)
-        return Err("Tried to enable {} but its binary is not loaded", m_metadata.getID());
-
-    bool enabledDependencies = true;
-    for (auto const& item : m_metadata.getDependencies()) {
-        if (!item.isResolved() || !item.mod)
-            continue;
-        auto res = item.mod->enable();
-        if (!res) {
-            enabledDependencies = false;
-            log::error("Failed to enable {}: {}", item.id, res.unwrapErr());
-        }
-    }
-
-    if (!enabledDependencies)
-        return Err("Mod cannot be enabled because one or more of its dependencies cannot be enabled.");
-
-    if (!this->canEnable())
-        return Err("Mod cannot be enabled because it has unresolved dependencies.");
 
     for (auto const& hook : m_hooks) {
         if (!hook) {
@@ -377,95 +329,98 @@ Result<> Mod::Impl::enable() {
             continue;
         }
         if (hook->getAutoEnable()) {
-            GEODE_UNWRAP(this->enableHook(hook));
+            auto res = this->enableHook(hook);
+            if (!res) {
+                log::error("Can't enable hook {} for mod {}: {}", hook->getDisplayName(), m_metadata.getID(), res.unwrapErr());
+            }
         }
     }
 
     for (auto const& patch : m_patches) {
-        if (!patch->apply()) {
-            log::warn("Unable to apply patch at {}", patch->getAddress());
+        if (!patch) {
+            log::warn("Patch is null in mod \"{}\"", m_metadata.getName());
             continue;
+        }
+        if (patch->getAutoEnable()) {
+            if (!patch->apply()) {
+                log::warn("Unable to apply patch at {}", patch->getAddress());
+                continue;
+            }
         }
     }
 
     m_enabled = true;
+
+    ModStateEvent(m_self, ModEventType::Loaded).post();
     ModStateEvent(m_self, ModEventType::Enabled).post();
 
     return Ok();
 }
 
-Result<> Mod::Impl::disable() {
-    if (!m_enabled)
-        return Ok();
-
-    if (!this->supportsDisabling())
-        return Err("Mod does not support disabling.");
-
-    if (!this->canDisable())
-        return Err("Mod cannot be disabled because one or more of its dependants cannot be disabled.");
-
-    // disable dependants
-    bool disabledDependants = true;
-    for (auto& item : m_dependants) {
-        auto res = item->disable();
-        if (res)
-            continue;
-        disabledDependants = false;
-        log::error("Failed to disable {}: {}", item->getID(), res.unwrapErr());
+Result<> Mod::Impl::enable() {
+    if (m_requestedAction != ModRequestedAction::None) {
+        return Err("Mod already has a requested action");
     }
 
-    if (!disabledDependants)
-        return Err("Mod cannot be disabled because one or more of its dependants cannot be disabled.");
-
-    std::vector<std::string> errors;
-    for (auto const& hook : m_hooks) {
-        auto res = this->disableHook(hook);
-        if (!res)
-            errors.push_back(res.unwrapErr());
-    }
-    for (auto const& patch : m_patches) {
-        auto res = this->unpatch(patch);
-        if (!res)
-            errors.push_back(res.unwrapErr());
-    }
-
-    m_enabled = false;
-    ModStateEvent(m_self, ModEventType::Disabled).post();
-
-    if (!errors.empty())
-        return Err(utils::string::join(errors, "\n"));
+    m_requestedAction = ModRequestedAction::Enable;
+    Mod::get()->setSavedValue("should-load-" + m_metadata.getID(), true);
 
     return Ok();
 }
 
-Result<> Mod::Impl::uninstall() {
-    if (supportsDisabling()) {
-        GEODE_UNWRAP(this->disable());
-    }
-    else {
-        for (auto& item : m_dependants) {
-            if (!item->canDisable())
-                continue;
-            GEODE_UNWRAP(item->disable());
-        }
+Result<> Mod::Impl::disable() {
+    if (m_requestedAction != ModRequestedAction::None) {
+        return Err("Mod already has a requested action");
     }
 
-    try {
-        ghc::filesystem::remove(m_metadata.getPath());
+    m_requestedAction = ModRequestedAction::Disable;
+    Mod::get()->setSavedValue("should-load-" + m_metadata.getID(), false);
+
+    return Ok();
+}
+
+Result<> Mod::Impl::uninstall(bool deleteSaveData) {
+    if (m_requestedAction != ModRequestedAction::None) {
+        return Err("Mod already has a requested action");
     }
-    catch (std::exception& e) {
+
+    if (this->getID() == "geode.loader") {
+        utils::game::launchLoaderUninstaller(deleteSaveData);
+        utils::game::exit();
+        return Ok();
+    }
+
+    m_requestedAction = deleteSaveData ?
+        ModRequestedAction::UninstallWithSaveData :
+        ModRequestedAction::Uninstall;
+
+    std::error_code ec;
+    ghc::filesystem::remove(m_metadata.getPath(), ec);
+    if (ec) {
         return Err(
-            "Unable to delete mod's .geode file! "
-            "This might be due to insufficient permissions - "
-            "try running GD as administrator."
+            "Unable to delete mod's .geode file: " + ec.message()
         );
+    }
+
+    if (deleteSaveData) {
+        ghc::filesystem::remove_all(this->getSaveDir(), ec);
+        if (ec) {
+            return Err(
+                "Unable to delete mod's save directory: " + ec.message()
+            );
+        }
     }
 
     return Ok();
 }
 
 bool Mod::Impl::isUninstalled() const {
-    return m_self != Mod::get() && !ghc::filesystem::exists(m_metadata.getPath());
+    return m_requestedAction == ModRequestedAction::Uninstall ||
+        m_requestedAction == ModRequestedAction::UninstallWithSaveData;
+}
+
+ModRequestedAction Mod::Impl::getRequestedAction() const {
+    return m_requestedAction;
 }
 
 // Dependencies
@@ -623,14 +578,14 @@ ghc::filesystem::path Mod::Impl::getConfigDir(bool create) const {
 }
 
 char const* Mod::Impl::expandSpriteName(char const* name) {
-    static std::unordered_map<std::string, char const*> expanded = {};
-    if (expanded.count(name)) return expanded[name];
+    log::debug("Expanding sprite name {} for {}", name, m_metadata.getID());
+    if (m_expandedSprites.count(name)) return m_expandedSprites[name];
 
     auto exp = new char[strlen(name) + 2 + m_metadata.getID().size()];
     auto exps = m_metadata.getID() + "/" + name;
     memcpy(exp, exps.c_str(), exps.size() + 1);
 
-    expanded[name] = exp;
+    m_expandedSprites[name] = exp;
 
     return exp;
 }
@@ -647,14 +602,27 @@ ModJson Mod::Impl::getRuntimeInfo() const {
     for (auto patch : m_patches) {
         obj["patches"].as_array().push_back(ModJson(patch->getRuntimeInfo()));
     }
-    obj["enabled"] = m_enabled;
-    obj["loaded"] = m_binaryLoaded;
+    // TODO: so which one is it
+    // obj["enabled"] = m_enabled;
+    obj["loaded"] = m_enabled;
     obj["temp-dir"] = this->getTempDir();
     obj["save-dir"] = this->getSaveDir();
     obj["config-dir"] = this->getConfigDir(false);
     json["runtime"] = obj;
 
     return json;
+}
+
+bool Mod::Impl::isLoggingEnabled() const {
+    return m_loggingEnabled;
+}
+
+void Mod::Impl::setLoggingEnabled(bool enabled) {
+    m_loggingEnabled = enabled;
+}
+
+bool Mod::Impl::shouldLoad() const {
+    return Mod::get()->getSavedValue<bool>("should-load-" + m_metadata.getID(), true);
 }
 
 static Result<ModMetadata> getModImplInfo() {
@@ -687,7 +655,6 @@ Mod* Loader::Impl::createInternalMod() {
     else {
         mod = new Mod(infoRes.unwrap());
     }
-    mod->m_impl->m_binaryLoaded = true;
     mod->m_impl->m_enabled = true;
     m_mods.insert({ mod->getID(), mod });
     return mod;

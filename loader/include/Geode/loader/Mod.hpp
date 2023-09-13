@@ -32,6 +32,14 @@ namespace geode {
         ~HandleToSaved();
     };
 
+    enum class ModRequestedAction {
+        None,
+        Enable,
+        Disable,
+        Uninstall,
+        UninstallWithSaveData
+    };
+
     GEODE_HIDDEN Mod* takeNextLoaderMod();
 
     class ModImpl;
@@ -76,10 +84,10 @@ namespace geode {
         ghc::filesystem::path getPackagePath() const;
         VersionInfo getVersion() const;
         bool isEnabled() const;
-        bool isLoaded() const;
+        [[deprecated("use isEnabled instead")]] bool isLoaded() const;
         bool supportsDisabling() const;
-        bool canDisable() const;
-        bool canEnable() const;
+        [[deprecated("always true")]] bool canDisable() const;
+        [[deprecated("always true")]] bool canEnable() const;
         bool needsEarlyLoad() const;
         bool wasSuccessfullyLoaded() const;
         ModMetadata getMetadata() const;
@@ -308,13 +316,23 @@ namespace geode {
          */
         Result<> disable();
 
+        // TODO: in 2.0.0 make this use an optional arg instead
         /**
-         * Disable this mod (if supported), then delete the mod's .geode package.
+         * Delete the mod's .geode package.
          * @returns Successful result on success,
          * errorful result with info on error
          */
         Result<> uninstall();
+        /**
+         * Delete the mod's .geode package.
+         * @param deleteSaveData Whether should also delete the mod's save data
+         * @returns Successful result on success,
+         * errorful result with info on error
+         */
+        Result<> uninstall(bool deleteSaveData);
         bool isUninstalled() const;
+
+        ModRequestedAction getRequestedAction() const;
 
         /**
          * Check whether or not this Mod
@@ -346,10 +364,15 @@ namespace geode {
          */
         ModJson getRuntimeInfo() const;
 
+        bool isLoggingEnabled() const;
+        void setLoggingEnabled(bool enabled);
+
+        bool shouldLoad() const;
+
         friend class ModImpl;
     };
 }
 
-inline char const* operator"" _spr(char const* str, size_t) {
+GEODE_HIDDEN inline char const* operator"" _spr(char const* str, size_t) {
     return geode::Mod::get()->expandSpriteName(str);
 }

@@ -223,6 +223,7 @@ namespace geode {
         friend class Loader;
 
         friend class ModMetadataImpl;
+        friend class IndexItem;
     };
 }
 

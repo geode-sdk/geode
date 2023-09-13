@@ -473,8 +473,6 @@ FunctionEnd
 Function un.onInit
     !insertmacro MUI_UNGETLANGUAGE
 
-    StrCpy $INSTDIR $INSTDIR -5 ; remove "geode/" at the end
-
     ; verify uninst dir
 
     ; check if there's any exe and libcocos2d.dll (GeometryDash.exe won't work because of GDPSes)
@@ -492,8 +490,10 @@ Function un.onInit
 FunctionEnd
 Section "Uninstall"
     DeleteRegKey /ifempty HKCU "Software\Geode"
+    Delete $INSTDIR\GeodeUninstaller.exe
     Delete $INSTDIR\Geode.dll
     Delete $INSTDIR\Geode.pdb
+    Delete $INSTDIR\Geode.lib
     Delete $INSTDIR\GeodeUpdater.exe
     Delete $INSTDIR\XInput9_1_0.dll
 

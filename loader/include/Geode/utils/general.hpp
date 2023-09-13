@@ -129,5 +129,7 @@ namespace geode::utils::clipboard {
 }
 
 namespace geode::utils::game {
+    GEODE_DLL void exit();
     GEODE_DLL void restart();
+    GEODE_DLL void launchLoaderUninstaller(bool deleteSaveData);
 }

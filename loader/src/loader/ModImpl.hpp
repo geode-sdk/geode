@@ -27,10 +27,6 @@ namespace geode {
          */
         bool m_enabled = false;
         /**
-         * Whether the mod binary is loaded or not
-         */
-        bool m_binaryLoaded = false;
-        /**
          * Mod temp directory name
          */
         ghc::filesystem::path m_tempDirName;
@@ -56,11 +52,19 @@ namespace geode {
          * Settings save data. Stored for efficient loading of custom settings
          */
         json::Value m_savedSettingsData = json::Object();
-
         /**
          * Whether the mod resources are loaded or not
          */
         bool m_resourcesLoaded = false;
+        /**
+         * Whether logging is enabled for this mod
+         */
+        bool m_loggingEnabled = true;
+
+        std::unordered_map<std::string, char const*> m_expandedSprites;
+
+
+        ModRequestedAction m_requestedAction = ModRequestedAction::None;
 
         Impl(Mod* self, ModMetadata const& metadata);
         ~Impl();
@@ -81,12 +85,8 @@ namespace geode {
         ghc::filesystem::path getPackagePath() const;
         VersionInfo getVersion() const;
         bool isEnabled() const;
-        bool isLoaded() const;
         bool supportsDisabling() const;
-        bool canDisable() const;
-        bool canEnable() const;
         bool needsEarlyLoad() const;
-        bool wasSuccessfullyLoaded() const;
         ModMetadata getMetadata() const;
         ghc::filesystem::path getTempDir() const;
         ghc::filesystem::path getBinaryPath() const;
@@ -120,8 +120,12 @@ namespace geode {
         Result<> unpatch(Patch* patch);
         Result<> enable();
         Result<> disable();
-        Result<> uninstall();
+        Result<> uninstall(bool deleteSaveData);
         bool isUninstalled() const;
+
+        // 1.3.0 additions
+        ModRequestedAction getRequestedAction() const;
+
         bool depends(std::string const& id) const;
         Result<> updateDependencies();
         bool hasUnresolvedDependencies() const;
@@ -131,6 +135,11 @@ namespace geode {
 
         char const* expandSpriteName(char const* name);
         ModJson getRuntimeInfo() const;
+
+        bool isLoggingEnabled() const;
+        void setLoggingEnabled(bool enabled);
+
+        bool shouldLoad() const;
     };
 
     class ModImpl : public Mod::Impl {

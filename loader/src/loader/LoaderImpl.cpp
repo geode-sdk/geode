@@ -151,7 +151,6 @@ bool Loader::Impl::isModVersionSupported(VersionInfo const& version) {
 Result<> Loader::Impl::saveData() {
     // save mods' data
     for (auto& [id, mod] : m_mods) {
-        Mod::get()->setSavedValue("should-load-" + id, mod->isUninstalled() || mod->isEnabled());
         auto r = mod->saveData();
         if (!r) {
             log::warn("Unable to save data for mod \"{}\": {}", mod->getID(), r.unwrapErr());
@@ -187,13 +186,13 @@ Mod* Loader::Impl::getInstalledMod(std::string const& id) const {
 }
 
 bool Loader::Impl::isModLoaded(std::string const& id) const {
-    return m_mods.count(id) && m_mods.at(id)->isLoaded();
+    return m_mods.count(id) && m_mods.at(id)->isEnabled();
 }
 
 Mod* Loader::Impl::getLoadedMod(std::string const& id) const {
     if (m_mods.count(id)) {
         auto mod = m_mods.at(id);
-        if (mod->isLoaded()) {
+        if (mod->isEnabled()) {
             return mod;
         }
     }
@@ -201,10 +200,15 @@ Mod* Loader::Impl::getLoadedMod(std::string const& id) const {
 }
 
 void Loader::Impl::updateModResources(Mod* mod) {
+    if (mod != Mod::get()) {
+        // geode.loader resource is stored somewhere else, which is already added anyway
+        auto searchPathRoot = dirs::getModRuntimeDir() / mod->getID() / "resources";
+        CCFileUtils::get()->addSearchPath(searchPathRoot.string().c_str());
+    }
+
+    // only thing needs previous setup is spritesheets
     if (mod->getMetadata().getSpritesheets().empty())
         return;
-
-    auto searchPath = mod->getResourcesDir();
 
     log::debug("Adding resources for {}", mod->getID());
 
@@ -312,12 +316,6 @@ void Loader::Impl::populateModList(std::vector<ModMetadata>& modQueue) {
 
         m_mods.insert({metadata.getID(), mod});
 
-        queueInMainThread([this, mod]() {
-            auto searchPath = dirs::getModRuntimeDir() / mod->getID() / "resources";
-            CCFileUtils::get()->addSearchPath(searchPath.string().c_str());
-            updateModResources(mod);
-        });
-
         log::popNest();
     }
 }
@@ -367,7 +365,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
     log::debug("{} {}", node->getID(), node->getVersion());
     log::pushNest();
 
-    if (node->isLoaded()) {
+    if (node->isEnabled()) {
         for (auto const& dep : node->m_impl->m_dependants) {
             this->loadModGraph(dep, early);
         }
@@ -375,31 +373,16 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
         return;
     }
 
-    log::debug("Load");
-    auto res = node->m_impl->loadBinary();
-    if (!res) {
-        m_problems.push_back({
-            LoadProblem::Type::LoadFailed,
-            node,
-            res.unwrapErr()
-        });
-        log::error("Failed to load binary: {}", res.unwrapErr());
-        log::popNest();
-        return;
-    }
-
-    if (Mod::get()->getSavedValue<bool>("should-load-" + node->getID(), true)) {
-        log::debug("Enable");
-        res = node->m_impl->enable();
+    if (node->shouldLoad()) {
+        log::debug("Load");
+        auto res = node->m_impl->loadBinary();
         if (!res) {
-            node->m_impl->m_enabled = true;
-            (void)node->m_impl->disable();
             m_problems.push_back({
-                LoadProblem::Type::EnableFailed,
+                LoadProblem::Type::LoadFailed,
                 node,
                 res.unwrapErr()
             });
-            log::error("Failed to enable: {}", res.unwrapErr());
+            log::error("Failed to load binary: {}", res.unwrapErr());
             log::popNest();
             return;
         }
@@ -414,11 +397,15 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
 
 void Loader::Impl::findProblems() {
     for (auto const& [id, mod] : m_mods) {
+        if (!mod->shouldLoad()) {
+            log::debug("{} is not enabled", id);
+            continue;
+        }
         log::debug(id);
         log::pushNest();
 
         for (auto const& dep : mod->getMetadata().getDependencies()) {
-            if (dep.mod && dep.mod->isLoaded() && dep.version.compare(dep.mod->getVersion()))
+            if (dep.mod && dep.mod->isEnabled() && dep.version.compare(dep.mod->getVersion()))
                 continue;
             switch(dep.importance) {
                 case ModMetadata::Dependency::Importance::Suggested:
@@ -473,7 +460,9 @@ void Loader::Impl::findProblems() {
 
         Mod* myEpicMod = mod; // clang fix
         // if the mod is not loaded but there are no problems related to it
-        if (!mod->isLoaded() && !std::any_of(m_problems.begin(), m_problems.end(), [myEpicMod](auto& item) {
+        if (!mod->isEnabled() &&
+            mod->shouldLoad() &&
+            !std::any_of(m_problems.begin(), m_problems.end(), [myEpicMod](auto& item) {
                 return std::holds_alternative<ModMetadata>(item.cause) &&
                     std::get<ModMetadata>(item.cause).getID() == myEpicMod->getID() ||
                     std::holds_alternative<Mod*>(item.cause) &&
@@ -497,7 +486,7 @@ void Loader::Impl::refreshModGraph() {
 
     auto begin = std::chrono::high_resolution_clock::now();
 
-    if (m_mods.size() > 1) {
+    if (m_isSetup) {
         log::error("Cannot refresh mod graph after startup");
         log::popNest();
         return;
@@ -528,7 +517,7 @@ void Loader::Impl::refreshModGraph() {
     m_loadingState = LoadingState::EarlyMods;
     log::debug("Loading early mods");
     log::pushNest();
-    for (auto const& dep : Mod::get()->m_impl->m_dependants) {
+    for (auto const& dep : ModImpl::get()->m_dependants) {
         this->loadModGraph(dep, true);
     }
     log::popNest();
@@ -680,6 +669,7 @@ void Loader::Impl::fetchLatestGithubRelease(
     // TODO: add header to not get rate limited
     web::AsyncWebRequest()
         .join("loader-auto-update-check")
+        .userAgent("github_api/1.0")
         .fetch("https://api.github.com/repos/geode-sdk/geode/releases/latest")
         .json()
         .then([this, then](json::Value const& json) {
@@ -748,6 +738,7 @@ void Loader::Impl::downloadLoaderResources(bool useLatestRelease) {
     if (!useLatestRelease) {
         web::AsyncWebRequest()
             .join("loader-tag-exists-check")
+            .userAgent("github_api/1.0")
             .fetch(fmt::format(
                 "https://api.github.com/repos/geode-sdk/geode/git/ref/tags/{}",
                 this->getVersion().toString()

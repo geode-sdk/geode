@@ -36,7 +36,7 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
 	set(CMAKE_OSX_ARCHITECTURES "x86_64")
 
 	# only exists as a global property
-	set(CMAKE_OSX_DEPLOYMENT_TARGET 10.14)
+	set(CMAKE_OSX_DEPLOYMENT_TARGET 10.13)
 
 	find_package(CURL REQUIRED) 
 
@@ -46,6 +46,7 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
 
 	target_link_libraries(${PROJECT_NAME} INTERFACE
 		"-framework Cocoa"
+		"-framework OpenGL"
 		${CURL_LIBRARIES}
 		${GEODE_LOADER_PATH}/include/link/libfmod.dylib
 	)

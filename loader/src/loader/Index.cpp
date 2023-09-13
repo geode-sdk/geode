@@ -8,6 +8,8 @@
 #include <hash/hash.hpp>
 #include <Geode/utils/JsonValidation.hpp>
 
+#include <thread>
+
 #ifdef GEODE_IS_WINDOWS
 #include <filesystem>
 #endif
@@ -47,12 +49,14 @@ IndexUpdateFilter::IndexUpdateFilter() {}
 
 class IndexItem::Impl final {
 private:
+    ghc::filesystem::path m_rootPath;
     ghc::filesystem::path m_path;
     ModMetadata m_metadata;
     std::string m_downloadURL;
     std::string m_downloadHash;
     std::unordered_set<PlatformID> m_platforms;
-    bool m_isFeatured;
+    bool m_isFeatured = false;
+    bool m_isInstalled = false;
     std::unordered_set<std::string> m_tags;
 
     friend class IndexItem;
@@ -62,6 +66,7 @@ public:
      * Create IndexItem from a directory
      */
     static Result<std::shared_ptr<IndexItem>> create(
+        ghc::filesystem::path const& rootDir,
         ghc::filesystem::path const& dir
     );
 
@@ -70,6 +75,10 @@ public:
 
 IndexItem::IndexItem() : m_impl(std::make_unique<Impl>()) {}
 IndexItem::~IndexItem() = default;
+
+ghc::filesystem::path IndexItem::getRootPath() const {
+    return m_impl->m_rootPath;
+}
 
 ghc::filesystem::path IndexItem::getPath() const {
     return m_impl->m_path;
@@ -127,9 +136,13 @@ void IndexItem::setIsFeatured(bool const& value) {
 void IndexItem::setTags(std::unordered_set<std::string> const& value) {
     m_impl->m_tags = value;
 }
+
+void IndexItem::setIsInstalled(bool const& value) {
+    m_impl->m_isInstalled = value;
+}
 #endif
 
-Result<IndexItemHandle> IndexItem::Impl::create(ghc::filesystem::path const& dir) {
+Result<IndexItemHandle> IndexItem::Impl::create(ghc::filesystem::path const& rootDir, ghc::filesystem::path const& dir) {
     GEODE_UNWRAP_INTO(
         auto entry, file::readJson(dir / "entry.json")
             .expect("Unable to read entry.json")
@@ -138,6 +151,10 @@ Result<IndexItemHandle> IndexItem::Impl::create(ghc::filesystem::path const& dir
         auto metadata, ModMetadata::createFromFile(dir / "mod.json")
             .expect("Unable to read mod.json: {error}")
     );
+    auto metadataRes = metadata.addSpecialFiles(rootDir);
+    if (!metadataRes) {
+        log::warn("Unable to add special files from {}: {}", rootDir, metadataRes.unwrapErr());
+    }
 
     JsonChecker checker(entry);
     auto root = checker.root("[entry.json]").obj();
@@ -153,6 +170,7 @@ Result<IndexItemHandle> IndexItem::Impl::create(ghc::filesystem::path const& dir
     }
 
     auto item = std::make_shared<IndexItem>();
+    item->m_impl->m_rootPath = rootDir;
     item->m_impl->m_path = dir;
     item->m_impl->m_metadata = metadata;
     item->m_impl->m_platforms = platforms;
@@ -168,7 +186,17 @@ Result<IndexItemHandle> IndexItem::Impl::create(ghc::filesystem::path const& dir
 }
 
 bool IndexItem::Impl::isInstalled() const {
-    return ghc::filesystem::exists(dirs::getModsDir() / (m_metadata.getID() + ".geode"));
+    if (m_isInstalled) {
+        return true;
+    }
+    if (!Loader::get()->isModInstalled(m_metadata.getID())) {
+        return false;
+    }
+    auto installed = Loader::get()->getInstalledMod(m_metadata.getID());
+    if (installed->getVersion() != m_metadata.getVersion()) {
+        return false;
+    }
+    return true;
 }
 
 // Helpers
@@ -205,7 +233,7 @@ class Index::Impl final {
 public:
     // for once, the fact that std::map is ordered is useful (this makes 
     // getting the latest version of a mod as easy as items.rbegin())
-    using ItemVersions = std::map<size_t, IndexItemHandle>;
+    using ItemVersions = std::map<VersionInfo, IndexItemHandle>;
 
 private:
     std::unordered_map<
@@ -288,19 +316,25 @@ void Index::Impl::downloadIndex() {
                 return;
             }
 
-            // unzip new index
-            auto unzip = file::Unzip::intoDir(targetFile, targetDir, true)
-                .expect("Unable to unzip new index");
-            if (!unzip) {
-                IndexUpdateEvent(UpdateFailed(unzip.unwrapErr())).post();
-                return;
-            }
+            std::thread([=, this]() {
+                // unzip new index
+                auto unzip = file::Unzip::intoDir(targetFile, targetDir, true)
+                    .expect("Unable to unzip new index");
+                if (!unzip) {
+                    Loader::get()->queueInMainThread([unzip] {
+                        IndexUpdateEvent(UpdateFailed(unzip.unwrapErr())).post();
+                    });
+                    return;
+                }
 
-            // remove the directory github adds to the root of the zip
-            (void)flattenGithubRepo(targetDir);
+                // remove the directory github adds to the root of the zip
+                (void)flattenGithubRepo(targetDir);
 
-            // update index
-            this->updateFromLocalTree();
+                Loader::get()->queueInMainThread([this] {
+                    // update index
+                    this->updateFromLocalTree();
+                });
+            }).detach();
         })
         .expect([](std::string const& err) {
             IndexUpdateEvent(UpdateFailed(fmt::format("Error downloading: {}", err))).post();
@@ -331,6 +365,7 @@ void Index::Impl::checkForUpdates() {
     auto oldSHA = file::readString(checksum).unwrapOr("");
     web::AsyncWebRequest()
         .join("index-update")
+        .userAgent("github_api/1.0")
         .header(fmt::format("If-None-Match: \"{}\"", oldSHA))
         .header("Accept: application/vnd.github.sha")
         .fetch("https://api.github.com/repos/geode-sdk/mods/commits/main")
@@ -365,34 +400,36 @@ void Index::Impl::updateFromLocalTree() {
     // delete old items
     m_items.clear();
 
-    // read directory and add new items
-    try {
-        for (auto& dir : ghc::filesystem::directory_iterator(dirs::getIndexDir() / "v0" / "mods")) {
-            auto addRes = IndexItem::Impl::create(dir);
+    auto indexRoot = dirs::getIndexDir() / "v0";
+    auto entriesRoot = indexRoot / "mods-v2";
+
+    auto configRes = file::readJson(indexRoot / "config.json");
+    if (!configRes) {
+        IndexUpdateEvent("Unable to read index config").post();
+        return;
+    }
+    auto config = configRes.unwrap();
+
+    JsonChecker checker(config);
+    auto root = checker.root("[config.json]").obj();
+
+    for (auto& [modID, entry] : root.has("entries").items()) {
+        for (auto& version : entry.obj().has("versions").iterate()) {
+            auto rootDir = entriesRoot / modID;
+            auto dir = rootDir / version.get<std::string>();
+
+            auto addRes = IndexItem::Impl::create(rootDir, dir);
             if (!addRes) {
                 log::warn("Unable to add index item from {}: {}", dir, addRes.unwrapErr());
                 continue;
             }
             auto add = addRes.unwrap();
             auto metadata = add->getMetadata();
-            // check if this major version of this item has already been added 
-            if (m_items[metadata.getID()].count(metadata.getVersion().getMajor())) {
-                log::warn(
-                    "Item {}@{} has already been added, skipping",
-                    metadata.getID(),
-                    metadata.getVersion()
-                );
-                continue;
-            }
-            // add new major version of this item
-            m_items[metadata.getID()].insert({metadata.getVersion().getMajor(),
+
+            m_items[modID].insert({metadata.getVersion(),
                 add
             });
         }
-    } catch(std::exception& e) {
-        log::error("Unable to read local index tree: {}", e.what());
-        IndexUpdateEvent("Unable to read local index tree").post();
-        return;
     }
 
     // mark source as finished
@@ -415,7 +452,8 @@ void Index::update(bool force) {
     // update sources
     if (force) {
         m_impl->downloadIndex();
-    } else {
+    }
+    else {
         m_impl->checkForUpdates();
     }
 }
@@ -428,6 +466,14 @@ std::vector<IndexItemHandle> Index::getItems() const {
         for (auto& item : items) {
             res.push_back(item.second);
         }
+    }
+    return res;
+}
+
+std::vector<IndexItemHandle> Index::getLatestItems() const {
+    std::vector<IndexItemHandle> res;
+    for (auto& [modID, versions] : m_impl->m_items) {
+        res.push_back(this->getMajorItem(modID));
     }
     return res;
 }
@@ -458,6 +504,18 @@ std::vector<IndexItemHandle> Index::getItemsByDeveloper(
     return res;
 }
 
+std::vector<IndexItemHandle> Index::getItemsByModID(
+    std::string const& modID
+) const {
+    std::vector<IndexItemHandle> res;
+    if (m_impl->m_items.count(modID)) {
+        for (auto& [versionStr, item] : m_impl->m_items[modID]) {
+            res.push_back(item);
+        }
+    }
+    return res;
+}
+
 bool Index::isKnownItem(
     std::string const& id,
     std::optional<VersionInfo> version
@@ -481,19 +539,14 @@ IndexItemHandle Index::getItem(
     if (m_impl->m_items.count(id)) {
         auto versions = m_impl->m_items.at(id);
         if (version) {
-            // prefer most major version
             for (auto& [_, item] : ranges::reverse(m_impl->m_items.at(id))) {
                 if (version.value() == item->getMetadata().getVersion()) {
                     return item;
                 }
             }
-        } else {
-            if (!versions.empty()) {
-                return m_impl->m_items.at(id).rbegin()->second;
-            }
         }
     }
-    return nullptr;
+    return this->getMajorItem(id);
 }
 
 IndexItemHandle Index::getItem(
@@ -590,6 +643,8 @@ Result<IndexInstallList> Index::getInstallList(IndexItemHandle item) const {
         if (dep.isResolved()) continue;
 
         if (dep.importance == ModMetadata::Dependency::Importance::Suggested) continue;
+
+        if (Loader::get()->isModInstalled(dep.id)) continue;
 
         // check if this dep is available in the index
         if (auto depItem = this->getItem(dep.id, dep.version)) {
@@ -708,6 +763,8 @@ void Index::Impl::installNext(size_t index, IndexInstallList const& list) {
                 ));
             }
 
+            item->setIsInstalled(true);
+
             // Install next item in queue
             this->installNext(index + 1, list);
         })
@@ -742,6 +799,10 @@ void Index::cancelInstall(IndexItemHandle item) {
 }
 
 void Index::install(IndexInstallList const& list) {
+    if (list.list.empty()) {
+        ModInstallEvent(list.target->getMetadata().getID(), UpdateFinished()).post();
+        return;
+    }
     Loader::get()->queueInMainThread([this, list]() {
         m_impl->installNext(0, list);
     });

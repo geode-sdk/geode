@@ -24,7 +24,7 @@
 
 static constexpr int const TAG_CONFIRM_UNINSTALL = 5;
 static constexpr int const TAG_CONFIRM_UPDATE = 6;
-static constexpr int const TAG_DELETE_SAVEDATA = 7;
+static constexpr int const TAG_CONFIRM_UNINSTALL_WITH_SAVEDATA = 7;
 static const CCSize LAYER_SIZE = {440.f, 290.f};
 
 bool ModInfoPopup::init(ModMetadata const& metadata, ModListLayer* list) {
@@ -49,45 +49,51 @@ bool ModInfoPopup::init(ModMetadata const& metadata, ModListLayer* list) {
     constexpr float logoSize = 40.f;
     constexpr float logoOffset = 10.f;
 
-    auto nameLabel = CCLabelBMFont::create(metadata.getName().c_str(), "bigFont.fnt");
-    nameLabel->setAnchorPoint({ .0f, .5f });
-    nameLabel->limitLabelWidth(200.f, .7f, .1f);
-    m_mainLayer->addChild(nameLabel, 2);
+    auto topNode = CCNode::create();
+    topNode->setContentSize({350.f, 80.f});
+    topNode->setLayout(
+        RowLayout::create()
+            ->setAxisAlignment(AxisAlignment::Center)
+            ->setAutoScale(false)
+            ->setCrossAxisOverflow(true)
+    ); 
+    m_mainLayer->addChild(topNode);
+    topNode->setAnchorPoint({.5f, .5f});
+    topNode->setPosition(winSize.width / 2, winSize.height / 2 + 115.f);
 
     auto logoSpr = this->createLogo({logoSize, logoSize});
-    m_mainLayer->addChild(logoSpr);
+    topNode->addChild(logoSpr);
+
+    auto labelNode = CCNode::create();
+    labelNode->setLayout(
+        ColumnLayout::create()
+            ->setAxisAlignment(AxisAlignment::Center)
+            ->setCrossAxisLineAlignment(AxisAlignment::Start)
+            ->setGap(0.f)
+            ->setAutoScale(false)
+            ->setCrossAxisOverflow(true)
+    );
+    labelNode->setContentSize({200.f, 80.f});
+    topNode->addChild(labelNode);
+
+    auto nameLabel = CCLabelBMFont::create(metadata.getName().c_str(), "bigFont.fnt");
+    nameLabel->limitLabelWidth(200.f, .7f, .1f);
+    labelNode->addChild(nameLabel, 2);
 
     auto developerStr = "by " + metadata.getDeveloper();
     auto developerLabel = CCLabelBMFont::create(developerStr.c_str(), "goldFont.fnt");
     developerLabel->setScale(.5f);
-    developerLabel->setAnchorPoint({.0f, .5f});
-    m_mainLayer->addChild(developerLabel);
-
-    auto logoTitleWidth =
-        std::max(nameLabel->getScaledContentSize().width, developerLabel->getScaledContentSize().width) +
-        logoSize + logoOffset;
-
-    nameLabel->setPosition(
-        winSize.width / 2 - logoTitleWidth / 2 + logoSize + logoOffset, winSize.height / 2 + 125.f
-    );
-    logoSpr->setPosition(
-        {winSize.width / 2 - logoTitleWidth / 2 + logoSize / 2, winSize.height / 2 + 115.f}
-    );
-    developerLabel->setPosition(
-        winSize.width / 2 - logoTitleWidth / 2 + logoSize + logoOffset, winSize.height / 2 + 105.f
-    );
+    labelNode->addChild(developerLabel);
 
     auto versionLabel = CCLabelBMFont::create(metadata.getVersion().toString().c_str(),
         "bigFont.fnt"
     );
-    versionLabel->setAnchorPoint({ .0f, .5f });
     versionLabel->setScale(.4f);
-    versionLabel->setPosition(
-        nameLabel->getPositionX() + nameLabel->getScaledContentSize().width + 5.f,
-        winSize.height / 2 + 125.f
-    );
     versionLabel->setColor({0, 255, 0});
-    m_mainLayer->addChild(versionLabel);
+    topNode->addChild(versionLabel);
+
+    labelNode->updateLayout();
+    topNode->updateLayout();
 
     this->setTouchEnabled(true);
 
@@ -277,6 +283,98 @@ void ModInfoPopup::setInstallStatus(std::optional<UpdateProgress> const& progres
     }
 }
 
+void ModInfoPopup::popupInstallItem(IndexItemHandle item) {
+    auto deps = item->getMetadata().getDependencies();
+    enum class DepState {
+        None,
+        HasOnlyRequired,
+        HasOptional
+    } depState = DepState::None;
+    for (auto const& dep : deps) {
+        // resolved means it's already installed, so
+        // no need to ask the user whether they want to install it
+        if (Loader::get()->isModLoaded(dep.id))
+            continue;
+        if (dep.importance != ModMetadata::Dependency::Importance::Required) {
+            depState = DepState::HasOptional;
+            break;
+        }
+        depState = DepState::HasOnlyRequired;
+    }
+
+    std::string content;
+    char const* btn1;
+    char const* btn2;
+    switch (depState) {
+        case DepState::None:
+            content = fmt::format(
+                "Are you sure you want to install <cg>{}</c>?",
+                item->getMetadata().getName()
+            );
+            btn1 = "Info";
+            btn2 = "Install";
+            break;
+        case DepState::HasOnlyRequired:
+            content =
+                "Installing this mod requires other mods to be installed. "
+                "Would you like to <cy>proceed</c> with the installation or "
+                "<cb>view</c> which mods are going to be installed?";
+            btn1 = "View";
+            btn2 = "Proceed";
+            break;
+        case DepState::HasOptional:
+            content =
+                "This mod recommends installing other mods alongside it. "
+                "Would you like to continue with <cy>recommended settings</c> or "
+                "<cb>customize</c> which mods to install?";
+            btn1 = "Customize";
+            btn2 = "Recommended";
+            break;
+    }
+
+    createQuickPopup("Confirm Install", content, btn1, btn2, 320.f, [&](FLAlertLayer*, bool btn2) {
+        if (btn2) {
+            auto canInstall = Index::get()->canInstall(m_item);
+            if (!canInstall) {
+                FLAlertLayer::create(
+                    "Unable to Install",
+                    canInstall.unwrapErr(),
+                    "OK"
+                )->show();
+                return;
+            }
+            this->preInstall();
+            Index::get()->install(m_item);
+        }
+        else {
+            InstallListPopup::create(m_item, [&](IndexInstallList const& list) {
+                this->preInstall();
+                Index::get()->install(list);
+            })->show();
+        }
+    }, true, true);
+}
+
+void ModInfoPopup::preInstall() {
+    if (m_latestVersionLabel) {
+        m_latestVersionLabel->setVisible(false);
+    }
+    if (m_minorVersionLabel) {
+        m_minorVersionLabel->setVisible(false);
+    }
+    this->setInstallStatus(UpdateProgress(0, "Starting install"));
+
+    m_installBtn->setTarget(
+        this, menu_selector(ModInfoPopup::onCancelInstall)
+    );
+    m_installBtnSpr->setString("Cancel");
+    m_installBtnSpr->setBG("GJ_button_06.png", false);
+}
+
+void ModInfoPopup::onCancelInstall(CCObject*) {
+    Index::get()->cancelInstall(m_item);
+}
+
 // LocalModInfoPopup
 LocalModInfoPopup::LocalModInfoPopup()
   : m_installListener(
@@ -333,7 +431,7 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
         disableBtnSpr, enableBtnSpr, this, menu_selector(LocalModInfoPopup::onEnableMod)
     );
     enableBtn->setPosition(-155.f, 75.f);
-    enableBtn->toggle(!mod->isEnabled());
+    enableBtn->toggle(!mod->shouldLoad());
     m_buttonMenu->addChild(enableBtn);
 
     if (!mod->supportsDisabling()) {
@@ -342,7 +440,12 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
         disableBtnSpr->setColor({150, 150, 150});
     }
 
-    if (mod != Mod::get()) {
+    bool shouldShowUninstall = mod != Mod::get();
+#if defined(GEODE_IS_WINDOWS)
+    shouldShowUninstall = shouldShowUninstall ||
+        exists((dirs::getGameDir() / "GeodeUninstaller.exe"));
+#endif
+    if (shouldShowUninstall) {
         auto uninstallBtnSpr =
             ButtonSprite::create("Uninstall", "bigFont.fnt", "GJ_button_05.png", .6f);
         uninstallBtnSpr->setScale(.6f);
@@ -458,12 +561,11 @@ void LocalModInfoPopup::onUpdateProgress(ModInstallEvent* event) {
     std::visit(makeVisitor {
         [&](UpdateFinished const&) {
             this->setInstallStatus(std::nullopt);
-            
+
             FLAlertLayer::create(
-                "Update complete",
-                "Mod successfully updated! :) "
-                "(You may need to <cy>restart the game</c> "
-                "for the mod to take full effect)",
+                "Update Complete",
+                "Mod updated successfully!\n"
+                "<cy>Restart</c> the game to apply changes.",
                 "OK"
             )->show();
 
@@ -479,7 +581,7 @@ void LocalModInfoPopup::onUpdateProgress(ModInstallEvent* event) {
             this->setInstallStatus(std::nullopt);
 
             FLAlertLayer::create(
-                "Update failed :(", info, "OK"
+                "Update Failed", info, "OK"
             )->show();
 
             m_installBtn->setEnabled(true);
@@ -493,68 +595,17 @@ void LocalModInfoPopup::onUpdateProgress(ModInstallEvent* event) {
 }
 
 void LocalModInfoPopup::onUpdate(CCObject*) {
-    auto list = Index::get()->getInstallList(m_item);
-    if (!list) {
-        return FLAlertLayer::create(
-            "Unable to Update",
-            list.unwrapErr(),
-            "OK"
-        )->show();
-    }
-    auto layer = FLAlertLayer::create(
-        this,
-        "Confirm Update",
-        fmt::format(
-            "The following mods will be updated:\n {}",
-            // le nest
-            ranges::join(
-                ranges::map<std::vector<std::string>>(
-                    list.unwrap().list,
-                    [](IndexItemHandle handle) {
-                        return fmt::format(
-                            " - <cr>{}</c> (<cy>{}</c>)",
-                            handle->getMetadata().getName(),
-                            handle->getMetadata().getID()
-                        );
-                    }
-                ),
-                "\n "
-            )
-        ),
-        "Cancel", "OK"
-    );
-    layer->setTag(TAG_CONFIRM_UPDATE);
-    layer->show();
-}
-
-void LocalModInfoPopup::onCancel(CCObject*) {
-    Index::get()->cancelInstall(m_item);
-}
-
-void LocalModInfoPopup::doUpdate() {
-    if (m_latestVersionLabel) {
-        m_latestVersionLabel->setVisible(false);
-    }
-
-    if (m_minorVersionLabel) {
-        m_minorVersionLabel->setVisible(false);
-    }
-    this->setInstallStatus(UpdateProgress(0, "Starting update"));
-
-    m_installBtn->setTarget(
-        this, menu_selector(LocalModInfoPopup::onCancel)
-    );
-    m_installBtnSpr->setString("Cancel");
-    m_installBtnSpr->setBG("GJ_button_06.png", false);
-
-    Index::get()->install(m_item);
+    this->popupInstallItem(m_item);
 }
 
 void LocalModInfoPopup::onUninstall(CCObject*) {
     auto layer = FLAlertLayer::create(
         this,
         "Confirm Uninstall",
-        fmt::format("Are you sure you want to uninstall <cr>{}</c>?", m_mod->getName()),
+        fmt::format("Are you sure you want to uninstall <cr>{}</c>?{}", m_mod->getName(),
+            m_mod == Mod::get() ?
+            "\nThis will close the game and launch the <co>Geode Uninstaller</c>. "
+            "You will have to restart the game <cy>manually</c> after that." : ""),
         "Cancel",
         "OK"
     );
@@ -563,13 +614,11 @@ void LocalModInfoPopup::onUninstall(CCObject*) {
 }
 
 void LocalModInfoPopup::onEnableMod(CCObject* sender) {
-    if (!Mod::get()->setSavedValue("shown-disable-vs-unload-info", true)) {
+    if (!Mod::get()->setSavedValue("shown-mod-toggle-info", true)) {
         FLAlertLayer::create(
             "Notice",
-            "<cb>Disabling</c> a <cy>mod</c> removes its hooks & patches and "
-            "calls its user-defined disable function if one exists. You may "
-            "still see some effects of the mod left however, and you may "
-            "need to <cg>restart</c> the game to have it fully unloaded.",
+            "<cb>Toggling</c> a mod requires you to <cg>restart</c> the game.\n"
+            "When a mod is <cr>disabled</c>, it will not get loaded at all.",
             "OK"
         )->show();
     }
@@ -586,9 +635,9 @@ void LocalModInfoPopup::onEnableMod(CCObject* sender) {
         }
     }
     if (m_layer) {
-        m_layer->updateAllStates();
+        m_layer->reloadList();
     }
-    as<CCMenuItemToggler*>(sender)->toggle(m_mod->isEnabled());
+    as<CCMenuItemToggler*>(sender)->toggle(m_mod->shouldLoad());
 }
 
 void LocalModInfoPopup::onOpenConfigDir(CCObject*) {
@@ -597,7 +646,7 @@ void LocalModInfoPopup::onOpenConfigDir(CCObject*) {
 
 void LocalModInfoPopup::onDisablingNotSupported(CCObject* pSender) {
     FLAlertLayer::create("Unsupported", "<cr>Disabling</c> is not supported for this mod.", "OK")->show();
-    as<CCMenuItemToggler*>(pSender)->toggle(m_mod->isEnabled());
+    as<CCMenuItemToggler*>(pSender)->toggle(m_mod->shouldLoad());
 }
 
 void LocalModInfoPopup::onSettings(CCObject*) {
@@ -613,52 +662,30 @@ void LocalModInfoPopup::FLAlert_Clicked(FLAlertLayer* layer, bool btn2) {
     switch (layer->getTag()) {
         case TAG_CONFIRM_UNINSTALL: {
             if (btn2) {
-                this->doUninstall();
+                auto layer2 = FLAlertLayer::create(
+                    this,
+                    "Confirm Uninstall",
+                    "Would you also like to <cr>delete</c> the mod's <co>save data</c>?",
+                    "Keep",
+                    "Delete",
+                    350.f
+                );
+                layer2->setTag(TAG_CONFIRM_UNINSTALL_WITH_SAVEDATA);
+                layer2->show();
             }
         } break;
 
-        case TAG_DELETE_SAVEDATA: {
-            if (btn2) {
-                if (ghc::filesystem::remove_all(m_mod->getSaveDir())) {
-                    FLAlertLayer::create("Deleted", "The mod's save data was deleted.", "OK")->show();
-                }
-                else {
-                    FLAlertLayer::create("Error", "Unable to delete mod's save directory!", "OK")->show();
-                }
+        case TAG_CONFIRM_UNINSTALL_WITH_SAVEDATA: {
+            auto res = m_mod->uninstall(btn2);
+            if (!res) {
+                return FLAlertLayer::create("Uninstall Failed", res.unwrapErr(), "OK")->show();
             }
             if (m_layer) {
                 m_layer->reloadList();
             }
             this->onClose(nullptr);
         } break;
-
-        case TAG_CONFIRM_UPDATE: {
-            if (btn2) {
-                this->doUpdate();
-            }
-        } break;
     }
-}
-
-void LocalModInfoPopup::doUninstall() {
-    auto res = m_mod->uninstall();
-    if (!res) {
-        return FLAlertLayer::create("Uninstall failed :(", res.unwrapErr(), "OK")->show();
-    }
-    auto layer = FLAlertLayer::create(
-        this,
-        "Uninstall complete",
-        "Mod was successfully uninstalled! :) "
-        "(You may need to <cy>restart the game</c> "
-        "for the mod to take full effect). "
-        "<co>Would you also like to delete the mod's "
-        "save data?</c>",
-        "Keep",
-        "Delete",
-        350.f
-    );
-    layer->setTag(TAG_DELETE_SAVEDATA);
-    layer->show();
 }
 
 LocalModInfoPopup* LocalModInfoPopup::create(Mod* mod, ModListLayer* list) {
@@ -687,7 +714,8 @@ bool IndexItemInfoPopup::init(IndexItemHandle item, ModListLayer* list) {
 
     if (!ModInfoPopup::init(item->getMetadata(), list)) return false;
 
-    if (item->isInstalled()) return true;
+    // bruh why is this here if we are allowing for browsing already installed mods
+    // if (item->isInstalled()) return true;
 
     m_installBtnSpr = IconButtonSprite::create(
         "GE_button_01.png"_spr,
@@ -715,12 +743,11 @@ void IndexItemInfoPopup::onInstallProgress(ModInstallEvent* event) {
     std::visit(makeVisitor {
         [&](UpdateFinished const&) {
             this->setInstallStatus(std::nullopt);
-            
+
             FLAlertLayer::create(
-                "Install complete",
-                "Mod successfully installed! :) "
-                "(You may need to <cy>restart the game</c> "
-                "for the mod to take full effect)",
+                "Install Complete",
+                "Mod installed successfully!\n"
+                "<cy>Restart</c> the game to apply changes.",
                 "OK"
             )->show();
 
@@ -736,7 +763,7 @@ void IndexItemInfoPopup::onInstallProgress(ModInstallEvent* event) {
             this->setInstallStatus(std::nullopt);
 
             FLAlertLayer::create(
-                "Installation failed :(", info, "OK"
+                "Installation Failed", info, "OK"
             )->show();
 
             m_installBtn->setEnabled(true);
@@ -750,92 +777,7 @@ void IndexItemInfoPopup::onInstallProgress(ModInstallEvent* event) {
 }
 
 void IndexItemInfoPopup::onInstall(CCObject*) {
-    auto deps = m_item->getMetadata().getDependencies();
-    enum class DepState {
-        None,
-        HasOnlyRequired,
-        HasOptional
-    } depState = DepState::None;
-    for (auto const& item : deps) {
-        // resolved means it's already installed, so
-        // no need to ask the user whether they want to install it
-        if (Loader::get()->isModLoaded(item.id))
-            continue;
-        if (item.importance != ModMetadata::Dependency::Importance::Required) {
-            depState = DepState::HasOptional;
-            break;
-        }
-        depState = DepState::HasOnlyRequired;
-    }
-
-    std::string content;
-    char const* btn1;
-    char const* btn2;
-    switch (depState) {
-        case DepState::None:
-            content = fmt::format(
-                "Are you sure you want to install <cg>{}</c>?",
-                m_item->getMetadata().getName()
-            );
-            btn1 = "Info";
-            btn2 = "Install";
-            break;
-        case DepState::HasOnlyRequired:
-            content =
-                "Installing this mod requires other mods to be installed. "
-                "Would you like to <cy>proceed</c> with the installation or "
-                "<cb>view</c> which mods are going to be installed?";
-            btn1 = "View";
-            btn2 = "Proceed";
-            break;
-        case DepState::HasOptional:
-            content =
-                "This mod recommends installing other mods alongside it. "
-                "Would you like to continue with <cy>recommended settings</c> or "
-                "<cb>customize</c> which mods to install?";
-            btn1 = "Customize";
-            btn2 = "Recommended";
-            break;
-    }
-
-    createQuickPopup("Confirm Install", content, btn1, btn2, 320.f, [&](FLAlertLayer*, bool btn2) {
-        if (btn2) {
-            auto canInstall = Index::get()->canInstall(m_item);
-            if (!canInstall) {
-                FLAlertLayer::create(
-                    "Unable to Install",
-                    canInstall.unwrapErr(),
-                    "OK"
-                )->show();
-                return;
-            }
-            this->preInstall();
-            Index::get()->install(m_item);
-        }
-        else {
-            InstallListPopup::create(m_item, [&](IndexInstallList const& list) {
-                this->preInstall();
-                Index::get()->install(list);
-            })->show();
-        }
-    }, true, true);
-}
-
-void IndexItemInfoPopup::preInstall() {
-    if (m_latestVersionLabel) {
-        m_latestVersionLabel->setVisible(false);
-    }
-    this->setInstallStatus(UpdateProgress(0, "Starting install"));
-
-    m_installBtn->setTarget(
-        this, menu_selector(IndexItemInfoPopup::onCancel)
-    );
-    m_installBtnSpr->setString("Cancel");
-    m_installBtnSpr->setBG("GJ_button_06.png", false);
-}
-
-void IndexItemInfoPopup::onCancel(CCObject*) {
-    Index::get()->cancelInstall(m_item);
+    this->popupInstallItem(m_item);
 }
 
 CCNode* IndexItemInfoPopup::createLogo(CCSize const& size) {
