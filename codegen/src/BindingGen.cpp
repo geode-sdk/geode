@@ -62,7 +62,7 @@ public:
 )GEN";
     
     // requires: type, member_name, array
-    char const* member_definition = R"GEN({private}    {type} {member_name};{public}
+    char const* member_definition = R"GEN(/*make this private when android headers are done*/{public}    {type} {member_name};{public}
 )GEN";
 
     char const* pad_definition = R"GEN(    GEODE_PAD({hardcode});
@@ -233,7 +233,7 @@ std::string generateBindingHeader(Root const& root, ghc::filesystem::path const&
             } else if (auto fn = field.get_as<FunctionBindField>()) {
                 fb = &fn->prototype;
 
-                if (!codegen::platformNumber(fn->binds)) {
+                if (!codegen::platformNumber(fn->binds) && codegen::getStatus(field) != BindStatus::Binded) {
                     used_format = format_strings::error_definition;
 
                     if (fb->type != FunctionType::Normal)
