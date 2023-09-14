@@ -30,4 +30,18 @@ geode::Result<ghc::filesystem::path> utils::file::
     return geode::Err("This function is currently unimplemented");
 }
 
+void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
+    log::error("Launching Geode uninstaller is not supported on android");
+}
+
+void geode::utils::game::exit() {
+    // Not implemented
+    log::error("Exiting the game is not implemented on android");
+}
+
+void geode::utils::game::restart() {
+    // Not implemented
+    log::error("Restarting the game is not implemented on android");
+}
+
 #endif
