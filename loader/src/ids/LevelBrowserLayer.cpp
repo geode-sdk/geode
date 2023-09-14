@@ -4,6 +4,8 @@
 #include <Geode/modify/LevelBrowserLayer.hpp>
 #include <Geode/utils/cocos.hpp>
 
+#if !defined(GEODE_IS_ANDROID)
+
 using namespace geode::prelude;
 
 $register_ids(LevelBrowserLayer) {
@@ -171,3 +173,5 @@ struct LevelBrowserLayerIDs : Modify<LevelBrowserLayerIDs, LevelBrowserLayer> {
         return true;
     }
 };
+
+#endif

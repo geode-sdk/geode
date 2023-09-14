@@ -2,6 +2,8 @@
 
 #include <Geode/modify/EditorPauseLayer.hpp>
 
+#if !defined(GEODE_IS_ANDROID)
+
 using namespace geode::prelude;
 
 // special class for this because making it a CCMenuItemToggler would be very UB 
@@ -272,3 +274,5 @@ struct EditorPauseLayerIDs : Modify<EditorPauseLayerIDs, EditorPauseLayer> {
         return true;
     }
 };
+
+#endif

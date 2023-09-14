@@ -62,7 +62,7 @@ public:
 )GEN";
     
     // requires: type, member_name, array
-    char const* member_definition = R"GEN(/*make this private when android headers are done*/{public}    {type} {member_name};{public}
+    char const* member_definition = R"GEN(    {private}    {type} {member_name};{public}
 )GEN";
 
     char const* pad_definition = R"GEN(    GEODE_PAD({hardcode});
