@@ -4320,7 +4320,7 @@ class MoreOptionsLayer : FLAlertLayer, TextInputDelegate, GooglePlayDelegate {
     static MoreOptionsLayer* create() = win 0x1de850;
     virtual bool init() = mac 0x43f470, win 0x1DE8F0;
     void addToggle(const char* name, const char* key, const char* info) = mac 0x440430, win 0x1df6b0;
-    void onKeybindings(cocos2d::CCObject* sender) = win 0x749d0;
+    void onKeybindings(cocos2d::CCObject* sender) = mac 0x4410e0, win 0x749d0;
     void onToggle(cocos2d::CCObject* sender) = mac 0x441370;
 }
 
