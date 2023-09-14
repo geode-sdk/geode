@@ -122,7 +122,7 @@ std::string generateAddressHeader(Root const& root) {
             }
             else if (codegen::getStatus(field) == BindStatus::Binded && fn->prototype.type == FunctionType::Normal) {
                 address_str = fmt::format(
-                    "addresser::get{}Virtual(Resolve<{}>::func(&{}::{}))",
+                    "0/*addresser::get{}Virtual(Resolve<{}>::func(&{}::{}))*/",
                     str_if("Non", !fn->prototype.is_virtual),
                     codegen::getParameterTypes(fn->prototype),
                     field.parent,
