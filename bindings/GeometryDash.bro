@@ -4862,6 +4862,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     void xPosForTime(float) = mac 0x7d140, win 0x208840;
     ~PlayLayer() = mac 0x6b090, win 0x1fafc0;
 
+    // there is 0x10 more for android between this and ccdrawnode
     float unused4c8;
     bool unused4cc;
     bool m_hasCheated;
