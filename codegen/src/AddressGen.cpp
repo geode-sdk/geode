@@ -1,4 +1,5 @@
 #include "Shared.hpp"
+#include "AndroidSymbol.hpp"
 
 namespace {
     namespace format_strings {
@@ -120,9 +121,16 @@ std::string generateAddressHeader(Root const& root) {
                     address_str = fmt::format("base::get() + 0x{:x}", codegen::platformNumber(fn->binds));
                 }
             }
+            else if (codegen::shouldAndroidBind(fn)) {
+                auto const mangled = generateAndroidSymbol(c, fn);
+                address_str = fmt::format(
+                    "reinterpret_cast<uintptr_t>(dlsym(reinterpret_cast<void*>(geode::base::get()), \"{}\"))",
+                    mangled
+                );
+            }
             else if (codegen::getStatus(field) == BindStatus::Binded && fn->prototype.type == FunctionType::Normal) {
                 address_str = fmt::format(
-                    "0/*addresser::get{}Virtual(Resolve<{}>::func(&{}::{}))*/",
+                    "addresser::get{}Virtual(Resolve<{}>::func(&{}::{}))",
                     str_if("Non", !fn->prototype.is_virtual),
                     codegen::getParameterTypes(fn->prototype),
                     field.parent,

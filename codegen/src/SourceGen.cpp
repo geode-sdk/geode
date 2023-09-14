@@ -198,10 +198,10 @@ std::string generateBindingSource(Root const& root) {
 				) {
 					used_declare_format = format_strings::declare_virtual_error;
 				}
-				else if (codegen::getStatus(f) != BindStatus::NeedsBinding) {
+				else if (codegen::getStatus(f) != BindStatus::NeedsBinding && !codegen::shouldAndroidBind(fn)) {
 					continue;
 				}
-				
+
 
 				if (!used_declare_format) {
 					switch (fn->prototype.type) {

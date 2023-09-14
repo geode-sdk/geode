@@ -129,6 +129,15 @@ namespace codegen {
         return BindStatus::Unbindable;
     }
 
+    inline bool shouldAndroidBind(const FunctionBindField* fn) {
+        if (codegen::platform == Platform::Android) {
+            for (auto& [type, name] : fn->prototype.args) {
+                if (can_find(type.name, "gd::")) return true;
+            }
+        }
+        return false;
+    }
+
     inline BindStatus getStatus(Field const& field) {
         return getStatusWithPlatform(codegen::platform, field);
     }
