@@ -157,9 +157,9 @@ std::string generateBindingSource(Root const& root) {
 				// yeah there are no inlines on cocos
 			} 
 			else if (auto fn = f.get_as<OutOfLineField>()) {
-				if ((c.links & codegen::platform) != Platform::None) {
-					continue;
-				}
+				// if ((c.links & codegen::platform) != Platform::None) {
+				// 	continue;
+				// }
 				if (codegen::getStatus(f) != BindStatus::Unbindable) {
 					continue;
 				}

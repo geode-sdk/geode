@@ -2071,7 +2071,7 @@ class GJBaseGameLayer : cocos2d::CCLayer, TriggerEffectDelegate {
     int m_lastVisibleSection;
     bool m_objectsAreDisabled;
     bool m_blending;
-    PAD = mac 0x8, win 0x8;
+    PAD = mac 0x8, win 0x8, android 0x8;
 }
 
 [[link(android)]]
@@ -3192,19 +3192,18 @@ class GameManager : GManager {
     bool m_switchModes;
     bool m_toFullscreen;
     bool m_reloading;
-    bool m_unknown0;
-    PAD = mac 0x4, win 0x4;
+    PAD = mac 0x5, win 0x5, android 0x1;
     cocos2d::CCDictionary* m_valueKeeper;
     cocos2d::CCDictionary* m_unlockValueKeeper;
     cocos2d::CCDictionary* m_customObjectDict;
     double m_adTimer;
     double m_adCache;
-    PAD = mac 0x8, win 0x8;
+    PAD = mac 0x8, win 0x8, android 0x8;
     double m_unknownDouble;
     // TODO: according to wylie's decomp this pad was 0x4, gd.h has it as 0x8 (and its correct)
     // i have a feeling android gm and windows gm are different structs
     // so the extra member could be here (for windows)
-    PAD = mac 0x4, win 0x8;
+    PAD = mac 0x4, win 0x8, android 0x8;
     bool m_loaded;
     gd::string m_unknownString;
     PlayLayer* m_playLayer;
@@ -4871,7 +4870,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     bool m_debugPauseOff;
     bool m_shouldSmoothCamera;
     float unused_4e0;
-    PAD = mac 0x4, win 0x4;
+    PAD = mac 0x4, win 0x4, android 0x4;
     cocos2d::CCDrawNode* unknown4e8;
     float m_camera4f0;
     int unused4f4;
@@ -4885,7 +4884,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     float unknown510;
     float unknown514;
     float unknown518;
-    PAD = mac 0x4, win 0x4;
+    PAD = mac 0x4, win 0x4, android 0x4;
     StartPosObject* m_startPos;
     CheckpointObject* m_startPosCheckpoint;
     EndPortalObject* m_endPortal;
@@ -4918,7 +4917,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     float unknown5c4;
     GJGroundLayer* m_bottomGround;
     GJGroundLayer* m_topGround;
-    PAD = mac 0x8, win 0x8;
+    PAD = mac 0x8, win 0x8, android 0x8;
     bool m_isDead;
     bool m_startCameraAtCorner;
     bool m_cameraYLocked;
@@ -4952,7 +4951,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     int unknown680;
     int m_activeGravityEffects;
     int m_gravityEffectStatus; // ??
-    PAD = mac 0x4, win 0x4;
+    PAD = mac 0x4, win 0x4, android 0x4;
     cocos2d::CCArray* m_gravitySprites;
     bool unk428;
     bool m_shouldRecordActions;
