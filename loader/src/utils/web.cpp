@@ -220,6 +220,8 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
             return this->error("Curl not initialized", -1);
         }
 
+        log::debug("curl init {}", curl);
+
         // resulting byte array
         ByteVector ret;
         // output file if downloading to file. unique_ptr because not always
@@ -312,16 +314,27 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
             }
         );
         curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &data);
+        log::debug("curl opts");
         auto res = curl_easy_perform(curl);
+        log::debug("curl perform");
+
         if (res != CURLE_OK) {
             long code = 0;
+            log::debug("curl fail");
             curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &code);
+            log::debug("curl cleanup");
             curl_easy_cleanup(curl);
+            log::debug("end");
             return this->error("Fetch failed: " + std::string(curl_easy_strerror(res)), code);
         }
+        log::debug("curl cleanup 2");
         curl_easy_cleanup(curl);
 
+        log::debug("end 2");
+
         AWAIT_RESUME();
+
+        log::debug("end 3");
 
         // if something is still holding a handle to this
         // request, then they may still cancel it

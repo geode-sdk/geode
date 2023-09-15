@@ -44,7 +44,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
 
     void setupLoadingMods() {
         CCFileUtils::get()->updatePaths();
-        
+
         if (Loader::get()->getLoadingState() != Loader::LoadingState::Done) {
             this->updateLoadedModsLabel();
             this->waitLoadAssets();
@@ -140,7 +140,6 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     
     // hook
     void loadAssets() {  
-        log::debug("Load step {}", this->getCurrentStep());
         if (m_loadStep == 14) {
             switch (m_fields->m_geodeLoadStep) {
             case 0:
