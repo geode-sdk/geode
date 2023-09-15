@@ -198,7 +198,7 @@ std::string generateBindingSource(Root const& root) {
 				) {
 					used_declare_format = format_strings::declare_virtual_error;
 				}
-				else if (codegen::getStatus(f) != BindStatus::NeedsBinding && !android_has_boobs(f)) {
+				else if (codegen::getStatus(f) != BindStatus::NeedsBinding) {
 					continue;
 				}
 				
