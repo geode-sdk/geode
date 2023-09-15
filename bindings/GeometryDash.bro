@@ -4674,7 +4674,6 @@ class PlatformDownloadDelegate {
     virtual void downloadFailed(char const*) {}
 }
 
-[[link(android)]]
 class PlatformToolbox {
     static void hideCursor() = mac 0x27c340;
     static void showCursor() = mac 0x27c360;

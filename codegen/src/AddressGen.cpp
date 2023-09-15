@@ -112,7 +112,6 @@ std::string generateAddressHeader(Root const& root) {
                 continue;
             }
 
-            
             if (codegen::getStatus(field) == BindStatus::NeedsBinding || codegen::platformNumber(field)) {
                 if (is_cocos_class(field.parent) && codegen::platform == Platform::Windows) {
                     address_str = fmt::format("base::getCocos() + 0x{:x}", codegen::platformNumber(fn->binds));
