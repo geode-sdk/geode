@@ -24,7 +24,7 @@ namespace {
 }
 
 void Loader::Impl::platformMessageBox(char const* title, std::string const& info) {
-    // cocos2d::CCMessageBox(info.c_str(), title);
+    cocos2d::CCMessageBox(info.c_str(), title);
 }
 
 void Loader::Impl::logConsoleMessageWithSeverity(std::string const& msg, Severity severity) {

@@ -29,12 +29,6 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
 
     // hook
     bool init(bool fromReload) {
-        if (!fromReload) {
-            LoaderImpl::get()->addSearchPaths();
-        }
-
-        CCFileUtils::get()->updatePaths();
-
         if (!LoadingLayer::init(fromReload)) return false;
 
         auto winSize = CCDirector::sharedDirector()->getWinSize();
@@ -49,6 +43,8 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     }
 
     void setupLoadingMods() {
+        CCFileUtils::get()->updatePaths();
+        
         if (Loader::get()->getLoadingState() != Loader::LoadingState::Done) {
             this->updateLoadedModsLabel();
             this->waitLoadAssets();
@@ -59,6 +55,8 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     }
 
     void setupLoaderResources() {
+        LoaderImpl::get()->addSearchPaths();
+
         // verify loader resources
         if (!LoaderImpl::get()->verifyLoaderResources()) {
             this->setSmallText("Downloading Loader Resources");
@@ -112,7 +110,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     }
 
     int getTotalStep() {
-        return 18;
+        return 17;
     }
 
     void updateLoadingBar() {
@@ -141,23 +139,29 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     }
     
     // hook
-    void loadAssets() {        
-        switch (m_fields->m_geodeLoadStep) {
-        case 0:
-            if (this->skipOnRefresh()) this->setupLoadingMods();
-            break;
-        case 1:
-            if (this->skipOnRefresh()) this->setupLoaderResources();
-            break;
-        case 2:
-            this->setupModResources();
-            break;
-        case 3:
-        default:
-            this->setSmallText("Loading game resources");
-            LoadingLayer::loadAssets();
-            break;
-        }
+    void loadAssets() {  
+        log::debug("Load step {}", this->getCurrentStep());
+        if (m_loadStep == 14) {
+            switch (m_fields->m_geodeLoadStep) {
+            case 0:
+                if (this->skipOnRefresh()) this->setupLoadingMods();
+                break;
+            case 1:
+                if (this->skipOnRefresh()) this->setupLoaderResources();
+                break;
+            case 2:
+                this->setupModResources();
+                break;
+            case 3:
+            default:
+                LoadingLayer::loadAssets();
+                this->updateLoadingBar();
+                break;
+            }
+            return;
+        }    
+        this->setSmallText("Loading game resources");   
+        LoadingLayer::loadAssets();
         this->updateLoadingBar();
     }
 };
