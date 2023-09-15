@@ -4022,6 +4022,7 @@ class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDeleg
     virtual void levelDownloadFinished(GJGameLevel*) = mac 0x164C00, win 0x1790C0;
     virtual void levelUpdateFinished(GJGameLevel*, UpdateResponse) = mac 0x164E60, win 0x1792B0;
     void showUpdateAlert(UpdateResponse) = mac 0x164ED0, win 0x179300;
+    void updateLabelValues() = mac 0x164090, win 0x17b170;
 
     PAD = win 0x4, mac 0x8;
     cocos2d::CCMenu* m_playBtnMenu;
@@ -4031,13 +4032,13 @@ class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDeleg
     CCMenuItemSpriteExtra* m_starRateBtn;
     CCMenuItemSpriteExtra* m_demonRateBtn;
     PAD = win 0x4, mac 0x8;
-    CCMenuItemToggler* m_toggler;
-    cocos2d::CCLabelBMFont* m_label0;
-    cocos2d::CCLabelBMFont* m_label1;
-    cocos2d::CCLabelBMFont* m_label2;
-    cocos2d::CCLabelBMFont* m_label3;
-    cocos2d::CCLabelBMFont* m_label4;
-    cocos2d::CCLabelBMFont* m_label5;
+    CCMenuItemToggler* m_ldmToggler;
+    cocos2d::CCLabelBMFont* m_ldmLabel;
+    cocos2d::CCLabelBMFont* m_lengthLabel;
+    cocos2d::CCLabelBMFont* m_downloadsLabel;
+    cocos2d::CCLabelBMFont* m_likesLabel;
+    cocos2d::CCLabelBMFont* m_orbsLabel;
+    cocos2d::CCLabelBMFont* m_folderLabel;
     CCMenuItemSpriteExtra* m_cloneBtn;
     PAD = win 0x4, mac 0x8;
 }
@@ -5542,6 +5543,8 @@ class SpeedObject : cocos2d::CCNode {
     float m_somethingToCompare;
     float m_idk3;
     float m_idk4;
+
+    static SpeedObject* create(GameObject*, int, float) = win 0x20DE70;
 }
 
 class SpritePartDelegate {}
