@@ -32,6 +32,8 @@ namespace geode::utils::fetch {
 Result<> web::fetchFile(
     std::string const& url, ghc::filesystem::path const& into, FileProgressCallback prog
 ) {
+    return Err("Not implemented");
+
     auto curl = curl_easy_init();
 
     if (!curl) return Err("Curl not initialized!");
@@ -70,6 +72,8 @@ Result<> web::fetchFile(
 }
 
 Result<ByteVector> web::fetchBytes(std::string const& url) {
+    return Err("Not implemented");
+
     auto curl = curl_easy_init();
 
     if (!curl) return Err("Curl not initialized!");
@@ -108,6 +112,8 @@ Result<json::Value> web::fetchJSON(std::string const& url) {
 }
 
 Result<std::string> web::fetch(std::string const& url) {
+    return Err("Not implemented");
+
     auto curl = curl_easy_init();
 
     if (!curl) return Err("Curl not initialized!");
@@ -206,6 +212,8 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
 
     std::thread([this]() {
         AWAIT_RESUME();
+
+        return this->error("Not implemented", -1);
 
         auto curl = curl_easy_init();
         if (!curl) {

@@ -44,7 +44,7 @@ Result<> Mod::Impl::setup() {
     }
     if (!m_resourcesLoaded) {
         auto searchPathRoot = dirs::getModRuntimeDir() / m_metadata.getID() / "resources";
-        CCFileUtils::get()->addSearchPath(searchPathRoot.string().c_str());
+        // CCFileUtils::get()->addSearchPath(searchPathRoot.string().c_str());
 
         m_resourcesLoaded = true;
     }

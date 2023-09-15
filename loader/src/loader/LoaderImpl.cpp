@@ -87,7 +87,7 @@ Result<> Loader::Impl::setup() {
 
     this->createDirectories();
 
-    this->addSearchPaths();
+    // this->addSearchPaths();
 
     this->refreshModGraph();
 
@@ -97,8 +97,8 @@ Result<> Loader::Impl::setup() {
 }
 
 void Loader::Impl::addSearchPaths() {
-    CCFileUtils::get()->addPriorityPath(dirs::getGeodeResourcesDir().string().c_str());
-    CCFileUtils::get()->addPriorityPath(dirs::getModRuntimeDir().string().c_str());
+    // CCFileUtils::get()->addPriorityPath(dirs::getGeodeResourcesDir().string().c_str());
+    // CCFileUtils::get()->addPriorityPath(dirs::getModRuntimeDir().string().c_str());
 }
 
 void Loader::Impl::updateResources() {
@@ -218,7 +218,7 @@ void Loader::Impl::updateModResources(Mod* mod) {
     if (mod != Mod::get()) {
         // geode.loader resource is stored somewhere else, which is already added anyway
         auto searchPathRoot = dirs::getModRuntimeDir() / mod->getID() / "resources";
-        CCFileUtils::get()->addSearchPath(searchPathRoot.string().c_str());
+        // CCFileUtils::get()->addSearchPath(searchPathRoot.string().c_str());
     }
 
     // only thing needs previous setup is spritesheets
@@ -232,19 +232,19 @@ void Loader::Impl::updateModResources(Mod* mod) {
         log::debug("Adding sheet {}", sheet);
         auto png = sheet + ".png";
         auto plist = sheet + ".plist";
-        auto ccfu = CCFileUtils::get();
+        // auto ccfu = CCFileUtils::get();
 
-        if (png == std::string(ccfu->fullPathForFilename(png.c_str(), false)) ||
-            plist == std::string(ccfu->fullPathForFilename(plist.c_str(), false))) {
-            log::warn(
-                R"(The resource dir of "{}" is missing "{}" png and/or plist files)",
-                mod->getID(), sheet
-            );
-        }
-        else {
-            CCTextureCache::get()->addImage(png.c_str(), false);
-            CCSpriteFrameCache::get()->addSpriteFramesWithFile(plist.c_str());
-        }
+        // if (png == std::string(ccfu->fullPathForFilename(png.c_str(), false)) ||
+        //     plist == std::string(ccfu->fullPathForFilename(plist.c_str(), false))) {
+        //     log::warn(
+        //         R"(The resource dir of "{}" is missing "{}" png and/or plist files)",
+        //         mod->getID(), sheet
+        //     );
+        // }
+        // else {
+        //     CCTextureCache::get()->addImage(png.c_str(), false);
+        //     CCSpriteFrameCache::get()->addSpriteFramesWithFile(plist.c_str());
+        // }
     }
 }
 

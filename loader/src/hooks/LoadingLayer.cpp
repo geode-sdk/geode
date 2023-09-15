@@ -29,6 +29,10 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
 
     // hook
     bool init(bool fromReload) {
+        if (!fromReload) {
+            LoaderImpl::get()->addSearchPaths();
+        }
+
         CCFileUtils::get()->updatePaths();
 
         if (!LoadingLayer::init(fromReload)) return false;

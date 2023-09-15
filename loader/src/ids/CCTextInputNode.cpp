@@ -6,26 +6,26 @@
 // ignoreAnchorPointForPosition which causes the content size of 
 // text input nodes to be way off
 
-struct $modify(CCTextInputNode) {
-    bool init(float width, float height, const char* caption, const char* thonburi, int maxCharCount, const char* font) {
-        if (!CCTextInputNode::init(width, height, caption, thonburi, maxCharCount, font))
-            return false;
+// struct $modify(CCTextInputNode) {
+//     bool init(float width, float height, const char* caption, const char* thonburi, int maxCharCount, const char* font) {
+//         if (!CCTextInputNode::init(width, height, caption, thonburi, maxCharCount, font))
+//             return false;
         
-        this->ignoreAnchorPointForPosition(false);
-        this->fixPosition();
+//         this->ignoreAnchorPointForPosition(false);
+//         this->fixPosition();
 
-        return true;
-    }
+//         return true;
+//     }
 
-    void fixPosition() {
-        if (!m_bIgnoreAnchorPointForPosition && m_placeholderLabel) {
-            this->setAnchorPoint(m_placeholderLabel->getAnchorPoint());
-            m_placeholderLabel->setPosition(m_obContentSize * m_obAnchorPoint);
-        }
-    }
+//     void fixPosition() {
+//         if (!m_bIgnoreAnchorPointForPosition && m_placeholderLabel) {
+//             this->setAnchorPoint(m_placeholderLabel->getAnchorPoint());
+//             m_placeholderLabel->setPosition(m_obContentSize * m_obAnchorPoint);
+//         }
+//     }
 
-    void updateLabel(gd::string text) {
-        CCTextInputNode::updateLabel(text);
-        this->fixPosition();
-    }
-};
+//     void updateLabel(gd::string text) {
+//         CCTextInputNode::updateLabel(text);
+//         this->fixPosition();
+//     }
+// };

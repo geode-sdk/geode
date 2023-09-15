@@ -2,6 +2,14 @@
 
 #ifdef GEODE_IS_ANDROID
 
+namespace geode::base {
+    uintptr_t get() {
+        static uintptr_t base = (reinterpret_cast<uintptr_t>(&UILayer::create) - 0x20f168) & (~0x1);
+        // static uintptr_t base = reinterpret_cast<uintptr_t>(dlopen("libcocos2dcpp.so", RTLD_NOW));
+        return base;
+    }
+}
+
 namespace gd {
     namespace {
         static inline auto emptyInternalString() {
@@ -38,7 +46,8 @@ namespace gd {
 
     string::~string() {
         if (m_data == nullptr) return;
-        // reinterpret_cast<void (*)(string*)>(geode::base::get() + 0x5054bc)(this);
+
+        reinterpret_cast<void (*)(string*)>(geode::base::get() + 0x5054bc)(this);
     }
 
     bool string::operator<(string const& other) const {

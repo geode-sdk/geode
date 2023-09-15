@@ -84,6 +84,7 @@ void CCFileUtils::updatePaths() {
 
 struct FileUtilsUpdatePaths : Modify<FileUtilsUpdatePaths, CCFileUtils> {
     static CCFileUtils* sharedFileUtils() {
+        log::debug("im here");
         static bool doAddPaths = true;
         auto ret = CCFileUtils::sharedFileUtils();
 
