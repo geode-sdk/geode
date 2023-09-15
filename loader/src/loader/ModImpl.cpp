@@ -592,7 +592,6 @@ ghc::filesystem::path Mod::Impl::getConfigDir(bool create) const {
 }
 
 char const* Mod::Impl::expandSpriteName(char const* name) {
-    log::debug("Expanding sprite name {} for {}", name, m_metadata.getID());
     if (m_expandedSprites.count(name)) return m_expandedSprites[name];
 
     auto exp = new char[strlen(name) + 2 + m_metadata.getID().size()];
