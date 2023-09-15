@@ -6,7 +6,7 @@ namespace gd {
     namespace {
         static inline auto emptyInternalString() {
             return reinterpret_cast<_internal_string*>(
-                *reinterpret_cast<uintptr_t*>(geode::base::get() + 0x75fb24) + sizeof(_internal_string)
+                geode::base::get() + 0x75fb24 + sizeof(_internal_string)
             );
         }
     }
