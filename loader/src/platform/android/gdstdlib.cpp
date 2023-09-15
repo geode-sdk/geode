@@ -38,9 +38,7 @@ namespace gd {
 
     string::~string() {
         if (m_data == nullptr) return;
-        reinterpret_cast<void (*)(_internal_string*)>(geode::base::get() + 0x5054bc)(
-            &m_data[-1]
-        );
+        // reinterpret_cast<void (*)(string*)>(geode::base::get() + 0x5054bc)(this);
     }
 
     bool string::operator<(string const& other) const {

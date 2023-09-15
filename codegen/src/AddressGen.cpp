@@ -122,8 +122,8 @@ std::string generateAddressHeader(Root const& root) {
             }
             else if (codegen::shouldAndroidBind(fn)) {
                 auto const mangled = generateAndroidSymbol(c, fn);
-                address_str = fmt::format(
-                    "reinterpret_cast<uintptr_t>(dlsym(reinterpret_cast<void*>(geode::base::get()), \"{}\"))",
+                address_str = fmt::format( // thumb
+                    "reinterpret_cast<uintptr_t>(dlsym(reinterpret_cast<void*>(geode::base::get()), \"{}\")) + 1",
                     mangled
                 );
             }
