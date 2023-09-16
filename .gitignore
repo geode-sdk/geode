@@ -45,20 +45,29 @@ build2
 build-docs/
 bin
 
+# Ignore docs folders
 docs/**
 docs
 
+# Ignore codegenned files
 loader/src/internal/about.hpp
 loader/src/internal/resources.hpp
 loader/resources/mod.json
 loader/resources/version
 loader/resources/blanks/rename.js
+loader/resources/about.md
 loader/resources/changelog.md
-fods-catgirl-hideout.txt
-test-docs.bat
+loader/resources/support.md
 
-# krita files too because alk is funny
-**/*.kra
-
+# Ignore generated files
 installer/mac/*.pkg
 installer/windows/*.exe
+
+# Ignore fod's include directories which are stored in this funny file
+fods-catgirl-hideout.txt
+
+# Ignore I don't even know what that is probably fod's flash testing script
+test-docs.bat
+
+# Ignore krita files too because we don't want our project files shaking my head
+**/*.kra
