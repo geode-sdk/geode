@@ -29,7 +29,7 @@ namespace { namespace format_strings {
 )GEN";
 
     char const* class_start = R"GEN(
-class {hidden}{class_name}{base_classes} {{
+class {class_name}{base_classes} {{
 public:
     static constexpr auto CLASS_NAME = "{class_name}";
 )GEN";
@@ -185,8 +185,8 @@ std::string generateBindingHeader(Root const& root, ghc::filesystem::path const&
 
         single_output += fmt::format(::format_strings::class_start,
             fmt::arg("class_name", cls.name),
-            fmt::arg("base_classes", supers),
-            fmt::arg("hidden", str_if("GEODE_HIDDEN ", (codegen::platform & (Platform::Mac | Platform::iOS)) != Platform::None))
+            fmt::arg("base_classes", supers)//,
+            // fmt::arg("hidden", str_if("GEODE_HIDDEN ", (codegen::platform & (Platform::Mac | Platform::iOS)) != Platform::None))
         );
 
         // what.
