@@ -779,7 +779,7 @@ void Loader::Impl::downloadLoaderResources(bool useLatestRelease) {
             .json()
             .then([this](json::Value const& json) {
                 this->tryDownloadLoaderResources(fmt::format(
-                    "https://github.com/geode-sdk/geode/releases/download/{}/resources-" GEODE_PLATFORM_SHORT_IDENTIFIER ".zip",
+                    "https://github.com/geode-sdk/geode/releases/download/{}/resources.zip",
                     this->getVersion().toString()
                 ), true);  
             })
@@ -807,7 +807,7 @@ void Loader::Impl::downloadLoaderResources(bool useLatestRelease) {
                 // find release asset
                 for (auto asset : root.needs("assets").iterate()) {
                     auto obj = asset.obj();
-                    if (obj.needs("name").template get<std::string>() == "resources-" GEODE_PLATFORM_SHORT_IDENTIFIER ".zip") {
+                    if (obj.needs("name").template get<std::string>() == "resources.zip") {
                         this->tryDownloadLoaderResources(
                             obj.needs("browser_download_url").template get<std::string>(),
                             false
