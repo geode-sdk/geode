@@ -8,6 +8,7 @@
  * Make index unzipping async (7c582f1)
  * Fix mods by developer crashing when mod was toggled (a6a47bf)
  * Fix nested lists in the markdown (2723588)
+ * Fix search paths (8f39c38, aa55ebe)
 
 ## v1.3.1
  * Fix TulipHook not relocating RIP relative operands on MacOS (6cad19d)
