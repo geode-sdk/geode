@@ -4,6 +4,7 @@
 #include "../list/ModListLayer.hpp"
 #include "../settings/ModSettingsPopup.hpp"
 #include <Geode/loader/Dirs.hpp>
+#include <about.hpp>
 
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/binding/CCTextInputNode.hpp>

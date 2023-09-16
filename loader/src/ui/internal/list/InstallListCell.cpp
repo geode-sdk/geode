@@ -53,24 +53,21 @@ void InstallListCell::setupInfo(
     }
     this->addChild(m_titleLabel);
 
-    m_developerBtn = nullptr;
+    m_creatorLabel = nullptr;
     if (developer) {
         auto creatorStr = "by " + *developer;
-        auto creatorLabel = CCLabelBMFont::create(creatorStr.c_str(), "goldFont.fnt");
-        creatorLabel->setScale(.34f);
+        m_creatorLabel = CCLabelBMFont::create(creatorStr.c_str(), "goldFont.fnt");
+        m_creatorLabel->setScale(.34f);
         if (inactive) {
-            creatorLabel->setColor({ 163, 163, 163 });
+            m_creatorLabel->setColor({ 163, 163, 163 });
         }
 
-        m_developerBtn = CCMenuItemSpriteExtra::create(
-            creatorLabel, this, menu_selector(InstallListCell::onViewDev)
-        );
-        m_developerBtn->setPosition(
+        m_creatorLabel->setPosition(
             m_titleLabel->getPositionX() + m_titleLabel->getScaledContentSize().width + 3.f +
-                creatorLabel->getScaledContentSize().width / 2,
+                m_creatorLabel->getScaledContentSize().width / 2,
             m_height / 2
         );
-        m_menu->addChild(m_developerBtn);
+        m_menu->addChild(m_creatorLabel);
     }
 
     this->setupVersion(version);
@@ -96,7 +93,7 @@ void InstallListCell::setupVersion(std::variant<VersionInfo, ComparableVersionIn
     m_versionLabel->setScale(.2f);
     m_versionLabel->setPosition(
         m_titleLabel->getPositionX() + m_titleLabel->getScaledContentSize().width + 3.f +
-            (m_developerBtn ? m_developerBtn->getScaledContentSize().width + 3.f : 0.f),
+            (m_creatorLabel ? m_creatorLabel->getScaledContentSize().width + 3.f : 0.f),
         m_titleLabel->getPositionY() - 1.f
     );
     m_versionLabel->setColor({ 0, 255, 0 });
@@ -123,7 +120,7 @@ void InstallListCell::setupInfo(ModMetadata const& metadata, bool inactive) {
 }
 
 void InstallListCell::onViewDev(CCObject*) {
-    DevProfilePopup::create(getDeveloper())->show();
+    // DevProfilePopup::create(getDeveloper(), m_layer)->show();
 }
 
 bool InstallListCell::init(InstallListPopup* list, CCSize const& size) {
