@@ -10,11 +10,19 @@ using namespace geode::prelude;
 #include <ghc/filesystem.hpp>
 
 ghc::filesystem::path dirs::getGameDir() {
-    return CCFileUtils::sharedFileUtils()->getWritablePath().c_str();
+    return ghc::filesystem::path(
+        "/storage/emulated/0/Android/data/com.geode.launcher/files/game"
+        // "/data/user/0/com.geode.launcher/files/"
+        /*CCFileUtils::sharedFileUtils()->getWritablePath().c_str()*/
+    );
 }
 
 ghc::filesystem::path dirs::getSaveDir() {
-    return CCFileUtils::sharedFileUtils()->getWritablePath().c_str();
+    return ghc::filesystem::path(
+        "/storage/emulated/0/Android/data/com.geode.launcher/files/save"
+        // "/data/user/0/com.geode.launcher/files/"
+        /*CCFileUtils::sharedFileUtils()->getWritablePath().c_str()*/
+    );
 }
 
 void utils::web::openLinkInBrowser(std::string const& url) {
