@@ -200,6 +200,10 @@ ghc::filesystem::path dirs::getSaveDir() {
     return path;
 }
 
+ghc::filesystem::path dirs::getModRuntimeDir() {
+    return dirs::getGeodeDir() / "unzipped";
+}
+
 void geode::utils::game::exit() {
     if (CCApplication::sharedApplication() &&
         (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {

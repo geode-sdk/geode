@@ -25,6 +25,13 @@ ghc::filesystem::path dirs::getSaveDir() {
     );
 }
 
+ghc::filesystem::path dirs::getModRuntimeDir() {
+    return ghc::filesystem::path(
+        "/data/user/0/com.geode.launcher/files/geode/unzipped"
+    );
+    // return dirs::getGeodeDir() / "unzipped";
+}
+
 void utils::web::openLinkInBrowser(std::string const& url) {
     CCApplication::sharedApplication()->openURL(url.c_str());
 }

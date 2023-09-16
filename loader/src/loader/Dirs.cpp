@@ -35,10 +35,6 @@ ghc::filesystem::path dirs::getModsSaveDir() {
     return getGeodeSaveDir() / "mods";
 }
 
-ghc::filesystem::path dirs::getModRuntimeDir() {
-    return dirs::getGeodeDir() / "unzipped";
-}
-
 ghc::filesystem::path dirs::getModConfigDir() {
     return dirs::getGeodeDir() / "config";
 }
