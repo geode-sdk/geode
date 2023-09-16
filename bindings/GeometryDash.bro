@@ -5465,7 +5465,7 @@ class Slider : cocos2d::CCLayer {
     SliderTouchLogic* m_touchLogic;
     cocos2d::CCSprite* m_sliderBar;
     cocos2d::CCSprite* m_groove;
-    float m_unknown;
+    float m_width;
     float m_height;
 }
 
