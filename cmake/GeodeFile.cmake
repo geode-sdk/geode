@@ -307,6 +307,8 @@ function(package_geode_resources_now proname src dest header_dest)
         if (NOT FILE_NAME STREQUAL ".geode_cache" AND NOT FILE_SHOULD_HASH EQUAL -1)
             
             file(SHA256 ${file} COMPUTED_HASH)
+            file(SIZE ${file} FILE_SIZE)
+            message(STATUS "Hashed ${file} to ${COMPUTED_HASH} (${FILE_SIZE} bytes)")
             list(APPEND HEADER_FILE "\t{ \"${FILE_NAME}\", \"${COMPUTED_HASH}\" },\n")
 
             # list(APPEND HEADER_FILE "\t\"${FILE_NAME}\",\n")

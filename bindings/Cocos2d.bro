@@ -362,6 +362,7 @@ class cocos2d::CCImage {
 class cocos2d::CCKeyboardDispatcher {
 	bool dispatchKeyboardMSG(cocos2d::enumKeyCodes, bool) = mac 0xe8190;
 	const char* keyToString(cocos2d::enumKeyCodes) = mac 0xe8450;
+	void updateModifierKeys(bool shft, bool ctrl, bool alt, bool cmd) = mac 0xe8430;
 }
 
 [[link(win, android)]]

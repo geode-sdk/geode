@@ -186,7 +186,7 @@ void ModListCell::updateCellLayout() {
 }
 
 void ModListCell::onViewDev(CCObject*) {
-    DevProfilePopup::create(this->getDeveloper())->show();
+    DevProfilePopup::create(this->getDeveloper(), m_layer)->show();
 }
 
 bool ModListCell::init(ModListLayer* list, CCSize const& size) {
@@ -233,7 +233,9 @@ void ModCell::onEnable(CCObject* sender) {
     else {
         tryOrAlert(m_mod->disable(), "Error disabling mod");
     }
-    m_layer->reloadList();
+    if (m_layer) {
+        m_layer->reloadList();   
+    }
 }
 
 void ModCell::onUnresolvedInfo(CCObject*) {

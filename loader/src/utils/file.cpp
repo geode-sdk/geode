@@ -21,48 +21,51 @@ using namespace geode::prelude;
 using namespace geode::utils::file;
 
 Result<std::string> utils::file::readString(ghc::filesystem::path const& path) {
+    if (!ghc::filesystem::exists(path))
+        return Err("File does not exist");
+
 #if _WIN32
     std::ifstream in(path.wstring(), std::ios::in | std::ios::binary);
 #else
     std::ifstream in(path.string(), std::ios::in | std::ios::binary);
 #endif
-    if (in) {
-        std::string contents;
-        in.seekg(0, std::ios::end);
-        contents.resize((const size_t)in.tellg());
-        in.seekg(0, std::ios::beg);
-        in.read(&contents[0], contents.size());
-        in.close();
-        return Ok(contents);
-    }
-    return Err("Unable to open file");
+    if (!in)
+        return Err("Unable to open file");
+
+    std::string contents;
+    in.seekg(0, std::ios::end);
+    contents.resize((const size_t)in.tellg());
+    in.seekg(0, std::ios::beg);
+    in.read(&contents[0], contents.size());
+    in.close();
+    return Ok(contents);
 }
 
 Result<json::Value> utils::file::readJson(ghc::filesystem::path const& path) {
-
     auto str = utils::file::readString(path);
-
-    if (str) {
-        try {
-            return Ok(json::parse(str.value()));
-        } catch(std::exception const& e) {
-            return Err("Unable to parse JSON: " + std::string(e.what()));
-        }
-    } else {
-        return Err("Unable to open file");
+    if (!str)
+        return Err(str.unwrapErr());
+    try {
+        return Ok(json::parse(str.value()));
+    }
+    catch(std::exception const& e) {
+        return Err("Unable to parse JSON: " + std::string(e.what()));
     }
 }
 
 Result<ByteVector> utils::file::readBinary(ghc::filesystem::path const& path) {
+    if (!ghc::filesystem::exists(path))
+        return Err("File does not exist");
+
 #if _WIN32
     std::ifstream in(path.wstring(), std::ios::in | std::ios::binary);
 #else
     std::ifstream in(path.string(), std::ios::in | std::ios::binary);
 #endif
-    if (in) {
-        return Ok(ByteVector(std::istreambuf_iterator<char>(in), {}));
-    }
-    return Err("Unable to open file");
+    if (!in)
+        return Err("Unable to open file");
+
+    return Ok(ByteVector(std::istreambuf_iterator<char>(in), {}));
 }
 
 Result<> utils::file::writeString(ghc::filesystem::path const& path, std::string const& data) {
@@ -72,14 +75,14 @@ Result<> utils::file::writeString(ghc::filesystem::path const& path, std::string
 #else
     file.open(path.string());
 #endif
-    if (file.is_open()) {
-        file << data;
+    if (!file.is_open()) {
         file.close();
-
-        return Ok();
+        return Err("Unable to open file");
     }
+
+    file << data;
     file.close();
-    return Err("Unable to open file");
+    return Ok();
 }
 
 Result<> utils::file::writeBinary(ghc::filesystem::path const& path, ByteVector const& data) {
@@ -89,14 +92,14 @@ Result<> utils::file::writeBinary(ghc::filesystem::path const& path, ByteVector 
 #else
     file.open(path.string(), std::ios::out | std::ios::binary);
 #endif
-    if (file.is_open()) {
-        file.write(reinterpret_cast<char const*>(data.data()), data.size());
+    if (!file.is_open()) {
         file.close();
-
-        return Ok();
+        return Err("Unable to open file");
     }
+
+    file.write(reinterpret_cast<char const*>(data.data()), data.size());
     file.close();
-    return Err("Unable to open file");
+    return Ok();
 }
 
 Result<> utils::file::createDirectory(ghc::filesystem::path const& path) {

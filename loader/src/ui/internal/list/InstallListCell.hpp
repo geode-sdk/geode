@@ -21,7 +21,7 @@ protected:
     float m_height;
     InstallListPopup* m_layer = nullptr;
     CCMenu* m_menu = nullptr;
-    CCMenuItemSpriteExtra* m_developerBtn = nullptr;
+    CCLabelBMFont* m_creatorLabel = nullptr;
     CCLabelBMFont* m_titleLabel = nullptr;
     CCLabelBMFont* m_versionLabel = nullptr;
     TagNode* m_tagLabel = nullptr;
