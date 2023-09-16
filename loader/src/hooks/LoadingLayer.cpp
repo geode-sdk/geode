@@ -29,6 +29,8 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
 
     // hook
     bool init(bool fromReload) {
+        CCFileUtils::get()->updatePaths();
+
         if (!LoadingLayer::init(fromReload)) return false;
 
         auto winSize = CCDirector::sharedDirector()->getWinSize();
@@ -43,8 +45,6 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     }
 
     void setupLoadingMods() {
-        CCFileUtils::get()->updatePaths();
-
         if (Loader::get()->getLoadingState() != Loader::LoadingState::Done) {
             this->updateLoadedModsLabel();
             this->waitLoadAssets();
@@ -55,8 +55,6 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     }
 
     void setupLoaderResources() {
-        LoaderImpl::get()->addSearchPaths();
-
         // verify loader resources
         if (!LoaderImpl::get()->verifyLoaderResources()) {
             this->setSmallText("Downloading Loader Resources");

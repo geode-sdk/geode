@@ -87,6 +87,8 @@ Result<> Loader::Impl::setup() {
 
     this->createDirectories();
 
+    this->addSearchPaths();
+
     this->refreshModGraph();
 
     m_isSetup = true;
