@@ -45,11 +45,11 @@ void Loader::Impl::createDirectories() {
     try { ghc::filesystem::remove_all(dirs::getModRuntimeDir()); } catch(...) {}
 
     (void) utils::file::createDirectoryAll(dirs::getGeodeResourcesDir());
-    (void) utils::file::createDirectory(dirs::getModConfigDir());
-    (void) utils::file::createDirectory(dirs::getModsDir());
-    (void) utils::file::createDirectory(dirs::getGeodeLogDir());
-    (void) utils::file::createDirectory(dirs::getTempDir());
-    (void) utils::file::createDirectory(dirs::getModRuntimeDir());
+    (void) utils::file::createDirectoryAll(dirs::getModConfigDir());
+    (void) utils::file::createDirectoryAll(dirs::getModsDir());
+    (void) utils::file::createDirectoryAll(dirs::getGeodeLogDir());
+    (void) utils::file::createDirectoryAll(dirs::getTempDir());
+    (void) utils::file::createDirectoryAll(dirs::getModRuntimeDir());
 
     if (!ranges::contains(m_modSearchDirectories, dirs::getModsDir())) {
         m_modSearchDirectories.push_back(dirs::getModsDir());
