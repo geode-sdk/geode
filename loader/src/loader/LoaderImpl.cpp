@@ -740,14 +740,12 @@ void Loader::Impl::tryDownloadLoaderResources(
         .expect([this, tryLatestOnError](std::string const& info, int code) {
             // if the url was not found, try downloading latest release instead
             // (for development versions)
-            if (code == 404 && tryLatestOnError) {
-                this->downloadLoaderResources(true);
+            if (code == 404) {
+                log::warn("Unable to download resources: {}", info);
             }
-            else {
-                ResourceDownloadEvent(
-                    UpdateFailed("Unable to download resources: " + info)
-                ).post();
-            }
+            ResourceDownloadEvent(
+                UpdateFailed("Unable to download resources: " + info)
+            ).post();
         })
         .progress([](auto&, double now, double total) {
             ResourceDownloadEvent(
@@ -768,65 +766,66 @@ void Loader::Impl::updateSpecialFiles() {
 }
 
 void Loader::Impl::downloadLoaderResources(bool useLatestRelease) {
-    if (!useLatestRelease) {
-        web::AsyncWebRequest()
-            .join("loader-tag-exists-check")
-            .userAgent("github_api/1.0")
-            .fetch(fmt::format(
-                "https://api.github.com/repos/geode-sdk/geode/git/ref/tags/{}",
+    web::AsyncWebRequest()
+        .join("loader-tag-exists-check")
+        .userAgent("github_api/1.0")
+        .fetch(fmt::format(
+            "https://api.github.com/repos/geode-sdk/geode/git/ref/tags/{}",
+            this->getVersion().toString()
+        ))
+        .json()
+        .then([this](json::Value const& json) {
+            this->tryDownloadLoaderResources(fmt::format(
+                "https://github.com/geode-sdk/geode/releases/download/{}/resources.zip",
                 this->getVersion().toString()
-            ))
-            .json()
-            .then([this](json::Value const& json) {
-                this->tryDownloadLoaderResources(fmt::format(
-                    "https://github.com/geode-sdk/geode/releases/download/{}/resources.zip",
-                    this->getVersion().toString()
-                ), true);  
-            })
-            .expect([this](std::string const& info, int code) {
-                if (code == 404) {
-                    log::debug("Loader version {} does not exist on Github, not downloading the resources", this->getVersion().toString());
-                    ResourceDownloadEvent(
-                        UpdateFinished()
-                    ).post();
+            ), true);  
+        })
+        .expect([=](std::string const& info, int code) {
+            if (code == 404) {
+                if (useLatestRelease) {
+                    log::debug("Loader version {} does not exist on Github, downloading latest resources", this->getVersion().toString());
+                    fetchLatestGithubRelease(
+                        [this](json::Value const& raw) {
+                            auto json = raw;
+                            JsonChecker checker(json);
+                            auto root = checker.root("[]").obj();
+
+                            // find release asset
+                            for (auto asset : root.needs("assets").iterate()) {
+                                auto obj = asset.obj();
+                                if (obj.needs("name").template get<std::string>() == "resources.zip") {
+                                    this->tryDownloadLoaderResources(
+                                        obj.needs("browser_download_url").template get<std::string>(),
+                                        false
+                                    );
+                                    return;
+                                }
+                            }
+
+                            ResourceDownloadEvent(
+                                UpdateFailed("Unable to find resources in latest GitHub release")
+                            ).post();
+                        },
+                        [this](std::string const& info) {
+                            ResourceDownloadEvent(
+                                UpdateFailed("Unable to download resources: " + info)
+                            ).post();
+                        }
+                    );
                 }
                 else {
-                    ResourceDownloadEvent(
-                        UpdateFailed("Unable to check if tag exists: " + info)
-                    ).post();
+                    log::debug("Loader version {} does not exist on Github, not downloading the resources", this->getVersion().toString());
                 }
-            });
-    }
-    else {
-        fetchLatestGithubRelease(
-            [this](json::Value const& raw) {
-                auto json = raw;
-                JsonChecker checker(json);
-                auto root = checker.root("[]").obj();
-
-                // find release asset
-                for (auto asset : root.needs("assets").iterate()) {
-                    auto obj = asset.obj();
-                    if (obj.needs("name").template get<std::string>() == "resources.zip") {
-                        this->tryDownloadLoaderResources(
-                            obj.needs("browser_download_url").template get<std::string>(),
-                            false
-                        );
-                        return;
-                    }
-                }
-
                 ResourceDownloadEvent(
-                    UpdateFailed("Unable to find resources in latest GitHub release")
-                ).post();
-            },
-            [this](std::string const& info) {
-                ResourceDownloadEvent(
-                    UpdateFailed("Unable to download resources: " + info)
+                    UpdateFinished()
                 ).post();
             }
-        );
-    }
+            else {
+                ResourceDownloadEvent(
+                    UpdateFailed("Unable to check if tag exists: " + info)
+                ).post();
+            }
+        });
 }
 
 bool Loader::Impl::verifyLoaderResources() {
@@ -844,7 +843,7 @@ bool Loader::Impl::verifyLoaderResources() {
         ghc::filesystem::is_directory(resourcesDir)
     )) {
         log::debug("Resources directory does not exist");
-        this->downloadLoaderResources();
+        this->downloadLoaderResources(true);
         return false;
     }
 
