@@ -43,7 +43,8 @@ Result<> Mod::Impl::setup() {
         log::warn("Unable to load data for \"{}\": {}", m_metadata.getID(), loadRes.unwrapErr());
     }
     if (!m_resourcesLoaded) {
-        LoaderImpl::get()->updateModResources(m_self);
+        auto searchPathRoot = dirs::getModRuntimeDir() / m_metadata.getID() / "resources";
+        CCFileUtils::get()->addSearchPath(searchPathRoot.string().c_str());
         m_resourcesLoaded = true;
     }
 
