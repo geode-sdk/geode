@@ -1,4 +1,4 @@
-name: Build Binaries
+name: Build ANDROID
 
 on:
   workflow_dispatch:
@@ -43,6 +43,7 @@ jobs:
           ANDROID_ABI: armeabi-v7a
           MIN_SDK_VERSION: 24
         run: |
+          sudo apt install ninja
           cmake -DCMAKE_TOOLCHAIN_FILE=$NDK_HOME/build/cmake/android.toolchain.cmake -DANDROID_ABI=$ANDROID_ABI -DANDROID_PLATFORM=android-$MIN_SDK_VERSION -DCMAKE_BUILD_TYPE=Debug -G Ninja -B build
 
       - name: Build
