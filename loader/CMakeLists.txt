@@ -149,6 +149,11 @@ if (APPLE)
 	file(COPY ${GEODE_LOADER_PATH}/include/link/libfmod.dylib DESTINATION ${GEODE_BIN_PATH}/nightly)
 endif()
 
+if (ANDROID)
+	# needed to define some opengl functions
+	target_link_libraries(${PROJECT_NAME} EGL)
+endif()
+
 target_include_directories(${PROJECT_NAME} PRIVATE
 	src/
 	src/loader/
