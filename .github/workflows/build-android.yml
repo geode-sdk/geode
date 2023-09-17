@@ -1,0 +1,57 @@
+name: Build Android
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+    - '**'              # every branch
+    - '!no-build-**'    # unless marked as no-build
+
+jobs:
+  build:
+    name: Build Android
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r25c
+          add-to-path: false
+
+      - name: Download CLI
+        uses: robinraju/release-downloader@v1.8
+        with:
+          repository: geode-sdk/cli
+          latest: true
+          fileName: '*-linux.zip'
+          tarBall: false
+          zipBall: false
+          out-file-path: "cli"
+  
+      - name: Setup CLI
+        run: |
+          7z x "${{ github.workspace }}/cli/*-linux.zip" -o"${{ github.workspace }}/cli"
+          chmod +x $GITHUB_WORKSPACE/cli/geode
+          echo "${{ github.workspace }}/cli" >> $GITHUB_PATH
+
+      - name: Configure
+        env:
+          NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+          ANDROID_ABI: armeabi-v7a
+          MIN_SDK_VERSION: 24
+        run: |
+          sudo apt install ninja-build
+          cmake -DCMAKE_TOOLCHAIN_FILE=$NDK_HOME/build/cmake/android.toolchain.cmake -DANDROID_ABI=$ANDROID_ABI -DANDROID_PLATFORM=android-$MIN_SDK_VERSION -DCMAKE_BUILD_TYPE=Debug -DGEODE_DONT_BUILD_TEST_MODS=1 -G Ninja -B build
+
+      - name: Build
+        run: |
+          cmake --build build --config Debug
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: geode-android
+          path: ./bin/nightly/*.so
