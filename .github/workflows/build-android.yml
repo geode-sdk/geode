@@ -1,4 +1,4 @@
-name: Build ANDROID
+name: Build Android
 
 on:
   workflow_dispatch:
@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    name: Build
+    name: Build Android
     runs-on: ubuntu-latest
     
     steps:
@@ -53,5 +53,5 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: geode-linux
+          name: geode-android
           path: ./bin/nightly/*.so
