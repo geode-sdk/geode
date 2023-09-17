@@ -1165,16 +1165,23 @@ class cocos2d::extension::CCControl {
     auto isSelected() = mac 0x1a7ec0;
 }
 
-[[link(win, android)]]
+
 class cocos2d::extension::CCControlColourPicker {
-	CCControlColourPicker() {}
+    [[link(win)]]
+    CCControlColourPicker() {}
+    [[link(win)]]
     ~CCControlColourPicker() = mac 0x1aae30;
-	auto setColorValue(cocos2d::_ccColor3B const&) = mac 0x1aac10;
+    [[link(win, android)]]
+    auto setColorValue(cocos2d::_ccColor3B const&) = mac 0x1aac10;
+    [[link(win)]]
     auto ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x1aae10;
+    [[link(win)]]
     auto init() = mac 0x1aa400;
+    [[link(win)]]
     static auto colourPicker() = mac 0x1aaa30;
+    [[link(win)]]
     cocos2d::ccColor3B const& getColorValue() const {
-    	return m_rgb;
+        return m_rgb;
     }
 
 }
