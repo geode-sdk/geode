@@ -44,7 +44,7 @@ jobs:
           MIN_SDK_VERSION: 24
         run: |
           sudo apt install ninja-build
-          cmake -DCMAKE_TOOLCHAIN_FILE=$NDK_HOME/build/cmake/android.toolchain.cmake -DANDROID_ABI=$ANDROID_ABI -DANDROID_PLATFORM=android-$MIN_SDK_VERSION -DCMAKE_BUILD_TYPE=Debug -G Ninja -B build
+          cmake -DCMAKE_TOOLCHAIN_FILE=$NDK_HOME/build/cmake/android.toolchain.cmake -DANDROID_ABI=$ANDROID_ABI -DANDROID_PLATFORM=android-$MIN_SDK_VERSION -DCMAKE_BUILD_TYPE=Debug -DGEODE_DONT_BUILD_TEST_MODS=1 -G Ninja -B build
 
       - name: Build
         run: |
