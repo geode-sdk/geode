@@ -1265,6 +1265,9 @@ class cocos2d {
     static uintptr_t macNumberOfDraws() {
         return geode::base::get() + 0x69ae90;
     }
+    static void CC_INCREMENT_GL_DRAWS(int n) {
+        *reinterpret_cast<int*>(macNumberOfDraws()) += n;
+    }
 }
 
 [[link(win)]]
