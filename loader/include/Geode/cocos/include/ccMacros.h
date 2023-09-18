@@ -247,6 +247,13 @@ It should work same as apples CFSwapInt32LittleToHost(..)
  */
 extern unsigned int ACTUAL_CC_DLL g_uNumberOfDraws;
 #define CC_INCREMENT_GL_DRAWS(__n__) g_uNumberOfDraws += __n__
+static inline GEODE_INLINE void ccIncrementGLDraws(int n) {
+#ifdef GEODE_IS_MACOS
+    *reinterpret_cast<int*>(macNumberOfDraws()) += n;
+#else
+    CC_INCREMENT_GL_DRAWS(n);
+#endif
+}
 
 /*******************/
 /** Notifications **/
