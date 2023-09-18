@@ -246,9 +246,7 @@ It should work same as apples CFSwapInt32LittleToHost(..)
  The number of calls per frame are displayed on the screen when the CCDirector's stats are enabled.
  */
 extern unsigned int ACTUAL_CC_DLL g_uNumberOfDraws;
-#ifndef GEODE_IS_MACOS
 #define CC_INCREMENT_GL_DRAWS(__n__) g_uNumberOfDraws += __n__
-#endif
 
 /*******************/
 /** Notifications **/

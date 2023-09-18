@@ -1261,14 +1261,18 @@ class cocos2d {
 	static void ccDrawPoly(cocos2d::CCPoint const*, unsigned int, bool) = mac 0xed0a0;
 	static void ccDrawColor4B(GLubyte, GLubyte, GLubyte, GLubyte) = mac 0xeddd0;
 	static void CCMessageBox(const char* msg, const char* title) = mac 0xbabc0;
-
-    static uintptr_t macNumberOfDraws() {
-        return geode::base::get() + 0x69ae90;
-    }
-    static void CC_INCREMENT_GL_DRAWS(int n) {
-        *reinterpret_cast<int*>(macNumberOfDraws()) += n;
-    }
 }
+
+//uintptr_t macNumberOfDraws() {
+//    return geode::base::get() + 0x69ae90;
+//}
+//void ccIncrementGLDraws(int n) {
+//#ifdef GEODE_IS_MACOS
+//    *reinterpret_cast<int*>(macNumberOfDraws()) += n;
+//#else
+//    CC_INCREMENT_GL_DRAWS(n);
+//#endif
+//}
 
 [[link(win)]]
 class DS_Dictionary {
