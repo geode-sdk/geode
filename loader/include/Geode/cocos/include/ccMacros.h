@@ -249,7 +249,7 @@ extern unsigned int ACTUAL_CC_DLL g_uNumberOfDraws;
 #define CC_INCREMENT_GL_DRAWS(__n__) g_uNumberOfDraws += __n__
 static GEODE_INLINE void ccIncrementGLDraws(int n) {
 #ifdef GEODE_IS_MACOS
-    *reinterpret_cast<int*>(geode::cocos2d::macNumberOfDraws()) += n;
+    *reinterpret_cast<int*>(cocos2d::macNumberOfDraws()) += n;
 #else
     CC_INCREMENT_GL_DRAWS(n);
 #endif
