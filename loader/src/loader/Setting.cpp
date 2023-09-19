@@ -62,6 +62,7 @@ Result<StringSetting> StringSetting::parse(JsonMaybeObject& obj) {
     StringSetting sett;
     parseCommon(sett, obj);
     obj.has("match").into(sett.match);
+    obj.has("filter").into(sett.filter);
     return Ok(sett);
 }
 

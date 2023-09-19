@@ -324,6 +324,11 @@ bool StringSettingNode::setup(StringSettingValue* setting, float width) {
     m_input = InputNode::create(width / 2 - 10.f, "Text", "chatFont.fnt");
     m_input->setPosition({ -(width / 2 - 70.f) / 2, .0f });
     m_input->setScale(.65f);
+
+    if (setting->castDefinition().filter.has_value()) {
+        m_input->getInput()->setAllowedChars(setting->castDefinition().filter.value());
+    }
+
     m_input->getInput()->setDelegate(this);
     m_menu->addChild(m_input);
 
