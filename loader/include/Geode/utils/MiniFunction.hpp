@@ -123,30 +123,6 @@ namespace geode::utils {
             return *this;
         }
 
-        template <class Callable>
-        requires(MiniFunctionCallable<Callable, Ret, Args...> && !std::is_same_v<std::decay_t<Callable>, MiniFunction<FunctionType>>)
-        MiniFunction& operator=(Callable&& func) {
-            delete m_state;
-            m_state = new MiniFunctionState<std::decay_t<Callable>, Ret, Args...>(std::forward<Callable>(func));
-            return *this;
-        }
-
-        template <class FunctionPointer> 
-        requires(!MiniFunctionCallable<FunctionPointer, Ret, Args...> && std::is_pointer_v<FunctionPointer> && std::is_function_v<std::remove_pointer_t<FunctionPointer>>)
-        MiniFunction& operator=(FunctionPointer func) {
-            delete m_state;
-            m_state = new MiniFunctionStatePointer<FunctionPointer, Ret, Args...>(func);
-            return *this;
-        }
-
-        template <class MemberFunctionPointer> 
-        requires(std::is_member_function_pointer_v<MemberFunctionPointer>)
-        MiniFunction& operator=(MemberFunctionPointer func) {
-            delete m_state;
-            m_state = new MiniFunctionStateMemberPointer<MemberFunctionPointer, Ret, Args...>(func);
-            return *this;
-        }
-
         Ret operator()(Args... args) const {
             if (!m_state) return Ret();
             return m_state->call(args...);
