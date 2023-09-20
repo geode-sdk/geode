@@ -1,15 +1,15 @@
 #pragma once
 
 #include <cocos2d.h>
-#include "MenuItemSpriteExtra.hpp"
+#include "MenuItemSprite.hpp"
 
 #pragma warning(disable : 4275)
 
 namespace geode {
     class GEODE_DLL MenuItemToggle : public cocos2d::CCMenuItem {
     protected:
-        MenuItemSpriteExtra* m_offButton;
-        MenuItemSpriteExtra* m_onButton;
+        MenuItemSprite* m_offButton;
+        MenuItemSprite* m_onButton;
         bool m_toggled;
 
         MenuItemToggle();
@@ -26,10 +26,10 @@ namespace geode {
             cocos2d::CCObject* target, cocos2d::SEL_MenuHandler callback
         );
 
-        void setOffButton(MenuItemSpriteExtra* button);
-        void setOnButton(MenuItemSpriteExtra* button);
-        MenuItemSpriteExtra* getOffButton() const;
-        MenuItemSpriteExtra* getOnButton() const;
+        void setOffButton(MenuItemSprite* button);
+        void setOnButton(MenuItemSprite* button);
+        MenuItemSprite* getOffButton() const;
+        MenuItemSprite* getOnButton() const;
 
         bool isToggled() const;
         void toggle(bool enabled);

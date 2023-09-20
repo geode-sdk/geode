@@ -2,7 +2,7 @@
 #include <Geode/modify/MenuLayer.hpp>
 #include <Geode/loader/SettingNode.hpp>
 #include <Geode/loader/ModJsonTest.hpp>
-#include <Geode/ui/MenuItemSpriteExtra.hpp>
+#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/binding/FLAlertLayer.hpp>
 #include "main.hpp"
 
@@ -92,7 +92,7 @@ protected:
             } else {
                 btnSpr->setColor({ 200, 200, 200 });
             }
-            auto btn = MenuItemSpriteExtra::create(
+            auto btn = CCMenuItemSpriteExtra::create(
                 btnSpr, this, menu_selector(MySettingNode::onSelect)
             );
             btn->setTag(static_cast<int>(icon));
@@ -113,7 +113,7 @@ protected:
         }
         m_currentIcon = static_cast<Icon>(sender->getTag());
         static_cast<CCSprite*>(
-            static_cast<MenuItemSpriteExtra*>(sender)->getNormalImage()
+            static_cast<CCMenuItemSpriteExtra*>(sender)->getNormalImage()
         )->setColor({ 0, 255, 0 });
         this->dispatchChanged();
     }

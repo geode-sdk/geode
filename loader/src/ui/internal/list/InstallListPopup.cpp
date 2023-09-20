@@ -22,7 +22,7 @@ bool InstallListPopup::setup(IndexItemHandle item, MiniFunction<void(IndexInstal
     );
     installBtnSpr->setScale(.6f);
 
-    auto installBtn = MenuItemSpriteExtra::create(
+    auto installBtn = CCMenuItemSpriteExtra::create(
         installBtnSpr,
         this,
         menu_selector(InstallListPopup::onInstall)

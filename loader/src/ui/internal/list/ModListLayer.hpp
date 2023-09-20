@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Geode/binding/TextInputDelegate.hpp>
-#include <Geode/ui/MenuItemSpriteExtra.hpp>
 #include <Geode/loader/Index.hpp>
 
 using namespace geode::prelude;
@@ -55,13 +54,13 @@ protected:
     CCMenuItemToggler* m_installedTabBtn;
     CCMenuItemToggler* m_downloadTabBtn;
     CCMenuItemToggler* m_featuredTabBtn;
-    MenuItemSpriteExtra* m_searchBtn;
-    MenuItemSpriteExtra* m_searchClearBtn;
-    MenuItemSpriteExtra* m_checkForUpdatesBtn = nullptr;
+    CCMenuItemSpriteExtra* m_searchBtn;
+    CCMenuItemSpriteExtra* m_searchClearBtn;
+    CCMenuItemSpriteExtra* m_checkForUpdatesBtn = nullptr;
     CCNode* m_searchBG = nullptr;
     CCTextInputNode* m_searchInput = nullptr;
     LoadingCircle* m_loadingCircle = nullptr;
-    MenuItemSpriteExtra* m_filterBtn;
+    CCMenuItemSpriteExtra* m_filterBtn;
     ModListQuery m_query;
     ModListDisplay m_display = ModListDisplay::Concise;
     EventListener<IndexUpdateFilter> m_indexListener;

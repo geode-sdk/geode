@@ -10,7 +10,7 @@ class ModSettingsPopup : public Popup<Mod*>, public SettingNodeDelegate {
 protected:
     Mod* m_mod;
     std::vector<SettingNode*> m_settings;
-    MenuItemSpriteExtra* m_applyBtn;
+    CCMenuItemSpriteExtra* m_applyBtn;
     ButtonSprite* m_applyBtnSpr;
 
     void settingValueChanged(SettingNode*) override;

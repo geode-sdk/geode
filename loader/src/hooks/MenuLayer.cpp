@@ -77,7 +77,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 
         auto bottomMenu = static_cast<CCMenu*>(this->getChildByID("bottom-menu"));
 
-        auto btn = MenuItemSpriteExtra::create(
+        auto btn = CCMenuItemSpriteExtra::create(
             m_fields->m_geodeButton, this,
             static_cast<SEL_MenuHandler>(geodeBtnSelector)
         );

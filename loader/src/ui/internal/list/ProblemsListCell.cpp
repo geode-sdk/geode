@@ -1,7 +1,7 @@
 ﻿#include "ProblemsListCell.hpp"
 #include "ProblemsListPopup.hpp"
 #include <Geode/binding/ButtonSprite.hpp>
-#include <Geode/ui/MenuItemSpriteExtra.hpp>
+#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/binding/CCMenuItemToggler.hpp>
 #include <Geode/binding/FLAlertLayer.hpp>
 #include <Geode/binding/StatsCell.hpp>
@@ -115,7 +115,7 @@ bool ProblemsListCell::init(LoadProblem problem, ProblemsListPopup* list, CCSize
         viewSpr->setScale(.65f);
 
         auto viewBtn =
-            MenuItemSpriteExtra::create(viewSpr, this, menu_selector(ProblemsListCell::onMore));
+            CCMenuItemSpriteExtra::create(viewSpr, this, menu_selector(ProblemsListCell::onMore));
         m_menu->addChild(viewBtn);
     }
 

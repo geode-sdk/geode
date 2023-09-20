@@ -24,14 +24,14 @@ bool MDPopup::setup(
 
     auto btnSpr = ButtonSprite::create(btn1Text);
 
-    auto btn = MenuItemSpriteExtra::create(btnSpr, this, menu_selector(MDPopup::onBtn));
+    auto btn = CCMenuItemSpriteExtra::create(btnSpr, this, menu_selector(MDPopup::onBtn));
     btn->setTag(0);
     m_buttonMenu->addChild(btn);
 
     if (btn2Text) {
         auto btn2Spr = ButtonSprite::create(btn2Text);
 
-        auto btn2 = MenuItemSpriteExtra::create(btn2Spr, this, menu_selector(MDPopup::onBtn));
+        auto btn2 = CCMenuItemSpriteExtra::create(btn2Spr, this, menu_selector(MDPopup::onBtn));
         btn2->setTag(1);
         m_buttonMenu->addChild(btn2);
 

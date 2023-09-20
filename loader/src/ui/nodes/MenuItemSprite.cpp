@@ -1,19 +1,19 @@
-#include <Geode/ui/MenuItemSpriteExtra.hpp>
+#include <Geode/ui/MenuItemSprite.hpp>
 
 using namespace geode::prelude;
 
-MenuItemSpriteExtra* MenuItemSpriteExtra::create(
+MenuItemSprite* MenuItemSprite::create(
     cocos2d::CCNode* normalSprite,
     cocos2d::CCObject* target, cocos2d::SEL_MenuHandler callback
 ) {
-    return MenuItemSpriteExtra::create(normalSprite, nullptr, target, callback);
+    return MenuItemSprite::create(normalSprite, nullptr, target, callback);
 }
 
-MenuItemSpriteExtra* MenuItemSpriteExtra::create(
+MenuItemSprite* MenuItemSprite::create(
     cocos2d::CCNode* normalSprite, cocos2d::CCNode* disabledSprite,
     cocos2d::CCObject* target, cocos2d::SEL_MenuHandler callback
 ) {
-    auto ret = new MenuItemSpriteExtra();
+    auto ret = new MenuItemSprite();
     if (ret && ret->init(normalSprite, disabledSprite, target, callback)) {
         ret->autorelease();
         return ret;
@@ -22,12 +22,12 @@ MenuItemSpriteExtra* MenuItemSpriteExtra::create(
     return nullptr;
 }
 
-MenuItemSpriteExtra::MenuItemSpriteExtra() : m_scaleSprites(false) {}
+MenuItemSprite::MenuItemSprite() {}
 
-MenuItemSpriteExtra::~MenuItemSpriteExtra() {
+MenuItemSprite::~MenuItemSprite() {
 }
 
-void MenuItemSpriteExtra::setImage(cocos2d::CCNode* image) {
+void MenuItemSprite::setImage(cocos2d::CCNode* image) {
     if (image) {
         image->setAnchorPoint({ 0.5f, 0.5f });
         image->setPosition(image->getContentSize() / 2);
@@ -35,20 +35,20 @@ void MenuItemSpriteExtra::setImage(cocos2d::CCNode* image) {
 }
 
 // why are the members private like what
-void MenuItemSpriteExtra::setNormalImage(cocos2d::CCNode* image) {
+void MenuItemSprite::setNormalImage(cocos2d::CCNode* image) {
     CCMenuItemSprite::setNormalImage(image);
     this->setImage(image);
 }
-void MenuItemSpriteExtra::setDisabledImage(cocos2d::CCNode* image) {
+void MenuItemSprite::setDisabledImage(cocos2d::CCNode* image) {
     CCMenuItemSprite::setDisabledImage(image);
     this->setImage(image);
 }
-void MenuItemSpriteExtra::setSelectedImage(cocos2d::CCNode* image) {
+void MenuItemSprite::setSelectedImage(cocos2d::CCNode* image) {
     CCMenuItemSprite::setSelectedImage(image);
     this->setImage(image);
 }
 
-bool MenuItemSpriteExtra::init(
+bool MenuItemSprite::init(
     cocos2d::CCNode* normalSprite, cocos2d::CCNode* disabledSprite,
     cocos2d::CCObject* target, cocos2d::SEL_MenuHandler callback
 ) {
@@ -67,41 +67,32 @@ bool MenuItemSpriteExtra::init(
     return true;
 }
 
-void MenuItemSpriteExtra::runActionOnSprite(cocos2d::CCNode* sprite, cocos2d::CCAction* generator) {
+void MenuItemSprite::runActionOnSprite(cocos2d::CCNode* sprite, cocos2d::CCAction* generator) {
     if (sprite) {
         sprite->stopAllActions();
         if (generator) sprite->runAction(generator);
     }
 }
 
-void MenuItemSpriteExtra::runActionOnSprites(MiniFunction<cocos2d::CCAction*()> generator) {
-    if (m_scaleSprites) {
-        this->runActionOnSprite(this->getNormalImage(), generator());
-        this->runActionOnSprite(this->getDisabledImage(), generator());
-        this->runActionOnSprite(this->getSelectedImage(), generator());
-    }
-    else {
-        if (auto action = generator()) this->runAction(action);
-    }
+void MenuItemSprite::runActionOnSprites(MiniFunction<cocos2d::CCAction*()> generator) {
+    this->runActionOnSprite(this->getNormalImage(), generator());
+    this->runActionOnSprite(this->getDisabledImage(), generator());
+    this->runActionOnSprite(this->getSelectedImage(), generator());
 }
 
-void MenuItemSpriteExtra::activate() {
+void MenuItemSprite::activate() {
     this->runActionOnSprites(m_activateAction);
     CCMenuItem::activate();
 }
-void MenuItemSpriteExtra::selected() {
+void MenuItemSprite::selected() {
     if (!m_bEnabled) return;
     CCMenuItem::selected();
 
     this->runActionOnSprites(m_selectedAction);
 }
-void MenuItemSpriteExtra::unselected() {
+void MenuItemSprite::unselected() {
     if (!m_bEnabled) return;
     CCMenuItem::unselected();
 
     this->runActionOnSprites(m_unselectedAction);
-}
-
-void MenuItemSpriteExtra::setScaleSprites(bool scale) {
-    m_scaleSprites = scale;
 }

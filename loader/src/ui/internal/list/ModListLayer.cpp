@@ -16,6 +16,8 @@
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/ranges.hpp>
 
+#include <Geode/ui/MenuItemSprite.hpp>
+
 #define FTS_FUZZY_MATCH_IMPLEMENTATION
 #include <Geode/external/fts/fts_fuzzy_match.h>
 
@@ -259,7 +261,7 @@ bool ModListLayer::init() {
     m_topMenu = CCMenu::create();
 
     // add back button
-    auto backBtn = MenuItemSpriteExtra::create(
+    auto backBtn = MenuItemSprite::create(
         CCSprite::createWithSpriteFrameName("GJ_arrow_01_001.png"), this,
         menu_selector(ModListLayer::onExit)
     );
@@ -270,7 +272,7 @@ bool ModListLayer::init() {
     auto reloadSpr = CCSprite::createWithSpriteFrameName("GJ_updateBtn_001.png");
     reloadSpr->setScale(.8f);
     auto reloadBtn =
-        MenuItemSpriteExtra::create(reloadSpr, this, menu_selector(ModListLayer::onReload));
+        CCMenuItemSpriteExtra::create(reloadSpr, this, menu_selector(ModListLayer::onReload));
     reloadBtn->setPosition(-winSize.width / 2 + 30.0f, -winSize.height / 2 + 30.0f);
     m_menu->addChild(reloadBtn);
 
@@ -279,7 +281,7 @@ bool ModListLayer::init() {
         "gj_folderBtn_001.png", .7f, CircleBaseColor::Green, CircleBaseSize::Small
     );
     auto openBtn =
-        MenuItemSpriteExtra::create(openSpr, this, menu_selector(ModListLayer::onOpenFolder));
+        CCMenuItemSpriteExtra::create(openSpr, this, menu_selector(ModListLayer::onOpenFolder));
     openBtn->setPosition(-winSize.width / 2 + 30.0f, -winSize.height / 2 + 80.0f);
     m_menu->addChild(openBtn);
 
@@ -394,7 +396,7 @@ void ModListLayer::createSearchControl() {
     filterSpr->setScale(.7f);
 
     m_filterBtn =
-        MenuItemSpriteExtra::create(filterSpr, this, menu_selector(ModListLayer::onFilters));
+        CCMenuItemSpriteExtra::create(filterSpr, this, menu_selector(ModListLayer::onFilters));
     m_filterBtn->setPosition(-10.f, 0.f);
     menu->addChild(m_filterBtn);
 
@@ -402,14 +404,14 @@ void ModListLayer::createSearchControl() {
     auto searchSpr = CCSprite::createWithSpriteFrameName("gj_findBtn_001.png");
     searchSpr->setScale(.7f);
 
-    m_searchBtn = MenuItemSpriteExtra::create(searchSpr, this, nullptr);
+    m_searchBtn = CCMenuItemSpriteExtra::create(searchSpr, this, nullptr);
     m_searchBtn->setPosition(-35.f, 0.f);
     menu->addChild(m_searchBtn);
 
     auto searchClearSpr = CCSprite::createWithSpriteFrameName("gj_findBtnOff_001.png");
     searchClearSpr->setScale(.7f);
 
-    m_searchClearBtn = MenuItemSpriteExtra::create(
+    m_searchClearBtn = CCMenuItemSpriteExtra::create(
         searchClearSpr, this, menu_selector(ModListLayer::onResetSearch)
     );
     m_searchClearBtn->setPosition(-35.f, 0.f);
@@ -561,7 +563,7 @@ void ModListLayer::reloadList(bool keepScroll, std::optional<ModListQuery> const
         if (!m_checkForUpdatesBtn) {
             auto checkSpr = ButtonSprite::create("Check for Updates");
             checkSpr->setScale(.7f);
-            m_checkForUpdatesBtn = MenuItemSpriteExtra::create(
+            m_checkForUpdatesBtn = CCMenuItemSpriteExtra::create(
                 checkSpr, this, menu_selector(ModListLayer::onCheckForUpdates)
             );
             m_checkForUpdatesBtn->setPosition(0, -winSize.height / 2 + 40.f);

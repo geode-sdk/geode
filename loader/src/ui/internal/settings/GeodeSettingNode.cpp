@@ -74,7 +74,7 @@ Slider* createSlider(C* node, GeodeSettingValue<T>* setting, float width) {
 
 template<class C, class T>
 std::pair<
-    MenuItemSpriteExtra*, MenuItemSpriteExtra*
+    CCMenuItemSpriteExtra*, CCMenuItemSpriteExtra*
 > createArrows(C* node, GeodeSettingValue<T>* setting, float width, bool big) {
     auto yPos = setting->castDefinition().controls.slider ? 5.f : 0.f;
     auto decArrowSpr = CCSprite::createWithSpriteFrameName(
@@ -83,7 +83,7 @@ std::pair<
     decArrowSpr->setFlipX(true);
     decArrowSpr->setScale(.3f);
 
-    auto decArrow = MenuItemSpriteExtra::create(
+    auto decArrow = CCMenuItemSpriteExtra::create(
         decArrowSpr, node, menu_selector(C::onArrow)
     );
     decArrow->setPosition(-width / 2 + (big ? 65.f : 80.f), yPos);
@@ -97,7 +97,7 @@ std::pair<
     );
     incArrowSpr->setScale(.3f);
 
-    auto incArrow = MenuItemSpriteExtra::create(
+    auto incArrow = CCMenuItemSpriteExtra::create(
         incArrowSpr, node, menu_selector(C::onArrow)
     );
     incArrow->setTag(big ? 
@@ -377,7 +377,7 @@ bool FileSettingNode::setup(FileSettingValue* setting, float width) {
     auto fileBtnSpr = CCSprite::createWithSpriteFrameName("gj_folderBtn_001.png");
     fileBtnSpr->setScale(.5f);
 
-    auto fileBtn = MenuItemSpriteExtra::create(
+    auto fileBtn = CCMenuItemSpriteExtra::create(
         fileBtnSpr, this, menu_selector(FileSettingNode::onPickFile)
     );
     fileBtn->setPosition(.0f, .0f);
@@ -410,7 +410,7 @@ bool ColorSettingNode::setup(ColorSettingValue* setting, float width) {
     m_colorSpr->setColor(m_uncommittedValue);
     m_colorSpr->setScale(.65f);
 
-    auto button = MenuItemSpriteExtra::create(
+    auto button = CCMenuItemSpriteExtra::create(
         m_colorSpr, this, menu_selector(ColorSettingNode::onSelectColor)
     );
     button->setPositionX(-10.f);
@@ -445,7 +445,7 @@ bool ColorAlphaSettingNode::setup(ColorAlphaSettingValue* setting, float width) 
     m_colorSpr->updateOpacity(m_uncommittedValue.a / 255.f);
     m_colorSpr->setScale(.65f);
 
-    auto button = MenuItemSpriteExtra::create(
+    auto button = CCMenuItemSpriteExtra::create(
         m_colorSpr, this, menu_selector(ColorAlphaSettingNode::onSelectColor)
     );
     button->setPositionX(-10.f);
