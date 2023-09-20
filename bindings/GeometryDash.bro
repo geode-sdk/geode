@@ -1628,9 +1628,12 @@ class EffectGameObject : GameObject {
     PAD = mac 0x28, win 0x24;
 }
 
-class EndLevelLayer {
+class EndLevelLayer : cocos2d::CCLayer {
     static EndLevelLayer* create() = mac 0x2787d0, win 0x94b50;
 
+    void customSetup() = win 0x94cb0;
+    const char* getCoinString(void* p0) = win 0x96270;
+    const char* getEndText() = win 0x964A0;
     void onMenu(cocos2d::CCObject* sender) = mac 0x27a500, win 0x96c10;
     void onEdit(cocos2d::CCObject* sender) = mac 0x27a640, win 0x96d30;
 }
@@ -4022,6 +4025,7 @@ class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDeleg
     virtual void levelDownloadFinished(GJGameLevel*) = mac 0x164C00, win 0x1790C0;
     virtual void levelUpdateFinished(GJGameLevel*, UpdateResponse) = mac 0x164E60, win 0x1792B0;
     void showUpdateAlert(UpdateResponse) = mac 0x164ED0, win 0x179300;
+    void updateLabelValues() = mac 0x164090, win 0x17b170;
 
     PAD = win 0x4, mac 0x8;
     cocos2d::CCMenu* m_playBtnMenu;
@@ -4031,13 +4035,13 @@ class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDeleg
     CCMenuItemSpriteExtra* m_starRateBtn;
     CCMenuItemSpriteExtra* m_demonRateBtn;
     PAD = win 0x4, mac 0x8;
-    CCMenuItemToggler* m_toggler;
-    cocos2d::CCLabelBMFont* m_label0;
-    cocos2d::CCLabelBMFont* m_label1;
-    cocos2d::CCLabelBMFont* m_label2;
-    cocos2d::CCLabelBMFont* m_label3;
-    cocos2d::CCLabelBMFont* m_label4;
-    cocos2d::CCLabelBMFont* m_label5;
+    CCMenuItemToggler* m_ldmToggler;
+    cocos2d::CCLabelBMFont* m_ldmLabel;
+    cocos2d::CCLabelBMFont* m_lengthLabel;
+    cocos2d::CCLabelBMFont* m_downloadsLabel;
+    cocos2d::CCLabelBMFont* m_likesLabel;
+    cocos2d::CCLabelBMFont* m_orbsLabel;
+    cocos2d::CCLabelBMFont* m_folderLabel;
     CCMenuItemSpriteExtra* m_cloneBtn;
     PAD = win 0x4, mac 0x8;
 }
@@ -4087,6 +4091,15 @@ class LevelSelectLayer : cocos2d::CCLayer {
 
 class LevelSettingsDelegate {
     virtual void levelSettingsUpdated() {}
+}
+
+class SecretLayer2 : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol, DialogDelegate {
+    static SecretLayer2* create() = win 0x21FD70;
+
+    bool init() = win 0x21FE10;
+    bool onSubmit(cocos2d::CCObject*) = win 0x221ac0;
+    void updateSearchLabel(const char* text) = win 0x222FC0;
+    void showCompletedLevel() = win 0x220C10;
 }
 
 class SecretLayer4 : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol, DialogDelegate {
@@ -5465,7 +5478,7 @@ class Slider : cocos2d::CCLayer {
     SliderTouchLogic* m_touchLogic;
     cocos2d::CCSprite* m_sliderBar;
     cocos2d::CCSprite* m_groove;
-    float m_unknown;
+    float m_width;
     float m_height;
 }
 
@@ -5542,6 +5555,8 @@ class SpeedObject : cocos2d::CCNode {
     float m_somethingToCompare;
     float m_idk3;
     float m_idk4;
+
+    static SpeedObject* create(GameObject*, int, float) = win 0x20DE70;
 }
 
 class SpritePartDelegate {}

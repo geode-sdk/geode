@@ -122,6 +122,11 @@ class cocos2d::CCClippingNode {
 //}
 
 [[link(win)]]
+class cocos2d::CCConfiguration {
+	void gatherGPUInfo() = mac 0x2a6e10;
+}
+
+[[link(win)]]
 class cocos2d::CCDelayTime {
 	static cocos2d::CCDelayTime* create(float) = mac 0x1f4380;
 }
@@ -1256,11 +1261,23 @@ class cocos2d {
 	static auto ccDrawSolidRect(cocos2d::CCPoint, cocos2d::CCPoint, cocos2d::_ccColor4F) = mac 0xecf00;
 	static auto ccGLEnableVertexAttribs(unsigned int) = mac 0x1ae740;
 	static auto ccGLBindTexture2D(GLuint) = mac 0x1ae610;
+	static auto ccGLBindTexture2DN(GLuint, GLuint) = mac 0x1ae650;
 	static float ccpDistance(cocos2d::CCPoint const&, cocos2d::CCPoint const&) = mac 0x1aaf90;
 	static void ccDrawPoly(cocos2d::CCPoint const*, unsigned int, bool) = mac 0xed0a0;
 	static void ccDrawColor4B(GLubyte, GLubyte, GLubyte, GLubyte) = mac 0xeddd0;
 	static void CCMessageBox(const char* msg, const char* title) = mac 0xbabc0;
 }
+
+//uintptr_t macNumberOfDraws() {
+//    return geode::base::get() + 0x69ae90;
+//}
+//void ccIncrementGLDraws(int n) {
+//#ifdef GEODE_IS_MACOS
+//    *reinterpret_cast<int*>(macNumberOfDraws()) += n;
+//#else
+//    CC_INCREMENT_GL_DRAWS(n);
+//#endif
+//}
 
 [[link(win)]]
 class DS_Dictionary {
