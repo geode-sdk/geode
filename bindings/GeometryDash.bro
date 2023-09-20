@@ -1628,9 +1628,12 @@ class EffectGameObject : GameObject {
     PAD = mac 0x28, win 0x24;
 }
 
-class EndLevelLayer {
+class EndLevelLayer : cocos2d::CCLayer {
     static EndLevelLayer* create() = mac 0x2787d0, win 0x94b50;
 
+    void customSetup() = win 0x94cb0;
+    const char* getCoinString(void* p0) = win 0x96270;
+    const char* getEndText() = win 0x964A0;
     void onMenu(cocos2d::CCObject* sender) = mac 0x27a500, win 0x96c10;
     void onEdit(cocos2d::CCObject* sender) = mac 0x27a640, win 0x96d30;
 }
