@@ -122,6 +122,11 @@ class cocos2d::CCClippingNode {
 //}
 
 [[link(win)]]
+class cocos2d::CCConfiguration {
+	void gatherGPUInfo() = mac 0x2a6e10;
+}
+
+[[link(win)]]
 class cocos2d::CCDelayTime {
 	static cocos2d::CCDelayTime* create(float) = mac 0x1f4380;
 }
