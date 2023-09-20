@@ -265,6 +265,11 @@ class cocos2d::CCEaseOut {
 }
 
 [[link(win)]]
+class cocos2d::CCEaseBounceOut {
+	static cocos2d::CCEaseBounceOut* create(cocos2d::CCActionInterval*) = mac 0x2a3b40;
+}
+
+[[link(win)]]
 class cocos2d::CCEGLView {
     CCEGLView();
 	static cocos2d::CCEGLView* sharedOpenGLView() = mac 0x295320;

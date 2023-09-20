@@ -16,6 +16,8 @@
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/ranges.hpp>
 
+#include <Geode/ui/MenuItemSprite.hpp>
+
 #define FTS_FUZZY_MATCH_IMPLEMENTATION
 #include <Geode/external/fts/fts_fuzzy_match.h>
 
@@ -259,7 +261,7 @@ bool ModListLayer::init() {
     m_topMenu = CCMenu::create();
 
     // add back button
-    auto backBtn = CCMenuItemSpriteExtra::create(
+    auto backBtn = MenuItemSprite::create(
         CCSprite::createWithSpriteFrameName("GJ_arrow_01_001.png"), this,
         menu_selector(ModListLayer::onExit)
     );
