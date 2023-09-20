@@ -1,5 +1,9 @@
 # Geode Changelog
 
+## v1.3.4
+ * Implement string setting character filters (cf8fbba)
+ * Update bindings
+
 ## v1.3.3
  * Reunify resources.zip (81de161)
 
