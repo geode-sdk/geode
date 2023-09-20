@@ -6,19 +6,20 @@
 #pragma warning(disable : 4275)
 
 namespace geode {
-    class GEODE_DLL MenuItemSprite : public cocos2d::CCMenuItemSprite {
+    class GEODE_DLL MenuItemSpriteExtra : public cocos2d::CCMenuItemSprite {
     protected:
+        bool m_scaleSprites;
 
-        MenuItemSprite();
-        ~MenuItemSprite() override;
+        MenuItemSpriteExtra();
+        ~MenuItemSpriteExtra() override;
 
     public:
-        static MenuItemSprite* create(
+        static MenuItemSpriteExtra* create(
             cocos2d::CCNode* normalSprite, cocos2d::CCNode* disabledSprite,
             cocos2d::CCObject* target, cocos2d::SEL_MenuHandler callback
         );
 
-        static MenuItemSprite* create(
+        static MenuItemSpriteExtra* create(
             cocos2d::CCNode* normalSprite,
             cocos2d::CCObject* target, cocos2d::SEL_MenuHandler callback
         );
@@ -38,6 +39,8 @@ namespace geode {
         void activate() override;
         void selected() override;
         void unselected() override;
+
+        void setScaleSprites(bool scale);
 
         void setImage(cocos2d::CCNode* image);
         void setNormalImage(cocos2d::CCNode* image) override;

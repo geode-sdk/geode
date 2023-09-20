@@ -5,6 +5,7 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/ModMetadata.hpp>
 #include <Geode/loader/Index.hpp>
+#include <Geode/ui/MenuItemSpriteExtra.hpp>
 
 using namespace geode::prelude;
 
@@ -22,8 +23,8 @@ protected:
     CCMenu* m_menu;
     CCLabelBMFont* m_description;
     CCMenuItemToggler* m_enableToggle = nullptr;
-    CCMenuItemSpriteExtra* m_unresolvedExMark;
-    CCMenuItemSpriteExtra* m_developerBtn;
+    MenuItemSpriteExtra* m_unresolvedExMark;
+    MenuItemSpriteExtra* m_developerBtn;
     SpacerNode* m_spacer = nullptr;
     CCMenu* m_columnMenu = nullptr;
     CCMenu* m_labelMenu = nullptr;

@@ -6,6 +6,7 @@
 #include <Geode/ui/Scrollbar.hpp>
 #include <Geode/ui/IconButtonSprite.hpp>
 #include <Geode/loader/Index.hpp>
+#include <Geode/ui/MenuItemSpriteExtra.hpp>
 
 using namespace geode::prelude;
 
@@ -31,8 +32,8 @@ protected:
     ModListLayer* m_layer = nullptr;
     DownloadStatusNode* m_installStatus = nullptr;
     IconButtonSprite* m_installBtnSpr;
-    CCMenuItemSpriteExtra* m_installBtn;
-    CCMenuItemSpriteExtra* m_infoBtn;
+    MenuItemSpriteExtra* m_installBtn;
+    MenuItemSpriteExtra* m_infoBtn;
     CCLabelBMFont* m_latestVersionLabel = nullptr;
     CCLabelBMFont* m_minorVersionLabel = nullptr;
     MDTextArea* m_detailsArea;

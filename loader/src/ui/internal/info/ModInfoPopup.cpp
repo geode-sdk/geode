@@ -151,13 +151,13 @@ bool ModInfoPopup::init(ModMetadata const& metadata, ModListLayer* list) {
     auto infoSpr = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
     infoSpr->setScale(.85f);
 
-    m_infoBtn = CCMenuItemSpriteExtra::create(infoSpr, this, menu_selector(ModInfoPopup::onInfo));
+    m_infoBtn = MenuItemSpriteExtra::create(infoSpr, this, menu_selector(ModInfoPopup::onInfo));
     m_infoBtn->setPosition(LAYER_SIZE.width / 2 - 25.f, LAYER_SIZE.height / 2 - 25.f);
     m_buttonMenu->addChild(m_infoBtn);
 
     // repo button
     if (metadata.getRepository()) {
-        auto repoBtn = CCMenuItemSpriteExtra::create(
+        auto repoBtn = MenuItemSpriteExtra::create(
             CCSprite::createWithSpriteFrameName("github.png"_spr),
             this,
             menu_selector(ModInfoPopup::onRepository)
@@ -168,7 +168,7 @@ bool ModInfoPopup::init(ModMetadata const& metadata, ModListLayer* list) {
 
     // support button
     if (metadata.getSupportInfo()) {
-        auto supportBtn = CCMenuItemSpriteExtra::create(
+        auto supportBtn = MenuItemSpriteExtra::create(
             CCSprite::createWithSpriteFrameName("gift.png"_spr),
             this,
             menu_selector(ModInfoPopup::onSupport)
@@ -181,7 +181,7 @@ bool ModInfoPopup::init(ModMetadata const& metadata, ModListLayer* list) {
     closeSpr->setScale(.8f);
 
     auto closeBtn =
-        CCMenuItemSpriteExtra::create(closeSpr, this, menu_selector(ModInfoPopup::onClose));
+        MenuItemSpriteExtra::create(closeSpr, this, menu_selector(ModInfoPopup::onClose));
     closeBtn->setPosition(-LAYER_SIZE.width / 2 + 3.f, LAYER_SIZE.height / 2 - 3.f);
     m_buttonMenu->addChild(closeBtn);
 
@@ -399,7 +399,7 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
     settingsSpr->setScale(.65f);
 
     auto settingsBtn =
-        CCMenuItemSpriteExtra::create(settingsSpr, this, menu_selector(LocalModInfoPopup::onSettings));
+        MenuItemSpriteExtra::create(settingsSpr, this, menu_selector(LocalModInfoPopup::onSettings));
     settingsBtn->setPosition(-LAYER_SIZE.width / 2 + 25.f, -LAYER_SIZE.height / 2 + 25.f);
     m_buttonMenu->addChild(settingsBtn);
 
@@ -410,7 +410,7 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
         );
         configSpr->setScale(.65f);
 
-        auto configBtn = CCMenuItemSpriteExtra::create(
+        auto configBtn = MenuItemSpriteExtra::create(
             configSpr, this, menu_selector(LocalModInfoPopup::onOpenConfigDir)
         );
         configBtn->setPosition(-LAYER_SIZE.width / 2 + 65.f, -LAYER_SIZE.height / 2 + 25.f);
@@ -451,7 +451,7 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
             ButtonSprite::create("Uninstall", "bigFont.fnt", "GJ_button_05.png", .6f);
         uninstallBtnSpr->setScale(.6f);
 
-        auto uninstallBtn = CCMenuItemSpriteExtra::create(
+        auto uninstallBtn = MenuItemSpriteExtra::create(
             uninstallBtnSpr, this, menu_selector(LocalModInfoPopup::onUninstall)
         );
         uninstallBtn->setPosition(-85.f, 75.f);
@@ -467,7 +467,7 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
             );
             m_installBtnSpr->setScale(.6f);
 
-            m_installBtn = CCMenuItemSpriteExtra::create(m_installBtnSpr, this, menu_selector(LocalModInfoPopup::onUpdate));
+            m_installBtn = MenuItemSpriteExtra::create(m_installBtnSpr, this, menu_selector(LocalModInfoPopup::onUpdate));
             m_installBtn->setPosition(-8.0f, 75.f);
             m_buttonMenu->addChild(m_installBtn);
 
@@ -536,7 +536,7 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
         );
         issuesBtnSpr->setScale(.75f);
 
-        auto issuesBtn = CCMenuItemSpriteExtra::create(
+        auto issuesBtn = MenuItemSpriteExtra::create(
             issuesBtnSpr, this, menu_selector(LocalModInfoPopup::onIssues)
         );
         issuesBtn->setPosition(0.f, -LAYER_SIZE.height / 2 + 25.f);
@@ -726,7 +726,7 @@ bool IndexItemInfoPopup::init(IndexItemHandle item, ModListLayer* list) {
     );
     m_installBtnSpr->setScale(.6f);
 
-    m_installBtn = CCMenuItemSpriteExtra::create(
+    m_installBtn = MenuItemSpriteExtra::create(
         m_installBtnSpr, this, menu_selector(IndexItemInfoPopup::onInstall)
     );
     m_installBtn->setPosition(-143.0f, 75.f);

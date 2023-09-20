@@ -2,7 +2,6 @@
 #include "ModListLayer.hpp"
 #include "../info/ModInfoPopup.hpp"
 #include <Geode/binding/ButtonSprite.hpp>
-#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/binding/CCMenuItemToggler.hpp>
 #include <Geode/binding/FLAlertLayer.hpp>
 #include <Geode/binding/StatsCell.hpp>
@@ -144,7 +143,7 @@ void ModListCell::setupInfo(
         creatorLabel->setColor({ 163, 163, 163 });
     }
 
-    m_developerBtn = CCMenuItemSpriteExtra::create(
+    m_developerBtn = MenuItemSpriteExtra::create(
         creatorLabel, this, menu_selector(ModListCell::onViewDev)
     );
     m_columnMenu->addChild(m_developerBtn);
@@ -292,7 +291,7 @@ bool ModCell::init(
     exMark->setScale(.5f);
 
     m_unresolvedExMark =
-        CCMenuItemSpriteExtra::create(exMark, this, menu_selector(ModCell::onUnresolvedInfo));
+        MenuItemSpriteExtra::create(exMark, this, menu_selector(ModCell::onUnresolvedInfo));
     m_unresolvedExMark->setVisible(false);
     m_menu->addChild(m_unresolvedExMark);
 
@@ -300,7 +299,7 @@ bool ModCell::init(
         auto restartSpr = ButtonSprite::create("Restart", "bigFont.fnt", "GJ_button_03.png", .8f);
         restartSpr->setScale(.65f);
 
-        auto restartBtn = CCMenuItemSpriteExtra::create(restartSpr, this, menu_selector(ModCell::onRestart));
+        auto restartBtn = MenuItemSpriteExtra::create(restartSpr, this, menu_selector(ModCell::onRestart));
         m_menu->addChild(restartBtn);
     }
     else {
@@ -335,7 +334,7 @@ bool ModCell::init(
             }
         }
 
-        auto viewBtn = CCMenuItemSpriteExtra::create(viewSpr, this, menu_selector(ModCell::onInfo));
+        auto viewBtn = MenuItemSpriteExtra::create(viewSpr, this, menu_selector(ModCell::onInfo));
         m_menu->addChild(viewBtn);
     }
 
@@ -395,7 +394,7 @@ bool IndexItemCell::init(
         auto restartSpr = ButtonSprite::create("Restart", "bigFont.fnt", "GJ_button_03.png", .8f);
         restartSpr->setScale(.65f);
 
-        auto restartBtn = CCMenuItemSpriteExtra::create(restartSpr, this, menu_selector(IndexItemCell::onRestart));
+        auto restartBtn = MenuItemSpriteExtra::create(restartSpr, this, menu_selector(IndexItemCell::onRestart));
         m_menu->addChild(restartBtn);
     }
     else {
@@ -403,7 +402,7 @@ bool IndexItemCell::init(
         viewSpr->setScale(.65f);
 
         auto viewBtn =
-            CCMenuItemSpriteExtra::create(viewSpr, this, menu_selector(IndexItemCell::onInfo));
+            MenuItemSpriteExtra::create(viewSpr, this, menu_selector(IndexItemCell::onInfo));
         m_menu->addChild(viewBtn);
     }
 
@@ -517,7 +516,7 @@ bool InvalidGeodeFileCell::init(
     whySpr->setScale(.65f);
 
     auto viewBtn =
-        CCMenuItemSpriteExtra::create(whySpr, this, menu_selector(InvalidGeodeFileCell::onInfo));
+        MenuItemSpriteExtra::create(whySpr, this, menu_selector(InvalidGeodeFileCell::onInfo));
     menu->addChild(viewBtn);
 
     return true;
@@ -635,7 +634,7 @@ bool ProblemsCell::init(
     viewSpr->setScale(.65f);
 
     auto viewBtn =
-        CCMenuItemSpriteExtra::create(viewSpr, this, menu_selector(ProblemsCell::onInfo));
+        MenuItemSpriteExtra::create(viewSpr, this, menu_selector(ProblemsCell::onInfo));
     m_menu->addChild(viewBtn);
 
     m_menu->updateLayout();

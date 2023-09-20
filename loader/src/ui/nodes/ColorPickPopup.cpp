@@ -157,7 +157,7 @@ bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
     okBtnSpr->setScale(.7f);
 
     auto okBtn =
-        CCMenuItemSpriteExtra::create(okBtnSpr, this, menu_selector(ColorPickPopup::onClose));
+        MenuItemSpriteExtra::create(okBtnSpr, this, menu_selector(ColorPickPopup::onClose));
     okBtn->setPosition(.0f, -m_size.height / 2 + 20.f);
     m_buttonMenu->addChild(okBtn);
 

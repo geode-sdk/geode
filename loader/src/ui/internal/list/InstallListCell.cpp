@@ -1,7 +1,6 @@
 ﻿#include "InstallListCell.hpp"
 #include "InstallListPopup.hpp"
 #include <Geode/binding/ButtonSprite.hpp>
-#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/binding/CCMenuItemToggler.hpp>
 #include <Geode/binding/FLAlertLayer.hpp>
 #include <Geode/binding/StatsCell.hpp>
@@ -213,7 +212,7 @@ bool IndexItemInstallListCell::init(
     versionSelectSpr->setScale(.7f);
 
     auto versionSelectBtn =
-        CCMenuItemSpriteExtra::create(versionSelectSpr, this, menu_selector(IndexItemInstallListCell::onSelectVersion));
+        MenuItemSpriteExtra::create(versionSelectSpr, this, menu_selector(IndexItemInstallListCell::onSelectVersion));
     versionSelectBtn->setAnchorPoint({1.f, .5f});
     versionSelectBtn->setPosition({m_toggle->getPositionX() - m_toggle->getContentSize().width - 5, m_height / 2});
     m_menu->addChild(versionSelectBtn);
@@ -372,7 +371,7 @@ bool SelectVersionCell::init(IndexItemHandle item, SelectVersionPopup* versionPo
     );
     selectSpr->setScale(.6f);
 
-    auto selectBtn = CCMenuItemSpriteExtra::create(
+    auto selectBtn = MenuItemSpriteExtra::create(
         selectSpr, this, menu_selector(SelectVersionCell::onSelected)
     );
     selectBtn->setAnchorPoint({1.f, .5f});

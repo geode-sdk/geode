@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
+#include <Geode/ui/MenuItemSpriteExtra.hpp>
 #include <Geode/binding/CCTextInputNode.hpp>
 #include <Geode/binding/Slider.hpp>
 #include <Geode/binding/SliderThumb.hpp>
@@ -40,7 +40,7 @@ protected:
     CCMenu* m_menu;
     CCLabelBMFont* m_nameLabel;
     CCLabelBMFont* m_errorLabel;
-    CCMenuItemSpriteExtra* m_resetBtn;
+    MenuItemSpriteExtra* m_resetBtn;
 
     bool init(GeodeSettingValue<T>* setting, float width) {
         if (!SettingNode::init(setting))
@@ -81,7 +81,7 @@ protected:
             auto infoSpr = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
             infoSpr->setScale(.6f);
 
-            auto infoBtn = CCMenuItemSpriteExtra::create(
+            auto infoBtn = MenuItemSpriteExtra::create(
                 infoSpr, this, menu_selector(GeodeSettingNode::onDescription)
             );
             infoBtn->setPosition(
@@ -97,7 +97,7 @@ protected:
         auto resetBtnSpr = CCSprite::createWithSpriteFrameName("reset-gold.png"_spr);
         resetBtnSpr->setScale(.5f);
 
-        m_resetBtn = CCMenuItemSpriteExtra::create(
+        m_resetBtn = MenuItemSpriteExtra::create(
             resetBtnSpr, this, menu_selector(GeodeSettingNode::onReset)
         );
         m_resetBtn->setPosition(
@@ -210,10 +210,10 @@ protected:
     InputNode* m_input = nullptr;
     CCLabelBMFont* m_label = nullptr;
     Slider* m_slider = nullptr;
-    CCMenuItemSpriteExtra* m_decArrow = nullptr;
-    CCMenuItemSpriteExtra* m_incArrow = nullptr;
-    CCMenuItemSpriteExtra* m_bigDecArrow = nullptr;
-    CCMenuItemSpriteExtra* m_bigIncArrow = nullptr;
+    MenuItemSpriteExtra* m_decArrow = nullptr;
+    MenuItemSpriteExtra* m_incArrow = nullptr;
+    MenuItemSpriteExtra* m_bigDecArrow = nullptr;
+    MenuItemSpriteExtra* m_bigIncArrow = nullptr;
 
     void valueChanged(bool updateText) override;
     void textChanged(CCTextInputNode* input) override;
@@ -239,10 +239,10 @@ protected:
     InputNode* m_input = nullptr;
     CCLabelBMFont* m_label = nullptr;
     Slider* m_slider = nullptr;
-    CCMenuItemSpriteExtra* m_decArrow = nullptr;
-    CCMenuItemSpriteExtra* m_incArrow = nullptr;
-    CCMenuItemSpriteExtra* m_bigDecArrow = nullptr;
-    CCMenuItemSpriteExtra* m_bigIncArrow = nullptr;
+    MenuItemSpriteExtra* m_decArrow = nullptr;
+    MenuItemSpriteExtra* m_incArrow = nullptr;
+    MenuItemSpriteExtra* m_bigDecArrow = nullptr;
+    MenuItemSpriteExtra* m_bigIncArrow = nullptr;
 
     void valueChanged(bool updateText) override;
     void textChanged(CCTextInputNode* input) override;

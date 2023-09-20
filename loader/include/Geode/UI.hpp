@@ -10,6 +10,7 @@
 #include "ui/ListView.hpp"
 #include "ui/MDPopup.hpp"
 #include "ui/MDTextArea.hpp"
+#include "ui/MenuItemSpriteExtra.hpp"
 #include "ui/Notification.hpp"
 #include "ui/Popup.hpp"
 #include "ui/SceneManager.hpp"

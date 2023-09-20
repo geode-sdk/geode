@@ -90,7 +90,7 @@ bool ModSettingsPopup::setup(Mod* mod) {
     m_applyBtnSpr = ButtonSprite::create("Apply", "goldFont.fnt", "GJ_button_01.png", .7f);
     m_applyBtnSpr->setScale(.7f);
 
-    m_applyBtn = CCMenuItemSpriteExtra::create(
+    m_applyBtn = MenuItemSpriteExtra::create(
         m_applyBtnSpr, this, menu_selector(ModSettingsPopup::onApply)
     );
     m_applyBtn->setPosition(.0f, -m_size.height / 2 + 20.f);
@@ -99,7 +99,7 @@ bool ModSettingsPopup::setup(Mod* mod) {
     auto resetBtnSpr = ButtonSprite::create("Reset All", "goldFont.fnt", "GJ_button_05.png", .7f);
     resetBtnSpr->setScale(.7f);
 
-    auto resetBtn = CCMenuItemSpriteExtra::create(
+    auto resetBtn = MenuItemSpriteExtra::create(
         resetBtnSpr, this, menu_selector(ModSettingsPopup::onResetAll)
     );
     resetBtn->setPosition(-m_size.width / 2 + 45.f, -m_size.height / 2 + 20.f);
@@ -109,7 +109,7 @@ bool ModSettingsPopup::setup(Mod* mod) {
         ButtonSprite::create("Open Folder", "goldFont.fnt", "GJ_button_05.png", .7f);
     openDirBtnSpr->setScale(.7f);
 
-    auto openDirBtn = CCMenuItemSpriteExtra::create(
+    auto openDirBtn = MenuItemSpriteExtra::create(
         openDirBtnSpr, this, menu_selector(ModSettingsPopup::onOpenSaveDirectory)
     );
     openDirBtn->setPosition(m_size.width / 2 - 53.f, -m_size.height / 2 + 20.f);
