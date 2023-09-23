@@ -1272,7 +1272,7 @@ class EditorPauseLayer : CCBlockLayer, FLAlertLayerProtocol {
     bool init(LevelEditorLayer*) = mac 0x13c7a0, win 0x730e0, ios 0x280cb8;
     void onExitEditor(cocos2d::CCObject* sender) = mac 0x13f180, win 0x75660;
     void playStep2() = mac 0x13f040, win 0x75440;
-    void onResume(cocos2d::CCObject* sender) = win 0x74fe0;
+    void onResume(cocos2d::CCObject* sender) = mac 0x13e170, win 0x74fe0;
     void onSaveAndPlay(cocos2d::CCObject* sender) = mac 0x13e1b0, win 0x753d0;
     void onSaveAndExit(cocos2d::CCObject* sender) = mac 0x13e230, win 0x75620;
     void onSave(cocos2d::CCObject* sender) = mac 0x13e290, win 0x755a0;
