@@ -4469,10 +4469,10 @@ class PauseLayer : CCBlockLayer {
     void createToggleButton(gd::string caption, cocos2d::SEL_MenuHandler callback, bool on, cocos2d::CCMenu* menu, cocos2d::CCPoint pos) = mac 0x20c890, win 0x1e5570;
     virtual void customSetup() = mac 0x20b300, win 0x1e4620;
 
-    void onRestart(cocos2d::CCObject* sender) = win 0x1e6040;
-    void onPracticeMode(cocos2d::CCObject* sender) = win 0x1e5f30;
-    void onNormalMode(cocos2d::CCObject* sender) = win 0x1e5f60;
-    void onResume(cocos2d::CCObject* sender) = win 0x1e5fa0;
+    void onRestart(cocos2d::CCObject* sender) = mac 0x20c860, win 0x1e6040;
+    void onPracticeMode(cocos2d::CCObject* sender) = mac 0x20c6d0, win 0x1e5f30;
+    void onNormalMode(cocos2d::CCObject* sender) = mac 0x20c720, win 0x1e5f60;
+    void onResume(cocos2d::CCObject* sender) = mac 0x20c760, win 0x1e5fa0;
     virtual void keyDown(cocos2d::enumKeyCodes) = mac 0x20cc80, win 0x1E6580;
 
     void musicSliderChanged(cocos2d::CCObject* sender) = win 0x1e5ce0;
