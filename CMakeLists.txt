@@ -218,6 +218,11 @@ else()
 	set(GEODE_PLATFORM_BIN_PATH ${GEODE_BIN_PATH}/${PROJECT_VERSION}/${GEODE_PLATFORM_BINARY})
 endif()
 
+if (WIN32)
+	# This allows you to compile in debug mode
+	add_compile_definitions(_HAS_ITERATOR_DEBUGGING=0)
+endif()
+
 
 if (PROJECT_IS_TOP_LEVEL)
 	add_subdirectory(loader)
