@@ -1272,7 +1272,7 @@ class EditorPauseLayer : CCBlockLayer, FLAlertLayerProtocol {
     bool init(LevelEditorLayer*) = mac 0x13c7a0, win 0x730e0, ios 0x280cb8;
     void onExitEditor(cocos2d::CCObject* sender) = mac 0x13f180, win 0x75660;
     void playStep2() = mac 0x13f040, win 0x75440;
-    void onResume(cocos2d::CCObject* sender) = win 0x74fe0;
+    void onResume(cocos2d::CCObject* sender) = mac 0x13e170, win 0x74fe0;
     void onSaveAndPlay(cocos2d::CCObject* sender) = mac 0x13e1b0, win 0x753d0;
     void onSaveAndExit(cocos2d::CCObject* sender) = mac 0x13e230, win 0x75620;
     void onSave(cocos2d::CCObject* sender) = mac 0x13e290, win 0x755a0;
@@ -4481,7 +4481,10 @@ class PauseLayer : CCBlockLayer {
     void createToggleButton(gd::string caption, cocos2d::SEL_MenuHandler callback, bool on, cocos2d::CCMenu* menu, cocos2d::CCPoint pos) = mac 0x20c890, win 0x1e5570;
     virtual void customSetup() = mac 0x20b300, win 0x1e4620;
 
-    void onRestart(cocos2d::CCObject* sender) = win 0x1e6040;
+    void onRestart(cocos2d::CCObject* sender) = mac 0x20c860, win 0x1e6040;
+    void onPracticeMode(cocos2d::CCObject* sender) = mac 0x20c6d0, win 0x1e5f30;
+    void onNormalMode(cocos2d::CCObject* sender) = mac 0x20c720, win 0x1e5f60;
+    void onResume(cocos2d::CCObject* sender) = mac 0x20c760, win 0x1e5fa0;
     virtual void keyDown(cocos2d::enumKeyCodes) = mac 0x20cc80, win 0x1E6580;
 
     void musicSliderChanged(cocos2d::CCObject* sender) = win 0x1e5ce0;
