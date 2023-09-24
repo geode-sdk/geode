@@ -909,6 +909,8 @@ class CommentUploadDelegate {
 }
 
 class ConfigureHSVWidget : cocos2d::CCNode {
+    bool init(int abs, cocos2d::ccHSVValue val) = win 0x4a3f0, mac 0x237310;
+    void updateLabels() = win 0x4adf0, mac 0x237df0;
     cocos2d::CCLabelBMFont* m_hueLabel;
     cocos2d::CCLabelBMFont* m_saturationLabel;
     cocos2d::CCLabelBMFont* m_brightnessLabel;
@@ -1030,7 +1032,7 @@ class CustomizeObjectLayer : FLAlertLayer, TextInputDelegate, HSVWidgetPopupDele
     void onClose(cocos2d::CCObject*) = mac 0xdf660, win 0x57ac0;
     void updateSelected(int channelID) = mac 0xe0970, win 0x57850;
     bool init(GameObject* target, cocos2d::CCArray* targets) = mac 0xdd560, win 0x53e00;
-    void onHSV(cocos2d::CCObject* sender) = win 0x567c0;
+    void onHSV(cocos2d::CCObject* sender) = win 0x567c0, mac 0xdfa00;
     void toggleVisible() = mac 0xe1140, win 0x56fb0;
     void highlightSelected(ButtonSprite* target) = mac 0xe0aa0, win 0x579d0;
     void updateCustomColorLabels() = mac 0xdff40, win 0x576d0;
@@ -1039,8 +1041,8 @@ class CustomizeObjectLayer : FLAlertLayer, TextInputDelegate, HSVWidgetPopupDele
     // inlined in most places
     void updateChannelLabel(int channel) = mac 0xe06e0, win 0x56f50;
     virtual void hsvPopupClosed(HSVWidgetPopup* popup, cocos2d::ccHSVValue value) = win 0x56990;
-    virtual void colorSelectClosed(cocos2d::CCNode*) = mac 0xe0c70, win 0x564a0;
-    virtual void textChanged(CCTextInputNode* input) = mac 0xe16a0, win 0x574d0;
+    virtual void colorSelectClosed(cocos2d::CCNode*) = mac 0xe0610, win 0x564a0;
+    virtual void textChanged(CCTextInputNode* input) = mac 0xe1470, win 0x574d0;
     inline CustomizeObjectLayer() {}
     ~CustomizeObjectLayer() = win 0x53c30;
 
@@ -1140,7 +1142,7 @@ class DrawGridLayer : cocos2d::CCLayer {
     }
 
     bool init(cocos2d::CCNode* grid, LevelEditorLayer* editor) = win 0x16c4d0;
-    void draw() = win 0x16ce90;
+    virtual void draw() = win 0x16ce90, mac 0xa3c40;
     virtual void update(float) = win 0x16cd80;
     void clearPlayerPoints() {
         m_playerNodePoints->removeAllObjects();
@@ -1356,8 +1358,8 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     void onCreateButton(cocos2d::CCObject* sender) = mac 0x1fd70, win 0x854f0;
     CCMenuItemSpriteExtra* getSpriteButton(const char* sprite, cocos2d::SEL_MenuHandler callback, cocos2d::CCMenu* menu, float scale) = mac 0xb500, win 0x78bf0;
     cocos2d::CCPoint offsetForKey(int objID) = win 0x92310;
-    void updateDeleteMenu() = win 0x7c5d0;
-    void updateCreateMenu(bool updateTab) = mac 0x1e960, win 0x85530;
+    void updateDeleteMenu() = win 0x7c5d0, mac 0x1e960;
+    void updateCreateMenu(bool updateTab) = mac 0x1ba80, win 0x85530;
     void toggleMode(cocos2d::CCObject* sender) = mac 0x187b0, win 0x7ad20;
     void zoomIn(cocos2d::CCObject* sender) = mac 0xc0c0, win 0x877c0;
     void zoomOut(cocos2d::CCObject* sender) = mac 0xc120, win 0x87830;
@@ -1425,6 +1427,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     void sliderChanged(cocos2d::CCObject* slider) = mac 0xaed0, win 0x78cc0;
     void repositionObjectsToCenter(cocos2d::CCArray* objs, cocos2d::CCPoint center, bool ignoreGroupParent) = mac 0x1fcd0, win 0x88410;
     virtual void draw() = win 0x8fbe0;
+    float valueFromXPos(float val) = win 0x78e30, mac 0x1c810;
 
     bool m_isPlayingMusic;
     EditButtonBar* m_buttonBar;
@@ -3602,7 +3605,7 @@ class GameToolbox {
     static cocos2d::CCDictionary* stringSetupToDict(gd::string text, char const* delimeter) = mac 0x28d700, win 0x272a0;
     static CCMenuItemToggler* createToggleButton(gd::string text, cocos2d::SEL_MenuHandler onToggled, bool isToggled, cocos2d::CCMenu* toggleMenu, cocos2d::CCPoint position, cocos2d::CCNode* callbackTarget, cocos2d::CCNode* labelParent, cocos2d::CCArray* toggleArray) = mac 0x28bc90, win 0x25fe0;
     static CCMenuItemToggler* createToggleButton(gd::string text, cocos2d::SEL_MenuHandler onToggled, bool isToggled, cocos2d::CCMenu* toggleMenu, cocos2d::CCPoint position, cocos2d::CCNode* callbackTarget, cocos2d::CCNode* labelParent, float checkboxScale, float labelSize, float maxWidth, cocos2d::CCPoint labelOffset, const char* unknown, bool anchorHorizontally, int toggleTag, cocos2d::CCArray* toggleArray) = mac 0x28bdd0, win 0x25fe0;
-    static cocos2d::ccColor3B transformColor(cocos2d::ccColor3B const& src, cocos2d::ccHSVValue hsv) = win 0x26a60;
+    static cocos2d::ccColor3B transformColor(cocos2d::ccColor3B const& src, cocos2d::ccHSVValue hsv) = win 0x26a60, mac 0x28c950;
     static void alignItemsHorisontally(cocos2d::CCArray* array, float pad, cocos2d::CCPoint start, bool idk) = win 0x25b20;
     static gd::map<gd::string, gd::string> stringSetupToMap(gd::string, char const*) = mac 0x28d4c0;
     static cocos2d::ccColor3B multipliedColorValue(cocos2d::ccColor3B color1, cocos2d::ccColor3B color2, float factor) = win 0x26CE0;
@@ -3641,7 +3644,7 @@ class GauntletSelectLayer {
 class GhostTrailEffect {}
 
 class HSVWidgetPopup : FLAlertLayer {
-    bool init(cocos2d::_ccHSVValue value, HSVWidgetPopupDelegate* delegate, gd::string title);
+    bool init(cocos2d::_ccHSVValue value, HSVWidgetPopupDelegate* delegate, gd::string title) = win 0x49f10, mac 0x236d30;
     void onClose(cocos2d::CCObject* sender) = win 0x4a280;
 
     ConfigureHSVWidget* m_configureWidget;
@@ -3760,6 +3763,7 @@ class LevelBrowserLayer : cocos2d::CCLayer, LevelManagerDelegate, FLAlertLayerPr
     void updateLevelsLabel() = mac 0x255450, win 0x15c350;
     void onRefresh(cocos2d::CCObject* sender) = mac 0x253090;
     void onInfo(cocos2d::CCObject* sender) = mac 0x253170, win 0x15cb00;
+    void onNew(cocos2d::CCObject* sender) = win 0x15cbf0, mac 0x252ac0;
     static LevelBrowserLayer* create(GJSearchObject* search) = mac 0x251210, win 0x159fa0, ios 0x2d0a00;
 
     PAD = win 0x4, mac 0x8;
@@ -4019,7 +4023,7 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
 class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDelegate, RateLevelDelegate, LikeItemDelegate, FLAlertLayerProtocol, LevelDeleteDelegate, NumberInputDelegate, SetIDPopupDelegate {
     static LevelInfoLayer* create(GJGameLevel* level) = mac 0x15f290, win 0x175d50;
     bool init(GJGameLevel* level) = win 0x175df0, mac 0x15f520;
-    void onGarage(cocos2d::CCObject* sender) = win 0x177c10;
+    void onGarage(cocos2d::CCObject* sender) = win 0x177c10, mac 0x163ac0;
     void onViewProfile(cocos2d::CCObject* sender) = mac 0x1617d0, win 0x17ac90;
     void onLevelInfo(cocos2d::CCObject* sender) = mac 0x163880, win 0x17acf0;
     void setupProgressBars() = win 0x177fc0;
@@ -4490,8 +4494,8 @@ class PauseLayer : CCBlockLayer {
     void onResume(cocos2d::CCObject* sender) = mac 0x20c760, win 0x1e5fa0;
     virtual void keyDown(cocos2d::enumKeyCodes) = mac 0x20cc80, win 0x1E6580;
 
-    void musicSliderChanged(cocos2d::CCObject* sender) = win 0x1e5ce0;
-    void sfxSliderChanged(cocos2d::CCObject* sender) = win 0x1ddfa0;
+    void musicSliderChanged(cocos2d::CCObject* sender) = win 0x1e5ce0, mac 0x20cb00;
+    void sfxSliderChanged(cocos2d::CCObject* sender) = win 0x1ddfa0, mac 0x20cb40;
     
     bool m_unknown;
     bool m_unknown2;
@@ -5259,6 +5263,9 @@ class SetGroupIDLayer : FLAlertLayer, TextInputDelegate {
     void updateZOrder() = win 0x22e3d0;
     void onAddGroup(cocos2d::CCObject* sender) = mac 0x1967d0, win 0x22de20;
     void onClose(cocos2d::CCObject* sender) = mac 0x1966a0, win 0x22e830;
+    void onEditorLayer(CCObject* sender) = win 0x22d690, mac 0x196800;
+    void onEditorLayer2(CCObject* sender) = win 0x22d710, mac 0x196a40;
+    void onZOrder(CCObject* sender) = win 0x22de80, mac 0x196920;
 
     GameObject* m_targetObject;
     cocos2d::CCArray* m_targetObjects;
@@ -5369,12 +5376,14 @@ class SetupOpacityPopup : FLAlertLayer {
 
 class SetupPickupTriggerPopup : FLAlertLayer {
     static SetupPickupTriggerPopup* create(EffectGameObject*, cocos2d::CCArray*) = mac 0x35e70, win 0x23d4a0;
+    bool init(EffectGameObject* obj, cocos2d::CCArray* arr) = win 0x23d550, mac 0x36070;
     void onItemIDArrow(cocos2d::CCObject*) = mac 0x37100;
     void onNextItemID(cocos2d::CCObject*) = mac 0x37260;
     void textChanged(CCTextInputNode*) = mac 0x37ca0;
     void updateItemID() = mac 0x37ab0, win 0x23e4f0;
 
-    PAD = win 0xc;
+    PAD = win 0xc, mac 0x18;
+    CCTextInputNode* m_itemIDInput;
     CCTextInputNode* m_countInput;
 }
 
