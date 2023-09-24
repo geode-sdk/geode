@@ -3667,7 +3667,7 @@ class HardStreak : cocos2d::CCDrawNode {
     void reset() = mac 0x5c930;
     void resumeStroke() = mac 0x5c210;
     void stopStroke() = mac 0x5c8f0, win 0x14e460;
-    void updateStroke(float) = mac 0x5c240, win 0x14e530;
+    callback void updateStroke(float) = mac 0x5c240, win 0x14e530;
 
     cocos2d::CCArray* m_pointsArr;
     cocos2d::CCPoint m_currentPoint;
