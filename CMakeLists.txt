@@ -185,6 +185,7 @@ target_include_directories(GeodeCodegenSources PRIVATE
 	${GEODE_LOADER_PATH}/include/Geode/cocos/extensions
 	${GEODE_LOADER_PATH}/include/Geode/fmod
 )
+set_target_properties(GeodeCodegenSources PROPERTIES CXX_VISIBILITY_PRESET hidden)
 target_compile_features(GeodeCodegenSources PUBLIC cxx_std_20)
 if (NOT GEODE_DISABLE_PRECOMPILED_HEADERS)
 	target_precompile_headers(GeodeCodegenSources INTERFACE
