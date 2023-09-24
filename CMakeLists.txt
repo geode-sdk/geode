@@ -187,6 +187,12 @@ target_include_directories(GeodeCodegenSources PRIVATE
 )
 set_target_properties(GeodeCodegenSources PROPERTIES CXX_VISIBILITY_PRESET hidden)
 target_compile_features(GeodeCodegenSources PUBLIC cxx_std_20)
+
+if (APPLE)
+	target_compile_options(GeodeCodegenSources PUBLIC -ffunction-sections -fdata-sections)
+	target_link_options(GeodeCodegenSources PUBLIC -dead_strip)
+endif()
+
 if (NOT GEODE_DISABLE_PRECOMPILED_HEADERS)
 	target_precompile_headers(GeodeCodegenSources INTERFACE
 		"${GEODE_LOADER_PATH}/include/Geode/Bindings.hpp"
