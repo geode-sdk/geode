@@ -5263,9 +5263,9 @@ class SetGroupIDLayer : FLAlertLayer, TextInputDelegate {
     void updateZOrder() = win 0x22e3d0;
     void onAddGroup(cocos2d::CCObject* sender) = mac 0x1967d0, win 0x22de20;
     void onClose(cocos2d::CCObject* sender) = mac 0x1966a0, win 0x22e830;
-    void onEditorLayer(CCObject* sender) = win 0x22d690, mac 0x196800;
-    void onEditorLayer2(CCObject* sender) = win 0x22d710, mac 0x196a40;
-    void onZOrder(CCObject* sender) = win 0x22de80, mac 0x196920;
+    void onEditorLayer(cocos2d::CCObject* sender) = win 0x22d690, mac 0x196800;
+    void onEditorLayer2(cocos2d::CCObject* sender) = win 0x22d710, mac 0x196a40;
+    void onZOrder(cocos2d::CCObject* sender) = win 0x22de80, mac 0x196920;
 
     GameObject* m_targetObject;
     cocos2d::CCArray* m_targetObjects;
