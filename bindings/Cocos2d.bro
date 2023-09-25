@@ -1136,6 +1136,7 @@ class cocos2d::CCTouchHandler {
 [[link(win)]]
 class cocos2d::CCTransitionFade {
 	static cocos2d::CCTransitionFade* create(float, cocos2d::CCScene*) = mac 0x8ea30, ios 0x12c244;
+	virtual bool initWithDuration(float t, cocos2d::CCScene* scene, cocos2d::ccColor3B const& color) = mac 0x8e930;
 }
 
 [[link(win)]]
