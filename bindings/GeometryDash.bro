@@ -4664,7 +4664,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     void toggleBGEffectVisibility(bool) = mac 0x7fe80;
     void toggleDualMode(GameObject*, bool, PlayerObject*, bool) = mac 0x7bf90, win 0x208880;
     void toggleFlipped(bool, bool) = mac 0x7bdc0, win 0x20ab20;
-    void toggleGhostEffect(int) = mac 0x7fe40;
+    void toggleGhostEffect(int) = mac 0x7fe40, win 0x1f8930;
     void toggleGlitter(bool) = mac 0x70e00, win 0x20a0d0;
     void togglePracticeMode(bool) = mac 0x7f9e0, win 0x20d0d0;
     void toggleProgressbar() = mac 0x6eeb0, win 0x208160;
