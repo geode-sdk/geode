@@ -4648,7 +4648,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     void spawnFirework() = mac 0x74200;
     void spawnParticle(char const*, int, cocos2d::tCCPositionType, cocos2d::CCPoint) = mac 0x76330;
     void spawnPlayer2() = mac 0x7d170, win 0x2089e0;
-    void startGame() = mac 0x726b0;
+    void startGame() = mac 0x726b0, win 0x1fd390;
     void startMusic() = mac 0x72910, win 0x20C8F0;
     void startRecording() = mac 0x7fec0;
     void startRecordingDelayed() = mac 0x7fed0;
