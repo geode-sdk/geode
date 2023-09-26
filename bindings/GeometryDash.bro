@@ -1795,6 +1795,7 @@ class GJAccountLoginDelegate {
 
 class GJAccountManager : cocos2d::CCNode {
     static GJAccountManager* sharedState() = mac 0x85070, win 0x107d50;
+    gd::string getGJP() = mac 0x89520, win 0x10abb0;
 
     PAD = mac 0x8, win 0x4;
     gd::string m_password;
