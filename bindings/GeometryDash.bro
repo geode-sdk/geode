@@ -1765,8 +1765,8 @@ class FMODSound : cocos2d::CCNode {
 class FriendRequestDelegate {}
 
 class FriendsProfilePage : FLAlertLayer, FLAlertLayerProtocol, UploadActionDelegate, UploadPopupDelegate, UserListDelegate {
-    static FriendsProfilePage* create(UserListType) = win 0x9ce80;
-    bool init(UserListType) = win 0x9cf30;
+    static FriendsProfilePage* create(UserListType) = win 0x9ce80, mac 0x3a9570;
+    bool init(UserListType) = win 0x9cf30, mac 0x3a9770;
 }
 
 class GJAccountBackupDelegate {
@@ -4026,9 +4026,9 @@ class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDeleg
     void onGarage(cocos2d::CCObject* sender) = win 0x177c10, mac 0x163ac0;
     void onViewProfile(cocos2d::CCObject* sender) = mac 0x1617d0, win 0x17ac90;
     void onLevelInfo(cocos2d::CCObject* sender) = mac 0x163880, win 0x17acf0;
-    void setupProgressBars() = win 0x177fc0;
+    void setupProgressBars() = win 0x177fc0, mac 0x1627e0;
     void setupLevelInfo() = mac 0x161C80, win 0x178680;
-    void downloadLevel() = win 0x177d90;
+    void downloadLevel() = win 0x177d90, mac 0x161b90;
     void onPlay(cocos2d::CCObject* sender) = mac 0x161840, win 0x179730;
     virtual void levelDownloadFinished(GJGameLevel*) = mac 0x164C00, win 0x1790C0;
     virtual void levelUpdateFinished(GJGameLevel*, UpdateResponse) = mac 0x164E60, win 0x1792B0;
@@ -4104,9 +4104,9 @@ class LevelSettingsDelegate {
 class SecretLayer2 : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol, DialogDelegate {
     static SecretLayer2* create() = win 0x21FD70;
 
-    bool init() = win 0x21FE10;
-    bool onSubmit(cocos2d::CCObject*) = win 0x221ac0;
-    void updateSearchLabel(const char* text) = win 0x222FC0;
+    bool init() = win 0x21FE10, mac 0x25fe70;
+    bool onSubmit(cocos2d::CCObject*) = win 0x221ac0, mac 0x2611a0;
+    void updateSearchLabel(const char* text) = win 0x222FC0, mac 0x260e10;
     void showCompletedLevel() = win 0x220C10;
 }
 
