@@ -1801,6 +1801,7 @@ class GJAccountManager : cocos2d::CCNode {
     gd::string m_password;
     gd::string m_username;
     int m_accountID;
+    int m_playerID;
 }
 
 class GJAccountSyncDelegate {

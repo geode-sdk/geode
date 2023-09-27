@@ -7,8 +7,11 @@
 using namespace geode::prelude;
 
 $register_ids(GJGarageLayer) {
+    // the lock does not exist for not logged in users
+    auto loggedInOffset = GJAccountManager::get()->m_accountID == GJAccountManager::get()->m_playerID ? -1 : 0;
+
     setIDSafe(this, 2, "username-label");
-    setIDSafe(this, 6, "player-icon");
+    setIDSafe(this, 6 + loggedInOffset, "player-icon");
 
     auto winSize = CCDirector::get()->getWinSize();
 
@@ -39,7 +42,7 @@ $register_ids(GJGarageLayer) {
 
     setIDs(
         this,
-        10,
+        10 + loggedInOffset,
         "cube-selection-menu",
         "ship-selection-menu",
         "ball-selection-menu",
