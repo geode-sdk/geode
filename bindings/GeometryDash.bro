@@ -1309,6 +1309,8 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
 
     void create(LevelEditorLayer*) = mac 0x8a80, win 0x76270;
     cocos2d::CCArray* createCustomItems() = mac 0x1ddf0, win 0x7a370;
+    void onDeleteCustomItem(CCObject* pSender) = win 0x7a280, mac 0x29860;
+    void onNewCustomItem(CCObject* pSender) = win 0x79fd0, mac 0x24480;
     void deselectAll() = mac 0x1f300, win 0x86af0;
     void onDeselectAll(cocos2d::CCObject*) = mac 0x19cd0, win 0x86ac0;
     void disableButton(CreateMenuItem*) = mac 0x1c0f0, win 0x78af0;
@@ -2596,21 +2598,21 @@ class GJScaleControl : cocos2d::CCLayer {
     virtual void ccTouchMoved(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x31e60, win 0x94840;
     virtual void ccTouchEnded(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x31fb0, win 0x94940;
     virtual void ccTouchCancelled(cocos2d::CCTouch*, cocos2d::CCEvent*) = mac 0x32060, win 0x2dea0; // shared with many others
-    void updateLabel(float value) = win 0x94990;
+    void updateLabel(float value) = win 0x94990, mac 0x31c90;
     void loadValues(GameObject* obj, cocos2d::CCArray* objs) = win 0x94590, mac 0x24f40;
 
     Slider* m_slider;
     unsigned int m_touchID;
     float m_value;
-    PAD = mac 0x8, win 0x4;
+    bool m_shouldSnapAt1;
     cocos2d::CCLabelBMFont* m_label;
     GJScaleControlDelegate* m_delegate;
 }
 
 class GJScaleControlDelegate {
+    virtual void scaleChanged(float) {}
     virtual void scaleChangeBegin() {}
     virtual void scaleChangeEnded() {}
-    virtual void scaleChanged(float) {}
 }
 
 class GJScoreCell : TableViewCell, FLAlertLayerProtocol {
