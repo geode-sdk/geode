@@ -5,12 +5,12 @@ body:
   - type: checkboxes
     attributes:
       label: Geode Issue
-      description: The Geode repository is for issues of Geode Loader, not individual mods created by other developers.
+      description: |
+        The Geode repository is for issues of *Geode Loader*, not individual mods created by other developers.
+        When submitting a crash report, please make sure that the crash is *actually* related to ***Geode Loader itself*** and not to a mod or mod combination.
+        Failing to do this will get your issue *closed without explanation*.
       options:
         - label: I confirm that this crash is **NOT** related to a *mod* but directly to *Geode Loader* itself.
-          description: |
-            Please make sure that the crash is *actually* related to ***Geode Loader itself*** and not to a mod or mod combination.
-            Failing to do this will get your issue *closed without explanation*.
           required: true
   - type: dropdown
     id: platform
