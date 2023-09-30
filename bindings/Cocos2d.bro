@@ -638,6 +638,12 @@ class cocos2d::CCNode {
     virtual auto cleanup() = mac 0x123100, ios 0x15e3a4;
     auto convertToNodeSpace(cocos2d::CCPoint const&) = mac 0x124750, ios 0x15f55c;
     auto convertToWorldSpace(cocos2d::CCPoint const&) = mac 0x124790;
+    cocos2d::CCPoint convertToNodeSpaceAR(cocos2d::CCPoint const& worldPoint) {
+        return convertToNodeSpace(worldPoint) - getAnchorPointInPoints();
+    }
+    cocos2d::CCPoint convertToWorldSpaceAR(cocos2d::CCPoint const& nodePoint) {
+        return convertToWorldSpace(nodePoint + getAnchorPointInPoints());
+    }
     static cocos2d::CCNode* create() = mac 0x1230a0;
     virtual auto draw() = mac 0x123840, ios 0x15e974;
     auto getActionByTag(int) = mac 0x123ee0;
