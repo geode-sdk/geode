@@ -50,8 +50,11 @@ void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
 }
 
 void geode::utils::game::exit() {
-    // Not implemented
-    log::error("Exiting the game is not implemented on android");
+    CCDirector::get()->getActionManager()->addAction(CCSequence::create(
+        CCDelayTime::create(0.5f),
+        CCCallFunc::create(nullptr, callfunc_selector(MenuLayer::endGame)),
+        nullptr
+    ), CCDirector::get()->getRunningScene(), false);;
 }
 
 void geode::utils::game::restart() {

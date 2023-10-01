@@ -4501,6 +4501,7 @@ class MenuLayer : cocos2d::CCLayer, FLAlertLayerProtocol, GooglePlayDelegate {
     void onFacebook(cocos2d::CCObject*) = win 0x191960;
     void onTwitter(cocos2d::CCObject*) = win 0x191980;
     void onYouTube(cocos2d::CCObject*) = win 0x1919A0;
+    void endGame();
     static cocos2d::CCScene* scene(bool) = mac 0x1d12d0, win 0x190720, ios 0x19e57c;
 
     cocos2d::CCSprite* m_googlePlaySprite;
