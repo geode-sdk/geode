@@ -1884,7 +1884,7 @@ class GJAccountManager : cocos2d::CCNode {
     }
     gd::string getGJP() = mac 0x89520, win 0x10abb0;
 
-    PAD = mac 0x8, win 0x4;
+    PAD = mac 0x8, win 0x4, android 0x4;
     gd::string m_password;
     gd::string m_username;
     int m_accountID;
