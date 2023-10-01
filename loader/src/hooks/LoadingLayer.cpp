@@ -57,12 +57,14 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     void setupLoaderResources() {
         // verify loader resources
         if (!LoaderImpl::get()->verifyLoaderResources()) {
+            log::debug("Downloading Loader Resources");
             this->setSmallText("Downloading Loader Resources");
             this->addChild(EventListenerNode<ResourceDownloadFilter>::create(
                 this, &CustomLoadingLayer::updateResourcesProgress
             ));
         }
         else {
+            log::debug("Loading Loader Resources");
             this->setSmallText("Loading Loader Resources");
             LoaderImpl::get()->updateSpecialFiles();
             this->continueLoadAssets();
@@ -77,10 +79,12 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
                 ));
             },
             [&](UpdateFinished) {
+                log::debug("Downloaded Loader Resources");
                 this->setSmallText("Downloaded Loader Resources");
                 this->continueLoadAssets();
             },
             [&](UpdateFailed const& error) {
+                log::debug("Failed Loader Resources");
                 LoaderImpl::get()->platformMessageBox(
                     "Error updating resources",
                     error + ".\n"

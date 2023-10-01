@@ -814,6 +814,7 @@ void Loader::Impl::downloadLoaderResources(bool useLatestRelease) {
                             ).post();
                         }
                     );
+                    return;
                 }
                 else {
                     log::debug("Loader version {} does not exist on Github, not downloading the resources", this->getVersion().toString());
