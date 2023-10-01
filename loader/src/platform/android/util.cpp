@@ -9,6 +9,14 @@ using namespace geode::prelude;
 #include <Geode/utils/web.hpp>
 #include <ghc/filesystem.hpp>
 
+bool utils::clipboard::write(std::string const& data) {
+    return false;
+}
+
+std::string utils::clipboard::read() {
+    return "";
+}
+
 ghc::filesystem::path dirs::getGameDir() {
     return ghc::filesystem::path(
         "/storage/emulated/0/Android/data/com.geode.launcher/files/game"

@@ -26,4 +26,6 @@ GEODE_MEMBER_CHECK(GameStatsManager, m_completedLevels, 0x164);
 
 GEODE_MEMBER_CHECK(DailyLevelPage, m_weekly, 0x1ed);
 
+GEODE_MEMBER_CHECK(TeleportPortalObject, m_orangePortal, 0x430);
+
 #endif

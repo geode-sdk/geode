@@ -1502,10 +1502,10 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
 
     bool m_isPlayingMusic;
     EditButtonBar* m_buttonBar;
-    PAD = mac 0x8, win 0x4;
+    PAD = mac 0x8, win 0x4, android 0x4;
     cocos2d::CCArray* m_hideableUIElementArray;
     float m_gridSize;
-    PAD = mac 0x18, win 0x14;
+    PAD = mac 0x18, win 0x14, android 0x14;
     bool m_moveModifier;
     bool m_swipeModifier;
     int m_rotationTouchID;
@@ -1579,7 +1579,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     CCMenuItemSpriteExtra* m_layerNextBtn;
     CCMenuItemSpriteExtra* m_layerPrevBtn;
     CCMenuItemSpriteExtra* m_goToBaseBtn;
-    PAD = mac 0x10, win 0x8;
+    PAD = mac 0x10, win 0x8, android 0x8;
     int m_selectedCreateObjectID;
     cocos2d::CCArray* m_createButtonArray;
     cocos2d::CCArray* m_customObjectButtonArray;
@@ -1588,16 +1588,16 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     LevelEditorLayer* m_editorLayer;
     cocos2d::CCPoint m_swipeStart;
     cocos2d::CCPoint m_swipeEnd;
-    PAD = mac 0x8, win 0x8;
+    PAD = mac 0x8, win 0x8, android 0x8;
     cocos2d::CCPoint m_lastTouchPoint;
     cocos2d::CCPoint m_cameraTest;
-    PAD = mac 0x8, win 0x8;
+    PAD = mac 0x8, win 0x8, android 0x8;
     GameObject* m_selectedObject;
-    PAD = mac 0x8, win 0x4;
+    PAD = mac 0x8, win 0x4, android 0x4;
     bool m_unk2cc;
     bool m_freeMovingObject;
     gd::string m_clipboard;
-    PAD = mac 0x10, win 0x8;
+    PAD = mac 0x10, win 0x8, android 0x8;
     int m_selectedTab;
     int m_timesSelected;
     PAD = win 0x20;
@@ -1704,7 +1704,7 @@ class EffectGameObject : GameObject {
     bool m_dynamicBlock;
     int m_itemBlockAID;
     int m_pickupMode;
-    PAD = mac 0x28, win 0x24;
+    PAD = mac 0x28, win 0x24, android 0x24;
 }
 
 [[link(android)]]
@@ -5950,7 +5950,7 @@ class TableViewDelegate {
 
 [[link(android)]]
 class TeleportPortalObject : GameObject {
-    PAD = mac 0x8, win 0x4;
+    PAD = mac 0x8, win 0x4, android 0x4;
     TeleportPortalObject* m_orangePortal;
     bool m_isYellowPortal;
     float m_teleportYOffset;
