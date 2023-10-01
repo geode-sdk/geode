@@ -5030,7 +5030,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     bool m_delayedResetLevel;
     int m_lastDeathPercent;
     bool unk4C4;
-    PAD = mac 0xb, win 0xb;
+    PAD = mac 0xb, win 0xb, android 0xb;
     bool unk4D0;
     bool unk4D1;
     cocos2d::CCArray* unk4D4;
