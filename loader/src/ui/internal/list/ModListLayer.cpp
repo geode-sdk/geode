@@ -638,6 +638,10 @@ void ModListLayer::onExit(CCObject*) {
     );
 }
 
+void ModListLayer::keyBackClicked() {
+    this->onExit(nullptr);
+}
+
 void ModListLayer::onReload(CCObject*) {
     this->reloadList();
 }
