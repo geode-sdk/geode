@@ -416,9 +416,9 @@ class CCMenuItemSpriteExtra : cocos2d::CCMenuItemSprite {
 
         return true;
     }
-    void activate() = mac 0x125730, win 0x191c0;
-    void selected() = mac 0x125840, win 0x19270;
-    void unselected() = mac 0x125a70, win 0x19430;
+    virtual void activate() = mac 0x125730, win 0x191c0;
+    virtual void selected() = mac 0x125840, win 0x19270;
+    virtual void unselected() = mac 0x125a70, win 0x19430;
 
     float m_scaleMultiplier;
     float m_baseScale;
@@ -474,10 +474,10 @@ class CCMenuItemToggler : cocos2d::CCMenuItem {
     void setSizeMult(float) = mac 0x38a40, win 0x19850;
     void toggle(bool) = mac 0x38950, win 0x199b0, ios 0xf5848;
     bool init(cocos2d::CCNode* off, cocos2d::CCNode* on, cocos2d::CCObject* target, cocos2d::SEL_MenuHandler handler) = mac 0x38500, win 0x196e0;
-    void activate() = mac 0x38bc0, win 0x198d0, ios 0xf59ac;
-    void selected() = mac 0x38b80, win 0x198a0;
-    void unselected() = mac 0x38c00, win 0x19900;
-    void setEnabled(bool enabled) = mac 0x38c40, win 0x19930;
+    virtual void activate() = mac 0x38bc0, win 0x198d0, ios 0xf59ac;
+    virtual void selected() = mac 0x38b80, win 0x198a0;
+    virtual void unselected() = mac 0x38c00, win 0x19900;
+    virtual void setEnabled(bool enabled) = mac 0x38c40, win 0x19930;
 
     CCMenuItemSpriteExtra* m_offButton;
     CCMenuItemSpriteExtra* m_onButton;
@@ -1530,7 +1530,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     bool m_unkSwipeRelated;
     PAD = mac 0x2, win 0x2, android 0x2;
     bool m_updateTimeMarkers;
-    PAD = mac 0x8, win 0x8, android 0x2;
+    PAD = mac 0x8, win 0x8, android 0x8;
     cocos2d::CCArray* m_unknownArray2;
     PAD = mac 0x8, win 0x8, android 0x8;
     cocos2d::CCArray* m_selectedObjects;
@@ -3823,7 +3823,7 @@ class HardStreak : cocos2d::CCDrawNode {
 [[link(android)]]
 class InfoAlertButton : CCMenuItemSpriteExtra {
     bool init(gd::string title, gd::string text, float scale) = win 0x14ef50;
-    void activate() = win 0x14f050;
+    virtual void activate() = win 0x14f050;
     inline InfoAlertButton() {}
     static InfoAlertButton* create(gd::string title, gd::string text, float scale) = win 0x14ed20, mac 0x2ecad0;
 }

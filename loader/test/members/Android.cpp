@@ -28,4 +28,9 @@ GEODE_MEMBER_CHECK(DailyLevelPage, m_weekly, 0x1ed);
 
 GEODE_MEMBER_CHECK(TeleportPortalObject, m_orangePortal, 0x430);
 
+GEODE_MEMBER_CHECK(EditorUI, m_rotationControl, 0x16c);
+GEODE_MEMBER_CHECK(EditorUI, m_updateTimeMarkers, 0x1a4);
+GEODE_MEMBER_CHECK(EditorUI, m_selectedObjects, 0x1bc);
+GEODE_MEMBER_CHECK(EditorUI, m_selectedObject, 0x2c4);
+
 #endif
