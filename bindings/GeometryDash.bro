@@ -4264,15 +4264,6 @@ class LevelSettingsDelegate {
     virtual void levelSettingsUpdated() {}
 }
 
-class SecretLayer2 : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol, DialogDelegate {
-    static SecretLayer2* create() = win 0x21FD70;
-
-    bool init() = win 0x21FE10, mac 0x25fe70;
-    bool onSubmit(cocos2d::CCObject*) = win 0x221ac0, mac 0x2611a0;
-    void updateSearchLabel(const char* text) = win 0x222FC0, mac 0x260e10;
-    void showCompletedLevel() = win 0x220C10;
-}
-
 [[link(android)]]
 class SecretLayer2 : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol, DialogDelegate {
     static SecretLayer2* create() = win 0x21FD70;
