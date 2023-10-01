@@ -955,7 +955,7 @@ class CommentUploadDelegate {
 
 [[link(android)]]
 class ConfigureHSVWidget : cocos2d::CCNode {
-    bool init(int abs, cocos2d::ccHSVValue val) = win 0x4a3f0, mac 0x237310;
+    bool init(cocos2d::ccHSVValue val, bool abs) = win 0x4a3f0, mac 0x237310;
     void updateLabels() = win 0x4adf0, mac 0x237df0;
     cocos2d::CCLabelBMFont* m_hueLabel;
     cocos2d::CCLabelBMFont* m_saturationLabel;
@@ -1711,7 +1711,7 @@ class EndLevelLayer : cocos2d::CCLayer {
     static EndLevelLayer* create() = mac 0x2787d0, win 0x94b50;
 
     void customSetup() = win 0x94cb0;
-    const char* getCoinString(void* p0) = win 0x96270;
+    const char* getCoinString() = win 0x96270;
     const char* getEndText() = win 0x964A0;
     void onMenu(cocos2d::CCObject* sender) = mac 0x27a500, win 0x96c10;
     void onEdit(cocos2d::CCObject* sender) = mac 0x27a640, win 0x96d30;
