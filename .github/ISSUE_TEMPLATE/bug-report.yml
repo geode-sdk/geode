@@ -1,7 +1,17 @@
 name: Bug Report
-description: Report a bug where something is not working as expected in Geode Loader (not specific mods), which does not crash the game.
+description: Report a Geode bug (not mods themselves) where something is not working as expected in Geode Loader (not mods created by others), which does not crash the game.
 labels: [ "unverified", "bug" ]
 body:
+  - type: checkboxes
+    attributes:
+      label: Geode Issue
+      description: |
+        The Geode repository is for issues of *Geode Loader*, not individual mods created by other developers.
+        When submitting a bug report, please make sure that the bug is *actually* related to ***Geode Loader itself*** and not to a mod or mod combination.
+        Failing to do this will get your issue *closed without explanation*.
+      options:
+        - label: I confirm that this bug is NOT related to a mod but directly to Geode Loader itself.
+          required: true
   - type: dropdown
     id: platform
     attributes:
