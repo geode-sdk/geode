@@ -125,19 +125,19 @@ std::string mangleType(std::vector<std::string>& seen, std::string name, bool su
 std::string generateAndroidSymbol(const Class& clazz, const FunctionBindField* fn) {
 	auto& decl = fn->prototype;
 
-	if (decl.type != FunctionType::Normal) {
-		// ctor and dtor
-		switch (decl.type) {
-			case FunctionType::Ctor:
-				return "_ZN" + mangleIdent(clazz.name, false) + "C2Ev";
-			case FunctionType::Dtor:
-				return "_ZN" + mangleIdent(clazz.name, false) + "D2Ev";
-			default:
-				throw std::runtime_error("Unknown function type");
-		}
-	}
 
-	std::string mangledSymbol = "_Z" + mangleIdent(clazz.name + "::" + decl.name);
+	std::string mangledSymbol;
+	switch (decl.type) {
+		case FunctionType::Ctor:
+			mangledSymbol = "_ZN" + mangleIdent(clazz.name, false) + "C2E";
+			break;
+		case FunctionType::Dtor:
+			mangledSymbol = "_ZN" + mangleIdent(clazz.name, false) + "D2E";
+			break;
+		default:
+			mangledSymbol = "_Z" + mangleIdent(clazz.name + "::" + decl.name);
+			break;
+	}
 	if (decl.args.empty()) {
 		mangledSymbol += "v";
 	} else {
