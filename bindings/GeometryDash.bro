@@ -3611,7 +3611,7 @@ class GameObject : CCSpritePlus {
     bool m_unk3D9;
     bool m_isSelected;
     int m_globalClickCounter;
-    PAD = mac 0x8, win 0x8;
+    PAD = mac 0x8, win 0x8, android 0x8;
     bool m_shouldUpdateColorSprite;
     float m_multiScaleMultiplier;
     bool m_isGroupParent;
@@ -3624,20 +3624,20 @@ class GameObject : CCSpritePlus {
     int m_editorLayer;
     int m_editorLayer2;
     int m_unk414;
-    PAD = mac 0xc, win 0xc;
+    PAD = mac 0xc, win 0xc, android 0xc;
     cocos2d::CCPoint m_firstPosition;
     bool m_unk42C;
     bool m_unk42D;
-    PAD = mac 0x6, win 0x6;
+    PAD = mac 0x6, win 0x6, android 0x6;
     bool m_isAnimated;
-    PAD = mac 0x7, win 0x7;
+    PAD = mac 0x7, win 0x7, android 0x7;
     bool m_hasEffectLine;
     bool m_specialUnk43d;
-    PAD = mac 0x1, win 0x1;
+    PAD = mac 0x1, win 0x1, android 0x1;
     bool m_hasDurationLine;
     bool m_isTriggerable;
     bool m_triggeredInEditor;
-    PAD = mac 0x6, win 0x6;
+    PAD = mac 0x6, win 0x6, android 0x6;
     bool m_highDetail;
     ColorActionSprite* m_colorActionSpriteBase;
     ColorActionSprite* m_colorActionSpriteDetail;
@@ -3646,7 +3646,7 @@ class GameObject : CCSpritePlus {
     bool m_unk459;
     bool m_unk45A;
     bool m_wasForcedRotatedPositionUpdateIdk;
-    PAD = mac 0x8, win 0x8;
+    PAD = mac 0x8, win 0x8, android 0x8;
     bool m_orbMultiActivate;
 }
 

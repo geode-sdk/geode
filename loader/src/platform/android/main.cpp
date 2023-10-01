@@ -20,4 +20,8 @@ extern "C" [[gnu::visibility("default")]] jint JNI_OnLoad(JavaVM* vm, void* rese
     return JNI_VERSION_1_1;
 }
 
+extern "C" [[gnu::visibility("default")]] void emptyFunction(void*) {
+    // empty
+}
+
 #endif

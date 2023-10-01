@@ -7,9 +7,9 @@
 #include <string>
 #include <string_view>
 
-std::string mangleIdent(std::string_view str) {
+std::string mangleIdent(std::string_view str, bool ne = true) {
 	if (str.find("::") != -1) {
-		std::string result = "N";
+		std::string result = ne ? "N" : "";
 		auto s = str;
 		do {
 			const auto i = s.find("::");
@@ -19,7 +19,7 @@ std::string mangleIdent(std::string_view str) {
 			else
 				s = s.substr(i + 2);
 		} while(s.size());
-		return result + "E";
+		return result + (ne ? "E" : "");
 	} else {
 		return std::to_string(str.size()) + std::string(str);
 	}
@@ -124,6 +124,18 @@ std::string mangleType(std::vector<std::string>& seen, std::string name, bool su
 
 std::string generateAndroidSymbol(const Class& clazz, const FunctionBindField* fn) {
 	auto& decl = fn->prototype;
+
+	if (decl.type != FunctionType::Normal) {
+		// ctor and dtor
+		switch (decl.type) {
+			case FunctionType::Ctor:
+				return "_ZN" + mangleIdent(clazz.name, false) + "C2Ev";
+			case FunctionType::Dtor:
+				return "_ZN" + mangleIdent(clazz.name, false) + "D2Ev";
+			default:
+				throw std::runtime_error("Unknown function type");
+		}
+	}
 
 	std::string mangledSymbol = "_Z" + mangleIdent(clazz.name + "::" + decl.name);
 	if (decl.args.empty()) {

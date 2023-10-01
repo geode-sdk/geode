@@ -157,3 +157,24 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
         this->updateLoadingBar();
     }
 };
+
+#include <Geode/modify/PlayLayer.hpp>
+struct FieldTest : Modify<FieldTest, PlayLayer> {
+    int field = 0x10101010;
+
+    bool init(GJGameLevel* level) {
+        if (!PlayLayer::init(level)) return false;
+        log::debug("GameManager 1 {}", GameManager::sharedState());
+        log::debug("PlayLayer 1 {}", PlayLayer::get());
+        m_fields->field += 0x20202020;
+        log::debug("GameManager 2 {}", GameManager::sharedState());
+        log::debug("PlayLayer 2 {}", PlayLayer::get());
+        return true;
+    }
+
+    void update(float dt) {
+        log::debug("GameManager {}", GameManager::sharedState());
+        log::debug("PlayLayer {}", PlayLayer::get());
+        PlayLayer::update(dt);
+    } 
+};

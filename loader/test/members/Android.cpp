@@ -17,4 +17,6 @@ GEODE_MEMBER_CHECK(PlayLayer, m_bottomGround, 0x37c);
 GEODE_MEMBER_CHECK(PlayLayer, m_topGround, 0x380);
 GEODE_MEMBER_CHECK(PlayLayer, m_level, 0x470);
 
+static_assert(sizeof(GameObject) == 0x42c);
+
 #endif
