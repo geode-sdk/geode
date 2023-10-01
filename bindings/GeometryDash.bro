@@ -1212,7 +1212,7 @@ class DrawGridLayer : cocos2d::CCLayer {
         m_player2NodePoints->removeAllObjects();
     }
 
-    void loadTimeMarkers(gd::string guidelines) = mac 0x94010;
+    void loadTimeMarkers(gd::string guidelines) = mac 0x94010, win 0x16cab0;
 
     std::array<cocos2d::CCPoint, 400>* m_commonLines;
     std::array<cocos2d::CCPoint, 200>* m_yellowGuidelines;
@@ -4358,7 +4358,7 @@ class LevelSettingsObject : cocos2d::CCNode {
     bool m_isFlipped;
     GJGameLevel* m_level;
     gd::string m_guidelineString;
-    int m_unknown;
+    int m_defaultSongID;
     int m_colorPage;
     int m_groundLineIndex;
 }
