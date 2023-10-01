@@ -108,7 +108,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     }
 
     int getTotalStep() {
-        return 17;
+        return 18;
     }
 
     void updateLoadingBar() {
@@ -137,28 +137,23 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     }
     
     // hook
-    void loadAssets() {  
-        if (m_loadStep == 14) {
-            switch (m_fields->m_geodeLoadStep) {
-            case 0:
-                if (this->skipOnRefresh()) this->setupLoadingMods();
-                break;
-            case 1:
-                if (this->skipOnRefresh()) this->setupLoaderResources();
-                break;
-            case 2:
-                this->setupModResources();
-                break;
-            case 3:
-            default:
-                LoadingLayer::loadAssets();
-                this->updateLoadingBar();
-                break;
-            }
-            return;
-        }    
-        this->setSmallText("Loading game resources");   
-        LoadingLayer::loadAssets();
+    void loadAssets() {        
+        switch (m_fields->m_geodeLoadStep) {
+        case 0:
+            if (this->skipOnRefresh()) this->setupLoadingMods();
+            break;
+        case 1:
+            if (this->skipOnRefresh()) this->setupLoaderResources();
+            break;
+        case 2:
+            this->setupModResources();
+            break;
+        case 3:
+        default:
+            this->setSmallText("Loading game resources");
+            LoadingLayer::loadAssets();
+            break;
+        }
         this->updateLoadingBar();
     }
 };
