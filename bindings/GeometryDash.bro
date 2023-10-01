@@ -4897,11 +4897,15 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     bool unused4cc;
     bool m_hasCheated;
     geode::SeedValueRS m_dontSave;
+    [[missing(android)]]
     int unknown4d8;
+    [[missing(android)]]
     bool m_debugPauseOff;
+    [[missing(android)]]
     bool m_shouldSmoothCamera;
+    [[missing(android)]]
     float unused_4e0;
-    PAD = mac 0x4, win 0x4, android 0x4;
+    PAD = mac 0x4, win 0x4, android 0x0;
     cocos2d::CCDrawNode* unknown4e8;
     float m_camera4f0;
     int unused4f4;
