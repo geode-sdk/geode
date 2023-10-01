@@ -3,6 +3,8 @@ name: Test Offsets
 on:
   workflow_dispatch:
   push:
+    paths:
+    - 'bindings/**'     # only when adjusting bindings
     branches:
     - '**'              # every branch
     - '!no-build-**'    # unless marked as no-build
