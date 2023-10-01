@@ -146,13 +146,13 @@ jobs:
           files: geode-win/XInput9_1_0.dll geode-win/Geode.dll geode-win/GeodeUpdater.exe geode-win/Geode.lib geode-win/Geode.pdb
           dest: geode-${{ steps.ref.outputs.hash }}-win.zip
 
-      - name: Zip Windows Resources
+      - name: Zip Resources
         uses: vimtor/action-zip@v1.1
         with:
           files: geode-mac/resources
           dest: resources.zip
 
-      - name: Update Nightly Release
+      - name: Update Development Release
         uses: andelf/nightly-release@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

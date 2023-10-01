@@ -1,9 +1,21 @@
 # Geode Changelog
 
+## v1.3.5
+ * Follow redirect in web::utils functions (a942a45)
+ * Lots of bindings
+ * Make codegen symbols private visibility (696a2ca)
+ * Add deadstrip to macos (0d62940)
+ * Readd the nullptr check in InstallListPopup::createCells (499f256)
+ * Fix garagelayer ids on not logged in users (dd0179c)
+
+## v1.3.4
+ * Implement string setting character filters (cf8fbba)
+ * Update bindings
+
 ## v1.3.3
  * Reunify resources.zip (81de161)
 
-## v1.3.2
+## v1.3.2
  * Fix alignment of some textures (8f39c38)
  * Bring back unknown problems (0663569)
  * Fix some Windows 7 incompatibility (2d2bdd1)

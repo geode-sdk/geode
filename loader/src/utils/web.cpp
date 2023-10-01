@@ -79,6 +79,7 @@ Result<ByteVector> web::fetchBytes(std::string const& url) {
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &ret);
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, utils::fetch::writeBytes);
     auto res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
@@ -118,6 +119,7 @@ Result<std::string> web::fetch(std::string const& url) {
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &ret);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, utils::fetch::writeString);
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
     auto res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
         curl_easy_cleanup(curl);

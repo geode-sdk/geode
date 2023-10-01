@@ -31,7 +31,7 @@ FMOD_RESULT F_API FMOD_File_GetDiskBusy            (int *busy);
 /*
     FMOD System factory functions.  Use this to create an FMOD System Instance.  below you will see FMOD_System_Init/Close to get started.
 */
-FMOD_RESULT F_API FMOD_System_Create               (FMOD_SYSTEM **system); 
+FMOD_RESULT /*F_API*/ FMOD_System_Create           (FMOD_SYSTEM **system); 
 FMOD_RESULT F_API FMOD_System_Release              (FMOD_SYSTEM *system); 
 
 /*
