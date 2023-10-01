@@ -5043,12 +5043,12 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     bool m_shouldTryToKick;
     float m_kickCheckDeltaSnapshot;
     int m_accumulatedKickCounter;
-    PAD = mac 0x4, win 0x4;
+    PAD = mac 0x4, win 0x4, android 0x8;
     double unk508;
-    PAD = mac 0x8, win 0x8;
+    PAD = mac 0x8, win 0x8, android 0x8;
     double unk518;
     double unk520;
-    PAD = mac 0x4, win 0x4;
+    PAD = mac 0x4, win 0x4, android 0x4;
     bool m_hasGlitter;
     bool m_isBgEffectOff;
     bool unk52F;
