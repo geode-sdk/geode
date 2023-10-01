@@ -951,15 +951,15 @@ class CreateMenuItem : CCMenuItemSpriteExtra {
 class CreatorLayer : cocos2d::CCLayer, cocos2d::CCSceneTransitionDelegate, DialogDelegate {
     void onBack(cocos2d::CCObject*) = win 0x4fae0;
     void onChallenge(cocos2d::CCObject*) = mac 0x142960, win 0x4f1b0;
-    void onLeaderboards(cocos2d::CCObject*) = win 0x4ed20;
+    void onLeaderboards(cocos2d::CCObject*) = mac 0x142920, win 0x4ed20;
     void onMyLevels(cocos2d::CCObject*) = mac 0x142b70, win 0x4eaa0;
     void onSavedLevels(cocos2d::CCObject*) = mac 0x142860, win 0x4ebe0;
-    void onDailyLevel(cocos2d::CCObject*) = win 0x4f170;
-    void onWeeklyLevel(cocos2d::CCObject*) = win 0x4f190;
-    void onFeaturedLevels(cocos2d::CCObject*) = win 0x4edf0;
-    void onFameLevels(cocos2d::CCObject*) = win 0x4ee70;
-    void onMapPacks(cocos2d::CCObject*) = win 0x4efb0;
-    void onOnlineLevels(cocos2d::CCObject*) = win 0x4ef60;
+    void onDailyLevel(cocos2d::CCObject*) = mac 0x142980, win 0x4f170;
+    void onWeeklyLevel(cocos2d::CCObject*) = mac 0x1429a0, win 0x4f190;
+    void onFeaturedLevels(cocos2d::CCObject*) = mac 0x142a20, win 0x4edf0;
+    void onFameLevels(cocos2d::CCObject*) = mac 0x142a80, win 0x4ee70;
+    void onMapPacks(cocos2d::CCObject*) = mac 0x1429c0, win 0x4efb0;
+    void onOnlineLevels(cocos2d::CCObject*) = mac 0x142ae0, win 0x4ef60;
     void onGauntlets(cocos2d::CCObject*) = mac 0x142b20, win 0x4f0a0;
     void onSecretVault(cocos2d::CCObject*) = win 0x4f1d0;
     void onTreasureRoom(cocos2d::CCObject*) = win 0x4f540;
@@ -1079,7 +1079,7 @@ class CustomizeObjectLayer : FLAlertLayer, TextInputDelegate, HSVWidgetPopupDele
 }
 
 class DailyLevelPage : FLAlertLayer, FLAlertLayerProtocol, GJDailyLevelDelegate, LevelDownloadDelegate {
-    static DailyLevelPage* create(bool weekly) = win 0x6a860;
+    static DailyLevelPage* create(bool weekly) = mac 0x108ac0, win 0x6a860;
     bool init(bool weekly) = mac 0x108C90, win 0x6a900;
     virtual void updateTimers(float) = mac 0x109780, win 0x6bef0;
     virtual void show() = mac 0x10a4b0, win 0x3f360;
