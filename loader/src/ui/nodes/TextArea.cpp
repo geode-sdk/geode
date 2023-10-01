@@ -83,11 +83,11 @@ size_t SimpleTextArea::getMaxLines() {
 }
 
 void SimpleTextArea::setWidth(const float width) {
-        m_artificialWidth = true;
+    m_artificialWidth = true;
 
-        this->setContentSize({ width, this->getContentSize().height });
-        m_container->setContentSize(this->getContentSize());
-    }
+    this->setContentSize({ width, this->getContentSize().height });
+    m_container->setContentSize(this->getContentSize());
+}
 
 float SimpleTextArea::getWidth() {
     return m_container->getContentSize().width;
