@@ -11,8 +11,8 @@ body:
         When submitting a crash report, please make sure that the crash is *actually* related to ***Geode Loader itself*** and not to a mod or mod combination, after you do that type in "confirm" in the input field below.
         Failing to do this will get your issue *closed without explanation*.
       placeholder: "Please, read the text above."
-      validations:
-        required: true
+    validations:
+      required: true
   - type: dropdown
     id: platform
     attributes:
