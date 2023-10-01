@@ -981,7 +981,8 @@ class CountTriggerAction : cocos2d::CCNode {
 class CreateGuidelinesLayer : FLAlertLayer, FLAlertLayerProtocol {
     void doClearGuidelines() = win 0x4cf60, mac 0x299690;
     void onStop(cocos2d::CCObject* sender) = win 0x4d2c0, mac 0x2990f0;
-    PAD = win 0x4, mac 0x8;
+
+    void* m_unk;
     LevelSettingsObject* m_levelSettings;
     PAD = win 0x1c;
     gd::string m_guidelineString;
@@ -1139,10 +1140,10 @@ class CustomizeObjectLayer : FLAlertLayer, TextInputDelegate, HSVWidgetPopupDele
 class DailyLevelPage : FLAlertLayer, FLAlertLayerProtocol, GJDailyLevelDelegate, LevelDownloadDelegate {
     static DailyLevelPage* create(bool weekly) = win 0x6a860;
     bool init(bool weekly) = mac 0x108C90, win 0x6a900;
-    virtual void updateTimers(float) = mac 0x109780, win 0x6bef0;
+    void updateTimers(float) = mac 0x109780, win 0x6bef0;
     virtual void show() = mac 0x10a4b0, win 0x3f360;
 
-    PAD = mac 0x29, win 0x15;
+    PAD = mac 0x29, win 0x15, android 0x15;
     bool m_weekly;
 }
 
@@ -3015,7 +3016,7 @@ class GameLevelManager : cocos2d::CCNode {
     int m_dailyTimeLeft;
     int m_dailyID;
     int m_dailyIDUnk;
-    PAD = mac 0x10, win 0x4;
+    PAD = mac 0x10, win 0x4, android 0x4;
     int m_weeklyTimeLeft;
     int m_weeklyID;
     int m_weeklyIDUnk;
@@ -3283,7 +3284,7 @@ class GameManager : GManager {
     bool m_showedRateDiffDialog;
     bool m_showedRateStarDialog;
     bool m_showedLowDetailDialog;
-    PAD = mac 0x3c, win 0x30;
+    PAD = mac 0x3c, win 0x30, android 0x30;
     int m_bootups;
     bool m_hasRatedGame;
     bool m_unk0;
@@ -3706,14 +3707,14 @@ class GameStatsManager : cocos2d::CCNode {
     void storeUserCoin(char const*) = mac 0x42890;
     bool isItemUnlocked(UnlockType type, int id) = win 0xfbb80;
 
-    PAD = mac 0x50, win 0x28;
+    PAD = mac 0x50, win 0x28, android 0x24;
     cocos2d::CCDictionary* m_dailyChests;
     cocos2d::CCDictionary* m_worldAdvertChests;
     cocos2d::CCDictionary* m_activeChallenges;
     cocos2d::CCDictionary* m_upcomingChallenges;
-    PAD = mac 0x18, win 0xc;
+    PAD = mac 0x18, win 0xc, android 0xc;
     cocos2d::CCDictionary* m_playerStats;
-    PAD = mac 0x50, win 0x10;
+    PAD = mac 0x50, win 0x10, android 0x34;
     cocos2d::CCDictionary* m_completedLevels;
     cocos2d::CCDictionary* m_verifiedUserCoins;
     cocos2d::CCDictionary* m_pendingUserCoins;
@@ -3917,7 +3918,7 @@ class LevelBrowserLayer : cocos2d::CCLayer, LevelManagerDelegate, FLAlertLayerPr
     void onNew(cocos2d::CCObject* sender) = win 0x15cbf0, mac 0x252ac0;
     static LevelBrowserLayer* create(GJSearchObject* search) = mac 0x251210, win 0x159fa0, ios 0x2d0a00;
 
-    PAD = win 0x4, mac 0x8;
+    void* m_unk;
     TextArea* m_noInternet;
     GJListLayer* m_list;
     CCMenuItemSpriteExtra* m_rightArrow;
@@ -4192,14 +4193,14 @@ class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDeleg
     void showUpdateAlert(UpdateResponse) = mac 0x164ED0, win 0x179300;
     void updateLabelValues() = mac 0x164090, win 0x17b170;
 
-    PAD = win 0x4, mac 0x8;
+    void* m_unk1;
     cocos2d::CCMenu* m_playBtnMenu;
     GJGameLevel* m_level;
     cocos2d::CCArray* m_unknown;
     CCMenuItemSpriteExtra* m_likeBtn;
     CCMenuItemSpriteExtra* m_starRateBtn;
     CCMenuItemSpriteExtra* m_demonRateBtn;
-    PAD = win 0x4, mac 0x8;
+    void* m_unk2;
     CCMenuItemToggler* m_ldmToggler;
     cocos2d::CCLabelBMFont* m_ldmLabel;
     cocos2d::CCLabelBMFont* m_lengthLabel;
@@ -4208,7 +4209,7 @@ class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDeleg
     cocos2d::CCLabelBMFont* m_orbsLabel;
     cocos2d::CCLabelBMFont* m_folderLabel;
     CCMenuItemSpriteExtra* m_cloneBtn;
-    PAD = win 0x4, mac 0x8;
+    void* m_unk3;
 }
 
 [[link(android)]]
@@ -4232,7 +4233,7 @@ class LevelManagerDelegate {
 
 [[link(android)]]
 class LevelPage : cocos2d::CCLayer, DialogDelegate {
-    PAD = mac 0x8, win 0x4;
+    void* m_unk;
     GJGameLevel* m_level;
 
     void onInfo(cocos2d::CCObject* sender) = mac 0x23AAE0, win 0x189070;
@@ -5425,7 +5426,7 @@ class RetryLevelLayer {
 
 [[link(android)]]
 class RewardsPage : FLAlertLayer {
-    bool init() = mac 0xf3800, win 0x2178F0;
+    virtual bool init() = mac 0xf3800, win 0x2178F0;
 }
 
 [[link(android)]]

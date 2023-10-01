@@ -3,8 +3,6 @@
 #include <Geode/binding/LevelInfoLayer.hpp>
 #include <Geode/modify/LevelInfoLayer.hpp>
 
-#if !defined(GEODE_IS_ANDROID)
-
 $register_ids(LevelInfoLayer) {
     auto winSize = CCDirector::get()->getWinSize();
 
@@ -137,5 +135,3 @@ struct LevelInfoLayerIDs : Modify<LevelInfoLayerIDs, LevelInfoLayer> {
         return true;
     }
 };
-
-#endif

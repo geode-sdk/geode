@@ -8,6 +8,7 @@
 
 GEODE_MEMBER_CHECK(GameManager, m_playLayer, 0x138);
 GEODE_MEMBER_CHECK(GameManager, m_levelEditorLayer, 0x13c);
+GEODE_MEMBER_CHECK(GameManager, m_canGetLevelSaveData, 0x28c);
 
 static_assert(sizeof(GJBaseGameLayer) == 0x2cc);
 
@@ -19,5 +20,10 @@ GEODE_MEMBER_CHECK(PlayLayer, m_level, 0x470);
 GEODE_MEMBER_CHECK(PlayLayer, m_shouldTryToKick, 0x4e0);
 
 static_assert(sizeof(GameObject) == 0x42c);
+
+GEODE_MEMBER_CHECK(GameStatsManager, m_dailyChests, 0x110);
+GEODE_MEMBER_CHECK(GameStatsManager, m_completedLevels, 0x164);
+
+GEODE_MEMBER_CHECK(DailyLevelPage, m_weekly, 0x1ed);
 
 #endif
