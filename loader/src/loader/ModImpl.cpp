@@ -596,11 +596,13 @@ Result<> Mod::Impl::unzipGeodeFile(ModMetadata metadata) {
     if (ec) {
         return Err("Unable to delete temp dir: " + ec.message());
     }
-
+    
+    (void)utils::file::createDirectoryAll(tempDir);
     auto res = file::writeString(datePath, modifiedHash);
     if (!res) {
-        log::warn("Failed to write modified date of geode zip");
+        log::warn("Failed to write modified date of geode zip: {}", res.unwrapErr());
     }
+    
 
     GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(metadata.getPath()));
     if (!unzip.hasEntry(metadata.getBinaryName())) {

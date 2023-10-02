@@ -70,20 +70,24 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     }
 
     void setupLoaderResources() {
+        log::debug("Verifying Loader Resources");
+        this->setSmallText("Verifying Loader Resources");
         // verify loader resources
-        if (!LoaderImpl::get()->verifyLoaderResources()) {
-            log::debug("Downloading Loader Resources");
-            this->setSmallText("Downloading Loader Resources");
-            this->addChild(EventListenerNode<ResourceDownloadFilter>::create(
-                this, &CustomLoadingLayer::updateResourcesProgress
-            ));
-        }
-        else {
-            log::debug("Loading Loader Resources");
-            this->setSmallText("Loading Loader Resources");
-            LoaderImpl::get()->updateSpecialFiles();
-            this->continueLoadAssets();
-        }
+        Loader::get()->queueInMainThread([&]() {
+            if (!LoaderImpl::get()->verifyLoaderResources()) {
+                log::debug("Downloading Loader Resources");
+                this->setSmallText("Downloading Loader Resources");
+                this->addChild(EventListenerNode<ResourceDownloadFilter>::create(
+                    this, &CustomLoadingLayer::updateResourcesProgress
+                ));
+            }
+            else {
+                log::debug("Loading Loader Resources");
+                this->setSmallText("Loading Loader Resources");
+                LoaderImpl::get()->updateSpecialFiles();
+                this->continueLoadAssets();
+            }
+        });
     }
 
     void updateResourcesProgress(ResourceDownloadEvent* event) {
