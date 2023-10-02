@@ -568,17 +568,21 @@ Result<> Mod::Impl::createTempDir() {
         return Err("Unable to create mod runtime directory");
     }
 
-    // Unzip .geode file into temp dir
-    GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(m_metadata.getPath()));
-    if (!unzip.hasEntry(m_metadata.getBinaryName())) {
-        return Err(
-            fmt::format("Unable to find platform binary under the name \"{}\"", m_metadata.getBinaryName())
-        );
-    }
-    GEODE_UNWRAP(unzip.extractAllTo(tempPath));
-
     // Mark temp dir creation as succesful
     m_tempDirName = tempPath;
+
+    return Ok();
+}
+
+Result<> Mod::Impl::unzipGeodeFile(ModMetadata metadata) {
+    // Unzip .geode file into temp dir
+    GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(metadata.getPath()));
+    if (!unzip.hasEntry(metadata.getBinaryName())) {
+        return Err(
+            fmt::format("Unable to find platform binary under the name \"{}\"", metadata.getBinaryName())
+        );
+    }
+    GEODE_UNWRAP(unzip.extractAllTo(dirs::getModRuntimeDir() / metadata.getID()));
 
     return Ok();
 }

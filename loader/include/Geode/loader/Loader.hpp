@@ -32,7 +32,8 @@ namespace geode {
             LoadFailed,
             EnableFailed,
             MissingDependency,
-            PresentIncompatibility
+            PresentIncompatibility,
+            UnzipFailed
         };
         Type type;
         std::variant<ghc::filesystem::path, ModMetadata, Mod*> cause;

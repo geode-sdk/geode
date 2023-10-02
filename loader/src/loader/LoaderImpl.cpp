@@ -388,7 +388,7 @@ void Loader::Impl::buildModGraph() {
 
 void Loader::Impl::loadModGraph(Mod* node, bool early) {
     if (early && !node->needsEarlyLoad()) {
-        m_modsToLoad.push(node);
+        m_modsToLoad.push_back(node);
         return;
     }
 
@@ -402,32 +402,82 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
 
     if (node->isEnabled()) {
         for (auto const& dep : node->m_impl->m_dependants) {
-            this->loadModGraph(dep, early);
+            m_modsToLoad.push_front(dep);
         }
         log::popNest();
         return;
     }
 
-    if (node->shouldLoad()) {
-        log::debug("Load");
-        auto res = node->m_impl->loadBinary();
+    m_currentlyLoadingMod = node;
+    m_refreshingModCount += 1;
+    m_refreshedModCount += 1;
+
+    auto unzipFunction = [this, node]() {
+        log::debug("Unzip");
+        auto res = node->m_impl->unzipGeodeFile(node->getMetadata());
+        return res;
+    };
+
+    auto loadFunction = [this, node, early]() {
+        if (node->shouldLoad()) {
+            log::debug("Load");
+            auto res = node->m_impl->loadBinary();
+            if (!res) {
+                m_problems.push_back({
+                    LoadProblem::Type::LoadFailed,
+                    node,
+                    res.unwrapErr()
+                });
+                log::error("Failed to load binary: {}", res.unwrapErr());
+                log::popNest();
+                m_refreshingModCount -= 1;
+                return;
+            }
+
+            for (auto const& dep : node->m_impl->m_dependants) {
+                m_modsToLoad.push_front(dep);
+            }
+        }
+
+        m_refreshingModCount -= 1;
+
+        log::popNest();
+    };
+
+    if (early) {
+        auto res = unzipFunction();
         if (!res) {
             m_problems.push_back({
-                LoadProblem::Type::LoadFailed,
+                LoadProblem::Type::UnzipFailed,
                 node,
                 res.unwrapErr()
             });
-            log::error("Failed to load binary: {}", res.unwrapErr());
+            log::error("Failed to unzip: {}", res.unwrapErr());
             log::popNest();
+            m_refreshingModCount -= 1;
             return;
         }
-
-        for (auto const& dep : node->m_impl->m_dependants) {
-            this->loadModGraph(dep, early);
-        }
+        loadFunction();
     }
-
-    log::popNest();
+    else {
+        std::thread([=]() {
+            auto res = unzipFunction();
+            queueInMainThread([=]() {
+                if (!res) {
+                    m_problems.push_back({
+                        LoadProblem::Type::UnzipFailed,
+                        node,
+                        res.unwrapErr()
+                    });
+                    log::error("Failed to unzip: {}", res.unwrapErr());
+                    log::popNest();
+                    m_refreshingModCount -= 1;
+                    return;
+                }
+                loadFunction();
+            });
+        }).detach();
+    }
 }
 
 void Loader::Impl::findProblems() {
@@ -568,12 +618,19 @@ void Loader::Impl::refreshModGraph() {
     else
         m_loadingState = LoadingState::Mods;
 
-    queueInMainThread([]() {
-        Loader::get()->m_impl->continueRefreshModGraph();
+    queueInMainThread([&]() {
+        this->continueRefreshModGraph();
     });
 }
 
 void Loader::Impl::continueRefreshModGraph() {
+    if (m_refreshingModCount != 0) {
+        queueInMainThread([&]() {
+            this->continueRefreshModGraph();
+        });
+        return;
+    }
+
     log::info("Continuing mod graph refresh...");
     log::pushNest();
 
@@ -585,7 +642,7 @@ void Loader::Impl::continueRefreshModGraph() {
             log::pushNest();
             this->loadModGraph(m_modsToLoad.front(), false);
             log::popNest();
-            m_modsToLoad.pop();
+            m_modsToLoad.pop_front();
             if (m_modsToLoad.empty())
                 m_loadingState = LoadingState::Problems;
             break;
@@ -608,8 +665,8 @@ void Loader::Impl::continueRefreshModGraph() {
     log::info("Took {}s", static_cast<float>(time) / 1000.f);
 
     if (m_loadingState != LoadingState::Done) {
-        queueInMainThread([]() {
-            Loader::get()->m_impl->continueRefreshModGraph();
+        queueInMainThread([&]() {
+            this->continueRefreshModGraph();
         });
     }
 
