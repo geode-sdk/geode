@@ -87,6 +87,9 @@ namespace geode {
 
         int m_refreshingModCount = 0;
         int m_refreshedModCount = 0;
+        int m_lateRefreshedModCount = 0;
+
+        std::chrono::time_point<std::chrono::high_resolution_clock> m_timerBegin;
 
         void provideNextMod(Mod* mod);
         Mod* takeNextMod();

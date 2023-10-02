@@ -41,9 +41,6 @@ void Loader::Impl::createDirectories() {
     ghc::filesystem::create_directory(dirs::getSaveDir());
 #endif
 
-    // try deleting geode/unzipped if it already exists
-    try { ghc::filesystem::remove_all(dirs::getModRuntimeDir()); } catch(...) {}
-
     (void) utils::file::createDirectoryAll(dirs::getGeodeResourcesDir());
     (void) utils::file::createDirectoryAll(dirs::getModConfigDir());
     (void) utils::file::createDirectoryAll(dirs::getModsDir());
@@ -411,6 +408,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
     m_currentlyLoadingMod = node;
     m_refreshingModCount += 1;
     m_refreshedModCount += 1;
+    m_lateRefreshedModCount += early ? 0 : 1;
 
     auto unzipFunction = [this, node]() {
         log::debug("Unzip");
@@ -631,10 +629,16 @@ void Loader::Impl::continueRefreshModGraph() {
         return;
     }
 
+    if  (m_lateRefreshedModCount > 0) {
+        auto end = std::chrono::high_resolution_clock::now();
+        auto time = std::chrono::duration_cast<std::chrono::milliseconds>(end - m_timerBegin).count();
+        log::info("Took {}s", static_cast<float>(time) / 1000.f);
+    }
+
     log::info("Continuing mod graph refresh...");
     log::pushNest();
 
-    auto begin = std::chrono::high_resolution_clock::now();
+    m_timerBegin = std::chrono::high_resolution_clock::now();
 
     switch (m_loadingState) {
         case LoadingState::Mods:
@@ -652,6 +656,11 @@ void Loader::Impl::continueRefreshModGraph() {
             this->findProblems();
             log::popNest();
             m_loadingState = LoadingState::Done;
+            {
+                auto end = std::chrono::high_resolution_clock::now();
+                auto time = std::chrono::duration_cast<std::chrono::milliseconds>(end - m_timerBegin).count();
+                log::info("Took {}s", static_cast<float>(time) / 1000.f);
+            }
             break;
         default:
             m_loadingState = LoadingState::Done;
@@ -659,10 +668,6 @@ void Loader::Impl::continueRefreshModGraph() {
                 "Was Loader::Impl::continueRefreshModGraph() called from the wrong place?");
             break;
     }
-
-    auto end = std::chrono::high_resolution_clock::now();
-    auto time = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
-    log::info("Took {}s", static_cast<float>(time) / 1000.f);
 
     if (m_loadingState != LoadingState::Done) {
         queueInMainThread([&]() {
