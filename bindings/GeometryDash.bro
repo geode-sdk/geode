@@ -3577,7 +3577,7 @@ class GameStatsManager : cocos2d::CCNode {
     void storeSecretCoin(char const*) = mac 0x42a10;
     void storeUserCoin(char const*) = mac 0x42890;
     bool isItemUnlocked(UnlockType type, int id) = win 0xfbb80;
-    void checkAchievement(char const* type) = win 0xf37c0
+    void checkAchievement(char const* type) = win 0xf37c0;
 
     PAD = mac 0x50, win 0x28;
     cocos2d::CCDictionary* m_dailyChests;
