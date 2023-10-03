@@ -30,6 +30,7 @@ SimpleTextArea::SimpleTextArea(const std::string& font, const std::string& text,
     m_maxLines = 0;
     m_scale = scale;
     m_linePadding = 0;
+    m_alignment = kCCTextAlignmentLeft;
     m_artificialWidth = artificialWidth;
     m_container = CCMenu::create();
 
@@ -129,7 +130,6 @@ CCLabelBMFont* SimpleTextArea::createLabel(const std::string& text, const float 
     CCLabelBMFont* label = CCLabelBMFont::create(text.c_str(), m_font.c_str());
 
     label->setScale(m_scale);
-    label->setAnchorPoint({ 0, 0 });
     label->setPosition({ 0, top });
 
     return label;
@@ -203,22 +203,20 @@ void SimpleTextArea::updateContents() {
     m_container->setContentSize(this->getContentSize());
     m_container->removeAllChildren();
 
-    height -= m_lineHeight;
-
     for (CCLabelBMFont* line : m_lines) {
         const float y = height + line->getPositionY();
 
         switch (m_alignment) {
             case kCCTextAlignmentLeft: {
-                line->setAnchorPoint({ 0, 0 });
+                line->setAnchorPoint({ 0, 1 });
                 line->setPosition({ 0, y });
             } break;
             case kCCTextAlignmentCenter: {
-                line->setAnchorPoint({ 0.5f, 0 });
+                line->setAnchorPoint({ 0.5f, 1 });
                 line->setPosition({ width / 2, y });
             } break;
             case kCCTextAlignmentRight: {
-                line->setAnchorPoint({ 1, 0 });
+                line->setAnchorPoint({ 1, 1 });
                 line->setPosition({ width, y });
             } break;
         }
