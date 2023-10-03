@@ -17,7 +17,7 @@ extern "C" [[gnu::visibility("default")]] jint JNI_OnLoad(JavaVM* vm, void* rese
     glDeleteVertexArraysOESEXT = (PFNGLDELETEVERTEXARRAYSOESPROC)eglGetProcAddress("glDeleteVertexArraysOES");
 
     geodeEntry(nullptr);
-    return JNI_VERSION_1_1;
+    return JNI_VERSION_1_6;
 }
 
 extern "C" [[gnu::visibility("default")]] void emptyFunction(void*) {

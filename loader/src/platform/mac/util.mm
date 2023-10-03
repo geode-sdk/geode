@@ -207,7 +207,7 @@ ghc::filesystem::path dirs::getModRuntimeDir() {
 void geode::utils::game::exit() {
     if (CCApplication::sharedApplication() &&
         (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
-        log::error("Cannot restart in PlayLayer or LevelEditorLayer!");
+        log::error("Cannot exit in PlayLayer or LevelEditorLayer!");
         return;
     }
 
