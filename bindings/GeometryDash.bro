@@ -1002,15 +1002,15 @@ class CreateMenuItem : CCMenuItemSpriteExtra {
 class CreatorLayer : cocos2d::CCLayer, cocos2d::CCSceneTransitionDelegate, DialogDelegate {
     void onBack(cocos2d::CCObject*) = win 0x4fae0;
     void onChallenge(cocos2d::CCObject*) = mac 0x142960, win 0x4f1b0;
-    void onLeaderboards(cocos2d::CCObject*) = win 0x4ed20;
+    void onLeaderboards(cocos2d::CCObject*) = mac 0x142920, win 0x4ed20;
     void onMyLevels(cocos2d::CCObject*) = mac 0x142b70, win 0x4eaa0;
     void onSavedLevels(cocos2d::CCObject*) = mac 0x142860, win 0x4ebe0;
-    void onDailyLevel(cocos2d::CCObject*) = win 0x4f170;
-    void onWeeklyLevel(cocos2d::CCObject*) = win 0x4f190;
-    void onFeaturedLevels(cocos2d::CCObject*) = win 0x4edf0;
-    void onFameLevels(cocos2d::CCObject*) = win 0x4ee70;
-    void onMapPacks(cocos2d::CCObject*) = win 0x4efb0;
-    void onOnlineLevels(cocos2d::CCObject*) = win 0x4ef60;
+    void onDailyLevel(cocos2d::CCObject*) = mac 0x142980, win 0x4f170;
+    void onWeeklyLevel(cocos2d::CCObject*) = mac 0x1429a0, win 0x4f190;
+    void onFeaturedLevels(cocos2d::CCObject*) = mac 0x142a20, win 0x4edf0;
+    void onFameLevels(cocos2d::CCObject*) = mac 0x142a80, win 0x4ee70;
+    void onMapPacks(cocos2d::CCObject*) = mac 0x1429c0, win 0x4efb0;
+    void onOnlineLevels(cocos2d::CCObject*) = mac 0x142ae0, win 0x4ef60;
     void onGauntlets(cocos2d::CCObject*) = mac 0x142b20, win 0x4f0a0;
     void onSecretVault(cocos2d::CCObject*) = win 0x4f1d0;
     void onTreasureRoom(cocos2d::CCObject*) = win 0x4f540;
@@ -1138,7 +1138,7 @@ class CustomizeObjectLayer : FLAlertLayer, TextInputDelegate, HSVWidgetPopupDele
 
 [[link(android)]]
 class DailyLevelPage : FLAlertLayer, FLAlertLayerProtocol, GJDailyLevelDelegate, LevelDownloadDelegate {
-    static DailyLevelPage* create(bool weekly) = win 0x6a860;
+    static DailyLevelPage* create(bool weekly) = mac 0x108ac0, win 0x6a860;
     bool init(bool weekly) = mac 0x108C90, win 0x6a900;
     void updateTimers(float) = mac 0x109780, win 0x6bef0;
     virtual void show() = mac 0x10a4b0, win 0x3f360;
@@ -3694,7 +3694,8 @@ class GameStatsManager : cocos2d::CCNode {
     int getBaseCurrencyForLevel(GJGameLevel*) = mac 0x43470, win 0xf8530;
     GJChallengeItem* getChallenge(int id) = mac 0x451f0, win 0xa2fb0;
     void getSecretCoinKey(char const*) = mac 0x429f0;
-    int getStat(char const*) = mac 0x3d310, win 0xf3580;
+    int getStat(char const* type) = mac 0x3d310, win 0xf3580;
+    void setStat(char const* type, int amount) = win 0xf3690;
     void hasPendingUserCoin(char const*) = mac 0x42730, win 0xf7c50;
     void hasSecretCoin(char const*) = mac 0x40730, win 0xf7dc0;
     void hasUserCoin(char const*) = mac 0x427e0, win 0xf7ae0;
@@ -3706,6 +3707,7 @@ class GameStatsManager : cocos2d::CCNode {
     void storeSecretCoin(char const*) = mac 0x42a10;
     void storeUserCoin(char const*) = mac 0x42890;
     bool isItemUnlocked(UnlockType type, int id) = win 0xfbb80;
+    void checkAchievement(char const* type) = win 0xf37c0;
 
     PAD = mac 0x50, win 0x28, android 0x24;
     cocos2d::CCDictionary* m_dailyChests;
