@@ -294,9 +294,10 @@ function(package_geode_resources_now proname src dest header_dest)
         # "LOADER_RESOURCE_FILES {\n"
     )
 
-    list(APPEND HASHED_EXTENSIONS ".png")
-    list(APPEND HASHED_EXTENSIONS ".mp3")
-    list(APPEND HASHED_EXTENSIONS ".ogg")
+    # yeah don't think we need to check too many stuff
+    # list(APPEND HASHED_EXTENSIONS ".png")
+    # list(APPEND HASHED_EXTENSIONS ".mp3")
+    # list(APPEND HASHED_EXTENSIONS ".ogg")
     list(APPEND HASHED_EXTENSIONS ".md")
 
     foreach(file ${RESOURCE_FILES})
