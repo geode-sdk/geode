@@ -1141,9 +1141,9 @@ class DrawGridLayer : cocos2d::CCLayer {
         return editorLayer->m_drawGridLayer;
     }
 
-    bool init(cocos2d::CCNode* grid, LevelEditorLayer* editor) = win 0x16c4d0;
+    bool init(cocos2d::CCNode* grid, LevelEditorLayer* editor) = win 0x16c4d0, mac 0x2729a0;
     virtual void draw() = win 0x16ce90, mac 0xa3c40;
-    virtual void update(float) = win 0x16cd80;
+    virtual void update(float) = win 0x16cd80, mac 0xa3b30;
     void clearPlayerPoints() {
         m_playerNodePoints->removeAllObjects();
         m_player2NodePoints->removeAllObjects();
@@ -1736,7 +1736,7 @@ class FMODAudioEngine : cocos2d::CCNode {
     virtual void update(float) = win 0x23b20;
 
     cocos2d::CCDictionary* m_dictionary;
-    std::string m_filePath;
+    gd::string m_filePath;
     float m_backgroundMusicVolume;
     float m_effectsVolume;
     float m_pulse1;
@@ -3847,7 +3847,7 @@ class LevelEditorLayer : GJBaseGameLayer, LevelSettingsDelegate {
     virtual void calculateColorValues(EffectGameObject*, EffectGameObject*, int, float, ColorActionSprite*, GJEffectManager*) = mac 0x9c590, win 0x166f90;
     virtual void addToGroup(GameObject*, int, bool) = mac 0x9dab0, win 0x167310;
     virtual void removeFromGroup(GameObject*, int) = mac 0x9db60, win 0x1673a0;
-    virtual void timeForXPos(float) = mac 0x9c7d0, win 0x167210;
+    virtual float timeForXPos(float) = mac 0x9c7d0, win 0x167210;
     virtual void xPosForTime(float) = mac 0x9c800, win 0x167250;
     virtual void levelSettingsUpdated() = mac 0x93f30, win 0x1606c0;
     static LevelEditorLayer* create(GJGameLevel* level) = mac 0x90fb0, win 0x15ed60, ios 0x261628;
@@ -5412,6 +5412,11 @@ class SetupPulsePopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, T
     cocos2d::CCSprite* m_prevColorSpr;
     PAD = win 0x64, mac 0xac;
     int m_pulseMode; // 0x38c on mac
+}
+
+class SetupRotatePopup : FLAlertLayer {
+    void onClose(cocos2d::CCObject*) = win 0x244150;
+    virtual void keyBackClicked() = win 0x2441a0;
 }
 
 class SetupShakePopup : FLAlertLayer {
