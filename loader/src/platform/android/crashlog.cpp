@@ -335,28 +335,135 @@ static void handlerThread() {
 static bool s_lastLaunchCrashed;
 
 bool crashlog::setupPlatformHandler() {
-    struct sigaction action;
-    action.sa_sigaction = &signalHandler;
-    action.sa_flags = SA_SIGINFO;
-    sigemptyset(&action.sa_mask);
-    sigaction(SIGSEGV, &action, &oldActionSEGV);
-    // I'd rather not track interrupt lol
-    // sigaction(SIGINT, &action, nullptr);
-    // sigaction(SIGFPE, &action, nullptr);
-    sigaction(SIGILL, &action, &oldActionILL);
-    // sigaction(SIGTERM, &action, nullptr);
-    // sigaction(SIGABRT, &action, nullptr);
-    sigaction(SIGBUS, &action, &oldActionBUS);
+    auto pidFile = crashlog::getCrashLogDirectory() / "last-pid";
 
-    std::thread(&handlerThread).detach();
+    int lastPid = 0;
+
+    if (ghc::filesystem::exists(pidFile)) {
+
+        auto res = file::readString(pidFile);
+        if (!res) {
+            log::warn("Failed to read last-pid file: {}", res.error());
+        }
+        else {
+            lastPid = std::stoi(res.unwrap());
+        }
+
+        std::error_code ec;
+        ghc::filesystem::remove(pidFile, ec);
+
+        if (ec) {
+            log::warn("Failed to remove last-pid file: {}", ec.message());
+        }
+    }
+
+    auto res = file::writeString(pidFile, std::to_string(getpid()));
+    if (!res) {
+        log::warn("Failed to write last-pid file: {}", res.error());
+    }
+
+    lastPid = 1513;
+
+    
+    if (lastPid == 0) {
+        return true;
+    }
+
+    // TODO: get logcat crash
+
+    std::string logcatCrash = R"RAW(
+F/libc    (31506): Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0xccb00000 in tid 31584 (GLThread 215445), pid 31506 (.geode.launcher)
+F/DEBUG   (31618): *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+F/DEBUG   (31618): Build fingerprint: 'samsung/j7y17ltexx/j7y17lte:9/PPR1.180610.011/J730FXWU8CUG1:user/release-keys'
+F/DEBUG   (31618): Revision: '7'
+F/DEBUG   (31618): ABI: 'arm'
+F/DEBUG   (31618): pid: 31506, tid: 31584, name: GLThread 215445  >>> com.geode.launcher <<<
+F/DEBUG   (31618): signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0xccb00000
+F/DEBUG   (31618):     r0  ccafffe0  r1  ccafffe4  r2  ffefb73c  r3  00000000
+F/DEBUG   (31618):     r4  00000000  r5  c7e4af50  r6  c7e49400  r7  3c888889
+F/DEBUG   (31618):     r8  c2dcf000  r9  cf8a7000  r10 cd1c6800  r11 cf8a7000
+F/DEBUG   (31618):     ip  eff2b5f0  sp  cd1c6680  lr  c921095d  pc  efe9ef2c
+F/DEBUG   (31618): 
+F/DEBUG   (31618): backtrace:
+F/DEBUG   (31618):     #00 pc 00019f2c  /system/lib/libc.so (memcpy+96)
+F/DEBUG   (31618):     #01 pc 00336959  /data/app/com.robtopx.geometryjump-xzzAmj1_bAwPLWKGJk5srA==/lib/arm/libcocos2dcpp.so (offset 0x336000) (GJEffectManager::updateSpawnTriggers(float)+64)
+F/DEBUG   (31618):     #02 pc 0021b279  /data/app/com.robtopx.geometryjump-xzzAmj1_bAwPLWKGJk5srA==/lib/arm/libcocos2dcpp.so (offset 0x219000) (PlayLayer::update(float)+480)
+F/DEBUG   (31618):     #03 pc 00000617  <anonymous:ee06a000>
+F/libc    (  836): Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0xcd680000 in tid 901 (GLThread 215582), pid 836 (.geode.launcher)
+F/DEBUG   (  933): *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+F/DEBUG   (  933): Build fingerprint: 'samsung/j7y17ltexx/j7y17lte:9/PPR1.180610.011/J730FXWU8CUG1:user/release-keys'
+F/DEBUG   (  933): Revision: '7'
+F/DEBUG   (  933): ABI: 'arm'
+F/DEBUG   (  933): pid: 836, tid: 901, name: GLThread 215582  >>> com.geode.launcher <<<
+F/DEBUG   (  933): signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0xcd680000
+F/DEBUG   (  933):     r0  cd67ffd0  r1  cd67fff4  r2  ffe935fc  r3  00000000
+F/DEBUG   (  933):     r4  00000000  r5  cc6fa350  r6  cc6f8800  r7  3c888889
+F/DEBUG   (  933):     r8  c2990300  r9  ed1e0600  r10 caec3800  r11 ed1e0600
+F/DEBUG   (  933):     ip  eff2b5f0  sp  caec3680  lr  c94fe95d  pc  efe9ef30
+F/DEBUG   (  933): 
+F/DEBUG   (  933): backtrace:
+F/DEBUG   (  933):     #00 pc 00019f30  /system/lib/libc.so (memcpy+100)
+F/DEBUG   (  933):     #01 pc 00336959  /data/app/com.robtopx.geometryjump-xzzAmj1_bAwPLWKGJk5srA==/lib/arm/libcocos2dcpp.so (offset 0x336000) (GJEffectManager::updateSpawnTriggers(float)+64)
+F/DEBUG   (  933):     #02 pc 0021b279  /data/app/com.robtopx.geometryjump-xzzAmj1_bAwPLWKGJk5srA==/lib/arm/libcocos2dcpp.so (offset 0x219000) (PlayLayer::update(float)+480)
+F/DEBUG   (  933):     #03 pc 00000617  <anonymous:ee06a000>
+F/libc    ( 1071): Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0xc9c00000 in tid 1228 (GLThread 215607), pid 1071 (.geode.launcher)
+F/DEBUG   ( 1377): *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+F/DEBUG   ( 1377): Build fingerprint: 'samsung/j7y17ltexx/j7y17lte:9/PPR1.180610.011/J730FXWU8CUG1:user/release-keys'
+F/DEBUG   ( 1377): Revision: '7'
+F/DEBUG   ( 1377): ABI: 'arm'
+F/DEBUG   ( 1377): pid: 1071, tid: 1228, name: GLThread 215607  >>> com.geode.launcher <<<
+F/DEBUG   ( 1377): signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0xc9c00000
+F/DEBUG   ( 1377):     r0  c9bfffe0  r1  c9bfffe4  r2  ffb862fc  r3  00000000
+F/DEBUG   ( 1377):     r4  00000000  r5  c1bf2b50  r6  c1bf1000  r7  3c888889
+F/DEBUG   ( 1377):     r8  c7d34200  r9  ed1e6e00  r10 cd0d2800  r11 ed1e6e00
+F/DEBUG   ( 1377):     ip  eff2b5f0  sp  cd0d2680  lr  c900c95d  pc  efe9ef2c
+F/DEBUG   ( 1377): 
+F/DEBUG   ( 1377): backtrace:
+F/DEBUG   ( 1377):     #00 pc 00019f2c  /system/lib/libc.so (memcpy+96)
+F/DEBUG   ( 1377):     #01 pc 00336959  /data/app/com.robtopx.geometryjump-xzzAmj1_bAwPLWKGJk5srA==/lib/arm/libcocos2dcpp.so (offset 0x336000) (GJEffectManager::updateSpawnTriggers(float)+64)
+F/DEBUG   ( 1377):     #02 pc 0021b279  /data/app/com.robtopx.geometryjump-xzzAmj1_bAwPLWKGJk5srA==/lib/arm/libcocos2dcpp.so (offset 0x219000) (PlayLayer::update(float)+480)
+F/DEBUG   ( 1377):     #03 pc 00000617  <anonymous:edfa0000>
+F/libc    ( 1513): Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0xc8500000 in tid 1658 (GLThread 215649), pid 1513 (.geode.launcher)
+F/DEBUG   ( 1752): *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+F/DEBUG   ( 1752): Build fingerprint: 'samsung/j7y17ltexx/j7y17lte:9/PPR1.180610.011/J730FXWU8CUG1:user/release-keys'
+F/DEBUG   ( 1752): Revision: '7'
+F/DEBUG   ( 1752): ABI: 'arm'
+F/DEBUG   ( 1752): pid: 1513, tid: 1658, name: GLThread 215649  >>> com.geode.launcher <<<
+F/DEBUG   ( 1752): signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0xc8500000
+F/DEBUG   ( 1752):     r0  c84fffc0  r1  c84fffe4  r2  ffb13634  r3  00000008
+F/DEBUG   ( 1752):     r4  00000000  r5  c83e0750  r6  c83dec00  r7  3c888889
+F/DEBUG   ( 1752):     r8  e41cad00  r9  ed9fbc00  r10 cd38f800  r11 ed9fbc00
+F/DEBUG   ( 1752):     ip  00000000  sp  cd38f680  lr  c951195d  pc  efe9ef30
+F/DEBUG   ( 1752): 
+F/DEBUG   ( 1752): backtrace:
+F/DEBUG   ( 1752):     #00 pc 00019f30  /system/lib/libc.so (memcpy+100)
+F/DEBUG   ( 1752):     #01 pc 00336959  /data/app/com.robtopx.geometryjump-xzzAmj1_bAwPLWKGJk5srA==/lib/arm/libcocos2dcpp.so (offset 0x336000) (GJEffectManager::updateSpawnTriggers(float)+64)
+F/DEBUG   ( 1752):     #02 pc 0021b279  /data/app/com.robtopx.geometryjump-xzzAmj1_bAwPLWKGJk5srA==/lib/arm/libcocos2dcpp.so (offset 0x219000) (PlayLayer::update(float)+480)
+F/DEBUG   ( 1752):     #03 pc 00000617  <anonymous:ee06a000>
+    )RAW";
+
+    std::string crashTrace;
+    auto findLast = logcatCrash.find_last_of(fmt::format("pid {} (.geode.launcher)", lastPid));
+    if (findLast != std::string::npos) {
+        auto begin = logcatCrash.substr(0, findLast).find_last_of("F/libc");
+        if (begin != std::string::npos) {
+            crashTrace = logcatCrash.substr(begin);
+        }
+    }
+    else {
+        return true;
+    }
+
+    auto text = crashlog::writeCrashlog(nullptr, "", crashTrace, "");
+    s_lastLaunchCrashed = true;
 	
     auto lastCrashedFile = crashlog::getCrashLogDirectory() / "last-crashed";
     if (ghc::filesystem::exists(lastCrashedFile)) {
-        s_lastLaunchCrashed = true;
-        try {
-            ghc::filesystem::remove(lastCrashedFile);
-        }
-        catch (...) {
+        std::error_code ec;
+        ghc::filesystem::remove(lastCrashedFile, ec);
+
+        if (ec) {
+            log::warn("Failed to remove last-crashed file: {}", ec.message());
         }
     }
     return true;
