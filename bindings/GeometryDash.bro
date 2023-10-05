@@ -5414,6 +5414,11 @@ class SetupPulsePopup : FLAlertLayer, cocos2d::extension::ColorPickerDelegate, T
     int m_pulseMode; // 0x38c on mac
 }
 
+class SetupRotatePopup : FLAlertLayer {
+    void onClose(cocos2d::CCObject*) = win 0x244150;
+    virtual void keyBackClicked() = win 0x2441a0;
+}
+
 class SetupShakePopup : FLAlertLayer {
     static SetupShakePopup* create(EffectGameObject*, cocos2d::CCArray*) = mac 0x3adc00;
 }
