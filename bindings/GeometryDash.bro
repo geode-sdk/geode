@@ -4681,8 +4681,8 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     void switchToRobotMode(PlayerObject*, GameObject*, bool) = mac 0x7bc80;
     void switchToRollMode(PlayerObject*, GameObject*, bool) = mac 0x7bbe0;
     void switchToSpiderMode(PlayerObject*, GameObject*, bool) = mac 0x7bd20;
-    void timeForXPos(float) = mac 0x7d120, win 0x2087d0;
-    void timeForXPos2(float, bool) = mac 0x293eb0, win 0x1fd3d0;
+    float timeForXPos(float) = mac 0x7d120, win 0x2087d0;
+    float timeForXPos2(float, bool) = mac 0x293eb0, win 0x1fd3d0;
     void toggleBGEffectVisibility(bool) = mac 0x7fe80;
     void toggleDualMode(GameObject*, bool, PlayerObject*, bool) = mac 0x7bf90, win 0x208880;
     void toggleFlipped(bool, bool) = mac 0x7bdc0, win 0x20ab20;
