@@ -1410,6 +1410,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     void onSettings(cocos2d::CCObject* sender) = win 0x77fe0;
     void activateRotationControl(cocos2d::CCObject* sender) = win 0x8fe70, mac 0x24480;
     void activateScaleControl(cocos2d::CCObject* sender) = mac 0x24c80, win 0x889b0;
+    void deactivateScaleControl() = win 0x88bf0, mac 0xb290;
     void dynamicGroupUpdate(bool idk) = win 0x8ad10;
     void createRockOutline() = win 0x89c10;
     void createRockEdges() = win 0x88ec0;
