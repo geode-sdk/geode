@@ -71,8 +71,8 @@ set(GEODE_BIN_PATH ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 set(GEODE_LOADER_PATH ${CMAKE_CURRENT_SOURCE_DIR}/loader)
 set(GEODE_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 
-include(cmake/GeodeFile.cmake)
 include(cmake/Platform.cmake)
+include(cmake/GeodeFile.cmake)
 include(cmake/CPM.cmake)
 
 if (PROJECT_IS_TOP_LEVEL AND NOT GEODE_BUILDING_DOCS)

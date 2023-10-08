@@ -85,9 +85,118 @@ bool utils::file::openFolder(ghc::filesystem::path const& path) {
     return false;
 }
 
-geode::Result<ghc::filesystem::path> utils::file::
-    pickFile(geode::utils::file::PickMode, geode::utils::file::FilePickOptions const&) {
-    return geode::Err("This function is currently unimplemented");
+
+static utils::MiniFunction<void(ghc::filesystem::path)> s_fileCallback;
+static utils::MiniFunction<void(std::vector<ghc::filesystem::path>)> s_filesCallback;
+static utils::MiniFunction<void()> s_failedCallback;
+
+extern "C"
+JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_selectFileCallback(
+        JNIEnv *env,
+        jobject,
+        jstring data
+) {
+    auto isCopy = jboolean();
+    auto dataStr = env->GetStringUTFChars(data, &isCopy);
+
+    log::debug("Selected file: {}", dataStr);
+
+    s_fileCallback(dataStr);
+}
+
+extern "C"
+JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_selectFilesCallback(
+        JNIEnv *env,
+        jobject,
+        jobjectArray datas
+) {
+    auto isCopy = jboolean();
+    auto count = env->GetArrayLength(datas);
+    auto result = std::vector<ghc::filesystem::path>();
+    for (int i = 0; i < count; i++) {
+        auto data = (jstring)env->GetObjectArrayElement(datas, i);
+        auto dataStr = env->GetStringUTFChars(data, &isCopy);
+        result.push_back(dataStr);
+
+        log::debug("Selected file {}: {}", i, dataStr);
+    }
+
+    s_filesCallback(result);
+}
+
+extern "C"
+JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_failedCallback(
+        JNIEnv *env,
+        jobject
+) {
+    if (s_failedCallback) s_failedCallback();
+}
+
+Result<ghc::filesystem::path> file::pickFile(file::PickMode mode, file::FilePickOptions const& options) {
+    return Err("Use the callback version");
+}
+
+void file::pickFile(
+    PickMode mode, FilePickOptions const& options,
+    utils::MiniFunction<void(ghc::filesystem::path)> callback,
+    utils::MiniFunction<void()> failed
+) {
+    s_fileCallback = callback;
+    s_failedCallback = failed;
+
+    std::string method;
+    switch (mode) {
+        case file::PickMode::OpenFile:
+            method = "selectFile";
+            break;
+        case file::PickMode::SaveFile:
+            method = "createFile";
+            break;
+        case file::PickMode::OpenFolder:
+            method = "selectFolder";
+            break;
+    }
+
+    JniMethodInfo t;
+    if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", method.c_str(), "(Ljava/lang/String;)Z")) {
+        jstring stringArg1 = t.env->NewStringUTF(options.defaultPath.value_or(ghc::filesystem::path()).string().c_str());
+
+        jboolean result = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);
+
+        t.env->DeleteLocalRef(stringArg1);
+        t.env->DeleteLocalRef(t.classID);
+        if (result) {
+            return;
+        }
+    }
+    if (s_failedCallback) s_failedCallback();
+}
+
+Result<std::vector<ghc::filesystem::path>> file::pickFiles(file::FilePickOptions const& options) {
+    return Err("Use the callback version");
+}
+
+void file::pickFiles(
+    FilePickOptions const& options,
+    utils::MiniFunction<void(std::vector<ghc::filesystem::path>)> callback,
+    utils::MiniFunction<void()> failed
+) {
+    s_filesCallback = callback;
+    s_failedCallback = failed;
+
+    JniMethodInfo t;
+    if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "selectFiles", "(Ljava/lang/String;)Z")) {
+        jstring stringArg1 = t.env->NewStringUTF(options.defaultPath.value_or(ghc::filesystem::path()).string().c_str());
+
+        jboolean result = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);
+
+        t.env->DeleteLocalRef(stringArg1);
+        t.env->DeleteLocalRef(t.classID);
+        if (result) {
+            return;
+        }
+    }
+    if (s_failedCallback) s_failedCallback();
 }
 
 void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {

@@ -355,16 +355,17 @@ void FileSettingNode::valueChanged(bool updateText) {
 }
 
 void FileSettingNode::onPickFile(CCObject*) {
-    if (auto path = file::pickFile(
+    file::pickFile(
         file::PickMode::OpenFile,
         {
             dirs::getGameDir(),
             setting()->castDefinition().controls.filters
+        },
+        [&](auto path) {
+            m_uncommittedValue = path;
+            this->valueChanged(true);
         }
-    )) {
-        m_uncommittedValue = path.unwrap();
-        this->valueChanged(true);
-    }
+    );
 }
 
 bool FileSettingNode::setup(FileSettingValue* setting, float width) {
