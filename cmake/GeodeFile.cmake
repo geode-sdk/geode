@@ -59,7 +59,7 @@ function(setup_geode_mod proname)
     if(GEODE_CLI STREQUAL "GEODE_CLI-NOTFOUND")
         message(FATAL_ERROR
             "setup_geode_mod called, but Geode CLI was not found - "
-            "Please install CLI: https://docs.geode-sdk.org/info/installcli/"
+            "Please install CLI: https://docs.geode-sdk.org/"
         )
         return()
     endif()
