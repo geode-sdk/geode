@@ -2438,10 +2438,14 @@ class GJGarageLayer : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol,
     void onDartIcon(cocos2d::CCObject* sender) = win 0x128420;
     void onRobotIcon(cocos2d::CCObject* sender) = win 0x1286d0;
     void onSpiderIcon(cocos2d::CCObject* sender) = win 0x128890;
+    void onPlayerDeathEffect(cocos2d::CCObject* sender) = win 0x128a50;
+    void onPlayerTrail(cocos2d::CCObject* sender) = win 0x128af0; 
     void onShards(cocos2d::CCObject* sender) = win 0x12ad70;
     void onBack(cocos2d::CCObject* sender) = win 0x12adf0;
     void onShop(cocos2d::CCObject* sender) = win 0x12ad90;
     void setupColorSelect() = mac 0x1b7500;
+    void showCircleWave() = win 0x12aad0;
+    void showBlackCircleWave() = win 0x12a9d0; 
     PAD = mac 0x10, win 0x8;
     CCTextInputNode* m_nameInput;
     SimplePlayer* m_playerPreview;
@@ -2553,6 +2557,7 @@ class GJRobotSprite : CCAnimatedSprite {
     virtual void hideSecondary() = mac 0x34c3b0, win 0x146c90;
     static GJRobotSprite* create() = mac 0x34ac00, win 0x1457a0;
     void updateColor02(cocos2d::_ccColor3B) = mac 0x34bbd0, win 0x1461c0;
+    void updateGlowColor(cocos2d::_ccColor3B, bool) = win 0x1460C0; 
     void updateFrame(int) = mac 0x34bdd0, win 0x146700;
     void hideGlow() = mac 0x34b860;
 
@@ -4040,8 +4045,13 @@ class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDeleg
     void setupLevelInfo() = mac 0x161C80, win 0x178680;
     void downloadLevel() = win 0x177d90, mac 0x161b90;
     void onPlay(cocos2d::CCObject* sender) = mac 0x161840, win 0x179730;
+    void onBack(cocos2d::CCObject* sender) = mac 0x163810, win 0x17C110;
+    void onDelete(cocos2d::CCObject* sender) = mac 0x162f30, win 0x17A2B0; 
+
     virtual void levelDownloadFinished(GJGameLevel*) = mac 0x164C00, win 0x1790C0;
     virtual void levelUpdateFinished(GJGameLevel*, UpdateResponse) = mac 0x164E60, win 0x1792B0;
+    virtual void keyBackClicked() = win 0x17C1D0; 
+
     void showUpdateAlert(UpdateResponse) = mac 0x164ED0, win 0x179300;
     void updateLabelValues() = mac 0x164090, win 0x17b170;
 
@@ -4227,6 +4237,7 @@ class LikeItemLayer : FLAlertLayer {
 
 class ListButtonBar : cocos2d::CCNode {
     BoomScrollLayer* m_scrollLayer;
+    void switchedPage(int page) = win 0x29c50; 
 }
 
 class ListButtonBarDelegate {}
@@ -5049,7 +5060,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     PAD = mac 0x14, win 0x14;
     bool m_unk4D4;
     cocos2d::CCArray* m_particleSystems;
-    bool m_unk4DC;
+    bool m_hasGlow;
     bool m_isHidden;
     int m_hasGhostTrail;
     GhostTrailEffect* m_ghostTrail;
