@@ -97,12 +97,40 @@ Result<ghc::filesystem::path> utils::file::pickFile(
     return Ok(path);
 }
 
+GEODE_DLL void file::pickFile(
+    PickMode mode, FilePickOptions const& options,
+    MiniFunction<void(ghc::filesystem::path)> callback,
+    MiniFunction<void()> failed
+) {
+    auto result = file::pickFile(mode, options);
+
+    if (result.isOk()) {
+        callback(std::move(result.unwrap()));
+    } else {
+        failed();
+    }
+}
+
 Result<std::vector<ghc::filesystem::path>> utils::file::pickFiles(
     file::FilePickOptions const& options
 ) {
     std::vector<ghc::filesystem::path> paths;
     GEODE_UNWRAP(nfdPick(NFDMode::OpenFolder, options, &paths));
     return Ok(paths);
+}
+
+GEODE_DLL void file::pickFiles(
+    FilePickOptions const& options,
+    MiniFunction<void(ghc::filesystem::path)> callback,
+    MiniFunction<void()> failed
+) {
+    auto result = file::pickFiles(options);
+
+    if (result.isOk()) {
+        callback(std::move(result.unwrap()));
+    } else {
+        failed();
+    }
 }
 
 void utils::web::openLinkInBrowser(std::string const& url) {

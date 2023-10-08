@@ -138,8 +138,8 @@ Result<ghc::filesystem::path> file::pickFile(file::PickMode mode, file::FilePick
 
 void file::pickFile(
     PickMode mode, FilePickOptions const& options,
-    utils::MiniFunction<void(ghc::filesystem::path)> callback,
-    utils::MiniFunction<void()> failed
+    MiniFunction<void(ghc::filesystem::path)> callback,
+    MiniFunction<void()> failed
 ) {
     s_fileCallback = callback;
     s_failedCallback = failed;
@@ -178,8 +178,8 @@ Result<std::vector<ghc::filesystem::path>> file::pickFiles(file::FilePickOptions
 
 void file::pickFiles(
     FilePickOptions const& options,
-    utils::MiniFunction<void(std::vector<ghc::filesystem::path>)> callback,
-    utils::MiniFunction<void()> failed
+    MiniFunction<void(std::vector<ghc::filesystem::path>)> callback,
+    MiniFunction<void()> failed
 ) {
     s_filesCallback = callback;
     s_failedCallback = failed;
