@@ -3309,7 +3309,7 @@ class GameObject : CCSpritePlus {
     void groupWasDisabled() = mac 0x33b110;
     void groupWasEnabled() = mac 0x33b0f0;
     void hasBeenActivated() = mac 0x342a80;
-    void hasBeenActivatedByPlayer(GameObject*) = mac 0x342a50;
+    bool hasBeenActivatedByPlayer(GameObject*) = mac 0x342a50, win 0xEF110;
     void hasSecondaryColor() = mac 0x342f80;
     void ignoreEnter() = mac 0x3352a0;
     void ignoreFade() = mac 0x335290;
