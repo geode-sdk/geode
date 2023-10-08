@@ -1,7 +1,7 @@
 set(GEODE_CLI_MINIMUM_VERSION 1.0.5)
 
 # Find Geode CLI
-if (NOT DEFINED GEODE_CLI)
+if (NOT DEFINED GEODE_CLI OR GEODE_CLI STREQUAL "GEODE_CLI-NOTFOUND")
     find_program(GEODE_CLI NAMES geode.exe geode-cli.exe geode geode-cli PATHS ${CLI_PATH})
 endif()
 
