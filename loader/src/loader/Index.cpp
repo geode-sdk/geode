@@ -252,7 +252,7 @@ private:
     friend class Index;
 
     void cleanupItems();
-    void downloadIndex();
+    void downloadIndex(std::string commitHash = "");
     void checkForUpdates();
     void updateFromLocalTree();
     void installNext(size_t index, IndexInstallList const& list);
@@ -296,7 +296,7 @@ bool Index::hasTriedToUpdate() const {
     return m_impl->m_triedToUpdate;
 }
 
-void Index::Impl::downloadIndex() {
+void Index::Impl::downloadIndex(std::string commitHash) {
     log::debug("Downloading index");
 
     IndexUpdateEvent(UpdateProgress(0, "Beginning download")).post();
@@ -307,7 +307,7 @@ void Index::Impl::downloadIndex() {
         .join("index-download")
         .fetch("https://github.com/geode-sdk/mods/zipball/main")
         .into(targetFile)
-        .then([this, targetFile](auto) {
+        .then([this, targetFile, commitHash](auto) {
             auto targetDir = dirs::getIndexDir() / "v0";
             // delete old unzipped index
             try {
@@ -333,6 +333,10 @@ void Index::Impl::downloadIndex() {
 
                 // remove the directory github adds to the root of the zip
                 (void)flattenGithubRepo(targetDir);
+                if (!commitHash.empty()) {
+                    auto const checksumPath = dirs::getIndexDir() / ".checksum";
+                    (void)file::writeString(checksumPath, commitHash);
+                }
 
                 Loader::get()->queueInMainThread([this] {
                     // update index
@@ -387,8 +391,7 @@ void Index::Impl::checkForUpdates() {
             }
             // otherwise save hash and download source
             else {
-                (void)file::writeString(checksum, newSHA);
-                this->downloadIndex();
+                this->downloadIndex(newSHA);
             }
         })
         .expect([](std::string const& err) {
