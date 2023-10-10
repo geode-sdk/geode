@@ -1431,6 +1431,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     void repositionObjectsToCenter(cocos2d::CCArray* objs, cocos2d::CCPoint center, bool ignoreGroupParent) = mac 0x1fcd0, win 0x88410;
     virtual void draw() = win 0x8fbe0;
     float valueFromXPos(float val) = win 0x78e30, mac 0x1c810;
+    void processSelectObjects(cocos2d::CCArray*) = win 0x86f70;
 
     bool m_isPlayingMusic;
     EditButtonBar* m_buttonBar;
