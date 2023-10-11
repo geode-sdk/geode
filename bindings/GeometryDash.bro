@@ -5236,18 +5236,18 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     void yStartDown() = mac 0x22e9b0;
     void yStartUp() = mac 0x22e990;
 
-    PAD = mac 0x14, win 0x14;
+    PAD = mac 0x14, win 0x14, android 0x10;
     bool m_unk480;
     cocos2d::CCNode* m_unk484;
     cocos2d::CCDictionary* m_collisionLog;
     cocos2d::CCDictionary* m_collisionLog1;
     GameObject* m_collidedSlope;
-    PAD = mac 0x30, win 0x1c;
+    PAD = mac 0x30, win 0x1c, android 0x1c;
     bool m_unk4B0;
     cocos2d::CCSprite* m_unk4B4;
     int m_collidedGroundObjectUniqueID;
     int m_collidedCeilObjectUniqueID;
-    PAD = mac 0x14, win 0x14;
+    PAD = mac 0x14, win 0x14, android 0x14;
     bool m_unk4D4;
     cocos2d::CCArray* m_particleSystems;
     bool m_unk4DC;
@@ -5279,13 +5279,13 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     bool m_unk53E;
     bool m_unk53F;
     bool m_isCheckpointQueued;
-    PAD = mac 0xf, win 0xf;
+    PAD = mac 0xf, win 0xf, android 0xf;
     double m_lastJumpTime;
     double m_unk558;
     double m_unk560;
-    PAD = mac 0x1c, win 0x1c;
+    PAD = mac 0x1c, win 0x1c, android 0x1c;
     float m_decelerationRate;
-    PAD = mac 0x13, win 0x13;
+    PAD = mac 0x13, win 0x13, android 0x13;
     bool m_hasHitRing;
     GameObject* m_objectSnappedTo;
     CheckpointObject* m_checkpoint;
@@ -5303,14 +5303,14 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     void* m_unk5D0;
     cocos2d::CCParticleSystemQuad* m_unk5D4;
     cocos2d::CCParticleSystemQuad* m_unk5D8;
-    PAD = mac 0x20, win 0x20;
+    PAD = mac 0x20, win 0x20, android 0x20;
     // int m_streakID;
     // float m_wellIdk;
     // PAD = win 0x10;
     bool m_unk5FC;
     bool m_unk5FD;
     bool m_hasHitPortal;
-    PAD = mac 0xb, win 0xb;
+    PAD = mac 0xb, win 0xb, android 0xb;
     bool m_unknown73d;
     cocos2d::_ccColor3B m_unknown73e;
     cocos2d::_ccColor3B m_unknown741;
@@ -5357,13 +5357,13 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     bool m_unk684;
     bool m_unk685;
     double m_unk688;
-    PAD = win 0x4;
+    PAD = win 0x4, android 0x4;
     float m_meteringValue;
     float m_groundHeight;
     float m_unk69C;
-    PAD = win 0x4;
+    PAD = win 0x4, android 0x4;
     std::array<float, 200> m_unk6A4;
-    PAD = win 0x1c;
+    PAD = win 0x1c, android 0x1c;
 }
 
 [[link(android)]]
