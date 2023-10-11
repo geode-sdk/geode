@@ -405,7 +405,12 @@ namespace gd {
         }
 
         ~vector() {
-            if (m_start) delete m_start;
+            if (m_start) {
+                for (auto& x : *this) {
+                    x.~T();
+                }
+                delete m_start;
+            }
         }
 
         size_t size() const {
