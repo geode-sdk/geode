@@ -180,7 +180,7 @@ Result<std::vector<ghc::filesystem::path>> file::pickFiles(
 
 GEODE_DLL void file::pickFiles(
     FilePickOptions const& options,
-    MiniFunction<void(ghc::filesystem::path)> callback,
+    MiniFunction<void(std::vector<ghc::filesystem::path>)> callback,
     MiniFunction<void()> failed
 ) {
     auto result = file::pickFiles(options);
