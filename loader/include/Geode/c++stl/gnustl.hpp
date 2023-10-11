@@ -405,9 +405,7 @@ namespace gd {
         }
 
         ~vector() {
-            for (auto i = m_start; i != m_finish; ++i) {
-                delete i;
-            }
+            if (m_start) delete m_start;
         }
 
         size_t size() const {
