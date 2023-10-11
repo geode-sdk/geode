@@ -13,6 +13,7 @@ namespace geode {
     class GEODE_DLL SceneManager {
     protected:
         cocos2d::CCArray* m_persistedNodes;
+        cocos2d::CCScene* m_lastScene = nullptr;
 
         bool setup();
 
