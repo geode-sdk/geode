@@ -594,7 +594,7 @@ bool Index::isUpdateAvailable(IndexItemHandle item) const {
 bool Index::areUpdatesAvailable() const {
     for (auto& mod : Loader::get()->getAllMods()) {
         auto item = this->getMajorItem(mod->getID());
-        if (item && item->getMetadata().getVersion() > mod->getVersion()) {
+        if (item && item->getMetadata().getVersion() > mod->getVersion() && mod->isEnabled()) {
             return true;
         }
     }
