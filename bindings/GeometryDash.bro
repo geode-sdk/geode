@@ -1730,11 +1730,13 @@ class FLAlertLayerProtocol {
 
 class FMODAudioEngine : cocos2d::CCNode {
     static FMODAudioEngine* sharedEngine() = mac 0x20ef80, win 0x239f0;
+    void setupAudioEngine() = win 0x23a70;
     void preloadEffect(gd::string filename) = win 0x24240;
     bool isBackgroundMusicPlaying() = win 0x24050;
     bool isBackgroundMusicPlaying(gd::string path) = win 0x24080;
     void playBackgroundMusic(gd::string path, bool fade, bool paused) = win 0x23d80;
-    
+    void setBackgroundMusicTime(float time) = win 0x23fb0;
+
     virtual void update(float) = win 0x23b20;
 
     cocos2d::CCDictionary* m_dictionary;
@@ -2682,7 +2684,7 @@ class GJSpiderSprite : GJRobotSprite {
 class GJSpriteColor : cocos2d::CCNode {
     int m_colorID;
     int m_defaultColorID;
-    float m_unk_0F4;
+    float m_opacity;
     cocos2d::ccHSVValue m_hsv;
     bool m_usesHSV;
     float unk_10C;
@@ -3282,15 +3284,16 @@ class GameObject : CCSpritePlus {
     void addToTempOffset(float, float) = mac 0x335700;
     void calculateOrientedBox() = mac 0x342b20, win 0xef1a0;
     void canChangeCustomColor() = mac 0x342db0;
-    cocos2d::_ccColor3B& colorForMode(int, bool) = mac 0x343460, win 0xef8d0;
     float groupOpacityMod() = win 0xebda0;
+    cocos2d::_ccColor3B& colorForMode(int colorMode, bool isMain) = mac 0x343460, win 0xef8d0;
+    cocos2d::_ccColor3B& groupColor(cocos2d::_ccColor3B const&, bool) = win 0xef9e0;
+    cocos2d::_ccColor3B& getActiveColorForMode(int, bool) = mac 0x343860, win 0xefb10;
     void commonSetup() = mac 0x2f5570, win 0xcfac0;
     void copyGroups(GameObject*) = mac 0x33ae30, win 0xeb9d0;
     static GameObject* createWithFrame(const char*) = mac 0x2f5490, win 0xcf8f0;
     static GameObject* createWithKey(int) = mac 0x2f4ce0, win 0xcf4f0;
     void destroyObject() = mac 0x336a00;
     void determineSlopeDirection() = mac 0x33a9e0, win 0xeb670;
-    cocos2d::_ccColor3B& getActiveColorForMode(int, bool) = mac 0x343860, win 0xefb10;
     void getBallFrame(int) = mac 0x341bf0;
     cocos2d::CCPoint getBoxOffset() = mac 0x3353d0, win 0xef350;
     const cocos2d::_ccColor3B& getColorIndex() = mac 0x343b90;
@@ -3350,8 +3353,7 @@ class GameObject : CCSpritePlus {
     bool canAllowMultiActivate() = mac 0x343ca0, win 0xf06b0;
     void createGroupContainer(int size) = mac 0x33aca0, win 0xeb870;
 
-    bool m_unk3;
-    bool m_isBlueMaybe;
+    cocos2d::_ccColor3B m_color;
     float m_unk2;
     float m_unk;
     float m_unk3f;
@@ -3454,7 +3456,7 @@ class GameObject : CCSpritePlus {
     int m_objectID;
     bool m_unk364;
     bool m_unk365;
-    bool m_unk366;
+    bool m_ignoreEnter;
     bool m_ignoreFade;
     bool m_unk368;
     bool m_unk369;
@@ -4683,7 +4685,8 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     void switchToRollMode(PlayerObject*, GameObject*, bool) = mac 0x7bbe0;
     void switchToSpiderMode(PlayerObject*, GameObject*, bool) = mac 0x7bd20;
     callback float timeForXPos(float) = mac 0x7d120, win 0x2087d0;
-    float timeForXPos2(float, bool) = mac 0x293eb0, win 0x1fd3d0;
+    float timeForXPos2(float, bool) = mac 0x293eb0, win 0x208800;
+    callback float xPosForTime(float) = mac 0x7d140, win 0x208840;
     void toggleBGEffectVisibility(bool) = mac 0x7fe80;
     void toggleDualMode(GameObject*, bool, PlayerObject*, bool) = mac 0x7bf90, win 0x208880;
     void toggleFlipped(bool, bool) = mac 0x7bdc0, win 0x20ab20;
@@ -4712,7 +4715,6 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     virtual void visit() = mac 0x75ef0, win 0x200020;
     void visitWithColorFlash() = mac 0x761f0, win 0x200190;
     void willSwitchToMode(int, PlayerObject*) = mac 0x7b9e0;
-    void xPosForTime(float) = mac 0x7d140, win 0x208840;
     ~PlayLayer() = mac 0x6b090, win 0x1fafc0;
 
     float unused4c8;
@@ -4743,7 +4745,7 @@ class PlayLayer : GJBaseGameLayer, CCCircleWaveDelegate, CurrencyRewardDelegate,
     EndPortalObject* m_endPortal;
     cocos2d::CCArray* m_checkpoints;
     cocos2d::CCArray* m_speedObjects;
-    cocos2d::CCArray* unk340;
+    cocos2d::CCArray* m_allSpeedObjects;
     cocos2d::CCArray* unk344;
     cocos2d::CCSprite* unk348;
     float m_backgroundRepeat;
@@ -4917,7 +4919,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     void boostPlayer(float) = mac 0x21d6b0, win 0x1f8f30;
     void bumpPlayer(float, int) = mac 0x22d890;
     void buttonDown(PlayerButton) = mac 0x22b7e0;
-    void checkSnapJumpToObject(GameObject*) = mac 0x2217f0;
+    void checkSnapJumpToObject(GameObject*) = mac 0x2217f0, win 0x1ece70;
     bool collidedWithObject(float fl, GameObject* obj) {
         auto rect = obj->getObjectRect();
         return collidedWithObject(fl, obj, rect);
@@ -5594,12 +5596,11 @@ class SpawnTriggerAction : cocos2d::CCNode {
 }
 
 class SpeedObject : cocos2d::CCNode {
-    float m_unknown;
-    float m_somethingToCompare;
-    float m_idk3;
-    float m_idk4;
+    Speed m_speed;
+    float m_xPos;
+    GameObject* m_object;
 
-    static SpeedObject* create(GameObject*, int, float) = win 0x20DE70;
+    static SpeedObject* create(GameObject* object, Speed speed, float x) = win 0x20de70;
 }
 
 class SpritePartDelegate {}
