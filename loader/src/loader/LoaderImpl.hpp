@@ -13,7 +13,6 @@
 #include <Geode/utils/ranges.hpp>
 #include <Geode/utils/MiniFunction.hpp>
 #include "ModImpl.hpp"
-#include <about.hpp>
 #include <crashlog.hpp>
 #include <mutex>
 #include <optional>

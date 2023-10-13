@@ -96,6 +96,11 @@ namespace geode {
          */
         std::optional<std::string> match;
 
+        /**
+         * The CCTextInputNode's allowed character filter
+         */
+        std::optional<std::string> filter;
+
         static Result<StringSetting> parse(JsonMaybeObject& obj);
     };
 

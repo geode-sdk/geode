@@ -146,21 +146,13 @@ jobs:
           files: geode-win/XInput9_1_0.dll geode-win/Geode.dll geode-win/GeodeUpdater.exe geode-win/Geode.lib geode-win/Geode.pdb
           dest: geode-${{ steps.ref.outputs.hash }}-win.zip
 
-      # TODO change in 2.0.0
-      - name: Zip Windows Resources
-        uses: vimtor/action-zip@v1.1
-        with:
-          files: geode-win/resources
-          dest: resources-win.zip
-
-      # This is basically a hack because of line endings. Blame windows.
-      - name: Zip MacOS Resources
+      - name: Zip Resources
         uses: vimtor/action-zip@v1.1
         with:
           files: geode-mac/resources
-          dest: resources-mac.zip
+          dest: resources.zip
 
-      - name: Update Nightly Release
+      - name: Update Development Release
         uses: andelf/nightly-release@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -174,5 +166,4 @@ jobs:
             ./geode-installer-${{ steps.ref.outputs.hash }}-win.exe
             ./geode-${{ steps.ref.outputs.hash }}-mac.zip
             ./geode-${{ steps.ref.outputs.hash }}-win.zip
-            ./resources-win.zip
-            ./resources-mac.zip
+            ./resources.zip

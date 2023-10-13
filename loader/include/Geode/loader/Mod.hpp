@@ -406,10 +406,12 @@ namespace geode {
         bool isLoggingEnabled() const;
         void setLoggingEnabled(bool enabled);
 
+        bool shouldLoad() const;
+
         friend class ModImpl;
     };
 }
 
-inline char const* operator"" _spr(char const* str, size_t) {
+GEODE_HIDDEN inline char const* operator"" _spr(char const* str, size_t) {
     return geode::Mod::get()->expandSpriteName(str);
 }

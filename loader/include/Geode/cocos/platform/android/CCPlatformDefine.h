@@ -3,12 +3,8 @@
 
 #include <android/log.h>
 
-#ifdef GEODE_EXPORTING
-    #define CC_DLL __attribute__((visibility("default")))
-#else
-    #define CC_DLL 
-#endif
-#define ACTUAL_CC_DLL CC_DLL
+#define CC_DLL 
+#define ACTUAL_CC_DLL
 
 #define CC_NO_MESSAGE_PSEUDOASSERT(cond)                        \
     if (!(cond)) {                                              \

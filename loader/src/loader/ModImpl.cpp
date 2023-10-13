@@ -43,7 +43,9 @@ Result<> Mod::Impl::setup() {
         log::warn("Unable to load data for \"{}\": {}", m_metadata.getID(), loadRes.unwrapErr());
     }
     if (!m_resourcesLoaded) {
-        LoaderImpl::get()->updateModResources(m_self);
+        auto searchPathRoot = dirs::getModRuntimeDir() / m_metadata.getID() / "resources";
+        CCFileUtils::get()->addSearchPath(searchPathRoot.string().c_str());
+
         m_resourcesLoaded = true;
     }
 
@@ -590,14 +592,13 @@ ghc::filesystem::path Mod::Impl::getConfigDir(bool create) const {
 }
 
 char const* Mod::Impl::expandSpriteName(char const* name) {
-    static std::unordered_map<std::string, char const*> expanded = {};
-    if (expanded.count(name)) return expanded[name];
+    if (m_expandedSprites.count(name)) return m_expandedSprites[name];
 
     auto exp = new char[strlen(name) + 2 + m_metadata.getID().size()];
     auto exps = m_metadata.getID() + "/" + name;
     memcpy(exp, exps.c_str(), exps.size() + 1);
 
-    expanded[name] = exp;
+    m_expandedSprites[name] = exp;
 
     return exp;
 }
@@ -631,6 +632,10 @@ bool Mod::Impl::isLoggingEnabled() const {
 
 void Mod::Impl::setLoggingEnabled(bool enabled) {
     m_loggingEnabled = enabled;
+}
+
+bool Mod::Impl::shouldLoad() const {
+    return Mod::get()->getSavedValue<bool>("should-load-" + m_metadata.getID(), true);
 }
 
 static Result<ModMetadata> getModImplInfo() {

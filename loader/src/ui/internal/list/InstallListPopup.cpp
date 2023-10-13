@@ -113,7 +113,7 @@ CCArray* InstallListPopup::createCells(std::unordered_map<std::string, InstallLi
 
         // installed
         // TODO: we should be able to select a different version even if its installed
-        if (/*item.mod && !item.mod->isUninstalled()*/item.mod->getMetadata().getID() == "geode.loader") {
+        if (item.mod && /*!item.mod->isUninstalled()*/item.mod->getMetadata().getID() == "geode.loader") {
             bottom.push_back(ModInstallListCell::create(item.mod, this, this->getCellSize()));
             for (auto const& dep : item.mod->getMetadata().getDependencies()) {
                 queue.push(dep);

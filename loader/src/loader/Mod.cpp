@@ -245,3 +245,7 @@ void Mod::setLoggingEnabled(bool enabled) {
 bool Mod::hasSavedValue(std::string const& key) {
     return this->getSaveContainer().contains(key);
 }
+
+bool Mod::shouldLoad() const {
+    return m_impl->shouldLoad();
+}

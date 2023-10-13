@@ -408,7 +408,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
         return;
     }
 
-    if (Mod::get()->getSavedValue<bool>("should-load-" + node->getID(), true)) {
+    if (node->shouldLoad()) {
         log::debug("Load");
         auto res = node->m_impl->loadBinary();
         if (!res) {
@@ -432,6 +432,10 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
 
 void Loader::Impl::findProblems() {
     for (auto const& [id, mod] : m_mods) {
+        if (!mod->shouldLoad()) {
+            log::debug("{} is not enabled", id);
+            continue;
+        }
         log::debug(id);
         log::pushNest();
 
@@ -492,7 +496,7 @@ void Loader::Impl::findProblems() {
         Mod* myEpicMod = mod; // clang fix
         // if the mod is not loaded but there are no problems related to it
         if (!mod->isEnabled() &&
-            Mod::get()->getSavedValue<bool>("should-load-" + mod->getID(), true) &&
+            mod->shouldLoad() &&
             !std::any_of(m_problems.begin(), m_problems.end(), [myEpicMod](auto& item) {
                 return std::holds_alternative<ModMetadata>(item.cause) &&
                     std::get<ModMetadata>(item.cause).getID() == myEpicMod->getID() ||
@@ -777,7 +781,7 @@ void Loader::Impl::downloadLoaderResources(bool useLatestRelease) {
             .json()
             .then([this](json::Value const& json) {
                 this->tryDownloadLoaderResources(fmt::format(
-                    "https://github.com/geode-sdk/geode/releases/download/{}/resources-" GEODE_PLATFORM_SHORT_IDENTIFIER ".zip",
+                    "https://github.com/geode-sdk/geode/releases/download/{}/resources.zip",
                     this->getVersion().toString()
                 ), true);  
             })
@@ -805,7 +809,7 @@ void Loader::Impl::downloadLoaderResources(bool useLatestRelease) {
                 // find release asset
                 for (auto asset : root.needs("assets").iterate()) {
                     auto obj = asset.obj();
-                    if (obj.needs("name").template get<std::string>() == "resources-" GEODE_PLATFORM_SHORT_IDENTIFIER ".zip") {
+                    if (obj.needs("name").template get<std::string>() == "resources.zip") {
                         this->tryDownloadLoaderResources(
                             obj.needs("browser_download_url").template get<std::string>(),
                             false

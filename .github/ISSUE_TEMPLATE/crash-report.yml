@@ -1,7 +1,18 @@
 name: Crash Report
-description: Report a bug that crashes the game or prevents startup caused by Geode Loader (not individual mods).
+description: Report a Geode bug (not mods themselves) that crashes the game or prevents startup caused by Geode Loader (not mods created by others).
 labels: [ "unverified", "crash" ]
 body:
+  - type: input
+    id: geode-confirmation
+    attributes:
+      label: Geode Issue
+      description: |
+        The Geode repository is for issues of *Geode Loader*, not individual mods created by other developers.
+        When submitting a crash report, please make sure that the crash is *actually* related to ***Geode Loader itself*** and not to a mod or mod combination, after you do that type in "confirm" in the input field above.
+        Failing to do this will get your issue *closed without explanation*.
+      placeholder: "Please, read the text below."
+    validations:
+      required: true
   - type: dropdown
     id: platform
     attributes:

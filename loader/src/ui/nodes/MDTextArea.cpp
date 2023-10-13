@@ -109,8 +109,8 @@ bool MDTextArea::init(std::string const& str, CCSize const& size) {
     if (!CCLayer::init()) return false;
 
     m_text = str;
-    m_size = size;
-    this->setContentSize(size);
+    m_size = size - CCSize { 15.f, 0.f };
+    this->setContentSize(m_size);
     m_renderer = TextRenderer::create();
     CC_SAFE_RETAIN(m_renderer);
 
@@ -118,8 +118,8 @@ bool MDTextArea::init(std::string const& str, CCSize const& size) {
     m_bgSprite->setScale(.5f);
     m_bgSprite->setColor({ 0, 0, 0 });
     m_bgSprite->setOpacity(75);
-    m_bgSprite->setContentSize(size * 2 + CCSize { 25.f, 25.f });
-    m_bgSprite->setPosition(size / 2);
+    m_bgSprite->setContentSize(size * 2);
+    m_bgSprite->setPosition(m_size / 2);
     this->addChild(m_bgSprite);
 
     m_scrollLayer = ScrollLayer::create({ 0, 0, m_size.width, m_size.height }, true);
@@ -209,6 +209,7 @@ struct MDParser {
     static float s_codeStart;
     static size_t s_orderedListNum;
     static std::vector<TextRenderer::Label> s_codeSpans;
+    static bool s_breakListLine;
 
     static int parseText(MD_TEXTTYPE type, MD_CHAR const* rawText, MD_SIZE size, void* mdtextarea) {
         auto textarea = static_cast<MDTextArea*>(mdtextarea);
@@ -364,6 +365,10 @@ struct MDParser {
                     renderer->pushIndent(g_indent);
                     s_isOrderedList = type == MD_BLOCKTYPE::MD_BLOCK_OL;
                     s_orderedListNum = 0;
+                    if (s_breakListLine) {
+                        renderer->breakLine();
+                        s_breakListLine = false;
+                    }
                 }
                 break;
 
@@ -377,6 +382,10 @@ struct MDParser {
 
             case MD_BLOCKTYPE::MD_BLOCK_LI:
                 {
+                    if (s_breakListLine) {
+                        renderer->breakLine();
+                        s_breakListLine = false;
+                    }
                     renderer->pushOpacity(renderer->getCurrentOpacity() / 2);
                     auto lidetail = static_cast<MD_BLOCK_LI_DETAIL*>(detail);
                     if (s_isOrderedList) {
@@ -387,6 +396,7 @@ struct MDParser {
                         renderer->renderString("• ");
                     }
                     renderer->popOpacity();
+                    s_breakListLine = true;
                 }
                 break;
 
@@ -446,7 +456,13 @@ struct MDParser {
             case MD_BLOCKTYPE::MD_BLOCK_UL:
                 {
                     renderer->popIndent();
-                    renderer->breakLine();
+                    if (s_breakListLine) {
+                        renderer->breakLine();
+                        s_breakListLine = false;
+                    }
+                    if (renderer->getCurrentIndent() == 0) {
+                        renderer->breakLine();
+                    }
                 }
                 break;
 
@@ -489,7 +505,6 @@ struct MDParser {
 
             case MD_BLOCKTYPE::MD_BLOCK_LI:
                 {
-                    renderer->breakLine();
                 }
                 break;
 
@@ -626,6 +641,7 @@ size_t MDParser::s_orderedListNum = 0;
 bool MDParser::s_isCodeBlock = false;
 float MDParser::s_codeStart = 0;
 decltype(MDParser::s_codeSpans) MDParser::s_codeSpans = {};
+bool MDParser::s_breakListLine = false;
 
 void MDTextArea::updateLabel() {
     m_renderer->begin(m_content, CCPointZero, m_size);
@@ -679,7 +695,16 @@ void MDTextArea::updateLabel() {
 
     m_renderer->end();
 
-    m_scrollLayer->m_contentLayer->setContentSize(m_content->getContentSize());
+    if (m_content->getContentSize().height > m_size.height) {
+        // Generate bottom padding
+        m_scrollLayer->m_contentLayer->setContentSize(m_content->getContentSize() + CCSize { 0.f, 12.5 });
+        m_content->setPositionY(10.f);
+    } else {
+        m_scrollLayer->m_contentLayer->setContentSize(m_content->getContentSize());
+        m_content->setPositionY(-2.5f);
+    }
+
+    
     m_scrollLayer->moveToTop();
 }
 

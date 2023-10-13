@@ -953,7 +953,7 @@ namespace geode::cocos {
             return m_arr ? m_arr->count() : 0;
         }
 
-        T operator[](size_t index) {
+        T* operator[](size_t index) {
             return static_cast<T*>(m_arr->objectAtIndex(index));
         }
 

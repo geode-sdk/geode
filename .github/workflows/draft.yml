@@ -28,8 +28,7 @@ jobs:
           mv dev/geode-installer-*-win.exe geode-installer-v${{ steps.ref.outputs.version }}-win.exe
           mv dev/geode-*-mac.zip geode-v${{ steps.ref.outputs.version }}-mac.zip
           mv dev/geode-*-win.zip geode-v${{ steps.ref.outputs.version }}-win.zip
-          mv dev/resources-win.zip resources-win.zip
-          mv dev/resources-mac.zip resources-mac.zip
+          mv dev/resources.zip resources.zip
 
       - name: Create Draft Release
         uses: softprops/action-gh-release@v1
@@ -49,5 +48,4 @@ jobs:
             ./geode-installer-v${{ steps.ref.outputs.version }}-win.exe
             ./geode-v${{ steps.ref.outputs.version }}-mac.zip
             ./geode-v${{ steps.ref.outputs.version }}-win.zip
-            ./resources-win.zip
-            ./resources-mac.zip
+            ./resources.zip
