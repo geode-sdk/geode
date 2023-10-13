@@ -1232,6 +1232,7 @@ class cocos2d::extension::CCScale9Sprite {
 class cocos2d::extension::CCScrollView {
 	CCScrollView() = mac 0x214800;
 	virtual ~CCScrollView() = mac 0x214c30;
+	static auto create(cocos2d::CCSize, cocos2d::CCNode*) = mac 0x214cd0;
 	virtual auto init() = mac 0x214fb0;
 	virtual auto setContentSize(cocos2d::CCSize const&) = mac 0x215eb0;
 	virtual auto getContentSize() const = mac 0x215e90;

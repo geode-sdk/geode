@@ -1724,7 +1724,7 @@ class FMODAudioEngine : cocos2d::CCNode {
     virtual void update(float) = win 0x23b20;
 
     cocos2d::CCDictionary* m_dictionary;
-    std::string m_filePath;
+    gd::string m_filePath;
     float m_backgroundMusicVolume;
     float m_effectsVolume;
     float m_pulse1;
@@ -2432,9 +2432,9 @@ class GJGarageLayer : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol,
     cocos2d::CCSprite* m_colorSelector2;
     CCMenuItemSpriteExtra* m_unkButton0x148;
     CCMenuItemSpriteExtra* m_unkButton0x14c;
-    PAD = win 0x8;
+    PAD = win 0x8, mac 0x10;
     cocos2d::CCArray* m_pagesArray;
-    PAD = win 0x8;
+    PAD = win 0x8, mac 0x10;
     CCMenuItemToggler* m_tabToggleCube;
     CCMenuItemToggler* m_tabToggleShip;
     CCMenuItemToggler* m_tabToggleBall;
@@ -2444,7 +2444,7 @@ class GJGarageLayer : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol,
     CCMenuItemToggler* m_tabToggleSpider;
     CCMenuItemToggler* m_tabToggleSpecial;
     CCMenuItemToggler* m_tabToggleDeathEffect;
-    PAD = win 0x4;
+    PAD = win 0x4, mac 0x8;
     bool m_updateSelector;
 }
 
@@ -4071,7 +4071,7 @@ class LevelSearchLayer : cocos2d::CCLayer {
     virtual bool init() = mac 0x384770, win 0x17da60;
     GJSearchObject* getSearchObject(SearchType, gd::string) = mac 0x388a50, win 0x1805f0;
     void onMoreOptions(cocos2d::CCObject*) = win 0x17f500;
-    void onSearch(cocos2d::CCObject*) = win 0x180fc0;
+    void onSearch(cocos2d::CCObject*) = mac 0x386a70, win 0x180fc0;
 
     PAD = mac 0x18, win 0xC;
     CCTextInputNode* m_searchInput;
