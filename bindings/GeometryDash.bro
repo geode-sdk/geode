@@ -3324,7 +3324,15 @@ class GameObject : CCSpritePlus {
     void loadGroupsFromString(gd::string str) = mac 0x33b380, win 0xebcb0;
     static GameObject* objectFromString(gd::string, bool) = mac 0x33b720, win 0xebe50;
     void playShineEffect() = mac 0x2fa9d0, win 0xeab20;
-    void quickUpdatePosition() = mac 0x335790;
+    //void quickUpdatePosition() = mac 0x335790;
+    // inlined on windows
+    void quickUpdatePosition() {
+        cocos2d::CCPoint newPos = getRealPosition();
+        this->setPosition(newPos);
+        if (m_detailSprite && !m_hasDetailColor) {
+            m_detailSprite->setPosition(newPos);
+        }
+    }
     void removeGlow() = mac 0x2f7f70;
     void resetGroupDisabled() = mac 0x2fa7e0;
     void saveActiveColors() = mac 0x33d250, win 0xee3e0;
@@ -3510,8 +3518,8 @@ class GameObject : CCSpritePlus {
     int m_unk414;
     PAD = mac 0xc, win 0xc;
     cocos2d::CCPoint m_firstPosition;
-    bool m_unk42C;
-    bool m_unk42D;
+    bool m_queuedForPositionUpdate;
+    bool m_shouldUpdateFirstPosition;
     PAD = mac 0x6, win 0x6;
     bool m_isAnimated;
     PAD = mac 0x7, win 0x7;
@@ -3528,7 +3536,7 @@ class GameObject : CCSpritePlus {
     GJEffectManager* m_effectManager;
     bool m_unk458;
     bool m_unk459;
-    bool m_unk45A;
+    bool m_inOptimizedGroup;
     bool m_wasForcedRotatedPositionUpdateIdk;
     PAD = mac 0x8, win 0x8;
     bool m_orbMultiActivate;
