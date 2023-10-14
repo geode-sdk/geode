@@ -1048,10 +1048,8 @@ class CustomSongWidget : cocos2d::CCNode, MusicDownloadDelegate, FLAlertLayerPro
     bool m_showDownloadButtons;
     bool m_isNotDownloading;
     bool m_hasDefaultSong;
-    PAD = win 0x3;
     int m_customSongID;
     bool m_unkBool;
-    PAD = win 0x3;
 }
 
 class CustomizeObjectLayer : FLAlertLayer, TextInputDelegate, HSVWidgetPopupDelegate, ColorSelectDelegate, ColorSetupDelegate {
