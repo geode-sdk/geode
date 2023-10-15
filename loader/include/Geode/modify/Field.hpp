@@ -1,9 +1,9 @@
 #pragma once
 
+#include "../utils/MiniFunction.hpp"
 #include "Traits.hpp"
 
 #include <Geode/loader/Loader.hpp>
-#include "../utils/MiniFunction.hpp"
 #include <cocos2d.h>
 #include <vector>
 
@@ -49,8 +49,7 @@ namespace geode::modifier {
         }
     };
 
-    [[deprecated("Will be removed in 1.0.0")]]
-    GEODE_DLL size_t getFieldIndexForClass(size_t hash);
+    [[deprecated("Will be removed in 1.0.0")]] GEODE_DLL size_t getFieldIndexForClass(size_t hash);
     GEODE_DLL size_t getFieldIndexForClass(char const* name);
 
     template <class Parent, class Base>
@@ -58,7 +57,7 @@ namespace geode::modifier {
         using Intermediate = Modify<Parent, Base>;
         // Padding used for guaranteeing any member of parents
         // will be in between sizeof(Intermediate) and sizeof(Parent)
-        alignas(Base) uintptr_t m_padding;
+        alignas(std::max(alignof(Base), alignof(uintptr_t))) uintptr_t m_padding;
 
     public:
         // the constructor that constructs the fields.
@@ -120,7 +119,7 @@ namespace geode::modifier {
                 reinterpret_cast<std::byte*>(offsetField) - sizeof(Intermediate)
             );
         }
-        
+
         Parent* self() {
             return this->operator Parent*();
         }
