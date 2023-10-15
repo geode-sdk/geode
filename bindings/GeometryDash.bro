@@ -1012,16 +1012,44 @@ class CustomSongLayer : FLAlertLayer, FLAlertLayerProtocol, TextInputDelegate, G
 }
 
 class CustomSongWidget : cocos2d::CCNode, MusicDownloadDelegate, FLAlertLayerProtocol {
-    bool init(SongInfoObject*, LevelSettingsObject*, bool, bool, bool, bool, bool hideBackground) = mac 0x37be20, win 0x685b0;
+    bool init(SongInfoObject*, LevelSettingsObject*, bool, bool, bool, bool, bool) = mac 0x37be20, win 0x685b0;
     void FLAlert_Clicked(FLAlertLayer*, bool) {}
     void loadSongInfoFinished(SongInfoObject*) {}
 
+    void startDownload() = win 0x69610;
+    void startMonitorDownload() = win 0x696b0;
+    void updatePlaybackBtn() = win 0x69970;
+    void updateSongInfo() = win 0x69bf0;
     void updateSongObject(SongInfoObject* song) = win 0x69280, mac 0x37d690;
+    void onCancelDownload(CCObject*) = win 0x693b0;
+    void onDownload(CCObject*) = win 0x69540;
+    void onGetSongInfo(CCObject*) = win 0x69490;
+    void onMore(CCObject*) = win 0x68e20;
+    void onPlayback(CCObject*) = win 0x697b0;
+    void onSelect(CCObject*) = win 0x69760;
 
     SongInfoObject* m_songInfo;
-    PAD = win 0x1C;
+    cocos2d::CCMenu* m_buttonMenu;
+    cocos2d::CCLabelBMFont* m_songLabel;
+    cocos2d::CCLabelBMFont* m_artistLabel;
+    cocos2d::CCLabelBMFont* m_songIDLabel;
+    cocos2d::CCLabelBMFont* m_errorLabel;
     CCMenuItemSpriteExtra* m_downloadBtn;
-    PAD = win 0x30;
+    CCMenuItemSpriteExtra* m_cancelDownloadBtn;
+    CCMenuItemSpriteExtra* m_selectSongBtn;
+    CCMenuItemSpriteExtra* m_getSongInfoBtn;
+    CCMenuItemSpriteExtra* m_playMusicBtn;
+    CCMenuItemSpriteExtra* m_moreBtn;
+    cocos2d::CCSprite* m_sliderGroove;
+    cocos2d::CCSprite* m_sliderBar;
+    LevelSettingsObject* m_levelSettings;
+    bool m_showSelectSongBtn;
+    bool m_showPlayMusicBtn;
+    bool m_showDownloadButtons;
+    bool m_isNotDownloading;
+    bool m_hasDefaultSong;
+    int m_customSongID;
+    bool m_unkBool;
 }
 
 class CustomizeObjectLayer : FLAlertLayer, TextInputDelegate, HSVWidgetPopupDelegate, ColorSelectDelegate, ColorSetupDelegate {
