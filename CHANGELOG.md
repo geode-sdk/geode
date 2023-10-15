@@ -1,6 +1,6 @@
 # Geode Changelog
 
-## v1.4.0
+## v1.4.0
  * Add Android support !!!!
    * Implement every Geode functionality except openFolder
    * Requires the Geode launcher in order to be used
@@ -248,7 +248,7 @@ Thank you to [Fleeym](https://github.com/Fleeym/Fleeym) for contributing to this
  * Fix recursive comparison in VersionTag 
  * `geode/unzipped` is now deleted on startup if it exists 
 
-## v1.0.0-beta.9
+## v1.0.0-beta.9
  * Fix multiple modifiers not being able to have fields on same class due to having same field index 
  * Add `Result::ok` and `Result::err` for converting the `Result` into `std::optional` 
 
@@ -316,7 +316,7 @@ Thank you to [Fleeym](https://github.com/Fleeym/Fleeym) for contributing to this
  - Something related to codegen and addresser? I have no clue what it does, so you probably won't have either 
  - MacOS minimum version bumped to 10.14 
 
-## v1.0.0-beta.2
+## v1.0.0-beta.2
  * Fixed bug where `Mod::getSavedValue` would cause a crash due to trying operator on a null JSON value 
  * Fixed bug where loading would crash if one of the mods' binaries failed to load 
 
