@@ -1,5 +1,32 @@
 # Geode Changelog
 
+## v1.4.0
+ * Add Android support !!!!
+   * Implement every Geode functionality except openFolder
+   * Requires the Geode launcher in order to be used
+   * Fixes the text input node allowing typing for 1 less character
+   * Uses `logcat` in order to get crash reports, so reopening the game is required to generate them
+   * Broma requires classes to be added `[[link(android)]]` in order to be linked
+   * All Geode and GD files are stored in `Android/data/com.geode.launcher/files`
+     * Game files in `games`, save files in `save`
+ * Allow logging to be disabled per mod (6d599a5)
+ * Mod cells use layouts (114fa46)
+ * MacOS console is now separate (182984d)
+ * Add uninstall button to Geode mod (Only functional in Windows currently) (a738320)
+ * Make new version label invisible on download (0f179da)
+ * Fix the toggling of disabled dependencies (cd89ef1)
+ * Fix spritesheet issues (ef47647)
+ * Change `LoadingLayer` (ef47647)
+ * Make mod info popup top a layout (dd806e0)
+ * Add `GEODE_HIDDEN` to inline unique functions (71a79ab)
+ * Fix big mod icons (26a6c7e)
+ * Fix `CCNode::removeChildByID` export (23cd456)
+ * Make `MDTextArea` fit its size (140f38b)
+ * Enable ESC/Back to go back in Geode mod list (2847bee)
+ * Add `SimpleTextArea` (7f277a7)
+ * Check modified date when unzipping `.geode` files (5c765c6)
+ * Only hash markdown files on resource checking (f563c46)
+
 ## v1.3.5
  * Follow redirect in web::utils functions (a942a45)
  * Lots of bindings
