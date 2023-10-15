@@ -5,6 +5,9 @@
     "name":         "Geode Test Dependency",
     "developer":    "Geode Team",
     "description":  "Unit test dependency for Geode",
+    "api": {
+        "include": []
+    },
     "settings": {
         "its-raining-after-all": {
             "type": "bool",
