@@ -2,11 +2,11 @@
 
 using namespace geode::prelude;
 
-SimpleTextArea* SimpleTextArea::create(const std::string& font, const std::string& text, const float scale = 1) {
-    return SimpleTextArea::create(font, text, scale, 500, false);
+SimpleTextArea* SimpleTextArea::create(const std::string& text, const std::string& font, const float scale) {
+    return SimpleTextArea::create(font, text, scale, CCDirector::sharedDirector()->getWinSize().width / 2, false);
 }
 
-SimpleTextArea* SimpleTextArea::create(const std::string& font, const std::string& text, const float scale, const float width) {
+SimpleTextArea* SimpleTextArea::create(const std::string& text, const std::string& font, const float scale, const float width) {
     return SimpleTextArea::create(font, text, scale, width, true);
 }
 
@@ -30,9 +30,12 @@ SimpleTextArea::SimpleTextArea(const std::string& font, const std::string& text,
     m_maxLines = 0;
     m_scale = scale;
     m_linePadding = 0;
+    m_color = { 0xFF, 0xFF, 0xFF, 0xFF };
     m_alignment = kCCTextAlignmentLeft;
+    m_wrappingMode = WORD_WRAP;
     m_artificialWidth = artificialWidth;
     m_container = CCMenu::create();
+    m_shouldUpdate = true;
 
     this->setAnchorPoint({ 0.5f, 0.5f });
     m_container->setPosition({ 0, 0 });
@@ -40,33 +43,47 @@ SimpleTextArea::SimpleTextArea(const std::string& font, const std::string& text,
     m_container->setContentSize({ width, 0 });
 
     this->addChild(m_container);
-    this->updateContents();
 }
 
 void SimpleTextArea::setFont(const std::string& font) {
     m_font = font;
-
-    this->updateContents();
+    m_shouldUpdate = true;
 }
 
 std::string SimpleTextArea::getFont() {
     return m_font;
 }
 
+void SimpleTextArea::setColor(const ccColor4B& color) {
+    m_color = color;
+    m_shouldUpdate = true;
+}
+
+ccColor4B SimpleTextArea::getColor() {
+    return m_color;
+}
+
 void SimpleTextArea::setAlignment(const CCTextAlignment alignment) {
     m_alignment = alignment;
-
-    this->updateContents();
+    m_shouldUpdate = true;
 }
 
 CCTextAlignment SimpleTextArea::getAlignment() {
     return m_alignment;
 }
 
+void SimpleTextArea::setWrappingMode(const WrappingMode mode) {
+    m_wrappingMode = mode;
+    m_shouldUpdate = true;
+}
+
+WrappingMode SimpleTextArea::getWrappingMode() {
+    return m_wrappingMode;
+}
+
 void SimpleTextArea::setText(const std::string& text) {
     m_text = text;
-
-    this->updateContents();
+    m_shouldUpdate = true;
 }
 
 std::string SimpleTextArea::getText() {
@@ -75,8 +92,7 @@ std::string SimpleTextArea::getText() {
 
 void SimpleTextArea::setMaxLines(const size_t maxLines) {
     m_maxLines = maxLines;
-
-    this->updateContents();
+    m_shouldUpdate = true;
 }
 
 size_t SimpleTextArea::getMaxLines() {
@@ -85,6 +101,7 @@ size_t SimpleTextArea::getMaxLines() {
 
 void SimpleTextArea::setWidth(const float width) {
     m_artificialWidth = true;
+    m_shouldUpdate = true;
 
     this->setContentSize({ width, this->getContentSize().height });
     m_container->setContentSize(this->getContentSize());
@@ -96,8 +113,7 @@ float SimpleTextArea::getWidth() {
 
 void SimpleTextArea::setScale(const float scale) {
     m_scale = scale;
-
-    this->updateContents();
+    m_shouldUpdate = true;
 }
 
 float SimpleTextArea::getScale() {
@@ -106,8 +122,7 @@ float SimpleTextArea::getScale() {
 
 void SimpleTextArea::setLinePadding(const float padding) {
     m_linePadding = padding;
-
-    this->updateContents();
+    m_shouldUpdate = true;
 }
 
 float SimpleTextArea::getLinePadding() {
@@ -131,34 +146,17 @@ CCLabelBMFont* SimpleTextArea::createLabel(const std::string& text, const float 
 
     label->setScale(m_scale);
     label->setPosition({ 0, top });
+    label->setColor({ m_color.r, m_color.g, m_color.b });
+    label->setOpacity(m_color.a);
 
     return label;
-}
-
-CCLabelBMFont* SimpleTextArea::moveOverflow(CCLabelBMFont* line, const char c, const float top) {
-    const std::string text = line->getString();
-    const char back = text.back();
-    const bool lastIsSpace = back == ' ';
-    CCLabelBMFont* newLine = this->createLabel(std::string(!lastIsSpace, back).append(std::string(c != ' ', c)), top);
-
-    if (!lastIsSpace) {
-        if (text[text.size() - 2] == ' ') {
-            line->setString(text.substr(0, text.size() - 1).c_str());
-        } else {
-            line->setString((text.substr(0, text.size() - 1) + '-').c_str());
-        }
-    }
-
-    m_lines.push_back(newLine);
-
-    return newLine;
 }
 
 float SimpleTextArea::calculateOffset(CCLabelBMFont* label) {
     return m_linePadding + label->getContentSize().height * m_scale;
 }
 
-void SimpleTextArea::updateLines() {
+void SimpleTextArea::charIteration(const std::function<CCLabelBMFont*(CCLabelBMFont* line, const char c, const float top)>& overflowHandling) {
     float top = 0;
     CCLabelBMFont* line = this->createLabel("", top);
     m_lines = { line };
@@ -173,21 +171,87 @@ void SimpleTextArea::updateLines() {
 
             break;
         } else if (c == '\n') {
-            line = this->createLabel("", top -= this->calculateOffset(line));
-
-            m_lines.push_back(line);
-        } else if (m_artificialWidth && line->getContentSize().width >= this->getWidth()) {
-            line = this->moveOverflow(line, c, top -= this->calculateOffset(line));
+            m_lines.push_back(line = this->createLabel("", top -= this->calculateOffset(line)));
+        } else if (m_artificialWidth && line->getContentSize().width * m_scale >= this->getWidth()) {
+            m_lines.push_back(line = overflowHandling(line, c, top -= this->calculateOffset(line)));
         } else {
-            const std::string text = line->getString();
-
-            line->setString((text + c).c_str());
+            line->setString((std::string(line->getString()) + c).c_str());
         }
     }
 }
 
-void SimpleTextArea::updateContents() {
-    this->updateLines();
+void SimpleTextArea::updateLinesNoWrap() {
+    std::stringstream stream(m_text);
+    std::string part;
+    float top = 0;
+
+    while (std::getline(stream, part)) {
+        if (m_maxLines && m_lines.size() >= m_maxLines) {
+            CCLabelBMFont* last = m_lines.at(m_maxLines - 1);
+            const std::string text = last->getString();
+
+            last->setString(text.substr(0, text.size() - 3).append("...").c_str());
+
+            break;
+        } else {
+            CCLabelBMFont* line = this->createLabel(part, 0);
+
+            top -= this->calculateOffset(line);
+
+            m_lines.push_back(line);
+        }
+    }
+}
+
+void SimpleTextArea::updateLinesWordWrap() {
+    this->charIteration([this](CCLabelBMFont* line, const char c, const float top) {
+        static std::string delimiters(" `~!@#$%^&*()-_=+[{}];:'\",<.>/?\\|");
+
+        if (delimiters.find(c) == std::string_view::npos) {
+            const std::string text = line->getString();
+            const size_t position = text.find_last_of(delimiters) + 1;
+
+            line->setString(text.substr(0, position).c_str());
+
+            return this->createLabel(text.substr(position) + c, top);
+        } else {
+            return this->createLabel(std::string(c, c != ' '), top);
+        }
+    });
+}
+
+void SimpleTextArea::updateLinesCutoffWrap() {
+    this->charIteration([this](CCLabelBMFont* line, const char c, const float top) {
+        const std::string text = line->getString();
+        const char back = text.back();
+        const bool lastIsSpace = back == ' ';
+        CCLabelBMFont* newLine = this->createLabel(std::string(!lastIsSpace, back).append(std::string(c != ' ', c)), top);
+
+        if (!lastIsSpace) {
+            if (text[text.size() - 2] == ' ') {
+                line->setString(text.substr(0, text.size() - 1).c_str());
+            } else {
+                line->setString((text.substr(0, text.size() - 1) + '-').c_str());
+            }
+        }
+
+        return newLine;
+    });
+}
+
+void SimpleTextArea::updateContainer() {
+    switch (m_wrappingMode) {
+        case NO_WRAP: {
+            this->updateLinesNoWrap();
+        } break;
+        case WORD_WRAP: {
+            this->updateLinesWordWrap();
+        } break;
+        case CUTOFF_WRAP: {
+            this->updateLinesCutoffWrap();
+        } break;
+    }
+    
     const size_t lineCount = m_lines.size();
     const float width = this->getWidth();
 
@@ -212,7 +276,7 @@ void SimpleTextArea::updateContents() {
                 line->setPosition({ 0, y });
             } break;
             case kCCTextAlignmentCenter: {
-                line->setAnchorPoint({ 0.5f, 1 });
+                line->setAnchorPoint({ 0, 1 });
                 line->setPosition({ width / 2, y });
             } break;
             case kCCTextAlignmentRight: {
@@ -222,5 +286,15 @@ void SimpleTextArea::updateContents() {
         }
 
         m_container->addChild(line);
+    }
+}
+
+void SimpleTextArea::draw() {
+    CCNode::draw();
+
+    if (m_shouldUpdate) {
+        this->updateContainer();
+
+        m_shouldUpdate = false;
     }
 }
