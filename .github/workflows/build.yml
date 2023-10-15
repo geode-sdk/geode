@@ -52,8 +52,8 @@ jobs:
           cli_id: linux
           extra_flags: >
             -DCMAKE_TOOLCHAIN_FILE=$NDK_HOME/build/cmake/android.toolchain.cmake
-            -DANDROID_ABI=$ANDROID_ABI
-            -DANDROID_PLATFORM=android-$MIN_SDK_VERSION
+            -DANDROID_ABI=armeabi-v7a
+            -DANDROID_PLATFORM=android-23
             -DGEODE_DONT_BUILD_TEST_MODS=1
             -G Ninja
           cli_cmd: 'chmod +x $GITHUB_WORKSPACE/cli/geode'
@@ -109,8 +109,6 @@ jobs:
     - name: Setup Android Env
       run: |
         echo "NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> "$GITHUB_ENV"
-        echo "ANDROID_ABI=armeabi-v7a" >> "$GITHUB_ENV"
-        echo "MIN_SDK_VERSION=24" >> "$GITHUB_ENV"
         sudo apt install ninja-build
       if: matrix.config.id == 'android'
 
