@@ -336,7 +336,7 @@ static void handlerThread() {
     log::debug("Notified");
 }
 
-static bool s_lastLaunchCrashed;
+static bool s_lastLaunchCrashed = false;
 
 // bool crashlog::setupPlatformHandler() {
 //     auto pidFile = crashlog::getCrashLogDirectory() / "last-pid";
@@ -413,28 +413,112 @@ static bool s_lastLaunchCrashed;
 // }
 
 ghc::filesystem::path crashlog::getCrashLogDirectory() {
-    return geode::dirs::getSaveDir();
+    return dirs::getGeodeDir() / "crashlogs";
 }
 
-bool crashlog::setupPlatformHandler() {
-    auto path = crashlog::getCrashLogDirectory() / (getDateString(true) + ".log");
+int writeAndGetPid() {
+    auto pidFile = crashlog::getCrashLogDirectory() / "last-pid";
 
-    JniMethodInfo t;
-    if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "writeLogcatCrashBuffer", "(Ljava/lang/String;)Z")) {
-        jstring stringArg1 = t.env->NewStringUTF(path.string().c_str());
+    int lastPid = 0;
 
-        jboolean result = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);
+    if (ghc::filesystem::exists(pidFile)) {
 
-        t.env->DeleteLocalRef(stringArg1);
-        t.env->DeleteLocalRef(t.classID);
-        return result;
+        auto res = file::readString(pidFile);
+        if (!res) {
+            log::warn("Failed to read last-pid file: {}", res.error());
+        }
+        else {
+            lastPid = std::stoi(res.unwrap());
+        }
+
+        std::error_code ec;
+        ghc::filesystem::remove(pidFile, ec);
+
+        if (ec) {
+            log::warn("Failed to remove last-pid file: {}", ec.message());
+        }
     }
 
-    return false;
+    auto res = file::writeString(pidFile, std::to_string(getpid()));
+    if (!res) {
+        log::warn("Failed to write last-pid file: {}", res.error());
+    }
+
+    return lastPid;
+}
+
+void printModsAndroid(std::stringstream& stream) {
+    auto mods = Loader::get()->getAllMods();
+    if (mods.empty()) {
+        stream << "<None>\n";
+    }
+    using namespace std::string_view_literals;
+    for (auto& mod : mods) {
+        stream << fmt::format("{} | [{}] {}\n",
+            mod->shouldLoad() ? "x"sv : " "sv,
+            mod->getVersion().toString(), mod->getID()
+        );
+    }
+}
+
+static std::string s_result;
+bool crashlog::setupPlatformHandler() {
+    JniMethodInfo t;
+    
+    if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "getLogcatCrashBuffer", "()Ljava/lang/String;")) {
+        jstring stringResult = (jstring)t.env->CallStaticObjectMethod(t.classID, t.methodID);
+
+        s_result = JniHelper::jstring2string(stringResult);
+
+        t.env->DeleteLocalRef(stringResult);
+        t.env->DeleteLocalRef(t.classID);
+
+        if (s_result.empty()) {
+            return false;
+        }
+    }
+    else return false;
+
+    auto lastPid = writeAndGetPid();
+
+    auto index = s_result.rfind(fmt::format("pid {}", lastPid));
+    if (index != std::string::npos) {
+        auto begin = s_result.substr(0, index).rfind("F/libc");
+        if (begin != std::string::npos) {
+            s_result = s_result.substr(begin);
+        }
+        s_lastLaunchCrashed = true;
+
+    }
+
+    return true;
+}
+
+void crashlog::setupPlatformHandlerPost() {
+    if (s_result.empty()) return;
+
+    std::stringstream ss;
+    ss << "Geode crashed!\n";
+    ss << "Please submit this crash report to the developer of the mod that caused it.\n";
+    ss << "\n== Geode Information ==\n";
+    crashlog::printGeodeInfo(ss);
+
+    ss << "\n== Installed Mods ==\n";
+    printModsAndroid(ss);
+
+    ss << "\n== Crash Report (Logcat) ==\n";
+    ss << s_result;
+
+    std::ofstream actualFile;
+    actualFile.open(
+        crashlog::getCrashLogDirectory() / (crashlog::getDateString(true) + ".log"), std::ios::app
+    );
+    actualFile << ss.rdbuf() << std::flush;
+    actualFile.close();
 }
 
 bool crashlog::didLastLaunchCrash() {
-    return false;
+    return s_lastLaunchCrashed;
 }
 
 #endif

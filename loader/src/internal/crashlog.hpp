@@ -13,6 +13,12 @@ namespace crashlog {
      * @returns True if the handler was successfully installed, false otherwise
      */
     bool GEODE_DLL setupPlatformHandler();
+
+    /**
+     * Setup platform-specific crashlog handler for post-launch
+     */
+    void GEODE_DLL setupPlatformHandlerPost();
+
     /**
      * Check if previous launch of GD crashed unexpectedly
      * @returns True if the launch crashed, false otherwise or if indeterminate
@@ -28,4 +34,9 @@ namespace crashlog {
     std::string GEODE_DLL writeCrashlog(geode::Mod* faultyMod, std::string const& info, std::string const& stacktrace, std::string const& registers);
 
     std::string getDateString(bool filesafe);
+
+    void printGeodeInfo(std::stringstream& stream);
+    void printMods(std::stringstream& stream);
+
+
 }
