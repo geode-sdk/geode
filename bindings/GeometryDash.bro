@@ -1746,7 +1746,7 @@ class FLAlertLayer : cocos2d::CCLayerColor {
     cocos2d::ccColor3B m_color2;
     ButtonSprite* m_button1;
     ButtonSprite* m_button2;
-    cocos2d::CCLayerColor* m_scrollingLayer;
+    ScrollingLayer* m_scrollingLayer;
     int m_joystickConnected;
     bool m_containsBorder;
     bool m_noAction;
