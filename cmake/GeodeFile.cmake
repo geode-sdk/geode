@@ -208,6 +208,17 @@ function(setup_geode_mod proname)
     set_target_properties(${proname} PROPERTIES PREFIX "")
     set_target_properties(${proname} PROPERTIES OUTPUT_NAME ${MOD_ID})
 
+    if (ANDROID)
+        if (CMAKE_BUILD_TYPE STREQUAL "Release")
+            add_custom_command(
+                TARGET "${PROJECT_NAME}" POST_BUILD
+                DEPENDS "${PROJECT_NAME}"
+                COMMAND $<$<CONFIG:release>:${CMAKE_STRIP}>
+                ARGS -S $<TARGET_FILE:${PROJECT_NAME}>
+            )
+        endif()
+    endif()
+
 endfunction()
 
 function(create_geode_file proname)
