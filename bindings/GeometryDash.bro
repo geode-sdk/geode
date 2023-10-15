@@ -308,6 +308,7 @@ class CCBlockLayer : cocos2d::CCLayerColor {
     virtual bool init() = mac 0x2a59c0, win 0x168d0;
     virtual void draw() = mac 0x2a5c20, win 0x16a80; // same as GJDropDownLayer
     virtual void registerWithTouchDispatcher() = mac 0x2a5ad0, win 0x16990; // shared with many
+    virtual void customSetup() = win 0x7640;
     virtual void enterLayer() = mac 0x2a5aa0, win 0x16970;
     virtual void exitLayer() = mac 0x2a5b40, win 0x169e0; // same as PauseLayer, EditorPauseLayer
     virtual void showLayer(bool) = mac 0x2a5b90, win 0x16a20; // same as PauseLayer, EditorPauseLayer
