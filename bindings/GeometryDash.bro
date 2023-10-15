@@ -5293,6 +5293,7 @@ class ScrollingLayer : cocos2d::CCLayerColor {
     static ScrollingLayer* create(cocos2d::CCSize, cocos2d::CCPoint, float) = mac 0x41a900, win 0x2d8e0;
     cocos2d::CCLayer* m_scrollLayer;
     cocos2d::CCNode* m_parent;
+    float m_layerHeight;
 }
 
 class SelectArtLayer {
