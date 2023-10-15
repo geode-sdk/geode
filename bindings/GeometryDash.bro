@@ -5291,6 +5291,11 @@ class RingObject : EffectGameObject {
 
 class ScrollingLayer : cocos2d::CCLayerColor {
     static ScrollingLayer* create(cocos2d::CCSize, cocos2d::CCPoint, float) = mac 0x41a900, win 0x2d8e0;
+    PAD = win 0x28;
+    float m_layerHeight;
+    PAD = win 0x4;
+    cocos2d::CCLayer* m_scrollLayer;
+    cocos2d::CCNode* m_parent;
 }
 
 class SelectArtLayer {
