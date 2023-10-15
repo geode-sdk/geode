@@ -134,12 +134,14 @@ jobs:
 
     - name: Package Installer
       run: ${{ matrix.config.package_cmd }}
+      if: matrix.config.id != 'android'
 
     - name: Upload Installer
       uses: actions/upload-artifact@v3
       with:
         name: geode-installer-${{ matrix.config.id }}
         path: ${{ matrix.config.installer_path }}
+      if: matrix.config.id != 'android'
 
   publish:
     name: Publish
