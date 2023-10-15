@@ -5437,6 +5437,22 @@ class ProfilePage : FLAlertLayer, FLAlertLayerProtocol, LevelCommentDelegate, Co
     virtual void keyBackClicked() = mac 0x464A60, win 0x49C80;
     void loadPageFromUserInfo(GJUserScore* score) = mac 0x460480, win 0x210040;
 
+    virtual void FLAlert_Clicked(FLAlertLayer*, bool) = mac 0x463340;
+    virtual void commentDeleteFailed(int, int) = mac 0x4648e0;
+    virtual void commentUploadFailed(int, CommentError) = mac 0x464800;
+    virtual void commentUploadFinished(int) = mac 0x464770;
+    virtual void getUserInfoFinished(GJUserScore*) = mac 0x463cd0;
+    virtual void loadCommentsFailed(char const*) = mac 0x464340;
+    virtual void loadCommentsFinished(cocos2d::CCArray*, char const*) = mac 0x464250;
+    virtual void onClosePopup(UploadActionPopup*) = mac 0x463510;
+    virtual void registerWithTouchDispatcher() = mac 0x464a60;
+    virtual void setupPageInfo(gd::string, char const*) = mac 0x464410;
+    virtual void show() = mac 0x4639c0;
+    virtual void updateUserScoreFailed() = mac 0x463920;
+    virtual void updateUserScoreFinished() = mac 0x463850;
+    virtual void uploadActionFailed(int, int) = mac 0x463710;
+    virtual void uploadActionFinished(int, int) = mac 0x463570;
+
     GJUserScore* m_score;
     int m_accountID;
     PAD = mac 0x44, win 0x38, android 0x24;
