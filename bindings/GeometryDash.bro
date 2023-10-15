@@ -2565,14 +2565,14 @@ class GJGarageLayer : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol,
     void onDartIcon(cocos2d::CCObject* sender) = win 0x128420;
     void onRobotIcon(cocos2d::CCObject* sender) = win 0x1286d0;
     void onSpiderIcon(cocos2d::CCObject* sender) = win 0x128890;
-    void onPlayerDeathEffect(cocos2d::CCObject* sender) = win 0x128a50;
-    void onPlayerTrail(cocos2d::CCObject* sender) = win 0x128af0; 
+    void onDeathEffect(cocos2d::CCObject* sender) = win 0x128a50;
+    void onTrail(cocos2d::CCObject* sender) = win 0x128af0; 
     void onShards(cocos2d::CCObject* sender) = win 0x12ad70;
     void onBack(cocos2d::CCObject* sender) = win 0x12adf0;
     void onShop(cocos2d::CCObject* sender) = win 0x12ad90;
     void setupColorSelect() = mac 0x1b7500;
-    void showCircleWave() = win 0x12aad0;
-    void showBlackCircleWave() = win 0x12a9d0; 
+    void playRainbowEffect() = win 0x12aad0;
+    void playShadowEffect() = win 0x12a9d0; 
     PAD = mac 0x10, win 0x8;
     CCTextInputNode* m_nameInput;
     SimplePlayer* m_playerPreview;
@@ -3810,7 +3810,7 @@ class GaragePage : cocos2d::CCLayer, ListButtonBarDelegate {
         return nullptr;
     }
 
-    void listButtonBarSwitchedPage(ListButtonBar* bar, int idk) = win 0x12bb40;
+    virtual void listButtonBarSwitchedPage(ListButtonBar* bar, int idk) = win 0x12bb40;
     inline GaragePage() {}
     bool init(IconType type, GJGarageLayer* pGarage, cocos2d::SEL_MenuHandler pSelectCallback) = mac 0x1bb710, win 0x12af70, ios 0x225d5c;
 
@@ -4445,7 +4445,7 @@ class LikeItemLayer : FLAlertLayer {
 [[link(android)]]
 class ListButtonBar : cocos2d::CCNode {
     BoomScrollLayer* m_scrollLayer;
-    void switchedPage(int page) = win 0x29c50; 
+    void goToPage(int page) = win 0x29c50; 
 }
 
 [[link(android)]]
@@ -5878,7 +5878,7 @@ class SpeedObject : cocos2d::CCNode {
     float m_xPos;
     GameObject* m_object;
 
-    static SpeedObject* create(GameObject* object, Speed speed, float x) = win 0x20de70;
+    static SpeedObject* create(GameObject* object, int speed, float x) = win 0x20de70;
 }
 
 [[link(android)]]
