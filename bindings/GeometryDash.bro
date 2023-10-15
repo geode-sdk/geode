@@ -1078,12 +1078,12 @@ class CustomSongWidget : cocos2d::CCNode, MusicDownloadDelegate, FLAlertLayerPro
     void updatePlaybackBtn() = win 0x69970;
     void updateSongInfo() = win 0x69bf0;
     void updateSongObject(SongInfoObject* song) = win 0x69280, mac 0x37d690;
-    void onCancelDownload(CCObject*) = win 0x693b0;
-    void onDownload(CCObject*) = win 0x69540;
-    void onGetSongInfo(CCObject*) = win 0x69490;
-    void onMore(CCObject*) = win 0x68e20;
-    void onPlayback(CCObject*) = win 0x697b0;
-    void onSelect(CCObject*) = win 0x69760;
+    void onCancelDownload(cocos2d::CCObject*) = win 0x693b0;
+    void onDownload(cocos2d::CCObject*) = win 0x69540;
+    void onGetSongInfo(cocos2d::CCObject*) = win 0x69490;
+    void onMore(cocos2d::CCObject*) = win 0x68e20;
+    void onPlayback(cocos2d::CCObject*) = win 0x697b0;
+    void onSelect(cocos2d::CCObject*) = win 0x69760;
 
     SongInfoObject* m_songInfo;
     cocos2d::CCMenu* m_buttonMenu;

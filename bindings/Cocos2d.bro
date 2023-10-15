@@ -95,11 +95,6 @@ class cocos2d::CCCallFuncND {
 }
 
 [[link(win, android)]]
-class cocos2d::CCCallFuncND {
-	static auto create(cocos2d::CCObject*, cocos2d::SEL_CallFuncND, void*) = mac 0x455470;
-}
-
-[[link(win, android)]]
 class cocos2d::CCClippingNode {
 	CCClippingNode() {
 		m_pStencil = nullptr;
