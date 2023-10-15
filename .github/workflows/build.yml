@@ -86,7 +86,7 @@ jobs:
       with:
         ndk-version: r26b
         add-to-path: false
-      if: matrix.config.id == 'linux'
+      if: matrix.config.id == 'android'
 
     - name: Download CLI
       uses: robinraju/release-downloader@v1.8
@@ -110,7 +110,7 @@ jobs:
         echo "ANDROID_ABI=armeabi-v7a" >> "$GITHUB_ENV"
         echo "MIN_SDK_VERSION=24" >> "$GITHUB_ENV"
         # sudo apt install ninja-build
-      if: matrix.config.id == 'linux'
+      if: matrix.config.id == 'android'
 
     - name: Configure
       run: >
