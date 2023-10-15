@@ -2566,7 +2566,7 @@ class GJGarageLayer : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol,
     void onRobotIcon(cocos2d::CCObject* sender) = win 0x1286d0;
     void onSpiderIcon(cocos2d::CCObject* sender) = win 0x128890;
     void onDeathEffect(cocos2d::CCObject* sender) = win 0x128a50;
-    void onTrail(cocos2d::CCObject* sender) = win 0x128af0; 
+    void onSpecialIcon(cocos2d::CCObject* sender) = win 0x128af0; 
     void onShards(cocos2d::CCObject* sender) = win 0x12ad70;
     void onBack(cocos2d::CCObject* sender) = win 0x12adf0;
     void onShop(cocos2d::CCObject* sender) = win 0x12ad90;
