@@ -15,6 +15,10 @@ using namespace geode::prelude;
 #include <link.h>
 #include <unwind.h>
 
+
+#include <jni.h>
+#include <Geode/cocos/platform/android/jni/JniHelper.h>
+
 #include "backtrace/execinfo.hpp"
 
 static constexpr size_t FRAME_SIZE = 64;
@@ -413,6 +417,19 @@ ghc::filesystem::path crashlog::getCrashLogDirectory() {
 }
 
 bool crashlog::setupPlatformHandler() {
+    auto path = crashlog::getCrashLogDirectory() / (getDateString(true) + ".log");
+
+    JniMethodInfo t;
+    if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "writeLogcatCrashBuffer", "(Ljava/lang/String;)Z")) {
+        jstring stringArg1 = t.env->NewStringUTF(path.string().c_str());
+
+        jboolean result = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);
+
+        t.env->DeleteLocalRef(stringArg1);
+        t.env->DeleteLocalRef(t.classID);
+        return result;
+    }
+
     return false;
 }
 

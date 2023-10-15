@@ -3,7 +3,7 @@
 
 using namespace geode::prelude;
 
-static std::string getDateString(bool filesafe) {
+std::string crashlog::getDateString(bool filesafe) {
     auto const now = std::time(nullptr);
     auto const tm = *std::localtime(&now);
     std::ostringstream oss;
