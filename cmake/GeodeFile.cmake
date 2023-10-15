@@ -130,27 +130,14 @@ function(setup_geode_mod proname)
         set(HAS_HEADERS Off)
     endif()
 
-    # todo: figure out how to either not make cmake shit itself and print out --binary path/to/dll "" or 
-    # make cli not shit itself when it sees that
-    if (HAS_HEADERS)
-        add_custom_target(${proname}_PACKAGE ALL
-            DEPENDS ${proname} ${CMAKE_CURRENT_SOURCE_DIR}/mod.json
-            COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR} 
-                --binary $<TARGET_FILE:${proname}> $<TARGET_LINKER_FILE:${proname}>
-                --output ${CMAKE_CURRENT_BINARY_DIR}/${MOD_ID}.geode
-                ${INSTALL_ARG}
-            VERBATIM USES_TERMINAL
-        )
-    else()
-        add_custom_target(${proname}_PACKAGE ALL
-            DEPENDS ${proname} ${CMAKE_CURRENT_SOURCE_DIR}/mod.json
-            COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR} 
-                --binary $<TARGET_FILE:${proname}>
-                --output ${CMAKE_CURRENT_BINARY_DIR}/${MOD_ID}.geode
-                ${INSTALL_ARG}
-            VERBATIM USES_TERMINAL
-        )
-    endif()
+    add_custom_target(${proname}_PACKAGE ALL
+        DEPENDS ${proname} ${CMAKE_CURRENT_SOURCE_DIR}/mod.json
+        COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR} 
+            --binary $<TARGET_FILE:${proname}>
+            --output ${CMAKE_CURRENT_BINARY_DIR}/${MOD_ID}.geode
+            ${INSTALL_ARG}
+        VERBATIM USES_TERMINAL
+    )
 
     # Add dependency dir to include path
     if (EXISTS "${CMAKE_CURRENT_BINARY_DIR}/geode-deps")
