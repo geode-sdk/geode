@@ -253,7 +253,7 @@ class ButtonSprite : cocos2d::CCSprite {
     void updateBGImage(const char*) = mac 0x502d0, win 0x13af0;
     static ButtonSprite* create(char const*, float) = mac 0x4fa60;
     void setString(const char* txt) = mac 0x4fec0, win 0x14030;
-    void updateSpriteBGSize() = win 0x13c00;
+    void updateSpriteBGSize() = mac 0x4f5d0, win 0x13c00;
     void setColor(cocos2d::ccColor3B color) = mac 0x50410, win 0x143e0;
 
     PAD = mac 0x18, win 0x18;
@@ -261,7 +261,7 @@ class ButtonSprite : cocos2d::CCSprite {
     cocos2d::CCSprite* m_subSprite;
     cocos2d::CCSprite* m_subBGSprite;
     cocos2d::extension::CCScale9Sprite* m_BGSprite;
-    PAD = win 0x8;
+    PAD = mac 0xC, win 0x8;
     cocos2d::CCPoint m_spritePosition;
 }
 
@@ -1021,12 +1021,12 @@ class CustomSongWidget : cocos2d::CCNode, MusicDownloadDelegate, FLAlertLayerPro
     void updatePlaybackBtn() = win 0x69970;
     void updateSongInfo() = win 0x69bf0;
     void updateSongObject(SongInfoObject* song) = win 0x69280, mac 0x37d690;
-    void onCancelDownload(CCObject*) = win 0x693b0;
-    void onDownload(CCObject*) = win 0x69540;
-    void onGetSongInfo(CCObject*) = win 0x69490;
-    void onMore(CCObject*) = win 0x68e20;
-    void onPlayback(CCObject*) = win 0x697b0;
-    void onSelect(CCObject*) = win 0x69760;
+    void onCancelDownload(cocos2d::CCObject*) = win 0x693b0;
+    void onDownload(cocos2d::CCObject*) = win 0x69540;
+    void onGetSongInfo(cocos2d::CCObject*) = win 0x69490;
+    void onMore(cocos2d::CCObject*) = win 0x68e20;
+    void onPlayback(cocos2d::CCObject*) = win 0x697b0;
+    void onSelect(cocos2d::CCObject*) = win 0x69760;
 
     SongInfoObject* m_songInfo;
     cocos2d::CCMenu* m_buttonMenu;
@@ -1448,8 +1448,8 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     void onPasteState(cocos2d::CCObject* sender) = mac 0x19ee0, win 0x884c0;
     void onGroupSticky(cocos2d::CCObject* sender) = mac 0xc180, win 0x87a80;
     void onUngroupSticky(cocos2d::CCObject* sender) = mac 0xc1d0, win 0x87ac0;
-    void onGoToLayer(cocos2d::CCObject* sender) = win 0x886b0;
-    void onGoToBaseLayer(cocos2d::CCObject* sender) = win 0x88790;
+    void onGoToLayer(cocos2d::CCObject* sender) = mac 0x19fa0, win 0x886b0;
+    void onGoToBaseLayer(cocos2d::CCObject* sender) = mac 0x1a270, win 0x88790;
     void onToggleGuide(cocos2d::CCObject* sender) = mac 0x19da0, win 0x79160;
     void editColor(cocos2d::CCObject* sender) = mac 0x19190, win 0x8d3c0;
     void alignObjects(cocos2d::CCArray* objs, bool alignY) = mac 0x2cea0, win 0x8f320;
