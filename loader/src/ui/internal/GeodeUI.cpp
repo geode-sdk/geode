@@ -23,7 +23,7 @@ void geode::openIssueReportPopup(Mod* mod) {
                 dirs::getCrashlogsDir().string() + "`",
             "OK", "Open Folder",
             [mod](bool btn2) {
-                utils::openFolder(dirs::getCrashlogsDir())
+                utils::openFolder(dirs::getCrashlogsDir());
             }
         )->show();
     }
