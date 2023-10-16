@@ -21,9 +21,9 @@ void geode::openIssueReportPopup(Mod* mod) {
                 "If your issue relates to a <cr>game crash</c>, <cb>please include</c> the "
                 "latest crash log(s) from `" +
                 dirs::getCrashlogsDir().string() + "`",
-            "OK", "",
+            "OK", "Open Folder",
             [mod](bool btn2) {
-                
+                utils::openFolder(dirs::getCrashlogsDir())
             }
         )->show();
     }
