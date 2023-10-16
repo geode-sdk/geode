@@ -1169,7 +1169,7 @@ class CustomizeObjectLayer : FLAlertLayer, TextInputDelegate, HSVWidgetPopupDele
 class DailyLevelPage : FLAlertLayer, FLAlertLayerProtocol, GJDailyLevelDelegate, LevelDownloadDelegate {
     static DailyLevelPage* create(bool weekly) = mac 0x108ac0, win 0x6a860;
     bool init(bool weekly) = mac 0x108C90, win 0x6a900;
-    void updateTimers(float) = mac 0x109780, win 0x6bef0;
+    callback void updateTimers(float) = mac 0x109780, win 0x6bef0;
     virtual void show() = mac 0x10a4b0, win 0x3f360;
 
     PAD = mac 0x29, win 0x15, android 0x15;
