@@ -2477,7 +2477,7 @@ class GJGarageLayer : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol,
     void setupColorSelect() = mac 0x1b7500;
     void showCircleWave() = win 0x12aad0;
     void showBlackCircleWave() = win 0x12a9d0; 
-    PAD = mac 0x10, win 0x8;
+    PAD = mac 0x10, win 0x4;
     CCTextInputNode* m_nameInput;
     SimplePlayer* m_playerPreview;
     PAD = mac 0x10, win 0x8;
