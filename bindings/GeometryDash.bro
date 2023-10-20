@@ -1240,6 +1240,7 @@ class EditButtonBar : cocos2d::CCNode {
         int rowCount, int columnCount
     ) = mac 0x350e60, win 0x6e450;
 
+    bool init(cocos2d::CCArray* buttons, int, bool, int rowCount, int columnCount, cocos2d::CCPoint pos) = win 0x6e550;
     cocos2d::CCPoint m_position;
     int m_unknown;
     bool m_unknownBool;
@@ -1414,6 +1415,7 @@ class EditorUI : cocos2d::CCLayer, FLAlertLayerProtocol, ColorSelectDelegate, GJ
     void editGroup(cocos2d::CCObject* sender) = win 0x8d720;
     void moveObjectCall(cocos2d::CCObject* sender) = mac 0x29830, win 0x8db30;
     void moveObjectCall(EditCommand command) = mac 0x29b80, win 0x8db50;
+    cocos2d::CCPoint* moveForCommand(cocos2d::CCPoint* point, EditCommand command) = win 0x8d890; 
     void transformObjectCall(cocos2d::CCObject* sender) = mac 0x29860, win 0x8def0;
     void transformObjectCall(EditCommand command) = mac 0x29d90, win 0x8df10;
     void transformObject(GameObject* obj, EditCommand command, bool snap) = mac 0x2b0b0, win 0x8e250;
