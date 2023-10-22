@@ -187,7 +187,7 @@ static std::unordered_map<std::string, SentAsyncWebRequestHandle> RUNNING_REQUES
 static std::mutex RUNNING_REQUESTS_MUTEX;
 
 SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const& req, std::string const& id) :
-    m_id(id), m_url(req.m_url), m_target(req.m_target), m_extra(req.extra()), m_httpHeaders(req.m_httpHeaders) {
+    m_self(self), m_id(id), m_url(req.m_url), m_target(req.m_target), m_extra(req.extra()), m_httpHeaders(req.m_httpHeaders) {
 
 #define AWAIT_RESUME()    \
     {\
@@ -296,6 +296,7 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
                     }
                     return 1;
                 }
+
                 Loader::get()->queueInMainThread([self = data->self, now, total]() {
                     std::lock_guard _(self->m_mutex);
                     for (auto& prog : self->m_progresses) {
