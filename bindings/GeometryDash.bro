@@ -4096,6 +4096,8 @@ class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDeleg
     void showUpdateAlert(UpdateResponse) = mac 0x164ED0, win 0x179300;
     void updateLabelValues() = mac 0x164090, win 0x17b170;
 
+    void onRate(cocos2d::CCObject* sender) = win 0x17a530;
+
     PAD = win 0x4, mac 0x8;
     cocos2d::CCMenu* m_playBtnMenu;
     GJGameLevel* m_level;
@@ -5264,8 +5266,15 @@ class RateStarsLayer : FLAlertLayer, UploadPopupDelegate, UploadActionDelegate {
     UploadActionPopup* m_rateAction;
     RateLevelDelegate* m_rateDelegate;
 
-    static RateStarsLayer* create(int levelID, bool isModSuggest) = mac 0x135e50;
-    bool init(int levelID, bool isModSuggest) = mac 0x136050;
+    static RateStarsLayer* create(int levelID, bool isModSuggest) = mac 0x135e50, win 0x2155f0;
+    bool init(int levelID, bool isModSuggest) = mac 0x136050, win 0x2156a0;
+}
+
+class RateLevelLayer : FLAlertLayer {
+    RateLevelLayer() = win 0x214a80;
+    virtual ~RateLevelLayer() = win 0x214b40;
+
+    bool init(int levelID) = win 0x214cb0;
 }
 
 class RetryLevelLayer {
