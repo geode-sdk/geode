@@ -965,7 +965,7 @@ class CreatorLayer : cocos2d::CCLayer, cocos2d::CCSceneTransitionDelegate, Dialo
     void onTreasureRoom(cocos2d::CCObject*) = win 0x4f540;
     virtual void sceneWillResume() = mac 0x1438F0, win 0x4fb50;
     virtual bool init() = mac 0x141c10, win 0x4de40;
-    static CreatorLayer* create() = win 0x4dda0;
+    static CreatorLayer* create() = mac 0x141b10, win 0x4dda0;
 }
 
 class CurrencyRewardLayer : cocos2d::CCLayer {
