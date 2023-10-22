@@ -1,5 +1,4 @@
 #include "Shared.hpp"
-#include "TypeOpt.hpp"
 
 namespace {
     namespace format_strings {
@@ -74,50 +73,33 @@ Result<tulip::hook::HandlerMetadata> geode::modifier::handlerMetadataForAddress(
     }
 }
 
-std::string generateAddressHeader(Root& root) {
+std::string generateAddressHeader(Root const& root) {
     std::string output;
-
-    TypeBank bank;
-    bank.loadFrom(root);
     output += format_strings::address_begin;
 
-    for (auto& c : root.classes) {
-        for (auto& field : c.fields) {
-            std::string address_str;
+    for (auto& f : root.functions) {
+        std::string address_str;
 
-            auto fn = field.get_as<FunctionBindField>();
-
-            if (!fn) {
-                continue;
-            }
-
-            if (codegen::getStatus(field) == BindStatus::Binded) {
-                auto const ids = bank.getIDs(fn->beginning, c.name);
-
-                address_str = fmt::format(
-                    "addresser::get{}Virtual(Resolve<{}>::func(&{}::{}))",
-                    str_if("Non", !fn->beginning.is_virtual),
-                    codegen::getParameterTypes(fn->beginning),
-                    field.parent,
-                    fn->beginning.name
-                );
-            }
-            else if (codegen::getStatus(field) == BindStatus::NeedsBinding) {
-                address_str = fmt::format("base::get() + 0x{:x}", codegen::platformNumber(fn->binds));
-            }
-            else {
-                continue;
-            }
-
-            output += fmt::format(
-                ::format_strings::declare_address,
-                fmt::arg("address", address_str),
-                fmt::arg("index", field.field_id)
+        if (codegen::getStatus(f) == BindStatus::Binded) {
+            address_str = fmt::format(
+                "addresser::getNonVirtual(Resolve<{}>::func(&{}))",
+                codegen::getParameterTypes(f.prototype),
+                f.prototype.name
             );
         }
-    }
+        else if (codegen::getStatus(f) == BindStatus::NeedsBinding) {
+            address_str = fmt::format("base::get() + 0x{:x}", codegen::platformNumber(f.binds));
+        }
+        else {
+            continue;
+        }
 
-    output += format_strings::declare_metadata_begin;
+        output += fmt::format(
+            format_strings::declare_address,
+            fmt::arg("address", address_str),
+            fmt::arg("index", codegen::getId(&f))
+        );
+    }
 
     for (auto& c : root.classes) {
         for (auto& field : c.fields) {
@@ -129,53 +111,97 @@ std::string generateAddressHeader(Root& root) {
                 continue;
             }
 
-            if (codegen::getStatus(field) == BindStatus::Binded) {
+            
+            if (codegen::getStatus(field) == BindStatus::NeedsBinding || codegen::platformNumber(field)) {
+                if (is_cocos_class(field.parent) && codegen::platform == Platform::Windows) {
+                    address_str = fmt::format("base::getCocos() + 0x{:x}", codegen::platformNumber(fn->binds));
+                }
+                else {
+                    address_str = fmt::format("base::get() + 0x{:x}", codegen::platformNumber(fn->binds));
+                }
+            }
+            else if (codegen::getStatus(field) == BindStatus::Binded && fn->prototype.type == FunctionType::Normal) {
                 address_str = fmt::format(
                     "addresser::get{}Virtual(Resolve<{}>::func(&{}::{}))",
-                    str_if("Non", !fn->beginning.is_virtual),
-                    codegen::getParameterTypes(fn->beginning),
+                    str_if("Non", !fn->prototype.is_virtual),
+                    codegen::getParameterTypes(fn->prototype),
                     field.parent,
-                    fn->beginning.name
+                    fn->prototype.name
                 );
-            }
-            else if (codegen::getStatus(field) == BindStatus::NeedsBinding) {
-                address_str = fmt::format("base::get() + 0x{:x}", codegen::platformNumber(fn->binds));
             }
             else {
                 continue;
             }
 
-            char const* used_declare_format;
-
-            switch (fn->beginning.type) {
-                case FunctionType::Normal:
-                    used_declare_format = format_strings::declare_metadata;
-                    break;
-                case FunctionType::Ctor:
-                case FunctionType::Dtor:
-                    used_declare_format = format_strings::declare_metadata_structor;
-                    break;
-            }
-
-            if (fn->beginning.is_static)
-                used_declare_format = format_strings::declare_metadata_static;
-
             output += fmt::format(
-                used_declare_format,
+                format_strings::declare_address,
                 fmt::arg("address", address_str),
-                fmt::arg("class_name", c.name),
-                fmt::arg("const", str_if(" const ", fn->beginning.is_const)),
-                fmt::arg("convention", codegen::getModifyConventionName(field)),
-                fmt::arg("return", bank.getReturn(fn->beginning, c.name)),
-                fmt::arg("parameters", codegen::getParameters(fn->beginning)),
-                fmt::arg("parameter_types", codegen::getParameterTypes(fn->beginning)),
-                fmt::arg("arguments", codegen::getParameterNames(fn->beginning)),
-                fmt::arg("parameter_comma", str_if(", ", !fn->beginning.args.empty())),
-                fmt::arg("index", field.field_id)
+                fmt::arg("index", codegen::getId(&field))
             );
         }
     }
 
-    output += format_strings::declare_metadata_end;
+    // TODO: this eats too much of compile time make it opt in maybe
+
+    // output += format_strings::declare_metadata_begin;
+
+    // for (auto& c : root.classes) {
+    //     for (auto& field : c.fields) {
+    //         std::string address_str;
+
+    //         auto fn = field.get_as<FunctionBindField>();
+
+    //         if (!fn) {
+    //             continue;
+    //         }
+
+    //         if (codegen::getStatus(field) == BindStatus::Binded) {
+    //             address_str = fmt::format(
+    //                 "addresser::get{}Virtual(Resolve<{}>::func(&{}::{}))",
+    //                 str_if("Non", !fn->beginning.is_virtual),
+    //                 codegen::getParameterTypes(fn->beginning),
+    //                 field.parent,
+    //                 fn->beginning.name
+    //             );
+    //         }
+    //         else if (codegen::getStatus(field) == BindStatus::NeedsBinding) {
+    //             address_str = fmt::format("base::get() + 0x{:x}", codegen::platformNumber(fn->binds));
+    //         }
+    //         else {
+    //             continue;
+    //         }
+
+    //         char const* used_declare_format;
+
+    //         switch (fn->beginning.type) {
+    //             case FunctionType::Normal:
+    //                 used_declare_format = format_strings::declare_metadata;
+    //                 break;
+    //             case FunctionType::Ctor:
+    //             case FunctionType::Dtor:
+    //                 used_declare_format = format_strings::declare_metadata_structor;
+    //                 break;
+    //         }
+
+    //         if (fn->beginning.is_static)
+    //             used_declare_format = format_strings::declare_metadata_static;
+
+    //         output += fmt::format(
+    //             used_declare_format,
+    //             fmt::arg("address", address_str),
+    //             fmt::arg("class_name", c.name),
+    //             fmt::arg("const", str_if(" const ", fn->beginning.is_const)),
+    //             fmt::arg("convention", codegen::getModifyConventionName(field)),
+    //             fmt::arg("return", bank.getReturn(fn->beginning, c.name)),
+    //             fmt::arg("parameters", codegen::getParameters(fn->beginning)),
+    //             fmt::arg("parameter_types", codegen::getParameterTypes(fn->beginning)),
+    //             fmt::arg("arguments", codegen::getParameterNames(fn->beginning)),
+    //             fmt::arg("parameter_comma", str_if(", ", !fn->beginning.args.empty())),
+    //             fmt::arg("index", field.field_id)
+    //         );
+    //     }
+    // }
+
+    // output += format_strings::declare_metadata_end;
     return output;
 }

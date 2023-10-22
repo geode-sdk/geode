@@ -141,6 +141,7 @@ class CC_DLL CCScheduler : public CCObject
     GEODE_FRIEND_MODIFY
 public:
     CCScheduler();
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCScheduler, CCObject)
     /**
      *  @js NA
      *  @lua NA
@@ -283,6 +284,12 @@ public:
      @lua NA
      */
     void resumeTargets(CCSet* targetsToResume);
+
+    /**
+     * Get the shared scheduler from CCDirector
+     * @note Geode addition
+     */
+    static GEODE_DLL CCScheduler* get();
 
 private:
     void removeHashElement(struct _hashSelectorEntry *pElement);

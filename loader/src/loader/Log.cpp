@@ -9,7 +9,7 @@
 #include <fmt/format.h>
 #include <iomanip>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 using namespace geode::log;
 using namespace cocos2d;
 
@@ -85,6 +85,10 @@ std::string log::parse(cocos2d::ccColor4B const& col) {
     return fmt::format("rgba({}, {}, {}, {})", col.r, col.g, col.b, col.a);
 }
 
+std::string log::parse(gd::string const& str) {
+    return fmt::format("{}", std::string(str));
+}
+
 // Log
 
 Log::Log(Mod* mod, Severity sev) : m_sender(mod), m_time(log_clock::now()), m_severity(sev) {}
@@ -100,6 +104,9 @@ bool Log::operator==(Log const& l) {
 }
 
 std::string Log::toString(bool logTime) const {
+    return toString(logTime, 0);
+}
+std::string Log::toString(bool logTime, uint32_t nestLevel) const {
     std::string res;
 
     if (logTime) {
@@ -107,6 +114,10 @@ std::string Log::toString(bool logTime) const {
     }
 
     res += fmt::format(" [{}]: ", m_sender ? m_sender->getName() : "Geode?");
+
+    for (uint32_t i = 0; i < nestLevel; i++) {
+        res += "  ";
+    }
 
     for (auto& i : m_components) {
         res += i->_toString();
@@ -132,13 +143,20 @@ Severity Log::getSeverity() const {
 }
 
 void Log::addFormat(std::string_view formatStr, std::span<ComponentTrait*> components) {
+    auto res = this->addFormatNew(formatStr, components);
+    if (res.isErr()) {
+        throw std::runtime_error(res.unwrapErr());
+    }
+}
 
+Result<> Log::addFormatNew(std::string_view formatStr, std::span<ComponentTrait*> components) {
     size_t compIndex = 0;
     std::string current;
     for (size_t i = 0; i < formatStr.size(); ++i) {
         if (formatStr[i] == '{') {
-            if (i == formatStr.size() - 1)
-                throw std::runtime_error("Unescaped { at the end of format string");
+            if (i == formatStr.size() - 1) {
+                return Err("Unescaped { at the end of format string");
+            }
             auto const next = formatStr[i + 1];
             if (next == '{') {
                 current.push_back('{');
@@ -146,8 +164,9 @@ void Log::addFormat(std::string_view formatStr, std::span<ComponentTrait*> compo
                 continue;
             }
             if (next == '}') {
-                if (compIndex >= components.size())
-                    throw std::runtime_error("Not enough arguments for format string");
+                if (compIndex >= components.size()) {
+                    return Err("Not enough arguments for format string");
+                }
                 
                 m_components.push_back(new ComponentBase(current));
                 m_components.push_back(components[compIndex++]);
@@ -156,17 +175,18 @@ void Log::addFormat(std::string_view formatStr, std::span<ComponentTrait*> compo
                 ++i;
                 continue;
             }
-            throw std::runtime_error("You put something in between {} silly head");
+            return Err("You put something in between {} silly head");
         }
         if (formatStr[i] == '}') {
-            if (i == formatStr.size() - 1)
-                throw std::runtime_error("Unescaped } at the end of format string");
+            if (i == formatStr.size() - 1) {
+                return Err("Unescaped } at the end of format string");
+            }
             if (formatStr[i + 1] == '}') {
                 current.push_back('}');
                 ++i;
                 continue;
             }
-            throw std::runtime_error("You have an unescaped }");
+            return Err("You have an unescaped }");
         }
 
         current.push_back(formatStr[i]);
@@ -176,37 +196,66 @@ void Log::addFormat(std::string_view formatStr, std::span<ComponentTrait*> compo
         m_components.push_back(new ComponentBase(current));
 
     if (compIndex != components.size()) {
-        throw std::runtime_error("You have left over arguments.. silly head");
-        // show_silly_error(formatStr);
+        return Err("You have left over arguments.. silly head");
     }
+
+    return Ok();
 }
 
 // Logger
 
-void Logger::setup() {
-    s_logStream = std::ofstream(dirs::getGeodeLogDir() / log::generateLogName());
+std::vector<Log>& Logger::logs() {
+    static std::vector<Log> logs;
+    return logs;
+}
+std::ofstream& Logger::logStream() {
+    static std::ofstream logStream;
+    return logStream;
+}
+uint32_t& Logger::nestLevel() {
+    static std::uint32_t nestLevel = 0;
+    return nestLevel;
 }
 
-void Logger::_push(Log&& log) {
-    std::string logStr = log.toString(true);
+void Logger::setup() {
+    logStream() = std::ofstream(dirs::getGeodeLogDir() / log::generateLogName());
+}
 
-    LoaderImpl::get()->logConsoleMessage(logStr);
-    s_logStream << logStr << std::endl;
+void Logger::push(Log&& log) {
+    std::string logStr = log.toString(true, nestLevel());
 
-    s_logs.emplace_back(std::forward<Log>(log));
+    LoaderImpl::get()->logConsoleMessageWithSeverity(logStr, log.getSeverity());
+    logStream() << logStr << std::endl;
+
+    logs().emplace_back(std::forward<Log>(log));
+}
+
+void Logger::pop(Log* log) {
+    geode::utils::ranges::remove(Logger::logs(), *log);
+}
+
+void Logger::pushNest() {
+    if (nestLevel() == std::numeric_limits<uint32_t>::max())
+        return;
+    nestLevel()++;
+}
+void Logger::popNest() {
+    if (nestLevel() == 0)
+        return;
+    nestLevel()--;
 }
 
 std::vector<Log*> Logger::list() {
-    std::vector<Log*> logs;
-    logs.reserve(s_logs.size());
-    for (auto& log : s_logs) {
-        logs.push_back(&log);
+    std::vector<Log*> logs_;
+    logs_.reserve(logs().size());
+    for (auto& log : logs()) {
+        logs_.push_back(&log);
     }
-    return logs;
+    return logs_;
 }
 
 void Logger::clear() {
-    s_logs.clear();
+    logs().clear();
 }
 
 // Misc

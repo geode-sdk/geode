@@ -75,7 +75,7 @@ public:
      *  @js ctor
      */
     CCLayer();
-    GEODE_MONOSTATE_CONSTRUCTOR_COCOS(CCLayer, CCNode)
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCLayer, CCNode)
     /**
      *  @js NA
      *  @lua NA
@@ -233,7 +233,7 @@ public:
      *  @js ctor
      */
     CCLayerRGBA();
-    GEODE_MONOSTATE_CONSTRUCTOR_COCOS(CCLayerRGBA, CCLayer)
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCLayerRGBA, CCLayer)
     /**
      *  @js NA
      *  @lua NA
@@ -290,7 +290,7 @@ public:
      *  @js ctor
      */
     CCLayerColor();
-    GEODE_MONOSTATE_CONSTRUCTOR_COCOS(CCLayerColor, CCLayerRGBA)
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCLayerColor, CCLayerRGBA)
     /**
      *  @js NA
      *  @lua NA

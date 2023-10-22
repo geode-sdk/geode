@@ -15,14 +15,34 @@ string(STRIP "${GEODE_VERSION}" GEODE_VERSION)
 
 # Check if version has a tag like v1.0.0-alpha
 string(FIND ${GEODE_VERSION} "-" GEODE_VERSION_HAS_TAG)
-if (GEODE_VERSION_HAS_TAG)
-	string(REGEX MATCH "[a-z]+[0-9]?$" GEODE_VERSION_TAG ${GEODE_VERSION})
+if (NOT ${GEODE_VERSION_HAS_TAG} EQUAL "-1")
+	string(REGEX MATCH "[a-z]+(\.[0-9]+)?$" GEODE_VERSION_TAG ${GEODE_VERSION})
 	string(SUBSTRING "${GEODE_VERSION}" 0 ${GEODE_VERSION_HAS_TAG} GEODE_VERSION)
+	string(FIND ${GEODE_VERSION_TAG} "." GEODE_VERSION_TAG_HAS_NUMBER)
+
+	# Extract tag type and number from tag
+	if (NOT ${GEODE_VERSION_TAG_HAS_NUMBER} EQUAL "-1")
+		string(SUBSTRING "${GEODE_VERSION_TAG}" 0 ${GEODE_VERSION_TAG_HAS_NUMBER} GEODE_VERSION_TAG_TYPE)
+		math(EXPR GEODE_VERSION_TAG_HAS_NUMBER "${GEODE_VERSION_TAG_HAS_NUMBER} + 1")
+		string(SUBSTRING "${GEODE_VERSION_TAG}" ${GEODE_VERSION_TAG_HAS_NUMBER} -1 GEODE_VERSION_TAG_NUMBER)
+	else()
+		set(GEODE_VERSION_TAG_TYPE "${GEODE_VERSION_TAG}")
+		set(GEODE_VERSION_TAG_NUMBER "")
+	endif()
+
+	# Capitalize first letter of tag type
+	string(SUBSTRING ${GEODE_VERSION_TAG_TYPE} 0 1 FIRST_LETTER)
+	string(TOUPPER ${FIRST_LETTER} FIRST_LETTER)
+	string(REGEX REPLACE "^.(.*)" "${FIRST_LETTER}\\1" GEODE_VERSION_TAG_TYPE "${GEODE_VERSION_TAG_TYPE}")
+
+	message(STATUS "Version: ${GEODE_VERSION}, tag: ${GEODE_VERSION_TAG} (type: ${GEODE_VERSION_TAG_TYPE}, number: ${GEODE_VERSION_TAG_NUMBER})")
 else()
 	set(GEODE_VERSION_TAG "")
-endif()
+	set(GEODE_VERSION_TAG_TYPE "")
+	set(GEODE_VERSION_TAG_NUMBER "")
 
-message(STATUS "Version: ${GEODE_VERSION}, tag: ${GEODE_VERSION_TAG}")
+	message(STATUS "Version: ${GEODE_VERSION}")
+endif()
 
 project(geode-sdk VERSION ${GEODE_VERSION} LANGUAGES CXX C)
 
@@ -49,20 +69,66 @@ target_compile_definitions(${PROJECT_NAME} INTERFACE -DPROJECT_NAME=${CMAKE_PROJ
 set(GEODE_CODEGEN_PATH ${CMAKE_CURRENT_BINARY_DIR}/codegenned)
 set(GEODE_BIN_PATH ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 set(GEODE_LOADER_PATH ${CMAKE_CURRENT_SOURCE_DIR}/loader)
+set(GEODE_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 
 include(cmake/GeodeFile.cmake)
 include(cmake/Platform.cmake)
 include(cmake/CPM.cmake)
 
+if (PROJECT_IS_TOP_LEVEL AND NOT GEODE_BUILDING_DOCS)
+	set(MAT_JSON_AS_INTERFACE ON)
+endif()
+CPMAddPackage("gh:geode-sdk/json#a47f570")
+CPMAddPackage("gh:fmtlib/fmt#9.1.0")
+CPMAddPackage("gh:gulrak/filesystem#3e5b930")
+
+target_compile_definitions(${PROJECT_NAME} INTERFACE MAT_JSON_DYNAMIC=1)
+
+# this is needed for cross compilation on linux,
+# since fmtlib will fail to compile otherwise
+if (GEODE_DISABLE_FMT_CONSTEVAL)
+	message(VERBOSE "Disabling FMT_CONSTEVAL")
+	target_compile_definitions(fmt PUBLIC -DFMT_CONSTEVAL=)
+endif()
+
+# Tulip hook (hooking)
+if (PROJECT_IS_TOP_LEVEL AND NOT GEODE_BUILDING_DOCS)
+	set(TULIP_LINK_SOURCE ON)
+endif()
+set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "" FORCE)
+CPMAddPackage("gh:geode-sdk/TulipHook#3423a29")
+set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
+
+# Silence warnings from dependencies
+include(CheckCXXCompilerFlag)
+check_cxx_compiler_flag(-Wno-everything SUPPORTS_W_NO_EVERYTHING)
+if (SUPPORTS_W_NO_EVERYTHING)
+	if (TARGET capstone)
+		target_compile_options(capstone PRIVATE -Wno-everything)
+	endif()
+endif()
+
 target_sources(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/entry.cpp)
+
+# Filesystem implementation in a separate target because i couldnt disable pch
+add_library(GeodeFilesystemImpl ${CMAKE_CURRENT_SOURCE_DIR}/FilesystemImpl.cpp)
+target_compile_features(GeodeFilesystemImpl PUBLIC cxx_std_20)
+target_link_libraries(GeodeFilesystemImpl PUBLIC ghc_filesystem)
 
 include(ExternalProject)
 set(GEODE_CODEGEN_BINARY_OUT ${CMAKE_CURRENT_BINARY_DIR}/codegen)
 ExternalProject_Add(CodegenProject
 	BUILD_ALWAYS ON
 	SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/codegen
-	CMAKE_CACHE_ARGS "-DCMAKE_INSTALL_PREFIX:STRING=${GEODE_CODEGEN_BINARY_OUT}"
-	CMAKE_ARGS ${GEODE_CODEGEN_CMAKE_ARGS}
+	# manually set configure command as to not inherit generator used by geode,
+	# this should hopefully fix generator cache mismatch between different projects, however
+	# it causes a warning to be shown every time. if you know a better solution please tell us ok thx
+	CONFIGURE_COMMAND ${CMAKE_COMMAND} ${GEODE_CODEGEN_CMAKE_ARGS} -DCMAKE_INSTALL_PREFIX:STRING=${GEODE_CODEGEN_BINARY_OUT}
+		-DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER} -DCMAKE_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}
+		-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+		-S <SOURCE_DIR> -B <BINARY_DIR>
+	BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config $<CONFIGURATION>
+	INSTALL_COMMAND ${CMAKE_COMMAND} --install <BINARY_DIR> --config $<CONFIGURATION>
 )
 
 
@@ -72,14 +138,22 @@ file(GLOB CODEGEN_DEPENDS CONFIGURE_DEPENDS
 	${CMAKE_CURRENT_SOURCE_DIR}/codegen/src/*.hpp
 )
 
+if (NOT GEODE_BINDINGS_PATH)
+	set(GEODE_BINDINGS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/bindings)
+endif()
+
+file(GLOB CODEGEN_OUTPUTS CONFIGURE_DEPENDS 
+	${GEODE_CODEGEN_PATH}/Geode/binding/*.hpp
+)
+
 add_custom_command(
 	DEPENDS ${CODEGEN_DEPENDS}
 	DEPENDS CodegenProject
-	COMMAND ${GEODE_CODEGEN_BINARY_OUT}/Codegen ${GEODE_TARGET_PLATFORM} bindings ${GEODE_CODEGEN_PATH}
+	COMMAND ${GEODE_CODEGEN_BINARY_OUT}/Codegen ${GEODE_TARGET_PLATFORM} ${GEODE_BINDINGS_PATH} ${GEODE_CODEGEN_PATH}
 	COMMAND echo codegen > ${GEODE_CODEGEN_PATH}/.stamp
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 	COMMENT "Run Codegen"
-	OUTPUT ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp ${GEODE_CODEGEN_PATH}/Geode/GeneratedAddress.cpp ${GEODE_CODEGEN_PATH}/.stamp
+	OUTPUT ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp ${GEODE_CODEGEN_PATH}/Geode/GeneratedAddress.cpp ${GEODE_CODEGEN_PATH}/.stamp ${CODEGEN_OUTPUTS}
 )
 
 add_custom_target(CodegenRun
@@ -103,7 +177,7 @@ endif()
 
 add_library(GeodeCodegenSources ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp ${GEODE_CODEGEN_PATH}/Geode/GeneratedAddress.cpp)
 target_link_directories(GeodeCodegenSources PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/loader/include/link)
-target_link_libraries(GeodeCodegenSources PRIVATE ghc_filesystem fmt TulipHookInclude)
+target_link_libraries(GeodeCodegenSources PRIVATE ghc_filesystem GeodeFilesystemImpl fmt TulipHookInclude mat-json)
 target_include_directories(GeodeCodegenSources PRIVATE
 	${GEODE_CODEGEN_PATH}
 	${GEODE_LOADER_PATH}/include
@@ -111,7 +185,14 @@ target_include_directories(GeodeCodegenSources PRIVATE
 	${GEODE_LOADER_PATH}/include/Geode/cocos/extensions
 	${GEODE_LOADER_PATH}/include/Geode/fmod
 )
+set_target_properties(GeodeCodegenSources PROPERTIES CXX_VISIBILITY_PRESET hidden)
 target_compile_features(GeodeCodegenSources PUBLIC cxx_std_20)
+
+if (APPLE)
+	target_compile_options(GeodeCodegenSources PUBLIC -ffunction-sections -fdata-sections)
+	target_link_options(GeodeCodegenSources PUBLIC -dead_strip)
+endif()
+
 if (NOT GEODE_DISABLE_PRECOMPILED_HEADERS)
 	target_precompile_headers(GeodeCodegenSources INTERFACE
 		"${GEODE_LOADER_PATH}/include/Geode/Bindings.hpp"
@@ -127,17 +208,7 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 )
 target_link_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/loader/include/link)
 
-CPMAddPackage("gh:geode-sdk/json#2b76460")
-CPMAddPackage("gh:fmtlib/fmt#9.1.0")
-CPMAddPackage("gh:gulrak/filesystem#3e5b930")
-
-# Tulip hook (hooking)
-if (PROJECT_IS_TOP_LEVEL AND NOT GEODE_BUILDING_DOCS)
-	set(TULIP_LINK_SOURCE ON)
-endif()
-CPMAddPackage("gh:geode-sdk/TulipHook#76984a4")
-
-target_link_libraries(${PROJECT_NAME} INTERFACE ghc_filesystem fmt TulipHookInclude GeodeCodegenSources mat-json)
+target_link_libraries(${PROJECT_NAME} INTERFACE ghc_filesystem fmt TulipHookInclude GeodeCodegenSources mat-json GeodeFilesystemImpl)
 
 
 if (NOT EXISTS ${GEODE_BIN_PATH})
@@ -152,6 +223,11 @@ if (${GEODE_LINK_NIGHTLY})
 	set(GEODE_PLATFORM_BIN_PATH ${GEODE_BIN_PATH}/nightly/${GEODE_PLATFORM_BINARY})
 else()
 	set(GEODE_PLATFORM_BIN_PATH ${GEODE_BIN_PATH}/${PROJECT_VERSION}/${GEODE_PLATFORM_BINARY})
+endif()
+
+if (WIN32)
+	# This allows you to compile in debug mode
+	add_compile_definitions(_HAS_ITERATOR_DEBUGGING=0)
 endif()
 
 

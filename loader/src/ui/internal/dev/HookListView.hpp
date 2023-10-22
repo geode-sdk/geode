@@ -3,7 +3,7 @@
 #include <Geode/binding/CustomListView.hpp>
 #include <Geode/binding/TableViewCell.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 static constexpr const BoomListType kBoomListType_Hooks = static_cast<BoomListType>(0x358);
 
@@ -39,7 +39,7 @@ protected:
 
     void setupList() override;
     TableViewCell* getListCell(char const* key) override;
-    void loadCell(TableViewCell* cell, unsigned int index) override;
+    void loadCell(TableViewCell* cell, int index) override;
 
 public:
     static HookListView* create(CCArray* hooks, Mod* Mod, float width, float height);

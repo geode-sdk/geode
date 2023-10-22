@@ -1,6 +1,6 @@
 #include "LoaderImpl.hpp"
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 Loader::Loader() : m_impl(new Impl) {}
 
@@ -63,6 +63,10 @@ void Loader::refreshModsList() {
     return m_impl->refreshModsList();
 }
 
+Loader::LoadingState Loader::getLoadingState() {
+    return m_impl->m_loadingState;
+}
+
 bool Loader::isModInstalled(std::string const& id) const {
     return m_impl->isModInstalled(id);
 }
@@ -84,7 +88,7 @@ std::vector<Mod*> Loader::getAllMods() {
 }
 
 Mod* Loader::getModImpl() {
-    return m_impl->getModImpl();
+    return Mod::get();
 }
 
 void Loader::updateAllDependencies() {
@@ -95,12 +99,24 @@ std::vector<InvalidGeodeFile> Loader::getFailedMods() const {
     return m_impl->getFailedMods();
 }
 
+std::vector<LoadProblem> Loader::getProblems() const {
+    return m_impl->getProblems();
+}
+
 void Loader::updateResources() {
     return m_impl->updateResources();
 }
 
+void Loader::updateResources(bool forceReload) {
+    return m_impl->updateResources(forceReload);
+}
+
 void Loader::queueInGDThread(ScheduledFunction func) {
-    return m_impl->queueInGDThread(func);
+    return m_impl->queueInMainThread(func);
+}
+
+void Loader::queueInMainThread(ScheduledFunction func) {
+    return m_impl->queueInMainThread(func);
 }
 
 void Loader::waitForModsToBeLoaded() {

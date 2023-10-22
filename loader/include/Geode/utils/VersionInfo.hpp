@@ -11,27 +11,107 @@ namespace geode {
         LessEq,
         Exact,
         MoreEq,
+        Less,
+        More,
+        Any
     };
 
     /**
-     * A version label, like v1.0.0-alpha or v2.3.4-prerelease. Purely semantic, 
-     * and not used in comparisons; so for example v1.0.0-alpha == v1.0.0.
+     * A version label, like v1.0.0-alpha or v2.3.4-prerelease. Limited to these 
+     * options; arbitary identifiers are not supported. Additional numbering 
+     * may be added after the identifier, such as v1.0.0-beta.1
      */
-    enum class VersionTag {
-        Alpha,
-        Beta,
-        Prerelease,
+    struct VersionTag {
+        enum {
+            Alpha,
+            Beta,
+            Prerelease,
+        } value;
+        std::optional<size_t> number;
+
+        using Type = decltype(value);
+
+        constexpr VersionTag(Type const& value) : value(value) {}
+        constexpr VersionTag(Type const& value, std::optional<size_t> number)
+          : value(value), number(number) {}
+
+        constexpr bool operator==(VersionTag const& other) const {
+            return value == other.value && number == other.number;
+        }
+        constexpr bool operator<(VersionTag const& other) const {
+            if (value == other.value) {
+                if (number && other.number) return number < other.number;
+                if (number) return true;
+                if (other.number) return false;
+                return false;
+            }
+            return value < other.value;
+        }
+        constexpr bool operator<=(VersionTag const& other) const {
+            if (value == other.value) {
+                if (number && other.number) return number <= other.number;
+                if (number) return true;
+                if (other.number) return false;
+                return true;
+            }
+            return value <= other.value;
+        }
+        constexpr bool operator>(VersionTag const& other) const {
+            if (value == other.value) {
+                if (number && other.number) return number > other.number;
+                if (number) return false;
+                if (other.number) return true;
+                return false;
+            }
+            return value > other.value;
+        }
+        constexpr bool operator>=(VersionTag const& other) const {
+            if (value == other.value) {
+                if (number && other.number) return number >= other.number;
+                if (number) return false;
+                if (other.number) return true;
+                return true;
+            }
+            return value >= other.value;
+        }
+
+        static Result<VersionTag> parse(std::stringstream& str);
+        std::string toSuffixString() const;
+        std::string toString() const;
     };
-    GEODE_DLL std::optional<VersionTag> versionTagFromString(std::string const& str);
-    GEODE_DLL std::string versionTagToSuffixString(VersionTag tag);
-    GEODE_DLL std::string versionTagToString(VersionTag tag);
+
+    constexpr bool operator<(std::optional<VersionTag> const& a, std::optional<VersionTag> const& b) {
+        if (a && b) return *a < *b;
+        if (a) return true;
+        if (b) return false;
+        return false;
+    }
+
+    constexpr bool operator<=(std::optional<VersionTag> const& a, std::optional<VersionTag> const& b) {
+        if (a && b) return *a <= *b;
+        if (a) return true;
+        if (b) return false;
+        return true;
+    }
+
+    constexpr bool operator>(std::optional<VersionTag> const& a, std::optional<VersionTag> const& b) {
+        if (a && b) return *a > *b;
+        if (a) return false;
+        if (b) return true;
+        return false;
+    }
+
+    constexpr bool operator>=(std::optional<VersionTag> const& a, std::optional<VersionTag> const& b) {
+        if (a && b) return *a >= *b;
+        if (a) return false;
+        if (b) return true;
+        return true;
+    }
 
     /**
-     * Class representing version information. Not strictly semver, notably in 
-     * regard to identifiers; identifiers are restricted to a few common ones, 
-     * and are purely semantic, i.e. not used in comparisons. See VersionTag 
-     * for details
-     * @class VersionInfo
+     * Class representing version information. Uses a limited subset of SemVer;  
+     * identifiers are restricted to a few predefined ones, and only one 
+     * identifier is allowed. See VersionTag for details
      */
     class GEODE_DLL VersionInfo final {
     protected:
@@ -78,24 +158,24 @@ namespace geode {
         // Apple clang does not support operator<=>! Yippee!
 
         constexpr bool operator==(VersionInfo const& other) const {
-            return std::tie(m_major, m_minor, m_patch) ==
-                std::tie(other.m_major, other.m_minor, other.m_patch);
+            return std::tie(m_major, m_minor, m_patch, m_tag) ==
+                std::tie(other.m_major, other.m_minor, other.m_patch, other.m_tag);
         }
         constexpr bool operator<(VersionInfo const& other) const {
-            return std::tie(m_major, m_minor, m_patch) <
-                std::tie(other.m_major, other.m_minor, other.m_patch);
+            return std::tie(m_major, m_minor, m_patch, m_tag) <
+                std::tie(other.m_major, other.m_minor, other.m_patch, other.m_tag);
         }
         constexpr bool operator<=(VersionInfo const& other) const {
-            return std::tie(m_major, m_minor, m_patch) <=
-                std::tie(other.m_major, other.m_minor, other.m_patch);
+            return std::tie(m_major, m_minor, m_patch, m_tag) <=
+                std::tie(other.m_major, other.m_minor, other.m_patch, other.m_tag);
         }
         constexpr bool operator>(VersionInfo const& other) const {
-            return std::tie(m_major, m_minor, m_patch) >
-                std::tie(other.m_major, other.m_minor, other.m_patch);
+            return std::tie(m_major, m_minor, m_patch, m_tag) >
+                std::tie(other.m_major, other.m_minor, other.m_patch, other.m_tag);
         }
         constexpr bool operator>=(VersionInfo const& other) const {
-            return std::tie(m_major, m_minor, m_patch) >=
-                std::tie(other.m_major, other.m_minor, other.m_patch);
+            return std::tie(m_major, m_minor, m_patch, m_tag) >=
+                std::tie(other.m_major, other.m_minor, other.m_patch, other.m_tag);
         }
 
         std::string toString(bool includeTag = true) const;
@@ -106,7 +186,7 @@ namespace geode {
     protected:
         VersionInfo m_version;
         VersionCompare m_compare = VersionCompare::Exact;
-    
+
     public:
         constexpr ComparableVersionInfo() = default;
         constexpr ComparableVersionInfo(
@@ -117,16 +197,31 @@ namespace geode {
         static Result<ComparableVersionInfo> parse(std::string const& string);
 
         constexpr bool compare(VersionInfo const& version) const {
+            if (m_compare == VersionCompare::Any) {
+                return true;
+            }
+
             // opposing major versions never match
             if (m_version.getMajor() != version.getMajor()) {
                 return false;
             }
+
+            // the comparison works invertedly as a version like "v1.2.0"
+            // should return true for "<=v1.3.0"
             switch (m_compare) {
-                case VersionCompare::Exact:    return m_version == version; break;
-                case VersionCompare::LessEq:   return m_version <= version; break;
-                case VersionCompare::MoreEq:   return m_version >= version; break;
+                case VersionCompare::LessEq:
+                    return version <= m_version;
+                case VersionCompare::MoreEq:
+                    return version >= m_version;
+                case VersionCompare::Less:
+                    return version < m_version;
+                case VersionCompare::More:
+                    return version > m_version;
+                case VersionCompare::Exact:
+                    return version == m_version;
+                default:
+                    return false;
             }
-            return false;
         }
 
         std::string toString() const;

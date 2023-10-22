@@ -6,8 +6,7 @@ namespace gd {
     namespace {
         static inline auto emptyInternalString() {
             return reinterpret_cast<_internal_string*>(
-                *reinterpret_cast<uintptr_t*>(geode::base::get() + 0x6030d0) +
-                sizeof(_internal_string)
+                *reinterpret_cast<uintptr_t*>(geode::base::get() + 0x6030d0) + sizeof(_internal_string)
             );
         }
     }
@@ -50,11 +49,19 @@ namespace gd {
         }
     }
 
-    bool string::operator==(string const& other) const {
-        if (size() != other.size()) return false;
-        return strcmp(c_str(), other.c_str()) == 0;
+    bool string::operator<(string const& other) const {
+        return std::string(*this) < std::string(other);
     }
 
+    bool string::operator==(string const& other) const {
+        return std::string(*this) == std::string(other);
+    }
+
+    // TODO: these need to stay for old mods linking against geode <1.2.0, remove in 2.0.0
+    template class map<int, int>;
+    template class map<gd::string, gd::string>;
+    template class map<gd::string, bool>;
+    template class map<short, bool>;
 }
 
 #endif

@@ -13,7 +13,7 @@
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/string.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 #define IMPL_SETT_CREATE(type_) \
     static type_##SettingNode* create(              \
@@ -107,8 +107,7 @@ protected:
         );
         m_menu->addChild(m_resetBtn);
 
-        CCDirector::sharedDirector()->getTouchDispatcher()->incrementForcePrio(2);
-        m_menu->registerWithTouchDispatcher();
+        m_menu->setTouchEnabled(true);
 
         if (!this->setup(setting, width)) return false;
 

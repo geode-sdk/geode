@@ -10,7 +10,12 @@ namespace geode::base {
 }
 
 #if defined(GEODE_IS_MACOS) || defined(GEODE_IS_ANDROID)
+
+    #include "gnustl-map.hpp"
+
 namespace gd {
+    using namespace geode::stl;
+
     struct _internal_string {
         size_t m_len;
         size_t m_capacity;
@@ -27,6 +32,8 @@ namespace gd {
         operator std::string() const {
             return std::string((char*)m_data, m_data[-1].m_len);
         }
+
+        bool operator<(string const& other) const;
 
         bool operator==(string const& other) const;
         string(string const& ok);
@@ -46,154 +53,6 @@ namespace gd {
         _internal_string* m_data;
     };
 
-    struct _rb_tree_base {
-        bool m_isblack;
-        _rb_tree_base* m_parent;
-        _rb_tree_base* m_left;
-        _rb_tree_base* m_right;
-    };
-
-    template <typename T>
-    struct _rb_tree_node : public _rb_tree_base {
-        T m_value;
-    };
-
-    static void _rb_tree_rotate_left(_rb_tree_base* const x, _rb_tree_base*& root) {
-        _rb_tree_base* const y = x->m_right;
-
-        x->m_right = y->m_left;
-        if (y->m_left != 0) y->m_left->m_parent = x;
-        y->m_parent = x->m_parent;
-
-        if (x == root) root = y;
-        else if (x == x->m_parent->m_left) x->m_parent->m_left = y;
-        else x->m_parent->m_right = y;
-        y->m_left = x;
-        x->m_parent = y;
-    }
-
-    static void _rb_tree_rotate_right(_rb_tree_base* const x, _rb_tree_base*& root) {
-        _rb_tree_base* const y = x->m_left;
-
-        x->m_left = y->m_right;
-        if (y->m_right != 0) y->m_right->m_parent = x;
-        y->m_parent = x->m_parent;
-
-        if (x == root) root = y;
-        else if (x == x->m_parent->m_right) x->m_parent->m_right = y;
-        else x->m_parent->m_left = y;
-        y->m_right = x;
-        x->m_parent = y;
-    }
-
-    static void _rb_insert_rebalance(
-        bool const insert_left, _rb_tree_base* x, _rb_tree_base* p, _rb_tree_base& header
-    ) {
-        _rb_tree_base*& root = header.m_parent;
-
-        x->m_parent = p;
-        x->m_left = 0;
-        x->m_right = 0;
-        x->m_isblack = false;
-
-        if (insert_left) {
-            p->m_left = x;
-
-            if (p == &header) {
-                header.m_parent = x;
-                header.m_right = x;
-            }
-            else if (p == header.m_left) {
-                header.m_left = x;
-            }
-        }
-        else {
-            p->m_right = x;
-
-            if (p == header.m_right) {
-                header.m_right = x;
-            }
-        }
-
-        while (x != root && x->m_parent->m_isblack == false) {
-            _rb_tree_base* const xpp = x->m_parent->m_parent;
-
-            if (x->m_parent == xpp->m_left) {
-                _rb_tree_base* const y = xpp->m_right;
-                if (y && y->m_isblack == false) {
-                    x->m_parent->m_isblack = true;
-                    y->m_isblack = true;
-                    xpp->m_isblack = false;
-                    x = xpp;
-                }
-                else {
-                    if (x == x->m_parent->m_right) {
-                        x = x->m_parent;
-                        _rb_tree_rotate_left(x, root);
-                    }
-                    x->m_parent->m_isblack = true;
-                    xpp->m_isblack = false;
-                    _rb_tree_rotate_right(xpp, root);
-                }
-            }
-            else {
-                _rb_tree_base* const y = xpp->m_left;
-                if (y && y->m_isblack == false) {
-                    x->m_parent->m_isblack = true;
-                    y->m_isblack = true;
-                    xpp->m_isblack = false;
-                    x = xpp;
-                }
-                else {
-                    if (x == x->m_parent->m_left) {
-                        x = x->m_parent;
-                        _rb_tree_rotate_right(x, root);
-                    }
-                    x->m_parent->m_isblack = true;
-                    xpp->m_isblack = false;
-                    _rb_tree_rotate_left(xpp, root);
-                }
-            }
-        }
-        root->m_isblack = true;
-    }
-
-    static _rb_tree_base* _rb_increment(_rb_tree_base* __x) throw() {
-        if (__x->m_right != 0) {
-            __x = __x->m_right;
-            while (__x->m_left != 0)
-                __x = __x->m_left;
-        }
-        else {
-            _rb_tree_base* __y = __x->m_parent;
-            while (__x == __y->m_right) {
-                __x = __y;
-                __y = __y->m_parent;
-            }
-            if (__x->m_right != __y) __x = __y;
-        }
-        return __x;
-    }
-
-    static _rb_tree_base* _rb_decrement(_rb_tree_base* __x) throw() {
-        if (!__x->m_isblack && __x->m_parent->m_parent == __x) __x = __x->m_right;
-        else if (__x->m_left != 0) {
-            _rb_tree_base* __y = __x->m_left;
-            while (__y->m_right != 0)
-                __y = __y->m_right;
-            __x = __y;
-        }
-        else {
-            _rb_tree_base* __y = __x->m_parent;
-            while (__x == __y->m_left) {
-                __x = __y;
-                __y = __y->m_parent;
-            }
-            __x = __y;
-        }
-        return __x;
-    }
-
     template <typename K, typename V>
     class GEODE_DLL map {
     protected:
@@ -203,6 +62,7 @@ namespace gd {
 
     public:
         typedef _rb_tree_node<std::pair<K, V>>* _tree_node;
+        typedef _rb_tree_iterator<std::pair<K, V>> iterator;
 
         std::map<K, V> std() {
             return (std::map<K, V>)(*this);
@@ -241,6 +101,10 @@ namespace gd {
 
             _rb_insert_rebalance(insert_left, z, p, m_header);
             ++m_nodecount;
+        }
+
+        void insert(std::pair<K, V> const& val) {
+            insert_pair(val);
         }
 
         void insert_pair(std::pair<K, V> const& val) {
@@ -285,6 +149,108 @@ namespace gd {
                 delete y;
                 x = y;
             }
+        }
+
+        std::pair<iterator, iterator> equal_range(K const& __k) {
+            return std::pair<iterator, iterator>(lower_bound(__k), upper_bound(__k));
+        }
+
+        size_t erase(K const& __x) {
+            std::pair<iterator, iterator> __p = equal_range(__x);
+            size_t __old = size();
+            erase(__p.first, __p.second);
+            return __old - size();
+        }
+
+        void clear() {
+            erase(static_cast<_tree_node>(m_header.m_parent));
+            m_header.m_parent = 0;
+            m_header.m_left = &m_header;
+            m_header.m_right = &m_header;
+            m_nodecount = 0;
+        }
+
+        void erase(iterator __first, iterator __last) {
+            if (__first == begin() && __last == end()) {
+                clear();
+            }
+            else {
+                while (__first != __last) {
+                    erase(__first++);
+                }
+            }
+        }
+
+        void erase(iterator __pos) {
+            _tree_node __y = static_cast<_tree_node>(_rb_rebalance_for_erase(
+                __pos.m_node, m_header
+            ));
+            delete __y;
+            --m_nodecount;
+        }
+
+        V& operator[](K const& __k) {
+            iterator __i = lower_bound(__k);
+            if (__i == end() || compare(__k, (*__i).first)) {
+                insert_pair(std::pair<K, V>(__k, V()));
+                __i = lower_bound(__k);
+            }
+            return (*__i).second;
+        }
+
+        iterator begin() noexcept {
+            return iterator(m_header.m_left);
+        }
+
+        iterator end() noexcept {
+            return iterator(&m_header);
+        }
+
+        bool empty() const noexcept {
+            return m_nodecount == 0;
+        }
+
+        size_t size() const noexcept {
+            return m_nodecount;
+        }
+
+        iterator lower_bound(K const& __x) {
+            _tree_node __j = static_cast<_tree_node>(m_header.m_left);
+            _tree_node __k = static_cast<_tree_node>(&m_header);
+            while (__j != nullptr) {
+                if (!compare(__j->m_value.first, __x)) {
+                    __k = __j;
+                    __j = static_cast<_tree_node>(__j->m_left);
+                }
+                else {
+                    __j = static_cast<_tree_node>(__j->m_right);
+                }
+            }
+            return iterator(__k);
+        }
+
+        iterator upper_bound(K const& __x) {
+            _tree_node __j = static_cast<_tree_node>(m_header.m_left);
+            _tree_node __k = static_cast<_tree_node>(&m_header);
+            while (__j != nullptr) {
+                if (compare(__x, __j->m_value.first)) {
+                    __k = __j;
+                    __j = static_cast<_tree_node>(__j->m_left);
+                }
+                else {
+                    __j = static_cast<_tree_node>(__j->m_right);
+                }
+            }
+            return iterator(__k);
+        }
+
+        iterator find(K const& __x) {
+            iterator __j = lower_bound(__x);
+            return (__j == end() || compare(__x, (*__j).first)) ? end() : __j;
+        }
+
+        size_t count(K const& __x) {
+            return find(__x) != end() ? 1 : 0;
         }
 
         map(map const& lol) : map(std::map<K, V>(lol)) {}
@@ -439,8 +405,11 @@ namespace gd {
         }
 
         ~vector() {
-            for (auto i = m_start; i != m_finish; ++i) {
-                delete i;
+            if (m_start) {
+                for (auto& x : *this) {
+                    x.~T();
+                }
+                delete m_start;
             }
         }
 

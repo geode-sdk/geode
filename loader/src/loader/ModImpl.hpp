@@ -7,9 +7,9 @@ namespace geode {
     public:
         Mod* m_self;
         /**
-         * Mod info
+         * Mod metadata
          */
-        ModInfo m_info;
+        ModMetadata m_metadata;
         /**
          * Platform-specific info
          */
@@ -27,10 +27,6 @@ namespace geode {
          */
         bool m_enabled = false;
         /**
-         * Whether the mod binary is loaded or not
-         */
-        bool m_binaryLoaded = false;
-        /**
          * Mod temp directory name
          */
         ghc::filesystem::path m_tempDirName;
@@ -39,12 +35,11 @@ namespace geode {
          */
         ghc::filesystem::path m_saveDirPath;
         /**
-         * Pointers to mods that depend on
-         * this Mod. Makes it possible to
-         * enable / disable them automatically,
+         * Pointers to mods that depend on this Mod.
+         * Makes it possible to enable / disable them automatically,
          * when their dependency is disabled.
          */
-        std::vector<Mod*> m_parentDependencies;
+        std::vector<Mod*> m_dependants;
         /**
          * Saved values
          */
@@ -58,7 +53,21 @@ namespace geode {
          */
         json::Value m_savedSettingsData = json::Object();
 
-        Impl(Mod* self, ModInfo const& info);
+        /**
+         * Whether the mod resources are loaded or not
+         */
+        bool m_resourcesLoaded = false;
+        /**
+         * Whether logging is enabled for this mod
+         */
+        bool m_loggingEnabled = true;
+
+        std::unordered_map<std::string, char const*> m_expandedSprites;
+
+
+        ModRequestedAction m_requestedAction = ModRequestedAction::None;
+
+        Impl(Mod* self, ModMetadata const& metadata);
         ~Impl();
 
         Result<> setup();
@@ -77,15 +86,18 @@ namespace geode {
         ghc::filesystem::path getPackagePath() const;
         VersionInfo getVersion() const;
         bool isEnabled() const;
-        bool isLoaded() const;
         bool supportsDisabling() const;
-        bool supportsUnloading() const;
-        bool wasSuccesfullyLoaded() const;
-        ModInfo getModInfo() const;
+        bool needsEarlyLoad() const;
+        ModMetadata getMetadata() const;
         ghc::filesystem::path getTempDir() const;
         ghc::filesystem::path getBinaryPath() const;
 
         json::Value& getSaveContainer();
+
+#if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
+        void setMetadata(ModMetadata const& metadata);
+        std::vector<Mod*> getDependants() const;
+#endif
 
         Result<> saveData();
         Result<> loadData();
@@ -107,24 +119,29 @@ namespace geode {
         Result<> removeHook(Hook* hook);
         Result<Patch*> patch(void* address, ByteVector const& data);
         Result<> unpatch(Patch* patch);
-        Result<> loadBinary();
-        Result<> unloadBinary();
         Result<> enable();
         Result<> disable();
         Result<> uninstall();
         bool isUninstalled() const;
+
+        // 1.3.0 additions
+        ModRequestedAction getRequestedAction() const;
+
         bool depends(std::string const& id) const;
-        bool hasUnresolvedDependencies() const;
         Result<> updateDependencies();
-        std::vector<Dependency> getUnresolvedDependencies();
+        bool hasUnresolvedDependencies() const;
+        bool hasUnresolvedIncompatibilities() const;
+        [[deprecated]] std::vector<Dependency> getUnresolvedDependencies();
+
+        Result<> loadBinary();
 
         char const* expandSpriteName(char const* name);
         ModJson getRuntimeInfo() const;
     };
 
-    class ModImpl : public Mod {
+    class ModImpl : public Mod::Impl {
     public:
-        static Mod* get();
+        static Mod::Impl* get();
 
         static Mod::Impl* getImpl(Mod* mod);
     };

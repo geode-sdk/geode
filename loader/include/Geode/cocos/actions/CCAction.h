@@ -54,6 +54,7 @@ public:
      * @js ctor
      */
     CCAction(void);
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCAction, CCObject);
     /**
      * @js NA
      * @lua NA

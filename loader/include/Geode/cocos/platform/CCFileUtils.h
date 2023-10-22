@@ -41,8 +41,8 @@ class CCArray;
  */
 
 struct CCTexturePack {
-  std::string m_id;
-  std::vector<std::string> m_paths;
+    std::string m_id;
+    std::vector<std::string> m_paths;
 };
 
 //! @brief  Helper class to handle file operations
@@ -52,6 +52,8 @@ class CC_DLL CCFileUtils : public TypeInfo
     friend class CCArray;
     friend class CCDictionary;
 public:
+
+    GEODE_CUSTOM_CONSTRUCTOR_BEGIN(CCFileUtils) 
     /**
      *  Returns an unique ID for this class.
      *  @note It's only used for JSBindings now.
@@ -339,7 +341,7 @@ public:
      *  @return  The path that can be write/read a file in
      *  @lua NA
      */
-    virtual gd::string getWritablePath() = 0;
+    virtual gd::string getWritablePath() { return ""; }
 
     RT_ADD(virtual gd::string getWritablePath2();)
     
@@ -351,7 +353,7 @@ public:
      *  @return true if the file exists, otherwise it will return false.
      *  @lua NA
      */
-    virtual bool isFileExist(const gd::string& strFilePath) = 0;
+    virtual bool isFileExist(const gd::string& strFilePath) { return false; }
     
     /**
      *  Checks whether the path is an absolute path.

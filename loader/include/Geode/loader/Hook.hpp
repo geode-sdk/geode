@@ -12,7 +12,7 @@ namespace geode {
     class Mod;
     class Loader;
 
-    class GEODE_DLL Hook {
+    class GEODE_DLL Hook final {
     private:
         class Impl;
         std::shared_ptr<Impl> m_impl;
@@ -143,20 +143,23 @@ namespace geode {
         void setAutoEnable(bool autoEnable);
     };
 
-    class GEODE_DLL Patch {
+    class GEODE_DLL Patch final {
+    // Change to private in 2.0.0
     protected:
         Mod* m_owner;
         void* m_address;
         ByteVector m_original;
         ByteVector m_patch;
         bool m_applied;
+        bool m_autoEnable;
 
         // Only allow friend classes to create
         // patches. Whatever method created the
         // patches should take care of populating
         // m_owner, m_address, m_original and
         // m_patch.
-        Patch() : m_applied(false) {}
+        Patch();
+        ~Patch();
 
         // no copying
         Patch(Patch const&) = delete;
@@ -170,17 +173,13 @@ namespace geode {
          * Get the address of the patch.
          * @returns Address
          */
-        uintptr_t getAddress() const {
-            return reinterpret_cast<uintptr_t>(m_address);
-        }
+        uintptr_t getAddress() const;
 
         /**
          * Get whether the patch is applied or not.
          * @returns True if applied, false if not.
          */
-        bool isApplied() const {
-            return m_applied;
-        }
+        bool isApplied() const;
 
         bool apply();
         bool restore();
@@ -189,14 +188,24 @@ namespace geode {
          * Get the owner of this patch.
          * @returns Pointer to the owner's Mod handle.
          */
-        Mod* getOwner() const {
-            return m_owner;
-        }
+        Mod* getOwner() const;
 
         /**
          * Get info about the patch as JSON
          * @note For IPC
          */
         json::Value getRuntimeInfo() const;
+
+        /**
+        * Get whether the patch should be auto enabled or not.
+        * @returns Auto enable
+        */
+        bool getAutoEnable() const;
+
+        /**
+         * Set whether the patch should be auto enabled or not.
+         * @param autoEnable Auto enable
+         */
+        void setAutoEnable(bool autoEnable);
     };
 }

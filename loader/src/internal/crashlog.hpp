@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Geode/DefaultInclude.hpp>
-#include <ghc/filesystem.hpp>
+#include <Geode/Loader.hpp>
+#include <ghc/fs_fwd.hpp>
 #include <string>
 
 /**
@@ -10,7 +10,7 @@
 namespace crashlog {
     /**
      * Setup platform-specific crashlog handler
-     * @returns True if the handler was succesfully installed, false otherwise
+     * @returns True if the handler was successfully installed, false otherwise
      */
     bool GEODE_DLL setupPlatformHandler();
     /**
@@ -24,4 +24,6 @@ namespace crashlog {
      * not support crash logs
      */
     ghc::filesystem::path GEODE_DLL getCrashLogDirectory();
+
+    std::string GEODE_DLL writeCrashlog(geode::Mod* faultyMod, std::string const& info, std::string const& stacktrace, std::string const& registers);
 }

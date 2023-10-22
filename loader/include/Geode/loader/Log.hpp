@@ -1,12 +1,13 @@
 #pragma once
 
 #include "Types.hpp"
+#include "../utils/Result.hpp"
 
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <ccTypes.h>
 #include <chrono>
-#include <ghc/filesystem.hpp>
+#include <ghc/fs_fwd.hpp>
 #include <sstream>
 #include <vector>
 #include <span>
@@ -32,7 +33,7 @@ namespace geode {
         GEODE_DLL std::string parse(cocos2d::CCRect const&);
         GEODE_DLL std::string parse(cocos2d::CCSize const&);
         GEODE_DLL std::string parse(Mod*);
-
+        GEODE_DLL std::string parse(gd::string const&);
 
         template <class T>
             requires std::convertible_to<T*, cocos2d::CCNode*>
@@ -56,6 +57,62 @@ namespace geode {
             std::stringstream buf;
             buf << thing;
             return buf.str();
+        }
+
+        // todo: maybe add a debugParse function for these?
+
+        template <class T>
+            requires requires(T t) {
+                parse(t);
+            }
+        std::string parse(std::optional<T> const& thing) {
+            if (thing.has_value()) {
+                return "opt(" + parse(thing.value()) + ")";
+            }
+            return "nullopt";
+        }
+
+        template <class T>
+            requires requires(T t) {
+                parse(t);
+            }
+        std::string parse(std::vector<T> const& thing) {
+            std::string res = "[";
+            bool first = true;
+            for (auto& t : thing) {
+                if (!first) {
+                    res += ", ";
+                }
+                first = false;
+                res += parse(t);
+            }
+            res += "]";
+            return res;
+        }
+
+        template <class A, class B>
+            requires requires(A a, B b) {
+                parse(a);
+                parse(b);
+            }
+        std::string parse(std::pair<A, B> const& thing) {
+            return "(" + parse(thing.first) + ", " + parse(thing.second) + ")";
+        }
+
+        template <class... T, std::size_t... Is>
+        std::string parseTupleImpl(std::tuple<T...> const& tuple, std::index_sequence<Is...>) {
+            std::string ret = "(";
+            ((ret += (Is == 0 ? "" : ", ") + parse(std::get<Is>(tuple))), ...);
+            ret += ")";
+            return ret;
+        }
+
+        template <class... T>
+            requires requires(T... t) {
+                (parse(t), ...);
+            }
+        std::string parse(std::tuple<T...> const& tuple) {
+            return parseTupleImpl(tuple, std::index_sequence_for<T...> {});
         }
 
         // Log component system
@@ -97,36 +154,37 @@ namespace geode {
             bool operator==(Log const& l);
 
             std::string toString(bool logTime = true) const;
+            std::string toString(bool logTime, uint32_t nestLevel) const;
 
             std::vector<ComponentTrait*>& getComponents();
             log_clock::time_point getTime() const;
             Mod* getSender() const;
             Severity getSeverity() const;
 
+            [[deprecated("Will be removed in next version")]]
             void addFormat(std::string_view formatStr, std::span<ComponentTrait*> comps);
+
+            Result<> addFormatNew(std::string_view formatStr, std::span<ComponentTrait*> comps);
         };
 
         class GEODE_DLL Logger {
         private:
-            static inline std::vector<Log> s_logs;
-            static inline std::ofstream s_logStream;
+            static std::vector<Log>& logs();
+            static std::ofstream& logStream();
+            static uint32_t& nestLevel();
 
             Logger() = delete;
             ~Logger() = delete;
 
             // logs
-            static void _push(Log&& log);
-
         public:
             static void setup();
 
-            static inline void push(Log&& log) {
-                Logger::_push(std::move(log));
-            }
+            static void push(Log&& log);
+            static void pop(Log* log);
 
-            static inline void pop(Log* log) {
-                geode::utils::ranges::remove(Logger::s_logs, *log);
-            }
+            static void pushNest();
+            static void popNest();
 
             static std::vector<Log*> list();
             static void clear();
@@ -140,16 +198,19 @@ namespace geode {
             Log l(m, sev);
 
             std::array<ComponentTrait*, sizeof...(Args)> comps = { static_cast<ComponentTrait*>(new ComponentBase(args))... };
-            l.addFormat(formatStr, comps);
+            auto res = l.addFormatNew(formatStr, comps);
+
+            if (res.isErr()) {
+                internalLog(Severity::Warning, getMod(), "Error parsing log format \"{}\": {}", formatStr, res.unwrapErr());
+                return;
+            }
 
             Logger::push(std::move(l));
         }
 
         template <typename... Args>
         void debug(Args... args) {
-#ifdef GEODE_DEBUG
             internalLog(Severity::Debug, getMod(), args...);
-#endif
         }
 
         template <typename... Args>
@@ -165,6 +226,13 @@ namespace geode {
         template <typename... Args>
         void error(Args... args) {
             internalLog(Severity::Error, getMod(), args...);
+        }
+
+        static void pushNest() {
+            Logger::pushNest();
+        }
+        static void popNest() {
+            Logger::popNest();
         }
     }
 }

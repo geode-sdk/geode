@@ -38,7 +38,8 @@
 #include "../script_support/CCScriptSupport.h"
 #include "../include/CCProtocols.h"
 #include "Layout.hpp"
-#include <any>
+#include "../../loader/Event.hpp"
+#include <json.hpp>
 
 NS_CC_BEGIN
 
@@ -140,7 +141,7 @@ public:
      * @js ctor
      */
     CCNode(void);
-    GEODE_MONOSTATE_CONSTRUCTOR_COCOS(CCNode, CCObject)
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCNode, CCObject)
     
     /**
      * Default destructor
@@ -616,17 +617,15 @@ public:
      * Return an array of children
      *
      * Composing a "tree" structure is a very important feature of CCNode
-     * Here's a sample code of traversing children array:
-     * @code
+     * @example
+     * // Here's a sample code of traversing children array:
      * CCNode* node = NULL;
      * CCARRAY_FOREACH(parent->getChildren(), node)
      * {
      *     node->setPosition(0,0);
      * }
-     * @endcode
-     * This sample code traverses all children nodes, and set theie position to (0,0)
-     *
-     * @return An array of children
+     * // This sample code traverses all children nodes, and set theie position to (0,0)
+     * @returns An array of children
      */
     virtual CCArray* getChildren();
     
@@ -702,6 +701,12 @@ public:
      */
     virtual void removeChildByTag(int tag, bool cleanup);
     /** 
+     * Removes a child from the container by its ID.
+     * @param id The ID of the node
+     * @note Geode addition
+     */
+    void removeChildByID(std::string const& id);
+    /** 
      * Removes all children from the container with a cleanup.
      *
      * @see removeAllChildrenWithCleanup(bool)
@@ -761,7 +766,7 @@ public:
      * Returns a tag that is used to identify the node easily.
      *
      * You can set tags to node then identify them easily.
-     * @code
+     * @example
      * #define TAG_PLAYER  1
      * #define TAG_MONSTER 2
      * #define TAG_BOSS    3
@@ -786,9 +791,7 @@ public:
      *             break;
      *     }
      * }
-     * @endcode
-     *
-     * @return A interger that identifies the node.
+     * @returns A interger that identifies the node.
      */
     RT_REMOVE(  virtual int getTag() const; )
     /**
@@ -848,7 +851,11 @@ private:
     friend class geode::modifier::FieldContainer;
 
     GEODE_DLL geode::modifier::FieldContainer* getFieldContainer();
-    GEODE_DLL std::optional<std::any> getAttributeInternal(std::string const& attribute);
+    GEODE_DLL std::optional<json::Value> getAttributeInternal(std::string const& attribute);
+    GEODE_DLL void addEventListenerInternal(
+        std::string const& id,
+        geode::EventListenerProtocol* protocol
+    );
 
 public:
     /**
@@ -884,6 +891,38 @@ public:
     GEODE_DLL CCNode* getChildByIDRecursive(std::string const& id);
 
     /**
+     * Add a child before a specified existing child
+     * @param child The node to add. The node may not be a child of another  
+     * node already
+     * @param before The child the node is added before of. If this is null or 
+     * not a child of this node, the new child will be placed at the start of the 
+     * child list
+     * @note Geode addition
+     */
+    GEODE_DLL void insertBefore(CCNode* child, CCNode* before);
+
+    /**
+     * Add a child after an specified existing child
+     * @param child The node to add. The node may not be a child of another  
+     * node already
+     * @param after The child the node is added after of. If this is null or 
+     * not a child of this node, the new child will be placed at the end of the 
+     * child list
+     * @note Geode addition
+     */
+    GEODE_DLL void insertAfter(CCNode* child, CCNode* after);
+
+    /**
+     * Check if this node's parent or its parents' parent is the given node
+     * @param ancestor The node whose child or subchild this node should be. If 
+     * nullptr, returns true if the node is in the current scene, otherwise 
+     * false.
+     * @returns True if ancestor is an ancestor of this node
+     * @note Geode addition
+     */
+    GEODE_DLL bool hasAncestor(CCNode* ancestor);
+
+    /**
      * Set an attribute on a node. Attributes are a system added by Geode, 
      * where a node may have any sort of extra data associated with it. Used 
      * for mod intercommunication. For example, a mod that adds scrollbars to 
@@ -895,7 +934,7 @@ public:
      * @param value The value of the attribute
      * @note Geode addition
      */
-    GEODE_DLL void setAttribute(std::string const& attribute, std::any value);
+    GEODE_DLL void setAttribute(std::string const& attribute, json::Value const& value);
     /**
      * Get an attribute from the node. Attributes may be anything
      * @param attribute The attribute key
@@ -907,7 +946,7 @@ public:
     std::optional<T> getAttribute(std::string const& attribute) {
         if (auto value = this->getAttributeInternal(attribute)) {
             try {
-                return std::any_cast<T>(value.value());
+                return value.value().template as<T>();
             } catch(...) {
                 return std::nullopt;
             }
@@ -921,9 +960,14 @@ public:
      * has been added, call updateLayout
      * @param layout Layout to set to this node
      * @param apply Whether to call updateLayout now or not
+     * @param respectAnchor If true, if the target node is 
+     * isIgnoreAnchorPointForPosition, then it is set to false and the children 
+     * are automatically moved to match where they should be positioned. 
+     * Visually, this should result in no difference; however, when dealing with 
+     * CCLayers / CCMenus, this will change where the children are located
      * @note Geode addition
      */
-    GEODE_DLL void setLayout(Layout* layout, bool apply = true);
+    GEODE_DLL void setLayout(Layout* layout, bool apply = true, bool respectAnchor = true);
     /**
      * Get the Layout for this node
      * @returns The current layout, or nullptr if no layout is set
@@ -935,23 +979,22 @@ public:
      * set, nothing happens
      * @note Geode addition
      */
-    GEODE_DLL void updateLayout();
-
+    GEODE_DLL void updateLayout(bool updateChildOrder = true);
     /**
-     * Give a hint to the current Layout about where this node should be 
-     * positioned in it. Allows detaching the node from the current 
-     * layout by setting position to absolute
-     * @param hint The hint to set
-     * @note The layout definitely should, but might not respect the hint 
-     * given
+     * Set the layout options for this node. Layout options can be used to 
+     * control how this node is positioned in its parent's Layout, for example 
+     * setting the grow size for a flex layout
+     * @param options The layout options
+     * @param apply Whether to update the layout of the parent node
      * @note Geode addition
      */
-    GEODE_DLL void setPositionHint(PositionHint hint);
+    GEODE_DLL void setLayoutOptions(LayoutOptions* options, bool apply = true);
     /**
-     * Get the current position hint for this node
+     * Get the layout options for this node
+     * @returns The current layout options, or nullptr if no options are set
      * @note Geode addition
      */
-    GEODE_DLL PositionHint getPositionHint();
+    GEODE_DLL LayoutOptions* getLayoutOptions();
 
     /**
      * Swap two children
@@ -960,6 +1003,32 @@ public:
      * @note Geode addition
      */
     GEODE_DLL void swapChildIndices(CCNode* first, CCNode* second);
+
+    template <class Filter, class... Args>
+    geode::EventListenerProtocol* addEventListener(
+        std::string const& id,
+        geode::utils::MiniFunction<typename Filter::Callback> callback,
+        Args&&... args
+    ) {
+        auto listener = new geode::EventListener<Filter>(
+            callback, Filter(this, std::forward<Args>(args)...)
+        );
+        this->addEventListenerInternal(id, listener);
+        return listener;
+    }
+    template <class Filter, class... Args>
+    geode::EventListenerProtocol* addEventListener(
+        geode::utils::MiniFunction<typename Filter::Callback> callback,
+        Args&&... args
+    ) {
+        return this->template addEventListener<Filter, Args...>(
+            "", callback, std::forward<Args>(args)...
+        );
+    }
+    GEODE_DLL void removeEventListener(geode::EventListenerProtocol* listener);
+    GEODE_DLL void removeEventListener(std::string const& id);
+    GEODE_DLL geode::EventListenerProtocol* getEventListener(std::string const& id);
+    GEODE_DLL size_t getEventListenerCount();
     
     /// @{
     /// @name Shader Program
@@ -1618,7 +1687,7 @@ public:
      *  @js ctor
      */
     CCNodeRGBA();
-    GEODE_MONOSTATE_CONSTRUCTOR_COCOS(CCNodeRGBA, CCNode)
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCNodeRGBA, CCNode)
     /**
      *  @js NA
      *  @lua NA
@@ -1663,5 +1732,28 @@ protected:
 /// @}
 
 NS_CC_END
+
+namespace geode {
+    struct GEODE_DLL AttributeSetEvent : public Event {
+        cocos2d::CCNode* node;
+        const std::string id;
+        json::Value& value;
+
+        AttributeSetEvent(cocos2d::CCNode* node, std::string const& id, json::Value& value);
+    };
+
+    class GEODE_DLL AttributeSetFilter : public EventFilter<AttributeSetEvent> {
+	public:
+		using Callback = void(AttributeSetEvent*);
+    
+    protected:
+		std::string m_targetID;
+	
+	public:
+        ListenerResult handle(utils::MiniFunction<Callback> fn, AttributeSetEvent* event);
+
+		AttributeSetFilter(std::string const& id);
+    };
+}
 
 #endif // __PLATFORM_CCNODE_H__

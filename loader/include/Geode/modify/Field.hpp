@@ -3,6 +3,7 @@
 #include "Traits.hpp"
 
 #include <Geode/loader/Loader.hpp>
+#include "../utils/MiniFunction.hpp"
 #include <cocos2d.h>
 #include <vector>
 
@@ -19,7 +20,7 @@ namespace geode::modifier {
     class FieldContainer {
     private:
         std::vector<void*> m_containedFields;
-        std::vector<std::function<void(void*)>> m_destructorFunctions;
+        std::vector<utils::MiniFunction<void(void*)>> m_destructorFunctions;
 
     public:
         ~FieldContainer() {
@@ -30,14 +31,14 @@ namespace geode::modifier {
         }
 
         void* getField(size_t index) {
-            if (m_containedFields.size() <= index) {
-                m_containedFields.resize(index + 1);
-                m_destructorFunctions.resize(index + 1);
+            while (m_containedFields.size() <= index) {
+                m_containedFields.push_back(nullptr);
+                m_destructorFunctions.push_back(nullptr);
             }
             return m_containedFields.at(index);
         }
 
-        void* setField(size_t index, size_t size, std::function<void(void*)> destructor) {
+        void* setField(size_t index, size_t size, utils::MiniFunction<void(void*)> destructor) {
             m_containedFields.at(index) = operator new(size);
             m_destructorFunctions.at(index) = destructor;
             return m_containedFields.at(index);
@@ -48,7 +49,9 @@ namespace geode::modifier {
         }
     };
 
+    [[deprecated("Will be removed in 1.0.0")]]
     GEODE_DLL size_t getFieldIndexForClass(size_t hash);
+    GEODE_DLL size_t getFieldIndexForClass(char const* name);
 
     template <class Parent, class Base>
     class FieldIntermediate {
@@ -88,8 +91,7 @@ namespace geode::modifier {
             static_cast<Parent*>(parent)->Parent::~Parent();
         }
 
-        template <class = std::enable_if_t<true>>
-        Parent* operator->() {
+        operator Parent*() {
             // get the this pointer of the base
             // field intermediate is the first member of Modify
             // meaning we canget the base from ourself
@@ -101,7 +103,7 @@ namespace geode::modifier {
 
             // the index is global across all mods, so the
             // function is defined in the loader source
-            static size_t index = getFieldIndexForClass(typeid(Base).hash_code());
+            static size_t index = getFieldIndexForClass(typeid(Base).name());
 
             // the fields are actually offset from their original
             // offset, this is done to save on allocation and space
@@ -117,6 +119,14 @@ namespace geode::modifier {
             return reinterpret_cast<Parent*>(
                 reinterpret_cast<std::byte*>(offsetField) - sizeof(Intermediate)
             );
+        }
+        
+        Parent* self() {
+            return this->operator Parent*();
+        }
+
+        Parent* operator->() {
+            return this->operator Parent*();
         }
     };
 

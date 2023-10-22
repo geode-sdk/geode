@@ -7,11 +7,12 @@
 #include "ModImpl.hpp"
 #include "HookImpl.hpp"
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 Hook::Hook(std::shared_ptr<Impl>&& impl) : m_impl(std::move(impl)) {}
 Hook::~Hook() {}
 
+// These classes (Hook and Patch) are nasty using new and delete, change them in 2.0.0
 Hook* Hook::create(
     Mod* owner,
     void* address,

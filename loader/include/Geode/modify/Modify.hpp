@@ -13,6 +13,12 @@
         if constexpr (Unique::different<                                                            \
                           Resolve<__VA_ARGS__>::func(&Base::FunctionName_),                         \
                           Resolve<__VA_ARGS__>::func(&Derived::FunctionName_)>()) {                 \
+            if (address<AddressIndex_>() == 0) {                                                    \
+                log::error(                                                                         \
+                    "Address of {} returned nullptr, can't hook", #ClassName_ "::" #FunctionName_   \
+                );                                                                                  \
+                break;                                                                              \
+            }                                                                                       \
             auto hook = Hook::create(                                                               \
                 Mod::get(),                                                                         \
                 reinterpret_cast<void*>(address<AddressIndex_>()),                                  \
@@ -106,12 +112,22 @@ namespace geode::modifier {
     class ModifyDerive {
     public:
         ModifyDerive() {
-            static_assert(alwaysFalse<Derived>, "Custom Modify not implemented.");
+            static_assert(
+                alwaysFalse<Derived>,
+                "Modified class not recognized, please include <Geode/modify/ClassName.hpp> to be "
+                "able to use it."
+            );
         }
     };
 }
 
 namespace geode {
+
+// The intellisense compiler is quite dumb, and will very often error on modify classes
+// with an error of "incomplete type is not allowed", despite not being an issue in actual compilation.
+// So as a workaround use the compiler defined "__INTELLISENSE__" macro, which gets set to 1 on the intellisense pass.
+// See https://learn.microsoft.com/en-us/cpp/preprocessor/predefined-macros?view=msvc-170#microsoft-specific-predefined-macros
+#if __INTELLISENSE__ != 1
 
     template <class Derived, class Base>
     class Modify : public Base {
@@ -124,8 +140,8 @@ namespace geode {
         // abusing the internal stuff
         // basically we dont want modify to invoke base ctors and dtors
         // we already have utilities for these, which are ccdestructor
-        // and the monostate constructor
-        Modify() : Base(std::monostate(), sizeof(Base)) {}
+        // and the cutoff constructor
+        Modify() : Base(CutoffConstructor, sizeof(Base)) {}
 
         ~Modify() {
             cocos2d::CCDestructor::lock(this) = true;
@@ -140,4 +156,85 @@ namespace geode {
 
         static void onModify(auto& self) {}
     };
+
+#else
+
+    template <class Derived, class Base>
+    class Modify : public Base {
+    public:
+        modifier::FieldIntermediate<Derived, Base> m_fields;
+    };
+
+#endif
 }
+
+/**
+ * Main class implementation, it has the structure
+ *
+ * class hook0Dummy;
+ * template<typename>
+ * struct hook0 {};
+ * namespace {
+ *     struct hook0Parent {};
+ * }
+ * template<>
+ * struct GEODE_HIDDEN hook0<hook0Parent> : Modify<hook0<hook0Parent>, MenuLayer> {
+ *     // code stuff idk
+ * };
+ *
+ * I tried to make the macro as verbose as it can be but
+ * I am bad at this stuff
+ */
+
+#if __INTELLISENSE__ != 1
+
+#define GEODE_MODIFY_DECLARE_ANONYMOUS(base, derived) \
+    derived##Dummy;                                   \
+    template <class>                                  \
+    struct derived {};                                \
+    namespace {                                       \
+        struct derived##Parent {};                    \
+    }                                                 \
+    template <>                                       \
+    struct GEODE_HIDDEN derived<derived##Parent> : geode::Modify<derived<derived##Parent>, base>
+
+#define GEODE_MODIFY_DECLARE(base, derived) \
+    derived##Dummy;                         \
+    struct GEODE_HIDDEN derived : geode::Modify<derived, base>
+
+#else
+
+// Simplify the modify macro for intellisense, to hopefully help perfomance a bit
+
+#define GEODE_MODIFY_DECLARE(base, derived) \
+    derived##Dummy; \
+    struct derived : geode::Modify<derived, base>
+
+#define GEODE_MODIFY_DECLARE_ANONYMOUS(base, derived) GEODE_MODIFY_DECLARE(base, derived)
+
+#endif
+
+#define GEODE_MODIFY_REDIRECT4(base, derived) GEODE_MODIFY_DECLARE(base, derived)
+#define GEODE_MODIFY_REDIRECT3(base, derived) GEODE_MODIFY_DECLARE_ANONYMOUS(base, derived)
+#define GEODE_MODIFY_REDIRECT2(base) GEODE_MODIFY_REDIRECT3(base, GEODE_CONCAT(hook, __LINE__))
+#define GEODE_MODIFY_REDIRECT1(base) GEODE_MODIFY_REDIRECT2(base)
+
+/**
+ * Interfaces for the class implementation
+ *
+ * class $modify(MenuLayer) {};
+ * class $modify(MyMenuLayerInterface, MenuLayer) {};
+ */
+
+#define GEODE_CRTP1(base) GEODE_MODIFY_REDIRECT1(base)
+#define GEODE_CRTP2(derived, base) GEODE_MODIFY_REDIRECT4(base, derived)
+#define $modify(...) \
+    GEODE_INVOKE(GEODE_CONCAT(GEODE_CRTP, GEODE_NUMBER_OF_ARGS(__VA_ARGS__)), __VA_ARGS__)
+#define $(...) $modify(__VA_ARGS__)
+
+/**
+ * Get current hook class without needing to name it.
+ * Useful for callbacks
+ * this is a camila moment if you ask me
+ */
+#define $cls std::remove_pointer<decltype(this)>::type

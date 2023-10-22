@@ -15,6 +15,12 @@ void Loader::Impl::platformMessageBox(char const* title, std::string const& info
     std::cout << title << ": " << info << std::endl;
 }
 
+void Loader::Impl::logConsoleMessageWithSeverity(std::string const& msg, Severity severity) {
+    if (m_platformConsoleOpen) {
+        std::cout << msg << "\n" << std::flush;
+    }
+}
+
 void Loader::Impl::openPlatformConsole() {
     ghc::filesystem::path(getpwuid(getuid())->pw_dir);
     freopen(ghc::filesystem::path(dirs::getGeodeDir() / "geode_log.txt").string().c_str(), "w", stdout);

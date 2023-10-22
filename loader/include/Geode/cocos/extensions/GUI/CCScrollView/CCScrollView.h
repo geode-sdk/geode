@@ -69,7 +69,7 @@ public:
      *  @js ctor
      */
     CCScrollView();
-    GEODE_MONOSTATE_CONSTRUCTOR_COCOS(CCScrollView, CCLayer)
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCScrollView, CCLayer)
     /**
      *  @js NA
      *  @lua NA

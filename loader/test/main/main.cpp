@@ -1,8 +1,10 @@
 #include <Geode/Loader.hpp>
 #include <Geode/loader/ModJsonTest.hpp>
 #include <Geode/loader/ModEvent.hpp>
+#include <Geode/utils/cocos.hpp>
+#include "../dependency/main.hpp"
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 auto test = []() {
     log::info("Static logged");
@@ -22,6 +24,29 @@ $on_mod(Loaded) {
 $on_mod(Unloaded) {
     log::info("Unloaded");
 }
+
+// Events
+$execute {
+    new EventListener<TestEventFilter>(+[](TestEvent* event) {
+        log::info("Received event: {}", event->getData());
+    });
+}
+
+#include <Geode/modify/MenuLayer.hpp>
+struct $modify(MenuLayer) {
+    bool init() {
+        if (!MenuLayer::init())
+            return false;
+        
+        auto node = CCNode::create();
+        auto ref = WeakRef(node);
+        log::info("ref: {}", ref.lock().data());
+        node->release();
+        log::info("ref: {}", ref.lock().data());
+
+        return true;
+    }
+};
 
 // Modify
 #include <Geode/modify/GJGarageLayer.hpp>

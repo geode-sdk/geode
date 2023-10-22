@@ -1,4 +1,4 @@
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 #include <Geode/modify/CCTouchDispatcher.hpp>
 

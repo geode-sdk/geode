@@ -1,7 +1,7 @@
 #include <Geode/loader/IPC.hpp>
 #include <json.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 std::monostate geode::listenForIPC(std::string const& messageID, json::Value(*callback)(IPCEvent*)) {
     (void) new EventListener(
@@ -24,7 +24,7 @@ IPCEvent::IPCEvent(
 
 IPCEvent::~IPCEvent() {}
 
-ListenerResult IPCFilter::handle(std::function<Callback> fn, IPCEvent* event) {
+ListenerResult IPCFilter::handle(utils::MiniFunction<Callback> fn, IPCEvent* event) {
     if (event->targetModID == m_modID && event->messageID == m_messageID) {
         event->replyData = fn(event);
         return ListenerResult::Stop;

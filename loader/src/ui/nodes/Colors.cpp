@@ -2,7 +2,7 @@
 #include <Geode/utils/ranges.hpp>
 #include <Geode/modify/LevelInfoLayer.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 ColorManager::ColorManager() : m_colors({
     { GDColor::NormalModeProgressBar,   {{ ccColor3B { 0,   255, 0   }, Mod::get() }} },

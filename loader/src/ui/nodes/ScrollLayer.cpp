@@ -1,7 +1,7 @@
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/utils/cocos.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 GenericContentLayer* GenericContentLayer::create(float width, float height) {
     auto ret = new GenericContentLayer();

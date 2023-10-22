@@ -1,5 +1,6 @@
 #include "../ui/internal/settings/GeodeSettingNode.hpp"
 
+#include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Setting.hpp>
 #include <Geode/loader/SettingEvent.hpp>
 #include <Geode/loader/SettingNode.hpp>
@@ -8,22 +9,22 @@
 #include <Geode/utils/JsonValidation.hpp>
 #include <re2/re2.h>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 template<class T>
-static void parseCommon(T& sett, JsonMaybeObject<ModJson>& obj) {
+static void parseCommon(T& sett, JsonMaybeObject& obj) {
     obj.has("name").into(sett.name);
     obj.has("description").into(sett.description);
     obj.has("default").into(sett.defaultValue);
 }
 
-Result<BoolSetting> BoolSetting::parse(JsonMaybeObject<ModJson>& obj) {
+Result<BoolSetting> BoolSetting::parse(JsonMaybeObject& obj) {
     BoolSetting sett;
     parseCommon(sett, obj);
     return Ok(sett);
 }
 
-Result<IntSetting> IntSetting::parse(JsonMaybeObject<ModJson>& obj) {
+Result<IntSetting> IntSetting::parse(JsonMaybeObject& obj) {
     IntSetting sett;
     parseCommon(sett, obj);
     obj.has("min").into(sett.min);
@@ -40,7 +41,7 @@ Result<IntSetting> IntSetting::parse(JsonMaybeObject<ModJson>& obj) {
     return Ok(sett);
 }
 
-Result<FloatSetting> FloatSetting::parse(JsonMaybeObject<ModJson>& obj) {
+Result<FloatSetting> FloatSetting::parse(JsonMaybeObject& obj) {
     FloatSetting sett;
     parseCommon(sett, obj);
     obj.has("min").into(sett.min);
@@ -57,14 +58,15 @@ Result<FloatSetting> FloatSetting::parse(JsonMaybeObject<ModJson>& obj) {
     return Ok(sett);
 }
 
-Result<StringSetting> StringSetting::parse(JsonMaybeObject<ModJson>& obj) {
+Result<StringSetting> StringSetting::parse(JsonMaybeObject& obj) {
     StringSetting sett;
     parseCommon(sett, obj);
     obj.has("match").into(sett.match);
+    obj.has("filter").into(sett.filter);
     return Ok(sett);
 }
 
-Result<FileSetting> FileSetting::parse(JsonMaybeObject<ModJson>& obj) {
+Result<FileSetting> FileSetting::parse(JsonMaybeObject& obj) {
     FileSetting sett;
     parseCommon(sett, obj);
     if (auto controls = obj.has("control").obj()) {
@@ -87,13 +89,13 @@ Result<FileSetting> FileSetting::parse(JsonMaybeObject<ModJson>& obj) {
     return Ok(sett);
 }
 
-Result<ColorSetting> ColorSetting::parse(JsonMaybeObject<ModJson>& obj) {
+Result<ColorSetting> ColorSetting::parse(JsonMaybeObject& obj) {
     ColorSetting sett;
     parseCommon(sett, obj);
     return Ok(sett);
 }
 
-Result<ColorAlphaSetting> ColorAlphaSetting::parse(JsonMaybeObject<ModJson>& obj) {
+Result<ColorAlphaSetting> ColorAlphaSetting::parse(JsonMaybeObject& obj) {
     ColorAlphaSetting sett;
     parseCommon(sett, obj);
     return Ok(sett);
@@ -101,10 +103,12 @@ Result<ColorAlphaSetting> ColorAlphaSetting::parse(JsonMaybeObject<ModJson>& obj
 
 Result<Setting> Setting::parse(
     std::string const& key,
-    JsonMaybeValue<ModJson>& value
+    std::string const& mod,
+    JsonMaybeValue& value
 ) {
     auto sett = Setting();
     sett.m_key = key;
+    sett.m_modID = mod;
     if (auto obj = value.obj()) {
         std::string type;
         obj.needs("type").into(type);
@@ -156,31 +160,34 @@ Result<Setting> Setting::parse(
     return Ok(sett);
 }
 
-Setting::Setting(std::string const& key, SettingKind const& kind)
-  : m_key(key), m_kind(kind) {}
+Setting::Setting(
+    std::string const& key,
+    std::string const& mod,
+    SettingKind const& kind
+) : m_key(key), m_modID(mod), m_kind(kind) {}
 
 std::unique_ptr<SettingValue> Setting::createDefaultValue() const {
     return std::visit(makeVisitor {
         [&](BoolSetting const& sett) -> std::unique_ptr<SettingValue> {
-            return std::make_unique<BoolSettingValue>(m_key, sett);
+            return std::make_unique<BoolSettingValue>(m_key, m_modID, sett);
         },
         [&](IntSetting const& sett) -> std::unique_ptr<SettingValue> {
-            return std::make_unique<IntSettingValue>(m_key, sett);
+            return std::make_unique<IntSettingValue>(m_key, m_modID, sett);
         },
         [&](FloatSetting const& sett) -> std::unique_ptr<SettingValue> {
-            return std::make_unique<FloatSettingValue>(m_key, sett);
+            return std::make_unique<FloatSettingValue>(m_key, m_modID, sett);
         },
         [&](StringSetting const& sett) -> std::unique_ptr<SettingValue> {
-            return std::make_unique<StringSettingValue>(m_key, sett);
+            return std::make_unique<StringSettingValue>(m_key, m_modID, sett);
         },
         [&](FileSetting const& sett) -> std::unique_ptr<SettingValue> {
-            return std::make_unique<FileSettingValue>(m_key, sett);
+            return std::make_unique<FileSettingValue>(m_key, m_modID, sett);
         },
         [&](ColorSetting const& sett) -> std::unique_ptr<SettingValue> {
-            return std::make_unique<ColorSettingValue>(m_key, sett);
+            return std::make_unique<ColorSettingValue>(m_key, m_modID, sett);
         },
         [&](ColorAlphaSetting const& sett) -> std::unique_ptr<SettingValue> {
-            return std::make_unique<ColorAlphaSettingValue>(m_key, sett);
+            return std::make_unique<ColorAlphaSettingValue>(m_key, m_modID, sett);
         },
         [&](auto const& sett) -> std::unique_ptr<SettingValue> {
             return nullptr;
@@ -214,12 +221,29 @@ std::optional<std::string> Setting::getDescription() const {
     }, m_kind);
 }
 
+std::string Setting::getModID() const {
+    return m_modID;
+}
+
 // SettingValue
 
-SettingValue::SettingValue(std::string const& key) : m_key(key) {}
+SettingValue::SettingValue(std::string const& key, std::string const& mod)
+  : m_key(key), m_modID(mod) {}
 
 std::string SettingValue::getKey() const {
     return m_key;
+}
+
+std::string SettingValue::getModID() const {
+    return m_modID;
+}
+
+void SettingValue::valueChanged() {
+    // this is actually p neat because now if the mod gets disabled this wont 
+    // post the event so that side-effect is automatically handled :3
+    if (auto mod = Loader::get()->getLoadedMod(m_modID)) {
+        SettingChangedEvent(mod, this).post();
+    }
 }
 
 // GeodeSettingValue & SettingValueSetter specializations
@@ -236,6 +260,7 @@ std::string SettingValue::getKey() const {
         type_##Setting                                                  \
     >::setValue(ValueType const& value) {                               \
         m_value = this->toValid(value).first;                           \
+        this->valueChanged();                                           \
     }                                                                   \
     template<>                                                          \
     Result<> GeodeSettingValue<                                         \
@@ -274,18 +299,6 @@ std::string SettingValue::getKey() const {
     GeodeSettingValue<type_##Setting>::toValid(         \
         typename type_##Setting::ValueType const& value \
     ) const
-
-// instantiate value setters
-
-namespace geode {
-    template struct SettingValueSetter<typename BoolSetting::ValueType>;
-    template struct SettingValueSetter<typename IntSetting::ValueType>;
-    template struct SettingValueSetter<typename FloatSetting::ValueType>;
-    template struct SettingValueSetter<typename StringSetting::ValueType>;
-    template struct SettingValueSetter<typename FileSetting::ValueType>;
-    template struct SettingValueSetter<typename ColorSetting::ValueType>;
-    template struct SettingValueSetter<typename ColorAlphaSetting::ValueType>;
-}
 
 // instantiate values
 
@@ -370,6 +383,18 @@ IMPL_NODE_AND_SETTERS(File);
 IMPL_NODE_AND_SETTERS(Color);
 IMPL_NODE_AND_SETTERS(ColorAlpha);
 
+// instantiate value setters
+
+namespace geode {
+    template struct SettingValueSetter<typename BoolSetting::ValueType>;
+    template struct SettingValueSetter<typename IntSetting::ValueType>;
+    template struct SettingValueSetter<typename FloatSetting::ValueType>;
+    template struct SettingValueSetter<typename StringSetting::ValueType>;
+    template struct SettingValueSetter<typename FileSetting::ValueType>;
+    template struct SettingValueSetter<typename ColorSetting::ValueType>;
+    template struct SettingValueSetter<typename ColorAlphaSetting::ValueType>;
+}
+
 // SettingChangedEvent
 
 SettingChangedEvent::SettingChangedEvent(Mod* mod, SettingValue* value)
@@ -378,7 +403,7 @@ SettingChangedEvent::SettingChangedEvent(Mod* mod, SettingValue* value)
 // SettingChangedFilter
 
 ListenerResult SettingChangedFilter::handle(
-    std::function<Callback> fn, SettingChangedEvent* event
+    utils::MiniFunction<Callback> fn, SettingChangedEvent* event
 ) {
     if (m_modID == event->mod->getID() &&
         (!m_targetKey || m_targetKey.value() == event->value->getKey())

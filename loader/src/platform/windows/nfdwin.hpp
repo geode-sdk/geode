@@ -44,7 +44,7 @@
 
 #include <stddef.h>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 enum class NFDMode {
     OpenFile,

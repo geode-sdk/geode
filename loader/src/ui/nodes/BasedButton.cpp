@@ -1,6 +1,6 @@
 #include <Geode/ui/BasedButton.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 TabButton* TabButton::create(
     TabBaseColor unselected, TabBaseColor selected, char const* text, cocos2d::CCObject* target,

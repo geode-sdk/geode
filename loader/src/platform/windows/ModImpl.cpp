@@ -5,7 +5,7 @@
 #include <Geode/loader/Mod.hpp>
 #include <loader/ModImpl.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 template <typename T>
 T findSymbolOrMangled(HMODULE load, char const* name, char const* mangled) {
@@ -73,7 +73,7 @@ std::string getLastWinError() {
 }
 
 Result<> Mod::Impl::loadPlatformBinary() {
-    auto load = LoadLibraryW((m_tempDirName / m_info.binaryName).wstring().c_str());
+    auto load = LoadLibraryW((m_tempDirName / m_metadata.getBinaryName()).wstring().c_str());
     if (load) {
         if (m_platformInfo) {
             delete m_platformInfo;

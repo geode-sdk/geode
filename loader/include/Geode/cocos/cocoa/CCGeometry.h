@@ -360,6 +360,13 @@ public:
     inline bool equals(const CCSize& target) const {
         return (fabs(this->width  - target.width)  < FLT_EPSILON) && (fabs(this->height - target.height) < FLT_EPSILON);
     }
+    /**
+     * Get the aspect ratio of this CCSize
+     * @note Geode addition
+     */
+    inline float aspect() const {
+        return this->width / this->height;
+    }
 };
 
 // alk cont
@@ -388,6 +395,9 @@ public:
     }
     inline CCRect(float x, float y, float width, float height) {
         setRect(x, y, width, height);
+    }
+    inline CCRect(CCPoint const& a, CCPoint const& b) {
+        setRect(a.x, a.y, b.x, b.y);
     }
     /**
      * @lua NA

@@ -114,7 +114,7 @@ TableViewCell* HookListView::getListCell(char const* key) {
     return HookCell::create(key, CCSize { m_width, m_itemSeparation });
 }
 
-void HookListView::loadCell(TableViewCell* cell, unsigned int index) {
+void HookListView::loadCell(TableViewCell* cell, int index) {
     as<HookCell*>(cell)->loadFromHook(
         as<HookItem*>(m_entries->objectAtIndex(index))->m_hook, m_mod
     );

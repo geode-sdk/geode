@@ -2,7 +2,7 @@
 #include <Geode/utils/cocos.hpp>
 #include <json.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 json::Value json::Serialize<ccColor3B>::to_json(ccColor3B const& color) {
     return json::Object {
@@ -233,6 +233,52 @@ std::string geode::cocos::cc4bToHexString(ccColor4B const& color) {
     return output;
 }
 
+bool WeakRefController::isManaged() {
+    WeakRefPool::get()->check(m_obj);
+    return m_obj;
+}
+
+void WeakRefController::swap(CCObject* other) {
+    WeakRefPool::get()->check(m_obj);
+    m_obj = other;
+    WeakRefPool::get()->check(m_obj);
+}
+
+CCObject* WeakRefController::get() const {
+    return m_obj;
+}
+
+WeakRefPool* WeakRefPool::get() {
+    static auto inst = new WeakRefPool();
+    return inst;
+}
+
+void WeakRefPool::check(CCObject* obj) {
+    // if this object's only reference is the WeakRefPool aka only weak 
+    // references exist to it, then release it
+    if (obj && m_pool.contains(obj) && obj->retainCount() == 1) {
+        // set delegates to null because those aren't retained!
+        if (auto input = typeinfo_cast<CCTextInputNode*>(obj)) {
+            input->m_delegate = nullptr;
+        }
+        obj->release();
+        // log::info("nullify {}", m_pool.at(obj).get());
+        m_pool.at(obj)->m_obj = nullptr;
+        m_pool.erase(obj);
+    }
+}
+
+std::shared_ptr<WeakRefController> WeakRefPool::manage(CCObject* obj) {
+    if (!m_pool.contains(obj)) {
+        CC_SAFE_RETAIN(obj);
+        auto controller = std::make_shared<WeakRefController>();
+        controller->m_obj = obj;
+        m_pool.insert({ obj, controller });
+    }
+    // log::info("get {} for {}", m_pool.at(obj).get(), obj);
+    return m_pool.at(obj);
+}
+
 CCRect geode::cocos::calculateNodeCoverage(std::vector<CCNode*> const& nodes) {
     CCRect coverage;
     for (auto child : nodes) {
@@ -302,8 +348,12 @@ void geode::cocos::limitNodeSize(cocos2d::CCNode* spr, cocos2d::CCSize const& si
 }
 
 bool geode::cocos::nodeIsVisible(cocos2d::CCNode* node) {
-    if (!node->isVisible()) return false;
-    if (node->getParent()) return nodeIsVisible(node->getParent());
+    if (!node->isVisible()) {
+        return false;
+    }
+    if (node->getParent()) {
+        return nodeIsVisible(node->getParent());
+    }
     return true;
 }
 

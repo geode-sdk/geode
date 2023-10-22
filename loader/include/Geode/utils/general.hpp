@@ -8,7 +8,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include <ghc/filesystem.hpp>
+#include <ghc/fs_fwd.hpp>
 
 // for some reason std::filesystem::path doesn't have std::hash defined in C++17 
 // and ghc seems to have inherited this limitation
@@ -126,4 +126,8 @@ namespace geode {
 namespace geode::utils::clipboard {
     GEODE_DLL bool write(std::string const& data);
     GEODE_DLL std::string read();
+}
+
+namespace geode::utils::game {
+    GEODE_DLL void restart();
 }

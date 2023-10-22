@@ -54,7 +54,7 @@ class CC_DLL CCScale9Sprite : public CCNodeRGBA
 {
 public:
     CCScale9Sprite();
-    GEODE_MONOSTATE_CONSTRUCTOR_COCOS(CCScale9Sprite, CCNodeRGBA)
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCScale9Sprite, CCNodeRGBA)
     virtual ~CCScale9Sprite();
 
 public:

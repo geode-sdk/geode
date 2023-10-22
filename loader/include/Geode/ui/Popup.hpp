@@ -33,8 +33,7 @@ namespace geode {
             m_buttonMenu->setZOrder(100);
             m_mainLayer->addChild(m_buttonMenu);
 
-            cocos2d::CCDirector::sharedDirector()->getTouchDispatcher()->incrementForcePrio(2);
-            this->registerWithTouchDispatcher();
+            this->setTouchEnabled(true);
 
             auto closeSpr = cocos2d::CCSprite::createWithSpriteFrameName("GJ_closeBtn_001.png");
             closeSpr->setScale(.8f);
@@ -96,5 +95,15 @@ namespace geode {
     GEODE_DLL FLAlertLayer* createQuickPopup(
         char const* title, std::string const& content, char const* btn1, char const* btn2,
         float width, utils::MiniFunction<void(FLAlertLayer*, bool)> selected, bool doShow = true
+    );
+
+    GEODE_DLL FLAlertLayer* createQuickPopup(
+        char const* title, std::string const& content, char const* btn1, char const* btn2,
+        utils::MiniFunction<void(FLAlertLayer*, bool)> selected, bool doShow, bool cancelledByEscape
+    );
+
+    GEODE_DLL FLAlertLayer* createQuickPopup(
+        char const* title, std::string const& content, char const* btn1, char const* btn2,
+        float width, utils::MiniFunction<void(FLAlertLayer*, bool)> selected, bool doShow, bool cancelledByEscape
     );
 }

@@ -2,12 +2,18 @@
 
 #ifdef GEODE_IS_WINDOWS
 
+GEODE_MEMBER_CHECK(cocos2d::CCApplication, m_fVsyncInterval, 0x8c);
+GEODE_MEMBER_CHECK(AppDelegate, m_runningScene, 0xa0);
+
 GEODE_MEMBER_CHECK(GameObject, m_effectPlistName, 0x278);
 GEODE_MEMBER_CHECK(GameObject, m_effectManager, 0x454);
+GEODE_MEMBER_CHECK(GameObject, m_firstPosition, 0x424);
 
 GEODE_MEMBER_CHECK(PlayerObject, m_unk484, 0x484);
 GEODE_MEMBER_CHECK(PlayerObject, m_ghostTrail, 0x4E4);
 GEODE_MEMBER_CHECK(PlayerObject, m_waveTrail, 0x514);
+GEODE_MEMBER_CHECK(PlayerObject, m_isDart, 0x63b);
+GEODE_MEMBER_CHECK(PlayerObject, m_isDashing, 0x641);
 
 GEODE_MEMBER_CHECK(EditorUI, m_buttonBar, 0x134);
 GEODE_MEMBER_CHECK(EditorUI, m_hideableUIElementArray, 0x13c);
@@ -47,5 +53,13 @@ GEODE_MEMBER_CHECK(GJBaseGameLayer, m_player1, 0x224);
 GEODE_MEMBER_CHECK(GJBaseGameLayer, m_groups, 0x274);
 GEODE_MEMBER_CHECK(GJBaseGameLayer, m_attemptClickCount, 0x2b4);
 static_assert(sizeof(GJBaseGameLayer) == 0x2cc);
+
+GEODE_MEMBER_CHECK(AudioEffectsLayer, m_unk19C, 0x19c);
+
+GEODE_MEMBER_CHECK(GameStatsManager, m_dailyChests, 0x114);
+GEODE_MEMBER_CHECK(GameStatsManager, m_completedLevels, 0x144);
+
+GEODE_MEMBER_CHECK(DailyLevelPage, m_weekly, 0x1ed);
+
 
 #endif
