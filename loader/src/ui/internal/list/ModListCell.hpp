@@ -3,10 +3,10 @@
 #include <Geode/binding/TableViewCell.hpp>
 #include <Geode/binding/FLAlertLayerProtocol.hpp>
 #include <Geode/loader/Loader.hpp>
-#include <Geode/loader/ModInfo.hpp>
+#include <Geode/loader/ModMetadata.hpp>
 #include <Geode/loader/Index.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 class ModListLayer;
 enum class ModListDisplay;
@@ -23,9 +23,10 @@ protected:
     CCLabelBMFont* m_description;
     CCMenuItemToggler* m_enableToggle = nullptr;
     CCMenuItemSpriteExtra* m_unresolvedExMark;
+    CCMenuItemSpriteExtra* m_developerBtn;
 
     bool init(ModListLayer* list, CCSize const& size);
-    void setupInfo(ModInfo const& info, bool spaceForTags, ModListDisplay display);
+    void setupInfo(ModMetadata const& metadata, bool spaceForTags, ModListDisplay display, bool inactive);
     void draw() override;
 
     float getLogoSize() const;
@@ -35,6 +36,8 @@ public:
     virtual void updateState() = 0;
     virtual CCNode* createLogo(CCSize const& size) = 0;
     virtual std::string getDeveloper() const = 0;
+    
+    void disableDeveloperButton();
 };
 
 /**
@@ -52,6 +55,7 @@ protected:
     );
 
     void onInfo(CCObject*);
+    void onRestart(CCObject*);
     void onEnable(CCObject*);
     void onUnresolvedInfo(CCObject*);
 
@@ -83,6 +87,7 @@ protected:
     );
 
     void onInfo(CCObject*);
+    void onRestart(CCObject*);
 
 public:
     static IndexItemCell* create(
@@ -121,6 +126,35 @@ public:
         ModListDisplay display,
         CCSize const& size
     );
+
+    void updateState() override;
+    CCNode* createLogo(CCSize const& size) override;
+    std::string getDeveloper() const override;
+};
+
+/**
+ * Mod list item for an invalid Geode package
+ */
+class ProblemsCell : public ModListCell {
+protected:
+    std::optional<ccColor3B> m_color;
+
+    bool init(
+        ModListLayer* list,
+        ModListDisplay display,
+        CCSize const& size
+    );
+
+    void onInfo(CCObject*);
+
+public:
+    static ProblemsCell* create(
+        ModListLayer* list,
+        ModListDisplay display,
+        CCSize const& size
+    );
+
+    std::optional<ccColor3B> getColor();
 
     void updateState() override;
     CCNode* createLogo(CCSize const& size) override;

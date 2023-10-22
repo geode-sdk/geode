@@ -118,8 +118,24 @@ namespace gd {
             return m_data.m_length;
         }
 
+        bool operator<(const gd::string& other) const {
+            return std::string_view(this->c_str(), this->size()) < std::string_view(other.c_str(), other.size());
+        }
+
+        bool empty() const {
+            return this->size() == 0;
+        }
+
+        operator bool() const {
+            return !this->empty();
+        }
+
         operator std::string() const {
             return std::string(this->c_str(), this->size());
+        }
+
+        operator std::string_view() const {
+            return std::string_view(this->c_str(), this->size());
         }
     };
 

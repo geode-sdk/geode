@@ -2,7 +2,7 @@
 
 #include <cocos2d.h>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 enum class TagNodeStyle {
     Tag,

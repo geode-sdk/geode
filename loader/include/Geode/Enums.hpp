@@ -21,6 +21,12 @@ enum class SearchType {
     HallOfFame = 16,
     FeaturedGDW = 17,
     Similar = 18,
+    ListsOnClick = 19,
+    Lists = 20,
+    DailyVault = 21,
+    WeeklyVault = 22,
+    EventVault = 23,
+    Reported = 24,
     MyLevels = 98,
     SavedLevels = 99,
     FavouriteLevels = 100
@@ -80,6 +86,8 @@ enum class GhostType {
 enum class TableViewCellEditingStyle {
 };
 enum class UserListType {
+    Friends = 0,
+    Blocked = 1,
 };
 enum class GJErrorCode {
 };
@@ -120,6 +128,14 @@ enum class BoomListType {
     Message = 0x12,
     LevelScore = 0x13,
     Artist = 0x14,
+};
+
+enum class CurrencySpriteType {
+    // todo
+};
+
+enum class CurrencyRewardType {
+    // todo
 };
 
 enum class MenuAnimationType {
@@ -275,6 +291,13 @@ enum class GJLevelType {
     Saved = 3
 };
 
+enum class GJRewardType
+{
+    Unknown = 0x0,
+    Small = 0x1,
+    Large = 0x2
+};
+
 enum class IconType {
     Cube = 0,
     Ship = 1,
@@ -305,6 +328,25 @@ enum class LevelLeaderboardType {
     Weekly = 2
 };
 
+enum class GJHttpType {
+
+};
+
+enum class DialogChatPlacement {
+    Center = 0,
+    Top = 1,
+    Bottom = 2,
+};
+
+enum class DialogAnimationType {
+    Instant = 0,
+    FromCenter = 1,
+    FromLeft = 2,
+    FromRight = 3,
+    FromTop = 4,
+    // a 5th type is defined which acts exactly the same as FromTop
+};
+
 // Geode Addition
 enum class ComparisonType {
     Equals = 0,
@@ -333,4 +375,13 @@ enum class LeaderboardState {
     Global = 2,
     Creator = 3,
     Friends = 4,
+};
+
+// Wylie Addition (https://github.com/Wyliemaster/GD-Decompiled/blob/main/GD/code/headers/Layers/LevelSettingsLayer.h)
+enum class Speed {
+	Normal = 0,
+	Slow = 1,
+	Fast = 2,
+	Faster = 3,
+	Fastest = 4,
 };

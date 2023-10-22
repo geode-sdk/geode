@@ -2,7 +2,7 @@
 
 #include <Geode/ui/Popup.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 class ModListLayer;
 enum class ModListType;
@@ -19,6 +19,7 @@ protected:
 
     void onPlatformToggle(CCObject*);
     void onShowInstalled(CCObject*);
+    void onShowInvalid(CCObject*);
     void onTag(CCObject*);
 
     void enable(CCMenuItemToggler* toggle, ModListType type);

@@ -1,13 +1,8 @@
 set(GEODE_CLI_MINIMUM_VERSION 1.0.5)
 
-# for passing CLI through CMake arguments
-if (DEFINED CLI_PATH)
-    list(APPEND CMAKE_PROGRAM_PATH ${CLI_PATH}) 
-endif()
-
 # Find Geode CLI
-if (NOT DEFINED GEODE_CLI)
-    find_program(GEODE_CLI NAMES geode.exe geode-cli.exe geode geode-cli)
+if (NOT DEFINED GEODE_CLI OR GEODE_CLI STREQUAL "GEODE_CLI-NOTFOUND")
+    find_program(GEODE_CLI NAMES geode.exe geode-cli.exe geode geode-cli PATHS ${CLI_PATH})
 endif()
 
 # Check if CLI was found
@@ -53,6 +48,9 @@ function(setup_geode_mod proname)
     set(multiValueArgs EXTERNALS)
     cmake_parse_arguments(SETUP_GEODE_MOD "${options}" "" "${multiValueArgs}" ${ARGN})
 
+    # Link Geode to the mod
+    target_link_libraries(${proname} geode-sdk)
+
     if (GEODE_DISABLE_CLI_CALLS)
         message("Skipping setting up geode mod ${proname}")
         return()
@@ -61,7 +59,7 @@ function(setup_geode_mod proname)
     if(GEODE_CLI STREQUAL "GEODE_CLI-NOTFOUND")
         message(FATAL_ERROR
             "setup_geode_mod called, but Geode CLI was not found - "
-            "Please install CLI: https://docs.geode-sdk.org/info/installcli/"
+            "Please install CLI: https://docs.geode-sdk.org/"
         )
         return()
     endif()
@@ -89,8 +87,22 @@ function(setup_geode_mod proname)
         list(APPEND GEODE_MODS_BEING_BUILT ${SETUP_GEODE_MOD_EXTERNALS})
     endif()
 
+    # For CLI >=v2.4.0, there's an option to disable updating index because 
+    # Github Actions on Mac just returns 403 for no reason
+    if (GEODE_DONT_UPDATE_INDEX AND (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "2.4.0"))
+        set(DONT_UPDATE_INDEX_ARG "--dont-update-index")
+    else()
+        set(DONT_UPDATE_INDEX_ARG "")
+    endif()
+
     # Check dependencies using CLI
-    if (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "1.4.0")
+    if (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "2.0.0")
+        execute_process(
+            COMMAND ${GEODE_CLI} project check ${CMAKE_CURRENT_BINARY_DIR}
+                --externals ${GEODE_MODS_BEING_BUILT} ${DONT_UPDATE_INDEX_ARG}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        )
+    elseif (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "1.4.0")
         execute_process(
             COMMAND ${GEODE_CLI} package setup ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
                 --externals ${GEODE_MODS_BEING_BUILT}
@@ -103,7 +115,7 @@ function(setup_geode_mod proname)
     endif()
     
     # Check if --install should be passed
-    if (SETUP_GEODE_MOD_DONT_INSTALL)
+    if (SETUP_GEODE_MOD_DONT_INSTALL OR GEODE_DONT_INSTALL_MODS)
         message(STATUS "Skipping installing ${proname}")
         set(INSTALL_ARG "")
     else()
@@ -118,10 +130,6 @@ function(setup_geode_mod proname)
         set(HAS_HEADERS Off)
     endif()
 
-    # Add package target + make output name the mod id
-    set_target_properties(${proname} PROPERTIES PREFIX "")
-    set_target_properties(${proname} PROPERTIES OUTPUT_NAME ${MOD_ID})
-
     # todo: figure out how to either not make cmake shit itself and print out --binary path/to/dll "" or 
     # make cli not shit itself when it sees that
     if (HAS_HEADERS)
@@ -129,7 +137,7 @@ function(setup_geode_mod proname)
             DEPENDS ${proname} ${CMAKE_CURRENT_SOURCE_DIR}/mod.json
             COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR} 
                 --binary $<TARGET_FILE:${proname}> $<TARGET_LINKER_FILE:${proname}>
-                --output $<TARGET_FILE_DIR:${proname}>/${proname}.geode
+                --output ${CMAKE_CURRENT_BINARY_DIR}/${MOD_ID}.geode
                 ${INSTALL_ARG}
             VERBATIM USES_TERMINAL
         )
@@ -138,7 +146,7 @@ function(setup_geode_mod proname)
             DEPENDS ${proname} ${CMAKE_CURRENT_SOURCE_DIR}/mod.json
             COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR} 
                 --binary $<TARGET_FILE:${proname}>
-                --output $<TARGET_FILE_DIR:${proname}>/${proname}.geode
+                --output ${CMAKE_CURRENT_BINARY_DIR}/${MOD_ID}.geode
                 ${INSTALL_ARG}
             VERBATIM USES_TERMINAL
         )
@@ -193,8 +201,9 @@ function(setup_geode_mod proname)
         
     endif()
 
-    # Link Geode to the mod
-    target_link_libraries(${proname} geode-sdk)
+    # Add package target + make output name the mod id
+    set_target_properties(${proname} PROPERTIES PREFIX "")
+    set_target_properties(${proname} PROPERTIES OUTPUT_NAME ${MOD_ID})
 
 endfunction()
 
@@ -288,6 +297,7 @@ function(package_geode_resources_now proname src dest header_dest)
     list(APPEND HASHED_EXTENSIONS ".png")
     list(APPEND HASHED_EXTENSIONS ".mp3")
     list(APPEND HASHED_EXTENSIONS ".ogg")
+    list(APPEND HASHED_EXTENSIONS ".md")
 
     foreach(file ${RESOURCE_FILES})
         cmake_path(GET file FILENAME FILE_NAME)
@@ -297,6 +307,8 @@ function(package_geode_resources_now proname src dest header_dest)
         if (NOT FILE_NAME STREQUAL ".geode_cache" AND NOT FILE_SHOULD_HASH EQUAL -1)
             
             file(SHA256 ${file} COMPUTED_HASH)
+            file(SIZE ${file} FILE_SIZE)
+            message(STATUS "Hashed ${file} to ${COMPUTED_HASH} (${FILE_SIZE} bytes)")
             list(APPEND HEADER_FILE "\t{ \"${FILE_NAME}\", \"${COMPUTED_HASH}\" },\n")
 
             # list(APPEND HEADER_FILE "\t\"${FILE_NAME}\",\n")

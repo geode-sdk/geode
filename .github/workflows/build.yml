@@ -7,139 +7,163 @@ on:
     - '**'              # every branch
     - '!no-build-**'    # unless marked as no-build
 
+env:
+  GEODE_CI: ''
+  CCACHE_ACTION_CI: true
+
 jobs:
   build:
     strategy:
       fail-fast: false
       matrix:
         config:
-        - name: "Windows"
-          os_identifier: "win"
-          os: windows-2019
-          prefixes: ''
-          extra_flags: '-G "Visual Studio 16 2019" -T host=x86 -A win32 -DGEODE_DEBUG=On'
-          out_paths: './bin/nightly/Geode.dll ./bin/nightly/GeodeBootstrapper.dll ./bin/nightly/Geode.lib ./bin/nightly/XInput9_1_0.dll'
+        - name: Windows
+          os: windows-latest
+          id: win
+          extra_flags: -T host=x64 -A win32 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DGEODE_DEBUG=On
+          # uncomment to use vs clang-cl and ninja
+          #extra_flags: >
+          #  --no-warn-unused-cli
+          #  "-DCMAKE_C_COMPILER:FILEPATH=$env:VCINSTALLDIR\Tools\Llvm\bin\clang-cl.exe"
+          #  "-DCMAKE_CXX_COMPILER:FILEPATH=$env:VCINSTALLDIR\Tools\Llvm\bin\clang-cl.exe"
+          #  -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DGEODE_DEBUG=On
           cli_cmd: ''
+          package_cmd: 'makensis -WX -V3 ./installer/windows/installer.nsi'
+          installer_path: './installer/windows/geode-installer-win.exe'
 
-        - name: "macOS"
-          os_identifier: "mac"
+        - name: macOS
           os: macos-latest
-          prefixes: 'PATH="/usr/local/opt/ccache/libexec:$PATH"'
-          extra_flags: "-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug -DGEODE_DEBUG=On -DCMAKE_OSX_DEPLOYMENT_TARGET=10.13"
-          out_paths: './bin/nightly/Geode.dylib ./bin/nightly/GeodeBootstrapper.dylib ./loader/include/link/libfmod.dylib'
+          id: mac
+          extra_flags: >
+            -DCMAKE_C_COMPILER=clang
+            -DCMAKE_CXX_COMPILER=clang++
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo -DGEODE_DEBUG=On -DCMAKE_OSX_DEPLOYMENT_TARGET=10.13
           cli_cmd: 'chmod +x $GITHUB_WORKSPACE/cli/geode'
-          
-    name: ${{ matrix.config.name }}
+          package_cmd: './installer/mac/package.sh ./bin/nightly ./installer/mac/geode-installer-mac.pkg'
+          installer_path: './installer/mac/geode-installer-mac.pkg'
+
+    name: Build ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout
+      uses: actions/checkout@v3
       with:
         submodules: recursive
 
-    - uses: ilammy/msvc-dev-cmd@v1
-      with:
-        arch: x86
-      if: matrix.config.os_identifier == 'win'
-
-    - name: Configure ccache
-      uses: hendrikmuhs/ccache-action@v1.2
+    - name: Setup ccache
+      uses: hendrikmuhs/ccache-action@v1
       with:
         key: ${{ matrix.config.os }}
+      if: matrix.config.id == 'mac'
+
+    - name: Setup MSVC
+      uses: ilammy/msvc-dev-cmd@v1.12.1
+      with:
+        arch: amd64_x86
+      if: matrix.config.id == 'win'
 
     - name: Download CLI
-      uses: robinraju/release-downloader@v1.5
+      uses: robinraju/release-downloader@v1.8
       with:
         repository: geode-sdk/cli
         latest: true
-        fileName: "*-${{ matrix.config.os_identifier }}.zip"
+        fileName: '*-${{ matrix.config.id }}.zip'
         tarBall: false
         zipBall: false
-        out-file-path: "cli" 
-    
-    - name: Unzip CLI
+        out-file-path: "cli"
+
+    - name: Setup CLI
       run: |
-        7z x "${{ github.workspace }}/cli/*-${{ matrix.config.os_identifier }}.zip" -o"${{ github.workspace }}/cli"
-    
-    - name: Add CLI to Path
-      run: |
+        7z x "${{ github.workspace }}/cli/*-${{ matrix.config.id }}.zip" -o"${{ github.workspace }}/cli"
         ${{ matrix.config.cli_cmd }}
         echo "${{ github.workspace }}/cli" >> $GITHUB_PATH
 
-    - name: Configure CMake
+    - name: Configure
       run: >
-        ${{ matrix.config.prefixes }} cmake -B 
-        ${{ github.workspace }}/build 
-        ${{ matrix.config.extra_flags }} 
-        -DCLI_PATH="${{ github.workspace }}/cli" 
-        -D CMAKE_C_COMPILER_LAUNCHER=ccache
-        -D CMAKE_CXX_COMPILER_LAUNCHER=ccache
+        cmake -B ${{ github.workspace }}/build
+        -DCLI_PATH="${{ github.workspace }}/cli"
+        ${{ matrix.config.extra_flags }}
 
     - name: Build
       run: |
-        cd build
+        cd ${{ github.workspace }}/build
         cmake --build . --config RelWithDebInfo --parallel
-
-    - name: Move to output folder
-      shell: bash
-      working-directory: ${{ github.workspace }}
-      run: |
-        mkdir ./out
-        mv ${{ matrix.config.out_paths }} ./out
-    
-    - name: Get version
-      uses: juliangruber/read-file-action@v1.1.6
-      with:
-        path: ${{ github.workspace }}/VERSION
-      id: version
-
-    - name: Delete resource cache file
-      run: |
-        rm ./bin/nightly/resources/.geode_cache
-    - name: Upload resources
-      uses: actions/upload-artifact@v2
-      with:
-        name: resources
-        path: ./bin/nightly/resources
-      if: matrix.config.os_identifier == 'win'
+        rm ${{ github.workspace }}/bin/nightly/resources/.geode_cache
 
     - name: Upload Artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
-        name: geode-v${{ steps.version.outputs.content }}-${{ matrix.config.os_identifier }}
-        path: ./out
+        name: geode-${{ matrix.config.id }}
+        path: ./bin/nightly
+
+    - name: Package Installer
+      run: ${{ matrix.config.package_cmd }}
+
+    - name: Upload Installer
+      uses: actions/upload-artifact@v3
+      with:
+        name: geode-installer-${{ matrix.config.id }}
+        path: ${{ matrix.config.installer_path }}
 
   publish:
+    name: Publish
     runs-on: ubuntu-latest
     needs: build
     if: github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/checkout@v2
-      
-      - name: Get version
-        uses: juliangruber/read-file-action@v1.1.6
-        with:
-          path: ${{ github.workspace }}/VERSION
-        id: version
+      - name: Checkout
+        uses: actions/checkout@v3
 
-      - uses: actions/download-artifact@v3
+      - name: Declare Version Variables
+        id: ref
+        shell: bash
+        run: |
+          echo "version=$(cat ${{ github.workspace }}/VERSION | xargs)" >> $GITHUB_OUTPUT
+          echo "hash=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_OUTPUT
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
         with:
           path: ${{ github.workspace }}
 
-      - uses: vimtor/action-zip@v1
-        with:
-          files: geode-v${{ steps.version.outputs.content }}-mac/Geode.dylib geode-v${{ steps.version.outputs.content }}-mac/GeodeBootstrapper.dylib
-          dest: geode-nightly-mac.zip
+      - name: Move Installers
+        run: |
+          mv geode-installer-mac/geode-installer-mac.pkg geode-installer-${{ steps.ref.outputs.hash }}-mac.pkg
+          mv geode-installer-win/geode-installer-win.exe geode-installer-${{ steps.ref.outputs.hash }}-win.exe
 
-      - uses: vimtor/action-zip@v1
+      - name: Zip MacOS Artifacts
+        uses: vimtor/action-zip@v1.1
         with:
-          files: geode-v${{ steps.version.outputs.content }}-win/Geode.dll geode-v${{ steps.version.outputs.content }}-win/GeodeBootstrapper.dll geode-v${{ steps.version.outputs.content }}-win/Geode.lib
-          dest: geode-nightly-win.zip
+          files: geode-mac/Geode.dylib geode-mac/GeodeBootstrapper.dylib
+          dest: geode-${{ steps.ref.outputs.hash }}-mac.zip
 
-      - name: Update release
-        uses: IsaacShelton/update-existing-release@v1.3.1
+      - name: Zip Windows Artifacts
+        uses: vimtor/action-zip@v1.1
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          files: ./geode-nightly-mac.zip ./geode-nightly-win.zip
-          release: Nightly
-          prerelease: true
+          files: geode-win/XInput9_1_0.dll geode-win/Geode.dll geode-win/GeodeUpdater.exe geode-win/Geode.lib geode-win/Geode.pdb
+          dest: geode-${{ steps.ref.outputs.hash }}-win.zip
+
+      - name: Zip Resources
+        uses: vimtor/action-zip@v1.1
+        with:
+          files: geode-mac/resources
+          dest: resources.zip
+
+      - name: Update Development Release
+        uses: andelf/nightly-release@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: nightly
+          name: 'Development Release'
+          body: |
+            Geode development release for commit ${{ github.sha }}. Since this is not a regular release, Geode will not install the resources automatically, so you should use the installer if you want them.
+          files: |
+            ./geode-installer-${{ steps.ref.outputs.hash }}-mac.pkg
+            ./geode-installer-${{ steps.ref.outputs.hash }}-win.exe
+            ./geode-${{ steps.ref.outputs.hash }}-mac.zip
+            ./geode-${{ steps.ref.outputs.hash }}-win.zip
+            ./resources.zip

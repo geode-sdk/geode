@@ -1,5 +1,5 @@
 {
-    "geode": "@PROJECT_VERSION@",
+    "geode": "@PROJECT_VERSION@@PROJECT_VERSION_SUFFIX@",
     "id": "geode.loader",
     "version": "@PROJECT_VERSION@@PROJECT_VERSION_SUFFIX@",
     "name": "Geode",
@@ -33,7 +33,12 @@
             "images/*.png"
         ],
         "files": [
-            "sounds/*.ogg"
+            "sounds/*.ogg",
+            "about.md",
+            "changelog.md",
+            "support.md",
+            "mod.json",
+            "version"
         ],
         "spritesheets": {
             "LogoSheet": [
@@ -58,13 +63,19 @@
             "type": "bool",
             "default": true,
             "name": "Check For Updates",
-            "description": "Automatically check for <cy>updates</c> to Geode on startup"
+            "description": "Automatically check for <cy>Geode</c> updates on startup"
         },
         "auto-update-mods": {
             "type": "bool",
             "default": true,
             "name": "Auto-Update Mods",
             "description": "Automatically update <cp>mods</c> on startup"
+        },
+        "disable-last-crashed-popup": {
+            "type": "bool",
+            "default": false,
+            "name": "Disable Crash Popup",
+            "description": "Disables the popup at startup asking if you'd like to send a bug report; intended for developers"
         }
     },
     "issues": {

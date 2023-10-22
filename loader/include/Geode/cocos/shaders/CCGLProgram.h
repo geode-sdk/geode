@@ -271,7 +271,7 @@ public:
      */
     inline const GLuint getProgram() { return m_uProgram; }
 
-protected:
+private:
     bool updateUniformLocation(GLint location, GLvoid* data, unsigned int bytes);
     const char* description();
     bool compileShader(GLuint * shader, GLenum type, const GLchar* source);

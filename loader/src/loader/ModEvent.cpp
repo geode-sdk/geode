@@ -1,6 +1,6 @@
 #include <Geode/loader/ModEvent.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 ModStateEvent::ModStateEvent(Mod* mod, ModEventType type) : m_mod(mod), m_type(type) {}
 
@@ -12,8 +12,9 @@ Mod* ModStateEvent::getMod() const {
     return m_mod;
 }
 
-ListenerResult ModStateFilter::handle(std::function<Callback> fn, ModStateEvent* event) {
-    if (event->getMod() == m_mod && event->getType() == m_type) {
+ListenerResult ModStateFilter::handle(utils::MiniFunction<Callback> fn, ModStateEvent* event) {
+    // log::debug("Event mod filter: {}, {}, {}, {}", m_mod, static_cast<int>(m_type), event->getMod(), static_cast<int>(event->getType()));
+    if ((!m_mod || event->getMod() == m_mod) && event->getType() == m_type) {
         fn(event);
     }
     return ListenerResult::Propagate;

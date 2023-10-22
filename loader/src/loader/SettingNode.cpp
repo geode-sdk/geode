@@ -1,7 +1,7 @@
 #include <Geode/loader/SettingNode.hpp>
 #include <Geode/utils/cocos.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 void SettingNode::dispatchChanged() {
     if (m_delegate) {

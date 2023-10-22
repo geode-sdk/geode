@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../utils/casts.hpp"
+#include "../utils/MiniFunction.hpp"
 
 #include <Geode/DefaultInclude.hpp>
 #include <type_traits>
@@ -9,6 +10,7 @@
 namespace geode {
     class Mod;
     class Event;
+    class EventListenerProtocol;
 
     Mod* getMod();
 
@@ -17,10 +19,41 @@ namespace geode {
         Stop
     };
 
-    struct GEODE_DLL EventListenerProtocol {
-        virtual void enable();
-        virtual void disable();
-        virtual ListenerResult passThrough(Event*) = 0;
+    struct GEODE_DLL EventListenerPool {
+        virtual bool add(EventListenerProtocol* listener) = 0;
+        virtual void remove(EventListenerProtocol* listener) = 0;
+        virtual ListenerResult handle(Event* event) = 0;
+        virtual ~EventListenerPool() = default;
+
+        EventListenerPool() = default;
+        EventListenerPool(EventListenerPool const&) = delete;
+        EventListenerPool(EventListenerPool&&) = delete;
+    };
+    
+    class GEODE_DLL DefaultEventListenerPool : public EventListenerPool {
+    protected:
+        std::atomic_size_t m_locked = 0;
+        std::vector<EventListenerProtocol*> m_listeners;
+        std::vector<EventListenerProtocol*> m_toAdd;
+
+    public:
+        bool add(EventListenerProtocol* listener) override;
+        void remove(EventListenerProtocol* listener) override;
+        ListenerResult handle(Event* event) override;
+
+        static DefaultEventListenerPool* get();
+    };
+
+    class GEODE_DLL EventListenerProtocol {
+    private:
+        EventListenerPool* m_pool = nullptr;
+
+    public:
+        bool enable();
+        void disable();
+
+        virtual EventListenerPool* getPool() const;
+        virtual ListenerResult handle(Event*) = 0;
         virtual ~EventListenerProtocol();
     };
 
@@ -34,15 +67,30 @@ namespace geode {
 
     template <typename T>
     concept is_event = std::is_base_of_v<Event, T>;
-
+    
     template <is_event T>
     class EventFilter {
+    protected:
+        EventListenerProtocol* m_listener = nullptr;
+
     public:
         using Callback = ListenerResult(T*);
         using Event = T;
 
-        ListenerResult handle(std::function<Callback> fn, T* e) {
+        ListenerResult handle(utils::MiniFunction<Callback> fn, T* e) {
             return fn(e);
+        }
+
+        EventListenerPool* getPool() const {
+            return DefaultEventListenerPool::get();
+        }
+
+        void setListener(EventListenerProtocol* listener) {
+            m_listener = listener;
+        }
+
+        EventListenerProtocol* getListener() const {
+            return m_listener;
         }
     };
 
@@ -60,9 +108,8 @@ namespace geode {
             requires std::is_class_v<C>
         using MemberFn = typename to_member<C, Callback>::value;
 
-        ListenerResult passThrough(Event* e) override {
+        ListenerResult handle(Event* e) override {
             if (m_callback) {
-                // it is so silly to use dynamic cast in an interbinary context
                 if (auto myev = cast::typeinfo_cast<typename T::Event*>(e)) {
                     return m_filter.handle(m_callback, myev);
                 }
@@ -70,23 +117,32 @@ namespace geode {
             return ListenerResult::Propagate;
         }
 
-        EventListener(T filter = T()) {
+        EventListenerPool* getPool() const override {
+            return m_filter.getPool();
+        }
+
+        EventListener(T filter = T()) : m_filter(filter) {
+            m_filter.setListener(this);
             this->enable();
         }
 
-        EventListener(std::function<Callback> fn, T filter = T())
+        EventListener(utils::MiniFunction<Callback> fn, T filter = T())
           : m_callback(fn), m_filter(filter)
         {
+            m_filter.setListener(this);
             this->enable();
         }
 
         EventListener(Callback* fnptr, T filter = T()) : m_callback(fnptr), m_filter(filter) {
+            m_filter.setListener(this);
             this->enable();
         }
 
         template <class C>
         EventListener(C* cls, MemberFn<C> fn, T filter = T()) :
-            EventListener(std::bind(fn, cls, std::placeholders::_1), filter) {
+            EventListener(std::bind(fn, cls, std::placeholders::_1), filter)
+        {
+            m_filter.setListener(this);
             this->enable();
         }
 
@@ -94,6 +150,7 @@ namespace geode {
           : m_callback(std::move(other.m_callback)),
             m_filter(std::move(other.m_filter))
         {
+            m_filter.setListener(this);
             other.disable();
             this->enable();
         }
@@ -102,11 +159,11 @@ namespace geode {
           : m_callback(other.m_callback),
             m_filter(other.m_filter)
         {
-            other.disable();
+            m_filter.setListener(this);
             this->enable();
         }
 
-        void bind(std::function<Callback> fn) {
+        void bind(utils::MiniFunction<Callback> fn) {
             m_callback = fn;
         }
 
@@ -117,27 +174,42 @@ namespace geode {
 
         void setFilter(T filter) {
             m_filter = filter;
+            m_filter.setListener(this);
+        }
+
+        T& getFilter() {
+            return m_filter;
+        }
+
+        T const& getFilter() const {
+            return m_filter;
+        }
+
+        utils::MiniFunction<Callback>& getCallback() {
+            return m_callback;
         }
 
     protected:
-        std::function<Callback> m_callback = nullptr;
+        utils::MiniFunction<Callback> m_callback = nullptr;
         T m_filter;
     };
 
     class GEODE_DLL [[nodiscard]] Event {
     private:
-        static std::unordered_set<EventListenerProtocol*>& listeners();
         friend EventListenerProtocol;
+
+    protected:
+        virtual EventListenerPool* getPool() const;
 
     public:
         Mod* sender;
 
-        void postFrom(Mod* sender);
+        ListenerResult postFromMod(Mod* sender);
         template<class = void>
-        void post() {
-            postFrom(getMod());
+        ListenerResult post() {
+            return postFromMod(getMod());
         }
-
+        
         virtual ~Event();
     };
 }

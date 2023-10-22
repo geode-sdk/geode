@@ -63,6 +63,7 @@ public:
      *  @js ctor
      */
     CCLabelTTF();
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCLabelTTF, CCSprite)
     /**
      *  @js NA
      *  @lua NA

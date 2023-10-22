@@ -50,6 +50,7 @@ class CC_DLL CCIMEDelegate
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_BEGIN(CCIMEDelegate)
     virtual ~CCIMEDelegate();
 
     virtual bool attachWithIME();

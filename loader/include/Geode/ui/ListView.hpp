@@ -24,7 +24,7 @@ namespace geode {
     protected:
         void setupList() override;
         TableViewCell* getListCell(char const* key) override;
-        void loadCell(TableViewCell* cell, unsigned int index) override;
+        void loadCell(TableViewCell* cell, int index) override;
 
     public:
         /**

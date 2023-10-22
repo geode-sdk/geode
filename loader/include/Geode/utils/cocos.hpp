@@ -8,6 +8,7 @@
 #include <functional>
 #include <type_traits>
 #include "../loader/Event.hpp"
+#include "MiniFunction.hpp"
 
 // support converting ccColor3B / ccColor4B to / from json
 
@@ -24,7 +25,7 @@ struct json::Serialize<cocos2d::ccColor4B> {
 };
 
 // operators for CC geometry
-namespace geode {
+namespace cocos2d {
     static cocos2d::CCPoint& operator*=(cocos2d::CCPoint& pos, float mul) {
         pos.x *= mul;
         pos.y *= mul;
@@ -185,8 +186,22 @@ namespace geode {
         return c1.r != c2.r || c1.g != c2.g || c1.b != c2.b || c1.a != c2.a;
     }
 
+    static bool operator==(cocos2d::ccColor3B const& c1, cocos2d::ccColor3B const& c2) {
+        return c1.r == c2.r && c1.g == c2.g && c1.b == c2.b;
+    }
+
     static bool operator!=(cocos2d::ccColor3B const& c1, cocos2d::ccColor3B const& c2) {
         return c1.r != c2.r || c1.g != c2.g || c1.b != c2.b;
+    }
+
+    static bool operator==(cocos2d::ccHSVValue const& c1, cocos2d::ccHSVValue const& c2) {
+        return c1.h == c2.h && c1.s == c2.s && c1.v == c2.v && 
+            c1.absoluteSaturation == c2.absoluteSaturation && 
+            c1.absoluteBrightness == c2.absoluteBrightness;
+    }
+
+    static bool operator!=(cocos2d::ccHSVValue const& c1, cocos2d::ccHSVValue const& c2) {
+        return !(c1 == c2);
     }
 }
 
@@ -330,9 +345,181 @@ namespace geode {
         bool operator<(Ref<T> const& other) const {
             return m_obj < other.m_obj;
         }
-
+        bool operator<=(Ref<T> const& other) const {
+            return m_obj <= other.m_obj;
+        }
         bool operator>(Ref<T> const& other) const {
             return m_obj > other.m_obj;
+        }
+        bool operator>=(Ref<T> const& other) const {
+            return m_obj >= other.m_obj;
+        }
+    };
+
+    class WeakRefPool;
+
+    class GEODE_DLL WeakRefController final {
+    private:
+        cocos2d::CCObject* m_obj;
+
+        WeakRefController(WeakRefController const&) = delete;
+        WeakRefController(WeakRefController&&) = delete;
+
+        friend class WeakRefPool;
+    
+    public:
+        WeakRefController() = default;
+        
+        bool isManaged();
+        void swap(cocos2d::CCObject* other);
+        cocos2d::CCObject* get() const;
+    };
+
+    class GEODE_DLL WeakRefPool final {
+        std::unordered_map<cocos2d::CCObject*, std::shared_ptr<WeakRefController>> m_pool;
+    
+        void check(cocos2d::CCObject* obj);
+
+        friend class WeakRefController;
+
+    public:
+        static WeakRefPool* get();
+        
+        std::shared_ptr<WeakRefController> manage(cocos2d::CCObject* obj);
+    };
+
+    /**
+     * A smart pointer to a managed CCObject-deriving class. Like Ref, except 
+     * only holds a weak reference to the targeted object. When all non-weak 
+     * references (Refs, manual retain() calls) to the object are dropped, so 
+     * are all weak references.
+     * 
+     * In essence, WeakRef is like a raw pointer, except that you can know if 
+     * the pointer is still valid or not, as WeakRef::lock() returns nullptr if 
+     * the pointed-to-object has already been freed.
+     *
+     * Note that an object pointed to by WeakRef is only released once some 
+     * WeakRef pointing to it checks for it after all other references to the 
+     * object have been dropped. If you store WeakRefs in a global map, you may 
+     * want to periodically lock all of them to make sure any memory that should 
+     * be freed is freed.
+     * 
+     * @tparam T A type that inherits from CCObject.
+     */
+    template <class T>
+    class WeakRef final {
+        static_assert(
+            std::is_base_of_v<cocos2d::CCObject, T>,
+            "WeakRef can only be used with a CCObject-inheriting class!"
+        );
+
+        std::shared_ptr<WeakRefController> m_controller;
+
+        WeakRef(std::shared_ptr<WeakRefController> obj) : m_controller(obj) {}
+
+    public:
+        /**
+         * Construct a WeakRef of an object. A weak reference is one that will 
+         * be valid as long as the object is referenced by other strong 
+         * references (such as Ref or manual retain calls), but once all strong 
+         * references are dropped, so are all weak references. The object is 
+         * freed once no strong references exist to it, and any WeakRef pointing 
+         * to it is freed or locked
+         * @param obj Object to construct the WeakRef from
+         */
+        WeakRef(T* obj) : m_controller(WeakRefPool::get()->manage(obj)) {}
+
+        WeakRef(WeakRef<T> const& other) : WeakRef(other.m_controller) {}
+
+        WeakRef(WeakRef<T>&& other) : m_controller(std::move(other.m_controller)) {
+            other.m_controller = nullptr;
+        }
+
+        /**
+         * Construct an empty WeakRef (the object will be null)
+         */
+        WeakRef() = default;
+        ~WeakRef() {
+            // If the WeakRef is moved, m_controller is null
+            if (m_controller) {
+                m_controller->isManaged();
+            }
+        }
+
+        /**
+         * Lock the WeakRef, returning a Ref if the pointed object is valid or 
+         * a null Ref if the object has been freed
+         */
+        Ref<T> lock() const {
+            if (m_controller->isManaged()) {
+                return Ref(static_cast<T*>(m_controller->get()));
+            }
+            return Ref<T>(nullptr);
+        }
+
+        /**
+         * Check if the WeakRef points to a valid object
+         */
+        bool valid() const {
+            return m_controller->isManaged();
+        }
+
+        /**
+         * Swap the managed object with another object. The managed object
+         * will be released, and the new object retained
+         * @param other The new object to swap to
+         */
+        void swap(T* other) {
+            m_controller->swap(other);
+        }
+
+        Ref<T> operator=(T* obj) {
+            this->swap(obj);
+            return this->lock();
+        }
+
+        WeakRef<T>& operator=(WeakRef<T> const& other) {
+            this->swap(static_cast<T*>(other.m_controller->get()));
+            return *this;
+        }
+
+        WeakRef<T>& operator=(WeakRef<T>&& other) {
+            this->swap(static_cast<T*>(other.m_controller->get()));
+            return *this;
+        }
+
+        explicit operator bool() const noexcept {
+            return this->valid();
+        }
+
+        bool operator==(T* other) const {
+            return m_controller->get() == other;
+        }
+
+        bool operator==(WeakRef<T> const& other) const {
+            return m_controller->get() == other.m_controller->get();
+        }
+
+        bool operator!=(T* other) const {
+            return m_controller->get() != other;
+        }
+
+        bool operator!=(WeakRef<T> const& other) const {
+            return m_controller->get() != other.m_controller->get();
+        }
+
+        // for containers
+        bool operator<(WeakRef<T> const& other) const {
+            return m_controller->get() < other.m_controller->get();
+        }
+        bool operator<=(WeakRef<T> const& other) const {
+            return m_controller->get() <= other.m_controller->get();
+        }
+        bool operator>(WeakRef<T> const& other) const {
+            return m_controller->get() > other.m_controller->get();
+        }
+        bool operator>=(WeakRef<T> const& other) const {
+            return m_controller->get() >= other.m_controller->get();
         }
     };
 
@@ -355,8 +542,8 @@ namespace geode {
             return nullptr;
         }
 
-        static EventListenerNode* create(typename Filter::Callback callback) {
-            auto ret = new EventListenerNode(EventListener<Filter>(callback));
+        static EventListenerNode* create(typename Filter::Callback callback, Filter filter = Filter()) {
+            auto ret = new EventListenerNode(EventListener<Filter>(callback, filter));
             if (ret && ret->init()) {
                 ret->autorelease();
                 return ret;
@@ -364,7 +551,6 @@ namespace geode {
             CC_SAFE_DELETE(ret);
             return nullptr;
         }
-
 
         template <class C>
         static EventListenerNode* create(
@@ -409,16 +595,31 @@ namespace geode::cocos {
      * or nullptr if index exceeds bounds
      */
     template <class Type = cocos2d::CCNode>
-    static Type* getChildOfType(cocos2d::CCNode* node, size_t index) {
+    static Type* getChildOfType(cocos2d::CCNode* node, int index) {
         size_t indexCounter = 0;
 
-        for (size_t i = 0; i < node->getChildrenCount(); ++i) {
-            auto obj = cast::typeinfo_cast<Type*>(node->getChildren()->objectAtIndex(i));
-            if (obj != nullptr) {
-                if (indexCounter == index) {
-                    return obj;
+        // start from end for negative index
+        if (index < 0) {
+            index = -index - 1;
+            for (size_t i = node->getChildrenCount() - 1; i >= 0; i--) {
+                auto obj = cast::typeinfo_cast<Type*>(node->getChildren()->objectAtIndex(i));
+                if (obj != nullptr) {
+                    if (indexCounter == index) {
+                        return obj;
+                    }
+                    ++indexCounter;
                 }
-                ++indexCounter;
+            }
+        }
+        else {
+            for (size_t i = 0; i < node->getChildrenCount(); i++) {
+                auto obj = cast::typeinfo_cast<Type*>(node->getChildren()->objectAtIndex(i));
+                if (obj != nullptr) {
+                    if (indexCounter == index) {
+                        return obj;
+                    }
+                    ++indexCounter;
+                }
             }
         }
 
@@ -468,7 +669,7 @@ namespace geode::cocos {
      */
     GEODE_DLL cocos2d::CCScene* switchToScene(cocos2d::CCLayer* layer);
 
-    using CreateLayerFunc = std::function<cocos2d::CCLayer*()>;
+    using CreateLayerFunc = utils::MiniFunction<cocos2d::CCLayer*()>;
 
     /**
      * Reload textures, overwriting the scene to return to after the loading
@@ -518,7 +719,7 @@ namespace geode::cocos {
      * there is none
      */
     template <class Type = cocos2d::CCNode>
-    Type* findFirstChildRecursive(cocos2d::CCNode* node, std::function<bool(Type*)> predicate) {
+    Type* findFirstChildRecursive(cocos2d::CCNode* node, utils::MiniFunction<bool(Type*)> predicate) {
         if (cast::safe_cast<Type*>(node) && predicate(static_cast<Type*>(node)))
             return static_cast<Type*>(node);
 
@@ -546,86 +747,6 @@ namespace geode::cocos {
      * }
      */
     GEODE_DLL bool fileExistsInSearchPaths(char const* filename);
-
-    template <typename T>
-    struct CCArrayIterator {
-    public:
-        CCArrayIterator(T* p) : m_ptr(p) {}
-
-        T* m_ptr;
-
-        auto& operator*() {
-            return *m_ptr;
-        }
-
-        auto& operator*() const {
-            return *m_ptr;
-        }
-
-        auto operator->() {
-            return m_ptr;
-        }
-
-        auto operator->() const {
-            return m_ptr;
-        }
-
-        auto& operator++() {
-            ++m_ptr;
-            return *this;
-        }
-
-        auto& operator--() {
-            --m_ptr;
-            return *this;
-        }
-
-        auto& operator+=(size_t val) {
-            m_ptr += val;
-            return *this;
-        }
-
-        auto& operator-=(size_t val) {
-            m_ptr -= val;
-            return *this;
-        }
-
-        auto operator+(size_t val) const {
-            return CCArrayIterator<T>(m_ptr + val);
-        }
-
-        auto operator-(size_t val) const {
-            return CCArrayIterator<T>(m_ptr - val);
-        }
-
-        auto operator-(CCArrayIterator<T> const& other) const {
-            return m_ptr - other.m_ptr;
-        }
-
-        bool operator<(CCArrayIterator<T> const& other) const {
-            return m_ptr < other.m_ptr;
-        }
-
-        bool operator>(CCArrayIterator<T> const& other) const {
-            return m_ptr > other.m_ptr;
-        }
-
-        bool operator<=(CCArrayIterator<T> const& other) const {
-            return m_ptr <= other.m_ptr;
-        }
-
-        bool operator>=(CCArrayIterator<T> const& other) const {
-            return m_ptr >= other.m_ptr;
-        }
-
-        bool operator==(CCArrayIterator<T> const& other) const {
-            return m_ptr == other.m_ptr;
-        }
-
-        bool operator!=(CCArrayIterator<T> const& other) const {
-            return m_ptr != other.m_ptr;
-        }
-    };
 
     inline void ccDrawColor4B(cocos2d::ccColor4B const& color) {
         cocos2d::ccDrawColor4B(color.r, color.g, color.b, color.a);
@@ -707,7 +828,7 @@ namespace geode::cocos {
     }
 
     template <typename T, typename C, typename = std::enable_if_t<std::is_pointer_v<C>>>
-    static cocos2d::CCArray* vectorToCCArray(std::vector<T> const& vec, std::function<C(T)> convFunc) {
+    static cocos2d::CCArray* vectorToCCArray(std::vector<T> const& vec, utils::MiniFunction<C(T)> convFunc) {
         auto res = cocos2d::CCArray::createWithCapacity(vec.size());
         for (auto const& item : vec)
             res->addObject(convFunc(item));
@@ -734,26 +855,19 @@ namespace geode::cocos {
     template <
         typename K, typename V, typename C,
         typename = std::enable_if_t<std::is_same_v<C, std::string> || std::is_same_v<C, intptr_t>>>
-    static cocos2d::CCDictionary* mapToCCDict(std::map<K, V> const& map, std::function<C(K)> convFunc) {
+    static cocos2d::CCDictionary* mapToCCDict(std::map<K, V> const& map, utils::MiniFunction<C(K)> convFunc) {
         auto res = cocos2d::CCDictionary::create();
         for (auto const& [key, value] : map)
             res->setObject(value, convFunc(key));
         return res;
     }
 
-    //   template<typename K, typename V,
-    // typename = std::enable_if_t<std::is_same_v<K, std::string> || std::is_same_v<K, intptr_t>> >
-    //   static std::map<K, V> ccDictToMap(cocos2d::CCDictionary* dict) {
-    //       auto res = std::map<K, V>();
-    //       cocos2d::CCDictElement* element = nullptr;
-    //       CCDICT_FOREACH(dict, element) {
-    //       	if constexpr (std::is_same_v<K, std::string>)
-    //       		res[element->getStrKey()] = element->getObject();
-    //       	if constexpr (std::is_same_v<K, intptr_t>)
-    //       		res[element->getIntKey()] = element->getObject();
-    //       }
-    //       return res;
-    //   }
+    /**
+     * Gets the mouse position in cocos2d coordinates.
+     * On mobile platforms this will probably return (0, 0)
+     * @returns The mouse position
+     */
+    GEODE_DLL cocos2d::CCPoint getMousePos();
 }
 
 // std specializations
@@ -764,16 +878,6 @@ namespace std {
         size_t operator()(geode::Ref<T> const& ref) const {
             return std::hash<T*>()(ref.data());
         }
-    };
-
-    template <typename T>
-    struct iterator_traits<geode::cocos::CCArrayIterator<T>> {
-        using difference_type = ptrdiff_t;
-        using value_type = T;
-        using pointer = T*;
-        using reference = T&;
-        using iterator_category =
-            std::random_access_iterator_tag; // its random access but im too lazy to implement it
     };
 }
 
@@ -806,9 +910,14 @@ namespace geode::cocos {
         using T = std::remove_pointer_t<_Type>;
 
     public:
+        using value_type = T;
+        using iterator = T**;
+        using const_iterator = const T**;
+
         CCArrayExt() : m_arr(cocos2d::CCArray::create()) {}
 
-        CCArrayExt(cocos2d::CCArray* arr) : m_arr(arr) {}
+        CCArrayExt(cocos2d::CCArray* arr)
+          : m_arr(arr) {}
 
         CCArrayExt(CCArrayExt const& a) : m_arr(a.m_arr) {}
 
@@ -818,25 +927,33 @@ namespace geode::cocos {
 
         ~CCArrayExt() {}
 
-        auto begin() {
+        T** begin() const {
             if (!m_arr) {
-                return CCArrayIterator<T*>(nullptr);
+                return nullptr;
             }
-            return CCArrayIterator<T*>(reinterpret_cast<T**>(m_arr->data->arr));
+            return reinterpret_cast<T**>(m_arr->data->arr);
         }
 
-        auto end() {
+        T** end() const {
             if (!m_arr) {
-                return CCArrayIterator<T*>(nullptr);
+                return nullptr;
             }
-            return CCArrayIterator<T*>(reinterpret_cast<T**>(m_arr->data->arr) + m_arr->count());
+            return reinterpret_cast<T**>(m_arr->data->arr) + m_arr->count();
+        }
+
+        auto rbegin() const {
+            return std::reverse_iterator(this->end());
+        }
+
+        auto rend() const {
+            return std::reverse_iterator(this->begin());
         }
 
         size_t size() const {
             return m_arr ? m_arr->count() : 0;
         }
 
-        T operator[](size_t index) {
+        T* operator[](size_t index) {
             return static_cast<T*>(m_arr->objectAtIndex(index));
         }
 
@@ -936,10 +1053,12 @@ namespace geode::cocos {
             if (m_dict) m_dict->release();
         }
 
-        CCDictionaryExt const& operator=(cocos2d::CCDictionary* d) {
+        CCDictionaryExt& operator=(cocos2d::CCDictionary* d) {
             m_dict->release();
             m_dict = d;
             m_dict->retain();
+            
+            return *this;
         }
 
         auto begin() {

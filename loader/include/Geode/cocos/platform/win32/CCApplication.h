@@ -5,6 +5,7 @@
 #include "CCStdC.h"
 #include "../CCCommon.h"
 #include "../CCApplicationProtocol.h"
+#include "CCControllerHandler.h"
 #include <string>
 
 NS_CC_BEGIN
@@ -15,7 +16,7 @@ class CC_DLL CCApplication : public CCApplicationProtocol
 {
     GEODE_FRIEND_MODIFY
 public:
-    GEODE_MONOSTATE_CONSTRUCTOR_BEGIN(CCApplication)
+    GEODE_CUSTOM_CONSTRUCTOR_BEGIN(CCApplication)
     CCApplication();
     virtual ~CCApplication();
 
@@ -42,13 +43,15 @@ public:
      */
     virtual TargetPlatform getTargetPlatform();
 
+    virtual void openURL(const char* url);
+    virtual int run();
+    virtual void setupGLView();
+    virtual void platformShutdown();
+    void toggleVerticalSync(bool);
     RT_ADD(
-        virtual void openURL(const char* url);
-        virtual int run();
-        virtual void setupGLView();
-        virtual void platformShutdown();
-        void toggleVerticalSync(bool);
-        bool getVerticalSyncEnabled() const;
+        void setupVerticalSync();
+        void updateVerticalSync();
+        void updateControllerKeys();
     )
 
     /**
@@ -65,19 +68,33 @@ public:
 
     void setStartupScriptFilename(const gd::string& startupScriptFile);
     
-    bool getControllerConnected() const;
-
     const gd::string& getStartupScriptFilename(void)
     {
         return m_startupScriptFilename;
     }
 
-protected:
+public:
     HINSTANCE           m_hInstance;
     HACCEL              m_hAccelTable;
     LARGE_INTEGER       m_nAnimationInterval;
-    gd::string         m_resourceRootPath;
-    gd::string         m_startupScriptFilename;
+    LARGE_INTEGER       m_nVsyncInterval;
+    gd::string          m_resourceRootPath;
+    gd::string          m_startupScriptFilename;
+    CCControllerHandler* m_pControllerHandler;
+    bool m_bUpdateController;
+    CC_SYNTHESIZE_NV(bool, m_bShutdownCalled, ShutdownCalled);
+    INPUT m_iInput;
+    CCPoint m_obLeftThumb;
+    CCPoint m_obRightThumb;
+    bool m_bMouseControl;
+    float m_fAnimationInterval;
+    float m_fVsyncInterval;
+    CC_SYNTHESIZE_READONLY_NV(bool, m_bVerticalSyncEnabled, VerticalSyncEnabled);
+    CC_SYNTHESIZE_READONLY_NV(bool, m_bControllerConnected, ControllerConnected);
+    CC_SYNTHESIZE_NV(bool, m_bSleepMode, SleepMode);
+    CC_SYNTHESIZE_NV(bool, m_bForceTimer, ForceTimer);
+    CC_SYNTHESIZE_NV(bool, m_bSmoothFix, SmoothFix);
+    CC_SYNTHESIZE_NV(bool, m_bFullscreen, Fullscreen);
 
     static CCApplication * sm_pSharedApplication;
 };

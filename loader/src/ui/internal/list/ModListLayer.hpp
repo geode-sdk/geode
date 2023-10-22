@@ -3,7 +3,7 @@
 #include <Geode/binding/TextInputDelegate.hpp>
 #include <Geode/loader/Index.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 class SearchFilterPopup;
 class ModListCell;
@@ -25,10 +25,15 @@ struct ModListQuery {
      */
     std::optional<std::string> keywords;
     /**
-     * Force mods to be shown on the list unless they explicitly mismatch some 
+     * Force already installed mods to be shown on the list unless they explicitly mismatch some
      * tags (used to show installed mods on index)
      */
     bool forceVisibility;
+    /**
+     * Force not installable mods to be shown on the list unless they explicitly mismatch some
+     * tags (used to show installed mods on index)
+     */
+    bool forceInvalid;
     /**
      * Empty means current platform
      */
@@ -39,6 +44,9 @@ struct ModListQuery {
 class ModListLayer : public CCLayer, public TextInputDelegate {
 protected:
     GJListLayer* m_list = nullptr;
+    CCClippingNode* m_tabsGradientNode = nullptr;
+    CCSprite* m_tabsGradientSprite = nullptr;
+    CCSprite* m_tabsGradientStencil = nullptr;
     CCLabelBMFont* m_listLabel;
     CCLabelBMFont* m_indexUpdateLabel;
     CCMenu* m_menu;
@@ -81,10 +89,10 @@ protected:
 public:
     static ModListLayer* create();
     static ModListLayer* scene();
-    void updateAllStates(ModListCell* except = nullptr);
+    void updateAllStates();
 
     ModListDisplay getDisplay() const;
     ModListQuery& getQuery();
 
-    void reloadList(std::optional<ModListQuery> const& query = std::nullopt);
+    void reloadList(bool keepScroll = true, std::optional<ModListQuery> const& query = std::nullopt);
 };

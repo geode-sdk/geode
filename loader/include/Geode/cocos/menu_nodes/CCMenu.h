@@ -64,7 +64,7 @@ public:
      *  @js ctor
      */
     CCMenu() : m_pSelectedItem(NULL) {}
-    GEODE_MONOSTATE_CONSTRUCTOR_COCOS(CCMenu, CCLayerRGBA)
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCMenu, CCLayerRGBA)
     /**
      *  @js NA
      *  @lua NA

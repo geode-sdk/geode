@@ -71,7 +71,7 @@ public:
     , m_pfnSelector(NULL)
     , m_nScriptTapHandler(0)
     {}
-    GEODE_MONOSTATE_CONSTRUCTOR_COCOS(CCMenuItem, CCNodeRGBA)
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCMenuItem, CCNodeRGBA)
     /**
      * @js NA
      * @lua NA
@@ -139,7 +139,7 @@ public:
     : m_pLabel(NULL)
     , m_fOriginalScale(0.0)
     {}
-    GEODE_MONOSTATE_CONSTRUCTOR_COCOS(CCMenuItemLabel, CCMenuItem)
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCMenuItemLabel, CCMenuItem)
     /**
      * @js NA
      * @lua NA
@@ -292,7 +292,7 @@ public:
     ,m_pSelectedImage(NULL)
     ,m_pDisabledImage(NULL)
     {}
-    GEODE_MONOSTATE_CONSTRUCTOR_COCOS(CCMenuItemSprite, CCMenuItem)
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCMenuItemSprite, CCMenuItem)
 
     /** creates a menu item with a normal, selected and disabled image*/
     static CCMenuItemSprite * create(CCNode* normalSprite, CCNode* selectedSprite, CCNode* disabledSprite = NULL);
@@ -337,7 +337,7 @@ public:
      * @lua NA
      */
     CCMenuItemImage(){}
-    GEODE_MONOSTATE_CONSTRUCTOR_COCOS(CCMenuItemImage, CCMenuItemSprite)
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCMenuItemImage, CCMenuItemSprite)
     /**
      * @js NA
      * @lua NA

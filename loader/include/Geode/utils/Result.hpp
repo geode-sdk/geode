@@ -8,6 +8,7 @@
 #include <string_view>
 #include <type_traits>
 #include <variant>
+#include <optional>
 
 namespace geode {
     namespace impl {
@@ -204,6 +205,50 @@ namespace geode {
         [[nodiscard]] constexpr decltype(auto) errorOr(U&& val) const& {
             return this->Base::error_or(std::forward<U>(val));
         }
+
+        /**
+         * Convert the result into an optional containing the value if Ok, and 
+         * nullopt if Err
+         */
+        [[nodiscard]] constexpr std::optional<T> ok() const& {
+            if (this->isOk()) {
+                return this->unwrap();
+            }
+            return std::nullopt;
+        }
+
+        /**
+         * Convert the result into an optional containing the value if Ok, and 
+         * nullopt if Err
+         */
+        [[nodiscard]] constexpr std::optional<T> ok() && {
+            if (this->isOk()) {
+                return this->unwrap();
+            }
+            return std::nullopt;
+        }
+
+        /**
+         * Convert the result into an optional containing the error if Err, and 
+         * nullopt if Ok
+         */
+        [[nodiscard]] constexpr std::optional<E> err() const& {
+            if (this->isErr()) {
+                return this->unwrapErr();
+            }
+            return std::nullopt;
+        }
+
+        /**
+         * Convert the result into an optional containing the error if Err, and 
+         * nullopt if Ok
+         */
+        [[nodiscard]] constexpr std::optional<E> err() && {
+            if (this->isErr()) {
+                return this->unwrapErr();
+            }
+            return std::nullopt;
+        }
     };
 
     template <class T = impl::DefaultValue>
@@ -231,15 +276,15 @@ namespace geode {
 #define GEODE_UNWRAP_INTO(into, ...)                                            \
     auto GEODE_CONCAT(unwrap_res_, __LINE__) = (__VA_ARGS__);                   \
     if (GEODE_CONCAT(unwrap_res_, __LINE__).isErr()) {                          \
-        return Err(std::move(GEODE_CONCAT(unwrap_res_, __LINE__).unwrapErr())); \
+        return geode::Err(std::move(GEODE_CONCAT(unwrap_res_, __LINE__).unwrapErr())); \
     }                                                                           \
     into = std::move(GEODE_CONCAT(unwrap_res_, __LINE__).unwrap())
 
 #define GEODE_UNWRAP(...)                                                           \
-    {                                                                               \
+    do {                                                                            \
         auto GEODE_CONCAT(unwrap_res_, __LINE__) = (__VA_ARGS__);                   \
         if (GEODE_CONCAT(unwrap_res_, __LINE__).isErr()) {                          \
-            return Err(std::move(GEODE_CONCAT(unwrap_res_, __LINE__).unwrapErr())); \
+            return geode::Err(std::move(GEODE_CONCAT(unwrap_res_, __LINE__).unwrapErr())); \
         }                                                                           \
-    }
+    } while(false)
 }

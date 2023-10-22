@@ -1,7 +1,17 @@
 name: Crash Report
-description: Report a bug that crashes the game or prevents startup.
+description: Report a Geode bug (not mods themselves) that crashes the game or prevents startup caused by Geode Loader (not mods created by others).
 labels: [ "unverified", "crash" ]
 body:
+  - type: checkboxes
+    attributes:
+      label: Geode Issue
+      description: |
+        The Geode repository is for issues of *Geode Loader*, not individual mods created by other developers.
+        When submitting a crash report, please make sure that the crash is *actually* related to ***Geode Loader itself*** and not to a mod or mod combination.
+        Failing to do this will get your issue *closed without explanation*.
+      options:
+        - label: I confirm that this crash is NOT related to a mod but directly to Geode Loader itself.
+          required: true
   - type: dropdown
     id: platform
     attributes:
@@ -40,7 +50,7 @@ body:
     id: crash-report
     attributes:
       label: Crash Report
-      description: "You can find the crash report in `geode/crashlogs/`, if one was created. If you are using MacOS you can find the crash report in `Console.app` too. Additionally, please attach latest log in `geode/log/`. If either or both files do not exist, state such. Please link to a paste site with their content, such as GitHub Gists or Pastebin. **Do not paste the contents of either these files directly into the text box.**"
+      description: "You can find the crash report in `geode/crashlogs/`, if one was created. Additionally, please attach latest log in `geode/log/`. If either or both files do not exist, state such. Please link to a paste site with their content, such as GitHub Gists or Pastebin. **Do not paste the contents of either these files directly into the text box.**"
       placeholder: "Example: a link to a paste site with the crash report and latest.log."
     validations:
       required: false

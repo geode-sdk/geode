@@ -1,7 +1,7 @@
 #include <Geode/ui/SceneManager.hpp>
 #include <Geode/utils/cocos.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 bool SceneManager::setup() {
     m_persistedNodes = CCArray::create();
@@ -23,6 +23,10 @@ SceneManager::~SceneManager() {
 }
 
 void SceneManager::keepAcrossScenes(CCNode* node) {
+    if (m_lastScene) {
+        node->removeFromParentAndCleanup(false);
+        m_lastScene->addChild(node);
+    }
     m_persistedNodes->addObject(node);
 }
 
@@ -36,4 +40,5 @@ void SceneManager::willSwitchToScene(CCScene* scene) {
         node->removeFromParentAndCleanup(false);
         scene->addChild(node);
     }
+    m_lastScene = scene;
 }

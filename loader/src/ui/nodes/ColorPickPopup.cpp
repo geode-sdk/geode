@@ -5,7 +5,7 @@
 #include <Geode/ui/ColorPickPopup.hpp>
 #include <Geode/utils/cocos.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 static GLubyte parseInt(char const* str) {
     try {

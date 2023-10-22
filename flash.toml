@@ -4,7 +4,7 @@
 
 [project]
 name = "Geode"
-version = "v1.0.0-beta"
+version = "v1.0.0"
 repository = "https://github.com/geode-sdk/geode"
 tree = "https://github.com/geode-sdk/geode/tree/main"
 icon = "loader/resources/logos/geode-circle.png"
@@ -60,4 +60,4 @@ build-args = [
 ]
 
 # The file we use to get all the include paths and such
-infer-args-from = "loader/src/main.cpp"
+infer-args-from = "loader/src/load.cpp"

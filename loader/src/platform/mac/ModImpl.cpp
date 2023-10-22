@@ -2,11 +2,11 @@
 
 #ifdef GEODE_IS_MACOS
 
-    #include <Geode/loader/Mod.hpp>
-    #include <loader/ModImpl.hpp>
-    #include <dlfcn.h>
+#include <Geode/loader/Mod.hpp>
+#include <loader/ModImpl.hpp>
+#include <dlfcn.h>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 template <typename T>
 T findSymbolOrMangled(void* dylib, char const* name, char const* mangled) {
@@ -19,7 +19,7 @@ T findSymbolOrMangled(void* dylib, char const* name, char const* mangled) {
 
 Result<> Mod::Impl::loadPlatformBinary() {
     auto dylib =
-        dlopen((m_tempDirName / m_info.binaryName).string().c_str(), RTLD_LAZY);
+        dlopen((m_tempDirName / m_metadata.getBinaryName()).string().c_str(), RTLD_LAZY);
     if (dylib) {
         if (m_platformInfo) {
             delete m_platformInfo;

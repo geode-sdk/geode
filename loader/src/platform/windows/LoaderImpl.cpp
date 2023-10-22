@@ -5,7 +5,7 @@
 #include <loader/LoaderImpl.hpp>
 #include <Geode/utils/string.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 #ifdef GEODE_IS_WINDOWS
 
@@ -17,6 +17,29 @@ void Loader::Impl::platformMessageBox(char const* title, std::string const& info
     MessageBoxA(nullptr, info.c_str(), title, MB_ICONERROR);
 }
 
+bool hasAnsiColorSupport = false;
+
+void Loader::Impl::logConsoleMessageWithSeverity(std::string const& msg, Severity severity) {
+    if (m_platformConsoleOpen) {
+        if (hasAnsiColorSupport) {
+            int color = 0;
+            switch (severity) {
+                case Severity::Debug: color = 243; break;
+                case Severity::Info: color = 33; break;
+                case Severity::Warning: color = 229; break;
+                case Severity::Error: color = 9; break;
+                default: color = 7; break;
+            }
+            auto const colorStr = fmt::format("\x1b[38;5;{}m", color);
+            auto const newMsg = fmt::format("{}{}\x1b[0m{}", colorStr, msg.substr(0, 8), msg.substr(8));
+
+            std::cout << newMsg << "\n" << std::flush;
+        } else {
+            std::cout << msg << "\n" << std::flush;
+        }
+    }
+}
+
 void Loader::Impl::openPlatformConsole() {
     if (m_platformConsoleOpen) return;
     if (AllocConsole() == 0) return;
@@ -25,10 +48,21 @@ void Loader::Impl::openPlatformConsole() {
     freopen_s(reinterpret_cast<FILE**>(stdout), "CONOUT$", "w", stdout);
     freopen_s(reinterpret_cast<FILE**>(stdin), "CONIN$", "r", stdin);
 
+    // Set output mode to handle ansi color sequences
+    auto handleStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+
+    DWORD consoleMode = 0;
+    if (GetConsoleMode(handleStdout, &consoleMode)) {
+        consoleMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+        if (SetConsoleMode(handleStdout, consoleMode)) {
+            hasAnsiColorSupport = true;
+        }
+    }
+
     m_platformConsoleOpen = true;
 
     for (auto const& log : log::Logger::list()) {
-        std::cout << log->toString(true) << "\n";
+        this->logConsoleMessageWithSeverity(log->toString(true), log->getSeverity());
     }
 }
 
@@ -67,7 +101,7 @@ void ipcPipeThread(HANDLE pipe) {
 }
 
 void Loader::Impl::setupIPC() {
-    std::thread([]() {
+    std::thread ipcThread([]() {
         while (true) {
             auto pipe = CreateNamedPipeA(
                 IPC_PIPE_NAME,
@@ -91,14 +125,18 @@ void Loader::Impl::setupIPC() {
             // log::debug("Waiting for pipe connections");
             if (ConnectNamedPipe(pipe, nullptr)) {
                 // log::debug("Got connection, creating thread");
-                std::thread(&ipcPipeThread, pipe).detach();
+                std::thread pipeThread(&ipcPipeThread, pipe);
+                // SetThreadDescription(pipeThread.native_handle(), L"Geode IPC Pipe");
+                pipeThread.detach();
             }
             else {
                 // log::debug("No connection, cleaning pipe");
                 CloseHandle(pipe);
             }
         }
-    }).detach();
+    });
+    // SetThreadDescription(ipcThread.native_handle(), L"Geode Main IPC");
+    ipcThread.detach();
 
     log::debug("IPC set up");
 }
@@ -130,7 +168,7 @@ bool Loader::Impl::userTriedToLoadDLLs() const {
     bool triedToLoadDLLs = false;
 
     // Check for .DLLs in mods dir
-    if (auto files = file::listFiles(dirs::getModsDir(), true)) {
+    if (auto files = file::readDirectory(dirs::getModsDir(), true)) {
         for (auto& file : files.unwrap()) {
             if (file.extension() == ".dll") {
                 triedToLoadDLLs = true;

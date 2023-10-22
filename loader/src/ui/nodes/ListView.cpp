@@ -5,7 +5,7 @@
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/cocos.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 GenericListCell::GenericListCell(char const* name, CCSize size) :
     TableViewCell(name, size.width, size.height) {}
@@ -52,7 +52,7 @@ TableViewCell* ListView::getListCell(char const* key) {
     return GenericListCell::create(key, { m_width, m_itemSeparation });
 }
 
-void ListView::loadCell(TableViewCell* cell, unsigned int index) {
+void ListView::loadCell(TableViewCell* cell, int index) {
     auto node = dynamic_cast<CCNode*>(m_entries->objectAtIndex(index));
     if (node) {
         auto lcell = as<GenericListCell*>(cell);

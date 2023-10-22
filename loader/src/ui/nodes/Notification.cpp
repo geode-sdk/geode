@@ -2,12 +2,12 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/ui/Notification.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 constexpr auto NOTIFICATION_FADEIN = .3f;
 constexpr auto NOTIFICATION_FADEOUT = 1.f;
 
-Ref<CCArray> Notification::s_queue = CCArray::create();
+Ref<CCArray> Notification::s_queue = nullptr;
 
 bool Notification::init(std::string const& text, CCSprite* icon, float time) {
     if (!CCNodeRGBA::init()) return false;
@@ -55,6 +55,9 @@ void Notification::updateLayout() {
 
 void Notification::showNextNotification() {
     m_showing = false;
+    if (!s_queue) {
+        s_queue = CCArray::create();
+    }
     SceneManager::get()->forget(this);
     // remove self from front of queue
     s_queue->removeFirstObject();
@@ -132,16 +135,22 @@ void Notification::setTime(float time) {
 
 void Notification::animateIn() {
     m_label->setOpacity(0);
-    m_icon->setOpacity(0);
+    if (m_icon) {
+        m_icon->setOpacity(0);
+    }
     m_bg->setOpacity(0);
     m_label->runAction(CCFadeTo::create(NOTIFICATION_FADEIN, 255));
-    m_icon->runAction(CCFadeTo::create(NOTIFICATION_FADEIN, 255));
+    if (m_icon) {
+        m_icon->runAction(CCFadeTo::create(NOTIFICATION_FADEIN, 255));
+    }
     m_bg->runAction(CCFadeTo::create(NOTIFICATION_FADEIN, 150));
 }
 
 void Notification::animateOut() {
     m_label->runAction(CCFadeTo::create(NOTIFICATION_FADEOUT, 0));
-    m_icon->runAction(CCFadeTo::create(NOTIFICATION_FADEOUT, 0));
+    if (m_icon) {
+        m_icon->runAction(CCFadeTo::create(NOTIFICATION_FADEOUT, 0));
+    }
     m_bg->runAction(CCFadeTo::create(NOTIFICATION_FADEOUT, 0));
 }
 
@@ -150,6 +159,9 @@ void Notification::waitAndHide() {
 }
 
 void Notification::show() {
+    if (!s_queue) {
+        s_queue = CCArray::create();
+    }
     if (!m_showing) {
         if (!s_queue->containsObject(this)) {
             s_queue->addObject(this);
@@ -160,7 +172,7 @@ void Notification::show() {
         if (!this->getParent()) {
             auto winSize = CCDirector::get()->getWinSize();
             this->setPosition(winSize.width / 2, winSize.height / 4);
-            CCDirector::get()->getRunningScene()->addChild(this);
+            this->setZOrder(CCScene::get()->getHighestChildZ() + 100);
         }
         SceneManager::get()->keepAcrossScenes(this);
         m_showing = true;
@@ -169,7 +181,8 @@ void Notification::show() {
         CCCallFunc::create(this, callfunc_selector(Notification::animateIn)),
         // wait for fade-in to finish
         CCDelayTime::create(NOTIFICATION_FADEIN),
-        CCCallFunc::create(this, callfunc_selector(Notification::wait)), nullptr
+        CCCallFunc::create(this, callfunc_selector(Notification::wait)),
+        nullptr
     ));
 }
 
@@ -178,7 +191,8 @@ void Notification::wait() {
     if (m_time) {
         this->runAction(CCSequence::create(
             CCDelayTime::create(m_time),
-            CCCallFunc::create(this, callfunc_selector(Notification::hide)), nullptr
+            CCCallFunc::create(this, callfunc_selector(Notification::hide)),
+            nullptr
         ));
     }
 }
@@ -189,6 +203,7 @@ void Notification::hide() {
         CCCallFunc::create(this, callfunc_selector(Notification::animateOut)),
         // wait for fade-out to finish
         CCDelayTime::create(NOTIFICATION_FADEOUT),
-        CCCallFunc::create(this, callfunc_selector(Notification::showNextNotification)), nullptr
+        CCCallFunc::create(this, callfunc_selector(Notification::showNextNotification)),
+        nullptr
     ));
 }

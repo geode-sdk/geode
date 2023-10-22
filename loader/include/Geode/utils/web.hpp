@@ -1,17 +1,18 @@
 #pragma once
 
 #include "../DefaultInclude.hpp"
+#include "MiniFunction.hpp"
 #include <json.hpp>
 #include "Result.hpp"
 #include "general.hpp"
 
-#include <ghc/filesystem.hpp>
+#include <ghc/fs_fwd.hpp>
 #include <mutex>
 
 namespace geode::utils::web {
     GEODE_DLL void openLinkInBrowser(std::string const& url);
 
-    using FileProgressCallback = std::function<bool(double, double)>;
+    using FileProgressCallback = utils::MiniFunction<bool(double, double)>;
 
     /**
      * Synchronously fetch data from the internet
@@ -54,17 +55,17 @@ namespace geode::utils::web {
     class AsyncWebResponse;
     class AsyncWebRequest;
 
-    using AsyncProgress = std::function<void(SentAsyncWebRequest&, double, double)>;
-    using AsyncExpect = std::function<void(std::string const&)>;
-    using AsyncExpectCode = std::function<void(std::string const&, int)>;
-    using AsyncThen = std::function<void(SentAsyncWebRequest&, ByteVector const&)>;
-    using AsyncCancelled = std::function<void(SentAsyncWebRequest&)>;
+    using AsyncProgress = utils::MiniFunction<void(SentAsyncWebRequest&, double, double)>;
+    using AsyncExpect = utils::MiniFunction<void(std::string const&)>;
+    using AsyncExpectCode = utils::MiniFunction<void(std::string const&, int)>;
+    using AsyncThen = utils::MiniFunction<void(SentAsyncWebRequest&, ByteVector const&)>;
+    using AsyncCancelled = utils::MiniFunction<void(SentAsyncWebRequest&)>;
 
     /**
      * A handle to an in-progress sent asynchronous web request. Use this to
      * cancel the request / query information about it
      */
-    class SentAsyncWebRequest {
+    class GEODE_DLL SentAsyncWebRequest {
     private:
         class Impl;
         std::shared_ptr<Impl> m_impl;
@@ -103,6 +104,16 @@ namespace geode::utils::web {
     template <class T>
     using DataConverter = Result<T> (*)(ByteVector const&);
 
+    // Hack until 2.0.0 to store extra members in AsyncWebRequest
+    struct AsyncWebRequestData {
+        std::string m_userAgent;
+        std::string m_customRequest;
+        bool m_isPostRequest = false;
+        std::string m_postFields;
+        bool m_isJsonRequest = false;
+        bool m_sent = false;
+    };
+
     /**
      * An asynchronous, thread-safe web request. Downloads data from the
      * internet without slowing the main thread. All callbacks are run in the
@@ -110,15 +121,21 @@ namespace geode::utils::web {
      */
     class GEODE_DLL AsyncWebRequest {
     private:
+        // i want to cry whose idea was to not make this pimpl
+        // For 2.0.0: make this pimpl
+        
         std::optional<std::string> m_joinID;
         std::string m_url;
         AsyncThen m_then = nullptr;
         AsyncExpectCode m_expect = nullptr;
         AsyncProgress m_progress = nullptr;
         AsyncCancelled m_cancelled = nullptr;
-        bool m_sent = false;
+        mutable AsyncWebRequestData* m_extra = nullptr;
         std::variant<std::monostate, std::ostream*, ghc::filesystem::path> m_target;
         std::vector<std::string> m_httpHeaders;
+
+        AsyncWebRequestData& extra();
+        AsyncWebRequestData const& extra() const;
 
         template <class T>
         friend class AsyncWebResult;
@@ -150,6 +167,29 @@ namespace geode::utils::web {
          * Can be called more than once.
          */
         AsyncWebRequest& header(std::string const& header);
+        /**
+         * In order to specify an user agent to the request, give it here.
+         */
+        AsyncWebRequest& userAgent(std::string const& userAgent);
+        /**
+         * Specify that the request is a POST request.
+         */
+        AsyncWebRequest& postRequest();
+        /**
+         * Specify that the request is a custom request like PUT and DELETE.
+         */
+        AsyncWebRequest& customRequest(std::string const& request);
+        /**
+         * Specify the post fields to send with the request. Only valid if
+         * `postRequest` or `customRequest` was called before.
+         */
+        AsyncWebRequest& postFields(std::string const& fields);
+        /**
+         * Specify the post fields to send with the request. Only valid if
+         * `postRequest` or `customRequest` was called before. Additionally
+         * sets the content type to application/json.
+         */
+        AsyncWebRequest& postFields(json::Value const& fields);
         /**
          * URL to fetch from the internet asynchronously
          * @param url URL of the data to download. Redirects will be
@@ -217,7 +257,7 @@ namespace geode::utils::web {
          * @returns The original AsyncWebRequest, where you can specify more
          * aspects about the request like failure and progress callbacks
          */
-        AsyncWebRequest& then(std::function<void(T)> handle);
+        AsyncWebRequest& then(utils::MiniFunction<void(T)> handle);
         /**
          * Specify a callback to run after a download is finished. Runs in the
          * GD thread, so interacting with UI is safe
@@ -225,7 +265,7 @@ namespace geode::utils::web {
          * @returns The original AsyncWebRequest, where you can specify more
          * aspects about the request like failure and progress callbacks
          */
-        AsyncWebRequest& then(std::function<void(SentAsyncWebRequest&, T)> handle);
+        AsyncWebRequest& then(utils::MiniFunction<void(SentAsyncWebRequest&, T)> handle);
     };
 
     class GEODE_DLL AsyncWebResponse {
@@ -294,7 +334,7 @@ namespace geode::utils::web {
     };
 
     template <class T>
-    AsyncWebRequest& AsyncWebResult<T>::then(std::function<void(T)> handle) {
+    AsyncWebRequest& AsyncWebResult<T>::then(utils::MiniFunction<void(T)> handle) {
         m_request.m_then = [converter = m_converter,
                             handle](SentAsyncWebRequest& req, ByteVector const& arr) {
             auto conv = converter(arr);
@@ -309,7 +349,7 @@ namespace geode::utils::web {
     }
 
     template <class T>
-    AsyncWebRequest& AsyncWebResult<T>::then(std::function<void(SentAsyncWebRequest&, T)> handle) {
+    AsyncWebRequest& AsyncWebResult<T>::then(utils::MiniFunction<void(SentAsyncWebRequest&, T)> handle) {
         m_request.m_then = [converter = m_converter,
                             handle](SentAsyncWebRequest& req, ByteVector const& arr) {
             auto conv = converter(arr);

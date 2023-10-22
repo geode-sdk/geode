@@ -19,6 +19,10 @@
 #define FTS_FUZZY_MATCH_IMPLEMENTATION
 #include <Geode/external/fts/fts_fuzzy_match.h>
 
+#ifdef GEODE_IS_WINDOWS
+#include <filesystem>
+#endif
+
 static ModListType g_tab = ModListType::Installed;
 static ModListLayer* g_instance = nullptr;
 
@@ -38,6 +42,12 @@ static std::optional<int> fuzzyMatch(std::string const& kw, std::string const& s
         someMatched = true;                                     \
     }
 
+#define WEIGHTED_MATCH_MAX(str_, weight_) \
+    if (auto match = fuzzyMatch(query.keywords.value(), str_)) {        \
+        weighted = std::max<double>(match.value() * weight_, weighted); \
+        someMatched = true;                                             \
+    }
+
 #define WEIGHTED_MATCH_ADD(str_, weight_) \
     if (auto match = fuzzyMatch(query.keywords.value(), str_)) {\
         weighted += match.value() * weight_;                    \
@@ -45,28 +55,34 @@ static std::optional<int> fuzzyMatch(std::string const& kw, std::string const& s
 
 static std::optional<int> queryMatchKeywords(
     ModListQuery const& query,
-    ModInfo const& info
+    ModMetadata const& metadata
 ) {
     double weighted = 0;
 
     // fuzzy match keywords
     if (query.keywords) {
         bool someMatched = false;
-        WEIGHTED_MATCH(info.name, 2);
-        WEIGHTED_MATCH(info.id, 1.5);
-        WEIGHTED_MATCH(info.developer, 1);
-        WEIGHTED_MATCH(info.details.value_or(""), 2);
-        WEIGHTED_MATCH(info.description.value_or(""), 1);
+        WEIGHTED_MATCH_MAX(metadata.getName(), 2);
+        WEIGHTED_MATCH_MAX(metadata.getID(), 1);
+        WEIGHTED_MATCH_MAX(metadata.getDeveloper(), 0.5);
+        WEIGHTED_MATCH_MAX(metadata.getDetails().value_or(""), 0.05);
+        WEIGHTED_MATCH_MAX(metadata.getDescription().value_or(""), 0.2);
         if (!someMatched) {
             return std::nullopt;
         }
-    } else {
+    }
+    else {
         // this is like the dumbest way you could possibly sort alphabetically 
         // but it does enough to make the mods list somewhat alphabetically 
         // sorted, at least enough so that if you're scrolling it based on 
         // alphabetical order you will find the part you're looking for easily 
         // so it's fine
-        weighted = -tolower(info.name[0]);
+        return static_cast<int>(-tolower(metadata.getName()[0]));
+    }
+
+    // if the weight is relatively small we can ignore it
+    if (weighted < 2) {
+        return std::nullopt;
     }
 
     // empty keywords always match
@@ -77,39 +93,48 @@ static std::optional<int> queryMatch(ModListQuery const& query, Mod* mod) {
     // Only checking keywords makes sense for mods since their 
     // platform always matches, they are always visible and they don't 
     // currently list their tags
-    return queryMatchKeywords(query, mod->getModInfo());
+    return queryMatchKeywords(query, mod->getMetadata());
 }
 
 static std::optional<int> queryMatch(ModListQuery const& query, IndexItemHandle item) {
-    // if no force visibility was provided and item is already installed, don't 
-    // show it
-    if (!query.forceVisibility && Loader::get()->isModInstalled(item->info.id)) {
+    // if no force visibility was provided and item is already installed, don't show it
+    if (!query.forceVisibility && Loader::get()->isModInstalled(item->getMetadata().getID())) {
         return std::nullopt;
     }
     // make sure all tags match
     for (auto& tag : query.tags) {
-        if (!item->tags.count(tag)) {
+        if (!item->getTags().count(tag)) {
             return std::nullopt;
         }
     }
     // make sure at least some platform matches
     if (!ranges::contains(query.platforms, [item](PlatformID id) {
-        return item->download.platforms.count(id);
+        return item->getAvailablePlatforms().count(id);
     })) {
         return std::nullopt;
     }
+    // if no force visibility was provided and item is already installed, don't show it
+    auto canInstall = Index::get()->canInstall(item);
+    if (!query.forceInvalid && !canInstall) {
+        log::warn(
+            "Removing {} from the list because it cannot be installed: {}",
+            item->getMetadata().getID(),
+            canInstall.unwrapErr()
+        );
+        return std::nullopt;
+    }
     // otherwise match keywords
-    if (auto match = queryMatchKeywords(query, item->info)) {
+    if (auto match = queryMatchKeywords(query, item->getMetadata())) {
         auto weighted = match.value();
         // add extra weight on tag matches
         if (query.keywords) {
-            WEIGHTED_MATCH_ADD(ranges::join(item->tags, " "), 1.4);
+            WEIGHTED_MATCH_ADD(ranges::join(item->getTags(), " "), 1.4);
         }
         // add extra weight to featured items to keep power consolidated in the 
         // hands of the rich Geode bourgeoisie
         // the number 420 is a reference to the number one bourgeois of modern 
         // society, elon musk
-        weighted += item->isFeatured ? 420 : 0;
+        weighted += item->isFeatured() ? 420 : 0;
         return static_cast<int>(weighted);
     }
     // keywords must match bruh
@@ -120,10 +145,7 @@ static std::optional<int> queryMatch(ModListQuery const& query, IndexItemHandle 
 
 static std::optional<int> queryMatch(ModListQuery const& query, InvalidGeodeFile const& info) {
     // if any explicit filters were provided, no match
-    if (
-        query.tags.size() ||
-        query.keywords.has_value()
-    ) {
+    if (!query.tags.empty() || query.keywords.has_value()) {
         return std::nullopt;
     }
     return 0;
@@ -134,43 +156,40 @@ CCArray* ModListLayer::createModCells(ModListType type, ModListQuery const& quer
     switch (type) {
         default:
         case ModListType::Installed: {
-            // failed mods first
-            for (auto const& mod : Loader::get()->getFailedMods()) {
-                if (!queryMatch(query, mod)) continue;
-                mods->addObject(InvalidGeodeFileCell::create(
-                    mod, this, m_display, this->getCellSize()
-                ));
+            // problems first
+            if (!Loader::get()->getProblems().empty()) {
+                mods->addObject(ProblemsCell::create(this, m_display, this->getCellSize()));
             }
 
-            // sort the mods by match score 
-            std::multimap<int, Mod*> sorted;
+            // sort the mods by match score
+            std::multimap<int, ModListCell*> sorted;
 
             // then other mods
-            for (auto const& mod : Loader::get()->getAllMods()) {
-                // if the mod is no longer installed nor
-                // loaded, it's as good as not existing
-                // (because it doesn't)
-                if (mod->isUninstalled() && !mod->isLoaded()) continue;
-                // only show mods that match query in list
-                if (auto match = queryMatch(query, mod)) {
-                    sorted.insert({ match.value(), mod });
+
+            // newly installed
+            for (auto const& item : Index::get()->getItems()) {
+                if (!item->isInstalled() ||
+                    Loader::get()->isModInstalled(item->getMetadata().getID()) ||
+                    Loader::get()->isModLoaded(item->getMetadata().getID()))
+                    continue;
+                // match the same as other installed mods
+                if (auto match = queryMatchKeywords(query, item->getMetadata())) {
+                    auto cell = IndexItemCell::create(item, this, m_display, this->getCellSize());
+                    sorted.insert({ match.value(), cell });
                 }
             }
 
-            // internal geode representation always at the top by default unless 
-            // something matches query better
-            // the sorted list is in reverse so adding it last = adding it at the 
-            // top
-            auto imod = Mod::get();
-            if (auto match = queryMatch(query, imod)) {
-                sorted.insert({ match.value(), imod });
+            // loaded
+            for (auto const& mod : Loader::get()->getAllMods()) {
+                if (auto match = queryMatch(query, mod)) {
+                    auto cell = ModCell::create(mod, this, m_display, this->getCellSize());
+                    sorted.insert({ match.value(), cell });
+                }
             }
 
             // add the mods sorted
-            for (auto& [score, mod] : ranges::reverse(sorted)) {
-                mods->addObject(ModCell::create(
-                    mod, this, m_display, this->getCellSize()
-                ));
+            for (auto& [score, cell] : ranges::reverse(sorted)) {
+                mods->addObject(cell);
             }
         } break;
 
@@ -178,7 +197,8 @@ CCArray* ModListLayer::createModCells(ModListType type, ModListQuery const& quer
             // sort the mods by match score 
             std::multimap<int, IndexItemHandle> sorted;
 
-            for (auto const& item : Index::get()->getItems()) {
+            auto index = Index::get();
+            for (auto const& item : index->getLatestItems()) {
                 if (auto match = queryMatch(query, item)) {
                     sorted.insert({ match.value(), item });
                 }
@@ -322,11 +342,29 @@ bool ModListLayer::init() {
     m_featuredTabBtn->setTag(static_cast<int>(ModListType::Featured));
     m_menu->addChild(m_featuredTabBtn);
 
+    // tabs gradient
+    m_tabsGradientNode = CCClippingNode::create();
+    m_tabsGradientNode->setContentSize(this->getContentSize());
+    m_tabsGradientNode->setAnchorPoint({0.5f, 0.5f});
+    m_tabsGradientNode->ignoreAnchorPointForPosition(true);
+    m_tabsGradientNode->setZOrder(9);
+    m_tabsGradientNode->setInverted(false);
+    m_tabsGradientNode->setAlphaThreshold(0.7f);
+
+    m_tabsGradientSprite = CCSprite::create("tab-gradient.png"_spr);
+    m_tabsGradientNode->addChild(m_tabsGradientSprite);
+
+    m_tabsGradientStencil = CCSprite::create("tab-gradient-mask.png"_spr);
+    m_tabsGradientStencil->setAnchorPoint({0.f, 0.f});
+    m_tabsGradientNode->setStencil(m_tabsGradientStencil);
+
     // add menus
     m_menu->setZOrder(0);
     m_topMenu->setZOrder(10);
 
     this->addChild(m_menu);
+    this->addChild(m_tabsGradientNode);
+    this->addChild(m_tabsGradientStencil);
     this->addChild(m_topMenu);
 
     // select first tab
@@ -390,6 +428,9 @@ void ModListLayer::createSearchControl() {
     inputBG->setScale(.5f);
     m_searchBG->addChild(inputBG);
 
+    if (m_searchInput)
+        return;
+
     m_searchInput =
         CCTextInputNode::create(310.f - buttonSpace, 20.f, "Search Mods...", "bigFont.fnt");
     m_searchInput->setLabelPlaceholderColor({ 150, 150, 150 });
@@ -403,11 +444,16 @@ void ModListLayer::createSearchControl() {
     this->addChild(m_searchInput);
 }
 
-void ModListLayer::reloadList(std::optional<ModListQuery> const& query) {
+void ModListLayer::reloadList(bool keepScroll, std::optional<ModListQuery> const& query) {
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
     if (query) {
         m_query = query.value();
+    }
+
+    float scroll = 0.0f;
+    if (keepScroll && m_list) {
+        scroll = m_list->m_listView->m_tableView->m_contentLayer->getPositionY();
     }
 
     // set search query
@@ -419,10 +465,7 @@ void ModListLayer::reloadList(std::optional<ModListQuery> const& query) {
             std::nullopt;
 
     // remove old list
-    if (m_list) {
-        if (m_searchBG) m_searchBG->retain();
-        m_list->removeFromParent();
-    }
+    if (m_list) m_list->removeFromParent();
 
     auto items = this->createModCells(g_tab, m_query);
 
@@ -433,6 +476,15 @@ void ModListLayer::reloadList(std::optional<ModListQuery> const& query) {
         this->getListSize().width,
         this->getListSize().height
     );
+    // please forgive me for this code
+    auto problemsCell = typeinfo_cast<ProblemsCell*>(list->m_entries->objectAtIndex(0));
+    if (problemsCell) {
+        auto cellView =
+            typeinfo_cast<TableViewCell*>(list->m_tableView->m_cellArray->objectAtIndex(0));
+        if (cellView && problemsCell->getColor()) {
+            cellView->m_backgroundLayer->setColor(*problemsCell->getColor());
+        }
+    }
 
     // set list status
     if (!items->count()) {
@@ -440,6 +492,12 @@ void ModListLayer::reloadList(std::optional<ModListQuery> const& query) {
         m_listLabel->setString("No mods found");
     } else {
         m_listLabel->setVisible(false);
+    }
+
+    if (keepScroll) {
+        list->m_tableView->m_contentLayer->setPosition(
+            { 0.0f, scroll }
+        );
     }
 
     // update index if needed
@@ -470,14 +528,12 @@ void ModListLayer::reloadList(std::optional<ModListQuery> const& query) {
     m_list->setPosition(winSize / 2 - m_list->getScaledContentSize() / 2);
     this->addChild(m_list);
 
+    // position gradient sprite
+    if (m_tabsGradientSprite)
+        m_tabsGradientSprite->setPosition(m_list->getPosition() + CCPoint{179.f, 235.f});
+
     // add search input to list
-    if (!m_searchInput) {
-        this->createSearchControl();
-    }
-    else {
-        m_list->addChild(m_searchBG);
-        m_searchBG->release();
-    }
+    this->createSearchControl();
 
     // enable filter button
     m_filterBtn->setEnabled(g_tab != ModListType::Installed);
@@ -520,14 +576,11 @@ void ModListLayer::reloadList(std::optional<ModListQuery> const& query) {
     }
 }
 
-void ModListLayer::updateAllStates(ModListCell* toggled) {
+void ModListLayer::updateAllStates() {
     for (auto cell : CCArrayExt<GenericListCell>(
         m_list->m_listView->m_tableView->m_cellArray
     )) {
-        auto node = static_cast<ModListCell*>(cell->getChildByID("mod-list-cell"));
-        if (toggled != node) {
-            node->updateState();
-        }
+        static_cast<ModListCell*>(cell->getChildByID("mod-list-cell"))->updateState();
     }
 }
 
@@ -586,7 +639,6 @@ void ModListLayer::onExit(CCObject*) {
 }
 
 void ModListLayer::onReload(CCObject*) {
-    Loader::get()->refreshModsList();
     this->reloadList();
 }
 
@@ -602,7 +654,11 @@ void ModListLayer::onFilters(CCObject*) {
 }
 
 void ModListLayer::onOpenFolder(CCObject*) {
+#ifdef GEODE_IS_WINDOWS
+    file::openFolder(std::filesystem::canonical(dirs::getModsDir().wstring()).wstring());
+#else
     file::openFolder(ghc::filesystem::canonical(dirs::getModsDir()));
+#endif
 }
 
 void ModListLayer::onResetSearch(CCObject*) {
@@ -613,7 +669,7 @@ void ModListLayer::onTab(CCObject* pSender) {
     if (pSender) {
         g_tab = static_cast<ModListType>(pSender->getTag());
     }
-    this->reloadList();
+    this->reloadList(false);
 
     auto toggleTab = [this](CCMenuItemToggler* member) -> void {
         auto isSelected = member->getTag() == static_cast<int>(g_tab);
@@ -625,6 +681,8 @@ void ModListLayer::onTab(CCObject* pSender) {
             targetMenu->addChild(member);
             member->release();
         }
+        if (isSelected && m_tabsGradientStencil)
+            m_tabsGradientStencil->setPosition(member->m_onButton->convertToWorldSpace({0.f, 0.f}));
     };
 
     toggleTab(m_downloadTabBtn);
@@ -639,7 +697,7 @@ void ModListLayer::keyDown(enumKeyCodes key) {
 }
 
 void ModListLayer::textChanged(CCTextInputNode* input) {
-    this->reloadList();
+    this->reloadList(false);
 }
 
 // Constructors etc.

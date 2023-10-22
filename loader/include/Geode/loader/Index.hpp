@@ -2,23 +2,70 @@
 
 #include "Types.hpp"
 #include "ModInfo.hpp"
+#include "ModMetadata.hpp"
 #include "Event.hpp"
 #include "../utils/Result.hpp"
 #include "../utils/web.hpp"
 #include <unordered_set>
 
 namespace geode {
-    using UpdateFinished = std::monostate;
-    using UpdateProgress = std::pair<uint8_t, std::string>;
-    using UpdateFailed   = std::string;
-    using UpdateStatus   = std::variant<UpdateFinished, UpdateProgress, UpdateFailed>;
+    class Index;
 
+    /**
+     * Status signifying an index-related download has been finished
+     */
+    using UpdateFinished = std::monostate;
+    /**
+     * Status signifying an index-related download is in progress. First element 
+     * in pair is percentage downloaded, second is status string
+     */
+    using UpdateProgress = std::pair<uint8_t, std::string>;
+    /**
+     * Status signifying an index-related download has failed. Consists of the 
+     * error string
+     */
+    using UpdateFailed = std::string;
+    /**
+     * Status code for an index-related download
+     */
+    using UpdateStatus = std::variant<UpdateFinished, UpdateProgress, UpdateFailed>;
+
+    /**
+     * Event for when a mod is being installed from the index. Automatically 
+     * broadcast by the mods index; use ModInstallFilter to listen to these 
+     * events
+     */
     struct GEODE_DLL ModInstallEvent : public Event {
+        /**
+         * The ID of the mod being installed
+         */
         const std::string modID;
+        /**
+         * The current status of the installation
+         */
         const UpdateStatus status;
+    
+    private:
         ModInstallEvent(std::string const& id, const UpdateStatus status);
+
+        friend class Index;
     };
 
+    /**
+     * Basic filter for listening to mod installation events. Always propagates 
+     * the event down the chain
+     * @example 
+     * // Install "steve.hotdogs" and listen for its installation progress
+     * 
+     * // Create a listener that listens for when steve.hotdogs is being installed
+     * auto listener = EventListener<ModInstallFilter>(+[](ModInstallEvent* ev) {
+     *     // Check the event status using std::visit or other
+     * }, ModInstallFilter("steve.hotdogs"));
+     * // Get the latest version of steve.hotdogs from the index and install it
+     * if (auto mod = Index::get()->getMajorItem("steve.hotdogs")) {
+     *     Index::get()->install(mod);
+     * }
+     */
 	class GEODE_DLL ModInstallFilter : public EventFilter<ModInstallEvent> {
     protected:
         std::string m_id;
@@ -26,49 +73,73 @@ namespace geode {
 	public:
 		using Callback = void(ModInstallEvent*);
 	
-        ListenerResult handle(std::function<Callback> fn, ModInstallEvent* event);
+        ListenerResult handle(utils::MiniFunction<Callback> fn, ModInstallEvent* event);
 		ModInstallFilter(std::string const& id);
+        ModInstallFilter(ModInstallFilter const&) = default;
 	};
 
+    /**
+     * Event broadcast when the index is being updated
+     */
     struct GEODE_DLL IndexUpdateEvent : public Event {
         const UpdateStatus status;
         IndexUpdateEvent(const UpdateStatus status);
     };
 
+    /**
+     * Basic filter for listening to index update events. Always propagates 
+     * the event down the chain
+     */
     class GEODE_DLL IndexUpdateFilter : public EventFilter<IndexUpdateEvent> {
     public:
         using Callback = void(IndexUpdateEvent*);
     
-        ListenerResult handle(std::function<Callback> fn, IndexUpdateEvent* event);
+        ListenerResult handle(utils::MiniFunction<Callback> fn, IndexUpdateEvent* event);
         IndexUpdateFilter();
+        IndexUpdateFilter(IndexUpdateFilter const&) = default;
     };
 
-    struct IndexSourceImpl;
-    struct GEODE_DLL IndexSourceImplDeleter {
-        void operator()(IndexSourceImpl* src);
-    };
-    struct SourceUpdateEvent;
-    using IndexSourcePtr = std::unique_ptr<IndexSourceImpl, IndexSourceImplDeleter>;
+    class GEODE_DLL IndexItem final {
+    public:
+        class Impl;
 
-    struct GEODE_DLL IndexItem {
-        std::string sourceRepository;
-        ghc::filesystem::path path;
-        ModInfo info;
-        struct {
-            std::string url;
-            std::string hash;
-            std::unordered_set<PlatformID> platforms;
-        } download;
-        bool isFeatured;
-        std::unordered_set<std::string> tags;
+    private:
+        std::unique_ptr<Impl> m_impl;
+
+    public:
+        /**
+         * Returns the path that contains all the versions
+         */
+        ghc::filesystem::path getRootPath() const;
 
         /**
-         * Create IndexItem from a directory
+         * Returns the path to the specific version
          */
-        static Result<std::shared_ptr<IndexItem>> createFromDir(
-            std::string const& sourceRepository,
-            ghc::filesystem::path const& dir
-        );
+        ghc::filesystem::path getPath() const;
+        [[deprecated("use getMetadata instead")]] ModInfo getModInfo() const;
+        ModMetadata getMetadata() const;
+        std::string getDownloadURL() const;
+        std::string getPackageHash() const;
+        std::unordered_set<PlatformID> getAvailablePlatforms() const;
+        bool isFeatured() const;
+        std::unordered_set<std::string> getTags() const;
+        bool isInstalled() const;
+
+#if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
+        void setMetadata(ModMetadata const& value);
+        void setDownloadURL(std::string const& value);
+        void setPackageHash(std::string const& value);
+        void setAvailablePlatforms(std::unordered_set<PlatformID> const& value);
+        void setIsFeatured(bool const& value);
+        void setTags(std::unordered_set<std::string> const& value);
+        void setIsInstalled(bool const& value);
+#endif
+
+        IndexItem();
+        ~IndexItem();
+
+        friend class ModMetadata;
+        friend class Index;
     };
     using IndexItemHandle = std::shared_ptr<IndexItem>;
 
@@ -83,37 +154,18 @@ namespace geode {
         std::vector<IndexItemHandle> list;
     };
 
-    class GEODE_DLL Index final {
-    protected:
-        // for once, the fact that std::map is ordered is useful (this makes 
-        // getting the latest version of a mod as easy as items.rbegin())
-        using ItemVersions = std::map<size_t, IndexItemHandle>;
+    static constexpr size_t MAX_INDEX_API_VERSION = 0;
 
-        std::vector<IndexSourcePtr> m_sources;
-        std::unordered_map<std::string, UpdateStatus> m_sourceStatuses;
-        std::unordered_map<
-            IndexItemHandle,
-            utils::web::SentAsyncWebRequestHandle
-        > m_runningInstallations;
-        std::atomic<bool> m_triedToUpdate = false;
-        std::unordered_map<std::string, ItemVersions> m_items;
+    class GEODE_DLL Index final {
+    private:
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
 
         Index();
-
-        void onSourceUpdate(SourceUpdateEvent* event);
-        void checkSourceUpdates(IndexSourceImpl* src);
-        void downloadSource(IndexSourceImpl* src);
-        void updateSourceFromLocal(IndexSourceImpl* src);
-        void cleanupItems();
-
-        void installNext(size_t index, IndexInstallList const& list);
+        ~Index();
 
     public:
         static Index* get();
-
-        void addSource(std::string const& repository);
-        void removeSource(std::string const& repository);
-        std::vector<std::string> getSources() const;
 
         /**
          * Get all tags
@@ -129,10 +181,20 @@ namespace geode {
          */
         std::vector<IndexItemHandle> getFeaturedItems() const;
         /**
+         * Get all latest index items
+         */
+        std::vector<IndexItemHandle> getLatestItems() const;
+        /**
          * Get all index items by a developer
          */
         std::vector<IndexItemHandle> getItemsByDeveloper(
             std::string const& name
+        ) const;
+        /**
+         * Get all index items for a specific mod
+         */
+        std::vector<IndexItemHandle> getItemsByModID(
+            std::string const& modID
         ) const;
         /**
          * Check if an item with this ID is found on the index, and optionally 
@@ -165,11 +227,26 @@ namespace geode {
             ComparableVersionInfo version
         ) const;
         /**
+         * Get the most major item from the index by its ID
+         * @param id ID of the mod
+         * @returns The item, or nullptr if the item was not found
+         */
+        IndexItemHandle getMajorItem(
+            std::string const& id
+        ) const;
+        /**
          * Get an item from the index by its mod.json
          * @param info The mod's info
          * @returns The item, or nullptr if the item was not found
+         * @deprecated Use the ModMetadata overload instead
          */
-        IndexItemHandle getItem(ModInfo const& info) const;
+        [[deprecated]] IndexItemHandle getItem(ModInfo const& info) const;
+        /**
+         * Get an item from the index by its mod.json
+         * @param info The mod's metadata
+         * @returns The item, or nullptr if the item was not found
+         */
+        IndexItemHandle getItem(ModMetadata const& metadata) const;
         /**
          * Get an item from the index that corresponds to an installed mod
          * @param mod An installed mod
@@ -189,6 +266,12 @@ namespace geode {
          */
         bool areUpdatesAvailable() const;
         /**
+         * Checks if the mod and its required dependencies can be installed
+         * @param item Item to get the list for
+         * @returns Success if the mod and its required dependencies can be installed, an error otherwise
+         */
+        Result<> canInstall(IndexItemHandle item) const;
+        /**
          * Get the list of items needed to install this item (dependencies, etc.)
          * @param item Item to get the list for
          * @returns The list, or an error if some items on the list cannot be installed
@@ -196,13 +279,17 @@ namespace geode {
         Result<IndexInstallList> getInstallList(IndexItemHandle item) const;
         /**
          * Install an index item. Add an event listener for the ModInstallEvent 
-         * class to track the installation progress
+         * class to track the installation progress. Automatically also downloads 
+         * all missing dependencies for the item
          * @param item Item to install
          */
         void install(IndexItemHandle item);
         /**
          * Install a list of index items. Add an event listener for the 
          * ModInstallEvent class to track the installation progress
+         * @warning Does not download any missing dependencies - use the 
+         * `install(IndexItemHandle)` overload if you aren't sure all the 
+         * dependencies are installed!
          * @param list List of items to install
          */
         void install(IndexInstallList const& list);

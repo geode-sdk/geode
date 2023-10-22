@@ -45,6 +45,17 @@ protected:
     RT_ADD( virtual ~CCEGLView(); )
 public:
     CCEGLView();
+
+    CCEGLView(geode::ZeroConstructorType, size_t fill) :
+        CCEGLViewProtocol(geode::ZeroConstructor, fill),
+        CCObject(geode::ZeroConstructor, fill - sizeof(CCEGLViewProtocol)) {}
+
+    CCEGLView(geode::ZeroConstructorType) :
+        CCEGLViewProtocol(geode::ZeroConstructor, sizeof(CCEGLView)),
+        CCObject(geode::ZeroConstructor, sizeof(CCEGLView) - sizeof(CCEGLViewProtocol)) {}
+
+    CCEGLView(geode::CutoffConstructorType, size_t fill) : CCEGLView() {}
+
     RT_REMOVE(  virtual ~CCEGLView();   )
 
     /* override functions */
@@ -62,9 +73,12 @@ public:
 
 protected:
     RT_REMOVE(  virtual bool Create();  )
+    void setupWindow(cocos2d::CCRect rect);
+    RT_ADD(bool initGlew();)
+
 public:
-    bool initGL();
-    void destroyGL();
+    RT_REMOVE(bool initGL();)
+    RT_REMOVE(void destroyGL();)
 
     RT_REMOVE(  virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam); )
 
@@ -81,6 +95,7 @@ public:
 	float getFrameZoomFactor();
     RT_REMOVE(  virtual void centerWindow();    )
     RT_ADD(     void centerWindow();            )
+    RT_ADD(     bool windowShouldClose();       )
 
     RT_ADD(     void showCursor(bool state);    )
 	    
@@ -96,18 +111,35 @@ public:
     */
     static CCEGLView* sharedOpenGLView();
 
+    /**
+     * @note Geode addition
+     */
     static GEODE_DLL CCEGLView* get();
 
-    RT_ADD( static CCEGLView* create(const gd::string&);   )
+    /**
+     * @note RobTop addition
+     */
+    static CCEGLView* create(const gd::string&);
 
-    RT_ADD(
-        //actually this is my function but i dont wanna make a new macro for it
-        inline CCPoint getMousePosition() { return { m_fMouseX, m_fMouseY }; }
+    /**
+     * @note Geode addition
+     */
+    inline CCPoint getMousePosition() { return { m_fMouseX, m_fMouseY }; }
 
-        void toggleFullScreen(bool fullscreen);
+    /**
+     * @note RobTop addition
+     */
+    void toggleFullScreen(bool fullscreen);
 
-        GLFWwindow* getWindow(void) const;
-    )
+    /**
+     * @note RobTop addition
+     */
+    GLFWwindow* getWindow(void) const;
+
+    /**
+     * @note RobTop addition
+     */
+    CCSize getDisplaySize();
 
 protected:
 	static CCEGLView* s_pEglView;
@@ -133,7 +165,13 @@ protected:
     RT_ADD(
         GLFWwindow* m_pMainWindow;
         GLFWmonitor* m_pPrimaryMonitor;
-        CCSize m_obWindowedSize;
+    )
+public:
+    RT_ADD(
+        CC_SYNTHESIZE_NV(CCSize, m_obWindowedSize, WindowedSize);
+    )
+
+    RT_ADD(
         float m_fMouseX;
         float m_fMouseY;
         bool m_bIsFullscreen;
@@ -141,6 +179,7 @@ protected:
         bool m_bShouldCallGLFinish;
     )
 
+protected:
     RT_ADD(
         void onGLFWCharCallback(GLFWwindow* window, unsigned int entered);
         void onGLFWCursorEnterFunCallback(GLFWwindow* window, int entered);

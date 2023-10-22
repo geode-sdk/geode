@@ -7,7 +7,7 @@
 #include <Geode/ui/IconButtonSprite.hpp>
 #include <Geode/loader/Index.hpp>
 
-USE_GEODE_NAMESPACE();
+using namespace geode::prelude;
 
 class ModListLayer;
 class ModObject;
@@ -33,33 +33,40 @@ protected:
     IconButtonSprite* m_installBtnSpr;
     CCMenuItemSpriteExtra* m_installBtn;
     CCMenuItemSpriteExtra* m_infoBtn;
-    CCLabelBMFont* m_updateVersionLabel = nullptr;
+    CCLabelBMFont* m_latestVersionLabel = nullptr;
+    CCLabelBMFont* m_minorVersionLabel = nullptr;
     MDTextArea* m_detailsArea;
-    MDTextArea* m_changelogArea;
+    MDTextArea* m_changelogArea = nullptr;
     Scrollbar* m_scrollbar;
+    IndexItemHandle m_item;
 
     void onChangelog(CCObject*);
     void onRepository(CCObject*);
     void onSupport(CCObject*);
     void onInfo(CCObject*);
 
-    bool init(ModInfo const& info, ModListLayer* list);
+    bool init(ModMetadata const& metadata, ModListLayer* list);
 
     void keyDown(cocos2d::enumKeyCodes) override;
     void onClose(cocos2d::CCObject*);
 
     void setInstallStatus(std::optional<UpdateProgress> const& progress);
 
+    void popupInstallItem(IndexItemHandle item);
+    void preInstall();
+    void onCancelInstall(CCObject*);
+
     virtual CCNode* createLogo(CCSize const& size) = 0;
-    virtual ModInfo getModInfo() const = 0;
+    virtual ModMetadata getMetadata() const = 0;
 };
 
 class LocalModInfoPopup : public ModInfoPopup, public FLAlertLayerProtocol {
 protected:
+    EventListener<ModInstallFilter> m_installListener;
     Mod* m_mod;
 
     bool init(Mod* mod, ModListLayer* list);
-    
+
     void onIssues(CCObject*);
     void onSettings(CCObject*);
     void onNoSettings(CCObject*);
@@ -69,31 +76,32 @@ protected:
     void onOpenConfigDir(CCObject*);
     void doUninstall();
 
+    void onUpdateProgress(ModInstallEvent* event);
+    void onUpdate(CCObject*);
+
+
     void FLAlert_Clicked(FLAlertLayer*, bool) override;
 
     CCNode* createLogo(CCSize const& size) override;
-    ModInfo getModInfo() const override;
+    ModMetadata getMetadata() const override;
+
+    LocalModInfoPopup();
 
 public:
     static LocalModInfoPopup* create(Mod* mod, ModListLayer* list);
 };
 
-class IndexItemInfoPopup : public ModInfoPopup, public FLAlertLayerProtocol {
+class IndexItemInfoPopup : public ModInfoPopup {
 protected:
-    IndexItemHandle m_item;
     EventListener<ModInstallFilter> m_installListener;
 
     bool init(IndexItemHandle item, ModListLayer* list);
-    
+
     void onInstallProgress(ModInstallEvent* event);
     void onInstall(CCObject*);
-    void onCancel(CCObject*);
-    void doInstall();
-
-    void FLAlert_Clicked(FLAlertLayer*, bool) override;
 
     CCNode* createLogo(CCSize const& size) override;
-    ModInfo getModInfo() const override;
+    ModMetadata getMetadata() const override;
 
     IndexItemInfoPopup();
 

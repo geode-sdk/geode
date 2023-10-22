@@ -1,5 +1,4 @@
 #include "Shared.hpp"
-#include "TypeOpt.hpp"
 
 #include <iostream>
 #include <set>
@@ -10,7 +9,6 @@ namespace {
         char const* modify_start = R"GEN(#pragma once
 #include <Geode/modify/Modify.hpp>
 #include <Geode/modify/Field.hpp>
-#include <Geode/modify/InternalMacros.hpp>
 #include <Geode/modify/Addresses.hpp>
 {class_include}
 using namespace geode::modifier;
@@ -56,13 +54,10 @@ namespace geode::modifier {{
     }
 }
 
-std::string generateModifyHeader(Root& root, ghc::filesystem::path const& singleFolder) {
+std::string generateModifyHeader(Root const& root, ghc::filesystem::path const& singleFolder) {
     std::string output;
 
-    TypeBank bank;
-    bank.loadFrom(root);
-
-    for (auto c : root.classes) {
+    for (auto& c : root.classes) {
         if (c.name == "cocos2d") continue;
 
         std::string filename = (codegen::getUnqualifiedClassName(c.name) + ".hpp");
@@ -75,7 +70,7 @@ std::string generateModifyHeader(Root& root, ghc::filesystem::path const& single
         if (c.name.find("cocos2d::extension") != std::string::npos) {
             class_include = "#include <cocos-ext.h>";
         }
-        else if (c.name.find("cocos2d") != std::string::npos) {
+        else if (is_cocos_class(c.name)) {
             class_include = "#include <cocos2d.h>";
         }
         else {
@@ -88,12 +83,11 @@ std::string generateModifyHeader(Root& root, ghc::filesystem::path const& single
         std::string statics;
         std::set<std::string> used;
         for (auto& f : c.fields) {
-            if (auto fn = f.get_fn()) {
-                if (fn->type == FunctionType::Normal && !used.count(fn->name)) {
-                    used.insert(fn->name);
+            if (auto fn = f.get_as<FunctionBindField>()) {
+                if (fn->prototype.type == FunctionType::Normal && !used.count(fn->prototype.name)) {
+                    used.insert(fn->prototype.name);
                     statics += fmt::format(
-                        format_strings::statics_declare_identifier,
-                        fmt::arg("function_name", fn->name)
+                        format_strings::statics_declare_identifier, fmt::arg("function_name", fn->prototype.name)
                     );
                 }
             }
@@ -108,34 +102,44 @@ std::string generateModifyHeader(Root& root, ghc::filesystem::path const& single
 
         // modify
         for (auto& f : c.fields) {
-            if (codegen::getStatus(f) != BindStatus::Unbindable) {
-                auto begin = f.get_fn();
-                auto func = TypeBank::makeFunc(*begin, c.name);
+            auto fn = f.get_as<FunctionBindField>();
 
-                std::string format_string;
-
-                switch (begin->type) {
-                    case FunctionType::Normal:
-                        format_string = format_strings::apply_function;
-                        break;
-                    case FunctionType::Ctor:
-                        format_string = format_strings::apply_constructor;
-                        break;
-                    case FunctionType::Dtor:
-                        format_string = format_strings::apply_destructor;
-                        break;
-                }
-
-                single_output += fmt::format(
-                    format_string,
-                    fmt::arg("addr_index", f.field_id),
-                    fmt::arg("pure_index", bank.getPure(*begin, c.name)),
-                    fmt::arg("class_name", c.name),
-                    fmt::arg("function_name", begin->name),
-                    fmt::arg("function_convention", codegen::getModifyConventionName(f)),
-                    fmt::arg("parameter_types", fmt::join(func.parameter_types, ", "))
-                );
+            if (!fn) {
+                continue;
             }
+
+            if (codegen::getStatus(f) == BindStatus::NeedsBinding || codegen::platformNumber(f)) {
+                
+            }
+            else if (codegen::getStatus(f) == BindStatus::Binded && fn->prototype.type == FunctionType::Normal) {
+                
+            }
+            else {
+                continue;
+            }
+
+            std::string format_string;
+
+            switch (fn->prototype.type) {
+                case FunctionType::Normal:
+                    format_string = format_strings::apply_function;
+                    break;
+                case FunctionType::Ctor:
+                    format_string = format_strings::apply_constructor;
+                    break;
+                case FunctionType::Dtor:
+                    format_string = format_strings::apply_destructor;
+                    break;
+            }
+
+            single_output += fmt::format(
+                format_string,
+                fmt::arg("addr_index", codegen::getId(&f)),
+                fmt::arg("class_name", c.name),
+                fmt::arg("function_name", fn->prototype.name),
+                fmt::arg("function_convention", codegen::getModifyConventionName(f)),
+                fmt::arg("parameter_types", codegen::getParameterTypes(fn->prototype))
+            );
         }
 
         single_output += format_strings::modify_end;

@@ -47,13 +47,13 @@ typedef enum
 } ccTouchSelectorFlag;
 
 
-enum {
-    CCTOUCHBEGAN,
-    CCTOUCHMOVED,
-    CCTOUCHENDED,
-    CCTOUCHCANCELLED,
+enum ccTouchType {
+    CCTOUCHBEGAN = 0,
+    CCTOUCHMOVED = 1,
+    CCTOUCHENDED = 2,
+    CCTOUCHCANCELLED = 3,
     
-    ccTouchMax,
+    ccTouchMax = 4,
 };
 
 class CCSet;

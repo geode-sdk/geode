@@ -22,7 +22,7 @@ RT_ADD(
 	class CC_DLL CCMouseHandler : public CCObject
 	{
 	public:
-		GEODE_MONOSTATE_CONSTRUCTOR_COCOS(CCMouseHandler, CCObject)
+		GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCMouseHandler, CCObject)
 		inline CCMouseHandler() = default;
 		
 		virtual ~CCMouseHandler();

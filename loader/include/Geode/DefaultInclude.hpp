@@ -1,46 +1,9 @@
 #pragma once
 
+#include <Geode/Prelude.hpp>
 #include <Geode/c++stl/gdstdlib.hpp>
 #include <Geode/platform/platform.hpp>
 #include <variant>
-
-// Because C++ doesn't like using a
-// namespace that doesn't exist
-
-namespace geode {}
-
-namespace geode::addresser {}
-
-namespace geode::cast {}
-
-namespace geode::cocos {}
-
-namespace geode::utils {}
-
-namespace geode::helper {}
-
-namespace geode::op {}
-
-namespace geode::stream {}
-
-namespace geode::view {}
-
-namespace cocos2d {}
-
-namespace cocos2d::extension {}
-
-#define USE_GEODE_NAMESPACE()         \
-    using namespace geode;            \
-    using namespace geode::addresser; \
-    using namespace geode::cast;      \
-    using namespace geode::cocos;     \
-    using namespace geode::helper;    \
-    using namespace geode::utils;     \
-    using namespace geode::op;        \
-    using namespace geode::stream;    \
-    using namespace geode::view;      \
-    using namespace cocos2d;          \
-    using namespace cocos2d::extension;
 
 #define GEODE_STATIC_PTR(type, name)          \
     static type* s_##name;                    \
@@ -69,28 +32,85 @@ namespace cocos2d::extension {}
 #define GEODE_EXPAND(x) x
 #define GEODE_INVOKE(macro, ...) GEODE_EXPAND(macro(__VA_ARGS__))
 
-#define GEODE_FILL_CONSTRUCTOR(Class_, Offset_)                                                     \
-    Class_(std::monostate, size_t fill) :                                                           \
-        Class_({}, std::memset(reinterpret_cast<std::byte*>(this) + Offset_, 0, fill - Offset_)) {} \
-    Class_(std::monostate, void*)
+namespace geode {
+    struct ZeroConstructorType {};
 
-#define GEODE_MONOSTATE_CONSTRUCTOR_BEGIN(Class_)    \
-    GEODE_MACOS(GEODE_FILL_CONSTRUCTOR(Class_, 0){}) \
-    GEODE_IOS(GEODE_FILL_CONSTRUCTOR(Class_, 0){})
+    static constexpr auto ZeroConstructor = ZeroConstructorType();
 
-#define GEODE_MONOSTATE_CONSTRUCTOR_COCOS(Class_, Base_)                 \
-    GEODE_MACOS(Class_(std::monostate, size_t fill) : Base_({}, fill){}) \
-    GEODE_IOS(Class_(std::monostate, size_t fill) : Base_({}, fill){})
+    struct CutoffConstructorType {};
 
-#define GEODE_MONOSTATE_CONSTRUCTOR_GD(Class_, Base_)                      \
-    GEODE_WINDOWS(Class_(std::monostate, size_t fill) : Base_({}, fill){}) \
-    GEODE_MACOS(Class_(std::monostate, size_t fill) : Base_({}, fill){})   \
-    GEODE_IOS(Class_(std::monostate, size_t fill) : Base_({}, fill){})
+    static constexpr auto CutoffConstructor = CutoffConstructorType();
+}
 
-#define GEODE_MONOSTATE_CONSTRUCTOR_CUTOFF(Class_, Base_)                    \
+#define GEODE_CUSTOM_CONSTRUCTOR_BEGIN(Class_) \
+    GEODE_ZERO_CONSTRUCTOR_BEGIN(Class_)       \
+    GEODE_CUTOFF_CONSTRUCTOR_BEGIN(Class_)
+
+#define GEODE_CUSTOM_CONSTRUCTOR_COCOS(Class_, Base_) \
+    GEODE_ZERO_CONSTRUCTOR(Class_, Base_)             \
+    GEODE_CUTOFF_CONSTRUCTOR_COCOS(Class_, Base_)
+
+#define GEODE_CUSTOM_CONSTRUCTOR_GD(Class_, Base_) \
+    GEODE_ZERO_CONSTRUCTOR(Class_, Base_)          \
+    GEODE_CUTOFF_CONSTRUCTOR_GD(Class_, Base_)
+
+#define GEODE_CUSTOM_CONSTRUCTOR_CUTOFF(Class_, Base_) \
+    GEODE_ZERO_CONSTRUCTOR(Class_, Base_)              \
+    GEODE_CUTOFF_CONSTRUCTOR_CUTOFF(Class_, Base_)
+
+#define GEODE_ZERO_CONSTRUCTOR_BEGIN(Class_)                                              \
+    Class_(geode::ZeroConstructorType, void*) {}                                          \
+    Class_(geode::ZeroConstructorType, size_t fill) :                                     \
+        Class_(geode::ZeroConstructor, std::memset(static_cast<void*>(this), 0, fill)) {} \
+    Class_(geode::ZeroConstructorType) : Class_(geode::ZeroConstructor, nullptr) {}
+
+#define GEODE_ZERO_CONSTRUCTOR(Class_, Base_)                                                \
+    Class_(geode::ZeroConstructorType, size_t fill) : Base_(geode::ZeroConstructor, fill) {} \
+    Class_(geode::ZeroConstructorType) : Base_(geode::ZeroConstructor, sizeof(Class_)) {}
+
+#define GEODE_FILL_CONSTRUCTOR(Class_, Offset_)                                          \
+    Class_(geode::CutoffConstructorType, size_t fill) :                                  \
+        Class_(                                                                          \
+            geode::CutoffConstructor,                                                    \
+            std::memset(reinterpret_cast<std::byte*>(this) + Offset_, 0, fill - Offset_) \
+        ) {}                                                                             \
+    Class_(geode::CutoffConstructorType, void*)
+
+#define GEODE_CUTOFF_CONSTRUCTOR_BEGIN(Class_)                      \
+    GEODE_MACOS(GEODE_FILL_CONSTRUCTOR(Class_, 0){})                \
+    GEODE_IOS(GEODE_FILL_CONSTRUCTOR(Class_, 0){})                  \
+    GEODE_WINDOWS(Class_(geode::CutoffConstructorType, size_t fill) \
+                  : Class_() {})                                    \
+    GEODE_ANDROID(Class_(geode::CutoffConstructorType, size_t fill) \
+                  : Class_() {})
+
+#define GEODE_CUTOFF_CONSTRUCTOR_COCOS(Class_, Base_)               \
+    GEODE_MACOS(Class_(geode::CutoffConstructorType, size_t fill)   \
+                : Base_(geode::CutoffConstructor, fill){})          \
+    GEODE_IOS(Class_(geode::CutoffConstructorType, size_t fill)     \
+              : Base_(geode::CutoffConstructor, fill){})            \
+    GEODE_WINDOWS(Class_(geode::CutoffConstructorType, size_t fill) \
+                  : Class_() {})                                    \
+    GEODE_ANDROID(Class_(geode::CutoffConstructorType, size_t fill) \
+                  : Class_() {})
+
+#define GEODE_CUTOFF_CONSTRUCTOR_GD(Class_, Base_)                  \
+    GEODE_WINDOWS(Class_(geode::CutoffConstructorType, size_t fill) \
+                  : Base_(geode::CutoffConstructor, fill){})        \
+    GEODE_MACOS(Class_(geode::CutoffConstructorType, size_t fill)   \
+                : Base_(geode::CutoffConstructor, fill){})          \
+    GEODE_IOS(Class_(geode::CutoffConstructorType, size_t fill)     \
+              : Base_(geode::CutoffConstructor, fill){})            \
+    GEODE_ANDROID(Class_(geode::CutoffConstructorType, size_t fill) \
+              : Base_(geode::CutoffConstructor, fill){})
+
+#define GEODE_CUTOFF_CONSTRUCTOR_CUTOFF(Class_, Base_)                       \
     GEODE_WINDOWS(GEODE_FILL_CONSTRUCTOR(Class_, sizeof(Base_)) : Base_(){}) \
-    GEODE_MACOS(Class_(std::monostate, size_t fill) : Base_({}, fill){})     \
-    GEODE_IOS(Class_(std::monostate, size_t fill) : Base_({}, fill){})
+    GEODE_ANDROID(GEODE_FILL_CONSTRUCTOR(Class_, sizeof(Base_)) : Base_(){}) \
+    GEODE_MACOS(Class_(geode::CutoffConstructorType, size_t fill)            \
+                : Base_(geode::CutoffConstructor, fill){})                   \
+    GEODE_IOS(Class_(geode::CutoffConstructorType, size_t fill)              \
+              : Base_(geode::CutoffConstructor, fill){})
 
 #define GEODE_NUMBER_OF_ARGS(...) \
     GEODE_EXPAND(GEODE_NUMBER_OF_ARGS_(__VA_ARGS__, GEODE_NUMBER_SEQUENCE(), ))

@@ -51,12 +51,13 @@ class CC_DLL CCMotionStreak :
     public CCGLBufferedNode
 #endif // EMSCRIPTEN
 {
-
+    GEODE_FRIEND_MODIFY
 public:
     /**
      * @js ctor
      */
     CCMotionStreak();
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCMotionStreak, CCNodeRGBA)
     /**
      * @js NA
      * @lua NA
@@ -112,7 +113,10 @@ public:
     virtual void setOpacityModifyRGB(bool bValue);
     virtual bool isOpacityModifyRGB(void);
 
-    RT_ADD(void resumeStroke(); void stopStroke(););
+    RT_ADD(
+        void resumeStroke();
+        void stopStroke();
+    )
 
     /** When fast mode is enabled, new points are added faster but with lower precision */
     inline bool isFastMode() {
@@ -134,6 +138,7 @@ public:
 protected:
     bool m_bFastMode;
     bool m_bStartingPositionInitialized;
+    bool m_bStroke;
     /** texture used for the motion streak */
     CCTexture2D* m_pTexture;
     ccBlendFunc m_tBlendFunc;
@@ -155,6 +160,15 @@ protected:
     ccVertex2F* m_pVertices;
     GLubyte* m_pColorPointer;
     ccTex2F* m_pTexCoords;
+
+    RT_ADD(
+        bool m_bRepeatMode;
+        float m_fRepeatSpeed;
+        float m_fRepeatTime;
+        bool m_idk;
+        float m_fMaxSeg;
+        bool m_bDontOpacityFade;
+    )
 };
 
 // end of misc_nodes group

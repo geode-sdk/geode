@@ -59,6 +59,7 @@ THE SOFTWARE.
 // base_nodes
 #include "../base_nodes/CCNode.h"
 #include "../base_nodes/CCAtlasNode.h"
+#include "../base_nodes/SpacerNode.hpp"
 
 // cocoa
 #include "../cocoa/CCAffineTransform.h"

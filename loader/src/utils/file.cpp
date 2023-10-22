@@ -11,53 +11,61 @@
 #include <mz_strm_os.h>
 #include <mz_strm_mem.h>
 #include <mz_zip.h>
+#include <internal/FileWatcher.hpp>
 
-USE_GEODE_NAMESPACE();
+#ifdef GEODE_IS_WINDOWS
+#include <filesystem>
+#endif
+
+using namespace geode::prelude;
 using namespace geode::utils::file;
 
 Result<std::string> utils::file::readString(ghc::filesystem::path const& path) {
+    if (!ghc::filesystem::exists(path))
+        return Err("File does not exist");
+
 #if _WIN32
     std::ifstream in(path.wstring(), std::ios::in | std::ios::binary);
 #else
     std::ifstream in(path.string(), std::ios::in | std::ios::binary);
 #endif
-    if (in) {
-        std::string contents;
-        in.seekg(0, std::ios::end);
-        contents.resize((const size_t)in.tellg());
-        in.seekg(0, std::ios::beg);
-        in.read(&contents[0], contents.size());
-        in.close();
-        return Ok(contents);
-    }
-    return Err("Unable to open file");
+    if (!in)
+        return Err("Unable to open file");
+
+    std::string contents;
+    in.seekg(0, std::ios::end);
+    contents.resize((const size_t)in.tellg());
+    in.seekg(0, std::ios::beg);
+    in.read(&contents[0], contents.size());
+    in.close();
+    return Ok(contents);
 }
 
 Result<json::Value> utils::file::readJson(ghc::filesystem::path const& path) {
-
     auto str = utils::file::readString(path);
-
-    if (str) {
-        try {
-            return Ok(json::parse(str.value()));
-        } catch(std::exception const& e) {
-            return Err("Unable to parse JSON: " + std::string(e.what()));
-        }
-    } else {
-        return Err("Unable to open file");
+    if (!str)
+        return Err(str.unwrapErr());
+    try {
+        return Ok(json::parse(str.value()));
+    }
+    catch(std::exception const& e) {
+        return Err("Unable to parse JSON: " + std::string(e.what()));
     }
 }
 
 Result<ByteVector> utils::file::readBinary(ghc::filesystem::path const& path) {
+    if (!ghc::filesystem::exists(path))
+        return Err("File does not exist");
+
 #if _WIN32
     std::ifstream in(path.wstring(), std::ios::in | std::ios::binary);
 #else
     std::ifstream in(path.string(), std::ios::in | std::ios::binary);
 #endif
-    if (in) {
-        return Ok(ByteVector(std::istreambuf_iterator<char>(in), {}));
-    }
-    return Err("Unable to open file");
+    if (!in)
+        return Err("Unable to open file");
+
+    return Ok(ByteVector(std::istreambuf_iterator<char>(in), {}));
 }
 
 Result<> utils::file::writeString(ghc::filesystem::path const& path, std::string const& data) {
@@ -67,14 +75,14 @@ Result<> utils::file::writeString(ghc::filesystem::path const& path, std::string
 #else
     file.open(path.string());
 #endif
-    if (file.is_open()) {
-        file << data;
+    if (!file.is_open()) {
         file.close();
-
-        return Ok();
+        return Err("Unable to open file");
     }
+
+    file << data;
     file.close();
-    return Err("Unable to open file");
+    return Ok();
 }
 
 Result<> utils::file::writeBinary(ghc::filesystem::path const& path, ByteVector const& data) {
@@ -84,19 +92,23 @@ Result<> utils::file::writeBinary(ghc::filesystem::path const& path, ByteVector 
 #else
     file.open(path.string(), std::ios::out | std::ios::binary);
 #endif
-    if (file.is_open()) {
-        file.write(reinterpret_cast<char const*>(data.data()), data.size());
+    if (!file.is_open()) {
         file.close();
-
-        return Ok();
+        return Err("Unable to open file");
     }
+
+    file.write(reinterpret_cast<char const*>(data.data()), data.size());
     file.close();
-    return Err("Unable to open file");
+    return Ok();
 }
 
 Result<> utils::file::createDirectory(ghc::filesystem::path const& path) {
     try {
+#ifdef GEODE_IS_WINDOWS
+        std::filesystem::create_directory(path.wstring());
+#else
         ghc::filesystem::create_directory(path);
+#endif
         return Ok();
     }
     catch (...) {
@@ -106,7 +118,11 @@ Result<> utils::file::createDirectory(ghc::filesystem::path const& path) {
 
 Result<> utils::file::createDirectoryAll(ghc::filesystem::path const& path) {
     try {
+#ifdef GEODE_IS_WINDOWS
+        std::filesystem::create_directories(path.wstring());
+#else
         ghc::filesystem::create_directories(path);
+#endif
         return Ok();
     }
     catch (...) {
@@ -115,6 +131,12 @@ Result<> utils::file::createDirectoryAll(ghc::filesystem::path const& path) {
 }
 
 Result<std::vector<ghc::filesystem::path>> utils::file::listFiles(
+    ghc::filesystem::path const& path, bool recursive
+) {
+    return file::readDirectory(path, recursive);
+}
+
+Result<std::vector<ghc::filesystem::path>> utils::file::readDirectory(
     ghc::filesystem::path const& path, bool recursive
 ) {
     if (!ghc::filesystem::exists(path)) {
@@ -446,7 +468,11 @@ Result<> Unzip::extractAllTo(Path const& dir) {
     for (auto& [entry, info] : m_impl->getEntries()) {
         // make sure zip files like root/../../file.txt don't get extracted to 
         // avoid zip attacks
+#ifdef GEODE_IS_WINDOWS
+        if (!std::filesystem::relative((dir / entry).wstring(), dir.wstring()).empty()) {
+#else
         if (!ghc::filesystem::relative(dir / entry, dir).empty()) {
+#endif
             if (info.isDirectory) {
                 GEODE_UNWRAP(file::createDirectoryAll(dir / entry));
             } else {
@@ -544,4 +570,55 @@ Result<> Zip::addAllFrom(Path const& dir) {
 
 Result<> Zip::addFolder(Path const& entry) {
     return m_impl->addFolder(entry);
+}
+
+FileWatchEvent::FileWatchEvent(ghc::filesystem::path const& path)
+  : m_path(path) {}
+
+ghc::filesystem::path FileWatchEvent::getPath() const {
+    return m_path;
+}
+
+ListenerResult FileWatchFilter::handle(
+    MiniFunction<Callback> callback,
+    FileWatchEvent* event
+) {
+    std::error_code ec;
+    if (ghc::filesystem::equivalent(event->getPath(), m_path, ec)) {
+        callback(event);
+    }
+    return ListenerResult::Propagate;
+}
+
+FileWatchFilter::FileWatchFilter(ghc::filesystem::path const& path) 
+  : m_path(path) {}
+
+// This is a vector because need to use ghc::filesystem::equivalent for 
+// comparisons and removal is not exactly performance-critical here
+// (who's going to add and remove 500 file watchers every frame)
+static std::vector<std::unique_ptr<FileWatcher>> FILE_WATCHERS {};
+
+Result<> file::watchFile(ghc::filesystem::path const& file) {
+    if (!ghc::filesystem::exists(file)) {
+        return Err("File does not exist");
+    }
+    auto watcher = std::make_unique<FileWatcher>(
+        file,
+        [](auto const& path) {
+            Loader::get()->queueInMainThread([=] {
+                FileWatchEvent(path).post();
+            });
+        }
+    );
+    if (!watcher->watching()) {
+        return Err("Unknown error watching file");
+    }
+    FILE_WATCHERS.emplace_back(std::move(watcher));
+    return Ok();
+}
+
+void file::unwatchFile(ghc::filesystem::path const& file) {
+    ranges::remove(FILE_WATCHERS, [=](std::unique_ptr<FileWatcher> const& watcher) {
+        return ghc::filesystem::equivalent(file, watcher->path());
+    });
 }
