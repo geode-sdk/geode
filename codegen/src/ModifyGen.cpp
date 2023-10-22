@@ -57,7 +57,7 @@ namespace geode::modifier {{
 std::string generateModifyHeader(Root const& root, ghc::filesystem::path const& singleFolder) {
     std::string output;
 
-    for (auto& c : root.classes) {
+    for (auto& c : root.classes) {        
         if (c.name == "cocos2d") continue;
 
         std::string filename = (codegen::getUnqualifiedClassName(c.name) + ".hpp");
@@ -83,6 +83,8 @@ std::string generateModifyHeader(Root const& root, ghc::filesystem::path const& 
         std::string statics;
         std::set<std::string> used;
         for (auto& f : c.fields) {
+            if (codegen::getStatus(f) == BindStatus::Missing) continue;
+
             if (auto fn = f.get_as<FunctionBindField>()) {
                 if (fn->prototype.type == FunctionType::Normal && !used.count(fn->prototype.name)) {
                     used.insert(fn->prototype.name);
@@ -102,13 +104,15 @@ std::string generateModifyHeader(Root const& root, ghc::filesystem::path const& 
 
         // modify
         for (auto& f : c.fields) {
+            if (codegen::getStatus(f) == BindStatus::Missing) continue;
+
             auto fn = f.get_as<FunctionBindField>();
 
             if (!fn) {
                 continue;
             }
 
-            if (codegen::getStatus(f) == BindStatus::NeedsBinding || codegen::platformNumber(f)) {
+            if (codegen::getStatus(f) == BindStatus::NeedsBinding || codegen::platformNumber(f) != -1) {
                 
             }
             else if (codegen::getStatus(f) == BindStatus::Binded && fn->prototype.type == FunctionType::Normal) {

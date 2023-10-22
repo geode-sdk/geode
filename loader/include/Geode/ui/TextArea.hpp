@@ -51,8 +51,8 @@ namespace geode {
         size_t getMaxLines();
         void setWidth(const float width);
         float getWidth();
-        void setScale(const float scale);
-        float getScale();
+        void setScale(const float scale) override;
+        float getScale() override;
         void setLinePadding(const float padding);
         float getLinePadding();
         std::vector<cocos2d::CCLabelBMFont*> getLines();

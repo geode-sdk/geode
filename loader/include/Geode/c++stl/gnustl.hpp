@@ -405,8 +405,11 @@ namespace gd {
         }
 
         ~vector() {
-            for (auto i = m_start; i != m_finish; ++i) {
-                delete i;
+            if (m_start) {
+                for (auto& x : *this) {
+                    x.~T();
+                }
+                delete m_start;
             }
         }
 

@@ -382,6 +382,8 @@ bool crashlog::setupPlatformHandler() {
     return true;
 }
 
+void crashlog::setupPlatformHandlerPost() {}
+
 bool crashlog::didLastLaunchCrash() {
     return s_lastLaunchCrashed;
 }

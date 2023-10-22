@@ -3,6 +3,7 @@
 #include "ModMetadataImpl.hpp"
 #include "about.hpp"
 
+#include <hash/hash.hpp>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/Hook.hpp>
 #include <Geode/loader/Loader.hpp>
@@ -44,7 +45,7 @@ Result<> Mod::Impl::setup() {
     }
     if (!m_resourcesLoaded) {
         auto searchPathRoot = dirs::getModRuntimeDir() / m_metadata.getID() / "resources";
-        CCFileUtils::get()->addSearchPath(searchPathRoot.string().c_str());
+        // CCFileUtils::get()->addSearchPath(searchPathRoot.string().c_str());
 
         m_resourcesLoaded = true;
     }
@@ -568,17 +569,48 @@ Result<> Mod::Impl::createTempDir() {
         return Err("Unable to create mod runtime directory");
     }
 
-    // Unzip .geode file into temp dir
-    GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(m_metadata.getPath()));
-    if (!unzip.hasEntry(m_metadata.getBinaryName())) {
-        return Err(
-            fmt::format("Unable to find platform binary under the name \"{}\"", m_metadata.getBinaryName())
-        );
-    }
-    GEODE_UNWRAP(unzip.extractAllTo(tempPath));
-
     // Mark temp dir creation as succesful
     m_tempDirName = tempPath;
+
+    return Ok();
+}
+
+Result<> Mod::Impl::unzipGeodeFile(ModMetadata metadata) {
+    // Unzip .geode file into temp dir
+    auto tempDir = dirs::getModRuntimeDir() / metadata.getID();
+
+    auto datePath = tempDir / "modified-at";
+    std::string currentHash = file::readString(datePath).unwrapOr("");
+
+    auto modifiedDate = ghc::filesystem::last_write_time(metadata.getPath());
+    auto modifiedCount = std::chrono::duration_cast<std::chrono::milliseconds>(modifiedDate.time_since_epoch());
+    auto modifiedHash = std::to_string(modifiedCount.count());
+    if (currentHash == modifiedHash) {
+        log::debug("Same hash detected, skipping unzip");
+        return Ok();
+    }
+    log::debug("Hash mismatch detected, unzipping");
+
+    std::error_code ec;
+    ghc::filesystem::remove_all(tempDir, ec);
+    if (ec) {
+        return Err("Unable to delete temp dir: " + ec.message());
+    }
+    
+    (void)utils::file::createDirectoryAll(tempDir);
+    auto res = file::writeString(datePath, modifiedHash);
+    if (!res) {
+        log::warn("Failed to write modified date of geode zip: {}", res.unwrapErr());
+    }
+    
+
+    GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(metadata.getPath()));
+    if (!unzip.hasEntry(metadata.getBinaryName())) {
+        return Err(
+            fmt::format("Unable to find platform binary under the name \"{}\"", metadata.getBinaryName())
+        );
+    }
+    GEODE_UNWRAP(unzip.extractAllTo(tempDir));
 
     return Ok();
 }

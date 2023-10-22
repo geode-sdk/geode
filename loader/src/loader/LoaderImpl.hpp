@@ -58,7 +58,7 @@ namespace geode {
         std::vector<ghc::filesystem::path> m_modSearchDirectories;
         std::vector<LoadProblem> m_problems;
         std::unordered_map<std::string, Mod*> m_mods;
-        std::queue<Mod*> m_modsToLoad;
+        std::deque<Mod*> m_modsToLoad;
         std::vector<ghc::filesystem::path> m_texturePaths;
         bool m_isSetup = false;
 
@@ -82,6 +82,14 @@ namespace geode {
         std::condition_variable m_nextModCV;
         std::mutex m_nextModAccessMutex;
         Mod* m_nextMod = nullptr;
+
+        Mod* m_currentlyLoadingMod = nullptr;
+
+        int m_refreshingModCount = 0;
+        int m_refreshedModCount = 0;
+        int m_lateRefreshedModCount = 0;
+
+        std::chrono::time_point<std::chrono::high_resolution_clock> m_timerBegin;
 
         void provideNextMod(Mod* mod);
         Mod* takeNextMod();
