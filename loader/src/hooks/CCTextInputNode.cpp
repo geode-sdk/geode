@@ -15,8 +15,10 @@ struct CCTextInputNodeFix : Modify<CCTextInputNodeFix, CCTextInputNode> {
 		
 		pos += m_textField->getAnchorPoint() * size;
 
-		if(pos.x < 0 || pos.x > size.width || pos.y < 0 || pos.y > size.height) return false;
-		if(!m_delegate->allowTextInput(this)) return false;
+		if (pos.x < 0 || pos.x > size.width || pos.y < 0 || pos.y > size.height)
+			return false;
+		if (!m_delegate->allowTextInput(this))
+			return false;
 
 		this->onClickTrackNode(true);
 
