@@ -10,10 +10,9 @@ using namespace geode::prelude;
 
 struct CCTextInputNodeFix : Modify<CCTextInputNodeFix, CCTextInputNode> {
 	bool ccTouchBegan(CCTouch* touch, CCEvent* event) {
-		CCPoint pos = this->convertTouchToNodeSpace(touch);
-		CCSize size = this->getContentSize();
-		
-		pos += m_textField->getAnchorPoint() * size;
+		auto const touchPos = touch->getLocation();
+		auto const size = this->getContentSize();
+		auto const pos = this->convertToNodeSpace(touchPos) + m_textField->getAnchorPoint() * size;
 
 		if (pos.x < 0 || pos.x > size.width || pos.y < 0 || pos.y > size.height)
 			return false;
