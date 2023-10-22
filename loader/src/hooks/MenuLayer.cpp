@@ -208,14 +208,14 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         
     #ifdef GEODE_IS_DESKTOP
 
-        (void) utils::file::createDirectoryAll(dirs::getGeodeDir() / "update" / "resources");
+        (void) utils::file::createDirectoryAll(dirs::getGeodeDir() / "update" / "resources" / "geode.loader");
 
         createQuickPopup(
             "Missing Textures",
             "You appear to be missing textures, and the automatic texture fixer "
             "hasn't fixed the issue.\n"
             "Download <cy>resources.zip</c> from the latest release on GitHub, "
-            "and <cy>unzip its contents</c> into <cb>geode/update/resources</c>.\n"
+            "and <cy>unzip its contents</c> into <cb>geode/update/resources/geode.loader</c>.\n"
             "Afterwards, <cg>restart the game</c>.\n"
             "You may also continue without installing resources, but be aware that "
             "you won't be able to open <cr>the Geode menu</c>.",

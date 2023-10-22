@@ -88,6 +88,11 @@ class cocos2d::CCCallFuncO {
 }
 
 [[link(win)]]
+class cocos2d::CCCallFuncND {
+	static auto create(cocos2d::CCObject*, cocos2d::SEL_CallFuncND, void*) = mac 0x455470;
+}
+
+[[link(win)]]
 class cocos2d::CCClippingNode {
 	CCClippingNode() {
 		m_pStencil = nullptr;
@@ -120,6 +125,11 @@ class cocos2d::CCClippingNode {
 //	cocos2d::CCControllerState getState() = win 0xc7f80;
 //	void updateConnected() = win 0xc7fb0;
 //}
+
+[[link(win)]]
+class cocos2d::CCConfiguration {
+	void gatherGPUInfo() = mac 0x2a6e10;
+}
 
 [[link(win)]]
 class cocos2d::CCDelayTime {
@@ -174,7 +184,7 @@ class cocos2d::CCDirector {
 	auto convertToGL(cocos2d::CCPoint const&) = mac 0x24a210;
 	auto convertToUI(cocos2d::CCPoint const&) = mac 0x24a340;
 	auto drawScene() = mac 0x249690;
-	auto willSwitchToScene(cocos2d::CCScene* scene);
+	auto willSwitchToScene(cocos2d::CCScene* scene) = mac 0x24a520;
 	auto setOpenGLView(cocos2d::CCEGLView *pobOpenGLView) = mac 0x249be0;
 	auto updateScreenScale(cocos2d::CCSize) = mac 0x249f10;
 	auto setContentScaleFactor(float);
@@ -291,7 +301,7 @@ class cocos2d::CCEGLViewProtocol {
     auto getScaleX() const = mac 0x29e300;
     auto getScaleY() const = mac 0x29e310;
     virtual auto setDesignResolutionSize(float, float, ResolutionPolicy);
-	auto setFrameSize(float, float) = mac 0x29d960;
+	virtual void setFrameSize(float, float) = mac 0x29d960;
 }
 
 [[link(win)]]
@@ -318,6 +328,7 @@ class cocos2d::CCFileUtils : cocos2d::TypeInfo {
 class cocos2d::CCGLProgram {
 	auto setUniformsForBuiltins() = mac 0x232c70;
 	auto use() = mac 0x231d70;
+	bool compileShader(unsigned int* shader, unsigned int type, const char* source) = mac 0x231a30;
 }
 
 [[link(win)]]
@@ -359,6 +370,7 @@ class cocos2d::CCImage {
 class cocos2d::CCKeyboardDispatcher {
 	bool dispatchKeyboardMSG(cocos2d::enumKeyCodes, bool) = mac 0xe8190;
 	const char* keyToString(cocos2d::enumKeyCodes) = mac 0xe8450;
+	void updateModifierKeys(bool shft, bool ctrl, bool alt, bool cmd) = mac 0xe8430;
 }
 
 [[link(win)]]
@@ -379,6 +391,7 @@ class cocos2d::CCKeypadHandler {
 
 [[link(win)]]
 class cocos2d::CCLabelBMFont {
+	CCLabelBMFont() = mac 0x347b60;
 	static cocos2d::CCLabelBMFont* create(char const*, char const*) = mac 0x347660;
 	auto limitLabelWidth(float, float, float) = mac 0x34a6e0, ios 0x21b740;
 	auto setFntFile(char const*) = mac 0x34a5f0;
@@ -386,7 +399,7 @@ class cocos2d::CCLabelBMFont {
 	static auto create() = mac 0x3473f0;
 
 	virtual auto init() = mac 0x347b10, ios 0x2198e0;
-	bool initWithString(const char* str, const char* fnt, float width, cocos2d::CCTextAlignment align, cocos2d::CCPoint offset);
+	bool initWithString(const char* str, const char* fnt, float width, cocos2d::CCTextAlignment align, cocos2d::CCPoint offset) = mac 0x347710;
 	virtual auto setScaleX(float) = mac 0x34a5b0, ios 0x21b6e8;
 	virtual auto setScaleY(float) = mac 0x34a5d0, ios 0x21b714;
 	virtual auto setScale(float) = mac 0x34a590, ios 0x21b6bc;
@@ -630,6 +643,12 @@ class cocos2d::CCNode {
     virtual auto cleanup() = mac 0x123100, ios 0x15e3a4;
     auto convertToNodeSpace(cocos2d::CCPoint const&) = mac 0x124750, ios 0x15f55c;
     auto convertToWorldSpace(cocos2d::CCPoint const&) = mac 0x124790;
+    cocos2d::CCPoint convertToNodeSpaceAR(cocos2d::CCPoint const& worldPoint) {
+        return convertToNodeSpace(worldPoint) - getAnchorPointInPoints();
+    }
+    cocos2d::CCPoint convertToWorldSpaceAR(cocos2d::CCPoint const& nodePoint) {
+        return convertToWorldSpace(nodePoint + getAnchorPointInPoints());
+    }
     static cocos2d::CCNode* create() = mac 0x1230a0;
     virtual auto draw() = mac 0x123840, ios 0x15e974;
     auto getActionByTag(int) = mac 0x123ee0;
@@ -891,6 +910,7 @@ class cocos2d::CCSet {
 class cocos2d::CCShaderCache {
 	static auto sharedShaderCache() = mac 0xe6d10;
 	auto programForKey(const char*) = mac 0xe7d40;
+	void reloadDefaultShaders();
 }
 
 [[link(win)]]
@@ -1127,6 +1147,7 @@ class cocos2d::CCTouchHandler {
 [[link(win)]]
 class cocos2d::CCTransitionFade {
 	static cocos2d::CCTransitionFade* create(float, cocos2d::CCScene*) = mac 0x8ea30, ios 0x12c244;
+	virtual bool initWithDuration(float t, cocos2d::CCScene* scene, cocos2d::ccColor3B const& color) = mac 0x8e930;
 }
 
 [[link(win)]]
@@ -1248,15 +1269,29 @@ class cocos2d::extension::CCScrollView {
 [[link(win)]]
 class cocos2d {
 	static auto FNTConfigLoadFile(char const*) = mac 0x344f10;
+	static auto ccGLUseProgram(GLuint) = mac 0x1ae540;
 	static auto ccGLBlendFunc(GLenum, GLenum) = mac 0x1ae560;
 	static auto ccDrawSolidRect(cocos2d::CCPoint, cocos2d::CCPoint, cocos2d::_ccColor4F) = mac 0xecf00;
 	static auto ccGLEnableVertexAttribs(unsigned int) = mac 0x1ae740;
 	static auto ccGLBindTexture2D(GLuint) = mac 0x1ae610;
+	static auto ccGLBindTexture2DN(GLuint, GLuint) = mac 0x1ae650;
 	static float ccpDistance(cocos2d::CCPoint const&, cocos2d::CCPoint const&) = mac 0x1aaf90;
+	static auto ccDrawLine(cocos2d::CCPoint const&, cocos2d::CCPoint const&) = mac 0xeccc0;
 	static void ccDrawPoly(cocos2d::CCPoint const*, unsigned int, bool) = mac 0xed0a0;
 	static void ccDrawColor4B(GLubyte, GLubyte, GLubyte, GLubyte) = mac 0xeddd0;
 	static void CCMessageBox(const char* msg, const char* title) = mac 0xbabc0;
 }
+
+//uintptr_t macNumberOfDraws() {
+//    return geode::base::get() + 0x69ae90;
+//}
+//void ccIncrementGLDraws(int n) {
+//#ifdef GEODE_IS_MACOS
+//    *reinterpret_cast<int*>(macNumberOfDraws()) += n;
+//#else
+//    CC_INCREMENT_GL_DRAWS(n);
+//#endif
+//}
 
 [[link(win)]]
 class DS_Dictionary {

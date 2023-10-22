@@ -27,10 +27,6 @@ namespace geode {
          */
         bool m_enabled = false;
         /**
-         * Whether the mod binary is loaded or not
-         */
-        bool m_binaryLoaded = false;
-        /**
          * Mod temp directory name
          */
         ghc::filesystem::path m_tempDirName;
@@ -61,6 +57,12 @@ namespace geode {
          * Whether the mod resources are loaded or not
          */
         bool m_resourcesLoaded = false;
+        /**
+         * Whether logging is enabled for this mod
+         */
+        bool m_loggingEnabled = true;
+
+        std::unordered_map<std::string, char const*> m_expandedSprites;
 
 
         ModRequestedAction m_requestedAction = ModRequestedAction::None;
@@ -84,12 +86,8 @@ namespace geode {
         ghc::filesystem::path getPackagePath() const;
         VersionInfo getVersion() const;
         bool isEnabled() const;
-        bool isLoaded() const;
         bool supportsDisabling() const;
-        bool canDisable() const;
-        bool canEnable() const;
         bool needsEarlyLoad() const;
-        bool wasSuccessfullyLoaded() const;
         ModMetadata getMetadata() const;
         ghc::filesystem::path getTempDir() const;
         ghc::filesystem::path getBinaryPath() const;

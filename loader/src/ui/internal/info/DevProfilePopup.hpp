@@ -4,10 +4,14 @@
 
 using namespace geode::prelude;
 
-class DevProfilePopup : public Popup<std::string const&> {
+class ModListLayer;
+
+class DevProfilePopup : public Popup<std::string const&, ModListLayer*> {
 protected:
-    bool setup(std::string const& developer) override;
+    ModListLayer* m_layer;
+
+    bool setup(std::string const& developer, ModListLayer* list) override;
 
 public:
-    static DevProfilePopup* create(std::string const& developer);
+    static DevProfilePopup* create(std::string const& developer, ModListLayer* list);
 };

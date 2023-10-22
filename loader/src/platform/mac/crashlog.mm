@@ -151,7 +151,7 @@ static Mod* modFromAddress(void const* addr) {
     }
 
     for (auto& mod : Loader::get()->getAllMods()) {
-        if (!mod->isLoaded() || !ghc::filesystem::exists(mod->getBinaryPath())) {
+        if (!mod->isEnabled() || !ghc::filesystem::exists(mod->getBinaryPath())) {
             continue;
         }
         if (ghc::filesystem::equivalent(imagePath, mod->getBinaryPath())) {

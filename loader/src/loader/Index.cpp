@@ -8,6 +8,8 @@
 #include <hash/hash.hpp>
 #include <Geode/utils/JsonValidation.hpp>
 
+#include <thread>
+
 #ifdef GEODE_IS_WINDOWS
 #include <filesystem>
 #endif
@@ -250,7 +252,7 @@ private:
     friend class Index;
 
     void cleanupItems();
-    void downloadIndex();
+    void downloadIndex(std::string commitHash = "");
     void checkForUpdates();
     void updateFromLocalTree();
     void installNext(size_t index, IndexInstallList const& list);
@@ -294,7 +296,7 @@ bool Index::hasTriedToUpdate() const {
     return m_impl->m_triedToUpdate;
 }
 
-void Index::Impl::downloadIndex() {
+void Index::Impl::downloadIndex(std::string commitHash) {
     log::debug("Downloading index");
 
     IndexUpdateEvent(UpdateProgress(0, "Beginning download")).post();
@@ -305,7 +307,7 @@ void Index::Impl::downloadIndex() {
         .join("index-download")
         .fetch("https://github.com/geode-sdk/mods/zipball/main")
         .into(targetFile)
-        .then([this, targetFile](auto) {
+        .then([this, targetFile, commitHash](auto) {
             auto targetDir = dirs::getIndexDir() / "v0";
             // delete old unzipped index
             try {
@@ -318,19 +320,29 @@ void Index::Impl::downloadIndex() {
                 return;
             }
 
-            // unzip new index
-            auto unzip = file::Unzip::intoDir(targetFile, targetDir, true)
-                .expect("Unable to unzip new index");
-            if (!unzip) {
-                IndexUpdateEvent(UpdateFailed(unzip.unwrapErr())).post();
-                return;
-            }
+            std::thread([=, this]() {
+                // unzip new index
+                auto unzip = file::Unzip::intoDir(targetFile, targetDir, true)
+                    .expect("Unable to unzip new index");
+                if (!unzip) {
+                    Loader::get()->queueInMainThread([unzip] {
+                        IndexUpdateEvent(UpdateFailed(unzip.unwrapErr())).post();
+                    });
+                    return;
+                }
 
-            // remove the directory github adds to the root of the zip
-            (void)flattenGithubRepo(targetDir);
+                // remove the directory github adds to the root of the zip
+                (void)flattenGithubRepo(targetDir);
+                if (!commitHash.empty()) {
+                    auto const checksumPath = dirs::getIndexDir() / ".checksum";
+                    (void)file::writeString(checksumPath, commitHash);
+                }
 
-            // update index
-            this->updateFromLocalTree();
+                Loader::get()->queueInMainThread([this] {
+                    // update index
+                    this->updateFromLocalTree();
+                });
+            }).detach();
         })
         .expect([](std::string const& err) {
             IndexUpdateEvent(UpdateFailed(fmt::format("Error downloading: {}", err))).post();
@@ -379,8 +391,7 @@ void Index::Impl::checkForUpdates() {
             }
             // otherwise save hash and download source
             else {
-                (void)file::writeString(checksum, newSHA);
-                this->downloadIndex();
+                this->downloadIndex(newSHA);
             }
         })
         .expect([](std::string const& err) {
@@ -448,7 +459,8 @@ void Index::update(bool force) {
     // update sources
     if (force) {
         m_impl->downloadIndex();
-    } else {
+    }
+    else {
         m_impl->checkForUpdates();
     }
 }
@@ -582,7 +594,7 @@ bool Index::isUpdateAvailable(IndexItemHandle item) const {
 bool Index::areUpdatesAvailable() const {
     for (auto& mod : Loader::get()->getAllMods()) {
         auto item = this->getMajorItem(mod->getID());
-        if (item && item->getMetadata().getVersion() > mod->getVersion()) {
+        if (item && item->getMetadata().getVersion() > mod->getVersion() && mod->isEnabled()) {
             return true;
         }
     }

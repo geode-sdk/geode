@@ -15,7 +15,7 @@ ModInfo::Impl& ModInfoImpl::getImpl(ModInfo& info)  {
 
 bool Dependency::isResolved() const {
     return !this->required ||
-        (this->mod && this->mod->isLoaded() && this->mod->isEnabled() &&
+        (this->mod && this->mod->isEnabled() &&
          this->version.compare(this->mod->getVersion()));
 }
 
