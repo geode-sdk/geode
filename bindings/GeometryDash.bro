@@ -1061,6 +1061,7 @@ class CustomSongLayer : FLAlertLayer, FLAlertLayerProtocol, TextInputDelegate, G
     bool init(LevelSettingsObject*) = mac 0xf06f0, win 0x65c10;
     void onArtists(cocos2d::CCObject*) = mac 0xf1950;
     void onSongBrowser(cocos2d::CCObject*) = mac 0xf18a0, win 0x67080;
+    void onSearch(cocos2d::CCObject*) = mac 0xf1ad0, win 0x66de0;
 
     LevelSettingsObject* m_levelSettings;
     CCTextInputNode* m_songIDInput;
