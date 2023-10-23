@@ -20,6 +20,7 @@
 #include <iostream>
 #include <string>
 #include <fmt/core.h>
+#include "ehdata_structs.hpp"
 
 using namespace geode::prelude;
 
@@ -199,19 +200,55 @@ static std::string getRegisters(PCONTEXT context) {
 
 static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod) {
     std::stringstream stream;
-    stream << "Faulty Module: "
-           << getModuleName(handleFromAddress(info->ExceptionRecord->ExceptionAddress), true)
-           << "\n"
-           << "Faulty Mod: " << (faultyMod ? faultyMod->getID() : "<Unknown>") << "\n"
-           << "Exception Code: " << std::hex << info->ExceptionRecord->ExceptionCode << " ("
-           << getExceptionCodeString(info->ExceptionRecord->ExceptionCode) << ")" << std::dec
-           << "\n"
-           << "Exception Flags: " << info->ExceptionRecord->ExceptionFlags << "\n"
-           << "Exception Address: " << info->ExceptionRecord->ExceptionAddress << " (";
-    printAddr(stream, info->ExceptionRecord->ExceptionAddress, false);
-    stream << ")"
-           << "\n"
-           << "Number Parameters: " << info->ExceptionRecord->NumberParameters << "\n";
+
+    if (info->ExceptionRecord->ExceptionCode == EH_EXCEPTION_NUMBER) {
+        // This executes when a C++ exception was thrown and not handled.
+        // https://devblogs.microsoft.com/oldnewthing/20100730-00/?p=13273
+
+        bool isStdException = false;
+
+        auto exceptionRecord = info->ExceptionRecord;
+        auto exceptionObject = exceptionRecord->ExceptionInformation[1];
+
+        auto throwInfo = reinterpret_cast<_ThrowInfo*>(exceptionRecord->ExceptionInformation[2]);
+        auto catchableTypeArray = reinterpret_cast<_CatchableTypeArray*>(throwInfo->pCatchableTypeArray);
+        auto ctaSize = catchableTypeArray->nCatchableTypes;
+
+        for (int i = 0; i < ctaSize; i++) {
+            auto catchableType = reinterpret_cast<_CatchableType*>(catchableTypeArray->arrayOfCatchableTypes[i]);
+            auto ctDescriptor = reinterpret_cast<_TypeDescriptor*>(catchableType->pType);
+            auto classname = ctDescriptor->name;
+
+            if (strcmp(classname, ".?AVexception@std@@") == 0) {
+                isStdException = true;
+                break;
+            }
+        }
+
+        if (isStdException) {
+            auto excObject = reinterpret_cast<std::exception*>(exceptionObject);
+            // stream << "C++ Exception Type: " << typeid(excObject).name() << "\n"; // always const std::exception *
+            stream << "C++ Exception: " << excObject->what() << "\n";
+        } else {
+            stream << "C++ Exception: <Unknown type>\n";
+        }
+
+        stream << "Faulty Mod: " << (faultyMod ? faultyMod->getID() : "<Unknown>") << "\n";
+    } else {
+        stream << "Faulty Module: "
+            << getModuleName(handleFromAddress(info->ExceptionRecord->ExceptionAddress), true)
+            << "\n"
+            << "Faulty Mod: " << (faultyMod ? faultyMod->getID() : "<Unknown>") << "\n"
+            << "Exception Code: " << std::hex << info->ExceptionRecord->ExceptionCode << " ("
+            << getExceptionCodeString(info->ExceptionRecord->ExceptionCode) << ")" << std::dec
+            << "\n"
+            << "Exception Flags: " << info->ExceptionRecord->ExceptionFlags << "\n"
+            << "Exception Address: " << info->ExceptionRecord->ExceptionAddress << " (";
+        printAddr(stream, info->ExceptionRecord->ExceptionAddress, false);
+        stream << ")"
+            << "\n"
+            << "Number Parameters: " << info->ExceptionRecord->NumberParameters << "\n";
+    }
     return stream.str();
 }
 
