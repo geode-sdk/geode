@@ -205,19 +205,20 @@ static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod) {
         // This executes when a C++ exception was thrown and not handled.
         // https://devblogs.microsoft.com/oldnewthing/20100730-00/?p=13273
 
+        // since you can throw virtually anything, we need to figure out if it's an std::exception* or not
         bool isStdException = false;
 
-        auto exceptionRecord = info->ExceptionRecord;
+        auto* exceptionRecord = info->ExceptionRecord;
         auto exceptionObject = exceptionRecord->ExceptionInformation[1];
 
-        auto throwInfo = reinterpret_cast<_ThrowInfo*>(exceptionRecord->ExceptionInformation[2]);
-        auto catchableTypeArray = reinterpret_cast<_CatchableTypeArray*>(throwInfo->pCatchableTypeArray);
+        auto* throwInfo = reinterpret_cast<_ThrowInfo*>(exceptionRecord->ExceptionInformation[2]);
+        auto* catchableTypeArray = reinterpret_cast<_CatchableTypeArray*>(throwInfo->pCatchableTypeArray);
         auto ctaSize = catchableTypeArray->nCatchableTypes;
 
         for (int i = 0; i < ctaSize; i++) {
-            auto catchableType = reinterpret_cast<_CatchableType*>(catchableTypeArray->arrayOfCatchableTypes[i]);
-            auto ctDescriptor = reinterpret_cast<_TypeDescriptor*>(catchableType->pType);
-            auto classname = ctDescriptor->name;
+            auto* catchableType = reinterpret_cast<_CatchableType*>(catchableTypeArray->arrayOfCatchableTypes[i]);
+            auto* ctDescriptor = reinterpret_cast<_TypeDescriptor*>(catchableType->pType);
+            const char* classname = ctDescriptor->name;
 
             if (strcmp(classname, ".?AVexception@std@@") == 0) {
                 isStdException = true;
@@ -226,7 +227,7 @@ static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod) {
         }
 
         if (isStdException) {
-            auto excObject = reinterpret_cast<std::exception*>(exceptionObject);
+            std::exception* excObject = reinterpret_cast<std::exception*>(exceptionObject);
             // stream << "C++ Exception Type: " << typeid(excObject).name() << "\n"; // always const std::exception *
             stream << "C++ Exception: " << excObject->what() << "\n";
         } else {

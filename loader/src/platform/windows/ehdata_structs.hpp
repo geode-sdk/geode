@@ -1,7 +1,12 @@
 #pragma once
-// All of those are defined in <ehdata.h> but the header fails to compile for some reason.
 
-#define EH_EXCEPTION_NUMBER ('msc' | 0xE0000000)
+// _ThrowInfo and all of those other structs are hardcoded into MSVC,
+// but don't exist in other compilers like Clang, causing <ehdata.h> to not compile.
+//
+// We check if they don't exist and define them manually.
+// source: https://www.geoffchappell.com/studies/msvc/language/predefined/index.htm
+
+#ifndef _ThrowInfo
 
 typedef struct _PMD
 {
@@ -44,3 +49,7 @@ typedef const struct _s__ThrowInfo {
     int (__cdecl *pForwardCompat) (...);
     _CatchableTypeArray *pCatchableTypeArray;
 } _ThrowInfo;
+
+#endif // _ThrowInfo
+
+#include <ehdata.h>
