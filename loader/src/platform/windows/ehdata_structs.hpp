@@ -6,7 +6,7 @@
 // We define them manually in order to be able to use them.
 // source: https://www.geoffchappell.com/studies/msvc/language/predefined/index.htm
 
-#if defined(__GNUC__) || defined(__clang__)
+#if defined(__GNUC__) || defined(__clang__) || defined(__INTELLISENSE__)
 
 typedef struct _PMD
 {
@@ -50,6 +50,6 @@ typedef const struct _s__ThrowInfo {
     _CatchableTypeArray *pCatchableTypeArray;
 } _ThrowInfo;
 
-#endif // defined(__GNUC__) || defined(__clang__)
+#endif // defined(__GNUC__) || defined(__clang__) || defined(__INTELLISENSE__)
 
 #include <ehdata.h> // for EH_EXCEPTION_NUMBER

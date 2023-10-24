@@ -254,7 +254,7 @@ static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod) {
 }
 
 static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
-    
+
     SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
 
     // init symbols so we can get some juicy debug info
@@ -272,8 +272,17 @@ static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
-bool crashlog::setupPlatformHandler() {
+static LONG WINAPI exceptionHandlerDummy(LPEXCEPTION_POINTERS info) {
     SetUnhandledExceptionFilter(exceptionHandler);
+    return EXCEPTION_CONTINUE_SEARCH;
+}
+
+bool crashlog::setupPlatformHandler() {
+    // for some reason, on exceptions windows seems to clear SetUnhandledExceptionFilter
+    // so we attach a VE handler (which runs *earlier*) and inside set our crash handler
+    AddVectoredExceptionHandler(0, exceptionHandlerDummy);
+    SetUnhandledExceptionFilter(exceptionHandler);
+
     auto lastCrashedFile = crashlog::getCrashLogDirectory() / "last-crashed";
     if (ghc::filesystem::exists(lastCrashedFile)) {
         g_lastLaunchCrashed = true;
