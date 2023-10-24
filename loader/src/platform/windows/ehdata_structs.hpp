@@ -1,12 +1,12 @@
 #pragma once
 
-// _ThrowInfo and all of those other structs are hardcoded into MSVC,
+// _ThrowInfo and all of those other structs are hardcoded into MSVC (the compiler itself, unavailable in any header),
 // but don't exist in other compilers like Clang, causing <ehdata.h> to not compile.
 //
-// We check if they don't exist and define them manually.
+// We define them manually in order to be able to use them.
 // source: https://www.geoffchappell.com/studies/msvc/language/predefined/index.htm
 
-#ifndef _ThrowInfo
+#if defined(__GNUC__) || defined(__clang__)
 
 typedef struct _PMD
 {
@@ -50,6 +50,6 @@ typedef const struct _s__ThrowInfo {
     _CatchableTypeArray *pCatchableTypeArray;
 } _ThrowInfo;
 
-#endif // _ThrowInfo
+#endif // defined(__GNUC__) || defined(__clang__)
 
-#include <ehdata.h>
+#include <ehdata.h> // for EH_EXCEPTION_NUMBER
