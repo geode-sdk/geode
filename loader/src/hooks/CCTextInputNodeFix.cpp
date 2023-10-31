@@ -1,3 +1,5 @@
+// FIXME: This fix ends up breaking some of the vanilla text inputs.
+#if 0
 #include <Geode/modify/CCTextInputNode.hpp>
 
 using namespace geode::prelude;
@@ -24,3 +26,4 @@ struct CCTextInputNodeFix : Modify<CCTextInputNodeFix, CCTextInputNode> {
 		return true;
 	}
 };
+#endif
