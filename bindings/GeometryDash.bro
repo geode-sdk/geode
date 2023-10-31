@@ -4323,6 +4323,15 @@ class LevelSettingsDelegate {
 }
 
 [[link(android)]]
+class SearchButton : cocos2d::CCSprite {
+    static SearchButton* create(char const* background, char const* text, float scale, char const* icon) = win 0x182120, mac 0x3869A0;
+    bool init(char const* background, char const* text, float scale, char const* icon) = win 0x182210, mac 0x389290;
+
+    cocos2d::CCLabelBMFont* m_text;
+    cocos2d::CCSprite* m_icon;
+}
+
+[[link(android)]]
 class SecretLayer2 : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol, DialogDelegate {
     static SecretLayer2* create() = win 0x21FD70;
 
