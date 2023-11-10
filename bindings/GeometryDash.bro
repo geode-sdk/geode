@@ -1884,6 +1884,10 @@ class FriendRequestDelegate {}
 class FriendsProfilePage : FLAlertLayer, FLAlertLayerProtocol, UploadActionDelegate, UploadPopupDelegate, UserListDelegate {
     static FriendsProfilePage* create(UserListType) = win 0x9ce80, mac 0x3a9570;
     bool init(UserListType) = win 0x9cf30, mac 0x3a9770;
+    void getUserListFinished(cocos2d::CCArray* arr, UserListType listType) = win 0x9d800;
+    void getUserListFailed(UserListType listType, GJErrorCode errorCode) = win 0x9d8e0;
+    void forceReloadList(UserListType listType) = win 0x9d950;
+    void setupUsersBrowser(cocos2d::CCArray* users, UserListType listType) = win 0x9d620;
 }
 
 [[link(android)]]
@@ -2578,6 +2582,7 @@ class GJGarageLayer : cocos2d::CCLayer, TextInputDelegate, FLAlertLayerProtocol,
     void playRainbowEffect() = win 0x12aad0;
     void playShadowEffect() = win 0x12a9d0; 
     PAD = mac 0x10, win 0x8;
+
     CCTextInputNode* m_nameInput;
     SimplePlayer* m_playerPreview;
     PAD = mac 0x10, win 0x8;
@@ -2997,6 +3002,8 @@ class GameLevelManager : cocos2d::CCNode {
     void getLevelLeaderboard(GJGameLevel* level, LevelLeaderboardType leaderboardType) = mac 0x2CD6F0, win 0xAED70;
     void getOnlineLevels(GJSearchObject*) = mac 0x2C5920, win 0xa7bc0;
     void getPageInfo(char const*) = mac 0x2c0050;
+    void getUserList(UserListType listType) = mac 0x2d74a0, win 0xb6b60;
+    cocos2d::CCObject* getStoredUserList(UserListType) = win 0xb70d0;
     cocos2d::CCArray* getSavedLevels(bool favorite, int levelFolder) = mac 0x2BE910, win 0xa2960;
     cocos2d::CCArray* getStoredOnlineLevels(char const*) = mac 0x2bfe80, win 0xa3a90;
     void getTopArtists(int, int) = mac 0x2ce3d0;
@@ -3092,7 +3099,7 @@ class GameLevelManager : cocos2d::CCNode {
     LevelDeleteDelegate* m_levelDeleteDelegate;
     UserInfoDelegate* m_userInfoDelegate;
     LevelManagerDelegate* m_levelManagerDelegate;
-    void* m_unkDelegate;
+    UserListDelegate* m_userListDelegate;
     FriendRequestDelegate* m_friendRequestDelegate;
     MessageListDelegate* m_messageListDelegate;
     DownloadMessageDelegate* m_downloadMessageDelegate;
@@ -4248,6 +4255,7 @@ class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDeleg
 
     void showUpdateAlert(UpdateResponse) = mac 0x164ED0, win 0x179300;
     void updateLabelValues() = mac 0x164090, win 0x17b170;
+    void onRate(cocos2d::CCObject* sender) = win 0x17a530;
 
     void* m_unk1;
     cocos2d::CCMenu* m_playBtnMenu;
@@ -5319,7 +5327,6 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     bool m_isHidden;
     int m_hasGhostTrail;
     GhostTrailEffect* m_ghostTrail;
-    cocos2d::CCSprite* m_unknownSprite;
     cocos2d::CCSprite* m_iconSprite;
     cocos2d::CCSprite* m_iconSpriteSecondary;
     cocos2d::CCSprite* m_iconSpriteWhitener;
@@ -5329,6 +5336,7 @@ class PlayerObject : GameObject, AnimatedSpriteDelegate {
     cocos2d::CCSprite* m_unk500;
     cocos2d::CCSprite* m_vehicleSpriteWhitener;
     cocos2d::CCSprite* m_vehicleGlow;
+    cocos2d::CCSprite* m_unk50C;
     cocos2d::CCMotionStreak* m_regularTrail;
     HardStreak* m_waveTrail;
     double m_xVelocity;
@@ -5441,8 +5449,21 @@ class PointNode : cocos2d::CCObject {
 [[link(android)]]
 class ProfilePage : FLAlertLayer, FLAlertLayerProtocol, LevelCommentDelegate, CommentUploadDelegate, UserInfoDelegate, UploadActionDelegate, UploadPopupDelegate, LeaderboardManagerDelegate {
     static ProfilePage* create(int accountID, bool idk) = mac 0x45eed0, win 0x20ee50;
+    ProfilePage() = win 0x20e920;
     bool init(int accountID, bool idk) = mac 0x45f170, win 0x20ef00;
+    void onYoutube(cocos2d::CCObject*) = mac 0x462360, win 0x212e80;
+    void onTwitter(cocos2d::CCObject*) = mac 0x462500, win 0x212fe0;
+    void onTwitch(cocos2d::CCObject*) = mac 0x4626a0, win 0x213140;
+    void onCommentHistory(cocos2d::CCObject*) = mac 0x462840, win 0x211d10;
+    void onSendMessage(cocos2d::CCObject*) = mac 0x462870, win 0x211d40;
+    void onFriend(cocos2d::CCObject*) = mac 0x4628c0, win 0x211f30;
+    void onBlockUser(cocos2d::CCObject*) = mac 0x462b60, win 0x212130;
     void onMyLevels(cocos2d::CCObject*) = mac 0x462d70, win 0x211bb0;
+    void onMessages(cocos2d::CCObject*) = mac 0x462f10, win 0x2132c0;
+    void onFriends(cocos2d::CCObject*) = mac 0x462f60, win 0x2132f0;
+    void onRequests(cocos2d::CCObject*) = mac 0x462fb0, win 0x213320;
+    void onSettings(cocos2d::CCObject*) = mac 0x463000, win 0x2132a0;
+    void onComment(cocos2d::CCObject*) = mac 0x463020, win 0x211e10;
     void onUpdate(cocos2d::CCObject*) = mac 0x460150, win 0x20fa20;
     void onClose(cocos2d::CCObject*) = mac 0x45fd20, win 0x49C60;
     void loadPageFromUserInfo(GJUserScore* score) = mac 0x460480, win 0x210040;
@@ -5498,8 +5519,8 @@ class RateStarsLayer : FLAlertLayer, UploadPopupDelegate, UploadActionDelegate {
     UploadActionPopup* m_rateAction;
     RateLevelDelegate* m_rateDelegate;
 
-    static RateStarsLayer* create(int levelID, bool isModSuggest) = mac 0x135e50;
-    bool init(int levelID, bool isModSuggest) = mac 0x136050;
+    static RateStarsLayer* create(int levelID, bool isModSuggest) = mac 0x135e50, win 0x2155f0;
+    bool init(int levelID, bool isModSuggest) = mac 0x136050, win 0x2156a0;
 }
 
 [[link(android)]]
@@ -6178,10 +6199,10 @@ class UserInfoDelegate {
 
 [[link(android)]]
 class UserListDelegate {
-    virtual void forceReloadList(UserListType) {}
-    virtual void getUserListFailed(UserListType, GJErrorCode) {}
     virtual void getUserListFinished(cocos2d::CCArray*, UserListType) {}
+    virtual void getUserListFailed(UserListType, GJErrorCode) {}
     virtual void userListChanged(cocos2d::CCArray*, UserListType) {}
+    virtual void forceReloadList(UserListType) {}
 }
 
 [[link(android)]]

@@ -27,6 +27,18 @@
  * Check modified date when unzipping `.geode` files (5c765c6)
  * Only hash markdown files on resource checking (f563c46)
 
+## v1.3.6
+ * Allow error responses in our WebRequest classes (237128bf)
+ * Display unhandled C++ exceptions in crash log (fdd78aca, 0d091626, 52421d8c, 0472075f)
+ * Fix GEODE_CLI force caching when not found (0a113744)
+ * Only write checksum file after unzipping, fixes inconsistent index state (b4fbea51)
+ * Fix the index notif staying on all the time (c967b520)
+ * Bump minimum required CMake version in codegen (27ed63e7)
+ * Only show update indicator if mod is enabled (8762714c)
+ * Fix FLAlertLayer m_scrollingLayer not being a ScrollingLayer (9694b35d)
+ * Fix gnustl vector dtor (b55e6465, 0bdb0df7)
+ * Loads of bindings changes
+
 ## v1.3.5
  * Follow redirect in web::utils functions (a942a45)
  * Lots of bindings

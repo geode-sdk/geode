@@ -271,7 +271,7 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
         // Follow redirects
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
         // Fail if response code is 4XX or 5XX
-        curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
+        curl_easy_setopt(curl, CURLOPT_FAILONERROR, 0L); // we will handle http errors manually
 
         // Headers end
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
@@ -308,11 +308,16 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
         );
         curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &data);
         auto res = curl_easy_perform(curl);
+        long code = 0;
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &code);
         if (res != CURLE_OK) {
-            long code = 0;
-            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &code);
             curl_easy_cleanup(curl);
             return this->error("Fetch failed: " + std::string(curl_easy_strerror(res)), code);
+        }
+        if (code >= 400 && code < 600) {
+            std::string response_str(ret.begin(), ret.end());
+            curl_easy_cleanup(curl);
+            return this->error(response_str, code);
         }
         curl_easy_cleanup(curl);
 
