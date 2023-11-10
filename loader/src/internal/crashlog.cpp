@@ -3,7 +3,7 @@
 
 using namespace geode::prelude;
 
-static std::string getDateString(bool filesafe) {
+std::string crashlog::getDateString(bool filesafe) {
     auto const now = std::time(nullptr);
     auto const tm = *std::localtime(&now);
     std::ostringstream oss;
@@ -16,13 +16,13 @@ static std::string getDateString(bool filesafe) {
     return oss.str();
 }
 
-static void printGeodeInfo(std::stringstream& stream) {
+void crashlog::printGeodeInfo(std::stringstream& stream) {
     stream << "Loader Version: " << Loader::get()->getVersion().toString() << "\n"
            << "Installed mods: " << Loader::get()->getAllMods().size() << "\n"
            << "Problems: " << Loader::get()->getProblems().size() << "\n";
 }
 
-static void printMods(std::stringstream& stream) {
+void crashlog::printMods(std::stringstream& stream) {
     auto mods = Loader::get()->getAllMods();
     if (mods.empty()) {
         stream << "<None>\n";
@@ -30,7 +30,7 @@ static void printMods(std::stringstream& stream) {
     using namespace std::string_view_literals;
     for (auto& mod : mods) {
         stream << fmt::format("{} | [{}] {}\n",
-            mod->isEnabled() ? "x"sv : " "sv,
+            mod->isEnabled() ? "x"sv : mod->shouldLoad() ? "~"sv : " "sv,
             mod->getVersion().toString(), mod->getID()
         );
     }

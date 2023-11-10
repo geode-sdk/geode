@@ -20,6 +20,7 @@ jobs:
         - name: Windows
           os: windows-latest
           id: win
+          cli_id: win
           extra_flags: -T host=x64 -A win32 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DGEODE_DEBUG=On
           # uncomment to use vs clang-cl and ninja
           #extra_flags: >
@@ -34,6 +35,7 @@ jobs:
         - name: macOS
           os: macos-latest
           id: mac
+          cli_id: mac
           extra_flags: >
             -DCMAKE_C_COMPILER=clang
             -DCMAKE_CXX_COMPILER=clang++
@@ -43,6 +45,21 @@ jobs:
           cli_cmd: 'chmod +x $GITHUB_WORKSPACE/cli/geode'
           package_cmd: './installer/mac/package.sh ./bin/nightly ./installer/mac/geode-installer-mac.pkg'
           installer_path: './installer/mac/geode-installer-mac.pkg'
+        
+        - name: Android
+          os: ubuntu-latest
+          id: android
+          cli_id: linux
+          extra_flags: >
+            -DCMAKE_TOOLCHAIN_FILE=$NDK_HOME/build/cmake/android.toolchain.cmake
+            -DANDROID_ABI=armeabi-v7a
+            -DANDROID_PLATFORM=android-23
+            -DGEODE_DONT_BUILD_TEST_MODS=1
+            -G Ninja
+          cli_cmd: 'chmod +x $GITHUB_WORKSPACE/cli/geode'
+          package_cmd: ''
+          installer_path: ''
+
 
     name: Build ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
@@ -57,7 +74,7 @@ jobs:
       uses: hendrikmuhs/ccache-action@v1
       with:
         key: ${{ matrix.config.os }}
-      if: matrix.config.id == 'mac'
+      if: matrix.config.id != 'win'
 
     - name: Setup MSVC
       uses: ilammy/msvc-dev-cmd@v1.12.1
@@ -65,21 +82,35 @@ jobs:
         arch: amd64_x86
       if: matrix.config.id == 'win'
 
+    - name: Setup NDK
+      uses: nttld/setup-ndk@v1
+      id: setup-ndk
+      with:
+        ndk-version: r26b
+        add-to-path: false
+      if: matrix.config.id == 'android'
+
     - name: Download CLI
       uses: robinraju/release-downloader@v1.8
       with:
         repository: geode-sdk/cli
         latest: true
-        fileName: '*-${{ matrix.config.id }}.zip'
+        fileName: '*-${{ matrix.config.cli_id }}.zip'
         tarBall: false
         zipBall: false
         out-file-path: "cli"
 
     - name: Setup CLI
       run: |
-        7z x "${{ github.workspace }}/cli/*-${{ matrix.config.id }}.zip" -o"${{ github.workspace }}/cli"
+        7z x "${{ github.workspace }}/cli/*-${{ matrix.config.cli_id }}.zip" -o"${{ github.workspace }}/cli"
         ${{ matrix.config.cli_cmd }}
         echo "${{ github.workspace }}/cli" >> $GITHUB_PATH
+
+    - name: Setup Android Env
+      run: |
+        echo "NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> "$GITHUB_ENV"
+        sudo apt install ninja-build
+      if: matrix.config.id == 'android'
 
     - name: Configure
       run: >
@@ -101,12 +132,14 @@ jobs:
 
     - name: Package Installer
       run: ${{ matrix.config.package_cmd }}
+      if: matrix.config.id != 'android'
 
     - name: Upload Installer
       uses: actions/upload-artifact@v3
       with:
         name: geode-installer-${{ matrix.config.id }}
         path: ${{ matrix.config.installer_path }}
+      if: matrix.config.id != 'android'
 
   publish:
     name: Publish
@@ -146,6 +179,12 @@ jobs:
           files: geode-win/XInput9_1_0.dll geode-win/Geode.dll geode-win/GeodeUpdater.exe geode-win/Geode.lib geode-win/Geode.pdb
           dest: geode-${{ steps.ref.outputs.hash }}-win.zip
 
+      - name: Zip Android Artifacts
+        uses: vimtor/action-zip@v1.1
+        with:
+          files: geode-android/Geode.so
+          dest: geode-${{ steps.ref.outputs.hash }}-android.zip
+
       - name: Zip Resources
         uses: vimtor/action-zip@v1.1
         with:
@@ -166,4 +205,5 @@ jobs:
             ./geode-installer-${{ steps.ref.outputs.hash }}-win.exe
             ./geode-${{ steps.ref.outputs.hash }}-mac.zip
             ./geode-${{ steps.ref.outputs.hash }}-win.zip
+            ./geode-${{ steps.ref.outputs.hash }}-android.zip
             ./resources.zip

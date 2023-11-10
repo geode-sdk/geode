@@ -1,8 +1,6 @@
 #pragma once
 
 namespace geode::cast {
-    using uinthalf_t = uint32_t;
-    using inthalf_t = int32_t;
 
     struct DummyClass {
         virtual ~DummyClass() {}
@@ -14,8 +12,10 @@ namespace geode::cast {
 
     struct DummyMultipleClass : DummySingleClass, DummyClass2 {};
 
+    struct VtableType;
+
     struct ClassTypeinfoType {
-        void** m_typeinfoVtable;
+        VtableType* m_typeinfoVtable;
         char const* m_typeinfoName;
     };
 
@@ -23,16 +23,17 @@ namespace geode::cast {
         ClassTypeinfoType* m_baseClassTypeinfo;
     };
 
-#pragma pack(push, 1)
-
     struct MultipleClassSingleEntryType {
         ClassTypeinfoType* m_baseClassTypeinfo;
-        uint8_t m_visibilityFlag;
-        inthalf_t m_offset;
-        uint8_t m_padding[sizeof(inthalf_t) - 1];
-    };
+        intptr_t m_metadata;
 
-#pragma pack(pop)
+        uint8_t visibilityFlag() const {
+            return m_metadata & 0xFF;
+        }
+        intptr_t offset() const {
+            return m_metadata >> 8;
+        }
+    };
 
     struct MultipleClassTypeinfoType : ClassTypeinfoType {
         uint32_t m_flags;
@@ -41,7 +42,7 @@ namespace geode::cast {
     };
 
     struct VtableTypeinfoType {
-        inthalf_t m_offset;
+        intptr_t m_offset;
         ClassTypeinfoType* m_typeinfo;
     };
 
@@ -51,36 +52,25 @@ namespace geode::cast {
 
     struct CompleteVtableType : VtableTypeinfoType, VtableType {};
 
-    inline void** typeinfoVtableOf(void* ptr) {
-        auto vftable = *reinterpret_cast<VtableType**>(ptr);
-
-        auto typeinfoPtr =
-            static_cast<VtableTypeinfoType*>(static_cast<CompleteVtableType*>(vftable));
-
-        return typeinfoPtr->m_typeinfo->m_typeinfoVtable;
-    }
-
     inline void* traverseTypeinfoFor(
         void* ptr, ClassTypeinfoType const* typeinfo, char const* afterIdent
     ) {
-        DummySingleClass dummySingleClass;
-        DummyMultipleClass dummyMultipleClass;
-
         {
             auto optionIdent = typeinfo->m_typeinfoName;
             if (std::strcmp(optionIdent, afterIdent) == 0) {
                 return ptr;
             }
         }
-        if (typeinfo->m_typeinfoVtable == typeinfoVtableOf(&dummySingleClass)) {
+        auto typeinfoVtableName = static_cast<CompleteVtableType*>(typeinfo->m_typeinfoVtable)->m_typeinfo->m_typeinfoName;
+        if (std::strcmp(typeinfoVtableName, "N10__cxxabiv120__si_class_type_infoE") == 0) {
             auto siTypeinfo = static_cast<SingleClassTypeinfoType const*>(typeinfo);
             return traverseTypeinfoFor(ptr, siTypeinfo->m_baseClassTypeinfo, afterIdent);
         }
-        else if (typeinfo->m_typeinfoVtable == typeinfoVtableOf(&dummyMultipleClass)) {
+        else if (std::strcmp(typeinfoVtableName, "N10__cxxabiv121__vmi_class_type_infoE") == 0) {
             auto vmiTypeinfo = static_cast<MultipleClassTypeinfoType const*>(typeinfo);
             for (int i = 0; i < vmiTypeinfo->m_numBaseClass; ++i) {
                 auto& entry = vmiTypeinfo->m_baseClasses[i];
-                auto optionPtr = reinterpret_cast<std::byte*>(ptr) + entry.m_offset;
+                auto optionPtr = reinterpret_cast<std::byte*>(ptr) + entry.offset();
                 auto ret = traverseTypeinfoFor(optionPtr, entry.m_baseClassTypeinfo, afterIdent);
                 if (ret != nullptr) return ret;
             }

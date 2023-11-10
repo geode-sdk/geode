@@ -222,12 +222,14 @@ void Logger::setup() {
 }
 
 void Logger::push(Log&& log) {
-    std::string logStr = log.toString(true, nestLevel());
+    if (log.getSender()->isLoggingEnabled()) {
+        std::string logStr = log.toString(true, nestLevel());
 
-    LoaderImpl::get()->logConsoleMessageWithSeverity(logStr, log.getSeverity());
-    logStream() << logStr << std::endl;
+        LoaderImpl::get()->logConsoleMessageWithSeverity(logStr, log.getSeverity());
+        logStream() << logStr << std::endl;
 
-    logs().emplace_back(std::forward<Log>(log));
+        logs().emplace_back(std::forward<Log>(log));
+    }
 }
 
 void Logger::pop(Log* log) {

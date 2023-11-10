@@ -145,7 +145,7 @@ void utils::web::openLinkInBrowser(std::string const& url) {
 }
 @end
 
-Result<ghc::filesystem::path> utils::file::pickFile(
+Result<ghc::filesystem::path> file::pickFile(
     file::PickMode mode, file::FilePickOptions const& options
 ) {
     auto result = [FileDialog filePickerWithMode:mode options:options multiple: false];
@@ -157,11 +157,39 @@ Result<ghc::filesystem::path> utils::file::pickFile(
     }
 }
 
-Result<std::vector<ghc::filesystem::path>> utils::file::pickFiles(
+GEODE_DLL void file::pickFile(
+    PickMode mode, FilePickOptions const& options,
+    MiniFunction<void(ghc::filesystem::path)> callback,
+    MiniFunction<void()> failed
+) {
+    auto result = file::pickFile(mode, options);
+
+    if (result.isOk()) {
+        callback(std::move(result.unwrap()));
+    } else {
+        failed();
+    }
+}
+
+Result<std::vector<ghc::filesystem::path>> file::pickFiles(
     file::FilePickOptions const& options
 ) {
     //return Err("utils::file::pickFiles is not implemented");
     return [FileDialog filePickerWithMode: file::PickMode::OpenFile options:options multiple:true];
+}
+
+GEODE_DLL void file::pickFiles(
+    FilePickOptions const& options,
+    MiniFunction<void(std::vector<ghc::filesystem::path>)> callback,
+    MiniFunction<void()> failed
+) {
+    auto result = file::pickFiles(options);
+
+    if (result.isOk()) {
+        callback(std::move(result.unwrap()));
+    } else {
+        failed();
+    }
 }
 
 CCPoint cocos::getMousePos() {
@@ -200,6 +228,34 @@ ghc::filesystem::path dirs::getSaveDir() {
     return path;
 }
 
+ghc::filesystem::path dirs::getModRuntimeDir() {
+    return dirs::getGeodeDir() / "unzipped";
+}
+
+void geode::utils::game::exit() {
+    if (CCApplication::sharedApplication() &&
+        (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
+        log::error("Cannot exit in PlayLayer or LevelEditorLayer!");
+        return;
+    }
+
+    class Exit : public CCObject {
+    public:
+        void shutdown() {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wobjc-method-access"
+            [[[NSClassFromString(@"AppControllerManager") sharedInstance] controller] shutdownGame];
+#pragma clang diagnostic pop
+        }
+    };
+
+    CCDirector::get()->getActionManager()->addAction(CCSequence::create(
+        CCDelayTime::create(0.5f),
+        CCCallFunc::create(nullptr, callfunc_selector(Exit::shutdown)),
+        nullptr
+    ), CCDirector::get()->getRunningScene(), false);
+}
+
 void geode::utils::game::restart() {
     if (CCApplication::sharedApplication() &&
         (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
@@ -216,22 +272,12 @@ void geode::utils::game::restart() {
         [task launch];
     };
 
-    class Exit : public CCObject {
-    public:
-        void shutdown() {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wobjc-method-access"
-            [[[NSClassFromString(@"AppControllerManager") sharedInstance] controller] shutdownGame];
-#pragma clang diagnostic pop
-        }
-    };
-
     std::atexit(restart);
-    CCDirector::get()->getActionManager()->addAction(CCSequence::create(
-        CCDelayTime::create(0.5f),
-        CCCallFunc::create(nullptr, callfunc_selector(Exit::shutdown)),
-        nullptr
-    ), CCDirector::get()->getRunningScene(), false);
+    exit();
+}
+
+void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
+    log::error("Launching Geode uninstaller is not supported on macOS");
 }
 
 Result<> geode::hook::addObjcMethod(std::string const& className, std::string const& selectorName, void* imp) {

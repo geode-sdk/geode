@@ -41,15 +41,12 @@ void Loader::Impl::createDirectories() {
     ghc::filesystem::create_directory(dirs::getSaveDir());
 #endif
 
-    // try deleting geode/unzipped if it already exists
-    try { ghc::filesystem::remove_all(dirs::getModRuntimeDir()); } catch(...) {}
-
     (void) utils::file::createDirectoryAll(dirs::getGeodeResourcesDir());
-    (void) utils::file::createDirectory(dirs::getModConfigDir());
-    (void) utils::file::createDirectory(dirs::getModsDir());
-    (void) utils::file::createDirectory(dirs::getGeodeLogDir());
-    (void) utils::file::createDirectory(dirs::getTempDir());
-    (void) utils::file::createDirectory(dirs::getModRuntimeDir());
+    (void) utils::file::createDirectoryAll(dirs::getModConfigDir());
+    (void) utils::file::createDirectoryAll(dirs::getModsDir());
+    (void) utils::file::createDirectoryAll(dirs::getGeodeLogDir());
+    (void) utils::file::createDirectoryAll(dirs::getTempDir());
+    (void) utils::file::createDirectoryAll(dirs::getModRuntimeDir());
 
     if (!ranges::contains(m_modSearchDirectories, dirs::getModsDir())) {
         m_modSearchDirectories.push_back(dirs::getModsDir());
@@ -388,7 +385,7 @@ void Loader::Impl::buildModGraph() {
 
 void Loader::Impl::loadModGraph(Mod* node, bool early) {
     if (early && !node->needsEarlyLoad()) {
-        m_modsToLoad.push(node);
+        m_modsToLoad.push_back(node);
         return;
     }
 
@@ -402,36 +399,91 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
 
     if (node->isEnabled()) {
         for (auto const& dep : node->m_impl->m_dependants) {
-            this->loadModGraph(dep, early);
+            m_modsToLoad.push_front(dep);
         }
         log::popNest();
         return;
     }
 
-    if (Mod::get()->getSavedValue<bool>("should-load-" + node->getID(), true)) {
-        log::debug("Load");
-        auto res = node->m_impl->loadBinary();
+    m_currentlyLoadingMod = node;
+    m_refreshingModCount += 1;
+    m_refreshedModCount += 1;
+    m_lateRefreshedModCount += early ? 0 : 1;
+
+    auto unzipFunction = [this, node]() {
+        log::debug("Unzip");
+        auto res = node->m_impl->unzipGeodeFile(node->getMetadata());
+        return res;
+    };
+
+    auto loadFunction = [this, node, early]() {
+        if (node->shouldLoad()) {
+            log::debug("Load");
+            auto res = node->m_impl->loadBinary();
+            if (!res) {
+                m_problems.push_back({
+                    LoadProblem::Type::LoadFailed,
+                    node,
+                    res.unwrapErr()
+                });
+                log::error("Failed to load binary: {}", res.unwrapErr());
+                log::popNest();
+                m_refreshingModCount -= 1;
+                return;
+            }
+
+            for (auto const& dep : node->m_impl->m_dependants) {
+                m_modsToLoad.push_front(dep);
+            }
+        }
+
+        m_refreshingModCount -= 1;
+
+        log::popNest();
+    };
+
+    if (early) {
+        auto res = unzipFunction();
         if (!res) {
             m_problems.push_back({
-                LoadProblem::Type::LoadFailed,
+                LoadProblem::Type::UnzipFailed,
                 node,
                 res.unwrapErr()
             });
-            log::error("Failed to load binary: {}", res.unwrapErr());
+            log::error("Failed to unzip: {}", res.unwrapErr());
             log::popNest();
+            m_refreshingModCount -= 1;
             return;
         }
-
-        for (auto const& dep : node->m_impl->m_dependants) {
-            this->loadModGraph(dep, early);
-        }
+        loadFunction();
     }
-
-    log::popNest();
+    else {
+        std::thread([=]() {
+            auto res = unzipFunction();
+            queueInMainThread([=]() {
+                if (!res) {
+                    m_problems.push_back({
+                        LoadProblem::Type::UnzipFailed,
+                        node,
+                        res.unwrapErr()
+                    });
+                    log::error("Failed to unzip: {}", res.unwrapErr());
+                    log::popNest();
+                    m_refreshingModCount -= 1;
+                    return;
+                }
+                loadFunction();
+            });
+        }).detach();
+    }
 }
 
 void Loader::Impl::findProblems() {
     for (auto const& [id, mod] : m_mods) {
+        if (!mod->shouldLoad()) {
+            log::debug("{} is not enabled", id);
+            continue;
+        }
         log::debug(id);
         log::pushNest();
 
@@ -492,7 +544,7 @@ void Loader::Impl::findProblems() {
         Mod* myEpicMod = mod; // clang fix
         // if the mod is not loaded but there are no problems related to it
         if (!mod->isEnabled() &&
-            Mod::get()->getSavedValue<bool>("should-load-" + mod->getID(), true) &&
+            mod->shouldLoad() &&
             !std::any_of(m_problems.begin(), m_problems.end(), [myEpicMod](auto& item) {
                 return std::holds_alternative<ModMetadata>(item.cause) &&
                     std::get<ModMetadata>(item.cause).getID() == myEpicMod->getID() ||
@@ -564,16 +616,29 @@ void Loader::Impl::refreshModGraph() {
     else
         m_loadingState = LoadingState::Mods;
 
-    queueInMainThread([]() {
-        Loader::get()->m_impl->continueRefreshModGraph();
+    queueInMainThread([&]() {
+        this->continueRefreshModGraph();
     });
 }
 
 void Loader::Impl::continueRefreshModGraph() {
+    if (m_refreshingModCount != 0) {
+        queueInMainThread([&]() {
+            this->continueRefreshModGraph();
+        });
+        return;
+    }
+
+    if  (m_lateRefreshedModCount > 0) {
+        auto end = std::chrono::high_resolution_clock::now();
+        auto time = std::chrono::duration_cast<std::chrono::milliseconds>(end - m_timerBegin).count();
+        log::info("Took {}s", static_cast<float>(time) / 1000.f);
+    }
+
     log::info("Continuing mod graph refresh...");
     log::pushNest();
 
-    auto begin = std::chrono::high_resolution_clock::now();
+    m_timerBegin = std::chrono::high_resolution_clock::now();
 
     switch (m_loadingState) {
         case LoadingState::Mods:
@@ -581,7 +646,7 @@ void Loader::Impl::continueRefreshModGraph() {
             log::pushNest();
             this->loadModGraph(m_modsToLoad.front(), false);
             log::popNest();
-            m_modsToLoad.pop();
+            m_modsToLoad.pop_front();
             if (m_modsToLoad.empty())
                 m_loadingState = LoadingState::Problems;
             break;
@@ -591,6 +656,11 @@ void Loader::Impl::continueRefreshModGraph() {
             this->findProblems();
             log::popNest();
             m_loadingState = LoadingState::Done;
+            {
+                auto end = std::chrono::high_resolution_clock::now();
+                auto time = std::chrono::duration_cast<std::chrono::milliseconds>(end - m_timerBegin).count();
+                log::info("Took {}s", static_cast<float>(time) / 1000.f);
+            }
             break;
         default:
             m_loadingState = LoadingState::Done;
@@ -599,13 +669,9 @@ void Loader::Impl::continueRefreshModGraph() {
             break;
     }
 
-    auto end = std::chrono::high_resolution_clock::now();
-    auto time = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
-    log::info("Took {}s", static_cast<float>(time) / 1000.f);
-
     if (m_loadingState != LoadingState::Done) {
-        queueInMainThread([]() {
-            Loader::get()->m_impl->continueRefreshModGraph();
+        queueInMainThread([&]() {
+            this->continueRefreshModGraph();
         });
     }
 
@@ -738,14 +804,12 @@ void Loader::Impl::tryDownloadLoaderResources(
         .expect([this, tryLatestOnError](std::string const& info, int code) {
             // if the url was not found, try downloading latest release instead
             // (for development versions)
-            if (code == 404 && tryLatestOnError) {
-                this->downloadLoaderResources(true);
+            if (code == 404) {
+                log::warn("Unable to download resources: {}", info);
             }
-            else {
-                ResourceDownloadEvent(
-                    UpdateFailed("Unable to download resources: " + info)
-                ).post();
-            }
+            ResourceDownloadEvent(
+                UpdateFailed("Unable to download resources: " + info)
+            ).post();
         })
         .progress([](auto&, double now, double total) {
             ResourceDownloadEvent(
@@ -766,65 +830,67 @@ void Loader::Impl::updateSpecialFiles() {
 }
 
 void Loader::Impl::downloadLoaderResources(bool useLatestRelease) {
-    if (!useLatestRelease) {
-        web::AsyncWebRequest()
-            .join("loader-tag-exists-check")
-            .userAgent("github_api/1.0")
-            .fetch(fmt::format(
-                "https://api.github.com/repos/geode-sdk/geode/git/ref/tags/{}",
+    web::AsyncWebRequest()
+        .join("loader-tag-exists-check")
+        .userAgent("github_api/1.0")
+        .fetch(fmt::format(
+            "https://api.github.com/repos/geode-sdk/geode/git/ref/tags/{}",
+            this->getVersion().toString()
+        ))
+        .json()
+        .then([this](json::Value const& json) {
+            this->tryDownloadLoaderResources(fmt::format(
+                "https://github.com/geode-sdk/geode/releases/download/{}/resources.zip",
                 this->getVersion().toString()
-            ))
-            .json()
-            .then([this](json::Value const& json) {
-                this->tryDownloadLoaderResources(fmt::format(
-                    "https://github.com/geode-sdk/geode/releases/download/{}/resources.zip",
-                    this->getVersion().toString()
-                ), true);  
-            })
-            .expect([this](std::string const& info, int code) {
-                if (code == 404) {
-                    log::debug("Loader version {} does not exist on Github, not downloading the resources", this->getVersion().toString());
-                    ResourceDownloadEvent(
-                        UpdateFinished()
-                    ).post();
+            ), true);  
+        })
+        .expect([=](std::string const& info, int code) {
+            if (code == 404) {
+                if (useLatestRelease) {
+                    log::debug("Loader version {} does not exist on Github, downloading latest resources", this->getVersion().toString());
+                    fetchLatestGithubRelease(
+                        [this](json::Value const& raw) {
+                            auto json = raw;
+                            JsonChecker checker(json);
+                            auto root = checker.root("[]").obj();
+
+                            // find release asset
+                            for (auto asset : root.needs("assets").iterate()) {
+                                auto obj = asset.obj();
+                                if (obj.needs("name").template get<std::string>() == "resources.zip") {
+                                    this->tryDownloadLoaderResources(
+                                        obj.needs("browser_download_url").template get<std::string>(),
+                                        false
+                                    );
+                                    return;
+                                }
+                            }
+
+                            ResourceDownloadEvent(
+                                UpdateFailed("Unable to find resources in latest GitHub release")
+                            ).post();
+                        },
+                        [this](std::string const& info) {
+                            ResourceDownloadEvent(
+                                UpdateFailed("Unable to download resources: " + info)
+                            ).post();
+                        }
+                    );
+                    return;
                 }
                 else {
-                    ResourceDownloadEvent(
-                        UpdateFailed("Unable to check if tag exists: " + info)
-                    ).post();
+                    log::debug("Loader version {} does not exist on Github, not downloading the resources", this->getVersion().toString());
                 }
-            });
-    }
-    else {
-        fetchLatestGithubRelease(
-            [this](json::Value const& raw) {
-                auto json = raw;
-                JsonChecker checker(json);
-                auto root = checker.root("[]").obj();
-
-                // find release asset
-                for (auto asset : root.needs("assets").iterate()) {
-                    auto obj = asset.obj();
-                    if (obj.needs("name").template get<std::string>() == "resources.zip") {
-                        this->tryDownloadLoaderResources(
-                            obj.needs("browser_download_url").template get<std::string>(),
-                            false
-                        );
-                        return;
-                    }
-                }
-
                 ResourceDownloadEvent(
-                    UpdateFailed("Unable to find resources in latest GitHub release")
-                ).post();
-            },
-            [this](std::string const& info) {
-                ResourceDownloadEvent(
-                    UpdateFailed("Unable to download resources: " + info)
+                    UpdateFinished()
                 ).post();
             }
-        );
-    }
+            else {
+                ResourceDownloadEvent(
+                    UpdateFailed("Unable to check if tag exists: " + info)
+                ).post();
+            }
+        });
 }
 
 bool Loader::Impl::verifyLoaderResources() {
@@ -842,7 +908,7 @@ bool Loader::Impl::verifyLoaderResources() {
         ghc::filesystem::is_directory(resourcesDir)
     )) {
         log::debug("Resources directory does not exist");
-        this->downloadLoaderResources();
+        this->downloadLoaderResources(true);
         return false;
     }
 

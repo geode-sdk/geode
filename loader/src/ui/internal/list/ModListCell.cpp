@@ -35,94 +35,107 @@ void ModListCell::setupInfo(
     bool inactive
 ) {
     m_menu = CCMenu::create();
-    m_menu->setPosition(m_width - 40.f, m_height / 2);
+    m_menu->setPosition({m_width / 2, m_height / 2});
+    m_menu->setContentSize({m_width - 20, m_height});
+    m_menu->setAnchorPoint({.5f, .5f});
+    m_menu->setLayout(
+        RowLayout::create()
+            ->setAxisAlignment(AxisAlignment::Start)
+            ->setAutoScale(false)
+            ->setCrossAxisOverflow(false)
+    );
+
     this->addChild(m_menu);
 
     auto logoSize = this->getLogoSize();
 
     auto logoSpr = this->createLogo({ logoSize, logoSize });
-    logoSpr->setPosition({ logoSize / 2 + 12.f, m_height / 2 });
     auto logoSprColor = typeinfo_cast<CCRGBAProtocol*>(logoSpr);
     if (inactive && logoSprColor) {
         logoSprColor->setColor({ 163, 163, 163 });
     }
-    this->addChild(logoSpr);
+    m_menu->addChild(logoSpr);
+
+    m_columnMenu = CCMenu::create();
+    m_columnMenu->setContentSize({m_width, m_height});
+    m_columnMenu->setLayout(
+        ColumnLayout::create()
+            ->setAxisAlignment(AxisAlignment::Center)
+            ->setCrossAxisLineAlignment(AxisAlignment::Start)
+            ->setAxisReverse(true)
+            ->setAutoScale(false)
+            ->setGap(spaceForTags ? 3.f : 5.f)
+    );
+    m_menu->addChild(SpacerNodeChild::create(m_columnMenu));
+
+    m_labelMenu = CCMenu::create();
+    m_labelMenu->setContentSize({m_width, m_height / 2});
+    m_labelMenu->setLayout(
+        RowLayout::create()
+            ->setAxisAlignment(AxisAlignment::Start)
+            ->setAutoScale(true)
+    );
+    m_labelMenu->setLayoutOptions(
+        AxisLayoutOptions::create()
+            ->setNextGap(spaceForTags ? -2.f : 0.f)
+            ->setPrevGap(0.f)
+    );
+    m_columnMenu->addChild(m_labelMenu);
 
     bool hasDesc =
         display == ModListDisplay::Expanded && 
         metadata.getDescription().has_value();
 
     auto titleLabel = CCLabelBMFont::create(metadata.getName().c_str(), "bigFont.fnt");
-    titleLabel->setAnchorPoint({ .0f, .5f });
-    titleLabel->setPositionX(m_height / 2 + logoSize / 2 + 13.f);
-    if (hasDesc && spaceForTags) {
-        titleLabel->setPositionY(m_height / 2 + 20.f);
-    }
-    else if (spaceForTags) {
-        titleLabel->setPositionY(m_height / 2 + 12.f);
-    }
-    else if (hasDesc) {
-        titleLabel->setPositionY(m_height / 2 + 15.f);
-    }
-    else {
-        titleLabel->setPositionY(m_height / 2 + 7.f);
-    }
     titleLabel->limitLabelWidth(m_width / 2 - 40.f, .5f, .1f);
+    titleLabel->setLayoutOptions(
+        AxisLayoutOptions::create()
+            ->setScalePriority(1)
+            ->setMaxScale(0.5f)
+            ->setMinScale(0.1f)
+    );
     if (inactive) {
         titleLabel->setColor({ 163, 163, 163 });
     }
-    this->addChild(titleLabel);
+    m_labelMenu->addChild(titleLabel);
 
     auto versionLabel = CCLabelBMFont::create(
         metadata.getVersion().toString(false).c_str(),
         "bigFont.fnt"
     );
-    versionLabel->setAnchorPoint({ .0f, .5f });
-    versionLabel->setScale(.3f);
-    versionLabel->setPosition(
-        titleLabel->getPositionX() + titleLabel->getScaledContentSize().width + 5.f,
-        titleLabel->getPositionY() - 1.f
-    );
     versionLabel->setColor({ 0, 255, 0 });
     if (inactive) {
         versionLabel->setColor({ 0, 163, 0 });
     }
-    this->addChild(versionLabel);
+    versionLabel->setLayoutOptions(
+        AxisLayoutOptions::create()
+            ->setMaxScale(0.3)
+            ->setMinScale(0.1)
+    );
+    m_labelMenu->addChild(versionLabel);
 
     TagNode* apiLabel = nullptr;
-    if (metadata.isAPI()) {
-        apiLabel = TagNode::create("API");
-        apiLabel->setAnchorPoint({ .0f, .5f });
-        apiLabel->setScale(.3f);
-        apiLabel->setPosition(
-            versionLabel->getPositionX() +
-                versionLabel->getScaledContentSize().width + 5.f,
-            versionLabel->getPositionY()
-        );
-    }
+
 
     if (auto tag = metadata.getVersion().getTag()) {
         auto tagLabel = TagNode::create(tag.value().toString().c_str());
-        tagLabel->setAnchorPoint({ .0f, .5f });
-        tagLabel->setScale(.3f);
-        tagLabel->setPosition(
-            versionLabel->getPositionX() +
-                versionLabel->getScaledContentSize().width + 5.f,
-            versionLabel->getPositionY()
+        tagLabel->setLayoutOptions(
+            AxisLayoutOptions::create()
+                ->setMaxScale(0.3)
+                ->setMinScale(0.1)
         );
-        this->addChild(tagLabel);
-
-        if (apiLabel) {
-            apiLabel->setPosition(
-                tagLabel->getPositionX() +
-                    tagLabel->getScaledContentSize().width + 5.f,
-                tagLabel->getPositionY()
-            );
-        }
+        m_labelMenu->addChild(tagLabel);
     }
 
-    if (apiLabel)
-        this->addChild(apiLabel);
+    if (metadata.isAPI()) {
+        apiLabel = TagNode::create("API");
+        apiLabel->setLayoutOptions(
+            AxisLayoutOptions::create()
+                ->setMaxScale(0.3)
+                ->setMinScale(0.1)
+        );
+        m_labelMenu->addChild(apiLabel);
+    }
 
     auto creatorStr = "by " + metadata.getDeveloper();
     auto creatorLabel = CCLabelBMFont::create(creatorStr.c_str(), "goldFont.fnt");
@@ -134,47 +147,42 @@ void ModListCell::setupInfo(
     m_developerBtn = CCMenuItemSpriteExtra::create(
         creatorLabel, this, menu_selector(ModListCell::onViewDev)
     );
-    m_developerBtn->setPositionX(
-        m_height / 2 + logoSize / 2 + 13.f 
-         + creatorLabel->getScaledContentSize().width / 2 
-         - m_menu->getPositionX()
-    );
-    if (hasDesc && spaceForTags) {
-        m_developerBtn->setPositionY(+7.5f);
-    }
-    else if (hasDesc || spaceForTags) {
-        m_developerBtn->setPositionY(0.f);
-    }
-    else {
-        m_developerBtn->setPositionY(-7.f);
-    }
-    m_menu->addChild(m_developerBtn);
+    m_columnMenu->addChild(m_developerBtn);
 
     if (hasDesc) {
         auto descBG = CCScale9Sprite::create("square02b_001.png", {0.0f, 0.0f, 80.0f, 80.0f});
         descBG->setColor({0, 0, 0});
         descBG->setOpacity(90);
         descBG->setContentSize({m_width * 2, 60.f});
-        descBG->setAnchorPoint({.0f, .5f});
-        descBG->setPositionX(m_height / 2 + logoSize / 2 + 13.f);
-        if (spaceForTags) {
-            descBG->setPositionY(m_height / 2 - 7.5f);
-        }
-        else {
-            descBG->setPositionY(m_height / 2 - 17.f);
-        }
         descBG->setScale(.25f);
-        this->addChild(descBG);
+        m_columnMenu->addChild(descBG);
+
+        // limitLabelWidth defaults to 1.0 even though we give a bigger scale
+        auto node = CCNode::create();
+        node->setContentSize(descBG->getContentSize() / 4);
+        node->setAnchorPoint({ .5f, .5f });
+        node->setScale(4.f);
+        node->setPosition(descBG->getContentSize() / 2);
+        descBG->addChild(node);
 
         m_description = CCLabelBMFont::create(metadata.getDescription().value().c_str(), "chatFont.fnt");
-        m_description->setAnchorPoint({ .0f, .5f });
-        m_description->setPosition(m_height / 2 + logoSize / 2 + 18.f, descBG->getPositionY());
-        m_description->limitLabelWidth(m_width / 2 - 10.f, .5f, .1f);
+        m_description->setAnchorPoint({ .5f, .5f });
+        m_description->setPosition(node->getContentSize() / 2);
+        m_description->limitLabelWidth(node->getContentSize().width - 5.f, 0.5f, .1f);
         if (inactive) {
             m_description->setColor({ 163, 163, 163 });
         }
-        this->addChild(m_description);
+        node->addChild(m_description);
     }
+
+    this->updateCellLayout();
+}
+
+void ModListCell::updateCellLayout() {
+    m_menu->updateLayout();
+    m_labelMenu->setContentSize(m_columnMenu->getContentSize());
+    m_labelMenu->updateLayout();
+    m_columnMenu->updateLayout();
 }
 
 void ModListCell::onViewDev(CCObject*) {
@@ -211,13 +219,11 @@ ModCell* ModCell::create(
 }
 
 void ModCell::onEnable(CCObject* sender) {
-    if (!Mod::get()->setSavedValue("shown-disable-vs-unload-info", true)) {
+    if (!Mod::get()->getSavedValue("shown-mod-toggle-info", true)) {
         FLAlertLayer::create(
             "Notice",
-            "<cb>Disabling</c> a <cy>mod</c> removes its hooks & patches and "
-            "calls its user-defined disable function if one exists. You may "
-            "still see some effects of the mod left however, and you may "
-            "need to <cg>restart</c> the game to have it fully unloaded.",
+            "<cb>Toggling</c> a mod requires you to <cg>restart</c> the game.\n"
+            "When a mod is <cr>disabled</c>, it will not get loaded at all.",
             "OK"
         )->show();
     }
@@ -246,13 +252,15 @@ void ModCell::onRestart(CCObject*) {
 
 void ModCell::updateState() {
     bool unresolved = m_mod->hasUnresolvedDependencies();
+    bool shouldLoad = m_mod->shouldLoad();
+    auto toggleable = !unresolved || !shouldLoad;
     if (m_enableToggle) {
         m_enableToggle->toggle(m_mod->isEnabled());
-        m_enableToggle->setEnabled(!unresolved);
-        m_enableToggle->m_offButton->setOpacity(unresolved ? 100 : 255);
-        m_enableToggle->m_offButton->setColor(unresolved ? cc3x(155) : cc3x(255));
-        m_enableToggle->m_onButton->setOpacity(unresolved ? 100 : 255);
-        m_enableToggle->m_onButton->setColor(unresolved ? cc3x(155) : cc3x(255));
+        m_enableToggle->setEnabled(toggleable);
+        m_enableToggle->m_offButton->setOpacity(!toggleable ? 100 : 255);
+        m_enableToggle->m_offButton->setColor(!toggleable ? cc3x(155) : cc3x(255));
+        m_enableToggle->m_onButton->setOpacity(!toggleable ? 100 : 255);
+        m_enableToggle->m_onButton->setColor(!toggleable ? cc3x(155) : cc3x(255));
     }
     bool hasProblems = false;
     for (auto const& item : Loader::get()->getProblems()) {
@@ -264,6 +272,8 @@ void ModCell::updateState() {
         break;
     }
     m_unresolvedExMark->setVisible(hasProblems);
+
+    this->updateCellLayout();
 }
 
 bool ModCell::init(
@@ -278,20 +288,30 @@ bool ModCell::init(
 
     this->setupInfo(mod->getMetadata(), false, display, mod->getRequestedAction() != ModRequestedAction::None);
 
+    auto exMark = CCSprite::createWithSpriteFrameName("exMark_001.png");
+    exMark->setScale(.5f);
+
+    m_unresolvedExMark =
+        CCMenuItemSpriteExtra::create(exMark, this, menu_selector(ModCell::onUnresolvedInfo));
+    m_unresolvedExMark->setVisible(false);
+    m_menu->addChild(m_unresolvedExMark);
+
     if (mod->getRequestedAction() != ModRequestedAction::None) {
         auto restartSpr = ButtonSprite::create("Restart", "bigFont.fnt", "GJ_button_03.png", .8f);
         restartSpr->setScale(.65f);
 
         auto restartBtn = CCMenuItemSpriteExtra::create(restartSpr, this, menu_selector(ModCell::onRestart));
-        restartBtn->setPositionX(-16.f);
         m_menu->addChild(restartBtn);
     }
     else {
+        if (m_mod->getMetadata().getID() != "geode.loader") {
+            m_enableToggle =
+                CCMenuItemToggler::createWithStandardSprites(this, menu_selector(ModCell::onEnable), .7f);
+            m_menu->addChild(m_enableToggle);
+        }
+
         auto viewSpr = ButtonSprite::create("View", "bigFont.fnt", "GJ_button_01.png", .8f);
         viewSpr->setScale(.65f);
-
-        auto viewBtn = CCMenuItemSpriteExtra::create(viewSpr, this, menu_selector(ModCell::onInfo));
-        m_menu->addChild(viewBtn);
 
         if (m_mod->isEnabled()) {
             auto latestIndexItem = Index::get()->getMajorItem(
@@ -308,7 +328,6 @@ bool ModCell::init(
 
                 if (latestIndexItem->getMetadata().getVersion().getMajor() > minorIndexItem->getMetadata().getVersion().getMajor()) {
                     auto updateIcon = CCSprite::createWithSpriteFrameName("updates-available.png"_spr);
-                    updateIcon->setPosition(viewSpr->getContentSize() - CCSize { 2.f, 2.f });
                     updateIcon->setZOrder(99);
                     updateIcon->setScale(.5f);
                     viewSpr->addChild(updateIcon);
@@ -316,22 +335,9 @@ bool ModCell::init(
             }
         }
 
-        if (m_mod->getMetadata().getID() != "geode.loader") {
-            m_enableToggle =
-                CCMenuItemToggler::createWithStandardSprites(this, menu_selector(ModCell::onEnable), .7f);
-            m_enableToggle->setPosition(-45.f, 0.f);
-            m_menu->addChild(m_enableToggle);
-        }
+        auto viewBtn = CCMenuItemSpriteExtra::create(viewSpr, this, menu_selector(ModCell::onInfo));
+        m_menu->addChild(viewBtn);
     }
-
-    auto exMark = CCSprite::createWithSpriteFrameName("exMark_001.png");
-    exMark->setScale(.5f);
-
-    m_unresolvedExMark =
-        CCMenuItemSpriteExtra::create(exMark, this, menu_selector(ModCell::onUnresolvedInfo));
-    m_unresolvedExMark->setPosition(-80.f, 0.f);
-    m_unresolvedExMark->setVisible(false);
-    m_menu->addChild(m_unresolvedExMark);
 
     this->updateState();
 
@@ -390,7 +396,6 @@ bool IndexItemCell::init(
         restartSpr->setScale(.65f);
 
         auto restartBtn = CCMenuItemSpriteExtra::create(restartSpr, this, menu_selector(IndexItemCell::onRestart));
-        restartBtn->setPositionX(-16.f);
         m_menu->addChild(restartBtn);
     }
     else {
@@ -403,22 +408,21 @@ bool IndexItemCell::init(
     }
 
     if (item->getTags().size()) {
-        float x = m_height / 2 + this->getLogoSize() / 2 + 13.f;
+        auto tagRow = CCNode::create();
+        tagRow->setContentSize({m_width, m_height});
+        tagRow->setLayout(
+            RowLayout::create()
+                ->setAxisAlignment(AxisAlignment::Start)
+                ->setAutoScale(false)
+                ->setGap(3.f)
+        );
+        m_columnMenu->insertAfter(tagRow, m_developerBtn);
         for (auto& category : item->getTags()) {
             auto node = TagNode::create(category);
-            node->setAnchorPoint({ .0f, .5f });
-            node->setPositionX(x);
             node->setScale(.3f);
-            if (m_description) {
-                node->setPositionY(m_height / 2 - 23.f);
-            }
-            else {
-                node->setPositionY(m_height / 2 - 12.f);
-            }
-            this->addChild(node);
-
-            x += node->getScaledContentSize().width + 5.f;
+            tagRow->addChild(node);
         }
+        tagRow->updateLayout();
     }
 
     this->updateState();
@@ -426,7 +430,9 @@ bool IndexItemCell::init(
     return true;
 }
 
-void IndexItemCell::updateState() {}
+void IndexItemCell::updateState() {
+    this->updateCellLayout();
+}
 
 std::string IndexItemCell::getDeveloper() const {
     return m_item->getMetadata().getDeveloper();
@@ -451,19 +457,19 @@ void InvalidGeodeFileCell::FLAlert_Clicked(FLAlertLayer*, bool btn2) {
         try {
             if (ghc::filesystem::remove(m_info.path)) {
                 FLAlertLayer::create(
-                    "File removed", "Removed <cy>" + m_info.path.string() + "</c>", "OK"
+                    "File Removed", "Removed <cy>" + m_info.path.string() + "</c>", "OK"
                 )->show();
             }
             else {
                 FLAlertLayer::create(
-                    "Unable to remove file",
+                    "Unable to Remove File",
                     "Unable to remove <cy>" + m_info.path.string() + "</c>", "OK"
                 )->show();
             }
         }
         catch (std::exception& e) {
             FLAlertLayer::create(
-                "Unable to remove file",
+                "Unable to Remove File",
                 "Unable to remove <cy>" + m_info.path.string() + "</c>: <cr>" +
                     std::string(e.what()) + "</c>",
                 "OK"
@@ -595,7 +601,15 @@ bool ProblemsCell::init(
     }
 
     m_menu = CCMenu::create();
-    m_menu->setPosition(m_width - 40.f, m_height / 2);
+    m_menu->setPosition({m_width / 2, m_height / 2});
+    m_menu->setContentSize({m_width - 20, m_height});
+    m_menu->setAnchorPoint({.5f, .5f});
+    m_menu->setLayout(
+        RowLayout::create()
+            ->setAxisAlignment(AxisAlignment::Start)
+            // ->setAutoScale(false)
+            ->setCrossAxisOverflow(false)
+    );
     this->addChild(m_menu);
 
     auto logoSize = this->getLogoSize();
@@ -603,15 +617,19 @@ bool ProblemsCell::init(
     if (!icon.empty()) {
         auto logoSpr = CCSprite::createWithSpriteFrameName(icon.c_str());
         limitNodeSize(logoSpr, size, 1.f, .1f);
-        logoSpr->setPosition({logoSize / 2 + 12.f, m_height / 2});
-        this->addChild(logoSpr);
+        m_menu->addChild(logoSpr);
     }
 
     auto titleLabel = CCLabelBMFont::create(title.c_str(), "bigFont.fnt");
-    titleLabel->setAnchorPoint({ .0f, .5f });
-    titleLabel->setPosition(m_height / 2 + logoSize / 2 + 13.f, m_height / 2);
-    titleLabel->limitLabelWidth(m_width - 120.f, 1.f, .1f);
-    this->addChild(titleLabel);
+    titleLabel->setLayoutOptions(
+        AxisLayoutOptions::create()
+            ->setScalePriority(1)
+            ->setMaxScale(1.f)
+            ->setMinScale(0.1f)
+    );
+    m_menu->addChild(titleLabel);
+
+    // m_menu->addChild(SpacerNode::create());
 
     auto viewSpr = ButtonSprite::create("View", "bigFont.fnt", "GJ_button_01.png", .8f);
     viewSpr->setScale(.65f);
@@ -619,6 +637,8 @@ bool ProblemsCell::init(
     auto viewBtn =
         CCMenuItemSpriteExtra::create(viewSpr, this, menu_selector(ProblemsCell::onInfo));
     m_menu->addChild(viewBtn);
+
+    m_menu->updateLayout();
 
     return true;
 }

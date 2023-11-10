@@ -82,6 +82,9 @@ protected:
     void createSearchControl();
     void onIndexUpdate(IndexUpdateEvent* event);
 
+    // most requested feature of all time
+    void keyBackClicked() override;
+
     CCArray* createModCells(ModListType type, ModListQuery const& query);
     CCSize getCellSize() const;
     CCSize getListSize() const;

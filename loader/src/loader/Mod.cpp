@@ -191,7 +191,10 @@ Result<> Mod::disable() {
 }
 
 Result<> Mod::uninstall() {
-    return m_impl->uninstall();
+    return m_impl->uninstall(false);
+}
+Result<> Mod::uninstall(bool deleteSaveData) {
+    return m_impl->uninstall(deleteSaveData);
 }
 
 bool Mod::isUninstalled() const {
@@ -231,6 +234,18 @@ ModJson Mod::getRuntimeInfo() const {
     return m_impl->getRuntimeInfo();
 }
 
+bool Mod::isLoggingEnabled() const {
+    return m_impl->isLoggingEnabled();
+}
+
+void Mod::setLoggingEnabled(bool enabled) {
+    m_impl->setLoggingEnabled(enabled);
+}
+
 bool Mod::hasSavedValue(std::string const& key) {
     return this->getSaveContainer().contains(key);
+}
+
+bool Mod::shouldLoad() const {
+    return m_impl->shouldLoad();
 }

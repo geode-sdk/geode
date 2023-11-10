@@ -130,9 +130,8 @@ function(setup_geode_mod proname)
         set(HAS_HEADERS Off)
     endif()
 
-    # todo: figure out how to either not make cmake shit itself and print out --binary path/to/dll "" or 
-    # make cli not shit itself when it sees that
-    if (HAS_HEADERS)
+    if (HAS_HEADERS AND WIN32)
+        # this adds the .lib file on windows, which is needed for linking with the headers
         add_custom_target(${proname}_PACKAGE ALL
             DEPENDS ${proname} ${CMAKE_CURRENT_SOURCE_DIR}/mod.json
             COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR} 
@@ -188,6 +187,9 @@ function(setup_geode_mod proname)
                 elseif (APPLE)
                     file(GLOB libs ${dir}/*.dylib)
                     list(APPEND libs_to_link ${libs})
+                elseif (ANDROID)
+                    file(GLOB libs ${dir}/*.so)
+                    list(APPEND libs_to_link ${libs})
                 else()
                     message(FATAL_ERROR "Library extension not defined on this platform")
                 endif()
@@ -204,6 +206,17 @@ function(setup_geode_mod proname)
     # Add package target + make output name the mod id
     set_target_properties(${proname} PROPERTIES PREFIX "")
     set_target_properties(${proname} PROPERTIES OUTPUT_NAME ${MOD_ID})
+
+    if (ANDROID)
+        if (CMAKE_BUILD_TYPE STREQUAL "Release")
+            add_custom_command(
+                TARGET "${PROJECT_NAME}" POST_BUILD
+                DEPENDS "${PROJECT_NAME}"
+                COMMAND $<$<CONFIG:release>:${CMAKE_STRIP}>
+                ARGS -S $<TARGET_FILE:${PROJECT_NAME}>
+            )
+        endif()
+    endif()
 
 endfunction()
 
@@ -294,9 +307,10 @@ function(package_geode_resources_now proname src dest header_dest)
         # "LOADER_RESOURCE_FILES {\n"
     )
 
-    list(APPEND HASHED_EXTENSIONS ".png")
-    list(APPEND HASHED_EXTENSIONS ".mp3")
-    list(APPEND HASHED_EXTENSIONS ".ogg")
+    # yeah don't think we need to check too many stuff
+    # list(APPEND HASHED_EXTENSIONS ".png")
+    # list(APPEND HASHED_EXTENSIONS ".mp3")
+    # list(APPEND HASHED_EXTENSIONS ".ogg")
     list(APPEND HASHED_EXTENSIONS ".md")
 
     foreach(file ${RESOURCE_FILES})

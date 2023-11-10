@@ -8,70 +8,102 @@
 using namespace geode::prelude;
 
 struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
-    CCLabelBMFont* m_loadedModsLabel;
-    bool m_updatingResources;
-
-    CustomLoadingLayer() : m_loadedModsLabel(nullptr), m_updatingResources(false) {}
+    CCLabelBMFont* m_smallLabel = nullptr;
+    CCLabelBMFont* m_smallLabel2 = nullptr;
+    int m_geodeLoadStep = 0;
+    int m_totalMods = 0;
 
     void updateLoadedModsLabel() {
         auto allMods = Loader::get()->getAllMods();
         auto count = std::count_if(allMods.begin(), allMods.end(), [&](auto& item) {
             return item->isEnabled();
         });
-        auto str = fmt::format("Geode: Loaded {}/{} mods", count, allMods.size());
-        m_fields->m_loadedModsLabel->setCString(str.c_str());
+        auto str = fmt::format("Geode: Loaded {}/{} mods", count, m_totalMods);
+        this->setSmallText(str);
+        auto currentMod = LoaderImpl::get()->m_currentlyLoadingMod;
+        auto modName = currentMod ? currentMod->getName() : "Unknown";
+        this->setSmallText2(modName);
     }
 
+    void setSmallText(std::string const& text) {
+        m_fields->m_smallLabel->setString(text.c_str());
+    }
+
+    void setSmallText2(std::string const& text) {
+        m_fields->m_smallLabel2->setString(text.c_str());
+    }
+
+    // hook
     bool init(bool fromReload) {
         CCFileUtils::get()->updatePaths();
 
         if (!LoadingLayer::init(fromReload)) return false;
 
-        if (fromReload) return true;
+        m_totalMods = Loader::get()->getAllMods().size();
 
         auto winSize = CCDirector::sharedDirector()->getWinSize();
 
-        m_fields->m_loadedModsLabel = CCLabelBMFont::create("Geode: Loaded 0/0 mods", "goldFont.fnt");
-        m_fields->m_loadedModsLabel->setPosition(winSize.width / 2, 30.f);
-        m_fields->m_loadedModsLabel->setScale(.45f);
-        m_fields->m_loadedModsLabel->setID("geode-loaded-info");
-        this->addChild(m_fields->m_loadedModsLabel);
-        this->updateLoadedModsLabel();
+        m_fields->m_smallLabel = CCLabelBMFont::create("", "goldFont.fnt");
+        m_fields->m_smallLabel->setPosition(winSize.width / 2, 30.f);
+        m_fields->m_smallLabel->setScale(.45f);
+        m_fields->m_smallLabel->setID("geode-small-label");
+        this->addChild(m_fields->m_smallLabel);
 
-        // fields have unpredictable destructors
-        this->addChild(EventListenerNode<ResourceDownloadFilter>::create(
-            this, &CustomLoadingLayer::updateResourcesProgress
-        ));
-
-        // verify loader resources
-        if (!LoaderImpl::get()->verifyLoaderResources()) {
-            m_fields->m_updatingResources = true;
-            this->setUpdateText("Downloading Resources");
-        }
-        else {
-            LoaderImpl::get()->updateSpecialFiles();
-        }
+        m_fields->m_smallLabel2 = CCLabelBMFont::create("", "goldFont.fnt");
+        m_fields->m_smallLabel2->setPosition(winSize.width / 2, 15.f);
+        m_fields->m_smallLabel2->setScale(.45f);
+        m_fields->m_smallLabel2->setID("geode-small-label");
+        this->addChild(m_fields->m_smallLabel2);
 
         return true;
     }
 
-    void setUpdateText(std::string const& text) {
-        m_textArea->setString(text.c_str());
+    void setupLoadingMods() {
+        if (Loader::get()->getLoadingState() != Loader::LoadingState::Done) {
+            this->updateLoadedModsLabel();
+            this->waitLoadAssets();
+        }
+        else {
+            this->continueLoadAssets();
+            this->setSmallText2("");
+        }
+    }
+
+    void setupLoaderResources() {
+        log::debug("Verifying Loader Resources");
+        this->setSmallText("Verifying Loader Resources");
+        // verify loader resources
+        Loader::get()->queueInMainThread([&]() {
+            if (!LoaderImpl::get()->verifyLoaderResources()) {
+                log::debug("Downloading Loader Resources");
+                this->setSmallText("Downloading Loader Resources");
+                this->addChild(EventListenerNode<ResourceDownloadFilter>::create(
+                    this, &CustomLoadingLayer::updateResourcesProgress
+                ));
+            }
+            else {
+                log::debug("Loading Loader Resources");
+                this->setSmallText("Loading Loader Resources");
+                LoaderImpl::get()->updateSpecialFiles();
+                this->continueLoadAssets();
+            }
+        });
     }
 
     void updateResourcesProgress(ResourceDownloadEvent* event) {
         std::visit(makeVisitor {
             [&](UpdateProgress const& progress) {
-                this->setUpdateText(fmt::format(
-                    "Downloading Resources: {}%", progress.first
+                this->setSmallText(fmt::format(
+                    "Downloading Loader Resources: {}%", progress.first
                 ));
             },
             [&](UpdateFinished) {
-                this->setUpdateText("Resources Downloaded");
-                m_fields->m_updatingResources = false;
-                this->loadAssets();
+                log::debug("Downloaded Loader Resources");
+                this->setSmallText("Downloaded Loader Resources");
+                this->continueLoadAssets();
             },
             [&](UpdateFailed const& error) {
+                log::debug("Failed Loader Resources");
                 LoaderImpl::get()->platformMessageBox(
                     "Error updating resources",
                     error + ".\n"
@@ -81,24 +113,70 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
                     "The game will be loaded as normal, but please be aware "
                     "that it is very likely to crash. "
                 );
-                this->setUpdateText("Resource Download Failed");
-                m_fields->m_updatingResources = false;
-                this->loadAssets();
+                this->setSmallText("Failed Loader Resources");
+                this->continueLoadAssets();
             }
         }, event->status);
     }
 
-    void loadAssets() {
-        if (Loader::get()->getLoadingState() != Loader::LoadingState::Done) {
-            this->updateLoadedModsLabel();
-            Loader::get()->queueInMainThread([this]() {
-                this->loadAssets();
-            });
-            return;
+    void setupModResources() {
+        log::debug("Loading mod resources");
+        this->setSmallText("Loading mod resources");
+        Loader::get()->updateResources(true);
+        this->continueLoadAssets();
+    }
+    
+    int getCurrentStep() {
+        return m_fields->m_geodeLoadStep + m_loadStep + 1 + LoaderImpl::get()->m_refreshedModCount;
+    }
+
+    int getTotalStep() {
+        return 18 + m_totalMods;
+    }
+
+    void updateLoadingBar() {
+        auto length = m_sliderGrooveXPos * this->getCurrentStep() / this->getTotalStep();
+        m_sliderBar->setTextureRect({0, 0, length, m_sliderGrooveHeight});
+    }
+
+    void waitLoadAssets() {
+        Loader::get()->queueInMainThread([this]() {
+            this->loadAssets();
+        });
+    }
+
+    void continueLoadAssets() {
+        ++m_fields->m_geodeLoadStep;
+        Loader::get()->queueInMainThread([this]() {
+            this->loadAssets();
+        });
+    }
+
+    bool skipOnRefresh() {
+        if (m_fromRefresh) {
+            this->continueLoadAssets();
         }
-        if (m_fields->m_updatingResources) {
-            return;
+        return !m_fromRefresh;
+    }
+    
+    // hook
+    void loadAssets() {        
+        switch (m_fields->m_geodeLoadStep) {
+        case 0:
+            if (this->skipOnRefresh()) this->setupLoadingMods();
+            break;
+        case 1:
+            if (this->skipOnRefresh()) this->setupLoaderResources();
+            break;
+        case 2:
+            this->setupModResources();
+            break;
+        case 3:
+        default:
+            this->setSmallText("Loading game resources");
+            LoadingLayer::loadAssets();
+            break;
         }
-        LoadingLayer::loadAssets();
+        this->updateLoadingBar();
     }
 };

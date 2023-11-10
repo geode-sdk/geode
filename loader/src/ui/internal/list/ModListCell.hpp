@@ -24,6 +24,9 @@ protected:
     CCMenuItemToggler* m_enableToggle = nullptr;
     CCMenuItemSpriteExtra* m_unresolvedExMark;
     CCMenuItemSpriteExtra* m_developerBtn;
+    SpacerNode* m_spacer = nullptr;
+    CCMenu* m_columnMenu = nullptr;
+    CCMenu* m_labelMenu = nullptr;
 
     bool init(ModListLayer* list, CCSize const& size);
     void setupInfo(ModMetadata const& metadata, bool spaceForTags, ModListDisplay display, bool inactive);
@@ -31,6 +34,8 @@ protected:
 
     float getLogoSize() const;
     void onViewDev(CCObject*);
+
+    void updateCellLayout();
 
 public:
     virtual void updateState() = 0;

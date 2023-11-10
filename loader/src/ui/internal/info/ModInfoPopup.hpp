@@ -74,7 +74,6 @@ protected:
     void onEnableMod(CCObject*);
     void onUninstall(CCObject*);
     void onOpenConfigDir(CCObject*);
-    void doUninstall();
 
     void onUpdateProgress(ModInstallEvent* event);
     void onUpdate(CCObject*);

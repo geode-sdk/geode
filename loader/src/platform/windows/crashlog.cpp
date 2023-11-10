@@ -299,6 +299,8 @@ bool crashlog::didLastLaunchCrash() {
     return g_lastLaunchCrashed;
 }
 
+void crashlog::setupPlatformHandlerPost() {}
+
 ghc::filesystem::path crashlog::getCrashLogDirectory() {
     return dirs::getGeodeDir() / "crashlogs";
 }
