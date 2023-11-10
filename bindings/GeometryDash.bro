@@ -5523,13 +5523,6 @@ class RateStarsLayer : FLAlertLayer, UploadPopupDelegate, UploadActionDelegate {
     bool init(int levelID, bool isModSuggest) = mac 0x136050, win 0x2156a0;
 }
 
-class RateLevelLayer : FLAlertLayer {
-    RateLevelLayer() = win 0x214a80;
-    virtual ~RateLevelLayer() = win 0x214b40;
-
-    bool init(int levelID) = win 0x214cb0;
-}
-
 [[link(android)]]
 class RetryLevelLayer {
     static RetryLevelLayer* create() = mac 0x28dd60, win 0x216390;
