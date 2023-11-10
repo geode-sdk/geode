@@ -5450,8 +5450,6 @@ class PointNode : cocos2d::CCObject {
 class ProfilePage : FLAlertLayer, FLAlertLayerProtocol, LevelCommentDelegate, CommentUploadDelegate, UserInfoDelegate, UploadActionDelegate, UploadPopupDelegate, LeaderboardManagerDelegate {
     static ProfilePage* create(int accountID, bool idk) = mac 0x45eed0, win 0x20ee50;
     ProfilePage() = win 0x20e920;
-    virtual void getUserInfoFailed(int) = mac 0x463FB0, win 0x2133e0;
-    virtual void userInfoChanged(GJUserScore*) = mac 0x464070, win 0x213430;
     bool init(int accountID, bool idk) = mac 0x45f170, win 0x20ef00;
     void onYoutube(cocos2d::CCObject*) = mac 0x462360, win 0x212e80;
     void onTwitter(cocos2d::CCObject*) = mac 0x462500, win 0x212fe0;
