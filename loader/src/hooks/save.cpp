@@ -6,14 +6,18 @@ using namespace geode::prelude;
 
 struct SaveLoader : Modify<SaveLoader, AppDelegate> {
     void trySaveGame() {
-        log::info("Saving...");
+        log::info("Saving mod data...");
+        log::pushNest();
 
-        auto r = Loader::get()->saveData();
-        if (!r) {
-            log::info("{}", r.unwrapErr());
-        }
+        auto begin = std::chrono::high_resolution_clock::now();
 
-        log::info("Saved");
+        (void)Loader::get()->saveData();
+
+        auto end = std::chrono::high_resolution_clock::now();
+        auto time = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
+        log::info("Took {}s", static_cast<float>(time) / 1000.f);
+
+        log::popNest();
 
         return AppDelegate::trySaveGame();
     }

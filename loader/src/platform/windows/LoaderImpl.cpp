@@ -20,24 +20,37 @@ void Loader::Impl::platformMessageBox(char const* title, std::string const& info
 bool hasAnsiColorSupport = false;
 
 void Loader::Impl::logConsoleMessageWithSeverity(std::string const& msg, Severity severity) {
-    if (m_platformConsoleOpen) {
-        if (hasAnsiColorSupport) {
-            int color = 0;
-            switch (severity) {
-                case Severity::Debug: color = 243; break;
-                case Severity::Info: color = 33; break;
-                case Severity::Warning: color = 229; break;
-                case Severity::Error: color = 9; break;
-                default: color = 7; break;
-            }
-            auto const colorStr = fmt::format("\x1b[38;5;{}m", color);
-            auto const newMsg = fmt::format("{}{}\x1b[0m{}", colorStr, msg.substr(0, 8), msg.substr(8));
+    if (!m_platformConsoleOpen)
+        return;
 
-            std::cout << newMsg << "\n" << std::flush;
-        } else {
-            std::cout << msg << "\n" << std::flush;
-        }
+    if (!hasAnsiColorSupport) {
+        std::cout << msg << "\n" << std::flush;
+        return;
     }
+
+    int color = 0;
+    switch (severity) {
+        case Severity::Debug:
+            color = 243;
+            break;
+        case Severity::Info:
+            color = 33;
+            break;
+        case Severity::Warning:
+            color = 229;
+            break;
+        case Severity::Error:
+            color = 9;
+            break;
+        default:
+            color = 7;
+            break;
+    }
+    auto const colorStr = fmt::format("\x1b[38;5;{}m", color);
+    auto const newMsg = fmt::format("{}{}\x1b[0m{}", colorStr, msg.substr(0, 12),
+        msg.substr(12));
+
+    std::cout << newMsg << "\n" << std::flush;
 }
 
 void Loader::Impl::openPlatformConsole() {

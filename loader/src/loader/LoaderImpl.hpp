@@ -72,7 +72,7 @@ namespace geode {
         std::vector<utils::MiniFunction<void(void)>> m_gdThreadQueue;
         mutable std::mutex m_gdThreadMutex;
         bool m_platformConsoleOpen = false;
-        std::vector<std::pair<Hook*, Mod*>> m_internalHooks;
+        std::vector<std::pair<Hook*, Mod*>> m_uninitializedHooks;
         bool m_readyToHook = false;
 
         std::mutex m_nextModMutex;
@@ -173,9 +173,9 @@ namespace geode {
         bool isNewUpdateDownloaded() const;
 
         bool isReadyToHook() const;
-        void addInternalHook(Hook* hook, Mod* mod);
+        void addUninitializedHook(Hook* hook, Mod* mod);
 
-        Mod* createInternalMod();
+        Mod* getInternalMod();
         Result<> setupInternalMod();
 
         bool userTriedToLoadDLLs() const;

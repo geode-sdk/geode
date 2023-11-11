@@ -63,6 +63,7 @@ namespace geode {
 
     public:
         // TODO: do we want to expose all of these functions?
+
         static Loader* get();
 
         enum class LoadingState : uint8_t {
@@ -76,6 +77,7 @@ namespace geode {
             Done
         };
 
+        // TODO: return void
         Result<> saveData();
         Result<> loadData();
 
