@@ -54,6 +54,7 @@ enum class GameObjectType {
     MiniSizePortal = 18,
     UfoPortal = 19,
     Modifier = 20,
+    Breakable = 21,
     SecretCoin = 22,
     DualPortal = 23,
     SoloPortal = 24,
