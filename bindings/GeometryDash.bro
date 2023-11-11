@@ -3361,7 +3361,13 @@ class GameObject : CCSpritePlus {
     void loadGroupsFromString(gd::string str) = mac 0x33b380, win 0xebcb0;
     static GameObject* objectFromString(gd::string, bool) = mac 0x33b720, win 0xebe50;
     void playShineEffect() = mac 0x2fa9d0, win 0xeab20;
-    bool canRotateFree() = mac 0x33ac80;
+    bool canRotateFree() {
+        return (
+            m_objectType != GameObjectType::Solid &&
+            m_objectType != GameObjectType::Breakable &&
+            m_objectType != GameObjectType::Slope
+        );
+    }
     //void quickUpdatePosition() = mac 0x335790;
     // inlined on windows
     void quickUpdatePosition() {
