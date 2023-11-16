@@ -2891,6 +2891,9 @@ class GameLevelManager : cocos2d::CCNode {
     void storeUserName(int userID, int accountID, gd::string str) = mac 0x2B9020, win 0xa1a70;
     gd::string userNameForUserID(int id) = mac 0x2B91D0, win 0xa1c20;
     void updateUserScore() = mac 0x2CB6A0, win 0xada60;
+    void uploadAccountComment(gd::string text) = win 0xb3250;
+    void uploadLevelComment(int levelID, gd::string text, int unk) = win 0xb31c0;
+    void uploadComment(gd::string text, CommentType type, int levelID, int unk) = win 0xb32e0;
     void downloadLevel(int id, bool downloadData) = win 0xaa730;
     bool hasDownloadedLevel(int id) = win 0xab830;
     GJGameLevel* getSavedLevel(int id) = win 0xa2ee0;
@@ -5548,6 +5551,12 @@ class SetupTouchTogglePopup : FLAlertLayer {
     void onTargetIDArrow(cocos2d::CCObject*) = mac 0x158b60;
     void textChanged(CCTextInputNode*) = mac 0x1596a0;
     void updateTargetID() = mac 0x159480;
+}
+
+class ShareCommentLayer : FLAlertLayer, TextInputDelegate, UploadActionDelegate, UploadPopupDelegate {
+    static ShareCommentLayer* create(gd::string, int, CommentType, int) = win 0x24bac0;
+    bool init(gd::string, int, CommentType, int) = win 0x24bb90;
+    void onShare(CCObject*) = win 0x24c760;
 }
 
 class SimplePlayer : cocos2d::CCSprite {
