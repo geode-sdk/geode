@@ -110,6 +110,11 @@ enum class CommentError {
 enum class BackupAccountError {
 };
 
+enum class CommentType {
+    Level = 0,
+    Account = 1,
+};
+
 enum class BoomListType {
     Default = 0x0,
     User = 0x2,
