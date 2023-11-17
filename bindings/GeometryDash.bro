@@ -4104,7 +4104,7 @@ class LevelInfoLayer : cocos2d::CCLayer, LevelDownloadDelegate, LevelUpdateDeleg
     void downloadLevel() = win 0x177d90, mac 0x161b90;
     void onPlay(cocos2d::CCObject* sender) = mac 0x161840, win 0x179730;
     void onBack(cocos2d::CCObject* sender) = mac 0x163810, win 0x17C110;
-    void onDelete(cocos2d::CCObject* sender) = mac 0x162f30, win 0x17A2B0; 
+    void onDelete(cocos2d::CCObject* sender) = mac 0x162f30, win 0x17a1b0;
 
     virtual void levelDownloadFinished(GJGameLevel*) = mac 0x164C00, win 0x1790C0;
     virtual void levelUpdateFinished(GJGameLevel*, UpdateResponse) = mac 0x164E60, win 0x1792B0;
