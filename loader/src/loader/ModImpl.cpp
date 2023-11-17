@@ -224,7 +224,7 @@ Result<> Mod::Impl::saveData() {
         log::debug("Check covered");
         for (auto& [key, value] : m_savedSettingsData.as_object()) {
             log::debug("Check if {} is saved", key);
-            if (!coveredSettings.count(key)) {
+            if (!coveredSettings.contains(key)) {
                 json[key] = value;
             }
         }
@@ -465,18 +465,21 @@ Result<> Mod::Impl::disableHook(Hook* hook) {
 }
 
 Result<Hook*> Mod::Impl::addHook(Hook* hook) {
-    m_hooks.push_back(hook);
-    if (LoaderImpl::get()->isReadyToHook()) {
-        if (this->isEnabled() && hook->getAutoEnable()) {
-            auto res = this->enableHook(hook);
-            if (!res) {
-                delete hook;
-                return Err("Can't create hook: "+ res.unwrapErr());
-            }
-        }
+    if (!ranges::contains(m_hooks, [&](auto const& h) { return h != hook; }))
+        m_hooks.push_back(hook);
+
+    if (!LoaderImpl::get()->isReadyToHook()) {
+        LoaderImpl::get()->addUninitializedHook(hook, m_self);
+        return Ok(hook);
     }
-    else {
-        LoaderImpl::get()->addInternalHook(hook, m_self);
+
+    if (!this->isEnabled() || !hook->getAutoEnable())
+        return Ok(hook);
+
+    auto res = this->enableHook(hook);
+    if (!res) {
+        delete hook;
+        return Err("Can't create hook: " + res.unwrapErr());
     }
 
     return Ok(hook);
@@ -620,9 +623,10 @@ static Result<ModMetadata> getModImplInfo() {
     return Ok(info);
 }
 
-Mod* Loader::Impl::createInternalMod() {
+Mod* Loader::Impl::getInternalMod() {
     auto& mod = Mod::sharedMod<>;
-    if (mod) return mod;
+    if (mod)
+        return mod;
     auto infoRes = getModImplInfo();
     if (!infoRes) {
         LoaderImpl::get()->platformMessageBox(
@@ -639,6 +643,7 @@ Mod* Loader::Impl::createInternalMod() {
     }
     mod->m_impl->m_enabled = true;
     m_mods.insert({ mod->getID(), mod });
+    log::debug("Created internal mod {}", mod->getName());
     return mod;
 }
 

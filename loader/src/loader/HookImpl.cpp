@@ -44,28 +44,35 @@ tulip::hook::HookMetadata Hook::Impl::getHookMetadata() const {
 }
 
 Result<> Hook::Impl::enable() {
-    if (!m_enabled) {
-        if (!LoaderImpl::get()->hasHandler(m_address)) {
-            GEODE_UNWRAP(LoaderImpl::get()->createHandler(m_address, m_handlerMetadata));
-        }
-        GEODE_UNWRAP_INTO(auto handler, LoaderImpl::get()->getHandler(m_address));
+    if (m_enabled)
+        return Ok();
 
-        m_handle = tulip::hook::createHook(handler, m_detour, m_hookMetadata);
-        log::debug("Enabling hook at function {} with address {}", m_displayName, m_address);
-        m_enabled = true;
+    if (!LoaderImpl::get()->hasHandler(m_address)) {
+        GEODE_UNWRAP(LoaderImpl::get()->createHandler(m_address, m_handlerMetadata));
     }
+    GEODE_UNWRAP_INTO(auto handler, LoaderImpl::get()->getHandler(m_address));
+
+    m_handle = tulip::hook::createHook(handler, m_detour, m_hookMetadata);
+    if (m_owner)
+        log::debug("Enabled {} hook at {} for {}", m_displayName, m_address, m_owner->getID());
+    else
+        log::debug("Enabled {} hook at {}", m_displayName, m_address);
+
+    m_enabled = true;
     return Ok();
 }
 
 Result<> Hook::Impl::disable() {
-    if (m_enabled) {
-        GEODE_UNWRAP_INTO(auto handler, LoaderImpl::get()->getHandler(m_address));
+    if (!m_enabled)
+        return Ok();
 
-        tulip::hook::removeHook(handler, m_handle);
+    GEODE_UNWRAP_INTO(auto handler, LoaderImpl::get()->getHandler(m_address));
 
-        log::debug("Disabling hook at function {}", m_displayName);
-        m_enabled = false;
-    }
+    tulip::hook::removeHook(handler, m_handle);
+
+    log::debug("Disabled {} hook", m_displayName);
+
+    m_enabled = false;
     return Ok();
 }
 

@@ -61,33 +61,30 @@ Result<> Loader::Impl::setup() {
         return Ok();
     }
 
-    log::Logger::setup();
-
-    if (crashlog::setupPlatformHandler()) {
-        log::debug("Set up platform crash logger");
+    log::debug("Setting up crash handler");
+    log::pushNest();
+    if (!crashlog::setupPlatformHandler()) {
+        log::debug("Failed to set up crash handler");
     }
-    else {
-        log::debug("Unable to set up platform crash logger");
-    }
+    log::popNest();
 
-    log::debug("Setting up Loader...");
-
-    log::debug("Set up internal mod representation");
-    log::debug("Loading hooks... ");
-
+    log::debug("Loading hooks");
+    log::pushNest();
     if (!this->loadHooks()) {
         return Err("There were errors loading some hooks, see console for details");
     }
+    log::popNest();
 
-    log::debug("Loaded hooks");
-
-    log::debug("Setting up IPC...");
-
+    log::debug("Setting up IPC");
+    log::pushNest();
     this->setupIPC();
+    log::popNest();
 
+    log::debug("Setting up directories");
+    log::pushNest();
     this->createDirectories();
-
     this->addSearchPaths();
+    log::popNest();
 
     this->refreshModGraph();
 
@@ -107,14 +104,14 @@ void Loader::Impl::updateResources() {
 
 void Loader::Impl::updateResources(bool forceReload) {
     log::debug("Adding resources");
-
-    // add mods' spritesheets
+    log::pushNest();
     for (auto const& [_, mod] : m_mods) {
-        if (forceReload || !ModImpl::getImpl(mod)->m_resourcesLoaded) {
-            this->updateModResources(mod);
-            ModImpl::getImpl(mod)->m_resourcesLoaded = true;
-        }
+        if (!forceReload && ModImpl::getImpl(mod)->m_resourcesLoaded)
+            continue;
+        this->updateModResources(mod);
+        ModImpl::getImpl(mod)->m_resourcesLoaded = true;
     }
+    log::popNest();
 }
 
 std::vector<Mod*> Loader::Impl::getAllMods() {
@@ -164,25 +161,27 @@ bool Loader::Impl::isModVersionSupported(VersionInfo const& version) {
 // Data saving
 
 Result<> Loader::Impl::saveData() {
-    // save mods' data
     for (auto& [id, mod] : m_mods) {
+        log::debug("{}", mod->getID());
+        log::pushNest();
         auto r = mod->saveData();
         if (!r) {
             log::warn("Unable to save data for mod \"{}\": {}", mod->getID(), r.unwrapErr());
         }
+        log::popNest();
     }
-    // save loader data
-    GEODE_UNWRAP(Mod::get()->saveData());
-
     return Ok();
 }
 
 Result<> Loader::Impl::loadData() {
     for (auto& [_, mod] : m_mods) {
+        log::debug("{}", mod->getID());
+        log::pushNest();
         auto r = mod->loadData();
         if (!r) {
             log::warn("Unable to load data for mod \"{}\": {}", mod->getID(), r.unwrapErr());
         }
+        log::popNest();
     }
     return Ok();
 }
@@ -225,9 +224,9 @@ void Loader::Impl::updateModResources(Mod* mod) {
     if (mod->getMetadata().getSpritesheets().empty())
         return;
 
-    log::debug("Adding resources for {}", mod->getID());
+    log::debug("{}", mod->getID());
+    log::pushNest();
 
-    // add spritesheets
     for (auto const& sheet : mod->getMetadata().getSpritesheets()) {
         log::debug("Adding sheet {}", sheet);
         auto png = sheet + ".png";
@@ -246,6 +245,8 @@ void Loader::Impl::updateModResources(Mod* mod) {
             CCSpriteFrameCache::get()->addSpriteFramesWithFile(plist.c_str());
         }
     }
+
+    log::popNest();
 }
 
 // Dependencies and refreshing
@@ -422,6 +423,9 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
             return;
         }
 
+        if (node->getID() == "absolllute.megahack")
+            log::debug("megahack creepypasta");
+
         for (auto const& dep : node->m_impl->m_dependants) {
             this->loadModGraph(dep, early);
         }
@@ -512,16 +516,16 @@ void Loader::Impl::findProblems() {
 }
 
 void Loader::Impl::refreshModGraph() {
-    log::info("Refreshing mod graph...");
+    log::info("Refreshing mod graph");
     log::pushNest();
-
-    auto begin = std::chrono::high_resolution_clock::now();
 
     if (m_isSetup) {
         log::error("Cannot refresh mod graph after startup");
         log::popNest();
         return;
     }
+
+    auto begin = std::chrono::high_resolution_clock::now();
 
     m_problems.clear();
 
@@ -641,23 +645,22 @@ bool Loader::Impl::isReadyToHook() const {
     return m_readyToHook;
 }
 
-void Loader::Impl::addInternalHook(Hook* hook, Mod* mod) {
-    m_internalHooks.emplace_back(hook, mod);
+void Loader::Impl::addUninitializedHook(Hook* hook, Mod* mod) {
+    m_uninitializedHooks.emplace_back(hook, mod);
 }
 
 bool Loader::Impl::loadHooks() {
     m_readyToHook = true;
-    auto thereWereErrors = false;
-    for (auto const& hook : m_internalHooks) {
+    bool hadErrors = false;
+    for (auto const& hook : m_uninitializedHooks) {
         auto res = hook.second->addHook(hook.first);
         if (!res) {
             log::internalLog(Severity::Error, hook.second, "{}", res.unwrapErr());
-            thereWereErrors = true;
+            hadErrors = true;
         }
     }
-    // free up memory
-    m_internalHooks.clear();
-    return !thereWereErrors;
+    m_uninitializedHooks.clear();
+    return !hadErrors;
 }
 
 void Loader::Impl::queueInMainThread(ScheduledFunction func) {
@@ -1037,20 +1040,15 @@ void Loader::Impl::provideNextMod(Mod* mod) {
 }
 
 Mod* Loader::Impl::takeNextMod() {
-    if (!m_nextMod) {
-        m_nextMod = this->createInternalMod();
-        log::debug("Created internal mod {}", m_nextMod->getName());
-    }
-    auto ret = m_nextMod;
-    return ret;
+    if (!m_nextMod)
+        m_nextMod = this->getInternalMod();
+    return m_nextMod;
 }
 
 void Loader::Impl::releaseNextMod() {
     m_nextMod = nullptr;
-
     m_nextModLock.unlock();
 }
-
 
 Result<> Loader::Impl::createHandler(void* address, tulip::hook::HandlerMetadata const& metadata) {
     if (m_handlerHandles.count(address)) {
