@@ -51,6 +51,10 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
 		${GEODE_LOADER_PATH}/include/link/libfmod.dylib
 	)
 
+	target_compile_definitions(${PROJECT_NAME} INTERFACE
+		-DCommentType=CommentTypeDummy
+	)
+
 	set(GEODE_PLATFORM_BINARY "Geode.dylib")
 
 elseif (GEODE_TARGET_PLATFORM STREQUAL "Win32")
