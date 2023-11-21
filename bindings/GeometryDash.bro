@@ -2894,6 +2894,7 @@ class GameLevelManager : cocos2d::CCNode {
     void uploadAccountComment(gd::string text) = win 0xb3250;
     void uploadLevelComment(int levelID, gd::string text, int unk) = win 0xb31c0;
     void uploadComment(gd::string text, CommentType type, int levelID, int unk) = win 0xb32e0;
+    void deleteComment(int commentID, CommentType type, int levelID) = win 0xb41a0;
     void downloadLevel(int id, bool downloadData) = win 0xaa730;
     bool hasDownloadedLevel(int id) = win 0xab830;
     GJGameLevel* getSavedLevel(int id) = win 0xa2ee0;
