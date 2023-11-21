@@ -403,6 +403,8 @@ void Index::Impl::checkForUpdates() {
 
 void Index::Impl::updateFromLocalTree() {
     log::debug("Updating local index cache");
+    log::pushNest();
+
     IndexUpdateEvent(UpdateProgress(100, "Updating local cache")).post();
     // delete old items
     m_items.clear();
@@ -442,6 +444,8 @@ void Index::Impl::updateFromLocalTree() {
     // mark source as finished
     m_isUpToDate = true;
     IndexUpdateEvent(UpdateFinished()).post();
+
+    log::popNest();
 }
 
 void Index::update(bool force) {

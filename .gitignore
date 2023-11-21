@@ -72,3 +72,6 @@ test-docs.bat
 
 # Ignore krita files too because we don't want our project files shaking my head
 **/*.kra
+
+# Ignore clangd cache
+.cache

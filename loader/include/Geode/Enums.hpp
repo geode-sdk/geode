@@ -1,5 +1,7 @@
 #pragma once
 
+#include "DefaultInclude.hpp"
+
 // thanks pie
 enum class SearchType {
     Search = 0,
@@ -54,6 +56,7 @@ enum class GameObjectType {
     MiniSizePortal = 18,
     UfoPortal = 19,
     Modifier = 20,
+    Breakable = 21,
     SecretCoin = 22,
     DualPortal = 23,
     SoloPortal = 24,
@@ -107,6 +110,16 @@ enum class GJStoreItem {
 enum class CommentError {
 };
 enum class BackupAccountError {
+};
+
+// Thanks cocoa!
+#ifdef GEODE_IS_MACOS
+    #undef CommentType
+#endif
+
+enum class CommentType {
+    Level = 0,
+    Account = 1,
 };
 
 enum class BoomListType {
