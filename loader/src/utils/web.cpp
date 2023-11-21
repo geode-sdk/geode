@@ -297,9 +297,11 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
                     return 1;
                 }
                 Loader::get()->queueInMainThread([self = data->self, now, total]() {
-                    std::lock_guard _(self->m_mutex);
+                    std::unique_lock<std::mutex> l(self->m_mutex);
                     for (auto& prog : self->m_progresses) {
+                        l.unlock();
                         prog(*self->m_self, now, total);
+                        l.lock();
                     }
                 });
                 return 0;
@@ -327,9 +329,11 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
         m_finished = true;
 
         Loader::get()->queueInMainThread([this, ret]() {
-            std::lock_guard _(m_mutex);
+            std::unique_lock<std::mutex> l(m_mutex);
             for (auto& then : m_thens) {
+                l.unlock();
                 then(*m_self, ret);
+                l.lock();
             }
             std::lock_guard __(RUNNING_REQUESTS_MUTEX);
             RUNNING_REQUESTS.erase(m_id);
@@ -354,9 +358,11 @@ void SentAsyncWebRequest::Impl::doCancel() {
     }
 
     Loader::get()->queueInMainThread([this]() {
-        std::lock_guard _(m_mutex);
+        std::unique_lock<std::mutex> l(m_mutex);
         for (auto& canc : m_cancelleds) {
+            l.unlock();
             canc(*m_self);
+            l.lock();
         }
     });
 
@@ -392,9 +398,11 @@ void SentAsyncWebRequest::Impl::error(std::string const& error, int code) {
     });
     Loader::get()->queueInMainThread([this, error, code]() {
         {
-            std::lock_guard _(m_mutex);
+            std::unique_lock<std::mutex> l(m_mutex);
             for (auto& expect : m_expects) {
+                l.unlock();
                 expect(error, code);
+                l.lock();
             }
         }
         std::lock_guard _(RUNNING_REQUESTS_MUTEX);

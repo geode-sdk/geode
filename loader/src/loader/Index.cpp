@@ -673,7 +673,10 @@ Result<IndexInstallList> Index::getInstallList(IndexItemHandle item) const {
             }
             // recursively add dependencies
             GEODE_UNWRAP_INTO(auto deps, this->getInstallList(depItem));
-            ranges::push(list.list, deps.list);
+            for (auto& dep : deps.list) {
+                if (ranges::contains(list.list, dep)) continue;
+                list.list.push_back(dep);
+            }
         }
         // otherwise user must get this dependency manually from somewhere
         else {
@@ -745,6 +748,7 @@ void Index::Impl::installNext(size_t index, IndexInstallList const& list) {
 
     auto item = list.list.at(index);
     auto tempFile = dirs::getTempDir() / (item->getMetadata().getID() + ".index");
+    log::debug("Installing {}", item->getMetadata().getID());
     m_runningInstallations[list.target] = web::AsyncWebRequest()
         .join("install_item_" + item->getMetadata().getID())
         .fetch(item->getDownloadURL())
@@ -780,12 +784,10 @@ void Index::Impl::installNext(size_t index, IndexInstallList const& list) {
 
             item->setIsInstalled(true);
 
+            log::debug("Installed {}", item->getMetadata().getID());
+
             // Install next item in queue
-            // this is in next frame cause otherwise
-            // it seems to deadlock and havent figured out why
-            Loader::get()->queueInMainThread([&]{
-                this->installNext(index + 1, list);
-            });
+            this->installNext(index + 1, list);
         })
         .expect([postError, list, item](std::string const& err) {
             postError(fmt::format(
