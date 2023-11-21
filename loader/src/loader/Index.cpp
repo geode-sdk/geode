@@ -781,7 +781,11 @@ void Index::Impl::installNext(size_t index, IndexInstallList const& list) {
             item->setIsInstalled(true);
 
             // Install next item in queue
-            this->installNext(index + 1, list);
+            // this is in next frame cause otherwise
+            // it seems to deadlock and havent figured out why
+            Loader::get()->queueInMainThread([&]{
+                this->installNext(index + 1, list);
+            });
         })
         .expect([postError, list, item](std::string const& err) {
             postError(fmt::format(
