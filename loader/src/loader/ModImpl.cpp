@@ -465,7 +465,7 @@ Result<> Mod::Impl::disableHook(Hook* hook) {
 }
 
 Result<Hook*> Mod::Impl::addHook(Hook* hook) {
-    if (!ranges::contains(m_hooks, [&](auto const& h) { return h != hook; }))
+    if (!ranges::contains(m_hooks, [&](auto const& h) { return h == hook; }))
         m_hooks.push_back(hook);
 
     if (!LoaderImpl::get()->isReadyToHook()) {
