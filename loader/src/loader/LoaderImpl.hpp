@@ -71,7 +71,6 @@ namespace geode {
 
         std::vector<utils::MiniFunction<void(void)>> m_gdThreadQueue;
         mutable std::mutex m_gdThreadMutex;
-        bool m_platformConsoleOpen = false;
         std::vector<std::pair<Hook*, Mod*>> m_uninitializedHooks;
         bool m_readyToHook = false;
 

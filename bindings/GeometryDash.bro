@@ -5809,7 +5809,7 @@ class SetupTouchTogglePopup : FLAlertLayer {
 class ShareCommentLayer : FLAlertLayer, TextInputDelegate, UploadActionDelegate, UploadPopupDelegate {
     static ShareCommentLayer* create(gd::string, int, CommentType, int) = win 0x24bac0;
     bool init(gd::string, int, CommentType, int) = win 0x24bb90;
-    void onShare(CCObject*) = win 0x24c760;
+    void onShare(cocos2d::CCObject*) = win 0x24c760;
 }
 
 [[link(android)]]
