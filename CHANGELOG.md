@@ -1,12 +1,12 @@
 # Geode Changelog
 
 ## v1.3.7
-* Fix web download deadlock (16418562)
-* Set max time for updating index notification (f7962246)
-* Log geode version on startup (c5550a67)
-* Fix logic error in addHook (5cf0f3c2)
-* Improve logging + minor refactors (5083017b)
-* Some bindings changes
+ * Fix web download deadlock (16418562)
+ * Set max time for updating index notification (f7962246)
+ * Log geode version on startup (c5550a67)
+ * Fix logic error in addHook (5cf0f3c2)
+ * Improve logging + minor refactors (5083017b)
+ * Some bindings changes
 
 ## v1.3.6
  * Allow error responses in our WebRequest classes (237128bf)
