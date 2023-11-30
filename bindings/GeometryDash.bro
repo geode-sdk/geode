@@ -5970,9 +5970,14 @@ class LevelTools {
     static bool verifyLevelIntegrity(gd::string, int) = mac 0x294360, win 0x18b180;
     static float xPosForTime(float, cocos2d::CCArray*, int) = mac 0x293d90, win 0x18acd0;
     static float timeForXPos(float, cocos2d::CCArray*, int) = mac 0x293eb0, win 0x18ae70;
-    static gd::string getAudioFileName(int) = mac 0x292840, win 0x189FA0;
-    static gd::string getAudioTitle(int) = mac 0x2922f0, win 0x189C60;
-    static gd::string artistForAudio(int) = mac 0x292d90, win 0x18A2D0;
-    static gd::string urlForAudio(int) = mac 0x292f10, win 0x18A4A0;
+    static gd::string getAudioFileName(int) = mac 0x292840, win 0x189fa0;
+    static gd::string getAudioTitle(int) = mac 0x2922f0, win 0x189c60;
+    static int artistForAudio(int) = mac 0x292d90, win 0x18A2D0;
+    static gd::string urlForAudio(int) = mac 0x292f10, win 0x18a4a0;
+    static gd::string nameForArtist(int) = win 0x18A3A0;
+    static gd::string ngURLForArtist(int) = win 0x18A7C0;
+    static gd::string ytURLForArtist(int) = win 0x18A8C0;
+    static gd::string fbURLForArtist(int) = win 0x18A9B0;
+    static gd::string getAudioString(int) = win 0x18AAA0;
 }
 // clang-format on
