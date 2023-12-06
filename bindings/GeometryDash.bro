@@ -1178,6 +1178,11 @@ class DailyLevelPage : FLAlertLayer, FLAlertLayerProtocol, GJDailyLevelDelegate,
 }
 
 [[link(android)]]
+class DailyLevelNode : cocos2d::CCNode, FLAlertLayerProtocol {
+    bool init(GJGameLevel* level, DailyLevelPage* page, bool weekly) = mac 0x10ABB0, win 0x6C480;
+}
+
+[[link(android)]]
 class DialogLayer : cocos2d::CCLayerColor {
     static DialogLayer* create(DialogObject* dialog, int color) {
         return DialogLayer::createDialogLayer(dialog, nullptr, color);
