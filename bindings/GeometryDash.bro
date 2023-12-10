@@ -5,6 +5,7 @@ class GDString {
     GDString& winAssign(GDString const&, size_t, size_t) = win 0xf720;
     GDString& winAssign(char const*) = win 0xf680;
     GDString& winAssign(char const*, size_t) = win 0xf840;
+	GDString& operatorPlus(char const*, size_t) = win 0x156F0;
 
     static uintptr_t macEmptyContainer() {
         return geode::base::get() + 0x6030d0;
@@ -20,9 +21,18 @@ void testFunction(int a) = mac 0x100000;
 
 [[link(android)]]
 class AchievementBar : cocos2d::CCNodeRGBA {
-    static AchievementBar* create(const char* title, const char* desc, const char* icon, bool quest) = mac 0x379f80, win 0x3b120, ios 0x1a4784;
-
-    PAD = win 0x24;
+    static AchievementBar* create(char const* title, char const* desc, char const* icon, bool quest) = mac 0x379f80, win 0x3b120, ios 0x1a4784;
+	bool init(char const* title, char const* desc, char const* icon, bool quest) = win 0x3b200;
+	
+    cocos2d::CCLayerColor* m_barLayer;
+	float m_unk;
+	cocos2d::CCScene* m_scene;
+	cocos2d::extension::CCScale9Sprite* m_squareSprite;
+	cocos2d::extension::CCScale9Sprite* m_iconBG;
+	cocos2d::CCSprite* m_achGlow;
+	cocos2d::CCSprite* m_icon;
+	cocos2d::CCLabelBMFont* m_achTitle;
+	cocos2d::CCSprite* m_achDesc;
 }
 
 [[link(android)]]
@@ -3845,8 +3855,14 @@ class GaragePage : cocos2d::CCLayer, ListButtonBarDelegate {
 }
 
 [[link(android)]]
-class GauntletSelectLayer {
+class GauntletSelectLayer : cocos2d::CCLayer {
     static GauntletSelectLayer* create(int) = win 0x105120;
+	bool init(int) = win 0x102e70;
+}
+
+[[link(android)]]
+class GauntletNode : cocos2d::CCNode {
+	bool init(GJMapPack*) = win 0x106ae0;
 }
 
 [[link(android)]]
@@ -4623,7 +4639,27 @@ class MoreVideoOptionsLayer : FLAlertLayer {
 }
 
 [[link(android)]]
-class MultilineBitmapFont : cocos2d::CCSprite {}
+class MultilineBitmapFont : cocos2d::CCSprite {
+	static MultilineBitmapFont* create() = win 0x2a440;
+	static MultilineBitmapFont* createWithFont(const char* fontName, gd::string str, float scale, float width, cocos2d::CCPoint anchorPoint, int unk, bool bColourDisabled) = win 0x2a5b0;
+	gd::string readColorInfo(gd::string str) = win 0x2afb0;
+	void setOpacity(int) = win 0x2af50;
+	gd::string stringWithMaxWidth(gd::string str, float scaledWidth, float scale) = win 0x2b450;
+	bool initWithFont(const char* fontName, gd::string str, float scale, float width, cocos2d::CCPoint anchorPoint, int unk, bool bColourDisabled) = win 0x2a6a0;
+
+	float m_fontWidth[300];
+	cocos2d::CCArray* m_colouredTextArray;  //ColoredSection*
+	cocos2d::CCArray* m_instantTextArray;   //InstantSection*
+	cocos2d::CCArray* m_delayedTextArray;   //DelayedSection*
+	cocos2d::CCArray* m_letterArray;	     //cocos2d::CCSprite*
+	float m_halfScaledFontWidth;
+	bool m_unkScaleBool;
+	int unk;
+	cocos2d::CCSize m_textureSize;
+	cocos2d::CCPoint m_position;
+	float m_contentSizeScaleMod;
+	bool m_tagsDisabled;
+}
 
 [[link(android)]]
 class MusicDownloadDelegate {
@@ -6112,6 +6148,8 @@ class TextArea : cocos2d::CCSprite {
     int m_unknown;                  // 0x1f0
     gd::string m_fontFile;          // 0x1f4
     float m_height;                 // 0x20c
+	PAD = win 0x4;
+	cocos2d::CCPoint m_anchorPoint;
 }
 
 [[link(android)]]
