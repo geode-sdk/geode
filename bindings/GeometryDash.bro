@@ -4647,7 +4647,8 @@ class MultilineBitmapFont : cocos2d::CCSprite {
 	gd::string stringWithMaxWidth(gd::string str, float scaledWidth, float scale) = win 0x2b450;
 	bool initWithFont(const char* fontName, gd::string str, float scale, float width, cocos2d::CCPoint anchorPoint, int unk, bool bColourDisabled) = win 0x2a6a0;
 
-	float m_fontWidth[300];
+	float m_fontWidth;
+    PAD = win 0x4AC, android 0x4AC;
 	cocos2d::CCArray* m_colouredTextArray;  //ColoredSection*
 	cocos2d::CCArray* m_instantTextArray;   //InstantSection*
 	cocos2d::CCArray* m_delayedTextArray;   //DelayedSection*
