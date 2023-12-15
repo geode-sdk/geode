@@ -9,9 +9,8 @@ using namespace geode::prelude;
 // This function is well known for crashing on certain save files,
 // causing the game to crash at startup, known as the infamous save file bug.
 //
-// The exact reason for why this fails is still a bit fuzzy, but I believe it's because
-// rob doesn't use the base64/inflated size correctly, and ends up relying on a null
-// terminator being there when it shouldnt.
+// Rob ends up relying on strlen for knowing the size of `data`, instead of just using the passed in `size`.
+// Its a miracle this works most of the time, considering `data` is just binary data
 // 
 // To fix this, we just rewrite the function.
 gd::string decompressString2(unsigned char* data, bool decrypt, int size, int decryptionKey) {
