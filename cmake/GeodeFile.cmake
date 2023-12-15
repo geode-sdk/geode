@@ -51,6 +51,17 @@ function(setup_geode_mod proname)
     # Link Geode to the mod
     target_link_libraries(${proname} geode-sdk)
 
+    if (ANDROID)
+        if (CMAKE_BUILD_TYPE STREQUAL "Release")
+            add_custom_command(
+                TARGET "${PROJECT_NAME}" POST_BUILD
+                DEPENDS "${PROJECT_NAME}"
+                COMMAND $<$<CONFIG:release>:${CMAKE_STRIP}>
+                ARGS -S $<TARGET_FILE:${PROJECT_NAME}>
+            )
+        endif()
+    endif()
+
     if (GEODE_DISABLE_CLI_CALLS)
         message("Skipping setting up geode mod ${proname}")
         return()
@@ -206,17 +217,6 @@ function(setup_geode_mod proname)
     # Add package target + make output name the mod id
     set_target_properties(${proname} PROPERTIES PREFIX "")
     set_target_properties(${proname} PROPERTIES OUTPUT_NAME ${MOD_ID})
-
-    if (ANDROID)
-        if (CMAKE_BUILD_TYPE STREQUAL "Release")
-            add_custom_command(
-                TARGET "${PROJECT_NAME}" POST_BUILD
-                DEPENDS "${PROJECT_NAME}"
-                COMMAND $<$<CONFIG:release>:${CMAKE_STRIP}>
-                ARGS -S $<TARGET_FILE:${PROJECT_NAME}>
-            )
-        endif()
-    endif()
 
 endfunction()
 
