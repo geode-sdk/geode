@@ -48,7 +48,7 @@ gd::string decompressString2(unsigned char* data, bool decrypt, int size, int de
 
 // Modify doesnt want to work for some reason!
 $execute {
-    Mod::get()->addHook(
+    (void) Mod::get()->addHook(
         reinterpret_cast<void*>(
             geode::addresser::getNonVirtual(
                 &cocos2d::ZipUtils::decompressString2
