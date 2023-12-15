@@ -1154,6 +1154,7 @@ class cocos2d::CCTransitionFade {
 class cocos2d::ZipUtils {
 	static auto compressString(gd::string, bool, int) = mac 0xe9a50;
 	static auto decompressString(gd::string, bool, int) = mac 0xea380;
+	static auto decompressString2(unsigned char* data, bool decrypt, int size, int decryptionKey);
 	static int ccDeflateMemory(unsigned char*, unsigned int, unsigned char**) = mac 0xe9cf0;
 }
 
