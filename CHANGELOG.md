@@ -1,10 +1,13 @@
 # Geode Changelog
 
+## v1.3.9
+ * Fix followThunkFunction (4b766301)
+
 ## v1.3.8
-* Implement a save file fix for Windows (391f63ed)
-* Recursively follow jumps in followThunkFunction (44a018cd)
-* Remove need for GEODE_DEBUG for crashlogs (e8a326f7)
-* Some bindings (f18335fa)
+ * Implement a save file fix for Windows (391f63ed)
+ * Recursively follow jumps in followThunkFunction (44a018cd)
+ * Remove need for GEODE_DEBUG for crashlogs (e8a326f7)
+ * Some bindings (f18335fa)
 
 ## v1.3.7
  * Fix web download deadlock (16418562)
