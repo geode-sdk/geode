@@ -9,9 +9,13 @@ using namespace geode::prelude;
 $register_ids(GJGarageLayer) {
     // the lock does not exist for not logged in users
     auto loggedInOffset = GJAccountManager::get()->m_accountID == GJAccountManager::get()->m_playerID ? -1 : 0;
+    if (loggedInOffset == -1 && !GameManager::get()->m_clickedName) {
+        // adjusts for the sprite asking for your name
+        loggedInOffset++;
+    }
 
-    setIDSafe(this, 2, "username-label");
-    setIDSafe(this, 6 + loggedInOffset, "player-icon");
+    setIDSafe<CCTextInputNode>(this, 0, "username-label");
+    setIDSafe<SimplePlayer>(this, 0, "player-icon");
 
     auto winSize = CCDirector::get()->getWinSize();
 
