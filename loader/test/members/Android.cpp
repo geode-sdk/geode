@@ -33,4 +33,7 @@ GEODE_MEMBER_CHECK(EditorUI, m_updateTimeMarkers, 0x1a4);
 GEODE_MEMBER_CHECK(EditorUI, m_selectedObjects, 0x1bc);
 GEODE_MEMBER_CHECK(EditorUI, m_selectedObject, 0x2c4);
 
+GEODE_MEMBER_CHECK(MoreSearchLayer, m_enterSongID, 0x1E4);
+GEODE_MEMBER_CHECK(MoreSearchLayer, m_songLeftBtn, 0x1D4);
+
 #endif
