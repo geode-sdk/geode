@@ -4174,7 +4174,7 @@ class LevelSearchLayer : cocos2d::CCLayer {
 class LevelSelectLayer : cocos2d::CCLayer {
     static LevelSelectLayer* create(int lvl) = win 0x185500;
     bool init(int lvl) = win 0x1855a0, mac 0x2384e0;
-    static uint colorForPage(int page) = win 0x18aaa0
+    static uint colorForPage(int page) = win 0x18aaa0;
 
     PAD = win 0x10;
     BoomScrollLayer* m_scrollLayer;
