@@ -1,5 +1,8 @@
 # Geode Changelog
 
+## v1.3.10
+ * Panic if decompressString2 fails, to prevent data loss (0787b8f4)
+
 ## v1.3.9
  * Fix followThunkFunction (4b766301)
 
