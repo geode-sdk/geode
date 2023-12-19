@@ -3031,6 +3031,7 @@ class GameLevelManager : cocos2d::CCNode {
     void uploadAccountComment(gd::string text) = win 0xb3250;
     void uploadLevelComment(int levelID, gd::string text, int unk) = win 0xb31c0;
     void uploadComment(gd::string text, CommentType type, int levelID, int unk) = win 0xb32e0;
+    void deleteComment(int commentID, CommentType type, int levelID) = win 0xb41a0;
     void downloadLevel(int id, bool downloadData) = win 0xaa730;
     bool hasDownloadedLevel(int id) = win 0xab830;
     GJGameLevel* getSavedLevel(int id) = win 0xa2ee0;
@@ -6286,9 +6287,14 @@ class LevelTools {
     static bool verifyLevelIntegrity(gd::string, int) = mac 0x294360, win 0x18b180;
     static float xPosForTime(float, cocos2d::CCArray*, int) = mac 0x293d90, win 0x18acd0;
     static float timeForXPos(float, cocos2d::CCArray*, int) = mac 0x293eb0, win 0x18ae70;
-    static gd::string getAudioFileName(int) = mac 0x292840;
-    static gd::string getAudioTitle(int) = mac 0x2922f0;
-    static gd::string artistForAudio(int) = mac 0x292d90;
-    static gd::string urlForAudio(int) = mac 0x292f10;
+    static gd::string getAudioFileName(int) = mac 0x292840, win 0x189fa0;
+    static gd::string getAudioTitle(int) = mac 0x2922f0, win 0x189c60;
+    static int artistForAudio(int) = mac 0x292d90, win 0x18A2D0;
+    static gd::string urlForAudio(int) = mac 0x292f10, win 0x18a4a0;
+    static gd::string nameForArtist(int) = win 0x18A3A0;
+    static gd::string ngURLForArtist(int) = win 0x18A7C0;
+    static gd::string ytURLForArtist(int) = win 0x18A8C0;
+    static gd::string fbURLForArtist(int) = win 0x18A9B0;
+    static gd::string getAudioString(int) = win 0x18AAA0;
 }
 // clang-format on

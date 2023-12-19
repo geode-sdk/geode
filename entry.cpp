@@ -16,5 +16,5 @@ namespace geode {
 
 namespace {
     // to make sure the instance is set into the sharedMod<> in load time
-    static auto mod = geode::getMod(); 
+    static auto mod = geode::getMod();
 }

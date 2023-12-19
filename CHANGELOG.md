@@ -27,6 +27,26 @@
  * Check modified date when unzipping `.geode` files (5c765c6)
  * Only hash markdown files on resource checking (f563c46)
 
+## v1.3.10
+ * Panic if decompressString2 fails, to prevent data loss (0787b8f4)
+
+## v1.3.9
+ * Fix followThunkFunction (4b766301)
+
+## v1.3.8
+ * Implement a save file fix for Windows (391f63ed)
+ * Recursively follow jumps in followThunkFunction (44a018cd)
+ * Remove need for GEODE_DEBUG for crashlogs (e8a326f7)
+ * Some bindings (f18335fa)
+
+## v1.3.7
+ * Fix web download deadlock (16418562)
+ * Set max time for updating index notification (f7962246)
+ * Log geode version on startup (c5550a67)
+ * Fix logic error in addHook (5cf0f3c2)
+ * Improve logging + minor refactors (5083017b)
+ * Some bindings changes
+
 ## v1.3.6
  * Allow error responses in our WebRequest classes (237128bf)
  * Display unhandled C++ exceptions in crash log (fdd78aca, 0d091626, 52421d8c, 0472075f)

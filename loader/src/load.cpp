@@ -60,7 +60,7 @@ $execute {
 int geodeEntry(void* platformData) {
     log::Logger::setup();
 
-    log::info("Entry");
+    log::info("Running {} {}", Mod::get()->getName(), Mod::get()->getVersion());
 
     auto begin = std::chrono::high_resolution_clock::now();
 

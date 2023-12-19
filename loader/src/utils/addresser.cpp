@@ -68,6 +68,19 @@ Addresser::MultipleInheritance* Addresser::instance() {
 
 intptr_t Addresser::followThunkFunction(intptr_t address) {
 #ifdef GEODE_IS_WINDOWS
+    // if theres a jmp at the start
+    if (*reinterpret_cast<uint8_t*>(address) == 0xE9) {
+        auto relative = *reinterpret_cast<uint32_t*>(address + 1);
+        auto newAddress = address + relative + 5;
+        // and if that jmp leads to a jmp dword ptr, only then follow it,
+        // because otherwise its just a hook.
+        // For some reason this [jmp -> jmp dword ptr] chain happens with a few cocos functions,
+        // but not all. For example: cocos2d::ZipUtils::decompressString2
+        if (*reinterpret_cast<uint8_t*>(newAddress) == 0xFF && *reinterpret_cast<uint8_t*>(newAddress + 1) == 0x25) {
+            address = newAddress;
+        }
+    }
+
     // check if first instruction is a jmp dword ptr [....], i.e. if the func is a thunk
     if (*reinterpret_cast<uint8_t*>(address) == 0xFF && *reinterpret_cast<uint8_t*>(address + 1) == 0x25) {
         // read where the jmp reads from

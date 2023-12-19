@@ -690,6 +690,11 @@ Mod* Loader::Impl::getInternalMod() {
     auto& mod = Mod::sharedMod<>;
     if (mod)
         return mod;
+    if (m_mods.contains("geode.loader")) {
+        log::warn("Something went wrong and Mod::sharedMod<> got unset after the internal mod was created! Setting sharedMod back...");
+        mod = m_mods["geode.loader"];
+        return mod;
+    }
     auto infoRes = getModImplInfo();
     if (!infoRes) {
         LoaderImpl::get()->platformMessageBox(
@@ -706,7 +711,6 @@ Mod* Loader::Impl::getInternalMod() {
     }
     mod->m_impl->m_enabled = true;
     m_mods.insert({ mod->getID(), mod });
-    log::debug("Created internal mod {}", mod->getName());
     return mod;
 }
 

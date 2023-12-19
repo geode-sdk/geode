@@ -174,6 +174,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             INDEX_UPDATE_NOTIF = Notification::create(
                 "Updating Index", NotificationIcon::Loading, 0
             );
+            INDEX_UPDATE_NOTIF->setTime(NOTIFICATION_LONG_TIME);
             INDEX_UPDATE_NOTIF->show();
             Index::get()->update();
         }
