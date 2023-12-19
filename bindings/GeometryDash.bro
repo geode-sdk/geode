@@ -2442,7 +2442,7 @@ class GJGameLevel : cocos2d::CCNode {
     void dataLoaded(DS_Dictionary* dict) = mac 0x2dc0e0, win 0xbded0, ios 0x6fca4;
     GJDifficulty getAverageDifficulty() = win 0xbd9b0;
     gd::string getUnpackedLevelDescription() = mac 0x2DDB50, win 0xbf890;
-    gd::string lengthKeyToString(int key) = win 0xbd910;
+    static gd::string lengthKeyToString(int key) = mac 0x2DBBD0, win 0xbd910;
 
     static GJGameLevel* getCurrent() {
         auto playLayer = PlayLayer::get();
@@ -2824,6 +2824,11 @@ class GJSearchObject : cocos2d::CCNode {
 }
 
 [[link(android)]]
+class GJSongBrowser : GJDropDownLayer, FLAlertLayerProtocol {
+    static GJSongBrowser* create(LevelSettingsObject* levelSettingsObject) = mac 0x3685D0, win 0x14CB20;
+}
+
+[[link(android)]]
 class GJSpecialColorSelect {
     static const char* textForColorIdx(int id) = mac 0x383a50, win 0x14e1d0, ios 0x113f6c;
 }
@@ -3049,6 +3054,15 @@ class GameLevelManager : cocos2d::CCNode {
     }
     const char* getAccountCommentKey(int a2, int a3){
         return cocos2d::CCString::createWithFormat("a_%i_%i", a2, a3)->getCString();
+    }
+    bool getBoolForKey(char const* key) {
+        return m_searchFilters->valueForKey(key)->boolValue();
+    }
+    int getIntForKey(char const* key) {
+        return m_searchFilters->valueForKey(key)->intValue();
+    }
+    void setIntForKey(int value, char const* key) {
+        m_searchFilters->setObject(cocos2d::CCString::createWithFormat("%i", value), key);
     }
 
     inline static GameLevelManager* get() {
@@ -4605,10 +4619,20 @@ class MenuLayer : cocos2d::CCLayer, FLAlertLayerProtocol, GooglePlayDelegate {
 class MessageListDelegate {}
 
 [[link(android)]]
-class MoreSearchLayer : FLAlertLayer {
+class MoreSearchLayer : FLAlertLayer, TextInputDelegate {
     static MoreSearchLayer* create() = mac 0x388180, win 0x182520;
     virtual bool init() = mac 0x3896b0, win 0x1825c0;
     void onClose(cocos2d::CCObject*) = mac 0x38aa40, win 0x1848f0;
+    void onSongMode(cocos2d::CCObject*) = mac 0x38b030, win 0x1842d0;
+    void onSongFilter(cocos2d::CCObject*) = mac 0x38aea0, win 0x183e30;
+
+    cocos2d::CCLabelBMFont* m_audioTrackName;
+    CCMenuItemSpriteExtra* m_songLeftBtn;
+    CCMenuItemSpriteExtra* m_songRightBtn;
+    CCMenuItemSpriteExtra* m_normalBtn;
+    CCMenuItemSpriteExtra* m_customBtn;
+    CCTextInputNode* m_enterSongID;
+
 }
 
 [[link(android)]]
@@ -4647,6 +4671,7 @@ class MusicDownloadManager : cocos2d::CCNode, PlatformDownloadDelegate {
     cocos2d::CCArray* getDownloadedSongs() = win 0x195640;
     void songStateChanged() = win 0x194d90;
     void onGetSongInfoCompleted(gd::string, gd::string) = mac 0x2eec60;
+    bool isSongDownloaded(int songID) = mac 0x2F0E10, win 0x195FF0;
 
     cocos2d::CCDictionary* m_unknownDict;
     cocos2d::CCArray* m_handlers;
