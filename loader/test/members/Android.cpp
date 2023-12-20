@@ -20,6 +20,8 @@ GEODE_SIZE_CHECK(CCMenu, 0x154);
 GEODE_SIZE_CHECK(CCMenuItem, 0x12c);
 GEODE_SIZE_CHECK(CCMenuItemSprite, 0x138);
 
+GEODE_SIZE_CHECK(CCScale9Sprite, 0x1a4);
+
 
 // needed classes are ones in the ids folder and some generic ones (i think they are already done though so only ids)
 

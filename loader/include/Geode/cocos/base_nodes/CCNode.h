@@ -1443,6 +1443,9 @@ public:
     RT_REMOVE(  virtual CCAffineTransform nodeToParentTransform(void);          )
     RT_ADD(     virtual const CCAffineTransform nodeToParentTransform(void);    )
 
+    // 2.2 additions
+    virtual const CCAffineTransform nodeToParentTransformFast();
+
     /** 
      * Returns the matrix that transform parent's space coordinates to the node's (local) space coordinates.
      * The matrix is in Pixels.
@@ -1454,6 +1457,9 @@ public:
      * Returns the world affine transform matrix. The matrix is in Pixels.
      */
     virtual CCAffineTransform nodeToWorldTransform(void);
+
+    // 2.2 additions
+    virtual CCAffineTransform nodeToWorldTransformFast();
 
     /** 
      * Returns the inverse world affine transform matrix. The matrix is in Pixels.
@@ -1582,6 +1588,9 @@ public:
 
         CCNode& operator=(const CCNode&);
     )
+
+    // 2.2 additions
+    virtual void updateTweenActionInt(float, int);
 
 private:
     /// lazy allocs
