@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.3.0)
+cmake_minimum_required(VERSION 3.21)
 
 add_library(ProxyLoader SHARED proxyLoader.c)
 target_compile_features(ProxyLoader PUBLIC cxx_std_17)
