@@ -201,6 +201,7 @@ public:
      */
     CCTouchHandler* findHandler(CCTouchDelegate *pDelegate);
 
+private:
     RT_ADD(
         void incrementForcePrio(int priority);
         void decrementForcePrio(int priority);
