@@ -107,7 +107,16 @@ protected:
     unsigned int        m_uAutoReleaseCount;
 
     CCObjectType m_eObjType;
-    int m_nUnknown;
+
+    int m_uIndexInArray; // used in some ccarray stuff, I don't remember what it does rn
+
+    // 2.2 additions
+
+    int m_uUnknown; // -1 by default
+    int m_nZOrder; // moved from CCNode, why rob
+    int m_uOrderOfArrival; // moved from CCNode, why rob
+    int m_unknown4;
+    int m_unknown5;
 public:
 	GEODE_CUSTOM_CONSTRUCTOR_BEGIN(CCObject)
     CCObject(void);

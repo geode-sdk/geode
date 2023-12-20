@@ -77,6 +77,9 @@ public:
     void update(float dt);
     CCActionInterval* reverse();
 
+    // 2.2 addition
+    void updateTargetValue(float);
+
     gd::string        m_strKey;
     float            m_fFrom, m_fTo;
     float            m_fDelta;

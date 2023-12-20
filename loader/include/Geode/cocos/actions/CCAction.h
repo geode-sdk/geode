@@ -113,6 +113,9 @@ public:
     
     RT_ADD(void setSpeedMod(float mod);)
 
+    // 2.2 addition
+    float getSpeedMod();
+
 public:
     /** Create an action */
     static CCAction* create();

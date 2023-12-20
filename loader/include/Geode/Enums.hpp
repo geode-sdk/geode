@@ -2,6 +2,8 @@
 
 #include "DefaultInclude.hpp"
 
+using TodoReturn = void;
+
 // thanks pie
 enum class SearchType {
     Search = 0,
@@ -105,12 +107,57 @@ enum class LikeItemType {
     AccountComment = 3
 };
 
-enum class GJStoreItem {
-};
 enum class CommentError {
 };
 enum class BackupAccountError {
 };
+enum class GJMusicAction {};
+enum class CellAction {};
+enum class GJActionCommand {};
+enum class DifficultyIconType {};
+enum class GauntletType {};
+enum class GJMPErrorCode {};
+enum class GJTimedLevelType {};
+enum class SongSelectType {};
+enum class AudioTargetType {};
+enum class FMODReverbPreset {};
+enum class DemonDifficultyType {};
+enum class PlayerCollisionDirection {};
+enum class ChestSpriteState {};
+enum class FormatterType {};
+enum class AudioModType {};
+enum class FMODQueuedMusic {};
+enum class GJAreaActionType {};
+enum class SFXTriggerState {};
+enum class SongTriggerState {};
+enum class GJGameEvent {};
+enum class GJSmartDirection {};
+enum class SmartBlockType {};
+enum class TouchTriggerControl {};
+enum class SmartPrefabResult {};
+enum class AudioSortType {};
+enum class spriteMode {};
+enum class GJAssetType {};
+enum class CommentKeyType {};
+enum class LevelLeaderboardMode {};
+enum class StatKey {};
+enum class TextStyleType {};
+enum class InputValueType {};
+enum class GJInputStyle {};
+enum class GJDifficultyName {};
+enum class GJFeatureState {};
+enum class GJKeyGroup {};
+enum class GJKeyCommand {};
+enum class SelectSettingType {};
+enum class gjParticleValue {};
+enum class ColorSelectType {};
+enum class AudioGuidelinesType {};
+enum class SmartBrowseFilter {};
+enum class GJUITouchEvent {};
+enum class ObjectScaleType {};
+enum class SavedActiveObjectState {};
+enum class SavedSpecialObjectState {};
+enum class SavedObjectStateRef {};
 
 // Thanks cocoa!
 #ifdef GEODE_IS_MACOS

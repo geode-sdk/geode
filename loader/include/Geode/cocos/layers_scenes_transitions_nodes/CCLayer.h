@@ -186,6 +186,10 @@ public:
     RT_ADD(
         void keyDown(enumKeyCodes);
     )
+
+    // 2.2 additions
+    virtual void setPreviousPriority(int);
+    virtual int getPreviousPriority();
     
     inline CCTouchScriptHandlerEntry* getScriptTouchHandlerEntry() { return m_pScriptTouchHandlerEntry; };
     inline CCScriptHandlerEntry* getScriptKeypadHandlerEntry() { return m_pScriptKeypadHandlerEntry; };
@@ -207,6 +211,9 @@ private:
     
     int m_nTouchPriority;
     ccTouchesMode m_eTouchMode;
+
+    // 2.2 additions
+    int m_uPreviousPriority; // no idea
     
     int  excuteScriptTouchHandler(int nEventType, CCTouch *pTouch);
     int  excuteScriptTouchHandler(int nEventType, CCSet *pTouches);

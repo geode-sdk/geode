@@ -6,7 +6,22 @@ using namespace geode::prelude;
 
 // Add known android struct members here
 
+GEODE_MEMBER_CHECK(CCMenuItemSprite, m_pfnSelector, 0x11c);
+
 GEODE_SIZE_CHECK(CCObject, 0x34);
+GEODE_SIZE_CHECK(CCNode, 0x108);
+GEODE_SIZE_CHECK(CCNodeRGBA, 0x118);
+GEODE_SIZE_CHECK(CCLayer, 0x13c);
+GEODE_SIZE_CHECK(CCLayerRGBA, 0x14c);
+GEODE_SIZE_CHECK(CCLayerColor, 0x1b8);
+GEODE_SIZE_CHECK(CCSprite, 0x1fc);
+
+GEODE_SIZE_CHECK(CCMenu, 0x154);
+GEODE_SIZE_CHECK(CCMenuItem, 0x12c);
+GEODE_SIZE_CHECK(CCMenuItemSprite, 0x138);
+
+GEODE_SIZE_CHECK(CCScale9Sprite, 0x1a4);
+
 
 // needed classes are ones in the ids folder and some generic ones (i think they are already done though so only ids)
 

@@ -117,6 +117,10 @@ target_link_libraries(GeodeFilesystemImpl PUBLIC ghc_filesystem)
 
 # Allow users to have their own copy of bindings that can be overwritten with a CMake option.
 # If the option is not provided, by default just clone bindings with CPM and use that
+if (DEFINED ENV{GEODE_BINDINGS_REPO_PATH})
+	set(GEODE_BINDINGS_REPO_PATH $ENV{GEODE_BINDINGS_REPO_PATH})
+endif()
+
 if (NOT GEODE_BINDINGS_REPO_PATH)
 	if (DEFINED ENV{GEODE_BINDINGS_REPO_PATH})
 		set(GEODE_BINDINGS_REPO_PATH $ENV{GEODE_BINDINGS_REPO_PATH})

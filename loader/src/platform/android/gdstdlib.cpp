@@ -2,9 +2,12 @@
 
 #ifdef GEODE_IS_ANDROID
 
+// 2.2 addition
+// zmx please fix this
+
 namespace geode::base {
     uintptr_t get() {
-        static uintptr_t base = (reinterpret_cast<uintptr_t>(&UILayer::create) - 0x20f168) & (~0x1);
+        static uintptr_t base = (reinterpret_cast<uintptr_t>(&MenuLayer::scene) - 0x2f9068) & (~0x1);
         // static uintptr_t base = reinterpret_cast<uintptr_t>(dlopen("libcocos2dcpp.so", RTLD_NOW));
         return base;
     }
