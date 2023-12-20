@@ -118,15 +118,20 @@ target_link_libraries(GeodeFilesystemImpl PUBLIC ghc_filesystem)
 # Allow users to have their own copy of bindings that can be overwritten with a CMake option.
 # If the option is not provided, by default just clone bindings with CPM and use that
 if (NOT GEODE_BINDINGS_REPO_PATH)
-	message(STATUS 
-		"No override path for bindings provided, using CPM to clone default. "
-		"If you would like to use a separate clone of the bindings repo "
-		"(for example in order to be able to efficiently change and "
-		"contribute new bindings) then set GEODE_BINDINGS_REPO_PATH to where you have "
-		"cloned the repository."
-	)
-	CPMAddPackage("gh:geode-sdk/bindings#2c4e7b9")
-	set(GEODE_BINDINGS_REPO_PATH ${GeodeBindings_SOURCE_DIR})
+	if (DEFINED ENV{GEODE_BINDINGS_REPO_PATH})
+		set(GEODE_BINDINGS_REPO_PATH $ENV{GEODE_BINDINGS_REPO_PATH})
+		message(STATUS "Using ${GEODE_BINDINGS_REPO_PATH} for bindings repo")
+	else()
+		message(STATUS 
+			"No override path for bindings provided, using CPM to clone default. "
+			"If you would like to use a separate clone of the bindings repo "
+			"(for example in order to be able to efficiently change and "
+			"contribute new bindings) then set GEODE_BINDINGS_REPO_PATH to where you have "
+			"cloned the repository (system environment variables are supported)."
+		)
+		CPMAddPackage("gh:geode-sdk/bindings#2c4e7b9")
+		set(GEODE_BINDINGS_REPO_PATH ${GeodeBindings_SOURCE_DIR})
+	endif()
 endif()
 
 include(ExternalProject)
@@ -147,13 +152,13 @@ ExternalProject_Add(CodegenProject
 
 
 file(GLOB CODEGEN_DEPENDS CONFIGURE_DEPENDS 
-	${GEODE_BINDINGS_REPO_PATH}/bindings/*.bro
+	${GEODE_BINDINGS_REPO_PATH}/bindings/2.2/*.bro
 	${GEODE_BINDINGS_REPO_PATH}/codegen/src/*.cpp
 	${GEODE_BINDINGS_REPO_PATH}/codegen/src/*.hpp
 )
 
 if (NOT GEODE_BINDINGS_PATH)
-	set(GEODE_BINDINGS_PATH ${GEODE_BINDINGS_REPO_PATH}/bindings)
+	set(GEODE_BINDINGS_PATH ${GEODE_BINDINGS_REPO_PATH}/bindings/2.2)
 endif()
 
 file(GLOB CODEGEN_OUTPUTS CONFIGURE_DEPENDS 
