@@ -43,3 +43,11 @@ class MenuLayer : cocos2d::CCLayer, FLAlertLayerProtocol, GooglePlayDelegate {
     cocos2d::CCLabelBMFont* m_playerNameLabel;
     CCMenuItemSpriteExtra* m_profileBtn;
 }
+
+class FLAlertLayerProtocol {
+    virtual void FLAlert_Clicked(FLAlertLayer*, bool) {}
+}
+
+class GooglePlayDelegate {
+    virtual void googlePlaySignedIn() {}
+}
