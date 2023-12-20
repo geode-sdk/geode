@@ -240,15 +240,30 @@ namespace geode::utils::file {
 
     /**
      * Prompt the user to pick a file using the system's file system picker
+     * @note Will not work on Android, use the callback version instead
      * @param mode Type of file selection prompt to show
      * @param options Picker options
      */
     GEODE_DLL Result<ghc::filesystem::path> pickFile(PickMode mode, FilePickOptions const& options);
+
+    GEODE_DLL void pickFile(
+        PickMode mode, FilePickOptions const& options,
+        utils::MiniFunction<void(ghc::filesystem::path)> callback,
+        utils::MiniFunction<void()> failed = {}
+    );
+
     /**
      * Prompt the user to pick a bunch of files for opening using the system's file system picker
+     * @note Will not work on Android, use the callback version instead
      * @param options Picker options
      */
     GEODE_DLL Result<std::vector<ghc::filesystem::path>> pickFiles(FilePickOptions const& options);
+
+    GEODE_DLL void pickFiles(
+        FilePickOptions const& options,
+        utils::MiniFunction<void(std::vector<ghc::filesystem::path>)> callback,
+        utils::MiniFunction<void()> failed = {}
+    );
 
     class GEODE_DLL FileWatchEvent : public Event {
     protected:

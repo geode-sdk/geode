@@ -1,7 +1,7 @@
 set(GEODE_CLI_MINIMUM_VERSION 1.0.5)
 
 # Find Geode CLI
-if (NOT DEFINED GEODE_CLI)
+if (NOT DEFINED GEODE_CLI OR GEODE_CLI STREQUAL "GEODE_CLI-NOTFOUND")
     find_program(GEODE_CLI NAMES geode.exe geode-cli.exe geode geode-cli PATHS ${CLI_PATH})
 endif()
 
@@ -51,6 +51,17 @@ function(setup_geode_mod proname)
     # Link Geode to the mod
     target_link_libraries(${proname} geode-sdk)
 
+    if (ANDROID)
+        if (CMAKE_BUILD_TYPE STREQUAL "Release")
+            add_custom_command(
+                TARGET "${PROJECT_NAME}" POST_BUILD
+                DEPENDS "${PROJECT_NAME}"
+                COMMAND $<$<CONFIG:release>:${CMAKE_STRIP}>
+                ARGS -S $<TARGET_FILE:${PROJECT_NAME}>
+            )
+        endif()
+    endif()
+
     if (GEODE_DISABLE_CLI_CALLS)
         message("Skipping setting up geode mod ${proname}")
         return()
@@ -59,7 +70,7 @@ function(setup_geode_mod proname)
     if(GEODE_CLI STREQUAL "GEODE_CLI-NOTFOUND")
         message(FATAL_ERROR
             "setup_geode_mod called, but Geode CLI was not found - "
-            "Please install CLI: https://docs.geode-sdk.org/info/installcli/"
+            "Please install CLI: https://docs.geode-sdk.org/"
         )
         return()
     endif()
@@ -130,9 +141,8 @@ function(setup_geode_mod proname)
         set(HAS_HEADERS Off)
     endif()
 
-    # todo: figure out how to either not make cmake shit itself and print out --binary path/to/dll "" or 
-    # make cli not shit itself when it sees that
-    if (HAS_HEADERS)
+    if (HAS_HEADERS AND WIN32)
+        # this adds the .lib file on windows, which is needed for linking with the headers
         add_custom_target(${proname}_PACKAGE ALL
             DEPENDS ${proname} ${CMAKE_CURRENT_SOURCE_DIR}/mod.json
             COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR} 
@@ -187,6 +197,9 @@ function(setup_geode_mod proname)
                     list(APPEND libs_to_link ${libs})
                 elseif (APPLE)
                     file(GLOB libs ${dir}/*.dylib)
+                    list(APPEND libs_to_link ${libs})
+                elseif (ANDROID)
+                    file(GLOB libs ${dir}/*.so)
                     list(APPEND libs_to_link ${libs})
                 else()
                     message(FATAL_ERROR "Library extension not defined on this platform")
@@ -294,9 +307,10 @@ function(package_geode_resources_now proname src dest header_dest)
         # "LOADER_RESOURCE_FILES {\n"
     )
 
-    list(APPEND HASHED_EXTENSIONS ".png")
-    list(APPEND HASHED_EXTENSIONS ".mp3")
-    list(APPEND HASHED_EXTENSIONS ".ogg")
+    # yeah don't think we need to check too many stuff
+    # list(APPEND HASHED_EXTENSIONS ".png")
+    # list(APPEND HASHED_EXTENSIONS ".mp3")
+    # list(APPEND HASHED_EXTENSIONS ".ogg")
     list(APPEND HASHED_EXTENSIONS ".md")
 
     foreach(file ${RESOURCE_FILES})
@@ -307,6 +321,8 @@ function(package_geode_resources_now proname src dest header_dest)
         if (NOT FILE_NAME STREQUAL ".geode_cache" AND NOT FILE_SHOULD_HASH EQUAL -1)
             
             file(SHA256 ${file} COMPUTED_HASH)
+            file(SIZE ${file} FILE_SIZE)
+            message(STATUS "Hashed ${file} to ${COMPUTED_HASH} (${FILE_SIZE} bytes)")
             list(APPEND HEADER_FILE "\t{ \"${FILE_NAME}\", \"${COMPUTED_HASH}\" },\n")
 
             # list(APPEND HEADER_FILE "\t\"${FILE_NAME}\",\n")

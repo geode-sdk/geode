@@ -4,7 +4,7 @@ set(PROJECT_NAME TestMembers)
 
 project(${PROJECT_NAME} VERSION 1.0.0)
 
-add_library(${PROJECT_NAME} SHARED MacOS.cpp Windows.cpp)
+add_library(${PROJECT_NAME} SHARED MacOS.cpp Windows.cpp Android.cpp)
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
 
 target_include_directories(${PROJECT_NAME} PRIVATE

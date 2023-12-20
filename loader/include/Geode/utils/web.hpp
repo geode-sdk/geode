@@ -194,7 +194,7 @@ namespace geode::utils::web {
          * URL to fetch from the internet asynchronously
          * @param url URL of the data to download. Redirects will be
          * automatically followed
-         * @returns Same AsyncWebRequest
+         * @returns An AsyncWebResponse object
          */
         AsyncWebResponse fetch(std::string const& url);
         /**

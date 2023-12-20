@@ -1,5 +1,89 @@
 # Geode Changelog
 
+## v1.4.0
+ * Add Android support !!!!
+   * Implement every Geode functionality except `utils::file::openFolder`
+   * Requires the Geode launcher in order to be used
+   * Fixes the text input node allowing typing for 1 less character
+   * Uses `logcat` in order to get crash reports, so reopening the game is required to generate them
+   * Broma requires classes to be added `[[link(android)]]` in order to be linked
+   * All Geode and GD files are stored in `Android/data/com.geode.launcher/files`
+     * Game files in `game`, save files in `save`
+ * Allow logging to be disabled per mod (6d599a5)
+ * Mod cells use layouts (114fa46)
+ * MacOS console is now separate (182984d)
+ * Add uninstall button to Geode mod (Only functional in Windows currently) (a738320)
+ * Make new version label invisible on download (0f179da)
+ * Fix the toggling of disabled dependencies (cd89ef1)
+ * Fix spritesheet issues (ef47647)
+ * Change `LoadingLayer` (ef47647)
+ * Make mod info popup top a layout (dd806e0)
+ * Add `GEODE_HIDDEN` to inline unique functions (71a79ab)
+ * Fix big mod icons (26a6c7e)
+ * Fix `CCNode::removeChildByID` export (23cd456)
+ * Make `MDTextArea` fit its size (140f38b)
+ * Enable ESC/Back to go back in Geode mod list (2847bee)
+ * Add `SimpleTextArea` (7f277a7)
+ * Check modified date when unzipping `.geode` files (5c765c6)
+ * Only hash markdown files on resource checking (f563c46)
+
+## v1.3.10
+ * Panic if decompressString2 fails, to prevent data loss (0787b8f4)
+
+## v1.3.9
+ * Fix followThunkFunction (4b766301)
+
+## v1.3.8
+ * Implement a save file fix for Windows (391f63ed)
+ * Recursively follow jumps in followThunkFunction (44a018cd)
+ * Remove need for GEODE_DEBUG for crashlogs (e8a326f7)
+ * Some bindings (f18335fa)
+
+## v1.3.7
+ * Fix web download deadlock (16418562)
+ * Set max time for updating index notification (f7962246)
+ * Log geode version on startup (c5550a67)
+ * Fix logic error in addHook (5cf0f3c2)
+ * Improve logging + minor refactors (5083017b)
+ * Some bindings changes
+
+## v1.3.6
+ * Allow error responses in our WebRequest classes (237128bf)
+ * Display unhandled C++ exceptions in crash log (fdd78aca, 0d091626, 52421d8c, 0472075f)
+ * Fix GEODE_CLI force caching when not found (0a113744)
+ * Only write checksum file after unzipping, fixes inconsistent index state (b4fbea51)
+ * Fix the index notif staying on all the time (c967b520)
+ * Bump minimum required CMake version in codegen (27ed63e7)
+ * Only show update indicator if mod is enabled (8762714c)
+ * Fix FLAlertLayer m_scrollingLayer not being a ScrollingLayer (9694b35d)
+ * Fix gnustl vector dtor (b55e6465, 0bdb0df7)
+ * Loads of bindings changes
+
+## v1.3.5
+ * Follow redirect in web::utils functions (a942a45)
+ * Lots of bindings
+ * Make codegen symbols private visibility (696a2ca)
+ * Add deadstrip to macos (0d62940)
+ * Readd the nullptr check in InstallListPopup::createCells (499f256)
+ * Fix garagelayer ids on not logged in users (dd0179c)
+
+## v1.3.4
+ * Implement string setting character filters (cf8fbba)
+ * Update bindings
+
+## v1.3.3
+ * Reunify resources.zip (81de161)
+
+## v1.3.2
+ * Fix alignment of some textures (8f39c38)
+ * Bring back unknown problems (0663569)
+ * Fix some Windows 7 incompatibility (2d2bdd1)
+ * Remove enabled from the crashlogs (5b7d318)
+ * Make index unzipping async (7c582f1)
+ * Fix mods by developer crashing when mod was toggled (a6a47bf)
+ * Fix nested lists in the markdown (2723588)
+ * Fix search paths (8f39c38, aa55ebe)
+
 ## v1.3.1
  * Fix TulipHook not relocating RIP relative operands on MacOS (6cad19d)
 
@@ -196,7 +280,7 @@ Thank you to [Fleeym](https://github.com/Fleeym/Fleeym) for contributing to this
  * Fix recursive comparison in VersionTag 
  * `geode/unzipped` is now deleted on startup if it exists 
 
-## v1.0.0-beta.9
+## v1.0.0-beta.9
  * Fix multiple modifiers not being able to have fields on same class due to having same field index 
  * Add `Result::ok` and `Result::err` for converting the `Result` into `std::optional` 
 
@@ -264,7 +348,7 @@ Thank you to [Fleeym](https://github.com/Fleeym/Fleeym) for contributing to this
  - Something related to codegen and addresser? I have no clue what it does, so you probably won't have either 
  - MacOS minimum version bumped to 10.14 
 
-## v1.0.0-beta.2
+## v1.0.0-beta.2
  * Fixed bug where `Mod::getSavedValue` would cause a crash due to trying operator on a null JSON value 
  * Fixed bug where loading would crash if one of the mods' binaries failed to load 
 

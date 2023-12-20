@@ -79,6 +79,7 @@ Result<ByteVector> web::fetchBytes(std::string const& url) {
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &ret);
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, utils::fetch::writeBytes);
     auto res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
@@ -118,6 +119,7 @@ Result<std::string> web::fetch(std::string const& url) {
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &ret);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, utils::fetch::writeString);
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
     auto res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
         curl_easy_cleanup(curl);
@@ -185,7 +187,7 @@ static std::unordered_map<std::string, SentAsyncWebRequestHandle> RUNNING_REQUES
 static std::mutex RUNNING_REQUESTS_MUTEX;
 
 SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const& req, std::string const& id) :
-    m_id(id), m_url(req.m_url), m_target(req.m_target), m_extra(req.extra()), m_httpHeaders(req.m_httpHeaders) {
+    m_self(self), m_id(id), m_url(req.m_url), m_target(req.m_target), m_extra(req.extra()), m_httpHeaders(req.m_httpHeaders) {
 
 #define AWAIT_RESUME()    \
     {\
@@ -269,7 +271,7 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
         // Follow redirects
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
         // Fail if response code is 4XX or 5XX
-        curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
+        curl_easy_setopt(curl, CURLOPT_FAILONERROR, 0L); // we will handle http errors manually
 
         // Headers end
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
@@ -294,10 +296,13 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
                     }
                     return 1;
                 }
+
                 Loader::get()->queueInMainThread([self = data->self, now, total]() {
-                    std::lock_guard _(self->m_mutex);
+                    std::unique_lock<std::mutex> l(self->m_mutex);
                     for (auto& prog : self->m_progresses) {
+                        l.unlock();
                         prog(*self->m_self, now, total);
+                        l.lock();
                     }
                 });
                 return 0;
@@ -305,11 +310,16 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
         );
         curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &data);
         auto res = curl_easy_perform(curl);
+        long code = 0;
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &code);
         if (res != CURLE_OK) {
-            long code = 0;
-            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &code);
             curl_easy_cleanup(curl);
             return this->error("Fetch failed: " + std::string(curl_easy_strerror(res)), code);
+        }
+        if (code >= 400 && code < 600) {
+            std::string response_str(ret.begin(), ret.end());
+            curl_easy_cleanup(curl);
+            return this->error(response_str, code);
         }
         curl_easy_cleanup(curl);
 
@@ -320,9 +330,11 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
         m_finished = true;
 
         Loader::get()->queueInMainThread([this, ret]() {
-            std::lock_guard _(m_mutex);
+            std::unique_lock<std::mutex> l(m_mutex);
             for (auto& then : m_thens) {
+                l.unlock();
                 then(*m_self, ret);
+                l.lock();
             }
             std::lock_guard __(RUNNING_REQUESTS_MUTEX);
             RUNNING_REQUESTS.erase(m_id);
@@ -347,9 +359,11 @@ void SentAsyncWebRequest::Impl::doCancel() {
     }
 
     Loader::get()->queueInMainThread([this]() {
-        std::lock_guard _(m_mutex);
+        std::unique_lock<std::mutex> l(m_mutex);
         for (auto& canc : m_cancelleds) {
+            l.unlock();
             canc(*m_self);
+            l.lock();
         }
     });
 
@@ -385,9 +399,11 @@ void SentAsyncWebRequest::Impl::error(std::string const& error, int code) {
     });
     Loader::get()->queueInMainThread([this, error, code]() {
         {
-            std::lock_guard _(m_mutex);
+            std::unique_lock<std::mutex> l(m_mutex);
             for (auto& expect : m_expects) {
+                l.unlock();
                 expect(error, code);
+                l.lock();
             }
         }
         std::lock_guard _(RUNNING_REQUESTS_MUTEX);

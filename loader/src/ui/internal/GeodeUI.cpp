@@ -17,18 +17,13 @@ void geode::openIssueReportPopup(Mod* mod) {
     if (mod->getMetadata().getIssues()) {
         MDPopup::create(
             "Issue Report",
-            mod->getMetadata().getIssues().value().info +
-                "\n\n"
+                "Please report the issue to the mod that caused the crash.\n"
                 "If your issue relates to a <cr>game crash</c>, <cb>please include</c> the "
                 "latest crash log(s) from `" +
                 dirs::getCrashlogsDir().string() + "`",
-            "OK", (mod->getMetadata().getIssues().value().url ? "Open URL" : ""),
+            "OK", "Open Folder",
             [mod](bool btn2) {
-                if (btn2) {
-                    web::openLinkInBrowser(
-                        mod->getMetadata().getIssues().value().url.value()
-                    );
-                }
+                file::openFolder(dirs::getCrashlogsDir());
             }
         )->show();
     }

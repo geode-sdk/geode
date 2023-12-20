@@ -51,7 +51,8 @@ inline bool is_cocos_class(std::string const& str) {
 enum class BindStatus {
     Binded,
     NeedsBinding,
-    Unbindable
+    Unbindable,
+    Missing,
 };
 
 struct codegen_error : std::runtime_error {
@@ -91,7 +92,7 @@ namespace codegen {
 
     inline Platform platform;
 
-    inline uintptr_t platformNumberWithPlatform(Platform p, PlatformNumber const& pn) {
+    inline ptrdiff_t platformNumberWithPlatform(Platform p, PlatformNumber const& pn) {
         switch (p) {
             case Platform::Mac: return pn.mac;
             case Platform::Windows: return pn.win;
@@ -102,7 +103,7 @@ namespace codegen {
         }
     }
 
-    inline uintptr_t platformNumber(PlatformNumber const& p) {
+    inline ptrdiff_t platformNumber(PlatformNumber const& p) {
         return platformNumberWithPlatform(codegen::platform, p);
     }
 
@@ -114,19 +115,33 @@ namespace codegen {
     }
 
     inline BindStatus getStatusWithPlatform(Platform p, Field const& field) {
+        if ((field.missing & p) != Platform::None) return BindStatus::Missing;
+
         if (auto fn = field.get_as<FunctionBindField>()) {
-            if ((fn->links & p) != Platform::None) return BindStatus::Binded;
-            if (platformNumberWithPlatform(p, fn->binds)) return BindStatus::NeedsBinding;
+            if ((field.links & p) != Platform::None) return BindStatus::Binded;
+            if (platformNumberWithPlatform(p, fn->binds) != -1) return BindStatus::NeedsBinding;
         }
 
         return BindStatus::Unbindable;
     }
 
     inline BindStatus getStatusWithPlatform(Platform p, Function const& f) {
+        if ((f.missing & p) != Platform::None) return BindStatus::Missing;
+
         if ((f.links & p) != Platform::None) return BindStatus::Binded;
-        if (platformNumberWithPlatform(p, f.binds)) return BindStatus::NeedsBinding;
+        if (platformNumberWithPlatform(p, f.binds) != -1) return BindStatus::NeedsBinding;
 
         return BindStatus::Unbindable;
+    }
+
+    inline bool shouldAndroidBind(const FunctionBindField* fn) {
+        if (codegen::platform == Platform::Android) {
+            if (fn->prototype.type != FunctionType::Normal) return true;
+            for (auto& [type, name] : fn->prototype.args) {
+                if (can_find(type.name, "gd::")) return true;
+            }
+        }
+        return false;
     }
 
     inline BindStatus getStatus(Field const& field) {

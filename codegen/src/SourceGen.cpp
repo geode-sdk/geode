@@ -135,6 +135,8 @@ std::string generateBindingSource(Root const& root) {
 	std::string output(format_strings::source_start);
 
 	for (auto& f : root.functions) {
+		if (codegen::getStatus(f) == BindStatus::Missing) continue;
+
         if (codegen::getStatus(f) != BindStatus::NeedsBinding) {
             continue;
         }
@@ -153,11 +155,13 @@ std::string generateBindingSource(Root const& root) {
 	for (auto& c : root.classes) {
 
 		for (auto& f : c.fields) {
+			if (codegen::getStatus(f) == BindStatus::Missing) continue;
+
 			if (auto i = f.get_as<InlineField>()) {
 				// yeah there are no inlines on cocos
 			} 
 			else if (auto fn = f.get_as<OutOfLineField>()) {
-				if ((c.links & codegen::platform) != Platform::None) {
+				if (is_cocos_class(c.name) && (c.links & codegen::platform) != Platform::None) {
 					continue;
 				}
 				if (codegen::getStatus(f) != BindStatus::Unbindable) {
@@ -193,15 +197,15 @@ std::string generateBindingSource(Root const& root) {
 
 				if (
 					codegen::getStatus(f) == BindStatus::Unbindable && 
-					!codegen::platformNumber(fn->binds) && 
+					codegen::platformNumber(fn->binds) == -1 && 
 					fn->prototype.is_virtual && fn->prototype.type != FunctionType::Dtor
 				) {
 					used_declare_format = format_strings::declare_virtual_error;
 				}
-				else if (codegen::getStatus(f) != BindStatus::NeedsBinding) {
+				else if (codegen::getStatus(f) != BindStatus::NeedsBinding && !codegen::shouldAndroidBind(fn)) {
 					continue;
 				}
-				
+
 
 				if (!used_declare_format) {
 					switch (fn->prototype.type) {

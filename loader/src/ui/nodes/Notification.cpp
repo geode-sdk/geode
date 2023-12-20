@@ -173,7 +173,6 @@ void Notification::show() {
             auto winSize = CCDirector::get()->getWinSize();
             this->setPosition(winSize.width / 2, winSize.height / 4);
             this->setZOrder(CCScene::get()->getHighestChildZ() + 100);
-            CCScene::get()->addChild(this);
         }
         SceneManager::get()->keepAcrossScenes(this);
         m_showing = true;

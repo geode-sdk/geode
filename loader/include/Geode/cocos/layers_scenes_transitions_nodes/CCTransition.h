@@ -90,6 +90,7 @@ protected:
     bool    m_bIsSendCleanupToScene;
 
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTransitionScene, CCScene)
     /**
      *  @js ctor
      */
@@ -147,6 +148,7 @@ public:
      *  @js ctor
      */
     CCTransitionSceneOriented();
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTransitionSceneOriented, CCTransitionScene)
     /**
      *  @js NA
      *  @lua NA
@@ -171,6 +173,7 @@ public:
      *  @js ctor
      */
     CCTransitionRotoZoom();
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTransitionRotoZoom, CCTransitionScene)
     /**
      *  @js NA
      *  @lua NA
@@ -623,6 +626,7 @@ public:
      *  @js ctor
      */
     CCTransitionFade();
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTransitionFade, CCTransitionScene)
     /**
      *  @js NA
      *  @lua NA

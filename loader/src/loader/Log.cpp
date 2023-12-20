@@ -113,6 +113,36 @@ std::string Log::toString(bool logTime, uint32_t nestLevel) const {
         res += fmt::format("{:%H:%M:%S}", m_time);
     }
 
+    switch (m_severity.m_value) {
+        case Severity::Debug:
+            res += " DBG";
+            break;
+        case Severity::Info:
+            res += " INF";
+            break;
+        case Severity::Notice:
+            res += " NTC";
+            break;
+        case Severity::Warning:
+            res += " WRN";
+            break;
+        case Severity::Error:
+            res += " ERR";
+            break;
+        case Severity::Critical:
+            res += " CRT";
+            break;
+        case Severity::Alert:
+            res += " ALR";
+            break;
+        case Severity::Emergency:
+            res += " FAT";
+            break;
+        default:
+            res += " UNK";
+            break;
+    }
+
     res += fmt::format(" [{}]: ", m_sender ? m_sender->getName() : "Geode?");
 
     for (uint32_t i = 0; i < nestLevel; i++) {

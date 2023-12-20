@@ -1,10 +1,10 @@
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
 project(Codegen LANGUAGES C CXX)
 
 include(../cmake/CPM.cmake)
 
 CPMAddPackage("gh:fmtlib/fmt#9.1.0")
-CPMAddPackage("gh:geode-sdk/Broma#460f82d")
+CPMAddPackage("gh:geode-sdk/Broma#38a3bba")
 
 file(GLOB SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp

@@ -13,7 +13,6 @@
 #include <Geode/utils/ranges.hpp>
 #include <Geode/utils/MiniFunction.hpp>
 #include "ModImpl.hpp"
-#include <about.hpp>
 #include <crashlog.hpp>
 #include <mutex>
 #include <optional>
@@ -59,7 +58,7 @@ namespace geode {
         std::vector<ghc::filesystem::path> m_modSearchDirectories;
         std::vector<LoadProblem> m_problems;
         std::unordered_map<std::string, Mod*> m_mods;
-        std::queue<Mod*> m_modsToLoad;
+        std::deque<Mod*> m_modsToLoad;
         std::vector<ghc::filesystem::path> m_texturePaths;
         bool m_isSetup = false;
 
@@ -72,7 +71,7 @@ namespace geode {
 
         std::vector<utils::MiniFunction<void(void)>> m_gdThreadQueue;
         mutable std::mutex m_gdThreadMutex;
-        std::vector<std::pair<Hook*, Mod*>> m_internalHooks;
+        std::vector<std::pair<Hook*, Mod*>> m_uninitializedHooks;
         bool m_readyToHook = false;
 
         bool m_platformConsoleOpen = false;
@@ -83,6 +82,14 @@ namespace geode {
         std::condition_variable m_nextModCV;
         std::mutex m_nextModAccessMutex;
         Mod* m_nextMod = nullptr;
+
+        Mod* m_currentlyLoadingMod = nullptr;
+
+        int m_refreshingModCount = 0;
+        int m_refreshedModCount = 0;
+        int m_lateRefreshedModCount = 0;
+
+        std::chrono::time_point<std::chrono::high_resolution_clock> m_timerBegin;
 
         void provideNextMod(Mod* mod);
         Mod* takeNextMod();
@@ -166,9 +173,9 @@ namespace geode {
         bool isNewUpdateDownloaded() const;
 
         bool isReadyToHook() const;
-        void addInternalHook(Hook* hook, Mod* mod);
+        void addUninitializedHook(Hook* hook, Mod* mod);
 
-        Mod* createInternalMod();
+        Mod* getInternalMod();
         Result<> setupInternalMod();
 
         bool userTriedToLoadDLLs() const;

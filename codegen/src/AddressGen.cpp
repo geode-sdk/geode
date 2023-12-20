@@ -1,4 +1,5 @@
 #include "Shared.hpp"
+#include "AndroidSymbol.hpp"
 
 namespace {
     namespace format_strings {
@@ -78,6 +79,8 @@ std::string generateAddressHeader(Root const& root) {
     output += format_strings::address_begin;
 
     for (auto& f : root.functions) {
+        if (codegen::getStatus(f) == BindStatus::Missing) continue;
+
         std::string address_str;
 
         if (codegen::getStatus(f) == BindStatus::Binded) {
@@ -103,6 +106,8 @@ std::string generateAddressHeader(Root const& root) {
 
     for (auto& c : root.classes) {
         for (auto& field : c.fields) {
+            if (codegen::getStatus(field) == BindStatus::Missing) continue;
+
             std::string address_str;
 
             auto fn = field.get_as<FunctionBindField>();
@@ -111,14 +116,20 @@ std::string generateAddressHeader(Root const& root) {
                 continue;
             }
 
-            
-            if (codegen::getStatus(field) == BindStatus::NeedsBinding || codegen::platformNumber(field)) {
+            if (codegen::getStatus(field) == BindStatus::NeedsBinding || codegen::platformNumber(field) != -1) {
                 if (is_cocos_class(field.parent) && codegen::platform == Platform::Windows) {
                     address_str = fmt::format("base::getCocos() + 0x{:x}", codegen::platformNumber(fn->binds));
                 }
                 else {
                     address_str = fmt::format("base::get() + 0x{:x}", codegen::platformNumber(fn->binds));
                 }
+            }
+            else if (codegen::shouldAndroidBind(fn)) {
+                auto const mangled = generateAndroidSymbol(c, fn);
+                address_str = fmt::format( // thumb
+                    "reinterpret_cast<uintptr_t>(dlsym(dlopen(\"libcocos2dcpp.so\", RTLD_NOW), \"{}\"))",
+                    mangled
+                );
             }
             else if (codegen::getStatus(field) == BindStatus::Binded && fn->prototype.type == FunctionType::Normal) {
                 address_str = fmt::format(

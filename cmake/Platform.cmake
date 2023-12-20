@@ -51,6 +51,10 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
 		${GEODE_LOADER_PATH}/include/link/libfmod.dylib
 	)
 
+	target_compile_definitions(${PROJECT_NAME} INTERFACE
+		-DCommentType=CommentTypeDummy
+	)
+
 	set(GEODE_PLATFORM_BINARY "Geode.dylib")
 
 elseif (GEODE_TARGET_PLATFORM STREQUAL "Win32")
@@ -78,10 +82,10 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android")
 	)
 
 	target_link_libraries(${PROJECT_NAME} INTERFACE
-		${GEODE_LOADER_PATH}/include/link/android/libcocos2dcpp.so
 		${GEODE_LOADER_PATH}/include/link/android/libcurl.a
 		${GEODE_LOADER_PATH}/include/link/android/libssl.a
 		${GEODE_LOADER_PATH}/include/link/android/libcrypto.a
+		${GEODE_LOADER_PATH}/include/link/android/libcocos2dcpp.so
 		log
 	)
 

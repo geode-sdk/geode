@@ -109,8 +109,8 @@ bool MDTextArea::init(std::string const& str, CCSize const& size) {
     if (!CCLayer::init()) return false;
 
     m_text = str;
-    m_size = size;
-    this->setContentSize(size);
+    m_size = size - CCSize { 15.f, 0.f };
+    this->setContentSize(m_size);
     m_renderer = TextRenderer::create();
     CC_SAFE_RETAIN(m_renderer);
 
@@ -118,8 +118,8 @@ bool MDTextArea::init(std::string const& str, CCSize const& size) {
     m_bgSprite->setScale(.5f);
     m_bgSprite->setColor({ 0, 0, 0 });
     m_bgSprite->setOpacity(75);
-    m_bgSprite->setContentSize(size * 2 + CCSize { 25.f, 25.f });
-    m_bgSprite->setPosition(size / 2);
+    m_bgSprite->setContentSize(size * 2);
+    m_bgSprite->setPosition(m_size / 2);
     this->addChild(m_bgSprite);
 
     m_scrollLayer = ScrollLayer::create({ 0, 0, m_size.width, m_size.height }, true);
@@ -695,7 +695,16 @@ void MDTextArea::updateLabel() {
 
     m_renderer->end();
 
-    m_scrollLayer->m_contentLayer->setContentSize(m_content->getContentSize());
+    if (m_content->getContentSize().height > m_size.height) {
+        // Generate bottom padding
+        m_scrollLayer->m_contentLayer->setContentSize(m_content->getContentSize() + CCSize { 0.f, 12.5 });
+        m_content->setPositionY(10.f);
+    } else {
+        m_scrollLayer->m_contentLayer->setContentSize(m_content->getContentSize());
+        m_content->setPositionY(-2.5f);
+    }
+
+    
     m_scrollLayer->moveToTop();
 }
 

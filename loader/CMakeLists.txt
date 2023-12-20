@@ -27,10 +27,13 @@ execute_process(
 )
 
 # Package info file for internal representation
+set(GEODE_RESOURCES_PATH ${CMAKE_CURRENT_SOURCE_DIR}/resources)
 configure_file(resources/mod.json.in ${CMAKE_CURRENT_SOURCE_DIR}/resources/mod.json)
 file(READ resources/mod.json LOADER_MOD_JSON)
-configure_file(${GEODE_ROOT_PATH}/VERSION ${CMAKE_CURRENT_SOURCE_DIR}/resources/version COPYONLY)
-configure_file(${GEODE_ROOT_PATH}/CHANGELOG.md ${CMAKE_CURRENT_SOURCE_DIR}/resources/changelog.md COPYONLY)
+configure_file(${GEODE_ROOT_PATH}/VERSION ${GEODE_RESOURCES_PATH}/version COPYONLY)
+configure_file(${GEODE_RESOURCES_PATH}/about.md.in ${GEODE_RESOURCES_PATH}/about.md NEWLINE_STYLE LF)
+configure_file(${GEODE_ROOT_PATH}/CHANGELOG.md ${GEODE_RESOURCES_PATH}/changelog.md NEWLINE_STYLE LF)
+configure_file(${GEODE_RESOURCES_PATH}/support.md.in ${GEODE_RESOURCES_PATH}/support.md NEWLINE_STYLE LF)
 configure_file(src/internal/about.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/src/internal/about.hpp)
 
 # Source files
@@ -144,6 +147,11 @@ package_geode_resources_now(
 if (APPLE) 
 	# I don't care a single bit where to put this
 	file(COPY ${GEODE_LOADER_PATH}/include/link/libfmod.dylib DESTINATION ${GEODE_BIN_PATH}/nightly)
+endif()
+
+if (ANDROID)
+	# needed to define some opengl functions
+	target_link_libraries(${PROJECT_NAME} EGL)
 endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE

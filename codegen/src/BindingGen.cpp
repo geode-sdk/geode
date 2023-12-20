@@ -131,6 +131,8 @@ std::string generateBindingHeader(Root const& root, ghc::filesystem::path const&
         single_output += format_strings::class_includes;
 
         for (auto& f : root.functions) {
+            if (codegen::getStatus(f) == BindStatus::Missing) continue;
+
             FunctionProto const* fb = &f.prototype;
             char const* used_format = format_strings::function_definition;
 
@@ -185,7 +187,8 @@ std::string generateBindingHeader(Root const& root, ghc::filesystem::path const&
 
         single_output += fmt::format(::format_strings::class_start,
             fmt::arg("class_name", cls.name),
-            fmt::arg("base_classes", supers)
+            fmt::arg("base_classes", supers)//,
+            // fmt::arg("hidden", str_if("GEODE_HIDDEN ", (codegen::platform & (Platform::Mac | Platform::iOS)) != Platform::None))
         );
 
         // what.
@@ -201,6 +204,8 @@ std::string generateBindingHeader(Root const& root, ghc::filesystem::path const&
 
         bool unimplementedField = false;
         for (auto field : cls.fields) {
+            if (codegen::getStatus(field) == BindStatus::Missing) continue;
+
             MemberFunctionProto* fb;
             char const* used_format = format_strings::function_definition;
 
@@ -220,9 +225,13 @@ std::string generateBindingHeader(Root const& root, ghc::filesystem::path const&
             } else if (auto p = field.get_as<PadField>()) {
                 auto hardcode = codegen::platformNumber(p->amount);
 
-                if (hardcode) {
+                if (hardcode > 0) {
                     single_output += fmt::format(format_strings::pad_definition, fmt::arg("hardcode", hardcode));
-                } else {
+                } 
+                else if (hardcode == 0) {
+                    single_output += "    // no padding\n";
+                }
+                else {
                     unimplementedField = true;
                 }
                 continue;
@@ -233,7 +242,7 @@ std::string generateBindingHeader(Root const& root, ghc::filesystem::path const&
             } else if (auto fn = field.get_as<FunctionBindField>()) {
                 fb = &fn->prototype;
 
-                if (!codegen::platformNumber(fn->binds)) {
+                if (codegen::platformNumber(fn->binds) == -1 && codegen::getStatus(field) != BindStatus::Binded) {
                     used_format = format_strings::error_definition;
 
                     if (fb->type != FunctionType::Normal)

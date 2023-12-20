@@ -71,8 +71,8 @@ set(GEODE_BIN_PATH ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 set(GEODE_LOADER_PATH ${CMAKE_CURRENT_SOURCE_DIR}/loader)
 set(GEODE_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 
-include(cmake/GeodeFile.cmake)
 include(cmake/Platform.cmake)
+include(cmake/GeodeFile.cmake)
 include(cmake/CPM.cmake)
 
 if (PROJECT_IS_TOP_LEVEL AND NOT GEODE_BUILDING_DOCS)
@@ -96,7 +96,7 @@ if (PROJECT_IS_TOP_LEVEL AND NOT GEODE_BUILDING_DOCS)
 	set(TULIP_LINK_SOURCE ON)
 endif()
 set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "" FORCE)
-CPMAddPackage("gh:geode-sdk/TulipHook#3423a29")
+CPMAddPackage("gh:geode-sdk/TulipHook#d2132de")
 set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
 
 # Silence warnings from dependencies
@@ -185,7 +185,17 @@ target_include_directories(GeodeCodegenSources PRIVATE
 	${GEODE_LOADER_PATH}/include/Geode/cocos/extensions
 	${GEODE_LOADER_PATH}/include/Geode/fmod
 )
+set_target_properties(GeodeCodegenSources PROPERTIES CXX_VISIBILITY_PRESET hidden)
 target_compile_features(GeodeCodegenSources PUBLIC cxx_std_20)
+
+if (APPLE)
+	target_compile_options(GeodeCodegenSources PUBLIC -ffunction-sections -fdata-sections)
+	target_link_options(GeodeCodegenSources PUBLIC -dead_strip)
+elseif(ANDROID)
+	target_compile_options(GeodeCodegenSources PUBLIC -ffunction-sections -fdata-sections)
+	target_link_options(GeodeCodegenSources PUBLIC -Wl,--gc-sections)
+endif()
+
 if (NOT GEODE_DISABLE_PRECOMPILED_HEADERS)
 	target_precompile_headers(GeodeCodegenSources INTERFACE
 		"${GEODE_LOADER_PATH}/include/Geode/Bindings.hpp"
@@ -216,6 +226,11 @@ if (${GEODE_LINK_NIGHTLY})
 	set(GEODE_PLATFORM_BIN_PATH ${GEODE_BIN_PATH}/nightly/${GEODE_PLATFORM_BINARY})
 else()
 	set(GEODE_PLATFORM_BIN_PATH ${GEODE_BIN_PATH}/${PROJECT_VERSION}/${GEODE_PLATFORM_BINARY})
+endif()
+
+if (WIN32)
+	# This allows you to compile in debug mode
+	add_compile_definitions(_HAS_ITERATOR_DEBUGGING=0)
 endif()
 
 

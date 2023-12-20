@@ -75,6 +75,9 @@ namespace geode {
         Result<> unloadPlatformBinary();
         Result<> createTempDir();
 
+        // called on a separate thread
+        Result<> unzipGeodeFile(ModMetadata metadata);
+
         void setupSettings();
 
         std::string getID() const;
