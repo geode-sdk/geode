@@ -141,6 +141,23 @@ enum class GJAssetType {};
 enum class CommentKeyType {};
 enum class LevelLeaderboardMode {};
 enum class StatKey {};
+enum class TextStyleType {};
+enum class InputValueType {};
+enum class GJInputStyle {};
+enum class GJDifficultyName {};
+enum class GJFeatureState {};
+enum class GJKeyGroup {};
+enum class GJKeyCommand {};
+enum class SelectSettingType {};
+enum class gjParticleValue {};
+enum class ColorSelectType {};
+enum class AudioGuidelinesType {};
+enum class SmartBrowseFilter {};
+enum class GJUITouchEvent {};
+enum class ObjectScaleType {};
+enum class SavedActiveObjectState {};
+enum class SavedSpecialObjectState {};
+enum class SavedObjectStateRef {};
 
 // Thanks cocoa!
 #ifdef GEODE_IS_MACOS
