@@ -2,6 +2,8 @@
 
 #include "DefaultInclude.hpp"
 
+using TodoReturn = void;
+
 // thanks pie
 enum class SearchType {
     Search = 0,
@@ -105,12 +107,30 @@ enum class LikeItemType {
     AccountComment = 3
 };
 
-enum class GJStoreItem {
-};
 enum class CommentError {
 };
 enum class BackupAccountError {
 };
+enum class GJMusicAction {};
+enum class CellAction {};
+enum class GJActionCommand {};
+enum class DifficultyIconType {};
+enum class GauntletType {};
+enum class GJMPErrorCode {};
+enum class GJTimedLevelType {};
+enum class SongSelectType {};
+enum class AudioTargetType {};
+enum class FMODReverbPreset {};
+enum class DemonDifficultyType {};
+enum class PlayerCollisionDirection {};
+enum class ChestSpriteState {};
+enum class FormatterType {};
+enum class AudioModType {};
+enum class FMODQueuedMusic {};
+enum class GJAreaActionType {};
+enum class SFXTriggerState {};
+enum class SongTriggerState {};
+enum class GJGameEvent {};
 
 // Thanks cocoa!
 #ifdef GEODE_IS_MACOS
