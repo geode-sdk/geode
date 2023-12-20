@@ -17,5 +17,5 @@ class LoadingLayer : cocos2d::CCLayer {
         return scene;
     }
 
-    bool m_fromRefresh ;
+    bool m_fromRefresh;
 }
