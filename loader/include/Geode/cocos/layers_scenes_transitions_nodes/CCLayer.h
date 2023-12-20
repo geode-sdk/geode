@@ -207,6 +207,9 @@ private:
     
     int m_nTouchPriority;
     ccTouchesMode m_eTouchMode;
+
+    // 2.2 additions
+    int m_unknown; // no idea
     
     int  excuteScriptTouchHandler(int nEventType, CCTouch *pTouch);
     int  excuteScriptTouchHandler(int nEventType, CCSet *pTouches);

@@ -6,6 +6,8 @@ using namespace geode::prelude;
 
 // Add known android struct members here
 
+GEODE_MEMBER_CHECK(CCMenuItemSprite, m_pfnSelector, 0x11c);
+
 GEODE_SIZE_CHECK(CCObject, 0x34);
 GEODE_SIZE_CHECK(CCNode, 0x108);
 GEODE_SIZE_CHECK(CCNodeRGBA, 0x118);
