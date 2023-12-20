@@ -90,6 +90,9 @@ public:
     void setAmplitudeRate(float amp);
     float getAmplitudeRate(void);
 
+    // 2.2 addition
+    bool getM_bFirstTick(); // rob were you like high on something when you wrote this
+
 protected:
     float m_elapsed;
     bool   m_bFirstTick;
@@ -940,6 +943,12 @@ public:
     virtual void stop(void);
     virtual void update(float t);
     virtual CCActionInterval* reverse(void);
+
+    // 2.2 addition
+    bool getRecenterChildren() const;
+	bool getRecenterFrames() const;
+    void setRecenterChildren(bool recenter);
+    void setRecenterFrames(bool recenter);
 
 public:
     /** creates the action with an Animation and will restore the original frame when the animation is over */
