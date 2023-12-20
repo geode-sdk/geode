@@ -429,7 +429,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
     else {
         std::thread([=]() {
             auto res = unzipFunction();
-            queueInMainThread([=]() {
+            queueInMainThread([=, this]() {
                 if (!res) {
                     m_problems.push_back({
                         LoadProblem::Type::UnzipFailed,
@@ -812,7 +812,7 @@ void Loader::Impl::downloadLoaderResources(bool useLatestRelease) {
                 this->getVersion().toString()
             ), true);  
         })
-        .expect([=](std::string const& info, int code) {
+        .expect([=, this](std::string const& info, int code) {
             if (code == 404) {
                 if (useLatestRelease) {
                     log::debug("Loader version {} does not exist on Github, downloading latest resources", this->getVersion().toString());

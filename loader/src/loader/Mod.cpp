@@ -44,20 +44,8 @@ bool Mod::isEnabled() const {
     return m_impl->isEnabled();
 }
 
-bool Mod::isLoaded() const {
-    return this->isEnabled();
-}
-
 bool Mod::supportsDisabling() const {
     return m_impl->supportsDisabling();
-}
-
-bool Mod::canDisable() const {
-    return true;
-}
-
-bool Mod::canEnable() const {
-    return true;
 }
 
 bool Mod::needsEarlyLoad() const {
@@ -65,7 +53,7 @@ bool Mod::needsEarlyLoad() const {
 }
 
 bool Mod::wasSuccessfullyLoaded() const {
-    return m_impl->wasSuccessfullyLoaded();
+    return this->isEnabled();
 }
 
 ModMetadata Mod::getMetadata() const {

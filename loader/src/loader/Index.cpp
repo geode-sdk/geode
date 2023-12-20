@@ -745,7 +745,7 @@ void Index::Impl::installNext(size_t index, IndexInstallList const& list) {
         .join("install_item_" + item->getMetadata().getID())
         .fetch(item->getDownloadURL())
         .into(tempFile)
-        .then([=](auto) {
+        .then([=, this](auto) {
             // Check for 404
             auto notFound = utils::file::readString(tempFile);
             if (notFound && notFound.unwrap() == "Not Found") {

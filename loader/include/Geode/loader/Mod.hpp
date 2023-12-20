@@ -84,10 +84,7 @@ namespace geode {
         ghc::filesystem::path getPackagePath() const;
         VersionInfo getVersion() const;
         bool isEnabled() const;
-        [[deprecated("use isEnabled instead")]] bool isLoaded() const;
         bool supportsDisabling() const;
-        [[deprecated("always true")]] bool canDisable() const;
-        [[deprecated("always true")]] bool canEnable() const;
         bool needsEarlyLoad() const;
         bool wasSuccessfullyLoaded() const;
         ModMetadata getMetadata() const;
