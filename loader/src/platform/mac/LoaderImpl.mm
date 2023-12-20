@@ -4,8 +4,15 @@
 #include <loader/LoaderImpl.hpp>
 #include <loader/ModImpl.hpp>
 #import <Foundation/Foundation.h>
+#include <sys/stat.h>
 
 using namespace geode::prelude;
+
+struct MacConsoleData {
+    std::string logFile;
+    std::string scriptFile;
+    int logFd;
+};
 
 void Loader::Impl::platformMessageBox(char const* title, std::string const& info) {
     CFStringRef cfTitle = CFStringCreateWithCString(NULL, title, kCFStringEncodingUTF8);
@@ -33,9 +40,43 @@ void Loader::Impl::logConsoleMessageWithSeverity(std::string const& msg, Severit
 }
 
 void Loader::Impl::openPlatformConsole() {
-    // it's not possible to redirect stdout to a terminal
-    // and the console.app is too clunky
-    
+    if (m_platformConsoleOpen) return;
+
+    std::string outFile = "/tmp/command_output_XXXXXX";
+    int outFd = mkstemp(&outFile[0]);
+
+    auto script = outFile + ".command";
+    auto scriptContent = fmt::format(R"(
+        #!/bin/sh
+        echo -n -e "\033]0;Geode Console {}\007"
+        tail -f {} &
+        trap "" SIGINT
+        lsof -p {} +r 1 &>/dev/null
+        pkill -P $$
+        osascript -e 'tell application "Terminal"
+            close (every window whose name contains "Geode Console {}")
+            if (count windows) is 0 then quit
+        end tell' &
+        exit
+    )", getpid(), outFile, getpid(), getpid());
+
+    if (file::writeString(script, scriptContent)) {
+        chmod(script.c_str(), 0777);
+        dup2(outFd, 1);
+        dup2(outFd, 2);
+
+        NSTask* task = [[NSTask alloc] init];
+        task.launchPath = @"/usr/bin/open";
+        task.arguments = @[[NSString stringWithUTF8String:script.c_str()]];
+        [task launch];
+
+        m_platformData = new MacConsoleData {
+            outFile,
+            script,
+            outFd
+        };
+    }
+
     m_platformConsoleOpen = true;
 
     for (auto const& log : log::Logger::list()) {
@@ -44,6 +85,16 @@ void Loader::Impl::openPlatformConsole() {
 }
 
 void Loader::Impl::closePlatformConsole() {
+    if (m_platformData) {
+        auto consoleData = reinterpret_cast<MacConsoleData*>(m_platformData);
+        close(consoleData->logFd);
+        unlink(consoleData->logFile.c_str());
+        unlink(consoleData->scriptFile.c_str());
+
+        delete consoleData;
+        m_platformData = nullptr;
+    }
+
     m_platformConsoleOpen = false;
 }
 

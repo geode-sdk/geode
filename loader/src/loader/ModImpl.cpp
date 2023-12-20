@@ -3,6 +3,7 @@
 #include "ModMetadataImpl.hpp"
 #include "about.hpp"
 
+#include <hash/hash.hpp>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/Hook.hpp>
 #include <Geode/loader/Loader.hpp>
@@ -44,7 +45,8 @@ Result<> Mod::Impl::setup() {
     }
     if (!m_resourcesLoaded) {
         auto searchPathRoot = dirs::getModRuntimeDir() / m_metadata.getID() / "resources";
-        CCFileUtils::get()->addSearchPath(searchPathRoot.string().c_str());
+        // CCFileUtils::get()->addSearchPath(searchPathRoot.string().c_str());
+
         m_resourcesLoaded = true;
     }
 
@@ -378,12 +380,20 @@ Result<> Mod::Impl::disable() {
     return Ok();
 }
 
-Result<> Mod::Impl::uninstall() {
+Result<> Mod::Impl::uninstall(bool deleteSaveData) {
     if (m_requestedAction != ModRequestedAction::None) {
         return Err("Mod already has a requested action");
     }
 
-    m_requestedAction = ModRequestedAction::Uninstall;
+    if (this->getID() == "geode.loader") {
+        utils::game::launchLoaderUninstaller(deleteSaveData);
+        utils::game::exit();
+        return Ok();
+    }
+
+    m_requestedAction = deleteSaveData ?
+        ModRequestedAction::UninstallWithSaveData :
+        ModRequestedAction::Uninstall;
 
     std::error_code ec;
     ghc::filesystem::remove(m_metadata.getPath(), ec);
@@ -393,11 +403,21 @@ Result<> Mod::Impl::uninstall() {
         );
     }
 
+    if (deleteSaveData) {
+        ghc::filesystem::remove_all(this->getSaveDir(), ec);
+        if (ec) {
+            return Err(
+                "Unable to delete mod's save directory: " + ec.message()
+            );
+        }
+    }
+
     return Ok();
 }
 
 bool Mod::Impl::isUninstalled() const {
-    return m_requestedAction == ModRequestedAction::Uninstall;
+    return m_requestedAction == ModRequestedAction::Uninstall ||
+        m_requestedAction == ModRequestedAction::UninstallWithSaveData;
 }
 
 ModRequestedAction Mod::Impl::getRequestedAction() const {
@@ -427,20 +447,6 @@ bool Mod::Impl::hasUnresolvedIncompatibilities() const {
         }
     }
     return false;
-}
-
-// msvc stop fucking screaming please i BEG YOU
-#pragma warning(suppress : 4996)
-std::vector<Dependency> Mod::Impl::getUnresolvedDependencies() {
-#pragma warning(suppress : 4996)
-    std::vector<Dependency> unresolved;
-    for (auto const& dep : m_metadata.getDependencies()) {
-        if (!dep.isResolved()) {
-#pragma warning(suppress : 4996)
-            unresolved.push_back(dep);
-        }
-    }
-    return unresolved;
 }
 
 bool Mod::Impl::depends(std::string const& id) const {
@@ -552,17 +558,48 @@ Result<> Mod::Impl::createTempDir() {
         return Err("Unable to create mod runtime directory");
     }
 
-    // Unzip .geode file into temp dir
-    GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(m_metadata.getPath()));
-    if (!unzip.hasEntry(m_metadata.getBinaryName())) {
-        return Err(
-            fmt::format("Unable to find platform binary under the name \"{}\"", m_metadata.getBinaryName())
-        );
-    }
-    GEODE_UNWRAP(unzip.extractAllTo(tempPath));
-
     // Mark temp dir creation as succesful
     m_tempDirName = tempPath;
+
+    return Ok();
+}
+
+Result<> Mod::Impl::unzipGeodeFile(ModMetadata metadata) {
+    // Unzip .geode file into temp dir
+    auto tempDir = dirs::getModRuntimeDir() / metadata.getID();
+
+    auto datePath = tempDir / "modified-at";
+    std::string currentHash = file::readString(datePath).unwrapOr("");
+
+    auto modifiedDate = ghc::filesystem::last_write_time(metadata.getPath());
+    auto modifiedCount = std::chrono::duration_cast<std::chrono::milliseconds>(modifiedDate.time_since_epoch());
+    auto modifiedHash = std::to_string(modifiedCount.count());
+    if (currentHash == modifiedHash) {
+        log::debug("Same hash detected, skipping unzip");
+        return Ok();
+    }
+    log::debug("Hash mismatch detected, unzipping");
+
+    std::error_code ec;
+    ghc::filesystem::remove_all(tempDir, ec);
+    if (ec) {
+        return Err("Unable to delete temp dir: " + ec.message());
+    }
+    
+    (void)utils::file::createDirectoryAll(tempDir);
+    auto res = file::writeString(datePath, modifiedHash);
+    if (!res) {
+        log::warn("Failed to write modified date of geode zip: {}", res.unwrapErr());
+    }
+    
+
+    GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(metadata.getPath()));
+    if (!unzip.hasEntry(metadata.getBinaryName())) {
+        return Err(
+            fmt::format("Unable to find platform binary under the name \"{}\"", metadata.getBinaryName())
+        );
+    }
+    GEODE_UNWRAP(unzip.extractAllTo(tempDir));
 
     return Ok();
 }
@@ -608,6 +645,18 @@ ModJson Mod::Impl::getRuntimeInfo() const {
     json["runtime"] = obj;
 
     return json;
+}
+
+bool Mod::Impl::isLoggingEnabled() const {
+    return m_loggingEnabled;
+}
+
+void Mod::Impl::setLoggingEnabled(bool enabled) {
+    m_loggingEnabled = enabled;
+}
+
+bool Mod::Impl::shouldLoad() const {
+    return Mod::get()->getSavedValue<bool>("should-load-" + m_metadata.getID(), true);
 }
 
 static Result<ModMetadata> getModImplInfo() {

@@ -2,7 +2,6 @@
 
 #include "../utils/Result.hpp"
 #include "../utils/VersionInfo.hpp"
-#include "ModInfo.hpp"
 #include "Setting.hpp"
 #include "Types.hpp"
 
@@ -13,9 +12,6 @@ namespace geode {
     namespace utils::file {
         class Unzip;
     }
-
-    struct GEODE_DLL [[deprecated("use ModMetadata::Dependency instead")]] Dependency;
-    struct [[deprecated("use ModMetadata::IssuesInfo instead")]] IssuesInfo;
 
     class ModMetadataImpl;
 
@@ -43,11 +39,6 @@ namespace geode {
             Importance importance = Importance::Required;
             Mod* mod = nullptr;
             [[nodiscard]] bool isResolved() const;
-
-            [[deprecated]] operator geode::Dependency();
-            [[deprecated]] operator geode::Dependency() const;
-
-            [[deprecated]] static Dependency fromDeprecated(geode::Dependency const& value);
         };
 
         struct GEODE_DLL Incompatibility {
@@ -65,11 +56,6 @@ namespace geode {
         struct IssuesInfo {
             std::string info;
             std::optional<std::string> url;
-
-            [[deprecated]] operator geode::IssuesInfo();
-            [[deprecated]] operator geode::IssuesInfo() const;
-
-            [[deprecated]] static IssuesInfo fromDeprecated(geode::IssuesInfo const& value);
         };
 
         /**
@@ -220,9 +206,6 @@ namespace geode {
         bool operator==(ModMetadata const& other) const;
 
         static bool validateID(std::string const& id);
-
-        [[deprecated]] operator ModInfo();
-        [[deprecated]] operator ModInfo() const;
 
     private:
         /**

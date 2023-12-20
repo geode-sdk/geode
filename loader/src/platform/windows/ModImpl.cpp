@@ -16,7 +16,7 @@ T findSymbolOrMangled(HMODULE load, char const* name, char const* mangled) {
     return res;
 }
 
-char const* getUsefulError(int code) {
+char const* getUsefulError(DWORD code) {
     switch (code) {
         case ERROR_MOD_NOT_FOUND:
             return "ERROR_MOD_NOT_FOUND; The mod is either missing the DLL "
@@ -51,24 +51,11 @@ std::string getLastWinError() {
     if (!err) return "None (0)";
     auto useful = getUsefulError(err);
     if (useful) return useful;
-    char* text = nullptr;
     auto len = FormatMessageA(
         FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS,
-        nullptr, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), text, 0, nullptr
+        nullptr, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), nullptr, 0, nullptr
     );
-    std::string msg = "";
-    if (len == 0) {
-        msg = "Unknown";
-    }
-    else {
-        if (text != nullptr) {
-            msg = std::string(text, len);
-            LocalFree(text);
-        }
-        else {
-            msg = "Very Unknown";
-        }
-    }
+    std::string msg = len == 0 ? "Unknown" : "Very Unknown";
     return msg + " (" + std::to_string(err) + ")";
 }
 

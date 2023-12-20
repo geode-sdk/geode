@@ -4,8 +4,6 @@
 
 using namespace geode::prelude;
 
-#pragma warning(suppress : 4996)
-Mod::Mod(ModInfo const& info) : m_impl(std::make_unique<Impl>(this, info)) {}
 Mod::Mod(ModMetadata const& metadata) : m_impl(std::make_unique<Impl>(this, metadata)) {}
 
 Mod::~Mod() {}
@@ -46,39 +44,16 @@ bool Mod::isEnabled() const {
     return m_impl->isEnabled();
 }
 
-bool Mod::isLoaded() const {
-    return this->isEnabled();
-}
-
 bool Mod::supportsDisabling() const {
     return m_impl->supportsDisabling();
-}
-
-bool Mod::canDisable() const {
-    return true;
-}
-
-bool Mod::canEnable() const {
-    return true;
 }
 
 bool Mod::needsEarlyLoad() const {
     return m_impl->needsEarlyLoad();
 }
 
-bool Mod::supportsUnloading() const {
-    return false;
-}
-
-bool Mod::wasSuccesfullyLoaded() const {
-    return this->isEnabled();
-}
 bool Mod::wasSuccessfullyLoaded() const {
     return this->isEnabled();
-}
-
-ModInfo Mod::getModInfo() const {
-    return this->getMetadata();
 }
 
 ModMetadata Mod::getMetadata() const {
@@ -174,14 +149,6 @@ Result<> Mod::unpatch(Patch* patch) {
     return m_impl->unpatch(patch);
 }
 
-Result<> Mod::loadBinary() {
-    return Err("Load mod binaries after startup is not supported");
-}
-
-Result<> Mod::unloadBinary() {
-    return Err("Unloading mod binaries is not supported");
-}
-
 Result<> Mod::enable() {
     return m_impl->enable();
 }
@@ -191,7 +158,10 @@ Result<> Mod::disable() {
 }
 
 Result<> Mod::uninstall() {
-    return m_impl->uninstall();
+    return m_impl->uninstall(false);
+}
+Result<> Mod::uninstall(bool deleteSaveData) {
+    return m_impl->uninstall(deleteSaveData);
 }
 
 bool Mod::isUninstalled() const {
@@ -206,21 +176,12 @@ bool Mod::depends(std::string const& id) const {
     return m_impl->depends(id);
 }
 
-Result<> Mod::updateDependencies() {
-    return m_impl->updateDependencies();
-}
-
 bool Mod::hasUnresolvedDependencies() const {
     return m_impl->hasUnresolvedDependencies();
 }
 
 bool Mod::hasUnresolvedIncompatibilities() const {
     return m_impl->hasUnresolvedIncompatibilities();
-}
-
-#pragma warning(suppress : 4996)
-std::vector<Dependency> Mod::getUnresolvedDependencies() {
-    return m_impl->getUnresolvedDependencies();
 }
 
 char const* Mod::expandSpriteName(char const* name) {
@@ -231,6 +192,18 @@ ModJson Mod::getRuntimeInfo() const {
     return m_impl->getRuntimeInfo();
 }
 
+bool Mod::isLoggingEnabled() const {
+    return m_impl->isLoggingEnabled();
+}
+
+void Mod::setLoggingEnabled(bool enabled) {
+    m_impl->setLoggingEnabled(enabled);
+}
+
 bool Mod::hasSavedValue(std::string const& key) {
     return this->getSaveContainer().contains(key);
+}
+
+bool Mod::shouldLoad() const {
+    return m_impl->shouldLoad();
 }

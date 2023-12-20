@@ -1,5 +1,32 @@
 # Geode Changelog
 
+## v1.4.0
+ * Add Android support !!!!
+   * Implement every Geode functionality except `utils::file::openFolder`
+   * Requires the Geode launcher in order to be used
+   * Fixes the text input node allowing typing for 1 less character
+   * Uses `logcat` in order to get crash reports, so reopening the game is required to generate them
+   * Broma requires classes to be added `[[link(android)]]` in order to be linked
+   * All Geode and GD files are stored in `Android/data/com.geode.launcher/files`
+     * Game files in `game`, save files in `save`
+ * Allow logging to be disabled per mod (6d599a5)
+ * Mod cells use layouts (114fa46)
+ * MacOS console is now separate (182984d)
+ * Add uninstall button to Geode mod (Only functional in Windows currently) (a738320)
+ * Make new version label invisible on download (0f179da)
+ * Fix the toggling of disabled dependencies (cd89ef1)
+ * Fix spritesheet issues (ef47647)
+ * Change `LoadingLayer` (ef47647)
+ * Make mod info popup top a layout (dd806e0)
+ * Add `GEODE_HIDDEN` to inline unique functions (71a79ab)
+ * Fix big mod icons (26a6c7e)
+ * Fix `CCNode::removeChildByID` export (23cd456)
+ * Make `MDTextArea` fit its size (140f38b)
+ * Enable ESC/Back to go back in Geode mod list (2847bee)
+ * Add `SimpleTextArea` (7f277a7)
+ * Check modified date when unzipping `.geode` files (5c765c6)
+ * Only hash markdown files on resource checking (f563c46)
+
 ## v1.3.10
  * Panic if decompressString2 fails, to prevent data loss (0787b8f4)
 
@@ -253,7 +280,7 @@ Thank you to [Fleeym](https://github.com/Fleeym/Fleeym) for contributing to this
  * Fix recursive comparison in VersionTag 
  * `geode/unzipped` is now deleted on startup if it exists 
 
-## v1.0.0-beta.9
+## v1.0.0-beta.9
  * Fix multiple modifiers not being able to have fields on same class due to having same field index 
  * Add `Result::ok` and `Result::err` for converting the `Result` into `std::optional` 
 
@@ -321,7 +348,7 @@ Thank you to [Fleeym](https://github.com/Fleeym/Fleeym) for contributing to this
  - Something related to codegen and addresser? I have no clue what it does, so you probably won't have either 
  - MacOS minimum version bumped to 10.14 
 
-## v1.0.0-beta.2
+## v1.0.0-beta.2
  * Fixed bug where `Mod::getSavedValue` would cause a crash due to trying operator on a null JSON value 
  * Fixed bug where loading would crash if one of the mods' binaries failed to load 
 

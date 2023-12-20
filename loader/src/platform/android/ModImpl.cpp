@@ -8,7 +8,8 @@
 using namespace geode::prelude;
 
 Result<> Mod::Impl::loadPlatformBinary() {
-    auto so = dlopen((m_tempDirName / m_info.binaryName()).string().c_str(), RTLD_LAZY);
+    auto so =
+        dlopen((m_tempDirName / m_metadata.getBinaryName()).string().c_str(), RTLD_LAZY);
     if (so) {
         if (m_platformInfo) {
             delete m_platformInfo;

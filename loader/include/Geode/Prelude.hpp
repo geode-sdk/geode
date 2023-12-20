@@ -31,10 +31,4 @@ namespace geode {
         using namespace ::cocos2d;
         using namespace ::cocos2d::extension;
     }
-
-    namespace [[deprecated("Use `using namespace geode::prelude` instead!")]] old_prelude {
-        using namespace ::geode::prelude;
-    }
 }
-
-#define USE_GEODE_NAMESPACE() using namespace geode::old_prelude;

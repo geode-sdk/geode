@@ -34,6 +34,8 @@ class CC_DLL CCEGLView : public CCEGLViewProtocol
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEGLView, CCEGLViewProtocol)
+    
     CCEGLView();
     virtual ~CCEGLView();
 

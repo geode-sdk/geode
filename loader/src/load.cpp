@@ -101,6 +101,10 @@ int geodeEntry(void* platformData) {
         return 1;
     }
 
+    crashlog::setupPlatformHandlerPost();
+
+    log::info("Set up loader");
+
     // download and install new loader update in the background
     if (Mod::get()->getSettingValue<bool>("auto-check-updates")) {
         log::info("Starting loader update check");

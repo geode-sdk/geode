@@ -6,7 +6,6 @@
 #include "../utils/VersionInfo.hpp"
 #include "../utils/general.hpp"
 #include "Hook.hpp"
-#include "ModInfo.hpp"
 #include "ModMetadata.hpp"
 #include "Setting.hpp"
 #include "Types.hpp"
@@ -38,6 +37,7 @@ namespace geode {
         Enable,
         Disable,
         Uninstall,
+        UninstallWithSaveData
     };
 
     GEODE_HIDDEN Mod* takeNextLoaderMod();
@@ -73,7 +73,6 @@ namespace geode {
 
         // Protected constructor/destructor
         Mod() = delete;
-        [[deprecated]] Mod(ModInfo const& info);
         Mod(ModMetadata const& metadata);
         ~Mod();
 
@@ -85,15 +84,9 @@ namespace geode {
         ghc::filesystem::path getPackagePath() const;
         VersionInfo getVersion() const;
         bool isEnabled() const;
-        [[deprecated("use isEnabled instead")]] bool isLoaded() const;
         bool supportsDisabling() const;
-        [[deprecated("always true")]] bool canDisable() const;
-        [[deprecated("always true")]] bool canEnable() const;
         bool needsEarlyLoad() const;
-        [[deprecated("always false")]] bool supportsUnloading() const;
-        [[deprecated("use isEnabled instead")]] bool wasSuccesfullyLoaded() const;
-        [[deprecated("use isEnabled instead")]] bool wasSuccessfullyLoaded() const;
-        [[deprecated("use getMetadata instead")]] ModInfo getModInfo() const;
+        bool wasSuccessfullyLoaded() const;
         ModMetadata getMetadata() const;
         ghc::filesystem::path getTempDir() const;
         /**
@@ -307,22 +300,6 @@ namespace geode {
         Result<> unpatch(Patch* patch);
 
         /**
-         * Load & enable this mod
-         * @returns Successful result on success,
-         * errorful result with info on error
-         */
-        [[deprecated]] Result<> loadBinary();
-
-        /**
-         * Disable & unload this mod
-         * @warning May crash if the mod doesn't
-         * properly handle unloading!
-         * @returns Successful result on success,
-         * errorful result with info on error
-         */
-        [[deprecated]] Result<> unloadBinary();
-
-        /**
          * Enable this mod
          * @returns Successful result on success,
          * errorful result with info on error
@@ -336,12 +313,20 @@ namespace geode {
          */
         Result<> disable();
 
+        // TODO: in 2.0.0 make this use an optional arg instead
         /**
-         * Disable this mod (if supported), then delete the mod's .geode package.
+         * Delete the mod's .geode package.
          * @returns Successful result on success,
          * errorful result with info on error
          */
         Result<> uninstall();
+        /**
+         * Delete the mod's .geode package.
+         * @param deleteSaveData Whether should also delete the mod's save data
+         * @returns Successful result on success,
+         * errorful result with info on error
+         */
+        Result<> uninstall(bool deleteSaveData);
         bool isUninstalled() const;
 
         ModRequestedAction getRequestedAction() const;
@@ -351,16 +336,6 @@ namespace geode {
          * depends on another mod
          */
         bool depends(std::string const& id) const;
-
-        /**
-         * Update the state of each of the
-         * dependencies. Depending on if the
-         * mod has unresolved dependencies,
-         * it will either be loaded or unloaded
-         * @returns Error.
-         * @deprecated No longer needed.
-         */
-        [[deprecated("no longer needed")]] Result<> updateDependencies();
 
         /**
          * Check whether all the required
@@ -377,14 +352,6 @@ namespace geode {
          * incompatibilities, false if not.
          */
         bool hasUnresolvedIncompatibilities() const;
-        /**
-         * Get a list of all the unresolved
-         * dependencies this mod has
-         * @returns List of all the unresolved
-         * dependencies
-         * @deprecated Use Loader::getProblems instead.
-         */
-        [[deprecated("use Loader::getProblems instead")]] std::vector<Dependency> getUnresolvedDependencies();
 
         char const* expandSpriteName(char const* name);
 
@@ -393,6 +360,11 @@ namespace geode {
          * @note For IPC
          */
         ModJson getRuntimeInfo() const;
+
+        bool isLoggingEnabled() const;
+        void setLoggingEnabled(bool enabled);
+
+        bool shouldLoad() const;
 
         friend class ModImpl;
     };

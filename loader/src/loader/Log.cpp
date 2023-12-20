@@ -172,14 +172,7 @@ Severity Log::getSeverity() const {
     return m_severity;
 }
 
-void Log::addFormat(std::string_view formatStr, std::span<ComponentTrait*> components) {
-    auto res = this->addFormatNew(formatStr, components);
-    if (res.isErr()) {
-        throw std::runtime_error(res.unwrapErr());
-    }
-}
-
-Result<> Log::addFormatNew(std::string_view formatStr, std::span<ComponentTrait*> components) {
+Result<> Log::addFormat(std::string_view formatStr, std::span<ComponentTrait*> components) {
     size_t compIndex = 0;
     std::string current;
     for (size_t i = 0; i < formatStr.size(); ++i) {
@@ -252,12 +245,14 @@ void Logger::setup() {
 }
 
 void Logger::push(Log&& log) {
-    std::string logStr = log.toString(true, nestLevel());
+    if (log.getSender()->isLoggingEnabled()) {
+        std::string logStr = log.toString(true, nestLevel());
 
-    LoaderImpl::get()->logConsoleMessageWithSeverity(logStr, log.getSeverity());
-    logStream() << logStr << std::endl;
+        LoaderImpl::get()->logConsoleMessageWithSeverity(logStr, log.getSeverity());
+        logStream() << logStr << std::endl;
 
-    logs().emplace_back(std::forward<Log>(log));
+        logs().emplace_back(std::forward<Log>(log));
+    }
 }
 
 void Logger::pop(Log* log) {

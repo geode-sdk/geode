@@ -84,10 +84,6 @@ ghc::filesystem::path IndexItem::getPath() const {
     return m_impl->m_path;
 }
 
-ModInfo IndexItem::getModInfo() const {
-    return this->getMetadata();
-}
-
 ModMetadata IndexItem::getMetadata() const {
     return m_impl->m_metadata;
 }
@@ -575,10 +571,6 @@ IndexItemHandle Index::getItem(
     return nullptr;
 }
 
-IndexItemHandle Index::getItem(ModInfo const& info) const {
-    return this->getItem(info.id(), info.version());
-}
-
 IndexItemHandle Index::getItem(ModMetadata const& metadata) const {
     return this->getItem(metadata.getID(), metadata.getVersion());
 }
@@ -753,7 +745,7 @@ void Index::Impl::installNext(size_t index, IndexInstallList const& list) {
         .join("install_item_" + item->getMetadata().getID())
         .fetch(item->getDownloadURL())
         .into(tempFile)
-        .then([=](auto) {
+        .then([=, this](auto) {
             // Check for 404
             auto notFound = utils::file::readString(tempFile);
             if (notFound && notFound.unwrap() == "Not Found") {

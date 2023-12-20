@@ -87,6 +87,11 @@ bool ProblemsListCell::init(LoadProblem problem, ProblemsListPopup* list, CCSize
             icon = "info-alert.png"_spr;
             message = fmt::format("{} is incompatible with {}", cause, problem.message);
             break;
+        case LoadProblem::Type::UnzipFailed:
+            icon = "info-alert.png"_spr;
+            message = fmt::format("{} has failed unzipping", cause);
+            m_longMessage = problem.message;
+            break;
     }
 
     m_problem = std::move(problem);

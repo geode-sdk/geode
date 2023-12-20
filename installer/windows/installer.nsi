@@ -490,8 +490,10 @@ Function un.onInit
 FunctionEnd
 Section "Uninstall"
     DeleteRegKey /ifempty HKCU "Software\Geode"
+    Delete $INSTDIR\GeodeUninstaller.exe
     Delete $INSTDIR\Geode.dll
     Delete $INSTDIR\Geode.pdb
+    Delete $INSTDIR\Geode.lib
     Delete $INSTDIR\GeodeUpdater.exe
     Delete $INSTDIR\XInput9_1_0.dll
 

@@ -308,7 +308,9 @@ enum class GJRewardType
 {
     Unknown = 0x0,
     Small = 0x1,
-    Large = 0x2
+    Large = 0x2,
+    SmallTreasure = 0x3,
+    LargeTreasure = 0x4
 };
 
 enum class IconType {

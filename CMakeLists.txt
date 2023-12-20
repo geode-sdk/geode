@@ -71,8 +71,8 @@ set(GEODE_BIN_PATH ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 set(GEODE_LOADER_PATH ${CMAKE_CURRENT_SOURCE_DIR}/loader)
 set(GEODE_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 
-include(cmake/GeodeFile.cmake)
 include(cmake/Platform.cmake)
+include(cmake/GeodeFile.cmake)
 include(cmake/CPM.cmake)
 
 if (PROJECT_IS_TOP_LEVEL AND NOT GEODE_BUILDING_DOCS)
@@ -96,7 +96,7 @@ if (PROJECT_IS_TOP_LEVEL AND NOT GEODE_BUILDING_DOCS)
 	set(TULIP_LINK_SOURCE ON)
 endif()
 set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "" FORCE)
-CPMAddPackage("gh:geode-sdk/TulipHook#3423a29")
+CPMAddPackage("gh:geode-sdk/TulipHook#d2132de")
 set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
 
 # Silence warnings from dependencies
@@ -115,11 +115,25 @@ add_library(GeodeFilesystemImpl ${CMAKE_CURRENT_SOURCE_DIR}/FilesystemImpl.cpp)
 target_compile_features(GeodeFilesystemImpl PUBLIC cxx_std_20)
 target_link_libraries(GeodeFilesystemImpl PUBLIC ghc_filesystem)
 
+# Allow users to have their own copy of bindings that can be overwritten with a CMake option.
+# If the option is not provided, by default just clone bindings with CPM and use that
+if (NOT GEODE_BINDINGS_REPO_PATH)
+	message(STATUS 
+		"No override path for bindings provided, using CPM to clone default. "
+		"If you would like to use a separate clone of the bindings repo "
+		"(for example in order to be able to efficiently change and "
+		"contribute new bindings) then set GEODE_BINDINGS_REPO_PATH to where you have "
+		"cloned the repository."
+	)
+	CPMAddPackage("gh:geode-sdk/bindings#2c4e7b9")
+	set(GEODE_BINDINGS_REPO_PATH ${GeodeBindings_SOURCE_DIR})
+endif()
+
 include(ExternalProject)
 set(GEODE_CODEGEN_BINARY_OUT ${CMAKE_CURRENT_BINARY_DIR}/codegen)
 ExternalProject_Add(CodegenProject
 	BUILD_ALWAYS ON
-	SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/codegen
+	SOURCE_DIR ${GEODE_BINDINGS_REPO_PATH}
 	# manually set configure command as to not inherit generator used by geode,
 	# this should hopefully fix generator cache mismatch between different projects, however
 	# it causes a warning to be shown every time. if you know a better solution please tell us ok thx
@@ -133,13 +147,13 @@ ExternalProject_Add(CodegenProject
 
 
 file(GLOB CODEGEN_DEPENDS CONFIGURE_DEPENDS 
-	${CMAKE_CURRENT_SOURCE_DIR}/bindings/*.bro
-	${CMAKE_CURRENT_SOURCE_DIR}/codegen/src/*.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/codegen/src/*.hpp
+	${GEODE_BINDINGS_REPO_PATH}/bindings/*.bro
+	${GEODE_BINDINGS_REPO_PATH}/codegen/src/*.cpp
+	${GEODE_BINDINGS_REPO_PATH}/codegen/src/*.hpp
 )
 
 if (NOT GEODE_BINDINGS_PATH)
-	set(GEODE_BINDINGS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/bindings)
+	set(GEODE_BINDINGS_PATH ${GEODE_BINDINGS_REPO_PATH}/bindings)
 endif()
 
 file(GLOB CODEGEN_OUTPUTS CONFIGURE_DEPENDS 
@@ -191,6 +205,9 @@ target_compile_features(GeodeCodegenSources PUBLIC cxx_std_20)
 if (APPLE)
 	target_compile_options(GeodeCodegenSources PUBLIC -ffunction-sections -fdata-sections)
 	target_link_options(GeodeCodegenSources PUBLIC -dead_strip)
+elseif(ANDROID)
+	target_compile_options(GeodeCodegenSources PUBLIC -ffunction-sections -fdata-sections)
+	target_link_options(GeodeCodegenSources PUBLIC -Wl,--gc-sections)
 endif()
 
 if (NOT GEODE_DISABLE_PRECOMPILED_HEADERS)

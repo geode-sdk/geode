@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Types.hpp"
-#include "ModInfo.hpp"
 #include "ModMetadata.hpp"
 #include "Event.hpp"
 #include "../utils/Result.hpp"
@@ -116,7 +115,6 @@ namespace geode {
          * Returns the path to the specific version
          */
         ghc::filesystem::path getPath() const;
-        [[deprecated("use getMetadata instead")]] ModInfo getModInfo() const;
         ModMetadata getMetadata() const;
         std::string getDownloadURL() const;
         std::string getPackageHash() const;
@@ -234,13 +232,6 @@ namespace geode {
         IndexItemHandle getMajorItem(
             std::string const& id
         ) const;
-        /**
-         * Get an item from the index by its mod.json
-         * @param info The mod's info
-         * @returns The item, or nullptr if the item was not found
-         * @deprecated Use the ModMetadata overload instead
-         */
-        [[deprecated]] IndexItemHandle getItem(ModInfo const& info) const;
         /**
          * Get an item from the index by its mod.json
          * @param info The mod's metadata

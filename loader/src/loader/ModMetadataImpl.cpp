@@ -8,7 +8,6 @@
 #include <utility>
 
 #include "ModMetadataImpl.hpp"
-#include "ModInfoImpl.hpp"
 
 using namespace geode::prelude;
 
@@ -24,33 +23,6 @@ bool ModMetadata::Dependency::isResolved() const {
 bool ModMetadata::Incompatibility::isResolved() const {
     return this->importance != Importance::Breaking ||
         (!this->mod || !this->version.compare(this->mod->getVersion()));
-}
-
-ModMetadata::Dependency::operator geode::Dependency() {
-    return {id, version, importance == Importance::Required, mod};
-}
-ModMetadata::Dependency::operator geode::Dependency() const {
-    return {id, version, importance == Importance::Required, mod};
-}
-ModMetadata::IssuesInfo::operator geode::IssuesInfo() {
-    return {info, url};
-}
-ModMetadata::IssuesInfo::operator geode::IssuesInfo() const {
-    return {info, url};
-}
-
-ModMetadata::Dependency ModMetadata::Dependency::fromDeprecated(geode::Dependency const& value) {
-    return {
-        value.id,
-        value.version,
-        value.required ?
-            ModMetadata::Dependency::Importance::Required :
-            ModMetadata::Dependency::Importance::Suggested,
-        value.mod
-    };
-}
-ModMetadata::IssuesInfo ModMetadata::IssuesInfo::fromDeprecated(geode::IssuesInfo const& value) {
-    return {value.info, value.url};
 }
 
 static std::string sanitizeDetailsData(std::string const& str) {
@@ -544,25 +516,6 @@ ModMetadata& ModMetadata::operator=(ModMetadata const& other) {
 ModMetadata& ModMetadata::operator=(ModMetadata&& other) noexcept {
     m_impl = std::move(other.m_impl);
     return *this;
-}
-
-ModMetadata::operator ModInfo() {
-    ModInfo info;
-    auto infoImpl = ModInfoImpl::getImpl(info);
-    infoImpl.m_metadata.Impl::operator=(*m_impl); // im gonna cry what is this hack why are you not using pointers
-    infoImpl.m_issues = m_impl->m_issues;
-    for (auto& dep : m_impl->m_dependencies)
-        infoImpl.m_dependencies.push_back(dep);
-    return info;
-}
-ModMetadata::operator ModInfo() const {
-    ModInfo info;
-    auto infoImpl = ModInfoImpl::getImpl(info);
-    infoImpl.m_metadata.Impl::operator=(*m_impl);
-    infoImpl.m_issues = m_impl->m_issues;
-    for (auto& dep : m_impl->m_dependencies)
-        infoImpl.m_dependencies.push_back(dep);
-    return info;
 }
 
 ModMetadata::~ModMetadata() = default;

@@ -134,7 +134,6 @@ namespace geode {
     class Setting;
     class Loader;
     class Hook;
-    struct ModInfo;
     class VersionInfo;
 
     class Unknown;
