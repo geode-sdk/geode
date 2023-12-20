@@ -27,37 +27,68 @@ void updateGeode() {
     utils::game::restart();
 }
 
+void* mainTrampolineAddr;
+
 int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow) {
+    MessageBoxA(NULL, "Hello from gdMainHook!", "Hi", 0);
+
     updateGeode();
 
     int exitCode = geodeEntry(hInstance);
     if (exitCode != 0)
         return exitCode;
 
-    return reinterpret_cast<decltype(&wWinMain)>(geode::base::get() + 0x260ff8)(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+    return reinterpret_cast<decltype(&wWinMain)>(mainTrampolineAddr)(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
 }
 
 bool loadGeode() {
+    // TODO: add version check or something
+
     auto process = GetCurrentProcess();
 
-    auto patchAddr = reinterpret_cast<void*>(geode::base::get() + 0x260ff8);
-    constexpr size_t patchLength = 13;
-    auto detourAddr = reinterpret_cast<uintptr_t>(&gdMainHook) - geode::base::get() - 0x261005;
-    auto detourAddrPtr = reinterpret_cast<uint8_t*>(&detourAddr);
+    constexpr size_t trampolineSize = 12;
+    mainTrampolineAddr = VirtualAlloc(
+		nullptr, trampolineSize,
+		MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE
+	);
 
-    uint8_t patchBytes[patchLength] = {
+    static constexpr uintptr_t MAIN_OFFSET = 0x3ba7d0;
+    auto patchAddr = geode::base::get() + MAIN_OFFSET;
+
+    constexpr size_t patchSize = 6;
+
+#define JMP_ADDR(from, to) (std::bit_cast<uintptr_t>(to) - std::bit_cast<uintptr_t>(from) - 5)
+#define JMP_BYTES(from, to) \
+    ((JMP_ADDR(from, to) >>  0) & 0xFF), \
+    ((JMP_ADDR(from, to) >>  8) & 0xFF), \
+    ((JMP_ADDR(from, to) >> 16) & 0xFF), \
+    ((JMP_ADDR(from, to) >> 24) & 0xFF)
+
+    uint8_t trampolineBytes[trampolineSize] = {
+        // push ebp
         0x55,
+        // mov ebp, esp
         0x8b, 0xec,
-        0x83, 0xe4, 0xf8,
-        0xeb, 0x06,
-        0xe9, detourAddrPtr[0], detourAddrPtr[1], detourAddrPtr[2], detourAddrPtr[3]
+        // and esp, ...
+        0x83, 0xe4, 0xf8, 
+        // jmp main + 6 (after our jmp detour)
+        0xe9, JMP_BYTES(reinterpret_cast<uintptr_t>(mainTrampolineAddr) + 6, patchAddr + patchSize)
+    };
+
+    std::memcpy(mainTrampolineAddr, trampolineBytes, trampolineSize);
+
+    uint8_t patchBytes[patchSize] = {
+        // jmp gdMainHook
+        0xe9, JMP_BYTES(patchAddr, &gdMainHook),
+        // nop to pad it out, helps the asm to show up properly on debuggers
+        0x90
     };
 
     DWORD oldProtect;
-    if (!VirtualProtectEx(process, patchAddr, patchLength, PAGE_EXECUTE_READWRITE, &oldProtect))
+    if (!VirtualProtectEx(process, reinterpret_cast<void*>(patchAddr), patchSize, PAGE_EXECUTE_READWRITE, &oldProtect))
         return false;
-    std::memcpy(patchAddr, patchBytes, patchLength);
-    VirtualProtectEx(process, patchAddr, patchLength, oldProtect, &oldProtect);
+    std::memcpy(reinterpret_cast<void*>(patchAddr), patchBytes, patchSize);
+    VirtualProtectEx(process, reinterpret_cast<void*>(patchAddr), patchSize, oldProtect, &oldProtect);
     return true;
 }
 
