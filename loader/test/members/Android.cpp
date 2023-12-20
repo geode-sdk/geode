@@ -2,6 +2,8 @@
 
 #ifdef GEODE_IS_ANDROID
 
+using namespace geode::prelude;
+
 // Add known android struct members here
 
 GEODE_SIZE_CHECK(CCObject, 0x34);
