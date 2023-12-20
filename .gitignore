@@ -75,3 +75,7 @@ test-docs.bat
 
 # Ignore clangd cache
 .cache
+
+# Add bindings folder to ignore list, so people can clone a local copy of them there
+bindings
+bindings/**

@@ -1,10 +1,11 @@
-#include "AddIDs.hpp"
-
+#include <Geode/modify/IDManager.hpp>
 #include <Geode/modify/MenuLayer.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/utils/NodeIDs.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
 
 using namespace geode::prelude;
+using namespace geode::node_ids;
 
 $register_ids(MenuLayer) {
     // set IDs to everything
