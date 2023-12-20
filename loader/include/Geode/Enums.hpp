@@ -131,6 +131,16 @@ enum class GJAreaActionType {};
 enum class SFXTriggerState {};
 enum class SongTriggerState {};
 enum class GJGameEvent {};
+enum class GJSmartDirection {};
+enum class SmartBlockType {};
+enum class TouchTriggerControl {};
+enum class SmartPrefabResult {};
+enum class AudioSortType {};
+enum class spriteMode {};
+enum class GJAssetType {};
+enum class CommentKeyType {};
+enum class LevelLeaderboardMode {};
+enum class StatKey {};
 
 // Thanks cocoa!
 #ifdef GEODE_IS_MACOS
