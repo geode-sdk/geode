@@ -192,7 +192,7 @@ function(setup_geode_mod proname)
                 endif()
 
                 # Otherwise add all .libs or whatever the platform's library type is
-                if (WIN32)
+                if (WIN32 OR LINUX)
                     file(GLOB libs ${dir}/*.lib)
                     list(APPEND libs_to_link ${libs})
                 elseif (APPLE)
