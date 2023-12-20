@@ -7,7 +7,7 @@
 
 namespace geode::base {
     uintptr_t get() {
-        static uintptr_t base = (reinterpret_cast<uintptr_t>(&MenuLayer::onQuit) - 0x2f9500) & (~0x1);
+        static uintptr_t base = (reinterpret_cast<uintptr_t>(&MenuLayer::scene) - 0x2f9068) & (~0x1);
         // static uintptr_t base = reinterpret_cast<uintptr_t>(dlopen("libcocos2dcpp.so", RTLD_NOW));
         return base;
     }
