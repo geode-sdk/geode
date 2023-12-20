@@ -1,10 +1,11 @@
 
-#include "../ids/AddIDs.hpp"
 #include "../ui/internal/list/ModListLayer.hpp"
 
 #include <Geode/loader/Index.hpp>
 #include <Geode/modify/MenuLayer.hpp>
 #include <Geode/modify/Modify.hpp>
+#include <Geode/modify/IDManager.hpp>
+#include <Geode/utils/NodeIDs.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/ui/Notification.hpp>
@@ -45,7 +46,7 @@ $execute {
 
 struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
     static void onModify(auto& self) {
-        if (!self.setHookPriority("MenuLayer::init", GEODE_ID_PRIORITY)) {
+        if (!self.setHookPriority("MenuLayer::init", geode::node_ids::GEODE_ID_PRIORITY)) {
             log::warn("Failed to set MenuLayer::init hook priority, node IDs may not work properly");
         }
     }
