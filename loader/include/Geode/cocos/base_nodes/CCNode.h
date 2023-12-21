@@ -1598,7 +1598,10 @@ public:
 	void setUseChildIndex(bool);
 	void qsortAllChildrenWithIndex();
 
+protected:
 	static void resetGlobalOrderOfArrival();
+    
+public:
 
 	void sortAllChildrenNoIndex();
 	void sortAllChildrenWithIndex();
