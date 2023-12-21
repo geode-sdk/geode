@@ -61,5 +61,11 @@
 
 // GEODE_MEMBER_CHECK(DailyLevelPage, m_weekly, 0x1ed);
 
+GEODE_MEMBER_CHECK(CCTextInputNode, m_allowedChars, 0x174);
+GEODE_MEMBER_CHECK(CCTextInputNode, m_maxLabelWidth, 0x18c);
+GEODE_MEMBER_CHECK(CCTextInputNode, m_maxLabelScale, 0x190);
+GEODE_MEMBER_CHECK(CCTextInputNode, m_placeholderScale, 0x194);
+GEODE_MEMBER_CHECK(CCTextInputNode, m_placeholderColor, 0x198);
+
 
 #endif
