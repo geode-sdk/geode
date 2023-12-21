@@ -62,6 +62,9 @@ class CC_DLL CCActionInterval : public CCFiniteTimeAction
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCActionInterval, CCFiniteTimeAction)
+    CCActionInterval() {}
+
     /** how many seconds had elapsed since the actions started to run. */
     inline float getElapsed(void) { return m_elapsed; }
 

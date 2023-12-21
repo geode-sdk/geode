@@ -335,6 +335,10 @@ public:
     virtual void setColor(const ccColor3B &color);
     virtual void setOpacity(GLubyte opacity);
 
+	void addToVertices(cocos2d::CCPoint, cocos2d::CCPoint, cocos2d::CCPoint);
+	void setVertices(cocos2d::CCPoint, cocos2d::CCPoint, cocos2d::CCPoint);
+
+
 protected:
     virtual void updateColor();
 };
@@ -388,6 +392,11 @@ public:
     CC_PROPERTY(GLubyte, m_cStartOpacity, StartOpacity)
     CC_PROPERTY(GLubyte, m_cEndOpacity, EndOpacity)
     CC_PROPERTY_PASS_BY_REF(CCPoint, m_AlongVector, Vector)
+
+	bool getShouldPremultiply() const;
+	void setShouldPremultiply(bool);
+	void setValues(cocos2d::_ccColor3B const&, unsigned char, cocos2d::_ccColor3B const&, unsigned char, cocos2d::CCPoint const&);
+
 
     /** Whether or not the interpolation will be compressed in order to display all the colors of the gradient both in canonical and non canonical vectors
     Default: YES

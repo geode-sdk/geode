@@ -108,7 +108,8 @@ public:
                            EImageFormat eFmt = kFmtUnKnown,
                            int nWidth = 0,
                            int nHeight = 0,
-                           int nBitsPerComponent = 8);
+                           int nBitsPerComponent = 8,
+                           int whoknows = 0);
 
     /**
     @brief    Create image with specified string.

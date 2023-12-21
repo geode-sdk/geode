@@ -286,6 +286,13 @@ public:
     {
     	return CCPoint(cosf(a), sinf(a));
     }
+
+	void add(int, float);
+	float at(int);
+	bool isZero() const;
+	void set(int, float);
+	void swap();
+
 };
 
 /**
@@ -367,6 +374,11 @@ public:
     inline float aspect() const {
         return this->width / this->height;
     }
+
+	void add(int, float);
+	float at(int);
+	void set(int, float);
+
 };
 
 // alk cont
@@ -463,6 +475,9 @@ public:
                       getMaxY() < rect.getMinY() ||
                  rect.getMaxY() <      getMinY());
     }
+
+	float getMax(int);
+	float getMin(int);
 };
 
 

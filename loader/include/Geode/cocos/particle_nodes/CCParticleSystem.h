@@ -402,20 +402,20 @@ public:
     http://particledesigner.71squared.com/
     @since v0.99.3
     */
-    bool initWithFile(const char *plistFile);
+    bool initWithFile(const char *plistFile, bool);
 
     /** initializes a CCQuadParticleSystem from a CCDictionary.
     @since v0.99.3
     */
-    bool initWithDictionary(CCDictionary *dictionary);
+    bool initWithDictionary(CCDictionary *dictionary, bool);
     
     /** initializes a particle system from a NSDictionary and the path from where to load the png
      @since v2.1
      */
-    bool initWithDictionary(CCDictionary *dictionary, const char *dirname);
+    bool initWithDictionary(CCDictionary *dictionary, const char *dirname, bool);
 
     //! Initializes a system with a fixed number of particles
-    virtual bool initWithTotalParticles(unsigned int numberOfParticles);
+    virtual bool initWithTotalParticles(unsigned int numberOfParticles, bool);
     //! Add a particle to the emitter
     bool addParticle();
     //! Initializes a particle
@@ -459,6 +459,81 @@ public:
         void saveDefaults(void);
         void loadDefaults(void);
         void loadScaledDefaults(float);
+
+    	void calculateWorldSpace();
+
+	bool getDontCleanupOnFinish() const;
+	void setDontCleanupOnFinish(bool);
+
+	bool getDynamicRotationIsDir() const;
+	void setDynamicRotationIsDir(bool);
+
+	bool getEndRGBVarSync() const;
+	void setEndRGBVarSync(bool);
+
+    float getFadeInTime() const;
+	float getFadeInTimeVar() const;
+	float getFadeOutTime() const;
+	float getFadeOutTimeVar() const;
+	float getFrictionPos() const;
+	float getFrictionPosVar() const;
+	float getFrictionRot() const;
+	float getFrictionRotVar() const;
+	float getFrictionSize() const;
+	float getFrictionSizeVar() const;
+
+	bool getOrderSensitive() const;
+
+    float getRespawn() const;
+	float getRespawnVar() const;
+
+	bool getStartRGBVarSync() const;
+	bool getStartRadiusEqualToEnd() const;
+	bool getStartSizeEqualToEnd() const;
+	bool getStartSpinEqualToEnd() const;
+
+	float getTimeElapsed();
+
+	bool getUseUniformColorMode() const;
+
+	bool getWasRemoved() const;
+
+	bool getUsingSchedule() const;
+
+	
+    void setEndAlpha(float);
+    void setFadeInTime(float);
+	void setFadeInTimeVar(float);
+	void setFadeOutTime(float);
+	void setFadeOutTimeVar(float);
+	void setFrictionPos(float);
+	void setFrictionPosVar(float);
+	void setFrictionRot(float);
+	void setFrictionRotVar(float);
+	void setFrictionSize(float);
+	void setFrictionSizeVar(float);
+
+	void setOrderSensitive(bool);
+
+    void setRespawn(float);
+	void setRespawnVar(float);
+
+	void setStartAlpha(float);
+	void setStartRGBVarSync(bool);
+	void setStartRadiusEqualToEnd(bool);
+	void setStartSizeEqualToEnd(bool);
+	void setStartSpinEqualToEnd(bool);
+
+	void setUsingSchedule(bool);
+
+	void setWasRemoved(bool);
+
+	void toggleUniformColorMode(bool);
+	void updateVisible();
+
+	virtual void updateEmissionRate();
+
+
     )
 };
 

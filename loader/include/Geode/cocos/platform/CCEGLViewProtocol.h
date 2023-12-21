@@ -176,6 +176,10 @@ public:
      * Get scale factor of the vertical direction.
      */
     float getScaleY() const;
+
+	virtual void pollInputEvents();
+	void updateDesignResolutionSize();
+
 private:
     void getSetOfTouchesEndOrCancel(CCSet& set, int num, int ids[], float xs[], float ys[]);
 

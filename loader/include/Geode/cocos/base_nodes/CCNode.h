@@ -1592,6 +1592,19 @@ public:
     // 2.2 additions
     virtual void updateTweenActionInt(float, int);
 
+	cocos2d::CCAffineTransform getTransformTemp();
+
+	bool getUseChildIndex();
+	void setUseChildIndex(bool);
+	void qsortAllChildrenWithIndex();
+
+	static void resetGlobalOrderOfArrival();
+
+	void sortAllChildrenNoIndex();
+	void sortAllChildrenWithIndex();
+	void updateChildIndexes();
+
+
 private:
     /// lazy allocs
     void childrenAlloc(void);

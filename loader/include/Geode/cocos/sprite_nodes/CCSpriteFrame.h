@@ -147,6 +147,8 @@ public:
      */
     bool initWithTextureFilename(const char* filename, const CCRect& rect, bool rotated, const CCPoint& offset, const CCSize& originalSize);
 
+	gd::string getFrameName() const;
+	void setFrameName(gd::string);
 
 protected:
     CCPoint m_obOffset;

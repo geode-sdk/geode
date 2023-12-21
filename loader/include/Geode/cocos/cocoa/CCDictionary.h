@@ -400,6 +400,9 @@ public:
      */
     virtual void acceptVisitor(CCDataVisitor &visitor);
 
+	char const* charForKey(gd::string const&);
+	gd::string getFirstKey();
+
 private:
     /** 
      *  For internal usage, invoked by setObject.

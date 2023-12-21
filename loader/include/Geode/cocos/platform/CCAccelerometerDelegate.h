@@ -52,6 +52,9 @@ class CC_DLL CCAccelerometerDelegate
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_BEGIN(CCAccelerometerDelegate)
+    CCAccelerometerDelegate() {}
+
     virtual void didAccelerate(CCAcceleration* pAccelerationValue) {CC_UNUSED_PARAM(pAccelerationValue);}
 };
 

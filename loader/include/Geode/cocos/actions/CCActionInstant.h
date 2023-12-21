@@ -46,6 +46,8 @@ class CC_DLL CCActionInstant : public CCFiniteTimeAction //<NSCopying>
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCActionInstant, CCFiniteTimeAction)
+
     /**
      *  @js ctor
      */

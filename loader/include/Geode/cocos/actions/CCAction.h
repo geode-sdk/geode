@@ -145,6 +145,8 @@ class CC_DLL CCFiniteTimeAction : public CCAction
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCFiniteTimeAction, CCAction)
+
     /**
      *  @js ctor
      */

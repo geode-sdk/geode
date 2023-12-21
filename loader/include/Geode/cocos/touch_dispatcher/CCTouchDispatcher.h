@@ -201,6 +201,11 @@ public:
      */
     CCTouchHandler* findHandler(CCTouchDelegate *pDelegate);
 
+	void addPrioTargetedDelegate(cocos2d::CCTouchDelegate*, int, bool);
+	bool isUsingForcePrio();
+	void registerForcePrio(cocos2d::CCObject*, int);
+	void unregisterForcePrio(cocos2d::CCObject*);
+
 private:
     RT_ADD(
         void incrementForcePrio(int priority);

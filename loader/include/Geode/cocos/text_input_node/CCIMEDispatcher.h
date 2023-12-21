@@ -58,12 +58,16 @@ public:
     /**
     @brief Dispatches the input text from IME.
     */
-    void dispatchInsertText(const char * pText, int nLen);
+    void dispatchInsertText(const char * pText, int nLen, cocos2d::enumKeyCodes);
 
     /**
     @brief Dispatches the delete-backward operation.
     */
     void dispatchDeleteBackward();
+
+	void dispatchDeleteForward();
+
+	bool hasDelegate();
 
     /**
     @brief Get the content text from CCIMEDelegate, retrieved previously from IME.
@@ -76,6 +80,7 @@ public:
     void dispatchKeyboardWillShow(CCIMEKeyboardNotificationInfo& info);
     void dispatchKeyboardDidShow(CCIMEKeyboardNotificationInfo& info);
     void dispatchKeyboardWillHide(CCIMEKeyboardNotificationInfo& info);
+    void dispatchKeyboardWillHide();
     void dispatchKeyboardDidHide(CCIMEKeyboardNotificationInfo& info);
 
 protected:

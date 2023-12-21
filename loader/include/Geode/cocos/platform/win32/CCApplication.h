@@ -52,6 +52,22 @@ public:
         void setupVerticalSync();
         void updateVerticalSync();
         void updateControllerKeys();
+
+        int getTimeElapsed();
+	    void resetForceTimer();
+
+        void leftMouseDown();
+	    void leftMouseUp();
+
+    	void logTimeElapsed(gd::string);
+
+    	void moveMouse(int, int);
+
+    	void shutdownApplication();
+        void toggleMouseControl(bool);
+        void updateController();
+        void updateMouseControl();
+
     )
 
     /**

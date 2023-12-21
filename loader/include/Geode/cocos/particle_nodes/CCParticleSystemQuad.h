@@ -106,7 +106,7 @@ public:
      *  @js NA
      *  @lua NA
      */
-    virtual bool initWithTotalParticles(unsigned int numberOfParticles);
+    virtual bool initWithTotalParticles(unsigned int numberOfParticles, bool);
     /**
      * @js NA
      */
@@ -140,7 +140,14 @@ public:
     void listenBackToForeground(CCObject *obj);
 
     static CCParticleSystemQuad * create();
-    static CCParticleSystemQuad * createWithTotalParticles(unsigned int numberOfParticles);
+    static CCParticleSystemQuad * create(const char*, bool);
+    static CCParticleSystemQuad * createWithTotalParticles(unsigned int numberOfParticles, bool);
+
+	unsigned char getOpacity();
+	void setOpacity(unsigned char);
+
+	void updateTexCoords();
+
 private:
 #if CC_TEXTURE_ATLAS_USE_VAO
     void setupVBOandVAO();
