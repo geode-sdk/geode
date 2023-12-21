@@ -56,12 +56,6 @@ namespace gd {
     bool string::operator==(string const& other) const {
         return std::string(*this) == std::string(other);
     }
-
-    // TODO: these need to stay for old mods linking against geode <1.2.0, remove in 2.0.0
-    template class map<int, int>;
-    template class map<gd::string, gd::string>;
-    template class map<gd::string, bool>;
-    template class map<short, bool>;
 }
 
 #endif

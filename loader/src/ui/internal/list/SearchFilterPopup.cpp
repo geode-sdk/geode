@@ -147,7 +147,7 @@ CCMenuItemToggler* SearchFilterPopup::addToggle(
 ) {
     auto toggle = GameToolbox::createToggleButton(
         title, selector, toggled, m_buttonMenu, pos, this, m_buttonMenu, .5f, .5f, 100.f,
-        { 10.f, .0f }, nullptr, false, tag, nullptr
+        { 10.f, .0f }, "bigFont.fnt", false, tag, nullptr
     );
     toggle->setTag(tag);
     pos.y -= 22.5f;

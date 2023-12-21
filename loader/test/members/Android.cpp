@@ -33,6 +33,13 @@ GEODE_SIZE_CHECK(Slider, 0x158);
 GEODE_SIZE_CHECK(SliderTouchLogic, 0x174);
 GEODE_SIZE_CHECK(CCScrollLayerExt, 0x184);
 GEODE_SIZE_CHECK(TableView, 0x1dc);
+GEODE_SIZE_CHECK(CCTextInputNode, 0x1a0);
+
+GEODE_MEMBER_CHECK(CCTextInputNode, m_maxLabelWidth, 0x164);
+GEODE_MEMBER_CHECK(CCTextInputNode, m_textField, 0x17c);
+GEODE_MEMBER_CHECK(FLAlertLayer, m_buttonMenu, 0x1b8);
+GEODE_MEMBER_CHECK(FLAlertLayer, m_mainLayer, 0x1c8);
+
 
 // GEODE_MEMBER_CHECK(CCNode, m_pUserObject, 0xcc);
 

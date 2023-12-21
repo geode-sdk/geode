@@ -8,7 +8,6 @@
 namespace geode::base {
     uintptr_t get() {
         static uintptr_t base = (reinterpret_cast<uintptr_t>(&MenuLayer::scene) - (0x309068 - 0x10000)) & (~0x1);
-        log::debug("base: {}", (void*)base);
         // static uintptr_t base = reinterpret_cast<uintptr_t>(dlopen("libcocos2dcpp.so", RTLD_NOW));
         return base;
     }
@@ -61,12 +60,6 @@ namespace gd {
     bool string::operator==(string const& other) const {
         return std::string(*this) == std::string(other);
     }
-
-    // TODO: these need to stay for old mods linking against geode <1.2.0, remove in 2.0.0
-    template class map<int, int>;
-    template class map<gd::string, gd::string>;
-    template class map<gd::string, bool>;
-    template class map<short, bool>;
 }
 
 #endif

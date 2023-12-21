@@ -523,7 +523,7 @@ void ModListLayer::reloadList(bool keepScroll, std::optional<ModListQuery> const
 
     // set list
     // TODO: 6th param dont know
-    m_list = GJListLayer::create(list, nullptr, { 0, 0, 0, 180 }, 358.f, 220.f, 0);
+    m_list = GJListLayer::create(list, nullptr, { 0, 0, 0, 180 }, 358.f, 220.f, items->count());
     m_list->setZOrder(2);
     m_list->setPosition(winSize / 2 - m_list->getScaledContentSize() / 2);
     this->addChild(m_list);
