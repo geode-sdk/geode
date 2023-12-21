@@ -116,6 +116,19 @@ public:
     RT_ADD(
         void resumeStroke();
         void stopStroke();
+
+	void enableRepeatMode(float);
+
+	bool getDontOpacityFade() const;
+	void setDontOpacityFade(bool);
+
+	float getM_fMaxSeg() const;
+	void setM_fMaxSeg(float);
+
+	void setStroke(float);
+	void updateFade(float);
+
+
     )
 
     /** When fast mode is enabled, new points are added faster but with lower precision */

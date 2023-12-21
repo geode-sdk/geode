@@ -176,6 +176,7 @@ protected:
     public:
         int getUsedAtlasCapacity(void);
         void increaseAtlasCapacity(unsigned int);
+        void increaseAtlasCapacity();
     protected:
         void manualSortAllChildren(void);
         void setManualSortChildren(bool);

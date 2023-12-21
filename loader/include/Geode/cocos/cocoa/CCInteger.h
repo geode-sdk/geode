@@ -18,6 +18,7 @@ public:
     CCInteger(int v)
         : m_nValue(v) {}
     int getValue() const {return m_nValue;}
+	void setValue(int v) { m_nValue = v; };
 
     static CCInteger* create(int v)
     {

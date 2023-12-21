@@ -57,6 +57,7 @@ namespace cocos2d
 
     class CC_DLL ZipUtils
     {
+        GEODE_FRIEND_MODIFY;
     public:
         /** 
         * Inflates either zlib or gzip deflated memory. The inflated memory is

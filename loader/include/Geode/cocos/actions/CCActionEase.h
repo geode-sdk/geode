@@ -46,6 +46,9 @@ class CC_DLL CCActionEase : public CCActionInterval
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCActionEase, CCActionInterval);
+    CCActionEase() {}
+
     /**
      *  @js NA
      *  @lua NA

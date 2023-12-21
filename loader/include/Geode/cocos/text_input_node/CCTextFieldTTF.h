@@ -65,7 +65,7 @@ public:
     /**
     @brief    If the sender doesn't want to insert the text, return true;
     */
-    virtual bool onTextFieldInsertText(CCTextFieldTTF * sender, const char * text, int nLen)
+    virtual bool onTextFieldInsertText(CCTextFieldTTF * sender, const char * text, int nLen, cocos2d::enumKeyCodes)
     {
         CC_UNUSED_PARAM(sender);
         CC_UNUSED_PARAM(text);
@@ -175,7 +175,7 @@ protected:
 
     virtual bool canAttachWithIME();
     virtual bool canDetachWithIME();
-    virtual void insertText(const char * text, int len);
+    virtual void insertText(const char * text, int len, cocos2d::enumKeyCodes);
     virtual void deleteBackward();
     virtual const char * getContentText();
 private:

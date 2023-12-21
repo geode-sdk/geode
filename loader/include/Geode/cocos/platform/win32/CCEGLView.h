@@ -121,6 +121,10 @@ public:
      */
     static CCEGLView* create(const gd::string&);
 
+    static cocos2d::CCEGLView* createWithFullScreen(gd::string const&);
+	static cocos2d::CCEGLView* createWithFullScreen(gd::string const&, GLFWvidmode const&, GLFWmonitor*);
+	static cocos2d::CCEGLView* createWithRect(gd::string const&, cocos2d::CCRect, float);
+
     /**
      * @note Geode addition
      */
@@ -140,6 +144,34 @@ public:
      * @note RobTop addition
      */
     CCSize getDisplaySize();
+
+	void capture();
+	void checkErrorGL(char const*);
+
+	void enableRetina(bool);
+
+	bool getCursorLocked() const;
+	bool getGameplayActive() const;
+	bool getIsFullscreen() const;
+	int getRetinaFactor() const;
+	bool getShouldHideCursor() const;
+	void iconify();
+
+    bool initWithFullScreen(gd::string const&);
+	bool initWithFullscreen(gd::string const&, GLFWvidmode const&, GLFWmonitor*);
+	bool initWithRect(gd::string const&, cocos2d::CCRect, float);
+
+	bool isRetinaEnabled() const;
+
+	void onGLFWWindowCloseFunCallback(GLFWwindow*);
+	void releaseCapture();
+	void showMessage(gd::string);
+
+	void toggleGameplayActive(bool);
+	void toggleLockCursor(bool);
+	void updateDesignSize(int, int);
+	void updateFrameSize();
+
 
 protected:
 	static CCEGLView* s_pEglView;

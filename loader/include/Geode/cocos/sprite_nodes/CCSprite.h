@@ -511,6 +511,11 @@ public:
     void setFlipY(bool bFlipY);
     
     /// @} End of Sprite properties getter/setters
+
+	cocos2d::CCPoint const& getUnflippedOffsetPosition();
+	bool getUseVertexMod() const;
+	void setUseVertexMod(bool);
+
     
 protected:
     void updateColor(void);

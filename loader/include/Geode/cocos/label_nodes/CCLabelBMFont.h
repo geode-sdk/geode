@@ -269,15 +269,25 @@ public:
 #endif // CC_LABELBMFONT_DEBUG_DRAW
 
     RT_ADD(
-        static CCLabelBMFont* createBatched(const char* str, const char* fntFile, CCArray*);
+        static CCLabelBMFont* createBatched(const char* str, const char* fntFile, CCArray*, int);
         void limitLabelWidth(float width, float defaultScale, float minScale);
+
+	int getExtraKerning() const;
+	void setExtraKerning(int);
+
+	bool getIsBatched() const;
+	void setIsBatched(bool);
+
+	cocos2d::CCArray* getTargetArray() const;
+	void setTargetArray(cocos2d::CCArray*);
+
     )
 
 private:
     char * atlasNameFromFntFile(const char *fntFile);
     int kerningAmountForFirst(unsigned short first, unsigned short second);
-    float getLetterPosXLeft( CCSprite* characterSprite );
-    float getLetterPosXRight( CCSprite* characterSprite );
+    float getLetterPosXLeft( CCSprite* characterSprite, float, bool);
+    float getLetterPosXRight( CCSprite* characterSprite, float, bool);
     
 protected:
     virtual void setString(unsigned short *newString, bool needUpdateLabel);

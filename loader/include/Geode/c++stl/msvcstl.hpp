@@ -7,6 +7,9 @@
 #include <utility>
 #include <map>
 #include <vector>
+#include <unordered_map>
+#include <unordered_set>
+#include <set>
 
 namespace gd {
     struct InternalString {
@@ -41,47 +44,47 @@ namespace gd {
         }
             
         string(string const& param) : string() {
-            (void)this->winAssign(param.c_str(), param.size());
+            // (void)this->winAssign(param.c_str(), param.size());
         }
             
         string(string&& param) : string() {
-            (void)this->winAssign(param.c_str(), param.size());
+            // (void)this->winAssign(param.c_str(), param.size());
         }
         
         string(char const* param) : string() {
-            (void)this->winAssign(param, std::strlen(param));
+            // (void)this->winAssign(param, std::strlen(param));
         }
         
         string(std::string const& param) : string() {
-            (void)this->winAssign(param.c_str(), param.size());
+            // (void)this->winAssign(param.c_str(), param.size());
         }
             
         string& operator=(string const& param) {
-            (void)this->winAssign(param.c_str(), param.size());
+            // (void)this->winAssign(param.c_str(), param.size());
             return *this;
         }
             
         string& operator=(string&& param) {
-            (void)this->winAssign(param.c_str(), param.size());
+            // (void)this->winAssign(param.c_str(), param.size());
             return *this;
         }
         
         string& operator=(char const* param) {
-            (void)this->winAssign(param, std::strlen(param));
+            // (void)this->winAssign(param, std::strlen(param));
             return *this;
         }
             
         string& operator=(std::string const& param) {
-            (void)this->winAssign(param.c_str(), param.size());
+            // (void)this->winAssign(param.c_str(), param.size());
             return *this;
         }
 
         void clear() {
-            (void)this->winDtor();
+            // (void)this->winDtor();
         }
 
         ~string() {
-            (void)this->winDtor();
+            // (void)this->winDtor();
         }
 
         char& at(size_t pos) {
@@ -144,4 +147,13 @@ namespace gd {
 
     template <class K, class V>
     using map = std::map<K, V>;
+
+    template <class K, class V>
+    using unordered_map = std::unordered_map<K, V>;
+
+    template <class K>
+    using set = std::set<K>;
+
+    template <class K>
+    using unordered_set = std::unordered_set<K>;
 }

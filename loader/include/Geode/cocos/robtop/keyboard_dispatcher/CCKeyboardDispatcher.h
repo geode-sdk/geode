@@ -21,7 +21,7 @@ RT_ADD(
 
 		enumKeyCodes convertKeyCode(enumKeyCodes key);
 
-		bool dispatchKeyboardMSG(enumKeyCodes key, bool);
+		bool dispatchKeyboardMSG(enumKeyCodes key, bool, bool);
 		
 		inline bool getAltKeyPressed() const {
 			return m_bAltPressed;
@@ -41,6 +41,10 @@ RT_ADD(
 		const char* keyToString(enumKeyCodes key);
 
 		void updateModifierKeys(bool shft, bool ctrl, bool alt, bool cmd);
+
+		bool getBlockRepeat() const;
+		void setBlockRepeat(bool);
+
 
 	protected:
 		CCArray* m_pDelegates;		// 0x20

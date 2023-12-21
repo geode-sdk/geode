@@ -189,6 +189,7 @@ public:
 
 protected:
     CCMenuItem* itemForTouch(CCTouch * touch);
+    CCMenuItem* itemForTouch(CCTouch * touch, bool);
     tCCMenuState m_eState;
     CCMenuItem *m_pSelectedItem;
 };

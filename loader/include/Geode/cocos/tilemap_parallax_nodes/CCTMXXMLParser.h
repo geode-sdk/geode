@@ -149,6 +149,7 @@ This information is obtained from the TMX file.
 */
 class CC_DLL CCTMXMapInfo : public CCObject, public CCSAXDelegator
 {    
+    GEODE_FRIEND_MODIFY
 public:    
     /// map orientation
     CC_SYNTHESIZE(int,    m_nOrientation, Orientation);

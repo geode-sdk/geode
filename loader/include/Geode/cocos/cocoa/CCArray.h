@@ -236,6 +236,12 @@ public:
      */
     void fastRemoveObjectAtIndexNew(unsigned int index);
 
+	void fastRemoveObjectAtIndexChild(unsigned int);
+
+	void recreateNewIndexes();
+	void removeObjectAtIndexChild(unsigned int, bool);
+
+
     // Rearranging Content
 
     /** Swap two elements */

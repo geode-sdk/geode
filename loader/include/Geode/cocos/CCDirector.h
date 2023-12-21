@@ -378,6 +378,11 @@ public:
         void updateContentScale(TextureQuality);
         void updateScreenScale(CCSize);
 
+    	void applySmoothFix();
+        void createStatsLabel();
+        void showFPSLabel();
+        void toggleShowFPS(bool, gd::string, cocos2d::CCPoint);
+
     protected:
         CC_SYNTHESIZE_READONLY_NV(float, m_fScreenScaleFactor, ScreenScaleFactor);
         CC_SYNTHESIZE_READONLY_NV(float, m_fScreenScaleFactorMax, ScreenScaleFactorMax);
