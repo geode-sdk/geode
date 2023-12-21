@@ -4,7 +4,7 @@
 using namespace geode::prelude;
 
 char const* InputNode::getString() {
-    return m_input->getString();
+    return m_input->getString().c_str();
 }
 
 void InputNode::setString(std::string const& str) {

@@ -345,7 +345,7 @@ void FileSettingNode::updateLabel() {
 }
 
 void FileSettingNode::textChanged(CCTextInputNode* input) {
-    m_uncommittedValue = input->getString();
+    m_uncommittedValue = input->getString().c_str();
     this->valueChanged(false);
 }
 

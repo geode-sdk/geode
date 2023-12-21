@@ -135,7 +135,7 @@ if (NOT GEODE_BINDINGS_REPO_PATH)
 			"contribute new bindings) then set GEODE_BINDINGS_REPO_PATH to where you have "
 			"cloned the repository (system environment variables are supported)."
 		)
-		CPMAddPackage("gh:geode-sdk/bindings#2c4e7b9")
+		CPMAddPackage("gh:geode-sdk/bindings#687394d")
 		set(GEODE_BINDINGS_REPO_PATH ${GeodeBindings_SOURCE_DIR})
 	endif()
 endif()

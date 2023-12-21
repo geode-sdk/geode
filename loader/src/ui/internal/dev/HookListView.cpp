@@ -97,7 +97,7 @@ HookCell* HookCell::create(char const* key, CCSize size) {
     return nullptr;
 }
 
-void HookListView::setupList() {
+void HookListView::setupList(float) {
     m_itemSeparation = 30.0f;
 
     if (!m_entries->count()) return;

@@ -37,7 +37,7 @@ class HookListView : public CustomListView {
 protected:
     Mod* m_mod;
 
-    void setupList() override;
+    void setupList(float) override;
     TableViewCell* getListCell(char const* key) override;
     void loadCell(TableViewCell* cell, int index) override;
 

@@ -92,12 +92,12 @@ protected:
             } else {
                 btnSpr->setColor({ 200, 200, 200 });
             }
-            // auto btn = CCMenuItemSpriteExtra::create(
-            //     btnSpr, this, menu_selector(MySettingNode::onSelect)
-            // );
-            // btn->setTag(static_cast<int>(icon));
-            // btn->setPosition(x, 0);
-            // menu->addChild(btn);
+            auto btn = CCMenuItemSpriteExtra::create(
+                btnSpr, this, menu_selector(MySettingNode::onSelect)
+            );
+            btn->setTag(static_cast<int>(icon));
+            btn->setPosition(x, 0);
+            menu->addChild(btn);
 
             x += 50.f;
         }
@@ -152,14 +152,14 @@ struct MyMenuLayer : Modify<MyMenuLayer, MenuLayer> {
     void onMoreGames(CCObject*) {
         TestEvent("Event system works!").post();
         if (Mod::get()->getSettingValue<bool>("its-raining-after-all")) {
-            // FLAlertLayer::create("Damn", ":(", "OK")->show();
+            FLAlertLayer::create("Damn", ":(", "OK")->show();
         }
         else {
-            // FLAlertLayer::create(
-            //     "Yay",
-            //     "The weather report said it wouldn't rain today :)",
-            //     "OK"
-            // )->show();
+            FLAlertLayer::create(
+                "Yay",
+                "The weather report said it wouldn't rain today :)",
+                "OK"
+            )->show();
         }
     }
 };

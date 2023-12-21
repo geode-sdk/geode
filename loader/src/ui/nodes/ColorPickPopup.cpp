@@ -204,7 +204,7 @@ void ColorPickPopup::onReset(CCObject*) {
 }
 
 void ColorPickPopup::textChanged(CCTextInputNode* input) {
-    if (input->getString() && strlen(input->getString())) {
+    if (input->getString().size()) {
         switch (input->getTag()) {
             case TAG_HEX_INPUT:
                 {
@@ -218,13 +218,13 @@ void ColorPickPopup::textChanged(CCTextInputNode* input) {
 
             case TAG_OPACITY_INPUT:
                 {
-                    m_color.a = parseFloat(input->getString());
+                    m_color.a = parseFloat(input->getString().c_str());
                 }
                 break;
 
-            case TAG_R_INPUT: m_color.r = parseInt(input->getString()); break;
-            case TAG_G_INPUT: m_color.g = parseInt(input->getString()); break;
-            case TAG_B_INPUT: m_color.b = parseInt(input->getString()); break;
+            case TAG_R_INPUT: m_color.r = parseInt(input->getString().c_str()); break;
+            case TAG_G_INPUT: m_color.g = parseInt(input->getString().c_str()); break;
+            case TAG_B_INPUT: m_color.b = parseInt(input->getString().c_str()); break;
 
             default: break;
         }

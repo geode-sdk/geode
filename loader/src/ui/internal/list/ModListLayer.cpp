@@ -459,8 +459,7 @@ void ModListLayer::reloadList(bool keepScroll, std::optional<ModListQuery> const
     // set search query
     m_query.keywords =
         m_searchInput && 
-        m_searchInput->getString() &&
-        strlen(m_searchInput->getString()) ? 
+        m_searchInput->getString().size() ? 
             std::optional<std::string>(m_searchInput->getString()) : 
             std::nullopt;
 
@@ -523,7 +522,8 @@ void ModListLayer::reloadList(bool keepScroll, std::optional<ModListQuery> const
     }
 
     // set list
-    m_list = GJListLayer::create(list, nullptr, { 0, 0, 0, 180 }, 358.f, 220.f);
+    // TODO: 6th param dont know
+    m_list = GJListLayer::create(list, nullptr, { 0, 0, 0, 180 }, 358.f, 220.f, 0);
     m_list->setZOrder(2);
     m_list->setPosition(winSize / 2 - m_list->getScaledContentSize() / 2);
     this->addChild(m_list);
@@ -544,9 +544,7 @@ void ModListLayer::reloadList(bool keepScroll, std::optional<ModListQuery> const
 
     // check if the user has searched something,
     // and show visual indicator if so
-    auto hasQuery =
-        (m_searchInput->getString() &&
-        strlen(m_searchInput->getString()));
+    auto hasQuery = m_searchInput->getString().size() > 0;
     m_searchBtn->setVisible(!hasQuery);
     m_searchClearBtn->setVisible(hasQuery);
 

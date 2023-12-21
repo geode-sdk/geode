@@ -22,6 +22,17 @@ GEODE_SIZE_CHECK(CCMenuItemSprite, 0x138);
 
 GEODE_SIZE_CHECK(CCScale9Sprite, 0x1a4);
 
+GEODE_SIZE_CHECK(FLAlertLayer, 0x1f0);
+GEODE_SIZE_CHECK(BoomListView, 0x164);
+GEODE_SIZE_CHECK(CustomListView, 0x168);
+GEODE_SIZE_CHECK(CCMenuItemSpriteExtra, 0x174);
+GEODE_SIZE_CHECK(LoadingLayer, 0x15c);
+GEODE_SIZE_CHECK(GJDropDownLayer, 0x1e4);
+// GEODE_SIZE_CHECK(TableViewCell, 0x19c);
+// GEODE_SIZE_CHECK(Slider, 0x158);
+GEODE_SIZE_CHECK(SliderTouchLogic, 0x174);
+GEODE_SIZE_CHECK(CCScrollLayerExt, 0x184);
+GEODE_SIZE_CHECK(TableView, 0x1dc);
 
 // needed classes are ones in the ids folder and some generic ones (i think they are already done though so only ids)
 

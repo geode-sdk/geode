@@ -407,7 +407,8 @@ struct LoadingFinished : Modify<LoadingFinished, LoadingLayer> {
         }
         auto scene = CCScene::create();
         scene->addChild(layer);
-        AppDelegate::get()->m_runningScene = scene;
+        // TODO: readd this
+        // AppDelegate::get()->m_runningScene = scene;
         CCDirector::get()->replaceScene(scene);
         // Don't overwrite behaviour next time
         LOADING_FINISHED_SCENE = nullptr;

@@ -1,6 +1,5 @@
 #include <Geode/ui/Colors.hpp>
 #include <Geode/utils/ranges.hpp>
-#include <Geode/modify/LevelInfoLayer.hpp>
 
 using namespace geode::prelude;
 

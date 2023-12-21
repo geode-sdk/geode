@@ -5,7 +5,7 @@ using namespace geode::prelude;
 #include <Geode/modify/AppDelegate.hpp>
 
 struct SaveLoader : Modify<SaveLoader, AppDelegate> {
-    void trySaveGame() {
+    void trySaveGame(bool p0) {
         log::info("Saving mod data...");
         log::pushNest();
 
@@ -19,6 +19,6 @@ struct SaveLoader : Modify<SaveLoader, AppDelegate> {
 
         log::popNest();
 
-        return AppDelegate::trySaveGame();
+        return AppDelegate::trySaveGame(p0);
     }
 };

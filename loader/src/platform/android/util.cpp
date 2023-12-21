@@ -204,12 +204,13 @@ void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
 }
 
 void geode::utils::game::exit() {
-    if (CCApplication::sharedApplication() &&
-        (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
-        log::error("Cannot exit in PlayLayer or LevelEditorLayer!");
-        return;
-    }
-    AppDelegate::get()->trySaveGame();
+    // TODO: yeah
+    // if (CCApplication::sharedApplication() &&
+    //     (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
+    //     log::error("Cannot exit in PlayLayer or LevelEditorLayer!");
+    //     return;
+    // }
+    AppDelegate::get()->trySaveGame(true);
     // AppDelegate::get()->showLoadingCircle(false, true);
 
     CCDirector::get()->getActionManager()->addAction(CCSequence::create(
@@ -220,11 +221,11 @@ void geode::utils::game::exit() {
 }
 
 void geode::utils::game::restart() {
-    if (CCApplication::sharedApplication() &&
-        (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
-        log::error("Cannot restart in PlayLayer or LevelEditorLayer!");
-        return;
-    }
+    // if (CCApplication::sharedApplication() &&
+    //     (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
+    //     log::error("Cannot restart in PlayLayer or LevelEditorLayer!");
+    //     return;
+    // }
 
     class Exit : public CCObject {
     public:
@@ -240,7 +241,7 @@ void geode::utils::game::restart() {
     // Not implemented
     // log::error("Restarting the game is not implemented on android");
 
-    AppDelegate::get()->trySaveGame();
+    AppDelegate::get()->trySaveGame(true);
     // AppDelegate::get()->showLoadingCircle(false, true);
 
     CCDirector::get()->getActionManager()->addAction(CCSequence::create(
