@@ -191,11 +191,14 @@ ghc::filesystem::path dirs::getModRuntimeDir() {
 }
 
 void geode::utils::game::exit() {
+    // TODO: mat
+    #if 0
     if (CCApplication::sharedApplication() &&
         (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
         log::error("Cannot exit in PlayLayer or LevelEditorLayer!");
         return;
     }
+    #endif
 
     if (CCApplication::sharedApplication())
         // please forgive me..
@@ -207,11 +210,14 @@ void geode::utils::game::exit() {
 }
 
 void geode::utils::game::restart() {
+    // TODO: mat
+    #if 0
     if (CCApplication::sharedApplication() &&
         (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
         log::error("Cannot restart in PlayLayer or LevelEditorLayer!");
         return;
     }
+    #endif
 
     const auto workingDir = dirs::getGameDir();
 
