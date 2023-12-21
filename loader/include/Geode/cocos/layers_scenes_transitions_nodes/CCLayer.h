@@ -369,6 +369,8 @@ class CC_DLL CCLayerGradient : public CCLayerColor
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCLayerGradient, CCLayerColor)
+
 
     /** Creates a full-screen CCLayer with a gradient between start and end. */
     static CCLayerGradient* create(const ccColor4B& start, const ccColor4B& end);

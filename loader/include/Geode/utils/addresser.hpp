@@ -28,6 +28,11 @@ namespace geode::addresser {
     template <class Function, class Class>
     Class rthunkAdjust(Function func, Class self);
 
+    template <class Class>
+    concept HasZeroConstructor = requires {
+        new Class(ZeroConstructor);
+    };
+
     class GEODE_DLL Addresser final {
         template <char C>
         struct SingleInheritance {
@@ -65,9 +70,14 @@ namespace geode::addresser {
         }
 
         template <class Class>
-        static Class* cachedInstance() {
+        static Class* cachedInstance() requires HasZeroConstructor<Class> {
             static auto ret = new Class(ZeroConstructor);
             return ret;
+        }
+
+        template <class Class>
+        static Class* cachedInstance() requires (!HasZeroConstructor<Class>) {
+            return nullptr;
         }
 
         /**
