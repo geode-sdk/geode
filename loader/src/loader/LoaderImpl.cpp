@@ -60,9 +60,9 @@ Result<> Loader::Impl::setup() {
 
     log::debug("Setting up crash handler");
     log::pushNest();
-    if (!crashlog::setupPlatformHandler()) {
-        log::debug("Failed to set up crash handler");
-    }
+    // if (!crashlog::setupPlatformHandler()) {
+    //     log::debug("Failed to set up crash handler");
+    // }
     log::popNest();
 
     log::debug("Loading hooks");

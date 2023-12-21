@@ -7,7 +7,8 @@
 
 namespace geode::base {
     uintptr_t get() {
-        static uintptr_t base = (reinterpret_cast<uintptr_t>(&MenuLayer::scene) - 0x2f9068) & (~0x1);
+        static uintptr_t base = (reinterpret_cast<uintptr_t>(&MenuLayer::scene) - (0x309068 - 0x10000)) & (~0x1);
+        log::debug("base: {}", (void*)base);
         // static uintptr_t base = reinterpret_cast<uintptr_t>(dlopen("libcocos2dcpp.so", RTLD_NOW));
         return base;
     }
@@ -17,7 +18,7 @@ namespace gd {
     namespace {
         static inline auto emptyInternalString() {
             return reinterpret_cast<_internal_string*>(
-                geode::base::get() + 0x75fb24 + sizeof(_internal_string)
+                geode::base::get() + (0xaa1c3c - 0x10000) + sizeof(_internal_string)
             );
         }
     }
@@ -27,12 +28,12 @@ namespace gd {
     }
 
     string::string(char const* ok) : m_data(nullptr) {
-        reinterpret_cast<void (*)(string*, char const*)>(geode::base::get() + 0x506c08)(this, ok);
+        reinterpret_cast<void (*)(string*, char const*)>(geode::base::get() + (0x753a44 - 0x10000) + 1)(this, ok);
     }
 
     string::string(string const& ok) : m_data(nullptr) {
         if (*(string**)(&ok) == nullptr) return;
-        reinterpret_cast<void (*)(string*, string const&)>(geode::base::get() + 0x506634)(this, ok);
+        reinterpret_cast<void (*)(string*, string const&)>(geode::base::get() + (0x7530e0 - 0x10000) + 1)(this, ok);
     }
 
     string& string::operator=(char const* ok) {
@@ -50,7 +51,7 @@ namespace gd {
     string::~string() {
         if (m_data == nullptr) return;
 
-        reinterpret_cast<void (*)(string*)>(geode::base::get() + 0x5054bc)(this);
+        reinterpret_cast<void (*)(string*)>(geode::base::get() + (0x7514c8 - 0x10000) + 1)(this);
     }
 
     bool string::operator<(string const& other) const {

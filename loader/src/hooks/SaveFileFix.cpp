@@ -63,16 +63,17 @@ gd::string decompressString2(unsigned char* data, bool decrypt, int size, int de
 
 // Modify doesnt want to work for some reason!
 $execute {
-    (void) Mod::get()->addHook(
-        reinterpret_cast<void*>(
-            geode::addresser::getNonVirtual(
-                &cocos2d::ZipUtils::decompressString2
-            )
-        ),
-        &decompressString2,
-        "cocos2d::ZipUtils::decompressString2",
-        tulip::hook::TulipConvention::Cdecl
-    );
+    // TODO: 2.2 maybe reenable?
+    // (void) Mod::get()->addHook(
+    //     reinterpret_cast<void*>(
+    //         geode::addresser::getNonVirtual(
+    //             &cocos2d::ZipUtils::decompressString2
+    //         )
+    //     ),
+    //     &decompressString2,
+    //     "cocos2d::ZipUtils::decompressString2",
+    //     tulip::hook::TulipConvention::Cdecl
+    // );
 }
 
 #endif
