@@ -60,6 +60,8 @@ __object__=__array__->arr[0]; for(unsigned int i=0, num=__array__->num; i<num; i
 
 typedef struct _ccArray {
 	unsigned int num, max;
+    // 2.2 additions
+    unsigned int unknown;
 	CCObject** arr;
 } ccArray;
 

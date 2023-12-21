@@ -34,6 +34,8 @@ GEODE_SIZE_CHECK(SliderTouchLogic, 0x174);
 GEODE_SIZE_CHECK(CCScrollLayerExt, 0x184);
 GEODE_SIZE_CHECK(TableView, 0x1dc);
 
+// GEODE_MEMBER_CHECK(CCNode, m_pUserObject, 0xcc);
+
 // needed classes are ones in the ids folder and some generic ones (i think they are already done though so only ids)
 
 // GEODE_MEMBER_CHECK(GameManager, m_playLayer, 0x138);
