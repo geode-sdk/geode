@@ -275,10 +275,7 @@ elseif (WIN32)
 	endif()
 endif()
 
-# Build test mods if needed
-if(NOT GEODE_DONT_BUILD_TEST_MODS)
-	add_subdirectory(test)
-endif()
+add_subdirectory(test)
 
 # Build index hashing algorithm test program
 add_subdirectory(hash)
