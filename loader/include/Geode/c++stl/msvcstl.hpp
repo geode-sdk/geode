@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Geode/binding/GDString.hpp>
+// #include <Geode/binding/GDString.hpp>
 #include <cstring>
 #include <string>
 #include <stdexcept>
@@ -22,7 +22,7 @@ namespace gd {
         size_t m_capacity;
     };
 
-    class string : GDString {
+    class string {
     private:
         InternalString m_data;
 
