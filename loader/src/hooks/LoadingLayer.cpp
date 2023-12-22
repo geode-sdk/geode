@@ -18,7 +18,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
         auto count = std::count_if(allMods.begin(), allMods.end(), [&](auto& item) {
             return item->isEnabled();
         });
-        auto str = fmt::format("Geode: Loaded {}/{} mods", count, m_totalMods);
+        auto str = fmt::format("Geode: Loaded {}/{} mods", count, m_fields->m_totalMods);
         this->setSmallText(str);
         auto currentMod = LoaderImpl::get()->m_currentlyLoadingMod;
         auto modName = currentMod ? currentMod->getName() : "Unknown";
@@ -39,7 +39,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
 
         if (!LoadingLayer::init(fromReload)) return false;
 
-        m_totalMods = Loader::get()->getAllMods().size();
+        m_fields->m_totalMods = Loader::get()->getAllMods().size();
 
         auto winSize = CCDirector::sharedDirector()->getWinSize();
 
@@ -131,7 +131,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     }
 
     int getTotalStep() {
-        return 18 + m_totalMods;
+        return 18 + m_fields->m_totalMods;
     }
 
     void updateLoadingBar() {
