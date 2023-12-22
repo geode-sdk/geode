@@ -120,24 +120,23 @@ target_link_libraries(GeodeFilesystemImpl PUBLIC ghc_filesystem)
 # Allow users to have their own copy of bindings that can be overwritten with a CMake option.
 # If the option is not provided, by default just clone bindings with CPM and use that
 if (DEFINED ENV{GEODE_BINDINGS_REPO_PATH})
-	set(GEODE_BINDINGS_REPO_PATH $ENV{GEODE_BINDINGS_REPO_PATH})
+	set(temp $ENV{GEODE_BINDINGS_REPO_PATH})
+	# this is so stupid i hate windows paths
+	string(REPLACE "\\" "/" GEODE_BINDINGS_REPO_PATH ${temp})
 endif()
 
 if (NOT GEODE_BINDINGS_REPO_PATH)
-	if (DEFINED ENV{GEODE_BINDINGS_REPO_PATH})
-		set(GEODE_BINDINGS_REPO_PATH $ENV{GEODE_BINDINGS_REPO_PATH})
-		message(STATUS "Using ${GEODE_BINDINGS_REPO_PATH} for bindings repo")
-	else()
-		message(STATUS 
-			"No override path for bindings provided, using CPM to clone default. "
-			"If you would like to use a separate clone of the bindings repo "
-			"(for example in order to be able to efficiently change and "
-			"contribute new bindings) then set GEODE_BINDINGS_REPO_PATH to where you have "
-			"cloned the repository (system environment variables are supported)."
-		)
-		CPMAddPackage("gh:geode-sdk/bindings#687394d")
-		set(GEODE_BINDINGS_REPO_PATH ${GeodeBindings_SOURCE_DIR})
-	endif()
+	message(STATUS 
+		"No override path for bindings provided, using CPM to clone default. "
+		"If you would like to use a separate clone of the bindings repo "
+		"(for example in order to be able to efficiently change and "
+		"contribute new bindings) then set GEODE_BINDINGS_REPO_PATH to where you have "
+		"cloned the repository (system environment variables are supported)."
+	)
+	CPMAddPackage("gh:geode-sdk/bindings#687394d")
+	set(GEODE_BINDINGS_REPO_PATH ${GeodeBindings_SOURCE_DIR})
+else()
+	message(STATUS "Using ${GEODE_BINDINGS_REPO_PATH} for bindings repo")
 endif()
 
 include(ExternalProject)
