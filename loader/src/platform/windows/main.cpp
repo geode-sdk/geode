@@ -59,10 +59,10 @@ bool loadGeode() {
 
 #define JMP_ADDR(from, to) (std::bit_cast<uintptr_t>(to) - std::bit_cast<uintptr_t>(from) - 5)
 #define JMP_BYTES(from, to) \
-    ((JMP_ADDR(from, to) >>  0) & 0xFF), \
-    ((JMP_ADDR(from, to) >>  8) & 0xFF), \
-    ((JMP_ADDR(from, to) >> 16) & 0xFF), \
-    ((JMP_ADDR(from, to) >> 24) & 0xFF)
+    static_cast<uint8_t>((JMP_ADDR(from, to) >>  0) & 0xFF), \
+    static_cast<uint8_t>((JMP_ADDR(from, to) >>  8) & 0xFF), \
+    static_cast<uint8_t>((JMP_ADDR(from, to) >> 16) & 0xFF), \
+    static_cast<uint8_t>((JMP_ADDR(from, to) >> 24) & 0xFF)
 
     uint8_t trampolineBytes[trampolineSize] = {
         // push ebp
