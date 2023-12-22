@@ -19,43 +19,6 @@ namespace geode::base {
 namespace gd {
     using namespace geode::stl;
 
-    struct _internal_string {
-        size_t m_len;
-        size_t m_capacity;
-        int m_refcount;
-    };
-
-    class GEODE_DLL string {
-    public:
-        string();
-        string(char const* ok);
-
-        string(std::string ok) : string(ok.c_str()) {}
-
-        operator std::string() const {
-            return std::string((char*)m_data, m_data[-1].m_len);
-        }
-
-        bool operator<(string const& other) const;
-
-        bool operator==(string const& other) const;
-        string(string const& ok);
-        string& operator=(char const* ok);
-        string& operator=(string const& ok);
-        __attribute__((noinline)) ~string();
-
-        char const* c_str() const {
-            return (char const*)m_data;
-        }
-
-        size_t size() const {
-            return m_data[-1].m_len;
-        }
-
-    protected:
-        _internal_string* m_data;
-    };
-
     template <typename K, typename V>
     class GEODE_DLL map {
     protected:

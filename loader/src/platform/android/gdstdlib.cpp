@@ -1,4 +1,5 @@
 #include <Geode/c++stl/gdstdlib.hpp>
+#include "../../c++stl/string-adapter.hpp"
 
 #ifdef GEODE_IS_ANDROID
 
@@ -13,52 +14,44 @@ namespace geode::base {
     }
 }
 
-namespace gd {
-    namespace {
-        static inline auto emptyInternalString() {
-            return reinterpret_cast<_internal_string*>(
-                geode::base::get() + (0xaa1c3c - 0x10000) + sizeof(_internal_string)
-            );
-        }
+namespace geode::stl {
+    static inline auto emptyInternalString() {
+        return reinterpret_cast<StringImpl::Internal*>(
+            geode::base::get() + (0xaa1c3c - 0x10000) + sizeof(StringImpl::Internal)
+        );
     }
 
-    string::string() : m_data(nullptr) {
-        m_data = emptyInternalString();
+    void StringImplAdapter::setEmpty() {
+        impl.m_data = emptyInternalString();
     }
 
-    string::string(char const* ok) : m_data(nullptr) {
-        reinterpret_cast<void (*)(string*, char const*)>(geode::base::get() + (0x753a44 - 0x10000) + 1)(this, ok);
+    void StringImplAdapter::free() {
+        if (impl.m_data == nullptr) return;
+        // TODO: reimplement this
+        reinterpret_cast<void (*)(StringImpl*)>(geode::base::get() + (0x7514c8 - 0x10000) + 1)(&impl.m_data);
     }
 
-    string::string(string const& ok) : m_data(nullptr) {
-        if (*(string**)(&ok) == nullptr) return;
-        reinterpret_cast<void (*)(string*, string const&)>(geode::base::get() + (0x7530e0 - 0x10000) + 1)(this, ok);
+    char* StringImplAdapter::getStorage() {
+        return reinterpret_cast<char*>(impl.m_data);
+    }
+    void StringImplAdapter::setStorage(const std::string_view str) {
+        this->free();
+        // TODO: should be using char*, size_t at the very least, or yknow, just reimplement it :-)
+        reinterpret_cast<void (*)(StringImpl*, char const*)>(geode::base::get() + (0x753a44 - 0x10000) + 1)(&impl.m_data, str.data());
     }
 
-    string& string::operator=(char const* ok) {
-        this->~string();
-        new (this) string(ok);
-        return *this;
+    size_t StringImplAdapter::getSize() {
+        return impl.m_data[-1].m_size;
+    }
+    void StringImplAdapter::setSize(size_t size) {
+        // TODO: implement this, remember its copy-on-write...
     }
 
-    string& string::operator=(string const& ok) {
-        this->~string();
-        new (this) string(ok);
-        return *this;
+    size_t StringImplAdapter::getCapacity() {
+        return impl.m_data[-1].m_capacity;
     }
-
-    string::~string() {
-        if (m_data == nullptr) return;
-
-        reinterpret_cast<void (*)(string*)>(geode::base::get() + (0x7514c8 - 0x10000) + 1)(this);
-    }
-
-    bool string::operator<(string const& other) const {
-        return std::string(*this) < std::string(other);
-    }
-
-    bool string::operator==(string const& other) const {
-        return std::string(*this) == std::string(other);
+    void StringImplAdapter::setCapacity(size_t cap) {
+        // TODO: implement this, remember its copy-on-write...
     }
 }
 
