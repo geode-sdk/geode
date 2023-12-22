@@ -21,5 +21,13 @@ GEODE_MEMBER_CHECK(CCTextInputNode, m_maxLabelScale, 0x190);
 GEODE_MEMBER_CHECK(CCTextInputNode, m_placeholderScale, 0x194);
 GEODE_MEMBER_CHECK(CCTextInputNode, m_placeholderColor, 0x198);
 
+GEODE_MEMBER_CHECK(GJListLayer, m_listView, 0x1b8);
+
+GEODE_MEMBER_CHECK(BoomListView, m_tableView, 0x144);
+GEODE_MEMBER_CHECK(BoomListView, m_entries, 0x148);
+
+GEODE_MEMBER_CHECK(TableView, m_cellArray, 0x1b0);
+
+
 
 #endif
