@@ -141,6 +141,8 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             popup->show();
         }
 
+    // TODO: mat
+#if 0
         // show crash info
         static bool shownLastCrash = false;
         if (
@@ -181,6 +183,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         }
 
         this->addUpdateIndicator();
+#endif
     
         return true;
     }
