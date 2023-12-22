@@ -19,7 +19,7 @@ RT_ADD(
 		void forceAddDelegate(CCKeyboardDelegate* pDelegate);
 		void forceRemoveDelegate(CCKeyboardDelegate* pDelegate);
 
-		enumKeyCodes convertKeyCode(enumKeyCodes key);
+		static enumKeyCodes convertKeyCode(enumKeyCodes key);
 
 		bool dispatchKeyboardMSG(enumKeyCodes key, bool, bool);
 		
