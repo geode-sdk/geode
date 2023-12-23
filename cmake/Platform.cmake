@@ -96,8 +96,8 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android32")
 		log
 	)
 
-	set(GEODE_OUTPUT_NAME "Geode.v7")
-	set(GEODE_PLATFORM_BINARY "Geode.v7.so")
+	set(GEODE_OUTPUT_NAME "Geode.armeabi-v7a")
+	set(GEODE_PLATFORM_BINARY "Geode.armeabi-v7a.so")
 
 elseif (GEODE_TARGET_PLATFORM STREQUAL "Android64")
 	set_target_properties(${PROJECT_NAME} PROPERTIES
@@ -105,15 +105,15 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android64")
 	)
 
 	target_link_libraries(${PROJECT_NAME} INTERFACE
-		${GEODE_LOADER_PATH}/include/link/android64/libcurl.a
-		${GEODE_LOADER_PATH}/include/link/android64/libssl.a
-		${GEODE_LOADER_PATH}/include/link/android64/libcrypto.a
+		# ${GEODE_LOADER_PATH}/include/link/android64/libcurl.a
+		# ${GEODE_LOADER_PATH}/include/link/android64/libssl.a
+		# ${GEODE_LOADER_PATH}/include/link/android64/libcrypto.a
 		${GEODE_LOADER_PATH}/include/link/android64/libcocos2dcpp.so
 		log
 	)
 
-	set(GEODE_OUTPUT_NAME "Geode.v8")
-	set(GEODE_PLATFORM_BINARY "Geode.v8.so")
+	set(GEODE_OUTPUT_NAME "Geode.arm64-v8a")
+	set(GEODE_PLATFORM_BINARY "Geode.arm64-v8a.so")
 else()
 	message(FATAL_ERROR "Unknown platform ${GEODE_TARGET_PLATFORM}")
 endif()
