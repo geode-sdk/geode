@@ -17,14 +17,15 @@ bool ModSettingsPopup::setup(Mod* mod) {
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
     auto const layerSize = CCSize { 346.f, 220.f };
+    auto const layerPos = (winSize - layerSize) / 2;
 
     auto layerBG = CCLayerColor::create({ 0, 0, 0, 75 });
     layerBG->setContentSize(layerSize);
-    layerBG->setPosition(winSize / 2 - layerSize / 2);
+    layerBG->setPosition(layerPos);
     m_mainLayer->addChild(layerBG);
 
-    auto layer = ScrollLayer::create(layerSize);
-    layer->setPosition(winSize / 2 - layerSize / 2);
+    auto layer = ScrollLayer::create({ 346.f, 220.f });
+    layer->setContentLayerSize(layerSize);
     layer->setTouchEnabled(true);
 
     float totalHeight = .0f;
@@ -79,7 +80,7 @@ bool ModSettingsPopup::setup(Mod* mod) {
     layer->m_contentLayer->setContentSize({ layerSize.width, totalHeight });
     layer->moveToTop();
 
-    m_mainLayer->addChild(layer);
+    layerBG->addChild(layer);
 
     // layer borders
 
