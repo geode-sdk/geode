@@ -14,6 +14,8 @@ $execute {
         );
     #elif defined(GEODE_IS_ANDROID32)
         (void)Mod::get()->addHook(reinterpret_cast<void*>(base::get() + (0x720348 - 0x10000) + 1), &cast::typeinfoCastInternal, "__dynamic_cast");
+    #elif defined(GEODE_IS_ANDROID64)
+        (void)Mod::get()->addHook(reinterpret_cast<void*>(base::get() + (0xd6cb8c - 0x100000)), &cast::typeinfoCastInternal, "__dynamic_cast");
     #endif
 
 

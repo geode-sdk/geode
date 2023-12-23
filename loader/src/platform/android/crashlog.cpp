@@ -1,6 +1,6 @@
 #include <crashlog.hpp>
 
-#ifdef GEODE_IS_ANDROID32
+#ifdef GEODE_IS_ANDROID
 
 using namespace geode::prelude;
 
@@ -65,7 +65,7 @@ static std::string_view getSignalCodeString() {
     }
 }
 
-static std::string getImageName(Elf32_Phdr const* image) {
+static std::string getImageName(void const* image) {
     if (image == nullptr) {
         return "<Unknown>";
     }
@@ -76,45 +76,10 @@ static std::string getImageName(Elf32_Phdr const* image) {
     return imageName;
 }
 
-// static std::vector<struct dyld_image_info const*> getAllImages() {
-//     std::vector<struct dyld_image_info const*> images;
-//     struct task_dyld_info dyldInfo;
-//     mach_msg_type_number_t count = TASK_DYLD_INFO_COUNT;
-//     if (task_info(mach_task_self(), TASK_DYLD_INFO, (task_info_t)&dyldInfo, &count) == KERN_SUCCESS) {
-//         struct dyld_all_image_infos* imageInfos = (struct dyld_all_image_infos*)dyldInfo.all_image_info_addr;
-
-//         for (size_t i = 0; i < imageInfos->infoArrayCount; ++i) {
-//             images.push_back(&imageInfos->infoArray[i]);
-//         }
-//     }
-
-//     return images;
-// }
-
-static Elf32_Phdr const* imageFromAddress(void const* addr) {
+static void const* imageFromAddress(void const* addr) {
     if (addr == nullptr) {
         return nullptr;
     }
-
-    // auto loadedImages = getAllImages();
-    // std::sort(loadedImages.begin(), loadedImages.end(), [](auto const a, auto const b) {
-    //     return (uintptr_t)a->imageLoadAddress < (uintptr_t)b->imageLoadAddress;
-    // });
-    // auto iter = std::upper_bound(loadedImages.begin(), loadedImages.end(), addr, [](auto const addr, auto const image) {
-    //     return (uintptr_t)addr < (uintptr_t)image->imageLoadAddress;
-    // });
-
-    // if (iter == loadedImages.begin()) {
-    //     return nullptr;
-    // }
-    // --iter;
-
-    // auto image = *iter;
-    // // auto imageSize = getImageSize((struct mach_header_64 const*)image->imageLoadAddress);
-    // auto imageAddress = (uintptr_t)image->imageLoadAddress;
-    // if ((uintptr_t)addr >= imageAddress/* && (uintptr_t)addr < imageAddress + imageSize*/) {
-    //     return image;
-    // }
     return nullptr;
 }
 
@@ -122,28 +87,6 @@ static Mod* modFromAddress(void const* addr) {
     if (addr == nullptr) {
         return nullptr;
     }
-    // auto image = imageFromAddress(addr);
-    // if (image == nullptr) {
-    //     return nullptr;
-    // }
-
-    // ghc::filesystem::path imagePath = getImageName(image);
-    // if (!ghc::filesystem::exists(imagePath)) {
-    //     return nullptr;
-    // }
-    // auto geodePath = dirs::getGameDir() / "Frameworks" / "Geode.dylib";
-    // if (ghc::filesystem::equivalent(imagePath, geodePath)) {
-    //     return Mod::get();
-    // }
-
-    // for (auto& mod : Loader::get()->getAllMods()) {
-    //     if (!mod->isEnabled() || !ghc::filesystem::exists(mod->getBinaryPath())) {
-    //         continue;
-    //     }
-    //     if (ghc::filesystem::equivalent(imagePath, mod->getBinaryPath())) {
-    //         return mod;
-    //     }
-    // }
     return nullptr;
 }
 
@@ -217,64 +160,6 @@ static std::string getStacktrace() {
 
         // TODO: parse the message
         stacktrace << message << "\n";
-
-
-        // auto stream = std::stringstream(message);
-        // int index;
-        // std::string binary;
-        // uintptr_t address;
-        // std::string function;
-        // uintptr_t offset;
-        // std::string line;
-
-        // stream >> index;
-
-        // if (!lines.eof()) {
-        //     std::getline(lines, line);
-        // }
-        // std::getline(stream, binary);
-        // auto cutoff = binary.find("0x");
-        // stream = std::stringstream(binary.substr(cutoff));
-        // binary = geode::utils::string::trim(binary.substr(0, cutoff));
-        // stream >> std::hex >> address >> std::dec;
-
-        // if (!line.empty()) {
-        //     // log::debug("address: {}", address);
-        //     auto image = imageFromAddress(reinterpret_cast<void*>(address));
-        //     // log::debug("image: {}", image);
-        //     stacktrace << " - " << std::showbase << std::hex;
-
-        //     if (image) {
-        //         auto baseAddress = image->imageLoadAddress;
-        //         auto imageName = getImageName(image);
-        //         stacktrace << imageName << " + " << (address - (uintptr_t)baseAddress);   
-        //     }
-        //     else {
-        //         stacktrace << address;
-        //     }
-        //     stacktrace << std::dec;
-        //     stacktrace << ": " << line << "\n";
-        // }
-        // else {
-        //     std::getline(stream, function);
-        //     cutoff = function.find("+");
-        //     stream = std::stringstream(function.substr(cutoff));
-        //     stream >> offset;
-        //     function = geode::utils::string::trim(function.substr(0, cutoff));
-
-        //     {
-        //         int status;
-        //         auto demangle = abi::__cxa_demangle(function.c_str(), 0, 0, &status);
-        //         if (status == 0) {
-        //             function = demangle;
-        //         }
-        //         free(demangle);
-        //     }
-            
-        //     stacktrace << "- " << binary;
-        //     stacktrace << " @ " << std::showbase << std::hex << address << std::dec;
-        //     stacktrace << " (" << function << " + " << offset << ")\n";
-        // }
     }
 
     free(messages);
@@ -285,29 +170,6 @@ static std::string getStacktrace() {
 static std::string getRegisters() {
     std::stringstream registers;
 
-    auto context = s_context;
-    auto& ctx = context->uc_mcontext;
-
-    // geez
-    registers << std::showbase << std::hex /*<< std::setfill('0') << std::setw(16) */;
-    registers << "r0: " << ctx.arm_r0 << "\n";
-    registers << "r1: " << ctx.arm_r1 << "\n";
-    registers << "r2: " << ctx.arm_r2 << "\n";
-    registers << "r3: " << ctx.arm_r3 << "\n";
-    registers << "r4: " << ctx.arm_r4 << "\n";
-    registers << "r5: " << ctx.arm_r5 << "\n";
-    registers << "r6: " << ctx.arm_r6 << "\n";
-    registers << "r7: " << ctx.arm_r7 << "\n";
-    registers << "r8: " << ctx.arm_r8 << "\n";
-    registers << "r9: " << ctx.arm_r9 << "\n";
-    registers << "r10: " << ctx.arm_r10 << "\n";
-    registers << "r11: " << ctx.arm_fp << "\n";
-    registers << "r12: " << ctx.arm_ip << "\n";
-    registers << "sp: " << ctx.arm_sp << "\n";
-    registers << "lr: " << ctx.arm_lr << "\n";
-    registers << "pc: " << ctx.arm_pc << "\n";
-    registers << "cpsr: " << ctx.arm_cpsr << "\n";
-
     return registers.str();
 }
 
@@ -316,14 +178,6 @@ static void handlerThread() {
     s_cv.wait(lock, [] { return s_signal != 0; });
 
     auto signalAddress = reinterpret_cast<void*>(s_context->uc_mcontext.fault_address);
-    // Mod* faultyMod = nullptr;
-    // for (int i = 1; i < s_backtraceSize; ++i) {
-    //     auto mod = modFromAddress(s_backtrace[i]);
-    //     if (mod != nullptr) {
-    //         faultyMod = mod;
-    //         break;
-    //     }
-    // }
     Mod* faultyMod = modFromAddress(signalAddress);
 
     auto text = crashlog::writeCrashlog(faultyMod, getInfo(signalAddress, faultyMod), getStacktrace(), getRegisters());
@@ -337,80 +191,6 @@ static void handlerThread() {
 }
 
 static bool s_lastLaunchCrashed = false;
-
-// bool crashlog::setupPlatformHandler() {
-//     auto pidFile = crashlog::getCrashLogDirectory() / "last-pid";
-
-//     int lastPid = 0;
-
-//     if (ghc::filesystem::exists(pidFile)) {
-
-//         auto res = file::readString(pidFile);
-//         if (!res) {
-//             log::warn("Failed to read last-pid file: {}", res.error());
-//         }
-//         else {
-//             lastPid = std::stoi(res.unwrap());
-//         }
-
-//         std::error_code ec;
-//         ghc::filesystem::remove(pidFile, ec);
-
-//         if (ec) {
-//             log::warn("Failed to remove last-pid file: {}", ec.message());
-//         }
-//     }
-
-//     auto res = file::writeString(pidFile, std::to_string(getpid()));
-//     if (!res) {
-//         log::warn("Failed to write last-pid file: {}", res.error());
-//     }
-
-//     lastPid = 1513;
-
-    
-//     if (lastPid == 0) {
-//         return true;
-//     }
-
-//     // TODO: get logcat crash
-
-//     std::string logcatCrash = R"RAW()RAW";
-
-//     std::string crashTrace;
-//     auto findLast = logcatCrash.find_last_of(fmt::format("pid {} (.geode.launcher)", lastPid));
-//     if (findLast != std::string::npos) {
-//         auto begin = logcatCrash.substr(0, findLast).find_last_of("F/libc");
-//         if (begin != std::string::npos) {
-//             crashTrace = logcatCrash.substr(begin);
-//         }
-//     }
-//     else {
-//         return true;
-//     }
-
-//     auto text = crashlog::writeCrashlog(nullptr, "", crashTrace, "");
-//     s_lastLaunchCrashed = true;
-	
-//     auto lastCrashedFile = crashlog::getCrashLogDirectory() / "last-crashed";
-//     if (ghc::filesystem::exists(lastCrashedFile)) {
-//         std::error_code ec;
-//         ghc::filesystem::remove(lastCrashedFile, ec);
-
-//         if (ec) {
-//             log::warn("Failed to remove last-crashed file: {}", ec.message());
-//         }
-//     }
-//     return true;
-// }
-
-// bool crashlog::didLastLaunchCrash() {
-//     return s_lastLaunchCrashed;
-// }
-
-// ghc::filesystem::path crashlog::getCrashLogDirectory() {
-//     return dirs::getGeodeDir() / "crashlogs";
-// }
 
 ghc::filesystem::path crashlog::getCrashLogDirectory() {
     return dirs::getGeodeDir() / "crashlogs";

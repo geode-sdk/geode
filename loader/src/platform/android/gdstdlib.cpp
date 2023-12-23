@@ -1,14 +1,30 @@
 #include <Geode/c++stl/gdstdlib.hpp>
 #include "../../c++stl/string-impl.hpp"
 
-#ifdef GEODE_IS_ANDROID32
+#ifdef GEODE_IS_ANDROID
+
+#if defined(GEODE_IS_ANDROID32)
+
+static constexpr ptrdiff_t MENULAYER_SCENE = 0x309068 - 0x10000;
+static constexpr ptrdiff_t STRING_EMPTY = 0xaa1c3c - 0x10000;
+static constexpr ptrdiff_t OPERATOR_DELETE = 0x72033c - 0x10000 + 1;
+static constexpr ptrdiff_t STRING_COPY = 0x753a44 - 0x10000 + 1;
+
+#elif defined(GEODE_IS_ANDROID64)
+
+static constexpr ptrdiff_t MENULAYER_SCENE = 0x6a62ec - 0x100000;
+static constexpr ptrdiff_t STRING_EMPTY = 0x12d8568 - 0x100000;
+static constexpr ptrdiff_t OPERATOR_DELETE = 0xd6cb80 - 0x100000;
+static constexpr ptrdiff_t STRING_COPY = 0xdb5fdc - 0x100000;
+
+#endif
 
 // 2.2 addition
 // zmx please fix this
 
 namespace geode::base {
     uintptr_t get() {
-        static uintptr_t base = (reinterpret_cast<uintptr_t>(&MenuLayer::scene) - (0x309068 - 0x10000)) & (~0x1);
+        static uintptr_t base = (reinterpret_cast<uintptr_t>(&MenuLayer::scene) - MENULAYER_SCENE) & (~0x1);
         // static uintptr_t base = reinterpret_cast<uintptr_t>(dlopen("libcocos2dcpp.so", RTLD_NOW));
         return base;
     }
@@ -17,7 +33,7 @@ namespace geode::base {
 namespace geode::stl {
     static inline auto emptyInternalString() {
         return reinterpret_cast<StringData::Internal*>(
-            geode::base::get() + (0xaa1c3c - 0x10000) + sizeof(StringData::Internal)
+            geode::base::get() + STRING_EMPTY + sizeof(StringData::Internal)
         );
     }
 
@@ -28,9 +44,7 @@ namespace geode::stl {
     void StringImpl::free() {
         if (data.m_data == nullptr || data.m_data == emptyInternalString()) return;
         // TODO: reimplement this
-        reinterpret_cast<void (*)(StringData*)>(geode::base::get() + (0x7514c8 - 0x10000) + 1)(&data);
-
-        
+        reinterpret_cast<void (*)(void*)>(geode::base::get() + OPERATOR_DELETE)(&data.m_data[-1]);   
     }
 
     char* StringImpl::getStorage() {
@@ -47,7 +61,7 @@ namespace geode::stl {
         }
 
         // TODO: should be using (char*, size_t) at the very least, or yknow, just reimplement it :-)
-        reinterpret_cast<void (*)(StringData*, char const*)>(geode::base::get() + (0x753a44 - 0x10000) + 1)(&data, str.data());
+        reinterpret_cast<void (*)(StringData*, char const*)>(geode::base::get() + STRING_COPY)(&data, str.data());
         return;
 
         // TODO: this crashes because we need to use gd's operator new...
