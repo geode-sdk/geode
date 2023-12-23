@@ -29,6 +29,7 @@ if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
 		OSX_ARCHITECTURES arm64
 	)
 
+	set(GEODE_OUTPUT_NAME "GeodeIOS")
 	set(GEODE_PLATFORM_BINARY "GeodeIOS.dylib")
 elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
 	set_target_properties(${PROJECT_NAME} PROPERTIES 
@@ -59,6 +60,7 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
 		-DCommentType=CommentTypeDummy
 	)
 
+	set(GEODE_OUTPUT_NAME "Geode")
 	set(GEODE_PLATFORM_BINARY "Geode.dylib")
 
 elseif (GEODE_TARGET_PLATFORM STREQUAL "Win32")
@@ -79,6 +81,7 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Win32")
 	)
 
 	# Windows links against .lib and not .dll
+	set(GEODE_OUTPUT_NAME "Geode")
 	set(GEODE_PLATFORM_BINARY "Geode.lib")
 elseif (GEODE_TARGET_PLATFORM STREQUAL "Android32")
 	set_target_properties(${PROJECT_NAME} PROPERTIES
@@ -93,6 +96,7 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android32")
 		log
 	)
 
+	set(GEODE_OUTPUT_NAME "Geode.v7")
 	set(GEODE_PLATFORM_BINARY "Geode.v7.so")
 
 elseif (GEODE_TARGET_PLATFORM STREQUAL "Android64")
@@ -108,6 +112,7 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android64")
 		log
 	)
 
+	set(GEODE_OUTPUT_NAME "Geode.v8")
 	set(GEODE_PLATFORM_BINARY "Geode.v8.so")
 else()
 	message(FATAL_ERROR "Unknown platform ${GEODE_TARGET_PLATFORM}")
