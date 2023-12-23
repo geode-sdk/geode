@@ -24,8 +24,7 @@ bool ModSettingsPopup::setup(Mod* mod) {
     layerBG->setPosition(layerPos);
     m_mainLayer->addChild(layerBG);
 
-    auto layer = ScrollLayer::create({ 346.f, 220.f });
-    layer->setContentLayerSize(layerSize);
+    auto layer = ScrollLayer::create(layerSize);
     layer->setTouchEnabled(true);
 
     float totalHeight = .0f;

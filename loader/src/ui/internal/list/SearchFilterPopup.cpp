@@ -7,7 +7,7 @@
 #include <Geode/binding/CCMenuItemToggler.hpp>
 
 // re-add when we actually add the platforms
-const float iosAndAndroidSize = 45.f;
+const float iosAndAndroidSize = 25.f;
 
 bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
     m_noElasticity = true;
@@ -38,7 +38,7 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
     this->enable(this->addPlatformToggle("Windows", PlatformID::Windows, pos), type);
     this->enable(this->addPlatformToggle("macOS", PlatformID::MacOS, pos), type);
     //this->enable(this->addPlatformToggle("IOS", PlatformID::iOS, pos), type);
-    //this->enable(this->addPlatformToggle("Android", PlatformID::Android, pos), type);
+    this->enable(this->addPlatformToggle("Android", PlatformID::Android, pos), type);
 
     // show installed
 
@@ -77,31 +77,51 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
     tagsTitle->setScale(.5f);
     m_mainLayer->addChild(tagsTitle);
 
+    auto tagsSize = CCSize { 290.f, 328.f - iosAndAndroidSize };
+    auto tagsPos = CCPoint {winSize.width / 2 + 85.f, winSize.height / 2 + 62.5f - iosAndAndroidSize * 0.25f};
+
     auto tagsBG = CCScale9Sprite::create("square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f });
     tagsBG->setColor({ 0, 0, 0 });
     tagsBG->setOpacity(90);
-    tagsBG->setContentSize({ 290.f, 328.f - iosAndAndroidSize });
+    tagsBG->setContentSize(tagsSize);
     tagsBG->setAnchorPoint({ 0.5f, 1.f });
     tagsBG->setPosition(winSize.width / 2 + 85.f, winSize.height / 2 + 62.5f - iosAndAndroidSize * 0.25f);
     tagsBG->setScale(.5f);
     m_mainLayer->addChild(tagsBG);
 
-    pos = CCPoint { winSize.width / 2 + 30.f, winSize.height / 2 + 45.f - iosAndAndroidSize * 0.25f };
+    auto tagsWrap = CCNode::create();
+    tagsWrap->setContentSize(tagsSize / 2.f);
+    tagsWrap->setAnchorPoint({ 0.5f, 1.f });
+    tagsWrap->setPosition(tagsPos);
+    m_mainLayer->addChild(tagsWrap);
+
+    auto tagsScroll = ScrollLayer::create(tagsSize / 2.f);
+    tagsScroll->setTouchEnabled(true);
+    tagsWrap->addChild(tagsScroll);
+
+    auto tagsMenu = CCMenu::create();
+    tagsMenu->setPosition(.0f, .0f);
+    tagsMenu->setAnchorPoint({ .0f, .0f });
+    tagsMenu->setContentSize(tagsSize / 2.f);
+    tagsScroll->m_contentLayer->addChild(tagsMenu);
+
+    // pos = CCPoint { winSize.width / 2 + 30.f, winSize.height / 2 + 45.f - iosAndAndroidSize * 0.25f };
+    pos = CCPoint { 0, tagsSize.height / 2 - 12.f };
 
     for (auto& tag : Index::get()->getTags()) {
         auto toggle = CCMenuItemToggler::createWithStandardSprites(
             this, menu_selector(SearchFilterPopup::onTag), .5f
         );
         toggle->toggle(m_modLayer->getQuery().tags.count(tag));
-        toggle->setPosition(pos - winSize / 2);
+        toggle->setPosition(pos.x + 12.f, pos.y);
         toggle->setUserObject(CCString::create(tag));
-        m_buttonMenu->addChild(toggle);
+        tagsMenu->addChild(toggle);
 
         auto label = TagNode::create(tag);
         label->setScale(.4f);
         label->setAnchorPoint({ .0f, .5f });
-        label->setPosition(pos.x + 15.f, pos.y);
-        m_mainLayer->addChild(label);
+        label->setPosition(pos.x + 22.f, pos.y);
+        tagsMenu->addChild(label);
 
         pos.y -= 22.5f;
     }
