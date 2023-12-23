@@ -701,5 +701,8 @@ Mod* Loader::Impl::getInternalMod() {
 }
 
 Result<> Loader::Impl::setupInternalMod() {
-    return Mod::get()->m_impl->setup();
+    GEODE_UNWRAP(Mod::get()->m_impl->setup());
+    auto resourcesDir = dirs::getGeodeResourcesDir() / Mod::get()->getID();
+    GEODE_UNWRAP(ModMetadataImpl::getImpl(ModImpl::get()->m_metadata).addSpecialFiles(resourcesDir));
+    return Ok();
 }

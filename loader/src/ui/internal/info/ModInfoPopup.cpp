@@ -200,7 +200,10 @@ void ModInfoPopup::onSupport(CCObject*) {
 }
 
 void ModInfoPopup::onRepository(CCObject*) {
-    web::openLinkInBrowser(this->getMetadata().getRepository().value());
+    auto repo = this->getMetadata().getRepository();
+    if (repo) {
+        web::openLinkInBrowser(repo.value());
+    }
 }
 
 void ModInfoPopup::onInfo(CCObject*) {
