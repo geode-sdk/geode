@@ -1,4 +1,4 @@
-#include "../../c++stl/string-adapter.hpp"
+#include "../../c++stl/string-impl.hpp"
 
 #ifdef GEODE_IS_WINDOWS
 

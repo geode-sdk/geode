@@ -1,5 +1,5 @@
 #include <Geode/c++stl/gdstdlib.hpp>
-#include "../../c++stl/string-adapter.hpp"
+#include "../../c++stl/string-impl.hpp"
 
 #ifdef GEODE_IS_ANDROID
 

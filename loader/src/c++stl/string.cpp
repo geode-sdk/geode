@@ -1,5 +1,5 @@
 #include <Geode/c++stl/gdstdlib.hpp>
-#include "string-adapter.hpp"
+#include "string-impl.hpp"
 #include <string_view>
 #include <string>
 #include <compare>

@@ -238,6 +238,13 @@ CCArray* ModListLayer::createModCells(ModListType type, ModListQuery const& quer
 bool ModListLayer::init() {
     if (!CCLayer::init()) return false;
 
+    {
+        gd::string hi = "hello";
+        gd::string hi2 = "hello";
+        gd::string hi3 = "hella";
+        log::info("{} {} {} {}", hi == hi2, hi == hi3, hi < hi3, hi > hi3);
+    }
+
     m_indexListener.bind(this, &ModListLayer::onIndexUpdate);
 
     auto winSize = CCDirector::sharedDirector()->getWinSize();
@@ -504,6 +511,7 @@ void ModListLayer::reloadList(bool keepScroll, std::optional<ModListQuery> const
         m_listLabel->setVisible(true);
         m_listLabel->setString("Updating index...");
         if (!m_loadingCircle) {
+            // TODO: mat
             m_loadingCircle = LoadingCircle::create();
 
             m_loadingCircle->setPosition(.0f, -40.f);
