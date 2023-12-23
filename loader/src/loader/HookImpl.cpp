@@ -44,7 +44,23 @@ tulip::hook::HookMetadata Hook::Impl::getHookMetadata() const {
 }
 
 Result<> Hook::Impl::enable() {
-    if (m_enabled || ((uintptr_t)m_address == (geode::base::get() + 0x9999999))) {
+    if (m_enabled) {
+        return Ok();
+    }
+
+    // During a transition between updates when it's important to get a 
+    // non-functional version that compiles, address 0x9999999 is used to mark 
+    // functions not yet RE'd but that would prevent compilation
+    if ((uintptr_t)m_address == (geode::base::get() + 0x9999999)) {
+        if (m_owner) {
+            log::debug(
+                "Hook {} for {} uses placeholder address, refusing to hook",
+                m_displayName, m_owner->getID()
+            );
+        }
+        else {
+            log::debug("Hook {} uses placeholder address, refusing to hook", m_displayName);
+        }
         return Ok();
     }
 
@@ -54,10 +70,12 @@ Result<> Hook::Impl::enable() {
     GEODE_UNWRAP_INTO(auto handler, LoaderImpl::get()->getHandler(m_address));
 
     m_handle = tulip::hook::createHook(handler, m_detour, m_hookMetadata);
-    if (m_owner)
+    if (m_owner) {
         log::debug("Enabled {} hook at {} for {}", m_displayName, m_address, m_owner->getID());
-    else
+    }
+    else {
         log::debug("Enabled {} hook at {}", m_displayName, m_address);
+    }
 
     m_enabled = true;
     return Ok();
