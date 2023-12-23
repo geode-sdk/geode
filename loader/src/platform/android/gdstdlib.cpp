@@ -1,5 +1,5 @@
 #include <Geode/c++stl/gdstdlib.hpp>
-#include "../../c++stl/string-adapter.hpp"
+#include "../../c++stl/string-impl.hpp"
 
 #ifdef GEODE_IS_ANDROID32
 
@@ -16,27 +16,29 @@ namespace geode::base {
 
 namespace geode::stl {
     static inline auto emptyInternalString() {
-        return reinterpret_cast<StringImpl::Internal*>(
-            geode::base::get() + (0xaa1c3c - 0x10000) + sizeof(StringImpl::Internal)
+        return reinterpret_cast<StringData::Internal*>(
+            geode::base::get() + (0xaa1c3c - 0x10000) + sizeof(StringData::Internal)
         );
     }
 
-    void StringImplAdapter::setEmpty() {
-        impl.m_data = emptyInternalString();
+    void StringImpl::setEmpty() {
+        data.m_data = emptyInternalString();
     }
 
-    void StringImplAdapter::free() {
-        if (impl.m_data == nullptr || impl.m_data == emptyInternalString()) return;
+    void StringImpl::free() {
+        if (data.m_data == nullptr || data.m_data == emptyInternalString()) return;
         // TODO: reimplement this
-        reinterpret_cast<void (*)(StringImpl*)>(geode::base::get() + (0x7514c8 - 0x10000) + 1)(&impl);
+        reinterpret_cast<void (*)(StringData*)>(geode::base::get() + (0x7514c8 - 0x10000) + 1)(&data);
 
         
     }
 
-    char* StringImplAdapter::getStorage() {
-        return reinterpret_cast<char*>(impl.m_data);
+    char* StringImpl::getStorage() {
+        return reinterpret_cast<char*>(data.m_data);
     }
-    void StringImplAdapter::setStorage(const std::string_view str) {
+    // TODO: add a copyFrom(string const&) to take advantage
+    // of gnustl refcounted strings
+    void StringImpl::setStorage(const std::string_view str) {
         this->free();
 
         if (str.size() == 0) {
@@ -45,33 +47,36 @@ namespace geode::stl {
         }
 
         // TODO: should be using (char*, size_t) at the very least, or yknow, just reimplement it :-)
-        reinterpret_cast<void (*)(StringImpl*, char const*)>(geode::base::get() + (0x753a44 - 0x10000) + 1)(&impl, str.data());
+        reinterpret_cast<void (*)(StringData*, char const*)>(geode::base::get() + (0x753a44 - 0x10000) + 1)(&data, str.data());
         return;
 
-        StringImpl::Internal internal;
+        // TODO: this crashes because we need to use gd's operator new...
+#if 0
+        StringData::Internal internal;
         internal.m_size = str.size();
         internal.m_capacity = str.size();
         internal.m_refcount = 0;
 
-        auto* data = static_cast<char*>(operator new(str.size() + 1 + sizeof(internal)));
-        std::memcpy(data, &internal, sizeof(internal));
-        std::memcpy(data + sizeof(internal), str.data(), str.size());
-        data[sizeof(internal) + str.size()] = 0;
+        auto* buffer = static_cast<char*>(operator new(str.size() + 1 + sizeof(internal)));
+        std::memcpy(buffer, &internal, sizeof(internal));
+        std::memcpy(buffer + sizeof(internal), str.data(), str.size());
+        buffer[sizeof(internal) + str.size()] = 0;
 
-        impl.m_data = reinterpret_cast<StringImpl::Internal*>(data + sizeof(internal));
+        data.m_data = reinterpret_cast<StringData::Internal*>(buffer + sizeof(internal));
+#endif
     }
 
-    size_t StringImplAdapter::getSize() {
-        return impl.m_data[-1].m_size;
+    size_t StringImpl::getSize() {
+        return data.m_data[-1].m_size;
     }
-    void StringImplAdapter::setSize(size_t size) {
+    void StringImpl::setSize(size_t size) {
         // TODO: implement this, remember its copy-on-write...
     }
 
-    size_t StringImplAdapter::getCapacity() {
-        return impl.m_data[-1].m_capacity;
+    size_t StringImpl::getCapacity() {
+        return data.m_data[-1].m_capacity;
     }
-    void StringImplAdapter::setCapacity(size_t cap) {
+    void StringImpl::setCapacity(size_t cap) {
         // TODO: implement this, remember its copy-on-write...
     }
 }

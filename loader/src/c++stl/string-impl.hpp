@@ -2,10 +2,10 @@
 #include <Geode/c++stl/gdstdlib.hpp>
 
 namespace geode::stl {
-    struct StringImplAdapter {
-        StringImpl& impl;
+    struct StringImpl {
+        StringData& data;
 
-        // clear but assumes the existing impl is uninit,
+        // clear but assumes the existing data is uninit,
         // so basically a default ctor
         void setEmpty();
 

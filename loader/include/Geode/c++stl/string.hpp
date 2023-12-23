@@ -7,12 +7,12 @@
 #include <compare>
 
 namespace geode::stl {
-	class StringImplAdapter;
+	class StringImpl;
 
-	struct StringImpl;
+	struct StringData;
 
 #if defined(GEODE_IS_WINDOWS)
-	struct StringImpl {
+	struct StringData {
 		union {
 			std::array<char, 16> m_smallStorage;
 			char* m_bigStorage;
@@ -22,7 +22,7 @@ namespace geode::stl {
 		size_t m_capacity;
 	};
 #elif defined(GEODE_IS_MACOS) || defined(GEODE_IS_ANDROID)
-	struct StringImpl {
+	struct StringData {
 		struct Internal {
 			size_t m_size;
 			size_t m_capacity;
@@ -31,7 +31,7 @@ namespace geode::stl {
 		Internal* m_data = nullptr;
 	};
 #elif defined(GEODE_IS_IOS)
-	struct StringImpl {
+	struct StringData {
 		struct Short {
 			uint8_t sizex2;
 			std::array<char, 23> shortStorage;
@@ -48,15 +48,13 @@ namespace geode::stl {
 			Long m_long;
 		};
 	};
-#else
-	using StringImpl = void;
 #endif
 }
 
 namespace gd {
 	class GEODE_DLL string {
-		geode::stl::StringImpl m_impl;
-		friend geode::stl::StringImplAdapter;
+		geode::stl::StringData m_data;
+		friend geode::stl::StringImpl;
 	public:
 		string();
 		string(string const&);

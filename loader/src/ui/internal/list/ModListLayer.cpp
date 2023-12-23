@@ -504,6 +504,7 @@ void ModListLayer::reloadList(bool keepScroll, std::optional<ModListQuery> const
         m_listLabel->setVisible(true);
         m_listLabel->setString("Updating index...");
         if (!m_loadingCircle) {
+            // TODO: mat
             m_loadingCircle = LoadingCircle::create();
 
             m_loadingCircle->setPosition(.0f, -40.f);
