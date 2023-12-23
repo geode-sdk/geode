@@ -44,8 +44,9 @@ tulip::hook::HookMetadata Hook::Impl::getHookMetadata() const {
 }
 
 Result<> Hook::Impl::enable() {
-    if (m_enabled || ((uintptr_t)m_address == (geode::base::get() + 0x80813)))
+    if (m_enabled || ((uintptr_t)m_address == (geode::base::get() + 0x9999999))) {
         return Ok();
+    }
 
     if (!LoaderImpl::get()->hasHandler(m_address)) {
         GEODE_UNWRAP(LoaderImpl::get()->createHandler(m_address, m_handlerMetadata));
