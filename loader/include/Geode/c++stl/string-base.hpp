@@ -4,6 +4,7 @@
 #include <array>
 #include <string_view>
 #include <string>
+#include <compare>
 
 namespace geode::stl {
 	class StringImplAdapter;
@@ -86,6 +87,8 @@ namespace gd {
 		size_t capacity() const;
 		bool empty() const;
 
+		bool operator==(string const& other) const;
+		bool operator==(std::string_view const other) const;
 		std::strong_ordering operator<=>(string const& other) const;
 		std::strong_ordering operator<=>(std::string_view const other) const;
 

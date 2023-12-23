@@ -1,5 +1,8 @@
 #include <Geode/c++stl/gdstdlib.hpp>
 #include "string-adapter.hpp"
+#include <string_view>
+#include <string>
+#include <compare>
 
 template <class Type>
 Type& intoMutRef(const Type& x) {
@@ -8,7 +11,7 @@ Type& intoMutRef(const Type& x) {
 
 using geode::stl::StringImplAdapter;
 
-#define getAdap(x) StringImplAdapter(intoMutRef(x))
+#define getAdap(x) StringImplAdapter{intoMutRef(x)}
 #define adap getAdap(m_impl)
 
 namespace gd {
@@ -90,12 +93,19 @@ namespace gd {
     size_t string::capacity() const { return adap.getCapacity(); }
     bool string::empty() const { return this->size() == 0; }
 
+    bool string::operator==(string const& other) const {
+        return std::string_view(*this) == std::string_view(other);
+    }
+	bool string::operator==(std::string_view const other) const {
+        return std::string_view(*this) == other;
+    }
+
     std::strong_ordering string::operator<=>(std::string_view const other) const {
-        return std::string_view(*this) <=> other;
+        return static_cast<std::strong_ordering>(std::string_view(*this).compare(other) <=> 0);
     }
 
     std::strong_ordering string::operator<=>(string const& other) const {
-        return std::string_view(*this) <=> std::string_view(other);
+        return static_cast<std::strong_ordering>(std::string_view(*this).compare(std::string_view(other)) <=> 0);
     }
 
     string::operator std::string() const {
