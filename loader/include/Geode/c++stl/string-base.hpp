@@ -2,6 +2,8 @@
 
 #include <cstdint>
 #include <array>
+#include <string_view>
+#include <string>
 
 namespace geode::stl {
 	class StringImplAdapter;
@@ -25,7 +27,7 @@ namespace geode::stl {
 			size_t m_capacity;
 			int m_refcount;
 		};
-		Internal* m_data;
+		Internal* m_data = nullptr;
 	};
 #elif defined(GEODE_IS_IOS)
 	struct StringImpl {
@@ -57,7 +59,7 @@ namespace gd {
 	public:
 		string();
 		string(string const&);
-		string(string&&);
+		// string(string&&);
 		string(char const*);
 		string(std::string const&);
 		// tried to add a string_view ctor, but got overload errors :(
@@ -84,7 +86,8 @@ namespace gd {
 		size_t capacity() const;
 		bool empty() const;
 
-		std::strong_ordering operator<=>(const std::string_view other) const;
+		std::strong_ordering operator<=>(string const& other) const;
+		std::strong_ordering operator<=>(std::string_view const other) const;
 
 		operator std::string() const;
 		operator std::string_view() const;

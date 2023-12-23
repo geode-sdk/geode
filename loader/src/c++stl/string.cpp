@@ -20,12 +20,12 @@ namespace gd {
         adap.setStorage(str);
     }
 
-    string::string(string&& other) {
-        // TODO: do this better :-)
-        adap.setStorage(other);
-        getAdap(other.m_impl).free();
-        getAdap(other.m_impl).setEmpty();
-    }
+    // string::string(string&& other) {
+    //     // TODO: do this better :-)
+    //     adap.setStorage(other);
+    //     getAdap(other.m_impl).free();
+    //     getAdap(other.m_impl).setEmpty();
+    // }
 
     string::string(char const* str) {
         adap.setStorage(str);
@@ -36,8 +36,7 @@ namespace gd {
     }
 
     string::~string() {
-        adap.free();
-        adap.setEmpty();
+        this->clear();
     }
 
     string& string::operator=(string const& other) {
@@ -91,8 +90,12 @@ namespace gd {
     size_t string::capacity() const { return adap.getCapacity(); }
     bool string::empty() const { return this->size() == 0; }
 
-    std::strong_ordering string::operator<=>(const std::string_view other) const {
+    std::strong_ordering string::operator<=>(std::string_view const other) const {
         return std::string_view(*this) <=> other;
+    }
+
+    std::strong_ordering string::operator<=>(string const& other) const {
+        return std::string_view(*this) <=> std::string_view(other);
     }
 
     string::operator std::string() const {

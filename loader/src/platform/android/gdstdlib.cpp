@@ -26,9 +26,11 @@ namespace geode::stl {
     }
 
     void StringImplAdapter::free() {
-        if (impl.m_data == nullptr) return;
+        if (impl.m_data == nullptr || impl.m_data == emptyInternalString()) return;
         // TODO: reimplement this
-        reinterpret_cast<void (*)(StringImpl*)>(geode::base::get() + (0x7514c8 - 0x10000) + 1)(&impl.m_data);
+        reinterpret_cast<void (*)(StringImpl*)>(geode::base::get() + (0x7514c8 - 0x10000) + 1)(&impl);
+
+        
     }
 
     char* StringImplAdapter::getStorage() {
@@ -36,8 +38,27 @@ namespace geode::stl {
     }
     void StringImplAdapter::setStorage(const std::string_view str) {
         this->free();
-        // TODO: should be using char*, size_t at the very least, or yknow, just reimplement it :-)
-        reinterpret_cast<void (*)(StringImpl*, char const*)>(geode::base::get() + (0x753a44 - 0x10000) + 1)(&impl.m_data, str.data());
+
+        if (str.size() == 0) {
+            this->setEmpty();
+            return;
+        }
+
+        // TODO: should be using (char*, size_t) at the very least, or yknow, just reimplement it :-)
+        reinterpret_cast<void (*)(StringImpl*, char const*)>(geode::base::get() + (0x753a44 - 0x10000) + 1)(&impl, str.data());
+        return;
+
+        StringImpl::Internal internal;
+        internal.m_size = str.size();
+        internal.m_capacity = str.size();
+        internal.m_refcount = 0;
+
+        auto* data = static_cast<char*>(operator new(str.size() + 1 + sizeof(internal)));
+        std::memcpy(data, &internal, sizeof(internal));
+        std::memcpy(data + sizeof(internal), str.data(), str.size());
+        data[sizeof(internal) + str.size()] = 0;
+
+        impl.m_data = reinterpret_cast<StringImpl::Internal*>(data + sizeof(internal));
     }
 
     size_t StringImplAdapter::getSize() {
