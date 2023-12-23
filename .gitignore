@@ -45,6 +45,7 @@ build
 build2
 build-docs/
 bin
+/build-*
 
 # Ignore docs folders
 docs/**
