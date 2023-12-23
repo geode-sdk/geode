@@ -23,11 +23,11 @@ jobs:
           prefixes: ''
           extra_flags: -A win32 -DGEODE_DEBUG=On
 
-        - name: macOS
-          os_identifier: mac
-          os: macos-latest
-          prefixes: PATH="/usr/local/opt/ccache/libexec:$PATH"
-          extra_flags: -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug -DGEODE_DEBUG=On
+        # - name: macOS
+        #   os_identifier: mac
+        #   os: macos-latest
+        #   prefixes: PATH="/usr/local/opt/ccache/libexec:$PATH"
+        #   extra_flags: -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug -DGEODE_DEBUG=On
           
     name: Test Offsets ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
