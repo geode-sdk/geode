@@ -238,13 +238,6 @@ CCArray* ModListLayer::createModCells(ModListType type, ModListQuery const& quer
 bool ModListLayer::init() {
     if (!CCLayer::init()) return false;
 
-    {
-        gd::string hi = "hello";
-        gd::string hi2 = "hello";
-        gd::string hi3 = "hella";
-        log::info("{} {} {} {}", hi == hi2, hi == hi3, hi < hi3, hi > hi3);
-    }
-
     m_indexListener.bind(this, &ModListLayer::onIndexUpdate);
 
     auto winSize = CCDirector::sharedDirector()->getWinSize();

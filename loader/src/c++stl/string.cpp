@@ -9,33 +9,33 @@ Type& intoMutRef(const Type& x) {
     return const_cast<Type&>(x);
 }
 
-using geode::stl::StringImplAdapter;
+using geode::stl::StringImpl;
 
-#define getAdap(x) StringImplAdapter{intoMutRef(x)}
-#define adap getAdap(m_impl)
+#define implFor(x) StringImpl{intoMutRef(x.m_data)}
+#define impl implFor((*this))
 
 namespace gd {
     string::string() {
-        adap.setEmpty();
+        impl.setEmpty();
     }
 
     string::string(string const& str) {
-        adap.setStorage(str);
+        impl.setStorage(str);
     }
 
     // string::string(string&& other) {
     //     // TODO: do this better :-)
-    //     adap.setStorage(other);
-    //     getAdap(other.m_impl).free();
-    //     getAdap(other.m_impl).setEmpty();
+    //     impl.setStorage(other);
+    //     implFor(other).free();
+    //     implFor(other).setEmpty();
     // }
 
     string::string(char const* str) {
-        adap.setStorage(str);
+        impl.setStorage(str);
     }
 
     string::string(std::string const& str) {
-        adap.setStorage(str);
+        impl.setStorage(str);
     }
 
     string::~string() {
@@ -44,53 +44,53 @@ namespace gd {
 
     string& string::operator=(string const& other) {
         if (this != &other) {
-            adap.free();
-            adap.setStorage(other);
+            impl.free();
+            impl.setStorage(other);
         }
         return *this;
     }
     string& string::operator=(string&& other) {
         // TODO: do this better :-)
-        adap.free();
-        adap.setStorage(other);
-        getAdap(other.m_impl).free();
-        getAdap(other.m_impl).setEmpty();
+        impl.free();
+        impl.setStorage(other);
+        implFor(other).free();
+        implFor(other).setEmpty();
         return *this;
     }
     string& string::operator=(char const* other) {
-        adap.free();
-        adap.setStorage(other);
+        impl.free();
+        impl.setStorage(other);
         return *this;
     }
     string& string::operator=(std::string const& other) {
-        adap.free();
-        adap.setStorage(other);
+        impl.free();
+        impl.setStorage(other);
         return *this;
     }
 
     void string::clear() {
-        adap.free();
-        adap.setEmpty();
+        impl.free();
+        impl.setEmpty();
     }
     
     char& string::at(size_t pos) {
         if (pos >= this->size())
             throw std::out_of_range("gd::string::at");
-        return adap.getStorage()[pos];
+        return impl.getStorage()[pos];
     }
     char const& string::at(size_t pos) const {
         return const_cast<string*>(this)->at(pos);
     }
 
-    char& string::operator[](size_t pos) { return adap.getStorage()[pos]; }
-    char const& string::operator[](size_t pos) const { return adap.getStorage()[pos]; }
+    char& string::operator[](size_t pos) { return impl.getStorage()[pos]; }
+    char const& string::operator[](size_t pos) const { return impl.getStorage()[pos]; }
 
-    char* string::data() { return adap.getStorage(); }
-    char const* string::data() const { return adap.getStorage(); }
+    char* string::data() { return impl.getStorage(); }
+    char const* string::data() const { return impl.getStorage(); }
     char const* string::c_str() const { return this->data(); }
 
-    size_t string::size() const { return adap.getSize(); }
-    size_t string::capacity() const { return adap.getCapacity(); }
+    size_t string::size() const { return impl.getSize(); }
+    size_t string::capacity() const { return impl.getCapacity(); }
     bool string::empty() const { return this->size() == 0; }
 
     bool string::operator==(string const& other) const {
