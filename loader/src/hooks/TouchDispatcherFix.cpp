@@ -1,7 +1,5 @@
 using namespace geode::prelude;
 
-// TODO: 2.2 changes touch prio, we need to test how that affects things
-
 #include <Geode/modify/CCTouchDispatcher.hpp>
 
 struct ForcePrioRevert : Modify<ForcePrioRevert, CCTouchDispatcher> {

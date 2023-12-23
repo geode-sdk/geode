@@ -146,7 +146,7 @@ CCMenuItemToggler* SearchFilterPopup::addToggle(
     char const* title, SEL_MenuHandler selector, bool toggled, int tag, CCPoint& pos
 ) {
     auto toggle = GameToolbox::createToggleButton(
-        title, selector, toggled, m_buttonMenu, pos, this, m_buttonMenu, .5f, .5f, 100.f,
+        title, selector, toggled, m_buttonMenu, pos, this, m_mainLayer, .5f, .5f, 100.f,
         { 10.f, .0f }, "bigFont.fnt", false, tag, nullptr
     );
     toggle->setTag(tag);
