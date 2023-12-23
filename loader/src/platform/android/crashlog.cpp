@@ -1,6 +1,6 @@
 #include <crashlog.hpp>
 
-#ifdef GEODE_IS_ANDROID
+#ifdef GEODE_IS_ANDROID32
 
 using namespace geode::prelude;
 

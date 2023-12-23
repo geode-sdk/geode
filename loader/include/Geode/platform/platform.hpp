@@ -99,7 +99,8 @@ namespace geode {
             Windows,
             MacOS,
             iOS,
-            Android,
+            Android32,
+            Android64,
             Linux,
         };
 
@@ -149,7 +150,8 @@ namespace geode {
                 case Windows: return "Windows";
                 case MacOS: return "MacOS";
                 case iOS: return "iOS";
-                case Android: return "Android";
+                case Android32: return "Android32";
+                case Android64: return "Android64";
                 case Linux: return "Linux";
                 default: break;
             }
@@ -189,6 +191,8 @@ namespace std {
     #define GEODE_PLATFORM_TARGET PlatformID::MacOS
 #elif defined(GEODE_IS_IOS)
     #define GEODE_PLATFORM_TARGET PlatformID::iOS
-#elif defined(GEODE_IS_ANDROID)
-    #define GEODE_PLATFORM_TARGET PlatformID::Android
+#elif defined(GEODE_IS_ANDROID32)
+    #define GEODE_PLATFORM_TARGET PlatformID::Android32
+#elif defined(GEODE_IS_ANDROID64)
+    #define GEODE_PLATFORM_TARGET PlatformID::Android64
 #endif

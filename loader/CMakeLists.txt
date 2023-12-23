@@ -117,7 +117,7 @@ make_directory("${GEODE_BIN_PATH}/nightly")
 # Prevent SDK from activating a loader build
 set_target_properties(${PROJECT_NAME} PROPERTIES
 	PREFIX ""
-	OUTPUT_NAME "Geode"
+	OUTPUT_NAME ${GEODE_OUTPUT_NAME}
 	# i'm going to say a slur that not a single soul has uttered in the last 200 years
 	LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO "${GEODE_BIN_PATH}/nightly"
 	RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${GEODE_BIN_PATH}/nightly"

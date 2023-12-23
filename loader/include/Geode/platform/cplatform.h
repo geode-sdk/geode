@@ -56,14 +56,32 @@
     #define GEODE_ANDROID(...) __VA_ARGS__
     #define GEODE_IS_ANDROID
     #define GEODE_IS_MOBILE
-    #define GEODE_PLATFORM_NAME "Android"
     #define GEODE_CALL
     #define GEODE_CDECL_CALL
-    #define GEODE_PLATFORM_EXTENSION ".so"
-    #define GEODE_PLATFORM_SHORT_IDENTIFIER "android"
     #define CC_TARGET_OS_ANDROID
+
+    #if defined(__arm__)
+        #define GEODE_ANDROID32(...) __VA_ARGS__
+		#define GEODE_ANDROID64(...) 
+        #define GEODE_IS_ANDROID32
+		#define GEODE_PLATFORM_NAME "Android32"
+        #define GEODE_PLATFORM_EXTENSION ".v7.so"
+        #define GEODE_PLATFORM_SHORT_IDENTIFIER "android32"
+	#elif defined(__aarch64__)
+        #define GEODE_ANDROID32(...)
+		#define GEODE_ANDROID64(...) __VA_ARGS__
+        #define GEODE_IS_ANDROID64
+        #define GEODE_PLATFORM_NAME "Android64"
+        #define GEODE_PLATFORM_EXTENSION ".v8.so"
+        #define GEODE_PLATFORM_SHORT_IDENTIFIER "android64"
+    #else
+        #define GEODE_ANDROID32(...)
+        #define GEODE_ANDROID64(...)
+	#endif
 #else
     #define GEODE_ANDROID(...)
+    #define GEODE_ANDROID32(...)
+    #define GEODE_ANDROID64(...)
 #endif
 
 #ifndef GEODE_PLATFORM_NAME

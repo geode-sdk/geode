@@ -11,7 +11,8 @@ PlatformID PlatformID::from(const char* str) {
         case hash("windows"): return PlatformID::Windows;
         case hash("macos"): return PlatformID::MacOS;
         case hash("ios"): return PlatformID::iOS;
-        case hash("android"): return PlatformID::Android;
+        case hash("android32"): return PlatformID::Android32;
+        case hash("android64"): return PlatformID::Android64;
         case hash("linux"): return PlatformID::Linux;
     }
 }

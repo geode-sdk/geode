@@ -1,7 +1,7 @@
 #include <Geode/c++stl/gdstdlib.hpp>
 #include "../../c++stl/string-impl.hpp"
 
-#ifdef GEODE_IS_ANDROID
+#ifdef GEODE_IS_ANDROID32
 
 // 2.2 addition
 // zmx please fix this

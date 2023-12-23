@@ -35,10 +35,13 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
     platformBG->setScale(.5f);
     m_mainLayer->addChild(platformBG);
 
+    // TODO: add scrolllayer
+
     this->enable(this->addPlatformToggle("Windows", PlatformID::Windows, pos), type);
     this->enable(this->addPlatformToggle("macOS", PlatformID::MacOS, pos), type);
     //this->enable(this->addPlatformToggle("IOS", PlatformID::iOS, pos), type);
-    this->enable(this->addPlatformToggle("Android", PlatformID::Android, pos), type);
+    this->enable(this->addPlatformToggle("Android32", PlatformID::Android32, pos), type);
+    this->enable(this->addPlatformToggle("Android64", PlatformID::Android64, pos), type);
 
     // show installed
 

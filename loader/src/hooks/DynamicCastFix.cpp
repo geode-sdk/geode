@@ -12,7 +12,7 @@ $execute {
         (void)Mod::get()->patch(
             reinterpret_cast<void*>(base::get() + 0x603948), toByteArray(&cast::typeinfoCastInternal)
         );
-    #elif defined(GEODE_IS_ANDROID)
+    #elif defined(GEODE_IS_ANDROID32)
         (void)Mod::get()->addHook(reinterpret_cast<void*>(base::get() + (0x720348 - 0x10000) + 1), &cast::typeinfoCastInternal, "__dynamic_cast");
     #endif
 
