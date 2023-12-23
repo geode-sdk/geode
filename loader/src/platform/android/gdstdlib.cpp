@@ -36,6 +36,8 @@ namespace geode::stl {
     char* StringImpl::getStorage() {
         return reinterpret_cast<char*>(data.m_data);
     }
+    // TODO: add a copyFrom(string const&) to take advantage
+    // of gnustl refcounted strings
     void StringImpl::setStorage(const std::string_view str) {
         this->free();
 
@@ -48,6 +50,8 @@ namespace geode::stl {
         reinterpret_cast<void (*)(StringData*, char const*)>(geode::base::get() + (0x753a44 - 0x10000) + 1)(&data, str.data());
         return;
 
+        // TODO: this crashes because we need to use gd's operator new...
+#if 0
         StringData::Internal internal;
         internal.m_size = str.size();
         internal.m_capacity = str.size();
@@ -59,6 +63,7 @@ namespace geode::stl {
         buffer[sizeof(internal) + str.size()] = 0;
 
         data.m_data = reinterpret_cast<StringData::Internal*>(buffer + sizeof(internal));
+#endif
     }
 
     size_t StringImpl::getSize() {
