@@ -8,7 +8,11 @@ if (NOT DEFINED GEODE_TARGET_PLATFORM)
 	elseif(WIN32)
 		set(GEODE_TARGET_PLATFORM "Win32")
 	elseif(ANDROID)
-		set(GEODE_TARGET_PLATFORM "Android")
+		if (ANDROID_ABI STREQUAL "arm64-v8a")
+			set(GEODE_TARGET_PLATFORM "Android64")
+		elseif(ANDROID_ABI STREQUAL "armeabi-v7a")
+			set(GEODE_TARGET_PLATFORM "Android32")
+		endif()
 	else()
 		message(FATAL_ERROR "Unable to detect platform, please set GEODE_TARGET_PLATFORM in the root CMake file.")
 	endif()
@@ -76,18 +80,35 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Win32")
 
 	# Windows links against .lib and not .dll
 	set(GEODE_PLATFORM_BINARY "Geode.lib")
-elseif (GEODE_TARGET_PLATFORM STREQUAL "Android")
+elseif (GEODE_TARGET_PLATFORM STREQUAL "Android32")
 	set_target_properties(${PROJECT_NAME} PROPERTIES
 		SYSTEM_NAME Android
 	)
 
 	target_link_libraries(${PROJECT_NAME} INTERFACE
-		${GEODE_LOADER_PATH}/include/link/android/libcurl.a
-		${GEODE_LOADER_PATH}/include/link/android/libssl.a
-		${GEODE_LOADER_PATH}/include/link/android/libcrypto.a
-		${GEODE_LOADER_PATH}/include/link/android/libcocos2dcpp.so
+		${GEODE_LOADER_PATH}/include/link/android32/libcurl.a
+		${GEODE_LOADER_PATH}/include/link/android32/libssl.a
+		${GEODE_LOADER_PATH}/include/link/android32/libcrypto.a
+		${GEODE_LOADER_PATH}/include/link/android32/libcocos2dcpp.so
 		log
 	)
 
-	set(GEODE_PLATFORM_BINARY "Geode.so")
+	set(GEODE_PLATFORM_BINARY "Geode.v7.so")
+
+elseif (GEODE_TARGET_PLATFORM STREQUAL "Android64")
+	set_target_properties(${PROJECT_NAME} PROPERTIES
+		SYSTEM_NAME Android
+	)
+
+	target_link_libraries(${PROJECT_NAME} INTERFACE
+		${GEODE_LOADER_PATH}/include/link/android64/libcurl.a
+		${GEODE_LOADER_PATH}/include/link/android64/libssl.a
+		${GEODE_LOADER_PATH}/include/link/android64/libcrypto.a
+		${GEODE_LOADER_PATH}/include/link/android64/libcocos2dcpp.so
+		log
+	)
+
+	set(GEODE_PLATFORM_BINARY "Geode.v8.so")
+else()
+	message(FATAL_ERROR "Unknown platform ${GEODE_TARGET_PLATFORM}")
 endif()
