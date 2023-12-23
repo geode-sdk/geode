@@ -2,24 +2,20 @@ using namespace geode::prelude;
 
 // TODO: 2.2 changes touch prio, we need to test how that affects things
 
-// #include <Geode/modify/CCTouchDispatcher.hpp>
+#include <Geode/modify/CCTouchDispatcher.hpp>
 
-// struct ForcePrioRevert : Modify<ForcePrioRevert, CCTouchDispatcher> {
-//     void addTargetedDelegate(CCTouchDelegate* delegate, int priority, bool swallowsTouches) {
-//         m_bForcePrio = false;
-//         if (m_pTargetedHandlers->count() > 0) {
-//             auto handler = static_cast<CCTouchHandler*>(m_pTargetedHandlers->objectAtIndex(0));
-//             priority = handler->getPriority() - 2;
-//         }
+struct ForcePrioRevert : Modify<ForcePrioRevert, CCTouchDispatcher> {
+    bool isUsingForcePrio() {
+        return true;
+    }
 
-//         CCTouchDispatcher::addTargetedDelegate(delegate, priority, swallowsTouches);
-//     }
+    void addTargetedDelegate(CCTouchDelegate* delegate, int priority, bool swallowsTouches) {
+        m_forcePrio = -2;
+        if (m_pTargetedHandlers->count() > 0) {
+            auto handler = static_cast<CCTouchHandler*>(m_pTargetedHandlers->objectAtIndex(0));
+            m_forcePrio = handler->getPriority() - 2;
+        }
 
-//     void incrementForcePrio(int num) {
-//         m_bForcePrio = false;
-//     }
-
-//     void decrementForcePrio(int num) {
-//         m_bForcePrio = false;
-//     }
-// };
+        CCTouchDispatcher::addTargetedDelegate(delegate, 0, swallowsTouches);
+    }
+};

@@ -34,6 +34,9 @@ GEODE_SIZE_CHECK(SliderTouchLogic, 0x174);
 GEODE_SIZE_CHECK(CCScrollLayerExt, 0x184);
 GEODE_SIZE_CHECK(TableView, 0x1dc);
 GEODE_SIZE_CHECK(CCTextInputNode, 0x1a0);
+GEODE_SIZE_CHECK(CCTouchDispatcher, 0x6c);
+
+// GEODE_MEMBER_CHECK(CCTouchDispatcher, m_forcePrio, 0x60);
 
 GEODE_MEMBER_CHECK(CCTextInputNode, m_maxLabelWidth, 0x164);
 GEODE_MEMBER_CHECK(CCTextInputNode, m_textField, 0x17c);
