@@ -30,7 +30,7 @@ void updateGeode() {
 void* mainTrampolineAddr;
 
 int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow) {
-    MessageBoxA(NULL, "Hello from gdMainHook!", "Hi", 0);
+    // MessageBoxA(NULL, "Hello from gdMainHook!", "Hi", 0);
 
     updateGeode();
 

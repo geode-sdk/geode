@@ -122,7 +122,9 @@ VersionInfo Loader::Impl::getVersion() {
 }
 
 VersionInfo Loader::Impl::minModVersion() {
-    return VersionInfo { 1, 0, 0, VersionTag(VersionTag::Beta, 5) };
+    return VersionInfo {
+        this->getVersion().getMajor(), 0, 0
+    };
 }
 
 VersionInfo Loader::Impl::maxModVersion() {
