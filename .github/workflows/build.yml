@@ -183,7 +183,7 @@ jobs:
       - name: Zip Android Artifacts
         uses: vimtor/action-zip@v1.1
         with:
-          files: geode-android/Geode.so
+          files: geode-android/*.so
           dest: geode-${{ steps.ref.outputs.hash }}-android.zip
 
       - name: Zip Resources
