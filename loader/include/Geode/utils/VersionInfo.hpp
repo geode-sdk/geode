@@ -179,8 +179,9 @@ namespace geode {
         }
 
         std::string toString(bool includeTag = true) const;
+
+        friend GEODE_DLL std::string format_as(VersionInfo const& version);
     };
-    GEODE_DLL std::ostream& operator<<(std::ostream& stream, VersionInfo const& version);
 
     class GEODE_DLL ComparableVersionInfo final {
     protected:
@@ -225,8 +226,8 @@ namespace geode {
         }
 
         std::string toString() const;
+        friend GEODE_DLL std::string format_as(ComparableVersionInfo const& version);
     };
-    GEODE_DLL std::ostream& operator<<(std::ostream& stream, ComparableVersionInfo const& version);
 }
 
 template <class V>

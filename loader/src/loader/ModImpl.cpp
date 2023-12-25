@@ -158,7 +158,7 @@ Result<> Mod::Impl::loadData() {
                 if (auto setting = this->getSetting(key)) {
                     // load its value
                     if (!setting->load(value.json())) {
-                        log::internalLog(
+                        log::logImpl(
                             Severity::Error,
                             m_self,
                             "{}: Unable to load value for setting \"{}\"",
@@ -168,7 +168,7 @@ Result<> Mod::Impl::loadData() {
                     }
                 }
                 else {
-                    log::internalLog(
+                    log::logImpl(
                         Severity::Warning,
                         m_self,
                         "Encountered unknown setting \"{}\" while loading "
@@ -215,7 +215,7 @@ Result<> Mod::Impl::saveData() {
     for (auto& [key, value] : m_settings) {
         coveredSettings.insert(key);
         if (!value->save(json[key])) {
-            log::error("Unable to save setting \"" + key + "\"");
+            log::error("Unable to save setting \"{}\"", key);
         }
     }
 
