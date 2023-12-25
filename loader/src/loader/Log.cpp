@@ -89,9 +89,11 @@ std::string cocos2d::format_as(cocos2d::ccColor4B const& col) {
 // Log
 
 void log::vlogImpl(Severity sev, Mod* mod, fmt::string_view format, fmt::format_args args) {
-    Log obj(sev, mod, fmt::vformat(format, args));
-
-    Logger::push(std::move(obj));
+    Logger::push(Log(
+        sev,
+        mod,
+        fmt::vformat(format, args)
+    ));
 }
 
 
@@ -101,12 +103,7 @@ Log::Log(Severity sev, Mod* mod, std::string content) :
     m_severity(sev),
     m_content(std::move(content)) {}
 
-Log::~Log() {
-}
-
-// bool Log::operator==(Log const& l) {
-//     return this == &l;
-// }
+Log::~Log() {}
 
 std::string Log::toString(bool logTime) const {
     return toString(logTime, 0);
@@ -219,13 +216,8 @@ void Logger::popNest() {
     nestLevel()--;
 }
 
-std::vector<Log*> Logger::list() {
-    std::vector<Log*> logs_;
-    logs_.reserve(logs().size());
-    for (auto& log : logs()) {
-        logs_.push_back(&log);
-    }
-    return logs_;
+std::vector<Log> const& Logger::list() {
+    return logs();
 }
 
 void Logger::clear() {

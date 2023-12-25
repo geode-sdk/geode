@@ -75,7 +75,7 @@ void Loader::Impl::openPlatformConsole() {
     m_platformConsoleOpen = true;
 
     for (auto const& log : log::Logger::list()) {
-        this->logConsoleMessageWithSeverity(log->toString(true), log->getSeverity());
+        this->logConsoleMessageWithSeverity(log.toString(true), log.getSeverity());
     }
 }
 

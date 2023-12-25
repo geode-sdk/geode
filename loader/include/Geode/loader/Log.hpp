@@ -50,20 +50,6 @@ namespace geode {
         using log_clock = std::chrono::system_clock;
         GEODE_DLL std::string generateLogName();
 
-        // template <class T>
-        //     requires std::convertible_to<T*, cocos2d::CCNode*>
-        // std::string serialize(T* node) {
-        //     return serialize(static_cast<cocos2d::CCNode*>(node));
-        // }
-        // template <class T>
-        //     requires(
-        //         std::convertible_to<T*, cocos2d::CCObject*> &&
-        //         !std::convertible_to<T*, cocos2d::CCNode*>
-        //     )
-        // std::string serialize(T* node) {
-        //     return serialize(static_cast<cocos2d::CCObject*>(node));
-        // }
-
         // Log
 
         class GEODE_DLL Log final {
@@ -76,9 +62,6 @@ namespace geode {
         public:
             ~Log();
             Log(Severity sev, Mod* mod, std::string content);
-            Log(Log&& l) = default;
-            Log& operator=(Log&& l) = default;
-            // bool operator==(Log const& l) const;
 
             std::string toString(bool logTime = true) const;
             std::string toString(bool logTime, uint32_t nestLevel) const;
@@ -108,7 +91,7 @@ namespace geode {
             static void pushNest();
             static void popNest();
 
-            static std::vector<Log*> list();
+            static std::vector<Log> const& list();
             static void clear();
         };
 
