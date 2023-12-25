@@ -31,6 +31,7 @@ if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
 
 	set(GEODE_OUTPUT_NAME "GeodeIOS")
 	set(GEODE_PLATFORM_BINARY "GeodeIOS.dylib")
+	set(GEODE_MOD_BINARY_SUFFIX ".dylib" CACHE STRING "" FORCE)
 elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
 	set_target_properties(${PROJECT_NAME} PROPERTIES 
 		SYSTEM_NAME MacOS
@@ -62,7 +63,7 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
 
 	set(GEODE_OUTPUT_NAME "Geode")
 	set(GEODE_PLATFORM_BINARY "Geode.dylib")
-
+	set(GEODE_MOD_BINARY_SUFFIX ".ios.dylib" CACHE STRING "" FORCE)
 elseif (GEODE_TARGET_PLATFORM STREQUAL "Win32")
 	set_target_properties(${PROJECT_NAME} PROPERTIES
 		SYSTEM_NAME Win32
@@ -83,6 +84,7 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Win32")
 	# Windows links against .lib and not .dll
 	set(GEODE_OUTPUT_NAME "Geode")
 	set(GEODE_PLATFORM_BINARY "Geode.lib")
+	set(GEODE_MOD_BINARY_SUFFIX ".dll" CACHE STRING "" FORCE)
 elseif (GEODE_TARGET_PLATFORM STREQUAL "Android32")
 	set_target_properties(${PROJECT_NAME} PROPERTIES
 		SYSTEM_NAME Android
@@ -98,7 +100,7 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android32")
 
 	set(GEODE_OUTPUT_NAME "Geode.armeabi-v7a")
 	set(GEODE_PLATFORM_BINARY "Geode.armeabi-v7a.so")
-
+	set(GEODE_MOD_BINARY_SUFFIX ".v7.so" CACHE STRING "" FORCE)
 elseif (GEODE_TARGET_PLATFORM STREQUAL "Android64")
 	set_target_properties(${PROJECT_NAME} PROPERTIES
 		SYSTEM_NAME Android
@@ -114,6 +116,7 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android64")
 
 	set(GEODE_OUTPUT_NAME "Geode.arm64-v8a")
 	set(GEODE_PLATFORM_BINARY "Geode.arm64-v8a.so")
+	set(GEODE_MOD_BINARY_SUFFIX ".v8.so" CACHE STRING "" FORCE)
 else()
 	message(FATAL_ERROR "Unknown platform ${GEODE_TARGET_PLATFORM}")
 endif()

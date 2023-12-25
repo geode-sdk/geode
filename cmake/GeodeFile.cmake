@@ -216,8 +216,10 @@ function(setup_geode_mod proname)
 
     # Add package target + make output name the mod id
     set_target_properties(${proname} PROPERTIES PREFIX "")
+    if (DEFINED GEODE_MOD_BINARY_SUFFIX)
+        set_target_properties(${proname} PROPERTIES SUFFIX ${GEODE_MOD_BINARY_SUFFIX})
+    endif()
     set_target_properties(${proname} PROPERTIES OUTPUT_NAME ${MOD_ID})
-
 endfunction()
 
 function(create_geode_file proname)
