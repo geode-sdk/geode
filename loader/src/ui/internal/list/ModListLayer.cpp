@@ -512,12 +512,14 @@ void ModListLayer::reloadList(bool keepScroll, std::optional<ModListQuery> const
             m_loadingCircle->setZOrder(1001);
 
             m_loadingCircle->show();
+            m_loadingCircle->retain();
         }
         this->onCheckForUpdates(nullptr);
     }
     else {
         if (m_loadingCircle) {
             m_loadingCircle->fadeAndRemove();
+            m_loadingCircle->release();
             m_loadingCircle = nullptr;
         }
     }
