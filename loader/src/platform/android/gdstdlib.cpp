@@ -7,7 +7,7 @@
 
 static constexpr ptrdiff_t MENULAYER_SCENE = 0x309068 - 0x10000;
 static constexpr ptrdiff_t STRING_EMPTY = 0xaa1c3c - 0x10000;
-static constexpr ptrdiff_t OPERATOR_DELETE = 0x72033c - 0x10000 + 1;
+static constexpr ptrdiff_t OPERATOR_DELETE = 0x7514c8 - 0x10000 + 1;
 static constexpr ptrdiff_t STRING_COPY = 0x753a44 - 0x10000 + 1;
 
 #elif defined(GEODE_IS_ANDROID64)
@@ -44,7 +44,11 @@ namespace geode::stl {
     void StringImpl::free() {
         if (data.m_data == nullptr || data.m_data == emptyInternalString()) return;
         // TODO: reimplement this
+        #ifdef GEODE_IS_ANDROID32
+        reinterpret_cast<void (*)(StringData*)>(geode::base::get() + OPERATOR_DELETE)(&data);
+        #else
         reinterpret_cast<void (*)(void*)>(geode::base::get() + OPERATOR_DELETE)(&data.m_data[-1]);   
+        #endif
     }
 
     char* StringImpl::getStorage() {
