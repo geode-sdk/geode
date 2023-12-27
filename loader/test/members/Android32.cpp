@@ -35,6 +35,7 @@ GEODE_SIZE_CHECK(CCScrollLayerExt, 0x184);
 GEODE_SIZE_CHECK(TableView, 0x1dc);
 GEODE_SIZE_CHECK(CCTextInputNode, 0x1a0);
 GEODE_SIZE_CHECK(CCTouchDispatcher, 0x6c);
+GEODE_SIZE_CHECK(CCSpritePlus, 0x208);
 
 // GEODE_MEMBER_CHECK(CCTouchDispatcher, m_forcePrio, 0x60);
 
@@ -46,6 +47,17 @@ GEODE_MEMBER_CHECK(TableView, m_cellArray, 0x1b0);
 GEODE_MEMBER_CHECK(TableViewCell, m_backgroundLayer, 0x190);
 
 
+GEODE_SIZE_CHECK(GameObject, 0x488);
+GEODE_SIZE_CHECK(EnhancedGameObject, 0x4f0);
+GEODE_SIZE_CHECK(EffectGameObject, 0x668);
+GEODE_SIZE_CHECK(TextGameObject, 0x490);
+GEODE_SIZE_CHECK(SmartGameObject, 0x490);
+GEODE_SIZE_CHECK(ParticleGameObject, 0x618);
+GEODE_SIZE_CHECK(SpecialAnimGameObject, 0x4f0);
+GEODE_SIZE_CHECK(RingObject, 0x668);
+GEODE_SIZE_CHECK(StartPosObject, 0x668);
+GEODE_SIZE_CHECK(LabelGameObject, 0x690);
+GEODE_SIZE_CHECK(EventLinkTrigger, 0x688);
 
 // GEODE_MEMBER_CHECK(CCNode, m_pUserObject, 0xcc);
 
