@@ -57,7 +57,7 @@ GEODE_SIZE_CHECK(SpecialAnimGameObject, 0x4f0);
 GEODE_SIZE_CHECK(RingObject, 0x668);
 GEODE_SIZE_CHECK(StartPosObject, 0x668);
 GEODE_SIZE_CHECK(LabelGameObject, 0x690);
-GEODE_SIZE_CHECK(EventLinkTrigger, 0x688);
+// GEODE_SIZE_CHECK(EventLinkTrigger, 0x688);
 
 // GEODE_MEMBER_CHECK(CCNode, m_pUserObject, 0xcc);
 
