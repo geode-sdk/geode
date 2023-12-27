@@ -468,7 +468,7 @@ protected:
     
     /** calculates delta time since last time it was called */    
     void calculateDeltaTime();
-protected:
+public:
     /* The CCEGLView, where everything is rendered */
     CCEGLView    *m_pobOpenGLView;
 
@@ -479,6 +479,9 @@ protected:
     bool m_bLandscape;
     
     bool m_bDisplayStats;
+
+    float m_unknown;
+
     float m_fAccumDt;
     float m_fFrameRate;
     
@@ -533,10 +536,15 @@ protected:
 
     RT_ADD(
         CC_SYNTHESIZE(CCSceneDelegate*, m_pAppDelegate, SceneDelegate);
+        void* m_unknownPtr;
+        CCNode* m_unknownLabel;
         CCSize m_obScaleFactor;
         CCSize m_obResolutionInPixels;
         CC_SYNTHESIZE_READONLY_NV(TextureQuality, m_eTextureQuality, LoadedTextureQuality);
         CC_SYNTHESIZE_NV(bool, m_bDontCallWillSwitch, DontCallWillSwitch);
+        // these were just garbage memory in reclass
+        void* m_unknownPtr2;
+        void* m_unknownPtr3;
     )
     
     // CCEGLViewProtocol will recreate stats labels to fit visible rect
