@@ -27,6 +27,7 @@ GEODE_MEMBER_CHECK(BoomListView, m_tableView, 0x144);
 GEODE_MEMBER_CHECK(BoomListView, m_entries, 0x148);
 
 GEODE_MEMBER_CHECK(TableView, m_cellArray, 0x1b0);
+GEODE_MEMBER_CHECK(CCScrollLayerExt, m_cutContent, 0x16c);
 
 
 
