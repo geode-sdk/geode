@@ -79,6 +79,7 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Win32")
 		${GEODE_LOADER_PATH}/include/link/glew32.lib
 		${GEODE_LOADER_PATH}/include/link/gdstring.lib
 		${GEODE_LOADER_PATH}/include/link/fmod.lib
+		opengl32
 	)
 
 	# Windows links against .lib and not .dll
@@ -95,6 +96,7 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android32")
 		${GEODE_LOADER_PATH}/include/link/android32/libssl.a
 		${GEODE_LOADER_PATH}/include/link/android32/libcrypto.a
 		${GEODE_LOADER_PATH}/include/link/android32/libcocos2dcpp.so
+		GLESv2
 		log
 	)
 
