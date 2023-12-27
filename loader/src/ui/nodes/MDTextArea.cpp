@@ -1,4 +1,4 @@
-// #include <Geode/binding/ProfilePage.hpp>
+#include <Geode/binding/ProfilePage.hpp>
 #include <Geode/binding/CCContentLayer.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/ui/MDTextArea.hpp>
@@ -181,8 +181,7 @@ void MDTextArea::onGDProfile(CCObject* pSender) {
     auto profile = std::string(href->getCString());
     profile = profile.substr(profile.find(":") + 1);
     try {
-        // TODO: im really lazy rn
-        // ProfilePage::create(std::stoi(profile), false)->show();
+        ProfilePage::create(std::stoi(profile), false)->show();
     }
     catch (...) {
         FLAlertLayer::create(
