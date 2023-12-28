@@ -25,15 +25,19 @@ enum class SearchType {
     HallOfFame = 16,
     FeaturedGDW = 17,
     Similar = 18,
-    ListsOnClick = 19,
-    Lists = 20,
-    DailyVault = 21,
-    WeeklyVault = 22,
-    EventVault = 23,
+    Type19 = 19,
+    TopListsUnused = 20,
+    DailySafe = 21,
+    WeeklySafe = 22,
+    EventSafe = 23,
     Reported = 24,
+    LevelListsOnClick = 25,
+    Type26 = 26,
+    Sent = 27,
     MyLevels = 98,
     SavedLevels = 99,
-    FavouriteLevels = 100
+    FavouriteLevels = 100,
+    SmartTemplates = 101
 };
 
 // jesus fucking christ (painfully written by @hjfod)
@@ -104,7 +108,8 @@ enum class LikeItemType {
     Unknown = 0,
     Level = 1,
     Comment = 2,
-    AccountComment = 3
+    AccountComment = 3,
+    LevelList = 4
 };
 
 enum class CommentError {
@@ -117,7 +122,11 @@ enum class GJActionCommand {};
 enum class DifficultyIconType {};
 enum class GauntletType {};
 enum class GJMPErrorCode {};
-enum class GJTimedLevelType {};
+enum class GJTimedLevelType {
+    Daily = 0,
+    Weekly = 1,
+    Event = 2
+};
 enum class SongSelectType {};
 enum class AudioTargetType {};
 enum class FMODReverbPreset {};
@@ -178,16 +187,29 @@ enum class BoomListType {
     Level2 = 0x6,
     Comment = 0x7,
     Comment2 = 0x8,
-    Song = 0xb,
-    Score = 0xc,
-    MapPack = 0xd,
-    CustomSong = 0xe,
-    Comment3 = 0xf,
-    User2 = 0x10,
-    Request = 0x11,
-    Message = 0x12,
-    LevelScore = 0x13,
-    Artist = 0x14,
+    Comment3 = 0x9,
+    Song = 0xc,
+    Score = 0xd,
+    MapPack = 0xe,
+    CustomSong = 0xf,
+    Comment4 = 0x10,
+    User2 = 0x11,
+    Request = 0x12,
+    Message = 0x13,
+    LevelScore = 0x14,
+    Artist = 0x15,
+    SmartTemplate = 0x16,
+    SFX = 0x17,
+    SFX2 = 0x18,
+    CustomMusic = 0x19,
+    Options = 0x1a,
+    LevelList = 0x1b,
+    Level3 = 0x1c,
+    LevelList2 = 0x1d,
+    LevelList3 = 0x1e,
+    Level4 = 0x1f,
+    LocalLevelScore = 0x21,
+    URL = 0x22,
 };
 
 enum class CurrencySpriteType {
@@ -357,7 +379,11 @@ enum class GJRewardType
     Small = 0x1,
     Large = 0x2,
     SmallTreasure = 0x3,
-    LargeTreasure = 0x4
+    LargeTreasure = 0x4,
+    Key10Treasure = 0x5,
+    Key25Treasure = 0x6,
+    Key50Treasure = 0x7,
+    Key100Treasure = 0x8
 };
 
 enum class IconType {
@@ -368,6 +394,8 @@ enum class IconType {
     Wave = 4,
     Robot = 5,
     Spider = 6,
+    Swing = 7,
+    Jetpack = 8,
     DeathEffect = 98,
     Special = 99,
 };
