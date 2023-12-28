@@ -5,6 +5,7 @@
 #include <loader/ModImpl.hpp>
 #import <Foundation/Foundation.h>
 #include <sys/stat.h>
+#include <loader/LogImpl.hpp>
 
 using namespace geode::prelude;
 
@@ -79,7 +80,7 @@ void Loader::Impl::openPlatformConsole() {
 
     m_platformConsoleOpen = true;
 
-    for (auto const& log : log::Logger::list()) {
+    for (auto const& log : log::Logger::get()->list()) {
         this->logConsoleMessageWithSeverity(log.toString(true), log.getSeverity());
     }
 }

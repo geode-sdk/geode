@@ -3,6 +3,7 @@
 
 #include "ModImpl.hpp"
 #include "ModMetadataImpl.hpp"
+#include "LogImpl.hpp"
 
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/IPC.hpp>
@@ -669,7 +670,7 @@ void Loader::Impl::forceReset() {
         delete mod;
     }
     m_mods.clear();
-    log::Logger::clear();
+    log::Logger::get()->clear();
     ghc::filesystem::remove_all(dirs::getModRuntimeDir());
     ghc::filesystem::remove_all(dirs::getTempDir());
 }

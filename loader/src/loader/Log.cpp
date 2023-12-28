@@ -1,4 +1,5 @@
 #include "LoaderImpl.hpp"
+#include "LogImpl.hpp"
 
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/Log.hpp>
@@ -24,6 +25,7 @@ std::string geode::format_as(Mod* mod) {
     }
 }
 
+#if 0
 std::string cocos2d::format_as(CCObject* obj) {
     if (obj) {
         // TODO: try catch incase typeid fails
@@ -65,6 +67,7 @@ std::string cocos2d::format_as(CCArray* arr) {
 
     return out + "]";
 }
+#endif
 
 std::string cocos2d::format_as(CCPoint const& pt) {
     return fmt::format("{}, {}", pt.x, pt.y);
@@ -89,19 +92,19 @@ std::string cocos2d::format_as(cocos2d::ccColor4B const& col) {
 // Log
 
 void log::vlogImpl(Severity sev, Mod* mod, fmt::string_view format, fmt::format_args args) {
-    Logger::push(Log(
+    Logger::get()->push(
         sev,
         mod,
         fmt::vformat(format, args)
-    ));
+    );
 }
 
 
-Log::Log(Severity sev, Mod* mod, std::string content) :
+Log::Log(Severity sev, Mod* mod, std::string&& content) :
     m_sender(mod),
     m_time(log_clock::now()),
     m_severity(sev),
-    m_content(std::move(content)) {}
+    m_content(content) {}
 
 Log::~Log() {}
 
@@ -169,63 +172,59 @@ Severity Log::getSeverity() const {
     return m_severity;
 }
 
+std::string_view Log::getContent() const {
+    return m_content;
+}
+
 // Logger
 
-std::vector<Log>& Logger::logs() {
-    static std::vector<Log> logs;
-    return logs;
-}
-std::ofstream& Logger::logStream() {
-    static std::ofstream logStream;
-    return logStream;
-}
-uint32_t& Logger::nestLevel() {
-    static std::uint32_t nestLevel = 0;
-    return nestLevel;
+Logger* Logger::get() {
+    static Logger inst;
+    return &inst;
 }
 
 void Logger::setup() {
-    logStream() = std::ofstream(dirs::getGeodeLogDir() / log::generateLogName());
+    m_logStream = std::ofstream(dirs::getGeodeLogDir() / log::generateLogName());
 }
 
-void Logger::push(Log&& log) {
-    if (log.getSender()->isLoggingEnabled()) {
-        std::string logStr = log.toString(true, nestLevel());
+void Logger::push(Severity sev, Mod* mod, std::string&& content) {
+    if (mod->isLoggingEnabled()) {
+        auto& log = m_logs.emplace_back(sev, mod, std::move(content));
+        auto const logStr = log.toString(true, m_nestLevel);
 
         LoaderImpl::get()->logConsoleMessageWithSeverity(logStr, log.getSeverity());
-        logStream() << logStr << std::endl;
-
-        logs().emplace_back(std::forward<Log>(log));
+        m_logStream << logStr << std::endl;
     }
 }
 
-void Logger::pop(Log* log) {
-    geode::utils::ranges::remove(Logger::logs(), [&](auto& elem) {
-        return &elem == log;
-    });
+void Logger::pushNest() {
+    m_nestLevel++;
 }
 
-void Logger::pushNest() {
-    if (nestLevel() == std::numeric_limits<uint32_t>::max())
-        return;
-    nestLevel()++;
-}
 void Logger::popNest() {
-    if (nestLevel() == 0)
+    if (m_nestLevel == 0)
         return;
-    nestLevel()--;
+    m_nestLevel--;
 }
 
 std::vector<Log> const& Logger::list() {
-    return logs();
+    return m_logs;
 }
 
 void Logger::clear() {
-    logs().clear();
+    m_logs.clear();
 }
 
 // Misc
 
 std::string geode::log::generateLogName() {
     return fmt::format("Geode {:%d %b %H.%M.%S}.log", log_clock::now());
+}
+
+void log::pushNest() {
+    Logger::get()->pushNest();
+}
+
+void log::popNest() {
+    Logger::get()->popNest();
 }
