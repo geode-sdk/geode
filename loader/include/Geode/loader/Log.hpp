@@ -23,8 +23,7 @@ namespace geode {
 namespace geode::log::impl {
     // What is this all for? well, fmtlib disallows writing custom formatters for non-void pointer types.
     // So instead, we just wrap everything and pass it a string instead.
-    // WARNING: This code breaks in fmtlib 10.1.1! I have no idea why, so be careful before updating it.
-    
+
     template <class T>
     GEODE_INLINE GEODE_HIDDEN decltype(auto) wrapCocosObj(T&& value) {
         if constexpr (std::is_pointer_v<std::decay_t<T>> && requires(T ptr) { geode::format_as(ptr); }) {
@@ -76,7 +75,9 @@ namespace geode {
 
         template <typename... Args>
         inline void logImpl(Severity severity, Mod* mod, impl::FmtStr<Args...> str, Args&&... args) {
-            vlogImpl(severity, mod, str, fmt::make_format_args(impl::wrapCocosObj(args)...));
+            [&]<typename... Ts>(Ts&&... args) {
+                vlogImpl(severity, mod, str, fmt::make_format_args(args...));
+            }(impl::wrapCocosObj(args)...);
         }
 
         template <typename... Args>
