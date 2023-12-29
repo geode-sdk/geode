@@ -16,6 +16,8 @@ namespace geode {
     GEODE_DLL std::string format_as(cocos2d::CCObject const*);
     GEODE_DLL std::string format_as(cocos2d::CCArray*);
     GEODE_DLL std::string format_as(cocos2d::CCNode*);
+    class Mod;
+    GEODE_DLL std::string format_as(Mod*);
 }
 
 namespace geode::log::impl {
@@ -25,7 +27,7 @@ namespace geode::log::impl {
     
     template <class T>
     GEODE_INLINE GEODE_HIDDEN decltype(auto) wrapCocosObj(T&& value) {
-        if constexpr (std::is_convertible_v<T, const cocos2d::CCObject*>) {
+        if constexpr (std::is_pointer_v<std::decay_t<T>> && requires(T ptr) { geode::format_as(ptr); }) {
             return geode::format_as(value);
         } else {
             return std::forward<T>(value);
@@ -65,8 +67,6 @@ namespace geode {
 
     class Mod;
     Mod* getMod();
-
-    GEODE_DLL std::string format_as(Mod*);
 
     namespace log {
         using log_clock = std::chrono::system_clock;
