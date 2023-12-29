@@ -110,11 +110,19 @@ std::string Log::toString(bool logTime) const {
     return toString(logTime, 0);
 }
 
+auto convertTime(auto timePoint) {
+    // std::chrono::current_zone() isnt available on clang (android),
+    // so do this instead to get the local time for logging.
+    // By accident this also gets rid of the decimal places in the seconds
+    auto timeEpoch = std::chrono::system_clock::to_time_t(timePoint);
+    return fmt::localtime(timeEpoch);
+}
+
 std::string Log::toString(bool logTime, uint32_t nestLevel) const {
     std::string res;
 
     if (logTime) {
-        res += fmt::format("{:%H:%M:%S}", std::chrono::floor<std::chrono::seconds>(m_time));
+        res += fmt::format("{:%H:%M:%S}", convertTime(m_time));
     }
 
     switch (m_severity.m_value) {
@@ -216,7 +224,7 @@ void Logger::clear() {
 // Misc
 
 std::string geode::log::generateLogName() {
-    return fmt::format("Geode {:%d %b %H.%M.%S}.log", std::chrono::floor<std::chrono::seconds>(log_clock::now()));
+    return fmt::format("Geode {:%d %b %H.%M.%S}.log", convertTime(log_clock::now()));
 }
 
 void log::pushNest() {
