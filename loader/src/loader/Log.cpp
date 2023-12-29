@@ -114,7 +114,7 @@ std::string Log::toString(bool logTime, uint32_t nestLevel) const {
     std::string res;
 
     if (logTime) {
-        res += fmt::format("{:%H:%M:%S}", m_time);
+        res += fmt::format("{:%H:%M:%S}", std::chrono::floor<std::chrono::seconds>(m_time));
     }
 
     switch (m_severity.m_value) {
@@ -216,7 +216,7 @@ void Logger::clear() {
 // Misc
 
 std::string geode::log::generateLogName() {
-    return fmt::format("Geode {:%d %b %H.%M.%S}.log", log_clock::now());
+    return fmt::format("Geode {:%d %b %H.%M.%S}.log", std::chrono::floor<std::chrono::seconds>(log_clock::now()));
 }
 
 void log::pushNest() {
