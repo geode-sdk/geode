@@ -25,24 +25,23 @@ std::string geode::format_as(Mod* mod) {
     }
 }
 
-#if 0
-std::string cocos2d::format_as(CCObject* obj) {
+std::string geode::format_as(CCObject const* obj) {
     if (obj) {
         // TODO: try catch incase typeid fails
-        return fmt::format("{{ {}, {} }}", typeid(*obj).name(), utils::intToHex(obj));
+        return fmt::format("{{ {}, {} }}", typeid(*obj).name(), fmt::ptr(obj));
     }
     else {
         return "{ CCObject, null }";
     }
 }
 
-std::string cocos2d::format_as(CCNode* obj) {
+std::string geode::format_as(CCNode* obj) {
     if (obj) {
         auto bb = obj->boundingBox();
         return fmt::format(
             "{{ {}, {}, ({}, {} | {} : {}) }}",
             typeid(*obj).name(),
-            utils::intToHex(obj),
+            fmt::ptr(obj),
             bb.origin.x,
             bb.origin.y,
             bb.size.width,
@@ -54,7 +53,7 @@ std::string cocos2d::format_as(CCNode* obj) {
     }
 }
 
-std::string cocos2d::format_as(CCArray* arr) {
+std::string geode::format_as(CCArray* arr) {
     std::string out = "[";
 
     if (arr && arr->count()) {
@@ -67,7 +66,6 @@ std::string cocos2d::format_as(CCArray* arr) {
 
     return out + "]";
 }
-#endif
 
 std::string cocos2d::format_as(CCPoint const& pt) {
     return fmt::format("{}, {}", pt.x, pt.y);

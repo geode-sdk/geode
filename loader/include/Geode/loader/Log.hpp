@@ -9,12 +9,37 @@
 #include <chrono>
 #include <ghc/fs_fwd.hpp>
 #include <fmt/core.h>
+#include <type_traits>
+
+namespace geode {
+    // these are here because theyre special :-)
+    GEODE_DLL std::string format_as(cocos2d::CCObject const*);
+    GEODE_DLL std::string format_as(cocos2d::CCArray*);
+    GEODE_DLL std::string format_as(cocos2d::CCNode*);
+}
+
+namespace geode::log::impl {
+    // What is this all for? well, fmtlib disallows writing custom formatters for non-void pointer types.
+    // So instead, we just wrap everything and pass it a string instead.
+    // WARNING: This code breaks in fmtlib 10.1.1! I have no idea why, so be careful before updating it.
+    
+    template <class T>
+    GEODE_INLINE GEODE_HIDDEN decltype(auto) wrapCocosObj(T&& value) {
+        if constexpr (std::is_convertible_v<T, const cocos2d::CCObject*>) {
+            return geode::format_as(value);
+        } else {
+            return std::forward<T>(value);
+        }
+    }
+
+    template <class T>
+    using TransformType = decltype(wrapCocosObj<T>(std::declval<T>()));
+
+    template <class... Args>
+    using FmtStr = fmt::format_string<TransformType<Args>...>;
+}
 
 namespace cocos2d {
-    // ive had enough, fmtlib wont let me do what i want
-    // GEODE_DLL std::string format_as(cocos2d::CCObject*);
-    // GEODE_DLL std::string format_as(cocos2d::CCArray*);
-    // GEODE_DLL std::string format_as(cocos2d::CCNode*);
     GEODE_DLL std::string format_as(cocos2d::ccColor3B const&);
     GEODE_DLL std::string format_as(cocos2d::ccColor4B const&);
     GEODE_DLL std::string format_as(cocos2d::ccColor4F const&);
@@ -50,27 +75,27 @@ namespace geode {
         GEODE_DLL void vlogImpl(Severity, Mod*, fmt::string_view format, fmt::format_args args);
 
         template <typename... Args>
-        inline void logImpl(Severity severity, Mod* mod, fmt::format_string<Args...> str, Args&&... args) {
-            vlogImpl(severity, mod, str, fmt::make_format_args(args...));
+        inline void logImpl(Severity severity, Mod* mod, impl::FmtStr<Args...> str, Args&&... args) {
+            vlogImpl(severity, mod, str, fmt::make_format_args(impl::wrapCocosObj(args)...));
         }
 
         template <typename... Args>
-        inline void debug(fmt::format_string<Args...> str, Args&&... args) {
+        inline void debug(impl::FmtStr<Args...> str, Args&&... args) {
             logImpl(Severity::Debug, getMod(), str, std::forward<Args>(args)...);
         }
 
         template <typename... Args>
-        inline void info(fmt::format_string<Args...> str, Args&&... args) {
+        inline void info(impl::FmtStr<Args...> str, Args&&... args) {
             logImpl(Severity::Info, getMod(), str, std::forward<Args>(args)...);
         }
 
         template <typename... Args>
-        inline void warn(fmt::format_string<Args...> str, Args&&... args) {
+        inline void warn(impl::FmtStr<Args...> str, Args&&... args) {
             logImpl(Severity::Warning, getMod(), str, std::forward<Args>(args)...);
         }
 
         template <typename... Args>
-        inline void error(fmt::format_string<Args...> str, Args&&... args) {
+        inline void error(impl::FmtStr<Args...> str, Args&&... args) {
             logImpl(Severity::Error, getMod(), str, std::forward<Args>(args)...);
         }
 
