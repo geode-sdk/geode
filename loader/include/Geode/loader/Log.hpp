@@ -49,13 +49,13 @@ namespace cocos2d {
 }
 
 namespace gd {
-    inline std::string format_as(gd::string const& value) {
+    GEODE_INLINE GEODE_HIDDEN std::string format_as(gd::string const& value) {
         return value;
     }
 }
 
 namespace ghc::filesystem {
-    inline std::string format_as(ghc::filesystem::path const& value) {
+    GEODE_INLINE GEODE_HIDDEN std::string format_as(ghc::filesystem::path const& value) {
         return value.string();
     }
 }
