@@ -146,7 +146,7 @@ BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID) {
     // some slight optimizations if a mod frequently creates and deletes threads.
     DisableThreadLibraryCalls(module);
 
-    if (VersionDetect::GetVersion().compare("2.200))
+    if (VersionDetect::GetVersion().compare("2.200") == 0)
         earlyError("2.2");
     else
 	earlyError("not 2.2");
