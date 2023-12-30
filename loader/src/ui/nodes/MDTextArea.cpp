@@ -319,7 +319,7 @@ struct MDParser {
 
             default:
                 {
-                    log::warn("Unhandled text type {}", type);
+                    log::warn("Unhandled text type {}", static_cast<int>(type));
                 }
                 break;
         }
@@ -412,7 +412,7 @@ struct MDParser {
 
             default:
                 {
-                    log::warn("Unhandled block enter type {}", type);
+                    log::warn("Unhandled block enter type {}", static_cast<int>(type));
                 }
                 break;
         }
@@ -515,7 +515,7 @@ struct MDParser {
 
             default:
                 {
-                    log::warn("Unhandled block leave type {}", type);
+                    log::warn("Unhandled block leave type {}", static_cast<int>(type));
                 }
                 break;
         }
@@ -572,7 +572,7 @@ struct MDParser {
 
             default:
                 {
-                    log::warn("Unhandled span enter type {}", type);
+                    log::warn("Unhandled span enter type {}", static_cast<int>(type));
                 }
                 break;
         }
@@ -626,7 +626,7 @@ struct MDParser {
 
             default:
                 {
-                    log::warn("Unhandled span leave type {}", type);
+                    log::warn("Unhandled span leave type {}", static_cast<int>(type));
                 }
                 break;
         }

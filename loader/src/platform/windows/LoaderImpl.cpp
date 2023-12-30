@@ -4,6 +4,7 @@
 #include <iostream>
 #include <loader/LoaderImpl.hpp>
 #include <Geode/utils/string.hpp>
+#include <loader/LogImpl.hpp>
 
 using namespace geode::prelude;
 
@@ -74,8 +75,8 @@ void Loader::Impl::openPlatformConsole() {
 
     m_platformConsoleOpen = true;
 
-    for (auto const& log : log::Logger::list()) {
-        this->logConsoleMessageWithSeverity(log->toString(true), log->getSeverity());
+    for (auto const& log : log::Logger::get()->list()) {
+        this->logConsoleMessageWithSeverity(log.toString(true), log.getSeverity());
     }
 }
 

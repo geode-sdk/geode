@@ -3,6 +3,7 @@
 
 #include "ModImpl.hpp"
 #include "ModMetadataImpl.hpp"
+#include "LogImpl.hpp"
 
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/IPC.hpp>
@@ -455,7 +456,7 @@ void Loader::Impl::findProblems() {
             log::debug("{} is not enabled", id);
             continue;
         }
-        log::debug(id);
+        log::debug("{}", id);
         log::pushNest();
 
         for (auto const& dep : mod->getMetadata().getDependencies()) {
@@ -669,7 +670,7 @@ void Loader::Impl::forceReset() {
         delete mod;
     }
     m_mods.clear();
-    log::Logger::clear();
+    log::Logger::get()->clear();
     ghc::filesystem::remove_all(dirs::getModRuntimeDir());
     ghc::filesystem::remove_all(dirs::getTempDir());
 }
@@ -688,7 +689,7 @@ bool Loader::Impl::loadHooks() {
     for (auto const& hook : m_uninitializedHooks) {
         auto res = hook.second->addHook(hook.first);
         if (!res) {
-            log::internalLog(Severity::Error, hook.second, "{}", res.unwrapErr());
+            log::logImpl(Severity::Error, hook.second, "{}", res.unwrapErr());
             hadErrors = true;
         }
     }

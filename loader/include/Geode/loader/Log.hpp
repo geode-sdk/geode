@@ -8,9 +8,58 @@
 #include <ccTypes.h>
 #include <chrono>
 #include <ghc/fs_fwd.hpp>
-#include <sstream>
-#include <vector>
-#include <span>
+#include <fmt/core.h>
+#include <type_traits>
+
+namespace geode {
+    // these are here because theyre special :-)
+    GEODE_DLL std::string format_as(cocos2d::CCObject const*);
+    GEODE_DLL std::string format_as(cocos2d::CCArray*);
+    GEODE_DLL std::string format_as(cocos2d::CCNode*);
+    class Mod;
+    GEODE_DLL std::string format_as(Mod*);
+}
+
+namespace geode::log::impl {
+    // What is this all for? well, fmtlib disallows writing custom formatters for non-void pointer types.
+    // So instead, we just wrap everything and pass it a string instead.
+
+    template <class T>
+    GEODE_INLINE GEODE_HIDDEN decltype(auto) wrapCocosObj(T&& value) {
+        if constexpr (std::is_pointer_v<std::decay_t<T>> && requires(T ptr) { geode::format_as(ptr); }) {
+            return geode::format_as(value);
+        } else {
+            return std::forward<T>(value);
+        }
+    }
+
+    template <class T>
+    using TransformType = decltype(wrapCocosObj<T>(std::declval<T>()));
+
+    template <class... Args>
+    using FmtStr = fmt::format_string<TransformType<Args>...>;
+}
+
+namespace cocos2d {
+    GEODE_DLL std::string format_as(cocos2d::ccColor3B const&);
+    GEODE_DLL std::string format_as(cocos2d::ccColor4B const&);
+    GEODE_DLL std::string format_as(cocos2d::ccColor4F const&);
+    GEODE_DLL std::string format_as(cocos2d::CCPoint const&);
+    GEODE_DLL std::string format_as(cocos2d::CCRect const&);
+    GEODE_DLL std::string format_as(cocos2d::CCSize const&);
+}
+
+namespace gd {
+    GEODE_INLINE GEODE_HIDDEN std::string format_as(gd::string const& value) {
+        return value;
+    }
+}
+
+namespace ghc::filesystem {
+    GEODE_INLINE GEODE_HIDDEN std::string format_as(ghc::filesystem::path const& value) {
+        return value.string();
+    }
+}
 
 namespace geode {
 #pragma warning(disable : 4251)
@@ -22,214 +71,36 @@ namespace geode {
         using log_clock = std::chrono::system_clock;
         GEODE_DLL std::string generateLogName();
 
-        // Parse overloads
-        GEODE_DLL std::string parse(cocos2d::CCArray*);
-        GEODE_DLL std::string parse(cocos2d::ccColor3B const&);
-        GEODE_DLL std::string parse(cocos2d::ccColor4B const&);
-        GEODE_DLL std::string parse(cocos2d::ccColor4F const&);
-        GEODE_DLL std::string parse(cocos2d::CCNode*);
-        GEODE_DLL std::string parse(cocos2d::CCObject*);
-        GEODE_DLL std::string parse(cocos2d::CCPoint const&);
-        GEODE_DLL std::string parse(cocos2d::CCRect const&);
-        GEODE_DLL std::string parse(cocos2d::CCSize const&);
-        GEODE_DLL std::string parse(Mod*);
-        GEODE_DLL std::string parse(gd::string const&);
-
-        template <class T>
-            requires std::convertible_to<T*, cocos2d::CCNode*>
-        std::string parse(T* node) {
-            return parse(static_cast<cocos2d::CCNode*>(node));
-        }
-        template <class T>
-            requires(
-                std::convertible_to<T*, cocos2d::CCObject*> &&
-                !std::convertible_to<T*, cocos2d::CCNode*>
-            )
-        std::string parse(T* node) {
-            return parse(static_cast<cocos2d::CCObject*>(node));
-        }
-
-        template <typename T>
-            requires requires(T b) {
-                std::stringstream() << b;
-            }
-        std::string parse(T const& thing) {
-            std::stringstream buf;
-            buf << thing;
-            return buf.str();
-        }
-
-        // todo: maybe add a debugParse function for these?
-
-        template <class T>
-            requires requires(T t) {
-                parse(t);
-            }
-        std::string parse(std::optional<T> const& thing) {
-            if (thing.has_value()) {
-                return "opt(" + parse(thing.value()) + ")";
-            }
-            return "nullopt";
-        }
-
-        template <class T>
-            requires requires(T t) {
-                parse(t);
-            }
-        std::string parse(std::vector<T> const& thing) {
-            std::string res = "[";
-            bool first = true;
-            for (auto& t : thing) {
-                if (!first) {
-                    res += ", ";
-                }
-                first = false;
-                res += parse(t);
-            }
-            res += "]";
-            return res;
-        }
-
-        template <class A, class B>
-            requires requires(A a, B b) {
-                parse(a);
-                parse(b);
-            }
-        std::string parse(std::pair<A, B> const& thing) {
-            return "(" + parse(thing.first) + ", " + parse(thing.second) + ")";
-        }
-
-        template <class... T, std::size_t... Is>
-        std::string parseTupleImpl(std::tuple<T...> const& tuple, std::index_sequence<Is...>) {
-            std::string ret = "(";
-            ((ret += (Is == 0 ? "" : ", ") + parse(std::get<Is>(tuple))), ...);
-            ret += ")";
-            return ret;
-        }
-
-        template <class... T>
-            requires requires(T... t) {
-                (parse(t), ...);
-            }
-        std::string parse(std::tuple<T...> const& tuple) {
-            return parseTupleImpl(tuple, std::index_sequence_for<T...> {});
-        }
-
-        // Log component system
-
-        struct GEODE_DLL ComponentTrait {
-            virtual ~ComponentTrait() {}
-
-            virtual std::string _toString() = 0;
-        };
-
-        template <typename T>
-        struct ComponentBase : public ComponentTrait {
-            T m_item;
-
-            inline ~ComponentBase() override {}
-
-            inline ComponentBase(T const& item) : m_item(item) {}
-
-            // specialization must implement
-            inline std::string _toString() override {
-                return parse(m_item);
-            }
-        };
-
-        // Log
-
-        class GEODE_DLL Log final {
-            Mod* m_sender;
-            log_clock::time_point m_time;
-            std::vector<ComponentTrait*> m_components;
-            Severity m_severity;
-
-            friend class Logger;
-        public:
-            ~Log();
-            Log(Mod* mod, Severity sev);
-            Log(Log&& l) = default;
-            Log& operator=(Log&& l) = default;
-            bool operator==(Log const& l);
-
-            std::string toString(bool logTime = true) const;
-            std::string toString(bool logTime, uint32_t nestLevel) const;
-
-            std::vector<ComponentTrait*>& getComponents();
-            log_clock::time_point getTime() const;
-            Mod* getSender() const;
-            Severity getSeverity() const;
-
-            Result<> addFormat(std::string_view formatStr, std::span<ComponentTrait*> comps);
-        };
-
-        class GEODE_DLL Logger {
-        private:
-            static std::vector<Log>& logs();
-            static std::ofstream& logStream();
-            static uint32_t& nestLevel();
-
-            Logger() = delete;
-            ~Logger() = delete;
-
-            // logs
-        public:
-            static void setup();
-
-            static void push(Log&& log);
-            static void pop(Log* log);
-
-            static void pushNest();
-            static void popNest();
-
-            static std::vector<Log*> list();
-            static void clear();
-        };
+        GEODE_DLL void vlogImpl(Severity, Mod*, fmt::string_view format, fmt::format_args args);
 
         template <typename... Args>
-            requires requires(Args... b) {
-                (parse(b), ...);
-            }
-        void internalLog(Severity sev, Mod* m, std::string_view formatStr, Args... args) {
-            Log l(m, sev);
-
-            std::array<ComponentTrait*, sizeof...(Args)> comps = { static_cast<ComponentTrait*>(new ComponentBase(args))... };
-            auto res = l.addFormat(formatStr, comps);
-
-            if (res.isErr()) {
-                internalLog(Severity::Warning, getMod(), "Error parsing log format \"{}\": {}", formatStr, res.unwrapErr());
-                return;
-            }
-
-            Logger::push(std::move(l));
+        inline void logImpl(Severity severity, Mod* mod, impl::FmtStr<Args...> str, Args&&... args) {
+            [&]<typename... Ts>(Ts&&... args) {
+                vlogImpl(severity, mod, str, fmt::make_format_args(args...));
+            }(impl::wrapCocosObj(args)...);
         }
 
         template <typename... Args>
-        void debug(Args... args) {
-            internalLog(Severity::Debug, getMod(), args...);
+        inline void debug(impl::FmtStr<Args...> str, Args&&... args) {
+            logImpl(Severity::Debug, getMod(), str, std::forward<Args>(args)...);
         }
 
         template <typename... Args>
-        void info(Args... args) {
-            internalLog(Severity::Info, getMod(), args...);
+        inline void info(impl::FmtStr<Args...> str, Args&&... args) {
+            logImpl(Severity::Info, getMod(), str, std::forward<Args>(args)...);
         }
 
         template <typename... Args>
-        void warn(Args... args) {
-            internalLog(Severity::Warning, getMod(), args...);
+        inline void warn(impl::FmtStr<Args...> str, Args&&... args) {
+            logImpl(Severity::Warning, getMod(), str, std::forward<Args>(args)...);
         }
 
         template <typename... Args>
-        void error(Args... args) {
-            internalLog(Severity::Error, getMod(), args...);
+        inline void error(impl::FmtStr<Args...> str, Args&&... args) {
+            logImpl(Severity::Error, getMod(), str, std::forward<Args>(args)...);
         }
 
-        static void pushNest() {
-            Logger::pushNest();
-        }
-        static void popNest() {
-            Logger::popNest();
-        }
+        GEODE_DLL void pushNest();
+        GEODE_DLL void popNest();
     }
 }

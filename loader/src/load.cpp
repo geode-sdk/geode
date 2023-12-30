@@ -1,4 +1,4 @@
-#include "loader/LoaderImpl.hpp"
+#include <loader/LoaderImpl.hpp>
 
 #include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Loader.hpp>
@@ -7,6 +7,7 @@
 #include <Geode/loader/SettingEvent.hpp>
 #include <Geode/loader/ModJsonTest.hpp>
 #include <Geode/utils/JsonValidation.hpp>
+#include <loader/LogImpl.hpp>
 
 #include <array>
  
@@ -58,7 +59,7 @@ $execute {
 }
 
 int geodeEntry(void* platformData) {
-    log::Logger::setup();
+    log::Logger::get()->setup();
 
     log::info("Running {} {}", Mod::get()->getName(), Mod::get()->getVersion());
 
