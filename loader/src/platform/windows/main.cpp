@@ -3,6 +3,7 @@
 #if defined(GEODE_IS_WINDOWS)
 
 #include "../load.hpp"
+#include "../VersionDetect.h"
 #include <Windows.h>
 
 #include "loader/LoaderImpl.hpp"
@@ -145,6 +146,11 @@ BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID) {
     // some slight optimizations if a mod frequently creates and deletes threads.
     DisableThreadLibraryCalls(module);
 
+    if (VersionDetect::GetVersion().compare("2.200))
+        earlyError("2.2");
+    else
+	earlyError("not 2.2");
+	
     try {
         // if we find the old bootstrapper dll, don't load geode, copy new updater and let it do the rest
         auto workingDir = dirs::getGameDir();
