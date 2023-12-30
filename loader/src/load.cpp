@@ -9,7 +9,7 @@
 #include <Geode/utils/JsonValidation.hpp>
 
 #include <array>
-
+ 
 using namespace geode::prelude;
 
 #include "load.hpp"
