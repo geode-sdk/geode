@@ -39,7 +39,7 @@ public:
     MySettingValue(std::string const& key, std::string const& modID, Icon icon)
       : SettingValue(key, modID), m_icon(icon) {}
 
-    bool load(json::Value const& json) override {
+    bool load(matjson::Value const& json) override {
         try {
             m_icon = static_cast<Icon>(json.as<int>());
             return true;
@@ -47,7 +47,7 @@ public:
             return false;
         }
     }
-    bool save(json::Value& json) const override {
+    bool save(matjson::Value& json) const override {
         json = static_cast<int>(m_icon);
         return true;
     }

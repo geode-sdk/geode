@@ -4,25 +4,25 @@
 #include "general.hpp"
 #include "../loader/Event.hpp"
 
-#include <json.hpp>
+#include <matjson.hpp>
 #include <Geode/DefaultInclude.hpp>
 #include <ghc/fs_fwd.hpp>
 #include <string>
 #include <unordered_set>
 
 template <>
-struct json::Serialize<ghc::filesystem::path> {
-    static json::Value to_json(ghc::filesystem::path const& path) {
+struct matjson::Serialize<ghc::filesystem::path> {
+    static matjson::Value to_json(ghc::filesystem::path const& path) {
         return path.string();
     }
-    static ghc::filesystem::path from_json(json::Value const& value) {
+    static ghc::filesystem::path from_json(matjson::Value const& value) {
         return value.as_string();
     }
 };
 
 namespace geode::utils::file {
     GEODE_DLL Result<std::string> readString(ghc::filesystem::path const& path);
-    GEODE_DLL Result<json::Value> readJson(ghc::filesystem::path const& path);
+    GEODE_DLL Result<matjson::Value> readJson(ghc::filesystem::path const& path);
     GEODE_DLL Result<ByteVector> readBinary(ghc::filesystem::path const& path);
 
     template <class T>
@@ -42,7 +42,7 @@ namespace geode::utils::file {
     template <class T>
     Result<> writeToJson(ghc::filesystem::path const& path, T const& data) {
         try {
-            GEODE_UNWRAP(writeString(path, json::Value(data).dump()));
+            GEODE_UNWRAP(writeString(path, matjson::Value(data).dump()));
             return Ok();
         }
         catch(std::exception& e) {

@@ -21,7 +21,7 @@ private:
     std::string m_id = "";
     Ref<Layout> m_layout = nullptr;
     std::unique_ptr<LayoutOptions> m_layoutOptions = nullptr;
-    std::unordered_map<std::string, json::Value> m_attributes;
+    std::unordered_map<std::string, matjson::Value> m_attributes;
     std::unordered_set<std::unique_ptr<EventListenerProtocol>> m_eventListeners;
     std::unordered_map<std::string, std::unique_ptr<EventListenerProtocol>> m_idEventListeners;
 
@@ -166,7 +166,7 @@ void CCNode::updateLayout(bool updateChildOrder) {
     }
 }
 
-AttributeSetEvent::AttributeSetEvent(CCNode* node, std::string const& id, json::Value& value)
+AttributeSetEvent::AttributeSetEvent(CCNode* node, std::string const& id, matjson::Value& value)
   : node(node), id(id), value(value) {}
 
 ListenerResult AttributeSetFilter::handle(MiniFunction<Callback> fn, AttributeSetEvent* event) {
@@ -178,13 +178,13 @@ ListenerResult AttributeSetFilter::handle(MiniFunction<Callback> fn, AttributeSe
 
 AttributeSetFilter::AttributeSetFilter(std::string const& id) : m_targetID(id) {}
 
-void CCNode::setAttribute(std::string const& attr, json::Value const& value) {
+void CCNode::setAttribute(std::string const& attr, matjson::Value const& value) {
     auto meta = GeodeNodeMetadata::set(this);
     meta->m_attributes[attr] = value;
     AttributeSetEvent(this, attr, meta->m_attributes.at(attr)).post();
 }
 
-std::optional<json::Value> CCNode::getAttributeInternal(std::string const& attr) {
+std::optional<matjson::Value> CCNode::getAttributeInternal(std::string const& attr) {
     auto meta = GeodeNodeMetadata::set(this);
     if (meta->m_attributes.count(attr)) {
         return meta->m_attributes.at(attr);

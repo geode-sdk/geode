@@ -39,7 +39,7 @@
 #include "../include/CCProtocols.h"
 #include "Layout.hpp"
 #include "../../loader/Event.hpp"
-#include <json.hpp>
+#include <matjson.hpp>
 
 NS_CC_BEGIN
 
@@ -845,7 +845,7 @@ private:
     friend class geode::modifier::FieldContainer;
 
     GEODE_DLL geode::modifier::FieldContainer* getFieldContainer();
-    GEODE_DLL std::optional<json::Value> getAttributeInternal(std::string const& attribute);
+    GEODE_DLL std::optional<matjson::Value> getAttributeInternal(std::string const& attribute);
     GEODE_DLL void addEventListenerInternal(
         std::string const& id,
         geode::EventListenerProtocol* protocol
@@ -935,7 +935,7 @@ public:
      * @param value The value of the attribute
      * @note Geode addition
      */
-    GEODE_DLL void setAttribute(std::string const& attribute, json::Value const& value);
+    GEODE_DLL void setAttribute(std::string const& attribute, matjson::Value const& value);
     /**
      * Get an attribute from the node. Attributes may be anything
      * @param attribute The attribute key
@@ -1772,9 +1772,9 @@ namespace geode {
     struct GEODE_DLL AttributeSetEvent : public Event {
         cocos2d::CCNode* node;
         const std::string id;
-        json::Value& value;
+        matjson::Value& value;
 
-        AttributeSetEvent(cocos2d::CCNode* node, std::string const& id, json::Value& value);
+        AttributeSetEvent(cocos2d::CCNode* node, std::string const& id, matjson::Value& value);
     };
 
     class GEODE_DLL AttributeSetFilter : public EventFilter<AttributeSetEvent> {

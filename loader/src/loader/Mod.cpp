@@ -36,7 +36,7 @@ VersionInfo Mod::getVersion() const {
     return m_impl->getVersion();
 }
 
-json::Value& Mod::getSaveContainer() {
+matjson::Value& Mod::getSaveContainer() {
     return m_impl->getSaveContainer();
 }
 

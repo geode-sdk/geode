@@ -734,7 +734,7 @@ bool Loader::Impl::platformConsoleOpen() const {
 }
 
 void Loader::Impl::fetchLatestGithubRelease(
-    utils::MiniFunction<void(json::Value const&)> then,
+    utils::MiniFunction<void(matjson::Value const&)> then,
     utils::MiniFunction<void(std::string const&)> expect
 ) {
     if (m_latestGithubRelease) {
@@ -746,7 +746,7 @@ void Loader::Impl::fetchLatestGithubRelease(
         .userAgent("github_api/1.0")
         .fetch("https://api.github.com/repos/geode-sdk/geode/releases/latest")
         .json()
-        .then([this, then](json::Value const& json) {
+        .then([this, then](matjson::Value const& json) {
             m_latestGithubRelease = json;
             then(json);
         })
@@ -815,7 +815,7 @@ void Loader::Impl::downloadLoaderResources(bool useLatestRelease) {
             this->getVersion().toString()
         ))
         .json()
-        .then([this](json::Value const& json) {
+        .then([this](matjson::Value const& json) {
             this->tryDownloadLoaderResources(fmt::format(
                 "https://github.com/geode-sdk/geode/releases/download/{}/resources.zip",
                 this->getVersion().toString()
@@ -826,7 +826,7 @@ void Loader::Impl::downloadLoaderResources(bool useLatestRelease) {
                 if (useLatestRelease) {
                     log::debug("Loader version {} does not exist on Github, downloading latest resources", this->getVersion().toString());
                     fetchLatestGithubRelease(
-                        [this](json::Value const& raw) {
+                        [this](matjson::Value const& raw) {
                             auto json = raw;
                             JsonChecker checker(json);
                             auto root = checker.root("[]").obj();
@@ -967,7 +967,7 @@ void Loader::Impl::downloadLoaderUpdate(std::string const& url) {
 void Loader::Impl::checkForLoaderUpdates() {
     // Check for updates in the background
     fetchLatestGithubRelease(
-        [this](json::Value const& raw) {
+        [this](matjson::Value const& raw) {
             auto json = raw;
             JsonChecker checker(json);
             auto root = checker.root("[]").obj();
@@ -1015,12 +1015,12 @@ bool Loader::Impl::isNewUpdateDownloaded() const {
     return m_isNewUpdateDownloaded;
 }
     
-json::Value Loader::Impl::processRawIPC(void* rawHandle, std::string const& buffer) {
-    json::Value reply;
+matjson::Value Loader::Impl::processRawIPC(void* rawHandle, std::string const& buffer) {
+    matjson::Value reply;
 
-    json::Value json;
+    matjson::Value json;
     try {
-        json = json::parse(buffer);
+        json = matjson::parse(buffer);
     } catch (...) {
         log::warn("Received IPC message that isn't valid JSON");
         return reply;
@@ -1034,7 +1034,7 @@ json::Value Loader::Impl::processRawIPC(void* rawHandle, std::string const& buff
         log::warn("Received IPC message without 'message' field");
         return reply;
     }
-    json::Value data;
+    matjson::Value data;
     if (json.contains("data")) {
         data = json["data"];
     }

@@ -3,13 +3,13 @@
 using namespace geode::prelude;
 
 
-json::Value& JsonMaybeSomething::json() {
+matjson::Value& JsonMaybeSomething::json() {
     return m_json;
 }
 
 
 JsonMaybeSomething::JsonMaybeSomething(
-    JsonChecker& checker, json::Value& json, std::string const& hierarchy, bool hasValue
+    JsonChecker& checker, matjson::Value& json, std::string const& hierarchy, bool hasValue
 ) :
     m_checker(checker),
     m_json(json), m_hierarchy(hierarchy), m_hasValue(hasValue) {}
@@ -36,7 +36,7 @@ void JsonMaybeSomething::setError(std::string const& error) {
 
 
 JsonMaybeValue::JsonMaybeValue(
-    JsonChecker& checker, json::Value& json, std::string const& hierarchy, bool hasValue
+    JsonChecker& checker, matjson::Value& json, std::string const& hierarchy, bool hasValue
 ) :
     JsonMaybeSomething(checker, json, hierarchy, hasValue) {}
 
@@ -250,7 +250,7 @@ typename JsonMaybeValue::template Iterator<std::pair<std::string, JsonMaybeValue
 
 
 JsonMaybeObject::JsonMaybeObject(
-    JsonChecker& checker, json::Value& json, std::string const& hierarchy, bool hasValue
+    JsonChecker& checker, matjson::Value& json, std::string const& hierarchy, bool hasValue
 ) :
     JsonMaybeSomething(checker, json, hierarchy, hasValue) {}
 
@@ -265,7 +265,7 @@ void JsonMaybeObject::addKnownKey(std::string const& key) {
 }
 
 
-json::Value& JsonMaybeObject::json() {
+matjson::Value& JsonMaybeObject::json() {
     return self().m_json;
 }
 
@@ -305,7 +305,7 @@ void JsonMaybeObject::checkUnknownKeys() {
 }
 
 
-JsonChecker::JsonChecker(json::Value& json) : m_json(json), m_result(std::monostate()) {}
+JsonChecker::JsonChecker(matjson::Value& json) : m_json(json), m_result(std::monostate()) {}
 
 
 bool JsonChecker::isError() const {

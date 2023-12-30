@@ -4,7 +4,7 @@
 #include "../DefaultInclude.hpp"
 #include "../utils/Result.hpp"
 #include "../utils/file.hpp"
-#include <json.hpp>
+#include <matjson.hpp>
 #include <optional>
 #include <unordered_set>
 #include <cocos2d.h>
@@ -230,8 +230,8 @@ namespace geode {
     
     public:
         virtual ~SettingValue() = default;
-        virtual bool load(json::Value const& json) = 0;
-        virtual bool save(json::Value& json) const = 0;
+        virtual bool load(matjson::Value const& json) = 0;
+        virtual bool save(matjson::Value& json) const = 0;
         virtual SettingNode* createNode(float width) = 0;
 
         std::string getKey() const;
@@ -257,8 +257,8 @@ namespace geode {
             m_definition(definition),
             m_value(definition.defaultValue) {}
 
-        bool load(json::Value const& json) override;
-        bool save(json::Value& json) const;
+        bool load(matjson::Value const& json) override;
+        bool save(matjson::Value& json) const;
 
         GEODE_DLL SettingNode* createNode(float width) override;
         T castDefinition() const {

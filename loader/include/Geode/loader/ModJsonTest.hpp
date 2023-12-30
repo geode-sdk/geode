@@ -1,5 +1,5 @@
 #include "Mod.hpp"
 
-#include <json.hpp>
+#include <matjson.hpp>
 
 namespace geode {}

@@ -25,16 +25,16 @@ $execute {
         }
     });
     
-    listenForIPC("ipc-test", [](IPCEvent* event) -> json::Value {
+    listenForIPC("ipc-test", [](IPCEvent* event) -> matjson::Value {
         return "Hello from Geode!";
     });
 
-    listenForIPC("loader-info", [](IPCEvent* event) -> json::Value {
+    listenForIPC("loader-info", [](IPCEvent* event) -> matjson::Value {
         return Mod::get()->getMetadata();
     });
 
-    listenForIPC("list-mods", [](IPCEvent* event) -> json::Value {
-        std::vector<json::Value> res;
+    listenForIPC("list-mods", [](IPCEvent* event) -> matjson::Value {
+        std::vector<matjson::Value> res;
 
         auto args = *event->messageData;
         JsonChecker checker(args);

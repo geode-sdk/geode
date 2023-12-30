@@ -31,8 +31,8 @@ bool Hook::Impl::isEnabled() const {
 Mod* Hook::Impl::getOwner() const {
     return m_owner;
 }
-json::Value Hook::Impl::getRuntimeInfo() const {
-    auto json = json::Object();
+matjson::Value Hook::Impl::getRuntimeInfo() const {
+    auto json = matjson::Object();
     json["address"] = std::to_string(reinterpret_cast<uintptr_t>(m_address));
     json["detour"] = std::to_string(reinterpret_cast<uintptr_t>(m_detour));
     json["name"] = m_displayName;

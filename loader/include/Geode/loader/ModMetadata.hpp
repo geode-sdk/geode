@@ -5,7 +5,7 @@
 #include "Setting.hpp"
 #include "Types.hpp"
 
-#include <json.hpp>
+#include <matjson.hpp>
 #include <memory>
 
 namespace geode {
@@ -228,8 +228,8 @@ namespace geode {
 }
 
 template <>
-struct json::Serialize<geode::ModMetadata> {
-    static json::Value to_json(geode::ModMetadata const& info) {
+struct matjson::Serialize<geode::ModMetadata> {
+    static matjson::Value to_json(geode::ModMetadata const& info) {
         return info.toJSON();
     }
 };

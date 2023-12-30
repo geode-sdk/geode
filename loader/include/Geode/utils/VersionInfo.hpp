@@ -2,7 +2,7 @@
 
 #include "../DefaultInclude.hpp"
 #include <string_view>
-#include <json.hpp>
+#include <matjson.hpp>
 #include <tuple>
 #include "../utils/Result.hpp"
 
@@ -232,15 +232,15 @@ namespace geode {
 
 template <class V>
 requires std::is_same_v<V, geode::VersionInfo> || std::is_same_v<V, geode::ComparableVersionInfo>
-struct json::Serialize<V> {
-    static json::Value to_json(V const& info) {
+struct matjson::Serialize<V> {
+    static matjson::Value to_json(V const& info) {
         return info.toString();
     }
 
-    static V from_json(json::Value const& json) {
+    static V from_json(matjson::Value const& json) {
         auto ver = V::parse(json.as_string());
         if (!ver) {
-            throw json::JsonException(
+            throw matjson::JsonException(
                 "Invalid version format: " + ver.unwrapErr()
             );
         }

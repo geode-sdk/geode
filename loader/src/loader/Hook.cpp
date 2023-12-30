@@ -43,7 +43,7 @@ Mod* Hook::getOwner() const {
     return m_impl->getOwner();
 }
 
-json::Value Hook::getRuntimeInfo() const {
+matjson::Value Hook::getRuntimeInfo() const {
     return m_impl->getRuntimeInfo();
 }
 

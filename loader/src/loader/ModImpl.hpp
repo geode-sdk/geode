@@ -1,6 +1,6 @@
 #pragma once
 
-#include <json.hpp>
+#include <matjson.hpp>
 
 namespace geode {
     class Mod::Impl {
@@ -43,7 +43,7 @@ namespace geode {
         /**
          * Saved values
          */
-        json::Value m_saved = json::Object();
+        matjson::Value m_saved = matjson::Object();
         /**
          * Setting values
          */
@@ -51,7 +51,7 @@ namespace geode {
         /**
          * Settings save data. Stored for efficient loading of custom settings
          */
-        json::Value m_savedSettingsData = json::Object();
+        matjson::Value m_savedSettingsData = matjson::Object();
         /**
          * Whether the mod resources are loaded or not
          */
@@ -94,7 +94,7 @@ namespace geode {
         ghc::filesystem::path getTempDir() const;
         ghc::filesystem::path getBinaryPath() const;
 
-        json::Value& getSaveContainer();
+        matjson::Value& getSaveContainer();
 
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
         void setMetadata(ModMetadata const& metadata);

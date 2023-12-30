@@ -2,7 +2,7 @@
 
 #include "../DefaultInclude.hpp"
 #include "../utils/general.hpp"
-#include <json.hpp>
+#include <matjson.hpp>
 #include "Tulip.hpp"
 #include <inttypes.h>
 #include <string_view>
@@ -104,7 +104,7 @@ namespace geode {
          * Get info about the hook as JSON
          * @note For IPC
          */
-        json::Value getRuntimeInfo() const;
+        matjson::Value getRuntimeInfo() const;
 
         /**
          * Get the metadata of the hook.
@@ -194,7 +194,7 @@ namespace geode {
          * Get info about the patch as JSON
          * @note For IPC
          */
-        json::Value getRuntimeInfo() const;
+        matjson::Value getRuntimeInfo() const;
 
         /**
         * Get whether the patch should be auto enabled or not.
