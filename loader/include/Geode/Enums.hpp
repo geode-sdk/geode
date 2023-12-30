@@ -37,7 +37,9 @@ enum class SearchType {
     MyLevels = 98,
     SavedLevels = 99,
     FavouriteLevels = 100,
-    SmartTemplates = 101
+    SmartTemplates = 101,
+    MyLists = 102,
+    FavouriteLists = 103
 };
 
 // jesus fucking christ (painfully written by @hjfod)
@@ -263,6 +265,9 @@ enum class UnlockType {
     Streak = 0xA,
     Death = 0xB,
     GJItem = 0xC,
+    Swing = 0xD,
+    Jetpack = 0xE,
+    ShipFire = 0xF
 };
 
 enum class SpecialRewardItem {
