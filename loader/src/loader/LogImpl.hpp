@@ -8,7 +8,7 @@
 #include <string>
 
 namespace geode::log {
-    class GEODE_DLL Log final {
+    class Log final {
         Mod* m_sender;
         log_clock::time_point m_time;
         Severity m_severity;
