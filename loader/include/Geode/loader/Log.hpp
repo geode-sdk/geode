@@ -8,8 +8,12 @@
 #include <ccTypes.h>
 #include <chrono>
 #include <ghc/fs_fwd.hpp>
-#include <fmt/core.h>
 #include <type_traits>
+#include <fmt/core.h>
+// for formatting std::vector and such
+#include <fmt/ranges.h>
+// for std::optional
+#include <fmt/std.h>
 
 namespace geode {
     // these are here because theyre special :-)
