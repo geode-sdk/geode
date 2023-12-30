@@ -19,6 +19,7 @@ Result<> Mod::Impl::loadPlatformBinary() {
         return Ok();
     }
     std::string err = dlerror();
+    log::error("Unable to load the SO: dlerror returned ({})", err);
     return Err("Unable to load the SO: dlerror returned (" + err + ")");
 }
 

@@ -59,6 +59,10 @@ GEODE_SIZE_CHECK(StartPosObject, 0x668);
 GEODE_SIZE_CHECK(LabelGameObject, 0x690);
 // GEODE_SIZE_CHECK(EventLinkTrigger, 0x688);
 
+GEODE_SIZE_CHECK(GJBaseGameLayer, 0x2d40);
+GEODE_MEMBER_CHECK(GJBaseGameLayer, m_level, 0x5f0);
+GEODE_MEMBER_CHECK(GameManager, m_gameLayer, 0x174);
+
 // GEODE_MEMBER_CHECK(CCNode, m_pUserObject, 0xcc);
 
 // needed classes are ones in the ids folder and some generic ones (i think they are already done though so only ids)
