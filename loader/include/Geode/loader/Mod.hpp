@@ -10,7 +10,7 @@
 #include "Setting.hpp"
 #include "Types.hpp"
 
-#include <json.hpp>
+#include <matjson.hpp>
 #include <optional>
 #include <string_view>
 #include <tulip/TulipHook.hpp>
@@ -151,7 +151,7 @@ namespace geode {
             this->registerCustomSetting(key, std::make_unique<T>(key, this->getID(), value));
         }
 
-        json::Value& getSaveContainer();
+        matjson::Value& getSaveContainer();
 
         template <class T>
         T getSettingValue(std::string const& key) const {

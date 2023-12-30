@@ -80,7 +80,7 @@ include(cmake/CPM.cmake)
 if (PROJECT_IS_TOP_LEVEL AND NOT GEODE_BUILDING_DOCS)
 	set(MAT_JSON_AS_INTERFACE ON)
 endif()
-CPMAddPackage("gh:geode-sdk/json#a47f570")
+CPMAddPackage("gh:geode-sdk/json#9f54cca")
 CPMAddPackage("gh:fmtlib/fmt#10.1.1")
 CPMAddPackage("gh:gulrak/filesystem#3e5b930")
 

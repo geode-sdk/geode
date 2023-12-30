@@ -2,7 +2,7 @@
 
 #include "../DefaultInclude.hpp"
 #include "MiniFunction.hpp"
-#include <json.hpp>
+#include <matjson.hpp>
 #include "Result.hpp"
 #include "general.hpp"
 
@@ -47,7 +47,7 @@ namespace geode::utils::web {
      * @param url URL to fetch
      * @returns Returned data as JSON, or error on error
      */
-    Result<json::Value> fetchJSON(std::string const& url);
+    Result<matjson::Value> fetchJSON(std::string const& url);
 
     class SentAsyncWebRequest;
     template <class T>
@@ -189,7 +189,7 @@ namespace geode::utils::web {
          * `postRequest` or `customRequest` was called before. Additionally
          * sets the content type to application/json.
          */
-        AsyncWebRequest& postFields(json::Value const& fields);
+        AsyncWebRequest& postFields(matjson::Value const& fields);
         /**
          * URL to fetch from the internet asynchronously
          * @param url URL of the data to download. Redirects will be
@@ -316,7 +316,7 @@ namespace geode::utils::web {
          * @returns AsyncWebResult, where you can specify the `then` action for
          * after the download is finished
          */
-        AsyncWebResult<json::Value> json();
+        AsyncWebResult<matjson::Value> json();
 
         /**
          * Download into memory as a custom type. The data will first be

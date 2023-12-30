@@ -108,7 +108,7 @@ VersionInfo Mod::Impl::getVersion() const {
     return m_metadata.getVersion();
 }
 
-json::Value& Mod::Impl::getSaveContainer() {
+matjson::Value& Mod::Impl::getSaveContainer() {
     return m_saved;
 }
 
@@ -146,7 +146,7 @@ Result<> Mod::Impl::loadData() {
         GEODE_UNWRAP_INTO(auto settingData, utils::file::readString(settingPath));
         try {
             // parse settings.json
-            auto json = json::parse(settingData);
+            auto json = matjson::parse(settingData);
 
             JsonChecker checker(json);
             auto root = checker.root("[settings.json]");
@@ -189,13 +189,13 @@ Result<> Mod::Impl::loadData() {
         GEODE_UNWRAP_INTO(auto data, utils::file::readString(savedPath));
 
         try {
-            m_saved = json::parse(data);
+            m_saved = matjson::parse(data);
         } catch (std::exception& err) {
             return Err(std::string("Unable to parse saved values: ") + err.what());
         }
         if (!m_saved.is_object()) {
             log::warn("saved.json was somehow not an object, forcing it to one");
-            m_saved = json::Object();
+            m_saved = matjson::Object();
         }
     }
 
@@ -211,7 +211,7 @@ Result<> Mod::Impl::saveData() {
     std::unordered_set<std::string> coveredSettings;
 
     // Settings
-    json::Value json = json::Object();
+    matjson::Value json = matjson::Object();
     for (auto& [key, value] : m_settings) {
         coveredSettings.insert(key);
         if (!value->save(json[key])) {
@@ -627,12 +627,12 @@ char const* Mod::Impl::expandSpriteName(char const* name) {
 ModJson Mod::Impl::getRuntimeInfo() const {
     auto json = m_metadata.toJSON();
 
-    auto obj = json::Object();
-    obj["hooks"] = json::Array();
+    auto obj = matjson::Object();
+    obj["hooks"] = matjson::Array();
     for (auto hook : m_hooks) {
         obj["hooks"].as_array().push_back(ModJson(hook->getRuntimeInfo()));
     }
-    obj["patches"] = json::Array();
+    obj["patches"] = matjson::Array();
     for (auto patch : m_patches) {
         obj["patches"].as_array().push_back(ModJson(patch->getRuntimeInfo()));
     }
@@ -661,9 +661,9 @@ bool Mod::Impl::shouldLoad() const {
 
 static Result<ModMetadata> getModImplInfo() {
     std::string err;
-    json::Value json;
+    matjson::Value json;
     try {
-        json = json::parse(LOADER_MOD_JSON);
+        json = matjson::parse(LOADER_MOD_JSON);
     } catch (std::exception& err) {
         return Err("Unable to parse mod.json: " + std::string(err.what()));
     }

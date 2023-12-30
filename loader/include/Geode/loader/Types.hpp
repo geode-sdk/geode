@@ -2,7 +2,7 @@
 
 #include "../DefaultInclude.hpp"
 #include "../platform/cplatform.h"
-#include <json.hpp>
+#include <matjson.hpp>
 
 #include <string>
 
@@ -146,7 +146,7 @@ namespace geode {
     }
 
     // TODO: make ordered
-    using ModJson = json::Value;
+    using ModJson = matjson::Value;
 }
 
 /**

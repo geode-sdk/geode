@@ -1,18 +1,18 @@
 #include <Geode/modify/LoadingLayer.hpp>
 #include <Geode/utils/cocos.hpp>
-#include <json.hpp>
+#include <matjson.hpp>
 
 using namespace geode::prelude;
 
-json::Value json::Serialize<ccColor3B>::to_json(ccColor3B const& color) {
-    return json::Object {
+matjson::Value matjson::Serialize<ccColor3B>::to_json(ccColor3B const& color) {
+    return matjson::Object {
         { "r", color.r },
         { "g", color.g },
         { "b", color.b }
     };
 }
 
-ccColor3B json::Serialize<ccColor3B>::from_json(json::Value const& json) {
+ccColor3B matjson::Serialize<ccColor3B>::from_json(matjson::Value const& json) {
     ccColor3B color;
     // array
     if (json.is_array()) {
@@ -22,7 +22,7 @@ ccColor3B json::Serialize<ccColor3B>::from_json(json::Value const& json) {
             color.b = json[2].as_int();
         }
         else {
-            throw json::JsonException("Expected color array to have 3 items");
+            throw matjson::JsonException("Expected color array to have 3 items");
         }
     }
     // object
@@ -38,23 +38,23 @@ ccColor3B json::Serialize<ccColor3B>::from_json(json::Value const& json) {
             str.erase(str.begin());
         }
         if (str.size() > 6) {
-            throw json::JsonException("Hex string for color too long");
+            throw matjson::JsonException("Hex string for color too long");
         }
         auto c = cc3bFromHexString(str);
         if (!c) {
-            throw json::JsonException("Invalid color hex string");
+            throw matjson::JsonException("Invalid color hex string");
         }
         color = c.unwrap();
     }
     // bad
     else {
-        throw json::JsonException("Expected color to be array, object or hex string");
+        throw matjson::JsonException("Expected color to be array, object or hex string");
     }
     return color;
 }
 
-json::Value json::Serialize<ccColor4B>::to_json(ccColor4B const& color) {
-    return json::Object {
+matjson::Value matjson::Serialize<ccColor4B>::to_json(ccColor4B const& color) {
+    return matjson::Object {
         { "r", color.r },
         { "g", color.g },
         { "b", color.b },
@@ -62,7 +62,7 @@ json::Value json::Serialize<ccColor4B>::to_json(ccColor4B const& color) {
     };
 }
 
-ccColor4B json::Serialize<ccColor4B>::from_json(json::Value const& json) {
+ccColor4B matjson::Serialize<ccColor4B>::from_json(matjson::Value const& json) {
     ccColor4B color;
     // array
     if (json.is_array()) {
@@ -73,7 +73,7 @@ ccColor4B json::Serialize<ccColor4B>::from_json(json::Value const& json) {
             color.a = json[3].as_int();
         }
         else {
-            throw json::JsonException("Expected color array to have 4 items");
+            throw matjson::JsonException("Expected color array to have 4 items");
         }
     }
     // object
@@ -90,17 +90,17 @@ ccColor4B json::Serialize<ccColor4B>::from_json(json::Value const& json) {
             str.erase(str.begin());
         }
         if (str.size() > 8) {
-            throw json::JsonException("Hex string for color too long");
+            throw matjson::JsonException("Hex string for color too long");
         }
         auto c = cc4bFromHexString(str);
         if (!c) {
-            throw json::JsonException("Invalid color hex string: " + c.unwrapErr());
+            throw matjson::JsonException("Invalid color hex string: " + c.unwrapErr());
         }
         color = c.unwrap();
     }
     // bad
     else {
-        throw json::JsonException("Expected color to be array, object or hex string");
+        throw matjson::JsonException("Expected color to be array, object or hex string");
     }
     return color;
 }

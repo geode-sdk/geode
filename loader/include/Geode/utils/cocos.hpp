@@ -1,6 +1,6 @@
 #pragma once
 
-#include <json.hpp>
+#include <matjson.hpp>
 #include "casts.hpp"
 #include "general.hpp"
 #include "../DefaultInclude.hpp"
@@ -13,15 +13,15 @@
 // support converting ccColor3B / ccColor4B to / from json
 
 template <>
-struct json::Serialize<cocos2d::ccColor3B> {
-    static json::Value GEODE_DLL to_json(cocos2d::ccColor3B const& color);
-    static cocos2d::ccColor3B GEODE_DLL from_json(json::Value const& color);
+struct matjson::Serialize<cocos2d::ccColor3B> {
+    static matjson::Value GEODE_DLL to_json(cocos2d::ccColor3B const& color);
+    static cocos2d::ccColor3B GEODE_DLL from_json(matjson::Value const& color);
 };
 
 template <>
-struct json::Serialize<cocos2d::ccColor4B> {
-    static json::Value GEODE_DLL to_json(cocos2d::ccColor4B const& color);
-    static cocos2d::ccColor4B GEODE_DLL from_json(json::Value const& color);
+struct matjson::Serialize<cocos2d::ccColor4B> {
+    static matjson::Value GEODE_DLL to_json(cocos2d::ccColor4B const& color);
+    static cocos2d::ccColor4B GEODE_DLL from_json(matjson::Value const& color);
 };
 
 // operators for CC geometry

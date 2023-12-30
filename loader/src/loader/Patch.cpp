@@ -1,5 +1,5 @@
 #include <Geode/loader/Hook.hpp>
-#include <json.hpp>
+#include <matjson.hpp>
 
 using namespace geode::prelude;
 
@@ -42,14 +42,14 @@ Mod* Patch::getOwner() const {
 Patch::~Patch() {}
 
 template <>
-struct json::Serialize<ByteVector> {
-    static json::Value to_json(ByteVector const& bytes) {
-        return json::Array(bytes.begin(), bytes.end());
+struct matjson::Serialize<ByteVector> {
+    static matjson::Value to_json(ByteVector const& bytes) {
+        return matjson::Array(bytes.begin(), bytes.end());
     }
 };
 
-json::Value Patch::getRuntimeInfo() const {
-    auto json = json::Object();
+matjson::Value Patch::getRuntimeInfo() const {
+    auto json = matjson::Object();
     json["address"] = std::to_string(reinterpret_cast<uintptr_t>(m_address));
     json["original"] = m_original;
     json["patch"] = m_patch;

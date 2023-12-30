@@ -75,7 +75,7 @@ Result<FileSetting> FileSetting::parse(JsonMaybeObject& obj) {
                 Filter filter;
                 iobj.has("description").into(filter.description);
 
-                std::vector<json::Value> files;
+                std::vector<matjson::Value> files;
                 iobj.has("files").into(files);
 
                 for (auto& i : files) {

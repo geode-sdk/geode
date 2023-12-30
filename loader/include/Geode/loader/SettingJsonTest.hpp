@@ -1,9 +1,9 @@
 #include "Setting.hpp"
-#include <json.hpp>
+#include <matjson.hpp>
 
 namespace geode {
     template<class T>
-    bool GeodeSettingValue<T>::load(json::Value const& json) {
+    bool GeodeSettingValue<T>::load(matjson::Value const& json) {
         try {
             m_value = json.as<ValueType>();
             return true;
@@ -14,7 +14,7 @@ namespace geode {
     }
 
     template<class T>
-    bool GeodeSettingValue<T>::save(json::Value& json) const {
+    bool GeodeSettingValue<T>::save(matjson::Value& json) const {
         json = m_value;
         return true;
     }

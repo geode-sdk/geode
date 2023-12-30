@@ -2,7 +2,7 @@
 
 #include "Event.hpp"
 #include "Loader.hpp"
-#include <json.hpp>
+#include <matjson.hpp>
 
 namespace geode {
     #ifdef GEODE_IS_WINDOWS
@@ -32,8 +32,8 @@ namespace geode {
     public:
         std::string targetModID;
         std::string messageID;
-        std::unique_ptr<json::Value> messageData;
-        json::Value& replyData;
+        std::unique_ptr<matjson::Value> messageData;
+        matjson::Value& replyData;
 
         friend class IPCFilter;
 
@@ -41,15 +41,15 @@ namespace geode {
             void* rawPipeHandle,
             std::string const& targetModID,
             std::string const& messageID,
-            json::Value const& messageData,
-            json::Value& replyData
+            matjson::Value const& messageData,
+            matjson::Value& replyData
         );
         virtual ~IPCEvent();
     };
 
     class GEODE_DLL IPCFilter : public EventFilter<IPCEvent> {
     public:
-        using Callback = json::Value(IPCEvent*);
+        using Callback = matjson::Value(IPCEvent*);
 
     protected:
         std::string m_modID;
@@ -64,5 +64,5 @@ namespace geode {
         IPCFilter(IPCFilter const&) = default;
     };
 
-    std::monostate listenForIPC(std::string const& messageID, json::Value(*callback)(IPCEvent*));
+    std::monostate listenForIPC(std::string const& messageID, matjson::Value(*callback)(IPCEvent*));
 }

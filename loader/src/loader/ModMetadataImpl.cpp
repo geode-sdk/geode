@@ -4,7 +4,7 @@
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/string.hpp>
 #include <about.hpp>
-#include <json.hpp>
+#include <matjson.hpp>
 #include <utility>
 
 #include "ModMetadataImpl.hpp"
@@ -185,7 +185,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromFile(ghc::filesystem::path cons
     GEODE_UNWRAP_INTO(auto read, utils::file::readString(path));
 
     try {
-        GEODE_UNWRAP_INTO(auto info, ModMetadata::create(json::parse(read)));
+        GEODE_UNWRAP_INTO(auto info, ModMetadata::create(matjson::parse(read)));
 
         auto impl = info.m_impl.get();
 
@@ -219,7 +219,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromGeodeZip(file::Unzip& unzip) {
     std::string err;
     ModJson json;
     try {
-        json = json::parse(std::string(jsonData.begin(), jsonData.end()));
+        json = matjson::parse(std::string(jsonData.begin(), jsonData.end()));
     }
     catch (std::exception& err) {
         return Err(err.what());
@@ -497,8 +497,8 @@ ModMetadata& ModMetadata::operator=(ModMetadata&& other) noexcept {
 ModMetadata::~ModMetadata() = default;
 
 template <>
-struct json::Serialize<geode::ModMetadata::Dependency::Importance> {
-    static json::Value GEODE_DLL to_json(geode::ModMetadata::Dependency::Importance const& importance) {
+struct matjson::Serialize<geode::ModMetadata::Dependency::Importance> {
+    static matjson::Value GEODE_DLL to_json(geode::ModMetadata::Dependency::Importance const& importance) {
         switch (importance) {
             case geode::ModMetadata::Dependency::Importance::Required: return {"required"};
             case geode::ModMetadata::Dependency::Importance::Recommended: return {"recommended"};
@@ -506,7 +506,7 @@ struct json::Serialize<geode::ModMetadata::Dependency::Importance> {
             default: return {"unknown"};
         }
     }
-    static geode::ModMetadata::Dependency::Importance GEODE_DLL from_json(json::Value const& importance) {
+    static geode::ModMetadata::Dependency::Importance GEODE_DLL from_json(matjson::Value const& importance) {
         auto impStr = importance.as_string();
         if (impStr == "required")
             return geode::ModMetadata::Dependency::Importance::Required;
@@ -514,25 +514,25 @@ struct json::Serialize<geode::ModMetadata::Dependency::Importance> {
             return geode::ModMetadata::Dependency::Importance::Recommended;
         if (impStr == "suggested")
             return geode::ModMetadata::Dependency::Importance::Suggested;
-        throw json::JsonException(R"(Expected importance to be "required", "recommended" or "suggested")");
+        throw matjson::JsonException(R"(Expected importance to be "required", "recommended" or "suggested")");
     }
 };
 
 template <>
-struct json::Serialize<geode::ModMetadata::Incompatibility::Importance> {
-    static json::Value GEODE_DLL to_json(geode::ModMetadata::Incompatibility::Importance const& importance) {
+struct matjson::Serialize<geode::ModMetadata::Incompatibility::Importance> {
+    static matjson::Value GEODE_DLL to_json(geode::ModMetadata::Incompatibility::Importance const& importance) {
         switch (importance) {
             case geode::ModMetadata::Incompatibility::Importance::Breaking: return {"breaking"};
             case geode::ModMetadata::Incompatibility::Importance::Conflicting: return {"conflicting"};
             default: return {"unknown"};
         }
     }
-    static geode::ModMetadata::Incompatibility::Importance GEODE_DLL from_json(json::Value const& importance) {
+    static geode::ModMetadata::Incompatibility::Importance GEODE_DLL from_json(matjson::Value const& importance) {
         auto impStr = importance.as_string();
         if (impStr == "breaking")
             return geode::ModMetadata::Incompatibility::Importance::Breaking;
         if (impStr == "conflicting")
             return geode::ModMetadata::Incompatibility::Importance::Conflicting;
-        throw json::JsonException(R"(Expected importance to be "breaking" or "conflicting")");
+        throw matjson::JsonException(R"(Expected importance to be "breaking" or "conflicting")");
     }
 };

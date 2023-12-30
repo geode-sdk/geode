@@ -1,9 +1,9 @@
 #include <Geode/loader/IPC.hpp>
-#include <json.hpp>
+#include <matjson.hpp>
 
 using namespace geode::prelude;
 
-std::monostate geode::listenForIPC(std::string const& messageID, json::Value(*callback)(IPCEvent*)) {
+std::monostate geode::listenForIPC(std::string const& messageID, matjson::Value(*callback)(IPCEvent*)) {
     (void) new EventListener(
         callback, IPCFilter(getMod()->getID(), messageID)
     );
@@ -14,13 +14,13 @@ IPCEvent::IPCEvent(
     void* rawPipeHandle,
     std::string const& targetModID,
     std::string const& messageID,
-    json::Value const& messageData,
-    json::Value& replyData
+    matjson::Value const& messageData,
+    matjson::Value& replyData
 ) : m_rawPipeHandle(rawPipeHandle),
     targetModID(targetModID),
     messageID(messageID),
     replyData(replyData),
-    messageData(std::make_unique<json::Value>(messageData)) {}
+    messageData(std::make_unique<matjson::Value>(messageData)) {}
 
 IPCEvent::~IPCEvent() {}
 

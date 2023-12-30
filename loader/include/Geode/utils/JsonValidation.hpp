@@ -1,6 +1,6 @@
 #pragma once
 
-#include <json.hpp>
+#include <matjson.hpp>
 #include "../loader/Log.hpp"
 
 #include <set>
@@ -21,7 +21,7 @@ namespace geode {
     constexpr bool is_iterable_v = is_iterable<T>::value;
 
     namespace {
-        using value_t = json::Type;
+        using value_t = matjson::Type;
 
         constexpr char const* jsonValueTypeToString(value_t type) {
             switch (type) {
@@ -80,7 +80,7 @@ namespace geode {
     struct GEODE_DLL JsonMaybeSomething {
     protected:
         JsonChecker& m_checker;
-        json::Value& m_json;
+        matjson::Value& m_json;
         std::string m_hierarchy;
         bool m_hasValue;
 
@@ -90,10 +90,10 @@ namespace geode {
         void setError(std::string const& error);
 
     public:
-        json::Value& json();
+        matjson::Value& json();
 
         JsonMaybeSomething(
-            JsonChecker& checker, json::Value& json, std::string const& hierarchy, bool hasValue
+            JsonChecker& checker, matjson::Value& json, std::string const& hierarchy, bool hasValue
         );
 
         bool isError() const;
@@ -106,12 +106,12 @@ namespace geode {
         bool m_inferType = true;
 
         JsonMaybeValue(
-            JsonChecker& checker, json::Value& json, std::string const& hierarchy, bool hasValue
+            JsonChecker& checker, matjson::Value& json, std::string const& hierarchy, bool hasValue
         );
 
         JsonMaybeSomething& self();
 
-        template <json::Type T>
+        template <matjson::Type T>
         JsonMaybeValue& as() {
             if (this->isError()) return *this;
             if (!jsonConvertibleTo(self().m_json.type(), T)) {
@@ -126,7 +126,7 @@ namespace geode {
 
         JsonMaybeValue& array();
 
-        template <json::Type... T>
+        template <matjson::Type... T>
         JsonMaybeValue& asOneOf() {
             if (this->isError()) return *this;
             bool isOneOf = (... || jsonConvertibleTo(self().m_json.type(), T));
@@ -140,7 +140,7 @@ namespace geode {
             return *this;
         }
 
-        template <json::Type T>
+        template <matjson::Type T>
         JsonMaybeValue& is() {
             if (this->isError()) return *this;
             self().m_hasValue = jsonConvertibleTo(self().m_json.type(), T);
@@ -268,14 +268,14 @@ namespace geode {
         std::set<std::string> m_knownKeys;
 
         JsonMaybeObject(
-            JsonChecker& checker, json::Value& json, std::string const& hierarchy, bool hasValue
+            JsonChecker& checker, matjson::Value& json, std::string const& hierarchy, bool hasValue
         );
 
         JsonMaybeSomething& self();
 
         void addKnownKey(std::string const& key);
 
-        json::Value& json();
+        matjson::Value& json();
 
         JsonMaybeValue emptyValue();
 
@@ -288,9 +288,9 @@ namespace geode {
 
     struct GEODE_DLL JsonChecker {
         std::variant<std::monostate, std::string> m_result;
-        json::Value& m_json;
+        matjson::Value& m_json;
 
-        JsonChecker(json::Value& json);
+        JsonChecker(matjson::Value& json);
 
         bool isError() const;
 

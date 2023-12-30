@@ -2,7 +2,7 @@
 
 #include "FileWatcher.hpp"
 
-#include <json.hpp>
+#include <matjson.hpp>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/Index.hpp>
 #include <Geode/loader/Loader.hpp>
@@ -64,7 +64,7 @@ namespace geode {
 
         // cache for the json of the latest github release to avoid hitting 
         // the github api too much
-        std::optional<json::Value> m_latestGithubRelease;
+        std::optional<matjson::Value> m_latestGithubRelease;
         bool m_isNewUpdateDownloaded = false;
 
         LoadingState m_loadingState;
@@ -107,7 +107,7 @@ namespace geode {
         void downloadLoaderResources(bool useLatestRelease = false);
         void downloadLoaderUpdate(std::string const& url);
         void fetchLatestGithubRelease(
-            utils::MiniFunction<void(json::Value const&)> then,
+            utils::MiniFunction<void(matjson::Value const&)> then,
             utils::MiniFunction<void(std::string const&)> expect
         );
 
@@ -155,7 +155,7 @@ namespace geode {
 
         bool didLastLaunchCrash() const;
 
-        json::Value processRawIPC(void* rawHandle, std::string const& buffer);
+        matjson::Value processRawIPC(void* rawHandle, std::string const& buffer);
 
         void queueInMainThread(ScheduledFunction func);
         void executeGDThreadQueue();
