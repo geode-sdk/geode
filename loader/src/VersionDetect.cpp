@@ -1,6 +1,6 @@
 //Code by Absolute, have no idea if im allowed to use it but hope i can :)
 //https://gist.github.com/absoIute/ebe5da42d118109a03632c9751d86e19#file-versiondetect-cpp
-
+/*
 #include "VersionDetect.h"
 #include <Windows.h>
 
@@ -43,4 +43,4 @@ std::string VersionDetect::GetVersion()
 	}
 
 	return "";
-}
+}*/
