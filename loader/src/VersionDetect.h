@@ -25,7 +25,7 @@ class VersionDetect
 			{ 1510619253, "2.112" },
 			{ 1511220108, "2.113" },
 			{ 1702921605, "2.200" },
-		}
+		};
 
 		static std::string GetVersion()
 		{
@@ -46,5 +46,5 @@ class VersionDetect
 			}
 		
 			return "";
-		}		
+		};
 };
