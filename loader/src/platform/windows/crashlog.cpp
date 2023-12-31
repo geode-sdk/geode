@@ -264,7 +264,7 @@ static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
 
     auto text = crashlog::writeCrashlog(faultyMod, getInfo(info, faultyMod), getStacktrace(info->ContextRecord), getRegisters(info->ContextRecord));
     
-    MessageBoxA(nullptr, text.c_str(), "Geode Crashed", MB_ICONERROR);
+    MessageBoxA(nullptr, text.c_str(), "Geometry Dash Crashed", MB_ICONERROR);
 
     return EXCEPTION_CONTINUE_SEARCH;
 }
