@@ -1,5 +1,6 @@
 #include "crashlog.hpp"
 #include <fmt/core.h>
+#include "about.hpp"
 
 using namespace geode::prelude;
 
@@ -18,6 +19,7 @@ std::string crashlog::getDateString(bool filesafe) {
 
 void crashlog::printGeodeInfo(std::stringstream& stream) {
     stream << "Loader Version: " << Loader::get()->getVersion().toString() << "\n"
+           << "Loader Commit: " << LOADER_COMMIT_HASH << "\n"
            << "Installed mods: " << Loader::get()->getAllMods().size() << "\n"
            << "Problems: " << Loader::get()->getProblems().size() << "\n";
 }
@@ -47,7 +49,7 @@ std::string crashlog::writeCrashlog(geode::Mod* faultyMod, std::string const& in
     std::stringstream file;
 
     file << getDateString(false) << "\n"
-         << std::showbase << "Whoopsies! An exception has occurred while running Geode.\n";
+         << std::showbase << "Whoopsies! An unhandled exception has occured.\n";
 
     if (faultyMod) {
         file << "It appears that the crash occurred while executing code from "
