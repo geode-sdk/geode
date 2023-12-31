@@ -233,11 +233,3 @@ namespace geode {
 #define GEODE_CRTP2(derived, base) GEODE_MODIFY_REDIRECT4(base, derived)
 #define $modify(...) \
     GEODE_INVOKE(GEODE_CONCAT(GEODE_CRTP, GEODE_NUMBER_OF_ARGS(__VA_ARGS__)), __VA_ARGS__)
-#define $(...) $modify(__VA_ARGS__)
-
-/**
- * Get current hook class without needing to name it.
- * Useful for callbacks
- * this is a camila moment if you ask me
- */
-#define $cls std::remove_pointer<decltype(this)>::type
