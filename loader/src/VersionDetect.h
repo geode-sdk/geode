@@ -6,7 +6,8 @@
 
 namespace VersionDetect
 {
-	std::string GetVersion();
+	public:
+		std::string GetVersion();
 
-	extern std::map<uint32_t, std::string> s_buildMap;
+		extern std::map<uint32_t, std::string> s_buildMap;
 }
