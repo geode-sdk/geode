@@ -7,9 +7,9 @@
 class VersionDetect
 {
 	public:
-		static std::map<uint32_t, std::string> s_buildMap =
+		static std::vector<std::pair<uint32_t, std::string>> s_buildMap =
 		{
-			{ 1419173053, "1.900" },
+			std::make_pair<uint32_t, std::string>(1419173053, "1.900"),
 			{ 1419880840, "1.910" },
 			{ 1421745341, "1.920" },
 			{ 1440638199, "2.000" },
