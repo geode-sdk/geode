@@ -38,7 +38,7 @@ class VersionDetect
 		
 				if (nt_header->Signature == IMAGE_NT_SIGNATURE)
 				{
-					auto it = s_buildMap.find(nt_header->FileHeader.TimeDateStamp);
+					auto it = s_buildMap.find((uint32_t)(nt_header->FileHeader.TimeDateStamp));
 		
 					if (it != s_buildMap.end())
 						return it->second;
