@@ -7,7 +7,7 @@
 class VersionDetect
 {
 	public:
-		std::string GetVersion();
+		static std::string GetVersion();
 
 		std::map<uint32_t, std::string> s_buildMap;
-}
+};
