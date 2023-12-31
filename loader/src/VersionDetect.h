@@ -4,10 +4,10 @@
 #include <vector>
 #include <string>
 
-namespace VersionDetect
+class VersionDetect
 {
 	public:
 		std::string GetVersion();
 
-		extern std::map<uint32_t, std::string> s_buildMap;
+		std::map<uint32_t, std::string> s_buildMap;
 }
