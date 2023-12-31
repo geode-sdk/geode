@@ -150,7 +150,7 @@ BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID) {
     {
 	    earlyError("Unsupported Geometry Dash Verision, Geode will not load to prevent crashing");
 
-		return TRUE;
+		return FALSE;
     }
 	
     try {
