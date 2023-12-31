@@ -7,7 +7,7 @@
 class VersionDetect
 {
 	public:
-		std::map<uint32_t, std::string> s_buildMap =
+		static std::map<uint32_t, std::string> s_buildMap =
 		{
 			{ 1419173053, "1.900" },
 			{ 1419880840, "1.910" },
