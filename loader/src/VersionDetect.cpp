@@ -42,5 +42,5 @@ std::string VersionDetect::GetVersion()
 		}
 	}
 
-	return std::string();
+	return "";
 }
