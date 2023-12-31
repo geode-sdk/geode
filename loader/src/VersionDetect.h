@@ -7,6 +7,8 @@
 class VersionDetect
 {
 	public:
+		static inline std::string geodeGDVersion = "2.200";
+
 		static inline std::vector<std::pair<uint32_t, std::string>> s_buildMap =
 		{
  			{ 1419173053, "1.900" },
