@@ -692,10 +692,10 @@ void Loader::Impl::addUninitializedHook(Hook* hook, Mod* mod) {
 bool Loader::Impl::loadHooks() {
     m_readyToHook = true;
     bool hadErrors = false;
-    for (auto const& hook : m_uninitializedHooks) {
-        auto res = hook.second->addHook(hook.first);
+    for (auto const& [hook, mod] : m_uninitializedHooks) {
+        auto res = mod->addHook(hook);
         if (!res) {
-            log::logImpl(Severity::Error, hook.second, "{}", res.unwrapErr());
+            log::logImpl(Severity::Error, mod, "{}", res.unwrapErr());
             hadErrors = true;
         }
     }
