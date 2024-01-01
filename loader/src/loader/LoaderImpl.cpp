@@ -353,9 +353,6 @@ void Loader::Impl::buildModGraph() {
 }
 
 void Loader::Impl::loadModGraph(Mod* node, bool early) {
-    if (node->isEnabled()) {
-        return;
-    }
     if (early && !node->needsEarlyLoad()) {
         m_modsToLoad.push_back(node);
         return;
@@ -373,19 +370,12 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
     log::debug("{} {}", node->getID(), node->getVersion());
     log::pushNest();
 
-    if (node->shouldLoad()) {
-        bool hasUnresolvedDependencies = false;
+    if (node->isEnabled()) {
         for (auto const& dep : node->m_impl->m_dependants) {
-            if (dep->isEnabled())
-                continue;
             m_modsToLoad.push_front(dep);
-            hasUnresolvedDependencies = true;
         }
-        if (hasUnresolvedDependencies) {
-            log::debug("Has unresolved dependencies, loading later");
-            log::popNest();
-            return;
-        }
+        log::popNest();
+        return;
     }
 
     m_currentlyLoadingMod = node;
