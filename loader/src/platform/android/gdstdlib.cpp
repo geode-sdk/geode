@@ -5,19 +5,19 @@
 
 #if defined(GEODE_IS_ANDROID32)
 
-static constexpr ptrdiff_t MENULAYER_SCENE = 0x309068 - 0x10000;
-static constexpr ptrdiff_t STRING_EMPTY = 0xaa1c48 - 0x10000 - 0xc; // the internal struct size
-static constexpr ptrdiff_t STRING_DTOR = 0x7514c8 - 0x10000 + 1;
-static constexpr ptrdiff_t OPERATOR_NEW = 0x721308 - 0x10000 + 1;
+static auto constexpr NEW_SYM = "_Znwj";
+static constexpr uintptr_t MENULAYER_SCENE = 0x309068 - 0x10000;
+static constexpr uintptr_t STRING_EMPTY = 0xaa1c48 - 0x10000 - 0xc; // the internal struct size
 
 #elif defined(GEODE_IS_ANDROID64)
 
-static constexpr ptrdiff_t MENULAYER_SCENE = 0x6a62ec - 0x100000;
-static constexpr ptrdiff_t STRING_EMPTY = 0x12d8568 - 0x100000 - 0x18; // the internal struct size
-static constexpr ptrdiff_t STRING_DTOR = 0xdb9778 - 0x100000; // it's inlined but it exists !!!!
-static constexpr ptrdiff_t OPERATOR_NEW = 0xd6dfe8 - 0x100000;
+static auto constexpr NEW_SYM = "_Znwm";
+static constexpr uintptr_t MENULAYER_SCENE = 0x6a62ec - 0x100000;
+static constexpr uintptr_t STRING_EMPTY = 0x12d8568 - 0x100000 - 0x18; // the internal struct size
 
 #endif
+
+static auto constexpr DELETE_SYM = "_ZdlPv";
 
 // 2.2 addition
 // zmx please fix this
@@ -28,6 +28,21 @@ namespace geode::base {
         // static uintptr_t base = reinterpret_cast<uintptr_t>(dlopen("libcocos2dcpp.so", RTLD_NOW));
         return base;
     }
+}
+
+static void* getLibHandle() {
+    static void* handle = dlopen("libcocos2dcpp.so", RTLD_LAZY | RTLD_NOLOAD);
+    return handle;
+}
+
+static void* gdOperatorNew(size_t size) {
+    static auto fnPtr = reinterpret_cast<void*(*)(size_t)>(dlsym(getLibHandle(), NEW_SYM));
+    return fnPtr(size);
+}
+
+static void gdOperatorDelete(void* ptr) {
+    static auto fnPtr = reinterpret_cast<void(*)(void*)>(dlsym(getLibHandle(), DELETE_SYM));
+    return fnPtr(ptr);
 }
 
 namespace geode::stl {
@@ -43,8 +58,13 @@ namespace geode::stl {
 
     void StringImpl::free() {
         if (data.m_data == nullptr || data.m_data == emptyInternalString()) return;
-        // TODO: reimplement this
-        reinterpret_cast<void (*)(StringData*)>(geode::base::get() + STRING_DTOR)(&data);
+
+        if (data.m_data[-1].m_refcount <= 0) {
+            gdOperatorDelete(&data.m_data[-1]);
+            data.m_data = nullptr; 
+        } else {
+            --data.m_data[-1].m_refcount;
+        }
     }
 
     char* StringImpl::getStorage() {
@@ -65,13 +85,13 @@ namespace geode::stl {
         internal.m_capacity = str.size();
         internal.m_refcount = 0;
 
-        auto* buffer = reinterpret_cast<char*(*)(size_t)>(geode::base::get() + OPERATOR_NEW)(str.size() + 1 + sizeof(internal));
-        // auto* buffer = static_cast<char*>(operator new(str.size() + 1 + sizeof(internal)));
+        // use char* so we can do easy pointer arithmetic with it
+        auto* buffer = static_cast<char*>(gdOperatorNew(str.size() + 1 + sizeof(internal)));
         std::memcpy(buffer, &internal, sizeof(internal));
         std::memcpy(buffer + sizeof(internal), str.data(), str.size());
-        buffer[sizeof(internal) + str.size()] = 0;
-
         data.m_data = reinterpret_cast<StringData::Internal*>(buffer + sizeof(internal));
+
+        this->getStorage()[str.size()] = 0;
     }
 
     size_t StringImpl::getSize() {
