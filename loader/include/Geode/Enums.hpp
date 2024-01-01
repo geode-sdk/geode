@@ -152,7 +152,11 @@ enum class SmartPrefabResult {};
 enum class AudioSortType {};
 enum class spriteMode {};
 enum class GJAssetType {};
-enum class CommentKeyType {};
+enum class CommentKeyType {
+    Level = 0,
+    User = 1,
+    LevelList = 2
+};
 enum class LevelLeaderboardMode {};
 enum class StatKey {};
 enum class TextStyleType {};

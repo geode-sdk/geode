@@ -117,7 +117,7 @@ public:
     int             m_nScriptTapHandler;
 
     // 2.2 additions
-    int m_unknown;
+    RT_ADD(float m_fSizeMult;)
 };
 
 /** @brief An abstract class for "label" CCMenuItemLabel items 

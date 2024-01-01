@@ -50,8 +50,8 @@ namespace geode {
 
     template<IDProvidable For>
     void GEODE_CALL geodeInternalProvideIDsFor(For* cls) {
-        if (cls->getID() != For::CLASS_NAME) {
-            cls->setID(For::CLASS_NAME);
+        if (cls->CCNode::getID() != For::CLASS_NAME) {
+            cls->CCNode::setID(For::CLASS_NAME);
             cls->provide();
             EnterLayerEvent(For::CLASS_NAME, cls).post();
         }
