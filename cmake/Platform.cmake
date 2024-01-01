@@ -109,10 +109,11 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android64")
 	)
 
 	target_link_libraries(${PROJECT_NAME} INTERFACE
-		# ${GEODE_LOADER_PATH}/include/link/android64/libcurl.a
-		# ${GEODE_LOADER_PATH}/include/link/android64/libssl.a
-		# ${GEODE_LOADER_PATH}/include/link/android64/libcrypto.a
+		${GEODE_LOADER_PATH}/include/link/android64/libcurl.a
+		${GEODE_LOADER_PATH}/include/link/android64/libssl.a
+		${GEODE_LOADER_PATH}/include/link/android64/libcrypto.a
 		${GEODE_LOADER_PATH}/include/link/android64/libcocos2dcpp.so
+		GLESv2
 		log
 	)
 
