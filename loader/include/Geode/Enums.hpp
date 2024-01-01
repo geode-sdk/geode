@@ -91,6 +91,9 @@ enum class PulseEffectType {
 enum class TouchTriggerType {
 };
 enum class PlayerButton {
+    Jump = 1,
+    Left = 2,
+    Right = 3,
 };
 enum class GhostType {
 };
