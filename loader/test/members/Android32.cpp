@@ -45,6 +45,7 @@ GEODE_MEMBER_CHECK(FLAlertLayer, m_buttonMenu, 0x1b8);
 GEODE_MEMBER_CHECK(FLAlertLayer, m_mainLayer, 0x1c8);
 GEODE_MEMBER_CHECK(TableView, m_cellArray, 0x1b0);
 GEODE_MEMBER_CHECK(TableViewCell, m_backgroundLayer, 0x190);
+GEODE_SIZE_CHECK(CCBlockLayer, 0x1bc);
 
 
 GEODE_SIZE_CHECK(GameObject, 0x488);
