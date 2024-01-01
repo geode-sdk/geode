@@ -13,7 +13,7 @@ static constexpr ptrdiff_t STRING_COPY = 0x753a44 - 0x10000 + 1;
 #elif defined(GEODE_IS_ANDROID64)
 
 static constexpr ptrdiff_t MENULAYER_SCENE = 0x6a62ec - 0x100000;
-static constexpr ptrdiff_t STRING_EMPTY = 0x12d8568 - 0x100000;
+static constexpr ptrdiff_t STRING_EMPTY = 0x12d8550 - 0x100000;
 static constexpr ptrdiff_t STRING_DTOR = 0xdb9778 - 0x100000; // it's inlined but it exists !!!!
 static constexpr ptrdiff_t STRING_COPY = 0xdb5fdc - 0x100000;
 
