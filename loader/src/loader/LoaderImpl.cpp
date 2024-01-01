@@ -618,14 +618,16 @@ void Loader::Impl::continueRefreshModGraph() {
 
     switch (m_loadingState) {
         case LoadingState::Mods:
-            log::debug("Loading mods");
-            log::pushNest();
-            this->loadModGraph(m_modsToLoad.front(), false);
-            log::popNest();
-            m_modsToLoad.pop_front();
-            if (m_modsToLoad.empty())
-                m_loadingState = LoadingState::Problems;
-            break;
+            if (!m_modsToLoad.empty()) {
+                log::debug("Loading mods");
+                log::pushNest();
+                this->loadModGraph(m_modsToLoad.front(), false);
+                log::popNest();
+                m_modsToLoad.pop_front();
+                break;
+            }
+            m_loadingState = LoadingState::Problems;
+            [[fallthrough]];
         case LoadingState::Problems:
             log::debug("Finding problems");
             log::pushNest();
