@@ -98,7 +98,7 @@ if (PROJECT_IS_TOP_LEVEL AND NOT GEODE_BUILDING_DOCS)
 	set(TULIP_LINK_SOURCE ON)
 endif()
 set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "" FORCE)
-CPMAddPackage("gh:geode-sdk/TulipHook#f1fb561")
+CPMAddPackage("gh:geode-sdk/TulipHook#80b1f57")
 set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
 
 # Silence warnings from dependencies
