@@ -64,11 +64,17 @@ GEODE_SIZE_CHECK(GJBaseGameLayer, 0x2d40);
 GEODE_MEMBER_CHECK(GJBaseGameLayer, m_level, 0x5f0);
 GEODE_MEMBER_CHECK(GJBaseGameLayer, m_levelSettings, 0x88c);
 
+GEODE_MEMBER_CHECK(LevelEditorLayer, m_coinCount, 0x2da8);
+GEODE_MEMBER_CHECK(LevelEditorLayer, m_undoObjects, 0x2dec);
+
 GEODE_MEMBER_CHECK(GameManager, m_gameLayer, 0x174);
 
 GEODE_MEMBER_CHECK(EditorUI, m_selectedObjects, 0x260);
 GEODE_MEMBER_CHECK(EditorUI, m_selectedObject, 0x370);
 GEODE_MEMBER_CHECK(EditorUI, m_editButtonBar, 0x22c);
+
+GEODE_SIZE_CHECK(SetupTriggerPopup, 0x2a8);
+GEODE_MEMBER_CHECK(ColorSelectPopup, m_colorAction, 0x2f0);
 
 
 // GEODE_MEMBER_CHECK(CCNode, m_pUserObject, 0xcc);
