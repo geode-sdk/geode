@@ -17,7 +17,7 @@ ModMetadata::Impl& ModMetadataImpl::getImpl(ModMetadata& info)  {
 
 bool ModMetadata::Dependency::isResolved() const {
     return this->importance != Importance::Required ||
-        this->mod && this->mod->shouldLoad() && this->version.compare(this->mod->getVersion());
+        this->mod && this->mod->isEnabled() && this->version.compare(this->mod->getVersion());
 }
 
 bool ModMetadata::Incompatibility::isResolved() const {
