@@ -184,7 +184,7 @@ jobs:
         uses: vimtor/action-zip@v1.1
         with:
           files: geode-android/Geode.armeabi-v7a.so
-          dest: geode-${{ steps.ref.outputs.hash }}-android.zip
+          dest: geode-${{ steps.ref.outputs.hash }}-android32.zip
 
       - name: Zip Resources
         uses: vimtor/action-zip@v1.1
@@ -204,7 +204,7 @@ jobs:
           files: |
             ./geode-installer-${{ steps.ref.outputs.hash }}-win.exe
             ./geode-${{ steps.ref.outputs.hash }}-win.zip
-            ./geode-${{ steps.ref.outputs.hash }}-android.zip
+            ./geode-${{ steps.ref.outputs.hash }}-android32.zip
             ./resources.zip
 
         # TODO: add these back:
