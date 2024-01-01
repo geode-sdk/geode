@@ -189,7 +189,7 @@ jobs:
       - name: Zip Resources
         uses: vimtor/action-zip@v1.1
         with:
-          files: geode-mac/resources
+          files: geode-win/resources
           dest: resources.zip
 
       - name: Update Development Release
