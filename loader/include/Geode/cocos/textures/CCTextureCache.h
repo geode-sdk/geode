@@ -56,7 +56,7 @@ class CCImage;
 class CC_DLL CCTextureCache : public CCObject
 {
     GEODE_FRIEND_MODIFY
-protected:
+public:
 
 
     CCDictionary* m_pTextures;
