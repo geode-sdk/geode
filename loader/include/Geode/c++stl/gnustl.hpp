@@ -12,7 +12,7 @@ namespace geode::base {
     uintptr_t get();
 }
 
-#if defined(GEODE_IS_MACOS) || defined(GEODE_IS_ANDROID)
+#if defined(GEODE_IS_ANDROID)
 
     #include "gnustl-map.hpp"
 
