@@ -125,17 +125,6 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
     // with new cli, binary name is always mod id
     impl->m_binaryName = impl->m_id + GEODE_PLATFORM_EXTENSION;
 
-    // removed keys
-    if (root.has("datastore")) {
-        log::error(
-            "{}: [mod.json].datastore has been removed. "
-            "Use Saved Values instead (see TODO: DOCS LINK)", impl->m_id
-        );
-    }
-    if (root.has("binary")) {
-        log::error("{}: [mod.json].binary has been removed.", impl->m_id);
-    }
-
     if (checker.isError()) {
         return Err(checker.getError());
     }
