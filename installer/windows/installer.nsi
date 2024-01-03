@@ -399,7 +399,7 @@ Function .onVerifyInstDir
     IfFileExists $INSTDIR\Geode.dll valid
 
     ; check mod loaders/mod menus
-    IfFileExists $INSTDIR\hackpro.dll megahack
+    IfFileExists $INSTDIR\hackpro.dll other
     IfFileExists $INSTDIR\ToastedMarshmellow.dll other
     IfFileExists $INSTDIR\quickldr.dll other
     IfFileExists $INSTDIR\XInput9_1_0.dll other
@@ -412,9 +412,6 @@ Function .onVerifyInstDir
 
     noGameNoLife:
         SendMessage $geode.DirectoryPage.ErrorText ${WM_SETTEXT} "" "STR:$(GEODE_TEXT_GD_MISSING)"
-        Goto error
-    megahack:
-        SendMessage $geode.DirectoryPage.ErrorText ${WM_SETTEXT} "" "STR:$(GEODE_TEXT_MH_ALREADY_INSTALLED)"
         Goto error
     other:
         SendMessage $geode.DirectoryPage.ErrorText ${WM_SETTEXT} "" "STR:$(GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED)"
