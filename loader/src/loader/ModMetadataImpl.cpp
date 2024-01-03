@@ -70,11 +70,6 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
         impl->m_isAPI = true;
     }
 
-    if (root.has("toggleable"))
-        log::warn("{}: [mod.json].toggleable is deprecated and will be removed in a future update.", impl->m_id);
-    if (root.has("unloadable"))
-        log::warn("{}: [mod.json].unloadable is deprecated and will be removed in a future update.", impl->m_id);
-
     // TODO for 2.0.0: specify this in mod.json manually
     if (info.getID() != "geode.loader") {
         impl->m_dependencies.push_back({
@@ -91,14 +86,6 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
         Dependency dependency;
         obj.needs("id").validate(MiniFunction<bool(std::string const&)>(&ModMetadata::validateID)).into(dependency.id);
         obj.needs("version").into(dependency.version);
-        auto required = obj.has("required");
-        if (required) {
-            log::warn("{}: [mod.json].required has been deprecated and will be removed "
-                "in a future update. Use importance instead (see TODO: DOCS LINK)", impl->m_id);
-            dependency.importance = required.get<bool>() ?
-                Dependency::Importance::Required :
-                Dependency::Importance::Suggested;
-        }
         obj.has("importance").into(dependency.importance);
         obj.checkUnknownKeys();
 
