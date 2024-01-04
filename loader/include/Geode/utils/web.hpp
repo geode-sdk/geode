@@ -7,7 +7,7 @@
 #include "general.hpp"
 
 #include <ghc/fs_fwd.hpp>
-#include <mutex>
+#include <chrono>
 
 namespace geode::utils::web {
     GEODE_DLL void openLinkInBrowser(std::string const& url);
@@ -185,6 +185,10 @@ namespace geode::utils::web {
          * sets the content type to application/json.
          */
         AsyncWebRequest& postFields(matjson::Value const& fields);
+        /**
+         * Specify a timeout, in seconds, in which the request will fail.
+         */
+        AsyncWebRequest& timeout(std::chrono::seconds seconds);
         /**
          * Specify a callback to run if the download fails. The callback is
          * always ran in the GD thread, so interacting with UI is safe

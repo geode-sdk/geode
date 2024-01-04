@@ -204,6 +204,7 @@ public:
     bool m_sent = false;
     std::variant<std::monostate, std::ostream*, ghc::filesystem::path> m_target;
     std::vector<std::string> m_httpHeaders;
+    std::chrono::seconds m_timeoutSeconds;
 
     SentAsyncWebRequestHandle send(AsyncWebRequest&);
 };
@@ -241,7 +242,9 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
     if (req.m_impl->m_cancelled) m_cancelleds.push_back(req.m_impl->m_cancelled);
     if (req.m_impl->m_expect) m_expects.push_back(req.m_impl->m_expect);
 
-    std::thread([this]() {
+    auto timeoutSeconds = req.m_impl->m_timeoutSeconds;
+
+    std::thread([this, timeoutSeconds]() {
         AWAIT_RESUME();
 
         auto curl = curl_easy_init();
@@ -299,6 +302,11 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
             }
             curl_easy_setopt(curl, CURLOPT_POSTFIELDS, m_postFields.c_str());
             curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, m_postFields.size());
+        }
+
+        // Timeout
+        if (timeoutSeconds.count()) {
+            curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeoutSeconds.count());
         }
 
         // Track progress
