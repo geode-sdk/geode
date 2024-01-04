@@ -529,6 +529,11 @@ AsyncWebRequest& AsyncWebRequest::postFields(matjson::Value const& fields) {
     return this->postFields(fields.dump());
 }
 
+AsyncWebRequest& AsyncWebRequest::timeout(std::chrono::seconds seconds) {
+    m_impl->m_timeoutSeconds = seconds;
+    return *this;
+}
+
 AsyncWebRequest& AsyncWebRequest::header(std::string const& header) {
     m_impl->m_httpHeaders.push_back(header);
     return *this;
