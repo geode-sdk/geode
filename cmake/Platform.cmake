@@ -1,4 +1,4 @@
-include(PlatformDetect.cmake)
+include(cmake/PlatformDetect.cmake)
 
 if (NOT ${PROJECT_NAME} STREQUAL ${CMAKE_PROJECT_NAME})
 	set(GEODE_TARGET_PLATFORM GEODE_TARGET_PLATFORM PARENT_SCOPE)
