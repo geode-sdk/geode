@@ -275,6 +275,3 @@ elseif (WIN32)
 endif()
 
 add_subdirectory(test)
-
-# Build index hashing algorithm test program
-add_subdirectory(hash)
