@@ -1,6 +1,5 @@
 #include "ModInfoPopup.hpp"
 
-#include "../dev/HookListLayer.hpp"
 #include "../list/ModListLayer.hpp"
 #include "../settings/ModSettingsPopup.hpp"
 #include <Geode/loader/Dirs.hpp>

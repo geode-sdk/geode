@@ -53,8 +53,6 @@ file(GLOB SOURCES CONFIGURE_DEPENDS
 	src/ui/*.cpp
 	src/ui/nodes/*.cpp
 	src/ui/internal/*.cpp
-	src/ui/internal/credits/*.cpp
-	src/ui/internal/dev/*.cpp
 	src/ui/internal/info/*.cpp
 	src/ui/internal/list/*.cpp
 	src/ui/internal/settings/*.cpp
