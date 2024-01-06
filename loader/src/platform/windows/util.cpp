@@ -75,8 +75,17 @@ std::string utils::clipboard::read() {
 }
 
 bool utils::file::openFolder(ghc::filesystem::path const& path) {
-    ShellExecuteA(NULL, "open", path.string().c_str(), NULL, NULL, SW_SHOWDEFAULT);
-    return true;
+    auto success = false;
+    if (CoInitializeEx(nullptr, COINIT_MULTITHREADED) == S_OK) {
+        if (auto id = ILCreateFromPathW(path.wstring().c_str())) {
+            if (SHOpenFolderAndSelectItems(id, 0, nullptr, 0) == S_OK) {
+                success = true;
+            }
+            ILFree(id);
+        }
+        CoUninitialize();
+    }
+    return success;
 }
 
 Result<ghc::filesystem::path> utils::file::pickFile(
