@@ -79,7 +79,7 @@ include(cmake/GeodeFile.cmake)
 include(cmake/CPM.cmake)
 
 set(MAT_JSON_AS_INTERFACE ON)
-CPMAddPackage("gh:geode-sdk/json#9f54cca")
+CPMAddPackage("gh:geode-sdk/json#49bdff7")
 CPMAddPackage("gh:fmtlib/fmt#10.1.1")
 CPMAddPackage("gh:gulrak/filesystem#3e5b930")
 
