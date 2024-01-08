@@ -4,6 +4,7 @@
 
 #include "../load.hpp"
 #include <Windows.h>
+#include "VersionDetect.hpp"
 
 #include "loader/LoaderImpl.hpp"
 using namespace geode::prelude;
@@ -41,8 +42,10 @@ int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
     return reinterpret_cast<decltype(&wWinMain)>(mainTrampolineAddr)(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
 }
 
-bool loadGeode() {
-    // TODO: add version check or something
+std::string loadGeode() {
+    if (detectGDVersion() != GEODE_STR(GEODE_GD_VERSION)) {
+        return "GD version mismatch, not loading geode.";
+    }
 
     auto process = GetCurrentProcess();
 
@@ -52,7 +55,7 @@ bool loadGeode() {
 		MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE
 	);
 
-    static constexpr uintptr_t MAIN_OFFSET = 0x3ba7d0;
+    static constexpr uintptr_t MAIN_OFFSET = 0x3bdfd0;
     auto patchAddr = geode::base::get() + MAIN_OFFSET;
 
     constexpr size_t patchSize = 6;
@@ -86,10 +89,10 @@ bool loadGeode() {
 
     DWORD oldProtect;
     if (!VirtualProtectEx(process, reinterpret_cast<void*>(patchAddr), patchSize, PAGE_EXECUTE_READWRITE, &oldProtect))
-        return false;
+        return "Geode could not hook the main function, not loading geode.";
     std::memcpy(reinterpret_cast<void*>(patchAddr), patchBytes, patchSize);
     VirtualProtectEx(process, reinterpret_cast<void*>(patchAddr), patchSize, oldProtect, &oldProtect);
-    return true;
+    return "";
 }
 
 DWORD WINAPI upgradeThread(void*) {
@@ -156,9 +159,9 @@ BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID) {
         }
         else if (oldBootstrapperExists)
             CreateThread(nullptr, 0, upgradeThread, nullptr, 0, nullptr);
-        else if (!loadGeode()) {
-            earlyError("There was an unknown error hooking the GD main function.");
-            return FALSE;
+        else if (auto error = loadGeode(); !error.empty()) {
+            earlyError(error);
+            return TRUE;
         }
     }
     catch(...) {

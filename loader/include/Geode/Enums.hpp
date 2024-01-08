@@ -42,7 +42,6 @@ enum class SearchType {
     FavouriteLists = 103
 };
 
-// jesus fucking christ (painfully written by @hjfod)
 enum class GameObjectType {
     Solid = 0,
     Hazard = 2,

@@ -10,8 +10,6 @@ if (GEODE_BUILDING_DOCS)
 	set(GEODE_DONT_BUILD_TEST_MODS On)
 endif()
 
-set(GEODE_GD_VERSION 2.200)
-
 # Read version
 file(READ VERSION GEODE_VERSION)
 string(STRIP "${GEODE_VERSION}" GEODE_VERSION)
@@ -77,6 +75,17 @@ set(GEODE_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 include(cmake/Platform.cmake)
 include(cmake/GeodeFile.cmake)
 include(cmake/CPM.cmake)
+
+if (NOT DEFINED GEODE_GD_VERSION)
+	if (${GEODE_TARGET_PLATFORM} STREQUAL "Win32")
+		set(GEODE_GD_VERSION 2.202)
+	else()
+		set(GEODE_GD_VERSION 2.200)
+	endif()
+endif()
+
+target_compile_definitions(${PROJECT_NAME} INTERFACE GEODE_GD_VERSION=${GEODE_GD_VERSION})
+
 
 set(MAT_JSON_AS_INTERFACE ON)
 CPMAddPackage("gh:geode-sdk/json#49bdff7")
