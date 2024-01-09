@@ -86,6 +86,11 @@ endif()
 
 target_compile_definitions(${PROJECT_NAME} INTERFACE GEODE_GD_VERSION=${GEODE_GD_VERSION})
 
+if (WIN32)
+	# This allows you to compile in debug mode
+	add_compile_definitions(_HAS_ITERATOR_DEBUGGING=0)
+	add_definitions(-D_HAS_ITERATOR_DEBUGGING=0)
+endif()
 
 set(MAT_JSON_AS_INTERFACE ON)
 CPMAddPackage("gh:geode-sdk/json#49bdff7")
@@ -258,11 +263,6 @@ if (${GEODE_LINK_NIGHTLY})
 	set(GEODE_PLATFORM_BIN_PATH ${GEODE_BIN_PATH}/nightly/${GEODE_PLATFORM_BINARY})
 else()
 	set(GEODE_PLATFORM_BIN_PATH ${GEODE_BIN_PATH}/${PROJECT_VERSION}/${GEODE_PLATFORM_BINARY})
-endif()
-
-if (WIN32)
-	# This allows you to compile in debug mode
-	add_compile_definitions(_HAS_ITERATOR_DEBUGGING=0)
 endif()
 
 

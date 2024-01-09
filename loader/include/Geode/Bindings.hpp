@@ -17,8 +17,6 @@
 #include <type_traits>
 #include <unordered_map>
 
-namespace geode::core::meta {}
-
 #define CLASSPARAM(...)
 #define STRUCTPARAM(...)
 

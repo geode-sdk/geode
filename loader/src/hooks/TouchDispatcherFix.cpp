@@ -1,6 +1,6 @@
-using namespace geode::prelude;
-
 #include <Geode/modify/CCTouchDispatcher.hpp>
+
+using namespace geode::prelude;
 
 struct ForcePrioRevert : Modify<ForcePrioRevert, CCTouchDispatcher> {
     void addTargetedDelegate(CCTouchDelegate* delegate, int priority, bool swallowsTouches) {
