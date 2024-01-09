@@ -903,6 +903,12 @@ namespace geode::cocos {
         }
     };
 
+    template <class T>
+    concept CocosObjectPtr = std::is_pointer_v<T> && std::is_convertible_v<T, cocos2d::CCObject const*>;
+
+    template <class K>
+    concept CocosDictionaryKey = std::same_as<K, int> || std::same_as<K, intptr_t> || std::same_as<K, gd::string> || std::same_as<K, std::string>;
+
     /**
      * A templated wrapper over CCArray, providing easy iteration and indexing.
      * This will keep ownership of the given CCArray*.
@@ -914,12 +920,12 @@ namespace geode::cocos {
      * // Easy indexing, giving you the type you assigned
      * GameObject* myObj = objects[2];
      * 
-     * // Easy iteration using c++ range-based for loops
+     * // Easy iteration using C++ range-based for loops
      * for (auto* obj : objects) {
      *   log::info("{}", obj->m_objectID);
      * }
      */
-    template <typename Type>
+    template <CocosObjectPtr Type>
     class CCArrayExt {
     protected:
         Ref<cocos2d::CCArray> m_arr;
@@ -1055,12 +1061,12 @@ namespace geode::cocos {
      * // Easy indexing, giving you the type you assigned
      * GJGameLevel* myLvl = levels["Cube Adventures"];
      * 
-     * // Easy iteration using c++ range-based for loops
+     * // Easy iteration using C++ range-based for loops
      * for (auto [name, level] : levels) {
      *   log::info("{}: {}", name, level->m_levelID);
      * }
      */
-    template <typename Key, typename ValuePtr>
+    template <CocosDictionaryKey Key, CocosObjectPtr ValuePtr>
     struct CCDictionaryExt {
     protected:
         Ref<cocos2d::CCDictionary> m_dict;
@@ -1102,6 +1108,10 @@ namespace geode::cocos {
 
         size_t count(const Key& key) {
             return this->contains(key) ? 1 : 0;
+        }
+
+        cocos2d::CCDictionary* inner() {
+            return m_dict;
         }
     };
 }
