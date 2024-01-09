@@ -90,12 +90,12 @@ namespace geode {
         ModMetadata getMetadata() const;
         ghc::filesystem::path getTempDir() const;
         /**
-         * Get the path to the mod's platform binary (.dll on Windows, .dylib 
+         * Get the path to the mod's platform binary (.dll on Windows, .dylib
          * on Mac & iOS, .so on Android)
          */
         ghc::filesystem::path getBinaryPath() const;
         /**
-         * Get the path to the mod's runtime resources directory (contains all 
+         * Get the path to the mod's runtime resources directory (contains all
          * of its resources)
          */
         ghc::filesystem::path getResourcesDir() const;
@@ -119,25 +119,25 @@ namespace geode {
 
         bool hasSettings() const;
         std::vector<std::string> getSettingKeys() const;
-        bool hasSetting(std::string const& key) const;
-        std::optional<Setting> getSettingDefinition(std::string const& key) const;
-        SettingValue* getSetting(std::string const& key) const;
+        bool hasSetting(std::string_view const key) const;
+        std::optional<Setting> getSettingDefinition(std::string_view const key) const;
+        SettingValue* getSetting(std::string_view const key) const;
 
         /**
-         * Register a custom setting's value class. See Mod::addCustomSetting 
-         * for a convenience wrapper that creates the value in-place to avoid 
-         * code duplication. Also see 
-         * [the tutorial page](https://docs.geode-sdk.org/mods/settings) for 
+         * Register a custom setting's value class. See Mod::addCustomSetting
+         * for a convenience wrapper that creates the value in-place to avoid
+         * code duplication. Also see
+         * [the tutorial page](https://docs.geode-sdk.org/mods/settings) for
          * more information about custom settings
          * @param key The setting's key
          * @param value The SettingValue class that shall handle this setting
          * @see addCustomSetting
          */
-        void registerCustomSetting(std::string const& key, std::unique_ptr<SettingValue> value);
+        void registerCustomSetting(std::string_view const key, std::unique_ptr<SettingValue> value);
         /**
-         * Register a custom setting's value class. The new SettingValue class 
-         * will be created in-place using `std::make_unique`. See 
-         * [the tutorial page](https://docs.geode-sdk.org/mods/settings) for 
+         * Register a custom setting's value class. The new SettingValue class
+         * will be created in-place using `std::make_unique`. See
+         * [the tutorial page](https://docs.geode-sdk.org/mods/settings) for
          * more information about custom settings
          * @param key The setting's key
          * @param value The value of the custom setting
@@ -147,14 +147,14 @@ namespace geode {
          * }
          */
         template <class T, class V>
-        void addCustomSetting(std::string const& key, V const& value) {
+        void addCustomSetting(std::string_view const key, V const& value) {
             this->registerCustomSetting(key, std::make_unique<T>(key, this->getID(), value));
         }
 
         matjson::Value& getSaveContainer();
 
         template <class T>
-        T getSettingValue(std::string const& key) const {
+        T getSettingValue(std::string_view const key) const {
             if (auto sett = this->getSetting(key)) {
                 return SettingValueSetter<T>::get(sett);
             }
@@ -162,7 +162,7 @@ namespace geode {
         }
 
         template <class T>
-        T setSettingValue(std::string const& key, T const& value) {
+        T setSettingValue(std::string_view const key, T const& value) {
             if (auto sett = this->getSetting(key)) {
                 auto old = this->getSettingValue<T>(key);
                 SettingValueSetter<T>::set(sett, value);
@@ -171,10 +171,10 @@ namespace geode {
             return T();
         }
 
-        bool hasSavedValue(std::string const& key);
+        bool hasSavedValue(std::string_view const key);
 
         template <class T>
-        T getSavedValue(std::string const& key) {
+        T getSavedValue(std::string_view const key) {
             auto& saved = this->getSaveContainer();
             if (saved.contains(key)) {
                 try {
@@ -188,7 +188,7 @@ namespace geode {
         }
 
         template <class T>
-        T getSavedValue(std::string const& key, T const& defaultValue) {
+        T getSavedValue(std::string_view const key, T const& defaultValue) {
             auto& saved = this->getSaveContainer();
             if (saved.contains(key)) {
                 try {
@@ -210,7 +210,7 @@ namespace geode {
          * @returns The old value
          */
         template <class T>
-        T setSavedValue(std::string const& key, T const& value) {
+        T setSavedValue(std::string_view const key, T const& value) {
             auto& saved = this->getSaveContainer();
             auto old = this->getSavedValue<T>(key);
             saved[key] = value;
@@ -335,7 +335,7 @@ namespace geode {
          * Check whether or not this Mod
          * depends on another mod
          */
-        bool depends(std::string const& id) const;
+        bool depends(std::string_view const id) const;
 
         /**
          * Check whether all the required
