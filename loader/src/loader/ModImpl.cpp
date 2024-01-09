@@ -258,13 +258,14 @@ void Mod::Impl::setupSettings() {
     }
 }
 
-void Mod::Impl::registerCustomSetting(std::string const& key, std::unique_ptr<SettingValue> value) {
-    if (!m_settings.count(key)) {
+void Mod::Impl::registerCustomSetting(std::string_view const key, std::unique_ptr<SettingValue> value) {
+    auto keystr = std::string(key);
+    if (!m_settings.count(keystr)) {
         // load data
         if (m_savedSettingsData.contains(key)) {
             value->load(m_savedSettingsData[key]);
         }
-        m_settings.emplace(key, std::move(value));
+        m_settings.emplace(keystr, std::move(value));
     }
 }
 
@@ -280,7 +281,7 @@ std::vector<std::string> Mod::Impl::getSettingKeys() const {
     return keys;
 }
 
-std::optional<Setting> Mod::Impl::getSettingDefinition(std::string const& key) const {
+std::optional<Setting> Mod::Impl::getSettingDefinition(std::string_view const key) const {
     for (auto& setting : m_metadata.getSettings()) {
         if (setting.first == key) {
             return setting.second;
@@ -289,14 +290,16 @@ std::optional<Setting> Mod::Impl::getSettingDefinition(std::string const& key) c
     return std::nullopt;
 }
 
-SettingValue* Mod::Impl::getSetting(std::string const& key) const {
-    if (m_settings.count(key)) {
-        return m_settings.at(key).get();
+SettingValue* Mod::Impl::getSetting(std::string_view const key) const {
+    auto keystr = std::string(key);
+
+    if (m_settings.count(keystr)) {
+        return m_settings.at(keystr).get();
     }
     return nullptr;
 }
 
-bool Mod::Impl::hasSetting(std::string const& key) const {
+bool Mod::Impl::hasSetting(std::string_view const key) const {
     for (auto& setting : m_metadata.getSettings()) {
         if (setting.first == key) {
             return true;
@@ -449,7 +452,7 @@ bool Mod::Impl::hasUnresolvedIncompatibilities() const {
     return false;
 }
 
-bool Mod::Impl::depends(std::string const& id) const {
+bool Mod::Impl::depends(std::string_view const id) const {
     return utils::ranges::contains(m_metadata.getDependencies(), [id](ModMetadata::Dependency const& t) {
         return t.id == id;
     });
@@ -585,13 +588,13 @@ Result<> Mod::Impl::unzipGeodeFile(ModMetadata metadata) {
     if (ec) {
         return Err("Unable to delete temp dir: " + ec.message());
     }
-    
+
     (void)utils::file::createDirectoryAll(tempDir);
     auto res = file::writeString(datePath, modifiedHash);
     if (!res) {
         log::warn("Failed to write modified date of geode zip: {}", res.unwrapErr());
     }
-    
+
 
     GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(metadata.getPath()));
     if (!unzip.hasEntry(metadata.getBinaryName())) {
