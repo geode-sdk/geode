@@ -103,7 +103,7 @@ void CCNode::setID(std::string const& id) {
 }
 
 CCNode* CCNode::getChildByID(std::string const& id) {
-    for (auto child : CCArrayExt<CCNode>(m_pChildren)) {
+    for (auto child : CCArrayExt<CCNode*>(m_pChildren)) {
         if (child->getID() == id) {
             return child;
         }
@@ -115,7 +115,7 @@ CCNode* CCNode::getChildByIDRecursive(std::string const& id) {
     if (auto child = this->getChildByID(id)) {
         return child;
     }
-    for (auto child : CCArrayExt<CCNode>(m_pChildren)) {
+    for (auto child : CCArrayExt<CCNode*>(m_pChildren)) {
         if ((child = child->getChildByIDRecursive(id))) {
             return child;
         }
@@ -131,7 +131,7 @@ void CCNode::removeChildByID(std::string const& id) {
 
 void CCNode::setLayout(Layout* layout, bool apply, bool respectAnchor) {
     if (respectAnchor && this->isIgnoreAnchorPointForPosition()) {
-        for (auto child : CCArrayExt<CCNode>(m_pChildren)) {
+        for (auto child : CCArrayExt<CCNode*>(m_pChildren)) {
             child->setPosition(child->getPosition() + this->getScaledContentSize());
         }
         this->ignoreAnchorPointForPosition(false);

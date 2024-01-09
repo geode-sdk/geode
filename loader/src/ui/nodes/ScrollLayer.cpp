@@ -18,7 +18,7 @@ void GenericContentLayer::setPosition(CCPoint const& pos) {
     // all be TableViewCells
     CCLayerColor::setPosition(pos);
 
-    for (auto child : CCArrayExt<CCNode>(m_pChildren)) {
+    for (auto child : CCArrayExt<CCNode*>(m_pChildren)) {
         auto y = this->getPositionY() + child->getPositionY();
         child->setVisible(!((m_obContentSize.height < y) || (y < -child->getContentSize().height)));
     }

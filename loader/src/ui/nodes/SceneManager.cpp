@@ -35,7 +35,7 @@ void SceneManager::forget(CCNode* node) {
 }
 
 void SceneManager::willSwitchToScene(CCScene* scene) {
-    for (auto node : CCArrayExt<CCNode>(m_persistedNodes)) {
+    for (auto node : CCArrayExt<CCNode*>(m_persistedNodes)) {
         // no cleanup in order to keep actions running
         node->removeFromParentAndCleanup(false);
         scene->addChild(node);
