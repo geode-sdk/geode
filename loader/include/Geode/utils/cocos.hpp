@@ -1096,8 +1096,12 @@ namespace geode::cocos {
             return CCDictEntry<Key, ValuePtr>(key, m_dict);
         }
 
-        size_t count(K key) {
-            return m_dict->allKeys(key)->count();
+        bool contains(const Key& key) {
+            return m_dict->objectForKey(key) != nullptr;
+        }
+
+        size_t count(const Key& key) {
+            return this->contains(key) ? 1 : 0;
         }
     };
 }
