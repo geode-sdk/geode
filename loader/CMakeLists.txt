@@ -82,6 +82,12 @@ file(GLOB OBJC_SOURCES
 )
 set_source_files_properties(${OBJC_SOURCES} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 
+if (WIN32)
+	# This allows you to compile in debug mode
+	add_compile_definitions(_HAS_ITERATOR_DEBUGGING=0)
+	add_definitions(-D_HAS_ITERATOR_DEBUGGING=0)
+endif()
+
 
 # Add platform sources
 if (WIN32)
@@ -201,6 +207,7 @@ if (NOT GEODE_BUILDING_DOCS)
 	# Zip support (needed for in-memory streams, which zlib's minizip doesn't support)
 	set(MZ_LZMA Off CACHE INTERNAL "Enables LZMA & XZ compression")
 	set(MZ_ZSTD Off CACHE INTERNAL "")
+	set(MZ_BZIP2 Off CACHE INTERNAL "")
 	set(MZ_OPENSSL Off CACHE INTERNAL "")
 	set(MZ_LIBBSD Off CACHE INTERNAL "")
 	set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "" FORCE)

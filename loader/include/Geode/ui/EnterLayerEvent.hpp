@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../loader/Event.hpp"
+#include <optional>
 
 namespace cocos2d {
     class CCNode;
