@@ -1,6 +1,6 @@
 #include "Common.hpp"
 
-#ifdef GEODE_IS_WINDOWS
+#if 0
 
 using namespace cocos2d;
 

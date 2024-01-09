@@ -417,7 +417,6 @@ public:
      *  @note For internal usage, we need to declare this member variable as public since it's used in UT_HASH.
      */
     CCDictElement* m_pElements;
-private:
     
     /** The support type of dictionary, it's confirmed when setObject is invoked. */
     enum CCDictType

@@ -26,6 +26,22 @@ execute_process(
 	ERROR_QUIET
 )
 
+if (NOT GEODE_COMMIT_HASH)
+	set(GEODE_COMMIT_HASH "(?)")
+endif()
+
+execute_process(
+	COMMAND git rev-parse --short HEAD
+	WORKING_DIRECTORY ${GEODE_BINDINGS_REPO_PATH}
+	OUTPUT_VARIABLE GEODE_BINDINGS_COMMIT_HASH
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+	ERROR_QUIET
+)
+
+if (NOT GEODE_BINDINGS_COMMIT_HASH)
+	set(GEODE_BINDINGS_COMMIT_HASH "(?)")
+endif()
+
 # Package info file for internal representation
 set(GEODE_RESOURCES_PATH ${CMAKE_CURRENT_SOURCE_DIR}/resources)
 configure_file(resources/mod.json.in ${CMAKE_CURRENT_SOURCE_DIR}/resources/mod.json)
@@ -53,8 +69,6 @@ file(GLOB SOURCES CONFIGURE_DEPENDS
 	src/ui/*.cpp
 	src/ui/nodes/*.cpp
 	src/ui/internal/*.cpp
-	src/ui/internal/credits/*.cpp
-	src/ui/internal/dev/*.cpp
 	src/ui/internal/info/*.cpp
 	src/ui/internal/list/*.cpp
 	src/ui/internal/settings/*.cpp
@@ -277,6 +291,3 @@ elseif (WIN32)
 endif()
 
 add_subdirectory(test)
-
-# Build index hashing algorithm test program
-add_subdirectory(hash)

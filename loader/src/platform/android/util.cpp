@@ -44,20 +44,49 @@ CCPoint cocos::getMousePos() {
     return CCPoint(0, 0);
 }
 
+namespace {
+    void clearJNIException() {
+        // this is a silly workaround to not crash when the method is not found.
+        // cocos figured this out half a year later...
+        auto vm = JniHelper::getJavaVM();
+
+        JNIEnv* env;
+        if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) == JNI_OK) {
+            env->ExceptionClear();
+        }
+    }
+
+    // jni breaks over multithreading, so the value is stored to avoid more jni calls
+    std::string s_savedBaseDir = "";
+
+    ghc::filesystem::path getBaseDir() {
+        std::string path = "/storage/emulated/0/Android/data/com.geode.launcher/files";
+
+        if (!s_savedBaseDir.empty()) {
+            return ghc::filesystem::path(s_savedBaseDir);
+        }
+
+        JniMethodInfo t;
+        if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "getBaseDirectory", "()Ljava/lang/String;")) {
+            jstring str = reinterpret_cast<jstring>(t.env->CallStaticObjectMethod(t.classID, t.methodID));
+            t.env->DeleteLocalRef(t.classID);
+            path = JniHelper::jstring2string(str);
+            t.env->DeleteLocalRef(str);
+        } else {
+            clearJNIException();
+        }
+
+        s_savedBaseDir = path;
+        return ghc::filesystem::path(path);
+    }
+}
+
 ghc::filesystem::path dirs::getGameDir() {
-    return ghc::filesystem::path(
-        "/storage/emulated/0/Android/data/com.geode.launcher/files/game"
-        // "/data/user/0/com.geode.launcher/files/"
-        /*CCFileUtils::sharedFileUtils()->getWritablePath().c_str()*/
-    );
+    return getBaseDir() / "game";
 }
 
 ghc::filesystem::path dirs::getSaveDir() {
-    return ghc::filesystem::path(
-        "/storage/emulated/0/Android/data/com.geode.launcher/files/save"
-        // "/data/user/0/com.geode.launcher/files/"
-        /*CCFileUtils::sharedFileUtils()->getWritablePath().c_str()*/
-    );
+    return getBaseDir() / "save";
 }
 
 ghc::filesystem::path dirs::getModRuntimeDir() {

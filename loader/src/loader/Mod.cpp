@@ -105,19 +105,19 @@ std::vector<std::string> Mod::getSettingKeys() const {
     return m_impl->getSettingKeys();
 }
 
-bool Mod::hasSetting(std::string const& key) const {
+bool Mod::hasSetting(std::string_view const key) const {
     return m_impl->hasSetting(key);
 }
 
-std::optional<Setting> Mod::getSettingDefinition(std::string const& key) const {
+std::optional<Setting> Mod::getSettingDefinition(std::string_view const key) const {
     return m_impl->getSettingDefinition(key);
 }
 
-SettingValue* Mod::getSetting(std::string const& key) const {
+SettingValue* Mod::getSetting(std::string_view const key) const {
     return m_impl->getSetting(key);
 }
 
-void Mod::registerCustomSetting(std::string const& key, std::unique_ptr<SettingValue> value) {
+void Mod::registerCustomSetting(std::string_view const key, std::unique_ptr<SettingValue> value) {
     return m_impl->registerCustomSetting(key, std::move(value));
 }
 
@@ -172,7 +172,7 @@ ModRequestedAction Mod::getRequestedAction() const {
     return m_impl->getRequestedAction();
 }
 
-bool Mod::depends(std::string const& id) const {
+bool Mod::depends(std::string_view const id) const {
     return m_impl->depends(id);
 }
 
@@ -200,7 +200,7 @@ void Mod::setLoggingEnabled(bool enabled) {
     m_impl->setLoggingEnabled(enabled);
 }
 
-bool Mod::hasSavedValue(std::string const& key) {
+bool Mod::hasSavedValue(std::string_view const key) {
     return this->getSaveContainer().contains(key);
 }
 

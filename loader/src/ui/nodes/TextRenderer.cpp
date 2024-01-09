@@ -246,7 +246,7 @@ CCNode* TextRenderer::end(
             case TextAlignment::End: padY = std::max(m_size.height - renderedHeight, 0.f); break;
         }
         // adjust child positions
-        for (auto child : CCArrayExt<CCNode>(m_target->getChildren())) {
+        for (auto child : CCArrayExt<CCNode*>(m_target->getChildren())) {
             child->setPosition(
                 child->getPositionX() + padX,
                 child->getPositionY() + m_target->getContentSize().height - coverage.size.height -

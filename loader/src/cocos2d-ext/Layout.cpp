@@ -52,7 +52,7 @@ bool CCNode::hasAncestor(CCNode* ancestor) {
 
 CCArray* Layout::getNodesToPosition(CCNode* on) const {
     auto arr = CCArray::create();
-    for (auto child : CCArrayExt<CCNode>(on->getChildren())) {
+    for (auto child : CCArrayExt<CCNode*>(on->getChildren())) {
         if (!m_ignoreInvisibleChildren || child->isVisible()) {
             arr->addObject(child);
         }
@@ -179,7 +179,7 @@ struct AxisLayout::Row : public CCObject {
 
     void accountSpacers(Axis axis, float availableLength, float crossLength) {
         std::vector<SpacerNode*> spacers;
-        for (auto& node : CCArrayExt<CCNode>(nodes)) {
+        for (auto& node : CCArrayExt<CCNode*>(nodes)) {
             if (auto spacer = typeinfo_cast<SpacerNode*>(node)) {
                 spacers.push_back(spacer);
             }
@@ -259,7 +259,7 @@ bool AxisLayout::shouldAutoScale(AxisLayoutOptions const* opts) const {
 float AxisLayout::minScaleForPrio(CCArray* nodes, int prio) const {
     float min = AXISLAYOUT_DEFAULT_MIN_SCALE;
     bool first = true;
-    for (auto node : CCArrayExt<CCNode>(nodes)) {
+    for (auto node : CCArrayExt<CCNode*>(nodes)) {
         auto scale = optsMinScale(axisOpts(node));
         if (first) {
             min = scale;
@@ -275,7 +275,7 @@ float AxisLayout::minScaleForPrio(CCArray* nodes, int prio) const {
 float AxisLayout::maxScaleForPrio(CCArray* nodes, int prio) const {
     float max = 1.f;
     bool first = true;
-    for (auto node : CCArrayExt<CCNode>(nodes)) {
+    for (auto node : CCArrayExt<CCNode*>(nodes)) {
         auto scale = optsMaxScale(axisOpts(node));
         if (first) {
             max = scale;
@@ -490,7 +490,7 @@ void AxisLayout::tryFitLayout(
     float crossSquishFactor = 0.f;
 
     // make spacers have zero size so they don't affect spacing calculations
-    for (auto& node : CCArrayExt<CCNode>(nodes)) {
+    for (auto& node : CCArrayExt<CCNode*>(nodes)) {
         if (auto spacer = typeinfo_cast<SpacerNode*>(node)) {
             spacer->setContentSize(CCSizeZero);
         }
@@ -751,7 +751,7 @@ void AxisLayout::apply(CCNode* on) {
     bool doAutoScale = false;
 
     bool first = true;
-    for (auto node : CCArrayExt<CCNode>(nodes)) {
+    for (auto node : CCArrayExt<CCNode*>(nodes)) {
         int prio = 0;
         if (auto opts = axisOpts(node)) {
             prio = opts->getScalePriority();

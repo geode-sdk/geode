@@ -303,7 +303,7 @@ CCRect geode::cocos::calculateNodeCoverage(std::vector<CCNode*> const& nodes) {
 
 CCRect geode::cocos::calculateNodeCoverage(CCArray* nodes) {
     CCRect coverage;
-    for (auto child : CCArrayExt<CCNode>(nodes)) {
+    for (auto child : CCArrayExt<CCNode*>(nodes)) {
         auto pos = child->getPosition() - child->getScaledContentSize() * child->getAnchorPoint();
         auto csize = child->getPosition() +
             child->getScaledContentSize() * (CCPoint{1.f, 1.f} - child->getAnchorPoint());
