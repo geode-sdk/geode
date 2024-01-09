@@ -501,14 +501,18 @@ AsyncWebRequest& AsyncWebRequest::setThen(AsyncThen then) {
     return *this;
 }
 
-AsyncWebRequest& AsyncWebRequest::join(std::string const& requestID) {
+AsyncWebRequest& AsyncWebRequest::join(std::string_view const requestID) {
     m_impl->m_joinID = requestID;
     return *this;
 }
 
-AsyncWebRequest& AsyncWebRequest::userAgent(std::string const& userAgent) {
+AsyncWebRequest& AsyncWebRequest::userAgent(std::string_view const userAgent) {
     m_impl->m_userAgent = userAgent;
     return *this;
+}
+
+AsyncWebRequest& AsyncWebRequest::contentType(std::string_view const contentType) {
+    return this->header("Content-Type", contentType);
 }
 
 AsyncWebRequest& AsyncWebRequest::postRequest() {
@@ -516,20 +520,19 @@ AsyncWebRequest& AsyncWebRequest::postRequest() {
     return *this;
 }
 
-AsyncWebRequest& AsyncWebRequest::customRequest(std::string const& request) {
+AsyncWebRequest& AsyncWebRequest::method(std::string_view const request) {
     m_impl->m_customRequest = request;
     return *this;
 }
 
-AsyncWebRequest& AsyncWebRequest::postFields(std::string const& fields) {
-    m_impl->m_isPostRequest = true;
+AsyncWebRequest& AsyncWebRequest::bodyRaw(std::string_view const fields) {
     m_impl->m_postFields = fields;
     return *this;
 }
 
-AsyncWebRequest& AsyncWebRequest::postFields(matjson::Value const& fields) {
+AsyncWebRequest& AsyncWebRequest::body(matjson::Value const& fields) {
     m_impl->m_isJsonRequest = true;
-    return this->postFields(fields.dump());
+    return this->bodyRaw(fields.dump());
 }
 
 AsyncWebRequest& AsyncWebRequest::timeout(std::chrono::seconds seconds) {
@@ -537,12 +540,36 @@ AsyncWebRequest& AsyncWebRequest::timeout(std::chrono::seconds seconds) {
     return *this;
 }
 
-AsyncWebRequest& AsyncWebRequest::header(std::string const& header) {
-    m_impl->m_httpHeaders.push_back(header);
+AsyncWebRequest& AsyncWebRequest::header(std::string_view const header) {
+    m_impl->m_httpHeaders.push_back(std::string(header));
     return *this;
 }
 
-AsyncWebResponse AsyncWebRequest::fetch(std::string const& url) {
+AsyncWebRequest& AsyncWebRequest::header(std::string_view const headerName, std::string_view const headerValue) {
+    return this->header(fmt::format("{}: {}", headerName, headerValue));
+}
+
+AsyncWebResponse AsyncWebRequest::get(std::string_view const url) {
+    this->method("GET");
+    return this->fetch(url);
+}
+
+AsyncWebResponse AsyncWebRequest::post(std::string_view const url) {
+    this->method("POST");
+    return this->fetch(url);
+}
+
+AsyncWebResponse AsyncWebRequest::put(std::string_view const url) {
+    this->method("PUT");
+    return this->fetch(url);
+}
+
+AsyncWebResponse AsyncWebRequest::patch(std::string_view const url) {
+    this->method("PATCH");
+    return this->fetch(url);
+}
+
+AsyncWebResponse AsyncWebRequest::fetch(std::string_view const url) {
     m_impl->m_url = url;
     return AsyncWebResponse(*this);
 }

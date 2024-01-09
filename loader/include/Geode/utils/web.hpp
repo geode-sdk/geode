@@ -136,7 +136,7 @@ namespace geode::utils::web {
          * automatically followed
          * @returns An AsyncWebResponse object
          */
-        AsyncWebResponse fetch(std::string const& url);
+        AsyncWebResponse fetch(std::string_view const url);
         /**
          * Begin the web request. It's not always necessary to call this as the
          * destructor calls it automatically, but if you need access to the
@@ -144,6 +144,27 @@ namespace geode::utils::web {
          * @returns Handle to the sent web request
          */
         SentAsyncWebRequestHandle send();
+
+        /**
+         * Shorthand for a GET request to the given url.
+         * Same return value as fetch.
+        */
+        AsyncWebResponse get(std::string_view const url);
+        /**
+         * Shorthand for a POST request to the given url.
+         * Same return value as fetch.
+        */
+        AsyncWebResponse post(std::string_view const url);
+        /**
+         * Shorthand for a PUT request to the given url.
+         * Same return value as fetch.
+        */
+        AsyncWebResponse put(std::string_view const url);
+        /**
+         * Shorthand for a PATCH request to the given url.
+         * Same return value as fetch.
+        */
+        AsyncWebResponse patch(std::string_view const url);
 
         /**
          * If you only want one instance of this web request to run (for example,
@@ -155,40 +176,53 @@ namespace geode::utils::web {
          * recommended to be something unique
          * @returns Same AsyncWebRequest
          */
-        AsyncWebRequest& join(std::string const& requestID);
+        AsyncWebRequest& join(std::string_view const requestID);
+
+        // Request parameters
 
         /**
          * In order to specify a http header to the request, give it here.
          * Can be called more than once.
          */
-        AsyncWebRequest& header(std::string const& header);
+        AsyncWebRequest& header(std::string_view const header);
+        /**
+         * In order to specify a http header to the request, give it here.
+         * Can be called more than once.
+         */
+        AsyncWebRequest& header(std::string_view const headerName, std::string_view const headerValue);
         /**
          * In order to specify an user agent to the request, give it here.
          */
-        AsyncWebRequest& userAgent(std::string const& userAgent);
+        AsyncWebRequest& userAgent(std::string_view const userAgent);
+        /**
+         * Sets the Content-Type header to the specified value. 
+         */
+        AsyncWebRequest& contentType(std::string_view const contentType);
         /**
          * Specify that the request is a POST request.
          */
         AsyncWebRequest& postRequest();
         /**
-         * Specify that the request is a custom request like PUT and DELETE.
+         * Specify the HTTP method for the request, like PUT and DELETE.
          */
-        AsyncWebRequest& customRequest(std::string const& request);
+        AsyncWebRequest& method(std::string_view const method);
         /**
-         * Specify the post fields to send with the request. Only valid if
-         * `postRequest` or `customRequest` was called before.
+         * Specify the raw request body to send with the request.
+         * Content type is unchanged.
          */
-        AsyncWebRequest& postFields(std::string const& fields);
+        AsyncWebRequest& bodyRaw(std::string_view const content);
         /**
-         * Specify the post fields to send with the request. Only valid if
-         * `postRequest` or `customRequest` was called before. Additionally
-         * sets the content type to application/json.
+         * Specify a json request body. Additionally sets the content type to
+         * application/json.
          */
-        AsyncWebRequest& postFields(matjson::Value const& fields);
+        AsyncWebRequest& body(matjson::Value const& value);
         /**
          * Specify a timeout, in seconds, in which the request will fail.
          */
         AsyncWebRequest& timeout(std::chrono::seconds seconds);
+
+        // Callbacks
+
         /**
          * Specify a callback to run if the download fails. The callback is
          * always ran in the GD thread, so interacting with UI is safe
