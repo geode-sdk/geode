@@ -903,11 +903,27 @@ namespace geode::cocos {
         }
     };
 
-    template <typename _Type>
+    /**
+     * A templated wrapper over CCArray, providing easy iteration and indexing.
+     * This will keep ownership of the given CCArray*.
+     * 
+     * @tparam Type Pointer to a type that inherits CCObject.
+     *
+     * @example
+     * CCArrayExt<GameObject*> objects = PlayLayer::get()->m_objects;
+     * // Easy indexing, giving you the type you assigned
+     * GameObject* myObj = objects[2];
+     * 
+     * // Easy iteration using c++ range-based for loops
+     * for (auto* obj : objects) {
+     *   log::info("{}", obj->m_objectID);
+     * }
+     */
+    template <typename Type>
     class CCArrayExt {
     protected:
         Ref<cocos2d::CCArray> m_arr;
-        using T = std::remove_pointer_t<_Type>;
+        using T = std::remove_pointer_t<Type>;
 
     public:
         using value_type = T;
@@ -980,7 +996,7 @@ namespace geode::cocos {
         cocos2d::CCDictElement* m_ptr;
 
         std::pair<K, T> operator*() {
-            if constexpr (std::is_same<K, std::string>::value) {
+            if constexpr (std::is_same_v<K, std::string> || std::is_same_v<K, gd::string>) {
                 return {m_ptr->getStrKey(), static_cast<T>(m_ptr->getObject())};
             }
             else {
@@ -1027,42 +1043,41 @@ namespace geode::cocos {
         }
     };
 
-    template <typename K, typename T>
+    /**
+     * A templated wrapper over CCDictionary, providing easy iteration and indexing.
+     * This will keep ownership of the given CCDictionary*.
+     * 
+     * @tparam Key Type of the key. MUST only be int or gd::string or std::string.
+     * @tparam ValuePtr Pointer to a type that inherits CCObject.
+     *
+     * @example
+     * CCDictionaryExt<std::string, GJGameLevel*> levels = getSomeDict();
+     * // Easy indexing, giving you the type you assigned
+     * GJGameLevel* myLvl = levels["Cube Adventures"];
+     * 
+     * // Easy iteration using c++ range-based for loops
+     * for (auto [name, level] : levels) {
+     *   log::info("{}: {}", name, level->m_levelID);
+     * }
+     */
+    template <typename Key, typename ValuePtr>
     struct CCDictionaryExt {
     protected:
-        cocos2d::CCDictionary* m_dict;
+        Ref<cocos2d::CCDictionary> m_dict;
 
     public:
-        CCDictionaryExt() : m_dict(cocos2d::CCDictionary::create()) {
-            m_dict->retain();
-        }
+        CCDictionaryExt() : m_dict(cocos2d::CCDictionary::create()) {}
 
-        CCDictionaryExt(cocos2d::CCDictionary* dict) : m_dict(dict) {
-            m_dict->retain();
-        }
+        CCDictionaryExt(cocos2d::CCDictionary* dict) : m_dict(dict) {}
 
-        CCDictionaryExt(CCDictionaryExt const& d) : m_dict(d.m_dict) {
-            m_dict->retain();
-        }
+        CCDictionaryExt(CCDictionaryExt const& d) : m_dict(d.m_dict) {}
 
         CCDictionaryExt(CCDictionaryExt&& d) : m_dict(d.m_dict) {
             d.m_dict = nullptr;
         }
 
-        ~CCDictionaryExt() {
-            if (m_dict) m_dict->release();
-        }
-
-        CCDictionaryExt& operator=(cocos2d::CCDictionary* d) {
-            m_dict->release();
-            m_dict = d;
-            m_dict->retain();
-            
-            return *this;
-        }
-
         auto begin() {
-            return CCDictIterator<K, T*>(m_dict->m_pElements);
+            return CCDictIterator<Key, ValuePtr>(m_dict->m_pElements);
         }
 
         // do not use this
@@ -1074,11 +1089,11 @@ namespace geode::cocos {
             return m_dict->count();
         }
 
-        auto operator[](K key) {
-            auto ret = static_cast<T*>(m_dict->objectForKey(key));
-            if (!ret) m_dict->setObject(cocos2d::CCNode::create(), key);
+        auto operator[](const Key& key) {
+            auto ret = static_cast<ValuePtr>(m_dict->objectForKey(key));
+            if (!ret) m_dict->setObject(cocos2d::CCObject::create(), key);
 
-            return CCDictEntry<K, T*>(key, m_dict);
+            return CCDictEntry<Key, ValuePtr>(key, m_dict);
         }
 
         size_t count(K key) {
