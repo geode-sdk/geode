@@ -357,7 +357,11 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &code);
         if (res != CURLE_OK) {
             curl_easy_cleanup(curl);
-            return this->error("Fetch failed: " + std::string(curl_easy_strerror(res)), code);
+            if (m_cancelled) {
+                return this->doCancel();
+            } else {
+                return this->error("Fetch failed: " + std::string(curl_easy_strerror(res)), code);
+            }
         }
         if (code >= 400 && code < 600) {
             std::string response_str(ret.begin(), ret.end());
@@ -409,8 +413,6 @@ void SentAsyncWebRequest::Impl::doCancel() {
             l.lock();
         }
     });
-
-    this->error("Request cancelled", -1);
 }
 
 void SentAsyncWebRequest::Impl::cancel() {
