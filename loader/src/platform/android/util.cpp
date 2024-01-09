@@ -45,6 +45,17 @@ CCPoint cocos::getMousePos() {
 }
 
 namespace {
+    void clearJNIException() {
+        // this is a silly workaround to not crash when the method is not found.
+        // cocos figured this out half a year later...
+        auto vm = JniHelper::getJavaVM();
+
+        JNIEnv* env;
+        if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) == JNI_OK) {
+            env->ExceptionClear();
+        }
+    }
+
     ghc::filesystem::path getBaseDir() {
         JniMethodInfo t;
         std::string path = "/storage/emulated/0/Android/data/com.geode.launcher/files";
@@ -54,6 +65,8 @@ namespace {
             t.env->DeleteLocalRef(t.classID);
             path = JniHelper::jstring2string(str);
             t.env->DeleteLocalRef(str);
+        } else {
+            clearJNIException();
         }
 
         return ghc::filesystem::path(path);
