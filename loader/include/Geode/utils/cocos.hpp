@@ -1091,7 +1091,7 @@ namespace geode::cocos {
 
         auto operator[](const Key& key) {
             auto ret = static_cast<ValuePtr>(m_dict->objectForKey(key));
-            if (!ret) m_dict->setObject(cocos2d::CCObject::create(), key);
+            if (!ret) m_dict->setObject(cocos2d::CCNode::create(), key);
 
             return CCDictEntry<Key, ValuePtr>(key, m_dict);
         }
