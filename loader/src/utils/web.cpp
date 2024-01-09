@@ -522,6 +522,7 @@ AsyncWebRequest& AsyncWebRequest::customRequest(std::string const& request) {
 }
 
 AsyncWebRequest& AsyncWebRequest::postFields(std::string const& fields) {
+    m_impl->m_isPostRequest = true;
     m_impl->m_postFields = fields;
     return *this;
 }
