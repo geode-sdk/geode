@@ -148,7 +148,7 @@ namespace geode {
          */
         template <class T, class V>
         void addCustomSetting(std::string_view const key, V const& value) {
-            this->registerCustomSetting(key, std::make_unique<T>(key, this->getID(), value));
+            this->registerCustomSetting(key, std::make_unique<T>(std::string(key), this->getID(), value));
         }
 
         matjson::Value& getSaveContainer();
