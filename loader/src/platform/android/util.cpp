@@ -56,10 +56,17 @@ namespace {
         }
     }
 
+    // jni breaks over multithreading, so the value is stored to avoid more jni calls
+    std::string s_savedBaseDir = "";
+
     ghc::filesystem::path getBaseDir() {
-        JniMethodInfo t;
         std::string path = "/storage/emulated/0/Android/data/com.geode.launcher/files";
 
+        if (!s_savedBaseDir.empty()) {
+            return ghc::filesystem::path(s_savedBaseDir);
+        }
+
+        JniMethodInfo t;
         if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "getBaseDirectory", "()Ljava/lang/String;")) {
             jstring str = reinterpret_cast<jstring>(t.env->CallStaticObjectMethod(t.classID, t.methodID));
             t.env->DeleteLocalRef(t.classID);
@@ -69,6 +76,7 @@ namespace {
             clearJNIException();
         }
 
+        s_savedBaseDir = path;
         return ghc::filesystem::path(path);
     }
 }
