@@ -4,7 +4,6 @@
 
 #include "../load.hpp"
 #include <Windows.h>
-#include "VersionDetect.hpp"
 
 #include "loader/LoaderImpl.hpp"
 using namespace geode::prelude;
@@ -43,10 +42,6 @@ int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 }
 
 std::string loadGeode() {
-    if (detectGDVersion() != GEODE_STR(GEODE_GD_VERSION)) {
-        return "GD version mismatch, not loading geode.";
-    }
-
     auto process = GetCurrentProcess();
 
     constexpr size_t trampolineSize = 12;
