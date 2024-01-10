@@ -532,7 +532,7 @@ AsyncWebRequest& AsyncWebRequest::bodyRaw(std::string_view const fields) {
 
 AsyncWebRequest& AsyncWebRequest::body(matjson::Value const& fields) {
     m_impl->m_isJsonRequest = true;
-    return this->bodyRaw(fields.dump());
+    return this->bodyRaw(fields.dump(matjson::NO_INDENTATION));
 }
 
 AsyncWebRequest& AsyncWebRequest::timeout(std::chrono::seconds seconds) {
