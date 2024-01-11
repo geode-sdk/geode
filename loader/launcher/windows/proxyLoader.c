@@ -1,5 +1,7 @@
 #include <Windows.h>
 #include <Xinput.h>
+#include <stdio.h>
+#include <inttypes.h>
 
 #ifndef MAX_PATH
     #define MAX_PATH 260
@@ -86,6 +88,7 @@ BOOL fileExists(char const* path) {
 #define TIMESTAMP_FOR_2_200 1702921605
 #define TIMESTAMP_FOR_2_201 1704582672
 #define TIMESTAMP_FOR_2_202 1704601266
+#define TIMESTAMP_FOR_2_203 1704948277
 
 #define GEODE_WRAPPER_CONCAT(x, y) x##y
 #define GEODE_CONCAT(x, y) GEODE_WRAPPER_CONCAT(x, y)
@@ -100,12 +103,15 @@ BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID _) {
     DisableThreadLibraryCalls(module);
 
     if (fileExists("Geode.dll")) {
-        if (getExeTimestamp() == TIMESTAMP) {
+        unsigned int timestamp = getExeTimestamp();
+        if (timestamp == TIMESTAMP) {
             // somehow, this works fine inside of dllmain :-)
             // yes, even on wine.
             LoadLibraryA("Geode.dll");
         } else {
-            MessageBoxA(NULL, "GD version mismatch, not loading Geode.", "Unable to load Geode!", MB_OK | MB_ICONWARNING);
+            char buffer[128];
+            sprintf_s(buffer, sizeof(buffer), "GD version mismatch, not loading Geode. (%" PRIu32 ")", timestamp);
+            MessageBoxA(NULL, buffer, "Unable to load Geode!", MB_OK | MB_ICONWARNING);
         }
     }
 

@@ -50,7 +50,7 @@ std::string loadGeode() {
 		MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE
 	);
 
-    static constexpr uintptr_t MAIN_OFFSET = 0x3bdfd0;
+    static constexpr uintptr_t MAIN_OFFSET = 0x3c0a00;
     auto patchAddr = geode::base::get() + MAIN_OFFSET;
 
     constexpr size_t patchSize = 6;
