@@ -255,6 +255,8 @@ if (MSVC)
 	if (DEFINED ENV{GEODE_CI})
 		target_link_options(${PROJECT_NAME} PRIVATE /INCREMENTAL:NO)
 	endif()
+
+	target_link_options(${PROJECT_NAME} PRIVATE /DELAYLOAD:libcocos2d.dll /DELAYLOAD:libExtensions.dll)
 endif()
 
 # Use precompiled headers for faster builds
