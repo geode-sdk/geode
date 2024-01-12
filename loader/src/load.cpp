@@ -18,10 +18,10 @@ using namespace geode::prelude;
 $execute {
     listenForSettingChanges("show-platform-console", +[](bool value) {
         if (value) {
-            Loader::get()->openPlatformConsole();
+            LoaderImpl::get()->openPlatformConsole();
         }
         else {
-            Loader::get()->closePlatformConsole();
+            LoaderImpl::get()->closePlatformConsole();
         }
     });
     
