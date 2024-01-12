@@ -46,12 +46,34 @@ std::string loadGeode() {
 
     constexpr size_t trampolineSize = 12;
     mainTrampolineAddr = VirtualAlloc(
-		nullptr, trampolineSize,
-		MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE
-	);
+        nullptr, trampolineSize,
+        MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE
+    );
 
-    static constexpr uintptr_t MAIN_OFFSET = 0x3c0a00;
-    auto patchAddr = geode::base::get() + MAIN_OFFSET;
+    auto dosHeader = reinterpret_cast<IMAGE_DOS_HEADER*>(geode::base::get());
+    auto ntHeader = reinterpret_cast<PIMAGE_NT_HEADERS>(geode::base::get() + dosHeader->e_lfanew);
+    auto entryAddr = geode::base::get() + ntHeader->OptionalHeader.AddressOfEntryPoint;
+    // function that calls main
+    auto preWinMainAddr = entryAddr + 5 + *reinterpret_cast<uintptr_t*>(entryAddr + 6) + 5;
+
+    // 6a 00           push 0
+    // 68 00 00 40 00  push geode::base::get()
+    // e8 ...          call ...
+    uint64_t mainSearchBytes = 0xe80000000068006a;
+    mainSearchBytes |= static_cast<uint64_t>(geode::base::get()) << 24;
+
+    uintptr_t patchAddr = 0;
+    // 0x10000 should be enough of a limit here..
+    for (auto searchAddr = preWinMainAddr; searchAddr < preWinMainAddr + 0x10000; searchAddr++) {
+        if (*reinterpret_cast<uint64_t*>(searchAddr) != mainSearchBytes)
+            continue;
+        // follow near call address, this is the call to main
+        patchAddr = searchAddr + 12 + *reinterpret_cast<ptrdiff_t*>(searchAddr + 8);
+        break;
+    }
+
+    if (patchAddr == 0)
+        return "Geode could not find the main function, not loading Geode.";
 
     constexpr size_t patchSize = 6;
 
@@ -84,7 +106,7 @@ std::string loadGeode() {
 
     DWORD oldProtect;
     if (!VirtualProtectEx(process, reinterpret_cast<void*>(patchAddr), patchSize, PAGE_EXECUTE_READWRITE, &oldProtect))
-        return "Geode could not hook the main function, not loading geode.";
+        return "Geode could not hook the main function, not loading Geode.";
     std::memcpy(reinterpret_cast<void*>(patchAddr), patchBytes, patchSize);
     VirtualProtectEx(process, reinterpret_cast<void*>(patchAddr), patchSize, oldProtect, &oldProtect);
     return "";
