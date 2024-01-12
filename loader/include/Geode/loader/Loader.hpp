@@ -72,6 +72,8 @@ namespace geode {
             Done
         };
 
+        bool isForwardCompatMode();
+
         // TODO: return void
         Result<> saveData();
         Result<> loadData();

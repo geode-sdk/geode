@@ -5,6 +5,15 @@ using namespace geode::prelude;
 #include <Geode/modify/AppDelegate.hpp>
 
 struct SaveLoader : Modify<SaveLoader, AppDelegate> {
+    static void onModify(const auto& self) {
+        if (!Loader::get()->isForwardCompatMode())
+            return;
+        log::warn("save disabled in forward compat");
+        for (const auto& [_, hook] : self.m_hooks) {
+            hook->setAutoEnable(false);
+        }
+    }
+
     void trySaveGame(bool p0) {
         log::info("Saving mod data...");
         log::pushNest();

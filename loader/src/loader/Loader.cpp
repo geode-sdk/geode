@@ -11,6 +11,10 @@ Loader* Loader::get() {
     return g_geode;
 }
 
+bool Loader::isForwardCompatMode() {
+    return m_impl->isForwardCompatMode();
+}
+
 void Loader::createDirectories() {
     return m_impl->createDirectories();
 }

@@ -37,6 +37,15 @@ Loader::Impl::~Impl() = default;
 
 // Initialization
 
+bool Loader::Impl::isForwardCompatMode() {
+    if (!m_forwardCompatModeSet) {
+        m_forwardCompatMode = !this->getGameVersion().empty() &&
+            this->getGameVersion() != GEODE_STR(GEODE_GD_VERSION);
+        m_forwardCompatModeSet = true;
+    }
+    return m_forwardCompatMode;
+}
+
 void Loader::Impl::createDirectories() {
 #ifdef GEODE_IS_MACOS
     ghc::filesystem::create_directory(dirs::getSaveDir());

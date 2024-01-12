@@ -58,10 +58,32 @@ $execute {
     });
 }
 
+void tryLogForwardCompat() {
+    if (!LoaderImpl::get()->isForwardCompatMode()) return;
+    log::warn("+-----------------------------------------------------------------------------------------------+");
+    log::warn("| Geode is running in a newer version of GD than Geode targets.                                 |");
+    log::warn("| UI is going to be disabled, platform console is forced on and crashes can be more common.     |");
+    log::warn("| However, if your game crashes, it is probably caused by an outdated mod and not Geode itself. |");
+    log::warn("+-----------------------------------------------------------------------------------------------+");
+}
+
 int geodeEntry(void* platformData) {
     log::Logger::get()->setup();
 
-    log::info("Running {} {}", Mod::get()->getName(), Mod::get()->getVersion());
+    std::string forwardCompatSuffix;
+    if (LoaderImpl::get()->isForwardCompatMode())
+        forwardCompatSuffix = " (forward compatibility mode)";
+
+    if (LoaderImpl::get()->getGameVersion().empty()) {
+        log::info("Running {} {}{}", Mod::get()->getName(), Mod::get()->getVersion(),
+            forwardCompatSuffix);
+    }
+    else {
+        log::info("Running {} {} in Geometry Dash v{}{}", Mod::get()->getName(),
+            Mod::get()->getVersion(), LoaderImpl::get()->getGameVersion(), forwardCompatSuffix);
+    }
+
+    tryLogForwardCompat();
 
     auto begin = std::chrono::high_resolution_clock::now();
 
@@ -81,7 +103,8 @@ int geodeEntry(void* platformData) {
     }
 
     // open console
-    if (Mod::get()->getSettingValue<bool>("show-platform-console")) {
+    if (LoaderImpl::get()->isForwardCompatMode() ||
+        Mod::get()->getSettingValue<bool>("show-platform-console")) {
         log::debug("Opening console");
         Loader::get()->openPlatformConsole();
     }
@@ -118,6 +141,9 @@ int geodeEntry(void* platformData) {
     auto end = std::chrono::high_resolution_clock::now();
     auto time = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
     log::info("Entry took {}s", static_cast<float>(time) / 1000.f);
+
+    // also log after entry so that users are more likely to notice
+    tryLogForwardCompat();
 
     return 0;
 }

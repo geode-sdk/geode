@@ -29,10 +29,27 @@ void updateGeode() {
 
 void* mainTrampolineAddr;
 
+#include "gdTimestampMap.hpp"
+unsigned int gdTimestamp = 0;
+
 int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow) {
     // MessageBoxA(NULL, "Hello from gdMainHook!", "Hi", 0);
 
     updateGeode();
+
+    if (versionToTimestamp(GEODE_STR(GEODE_GD_VERSION)) > gdTimestamp) {
+        LoaderImpl::get()->platformMessageBox(
+            "Unable to Load Geode!",
+            fmt::format(
+                "This version of Geode is made for Geometry Dash {} "
+                "but you're trying to play with GD {}."
+                "Please, update your game or install an older version of Geode.",
+                GEODE_STR(GEODE_GD_VERSION),
+                LoaderImpl::get()->getGameVersion()
+            )
+        );
+        return 2;
+    }
 
     int exitCode = geodeEntry(hInstance);
     if (exitCode != 0)
@@ -43,6 +60,10 @@ int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 std::string loadGeode() {
     auto process = GetCurrentProcess();
+    auto dosHeader = reinterpret_cast<IMAGE_DOS_HEADER*>(geode::base::get());
+    auto ntHeader = reinterpret_cast<PIMAGE_NT_HEADERS>(geode::base::get() + dosHeader->e_lfanew);
+
+    gdTimestamp = ntHeader->FileHeader.TimeDateStamp;
 
     constexpr size_t trampolineSize = 12;
     mainTrampolineAddr = VirtualAlloc(
@@ -50,8 +71,6 @@ std::string loadGeode() {
         MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE
     );
 
-    auto dosHeader = reinterpret_cast<IMAGE_DOS_HEADER*>(geode::base::get());
-    auto ntHeader = reinterpret_cast<PIMAGE_NT_HEADERS>(geode::base::get() + dosHeader->e_lfanew);
     auto entryAddr = geode::base::get() + ntHeader->OptionalHeader.AddressOfEntryPoint;
     // function that calls main
     auto preWinMainAddr = entryAddr + 5 + *reinterpret_cast<uintptr_t*>(entryAddr + 6) + 5;
@@ -124,37 +143,6 @@ void earlyError(std::string message) {
     fout << message;
     fout.close();
     LoaderImpl::get()->platformMessageBox("Unable to Load Geode!", message);
-}
-
-DWORD WINAPI sus(void*) {
-    ShellExecuteA(nullptr, nullptr, "https://media.tenor.com/cW1jA2hYdfcAAAAC/among-us-funny.gif", nullptr, nullptr, SW_SHOW);
-    MessageBoxA(
-        nullptr,
-        "Red sus. Red suuuus. I\r\n"
-        "said red, sus,\r\n"
-        "hahahahahaha. Why\r\n"
-        "arent you laughing? I\r\n"
-        "just made a reference\r\n"
-        "to the popular game\r\n"
-        "\"Among Us\"! How can\r\n"
-        "you not laugh at it?\r\n"
-        "Emergency meeting!\r\n"
-        "Guys, this here guy\r\n"
-        "doesn't laugh at my\r\n"
-        "funny Among Us\r\n"
-        "memes! Let's beat him\r\n"
-        "to death! Dead body\r\n"
-        "reported! Skip! Skip!\r\n"
-        "Vote blue! Blue was\r\n"
-        "not an impostor.\r\n",
-        "AMONG US ACTIVATED REAL !!!!!!!!!",
-        MB_OK
-    );
-    return 0;
-}
-extern "C" __declspec(dllexport) void fake() {
-    for (int i = 0; i < 5; i++)
-        CreateThread(nullptr, 0, sus, nullptr, 0, nullptr);
 }
 
 BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID) {

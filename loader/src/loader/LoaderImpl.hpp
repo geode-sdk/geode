@@ -55,6 +55,10 @@ namespace geode {
     public:
         mutable std::mutex m_mutex;
 
+        bool m_forwardCompatModeSet = false;
+        std::string m_gdVersion;
+        bool m_forwardCompatMode = false;
+
         std::vector<ghc::filesystem::path> m_modSearchDirectories;
         std::vector<LoadProblem> m_problems;
         std::unordered_map<std::string, Mod*> m_mods;
@@ -90,6 +94,9 @@ namespace geode {
         int m_lateRefreshedModCount = 0;
 
         std::chrono::time_point<std::chrono::high_resolution_clock> m_timerBegin;
+
+        std::string getGameVersion();
+        bool isForwardCompatMode();
 
         void provideNextMod(Mod* mod);
         Mod* takeNextMod();

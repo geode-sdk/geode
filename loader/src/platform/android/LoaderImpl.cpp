@@ -23,6 +23,13 @@ namespace {
     }
 }
 
+std::string Loader::Impl::getGameVersion() {
+    if (m_gdVersion.empty()) {
+        // TODO: detect gd version
+    }
+    return m_gdVersion;
+}
+
 void Loader::Impl::platformMessageBox(char const* title, std::string const& info) {
     cocos2d::CCMessageBox(info.c_str(), title);
 }

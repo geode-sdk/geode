@@ -49,6 +49,13 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         if (!self.setHookPriority("MenuLayer::init", geode::node_ids::GEODE_ID_PRIORITY)) {
             log::warn("Failed to set MenuLayer::init hook priority, node IDs may not work properly");
         }
+
+        if (!Loader::get()->isForwardCompatMode())
+            return;
+        log::warn("MenuLayer stuff disabled in forward compat");
+        for (const auto& [_, hook] : self.m_hooks) {
+            hook->setAutoEnable(false);
+        }
     }
 
     CCSprite* m_geodeButton;
@@ -63,7 +70,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         auto winSize = CCDirector::sharedDirector()->getWinSize();
 
         // add geode button
-        
+
         m_fields->m_geodeButton = CircleButtonSprite::createWithSpriteFrameName(
             "geode-logo-outline-gold.png"_spr,
             1.0f,

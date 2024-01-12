@@ -14,6 +14,17 @@ using namespace geode::prelude;
 
 static constexpr auto IPC_BUFFER_SIZE = 512;
 
+#include "gdTimestampMap.hpp"
+std::string Loader::Impl::getGameVersion() {
+    if (m_gdVersion.empty()) {
+        auto dosHeader = reinterpret_cast<IMAGE_DOS_HEADER*>(geode::base::get());
+        auto ntHeader = reinterpret_cast<PIMAGE_NT_HEADERS>(geode::base::get() + dosHeader->e_lfanew);
+        auto timestamp = ntHeader->FileHeader.TimeDateStamp;
+        m_gdVersion = timestampToVersion(timestamp);
+    }
+    return m_gdVersion;
+}
+
 void Loader::Impl::platformMessageBox(char const* title, std::string const& info) {
     MessageBoxA(nullptr, info.c_str(), title, MB_ICONERROR);
 }

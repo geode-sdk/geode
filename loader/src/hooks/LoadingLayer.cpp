@@ -1,5 +1,6 @@
 
 #include <Geode/modify/LoadingLayer.hpp>
+#include <Geode/modify/CCLayer.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <array>
 #include <fmt/format.h>
@@ -12,6 +13,15 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     CCLabelBMFont* m_smallLabel2 = nullptr;
     int m_geodeLoadStep = 0;
     int m_totalMods = 0;
+
+    static void onModify(const auto& self) {
+        if (!Loader::get()->isForwardCompatMode())
+            return;
+        log::warn("Switching to fallback custom loading layer in forward compat");
+        for (const auto& [_, hook] : self.m_hooks) {
+            hook->setAutoEnable(false);
+        }
+    }
 
     void updateLoadedModsLabel() {
         auto allMods = Loader::get()->getAllMods();
@@ -158,9 +168,9 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
         }
         return !m_fromRefresh;
     }
-    
+
     // hook
-    void loadAssets() {        
+    void loadAssets() {
         switch (m_fields->m_geodeLoadStep) {
         case 0:
             if (this->skipOnRefresh()) this->setupLoadingMods();
@@ -178,5 +188,40 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
             break;
         }
         this->updateLoadingBar();
+    }
+};
+
+struct FallbackCustomLoadingLayer : Modify<FallbackCustomLoadingLayer, CCLayer> {
+    static void onModify(const auto& self) {
+        if (Loader::get()->isForwardCompatMode())
+            return;
+        for (const auto& [_, hook] : self.m_hooks) {
+            hook->setAutoEnable(false);
+        }
+    }
+
+    bool init() {
+        if (!CCLayer::init())
+            return false;
+        if (!typeinfo_cast<LoadingLayer*>(this))
+            return true;
+
+        auto winSize = CCDirector::sharedDirector()->getWinSize();
+
+        auto label = CCLabelBMFont::create(
+            "Loading Geode without UI, see console for details.",
+            "goldFont.fnt"
+        );
+        label->setPosition(winSize.width / 2, 30.f);
+        label->setScale(.45f);
+        label->setZOrder(99);
+        label->setID("geode-small-label");
+        this->addChild(label);
+
+        // TODO: verify loader resources on fallback?
+
+        Loader::get()->updateResources(true);
+
+        return true;
     }
 };
