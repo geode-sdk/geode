@@ -105,10 +105,6 @@ void Loader::Impl::addSearchPaths() {
     CCFileUtils::get()->addPriorityPath(dirs::getModRuntimeDir().string().c_str());
 }
 
-void Loader::Impl::updateResources() {
-    this->updateResources(true);
-}
-
 void Loader::Impl::updateResources(bool forceReload) {
     log::debug("Adding resources");
     log::pushNest();
@@ -154,7 +150,7 @@ bool Loader::Impl::isModVersionSupported(VersionInfo const& version) {
 
 // Data saving
 
-Result<> Loader::Impl::saveData() {
+void Loader::Impl::saveData() {
     for (auto& [id, mod] : m_mods) {
         log::debug("{}", mod->getID());
         log::pushNest();
@@ -164,10 +160,9 @@ Result<> Loader::Impl::saveData() {
         }
         log::popNest();
     }
-    return Ok();
 }
 
-Result<> Loader::Impl::loadData() {
+void Loader::Impl::loadData() {
     for (auto& [_, mod] : m_mods) {
         log::debug("{}", mod->getID());
         log::pushNest();
@@ -177,7 +172,6 @@ Result<> Loader::Impl::loadData() {
         }
         log::popNest();
     }
-    return Ok();
 }
 
 // Mod loading
@@ -669,12 +663,6 @@ std::vector<LoadProblem> Loader::Impl::getProblems() const {
     return m_problems;
 }
 
-void Loader::Impl::waitForModsToBeLoaded() {
-    log::debug("Waiting for mods to be loaded...");
-    // genius
-    log::warn("waitForModsToBeLoaded() does not wait for mods to be loaded!");
-}
-
 bool Loader::Impl::didLastLaunchCrash() const {
     return crashlog::didLastLaunchCrash();
 }
@@ -713,17 +701,17 @@ bool Loader::Impl::loadHooks() {
 }
 
 void Loader::Impl::queueInMainThread(ScheduledFunction func) {
-    std::lock_guard<std::mutex> lock(m_gdThreadMutex);
-    m_gdThreadQueue.push_back(func);
+    std::lock_guard<std::mutex> lock(m_mainThreadMutex);
+    m_mainThreadQueue.push_back(func);
 }
 
 void Loader::Impl::executeGDThreadQueue() {
     // copy queue to avoid locking mutex if someone is
     // running addToGDThread inside their function
-    m_gdThreadMutex.lock();
-    auto queue = m_gdThreadQueue;
-    m_gdThreadQueue.clear();
-    m_gdThreadMutex.unlock();
+    m_mainThreadMutex.lock();
+    auto queue = m_mainThreadQueue;
+    m_mainThreadQueue.clear();
+    m_mainThreadMutex.unlock();
 
     // call queue
     for (auto const& func : queue) {

@@ -73,8 +73,8 @@ namespace geode {
 
         LoadingState m_loadingState;
 
-        std::vector<utils::MiniFunction<void(void)>> m_gdThreadQueue;
-        mutable std::mutex m_gdThreadMutex;
+        std::vector<utils::MiniFunction<void(void)>> m_mainThreadQueue;
+        mutable std::mutex m_mainThreadMutex;
         std::vector<std::pair<Hook*, Mod*>> m_uninitializedHooks;
         bool m_readyToHook = false;
 
@@ -132,8 +132,8 @@ namespace geode {
         Result<> setup();
         void forceReset();
 
-        Result<> saveData();
-        Result<> loadData();
+        void saveData();
+        void loadData();
 
         VersionInfo getVersion();
         VersionInfo minModVersion();
@@ -155,10 +155,7 @@ namespace geode {
         std::vector<Mod*> getAllMods();
         std::vector<LoadProblem> getProblems() const;
 
-        void updateResources();
         void updateResources(bool forceReload);
-
-        void waitForModsToBeLoaded();
 
         bool didLastLaunchCrash() const;
 

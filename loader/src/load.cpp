@@ -106,7 +106,7 @@ int geodeEntry(void* platformData) {
     if (LoaderImpl::get()->isForwardCompatMode() ||
         Mod::get()->getSettingValue<bool>("show-platform-console")) {
         log::debug("Opening console");
-        Loader::get()->openPlatformConsole();
+        LoaderImpl::get()->openPlatformConsole();
     }
 
     // set up loader, load mods, etc.

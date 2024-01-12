@@ -132,7 +132,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     void setupModResources() {
         log::debug("Loading mod resources");
         this->setSmallText("Loading mod resources");
-        Loader::get()->updateResources(true);
+        LoaderImpl::get()->updateResources(true);
         this->continueLoadAssets();
     }
     
@@ -220,7 +220,7 @@ struct FallbackCustomLoadingLayer : Modify<FallbackCustomLoadingLayer, CCLayer> 
 
         // TODO: verify loader resources on fallback?
 
-        Loader::get()->updateResources(true);
+        LoaderImpl::get()->updateResources(true);
 
         return true;
     }
