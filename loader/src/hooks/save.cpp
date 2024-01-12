@@ -3,18 +3,10 @@
 using namespace geode::prelude;
 
 #include <Geode/modify/AppDelegate.hpp>
+#include <Geode/modify/CCApplication.hpp>
 
-struct SaveLoader : Modify<SaveLoader, AppDelegate> {
-    static void onModify(const auto& self) {
-        if (!Loader::get()->isForwardCompatMode())
-            return;
-        log::warn("save disabled in forward compat");
-        for (const auto& [_, hook] : self.m_hooks) {
-            hook->setAutoEnable(false);
-        }
-    }
-
-    void trySaveGame(bool p0) {
+namespace {
+    void saveModData() {
         log::info("Saving mod data...");
         log::pushNest();
 
@@ -27,7 +19,36 @@ struct SaveLoader : Modify<SaveLoader, AppDelegate> {
         log::info("Took {}s", static_cast<float>(time) / 1000.f);
 
         log::popNest();
+    }
+}
 
+struct SaveLoader : Modify<SaveLoader, AppDelegate> {
+    static void onModify(const auto& self) {
+        if (!Loader::get()->isForwardCompatMode())
+            return;
+        log::warn("save moved in forward compat");
+        for (const auto& [_, hook] : self.m_hooks) {
+            hook->setAutoEnable(false);
+        }
+    }
+
+    void trySaveGame(bool p0) {
+        saveModData();
         return AppDelegate::trySaveGame(p0);
+    }
+};
+
+struct FallbackSaveLoader : Modify<FallbackSaveLoader, CCApplication> {
+    static void onModify(const auto& self) {
+        if (Loader::get()->isForwardCompatMode())
+            return;
+        for (const auto& [_, hook] : self.m_hooks) {
+            hook->setAutoEnable(false);
+        }
+    }
+
+    void gameDidSave() {
+        saveModData();
+        return CCApplication::gameDidSave();
     }
 };
