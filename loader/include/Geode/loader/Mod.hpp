@@ -313,20 +313,13 @@ namespace geode {
          */
         Result<> disable();
 
-        // TODO: in 2.0.0 make this use an optional arg instead
-        /**
-         * Delete the mod's .geode package.
-         * @returns Successful result on success,
-         * errorful result with info on error
-         */
-        Result<> uninstall();
         /**
          * Delete the mod's .geode package.
          * @param deleteSaveData Whether should also delete the mod's save data
          * @returns Successful result on success,
          * errorful result with info on error
          */
-        Result<> uninstall(bool deleteSaveData);
+        Result<> uninstall(bool deleteSaveData = false);
         bool isUninstalled() const;
 
         ModRequestedAction getRequestedAction() const;

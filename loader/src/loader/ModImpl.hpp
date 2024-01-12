@@ -123,7 +123,7 @@ namespace geode {
         Result<> unpatch(Patch* patch);
         Result<> enable();
         Result<> disable();
-        Result<> uninstall(bool deleteSaveData);
+        Result<> uninstall(bool deleteSaveData = false);
         bool isUninstalled() const;
 
         // 1.3.0 additions

@@ -157,9 +157,6 @@ Result<> Mod::disable() {
     return m_impl->disable();
 }
 
-Result<> Mod::uninstall() {
-    return m_impl->uninstall(false);
-}
 Result<> Mod::uninstall(bool deleteSaveData) {
     return m_impl->uninstall(deleteSaveData);
 }
