@@ -7,7 +7,6 @@
 #include <unordered_set>
 #include <set>
 #include <vector>
-#include <memory>
 
 namespace geode::base {
     uintptr_t get();
@@ -286,7 +285,9 @@ namespace gd {
                 m_start = this->allocator().allocate(input.size());
                 m_finish = m_start + input.size();
                 m_reserveEnd = m_start + input.size();
-                std::construct_at(m_start, input.begin(), input.end());
+
+                std::uninitialized_default_construct(m_start, m_finish);
+                std::copy(input.begin(), input.end(), m_start);
             }
         }
 
@@ -295,7 +296,9 @@ namespace gd {
                 m_start = this->allocator().allocate(input.size());
                 m_finish = m_start + input.size();
                 m_reserveEnd = m_start + input.size();
-                std::construct_at(m_start, input.begin(), input.end());
+
+                std::uninitialized_default_construct(m_start, m_finish);
+                std::copy(input.begin(), input.end(), m_start);
             }
         }
 
@@ -341,7 +344,8 @@ namespace gd {
                 m_finish = m_start + input.size();
                 m_reserveEnd = m_start + input.size();
 
-                std::construct_at(m_start, input.begin(), input.end());
+                std::uninitialized_default_construct(m_start, m_finish);
+                std::copy(input.begin(), input.end(), m_start);
             }
         }
 
