@@ -124,7 +124,18 @@ namespace geode::modifier {
         }
 
         Parent* operator->() {
+            // workaround for "static assertion is not an integral constant expression" in CLion
+            // while the solution in https://github.com/microsoft/STL/issues/3311 works, you can't provide
+            // cli args to clang-tidy in clion, so we use this workaround instead
+            // https://youtrack.jetbrains.com/issue/CPP-27446/spurious-offsetof-in-staticassert-error-from-clangd#focus=Comments-27-8172811.0-0
+            // update: that workaround didn't work,
+            // undefining and re-defining offsetof caused another error further down
+            // so we're doing this now
+#ifdef __CLION_IDE__
+            return reinterpret_cast<Parent*>(69420);
+#else
             return this->operator Parent*();
+#endif
         }
     };
 
