@@ -73,8 +73,6 @@ namespace geode {
         std::vector<std::pair<Hook*, Mod*>> m_uninitializedHooks;
         bool m_readyToHook = false;
 
-        void* m_platformData = nullptr;
-
         std::mutex m_nextModMutex;
         std::unique_lock<std::mutex> m_nextModLock = std::unique_lock<std::mutex>(m_nextModMutex, std::defer_lock);
         std::condition_variable m_nextModCV;
