@@ -5,6 +5,7 @@
 #include <fmt/format.h>
 #include <loader/LoaderImpl.hpp>
 #include <loader/console.hpp>
+#include <loader/updater.hpp>
 
 using namespace geode::prelude;
 
@@ -77,7 +78,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
         this->setSmallText("Verifying Loader Resources");
         // verify loader resources
         Loader::get()->queueInMainThread([&]() {
-            if (!LoaderImpl::get()->verifyLoaderResources()) {
+            if (!updater::verifyLoaderResources()) {
                 log::debug("Downloading Loader Resources");
                 this->setSmallText("Downloading Loader Resources");
                 this->addChild(EventListenerNode<ResourceDownloadFilter>::create(
@@ -87,7 +88,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
             else {
                 log::debug("Loading Loader Resources");
                 this->setSmallText("Loading Loader Resources");
-                LoaderImpl::get()->updateSpecialFiles();
+                updater::updateSpecialFiles();
                 this->continueLoadAssets();
             }
         });

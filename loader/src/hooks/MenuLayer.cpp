@@ -1,4 +1,3 @@
-
 #include "../ui/internal/list/ModListLayer.hpp"
 
 #include <Geode/loader/Index.hpp>
@@ -7,13 +6,13 @@
 #include <Geode/modify/IDManager.hpp>
 #include <Geode/utils/NodeIDs.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
-#include <Geode/ui/GeodeUI.hpp>
 #include <Geode/ui/Notification.hpp>
 #include <Geode/ui/Popup.hpp>
 #include <Geode/ui/MDPopup.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <loader/ModImpl.hpp>
 #include <loader/LoaderImpl.hpp>
+#include <loader/updater.hpp>
 
 using namespace geode::prelude;
 
@@ -129,7 +128,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 
         // show auto update message
         static bool shownUpdateInfo = false;
-        if (LoaderImpl::get()->isNewUpdateDownloaded() && !shownUpdateInfo) {
+        if (updater::isNewUpdateDownloaded() && !shownUpdateInfo) {
             shownUpdateInfo = true;
             auto popup = FLAlertLayer::create(
                 "Update downloaded",

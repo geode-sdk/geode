@@ -4,11 +4,11 @@
 
 using namespace geode::prelude;
 
-bool isOpen = false;
-bool hasAnsiColorSupport = false;
+bool s_isOpen = false;
+bool s_hasAnsiColorSupport = false;
 
 void console::open() {
-    if (isOpen) return;
+    if (s_isOpen) return;
     if (AllocConsole() == 0) return;
     SetConsoleCP(CP_UTF8);
     // redirect console output
@@ -22,11 +22,11 @@ void console::open() {
     if (GetConsoleMode(handleStdout, &consoleMode)) {
         consoleMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
         if (SetConsoleMode(handleStdout, consoleMode)) {
-            hasAnsiColorSupport = true;
+            s_hasAnsiColorSupport = true;
         }
     }
 
-    isOpen = true;
+    s_isOpen = true;
 
     for (auto const& log : log::Logger::get()->list()) {
         console::log(log.toString(true), log.getSeverity());
@@ -34,20 +34,20 @@ void console::open() {
 }
 
 void console::close() {
-    if (!isOpen) return;
+    if (!s_isOpen) return;
 
     fclose(stdin);
     fclose(stdout);
     FreeConsole();
 
-    isOpen = false;
+    s_isOpen = false;
 }
 
 void console::log(std::string const& msg, Severity severity) {
-    if (!isOpen)
+    if (!s_isOpen)
         return;
 
-    if (!hasAnsiColorSupport) {
+    if (!s_hasAnsiColorSupport) {
         std::cout << msg << "\n" << std::flush;
         return;
     }

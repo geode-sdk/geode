@@ -1,6 +1,7 @@
 #include <loader/LoaderImpl.hpp>
 #include <loader/console.hpp>
 #include <loader/IPC.hpp>
+#include <loader/updater.hpp>
 
 #include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Loader.hpp>
@@ -162,7 +163,7 @@ int geodeEntry(void* platformData) {
     // download and install new loader update in the background
     if (Mod::get()->getSettingValue<bool>("auto-check-updates")) {
         log::info("Starting loader update check");
-        LoaderImpl::get()->checkForLoaderUpdates();
+        updater::checkForLoaderUpdates();
     }
     else {
         log::info("Skipped loader update check");

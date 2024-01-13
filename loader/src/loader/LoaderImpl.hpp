@@ -66,11 +66,6 @@ namespace geode {
         std::vector<ghc::filesystem::path> m_texturePaths;
         bool m_isSetup = false;
 
-        // cache for the json of the latest github release to avoid hitting 
-        // the github api too much
-        std::optional<matjson::Value> m_latestGithubRelease;
-        bool m_isNewUpdateDownloaded = false;
-
         LoadingState m_loadingState;
 
         std::vector<utils::MiniFunction<void(void)>> m_mainThreadQueue;
@@ -107,15 +102,6 @@ namespace geode {
         bool hasHandler(void* address);
         Result<tulip::hook::HandlerHandle> getHandler(void* address);
         Result<> removeHandler(void* address);
-
-        void updateSpecialFiles();
-        void tryDownloadLoaderResources(std::string const& url, bool tryLatestOnError = true);
-        void downloadLoaderResources(bool useLatestRelease = false);
-        void downloadLoaderUpdate(std::string const& url);
-        void fetchLatestGithubRelease(
-            utils::MiniFunction<void(matjson::Value const&)> then,
-            utils::MiniFunction<void(std::string const&)> expect
-        );
 
         bool loadHooks();
 
@@ -159,10 +145,6 @@ namespace geode {
 
         void queueInMainThread(ScheduledFunction func);
         void executeGDThreadQueue();
-
-        bool verifyLoaderResources();
-        void checkForLoaderUpdates();
-        bool isNewUpdateDownloaded() const;
 
         bool isReadyToHook() const;
         void addUninitializedHook(Hook* hook, Mod* mod);
