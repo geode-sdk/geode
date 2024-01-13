@@ -30,7 +30,7 @@ std::string Loader::Impl::getGameVersion() {
     return m_gdVersion;
 }
 
-void Loader::Impl::platformMessageBox(char const* title, std::string const& info) {
+void Loader::Impl::platformMessageBox(char const* title, std::string const& info, Severity severity) {
     cocos2d::CCMessageBox(info.c_str(), title);
 }
 
