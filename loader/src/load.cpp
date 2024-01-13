@@ -1,5 +1,6 @@
 #include <loader/LoaderImpl.hpp>
 #include <loader/console.hpp>
+#include <loader/IPC.hpp>
 
 #include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Loader.hpp>
@@ -26,15 +27,15 @@ $execute {
         }
     });
     
-    listenForIPC("ipc-test", [](IPCEvent* event) -> matjson::Value {
+    ipc::listen("ipc-test", [](ipc::IPCEvent* event) -> matjson::Value {
         return "Hello from Geode!";
     });
 
-    listenForIPC("loader-info", [](IPCEvent* event) -> matjson::Value {
+    ipc::listen("loader-info", [](ipc::IPCEvent* event) -> matjson::Value {
         return Mod::get()->getMetadata();
     });
 
-    listenForIPC("list-mods", [](IPCEvent* event) -> matjson::Value {
+    ipc::listen("list-mods", [](ipc::IPCEvent* event) -> matjson::Value {
         std::vector<matjson::Value> res;
 
         auto args = *event->messageData;
@@ -153,7 +154,10 @@ int geodeEntry(void* platformData) {
 
     crashlog::setupPlatformHandlerPost();
 
-    log::info("Set up loader");
+    log::debug("Setting up IPC");
+    log::pushNest();
+    ipc::setup();
+    log::popNest();
 
     // download and install new loader update in the background
     if (Mod::get()->getSettingValue<bool>("auto-check-updates")) {

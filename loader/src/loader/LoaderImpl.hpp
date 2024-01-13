@@ -78,7 +78,6 @@ namespace geode {
         std::vector<std::pair<Hook*, Mod*>> m_uninitializedHooks;
         bool m_readyToHook = false;
 
-        bool m_platformConsoleOpen = false;
         void* m_platformData = nullptr;
 
         std::mutex m_nextModMutex;
@@ -119,7 +118,6 @@ namespace geode {
         );
 
         bool loadHooks();
-        void setupIPC();
 
         Impl();
         ~Impl();
@@ -158,8 +156,6 @@ namespace geode {
         void updateResources(bool forceReload);
 
         bool didLastLaunchCrash() const;
-
-        matjson::Value processRawIPC(void* rawHandle, std::string const& buffer);
 
         void queueInMainThread(ScheduledFunction func);
         void executeGDThreadQueue();

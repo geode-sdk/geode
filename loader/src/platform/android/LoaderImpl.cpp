@@ -10,10 +10,6 @@ std::string Loader::Impl::getGameVersion() {
     return m_gdVersion;
 }
 
-void Loader::Impl::setupIPC() {
-    log::warn("IPC is not supported on this platform!");
-}
-
 bool Loader::Impl::userTriedToLoadDLLs() const {
     return false;
 }

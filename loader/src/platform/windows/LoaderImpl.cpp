@@ -8,8 +8,6 @@ using namespace geode::prelude;
 
 #include <Psapi.h>
 
-static constexpr auto IPC_BUFFER_SIZE = 512;
-
 #include "gdTimestampMap.hpp"
 std::string Loader::Impl::getGameVersion() {
     if (m_gdVersion.empty()) {
@@ -19,71 +17,6 @@ std::string Loader::Impl::getGameVersion() {
         m_gdVersion = timestampToVersion(timestamp);
     }
     return m_gdVersion;
-}
-
-void ipcPipeThread(HANDLE pipe) {
-    char buffer[IPC_BUFFER_SIZE * sizeof(TCHAR)];
-    DWORD read;
-
-    std::optional<std::string> replyID = std::nullopt;
-
-    // log::debug("Waiting for I/O");
-    if (ReadFile(pipe, buffer, sizeof(buffer) - 1, &read, nullptr)) {
-        buffer[read] = '\0';
-
-        std::string reply = LoaderImpl::get()->processRawIPC((void*)pipe, buffer).dump();
-
-        DWORD written;
-        WriteFile(pipe, reply.c_str(), reply.size(), &written, nullptr);
-    }
-    // log::debug("Connection done");
-
-    FlushFileBuffers(pipe);
-    DisconnectNamedPipe(pipe);
-    CloseHandle(pipe);
-
-    // log::debug("Disconnected pipe");
-}
-
-void Loader::Impl::setupIPC() {
-    std::thread ipcThread([]() {
-        while (true) {
-            auto pipe = CreateNamedPipeA(
-                IPC_PIPE_NAME,
-                PIPE_ACCESS_DUPLEX,
-                PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT,
-                PIPE_UNLIMITED_INSTANCES,
-                IPC_BUFFER_SIZE,
-                IPC_BUFFER_SIZE,
-                NMPWAIT_USE_DEFAULT_WAIT,
-                nullptr
-            );
-            if (pipe == INVALID_HANDLE_VALUE) {
-                // todo: Rn this quits IPC, but we might wanna change that later
-                // to just continue trying. however, I'm assuming that if
-                // CreateNamedPipeA fails, then it will probably fail again if
-                // you try right after, so changing the break; to continue; might
-                // just result in the console getting filled with error messages
-                log::warn("Unable to create pipe, quitting IPC");
-                break;
-            }
-            // log::debug("Waiting for pipe connections");
-            if (ConnectNamedPipe(pipe, nullptr)) {
-                // log::debug("Got connection, creating thread");
-                std::thread pipeThread(&ipcPipeThread, pipe);
-                // SetThreadDescription(pipeThread.native_handle(), L"Geode IPC Pipe");
-                pipeThread.detach();
-            }
-            else {
-                // log::debug("No connection, cleaning pipe");
-                CloseHandle(pipe);
-            }
-        }
-    });
-    // SetThreadDescription(ipcThread.native_handle(), L"Geode Main IPC");
-    ipcThread.detach();
-
-    log::debug("IPC set up");
 }
 
 bool Loader::Impl::userTriedToLoadDLLs() const {

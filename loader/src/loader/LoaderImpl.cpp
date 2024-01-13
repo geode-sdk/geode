@@ -83,11 +83,6 @@ Result<> Loader::Impl::setup() {
     }
     log::popNest();
 
-    log::debug("Setting up IPC");
-    log::pushNest();
-    this->setupIPC();
-    log::popNest();
-
     log::debug("Setting up directories");
     log::pushNest();
     this->createDirectories();
@@ -1000,35 +995,6 @@ void Loader::Impl::checkForLoaderUpdates() {
 
 bool Loader::Impl::isNewUpdateDownloaded() const {
     return m_isNewUpdateDownloaded;
-}
-    
-matjson::Value Loader::Impl::processRawIPC(void* rawHandle, std::string const& buffer) {
-    matjson::Value reply;
-
-    matjson::Value json;
-    try {
-        json = matjson::parse(buffer);
-    } catch (...) {
-        log::warn("Received IPC message that isn't valid JSON");
-        return reply;
-    }
-
-    if (!json.contains("mod") || !json["mod"].is_string()) {
-        log::warn("Received IPC message without 'mod' field");
-        return reply;
-    }
-    if (!json.contains("message") || !json["message"].is_string()) {
-        log::warn("Received IPC message without 'message' field");
-        return reply;
-    }
-    matjson::Value data;
-    if (json.contains("data")) {
-        data = json["data"];
-    }
-    // log::debug("Posting IPC event");
-    // ! warning: if the event system is ever made asynchronous this will break!
-    IPCEvent(rawHandle, json["mod"].as_string(), json["message"].as_string(), data, reply).post();
-    return reply;
 }
 
 ResourceDownloadEvent::ResourceDownloadEvent(
