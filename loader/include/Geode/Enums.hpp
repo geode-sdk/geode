@@ -156,7 +156,10 @@ enum class CommentKeyType {
     User = 1,
     LevelList = 2
 };
-enum class LevelLeaderboardMode {};
+enum class LevelLeaderboardMode {
+    Time = 0,
+    Points = 1
+};
 enum class StatKey {};
 enum class TextStyleType {};
 enum class InputValueType {};
