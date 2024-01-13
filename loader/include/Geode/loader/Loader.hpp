@@ -85,8 +85,6 @@ namespace geode {
 
         void queueInMainThread(ScheduledFunction func);
 
-        bool didLastLaunchCrash() const;
-
         friend class LoaderImpl;
 
         friend Mod* takeNextLoaderMod();

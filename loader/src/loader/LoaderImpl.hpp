@@ -141,8 +141,6 @@ namespace geode {
 
         void updateResources(bool forceReload);
 
-        bool didLastLaunchCrash() const;
-
         void queueInMainThread(ScheduledFunction func);
         void executeGDThreadQueue();
 

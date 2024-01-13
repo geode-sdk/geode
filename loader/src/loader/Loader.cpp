@@ -73,10 +73,6 @@ void Loader::queueInMainThread(ScheduledFunction func) {
     return m_impl->queueInMainThread(std::move(func));
 }
 
-bool Loader::didLastLaunchCrash() const {
-    return m_impl->didLastLaunchCrash();
-}
-
 Mod* Loader::takeNextMod() {
     return m_impl->takeNextMod();
 }

@@ -659,10 +659,6 @@ std::vector<LoadProblem> Loader::Impl::getProblems() const {
     return m_problems;
 }
 
-bool Loader::Impl::didLastLaunchCrash() const {
-    return crashlog::didLastLaunchCrash();
-}
-
 void Loader::Impl::forceReset() {
     console::close();
     for (auto& [_, mod] : m_mods) {

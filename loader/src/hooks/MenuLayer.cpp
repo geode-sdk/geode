@@ -146,7 +146,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         // show crash info
         static bool shownLastCrash = false;
         if (
-            Loader::get()->didLastLaunchCrash() &&
+            crashlog::didLastLaunchCrash() &&
             !shownLastCrash &&
             !Mod::get()->template getSettingValue<bool>("disable-last-crashed-popup")
         ) {
