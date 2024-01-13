@@ -130,7 +130,7 @@ namespace geode {
 // with an error of "incomplete type is not allowed", despite not being an issue in actual compilation.
 // So as a workaround use the compiler defined "__INTELLISENSE__" macro, which gets set to 1 on the intellisense pass.
 // See https://learn.microsoft.com/en-us/cpp/preprocessor/predefined-macros?view=msvc-170#microsoft-specific-predefined-macros
-#if __INTELLISENSE__ != 1
+#if __INTELLISENSE__ != 1 && !defined(__CLION_IDE__)
 
     template <class Derived, class Base>
     class Modify : public Base {
@@ -189,7 +189,7 @@ namespace geode {
  * I am bad at this stuff
  */
 
-#if __INTELLISENSE__ != 1
+#if __INTELLISENSE__ != 1 && !defined(__CLION_IDE__)
 
 #define GEODE_MODIFY_DECLARE_ANONYMOUS(base, derived) \
     derived##Dummy;                                   \
