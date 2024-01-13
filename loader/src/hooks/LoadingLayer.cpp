@@ -1,10 +1,10 @@
-
 #include <Geode/modify/LoadingLayer.hpp>
 #include <Geode/modify/CCLayer.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <array>
 #include <fmt/format.h>
 #include <loader/LoaderImpl.hpp>
+#include <loader/console.hpp>
 
 using namespace geode::prelude;
 
@@ -107,7 +107,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
             },
             [&](UpdateFailed const& error) {
                 log::debug("Failed Loader Resources");
-                LoaderImpl::get()->platformMessageBox(
+                console::messageBox(
                     "Error updating resources",
                     error + ".\n"
                     "You will have to install resources manually by downloading resources.zip "

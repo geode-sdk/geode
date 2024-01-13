@@ -2,6 +2,7 @@
 #include "LoaderImpl.hpp"
 #include "ModMetadataImpl.hpp"
 #include "about.hpp"
+#include "console.hpp"
 
 #include <hash/hash.hpp>
 #include <Geode/loader/Dirs.hpp>
@@ -686,7 +687,7 @@ Mod* Loader::Impl::getInternalMod() {
     }
     auto infoRes = getModImplInfo();
     if (!infoRes) {
-        LoaderImpl::get()->platformMessageBox(
+        console::messageBox(
             "Fatal Internal Error",
             "Unable to create internal mod info: \"" + infoRes.unwrapErr() +
                 "\"\n"

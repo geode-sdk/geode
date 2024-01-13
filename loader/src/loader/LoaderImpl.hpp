@@ -164,14 +164,6 @@ namespace geode {
         void queueInMainThread(ScheduledFunction func);
         void executeGDThreadQueue();
 
-        void logConsoleMessage(std::string const& msg);
-        void logConsoleMessageWithSeverity(std::string const& msg, Severity severity);
-
-        bool platformConsoleOpen() const;
-        void openPlatformConsole();
-        void closePlatformConsole();
-        void platformMessageBox(char const* title, std::string const& info, Severity severity = Severity::Error);
-
         bool verifyLoaderResources();
         void checkForLoaderUpdates();
         bool isNewUpdateDownloaded() const;

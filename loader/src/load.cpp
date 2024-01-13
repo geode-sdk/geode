@@ -1,4 +1,5 @@
 #include <loader/LoaderImpl.hpp>
+#include <loader/console.hpp>
 
 #include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Loader.hpp>
@@ -10,7 +11,7 @@
 #include <loader/LogImpl.hpp>
 
 #include <array>
- 
+
 using namespace geode::prelude;
 
 #include "load.hpp"
@@ -18,10 +19,10 @@ using namespace geode::prelude;
 $execute {
     listenForSettingChanges("show-platform-console", +[](bool value) {
         if (value) {
-            LoaderImpl::get()->openPlatformConsole();
+            console::open();
         }
         else {
-            LoaderImpl::get()->closePlatformConsole();
+            console::close();
         }
     });
     
@@ -76,7 +77,7 @@ void tryShowForwardCompat() {
         return;
 
     // TODO: change text later
-    LoaderImpl::get()->platformMessageBox(
+    console::messageBox(
         "Forward Compatibility Warning",
         "Geode is running in a newer version of GD than Geode targets.\n"
         "UI is going to be disabled, platform console is forced on and crashes can be more common.\n"
@@ -116,7 +117,7 @@ int geodeEntry(void* platformData) {
     auto internalSetupRes = LoaderImpl::get()->setupInternalMod();
     log::popNest();
     if (!internalSetupRes) {
-        LoaderImpl::get()->platformMessageBox(
+        console::messageBox(
             "Unable to Load Geode!",
             "There was a fatal error setting up "
             "the internal mod and Geode can not be loaded: " + internalSetupRes.unwrapErr()
@@ -131,7 +132,7 @@ int geodeEntry(void* platformData) {
     if (LoaderImpl::get()->isForwardCompatMode() ||
         Mod::get()->getSettingValue<bool>("show-platform-console")) {
         log::debug("Opening console");
-        LoaderImpl::get()->openPlatformConsole();
+        console::open();
     }
 
     // set up loader, load mods, etc.
@@ -140,7 +141,7 @@ int geodeEntry(void* platformData) {
     auto setupRes = LoaderImpl::get()->setup();
     log::popNest();
     if (!setupRes) {
-        LoaderImpl::get()->platformMessageBox(
+        console::messageBox(
             "Unable to Load Geode!",
             "There was an unknown fatal error setting up "
             "the loader and Geode can not be loaded. "

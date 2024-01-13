@@ -1,4 +1,4 @@
-#include "LoaderImpl.hpp"
+#include "console.hpp"
 #include "LogImpl.hpp"
 
 #include <Geode/loader/Dirs.hpp>
@@ -198,7 +198,7 @@ void Logger::push(Severity sev, Mod* mod, std::string&& content) {
         auto& log = m_logs.emplace_back(sev, mod, std::move(content));
         auto const logStr = log.toString(true, m_nestLevel);
 
-        LoaderImpl::get()->logConsoleMessageWithSeverity(logStr, log.getSeverity());
+        console::log(logStr, log.getSeverity());
         m_logStream << logStr << std::endl;
     }
 }

@@ -4,6 +4,7 @@
 #include "ModImpl.hpp"
 #include "ModMetadataImpl.hpp"
 #include "LogImpl.hpp"
+#include "console.hpp"
 
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/IPC.hpp>
@@ -668,7 +669,7 @@ bool Loader::Impl::didLastLaunchCrash() const {
 }
 
 void Loader::Impl::forceReset() {
-    this->closePlatformConsole();
+    console::close();
     for (auto& [_, mod] : m_mods) {
         delete mod;
     }
@@ -717,17 +718,6 @@ void Loader::Impl::executeGDThreadQueue() {
     for (auto const& func : queue) {
         func();
     }
-}
-
-void Loader::Impl::logConsoleMessage(std::string const& msg) {
-    if (m_platformConsoleOpen) {
-        // TODO: make flushing optional
-        std::cout << msg << '\n' << std::flush;
-    }
-}
-
-bool Loader::Impl::platformConsoleOpen() const {
-    return m_platformConsoleOpen;
 }
 
 void Loader::Impl::fetchLatestGithubRelease(
