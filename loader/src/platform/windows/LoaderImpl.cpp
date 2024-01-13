@@ -25,8 +25,22 @@ std::string Loader::Impl::getGameVersion() {
     return m_gdVersion;
 }
 
-void Loader::Impl::platformMessageBox(char const* title, std::string const& info) {
-    MessageBoxA(nullptr, info.c_str(), title, MB_ICONERROR);
+void Loader::Impl::platformMessageBox(char const* title, std::string const& info, Severity severity) {
+    unsigned int icon;
+    switch (severity) {
+        case Severity::Debug:
+        case Severity::Info:
+        case Severity::Notice:
+            icon = MB_ICONINFORMATION;
+            break;
+        case Severity::Warning:
+            icon = MB_ICONWARNING;
+            break;
+        default:
+            icon = MB_ICONERROR;
+            break;
+    }
+    MessageBoxA(nullptr, info.c_str(), title, icon);
 }
 
 bool hasAnsiColorSupport = false;

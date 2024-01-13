@@ -170,7 +170,7 @@ namespace geode {
         bool platformConsoleOpen() const;
         void openPlatformConsole();
         void closePlatformConsole();
-        void platformMessageBox(char const* title, std::string const& info);
+        void platformMessageBox(char const* title, std::string const& info, Severity severity = Severity::Error);
 
         bool verifyLoaderResources();
         void checkForLoaderUpdates();
