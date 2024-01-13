@@ -711,34 +711,6 @@ void Loader::Impl::executeGDThreadQueue() {
     }
 }
 
-ResourceDownloadEvent::ResourceDownloadEvent(
-    UpdateStatus const& status
-) : status(status) {}
-
-ListenerResult ResourceDownloadFilter::handle(
-    utils::MiniFunction<Callback> fn,
-    ResourceDownloadEvent* event
-) {
-    fn(event);
-    return ListenerResult::Propagate;
-}
-
-ResourceDownloadFilter::ResourceDownloadFilter() {}
-
-LoaderUpdateEvent::LoaderUpdateEvent(
-    UpdateStatus const& status
-) : status(status) {}
-
-ListenerResult LoaderUpdateFilter::handle(
-    utils::MiniFunction<Callback> fn,
-    LoaderUpdateEvent* event
-) {
-    fn(event);
-    return ListenerResult::Propagate;
-}
-
-LoaderUpdateFilter::LoaderUpdateFilter() {}
-
 void Loader::Impl::provideNextMod(Mod* mod) {
     m_nextModLock.lock();
     if (mod) {

@@ -9,6 +9,34 @@
 
 using namespace geode::prelude;
 
+updater::ResourceDownloadEvent::ResourceDownloadEvent(
+    UpdateStatus status
+) : status(std::move(status)) {}
+
+ListenerResult updater::ResourceDownloadFilter::handle(
+    const utils::MiniFunction<Callback>& fn,
+    ResourceDownloadEvent* event
+) {
+    fn(event);
+    return ListenerResult::Propagate;
+}
+
+updater::ResourceDownloadFilter::ResourceDownloadFilter() = default;
+
+updater::LoaderUpdateEvent::LoaderUpdateEvent(
+    UpdateStatus status
+) : status(std::move(status)) {}
+
+ListenerResult updater::LoaderUpdateFilter::handle(
+    const utils::MiniFunction<Callback>& fn,
+    LoaderUpdateEvent* event
+) {
+    fn(event);
+    return ListenerResult::Propagate;
+}
+
+updater::LoaderUpdateFilter::LoaderUpdateFilter() = default;
+
 // cache for the json of the latest github release to avoid hitting
 // the github api too much
 std::optional<matjson::Value> s_latestGithubRelease;

@@ -25,32 +25,6 @@
 
 // TODO: Find a file convention for impl headers
 namespace geode {
-    struct ResourceDownloadEvent : public Event {
-        const UpdateStatus status;
-        ResourceDownloadEvent(UpdateStatus const& status);
-    };
-
-    class ResourceDownloadFilter : public EventFilter<ResourceDownloadEvent> {
-    public:
-        using Callback = void(ResourceDownloadEvent*);
-
-        ListenerResult handle(utils::MiniFunction<Callback> fn, ResourceDownloadEvent* event);
-        ResourceDownloadFilter();
-    };
-
-    struct LoaderUpdateEvent : public Event {
-        const UpdateStatus status;
-        LoaderUpdateEvent(UpdateStatus const& status);
-    };
-
-    class LoaderUpdateFilter : public EventFilter<LoaderUpdateEvent> {
-    public:
-        using Callback = void(LoaderUpdateEvent*);
-
-        ListenerResult handle(utils::MiniFunction<Callback> fn, LoaderUpdateEvent* event);
-        LoaderUpdateFilter();
-    };
-
     class Loader::Impl {
     public:
         mutable std::mutex m_mutex;

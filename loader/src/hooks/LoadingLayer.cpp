@@ -81,7 +81,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
             if (!updater::verifyLoaderResources()) {
                 log::debug("Downloading Loader Resources");
                 this->setSmallText("Downloading Loader Resources");
-                this->addChild(EventListenerNode<ResourceDownloadFilter>::create(
+                this->addChild(EventListenerNode<updater::ResourceDownloadFilter>::create(
                     this, &CustomLoadingLayer::updateResourcesProgress
                 ));
             }
@@ -94,7 +94,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
         });
     }
 
-    void updateResourcesProgress(ResourceDownloadEvent* event) {
+    void updateResourcesProgress(updater::ResourceDownloadEvent* event) {
         std::visit(makeVisitor {
             [&](UpdateProgress const& progress) {
                 this->setSmallText(fmt::format(
