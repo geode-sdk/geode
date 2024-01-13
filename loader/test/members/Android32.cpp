@@ -47,6 +47,8 @@ GEODE_MEMBER_CHECK(TableView, m_cellArray, 0x1b0);
 GEODE_MEMBER_CHECK(TableViewCell, m_backgroundLayer, 0x190);
 GEODE_SIZE_CHECK(CCBlockLayer, 0x1bc);
 
+GEODE_SIZE_CHECK(gd::string, 0x4);
+
 
 GEODE_SIZE_CHECK(GameObject, 0x488);
 GEODE_SIZE_CHECK(EnhancedGameObject, 0x4f0);

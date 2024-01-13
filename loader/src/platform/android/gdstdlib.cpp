@@ -46,12 +46,12 @@ namespace geode::base {
     }
 }
 
-static void* gdOperatorNew(size_t size) {
+void* gd::operatorNew(size_t size) {
     static auto fnPtr = reinterpret_cast<void*(*)(size_t)>(dlsym(getLibHandle(), NEW_SYM));
     return fnPtr(size);
 }
 
-static void gdOperatorDelete(void* ptr) {
+void gd::operatorDelete(void* ptr) {
     static auto fnPtr = reinterpret_cast<void(*)(void*)>(dlsym(getLibHandle(), DELETE_SYM));
     return fnPtr(ptr);
 }
@@ -71,7 +71,7 @@ namespace geode::stl {
         if (data.m_data == nullptr || data.m_data == emptyInternalString()) return;
 
         if (data.m_data[-1].m_refcount <= 0) {
-            gdOperatorDelete(&data.m_data[-1]);
+            gd::operatorDelete(&data.m_data[-1]);
             data.m_data = nullptr; 
         } else {
             --data.m_data[-1].m_refcount;
@@ -97,7 +97,7 @@ namespace geode::stl {
         internal.m_refcount = 0;
 
         // use char* so we can do easy pointer arithmetic with it
-        auto* buffer = static_cast<char*>(gdOperatorNew(str.size() + 1 + sizeof(internal)));
+        auto* buffer = static_cast<char*>(gd::operatorNew(str.size() + 1 + sizeof(internal)));
         std::memcpy(buffer, &internal, sizeof(internal));
         std::memcpy(buffer + sizeof(internal), str.data(), str.size());
         data.m_data = reinterpret_cast<StringData::Internal*>(buffer + sizeof(internal));
