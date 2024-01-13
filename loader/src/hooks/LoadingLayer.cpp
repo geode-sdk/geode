@@ -14,14 +14,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     int m_geodeLoadStep = 0;
     int m_totalMods = 0;
 
-    static void onModify(const auto& self) {
-        if (!Loader::get()->isForwardCompatMode())
-            return;
-        log::warn("Switching to fallback custom loading layer in forward compat");
-        for (const auto& [_, hook] : self.m_hooks) {
-            hook->setAutoEnable(false);
-        }
-    }
+    GEODE_FORWARD_COMPAT_DISABLE_HOOKS("Switching to fallback custom loading layer")
 
     void updateLoadedModsLabel() {
         auto allMods = Loader::get()->getAllMods();
@@ -192,14 +185,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
 };
 
 struct FallbackCustomLoadingLayer : Modify<FallbackCustomLoadingLayer, CCLayer> {
-    static void onModify(const auto& self) {
-        if (Loader::get()->isForwardCompatMode())
-            return;
-        for (const auto& [_, hook] : self.m_hooks) {
-            hook->setAutoEnable(false);
-        }
-    }
-
+    GEODE_FORWARD_COMPAT_ENABLE_HOOKS("")
     bool init() {
         if (!CCLayer::init())
             return false;

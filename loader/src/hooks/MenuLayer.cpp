@@ -49,13 +49,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         if (!self.setHookPriority("MenuLayer::init", geode::node_ids::GEODE_ID_PRIORITY)) {
             log::warn("Failed to set MenuLayer::init hook priority, node IDs may not work properly");
         }
-
-        if (!Loader::get()->isForwardCompatMode())
-            return;
-        log::warn("MenuLayer stuff disabled in forward compat");
-        for (const auto& [_, hook] : self.m_hooks) {
-            hook->setAutoEnable(false);
-        }
+        GEODE_FORWARD_COMPAT_DISABLE_HOOKS_INNER("MenuLayer stuff disabled")
     }
 
     CCSprite* m_geodeButton;

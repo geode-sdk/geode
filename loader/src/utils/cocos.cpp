@@ -388,15 +388,7 @@ void geode::cocos::reloadTextures(CreateLayerFunc returnTo) {
 }
 
 struct LoadingFinished : Modify<LoadingFinished, LoadingLayer> {
-    static void onModify(const auto& self) {
-        if (!Loader::get()->isForwardCompatMode())
-            return;
-        log::warn("geode::cocos::reloadTextures disabled in forward compat");
-        for (const auto& [_, hook] : self.m_hooks) {
-            hook->setAutoEnable(false);
-        }
-    }
-
+    GEODE_FORWARD_COMPAT_DISABLE_HOOKS("geode::cocos::reloadTextures disabled")
     void loadAssets() {
         // loadFinished is inlined on Macchew OS :sob:
 

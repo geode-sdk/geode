@@ -23,15 +23,7 @@ namespace {
 }
 
 struct SaveLoader : Modify<SaveLoader, AppDelegate> {
-    static void onModify(const auto& self) {
-        if (!Loader::get()->isForwardCompatMode())
-            return;
-        log::warn("save moved in forward compat");
-        for (const auto& [_, hook] : self.m_hooks) {
-            hook->setAutoEnable(false);
-        }
-    }
-
+    GEODE_FORWARD_COMPAT_DISABLE_HOOKS("save moved to CCApplication::gameDidSave()")
     void trySaveGame(bool p0) {
         saveModData();
         return AppDelegate::trySaveGame(p0);
@@ -39,14 +31,7 @@ struct SaveLoader : Modify<SaveLoader, AppDelegate> {
 };
 
 struct FallbackSaveLoader : Modify<FallbackSaveLoader, CCApplication> {
-    static void onModify(const auto& self) {
-        if (Loader::get()->isForwardCompatMode())
-            return;
-        for (const auto& [_, hook] : self.m_hooks) {
-            hook->setAutoEnable(false);
-        }
-    }
-
+    GEODE_FORWARD_COMPAT_ENABLE_HOOKS("")
     void gameDidSave() {
         saveModData();
         return CCApplication::gameDidSave();
