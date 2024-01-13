@@ -1,7 +1,5 @@
 #include <Geode/DefaultInclude.hpp>
 
-#ifdef GEODE_IS_ANDROID
-
 using namespace geode::prelude;
 
 #include <Geode/utils/cocos.hpp>
@@ -279,5 +277,3 @@ void geode::utils::game::restart() {
         nullptr
     ), CCDirector::get()->getRunningScene(), false);
 }
-
-#endif

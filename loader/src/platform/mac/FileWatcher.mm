@@ -1,10 +1,8 @@
 #include <FileWatcher.hpp>
 
-#ifdef GEODE_IS_MACOS
-
-    #import <Cocoa/Cocoa.h>
-    #include <fcntl.h>
-    #include <iostream>
+#import <Cocoa/Cocoa.h>
+#include <fcntl.h>
+#include <iostream>
 
 // static constexpr const auto notifyAttributes = FILE_NOTIFY_CHANGE_LAST_WRITE |
 // FILE_NOTIFY_CHANGE_ATTRIBUTES | FILE_NOTIFY_CHANGE_SIZE;
@@ -52,5 +50,3 @@ void FileWatcher::watch() {
 bool FileWatcher::watching() const {
     return m_platformHandle != NULL;
 }
-
-#endif

@@ -4,8 +4,6 @@
 
 using namespace geode::prelude;
 
-#ifdef GEODE_IS_WINDOWS
-
 bool isOpen = false;
 bool hasAnsiColorSupport = false;
 
@@ -96,5 +94,3 @@ void console::messageBox(char const* title, std::string const& info, Severity se
     }
     MessageBoxA(nullptr, info.c_str(), title, icon);
 }
-
-#endif

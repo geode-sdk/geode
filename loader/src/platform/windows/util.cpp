@@ -1,9 +1,7 @@
-
 #include <Geode/DefaultInclude.hpp>
 
-#ifdef GEODE_IS_WINDOWS
-
 using namespace geode::prelude;
+
 #include <Geode/loader/Dirs.hpp>
 #include "nfdwin.hpp"
 #include <ghc/fs_fwd.hpp>
@@ -265,5 +263,3 @@ Result<> geode::hook::addObjcMethod(std::string const& className, std::string co
 Result<void*> geode::hook::getObjcMethodImp(std::string const& className, std::string const& selectorName) {
     return Err("Wrong platform");
 }
-
-#endif

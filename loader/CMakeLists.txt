@@ -60,9 +60,6 @@ file(GLOB SOURCES CONFIGURE_DEPENDS
 	src/hooks/*.cpp
 	src/ids/*.cpp
 	src/internal/*.cpp
-	src/platform/mac/*.cpp
-	src/platform/ios/*.cpp
-	src/platform/android/*.cpp
 	src/loader/*.cpp
 	src/load.cpp
 	src/utils/*.cpp

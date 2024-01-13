@@ -1,7 +1,5 @@
 #include <FileWatcher.hpp>
 
-#ifdef GEODE_IS_IOS
-
 #import <UIKit/UIKit.h>
 #include <fcntl.h>
 #include <iostream>
@@ -52,5 +50,3 @@ void FileWatcher::watch() {
 bool FileWatcher::watching() const {
     return m_platformHandle != NULL;
 }
-
-#endif

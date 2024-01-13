@@ -1,8 +1,6 @@
 #include <Geode/c++stl/gdstdlib.hpp>
 #include "../../c++stl/string-impl.hpp"
 
-#ifdef GEODE_IS_ANDROID
-
 #if defined(GEODE_IS_ANDROID32)
 
 static auto constexpr NEW_SYM = "_Znwj";
@@ -108,5 +106,3 @@ namespace geode::stl {
         // TODO: implement this, remember its copy-on-write...
     }
 }
-
-#endif

@@ -1,12 +1,9 @@
 ﻿#include <loader/console.hpp>
 #include <iostream>
 #include <Geode/loader/Log.hpp>
+#include <android/log.h>
 
 using namespace geode::prelude;
-
-#ifdef GEODE_IS_ANDROID
-
-#include <android/log.h>
 
 namespace {
     android_LogPriority getLogSeverityForSeverity(Severity severity) {
@@ -40,5 +37,3 @@ void console::log(std::string const& msg, Severity severity) {
 void console::messageBox(char const* title, std::string const& info, Severity severity) {
     cocos2d::CCMessageBox(info.c_str(), title);
 }
-
-#endif

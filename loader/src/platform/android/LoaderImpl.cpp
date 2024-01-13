@@ -3,8 +3,6 @@
 
 using namespace geode::prelude;
 
-#ifdef GEODE_IS_ANDROID
-
 std::string Loader::Impl::getGameVersion() {
     if (m_gdVersion.empty()) {
         // TODO: detect gd version
@@ -19,5 +17,3 @@ void Loader::Impl::setupIPC() {
 bool Loader::Impl::userTriedToLoadDLLs() const {
     return false;
 }
-
-#endif

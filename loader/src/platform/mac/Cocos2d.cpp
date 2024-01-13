@@ -1,7 +1,5 @@
 #include <Geode/DefaultInclude.hpp>
 
-#ifdef GEODE_IS_MACOS
-
 #include <cocos2d.h>
 using namespace cocos2d;
 
@@ -815,5 +813,3 @@ void CCArray::acceptVisitor(CCDataVisitor &visitor)
 {
     visitor.visit(this);
 }
-
-#endif

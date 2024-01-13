@@ -1,7 +1,5 @@
 #include <FileWatcher.hpp>
 
-#ifdef GEODE_IS_ANDROID
-
 FileWatcher::FileWatcher(
     ghc::filesystem::path const& file, FileWatchCallback callback, ErrorCallback error
 ) {
@@ -23,5 +21,3 @@ void FileWatcher::watch() {
 bool FileWatcher::watching() const {
     return false;
 }
-
-#endif

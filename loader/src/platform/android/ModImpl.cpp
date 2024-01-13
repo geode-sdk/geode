@@ -1,7 +1,5 @@
 #include <Geode/DefaultInclude.hpp>
 
-#ifdef GEODE_IS_ANDROID
-
 #include <Geode/loader/Mod.hpp>
 #include <loader/ModImpl.hpp>
 
@@ -34,5 +32,3 @@ Result<> Mod::Impl::unloadPlatformBinary() {
         return Err("Unable to free library");
     }
 }
-
-#endif

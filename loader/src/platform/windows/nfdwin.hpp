@@ -10,8 +10,6 @@
 
 #include <Geode/DefaultInclude.hpp>
 
-#ifdef GEODE_IS_WINDOWS
-
 #ifdef __MINGW32__
 // Explicitly setting NTDDI version, this is necessary for the MinGW compiler
 #define NTDDI_VERSION NTDDI_VISTA
@@ -58,5 +56,3 @@ Result<> nfdPick(
     file::FilePickOptions const& options,
     void* result
 );
-
-#endif

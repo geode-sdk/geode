@@ -1,7 +1,5 @@
 #include <Geode/DefaultInclude.hpp>
 
-#if defined(GEODE_IS_WINDOWS)
-
 #include "../load.hpp"
 #include <Windows.h>
 
@@ -178,5 +176,3 @@ BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID) {
 
     return TRUE;
 }
-
-#endif

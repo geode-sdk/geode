@@ -1,14 +1,10 @@
 #include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Log.hpp>
 #include <loader/ModImpl.hpp>
-#include <iostream>
 #include <loader/LoaderImpl.hpp>
 #include <Geode/utils/string.hpp>
-#include <loader/LogImpl.hpp>
 
 using namespace geode::prelude;
-
-#ifdef GEODE_IS_WINDOWS
 
 #include <Psapi.h>
 
@@ -145,5 +141,3 @@ bool Loader::Impl::userTriedToLoadDLLs() const {
 
     return triedToLoadDLLs;
 }
-
-#endif
