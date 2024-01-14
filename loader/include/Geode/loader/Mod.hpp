@@ -230,12 +230,6 @@ namespace geode {
         }
 
         /**
-         * Get all hooks owned by this Mod
-         * @returns Vector of hooks
-         */
-        std::vector<Hook*> getHooks() const;
-
-        /**
          * Create a hook at an address. Call the original
          * function by calling the original function –
          * no trampoline needed
@@ -250,38 +244,36 @@ namespace geode {
          * Hook pointer, errorful result with info on
          * error
          */
-        template <class DetourType>
-        Result<Hook*> addHook(
+        template<class DetourType>
+        Result<Hook*> hook(
             void* address, DetourType detour, std::string const& displayName = "",
             tulip::hook::TulipConvention convention = tulip::hook::TulipConvention::Default,
             tulip::hook::HookMetadata const& hookMetadata = tulip::hook::HookMetadata()
         ) {
-            auto hook = Hook::create(this, address, detour, displayName, convention, hookMetadata);
-            return this->addHook(hook);
+            auto hook = Hook::create(address, detour, displayName, convention, hookMetadata);
+            GEODE_UNWRAP(this->claimHook(hook));
+            return Ok(hook);
         }
 
-        Result<Hook*> addHook(Hook* hook);
+        Result<Hook*> hook(
+            void* address, void* detour, std::string const& displayName,
+            tulip::hook::HandlerMetadata const& handlerMetadata,
+            tulip::hook::HookMetadata const& hookMetadata
+        ) {
+            auto hook = Hook::create(address, detour, displayName, handlerMetadata, hookMetadata);
+            GEODE_UNWRAP(this->claimHook(hook));
+            return Ok(hook);
+        }
+
+        Result<> claimHook(Hook* hook);
+
+        Result<> disownHook(Hook* hook);
 
         /**
-         * Enable a hook owned by this Mod
-         * @returns Successful result on success,
-         * errorful result with info on error
+         * Get all hooks owned by this Mod
+         * @returns Vector of hooks
          */
-        Result<> enableHook(Hook* hook);
-
-        /**
-         * Disable a hook owned by this Mod
-         * @returns Successful result on success,
-         * errorful result with info on error
-         */
-        Result<> disableHook(Hook* hook);
-
-        /**
-         * Remove a hook owned by this Mod
-         * @returns Successful result on success,
-         * errorful result with info on error
-         */
-        Result<> removeHook(Hook* hook);
+        [[nodiscard]] std::vector<Hook*> getHooks() const;
 
         /**
          * Write a patch at an address
@@ -290,14 +282,21 @@ namespace geode {
          * @returns Successful result on success,
          * errorful result with info on error
          */
-        Result<Patch*> patch(void* address, ByteVector const& data);
+        Result<Patch*> patch(void* address, ByteVector const& data) {
+            auto patch = Patch::create(address, data);
+            GEODE_UNWRAP(this->claimPatch(patch));
+            return Ok(patch);
+        }
+
+        Result<> claimPatch(Patch* patch);
+
+        Result<> disownPatch(Patch* patch);
 
         /**
-         * Remove a patch owned by this Mod
-         * @returns Successful result on success,
-         * errorful result with info on error
+         * Get all patches owned by this Mod
+         * @returns Vector of patches
          */
-        Result<> unpatch(Patch* patch);
+        [[nodiscard]] std::vector<Patch*> getPatches() const;
 
         /**
          * Enable this mod

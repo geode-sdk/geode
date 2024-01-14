@@ -123,6 +123,13 @@ namespace geode {
     }
 }
 
+template<>
+struct matjson::Serialize<geode::ByteVector> {
+    static matjson::Value to_json(geode::ByteVector const& bytes) {
+        return matjson::Array(bytes.begin(), bytes.end());
+    }
+};
+
 namespace geode::utils::clipboard {
     GEODE_DLL bool write(std::string const& data);
     GEODE_DLL std::string read();

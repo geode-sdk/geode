@@ -1,30 +1,43 @@
 #include <Geode/loader/Hook.hpp>
-#include <Geode/loader/Loader.hpp>
-#include <Geode/loader/Mod.hpp>
-#include <Geode/utils/casts.hpp>
-#include <Geode/utils/ranges.hpp>
-#include <vector>
-#include "ModImpl.hpp"
 #include "HookImpl.hpp"
 
 using namespace geode::prelude;
 
 Hook::Hook(std::shared_ptr<Impl>&& impl) : m_impl(std::move(impl)) {}
-Hook::~Hook() {}
+Hook::~Hook() = default;
 
-// These classes (Hook and Patch) are nasty using new and delete, change them in 2.0.0
 Hook* Hook::create(
-    Mod* owner,
     void* address,
     void* detour,
     std::string const& displayName,
     tulip::hook::HandlerMetadata const& handlerMetadata,
     tulip::hook::HookMetadata const& hookMetadata
 ) {
-    auto impl = std::make_shared<Hook::Impl>(
-        address, detour, displayName, handlerMetadata, hookMetadata, owner
-    );
-    return new Hook(std::move(impl));
+    return Impl::create(address, detour, displayName, handlerMetadata, hookMetadata);
+}
+
+Mod* Hook::getOwner() const {
+    return m_impl->getOwner();
+}
+
+bool Hook::isEnabled() const {
+    return m_impl->isEnabled();
+}
+
+Result<> Hook::enable() {
+    return m_impl->enable();
+}
+
+Result<> Hook::disable() {
+    return m_impl->disable();
+}
+
+bool Hook::getAutoEnable() const {
+    return m_impl->getAutoEnable();
+}
+
+void Hook::setAutoEnable(bool autoEnable) {
+    return m_impl->setAutoEnable(autoEnable);
 }
 
 uintptr_t Hook::getAddress() const {
@@ -33,14 +46,6 @@ uintptr_t Hook::getAddress() const {
 
 std::string_view Hook::getDisplayName() const {
     return m_impl->getDisplayName();
-}
-
-bool Hook::isEnabled() const {
-    return m_impl->isEnabled();
-}
-
-Mod* Hook::getOwner() const {
-    return m_impl->getOwner();
 }
 
 matjson::Value Hook::getRuntimeInfo() const {
@@ -61,19 +66,4 @@ int32_t Hook::getPriority() const {
 
 void Hook::setPriority(int32_t priority) {
     return m_impl->setPriority(priority);
-}
-
-bool Hook::getAutoEnable() const {
-    return m_impl->getAutoEnable();
-}
-
-void Hook::setAutoEnable(bool autoEnable) {
-    return m_impl->setAutoEnable(autoEnable);
-}
-
-Result<> Hook::enable() {
-    return m_impl->enable();
-}
-Result<> Hook::disable() {
-    return m_impl->disable();
 }

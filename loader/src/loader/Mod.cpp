@@ -121,32 +121,28 @@ void Mod::registerCustomSetting(std::string_view const key, std::unique_ptr<Sett
     return m_impl->registerCustomSetting(key, std::move(value));
 }
 
+Result<> Mod::claimHook(Hook* hook) {
+    return m_impl->claimHook(hook);
+}
+
+Result<> Mod::disownHook(Hook* hook) {
+    return m_impl->disownHook(hook);
+}
+
 std::vector<Hook*> Mod::getHooks() const {
     return m_impl->getHooks();
 }
 
-Result<Hook*> Mod::addHook(Hook* hook) {
-    return m_impl->addHook(hook);
+Result<> Mod::claimPatch(Patch* patch) {
+    return m_impl->claimPatch(patch);
 }
 
-Result<> Mod::enableHook(Hook* hook) {
-    return m_impl->enableHook(hook);
+Result<> Mod::disownPatch(Patch* patch) {
+    return m_impl->disownPatch(patch);
 }
 
-Result<> Mod::disableHook(Hook* hook) {
-    return m_impl->disableHook(hook);
-}
-
-Result<> Mod::removeHook(Hook* hook) {
-    return m_impl->removeHook(hook);
-}
-
-Result<Patch*> Mod::patch(void* address, ByteVector const& data) {
-    return m_impl->patch(address, data);
-}
-
-Result<> Mod::unpatch(Patch* patch) {
-    return m_impl->unpatch(patch);
+std::vector<Patch*> Mod::getPatches() const {
+    return m_impl->getPatches();
 }
 
 Result<> Mod::enable() {

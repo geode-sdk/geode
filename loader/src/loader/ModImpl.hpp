@@ -1,6 +1,7 @@
 #pragma once
 
 #include <matjson.hpp>
+#include "ModPatch.hpp"
 
 namespace geode {
     class Mod::Impl {
@@ -112,13 +113,14 @@ namespace geode {
         SettingValue* getSetting(std::string_view const key) const;
         void registerCustomSetting(std::string_view const key, std::unique_ptr<SettingValue> value);
 
-        std::vector<Hook*> getHooks() const;
-        Result<Hook*> addHook(Hook* hook);
-        Result<> enableHook(Hook* hook);
-        Result<> disableHook(Hook* hook);
-        Result<> removeHook(Hook* hook);
-        Result<Patch*> patch(void* address, ByteVector const& data);
-        Result<> unpatch(Patch* patch);
+        Result<> claimHook(Hook* hook);
+        Result<> disownHook(Hook* hook);
+        [[nodiscard]] std::vector<Hook*> getHooks() const;
+
+        Result<> claimPatch(Patch* patch);
+        Result<> disownPatch(Patch* patch);
+        [[nodiscard]] std::vector<Patch*> getPatches() const;
+
         Result<> enable();
         Result<> disable();
         Result<> uninstall(bool deleteSaveData = false);

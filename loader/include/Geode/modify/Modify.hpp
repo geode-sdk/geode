@@ -21,7 +21,6 @@
                 break;                                                                               \
             }                                                                                        \
             auto hook = Hook::create(                                                                \
-                Mod::get(),                                                                          \
                 reinterpret_cast<void*>(address),                                                    \
                 AsStaticFunction_##FunctionName_<                                                    \
                     Derived,                                                                         \
@@ -38,7 +37,6 @@
         if constexpr (HasConstructor<Derived>) {                                          \
             static auto address = AddressInline_;                                         \
             auto hook = Hook::create(                                                     \
-                Mod::get(),                                                               \
                 reinterpret_cast<void*>(address),                                         \
                 AsStaticFunction_##constructor<                                           \
                     Derived,                                                              \
@@ -55,7 +53,6 @@
         if constexpr (HasDestructor<Derived>) {                                                                  \
             static auto address = AddressInline_;                                                                \
             auto hook = Hook::create(                                                                            \
-                Mod::get(),                                                                                      \
                 reinterpret_cast<void*>(address),                                                                \
                 AsStaticFunction_##destructor<Derived, decltype(Resolve<>::func(&Derived::destructor))>::value,  \
                 #ClassName_ "::" #ClassName_,                                                                    \
@@ -98,9 +95,9 @@ namespace geode::modifier {
             test->ModifyDerived::apply();
             ModifyDerived::Derived::onModify(*this);
             for (auto& [uuid, hook] : m_hooks) {
-                auto res = Mod::get()->addHook(hook);
+                auto res = Mod::get()->claimHook(hook);
                 if (!res) {
-                    log::error("Failed to add hook {}: {}", hook->getDisplayName(), res.error());
+                    log::error("Failed to claim hook {}: {}", hook->getDisplayName(), res.error());
                 }
             }
         }
