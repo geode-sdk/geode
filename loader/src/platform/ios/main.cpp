@@ -1,7 +1,5 @@
 #include <Geode/DefaultInclude.hpp>
 
-#if defined(GEODE_IS_IOS)
-
 #include "../load.hpp"
 #include <dlfcn.h>
 #include <mach-o/dyld.h>
@@ -43,5 +41,3 @@ extern "C" __attribute__((visibility("default"))) void dynamicTrigger() {
 
 // remove when we can figure out how to not remove it
 auto dynamicTriggerRef = &dynamicTrigger;
-
-#endif

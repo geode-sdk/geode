@@ -1,9 +1,7 @@
-
 #include <Geode/DefaultInclude.hpp>
 
-#ifdef GEODE_IS_IOS
-
 using namespace geode::prelude;
+
 #include <Geode/loader/Dirs.hpp>
 #include <UIKit/UIKit.h>
 #include <iostream>
@@ -36,5 +34,3 @@ ghc::filesystem::path dirs::getGameDir() {
 ghc::filesystem::path dirs::getSaveDir() {
     return weaklyCanonical(CCFileUtils::sharedFileUtils()->getWritablePath().c_str());
 }
-
-#endif

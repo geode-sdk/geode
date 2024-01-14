@@ -1,7 +1,4 @@
-
 #include <Geode/DefaultInclude.hpp>
-
-#ifdef GEODE_IS_MACOS
 
 using namespace geode::prelude;
 
@@ -304,5 +301,3 @@ Result<void*> geode::hook::getObjcMethodImp(std::string const& className, std::s
 
     return Ok((void*)method_getImplementation(method));
 }
-
-#endif

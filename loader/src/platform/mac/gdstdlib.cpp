@@ -1,7 +1,5 @@
 #include <Geode/c++stl/gdstdlib.hpp>
 
-#ifdef GEODE_IS_MACOS
-
 namespace gd {
     namespace {
         static inline auto emptyInternalString() {
@@ -57,5 +55,3 @@ namespace gd {
         return std::string(*this) == std::string(other);
     }
 }
-
-#endif

@@ -2,8 +2,6 @@
 #include <iostream>
 #include <thread>
 
-#ifdef GEODE_IS_WINDOWS
-
 static constexpr auto const notifyAttributes =
     FILE_NOTIFY_CHANGE_LAST_WRITE | FILE_NOTIFY_CHANGE_ATTRIBUTES | FILE_NOTIFY_CHANGE_SIZE;
 
@@ -100,5 +98,3 @@ bool FileWatcher::watching() const {
     HANDLE handle = (HANDLE)m_platformHandle;
     return handle != INVALID_HANDLE_VALUE && handle != nullptr;
 }
-
-#endif

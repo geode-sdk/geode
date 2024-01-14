@@ -1,8 +1,6 @@
 #include "nfdwin.hpp"
 #include <Geode/utils/string.hpp>
 
-#ifdef GEODE_IS_WINDOWS
-
 using Path = ghc::filesystem::path;
 using Paths = std::vector<ghc::filesystem::path>;
 
@@ -296,5 +294,3 @@ Result<> nfdPick(
 
     return Err("Unknown error");
 }
-
-#endif

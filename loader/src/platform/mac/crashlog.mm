@@ -1,7 +1,5 @@
 #include <crashlog.hpp>
 
-#ifdef GEODE_IS_MACOS
-
 #include <Geode/utils/string.hpp>
 #include <array>
 #include <thread>
@@ -391,6 +389,3 @@ bool crashlog::didLastLaunchCrash() {
 ghc::filesystem::path crashlog::getCrashLogDirectory() {
     return dirs::getGeodeDir() / "crashlogs";
 }
-
-
-#endif

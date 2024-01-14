@@ -1,11 +1,11 @@
 #include <Geode/DefaultInclude.hpp>
 
-#if defined(GEODE_IS_WINDOWS)
-
 #include "../load.hpp"
 #include <Windows.h>
 
 #include "loader/LoaderImpl.hpp"
+#include "loader/console.hpp"
+
 using namespace geode::prelude;
 
 void updateGeode() {
@@ -38,7 +38,7 @@ int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
     updateGeode();
 
     if (versionToTimestamp(GEODE_STR(GEODE_GD_VERSION)) > gdTimestamp) {
-        LoaderImpl::get()->platformMessageBox(
+        console::messageBox(
             "Unable to Load Geode!",
             fmt::format(
                 "This version of Geode is made for Geometry Dash {} "
@@ -142,7 +142,7 @@ void earlyError(std::string message) {
     std::ofstream fout("_geode_early_error.txt");
     fout << message;
     fout.close();
-    LoaderImpl::get()->platformMessageBox("Unable to Load Geode!", message);
+    console::messageBox("Unable to Load Geode!", message);
 }
 
 BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID) {
@@ -176,5 +176,3 @@ BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID) {
 
     return TRUE;
 }
-
-#endif

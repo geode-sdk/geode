@@ -1,10 +1,11 @@
-
 #include <Geode/modify/LoadingLayer.hpp>
 #include <Geode/modify/CCLayer.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <array>
 #include <fmt/format.h>
 #include <loader/LoaderImpl.hpp>
+#include <loader/console.hpp>
+#include <loader/updater.hpp>
 
 using namespace geode::prelude;
 
@@ -77,23 +78,23 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
         this->setSmallText("Verifying Loader Resources");
         // verify loader resources
         Loader::get()->queueInMainThread([&]() {
-            if (!LoaderImpl::get()->verifyLoaderResources()) {
+            if (!updater::verifyLoaderResources()) {
                 log::debug("Downloading Loader Resources");
                 this->setSmallText("Downloading Loader Resources");
-                this->addChild(EventListenerNode<ResourceDownloadFilter>::create(
+                this->addChild(EventListenerNode<updater::ResourceDownloadFilter>::create(
                     this, &CustomLoadingLayer::updateResourcesProgress
                 ));
             }
             else {
                 log::debug("Loading Loader Resources");
                 this->setSmallText("Loading Loader Resources");
-                LoaderImpl::get()->updateSpecialFiles();
+                updater::updateSpecialFiles();
                 this->continueLoadAssets();
             }
         });
     }
 
-    void updateResourcesProgress(ResourceDownloadEvent* event) {
+    void updateResourcesProgress(updater::ResourceDownloadEvent* event) {
         std::visit(makeVisitor {
             [&](UpdateProgress const& progress) {
                 this->setSmallText(fmt::format(
@@ -107,7 +108,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
             },
             [&](UpdateFailed const& error) {
                 log::debug("Failed Loader Resources");
-                LoaderImpl::get()->platformMessageBox(
+                console::messageBox(
                     "Error updating resources",
                     error + ".\n"
                     "You will have to install resources manually by downloading resources.zip "

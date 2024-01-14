@@ -1,7 +1,5 @@
 #include <crashlog.hpp>
 
-#ifdef GEODE_IS_ANDROID
-
 using namespace geode::prelude;
 
 #include <Geode/utils/string.hpp>
@@ -302,5 +300,3 @@ void crashlog::setupPlatformHandlerPost() {
 bool crashlog::didLastLaunchCrash() {
     return s_lastLaunchCrashed;
 }
-
-#endif

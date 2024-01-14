@@ -1,7 +1,5 @@
 #include <Geode/DefaultInclude.hpp>
 
-#ifdef GEODE_IS_MACOS
-
 #include <Geode/loader/Mod.hpp>
 #include <loader/ModImpl.hpp>
 #include <dlfcn.h>
@@ -43,5 +41,3 @@ Result<> Mod::Impl::unloadPlatformBinary() {
         return Err("Unable to free library");
     }
 }
-
-#endif

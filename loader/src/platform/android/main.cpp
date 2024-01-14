@@ -1,7 +1,5 @@
 #include <Geode/DefaultInclude.hpp>
 
-#if defined(GEODE_IS_ANDROID)
-
 #include "../load.hpp"
 #include <jni.h>
 
@@ -30,5 +28,3 @@ extern "C" [[gnu::visibility("default")]] jint JNI_OnLoad(JavaVM* vm, void* rese
 extern "C" [[gnu::visibility("default")]] void emptyFunction(void*) {
     // empty
 }
-
-#endif
