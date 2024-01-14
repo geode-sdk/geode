@@ -39,12 +39,11 @@ Loader::Impl::~Impl() = default;
 // Initialization
 
 bool Loader::Impl::isForwardCompatMode() {
-    if (!m_forwardCompatModeSet) {
+    if (!m_forwardCompatMode.has_value()) {
         m_forwardCompatMode = !this->getGameVersion().empty() &&
             this->getGameVersion() != GEODE_STR(GEODE_GD_VERSION);
-        m_forwardCompatModeSet = true;
     }
-    return m_forwardCompatMode;
+    return m_forwardCompatMode.value();
 }
 
 void Loader::Impl::createDirectories() {
