@@ -3,7 +3,7 @@
 
 using namespace geode::prelude;
 
-Patch::Patch(std::shared_ptr<Impl>&& impl) : m_impl(std::move(impl)) {}
+Patch::Patch(std::shared_ptr<Impl>&& impl) : m_impl(std::move(impl)) { m_impl->m_self = this; }
 Patch::~Patch() = default;
 
 Patch* Patch::create(void* address, const ByteVector& patch) {

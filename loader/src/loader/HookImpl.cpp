@@ -39,9 +39,7 @@ Hook* Hook::Impl::create(
     auto impl = std::make_shared<Impl>(
         address, detour, displayName, handlerMetadata, hookMetadata
     );
-    auto hook = new Hook(std::move(impl));
-    impl->m_self = hook;
-    return hook;
+    return new Hook(std::move(impl));
 }
 
 Result<> Hook::Impl::enable() {

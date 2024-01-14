@@ -3,7 +3,7 @@
 
 using namespace geode::prelude;
 
-Hook::Hook(std::shared_ptr<Impl>&& impl) : m_impl(std::move(impl)) {}
+Hook::Hook(std::shared_ptr<Impl>&& impl) : m_impl(std::move(impl)) { m_impl->m_self = this; }
 Hook::~Hook() = default;
 
 Hook* Hook::create(

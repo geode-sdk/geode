@@ -35,9 +35,7 @@ Patch* Patch::Impl::create(void* address, const geode::ByteVector& patch) {
     auto impl = std::make_shared<Impl>(
         address, readMemory(address, patch.size()), patch
     );
-    auto p = new Patch(std::move(impl));
-    impl->m_self = p;
-    return p;
+    return new Patch(std::move(impl));
 }
 
 Result<> Patch::Impl::enable() {
