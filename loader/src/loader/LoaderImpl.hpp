@@ -39,7 +39,7 @@ namespace geode {
         std::vector<ghc::filesystem::path> m_texturePaths;
         bool m_isSetup = false;
 
-        LoadingState m_loadingState;
+        LoadingState m_loadingState = LoadingState::None;
 
         std::vector<utils::MiniFunction<void(void)>> m_mainThreadQueue;
         mutable std::mutex m_mainThreadMutex;
