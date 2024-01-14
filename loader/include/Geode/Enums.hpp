@@ -42,7 +42,6 @@ enum class SearchType {
     FavouriteLists = 103
 };
 
-// jesus fucking christ (painfully written by @hjfod)
 enum class GameObjectType {
     Solid = 0,
     Hazard = 2,
@@ -157,7 +156,10 @@ enum class CommentKeyType {
     User = 1,
     LevelList = 2
 };
-enum class LevelLeaderboardMode {};
+enum class LevelLeaderboardMode {
+    Time = 0,
+    Points = 1
+};
 enum class StatKey {};
 enum class TextStyleType {};
 enum class InputValueType {};
@@ -287,6 +289,11 @@ enum class SpecialRewardItem {
     Orbs = 0x7,
     Diamonds = 0x8,
     CustomItem = 0x9,
+    EarthShard = 0xA,
+    BloodShard = 0xB,
+    MetalShard = 0xC,
+    LightShard = 0xD,
+    SoulShard = 0xE
 };
 
 enum class EditCommand {

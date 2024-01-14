@@ -1,6 +1,5 @@
 #include "ModInfoPopup.hpp"
 
-#include "../dev/HookListLayer.hpp"
 #include "../list/ModListLayer.hpp"
 #include "../settings/ModSettingsPopup.hpp"
 #include <Geode/loader/Dirs.hpp>
@@ -523,11 +522,17 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
                 m_mainLayer->addChild(m_minorVersionLabel);
             }
         }
-    } else {
-        auto* label = CCLabelBMFont::create(LOADER_COMMIT_HASH, "chatFont.fnt");
+    }
+    if (mod == Mod::get()) {
+        // we're showing the internal geode mod :-)
+        auto* label = CCLabelBMFont::create(
+            fmt::format("Bindings: {}\nLoader: {}", BINDINGS_COMMIT_HASH, LOADER_COMMIT_HASH).c_str(),
+            "chatFont.fnt"
+        );
+        label->setAlignment(kCCTextAlignmentRight);
         label->setAnchorPoint(ccp(1, 0));
-        label->setScale(0.775f);
-        label->setPosition(winSize.width - 1.f, 1.f);
+        label->setScale(0.6f);
+        label->setPosition(winSize.width - 3.f, 3.f);
         label->setOpacity(89);
         m_mainLayer->addChild(label);
     }

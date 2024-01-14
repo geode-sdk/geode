@@ -200,6 +200,33 @@ namespace geode {
     template <class>                                                                              \
     void GEODE_CONCAT(geodeExecFunction, __LINE__)()
 
+#define GEODE_FORWARD_COMPAT_DISABLE_HOOKS_INNER(message) \
+    if (Loader::get()->isForwardCompatMode()) {           \
+        if (strlen(message)) {                            \
+            log::warn("[Forward Compat] " message);       \
+        }                                                 \
+        for (const auto& [_, hook] : self.m_hooks) {      \
+            hook->setAutoEnable(false);                   \
+        }                                                 \
+    }
+#define GEODE_FORWARD_COMPAT_ENABLE_HOOKS_INNER(message)  \
+    if (!Loader::get()->isForwardCompatMode()) {          \
+        if (strlen(message)) {                            \
+            log::warn("[Forward Compat] " message);       \
+        }                                                 \
+        for (const auto& [_, hook] : self.m_hooks) {      \
+            hook->setAutoEnable(false);                   \
+        }                                                 \
+    }
+#define GEODE_FORWARD_COMPAT_DISABLE_HOOKS(message)       \
+    static void onModify(const auto& self) {              \
+        GEODE_FORWARD_COMPAT_DISABLE_HOOKS_INNER(message) \
+    }
+#define GEODE_FORWARD_COMPAT_ENABLE_HOOKS(message)        \
+    static void onModify(const auto& self) {              \
+        GEODE_FORWARD_COMPAT_ENABLE_HOOKS_INNER(message)  \
+    }
+
 // #define GEODE_NEST1(macro, begin)           \
 // macro(GEODE_CONCAT(begin, 0)),                        \
 // macro(GEODE_CONCAT(begin, 1)),                        \

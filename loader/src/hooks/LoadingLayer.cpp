@@ -1,9 +1,11 @@
-
 #include <Geode/modify/LoadingLayer.hpp>
+#include <Geode/modify/CCLayer.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <array>
 #include <fmt/format.h>
 #include <loader/LoaderImpl.hpp>
+#include <loader/console.hpp>
+#include <loader/updater.hpp>
 
 using namespace geode::prelude;
 
@@ -12,6 +14,8 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     CCLabelBMFont* m_smallLabel2 = nullptr;
     int m_geodeLoadStep = 0;
     int m_totalMods = 0;
+
+    GEODE_FORWARD_COMPAT_DISABLE_HOOKS("Switching to fallback custom loading layer")
 
     void updateLoadedModsLabel() {
         auto allMods = Loader::get()->getAllMods();
@@ -74,23 +78,23 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
         this->setSmallText("Verifying Loader Resources");
         // verify loader resources
         Loader::get()->queueInMainThread([&]() {
-            if (!LoaderImpl::get()->verifyLoaderResources()) {
+            if (!updater::verifyLoaderResources()) {
                 log::debug("Downloading Loader Resources");
                 this->setSmallText("Downloading Loader Resources");
-                this->addChild(EventListenerNode<ResourceDownloadFilter>::create(
+                this->addChild(EventListenerNode<updater::ResourceDownloadFilter>::create(
                     this, &CustomLoadingLayer::updateResourcesProgress
                 ));
             }
             else {
                 log::debug("Loading Loader Resources");
                 this->setSmallText("Loading Loader Resources");
-                LoaderImpl::get()->updateSpecialFiles();
+                updater::updateSpecialFiles();
                 this->continueLoadAssets();
             }
         });
     }
 
-    void updateResourcesProgress(ResourceDownloadEvent* event) {
+    void updateResourcesProgress(updater::ResourceDownloadEvent* event) {
         std::visit(makeVisitor {
             [&](UpdateProgress const& progress) {
                 this->setSmallText(fmt::format(
@@ -104,7 +108,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
             },
             [&](UpdateFailed const& error) {
                 log::debug("Failed Loader Resources");
-                LoaderImpl::get()->platformMessageBox(
+                console::messageBox(
                     "Error updating resources",
                     error + ".\n"
                     "You will have to install resources manually by downloading resources.zip "
@@ -122,7 +126,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     void setupModResources() {
         log::debug("Loading mod resources");
         this->setSmallText("Loading mod resources");
-        Loader::get()->updateResources(true);
+        LoaderImpl::get()->updateResources(true);
         this->continueLoadAssets();
     }
     
@@ -158,9 +162,9 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
         }
         return !m_fromRefresh;
     }
-    
+
     // hook
-    void loadAssets() {        
+    void loadAssets() {
         switch (m_fields->m_geodeLoadStep) {
         case 0:
             if (this->skipOnRefresh()) this->setupLoadingMods();
@@ -178,5 +182,33 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
             break;
         }
         this->updateLoadingBar();
+    }
+};
+
+struct FallbackCustomLoadingLayer : Modify<FallbackCustomLoadingLayer, CCLayer> {
+    GEODE_FORWARD_COMPAT_ENABLE_HOOKS("")
+    bool init() {
+        if (!CCLayer::init())
+            return false;
+        if (!typeinfo_cast<LoadingLayer*>(this))
+            return true;
+
+        auto winSize = CCDirector::sharedDirector()->getWinSize();
+
+        auto label = CCLabelBMFont::create(
+            "Loading Geode without UI, see console for details.",
+            "goldFont.fnt"
+        );
+        label->setPosition(winSize.width / 2, 30.f);
+        label->setScale(.45f);
+        label->setZOrder(99);
+        label->setID("geode-small-label");
+        this->addChild(label);
+
+        // TODO: verify loader resources on fallback?
+
+        LoaderImpl::get()->updateResources(true);
+
+        return true;
     }
 };

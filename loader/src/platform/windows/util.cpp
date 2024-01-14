@@ -1,9 +1,7 @@
-
 #include <Geode/DefaultInclude.hpp>
 
-#ifdef GEODE_IS_WINDOWS
-
 using namespace geode::prelude;
+
 #include <Geode/loader/Dirs.hpp>
 #include "nfdwin.hpp"
 #include <ghc/fs_fwd.hpp>
@@ -75,8 +73,17 @@ std::string utils::clipboard::read() {
 }
 
 bool utils::file::openFolder(ghc::filesystem::path const& path) {
-    ShellExecuteA(NULL, "open", path.string().c_str(), NULL, NULL, SW_SHOWDEFAULT);
-    return true;
+    auto success = false;
+    if (CoInitializeEx(nullptr, COINIT_MULTITHREADED) == S_OK) {
+        if (auto id = ILCreateFromPathW(path.wstring().c_str())) {
+            if (SHOpenFolderAndSelectItems(id, 0, nullptr, 0) == S_OK) {
+                success = true;
+            }
+            ILFree(id);
+        }
+        CoUninitialize();
+    }
+    return success;
 }
 
 Result<ghc::filesystem::path> utils::file::pickFile(
@@ -256,5 +263,3 @@ Result<> geode::hook::addObjcMethod(std::string const& className, std::string co
 Result<void*> geode::hook::getObjcMethodImp(std::string const& className, std::string const& selectorName) {
     return Err("Wrong platform");
 }
-
-#endif

@@ -303,7 +303,7 @@ CCRect geode::cocos::calculateNodeCoverage(std::vector<CCNode*> const& nodes) {
 
 CCRect geode::cocos::calculateNodeCoverage(CCArray* nodes) {
     CCRect coverage;
-    for (auto child : CCArrayExt<CCNode>(nodes)) {
+    for (auto child : CCArrayExt<CCNode*>(nodes)) {
         auto pos = child->getPosition() - child->getScaledContentSize() * child->getAnchorPoint();
         auto csize = child->getPosition() +
             child->getScaledContentSize() * (CCPoint{1.f, 1.f} - child->getAnchorPoint());
@@ -388,6 +388,7 @@ void geode::cocos::reloadTextures(CreateLayerFunc returnTo) {
 }
 
 struct LoadingFinished : Modify<LoadingFinished, LoadingLayer> {
+    GEODE_FORWARD_COMPAT_DISABLE_HOOKS("geode::cocos::reloadTextures disabled")
     void loadAssets() {
         // loadFinished is inlined on Macchew OS :sob:
 

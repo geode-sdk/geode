@@ -1,4 +1,7 @@
 #include <loader/LoaderImpl.hpp>
+#include <loader/console.hpp>
+#include <loader/IPC.hpp>
+#include <loader/updater.hpp>
 
 #include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Loader.hpp>
@@ -10,7 +13,7 @@
 #include <loader/LogImpl.hpp>
 
 #include <array>
- 
+
 using namespace geode::prelude;
 
 #include "load.hpp"
@@ -18,22 +21,22 @@ using namespace geode::prelude;
 $execute {
     listenForSettingChanges("show-platform-console", +[](bool value) {
         if (value) {
-            Loader::get()->openPlatformConsole();
+            console::open();
         }
         else {
-            Loader::get()->closePlatformConsole();
+            console::close();
         }
     });
     
-    listenForIPC("ipc-test", [](IPCEvent* event) -> matjson::Value {
+    ipc::listen("ipc-test", [](ipc::IPCEvent* event) -> matjson::Value {
         return "Hello from Geode!";
     });
 
-    listenForIPC("loader-info", [](IPCEvent* event) -> matjson::Value {
+    ipc::listen("loader-info", [](ipc::IPCEvent* event) -> matjson::Value {
         return Mod::get()->getMetadata();
     });
 
-    listenForIPC("list-mods", [](IPCEvent* event) -> matjson::Value {
+    ipc::listen("list-mods", [](ipc::IPCEvent* event) -> matjson::Value {
         std::vector<matjson::Value> res;
 
         auto args = *event->messageData;
@@ -58,10 +61,55 @@ $execute {
     });
 }
 
+void tryLogForwardCompat() {
+    if (!LoaderImpl::get()->isForwardCompatMode()) return;
+    // TODO: change text later
+    log::warn("+-----------------------------------------------------------------------------------------------+");
+    log::warn("| Geode is running in a newer version of GD than Geode targets.                                 |");
+    log::warn("| UI is going to be disabled, platform console is forced on and crashes can be more common.     |");
+    log::warn("| However, if your game crashes, it is probably caused by an outdated mod and not Geode itself. |");
+    log::warn("+-----------------------------------------------------------------------------------------------+");
+}
+
+void tryShowForwardCompat() {
+    if (!LoaderImpl::get()->isForwardCompatMode()) return;
+
+    if (Mod::get()->getSavedValue<std::string>("last-forward-compat-warn-popup-ver", "_") ==
+        LoaderImpl::get()->getGameVersion())
+        return;
+
+    // TODO: change text later
+    console::messageBox(
+        "Forward Compatibility Warning",
+        "Geode is running in a newer version of GD than Geode targets.\n"
+        "UI is going to be disabled, platform console is forced on and crashes can be more common.\n"
+        "However, if your game crashes, it is probably caused by an outdated mod and not Geode itself.",
+        Severity::Warning
+    );
+
+    Mod::get()->setSavedValue<std::string>(
+        "last-forward-compat-warn-popup-ver",
+        LoaderImpl::get()->getGameVersion()
+    );
+}
+
 int geodeEntry(void* platformData) {
     log::Logger::get()->setup();
 
-    log::info("Running {} {}", Mod::get()->getName(), Mod::get()->getVersion());
+    std::string forwardCompatSuffix;
+    if (LoaderImpl::get()->isForwardCompatMode())
+        forwardCompatSuffix = " (forward compatibility mode)";
+
+    if (LoaderImpl::get()->getGameVersion().empty()) {
+        log::info("Running {} {}{}", Mod::get()->getName(), Mod::get()->getVersion(),
+            forwardCompatSuffix);
+    }
+    else {
+        log::info("Running {} {} in Geometry Dash v{}{}", Mod::get()->getName(),
+            Mod::get()->getVersion(), LoaderImpl::get()->getGameVersion(), forwardCompatSuffix);
+    }
+
+    tryLogForwardCompat();
 
     auto begin = std::chrono::high_resolution_clock::now();
 
@@ -71,7 +119,7 @@ int geodeEntry(void* platformData) {
     auto internalSetupRes = LoaderImpl::get()->setupInternalMod();
     log::popNest();
     if (!internalSetupRes) {
-        LoaderImpl::get()->platformMessageBox(
+        console::messageBox(
             "Unable to Load Geode!",
             "There was a fatal error setting up "
             "the internal mod and Geode can not be loaded: " + internalSetupRes.unwrapErr()
@@ -80,10 +128,13 @@ int geodeEntry(void* platformData) {
         return 1;
     }
 
+    tryShowForwardCompat();
+
     // open console
-    if (Mod::get()->getSettingValue<bool>("show-platform-console")) {
+    if (LoaderImpl::get()->isForwardCompatMode() ||
+        Mod::get()->getSettingValue<bool>("show-platform-console")) {
         log::debug("Opening console");
-        Loader::get()->openPlatformConsole();
+        console::open();
     }
 
     // set up loader, load mods, etc.
@@ -92,7 +143,7 @@ int geodeEntry(void* platformData) {
     auto setupRes = LoaderImpl::get()->setup();
     log::popNest();
     if (!setupRes) {
-        LoaderImpl::get()->platformMessageBox(
+        console::messageBox(
             "Unable to Load Geode!",
             "There was an unknown fatal error setting up "
             "the loader and Geode can not be loaded. "
@@ -104,12 +155,15 @@ int geodeEntry(void* platformData) {
 
     crashlog::setupPlatformHandlerPost();
 
-    log::info("Set up loader");
+    log::debug("Setting up IPC");
+    log::pushNest();
+    ipc::setup();
+    log::popNest();
 
     // download and install new loader update in the background
     if (Mod::get()->getSettingValue<bool>("auto-check-updates")) {
         log::info("Starting loader update check");
-        LoaderImpl::get()->checkForLoaderUpdates();
+        updater::checkForLoaderUpdates();
     }
     else {
         log::info("Skipped loader update check");
@@ -118,6 +172,9 @@ int geodeEntry(void* platformData) {
     auto end = std::chrono::high_resolution_clock::now();
     auto time = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
     log::info("Entry took {}s", static_cast<float>(time) / 1000.f);
+
+    // also log after entry so that users are more likely to notice
+    tryLogForwardCompat();
 
     return 0;
 }

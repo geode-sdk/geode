@@ -1,4 +1,3 @@
-
 #include "../ui/internal/list/ModListLayer.hpp"
 
 #include <Geode/loader/Index.hpp>
@@ -7,13 +6,13 @@
 #include <Geode/modify/IDManager.hpp>
 #include <Geode/utils/NodeIDs.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
-#include <Geode/ui/GeodeUI.hpp>
 #include <Geode/ui/Notification.hpp>
 #include <Geode/ui/Popup.hpp>
 #include <Geode/ui/MDPopup.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <loader/ModImpl.hpp>
 #include <loader/LoaderImpl.hpp>
+#include <loader/updater.hpp>
 
 using namespace geode::prelude;
 
@@ -49,6 +48,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         if (!self.setHookPriority("MenuLayer::init", geode::node_ids::GEODE_ID_PRIORITY)) {
             log::warn("Failed to set MenuLayer::init hook priority, node IDs may not work properly");
         }
+        GEODE_FORWARD_COMPAT_DISABLE_HOOKS_INNER("MenuLayer stuff disabled")
     }
 
     CCSprite* m_geodeButton;
@@ -63,7 +63,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         auto winSize = CCDirector::sharedDirector()->getWinSize();
 
         // add geode button
-        
+
         m_fields->m_geodeButton = CircleButtonSprite::createWithSpriteFrameName(
             "geode-logo-outline-gold.png"_spr,
             1.0f,
@@ -109,7 +109,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         static bool shownTriedToLoadDlls = false;
         if (!shownTriedToLoadDlls) {
             shownTriedToLoadDlls = true;
-            if (Loader::get()->userTriedToLoadDLLs()) {
+            if (LoaderImpl::get()->userTriedToLoadDLLs()) {
                 auto popup = FLAlertLayer::create(
                     "Hold up!",
                     "It appears that you have tried to <cr>load DLLs</c> with Geode. "
@@ -128,7 +128,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 
         // show auto update message
         static bool shownUpdateInfo = false;
-        if (LoaderImpl::get()->isNewUpdateDownloaded() && !shownUpdateInfo) {
+        if (updater::isNewUpdateDownloaded() && !shownUpdateInfo) {
             shownUpdateInfo = true;
             auto popup = FLAlertLayer::create(
                 "Update downloaded",
@@ -146,7 +146,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         // show crash info
         static bool shownLastCrash = false;
         if (
-            Loader::get()->didLastLaunchCrash() &&
+            crashlog::didLastLaunchCrash() &&
             !shownLastCrash &&
             !Mod::get()->template getSettingValue<bool>("disable-last-crashed-popup")
         ) {

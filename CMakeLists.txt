@@ -7,9 +7,8 @@ if (GEODE_BUILDING_DOCS)
 	set(GEODE_DISABLE_CLI_CALLS On)
 	set(CMAKE_EXPORT_COMPILE_COMMANDS On)
 	set(GEODE_DISABLE_PRECOMPILED_HEADERS On)
+	set(GEODE_DONT_BUILD_TEST_MODS On)
 endif()
-
-set(GEODE_GD_VERSION 2.200)
 
 # Read version
 file(READ VERSION GEODE_VERSION)
@@ -77,10 +76,24 @@ include(cmake/Platform.cmake)
 include(cmake/GeodeFile.cmake)
 include(cmake/CPM.cmake)
 
-if (PROJECT_IS_TOP_LEVEL AND NOT GEODE_BUILDING_DOCS)
-	set(MAT_JSON_AS_INTERFACE ON)
+if (NOT DEFINED GEODE_GD_VERSION)
+	if (${GEODE_TARGET_PLATFORM} STREQUAL "Win32")
+		set(GEODE_GD_VERSION 2.203)
+	else()
+		set(GEODE_GD_VERSION 2.200)
+	endif()
 endif()
-CPMAddPackage("gh:geode-sdk/json#9f54cca")
+
+target_compile_definitions(${PROJECT_NAME} INTERFACE GEODE_GD_VERSION=${GEODE_GD_VERSION})
+
+if (WIN32)
+	# This allows you to compile in debug mode
+	add_compile_definitions(_HAS_ITERATOR_DEBUGGING=0)
+	add_definitions(-D_HAS_ITERATOR_DEBUGGING=0)
+endif()
+
+set(MAT_JSON_AS_INTERFACE ON)
+CPMAddPackage("gh:geode-sdk/json#49bdff7")
 CPMAddPackage("gh:fmtlib/fmt#10.1.1")
 CPMAddPackage("gh:gulrak/filesystem#3e5b930")
 
@@ -250,11 +263,6 @@ if (${GEODE_LINK_NIGHTLY})
 	set(GEODE_PLATFORM_BIN_PATH ${GEODE_BIN_PATH}/nightly/${GEODE_PLATFORM_BINARY})
 else()
 	set(GEODE_PLATFORM_BIN_PATH ${GEODE_BIN_PATH}/${PROJECT_VERSION}/${GEODE_PLATFORM_BINARY})
-endif()
-
-if (WIN32)
-	# This allows you to compile in debug mode
-	add_compile_definitions(_HAS_ITERATOR_DEBUGGING=0)
 endif()
 
 

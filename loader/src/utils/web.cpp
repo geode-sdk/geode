@@ -161,7 +161,12 @@ private:
     SentAsyncWebRequest* m_self;
 
     mutable std::mutex m_mutex;
-    AsyncWebRequestData m_extra;
+    std::string m_userAgent;
+    std::string m_customRequest;
+    bool m_isPostRequest = false;
+    std::string m_postFields;
+    bool m_isJsonRequest = false;
+    bool m_sent = false;
     std::variant<std::monostate, std::ostream*, ghc::filesystem::path> m_target;
     std::vector<std::string> m_httpHeaders;
     
@@ -183,11 +188,42 @@ public:
     friend class SentAsyncWebRequest;
 };
 
+class AsyncWebRequest::Impl {
+public:
+    std::optional<std::string> m_joinID;
+    std::string m_url;
+    AsyncThen m_then = nullptr;
+    AsyncExpectCode m_expect = nullptr;
+    AsyncProgress m_progress = nullptr;
+    AsyncCancelled m_cancelled = nullptr;
+    std::string m_userAgent;
+    std::string m_customRequest;
+    bool m_isPostRequest = false;
+    std::string m_postFields;
+    bool m_isJsonRequest = false;
+    bool m_sent = false;
+    std::variant<std::monostate, std::ostream*, ghc::filesystem::path> m_target;
+    std::vector<std::string> m_httpHeaders;
+    std::chrono::seconds m_timeoutSeconds;
+
+    SentAsyncWebRequestHandle send(AsyncWebRequest&);
+};
+
 static std::unordered_map<std::string, SentAsyncWebRequestHandle> RUNNING_REQUESTS{};
 static std::mutex RUNNING_REQUESTS_MUTEX;
 
 SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const& req, std::string const& id) :
-    m_self(self), m_id(id), m_url(req.m_url), m_target(req.m_target), m_extra(req.extra()), m_httpHeaders(req.m_httpHeaders) {
+    m_self(self),
+    m_id(id),
+    m_url(req.m_impl->m_url),
+    m_target(req.m_impl->m_target),
+    m_userAgent(req.m_impl->m_userAgent),
+    m_customRequest(req.m_impl->m_customRequest),
+    m_isPostRequest(req.m_impl->m_isPostRequest),
+    m_postFields(req.m_impl->m_postFields),
+    m_isJsonRequest(req.m_impl->m_isJsonRequest),
+    m_sent(req.m_impl->m_sent),
+    m_httpHeaders(req.m_impl->m_httpHeaders) {
 
 #define AWAIT_RESUME()    \
     {\
@@ -201,12 +237,14 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
         }\
     }\
 
-    if (req.m_then) m_thens.push_back(req.m_then);
-    if (req.m_progress) m_progresses.push_back(req.m_progress);
-    if (req.m_cancelled) m_cancelleds.push_back(req.m_cancelled);
-    if (req.m_expect) m_expects.push_back(req.m_expect);
+    if (req.m_impl->m_then) m_thens.push_back(req.m_impl->m_then);
+    if (req.m_impl->m_progress) m_progresses.push_back(req.m_impl->m_progress);
+    if (req.m_impl->m_cancelled) m_cancelleds.push_back(req.m_impl->m_cancelled);
+    if (req.m_impl->m_expect) m_expects.push_back(req.m_impl->m_expect);
 
-    std::thread([this]() {
+    auto timeoutSeconds = req.m_impl->m_timeoutSeconds;
+
+    std::thread([this, timeoutSeconds]() {
         AWAIT_RESUME();
 
         auto curl = curl_easy_init();
@@ -243,7 +281,7 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
         // User Agent
-        curl_easy_setopt(curl, CURLOPT_USERAGENT, m_extra.m_userAgent.c_str());
+        curl_easy_setopt(curl, CURLOPT_USERAGENT, m_userAgent.c_str());
 
         // Headers
         curl_slist* headers = nullptr;
@@ -252,18 +290,23 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
         }
 
         // Post request
-        if (m_extra.m_isPostRequest || m_extra.m_customRequest.size()) {
-            if (m_extra.m_isPostRequest) {
+        if (m_isPostRequest || m_customRequest.size()) {
+            if (m_isPostRequest) {
                 curl_easy_setopt(curl, CURLOPT_POST, 1L);
             }
             else {
-                curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, m_extra.m_customRequest.c_str());
+                curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, m_customRequest.c_str());
             }
-            if (m_extra.m_isJsonRequest) {
+            if (m_isJsonRequest) {
                 headers = curl_slist_append(headers, "Content-Type: application/json");
             }
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, m_extra.m_postFields.c_str());
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, m_extra.m_postFields.size());
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, m_postFields.c_str());
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, m_postFields.size());
+        }
+
+        // Timeout
+        if (timeoutSeconds.count()) {
+            curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeoutSeconds.count());
         }
 
         // Track progress
@@ -314,7 +357,11 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &code);
         if (res != CURLE_OK) {
             curl_easy_cleanup(curl);
-            return this->error("Fetch failed: " + std::string(curl_easy_strerror(res)), code);
+            if (m_cancelled) {
+                return this->doCancel();
+            } else {
+                return this->error("Fetch failed: " + std::string(curl_easy_strerror(res)), code);
+            }
         }
         if (code >= 400 && code < 600) {
             std::string response_str(ret.begin(), ret.end());
@@ -366,8 +413,6 @@ void SentAsyncWebRequest::Impl::doCancel() {
             l.lock();
         }
     });
-
-    this->error("Request cancelled", -1);
 }
 
 void SentAsyncWebRequest::Impl::cancel() {
@@ -443,85 +488,121 @@ void SentAsyncWebRequest::error(std::string const& error, int code) {
     return m_impl->error(error, code);
 }
 
-AsyncWebRequestData& AsyncWebRequest::extra() {
-    if (!m_extra) {
-        m_extra = new AsyncWebRequestData();
-    }
-    return *m_extra;
+AsyncWebRequest::AsyncWebRequest() {
+    m_impl = std::make_unique<AsyncWebRequest::Impl>();
 }
 
-AsyncWebRequestData const& AsyncWebRequest::extra() const {
-    if (!m_extra) {
-        m_extra = new AsyncWebRequestData();
-    }
-    return *m_extra;
+AsyncWebRequest::~AsyncWebRequest() {
+    this->send();
 }
 
-AsyncWebRequest& AsyncWebRequest::join(std::string const& requestID) {
-    m_joinID = requestID;
+AsyncWebRequest& AsyncWebRequest::setThen(AsyncThen then) {
+    m_impl->m_then = then;
     return *this;
 }
 
-AsyncWebRequest& AsyncWebRequest::userAgent(std::string const& userAgent) {
-    this->extra().m_userAgent = userAgent;
+AsyncWebRequest& AsyncWebRequest::join(std::string_view const requestID) {
+    m_impl->m_joinID = requestID;
     return *this;
+}
+
+AsyncWebRequest& AsyncWebRequest::userAgent(std::string_view const userAgent) {
+    m_impl->m_userAgent = userAgent;
+    return *this;
+}
+
+AsyncWebRequest& AsyncWebRequest::contentType(std::string_view const contentType) {
+    return this->header("Content-Type", contentType);
 }
 
 AsyncWebRequest& AsyncWebRequest::postRequest() {
-    this->extra().m_isPostRequest = true;
+    m_impl->m_isPostRequest = true;
     return *this;
 }
 
-AsyncWebRequest& AsyncWebRequest::customRequest(std::string const& request) {
-    this->extra().m_customRequest = request;
+AsyncWebRequest& AsyncWebRequest::method(std::string_view const request) {
+    m_impl->m_customRequest = request;
     return *this;
 }
 
-AsyncWebRequest& AsyncWebRequest::postFields(std::string const& fields) {
-    this->extra().m_postFields = fields;
+AsyncWebRequest& AsyncWebRequest::bodyRaw(std::string_view const fields) {
+    m_impl->m_postFields = fields;
     return *this;
 }
 
-AsyncWebRequest& AsyncWebRequest::postFields(matjson::Value const& fields) {
-    this->extra().m_isJsonRequest = true;
-    return this->postFields(fields.dump());
+AsyncWebRequest& AsyncWebRequest::body(matjson::Value const& fields) {
+    m_impl->m_isJsonRequest = true;
+    return this->bodyRaw(fields.dump(matjson::NO_INDENTATION));
 }
 
-AsyncWebRequest& AsyncWebRequest::header(std::string const& header) {
-    m_httpHeaders.push_back(header);
+AsyncWebRequest& AsyncWebRequest::timeout(std::chrono::seconds seconds) {
+    m_impl->m_timeoutSeconds = seconds;
     return *this;
 }
 
-AsyncWebResponse AsyncWebRequest::fetch(std::string const& url) {
-    m_url = url;
+AsyncWebRequest& AsyncWebRequest::header(std::string_view const header) {
+    m_impl->m_httpHeaders.push_back(std::string(header));
+    return *this;
+}
+
+AsyncWebRequest& AsyncWebRequest::header(std::string_view const headerName, std::string_view const headerValue) {
+    return this->header(fmt::format("{}: {}", headerName, headerValue));
+}
+
+AsyncWebResponse AsyncWebRequest::get(std::string_view const url) {
+    this->method("GET");
+    return this->fetch(url);
+}
+
+AsyncWebResponse AsyncWebRequest::post(std::string_view const url) {
+    this->method("POST");
+    return this->fetch(url);
+}
+
+AsyncWebResponse AsyncWebRequest::put(std::string_view const url) {
+    this->method("PUT");
+    return this->fetch(url);
+}
+
+AsyncWebResponse AsyncWebRequest::patch(std::string_view const url) {
+    this->method("PATCH");
+    return this->fetch(url);
+}
+
+AsyncWebResponse AsyncWebRequest::fetch(std::string_view const url) {
+    m_impl->m_url = url;
     return AsyncWebResponse(*this);
 }
 
 AsyncWebRequest& AsyncWebRequest::expect(AsyncExpect handler) {
-    m_expect = [handler](std::string const& info, auto) {
+    m_impl->m_expect = [handler](std::string const& info, auto) {
         return handler(info);
     };
     return *this;
 }
 
 AsyncWebRequest& AsyncWebRequest::expect(AsyncExpectCode handler) {
-    m_expect = handler;
+    m_impl->m_expect = handler;
     return *this;
 }
 
 AsyncWebRequest& AsyncWebRequest::progress(AsyncProgress progress) {
-    m_progress = progress;
+    m_impl->m_progress = progress;
     return *this;
 }
 
 AsyncWebRequest& AsyncWebRequest::cancelled(AsyncCancelled cancelledFunc) {
-    m_cancelled = cancelledFunc;
+    m_impl->m_cancelled = cancelledFunc;
     return *this;
 }
 
 SentAsyncWebRequestHandle AsyncWebRequest::send() {
-    if (this->extra().m_sent) return nullptr;
-    this->extra().m_sent = true;
+    return m_impl->send(*this);
+}
+
+SentAsyncWebRequestHandle AsyncWebRequest::Impl::send(AsyncWebRequest& reqObj) {
+    if (m_sent) return nullptr;
+    m_sent = true;
 
     std::lock_guard __(RUNNING_REQUESTS_MUTEX);
 
@@ -544,7 +625,7 @@ SentAsyncWebRequestHandle AsyncWebRequest::send() {
     }
     else {
         auto id = m_joinID.value_or("__anon_request_" + std::to_string(COUNTER++));
-        ret = SentAsyncWebRequest::create(*this, id);
+        ret = SentAsyncWebRequest::create(reqObj, id);
         RUNNING_REQUESTS.insert({id, ret});
     }
 
@@ -556,20 +637,15 @@ SentAsyncWebRequestHandle AsyncWebRequest::send() {
     return ret;
 }
 
-AsyncWebRequest::~AsyncWebRequest() {
-    this->send();
-    delete m_extra;
-}
-
 AsyncWebResult<std::monostate> AsyncWebResponse::into(std::ostream& stream) {
-    m_request.m_target = &stream;
+    m_request.m_impl->m_target = &stream;
     return this->as(+[](ByteVector const&) -> Result<std::monostate> {
         return Ok(std::monostate());
     });
 }
 
 AsyncWebResult<std::monostate> AsyncWebResponse::into(ghc::filesystem::path const& path) {
-    m_request.m_target = path;
+    m_request.m_impl->m_target = path;
     return this->as(+[](ByteVector const&) -> Result<std::monostate> {
         return Ok(std::monostate());
     });

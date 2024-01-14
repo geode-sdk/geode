@@ -19,6 +19,36 @@ namespace geode::base {
 namespace gd {
     using namespace geode::stl;
 
+    void* operatorNew(size_t size);
+    void operatorDelete(void* ptr);
+
+    template <typename T>
+    class allocator : public std::allocator<T> {
+    public:
+        typedef size_t size_type;
+        typedef T* pointer;
+        typedef const T* const_pointer;
+
+        template<typename _Tp1>
+        struct rebind {
+            typedef allocator<_Tp1> other;
+        };
+
+        pointer allocate(size_type n, const void *hint=0) {
+            return (pointer)operatorNew(n * sizeof(T));
+        }
+
+        void deallocate(pointer p, size_type n) {
+            return operatorDelete(p);
+        }
+
+        allocator() throw(): std::allocator<T>() { }
+        allocator(const allocator &a) throw(): std::allocator<T>(a) { }
+        template <class U>                    
+        allocator(const allocator<U> &a) throw(): std::allocator<T>(a) { }
+        ~allocator() throw() { }
+    };
+
     template <typename K, typename V>
     class GEODE_DLL map {
     protected:
@@ -39,7 +69,7 @@ namespace gd {
             auto end_node = static_cast<_tree_node>(&m_header);
             std::map<K, V> out;
             for (; iter_node != end_node;
-                 iter_node = static_cast<_tree_node>(_rb_increment(iter_node))) {
+                iter_node = static_cast<_tree_node>(_rb_increment(iter_node))) {
                 out[iter_node->m_value.first] = iter_node->m_value.second;
             }
 
@@ -51,7 +81,7 @@ namespace gd {
             auto end_node = (_tree_node)(&m_header);
             std::map<K, V> out;
             for (; iter_node != end_node;
-                 iter_node = static_cast<_tree_node>(_rb_increment(iter_node))) {
+                iter_node = static_cast<_tree_node>(_rb_increment(iter_node))) {
                 out[iter_node->m_value.first] = iter_node->m_value.second;
             }
 
@@ -237,7 +267,7 @@ namespace gd {
         using value_type = T;
 
         auto allocator() const {
-            return std::allocator<T>();
+            return gd::allocator<T>();
         }
 
         operator std::vector<T>() const {
@@ -256,6 +286,7 @@ namespace gd {
                 m_finish = m_start + input.size();
                 m_reserveEnd = m_start + input.size();
 
+                std::uninitialized_default_construct(m_start, m_finish);
                 std::copy(input.begin(), input.end(), m_start);
             }
         }
@@ -266,6 +297,7 @@ namespace gd {
                 m_finish = m_start + input.size();
                 m_reserveEnd = m_start + input.size();
 
+                std::uninitialized_default_construct(m_start, m_finish);
                 std::copy(input.begin(), input.end(), m_start);
             }
         }
@@ -312,6 +344,7 @@ namespace gd {
                 m_finish = m_start + input.size();
                 m_reserveEnd = m_start + input.size();
 
+                std::uninitialized_default_construct(m_start, m_finish);
                 std::copy(input.begin(), input.end(), m_start);
             }
         }
@@ -462,7 +495,7 @@ namespace gd {
 
     public:
         auto allocator() const {
-            return std::allocator<uintptr_t>();
+            return gd::allocator<uintptr_t>();
         }
 
         vector() : m_start(nullptr), m_end(nullptr), m_capacity_end(nullptr) {}

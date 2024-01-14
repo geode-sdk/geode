@@ -29,9 +29,10 @@ static void __cdecl fixedErrorHandler(int code, char const* description) {
 }
 
 $execute {
-    (void)Mod::get()->patch(
-        reinterpret_cast<void*>(geode::base::getCocos() + 0x19feec), toByteArray(&fixedErrorHandler)
-    );
+    // TODO: i'm pretty sure this patch only works on 2.113?
+    //(void)Mod::get()->patch(
+    //    reinterpret_cast<void*>(geode::base::getCocos() + 0x19feec), toByteArray(&fixedErrorHandler)
+    //);
 }
 
 #endif

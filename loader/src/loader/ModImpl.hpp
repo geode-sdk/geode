@@ -109,10 +109,10 @@ namespace geode {
 
         bool hasSettings() const;
         std::vector<std::string> getSettingKeys() const;
-        bool hasSetting(std::string const& key) const;
-        std::optional<Setting> getSettingDefinition(std::string const& key) const;
-        SettingValue* getSetting(std::string const& key) const;
-        void registerCustomSetting(std::string const& key, std::unique_ptr<SettingValue> value);
+        bool hasSetting(std::string_view const key) const;
+        std::optional<Setting> getSettingDefinition(std::string_view const key) const;
+        SettingValue* getSetting(std::string_view const key) const;
+        void registerCustomSetting(std::string_view const key, std::unique_ptr<SettingValue> value);
 
         std::vector<Hook*> getHooks() const;
         Result<Hook*> addHook(Hook* hook);
@@ -123,13 +123,13 @@ namespace geode {
         Result<> unpatch(Patch* patch);
         Result<> enable();
         Result<> disable();
-        Result<> uninstall(bool deleteSaveData);
+        Result<> uninstall(bool deleteSaveData = false);
         bool isUninstalled() const;
 
         // 1.3.0 additions
         ModRequestedAction getRequestedAction() const;
 
-        bool depends(std::string const& id) const;
+        bool depends(std::string_view const id) const;
         Result<> updateDependencies();
         bool hasUnresolvedDependencies() const;
         bool hasUnresolvedIncompatibilities() const;

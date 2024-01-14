@@ -26,6 +26,22 @@ execute_process(
 	ERROR_QUIET
 )
 
+if (NOT GEODE_COMMIT_HASH)
+	set(GEODE_COMMIT_HASH "(?)")
+endif()
+
+execute_process(
+	COMMAND git rev-parse --short HEAD
+	WORKING_DIRECTORY ${GEODE_BINDINGS_REPO_PATH}
+	OUTPUT_VARIABLE GEODE_BINDINGS_COMMIT_HASH
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+	ERROR_QUIET
+)
+
+if (NOT GEODE_BINDINGS_COMMIT_HASH)
+	set(GEODE_BINDINGS_COMMIT_HASH "(?)")
+endif()
+
 # Package info file for internal representation
 set(GEODE_RESOURCES_PATH ${CMAKE_CURRENT_SOURCE_DIR}/resources)
 configure_file(resources/mod.json.in ${CMAKE_CURRENT_SOURCE_DIR}/resources/mod.json)
@@ -44,17 +60,12 @@ file(GLOB SOURCES CONFIGURE_DEPENDS
 	src/hooks/*.cpp
 	src/ids/*.cpp
 	src/internal/*.cpp
-	src/platform/mac/*.cpp
-	src/platform/ios/*.cpp
-	src/platform/android/*.cpp
 	src/loader/*.cpp
 	src/load.cpp
 	src/utils/*.cpp
 	src/ui/*.cpp
 	src/ui/nodes/*.cpp
 	src/ui/internal/*.cpp
-	src/ui/internal/credits/*.cpp
-	src/ui/internal/dev/*.cpp
 	src/ui/internal/info/*.cpp
 	src/ui/internal/list/*.cpp
 	src/ui/internal/settings/*.cpp
@@ -67,6 +78,12 @@ file(GLOB OBJC_SOURCES
 	src/platform/Objcpp.mm
 )
 set_source_files_properties(${OBJC_SOURCES} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+
+if (WIN32)
+	# This allows you to compile in debug mode
+	add_compile_definitions(_HAS_ITERATOR_DEBUGGING=0)
+	add_definitions(-D_HAS_ITERATOR_DEBUGGING=0)
+endif()
 
 
 # Add platform sources
@@ -187,6 +204,7 @@ if (NOT GEODE_BUILDING_DOCS)
 	# Zip support (needed for in-memory streams, which zlib's minizip doesn't support)
 	set(MZ_LZMA Off CACHE INTERNAL "Enables LZMA & XZ compression")
 	set(MZ_ZSTD Off CACHE INTERNAL "")
+	set(MZ_BZIP2 Off CACHE INTERNAL "")
 	set(MZ_OPENSSL Off CACHE INTERNAL "")
 	set(MZ_LIBBSD Off CACHE INTERNAL "")
 	set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "" FORCE)
@@ -234,6 +252,8 @@ if (MSVC)
 	if (DEFINED ENV{GEODE_CI})
 		target_link_options(${PROJECT_NAME} PRIVATE /INCREMENTAL:NO)
 	endif()
+
+	target_link_options(${PROJECT_NAME} PRIVATE /DELAYLOAD:libcocos2d.dll /DELAYLOAD:libExtensions.dll)
 endif()
 
 # Use precompiled headers for faster builds
@@ -277,6 +297,3 @@ elseif (WIN32)
 endif()
 
 add_subdirectory(test)
-
-# Build index hashing algorithm test program
-add_subdirectory(hash)

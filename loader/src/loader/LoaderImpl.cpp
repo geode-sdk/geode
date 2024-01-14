@@ -4,6 +4,7 @@
 #include "ModImpl.hpp"
 #include "ModMetadataImpl.hpp"
 #include "LogImpl.hpp"
+#include "console.hpp"
 
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/IPC.hpp>
@@ -36,6 +37,15 @@ Loader::Impl::Impl() = default;
 Loader::Impl::~Impl() = default;
 
 // Initialization
+
+bool Loader::Impl::isForwardCompatMode() {
+    if (!m_forwardCompatModeSet) {
+        m_forwardCompatMode = !this->getGameVersion().empty() &&
+            this->getGameVersion() != GEODE_STR(GEODE_GD_VERSION);
+        m_forwardCompatModeSet = true;
+    }
+    return m_forwardCompatMode;
+}
 
 void Loader::Impl::createDirectories() {
 #ifdef GEODE_IS_MACOS
@@ -73,11 +83,6 @@ Result<> Loader::Impl::setup() {
     }
     log::popNest();
 
-    log::debug("Setting up IPC");
-    log::pushNest();
-    this->setupIPC();
-    log::popNest();
-
     log::debug("Setting up directories");
     log::pushNest();
     this->createDirectories();
@@ -94,10 +99,6 @@ Result<> Loader::Impl::setup() {
 void Loader::Impl::addSearchPaths() {
     CCFileUtils::get()->addPriorityPath(dirs::getGeodeResourcesDir().string().c_str());
     CCFileUtils::get()->addPriorityPath(dirs::getModRuntimeDir().string().c_str());
-}
-
-void Loader::Impl::updateResources() {
-    this->updateResources(true);
 }
 
 void Loader::Impl::updateResources(bool forceReload) {
@@ -145,7 +146,7 @@ bool Loader::Impl::isModVersionSupported(VersionInfo const& version) {
 
 // Data saving
 
-Result<> Loader::Impl::saveData() {
+void Loader::Impl::saveData() {
     for (auto& [id, mod] : m_mods) {
         log::debug("{}", mod->getID());
         log::pushNest();
@@ -155,10 +156,9 @@ Result<> Loader::Impl::saveData() {
         }
         log::popNest();
     }
-    return Ok();
 }
 
-Result<> Loader::Impl::loadData() {
+void Loader::Impl::loadData() {
     for (auto& [_, mod] : m_mods) {
         log::debug("{}", mod->getID());
         log::pushNest();
@@ -168,7 +168,6 @@ Result<> Loader::Impl::loadData() {
         }
         log::popNest();
     }
-    return Ok();
 }
 
 // Mod loading
@@ -660,18 +659,8 @@ std::vector<LoadProblem> Loader::Impl::getProblems() const {
     return m_problems;
 }
 
-void Loader::Impl::waitForModsToBeLoaded() {
-    log::debug("Waiting for mods to be loaded...");
-    // genius
-    log::warn("waitForModsToBeLoaded() does not wait for mods to be loaded!");
-}
-
-bool Loader::Impl::didLastLaunchCrash() const {
-    return crashlog::didLastLaunchCrash();
-}
-
 void Loader::Impl::forceReset() {
-    this->closePlatformConsole();
+    console::close();
     for (auto& [_, mod] : m_mods) {
         delete mod;
     }
@@ -704,373 +693,23 @@ bool Loader::Impl::loadHooks() {
 }
 
 void Loader::Impl::queueInMainThread(ScheduledFunction func) {
-    std::lock_guard<std::mutex> lock(m_gdThreadMutex);
-    m_gdThreadQueue.push_back(func);
+    std::lock_guard<std::mutex> lock(m_mainThreadMutex);
+    m_mainThreadQueue.push_back(func);
 }
 
 void Loader::Impl::executeGDThreadQueue() {
     // copy queue to avoid locking mutex if someone is
     // running addToGDThread inside their function
-    m_gdThreadMutex.lock();
-    auto queue = m_gdThreadQueue;
-    m_gdThreadQueue.clear();
-    m_gdThreadMutex.unlock();
+    m_mainThreadMutex.lock();
+    auto queue = m_mainThreadQueue;
+    m_mainThreadQueue.clear();
+    m_mainThreadMutex.unlock();
 
     // call queue
     for (auto const& func : queue) {
         func();
     }
 }
-
-void Loader::Impl::logConsoleMessage(std::string const& msg) {
-    if (m_platformConsoleOpen) {
-        // TODO: make flushing optional
-        std::cout << msg << '\n' << std::flush;
-    }
-}
-
-bool Loader::Impl::platformConsoleOpen() const {
-    return m_platformConsoleOpen;
-}
-
-void Loader::Impl::fetchLatestGithubRelease(
-    utils::MiniFunction<void(matjson::Value const&)> then,
-    utils::MiniFunction<void(std::string const&)> expect
-) {
-    if (m_latestGithubRelease) {
-        return then(m_latestGithubRelease.value());
-    }
-    // TODO: add header to not get rate limited
-    web::AsyncWebRequest()
-        .join("loader-auto-update-check")
-        .userAgent("github_api/1.0")
-        .fetch("https://api.github.com/repos/geode-sdk/geode/releases/latest")
-        .json()
-        .then([this, then](matjson::Value const& json) {
-            m_latestGithubRelease = json;
-            then(json);
-        })
-        .expect(expect);
-}
-
-void Loader::Impl::tryDownloadLoaderResources(
-    std::string const& url,
-    bool tryLatestOnError
-) {
-    auto tempResourcesZip = dirs::getTempDir() / "new.zip";
-    auto resourcesDir = dirs::getGeodeResourcesDir() / Mod::get()->getID();
-
-    web::AsyncWebRequest()
-        // use the url as a join handle
-        .join(url)
-        .fetch(url)
-        .into(tempResourcesZip)
-        .then([tempResourcesZip, resourcesDir, this](auto) {
-            // unzip resources zip
-            auto unzip = file::Unzip::intoDir(tempResourcesZip, resourcesDir, true);
-            if (!unzip) {
-                ResourceDownloadEvent(
-                    UpdateFailed("Unable to unzip new resources: " + unzip.unwrapErr())
-                ).post();
-                return;
-            }
-            this->updateSpecialFiles();
-
-            ResourceDownloadEvent(UpdateFinished()).post();
-        })
-        .expect([this, tryLatestOnError](std::string const& info, int code) {
-            // if the url was not found, try downloading latest release instead
-            // (for development versions)
-            if (code == 404) {
-                log::warn("Unable to download resources: {}", info);
-            }
-            ResourceDownloadEvent(
-                UpdateFailed("Unable to download resources: " + info)
-            ).post();
-        })
-        .progress([](auto&, double now, double total) {
-            ResourceDownloadEvent(
-                UpdateProgress(
-                    static_cast<uint8_t>(now / total * 100.0),
-                    "Downloading resources"
-                )
-            ).post();
-        });
-}
-
-void Loader::Impl::updateSpecialFiles() {
-    auto resourcesDir = dirs::getGeodeResourcesDir() / Mod::get()->getID();
-    auto res = ModMetadataImpl::getImpl(ModImpl::get()->m_metadata).addSpecialFiles(resourcesDir);
-    if (res.isErr()) {
-        log::warn("Unable to add special files: {}", res.unwrapErr());
-    }
-}
-
-void Loader::Impl::downloadLoaderResources(bool useLatestRelease) {
-    web::AsyncWebRequest()
-        .join("loader-tag-exists-check")
-        .userAgent("github_api/1.0")
-        .fetch(fmt::format(
-            "https://api.github.com/repos/geode-sdk/geode/git/ref/tags/{}",
-            this->getVersion().toString()
-        ))
-        .json()
-        .then([this](matjson::Value const& json) {
-            this->tryDownloadLoaderResources(fmt::format(
-                "https://github.com/geode-sdk/geode/releases/download/{}/resources.zip",
-                this->getVersion().toString()
-            ), true);  
-        })
-        .expect([=, this](std::string const& info, int code) {
-            if (code == 404) {
-                if (useLatestRelease) {
-                    log::debug("Loader version {} does not exist on Github, downloading latest resources", this->getVersion().toString());
-                    fetchLatestGithubRelease(
-                        [this](matjson::Value const& raw) {
-                            auto json = raw;
-                            JsonChecker checker(json);
-                            auto root = checker.root("[]").obj();
-
-                            // find release asset
-                            for (auto asset : root.needs("assets").iterate()) {
-                                auto obj = asset.obj();
-                                if (obj.needs("name").template get<std::string>() == "resources.zip") {
-                                    this->tryDownloadLoaderResources(
-                                        obj.needs("browser_download_url").template get<std::string>(),
-                                        false
-                                    );
-                                    return;
-                                }
-                            }
-
-                            ResourceDownloadEvent(
-                                UpdateFailed("Unable to find resources in latest GitHub release")
-                            ).post();
-                        },
-                        [this](std::string const& info) {
-                            ResourceDownloadEvent(
-                                UpdateFailed("Unable to download resources: " + info)
-                            ).post();
-                        }
-                    );
-                    return;
-                }
-                else {
-                    log::debug("Loader version {} does not exist on Github, not downloading the resources", this->getVersion().toString());
-                }
-                ResourceDownloadEvent(
-                    UpdateFinished()
-                ).post();
-            }
-            else {
-                ResourceDownloadEvent(
-                    UpdateFailed("Unable to check if tag exists: " + info)
-                ).post();
-            }
-        });
-}
-
-bool Loader::Impl::verifyLoaderResources() {
-    static std::optional<bool> CACHED = std::nullopt;
-    if (CACHED.has_value()) {
-        return CACHED.value();
-    }
-
-    // geode/resources/geode.loader
-    auto resourcesDir = dirs::getGeodeResourcesDir() / Mod::get()->getID();
-
-    // if the resources dir doesn't exist, then it's probably incorrect
-    if (!(
-        ghc::filesystem::exists(resourcesDir) &&
-        ghc::filesystem::is_directory(resourcesDir)
-    )) {
-        log::debug("Resources directory does not exist");
-        this->downloadLoaderResources(true);
-        return false;
-    }
-
-    // TODO: actually have a proper way to disable checking resources
-    // for development builds
-    if (ghc::filesystem::exists(resourcesDir / "dont-update.txt")) {
-        // this is kind of a hack, but it's the easiest way to prevent
-        // auto update while developing
-        log::debug("Not updating resources since dont-update.txt exists");
-        return true;
-    }
-
-    // make sure every file was covered
-    size_t coverage = 0;
-
-    // verify hashes
-    for (auto& file : ghc::filesystem::directory_iterator(resourcesDir)) {
-        auto name = file.path().filename().string();
-        // skip unknown files
-        if (!LOADER_RESOURCE_HASHES.count(name)) {
-            continue;
-        }
-        // verify hash
-        auto hash = calculateSHA256(file.path());
-        auto expected = LOADER_RESOURCE_HASHES.at(name);
-        if (hash != expected) {
-            log::debug("Resource hash mismatch: {} ({}, {})", name, hash.substr(0, 7), expected.substr(0, 7));
-            this->downloadLoaderResources();
-            return false;
-        }
-        coverage += 1;
-    }
-
-    // make sure every file was found
-    if (coverage != LOADER_RESOURCE_HASHES.size()) {
-        log::debug("Resource coverage mismatch");
-        this->downloadLoaderResources();
-        return false;
-    }
-
-    return true;
-}
-
-void Loader::Impl::downloadLoaderUpdate(std::string const& url) {
-    auto updateZip = dirs::getTempDir() / "loader-update.zip";
-    auto targetDir = dirs::getGeodeDir() / "update";
-
-    web::AsyncWebRequest()
-        .join("loader-update-download")
-        .fetch(url)
-        .into(updateZip)
-        .then([this, updateZip, targetDir](auto) {
-            // unzip resources zip
-            auto unzip = file::Unzip::intoDir(updateZip, targetDir, true);
-            if (!unzip) {
-                LoaderUpdateEvent(
-                    UpdateFailed("Unable to unzip update: " + unzip.unwrapErr())
-                ).post();
-                return;
-            }
-            m_isNewUpdateDownloaded = true;
-            LoaderUpdateEvent(UpdateFinished()).post();
-        })
-        .expect([](std::string const& info) {
-            LoaderUpdateEvent(
-                UpdateFailed("Unable to download update: " + info)
-            ).post();
-        })
-        .progress([](auto&, double now, double total) {
-            LoaderUpdateEvent(
-                UpdateProgress(
-                    static_cast<uint8_t>(now / total * 100.0),
-                    "Downloading update"
-                )
-            ).post();
-        });
-}
-
-void Loader::Impl::checkForLoaderUpdates() {
-    // Check for updates in the background
-    fetchLatestGithubRelease(
-        [this](matjson::Value const& raw) {
-            auto json = raw;
-            JsonChecker checker(json);
-            auto root = checker.root("[]").obj();
-
-            VersionInfo ver { 0, 0, 0 };
-            root.needs("tag_name").into(ver);
-
-            // make sure release is newer
-            if (ver <= this->getVersion()) {
-                return;
-            }
-
-            // don't auto-update major versions
-            if (ver.getMajor() > this->getVersion().getMajor()) {
-                return;
-            }
-
-            // find release asset
-            for (auto asset : root.needs("assets").iterate()) {
-                auto obj = asset.obj();
-                if (string::endsWith(
-                    obj.needs("name").template get<std::string>(),
-                    GEODE_PLATFORM_SHORT_IDENTIFIER ".zip"
-                )) {
-                    this->downloadLoaderUpdate(
-                        obj.needs("browser_download_url").template get<std::string>()
-                    );
-                    return;
-                }
-            }
-
-            LoaderUpdateEvent(
-                UpdateFailed("Unable to find release asset for " GEODE_PLATFORM_NAME)
-            ).post();
-        },
-        [](std::string const& info) {
-            LoaderUpdateEvent(
-                UpdateFailed("Unable to check for updates: " + info)
-            ).post();
-        }
-    );
-}
-
-bool Loader::Impl::isNewUpdateDownloaded() const {
-    return m_isNewUpdateDownloaded;
-}
-    
-matjson::Value Loader::Impl::processRawIPC(void* rawHandle, std::string const& buffer) {
-    matjson::Value reply;
-
-    matjson::Value json;
-    try {
-        json = matjson::parse(buffer);
-    } catch (...) {
-        log::warn("Received IPC message that isn't valid JSON");
-        return reply;
-    }
-
-    if (!json.contains("mod") || !json["mod"].is_string()) {
-        log::warn("Received IPC message without 'mod' field");
-        return reply;
-    }
-    if (!json.contains("message") || !json["message"].is_string()) {
-        log::warn("Received IPC message without 'message' field");
-        return reply;
-    }
-    matjson::Value data;
-    if (json.contains("data")) {
-        data = json["data"];
-    }
-    // log::debug("Posting IPC event");
-    // ! warning: if the event system is ever made asynchronous this will break!
-    IPCEvent(rawHandle, json["mod"].as_string(), json["message"].as_string(), data, reply).post();
-    return reply;
-}
-
-ResourceDownloadEvent::ResourceDownloadEvent(
-    UpdateStatus const& status
-) : status(status) {}
-
-ListenerResult ResourceDownloadFilter::handle(
-    utils::MiniFunction<Callback> fn,
-    ResourceDownloadEvent* event
-) {
-    fn(event);
-    return ListenerResult::Propagate;
-}
-
-ResourceDownloadFilter::ResourceDownloadFilter() {}
-
-LoaderUpdateEvent::LoaderUpdateEvent(
-    UpdateStatus const& status
-) : status(status) {}
-
-ListenerResult LoaderUpdateFilter::handle(
-    utils::MiniFunction<Callback> fn,
-    LoaderUpdateEvent* event
-) {
-    fn(event);
-    return ListenerResult::Propagate;
-}
-
-LoaderUpdateFilter::LoaderUpdateFilter() {}
 
 void Loader::Impl::provideNextMod(Mod* mod) {
     m_nextModLock.lock();

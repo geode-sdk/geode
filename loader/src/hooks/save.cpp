@@ -3,9 +3,10 @@
 using namespace geode::prelude;
 
 #include <Geode/modify/AppDelegate.hpp>
+#include <Geode/modify/CCApplication.hpp>
 
-struct SaveLoader : Modify<SaveLoader, AppDelegate> {
-    void trySaveGame(bool p0) {
+namespace {
+    void saveModData() {
         log::info("Saving mod data...");
         log::pushNest();
 
@@ -18,7 +19,21 @@ struct SaveLoader : Modify<SaveLoader, AppDelegate> {
         log::info("Took {}s", static_cast<float>(time) / 1000.f);
 
         log::popNest();
+    }
+}
 
+struct SaveLoader : Modify<SaveLoader, AppDelegate> {
+    GEODE_FORWARD_COMPAT_DISABLE_HOOKS("save moved to CCApplication::gameDidSave()")
+    void trySaveGame(bool p0) {
+        saveModData();
         return AppDelegate::trySaveGame(p0);
+    }
+};
+
+struct FallbackSaveLoader : Modify<FallbackSaveLoader, CCApplication> {
+    GEODE_FORWARD_COMPAT_ENABLE_HOOKS("")
+    void gameDidSave() {
+        saveModData();
+        return CCApplication::gameDidSave();
     }
 };

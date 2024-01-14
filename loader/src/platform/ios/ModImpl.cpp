@@ -1,10 +1,8 @@
 #include <Geode/DefaultInclude.hpp>
 
-#ifdef GEODE_IS_IOS
-
-    #include <Geode/loader/Mod.hpp>
-    #include <loader/ModImpl.hpp>
-    #include <dlfcn.h>
+#include <Geode/loader/Mod.hpp>
+#include <loader/ModImpl.hpp>
+#include <dlfcn.h>
 
 using namespace geode::prelude;
 
@@ -43,5 +41,3 @@ Result<> Mod::Impl::unloadPlatformBinary() {
         return Err("Unable to free library");
     }
 }
-
-#endif

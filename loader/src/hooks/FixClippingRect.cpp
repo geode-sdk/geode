@@ -3,7 +3,8 @@
 using namespace geode::prelude;
 
 struct MyGameToolbox : Modify<MyGameToolbox, GameToolbox> {
-	static void preVisitWithClippingRect(CCNode* node, CCRect rect) {
+    GEODE_FORWARD_COMPAT_DISABLE_HOOKS("FixClippingRect disabled")
+    static void preVisitWithClippingRect(CCNode* node, CCRect rect) {
         if (node->isVisible()) {
             glEnable(0xc11);
             if (node->getParent()) {

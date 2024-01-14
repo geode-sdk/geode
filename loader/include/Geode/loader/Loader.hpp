@@ -49,16 +49,9 @@ namespace geode {
         ~Loader();
 
     protected:
-        void createDirectories();
-
-        void updateModResources(Mod* mod);
-        void addSearchPaths();
-
         Mod* takeNextMod();
 
     public:
-        // TODO: do we want to expose all of these functions?
-
         static Loader* get();
 
         enum class LoadingState : uint8_t {
@@ -72,9 +65,10 @@ namespace geode {
             Done
         };
 
-        // TODO: return void
-        Result<> saveData();
-        Result<> loadData();
+        bool isForwardCompatMode();
+
+        void saveData();
+        void loadData();
 
         VersionInfo getVersion();
         VersionInfo minModVersion();
@@ -89,24 +83,7 @@ namespace geode {
         std::vector<Mod*> getAllMods();
         std::vector<LoadProblem> getProblems() const;
 
-        void updateResources();
-        void updateResources(bool forceReload);
-
         void queueInMainThread(ScheduledFunction func);
-        void waitForModsToBeLoaded();
-
-        /**
-         * Open the platform-specific external console (if one exists)
-         */
-        void openPlatformConsole();
-        /**
-         * Close the platform-specific external console (if one exists)
-         */
-        void closePlatformConsole();
-
-        bool didLastLaunchCrash() const;
-
-        bool userTriedToLoadDLLs() const;
 
         friend class LoaderImpl;
 

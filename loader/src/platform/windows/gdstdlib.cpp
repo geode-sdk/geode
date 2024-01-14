@@ -1,7 +1,5 @@
 #include "../../c++stl/string-impl.hpp"
 
-#ifdef GEODE_IS_WINDOWS
-
 namespace geode::stl {
     void StringImpl::setEmpty() {
         data.m_size = 0;
@@ -43,5 +41,3 @@ namespace geode::stl {
         data.m_capacity = cap;
     }
 }
-
-#endif

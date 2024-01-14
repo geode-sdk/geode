@@ -1,7 +1,5 @@
 #include <Geode/DefaultInclude.hpp>
 
-#ifdef GEODE_IS_WINDOWS
-
 #include <Geode/loader/Mod.hpp>
 #include <loader/ModImpl.hpp>
 
@@ -81,5 +79,3 @@ Result<> Mod::Impl::unloadPlatformBinary() {
         return Err("Unable to free the DLL: " + getLastWinError());
     }
 }
-
-#endif

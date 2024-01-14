@@ -2,8 +2,6 @@
 
 #include <Geode/DefaultInclude.hpp>
 
-#ifdef GEODE_IS_WINDOWS
-
 #include <crashlog.hpp>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/Loader.hpp>
@@ -301,5 +299,3 @@ void crashlog::setupPlatformHandlerPost() {}
 ghc::filesystem::path crashlog::getCrashLogDirectory() {
     return dirs::getGeodeDir() / "crashlogs";
 }
-
-#endif

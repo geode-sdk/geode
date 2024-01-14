@@ -578,7 +578,7 @@ void ModListLayer::reloadList(bool keepScroll, std::optional<ModListQuery> const
 }
 
 void ModListLayer::updateAllStates() {
-    for (auto cell : CCArrayExt<GenericListCell>(
+    for (auto cell : CCArrayExt<GenericListCell*>(
         m_list->m_listView->m_tableView->m_cellArray
     )) {
         static_cast<ModListCell*>(cell->getChildByID("mod-list-cell"))->updateState();

@@ -66,6 +66,11 @@ Addresser::MultipleInheritance* Addresser::instance() {
     return reinterpret_cast<Addresser::MultipleInheritance*>(&TableTable::table);
 }
 
+#ifdef GEODE_IS_WINDOWS
+#include <delayimp.h>
+extern "C" FARPROC WINAPI __delayLoadHelper2(PCImgDelayDescr pidd, FARPROC* ppfnIATEntry); // NOLINT(*-reserved-identifier)
+#endif
+
 intptr_t Addresser::followThunkFunction(intptr_t address) {
 #ifdef GEODE_IS_WINDOWS
     // if theres a jmp at the start
@@ -87,6 +92,24 @@ intptr_t Addresser::followThunkFunction(intptr_t address) {
         address = *reinterpret_cast<uint32_t*>(address + 2);
         // that then contains the actual address of the func
         address = *reinterpret_cast<uintptr_t*>(address);
+    }
+
+    // if it starts with mov eax,..., it's a delay loaded func
+    if (*reinterpret_cast<uint8_t*>(address) == 0xB8) {
+        // follow the jmp to the tailMerge func and grab the ImgDelayDescr pointer from there
+        // do it this way instead of grabbing it from the NT header ourselves because
+        // we don't know the dll name
+        auto iddAddrRel = *reinterpret_cast<uint32_t*>(address + 6);
+        auto iddAddr = address + 5 + iddAddrRel + 5;
+        iddAddr = *reinterpret_cast<uintptr_t*>(iddAddr + 4);
+        auto idd = reinterpret_cast<PCImgDelayDescr>(iddAddr);
+
+        // read where the mov reads from, this is a ptr to the import
+        address = *reinterpret_cast<uint32_t*>(address + 1);
+        auto imp = reinterpret_cast<FARPROC*>(address);
+
+        // get the address of the function, loading the library if needed
+        address = reinterpret_cast<intptr_t>(__delayLoadHelper2(idd, imp));
     }
 #endif
     return address;

@@ -1,5 +1,7 @@
 #include <Windows.h>
 #include <Xinput.h>
+#include <stdio.h>
+#include <inttypes.h>
 
 #ifndef MAX_PATH
     #define MAX_PATH 260
@@ -45,5 +47,25 @@ DWORD WINAPI xinputGetDSoundAudioDeviceGuids(DWORD dwUserIndex, GUID* pDSoundRen
 #pragma comment(linker, "/export:XInputGetCapabilities=_xinputGetCapabilities@12")
 #pragma comment(linker, "/export:XInputGetDSoundAudioDeviceGuids=_xinputGetDSoundAudioDeviceGuids@12")
 
-__declspec(dllimport) void fake();
-__declspec(dllexport) void sussy_impostor_sus_red_sus_vote_red_red_was_not_the_impostor() { fake(); }
+BOOL fileExists(char const* path) {
+    DWORD attrib = GetFileAttributesA(path);
+    return (attrib != INVALID_FILE_ATTRIBUTES && !(attrib & FILE_ATTRIBUTE_DIRECTORY));
+}
+
+BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID _) {
+    if (reason != DLL_PROCESS_ATTACH)
+        return TRUE;
+    DisableThreadLibraryCalls(module);
+
+    if (fileExists("Geode.dll")) {
+        // somehow, this works fine inside of dllmain :-)
+        // yes, even on wine.
+        /* * * * * * * * * * * * * * * * * *\
+         * The Shadows Shall Smite You 01  *
+         * - ConfiG                        *
+        \* * * * * * * * * * * * * * * * * */
+        LoadLibraryA("Geode.dll");
+    }
+
+    return TRUE;
+}

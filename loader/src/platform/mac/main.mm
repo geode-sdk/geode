@@ -1,7 +1,5 @@
 #include <Geode/DefaultInclude.hpp>
 
-#if defined(GEODE_IS_MACOS)
-
 #import <Cocoa/Cocoa.h>
 #include "../load.hpp"
 #include <dlfcn.h>
@@ -151,5 +149,3 @@ __attribute__((constructor)) void _entry() {
     if (!loadGeode())
         return;
 }
-
-#endif
