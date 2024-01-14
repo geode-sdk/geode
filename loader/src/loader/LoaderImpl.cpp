@@ -691,7 +691,7 @@ bool Loader::Impl::loadHooks() {
     return !hadErrors;
 }
 
-void Loader::Impl::queueInMainThread(ScheduledFunction func) {
+void Loader::Impl::queueInMainThread(const ScheduledFunction& func) {
     std::lock_guard<std::mutex> lock(m_mainThreadMutex);
     m_mainThreadQueue.push_back(func);
 }
