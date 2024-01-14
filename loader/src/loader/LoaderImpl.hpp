@@ -114,7 +114,7 @@ namespace geode {
         void updateResources(bool forceReload);
 
         void queueInMainThread(ScheduledFunction func);
-        void executeGDThreadQueue();
+        void executeMainThreadQueue();
 
         bool isReadyToHook() const;
         void addUninitializedHook(Hook* hook, Mod* mod);

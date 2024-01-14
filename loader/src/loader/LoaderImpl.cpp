@@ -697,9 +697,9 @@ void Loader::Impl::queueInMainThread(ScheduledFunction func) {
     m_mainThreadQueue.push_back(func);
 }
 
-void Loader::Impl::executeGDThreadQueue() {
+void Loader::Impl::executeMainThreadQueue() {
     // copy queue to avoid locking mutex if someone is
-    // running addToGDThread inside their function
+    // running addToMainThread inside their function
     m_mainThreadMutex.lock();
     auto queue = m_mainThreadQueue;
     m_mainThreadQueue.clear();

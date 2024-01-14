@@ -6,7 +6,7 @@ using namespace geode::prelude;
 
 struct FunctionQueue : Modify<FunctionQueue, CCScheduler> {
     void update(float dt) {
-        LoaderImpl::get()->executeGDThreadQueue();
+        LoaderImpl::get()->executeMainThreadQueue();
         return CCScheduler::update(dt);
     }
 };
