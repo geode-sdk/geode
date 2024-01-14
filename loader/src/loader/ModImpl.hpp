@@ -63,7 +63,6 @@ namespace geode {
 
         std::unordered_map<std::string, char const*> m_expandedSprites;
 
-
         ModRequestedAction m_requestedAction = ModRequestedAction::None;
 
         Impl(Mod* self, ModMetadata const& metadata);
@@ -72,7 +71,6 @@ namespace geode {
         Result<> setup();
 
         Result<> loadPlatformBinary();
-        Result<> unloadPlatformBinary();
         Result<> createTempDir();
 
         // called on a separate thread

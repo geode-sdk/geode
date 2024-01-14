@@ -20,15 +20,3 @@ Result<> Mod::Impl::loadPlatformBinary() {
     log::error("Unable to load the SO: dlerror returned ({})", err);
     return Err("Unable to load the SO: dlerror returned (" + err + ")");
 }
-
-Result<> Mod::Impl::unloadPlatformBinary() {
-    auto so = m_platformInfo->m_so;
-    delete m_platformInfo;
-    m_platformInfo = nullptr;
-    if (dlclose(so) == 0) {
-        return Ok();
-    }
-    else {
-        return Err("Unable to free library");
-    }
-}

@@ -68,14 +68,3 @@ Result<> Mod::Impl::loadPlatformBinary() {
     }
     return Err("Unable to load the DLL: " + getLastWinError());
 }
-
-Result<> Mod::Impl::unloadPlatformBinary() {
-    auto hmod = m_platformInfo->m_hmod;
-    delete m_platformInfo;
-    if (FreeLibrary(hmod)) {
-        return Ok();
-    }
-    else {
-        return Err("Unable to free the DLL: " + getLastWinError());
-    }
-}
