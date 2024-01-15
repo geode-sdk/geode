@@ -456,21 +456,21 @@ Result<Hook*> Mod::Impl::claimHook(std::shared_ptr<Hook>&& hook) {
     }
 
     auto ptr = hook.get();
+    if (this->isEnabled() && hook->getAutoEnable()) {
+        if (LoaderImpl::get()->isReadyToHook()) {
+            auto res2 = ptr->enable();
+            if (!res2) {
+                m_hooks.pop_back();
+                return Err("Cannot enable hook: {}", res2.unwrapErr());
+            }
+        }
+        else {
+            LoaderImpl::get()->addUninitializedHook(ptr, m_self);
+            return Ok(ptr);
+        }
+    }
+
     m_hooks.push_back(std::move(hook));
-    if (!this->isEnabled() || !hook->getAutoEnable())
-        return Ok(ptr);
-
-    if (!LoaderImpl::get()->isReadyToHook()) {
-        LoaderImpl::get()->addUninitializedHook(ptr, m_self);
-        return Ok(ptr);
-    }
-
-    auto res2 = ptr->enable();
-    if (!res2) {
-        return Err("Cannot enable hook: {}", res2.unwrapErr());
-    }
-
-    
 
     return Ok(ptr);
 }
@@ -484,17 +484,17 @@ Result<> Mod::Impl::disownHook(Hook* hook) {
     if (!res1) {
         return Err("Cannot disown hook: {}", res1.unwrapErr());
     }
+
+    if (this->isEnabled() && hook->getAutoEnable()) {
+        auto res2 = hook->disable();
+        if (!res2) {
+            return Err("Cannot disable hook: {}", res2.unwrapErr());
+        }
+    }
+
     m_hooks.erase(std::find_if(m_hooks.begin(), m_hooks.end(), [&](auto& a) {
         return a.get() == hook;
     }));
-
-    if (!this->isEnabled() || !hook->getAutoEnable())
-        return Ok();
-
-    auto res2 = hook->disable();
-    if (!res2) {
-        return Err("Cannot disable hook: {}", res2.unwrapErr());
-    }
 
     return Ok();
 }
@@ -508,14 +508,15 @@ Result<Patch*> Mod::Impl::claimPatch(std::shared_ptr<Patch>&& patch) {
     }
 
     auto ptr = patch.get();
-    m_patches.push_back(std::move(patch));
-    if (!this->isEnabled() || !patch->getAutoEnable())
-        return Ok(ptr);
-
-    auto res2 = ptr->enable();
-    if (!res2) {
-        return Err("Cannot enable patch: {}", res2.unwrapErr());
+    if (this->isEnabled() && patch->getAutoEnable()) {
+        auto res2 = ptr->enable();
+        if (!res2) {
+            m_patches.pop_back();
+            return Err("Cannot enable patch: {}", res2.unwrapErr());
+        }
     }
+
+    m_patches.push_back(std::move(patch));
 
     return Ok(ptr);
 }
@@ -529,17 +530,17 @@ Result<> Mod::Impl::disownPatch(Patch* patch) {
     if (!res1) {
         return Err("Cannot disown patch: {}", res1.unwrapErr());
     }
+
+    if (this->isEnabled() && patch->getAutoEnable()) {
+        auto res2 = patch->disable();
+        if (!res2) {
+            return Err("Cannot disable patch: {}", res2.unwrapErr());
+        }
+    }
+
     m_patches.erase(std::find_if(m_patches.begin(), m_patches.end(), [&](auto& a) {
         return a.get() == patch;
     }));
-
-    if (!this->isEnabled() || !patch->getAutoEnable())
-        return Ok();
-
-    auto res2 = patch->disable();
-    if (!res2) {
-        return Err("Cannot disable patch: {}", res2.unwrapErr());
-    }
 
     return Ok();
 }
