@@ -13,7 +13,7 @@ public:
     Impl(void* address, ByteVector original, ByteVector patch);
     ~Impl();
 
-    static Patch* create(void* address, const ByteVector& patch);
+    static std::shared_ptr<Patch> create(void* address, const ByteVector& patch);
 
     Patch* m_self = nullptr;
     void* m_address;

@@ -22,7 +22,7 @@ public:
     );
     ~Impl();
 
-    static Hook* create(
+    static std::shared_ptr<Hook> create(
         void* address,
         void* detour,
         std::string const& displayName,
@@ -31,7 +31,7 @@ public:
     );
 
     template<class DetourType>
-    static Hook* create(
+    static std::shared_ptr<Hook> create(
         void* address,
         DetourType detour,
         std::string const& displayName,

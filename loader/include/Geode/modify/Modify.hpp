@@ -70,13 +70,13 @@ namespace geode::modifier {
     template <class ModifyDerived>
     class ModifyBase {
     public:
-        std::map<std::string, Hook*> m_hooks;
+        std::map<std::string, std::shared_ptr<Hook>> m_hooks;
 
         Result<Hook*> getHook(std::string const& name) {
             if (m_hooks.find(name) == m_hooks.end()) {
                 return Err("Hook not in this modify");
             }
-            return Ok(m_hooks[name]);
+            return Ok(m_hooks[name].get());
         }
 
         Result<> setHookPriority(std::string const& name, int32_t priority) {
@@ -94,11 +94,18 @@ namespace geode::modifier {
             auto test = static_cast<ModifyDerived*>(this);
             test->ModifyDerived::apply();
             ModifyDerived::Derived::onModify(*this);
+            std::vector<std::string> added;
             for (auto& [uuid, hook] : m_hooks) {
-                auto res = Mod::get()->claimHook(hook);
+                auto res = Mod::get()->claimHook(std::move(hook));
                 if (!res) {
                     log::error("Failed to claim hook {}: {}", hook->getDisplayName(), res.error());
                 }
+                else {
+                    added.push_back(uuid);
+                }
+            }
+            for (auto& uuid : added) {
+                m_hooks.erase(uuid);
             }
         }
 

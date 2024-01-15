@@ -16,13 +16,14 @@ namespace geode {
     private:
         class Impl;
         std::shared_ptr<Impl> m_impl;
-        explicit Hook(std::shared_ptr<Impl>&& impl);
         ~Hook();
 
         friend class Mod;
         friend class Loader;
 
     public:
+        explicit Hook(std::shared_ptr<Impl>&& impl);
+
         /**
          * Create a hook at an address. The hook is enabled immediately. By 
          * default, the hook is placed at the end of the detour list; however, 
@@ -37,7 +38,7 @@ namespace geode {
          * @returns The created hook, or an error. Make sure to add the created 
          * hook to the mod that owns it using mod->claimHook!
          */
-        static Hook* create(
+        static std::shared_ptr<Hook> create(
             void* address,
             void* detour,
             std::string const& displayName,
@@ -46,7 +47,7 @@ namespace geode {
         );
 
         template<class DetourType>
-        static Hook* create(
+        static std::shared_ptr<Hook> create(
             void* address,
             DetourType detour,
             std::string const& displayName,
@@ -144,14 +145,15 @@ namespace geode {
     private:
         class Impl;
         std::shared_ptr<Impl> m_impl;
-        explicit Patch(std::shared_ptr<Impl>&& impl);
         ~Patch();
 
         friend class Mod;
         friend class Loader;
 
     public:
-        static Patch* create(void* address, const ByteVector& patch);
+        explicit Patch(std::shared_ptr<Impl>&& impl);
+
+        static std::shared_ptr<Patch> create(void* address, const ByteVector& patch);
 
         Patch(Patch const&) = delete;
         Patch operator=(Patch const&) = delete;

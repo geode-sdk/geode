@@ -31,11 +31,13 @@ static ByteVector readMemory(void* address, size_t amount) {
     return ret;
 }
 
-Patch* Patch::Impl::create(void* address, const geode::ByteVector& patch) {
+std::shared_ptr<Patch> Patch::Impl::create(void* address, const geode::ByteVector& patch) {
     auto impl = std::make_shared<Impl>(
         address, readMemory(address, patch.size()), patch
     );
-    return new Patch(std::move(impl));
+    return std::shared_ptr<Patch>(new Patch(std::move(impl)), [](Patch* patch) {
+        delete patch;
+    });
 }
 
 Result<> Patch::Impl::enable() {

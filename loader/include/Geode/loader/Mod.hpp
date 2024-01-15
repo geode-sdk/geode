@@ -251,8 +251,8 @@ namespace geode {
             tulip::hook::HookMetadata const& hookMetadata = tulip::hook::HookMetadata()
         ) {
             auto hook = Hook::create(address, detour, displayName, convention, hookMetadata);
-            GEODE_UNWRAP(this->claimHook(hook));
-            return Ok(hook);
+            GEODE_UNWRAP_INTO(auto ptr, this->claimHook(std::move(hook)));
+            return Ok(ptr);
         }
 
         Result<Hook*> hook(
@@ -261,11 +261,11 @@ namespace geode {
             tulip::hook::HookMetadata const& hookMetadata
         ) {
             auto hook = Hook::create(address, detour, displayName, handlerMetadata, hookMetadata);
-            GEODE_UNWRAP(this->claimHook(hook));
-            return Ok(hook);
+            GEODE_UNWRAP_INTO(auto ptr, this->claimHook(std::move(hook)));
+            return Ok(ptr);
         }
 
-        Result<> claimHook(Hook* hook);
+        Result<Hook*> claimHook(std::shared_ptr<Hook>&& hook);
 
         Result<> disownHook(Hook* hook);
 
@@ -284,11 +284,11 @@ namespace geode {
          */
         Result<Patch*> patch(void* address, ByteVector const& data) {
             auto patch = Patch::create(address, data);
-            GEODE_UNWRAP(this->claimPatch(patch));
-            return Ok(patch);
+            GEODE_UNWRAP_INTO(auto ptr, this->claimPatch(std::move(patch)));
+            return Ok(ptr);
         }
 
-        Result<> claimPatch(Patch* patch);
+        Result<Patch*> claimPatch(std::shared_ptr<Patch>&& patch);
 
         Result<> disownPatch(Patch* patch);
 

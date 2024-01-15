@@ -29,7 +29,7 @@ Hook::Impl::~Impl() {
     }
 }
 
-Hook* Hook::Impl::create(
+std::shared_ptr<Hook> Hook::Impl::create(
     void* address,
     void* detour,
     std::string const& displayName,
@@ -39,7 +39,9 @@ Hook* Hook::Impl::create(
     auto impl = std::make_shared<Impl>(
         address, detour, displayName, handlerMetadata, hookMetadata
     );
-    return new Hook(std::move(impl));
+    return std::shared_ptr<Hook>(new Hook(std::move(impl)), [](Hook* hook) {
+        delete hook;
+    });
 }
 
 Result<> Hook::Impl::enable() {

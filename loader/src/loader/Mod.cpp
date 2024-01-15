@@ -121,8 +121,8 @@ void Mod::registerCustomSetting(std::string_view const key, std::unique_ptr<Sett
     return m_impl->registerCustomSetting(key, std::move(value));
 }
 
-Result<> Mod::claimHook(Hook* hook) {
-    return m_impl->claimHook(hook);
+Result<Hook*> Mod::claimHook(std::shared_ptr<Hook>&& hook) {
+    return m_impl->claimHook(std::move(hook));
 }
 
 Result<> Mod::disownHook(Hook* hook) {
@@ -133,8 +133,8 @@ std::vector<Hook*> Mod::getHooks() const {
     return m_impl->getHooks();
 }
 
-Result<> Mod::claimPatch(Patch* patch) {
-    return m_impl->claimPatch(patch);
+Result<Patch*> Mod::claimPatch(std::shared_ptr<Patch>&& patch) {
+    return m_impl->claimPatch(std::move(patch));
 }
 
 Result<> Mod::disownPatch(Patch* patch) {

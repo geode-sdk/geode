@@ -132,11 +132,19 @@ bool Mod::Impl::needsEarlyLoad() const {
 }
 
 std::vector<Hook*> Mod::Impl::getHooks() const {
-    return m_hooks;
+    std::vector<Hook*> ret;
+    for (auto& hook : m_hooks) {
+        ret.push_back(hook.get());
+    }
+    return ret;
 }
 
 std::vector<Patch*> Mod::Impl::getPatches() const {
-    return m_patches;
+    std::vector<Patch*> ret;
+    for (auto& patch : m_patches) {
+        ret.push_back(patch.get());
+    }
+    return ret;
 }
 
 // Settings and saved values
@@ -441,27 +449,30 @@ bool Mod::Impl::depends(std::string_view const id) const {
 
 // Hooks
 
-Result<> Mod::Impl::claimHook(Hook* hook) {
+Result<Hook*> Mod::Impl::claimHook(std::shared_ptr<Hook>&& hook) {
     auto res1 = hook->m_impl->setOwner(m_self);
     if (!res1) {
         return Err("Cannot claim hook: {}", res1.unwrapErr());
     }
-    m_hooks.push_back(hook);
 
+    auto ptr = hook.get();
+    m_hooks.push_back(std::move(hook));
     if (!this->isEnabled() || !hook->getAutoEnable())
-        return Ok();
+        return Ok(ptr);
 
     if (!LoaderImpl::get()->isReadyToHook()) {
-        LoaderImpl::get()->addUninitializedHook(hook, m_self);
-        return Ok();
+        LoaderImpl::get()->addUninitializedHook(ptr, m_self);
+        return Ok(ptr);
     }
 
-    auto res2 = hook->enable();
+    auto res2 = ptr->enable();
     if (!res2) {
         return Err("Cannot enable hook: {}", res2.unwrapErr());
     }
 
-    return Ok();
+    
+
+    return Ok(ptr);
 }
 
 Result<> Mod::Impl::disownHook(Hook* hook) {
@@ -473,7 +484,9 @@ Result<> Mod::Impl::disownHook(Hook* hook) {
     if (!res1) {
         return Err("Cannot disown hook: {}", res1.unwrapErr());
     }
-    m_hooks.erase(std::find(m_hooks.begin(), m_hooks.end(), hook));
+    m_hooks.erase(std::find_if(m_hooks.begin(), m_hooks.end(), [&](auto& a) {
+        return a.get() == hook;
+    }));
 
     if (!this->isEnabled() || !hook->getAutoEnable())
         return Ok();
@@ -488,22 +501,23 @@ Result<> Mod::Impl::disownHook(Hook* hook) {
 
 // Patches
 
-Result<> Mod::Impl::claimPatch(Patch* patch) {
+Result<Patch*> Mod::Impl::claimPatch(std::shared_ptr<Patch>&& patch) {
     auto res1 = patch->m_impl->setOwner(m_self);
     if (!res1) {
         return Err("Cannot claim patch: {}", res1.unwrapErr());
     }
-    m_patches.push_back(patch);
 
+    auto ptr = patch.get();
+    m_patches.push_back(std::move(patch));
     if (!this->isEnabled() || !patch->getAutoEnable())
-        return Ok();
+        return Ok(ptr);
 
-    auto res2 = patch->enable();
+    auto res2 = ptr->enable();
     if (!res2) {
         return Err("Cannot enable patch: {}", res2.unwrapErr());
     }
 
-    return Ok();
+    return Ok(ptr);
 }
 
 Result<> Mod::Impl::disownPatch(Patch* patch) {
@@ -515,7 +529,9 @@ Result<> Mod::Impl::disownPatch(Patch* patch) {
     if (!res1) {
         return Err("Cannot disown patch: {}", res1.unwrapErr());
     }
-    m_patches.erase(std::find(m_patches.begin(), m_patches.end(), patch));
+    m_patches.erase(std::find_if(m_patches.begin(), m_patches.end(), [&](auto& a) {
+        return a.get() == patch;
+    }));
 
     if (!this->isEnabled() || !patch->getAutoEnable())
         return Ok();
