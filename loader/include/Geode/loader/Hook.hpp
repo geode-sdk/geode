@@ -16,13 +16,13 @@ namespace geode {
     private:
         class Impl;
         std::shared_ptr<Impl> m_impl;
+        explicit Hook(std::shared_ptr<Impl>&& impl);
         ~Hook();
 
         friend class Mod;
         friend class Loader;
 
     public:
-        explicit Hook(std::shared_ptr<Impl>&& impl);
 
         /**
          * Create a hook at an address. The hook is enabled immediately. By 
@@ -145,13 +145,13 @@ namespace geode {
     private:
         class Impl;
         std::shared_ptr<Impl> m_impl;
+        explicit Patch(std::shared_ptr<Impl>&& impl);
         ~Patch();
 
         friend class Mod;
         friend class Loader;
 
     public:
-        explicit Patch(std::shared_ptr<Impl>&& impl);
 
         static std::shared_ptr<Patch> create(void* address, const ByteVector& patch);
 
