@@ -14,6 +14,7 @@ public:
     ~Impl();
 
     static std::shared_ptr<Patch> create(void* address, const ByteVector& patch);
+    static std::vector<Patch::Impl*>& allEnabled();
 
     Patch* m_self = nullptr;
     void* m_address;

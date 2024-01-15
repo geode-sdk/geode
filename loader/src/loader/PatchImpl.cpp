@@ -40,18 +40,38 @@ std::shared_ptr<Patch> Patch::Impl::create(void* address, const geode::ByteVecto
     });
 }
 
+std::vector<Patch::Impl*>& Patch::Impl::allEnabled() {
+    static std::vector<Patch::Impl*> vec;
+    return vec;
+}
+
 Result<> Patch::Impl::enable() {
-    // TODO: add overlap checking
+    // TODO: this feels slow. can be faster
+    for (const auto& other : allEnabled()) {
+        auto thisMin = this->getAddress();
+        auto thisMax = this->getAddress() + this->m_patch.size();
+        auto otherMin = other->getAddress();
+        auto otherMax = other->getAddress() + other->m_patch.size();
+        bool intersects = !((otherMax < thisMin) || (thisMax < otherMin));
+        if (!intersects)
+            continue;
+        return Err(
+            "Failed to enable patch: overlaps patch at {} from {}",
+            other->m_address, other->getOwner()->getID()
+        );
+    }
     auto res = tulip::hook::writeMemory(m_address, m_patch.data(), m_patch.size());
-    if (!res) return Err(res.unwrapErr());
+    if (!res) return Err("Failed to enable patch: {}", res.unwrapErr());
     m_enabled = true;
+    allEnabled().push_back(this);
     return Ok();
 }
 
 Result<> Patch::Impl::disable() {
     auto res = tulip::hook::writeMemory(m_address, m_original.data(), m_original.size());
-    if (!res) return Err(res.unwrapErr());
+    if (!res) return Err("Failed to disable patch: {}", res.unwrapErr());
     m_enabled = false;
+    allEnabled().erase(std::find(allEnabled().begin(), allEnabled().end(), this));
     return Ok();
 }
 
