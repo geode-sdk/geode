@@ -178,7 +178,7 @@ Result<ModMetadata> ModMetadata::Impl::create(ModJson const& json) {
     // Check GD version
     if (json.contains("gd")) {
         std::string ver;
-        if (json["gd"].is_string() && json["gd"].as_string() != GEODE_STR(GEODE_GD_VERSION)) {
+        if (json["gd"].is_string()) {
             ver = json["gd"].as_string();
         } else if (json["gd"].is_object()) {
             std::string key;
