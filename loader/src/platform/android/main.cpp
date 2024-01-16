@@ -2,6 +2,9 @@
 
 #include "../load.hpp"
 #include <jni.h>
+#include "internalString.hpp"
+
+using namespace geode::prelude;
 
 // idk where to put this
 #include <EGL/egl.h>
@@ -19,6 +22,14 @@ extern "C" [[gnu::visibility("default")]] jint JNI_OnLoad(JavaVM* vm, void* rese
     ghc::filesystem::remove_all(updatePath, ec);
     if (ec) {
         geode::log::warn("Failed to remove update directory: {}", ec.message());
+    }
+
+    {
+        // Epic hack: get the empty internal string from CCString
+        // avoid ::create as to not call autorelease
+        auto* cc = new CCString();
+        setEmptyInternalString(&cc->m_sString);
+        delete cc;
     }
 
     geodeEntry(nullptr);

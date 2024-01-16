@@ -51,7 +51,13 @@ public:
     /**
      * @lua NA
      */
+#ifndef GEODE_IS_ANDROID
     inline CCString() : m_sString("") {}
+#else
+    // Make sure its imported because of gd::string stuff,
+    // check android/main.cpp for more info
+    CCString();
+#endif
     /**
      * @lua NA
      */

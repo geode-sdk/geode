@@ -1,22 +1,14 @@
 #include <Geode/c++stl/gdstdlib.hpp>
 #include "../../c++stl/string-impl.hpp"
+#include "internalString.hpp"
 
 #if defined(GEODE_IS_ANDROID32)
-
 static auto constexpr NEW_SYM = "_Znwj";
-static constexpr uintptr_t STRING_EMPTY = 0xaa1c48 - 0x10000 - 0xc; // the internal struct size
-
 #elif defined(GEODE_IS_ANDROID64)
-
 static auto constexpr NEW_SYM = "_Znwm";
-static constexpr uintptr_t STRING_EMPTY = 0x12d8568 - 0x100000 - 0x18; // the internal struct size
-
 #endif
 
 static auto constexpr DELETE_SYM = "_ZdlPv";
-
-// 2.2 addition
-// zmx please fix this
 
 static void* getLibHandle() {
     static void* handle = dlopen("libcocos2dcpp.so", RTLD_LAZY | RTLD_NOLOAD);
@@ -54,13 +46,41 @@ void gd::operatorDelete(void* ptr) {
     return fnPtr(ptr);
 }
 
-namespace geode::stl {
-    static inline auto emptyInternalString() {
-        return reinterpret_cast<StringData::Internal*>(
-            geode::base::get() + STRING_EMPTY + sizeof(StringData::Internal)
-        );
-    }
+using namespace geode::stl;
 
+void* g_ourInternalString = nullptr;
+
+static auto& emptyInternalString() {
+    static StringData::Internal* ptr = [] {
+        StringData::Internal internal;
+        internal.m_size = 0;
+        internal.m_capacity = 0;
+        // make our empty internal string different from gd's
+        internal.m_refcount = 1'000'000'000;
+
+        // use char* so we can do easy pointer arithmetic with it
+        auto* buffer = static_cast<char*>(gd::operatorNew(sizeof(internal) + 1));
+        std::memcpy(buffer, &internal, sizeof(internal));
+        buffer[sizeof(internal)] = 0;
+        g_ourInternalString = reinterpret_cast<void*>(buffer);
+        return reinterpret_cast<StringData::Internal*>(buffer + sizeof(internal));
+    }();
+    return ptr;
+}
+
+void setEmptyInternalString(gd::string* str) {
+    auto* internal = *reinterpret_cast<StringData::Internal**>(str);
+    // make sure its empty
+    if (internal[-1].m_size == 0 && internal[-1].m_capacity == 0 && internal[-1].m_refcount == 0) {
+        emptyInternalString() = internal;
+        if (g_ourInternalString != nullptr) {
+            gd::operatorDelete(g_ourInternalString);
+            g_ourInternalString = nullptr;
+        }
+    }
+}
+
+namespace geode::stl {
     void StringImpl::setEmpty() {
         data.m_data = emptyInternalString();
     }
