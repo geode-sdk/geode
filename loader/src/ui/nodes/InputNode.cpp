@@ -48,7 +48,7 @@ bool InputNode::init(
     m_input->setLabelPlaceholderColor({ 150, 150, 150 });
     m_input->setLabelPlaceholderScale(.75f);
     m_input->setMaxLabelScale(.85f);
-    m_input->setMaxLabelWidth(maxCharCount);
+    m_input->setMaxLabelLength(maxCharCount);
     m_input->setPosition(width / 2, height / 2);
     if (filter.length()) {
         m_input->setAllowedChars(filter);
