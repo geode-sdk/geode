@@ -52,6 +52,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
     auto root = checker.root("[mod.json]").obj();
 
     root.addKnownKey("geode");
+    root.addKnownKey("gd");
 
     // don't think its used locally yet
     root.addKnownKey("tags"); 
@@ -63,14 +64,10 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
     root.has("description").into(impl->m_description);
     root.has("repository").into(impl->m_repository);
     root.has("early-load").into(impl->m_needsEarlyLoad);
-    // TODO for 2.0.0: fix this lol
-    // i think whoever wrote that intended that has would return the value if the key is present and false otherwise
-    // but the actual behavior here is false if key not present and true if key is present
     if (root.has("api")) {
         impl->m_isAPI = true;
     }
 
-    // TODO for 2.0.0: specify this in mod.json manually
     if (info.getID() != "geode.loader") {
         impl->m_dependencies.push_back({
             "geode.loader",
@@ -176,6 +173,39 @@ Result<ModMetadata> ModMetadata::Impl::create(ModJson const& json) {
             ") of geode. This is probably a bug; report it to "
             "the Geode Development Team."
         );
+    }
+
+    // Check GD version
+    if (json.contains("gd")) {
+        std::string ver;
+        if (json["gd"].is_string()) {
+            ver = json["gd"].as_string();
+        } else if (json["gd"].is_object()) {
+            std::string key;
+            switch (GEODE_PLATFORM_TARGET) {
+                case PlatformID::Android32: 
+                case PlatformID::Android64:
+                    key = "android"; break;
+                case PlatformID::MacOS:
+                    key = "mac"; break;
+                case PlatformID::Windows:
+                    key = "win"; break;
+                case PlatformID::iOS:
+                    key = "ios"; break;
+            }
+            if (json["gd"].contains(key))
+                ver = json["gd"][ver].as_string();
+        } else {
+            return Err("[mod.json] has invalid target GD version");
+        }
+        if (ver.empty()) {
+            return Err("[mod.json] could not find GD version for current platform");
+        }
+        if (ver != "*" && ver != GEODE_STR(GEODE_GD_VERSION)) {
+            return Err(fmt::format("[mod.json] doesn't support this GD version ({} != {})", ver, GEODE_STR(GEODE_GD_VERSION)));
+        }
+    } else {
+        return Err("[mod.json] is missing target GD version");
     }
 
     return Impl::createFromSchemaV010(json);

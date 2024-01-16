@@ -12,11 +12,12 @@ $execute {
         (void)Mod::get()->patch(
             reinterpret_cast<void*>(base::get() + 0x603948), toByteArray(&cast::typeinfoCastInternal)
         );
-    #elif defined(GEODE_IS_ANDROID32)
-        (void)Mod::get()->hook(reinterpret_cast<void*>(base::get() + (0x720348 - 0x10000) + 1), &cast::typeinfoCastInternal, "__dynamic_cast");
-    #elif defined(GEODE_IS_ANDROID64)
-        (void)Mod::get()->hook(reinterpret_cast<void*>(base::get() + (0xd6cb8c - 0x100000)), &cast::typeinfoCastInternal, "__dynamic_cast");
+    #elif defined(GEODE_IS_ANDROID)
+        void* handle = dlopen("libcocos2dcpp.so", RTLD_LAZY | RTLD_NOLOAD);
+        void* dynamicCastAddr = dlsym(handle, "__dynamic_cast");
+
+        (void)Mod::get()->hook(dynamicCastAddr, &cast::typeinfoCastInternal, "__dynamic_cast");
+
+        dlclose(handle);
     #endif
-
-
 }
