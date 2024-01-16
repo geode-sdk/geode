@@ -73,10 +73,9 @@ void setEmptyInternalString(gd::string* str) {
     // make sure its empty
     if (internal[-1].m_size == 0 && internal[-1].m_capacity == 0 && internal[-1].m_refcount == 0) {
         emptyInternalString() = internal;
-        if (g_ourInternalString != nullptr) {
-            gd::operatorDelete(g_ourInternalString);
-            g_ourInternalString = nullptr;
-        }
+        g_ourInternalString = nullptr;
+        // leak our internal string because we dont know if someone still has a pointer to it
+        // its only like 20 bytes so who cares anyways
     }
 }
 
