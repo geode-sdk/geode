@@ -3,8 +3,8 @@
 
 using namespace geode::prelude;
 
-char const* InputNode::getString() {
-    return m_input->getString().c_str();
+std::string InputNode::getString() {
+    return m_input->getString();
 }
 
 void InputNode::setString(std::string const& str) {

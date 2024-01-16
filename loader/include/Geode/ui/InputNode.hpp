@@ -33,6 +33,6 @@ namespace geode {
         void setEnabled(bool enabled) override;
 
         void setString(std::string const&);
-        char const* getString();
+        std::string getString();
     };
 }
