@@ -121,8 +121,8 @@ public:
      */
     static CCEGLView* create(const gd::string&);
 
-    static cocos2d::CCEGLView* createWithFullScreen(gd::string const&);
-	static cocos2d::CCEGLView* createWithFullScreen(gd::string const&, GLFWvidmode const&, GLFWmonitor*);
+    static cocos2d::CCEGLView* createWithFullScreen(gd::string const&, bool);
+	static cocos2d::CCEGLView* createWithFullScreen(gd::string const&, bool, GLFWvidmode const&, GLFWmonitor*);
 	static cocos2d::CCEGLView* createWithRect(gd::string const&, cocos2d::CCRect, float);
 
     /**
@@ -133,7 +133,7 @@ public:
     /**
      * @note RobTop addition
      */
-    void toggleFullScreen(bool fullscreen);
+    void toggleFullScreen(bool fullscreen, bool borderless);
 
     /**
      * @note RobTop addition
@@ -152,13 +152,14 @@ public:
 
 	bool getCursorLocked() const;
 	bool getGameplayActive() const;
+	bool getIsBorderless() const;
 	bool getIsFullscreen() const;
 	int getRetinaFactor() const;
 	bool getShouldHideCursor() const;
 	void iconify();
 
-    bool initWithFullScreen(gd::string const&);
-	bool initWithFullscreen(gd::string const&, GLFWvidmode const&, GLFWmonitor*);
+    bool initWithFullScreen(gd::string const&, bool);
+	bool initWithFullscreen(gd::string const&, bool, GLFWvidmode const&, GLFWmonitor*);
 	bool initWithRect(gd::string const&, cocos2d::CCRect, float);
 
 	bool isRetinaEnabled() const;
