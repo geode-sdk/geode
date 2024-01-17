@@ -545,14 +545,16 @@ namespace gd {
     };
 
     // 2.2 TODO: Implement set, unordered_map and unordered_set
+
+    // the sizes of these are always the same, no matter the type
     template <class V>
-    using set = std::set<V>;
+    using set = void*[6];
 
     template <class K, class V>
-    using unordered_map = std::unordered_map<K, V>;
+    using unordered_map = void*[7];
 
     template <class V>
-    using unordered_set = std::unordered_set<V>;
+    using unordered_set = void*[7];
 };
 
 #elif defined(GEODE_IS_IOS)
