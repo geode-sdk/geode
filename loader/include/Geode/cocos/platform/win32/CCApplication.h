@@ -97,6 +97,7 @@ public:
     gd::string          m_resourceRootPath;
     gd::string          m_startupScriptFilename;
     CCControllerHandler* m_pControllerHandler;
+    void*               m_unk; //might be swapped with m_pControllerHandler
     bool m_bUpdateController;
     CC_SYNTHESIZE_NV(bool, m_bShutdownCalled, ShutdownCalled);
     INPUT m_iInput;
@@ -111,6 +112,7 @@ public:
     CC_SYNTHESIZE_NV(bool, m_bForceTimer, ForceTimer);
     CC_SYNTHESIZE_NV(bool, m_bSmoothFix, SmoothFix);
     CC_SYNTHESIZE_NV(bool, m_bFullscreen, Fullscreen);
+    CC_SYNTHESIZE_NV(bool, m_bBorderless, Borderless);
 
     static CCApplication * sm_pSharedApplication;
 };
