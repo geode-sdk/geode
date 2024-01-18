@@ -454,11 +454,13 @@ bool Mod::Impl::depends(std::string_view const id) const {
 
 // Hooks
 
-Result<Hook*> Mod::Impl::claimHook(std::shared_ptr<Hook>&& hook) {
+Result<Hook*> Mod::Impl::claimHook(std::shared_ptr<Hook> hook) {
     auto res1 = hook->m_impl->setOwner(m_self);
     if (!res1) {
         return Err("Cannot claim hook: {}", res1.unwrapErr());
     }
+
+    m_hooks.push_back(hook);
 
     auto ptr = hook.get();
     if (this->isEnabled() && hook->getAutoEnable()) {
@@ -473,8 +475,6 @@ Result<Hook*> Mod::Impl::claimHook(std::shared_ptr<Hook>&& hook) {
             return Ok(ptr);
         }
     }
-
-    m_hooks.push_back(std::move(hook));
 
     return Ok(ptr);
 }
@@ -510,11 +510,13 @@ Result<> Mod::Impl::disownHook(Hook* hook) {
 
 // Patches
 
-Result<Patch*> Mod::Impl::claimPatch(std::shared_ptr<Patch>&& patch) {
+Result<Patch*> Mod::Impl::claimPatch(std::shared_ptr<Patch> patch) {
     auto res1 = patch->m_impl->setOwner(m_self);
     if (!res1) {
         return Err("Cannot claim patch: {}", res1.unwrapErr());
     }
+
+    m_patches.push_back(patch);
 
     auto ptr = patch.get();
     if (this->isEnabled() && patch->getAutoEnable()) {
@@ -523,8 +525,6 @@ Result<Patch*> Mod::Impl::claimPatch(std::shared_ptr<Patch>&& patch) {
             return Err("Cannot enable patch: {}", res2.unwrapErr());
         }
     }
-
-    m_patches.push_back(std::move(patch));
 
     return Ok(ptr);
 }

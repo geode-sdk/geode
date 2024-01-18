@@ -113,11 +113,11 @@ namespace geode {
         SettingValue* getSetting(std::string_view const key) const;
         void registerCustomSetting(std::string_view const key, std::unique_ptr<SettingValue> value);
 
-        Result<Hook*> claimHook(std::shared_ptr<Hook>&& hook);
+        Result<Hook*> claimHook(std::shared_ptr<Hook> hook);
         Result<> disownHook(Hook* hook);
         [[nodiscard]] std::vector<Hook*> getHooks() const;
 
-        Result<Patch*> claimPatch(std::shared_ptr<Patch>&& patch);
+        Result<Patch*> claimPatch(std::shared_ptr<Patch> patch);
         Result<> disownPatch(Patch* patch);
         [[nodiscard]] std::vector<Patch*> getPatches() const;
 

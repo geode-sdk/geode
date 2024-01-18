@@ -271,7 +271,7 @@ namespace geode {
          * @returns Returns a pointer to the hook, or an error if the
          * hook already has an owner, or was unable to enable the hook.
          */
-        Result<Hook*> claimHook(std::shared_ptr<Hook>&& hook);
+        Result<Hook*> claimHook(std::shared_ptr<Hook> hook);
 
         /**
          * Disowns a hook which this mod owns, making this mod no longer its owner.
@@ -306,7 +306,7 @@ namespace geode {
          * @returns Returns a pointer to the patch, or an error if the
          * patch already has an owner, or was unable to enable the patch.
          */
-        Result<Patch*> claimPatch(std::shared_ptr<Patch>&& patch);
+        Result<Patch*> claimPatch(std::shared_ptr<Patch> patch);
 
         /**
          * Disowns a patch which this mod owns, making this mod no longer its owner.

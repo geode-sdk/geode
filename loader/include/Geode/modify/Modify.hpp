@@ -96,7 +96,7 @@ namespace geode::modifier {
             ModifyDerived::Derived::onModify(*this);
             std::vector<std::string> added;
             for (auto& [uuid, hook] : m_hooks) {
-                auto res = Mod::get()->claimHook(std::move(hook));
+                auto res = Mod::get()->claimHook(hook);
                 if (!res) {
                     log::error("Failed to claim hook {}: {}", hook->getDisplayName(), res.error());
                 }
