@@ -183,8 +183,8 @@ Result<ModMetadata> ModMetadata::Impl::create(ModJson const& json) {
             ver = json["gd"].as_string();
         } else if (json["gd"].is_object()) {
             auto key = PlatformID::toShortString(GEODE_PLATFORM_TARGET, true);
-            if (json["gd"].contains(key))
-                ver = json["gd"][ver].as_string();
+            if (json["gd"].contains(key) && json["gd"][key].is_string())
+                ver = json["gd"][key].as_string();
         } else {
             return Err("[mod.json] has invalid target GD version");
         }
