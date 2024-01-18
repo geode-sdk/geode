@@ -70,6 +70,7 @@ public:
     , m_pListener(NULL)            
     , m_pfnSelector(NULL)
     , m_nScriptTapHandler(0)
+    , m_fSizeMult(0.f)
     {}
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCMenuItem, CCNodeRGBA)
     /**
@@ -117,7 +118,7 @@ public:
     int             m_nScriptTapHandler;
 
     // 2.2 additions
-    RT_ADD(float m_fSizeMult;)
+    RT_ADD(float m_fSizeMult = 0.f;)
 };
 
 /** @brief An abstract class for "label" CCMenuItemLabel items 
