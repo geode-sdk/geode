@@ -52,10 +52,6 @@ bool Mod::needsEarlyLoad() const {
     return m_impl->needsEarlyLoad();
 }
 
-bool Mod::wasSuccessfullyLoaded() const {
-    return this->isEnabled();
-}
-
 ModMetadata Mod::getMetadata() const {
     return m_impl->getMetadata();
 }

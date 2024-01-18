@@ -86,7 +86,6 @@ namespace geode {
         bool isEnabled() const;
         bool supportsDisabling() const;
         bool needsEarlyLoad() const;
-        bool wasSuccessfullyLoaded() const;
         ModMetadata getMetadata() const;
         ghc::filesystem::path getTempDir() const;
         /**
