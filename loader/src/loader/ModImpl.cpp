@@ -497,10 +497,15 @@ Result<> Mod::Impl::disownHook(Hook* hook) {
         }
     }
 
-    m_hooks.erase(std::find_if(m_hooks.begin(), m_hooks.end(), [&](auto& a) {
+    auto foundIt = std::find_if(m_hooks.begin(), m_hooks.end(), [&](auto& a) {
         return a.get() == hook;
-    }));
+    });
+    if (foundIt == m_hooks.end())
+        return Err("WEE, WOO !! Something just went horribly wrong! "
+                   "A hook that was getting disowned had its owner set but the owner "
+                   "didn't have the hook in m_hooks.");
 
+    m_hooks.erase(foundIt);
     return Ok();
 }
 
@@ -543,10 +548,15 @@ Result<> Mod::Impl::disownPatch(Patch* patch) {
         }
     }
 
-    m_patches.erase(std::find_if(m_patches.begin(), m_patches.end(), [&](auto& a) {
+    auto foundIt = std::find_if(m_patches.begin(), m_patches.end(), [&](auto& a) {
         return a.get() == patch;
-    }));
+    });
+    if (foundIt == m_patches.end())
+        return Err("WEE, WOO !! Something just went horribly wrong! "
+                   "A patch that was getting disowned had its owner set but the owner "
+                   "didn't have the patch in m_patches.");
 
+    m_patches.erase(foundIt);
     return Ok();
 }
 
