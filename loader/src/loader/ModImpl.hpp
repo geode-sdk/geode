@@ -1,6 +1,7 @@
 #pragma once
 
 #include <matjson.hpp>
+#include "ModPatch.hpp"
 
 namespace geode {
     class Mod::Impl {
@@ -17,11 +18,11 @@ namespace geode {
         /**
          * Hooks owned by this mod
          */
-        std::vector<Hook*> m_hooks;
+        std::vector<std::shared_ptr<Hook>> m_hooks;
         /**
          * Patches owned by this mod
          */
-        std::vector<Patch*> m_patches;
+        std::vector<std::shared_ptr<Patch>> m_patches;
         /**
          * Whether the mod is enabled or not
          */
@@ -112,13 +113,14 @@ namespace geode {
         SettingValue* getSetting(std::string_view const key) const;
         void registerCustomSetting(std::string_view const key, std::unique_ptr<SettingValue> value);
 
-        std::vector<Hook*> getHooks() const;
-        Result<Hook*> addHook(Hook* hook);
-        Result<> enableHook(Hook* hook);
-        Result<> disableHook(Hook* hook);
-        Result<> removeHook(Hook* hook);
-        Result<Patch*> patch(void* address, ByteVector const& data);
-        Result<> unpatch(Patch* patch);
+        Result<Hook*> claimHook(std::shared_ptr<Hook>&& hook);
+        Result<> disownHook(Hook* hook);
+        [[nodiscard]] std::vector<Hook*> getHooks() const;
+
+        Result<Patch*> claimPatch(std::shared_ptr<Patch>&& patch);
+        Result<> disownPatch(Patch* patch);
+        [[nodiscard]] std::vector<Patch*> getPatches() const;
+
         Result<> enable();
         Result<> disable();
         Result<> uninstall(bool deleteSaveData = false);

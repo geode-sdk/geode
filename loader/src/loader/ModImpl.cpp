@@ -1,6 +1,8 @@
 #include "ModImpl.hpp"
 #include "LoaderImpl.hpp"
 #include "ModMetadataImpl.hpp"
+#include "HookImpl.hpp"
+#include "PatchImpl.hpp"
 #include "about.hpp"
 #include "console.hpp"
 
@@ -135,7 +137,19 @@ bool Mod::Impl::needsEarlyLoad() const {
 }
 
 std::vector<Hook*> Mod::Impl::getHooks() const {
-    return m_hooks;
+    std::vector<Hook*> ret;
+    for (auto& hook : m_hooks) {
+        ret.push_back(hook.get());
+    }
+    return ret;
+}
+
+std::vector<Patch*> Mod::Impl::getPatches() const {
+    std::vector<Patch*> ret;
+    for (auto& patch : m_patches) {
+        ret.push_back(patch.get());
+    }
+    return ret;
 }
 
 // Settings and saved values
@@ -333,32 +347,6 @@ Result<> Mod::Impl::loadBinary() {
 
     LoaderImpl::get()->releaseNextMod();
 
-    for (auto const& hook : m_hooks) {
-        if (!hook) {
-            log::warn("Hook is null in mod \"{}\"", m_metadata.getName());
-            continue;
-        }
-        if (hook->getAutoEnable()) {
-            auto res = this->enableHook(hook);
-            if (!res) {
-                log::error("Can't enable hook {} for mod {}: {}", hook->getDisplayName(), m_metadata.getID(), res.unwrapErr());
-            }
-        }
-    }
-
-    for (auto const& patch : m_patches) {
-        if (!patch) {
-            log::warn("Patch is null in mod \"{}\"", m_metadata.getName());
-            continue;
-        }
-        if (patch->getAutoEnable()) {
-            if (!patch->apply()) {
-                log::warn("Unable to apply patch at {}", patch->getAddress());
-                continue;
-            }
-        }
-    }
-
     m_enabled = true;
 
     ModStateEvent(m_self, ModEventType::Loaded).post();
@@ -466,79 +454,99 @@ bool Mod::Impl::depends(std::string_view const id) const {
 
 // Hooks
 
-Result<> Mod::Impl::enableHook(Hook* hook) {
-    auto res = hook->enable();
-    if (!res) {
-        log::error("Can't enable hook {} for mod {}: {}", hook->getDisplayName(), m_metadata.getID(), res.unwrapErr());
+Result<Hook*> Mod::Impl::claimHook(std::shared_ptr<Hook>&& hook) {
+    auto res1 = hook->m_impl->setOwner(m_self);
+    if (!res1) {
+        return Err("Cannot claim hook: {}", res1.unwrapErr());
     }
 
-    return res;
+    auto ptr = hook.get();
+    if (this->isEnabled() && hook->getAutoEnable()) {
+        if (LoaderImpl::get()->isReadyToHook()) {
+            auto res2 = ptr->enable();
+            if (!res2) {
+                m_hooks.pop_back();
+                return Err("Cannot enable hook: {}", res2.unwrapErr());
+            }
+        }
+        else {
+            LoaderImpl::get()->addUninitializedHook(ptr, m_self);
+            return Ok(ptr);
+        }
+    }
+
+    m_hooks.push_back(std::move(hook));
+
+    return Ok(ptr);
 }
 
-Result<> Mod::Impl::disableHook(Hook* hook) {
-    return hook->disable();
-}
-
-Result<Hook*> Mod::Impl::addHook(Hook* hook) {
-    if (!ranges::contains(m_hooks, [&](auto const& h) { return h == hook; }))
-        m_hooks.push_back(hook);
-
-    if (!LoaderImpl::get()->isReadyToHook()) {
-        LoaderImpl::get()->addUninitializedHook(hook, m_self);
-        return Ok(hook);
+Result<> Mod::Impl::disownHook(Hook* hook) {
+    if (hook->getOwner() != m_self) {
+        return Err("Cannot disown hook not owned by this mod");
     }
 
-    if (!this->isEnabled() || !hook->getAutoEnable())
-        return Ok(hook);
-
-    auto res = this->enableHook(hook);
-    if (!res) {
-        delete hook;
-        return Err("Can't create hook: " + res.unwrapErr());
+    auto res1 = hook->m_impl->setOwner(nullptr);
+    if (!res1) {
+        return Err("Cannot disown hook: {}", res1.unwrapErr());
     }
 
-    return Ok(hook);
-}
-
-Result<> Mod::Impl::removeHook(Hook* hook) {
-    auto res = this->disableHook(hook);
-    if (res) {
-        ranges::remove(m_hooks, hook);
-        delete hook;
+    if (this->isEnabled() && hook->getAutoEnable()) {
+        auto res2 = hook->disable();
+        if (!res2) {
+            return Err("Cannot disable hook: {}", res2.unwrapErr());
+        }
     }
-    return res;
+
+    m_hooks.erase(std::find_if(m_hooks.begin(), m_hooks.end(), [&](auto& a) {
+        return a.get() == hook;
+    }));
+
+    return Ok();
 }
 
 // Patches
 
-// TODO: replace this with a safe one
-static ByteVector readMemory(void* address, size_t amount) {
-    ByteVector ret;
-    for (size_t i = 0; i < amount; i++) {
-        ret.push_back(*reinterpret_cast<uint8_t*>(reinterpret_cast<uintptr_t>(address) + i));
+Result<Patch*> Mod::Impl::claimPatch(std::shared_ptr<Patch>&& patch) {
+    auto res1 = patch->m_impl->setOwner(m_self);
+    if (!res1) {
+        return Err("Cannot claim patch: {}", res1.unwrapErr());
     }
-    return ret;
+
+    auto ptr = patch.get();
+    if (this->isEnabled() && patch->getAutoEnable()) {
+        auto res2 = ptr->enable();
+        if (!res2) {
+            m_patches.pop_back();
+            return Err("Cannot enable patch: {}", res2.unwrapErr());
+        }
+    }
+
+    m_patches.push_back(std::move(patch));
+
+    return Ok(ptr);
 }
 
-Result<Patch*> Mod::Impl::patch(void* address, ByteVector const& data) {
-    auto p = new Patch;
-    p->m_address = address;
-    p->m_original = readMemory(address, data.size());
-    p->m_owner = m_self;
-    p->m_patch = data;
-    if (this->isEnabled() && !p->apply()) {
-        delete p;
-        return Err("Unable to enable patch at " + std::to_string(reinterpret_cast<uintptr_t>(address)));
+Result<> Mod::Impl::disownPatch(Patch* patch) {
+    if (patch->getOwner() != m_self) {
+        return Err("Cannot disown patch not owned by this mod");
     }
-    m_patches.push_back(p);
-    return Ok(p);
-}
 
-Result<> Mod::Impl::unpatch(Patch* patch) {
-    if (!patch->restore())
-        return Err("Unable to restore patch at " + std::to_string(patch->getAddress()));
-    ranges::remove(m_patches, patch);
-    delete patch;
+    auto res1 = patch->m_impl->setOwner(nullptr);
+    if (!res1) {
+        return Err("Cannot disown patch: {}", res1.unwrapErr());
+    }
+
+    if (this->isEnabled() && patch->getAutoEnable()) {
+        auto res2 = patch->disable();
+        if (!res2) {
+            return Err("Cannot disable patch: {}", res2.unwrapErr());
+        }
+    }
+
+    m_patches.erase(std::find_if(m_patches.begin(), m_patches.end(), [&](auto& a) {
+        return a.get() == patch;
+    }));
+
     return Ok();
 }
 

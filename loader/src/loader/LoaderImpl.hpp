@@ -69,10 +69,8 @@ namespace geode {
 
         std::unordered_map<void*, tulip::hook::HandlerHandle> m_handlerHandles;
 
-        Result<> createHandler(void* address, tulip::hook::HandlerMetadata const& metadata);
-        bool hasHandler(void* address);
         Result<tulip::hook::HandlerHandle> getHandler(void* address);
-        Result<> removeHandler(void* address);
+        Result<tulip::hook::HandlerHandle> getOrCreateHandler(void* address, tulip::hook::HandlerMetadata const& metadata);
 
         bool loadHooks();
 

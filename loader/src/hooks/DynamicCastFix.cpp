@@ -16,10 +16,8 @@ $execute {
         void* handle = dlopen("libcocos2dcpp.so", RTLD_LAZY | RTLD_NOLOAD);
         void* dynamicCastAddr = dlsym(handle, "__dynamic_cast");
 
-        (void)Mod::get()->addHook(dynamicCastAddr, &cast::typeinfoCastInternal, "__dynamic_cast");
+        (void)Mod::get()->hook(dynamicCastAddr, &cast::typeinfoCastInternal, "__dynamic_cast");
 
         dlclose(handle);
     #endif
-
-
 }

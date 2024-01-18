@@ -230,12 +230,6 @@ namespace geode {
         }
 
         /**
-         * Get all hooks owned by this Mod
-         * @returns Vector of hooks
-         */
-        std::vector<Hook*> getHooks() const;
-
-        /**
          * Create a hook at an address. Call the original
          * function by calling the original function –
          * no trampoline needed
@@ -250,38 +244,48 @@ namespace geode {
          * Hook pointer, errorful result with info on
          * error
          */
-        template <class DetourType>
-        Result<Hook*> addHook(
+        template<class DetourType>
+        Result<Hook*> hook(
             void* address, DetourType detour, std::string const& displayName = "",
             tulip::hook::TulipConvention convention = tulip::hook::TulipConvention::Default,
             tulip::hook::HookMetadata const& hookMetadata = tulip::hook::HookMetadata()
         ) {
-            auto hook = Hook::create(this, address, detour, displayName, convention, hookMetadata);
-            return this->addHook(hook);
+            auto hook = Hook::create(address, detour, displayName, convention, hookMetadata);
+            GEODE_UNWRAP_INTO(auto ptr, this->claimHook(std::move(hook)));
+            return Ok(ptr);
         }
 
-        Result<Hook*> addHook(Hook* hook);
+        Result<Hook*> hook(
+            void* address, void* detour, std::string const& displayName,
+            tulip::hook::HandlerMetadata const& handlerMetadata,
+            tulip::hook::HookMetadata const& hookMetadata
+        ) {
+            auto hook = Hook::create(address, detour, displayName, handlerMetadata, hookMetadata);
+            GEODE_UNWRAP_INTO(auto ptr, this->claimHook(std::move(hook)));
+            return Ok(ptr);
+        }
 
         /**
-         * Enable a hook owned by this Mod
-         * @returns Successful result on success,
-         * errorful result with info on error
+         * Claims an existing hook object, marking this mod as its owner.
+         * If the hook has "auto enable" set, this will enable the hook.
+         * @returns Returns a pointer to the hook, or an error if the
+         * hook already has an owner, or was unable to enable the hook.
          */
-        Result<> enableHook(Hook* hook);
+        Result<Hook*> claimHook(std::shared_ptr<Hook>&& hook);
 
         /**
-         * Disable a hook owned by this Mod
-         * @returns Successful result on success,
-         * errorful result with info on error
+         * Disowns a hook which this mod owns, making this mod no longer its owner.
+         * If the hook has "auto enable" set, this will disable the hook.
+         * @returns Returns an error if this mod doesn't own the hook, or
+         * if disabling the hook failed.
          */
-        Result<> disableHook(Hook* hook);
+        Result<> disownHook(Hook* hook);
 
         /**
-         * Remove a hook owned by this Mod
-         * @returns Successful result on success,
-         * errorful result with info on error
+         * Get all hooks owned by this Mod
+         * @returns Vector of hooks
          */
-        Result<> removeHook(Hook* hook);
+        [[nodiscard]] std::vector<Hook*> getHooks() const;
 
         /**
          * Write a patch at an address
@@ -290,14 +294,33 @@ namespace geode {
          * @returns Successful result on success,
          * errorful result with info on error
          */
-        Result<Patch*> patch(void* address, ByteVector const& data);
+        Result<Patch*> patch(void* address, ByteVector const& data) {
+            auto patch = Patch::create(address, data);
+            GEODE_UNWRAP_INTO(auto ptr, this->claimPatch(std::move(patch)));
+            return Ok(ptr);
+        }
 
         /**
-         * Remove a patch owned by this Mod
-         * @returns Successful result on success,
-         * errorful result with info on error
+         * Claims an existing patch object, marking this mod as its owner.
+         * If the patch has "auto enable" set, this will enable the patch.
+         * @returns Returns a pointer to the patch, or an error if the
+         * patch already has an owner, or was unable to enable the patch.
          */
-        Result<> unpatch(Patch* patch);
+        Result<Patch*> claimPatch(std::shared_ptr<Patch>&& patch);
+
+        /**
+         * Disowns a patch which this mod owns, making this mod no longer its owner.
+         * If the patch has "auto enable" set, this will disable the patch.
+         * @returns Returns an error if this mod doesn't own the patch, or
+         * if disabling the patch failed.
+         */
+        Result<> disownPatch(Patch* patch);
+
+        /**
+         * Get all patches owned by this Mod
+         * @returns Vector of patches
+         */
+        [[nodiscard]] std::vector<Patch*> getPatches() const;
 
         /**
          * Enable this mod

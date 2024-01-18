@@ -35,7 +35,7 @@ namespace geode {
          * @returns The created hook, or an error. 
          */
         template <class Func>
-        static Result<Hook*> create(std::string const& className, std::string const& selectorName, Func function, tulip::hook::HookMetadata const& metadata = tulip::hook::HookMetadata()) {
+        static Result<std::shared_ptr<Hook>> create(std::string const& className, std::string const& selectorName, Func function, tulip::hook::HookMetadata const& metadata = tulip::hook::HookMetadata()) {
             GEODE_UNWRAP_INTO(auto imp, geode::hook::getObjcMethodImp(className, selectorName));
 
             return Ok(Hook::create(
@@ -59,7 +59,7 @@ namespace geode {
          * @returns The created hook, or an error. 
          */
         template <class Func>
-        static Result<Hook*> create(std::string const& className, std::string const& selectorName, Func function, void(*empty)(), tulip::hook::HookMetadata const& metadata = tulip::hook::HookMetadata()) {
+        static Result<std::shared_ptr<Hook>> create(std::string const& className, std::string const& selectorName, Func function, void(*empty)(), tulip::hook::HookMetadata const& metadata = tulip::hook::HookMetadata()) {
             GEODE_UNWRAP(geode::hook::addObjcMethod(className, selectorName, (void*)empty));
 
             return ObjcHook::create(className, selectorName, function, metadata);
