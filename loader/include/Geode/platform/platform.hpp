@@ -158,6 +158,20 @@ namespace geode {
             return "Undefined";
         }
 
+        static constexpr char const* toShortString(Type lp, bool ignoreArch = false) {
+            switch (lp) {
+                case Unknown: return "unknown";
+                case Windows: return "win";
+                case MacOS: return "mac";
+                case iOS: return "ios";
+                case Android32: return ignoreArch ? "android" : "android32";
+                case Android64: return ignoreArch ? "android" : "android64";
+                case Linux: return "linux";
+                default: break;
+            }
+            return "undefined";
+        }
+
         template <class T>
             requires requires(T t) {
                 static_cast<Type>(t);

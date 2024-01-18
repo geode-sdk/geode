@@ -8,6 +8,7 @@
 #include <utility>
 
 #include "ModMetadataImpl.hpp"
+#include "LoaderImpl.hpp"
 
 using namespace geode::prelude;
 
@@ -181,18 +182,7 @@ Result<ModMetadata> ModMetadata::Impl::create(ModJson const& json) {
         if (json["gd"].is_string()) {
             ver = json["gd"].as_string();
         } else if (json["gd"].is_object()) {
-            std::string key;
-            switch (GEODE_PLATFORM_TARGET) {
-                case PlatformID::Android32: 
-                case PlatformID::Android64:
-                    key = "android"; break;
-                case PlatformID::MacOS:
-                    key = "mac"; break;
-                case PlatformID::Windows:
-                    key = "win"; break;
-                case PlatformID::iOS:
-                    key = "ios"; break;
-            }
+            auto key = PlatformID::toShortString(GEODE_PLATFORM_TARGET, true);
             if (json["gd"].contains(key))
                 ver = json["gd"][ver].as_string();
         } else {
@@ -201,8 +191,24 @@ Result<ModMetadata> ModMetadata::Impl::create(ModJson const& json) {
         if (ver.empty()) {
             return Err("[mod.json] could not find GD version for current platform");
         }
-        if (ver != "*" && ver != GEODE_STR(GEODE_GD_VERSION)) {
-            return Err(fmt::format("[mod.json] doesn't support this GD version ({} != {})", ver, GEODE_STR(GEODE_GD_VERSION)));
+        if (ver != "*") {
+            // probably a bad idea but oh well
+            double modTargetVer;
+            try {
+                // assume gd version is always a valid double
+                modTargetVer = std::stod(ver);
+            } catch (...) {
+                return Err("[mod.json] has invalid target GD version");
+            }
+            if (LoaderImpl::get()->isForwardCompatMode()) {
+                // this means current gd version is > GEODE_GD_VERSION
+                if (modTargetVer <= GEODE_GD_VERSION) {
+                    return Err(fmt::format("[mod.json] doesn't support this GD version ({} < current version)", ver));
+                }
+            } else if (ver != GEODE_STR(GEODE_GD_VERSION)) {
+                // we are not in forward compat mode, so GEODE_GD_VERSION is the current gd version
+                return Err(fmt::format("[mod.json] doesn't support this GD version ({} != {})", ver, GEODE_STR(GEODE_GD_VERSION)));
+            }
         }
     } else {
         return Err("[mod.json] is missing target GD version");
