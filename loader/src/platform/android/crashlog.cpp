@@ -239,6 +239,15 @@ void printModsAndroid(std::stringstream& stream) {
     }
 }
 
+void printMemoryMappings(std::stringstream& stream) {
+    std::ifstream processMappings("/proc/self/maps");
+
+    std::string mapping;
+    while (std::getline(processMappings, mapping)) {
+        stream << mapping << "\n";
+    }
+}
+
 static std::string s_result;
 bool crashlog::setupPlatformHandler() {
     (void)utils::file::createDirectoryAll(crashlog::getCrashLogDirectory());
@@ -288,6 +297,9 @@ void crashlog::setupPlatformHandlerPost() {
 
     ss << "\n== Crash Report (Logcat) ==\n";
     ss << s_result;
+
+    ss << "\n== Process Mapping ==\n";
+    printMemoryMappings(ss);
 
     std::ofstream actualFile;
     actualFile.open(
