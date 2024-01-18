@@ -25,9 +25,11 @@ namespace geode {
     public:
 
         /**
-         * Create a hook at an address. The hook is enabled immediately. By 
-         * default, the hook is placed at the end of the detour list; however, 
-         * this can be controlled using metadata settings.
+         * Create a hook at an address. By default, the hook is disabled and
+         * placed at the end of the detour list; however, this can be
+         * controlled using metadata settings.
+         * After creating the hook object, we recommend you set its owner
+         * by calling `Mod::claimHook`, see its docs for more info.
          * @param address The address to hook
          * @param detour The detour to run when the hook is hit. The detour's 
          * calling convention should be cdecl
@@ -36,7 +38,7 @@ namespace geode {
          * @param handlerMetadata Metadata for the hook handler
          * @param hookMetadata Metadata for the hook itself
          * @returns The created hook, or an error. Make sure to add the created 
-         * hook to the mod that owns it using mod->claimHook!
+         * hook to the mod that owns it using mod->claimHook(hook)!
          */
         static std::shared_ptr<Hook> create(
             void* address,

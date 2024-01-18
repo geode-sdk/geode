@@ -265,8 +265,20 @@ namespace geode {
             return Ok(ptr);
         }
 
+        /**
+         * Claims an existing hook object, marking this mod as its owner.
+         * If the hook has "auto enable" set, this will enable the hook.
+         * @returns Returns a pointer to the hook, or an error if the
+         * hook already has an owner, or was unable to enable the hook.
+         */
         Result<Hook*> claimHook(std::shared_ptr<Hook>&& hook);
 
+        /**
+         * Disowns a hook which this mod owns, making this mod no longer its owner.
+         * If the hook has "auto enable" set, this will disable the hook.
+         * @returns Returns an error if this mod doesn't own the hook, or
+         * if disabling the hook failed.
+         */
         Result<> disownHook(Hook* hook);
 
         /**
@@ -288,8 +300,20 @@ namespace geode {
             return Ok(ptr);
         }
 
+        /**
+         * Claims an existing patch object, marking this mod as its owner.
+         * If the patch has "auto enable" set, this will enable the patch.
+         * @returns Returns a pointer to the patch, or an error if the
+         * patch already has an owner, or was unable to enable the patch.
+         */
         Result<Patch*> claimPatch(std::shared_ptr<Patch>&& patch);
 
+        /**
+         * Disowns a patch which this mod owns, making this mod no longer its owner.
+         * If the patch has "auto enable" set, this will disable the patch.
+         * @returns Returns an error if this mod doesn't own the patch, or
+         * if disabling the patch failed.
+         */
         Result<> disownPatch(Patch* patch);
 
         /**
