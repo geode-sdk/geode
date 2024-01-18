@@ -193,10 +193,10 @@ Result<ModMetadata> ModMetadata::Impl::create(ModJson const& json) {
         }
         if (ver != "*") {
             // probably a bad idea but oh well
-            float modTargetVer;
+            double modTargetVer;
             try {
-                // assume gd version is always a valid float
-                modTargetVer = std::stof(ver);
+                // assume gd version is always a valid double
+                modTargetVer = std::stod(ver);
             } catch (...) {
                 return Err("[mod.json] has invalid target GD version");
             }
@@ -205,7 +205,7 @@ Result<ModMetadata> ModMetadata::Impl::create(ModJson const& json) {
                 if (modTargetVer <= GEODE_GD_VERSION) {
                     return Err(fmt::format("[mod.json] doesn't support this GD version ({} < current version)", ver));
                 }
-            } else if (modTargetVer != GEODE_GD_VERSION) {
+            } else if (ver != GEODE_STR(GEODE_GD_VERSION)) {
                 // we are not in forward compat mode, so GEODE_GD_VERSION is the current gd version
                 return Err(fmt::format("[mod.json] doesn't support this GD version ({} != {})", ver, GEODE_STR(GEODE_GD_VERSION)));
             }
