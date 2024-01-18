@@ -465,7 +465,6 @@ Result<Hook*> Mod::Impl::claimHook(std::shared_ptr<Hook>&& hook) {
         if (LoaderImpl::get()->isReadyToHook()) {
             auto res2 = ptr->enable();
             if (!res2) {
-                m_hooks.pop_back();
                 return Err("Cannot enable hook: {}", res2.unwrapErr());
             }
         }
@@ -521,7 +520,6 @@ Result<Patch*> Mod::Impl::claimPatch(std::shared_ptr<Patch>&& patch) {
     if (this->isEnabled() && patch->getAutoEnable()) {
         auto res2 = ptr->enable();
         if (!res2) {
-            m_patches.pop_back();
             return Err("Cannot enable patch: {}", res2.unwrapErr());
         }
     }
