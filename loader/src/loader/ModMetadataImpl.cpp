@@ -181,18 +181,7 @@ Result<ModMetadata> ModMetadata::Impl::create(ModJson const& json) {
         if (json["gd"].is_string()) {
             ver = json["gd"].as_string();
         } else if (json["gd"].is_object()) {
-            std::string key;
-            switch (GEODE_PLATFORM_TARGET) {
-                case PlatformID::Android32: 
-                case PlatformID::Android64:
-                    key = "android"; break;
-                case PlatformID::MacOS:
-                    key = "mac"; break;
-                case PlatformID::Windows:
-                    key = "win"; break;
-                case PlatformID::iOS:
-                    key = "ios"; break;
-            }
+            auto key = PlatformID::toShortString(GEODE_PLATFORM_TARGET, true);
             if (json["gd"].contains(key))
                 ver = json["gd"][ver].as_string();
         } else {
