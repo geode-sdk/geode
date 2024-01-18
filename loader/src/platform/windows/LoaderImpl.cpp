@@ -74,3 +74,8 @@ bool Loader::Impl::userTriedToLoadDLLs() const {
 
     return triedToLoadDLLs;
 }
+
+void Loader::Impl::addNativeBinariesPath(ghc::filesystem::path const& path) {
+    // adds a search directory for native dlls (the name is misleading)
+    SetDllDirectoryW(path.wstring().c_str());
+}

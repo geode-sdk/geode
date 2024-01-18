@@ -403,9 +403,6 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
                 return;
             }
 
-            if (node->getID() == "absolllute.megahack")
-                log::debug("megahack creepypasta");
-
             for (auto const& dep : node->m_impl->m_dependants) {
                 m_modsToLoad.push_front(dep);
             }

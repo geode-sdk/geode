@@ -83,6 +83,7 @@ namespace geode {
 
         void updateModResources(Mod* mod);
         void addSearchPaths();
+        void addNativeBinariesPath(ghc::filesystem::path const& path);
 
         Result<> setup();
         void forceReset();

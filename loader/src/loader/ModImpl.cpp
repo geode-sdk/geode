@@ -46,7 +46,12 @@ Result<> Mod::Impl::setup() {
     }
     if (!m_resourcesLoaded) {
         auto searchPathRoot = dirs::getModRuntimeDir() / m_metadata.getID() / "resources";
+        // TODO: why is this commented out
         // CCFileUtils::get()->addSearchPath(searchPathRoot.string().c_str());
+
+        const auto binariesDir = searchPathRoot / m_metadata.getID() / "binaries" / PlatformID::toShortString(GEODE_PLATFORM_TARGET);
+        if (ghc::filesystem::exists(binariesDir))
+            LoaderImpl::get()->addNativeBinariesPath(binariesDir);
 
         m_resourcesLoaded = true;
     }
