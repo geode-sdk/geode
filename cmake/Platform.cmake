@@ -82,9 +82,9 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android32")
 		log
 	)
 
-	set(GEODE_OUTPUT_NAME "Geode.armeabi-v7a")
-	set(GEODE_PLATFORM_BINARY "Geode.armeabi-v7a.so")
-	set(GEODE_MOD_BINARY_SUFFIX ".v7.so" CACHE STRING "" FORCE)
+	set(GEODE_OUTPUT_NAME "Geode.android32")
+	set(GEODE_PLATFORM_BINARY "Geode.android32.so")
+	set(GEODE_MOD_BINARY_SUFFIX ".android32.so" CACHE STRING "" FORCE)
 elseif (GEODE_TARGET_PLATFORM STREQUAL "Android64")
 	set_target_properties(${PROJECT_NAME} PROPERTIES
 		SYSTEM_NAME Android
@@ -99,9 +99,9 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android64")
 		log
 	)
 
-	set(GEODE_OUTPUT_NAME "Geode.arm64-v8a")
-	set(GEODE_PLATFORM_BINARY "Geode.arm64-v8a.so")
-	set(GEODE_MOD_BINARY_SUFFIX ".v8.so" CACHE STRING "" FORCE)
+	set(GEODE_OUTPUT_NAME "Geode.android64")
+	set(GEODE_PLATFORM_BINARY "Geode.android64.so")
+	set(GEODE_MOD_BINARY_SUFFIX ".android64.so" CACHE STRING "" FORCE)
 else()
 	message(FATAL_ERROR "Unknown platform ${GEODE_TARGET_PLATFORM}")
 endif()

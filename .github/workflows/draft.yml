@@ -24,11 +24,10 @@ jobs:
 
       - name: Move Files
         run: |
-          mv dev/geode-installer-*-mac.pkg geode-installer-v${{ steps.ref.outputs.version }}-mac.pkg
           mv dev/geode-installer-*-win.exe geode-installer-v${{ steps.ref.outputs.version }}-win.exe
-          mv dev/geode-*-mac.zip geode-v${{ steps.ref.outputs.version }}-mac.zip
           mv dev/geode-*-win.zip geode-v${{ steps.ref.outputs.version }}-win.zip
-          mv dev/geode-*-android.zip geode-v${{ steps.ref.outputs.version }}-android.zip
+          mv dev/geode-*-android32.zip geode-v${{ steps.ref.outputs.version }}-android32.zip
+          mv dev/geode-*-android64.zip geode-v${{ steps.ref.outputs.version }}-android64.zip
           mv dev/resources.zip resources.zip
 
       - name: Create Draft Release
@@ -45,9 +44,8 @@ jobs:
              - remove this
           draft: true
           files: |
-            ./geode-installer-v${{ steps.ref.outputs.version }}-mac.pkg
             ./geode-installer-v${{ steps.ref.outputs.version }}-win.exe
-            ./geode-v${{ steps.ref.outputs.version }}-mac.zip
             ./geode-v${{ steps.ref.outputs.version }}-win.zip
-            ./geode-v${{ steps.ref.outputs.version }}-android.zip
+            ./geode-v${{ steps.ref.outputs.version }}-android32.zip
+            ./geode-v${{ steps.ref.outputs.version }}-android64.zip
             ./resources.zip
