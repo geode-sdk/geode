@@ -460,7 +460,7 @@ Result<Hook*> Mod::Impl::claimHook(std::shared_ptr<Hook> hook) {
         return Err("Cannot claim hook: {}", res1.unwrapErr());
     }
 
-    m_hooks.push_back(std::move(hook));
+    m_hooks.push_back(hook);
 
     auto ptr = hook.get();
     if (!this->isEnabled() || !hook->getAutoEnable())
@@ -518,7 +518,7 @@ Result<Patch*> Mod::Impl::claimPatch(std::shared_ptr<Patch> patch) {
         return Err("Cannot claim patch: {}", res1.unwrapErr());
     }
 
-    m_patches.push_back(std::move(patch));
+    m_patches.push_back(patch);
 
     auto ptr = patch.get();
     if (!this->isEnabled() || !patch->getAutoEnable())
