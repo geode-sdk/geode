@@ -47,4 +47,8 @@ struct _MSVC_ThrowInfo {
     unsigned long pCatchableTypeArray;
 };
 
+#if defined(__clang__)
+# define _ThrowInfo _MSVC_ThrowInfo
+#endif
+
 #include <ehdata.h> // for EH_EXCEPTION_NUMBER
