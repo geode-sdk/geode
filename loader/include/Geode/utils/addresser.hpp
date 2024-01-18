@@ -119,20 +119,10 @@ namespace geode::addresser {
             return addressOfVirtual(reinterpret_cast<Return (Class::*)(Parameters...)>(func));
         }
 
-        template <class Return, class Class, class... Parameters>
-        static intptr_t addressOfNonVirtual(Return (Class::*func)(Parameters...) const) {
-            return addressOfNonVirtual(reinterpret_cast<Return (Class::*)(Parameters...)>(func));
-        }
-
         static intptr_t followThunkFunction(intptr_t address);
 
-        template <class Return, class Class, class... Parameters>
-        static intptr_t addressOfNonVirtual(Return (Class::*func)(Parameters...)) {
-            return followThunkFunction(geode::cast::reference_cast<intptr_t>(func));
-        }
-
-        template <class Return, class... Parameters>
-        static intptr_t addressOfNonVirtual(Return (*func)(Parameters...)) {
+        template <class FnPtr>
+        static intptr_t addressOfNonVirtual(FnPtr func) {
             return followThunkFunction(geode::cast::reference_cast<intptr_t>(func));
         }
 
