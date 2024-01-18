@@ -425,7 +425,7 @@ void Index::Impl::updateFromLocalTree() {
 
             auto addRes = IndexItem::Impl::create(rootDir, dir);
             if (!addRes) {
-                log::warn("Unable to add index item from {}: {}", dir, addRes.unwrapErr());
+                // log::warn("Unable to add index item from {}: {}", dir, addRes.unwrapErr());
                 continue;
             }
             auto add = addRes.unwrap();
