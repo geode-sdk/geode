@@ -76,6 +76,10 @@ bool Loader::Impl::userTriedToLoadDLLs() const {
 }
 
 void Loader::Impl::addNativeBinariesPath(ghc::filesystem::path const& path) {
-    // adds a search directory for native dlls (the name is misleading)
-    SetDllDirectoryW(path.wstring().c_str());
+    // https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-adddlldirectory#remarks
+    static auto runOnce = [] {
+        SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
+        return 0;
+    }();
+    AddDllDirectory(path.wstring().c_str());
 }
