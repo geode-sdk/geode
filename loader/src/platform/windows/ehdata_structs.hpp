@@ -4,52 +4,47 @@
 // but don't exist in other compilers like Clang, causing <ehdata.h> to not compile.
 //
 // We define them manually in order to be able to use them.
-// source: https://www.geoffchappell.com/studies/msvc/language/predefined/index.htm
+// sources:
+// https://www.geoffchappell.com/studies/msvc/language/predefined/index.htm
+// https://github.com/gnustep/libobjc2/blob/377a81d23778400b5306ee490451ed68b6e8db81/eh_win32_msvc.cc
 
-#if defined(__GNUC__) || defined(__clang__) || defined(__INTELLISENSE__)
-
-typedef struct _PMD
-{
+struct _MSVC_PMD {
     int mdisp;
     int pdisp;
     int vdisp;
-} _PMD;
+};
 
-typedef void (*_PMFN) (void);
-
+// silence the warning C4200: nonstandard extension used: zero-sized array in struct/union
 #pragma warning (disable:4200)
 #pragma pack (push, _TypeDescriptor, 8)
-typedef struct _TypeDescriptor
-{
-    const void *pVFTable;
-    void *spare;
-    char name [];
-} _TypeDescriptor;
+struct _MSVC_TypeDescriptor {
+    const void* pVFTable;
+    void* spare;
+    char name[0];
+};
 #pragma pack (pop, _TypeDescriptor)
 #pragma warning (default:4200)
 
-typedef const struct _s__CatchableType {
+struct _MSVC_CatchableType {
     unsigned int properties;
-    _TypeDescriptor *pType;
-    _PMD thisDisplacement;
+    unsigned long pType;
+    _MSVC_PMD thisDisplacement;
     int sizeOrOffset;
-    _PMFN copyFunction;
-} _CatchableType;
+    unsigned long copyFunction;
+};
 
 #pragma warning (disable:4200)
-typedef const struct _s__CatchableTypeArray {
+struct _MSVC_CatchableTypeArray {
     int nCatchableTypes;
-    _CatchableType *arrayOfCatchableTypes [];
-} _CatchableTypeArray;
+    unsigned long arrayOfCatchableTypes[0];
+};
 #pragma warning (default:4200)
 
-typedef const struct _s__ThrowInfo {
+struct _MSVC_ThrowInfo {
     unsigned int attributes;
-    _PMFN pmfnUnwind;
-    int (__cdecl *pForwardCompat) (...);
-    _CatchableTypeArray *pCatchableTypeArray;
-} _ThrowInfo;
-
-#endif // defined(__GNUC__) || defined(__clang__) || defined(__INTELLISENSE__)
+    unsigned long pmfnUnwind;
+    unsigned long pfnForwardCompat;
+    unsigned long pCatchableTypeArray;
+};
 
 #include <ehdata.h> // for EH_EXCEPTION_NUMBER
