@@ -42,18 +42,17 @@ int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
             "Unable to Load Geode!",
             fmt::format(
                 "This version of Geode is made for Geometry Dash {} "
-                "but you're trying to play with GD {}."
+                "but you're trying to play with GD {}.\n"
                 "Please, update your game or install an older version of Geode.",
                 GEODE_STR(GEODE_GD_VERSION),
                 LoaderImpl::get()->getGameVersion()
             )
         );
-        return 2;
+    } else {
+        int exitCode = geodeEntry(hInstance);
+        if (exitCode != 0)
+            return exitCode;
     }
-
-    int exitCode = geodeEntry(hInstance);
-    if (exitCode != 0)
-        return exitCode;
 
     return reinterpret_cast<decltype(&wWinMain)>(mainTrampolineAddr)(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
 }
