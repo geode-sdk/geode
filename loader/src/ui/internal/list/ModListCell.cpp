@@ -304,7 +304,7 @@ bool ModCell::init(
         m_menu->addChild(restartBtn);
     }
     else {
-        if (m_mod->getMetadata().getID() != "geode.loader") {
+        if (!m_mod->isInternal()) {
             m_enableToggle =
                 CCMenuItemToggler::createWithStandardSprites(this, menu_selector(ModCell::onEnable), .7f);
             m_menu->addChild(m_enableToggle);

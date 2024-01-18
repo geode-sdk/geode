@@ -437,7 +437,7 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
     enableBtn->toggle(!mod->shouldLoad());
     m_buttonMenu->addChild(enableBtn);
 
-    if (!mod->supportsDisabling()) {
+    if (mod->isInternal()) {
         enableBtn->setTarget(this, menu_selector(LocalModInfoPopup::onDisablingNotSupported));
         enableBtnSpr->setColor({150, 150, 150});
         disableBtnSpr->setColor({150, 150, 150});

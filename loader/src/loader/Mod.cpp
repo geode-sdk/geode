@@ -44,8 +44,8 @@ bool Mod::isEnabled() const {
     return m_impl->isEnabled();
 }
 
-bool Mod::supportsDisabling() const {
-    return m_impl->supportsDisabling();
+bool Mod::isInternal() const {
+    return m_impl->isInternal();
 }
 
 bool Mod::needsEarlyLoad() const {

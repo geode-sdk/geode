@@ -124,8 +124,8 @@ bool Mod::Impl::isEnabled() const {
     return m_enabled;
 }
 
-bool Mod::Impl::supportsDisabling() const {
-    return m_metadata.getID() != "geode.loader";
+bool Mod::Impl::isInternal() const {
+    return m_metadata.getID() == "geode.loader";
 }
 
 bool Mod::Impl::needsEarlyLoad() const {
@@ -383,7 +383,7 @@ Result<> Mod::Impl::uninstall(bool deleteSaveData) {
         return Err("Mod already has a requested action");
     }
 
-    if (this->getID() == "geode.loader") {
+    if (this->isInternal()) {
         utils::game::launchLoaderUninstaller(deleteSaveData);
         utils::game::exit();
         return Ok();

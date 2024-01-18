@@ -286,7 +286,7 @@ void Loader::Impl::queueMods(std::vector<ModMetadata>& modQueue) {
 void Loader::Impl::populateModList(std::vector<ModMetadata>& modQueue) {
     std::vector<std::string> toRemove;
     for (auto& [id, mod] : m_mods) {
-        if (id == "geode.loader")
+        if (mod->isInternal())
             continue;
         delete mod;
         toRemove.push_back(id);
