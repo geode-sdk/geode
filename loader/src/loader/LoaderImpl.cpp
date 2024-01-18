@@ -123,8 +123,9 @@ VersionInfo Loader::Impl::getVersion() {
 }
 
 VersionInfo Loader::Impl::minModVersion() {
+    auto ver = this->getVersion();
     return VersionInfo {
-        this->getVersion().getMajor(), 0, 0
+        ver.getMajor(), 0, 0, ver.getTag()
     };
 }
 
