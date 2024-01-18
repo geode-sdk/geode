@@ -337,8 +337,10 @@ Result<> Mod::Impl::loadBinary() {
 
     LoaderImpl::get()->provideNextMod(m_self);
 
+    m_enabled = true;
     auto res = this->loadPlatformBinary();
     if (!res) {
+        m_enabled = false;
         // make sure to free up the next mod mutex
         LoaderImpl::get()->releaseNextMod();
         log::error("Failed to load binary for mod {}: {}", m_metadata.getID(), res.unwrapErr());
@@ -347,7 +349,6 @@ Result<> Mod::Impl::loadBinary() {
 
     LoaderImpl::get()->releaseNextMod();
 
-    m_enabled = true;
 
     ModStateEvent(m_self, ModEventType::Loaded).post();
     ModStateEvent(m_self, ModEventType::Enabled).post();
@@ -466,7 +467,7 @@ Result<Hook*> Mod::Impl::claimHook(std::shared_ptr<Hook> hook) {
     if (!this->isEnabled() || !hook->getAutoEnable())
         return Ok(ptr);
 
-    if (!LoaderImpl::get()->isReadyToHook()) {
+    if (!LoaderImpl::get()->isReadyToHook() && hook->getAutoEnable()) {
         LoaderImpl::get()->addUninitializedHook(ptr, m_self);
         return Ok(ptr);
     }
