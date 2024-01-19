@@ -1,5 +1,23 @@
 # Geode Changelog
 
+## v2.0.0-beta.1
+ * 2.2 support!
+   * Android arm64-v8 support!
+   * Future version compatibility mode, where the Geode UI is disabled
+ * Split bindings into their own repo (3aa3ae7d)
+ * Add `gd` as a required key in mod.json, to specify target GD version (f7a3947c)
+ * Load native binaries from mod resources (acd9bd78)
+ * Refactor json library, namespace and headers renamed to `matjson` (b9a09f73)
+ * Refactor `AsyncWebRequest` class (d56c70fe)
+   * `postFields` renamed to `body` and `bodyRaw`
+   * `customRequest` renamed to `method`
+ * Change api for `CCDictionaryExt`, now 2nd template arg must be a pointer, making it more similar to std::map (e1b7b1f4)
+ * Refactor Hook and Patch classes, Mod::addHook renamed to Mod::hook (a5a3a08d)
+ * Remove many deprecated keys from `mod.json`, most importantly `required` in dependencies (39d372c7, b4235bb5)
+ * Refactor logging, now pipes directly to fmtlib (2ba8761f)
+ * Refactor gd::string (24bbc65f)
+ * Refactor many other parts of the codebase
+
 ## v1.4.0
  * Add Android support !!!!
    * Implement every Geode functionality except `utils::file::openFolder`
