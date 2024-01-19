@@ -1,5 +1,8 @@
 # Geode Changelog
 
+## v2.0.0-beta.2
+ * Fix `geode::utils::cocos::reloadTextures` on windows
+
 ## v2.0.0-beta.1
  * 2.2 support!
    * Android arm64-v8 support!
