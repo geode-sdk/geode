@@ -15,7 +15,10 @@ struct MacConsoleData {
     int logFd;
 };
 
-void Loader::Impl::platformMessageBox(char const* title, std::string const& info) {
+bool s_isOpen = false;
+MacConsoleData s_platformData;
+
+void console::messageBox(char const* title, std::string const& info, Severity) {
     CFStringRef cfTitle = CFStringCreateWithCString(NULL, title, kCFStringEncodingUTF8);
     CFStringRef cfMessage = CFStringCreateWithCString(NULL, info.c_str(), kCFStringEncodingUTF8);
 
@@ -24,8 +27,8 @@ void Loader::Impl::platformMessageBox(char const* title, std::string const& info
     );
 }
 
-void Loader::Impl::logConsoleMessageWithSeverity(std::string const& msg, Severity severity) {
-    if (m_platformConsoleOpen) {
+void console::log(std::string const& msg, Severity severity) {
+    if (s_isOpen) {
         int colorcode = 0;
         switch (severity) {
             case Severity::Debug: colorcode = 36; break;
@@ -40,8 +43,9 @@ void Loader::Impl::logConsoleMessageWithSeverity(std::string const& msg, Severit
     }
 }
 
-void Loader::Impl::openPlatformConsole() {
-    if (m_platformConsoleOpen) return;
+
+void console::open() {
+    if (s_isOpen) return;
 
     std::string outFile = "/tmp/command_output_XXXXXX";
     int outFd = mkstemp(&outFile[0]);
@@ -71,14 +75,14 @@ void Loader::Impl::openPlatformConsole() {
         task.arguments = @[[NSString stringWithUTF8String:script.c_str()]];
         [task launch];
 
-        m_platformData = new MacConsoleData {
+        s_platformData = MacConsoleData {
             outFile,
             script,
             outFd
         };
     }
 
-    m_platformConsoleOpen = true;
+    s_isOpen = true;
 
     for (auto const& log : log::Logger::get()->list()) {
         this->logConsoleMessageWithSeverity(log.toString(true), log.getSeverity());
@@ -86,17 +90,13 @@ void Loader::Impl::openPlatformConsole() {
 }
 
 void Loader::Impl::closePlatformConsole() {
-    if (m_platformData) {
-        auto consoleData = reinterpret_cast<MacConsoleData*>(m_platformData);
-        close(consoleData->logFd);
-        unlink(consoleData->logFile.c_str());
-        unlink(consoleData->scriptFile.c_str());
-
-        delete consoleData;
-        m_platformData = nullptr;
+    if (s_isOpen) {
+        close(s_platformData.logFd);
+        unlink(s_platformData.logFile.c_str());
+        unlink(s_platformData.scriptFile.c_str());
     }
 
-    m_platformConsoleOpen = false;
+    s_isOpen = false;
 }
 
 CFDataRef msgPortCallback(CFMessagePortRef port, SInt32 messageID, CFDataRef data, void* info) {
