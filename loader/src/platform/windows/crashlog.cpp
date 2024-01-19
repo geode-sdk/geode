@@ -196,12 +196,19 @@ static std::string getRegisters(PCONTEXT context) {
     );
 }
 
+template <typename T, typename U>
+static std::add_const_t<std::decay_t<T>> rebaseAndCast(intptr_t base, U value) {
+    // U value -> const T* (base+value)
+    return reinterpret_cast<std::add_const_t<std::decay_t<T>>>(base + (ptrdiff_t)(value));
+}
+
 static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod) {
     std::stringstream stream;
 
     if (info->ExceptionRecord->ExceptionCode == EH_EXCEPTION_NUMBER) {
         // This executes when a C++ exception was thrown and not handled.
         // https://devblogs.microsoft.com/oldnewthing/20100730-00/?p=13273
+        // handling code is partially taken from https://github.com/gnustep/libobjc2/blob/377a81d23778400b5306ee490451ed68b6e8db81/eh_win32_msvc.cc#L244
 
         // since you can throw virtually anything, we need to figure out if it's an std::exception* or not
         bool isStdException = false;
@@ -209,27 +216,54 @@ static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod) {
         auto* exceptionRecord = info->ExceptionRecord;
         auto exceptionObject = exceptionRecord->ExceptionInformation[1];
 
-        auto* throwInfo = reinterpret_cast<_ThrowInfo*>(exceptionRecord->ExceptionInformation[2]);
-        auto* catchableTypeArray = reinterpret_cast<_CatchableTypeArray*>(throwInfo->pCatchableTypeArray);
-        auto ctaSize = catchableTypeArray->nCatchableTypes;
+        // 0 on 32-bit, dll offset on 64-bit
+        intptr_t imageBase = exceptionRecord->NumberParameters >= 4 ? static_cast<intptr_t>(exceptionRecord->ExceptionInformation[3]) : 0;
 
-        for (int i = 0; i < ctaSize; i++) {
-            auto* catchableType = reinterpret_cast<_CatchableType*>(catchableTypeArray->arrayOfCatchableTypes[i]);
-            auto* ctDescriptor = reinterpret_cast<_TypeDescriptor*>(catchableType->pType);
-            const char* classname = ctDescriptor->name;
+        auto* throwInfo = reinterpret_cast<_MSVC_ThrowInfo*>(exceptionRecord->ExceptionInformation[2]);
 
-            if (strcmp(classname, ".?AVexception@std@@") == 0) {
-                isStdException = true;
-                break;
-            }
-        }
-
-        if (isStdException) {
-            std::exception* excObject = reinterpret_cast<std::exception*>(exceptionObject);
-            // stream << "C++ Exception Type: " << typeid(excObject).name() << "\n"; // always const std::exception *
-            stream << "C++ Exception: " << excObject->what() << "\n";
+        if (!throwInfo || !throwInfo->pCatchableTypeArray) {
+            stream << "C++ exception: <no SEH data available about the thrown exception>\n";
         } else {
-            stream << "C++ Exception: <Unknown type>\n";
+            auto* catchableTypeArray = rebaseAndCast<_MSVC_CatchableTypeArray*>(imageBase, throwInfo->pCatchableTypeArray);
+            auto ctaSize = catchableTypeArray->nCatchableTypes;
+            const char* targetName = nullptr;
+
+            for (int i = 0; i < ctaSize; i++) {
+                auto* catchableType = rebaseAndCast<_MSVC_CatchableType*>(imageBase, catchableTypeArray->arrayOfCatchableTypes[i]);
+                auto* ctDescriptor = rebaseAndCast<_MSVC_TypeDescriptor*>(imageBase, catchableType->pType);
+                const char* classname = ctDescriptor->name;
+
+                if (i == 0) {
+                    targetName = classname;
+                }
+
+                if (strcmp(classname, ".?AVexception@std@@") == 0) {
+                    isStdException = true;
+                    break;
+                }
+            }
+
+            // demangle the name of the thrown object
+            std::string demangledName;
+
+            if (!targetName || targetName[0] == '\0' || targetName[1] == '\0') {
+                demangledName = "<Unknown type>";
+            } else {
+                char demangledBuf[256];
+                size_t written = UnDecorateSymbolName(targetName + 1, demangledBuf, 256, UNDNAME_NO_ARGUMENTS);
+                if (written == 0) {
+                    demangledName = "<Unknown type>";
+                } else {
+                    demangledName = std::string(demangledBuf, demangledBuf + written);
+                }
+            }
+
+            if (isStdException) {
+                std::exception* excObject = reinterpret_cast<std::exception*>(exceptionObject);
+                stream << "C++ Exception: " << demangledName << "(\"" << excObject->what() << "\")" << "\n";
+            } else {
+                stream << "C++ Exception: type '" << demangledName << "'\n";
+            }
         }
 
         stream << "Faulty Mod: " << (faultyMod ? faultyMod->getID() : "<Unknown>") << "\n";
@@ -261,7 +295,7 @@ static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
     auto faultyMod = modFromAddress(info->ExceptionRecord->ExceptionAddress);
 
     auto text = crashlog::writeCrashlog(faultyMod, getInfo(info, faultyMod), getStacktrace(info->ContextRecord), getRegisters(info->ContextRecord));
-    
+
     MessageBoxA(nullptr, text.c_str(), "Geometry Dash Crashed", MB_ICONERROR);
 
     return EXCEPTION_CONTINUE_SEARCH;
