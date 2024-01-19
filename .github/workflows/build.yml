@@ -209,7 +209,7 @@ jobs:
       - name: Zip Resources
         uses: vimtor/action-zip@v1.1
         with:
-          files: geode-win/resources
+          files: geode-android64/resources
           dest: resources.zip
 
       - name: Update Development Release
