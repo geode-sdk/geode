@@ -2,6 +2,7 @@
 #include <Geode/loader/Log.hpp>
 #include <iostream>
 #include <loader/LoaderImpl.hpp>
+#include <loader/console.hpp>
 #include <loader/ModImpl.hpp>
 #import <Foundation/Foundation.h>
 #include <sys/stat.h>
