@@ -52,6 +52,12 @@ namespace geode::stl {
 }
 
 namespace gd {
+#ifdef GEODE_IS_MACOS
+	// rob uses libc++ now! this will prob work fine
+	using string = std::string;
+
+#else
+
 	class GEODE_DLL string {
 		geode::stl::StringData m_data;
 		friend geode::stl::StringImpl;
@@ -93,4 +99,6 @@ namespace gd {
 		operator std::string() const;
 		operator std::string_view() const;
 	};
+
+#endif
 }
