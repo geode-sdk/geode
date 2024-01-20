@@ -283,6 +283,73 @@ public:
         return Ok(std::move(ret));
     }
 
+    Result<> extractAt(Path const& dir, Path const& name) {
+        auto entry = m_entries.at(name);
+
+        GEODE_UNWRAP(
+            mzTry(mz_zip_entry_read_open(m_handle, 0, nullptr))
+            .expect("Unable to open entry (code {error})")
+        );
+
+        // if the file is empty, its data is empty (duh)
+        if (!entry.uncompressedSize) {
+            return Ok();
+        }
+
+        ByteVector res;
+        res.resize(entry.uncompressedSize);
+        auto read = mz_zip_entry_read(m_handle, res.data(), entry.uncompressedSize);
+        if (read < 0) {
+            mz_zip_entry_close(m_handle);
+            return Err("Unable to read entry (code " + std::to_string(read) + ")");
+        }
+
+        mz_zip_entry_close(m_handle);
+
+        GEODE_UNWRAP(file::writeBinary(dir / name, res));
+
+        return Ok();
+    }
+
+    Result<> extractAllTo(Path const& dir) {
+        GEODE_UNWRAP(
+            mzTry(mz_zip_goto_first_entry(m_handle))
+            .expect("Unable to navigate to first entry (code {error})")
+        );
+
+        // while not at MZ_END_OF_LIST
+        while (mz_zip_goto_next_entry(m_handle) == MZ_OK) {
+            mz_zip_file* info = nullptr;
+            if (mz_zip_entry_get_info(m_handle, &info) != MZ_OK) {
+                return Err("Unable to get entry info");
+            }
+
+            Path filePath;
+            filePath.assign(info->filename, info->filename + info->filename_size);
+
+            // make sure zip files like root/../../file.txt don't get extracted to 
+            // avoid zip attacks
+#ifdef GEODE_IS_WINDOWS
+            if (!std::filesystem::relative((dir / filePath).wstring(), dir.wstring()).empty()) {
+#else
+            if (!ghc::filesystem::relative(dir / filePath, dir).empty()) {
+#endif
+                if (m_entries.at(filePath).isDirectory) {
+                    GEODE_UNWRAP(file::createDirectoryAll(dir / filePath));
+                } else {
+                    GEODE_UNWRAP(this->extractAt(dir, filePath));
+                }
+            } else {
+                log::error(
+                    "Zip entry '{}' is not contained within zip bounds",
+                    dir / filePath
+                );
+            }
+        };
+
+        return Ok();
+    }
+
     Result<ByteVector> extract(Path const& name) {
         if (!m_entries.count(name)) {
             return Err("Entry not found");
@@ -458,28 +525,7 @@ Result<> Unzip::extractTo(Path const& name, Path const& path) {
 }
 
 Result<> Unzip::extractAllTo(Path const& dir) {
-    GEODE_UNWRAP(file::createDirectoryAll(dir));
-    for (auto& [entry, info] : m_impl->getEntries()) {
-        // make sure zip files like root/../../file.txt don't get extracted to 
-        // avoid zip attacks
-#ifdef GEODE_IS_WINDOWS
-        if (!std::filesystem::relative((dir / entry).wstring(), dir.wstring()).empty()) {
-#else
-        if (!ghc::filesystem::relative(dir / entry, dir).empty()) {
-#endif
-            if (info.isDirectory) {
-                GEODE_UNWRAP(file::createDirectoryAll(dir / entry));
-            } else {
-                GEODE_UNWRAP(this->extractTo(entry, dir / entry));
-            }
-        } else {
-            log::error(
-                "Zip entry '{}' is not contained within zip bounds",
-                dir / entry
-            );
-        }
-    }
-    return Ok();
+    return m_impl->extractAllTo(dir);
 }
 
 Result<> Unzip::intoDir(
