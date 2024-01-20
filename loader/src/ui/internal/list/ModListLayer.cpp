@@ -488,7 +488,9 @@ void ModListLayer::reloadList(bool keepScroll, std::optional<ModListQuery> const
     // set list status
     if (!items->count()) {
         m_listLabel->setVisible(true);
-        m_listLabel->setString("No mods found");
+        if (!Index::get()->isUpdating()) {
+            m_listLabel->setString("No mods found");
+        }
     } else {
         m_listLabel->setVisible(false);
     }
@@ -500,9 +502,12 @@ void ModListLayer::reloadList(bool keepScroll, std::optional<ModListQuery> const
     }
 
     // update index if needed
-    if (g_tab == ModListType::Download && !Index::get()->hasTriedToUpdate()) {
+    if (g_tab == ModListType::Download && !Index::get()->isUpToDate()) {
         m_listLabel->setVisible(true);
-        m_listLabel->setString("Updating index...");
+        // dont want to overwrite th message we set in UpdateProgress
+        if (!Index::get()->isUpdating()) {
+            m_listLabel->setString("Updating index...");
+        }
         if (!m_loadingCircle) {
             m_loadingCircle = LoadingCircle::create();
 
@@ -622,7 +627,14 @@ void ModListLayer::onCheckForUpdates(CCObject*) {
 
 void ModListLayer::onIndexUpdate(IndexUpdateEvent* event) {
     std::visit(makeVisitor {
-        [&](UpdateProgress const& prog) {},
+        [&](UpdateProgress const& prog) {
+            auto msg = prog.second;
+            // amazing
+            if (prog.second == "Downloading") {
+                msg += fmt::format(" {}%", prog.first);
+            }
+            m_listLabel->setString((msg + "...").c_str());
+        },
         [&](UpdateFinished const&) {
             this->reloadList();
         },

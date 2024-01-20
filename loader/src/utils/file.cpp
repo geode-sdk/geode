@@ -491,6 +491,7 @@ Result<> Unzip::intoDir(
     // removed
     {
         GEODE_UNWRAP_INTO(auto unzip, Unzip::create(from));
+        // TODO: this is quite slow lol, takes 30 seconds to extract index..
         GEODE_UNWRAP(unzip.extractAllTo(to));
     }
     if (deleteZipAfter) {

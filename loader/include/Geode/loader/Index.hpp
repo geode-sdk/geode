@@ -300,6 +300,10 @@ namespace geode {
          */
         bool isUpToDate() const;
         /**
+         * Whether the index is currently updating
+         */
+        bool isUpdating() const;
+        /**
          * Update the index. Add an event listener for the IndexUpdateEvent 
          * class to track updating progress
          * @param force Forcefully update all sources, even if some have are 

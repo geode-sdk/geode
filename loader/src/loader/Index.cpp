@@ -288,6 +288,10 @@ bool Index::isUpToDate() const {
     return m_impl->m_isUpToDate;
 }
 
+bool Index::isUpdating() const {
+    return m_impl->m_updating;
+}
+
 bool Index::hasTriedToUpdate() const {
     return m_impl->m_triedToUpdate;
 }
@@ -318,6 +322,8 @@ void Index::Impl::downloadIndex(std::string commitHash) {
 
             std::thread([=, this]() {
                 // unzip new index
+                log::debug("Unzipping index");
+                IndexUpdateEvent(UpdateProgress(100, "Unzipping index")).post();
                 auto unzip = file::Unzip::intoDir(targetFile, targetDir, true)
                     .expect("Unable to unzip new index");
                 if (!unzip) {
@@ -344,12 +350,15 @@ void Index::Impl::downloadIndex(std::string commitHash) {
             IndexUpdateEvent(UpdateFailed(fmt::format("Error downloading: {}", err))).post();
         })
         .progress([](auto&, double now, double total) {
-            IndexUpdateEvent(
-                UpdateProgress(
-                    static_cast<uint8_t>(now / total * 100.0),
-                    "Downloading"
-                )
-            ).post();
+            // prevent nan at the start, for some reason
+            if (total != 0.0) {
+                IndexUpdateEvent(
+                    UpdateProgress(
+                        static_cast<uint8_t>(now / total * 100.0),
+                        "Downloading"
+                    )
+                ).post();
+            }
         });
 }
 
