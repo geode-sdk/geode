@@ -426,7 +426,7 @@ Function .onVerifyInstDir
         StrCpy $0 "XInput9_1_0.dll"
         Goto other
     other:
-        ${StrRep} $0 $(GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED) "the dll™️" $0
+        ${StrRep} $0 $(GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED) "the dll trademark" $0
         SendMessage $geode.DirectoryPage.ErrorText ${WM_SETTEXT} "" "STR:$0"
         Goto error
 
