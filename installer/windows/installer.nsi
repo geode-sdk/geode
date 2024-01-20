@@ -452,6 +452,13 @@ Section "Visual Studio Runtime"
     Delete "$INSTDIR\VC_redist.x86.exe"
 SectionEnd
 
+Section "steam_appid.txt"
+    SetOutPath $INSTDIR
+    FileOpen $0 "$INSTDIR\steam_appid.txt" w
+    FileWrite $0 "322170"
+    FileClose $0
+SectionEnd
+
 Function .onInit
     !insertmacro MUI_LANGDLL_DISPLAY
 
