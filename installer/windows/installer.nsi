@@ -399,10 +399,10 @@ Function .onVerifyInstDir
     IfFileExists $INSTDIR\Geode.dll valid
 
     ; check mod loaders/mod menus
-    IfFileExists $INSTDIR\hackpro.dll other
-    IfFileExists $INSTDIR\ToastedMarshmellow.dll other
-    IfFileExists $INSTDIR\quickldr.dll other
-    IfFileExists $INSTDIR\XInput9_1_0.dll other
+    IfFileExists $INSTDIR\hackpro.dll other_hackpro
+    IfFileExists $INSTDIR\ToastedMarshmellow.dll other_gdhm
+    IfFileExists $INSTDIR\quickldr.dll other_quickldr
+    IfFileExists $INSTDIR\XInput9_1_0.dll other_xinput
 
     ; all checks passed
     valid:
@@ -413,8 +413,21 @@ Function .onVerifyInstDir
     noGameNoLife:
         SendMessage $geode.DirectoryPage.ErrorText ${WM_SETTEXT} "" "STR:$(GEODE_TEXT_GD_MISSING)"
         Goto error
+    other_hackpro:
+        StrCpy $0 "hackpro.dll"
+        Goto other
+    other_gdhm:
+        StrCpy $0 "ToastedMarshmellow.dll"
+        Goto other
+    other_quickldr:
+        StrCpy $0 "quickldr.dll"
+        Goto other
+    other_xinput:
+        StrCpy $0 "XInput9_1_0.dll"
+        Goto other
     other:
-        SendMessage $geode.DirectoryPage.ErrorText ${WM_SETTEXT} "" "STR:$(GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED)"
+        ${StrRep} $0 $(GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED) "the dll™️" $0
+        SendMessage $geode.DirectoryPage.ErrorText ${WM_SETTEXT} "" "STR:$0"
         Goto error
 
     error:
