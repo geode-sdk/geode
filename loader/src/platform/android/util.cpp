@@ -88,10 +88,23 @@ ghc::filesystem::path dirs::getSaveDir() {
 }
 
 ghc::filesystem::path dirs::getModRuntimeDir() {
-    return ghc::filesystem::path(
-        "/data/user/0/com.geode.launcher/files/geode/unzipped"
-    );
-    // return dirs::getGeodeDir() / "unzipped";
+    static std::string cachedResult = [] {
+        // incase the jni fails, default to this
+        std::string path = "/data/user/0/com.geode.launcher/files/";
+
+        JniMethodInfo t;
+        if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "getInternalDirectory", "()Ljava/lang/String;")) {
+            jstring str = reinterpret_cast<jstring>(t.env->CallStaticObjectMethod(t.classID, t.methodID));
+            t.env->DeleteLocalRef(t.classID);
+            path = JniHelper::jstring2string(str);
+            t.env->DeleteLocalRef(str);
+        } else {
+            clearJNIException();
+        }
+
+        return path;
+    }();
+    return ghc::filesystem::path(cachedResult) / "geode" / "unzipped";
 }
 
 void utils::web::openLinkInBrowser(std::string const& url) {
