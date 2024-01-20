@@ -3,6 +3,7 @@
 #include <iostream>
 #include <loader/LoaderImpl.hpp>
 #include <loader/console.hpp>
+#include <loader/IPC.hpp>
 #include <loader/ModImpl.hpp>
 #import <Foundation/Foundation.h>
 #include <sys/stat.h>
@@ -86,11 +87,11 @@ void console::open() {
     s_isOpen = true;
 
     for (auto const& log : log::Logger::get()->list()) {
-        this->logConsoleMessageWithSeverity(log.toString(true), log.getSeverity());
+        console::log(log.toString(true), log.getSeverity());
     }
 }
 
-void Loader::Impl::closePlatformConsole() {
+void console::close() {
     if (s_isOpen) {
         close(s_platformData.logFd);
         unlink(s_platformData.logFile.c_str());
@@ -105,11 +106,11 @@ CFDataRef msgPortCallback(CFMessagePortRef port, SInt32 messageID, CFDataRef dat
 
     std::string cdata(reinterpret_cast<char const*>(CFDataGetBytePtr(data)), CFDataGetLength(data));
 
-    std::string reply = LoaderImpl::get()->processRawIPC(port, cdata).dump();
+    std::string reply = geode::ipc::processRaw(port, cdata).dump();
     return CFDataCreate(NULL, (UInt8 const*)reply.data(), reply.size());
 }
 
-void Loader::Impl::setupIPC() {
+void geode::ipc::setup() {
     std::thread([]() {
         CFStringRef portName = CFStringCreateWithCString(NULL, IPC_PORT_NAME, kCFStringEncodingUTF8);
 
