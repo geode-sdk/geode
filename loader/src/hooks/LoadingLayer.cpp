@@ -199,11 +199,15 @@ struct FallbackCustomLoadingLayer : Modify<FallbackCustomLoadingLayer, CCLayer> 
             "Loading Geode without UI, see console for details.",
             "goldFont.fnt"
         );
-        label->setPosition(winSize.width / 2, 30.f);
-        label->setScale(.45f);
-        label->setZOrder(99);
-        label->setID("geode-small-label");
-        this->addChild(label);
+        // this code is weird but its to avoid any virtual calls,
+        // which can change between versions. so instead, we force
+        // it to use the symbol, so it would only break if the function signature
+        // were to change.
+        label->CCNode::setPosition(winSize.width / 2, 30.f);
+        label->CCLabelBMFont::setScale(.45f);
+        label->CCNode::setZOrder(99);
+        this->CCNode::addChild(label);
+        // label->setID("geode-small-label");
 
         // TODO: verify loader resources on fallback?
 
