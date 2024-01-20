@@ -306,6 +306,7 @@ public:
 
         mz_zip_entry_close(m_handle);
 
+        GEODE_UNWRAP(file::createDirectoryAll((dir / name).parent_path()));
         GEODE_UNWRAP(file::writeBinary(dir / name, res).expect("Unable to write to {}: {error}", dir / name));
 
         return Ok();
