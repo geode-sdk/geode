@@ -750,10 +750,14 @@ void AxisLayout::apply(CCNode* on) {
     std::pair<int, int> minMaxPrio;
     bool doAutoScale = false;
 
+    float totalLength = 0;
+    AxisLayoutOptions const* prev = nullptr;
+
     bool first = true;
     for (auto node : CCArrayExt<CCNode*>(nodes)) {
         int prio = 0;
-        if (auto opts = axisOpts(node)) {
+        auto opts = axisOpts(node);
+        if (opts) {
             prio = opts->getScalePriority();
             // this does cause a recheck of m_autoScale every iteration but it 
             // should be pretty fast and this correctly handles the situation 
@@ -779,6 +783,22 @@ void AxisLayout::apply(CCNode* on) {
             if (prio > minMaxPrio.second) {
                 minMaxPrio.second = prio;
             }
+        }
+        if (m_autoGrowAxisMinLength.has_value()) {
+            totalLength += nodeAxis(node, m_axis, 1.f).axisLength + this->nextGap(prev, opts);
+            prev = opts;
+        }
+    }
+
+    if (m_autoGrowAxisMinLength.has_value()) {
+        if (totalLength < m_autoGrowAxisMinLength.value()) {
+            totalLength = m_autoGrowAxisMinLength.value();
+        }
+        if (m_axis == Axis::Row) {
+            on->setContentSize({ totalLength, on->getContentSize().height });
+        }
+        else {
+            on->setContentSize({ on->getContentSize().width, totalLength });
         }
     }
 
@@ -855,6 +875,10 @@ bool AxisLayout::getCrossAxisOverflow() const {
     return m_allowCrossAxisOverflow;
 }
 
+std::optional<float> AxisLayout::getAutoGrowAxis() const {
+    return m_autoGrowAxisMinLength;
+}
+
 AxisLayout* AxisLayout::setAxis(Axis axis) {
     m_axis = axis;
     return this;
@@ -902,6 +926,11 @@ AxisLayout* AxisLayout::setAutoScale(bool scale) {
 
 AxisLayout* AxisLayout::setGrowCrossAxis(bool shrink) {
     m_growCrossAxis = shrink;
+    return this;
+}
+
+AxisLayout* AxisLayout::setAutoGrowAxis(std::optional<float> allowAndMinLength) {
+    m_autoGrowAxisMinLength = allowAndMinLength;
     return this;
 }
 

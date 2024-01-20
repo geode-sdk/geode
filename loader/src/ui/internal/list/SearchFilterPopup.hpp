@@ -10,12 +10,13 @@ enum class ModListType;
 class SearchFilterPopup : public Popup<ModListLayer*, ModListType> {
 protected:
     ModListLayer* m_modLayer;
+    CCNode* m_platformsContainer;
+    CCNode* m_optionsContainer;
+    ScrollLayer* m_tagLayer;
 
     bool setup(ModListLayer* layer, ModListType type) override;
-    CCMenuItemToggler* addToggle(
-        char const* title, SEL_MenuHandler selector, bool toggled, int tag, CCPoint& pos
-    );
-    CCMenuItemToggler* addPlatformToggle(char const* title, PlatformID id, CCPoint& pos);
+    CCMenuItemToggler* addToggle(const char* title, SEL_MenuHandler selector, bool toggled, int tag, CCNode* target);
+    CCMenuItemToggler* addPlatformToggle(const char* title, PlatformID id);
 
     void onPlatformToggle(CCObject*);
     void onShowInstalled(CCObject*);

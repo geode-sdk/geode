@@ -16,7 +16,6 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
     this->setTitle("Search Filters");
 
     auto winSize = CCDirector::sharedDirector()->getWinSize();
-    auto pos = CCPoint { winSize.width / 2 - 140.f, winSize.height / 2 + 45.f - iosAndAndroidSize * 0.25f };
 
     // platforms
 
@@ -26,22 +25,35 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
     platformTitle->setScale(.5f);
     m_mainLayer->addChild(platformTitle);
 
-    auto platformBG = CCScale9Sprite::create("square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f });
-    platformBG->setColor({ 0, 0, 0 });
-    platformBG->setOpacity(90);
-    platformBG->setContentSize({ 290.f, 205.f - iosAndAndroidSize * 2.f });
-    platformBG->setAnchorPoint({ 0.5f, 1.f });
-    platformBG->setPosition(winSize.width / 2 - 85.f, winSize.height / 2 + 62.25f - iosAndAndroidSize * 0.25f);
-    platformBG->setScale(.5f);
-    m_mainLayer->addChild(platformBG);
+    auto platformsContainerBG = CCScale9Sprite::create("square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f });
+    platformsContainerBG->setColor({ 0, 0, 0 });
+    platformsContainerBG->setOpacity(90);
+    platformsContainerBG->setContentSize({ 290.f, 205.f - iosAndAndroidSize * 2.f });
+    platformsContainerBG->setAnchorPoint({ 0.5f, 1.f });
+    platformsContainerBG->setPosition(winSize.width / 2 - 85.f, winSize.height / 2 + 62.25f - iosAndAndroidSize * 0.25f);
+    platformsContainerBG->setScale(.5f);
+    m_mainLayer->addChild(platformsContainerBG);
+
+    m_platformsContainer = CCNode::create();
+    m_platformsContainer->setAnchorPoint({ 0.5f, 1.f });
+    m_platformsContainer->setContentSize(platformsContainerBG->getScaledContentSize());
+    m_platformsContainer->setPosition(platformsContainerBG->getPosition());
+    m_platformsContainer->setLayout(
+        ColumnLayout::create()
+            ->setAxisReverse(true)
+            ->setCrossAxisOverflow(true)
+    );
+    m_mainLayer->addChild(m_platformsContainer);
 
     // TODO: add scrolllayer
 
-    this->enable(this->addPlatformToggle("Windows", PlatformID::Windows, pos), type);
-    this->enable(this->addPlatformToggle("macOS", PlatformID::MacOS, pos), type);
-    //this->enable(this->addPlatformToggle("IOS", PlatformID::iOS, pos), type);
-    this->enable(this->addPlatformToggle("Android32", PlatformID::Android32, pos), type);
-    this->enable(this->addPlatformToggle("Android64", PlatformID::Android64, pos), type);
+    this->enable(this->addPlatformToggle("Windows", PlatformID::Windows), type);
+    this->enable(this->addPlatformToggle("macOS", PlatformID::MacOS), type);
+    //this->enable(this->addPlatformToggle("IOS", PlatformID::iOS), type);
+    this->enable(this->addPlatformToggle("Android32", PlatformID::Android32), type);
+    this->enable(this->addPlatformToggle("Android64", PlatformID::Android64), type);
+
+    m_platformsContainer->updateLayout();
 
     // show installed
 
@@ -51,26 +63,35 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
     installedTitle->setScale(.5f);
     m_mainLayer->addChild(installedTitle);
 
-    auto installedBG = CCScale9Sprite::create("square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f });
-    installedBG->setColor({ 0, 0, 0 });
-    installedBG->setOpacity(90);
-    installedBG->setContentSize({ 290.f, 110.f });
-    installedBG->setAnchorPoint({ 0.5f, 1.f });
-    installedBG->setPosition(winSize.width / 2 - 85.f, winSize.height / 2 - 68.75f + iosAndAndroidSize - iosAndAndroidSize * 0.25f);
-    installedBG->setScale(.5f);
-    m_mainLayer->addChild(installedBG);
+    auto optionsContainerBG = CCScale9Sprite::create("square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f });
+    optionsContainerBG->setColor({ 0, 0, 0 });
+    optionsContainerBG->setOpacity(90);
+    optionsContainerBG->setContentSize({ 290.f, 110.f });
+    optionsContainerBG->setAnchorPoint({ 0.5f, 1.f });
+    optionsContainerBG->setPosition(winSize.width / 2 - 85.f, winSize.height / 2 - 68.75f + iosAndAndroidSize - iosAndAndroidSize * 0.25f);
+    optionsContainerBG->setScale(.5f);
+    m_mainLayer->addChild(optionsContainerBG);
 
-    pos = CCPoint { winSize.width / 2 - 140.f, winSize.height / 2 - 85.f + iosAndAndroidSize - iosAndAndroidSize * 0.25f };
+    m_optionsContainer = CCNode::create();
+    m_optionsContainer->setAnchorPoint({ 0.5f, 1.f });
+    m_optionsContainer->setContentSize(optionsContainerBG->getScaledContentSize());
+    m_optionsContainer->setPosition(optionsContainerBG->getPosition());
+    m_optionsContainer->setLayout(
+        ColumnLayout::create()
+            ->setAxisReverse(true)
+            ->setCrossAxisOverflow(true)
+    );
+    m_mainLayer->addChild(m_optionsContainer);
 
     this->addToggle(
         "Show Installed", menu_selector(SearchFilterPopup::onShowInstalled),
-        m_modLayer->getQuery().forceVisibility, 0, pos
+        m_modLayer->getQuery().forceVisibility, 0, m_optionsContainer
     );
-
     this->addToggle(
         "Show Invalid", menu_selector(SearchFilterPopup::onShowInvalid),
-        m_modLayer->getQuery().forceInvalid, 1, pos
+        m_modLayer->getQuery().forceInvalid, 1, m_optionsContainer
     );
+    m_optionsContainer->updateLayout();
 
     // tags
 
@@ -98,35 +119,35 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
     tagsWrap->setPosition(tagsPos);
     m_mainLayer->addChild(tagsWrap);
 
-    auto tagsScroll = ScrollLayer::create(tagsSize / 2.f);
-    tagsScroll->setTouchEnabled(true);
-    tagsWrap->addChild(tagsScroll);
-
-    auto tagsMenu = CCMenu::create();
-    tagsMenu->setPosition(.0f, .0f);
-    tagsMenu->setAnchorPoint({ .0f, .0f });
-    tagsMenu->setContentSize(tagsSize / 2.f);
-    tagsScroll->m_contentLayer->addChild(tagsMenu);
-
-    // pos = CCPoint { winSize.width / 2 + 30.f, winSize.height / 2 + 45.f - iosAndAndroidSize * 0.25f };
-    pos = CCPoint { 0, tagsSize.height / 2 - 12.f };
+    m_tagLayer = ScrollLayer::create(tagsSize / 2.f);
+    m_tagLayer->setTouchEnabled(true);
+    m_tagLayer->m_contentLayer->setLayout(
+        ColumnLayout::create()
+            ->setCrossAxisOverflow(true)
+            ->setAutoGrowAxis(tagsSize.height / 2.f)
+            ->setAxisReverse(true)
+    );
+    tagsWrap->addChild(m_tagLayer);
 
     for (auto& tag : Index::get()->getTags()) {
+        auto menu = CCMenu::create();
+        menu->setContentSize({ tagsSize.width / 2.f, 30.f });
+
         auto toggle = CCMenuItemToggler::createWithStandardSprites(
             this, menu_selector(SearchFilterPopup::onTag), .5f
         );
         toggle->toggle(m_modLayer->getQuery().tags.count(tag));
-        toggle->setPosition(pos.x + 12.f, pos.y);
+        toggle->setPosition(12.f, 15.f);
         toggle->setUserObject(CCString::create(tag));
-        tagsMenu->addChild(toggle);
+        menu->addChild(toggle);
 
         auto label = TagNode::create(tag);
         label->setScale(.4f);
         label->setAnchorPoint({ .0f, .5f });
-        label->setPosition(pos.x + 22.f, pos.y);
-        tagsMenu->addChild(label);
+        label->setPosition(22.f, 15.f);
+        menu->addChild(label);
 
-        pos.y -= 22.5f;
+        m_tagLayer->m_contentLayer->addChild(menu);
     }
 
     return true;
@@ -166,23 +187,36 @@ void SearchFilterPopup::enable(CCMenuItemToggler* toggle, ModListType type) {
 }
 
 CCMenuItemToggler* SearchFilterPopup::addToggle(
-    char const* title, SEL_MenuHandler selector, bool toggled, int tag, CCPoint& pos
+    char const* title, SEL_MenuHandler selector,
+    bool toggled, int tag, CCNode* node
 ) {
-    auto toggle = GameToolbox::createToggleButton(
-        title, selector, toggled, m_buttonMenu, pos, this, m_mainLayer, .5f, .5f, 100.f,
-        { 10.f, .0f }, "bigFont.fnt", false, tag, nullptr
-    );
+    constexpr float HEIGHT = 30.f;
+
+    auto menu = CCMenu::create();
+    menu->setContentSize({ node->getContentSize().width, HEIGHT });
+
+    auto toggle = CCMenuItemToggler::createWithStandardSprites(this, selector, .5f);
+    toggle->toggle(toggled);
+    toggle->setPosition(12.f, HEIGHT / 2);
     toggle->setTag(tag);
-    pos.y -= 22.5f;
+    menu->addChild(toggle);
+
+    auto label = CCLabelBMFont::create(title, "bigFont.fnt");
+    label->limitLabelWidth(node->getContentSize().width - 30.f, .4f, .1f);
+    label->setAnchorPoint({ .0f, .5f });
+    label->setPosition(22.f, HEIGHT / 2);
+    menu->addChild(label);
+
+    node->addChild(menu);
+
     return toggle;
 }
 
-CCMenuItemToggler* SearchFilterPopup::addPlatformToggle(
-    char const* title, PlatformID id, CCPoint& pos
-) {
+CCMenuItemToggler* SearchFilterPopup::addPlatformToggle(const char* title, PlatformID id) {
     return this->addToggle(
         title, menu_selector(SearchFilterPopup::onPlatformToggle),
-        m_modLayer->getQuery().platforms.count(id), id.to<int>(), pos
+        m_modLayer->getQuery().platforms.count(id),
+        id.to<int>(), m_platformsContainer
     );
     return nullptr;
 }
