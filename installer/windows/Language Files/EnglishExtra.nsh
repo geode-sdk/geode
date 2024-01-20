@@ -13,7 +13,7 @@ ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Setup will guide you through the
 
 ${LangFileString} GEODE_TEXT_GD_MISSING "$\r$\n$\r$\nThis path does not have Geometry Dash installed!"
 ${LangFileString} GEODE_TEXT_MH_ALREADY_INSTALLED "This path already has Mega Hack v6/v7 installed!$\r$\nGeode doesn't work with MHv6/v7 (MHv8 will be compatible with Geode).$\r$\nPlease, uninstall it before proceeding."
-${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "This path already has another mod loader installed!$\r$\nGeode doesn't work with any other mod loader.$\r$\nPlease, uninstall it before proceeding. (the dll ™️)"
+${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "This path already has another mod loader installed!$\r$\nGeode doesn't work with any other mod loader.$\r$\nPlease, uninstall it before proceeding. (the dll™️)"
 
 ; uninstaller
 
