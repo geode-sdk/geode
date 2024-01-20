@@ -12,6 +12,7 @@
 #include "../../loader/LoaderImpl.hpp"
 #include <thread>
 #include <variant>
+#include <loader/updater.hpp>
 
 using namespace geode::prelude;
 

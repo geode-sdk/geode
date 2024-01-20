@@ -93,7 +93,7 @@ void console::open() {
 
 void console::close() {
     if (s_isOpen) {
-        close(s_platformData.logFd);
+        ::close(s_platformData.logFd);
         unlink(s_platformData.logFile.c_str());
         unlink(s_platformData.scriptFile.c_str());
     }
