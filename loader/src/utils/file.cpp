@@ -306,7 +306,8 @@ public:
 
         mz_zip_entry_close(m_handle);
 
-        GEODE_UNWRAP(file::writeBinary(dir / name, res));
+        GEODE_UNWRAP(file::createDirectoryAll(dir));
+        GEODE_UNWRAP(file::writeBinary(dir / name, res).expect("Unable to write to {}: {error}", dir / name));
 
         return Ok();
     }
@@ -336,10 +337,12 @@ public:
 #endif
                 if (m_entries.at(filePath).isDirectory) {
                     GEODE_UNWRAP(file::createDirectoryAll(dir / filePath));
-                } else {
+                }
+                else {
                     GEODE_UNWRAP(this->extractAt(dir, filePath));
                 }
-            } else {
+            }
+            else {
                 log::error(
                     "Zip entry '{}' is not contained within zip bounds",
                     dir / filePath
