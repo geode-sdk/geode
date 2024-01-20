@@ -224,6 +224,7 @@ protected:
     bool m_crossReverse = false;
     bool m_allowCrossAxisOverflow = true;
     bool m_growCrossAxis = false;
+    std::optional<float> m_autoGrowAxisMinLength;
 
     struct Row;
     
@@ -279,6 +280,7 @@ public:
     bool getAutoScale() const;
     bool getGrowCrossAxis() const;
     bool getCrossAxisOverflow() const;
+    std::optional<float> getAutoGrowAxis() const;
 
     AxisLayout* setAxis(Axis axis);
     /**
@@ -325,6 +327,12 @@ public:
      * automatically adjusted to fit the children
      */
     AxisLayout* setCrossAxisOverflow(bool allow);
+    /**
+     * If not `std::nullopt`, then the axis will be automatically extended to 
+     * fit all items in a single row whose minimum length is the specified. 
+     * Useful for scrollable list layer contents
+     */
+    AxisLayout* setAutoGrowAxis(std::optional<float> allowAndMinLength);
 };
 
 /**
