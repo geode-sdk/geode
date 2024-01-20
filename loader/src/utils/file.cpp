@@ -312,6 +312,8 @@ public:
     }
 
     Result<> extractAllTo(Path const& dir) {
+        GEODE_UNWRAP(file::createDirectoryAll(dir));
+
         GEODE_UNWRAP(
             mzTry(mz_zip_goto_first_entry(m_handle))
             .expect("Unable to navigate to first entry (code {error})")
