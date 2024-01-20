@@ -1,5 +1,10 @@
 # Geode Changelog
 
+## v2.0.0-beta.3
+ * Avoid virtual functions in forward compat code (dc2fba2)
+ * Fix updating index message (b63611e)
+ * Use new launcher function for unzipped mod dir (120fa4a)
+
 ## v2.0.0-beta.2
  * Fix `geode::utils::cocos::reloadTextures` on windows
 
