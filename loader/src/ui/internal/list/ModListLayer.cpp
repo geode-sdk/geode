@@ -36,23 +36,6 @@ static std::optional<int> fuzzyMatch(std::string const& kw, std::string const& s
     return std::nullopt;
 }
 
-#define WEIGHTED_MATCH(str_, weight_) \
-    if (auto match = fuzzyMatch(query.keywords.value(), str_)) {\
-        weighted += match.value() * weight_;                    \
-        someMatched = true;                                     \
-    }
-
-#define WEIGHTED_MATCH_MAX(str_, weight_) \
-    if (auto match = fuzzyMatch(query.keywords.value(), str_)) {        \
-        weighted = std::max<double>(match.value() * weight_, weighted); \
-        someMatched = true;                                             \
-    }
-
-#define WEIGHTED_MATCH_ADD(str_, weight_) \
-    if (auto match = fuzzyMatch(query.keywords.value(), str_)) {\
-        weighted += match.value() * weight_;                    \
-    }
-
 static std::optional<int> queryMatchKeywords(
     ModListQuery const& query,
     ModMetadata const& metadata
@@ -62,11 +45,17 @@ static std::optional<int> queryMatchKeywords(
     // fuzzy match keywords
     if (query.keywords) {
         bool someMatched = false;
-        WEIGHTED_MATCH_MAX(metadata.getName(), 2);
-        WEIGHTED_MATCH_MAX(metadata.getID(), 1);
-        WEIGHTED_MATCH_MAX(metadata.getDeveloper(), 0.5);
-        WEIGHTED_MATCH_MAX(metadata.getDetails().value_or(""), 0.05);
-        WEIGHTED_MATCH_MAX(metadata.getDescription().value_or(""), 0.2);
+        auto weightedMatch = [&](std::string const& str, double weight) {
+            if (auto match = fuzzyMatch(query.keywords.value(), str)) {
+                weighted = std::max<double>(match.value() * weight, weighted);
+                someMatched = true;
+            }
+        };
+        weightedMatch(metadata.getName(), 2);
+        weightedMatch(metadata.getID(), 1);
+        weightedMatch(metadata.getDeveloper(), 0.5);
+        weightedMatch(metadata.getDetails().value_or(""), 0.05);
+        weightedMatch(metadata.getDescription().value_or(""), 0.2);
         if (!someMatched) {
             return std::nullopt;
         }
@@ -128,7 +117,9 @@ static std::optional<int> queryMatch(ModListQuery const& query, IndexItemHandle 
         auto weighted = match.value();
         // add extra weight on tag matches
         if (query.keywords) {
-            WEIGHTED_MATCH_ADD(ranges::join(item->getTags(), " "), 1.4);
+            if (auto match = fuzzyMatch(query.keywords.value(), ranges::join(item->getTags(), " "))) {
+                weighted += match.value() * 1.4;                    
+            }
         }
         // add extra weight to featured items to keep power consolidated in the 
         // hands of the rich Geode bourgeoisie
