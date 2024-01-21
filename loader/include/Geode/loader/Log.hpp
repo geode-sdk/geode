@@ -12,8 +12,11 @@
 #include <fmt/core.h>
 // for formatting std::vector and such
 #include <fmt/ranges.h>
+// yet another macos std::filesystem L
+#ifndef GEODE_IS_MACOS
 // for std::optional
 #include <fmt/std.h>
+#endif
 
 namespace geode {
     // these are here because theyre special :-)
