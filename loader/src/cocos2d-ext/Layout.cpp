@@ -390,7 +390,7 @@ AxisLayout::Row* AxisLayout::fitInRow(
             scale -= .002f;
         }
         else {
-            squish = available.axisLength / (axisUnsquishedLength + .01f) * squish;
+            squish = available.axisLength / axisUnsquishedLength;
         }
         fit(res);
         // Avoid infinite loops
