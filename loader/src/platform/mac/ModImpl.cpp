@@ -29,15 +29,3 @@ Result<> Mod::Impl::loadPlatformBinary() {
     std::string err = (char const*)dlerror();
     return Err("Unable to load the DYLIB: dlerror returned (" + err + ")");
 }
-
-Result<> Mod::Impl::unloadPlatformBinary() {
-    auto dylib = m_platformInfo->m_dylib;
-    delete m_platformInfo;
-    m_platformInfo = nullptr;
-    if (dlclose(dylib) == 0) {
-        return Ok();
-    }
-    else {
-        return Err("Unable to free library");
-    }
-}

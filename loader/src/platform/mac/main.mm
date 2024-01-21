@@ -12,8 +12,12 @@
 #include "../../loader/LoaderImpl.hpp"
 #include <thread>
 #include <variant>
+#include <loader/updater.hpp>
 
 using namespace geode::prelude;
+
+// address of applicationDidFinishLaunching:
+constexpr static uintptr_t ENTRY_ADDRESS = 0xb030;
 
 std::length_error::~length_error() _NOEXCEPT {} // do not ask...
 
@@ -84,6 +88,7 @@ void updateFiles() {
 }
 
 $execute {
+    using namespace geode::updater;
     new EventListener(+[](LoaderUpdateEvent* event) {
         if (std::holds_alternative<UpdateFinished>(event->status)) {
             updateFiles();
@@ -118,30 +123,30 @@ void applicationDidFinishLaunchingHook(void* self, SEL sel, NSNotification* noti
         0x41, 0x57
     };
 
-    auto res = tulip::hook::writeMemory((void*)(base::get() + 0x69a0), patchBytes.data(), 6);
+    auto res = tulip::hook::writeMemory((void*)(base::get() + ENTRY_ADDRESS), patchBytes.data(), 6);
     if (!res)
         return;
-    
+
     int exitCode = geodeEntry(nullptr);
     if (exitCode != 0)
         return;
 
-    return reinterpret_cast<void(*)(void*, SEL, NSNotification*)>(geode::base::get() + 0x69a0)(self, sel, notification);
+    return reinterpret_cast<void(*)(void*, SEL, NSNotification*)>(geode::base::get() + ENTRY_ADDRESS)(self, sel, notification);
 }
 
 
 bool loadGeode() {
-    auto detourAddr = reinterpret_cast<uintptr_t>(&applicationDidFinishLaunchingHook) - geode::base::get() - 0x69a5;
+    auto detourAddr = reinterpret_cast<uintptr_t>(&applicationDidFinishLaunchingHook) - geode::base::get() - ENTRY_ADDRESS - 5;
     auto detourAddrPtr = reinterpret_cast<uint8_t*>(&detourAddr);
 
     std::array<uint8_t, 5> patchBytes = {
         0xe9, detourAddrPtr[0], detourAddrPtr[1], detourAddrPtr[2], detourAddrPtr[3]
     };
 
-    auto res = tulip::hook::writeMemory((void*)(base::get() + 0x69a0), patchBytes.data(), 5);
+    auto res = tulip::hook::writeMemory((void*)(base::get() + ENTRY_ADDRESS), patchBytes.data(), 5);
     if (!res)
         return false;
-    
+
     return true;
 }
 
