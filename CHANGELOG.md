@@ -1,5 +1,12 @@
 # Geode Changelog
 
+## v2.0.0-beta.4
+ * Show which is needed to uninstall in Windows installer (d323f0e)
+ * Optimize unzipping of index (b22ed7d)
+ * Force all children of Layout to ignore anchor point (c42b5dd)
+ * Fix squishing of layouts (b61d466)
+ * Fix `SearchFilterPopup` ui (5bacaf3)
+
 ## v2.0.0-beta.3
  * Avoid virtual functions in forward compat code (dc2fba2)
  * Fix updating index message (b63611e)
