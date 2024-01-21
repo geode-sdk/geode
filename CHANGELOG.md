@@ -1,7 +1,7 @@
 # Geode Changelog
 
 ## v2.0.0-beta.4
- * Show which DLL is needed to uninstall in Windows installer (d323f0e)
+ * Show which DLL is needed to remove on Windows installer (d323f0e)
  * Optimize unzipping of index (b22ed7d)
  * Force all children of Layout to ignore anchor point (c42b5dd)
  * Fix squishing of layouts (b61d466)
