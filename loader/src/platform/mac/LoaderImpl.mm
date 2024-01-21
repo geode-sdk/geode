@@ -142,3 +142,6 @@ void Loader::Impl::addNativeBinariesPath(ghc::filesystem::path const& path) {
     log::warn("LoaderImpl::addNativeBinariesPath not implement on this platform, not adding path {}", path.string());
 }
 
+std::string Loader::Impl::getGameVersion() {
+    return "2.200"; // TODO implement
+}
