@@ -252,8 +252,12 @@ float AxisLayout::nextGap(AxisLayoutOptions const* now, AxisLayoutOptions const*
 }
 
 bool AxisLayout::shouldAutoScale(AxisLayoutOptions const* opts) const {
-    if (!opts) return m_autoScale;
-    return opts->getAutoScale().value_or(m_autoScale);
+    if (opts) {
+        return opts->getAutoScale().value_or(m_autoScale);
+    }
+    else {
+        return m_autoScale;
+    }
 }
 
 float AxisLayout::minScaleForPrio(CCArray* nodes, int prio) const {
@@ -382,9 +386,7 @@ AxisLayout::Row* AxisLayout::fitInRow(
     // calculate row scale, squish, and prio
     int tries = 1000;
     while (axisLength > available.axisLength) {
-        if (this->canTryScalingDown(
-            res, prio, scale, scale - .002f, minMaxPrios
-        )) {
+        if (this->canTryScalingDown(res, prio, scale, scale - .002f, minMaxPrios)) {
             scale -= .002f;
         }
         else {
@@ -547,9 +549,7 @@ void AxisLayout::tryFitLayout(
         totalRowCrossLength > available.crossLength && 
         depth < RECURSION_DEPTH_LIMIT
     ) {
-        if (this->canTryScalingDown(
-            nodes, prio, scale, crossScaleDownFactor, minMaxPrios
-        )) {
+        if (this->canTryScalingDown(nodes, prio, scale, crossScaleDownFactor, minMaxPrios)) {
             rows->release();
             return this->tryFitLayout(
                 on, nodes,
@@ -755,6 +755,9 @@ void AxisLayout::apply(CCNode* on) {
 
     bool first = true;
     for (auto node : CCArrayExt<CCNode*>(nodes)) {
+        // Require all nodes not to have this stupid option enabled because it 
+        // screws up all position calculations
+        node->ignoreAnchorPointForPosition(false);
         int prio = 0;
         auto opts = axisOpts(node);
         if (opts) {
