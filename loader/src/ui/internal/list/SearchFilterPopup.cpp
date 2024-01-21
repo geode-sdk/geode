@@ -28,7 +28,7 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
     auto platformsContainerBG = CCScale9Sprite::create("square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f });
     platformsContainerBG->setColor({ 0, 0, 0 });
     platformsContainerBG->setOpacity(90);
-    platformsContainerBG->setContentSize({ 290.f, 205.f - iosAndAndroidSize * 2.f });
+    platformsContainerBG->setContentSize({ 290.f, 225.f - iosAndAndroidSize * 2.f });
     platformsContainerBG->setAnchorPoint({ 0.5f, 1.f });
     platformsContainerBG->setPosition(winSize.width / 2 - 85.f, winSize.height / 2 + 62.25f - iosAndAndroidSize * 0.25f);
     platformsContainerBG->setScale(.5f);
@@ -42,6 +42,7 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
         ColumnLayout::create()
             ->setAxisReverse(true)
             ->setCrossAxisOverflow(true)
+            ->setGap(0)
     );
     m_mainLayer->addChild(m_platformsContainer);
 
@@ -49,9 +50,9 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
 
     this->enable(this->addPlatformToggle("Windows", PlatformID::Windows), type);
     this->enable(this->addPlatformToggle("macOS", PlatformID::MacOS), type);
-    //this->enable(this->addPlatformToggle("IOS", PlatformID::iOS), type);
-    this->enable(this->addPlatformToggle("Android32", PlatformID::Android32), type);
-    this->enable(this->addPlatformToggle("Android64", PlatformID::Android64), type);
+    //this->enable(this->addPlatformToggle("iOS", PlatformID::iOS), type);
+    this->enable(this->addPlatformToggle("Android (32-bit)", PlatformID::Android32), type);
+    this->enable(this->addPlatformToggle("Android (64-bit)", PlatformID::Android64), type);
 
     m_platformsContainer->updateLayout();
 
@@ -59,14 +60,14 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
 
     auto installedTitle = CCLabelBMFont::create("Other", "goldFont.fnt");
     installedTitle->setAnchorPoint({ 0.5f, 1.f });
-    installedTitle->setPosition(winSize.width / 2 - 85.f, winSize.height / 2 - 50.5f + iosAndAndroidSize - iosAndAndroidSize * 0.25f);
+    installedTitle->setPosition(winSize.width / 2 - 85.f, winSize.height / 2 - 52.5f + iosAndAndroidSize - iosAndAndroidSize * 0.25f);
     installedTitle->setScale(.5f);
     m_mainLayer->addChild(installedTitle);
 
     auto optionsContainerBG = CCScale9Sprite::create("square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f });
     optionsContainerBG->setColor({ 0, 0, 0 });
     optionsContainerBG->setOpacity(90);
-    optionsContainerBG->setContentSize({ 290.f, 110.f });
+    optionsContainerBG->setContentSize({ 290.f, 90.f });
     optionsContainerBG->setAnchorPoint({ 0.5f, 1.f });
     optionsContainerBG->setPosition(winSize.width / 2 - 85.f, winSize.height / 2 - 68.75f + iosAndAndroidSize - iosAndAndroidSize * 0.25f);
     optionsContainerBG->setScale(.5f);
@@ -80,6 +81,7 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
         ColumnLayout::create()
             ->setAxisReverse(true)
             ->setCrossAxisOverflow(true)
+            ->setGap(0)
     );
     m_mainLayer->addChild(m_optionsContainer);
 
@@ -126,29 +128,34 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
             ->setCrossAxisOverflow(true)
             ->setAutoGrowAxis(tagsSize.height / 2.f)
             ->setAxisReverse(true)
+            ->setAxisAlignment(AxisAlignment::End)
     );
     tagsWrap->addChild(m_tagLayer);
 
     for (auto& tag : Index::get()->getTags()) {
+        constexpr float HEIGHT = 20.f;
+        
         auto menu = CCMenu::create();
-        menu->setContentSize({ tagsSize.width / 2.f, 30.f });
+        menu->setContentSize({ tagsSize.width / 2.f, HEIGHT });
+        menu->ignoreAnchorPointForPosition(false);
 
         auto toggle = CCMenuItemToggler::createWithStandardSprites(
             this, menu_selector(SearchFilterPopup::onTag), .5f
         );
         toggle->toggle(m_modLayer->getQuery().tags.count(tag));
-        toggle->setPosition(12.f, 15.f);
+        toggle->setPosition(12.f, HEIGHT / 2);
         toggle->setUserObject(CCString::create(tag));
         menu->addChild(toggle);
 
         auto label = TagNode::create(tag);
         label->setScale(.4f);
         label->setAnchorPoint({ .0f, .5f });
-        label->setPosition(22.f, 15.f);
+        label->setPosition(22.f, HEIGHT / 2);
         menu->addChild(label);
 
         m_tagLayer->m_contentLayer->addChild(menu);
     }
+    m_tagLayer->m_contentLayer->updateLayout();
 
     return true;
 }
@@ -190,7 +197,7 @@ CCMenuItemToggler* SearchFilterPopup::addToggle(
     char const* title, SEL_MenuHandler selector,
     bool toggled, int tag, CCNode* node
 ) {
-    constexpr float HEIGHT = 30.f;
+    constexpr float HEIGHT = 20.f;
 
     auto menu = CCMenu::create();
     menu->setContentSize({ node->getContentSize().width, HEIGHT });
