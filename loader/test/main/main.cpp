@@ -20,6 +20,10 @@ $on_mod(Disabled) {
 }
 $on_mod(Loaded) {
     log::info("Loaded");
+    auto arg = Mod::get()->getLaunchArg("testProp");
+    if (arg.has_value()) {
+        log::info("Test property has value of {}", arg.value());
+    }
 }
 $on_mod(Unloaded) {
     log::info("Unloaded");
