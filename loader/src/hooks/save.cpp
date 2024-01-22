@@ -30,6 +30,8 @@ struct SaveLoader : Modify<SaveLoader, AppDelegate> {
     }
 };
 
+#ifdef GEODE_IS_WINDOWS
+
 struct FallbackSaveLoader : Modify<FallbackSaveLoader, CCApplication> {
     GEODE_FORWARD_COMPAT_ENABLE_HOOKS("")
     void gameDidSave() {
@@ -37,3 +39,5 @@ struct FallbackSaveLoader : Modify<FallbackSaveLoader, CCApplication> {
         return CCApplication::gameDidSave();
     }
 };
+
+#endif
