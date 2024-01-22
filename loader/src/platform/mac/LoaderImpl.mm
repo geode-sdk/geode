@@ -143,5 +143,5 @@ void Loader::Impl::addNativeBinariesPath(ghc::filesystem::path const& path) {
 }
 
 std::string Loader::Impl::getGameVersion() {
-    return GEODE_GD_VERSION; // TODO implement
+    return GEODE_STR(GEODE_GD_VERSION); // TODO implement
 }
