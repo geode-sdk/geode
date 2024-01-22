@@ -49,12 +49,28 @@ std::string getLastWinError() {
     if (!err) return "None (0)";
     auto useful = getUsefulError(err);
     if (useful) return useful;
-    auto len = FormatMessageA(
+
+    char* errorBuf = nullptr;
+    auto result = FormatMessageA(
         FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS,
-        nullptr, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), nullptr, 0, nullptr
-    );
-    std::string msg = len == 0 ? "Unknown" : "Very Unknown";
-    return msg + " (" + std::to_string(err) + ")";
+        nullptr, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&errorBuf, 0, nullptr);
+
+    std::string msg;
+    if (result == 0 || !errorBuf) {
+        msg = fmt::format("Unknown ({})", err);
+    } else {
+        msg = std::string(errorBuf, errorBuf + result);
+        // the string sometimes includes a crlf, strip it
+        msg.erase(std::find_if(msg.rbegin(), msg.rend(), [](unsigned char ch) {
+            return ch != '\r' && ch != '\n';
+        }).base(), msg.end());
+    }
+
+    if (errorBuf) {
+        LocalFree(errorBuf);
+    }
+
+    return msg;
 }
 
 Result<> Mod::Impl::loadPlatformBinary() {
