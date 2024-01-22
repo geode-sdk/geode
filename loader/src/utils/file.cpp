@@ -321,7 +321,7 @@ public:
         );
 
         // while not at MZ_END_OF_LIST
-        while (mz_zip_goto_next_entry(m_handle) == MZ_OK) {
+        do {
             mz_zip_file* info = nullptr;
             if (mz_zip_entry_get_info(m_handle, &info) != MZ_OK) {
                 return Err("Unable to get entry info");
@@ -350,7 +350,7 @@ public:
                     dir / filePath
                 );
             }
-        };
+        } while (mz_zip_goto_next_entry(m_handle) == MZ_OK);
 
         return Ok();
     }
