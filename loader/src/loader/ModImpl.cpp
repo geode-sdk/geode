@@ -328,6 +328,11 @@ bool Mod::Impl::hasSetting(std::string_view const key) const {
     return false;
 }
 
+std::optional<std::string> Mod::Impl::getLaunchArg(std::string_view const key) const {
+    auto modKey = m_metadata.getID() + "." + std::string(key);
+    return Loader::get()->getLaunchArg(modKey);
+}
+
 // Loading, Toggling, Installing
 
 Result<> Mod::Impl::loadBinary() {

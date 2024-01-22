@@ -736,6 +736,8 @@ void Loader::Impl::releaseNextMod() {
     m_nextModLock.unlock();
 }
 
+// TODO: Support for quoted launch args w/ spaces
+// e.g. "-geode:arg=My spaced value"
 void Loader::Impl::initLaunchArgs() {
     auto launchStr = this->getLaunchString();
     log::debug("Found launch string: {}", launchStr);

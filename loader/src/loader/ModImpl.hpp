@@ -113,6 +113,8 @@ namespace geode {
         SettingValue* getSetting(std::string_view const key) const;
         void registerCustomSetting(std::string_view const key, std::unique_ptr<SettingValue> value);
 
+        std::optional<std::string> getLaunchArg(std::string_view const key) const;
+
         Result<Hook*> claimHook(std::shared_ptr<Hook> hook);
         Result<> disownHook(Hook* hook);
         [[nodiscard]] std::vector<Hook*> getHooks() const;

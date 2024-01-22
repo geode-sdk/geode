@@ -76,3 +76,7 @@ void Loader::queueInMainThread(ScheduledFunction func) {
 Mod* Loader::takeNextMod() {
     return m_impl->takeNextMod();
 }
+
+std::optional<std::string> Loader::getLaunchArg(std::string_view const arg) const {
+    return m_impl->getLaunchArg(arg);
+}

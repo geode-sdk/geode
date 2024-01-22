@@ -150,6 +150,8 @@ namespace geode {
             this->registerCustomSetting(key, std::make_unique<T>(std::string(key), this->getID(), value));
         }
 
+        std::optional<std::string> getLaunchArg(std::string_view const key) const;
+
         matjson::Value& getSaveContainer();
 
         template <class T>
