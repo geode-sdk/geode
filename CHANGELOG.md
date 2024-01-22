@@ -2,6 +2,7 @@
 
 ## v2.0.0-beta.6
  * Fix unzipping skipping first entry (2bc0d1a)
+ * Revert the input box fix again (4ab7197)
 
 ## v2.0.0-beta.5
  * Android 2.205 support, both 32 and 64 bit!
