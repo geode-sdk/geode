@@ -1,5 +1,8 @@
 # Geode Changelog
 
+## v2.0.0-beta.6
+ * Fix unzipping skipping first entry (2bc0d1a)
+
 ## v2.0.0-beta.5
  * Android 2.205 support, both 32 and 64 bit!
  * Fix Android 32 bit TulipHook relocation of branching (98e1519)
