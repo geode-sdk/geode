@@ -1,5 +1,12 @@
 # Geode Changelog
 
+## v2.0.0-beta.5
+ * Android 2.205 support, both 32 and 64 bit!
+ * Fix Android 32 bit TulipHook relocation of branching (98e1519)
+ * Fix logcat adding all crashlogs if it can't strip (d7ed016)
+ * Readd the text input box fix from 2.1 (316e652)
+ * Fix resource hash mismatches for good (4916669)
+
 ## v2.0.0-beta.4
  * Show which DLL is needed to remove on Windows installer (d323f0e)
  * Optimize unzipping of index (b22ed7d)
