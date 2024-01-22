@@ -2,11 +2,20 @@
 
 using namespace geode::prelude;
 
-#ifdef GEODE_IS_ANDROID
+#ifdef GEODE_IS_ANDROID32
 
 // replaces https://github.com/llvm-mirror/libcxxabi/blob/master/src/private_typeinfo.cpp#L213
 // this is the function that checks if a type can catch an exception
-bool canCatchImpl(const std::type_info* self, const std::type_info* thrown, void*& adjustedPtr) {    
+bool canCatchImpl(const std::type_info* self, const std::type_info* thrown, void*& adjustedPtr) {
+    // cause who is gonna use foreign exceptions anyway
+#if 0
+    if (std::strcmp(self->name(), typeid(std::exception).name()) == 0) {
+        return true;
+    }
+    if (adjustedPtr == nullptr) {
+        return false;
+    }
+#endif
     auto vtable = reinterpret_cast<geode::cast::VtableType*>(*(intptr_t*)adjustedPtr);
     auto complete = static_cast<geode::cast::CompleteVtableType*>(vtable);
     auto typeinfo = complete->m_typeinfo;
