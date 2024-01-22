@@ -7,4 +7,6 @@ std::string calculateSHA3_256(ghc::filesystem::path const& path);
 
 std::string calculateSHA256(ghc::filesystem::path const& path);
 
+std::string calculateSHA256Text(ghc::filesystem::path const& path);
+
 std::string calculateHash(ghc::filesystem::path const& path);

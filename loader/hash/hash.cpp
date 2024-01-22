@@ -39,6 +39,19 @@ std::string calculateSHA256(ghc::filesystem::path const& path) {
     return picosha2::bytes_to_hex_string(hash.begin(), hash.end());
 }
 
+std::string calculateSHA256Text(ghc::filesystem::path const& path) {
+    // remove all newlines
+    std::vector<uint8_t> hash(picosha2::k_digest_size);
+    std::ifstream file(path);
+    std::string text;
+    std::string line;
+    while (std::getline(file, line)) {
+        text += line;
+    }
+    picosha2::hash256(text.begin(), text.end(), hash.begin(), hash.end());
+    return picosha2::bytes_to_hex_string(hash.begin(), hash.end());
+}
+
 std::string calculateHash(ghc::filesystem::path const& path) {
     return calculateSHA3_256(path);
 }

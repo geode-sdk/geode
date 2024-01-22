@@ -313,17 +313,36 @@ function(package_geode_resources_now proname src dest header_dest)
     # list(APPEND HASHED_EXTENSIONS ".png")
     # list(APPEND HASHED_EXTENSIONS ".mp3")
     # list(APPEND HASHED_EXTENSIONS ".ogg")
-    list(APPEND HASHED_EXTENSIONS ".md")
+    list(APPEND HASHED_TEXT_EXTENSIONS ".md")
 
     foreach(file ${RESOURCE_FILES})
         cmake_path(GET file FILENAME FILE_NAME)
         get_filename_component(FILE_EXTENSION ${file} EXT)
+
         list(FIND HASHED_EXTENSIONS "${FILE_EXTENSION}" FILE_SHOULD_HASH)
 
         if (NOT FILE_NAME STREQUAL ".geode_cache" AND NOT FILE_SHOULD_HASH EQUAL -1)
             
             file(SHA256 ${file} COMPUTED_HASH)
             file(SIZE ${file} FILE_SIZE)
+            message(STATUS "Hashed ${file} to ${COMPUTED_HASH} (${FILE_SIZE} bytes)")
+            list(APPEND HEADER_FILE "\t{ \"${FILE_NAME}\", \"${COMPUTED_HASH}\" },\n")
+
+            # list(APPEND HEADER_FILE "\t\"${FILE_NAME}\",\n")
+
+        endif()
+
+        list(FIND HASHED_TEXT_EXTENSIONS "${FILE_EXTENSION}" FILE_SHOULD_TEXT_HASH)
+
+        if (NOT FILE_NAME STREQUAL ".geode_cache" AND NOT FILE_SHOULD_TEXT_HASH EQUAL -1)
+            
+            # create list of lines form the contens of a file
+            file(STRINGS ${file} LINES)
+            list(JOIN LINES "" JOINED)
+            # compute hash of the lines
+            string(LENGTH "${JOINED}" FILE_SIZE)
+            string(SHA256 COMPUTED_HASH "${JOINED}")
+            
             message(STATUS "Hashed ${file} to ${COMPUTED_HASH} (${FILE_SIZE} bytes)")
             list(APPEND HEADER_FILE "\t{ \"${FILE_NAME}\", \"${COMPUTED_HASH}\" },\n")
 
