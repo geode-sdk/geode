@@ -276,8 +276,13 @@ bool crashlog::setupPlatformHandler() {
         if (begin != std::string::npos) {
             s_result = s_result.substr(begin);
         }
+        else {
+            s_result = "Logcat buffer is empty.";
+        }
         s_lastLaunchCrashed = true;
-
+    }
+    else {
+        s_result = "Logcat buffer is empty.";
     }
 
     return true;
