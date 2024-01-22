@@ -22,8 +22,11 @@
 #include <fmt/format.h>
 #include <hash.hpp>
 #include <iostream>
+#include <iterator>
+#include <optional>
 #include <resources.hpp>
 #include <string>
+#include <string_view>
 #include <vector>
 
 using namespace geode::prelude;
@@ -66,6 +69,13 @@ void Loader::Impl::createDirectories() {
 Result<> Loader::Impl::setup() {
     if (m_isSetup) {
         return Ok();
+    }
+
+    if (this->supportsLaunchArgs()) {
+        log::debug("Loading launch arguments");
+        log::pushNest();
+        this->initLaunchArgs();
+        log::popNest();
     }
 
     log::debug("Setting up crash handler");
@@ -724,6 +734,38 @@ Mod* Loader::Impl::takeNextMod() {
 void Loader::Impl::releaseNextMod() {
     m_nextMod = nullptr;
     m_nextModLock.unlock();
+}
+
+void Loader::Impl::initLaunchArgs() {
+    auto launchStr = this->getLaunchString();
+    log::debug("Found launch string: {}", launchStr);
+    auto args = string::split(launchStr, " ");
+    for (const auto& arg : args) {
+        if (!arg.starts_with(LAUNCH_ARG_PREFIX)) {
+            continue;
+        }
+        auto pair = arg.substr(LAUNCH_ARG_PREFIX.size());
+        auto sep = pair.find('=');
+        if (sep == std::string::npos) {
+            m_launchArgs.insert({ pair, "true" });
+            continue;
+        }
+        auto key = pair.substr(0, sep);
+        auto value = pair.substr(sep + 1);
+        m_launchArgs.insert({ key, value });
+    }
+    for (const auto& pair : m_launchArgs) {
+        log::debug("Loaded '{}' as '{}'", pair.first, pair.second);
+    }
+}
+
+std::optional<std::string> Loader::Impl::getLaunchArg(std::string_view const arg) const {
+    auto argstr = std::string(arg);
+    auto value = m_launchArgs.find(argstr);
+    if (value == m_launchArgs.end()) {
+        return std::nullopt;
+    }
+    return std::optional(value->second);
 }
 
 Result<tulip::hook::HandlerHandle> Loader::Impl::getHandler(void* address) {

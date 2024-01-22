@@ -3,6 +3,7 @@
 #include <loader/ModImpl.hpp>
 #include <loader/LoaderImpl.hpp>
 #include <Geode/utils/string.hpp>
+#include <processenv.h>
 
 using namespace geode::prelude;
 
@@ -82,4 +83,12 @@ void Loader::Impl::addNativeBinariesPath(ghc::filesystem::path const& path) {
         return 0;
     }();
     AddDllDirectory(path.wstring().c_str());
+}
+
+bool Loader::Impl::supportsLaunchArgs() const {
+    return true;
+}
+
+std::string Loader::Impl::getLaunchString() {
+    return GetCommandLineA();
 }

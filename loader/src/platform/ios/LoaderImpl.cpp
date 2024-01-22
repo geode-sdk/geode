@@ -39,3 +39,11 @@ void Loader::Impl::setupIPC() {
 bool Loader::Impl::userTriedToLoadDLLs() const {
     return false;
 }
+
+bool Loader::Impl::supportsLaunchArgs() const {
+    return false;
+}
+
+std::string Loader::Impl::getLaunchString() {
+    return std::string(); // Empty
+}

@@ -83,6 +83,9 @@ namespace geode {
         std::vector<Mod*> getAllMods();
         std::vector<LoadProblem> getProblems() const;
 
+        bool hasLaunchArgs() const;
+        std::optional<std::string> getLaunchArg(std::string_view const arg) const;
+
         void queueInMainThread(ScheduledFunction func);
 
         friend class LoaderImpl;
