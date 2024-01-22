@@ -35,6 +35,9 @@ struct CCTextInputNodeFix : Modify<CCTextInputNodeFix, CCTextInputNode> {
 // ignoreAnchorPointForPosition which causes the content size of 
 // text input nodes to be way off
 
+#if 0
+// this doesnt work either
+
 #include <Geode/modify/CCTextInputNode.hpp>
 
 struct $modify(CCTextInputNode) {
@@ -60,3 +63,5 @@ struct $modify(CCTextInputNode) {
         this->fixPosition();
     }
 };
+
+#endif
