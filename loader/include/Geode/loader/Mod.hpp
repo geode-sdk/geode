@@ -150,6 +150,13 @@ namespace geode {
             this->registerCustomSetting(key, std::make_unique<T>(std::string(key), this->getID(), value));
         }
 
+        /**
+         * Get a mod-specific launch argument. This is equivalent to `Loader::getLaunchArg`
+         * except the argument name is prefixed with the mod ID. For example, a launch arg named
+         * `modArg` for the mod `author.test` could be specified with `-geode:author.test.modArg=value`.
+         * @param key The argument name
+         * @return The value, if present
+         */
         std::optional<std::string> getLaunchArg(std::string_view const key) const;
 
         matjson::Value& getSaveContainer();
