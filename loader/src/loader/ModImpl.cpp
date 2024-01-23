@@ -331,6 +331,29 @@ bool Mod::Impl::hasSetting(std::string_view const key) const {
 // Loading, Toggling, Installing
 
 Result<> Mod::Impl::loadBinary() {
+    // i dont know where to put this so ill just plop it here
+    auto const gdVerOpt = m_metadata.getGDVersion();
+    if (gdVerOpt) {
+        auto const ver = gdVerOpt.value();
+
+        double modTargetVer;
+        try {
+            // assume gd version is always a valid double
+            modTargetVer = std::stod(ver);
+        } catch (...) {
+            return Err("Mod has invalid target GD version");
+        }
+        if (LoaderImpl::get()->isForwardCompatMode()) {
+            // this means current gd version is > GEODE_GD_VERSION
+            if (modTargetVer <= GEODE_GD_VERSION) {
+                return Err(fmt::format("Mod doesn't support this GD version ({} < current version)", ver));
+            }
+        } else if (ver != GEODE_STR(GEODE_GD_VERSION)) {
+            // we are not in forward compat mode, so GEODE_GD_VERSION is the current gd version
+            return Err(fmt::format("Mod doesn't support this GD version ({} != {})", ver, GEODE_STR(GEODE_GD_VERSION)));
+        }
+    }
+
     log::debug("Loading binary for mod {}", m_metadata.getID());
     if (m_enabled)
         return Ok();

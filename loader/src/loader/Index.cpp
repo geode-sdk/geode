@@ -609,7 +609,7 @@ bool Index::areUpdatesAvailable() const {
 // Item installation
 
 Result<> Index::canInstall(IndexItemHandle item) const {
-    if (!item->getAvailablePlatforms().count(GEODE_PLATFORM_TARGET)) {
+    if (!item->getAvailablePlatforms().contains(GEODE_PLATFORM_TARGET)) {
         return Err("Mod is not available on {}", GEODE_PLATFORM_NAME);
     }
 

@@ -16,6 +16,7 @@ namespace geode {
         std::string m_id;
         std::string m_name;
         std::string m_developer;
+        std::string m_gdVersion;
         std::optional<std::string> m_description;
         std::optional<std::string> m_details;
         std::optional<std::string> m_changelog;

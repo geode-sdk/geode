@@ -155,6 +155,12 @@ namespace geode {
          */
         [[nodiscard]] bool isAPI() const;
 
+        /**
+         * Gets the target GD version for the current platform.
+         * Returns nullopt if mod targets any GD version.
+        */
+        [[nodiscard]] std::optional<std::string> getGDVersion() const;
+
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
         void setPath(ghc::filesystem::path const& value);
         void setBinaryName(std::string const& value);

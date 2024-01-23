@@ -55,6 +55,36 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
     root.addKnownKey("geode");
     root.addKnownKey("gd");
 
+    // Check GD version
+    // (use rawJson because i dont like JsonMaybeValue)
+    if (rawJson.contains("gd")) {
+        std::string ver;
+        if (rawJson["gd"].is_string()) {
+            ver = rawJson["gd"].as_string();
+        } else if (rawJson["gd"].is_object()) {
+            auto key = PlatformID::toShortString(GEODE_PLATFORM_TARGET, true);
+            if (rawJson["gd"].contains(key) && rawJson["gd"][key].is_string())
+                ver = rawJson["gd"][key].as_string();
+        } else {
+            return Err("[mod.json] has invalid target GD version");
+        }
+        if (ver.empty()) {
+            return Err("[mod.json] could not find GD version for current platform");
+        }
+        if (ver != "*") {
+            try {
+                // assume gd version is always a valid double
+                (void) std::stod(ver);
+            } catch (...) {
+                return Err("[mod.json] has invalid target GD version");
+            }
+            impl->m_gdVersion = ver;
+        }
+    } else {
+        return Err("[mod.json] is missing target GD version");
+    }
+
+
     // don't think its used locally yet
     root.addKnownKey("tags"); 
 
@@ -174,44 +204,6 @@ Result<ModMetadata> ModMetadata::Impl::create(ModJson const& json) {
             ") of geode. This is probably a bug; report it to "
             "the Geode Development Team."
         );
-    }
-
-    // Check GD version
-    if (json.contains("gd")) {
-        std::string ver;
-        if (json["gd"].is_string()) {
-            ver = json["gd"].as_string();
-        } else if (json["gd"].is_object()) {
-            auto key = PlatformID::toShortString(GEODE_PLATFORM_TARGET, true);
-            if (json["gd"].contains(key) && json["gd"][key].is_string())
-                ver = json["gd"][key].as_string();
-        } else {
-            return Err("[mod.json] has invalid target GD version");
-        }
-        if (ver.empty()) {
-            return Err("[mod.json] could not find GD version for current platform");
-        }
-        if (ver != "*") {
-            // probably a bad idea but oh well
-            double modTargetVer;
-            try {
-                // assume gd version is always a valid double
-                modTargetVer = std::stod(ver);
-            } catch (...) {
-                return Err("[mod.json] has invalid target GD version");
-            }
-            if (LoaderImpl::get()->isForwardCompatMode()) {
-                // this means current gd version is > GEODE_GD_VERSION
-                if (modTargetVer <= GEODE_GD_VERSION) {
-                    return Err(fmt::format("[mod.json] doesn't support this GD version ({} < current version)", ver));
-                }
-            } else if (ver != GEODE_STR(GEODE_GD_VERSION)) {
-                // we are not in forward compat mode, so GEODE_GD_VERSION is the current gd version
-                return Err(fmt::format("[mod.json] doesn't support this GD version ({} != {})", ver, GEODE_STR(GEODE_GD_VERSION)));
-            }
-        }
-    } else {
-        return Err("[mod.json] is missing target GD version");
     }
 
     return Impl::createFromSchemaV010(json);
@@ -392,6 +384,11 @@ bool ModMetadata::needsEarlyLoad() const {
 
 bool ModMetadata::isAPI() const {
     return m_impl->m_isAPI;
+}
+
+std::optional<std::string> ModMetadata::getGDVersion() const {
+    if (m_impl->m_gdVersion.empty()) return std::nullopt;
+    return m_impl->m_gdVersion;
 }
 
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
