@@ -12,6 +12,8 @@
  * Move clipping rect fix, fixes editor particle editor (eeeedbb9)
  * Fix force priority fix, fixes editor scale warp lock button (fd8c3630, f1a32b6a)
  * Clearer error message when platform binary is missing from mod (dc8cd219)
+ * Better error message on windows dll load failure (77736d3)
+ * Make Logger::push thread-safe (d9358d8)
 
 ## v2.0.0-beta.6
  * Fix unzipping skipping first entry (2bc0d1a)
