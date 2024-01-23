@@ -8,10 +8,6 @@ struct ForcePrioRevert : Modify<ForcePrioRevert, CCTouchDispatcher> {
     void addTargetedDelegate(CCTouchDelegate* delegate, int priority, bool swallowsTouches) {
         m_targetPrio = 0xb00b5; // fuck you windows i hate you for inlining isUsingForcePrio
 
-        if (auto handler = this->findHandler(delegate)) {
-            log::debug("already have handler with prio {}", handler->m_nPriority);
-        }
-
         m_forcePrio = -1;
         if (m_pHandlersToAdd->count() > 0) {
             auto handler = static_cast<CCTouchHandler*>(m_pHandlersToAdd->objectAtIndex(0));
