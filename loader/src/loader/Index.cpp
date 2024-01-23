@@ -613,6 +613,8 @@ Result<> Index::canInstall(IndexItemHandle item) const {
         return Err("Mod is not available on {}", GEODE_PLATFORM_NAME);
     }
 
+    GEODE_UNWRAP(item->getMetadata().checkGameVersion());
+
     for (auto& dep : item->getMetadata().getDependencies()) {
         // if the dep is resolved, then all its dependencies must be installed
         // already in order for that to have happened

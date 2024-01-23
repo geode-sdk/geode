@@ -108,11 +108,11 @@ static std::optional<int> queryMatch(ModListQuery const& query, IndexItemHandle 
     // if no force visibility was provided and item is already installed, don't show it
     auto canInstall = Index::get()->canInstall(item);
     if (!query.forceInvalid && !canInstall) {
-        log::warn(
-            "Removing {} from the list because it cannot be installed: {}",
-            item->getMetadata().getID(),
-            canInstall.unwrapErr()
-        );
+        // log::warn(
+        //     "Removing {} from the list because it cannot be installed: {}",
+        //     item->getMetadata().getID(),
+        //     canInstall.unwrapErr()
+        // );
         return std::nullopt;
     }
     // otherwise match keywords

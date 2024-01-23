@@ -386,10 +386,29 @@ bool ModMetadata::isAPI() const {
     return m_impl->m_isAPI;
 }
 
-std::optional<std::string> ModMetadata::getGDVersion() const {
+std::optional<std::string> ModMetadata::getGameVersion() const {
     if (m_impl->m_gdVersion.empty()) return std::nullopt;
     return m_impl->m_gdVersion;
 }
+
+Result<> ModMetadata::checkGameVersion() const {
+    if (!m_impl->m_gdVersion.empty()) {
+        auto const ver = m_impl->m_gdVersion;
+
+        double modTargetVer = std::stod(ver);
+        if (LoaderImpl::get()->isForwardCompatMode()) {
+            // this means current gd version is > GEODE_GD_VERSION
+            if (modTargetVer <= GEODE_GD_VERSION) {
+                return Err(fmt::format("Mod doesn't support this GD version ({} < current version)", ver));
+            }
+        } else if (ver != GEODE_STR(GEODE_GD_VERSION)) {
+            // we are not in forward compat mode, so GEODE_GD_VERSION is the current gd version
+            return Err(fmt::format("Mod doesn't support this GD version ({} != {})", ver, GEODE_STR(GEODE_GD_VERSION)));
+        }
+    }
+    return Ok();
+}
+
 
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
 void ModMetadata::setPath(ghc::filesystem::path const& value) {
