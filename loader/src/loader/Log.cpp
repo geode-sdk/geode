@@ -193,12 +193,17 @@ void Logger::setup() {
     m_logStream = std::ofstream(dirs::getGeodeLogDir() / log::generateLogName());
 }
 
+std::mutex g_logMutex;
 void Logger::push(Severity sev, Mod* mod, std::string&& content) {
     if (mod->isLoggingEnabled()) {
-        auto& log = m_logs.emplace_back(sev, mod, std::move(content));
-        auto const logStr = log.toString(true, m_nestLevel);
+        Log* log = nullptr;
+        {
+            std::lock_guard g(g_logMutex);
+            log = &m_logs.emplace_back(sev, mod, std::move(content));
+        }
+        auto const logStr = log->toString(true, m_nestLevel);
 
-        console::log(logStr, log.getSeverity());
+        console::log(logStr, log->getSeverity());
         m_logStream << logStr << std::endl;
     }
 }
@@ -218,6 +223,7 @@ std::vector<Log> const& Logger::list() {
 }
 
 void Logger::clear() {
+    std::lock_guard g(g_logMutex);
     m_logs.clear();
 }
 
