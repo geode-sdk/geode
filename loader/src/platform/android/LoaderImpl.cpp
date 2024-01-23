@@ -37,10 +37,10 @@ void Loader::Impl::addNativeBinariesPath(ghc::filesystem::path const& path) {
     log::warn("LoaderImpl::addNativeBinariesPath not implement on this platform, not adding path {}", path.string());
 }
 
-bool Loader::Impl::supportsLaunchArgs() const {
+bool Loader::Impl::supportsLaunchArguments() const {
     return false;
 }
 
-std::string Loader::Impl::getLaunchString() {
+std::string Loader::Impl::getLaunchCommand() const {
     return std::string(); // Empty
 }

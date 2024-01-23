@@ -147,10 +147,10 @@ std::string Loader::Impl::getGameVersion() {
 }
 
 // TODO
-bool Loader::Impl::supportsLaunchArgs() const {
+bool Loader::Impl::supportsLaunchArguments() const {
     return false;
 }
 
-std::string Loader::Impl::getLaunchString() {
+std::string Loader::Impl::getLaunchCommand() const {
     return std::string(); // Empty
 }
