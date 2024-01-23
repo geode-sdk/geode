@@ -20,10 +20,6 @@ $on_mod(Disabled) {
 }
 $on_mod(Loaded) {
     log::info("Loaded");
-    auto arg = Mod::get()->getLaunchArg("testProp");
-    if (arg.has_value()) {
-        log::info("Test property has value of {}", arg.value());
-    }
 }
 $on_mod(Unloaded) {
     log::info("Unloaded");
@@ -90,6 +86,17 @@ struct GJGarageLayerTest : Modify<GJGarageLayerTest, GJGarageLayer> {
         label2->setScale(.4f);
         label2->setZOrder(99999);
         addChild(label2);
+
+        // Launch arguments
+        auto arg = Mod::get()->getLaunchArgument("testArg");
+        auto label3 = CCLabelBMFont::create(
+            fmt::format("Test property: {}", arg.value_or("NOTHING!")).c_str(),
+            "bigFont.fnt"
+        );
+        label3->setPosition(100, 80);
+        label3->setScale(.4f);
+        label3->setZOrder(99999);
+        addChild(label3);
 
         // Dispatch system pt. 1
         // auto fn = Dispatcher::get()->getFunction<void(GJGarageLayer*)>("test-garage-open");

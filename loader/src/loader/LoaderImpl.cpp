@@ -736,7 +736,7 @@ void Loader::Impl::releaseNextMod() {
     m_nextModLock.unlock();
 }
 
-// TODO: Support for quoted launch args w/ spaces
+// TODO: Support for quoted launch args w/ spaces (this will be backwards compatible)
 // e.g. "-geode:arg=My spaced value"
 void Loader::Impl::initLaunchArguments() {
     auto launchStr = this->getLaunchCommand();
@@ -761,12 +761,25 @@ void Loader::Impl::initLaunchArguments() {
     }
 }
 
+std::vector<std::string> Loader::Impl::getLaunchArgumentNames() const {
+    return map::keys(m_launchArgs);
+}
+
+bool Loader::Impl::hasLaunchArgument(std::string_view const name) const {
+    return m_launchArgs.find(std::string(name)) != m_launchArgs.end();
+}
+
 std::optional<std::string> Loader::Impl::getLaunchArgument(std::string_view const name) const {
     auto value = m_launchArgs.find(std::string(name));
     if (value == m_launchArgs.end()) {
         return std::nullopt;
     }
     return std::optional(value->second);
+}
+
+bool Loader::Impl::getLaunchBool(std::string_view const name) const {
+    auto arg = this->getLaunchArgument(name);
+    return arg.has_value() && arg.value() == "true";
 }
 
 Result<tulip::hook::HandlerHandle> Loader::Impl::getHandler(void* address) {
