@@ -61,6 +61,9 @@ static std::optional<int> queryMatchKeywords(
         }
     }
     else {
+        if (metadata.getID() == "geode.loader") {
+            return 900;
+        }
         // this is like the dumbest way you could possibly sort alphabetically 
         // but it does enough to make the mods list somewhat alphabetically 
         // sorted, at least enough so that if you're scrolling it based on 
