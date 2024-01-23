@@ -1,5 +1,10 @@
 # Geode Changelog
 
+## v2.0.0-beta.7
+ * Fix exceptions on android32 (9c87d4c)
+ * Move GD version check to loadBinary (d2a51354)
+ * Show updates for mods that are disabled (bd9d0635)
+
 ## v2.0.0-beta.6
  * Fix unzipping skipping first entry (2bc0d1a)
  * Revert the input box fix again (4ab7197)
