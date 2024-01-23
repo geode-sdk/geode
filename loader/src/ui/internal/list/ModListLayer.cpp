@@ -24,7 +24,6 @@
 #endif
 
 static ModListType g_tab = ModListType::Installed;
-static ModListLayer* g_instance = nullptr;
 
 // Mods
 
@@ -607,15 +606,6 @@ ModListQuery& ModListLayer::getQuery() {
 // Callbacks & Vtable impls
 
 void ModListLayer::onCheckForUpdates(CCObject*) {
-    // store instance in a global so the
-    // layer stays in memory even if the
-    // user leaves the layer and we don't
-    // end up trying to update the UI of
-    // a deleted layer
-    g_instance = this;
-    g_instance->retain();
-
-    // update index
     Index::get()->update();
 }
 
@@ -716,11 +706,6 @@ void ModListLayer::textChanged(CCTextInputNode* input) {
 // Constructors etc.
 
 ModListLayer* ModListLayer::create() {
-    // return global instance if one exists
-    if (g_instance) return g_instance;
-
-    // otherwise create new instance like a
-    // normal person
     auto ret = new ModListLayer();
     if (ret && ret->init()) {
         ret->autorelease();
