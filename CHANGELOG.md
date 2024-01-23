@@ -1,9 +1,17 @@
 # Geode Changelog
 
 ## v2.0.0-beta.7
+ * MacOS Support! (9869ddc)
+   * Huge thanks to @dankmeme01 for almost single-handedly making this work!
+   * Note most mods do not support MacOS at the moment.
  * Fix exceptions on android32 (9c87d4c)
- * Move GD version check to loadBinary (d2a51354)
+ * Move GD version check to loadBinary (d2a51354, 82808c3a)
  * Show updates for mods that are disabled (bd9d0635)
+ * Force geode internal mod to be first on list (c2d1e587)
+ * Fix geode layer eating inputs if search is selected (18983974)
+ * Move clipping rect fix, fixes editor particle editor (eeeedbb9)
+ * Fix force priority fix, fixes editor scale warp lock button (fd8c3630, f1a32b6a)
+ * Clearer error message when platform binary is missing from mod (dc8cd219)
 
 ## v2.0.0-beta.6
  * Fix unzipping skipping first entry (2bc0d1a)
