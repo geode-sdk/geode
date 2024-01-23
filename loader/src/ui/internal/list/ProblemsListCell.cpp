@@ -10,9 +10,10 @@
 
 void ProblemsListCell::draw() {
     auto size = this->getContentSize();
+    cocos2d::ccDrawColor4B(0, 0, 0, 75);
     glLineWidth(2.0f);
-    cocos2d::ccDrawLine({ 1.0f, 1.0f }, { size.width - 1.0f, 1.0f });
-    cocos2d::ccDrawLine({ 1.0f, size.height - 1.0f }, { size.width - 1.0f, size.height - 1.0f });
+    cocos2d::ccDrawLine({ 1.0f, 0.0f }, { size.width - 1.0f, 0.0f });
+    cocos2d::ccDrawLine({ 1.0f, size.height }, { size.width - 1.0f, size.height });
 }
 
 float ProblemsListCell::getLogoSize() const {
