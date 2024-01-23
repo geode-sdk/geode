@@ -639,6 +639,9 @@ void ModListLayer::onIndexUpdate(IndexUpdateEvent* event) {
 }
 
 void ModListLayer::onExit(CCObject*) {
+    // since this layer is funny and always exists in memory,
+    // we gotta manually detatch the input nodes
+    m_searchInput->m_textField->detachWithIME();
     CCDirector::sharedDirector()->replaceScene(
         CCTransitionFade::create(.5f, MenuLayer::scene(false))
     );
