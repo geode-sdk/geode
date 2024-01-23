@@ -313,26 +313,17 @@ bool ModCell::init(
         auto viewSpr = ButtonSprite::create("View", "bigFont.fnt", "GJ_button_01.png", .8f);
         viewSpr->setScale(.65f);
 
-        if (m_mod->isEnabled()) {
-            auto latestIndexItem = Index::get()->getMajorItem(
-                mod->getMetadata().getID()
+        auto latestIndexItem = Index::get()->getMajorItem(
+            mod->getMetadata().getID()
+        );
+
+        if (latestIndexItem && Index::get()->isUpdateAvailable(latestIndexItem)) {
+            viewSpr->updateBGImage("GE_button_01.png"_spr);
+
+            auto minorIndexItem = Index::get()->getItem(
+                mod->getMetadata().getID(),
+                ComparableVersionInfo(mod->getMetadata().getVersion(), VersionCompare::MoreEq)
             );
-
-            if (latestIndexItem && Index::get()->isUpdateAvailable(latestIndexItem)) {
-                viewSpr->updateBGImage("GE_button_01.png"_spr);
-
-                auto minorIndexItem = Index::get()->getItem(
-                    mod->getMetadata().getID(),
-                    ComparableVersionInfo(mod->getMetadata().getVersion(), VersionCompare::MoreEq)
-                );
-
-                if (latestIndexItem->getMetadata().getVersion().getMajor() > minorIndexItem->getMetadata().getVersion().getMajor()) {
-                    auto updateIcon = CCSprite::createWithSpriteFrameName("updates-available.png"_spr);
-                    updateIcon->setZOrder(99);
-                    updateIcon->setScale(.5f);
-                    viewSpr->addChild(updateIcon);
-                }
-            }
         }
 
         auto viewBtn = CCMenuItemSpriteExtra::create(viewSpr, this, menu_selector(ModCell::onInfo));
