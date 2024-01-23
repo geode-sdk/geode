@@ -218,7 +218,7 @@ protected:
     void rearrangeHandlers(CCArray* pArray);
     CCTouchHandler* findHandler(CCArray* pArray, CCTouchDelegate *pDelegate);
 
-protected:
+public:
     CCArray* m_pTargetedHandlers;
     CCArray* m_pStandardHandlers;
 
@@ -232,6 +232,8 @@ protected:
 
     // 4, 1 for each type of event
     struct ccTouchHandlerHelperData m_sHandlerHelperData[ccTouchMax];
+
+protected:
 
     // 2.2 changes
 
