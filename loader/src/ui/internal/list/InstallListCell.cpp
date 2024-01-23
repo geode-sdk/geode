@@ -4,7 +4,6 @@
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/binding/CCMenuItemToggler.hpp>
 #include <Geode/binding/FLAlertLayer.hpp>
-#include <Geode/binding/StatsCell.hpp>
 #include <Geode/ui/GeodeUI.hpp>
 #include <loader/LoaderImpl.hpp>
 #include <utility>
@@ -13,7 +12,10 @@
 // InstallListCell
 
 void InstallListCell::draw() {
-    reinterpret_cast<StatsCell*>(this)->StatsCell::draw();
+    auto size = this->getContentSize();
+    glLineWidth(2.0f);
+    cocos2d::ccDrawLine({ 1.0f, 1.0f }, { size.width - 1.0f, 1.0f });
+    cocos2d::ccDrawLine({ 1.0f, size.height - 1.0f }, { size.width - 1.0f, size.height - 1.0f });
 }
 
 float InstallListCell::getLogoSize() const {
