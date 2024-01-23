@@ -113,10 +113,10 @@ namespace geode {
         std::vector<Mod*> getAllMods();
         std::vector<LoadProblem> getProblems() const;
 
-        bool supportsLaunchArgs() const;
-        std::string getLaunchString();
-        void initLaunchArgs();
-        std::optional<std::string> getLaunchArg(std::string_view const arg) const;
+        bool supportsLaunchArguments() const;
+        std::string getLaunchCommand() const;
+        void initLaunchArguments();
+        std::optional<std::string> getLaunchArgument(std::string_view const name) const;
 
         void updateResources(bool forceReload);
 

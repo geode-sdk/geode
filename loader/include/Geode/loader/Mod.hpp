@@ -151,13 +151,13 @@ namespace geode {
         }
 
         /**
-         * Get a mod-specific launch argument. This is equivalent to `Loader::getLaunchArg`
-         * except the argument name is prefixed with the mod ID. For example, a launch arg named
-         * `modArg` for the mod `author.test` could be specified with `-geode:author.test.modArg=value`.
-         * @param key The argument name
+         * Get a mod-specific launch argument. This is equivalent to `Loader::getLaunchArgument`
+         * with the argument name prefixed by the mod ID. For example, a launch argument named
+         * `modArg` for the mod `author.test` would be specified with `-geode:author.test.modArg=value`.
+         * @param name The argument name
          * @return The value, if present
          */
-        std::optional<std::string> getLaunchArg(std::string_view const key) const;
+        std::optional<std::string> getLaunchArgument(std::string_view const name) const;
 
         matjson::Value& getSaveContainer();
 

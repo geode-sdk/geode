@@ -77,6 +77,6 @@ Mod* Loader::takeNextMod() {
     return m_impl->takeNextMod();
 }
 
-std::optional<std::string> Loader::getLaunchArg(std::string_view const arg) const {
-    return m_impl->getLaunchArg(arg);
+std::optional<std::string> Loader::getLaunchArgument(std::string_view const name) const {
+    return m_impl->getLaunchArgument(name);
 }

@@ -85,10 +85,10 @@ void Loader::Impl::addNativeBinariesPath(ghc::filesystem::path const& path) {
     AddDllDirectory(path.wstring().c_str());
 }
 
-bool Loader::Impl::supportsLaunchArgs() const {
+bool Loader::Impl::supportsLaunchArguments() const {
     return true;
 }
 
-std::string Loader::Impl::getLaunchString() {
+std::string Loader::Impl::getLauncCommand() {
     return GetCommandLineA();
 }

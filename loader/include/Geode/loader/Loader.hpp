@@ -84,14 +84,12 @@ namespace geode {
         std::vector<LoadProblem> getProblems() const;
 
         /**
-         * Get a launch argument. These can be passed into the game via, for example, 
-         * the "Launch Options" window in Steam.
-         * The format for launch arguments is `-geode:argName=value`.
-         * **Note**: this feature is exclusive to Windows for the time being.
-         * @param arg The argument name
+         * Get a launch argument. These are passed into the game as command-line arguments
+         * with the format `-geode:argName=value`.
+         * @param name The argument name
          * @return The value, if present
-         **/
-        std::optional<std::string> getLaunchArg(std::string_view const arg) const;
+         */
+        std::optional<std::string> getLaunchArgument(std::string_view const name) const;
 
         void queueInMainThread(ScheduledFunction func);
 

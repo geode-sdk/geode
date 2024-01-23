@@ -121,8 +121,8 @@ void Mod::registerCustomSetting(std::string_view const key, std::unique_ptr<Sett
     return m_impl->registerCustomSetting(key, std::move(value));
 }
 
-std::optional<std::string> Mod::getLaunchArg(std::string_view const key) const {
-    return m_impl->getLaunchArg(key);
+std::optional<std::string> Mod::getLaunchArgument(std::string_view const name) const {
+    return m_impl->getLaunchArgument(name);
 }
 
 Result<Hook*> Mod::claimHook(std::shared_ptr<Hook> hook) {

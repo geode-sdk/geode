@@ -71,10 +71,10 @@ Result<> Loader::Impl::setup() {
         return Ok();
     }
 
-    if (this->supportsLaunchArgs()) {
+    if (this->supportsLaunchArguments()) {
         log::debug("Loading launch arguments");
         log::pushNest();
-        this->initLaunchArgs();
+        this->initLaunchArguments();
         log::popNest();
     }
 
@@ -738,8 +738,8 @@ void Loader::Impl::releaseNextMod() {
 
 // TODO: Support for quoted launch args w/ spaces
 // e.g. "-geode:arg=My spaced value"
-void Loader::Impl::initLaunchArgs() {
-    auto launchStr = this->getLaunchString();
+void Loader::Impl::initLaunchArguments() {
+    auto launchStr = this->getLaunchCommand();
     log::debug("Found launch string: {}", launchStr);
     auto args = string::split(launchStr, " ");
     for (const auto& arg : args) {
@@ -761,9 +761,8 @@ void Loader::Impl::initLaunchArgs() {
     }
 }
 
-std::optional<std::string> Loader::Impl::getLaunchArg(std::string_view const arg) const {
-    auto argstr = std::string(arg);
-    auto value = m_launchArgs.find(argstr);
+std::optional<std::string> Loader::Impl::getLaunchArgument(std::string_view const name) const {
+    auto value = m_launchArgs.find(std::string(name));
     if (value == m_launchArgs.end()) {
         return std::nullopt;
     }

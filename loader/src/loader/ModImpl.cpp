@@ -328,9 +328,9 @@ bool Mod::Impl::hasSetting(std::string_view const key) const {
     return false;
 }
 
-std::optional<std::string> Mod::Impl::getLaunchArg(std::string_view const key) const {
-    auto modKey = m_metadata.getID() + "." + std::string(key);
-    return Loader::get()->getLaunchArg(modKey);
+std::optional<std::string> Mod::Impl::getLaunchArgument(std::string_view const name) const {
+    auto prefixed = m_metadata.getID() + "." + std::string(name);
+    return Loader::get()->getLaunchArgument(prefixed);
 }
 
 // Loading, Toggling, Installing
