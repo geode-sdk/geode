@@ -159,7 +159,13 @@ namespace geode {
          * Gets the target GD version for the current platform.
          * Returns nullopt if mod targets any GD version.
         */
-        [[nodiscard]] std::optional<std::string> getGDVersion() const;
+        [[nodiscard]] std::optional<std::string> getGameVersion() const;
+
+        /**
+         * Checks if mod can be installed on the current GD version.
+         * Returns Ok() if it can, Err otherwise.
+        */
+        Result<> checkGameVersion() const;
 
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
         void setPath(ghc::filesystem::path const& value);

@@ -1697,8 +1697,8 @@ protected:
     CCComponentContainer *m_pComponentContainer;        ///< Dictionary of components
 
     // 2.2 additions
-    int m_unknown;  // no idea
-
+    bool m_bUnkBool1;
+    bool m_bUnkBool2;
 };
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS) || (CC_TARGET_PLATFORM == CC_PLATFORM_MAC)

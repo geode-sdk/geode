@@ -108,11 +108,11 @@ static std::optional<int> queryMatch(ModListQuery const& query, IndexItemHandle 
     // if no force visibility was provided and item is already installed, don't show it
     auto canInstall = Index::get()->canInstall(item);
     if (!query.forceInvalid && !canInstall) {
-        log::warn(
-            "Removing {} from the list because it cannot be installed: {}",
-            item->getMetadata().getID(),
-            canInstall.unwrapErr()
-        );
+        // log::warn(
+        //     "Removing {} from the list because it cannot be installed: {}",
+        //     item->getMetadata().getID(),
+        //     canInstall.unwrapErr()
+        // );
         return std::nullopt;
     }
     // otherwise match keywords
@@ -639,6 +639,9 @@ void ModListLayer::onIndexUpdate(IndexUpdateEvent* event) {
 }
 
 void ModListLayer::onExit(CCObject*) {
+    // since this layer is funny and always exists in memory,
+    // we gotta manually detatch the input nodes
+    m_searchInput->m_textField->detachWithIME();
     CCDirector::sharedDirector()->replaceScene(
         CCTransitionFade::create(.5f, MenuLayer::scene(false))
     );
