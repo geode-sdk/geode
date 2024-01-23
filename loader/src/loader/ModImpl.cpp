@@ -338,6 +338,16 @@ Result<> Mod::Impl::loadBinary() {
     if (m_enabled)
         return Ok();
 
+    if (!ghc::filesystem::exists(this->getBinaryPath())) {
+        return Err(
+            fmt::format(
+                "Failed to load {}: No binary could be found for current platform.\n"
+                "This mod doesn't support this platform" GEODE_WINDOWS(" or something deleted it (like an antivirus)") ".",
+                m_metadata.getID()
+            )
+        );
+    }
+
     LoaderImpl::get()->provideNextMod(m_self);
 
     m_enabled = true;
