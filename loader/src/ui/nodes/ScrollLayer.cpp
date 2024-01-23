@@ -25,7 +25,7 @@ void GenericContentLayer::setPosition(CCPoint const& pos) {
 }
 
 void ScrollLayer::visit() {
-    if (m_cutContent) {
+    if (m_cutContent && this->isVisible()) {
         auto rect = CCRect(this->getPosition(), this->getScaledContentSize());
 
         if (this->getParent()) {
@@ -40,7 +40,7 @@ void ScrollLayer::visit() {
 
     CCNode::visit();
 
-    if (m_cutContent) {
+    if (m_cutContent && this->isVisible()) {
         glDisable(GL_SCISSOR_TEST);
     }
 }
