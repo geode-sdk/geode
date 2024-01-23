@@ -44,6 +44,25 @@ struct $modify(MenuLayer) {
         node->release();
         log::info("ref: {}", ref.lock().data());
 
+        // Launch arguments
+        log::info("Testing launch args...");
+        log::pushNest();
+        log::info("For global context:");
+        log::pushNest();
+        for (const auto& arg : Loader::get()->getLaunchArgumentNames()) {
+            log::info(arg);
+        }
+        log::popNest();
+        log::info("For this mod:");
+        log::pushNest();
+        for (const auto& arg : Mod::get()->getLaunchArgumentNames()) {
+            log::info(arg);
+        }
+        log::popNest();
+        log::info("Mod has launch arg 'modArg': {}", Mod::get()->hasLaunchArgument("modArg"));
+        log::info("Loader bool arg 'boolArg': {}", Loader::get()->getLaunchBool("boolArg"));
+        log::popNest();
+
         return true;
     }
 };
@@ -86,17 +105,6 @@ struct GJGarageLayerTest : Modify<GJGarageLayerTest, GJGarageLayer> {
         label2->setScale(.4f);
         label2->setZOrder(99999);
         addChild(label2);
-
-        // Launch arguments
-        auto arg = Mod::get()->getLaunchArgument("testArg");
-        auto label3 = CCLabelBMFont::create(
-            fmt::format("Test property: {}", arg.value_or("NOTHING!")).c_str(),
-            "bigFont.fnt"
-        );
-        label3->setPosition(100, 80);
-        label3->setScale(.4f);
-        label3->setZOrder(99999);
-        addChild(label3);
 
         // Dispatch system pt. 1
         // auto fn = Dispatcher::get()->getFunction<void(GJGarageLayer*)>("test-garage-open");
