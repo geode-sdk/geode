@@ -12,6 +12,14 @@ struct ForcePrioRevert : Modify<ForcePrioRevert, CCTouchDispatcher> {
             m_forcePrio = handler->getPriority() - 2;
         }
 
+        // bugfix for editor: since EditorUI doesn't call registerWithTouchDispatcher
+        // every CCMenu created in init has lower priority than EditorUI, meaning
+        // they are untouchable (EditorUI swallows)
+        // this hardcodes that.
+        if (typeinfo_cast<EditorUI*>(delegate)) {
+            m_forcePrio = -2;
+        }
+
         CCTouchDispatcher::addTargetedDelegate(delegate, 0, swallowsTouches);
     }
 };
