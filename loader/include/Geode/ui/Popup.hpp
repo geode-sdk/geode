@@ -3,6 +3,7 @@
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/binding/FLAlertLayer.hpp>
 #include <Geode/utils/MiniFunction.hpp>
+#include <Geode/utils/cocos.hpp>
 
 namespace geode {
     template <typename... InitArgs>
@@ -12,6 +13,10 @@ namespace geode {
         cocos2d::extension::CCScale9Sprite* m_bgSprite;
         cocos2d::CCLabelBMFont* m_title = nullptr;
         CCMenuItemSpriteExtra* m_closeBtn;
+
+        ~Popup() override {
+            cocos2d::CCTouchDispatcher::get()->unregisterForcePrio(this);
+        }
 
         bool init(
             float width, float height, InitArgs... args, char const* bg = "GJ_square01.png",
@@ -50,6 +55,10 @@ namespace geode {
 
             this->setKeypadEnabled(true);
             this->setTouchEnabled(true);
+
+            cocos2d::CCTouchDispatcher::get()->registerForcePrio(this, 2);
+
+            cocos::handleTouchPriority(this);
 
             return true;
         }
