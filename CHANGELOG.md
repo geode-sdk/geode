@@ -9,6 +9,8 @@
  * Add response headers to `SentAsyncWebRequest` (df07409)
  * Move deletion of old index folder into separate thread (6835f57)
  * Fix MacOS installer erroring after installing anyway (09ebcf9)
+ * Fix Windows `openFolder` opening parent folder (9e973a9)
+ * Reenable last crashed popup and index update on MenuLayer (16b9689)
 
 ## v2.0.0-beta.7
  * MacOS Support! (9869ddc)
