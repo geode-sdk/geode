@@ -327,6 +327,37 @@ bool Mod::Impl::hasSetting(std::string_view const key) const {
     return false;
 }
 
+std::string Mod::Impl::getLaunchArgPrefix() const {
+    return m_metadata.getID() + ".";
+}
+
+std::string Mod::Impl::getLaunchArgName(std::string_view const name) const {
+    return this->getLaunchArgPrefix() + std::string(name);
+}
+
+std::vector<std::string> Mod::Impl::getLaunchArgumentNames() const {
+    auto prefix = getLaunchArgPrefix();
+    std::vector<std::string> names;
+    for (const auto& name : Loader::get()->getLaunchArgumentNames()) {
+        if (name.starts_with(prefix)) {
+            names.push_back(name.substr(prefix.size()));
+        }
+    }
+    return names;
+}
+
+bool Mod::Impl::hasLaunchArgument(std::string_view const name) const {
+    return Loader::get()->hasLaunchArgument(this->getLaunchArgName(name));
+}
+
+std::optional<std::string> Mod::Impl::getLaunchArgument(std::string_view const name) const {
+    return Loader::get()->getLaunchArgument(this->getLaunchArgName(name));
+}
+
+bool Mod::Impl::getLaunchBool(std::string_view const name) const {
+    return Loader::get()->getLaunchBool(this->getLaunchArgName(name));
+}
+
 // Loading, Toggling, Installing
 
 Result<> Mod::Impl::loadBinary() {

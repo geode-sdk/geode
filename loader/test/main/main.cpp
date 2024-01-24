@@ -44,6 +44,25 @@ struct $modify(MenuLayer) {
         node->release();
         log::info("ref: {}", ref.lock().data());
 
+        // Launch arguments
+        log::info("Testing launch args...");
+        log::pushNest();
+        log::info("For global context:");
+        log::pushNest();
+        for (const auto& arg : Loader::get()->getLaunchArgumentNames()) {
+            log::info(arg);
+        }
+        log::popNest();
+        log::info("For this mod:");
+        log::pushNest();
+        for (const auto& arg : Mod::get()->getLaunchArgumentNames()) {
+            log::info(arg);
+        }
+        log::popNest();
+        log::info("Mod has launch arg 'modArg': {}", Mod::get()->hasLaunchArgument("modArg"));
+        log::info("Loader bool arg 'boolArg': {}", Loader::get()->getLaunchBool("boolArg"));
+        log::popNest();
+
         return true;
     }
 };

@@ -1,6 +1,9 @@
-#include <Geode/loader/Mod.hpp>
-#include <Geode/loader/Dirs.hpp>
 #include "ModImpl.hpp"
+
+#include <Geode/loader/Dirs.hpp>
+#include <Geode/loader/Mod.hpp>
+#include <optional>
+#include <string_view>
 
 using namespace geode::prelude;
 
@@ -72,6 +75,7 @@ ghc::filesystem::path Mod::getResourcesDir() const {
 void Mod::setMetadata(ModMetadata const& metadata) {
     m_impl->setMetadata(metadata);
 }
+
 std::vector<Mod*> Mod::getDependants() const {
     return m_impl->getDependants();
 }
@@ -115,6 +119,22 @@ SettingValue* Mod::getSetting(std::string_view const key) const {
 
 void Mod::registerCustomSetting(std::string_view const key, std::unique_ptr<SettingValue> value) {
     return m_impl->registerCustomSetting(key, std::move(value));
+}
+
+std::vector<std::string> Mod::getLaunchArgumentNames() const {
+    return m_impl->getLaunchArgumentNames();
+}
+
+bool Mod::hasLaunchArgument(std::string_view const name) const {
+    return m_impl->hasLaunchArgument(name);
+}
+
+std::optional<std::string> Mod::getLaunchArgument(std::string_view const name) const {
+    return m_impl->getLaunchArgument(name);
+}
+
+bool Mod::getLaunchBool(std::string_view const name) const {
+    return m_impl->getLaunchBool(name);
 }
 
 Result<Hook*> Mod::claimHook(std::shared_ptr<Hook> hook) {

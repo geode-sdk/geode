@@ -25,6 +25,8 @@
 
 // TODO: Find a file convention for impl headers
 namespace geode {
+    constexpr std::string LAUNCH_ARG_PREFIX = "--geode:";
+
     class Loader::Impl {
     public:
         mutable std::mutex m_mutex;
@@ -57,6 +59,8 @@ namespace geode {
         int m_refreshingModCount = 0;
         int m_refreshedModCount = 0;
         int m_lateRefreshedModCount = 0;
+
+        std::unordered_map<std::string, std::string> m_launchArgs;
 
         std::chrono::time_point<std::chrono::high_resolution_clock> m_timerBegin;
 
@@ -108,6 +112,14 @@ namespace geode {
         Mod* getLoadedMod(std::string const& id) const;
         std::vector<Mod*> getAllMods();
         std::vector<LoadProblem> getProblems() const;
+
+        bool supportsLaunchArguments() const;
+        std::string getLaunchCommand() const;
+        void initLaunchArguments();
+        std::vector<std::string> getLaunchArgumentNames() const;
+        bool hasLaunchArgument(std::string_view const name) const;
+        std::optional<std::string> getLaunchArgument(std::string_view const name) const;
+        bool getLaunchBool(std::string_view const name) const;
 
         void updateResources(bool forceReload);
 
