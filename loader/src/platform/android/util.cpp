@@ -141,7 +141,9 @@ JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_selectFileCallba
 
     log::debug("Selected file: {}", dataStr);
 
-    s_fileCallback(dataStr);
+    Loader::get()->queueInMainThread([dataStr]() {
+        s_fileCallback(dataStr);
+    });
 }
 
 extern "C"
@@ -161,7 +163,9 @@ JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_selectFilesCallb
         log::debug("Selected file {}: {}", i, dataStr);
     }
 
-    s_filesCallback(result);
+    Loader::get()->queueInMainThread([result]() {
+        s_filesCallback(result);
+    });
 }
 
 extern "C"
@@ -169,7 +173,11 @@ JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_failedCallback(
         JNIEnv *env,
         jobject
 ) {
-    if (s_failedCallback) s_failedCallback();
+    if (s_failedCallback) {
+        Loader::get()->queueInMainThread([]() {
+            s_failedCallback();
+        });
+    }
 }
 
 Result<ghc::filesystem::path> file::pickFile(file::PickMode mode, file::FilePickOptions const& options) {
@@ -209,7 +217,11 @@ void file::pickFile(
             return;
         }
     }
-    if (s_failedCallback) s_failedCallback();
+    if (s_failedCallback) {
+        Loader::get()->queueInMainThread([]() {
+            s_failedCallback();
+        });
+    }
 }
 
 Result<std::vector<ghc::filesystem::path>> file::pickFiles(file::FilePickOptions const& options) {
@@ -236,7 +248,11 @@ void file::pickFiles(
             return;
         }
     }
-    if (s_failedCallback) s_failedCallback();
+    if (s_failedCallback) {
+        Loader::get()->queueInMainThread([]() {
+            s_failedCallback();
+        });
+    }
 }
 
 void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
