@@ -421,7 +421,9 @@ void Index::Impl::updateFromLocalTree() {
     log::pushNest();
     std::unique_lock<std::mutex> lock(m_itemsMutex);
 
-    IndexUpdateEvent(UpdateProgress(100, "Updating local cache")).post();
+    Loader::get()->queueInMainThread([](){
+        IndexUpdateEvent(UpdateProgress(100, "Updating local cache")).post();
+    });
     // delete old items
     m_items.clear();
     lock.unlock();
