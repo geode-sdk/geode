@@ -141,8 +141,6 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             popup->show();
         }
 
-    // TODO: mat
-#if 0
         // show crash info
         static bool shownLastCrash = false;
         if (
@@ -154,12 +152,12 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             auto popup = createQuickPopup(
                 "Crashed",
                 "It appears that the last session crashed. Would you like to "
-                "send a <cy>crash report</c>?",
+                "open the <cy>crashlog folder</c>?",
                 "No",
-                "Send",
+                "Yes",
                 [](auto, bool btn2) {
                     if (btn2) {
-                        geode::openIssueReportPopup(Mod::get());
+                        file::openFolder(dirs::getCrashlogsDir());
                     }
                 },
                 false
@@ -183,7 +181,6 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         }
 
         this->addUpdateIndicator();
-#endif
     
         return true;
     }
