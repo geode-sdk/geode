@@ -252,6 +252,7 @@ private:
     std::atomic<bool> m_isUpToDate = false;
     std::atomic<bool> m_updating = false;
     std::atomic<bool> m_triedToUpdate = false;
+    std::mutex m_itemsMutex;
     std::unordered_map<std::string, ItemVersions> m_items;
 
     friend class Index;
@@ -283,6 +284,7 @@ Index* Index::get() {
 // Updating
 
 void Index::Impl::cleanupItems() {
+    std::scoped_lock lock(m_itemsMutex);
     // delete mods with no versions
     for (auto it = m_items.begin(); it != m_items.end(); ) {
         if (!it->second.size()) {
@@ -348,10 +350,7 @@ void Index::Impl::downloadIndex(std::string commitHash) {
                     (void)file::writeString(checksumPath, commitHash);
                 }
 
-                Loader::get()->queueInMainThread([this] {
-                    // update index
-                    this->updateFromLocalTree();
-                });
+                this->updateFromLocalTree();
             }).detach();
         })
         .expect([](std::string const& err) {
@@ -372,7 +371,10 @@ void Index::Impl::downloadIndex(std::string commitHash) {
 
 void Index::Impl::checkForUpdates() {
     if (m_isUpToDate) {
-        return this->updateFromLocalTree();
+        std::thread([this](){
+            this->updateFromLocalTree();
+        }).detach();
+        return;
     }
 
     log::debug("Checking updates for index");
@@ -417,10 +419,12 @@ void Index::Impl::checkForUpdates() {
 void Index::Impl::updateFromLocalTree() {
     log::debug("Updating local index cache");
     log::pushNest();
+    std::unique_lock<std::mutex> lock(m_itemsMutex);
 
     IndexUpdateEvent(UpdateProgress(100, "Updating local cache")).post();
     // delete old items
     m_items.clear();
+    lock.unlock();
 
     auto indexRoot = dirs::getIndexDir() / "v0";
     auto entriesRoot = indexRoot / "mods-v2";
@@ -448,15 +452,20 @@ void Index::Impl::updateFromLocalTree() {
             auto add = addRes.unwrap();
             auto metadata = add->getMetadata();
 
+            lock.lock();
             m_items[modID].insert({metadata.getVersion(),
                 add
             });
+            lock.unlock();
         }
     }
 
     // mark source as finished
     m_isUpToDate = true;
-    IndexUpdateEvent(UpdateFinished()).post();
+    
+    Loader::get()->queueInMainThread([](){
+        IndexUpdateEvent(UpdateFinished()).post();
+    });
 
     log::popNest();
 }
@@ -485,6 +494,7 @@ void Index::update(bool force) {
 // Items
 
 std::vector<IndexItemHandle> Index::getItems() const {
+    std::scoped_lock lock(m_impl->m_itemsMutex);
     std::vector<IndexItemHandle> res;
     for (auto& items : map::values(m_impl->m_items)) {
         for (auto& item : items) {
@@ -495,6 +505,7 @@ std::vector<IndexItemHandle> Index::getItems() const {
 }
 
 std::vector<IndexItemHandle> Index::getLatestItems() const {
+    std::scoped_lock lock(m_impl->m_itemsMutex);
     std::vector<IndexItemHandle> res;
     for (auto& [modID, versions] : m_impl->m_items) {
         res.push_back(this->getMajorItem(modID));
@@ -503,6 +514,7 @@ std::vector<IndexItemHandle> Index::getLatestItems() const {
 }
 
 std::vector<IndexItemHandle> Index::getFeaturedItems() const {
+    std::scoped_lock lock(m_impl->m_itemsMutex);
     std::vector<IndexItemHandle> res;
     for (auto& items : map::values(m_impl->m_items)) {
         for (auto& item : items) {
@@ -517,6 +529,7 @@ std::vector<IndexItemHandle> Index::getFeaturedItems() const {
 std::vector<IndexItemHandle> Index::getItemsByDeveloper(
     std::string const& name
 ) const {
+    std::scoped_lock lock(m_impl->m_itemsMutex);
     std::vector<IndexItemHandle> res;
     for (auto& items : map::values(m_impl->m_items)) {
         for (auto& item : items) {
@@ -531,6 +544,7 @@ std::vector<IndexItemHandle> Index::getItemsByDeveloper(
 std::vector<IndexItemHandle> Index::getItemsByModID(
     std::string const& modID
 ) const {
+    std::scoped_lock lock(m_impl->m_itemsMutex);
     std::vector<IndexItemHandle> res;
     if (m_impl->m_items.count(modID)) {
         for (auto& [versionStr, item] : m_impl->m_items[modID]) {
@@ -550,6 +564,7 @@ bool Index::isKnownItem(
 IndexItemHandle Index::getMajorItem(
     std::string const& id
 ) const {
+    std::scoped_lock lock(m_impl->m_itemsMutex);
     if (m_impl->m_items.count(id)) {
         return m_impl->m_items.at(id).rbegin()->second;
     }
@@ -560,6 +575,7 @@ IndexItemHandle Index::getItem(
     std::string const& id,
     std::optional<VersionInfo> version
 ) const {
+    std::scoped_lock lock(m_impl->m_itemsMutex);
     if (m_impl->m_items.count(id)) {
         auto versions = m_impl->m_items.at(id);
         if (version) {
@@ -577,6 +593,7 @@ IndexItemHandle Index::getItem(
     std::string const& id,
     ComparableVersionInfo version
 ) const {
+    std::scoped_lock lock(m_impl->m_itemsMutex);
     if (m_impl->m_items.count(id)) {
         // prefer most major version
         for (auto& [_, item] : ranges::reverse(m_impl->m_items.at(id))) {
@@ -860,6 +877,7 @@ void Index::install(IndexItemHandle item) {
 // Item properites
 
 std::unordered_set<std::string> Index::getTags() const {
+    std::scoped_lock lock(m_impl->m_itemsMutex);
     std::unordered_set<std::string> tags;
     for (auto& [_, versions] : m_impl->m_items) {
         for (auto& [_, item] : versions) {
