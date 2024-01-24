@@ -2,6 +2,13 @@
 
 ## v2.0.0-beta.8
  * Fix TulipHook arm32 relocation of conditional branch - blame Dobby (69b9b2d)
+ * Remove try-catch blocks, replacing them with other means of handling (065d0c4)
+ * Revert touch priority hook, instead make it an opt-in behavior for nodes (7370761)
+   * This should fix every touch priority issue that happened before
+ * Implement conditional requests to GitHub API (df07409)
+ * Add response headers to `SentAsyncWebRequest` (df07409)
+ * Move deletion of old index folder into separate thread (6835f57)
+ * Fix MacOS installer erroring after installing anyway (09ebcf9)
 
 ## v2.0.0-beta.7
  * MacOS Support! (9869ddc)
