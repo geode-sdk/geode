@@ -176,11 +176,8 @@ namespace geode {
         T getSavedValue(std::string_view const key) {
             auto& saved = this->getSaveContainer();
             if (saved.contains(key)) {
-                try {
-                    // json -> T may fail
-                    return saved.get<T>(key);
-                }
-                catch (...) {
+                if (auto value = saved.try_get<T>(key)) {
+                    return *value;
                 }
             }
             return T();
@@ -190,11 +187,8 @@ namespace geode {
         T getSavedValue(std::string_view const key, T const& defaultValue) {
             auto& saved = this->getSaveContainer();
             if (saved.contains(key)) {
-                try {
-                    // json -> T may fail
-                    return saved.get<T>(key);
-                }
-                catch (...) {
+                if (auto value = saved.try_get<T>(key)) {
+                    return *value;
                 }
             }
             saved[key] = defaultValue;

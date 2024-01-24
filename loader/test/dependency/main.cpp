@@ -40,12 +40,9 @@ public:
       : SettingValue(key, modID), m_icon(icon) {}
 
     bool load(matjson::Value const& json) override {
-        try {
-            m_icon = static_cast<Icon>(json.as<int>());
-            return true;
-        } catch(...) {
-            return false;
-        }
+        if (!json.is<int>()) return false;
+        m_icon = static_cast<Icon>(json.as<int>());
+        return true;
     }
     bool save(matjson::Value& json) const override {
         json = static_cast<int>(m_icon);

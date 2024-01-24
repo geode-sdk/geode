@@ -16,12 +16,14 @@ template <>
 struct matjson::Serialize<cocos2d::ccColor3B> {
     static matjson::Value GEODE_DLL to_json(cocos2d::ccColor3B const& color);
     static cocos2d::ccColor3B GEODE_DLL from_json(matjson::Value const& color);
+    static bool GEODE_DLL is_json(matjson::Value const& json);
 };
 
 template <>
 struct matjson::Serialize<cocos2d::ccColor4B> {
     static matjson::Value GEODE_DLL to_json(cocos2d::ccColor4B const& color);
     static cocos2d::ccColor4B GEODE_DLL from_json(matjson::Value const& color);
+    static bool GEODE_DLL is_json(matjson::Value const& json);
 };
 
 // operators for CC geometry

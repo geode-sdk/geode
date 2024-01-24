@@ -164,42 +164,42 @@ Result<> Mod::Impl::loadData() {
     auto settingPath = m_saveDirPath / "settings.json";
     if (ghc::filesystem::exists(settingPath)) {
         GEODE_UNWRAP_INTO(auto settingData, utils::file::readString(settingPath));
-        try {
-            // parse settings.json
-            auto json = matjson::parse(settingData);
+        // parse settings.json
+        std::string error;
+        auto res = matjson::parse(settingData, error);
+        if (error.size() > 0) {
+            return Err("Unable to parse settings.json: " + error);
+        }
+        auto json = res.value();
 
-            JsonChecker checker(json);
-            auto root = checker.root("[settings.json]");
+        JsonChecker checker(json);
+        auto root = checker.root("[settings.json]");
 
-            m_savedSettingsData = json;
+        m_savedSettingsData = json;
 
-            for (auto& [key, value] : root.items()) {
-                // check if this is a known setting
-                if (auto setting = this->getSetting(key)) {
-                    // load its value
-                    if (!setting->load(value.json())) {
-                        log::logImpl(
-                            Severity::Error,
-                            m_self,
-                            "{}: Unable to load value for setting \"{}\"",
-                            m_metadata.getID(),
-                            key
-                        );
-                    }
-                }
-                else {
+        for (auto& [key, value] : root.items()) {
+            // check if this is a known setting
+            if (auto setting = this->getSetting(key)) {
+                // load its value
+                if (!setting->load(value.json())) {
                     log::logImpl(
-                        Severity::Warning,
+                        Severity::Error,
                         m_self,
-                        "Encountered unknown setting \"{}\" while loading "
-                        "settings",
+                        "{}: Unable to load value for setting \"{}\"",
+                        m_metadata.getID(),
                         key
                     );
                 }
             }
-        }
-        catch (std::exception& e) {
-            return Err(std::string("Unable to parse settings: ") + e.what());
+            else {
+                log::logImpl(
+                    Severity::Warning,
+                    m_self,
+                    "Encountered unknown setting \"{}\" while loading "
+                    "settings",
+                    key
+                );
+            }
         }
     }
 
@@ -207,12 +207,12 @@ Result<> Mod::Impl::loadData() {
     auto savedPath = m_saveDirPath / "saved.json";
     if (ghc::filesystem::exists(savedPath)) {
         GEODE_UNWRAP_INTO(auto data, utils::file::readString(savedPath));
-
-        try {
-            m_saved = matjson::parse(data);
-        } catch (std::exception& err) {
-            return Err(std::string("Unable to parse saved values: ") + err.what());
+        std::string error;
+        auto res = matjson::parse(data, error);
+        if (error.size() > 0) {
+            return Err("Unable to parse saved values: " + error);
         }
+        m_saved = res.value();
         if (!m_saved.is_object()) {
             log::warn("saved.json was somehow not an object, forcing it to one");
             m_saved = matjson::Object();
@@ -242,16 +242,15 @@ Result<> Mod::Impl::saveData() {
     // if some settings weren't provided a custom settings handler (for example,
     // the mod was not loaded) then make sure to save their previous state in
     // order to not lose data
-    try {
-        log::debug("Check covered");
-        for (auto& [key, value] : m_savedSettingsData.as_object()) {
-            log::debug("Check if {} is saved", key);
-            if (!coveredSettings.contains(key)) {
-                json[key] = value;
-            }
-        }
+    log::debug("Check covered");
+    if (!m_savedSettingsData.is_object()) {
+        m_savedSettingsData = matjson::Object();
     }
-    catch (...) {
+    for (auto& [key, value] : m_savedSettingsData.as_object()) {
+        log::debug("Check if {} is saved", key);
+        if (!coveredSettings.contains(key)) {
+            json[key] = value;
+        }
     }
 
     std::string settingsStr = json.dump();
@@ -704,13 +703,12 @@ bool Mod::Impl::shouldLoad() const {
 }
 
 static Result<ModMetadata> getModImplInfo() {
-    std::string err;
-    matjson::Value json;
-    try {
-        json = matjson::parse(LOADER_MOD_JSON);
-    } catch (std::exception& err) {
-        return Err("Unable to parse mod.json: " + std::string(err.what()));
+    std::string error;
+    auto res = matjson::parse(LOADER_MOD_JSON, error);
+    if (error.size() > 0) {
+        return Err("Unable to parse mod.json: " + error);
     }
+    matjson::Value json = res.value();
 
     GEODE_UNWRAP_INTO(auto info, ModMetadata::create(json));
     return Ok(info);

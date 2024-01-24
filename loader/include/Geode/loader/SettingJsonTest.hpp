@@ -4,13 +4,9 @@
 namespace geode {
     template<class T>
     bool GeodeSettingValue<T>::load(matjson::Value const& json) {
-        try {
-            m_value = json.as<ValueType>();
-            return true;
-        }
-        catch (...) {
-            return false;
-        }
+        if (!json.is<ValueType>()) return false;
+        m_value = json.as<ValueType>();
+        return true;
     }
 
     template<class T>

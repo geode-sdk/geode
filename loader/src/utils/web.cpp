@@ -98,14 +98,14 @@ Result<ByteVector> web::fetchBytes(std::string const& url) {
 }
 
 Result<matjson::Value> web::fetchJSON(std::string const& url) {
-    std::string res;
-    GEODE_UNWRAP_INTO(res, fetch(url));
-    try {
-        return Ok(matjson::parse(res));
+    std::string data;
+    GEODE_UNWRAP_INTO(data, fetch(url));
+    std::string error;
+    auto res = matjson::parse(data, error);
+    if (error.size() > 0) {
+        return Err("Error parsing JSON: " + error);
     }
-    catch (std::exception& e) {
-        return Err(e.what());
-    }
+    return Ok(res.value());
 }
 
 Result<std::string> web::fetch(std::string const& url) {
@@ -397,11 +397,8 @@ void SentAsyncWebRequest::Impl::doCancel() {
     if (std::holds_alternative<ghc::filesystem::path>(m_target)) {
         auto path = std::get<ghc::filesystem::path>(m_target);
         if (ghc::filesystem::exists(path)) {
-            try {
-                ghc::filesystem::remove(path);
-            }
-            catch (...) {
-            }
+            std::error_code ec;
+            ghc::filesystem::remove(path, ec);
         }
     }
 
@@ -665,11 +662,11 @@ AsyncWebResult<ByteVector> AsyncWebResponse::bytes() {
 
 AsyncWebResult<matjson::Value> AsyncWebResponse::json() {
     return this->as(+[](ByteVector const& bytes) -> Result<matjson::Value> {
-        try {
-            return Ok(matjson::parse(std::string(bytes.begin(), bytes.end())));
+        std::string error;
+        auto res = matjson::parse(std::string(bytes.begin(), bytes.end()), error);
+        if (error.size() > 0) {
+            return Err("Error parsing JSON: " + error);
         }
-        catch (std::exception& e) {
-            return Err(std::string(e.what()));
-        }
+        return Ok(res.value());
     });
 }

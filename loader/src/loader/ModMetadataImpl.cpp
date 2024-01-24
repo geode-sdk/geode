@@ -6,6 +6,7 @@
 #include <about.hpp>
 #include <matjson.hpp>
 #include <utility>
+#include <clocale>
 
 #include "ModMetadataImpl.hpp"
 #include "LoaderImpl.hpp"
@@ -72,11 +73,13 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
             return Err("[mod.json] could not find GD version for current platform");
         }
         if (ver != "*") {
-            try {
-                // assume gd version is always a valid double
-                (void) std::stod(ver);
-            } catch (...) {
-                return Err("[mod.json] has invalid target GD version");
+            double val = 0.0;
+            errno = 0;
+            if (std::setlocale(LC_NUMERIC, "en_US.utf8")) {
+                val = std::strtod(ver.c_str(), nullptr);
+                if (errno == ERANGE) {
+                    return Err("[mod.json] has invalid target GD version");
+                }
             }
             impl->m_gdVersion = ver;
         }
@@ -212,20 +215,21 @@ Result<ModMetadata> ModMetadata::Impl::create(ModJson const& json) {
 Result<ModMetadata> ModMetadata::Impl::createFromFile(ghc::filesystem::path const& path) {
     GEODE_UNWRAP_INTO(auto read, utils::file::readString(path));
 
-    try {
-        GEODE_UNWRAP_INTO(auto info, ModMetadata::create(matjson::parse(read)));
-
-        auto impl = info.m_impl.get();
-
-        impl->m_path = path;
-        if (path.has_parent_path()) {
-            GEODE_UNWRAP(info.addSpecialFiles(path.parent_path()));
-        }
-        return Ok(info);
+    std::string error;
+    auto res = matjson::parse(read, error);
+    if (error.size() > 0) {
+        return Err(std::string("Unable to parse mod.json: ") + error);
     }
-    catch (std::exception& err) {
-        return Err(std::string("Unable to parse mod.json: ") + err.what());
+
+    GEODE_UNWRAP_INTO(auto info, ModMetadata::create(res.value()));
+
+    auto impl = info.m_impl.get();
+
+    impl->m_path = path;
+    if (path.has_parent_path()) {
+        GEODE_UNWRAP(info.addSpecialFiles(path.parent_path()));
     }
+    return Ok(info);
 }
 
 Result<ModMetadata> ModMetadata::Impl::createFromGeodeFile(ghc::filesystem::path const& path) {
@@ -244,20 +248,18 @@ Result<ModMetadata> ModMetadata::Impl::createFromGeodeZip(file::Unzip& unzip) {
         auto jsonData, unzip.extract("mod.json").expect("Unable to read mod.json: {error}")
     );
 
-    std::string err;
-    ModJson json;
-    try {
-        json = matjson::parse(std::string(jsonData.begin(), jsonData.end()));
+    std::string error;
+    auto res = matjson::parse(std::string(jsonData.begin(), jsonData.end()), error);
+    if (error.size() > 0) {
+        return Err(std::string("Unable to parse mod.json: ") + error);
     }
-    catch (std::exception& err) {
-        return Err(err.what());
-    }
+    ModJson json = res.value();
 
-    auto res = ModMetadata::create(json);
-    if (!res) {
-        return Err("\"" + unzip.getPath().string() + "\" - " + res.unwrapErr());
+    auto res2 = ModMetadata::create(json);
+    if (!res2) {
+        return Err("\"" + unzip.getPath().string() + "\" - " + res2.unwrapErr());
     }
-    auto info = res.unwrap();
+    auto info = res2.unwrap();
     auto impl = info.m_impl.get();
     impl->m_path = unzip.getPath();
 
@@ -568,6 +570,10 @@ struct matjson::Serialize<geode::ModMetadata::Dependency::Importance> {
             return geode::ModMetadata::Dependency::Importance::Suggested;
         throw matjson::JsonException(R"(Expected importance to be "required", "recommended" or "suggested")");
     }
+
+    static bool is_json(matjson::Value const& value) {
+        return value.is_string();
+    }
 };
 
 template <>
@@ -586,5 +592,9 @@ struct matjson::Serialize<geode::ModMetadata::Incompatibility::Importance> {
         if (impStr == "conflicting")
             return geode::ModMetadata::Incompatibility::Importance::Conflicting;
         throw matjson::JsonException(R"(Expected importance to be "breaking" or "conflicting")");
+    }
+
+    static bool is_json(matjson::Value const& value) {
+        return value.is_string();
     }
 };

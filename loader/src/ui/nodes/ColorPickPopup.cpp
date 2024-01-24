@@ -4,25 +4,30 @@
 #include <Geode/binding/SliderThumb.hpp>
 #include <Geode/ui/ColorPickPopup.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <charconv>
+#include <clocale>
 
 using namespace geode::prelude;
 
 static GLubyte parseInt(char const* str) {
-    try {
-        return static_cast<GLubyte>(std::stoi(str));
+    int i = 0;
+    auto res = std::from_chars(str, str + strlen(str), i);
+    if (res.ec == std::errc()) {
+        return static_cast<GLubyte>(i);
     }
-    catch (...) {
-        return 255;
-    }
+    return 255;
 }
 
 static GLubyte parseFloat(char const* str) {
-    try {
-        return static_cast<GLubyte>(std::stof(str) * 255.f);
+    float val = 0.0f;
+    errno = 0;
+    if (std::setlocale(LC_NUMERIC, "en_US.utf8")) {
+        val = std::strtof(str, nullptr);
+        if (errno == 0) {
+            return val;
+        }
     }
-    catch (...) {
-        return 255;
-    }
+    return 255.f;
 }
 
 bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {

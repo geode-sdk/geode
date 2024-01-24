@@ -39,13 +39,13 @@ ipc::IPCFilter::IPCFilter(std::string const& modID, std::string const& messageID
 matjson::Value ipc::processRaw(void* rawHandle, std::string const& buffer) {
     matjson::Value reply;
 
-    matjson::Value json;
-    try {
-        json = matjson::parse(buffer);
-    } catch (...) {
-        log::warn("Received IPC message that isn't valid JSON");
+    std::string error;
+    auto res = matjson::parse(buffer, error);
+    if (error.size() > 0) {
+        log::warn("Received IPC message that isn't valid JSON: {}", error);
         return reply;
     }
+    matjson::Value json = res.value();
 
     if (!json.contains("mod") || !json["mod"].is_string()) {
         log::warn("Received IPC message without 'mod' field");

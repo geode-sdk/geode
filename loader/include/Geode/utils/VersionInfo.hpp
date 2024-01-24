@@ -237,6 +237,10 @@ struct matjson::Serialize<V> {
         return info.toString();
     }
 
+    static bool is_json(matjson::Value const& json) {
+        return json.is_string();
+    }
+
     static V from_json(matjson::Value const& json) {
         auto ver = V::parse(json.as_string());
         if (!ver) {

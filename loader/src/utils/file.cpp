@@ -45,12 +45,11 @@ Result<matjson::Value> utils::file::readJson(ghc::filesystem::path const& path) 
     auto str = utils::file::readString(path);
     if (!str)
         return Err(str.unwrapErr());
-    try {
-        return Ok(matjson::parse(str.value()));
-    }
-    catch(std::exception const& e) {
-        return Err("Unable to parse JSON: " + std::string(e.what()));
-    }
+    std::string error;
+    auto res = matjson::parse(str.value(), error);
+    if (error.size())
+        return Err("Unable to parse JSON: " + error);
+    return Ok(res.value());
 }
 
 Result<ByteVector> utils::file::readBinary(ghc::filesystem::path const& path) {
@@ -103,31 +102,29 @@ Result<> utils::file::writeBinary(ghc::filesystem::path const& path, ByteVector 
 }
 
 Result<> utils::file::createDirectory(ghc::filesystem::path const& path) {
-    try {
+    std::error_code ec;
 #ifdef GEODE_IS_WINDOWS
-        std::filesystem::create_directory(path.wstring());
+    std::filesystem::create_directory(path.wstring(), ec);
 #else
-        ghc::filesystem::create_directory(path);
+    ghc::filesystem::create_directory(path, ec);
 #endif
-        return Ok();
-    }
-    catch (...) {
+    if (ec) {
         return Err("Unable to create directory");
     }
+    return Ok();
 }
 
 Result<> utils::file::createDirectoryAll(ghc::filesystem::path const& path) {
-    try {
+    std::error_code ec;
 #ifdef GEODE_IS_WINDOWS
-        std::filesystem::create_directories(path.wstring());
+    std::filesystem::create_directories(path.wstring(), ec);
 #else
-        ghc::filesystem::create_directories(path);
+    ghc::filesystem::create_directories(path, ec);
 #endif
-        return Ok();
+    if (ec) {
+        return Err("Unable to create directory");
     }
-    catch (...) {
-        return Err("Unable to create directories");
-    }
+    return Ok();
 }
 
 Result<std::vector<ghc::filesystem::path>> utils::file::readDirectory(
@@ -546,7 +543,8 @@ Result<> Unzip::intoDir(
         GEODE_UNWRAP(unzip.extractAllTo(to));
     }
     if (deleteZipAfter) {
-        try { ghc::filesystem::remove(from); } catch(...) {}
+        std::error_code ec;
+        ghc::filesystem::remove(from, ec);
     }
     return Ok();
 }

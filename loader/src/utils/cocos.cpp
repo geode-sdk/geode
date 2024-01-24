@@ -1,8 +1,13 @@
 #include <Geode/modify/LoadingLayer.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <matjson.hpp>
+#include <charconv>
 
 using namespace geode::prelude;
+
+bool matjson::Serialize<ccColor3B>::is_json(matjson::Value const& json) {
+    return json.is_array() || json.is_object() || json.is_string();
+}
 
 matjson::Value matjson::Serialize<ccColor3B>::to_json(ccColor3B const& color) {
     return matjson::Object {
@@ -51,6 +56,10 @@ ccColor3B matjson::Serialize<ccColor3B>::from_json(matjson::Value const& json) {
         throw matjson::JsonException("Expected color to be array, object or hex string");
     }
     return color;
+}
+
+bool matjson::Serialize<ccColor4B>::is_json(matjson::Value const& json) {
+    return json.is_array() || json.is_object() || json.is_string();
 }
 
 matjson::Value matjson::Serialize<ccColor4B>::to_json(ccColor4B const& color) {
@@ -113,10 +122,8 @@ Result<ccColor3B> geode::cocos::cc3bFromHexString(std::string const& hexValue) {
         return Err("Hex value too large");
     }
     int numValue;
-    try {
-        numValue = std::stoi(hexValue, 0, 16);
-    }
-    catch (...) {
+    auto res = std::from_chars(hexValue.data(), hexValue.data() + hexValue.size(), numValue, 16);
+    if (res.ec != std::errc()) {
         return Err("Invalid hex value");
     }
     switch (hexValue.size()) {
@@ -156,10 +163,8 @@ Result<ccColor4B> geode::cocos::cc4bFromHexString(std::string const& hexValue) {
         return Err("Hex value too large");
     }
     int numValue;
-    try {
-        numValue = std::stoi(hexValue, 0, 16);
-    }
-    catch (...) {
+    auto res = std::from_chars(hexValue.data(), hexValue.data() + hexValue.size(), numValue, 16);
+    if (res.ec != std::errc()) {
         return Err("Invalid hex value");
     }
     switch (hexValue.size()) {

@@ -946,10 +946,8 @@ public:
     template<class T>
     std::optional<T> getAttribute(std::string const& attribute) {
         if (auto value = this->getAttributeInternal(attribute)) {
-            try {
+            if (value.value().template is<T>()) {
                 return value.value().template as<T>();
-            } catch(...) {
-                return std::nullopt;
             }
         }
         return std::nullopt;
