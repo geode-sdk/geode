@@ -27,24 +27,11 @@ static constexpr int const TAG_CONFIRM_UPDATE = 6;
 static constexpr int const TAG_CONFIRM_UNINSTALL_WITH_SAVEDATA = 7;
 static const CCSize LAYER_SIZE = {440.f, 290.f};
 
-bool ModInfoPopup::init(ModMetadata const& metadata, ModListLayer* list) {
+bool ModInfoPopup::setup(ModMetadata const& metadata, ModListLayer* list) {
     m_noElasticity = true;
     m_layer = list;
 
     auto winSize = CCDirector::sharedDirector()->getWinSize();
-
-    if (!this->initWithColor({0, 0, 0, 105})) return false;
-    m_mainLayer = CCLayer::create();
-    this->addChild(m_mainLayer);
-
-    auto bg = CCScale9Sprite::create("GJ_square01.png", {0.0f, 0.0f, 80.0f, 80.0f});
-    bg->setContentSize(LAYER_SIZE);
-    bg->setPosition(winSize.width / 2, winSize.height / 2);
-    bg->setZOrder(-10);
-    m_mainLayer->addChild(bg);
-
-    m_buttonMenu = CCMenu::create();
-    m_mainLayer->addChild(m_buttonMenu);
 
     constexpr float logoSize = 40.f;
     constexpr float logoOffset = 10.f;
@@ -176,19 +163,6 @@ bool ModInfoPopup::init(ModMetadata const& metadata, ModListLayer* list) {
         m_buttonMenu->addChild(supportBtn);
     }
 
-    auto closeSpr = CCSprite::createWithSpriteFrameName("GJ_closeBtn_001.png");
-    closeSpr->setScale(.8f);
-
-    auto closeBtn =
-        CCMenuItemSpriteExtra::create(closeSpr, this, menu_selector(ModInfoPopup::onClose));
-    closeBtn->setPosition(-LAYER_SIZE.width / 2 + 3.f, LAYER_SIZE.height / 2 - 3.f);
-    m_buttonMenu->addChild(closeBtn);
-
-    this->setKeypadEnabled(true);
-    this->setTouchEnabled(true);
-
-    cocos::handleTouchPriority(this);
-
     return true;
 }
 
@@ -265,18 +239,6 @@ void ModInfoPopup::onChangelog(CCObject* sender) {
             m_changelogArea->getScrollLayer()
     );
 }
-
-void ModInfoPopup::keyDown(enumKeyCodes key) {
-    if (key == KEY_Escape) return this->onClose(nullptr);
-    if (key == KEY_Space) return;
-
-    return FLAlertLayer::keyDown(key);
-}
-
-void ModInfoPopup::onClose(CCObject* pSender) {
-    this->setKeyboardEnabled(false);
-    this->removeFromParentAndCleanup(true);
-};
 
 void ModInfoPopup::setInstallStatus(std::optional<UpdateProgress> const& progress) {
     if (progress) {
@@ -394,7 +356,7 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
         m_installListener.setFilter(m_item->getMetadata().getID());
     m_mod = mod;
 
-    if (!ModInfoPopup::init(mod->getMetadata(), list)) return false;
+    if (!ModInfoPopup::init(LAYER_SIZE.width, LAYER_SIZE.height, mod->getMetadata(), list)) return false;
 
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
@@ -723,7 +685,7 @@ bool IndexItemInfoPopup::init(IndexItemHandle item, ModListLayer* list) {
 
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
-    if (!ModInfoPopup::init(item->getMetadata(), list)) return false;
+    if (!ModInfoPopup::init(LAYER_SIZE.width, LAYER_SIZE.height, item->getMetadata(), list)) return false;
 
     // bruh why is this here if we are allowing for browsing already installed mods
     // if (item->isInstalled()) return true;

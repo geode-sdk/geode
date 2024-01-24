@@ -26,7 +26,7 @@ public:
     void setStatus(std::string const& text);
 };
 
-class ModInfoPopup : public FLAlertLayer {
+class ModInfoPopup : public Popup<ModMetadata const&, ModListLayer*> {
 protected:
     ModListLayer* m_layer = nullptr;
     DownloadStatusNode* m_installStatus = nullptr;
@@ -45,10 +45,7 @@ protected:
     void onSupport(CCObject*);
     void onInfo(CCObject*);
 
-    bool init(ModMetadata const& metadata, ModListLayer* list);
-
-    void keyDown(cocos2d::enumKeyCodes) override;
-    void onClose(cocos2d::CCObject*);
+    bool setup(ModMetadata const& metadata, ModListLayer* list) override;
 
     void setInstallStatus(std::optional<UpdateProgress> const& progress);
 
