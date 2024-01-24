@@ -1,5 +1,8 @@
 # Geode Changelog
 
+## v2.0.0-beta.8
+ * Fix TulipHook arm32 relocation of conditional branch - blame Dobby (69b9b2d)
+
 ## v2.0.0-beta.7
  * MacOS Support! (9869ddc)
    * Huge thanks to @dankmeme01 for almost single-handedly making this work!
