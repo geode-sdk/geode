@@ -404,7 +404,7 @@ void GEODE_DLL geode::cocos::handleTouchPriorityWith(cocos2d::CCNode* node, int 
     }
 }
 void GEODE_DLL geode::cocos::handleTouchPriority(cocos2d::CCNode* node, bool force) {
-    Loader::get()->queueInMainThread([node]() {
+    Loader::get()->queueInMainThread([node, force]() {
         if (auto delegate = typeinfo_cast<CCTouchDelegate*>(node)) {
             if (auto handler = CCTouchDispatcher::get()->findHandler(delegate)) {
                 return handleTouchPriorityWith(node, handler->m_nPriority - 1, force);
