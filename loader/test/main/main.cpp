@@ -50,13 +50,13 @@ struct $modify(MenuLayer) {
         log::info("For global context:");
         log::pushNest();
         for (const auto& arg : Loader::get()->getLaunchArgumentNames()) {
-            log::info(arg);
+            log::info("{}", arg);
         }
         log::popNest();
         log::info("For this mod:");
         log::pushNest();
         for (const auto& arg : Mod::get()->getLaunchArgumentNames()) {
-            log::info(arg);
+            log::info("{}", arg);
         }
         log::popNest();
         log::info("Mod has launch arg 'modArg': {}", Mod::get()->hasLaunchArgument("modArg"));
