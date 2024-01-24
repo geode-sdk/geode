@@ -44,22 +44,63 @@ bool s_isNewUpdateDownloaded = false;
 
 void updater::fetchLatestGithubRelease(
     const utils::MiniFunction<void(matjson::Value const&)>& then,
-    utils::MiniFunction<void(std::string const&)> expect
+    utils::MiniFunction<void(std::string const&)> expect, bool force
 ) {
     if (s_latestGithubRelease) {
         return then(s_latestGithubRelease.value());
     }
+
+    std::string modifiedSince;
+    if (!force) {
+        modifiedSince = Mod::get()->getSavedValue("last-modified-github-release-check", std::string());
+    }
+
     // TODO: add header to not get rate limited
     web::AsyncWebRequest()
         .join("loader-auto-update-check")
+        .header("If-Modified-Since", modifiedSince)
         .userAgent("github_api/1.0")
         .fetch("https://api.github.com/repos/geode-sdk/geode/releases/latest")
         .json()
-        .then([then](matjson::Value const& json) {
+        .then([then](web::SentAsyncWebRequest& req, matjson::Value const& json) {
+            Mod::get()->setSavedValue("last-modified-auto-update-check", req.getResponseHeader("Last-Modified"));
             s_latestGithubRelease = json;
             then(json);
         })
         .expect(std::move(expect));
+}
+
+void updater::downloadLatestLoaderResources() {
+    log::debug("Downloading latest resources", Loader::get()->getVersion().toString());
+    fetchLatestGithubRelease(
+        [](matjson::Value const& raw) {
+            auto json = raw;
+            JsonChecker checker(json);
+            auto root = checker.root("[]").obj();
+
+            // find release asset
+            for (auto asset : root.needs("assets").iterate()) {
+                auto obj = asset.obj();
+                if (obj.needs("name").template get<std::string>() == "resources.zip") {
+                    updater::tryDownloadLoaderResources(
+                        obj.needs("browser_download_url").template get<std::string>(),
+                        false
+                    );
+                    return;
+                }
+            }
+
+            ResourceDownloadEvent(
+                UpdateFailed("Unable to find resources in latest GitHub release")
+            ).post();
+        },
+        [](std::string const& info) {
+            ResourceDownloadEvent(
+                UpdateFailed("Unable to download resources: " + info)
+            ).post();
+        },
+        true
+    );
 }
 
 void updater::tryDownloadLoaderResources(
@@ -118,62 +159,41 @@ void updater::updateSpecialFiles() {
 void updater::downloadLoaderResources(bool useLatestRelease) {
     web::AsyncWebRequest()
         .join("loader-tag-exists-check")
+        .header("If-Modified-Since", Mod::get()->getSavedValue("last-modified-tag-exists-check", std::string()))
         .userAgent("github_api/1.0")
-        .fetch(fmt::format(
-            "https://api.github.com/repos/geode-sdk/geode/git/ref/tags/{}",
-            Loader::get()->getVersion().toString()
-        ))
+        .fetch("https://api.github.com/repos/geode-sdk/geode/releases/tags/" + Loader::get()->getVersion().toString())
         .json()
-        .then([](matjson::Value const& json) {
-            updater::tryDownloadLoaderResources(fmt::format(
-                "https://github.com/geode-sdk/geode/releases/download/{}/resources.zip",
-                Loader::get()->getVersion().toString()
-            ), true);
-        })
-        .expect([=](std::string const& info, int code) {
-            if (code == 404) {
-                if (useLatestRelease) {
-                    log::debug("Loader version {} does not exist on Github, downloading latest resources", Loader::get()->getVersion().toString());
-                    fetchLatestGithubRelease(
-                        [](matjson::Value const& raw) {
-                            auto json = raw;
-                            JsonChecker checker(json);
-                            auto root = checker.root("[]").obj();
+        .then([](web::SentAsyncWebRequest& req, matjson::Value const& json) {
+            Mod::get()->setSavedValue("last-modified-tag-exists-check", req.getResponseHeader("Last-Modified"));
+            auto raw = json;
+            JsonChecker checker(raw);
+            auto root = checker.root("[]").obj();
 
-                            // find release asset
-                            for (auto asset : root.needs("assets").iterate()) {
-                                auto obj = asset.obj();
-                                if (obj.needs("name").template get<std::string>() == "resources.zip") {
-                                    updater::tryDownloadLoaderResources(
-                                        obj.needs("browser_download_url").template get<std::string>(),
-                                        false
-                                    );
-                                    return;
-                                }
-                            }
-
-                            ResourceDownloadEvent(
-                                UpdateFailed("Unable to find resources in latest GitHub release")
-                            ).post();
-                        },
-                        [](std::string const& info) {
-                            ResourceDownloadEvent(
-                                UpdateFailed("Unable to download resources: " + info)
-                            ).post();
-                        }
+            // find release asset
+            for (auto asset : root.needs("assets").iterate()) {
+                auto obj = asset.obj();
+                if (obj.needs("name").template get<std::string>() == "resources.zip") {
+                    updater::tryDownloadLoaderResources(
+                        obj.needs("browser_download_url").template get<std::string>(),
+                        false
                     );
                     return;
                 }
-                else {
-                    log::debug("Loader version {} does not exist on GitHub, not downloading the resources", Loader::get()->getVersion().toString());
-                }
-                ResourceDownloadEvent(
-                    UpdateFinished()
-                ).post();
+            }
+
+            ResourceDownloadEvent(
+                UpdateFailed("Unable to find resources in release")
+            ).post();
+        })
+        .expect([=](std::string const& info, int code) {
+            if (useLatestRelease) {
+                log::debug("Loader version {} does not exist, trying to download latest resources");
+                downloadLatestLoaderResources();
             }
             else {
+                log::debug("Loader version {} does not exist on GitHub, not downloading the resources", Loader::get()->getVersion().toString());
                 ResourceDownloadEvent(
-                    UpdateFailed("Unable to check if tag exists: " + info)
+                    UpdateFinished()
                 ).post();
             }
         });

@@ -60,6 +60,7 @@ namespace geode::utils::web {
     using AsyncExpectCode = utils::MiniFunction<void(std::string const&, int)>;
     using AsyncThen = utils::MiniFunction<void(SentAsyncWebRequest&, ByteVector const&)>;
     using AsyncCancelled = utils::MiniFunction<void(SentAsyncWebRequest&)>;
+    using AsyncResponseHeader = utils::MiniFunction<void(std::unordered_map<std::string, std::string> const&)>;
 
     /**
      * A handle to an in-progress sent asynchronous web request. Use this to
@@ -97,6 +98,11 @@ namespace geode::utils::web {
          * Check if the request is finished
          */
         bool finished() const;
+
+        /**
+         * Get the response header of the request. Only valid after the request
+         */
+        std::string getResponseHeader(std::string_view header) const;
     };
 
     using SentAsyncWebRequestHandle = std::shared_ptr<SentAsyncWebRequest>;

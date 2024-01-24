@@ -151,6 +151,7 @@ private:
     std::vector<AsyncExpectCode> m_expects;
     std::vector<AsyncProgress> m_progresses;
     std::vector<AsyncCancelled> m_cancelleds;
+    std::unordered_map<std::string, std::string> m_responseHeader;
     Status m_status = Status::Paused;
     std::atomic<bool> m_paused = true;
     std::atomic<bool> m_cancelled = false;
@@ -184,6 +185,12 @@ public:
     Impl(SentAsyncWebRequest* self, AsyncWebRequest const&, std::string const& id);
     void cancel();
     bool finished() const;
+
+    std::string getResponseHeader(std::string_view header) const {
+        auto it = m_responseHeader.find(std::string(header));
+        if (it == m_responseHeader.end()) return "";
+        return it->second;
+    }
 
     friend class SentAsyncWebRequest;
 };
@@ -324,6 +331,28 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
             std::ofstream* file;
         } data{this, file.get()};
 
+        curl_easy_setopt(curl, CURLOPT_HEADERDATA, &data);
+        curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, +[](char* buffer, size_t size, size_t nitems, void* ptr){
+            auto data = static_cast<ProgressData*>(ptr);
+            std::string header;
+            header.append(buffer, size * nitems); 
+            // send the header to the response header callback
+            Loader::get()->queueInMainThread([self = data->self, header]() {
+                std::unordered_map<std::string, std::string> headers;
+                std::string line;
+                std::stringstream ss(header);
+                while (std::getline(ss, line)) {
+                    auto colon = line.find(':');
+                    if (colon == std::string::npos) continue;
+                    auto key = line.substr(0, colon);
+                    auto value = line.substr(colon + 1);
+                    headers[key] = value;
+                }
+                self->m_responseHeader = std::move(headers);
+            });
+            return size * nitems;
+        });
+
         curl_easy_setopt(
             curl,
             CURLOPT_PROGRESSFUNCTION,
@@ -461,6 +490,10 @@ std::shared_ptr<SentAsyncWebRequest> SentAsyncWebRequest::create(AsyncWebRequest
     ret->m_impl = std::move(std::make_shared<SentAsyncWebRequest::Impl>(ret.get(), request, id));
     return ret;
 }
+std::string SentAsyncWebRequest::getResponseHeader(std::string_view header) const {
+    return m_impl->getResponseHeader(header);
+}
+
 void SentAsyncWebRequest::doCancel() {
     return m_impl->doCancel();
 }
