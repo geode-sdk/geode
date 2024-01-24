@@ -151,12 +151,12 @@ namespace geode {
         template <class T>
         JsonMaybeValue& validate(JsonValueValidator<T> validator) {
             if (this->isError()) return *this;
-            try {
+            if (self().m_json.template is<T>()) {
                 if (!validator(self().m_json.template as<T>())) {
                     this->setError(self().m_hierarchy + ": Invalid value format");
                 }
             }
-            catch (...) {
+            else {
                 this->setError(
                     self().m_hierarchy + ": Invalid type \"" +
                     std::string(jsonValueTypeToString(self().m_json.type())) + "\""
@@ -193,13 +193,13 @@ namespace geode {
             this->inferType<A>();
             if (this->isError()) return *this;
 
-            try {
+            if (self().m_json.template is<A>()) {
                 target = self().m_json.template as<A>();
             }
-            catch (...) {
+            else {
                 this->setError(
                     self().m_hierarchy + ": Invalid type \"" +
-                    jsonValueTypeToString(self().m_json.type()) + "\""
+                    std::string(jsonValueTypeToString(self().m_json.type())) + "\""
                 );
             }
 
@@ -210,23 +210,8 @@ namespace geode {
         T get() {
             this->inferType<T>();
             if (this->isError()) return T();
-            try {
-
-                constexpr auto type = getJsonType<T>();
-
-                if constexpr (type == value_t::Number) {
-                    return self().m_json.as_double();
-                } else if constexpr (type == value_t::Bool) {
-                    return self().m_json.as_bool();
-                } else if constexpr (type == value_t::String) {
-                    return self().m_json.as_string();
-                }
-            }
-            catch (...) {
-                this->setError(
-                    self().m_hierarchy + ": Invalid type to get \"" +
-                    std::string(jsonValueTypeToString(self().m_json.type())) + "\""
-                );
+            if (self().m_json.template is<T>()) {
+                return self().m_json.template as<T>();
             }
             return T();
         }

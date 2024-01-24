@@ -161,17 +161,15 @@ bool SearchFilterPopup::setup(ModListLayer* layer, ModListType type) {
 }
 
 void SearchFilterPopup::onTag(CCObject* sender) {
-    try {
-        auto toggle = static_cast<CCMenuItemToggler*>(sender);
-        auto tag = static_cast<CCString*>(toggle->getUserObject())->getCString();
-        if (!toggle->isToggled()) {
-            m_modLayer->getQuery().tags.insert(tag);
-        }
-        else {
+    auto toggle = static_cast<CCMenuItemToggler*>(sender);
+    auto tag = static_cast<CCString*>(toggle->getUserObject())->getCString();
+    if (!toggle->isToggled()) {
+        m_modLayer->getQuery().tags.insert(tag);
+    }
+    else {
+        if (m_modLayer->getQuery().tags.count(tag) > 0) {
             m_modLayer->getQuery().tags.erase(tag);
         }
-    }
-    catch (...) {
     }
 }
 

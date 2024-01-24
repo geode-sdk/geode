@@ -206,23 +206,32 @@ static Result<> flattenGithubRepo(ghc::filesystem::path const& dir) {
     // own folder for that so let's just bring everything from that 
     // folder to ours
     GEODE_UNWRAP_INTO(auto files, file::readDirectory(dir));
-    try {
-        // only flatten if there is only one file and it's a directory
-        if (files.size() == 1 && ghc::filesystem::is_directory(files[0])) {
-            for (auto& file : ghc::filesystem::directory_iterator(files[0])) {
-                #ifdef GEODE_IS_WINDOWS
-                ghc::filesystem::path const relative = std::filesystem::relative(file.path().wstring(), files[0].wstring()).wstring();
-                #else
-                auto const relative = ghc::filesystem::relative(file, files[0]);
-                #endif
-                ghc::filesystem::rename(
-                    file, dir / relative
-                );
+    std::error_code ec;
+    // only flatten if there is only one file and it's a directory
+    if (files.size() == 1 && ghc::filesystem::is_directory(files[0], ec)) {
+        for (auto& file : ghc::filesystem::directory_iterator(files[0])) {
+            #ifdef GEODE_IS_WINDOWS
+            ghc::filesystem::path const relative = std::filesystem::relative(file.path().wstring(), files[0].wstring(), ec).wstring();
+            #else
+            auto const relative = ghc::filesystem::relative(file, files[0], ec);
+            #endif
+            if (ec) {
+                return Err(fmt::format("Unable to get relative path: {}", ec.message()));
             }
-            ghc::filesystem::remove(files[0]);
+            ghc::filesystem::rename(
+                file, dir / relative, ec
+            );
+            if (ec) {
+                return Err(fmt::format("Unable to move file: {}", ec.message()));
+            }
         }
-    } catch(std::exception& e) {
-        return Err(e.what());
+        ghc::filesystem::remove(files[0], ec);
+        if (ec) {
+            return Err(fmt::format("Unable to remove directory: {}", ec.message()));
+        }
+    }
+    else {
+        log::warn("Unable to flatten github repo: {}", dir);
     }
     return Ok();
 }
@@ -310,14 +319,13 @@ void Index::Impl::downloadIndex(std::string commitHash) {
         .then([this, targetFile, commitHash](auto) {
             auto targetDir = dirs::getIndexDir() / "v0";
             // delete old unzipped index
-            try {
-                if (ghc::filesystem::exists(targetDir)) {
-                    ghc::filesystem::remove_all(targetDir);
+            std::error_code ec;
+            if (ghc::filesystem::exists(targetDir, ec)) {
+                ghc::filesystem::remove_all(targetDir, ec);
+                if (ec) {
+                    IndexUpdateEvent(UpdateFailed(fmt::format("Unable to clear cached index: {}", ec.message()))).post();
+                    return;
                 }
-            }
-            catch(...) {
-                IndexUpdateEvent(UpdateFailed("Unable to clear cached index")).post();
-                return;
             }
 
             std::thread([=, this]() {
@@ -722,15 +730,15 @@ void Index::Impl::installNext(size_t index, IndexInstallList const& list) {
             }
 
             // Move the temp file
-            try {
-                ghc::filesystem::rename(
-                    dirs::getTempDir() / (item->getMetadata().getID() + ".index"),
-                    dirs::getModsDir() / (item->getMetadata().getID() + ".geode")
-                );
-            } catch(std::exception& e) {
+            std::error_code ec;
+            ghc::filesystem::rename(
+                dirs::getTempDir() / (item->getMetadata().getID() + ".index"),
+                dirs::getModsDir() / (item->getMetadata().getID() + ".geode"), ec
+            );
+            if (ec) {
                 return postError(fmt::format(
-                    "Unable to install {}: {}",
-                    item->getMetadata().getID(), e.what()
+                    "Unable to move downloaded file for {}: {}",
+                    item->getMetadata().getID(), ec.message()
                 ));
             }
         }

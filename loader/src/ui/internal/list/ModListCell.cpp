@@ -448,27 +448,28 @@ void InvalidGeodeFileCell::onInfo(CCObject*) {
 
 void InvalidGeodeFileCell::FLAlert_Clicked(FLAlertLayer*, bool btn2) {
     if (btn2) {
-        try {
-            if (ghc::filesystem::remove(m_info.path)) {
+        std::error_code ec;
+        if (ghc::filesystem::remove(m_info.path, ec)) {
+            FLAlertLayer::create(
+                "File Removed", "Removed <cy>" + m_info.path.string() + "</c>", "OK"
+            )->show();
+        }
+        else {
+            if (ec) {
                 FLAlertLayer::create(
-                    "File Removed", "Removed <cy>" + m_info.path.string() + "</c>", "OK"
+                    "Unable to Remove File",
+                    "Unable to remove <cy>" + m_info.path.string() + "</c>: <cr>" +
+                        ec.message() + "</c>",
+                    "OK"
                 )->show();
             }
             else {
                 FLAlertLayer::create(
                     "Unable to Remove File",
-                    "Unable to remove <cy>" + m_info.path.string() + "</c>", "OK"
+                    "Unable to remove <cy>" + m_info.path.string() + "</c>",
+                    "OK"
                 )->show();
             }
-        }
-        catch (std::exception& e) {
-            FLAlertLayer::create(
-                "Unable to Remove File",
-                "Unable to remove <cy>" + m_info.path.string() + "</c>: <cr>" +
-                    std::string(e.what()) + "</c>",
-                "OK"
-            )
-                ->show();
         }
         if (m_layer) {
             m_layer->reloadList();

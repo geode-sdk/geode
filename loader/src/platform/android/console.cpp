@@ -35,5 +35,6 @@ void console::log(std::string const& msg, Severity severity) {
 }
 
 void console::messageBox(char const* title, std::string const& info, Severity severity) {
-    cocos2d::CCMessageBox(info.c_str(), title);
+    console::log(info, severity);
+    // cocos2d::CCMessageBox(info.c_str(), title);
 }

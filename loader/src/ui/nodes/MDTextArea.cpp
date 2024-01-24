@@ -8,6 +8,7 @@
 #include <Geode/utils/ranges.hpp>
 #include <Geode/utils/string.hpp>
 #include <md4c.h>
+#include <charconv>
 
 using namespace geode::prelude;
 
@@ -72,13 +73,12 @@ public:
 Result<ccColor3B> colorForIdentifier(std::string const& tag) {
     if (utils::string::contains(tag, ' ')) {
         auto hexStr = utils::string::split(utils::string::normalize(tag), " ").at(1);
-        try {
-            auto hex = std::stoi(hexStr, nullptr, 16);
-            return Ok(cc3x(hex));
-        }
-        catch (...) {
+        int hex = 0;
+        auto res = std::from_chars(hexStr.data(), hexStr.data() + hexStr.size(), hex, 16);
+        if (res.ec != std::errc()) {
             return Err("Invalid hex");
         }
+        return Ok(cc3x(hex));
     }
     else {
         auto colorText = tag.substr(1);
@@ -180,10 +180,9 @@ void MDTextArea::onGDProfile(CCObject* pSender) {
     auto href = as<CCString*>(as<CCNode*>(pSender)->getUserObject());
     auto profile = std::string(href->getCString());
     profile = profile.substr(profile.find(":") + 1);
-    try {
-        ProfilePage::create(std::stoi(profile), false)->show();
-    }
-    catch (...) {
+    int id = 0;
+    auto res = std::from_chars(profile.data(), profile.data() + profile.size(), id);
+    if (res.ec != std::errc()) {
         FLAlertLayer::create(
             "Error",
             "Invalid profile ID: <cr>" + profile +
@@ -192,7 +191,9 @@ void MDTextArea::onGDProfile(CCObject* pSender) {
             "OK"
         )
             ->show();
+        return;
     }
+    ProfilePage::create(id, false)->show();
 }
 
 void MDTextArea::FLAlert_Clicked(FLAlertLayer* layer, bool btn) {

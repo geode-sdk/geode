@@ -18,6 +18,9 @@ struct matjson::Serialize<ghc::filesystem::path> {
     static ghc::filesystem::path from_json(matjson::Value const& value) {
         return value.as_string();
     }
+    static bool is_json(matjson::Value const& value) {
+        return value.is_string();
+    }
 };
 
 namespace geode::utils::file {
@@ -28,12 +31,10 @@ namespace geode::utils::file {
     template <class T>
     Result<T> readFromJson(ghc::filesystem::path const& file) {
         GEODE_UNWRAP_INTO(auto json, readJson(file));
-        try {
-            return json.template as<T>();
+        if (!json.template is<T>()) {
+            return Err("JSON is not of type {}", typeid(T).name());
         }
-        catch(std::exception& e) {
-            return Err("Error parsing JSON: {}", e.what());
-        }
+        return json.template as<T>();
     }
 
     GEODE_DLL Result<> writeString(ghc::filesystem::path const& path, std::string const& data);
@@ -41,13 +42,8 @@ namespace geode::utils::file {
 
     template <class T>
     Result<> writeToJson(ghc::filesystem::path const& path, T const& data) {
-        try {
-            GEODE_UNWRAP(writeString(path, matjson::Value(data).dump()));
-            return Ok();
-        }
-        catch(std::exception& e) {
-            return Err("Error serializing JSON: {}", e.what());
-        }
+        GEODE_UNWRAP(writeString(path, matjson::Value(data).dump()));
+        return Ok();
     }
 
     GEODE_DLL Result<> createDirectory(ghc::filesystem::path const& path);
