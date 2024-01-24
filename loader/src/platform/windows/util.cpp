@@ -76,7 +76,13 @@ bool utils::file::openFolder(ghc::filesystem::path const& path) {
     auto success = false;
     if (CoInitializeEx(nullptr, COINIT_MULTITHREADED) == S_OK) {
         if (auto id = ILCreateFromPathW(path.wstring().c_str())) {
-            if (SHOpenFolderAndSelectItems(id, 0, nullptr, 0) == S_OK) {
+            ghc::filesystem::path selectPath = path / ".";
+            std::error_code whatever;
+            if (!ghc::filesystem::is_directory(path, whatever)) {
+                selectPath = path;
+            }
+            auto selectEntry = ILCreateFromPathW(selectPath.wstring().c_str());
+            if (SHOpenFolderAndSelectItems(id, 1, (PCUITEMID_CHILD_ARRAY)(&selectEntry), 0) == S_OK) {
                 success = true;
             }
             ILFree(id);
