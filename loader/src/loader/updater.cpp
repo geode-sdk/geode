@@ -187,7 +187,7 @@ void updater::downloadLoaderResources(bool useLatestRelease) {
         })
         .expect([=](std::string const& info, int code) {
             if (useLatestRelease) {
-                log::debug("Loader version {} does not exist, trying to download latest resources");
+                log::debug("Loader version {} does not exist, trying to download latest resources", Loader::get()->getVersion().toString());
                 downloadLatestLoaderResources();
             }
             else {
