@@ -51,6 +51,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         GEODE_FORWARD_COMPAT_DISABLE_HOOKS_INNER("MenuLayer stuff disabled")
     }
 
+    bool m_menuDisabled;
     CCSprite* m_geodeButton;
 
     bool init() {
@@ -62,35 +63,38 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 
         auto winSize = CCDirector::sharedDirector()->getWinSize();
 
+        m_fields->m_menuDisabled = Loader::get()->getLaunchBool("disable-custom-menu");
+
         // add geode button
-
-        m_fields->m_geodeButton = CircleButtonSprite::createWithSpriteFrameName(
-            "geode-logo-outline-gold.png"_spr,
-            1.0f,
-            CircleBaseColor::Green,
-            CircleBaseSize::MediumAlt
-        );
-        auto geodeBtnSelector = &CustomMenuLayer::onGeode;
-        if (!m_fields->m_geodeButton) {
-            geodeBtnSelector = &CustomMenuLayer::onMissingTextures;
-            m_fields->m_geodeButton = ButtonSprite::create("!!");
-        }
-
-        auto bottomMenu = static_cast<CCMenu*>(this->getChildByID("bottom-menu"));
-
-        auto btn = CCMenuItemSpriteExtra::create(
-            m_fields->m_geodeButton, this,
-            static_cast<SEL_MenuHandler>(geodeBtnSelector)
-        );
-        btn->setID("geode-button"_spr);
-        bottomMenu->addChild(btn);
-
-        bottomMenu->updateLayout();
-
-        if (auto node = this->getChildByID("settings-gamepad-icon")) {
-            node->setPositionX(
-                bottomMenu->getChildByID("settings-button")->getPositionX() + winSize.width / 2
+        if (!m_fields->m_menuDisabled) {
+            m_fields->m_geodeButton = CircleButtonSprite::createWithSpriteFrameName(
+                "geode-logo-outline-gold.png"_spr,
+                1.0f,
+                CircleBaseColor::Green,
+                CircleBaseSize::MediumAlt
             );
+            auto geodeBtnSelector = &CustomMenuLayer::onGeode;
+            if (!m_fields->m_geodeButton) {
+                geodeBtnSelector = &CustomMenuLayer::onMissingTextures;
+                m_fields->m_geodeButton = ButtonSprite::create("!!");
+            }
+
+            auto bottomMenu = static_cast<CCMenu*>(this->getChildByID("bottom-menu"));
+
+            auto btn = CCMenuItemSpriteExtra::create(
+                m_fields->m_geodeButton, this,
+                static_cast<SEL_MenuHandler>(geodeBtnSelector)
+            );
+            btn->setID("geode-button"_spr);
+            bottomMenu->addChild(btn);
+
+            bottomMenu->updateLayout();
+
+            if (auto node = this->getChildByID("settings-gamepad-icon")) {
+                node->setPositionX(
+                    bottomMenu->getChildByID("settings-button")->getPositionX() + winSize.width / 2
+                );
+            }
         }
 
         // show if some mods failed to load
@@ -168,7 +172,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         }
 
         // update mods index
-        if (!INDEX_UPDATE_NOTIF && !Index::get()->hasTriedToUpdate()) {
+        if (!m_fields->m_menuDisabled && !INDEX_UPDATE_NOTIF && !Index::get()->hasTriedToUpdate()) {
             this->addChild(EventListenerNode<IndexUpdateFilter>::create(
                 this, &CustomMenuLayer::onIndexUpdate
             ));
@@ -195,7 +199,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
     }
 
     void addUpdateIndicator() {
-        if (Index::get()->areUpdatesAvailable()) {
+        if (!m_fields->m_menuDisabled && Index::get()->areUpdatesAvailable()) {
             auto icon = CCSprite::createWithSpriteFrameName("updates-available.png"_spr);
             icon->setPosition(
                 m_fields->m_geodeButton->getContentSize() - CCSize { 10.f, 10.f }
