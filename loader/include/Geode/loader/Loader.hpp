@@ -94,7 +94,7 @@ namespace geode {
         bool hasLaunchArgument(std::string_view const name) const;
         /**
          * Get a launch argument. These are passed into the game as command-line arguments
-         * with the format `-geode:argName=value`.
+         * with the format `--geode:argName=value`.
          * @param name The argument name
          * @return The value, if present
          */
