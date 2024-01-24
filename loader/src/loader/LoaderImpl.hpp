@@ -25,7 +25,7 @@
 
 // TODO: Find a file convention for impl headers
 namespace geode {
-    constexpr std::string LAUNCH_ARG_PREFIX = "--geode:";
+    static constexpr std::string_view LAUNCH_ARG_PREFIX = "--geode:";
 
     class Loader::Impl {
     public:
