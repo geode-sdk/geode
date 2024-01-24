@@ -1,5 +1,8 @@
 # Geode Changelog
 
+## v2.0.0-beta.9
+ * Make the index population async as well (3b3e174)
+
 ## v2.0.0-beta.8
  * Fix TulipHook arm32 relocation of conditional branch - blame Dobby (69b9b2d)
  * Remove try-catch blocks, replacing them with other means of handling (065d0c4)
