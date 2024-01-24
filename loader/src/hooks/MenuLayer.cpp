@@ -63,7 +63,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 
         auto winSize = CCDirector::sharedDirector()->getWinSize();
 
-        m_fields->m_menuDisabled = Loader::get()->getLaunchBool("disable-custom-menu");
+        m_fields->m_menuDisabled = Loader::get()->getLaunchFlag("disable-custom-menu");
 
         // add geode button
         if (!m_fields->m_menuDisabled) {

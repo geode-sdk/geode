@@ -119,7 +119,7 @@ namespace geode {
         std::vector<std::string> getLaunchArgumentNames() const;
         bool hasLaunchArgument(std::string_view const name) const;
         std::optional<std::string> getLaunchArgument(std::string_view const name) const;
-        bool getLaunchBool(std::string_view const name) const;
+        bool getLaunchFlag(std::string_view const name) const;
 
         void updateResources(bool forceReload);
 

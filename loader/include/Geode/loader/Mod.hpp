@@ -173,7 +173,7 @@ namespace geode {
          * for details about mod-specific launch arguments.
          * @param name The argument name
          */
-        bool getLaunchBool(std::string_view const name) const;
+        bool getLaunchFlag(std::string_view const name) const;
 
         matjson::Value& getSaveContainer();
 

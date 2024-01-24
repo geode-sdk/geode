@@ -354,8 +354,8 @@ std::optional<std::string> Mod::Impl::getLaunchArgument(std::string_view const n
     return Loader::get()->getLaunchArgument(this->getLaunchArgName(name));
 }
 
-bool Mod::Impl::getLaunchBool(std::string_view const name) const {
-    return Loader::get()->getLaunchBool(this->getLaunchArgName(name));
+bool Mod::Impl::getLaunchFlag(std::string_view const name) const {
+    return Loader::get()->getLaunchFlag(this->getLaunchArgName(name));
 }
 
 // Loading, Toggling, Installing

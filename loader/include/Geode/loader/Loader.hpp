@@ -104,7 +104,7 @@ namespace geode {
          * value is exactly `true`.
          * @param name The argument name
          */
-        bool getLaunchBool(std::string_view const name) const;
+        bool getLaunchFlag(std::string_view const name) const;
 
         void queueInMainThread(ScheduledFunction func);
 

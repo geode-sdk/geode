@@ -48,7 +48,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
 
         if (!LoadingLayer::init(fromReload)) return false;
         
-        m_fields->m_menuDisabled = Loader::get()->getLaunchBool("disable-custom-menu");
+        m_fields->m_menuDisabled = Loader::get()->getLaunchFlag("disable-custom-menu");
         if (m_fields->m_menuDisabled) {
             return true;
         }

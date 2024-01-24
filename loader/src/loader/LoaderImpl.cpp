@@ -559,7 +559,7 @@ void Loader::Impl::refreshModGraph() {
 
     m_problems.clear();
 
-    if (Loader::get()->getLaunchBool("safe-mode")) {
+    if (Loader::get()->getLaunchFlag("safe-mode")) {
         log::debug("Launched in Safe Mode. Skipping mod loading...");
         m_loadingState = LoadingState::Done;
         return;
@@ -782,7 +782,7 @@ std::optional<std::string> Loader::Impl::getLaunchArgument(std::string_view cons
     return std::optional(value->second);
 }
 
-bool Loader::Impl::getLaunchBool(std::string_view const name) const {
+bool Loader::Impl::getLaunchFlag(std::string_view const name) const {
     auto arg = this->getLaunchArgument(name);
     return arg.has_value() && arg.value() == "true";
 }
