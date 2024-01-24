@@ -559,6 +559,12 @@ void Loader::Impl::refreshModGraph() {
 
     m_problems.clear();
 
+    if (Loader::get()->getLaunchBool("safe-mode")) {
+        log::debug("Launched in Safe Mode. Skipping mod loading...");
+        m_loadingState = LoadingState::Done;
+        return;
+    }
+
     m_loadingState = LoadingState::Queue;
     log::debug("Queueing mods");
     log::pushNest();
