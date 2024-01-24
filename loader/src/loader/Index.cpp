@@ -308,19 +308,21 @@ void Index::Impl::downloadIndex(std::string commitHash) {
         .fetch("https://github.com/geode-sdk/mods/zipball/main")
         .into(targetFile)
         .then([this, targetFile, commitHash](auto) {
-            auto targetDir = dirs::getIndexDir() / "v0";
-            // delete old unzipped index
-            try {
-                if (ghc::filesystem::exists(targetDir)) {
-                    ghc::filesystem::remove_all(targetDir);
-                }
-            }
-            catch(...) {
-                IndexUpdateEvent(UpdateFailed("Unable to clear cached index")).post();
-                return;
-            }
-
             std::thread([=, this]() {
+                auto targetDir = dirs::getIndexDir() / "v0";
+                // delete old unzipped index
+                try {
+                    if (ghc::filesystem::exists(targetDir)) {
+                        ghc::filesystem::remove_all(targetDir);
+                    }
+                }
+                catch(...) {
+                    Loader::get()->queueInMainThread([] {
+                        IndexUpdateEvent(UpdateFailed("Unable to clear cached index")).post();
+                    });
+                    return;
+                }
+
                 // unzip new index
                 log::debug("Unzipping index");
                 IndexUpdateEvent(UpdateProgress(100, "Unzipping index")).post();
