@@ -414,6 +414,27 @@ void GEODE_DLL geode::cocos::handleTouchPriority(cocos2d::CCNode* node) {
     });
 }
 
+void GEODE_DLL geode::cocos::forceTouchPriorityWith(cocos2d::CCNode* node, int priority) {
+    for (auto child : CCArrayExt<CCNode*>(node->getChildren())) {
+        if (auto delegate = typeinfo_cast<CCTouchDelegate*>(child)) {
+            if (auto handler = CCTouchDispatcher::get()->findHandler(delegate)) {
+                CCTouchDispatcher::get()->setPriority(priority, delegate);
+            }
+        }
+        forceTouchPriorityWith(child, priority);
+    }
+}
+void GEODE_DLL geode::cocos::forceTouchPriority(cocos2d::CCNode* node) {
+    Loader::get()->queueInMainThread([node]() {
+        if (auto delegate = typeinfo_cast<CCTouchDelegate*>(node)) {
+            if (auto handler = CCTouchDispatcher::get()->findHandler(delegate)) {
+                return forceTouchPriorityWith(node, handler->m_nPriority - 1);
+            }
+        }
+        forceTouchPriorityWith(node, 0);
+    });
+}
+
 struct LoadingFinished : Modify<LoadingFinished, LoadingLayer> {
     GEODE_FORWARD_COMPAT_DISABLE_HOOKS("geode::cocos::reloadTextures disabled")
     void loadAssets() {
