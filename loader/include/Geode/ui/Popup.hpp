@@ -51,6 +51,8 @@ namespace geode {
             this->setKeypadEnabled(true);
             this->setTouchEnabled(true);
 
+            cocos::handleTouchPriority(this);
+
             return true;
         }
 

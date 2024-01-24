@@ -187,6 +187,8 @@ bool ModInfoPopup::init(ModMetadata const& metadata, ModListLayer* list) {
     this->setKeypadEnabled(true);
     this->setTouchEnabled(true);
 
+    cocos::handleTouchPriority(this);
+
     return true;
 }
 

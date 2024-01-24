@@ -1114,4 +1114,7 @@ namespace geode::cocos {
             return m_dict;
         }
     };
+
+    void GEODE_DLL handleTouchPriorityWith(cocos2d::CCTouchDelegate* delegate, int priority);
+    void GEODE_DLL handleTouchPriority(cocos2d::CCTouchDelegate* delegate);
 }
