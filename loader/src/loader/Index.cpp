@@ -507,10 +507,12 @@ std::vector<IndexItemHandle> Index::getItems() const {
 }
 
 std::vector<IndexItemHandle> Index::getLatestItems() const {
-    std::scoped_lock lock(m_impl->m_itemsMutex);
+    std::unique_lock<std::mutex> lock(m_impl->m_itemsMutex);
     std::vector<IndexItemHandle> res;
     for (auto& [modID, versions] : m_impl->m_items) {
+        lock.unlock();
         res.push_back(this->getMajorItem(modID));
+        lock.lock();
     }
     return res;
 }
@@ -577,7 +579,7 @@ IndexItemHandle Index::getItem(
     std::string const& id,
     std::optional<VersionInfo> version
 ) const {
-    std::scoped_lock lock(m_impl->m_itemsMutex);
+    std::unique_lock<std::mutex> lock(m_impl->m_itemsMutex);
     if (m_impl->m_items.count(id)) {
         auto versions = m_impl->m_items.at(id);
         if (version) {
@@ -588,6 +590,7 @@ IndexItemHandle Index::getItem(
             }
         }
     }
+    lock.unlock();
     return this->getMajorItem(id);
 }
 
