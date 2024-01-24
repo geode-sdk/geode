@@ -387,12 +387,12 @@ void geode::cocos::reloadTextures(CreateLayerFunc returnTo) {
     GameManager::get()->reloadAll(false, false, true);
 }
 
-void GEODE_DLL geode::cocos::handleTouchPriorityWith(cocos2d::CCNode* node, int priority) {
+void GEODE_DLL geode::cocos::handleTouchPriorityWith(cocos2d::CCNode* node, int priority, bool force) {
     for (auto child : CCArrayExt<CCNode*>(node->getChildren())) {
         if (auto delegate = typeinfo_cast<CCTouchDelegate*>(child)) {
             if (auto handler = CCTouchDispatcher::get()->findHandler(delegate)) {
-                if (handler->m_nPriority < priority) {
-                    handleTouchPriorityWith(child, handler->m_nPriority - 1);
+                if (!force && handler->m_nPriority < priority) {
+                    handleTouchPriorityWith(child, handler->m_nPriority - 1, force);
                     continue;
                 }
                 else {
@@ -400,38 +400,17 @@ void GEODE_DLL geode::cocos::handleTouchPriorityWith(cocos2d::CCNode* node, int 
                 }
             }
         }
-        handleTouchPriorityWith(child, priority);
+        handleTouchPriorityWith(child, priority, force);
     }
 }
-void GEODE_DLL geode::cocos::handleTouchPriority(cocos2d::CCNode* node) {
+void GEODE_DLL geode::cocos::handleTouchPriority(cocos2d::CCNode* node, bool force) {
     Loader::get()->queueInMainThread([node]() {
         if (auto delegate = typeinfo_cast<CCTouchDelegate*>(node)) {
             if (auto handler = CCTouchDispatcher::get()->findHandler(delegate)) {
-                return handleTouchPriorityWith(node, handler->m_nPriority - 1);
+                return handleTouchPriorityWith(node, handler->m_nPriority - 1, force);
             }
         }
-        handleTouchPriorityWith(node, 0);
-    });
-}
-
-void GEODE_DLL geode::cocos::forceTouchPriorityWith(cocos2d::CCNode* node, int priority) {
-    for (auto child : CCArrayExt<CCNode*>(node->getChildren())) {
-        if (auto delegate = typeinfo_cast<CCTouchDelegate*>(child)) {
-            if (auto handler = CCTouchDispatcher::get()->findHandler(delegate)) {
-                CCTouchDispatcher::get()->setPriority(priority, delegate);
-            }
-        }
-        forceTouchPriorityWith(child, priority);
-    }
-}
-void GEODE_DLL geode::cocos::forceTouchPriority(cocos2d::CCNode* node) {
-    Loader::get()->queueInMainThread([node]() {
-        if (auto delegate = typeinfo_cast<CCTouchDelegate*>(node)) {
-            if (auto handler = CCTouchDispatcher::get()->findHandler(delegate)) {
-                return forceTouchPriorityWith(node, handler->m_nPriority - 1);
-            }
-        }
-        forceTouchPriorityWith(node, 0);
+        handleTouchPriorityWith(node, 0, force);
     });
 }
 

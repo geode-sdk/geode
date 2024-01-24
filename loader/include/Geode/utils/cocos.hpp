@@ -1115,9 +1115,6 @@ namespace geode::cocos {
         }
     };
 
-    void GEODE_DLL handleTouchPriorityWith(cocos2d::CCNode* node, int priority);
-    void GEODE_DLL handleTouchPriority(cocos2d::CCNode* node);
-
-    void GEODE_DLL forceTouchPriorityWith(cocos2d::CCNode* node, int priority);
-    void GEODE_DLL forceTouchPriority(cocos2d::CCNode* node);
+    void GEODE_DLL handleTouchPriorityWith(cocos2d::CCNode* node, int priority, bool force = false);
+    void GEODE_DLL handleTouchPriority(cocos2d::CCNode* node, bool force = false);
 }
