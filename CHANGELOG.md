@@ -2,6 +2,8 @@
 
 ## v2.0.0-beta.9
  * Make the index population async as well (3b3e174)
+ * Run Android file callbacks on main thread (79d9184)
+ * Implement launch arguments support (a2b164a)
 
 ## v2.0.0-beta.8
  * Fix TulipHook arm32 relocation of conditional branch - blame Dobby (69b9b2d)

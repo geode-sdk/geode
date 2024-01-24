@@ -740,7 +740,6 @@ void Loader::Impl::releaseNextMod() {
 // e.g. "--geode:arg=My spaced value"
 void Loader::Impl::initLaunchArguments() {
     auto launchStr = this->getLaunchCommand();
-    log::debug("Found launch string: {}", launchStr);
     auto args = string::split(launchStr, " ");
     for (const auto& arg : args) {
         if (!arg.starts_with(LAUNCH_ARG_PREFIX)) {
