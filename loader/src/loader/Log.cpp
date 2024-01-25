@@ -127,19 +127,19 @@ std::string Log::toString(bool logTime, uint32_t nestLevel) const {
 
     switch (m_severity.m_value) {
         case Severity::Debug:
-            res += " DBG";
+            res += " DEBUG";
             break;
         case Severity::Info:
-            res += " INF";
+            res += " INFO ";
             break;
         case Severity::Warning:
-            res += " WRN";
+            res += " WARN ";
             break;
         case Severity::Error:
-            res += " ERR";
+            res += " ERROR";
             break;
         default:
-            res += " UNK";
+            res += " ?????";
             break;
     }
 
