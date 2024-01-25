@@ -47,13 +47,12 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
         CCFileUtils::get()->updatePaths();
 
         if (!LoadingLayer::init(fromReload)) return false;
-        
+
+        m_fields->m_totalMods = Loader::get()->getAllMods().size();
         m_fields->m_menuDisabled = Loader::get()->getLaunchFlag("disable-custom-menu");
         if (m_fields->m_menuDisabled) {
             return true;
         }
-
-        m_fields->m_totalMods = Loader::get()->getAllMods().size();
 
         auto winSize = CCDirector::sharedDirector()->getWinSize();
 
