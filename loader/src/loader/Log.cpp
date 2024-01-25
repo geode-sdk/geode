@@ -106,10 +106,6 @@ Log::Log(Severity sev, Mod* mod, std::string&& content) :
 
 Log::~Log() {}
 
-std::string Log::toString(bool logTime) const {
-    return toString(logTime, 0);
-}
-
 auto convertTime(auto timePoint) {
     // std::chrono::current_zone() isnt available on clang (android),
     // so do this instead to get the local time for logging.

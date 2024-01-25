@@ -18,8 +18,7 @@ namespace geode::log {
         ~Log();
         Log(Severity sev, Mod* mod, std::string&& content);
 
-        std::string toString(bool logTime = true) const;
-        std::string toString(bool logTime, uint32_t nestLevel) const;
+        std::string toString(bool logTime = true, uint32_t nestLevel = 0) const;
 
         std::string_view getContent() const;
         log_clock::time_point getTime() const;
