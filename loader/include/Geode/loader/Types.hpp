@@ -32,13 +32,6 @@ namespace geode {
             /**
              * The message contains information
              * about the logger's state that
-             * may require special attention.
-             */
-            Notice,
-
-            /**
-             * The message contains information
-             * about the logger's state that
              * is abnormal and may result in
              * errors if not handled properly.
              */
@@ -49,38 +42,7 @@ namespace geode {
              * about a general error, such as
              * inability to read files.
              */
-            Error,
-
-            /**
-             * The message contains information
-             * about a severe error that may
-             * cause the logger to be partly or
-             * fully practically unusable.
-             */
-            Critical,
-
-            /**
-             * The message contains information
-             * about a very severe error that
-             * requires immediate attention,
-             * and renders the logger completely
-             * unusable.
-             */
-            Alert,
-
-            /**
-             * The logger has encountered an
-             * error so severe it is utterly
-             * unusable and can not proceed
-             * its execution. This error level
-             * should never be seen in-game,
-             * as an error this severe will
-             * most likely cause an immediate
-             * unrequested exit of the
-             * application, also known as a
-             * crash.
-             */
-            Emergency,
+            Error
         };
 
         using type = decltype(Debug);
@@ -117,12 +79,8 @@ namespace geode {
             switch (lp) {
                 case Debug: return "Debug";
                 case Info: return "Info";
-                case Notice: return "Notice";
                 case Warning: return "Warning";
                 case Error: return "Error";
-                case Critical: return "Critical";
-                case Alert: return "Alert";
-                case Emergency: return "Emergency";
             }
             return "Undefined";
         }

@@ -82,7 +82,6 @@ void console::messageBox(char const* title, std::string const& info, Severity se
     switch (severity) {
         case Severity::Debug:
         case Severity::Info:
-        case Severity::Notice:
             icon = MB_ICONINFORMATION;
             break;
         case Severity::Warning:

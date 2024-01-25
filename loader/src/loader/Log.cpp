@@ -132,23 +132,11 @@ std::string Log::toString(bool logTime, uint32_t nestLevel) const {
         case Severity::Info:
             res += " INF";
             break;
-        case Severity::Notice:
-            res += " NTC";
-            break;
         case Severity::Warning:
             res += " WRN";
             break;
         case Severity::Error:
             res += " ERR";
-            break;
-        case Severity::Critical:
-            res += " CRT";
-            break;
-        case Severity::Alert:
-            res += " ALR";
-            break;
-        case Severity::Emergency:
-            res += " FAT";
             break;
         default:
             res += " UNK";
