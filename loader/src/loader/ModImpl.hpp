@@ -113,8 +113,7 @@ namespace geode {
         SettingValue* getSetting(std::string_view const key) const;
         void registerCustomSetting(std::string_view const key, std::unique_ptr<SettingValue> value);
 
-        std::string getLaunchArgPrefix() const;
-        std::string getLaunchArgName(std::string_view const name) const;
+        std::string getLaunchArgumentName(std::string_view const name) const;
         std::vector<std::string> getLaunchArgumentNames() const;
         bool hasLaunchArgument(std::string_view const name) const;
         std::optional<std::string> getLaunchArgument(std::string_view const name) const;
