@@ -41,7 +41,7 @@ $execute {
 
         auto args = *event->messageData;
         JsonChecker checker(args);
-        auto root = checker.root("").obj();
+        auto root = checker.root("[ipc/list-mods]").obj();
 
         auto includeRunTimeInfo = root.has("include-runtime-info").template get<bool>();
         auto dontIncludeLoader = root.has("dont-include-loader").template get<bool>();

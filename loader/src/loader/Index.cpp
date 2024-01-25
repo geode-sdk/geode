@@ -157,7 +157,8 @@ Result<IndexItemHandle> IndexItem::Impl::create(ghc::filesystem::path const& roo
     }
 
     JsonChecker checker(entry);
-    auto root = checker.root("[entry.json]").obj();
+    auto checkerRoot = fmt::format("[{}/{}/entry.json]", metadata.getID(), metadata.getVersion());
+    auto root = checker.root(checkerRoot).obj();
 
     std::unordered_set<PlatformID> platforms;
     for (auto& plat : root.has("platforms").iterate()) {
@@ -439,7 +440,7 @@ void Index::Impl::updateFromLocalTree() {
     auto config = configRes.unwrap();
 
     JsonChecker checker(config);
-    auto root = checker.root("[config.json]").obj();
+    auto root = checker.root("[index/config.json]").obj();
 
     for (auto& [modID, entry] : root.has("entries").items()) {
         for (auto& version : entry.obj().has("versions").iterate()) {

@@ -173,7 +173,7 @@ Result<> Mod::Impl::loadData() {
         auto json = res.value();
 
         JsonChecker checker(json);
-        auto root = checker.root("[settings.json]");
+        auto root = checker.root(fmt::format("[{}/settings.json]", this->getID()));
 
         m_savedSettingsData = json;
 
