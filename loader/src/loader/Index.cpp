@@ -417,6 +417,8 @@ void Index::Impl::checkForUpdates() {
         });
 }
 
+// TODO: gross hack :3 (ctrl+f this comment to find the other part)
+extern bool s_jsonCheckerShouldCheckUnknownKeys;
 void Index::Impl::updateFromLocalTree() {
     log::debug("Updating local index cache");
     log::pushNest();
@@ -443,7 +445,11 @@ void Index::Impl::updateFromLocalTree() {
     auto root = checker.root("[index/config.json]").obj();
 
     for (auto& [modID, entry] : root.has("entries").items()) {
+        auto versions = entry.obj().has("versions");
         for (auto& version : entry.obj().has("versions").iterate()) {
+            s_jsonCheckerShouldCheckUnknownKeys =
+                version.get<std::string>() == (versions.iterate().end() - 1)->get<std::string>();
+
             auto rootDir = entriesRoot / modID;
             auto dir = rootDir / version.get<std::string>();
 
