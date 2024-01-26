@@ -92,3 +92,11 @@ bool Loader::Impl::supportsLaunchArguments() const {
 std::string Loader::Impl::getLaunchCommand() const {
     return GetCommandLineA();
 }
+
+bool Loader::Impl::getPermissionStatus(std::string_view const name) const {
+    return true;
+}
+
+Result<> Loader::Impl::requestPermission(std::string_view const name, utils::MiniFunction<void(bool)> callback) const {
+    return Err("This platform does not support requesting permissions");
+}
