@@ -78,6 +78,7 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android32")
 		${GEODE_LOADER_PATH}/include/link/android32/libssl.a
 		${GEODE_LOADER_PATH}/include/link/android32/libcrypto.a
 		${GEODE_LOADER_PATH}/include/link/android32/libcocos2dcpp.so
+		${GEODE_LOADER_PATH}/include/link/android32/libfmod.so
 		GLESv2
 		log
 	)
@@ -95,6 +96,7 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android64")
 		${GEODE_LOADER_PATH}/include/link/android64/libssl.a
 		${GEODE_LOADER_PATH}/include/link/android64/libcrypto.a
 		${GEODE_LOADER_PATH}/include/link/android64/libcocos2dcpp.so
+		${GEODE_LOADER_PATH}/include/link/android64/libfmod.so
 		GLESv2
 		log
 	)
