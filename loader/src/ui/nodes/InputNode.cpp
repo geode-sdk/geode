@@ -3,6 +3,47 @@
 
 using namespace geode::prelude;
 
+TextInputNodeFix* TextInputNodeFix::create(
+    float width, float height, char const* placeholder, char const* fallbackFont, int size, char const* fontFile
+) {
+    auto pRet = new TextInputNodeFix();
+
+    if (pRet && pRet->init(width, height, placeholder, fallbackFont, size, fontFile)) {
+        pRet->autorelease();
+        return pRet;
+    }
+
+    CC_SAFE_DELETE(pRet);
+    return nullptr;
+}
+
+// rob only uses `CCTextInputNode`s in mostly-flat hierarchies, which still
+// happen to work with the weird vanilla code. this fix makes it work even in
+// deep hierarchies, because the vanilla code uses `getParent` and manually
+// calculates the child location in the world space based on that rather than
+// using `convertToNodeSpace`.
+
+bool TextInputNodeFix::ccTouchBegan(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) {
+    auto const touchPos = touch->getLocation();
+    auto const size = this->getContentSize();
+    auto const pos = this->convertToNodeSpace(touchPos) + m_textField->getAnchorPoint() * size;
+
+    if (pos.x < 0 || pos.x > size.width || pos.y < 0 || pos.y > size.height) {
+        this->onClickTrackNode(false);
+        return false;
+    }
+    if (m_delegate && !m_delegate->allowTextInput(this)) {
+        this->onClickTrackNode(false);
+        return false;
+    }
+
+    this->onClickTrackNode(true);
+    // TODO: this also relies on the broken position calculation
+    // this->updateCursorPosition(pos, {{0, 0}, size});
+
+    return true;
+}
+
 std::string InputNode::getString() {
     return m_input->getString();
 }
@@ -44,7 +85,7 @@ bool InputNode::init(
     m_bgSprite->setPosition(width / 2, height / 2);
     this->addChild(m_bgSprite);
 
-    m_input = CCTextInputNode::create(width - 10.0f, height, placeholder, font);
+    m_input = TextInputNodeFix::create(width - 10.0f, height, placeholder, "Thonburi", 24, font);
     m_input->setLabelPlaceholderColor({ 150, 150, 150 });
     m_input->setLabelPlaceholderScale(.75f);
     m_input->setMaxLabelScale(.85f);
