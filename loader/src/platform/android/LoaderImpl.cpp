@@ -54,6 +54,13 @@ bool Loader::Impl::getPermissionStatus(std::string_view const name) const {
         info.env->DeleteLocalRef(permString);
 
         return result == JNI_TRUE;
+    } else {
+        auto vm = JniHelper::getJavaVM();
+
+        JNIEnv* env;
+        if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) == JNI_OK) {
+            env->ExceptionClear();
+        }
     }
 
     return false;
@@ -74,19 +81,20 @@ JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_permissionCallba
     }
 }
 
-Result<> Loader::Impl::requestPermission(std::string_view const name, utils::MiniFunction<void(bool)> callback) const {
+void Loader::Impl::requestPermission(std::string_view const name, utils::MiniFunction<void(bool)> callback) const {
     s_permissionCallback = callback;
     JniMethodInfo info;
-    if (JniHelper::getStaticMethodInfo(info, "com/geode/launcher/utils/GeodeUtils", "requestPermission", "(Ljava/lang/String;)Z")) {
+    if (JniHelper::getStaticMethodInfo(info, "com/geode/launcher/utils/GeodeUtils", "requestPermission", "(Ljava/lang/String;)V")) {
         jstring permString = info.env->NewStringUTF(std::string(name).c_str());
-        jboolean result = info.env->CallStaticBooleanMethod(info.classID, info.methodID, permString);
+        info.env->CallStaticVoidMethod(info.classID, info.methodID, permString);
         info.env->DeleteLocalRef(info.classID);
         info.env->DeleteLocalRef(permString);
+    } else {
+        auto vm = JniHelper::getJavaVM();
 
-        if (result == JNI_TRUE) {
-            return Ok();
+        JNIEnv* env;
+        if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) == JNI_OK) {
+            env->ExceptionClear();
         }
     }
-
-    return Err("Failed to request permission");
 }

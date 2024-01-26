@@ -97,6 +97,6 @@ bool Loader::getPermissionStatus(std::string_view const name) const {
     return m_impl->getPermissionStatus(name);
 }
 
-Result<> Loader::requestPermission(std::string_view const name, utils::MiniFunction<void(bool)> callback) const {
-    return m_impl->requestPermission(name, callback);
+void Loader::requestPermission(std::string_view const name, utils::MiniFunction<void(bool)> callback) const {
+    m_impl->requestPermission(name, callback);
 }

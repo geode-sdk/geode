@@ -122,7 +122,7 @@ namespace geode {
         bool getLaunchBool(std::string_view const name) const;
 
         bool getPermissionStatus(std::string_view const name) const;
-        Result<> requestPermission(std::string_view const name, utils::MiniFunction<void(bool)> callback) const;
+        void requestPermission(std::string_view const name, utils::MiniFunction<void(bool)> callback) const;
 
         void updateResources(bool forceReload);
 

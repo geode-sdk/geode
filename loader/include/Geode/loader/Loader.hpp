@@ -119,7 +119,7 @@ namespace geode {
          * @param name The name of the permission
          * @param callback The callback, passed value is 'true' if permission was granted and 'false' otherwise.
          */
-        Result<> requestPermission(std::string_view const name, utils::MiniFunction<void(bool)> callback) const;
+        void requestPermission(std::string_view const name, utils::MiniFunction<void(bool)> callback) const;
 
         void queueInMainThread(ScheduledFunction func);
 
