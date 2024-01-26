@@ -119,8 +119,7 @@ namespace geode {
                 return std::nullopt;
             }
             std::string parseError;
-            // Newline appended as temporary fix
-            auto jsonOpt = matjson::parse(str.value() + "\n", parseError);
+            auto jsonOpt = matjson::parse(str.value(), parseError);
             if (!jsonOpt.has_value()) {
                 log::debug("Parsing launch argument '{}' failed: {}", name, parseError);
                 return std::nullopt;
