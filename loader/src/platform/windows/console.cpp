@@ -53,26 +53,34 @@ void console::log(std::string const& msg, Severity severity) {
     }
 
     int color = 0;
+    int color2 = -1;
     switch (severity) {
         case Severity::Debug:
             color = 243;
+            color2 = 250;
             break;
         case Severity::Info:
             color = 33;
+            color2 = 254;
             break;
         case Severity::Warning:
             color = 229;
+            color2 = 230;
             break;
         case Severity::Error:
             color = 9;
+            color2 = 224;
             break;
         default:
             color = 7;
             break;
     }
     auto const colorStr = fmt::format("\x1b[38;5;{}m", color);
-    auto const newMsg = fmt::format("{}{}\x1b[0m{}", colorStr, msg.substr(0, 12),
-        msg.substr(12));
+    auto const color2Str = color2 == -1 ? "\x1b[0m" : fmt::format("\x1b[38;5;{}m", color2);
+    auto const newMsg = fmt::format(
+        "{}{}{}{}\x1b[0m",
+        colorStr, msg.substr(0, 14), color2Str, msg.substr(14)
+    );
 
     std::cout << newMsg << "\n" << std::flush;
 }
@@ -82,7 +90,6 @@ void console::messageBox(char const* title, std::string const& info, Severity se
     switch (severity) {
         case Severity::Debug:
         case Severity::Info:
-        case Severity::Notice:
             icon = MB_ICONINFORMATION;
             break;
         case Severity::Warning:

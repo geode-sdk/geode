@@ -50,8 +50,22 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
 
     impl->m_rawJSON = rawJson;
 
+    auto checkerRoot = fmt::format(
+        "[{}/v0.0.0/mod.json]",
+        rawJson.contains("id") ? rawJson["id"].as_string() : "unknown.mod"
+    );
+    // JsonChecker did it this way too
+    try {
+        checkerRoot = fmt::format(
+            "[{}/{}/mod.json]",
+            rawJson.contains("id") ? rawJson["id"].as_string() : "unknown.mod",
+            rawJson.contains("version") ? rawJson["version"].as<VersionInfo>().toString() : "v0.0.0"
+        );
+    }
+    catch (...) { }
+
     JsonChecker checker(impl->m_rawJSON);
-    auto root = checker.root("[mod.json]").obj();
+    auto root = checker.root(checkerRoot).obj();
 
     root.addKnownKey("geode");
     root.addKnownKey("gd");

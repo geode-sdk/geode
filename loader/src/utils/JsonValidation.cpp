@@ -296,7 +296,12 @@ JsonMaybeValue JsonMaybeObject::needs(std::string const& key) {
 }
 
 
+// TODO: gross hack :3 (ctrl+f this comment to find the other part)
+extern bool s_jsonCheckerShouldCheckUnknownKeys;
+bool s_jsonCheckerShouldCheckUnknownKeys = true;
 void JsonMaybeObject::checkUnknownKeys() {
+    if (!s_jsonCheckerShouldCheckUnknownKeys)
+        return;
     for (auto& [key, _] : self().m_json.as_object()) {
         if (!m_knownKeys.count(key)) {
             log::warn("{} contains unknown key \"{}\"", self().m_hierarchy, key);

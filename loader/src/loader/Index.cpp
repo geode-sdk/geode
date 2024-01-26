@@ -157,7 +157,8 @@ Result<IndexItemHandle> IndexItem::Impl::create(ghc::filesystem::path const& roo
     }
 
     JsonChecker checker(entry);
-    auto root = checker.root("[entry.json]").obj();
+    auto checkerRoot = fmt::format("[{}/{}/entry.json]", metadata.getID(), metadata.getVersion());
+    auto root = checker.root(checkerRoot).obj();
 
     std::unordered_set<PlatformID> platforms;
     for (auto& plat : root.has("platforms").iterate()) {
@@ -416,6 +417,8 @@ void Index::Impl::checkForUpdates() {
         });
 }
 
+// TODO: gross hack :3 (ctrl+f this comment to find the other part)
+extern bool s_jsonCheckerShouldCheckUnknownKeys;
 void Index::Impl::updateFromLocalTree() {
     log::debug("Updating local index cache");
     log::pushNest();
@@ -439,10 +442,14 @@ void Index::Impl::updateFromLocalTree() {
     auto config = configRes.unwrap();
 
     JsonChecker checker(config);
-    auto root = checker.root("[config.json]").obj();
+    auto root = checker.root("[index/config.json]").obj();
 
     for (auto& [modID, entry] : root.has("entries").items()) {
+        auto versions = entry.obj().has("versions");
         for (auto& version : entry.obj().has("versions").iterate()) {
+            s_jsonCheckerShouldCheckUnknownKeys =
+                version.get<std::string>() == (versions.iterate().end() - 1)->get<std::string>();
+
             auto rootDir = entriesRoot / modID;
             auto dir = rootDir / version.get<std::string>();
 

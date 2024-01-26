@@ -106,10 +106,6 @@ Log::Log(Severity sev, Mod* mod, std::string&& content) :
 
 Log::~Log() {}
 
-std::string Log::toString(bool logTime) const {
-    return toString(logTime, 0);
-}
-
 auto convertTime(auto timePoint) {
     // std::chrono::current_zone() isnt available on clang (android),
     // so do this instead to get the local time for logging.
@@ -118,7 +114,7 @@ auto convertTime(auto timePoint) {
     return fmt::localtime(timeEpoch);
 }
 
-std::string Log::toString(bool logTime, uint32_t nestLevel) const {
+std::string Log::toString(bool logTime, int32_t nestCount) const {
     std::string res;
 
     if (logTime) {
@@ -127,38 +123,36 @@ std::string Log::toString(bool logTime, uint32_t nestLevel) const {
 
     switch (m_severity.m_value) {
         case Severity::Debug:
-            res += " DBG";
+            res += " DEBUG";
             break;
         case Severity::Info:
-            res += " INF";
-            break;
-        case Severity::Notice:
-            res += " NTC";
+            res += " INFO ";
             break;
         case Severity::Warning:
-            res += " WRN";
+            res += " WARN ";
             break;
         case Severity::Error:
-            res += " ERR";
-            break;
-        case Severity::Critical:
-            res += " CRT";
-            break;
-        case Severity::Alert:
-            res += " ALR";
-            break;
-        case Severity::Emergency:
-            res += " FAT";
+            res += " ERROR";
             break;
         default:
-            res += " UNK";
+            res += " ?????";
             break;
     }
 
-    res += fmt::format(" [{}]: ", m_sender ? m_sender->getName() : "Geode?");
+    auto senderName = m_sender ? m_sender->getName() : "Geode?";
 
-    for (uint32_t i = 0; i < nestLevel; i++) {
-        res += "  ";
+    if (nestCount != 0) {
+        nestCount -= static_cast<int32_t>(senderName.size());
+    }
+
+    if (nestCount < 0) {
+        senderName = fmt::format("{}>", senderName.substr(0, senderName.size() + nestCount - 1));
+    }
+
+    res += fmt::format(" [{}]: ", senderName);
+
+    for (int32_t i = 0; i < nestCount; i++) {
+        res += " ";
     }
 
     res += m_content;
@@ -195,26 +189,32 @@ void Logger::setup() {
 
 std::mutex g_logMutex;
 void Logger::push(Severity sev, Mod* mod, std::string&& content) {
-    if (mod->isLoggingEnabled()) {
-        Log* log = nullptr;
-        {
-            std::lock_guard g(g_logMutex);
-            log = &m_logs.emplace_back(sev, mod, std::move(content));
-        }
-        auto const logStr = log->toString(true, m_nestLevel);
+    if (!mod->isLoggingEnabled()) return;
 
-        console::log(logStr, log->getSeverity());
-        m_logStream << logStr << std::endl;
+    Log* log = nullptr;
+    {
+        std::lock_guard g(g_logMutex);
+        log = &m_logs.emplace_back(sev, mod, std::move(content));
     }
+
+    auto nestCount = m_nestLevel * 2;
+    if (nestCount != 0) {
+        nestCount += m_nestCountOffset;
+    }
+
+    auto const logStr = log->toString(true, nestCount);
+
+    console::log(logStr, log->getSeverity());
+    m_logStream << logStr << std::endl;
 }
 
 void Logger::pushNest() {
+    if (m_nestLevel == 0)
+        m_nestCountOffset = static_cast<int32_t>(Mod::get()->getName().size());
     m_nestLevel++;
 }
 
 void Logger::popNest() {
-    if (m_nestLevel == 0)
-        return;
     m_nestLevel--;
 }
 

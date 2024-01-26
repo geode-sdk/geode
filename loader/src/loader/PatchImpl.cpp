@@ -46,13 +46,13 @@ std::vector<Patch::Impl*>& Patch::Impl::allEnabled() {
 }
 
 Result<> Patch::Impl::enable() {
+    auto const thisMin = this->getAddress();
+    auto const thisMax = this->getAddress() + this->m_patch.size() - 1;
     // TODO: this feels slow. can be faster
     for (const auto& other : allEnabled()) {
-        auto thisMin = this->getAddress();
-        auto thisMax = this->getAddress() + this->m_patch.size();
-        auto otherMin = other->getAddress();
-        auto otherMax = other->getAddress() + other->m_patch.size();
-        bool intersects = !((otherMax < thisMin) || (thisMax < otherMin));
+        auto const otherMin = other->getAddress();
+        auto const otherMax = other->getAddress() + other->m_patch.size() - 1;
+        bool intersects = (thisMin >= otherMin && thisMin <= otherMax) || (thisMax >= otherMin && thisMax <= otherMax);
         if (!intersects)
             continue;
         return Err(
