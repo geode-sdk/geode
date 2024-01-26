@@ -572,6 +572,8 @@ void ModListLayer::reloadList(bool keepScroll, std::optional<ModListQuery> const
         m_checkForUpdatesBtn->removeFromParent();
         m_checkForUpdatesBtn = nullptr;
     }
+
+    handleTouchPriority(this);
 }
 
 void ModListLayer::updateAllStates() {

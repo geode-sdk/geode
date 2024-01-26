@@ -187,10 +187,10 @@ void ModInfoPopup::onInfo(CCObject*) {
         nullptr,
         ("About " + info.getName()).c_str(),
         fmt::format(
-            "<cr>ID: {}</c>\n"
-            "<cg>Version: {}</c>\n"
-            "<cp>Developer: {}</c>\n"
-            "<cb>Path: {}</c>\n",
+            "<cr>ID:</c> {}\n"
+            "<cg>Version:</c> {}\n"
+            "<cy>Developer:</c> {}\n"
+            "<cy>Path:</c> {}\n",
             info.getID(),
             info.getVersion().toString(),
             info.getDeveloper(),
