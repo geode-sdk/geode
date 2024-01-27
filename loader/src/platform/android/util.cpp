@@ -306,3 +306,47 @@ void geode::utils::game::restart() {
         nullptr
     ), CCDirector::get()->getRunningScene(), false);
 }
+
+bool geode::utils::permission::getPermissionStatus(std::string_view const name) {
+    JniMethodInfo info;
+    if (JniHelper::getStaticMethodInfo(info, "com/geode/launcher/utils/GeodeUtils", "getPermissionStatus", "(Ljava/lang/String;)Z")) {
+        jstring permString = info.env->NewStringUTF(std::string(name).c_str());
+        jboolean result = info.env->CallStaticBooleanMethod(info.classID, info.methodID, permString);
+        info.env->DeleteLocalRef(info.classID);
+        info.env->DeleteLocalRef(permString);
+
+        return result == JNI_TRUE;
+    } else {
+        clearJNIException();
+    }
+
+    return false;
+}
+
+static MiniFunction<void(bool)> s_permissionCallback;
+
+extern "C"
+JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_permissionCallback(
+        JNIEnv* env,
+        jobject,
+        jboolean granted
+) {
+    if (s_permissionCallback) {
+        Loader::get()->queueInMainThread([granted] {
+            s_permissionCallback(granted == JNI_TRUE);
+        });
+    }
+}
+
+void geode::utils::permission::requestPermission(std::string_view const name, utils::MiniFunction<void(bool)> callback) {
+    s_permissionCallback = callback;
+    JniMethodInfo info;
+    if (JniHelper::getStaticMethodInfo(info, "com/geode/launcher/utils/GeodeUtils", "requestPermission", "(Ljava/lang/String;)V")) {
+        jstring permString = info.env->NewStringUTF(std::string(name).c_str());
+        info.env->CallStaticVoidMethod(info.classID, info.methodID, permString);
+        info.env->DeleteLocalRef(info.classID);
+        info.env->DeleteLocalRef(permString);
+    } else {
+        clearJNIException();
+    }
+}

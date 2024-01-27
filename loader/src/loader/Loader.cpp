@@ -92,11 +92,3 @@ std::optional<std::string> Loader::getLaunchArgument(std::string_view const name
 bool Loader::getLaunchBool(std::string_view const name) const {
     return m_impl->getLaunchBool(name);
 }
-
-bool Loader::getPermissionStatus(std::string_view const name) const {
-    return m_impl->getPermissionStatus(name);
-}
-
-void Loader::requestPermission(std::string_view const name, utils::MiniFunction<void(bool)> callback) const {
-    m_impl->requestPermission(name, callback);
-}

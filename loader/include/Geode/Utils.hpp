@@ -8,6 +8,7 @@
 #include "utils/map.hpp"
 #include "utils/string.hpp"
 #include "utils/file.hpp"
+#include "utils/permission.hpp"
 #include "utils/general.hpp"
 #include "utils/timer.hpp"
 #include "utils/MiniFunction.hpp"

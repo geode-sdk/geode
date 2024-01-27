@@ -192,7 +192,7 @@ ghc::filesystem::path dirs::getSaveDir() {
                 return std::filesystem::weakly_canonical(savePath.wstring()).wstring();
             }
         }
-        
+
         return std::filesystem::weakly_canonical(executablePath.parent_path().wstring()).wstring();
     }();
 
@@ -269,3 +269,9 @@ Result<> geode::hook::addObjcMethod(std::string const& className, std::string co
 Result<void*> geode::hook::getObjcMethodImp(std::string const& className, std::string const& selectorName) {
     return Err("Wrong platform");
 }
+
+bool geode::utils::permission::getPermissionStatus(std::string_view const name) {
+    return true;
+}
+
+void geode::utils::permission::requestPermission(std::string_view const name, utils::MiniFunction<void(bool)> callback) {}

@@ -121,9 +121,6 @@ namespace geode {
         std::optional<std::string> getLaunchArgument(std::string_view const name) const;
         bool getLaunchBool(std::string_view const name) const;
 
-        bool getPermissionStatus(std::string_view const name) const;
-        void requestPermission(std::string_view const name, utils::MiniFunction<void(bool)> callback) const;
-
         void updateResources(bool forceReload);
 
         void queueInMainThread(const ScheduledFunction& func);
