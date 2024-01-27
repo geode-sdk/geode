@@ -338,8 +338,10 @@ void Index::Impl::downloadIndex(std::string commitHash) {
                 auto unzip = file::Unzip::intoDir(targetFile, targetDir, true)
                     .expect("Unable to unzip new index");
                 if (!unzip) {
-                    Loader::get()->queueInMainThread([unzip] {
-                        IndexUpdateEvent(UpdateFailed(unzip.unwrapErr())).post();
+                    auto const err = unzip.unwrapErr();
+                    log::error("Failed to unzip latest index: {}", err);
+                    Loader::get()->queueInMainThread([err] {
+                        IndexUpdateEvent(UpdateFailed(err)).post();
                     });
                     return;
                 }
@@ -355,6 +357,7 @@ void Index::Impl::downloadIndex(std::string commitHash) {
             }).detach();
         })
         .expect([](std::string const& err) {
+            log::error("Error downloading latest index: {}", err);
             IndexUpdateEvent(UpdateFailed(fmt::format("Error downloading: {}", err))).post();
         })
         .progress([](auto&, double now, double total) {
@@ -413,6 +416,7 @@ void Index::Impl::checkForUpdates() {
             }
         })
         .expect([](std::string const& err) {
+            log::error("Failed to fetch index: {}", err);
             IndexUpdateEvent(
                 UpdateFailed(fmt::format("Error checking for updates: {}", err))
             ).post();
