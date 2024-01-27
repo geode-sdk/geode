@@ -91,10 +91,11 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             bottomMenu->updateLayout();
 
             auto input = InputNode::create(200.f, "Search");
-        input->setPosition(winSize.width / 2, winSize.height - 20.0f);
-        input->setID("search-input");
-        input->setAnchorPoint({ 0.5f, 0.5f });
-        this->addChild(input);if (auto node = this->getChildByID("settings-gamepad-icon")) {
+            input->setPosition(winSize.width / 2, winSize.height - 20.0f);
+            input->setID("search-input");
+            input->setAnchorPoint({ 0.5f, 0.5f });
+            this->addChild(input);
+            if (auto node = this->getChildByID("settings-gamepad-icon")) {
                 node->setPositionX(
                     bottomMenu->getChildByID("settings-button")->getPositionX() + winSize.width / 2
                 );

@@ -102,6 +102,8 @@ $register_ids(MenuLayer) {
         setIDSafe(menu, 1, "facebook-button");
         setIDSafe(menu, 2, "twitter-button");
         setIDSafe(menu, 3, "youtube-button");
+        setIDSafe(menu, 4, "twitch-button");
+        setIDSafe(menu, 5, "discord-button");
     }
     
     // more games menu
