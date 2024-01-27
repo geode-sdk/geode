@@ -47,9 +47,3 @@ bool Loader::Impl::supportsLaunchArguments() const {
 std::string Loader::Impl::getLaunchCommand() const {
     return std::string(); // Empty
 }
-
-bool Loader::Impl::getPermissionStatus(std::string_view const name) const {
-    return true;
-}
-
-void Loader::Impl::requestPermission(std::string_view const name, utils::MiniFunction<void(bool)> callback) const {}
