@@ -403,7 +403,9 @@ void Index::Impl::checkForUpdates() {
                 // make sure the downloaded local copy actually exists
                 ghc::filesystem::exists(dirs::getIndexDir() / "v0" / "config.json")
             ) {
-                this->updateFromLocalTree();
+                std::thread([this](){
+                    this->updateFromLocalTree();
+                }).detach();
             }
             // otherwise save hash and download source
             else {
