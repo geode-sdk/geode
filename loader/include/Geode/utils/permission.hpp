@@ -5,18 +5,23 @@
 #include <string_view>
 
 namespace geode::utils::permission {
+    enum class Permission {
+        ReadAudio,
+        ReadImages,
+        ReadVideo,
+        RecordAudio,
+    };
+
     /**
      * Request whether the given permission is granted to Geode by the operating system.
-     * On Android, the permission name should start with `android.permission`.
-     * @param name The name of the permission
+     * @param permission The permission
     */
-    bool getPermissionStatus(std::string_view const name);
+    bool getPermissionStatus(Permission permission);
 
     /**
      * Request a permission to be granted by the operating system.
-     * On Android, the permission name should start with `android.permission`.
-     * @param name The name of the permission
+     * @param permission The permission
      * @param callback The callback, passed value is 'true' if permission was granted and 'false' otherwise.
      */
-    void requestPermission(std::string_view const name, utils::MiniFunction<void(bool)> callback);
+    void requestPermission(Permission permission, utils::MiniFunction<void(bool)> callback);
 }

@@ -10,6 +10,8 @@ using namespace geode::prelude;
 #include <jni.h>
 #include <Geode/cocos/platform/android/jni/JniHelper.h>
 
+using geode::utils::permission::Permission;
+
 bool utils::clipboard::write(std::string const& data) {
     JniMethodInfo t;
     if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "writeClipboard", "(Ljava/lang/String;)V")) {
@@ -307,10 +309,21 @@ void geode::utils::game::restart() {
     ), CCDirector::get()->getRunningScene(), false);
 }
 
-bool geode::utils::permission::getPermissionStatus(std::string_view const name) {
+static const char* permissionToName(Permission permission) {
+#define PERM(x) "android.permission." x
+    switch (permission) {
+    case Permission::ReadAudio: return PERM("READ_MEDIA_AUDIO");
+    case Permission::ReadImages: return PERM("READ_MEDIA_IMAGES");
+    case Permission::ReadVideo: return PERM("READ_MEDIA_VIDEO");
+    case Permission::RecordAudio: return PERM("RECORD_AUDIO");
+    }
+#undef PERM
+}
+
+bool geode::utils::permission::getPermissionStatus(Permission permission) {
     JniMethodInfo info;
     if (JniHelper::getStaticMethodInfo(info, "com/geode/launcher/utils/GeodeUtils", "getPermissionStatus", "(Ljava/lang/String;)Z")) {
-        jstring permString = info.env->NewStringUTF(std::string(name).c_str());
+        jstring permString = info.env->NewStringUTF(permissionToName(permission));
         jboolean result = info.env->CallStaticBooleanMethod(info.classID, info.methodID, permString);
         info.env->DeleteLocalRef(info.classID);
         info.env->DeleteLocalRef(permString);
@@ -338,11 +351,11 @@ JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_permissionCallba
     }
 }
 
-void geode::utils::permission::requestPermission(std::string_view const name, utils::MiniFunction<void(bool)> callback) {
+void geode::utils::permission::requestPermission(Permission permission, utils::MiniFunction<void(bool)> callback) {
     s_permissionCallback = callback;
     JniMethodInfo info;
     if (JniHelper::getStaticMethodInfo(info, "com/geode/launcher/utils/GeodeUtils", "requestPermission", "(Ljava/lang/String;)V")) {
-        jstring permString = info.env->NewStringUTF(std::string(name).c_str());
+        jstring permString = info.env->NewStringUTF(permissionToName(permission));
         info.env->CallStaticVoidMethod(info.classID, info.methodID, permString);
         info.env->DeleteLocalRef(info.classID);
         info.env->DeleteLocalRef(permString);

@@ -270,8 +270,8 @@ Result<void*> geode::hook::getObjcMethodImp(std::string const& className, std::s
     return Err("Wrong platform");
 }
 
-bool geode::utils::permission::getPermissionStatus(std::string_view const name) {
+bool geode::utils::permission::getPermissionStatus(Permission permission) {
     return true;
 }
 
-void geode::utils::permission::requestPermission(std::string_view const name, utils::MiniFunction<void(bool)> callback) {}
+void geode::utils::permission::requestPermission(Permission permission, utils::MiniFunction<void(bool)> callback) {}
