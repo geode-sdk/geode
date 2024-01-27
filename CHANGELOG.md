@@ -2,6 +2,7 @@
 
 ## v2.0.0-beta.11
  * Fix `InputNode` funkiness on Windows (bb1fcbe)
+ * Add methods for requesting and querying permissions (9ff9191)
 
 ## v2.0.0-beta.10
  * Make index loading when not downloading async (e81b5e9)
