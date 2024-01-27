@@ -28,6 +28,13 @@ namespace geode::addresser {
     template <class Function, class Class>
     Class rthunkAdjust(Function func, Class self);
 
+    template <class Function>
+    intptr_t getVirtualOffset(Function func);
+
+    template <class Function>
+    intptr_t getThunkOffset(Function func);
+
+
     template <class Class>
     concept HasZeroConstructor = requires {
         new Class(ZeroConstructor);
@@ -137,7 +144,23 @@ namespace geode::addresser {
 
         template <class Function, class Class>
         friend Class rthunkAdjust(Function func, Class self);
+
+        template <class Function>
+        friend intptr_t getVirtualOffset(Function func);
+
+        template <class Function>
+        friend intptr_t getThunkOffset(Function func);
     };
+
+    template <class Function>
+    inline intptr_t getVirtualOffset(Function func) {
+        return Addresser::indexOf(func);
+    }
+
+    template <class Function>
+    inline intptr_t getThunkOffset(Function func) {
+        return Addresser::thunkOf(func);
+    }
 
     /**
      * Gets the real address of a virtual function
