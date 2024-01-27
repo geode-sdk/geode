@@ -3,6 +3,11 @@
 ## v2.0.0-beta.10
  * Make index loading when not downloading async (e81b5e9)
    * (I can't wait to get rid of the old index)
+ * Log nesting and alignment improvements (f7980d3, 4693eb1)
+ * Fix `Patch` intersection code (45ce360)
+ * Fix `InputNode` touch logic (c551d43)
+ * Force Windows errors to be in English (6ba656c)
+ * Add sprite scaling for `MDTextArea` (5802b78)
 
 ## v2.0.0-beta.9
  * Make the index population async as well (3b3e174)
