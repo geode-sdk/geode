@@ -53,16 +53,16 @@ std::string getLastWinError() {
     char* errorBuf = nullptr;
     auto result = FormatMessageA(
         FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS,
-        nullptr, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&errorBuf, 0, nullptr);
+        nullptr, err, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), (LPSTR)&errorBuf, 0, nullptr);
 
     std::string msg;
     if (result == 0 || !errorBuf) {
         msg = fmt::format("Unknown ({})", err);
     } else {
         msg = std::string(errorBuf, errorBuf + result);
-        // the string sometimes includes a crlf, strip it
+        // the string sometimes includes a crlf, strip it, also remove unprintable chars
         msg.erase(std::find_if(msg.rbegin(), msg.rend(), [](unsigned char ch) {
-            return ch != '\r' && ch != '\n';
+            return ch != '\r' && ch != '\n' && ch < 127;
         }).base(), msg.end());
     }
 
