@@ -1,5 +1,8 @@
 # Geode Changelog
 
+## v2.0.0-beta.11
+ * Fix `InputNode` funkiness on Windows (bb1fcbe)
+
 ## v2.0.0-beta.10
  * Make index loading when not downloading async (e81b5e9)
    * (I can't wait to get rid of the old index)

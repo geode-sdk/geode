@@ -12,7 +12,7 @@ static constexpr int INPUT_TAG = 0x80082;
 
 #include <Geode/modify/CCTextInputNode.hpp>
 
-struct TextInputNodeFix : Mofify<TextInputNodeFix, CCTextInputNode> {
+struct TextInputNodeFix : Modify<TextInputNodeFix, CCTextInputNode> {
     bool ccTouchBegan(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) {
         if (this->getTag() != INPUT_TAG) return CCTextInputNode::ccTouchBegan(touch, event);
 
@@ -35,7 +35,7 @@ struct TextInputNodeFix : Mofify<TextInputNodeFix, CCTextInputNode> {
 
         return true;
     }
-}
+};
 
 std::string InputNode::getString() {
     return m_input->getString();
@@ -88,13 +88,7 @@ bool InputNode::init(
     if (filter.length()) {
         m_input->setAllowedChars(filter);
     }
-
-    auto thunkFunc = static_cast<bool(CCTouchDelegate::*)(cocos2d::CCTouch*, cocos2d::CCEvent*)>(
-        &CCTextInputNode::ccTouchBegan
-    );
-    auto thunkTable = *reinterpret_cast<void***>(m_input + addresser::getThunkOffset(thunkFunc));
-    thunkTable[addresser::getThunkIndex(thunkFunc) / sizeof(void*)] = &TextInputNodeFix2::ccTouchBegan;
-
+    this->addChild(m_input);
 
     this->setContentSize({ width, height });
     this->setAnchorPoint({ .5f, .5f });
