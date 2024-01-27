@@ -92,4 +92,3 @@ bool Loader::Impl::supportsLaunchArguments() const {
 std::string Loader::Impl::getLaunchCommand() const {
     return GetCommandLineA();
 }
-
