@@ -34,3 +34,11 @@ ghc::filesystem::path dirs::getGameDir() {
 ghc::filesystem::path dirs::getSaveDir() {
     return weaklyCanonical(CCFileUtils::sharedFileUtils()->getWritablePath().c_str());
 }
+
+bool geode::utils::permission::getPermissionStatus(Permission permission) {
+    return true; // unimplemented
+}
+
+void geode::utils::permission::requestPermission(Permission permission, utils::MiniFunction<void(bool)> callback) {
+    callback(true); // unimplemented
+}

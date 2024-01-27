@@ -281,9 +281,9 @@ Result<> geode::hook::addObjcMethod(std::string const& className, std::string co
     auto cls = objc_getClass(className.c_str());
     if (!cls)
         return Err("Class not found");
-    
+
     auto sel = sel_registerName(selectorName.c_str());
-    
+
     class_addMethod(cls, sel, (IMP)imp, "v@:");
 
     return Ok();
@@ -292,12 +292,20 @@ Result<void*> geode::hook::getObjcMethodImp(std::string const& className, std::s
     auto cls = objc_getClass(className.c_str());
     if (!cls)
         return Err("Class not found");
-    
+
     auto sel = sel_registerName(selectorName.c_str());
-    
+
     auto method = class_getInstanceMethod(cls, sel);
     if (!method)
         return Err("Method not found");
 
     return Ok((void*)method_getImplementation(method));
+}
+
+bool geode::utils::permission::getPermissionStatus(Permission permission) {
+    return true; // unimplemented
+}
+
+void geode::utils::permission::requestPermission(Permission permission, utils::MiniFunction<void(bool)> callback) {
+    callback(true); // unimplemented
 }

@@ -115,7 +115,7 @@ namespace geode {
 
     /**
      * @brief Take the next mod to load
-     * 
+     *
      * @return Mod* The next mod to load
     */
     inline GEODE_HIDDEN Mod* takeNextLoaderMod() {
