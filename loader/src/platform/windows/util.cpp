@@ -279,7 +279,7 @@ void geode::utils::permission::requestPermission(Permission permission, utils::M
     callback(true); // unimplemented
 }
 
-#include "thread.hpp"
+#include "../../utils/thread.hpp"
 
 // https://learn.microsoft.com/en-us/visualstudio/debugger/how-to-set-a-thread-name-in-native-code?view=vs-2022
 #pragma pack(push,8)
