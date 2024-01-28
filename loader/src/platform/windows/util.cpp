@@ -281,6 +281,10 @@ void geode::utils::permission::requestPermission(Permission permission, utils::M
 
 #include "../../utils/thread.hpp"
 
+std::string geode::utils::thread::getDefaultName() {
+    return fmt::format("Thread #{}", GetCurrentThreadId());
+}
+
 // https://learn.microsoft.com/en-us/visualstudio/debugger/how-to-set-a-thread-name-in-native-code?view=vs-2022
 #pragma pack(push,8)
 typedef struct tagTHREADNAME_INFO {
@@ -291,18 +295,10 @@ typedef struct tagTHREADNAME_INFO {
 } THREADNAME_INFO;
 #pragma pack(pop)
 
-// the SetThreadDescription and exception methods are needed for the thread names to show up
-// in places like task managers and debuggers
+// SetThreadDescription is pretty new, so the user's system might not have it
+// or it might only be accessible dynamically (see msdocs link above for more info)
 auto setThreadDesc = reinterpret_cast<decltype(&SetThreadDescription)>(GetProcAddress(GetModuleHandleA("Kernel32.dll"), "SetThreadDescription"));
-void geode::utils::thread::platformSetNameWide(std::wstring const& wName) {
-    // SetThreadDescription
-    if (!setThreadDesc)
-        return;
-    auto res = setThreadDesc(GetCurrentThread(), wName.c_str());
-    if (FAILED(res))
-        log::warn("Native method to set thread name failed ({}), using only fallback methods.", res);
-}
-void geode::utils::thread::platformSetNameOrdinary(std::string const& name) {
+void obliterate(std::string const& name) {
     // exception
     THREADNAME_INFO info;
     info.dwType = 0x1000;
@@ -316,4 +312,13 @@ void geode::utils::thread::platformSetNameOrdinary(std::string const& name) {
     }
     __except (EXCEPTION_EXECUTE_HANDLER) { }
 #pragma warning(pop)
+}
+void geode::utils::thread::platformSetName(std::string const& name) {
+    // SetThreadDescription
+    if (setThreadDesc) {
+        auto res = setThreadDesc(GetCurrentThread(), string::utf8ToWide(name).c_str());
+        if (FAILED(res))
+            log::warn("SetThreadDescription failed ({}), using only fallback method.", res);
+    }
+    obliterate(name);
 }

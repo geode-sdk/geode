@@ -144,6 +144,6 @@ namespace geode::utils::game {
 
 namespace geode::utils::thread {
     GEODE_DLL std::string getName();
+    GEODE_DLL std::string getDefaultName();
     GEODE_DLL void setName(std::string const& name);
-    GEODE_DLL void setName(std::wstring const& wName);
 }
