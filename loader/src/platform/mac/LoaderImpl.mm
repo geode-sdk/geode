@@ -112,6 +112,8 @@ CFDataRef msgPortCallback(CFMessagePortRef port, SInt32 messageID, CFDataRef dat
 
 void geode::ipc::setup() {
     std::thread([]() {
+        thread::setName("Geode Main IPC");
+
         CFStringRef portName = CFStringCreateWithCString(NULL, IPC_PORT_NAME, kCFStringEncodingUTF8);
 
         CFMessagePortRef localPort =

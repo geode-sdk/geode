@@ -321,6 +321,8 @@ void Index::Impl::downloadIndex(std::string commitHash) {
         .into(targetFile)
         .then([this, targetFile, commitHash](auto) {
             std::thread([=, this]() {
+                thread::setName("Index Update");
+
                 auto targetDir = dirs::getIndexDir() / "v0";
                 // delete old unzipped index
                 std::error_code ec;
@@ -376,6 +378,7 @@ void Index::Impl::downloadIndex(std::string commitHash) {
 void Index::Impl::checkForUpdates() {
     if (m_isUpToDate) {
         std::thread([this](){
+            thread::setName("Index Update");
             this->updateFromLocalTree();
         }).detach();
         return;
@@ -407,6 +410,7 @@ void Index::Impl::checkForUpdates() {
                 ghc::filesystem::exists(dirs::getIndexDir() / "v0" / "config.json")
             ) {
                 std::thread([this](){
+                    thread::setName("Index Update");
                     this->updateFromLocalTree();
                 }).detach();
             }

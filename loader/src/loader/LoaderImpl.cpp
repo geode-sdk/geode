@@ -439,6 +439,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
     else {
         auto nest = log::saveNest();
         std::thread([=, this]() {
+            thread::setName("Mod Unzip");
             log::loadNest(nest);
             auto res = unzipFunction();
             this->queueInMainThread([=, this]() {

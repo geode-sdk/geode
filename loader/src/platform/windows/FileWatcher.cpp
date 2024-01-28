@@ -32,6 +32,8 @@ FileWatcher::~FileWatcher() {
 }
 
 void FileWatcher::watch() {
+    geode::utils::thread::setName("File Watcher");
+
     HANDLE handle = (HANDLE)m_platformHandle;
     while (WaitForSingleObject(handle, 10000) == WAIT_OBJECT_0) {
         if (m_exiting) return;

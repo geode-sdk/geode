@@ -252,6 +252,8 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
     auto timeoutSeconds = req.m_impl->m_timeoutSeconds;
 
     std::thread([this, timeoutSeconds]() {
+        thread::setName("Curl Request");
+
         AWAIT_RESUME();
 
         auto curl = curl_easy_init();
