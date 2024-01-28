@@ -381,14 +381,17 @@ Result<> Mod::Impl::loadBinary() {
     LoaderImpl::get()->provideNextMod(m_self);
 
     m_enabled = true;
+    m_isCurrentlyLoading = true;
     auto res = this->loadPlatformBinary();
     if (!res) {
+        m_isCurrentlyLoading = false;
         m_enabled = false;
         // make sure to free up the next mod mutex
         LoaderImpl::get()->releaseNextMod();
         log::error("Failed to load binary for mod {}: {}", m_metadata.getID(), res.unwrapErr());
         return res;
     }
+    m_isCurrentlyLoading = false;
 
     LoaderImpl::get()->releaseNextMod();
 
@@ -743,6 +746,10 @@ void Mod::Impl::setLoggingEnabled(bool enabled) {
 
 bool Mod::Impl::shouldLoad() const {
     return Mod::get()->getSavedValue<bool>("should-load-" + m_metadata.getID(), true);
+}
+
+bool Mod::Impl::isCurrentlyLoading() const {
+    return m_isCurrentlyLoading;
 }
 
 static Result<ModMetadata> getModImplInfo() {

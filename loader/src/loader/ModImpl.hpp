@@ -64,6 +64,8 @@ namespace geode {
 
         std::unordered_map<std::string, char const*> m_expandedSprites;
 
+        bool m_isCurrentlyLoading = false;
+
         ModRequestedAction m_requestedAction = ModRequestedAction::None;
 
         Impl(Mod* self, ModMetadata const& metadata);
@@ -150,6 +152,7 @@ namespace geode {
         void setLoggingEnabled(bool enabled);
 
         bool shouldLoad() const;
+        bool isCurrentlyLoading() const;
     };
 
     class ModImpl : public Mod::Impl {

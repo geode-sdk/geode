@@ -1,6 +1,7 @@
 #include "crashlog.hpp"
 #include <fmt/core.h>
 #include "about.hpp"
+#include "../loader/ModImpl.hpp"
 
 using namespace geode::prelude;
 
@@ -33,7 +34,7 @@ void crashlog::printMods(std::stringstream& stream) {
     using namespace std::string_view_literals;
     for (auto& mod : mods) {
         stream << fmt::format("{} | [{}] {}\n",
-            mod->isEnabled() ? "x"sv : mod->shouldLoad() ? "~"sv : " "sv,
+            mod->isEnabled() ? "x"sv : mod->shouldLoad() ? "~"sv : ModImpl::getImpl(mod)->isCurrentlyLoading() ? "o"sv : " "sv,
             mod->getVersion().toString(), mod->getID()
         );
     }
