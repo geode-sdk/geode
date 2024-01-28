@@ -3,6 +3,7 @@
 
 #ifdef GEODE_IS_WINDOWS
 
+    #include <loader/LoaderImpl.hpp>
     #include <Geode/loader/Mod.hpp>
     #include <Geode/modify/Modify.hpp>
 
@@ -35,6 +36,8 @@ $execute {
     // patch MessageBoxW to MessageBoxA
     // geode::base::getCocos() + 0x122600 = MessageBoxA in .idata
     // geode::base::getCocos() + 0x1225DC = MessageBoxW in .idata
+    if (LoaderImpl::get()->isForwardCompatMode()) return;
+
     const uint32_t importedMessageBoxA = geode::base::getCocos() + 0x122600;
 
     ByteVector p = {
