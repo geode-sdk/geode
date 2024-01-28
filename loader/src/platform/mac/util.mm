@@ -65,13 +65,18 @@ void utils::web::openLinkInBrowser(std::string const& url) {
 
 @end*/
 
+namespace {
+    using FileResult = Result<std::vector<ghc::filesystem::path>>;
+}
 
 @interface FileDialog : NSObject
++(void) filePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult onCompletion:(void(^)(FileResult))onCompletion;
++(void) dispatchFilePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult onCompletion:(void(^)(FileResult))onCompletion;
 +(Result<std::vector<ghc::filesystem::path>>) filePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult;
 @end
 
 @implementation FileDialog
-+(Result<std::vector<ghc::filesystem::path>>) filePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult {
++(void) filePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult onCompletion:(void(^)(FileResult))onCompletion {
     NSSavePanel* panel;
     if (mode == file::PickMode::SaveFile)
         panel = [NSSavePanel savePanel];
@@ -135,11 +140,23 @@ void utils::web::openLinkInBrowser(std::string const& url) {
                 fileURLs.push_back(std::string(i.path.UTF8String));
             }
         }
-        return Ok(fileURLs);
+        return onCompletion(Ok(fileURLs));
     } else {
-        return Err("File picker cancelled");
+        return onCompletion(Err("File picker cancelled"));
     }
 }
+
++(void) dispatchFilePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult onCompletion:(void(^)(FileResult))onCompletion {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self filePickerWithMode:mode options:options multiple:mult onCompletion:onCompletion];
+    });
+}
+
+
++(Result<std::vector<ghc::filesystem::path>>) filePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult {
+    return Err("Use the callback version");
+}
+
 @end
 
 Result<ghc::filesystem::path> file::pickFile(
@@ -159,13 +176,13 @@ GEODE_DLL void file::pickFile(
     MiniFunction<void(ghc::filesystem::path)> callback,
     MiniFunction<void()> failed
 ) {
-    auto result = file::pickFile(mode, options);
-
-    if (result.isOk()) {
-        callback(std::move(result.unwrap()));
-    } else {
-        failed();
-    }
+    [FileDialog dispatchFilePickerWithMode:mode options:options multiple:false onCompletion: ^(FileResult result) {
+        if (result.isOk()) {
+            callback(std::move(result.unwrap()[0]));
+        } else {
+            failed();
+        }
+    }];
 }
 
 Result<std::vector<ghc::filesystem::path>> file::pickFiles(
@@ -180,13 +197,13 @@ GEODE_DLL void file::pickFiles(
     MiniFunction<void(std::vector<ghc::filesystem::path>)> callback,
     MiniFunction<void()> failed
 ) {
-    auto result = file::pickFiles(options);
-
-    if (result.isOk()) {
-        callback(std::move(result.unwrap()));
-    } else {
-        failed();
-    }
+    [FileDialog dispatchFilePickerWithMode: file::PickMode::OpenFile options:options multiple:true onCompletion: ^(FileResult result) {
+        if (result.isOk()) {
+            callback(std::move(result.unwrap()));
+        } else {
+            failed();
+        }
+    }];
 }
 
 CCPoint cocos::getMousePos() {
