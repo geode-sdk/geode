@@ -364,6 +364,14 @@ void geode::utils::permission::requestPermission(Permission permission, utils::M
     }
 }
 
-#include "../../utils/thread.hpp"
-void geode::utils::thread::platformSetNameOrdinary(std::string const& name) { }
-void geode::utils::thread::platformSetNameWide(std::wstring const& wName) { }
+std::string geode::utils::thread::getName() {
+    return "";
+}
+
+void geode::utils::thread::setName(std::string const& name) {
+    
+}
+
+void geode::utils::thread::setName(std::wstring const& wName) {
+    
+}
