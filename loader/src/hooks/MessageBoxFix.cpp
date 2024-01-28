@@ -41,10 +41,10 @@ $execute {
     const uint32_t importedMessageBoxA = geode::base::getCocos() + 0x122600;
 
     ByteVector p = {
-        (importedMessageBoxA) & 0xff,
-        (importedMessageBoxA >> 8) & 0xff,
-        (importedMessageBoxA >> 16) & 0xff,
-        (importedMessageBoxA >> 24) & 0xff};
+        static_cast<unsigned char>((importedMessageBoxA) & 0xff),
+        static_cast<unsigned char>((importedMessageBoxA >> 8) & 0xff),
+        static_cast<unsigned char>((importedMessageBoxA >> 16) & 0xff),
+        static_cast<unsigned char>((importedMessageBoxA >> 24) & 0xff)};
 
     (void)Mod::get()->patch(reinterpret_cast<void*>(geode::base::getCocos() + 0xC75F9), p);
     (void)Mod::get()->patch(reinterpret_cast<void*>(geode::base::getCocos() + 0xc7651), p);
