@@ -30,8 +30,8 @@ namespace geode::log {
     private:
         std::vector<Log> m_logs;
         std::ofstream m_logStream;
-        static thread_local int32_t s_nestLevel;
-        static thread_local int32_t s_nestCountOffset;
+        inline static thread_local int32_t s_nestLevel;
+        inline static thread_local int32_t s_nestCountOffset;
 
         Logger() {}
     public:
