@@ -27,6 +27,7 @@ bool Loader::Impl::userTriedToLoadDLLs() const {
         "betteredit-v4.0.3.dll",
         "betteredit.dll",
         "gdshare-v0.3.4.dll",
+        "gdshare-v0.3.5.dll",
         "gdshare.dll",
         "hackpro.dll",
         "hackproldr.dll",
@@ -42,6 +43,10 @@ bool Loader::Impl::userTriedToLoadDLLs() const {
         "gdantialiasing.dll",
         "textureldr.dll",
         "run-info.dll",
+        "roastedmarshmellow.dll",
+        "toastedmarshmellow.dll",
+        "gdh.dll",
+        "mimalloc.dll",
     };
 
     bool triedToLoadDLLs = false;
