@@ -47,7 +47,17 @@ namespace geode::log {
         static void pushNest();
         static void popNest();
 
+        [[nodiscard]] static std::shared_ptr<Nest> saveNest();
+        static void loadNest(std::shared_ptr<Nest> const& nest);
+
         std::vector<Log> const& list();
         void clear();
+    };
+
+    class Nest::Impl {
+    public:
+        int32_t m_nestLevel;
+        int32_t m_nestCountOffset;
+        Impl(int32_t nestLevel, int32_t nestCountOffset);
     };
 }

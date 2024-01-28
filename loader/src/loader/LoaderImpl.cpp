@@ -409,7 +409,6 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
                     res.unwrapErr()
                 });
                 log::error("Failed to load binary: {}", res.unwrapErr());
-                log::popNest();
                 m_refreshingModCount -= 1;
                 return;
             }
@@ -420,8 +419,6 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
         }
 
         m_refreshingModCount -= 1;
-
-        log::popNest();
     };
 
     if (early) {
@@ -433,16 +430,20 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
                 res.unwrapErr()
             });
             log::error("Failed to unzip: {}", res.unwrapErr());
-            log::popNest();
             m_refreshingModCount -= 1;
+            log::popNest();
             return;
         }
         loadFunction();
     }
     else {
-        std::thread([=]() {
+        auto nest = log::saveNest();
+        std::thread([=, this]() {
+            log::loadNest(nest);
             auto res = unzipFunction();
-            queueInMainThread([=, this]() {
+            this->queueInMainThread([=, this]() {
+                auto prevNest = log::saveNest();
+                log::loadNest(nest);
                 if (!res) {
                     m_problems.push_back({
                         LoadProblem::Type::UnzipFailed,
@@ -450,14 +451,16 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
                         res.unwrapErr()
                     });
                     log::error("Failed to unzip: {}", res.unwrapErr());
-                    log::popNest();
                     m_refreshingModCount -= 1;
+                    log::loadNest(prevNest);
                     return;
                 }
                 loadFunction();
+                log::loadNest(prevNest);
             });
         }).detach();
     }
+    log::popNest();
 }
 
 void Loader::Impl::findProblems() {

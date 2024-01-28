@@ -9,6 +9,8 @@
 #include <fmt/chrono.h>
 #include <fmt/format.h>
 #include <iomanip>
+#include <memory>
+#include <utility>
 
 using namespace geode::prelude;
 using namespace geode::log;
@@ -235,6 +237,19 @@ void Logger::popNest() {
     s_nestLevel--;
 }
 
+Nest::Nest(std::shared_ptr<Nest::Impl> impl) : m_impl(std::move(impl)) { }
+Nest::Impl::Impl(int32_t nestLevel, int32_t nestCountOffset) :
+    m_nestLevel(nestLevel), m_nestCountOffset(nestCountOffset) { }
+
+std::shared_ptr<Nest> Logger::saveNest() {
+    return std::make_shared<Nest>(std::make_shared<Nest::Impl>(s_nestLevel, s_nestCountOffset));
+}
+
+void Logger::loadNest(std::shared_ptr<Nest> const& nest) {
+    s_nestLevel = nest->m_impl->m_nestLevel;
+    s_nestCountOffset = nest->m_impl->m_nestCountOffset;
+}
+
 std::vector<Log> const& Logger::list() {
     return m_logs;
 }
@@ -256,4 +271,12 @@ void log::pushNest() {
 
 void log::popNest() {
     Logger::popNest();
+}
+
+std::shared_ptr<Nest> log::saveNest() {
+    return Logger::saveNest();
+}
+
+void log::loadNest(std::shared_ptr<Nest> const& nest) {
+    Logger::loadNest(nest);
 }

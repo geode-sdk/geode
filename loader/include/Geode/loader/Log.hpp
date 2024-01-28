@@ -109,5 +109,17 @@ namespace geode {
 
         GEODE_DLL void pushNest();
         GEODE_DLL void popNest();
+
+        class Nest final {
+        private:
+            class Impl;
+            std::shared_ptr<Nest::Impl> m_impl;
+            friend class Logger;
+        public:
+            explicit Nest(std::shared_ptr<Nest::Impl> impl);
+        };
+
+        [[nodiscard]] GEODE_DLL std::shared_ptr<Nest> saveNest();
+        GEODE_DLL void loadNest(std::shared_ptr<Nest> const& nest);
     }
 }
