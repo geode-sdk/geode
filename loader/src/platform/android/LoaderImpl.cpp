@@ -38,9 +38,27 @@ void Loader::Impl::addNativeBinariesPath(ghc::filesystem::path const& path) {
 }
 
 bool Loader::Impl::supportsLaunchArguments() const {
-    return false;
+    return true;
 }
 
 std::string Loader::Impl::getLaunchCommand() const {
-    return std::string(); // Empty
+    std::string launchArgs = "";
+
+    JniMethodInfo t;
+    if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "getLaunchArguments", "()Ljava/lang/String;")) {
+        jstring str = reinterpret_cast<jstring>(t.env->CallStaticObjectMethod(t.classID, t.methodID));
+        t.env->DeleteLocalRef(t.classID);
+        launchArgs = JniHelper::jstring2string(str);
+        t.env->DeleteLocalRef(str);
+    } else {
+        // this is also defined in utils, but this is a loader function and thus it can't access
+        auto vm = JniHelper::getJavaVM();
+
+        JNIEnv* env;
+        if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) == JNI_OK) {
+            env->ExceptionClear();
+        }
+    }
+
+    return launchArgs;
 }
