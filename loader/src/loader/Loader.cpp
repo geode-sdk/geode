@@ -89,6 +89,6 @@ std::optional<std::string> Loader::getLaunchArgument(std::string_view const name
     return m_impl->getLaunchArgument(name);
 }
 
-bool Loader::getLaunchBool(std::string_view const name) const {
-    return m_impl->getLaunchBool(name);
+bool Loader::getLaunchFlag(std::string_view const name) const {
+    return m_impl->getLaunchFlag(name);
 }

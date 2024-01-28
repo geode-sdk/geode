@@ -559,6 +559,13 @@ void Loader::Impl::refreshModGraph() {
 
     m_problems.clear();
 
+    if (Loader::get()->getLaunchFlag("safe-mode")) {
+        log::info("Launched in Safe Mode. Any mod loading will be skipped.");
+        m_loadingState = LoadingState::Done;
+        log::popNest();
+        return;
+    }
+
     m_loadingState = LoadingState::Queue;
     log::debug("Queueing mods");
     log::pushNest();
@@ -776,7 +783,7 @@ std::optional<std::string> Loader::Impl::getLaunchArgument(std::string_view cons
     return std::optional(value->second);
 }
 
-bool Loader::Impl::getLaunchBool(std::string_view const name) const {
+bool Loader::Impl::getLaunchFlag(std::string_view const name) const {
     auto arg = this->getLaunchArgument(name);
     return arg.has_value() && arg.value() == "true";
 }

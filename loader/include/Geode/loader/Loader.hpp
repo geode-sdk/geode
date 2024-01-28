@@ -9,7 +9,10 @@
 #include "Types.hpp"
 
 #include <atomic>
+#include <matjson.hpp>
 #include <mutex>
+#include <optional>
+#include <string_view>
 
 namespace geode {
     using ScheduledFunction = utils::MiniFunction<void()>;
@@ -94,17 +97,39 @@ namespace geode {
         bool hasLaunchArgument(std::string_view const name) const;
         /**
          * Get a launch argument. These are passed into the game as command-line arguments
-         * with the format `--geode:argName=value`.
+         * with the format `--geode:arg-name=value`.
          * @param name The argument name
          * @return The value, if present
          */
         std::optional<std::string> getLaunchArgument(std::string_view const name) const;
         /**
-         * Get a boolean launch argument. Returns whether the argument is present and its
+         * Get a launch argument flag. Returns whether the argument is present and its
          * value is exactly `true`.
          * @param name The argument name
          */
-        bool getLaunchBool(std::string_view const name) const;
+        bool getLaunchFlag(std::string_view const name) const;
+        /**
+         * Get and parse a launch argument value using the setting value system.
+         * @param name The argument name
+         */
+        template <class T>
+        std::optional<T> parseLaunchArgument(std::string_view const name) const {
+            auto str = this->getLaunchArgument(name);
+            if (!str.has_value()) {
+                return std::nullopt;
+            }
+            std::string parseError;
+            auto jsonOpt = matjson::parse(str.value(), parseError);
+            if (!jsonOpt.has_value()) {
+                log::debug("Parsing launch argument '{}' failed: {}", name, parseError);
+                return std::nullopt;
+            }
+            auto value = jsonOpt.value();
+            if (!value.is<T>()) {
+                return std::nullopt;
+            }
+            return value.as<T>();
+        }
 
         void queueInMainThread(ScheduledFunction func);
 
