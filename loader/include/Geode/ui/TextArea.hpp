@@ -26,18 +26,6 @@ namespace geode {
         static SimpleTextArea* create(const std::string& text, const std::string& font = "chatFont.fnt", const float scale = 1);
         static SimpleTextArea* create(const std::string& text, const std::string& font, const float scale, const float width);
 
-        cocos2d::CCMenu* m_container;
-        std::string m_font;
-        std::string m_text;
-        std::vector<cocos2d::CCLabelBMFont*> m_lines;
-        cocos2d::ccColor4B m_color;
-        cocos2d::CCTextAlignment m_alignment;
-        WrappingMode m_wrappingMode;
-        size_t m_maxLines;
-        float m_scale;
-        float m_lineHeight;
-        float m_linePadding;
-
         void setFont(const std::string& font);
         std::string getFont();
         void setColor(const cocos2d::ccColor4B& color);
@@ -64,6 +52,17 @@ namespace geode {
 
         bool m_shouldUpdate;
         bool m_artificialWidth;
+        cocos2d::CCMenu* m_container;
+        std::string m_font;
+        std::string m_text;
+        std::vector<cocos2d::CCLabelBMFont*> m_lines;
+        cocos2d::ccColor4B m_color;
+        cocos2d::CCTextAlignment m_alignment;
+        WrappingMode m_wrappingMode;
+        size_t m_maxLines;
+        float m_scale;
+        float m_lineHeight;
+        float m_linePadding;
 
         SimpleTextArea(const std::string& font, const std::string& text, const float scale, const float width, const bool artificialWidth);
         cocos2d::CCLabelBMFont* createLabel(const std::string& text, const float top);
