@@ -12,11 +12,12 @@ namespace geode::log {
         Mod* m_sender;
         log_clock::time_point m_time;
         Severity m_severity;
+        std::string m_thread;
         std::string m_content;
 
     public:
         ~Log();
-        Log(Severity sev, Mod* mod, std::string&& content);
+        Log(Severity sev, std::string&& thread, Mod* mod, std::string&& content);
 
         std::string toString(bool logTime = true, int32_t nestCount = 0) const;
 

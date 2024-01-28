@@ -98,10 +98,11 @@ void log::vlogImpl(Severity sev, Mod* mod, fmt::string_view format, fmt::format_
 }
 
 
-Log::Log(Severity sev, Mod* mod, std::string&& content) :
+Log::Log(Severity sev, std::string&& thread, Mod* mod, std::string&& content) :
     m_sender(mod),
     m_time(log_clock::now()),
     m_severity(sev),
+    m_thread(thread),
     m_content(content) {}
 
 Log::~Log() {}
@@ -140,16 +141,32 @@ std::string Log::toString(bool logTime, int32_t nestCount) const {
     }
 
     auto senderName = m_sender ? m_sender->getName() : "Geode?";
+    auto threadName = m_thread;
 
     if (nestCount != 0) {
-        nestCount -= static_cast<int32_t>(senderName.size());
+        nestCount -= static_cast<int32_t>(senderName.size() + threadName.size());
     }
 
     if (nestCount < 0) {
-        senderName = fmt::format("{}>", senderName.substr(0, senderName.size() + nestCount - 1));
+        auto initSenderLength = static_cast<int32_t>(senderName.size());
+        auto initThreadLength = static_cast<int32_t>(threadName.size());
+
+        auto needsCollapse = -nestCount;
+
+        auto senderCollapse = needsCollapse / 2;
+        auto senderLength = std::max(initSenderLength - senderCollapse, 2);
+        senderCollapse = initSenderLength - senderLength;
+
+        auto threadCollapse = needsCollapse - senderCollapse;
+        auto threadLength = std::max(initThreadLength - threadCollapse, 2);
+
+        if (senderLength < senderName.size())
+            senderName = fmt::format("{}>", senderName.substr(0, senderLength - 1));
+        if (threadLength < threadName.size())
+            threadName = fmt::format("{}>", threadName.substr(0, threadLength - 1));
     }
 
-    res += fmt::format(" [{}]: ", senderName);
+    res += fmt::format(" [{}] [{}]: ", threadName, senderName);
 
     for (int32_t i = 0; i < nestCount; i++) {
         res += " ";
@@ -194,7 +211,7 @@ void Logger::push(Severity sev, Mod* mod, std::string&& content) {
     Log* log = nullptr;
     {
         std::lock_guard g(g_logMutex);
-        log = &m_logs.emplace_back(sev, mod, std::move(content));
+        log = &m_logs.emplace_back(sev, thread::getName(), mod, std::move(content));
     }
 
     auto nestCount = s_nestLevel * 2;
@@ -210,7 +227,7 @@ void Logger::push(Severity sev, Mod* mod, std::string&& content) {
 
 void Logger::pushNest() {
     if (s_nestLevel == 0)
-        s_nestCountOffset = static_cast<int32_t>(Mod::get()->getName().size());
+        s_nestCountOffset = static_cast<int32_t>(Mod::get()->getName().size() + thread::getName().size());
     s_nestLevel++;
 }
 
