@@ -54,10 +54,10 @@ function(setup_geode_mod proname)
     if (ANDROID)
         if (CMAKE_BUILD_TYPE STREQUAL "Release")
             add_custom_command(
-                TARGET "${PROJECT_NAME}" POST_BUILD
-                DEPENDS "${PROJECT_NAME}"
+                TARGET "${proname}" POST_BUILD
+                DEPENDS "${proname}"
                 COMMAND $<$<CONFIG:release>:${CMAKE_STRIP}>
-                ARGS -S $<TARGET_FILE:${PROJECT_NAME}>
+                ARGS -S $<TARGET_FILE:${proname}>
             )
         endif()
     endif()
