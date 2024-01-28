@@ -482,6 +482,7 @@ void Index::Impl::updateFromLocalTree() {
         IndexUpdateEvent(UpdateFinished()).post();
     });
 
+    log::debug("Done");
     log::popNest();
 }
 
