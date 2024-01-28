@@ -20,6 +20,8 @@ body:
       options:
         - "MacOS"
         - "Windows"
+        - "Android64"
+        - "Android32"
     validations:
       required: true
   - type: input
