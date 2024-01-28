@@ -10,6 +10,8 @@ using namespace geode::prelude;
 static constexpr auto IPC_BUFFER_SIZE = 512;
 
 void ipcPipeThread(HANDLE pipe) {
+    thread::setName("Geode IPC Pipe");
+
     char buffer[IPC_BUFFER_SIZE * sizeof(TCHAR)];
     DWORD read;
 
@@ -35,6 +37,7 @@ void ipcPipeThread(HANDLE pipe) {
 
 void ipc::setup() {
     std::thread ipcThread([]() {
+        thread::setName("Geode Main IPC");
         while (true) {
             auto pipe = CreateNamedPipeA(
                 ipc::IPC_PIPE_NAME,
@@ -59,7 +62,6 @@ void ipc::setup() {
             if (ConnectNamedPipe(pipe, nullptr)) {
                 // log::debug("Got connection, creating thread");
                 std::thread pipeThread(&ipcPipeThread, pipe);
-                // SetThreadDescription(pipeThread.native_handle(), L"Geode IPC Pipe");
                 pipeThread.detach();
             }
             else {
@@ -68,7 +70,6 @@ void ipc::setup() {
             }
         }
     });
-    // SetThreadDescription(ipcThread.native_handle(), L"Geode Main IPC");
     ipcThread.detach();
 
     log::debug("IPC set up");

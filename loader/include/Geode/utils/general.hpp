@@ -141,3 +141,9 @@ namespace geode::utils::game {
     GEODE_DLL void restart();
     GEODE_DLL void launchLoaderUninstaller(bool deleteSaveData);
 }
+
+namespace geode::utils::thread {
+    GEODE_DLL std::string getName();
+    GEODE_DLL void setName(std::string const& name);
+    GEODE_DLL void setName(std::wstring const& wName);
+}

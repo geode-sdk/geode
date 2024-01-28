@@ -363,3 +363,7 @@ void geode::utils::permission::requestPermission(Permission permission, utils::M
         clearJNIException();
     }
 }
+
+#include "../../utils/thread.hpp"
+void geode::utils::thread::platformSetNameOrdinary(std::string const& name) { }
+void geode::utils::thread::platformSetNameWide(std::wstring const& wName) { }

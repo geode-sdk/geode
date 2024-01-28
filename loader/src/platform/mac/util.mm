@@ -309,3 +309,7 @@ bool geode::utils::permission::getPermissionStatus(Permission permission) {
 void geode::utils::permission::requestPermission(Permission permission, utils::MiniFunction<void(bool)> callback) {
     callback(true); // unimplemented
 }
+
+#include "../../utils/thread.hpp"
+void geode::utils::thread::platformSetNameOrdinary(std::string const& name) { }
+void geode::utils::thread::platformSetNameWide(std::wstring const& wName) { }

@@ -6,6 +6,7 @@ using namespace geode::prelude;
 #include "nfdwin.hpp"
 #include <ghc/fs_fwd.hpp>
 #include <Windows.h>
+#include <processthreadsapi.h>
 #include <iostream>
 #include <ShlObj.h>
 #include <shlwapi.h>
@@ -276,4 +277,43 @@ bool geode::utils::permission::getPermissionStatus(Permission permission) {
 
 void geode::utils::permission::requestPermission(Permission permission, utils::MiniFunction<void(bool)> callback) {
     callback(true); // unimplemented
+}
+
+#include "../../utils/thread.hpp"
+
+// https://learn.microsoft.com/en-us/visualstudio/debugger/how-to-set-a-thread-name-in-native-code?view=vs-2022
+#pragma pack(push,8)
+typedef struct tagTHREADNAME_INFO {
+    DWORD dwType; // Must be 0x1000.
+    LPCSTR szName; // Pointer to name (in user addr space).
+    DWORD dwThreadID; // Thread ID (-1=caller thread).
+    DWORD dwFlags; // Reserved for future use, must be zero.
+} THREADNAME_INFO;
+#pragma pack(pop)
+
+// the SetThreadDescription and exception methods are needed for the thread names to show up
+// in places like task managers and debuggers
+auto setThreadDesc = reinterpret_cast<decltype(&SetThreadDescription)>(GetProcAddress(GetModuleHandleA("Kernel32.dll"), "SetThreadDescription"));
+void geode::utils::thread::platformSetNameWide(std::wstring const& wName) {
+    // SetThreadDescription
+    if (!setThreadDesc)
+        return;
+    auto res = setThreadDesc(GetCurrentThread(), wName.c_str());
+    if (FAILED(res))
+        log::warn("Native method to set thread name failed ({}), using only fallback methods.", res);
+}
+void geode::utils::thread::platformSetNameOrdinary(std::string const& name) {
+    // exception
+    THREADNAME_INFO info;
+    info.dwType = 0x1000;
+    info.szName = name.c_str();
+    info.dwThreadID = GetCurrentThreadId();
+    info.dwFlags = 0;
+#pragma warning(push)
+#pragma warning(disable: 6320 6322)
+    __try {
+        RaiseException(0x406d1388, 0, sizeof(info) / sizeof(ULONG_PTR), reinterpret_cast<ULONG_PTR*>(&info));
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER) { }
+#pragma warning(pop)
 }

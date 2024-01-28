@@ -94,6 +94,7 @@ void tryShowForwardCompat() {
 }
 
 int geodeEntry(void* platformData) {
+    thread::setName("Main Thread");
     log::Logger::get()->setup();
 
     std::string forwardCompatSuffix;
