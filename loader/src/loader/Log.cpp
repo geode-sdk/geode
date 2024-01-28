@@ -197,9 +197,9 @@ void Logger::push(Severity sev, Mod* mod, std::string&& content) {
         log = &m_logs.emplace_back(sev, mod, std::move(content));
     }
 
-    auto nestCount = m_nestLevel * 2;
+    auto nestCount = s_nestLevel * 2;
     if (nestCount != 0) {
-        nestCount += m_nestCountOffset;
+        nestCount += s_nestCountOffset;
     }
 
     auto const logStr = log->toString(true, nestCount);
@@ -209,13 +209,13 @@ void Logger::push(Severity sev, Mod* mod, std::string&& content) {
 }
 
 void Logger::pushNest() {
-    if (m_nestLevel == 0)
-        m_nestCountOffset = static_cast<int32_t>(Mod::get()->getName().size());
-    m_nestLevel++;
+    if (s_nestLevel == 0)
+        s_nestCountOffset = static_cast<int32_t>(Mod::get()->getName().size());
+    s_nestLevel++;
 }
 
 void Logger::popNest() {
-    m_nestLevel--;
+    s_nestLevel--;
 }
 
 std::vector<Log> const& Logger::list() {
@@ -234,9 +234,9 @@ std::string geode::log::generateLogName() {
 }
 
 void log::pushNest() {
-    Logger::get()->pushNest();
+    Logger::pushNest();
 }
 
 void log::popNest() {
-    Logger::get()->popNest();
+    Logger::popNest();
 }

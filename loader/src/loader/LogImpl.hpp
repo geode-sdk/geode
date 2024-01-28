@@ -30,8 +30,8 @@ namespace geode::log {
     private:
         std::vector<Log> m_logs;
         std::ofstream m_logStream;
-        int32_t m_nestLevel;
-        int32_t m_nestCountOffset;
+        static thread_local int32_t s_nestLevel;
+        static thread_local int32_t s_nestCountOffset;
 
         Logger() {}
     public:
@@ -43,8 +43,8 @@ namespace geode::log {
         // why would you need this lol
         // void pop(Log* log);
 
-        void pushNest();
-        void popNest();
+        static void pushNest();
+        static void popNest();
 
         std::vector<Log> const& list();
         void clear();
