@@ -30,8 +30,7 @@ struct TextInputNodeFix : Modify<TextInputNodeFix, CCTextInputNode> {
         }
 
         this->onClickTrackNode(true);
-        // TODO: this also relies on the broken position calculation
-        // this->updateCursorPosition(pos, {{0, 0}, size});
+        this->updateCursorPosition(touchPos, {{0, 0}, size});
 
         return true;
     }
