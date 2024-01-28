@@ -3,6 +3,7 @@
 
 #ifdef GEODE_IS_WINDOWS
 
+    #include <loader/LoaderImpl.hpp>
     #include <Geode/loader/Mod.hpp>
     #include <Geode/modify/Modify.hpp>
 
@@ -29,10 +30,24 @@ static void __cdecl fixedErrorHandler(int code, char const* description) {
 }
 
 $execute {
-    // TODO: i'm pretty sure this patch only works on 2.113?
-    //(void)Mod::get()->patch(
-    //    reinterpret_cast<void*>(geode::base::getCocos() + 0x19feec), toByteArray(&fixedErrorHandler)
-    //);
+    // updated for 2.204
+    // check xrefs to "GLFWError #%d Happen, %s\n", now there's two functions with the same exact
+    // behaviour, one is a member function though... call ds:MessageBoxW
+    // patch MessageBoxW to MessageBoxA
+    // geode::base::getCocos() + 0x122600 = MessageBoxA in .idata
+    // geode::base::getCocos() + 0x1225DC = MessageBoxW in .idata
+    if (LoaderImpl::get()->isForwardCompatMode()) return;
+
+    const uint32_t importedMessageBoxA = geode::base::getCocos() + 0x122600;
+
+    ByteVector p = {
+        (importedMessageBoxA) & 0xff,
+        (importedMessageBoxA >> 8) & 0xff,
+        (importedMessageBoxA >> 16) & 0xff,
+        (importedMessageBoxA >> 24) & 0xff};
+
+    (void)Mod::get()->patch(reinterpret_cast<void*>(geode::base::getCocos() + 0xC75F9), p);
+    (void)Mod::get()->patch(reinterpret_cast<void*>(geode::base::getCocos() + 0xc7651), p);
 }
 
 #endif
