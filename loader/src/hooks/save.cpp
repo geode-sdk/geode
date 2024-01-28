@@ -41,3 +41,16 @@ struct FallbackSaveLoader : Modify<FallbackSaveLoader, CCApplication> {
 };
 
 #endif
+
+#ifdef GEODE_IS_ANDROID
+
+#include <Geode/modify/FileOperation.hpp>
+
+// redirects the save path to what geode knows, in case launcher's fopen hook fails
+struct FileOperationOverride : Modify<FileOperationOverride, FileOperation> {
+    gd::string getFilePath() {
+        return dirs::getSaveDir().string();
+    }
+};
+
+#endif
