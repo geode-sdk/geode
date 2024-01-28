@@ -16,12 +16,12 @@ namespace geode::utils::permission {
      * Request whether the given permission is granted to Geode by the operating system.
      * @param permission The permission
     */
-    bool getPermissionStatus(Permission permission);
+    bool GEODE_DLL getPermissionStatus(Permission permission);
 
     /**
      * Request a permission to be granted by the operating system.
      * @param permission The permission
      * @param callback The callback, passed value is 'true' if permission was granted and 'false' otherwise.
      */
-    void requestPermission(Permission permission, utils::MiniFunction<void(bool)> callback);
+    void GEODE_DLL requestPermission(Permission permission, utils::MiniFunction<void(bool)> callback);
 }
