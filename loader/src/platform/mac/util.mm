@@ -70,13 +70,12 @@ namespace {
 }
 
 @interface FileDialog : NSObject
-+(void) filePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult onCompletion:(void(^)(FileResult))onCompletion;
-+(void) dispatchFilePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult onCompletion:(void(^)(FileResult))onCompletion;
 +(Result<std::vector<ghc::filesystem::path>>) filePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult;
++(void) dispatchFilePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult onCompletion:(void(^)(FileResult))onCompletion;
 @end
 
 @implementation FileDialog
-+(void) filePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult onCompletion:(void(^)(FileResult))onCompletion {
++(Result<std::vector<ghc::filesystem::path>>) filePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult {
     NSSavePanel* panel;
     if (mode == file::PickMode::SaveFile)
         panel = [NSSavePanel savePanel];
@@ -140,21 +139,17 @@ namespace {
                 fileURLs.push_back(std::string(i.path.UTF8String));
             }
         }
-        return onCompletion(Ok(fileURLs));
+        return Ok(fileURLs);
     } else {
-        return onCompletion(Err("File picker cancelled"));
+        return Err("File picker cancelled");
     }
 }
 
 +(void) dispatchFilePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult onCompletion:(void(^)(FileResult))onCompletion {
     dispatch_async(dispatch_get_main_queue(), ^{
-        [self filePickerWithMode:mode options:options multiple:mult onCompletion:onCompletion];
+        auto result = [self filePickerWithMode:mode options:options multiple:mult];
+        onCompletion(result);
     });
-}
-
-
-+(Result<std::vector<ghc::filesystem::path>>) filePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult {
-    return Err("Use the callback version");
 }
 
 @end
@@ -162,13 +157,7 @@ namespace {
 Result<ghc::filesystem::path> file::pickFile(
     file::PickMode mode, file::FilePickOptions const& options
 ) {
-    auto result = [FileDialog filePickerWithMode:mode options:options multiple: false];
-
-    if (result.isOk()) {
-        return Ok<ghc::filesystem::path>(std::move(result.unwrap()[0]));
-    } else {
-        return Err<>(result.unwrapErr());
-    }
+    return Err("Use the callback version");
 }
 
 GEODE_DLL void file::pickFile(
@@ -177,19 +166,20 @@ GEODE_DLL void file::pickFile(
     MiniFunction<void()> failed
 ) {
     [FileDialog dispatchFilePickerWithMode:mode options:options multiple:false onCompletion: ^(FileResult result) {
-        if (result.isOk()) {
-            callback(std::move(result.unwrap()[0]));
-        } else {
-            failed();
-        }
+        Loader::get()->queueInMainThread([=]() {
+            if (result.isOk()) {
+                callback(std::move(result.unwrap()[0]));
+            } else {
+                failed();
+            }
+        });
     }];
 }
 
 Result<std::vector<ghc::filesystem::path>> file::pickFiles(
     file::FilePickOptions const& options
 ) {
-    //return Err("utils::file::pickFiles is not implemented");
-    return [FileDialog filePickerWithMode: file::PickMode::OpenFile options:options multiple:true];
+    return Err("Use the callback version");
 }
 
 GEODE_DLL void file::pickFiles(
@@ -198,11 +188,13 @@ GEODE_DLL void file::pickFiles(
     MiniFunction<void()> failed
 ) {
     [FileDialog dispatchFilePickerWithMode: file::PickMode::OpenFile options:options multiple:true onCompletion: ^(FileResult result) {
-        if (result.isOk()) {
-            callback(std::move(result.unwrap()));
-        } else {
-            failed();
-        }
+        Loader::get()->queueInMainThread([=]() {
+            if (result.isOk()) {
+                callback(std::move(result.unwrap()));
+            } else {
+                failed();
+            }
+        });
     }];
 }
 
