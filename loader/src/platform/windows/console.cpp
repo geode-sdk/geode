@@ -49,6 +49,9 @@ bool redirectStd(FILE* which, std::string const& name, const Severity sev) {
 }
 
 void console::setup() {
+    // launch args are initialized too late
+    bool forceConsole = ghc::filesystem::exists(dirs::getGameDir() / ".force-console");
+
     bool hasStdout = _fileno(stdout) >= 0;
     if (!s_shouldAlloc) {
         s_origStdOut = hasStdout ? _fdopen(_dup(_fileno(stdout)), "w") : nullptr;
@@ -60,7 +63,7 @@ void console::setup() {
     }
 
     s_outHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-    if (!s_outHandle || !hasStdout) {
+    if (!s_outHandle || !hasStdout || forceConsole) {
         if (s_shouldAlloc)
             return;
         if (!AttachConsole(ATTACH_PARENT_PROCESS)) {
@@ -68,7 +71,7 @@ void console::setup() {
             return;
         }
         s_outHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-        if (!s_outHandle || !hasStdout) {
+        if (!s_outHandle || !hasStdout || forceConsole) {
             s_shouldAlloc = true;
             return;
         }
