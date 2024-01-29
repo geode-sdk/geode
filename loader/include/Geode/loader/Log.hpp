@@ -1,10 +1,14 @@
 #pragma once
 
 #include "Types.hpp"
-#include "../utils/Result.hpp"
+#include "../platform/cplatform.h"
+
+// yet another macos std::filesystem L
+#ifdef GEODE_IS_MACOS
+#define FMT_CPP_LIB_FILESYSTEM 0
+#endif
 
 #include <Geode/DefaultInclude.hpp>
-#include <Geode/utils/ranges.hpp>
 #include <ccTypes.h>
 #include <chrono>
 #include <ghc/fs_fwd.hpp>
@@ -12,10 +16,6 @@
 #include <fmt/core.h>
 // for formatting std::vector and such
 #include <fmt/ranges.h>
-// yet another macos std::filesystem L
-#ifdef GEODE_IS_MACOS
-#define FMT_CPP_LIB_FILESYSTEM 0
-#endif
 // for std::optional
 #include <fmt/std.h>
 
