@@ -48,7 +48,7 @@ void console::setup() {
     );
 
     for (auto const& log : log::Logger::get()->list()) {
-        console::log(log.toString(true), log.getSeverity());
+        console::log(log.toString(), log.getSeverity());
     }
 }
 
