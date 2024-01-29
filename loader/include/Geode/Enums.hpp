@@ -317,16 +317,23 @@ enum class EditCommand {
     TinyUp = 15,
     TinyDown = 16,
 
-    FlipX = 17,
-    FlipY = 18,
-    RotateCW = 19,
-    RotateCCW = 20,
-    RotateCW45 = 21,
-    RotateCCW45 = 22,
-    RotateFree = 23,
-    RotateSnap = 24,
+    HalfLeft = 17,
+    HalfRight = 18,
+    HalfUp = 19,
+    HalfDown = 20,
 
-    Scale = 25,
+    FlipX = 21,
+    FlipY = 22,
+    RotateCW = 23,
+    RotateCCW = 24,
+    RotateCW45 = 25,
+    RotateCCW45 = 26,
+    RotateFree = 27,
+    RotateSnap = 28,
+
+    Scale = 29,
+    ScaleXY = 30,
+    Skew = 31
 };
 
 // Geode Addition
