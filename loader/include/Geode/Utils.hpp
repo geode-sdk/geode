@@ -3,6 +3,7 @@
 #include "DefaultInclude.hpp"
 #include "utils/Result.hpp"
 #include "utils/VersionInfo.hpp"
+#include "utils/ranges.hpp"
 #include "utils/casts.hpp"
 #include "utils/cocos.hpp"
 #include "utils/map.hpp"
