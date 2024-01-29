@@ -347,10 +347,9 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
                     auto colon = line.find(':');
                     if (colon == std::string::npos) continue;
                     auto key = line.substr(0, colon);
-                    auto value = line.substr(colon + 1);
-                    headers[key] = value;
+                    auto value = line.substr(colon + 2);
+                    self->m_responseHeader[key] = value;
                 }
-                self->m_responseHeader = std::move(headers);
             });
             return size * nitems;
         });

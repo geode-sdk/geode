@@ -52,7 +52,7 @@ void updater::fetchLatestGithubRelease(
 
     std::string modifiedSince;
     if (!force) {
-        modifiedSince = Mod::get()->getSavedValue("last-modified-github-release-check", std::string());
+        modifiedSince = Mod::get()->getSavedValue("last-modified-auto-update-check", std::string());
     }
 
     // TODO: add header to not get rate limited
