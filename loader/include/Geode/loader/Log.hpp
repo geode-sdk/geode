@@ -13,10 +13,11 @@
 // for formatting std::vector and such
 #include <fmt/ranges.h>
 // yet another macos std::filesystem L
-#ifndef GEODE_IS_MACOS
+#ifdef GEODE_IS_MACOS
+#define FMT_CPP_LIB_FILESYSTEM 0
+#endif
 // for std::optional
 #include <fmt/std.h>
-#endif
 
 namespace geode {
     // these are here because theyre special :-)
@@ -69,7 +70,6 @@ namespace ghc::filesystem {
 }
 
 namespace geode {
-#pragma warning(disable : 4251)
 
     class Mod;
     Mod* getMod();
