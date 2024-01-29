@@ -1,5 +1,20 @@
 # Geode Changelog
 
+## v2.0.0-beta.12
+ * Increase target MacOS version to 10.15 (6dc6e9b4)
+   * Not even steam supports 10.13 anymore, and with this change
+   we can finally stop worrying about std::filesystem
+ * Add safety hook for save path on android (0188eee5)
+   * We had a bug where the game would randomly reset your save file
+   on android, and we believe this to be a hook by the launcher itself
+   not being placed properly. So, we also do the hook on Geode itself,
+   for safety.
+ * Fix rob's broken MessageBoxW on Windows (5d631921)
+ * Add utils for setting thread name, show it on log (832bcf81, ce53fb31)
+ * Add some launch arguments for geode (7ccaef90)
+ * Deprecate blocking file picking utils (ee97e2da)
+
+
 ## v2.0.0-beta.11
  * Fix `InputNode` funkiness on Windows (bb1fcbe)
  * Add methods for requesting and querying permissions (9ff9191)
