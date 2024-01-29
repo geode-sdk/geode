@@ -3,7 +3,7 @@
 
 #include <utility>
 #include <queue>
-#include <Geode/Utils.hpp>
+#include <Geode/utils/ranges.hpp>
 
 bool InstallListPopup::setup(IndexItemHandle item, MiniFunction<void(IndexInstallList const&)> callback) {
     m_noElasticity = true;
