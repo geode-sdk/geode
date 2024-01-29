@@ -3,11 +3,6 @@
 #include "Types.hpp"
 #include "../platform/cplatform.h"
 
-// yet another macos std::filesystem L
-#ifdef GEODE_IS_MACOS
-#define FMT_CPP_LIB_FILESYSTEM 0
-#endif
-
 #include <Geode/DefaultInclude.hpp>
 #include <ccTypes.h>
 #include <chrono>
