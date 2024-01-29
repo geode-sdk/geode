@@ -371,6 +371,47 @@ public:
     static ColumnLayout* create();
 };
 
+/**
+ * The relative position of a node to its parent in an AnchorLayout
+ */
+enum class Anchor {
+    Center,
+    TopLeft,
+    Top,
+    TopRight,
+    Right,
+    BottomRight,
+    Bottom,
+    BottomLeft,
+    Left,
+};
+
+/**
+ * Options for customizing AnchorLayout
+ */
+class GEODE_DLL AnchorLayoutOptions : public LayoutOptions {
+protected:
+    Anchor m_anchor = Anchor::Center;
+    CCPoint m_offset = CCPointZero;
+
+public:
+    static AnchorLayoutOptions* create();
+
+    Anchor getAnchor() const;
+    CCPoint getOffset() const;
+
+    AnchorLayoutOptions* setAnchor(Anchor anchor);
+    AnchorLayoutOptions* setOffset(CCPoint const& offset);
+};
+
+class GEODE_DLL AnchorLayout : public Layout {
+public:
+    static AnchorLayout* create();
+
+    void apply(CCNode* on) override;
+    CCSize getSizeHint(CCNode* on) const override;
+};
+
 #pragma warning(pop)
 
 NS_CC_END

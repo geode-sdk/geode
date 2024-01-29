@@ -46,7 +46,7 @@ namespace geode {
             m_closeBtn = CCMenuItemSpriteExtra::create(
                 closeSpr, this, (cocos2d::SEL_MenuHandler)(&Popup::onClose)
             );
-            m_closeBtn->setPosition(-m_size.width / 2 + 3.f, m_size.height / 2 - 3.f);
+            m_closeBtn->setAnchoredPosition(cocos2d::Anchor::TopLeft);
             m_buttonMenu->addChild(m_closeBtn);
 
             if (!setup(std::forward<InitArgs>(args)...)) {
@@ -87,9 +87,7 @@ namespace geode {
             } else {
                 auto winSize = cocos2d::CCDirector::sharedDirector()->getWinSize();
                 m_title = cocos2d::CCLabelBMFont::create(title.c_str(), font);
-                m_title->setPosition(
-                    winSize.width / 2, winSize.height / 2 + m_size.height / 2 - offset
-                );
+                m_title->setAnchoredPosition(cocos2d::Anchor::Top, ccp(0, -offset));
                 m_mainLayer->addChild(m_title, 2);
             }
             m_title->limitLabelWidth(m_size.width - 20.f, scale, .1f);
