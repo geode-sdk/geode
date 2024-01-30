@@ -5,9 +5,40 @@
 using namespace geode::prelude;
 
 HANDLE s_outHandle = nullptr;
-FILE* s_origStdOut = nullptr;
 bool s_hasAnsiColorSupport = false;
 bool s_shouldAlloc = false;
+
+void setupConsole(HANDLE out) {
+    SetConsoleCP(CP_UTF8);
+
+    DWORD consoleMode = 0;
+
+    // Set output mode to handle ansi color sequences
+    s_hasAnsiColorSupport = GetConsoleMode(out, &consoleMode) &&
+        ((consoleMode & ENABLE_VIRTUAL_TERMINAL_PROCESSING) > 0 ||
+            SetConsoleMode(out, consoleMode | ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING));
+
+    // copied from pwsh when gd is in console mode
+    SetConsoleMode(
+        GetStdHandle(STD_INPUT_HANDLE),
+        ENABLE_PROCESSED_INPUT |
+            ENABLE_LINE_INPUT |
+            ENABLE_ECHO_INPUT |
+            ENABLE_MOUSE_INPUT |
+            ENABLE_INSERT_MODE |
+            ENABLE_QUICK_EDIT_MODE |
+            ENABLE_EXTENDED_FLAGS |
+            ENABLE_AUTO_POSITION
+    );
+
+    s_outHandle = out;
+}
+
+void finishSetup() {
+    for (auto const& log : log::Logger::get()->list()) {
+        console::log(log.toString(), log.getSeverity());
+    }
+}
 
 bool redirectStd(FILE* which, std::string const& name, const Severity sev) {
     auto pipeName = fmt::format(R"(\\.\pipe\geode-{}-{})", name, GetCurrentProcessId());
@@ -49,68 +80,74 @@ bool redirectStd(FILE* which, std::string const& name, const Severity sev) {
 }
 
 void console::setup() {
-    // launch args are initialized too late
-    bool forceConsole = ghc::filesystem::exists(dirs::getGameDir() / ".force-console");
-
-    bool hasStdout = _fileno(stdout) >= 0;
-    if (!s_shouldAlloc) {
-        s_origStdOut = hasStdout ? _fdopen(_dup(_fileno(stdout)), "w") : nullptr;
-        if (!redirectStd(stdout, "stdout", Severity::Info) && s_origStdOut) {
-            fclose(s_origStdOut);
-            s_origStdOut = nullptr;
-        }
-        redirectStd(stderr, "stderr", Severity::Debug);
-    }
-
-    s_outHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-    if (!s_outHandle || !hasStdout || forceConsole) {
-        if (s_shouldAlloc)
-            return;
+    // if the game launched from a console or with a console already attached,
+    // this is where we find that out and save its handle
+    auto outHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (!outHandle) {
         if (!AttachConsole(ATTACH_PARENT_PROCESS)) {
             s_shouldAlloc = true;
-            return;
         }
-        s_outHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-        if (!s_outHandle || !hasStdout || forceConsole) {
-            s_shouldAlloc = true;
-            return;
+        else {
+            outHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+            if (!outHandle) {
+                s_shouldAlloc = true;
+            }
         }
     }
-    s_shouldAlloc = false;
-    SetConsoleCP(CP_UTF8);
-
-    DWORD consoleMode = 0;
-
-    // Set output mode to handle ansi color sequences
-    s_hasAnsiColorSupport = GetConsoleMode(s_outHandle, &consoleMode) &&
-        (
-            (consoleMode & ENABLE_VIRTUAL_TERMINAL_PROCESSING) > 0 ||
-            SetConsoleMode(s_outHandle, consoleMode | ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING)
-        );
-
-    // copied from pwsh when gd is in console mode
-    SetConsoleMode(
-        GetStdHandle(STD_INPUT_HANDLE),
-        ENABLE_PROCESSED_INPUT |
-        ENABLE_LINE_INPUT |
-        ENABLE_ECHO_INPUT |
-        ENABLE_MOUSE_INPUT |
-        ENABLE_INSERT_MODE |
-        ENABLE_QUICK_EDIT_MODE |
-        ENABLE_EXTENDED_FLAGS |
-        ENABLE_AUTO_POSITION
-    );
-
-    for (auto const& log : log::Logger::get()->list()) {
-        console::log(log.toString(), log.getSeverity());
+    else {
+        // explicitly ignore some stupid handles
+        char buf[MAX_PATH + 1];
+        auto count = GetFinalPathNameByHandleA(outHandle, buf, MAX_PATH + 1, FILE_NAME_OPENED | VOLUME_NAME_NT);
+        if (count != 0) {
+            std::string path(buf, count - 1);
+            // proton redirects stdout to /dev/null for some reason??
+            // vscode redirects output to a named pipe and then doesn't use it
+            if (path.ends_with("\\dev\\null") || string::contains(path, "\\uv\\0000")) {
+                outHandle = nullptr;
+                s_shouldAlloc = true;
+                CloseHandle(GetStdHandle(STD_OUTPUT_HANDLE));
+                CloseHandle(GetStdHandle(STD_INPUT_HANDLE));
+                CloseHandle(GetStdHandle(STD_ERROR_HANDLE));
+                FreeConsole();
+                SetStdHandle(STD_OUTPUT_HANDLE, nullptr);
+                SetStdHandle(STD_INPUT_HANDLE, nullptr);
+                SetStdHandle(STD_ERROR_HANDLE, nullptr);
+            }
+        }
     }
+
+    // setup the already attached console
+    if (!s_shouldAlloc)
+        setupConsole(outHandle);
+
+    auto oldStdout = _dup(_fileno(stdout));
+
+    redirectStd(stdout, "stdout", Severity::Info);
+    redirectStd(stderr, "stderr", Severity::Debug);
+
+    // re-open the file from the handle we just stole..
+    if (oldStdout >= 0) {
+        _fdopen(oldStdout, "w");
+        s_outHandle = reinterpret_cast<HANDLE>(_get_osfhandle(oldStdout));
+    }
+
+    if (!s_shouldAlloc)
+        finishSetup();
 }
 
 void console::openIfClosed() {
     if (!s_shouldAlloc)
         return;
+    s_shouldAlloc = false;
     AllocConsole();
-    setup();
+    // reopen conin$/conout$ if they're closed
+    if (!GetStdHandle(STD_OUTPUT_HANDLE)) {
+        SetStdHandle(STD_OUTPUT_HANDLE, CreateFileA("CONOUT$", GENERIC_WRITE, 0, nullptr, 0, 0, nullptr));
+        SetStdHandle(STD_INPUT_HANDLE, CreateFileA("CONIN$", GENERIC_WRITE, 0, nullptr, 0, 0, nullptr));
+        SetStdHandle(STD_ERROR_HANDLE, GetStdHandle(STD_OUTPUT_HANDLE));
+    }
+    setupConsole(GetStdHandle(STD_OUTPUT_HANDLE));
+    finishSetup();
 }
 
 void console::log(std::string const& msg, Severity severity) {
@@ -119,13 +156,7 @@ void console::log(std::string const& msg, Severity severity) {
     DWORD written;
 
     if (!s_hasAnsiColorSupport) {
-        if (s_origStdOut) {
-            fwrite(msg.c_str(), 1, msg.size(), s_origStdOut);
-            fwrite("\n", 1, 1, s_origStdOut);
-            fflush(s_origStdOut);
-        }
-        WriteConsoleA(s_outHandle, msg.c_str(), msg.size(), &written, nullptr);
-        WriteConsoleA(s_outHandle, "\n", 1, &written, nullptr);
+        WriteFile(s_outHandle, (msg + "\n").c_str(), msg.size() + 1, &written, nullptr);
         return;
     }
 
@@ -159,11 +190,7 @@ void console::log(std::string const& msg, Severity severity) {
         colorStr, msg.substr(0, 14), color2Str, msg.substr(14)
     );
 
-    if (s_origStdOut) {
-        fwrite(newMsg.c_str(), 1, newMsg.size(), s_origStdOut);
-        fflush(s_origStdOut);
-    }
-    WriteConsoleA(s_outHandle, newMsg.c_str(), newMsg.size(), &written, nullptr);
+    WriteFile(s_outHandle, newMsg.c_str(), newMsg.size(), &written, nullptr);
 }
 
 void console::messageBox(char const* title, std::string const& info, Severity severity) {
