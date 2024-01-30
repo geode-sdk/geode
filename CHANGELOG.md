@@ -13,6 +13,7 @@
  * Add utils for setting thread name, show it on log (832bcf81, ce53fb31)
  * Add some launch arguments for geode (7ccaef90)
  * Deprecate blocking file picking utils (ee97e2da)
+ * Sort mods by id in crashlog (984d1482)
 
 
 ## v2.0.0-beta.11
