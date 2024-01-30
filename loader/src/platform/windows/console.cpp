@@ -155,7 +155,7 @@ void console::openIfClosed() {
     if (!s_outHandle) {
         s_outHandle = CreateFileA("CONOUT$", GENERIC_WRITE, 0, nullptr, 0, 0, nullptr);
         SetStdHandle(STD_OUTPUT_HANDLE, s_outHandle);
-        SetStdHandle(STD_INPUT_HANDLE, CreateFileA("CONIN$", GENERIC_WRITE, 0, nullptr, 0, 0, nullptr));
+        SetStdHandle(STD_INPUT_HANDLE, CreateFileA("CONIN$", GENERIC_READ, 0, nullptr, 0, 0, nullptr));
         SetStdHandle(STD_ERROR_HANDLE, s_outHandle);
     }
     setupConsole();
