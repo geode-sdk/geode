@@ -5,47 +5,66 @@
 using namespace geode::prelude;
 
 HANDLE s_outHandle = nullptr;
-bool s_hasAnsiColorSupport = false;
-bool s_shouldAlloc = false;
+bool s_useEscapeCodes = false;
 
-void setupConsole(HANDLE out) {
+void setupConsole(bool forceUseEscapeCodes = false) {
     SetConsoleCP(CP_UTF8);
 
+    // set output mode to handle ansi color sequences
     DWORD consoleMode = 0;
+    s_useEscapeCodes = forceUseEscapeCodes || GetConsoleMode(s_outHandle, &consoleMode) &&
+        SetConsoleMode(s_outHandle, consoleMode | ENABLE_PROCESSED_OUTPUT |
+            ENABLE_VIRTUAL_TERMINAL_PROCESSING);
 
-    // Set output mode to handle ansi color sequences
-    s_hasAnsiColorSupport = GetConsoleMode(out, &consoleMode) &&
-        ((consoleMode & ENABLE_VIRTUAL_TERMINAL_PROCESSING) > 0 ||
-            SetConsoleMode(out, consoleMode | ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING));
+    if (s_useEscapeCodes && !forceUseEscapeCodes) {
+        // test if the console *actually* supports escape codes (thanks wine)
+        s_useEscapeCodes = false;
+        DWORD written;
+        CONSOLE_SCREEN_BUFFER_INFO preInfo;
+        CONSOLE_SCREEN_BUFFER_INFO postInfo;
+        if (GetConsoleScreenBufferInfo(s_outHandle, &preInfo) &&
+            WriteConsoleA(s_outHandle, "\x1b[0m", 4, &written, nullptr) &&
+            GetConsoleScreenBufferInfo(s_outHandle, &postInfo)) {
+            s_useEscapeCodes = preInfo.dwCursorPosition.X == postInfo.dwCursorPosition.X &&
+                preInfo.dwCursorPosition.Y == postInfo.dwCursorPosition.Y;
+            SetConsoleCursorPosition(s_outHandle, preInfo.dwCursorPosition);
+        }
+    }
 
-    // copied from pwsh when gd is in console mode
-    SetConsoleMode(
-        GetStdHandle(STD_INPUT_HANDLE),
-        ENABLE_PROCESSED_INPUT |
-            ENABLE_LINE_INPUT |
-            ENABLE_ECHO_INPUT |
-            ENABLE_MOUSE_INPUT |
-            ENABLE_INSERT_MODE |
-            ENABLE_QUICK_EDIT_MODE |
-            ENABLE_EXTENDED_FLAGS |
-            ENABLE_AUTO_POSITION
-    );
-
-    s_outHandle = out;
-}
-
-void finishSetup() {
     for (auto const& log : log::Logger::get()->list()) {
         console::log(log.toString(), log.getSeverity());
     }
+}
+
+struct stdData {
+    OVERLAPPED m_overlap{};
+    std::string const& m_name;
+    const Severity m_sev;
+    std::string& m_cur;
+    char* m_buf;
+    stdData(std::string const& name, const Severity sev, std::string& cur, char* buf) :
+        m_name(name), m_sev(sev), m_cur(cur), m_buf(buf) { }
+};
+void WINAPI CompletedReadRoutine(DWORD error, DWORD read, LPOVERLAPPED overlap) {
+    auto* o = reinterpret_cast<stdData*>(overlap);
+    for (auto i = 0; i < read && !error; i++) {
+        if (o->m_buf[i] != '\n') {
+            if (o->m_buf[i] != '\r')
+                o->m_cur += o->m_buf[i];
+            continue;
+        }
+        log::Logger::get()->push(o->m_sev, "", std::string(o->m_name), 0, std::string(o->m_cur));
+        o->m_cur.clear();
+    }
+    delete o;
 }
 
 bool redirectStd(FILE* which, std::string const& name, const Severity sev) {
     auto pipeName = fmt::format(R"(\\.\pipe\geode-{}-{})", name, GetCurrentProcessId());
     auto pipe = CreateNamedPipeA(
         pipeName.c_str(),
-        PIPE_ACCESS_INBOUND,
-        PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT | PIPE_REJECT_REMOTE_CLIENTS,
+        PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED,
+        PIPE_REJECT_REMOTE_CLIENTS,
         1, 0, 1024, 0, nullptr
     );
     if (!pipe) {
@@ -54,21 +73,14 @@ bool redirectStd(FILE* which, std::string const& name, const Severity sev) {
     }
     std::thread([pipe, name, sev]() {
         thread::setName(fmt::format("{} Read Thread", name));
+        auto event = CreateEventA(nullptr, true, true, nullptr);
         std::string cur;
         while (true) {
+            WaitForSingleObjectEx(event, INFINITE, TRUE);
             char buf[1024];
-            DWORD read = 0;
-            if (!ReadFile(pipe, buf, 1024, &read, nullptr))
-                continue;
-            for (auto i = 0; i < read; i++) {
-                if (buf[i] != '\n') {
-                    if (buf[i] != '\r')
-                        cur += buf[i];
-                    continue;
-                }
-                log::Logger::get()->push(sev, "", std::string(name), 0, std::string(cur));
-                cur.clear();
-            }
+            auto* data = new stdData(name, sev, cur, buf);
+            data->m_overlap.hEvent = event;
+            ReadFileEx(pipe, buf, 1024, &data->m_overlap, &CompletedReadRoutine);
         }
     }).detach();
     FILE* yum;
@@ -82,29 +94,30 @@ bool redirectStd(FILE* which, std::string const& name, const Severity sev) {
 void console::setup() {
     // if the game launched from a console or with a console already attached,
     // this is where we find that out and save its handle
-    auto outHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-    if (!outHandle) {
-        if (!AttachConsole(ATTACH_PARENT_PROCESS)) {
-            s_shouldAlloc = true;
-        }
-        else {
-            outHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-            if (!outHandle) {
-                s_shouldAlloc = true;
-            }
-        }
+    s_outHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (!s_outHandle && AttachConsole(ATTACH_PARENT_PROCESS)) {
+        s_outHandle = GetStdHandle(STD_OUTPUT_HANDLE);
     }
-    else {
-        // explicitly ignore some stupid handles
-        char buf[MAX_PATH + 1];
-        auto count = GetFinalPathNameByHandleA(outHandle, buf, MAX_PATH + 1, FILE_NAME_OPENED | VOLUME_NAME_NT);
-        if (count != 0) {
-            std::string path(buf, count - 1);
-            // proton redirects stdout to /dev/null for some reason??
+
+    if (s_outHandle) {
+        std::string path;
+        DWORD dummy;
+        // use GetConsoleMode to check if the handle is a console
+        if (!GetConsoleMode(s_outHandle, &dummy)) {
+            // explicitly ignore some stupid handles
+            char buf[MAX_PATH + 1];
+            auto count = GetFinalPathNameByHandleA(s_outHandle, buf, MAX_PATH + 1,
+                FILE_NAME_OPENED | VOLUME_NAME_NT);
+            if (count != 0) {
+                path = std::string(buf, count - 1);
+            }
+
+            // count == 0 => not a console and not a file, assume it's closed
+            // wine does something weird with /dev/null? not sure tbh but it's definitely up to no good
             // vscode redirects output to a named pipe and then doesn't use it
-            if (path.ends_with("\\dev\\null") || string::contains(path, "\\uv\\0000")) {
-                outHandle = nullptr;
-                s_shouldAlloc = true;
+            if (count == 0 || path.ends_with("\\dev\\null") ||
+                string::contains(path, "\\uv\\0000")) {
+                s_outHandle = nullptr;
                 CloseHandle(GetStdHandle(STD_OUTPUT_HANDLE));
                 CloseHandle(GetStdHandle(STD_INPUT_HANDLE));
                 CloseHandle(GetStdHandle(STD_ERROR_HANDLE));
@@ -114,11 +127,10 @@ void console::setup() {
                 SetStdHandle(STD_ERROR_HANDLE, nullptr);
             }
         }
-    }
 
-    // setup the already attached console
-    if (!s_shouldAlloc)
-        setupConsole(outHandle);
+        // clion console supports escape codes but we can't query that because it's a named pipe
+        setupConsole(string::contains(path, "cidr-"));
+    }
 
     auto oldStdout = _dup(_fileno(stdout));
 
@@ -130,24 +142,21 @@ void console::setup() {
         _fdopen(oldStdout, "w");
         s_outHandle = reinterpret_cast<HANDLE>(_get_osfhandle(oldStdout));
     }
-
-    if (!s_shouldAlloc)
-        finishSetup();
 }
 
 void console::openIfClosed() {
-    if (!s_shouldAlloc)
+    if (s_outHandle)
         return;
-    s_shouldAlloc = false;
     AllocConsole();
+    s_outHandle = GetStdHandle(STD_OUTPUT_HANDLE);
     // reopen conin$/conout$ if they're closed
-    if (!GetStdHandle(STD_OUTPUT_HANDLE)) {
-        SetStdHandle(STD_OUTPUT_HANDLE, CreateFileA("CONOUT$", GENERIC_WRITE, 0, nullptr, 0, 0, nullptr));
+    if (!s_outHandle) {
+        s_outHandle = CreateFileA("CONOUT$", GENERIC_WRITE, 0, nullptr, 0, 0, nullptr);
+        SetStdHandle(STD_OUTPUT_HANDLE, s_outHandle);
         SetStdHandle(STD_INPUT_HANDLE, CreateFileA("CONIN$", GENERIC_WRITE, 0, nullptr, 0, 0, nullptr));
-        SetStdHandle(STD_ERROR_HANDLE, GetStdHandle(STD_OUTPUT_HANDLE));
+        SetStdHandle(STD_ERROR_HANDLE, s_outHandle);
     }
-    setupConsole(GetStdHandle(STD_OUTPUT_HANDLE));
-    finishSetup();
+    setupConsole();
 }
 
 void console::log(std::string const& msg, Severity severity) {
@@ -155,7 +164,7 @@ void console::log(std::string const& msg, Severity severity) {
         return;
     DWORD written;
 
-    if (!s_hasAnsiColorSupport) {
+    if (!s_useEscapeCodes || msg.size() <= 14) {
         WriteFile(s_outHandle, (msg + "\n").c_str(), msg.size() + 1, &written, nullptr);
         return;
     }
