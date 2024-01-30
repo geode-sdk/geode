@@ -31,6 +31,13 @@ void crashlog::printMods(std::stringstream& stream) {
     if (mods.empty()) {
         stream << "<None>\n";
     }
+    std::sort(mods.begin(), mods.end(), [](Mod* a, Mod* b) {
+        auto const s1 = a->getID();
+        auto const s2 = b->getID();
+        return std::lexicographical_compare(s1.begin(), s1.end(), s2.begin(), s2.end(), [](auto a, auto b) {
+            return std::tolower(a) < std::tolower(b);
+        });
+    });
     using namespace std::string_view_literals;
     for (auto& mod : mods) {
         stream << fmt::format("{} | [{}] {}\n",
