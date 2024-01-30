@@ -73,14 +73,16 @@ bool redirectStd(FILE* which, std::string const& name, const Severity sev) {
     }
     std::thread([pipe, name, sev]() {
         thread::setName(fmt::format("{} Read Thread", name));
-        auto event = CreateEventA(nullptr, true, true, nullptr);
+        auto event = CreateEventA(nullptr, false, false, nullptr);
         std::string cur;
         while (true) {
-            WaitForSingleObjectEx(event, INFINITE, TRUE);
             char buf[1024];
             auto* data = new stdData(name, sev, cur, buf);
             data->m_overlap.hEvent = event;
             ReadFileEx(pipe, buf, 1024, &data->m_overlap, &CompletedReadRoutine);
+            auto res = WaitForSingleObjectEx(event, INFINITE, true);
+            if (!res)
+                continue;
         }
     }).detach();
     FILE* yum;
