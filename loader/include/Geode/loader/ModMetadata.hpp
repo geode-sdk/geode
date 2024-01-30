@@ -162,6 +162,11 @@ namespace geode {
         [[nodiscard]] std::optional<std::string> getGameVersion() const;
 
         /**
+         * Gets the target Geode version for the current platform.
+        */
+        [[nodiscard]] VersionInfo getGeodeVersion() const;
+
+        /**
          * Checks if mod can be installed on the current GD version.
          * Returns Ok() if it can, Err otherwise.
         */

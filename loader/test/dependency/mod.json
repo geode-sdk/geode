@@ -1,6 +1,6 @@
 {
     "geode":        "2.0.0",
-    "gd": "*",
+    "gd":           "*",
 	"version":      "1.0.0",
 	"id":           "geode.testdep",
     "name":         "Geode Test Dependency",

@@ -182,3 +182,62 @@ std::string ComparableVersionInfo::toString() const {
 std::string geode::format_as(ComparableVersionInfo const& version) {
     return version.toString();
 }
+
+bool geode::semverCompare(VersionInfo const& current, VersionInfo const& target) {
+    if (target.getMajor() != current.getMajor()) {
+        return false;
+    }
+    if (target.getMinor() > current.getMinor()) {
+        return false;
+    }
+    auto ct = current.getTag();
+    auto tt = target.getTag();
+    if (ct && tt) {
+        auto currentTag = ct.value();
+        auto targetTag = tt.value();
+        switch (targetTag.value) {
+            case VersionTag::Alpha:
+                if (currentTag.value > VersionTag::Alpha) {
+                    return false;
+                }
+                if (currentTag.number && targetTag.number) {
+                    return currentTag.number.value() == targetTag.number.value();
+                }
+                if (currentTag.number) {
+                    return true;
+                }
+                if (targetTag.number) {
+                    return false;
+                }
+                return true;
+            case VersionTag::Beta:
+                if (currentTag.number && targetTag.number) {
+                    return currentTag.number.value() >= targetTag.number.value();
+                }
+                if (currentTag.number) {
+                    return true;
+                }
+                if (targetTag.number) {
+                    return false;
+                }
+                return true;
+            default:
+                return true;
+        }
+    }
+    else if (ct) {
+        auto currentTag = ct.value();
+        if (currentTag.value > VersionTag::Alpha) {
+            return true;
+        }
+        return false;
+    }
+    else if (tt) {
+        auto targetTag = tt.value();
+        if (targetTag.value > VersionTag::Alpha) {
+            return true;
+        }
+        return false;
+    }
+    return true;
+}

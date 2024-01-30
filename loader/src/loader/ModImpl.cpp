@@ -357,8 +357,6 @@ bool Mod::Impl::getLaunchFlag(std::string_view const name) const {
 // Loading, Toggling, Installing
 
 Result<> Mod::Impl::loadBinary() {
-    // i dont know where to put this so ill just plop it here
-    GEODE_UNWRAP(m_metadata.checkGameVersion());
 
     log::debug("Loading binary for mod {}", m_metadata.getID());
     if (m_enabled)
