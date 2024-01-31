@@ -38,7 +38,7 @@ AnchorLayout* AnchorLayout::create() {
 void AnchorLayout::apply(CCNode* on) {
     on->ignoreAnchorPointForPosition(false);
     for (auto node : CCArrayExt<CCNode*>(this->getNodesToPosition(on))) {
-        if (auto opts = typeinfo_cast<AnchorLayoutOptions*>(node)) {
+        if (auto opts = typeinfo_cast<AnchorLayoutOptions*>(node->getLayoutOptions())) {
             auto pos = opts->getOffset();
             auto size = on->getContentSize();
             switch (opts->getAnchor()) {
@@ -60,6 +60,23 @@ void AnchorLayout::apply(CCNode* on) {
 }
 
 CCSize AnchorLayout::getSizeHint(CCNode* on) const {
-    // AnchorLayout doesn't resize its target in any way
     return on->getContentSize();
+}
+
+CCPoint AnchorLayout::getAnchoredPosition(CCNode* in, Anchor anchor, CCPoint const& offset) {
+    auto pos = offset;
+    auto size = in->getContentSize();
+    switch (anchor) {
+        default:
+        case Anchor::Center: pos += size / 2; break;
+        case Anchor::TopLeft: pos += ccp(0, size.height); break;
+        case Anchor::Top: pos += ccp(size.width / 2, size.height); break;
+        case Anchor::TopRight: pos += ccp(size.width, size.height); break;
+        case Anchor::Right: pos += ccp(size.width, size.height / 2); break;
+        case Anchor::BottomRight: pos += ccp(size.width, 0); break;
+        case Anchor::Bottom: pos += ccp(size.width / 2, 0); break;
+        case Anchor::BottomLeft: pos += ccp(0, 0); break;
+        case Anchor::Left: pos += ccp(0, size.height / 2); break;
+    }
+    return pos;
 }

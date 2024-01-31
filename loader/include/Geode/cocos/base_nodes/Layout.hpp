@@ -410,6 +410,23 @@ public:
 
     void apply(CCNode* on) override;
     CCSize getSizeHint(CCNode* on) const override;
+
+    static CCPoint getAnchoredPosition(CCNode* in, Anchor anchor, CCPoint const& offset);
+};
+
+class AutoSizeLayout : public cocos2d::AnchorLayout {
+protected:
+    cocos2d::CCArray* m_targets;
+
+public:
+    static AutoSizeLayout* create();
+    virtual ~AutoSizeLayout();
+
+    AutoSizeLayout* add(cocos2d::CCNode* target);
+    AutoSizeLayout* remove(cocos2d::CCNode* target);
+
+    void apply(cocos2d::CCNode* in) override;
+    cocos2d::CCSize getSizeHint(cocos2d::CCNode* in) const override;
 };
 
 #pragma warning(pop)

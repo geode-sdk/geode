@@ -995,14 +995,11 @@ public:
      */
     GEODE_DLL LayoutOptions* getLayoutOptions();
     /**
-     * Set the position of this node relative to its parent. **This requires 
-     * the parent node to have AnchorLayout set as its layout** - this function 
-     * will set it if the parent has no layout enabled, but if the parent has 
-     * something else, this function does nothing.
-     * @param anchor The position of this node relative to its parent
-     * @param offset Offset from the anchored position
+     * Adds a child at an anchored position
+     * Overrides the current layout to AnchorLayout!
+     * @note Geode addition
      */
-    GEODE_DLL void setAnchoredPosition(Anchor anchor, CCPoint const& offset = CCPointZero);
+    GEODE_DLL void addChildAtPosition(CCNode* child, Anchor anchor, CCPoint const& offset = CCPointZero);
 
     /**
      * Swap two children

@@ -237,17 +237,16 @@ size_t CCNode::getEventListenerCount() {
         GeodeNodeMetadata::set(this)->m_eventListeners.size();
 }
 
-void CCNode::setAnchoredPosition(Anchor anchor, CCPoint const& offset) {
-    auto parent = this->getParent();
-    // If this node's parent doesn't have any layout, then set it as AnchorLayout
-    if (parent && parent->getLayout() == nullptr) {
-        parent->setLayout(AnchorLayout::create());
+void CCNode::addChildAtPosition(CCNode* child, Anchor anchor, CCPoint const& offset) {
+    auto layout = this->getLayout();
+    if (!layout) {
+        this->setLayout(AnchorLayout::create());
     }
-    // Otherwise require that it already has AnchorLayout (or AnchorLayout-derived class)
-    else if (parent && !typeinfo_cast<AnchorLayout*>(parent->getLayout())) {
-        return;
-    }
-    this->setLayoutOptions(AnchorLayoutOptions::create()->setAnchor(anchor)->setOffset(offset));
+    // Setting the layout options always (even if the parent isn't AnchorLayout) 
+    // so if it set as AnchorLayout later it will auto-update
+    child->setPosition(AnchorLayout::getAnchoredPosition(this, anchor, offset));
+    child->setLayoutOptions(AnchorLayoutOptions::create()->setAnchor(anchor)->setOffset(offset));
+    this->addChild(child);
 }
 
 #pragma warning(pop)

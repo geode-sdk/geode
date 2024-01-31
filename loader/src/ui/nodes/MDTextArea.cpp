@@ -108,6 +108,9 @@ Result<ccColor3B> colorForIdentifier(std::string const& tag) {
 bool MDTextArea::init(std::string const& str, CCSize const& size) {
     if (!CCLayer::init()) return false;
 
+    this->ignoreAnchorPointForPosition(false);
+    this->setAnchorPoint({ .5f, .5f });
+
     m_text = str;
     m_size = size - CCSize { 15.f, 0.f };
     this->setContentSize(m_size);
@@ -726,7 +729,6 @@ void MDTextArea::updateLabel() {
         m_content->setPositionY(-2.5f);
     }
 
-    
     m_scrollLayer->moveToTop();
 }
 
