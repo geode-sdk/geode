@@ -95,6 +95,16 @@ bool ProblemsListCell::init(LoadProblem problem, ProblemsListPopup* list, CCSize
             message = fmt::format("{} has failed unzipping", cause);
             m_longMessage = problem.message;
             break;
+        case LoadProblem::Type::UnsupportedVersion:
+            icon = "info-alert.png"_spr;
+            message = fmt::format("{} is incompatible with this version of GD", cause);
+            m_longMessage = problem.message;
+            break;
+        case LoadProblem::Type::UnsupportedGeodeVersion:
+            icon = "info-alert.png"_spr;
+            message = fmt::format("{} is incompatible with this version of Geode", cause);
+            m_longMessage = problem.message;
+            break;
     }
 
     m_problem = std::move(problem);

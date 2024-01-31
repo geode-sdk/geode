@@ -148,10 +148,8 @@ VersionInfo Loader::Impl::maxModVersion() {
     };
 }
 
-bool Loader::Impl::isModVersionSupported(VersionInfo const& version) {
-    return
-        version >= this->minModVersion() &&
-        version <= this->maxModVersion();
+bool Loader::Impl::isModVersionSupported(VersionInfo const& target) {
+    return semverCompare(this->getVersion(), target);
 }
 
 // Data saving
@@ -420,6 +418,37 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
 
         m_refreshingModCount -= 1;
     };
+
+    {   // version checking
+        auto res = node->getMetadata().checkGameVersion();
+        if (!res) {
+            m_problems.push_back({
+                LoadProblem::Type::UnsupportedVersion,
+                node,
+                res.unwrapErr()
+            });
+            log::error("Unsupported game version: {}", res.unwrapErr());
+            m_refreshingModCount -= 1;
+            log::popNest();
+            return;
+        }
+
+        if (!this->isModVersionSupported(node->getMetadata().getGeodeVersion())) {
+            m_problems.push_back({
+                LoadProblem::Type::UnsupportedGeodeVersion,
+                node,
+                fmt::format(
+                    "Geode version {} is not supported (current: {})",
+                    node->getMetadata().getGeodeVersion().toString(),
+                    this->getVersion().toString()
+                )
+            });
+            log::error("Unsupported Geode version: {}", node->getMetadata().getGeodeVersion());
+            m_refreshingModCount -= 1;
+            log::popNest();
+            return;
+        }
+    }
 
     if (early) {
         auto res = unzipFunction();

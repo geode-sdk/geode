@@ -19,6 +19,10 @@ namespace geode {
             cocos2d::CCTouchDispatcher::get()->unregisterForcePrio(this);
         }
 
+        void registerWithTouchDispatcher() override {
+            cocos2d::CCTouchDispatcher::get()->addTargetedDelegate(this, -500, true);
+        }
+        
     private:
         bool initBase(
             float width, float height, InitArgs... args, char const* bg,
@@ -26,8 +30,10 @@ namespace geode {
         ) {
             m_dynamic = dynamic;
 
-            auto winSize = cocos2d::CCDirector::sharedDirector()->getWinSize();
+            auto winSize = cocos2d::CCDirector::get()->getWinSize();
             m_size = cocos2d::CCSize { width, height };
+
+            cocos2d::CCTouchDispatcher::get()->registerForcePrio(this, 2);
 
             if (!this->initWithColor({ 0, 0, 0, 105 })) return false;
             m_mainLayer = cocos2d::CCLayer::create();
@@ -75,10 +81,6 @@ namespace geode {
 
             this->setKeypadEnabled(true);
             this->setTouchEnabled(true);
-
-            cocos2d::CCTouchDispatcher::get()->registerForcePrio(this, 2);
-
-            cocos::handleTouchPriority(this);
 
             return true;
         }

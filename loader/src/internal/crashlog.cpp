@@ -31,6 +31,13 @@ void crashlog::printMods(std::stringstream& stream) {
     if (mods.empty()) {
         stream << "<None>\n";
     }
+    std::sort(mods.begin(), mods.end(), [](Mod* a, Mod* b) {
+        auto const s1 = a->getID();
+        auto const s2 = b->getID();
+        return std::lexicographical_compare(s1.begin(), s1.end(), s2.begin(), s2.end(), [](auto a, auto b) {
+            return std::tolower(a) < std::tolower(b);
+        });
+    });
     using namespace std::string_view_literals;
     for (auto& mod : mods) {
         stream << fmt::format("{} | [{}] {}\n",
@@ -51,7 +58,7 @@ std::string crashlog::writeCrashlog(geode::Mod* faultyMod, std::string const& in
     std::stringstream file;
 
     file << getDateString(false) << "\n"
-         << std::showbase << "Whoopsies! An unhandled exception has occured.\n";
+         << std::showbase << "Whoopsies! An unhandled exception has occurred.\n";
 
     if (faultyMod) {
         file << "It appears that the crash occurred while executing code from "

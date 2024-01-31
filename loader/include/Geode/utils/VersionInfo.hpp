@@ -228,6 +228,8 @@ namespace geode {
         std::string toString() const;
         friend GEODE_DLL std::string format_as(ComparableVersionInfo const& version);
     };
+
+    bool GEODE_DLL semverCompare(VersionInfo const& current, VersionInfo const& target);
 }
 
 template <class V>

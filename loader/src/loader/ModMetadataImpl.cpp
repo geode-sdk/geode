@@ -67,7 +67,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
     JsonChecker checker(impl->m_rawJSON);
     auto root = checker.root(checkerRoot).obj();
 
-    root.addKnownKey("geode");
+    root.needs("geode").into(impl->m_geodeVersion);
     root.addKnownKey("gd");
 
     // Check GD version
@@ -194,23 +194,23 @@ Result<ModMetadata> ModMetadata::Impl::create(ModJson const& json) {
             "specified, or its formatting is invalid (required: \"[v]X.X.X\")!"
         );
     }
-    if (schema < Loader::get()->minModVersion()) {
-        return Err(
-            "[mod.json] is built for an older version (" + schema.toString() +
-            ") of Geode (current: " + Loader::get()->getVersion().toString() +
-            "). Please update the mod to the latest version, "
-            "and if the problem persists, contact the developer "
-            "to update it."
-        );
-    }
-    if (schema > Loader::get()->maxModVersion()) {
-        return Err(
-            "[mod.json] is built for a newer version (" + schema.toString() +
-            ") of Geode (current: " + Loader::get()->getVersion().toString() +
-            "). You need to update Geode in order to use "
-            "this mod."
-        );
-    }
+    // if (schema < Loader::get()->minModVersion()) {
+    //     return Err(
+    //         "[mod.json] is built for an older version (" + schema.toString() +
+    //         ") of Geode (current: " + Loader::get()->getVersion().toString() +
+    //         "). Please update the mod to the latest version, "
+    //         "and if the problem persists, contact the developer "
+    //         "to update it."
+    //     );
+    // }
+    // if (schema > Loader::get()->maxModVersion()) {
+    //     return Err(
+    //         "[mod.json] is built for a newer version (" + schema.toString() +
+    //         ") of Geode (current: " + Loader::get()->getVersion().toString() +
+    //         "). You need to update Geode in order to use "
+    //         "this mod."
+    //     );
+    // }
 
     // Handle mod.json data based on target
     if (schema < VersionInfo(0, 1, 0)) {
@@ -405,6 +405,10 @@ bool ModMetadata::isAPI() const {
 std::optional<std::string> ModMetadata::getGameVersion() const {
     if (m_impl->m_gdVersion.empty()) return std::nullopt;
     return m_impl->m_gdVersion;
+}
+
+VersionInfo ModMetadata::getGeodeVersion() const {
+    return m_impl->m_geodeVersion;
 }
 
 Result<> ModMetadata::checkGameVersion() const {
