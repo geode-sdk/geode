@@ -320,7 +320,7 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
 
     m_mod = mod;
 
-    if (!ModInfoPopup::initDynamic(LAYER_SIZE.width, LAYER_SIZE.height, mod->getMetadata(), list)) return false;
+    if (!ModInfoPopup::initAnchored(LAYER_SIZE.width, LAYER_SIZE.height, mod->getMetadata(), list)) return false;
 
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
@@ -635,7 +635,7 @@ bool IndexItemInfoPopup::init(IndexItemHandle item, ModListLayer* list) {
 
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
-    if (!ModInfoPopup::initDynamic(LAYER_SIZE.width, LAYER_SIZE.height, item->getMetadata(), list)) return false;
+    if (!ModInfoPopup::initAnchored(LAYER_SIZE.width, LAYER_SIZE.height, item->getMetadata(), list)) return false;
 
     // bruh why is this here if we are allowing for browsing already installed mods
     // if (item->isInstalled()) return true;

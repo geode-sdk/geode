@@ -86,7 +86,7 @@ namespace geode {
         }
 
     protected:
-        [[deprecated("Use Popup::initDynamic instead, as it has more reasonable menu and layer content sizes")]]
+        [[deprecated("Use Popup::initAnchored instead, as it has more reasonable menu and layer content sizes")]]
         bool init(
             float width, float height, InitArgs... args, char const* bg = "GJ_square01.png",
             cocos2d::CCRect bgRect = { 0, 0, 80, 80 }
@@ -99,7 +99,7 @@ namespace geode {
          * `m_bgSprite` being tied to the size of `m_mainLayer` (rather than 
          * being the size of the window)
          */
-        bool initDynamic(
+        bool initAnchored(
             float width, float height, InitArgs... args, char const* bg = "GJ_square01.png",
             cocos2d::CCRect bgRect = { 0, 0, 80, 80 }
         ) {
