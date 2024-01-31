@@ -31,7 +31,7 @@ body:
     attributes:
       label: Additional Information
       description: Any additional information you wish to provide. Please add anything which did not fit into the other sections here.
-      placeholder: "Example: This is likely achieveable by doing X because..."
+      placeholder: "Example: This is likely achievable by doing X because..."
     validations:
       required: false
   - type: markdown

@@ -50,7 +50,7 @@ std::string crashlog::writeCrashlog(geode::Mod* faultyMod, std::string const& in
     std::stringstream file;
 
     file << getDateString(false) << "\n"
-         << std::showbase << "Whoopsies! An unhandled exception has occured.\n";
+         << std::showbase << "Whoopsies! An unhandled exception has occurred.\n";
 
     if (faultyMod) {
         file << "It appears that the crash occurred while executing code from "
