@@ -433,23 +433,23 @@ public:
  * Basically main use case is for FLAlertLayers (setting the size of the 
  * background and `m_buttonMenu` based on `m_mainLayer`)
  */
-class AutoSizeLayout : public cocos2d::AnchorLayout {
+class CopySizeLayout : public cocos2d::AnchorLayout {
 protected:
     cocos2d::CCArray* m_targets;
 
 public:
-    static AutoSizeLayout* create();
-    virtual ~AutoSizeLayout();
+    static CopySizeLayout* create();
+    virtual ~CopySizeLayout();
 
     /**
      * Add a target to be automatically resized. Any targets' layouts will 
      * also be updated when this layout is updated
      */
-    AutoSizeLayout* add(cocos2d::CCNode* target);
+    CopySizeLayout* add(cocos2d::CCNode* target);
     /**
      * Remove a target from being automatically resized
      */
-    AutoSizeLayout* remove(cocos2d::CCNode* target);
+    CopySizeLayout* remove(cocos2d::CCNode* target);
 
     void apply(cocos2d::CCNode* in) override;
     cocos2d::CCSize getSizeHint(cocos2d::CCNode* in) const override;

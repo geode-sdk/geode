@@ -53,7 +53,7 @@ namespace geode {
                 m_mainLayer->setPosition(winSize / 2);
                 m_mainLayer->setContentSize(m_size);
                 m_mainLayer->setLayout(
-                    cocos2d::AutoSizeLayout::create()
+                    cocos2d::CopySizeLayout::create()
                         ->add(m_buttonMenu)
                         ->add(m_bgSprite)
                 );
