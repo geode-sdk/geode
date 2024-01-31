@@ -22,7 +22,7 @@ namespace geode {
         void registerWithTouchDispatcher() override {
             cocos2d::CCTouchDispatcher::get()->addTargetedDelegate(this, -500, true);
         }
-        
+
     private:
         bool initBase(
             float width, float height, InitArgs... args, char const* bg,
@@ -94,6 +94,11 @@ namespace geode {
             return this->initBase(width, height, std::forward<InitArgs>(args)..., bg, bgRect, false);
         }
 
+        /**
+         * Init with AnchorLayout and the content size of `m_buttonMenu` and 
+         * `m_bgSprite` being tied to the size of `m_mainLayer` (rather than 
+         * being the size of the window)
+         */
         bool initDynamic(
             float width, float height, InitArgs... args, char const* bg = "GJ_square01.png",
             cocos2d::CCRect bgRect = { 0, 0, 80, 80 }

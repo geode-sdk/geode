@@ -387,7 +387,7 @@ enum class Anchor {
 };
 
 /**
- * Options for customizing AnchorLayout
+ * Options for customizing a node's position in an AnchorLayout
  */
 class GEODE_DLL AnchorLayoutOptions : public LayoutOptions {
 protected:
@@ -404,6 +404,12 @@ public:
     AnchorLayoutOptions* setOffset(CCPoint const& offset);
 };
 
+/**
+ * A layout for positioning nodes at specific positions relative to their 
+ * parent's content size. See `Anchor` for available anchoring options. Useful 
+ * for example for popups, where a popup using `AnchorLayout` can be 
+ * automatically resized without needing to manually shuffle nodes around
+ */
 class GEODE_DLL AnchorLayout : public Layout {
 public:
     static AnchorLayout* create();
@@ -411,9 +417,22 @@ public:
     void apply(CCNode* on) override;
     CCSize getSizeHint(CCNode* on) const override;
 
+    /**
+     * Get a position according to anchoring rules, with the same algorithm as 
+     * `AnchorLayout` uses to position its nodes
+     * @param in The node whose content size to use as a reference
+     * @param anchor The anchor position
+     * @param offset Offset from the anchor
+     * @returns A position in `in` for the anchored and offsetted location
+     */
     static CCPoint getAnchoredPosition(CCNode* in, Anchor anchor, CCPoint const& offset);
 };
 
+/**
+ * A layout for automatically copying the content size of a node to other nodes. 
+ * Basically main use case is for FLAlertLayers (setting the size of the 
+ * background and `m_buttonMenu` based on `m_mainLayer`)
+ */
 class AutoSizeLayout : public cocos2d::AnchorLayout {
 protected:
     cocos2d::CCArray* m_targets;
@@ -422,7 +441,14 @@ public:
     static AutoSizeLayout* create();
     virtual ~AutoSizeLayout();
 
+    /**
+     * Add a target to be automatically resized. Any targets' layouts will 
+     * also be updated when this layout is updated
+     */
     AutoSizeLayout* add(cocos2d::CCNode* target);
+    /**
+     * Remove a target from being automatically resized
+     */
     AutoSizeLayout* remove(cocos2d::CCNode* target);
 
     void apply(cocos2d::CCNode* in) override;
