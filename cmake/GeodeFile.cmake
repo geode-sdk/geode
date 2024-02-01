@@ -13,6 +13,7 @@ else()
     execute_process(
         COMMAND ${GEODE_CLI} --version
         OUTPUT_VARIABLE GEODE_CLI_VERSION
+        COMMAND_ERROR_IS_FATAL ANY
     )
     # Remove trailing newline
     string(STRIP ${GEODE_CLI_VERSION} GEODE_CLI_VERSION)
@@ -112,11 +113,13 @@ function(setup_geode_mod proname)
             COMMAND ${GEODE_CLI} project check ${CMAKE_CURRENT_BINARY_DIR}
                 --externals ${GEODE_MODS_BEING_BUILT} ${DONT_UPDATE_INDEX_ARG}
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMAND_ERROR_IS_FATAL ANY
         )
     elseif (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "1.4.0")
         execute_process(
             COMMAND ${GEODE_CLI} package setup ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
                 --externals ${GEODE_MODS_BEING_BUILT}
+            COMMAND_ERROR_IS_FATAL ANY
         )
     elseif (MOD_HAS_DEPS)
         message(FATAL_ERROR
@@ -289,6 +292,7 @@ function(package_geode_resources_now proname src dest header_dest)
     execute_process(
         COMMAND ${GEODE_CLI} package resources ${src} ${dest} --shut-up
         RESULT_VARIABLE GEODE_PACKAGE_RES
+        COMMAND_ERROR_IS_FATAL ANY
     )
 
     if (NOT GEODE_PACKAGE_RES EQUAL "0")
