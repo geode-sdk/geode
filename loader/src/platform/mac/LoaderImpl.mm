@@ -145,7 +145,12 @@ void Loader::Impl::addNativeBinariesPath(ghc::filesystem::path const& path) {
 }
 
 std::string Loader::Impl::getGameVersion() {
-    return GEODE_STR(GEODE_GD_VERSION); // TODO implement
+    NSBundle* mainBundle = [NSBundle mainBundle];
+    NSDictionary* infoDictionary = [mainBundle infoDictionary];
+
+    NSString *version = infoDictionary[@"CFBundleShortVersionString"];
+
+    return std::string([version UTF8String]);
 }
 
 // TODO
