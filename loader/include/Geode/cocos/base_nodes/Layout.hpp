@@ -433,7 +433,7 @@ public:
  * Basically main use case is for FLAlertLayers (setting the size of the 
  * background and `m_buttonMenu` based on `m_mainLayer`)
  */
-class CopySizeLayout : public cocos2d::AnchorLayout {
+class GEODE_DLL CopySizeLayout : public cocos2d::AnchorLayout {
 protected:
     cocos2d::CCArray* m_targets;
 
