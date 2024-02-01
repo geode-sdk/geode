@@ -37,16 +37,15 @@ bool ModInfoPopup::setup(ModMetadata const& metadata, ModListLayer* list) {
     constexpr float logoOffset = 10.f;
 
     auto topNode = CCNode::create();
-    topNode->setContentSize({350.f, 80.f});
+    topNode->setAnchorPoint({ .5f, .5f });
+    topNode->setContentSize({ 350.f, 80.f });
     topNode->setLayout(
         RowLayout::create()
             ->setAxisAlignment(AxisAlignment::Center)
             ->setAutoScale(false)
             ->setCrossAxisOverflow(true)
     ); 
-    m_mainLayer->addChild(topNode);
-    topNode->setAnchorPoint({.5f, .5f});
-    topNode->setPosition(winSize.width / 2, winSize.height / 2 + 115.f);
+    m_mainLayer->addChildAtPosition(topNode, Anchor::Top, ccp(0, -30));
 
     auto logoSpr = this->createLogo({logoSize, logoSize});
     topNode->addChild(logoSpr);
@@ -88,18 +87,13 @@ bool ModInfoPopup::setup(ModMetadata const& metadata, ModListLayer* list) {
         (metadata.getDetails() ? metadata.getDetails().value() : "### No description provided."),
         { 350.f, 137.5f }
     );
-    m_detailsArea->setPosition(
-        winSize.width / 2 - m_detailsArea->getScaledContentSize().width / 2,
-        winSize.height / 2 - m_detailsArea->getScaledContentSize().height / 2 - 20.f
-    );
-    m_mainLayer->addChild(m_detailsArea);
+    m_mainLayer->addChildAtPosition(m_detailsArea, Anchor::Center, ccp(0, -20));
 
     m_scrollbar = Scrollbar::create(m_detailsArea->getScrollLayer());
-    m_scrollbar->setPosition(
-        winSize.width / 2 + m_detailsArea->getScaledContentSize().width / 2 + 20.f,
-        winSize.height / 2 - 20.f
+    m_mainLayer->addChildAtPosition(
+        m_scrollbar, Anchor::Center,
+        ccp(m_detailsArea->getScaledContentSize().width / 2 + 20.f, -20)
     );
-    m_mainLayer->addChild(m_scrollbar);
 
     // changelog
     if (metadata.getChangelog()) {
@@ -127,10 +121,10 @@ bool ModInfoPopup::setup(ModMetadata const& metadata, ModListLayer* list) {
         changelogBtnOnSpr->setScale(.65f);
 
         auto changelogBtn = CCMenuItemToggler::create(
-            changelogBtnOffSpr, changelogBtnOnSpr, this, menu_selector(ModInfoPopup::onChangelog)
+            changelogBtnOffSpr, changelogBtnOnSpr,
+            this, menu_selector(ModInfoPopup::onChangelog)
         );
-        changelogBtn->setPosition(-LAYER_SIZE.width / 2 + 21.5f, .0f);
-        m_buttonMenu->addChild(changelogBtn);
+        m_buttonMenu->addChildAtPosition(changelogBtn, Anchor::Left, ccp(21.5f, 0));
     }
 
     // mod metadata
@@ -138,8 +132,7 @@ bool ModInfoPopup::setup(ModMetadata const& metadata, ModListLayer* list) {
     infoSpr->setScale(.85f);
 
     m_infoBtn = CCMenuItemSpriteExtra::create(infoSpr, this, menu_selector(ModInfoPopup::onInfo));
-    m_infoBtn->setPosition(LAYER_SIZE.width / 2 - 25.f, LAYER_SIZE.height / 2 - 25.f);
-    m_buttonMenu->addChild(m_infoBtn);
+    m_buttonMenu->addChildAtPosition(m_infoBtn, Anchor::TopRight, ccp(-25, -25));
 
     // repo button
     if (metadata.getRepository()) {
@@ -148,8 +141,7 @@ bool ModInfoPopup::setup(ModMetadata const& metadata, ModListLayer* list) {
             this,
             menu_selector(ModInfoPopup::onRepository)
         );
-        repoBtn->setPosition(LAYER_SIZE.width / 2 - 25.f, -LAYER_SIZE.height / 2 + 25.f);
-        m_buttonMenu->addChild(repoBtn);
+        m_buttonMenu->addChildAtPosition(repoBtn, Anchor::BottomRight, ccp(-25, 25));
     }
 
     // support button
@@ -159,8 +151,7 @@ bool ModInfoPopup::setup(ModMetadata const& metadata, ModListLayer* list) {
             this,
             menu_selector(ModInfoPopup::onSupport)
         );
-        supportBtn->setPosition(LAYER_SIZE.width / 2 - 60.f, -LAYER_SIZE.height / 2 + 25.f);
-        m_buttonMenu->addChild(supportBtn);
+        m_buttonMenu->addChildAtPosition(supportBtn, Anchor::BottomRight, ccp(-60, 25));
     }
 
     return true;
@@ -204,40 +195,12 @@ void ModInfoPopup::onInfo(CCObject*) {
 }
 
 void ModInfoPopup::onChangelog(CCObject* sender) {
-    auto winSize = CCDirector::get()->getWinSize();
-
-    if (!m_changelogArea) {
-        m_changelogArea = MDTextArea::create(this->getMetadata().getChangelog().value(), { 350.f, 137.5f });
-        m_changelogArea->setPosition(
-            -5000.f, winSize.height / 2 - m_changelogArea->getScaledContentSize().height / 2 - 20.f
-        );
-        m_changelogArea->setVisible(false);
-        m_mainLayer->addChild(m_changelogArea);
-    }
-
     auto toggle = static_cast<CCMenuItemToggler*>(sender);
-
-    m_detailsArea->setVisible(toggle->isToggled());
-    // as it turns out, cocos2d is stupid and still passes touch
-    // events to invisible nodes
-    m_detailsArea->setPositionX(
-        toggle->isToggled() ? winSize.width / 2 - m_detailsArea->getScaledContentSize().width / 2 :
-                              -5000.f
-    );
-
-    m_changelogArea->setVisible(!toggle->isToggled());
-    // as it turns out, cocos2d is stupid and still passes touch
-    // events to invisible nodes
-    m_changelogArea->setPositionX(
-        !toggle->isToggled() ? winSize.width / 2 - m_changelogArea->getScaledContentSize().width / 2 :
-                               -5000.f
-    );
-
-    m_scrollbar->setTarget(
+    m_detailsArea->setString((
         toggle->isToggled() ?
-            m_detailsArea->getScrollLayer() :
-            m_changelogArea->getScrollLayer()
-    );
+            this->getMetadata().getDetails().value() :
+            this->getMetadata().getChangelog().value()
+    ).c_str());
 }
 
 void ModInfoPopup::setInstallStatus(std::optional<UpdateProgress> const& progress) {
@@ -349,14 +312,15 @@ LocalModInfoPopup::LocalModInfoPopup()
         ModInstallFilter("")
     ) {}
 
-
 bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
     m_item = Index::get()->getMajorItem(mod->getMetadata().getID());
-    if (m_item)
+    if (m_item) {
         m_installListener.setFilter(m_item->getMetadata().getID());
+    }
+
     m_mod = mod;
 
-    if (!ModInfoPopup::init(LAYER_SIZE.width, LAYER_SIZE.height, mod->getMetadata(), list)) return false;
+    if (!ModInfoPopup::initAnchored(LAYER_SIZE.width, LAYER_SIZE.height, mod->getMetadata(), list)) return false;
 
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
@@ -364,10 +328,10 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
     auto settingsSpr = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
     settingsSpr->setScale(.65f);
 
-    auto settingsBtn =
-        CCMenuItemSpriteExtra::create(settingsSpr, this, menu_selector(LocalModInfoPopup::onSettings));
-    settingsBtn->setPosition(-LAYER_SIZE.width / 2 + 25.f, -LAYER_SIZE.height / 2 + 25.f);
-    m_buttonMenu->addChild(settingsBtn);
+    auto settingsBtn = CCMenuItemSpriteExtra::create(
+        settingsSpr, this, menu_selector(LocalModInfoPopup::onSettings)
+    );
+    m_buttonMenu->addChildAtPosition(settingsBtn, Anchor::BottomLeft, ccp(25, 25));
 
     // Check if a config directory for the mod exists
     if (ghc::filesystem::exists(mod->getConfigDir(false))) {
@@ -379,8 +343,7 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
         auto configBtn = CCMenuItemSpriteExtra::create(
             configSpr, this, menu_selector(LocalModInfoPopup::onOpenConfigDir)
         );
-        configBtn->setPosition(-LAYER_SIZE.width / 2 + 65.f, -LAYER_SIZE.height / 2 + 25.f);
-        m_buttonMenu->addChild(configBtn);
+        m_buttonMenu->addChildAtPosition(configBtn, Anchor::BottomLeft, ccp(65, 25));
     }
 
     if (!mod->hasSettings()) {
@@ -397,9 +360,8 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
     auto enableBtn = CCMenuItemToggler::create(
         disableBtnSpr, enableBtnSpr, this, menu_selector(LocalModInfoPopup::onEnableMod)
     );
-    enableBtn->setPosition(-155.f, 75.f);
     enableBtn->toggle(!mod->shouldLoad());
-    m_buttonMenu->addChild(enableBtn);
+    m_buttonMenu->addChildAtPosition(enableBtn, Anchor::Center, ccp(-155, 75));
 
     if (mod->isInternal()) {
         enableBtn->setTarget(this, menu_selector(LocalModInfoPopup::onDisablingNotSupported));
@@ -420,8 +382,7 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
         auto uninstallBtn = CCMenuItemSpriteExtra::create(
             uninstallBtnSpr, this, menu_selector(LocalModInfoPopup::onUninstall)
         );
-        uninstallBtn->setPosition(-85.f, 75.f);
-        m_buttonMenu->addChild(uninstallBtn);
+        m_buttonMenu->addChildAtPosition(uninstallBtn, Anchor::Center, ccp(-85, 75));
 
         // todo: show update button on loader that invokes the installer
         if (m_item && Index::get()->isUpdateAvailable(m_item)) {
@@ -434,20 +395,21 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
             m_installBtnSpr->setScale(.6f);
 
             m_installBtn = CCMenuItemSpriteExtra::create(m_installBtnSpr, this, menu_selector(LocalModInfoPopup::onUpdate));
-            m_installBtn->setPosition(-8.0f, 75.f);
-            m_buttonMenu->addChild(m_installBtn);
+            m_buttonMenu->addChildAtPosition(m_installBtn, Anchor::Center, ccp(-8, 75));
 
             m_installStatus = DownloadStatusNode::create();
-            m_installStatus->setPosition(winSize.width / 2 + 105.f, winSize.height / 2 + 75.f);
             m_installStatus->setVisible(false);
-            m_mainLayer->addChild(m_installStatus);
+            m_mainLayer->addChildAtPosition(m_installStatus, Anchor::Center, ccp(105, 75));
 
             auto minorIndexItem = Index::get()->getItem(
                 mod->getMetadata().getID(),
                 ComparableVersionInfo(mod->getMetadata().getVersion(), VersionCompare::MoreEq)
             );
 
-            // TODO: use column layout here?
+            auto availableContainer = CCNode::create();
+            availableContainer->setLayout(ColumnLayout::create()->setGap(2));
+            availableContainer->setAnchorPoint({ .0f, .5f });
+            availableContainer->setContentSize({ 200.f, 45.f });
 
             if (m_item->getMetadata().getVersion().getMajor() > minorIndexItem->getMetadata().getVersion().getMajor()) {
                 // has major update
@@ -458,8 +420,7 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
                 m_latestVersionLabel->setScale(.35f);
                 m_latestVersionLabel->setAnchorPoint({.0f, .5f});
                 m_latestVersionLabel->setColor({94, 219, 255});
-                m_latestVersionLabel->setPosition(winSize.width / 2 + 35.f, winSize.height / 2 + 75.f);
-                m_mainLayer->addChild(m_latestVersionLabel);
+                availableContainer->addChild(m_latestVersionLabel);
             }
 
             if (minorIndexItem->getMetadata().getVersion() > mod->getMetadata().getVersion()) {
@@ -471,20 +432,11 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
                 m_minorVersionLabel->setScale(.35f);
                 m_minorVersionLabel->setAnchorPoint({.0f, .5f});
                 m_minorVersionLabel->setColor({94, 219, 255});
-                if (m_latestVersionLabel) {
-                    m_latestVersionLabel->setPosition(
-                        winSize.width / 2 + 35.f, winSize.height / 2 + 81.f
-                    );
-                    m_minorVersionLabel->setPosition(
-                        winSize.width / 2 + 35.f, winSize.height / 2 + 69.f
-                    );
-                } else {
-                    m_minorVersionLabel->setPosition(
-                        winSize.width / 2 + 35.f, winSize.height / 2 + 75.f
-                    );
-                }
-                m_mainLayer->addChild(m_minorVersionLabel);
+                availableContainer->addChild(m_minorVersionLabel);
             }
+
+            availableContainer->updateLayout();
+            m_mainLayer->addChildAtPosition(availableContainer, Anchor::Center, ccp(35, 75));
         }
     }
     if (mod == Mod::get()) {
@@ -494,11 +446,10 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
             "chatFont.fnt"
         );
         label->setAlignment(kCCTextAlignmentRight);
-        label->setAnchorPoint(ccp(1, 0));
-        label->setScale(0.6f);
-        label->setPosition(winSize.width - 3.f, 3.f);
+        label->setAnchorPoint({ .0f, .5f });
+        label->setScale(.5f);
         label->setOpacity(89);
-        m_mainLayer->addChild(label);
+        m_mainLayer->addChildAtPosition(label, Anchor::BottomRight, ccp(5, 0));
     }
 
     // issue report button
@@ -511,8 +462,7 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
         auto issuesBtn = CCMenuItemSpriteExtra::create(
             issuesBtnSpr, this, menu_selector(LocalModInfoPopup::onIssues)
         );
-        issuesBtn->setPosition(0.f, -LAYER_SIZE.height / 2 + 25.f);
-        m_buttonMenu->addChild(issuesBtn);
+        m_buttonMenu->addChildAtPosition(issuesBtn, Anchor::Bottom, ccp(0, 25));
     }
 
     return true;
@@ -685,7 +635,7 @@ bool IndexItemInfoPopup::init(IndexItemHandle item, ModListLayer* list) {
 
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
-    if (!ModInfoPopup::init(LAYER_SIZE.width, LAYER_SIZE.height, item->getMetadata(), list)) return false;
+    if (!ModInfoPopup::initAnchored(LAYER_SIZE.width, LAYER_SIZE.height, item->getMetadata(), list)) return false;
 
     // bruh why is this here if we are allowing for browsing already installed mods
     // if (item->isInstalled()) return true;
@@ -701,13 +651,11 @@ bool IndexItemInfoPopup::init(IndexItemHandle item, ModListLayer* list) {
     m_installBtn = CCMenuItemSpriteExtra::create(
         m_installBtnSpr, this, menu_selector(IndexItemInfoPopup::onInstall)
     );
-    m_installBtn->setPosition(-143.0f, 75.f);
-    m_buttonMenu->addChild(m_installBtn);
+    m_buttonMenu->addChildAtPosition(m_installBtn, Anchor::Center, ccp(-143, 75));
 
     m_installStatus = DownloadStatusNode::create();
-    m_installStatus->setPosition(winSize.width / 2 - 25.f, winSize.height / 2 + 75.f);
     m_installStatus->setVisible(false);
-    m_mainLayer->addChild(m_installStatus);
+    m_mainLayer->addChildAtPosition(m_installStatus, Anchor::Center, ccp(-25, 75));
 
     return true;
 }

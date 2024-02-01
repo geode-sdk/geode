@@ -13,6 +13,7 @@ namespace geode {
         cocos2d::extension::CCScale9Sprite* m_bgSprite;
         cocos2d::CCLabelBMFont* m_title = nullptr;
         CCMenuItemSpriteExtra* m_closeBtn;
+        bool m_dynamic;
 
         ~Popup() override {
             cocos2d::CCTouchDispatcher::get()->unregisterForcePrio(this);
@@ -22,10 +23,13 @@ namespace geode {
             cocos2d::CCTouchDispatcher::get()->addTargetedDelegate(this, -500, true);
         }
 
-        bool init(
-            float width, float height, InitArgs... args, char const* bg = "GJ_square01.png",
-            cocos2d::CCRect bgRect = { 0, 0, 80, 80 }
+    private:
+        bool initBase(
+            float width, float height, InitArgs... args, char const* bg,
+            cocos2d::CCRect bgRect, bool dynamic
         ) {
+            m_dynamic = dynamic;
+
             auto winSize = cocos2d::CCDirector::get()->getWinSize();
             m_size = cocos2d::CCSize { width, height };
 
@@ -44,6 +48,17 @@ namespace geode {
             m_buttonMenu->setZOrder(100);
             m_mainLayer->addChild(m_buttonMenu);
 
+            if (dynamic) {
+                m_mainLayer->ignoreAnchorPointForPosition(false);
+                m_mainLayer->setPosition(winSize / 2);
+                m_mainLayer->setContentSize(m_size);
+                m_mainLayer->setLayout(
+                    cocos2d::CopySizeLayout::create()
+                        ->add(m_buttonMenu)
+                        ->add(m_bgSprite)
+                );
+            }
+
             this->setTouchEnabled(true);
 
             auto closeSpr = cocos2d::CCSprite::createWithSpriteFrameName("GJ_closeBtn_001.png");
@@ -52,8 +67,13 @@ namespace geode {
             m_closeBtn = CCMenuItemSpriteExtra::create(
                 closeSpr, this, (cocos2d::SEL_MenuHandler)(&Popup::onClose)
             );
-            m_closeBtn->setPosition(-m_size.width / 2 + 3.f, m_size.height / 2 - 3.f);
-            m_buttonMenu->addChild(m_closeBtn);
+            if (dynamic) {
+                m_buttonMenu->addChildAtPosition(m_closeBtn, cocos2d::Anchor::TopLeft, { 3.f, -3.f });
+            }
+            else {
+                m_closeBtn->setPosition(-m_size.width / 2 + 3.f, m_size.height / 2 - 3.f);
+                m_buttonMenu->addChild(m_closeBtn);
+            }
 
             if (!setup(std::forward<InitArgs>(args)...)) {
                 return false;
@@ -63,6 +83,27 @@ namespace geode {
             this->setTouchEnabled(true);
 
             return true;
+        }
+
+    protected:
+        [[deprecated("Use Popup::initAnchored instead, as it has more reasonable menu and layer content sizes")]]
+        bool init(
+            float width, float height, InitArgs... args, char const* bg = "GJ_square01.png",
+            cocos2d::CCRect bgRect = { 0, 0, 80, 80 }
+        ) {
+            return this->initBase(width, height, std::forward<InitArgs>(args)..., bg, bgRect, false);
+        }
+
+        /**
+         * Init with AnchorLayout and the content size of `m_buttonMenu` and 
+         * `m_bgSprite` being tied to the size of `m_mainLayer` (rather than 
+         * being the size of the window)
+         */
+        bool initAnchored(
+            float width, float height, InitArgs... args, char const* bg = "GJ_square01.png",
+            cocos2d::CCRect bgRect = { 0, 0, 80, 80 }
+        ) {
+            return this->initBase(width, height, std::forward<InitArgs>(args)..., bg, bgRect, true);
         }
 
         virtual bool setup(InitArgs... args) = 0;
@@ -86,13 +127,17 @@ namespace geode {
         ) {
             if (m_title) {
                 m_title->setString(title.c_str());
-            } else {
-                auto winSize = cocos2d::CCDirector::sharedDirector()->getWinSize();
+            }
+            else {
                 m_title = cocos2d::CCLabelBMFont::create(title.c_str(), font);
-                m_title->setPosition(
-                    winSize.width / 2, winSize.height / 2 + m_size.height / 2 - offset
-                );
-                m_mainLayer->addChild(m_title, 2);
+                m_title->setZOrder(2);
+                if (m_dynamic) {
+                    m_mainLayer->addChildAtPosition(m_title, cocos2d::Anchor::Top, ccp(0, -offset));
+                }
+                else {
+                    auto winSize = cocos2d::CCDirector::get()->getWinSize();
+                    m_title->setPosition(winSize / 2 + ccp(0, m_size.height / 2 - offset));
+                }
             }
             m_title->limitLabelWidth(m_size.width - 20.f, scale, .1f);
         }

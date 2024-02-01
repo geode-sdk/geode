@@ -19,7 +19,7 @@ bool MDPopup::setup(
         m_size.height - 120.f,
     };
     auto content = MDTextArea::create(info, contentSize);
-    content->setPosition(winSize / 2 - contentSize / 2);
+    content->setPosition(winSize / 2);
     m_mainLayer->addChild(content);
 
     auto btnSpr = ButtonSprite::create(btn1Text);

@@ -237,4 +237,16 @@ size_t CCNode::getEventListenerCount() {
         GeodeNodeMetadata::set(this)->m_eventListeners.size();
 }
 
+void CCNode::addChildAtPosition(CCNode* child, Anchor anchor, CCPoint const& offset, bool useAnchorLayout) {
+    auto layout = this->getLayout();
+    if (!layout && useAnchorLayout) {
+        this->setLayout(AnchorLayout::create());
+    }
+    child->setPosition(AnchorLayout::getAnchoredPosition(this, anchor, offset));
+    if (useAnchorLayout) {
+        child->setLayoutOptions(AnchorLayoutOptions::create()->setAnchor(anchor)->setOffset(offset));
+    }
+    this->addChild(child);
+}
+
 #pragma warning(pop)

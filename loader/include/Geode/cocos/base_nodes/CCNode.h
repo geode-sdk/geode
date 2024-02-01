@@ -994,6 +994,18 @@ public:
      * @note Geode addition
      */
     GEODE_DLL LayoutOptions* getLayoutOptions();
+    /**
+     * Adds a child at an anchored position with an offset. The node is placed 
+     * in its parent where the anchor specifies, and then the offset is used to 
+     * relatively adjust the node's position
+     * @param child The child to add
+     * @param anchor Where the place the child relative to this node
+     * @param offset Where to place the child relative to the anchor
+     * @param useAnchorLayout If true, sets this node's layout to `AnchorLayout` 
+     * if no other layout is already specified
+     * @note Geode addition
+     */
+    GEODE_DLL void addChildAtPosition(CCNode* child, Anchor anchor, CCPoint const& offset = CCPointZero, bool useAnchorLayout = true);
 
     /**
      * Swap two children
