@@ -153,7 +153,7 @@ jobs:
 
     # hardcoding toolchain path :(
     - name: Strip Binaries
-      run: "$NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/llvm-strip ./bin/nightly/Geode.${{ matrix.config.id }}.so"
+      run: "$NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip ./bin/nightly/Geode.${{ matrix.config.id }}.so"
       if: matrix.config.id == 'android32' || matrix.config.id == 'android64'
 
     - name: Upload Artifacts
