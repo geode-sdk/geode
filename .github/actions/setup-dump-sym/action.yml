@@ -20,7 +20,7 @@ runs:
   - uses: actions/cache@v4
     id: binary-cache
     with:
-      path: "./dump_syms/target/release"
+      path: "./dump_syms/target/release/dump_syms"
       key: dump_syms-${{ inputs.dump_syms_version }}-${{steps.toolchain.outputs.cachekey}}
 
   - uses: actions/checkout@v4
