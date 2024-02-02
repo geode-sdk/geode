@@ -1,5 +1,56 @@
 #include <crashlog.hpp>
 
+static bool s_lastLaunchCrashed = false;
+
+#ifdef GEODE_USE_BREAKPAD
+
+#include <memory>
+
+#include <client/linux/handler/exception_handler.h>
+#include <client/linux/handler/minidump_descriptor.h>
+
+namespace {
+    // this object must be kept alive
+    auto s_exceptionHandler = std::unique_ptr<google_breakpad::ExceptionHandler>(nullptr);
+
+    bool crashCallback(
+        google_breakpad::MinidumpDescriptor const& descriptor, void* /* context */, bool succeeded
+    ) {
+        // jumping into unsafe territory :fish:
+        // create a file that indicates a crash did happen (which is then cleared on next launch)
+        auto crashIndicatorPath = crashlog::getCrashLogDirectory() / "lastSessionDidCrash";
+        auto indicatorString = crashIndicatorPath.string();
+
+        sys_open(indicatorString.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0);
+
+        return succeeded;
+    }
+}
+
+bool crashlog::setupPlatformHandler() {
+    auto logDirectory = crashlog::getCrashLogDirectory();
+
+    (void)geode::utils::file::createDirectoryAll(logDirectory);
+
+    google_breakpad::MinidumpDescriptor descriptor(logDirectory.string() + "/");
+
+    s_exceptionHandler = std::make_unique<google_breakpad::ExceptionHandler>(
+        descriptor, nullptr, crashCallback, nullptr, true, -1
+    );
+
+    auto crashIndicatorPath = crashlog::getCrashLogDirectory() / "lastSessionDidCrash";
+    if (ghc::filesystem::exists(crashIndicatorPath)) {
+        s_lastLaunchCrashed = true;
+        ghc::filesystem::remove(crashIndicatorPath);
+    }
+
+    return true;
+}
+
+void crashlog::setupPlatformHandlerPost() { }
+
+#else
+
 using namespace geode::prelude;
 
 #include <Geode/utils/string.hpp>
@@ -188,12 +239,6 @@ static void handlerThread() {
     log::debug("Notified");
 }
 
-static bool s_lastLaunchCrashed = false;
-
-ghc::filesystem::path crashlog::getCrashLogDirectory() {
-    return dirs::getGeodeDir() / "crashlogs";
-}
-
 int writeAndGetPid() {
     auto pidFile = crashlog::getCrashLogDirectory() / "last-pid";
 
@@ -305,6 +350,12 @@ void crashlog::setupPlatformHandlerPost() {
     );
     actualFile << ss.rdbuf() << std::flush;
     actualFile.close();
+}
+
+#endif
+
+ghc::filesystem::path crashlog::getCrashLogDirectory() {
+    return geode::dirs::getGeodeDir() / "crashlogs";
 }
 
 bool crashlog::didLastLaunchCrash() {
