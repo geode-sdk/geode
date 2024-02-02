@@ -149,6 +149,7 @@ jobs:
 
     - name: Dump symbols
       run: "${{ steps.breakpad-tools.outputs.binary-path }} ./bin/nightly/Geode.${{ matrix.config.id }}.so -o ./bin/nightly/Geode.${{ matrix.config.id }}.so.sym"
+      if: matrix.config.id == 'android32' || matrix.config.id == 'android64'
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
@@ -208,13 +209,13 @@ jobs:
       - name: Zip Android32 Artifacts
         uses: vimtor/action-zip@v1.1
         with:
-          files: geode-android32/Geode.android32.so
+          files: geode-android32/Geode.android32.so geode-android32/Geode.android32.so.sym
           dest: geode-${{ steps.ref.outputs.hash }}-android32.zip
 
       - name: Zip Android64 Artifacts
         uses: vimtor/action-zip@v1.1
         with:
-          files: geode-android64/Geode.android64.so
+          files: geode-android64/Geode.android64.so geode-android64/Geode.android64.so.sym
           dest: geode-${{ steps.ref.outputs.hash }}-android64.zip
 
       - name: Zip Resources
