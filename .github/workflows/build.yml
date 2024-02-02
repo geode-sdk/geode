@@ -130,6 +130,11 @@ jobs:
         sudo apt install ninja-build
       if: matrix.config.id == 'android32' || matrix.config.id == 'android64'
 
+    - name: Setup Breakpad Tools
+      uses: ./.github/actions/setup-dump-sym
+      id: breakpad-tools
+      if: matrix.config.id == 'android32' || matrix.config.id == 'android64'
+
     - name: Configure
       run: >
         cmake -B ${{ github.workspace }}/build
@@ -141,6 +146,9 @@ jobs:
         cd ${{ github.workspace }}/build
         cmake --build . --config RelWithDebInfo --parallel
         rm ${{ github.workspace }}/bin/nightly/resources/.geode_cache
+
+    - name: Dump symbols
+      run: "${{ steps.breakpad-tools.outputs.binary-path }} ./bin/nightly/Geode.${{ matrix.config.id }}.so -o ./bin/nightly/Geode.${{ matrix.config.id }}.so.sym"
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
