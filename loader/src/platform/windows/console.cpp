@@ -116,9 +116,7 @@ void console::setup() {
 
             // count == 0 => not a console and not a file, assume it's closed
             // wine does something weird with /dev/null? not sure tbh but it's definitely up to no good
-            // vscode redirects output to a named pipe and then doesn't use it
-            if (count == 0 || path.ends_with("\\dev\\null") ||
-                string::contains(path, "\\uv\\0000")) {
+            if (count == 0 || path.ends_with("\\dev\\null")) {
                 s_outHandle = nullptr;
                 CloseHandle(GetStdHandle(STD_OUTPUT_HANDLE));
                 CloseHandle(GetStdHandle(STD_INPUT_HANDLE));
