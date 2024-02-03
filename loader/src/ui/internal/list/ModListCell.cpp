@@ -140,7 +140,7 @@ void ModListCell::setupInfo(
         m_labelMenu->addChild(apiLabel);
     }
 
-    auto creatorStr = "by " + metadata.getDeveloper();
+    auto creatorStr = "by " + ModMetadata::formatDeveloperDisplayString(metadata.getDevelopers());
     auto creatorLabel = CCLabelBMFont::create(creatorStr.c_str(), "goldFont.fnt");
     creatorLabel->setScale(.43f);
     if (inactive) {
@@ -189,7 +189,12 @@ void ModListCell::updateCellLayout() {
 }
 
 void ModListCell::onViewDev(CCObject*) {
-    DevProfilePopup::create(this->getDeveloper(), m_layer)->show();
+    if (this->getDevelopers().size() == 1) {
+        DevProfilePopup::create(this->getDevelopers().front(), m_layer)->show();
+    }
+    else {
+        // todo: multiple dev picker
+    }
 }
 
 bool ModListCell::init(ModListLayer* list, CCSize const& size) {
@@ -338,8 +343,8 @@ bool ModCell::init(
     return true;
 }
 
-std::string ModCell::getDeveloper() const {
-    return m_mod->getDeveloper();
+std::vector<std::string> ModCell::getDevelopers() const {
+    return m_mod->getDevelopers();
 }
 
 CCNode* ModCell::createLogo(CCSize const& size) {
@@ -428,8 +433,8 @@ void IndexItemCell::updateState() {
     this->updateCellLayout();
 }
 
-std::string IndexItemCell::getDeveloper() const {
-    return m_item->getMetadata().getDeveloper();
+std::vector<std::string> IndexItemCell::getDevelopers() const {
+    return m_item->getMetadata().getDevelopers();
 }
 
 CCNode* IndexItemCell::createLogo(CCSize const& size) {
@@ -535,8 +540,8 @@ InvalidGeodeFileCell* InvalidGeodeFileCell::create(
 
 void InvalidGeodeFileCell::updateState() {}
 
-std::string InvalidGeodeFileCell::getDeveloper() const {
-    return "";
+std::vector<std::string> InvalidGeodeFileCell::getDevelopers() const {
+    return {};
 }
 
 CCNode* InvalidGeodeFileCell::createLogo(CCSize const& size) {
@@ -658,8 +663,8 @@ ProblemsCell* ProblemsCell::create(
 
 void ProblemsCell::updateState() {}
 
-std::string ProblemsCell::getDeveloper() const {
-    return "";
+std::vector<std::string> ProblemsCell::getDevelopers() const {
+    return {};
 }
 
 CCNode* ProblemsCell::createLogo(CCSize const& size) {

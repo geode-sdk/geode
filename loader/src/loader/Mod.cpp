@@ -20,7 +20,11 @@ std::string Mod::getName() const {
 }
 
 std::string Mod::getDeveloper() const {
-    return m_impl->getDeveloper();
+    return m_impl->getDevelopers().empty() ? "" : m_impl->getDevelopers().front();
+}
+
+std::vector<std::string> Mod::getDevelopers() const {
+    return m_impl->getDevelopers();
 }
 
 std::optional<std::string> Mod::getDescription() const {

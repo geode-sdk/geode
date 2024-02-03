@@ -30,7 +30,7 @@ protected:
 
     void setupInfo(
         std::string name,
-        std::optional<std::string> developer,
+        std::vector<std::string> developers,
         std::variant<VersionInfo, ComparableVersionInfo> version,
         bool inactive
     );
@@ -49,7 +49,7 @@ public:
 
     virtual CCNode* createLogo(CCSize const& size) = 0;
     [[nodiscard]] virtual std::string getID() const = 0;
-    [[nodiscard]] virtual std::string getDeveloper() const = 0;
+    [[nodiscard]] virtual std::vector<std::string> getDevelopers() const = 0;
 };
 
 /**
@@ -66,7 +66,7 @@ public:
 
     CCNode* createLogo(CCSize const& size) override;
     [[nodiscard]] std::string getID() const override;
-    [[nodiscard]] std::string getDeveloper() const override;
+    [[nodiscard]] std::vector<std::string> getDevelopers() const override;
 };
 
 /**
@@ -95,7 +95,7 @@ public:
 
     CCNode* createLogo(CCSize const& size) override;
     [[nodiscard]] std::string getID() const override;
-    [[nodiscard]] std::string getDeveloper() const override;
+    [[nodiscard]] std::vector<std::string> getDevelopers() const override;
 
     IndexItemHandle getItem();
     void setVersionFromItem(IndexItemHandle item);
@@ -121,7 +121,7 @@ public:
 
     CCNode* createLogo(CCSize const& size) override;
     [[nodiscard]] std::string getID() const override;
-    [[nodiscard]] std::string getDeveloper() const override;
+    [[nodiscard]] std::vector<std::string> getDevelopers() const override;
 };
 
 class SelectVersionPopup;
@@ -141,5 +141,5 @@ public:
 
     CCNode* createLogo(CCSize const& size) override;
     [[nodiscard]] std::string getID() const override;
-    [[nodiscard]] std::string getDeveloper() const override;
+    [[nodiscard]] std::vector<std::string> getDevelopers() const override;
 };

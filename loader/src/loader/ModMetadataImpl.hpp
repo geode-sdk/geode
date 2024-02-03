@@ -15,7 +15,7 @@ namespace geode {
         VersionInfo m_version{1, 0, 0};
         std::string m_id;
         std::string m_name;
-        std::string m_developer;
+        std::vector<std::string> m_developers;
         std::string m_gdVersion;
         VersionInfo m_geodeVersion;
         std::optional<std::string> m_description;

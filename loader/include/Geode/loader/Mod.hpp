@@ -78,7 +78,9 @@ namespace geode {
 
         std::string getID() const;
         std::string getName() const;
+        [[deprecated("Use Mod::getDevelopers instead")]]
         std::string getDeveloper() const;
+        std::vector<std::string> getDevelopers() const;
         std::optional<std::string> getDescription() const;
         std::optional<std::string> getDetails() const;
         ghc::filesystem::path getPackagePath() const;

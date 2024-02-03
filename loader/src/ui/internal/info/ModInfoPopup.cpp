@@ -66,7 +66,7 @@ bool ModInfoPopup::setup(ModMetadata const& metadata, ModListLayer* list) {
     nameLabel->limitLabelWidth(200.f, .7f, .1f);
     labelNode->addChild(nameLabel, 2);
 
-    auto developerStr = "by " + metadata.getDeveloper();
+    auto developerStr = "by " + ModMetadata::formatDeveloperDisplayString(metadata.getDevelopers());
     auto developerLabel = CCLabelBMFont::create(developerStr.c_str(), "goldFont.fnt");
     developerLabel->setScale(.5f);
     labelNode->addChild(developerLabel);
@@ -180,11 +180,11 @@ void ModInfoPopup::onInfo(CCObject*) {
         fmt::format(
             "<cr>ID:</c> {}\n"
             "<cg>Version:</c> {}\n"
-            "<cy>Developer:</c> {}\n"
+            "<cy>Developers:</c> {}\n"
             "<cy>Path:</c> {}\n",
             info.getID(),
             info.getVersion().toString(),
-            info.getDeveloper(),
+            ranges::join(info.getDevelopers(), ", "),
             info.getPath().string()
         ),
         "OK",

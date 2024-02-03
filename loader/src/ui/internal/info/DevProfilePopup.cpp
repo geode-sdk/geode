@@ -17,7 +17,7 @@ bool DevProfilePopup::setup(std::string const& developer, ModListLayer* list) {
 
     // installed mods
     for (auto& mod : Loader::get()->getAllMods()) {
-        if (mod->getDeveloper() == developer) {
+        if (ranges::contains(mod->getDevelopers(), developer)) {
             auto cell = ModCell::create(
                 mod, m_layer, ModListDisplay::Concise, { 358.f, 40.f }
             );

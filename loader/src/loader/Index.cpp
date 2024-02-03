@@ -555,7 +555,7 @@ std::vector<IndexItemHandle> Index::getItemsByDeveloper(
     std::vector<IndexItemHandle> res;
     for (auto& items : map::values(m_impl->m_items)) {
         for (auto& item : items) {
-            if (item.second->getMetadata().getDeveloper() == name) {
+            if (ranges::contains(item.second->getMetadata().getDevelopers(), name)) {
                 res.push_back(item.second);
             }
         }
@@ -686,9 +686,10 @@ Result<> Index::canInstall(IndexItemHandle item) const {
             return Err(
                 "Dependency {} version {} not found in the index! Likely "
                 "reason is that the version of the dependency this mod "
-                "depends on is not available. Please let the developer "
+                "depends on is not available. Please let the developer(s) "
                 "of the mod ({}) know!",
-                dep.id, dep.version.toString(), item->getMetadata().getDeveloper()
+                dep.id, dep.version.toString(),
+                ranges::join(item->getMetadata().getDevelopers(), ", ")
             );
         }
     }
@@ -736,9 +737,10 @@ Result<IndexInstallList> Index::getInstallList(IndexItemHandle item) const {
             return Err(
                 "Dependency {} version {} not found in the index! Likely "
                 "reason is that the version of the dependency this mod "
-                "depends on is not available. Please let the developer "
+                "depends on is not available. Please let the developer(s) "
                 "of the mod ({}) know!",
-                dep.id, dep.version.toString(), item->getMetadata().getDeveloper()
+                dep.id, dep.version.toString(),
+                ranges::join(item->getMetadata().getDevelopers(), ", ")
             );
         }
     }

@@ -52,7 +52,7 @@ static std::optional<int> queryMatchKeywords(
         };
         weightedMatch(metadata.getName(), 2);
         weightedMatch(metadata.getID(), 1);
-        weightedMatch(metadata.getDeveloper(), 0.5);
+        weightedMatch(ranges::join(metadata.getDevelopers(), " "), 0.5);
         weightedMatch(metadata.getDetails().value_or(""), 0.05);
         weightedMatch(metadata.getDescription().value_or(""), 0.2);
         if (!someMatched) {

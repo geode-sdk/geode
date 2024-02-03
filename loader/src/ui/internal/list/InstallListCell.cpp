@@ -25,7 +25,7 @@ float InstallListCell::getLogoSize() const {
 
 void InstallListCell::setupInfo(
     std::string name,
-    std::optional<std::string> developer,
+    std::vector<std::string> developers,
     std::variant<VersionInfo, ComparableVersionInfo> version,
     bool inactive
 ) {
@@ -57,8 +57,8 @@ void InstallListCell::setupInfo(
     this->addChild(m_titleLabel);
 
     m_creatorLabel = nullptr;
-    if (developer) {
-        auto creatorStr = "by " + *developer;
+    if (!developers.empty()) {
+        auto creatorStr = "by " + ModMetadata::formatDeveloperDisplayString(developers);
         m_creatorLabel = CCLabelBMFont::create(creatorStr.c_str(), "goldFont.fnt");
         m_creatorLabel->setScale(.34f);
         if (inactive) {
@@ -119,7 +119,7 @@ void InstallListCell::setupVersion(std::variant<VersionInfo, ComparableVersionIn
 }
 
 void InstallListCell::setupInfo(ModMetadata const& metadata, bool inactive) {
-    this->setupInfo(metadata.getName(), metadata.getDeveloper(), metadata.getVersion(), inactive);
+    this->setupInfo(metadata.getName(), metadata.getDevelopers(), metadata.getVersion(), inactive);
 }
 
 void InstallListCell::onViewDev(CCObject*) {
@@ -171,8 +171,8 @@ CCNode* ModInstallListCell::createLogo(CCSize const& size) {
 std::string ModInstallListCell::getID() const {
     return m_mod->getID();
 }
-std::string ModInstallListCell::getDeveloper() const {
-    return m_mod->getDeveloper();
+std::vector<std::string> ModInstallListCell::getDevelopers() const {
+    return m_mod->getDevelopers();
 }
 
 // IndexItemInstallListCell
@@ -295,8 +295,8 @@ CCNode* IndexItemInstallListCell::createLogo(CCSize const& size) {
 std::string IndexItemInstallListCell::getID() const {
     return m_item->getMetadata().getID();
 }
-std::string IndexItemInstallListCell::getDeveloper() const {
-    return m_item->getMetadata().getDeveloper();
+std::vector<std::string> IndexItemInstallListCell::getDevelopers() const {
+    return m_item->getMetadata().getDevelopers();
 }
 
 IndexItemHandle IndexItemInstallListCell::getItem() {
@@ -323,7 +323,7 @@ bool UnknownInstallListCell::init(
         return false;
     m_dependency = dependency;
     bool optional = dependency.importance != ModMetadata::Dependency::Importance::Required;
-    this->setupInfo(dependency.id, std::nullopt, dependency.version, optional);
+    this->setupInfo(dependency.id, {}, dependency.version, optional);
     auto message = CCLabelBMFont::create("Missing", "bigFont.fnt");
     message->setAnchorPoint({ 1.f, .5f });
     message->setPositionX(m_menu->getPositionX());
@@ -357,8 +357,8 @@ CCNode* UnknownInstallListCell::createLogo(CCSize const& size) {
 std::string UnknownInstallListCell::getID() const {
     return m_dependency.id;
 }
-std::string UnknownInstallListCell::getDeveloper() const {
-    return "";
+std::vector<std::string> UnknownInstallListCell::getDevelopers() const {
+    return {};
 }
 
 // SelectVersionCell
@@ -404,6 +404,6 @@ CCNode* SelectVersionCell::createLogo(CCSize const& size) {
 std::string SelectVersionCell::getID() const {
     return m_item->getMetadata().getID();
 }
-std::string SelectVersionCell::getDeveloper() const {
-    return m_item->getMetadata().getDeveloper();
+std::vector<std::string> SelectVersionCell::getDevelopers() const {
+    return m_item->getMetadata().getDevelopers();
 }

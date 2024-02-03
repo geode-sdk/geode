@@ -63,7 +63,8 @@ std::string crashlog::writeCrashlog(geode::Mod* faultyMod, std::string const& in
     if (faultyMod) {
         file << "It appears that the crash occurred while executing code from "
              << "the \"" << faultyMod->getID() << "\" mod. "
-             << "Please submit this crash report to its developer (" << faultyMod->getDeveloper()
+             << "Please submit this crash report to its developers ("
+             << ranges::join(faultyMod->getDevelopers(), ", ")
              << ") for assistance.\n";
     }
 

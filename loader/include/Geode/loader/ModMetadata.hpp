@@ -90,16 +90,15 @@ namespace geode {
         [[nodiscard]] std::string getName() const;
         /**
          * The name of the head developer.
-         * Should be a single name, like
-         * "HJfod" or "Geode Team".
-         * If the mod has multiple
-         * developers, this field should
-         * be one of their name or a team
-         * name, and the rest of the credits
-         * should be named in `m_credits`
-         * instead.
+         * If the mod has multiple * developers, this will return the first 
+         * developer in the list.
          */
-        [[nodiscard]] std::string getDeveloper() const;
+        [[nodiscard, deprecated("Use ModMetadata::getDevelopers() instead")]]
+        std::string getDeveloper() const;
+        /**
+         * The developers of this mod
+         */
+        [[nodiscard]] std::vector<std::string> getDevelopers() const;
         /**
          * Short & concise description of the
          * mod.
@@ -179,6 +178,7 @@ namespace geode {
         void setID(std::string const& value);
         void setName(std::string const& value);
         void setDeveloper(std::string const& value);
+        void setDevelopers(std::vector<std::string> const& value);
         void setDescription(std::optional<std::string> const& value);
         void setDetails(std::optional<std::string> const& value);
         void setChangelog(std::optional<std::string> const& value);
@@ -223,6 +223,15 @@ namespace geode {
         bool operator==(ModMetadata const& other) const;
 
         static bool validateID(std::string const& id);
+
+        /**
+         * Format a list of mod developers, truncated if there are multiple 
+         * developers in the same way as in the mods list
+         * @note Static because this is used by InstallListCell
+         */
+        [[nodiscard]] static std::string formatDeveloperDisplayString(
+            std::vector<std::string> const& developers
+        );
 
     private:
         /**

@@ -75,8 +75,8 @@ std::string Mod::Impl::getName() const {
     return m_metadata.getName();
 }
 
-std::string Mod::Impl::getDeveloper() const {
-    return m_metadata.getDeveloper();
+std::vector<std::string> Mod::Impl::getDevelopers() const {
+    return m_metadata.getDevelopers();
 }
 
 std::optional<std::string> Mod::Impl::getDescription() const {

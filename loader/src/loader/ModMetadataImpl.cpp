@@ -101,14 +101,25 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
         return Err("[mod.json] is missing target GD version");
     }
 
-
     // don't think its used locally yet
     root.addKnownKey("tags"); 
 
     root.needs("id").validate(MiniFunction<bool(std::string const&)>(&ModMetadata::validateID)).into(impl->m_id);
     root.needs("version").into(impl->m_version);
     root.needs("name").into(impl->m_name);
-    root.needs("developer").into(impl->m_developer);
+    if (root.has("developers")) {
+        if (root.has("developer")) {
+            return Err("[mod.json] can not have both \"developer\" and \"developers\" specified");
+        }
+        for (auto& dev : root.needs("developers").iterate()) {
+            impl->m_developers.push_back(dev.template get<std::string>());
+        }
+    }
+    else {
+        std::string dev;
+        root.needs("developer").into(dev);
+        impl->m_developers = { dev };
+    }
     root.has("description").into(impl->m_description);
     root.has("repository").into(impl->m_repository);
     root.has("early-load").into(impl->m_needsEarlyLoad);
@@ -351,7 +362,25 @@ std::string ModMetadata::getName() const {
 }
 
 std::string ModMetadata::getDeveloper() const {
-    return m_impl->m_developer;
+    // m_developers should be guaranteed to never be empty, but this is 
+    // just in case it is anyway somehow
+    return m_impl->m_developers.empty() ? "" : m_impl->m_developers.front();
+}
+
+std::string ModMetadata::formatDeveloperDisplayString(std::vector<std::string> const& developers) {
+    switch (developers.size()) {
+        case 0: return "Unknown"; break;
+        case 1: return developers.front(); break;
+        case 2: return developers.front() + " & " + developers.back(); break;
+        default: {
+            return developers.front() + " + " + 
+                std::to_string(developers.size() - 1) + " More";
+        } break;
+    }
+}
+
+std::vector<std::string> ModMetadata::getDevelopers() const {
+    return m_impl->m_developers;
 }
 
 std::optional<std::string> ModMetadata::getDescription() const {
@@ -452,7 +481,11 @@ void ModMetadata::setName(std::string const& value) {
 }
 
 void ModMetadata::setDeveloper(std::string const& value) {
-    m_impl->m_developer = value;
+    m_impl->m_developers = { value };
+}
+
+void ModMetadata::setDevelopers(std::vector<std::string> const& value) {
+    m_impl->m_developers = value;
 }
 
 void ModMetadata::setDescription(std::optional<std::string> const& value) {
