@@ -21,10 +21,8 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
         if (!self.setHookPriority("LoadingLayer::init", geode::node_ids::GEODE_ID_PRIORITY)) {
             log::warn("Failed to set LoadingLayer::init hook priority, node IDs may not work properly");
         }
-        GEODE_FORWARD_COMPAT_DISABLE_HOOKS_INNER("LoadingLayer stuff disabled")
+        GEODE_FORWARD_COMPAT_DISABLE_HOOKS_INNER("Switching to fallback custom loading layer")
     }
-
-    GEODE_FORWARD_COMPAT_DISABLE_HOOKS("Switching to fallback custom loading layer")
 
     void updateLoadedModsLabel() {
         auto allMods = Loader::get()->getAllMods();
@@ -209,8 +207,11 @@ struct FallbackCustomLoadingLayer : Modify<FallbackCustomLoadingLayer, CCLayer> 
     bool init() {
         if (!CCLayer::init())
             return false;
-        if (!typeinfo_cast<LoadingLayer*>(this))
+        auto* self = typeinfo_cast<LoadingLayer*>(this);
+        if (!self)
             return true;
+
+        NodeIDs::provideFor(self);
 
         auto winSize = CCDirector::sharedDirector()->getWinSize();
 
