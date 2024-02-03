@@ -78,12 +78,17 @@ Result<> Loader::Impl::setup() {
         log::popNest();
     }
 
-    log::debug("Setting up crash handler");
-    log::pushNest();
-    if (!crashlog::setupPlatformHandler()) {
-        log::debug("Failed to set up crash handler");
+    // on some platforms, using the crash handler overrides more convenient native handlers
+    if (!this->getLaunchFlag("disable-crash-handler")) {
+        log::debug("Setting up crash handler");
+        log::pushNest();
+        if (!crashlog::setupPlatformHandler()) {
+            log::debug("Failed to set up crash handler");
+        }
+        log::popNest();
+    } else {
+        log::debug("Crash handler setup skipped");
     }
-    log::popNest();
 
     log::debug("Loading hooks");
     log::pushNest();
