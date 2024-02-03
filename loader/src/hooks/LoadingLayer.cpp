@@ -203,7 +203,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
 };
 
 struct FallbackCustomLoadingLayer : Modify<FallbackCustomLoadingLayer, CCLayer> {
-    static void onModify(const auto& self) {
+    static void onModify(auto& self) {
         GEODE_FORWARD_COMPAT_ENABLE_HOOKS_INNER("")
         else if (!self.setHookPriority("CCLayer::init", geode::node_ids::GEODE_ID_PRIORITY)) {
             log::warn("Failed to set CCLayer::init hook priority, node IDs may not work properly");
