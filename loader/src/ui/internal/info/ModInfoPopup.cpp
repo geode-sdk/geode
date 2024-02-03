@@ -289,9 +289,6 @@ void ModInfoPopup::preInstall() {
     if (m_latestVersionLabel) {
         m_latestVersionLabel->setVisible(false);
     }
-    if (m_minorVersionLabel) {
-        m_minorVersionLabel->setVisible(false);
-    }
     this->setInstallStatus(UpdateProgress(0, "Starting install"));
 
     m_installBtn->setTarget(
@@ -401,18 +398,7 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
             m_installStatus->setVisible(false);
             m_mainLayer->addChildAtPosition(m_installStatus, Anchor::Center, ccp(105, 75));
 
-            auto minorIndexItem = Index::get()->getItem(
-                mod->getMetadata().getID(),
-                ComparableVersionInfo(mod->getMetadata().getVersion(), VersionCompare::MoreEq)
-            );
-
-            auto availableContainer = CCNode::create();
-            availableContainer->setLayout(ColumnLayout::create()->setGap(2));
-            availableContainer->setAnchorPoint({ .0f, .5f });
-            availableContainer->setContentSize({ 200.f, 45.f });
-
-            if (m_item->getMetadata().getVersion().getMajor() > minorIndexItem->getMetadata().getVersion().getMajor()) {
-                // has major update
+            if (m_item->getMetadata().getVersion() > mod->getMetadata().getVersion()) {
                 m_latestVersionLabel = CCLabelBMFont::create(
                     ("Available: " + m_item->getMetadata().getVersion().toString()).c_str(),
                     "bigFont.fnt"
@@ -420,23 +406,8 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
                 m_latestVersionLabel->setScale(.35f);
                 m_latestVersionLabel->setAnchorPoint({.0f, .5f});
                 m_latestVersionLabel->setColor({94, 219, 255});
-                availableContainer->addChild(m_latestVersionLabel);
+                m_mainLayer->addChildAtPosition(m_latestVersionLabel, Anchor::Center, ccp(35, 75));
             }
-
-            if (minorIndexItem->getMetadata().getVersion() > mod->getMetadata().getVersion()) {
-                // has minor update
-                m_minorVersionLabel = CCLabelBMFont::create(
-                    ("Available: " + minorIndexItem->getMetadata().getVersion().toString()).c_str(),
-                    "bigFont.fnt"
-                );
-                m_minorVersionLabel->setScale(.35f);
-                m_minorVersionLabel->setAnchorPoint({.0f, .5f});
-                m_minorVersionLabel->setColor({94, 219, 255});
-                availableContainer->addChild(m_minorVersionLabel);
-            }
-
-            availableContainer->updateLayout();
-            m_mainLayer->addChildAtPosition(availableContainer, Anchor::Center, ccp(35, 75));
         }
     }
     if (mod == Mod::get()) {

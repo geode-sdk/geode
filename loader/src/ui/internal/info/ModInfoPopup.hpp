@@ -34,7 +34,6 @@ protected:
     CCMenuItemSpriteExtra* m_installBtn;
     CCMenuItemSpriteExtra* m_infoBtn;
     CCLabelBMFont* m_latestVersionLabel = nullptr;
-    CCLabelBMFont* m_minorVersionLabel = nullptr;
     MDTextArea* m_detailsArea;
     Scrollbar* m_scrollbar;
     IndexItemHandle m_item;
