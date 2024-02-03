@@ -208,14 +208,14 @@ add_dependencies(${PROJECT_NAME} CodegenRun)
 
 # Hacky way to supress the not generated error
 if (NOT EXISTS ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp)
-	make_directory(${GEODE_CODEGEN_PATH})
-	make_directory(${GEODE_CODEGEN_PATH}/Geode)
+	file(MAKE_DIRECTORY ${GEODE_CODEGEN_PATH})
+	file(MAKE_DIRECTORY ${GEODE_CODEGEN_PATH}/Geode)
 	file(TOUCH ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp)
 endif()
 
 if (NOT EXISTS ${GEODE_CODEGEN_PATH}/Geode/GeneratedAddress.cpp)
-	make_directory(${GEODE_CODEGEN_PATH})
-	make_directory(${GEODE_CODEGEN_PATH}/Geode)
+	file(MAKE_DIRECTORY ${GEODE_CODEGEN_PATH})
+	file(MAKE_DIRECTORY ${GEODE_CODEGEN_PATH}/Geode)
 	file(TOUCH ${GEODE_CODEGEN_PATH}/Geode/GeneratedAddress.cpp)
 endif()
 
@@ -259,7 +259,7 @@ target_link_libraries(${PROJECT_NAME} INTERFACE ghc_filesystem fmt TulipHookIncl
 
 
 if (NOT EXISTS ${GEODE_BIN_PATH})
-	make_directory(${GEODE_BIN_PATH})
+	file(MAKE_DIRECTORY ${GEODE_BIN_PATH})
 endif()
 
 if (NOT EXISTS ${GEODE_BIN_PATH}/${PROJECT_VERSION} AND EXISTS ${GEODE_BIN_PATH}/nightly/)
