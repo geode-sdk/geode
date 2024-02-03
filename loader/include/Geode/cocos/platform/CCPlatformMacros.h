@@ -426,7 +426,7 @@ public:                                                          \
      * but __has_attribute(format) is undefined,
      * leaving CC_FORMAT_PRINTF undefined by default.
      */
-#elif defined(__has_attribute)
+#elif defined(__has_attribute) && !defined(_MSC_VER)
     #if __has_attribute(format)
         #define CC_FORMAT_PRINTF(formatPos, argPos) \
             __attribute__((__format__(printf, formatPos, argPos)))
