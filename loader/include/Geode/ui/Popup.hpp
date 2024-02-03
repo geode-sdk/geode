@@ -137,6 +137,7 @@ namespace geode {
                 else {
                     auto winSize = cocos2d::CCDirector::get()->getWinSize();
                     m_title->setPosition(winSize / 2 + ccp(0, m_size.height / 2 - offset));
+                    m_mainLayer->addChild(m_title);
                 }
             }
             m_title->limitLabelWidth(m_size.width - 20.f, scale, .1f);
