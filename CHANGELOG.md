@@ -1,5 +1,15 @@
 # Geode Changelog
 
+## v2.0.0-beta.14
+ * Use Breakpad for crash reports on Android ([#481](https://github.com/geode-sdk/geode/pull/481))
+ * Fix available label on LocalModInfoPopup (b4037093)
+
+## v2.0.0-beta.13
+ * Add new `AnchorLayout` feature ([#476](https://github.com/geode-sdk/geode/pull/476))
+ * Add support for multiple developers in `mod.json` through the `developers` key (85180d5f, f21542a8)
+   * requires CLI v2.9.0 and VS Code extension v1.7.0
+ * No longer consider outdated mods invalid .geode files altogether (d9c65b37)
+
 ## v2.0.0-beta.12
  * Increase target MacOS version to 10.15 (6dc6e9b4)
    * Not even steam supports 10.13 anymore, and with this change
@@ -14,7 +24,6 @@
  * Add some launch arguments for geode (7ccaef90)
  * Deprecate blocking file picking utils (ee97e2da)
  * Sort mods by id in crashlog (984d1482)
-
 
 ## v2.0.0-beta.11
  * Fix `InputNode` funkiness on Windows (bb1fcbe)
