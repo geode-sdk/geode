@@ -179,6 +179,10 @@ if (NOT EXISTS ${GEODE_BINDINGS_REPO_PATH}/codegen/CMakeLists.txt)
 endif()
 
 message(STATUS "Configuring Codegen... (output in ${CMAKE_CURRENT_BINARY_DIR}/CodegenConfigureOutput.txt)")
+file(GLOB CODEGEN_SRC_DEPENDS CONFIGURE_DEPENDS
+	${GEODE_BINDINGS_REPO_PATH}/codegen/src/*.cpp
+	${GEODE_BINDINGS_REPO_PATH}/codegen/src/*.hpp
+)
 execute_process(
 	COMMAND ${CMAKE_COMMAND} ${GEODE_CODEGEN_CMAKE_ARGS}
 		-DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER}
@@ -193,10 +197,6 @@ execute_process(
 	COMMAND_ERROR_IS_FATAL ANY
 )
 message(STATUS "Building Codegen... (output in ${CMAKE_CURRENT_BINARY_DIR}/CodegenBuildOutput.txt)")
-file(GLOB CODEGEN_SRC_DEPENDS CONFIGURE_DEPENDS
-	${GEODE_BINDINGS_REPO_PATH}/codegen/src/*.cpp
-	${GEODE_BINDINGS_REPO_PATH}/codegen/src/*.hpp
-)
 execute_process(
 	COMMAND ${CMAKE_COMMAND} --build ${GEODE_BINDINGS_CODEGEN_BUILD_DIR} --config Release
 	WORKING_DIRECTORY ${GEODE_BINDINGS_REPO_PATH}
@@ -218,6 +218,7 @@ add_custom_command(
 	COMMAND ${CMAKE_COMMAND} --install ${GEODE_BINDINGS_CODEGEN_BUILD_DIR} --config Release
 		--prefix ${GEODE_CODEGEN_BINARY_OUT}
 	COMMAND echo codegen > ${GEODE_CODEGEN_BINARY_OUT}/.stamp
+	WORKING_DIRECTORY ${GEODE_BINDINGS_REPO_PATH}
 	OUTPUT ${GEODE_CODEGEN_BINARY_OUT}/.stamp
 )
 
