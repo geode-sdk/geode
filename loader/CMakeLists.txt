@@ -365,8 +365,8 @@ endif()
 
 add_subdirectory(test)
 
-# Add install target on CLI >= 2.11.0 (which adds `geode profile path`)
-if (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "2.11.0")
+# Add install target on CLI >= 2.10.0 (which adds `geode profile path`)
+if (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "2.10.0")
 	execute_process(
 		COMMAND ${GEODE_CLI} profile path -d
 		OUTPUT_VARIABLE GEODE_PROFILE_GD_PATH
