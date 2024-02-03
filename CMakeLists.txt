@@ -178,7 +178,7 @@ if (NOT EXISTS ${GEODE_BINDINGS_REPO_PATH}/codegen/CMakeLists.txt)
 	message(FATAL_ERROR "Missing codegen, ${GEODE_BINDINGS_REPO_PATH}/codegen/CMakeLists.txt does not exist")
 endif()
 
-message(STATUS "Building Codegen... (output in ${CMAKE_CURRENT_BINARY_DIR}/CodegenConfigureOutput.txt and CodegenBuildOutput.txt)")
+message(STATUS "Configuring Codegen... (output in ${CMAKE_CURRENT_BINARY_DIR}/CodegenConfigureOutput.txt)")
 execute_process(
 	COMMAND ${CMAKE_COMMAND} ${GEODE_CODEGEN_CMAKE_ARGS}
 		-DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER}
@@ -192,6 +192,7 @@ execute_process(
 	ERROR_FILE ${CMAKE_CURRENT_BINARY_DIR}/CodegenConfigureOutput.txt
 	COMMAND_ERROR_IS_FATAL ANY
 )
+message(STATUS "Building Codegen... (output in ${CMAKE_CURRENT_BINARY_DIR}/CodegenBuildOutput.txt)")
 execute_process(
 	COMMAND ${CMAKE_COMMAND} --build ${GEODE_BINDINGS_CODEGEN_BUILD_DIR} --config Release
 	WORKING_DIRECTORY ${GEODE_BINDINGS_REPO_PATH}
@@ -208,7 +209,7 @@ execute_process(
 
 message(STATUS "Running Codegen")
 execute_process(
-	COMMAND Codegen ${GEODE_TARGET_PLATFORM} ${GEODE_BINDINGS_PATH} ${GEODE_CODEGEN_PATH}
+	COMMAND ./Codegen ${GEODE_TARGET_PLATFORM} ${GEODE_BINDINGS_PATH} ${GEODE_CODEGEN_PATH}
 	WORKING_DIRECTORY ${GEODE_CODEGEN_BINARY_OUT}
 	COMMAND_ERROR_IS_FATAL ANY
 )
