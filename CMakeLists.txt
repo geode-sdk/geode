@@ -143,83 +143,77 @@ if (DEFINED ENV{GEODE_BINDINGS_REPO_PATH})
 	set(temp $ENV{GEODE_BINDINGS_REPO_PATH})
 	# this is so stupid i hate windows paths
 	string(REPLACE "\\" "/" GEODE_BINDINGS_REPO_PATH ${temp})
+	set(GEODE_BINDINGS_CODEGEN_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/codegen-build)
 endif()
 
 if (NOT GEODE_BINDINGS_REPO_PATH)
-	message(STATUS 
+	message(STATUS
 		"No override path for bindings provided, using CPM to clone default. "
 		"If you would like to use a separate clone of the bindings repo "
 		"(for example in order to be able to efficiently change and "
 		"contribute new bindings) then set GEODE_BINDINGS_REPO_PATH to where you have "
 		"cloned the repository (system environment variables are supported)."
 	)
-	CPMAddPackage("gh:geode-sdk/bindings#main")
+	CPMAddPackage("gh:geode-sdk/bindings#main" DOWNLOAD_ONLY)
 	set(GEODE_BINDINGS_REPO_PATH ${GeodeBindings_SOURCE_DIR})
+	set(GEODE_BINDINGS_CODEGEN_BUILD_DIR ${GeodeBindings_BINARY_DIR})
 else()
 	message(STATUS "Using ${GEODE_BINDINGS_REPO_PATH} for bindings repo")
 endif()
 
-include(ExternalProject)
 set(GEODE_CODEGEN_BINARY_OUT ${CMAKE_CURRENT_BINARY_DIR}/codegen)
-ExternalProject_Add(CodegenProject
-	BUILD_ALWAYS ON
-	SOURCE_DIR ${GEODE_BINDINGS_REPO_PATH}
-	# manually set configure command as to not inherit generator used by geode,
-	# this should hopefully fix generator cache mismatch between different projects, however
-	# it causes a warning to be shown every time. if you know a better solution please tell us ok thx
-	CONFIGURE_COMMAND ${CMAKE_COMMAND} ${GEODE_CODEGEN_CMAKE_ARGS} -DCMAKE_INSTALL_PREFIX:STRING=${GEODE_CODEGEN_BINARY_OUT}
-		-DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER} -DCMAKE_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}
-		-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-		-S <SOURCE_DIR> -B <BINARY_DIR>
-	BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config $<CONFIGURATION>
-	INSTALL_COMMAND ${CMAKE_COMMAND} --install <BINARY_DIR> --config $<CONFIGURATION>
-)
 
 if (NOT GEODE_BINDINGS_PATH)
 	set(GEODE_BINDINGS_PATH ${GEODE_BINDINGS_REPO_PATH}/bindings/${GEODE_GD_VERSION})
 endif()
 
-file(GLOB CODEGEN_DEPENDS CONFIGURE_DEPENDS 
-	${GEODE_BINDINGS_PATH}/*.bro
-	${GEODE_BINDINGS_REPO_PATH}/codegen/src/*.cpp
-	${GEODE_BINDINGS_REPO_PATH}/codegen/src/*.hpp
+if (NOT EXISTS ${GEODE_BINDINGS_PATH}/GeometryDash.bro)
+	message(FATAL_ERROR "Missing GeometryDash.bro")
+endif()
+if (NOT EXISTS ${GEODE_BINDINGS_REPO_PATH}/codegen/CMakeLists.txt)
+	message(FATAL_ERROR "Missing codegen, ${GEODE_BINDINGS_REPO_PATH}/codegen/CMakeLists.txt does not exist")
+endif()
+
+message(STATUS "Building Codegen... (output in ${CMAKE_CURRENT_BINARY_DIR}/CodegenConfigureOutput.txt)")
+execute_process(
+	COMMAND ${CMAKE_COMMAND} ${GEODE_CODEGEN_CMAKE_ARGS}
+		-DCMAKE_INSTALL_PREFIX:STRING=${GEODE_CODEGEN_BINARY_OUT}
+		-DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER}
+		-DCMAKE_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}
+		-DCMAKE_BUILD_TYPE=Release
+		-S ${GEODE_BINDINGS_REPO_PATH} -B ${GEODE_BINDINGS_CODEGEN_BUILD_DIR}
+	WORKING_DIRECTORY ${GEODE_BINDINGS_REPO_PATH}
+	OUTPUT_FILE ${CMAKE_CURRENT_BINARY_DIR}/CodegenConfigureOutput.txt
+	ERROR_FILE ${CMAKE_CURRENT_BINARY_DIR}/CodegenConfigureOutput.txt
+	COMMAND_ERROR_IS_FATAL ANY
+)
+execute_process(
+	COMMAND ${CMAKE_COMMAND} --build ${GEODE_BINDINGS_CODEGEN_BUILD_DIR} --config Release
+	WORKING_DIRECTORY ${GEODE_BINDINGS_REPO_PATH}
+	OUTPUT_FILE ${CMAKE_CURRENT_BINARY_DIR}/CodegenBuildOutput.txt
+	ERROR_FILE ${CMAKE_CURRENT_BINARY_DIR}/CodegenBuildOutput.txt
+	COMMAND_ERROR_IS_FATAL ANY
+)
+execute_process(
+	COMMAND ${CMAKE_COMMAND} --install ${GEODE_BINDINGS_CODEGEN_BUILD_DIR} --config Release
+		--prefix ${GEODE_CODEGEN_BINARY_OUT}
+	WORKING_DIRECTORY ${GEODE_BINDINGS_REPO_PATH}
+	COMMAND_ERROR_IS_FATAL ANY
 )
 
-
-file(GLOB CODEGEN_OUTPUTS CONFIGURE_DEPENDS 
-	${GEODE_CODEGEN_PATH}/Geode/binding/*.hpp
-)
-
-add_custom_command(
-	DEPENDS ${CODEGEN_DEPENDS}
-	DEPENDS CodegenProject
-	COMMAND ${GEODE_CODEGEN_BINARY_OUT}/Codegen ${GEODE_TARGET_PLATFORM} ${GEODE_BINDINGS_PATH} ${GEODE_CODEGEN_PATH}
-	COMMAND echo codegen > ${GEODE_CODEGEN_PATH}/.stamp
+message(STATUS "Running Codegen")
+execute_process(
+	COMMAND ${GEODE_CODEGEN_BINARY_OUT}/Codegen${CMAKE_EXECUTABLE_SUFFIX}
+		${GEODE_TARGET_PLATFORM} ${GEODE_BINDINGS_PATH} ${GEODE_CODEGEN_PATH}
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-	COMMENT "Run Codegen"
-	OUTPUT ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp ${GEODE_CODEGEN_PATH}/Geode/GeneratedAddress.cpp ${GEODE_CODEGEN_PATH}/.stamp ${CODEGEN_OUTPUTS}
+	COMMAND_ERROR_IS_FATAL ANY
 )
+file(WRITE ${GEODE_CODEGEN_PATH}/.stamp "codegen")
 
-add_custom_target(CodegenRun
-	DEPENDS ${GEODE_CODEGEN_PATH}/.stamp
-)
-
+add_custom_target(CodegenRun DEPENDS ${GEODE_CODEGEN_PATH}/.stamp)
 add_dependencies(${PROJECT_NAME} CodegenRun)
 
-# Hacky way to supress the not generated error
-if (NOT EXISTS ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp)
-	file(MAKE_DIRECTORY ${GEODE_CODEGEN_PATH})
-	file(MAKE_DIRECTORY ${GEODE_CODEGEN_PATH}/Geode)
-	file(TOUCH ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp)
-endif()
-
-if (NOT EXISTS ${GEODE_CODEGEN_PATH}/Geode/GeneratedAddress.cpp)
-	file(MAKE_DIRECTORY ${GEODE_CODEGEN_PATH})
-	file(MAKE_DIRECTORY ${GEODE_CODEGEN_PATH}/Geode)
-	file(TOUCH ${GEODE_CODEGEN_PATH}/Geode/GeneratedAddress.cpp)
-endif()
-
-add_library(GeodeCodegenSources ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp ${GEODE_CODEGEN_PATH}/Geode/GeneratedAddress.cpp)
+add_library(GeodeCodegenSources ${GEODE_CODEGEN_PATH}/Geode/GeneratedSource.cpp)
 target_link_directories(GeodeCodegenSources PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/loader/include/link)
 target_link_libraries(GeodeCodegenSources PRIVATE ghc_filesystem GeodeFilesystemImpl fmt TulipHookInclude mat-json)
 target_include_directories(GeodeCodegenSources PRIVATE
