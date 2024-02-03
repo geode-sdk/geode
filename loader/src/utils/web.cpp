@@ -334,7 +334,7 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
         } data{this, file.get()};
 
         curl_easy_setopt(curl, CURLOPT_HEADERDATA, &data);
-        curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, +[](char* buffer, size_t size, size_t nitems, void* ptr){
+        curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, (+[](char* buffer, size_t size, size_t nitems, void* ptr){
             auto data = static_cast<ProgressData*>(ptr);
             std::unordered_map<std::string, std::string> headers;
             std::string line;
@@ -350,7 +350,7 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
                 data->self->m_responseHeader[key] = value;
             }
             return size * nitems;
-        });
+        }));
 
         curl_easy_setopt(
             curl,
@@ -396,6 +396,7 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
             curl_easy_cleanup(curl);
             return this->error(response_str, code);
         }
+        curl_slist_free_all(headers);
         curl_easy_cleanup(curl);
 
         AWAIT_RESUME();

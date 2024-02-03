@@ -61,8 +61,13 @@ void updater::fetchLatestGithubRelease(
         .header("If-Modified-Since", modifiedSince)
         .userAgent("github_api/1.0")
         .fetch("https://api.github.com/repos/geode-sdk/geode/releases/latest")
-        .json()
-        .then([then](web::SentAsyncWebRequest& req, matjson::Value const& json) {
+        .text()
+        .then([then, expect](web::SentAsyncWebRequest& req, std::string const& text) {
+            if (text.empty()) {
+                expect("Empty response");
+                return;
+            }
+            auto json = matjson::parse(text);
             Mod::get()->setSavedValue("last-modified-auto-update-check", req.getResponseHeader("Last-Modified"));
             s_latestGithubRelease = json;
             then(json);
