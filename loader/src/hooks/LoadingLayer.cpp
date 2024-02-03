@@ -6,6 +6,7 @@
 #include <loader/LoaderImpl.hpp>
 #include <loader/console.hpp>
 #include <loader/updater.hpp>
+#include <Geode/utils/NodeIDs.hpp>
 
 using namespace geode::prelude;
 

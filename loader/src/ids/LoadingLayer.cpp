@@ -8,7 +8,7 @@ using namespace geode::node_ids;
 
 $register_ids(LoadingLayer) {
     setIDs(
-        0, this,
+        this, 0,
         "bg-texture",
         "gd-logo",
         "robtop-logo",
