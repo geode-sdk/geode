@@ -269,6 +269,7 @@ if (NOT GEODE_BUILDING_DOCS)
 	set(MZ_BZIP2 Off CACHE INTERNAL "")
 	set(MZ_OPENSSL Off CACHE INTERNAL "")
 	set(MZ_LIBBSD Off CACHE INTERNAL "")
+	set(SKIP_INSTALL_ALL On CACHE INTERNAL "")
 	set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "" FORCE)
 	CPMAddPackage(
 		GITHUB_REPOSITORY zlib-ng/minizip-ng
@@ -347,6 +348,8 @@ if (APPLE)
 			${CMAKE_INSTALL_NAME_TOOL} -id \"/Library/MobileSubstrate/DynamicLibraries/Geode.dylib\"
 			$<TARGET_FILE:geode-loader>)
 	endif()
+
+	set(LAUNCHER_TARGET GeodeBootstrapper)
 elseif (WIN32)
 	add_subdirectory(launcher/windows)
 
@@ -356,6 +359,23 @@ elseif (WIN32)
 		# disable warnings about CCNode::setID
 		target_link_options(${PROJECT_NAME} PUBLIC /ignore:4217)
 	endif()
+
+	set(LAUNCHER_TARGET ProxyLoader Updater)
 endif()
 
 add_subdirectory(test)
+
+# Add install target on CLI >= 2.11.0 (which adds `geode profile path`)
+if (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "2.11.0")
+	execute_process(
+		COMMAND ${GEODE_CLI} profile path -d
+		OUTPUT_VARIABLE GEODE_PROFILE_GD_PATH
+		COMMAND_ERROR_IS_FATAL ANY
+	)
+    string(STRIP ${GEODE_PROFILE_GD_PATH} GEODE_PROFILE_GD_PATH)
+	install(
+		TARGETS geode-loader ${LAUNCHER_TARGET}
+		RUNTIME
+		DESTINATION "${GEODE_PROFILE_GD_PATH}"
+	)
+endif()
