@@ -155,7 +155,7 @@ if (NOT GEODE_BINDINGS_REPO_PATH)
 		"cloned the repository (system environment variables are supported)."
 	)
 	CPMAddPackage(NAME "GeodeBindings"
-		GITHUB_REPO "geode-sdk/bindings"
+		GITHUB_REPOSITORY "geode-sdk/bindings"
 		GIT_TAG "main"
 		DOWNLOAD_ONLY
 		EXCLUDE_FROM_ALL)
