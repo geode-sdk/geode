@@ -477,8 +477,12 @@ void SentAsyncWebRequest::Impl::error(std::string const& error, int code) {
                 l.lock();
             }
         }
-        std::lock_guard _(RUNNING_REQUESTS_MUTEX);
-        RUNNING_REQUESTS.erase(m_id);
+        // Delay the destruction of SentAsyncWebRequest till the next frame
+        // otherwise we'd have an use-after-free
+        Loader::get()->queueInMainThread([m_id = m_id] {
+            std::lock_guard _(RUNNING_REQUESTS_MUTEX);
+            RUNNING_REQUESTS.erase(m_id);
+        });
     });
 }
 
