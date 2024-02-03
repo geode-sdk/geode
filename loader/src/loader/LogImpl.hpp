@@ -9,46 +9,36 @@
 
 namespace geode::log {
     class Log final {
-        Mod* m_sender;
         log_clock::time_point m_time;
         Severity m_severity;
         std::string m_thread;
+        std::string m_source;
+        int32_t m_nestCount;
         std::string m_content;
 
     public:
         ~Log();
-        Log(Severity sev, std::string&& thread, Mod* mod, std::string&& content);
+        Log(Severity sev, std::string&& thread, std::string&& source, int32_t nestCount,
+            std::string&& content);
 
-        std::string toString(bool logTime = true, int32_t nestCount = 0) const;
+        [[nodiscard]] std::string toString() const;
 
-        std::string_view getContent() const;
-        log_clock::time_point getTime() const;
-        Mod* getSender() const;
-        Severity getSeverity() const;
+        [[nodiscard]] Severity getSeverity() const;
     };
 
     class Logger {
     private:
         std::vector<Log> m_logs;
         std::ofstream m_logStream;
-        inline static thread_local int32_t s_nestLevel;
-        inline static thread_local int32_t s_nestCountOffset;
 
-        Logger() {}
+        Logger() = default;
     public:
         static Logger* get();
 
         void setup();
 
-        void push(Severity sev, Mod* mod, std::string&& content);
-        // why would you need this lol
-        // void pop(Log* log);
-
-        static void pushNest();
-        static void popNest();
-
-        [[nodiscard]] static std::shared_ptr<Nest> saveNest();
-        static void loadNest(std::shared_ptr<Nest> const& nest);
+        void push(Severity sev, std::string&& thread, std::string&& source, int32_t nestCount,
+            std::string&& content);
 
         std::vector<Log> const& list();
         void clear();

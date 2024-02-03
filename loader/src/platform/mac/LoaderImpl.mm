@@ -46,7 +46,8 @@ void console::log(std::string const& msg, Severity severity) {
 }
 
 
-void console::open() {
+void console::setup() { }
+void console::openIfClosed() {
     if (s_isOpen) return;
 
     std::string outFile = "/tmp/command_output_XXXXXX";
@@ -87,18 +88,8 @@ void console::open() {
     s_isOpen = true;
 
     for (auto const& log : log::Logger::get()->list()) {
-        console::log(log.toString(true), log.getSeverity());
+        console::log(log.toString(), log.getSeverity());
     }
-}
-
-void console::close() {
-    if (s_isOpen) {
-        ::close(s_platformData.logFd);
-        unlink(s_platformData.logFile.c_str());
-        unlink(s_platformData.scriptFile.c_str());
-    }
-
-    s_isOpen = false;
 }
 
 CFDataRef msgPortCallback(CFMessagePortRef port, SInt32 messageID, CFDataRef data, void* info) {
