@@ -9,6 +9,7 @@
 #include <loader/LoaderImpl.hpp>
 #include "../info/TagNode.hpp"
 #include "../info/DevProfilePopup.hpp"
+#include "../info/ModDevsPopup.hpp"
 #include "ProblemsListPopup.hpp"
 
 template <class T>
@@ -189,11 +190,14 @@ void ModListCell::updateCellLayout() {
 }
 
 void ModListCell::onViewDev(CCObject*) {
-    if (this->getDevelopers().size() == 1) {
-        DevProfilePopup::create(this->getDevelopers().front(), m_layer)->show();
-    }
-    else {
-        // todo: multiple dev picker
+    auto meta = this->getModMetadata();
+    if (meta.has_value()) {
+        if (meta.value().getDevelopers().size() == 1) {
+            DevProfilePopup::create(meta.value().getDevelopers().front(), m_layer)->show();
+        }
+        else {
+            ModDevsPopup::create(meta.value(), m_layer)->show();
+        }
     }
 }
 
@@ -343,8 +347,8 @@ bool ModCell::init(
     return true;
 }
 
-std::vector<std::string> ModCell::getDevelopers() const {
-    return m_mod->getDevelopers();
+std::optional<ModMetadata> ModCell::getModMetadata() const {
+    return m_mod->getMetadata();
 }
 
 CCNode* ModCell::createLogo(CCSize const& size) {
@@ -433,8 +437,8 @@ void IndexItemCell::updateState() {
     this->updateCellLayout();
 }
 
-std::vector<std::string> IndexItemCell::getDevelopers() const {
-    return m_item->getMetadata().getDevelopers();
+std::optional<ModMetadata> IndexItemCell::getModMetadata() const {
+    return m_item->getMetadata();
 }
 
 CCNode* IndexItemCell::createLogo(CCSize const& size) {
@@ -540,8 +544,8 @@ InvalidGeodeFileCell* InvalidGeodeFileCell::create(
 
 void InvalidGeodeFileCell::updateState() {}
 
-std::vector<std::string> InvalidGeodeFileCell::getDevelopers() const {
-    return {};
+std::optional<ModMetadata> InvalidGeodeFileCell::getModMetadata() const {
+    return std::nullopt;
 }
 
 CCNode* InvalidGeodeFileCell::createLogo(CCSize const& size) {
@@ -663,8 +667,8 @@ ProblemsCell* ProblemsCell::create(
 
 void ProblemsCell::updateState() {}
 
-std::vector<std::string> ProblemsCell::getDevelopers() const {
-    return {};
+std::optional<ModMetadata> ProblemsCell::getModMetadata() const {
+    return std::nullopt;
 }
 
 CCNode* ProblemsCell::createLogo(CCSize const& size) {
