@@ -280,6 +280,7 @@ void updater::downloadLoaderUpdate(std::string const& url) {
             LoaderUpdateEvent(UpdateFinished()).post();
         })
         .expect([](std::string const& info) {
+            log::error("Failed to download latest update {}", info);
             LoaderUpdateEvent(
                 UpdateFailed("Unable to download update: " + info)
             ).post();
@@ -334,6 +335,7 @@ void updater::checkForLoaderUpdates() {
             ).post();
         },
         [](std::string const& info) {
+            log::error("Failed to fetch updates {}", info);
             LoaderUpdateEvent(
                 UpdateFailed("Unable to check for updates: " + info)
             ).post();
