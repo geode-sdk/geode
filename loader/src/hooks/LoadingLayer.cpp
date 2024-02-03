@@ -16,6 +16,13 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     int m_geodeLoadStep = 0;
     int m_totalMods = 0;
 
+    static void onModify(auto& self) {
+        if (!self.setHookPriority("LoadingLayer::init", geode::node_ids::GEODE_ID_PRIORITY)) {
+            log::warn("Failed to set LoadingLayer::init hook priority, node IDs may not work properly");
+        }
+        GEODE_FORWARD_COMPAT_DISABLE_HOOKS_INNER("LoadingLayer stuff disabled")
+    }
+
     GEODE_FORWARD_COMPAT_DISABLE_HOOKS("Switching to fallback custom loading layer")
 
     void updateLoadedModsLabel() {
@@ -47,6 +54,8 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
         CCFileUtils::get()->updatePaths();
 
         if (!LoadingLayer::init(fromReload)) return false;
+
+        NodeIDs::provideFor(this);
 
         m_fields->m_totalMods = Loader::get()->getAllMods().size();
         m_fields->m_menuDisabled = Loader::get()->getLaunchFlag("disable-custom-menu");
