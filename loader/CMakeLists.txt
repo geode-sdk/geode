@@ -126,7 +126,7 @@ if (WIN32)
 endif()
 
 
-if (ANDROID AND GEODE_ANDROID_USE_BREAKPAD)
+if (ANDROID AND GEODE_USE_BREAKPAD)
 	CPMAddPackage(
 		NAME "Breakpad"
 		VERSION "2023.06.01"
@@ -227,7 +227,7 @@ if (ANDROID)
 	# needed to define some opengl functions
 	target_link_libraries(${PROJECT_NAME} EGL)
 
-	if (GEODE_ANDROID_USE_BREAKPAD)
+	if (GEODE_USE_BREAKPAD)
 		target_compile_definitions(${PROJECT_NAME} PRIVATE -DGEODE_USE_BREAKPAD)
 		enable_language(ASM)
 		target_link_libraries(${PROJECT_NAME} Breakpad)

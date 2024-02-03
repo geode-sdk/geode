@@ -10,7 +10,7 @@ if (GEODE_BUILDING_DOCS)
 	set(GEODE_DONT_BUILD_TEST_MODS On)
 endif()
 
-option(GEODE_ANDROID_USE_BREAKPAD "Enables the use of the Breakpad library for crash dumps." ON)
+option(GEODE_USE_BREAKPAD "Enables the use of the Breakpad library for crash dumps." ON)
 
 # Read version
 file(READ VERSION GEODE_VERSION)
