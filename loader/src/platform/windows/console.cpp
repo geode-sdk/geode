@@ -1,54 +1,171 @@
 ﻿#include <loader/console.hpp>
 #include <loader/LogImpl.hpp>
-#include <iostream>
+#include <io.h>
 
 using namespace geode::prelude;
 
-bool s_isOpen = false;
-bool s_hasAnsiColorSupport = false;
+HANDLE s_outHandle = nullptr;
+bool s_useEscapeCodes = false;
 
-void console::open() {
-    if (s_isOpen) return;
-    if (AllocConsole() == 0) return;
+void setupConsole(bool forceUseEscapeCodes = false) {
     SetConsoleCP(CP_UTF8);
-    // redirect console output
-    freopen_s(reinterpret_cast<FILE**>(stdout), "CONOUT$", "w", stdout);
-    freopen_s(reinterpret_cast<FILE**>(stdin), "CONIN$", "r", stdin);
 
-    // Set output mode to handle ansi color sequences
-    auto handleStdout = GetStdHandle(STD_OUTPUT_HANDLE);
-
+    // set output mode to handle ansi color sequences
     DWORD consoleMode = 0;
-    if (GetConsoleMode(handleStdout, &consoleMode)) {
-        consoleMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-        if (SetConsoleMode(handleStdout, consoleMode)) {
-            s_hasAnsiColorSupport = true;
+    s_useEscapeCodes = forceUseEscapeCodes || GetConsoleMode(s_outHandle, &consoleMode) &&
+        SetConsoleMode(s_outHandle, consoleMode | ENABLE_PROCESSED_OUTPUT |
+            ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+
+    if (s_useEscapeCodes && !forceUseEscapeCodes) {
+        // test if the console *actually* supports escape codes (thanks wine)
+        s_useEscapeCodes = false;
+        DWORD written;
+        CONSOLE_SCREEN_BUFFER_INFO preInfo;
+        CONSOLE_SCREEN_BUFFER_INFO postInfo;
+        if (GetConsoleScreenBufferInfo(s_outHandle, &preInfo) &&
+            WriteConsoleA(s_outHandle, "\x1b[0m", 4, &written, nullptr) &&
+            GetConsoleScreenBufferInfo(s_outHandle, &postInfo)) {
+            s_useEscapeCodes = preInfo.dwCursorPosition.X == postInfo.dwCursorPosition.X &&
+                preInfo.dwCursorPosition.Y == postInfo.dwCursorPosition.Y;
+            SetConsoleCursorPosition(s_outHandle, preInfo.dwCursorPosition);
         }
     }
 
-    s_isOpen = true;
-
     for (auto const& log : log::Logger::get()->list()) {
-        console::log(log.toString(true), log.getSeverity());
+        console::log(log.toString(), log.getSeverity());
     }
 }
 
-void console::close() {
-    if (!s_isOpen) return;
+struct stdData {
+    OVERLAPPED m_overlap{};
+    std::string const& m_name;
+    const Severity m_sev;
+    std::string& m_cur;
+    char* m_buf;
+    stdData(std::string const& name, const Severity sev, std::string& cur, char* buf) :
+        m_name(name), m_sev(sev), m_cur(cur), m_buf(buf) { }
+};
+void WINAPI CompletedReadRoutine(DWORD error, DWORD read, LPOVERLAPPED overlap) {
+    auto* o = reinterpret_cast<stdData*>(overlap);
+    for (auto i = 0; i < read && !error; i++) {
+        if (o->m_buf[i] != '\n') {
+            if (o->m_buf[i] != '\r')
+                o->m_cur += o->m_buf[i];
+            continue;
+        }
+        log::Logger::get()->push(o->m_sev, "", std::string(o->m_name), 0, std::string(o->m_cur));
+        o->m_cur.clear();
+    }
+    delete o;
+}
 
-    fclose(stdin);
-    fclose(stdout);
-    FreeConsole();
+bool redirectStd(FILE* which, std::string const& name, const Severity sev) {
+    auto pipeName = fmt::format(R"(\\.\pipe\geode-{}-{})", name, GetCurrentProcessId());
+    auto pipe = CreateNamedPipeA(
+        pipeName.c_str(),
+        PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED,
+        PIPE_REJECT_REMOTE_CLIENTS,
+        1, 0, 1024, 0, nullptr
+    );
+    if (!pipe) {
+        log::warn("Failed to create pipe, {} will be unavailable", name);
+        return false;
+    }
+    std::thread([pipe, name, sev]() {
+        thread::setName(fmt::format("{} Read Thread", name));
+        auto event = CreateEventA(nullptr, false, false, nullptr);
+        std::string cur;
+        while (true) {
+            char buf[1024];
+            auto* data = new stdData(name, sev, cur, buf);
+            data->m_overlap.hEvent = event;
+            ReadFileEx(pipe, buf, 1024, &data->m_overlap, &CompletedReadRoutine);
+            auto res = WaitForSingleObjectEx(event, INFINITE, true);
+            if (!res)
+                continue;
+        }
+    }).detach();
+    FILE* yum;
+    if (freopen_s(&yum, pipeName.c_str(), "w", which)) {
+        log::warn("Failed to reopen file, {} will be unavailable", name);
+        return false;
+    }
+    return true;
+}
 
-    s_isOpen = false;
+void console::setup() {
+    // if the game launched from a console or with a console already attached,
+    // this is where we find that out and save its handle
+    s_outHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (!s_outHandle && AttachConsole(ATTACH_PARENT_PROCESS)) {
+        s_outHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+    }
+
+    if (s_outHandle) {
+        std::string path;
+        DWORD dummy;
+        // use GetConsoleMode to check if the handle is a console
+        if (!GetConsoleMode(s_outHandle, &dummy)) {
+            // explicitly ignore some stupid handles
+            char buf[MAX_PATH + 1];
+            auto count = GetFinalPathNameByHandleA(s_outHandle, buf, MAX_PATH + 1,
+                FILE_NAME_OPENED | VOLUME_NAME_NT);
+            if (count != 0) {
+                path = std::string(buf, count - 1);
+            }
+
+            // count == 0 => not a console and not a file, assume it's closed
+            // wine does something weird with /dev/null? not sure tbh but it's definitely up to no good
+            if (count == 0 || path.ends_with("\\dev\\null")) {
+                s_outHandle = nullptr;
+                CloseHandle(GetStdHandle(STD_OUTPUT_HANDLE));
+                CloseHandle(GetStdHandle(STD_INPUT_HANDLE));
+                CloseHandle(GetStdHandle(STD_ERROR_HANDLE));
+                FreeConsole();
+                SetStdHandle(STD_OUTPUT_HANDLE, nullptr);
+                SetStdHandle(STD_INPUT_HANDLE, nullptr);
+                SetStdHandle(STD_ERROR_HANDLE, nullptr);
+            }
+        }
+
+        // clion console supports escape codes but we can't query that because it's a named pipe
+        setupConsole(string::contains(path, "cidr-"));
+    }
+
+    auto oldStdout = _dup(_fileno(stdout));
+
+    redirectStd(stdout, "stdout", Severity::Info);
+    redirectStd(stderr, "stderr", Severity::Debug);
+
+    // re-open the file from the handle we just stole..
+    if (oldStdout >= 0) {
+        _fdopen(oldStdout, "w");
+        s_outHandle = reinterpret_cast<HANDLE>(_get_osfhandle(oldStdout));
+    }
+}
+
+void console::openIfClosed() {
+    if (s_outHandle)
+        return;
+    AllocConsole();
+    s_outHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+    // reopen conin$/conout$ if they're closed
+    if (!s_outHandle) {
+        s_outHandle = CreateFileA("CONOUT$", GENERIC_WRITE, 0, nullptr, 0, 0, nullptr);
+        SetStdHandle(STD_OUTPUT_HANDLE, s_outHandle);
+        SetStdHandle(STD_INPUT_HANDLE, CreateFileA("CONIN$", GENERIC_READ, 0, nullptr, 0, 0, nullptr));
+        SetStdHandle(STD_ERROR_HANDLE, s_outHandle);
+    }
+    setupConsole();
 }
 
 void console::log(std::string const& msg, Severity severity) {
-    if (!s_isOpen)
+    if (!s_outHandle)
         return;
+    DWORD written;
 
-    if (!s_hasAnsiColorSupport) {
-        std::cout << msg << "\n" << std::flush;
+    if (!s_useEscapeCodes || msg.size() <= 14) {
+        WriteFile(s_outHandle, (msg + "\n").c_str(), msg.size() + 1, &written, nullptr);
         return;
     }
 
@@ -78,11 +195,11 @@ void console::log(std::string const& msg, Severity severity) {
     auto const colorStr = fmt::format("\x1b[38;5;{}m", color);
     auto const color2Str = color2 == -1 ? "\x1b[0m" : fmt::format("\x1b[38;5;{}m", color2);
     auto const newMsg = fmt::format(
-        "{}{}{}{}\x1b[0m",
+        "{}{}{}{}\x1b[0m\n",
         colorStr, msg.substr(0, 14), color2Str, msg.substr(14)
     );
 
-    std::cout << newMsg << "\n" << std::flush;
+    WriteFile(s_outHandle, newMsg.c_str(), newMsg.size(), &written, nullptr);
 }
 
 void console::messageBox(char const* title, std::string const& info, Severity severity) {

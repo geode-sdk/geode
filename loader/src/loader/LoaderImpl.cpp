@@ -712,7 +712,6 @@ std::vector<LoadProblem> Loader::Impl::getProblems() const {
 }
 
 void Loader::Impl::forceReset() {
-    console::close();
     for (auto& [_, mod] : m_mods) {
         delete mod;
     }

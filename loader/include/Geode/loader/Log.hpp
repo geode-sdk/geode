@@ -109,7 +109,8 @@ namespace geode {
         private:
             class Impl;
             std::shared_ptr<Nest::Impl> m_impl;
-            friend class Logger;
+            friend GEODE_DLL std::shared_ptr<Nest> saveNest();
+            friend GEODE_DLL void loadNest(std::shared_ptr<Nest> const& nest);
         public:
             explicit Nest(std::shared_ptr<Nest::Impl> impl);
         };

@@ -17,13 +17,8 @@ namespace {
     }
 }
 
-void console::open() {
-    return;
-}
-
-void console::close() {
-    return;
-}
+void console::setup() { }
+void console::openIfClosed() { }
 
 void console::log(std::string const& msg, Severity severity) {
     __android_log_print(

@@ -19,15 +19,6 @@ using namespace geode::prelude;
 #include "load.hpp"
 
 $execute {
-    listenForSettingChanges("show-platform-console", +[](bool value) {
-        if (value) {
-            console::open();
-        }
-        else {
-            console::close();
-        }
-    });
-    
     ipc::listen("ipc-test", [](ipc::IPCEvent* event) -> matjson::Value {
         return "Hello from Geode!";
     });
@@ -95,7 +86,12 @@ void tryShowForwardCompat() {
 
 int geodeEntry(void* platformData) {
     thread::setName("Main");
+
     log::Logger::get()->setup();
+    console::setup();
+    if (LoaderImpl::get()->isForwardCompatMode()) {
+        console::openIfClosed();
+    }
 
     std::string forwardCompatSuffix;
     if (LoaderImpl::get()->isForwardCompatMode())
@@ -132,10 +128,9 @@ int geodeEntry(void* platformData) {
     tryShowForwardCompat();
 
     // open console
-    if (LoaderImpl::get()->isForwardCompatMode() ||
+    if (!LoaderImpl::get()->isForwardCompatMode() &&
         Mod::get()->getSettingValue<bool>("show-platform-console")) {
-        log::debug("Opening console");
-        console::open();
+        console::openIfClosed();
     }
 
     // set up loader, load mods, etc.
