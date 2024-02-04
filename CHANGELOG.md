@@ -1,5 +1,21 @@
 # Geode Changelog
 
+## v2.0.0-beta.15
+ * Add `!` for problem mods to crashlog (5c45725)
+ * Log crashlog path when saved (f832cc5)
+ * Change log filenames (65907ca)
+ * Fix `o` not appearing in crashlog (e95d454)
+ * Fix Scrollbar touch (34e80c1)
+ * Fix infinite loop in nested dependency chain (fda3790)
+ * Fix touch priority messing up after mod download (ba0e13f)
+ * Improve safe mode, listing mods as normal (241ddc3)
+ * Fix `SimpleTextArea` text alignment and size (9d92a7c)
+ * Install resources on local Geode build (e9aa889)
+ * Update json library for better errors (0731f44)
+ * Run binding codegen in CMake configure time (2e20ccc)
+ * Replace media perms with file perms (5f7af1a)
+ * Fix `FloatSettingNode` not accepting decimal point (c83858d)
+
 ## v2.0.0-beta.14
  * Use Breakpad for crash reports on Android ([#481](https://github.com/geode-sdk/geode/pull/481))
  * Fix available label on LocalModInfoPopup (b4037093)
