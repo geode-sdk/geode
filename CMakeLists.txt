@@ -210,7 +210,6 @@ execute_process(
 	WORKING_DIRECTORY ${GEODE_BINDINGS_REPO_PATH}
 	COMMAND_ERROR_IS_FATAL ANY
 )
-file(WRITE ${GEODE_CODEGEN_BINARY_OUT}/.stamp "codegen")
 
 include(ExternalProject)
 ExternalProject_Add(CodegenProject
