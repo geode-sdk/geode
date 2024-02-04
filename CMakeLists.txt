@@ -211,6 +211,25 @@ execute_process(
 	COMMAND_ERROR_IS_FATAL ANY
 )
 
+include(ExternalProject)
+ExternalProject_Add(CodegenProject
+	BUILD_ALWAYS ON
+	SOURCE_DIR ${GEODE_BINDINGS_REPO_PATH}
+	BINARY_DIR ${GEODE_BINDINGS_CODEGEN_BUILD_DIR}
+	# manually set configure command as to not inherit generator used by geode,
+	# this should hopefully fix generator cache mismatch between different projects, however
+	# it causes a warning to be shown every time. if you know a better solution please tell us ok thx
+	CONFIGURE_COMMAND ${CMAKE_COMMAND} ${GEODE_CODEGEN_CMAKE_ARGS}
+		-DCMAKE_INSTALL_PREFIX:STRING=${GEODE_CODEGEN_BINARY_OUT}
+		-DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER}
+		-DCMAKE_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}
+		-DCMAKE_BUILD_TYPE=Release
+		-S <SOURCE_DIR> -B <BINARY_DIR>
+	BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config Release
+	INSTALL_COMMAND ${CMAKE_COMMAND} --install <BINARY_DIR> --config Release
+		--prefix ${GEODE_CODEGEN_BINARY_OUT}
+)
+
 message(STATUS "Running Codegen")
 file(GLOB CODEGEN_DEPENDS CONFIGURE_DEPENDS ${GEODE_BINDINGS_PATH}/*.bro)
 execute_process(
@@ -219,6 +238,15 @@ execute_process(
 	COMMAND_ERROR_IS_FATAL ANY
 )
 file(WRITE ${GEODE_CODEGEN_PATH}/.stamp "codegen")
+add_custom_command(
+	DEPENDS ${CODEGEN_DEPENDS}
+	DEPENDS CodegenProject
+	COMMENT "Running Codegen"
+	COMMAND ${GEODE_CODEGEN_BINARY_OUT}/Codegen ${GEODE_TARGET_PLATFORM} ${GEODE_BINDINGS_PATH} ${GEODE_CODEGEN_PATH}
+	COMMAND echo codegen > ${GEODE_CODEGEN_PATH}/.stamp
+	WORKING_DIRECTORY ${GEODE_BINDINGS_REPO_PATH}
+	OUTPUT ${GEODE_CODEGEN_PATH}/.stamp
+)
 
 add_custom_target(CodegenRun DEPENDS ${GEODE_CODEGEN_PATH}/.stamp)
 add_dependencies(${PROJECT_NAME} CodegenRun)
