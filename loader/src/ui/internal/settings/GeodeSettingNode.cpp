@@ -200,6 +200,7 @@ void IntSettingNode::textChanged(CCTextInputNode* input) {
 bool IntSettingNode::setup(IntSettingValue* setting, float width) {
     if (setting->castDefinition().controls.input) {
         m_menu->addChild(m_input = createInput(this, setting, width));
+        m_input->getInput()->setAllowedChars("0123456789-");
     }
     else {
         m_label = CCLabelBMFont::create("", "bigFont.fnt");
@@ -284,6 +285,7 @@ void FloatSettingNode::textChanged(CCTextInputNode* input) {
 bool FloatSettingNode::setup(FloatSettingValue* setting, float width) {
     if (setting->castDefinition().controls.input) {
         m_menu->addChild(m_input = createInput(this, setting, width));
+        m_input->getInput()->setAllowedChars("0123456789.-");
     }
     else {
         m_label = CCLabelBMFont::create("", "bigFont.fnt");
