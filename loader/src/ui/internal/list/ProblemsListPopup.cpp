@@ -1,6 +1,6 @@
 ﻿#include "ProblemsListPopup.hpp"
 #include "ProblemsListCell.hpp"
-
+#include "../../../loader/ModImpl.hpp"
 #include <utility>
 #include <queue>
 
@@ -39,7 +39,7 @@ CCArray* ProblemsListPopup::createCells(Mod* scrollTo, float& scrollValue) {
     std::vector<ProblemsListCell*> middle;
     std::vector<ProblemsListCell*> bottom;
 
-    for (auto const& problem : Loader::get()->getProblems()) {
+    for (auto const& problem : scrollTo ? ModImpl::getImpl(scrollTo)->getProblems() : Loader::get()->getProblems()) {
         switch (problem.type) {
             case geode::LoadProblem::Type::Suggestion:
                 bottom.push_back(ProblemsListCell::create(problem, this, this->getCellSize()));

@@ -68,6 +68,8 @@ namespace geode {
 
         ModRequestedAction m_requestedAction = ModRequestedAction::None;
 
+        std::vector<LoadProblem> m_problems;
+
         Impl(Mod* self, ModMetadata const& metadata);
         ~Impl();
 
@@ -150,6 +152,9 @@ namespace geode {
         bool isLoggingEnabled() const;
         void setLoggingEnabled(bool enabled);
 
+        std::vector<LoadProblem> getProblems() const;
+
+        bool hasProblems() const;
         bool shouldLoad() const;
         bool isCurrentlyLoading() const;
     };

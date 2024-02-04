@@ -274,15 +274,7 @@ void ModCell::updateState() {
         m_enableToggle->m_onButton->setOpacity(!toggleable ? 100 : 255);
         m_enableToggle->m_onButton->setColor(!toggleable ? cc3x(155) : cc3x(255));
     }
-    bool hasProblems = false;
-    for (auto const& item : Loader::get()->getProblems()) {
-        if (!std::holds_alternative<Mod*>(item.cause) ||
-            std::get<Mod*>(item.cause) != m_mod ||
-            item.type <= LoadProblem::Type::Recommendation)
-            continue;
-        hasProblems = true;
-        break;
-    }
+    bool hasProblems = ModImpl::getImpl(m_mod)->hasProblems();
     m_unresolvedExMark->setVisible(hasProblems);
 
     this->updateCellLayout();

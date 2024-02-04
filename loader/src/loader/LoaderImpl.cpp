@@ -246,6 +246,14 @@ void Loader::Impl::updateModResources(Mod* mod) {
     log::popNest();
 }
 
+void Loader::Impl::addProblem(LoadProblem const& problem) {
+    if (std::holds_alternative<Mod*>(problem.cause)) {
+        auto mod = std::get<Mod*>(problem.cause);
+        ModImpl::getImpl(mod)->m_problems.push_back(problem);
+    }
+    m_problems.push_back(problem);
+}
+
 // Dependencies and refreshing
 
 void Loader::Impl::queueMods(std::vector<ModMetadata>& modQueue) {
@@ -262,7 +270,7 @@ void Loader::Impl::queueMods(std::vector<ModMetadata>& modQueue) {
 
             auto res = ModMetadata::createFromGeodeFile(entry.path());
             if (!res) {
-                m_problems.push_back({
+                this->addProblem({
                     LoadProblem::Type::InvalidFile,
                     entry.path(),
                     res.unwrapErr()
@@ -280,7 +288,7 @@ void Loader::Impl::queueMods(std::vector<ModMetadata>& modQueue) {
             if (std::find_if(modQueue.begin(), modQueue.end(), [&](auto& item) {
                     return modMetadata.getID() == item.getID();
                 }) != modQueue.end()) {
-                m_problems.push_back({
+                this->addProblem({
                     LoadProblem::Type::Duplicate,
                     modMetadata,
                     "A mod with the same ID is already present."
@@ -317,7 +325,7 @@ void Loader::Impl::populateModList(std::vector<ModMetadata>& modQueue) {
 
         auto res = mod->m_impl->setup();
         if (!res) {
-            m_problems.push_back({
+            this->addProblem({
                 LoadProblem::Type::SetupFailed,
                 mod,
                 res.unwrapErr()
@@ -406,7 +414,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
             log::debug("Load");
             auto res = node->m_impl->loadBinary();
             if (!res) {
-                m_problems.push_back({
+                this->addProblem({
                     LoadProblem::Type::LoadFailed,
                     node,
                     res.unwrapErr()
@@ -427,7 +435,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
     {   // version checking
         auto res = node->getMetadata().checkGameVersion();
         if (!res) {
-            m_problems.push_back({
+            this->addProblem({
                 LoadProblem::Type::UnsupportedVersion,
                 node,
                 res.unwrapErr()
@@ -439,7 +447,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
         }
 
         if (!this->isModVersionSupported(node->getMetadata().getGeodeVersion())) {
-            m_problems.push_back({
+            this->addProblem({
                 LoadProblem::Type::UnsupportedGeodeVersion,
                 node,
                 fmt::format(
@@ -458,7 +466,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
     if (early) {
         auto res = unzipFunction();
         if (!res) {
-            m_problems.push_back({
+            this->addProblem({
                 LoadProblem::Type::UnzipFailed,
                 node,
                 res.unwrapErr()
@@ -480,7 +488,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
                 auto prevNest = log::saveNest();
                 log::loadNest(nest);
                 if (!res) {
-                    m_problems.push_back({
+                    this->addProblem({
                         LoadProblem::Type::UnzipFailed,
                         node,
                         res.unwrapErr()
@@ -512,7 +520,7 @@ void Loader::Impl::findProblems() {
                 continue;
             switch(dep.importance) {
                 case ModMetadata::Dependency::Importance::Suggested:
-                    m_problems.push_back({
+                    this->addProblem({
                         LoadProblem::Type::Suggestion,
                         mod,
                         fmt::format("{} {}", dep.id, dep.version.toString())
@@ -520,7 +528,7 @@ void Loader::Impl::findProblems() {
                     log::info("{} suggests {} {}", id, dep.id, dep.version);
                     break;
                 case ModMetadata::Dependency::Importance::Recommended:
-                    m_problems.push_back({
+                    this->addProblem({
                         LoadProblem::Type::Recommendation,
                         mod,
                         fmt::format("{} {}", dep.id, dep.version.toString())
@@ -528,7 +536,7 @@ void Loader::Impl::findProblems() {
                     log::warn("{} recommends {} {}", id, dep.id, dep.version);
                     break;
                 case ModMetadata::Dependency::Importance::Required:
-                    m_problems.push_back({
+                    this->addProblem({
                         LoadProblem::Type::MissingDependency,
                         mod,
                         fmt::format("{} {}", dep.id, dep.version.toString())
@@ -543,7 +551,7 @@ void Loader::Impl::findProblems() {
                 continue;
             switch(dep.importance) {
                 case ModMetadata::Incompatibility::Importance::Conflicting:
-                    m_problems.push_back({
+                    this->addProblem({
                         LoadProblem::Type::Conflict,
                         mod,
                         fmt::format("{} {}", dep.id, dep.version.toString())
@@ -551,7 +559,7 @@ void Loader::Impl::findProblems() {
                     log::warn("{} conflicts with {} {}", id, dep.id, dep.version);
                     break;
                 case ModMetadata::Incompatibility::Importance::Breaking:
-                    m_problems.push_back({
+                    this->addProblem({
                         LoadProblem::Type::PresentIncompatibility,
                         mod,
                         fmt::format("{} {}", dep.id, dep.version.toString())
@@ -571,7 +579,7 @@ void Loader::Impl::findProblems() {
                     std::holds_alternative<Mod*>(item.cause) &&
                     std::get<Mod*>(item.cause) == myEpicMod;
             })) {
-            m_problems.push_back({
+            this->addProblem({
                 LoadProblem::Type::Unknown,
                 mod,
                 ""

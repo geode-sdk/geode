@@ -746,6 +746,19 @@ bool Mod::Impl::isCurrentlyLoading() const {
     return m_isCurrentlyLoading;
 }
 
+bool Mod::Impl::hasProblems() const {
+    for (auto const& item : m_problems) {
+        if (item.type <= LoadProblem::Type::Recommendation)
+            continue;
+        return true;
+    }
+    return false;
+}
+
+std::vector<LoadProblem> Mod::Impl::getProblems() const {
+    return m_problems;
+}
+
 static Result<ModMetadata> getModImplInfo() {
     std::string error;
     auto res = matjson::parse(LOADER_MOD_JSON, error);

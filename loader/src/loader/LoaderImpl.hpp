@@ -133,6 +133,8 @@ namespace geode {
         Result<> setupInternalMod();
 
         bool userTriedToLoadDLLs() const;
+
+        void addProblem(LoadProblem const& problem);
     };
 
     class LoaderImpl : public Loader::Impl {
