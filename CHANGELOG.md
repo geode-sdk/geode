@@ -15,6 +15,7 @@
  * Run binding codegen in CMake configure time (2e20ccc)
  * Replace media perms with file perms (5f7af1a)
  * Fix `FloatSettingNode` not accepting decimal point (c83858d)
+ * Throw on invalid json output (e2150cc)
 
 ## v2.0.0-beta.14
  * Use Breakpad for crash reports on Android ([#481](https://github.com/geode-sdk/geode/pull/481))
