@@ -3,6 +3,12 @@
 ## v2.0.0-beta.14
  * Use Breakpad for crash reports on Android ([#481](https://github.com/geode-sdk/geode/pull/481))
  * Fix available label on LocalModInfoPopup (b4037093)
+ * Remove trailing CR from headers (17153a4f)
+   * Ends up **fixing auto update**
+ * Implement getGameVersion on mac (86ae005f)
+ * Fix mysterious AsyncWebRequest crash (c0352782)
+ * Show message for old android launcher users (c00ccd35)
+ * Add install target for loader itself (36727ced)
 
 ## v2.0.0-beta.13
  * Add new `AnchorLayout` feature ([#476](https://github.com/geode-sdk/geode/pull/476))
