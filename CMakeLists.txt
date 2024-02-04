@@ -100,7 +100,7 @@ if (WIN32)
 endif()
 
 set(MAT_JSON_AS_INTERFACE ON)
-CPMAddPackage("gh:geode-sdk/json#3232877")
+CPMAddPackage("gh:geode-sdk/json#899d54f")
 CPMAddPackage("gh:fmtlib/fmt#10.1.1")
 CPMAddPackage("gh:gulrak/filesystem#3e5b930")
 
