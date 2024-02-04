@@ -50,21 +50,23 @@ namespace geode {
     private:
         static SimpleTextArea* create(const std::string& font, const std::string& text, const float scale, const float width, const bool artificialWidth);
 
-        bool m_shouldUpdate;
-        bool m_artificialWidth;
-        cocos2d::CCMenu* m_container;
+        bool init(const std::string& font, const std::string& text, const float scale, const float width, const bool artificialWidth);
+
+        bool m_shouldUpdate = false;
+        bool m_artificialWidth = false;
+        cocos2d::CCMenu* m_container = nullptr;
         std::string m_font;
         std::string m_text;
         std::vector<cocos2d::CCLabelBMFont*> m_lines;
-        cocos2d::ccColor4B m_color;
-        cocos2d::CCTextAlignment m_alignment;
-        WrappingMode m_wrappingMode;
-        size_t m_maxLines;
-        float m_scale;
-        float m_lineHeight;
-        float m_linePadding;
+        cocos2d::ccColor4B m_color = { 0xFF, 0xFF, 0xFF, 0xFF };
+        cocos2d::CCTextAlignment m_alignment = cocos2d::kCCTextAlignmentLeft;
+        WrappingMode m_wrappingMode = WORD_WRAP;
+        size_t m_maxLines = 0;
+        float m_scale = 1.f;
+        float m_lineHeight = 0.f;
+        float m_linePadding = 0.f;
 
-        SimpleTextArea(const std::string& font, const std::string& text, const float scale, const float width, const bool artificialWidth);
+        SimpleTextArea();
         cocos2d::CCLabelBMFont* createLabel(const std::string& text, const float top);
         float calculateOffset(cocos2d::CCLabelBMFont* label);
         void charIteration(const std::function<cocos2d::CCLabelBMFont*(cocos2d::CCLabelBMFont* line, const char c, const float top)>& overflowHandling);

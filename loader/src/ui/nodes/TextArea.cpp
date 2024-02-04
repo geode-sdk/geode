@@ -11,9 +11,9 @@ SimpleTextArea* SimpleTextArea::create(const std::string& text, const std::strin
 }
 
 SimpleTextArea* SimpleTextArea::create(const std::string& font, const std::string& text, const float scale, const float width, const bool artificialWidth) {
-    SimpleTextArea* instance = new SimpleTextArea(font, text, scale, width, artificialWidth);
+    SimpleTextArea* instance = new SimpleTextArea();
 
-    if (instance && instance->init()) {
+    if (instance && instance->init(font, text, scale, width, artificialWidth)) {
         instance->autorelease();
 
         return instance;
@@ -24,18 +24,14 @@ SimpleTextArea* SimpleTextArea::create(const std::string& font, const std::strin
     }
 }
 
-SimpleTextArea::SimpleTextArea(const std::string& font, const std::string& text, const float scale, const float width, const bool artificialWidth) {
+SimpleTextArea::SimpleTextArea() {}
+
+bool SimpleTextArea::init(const std::string& font, const std::string& text, const float scale, const float width, const bool artificialWidth) {
     m_font = font;
     m_text = text;
-    m_maxLines = 0;
     m_scale = scale;
-    m_linePadding = 0;
-    m_color = { 0xFF, 0xFF, 0xFF, 0xFF };
-    m_alignment = kCCTextAlignmentLeft;
-    m_wrappingMode = WORD_WRAP;
     m_artificialWidth = artificialWidth;
     m_container = CCMenu::create();
-    m_shouldUpdate = true;
 
     this->setAnchorPoint({ 0.5f, 0.5f });
     m_container->setPosition({ 0, 0 });
@@ -43,11 +39,15 @@ SimpleTextArea::SimpleTextArea(const std::string& font, const std::string& text,
     m_container->setContentSize({ width, 0 });
 
     this->addChild(m_container);
+
+    this->updateContainer();
+
+    return true;
 }
 
 void SimpleTextArea::setFont(const std::string& font) {
     m_font = font;
-    m_shouldUpdate = true;
+    this->updateContainer();
 }
 
 std::string SimpleTextArea::getFont() {
@@ -56,7 +56,7 @@ std::string SimpleTextArea::getFont() {
 
 void SimpleTextArea::setColor(const ccColor4B& color) {
     m_color = color;
-    m_shouldUpdate = true;
+    this->updateContainer();
 }
 
 ccColor4B SimpleTextArea::getColor() {
@@ -65,7 +65,7 @@ ccColor4B SimpleTextArea::getColor() {
 
 void SimpleTextArea::setAlignment(const CCTextAlignment alignment) {
     m_alignment = alignment;
-    m_shouldUpdate = true;
+    this->updateContainer();
 }
 
 CCTextAlignment SimpleTextArea::getAlignment() {
@@ -74,7 +74,7 @@ CCTextAlignment SimpleTextArea::getAlignment() {
 
 void SimpleTextArea::setWrappingMode(const WrappingMode mode) {
     m_wrappingMode = mode;
-    m_shouldUpdate = true;
+    this->updateContainer();
 }
 
 WrappingMode SimpleTextArea::getWrappingMode() {
@@ -83,7 +83,7 @@ WrappingMode SimpleTextArea::getWrappingMode() {
 
 void SimpleTextArea::setText(const std::string& text) {
     m_text = text;
-    m_shouldUpdate = true;
+    this->updateContainer();
 }
 
 std::string SimpleTextArea::getText() {
@@ -92,7 +92,7 @@ std::string SimpleTextArea::getText() {
 
 void SimpleTextArea::setMaxLines(const size_t maxLines) {
     m_maxLines = maxLines;
-    m_shouldUpdate = true;
+    this->updateContainer();
 }
 
 size_t SimpleTextArea::getMaxLines() {
@@ -101,7 +101,7 @@ size_t SimpleTextArea::getMaxLines() {
 
 void SimpleTextArea::setWidth(const float width) {
     m_artificialWidth = true;
-    m_shouldUpdate = true;
+    this->updateContainer();
 
     this->setContentSize({ width, this->getContentSize().height });
     m_container->setContentSize(this->getContentSize());
@@ -113,7 +113,7 @@ float SimpleTextArea::getWidth() {
 
 void SimpleTextArea::setScale(const float scale) {
     m_scale = scale;
-    m_shouldUpdate = true;
+    this->updateContainer();
 }
 
 float SimpleTextArea::getScale() {
@@ -122,7 +122,7 @@ float SimpleTextArea::getScale() {
 
 void SimpleTextArea::setLinePadding(const float padding) {
     m_linePadding = padding;
-    m_shouldUpdate = true;
+    this->updateContainer();
 }
 
 float SimpleTextArea::getLinePadding() {
@@ -276,7 +276,7 @@ void SimpleTextArea::updateContainer() {
                 line->setPosition({ 0, y });
             } break;
             case kCCTextAlignmentCenter: {
-                line->setAnchorPoint({ 0, 1 });
+                line->setAnchorPoint({ 0.5f, 1 });
                 line->setPosition({ width / 2, y });
             } break;
             case kCCTextAlignmentRight: {
@@ -291,10 +291,4 @@ void SimpleTextArea::updateContainer() {
 
 void SimpleTextArea::draw() {
     CCNode::draw();
-
-    if (m_shouldUpdate) {
-        this->updateContainer();
-
-        m_shouldUpdate = false;
-    }
 }
