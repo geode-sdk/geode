@@ -56,12 +56,5 @@ config-args = [
     "-DWIN32=On"
 ]
 
-# We want to build codegen in order to get the bindings
-build = true
-build-dir = "build-docs"
-build-args = [
-    "--target", "CodegenRun"
-]
-
 # The file we use to get all the include paths and such
 infer-args-from = "loader/src/load.cpp"
