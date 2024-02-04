@@ -36,7 +36,7 @@ bool crashlog::setupPlatformHandler() {
 
     (void)geode::utils::file::createDirectoryAll(logDirectory);
 
-    google_breakpad::MinidumpDescriptor descriptor(logDirectory.string() + "/");
+    google_breakpad::MinidumpDescriptor descriptor(logDirectory.string());
 
     s_exceptionHandler = std::make_unique<google_breakpad::ExceptionHandler>(
         descriptor, nullptr, crashCallback, nullptr, true, -1
