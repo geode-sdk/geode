@@ -142,7 +142,6 @@ if (DEFINED ENV{GEODE_BINDINGS_REPO_PATH})
 	set(temp $ENV{GEODE_BINDINGS_REPO_PATH})
 	# this is so stupid i hate windows paths
 	string(REPLACE "\\" "/" GEODE_BINDINGS_REPO_PATH ${temp})
-	add_subdirectory(${GEODE_BINDINGS_REPO_PATH} bindings)
 endif()
 
 if (NOT GEODE_BINDINGS_REPO_PATH)
@@ -157,6 +156,7 @@ if (NOT GEODE_BINDINGS_REPO_PATH)
 	set(GEODE_BINDINGS_REPO_PATH bindings_SOURCE_DIR)
 else()
 	message(STATUS "Using ${GEODE_BINDINGS_REPO_PATH} for bindings repo")
+	add_subdirectory(${GEODE_BINDINGS_REPO_PATH} bindings)
 endif()
 
 if (NOT GEODE_DISABLE_PRECOMPILED_HEADERS)
