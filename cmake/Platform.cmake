@@ -41,6 +41,7 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
 
 	target_compile_definitions(${PROJECT_NAME} INTERFACE
 		-DCommentType=CommentTypeDummy
+		-DGL_SILENCE_DEPRECATION
 	)
 
 	set(GEODE_OUTPUT_NAME "Geode")
