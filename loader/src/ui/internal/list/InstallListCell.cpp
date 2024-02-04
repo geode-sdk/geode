@@ -40,6 +40,7 @@ void InstallListCell::setupInfo(
 
     auto logoSpr = this->createLogo({ logoSize, logoSize });
     logoSpr->setPosition({ logoSize / 2 + 12.f, m_height / 2 });
+    logoSpr->setAnchorPoint({ .5f, .5f });
     auto logoSprColor = typeinfo_cast<CCRGBAProtocol*>(logoSpr);
     if (inactive && logoSprColor) {
         logoSprColor->setColor({ 163, 163, 163 });
