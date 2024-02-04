@@ -65,10 +65,6 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 
         m_fields->m_menuDisabled = Loader::get()->getLaunchFlag("disable-custom-menu");
 
-        std::stringstream ss;
-        crashlog::printMods(ss);
-        log::debug("Test {}", ss.str());
-
         // add geode button
         if (!m_fields->m_menuDisabled) {
             m_fields->m_geodeButton = CircleButtonSprite::createWithSpriteFrameName(
