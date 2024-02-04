@@ -385,13 +385,14 @@ Result<> Mod::Impl::loadBinary() {
         log::error("Failed to load binary for mod {}: {}", m_metadata.getID(), res.unwrapErr());
         return res;
     }
-    m_isCurrentlyLoading = false;
 
     LoaderImpl::get()->releaseNextMod();
 
 
     ModStateEvent(m_self, ModEventType::Loaded).post();
     ModStateEvent(m_self, ModEventType::Enabled).post();
+
+    m_isCurrentlyLoading = false;
 
     return Ok();
 }

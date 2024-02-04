@@ -41,10 +41,10 @@ void crashlog::printMods(std::stringstream& stream) {
     using namespace std::string_view_literals;
     for (auto& mod : mods) {
         stream << fmt::format("{} | [{}] {}\n",
+            ModImpl::getImpl(mod)->isCurrentlyLoading() ? "o"sv : 
             mod->isEnabled() ? "x"sv : 
             ModImpl::getImpl(mod)->hasProblems() ? "!"sv : // thank you for this bug report
             mod->shouldLoad() ? "~"sv : 
-            ModImpl::getImpl(mod)->isCurrentlyLoading() ? "o"sv : 
             " "sv,
             mod->getVersion().toString(), mod->getID()
         );
