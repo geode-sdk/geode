@@ -155,6 +155,7 @@ if (NOT GEODE_BINDINGS_REPO_PATH)
 	)
 	# TODO: change branch before merge
 	CPMAddPackage("gh:geode-sdk/bindings#codegen-on-configure")
+	set(GEODE_BINDINGS_REPO_PATH bindings_SOURCE_DIR)
 else()
 	message(STATUS "Using ${GEODE_BINDINGS_REPO_PATH} for bindings repo")
 endif()
