@@ -152,12 +152,16 @@ if (NOT GEODE_BINDINGS_REPO_PATH)
 		"contribute new bindings) then set GEODE_BINDINGS_REPO_PATH to where you have "
 		"cloned the repository (system environment variables are supported)."
 	)
-	CPMAddPackage("gh:geode-sdk/bindings#main")
-	set(GEODE_BINDINGS_REPO_PATH bindings_SOURCE_DIR)
+	CPMAddPackage(NAME "bindings"
+		GITHUB_REPOSITORY "geode-sdk/bindings"
+		GIT_TAG "main"
+		DOWNLOAD_ONLY YES
+	)
+	set(GEODE_BINDINGS_REPO_PATH ${bindings_SOURCE_DIR})
 else()
 	message(STATUS "Using ${GEODE_BINDINGS_REPO_PATH} for bindings repo")
-	add_subdirectory(${GEODE_BINDINGS_REPO_PATH} bindings)
 endif()
+add_subdirectory(${GEODE_BINDINGS_REPO_PATH} bindings)
 
 if (NOT GEODE_DISABLE_PRECOMPILED_HEADERS)
 	target_precompile_headers(GeodeBindings INTERFACE
