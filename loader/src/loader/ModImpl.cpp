@@ -357,6 +357,12 @@ bool Mod::Impl::getLaunchFlag(std::string_view const name) const {
 // Loading, Toggling, Installing
 
 Result<> Mod::Impl::loadBinary() {
+    if (!this->isInternal() && Loader::get()->getLaunchFlag("safe-mode")) {
+        // pretend to have loaded the mod, so that it still shows up on the mod list properly,
+        // while the user can still toggle/uninstall it
+        m_enabled = true;
+        return Ok();
+    }
 
     log::debug("Loading binary for mod {}", m_metadata.getID());
     if (m_enabled)
