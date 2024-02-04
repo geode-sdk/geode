@@ -378,4 +378,9 @@ if (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "2.10.0")
 		RUNTIME
 		DESTINATION "${GEODE_PROFILE_GD_PATH}"
 	)
+	file(GLOB RESOURCE_FILES ${GEODE_BIN_PATH}/nightly/resources/*.*)
+	install(
+		FILES ${RESOURCE_FILES}
+		DESTINATION "${GEODE_PROFILE_GD_PATH}/geode/resources/geode.loader"
+	)
 endif()
