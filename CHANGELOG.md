@@ -16,6 +16,7 @@
  * Replace media perms with file perms (5f7af1a)
  * Fix `FloatSettingNode` not accepting decimal point (c83858d)
  * Throw on invalid json output (e2150cc)
+ * Fix icon positioning in `InstallListCell` (cb7c024)
 
 ## v2.0.0-beta.14
  * Use Breakpad for crash reports on Android ([#481](https://github.com/geode-sdk/geode/pull/481))
