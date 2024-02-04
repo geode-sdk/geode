@@ -680,9 +680,10 @@ void Loader::Impl::continueRefreshModGraph() {
             if (!m_modsToLoad.empty()) {
                 log::debug("Loading mods");
                 log::pushNest();
-                this->loadModGraph(m_modsToLoad.front(), false);
-                log::popNest();
+                auto mod = m_modsToLoad.front();
                 m_modsToLoad.pop_front();
+                this->loadModGraph(mod, false);
+                log::popNest();
                 break;
             }
             m_loadingState = LoadingState::Problems;
