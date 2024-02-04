@@ -5,8 +5,11 @@ using namespace geode::prelude;
 
 bool Scrollbar::ccTouchBegan(CCTouch* touch, CCEvent* event) {
     // hitbox
-    auto rect = this->boundingBox();
-    if (!m_target || !rect.containsPoint(touch->getLocation())) return false;
+    auto const size = this->getContentSize();
+    auto const pos = this->convertToNodeSpace(touch->getLocation());
+    auto const rect = CCRect{0, 0, size.width, size.height};
+
+    if (!m_target || !rect.containsPoint(pos)) return false;
 
     // trigger scrollbar thumb move
     this->ccTouchMoved(touch, event);
