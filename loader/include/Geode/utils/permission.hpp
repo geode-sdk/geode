@@ -6,9 +6,10 @@
 
 namespace geode::utils::permission {
     enum class Permission {
-        ReadAudio,
-        ReadImages,
-        ReadVideo,
+        ReadAudio [[deprecated("This permission is Android 13+ specific! Use ReadFiles instead.")]],
+        ReadImages [[deprecated("This permission is Android 13+ specific! Use ReadFiles instead.")]],
+        ReadVideo [[deprecated("This permission is Android 13+ specific! Use ReadFiles instead.")]],
+        ReadAllFiles,
         RecordAudio,
     };
 
