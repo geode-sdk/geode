@@ -156,6 +156,7 @@ if (NOT GEODE_BINDINGS_REPO_PATH)
 		GITHUB_REPOSITORY "geode-sdk/bindings"
 		GIT_TAG "main"
 		DOWNLOAD_ONLY YES
+		NO_CACHE YES
 	)
 	set(GEODE_BINDINGS_REPO_PATH ${bindings_SOURCE_DIR})
 else()
