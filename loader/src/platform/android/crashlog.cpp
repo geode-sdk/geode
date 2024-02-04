@@ -12,16 +12,20 @@ static bool s_lastLaunchCrashed = false;
 namespace {
     // this object must be kept alive
     auto s_exceptionHandler = std::unique_ptr<google_breakpad::ExceptionHandler>(nullptr);
+    constexpr auto crashIndicatorFilename = "lastSessionDidCrash";
 
     bool crashCallback(
         google_breakpad::MinidumpDescriptor const& descriptor, void* /* context */, bool succeeded
     ) {
         // jumping into unsafe territory :fish:
         // create a file that indicates a crash did happen (which is then cleared on next launch)
-        auto crashIndicatorPath = crashlog::getCrashLogDirectory() / "lastSessionDidCrash";
+        auto crashIndicatorPath = crashlog::getCrashLogDirectory() / crashIndicatorFilename;
         auto indicatorString = crashIndicatorPath.string();
 
         sys_open(indicatorString.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0);
+
+        // another memory allocation!
+        geode::log::error("Geode crashed! Crash dump saved to {}", descriptor.path());
 
         return succeeded;
     }
@@ -38,7 +42,7 @@ bool crashlog::setupPlatformHandler() {
         descriptor, nullptr, crashCallback, nullptr, true, -1
     );
 
-    auto crashIndicatorPath = crashlog::getCrashLogDirectory() / "lastSessionDidCrash";
+    auto crashIndicatorPath = crashlog::getCrashLogDirectory() / crashIndicatorFilename;
     if (ghc::filesystem::exists(crashIndicatorPath)) {
         s_lastLaunchCrashed = true;
         ghc::filesystem::remove(crashIndicatorPath);
