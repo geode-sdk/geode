@@ -240,7 +240,8 @@ execute_process(
 )
 file(WRITE ${GEODE_CODEGEN_PATH}/.stamp "codegen")
 add_custom_command(
-	DEPENDS ${GEODE_CODEGEN_BINARY_OUT}/.stamp ${CODEGEN_DEPENDS}
+	DEPENDS ${CODEGEN_DEPENDS}
+	DEPENDS CodegenProject
 	COMMENT "Running Codegen"
 	COMMAND ${GEODE_CODEGEN_BINARY_OUT}/Codegen ${GEODE_TARGET_PLATFORM} ${GEODE_BINDINGS_PATH} ${GEODE_CODEGEN_PATH}
 	COMMAND echo codegen > ${GEODE_CODEGEN_PATH}/.stamp
