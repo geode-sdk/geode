@@ -248,7 +248,7 @@ void Logger::clear() {
 // Misc
 
 std::string geode::log::generateLogName() {
-    return fmt::format("Geode {:%d %b %H.%M.%S}.log", convertTime(log_clock::now()));
+    return fmt::format("Geode {:%F %H.%M.%S}.log", convertTime(log_clock::now()));
 }
 
 void log::pushNest() {
