@@ -227,7 +227,7 @@ ExternalProject_Add(CodegenProject
 		-S <SOURCE_DIR> -B <BINARY_DIR>
 	BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config $<CONFIGURATION>
 	INSTALL_COMMAND ${CMAKE_COMMAND} --install <BINARY_DIR> --config $<CONFIGURATION>
-	--prefix ${GEODE_CODEGEN_BINARY_OUT}
+		--prefix ${GEODE_CODEGEN_BINARY_OUT}
 )
 
 message(STATUS "Running Codegen")
