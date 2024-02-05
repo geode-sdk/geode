@@ -328,10 +328,46 @@ namespace geode {
          * @returns Successful result on success,
          * errorful result with info on error
          */
-        Result<Patch*> patch(void* address, ByteVector const& data) {
-            auto patch = Patch::create(address, data);
-            GEODE_UNWRAP_INTO(auto ptr, this->claimPatch(std::move(patch)));
-            return Ok(ptr);
+        [[deprecated(
+            "It is not recommended to use the patch API directly! "
+            "Consider using the platform-specific versions (patchWindows etc.) instead for clarity"
+        )]]
+        Result<Patch*> patch(void* address, ByteVector const& data);
+
+        template <class Addr>
+        Result<Patch*> patchWindows(Addr addr, ByteVector const& data) {
+            #ifdef GEODE_IS_WINDOWS
+                return this->patch(reinterpret_cast<void*>(addr), data);
+            #else
+                return Err("Attempted to create a patch for Windows");
+            #endif
+        }
+
+        template <class Addr>
+        Result<Patch*> patchMac(Addr addr, ByteVector const& data) {
+            #ifdef GEODE_IS_MACOS
+                return this->patch(reinterpret_cast<void*>(addr), data);
+            #else
+                return Err("Attempted to create a patch for Mac");
+            #endif
+        }
+
+        template <class Addr>
+        Result<Patch*> patchAndroid32(Addr addr, ByteVector const& data) {
+            #ifdef GEODE_IS_ANDROID32
+                return this->patch(reinterpret_cast<void*>(addr), data);
+            #else
+                return Err("Attempted to create a patch for Android32");
+            #endif
+        }
+
+        template <class Addr>
+        Result<Patch*> patchAndroid64(Addr addr, ByteVector const& data) {
+            #ifdef GEODE_IS_ANDROID64
+                return this->patch(reinterpret_cast<void*>(addr), data);
+            #else
+                return Err("Attempted to create a patch for Android64");
+            #endif
         }
 
         /**

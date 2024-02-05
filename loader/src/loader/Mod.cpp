@@ -153,6 +153,12 @@ std::vector<Hook*> Mod::getHooks() const {
     return m_impl->getHooks();
 }
 
+Result<Patch*> Mod::patch(void* address, ByteVector const& data) {
+    auto patch = Patch::create(address, data);
+    GEODE_UNWRAP_INTO(auto ptr, this->claimPatch(std::move(patch)));
+    return Ok(ptr);
+}
+
 Result<Patch*> Mod::claimPatch(std::shared_ptr<Patch> patch) {
     return m_impl->claimPatch(patch);
 }
