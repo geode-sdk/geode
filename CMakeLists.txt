@@ -47,6 +47,35 @@ else()
 	message(STATUS "Version: ${GEODE_VERSION}")
 endif()
 
+include(cmake/CPM.cmake)
+
+# Allow users to have their own copy of bindings that can be overwritten with a CMake option.
+# If the option is not provided, by default just clone bindings with CPM and use that
+if (DEFINED ENV{GEODE_BINDINGS_REPO_PATH})
+	set(temp $ENV{GEODE_BINDINGS_REPO_PATH})
+	# this is so stupid i hate windows paths
+	string(REPLACE "\\" "/" GEODE_BINDINGS_REPO_PATH ${temp})
+endif()
+
+if (NOT GEODE_BINDINGS_REPO_PATH)
+	message(STATUS
+		"No override path for bindings provided, using CPM to clone default. "
+		"If you would like to use a separate clone of the bindings repo "
+		"(for example in order to be able to efficiently change and "
+		"contribute new bindings) then set GEODE_BINDINGS_REPO_PATH to where you have "
+		"cloned the repository (system environment variables are supported)."
+	)
+	CPMAddPackage(NAME "bindings"
+		GITHUB_REPOSITORY "geode-sdk/bindings"
+		GIT_TAG "main"
+		DOWNLOAD_ONLY YES
+		NO_CACHE YES
+	)
+	set(GEODE_BINDINGS_REPO_PATH ${bindings_SOURCE_DIR})
+else()
+	message(STATUS "Using ${GEODE_BINDINGS_REPO_PATH} for bindings repo")
+endif()
+
 project(geode-sdk VERSION ${GEODE_VERSION} LANGUAGES CXX C)
 
 add_library(${PROJECT_NAME} INTERFACE)
@@ -75,7 +104,6 @@ set(GEODE_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 
 include(cmake/Platform.cmake)
 include(cmake/GeodeFile.cmake)
-include(cmake/CPM.cmake)
 
 if (NOT DEFINED GEODE_GD_VERSION)
 	if (${GEODE_TARGET_PLATFORM} STREQUAL "Win32")
@@ -136,33 +164,7 @@ add_library(GeodeFilesystemImpl ${CMAKE_CURRENT_SOURCE_DIR}/FilesystemImpl.cpp)
 target_compile_features(GeodeFilesystemImpl PUBLIC cxx_std_20)
 target_link_libraries(GeodeFilesystemImpl PUBLIC ghc_filesystem)
 
-# Allow users to have their own copy of bindings that can be overwritten with a CMake option.
-# If the option is not provided, by default just clone bindings with CPM and use that
-if (DEFINED ENV{GEODE_BINDINGS_REPO_PATH})
-	set(temp $ENV{GEODE_BINDINGS_REPO_PATH})
-	# this is so stupid i hate windows paths
-	string(REPLACE "\\" "/" GEODE_BINDINGS_REPO_PATH ${temp})
-endif()
-
-if (NOT GEODE_BINDINGS_REPO_PATH)
-	message(STATUS
-		"No override path for bindings provided, using CPM to clone default. "
-		"If you would like to use a separate clone of the bindings repo "
-		"(for example in order to be able to efficiently change and "
-		"contribute new bindings) then set GEODE_BINDINGS_REPO_PATH to where you have "
-		"cloned the repository (system environment variables are supported)."
-	)
-	CPMAddPackage(NAME "bindings"
-		GITHUB_REPOSITORY "geode-sdk/bindings"
-		GIT_TAG "main"
-		DOWNLOAD_ONLY YES
-		NO_CACHE YES
-	)
-	set(GEODE_BINDINGS_REPO_PATH ${bindings_SOURCE_DIR})
-else()
-	message(STATUS "Using ${GEODE_BINDINGS_REPO_PATH} for bindings repo")
-endif()
-add_subdirectory(${GEODE_BINDINGS_REPO_PATH} bindings)
+add_subdirectory(${GEODE_BINDINGS_REPO_PATH} ${CMAKE_BINARY_DIR}/bindings)
 
 if (NOT GEODE_DISABLE_PRECOMPILED_HEADERS)
 	target_precompile_headers(GeodeBindings INTERFACE
