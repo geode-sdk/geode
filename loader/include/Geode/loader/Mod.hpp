@@ -293,11 +293,7 @@ namespace geode {
             void* address, void* detour, std::string const& displayName,
             tulip::hook::HandlerMetadata const& handlerMetadata,
             tulip::hook::HookMetadata const& hookMetadata
-        ) {
-            auto hook = Hook::create(address, detour, displayName, handlerMetadata, hookMetadata);
-            GEODE_UNWRAP_INTO(auto ptr, this->claimHook(std::move(hook)));
-            return Ok(ptr);
-        }
+        );
 
         /**
          * Claims an existing hook object, marking this mod as its owner.
