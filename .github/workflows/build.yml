@@ -10,6 +10,7 @@ on:
 
 env:
   GEODE_CI: ''
+  CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm-cache
 
 jobs:
   build:
@@ -139,12 +140,10 @@ jobs:
       if: matrix.config.id == 'android32' || matrix.config.id == 'android64'
 
     - name: Configure
-      env:
-        CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm-cache
-        CMAKE_C_COMPILER_LAUNCHER: ${{ matrix.config.ccache }}
-        CMAKE_CXX_COMPILER_LAUNCHER: ${{ matrix.config.ccache }}
       run: >
         cmake -B ${{ github.workspace }}/build
+        -DCMAKE_C_COMPILER_LAUNCHER=${{ matrix.config.ccache }}
+        -DCMAKE_CXX_COMPILER_LAUNCHER=${{ matrix.config.ccache }}
         -DCLI_PATH=${{ github.workspace }}/cli
         ${{ matrix.config.extra_flags }}
 
