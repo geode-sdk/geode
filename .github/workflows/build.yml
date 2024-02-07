@@ -89,7 +89,7 @@ jobs:
     - name: Setup ${{ matrix.config.ccache }}
       uses: hendrikmuhs/ccache-action@v1
       with:
-        key: ${{ matrix.config.os }}
+        key: ${{ matrix.config.id }}-v1
         variant: ${{ matrix.config.ccache }}
 
     - name: Setup MSVC
