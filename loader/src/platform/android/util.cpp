@@ -10,6 +10,9 @@ using namespace geode::prelude;
 #include <Geode/utils/general.hpp>
 #include <Geode/utils/MiniFunction.hpp>
 #include <Geode/utils/permission.hpp>
+#include <Geode/loader/Loader.hpp>
+#include <Geode/binding/AppDelegate.hpp>
+#include <Geode/loader/Log.hpp>
 
 #include <jni.h>
 #include <Geode/cocos/platform/android/jni/JniHelper.h>

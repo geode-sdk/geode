@@ -3,6 +3,10 @@
 #include "../load.hpp"
 #include <jni.h>
 #include "internalString.hpp"
+#include <cocos2d.h>
+#include <Geode/loader/Log.hpp>
+#include <ghc/fs_fwd.hpp>
+#include <Geode/loader/Dirs.hpp>
 
 using namespace geode::prelude;
 

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <Geode/binding/CustomListView.hpp>
-#include <Geode/binding/TableViewCell.hpp>
 #include <Geode/binding/CCIndexPath.hpp>
+#include <Geode/binding/TableViewCell.hpp>
 
 namespace geode {
     class GEODE_DLL GenericListCell : public TableViewCell {
