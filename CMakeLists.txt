@@ -14,6 +14,10 @@ if ((NOT DEFINED CMAKE_C_COMPILER_LAUNCHER) OR (CMAKE_C_COMPILER_LAUNCHER STREQU
 		"It is recommended to install one to decrease build times.")
 endif ()
 
+if (DEFINED ENV{GEODE_CI})
+	message(STATUS "Building in CI")
+endif ()
+
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build libraries static" FORCE)
 
 # Docs flags
