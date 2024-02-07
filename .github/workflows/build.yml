@@ -117,7 +117,7 @@ jobs:
     - name: Setup Cache
       uses: actions/cache@v4
       with:
-        path: ${{ github.action_path }}/cpm-cache
+        path: ${{ github.workspace }}/cpm-cache
         key: cpm-${{ matrix.config.id }}-v1-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
         restore-keys: |
           cpm-${{ matrix.config.id }}-v1-
