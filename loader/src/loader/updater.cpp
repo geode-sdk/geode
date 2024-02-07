@@ -6,6 +6,7 @@
 #include <utility>
 #include "LoaderImpl.hpp"
 #include "ModMetadataImpl.hpp"
+#include <Geode/utils/string.hpp>
 
 using namespace geode::prelude;
 

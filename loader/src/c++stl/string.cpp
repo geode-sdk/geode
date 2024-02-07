@@ -1,8 +1,7 @@
 #include <Geode/c++stl/gdstdlib.hpp>
 #include "string-impl.hpp"
-#include <string_view>
-#include <string>
 #include <compare>
+#include <stdexcept>
 
 template <class Type>
 Type& intoMutRef(const Type& x) {

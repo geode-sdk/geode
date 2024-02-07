@@ -6,6 +6,7 @@
 #include <Geode/ui/Scrollbar.hpp>
 #include <Geode/ui/IconButtonSprite.hpp>
 #include <Geode/loader/Index.hpp>
+#include <Geode/ui/Popup.hpp>
 
 using namespace geode::prelude;
 

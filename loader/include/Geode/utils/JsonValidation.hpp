@@ -2,9 +2,9 @@
 
 #include <matjson.hpp>
 #include "../loader/Log.hpp"
-
 #include <set>
 #include <variant>
+#include <Geode/utils/MiniFunction.hpp>
 
 namespace geode {
     struct JsonChecker;

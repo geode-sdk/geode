@@ -2,6 +2,7 @@
 #include <fmt/core.h>
 #include "about.hpp"
 #include "../loader/ModImpl.hpp"
+#include <Geode/Utils.hpp>
 
 using namespace geode::prelude;
 

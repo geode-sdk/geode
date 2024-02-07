@@ -5,7 +5,7 @@ using namespace geode::prelude;
 #include <Geode/utils/cocos.hpp>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/utils/web.hpp>
-#include <ghc/filesystem.hpp>
+#include <ghc/fs_fwd.hpp>
 
 #include <jni.h>
 #include <Geode/cocos/platform/android/jni/JniHelper.h>

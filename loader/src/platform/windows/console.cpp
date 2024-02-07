@@ -1,6 +1,7 @@
 ﻿#include <loader/console.hpp>
 #include <loader/LogImpl.hpp>
 #include <io.h>
+#include <Geode/utils/string.hpp>
 
 using namespace geode::prelude;
 

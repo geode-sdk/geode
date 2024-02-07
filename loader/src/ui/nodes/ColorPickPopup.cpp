@@ -6,6 +6,7 @@
 #include <Geode/utils/cocos.hpp>
 #include <charconv>
 #include <clocale>
+#include <Geode/loader/Mod.hpp>
 
 using namespace geode::prelude;
 

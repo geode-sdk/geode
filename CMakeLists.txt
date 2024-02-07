@@ -1,12 +1,16 @@
 cmake_minimum_required(VERSION 3.25 FATAL_ERROR)
 
+if (MSVC)
+	set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT Embedded)
+	cmake_policy(SET CMP0141 NEW)
+endif()
+
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build libraries static" FORCE)
 
 # Docs flags
 if (GEODE_BUILDING_DOCS)
 	set(GEODE_DISABLE_CLI_CALLS On)
 	set(CMAKE_EXPORT_COMPILE_COMMANDS On)
-	set(GEODE_DISABLE_PRECOMPILED_HEADERS On)
 	set(GEODE_DONT_BUILD_TEST_MODS On)
 endif()
 
@@ -80,19 +84,6 @@ project(geode-sdk VERSION ${GEODE_VERSION} LANGUAGES CXX C)
 
 add_library(${PROJECT_NAME} INTERFACE)
 
-if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-	set(GEODE_ALWAYS_BUILD_CODEGEN ON)
-endif()
-
-if (NOT DEFINED GEODE_DEBUG AND (CMAKE_BUILD_TYPE STREQUAL Debug OR CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo))
-	set(GEODE_DEBUG ON)
-endif()
-
-# define it in command line or your project system
-if (GEODE_DEBUG) 
-	target_compile_definitions(${PROJECT_NAME} INTERFACE -DGEODE_DEBUG)
-endif()
-
 # Rerun CMake on VERSION file change
 set_target_properties(${PROJECT_NAME} PROPERTIES CMAKE_CONFIGURE_DEPENDS VERSION)
 
@@ -124,7 +115,7 @@ if (WIN32)
 	# This allows you to compile in debug mode
 	add_compile_definitions(_HAS_ITERATOR_DEBUGGING=0)
 	add_definitions(-D_HAS_ITERATOR_DEBUGGING=0)
- 	target_link_libraries(${PROJECT_NAME} INTERFACE delayimp)
+	target_link_libraries(${PROJECT_NAME} INTERFACE delayimp)
 endif()
 
 set(MAT_JSON_AS_INTERFACE ON)
@@ -160,18 +151,11 @@ endif()
 
 target_sources(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/entry.cpp)
 
-# Filesystem implementation in a separate target because i couldnt disable pch
 add_library(GeodeFilesystemImpl ${CMAKE_CURRENT_SOURCE_DIR}/FilesystemImpl.cpp)
 target_compile_features(GeodeFilesystemImpl PUBLIC cxx_std_20)
 target_link_libraries(GeodeFilesystemImpl PUBLIC ghc_filesystem)
 
 add_subdirectory(${GEODE_BINDINGS_REPO_PATH} ${CMAKE_BINARY_DIR}/bindings)
-
-if (NOT GEODE_DISABLE_PRECOMPILED_HEADERS)
-	target_precompile_headers(GeodeBindings INTERFACE
-		"${GEODE_LOADER_PATH}/include/Geode/Bindings.hpp"
-	)
-endif()
 
 target_include_directories(GeodeBindings PUBLIC
 	${GEODE_LOADER_PATH}/include
@@ -202,16 +186,9 @@ if (PROJECT_IS_TOP_LEVEL)
 	target_link_libraries(${PROJECT_NAME} INTERFACE geode-loader)
 elseif(EXISTS ${GEODE_PLATFORM_BIN_PATH})
 	target_link_libraries(${PROJECT_NAME} INTERFACE "${GEODE_PLATFORM_BIN_PATH}")
-	if(NOT GEODE_DISABLE_PRECOMPILED_HEADERS)
-		target_precompile_headers(${PROJECT_NAME} INTERFACE
-			"${GEODE_LOADER_PATH}/include/Geode/DefaultInclude.hpp"
-			"${GEODE_LOADER_PATH}/include/Geode/Geode.hpp"
-			# please stop adding modify here its not here because it makes windows compilation take longer than geode 1.0 release date
-		)
-	endif()
 else()
 	message(FATAL_ERROR
-		"No valid loader binary to link to! Install prebuilts with `geode sdk install-binaries`, "
+		"No valid loader binary to link to! Install pre-built binaries with `geode sdk install-binaries`, "
 		"or build Geode from source and add `set(GEODE_LINK_NIGHTLY ON)` to your CMakeLists.txt "
 		"in the line before calling add_subdirectory for Geode."
 	)

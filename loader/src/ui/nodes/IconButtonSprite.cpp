@@ -1,5 +1,6 @@
 #include <Geode/ui/IconButtonSprite.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <cocos-ext.h>
 
 using namespace geode::prelude;
 

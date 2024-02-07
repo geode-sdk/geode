@@ -2,6 +2,8 @@
 #include <Geode/utils/cocos.hpp>
 #include <matjson.hpp>
 #include <charconv>
+#include <Geode/binding/CCTextInputNode.hpp>
+#include <Geode/binding/GameManager.hpp>
 
 using namespace geode::prelude;
 

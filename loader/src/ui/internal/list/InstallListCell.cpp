@@ -7,6 +7,7 @@
 #include <Geode/ui/GeodeUI.hpp>
 #include <loader/LoaderImpl.hpp>
 #include <utility>
+#include <Geode/ui/BasedButtonSprite.hpp>
 #include "../info/DevProfilePopup.hpp"
 
 // InstallListCell

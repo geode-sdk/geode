@@ -1,4 +1,5 @@
 #include <Geode/ui/BasedButton.hpp>
+#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 
 using namespace geode::prelude;
 

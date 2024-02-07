@@ -4,6 +4,8 @@
 #include <Geode/ui/General.hpp>
 #include "../list/ModListCell.hpp"
 #include "../list/ModListLayer.hpp"
+#include <Geode/utils/ranges.hpp>
+#include <Geode/loader/Mod.hpp>
 
 bool DevProfilePopup::setup(std::string const& developer, ModListLayer* list) {
     m_noElasticity = true;

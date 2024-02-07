@@ -4,6 +4,12 @@
 #include <utility>
 #include <queue>
 #include <Geode/utils/ranges.hpp>
+#include <Geode/ui/IconButtonSprite.hpp>
+#include <Geode/loader/Mod.hpp>
+#include <Geode/binding/TableView.hpp>
+#include <Geode/binding/CCContentLayer.hpp>
+#include <Geode/ui/General.hpp>
+#include <Geode/binding/CCMenuItemToggler.hpp>
 
 bool InstallListPopup::setup(IndexItemHandle item, MiniFunction<void(IndexInstallList const&)> callback) {
     m_noElasticity = true;

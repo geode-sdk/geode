@@ -1,4 +1,3 @@
-
 #include <Geode/loader/Log.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/map.hpp>
@@ -12,6 +11,8 @@
 #include <mz_strm_mem.h>
 #include <mz_zip.h>
 #include <internal/FileWatcher.hpp>
+#include <Geode/utils/ranges.hpp>
+#include <Geode/loader/Loader.hpp>
 
 #ifdef GEODE_IS_WINDOWS
 #include <filesystem>

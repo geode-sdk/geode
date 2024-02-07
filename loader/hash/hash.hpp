@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include <ghc/filesystem.hpp>
+#include <ghc/fs_fwd.hpp>
 
 std::string calculateSHA3_256(ghc::filesystem::path const& path);
 

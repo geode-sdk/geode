@@ -319,19 +319,6 @@ if (MSVC)
 	target_link_options(${PROJECT_NAME} PRIVATE /DELAYLOAD:libcocos2d.dll /DELAYLOAD:libExtensions.dll)
 endif()
 
-# Use precompiled headers for faster builds
-if (NOT GEODE_DISABLE_PRECOMPILED_HEADERS)
-	target_precompile_headers(${PROJECT_NAME} PRIVATE
-		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Geode.hpp"
-		# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Utils.hpp"
-		# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Loader.hpp"
-		# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/UI.hpp"
-		# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Bindings.hpp"
-		# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/cocos/include/cocos2d.h"
-		# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/cocos/extensions/cocos-ext.h"
-	)
-endif()
-
 # Create launcher
 if (APPLE)
 	set_target_properties(geode-loader PROPERTIES 

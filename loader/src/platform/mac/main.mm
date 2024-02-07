@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <tulip/TulipHook.hpp>
 #include <array>
-#include <ghc/filesystem.hpp>
+#include <ghc/fs_fwd.hpp>
 #include <Geode/Loader.hpp>
 #include "../../loader/LoaderImpl.hpp"
 #include <thread>

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Geode/ui/Popup.hpp>
+#include <Geode/loader/ModMetadata.hpp>
 
 using namespace geode::prelude;
 

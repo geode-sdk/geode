@@ -14,8 +14,11 @@ using namespace geode::prelude;
 #include <sstream>
 #include <Geode/utils/web.hpp>
 #include <Geode/utils/cocos.hpp>
-
+#include <Geode/loader/Log.hpp>
 #include <filesystem>
+#include <Geode/utils/permission.hpp>
+#include <Geode/utils/ObjcHook.hpp>
+#include <Geode/utils/string.hpp>
 
 bool utils::clipboard::write(std::string const& data) {
     if (!OpenClipboard(nullptr)) return false;
