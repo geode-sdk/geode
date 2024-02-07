@@ -3,13 +3,10 @@ cmake_minimum_required(VERSION 3.25 FATAL_ERROR)
 set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT Embedded)
 cmake_policy(SET CMP0141 NEW)
 
-if ((NOT DEFINED CPM_SOURCE_CACHE) OR (CPM_SOURCE_CACHE STREQUAL ""))
-	message(NOTICE "Not using CPM cache (CPM_SOURCE_CACHE). "
-		"It is recommended to use it to decrease configure times.")
-endif ()
-
 if ((NOT DEFINED CMAKE_C_COMPILER_LAUNCHER) OR (CMAKE_C_COMPILER_LAUNCHER STREQUAL "") OR
-	(NOT DEFINED CMAKE_CXX_COMPILER_LAUNCHER) OR (CMAKE_CXX_COMPILER_LAUNCHER STREQUAL ""))
+	(NOT DEFINED CMAKE_CXX_COMPILER_LAUNCHER) OR (CMAKE_CXX_COMPILER_LAUNCHER STREQUAL "") OR
+	(NOT DEFINED ENV{CMAKE_C_COMPILER_LAUNCHER}) OR (ENV{CMAKE_C_COMPILER_LAUNCHER} STREQUAL "") OR
+	(NOT DEFINED ENV{CMAKE_CXX_COMPILER_LAUNCHER}) OR (ENV{CMAKE_CXX_COMPILER_LAUNCHER} STREQUAL ""))
 	message(NOTICE "Not using a caching compiler (ccache/sccache). "
 		"It is recommended to install one to decrease build times.")
 endif ()
@@ -65,6 +62,11 @@ else()
 endif()
 
 include(cmake/CPM.cmake)
+
+if ((NOT DEFINED CPM_SOURCE_CACHE) OR (CPM_SOURCE_CACHE STREQUAL ""))
+	message(NOTICE "Not using CPM cache (CPM_SOURCE_CACHE). "
+		"It is recommended to use it to decrease configure times.")
+endif ()
 
 # Allow users to have their own copy of bindings that can be overwritten with a CMake option.
 # If the option is not provided, by default just clone bindings with CPM and use that

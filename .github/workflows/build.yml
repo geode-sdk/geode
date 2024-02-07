@@ -10,7 +10,6 @@ on:
 
 env:
   GEODE_CI: ''
-  CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm-cache
 
 jobs:
   build:
@@ -78,6 +77,11 @@ jobs:
     name: Build ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
 
+    env:
+      CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm-cache
+      CMAKE_C_COMPILER_LAUNCHER: ${{ matrix.config.ccache }}
+      CMAKE_CXX_COMPILER_LAUNCHER: ${{ matrix.config.ccache }}
+
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -142,8 +146,6 @@ jobs:
     - name: Configure
       run: >
         cmake -B ${{ github.workspace }}/build
-        -DCMAKE_C_COMPILER_LAUNCHER=${{ matrix.config.ccache }}
-        -DCMAKE_CXX_COMPILER_LAUNCHER=${{ matrix.config.ccache }}
         -DCLI_PATH=${{ github.workspace }}/cli
         ${{ matrix.config.extra_flags }}
 
