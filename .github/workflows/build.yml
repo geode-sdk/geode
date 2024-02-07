@@ -25,6 +25,10 @@ jobs:
             -DCMAKE_BUILD_TYPE=RelWithDebInfo
             -DGEODE_CODEGEN_CMAKE_ARGS="-G Ninja"
             -G Ninja
+          # ccache seems to be slightly better on windows
+          # this is funny because normally you'd wanna use sccache on windows
+          # because ccache wouldn't even work, but here it's exactly the opposite
+          # with ccache being better on windows and sccache on the other platforms
           ccache: 'ccache'
           cli_cmd: ''
           package_cmd: 'makensis -WX -V3 ./installer/windows/installer.nsi'
