@@ -1,5 +1,5 @@
 ﻿#include <Geode/DefaultInclude.hpp>
-#include <Geode/loader/IPC.hpp>
+#include <loader/IPC.hpp>
 #include <Geode/loader/Log.hpp>
 
 using namespace geode::prelude;
