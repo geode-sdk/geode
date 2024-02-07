@@ -155,6 +155,7 @@ static long ZCALLBACK ftell_file_func (voidpf opaque, voidpf stream)
     #define ftello(a) ftell(a)
     #define fseeko(a, b, c) fseek(a, b, c)
 #endif
+#include <stdio.h>
 
 static ZPOS64_T ZCALLBACK ftell64_file_func (voidpf opaque, voidpf stream)
 {

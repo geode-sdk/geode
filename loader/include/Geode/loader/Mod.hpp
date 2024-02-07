@@ -9,6 +9,7 @@
 #include "ModMetadata.hpp"
 #include "Setting.hpp"
 #include "Types.hpp"
+#include "Loader.hpp"
 
 #include <matjson.hpp>
 #include <optional>
