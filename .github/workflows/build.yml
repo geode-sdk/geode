@@ -22,8 +22,9 @@ jobs:
           id: win
           cli_id: win
           extra_flags: >
-            -G Ninja
             -DCMAKE_BUILD_TYPE=RelWithDebInfo
+            -DGEODE_CODEGEN_CMAKE_ARGS="-G Ninja"
+            -G Ninja
           ccache: 'sccache'
           cli_cmd: ''
           package_cmd: 'makensis -WX -V3 ./installer/windows/installer.nsi'
