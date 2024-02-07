@@ -18,7 +18,8 @@ ModMetadata::Impl& ModMetadataImpl::getImpl(ModMetadata& info)  {
 }
 
 bool ModMetadata::Dependency::isResolved() const {
-    return this->importance != Importance::Required ||
+    return
+        this->importance != Importance::Required ||
         this->mod && this->mod->isEnabled() && this->version.compare(this->mod->getVersion());
 }
 
@@ -138,6 +139,16 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
 
     for (auto& dep : root.has("dependencies").iterate()) {
         auto obj = dep.obj();
+
+        bool onThisPlatform = !obj.has("platforms");
+        for (auto& plat : obj.has("platforms").iterate()) {
+            if (PlatformID::from(plat.get<std::string>()) == GEODE_PLATFORM_TARGET) {
+                onThisPlatform = true;
+            }
+        }
+        if (!onThisPlatform) {
+            continue;
+        }
 
         Dependency dependency;
         obj.needs("id").validate(MiniFunction<bool(std::string const&)>(&ModMetadata::validateID)).into(dependency.id);
