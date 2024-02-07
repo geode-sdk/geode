@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 3.25 FATAL_ERROR)
 
-set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT Embedded)
-cmake_policy(SET CMP0141 NEW)
-
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build libraries static" FORCE)
 
 # Docs flags
@@ -127,6 +124,7 @@ if (WIN32)
 	# This allows you to compile in debug mode
 	add_compile_definitions(_HAS_ITERATOR_DEBUGGING=0)
 	add_definitions(-D_HAS_ITERATOR_DEBUGGING=0)
+ 	target_link_libraries(${PROJECT_NAME} INTERFACE delayimp)
 endif()
 
 set(MAT_JSON_AS_INTERFACE ON)
@@ -183,7 +181,7 @@ target_include_directories(GeodeBindings PUBLIC
 )
 target_link_directories(GeodeBindings PUBLIC ${GEODE_LOADER_PATH}/include/link)
 target_link_libraries(GeodeBindings PUBLIC ghc_filesystem fmt TulipHookInclude mat-json GeodeFilesystemImpl)
-target_link_libraries(${PROJECT_NAME} INTERFACE GeodeBindings delayimp)
+target_link_libraries(${PROJECT_NAME} INTERFACE GeodeBindings)
 
 if (NOT EXISTS ${GEODE_BIN_PATH})
 	file(MAKE_DIRECTORY ${GEODE_BIN_PATH})
