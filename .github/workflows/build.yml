@@ -141,13 +141,11 @@ jobs:
         cmake --build . --config RelWithDebInfo --parallel
         rm ${{ github.workspace }}/bin/nightly/resources/.geode_cache
 
-    - name: Dump Symbols
-      run: "${{ steps.breakpad-tools.outputs.binary-path }} ./bin/nightly/Geode.${{ matrix.config.id }}.so -o ./bin/nightly/Geode.${{ matrix.config.id }}.so.sym"
-      if: matrix.config.id == 'android32' || matrix.config.id == 'android64'
-
     # hardcoding toolchain path :(
-    - name: Strip Binaries
-      run: "$NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip ./bin/nightly/Geode.${{ matrix.config.id }}.so"
+    - name: Post Build
+      run: |
+        ${{ steps.breakpad-tools.outputs.binary-path }} ./bin/nightly/Geode.${{ matrix.config.id }}.so -o ./bin/nightly/Geode.${{ matrix.config.id }}.so.sym
+        $NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip ./bin/nightly/Geode.${{ matrix.config.id }}.so
       if: matrix.config.id == 'android32' || matrix.config.id == 'android64'
 
     - name: Upload Artifacts
@@ -240,4 +238,3 @@ jobs:
             ./geode-${{ steps.ref.outputs.hash }}-android32.zip
             ./geode-${{ steps.ref.outputs.hash }}-android64.zip
             ./resources.zip
-
