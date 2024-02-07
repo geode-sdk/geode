@@ -22,13 +22,13 @@ jobs:
           os: windows-latest
           id: win
           cli_id: win
-          extra_flags: -T host=x64 -A win32 -DCMAKE_BUILD_TYPE=RelWithDebInfo
+          #extra_flags: -T host=x64 -A win32 -DCMAKE_BUILD_TYPE=RelWithDebInfo
           # uncomment to use vs clang-cl and ninja
-          #extra_flags: >
-          #  --no-warn-unused-cli
+          extra_flags: >
+            --no-warn-unused-cli
           #  "-DCMAKE_C_COMPILER:FILEPATH=$env:VCINSTALLDIR\Tools\Llvm\bin\clang-cl.exe"
           #  "-DCMAKE_CXX_COMPILER:FILEPATH=$env:VCINSTALLDIR\Tools\Llvm\bin\clang-cl.exe"
-          #  -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
+            -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
           cli_cmd: ''
           package_cmd: 'makensis -WX -V3 ./installer/windows/installer.nsi'
           installer_path: './installer/windows/geode-installer-win.exe'
