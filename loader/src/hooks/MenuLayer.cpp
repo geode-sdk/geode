@@ -92,6 +92,8 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 
             bottomMenu->updateLayout();
 
+            this->fixSocialMenu();
+
             if (auto node = this->getChildByID("settings-gamepad-icon")) {
                 node->setPositionX(
                     bottomMenu->getChildByID("settings-button")->getPositionX() + winSize.width / 2
@@ -189,6 +191,64 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         this->addUpdateIndicator();
     
         return true;
+    }
+
+    void fixSocialMenu() {
+        // I did NOT have fun doing this
+        auto socialMenu = static_cast<CCMenu*>(this->getChildByID("social-media-menu"));
+        socialMenu->ignoreAnchorPointForPosition(false);
+        socialMenu->setAnchorPoint({0.0f, 0.0f});
+        socialMenu->setPosition({13.f, 13.f});
+
+        auto robtopButton = static_cast<CCMenuItemSpriteExtra*>(socialMenu->getChildByID("robtop-logo-button"));
+        robtopButton->setPosition(robtopButton->getScaledContentSize() / 2);
+
+        float horizontalGap = 3.5f;
+        float verticalGap = 5.0f;
+        auto facebookButton = static_cast<CCMenuItemSpriteExtra*>(socialMenu->getChildByID("facebook-button"));
+        facebookButton->setPosition({ 
+            facebookButton->getScaledContentSize().width / 2,
+            robtopButton->getScaledContentSize().height + verticalGap + facebookButton->getScaledContentSize().height / 2
+        });
+
+        auto twitterButton = static_cast<CCMenuItemSpriteExtra*>(socialMenu->getChildByID("twitter-button"));
+        twitterButton->setPosition({
+            facebookButton->getScaledContentSize().width + horizontalGap + twitterButton->getScaledContentSize().width / 2,
+            robtopButton->getScaledContentSize().height + verticalGap + twitterButton->getScaledContentSize().height / 2
+        });
+
+        auto youtubeButton = static_cast<CCMenuItemSpriteExtra*>(socialMenu->getChildByID("youtube-button"));
+        youtubeButton->setPosition({
+            twitterButton->getPositionX() + twitterButton->getScaledContentSize().width / 2 + horizontalGap + youtubeButton->getScaledContentSize().width / 2,
+            robtopButton->getScaledContentSize().height + verticalGap + youtubeButton->getScaledContentSize().height / 2
+        });
+
+        auto twitchButton = static_cast<CCMenuItemSpriteExtra*>(socialMenu->getChildByID("twitch-button"));
+        twitchButton->setPosition({
+            youtubeButton->getPositionX() + youtubeButton->getScaledContentSize().width / 2 + horizontalGap + twitchButton->getScaledContentSize().width / 2,
+            robtopButton->getScaledContentSize().height + verticalGap + twitchButton->getScaledContentSize().height / 2
+        });
+
+        auto discordButton = static_cast<CCMenuItemSpriteExtra*>(socialMenu->getChildByID("discord-button"));
+        discordButton->setPosition({
+            twitchButton->getPositionX(),
+            discordButton->getScaledContentSize().height / 2
+        });
+
+        socialMenu->setContentSize({
+            discordButton->getPositionX() + discordButton->getScaledContentSize().width / 2,
+            facebookButton->getPositionY() + facebookButton->getScaledContentSize().height / 2
+        });
+
+        auto bottomMenu = static_cast<CCMenu*>(this->getChildByID("bottom-menu"));
+        float spacing = 5.0f;
+        float buttonMenuLeftMargin = bottomMenu->getPositionX() - bottomMenu->getScaledContentSize().width * bottomMenu->getAnchorPoint().x;
+        float overlap = (socialMenu->getPositionX() + socialMenu->getScaledContentSize().width) - buttonMenuLeftMargin + spacing;
+        if (overlap > 0) {
+            float neededContentSize = buttonMenuLeftMargin - spacing - socialMenu->getPositionX();
+            float neededSize = neededContentSize * socialMenu->getScale() / socialMenu->getScaledContentSize().width;
+            socialMenu->setScale(neededSize);
+        }
     }
 
     void onIndexUpdate(IndexUpdateEvent* event) {
