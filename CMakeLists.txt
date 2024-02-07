@@ -1,4 +1,7 @@
-cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.25 FATAL_ERROR)
+
+set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT Embedded)
+cmake_policy(SET CMP0141 NEW)
 
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build libraries static" FORCE)
 
@@ -180,7 +183,7 @@ target_include_directories(GeodeBindings PUBLIC
 )
 target_link_directories(GeodeBindings PUBLIC ${GEODE_LOADER_PATH}/include/link)
 target_link_libraries(GeodeBindings PUBLIC ghc_filesystem fmt TulipHookInclude mat-json GeodeFilesystemImpl)
-target_link_libraries(${PROJECT_NAME} INTERFACE GeodeBindings)
+target_link_libraries(${PROJECT_NAME} INTERFACE GeodeBindings delayimp)
 
 if (NOT EXISTS ${GEODE_BIN_PATH})
 	file(MAKE_DIRECTORY ${GEODE_BIN_PATH})
