@@ -359,7 +359,10 @@ void Loader::Impl::buildModGraph() {
                 continue;
             }
 
-            if (dependency.importance != ModMetadata::Dependency::Importance::Required || dependency.mod == nullptr)
+            if (
+                dependency.importance != ModMetadata::Dependency::Importance::Required ||
+                dependency.mod == nullptr
+            )
                 continue;
 
             dependency.mod->m_impl->m_dependants.push_back(mod);
