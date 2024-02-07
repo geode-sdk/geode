@@ -114,6 +114,11 @@ jobs:
         arch: amd64_x86
       if: matrix.config.id == 'win'
 
+    - name: Install Ninja
+      run: |
+        sudo apt install ninja-build
+      if: matrix.config.id == 'android32' || matrix.config.id == 'android64'
+
     - name: Download CLI
       uses: robinraju/release-downloader@v1.9
       with:
@@ -123,11 +128,6 @@ jobs:
         tarBall: false
         zipBall: false
         out-file-path: "cli"
-
-    - name: Install Ninja
-      run: |
-        sudo apt install ninja-build
-      if: matrix.config.id == 'android32' || matrix.config.id == 'android64'
 
     - name: Setup CLI
       run: |
