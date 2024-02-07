@@ -13,6 +13,7 @@ using namespace geode::prelude;
 #include <Geode/loader/Loader.hpp>
 #include <Geode/binding/AppDelegate.hpp>
 #include <Geode/loader/Log.hpp>
+#include <Geode/binding/MenuLayer.hpp>
 
 #include <jni.h>
 #include <Geode/cocos/platform/android/jni/JniHelper.h>
