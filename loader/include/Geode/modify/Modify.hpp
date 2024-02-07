@@ -237,3 +237,10 @@ namespace geode {
 #define GEODE_CRTP2(derived, base) GEODE_MODIFY_REDIRECT4(base, derived)
 #define $modify(...) \
     GEODE_INVOKE(GEODE_CONCAT(GEODE_CRTP, GEODE_NUMBER_OF_ARGS(__VA_ARGS__)), __VA_ARGS__)
+
+/** 
+ * This function is meant to hook / override a GD function in a Modified class. 
+ * **This is merely an annotation for clarity** - while there may be linters that 
+ * check for it, it is not required
+ */
+#define $override
