@@ -86,8 +86,9 @@ jobs:
       with:
         submodules: recursive
 
+    # https://github.com/hendrikmuhs/ccache-action/pull/182
     - name: Setup ${{ matrix.config.ccache }}
-      uses: hendrikmuhs/ccache-action@v1
+      uses: chirag-droid/ccache-action@main
       with:
         key: ${{ matrix.config.id }}-v1
         variant: ${{ matrix.config.ccache }}
