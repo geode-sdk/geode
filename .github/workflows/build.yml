@@ -77,6 +77,12 @@ jobs:
     name: Build ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
 
+    env:
+      CLI_PATH: ${{ github.workspace }}/cli
+      CPM_SOURCE_CACHE: ${{ github.action_path }}/cpm-cache
+      CMAKE_C_COMPILER_LAUNCHER: ${{ matrix.config.ccache }}
+      CMAKE_CXX_COMPILER_LAUNCHER: ${{ matrix.config.ccache }}
+
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -123,17 +129,10 @@ jobs:
           cpm-${{ matrix.config.id }}-v1-
 
     - name: Setup CLI and Cache
-      env:
-        CLI_PATH: ${{ github.workspace }}/cli
-        CPM_SOURCE_CACHE: ${{ github.action_path }}/cpm-cache
-        COMPILER_LAUNCHER: ${{ matrix.config.ccache }}
       run: |
-        7z x "${{ github.workspace }}/cli/*-${{ matrix.config.cli_id }}.zip" -o"${{ github.workspace }}/cli"
+        7z x "$CLI_PATH/*-${{ matrix.config.cli_id }}.zip" -o"${{ github.workspace }}/cli"
         ${{ matrix.config.cli_cmd }}
         echo "$CLI_PATH" >> $GITHUB_PATH
-        echo "CPM_SOURCE_CACHE=$CPM_SOURCE_CACHE" >> $GITHUB_ENV
-        echo "CMAKE_C_COMPILER_LAUNCHER=$COMPILER_LAUNCHER" >> $GITHUB_ENV
-        echo "CMAKE_CXX_COMPILER_LAUNCHER=$COMPILER_LAUNCHER" >> $GITHUB_ENV
 
     - name: Setup Android Env
       run: |
