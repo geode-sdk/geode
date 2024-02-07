@@ -95,6 +95,14 @@ jobs:
         variant: ${{ matrix.config.ccache }}
         key: ${{ matrix.config.ccache }}-${{ matrix.config.id }}-v1
 
+    - name: Setup CPM Cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ github.workspace }}/cpm-cache
+        key: cpm-${{ matrix.config.id }}-v1-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+        restore-keys: |
+          cpm-${{ matrix.config.id }}-v1-
+
     - name: Setup MSVC
       uses: ilammy/msvc-dev-cmd@v1
       with:
@@ -119,15 +127,7 @@ jobs:
         zipBall: false
         out-file-path: "cli"
 
-    - name: Setup Cache
-      uses: actions/cache@v4
-      with:
-        path: ${{ github.workspace }}/cpm-cache
-        key: cpm-${{ matrix.config.id }}-v1-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
-        restore-keys: |
-          cpm-${{ matrix.config.id }}-v1-
-
-    - name: Setup CLI and Cache
+    - name: Setup CLI
       run: |
         7z x "${{ github.workspace }}/cli/*-${{ matrix.config.cli_id }}.zip" -o"${{ github.workspace }}/cli"
         ${{ matrix.config.cli_cmd }}
