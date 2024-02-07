@@ -124,6 +124,11 @@ jobs:
         zipBall: false
         out-file-path: "cli"
 
+    - name: Install Ninja
+      run: |
+        sudo apt install ninja-build
+      if: matrix.config.id == 'android32' || matrix.config.id == 'android64'
+
     - name: Setup CLI
       run: |
         7z x "${{ github.workspace }}/cli/*-${{ matrix.config.cli_id }}.zip" -o"${{ github.workspace }}/cli"
