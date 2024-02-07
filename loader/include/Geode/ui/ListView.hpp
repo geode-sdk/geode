@@ -2,6 +2,7 @@
 
 #include <Geode/binding/CustomListView.hpp>
 #include <Geode/binding/TableViewCell.hpp>
+#include <Geode/binding/CCIndexPath.hpp>
 
 namespace geode {
     class GEODE_DLL GenericListCell : public TableViewCell {
