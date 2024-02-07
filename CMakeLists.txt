@@ -4,13 +4,13 @@ set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT Embedded)
 cmake_policy(SET CMP0141 NEW)
 
 if (NOT DEFINED CPM_SOURCE_CACHE OR CPM_SOURCE_CACHE STREQUAL "")
-	message(NOTICE "Not using CPM cache (CPM_SOURCE_CACHE)."
+	message(NOTICE "Not using CPM cache (CPM_SOURCE_CACHE). "
 		"It is recommended to use it to increase configure times.")
 endif ()
 
 if (NOT DEFINED CMAKE_C_COMPILER_LAUNCHER OR CMAKE_C_COMPILER_LAUNCHER STREQUAL "" OR
 	NOT DEFINED CMAKE_CXX_COMPILER_LAUNCHER OR CMAKE_CXX_COMPILER_LAUNCHER STREQUAL "")
-	message(NOTICE "Not using a caching compiler (ccache/sccache)."
+	message(NOTICE "Not using a caching compiler (ccache/sccache). "
 		"It is recommended to install one to increase build times.")
 endif ()
 
