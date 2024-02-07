@@ -54,7 +54,7 @@ jobs:
           id: android32
           cli_id: linux
           extra_flags: >
-            -DCMAKE_TOOLCHAIN_FILE=$NDK_HOME/build/cmake/android.toolchain.cmake
+            -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake
             -DANDROID_ABI=armeabi-v7a
             -DANDROID_PLATFORM=android-23
             -DGEODE_DONT_BUILD_TEST_MODS=1
@@ -69,7 +69,7 @@ jobs:
           id: android64
           cli_id: linux
           extra_flags: >
-            -DCMAKE_TOOLCHAIN_FILE=$NDK_HOME/build/cmake/android.toolchain.cmake
+            -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake
             -DANDROID_ABI=arm64-v8a
             -DANDROID_PLATFORM=android-23
             -DGEODE_DONT_BUILD_TEST_MODS=1
@@ -114,14 +114,6 @@ jobs:
         arch: amd64_x86
       if: matrix.config.id == 'win'
 
-    - name: Setup NDK
-      uses: nttld/setup-ndk@v1
-      id: setup-ndk
-      with:
-        ndk-version: r26b
-        add-to-path: false
-      if: matrix.config.id == 'android32' || matrix.config.id == 'android64'
-
     - name: Download CLI
       uses: robinraju/release-downloader@v1.9
       with:
@@ -136,12 +128,6 @@ jobs:
       run: |
         7z x "${{ github.workspace }}/cli/*-${{ matrix.config.cli_id }}.zip" -o"${{ github.workspace }}/cli"
         ${{ matrix.config.cli_cmd }}
-
-    - name: Setup Android Env
-      run: |
-        echo "NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> "$GITHUB_ENV"
-        sudo apt install ninja-build
-      if: matrix.config.id == 'android32' || matrix.config.id == 'android64'
 
     - name: Setup Breakpad Tools
       uses: ./.github/actions/setup-dump-sym
@@ -164,7 +150,7 @@ jobs:
     - name: Post Build
       run: |
         ${{ steps.breakpad-tools.outputs.binary-path }} ./bin/nightly/Geode.${{ matrix.config.id }}.so -o ./bin/nightly/Geode.${{ matrix.config.id }}.so.sym
-        $NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip ./bin/nightly/Geode.${{ matrix.config.id }}.so
+        $ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip ./bin/nightly/Geode.${{ matrix.config.id }}.so
       if: matrix.config.id == 'android32' || matrix.config.id == 'android64'
 
     - name: Upload Artifacts
