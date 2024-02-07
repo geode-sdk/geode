@@ -88,7 +88,6 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             );
             btn->setID("geode-button"_spr);
             bottomMenu->addChild(btn);
-            bottomMenu->setContentSize({ winSize.width / 2, bottomMenu->getScaledContentSize().height });
 
             bottomMenu->updateLayout();
 
