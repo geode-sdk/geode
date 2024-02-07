@@ -93,7 +93,7 @@ jobs:
       uses: chirag-droid/ccache-action@main
       with:
         variant: ${{ matrix.config.ccache }}
-        key: ${{ matrix.config.ccache }}-${{ matrix.config.id }}-v1
+        key: ${{ matrix.config.id }}-v1
 
     - name: Setup CPM Cache
       uses: actions/cache@v4
