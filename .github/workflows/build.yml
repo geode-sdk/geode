@@ -22,7 +22,6 @@ jobs:
           os: windows-latest
           id: win
           cli_id: win
-          #extra_flags: -T host=x64 -A win32 -DCMAKE_BUILD_TYPE=RelWithDebInfo
           extra_flags: >
             -G Ninja
             -DCMAKE_BUILD_TYPE=RelWithDebInfo
@@ -37,6 +36,8 @@ jobs:
           extra_flags: >
             -DCMAKE_C_COMPILER=clang
             -DCMAKE_CXX_COMPILER=clang++
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
             -DCMAKE_BUILD_TYPE=RelWithDebInfo
             -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
             -DGEODE_DONT_BUILD_TEST_MODS=1
@@ -71,14 +72,13 @@ jobs:
           cli_cmd: 'chmod +x $GITHUB_WORKSPACE/cli/geode'
           package_cmd: ''
           installer_path: ''
-          
 
     name: Build ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         submodules: recursive
 
@@ -89,7 +89,7 @@ jobs:
     #  if: matrix.config.id != 'win'
 
     - name: Setup MSVC
-      uses: ilammy/msvc-dev-cmd@v1.12.1
+      uses: ilammy/msvc-dev-cmd@v1
       with:
         arch: amd64_x86
       if: matrix.config.id == 'win'
@@ -103,7 +103,7 @@ jobs:
       if: matrix.config.id == 'android32' || matrix.config.id == 'android64'
 
     - name: Download CLI
-      uses: robinraju/release-downloader@v1.8
+      uses: robinraju/release-downloader@v1.9
       with:
         repository: geode-sdk/cli
         latest: true
@@ -151,7 +151,7 @@ jobs:
       if: matrix.config.id == 'android32' || matrix.config.id == 'android64'
 
     - name: Upload Artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: geode-${{ matrix.config.id }}
         path: ./bin/nightly
@@ -161,7 +161,7 @@ jobs:
       if: matrix.config.installer_path != ''
 
     - name: Upload Installer
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: geode-installer-${{ matrix.config.id }}
         path: ${{ matrix.config.installer_path }}
@@ -174,7 +174,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Declare Version Variables
         id: ref
@@ -184,7 +184,7 @@ jobs:
           echo "hash=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_OUTPUT
 
       - name: Download Artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: ${{ github.workspace }}
 
