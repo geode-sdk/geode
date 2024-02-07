@@ -84,11 +84,11 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Setup ccache
-      uses: hendrikmuhs/ccache-action@v1
-      with:
-        key: ${{ matrix.config.os }}
-      if: matrix.config.id != 'win'
+    #- name: Setup ccache
+    #  uses: hendrikmuhs/ccache-action@v1
+    #  with:
+    #    key: ${{ matrix.config.os }}
+    #  if: matrix.config.id != 'win'
 
     - name: Setup MSVC
       uses: ilammy/msvc-dev-cmd@v1.12.1
