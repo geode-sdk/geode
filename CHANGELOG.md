@@ -3,6 +3,7 @@
 ## v2.0.0-beta.16
  * Bump minimum CMake version to 3.25
  * Add support for platform-specific dependencies (30c7d3f)
+ * Adjust content size for the bottom menu in MenuLayer to prevent overlaps
 
 ## v2.0.0-beta.15
  * Add `!` for problem mods to crashlog (5c45725)
