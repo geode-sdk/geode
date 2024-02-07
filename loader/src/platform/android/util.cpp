@@ -6,6 +6,10 @@ using namespace geode::prelude;
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/utils/web.hpp>
 #include <ghc/fs_fwd.hpp>
+#include <Geode/utils/file.hpp>
+#include <Geode/utils/general.hpp>
+#include <Geode/utils/MiniFunction.hpp>
+#include <Geode/utils/permission.hpp>
 
 #include <jni.h>
 #include <Geode/cocos/platform/android/jni/JniHelper.h>
