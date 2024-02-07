@@ -10,7 +10,6 @@ on:
 
 env:
   GEODE_CI: ''
-  CCACHE_ACTION_CI: true
 
 jobs:
   build:
@@ -37,8 +36,6 @@ jobs:
           extra_flags: >
             -DCMAKE_C_COMPILER=clang
             -DCMAKE_CXX_COMPILER=clang++
-            -DCMAKE_C_COMPILER_LAUNCHER=ccache
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
             -DCMAKE_BUILD_TYPE=RelWithDebInfo
             -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
             -DGEODE_DONT_BUILD_TEST_MODS=1
@@ -90,8 +87,8 @@ jobs:
     - name: Setup ${{ matrix.config.ccache }}
       uses: chirag-droid/ccache-action@main
       with:
-        key: ${{ matrix.config.id }}-v1
         variant: ${{ matrix.config.ccache }}
+        key: ${{ matrix.config.ccache }}-${{ matrix.config.id }}-v1
 
     - name: Setup MSVC
       uses: ilammy/msvc-dev-cmd@v1
@@ -117,11 +114,22 @@ jobs:
         zipBall: false
         out-file-path: "cli"
 
-    - name: Setup CLI
+    - name: Setup Cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ github.action_path }}/cpm-cache
+        key: cpm-${{ matrix.config.id }}-v1-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+        restore-keys: |
+          cpm-${{ matrix.config.id }}-v1-
+
+    - name: Setup CLI and Cache
       run: |
         7z x "${{ github.workspace }}/cli/*-${{ matrix.config.cli_id }}.zip" -o"${{ github.workspace }}/cli"
         ${{ matrix.config.cli_cmd }}
         echo "${{ github.workspace }}/cli" >> $GITHUB_PATH
+        echo "CPM_SOURCE_CACHE=${{ github.action_path }}/cpm-cache" >> $GITHUB_ENV
+        echo "CMAKE_C_COMPILER_LAUNCHER=${{ matrix.config.ccache }}" >> $GITHUB_ENV
+        echo "CMAKE_CXX_COMPILER_LAUNCHER=${{ matrix.config.ccache }}" >> $GITHUB_ENV
 
     - name: Setup Android Env
       run: |
@@ -137,8 +145,6 @@ jobs:
     - name: Configure
       run: >
         cmake -B ${{ github.workspace }}/build
-        -DCMAKE_C_COMPILER_LAUNCHER=${{ matrix.config.ccache }}
-        -DCMAKE_CXX_COMPILER_LAUNCHER=${{ matrix.config.ccache }}
         -DCLI_PATH="${{ github.workspace }}/cli"
         ${{ matrix.config.extra_flags }}
 
