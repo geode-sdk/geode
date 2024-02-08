@@ -3,15 +3,29 @@ cmake_minimum_required(VERSION 3.25 FATAL_ERROR)
 set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT Embedded)
 cmake_policy(SET CMP0141 NEW)
 
-if (CMAKE_C_COMPILER_LAUNCHER STREQUAL "" AND ENV{CMAKE_C_COMPILER_LAUNCHER} STREQUAL "" OR
-	CMAKE_CXX_COMPILER_LAUNCHER STREQUAL "" AND ENV{CMAKE_CXX_COMPILER_LAUNCHER} STREQUAL "")
-	message(NOTICE "Not using a caching compiler (ccache/sccache). "
-		"It is recommended to install one to decrease build times.")
-endif ()
+if (NOT DEFINED CMAKE_C_COMPILER_LAUNCHER AND NOT DEFINED ENV{CMAKE_C_COMPILER_LAUNCHER} OR
+	NOT DEFINED CMAKE_CXX_COMPILER_LAUNCHER AND NOT DEFINED ENV{CMAKE_CXX_COMPILER_LAUNCHER})
+	message(STATUS "Looking for ccache/sccache")
+	find_program(GEODE_CCACHE NAMES sccache ccache)
+	if (DEFINED GEODE_CCACHE-NOTFOUND)
+		message(STATUS "Looking for ccache/sccache - not found")
+		message(NOTICE "Not using a caching compiler (ccache/sccache). "
+			"It is recommended to install one to improve build times.")
+		message(NOTICE "Recommended ccache on Windows and sccache on other platforms, "
+			"check ccache/sccache's README for installation instructions, "
+			"normally you can just use your usual package manager (e.g. 'scoop install ccache').")
+	else()
+		message(STATUS "Looking for ccache/sccache - found")
+		message(NOTICE "Compiler launcher not set but ccache/sccache was found. "
+			"Setting compiler launcher to that")
+		set(CMAKE_C_COMPILER_LAUNCHER ${GEODE_CCACHE})
+		set(CMAKE_CXX_COMPILER_LAUNCHER ${GEODE_CCACHE})
+	endif()
+endif()
 
 if (DEFINED ENV{GEODE_CI})
 	message(STATUS "Building in CI")
-endif ()
+endif()
 
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build libraries static" FORCE)
 
@@ -61,10 +75,10 @@ endif()
 
 include(cmake/CPM.cmake)
 
-if ((NOT DEFINED CPM_SOURCE_CACHE) OR (CPM_SOURCE_CACHE STREQUAL ""))
+if (NOT DEFINED CPM_SOURCE_CACHE)
 	message(NOTICE "Not using CPM cache (CPM_SOURCE_CACHE). "
-		"It is recommended to use it to decrease configure times.")
-endif ()
+		"It is recommended to use it to improve configure times.")
+endif()
 
 # Allow users to have their own copy of bindings that can be overwritten with a CMake option.
 # If the option is not provided, by default just clone bindings with CPM and use that
