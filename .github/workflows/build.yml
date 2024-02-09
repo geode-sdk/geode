@@ -28,7 +28,7 @@ jobs:
             -DGEODE_CODEGEN_CMAKE_ARGS="-DCMAKE_C_COMPILER=clang;-DCMAKE_CXX_COMPILER=clang++;-G Ninja"
             -G Ninja
           cli_cmd: ''
-          ninja_cmd: 'choco install ninja'
+          ninja_cmd: 'pip install ninja'
           package_cmd: 'makensis -WX -V3 ./installer/windows/installer.nsi'
           installer_path: './installer/windows/geode-installer-win.exe'
 
@@ -87,15 +87,13 @@ jobs:
 
     steps:
     - name: Update LLVM
-      run: 'choco upgrade llvm'
+      uses: KyleMayes/install-llvm-action@v1.9.0
+      with:
+        version: '17'
       if: matrix.config.id == 'win'
 
     - name: clang version
-      run: |
-        Measure-Command { clang --version }
-        Measure-Command { clang --version }
-        Measure-Command { clang++ --version }
-        Measure-Command { clang++ --version }
+      run: 'clang --version'
 
     - name: Checkout
       uses: actions/checkout@v4
