@@ -7,7 +7,7 @@ if (NOT DEFINED CMAKE_C_COMPILER_LAUNCHER AND NOT DEFINED ENV{CMAKE_C_COMPILER_L
 	NOT DEFINED CMAKE_CXX_COMPILER_LAUNCHER AND NOT DEFINED ENV{CMAKE_CXX_COMPILER_LAUNCHER})
 	message(STATUS "Looking for ccache/sccache")
 	find_program(GEODE_CCACHE NAMES sccache ccache)
-	if (GEODE_CCACHE EQUALS "GEODE_CCACHE-NOTFOUND")
+	if (GEODE_CCACHE EQUAL "GEODE_CCACHE-NOTFOUND")
 		message(STATUS "Looking for ccache/sccache - not found")
 		message(NOTICE "Not using a caching compiler (ccache/sccache). "
 			"It is recommended to install one to improve build times.")
