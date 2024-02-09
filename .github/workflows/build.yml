@@ -22,6 +22,8 @@ jobs:
           id: win
           cli_id: win
           extra_flags: >
+            -DCMAKE_C_COMPILER=clang
+            -DCMAKE_CXX_COMPILER=clang++
             -DCMAKE_BUILD_TYPE=RelWithDebInfo
             -DGEODE_CODEGEN_CMAKE_ARGS="-G Ninja"
             -G Ninja
@@ -99,12 +101,6 @@ jobs:
         key: cpm-${{ matrix.config.id }}-v1-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
         restore-keys: |
           cpm-${{ matrix.config.id }}-v1-
-
-    - name: Setup MSVC
-      uses: ilammy/msvc-dev-cmd@v1
-      with:
-        arch: amd64_x86
-      if: matrix.config.id == 'win'
 
     - name: Install Ninja
       run: |
