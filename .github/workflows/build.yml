@@ -82,8 +82,8 @@ jobs:
 
     env:
       CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm-cache
-      CMAKE_C_COMPILER_LAUNCHER: sccache
-      CMAKE_CXX_COMPILER_LAUNCHER: sccache
+    #  CMAKE_C_COMPILER_LAUNCHER: sccache
+    #  CMAKE_CXX_COMPILER_LAUNCHER: sccache
 
     steps:
     - name: Update LLVM
