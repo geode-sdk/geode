@@ -117,7 +117,7 @@ jobs:
       run: |
         iwr https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/LLVM-17.0.6-win64.exe -OutFile llvm-inst.exe
         7z x llvm-inst.exe -o"${{ github.workspace }}\llvm" bin/clang.exe bin/clang++.exe bin/lld-link.exe bin/*.dll
-        "${{ github.workspace }}\llvm`r`n" + (Get-Content $env:GITHUB_PATH -Encoding utf8 -Raw) | Set-Content $env:GITHUB_PATH -Encoding utf8
+        echo "${{ github.workspace }}\llvm\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       if: matrix.config.id == 'win'
 
     - name: Download CLI
