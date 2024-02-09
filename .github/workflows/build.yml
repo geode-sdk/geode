@@ -86,13 +86,6 @@ jobs:
       CMAKE_CXX_COMPILER_LAUNCHER: sccache
 
     steps:
-    - name: clang version
-      run: |
-        Measure-Command { clang --version }
-        Measure-Command { clang --version }
-        Measure-Command { clang++ --version }
-        Measure-Command { clang++ --version }
-
     - name: Checkout
       uses: actions/checkout@v4
       with:
@@ -116,6 +109,13 @@ jobs:
     - name: Install Ninja
       run: ${{ matrix.config.ninja_cmd }}
       if: matrix.config.ninja_cmd != ''
+
+    - name: clang version
+      run: |
+        Measure-Command { clang --version }
+        Measure-Command { clang --version }
+        Measure-Command { clang++ --version }
+        Measure-Command { clang++ --version }
 
     - name: Download CLI
       uses: robinraju/release-downloader@v1.9
