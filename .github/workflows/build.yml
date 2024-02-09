@@ -31,7 +31,7 @@ jobs:
           ninja_cmd: |
             iwr https://github.com/ninja-build/ninja/releases/latest/download/ninja-win.zip -OutFile ninja.zip
             7z x ninja.zip -o$env:GITHUB_WORKSPACE/ninja
-            echo "$env:GITHUB_WORKSPACE/ninja" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+            $env:GITHUB_PATH += "$env:GITHUB_WORKSPACE/ninja"
           package_cmd: 'makensis -WX -V3 ./installer/windows/installer.nsi'
           installer_path: './installer/windows/geode-installer-win.exe'
 
