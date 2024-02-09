@@ -116,7 +116,7 @@ jobs:
     - name: Update LLVM
       run: |
         iwr https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/LLVM-17.0.6-win64.exe -OutFile llvm-inst.exe
-        7z x llvm-inst.exe -o"C:/Program Files/LLVM" -y
+        7z x llvm-inst.exe -o"C:/Program Files/LLVM" clang.exe clang++.exe *lld.exe lld-link.exe *.dll -y
       if: matrix.config.id == 'win'
 
     - name: Download CLI
