@@ -29,7 +29,7 @@ jobs:
           # this is funny because normally you'd wanna use sccache on windows
           # because ccache wouldn't even work, but here it's exactly the opposite
           # with ccache being better on windows and sccache on the other platforms
-          ccache: 'ccache'
+          ccache: 'sccache'
           cli_cmd: ''
           package_cmd: 'makensis -WX -V3 ./installer/windows/installer.nsi'
           installer_path: './installer/windows/geode-installer-win.exe'
