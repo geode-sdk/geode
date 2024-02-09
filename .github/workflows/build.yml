@@ -86,10 +86,30 @@ jobs:
       CMAKE_CXX_COMPILER_LAUNCHER: sccache
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        submodules: recursive
+    - name: check clang --version speed
+      run: |
+        Measure-Command { clang --version }
+        Measure-Command { clang --version }
+
+    - name: check clang --version speed
+      run: |
+        Measure-Command { clang --version }
+        Measure-Command { clang --version }
+
+    - name: check clang --version speed
+      run: |
+        Measure-Command { clang --version -static }
+        Measure-Command { clang --version -static }
+
+    - name: check clang --version speed
+      run: |
+        Measure-Command { clang --version -static }
+        Measure-Command { clang --version -static }
+
+    #- name: Checkout
+    #  uses: actions/checkout@v4
+    #  with:
+    #    submodules: recursive
 
     # https://github.com/hendrikmuhs/ccache-action/pull/182
     #- name: Setup sccache
@@ -98,82 +118,73 @@ jobs:
     #    variant: sccache
     #    key: ${{ matrix.config.id }}-v1
 
-    - name: check clang --version speed
-      run: |
-        Measure-Command { clang --version }
-        Measure-Command { clang --version }
-        Measure-Command { clang --version }
-        Measure-Command { clang --version -static }
-        Measure-Command { clang --version -static }
-        Measure-Command { clang --version -static }
+    #- name: Setup CPM Cache
+    #  uses: actions/cache@v4
+    #  with:
+    #    path: ${{ github.workspace }}/cpm-cache
+    #    key: cpm-${{ matrix.config.id }}-v1-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+    #    restore-keys: |
+    #      cpm-${{ matrix.config.id }}-v1-
 
-    - name: Setup CPM Cache
-      uses: actions/cache@v4
-      with:
-        path: ${{ github.workspace }}/cpm-cache
-        key: cpm-${{ matrix.config.id }}-v1-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
-        restore-keys: |
-          cpm-${{ matrix.config.id }}-v1-
+    #- name: Install Ninja
+    #  run: ${{ matrix.config.ninja_cmd }}
+    #  if: matrix.config.ninja_cmd != ''
 
-    - name: Install Ninja
-      run: ${{ matrix.config.ninja_cmd }}
-      if: matrix.config.ninja_cmd != ''
+    #- name: Download CLI
+    #  uses: robinraju/release-downloader@v1.9
+    #  with:
+    #    repository: geode-sdk/cli
+    #    latest: true
+    #    fileName: '*-${{ matrix.config.cli_id }}.zip'
+    #    tarBall: false
+    #    zipBall: false
+    #    out-file-path: "cli"
 
-    - name: Download CLI
-      uses: robinraju/release-downloader@v1.9
-      with:
-        repository: geode-sdk/cli
-        latest: true
-        fileName: '*-${{ matrix.config.cli_id }}.zip'
-        tarBall: false
-        zipBall: false
-        out-file-path: "cli"
+    #- name: Setup CLI
+    #  run: |
+    #    7z x "${{ github.workspace }}/cli/*-${{ matrix.config.cli_id }}.zip" -o"${{ github.workspace }}/cli"
+    #    ${{ matrix.config.cli_cmd }}
 
-    - name: Setup CLI
-      run: |
-        7z x "${{ github.workspace }}/cli/*-${{ matrix.config.cli_id }}.zip" -o"${{ github.workspace }}/cli"
-        ${{ matrix.config.cli_cmd }}
+    #- name: Setup Breakpad Tools
+    #  uses: ./.github/actions/setup-dump-sym
+    #  id: breakpad-tools
+    #  if: matrix.config.id == 'android32' || matrix.config.id == 'android64'
 
-    - name: Setup Breakpad Tools
-      uses: ./.github/actions/setup-dump-sym
-      id: breakpad-tools
-      if: matrix.config.id == 'android32' || matrix.config.id == 'android64'
+    #- name: Configure
+    #  run: >
+    #    cmake -B ${{ github.workspace }}/build
+    #    -DCLI_PATH=${{ github.workspace }}/cli
+    #    ${{ matrix.config.extra_flags }}
 
-    - name: Configure
-      run: >
-        cmake -B ${{ github.workspace }}/build
-        -DCLI_PATH=${{ github.workspace }}/cli
-        ${{ matrix.config.extra_flags }}
-
-    - name: Build
-      run: |
-        cd ${{ github.workspace }}/build
-        cmake --build . --config RelWithDebInfo --parallel
-        rm ${{ github.workspace }}/bin/nightly/resources/.geode_cache
+    #- name: Build
+    #  run: |
+    #    cd ${{ github.workspace }}/build
+    #    cmake --build . --config RelWithDebInfo --parallel
+    #    rm ${{ github.workspace }}/bin/nightly/resources/.geode_cache
 
     # hardcoding toolchain path :(
-    - name: Post Build
-      run: |
-        ${{ steps.breakpad-tools.outputs.binary-path }} ./bin/nightly/Geode.${{ matrix.config.id }}.so -o ./bin/nightly/Geode.${{ matrix.config.id }}.so.sym
-        $ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip ./bin/nightly/Geode.${{ matrix.config.id }}.so
-      if: matrix.config.id == 'android32' || matrix.config.id == 'android64'
+    #- name: Post Build
+    #  run: |
+    #    ${{ steps.breakpad-tools.outputs.binary-path }} ./bin/nightly/Geode.${{ matrix.config.id }}.so -o ./bin/nightly/Geode.${{ matrix.config.id }}.so.sym
+    #    $ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip ./bin/nightly/Geode.${{ matrix.config.id }}.so
+    #  if: matrix.config.id == 'android32' || matrix.config.id == 'android64'
 
-    - name: Upload Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: geode-${{ matrix.config.id }}
-        path: ./bin/nightly
+    #- name: Upload Artifacts
+    #  uses: actions/upload-artifact@v4
+    #  with:
+    #    name: geode-${{ matrix.config.id }}
+    #    path: ./bin/nightly
 
-    - name: Package Installer
-      run: ${{ matrix.config.package_cmd }}
-      if: matrix.config.installer_path != ''
+    #- name: Package Installer
+    #  run: ${{ matrix.config.package_cmd }}
+    #  if: matrix.config.installer_path != ''
 
-    - name: Upload Installer
-      uses: actions/upload-artifact@v4
-      with:
-        name: geode-installer-${{ matrix.config.id }}
-        path: ${{ matrix.config.installer_path }}
-      if: matrix.config.installer_path != ''
+    #- name: Upload Installer
+    #  uses: actions/upload-artifact@v4
+    #  with:
+    #    name: geode-installer-${{ matrix.config.id }}
+    #    path: ${{ matrix.config.installer_path }}
+    #  if: matrix.config.installer_path != ''
 
   publish:
     name: Publish
