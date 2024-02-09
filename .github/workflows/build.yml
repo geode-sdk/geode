@@ -86,17 +86,28 @@ jobs:
       CMAKE_CXX_COMPILER_LAUNCHER: sccache
 
     steps:
+    - name: Update LLVM
+      run: 'choco install llvm'
+      if: matrix.config.id == 'win'
+
+    - name: clang version
+      run: |
+        Measure-Command { clang --version }
+        Measure-Command { clang --version }
+        Measure-Command { clang++ --version }
+        Measure-Command { clang++ --version }
+
     - name: Checkout
       uses: actions/checkout@v4
       with:
         submodules: recursive
 
     # https://github.com/hendrikmuhs/ccache-action/pull/182
-    - name: Setup sccache
-      uses: chirag-droid/ccache-action@main
-      with:
-        variant: sccache
-        key: ${{ matrix.config.id }}-v1
+    #- name: Setup sccache
+    #  uses: chirag-droid/ccache-action@main
+    #  with:
+    #    variant: sccache
+    #    key: ${{ matrix.config.id }}-v1
 
     - name: Setup CPM Cache
       uses: actions/cache@v4
@@ -109,13 +120,6 @@ jobs:
     - name: Install Ninja
       run: ${{ matrix.config.ninja_cmd }}
       if: matrix.config.ninja_cmd != ''
-
-    - name: clang version
-      run: |
-        Measure-Command { clang --version }
-        Measure-Command { clang --version }
-        Measure-Command { clang++ --version }
-        Measure-Command { clang++ --version }
 
     - name: Download CLI
       uses: robinraju/release-downloader@v1.9
