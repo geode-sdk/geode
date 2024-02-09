@@ -99,7 +99,13 @@ jobs:
     #    key: ${{ matrix.config.id }}-v1
 
     - name: check clang --version speed
-      run: 'clang --version -static'
+      run: |
+        Measure-Command { clang --version }
+        Measure-Command { clang --version }
+        Measure-Command { clang --version }
+        Measure-Command { clang --version -static }
+        Measure-Command { clang --version -static }
+        Measure-Command { clang --version -static }
 
     - name: Setup CPM Cache
       uses: actions/cache@v4
