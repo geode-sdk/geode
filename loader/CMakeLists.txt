@@ -261,7 +261,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 # These are only needed for building source :-)
 if (NOT GEODE_BUILDING_DOCS)
 	# Markdown support
-	CPMAddPackage("gh:mity/md4c#e9ff661")
+	CPMAddPackage("gh:mity/md4c#release-0.5.2")
 
 	# Zip support (needed for in-memory streams, which zlib's minizip doesn't support)
 	set(MZ_LZMA Off CACHE INTERNAL "Enables LZMA & XZ compression")
@@ -294,7 +294,7 @@ if (NOT GEODE_BUILDING_DOCS)
 	endif()
 
 	# Regex support
-	CPMAddPackage("gh:google/re2#954656f")
+	CPMAddPackage("gh:google/re2#c9cba76")
 
 	target_include_directories(${PROJECT_NAME} PRIVATE ${md4c_SOURCE_DIR}/src)
 
