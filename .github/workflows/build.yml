@@ -87,7 +87,7 @@ jobs:
 
     steps:
     - name: Update LLVM
-      run: 'choco install llvm'
+      run: 'choco upgrade llvm'
       if: matrix.config.id == 'win'
 
     - name: clang version
