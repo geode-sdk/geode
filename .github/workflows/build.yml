@@ -2,6 +2,12 @@ name: Build Binaries
 
 on:
   workflow_dispatch:
+    inputs:
+      ninjatracing:
+        description: 'Pass .ninja_log through ninjatracing where applicable'
+        required: false
+        default: false
+        type: boolean
   pull_request:
   push:
     branches:
@@ -85,6 +91,7 @@ jobs:
 
     env:
       CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm-cache
+      # apparently disabling warnings slightly speeds up builds?
       CFLAGS: -w
       CXXFLAGS: -w
 
@@ -175,6 +182,26 @@ jobs:
         name: geode-installer-${{ matrix.config.id }}
         path: ${{ matrix.config.installer_path }}
       if: matrix.config.installer_path != ''
+
+    - name: Checkout ninjatracing
+      uses: actions/checkout@v4
+      with:
+        repository: 'nico/ninjatracing'
+        path: ninjatracing
+        submodules: recursive
+      if: matrix.config.id != 'mac' && inputs.ninjatracing
+
+    - name: Run ninjatracing
+      shell: bash
+      run: 'python3 ./ninjatracing/ninjatracing ${{ github.workspace }}/build/.ninja_log > ./ninja-trace-${{ matrix.config.id }}.json'
+      if: matrix.config.id != 'mac' && inputs.ninjatracing
+
+    - name: Upload ninjatracing Trace
+      uses: actions/upload-artifact@v4
+      with:
+        name: ninja-trace-${{ matrix.config.id }}
+        path: ninja-trace-${{ matrix.config.id }}.json
+      if: matrix.config.id != 'mac' && inputs.ninjatracing
 
   publish:
     name: Publish
