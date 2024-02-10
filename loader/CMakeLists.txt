@@ -251,12 +251,6 @@ if (APPLE)
 	#set_property(TARGET ${PROJECT_NAME} PROPERTY RULE_LAUNCH_COMPILE "${CMAKE_COMMAND} -E time")
 endif()
 
-include(CheckCXXCompilerFlag)
-check_cxx_compiler_flag(-w SUPPORTS_W)
-if (SUPPORTS_W)
-	target_compile_options(${PROJECT_NAME} PRIVATE -Wno-inconsistent-missing-override)
-endif ()
-
 target_compile_definitions(${PROJECT_NAME} PUBLIC GEODE_EXPORTING MAT_JSON_EXPORTING)
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
@@ -285,7 +279,9 @@ if (NOT GEODE_BUILDING_DOCS)
 	set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
 
 	# Silence warnings from dependencies
-	if (SUPPORTS_W)
+	include(CheckCXXCompilerFlag)
+	check_cxx_compiler_flag(-Wno-everything SUPPORTS_W_NO_EVERYTHING)
+	if (SUPPORTS_W_NO_EVERYTHING)
 		if (TARGET md4c)
 			target_compile_options(md4c PRIVATE -Wno-everything)
 		endif()
