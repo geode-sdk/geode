@@ -817,7 +817,7 @@ namespace geode::cocos {
     }
 
     /**
-     * Parse a ccColor3B from a hexadecimal string. The string may not contain 
+     * Parse a ccColor3B from a hexadecimal string. The string may contain 
      * a leading '#'
      * @param hexValue The string to parse into a color
      * @param permissive If true, strings like "f" are considered valid 
@@ -828,7 +828,7 @@ namespace geode::cocos {
      */
     GEODE_DLL Result<cocos2d::ccColor3B> cc3bFromHexString(std::string const& hexValue, bool permissive = false);
     /**
-     * Parse a ccColor4B from a hexadecimal string. The string may not contain 
+     * Parse a ccColor4B from a hexadecimal string. The string may contain 
      * a leading '#'
      * @param hexValue The string to parse into a color
      * @param requireAlpha Require the alpha component to be passed. If false, 

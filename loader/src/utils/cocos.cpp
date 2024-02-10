@@ -38,14 +38,7 @@ ccColor3B matjson::Serialize<ccColor3B>::from_json(matjson::Value const& json) {
     }
     // hex string
     else if (json.is_string()) {
-        std::string str = json.as_string();
-        if (str[0] == '#') {
-            str.erase(str.begin());
-        }
-        if (str.size() > 6) {
-            throw matjson::JsonException("Hex string for color too long");
-        }
-        auto c = cc3bFromHexString(str);
+        auto c = cc3bFromHexString(json.as_string());
         if (!c) {
             throw matjson::JsonException("Invalid color hex string");
         }
@@ -94,14 +87,7 @@ ccColor4B matjson::Serialize<ccColor4B>::from_json(matjson::Value const& json) {
     }
     // hex string
     else if (json.is_string()) {
-        std::string str = json.as_string();
-        if (str[0] == '#') {
-            str.erase(str.begin());
-        }
-        if (str.size() > 8) {
-            throw matjson::JsonException("Hex string for color too long");
-        }
-        auto c = cc4bFromHexString(str);
+        auto c = cc4bFromHexString(json.as_string());
         if (!c) {
             throw matjson::JsonException("Invalid color hex string: " + c.unwrapErr());
         }
@@ -114,7 +100,11 @@ ccColor4B matjson::Serialize<ccColor4B>::from_json(matjson::Value const& json) {
     return color;
 }
 
-Result<ccColor3B> geode::cocos::cc3bFromHexString(std::string const& hexValue, bool permissive) {
+Result<ccColor3B> geode::cocos::cc3bFromHexString(std::string const& rawHexValue, bool permissive) {
+    auto hexValue = rawHexValue;
+    if (hexValue[0] == '#') {
+        hexValue.erase(hexValue.begin());
+    }
     if (permissive && hexValue.empty()) {
         return Ok(ccc3(255, 255, 255));
     }
@@ -168,7 +158,11 @@ Result<ccColor3B> geode::cocos::cc3bFromHexString(std::string const& hexValue, b
     }
 }
 
-Result<ccColor4B> geode::cocos::cc4bFromHexString(std::string const& hexValue, bool requireAlpha, bool permissive) {
+Result<ccColor4B> geode::cocos::cc4bFromHexString(std::string const& rawHexValue, bool requireAlpha, bool permissive) {
+    auto hexValue = rawHexValue;
+    if (hexValue[0] == '#') {
+        hexValue.erase(hexValue.begin());
+    }
     if (permissive && hexValue.empty()) {
         return Ok(ccc4(255, 255, 255, 255));
     }
