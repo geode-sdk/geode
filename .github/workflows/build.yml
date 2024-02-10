@@ -207,6 +207,17 @@ jobs:
         name: geode-${{ matrix.config.id }}
         path: ./bin/nightly
 
+    - name: Package Installer
+      run: ${{ matrix.config.package_cmd }}
+      if: matrix.config.installer_path != ''
+
+    - name: Upload Installer
+      uses: actions/upload-artifact@v4
+      with:
+        name: geode-installer-${{ matrix.config.id }}
+        path: ${{ matrix.config.installer_path }}
+      if: matrix.config.installer_path != ''
+
     - name: Preprocess
       shell: bash
       run: |
@@ -230,17 +241,6 @@ jobs:
         name: geode-build-debug-info-preprocessed-${{ matrix.config.id }}
         path: ./build-debug-info-preprocessed/*
       if: inputs.build-debug-info
-
-    - name: Package Installer
-      run: ${{ matrix.config.package_cmd }}
-      if: matrix.config.installer_path != ''
-
-    - name: Upload Installer
-      uses: actions/upload-artifact@v4
-      with:
-        name: geode-installer-${{ matrix.config.id }}
-        path: ${{ matrix.config.installer_path }}
-      if: matrix.config.installer_path != ''
 
   publish:
     name: Publish
