@@ -109,12 +109,6 @@ jobs:
         restore-keys: |
           cpm-${{ matrix.config.id }}-v1-
 
-    #- name: Setup MSVC
-    #  uses: ilammy/msvc-dev-cmd@v1
-    #  with:
-    #    arch: amd64_x86
-    #  if: matrix.config.id == 'win'
-
     - name: Install Ninja
       run: ${{ matrix.config.ninja_cmd }}
       if: matrix.config.ninja_cmd != ''
