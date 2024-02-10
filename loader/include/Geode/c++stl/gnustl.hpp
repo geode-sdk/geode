@@ -280,11 +280,22 @@ namespace gd {
             m_reserveEnd = nullptr;
         }
 
+        size_t nextCapacity(size_t x) {
+            // minimum 16, powers of 2, don't use builtins
+            if (x < 16) return 16;
+            size_t out = 16;
+            while (out < x) {
+                out *= 2;
+            }
+            return out;
+        }
+
         vector(std::vector<T> const& input) : vector() {
             if (input.size()) {
-                m_start = this->allocator().allocate(input.size());
+                auto capacity = nextCapacity(input.size());
+                m_start = this->allocator().allocate(capacity);
                 m_finish = m_start + input.size();
-                m_reserveEnd = m_start + input.size();
+                m_reserveEnd = m_start + capacity;
 
                 std::uninitialized_default_construct(m_start, m_finish);
                 std::copy(input.begin(), input.end(), m_start);
@@ -293,9 +304,10 @@ namespace gd {
 
         vector(gd::vector<T> const& input) : vector() {
             if (input.size()) {
-                m_start = this->allocator().allocate(input.size());
+                auto capacity = nextCapacity(input.size());
+                m_start = this->allocator().allocate(capacity);
                 m_finish = m_start + input.size();
-                m_reserveEnd = m_start + input.size();
+                m_reserveEnd = m_start + capacity;
 
                 std::uninitialized_default_construct(m_start, m_finish);
                 std::copy(input.begin(), input.end(), m_start);
@@ -316,10 +328,12 @@ namespace gd {
             this->clear();
 
             if (input.size()) {
-                m_start = this->allocator().allocate(input.size());
+                auto capacity = nextCapacity(input.size());
+                m_start = this->allocator().allocate(capacity);
                 m_finish = m_start + input.size();
-                m_reserveEnd = m_start + input.size();
+                m_reserveEnd = m_start + capacity;
 
+                std::uninitialized_default_construct(m_start, m_finish);
                 std::copy(input.begin(), input.end(), m_start);
             }
 
@@ -338,11 +352,71 @@ namespace gd {
             return *this;
         }
 
+        void grow() {
+            if (m_finish == m_reserveEnd) {
+                auto newSize = this->capacity() * 2;
+                auto newStart = this->allocator().allocate(newSize);
+                auto newFinish = newStart + this->size();
+
+                std::uninitialized_default_construct(newStart, newFinish);
+                std::copy(m_start, m_finish, newStart);
+
+                std::destroy(m_start, m_finish);
+                this->allocator().deallocate(m_start, this->capacity());
+
+                m_start = newStart;
+                m_finish = newFinish;
+                m_reserveEnd = newStart + newSize;
+            }
+        }
+
+        void shrink() {
+            if (m_finish < m_reserveEnd / 2 && this->capacity() > 16) {
+                auto newSize = this->capacity() / 2;
+                auto newStart = this->allocator().allocate(newSize);
+                auto newFinish = newStart + this->size();
+
+                std::uninitialized_default_construct(newStart, newFinish);
+                std::copy(m_start, m_finish, newStart);
+
+                std::destroy(m_start, m_finish);
+                this->allocator().deallocate(m_start, this->capacity());
+
+                m_start = newStart;
+                m_finish = newFinish;
+                m_reserveEnd = newStart + newSize;
+            }
+        }
+
+        void push_back(T const& input) {
+            this->grow();
+
+            new (m_finish) T(input);
+            ++m_finish;
+        }
+
+        void push_back(T&& input) {
+            this->grow();
+
+            new (m_finish) T(std::move(input));
+            ++m_finish;
+        }
+
+        void pop_back() {
+            if (m_finish != m_start) {
+                --m_finish;
+                m_finish->~T();
+            }
+
+            this->shrink();
+        }
+
         vector(std::initializer_list<T> const& input) : vector() {
             if (input.size()) {
-                m_start = this->allocator().allocate(input.size());
+                auto capacity = nextCapacity(input.size());
+                m_start = this->allocator().allocate(capacity);
                 m_finish = m_start + input.size();
-                m_reserveEnd = m_start + input.size();
+                m_reserveEnd = m_start + capacity;
 
                 std::uninitialized_default_construct(m_start, m_finish);
                 std::copy(input.begin(), input.end(), m_start);
@@ -353,7 +427,7 @@ namespace gd {
             if (m_start) {
                 std::destroy(m_start, m_finish);
 
-                this->allocator().deallocate(m_start, this->size());
+                this->allocator().deallocate(m_start, this->capacity());
             }
 
             m_start = nullptr;
