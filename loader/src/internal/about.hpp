@@ -3,9 +3,9 @@
 #include <Geode/utils/VersionInfo.hpp>
 
 namespace about {
-    extern geode::VersionInfo getLoaderVersion();
-    extern const char* getLoaderVersionStr();
-    extern const char* getLoaderCommitHash();
-    extern const char* getBindingsCommitHash();
-    extern const char* getLoaderModJson();
+    geode::VersionInfo getLoaderVersion();
+    const char* getLoaderVersionStr();
+    const char* getLoaderCommitHash();
+    const char* getBindingsCommitHash();
+    const char* getLoaderModJson();
 };
