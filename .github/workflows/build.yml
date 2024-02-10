@@ -22,8 +22,6 @@ jobs:
           id: win
           cli_id: win
           extra_flags: >
-            -DCMAKE_C_COMPILER=clang
-            -DCMAKE_CXX_COMPILER=clang++
             -DCMAKE_BUILD_TYPE=RelWithDebInfo
             -DGEODE_CODEGEN_CMAKE_ARGS="-DCMAKE_C_COMPILER=clang;-DCMAKE_CXX_COMPILER=clang++;-G Ninja"
             -G Ninja
@@ -85,8 +83,6 @@ jobs:
 
     env:
       CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm-cache
-    #  CMAKE_C_COMPILER_LAUNCHER: sccache
-    #  CMAKE_CXX_COMPILER_LAUNCHER: sccache
 
     steps:
     - name: Checkout
@@ -109,16 +105,22 @@ jobs:
         restore-keys: |
           cpm-${{ matrix.config.id }}-v1-
 
-    - name: Install Ninja
-      run: ${{ matrix.config.ninja_cmd }}
-      if: matrix.config.ninja_cmd != ''
-
-    - name: Update LLVM
-      run: |
-        iwr https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/LLVM-17.0.6-win64.exe -OutFile llvm-inst.exe
-        7z x llvm-inst.exe -o"${{ github.workspace }}\llvm"
-        echo "${{ github.workspace }}\llvm\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+    - name: Setup MSVC
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: amd64_x86
       if: matrix.config.id == 'win'
+
+    #- name: Install Ninja
+    #  run: ${{ matrix.config.ninja_cmd }}
+    #  if: matrix.config.ninja_cmd != ''
+
+    #- name: Update LLVM
+    #  run: |
+    #    iwr https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/LLVM-17.0.6-win64.exe -OutFile llvm-inst.exe
+    #    7z x llvm-inst.exe -o"${{ github.workspace }}\llvm"
+    #    echo "${{ github.workspace }}\llvm\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+    #  if: matrix.config.id == 'win'
 
     - name: Download CLI
       uses: robinraju/release-downloader@v1.9
