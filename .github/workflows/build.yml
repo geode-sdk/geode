@@ -100,9 +100,6 @@ jobs:
 
     env:
       CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm-cache
-      SCCACHE_ERROR_LOG: ${{ inputs.build-debug-info && format('{0}/build-debug-info/sccache-log.txt', github.workspace) || '' }}
-      SCCACHE_LOG: ${{ inputs.build-debug-info && 'debug' || '' }}
-      RUST_BACKTRACE: ${{ inputs.build-debug-info && '1' || '0' }}
 
     steps:
     - name: Checkout
@@ -111,9 +108,13 @@ jobs:
         submodules: recursive
 
     - name: Prepare for Build Debug Info
+      shell: bash
       run: |
         mkdir ./build-debug-info
-        ${{ matrix.config.id == 'win' && 'echo "REAL_BASH=C:/Program Files/Git/bin/bash.exe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append' || 'echo "REAL_BASH=$BASH" >> $GITHUB_ENV' }}
+        ${{ matrix.config.id == 'win' && 'echo "REAL_BASH=C:/Program Files/Git/bin/bash.exe" >> $GITHUB_ENV' || 'echo "REAL_BASH=$BASH" >> $GITHUB_ENV' }}
+        echo "SCCACHE_ERROR_LOG=$GITHUB_WORKSPACE/build-debug-info/sccache-log.txt" >> $GITHUB_ENV
+        echo "SCCACHE_LOG=debug" >> $GITHUB_ENV
+        echo "RUST_BACKTRACE=1" >> $GITHUB_ENV
       if: inputs.build-debug-info
 
     # https://github.com/hendrikmuhs/ccache-action/pull/182
