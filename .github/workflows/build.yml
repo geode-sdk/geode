@@ -8,10 +8,20 @@ on:
         required: false
         default: false
         type: boolean
-      no-ccache:
-        description: 'Disable ccache/sccache'
+      use-ccache:
+        description: 'Enable ccache/sccache'
         required: false
-        default: false
+        default: true
+        type: boolean
+      use-cpm-cache:
+        description: 'Enable CPM cache'
+        required: false
+        default: true
+        type: boolean
+      no-warnings:
+        description: 'Disable all warnings'
+        required: false
+        default: true
         type: boolean
   pull_request:
   push:
@@ -95,10 +105,10 @@ jobs:
     runs-on: ${{ matrix.config.os }}
 
     env:
-      CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm-cache
+      CPM_SOURCE_CACHE: ${{ inputs.use-cpm-cache && '${{ github.workspace }}/cpm-cache' || '' }}
       # apparently disabling warnings slightly speeds up builds?
-      CFLAGS: -w
-      CXXFLAGS: -w
+      CFLAGS: ${{ inputs.no-warnings && '-w' || '' }}
+      CXXFLAGS: ${{ inputs.no-warnings && '-w' || '' }}
 
     steps:
     - name: Checkout
@@ -112,7 +122,7 @@ jobs:
       with:
         variant: sccache
         key: ${{ matrix.config.id }}-v1
-      if: !${{ inputs.no-ccache }}
+      if: ${{ inputs.use-ccache }}
 
     - name: Setup CPM Cache
       uses: actions/cache@v4
