@@ -56,6 +56,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=RelWithDebInfo
             -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
             -DGEODE_DONT_BUILD_TEST_MODS=1
+            -DGEODE_CODEGEN_CMAKE_ARGS="-DCMAKE_C_COMPILER=clang;-DCMAKE_CXX_COMPILER=clang++;-G Ninja"
             -G Ninja
           cli_cmd: 'chmod +x $GITHUB_WORKSPACE/cli/geode'
           ninja_cmd: 'brew install ninja'
@@ -70,6 +71,7 @@ jobs:
             -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake
             -DANDROID_ABI=armeabi-v7a
             -DANDROID_PLATFORM=android-23
+            -DGEODE_CODEGEN_CMAKE_ARGS="-G Ninja"
             -G Ninja
           cli_cmd: 'chmod +x $GITHUB_WORKSPACE/cli/geode'
           ninja_cmd: 'sudo apt install ninja-build'
@@ -84,6 +86,7 @@ jobs:
             -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake
             -DANDROID_ABI=arm64-v8a
             -DANDROID_PLATFORM=android-23
+            -DGEODE_CODEGEN_CMAKE_ARGS="-G Ninja"
             -G Ninja
           cli_cmd: 'chmod +x $GITHUB_WORKSPACE/cli/geode'
           ninja_cmd: 'sudo apt install ninja-build'
@@ -95,9 +98,6 @@ jobs:
 
     env:
       CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm-cache
-      # apparently disabling warnings slightly speeds up builds?
-      CFLAGS: -Wno-everything
-      CXXFLAGS: -Wno-everything
 
     steps:
     - name: Checkout
