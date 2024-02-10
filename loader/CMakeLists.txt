@@ -18,8 +18,9 @@ else()
 endif()
 
 # https://stackoverflow.com/a/63924044/9124836
+# https://stackoverflow.com/a/72396471
 execute_process(
-	COMMAND git rev-parse --short HEAD
+	COMMAND git describe --always --dirty
 	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 	OUTPUT_VARIABLE GEODE_COMMIT_HASH
 	OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -31,7 +32,7 @@ if (NOT GEODE_COMMIT_HASH)
 endif()
 
 execute_process(
-	COMMAND git rev-parse --short HEAD
+	COMMAND git describe --always --dirty
 	WORKING_DIRECTORY ${GEODE_BINDINGS_REPO_PATH}
 	OUTPUT_VARIABLE GEODE_BINDINGS_COMMIT_HASH
 	OUTPUT_STRIP_TRAILING_WHITESPACE
