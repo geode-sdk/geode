@@ -130,6 +130,13 @@ jobs:
         restore-keys: |
           cpm-${{ matrix.config.id }}-v1-
 
+    - name: Setup info.rc Cache
+      uses: actions/cache@v4
+      with:
+        path: build/**/info.rc*
+        key: rc-${{ matrix.config.id }}-v1-${{ hashFiles('build/**/info.rc*') }}
+      if: matrix.config.id == 'win'
+
     - name: Install Ninja
       run: ${{ matrix.config.ninja_cmd }}
       if: matrix.config.ninja_cmd != ''
