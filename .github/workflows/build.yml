@@ -219,6 +219,7 @@ jobs:
         compile-commands --file=compile_commands.json --filter_files='.*cpm-cache.*' --filter='(-o .*?)\.obj -c (.*?)' --replacement='\g<1>.i -E \g<2>' -o preprocess_commands.json --run
         mkdir ../build-debug-info-preprocessed/
         find . -type f -name *.i -print0 | xargs -0 cp --parents -t ../build-debug-info-preprocessed/ ;
+        cp preprocess_commands.json ../build-debug-info/
       if: inputs.build-debug-info
 
     - name: Upload Preprocessed Files
