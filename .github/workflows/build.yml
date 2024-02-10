@@ -85,8 +85,8 @@ jobs:
 
     env:
       CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm-cache
-      C_FLAGS: -w
-      CXX_FLAGS: -w
+      CFLAGS: -w
+      CXXFLAGS: -w
 
     steps:
     - name: Checkout
