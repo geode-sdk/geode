@@ -210,7 +210,7 @@ jobs:
         mkdir build-debug-info-preprocessed
         cd build
         pip install compile-commands
-        compile-commands --file=compile_commands.json --filter_files='.*cpm-cache.*' --filter='(.*) -o (.*(?:/|\\))(.*)\.(?:obj|o) -c (.*)' --replacement='mkdir -p ../build-debug-info-preprocessed/\g<2> && \g<1> -o ../build-debug-info-preprocessed/\g<2>.i -E \g<3>' -o ../build-debug-info/preprocess_commands.json --run
+        compile-commands --file=compile_commands.json --filter_files='.*cpm-cache.*' --filter='(.*) -o (.*)((?:/|\\).*)\.(?:obj|o) -c (.*)' --replacement='bash --rcfile <(mkdir -p ../build-debug-info-preprocessed/\g<2>; \g<1> -o ../build-debug-info-preprocessed/\g<2>\g<3>.i -E \g<4>)' -o ../build-debug-info/preprocess_commands.json --run
       if: inputs.build-debug-info
 
     - name: Upload Build Debug Info
