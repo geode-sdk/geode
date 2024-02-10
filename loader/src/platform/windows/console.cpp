@@ -113,6 +113,19 @@ void console::setup() {
             if (count != 0) {
                 path = std::string(buf, count - 1);
             }
+
+            // count == 0 => not a console and not a file, assume it's closed
+            // wine does something weird with /dev/null? not sure tbh but it's definitely up to no good
+            if ((count == 0 || path.ends_with("\\dev\\null")) && Mod::get()->getSettingValue<bool>("show-platform-console")) {
+                s_outHandle = nullptr;
+                CloseHandle(GetStdHandle(STD_OUTPUT_HANDLE));
+                CloseHandle(GetStdHandle(STD_INPUT_HANDLE));
+                CloseHandle(GetStdHandle(STD_ERROR_HANDLE));
+                FreeConsole();
+                SetStdHandle(STD_OUTPUT_HANDLE, nullptr);
+                SetStdHandle(STD_INPUT_HANDLE, nullptr);
+                SetStdHandle(STD_ERROR_HANDLE, nullptr);
+            }
         }
 
         // clion console supports escape codes but we can't query that because it's a named pipe
