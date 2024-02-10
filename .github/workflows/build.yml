@@ -168,13 +168,13 @@ jobs:
         -DCLI_PATH=${{ github.workspace }}/cli
         ${{ inputs.build-debug-info && '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON' }}
         ${{ matrix.config.extra_flags }}
-        ${{ inputs.build-debug-info && 'cp build/compile_commands.json build-debug-info' }}
+        ${{ inputs.build-debug-info && 'cp .build/compile_commands.json ./build-debug-info/' }}
 
     - name: Build
       run: |
         cmake --build build --config RelWithDebInfo --parallel
         rm bin/nightly/resources/.geode_cache
-        ${{ inputs.build-debug-info && 'python3 ./ninjatracing/ninjatracing ./build/.ninja_log > build-debug-info/ninja-trace.json' }}
+        ${{ inputs.build-debug-info && 'python3 ./ninjatracing/ninjatracing ./build/.ninja_log > ./build-debug-info/ninja-trace.json' }}
 
     # hardcoding toolchain path :(
     - name: Post Build
