@@ -23,7 +23,7 @@ jobs:
           cli_id: win
           extra_flags: >
             -DCMAKE_BUILD_TYPE=RelWithDebInfo
-            -DGEODE_CODEGEN_CMAKE_ARGS="-DCMAKE_C_COMPILER=clang;-DCMAKE_CXX_COMPILER=clang++;-G Ninja"
+            -DGEODE_CODEGEN_CMAKE_ARGS="-G Ninja"
             -G Ninja
           cli_cmd: ''
           ninja_cmd: |
