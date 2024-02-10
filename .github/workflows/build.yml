@@ -204,21 +204,28 @@ jobs:
         name: geode-${{ matrix.config.id }}
         path: ./bin/nightly
 
+    - name: Upload Build Debug Info
+      uses: actions/upload-artifact@v4
+      with:
+        name: geode-build-debug-info-${{ matrix.config.id }}
+        path: ./build-debug-info/*
+      if: inputs.build-debug-info
+
     - name: Preprocess
       shell: bash
       run: |
         cd build
         pip install compile-commands
         compile-commands --file=compile_commands.json --filter_files='.*cpm-cache.*' --filter='(-o .*?)\.obj -c (.*?)' --replacement='\g<1>.i -E \g<2>' -o preprocess_commands.json --run
-        mkdir ../build-debug-info/preprocessed/
-        find . -type f -name *.i -print0 | xargs -0 cp --parents -t ../build-debug-info/preprocessed/ ;
+        mkdir ../build-debug-info-preprocessed/
+        find . -type f -name *.i -print0 | xargs -0 cp --parents -t ../build-debug-info-preprocessed/ ;
       if: inputs.build-debug-info
 
-    - name: Upload Build Debug Info
+    - name: Upload Preprocessed Files
       uses: actions/upload-artifact@v4
       with:
-        name: geode-build-debug-info-${{ matrix.config.id }}
-        path: ./build-debug-info/*
+        name: geode-build-debug-info-preprocessed-${{ matrix.config.id }}
+        path: ./build-debug-info-preprocessed/*
       if: inputs.build-debug-info
 
     - name: Package Installer
