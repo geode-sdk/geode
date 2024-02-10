@@ -13,11 +13,11 @@ on:
         required: false
         default: true
         type: boolean
-  #pull_request:
-  #push:
-  #  branches:
-  #  - '**'              # every branch
-  #  - '!no-build-**'    # unless marked as no-build
+  pull_request:
+  push:
+    branches:
+    - '**'              # every branch
+    - '!no-build-**'    # unless marked as no-build
 
 env:
   GEODE_CI: ''
