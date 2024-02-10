@@ -204,22 +204,20 @@ jobs:
         name: geode-${{ matrix.config.id }}
         path: ./bin/nightly
 
+    - name: Preprocess
+      shell: bash
+      run: |
+        mkdir build-debug-info-preprocessed
+        cd build
+        pip install compile-commands
+        compile-commands --file=compile_commands.json --filter_files='.*cpm-cache.*' --filter='-o (.*?)\.(?:obj|o) -c (.*?)' --replacement='-o ../build-debug-info-preprocessed/\g<1>.i -E \g<2>' -o ../build-debug-info/preprocess_commands.json --run
+      if: inputs.build-debug-info
+
     - name: Upload Build Debug Info
       uses: actions/upload-artifact@v4
       with:
         name: geode-build-debug-info-${{ matrix.config.id }}
         path: ./build-debug-info/*
-      if: inputs.build-debug-info
-
-    - name: Preprocess
-      shell: bash
-      run: |
-        cd build
-        pip install compile-commands
-        compile-commands --file=compile_commands.json --filter_files='.*cpm-cache.*' --filter='(-o .*?)\.(?:obj|o) -c (.*?)' --replacement='\g<1>.i -E \g<2>' -o preprocess_commands.json --run
-        mkdir ../build-debug-info-preprocessed/
-        find . -type f -name *.i | xargs -i ${{ matrix.config.id == 'mac' && 'rsync -R' || 'cp --parents' }} '{}' ../build-debug-info-preprocessed/
-        cp preprocess_commands.json ../build-debug-info/
       if: inputs.build-debug-info
 
     - name: Upload Preprocessed Files
