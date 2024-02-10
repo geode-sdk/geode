@@ -154,6 +154,14 @@ jobs:
       id: breakpad-tools
       if: matrix.config.id == 'android32' || matrix.config.id == 'android64'
 
+    - name: Checkout ninjatracing
+      uses: actions/checkout@v4
+      with:
+        repository: 'nico/ninjatracing'
+        path: ninjatracing
+        submodules: recursive
+      if: inputs.build-debug-info
+
     - name: Configure
       run: >
         cmake -B build
@@ -164,9 +172,9 @@ jobs:
 
     - name: Build
       run: |
-        cd build
-        cmake --build . --config RelWithDebInfo --parallel
+        cmake --build build --config RelWithDebInfo --parallel
         rm bin/nightly/resources/.geode_cache
+        ${{ inputs.build-debug-info && 'python3 ./ninjatracing/ninjatracing ./build/.ninja_log > build-debug-info/ninja-trace.json' }}
 
     # hardcoding toolchain path :(
     - name: Post Build
@@ -181,6 +189,13 @@ jobs:
         name: geode-${{ matrix.config.id }}
         path: ./bin/nightly
 
+    - name: Upload Build Debug Info
+      uses: actions/upload-artifact@v4
+      with:
+        name: geode-build-debug-info-${{ matrix.config.id }}
+        path: ./build-debug-info/*
+      if: inputs.build-debug-info
+
     - name: Package Installer
       run: ${{ matrix.config.package_cmd }}
       if: matrix.config.installer_path != ''
@@ -191,26 +206,6 @@ jobs:
         name: geode-installer-${{ matrix.config.id }}
         path: ${{ matrix.config.installer_path }}
       if: matrix.config.installer_path != ''
-
-    - name: Checkout ninjatracing
-      uses: actions/checkout@v4
-      with:
-        repository: 'nico/ninjatracing'
-        path: ninjatracing
-        submodules: recursive
-      if: inputs.build-debug-info
-
-    - name: Run ninjatracing
-      shell: bash
-      run: 'python3 ./ninjatracing/ninjatracing ./build/.ninja_log > build-debug-info/ninja-trace.json'
-      if: inputs.build-debug-info
-
-    - name: Upload Build Debug Info
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-debug-info-${{ matrix.config.id }}
-        path: build-debug-info/*
-      if: inputs.build-debug-info
 
   publish:
     name: Publish
