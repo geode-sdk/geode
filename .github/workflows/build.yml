@@ -112,7 +112,7 @@ jobs:
       with:
         variant: sccache
         key: ${{ matrix.config.id }}-v1
-      if: ${{ inputs.use-ccache }}
+      if: ${{ !inputs || inputs.use-ccache }}
 
     - name: Setup CPM Cache
       uses: actions/cache@v4
