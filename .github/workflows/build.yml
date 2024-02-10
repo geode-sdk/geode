@@ -58,7 +58,7 @@ jobs:
             -DGEODE_DONT_BUILD_TEST_MODS=1
             -DGEODE_CODEGEN_CMAKE_ARGS="-DCMAKE_C_COMPILER=clang;-DCMAKE_CXX_COMPILER=clang++;-G Ninja"
             -G Ninja
-          cli_cmd: 'chmod +x $GITHUB_WORKSPACE/cli/geode'
+          cli_cmd: 'chmod +x cli/geode'
           ninja_cmd: 'brew install ninja'
           package_cmd: './installer/mac/package.sh ./bin/nightly ./installer/mac/geode-installer-mac.pkg'
           installer_path: './installer/mac/geode-installer-mac.pkg'
@@ -74,7 +74,7 @@ jobs:
             -DGEODE_DONT_BUILD_TEST_MODS=1
             -DGEODE_CODEGEN_CMAKE_ARGS="-G Ninja"
             -G Ninja
-          cli_cmd: 'chmod +x $GITHUB_WORKSPACE/cli/geode'
+          cli_cmd: 'chmod +x cli/geode'
           ninja_cmd: 'sudo apt install ninja-build'
           package_cmd: ''
           installer_path: ''
@@ -90,7 +90,7 @@ jobs:
             -DGEODE_DONT_BUILD_TEST_MODS=1
             -DGEODE_CODEGEN_CMAKE_ARGS="-G Ninja"
             -G Ninja
-          cli_cmd: 'chmod +x $GITHUB_WORKSPACE/cli/geode'
+          cli_cmd: 'chmod +x cli/geode'
           ninja_cmd: 'sudo apt install ninja-build'
           package_cmd: ''
           installer_path: ''
@@ -118,7 +118,7 @@ jobs:
     - name: Setup CPM Cache
       uses: actions/cache@v4
       with:
-        path: ${{ github.workspace }}/cpm-cache
+        path: cpm-cache
         key: cpm-${{ matrix.config.id }}-v1-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
         restore-keys: |
           cpm-${{ matrix.config.id }}-v1-
@@ -130,7 +130,7 @@ jobs:
     - name: Update LLVM
       run: |
         iwr https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/LLVM-17.0.6-win64.exe -OutFile llvm-inst.exe
-        7z x llvm-inst.exe -o"${{ github.workspace }}\llvm" bin/clang.exe bin/clang++.exe bin/lld-link.exe bin/*.dll lib/clang/*/include/*
+        7z x llvm-inst.exe -ollvm bin/clang.exe bin/clang++.exe bin/lld-link.exe bin/*.dll lib/clang/*/include/*
         echo "${{ github.workspace }}\llvm\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       if: matrix.config.id == 'win'
 
@@ -146,7 +146,7 @@ jobs:
 
     - name: Setup CLI
       run: |
-        7z x "${{ github.workspace }}/cli/*-${{ matrix.config.cli_id }}.zip" -o"${{ github.workspace }}/cli"
+        7z x "cli/*-${{ matrix.config.cli_id }}.zip" -ocli
         ${{ matrix.config.cli_cmd }}
 
     - name: Setup Breakpad Tools
@@ -156,7 +156,7 @@ jobs:
 
     - name: Configure
       run: >
-        cmake -B ${{ github.workspace }}/build
+        cmake -B build
         -DCLI_PATH=${{ github.workspace }}/cli
         ${{ matrix.config.extra_flags }}
         ${{ inputs.build-debug-info && '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON' }}
@@ -164,9 +164,9 @@ jobs:
 
     - name: Build
       run: |
-        cd ${{ github.workspace }}/build
+        cd build
         cmake --build . --config RelWithDebInfo --parallel
-        rm ${{ github.workspace }}/bin/nightly/resources/.geode_cache
+        rm bin/nightly/resources/.geode_cache
 
     # hardcoding toolchain path :(
     - name: Post Build
@@ -225,13 +225,11 @@ jobs:
         id: ref
         shell: bash
         run: |
-          echo "version=$(cat ${{ github.workspace }}/VERSION | xargs)" >> $GITHUB_OUTPUT
+          echo "version=$(cat VERSION | xargs)" >> $GITHUB_OUTPUT
           echo "hash=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_OUTPUT
 
       - name: Download Artifacts
         uses: actions/download-artifact@v4
-        with:
-          path: ${{ github.workspace }}
 
       - name: Move Installers
         run: |
