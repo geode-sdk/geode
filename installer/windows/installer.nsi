@@ -405,6 +405,7 @@ Function .onVerifyInstDir
     IfFileExists $INSTDIR\quickldr.dll other_quickldr
     IfFileExists $INSTDIR\XInput9_1_0.dll other_xinput
     IfFileExists $INSTDIR\mimalloc.dll other_mimalloc
+    IfFileExists $INSTDIR\GDH.dll other_GDH
 
     ; all checks passed
     valid:
@@ -429,6 +430,9 @@ Function .onVerifyInstDir
         Goto other
     other_mimalloc:
         StrCpy $0 "mimalloc.dll"
+        Goto other
+    other_GDH:
+        StrCpy $0 "GDH.dll"
         Goto other
     other:
         ${StrRep} $0 $(GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED) "the dll trademark" $0
