@@ -194,19 +194,19 @@ jobs:
         repository: 'nico/ninjatracing'
         path: ninjatracing
         submodules: recursive
-      if: matrix.config.id != 'mac' && inputs.ninjatracing
+      if: inputs.ninjatracing
 
     - name: Run ninjatracing
       shell: bash
       run: 'python3 ./ninjatracing/ninjatracing ./build/.ninja_log > ./ninja-trace-${{ matrix.config.id }}.json'
-      if: matrix.config.id != 'mac' && inputs.ninjatracing
+      if: inputs.ninjatracing
 
     - name: Upload ninjatracing Trace
       uses: actions/upload-artifact@v4
       with:
         name: ninja-trace-${{ matrix.config.id }}
         path: ninja-trace-${{ matrix.config.id }}.json
-      if: matrix.config.id != 'mac' && inputs.ninjatracing
+      if: inputs.ninjatracing
 
   publish:
     name: Publish
