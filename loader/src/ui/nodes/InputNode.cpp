@@ -16,6 +16,11 @@ struct TextInputNodeFix : Modify<TextInputNodeFix, CCTextInputNode> {
     bool ccTouchBegan(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) {
         if (this->getTag() != INPUT_TAG) return CCTextInputNode::ccTouchBegan(touch, event);
 
+        if (!this->isVisible()) {
+            this->onClickTrackNode(false);
+            return false;
+        }
+
         auto const touchPos = touch->getLocation();
         auto const size = this->getContentSize();
         auto const pos = this->convertToNodeSpace(touchPos) + m_textField->getAnchorPoint() * size;
