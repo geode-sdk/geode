@@ -52,7 +52,7 @@ docs/**
 docs
 
 # Ignore codegenned files
-loader/src/internal/about.hpp
+loader/src/internal/about.cpp
 loader/src/internal/resources.hpp
 loader/resources/mod.json
 loader/resources/version

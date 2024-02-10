@@ -768,7 +768,7 @@ std::vector<LoadProblem> Mod::Impl::getProblems() const {
 
 static Result<ModMetadata> getModImplInfo() {
     std::string error;
-    auto res = matjson::parse(LOADER_MOD_JSON, error);
+    auto res = matjson::parse(about::getLoaderModJson(), error);
     if (error.size() > 0) {
         return Err("Unable to parse mod.json: " + error);
     }

@@ -134,7 +134,7 @@ std::vector<Mod*> Loader::Impl::getAllMods() {
 // Version info
 
 VersionInfo Loader::Impl::getVersion() {
-    return LOADER_VERSION;
+    return about::getLoaderVersion();
 }
 
 VersionInfo Loader::Impl::minModVersion() {
