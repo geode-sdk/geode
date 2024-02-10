@@ -56,6 +56,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=RelWithDebInfo
             -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
             -DGEODE_DONT_BUILD_TEST_MODS=1
+            -G Ninja
           cli_cmd: 'chmod +x $GITHUB_WORKSPACE/cli/geode'
           ninja_cmd: ''
           package_cmd: './installer/mac/package.sh ./bin/nightly ./installer/mac/geode-installer-mac.pkg'
