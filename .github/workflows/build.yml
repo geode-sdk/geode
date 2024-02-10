@@ -193,7 +193,7 @@ jobs:
 
     - name: Run ninjatracing
       shell: bash
-      run: 'python3 ./ninjatracing/ninjatracing ${{ github.workspace }}/build/.ninja_log > ./ninja-trace-${{ matrix.config.id }}.json'
+      run: 'python3 ./ninjatracing/ninjatracing ./build/.ninja_log > ./ninja-trace-${{ matrix.config.id }}.json'
       if: matrix.config.id != 'mac' && inputs.ninjatracing
 
     - name: Upload ninjatracing Trace
