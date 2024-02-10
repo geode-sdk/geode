@@ -192,7 +192,7 @@ jobs:
         cmake --build build --config RelWithDebInfo --parallel
         rm bin/nightly/resources/.geode_cache
         ${{ inputs.build-debug-info && 'python3 ./ninjatracing/ninjatracing ./build/.ninja_log > ./build-debug-info/ninja-trace.json' || '' }}
-        ${{ inputs.build-debug-info && 'sccache --show-adv-stats' || '' }}
+        ${{ inputs.build-debug-info && (github.event_name != 'workflow_dispatch' || inputs.use-ccache) && 'sccache --show-adv-stats' || '' }}
 
     # hardcoding toolchain path :(
     - name: Post Build
