@@ -115,7 +115,8 @@ namespace geode {
         }
 
         virtual void onClose(cocos2d::CCObject*) {
-            this->setKeyboardEnabled(false);
+            this->setKeypadEnabled(false);
+            this->setTouchEnabled(false);
             this->removeFromParentAndCleanup(true);
         }
 
