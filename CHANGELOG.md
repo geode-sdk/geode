@@ -9,6 +9,7 @@
  * Fix RobTop's socials in MenuLayer (cee8c74)
  * Fix issues in CMake (d574248, 4ddd92d)
  * Fix input nodes being clickable when invisible (bf32946)
+ * Add `gd::vector::push_back` and `gd::vector::pop_back` (1593564)
 
 ## v2.0.0-beta.16
  * Bump minimum CMake version to 3.25

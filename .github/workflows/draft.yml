@@ -20,7 +20,20 @@ jobs:
       - name: Declare Version Variable
         id: ref
         shell: bash
-        run: echo "version=$(unzip -p ${{ github.workspace }}/dev/geode-nightly.zip geode-sdk-geode-*/VERSION | xargs)" >> $GITHUB_OUTPUT
+        run: |
+          VERSION=$(unzip -p ${{ github.workspace }}/dev/geode-nightly.zip geode-sdk-geode-*/VERSION | xargs)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          # test if release already exists
+          set +e
+          curl --fail "https://api.github.com/repos/geode-sdk/geode/releases/tags/v$VERSION" --silent --output /dev/null
+          RESULT=$?
+          set -e
+          
+          if [ $RESULT -eq 0 ]; then
+            echo "Release $VERSION already exists! Not replacing it.."
+            exit 1
+          else
 
       - name: Move Files
         run: |
