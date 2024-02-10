@@ -100,7 +100,7 @@ jobs:
 
     env:
       CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm-cache
-      SCCACHE_ERROR_LOG: ${{ inputs.build-debug-info && (github.workspace + '/build-debug-info/sccache-log.txt') }}
+      SCCACHE_ERROR_LOG: ${{ inputs.build-debug-info && format('{0}/build-debug-info/sccache-log.txt', github.workspace) }}
       SCCACHE_LOG: ${{ inputs.build-debug-info && 'debug' }}
       RUST_BACKTRACE: ${{ inputs.build-debug-info && '1' || '0' }}
 
