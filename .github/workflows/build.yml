@@ -102,8 +102,8 @@ jobs:
     env:
       CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm-cache
       # apparently disabling warnings slightly speeds up builds?
-      CFLAGS: ${{ inputs.no-warnings && '-w' || '' }}
-      CXXFLAGS: ${{ inputs.no-warnings && '-w' || '' }}
+      CFLAGS: "${{ inputs.no-warnings && '-w' || '' }}"
+      CXXFLAGS: "${{ inputs.no-warnings && '-w' || '' }}"
 
     steps:
     - name: Checkout
