@@ -140,12 +140,10 @@ namespace geode {
             return *this;
         }
 
-        template <matjson::Type T>
-        JsonMaybeValue& is() {
-            if (this->isError()) return *this;
-            self().m_hasValue = jsonConvertibleTo(self().m_json.type(), T);
-            m_inferType = false;
-            return *this;
+        template <class T>
+        bool is() {
+            if (this->isError()) return false;
+            return self().m_json.template is<T>();
         }
 
         template <class T>

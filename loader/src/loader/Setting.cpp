@@ -15,7 +15,21 @@ template<class T>
 static void parseCommon(T& sett, JsonMaybeObject& obj) {
     obj.has("name").into(sett.name);
     obj.has("description").into(sett.description);
-    obj.has("default").into(sett.defaultValue);
+    if (auto defValue = obj.needs("default")) {
+        // Platform-specific default value
+        if (defValue.template is<matjson::Object>()) {
+            auto def = defValue.obj();
+            if (auto plat = def.has(PlatformID::toShortString(GEODE_PLATFORM_TARGET, true))) {
+                plat.into(sett.defaultValue);
+            }
+            else {
+                defValue.into(sett.defaultValue);
+            }
+        }
+        else {
+            defValue.into(sett.defaultValue);
+        }
+    }
 }
 
 Result<BoolSetting> BoolSetting::parse(JsonMaybeObject& obj) {
