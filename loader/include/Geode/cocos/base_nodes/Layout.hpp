@@ -48,7 +48,7 @@ public:
     virtual ~Layout() = default;
 };
 
-class GEODE_DLL LayoutOptions {
+class GEODE_DLL LayoutOptions : public CCObject {
 public:
     virtual ~LayoutOptions() = default;
 };
@@ -344,9 +344,7 @@ protected:
 
 public:
     /**
-     * Create a new RowLayout. Note that this class is not automatically 
-     * managed by default, so you must assign it to a CCNode or manually 
-     * manage the memory yourself. See the chainable setters on RowLayout for 
+     * Create a new RowLayout. See the chainable setters on RowLayout for 
      * what options you can customize for the layout
      * @returns Created RowLayout
      */
@@ -362,9 +360,7 @@ protected:
 
 public:
     /**
-     * Create a new ColumnLayout. Note that this class is not automatically 
-     * managed by default, so you must assign it to a CCNode or manually 
-     * manage the memory yourself. See the chainable setters on RowLayout for 
+     * Create a new ColumnLayout. See the chainable setters on RowLayout for 
      * what options you can customize for the layout
      * @returns Created ColumnLayout
      */

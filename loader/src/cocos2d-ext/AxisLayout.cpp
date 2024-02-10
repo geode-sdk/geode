@@ -908,7 +908,9 @@ ColumnLayout* ColumnLayout::create() {
 // AxisLayoutOptions
 
 AxisLayoutOptions* AxisLayoutOptions::create() {
-    return new AxisLayoutOptions();
+    auto ret = new AxisLayoutOptions();
+    ret->autorelease();
+    return ret;
 }
 
 std::optional<bool> AxisLayoutOptions::getAutoScale() const {

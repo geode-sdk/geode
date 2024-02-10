@@ -20,7 +20,7 @@ private:
     Ref<cocos2d::CCObject> m_userObject;
     std::string m_id = "";
     Ref<Layout> m_layout = nullptr;
-    std::unique_ptr<LayoutOptions> m_layoutOptions = nullptr;
+    Ref<LayoutOptions> m_layoutOptions = nullptr;
     std::unordered_map<std::string, matjson::Value> m_attributes;
     std::unordered_set<std::unique_ptr<EventListenerProtocol>> m_eventListeners;
     std::unordered_map<std::string, std::unique_ptr<EventListenerProtocol>> m_idEventListeners;
@@ -147,14 +147,14 @@ Layout* CCNode::getLayout() {
 }
 
 void CCNode::setLayoutOptions(LayoutOptions* options, bool apply) {
-    GeodeNodeMetadata::set(this)->m_layoutOptions.reset(options);
+    GeodeNodeMetadata::set(this)->m_layoutOptions = options;
     if (apply && m_pParent) {
         m_pParent->updateLayout();
     }
 }
 
 LayoutOptions* CCNode::getLayoutOptions() {
-    return GeodeNodeMetadata::set(this)->m_layoutOptions.get();
+    return GeodeNodeMetadata::set(this)->m_layoutOptions.data();
 }
 
 void CCNode::updateLayout(bool updateChildOrder) {

@@ -8,7 +8,9 @@
 using namespace geode::prelude;
 
 AnchorLayoutOptions* AnchorLayoutOptions::create() {
-    return new AnchorLayoutOptions();
+    auto ret = new AnchorLayoutOptions();
+    ret->autorelease();
+    return ret;
 }
 
 Anchor AnchorLayoutOptions::getAnchor() const {
