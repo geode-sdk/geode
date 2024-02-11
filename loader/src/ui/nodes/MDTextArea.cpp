@@ -9,6 +9,7 @@
 #include <Geode/utils/string.hpp>
 #include <md4c.h>
 #include <charconv>
+#include <Geode/loader/Log.hpp>
 
 using namespace geode::prelude;
 

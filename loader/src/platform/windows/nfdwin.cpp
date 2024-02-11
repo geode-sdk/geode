@@ -1,5 +1,6 @@
 #include "nfdwin.hpp"
 #include <Geode/utils/string.hpp>
+#include <algorithm>
 
 using Path = ghc::filesystem::path;
 using Paths = std::vector<ghc::filesystem::path>;

@@ -413,7 +413,11 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
     if (mod == Mod::get()) {
         // we're showing the internal geode mod :-)
         auto* label = CCLabelBMFont::create(
-            fmt::format("Bindings: {}\nLoader: {}", BINDINGS_COMMIT_HASH, LOADER_COMMIT_HASH).c_str(),
+            fmt::format(
+                "Bindings: {}\nLoader: {}",
+                about::getBindingsCommitHash(),
+                about::getLoaderCommitHash()
+            ).c_str(),
             "chatFont.fnt"
         );
         label->setAlignment(kCCTextAlignmentRight);

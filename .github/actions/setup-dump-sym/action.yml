@@ -39,4 +39,3 @@ runs:
     shell: bash
     id: get-path
     working-directory: "./dump_syms"
-

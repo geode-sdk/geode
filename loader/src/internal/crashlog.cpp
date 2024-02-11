@@ -2,6 +2,7 @@
 #include <fmt/core.h>
 #include "about.hpp"
 #include "../loader/ModImpl.hpp"
+#include <Geode/Utils.hpp>
 
 using namespace geode::prelude;
 
@@ -20,8 +21,8 @@ std::string crashlog::getDateString(bool filesafe) {
 
 void crashlog::printGeodeInfo(std::stringstream& stream) {
     stream << "Loader Version: " << Loader::get()->getVersion().toString() << "\n"
-           << "Loader Commit: " << LOADER_COMMIT_HASH << "\n"
-           << "Bindings Commit: " << BINDINGS_COMMIT_HASH << "\n"
+           << "Loader Commit: " << about::getLoaderCommitHash() << "\n"
+           << "Bindings Commit: " << about::getBindingsCommitHash() << "\n"
            << "Installed mods: " << Loader::get()->getAllMods().size() << "\n"
            << "Problems: " << Loader::get()->getProblems().size() << "\n";
 }

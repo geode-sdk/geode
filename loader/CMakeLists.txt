@@ -18,8 +18,9 @@ else()
 endif()
 
 # https://stackoverflow.com/a/63924044/9124836
+# https://stackoverflow.com/a/72396471
 execute_process(
-	COMMAND git rev-parse --short HEAD
+	COMMAND git describe --always --dirty
 	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 	OUTPUT_VARIABLE GEODE_COMMIT_HASH
 	OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -31,7 +32,7 @@ if (NOT GEODE_COMMIT_HASH)
 endif()
 
 execute_process(
-	COMMAND git rev-parse --short HEAD
+	COMMAND git describe --always --dirty
 	WORKING_DIRECTORY ${GEODE_BINDINGS_REPO_PATH}
 	OUTPUT_VARIABLE GEODE_BINDINGS_COMMIT_HASH
 	OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -50,7 +51,7 @@ configure_file(${GEODE_ROOT_PATH}/VERSION ${GEODE_RESOURCES_PATH}/version COPYON
 configure_file(${GEODE_RESOURCES_PATH}/about.md.in ${GEODE_RESOURCES_PATH}/about.md NEWLINE_STYLE LF)
 configure_file(${GEODE_ROOT_PATH}/CHANGELOG.md ${GEODE_RESOURCES_PATH}/changelog.md NEWLINE_STYLE LF)
 configure_file(${GEODE_RESOURCES_PATH}/support.md.in ${GEODE_RESOURCES_PATH}/support.md NEWLINE_STYLE LF)
-configure_file(src/internal/about.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/src/internal/about.hpp)
+configure_file(src/internal/about.cpp.in ${CMAKE_CURRENT_SOURCE_DIR}/src/internal/about.cpp)
 
 # Source files
 file(GLOB SOURCES CONFIGURE_DEPENDS 
@@ -209,7 +210,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 # These are only needed for building source :-)
 if (NOT GEODE_BUILDING_DOCS)
 	# Markdown support
-	CPMAddPackage("gh:mity/md4c#e9ff661")
+	CPMAddPackage("gh:mity/md4c#release-0.5.2")
 
 	# Zip support (needed for in-memory streams, which zlib's minizip doesn't support)
 	set(MZ_LZMA Off CACHE INTERNAL "Enables LZMA & XZ compression")
@@ -242,7 +243,7 @@ if (NOT GEODE_BUILDING_DOCS)
 	endif()
 
 	# Regex support
-	CPMAddPackage("gh:google/re2#954656f")
+	CPMAddPackage("gh:google/re2#c9cba76")
 
 	target_include_directories(${PROJECT_NAME} PRIVATE ${md4c_SOURCE_DIR}/src)
 
@@ -267,24 +268,11 @@ if (MSVC)
 	target_link_options(${PROJECT_NAME} PRIVATE /DELAYLOAD:libcocos2d.dll /DELAYLOAD:libExtensions.dll)
 endif()
 
-# Use precompiled headers for faster builds
-if (NOT GEODE_DISABLE_PRECOMPILED_HEADERS)
-	target_precompile_headers(${PROJECT_NAME} PRIVATE
-		"${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Geode.hpp"
-		# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Utils.hpp"
-		# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Loader.hpp"
-		# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/UI.hpp"
-		# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/Bindings.hpp"
-		# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/cocos/include/cocos2d.h"
-		# "${CMAKE_CURRENT_SOURCE_DIR}/include/Geode/cocos/extensions/cocos-ext.h"
-	)
-endif()
-
 # Create launcher
 if (APPLE)
 	set_target_properties(geode-loader PROPERTIES 
 		SYSTEM_NAME MacOS
-		OSX_DEPLOYMENT_TARGET 10.9
+		OSX_DEPLOYMENT_TARGET 10.15
 		APPLE_SILICON_PROCESSOR x86_64
 	)
 

@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include <Geode/binding/CCIndexPath.hpp>
 #include <Geode/binding/TableViewCell.hpp>
 #include <Geode/binding/FLAlertLayerProtocol.hpp>
 #include <Geode/loader/Loader.hpp>

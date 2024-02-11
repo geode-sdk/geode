@@ -7,6 +7,7 @@
 #include <Geode/utils/map.hpp>
 #include <hash/hash.hpp>
 #include <Geode/utils/JsonValidation.hpp>
+#include <Geode/loader/Mod.hpp>
 
 #include <thread>
 

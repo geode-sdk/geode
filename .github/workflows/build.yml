@@ -2,6 +2,17 @@ name: Build Binaries
 
 on:
   workflow_dispatch:
+    inputs:
+      build-debug-info:
+        description: 'Profile and debug the build process'
+        required: false
+        default: false
+        type: boolean
+      use-ccache:
+        description: 'Enable ccache/sccache'
+        required: false
+        default: true
+        type: boolean
   pull_request:
   push:
     branches:
@@ -10,7 +21,6 @@ on:
 
 env:
   GEODE_CI: ''
-  CCACHE_ACTION_CI: true
 
 jobs:
   build:
@@ -22,14 +32,17 @@ jobs:
           os: windows-latest
           id: win
           cli_id: win
-          extra_flags: -T host=x64 -A win32 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DGEODE_DEBUG=On
-          # uncomment to use vs clang-cl and ninja
-          #extra_flags: >
-          #  --no-warn-unused-cli
-          #  "-DCMAKE_C_COMPILER:FILEPATH=$env:VCINSTALLDIR\Tools\Llvm\bin\clang-cl.exe"
-          #  "-DCMAKE_CXX_COMPILER:FILEPATH=$env:VCINSTALLDIR\Tools\Llvm\bin\clang-cl.exe"
-          #  -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DGEODE_DEBUG=On
+          extra_flags: >
+            -DCMAKE_C_COMPILER=clang
+            -DCMAKE_CXX_COMPILER=clang++
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo
+            -DGEODE_CODEGEN_CMAKE_ARGS="-DCMAKE_C_COMPILER=clang;-DCMAKE_CXX_COMPILER=clang++;-G Ninja"
+            -G Ninja
           cli_cmd: ''
+          ninja_cmd: |
+            iwr https://github.com/ninja-build/ninja/releases/latest/download/ninja-win.zip -OutFile ninja.zip
+            7z x ninja.zip -o"$env:GITHUB_WORKSPACE\ninja"
+            echo ($env:GITHUB_WORKSPACE + "\ninja") | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           package_cmd: 'makensis -WX -V3 ./installer/windows/installer.nsi'
           installer_path: './installer/windows/geode-installer-win.exe'
 
@@ -40,27 +53,29 @@ jobs:
           extra_flags: >
             -DCMAKE_C_COMPILER=clang
             -DCMAKE_CXX_COMPILER=clang++
-            -DCMAKE_C_COMPILER_LAUNCHER=ccache
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
             -DCMAKE_BUILD_TYPE=RelWithDebInfo
-            -DGEODE_DEBUG=On
             -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
             -DGEODE_DONT_BUILD_TEST_MODS=1
-          cli_cmd: 'chmod +x $GITHUB_WORKSPACE/cli/geode'
+            -DGEODE_CODEGEN_CMAKE_ARGS="-DCMAKE_C_COMPILER=clang;-DCMAKE_CXX_COMPILER=clang++;-G Ninja"
+            -G Ninja
+          cli_cmd: 'chmod +x cli/geode'
+          ninja_cmd: 'brew install ninja'
           package_cmd: './installer/mac/package.sh ./bin/nightly ./installer/mac/geode-installer-mac.pkg'
           installer_path: './installer/mac/geode-installer-mac.pkg'
-        
+
         - name: Android32
           os: ubuntu-latest
           id: android32
           cli_id: linux
           extra_flags: >
-            -DCMAKE_TOOLCHAIN_FILE=$NDK_HOME/build/cmake/android.toolchain.cmake
+            -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake
             -DANDROID_ABI=armeabi-v7a
             -DANDROID_PLATFORM=android-23
             -DGEODE_DONT_BUILD_TEST_MODS=1
+            -DGEODE_CODEGEN_CMAKE_ARGS="-G Ninja"
             -G Ninja
-          cli_cmd: 'chmod +x $GITHUB_WORKSPACE/cli/geode'
+          cli_cmd: 'chmod +x cli/geode'
+          ninja_cmd: 'sudo apt install ninja-build'
           package_cmd: ''
           installer_path: ''
 
@@ -69,47 +84,75 @@ jobs:
           id: android64
           cli_id: linux
           extra_flags: >
-            -DCMAKE_TOOLCHAIN_FILE=$NDK_HOME/build/cmake/android.toolchain.cmake
+            -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake
             -DANDROID_ABI=arm64-v8a
             -DANDROID_PLATFORM=android-23
             -DGEODE_DONT_BUILD_TEST_MODS=1
+            -DGEODE_CODEGEN_CMAKE_ARGS="-G Ninja"
             -G Ninja
-          cli_cmd: 'chmod +x $GITHUB_WORKSPACE/cli/geode'
+          cli_cmd: 'chmod +x cli/geode'
+          ninja_cmd: 'sudo apt install ninja-build'
           package_cmd: ''
           installer_path: ''
-          
 
     name: Build ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
 
+    env:
+      CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm-cache
+
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         submodules: recursive
 
-    - name: Setup ccache
-      uses: hendrikmuhs/ccache-action@v1
-      with:
-        key: ${{ matrix.config.os }}
-      if: matrix.config.id != 'win'
+    - name: Prepare for Build Debug Info
+      shell: bash
+      run: |
+        mkdir ./build-debug-info
+        ${{ matrix.config.id == 'win' && 'echo "REAL_BASH=C:/Program Files/Git/bin/bash.exe" >> $GITHUB_ENV' || 'echo "REAL_BASH=$BASH" >> $GITHUB_ENV' }}
+        echo "SCCACHE_ERROR_LOG=$GITHUB_WORKSPACE/build-debug-info/sccache-log.txt" >> $GITHUB_ENV
+        echo "SCCACHE_LOG=debug" >> $GITHUB_ENV
+        echo "RUST_BACKTRACE=1" >> $GITHUB_ENV
+      if: inputs.build-debug-info
 
-    - name: Setup MSVC
-      uses: ilammy/msvc-dev-cmd@v1.12.1
+    # https://github.com/hendrikmuhs/ccache-action/pull/182
+    - name: Setup sccache
+      uses: chirag-droid/ccache-action@main
       with:
-        arch: amd64_x86
+        variant: sccache
+        key: ${{ matrix.config.id }}-v1
+      if: ${{ github.event_name != 'workflow_dispatch' || inputs.use-ccache }}
+
+    - name: Setup CPM Cache
+      uses: actions/cache@v4
+      with:
+        path: cpm-cache
+        key: cpm-${{ matrix.config.id }}-v1-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+        restore-keys: |
+          cpm-${{ matrix.config.id }}-v1-
+
+    - name: Setup info.rc Cache
+      uses: actions/cache@v4
+      with:
+        path: build/**/info.rc*
+        key: rc-${{ matrix.config.id }}-v1-${{ hashFiles('VERSION', 'loader/CMakeLists.txt', 'loader/src/platform/windows/info.rc.in') }}
       if: matrix.config.id == 'win'
 
-    - name: Setup NDK
-      uses: nttld/setup-ndk@v1
-      id: setup-ndk
-      with:
-        ndk-version: r26b
-        add-to-path: false
-      if: matrix.config.id == 'android32' || matrix.config.id == 'android64'
+    - name: Install Ninja
+      run: ${{ matrix.config.ninja_cmd }}
+      if: matrix.config.ninja_cmd != ''
+
+    - name: Update LLVM
+      run: |
+        iwr https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/LLVM-17.0.6-win64.exe -OutFile llvm-inst.exe
+        7z x llvm-inst.exe -ollvm bin/clang.exe bin/clang++.exe bin/lld-link.exe bin/llvm-rc.exe bin/*.dll lib/clang/*/include/*
+        echo "${{ github.workspace }}\llvm\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      if: matrix.config.id == 'win'
 
     - name: Download CLI
-      uses: robinraju/release-downloader@v1.8
+      uses: robinraju/release-downloader@v1.9
       with:
         repository: geode-sdk/cli
         latest: true
@@ -120,44 +163,46 @@ jobs:
 
     - name: Setup CLI
       run: |
-        7z x "${{ github.workspace }}/cli/*-${{ matrix.config.cli_id }}.zip" -o"${{ github.workspace }}/cli"
+        7z x "cli/*-${{ matrix.config.cli_id }}.zip" -ocli
         ${{ matrix.config.cli_cmd }}
-        echo "${{ github.workspace }}/cli" >> $GITHUB_PATH
-
-    - name: Setup Android Env
-      run: |
-        echo "NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> "$GITHUB_ENV"
-        sudo apt install ninja-build
-      if: matrix.config.id == 'android32' || matrix.config.id == 'android64'
 
     - name: Setup Breakpad Tools
       uses: ./.github/actions/setup-dump-sym
       id: breakpad-tools
       if: matrix.config.id == 'android32' || matrix.config.id == 'android64'
 
+    - name: Checkout ninjatracing
+      uses: actions/checkout@v4
+      with:
+        repository: 'nico/ninjatracing'
+        path: ninjatracing
+        submodules: recursive
+      if: inputs.build-debug-info
+
     - name: Configure
       run: >
-        cmake -B ${{ github.workspace }}/build
-        -DCLI_PATH="${{ github.workspace }}/cli"
+        cmake -B build
+        -DCLI_PATH=${{ github.workspace }}/cli
+        ${{ inputs.build-debug-info && '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON' || '' }}
         ${{ matrix.config.extra_flags }}
+        ${{ inputs.build-debug-info && 'cp ./build/compile_commands.json ./build-debug-info/' || '' }}
 
     - name: Build
       run: |
-        cd ${{ github.workspace }}/build
-        cmake --build . --config RelWithDebInfo --parallel
-        rm ${{ github.workspace }}/bin/nightly/resources/.geode_cache
-
-    - name: Dump Symbols
-      run: "${{ steps.breakpad-tools.outputs.binary-path }} ./bin/nightly/Geode.${{ matrix.config.id }}.so -o ./bin/nightly/Geode.${{ matrix.config.id }}.so.sym"
-      if: matrix.config.id == 'android32' || matrix.config.id == 'android64'
+        cmake --build build --config RelWithDebInfo --parallel
+        rm bin/nightly/resources/.geode_cache
+        ${{ inputs.build-debug-info && 'python3 ./ninjatracing/ninjatracing ./build/.ninja_log > ./build-debug-info/ninja-trace.json' || '' }}
+        ${{ inputs.build-debug-info && (github.event_name != 'workflow_dispatch' || inputs.use-ccache) && 'sccache --show-adv-stats' || '' }}
 
     # hardcoding toolchain path :(
-    - name: Strip Binaries
-      run: "$NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip ./bin/nightly/Geode.${{ matrix.config.id }}.so"
+    - name: Post Build
+      run: |
+        ${{ steps.breakpad-tools.outputs.binary-path }} ./bin/nightly/Geode.${{ matrix.config.id }}.so -o ./bin/nightly/Geode.${{ matrix.config.id }}.so.sym
+        $ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip ./bin/nightly/Geode.${{ matrix.config.id }}.so
       if: matrix.config.id == 'android32' || matrix.config.id == 'android64'
 
     - name: Upload Artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: geode-${{ matrix.config.id }}
         path: ./bin/nightly
@@ -167,11 +212,35 @@ jobs:
       if: matrix.config.installer_path != ''
 
     - name: Upload Installer
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: geode-installer-${{ matrix.config.id }}
         path: ${{ matrix.config.installer_path }}
       if: matrix.config.installer_path != ''
+
+    - name: Preprocess
+      shell: bash
+      run: |
+        mkdir build-debug-info-preprocessed
+        cd build
+        sed 's/\\\\/\//g' compile_commands.json | sed 's/D:\//\/d\//' > uni_compile_commands.json
+        pip install compile-commands
+        compile-commands --file=uni_compile_commands.json --filter_files='.*info\.rc.*' --filter='(.*) -o (.*)((?:/|\\).*)\.(?:obj|o) -c (.*)' --replacement="$REAL_BASH"' --noprofile --norc -c "mkdir -p ../build-debug-info-preprocessed/\g<2> && \g<1> -o ../build-debug-info-preprocessed/\g<2>\g<3>.i -E \g<4>"' -o ../build-debug-info/preprocess_commands.json --run --verbose
+      if: inputs.build-debug-info
+
+    - name: Upload Build Debug Info
+      uses: actions/upload-artifact@v4
+      with:
+        name: geode-build-debug-info-${{ matrix.config.id }}
+        path: ./build-debug-info/*
+      if: inputs.build-debug-info
+
+    - name: Upload Preprocessed Files
+      uses: actions/upload-artifact@v4
+      with:
+        name: geode-build-debug-info-preprocessed-${{ matrix.config.id }}
+        path: ./build-debug-info-preprocessed/*
+      if: inputs.build-debug-info
 
   publish:
     name: Publish
@@ -180,19 +249,17 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Declare Version Variables
         id: ref
         shell: bash
         run: |
-          echo "version=$(cat ${{ github.workspace }}/VERSION | xargs)" >> $GITHUB_OUTPUT
+          echo "version=$(cat VERSION | xargs)" >> $GITHUB_OUTPUT
           echo "hash=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_OUTPUT
 
       - name: Download Artifacts
-        uses: actions/download-artifact@v3
-        with:
-          path: ${{ github.workspace }}
+        uses: actions/download-artifact@v4
 
       - name: Move Installers
         run: |
@@ -246,4 +313,3 @@ jobs:
             ./geode-${{ steps.ref.outputs.hash }}-android32.zip
             ./geode-${{ steps.ref.outputs.hash }}-android64.zip
             ./resources.zip
-

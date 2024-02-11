@@ -3,6 +3,9 @@
 #include "../../../loader/ModImpl.hpp"
 #include <utility>
 #include <queue>
+#include <Geode/binding/TableView.hpp>
+#include <Geode/binding/CCContentLayer.hpp>
+#include <Geode/ui/General.hpp>
 
 bool ProblemsListPopup::setup(Mod* scrollTo) {
     m_noElasticity = true;

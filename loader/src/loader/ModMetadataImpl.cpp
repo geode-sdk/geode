@@ -131,7 +131,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
     if (info.getID() != "geode.loader") {
         impl->m_dependencies.push_back({
             "geode.loader",
-            {LOADER_VERSION, VersionCompare::Exact},
+            {about::getLoaderVersion(), VersionCompare::Exact},
             Dependency::Importance::Required,
             Mod::get()
         });
@@ -216,7 +216,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
 
 Result<ModMetadata> ModMetadata::Impl::create(ModJson const& json) {
     // Check mod.json target version
-    auto schema = LOADER_VERSION;
+    auto schema = about::getLoaderVersion();
     if (json.contains("geode") && json["geode"].is_string()) {
         GEODE_UNWRAP_INTO(
             schema,
@@ -253,7 +253,7 @@ Result<ModMetadata> ModMetadata::Impl::create(ModJson const& json) {
         return Err(
             "[mod.json] targets a version (" + schema.toString() +
             ") that isn't supported by this version (v" +
-            LOADER_VERSION_STR +
+            about::getLoaderVersionStr() +
             ") of geode. This is probably a bug; report it to "
             "the Geode Development Team."
         );

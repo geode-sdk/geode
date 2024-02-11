@@ -2,6 +2,7 @@
 
 #include <Geode/ui/Popup.hpp>
 #include <Geode/loader/Loader.hpp>
+#include <Geode/ui/ListView.hpp>
 
 using namespace geode::prelude;
 

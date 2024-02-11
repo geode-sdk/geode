@@ -1,7 +1,6 @@
 #include <Geode/modify/IDManager.hpp>
-#include <Geode/utils/cocos.hpp>
 #include <Geode/utils/NodeIDs.hpp>
-#include <Geode/ui/BasedButtonSprite.hpp>
+#include <Geode/binding/LoadingLayer.hpp>
 
 using namespace geode::prelude;
 using namespace geode::node_ids;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Geode/platform/platform.hpp>
 #include <tulip/TulipHook.hpp>
 
 namespace geode::hook {

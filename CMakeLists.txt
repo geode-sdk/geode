@@ -1,12 +1,37 @@
 cmake_minimum_required(VERSION 3.25 FATAL_ERROR)
 
+set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT Embedded)
+cmake_policy(SET CMP0141 NEW)
+
+if (NOT DEFINED CMAKE_C_COMPILER_LAUNCHER AND NOT DEFINED ENV{CMAKE_C_COMPILER_LAUNCHER} OR
+	NOT DEFINED CMAKE_CXX_COMPILER_LAUNCHER AND NOT DEFINED ENV{CMAKE_CXX_COMPILER_LAUNCHER})
+	message(STATUS "Looking for ccache/sccache")
+	find_program(GEODE_CCACHE NAMES sccache ccache)
+	if (NOT GEODE_CCACHE)
+		message(STATUS "Looking for ccache/sccache - not found")
+		message(NOTICE "Not using a caching compiler (ccache/sccache). "
+			"It is recommended to install one to improve build times.")
+		message(NOTICE "Recommended sccache, check its README for installation instructions, "
+			"normally you can just use your usual package manager (e.g. 'scoop install sccache').")
+	else()
+		message(STATUS "Looking for ccache/sccache - found")
+		message(NOTICE "Compiler launcher not set but ccache/sccache was found. "
+			"Setting compiler launcher to that")
+		set(CMAKE_C_COMPILER_LAUNCHER ${GEODE_CCACHE})
+		set(CMAKE_CXX_COMPILER_LAUNCHER ${GEODE_CCACHE})
+	endif()
+endif()
+
+if (DEFINED ENV{GEODE_CI})
+	message(STATUS "Building in CI")
+endif()
+
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build libraries static" FORCE)
 
 # Docs flags
 if (GEODE_BUILDING_DOCS)
 	set(GEODE_DISABLE_CLI_CALLS On)
 	set(CMAKE_EXPORT_COMPILE_COMMANDS On)
-	set(GEODE_DISABLE_PRECOMPILED_HEADERS On)
 	set(GEODE_DONT_BUILD_TEST_MODS On)
 endif()
 
@@ -49,6 +74,11 @@ endif()
 
 include(cmake/CPM.cmake)
 
+if (NOT DEFINED CPM_SOURCE_CACHE)
+	message(NOTICE "Not using CPM cache (CPM_SOURCE_CACHE). "
+		"It is recommended to use it to improve configure times.")
+endif()
+
 # Allow users to have their own copy of bindings that can be overwritten with a CMake option.
 # If the option is not provided, by default just clone bindings with CPM and use that
 if (DEFINED ENV{GEODE_BINDINGS_REPO_PATH})
@@ -79,19 +109,6 @@ endif()
 project(geode-sdk VERSION ${GEODE_VERSION} LANGUAGES CXX C)
 
 add_library(${PROJECT_NAME} INTERFACE)
-
-if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-	set(GEODE_ALWAYS_BUILD_CODEGEN ON)
-endif()
-
-if (NOT DEFINED GEODE_DEBUG AND (CMAKE_BUILD_TYPE STREQUAL Debug OR CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo))
-	set(GEODE_DEBUG ON)
-endif()
-
-# define it in command line or your project system
-if (GEODE_DEBUG) 
-	target_compile_definitions(${PROJECT_NAME} INTERFACE -DGEODE_DEBUG)
-endif()
 
 # Rerun CMake on VERSION file change
 set_target_properties(${PROJECT_NAME} PROPERTIES CMAKE_CONFIGURE_DEPENDS VERSION)
@@ -124,7 +141,13 @@ if (WIN32)
 	# This allows you to compile in debug mode
 	add_compile_definitions(_HAS_ITERATOR_DEBUGGING=0)
 	add_definitions(-D_HAS_ITERATOR_DEBUGGING=0)
- 	target_link_libraries(${PROJECT_NAME} INTERFACE delayimp)
+	target_link_libraries(${PROJECT_NAME} INTERFACE delayimp)
+	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND
+		CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
+		# target x86 on windows with clang
+		add_compile_options(--target=i686-windows-msvc)
+		add_link_options(--target=i686-windows-msvc)
+	endif()
 endif()
 
 set(MAT_JSON_AS_INTERFACE ON)
@@ -146,13 +169,13 @@ if (PROJECT_IS_TOP_LEVEL AND NOT GEODE_BUILDING_DOCS)
 	set(TULIP_LINK_SOURCE ON)
 endif()
 set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "" FORCE)
-CPMAddPackage("gh:geode-sdk/TulipHook#b5e881a")
+CPMAddPackage("gh:geode-sdk/TulipHook#2d2ae8cc")
 set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
 
-# Silence warnings from dependencies
 include(CheckCXXCompilerFlag)
 check_cxx_compiler_flag(-Wno-everything SUPPORTS_W_NO_EVERYTHING)
 if (SUPPORTS_W_NO_EVERYTHING)
+	# Silence warnings from dependencies
 	if (TARGET capstone)
 		target_compile_options(capstone PRIVATE -Wno-everything)
 	endif()
@@ -160,18 +183,11 @@ endif()
 
 target_sources(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/entry.cpp)
 
-# Filesystem implementation in a separate target because i couldnt disable pch
 add_library(GeodeFilesystemImpl ${CMAKE_CURRENT_SOURCE_DIR}/FilesystemImpl.cpp)
 target_compile_features(GeodeFilesystemImpl PUBLIC cxx_std_20)
 target_link_libraries(GeodeFilesystemImpl PUBLIC ghc_filesystem)
 
 add_subdirectory(${GEODE_BINDINGS_REPO_PATH} ${CMAKE_BINARY_DIR}/bindings)
-
-if (NOT GEODE_DISABLE_PRECOMPILED_HEADERS)
-	target_precompile_headers(GeodeBindings INTERFACE
-		"${GEODE_LOADER_PATH}/include/Geode/Bindings.hpp"
-	)
-endif()
 
 target_include_directories(GeodeBindings PUBLIC
 	${GEODE_LOADER_PATH}/include
@@ -200,18 +216,14 @@ endif()
 if (PROJECT_IS_TOP_LEVEL)
 	add_subdirectory(loader)
 	target_link_libraries(${PROJECT_NAME} INTERFACE geode-loader)
+	if (SUPPORTS_W_NO_EVERYTHING)
+		target_compile_options(geode-loader PRIVATE -Wno-inconsistent-missing-override)
+	endif()
 elseif(EXISTS ${GEODE_PLATFORM_BIN_PATH})
 	target_link_libraries(${PROJECT_NAME} INTERFACE "${GEODE_PLATFORM_BIN_PATH}")
-	if(NOT GEODE_DISABLE_PRECOMPILED_HEADERS)
-		target_precompile_headers(${PROJECT_NAME} INTERFACE
-			"${GEODE_LOADER_PATH}/include/Geode/DefaultInclude.hpp"
-			"${GEODE_LOADER_PATH}/include/Geode/Geode.hpp"
-			# please stop adding modify here its not here because it makes windows compilation take longer than geode 1.0 release date
-		)
-	endif()
 else()
 	message(FATAL_ERROR
-		"No valid loader binary to link to! Install prebuilts with `geode sdk install-binaries`, "
+		"No valid loader binary to link to! Install pre-built binaries with `geode sdk install-binaries`, "
 		"or build Geode from source and add `set(GEODE_LINK_NIGHTLY ON)` to your CMakeLists.txt "
 		"in the line before calling add_subdirectory for Geode."
 	)

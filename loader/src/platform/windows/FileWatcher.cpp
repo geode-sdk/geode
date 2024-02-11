@@ -1,6 +1,7 @@
 #include <FileWatcher.hpp>
 #include <iostream>
 #include <thread>
+#include <Geode/utils/general.hpp>
 
 static constexpr auto const notifyAttributes =
     FILE_NOTIFY_CHANGE_LAST_WRITE | FILE_NOTIFY_CHANGE_ATTRIBUTES | FILE_NOTIFY_CHANGE_SIZE;

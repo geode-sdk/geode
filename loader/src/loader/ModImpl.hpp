@@ -2,6 +2,7 @@
 
 #include <matjson.hpp>
 #include "ModPatch.hpp"
+#include <Geode/loader/Loader.hpp>
 
 namespace geode {
     class Mod::Impl {

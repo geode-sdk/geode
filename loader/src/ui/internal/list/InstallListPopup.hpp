@@ -2,6 +2,7 @@
 
 #include <Geode/ui/Popup.hpp>
 #include <Geode/loader/Index.hpp>
+#include <Geode/ui/ListView.hpp>
 
 #include "InstallListCell.hpp"
 

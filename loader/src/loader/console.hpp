@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <string>
+#include <Geode/loader/Types.hpp>
 
 namespace geode::console {
     // intended for setting up an already attached console

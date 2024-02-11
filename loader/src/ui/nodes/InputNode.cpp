@@ -1,4 +1,5 @@
 #include <Geode/binding/CCTextInputNode.hpp>
+#include <Geode/binding/TextInputDelegate.hpp>
 #include <Geode/ui/InputNode.hpp>
 
 using namespace geode::prelude;

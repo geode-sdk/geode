@@ -1,4 +1,6 @@
 #include <Geode/ui/Popup.hpp>
+#include <Geode/binding/FLAlertLayer.hpp>
+#include <Geode/binding/FLAlertLayerProtocol.hpp>
 
 using namespace geode::prelude;
 

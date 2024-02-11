@@ -12,6 +12,7 @@
 #include <Geode/ui/Popup.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/string.hpp>
+#include <Geode/loader/Mod.hpp>
 
 using namespace geode::prelude;
 

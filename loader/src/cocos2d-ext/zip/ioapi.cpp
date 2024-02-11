@@ -151,18 +151,13 @@ static long ZCALLBACK ftell_file_func (voidpf opaque, voidpf stream)
 }
 
 
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
-    #define ftello(a) ftell(a)
-    #define fseeko(a, b, c) fseek(a, b, c)
-#endif
-
 static ZPOS64_T ZCALLBACK ftell64_file_func (voidpf opaque, voidpf stream)
 {
     ZPOS64_T ret;
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_MARMALADE || CC_TARGET_PLATFORM == CC_PLATFORM_BADA || CC_TARGET_PLATFORM == CC_PLATFORM_NACL || CC_TARGET_PLATFORM == CC_PLATFORM_EMSCRIPTEN)
     ret = 0;
 #else
-    ret = ftello((FILE *)stream);
+    ret = ftell((FILE *)stream);
 #endif
     return ret;
 }
@@ -213,7 +208,7 @@ static long ZCALLBACK fseek64_file_func (voidpf  opaque, voidpf stream, ZPOS64_T
     if(_fseeki64((FILE *)stream, offset, fseek_origin) != 0)
         return -1;
 #else
-    if(fseeko((FILE *)stream, offset, fseek_origin) != 0)
+    if(fseek((FILE *)stream, offset, fseek_origin) != 0)
         return -1;
 #endif
     return 0;

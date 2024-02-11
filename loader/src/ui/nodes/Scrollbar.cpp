@@ -1,5 +1,7 @@
 #include <Geode/ui/Scrollbar.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/binding/CCContentLayer.hpp>
+#include <Geode/loader/Mod.hpp>
 
 using namespace geode::prelude;
 

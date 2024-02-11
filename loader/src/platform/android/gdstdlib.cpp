@@ -1,6 +1,7 @@
 #include <Geode/c++stl/gdstdlib.hpp>
 #include "../../c++stl/string-impl.hpp"
 #include "internalString.hpp"
+#include <assert.h>
 
 #if defined(GEODE_IS_ANDROID32)
 static auto constexpr NEW_SYM = "_Znwj";
