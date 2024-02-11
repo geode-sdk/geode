@@ -128,58 +128,7 @@ endif()
 
 
 if (ANDROID AND GEODE_USE_BREAKPAD)
-	CPMAddPackage(
-		NAME "Breakpad"
-		VERSION "2023.06.01"
-		GIT_REPOSITORY "https://chromium.googlesource.com/breakpad/breakpad.git"
-	)
-
-	if (Breakpad_ADDED)
-		# uses fetchcontent to store the library in an arbitrary path (the binary dir)
-		include(FetchContent)
-
-		FetchContent_Declare(lss
-			GIT_REPOSITORY https://chromium.googlesource.com/linux-syscall-support.git
-			GIT_TAG v2022.10.12
-			SOURCE_DIR ${Breakpad_BINARY_DIR}/src/third_party/lss
-		)
-
-		FetchContent_MakeAvailable(lss)
-
-		add_library(Breakpad STATIC
-			${Breakpad_SOURCE_DIR}/src/client/linux/crash_generation/crash_generation_client.cc
-			${Breakpad_SOURCE_DIR}/src/client/linux/dump_writer_common/thread_info.cc
-			${Breakpad_SOURCE_DIR}/src/client/linux/dump_writer_common/ucontext_reader.cc
-			${Breakpad_SOURCE_DIR}/src/client/linux/handler/exception_handler.cc
-			${Breakpad_SOURCE_DIR}/src/client/linux/handler/minidump_descriptor.cc
-			${Breakpad_SOURCE_DIR}/src/client/linux/log/log.cc
-			${Breakpad_SOURCE_DIR}/src/client/linux/microdump_writer/microdump_writer.cc
-			${Breakpad_SOURCE_DIR}/src/client/linux/minidump_writer/linux_dumper.cc
-			${Breakpad_SOURCE_DIR}/src/client/linux/minidump_writer/linux_ptrace_dumper.cc
-			${Breakpad_SOURCE_DIR}/src/client/linux/minidump_writer/minidump_writer.cc
-			${Breakpad_SOURCE_DIR}/src/client/linux/minidump_writer/pe_file.cc
-			${Breakpad_SOURCE_DIR}/src/client/minidump_file_writer.cc
-			${Breakpad_SOURCE_DIR}/src/common/convert_UTF.cc
-			${Breakpad_SOURCE_DIR}/src/common/md5.cc
-			${Breakpad_SOURCE_DIR}/src/common/string_conversion.cc
-			${Breakpad_SOURCE_DIR}/src/common/linux/breakpad_getcontext.S
-			${Breakpad_SOURCE_DIR}/src/common/linux/elfutils.cc
-			${Breakpad_SOURCE_DIR}/src/common/linux/file_id.cc
-			${Breakpad_SOURCE_DIR}/src/common/linux/guid_creator.cc
-			${Breakpad_SOURCE_DIR}/src/common/linux/linux_libc_support.cc
-			${Breakpad_SOURCE_DIR}/src/common/linux/memory_mapped_file.cc
-			${Breakpad_SOURCE_DIR}/src/common/linux/safe_readlink.cc
-		)
-
-		target_include_directories(Breakpad PUBLIC
-			${Breakpad_SOURCE_DIR}/src/common/android/include/
-			${Breakpad_SOURCE_DIR}/src/
-			${Breakpad_SOURCE_DIR}/src/common/android/include/
-
-			# add lss headers
-			${Breakpad_BINARY_DIR}/src/
-		)
-	endif()
+	CPMAddPackage("gh:qimiko/breakpad#161e908")
 endif()
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
@@ -230,7 +179,6 @@ if (ANDROID)
 
 	if (GEODE_USE_BREAKPAD)
 		target_compile_definitions(${PROJECT_NAME} PRIVATE -DGEODE_USE_BREAKPAD)
-		enable_language(ASM)
 		target_link_libraries(${PROJECT_NAME} Breakpad)
 	endif()
 endif()

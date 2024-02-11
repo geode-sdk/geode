@@ -1,5 +1,16 @@
 # Geode Changelog
 
+## v2.0.0-beta.17
+ * Add `$override` macro for syntactic sugar (e7a1913)
+ * Add support for platform-specific setting default values as well as platform-specific settings (9c8fcf1)
+ * Change `cc3bFromHexString` and `cc4bFromHexString` to be more strict with parsing by default (9c8fcf1)
+ * `JsonMaybeValue::is` is now a lot more reasonable (9c8fcf1)
+ * Make `LayoutOptions` also `CCObject` (3b7621c)
+ * Fix RobTop's socials in MenuLayer (cee8c74)
+ * Fix issues in CMake (d574248, 4ddd92d)
+ * Fix input nodes being clickable when invisible (bf32946)
+ * Add `gd::vector::push_back` and `gd::vector::pop_back` (1593564)
+
 ## v2.0.0-beta.16
  * Bump minimum CMake version to 3.25
  * Add support for platform-specific dependencies (30c7d3f)

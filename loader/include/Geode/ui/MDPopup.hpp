@@ -8,7 +8,7 @@ namespace geode {
      * FLAlertLayer with support for Markdown. See MDTextArea
      * for details on what features of MD are supported.
      */
-    class MDPopup :
+    class GEODE_DLL MDPopup :
         public Popup<
             std::string const&, std::string const&, char const*, char const*,
             utils::MiniFunction<void(bool)>> {

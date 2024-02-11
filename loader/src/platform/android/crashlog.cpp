@@ -5,6 +5,7 @@ static bool s_lastLaunchCrashed = false;
 #ifdef GEODE_USE_BREAKPAD
 
 #include <memory>
+#include <fmt/chrono.h>
 
 #include <client/linux/handler/exception_handler.h>
 #include <client/linux/handler/minidump_descriptor.h>
@@ -29,6 +30,14 @@ namespace {
 
         return succeeded;
     }
+
+    std::string crashdumpName() {
+        auto timeEpoch = std::chrono::system_clock::to_time_t(
+            std::chrono::system_clock::now());
+        auto localtime = fmt::localtime(timeEpoch);
+
+        return fmt::format("Crash {:%F %H.%M.%S}.dmp", localtime);
+    }
 }
 
 bool crashlog::setupPlatformHandler() {
@@ -36,7 +45,7 @@ bool crashlog::setupPlatformHandler() {
 
     (void)geode::utils::file::createDirectoryAll(logDirectory);
 
-    google_breakpad::MinidumpDescriptor descriptor(logDirectory.string());
+    google_breakpad::MinidumpDescriptor descriptor(logDirectory.string(), crashdumpName());
 
     s_exceptionHandler = std::make_unique<google_breakpad::ExceptionHandler>(
         descriptor, nullptr, crashCallback, nullptr, true, -1

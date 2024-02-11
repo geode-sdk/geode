@@ -40,14 +40,7 @@ ccColor3B matjson::Serialize<ccColor3B>::from_json(matjson::Value const& json) {
     }
     // hex string
     else if (json.is_string()) {
-        std::string str = json.as_string();
-        if (str[0] == '#') {
-            str.erase(str.begin());
-        }
-        if (str.size() > 6) {
-            throw matjson::JsonException("Hex string for color too long");
-        }
-        auto c = cc3bFromHexString(str);
+        auto c = cc3bFromHexString(json.as_string());
         if (!c) {
             throw matjson::JsonException("Invalid color hex string");
         }
@@ -96,14 +89,7 @@ ccColor4B matjson::Serialize<ccColor4B>::from_json(matjson::Value const& json) {
     }
     // hex string
     else if (json.is_string()) {
-        std::string str = json.as_string();
-        if (str[0] == '#') {
-            str.erase(str.begin());
-        }
-        if (str.size() > 8) {
-            throw matjson::JsonException("Hex string for color too long");
-        }
-        auto c = cc4bFromHexString(str);
+        auto c = cc4bFromHexString(json.as_string());
         if (!c) {
             throw matjson::JsonException("Invalid color hex string: " + c.unwrapErr());
         }
@@ -116,8 +102,12 @@ ccColor4B matjson::Serialize<ccColor4B>::from_json(matjson::Value const& json) {
     return color;
 }
 
-Result<ccColor3B> geode::cocos::cc3bFromHexString(std::string const& hexValue) {
-    if (hexValue.empty()) {
+Result<ccColor3B> geode::cocos::cc3bFromHexString(std::string const& rawHexValue, bool permissive) {
+    auto hexValue = rawHexValue;
+    if (hexValue[0] == '#') {
+        hexValue.erase(hexValue.begin());
+    }
+    if (permissive && hexValue.empty()) {
         return Ok(ccc3(255, 255, 255));
     }
     if (hexValue.size() > 6) {
@@ -144,21 +134,38 @@ Result<ccColor3B> geode::cocos::cc3bFromHexString(std::string const& hexValue) {
         } break;
 
         case 2: {
+            if (!permissive) {
+                return Err("Invalid hex pattern, expected RGB or RRGGBB");
+            }
             auto num = static_cast<uint8_t>(numValue);
             return Ok(ccc3(num, num, num));
         } break;
 
         case 1: {
+            if (!permissive) {
+                return Err("Invalid hex pattern, expected RGB or RRGGBB");
+            }
             auto num = static_cast<uint8_t>(numValue) * 17;
             return Ok(ccc3(num, num, num));
         } break;
 
-        default: return Err("Invalid hex size, expected 1, 2, 3, or 6");
+        default: {
+            if (permissive) {
+                return Err("Invalid hex pattern, expected R, RR, RGB, or RRGGBB");
+            }
+            else {
+                return Err("Invalid hex pattern, expected RGB or RRGGBB");
+            }
+        }
     }
 }
 
-Result<ccColor4B> geode::cocos::cc4bFromHexString(std::string const& hexValue) {
-    if (hexValue.empty()) {
+Result<ccColor4B> geode::cocos::cc4bFromHexString(std::string const& rawHexValue, bool requireAlpha, bool permissive) {
+    auto hexValue = rawHexValue;
+    if (hexValue[0] == '#') {
+        hexValue.erase(hexValue.begin());
+    }
+    if (permissive && hexValue.empty()) {
         return Ok(ccc4(255, 255, 255, 255));
     }
     if (hexValue.size() > 8) {
@@ -179,6 +186,9 @@ Result<ccColor4B> geode::cocos::cc4bFromHexString(std::string const& hexValue) {
         } break;
 
         case 6: {
+            if (requireAlpha) {
+                return Err("Alpha component is required, got only RRGGBB");
+            }
             auto r = static_cast<uint8_t>((numValue & 0xFF0000) >> 16);
             auto g = static_cast<uint8_t>((numValue & 0x00FF00) >> 8);
             auto b = static_cast<uint8_t>((numValue & 0x0000FF));
@@ -194,6 +204,9 @@ Result<ccColor4B> geode::cocos::cc4bFromHexString(std::string const& hexValue) {
         } break;
 
         case 3: {
+            if (requireAlpha) {
+                return Err("Alpha component is required, got only RGB");
+            }
             auto r = static_cast<uint8_t>(((numValue & 0xF00) >> 8) * 17);
             auto g = static_cast<uint8_t>(((numValue & 0x0F0) >> 4) * 17);
             auto b = static_cast<uint8_t>(((numValue & 0x00F)) * 17);
@@ -201,16 +214,38 @@ Result<ccColor4B> geode::cocos::cc4bFromHexString(std::string const& hexValue) {
         } break;
 
         case 2: {
+            if (!permissive) {
+                return Err("Invalid hex pattern, expected RGBA or RRGGBBAA");
+            }
+            if (requireAlpha) {
+                return Err("Alpha component is required, specify full RRGGBBAA");
+            }
             auto num = static_cast<uint8_t>(numValue);
             return Ok(ccc4(num, num, num, 255));
         } break;
 
         case 1: {
+            if (!permissive) {
+                return Err("Invalid hex pattern, expected RGBA or RRGGBBAA");
+            }
+            if (requireAlpha) {
+                return Err("Alpha component is required, specify full RGBA");
+            }
             auto num = static_cast<uint8_t>(numValue) * 17;
             return Ok(ccc4(num, num, num, 255));
         } break;
 
-        default: return Err("Invalid hex size, expected 1, 2, 3, 4, 6, or 8");
+        default: {
+            if (requireAlpha) {
+                return Err("Invalid hex pattern, expected RGBA or RRGGBBAA");
+            }
+            else if (permissive) {
+                return Err("Invalid hex pattern, expected R, RR, RGB, RGBA, RRGGBB, or RRGGBBAA");
+            }
+            else {
+                return Err("Invalid hex pattern, expected RGB, RGBA, RRGGBB, or RRGGBBAA");
+            }
+        }
     }
 }
 

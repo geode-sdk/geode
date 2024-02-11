@@ -172,6 +172,20 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
     }
 
     for (auto& [key, value] : root.has("settings").items()) {
+        // Skip settings not on this platform
+        if (value.template is<matjson::Object>()) {
+            auto obj = value.obj();
+            bool onThisPlatform = !obj.has("platforms");
+            for (auto& plat : obj.has("platforms").iterate()) {
+                if (PlatformID::from(plat.get<std::string>()) == GEODE_PLATFORM_TARGET) {
+                    onThisPlatform = true;
+                }
+            }
+            if (!onThisPlatform) {
+                continue;
+            }
+        }
+
         GEODE_UNWRAP_INTO(auto sett, Setting::parse(key, impl->m_id, value));
         impl->m_settings.emplace_back(key, sett);
     }

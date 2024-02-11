@@ -816,8 +816,30 @@ namespace geode::cocos {
                 static_cast<GLubyte>(hexValue >> 0 & 0xff)};
     }
 
-    GEODE_DLL Result<cocos2d::ccColor3B> cc3bFromHexString(std::string const& hexValue);
-    GEODE_DLL Result<cocos2d::ccColor4B> cc4bFromHexString(std::string const& hexValue);
+    /**
+     * Parse a ccColor3B from a hexadecimal string. The string may contain 
+     * a leading '#'
+     * @param hexValue The string to parse into a color
+     * @param permissive If true, strings like "f" are considered valid 
+     * representations of the color white. Useful for UIs that allow entering 
+     * a hex color. Empty strings evaluate to pure white
+     * @returns A ccColor3B if it could be succesfully parsed, or an error 
+     * indicating the failure reason
+     */
+    GEODE_DLL Result<cocos2d::ccColor3B> cc3bFromHexString(std::string const& hexValue, bool permissive = false);
+    /**
+     * Parse a ccColor4B from a hexadecimal string. The string may contain 
+     * a leading '#'
+     * @param hexValue The string to parse into a color
+     * @param requireAlpha Require the alpha component to be passed. If false, 
+     * alpha defaults to 255
+     * @param permissive If true, strings like "f" are considered valid 
+     * representations of the color white. Useful for UIs that allow entering 
+     * a hex color. Empty strings evaluate to pure white
+     * @returns A ccColor4B if it could be succesfully parsed, or an error 
+     * indicating the failure reason
+     */
+    GEODE_DLL Result<cocos2d::ccColor4B> cc4bFromHexString(std::string const& hexValue, bool requireAlpha = false, bool permissive = false);
     GEODE_DLL std::string cc3bToHexString(cocos2d::ccColor3B const& color);
     GEODE_DLL std::string cc4bToHexString(cocos2d::ccColor4B const& color);
 

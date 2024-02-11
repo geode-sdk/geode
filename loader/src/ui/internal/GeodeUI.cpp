@@ -42,6 +42,14 @@ void geode::openIssueReportPopup(Mod* mod) {
     }
 }
 
+void geode::openSupportPopup(Mod* mod) {
+    MDPopup::create(
+        "Support " + mod->getMetadata().getName(),
+        mod->getMetadata().getSupportInfo().value(),
+        "OK"
+    )->show();
+}
+
 void geode::openInfoPopup(Mod* mod) {
     LocalModInfoPopup::create(mod, nullptr)->show();
 }
