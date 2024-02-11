@@ -16,7 +16,7 @@ PFNGLDELETEVERTEXARRAYSOESPROC glDeleteVertexArraysOESEXT = 0;
 namespace {
     bool reportPlatformCapability(std::string id) {
         JniMethodInfo t;
-        if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "reportPlatformCapability", "(Ljava/lang/String;)V")) {
+        if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "reportPlatformCapability", "(Ljava/lang/String;)Z")) {
             jstring stringArg1 = t.env->NewStringUTF(id.c_str());
 
             auto r = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);
