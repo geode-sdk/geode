@@ -11,8 +11,7 @@ if (NOT DEFINED CMAKE_C_COMPILER_LAUNCHER AND NOT DEFINED ENV{CMAKE_C_COMPILER_L
 		message(STATUS "Looking for ccache/sccache - not found")
 		message(NOTICE "Not using a caching compiler (ccache/sccache). "
 			"It is recommended to install one to improve build times.")
-		message(NOTICE "Recommended ccache on Windows and sccache on other platforms, "
-			"check ccache/sccache's README for installation instructions, "
+		message(NOTICE "Recommended sccache, check its README for installation instructions, "
 			"normally you can just use your usual package manager (e.g. 'scoop install ccache').")
 	else()
 		message(STATUS "Looking for ccache/sccache - found")
