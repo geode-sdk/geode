@@ -134,13 +134,13 @@ extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_nativ
     }
 }
 
-constexpr auto g_scrollFactor = -15.0f;
+constexpr auto g_scrollFactor = -13.0f;
 
 extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_nativeActionScroll(
     JNIEnv* env, jobject, jfloat scrollX, jfloat scrollY
 ) {
     cocos2d::CCDirector::sharedDirector()->getMouseDispatcher()->dispatchScrollMSG(
-        scrollX * g_scrollFactor, scrollY * g_scrollFactor
+        scrollY * g_scrollFactor, scrollX * g_scrollFactor
     );
 }
 
