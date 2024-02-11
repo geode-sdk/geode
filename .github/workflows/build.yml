@@ -137,7 +137,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: build/**/info.rc*
-        key: rc-${{ matrix.config.id }}-v1-${{ hashFiles('build/**/info.rc*') }}
+        key: rc-${{ matrix.config.id }}-v1-${{ hashFiles('VERSION', 'loader/CMakeLists.txt', 'loader/src/platform/windows/info.rc.in') }}
       if: matrix.config.id == 'win'
 
     - name: Install Ninja
