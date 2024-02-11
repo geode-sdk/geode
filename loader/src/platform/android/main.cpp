@@ -14,15 +14,17 @@ PFNGLBINDVERTEXARRAYOESPROC glBindVertexArrayOESEXT = 0;
 PFNGLDELETEVERTEXARRAYSOESPROC glDeleteVertexArraysOESEXT = 0;
 
 namespace {
-    void reportPlatformCapability(std::string id) {
+    bool reportPlatformCapability(std::string id) {
         JniMethodInfo t;
         if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "reportPlatformCapability", "(Ljava/lang/String;)V")) {
             jstring stringArg1 = t.env->NewStringUTF(id.c_str());
 
-            t.env->CallStaticVoidMethod(t.classID, t.methodID, stringArg1);
+            auto r = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);
 
             t.env->DeleteLocalRef(stringArg1);
             t.env->DeleteLocalRef(t.classID);
+
+            return r;
         } else {
             auto vm = JniHelper::getJavaVM();
 
@@ -31,6 +33,8 @@ namespace {
                 env->ExceptionClear();
             }
         }
+
+        return false;
     }
 }
 
