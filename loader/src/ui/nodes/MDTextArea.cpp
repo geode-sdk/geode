@@ -91,6 +91,7 @@ Result<ccColor3B> colorForIdentifier(std::string const& tag) {
         }
         else {
             switch (colorText.front()) {
+                case 'a': return Ok(cc3x(0x9632ff)); break;
                 case 'b': return Ok(cc3x(0x4a52e1)); break;
                 case 'g': return Ok(cc3x(0x40e348)); break;
                 case 'l': return Ok(cc3x(0x60abef)); break;
