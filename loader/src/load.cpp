@@ -95,15 +95,16 @@ int geodeEntry(void* platformData) {
 #ifdef GEODE_IS_WINDOWS
     // yes this is quite funny
     if (GetAsyncKeyState(VK_SHIFT) != 0) {
-        LoaderImpl::get()->forceSafeMode();
-        std::thread([] {
-            MessageBoxA(
-                NULL,
-                "You have triggered Geode Safe Mode by holding SHIFT.\nGeode will not load any mods.",
-                "Attention",
-                MB_OK | MB_ICONINFORMATION
-            );
-        }).detach();
+        auto choice = MessageBoxA(
+            NULL,
+            "(This has been triggered because you were holding SHIFT)\n"
+            "Do you want to activate Geode Safe Mode? This disables loading any mods.",
+            "Attention",
+            MB_YESNO | MB_ICONINFORMATION
+        );
+        if (choice == IDYES) {
+            LoaderImpl::get()->forceSafeMode();
+        }
     }
 #endif
 
