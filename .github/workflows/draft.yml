@@ -33,7 +33,7 @@ jobs:
           if [ $RESULT -eq 0 ]; then
             echo "Release $VERSION already exists! Not replacing it.."
             exit 1
-          else
+          fi
 
       - name: Move Files
         run: |
