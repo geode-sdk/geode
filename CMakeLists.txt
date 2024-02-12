@@ -169,7 +169,21 @@ if (PROJECT_IS_TOP_LEVEL AND NOT GEODE_BUILDING_DOCS)
 	set(TULIP_LINK_SOURCE ON)
 endif()
 set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "" FORCE)
-CPMAddPackage("gh:geode-sdk/TulipHook#2d2ae8cc")
+
+# Allow users to have their own copy of TulipHook that can be overwritten with a CMake option.
+# If the option is not provided, by default just clone TulipHook with CPM and use that
+if (DEFINED ENV{GEODE_TULIPHOOK_REPO_PATH})
+	set(temp $ENV{GEODE_TULIPHOOK_REPO_PATH})
+	# this is so stupid i hate windows paths
+	string(REPLACE "\\" "/" GEODE_TULIPHOOK_REPO_PATH ${temp})
+endif()
+
+if (DEFINED GEODE_TULIPHOOK_REPO_PATH)
+	message(STATUS "Using ${GEODE_TULIPHOOK_REPO_PATH} for TulipHook")
+	add_subdirectory(${GEODE_TULIPHOOK_REPO_PATH} ${GEODE_TULIPHOOK_REPO_PATH}/build)
+else()
+	CPMAddPackage("gh:geode-sdk/TulipHook#9dc223d")
+endif()
 set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
 
 include(CheckCXXCompilerFlag)
