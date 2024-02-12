@@ -2,6 +2,7 @@
 
 #include "../load.hpp"
 #include <jni.h>
+#include <Geode/cocos/platform/android/jni/JniHelper.h>
 #include "internalString.hpp"
 #include <cocos2d.h>
 #include <Geode/loader/Log.hpp>
@@ -15,6 +16,31 @@ using namespace geode::prelude;
 PFNGLGENVERTEXARRAYSOESPROC glGenVertexArraysOESEXT = 0;
 PFNGLBINDVERTEXARRAYOESPROC glBindVertexArrayOESEXT = 0;
 PFNGLDELETEVERTEXARRAYSOESPROC glDeleteVertexArraysOESEXT = 0;
+
+namespace {
+    bool reportPlatformCapability(std::string id) {
+        JniMethodInfo t;
+        if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "reportPlatformCapability", "(Ljava/lang/String;)Z")) {
+            jstring stringArg1 = t.env->NewStringUTF(id.c_str());
+
+            auto r = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);
+
+            t.env->DeleteLocalRef(stringArg1);
+            t.env->DeleteLocalRef(t.classID);
+
+            return r;
+        } else {
+            auto vm = JniHelper::getJavaVM();
+
+            JNIEnv* env;
+            if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) == JNI_OK) {
+                env->ExceptionClear();
+            }
+        }
+
+        return false;
+    }
+}
 
 extern "C" [[gnu::visibility("default")]] jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     glGenVertexArraysOESEXT = (PFNGLGENVERTEXARRAYSOESPROC)eglGetProcAddress("glGenVertexArraysOES");
@@ -35,6 +61,8 @@ extern "C" [[gnu::visibility("default")]] jint JNI_OnLoad(JavaVM* vm, void* rese
         setEmptyInternalString(&cc->m_sString);
         delete cc;
     }
+
+    reportPlatformCapability("extended_input");
 
     geodeEntry(nullptr);
     return JNI_VERSION_1_6;
