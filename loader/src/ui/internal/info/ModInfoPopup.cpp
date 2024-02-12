@@ -174,24 +174,40 @@ void ModInfoPopup::onRepository(CCObject*) {
 
 void ModInfoPopup::onInfo(CCObject*) {
     auto info = this->getMetadata();
-    FLAlertLayer::create(
-        nullptr,
-        ("About " + info.getName()).c_str(),
-        fmt::format(
+    auto about = std::string();
+    if (info.getID() == "geode.loader") {
+        about = fmt::format(
             "<cr>ID:</c> {}\n"
             "<cg>Version:</c> {}\n"
             "<cy>Developers:</c> {}\n"
-            "<cy>Path:</c> {}\n",
+            "<ca>Bindings Commit Hash:</c> {}\n"
+            "<cp>Loader Commit Hash:</c> {}",
+            info.getID(),
+            info.getVersion().toString(),
+            ranges::join(info.getDevelopers(), ", "),
+            about::getBindingsCommitHash(),
+            about::getLoaderCommitHash()
+        );
+    }
+    else {
+        about = fmt::format(
+            "<cr>ID:</c> {}\n"
+            "<cg>Version:</c> {}\n"
+            "<cy>Developers:</c> {}\n"
+            "<ca>Path:</c> {}\n",
             info.getID(),
             info.getVersion().toString(),
             ranges::join(info.getDevelopers(), ", "),
             info.getPath().string()
-        ),
-        "OK",
+        );
+    }
+    FLAlertLayer::create(
         nullptr,
+        ("About " + info.getName()).c_str(),
+        about,
+        "OK", nullptr,
         400.f
-    )
-        ->show();
+    )->show();
 }
 
 void ModInfoPopup::onChangelog(CCObject* sender) {
@@ -409,22 +425,6 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
                 m_mainLayer->addChildAtPosition(m_latestVersionLabel, Anchor::Center, ccp(35, 75));
             }
         }
-    }
-    if (mod == Mod::get()) {
-        // we're showing the internal geode mod :-)
-        auto* label = CCLabelBMFont::create(
-            fmt::format(
-                "Bindings: {}\nLoader: {}",
-                about::getBindingsCommitHash(),
-                about::getLoaderCommitHash()
-            ).c_str(),
-            "chatFont.fnt"
-        );
-        label->setAlignment(kCCTextAlignmentRight);
-        label->setAnchorPoint({ .0f, .5f });
-        label->setScale(.5f);
-        label->setOpacity(89);
-        m_mainLayer->addChildAtPosition(label, Anchor::BottomRight, ccp(5, 0));
     }
 
     // issue report button
