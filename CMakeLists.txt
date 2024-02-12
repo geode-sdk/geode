@@ -3,8 +3,19 @@ cmake_minimum_required(VERSION 3.25 FATAL_ERROR)
 set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT Embedded)
 cmake_policy(SET CMP0141 NEW)
 
-if (NOT DEFINED CMAKE_C_COMPILER_LAUNCHER AND NOT DEFINED ENV{CMAKE_C_COMPILER_LAUNCHER} OR
-	NOT DEFINED CMAKE_CXX_COMPILER_LAUNCHER AND NOT DEFINED ENV{CMAKE_CXX_COMPILER_LAUNCHER})
+if (CMAKE_GENERATOR MATCHES "Visual Studio")
+	# sccache does not work with msbuild,
+	# so no point in using it
+	set(GEODE_DISABLE_CACHE ON)
+endif()
+
+if (NOT DEFINED GEODE_DISABLE_CACHE)
+	set(GEODE_DISABLE_CACHE OFF)
+endif()
+
+if (NOT GEODE_DISABLE_CACHE AND
+	(NOT DEFINED CMAKE_C_COMPILER_LAUNCHER AND NOT DEFINED ENV{CMAKE_C_COMPILER_LAUNCHER} OR
+	NOT DEFINED CMAKE_CXX_COMPILER_LAUNCHER AND NOT DEFINED ENV{CMAKE_CXX_COMPILER_LAUNCHER}))
 	message(STATUS "Looking for ccache/sccache")
 	find_program(GEODE_CCACHE NAMES sccache ccache)
 	if (NOT GEODE_CCACHE)
@@ -20,6 +31,14 @@ if (NOT DEFINED CMAKE_C_COMPILER_LAUNCHER AND NOT DEFINED ENV{CMAKE_C_COMPILER_L
 		set(CMAKE_C_COMPILER_LAUNCHER ${GEODE_CCACHE})
 		set(CMAKE_CXX_COMPILER_LAUNCHER ${GEODE_CCACHE})
 	endif()
+endif()
+
+if (GEODE_DISABLE_CACHE AND NOT DEFINED GEODE_DISABLE_PRECOMPILED_HEADERS)
+	set(GEODE_DISABLE_PRECOMPILED_HEADERS OFF)
+endif()
+
+if (NOT DEFINED GEODE_DISABLE_PRECOMPILED_HEADERS)
+	set(GEODE_DISABLE_PRECOMPILED_HEADERS ON)
 endif()
 
 if (DEFINED ENV{GEODE_CI})
@@ -203,6 +222,12 @@ target_link_libraries(GeodeFilesystemImpl PUBLIC ghc_filesystem)
 
 add_subdirectory(${GEODE_BINDINGS_REPO_PATH} ${CMAKE_BINARY_DIR}/bindings)
 
+if (NOT GEODE_DISABLE_PRECOMPILED_HEADERS)
+	target_precompile_headers(GeodeBindings INTERFACE
+		"${GEODE_LOADER_PATH}/include/Geode/Bindings.hpp"
+	)
+endif()
+
 target_include_directories(GeodeBindings PUBLIC
 	${GEODE_LOADER_PATH}/include
 	${GEODE_LOADER_PATH}/include/Geode/cocos/include
@@ -233,8 +258,15 @@ if (PROJECT_IS_TOP_LEVEL)
 	if (SUPPORTS_W_NO_EVERYTHING)
 		target_compile_options(geode-loader PRIVATE -Wno-inconsistent-missing-override)
 	endif()
-elseif(EXISTS ${GEODE_PLATFORM_BIN_PATH})
+elseif (EXISTS ${GEODE_PLATFORM_BIN_PATH})
 	target_link_libraries(${PROJECT_NAME} INTERFACE "${GEODE_PLATFORM_BIN_PATH}")
+	if (NOT GEODE_DISABLE_PRECOMPILED_HEADERS)
+		target_precompile_headers(${PROJECT_NAME} INTERFACE
+			"${GEODE_LOADER_PATH}/include/Geode/DefaultInclude.hpp"
+			"${GEODE_LOADER_PATH}/include/Geode/Geode.hpp"
+			# please stop adding modify here its not here because it makes windows compilation take longer than geode 1.0 release date
+		)
+	endif()
 else()
 	message(FATAL_ERROR
 		"No valid loader binary to link to! Install pre-built binaries with `geode sdk install-binaries`, "
