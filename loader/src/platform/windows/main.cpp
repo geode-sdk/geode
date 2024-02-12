@@ -48,6 +48,7 @@ int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
                 LoaderImpl::get()->getGameVersion()
             )
         );
+        // TODO: should geode FreeLibrary itself here?
     } else {
         int exitCode = geodeEntry(hInstance);
         if (exitCode != 0)
