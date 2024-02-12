@@ -14,6 +14,8 @@ static constexpr int INPUT_TAG = 0x80082;
 #include <Geode/modify/CCTextInputNode.hpp>
 
 struct TextInputNodeFix : Modify<TextInputNodeFix, CCTextInputNode> {
+    GEODE_FORWARD_COMPAT_DISABLE_HOOKS("TextInputNode fix")
+
     bool ccTouchBegan(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) {
         if (this->getTag() != INPUT_TAG) return CCTextInputNode::ccTouchBegan(touch, event);
 

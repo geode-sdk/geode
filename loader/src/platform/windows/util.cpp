@@ -228,6 +228,8 @@ void geode::utils::game::exit() {
 
 void geode::utils::game::restart() {
     // TODO: mat
+    // TODO: be VERY careful before enabling this again, this function is called in platform/windows/main.cpp,
+    // before we even check if we are in forward compatibility mode or not.
     #if 0
     if (CCApplication::sharedApplication() &&
         (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
