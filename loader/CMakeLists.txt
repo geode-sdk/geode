@@ -264,8 +264,17 @@ if (MSVC)
 	if (DEFINED ENV{GEODE_CI})
 		target_link_options(${PROJECT_NAME} PRIVATE /INCREMENTAL:NO)
 	endif()
+endif()
 
-	target_link_options(${PROJECT_NAME} PRIVATE /DELAYLOAD:libcocos2d.dll /DELAYLOAD:libExtensions.dll)
+if (WIN32)
+	# allows forward compat on windows
+	if (MSVC)
+		target_link_options(${PROJECT_NAME} PRIVATE /DELAYLOAD:libcocos2d.dll /DELAYLOAD:libExtensions.dll)
+	elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+		target_link_options(${PROJECT_NAME} PRIVATE "-Wl,/delayload:libcocos2d.dll" "-Wl,/delayload:libExtensions.dll")
+	else()
+		message(FATAL_ERROR "Unable to set DELAYLOAD! This is essential for Geode forward compatibility to work.")
+	endif()
 endif()
 
 # Use precompiled headers for faster builds
