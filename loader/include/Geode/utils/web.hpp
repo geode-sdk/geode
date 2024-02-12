@@ -47,7 +47,7 @@ namespace geode::utils::web {
      * @param url URL to fetch
      * @returns Returned data as JSON, or error on error
      */
-    Result<matjson::Value> fetchJSON(std::string const& url);
+    GEODE_DLL Result<matjson::Value> fetchJSON(std::string const& url);
 
     class SentAsyncWebRequest;
     template <class T>

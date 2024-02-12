@@ -81,6 +81,12 @@ enum class GameObjectType {
     GravityDashRing = 38,
     CollisionObject = 39,
     Special = 40,
+    SwingPortal = 41,
+    GravityTogglePortal = 42,
+    SpiderOrb = 43,
+    SpiderPad = 44,
+    TeleportOrb = 46,
+    AnimatedHazard = 47,
 };
 
 enum class PulseEffectType {
