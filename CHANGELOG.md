@@ -3,6 +3,7 @@
 ## v2.0.0-beta.19
  * Fix Windows forward compatibility mode (eef949c5, 824efbf3, 456075a2)
    * This was caused by Clang not setting `/DELAYLOAD` properly, but also a mutex introduced in beta.7 causing Geode not to load at all
+ * Slightly improve Mod List sorting (3497692)
 
 ## v2.0.0-beta.18
  * Use sccache for caching instead of PCH to improve compile times (#493)

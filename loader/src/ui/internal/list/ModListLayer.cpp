@@ -70,7 +70,8 @@ static std::optional<int> queryMatchKeywords(
         // sorted, at least enough so that if you're scrolling it based on 
         // alphabetical order you will find the part you're looking for easily 
         // so it's fine
-        return (static_cast<int>(-tolower(metadata.getName()[0])) * 256) + (metadata.getName().size() > 1 ? static_cast<int>(-tolower(metadata.getName()[1])) : 0);
+        return (static_cast<int>(-tolower(metadata.getName()[0])) * 256)
+            + (metadata.getName().size() > 1 ? static_cast<int>(-tolower(metadata.getName()[1])) : 0);
     }
 
     // if the weight is relatively small we can ignore it
