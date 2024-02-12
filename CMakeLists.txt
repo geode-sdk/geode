@@ -22,8 +22,12 @@ if (NOT GEODE_DISABLE_CACHE AND
 		message(STATUS "Looking for ccache/sccache - not found")
 		message(NOTICE "Not using a caching compiler (ccache/sccache). "
 			"It is recommended to install one to improve build times.")
-		message(NOTICE "Recommended sccache, check its README for installation instructions, "
+		message(NOTICE "We recommend sccache, check its README for installation instructions, "
 			"normally you can just use your usual package manager (e.g. 'scoop install sccache').")
+		if (NOT DEFINED GEODE_DISABLE_PRECOMPILED_HEADERS)
+			message(NOTICE "Because of this, PCH will be enabled.")
+			set(GEODE_DISABLE_PRECOMPILED_HEADERS OFF)
+		endif()
 	else()
 		message(STATUS "Looking for ccache/sccache - found")
 		message(NOTICE "Compiler launcher not set but ccache/sccache was found. "
