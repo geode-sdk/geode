@@ -8,6 +8,7 @@
  * Add more `GameObjectType`s (8e4b76f)
  * Add `Mod::hasAvailableUpdate` (b71ae17)
  * Add callbacks for Android keyboard inputs (#507)
+ * Add option to activate Safe Mode on Windows by holding Shift when launching (a327f72)
  * Move loader commit hash information to the Info popup (94ab199)
  * Make `is_json` functions more accurate (803df4f)
  * Fix color parsing from hex (131539f)
@@ -15,6 +16,7 @@
  * Fix struct returns for `CCPoint` not actually working properly (1daa671)
  * Fix `geode::web::fetchJSON` and `ColorPickPopup` not being DLL-exported (2c1eb67, 8250a73)
  * Fix usernames not showing up on profile links in Markdown (3fe102d)
+ * Fix `MDPopup` height estimations (cc4c32e)
  * Various other small fixes & improvements
 
 ## v2.0.0-beta.17
