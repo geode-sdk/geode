@@ -5,8 +5,10 @@
  * Add `geode::openSupportPopup` for opening the Support page for a mod (438252f)
  * Add `<ca>` to MDTextArea (ca683fa)
  * Add more `GameObjectType`s (8e4b76f)
- * Fix struct returns for `CCPoint` not actually working properly
- * Fix `geode::web::fetchJSON` not being DLL-exported (2c1eb67)
+ * Add `Mod::hasAvailableUpdate` (b71ae17)
+ * Add callbacks for Android keyboard inputs (#507)
+ * Fix struct returns for `CCPoint` not actually working properly (1daa671)
+ * Fix `geode::web::fetchJSON` and `ColorPickPopup` not being DLL-exported (2c1eb67, 8250a73)
  * Fix usernames not showing up on profile links in Markdown (3fe102d)
  * Various other small fixes & improvements
 
