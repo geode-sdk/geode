@@ -16,6 +16,7 @@
 #include <Geode/utils/ranges.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/binding/CCContentLayer.hpp>
+#include <loader/LoaderImpl.hpp>
 
 #define FTS_FUZZY_MATCH_IMPLEMENTATION
 #include <Geode/external/fts/fts_fuzzy_match.h>
@@ -365,7 +366,7 @@ bool ModListLayer::init() {
     this->onTab(nullptr);
 
     // add safe mode label
-    if (Loader::get()->getLaunchFlag("safe-mode")) {
+    if (LoaderImpl::get()->isSafeMode()) {
         auto* label = CCLabelBMFont::create("Safe Mode Enabled", "bigFont.fnt");
         label->setPosition(winSize.width / 2.f, 17);
         label->setScale(0.625f);

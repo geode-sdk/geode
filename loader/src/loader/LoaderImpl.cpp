@@ -845,3 +845,11 @@ Result<tulip::hook::HandlerHandle> Loader::Impl::getOrCreateHandler(void* addres
     m_handlerHandles[address] = handle;
     return Ok(handle);
 }
+
+bool Loader::Impl::isSafeMode() const {
+    return m_forceSafeMode || this->getLaunchFlag("safe-mode");
+}
+
+void Loader::Impl::forceSafeMode() {
+    m_forceSafeMode = true;
+}

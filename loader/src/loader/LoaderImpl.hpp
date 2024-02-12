@@ -135,6 +135,11 @@ namespace geode {
         bool userTriedToLoadDLLs() const;
 
         void addProblem(LoadProblem const& problem);
+
+        bool m_forceSafeMode = false;
+        bool isSafeMode() const;
+        // enables safe mode, even if the launch arg wasnt provided
+        void forceSafeMode();
     };
 
     class LoaderImpl : public Loader::Impl {

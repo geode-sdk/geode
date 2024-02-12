@@ -92,6 +92,20 @@ int geodeEntry(void* platformData) {
     if (LoaderImpl::get()->isForwardCompatMode()) {
         console::openIfClosed();
     }
+#ifdef GEODE_IS_WINDOWS
+    // yes this is quite funny
+    if (GetAsyncKeyState(VK_SHIFT) != 0) {
+        LoaderImpl::get()->forceSafeMode();
+        std::thread([] {
+            MessageBoxA(
+                NULL,
+                "You have triggered Geode Safe Mode by holding SHIFT.\nGeode will not load any mods.",
+                "Attention",
+                MB_OK | MB_ICONINFORMATION
+            );
+        }).detach();
+    }
+#endif
 
     std::string forwardCompatSuffix;
     if (LoaderImpl::get()->isForwardCompatMode())
