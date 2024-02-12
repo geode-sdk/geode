@@ -2,6 +2,7 @@
 
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/Mod.hpp>
+#include <Geode/loader/Index.hpp>
 #include <optional>
 #include <string_view>
 
@@ -84,6 +85,18 @@ std::vector<Mod*> Mod::getDependants() const {
     return m_impl->getDependants();
 }
 #endif
+
+std::optional<VersionInfo> Mod::hasAvailableUpdate() const {
+    if (auto item = Index::get()->getItem(this->getID(), std::nullopt)) {
+        if (
+            item->getMetadata().getVersion() > this->getVersion() &&
+            item->getAvailablePlatforms().contains(GEODE_PLATFORM_TARGET)
+        ) {
+            return item->getMetadata().getVersion();
+        }
+    }
+    return std::nullopt;
+}
 
 Result<> Mod::saveData() {
     return m_impl->saveData();

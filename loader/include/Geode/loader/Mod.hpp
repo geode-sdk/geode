@@ -107,6 +107,16 @@ namespace geode {
         std::vector<Mod*> getDependants() const;
 #endif
 
+        /**
+         * Check if this Mod has updates available on the mods index. If 
+         * you're using this for automatic update checking, use 
+         * `openInfoPopup` or `openIndexPopup` from the `ui/GeodeUI.hpp` 
+         * header to open the Mod's page to let the user install the update
+         * @returns The latest available version on the index if there are 
+         * updates for this mod
+         */
+        std::optional<VersionInfo> hasAvailableUpdate() const;
+
         Result<> saveData();
         Result<> loadData();
 
