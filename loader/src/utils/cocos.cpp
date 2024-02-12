@@ -8,7 +8,16 @@
 using namespace geode::prelude;
 
 bool matjson::Serialize<ccColor3B>::is_json(matjson::Value const& json) {
-    return json.is_array() || json.is_object() || json.is_string();
+    if (json.is_array()) {
+        return json.as_array().size() == 3;
+    }
+    if (json.is_object()) {
+        return json.contains("r") && json.contains("g") && json.contains("b");
+    }
+    if (json.is_string()) {
+        return !cc3bFromHexString(json.as_string()).isErr();
+    }
+    return false;
 }
 
 matjson::Value matjson::Serialize<ccColor3B>::to_json(ccColor3B const& color) {
@@ -54,7 +63,16 @@ ccColor3B matjson::Serialize<ccColor3B>::from_json(matjson::Value const& json) {
 }
 
 bool matjson::Serialize<ccColor4B>::is_json(matjson::Value const& json) {
-    return json.is_array() || json.is_object() || json.is_string();
+    if (json.is_array()) {
+        return json.as_array().size() == 4;
+    }
+    if (json.is_object()) {
+        return json.contains("r") && json.contains("g") && json.contains("b") && json.contains("a");
+    }
+    if (json.is_string()) {
+        return !cc4bFromHexString(json.as_string()).isErr();
+    }
+    return false;
 }
 
 matjson::Value matjson::Serialize<ccColor4B>::to_json(ccColor4B const& color) {

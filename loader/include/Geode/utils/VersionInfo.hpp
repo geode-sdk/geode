@@ -240,7 +240,11 @@ struct matjson::Serialize<V> {
     }
 
     static bool is_json(matjson::Value const& json) {
-        return json.is_string();
+        if (json.is_string()) {
+            auto ver = V::parse(json.as_string());
+            return !ver.isErr();
+        }
+        return false;
     }
 
     static V from_json(matjson::Value const& json) {
