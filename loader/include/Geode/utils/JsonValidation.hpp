@@ -192,7 +192,14 @@ namespace geode {
             if (this->isError()) return *this;
 
             if (self().m_json.template is<A>()) {
-                target = self().m_json.template as<A>();
+                try {
+                    target = self().m_json.template as<A>();
+                }
+                catch(matjson::JsonException const& e) {
+                    this->setError(
+                        self().m_hierarchy + ": Error parsing JSON: " + std::string(e.what())
+                    );
+                }
             }
             else {
                 this->setError(
