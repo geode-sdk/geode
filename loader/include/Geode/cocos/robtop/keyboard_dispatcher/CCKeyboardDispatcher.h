@@ -21,8 +21,8 @@ RT_ADD(
 
 		static enumKeyCodes convertKeyCode(enumKeyCodes key);
 
-		bool dispatchKeyboardMSG(enumKeyCodes key, bool, bool);
-		
+		bool dispatchKeyboardMSG(enumKeyCodes key, bool isKeyDown, bool isKeyRepeat);
+
 		inline bool getAltKeyPressed() const {
 			return m_bAltPressed;
 		}
@@ -42,21 +42,28 @@ RT_ADD(
 
 		void updateModifierKeys(bool shft, bool ctrl, bool alt, bool cmd);
 
-		bool getBlockRepeat() const;
-		void setBlockRepeat(bool);
+		inline bool getBlockRepeat() const {
+			return m_bBlockRepeat;
+		}
 
+		inline void setBlockRepeat(bool blockRepeat) {
+			this->m_bBlockRepeat = blockRepeat;
+		}
 
 	protected:
-		CCArray* m_pDelegates;		// 0x20
-		bool m_bUnknown24;			// 0x24
-		bool m_bUnknown25;			// 0x25
-		ccCArray* m_pUnknown28;		// 0x28
-		ccCArray* m_pUnknown2c;		// 0x2c
-		bool m_bShiftPressed;		// 0x30
-		bool m_bControlPressed;		// 0x31
-		bool m_bAltPressed;			// 0x32
-		bool m_bCommandPressed;		// 0x33
-		//there's more here, check the initializer
+		CCArray* m_pDelegates;	// 0x34
+		bool m_bUnknown38;			// 0x38
+		bool m_bUnknown39;      // 0x39
+		bool m_bUnknown3a;			// 0x3a
+		ccCArray* m_pUnknown3c; // 0x3c
+		ccCArray* m_pUnknown40;	// 0x40
+		bool m_bShiftPressed;		// 0x44
+		bool m_bControlPressed;	// 0x45
+		bool m_bAltPressed;			// 0x46
+		bool m_bCommandPressed;	// 0x47
+		bool m_bBlockRepeat;		// 0x48
+
+		// ~~there's more here, check the initializer~~ no there's not??
 	};
 
 	NS_CC_END
