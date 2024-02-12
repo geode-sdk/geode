@@ -2,6 +2,7 @@
 
 #include <android/keycodes.h>
 #include <jni.h>
+#include <cocos2d.h>
 
 namespace {
     std::unordered_map<int, cocos2d::enumKeyCodes> g_keymap = {
