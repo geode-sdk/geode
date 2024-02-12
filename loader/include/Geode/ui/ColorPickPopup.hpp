@@ -7,12 +7,12 @@
 #include <Geode/binding/TextInputDelegate.hpp>
 
 namespace geode {
-    class ColorPickPopupDelegate {
+    class GEODE_DLL ColorPickPopupDelegate {
     public:
         virtual void updateColor(cocos2d::ccColor4B const& color) {}
     };
 
-    class ColorPickPopup :
+    class GEODE_DLL ColorPickPopup :
         public Popup<cocos2d::ccColor4B const&, bool>,
         public cocos2d::extension::ColorPickerDelegate,
         public TextInputDelegate {
