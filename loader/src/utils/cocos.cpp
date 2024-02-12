@@ -103,20 +103,20 @@ ccColor4B matjson::Serialize<ccColor4B>::from_json(matjson::Value const& json) {
 }
 
 Result<ccColor3B> geode::cocos::cc3bFromHexString(std::string const& rawHexValue, bool permissive) {
+    if (permissive && rawHexValue.empty()) {
+        return Ok(ccc3(255, 255, 255));
+    }
     auto hexValue = rawHexValue;
     if (hexValue[0] == '#') {
         hexValue.erase(hexValue.begin());
     }
-    if (permissive && hexValue.empty()) {
-        return Ok(ccc3(255, 255, 255));
-    }
     if (hexValue.size() > 6) {
         return Err("Hex value too large");
     }
-    int numValue;
+    size_t numValue;
     auto res = std::from_chars(hexValue.data(), hexValue.data() + hexValue.size(), numValue, 16);
     if (res.ec != std::errc()) {
-        return Err("Invalid hex value");
+        return Err("Invalid hex value '{}'", hexValue);
     }
     switch (hexValue.size()) {
         case 6: {
@@ -161,20 +161,20 @@ Result<ccColor3B> geode::cocos::cc3bFromHexString(std::string const& rawHexValue
 }
 
 Result<ccColor4B> geode::cocos::cc4bFromHexString(std::string const& rawHexValue, bool requireAlpha, bool permissive) {
+    if (permissive && rawHexValue.empty()) {
+        return Ok(ccc4(255, 255, 255, 255));
+    }
     auto hexValue = rawHexValue;
     if (hexValue[0] == '#') {
         hexValue.erase(hexValue.begin());
     }
-    if (permissive && hexValue.empty()) {
-        return Ok(ccc4(255, 255, 255, 255));
-    }
     if (hexValue.size() > 8) {
         return Err("Hex value too large");
     }
-    int numValue;
+    size_t numValue;
     auto res = std::from_chars(hexValue.data(), hexValue.data() + hexValue.size(), numValue, 16);
     if (res.ec != std::errc()) {
-        return Err("Invalid hex value");
+        return Err("Invalid hex value '{}'", hexValue);
     }
     switch (hexValue.size()) {
         case 8: {
