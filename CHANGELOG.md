@@ -1,12 +1,17 @@
 # Geode Changelog
 
 ## v2.0.0-beta.18
- * Add translations for Japanese in installer (e36cdf3)
+ * Use sccache for caching instead of PCH to improve compile times (#493)
+ * Add translations for Japanese in installer (#504)
  * Add `geode::openSupportPopup` for opening the Support page for a mod (438252f)
  * Add `<ca>` to MDTextArea (ca683fa)
  * Add more `GameObjectType`s (8e4b76f)
  * Add `Mod::hasAvailableUpdate` (b71ae17)
  * Add callbacks for Android keyboard inputs (#507)
+ * Move loader commit hash information to the Info popup (94ab199)
+ * Make `is_json` functions more accurate (803df4f)
+ * Fix color parsing from hex (131539f)
+ * Fix `JsonValidation` leaking exceptions in `into` (83847e3)
  * Fix struct returns for `CCPoint` not actually working properly (1daa671)
  * Fix `geode::web::fetchJSON` and `ColorPickPopup` not being DLL-exported (2c1eb67, 8250a73)
  * Fix usernames not showing up on profile links in Markdown (3fe102d)
