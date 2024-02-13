@@ -19,9 +19,6 @@ on:
     - '**'              # every branch
     - '!no-build-**'    # unless marked as no-build
 
-env:
-  GEODE_CI: ''
-
 jobs:
   build:
     strategy:
@@ -31,60 +28,43 @@ jobs:
         - name: Windows
           os: windows-latest
           id: win
-          cli_id: win
+          host_id: win
           extra_flags: ''
-          cli_cmd: ''
-          ninja_cmd: |
-            iwr https://github.com/ninja-build/ninja/releases/latest/download/ninja-win.zip -OutFile ninja.zip
-            7z x ninja.zip -o"$env:GITHUB_WORKSPACE\ninja"
-            echo ($env:GITHUB_WORKSPACE + "\ninja") | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-          llvm_cmd: |
-            iwr https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/LLVM-17.0.6-win64.exe -OutFile llvm-inst.exe
-            7z x llvm-inst.exe -ollvm bin/clang.exe bin/clang++.exe bin/lld-link.exe bin/llvm-rc.exe bin/*.dll lib/clang/*/include/*
-            echo ($env:GITHUB_WORKSPACE + "\llvm\bin") | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           package_cmd: 'makensis -WX -V3 ./installer/windows/installer.nsi'
           installer_path: './installer/windows/geode-installer-win.exe'
 
         - name: macOS
           os: macos-latest
           id: mac
-          cli_id: mac
+          host_id: mac
           extra_flags: >
             -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
             -DGEODE_DONT_BUILD_TEST_MODS=1
-          cli_cmd: 'chmod +x cli/geode'
-          ninja_cmd: 'brew install ninja'
-          llvm_cmd: ''
+            -DGEODE_DISABLE_PRECOMPILED_HEADERS=OFF
           package_cmd: './installer/mac/package.sh ./bin/nightly ./installer/mac/geode-installer-mac.pkg'
           installer_path: './installer/mac/geode-installer-mac.pkg'
 
         - name: Android32
           os: ubuntu-latest
           id: android32
-          cli_id: linux
+          host_id: linux
           extra_flags: >
             -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake
             -DANDROID_ABI=armeabi-v7a
             -DANDROID_PLATFORM=android-23
             -DGEODE_DONT_BUILD_TEST_MODS=1
-          cli_cmd: 'chmod +x cli/geode'
-          ninja_cmd: 'sudo apt install ninja-build'
-          llvm_cmd: ''
           package_cmd: ''
           installer_path: ''
 
         - name: Android64
           os: ubuntu-latest
           id: android64
-          cli_id: linux
+          host_id: linux
           extra_flags: >
             -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake
             -DANDROID_ABI=arm64-v8a
             -DANDROID_PLATFORM=android-23
             -DGEODE_DONT_BUILD_TEST_MODS=1
-          cli_cmd: 'chmod +x cli/geode'
-          ninja_cmd: 'sudo apt install ninja-build'
-          llvm_cmd: ''
           package_cmd: ''
           installer_path: ''
 
@@ -110,6 +90,25 @@ jobs:
         echo "RUST_BACKTRACE=1" >> $GITHUB_ENV
       if: inputs.build-debug-info
 
+    # https://github.com/mozilla/sccache/issues/2090
+    - name: Download custom sccache
+      uses: robinraju/release-downloader@v1.9
+      with:
+        repository: cgytrus/sccache
+        latest: true
+        fileName: 'sccache-*-x86_64-apple-darwin.zip'
+        tarBall: false
+        zipBall: false
+        out-file-path: "epic-sccache"
+      if: ${{ matrix.config.id == 'mac' && (github.event_name != 'workflow_dispatch' || inputs.use-ccache) }}
+
+    - name: Setup custom sccache
+      run: |
+        7z x "epic-sccache/sccache-*-x86_64-apple-darwin.zip" -o"epic-sccache"
+        echo "$GITHUB_WORKSPACE/epic-sccache" >> $GITHUB_PATH
+        chmod +x "epic-sccache/sccache"
+      if: ${{ matrix.config.id == 'mac' && (github.event_name != 'workflow_dispatch' || inputs.use-ccache) }}
+
     # https://github.com/hendrikmuhs/ccache-action/pull/182
     - name: Setup sccache
       uses: chirag-droid/ccache-action@main
@@ -134,27 +133,35 @@ jobs:
       if: matrix.config.id == 'win'
 
     - name: Install Ninja
-      run: ${{ matrix.config.ninja_cmd }}
-      if: matrix.config.ninja_cmd != ''
+      shell: bash
+      run: |
+        curl -L https://github.com/ninja-build/ninja/releases/latest/download/ninja-${{ matrix.config.host_id }}.zip -o ninja.zip
+        7z x ninja.zip -o"$GITHUB_WORKSPACE/ninja"
+        echo "$GITHUB_WORKSPACE/ninja" >> $GITHUB_PATH
 
     - name: Update LLVM
-      run: ${{ matrix.config.llvm_cmd }}
-      if: matrix.config.llvm_cmd != ''
+      shell: bash
+      run: |
+        curl -L https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/LLVM-17.0.6-win64.exe -o llvm-inst.exe
+        7z x llvm-inst.exe -ollvm bin/clang.exe bin/clang++.exe bin/lld-link.exe bin/llvm-rc.exe bin/*.dll lib/clang/*/include/*
+        echo "$GITHUB_WORKSPACE/llvm/bin" >> $GITHUB_PATH
+      if: matrix.config.id == 'win'
 
     - name: Download CLI
       uses: robinraju/release-downloader@v1.9
       with:
         repository: geode-sdk/cli
         latest: true
-        fileName: '*-${{ matrix.config.cli_id }}.zip'
+        fileName: '*-${{ matrix.config.host_id }}.zip'
         tarBall: false
         zipBall: false
         out-file-path: "cli"
 
     - name: Setup CLI
+      shell: bash
       run: |
-        7z x "cli/*-${{ matrix.config.cli_id }}.zip" -ocli
-        ${{ matrix.config.cli_cmd }}
+        7z x "cli/*-${{ matrix.config.host_id }}.zip" -ocli
+        chmod +x cli/geode
 
     - name: Setup Breakpad Tools
       uses: ./.github/actions/setup-dump-sym
@@ -178,8 +185,9 @@ jobs:
         -DCMAKE_CXX_COMPILER=clang++
         -DGEODE_CODEGEN_CMAKE_ARGS="-DCMAKE_C_COMPILER=clang;-DCMAKE_CXX_COMPILER=clang++;-G Ninja"
         -G Ninja
-        ${{ matrix.config.extra_flags }}
         ${{ inputs.build-debug-info && '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON' || '' }}
+        ${{ matrix.config.extra_flags }}
+
         ${{ inputs.build-debug-info && 'cp ./build/compile_commands.json ./build-debug-info/' || '' }}
 
     - name: Build
@@ -187,7 +195,7 @@ jobs:
         cmake --build build --config RelWithDebInfo --parallel
         rm bin/nightly/resources/.geode_cache
         ${{ inputs.build-debug-info && 'python3 ./ninjatracing/ninjatracing ./build/.ninja_log > ./build-debug-info/ninja-trace.json' || '' }}
-        ${{ inputs.build-debug-info && (github.event_name != 'workflow_dispatch' || inputs.use-ccache) && 'sccache --show-adv-stats' || '' }}
+        ${{ inputs.build-debug-info && inputs.use-ccache && 'sccache --show-adv-stats' || '' }}
 
     # hardcoding toolchain path :(
     - name: Post Build
@@ -204,7 +212,7 @@ jobs:
 
     - name: Package Installer
       run: ${{ matrix.config.package_cmd }}
-      if: matrix.config.installer_path != ''
+      if: matrix.config.package_cmd != ''
 
     - name: Upload Installer
       uses: actions/upload-artifact@v4
@@ -228,14 +236,14 @@ jobs:
       with:
         name: geode-build-debug-info-${{ matrix.config.id }}
         path: ./build-debug-info/*
-      if: inputs.build-debug-info
+      if: inputs.build-debug-info && (success() || failure())
 
     - name: Upload Preprocessed Files
       uses: actions/upload-artifact@v4
       with:
         name: geode-build-debug-info-preprocessed-${{ matrix.config.id }}
         path: ./build-debug-info-preprocessed/*
-      if: inputs.build-debug-info
+      if: inputs.build-debug-info && (success() || failure())
 
   publish:
     name: Publish

@@ -1,9 +1,5 @@
 cmake_minimum_required(VERSION 3.25 FATAL_ERROR)
 
-if (DEFINED ENV{GEODE_CI})
-	message(STATUS "Building in CI")
-endif()
-
 set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT Embedded)
 cmake_policy(SET CMP0141 NEW)
 
@@ -129,14 +125,14 @@ else()
 endif()
 
 if (DEFINED GEODE_CCACHE_VARIANT)
-	if (NOT DEFINED GEODE_DISABLE_PRECOMPILED_HEADERS AND
-		${GEODE_CCACHE_VARIANT} STREQUAL "sccache" AND
-		CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-		message(NOTICE "Using ${GEODE_CCACHE_VARIANT} with ${CMAKE_CXX_COMPILER_ID}, PCH will be enabled.")
-		set(GEODE_DISABLE_PRECOMPILED_HEADERS OFF)
-	else()
-		message(NOTICE "Using ${GEODE_CCACHE_VARIANT} with ${CMAKE_CXX_COMPILER_ID}, PCH will be disabled.")
-		set(GEODE_DISABLE_PRECOMPILED_HEADERS ON)
+	if (NOT DEFINED GEODE_DISABLE_PRECOMPILED_HEADERS)
+		if (${GEODE_CCACHE_VARIANT} STREQUAL "sccache" AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+			message(NOTICE "Using ${GEODE_CCACHE_VARIANT} with ${CMAKE_CXX_COMPILER_ID}, PCH will be enabled.")
+			set(GEODE_DISABLE_PRECOMPILED_HEADERS OFF)
+		else()
+			message(NOTICE "Using ${GEODE_CCACHE_VARIANT} with ${CMAKE_CXX_COMPILER_ID}, PCH will be disabled.")
+			set(GEODE_DISABLE_PRECOMPILED_HEADERS ON)
+		endif()
 	endif()
 else()
 	message(NOTICE "Not using a caching compiler (ccache/sccache). "
