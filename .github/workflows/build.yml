@@ -112,6 +112,7 @@ jobs:
         echo "RUST_BACKTRACE=1" >> $GITHUB_ENV
       if: inputs.build-debug-info
 
+    # https://github.com/mozilla/sccache/issues/2090
     - name: Download custom sccache
       uses: robinraju/release-downloader@v1.9
       with:
