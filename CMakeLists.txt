@@ -131,7 +131,7 @@ endif()
 if (DEFINED GEODE_CCACHE_VARIANT)
 	if (NOT DEFINED GEODE_DISABLE_PRECOMPILED_HEADERS AND
 		${GEODE_CCACHE_VARIANT} STREQUAL "sccache" AND
-		CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+		CMAKE_CXX_COMPILER_ID STREQUAL "^(Apple)?Clang$")
 		message(NOTICE "Using sccache with Clang, PCH will be enabled.")
 		set(GEODE_DISABLE_PRECOMPILED_HEADERS OFF)
 	else()
@@ -193,7 +193,7 @@ if (WIN32)
 	add_compile_definitions(_HAS_ITERATOR_DEBUGGING=0)
 	add_definitions(-D_HAS_ITERATOR_DEBUGGING=0)
 	target_link_libraries(${PROJECT_NAME} INTERFACE delayimp)
-	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND
+	if (CMAKE_CXX_COMPILER_ID MATCHES "^(Apple)?Clang$" AND
 		CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
 		# target x86 on windows with clang
 		add_compile_options(--target=i686-windows-msvc)
