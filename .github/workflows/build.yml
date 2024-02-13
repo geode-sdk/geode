@@ -49,7 +49,9 @@ jobs:
           os: macos-latest
           id: mac
           cli_id: mac
-          extra_flags: -DGEODE_DONT_BUILD_TEST_MODS=1
+          extra_flags: >
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
+            -DGEODE_DONT_BUILD_TEST_MODS=1
           cli_cmd: 'chmod +x cli/geode'
           ninja_cmd: 'brew install ninja'
           llvm_cmd: |
