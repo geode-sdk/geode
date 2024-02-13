@@ -125,8 +125,8 @@ jobs:
 
     - name: Setup custom sccache
       run: |
-        7z x "epic-sccache/sccache-*-x86_64-apple-darwin.zip" -oepic-sccache
-        echo "${{ github.workspace }}/epic-sccache" >> $GITHUB_PATH
+        7z x "epic-sccache/sccache-*-x86_64-apple-darwin.zip" -o"epic-sccache"
+        echo "$GITHUB_WORKSPACE/epic-sccache" >> $GITHUB_PATH
       if: ${{ matrix.config.id == 'mac' && (github.event_name != 'workflow_dispatch' || inputs.use-ccache) }}
 
     # https://github.com/hendrikmuhs/ccache-action/pull/182
