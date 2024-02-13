@@ -7,6 +7,7 @@
 #include <ccTypes.h>
 #include <chrono>
 #include <ghc/fs_fwd.hpp>
+#include <matjson.hpp>
 #include <type_traits>
 #include <fmt/core.h>
 // for formatting std::vector and such
@@ -61,6 +62,12 @@ namespace gd {
 namespace ghc::filesystem {
     GEODE_INLINE GEODE_HIDDEN std::string format_as(ghc::filesystem::path const& value) {
         return value.string();
+    }
+}
+
+namespace matjson {
+    GEODE_INLINE GEODE_HIDDEN std::string format_as(matjson::Value const& value) {
+        return value.dump(matjson::NO_INDENTATION);
     }
 }
 
