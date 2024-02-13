@@ -440,6 +440,9 @@ Result<> Mod::Impl::uninstall(bool deleteSaveData) {
         ModRequestedAction::UninstallWithSaveData :
         ModRequestedAction::Uninstall;
 
+    // Make loader forget the mod should be disabled
+    Mod::get()->getSaveContainer().try_erase("should-load-" + m_metadata.getID());
+
     std::error_code ec;
     ghc::filesystem::remove(m_metadata.getPath(), ec);
     if (ec) {
