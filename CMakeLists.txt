@@ -193,7 +193,7 @@ if (WIN32)
 	add_compile_definitions(_HAS_ITERATOR_DEBUGGING=0)
 	add_definitions(-D_HAS_ITERATOR_DEBUGGING=0)
 	target_link_libraries(${PROJECT_NAME} INTERFACE delayimp)
-	if (CMAKE_CXX_COMPILER_ID MATCHES "^(Apple)?Clang$" AND
+	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND
 		CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
 		# target x86 on windows with clang
 		add_compile_options(--target=i686-windows-msvc)
