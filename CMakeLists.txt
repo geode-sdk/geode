@@ -1,61 +1,20 @@
 cmake_minimum_required(VERSION 3.25 FATAL_ERROR)
 
-set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT Embedded)
-cmake_policy(SET CMP0141 NEW)
-
-if (CMAKE_GENERATOR MATCHES "Visual Studio")
-	# sccache does not work with msbuild,
-	# so no point in using it
-	set(GEODE_DISABLE_CACHE ON)
-endif()
-
-if (NOT DEFINED GEODE_DISABLE_CACHE)
-	set(GEODE_DISABLE_CACHE OFF)
-endif()
-
-if (NOT GEODE_DISABLE_CACHE AND
-	(NOT DEFINED CMAKE_C_COMPILER_LAUNCHER AND NOT DEFINED ENV{CMAKE_C_COMPILER_LAUNCHER} OR
-	NOT DEFINED CMAKE_CXX_COMPILER_LAUNCHER AND NOT DEFINED ENV{CMAKE_CXX_COMPILER_LAUNCHER}))
-	message(STATUS "Looking for ccache/sccache")
-	find_program(GEODE_CCACHE NAMES sccache ccache)
-	if (NOT GEODE_CCACHE)
-		message(STATUS "Looking for ccache/sccache - not found")
-		message(NOTICE "Not using a caching compiler (ccache/sccache). "
-			"It is recommended to install one to improve build times.")
-		message(NOTICE "We recommend sccache, check its README for installation instructions, "
-			"normally you can just use your usual package manager (e.g. 'scoop install sccache').")
-		if (NOT DEFINED GEODE_DISABLE_PRECOMPILED_HEADERS)
-			message(NOTICE "Because of this, PCH will be enabled.")
-			set(GEODE_DISABLE_PRECOMPILED_HEADERS OFF)
-		endif()
-	else()
-		message(STATUS "Looking for ccache/sccache - found")
-		message(NOTICE "Compiler launcher not set but ccache/sccache was found. "
-			"Setting compiler launcher to that")
-		set(CMAKE_C_COMPILER_LAUNCHER ${GEODE_CCACHE})
-		set(CMAKE_CXX_COMPILER_LAUNCHER ${GEODE_CCACHE})
-	endif()
-endif()
-
-if (GEODE_DISABLE_CACHE AND NOT DEFINED GEODE_DISABLE_PRECOMPILED_HEADERS)
-	set(GEODE_DISABLE_PRECOMPILED_HEADERS OFF)
-endif()
-
-if (NOT DEFINED GEODE_DISABLE_PRECOMPILED_HEADERS)
-	set(GEODE_DISABLE_PRECOMPILED_HEADERS ON)
-endif()
-
 if (DEFINED ENV{GEODE_CI})
 	message(STATUS "Building in CI")
 endif()
+
+set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT Embedded)
+cmake_policy(SET CMP0141 NEW)
 
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build libraries static" FORCE)
 
 # Docs flags
 if (GEODE_BUILDING_DOCS)
-	set(GEODE_DISABLE_CLI_CALLS On)
-	set(CMAKE_EXPORT_COMPILE_COMMANDS On)
-	set(GEODE_DONT_BUILD_TEST_MODS On)
+	set(GEODE_DISABLE_CLI_CALLS ON)
+	set(GEODE_DISABLE_PRECOMPILED_HEADERS ON)
+	set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+	set(GEODE_DONT_BUILD_TEST_MODS ON)
 endif()
 
 option(GEODE_USE_BREAKPAD "Enables the use of the Breakpad library for crash dumps." ON)
@@ -130,6 +89,75 @@ else()
 endif()
 
 project(geode-sdk VERSION ${GEODE_VERSION} LANGUAGES CXX C)
+
+message(STATUS "Looking for ccache/sccache")
+if (DEFINED CMAKE_C_COMPILER_LAUNCHER OR DEFINED CMAKE_CXX_COMPILER_LAUNCHER)
+	message(STATUS "Looking for ccache/sccache - detecting variant")
+	if (DEFINED CMAKE_C_COMPILER_LAUNCHER AND DEFINED CMAKE_CXX_COMPILER_LAUNCHER AND
+		CMAKE_C_COMPILER_LAUNCHER STREQUAL CMAKE_CXX_COMPILER_LAUNCHER)
+		if (CMAKE_CXX_COMPILER_LAUNCHER MATCHES "sccache(|.exe)$")
+			message(STATUS "Looking for ccache/sccache - detected sccache")
+			set(GEODE_CCACHE_VARIANT "sccache")
+		elseif(CMAKE_CXX_COMPILER_LAUNCHER MATCHES "ccache(|.exe)$")
+			message(STATUS "Looking for ccache/sccache - detected ccache")
+			set(GEODE_CCACHE_VARIANT "ccache")
+		else()
+			message(STATUS "Looking for ccache/sccache - none (custom compiler launcher: {CMAKE_C_COMPILER_LAUNCHER}, {CMAKE_CXX_COMPILER_LAUNCHER})")
+		endif()
+	else()
+		message(STATUS "Looking for ccache/sccache - skipped (custom compiler launcher: {CMAKE_C_COMPILER_LAUNCHER}, {CMAKE_CXX_COMPILER_LAUNCHER})")
+	endif()
+elseif (CMAKE_GENERATOR MATCHES "Visual Studio")
+	message(STATUS "Looking for ccache/sccache - skipped (Visual Studio generator)")
+else()
+	find_program(GEODE_CCACHE NAMES sccache ccache)
+	if (GEODE_CCACHE)
+		if (${GEODE_CCACHE} MATCHES "sccache(|.exe)$")
+			set(GEODE_CCACHE_VARIANT "sccache")
+		else()
+			set(GEODE_CCACHE_VARIANT "ccache")
+		endif()
+		message(STATUS "Looking for ccache/sccache - found ${GEODE_CCACHE_VARIANT}")
+		message(NOTICE "Compiler launcher not set but ccache/sccache was found. "
+			"Setting compiler launcher to that")
+		set(CMAKE_C_COMPILER_LAUNCHER ${GEODE_CCACHE})
+		set(CMAKE_CXX_COMPILER_LAUNCHER ${GEODE_CCACHE})
+	else()
+		message(STATUS "Looking for ccache/sccache - not found")
+	endif()
+	unset(GEODE_CCACHE)
+endif()
+
+if (DEFINED GEODE_CCACHE_VARIANT)
+	if (NOT DEFINED GEODE_DISABLE_PRECOMPILED_HEADERS AND
+		${GEODE_CCACHE_VARIANT} STREQUAL "sccache" AND
+		CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+		message(NOTICE "Using sccache with Clang, PCH will be enabled.")
+		set(GEODE_DISABLE_PRECOMPILED_HEADERS OFF)
+	else()
+		message(NOTICE "Using ${GEODE_CCACHE_VARIANT} with ${CMAKE_CXX_COMPILER_ID}, PCH will be disabled.")
+		set(GEODE_DISABLE_PRECOMPILED_HEADERS ON)
+	endif()
+else()
+	message(NOTICE "Not using a caching compiler (ccache/sccache). "
+		"It is recommended to install one to improve build times.")
+	message(NOTICE "We recommend sccache, check its README for installation instructions, "
+		"normally you can just use your usual package manager (e.g. 'scoop install sccache').")
+	if (NOT DEFINED GEODE_DISABLE_PRECOMPILED_HEADERS)
+		message(NOTICE "Because of this, PCH will be enabled.")
+		set(GEODE_DISABLE_PRECOMPILED_HEADERS OFF)
+	endif()
+endif()
+
+if (NOT DEFINED GEODE_DISABLE_PRECOMPILED_HEADERS)
+	set(GEODE_DISABLE_PRECOMPILED_HEADERS OFF)
+endif()
+
+if (GEODE_DISABLE_PRECOMPILED_HEADERS)
+	message(STATUS "Pre-compiled headers - OFF")
+else()
+	message(STATUS "Pre-compiled headers - ON")
+endif()
 
 add_library(${PROJECT_NAME} INTERFACE)
 
