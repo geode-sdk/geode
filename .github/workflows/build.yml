@@ -180,7 +180,7 @@ jobs:
         -G Ninja
         ${{ inputs.build-debug-info && '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON' || '' }}
         ${{ matrix.config.extra_flags }}
-        ${{ inputs.build-debug-info && 'cp ./build/compile_commands.json ./build-debug-info/' || '' }}
+        ${{ inputs.build-debug-info && '&& cp ./build/compile_commands.json ./build-debug-info/' || '' }}
 
     - name: Build
       run: |
