@@ -32,12 +32,7 @@ jobs:
           os: windows-latest
           id: win
           cli_id: win
-          extra_flags: >
-            -DCMAKE_C_COMPILER=clang
-            -DCMAKE_CXX_COMPILER=clang++
-            -DCMAKE_BUILD_TYPE=RelWithDebInfo
-            -DGEODE_CODEGEN_CMAKE_ARGS="-DCMAKE_C_COMPILER=clang;-DCMAKE_CXX_COMPILER=clang++;-G Ninja"
-            -G Ninja
+          extra_flags: ''
           cli_cmd: ''
           ninja_cmd: |
             iwr https://github.com/ninja-build/ninja/releases/latest/download/ninja-win.zip -OutFile ninja.zip
@@ -54,19 +49,10 @@ jobs:
           os: macos-latest
           id: mac
           cli_id: mac
-          extra_flags: >
-            -DCMAKE_C_COMPILER=clang
-            -DCMAKE_CXX_COMPILER=clang++
-            -DCMAKE_BUILD_TYPE=RelWithDebInfo
-            -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
-            -DGEODE_DONT_BUILD_TEST_MODS=1
-            -DGEODE_CODEGEN_CMAKE_ARGS="-DCMAKE_C_COMPILER=clang;-DCMAKE_CXX_COMPILER=clang++;-G Ninja"
-            -G Ninja
+          extra_flags: -DGEODE_DONT_BUILD_TEST_MODS=1
           cli_cmd: 'chmod +x cli/geode'
           ninja_cmd: 'brew install ninja'
-          llvm_cmd: |
-            brew install llvm
-            echo "/usr/local/opt/llvm/bin" >> $GITHUB_PATH
+          llvm_cmd: ''
           package_cmd: './installer/mac/package.sh ./bin/nightly ./installer/mac/geode-installer-mac.pkg'
           installer_path: './installer/mac/geode-installer-mac.pkg'
 
@@ -79,8 +65,6 @@ jobs:
             -DANDROID_ABI=armeabi-v7a
             -DANDROID_PLATFORM=android-23
             -DGEODE_DONT_BUILD_TEST_MODS=1
-            -DGEODE_CODEGEN_CMAKE_ARGS="-G Ninja"
-            -G Ninja
           cli_cmd: 'chmod +x cli/geode'
           ninja_cmd: 'sudo apt install ninja-build'
           llvm_cmd: ''
@@ -96,8 +80,6 @@ jobs:
             -DANDROID_ABI=arm64-v8a
             -DANDROID_PLATFORM=android-23
             -DGEODE_DONT_BUILD_TEST_MODS=1
-            -DGEODE_CODEGEN_CMAKE_ARGS="-G Ninja"
-            -G Ninja
           cli_cmd: 'chmod +x cli/geode'
           ninja_cmd: 'sudo apt install ninja-build'
           llvm_cmd: ''
@@ -189,8 +171,13 @@ jobs:
       run: >
         cmake -B build
         -DCLI_PATH=${{ github.workspace }}/cli
-        ${{ inputs.build-debug-info && '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON' || '' }}
+        -DCMAKE_BUILD_TYPE=RelWithDebInfo
+        -DCMAKE_C_COMPILER=clang
+        -DCMAKE_CXX_COMPILER=clang++
+        -DGEODE_CODEGEN_CMAKE_ARGS="-DCMAKE_C_COMPILER=clang;-DCMAKE_CXX_COMPILER=clang++;-G Ninja"
+        -G Ninja
         ${{ matrix.config.extra_flags }}
+        ${{ inputs.build-debug-info && '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON' || '' }}
         ${{ inputs.build-debug-info && 'cp ./build/compile_commands.json ./build-debug-info/' || '' }}
 
     - name: Build
