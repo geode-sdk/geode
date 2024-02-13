@@ -131,8 +131,8 @@ endif()
 if (DEFINED GEODE_CCACHE_VARIANT)
 	if (NOT DEFINED GEODE_DISABLE_PRECOMPILED_HEADERS AND
 		${GEODE_CCACHE_VARIANT} STREQUAL "sccache" AND
-		CMAKE_CXX_COMPILER_ID MATCHES "^(Apple)?Clang$")
-		message(NOTICE "Using sccache with Clang, PCH will be enabled.")
+		CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+		message(NOTICE "Using ${GEODE_CCACHE_VARIANT} with ${CMAKE_CXX_COMPILER_ID}, PCH will be enabled.")
 		set(GEODE_DISABLE_PRECOMPILED_HEADERS OFF)
 	else()
 		message(NOTICE "Using ${GEODE_CCACHE_VARIANT} with ${CMAKE_CXX_COMPILER_ID}, PCH will be disabled.")
