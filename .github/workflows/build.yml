@@ -52,7 +52,9 @@ jobs:
           extra_flags: -DGEODE_DONT_BUILD_TEST_MODS=1
           cli_cmd: 'chmod +x cli/geode'
           ninja_cmd: 'brew install ninja'
-          llvm_cmd: ''
+          llvm_cmd: |
+            brew install llvm
+            echo "/usr/local/opt/llvm/bin" >> $GITHUB_PATH
           package_cmd: './installer/mac/package.sh ./bin/nightly ./installer/mac/geode-installer-mac.pkg'
           installer_path: './installer/mac/geode-installer-mac.pkg'
 
