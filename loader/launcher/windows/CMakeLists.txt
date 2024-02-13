@@ -50,9 +50,4 @@ if (MSVC)
 
 	target_link_options(ProxyLoader PRIVATE /NOIMPLIB /DEBUG:NONE)
 	target_link_options(Updater PRIVATE /DEBUG:NONE)
-
-	if (DEFINED ENV{GEODE_CI})
-		target_link_options(ProxyLoader PRIVATE /INCREMENTAL:NO)
-		target_link_options(Updater PRIVATE /INCREMENTAL:NO)
-	endif()
 endif()

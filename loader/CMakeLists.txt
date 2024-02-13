@@ -259,11 +259,6 @@ if (MSVC)
 	if (SUPPORTS_NOEXP)
 		target_link_options(${PROJECT_NAME} PRIVATE /NOEXP)
 	endif()
-
-	# Disable incremental link in CI builds
-	if (DEFINED ENV{GEODE_CI})
-		target_link_options(${PROJECT_NAME} PRIVATE /INCREMENTAL:NO)
-	endif()
 endif()
 
 if (WIN32)

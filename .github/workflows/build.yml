@@ -19,9 +19,6 @@ on:
     - '**'              # every branch
     - '!no-build-**'    # unless marked as no-build
 
-env:
-  GEODE_CI: ''
-
 jobs:
   build:
     strategy:

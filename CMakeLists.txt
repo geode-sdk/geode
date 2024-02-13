@@ -1,9 +1,5 @@
 cmake_minimum_required(VERSION 3.25 FATAL_ERROR)
 
-if (DEFINED ENV{GEODE_CI})
-	message(STATUS "Building in CI")
-endif()
-
 set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT Embedded)
 cmake_policy(SET CMP0141 NEW)
 
