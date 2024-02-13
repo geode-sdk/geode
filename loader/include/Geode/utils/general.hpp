@@ -95,6 +95,24 @@ namespace geode {
             return ss.str();
         }
 
+        /**
+         * Parse a number from a string
+         * @param str The string to parse
+         * @param base The base to use
+         * @returns String as number, or Err if the string couldn't be converted
+         */
+        template <class Num>
+        Result<Num> numFromString(std::string_view const str, int base = 10) {
+            Num result;
+            auto [_, ec] = std::from_chars(str.data(), str.data() + str.size(), result, base);
+            switch (ec) {
+                case std::errc(): return Ok(result);
+                case std::errc::invalid_argument: return Err("String is not a number");
+                case std::errc::result_out_of_range: return Err("Number is too large to fit");
+                default: return Err("Unknown error");
+            }
+        }
+
         GEODE_DLL std::string timePointAsString(std::chrono::system_clock::time_point const& tp);
     }
 }
