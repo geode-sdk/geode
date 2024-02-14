@@ -41,8 +41,6 @@ bool Loader::Impl::supportsLaunchArguments() const {
     return true;
 }
 
-#include <loader/console.hpp>
-
 std::string Loader::Impl::getLaunchCommand() const {
     std::string launchArgs = "";
 
@@ -60,9 +58,6 @@ std::string Loader::Impl::getLaunchCommand() const {
         if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) == JNI_OK) {
             env->ExceptionClear();
         }
-
-        // note to self: remove this in about a week (02/11 maybe)
-        console::messageBox("Outdated launcher detected", "A very outdated version of the launcher is currently in use. Please update your launcher for the latest bugfixes and features.", Severity::Warning);
     }
 
     return launchArgs;

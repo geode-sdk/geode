@@ -217,7 +217,7 @@ void file::pickFile(
 
     JniMethodInfo t;
     if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", method.c_str(), "(Ljava/lang/String;)Z")) {
-        jstring stringArg1 = t.env->NewStringUTF(options.defaultPath.value_or(ghc::filesystem::path()).string().c_str());
+        jstring stringArg1 = t.env->NewStringUTF(options.defaultPath.value_or(ghc::filesystem::path()).filename().string().c_str());
 
         jboolean result = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);
 
