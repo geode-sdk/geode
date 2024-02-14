@@ -68,7 +68,7 @@ namespace geode {
         }
 
         template <typename T>
-        constexpr const T& clamp(const T& value, const T& minValue, const T& maxValue) {
+        constexpr const T& clamp(const T& value, const TypeIdentityType<T>& minValue, const TypeIdentityType<T>& maxValue) {
             return value < minValue ? minValue : maxValue < value ? maxValue : value;
         }
 
