@@ -33,8 +33,8 @@ static std::string sanitizeDetailsData(std::string const& str) {
     return utils::string::replace(str, "\r", "");
 }
 
-bool ModMetadata::Impl::validateID(std::string const& id) {
-    // ids may not be empty
+bool ModMetadata::Impl::validateOldID(std::string const& id) {
+    // Old IDs may not be empty
     if (id.empty()) return false;
     for (auto const& c : id) {
         if (!(('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9') ||
@@ -42,6 +42,34 @@ bool ModMetadata::Impl::validateID(std::string const& id) {
             return false;
     }
     return true;
+}
+
+bool ModMetadata::Impl::validateID(std::string const& id) {
+    // IDs may not be empty nor exceed 64 characters
+    if (id.size() == 0 || id.size() > 64) {
+        return false;
+    }
+
+    // Only one dot permitted
+    bool foundDot = false;
+    for (auto const& c : id) {
+        if (!(
+            ('a' <= c && c <= 'z') ||
+            ('0' <= c && c <= '9') ||
+            (c == '-' || c == '_') ||
+            (c == '.' && !foundDot)
+        )) {
+            if (c == '.') {
+                foundDot = true;
+            }
+            return false;
+        }
+    }
+    return true;
+}
+
+bool ModMetadata::Impl::isDeprecatedIDForm(std::string const& id) {
+    return !validateID(id) && validateOldID(id);
 }
 
 Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJson) {
@@ -105,7 +133,19 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
     // don't think its used locally yet
     root.addKnownKey("tags"); 
 
-    root.needs("id").validate(MiniFunction<bool(std::string const&)>(&ModMetadata::validateID)).into(impl->m_id);
+    root.needs("id")
+        // todo: make this use validateID in full 2.0.0 release
+        .validate(MiniFunction<bool(std::string const&)>(&ModMetadata::Impl::validateOldID))
+        .into(impl->m_id);
+
+    // if (!isDeprecatedIDForm(impl->m_id)) {
+    //     log::warn(
+    //         "Mod ID '{}' will be rejected in the future - "
+    //         "IDs must match the regex `[a-z0-9\\-_]+\\.[a-z0-9\\-_]+`",
+    //         impl->m_id
+    //     );
+    // }
+
     root.needs("version").into(impl->m_version);
     root.needs("name").into(impl->m_name);
     if (root.has("developers")) {
@@ -151,10 +191,19 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
         }
 
         Dependency dependency;
-        obj.needs("id").validate(MiniFunction<bool(std::string const&)>(&ModMetadata::validateID)).into(dependency.id);
+        // todo: make this use validateID in full 2.0.0 release
+        obj.needs("id").validate(MiniFunction<bool(std::string const&)>(&ModMetadata::Impl::validateOldID)).into(dependency.id);
         obj.needs("version").into(dependency.version);
         obj.has("importance").into(dependency.importance);
         obj.checkUnknownKeys();
+
+        // if (isDeprecatedIDForm(dependency.id)) {
+        //     log::warn(
+        //         "Dependency ID '{}' will be rejected in the future - "
+        //         "IDs must match the regex `[a-z0-9\\-_]+\\.[a-z0-9\\-_]+`",
+        //         impl->m_id
+        //     );
+        // }
 
         impl->m_dependencies.push_back(dependency);
     }
@@ -163,7 +212,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
         auto obj = incompat.obj();
 
         Incompatibility incompatibility;
-        obj.needs("id").validate(MiniFunction<bool(std::string const&)>(&ModMetadata::validateID)).into(incompatibility.id);
+        obj.needs("id").validate(MiniFunction<bool(std::string const&)>(&ModMetadata::Impl::validateOldID)).into(incompatibility.id);
         obj.needs("version").into(incompatibility.version);
         obj.has("importance").into(incompatibility.importance);
         obj.checkUnknownKeys();
@@ -380,6 +429,10 @@ VersionInfo ModMetadata::getVersion() const {
 
 std::string ModMetadata::getID() const {
     return m_impl->m_id;
+}
+
+bool ModMetadata::usesDeprecatedIDForm() const {
+    return Impl::isDeprecatedIDForm(m_impl->m_id);
 }
 
 std::string ModMetadata::getName() const {
@@ -658,6 +711,7 @@ struct matjson::Serialize<geode::ModMetadata::Incompatibility::Importance> {
         switch (importance) {
             case geode::ModMetadata::Incompatibility::Importance::Breaking: return {"breaking"};
             case geode::ModMetadata::Incompatibility::Importance::Conflicting: return {"conflicting"};
+            case geode::ModMetadata::Incompatibility::Importance::Superseded: return {"superseded"};
             default: return {"unknown"};
         }
     }
@@ -667,7 +721,9 @@ struct matjson::Serialize<geode::ModMetadata::Incompatibility::Importance> {
             return geode::ModMetadata::Incompatibility::Importance::Breaking;
         if (impStr == "conflicting")
             return geode::ModMetadata::Incompatibility::Importance::Conflicting;
-        throw matjson::JsonException(R"(Expected importance to be "breaking" or "conflicting")");
+        if (impStr == "superseded")
+            return geode::ModMetadata::Incompatibility::Importance::Superseded;
+        throw matjson::JsonException(R"(Expected importance to be "breaking", "conflicting", or "superseded")");
     }
 
     static bool is_json(matjson::Value const& value) {

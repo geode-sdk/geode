@@ -44,7 +44,8 @@ namespace geode {
         struct GEODE_DLL Incompatibility {
             enum class Importance : uint8_t {
                 Breaking,
-                Conflicting
+                Conflicting,
+                Superseded,
             };
             std::string id;
             ComparableVersionInfo version;
@@ -72,15 +73,17 @@ namespace geode {
          */
         [[nodiscard]] VersionInfo getVersion() const;
         /**
-         * Human-readable ID of the Mod.
-         * Recommended to be in the format
-         * "developer.mod". Not
-         * guaranteed to be either case-
-         * nor space-sensitive. Should
-         * be restricted to the ASCII
-         * character set.
+         * Human-readable ID of the Mod. Should be in the format 
+         * "developer.mod". May only contain lowercase ASCII characters, 
+         * numbers, dashes, underscores, and a single separating dot
          */
         [[nodiscard]] std::string getID() const;
+        /**
+         * True if the mod has a mod ID that will be rejected in the future, 
+         * such as using uppercase letters or having multiple dots. Mods like 
+         * this should release new versions that supersede the old ones
+         */
+        [[nodiscard]] bool usesDeprecatedIDForm() const;
         /**
          * Name of the mod. May contain
          * spaces & punctuation, but should

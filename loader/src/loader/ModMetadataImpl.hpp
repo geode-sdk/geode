@@ -44,6 +44,8 @@ namespace geode {
         bool operator==(ModMetadata::Impl const& other) const;
 
         static bool validateID(std::string const& id);
+        static bool validateOldID(std::string const& id);
+        static bool isDeprecatedIDForm(std::string const& id);
 
         static Result<ModMetadata> createFromSchemaV010(ModJson const& rawJson);
 

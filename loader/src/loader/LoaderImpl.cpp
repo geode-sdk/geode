@@ -553,22 +553,32 @@ void Loader::Impl::findProblems() {
             if (!dep.mod || !dep.version.compare(dep.mod->getVersion()))
                 continue;
             switch(dep.importance) {
-                case ModMetadata::Incompatibility::Importance::Conflicting:
+                case ModMetadata::Incompatibility::Importance::Conflicting: {
                     this->addProblem({
                         LoadProblem::Type::Conflict,
                         mod,
                         fmt::format("{} {}", dep.id, dep.version.toString())
                     });
                     log::warn("{} conflicts with {} {}", id, dep.id, dep.version);
-                    break;
-                case ModMetadata::Incompatibility::Importance::Breaking:
+                } break;
+
+                case ModMetadata::Incompatibility::Importance::Breaking: {
                     this->addProblem({
                         LoadProblem::Type::PresentIncompatibility,
                         mod,
                         fmt::format("{} {}", dep.id, dep.version.toString())
                     });
                     log::error("{} breaks {} {}", id, dep.id, dep.version);
-                    break;
+                } break;
+
+                case ModMetadata::Incompatibility::Importance::Superseded: {
+                    this->addProblem({
+                        LoadProblem::Type::PresentIncompatibility,
+                        mod,
+                        fmt::format("{} {}", dep.id, dep.version.toString())
+                    });
+                    log::error("{} supersedes {} {}", id, dep.id, dep.version);
+                } break;
             }
         }
 
