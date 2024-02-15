@@ -16,6 +16,14 @@ namespace geode {
         Any
     };
 
+    enum class VersionCompareResult {
+        TooOld,
+        Match,
+        TooNew,
+        MajorMismatch,
+        GenericMismatch
+    };
+
     /**
      * A version label, like v1.0.0-alpha or v2.3.4-prerelease. Limited to these 
      * options; arbitary identifiers are not supported. Additional numbering 
@@ -198,30 +206,35 @@ namespace geode {
         static Result<ComparableVersionInfo> parse(std::string const& string);
 
         constexpr bool compare(VersionInfo const& version) const {
+            return compareWithReason(version) == VersionCompareResult::Match;
+        }
+
+        constexpr VersionCompareResult compareWithReason(VersionInfo const& version) const {
             if (m_compare == VersionCompare::Any) {
-                return true;
+                return VersionCompareResult::Match;
             }
 
             // opposing major versions never match
             if (m_version.getMajor() != version.getMajor()) {
-                return false;
+                return VersionCompareResult::MajorMismatch;
             }
 
             // the comparison works invertedly as a version like "v1.2.0"
             // should return true for "<=v1.3.0"
             switch (m_compare) {
                 case VersionCompare::LessEq:
-                    return version <= m_version;
+                    return version <= m_version ? VersionCompareResult::Match : VersionCompareResult::TooNew;
                 case VersionCompare::MoreEq:
-                    return version >= m_version;
+                    return version >= m_version ? VersionCompareResult::Match : VersionCompareResult::TooOld;
                 case VersionCompare::Less:
-                    return version < m_version;
+                    return version < m_version ? VersionCompareResult::Match : VersionCompareResult::TooNew;
                 case VersionCompare::More:
-                    return version > m_version;
+                    return version > m_version ? VersionCompareResult::Match : VersionCompareResult::TooOld;
                 case VersionCompare::Exact:
-                    return version == m_version;
+                    return version == m_version ? VersionCompareResult::Match : 
+                        (version > m_version) ? VersionCompareResult::TooOld : VersionCompareResult::TooNew;
                 default:
-                    return false;
+                    return VersionCompareResult::GenericMismatch;
             }
         }
 

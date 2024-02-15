@@ -443,7 +443,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
                 node,
                 res.unwrapErr()
             });
-            log::error("Unsupported game version: {}", res.unwrapErr());
+            log::error("Geometry Dash version {} is required to run this mod", res.unwrapErr());
             m_refreshingModCount -= 1;
             log::popNest();
             return;
@@ -451,10 +451,10 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
 
         if (!this->isModVersionSupported(node->getMetadata().getGeodeVersion())) {
             this->addProblem({
-                LoadProblem::Type::UnsupportedGeodeVersion,
+                node->getMetadata().getGeodeVersion() > this->getVersion() ? LoadProblem::Type::NeedsNewerGeodeVersion : LoadProblem::Type::UnsupportedGeodeVersion,
                 node,
                 fmt::format(
-                    "Geode version {} is not supported (current: {})",
+                    "Geode version {}\nis required to run this mod\n(installed: {})",
                     node->getMetadata().getGeodeVersion().toString(),
                     this->getVersion().toString()
                 )
@@ -539,13 +539,44 @@ void Loader::Impl::findProblems() {
                     log::warn("{} recommends {} {}", id, dep.id, dep.version);
                     break;
                 case ModMetadata::Dependency::Importance::Required:
-                    this->addProblem({
-                        LoadProblem::Type::MissingDependency,
-                        mod,
-                        fmt::format("{} {}", dep.id, dep.version.toString())
-                    });
-                    log::error("{} requires {} {}", id, dep.id, dep.version);
-                    break;
+                    if(m_mods.find(dep.id) == m_mods.end()) {
+                        this->addProblem({
+                            LoadProblem::Type::MissingDependency,
+                            mod,
+                            fmt::format("{}", dep.id)
+                        });
+                        log::error("{} requires {} {}", id, dep.id, dep.version);
+                        break;
+                    } else {
+                        auto installedDependency = m_mods.at(dep.id);
+
+                        if(!installedDependency->isEnabled()) {
+                            this->addProblem({
+                                LoadProblem::Type::DisabledDependency,
+                                mod,
+                                fmt::format("{}", dep.id)
+                            });
+                            log::error("{} requires {} {}", id, dep.id, dep.version);
+                            break;
+                        } else if(dep.version.compareWithReason(installedDependency->getVersion()) == VersionCompareResult::TooOld) {
+                            this->addProblem({
+                                LoadProblem::Type::OutdatedDependency,
+                                mod,
+                                fmt::format("{}", dep.id)
+                            });
+                            log::error("{} requires {} {}", id, dep.id, dep.version);
+                            break;
+                        } else {
+                            // fires on major mismatch or too new version of dependency
+                            this->addProblem({
+                                LoadProblem::Type::MissingDependency,
+                                mod,
+                                fmt::format("{} {}", dep.id, dep.version)
+                            });
+                            log::error("{} requires {} {}", id, dep.id, dep.version);
+                            break;
+                        }
+                    }
             }
         }
 
@@ -555,18 +586,18 @@ void Loader::Impl::findProblems() {
             switch(dep.importance) {
                 case ModMetadata::Incompatibility::Importance::Conflicting: {
                     this->addProblem({
-                        LoadProblem::Type::Conflict,
+                        dep.version.toString()[0] == '<' ? LoadProblem::Type::OutdatedConflict : LoadProblem::Type::Conflict,
                         mod,
-                        fmt::format("{} {}", dep.id, dep.version.toString())
+                        fmt::format("{}", dep.id)
                     });
                     log::warn("{} conflicts with {} {}", id, dep.id, dep.version);
                 } break;
 
                 case ModMetadata::Incompatibility::Importance::Breaking: {
                     this->addProblem({
-                        LoadProblem::Type::PresentIncompatibility,
+                        dep.version.toString()[0] == '<' ? LoadProblem::Type::OutdatedIncompatibility : LoadProblem::Type::PresentIncompatibility,
                         mod,
-                        fmt::format("{} {}", dep.id, dep.version.toString())
+                        fmt::format("{}", dep.id)
                     });
                     log::error("{} breaks {} {}", id, dep.id, dep.version);
                 } break;
@@ -575,7 +606,7 @@ void Loader::Impl::findProblems() {
                     this->addProblem({
                         LoadProblem::Type::PresentIncompatibility,
                         mod,
-                        fmt::format("{} {}", dep.id, dep.version.toString())
+                        fmt::format("{}", dep.id)
                     });
                     log::error("{} supersedes {} {}", id, dep.id, dep.version);
                 } break;

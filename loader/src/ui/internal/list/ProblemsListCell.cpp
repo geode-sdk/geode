@@ -54,8 +54,16 @@ bool ProblemsListCell::init(LoadProblem problem, ProblemsListPopup* list, CCSize
             message = fmt::format("{} recommends {}", cause, problem.message);
             break;
         case LoadProblem::Type::Conflict:
+            // i copy pasted the message from incompatibility
+            // because as far as i can tell there's no behavorial
+            // difference, so it makes no sense to show the difference
+            // to the user
             icon = "info-warning.png"_spr;
-            message = fmt::format("{} conflicts with {}", cause, problem.message);
+            message = fmt::format("Uninstall {} to use {}", problem.message, cause);
+            break;
+        case LoadProblem::Type::OutdatedConflict:
+            icon = "info-alert.png"_spr;
+            message = fmt::format("Update {} to use {}", problem.message, cause);
             break;
         case LoadProblem::Type::InvalidFile:
             icon = "info-alert.png"_spr;
@@ -84,11 +92,23 @@ bool ProblemsListCell::init(LoadProblem problem, ProblemsListPopup* list, CCSize
             break;
         case LoadProblem::Type::MissingDependency:
             icon = "info-alert.png"_spr;
-            message = fmt::format("{} depends on {}", cause, problem.message);
+            message = fmt::format("Install {} to use {}", problem.message, cause);
+            break;
+        case LoadProblem::Type::DisabledDependency:
+            icon = "info-alert.png"_spr;
+            message = fmt::format("Enable {} to use {}", problem.message, cause);
+            break;
+        case LoadProblem::Type::OutdatedDependency:
+            icon = "info-alert.png"_spr;
+            message = fmt::format("Update {} to use {}", problem.message, cause);
             break;
         case LoadProblem::Type::PresentIncompatibility:
             icon = "info-alert.png"_spr;
-            message = fmt::format("{} is incompatible with {}", cause, problem.message);
+            message = fmt::format("Uninstall {} to use {}", problem.message, cause);
+            break;
+        case LoadProblem::Type::OutdatedIncompatibility:
+            icon = "info-alert.png"_spr;
+            message = fmt::format("Update {} to use {}", problem.message, cause);
             break;
         case LoadProblem::Type::UnzipFailed:
             icon = "info-alert.png"_spr;
@@ -103,6 +123,11 @@ bool ProblemsListCell::init(LoadProblem problem, ProblemsListPopup* list, CCSize
         case LoadProblem::Type::UnsupportedGeodeVersion:
             icon = "info-alert.png"_spr;
             message = fmt::format("{} is incompatible with this version of Geode", cause);
+            m_longMessage = problem.message;
+            break;
+        case LoadProblem::Type::NeedsNewerGeodeVersion:
+            icon = "info-alert.png"_spr;
+            message = fmt::format("Update Geode to use {}", cause);
             m_longMessage = problem.message;
             break;
     }

@@ -28,6 +28,7 @@ namespace geode {
             Suggestion,
             Recommendation,
             Conflict,
+            OutdatedConflict,
             InvalidFile,
             Duplicate,
             SetupFailed,
@@ -38,6 +39,10 @@ namespace geode {
             UnzipFailed,
             UnsupportedVersion,
             UnsupportedGeodeVersion,
+            NeedsNewerGeodeVersion,
+            DisabledDependency,
+            OutdatedDependency,
+            OutdatedIncompatibility,
         };
         Type type;
         std::variant<ghc::filesystem::path, ModMetadata, Mod*> cause;

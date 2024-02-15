@@ -38,6 +38,7 @@ void ProblemsListPopup::createList(Mod* scrollTo) {
 }
 
 CCArray* ProblemsListPopup::createCells(Mod* scrollTo, float& scrollValue) {
+    std::vector<ProblemsListCell*> veryTop;
     std::vector<ProblemsListCell*> top;
     std::vector<ProblemsListCell*> middle;
     std::vector<ProblemsListCell*> bottom;
@@ -49,6 +50,10 @@ CCArray* ProblemsListPopup::createCells(Mod* scrollTo, float& scrollValue) {
                 break;
             case geode::LoadProblem::Type::Recommendation:
                 middle.push_back(ProblemsListCell::create(problem, this, this->getCellSize()));
+                break;
+            case geode::LoadProblem::Type::OutdatedIncompatibility:
+            case geode::LoadProblem::Type::PresentIncompatibility:
+                veryTop.push_back(ProblemsListCell::create(problem, this, this->getCellSize()));
                 break;
             default:
                 top.push_back(ProblemsListCell::create(problem, this, this->getCellSize()));
@@ -69,6 +74,10 @@ CCArray* ProblemsListPopup::createCells(Mod* scrollTo, float& scrollValue) {
         scrollFound = true;
     };
 
+    for (auto const& item : veryTop) {
+        tryFindScroll(item);
+        final->addObject(item);
+    }
     for (auto const& item : top) {
         tryFindScroll(item);
         final->addObject(item);
