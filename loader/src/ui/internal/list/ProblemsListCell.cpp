@@ -54,8 +54,16 @@ bool ProblemsListCell::init(LoadProblem problem, ProblemsListPopup* list, CCSize
             message = fmt::format("{} recommends {}", cause, problem.message);
             break;
         case LoadProblem::Type::Conflict:
+            // i copy pasted the message from incompatibility
+            // because as far as i can tell there's no behavorial
+            // difference, so it makes no sense to show the difference
+            // to the user
             icon = "info-warning.png"_spr;
-            message = fmt::format("{} conflicts with {}", cause, problem.message);
+            message = fmt::format("Uninstall {} to use {}", problem.message, cause);
+            break;
+        case LoadProblem::Type::OutdatedConflict:
+            icon = "info-alert.png"_spr;
+            message = fmt::format("Update {} to use {}", problem.message, cause);
             break;
         case LoadProblem::Type::InvalidFile:
             icon = "info-alert.png"_spr;

@@ -586,9 +586,9 @@ void Loader::Impl::findProblems() {
             switch(dep.importance) {
                 case ModMetadata::Incompatibility::Importance::Conflicting: {
                     this->addProblem({
-                        LoadProblem::Type::Conflict,
+                        dep.version.toString()[0] == '<' ? LoadProblem::Type::OutdatedConflict : LoadProblem::Type::Conflict,
                         mod,
-                        fmt::format("{} {}", dep.id, dep.version.toString())
+                        fmt::format("{}", dep.id)
                     });
                     log::warn("{} conflicts with {} {}", id, dep.id, dep.version);
                 } break;

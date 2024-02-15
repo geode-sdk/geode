@@ -54,6 +54,7 @@ CCArray* ProblemsListPopup::createCells(Mod* scrollTo, float& scrollValue) {
             case geode::LoadProblem::Type::OutdatedIncompatibility:
             case geode::LoadProblem::Type::PresentIncompatibility:
                 veryTop.push_back(ProblemsListCell::create(problem, this, this->getCellSize()));
+                break;
             default:
                 top.push_back(ProblemsListCell::create(problem, this, this->getCellSize()));
                 break;
