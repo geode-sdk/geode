@@ -558,8 +558,7 @@ void Loader::Impl::findProblems() {
                             });
                             log::error("{} requires {} {}", id, dep.id, dep.version);
                             break;
-                        } else if(!dep.version.compare(installedDependency->getVersion())) {
-                            // TODO: this also fires on major version mismatch
+                        } else if(dep.version.compareWithReason(installedDependency->getVersion()) == VersionCompareResult::TooOld) {
                             this->addProblem({
                                 LoadProblem::Type::OutdatedDependency,
                                 mod,
@@ -568,12 +567,11 @@ void Loader::Impl::findProblems() {
                             log::error("{} requires {} {}", id, dep.id, dep.version);
                             break;
                         } else {
-                            // this should never happen i think?
-                            // (major mismatch should eventually fall through here though once that's fixed)
+                            // fires on major mismatch or too new version of dependency
                             this->addProblem({
                                 LoadProblem::Type::MissingDependency,
                                 mod,
-                                fmt::format("{}", dep.id)
+                                fmt::format("{} {}", dep.id, dep.version)
                             });
                             log::error("{} requires {} {}", id, dep.id, dep.version);
                             break;
@@ -597,9 +595,9 @@ void Loader::Impl::findProblems() {
 
                 case ModMetadata::Incompatibility::Importance::Breaking: {
                     this->addProblem({
-                        LoadProblem::Type::PresentIncompatibility,
+                        dep.version.toString()[0] == '<' ? LoadProblem::Type::OutdatedIncompatibility : LoadProblem::Type::PresentIncompatibility,
                         mod,
-                        fmt::format("{} {}", dep.id, dep.version.toString())
+                        fmt::format("{}", dep.id)
                     });
                     log::error("{} breaks {} {}", id, dep.id, dep.version);
                 } break;
@@ -608,7 +606,7 @@ void Loader::Impl::findProblems() {
                     this->addProblem({
                         LoadProblem::Type::PresentIncompatibility,
                         mod,
-                        fmt::format("{} {}", dep.id, dep.version.toString())
+                        fmt::format("{}", dep.id)
                     });
                     log::error("{} supersedes {} {}", id, dep.id, dep.version);
                 } break;

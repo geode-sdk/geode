@@ -96,7 +96,11 @@ bool ProblemsListCell::init(LoadProblem problem, ProblemsListPopup* list, CCSize
             break;
         case LoadProblem::Type::PresentIncompatibility:
             icon = "info-alert.png"_spr;
-            message = fmt::format("{} is incompatible with {}", cause, problem.message);
+            message = fmt::format("Uninstall {} to use {}", problem.message, cause);
+            break;
+        case LoadProblem::Type::OutdatedIncompatibility:
+            icon = "info-alert.png"_spr;
+            message = fmt::format("Update {} to use {}", problem.message, cause);
             break;
         case LoadProblem::Type::UnzipFailed:
             icon = "info-alert.png"_spr;

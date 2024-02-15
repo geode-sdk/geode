@@ -41,6 +41,7 @@ namespace geode {
             NeedsNewerGeodeVersion,
             DisabledDependency,
             OutdatedDependency,
+            OutdatedIncompatibility,
         };
         Type type;
         std::variant<ghc::filesystem::path, ModMetadata, Mod*> cause;
