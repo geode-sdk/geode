@@ -30,6 +30,15 @@ namespace geode::node_ids {
         }
     }
 
+    template <typename ...Args>
+    void setIDs(CCNode* node, int* startIndex, Args... args) {
+        for (auto i : { args... }) {
+            if (setIDSafe(node, *startIndex, i)) {
+                *startIndex += 1;
+            }
+        }
+    }
+
     static void switchToMenu(CCNode* node, CCNode* menu) {
         if (!node || !menu) return;
         
