@@ -443,7 +443,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
                 node,
                 res.unwrapErr()
             });
-            log::error("Unsupported game version: {}", res.unwrapErr());
+            log::error("Geometry Dash version {} is required to run this mod", res.unwrapErr());
             m_refreshingModCount -= 1;
             log::popNest();
             return;
@@ -451,10 +451,10 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
 
         if (!this->isModVersionSupported(node->getMetadata().getGeodeVersion())) {
             this->addProblem({
-                LoadProblem::Type::UnsupportedGeodeVersion,
+                node->getMetadata().getGeodeVersion() > this->getVersion() ? LoadProblem::Type::NeedsNewerGeodeVersion : LoadProblem::Type::UnsupportedGeodeVersion,
                 node,
                 fmt::format(
-                    "Geode version {} is not supported (current: {})",
+                    "Geode version {}\nis required to run this mod\n(installed: {})",
                     node->getMetadata().getGeodeVersion().toString(),
                     this->getVersion().toString()
                 )
@@ -539,13 +539,46 @@ void Loader::Impl::findProblems() {
                     log::warn("{} recommends {} {}", id, dep.id, dep.version);
                     break;
                 case ModMetadata::Dependency::Importance::Required:
-                    this->addProblem({
-                        LoadProblem::Type::MissingDependency,
-                        mod,
-                        fmt::format("{} {}", dep.id, dep.version.toString())
-                    });
-                    log::error("{} requires {} {}", id, dep.id, dep.version);
-                    break;
+                    if(m_mods.find(dep.id) == m_mods.end()) {
+                        this->addProblem({
+                            LoadProblem::Type::MissingDependency,
+                            mod,
+                            fmt::format("{}", dep.id)
+                        });
+                        log::error("{} requires {} {}", id, dep.id, dep.version);
+                        break;
+                    } else {
+                        auto installedDependency = m_mods.at(dep.id);
+
+                        if(!installedDependency->isEnabled()) {
+                            this->addProblem({
+                                LoadProblem::Type::DisabledDependency,
+                                mod,
+                                fmt::format("{}", dep.id)
+                            });
+                            log::error("{} requires {} {}", id, dep.id, dep.version);
+                            break;
+                        } else if(!dep.version.compare(installedDependency->getVersion())) {
+                            // TODO: this also fires on major version mismatch
+                            this->addProblem({
+                                LoadProblem::Type::OutdatedDependency,
+                                mod,
+                                fmt::format("{}", dep.id)
+                            });
+                            log::error("{} requires {} {}", id, dep.id, dep.version);
+                            break;
+                        } else {
+                            // this should never happen i think?
+                            // (major mismatch should eventually fall through here though once that's fixed)
+                            this->addProblem({
+                                LoadProblem::Type::MissingDependency,
+                                mod,
+                                fmt::format("{}", dep.id)
+                            });
+                            log::error("{} requires {} {}", id, dep.id, dep.version);
+                            break;
+                        }
+                    }
             }
         }
 

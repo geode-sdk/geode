@@ -38,6 +38,9 @@ namespace geode {
             UnzipFailed,
             UnsupportedVersion,
             UnsupportedGeodeVersion,
+            NeedsNewerGeodeVersion,
+            DisabledDependency,
+            OutdatedDependency,
         };
         Type type;
         std::variant<ghc::filesystem::path, ModMetadata, Mod*> cause;
