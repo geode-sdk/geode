@@ -339,6 +339,37 @@ std::shared_ptr<WeakRefController> WeakRefPool::manage(CCObject* obj) {
     return m_pool.at(obj);
 }
 
+bool geode::cocos::isSpriteFrameName(CCNode* node, const char* name) {
+    auto cache = CCSpriteFrameCache::sharedSpriteFrameCache()->spriteFrameByName(name);
+    if (!cache) return false;
+
+    auto* texture = cache->getTexture();
+    auto rect = cache->getRect();
+
+    if (auto* spr = typeinfo_cast<CCSprite*>(node)) {
+        if (spr->getTexture() == texture && spr->getTextureRect() == rect) {
+            return true;
+        }
+    } else if (auto* btn = typeinfo_cast<CCMenuItemSprite*>(node)) {
+        auto* img = btn->getNormalImage();
+        if (auto* spr = typeinfo_cast<CCSprite*>(img)) {
+            if (spr->getTexture() == texture && spr->getTextureRect() == rect) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+CCNode* geode::cocos::getChildBySpriteFrameName(CCNode* parent, const char* name) {
+    for (auto child : CCArrayExt<CCNode*>(parent->getChildren())) {
+        if (::isSpriteFrameName(static_cast<CCNode*>(child), name)) {
+            return child;
+        }
+    }
+    return nullptr;
+}
+
 CCRect geode::cocos::calculateNodeCoverage(std::vector<CCNode*> const& nodes) {
     CCRect coverage;
     for (auto child : nodes) {
