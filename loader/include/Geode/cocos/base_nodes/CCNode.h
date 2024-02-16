@@ -1022,6 +1022,11 @@ public:
      */
     GEODE_DLL void swapChildIndices(CCNode* first, CCNode* second);
 
+    GEODE_DLL void setContentWidth(float width);
+    GEODE_DLL void setContentHeight(float width);
+    GEODE_DLL float getContentWidth() const;
+    GEODE_DLL float getContentHeight() const;
+
     template <class Filter, class... Args>
     geode::EventListenerProtocol* addEventListener(
         std::string const& id,
