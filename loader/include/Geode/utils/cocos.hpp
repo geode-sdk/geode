@@ -738,6 +738,42 @@ namespace geode::cocos {
     }
 
     /**
+     * Get the first child that has the given sprite frame
+     * name either in the sprite or in the sprite inside
+     * the button.
+     *
+     * @param parent Parent node to search in
+     * @param name Name of the sprite frame to search for
+     * @returns Child with the given sprite frame name, or
+     * nullptr if there is none
+     */
+    template <class Type = cocos2d::CCNode*>
+    Type getChildBySpriteFrameName(cocos2d::CCNode* parent, const char* name) {
+        auto cache = cocos2d::CCSpriteFrameCache::sharedSpriteFrameCache()->spriteFrameByName(name);
+        if (!cache) return nullptr;
+
+        auto* texture = cache->getTexture();
+        auto rect = cache->getRect();
+
+        for (int i = 0; i < parent->getChildrenCount(); ++i) {
+            auto* child = parent->getChildren()->objectAtIndex(i);
+            if (auto* spr = typeinfo_cast<cocos2d::CCSprite*>(child)) {
+                if (spr->getTexture() == texture && spr->getTextureRect() == rect) {
+                    return static_cast<Type>(spr);
+                }
+            } else if (auto* btn = typeinfo_cast<cocos2d::CCMenuItemSprite*>(child)) {
+                auto* img = btn->getNormalImage();
+                if (auto* spr = typeinfo_cast<cocos2d::CCSprite*>(img)) {
+                    if (spr->getTexture() == texture && spr->getTextureRect() == rect) {
+                        return static_cast<Type>(btn);
+                    }
+                }
+            }
+        }
+        return nullptr;
+    }
+
+    /**
      * Checks if a given file exists in CCFileUtils
      * search paths.
      * @param filename File to check
