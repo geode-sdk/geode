@@ -47,6 +47,25 @@ bool CCNode::hasAncestor(CCNode* ancestor) {
     return false;
 }
 
+// these use setContentSize and getContentSize because they're virtuals and 
+// some node may override those for wacky behaviour
+
+void CCNode::setContentWidth(float width) {
+    this->setContentSize({ width, m_obContentSize.height });
+}
+
+void CCNode::setContentHeight(float height) {
+    this->setContentSize({ m_obContentSize.width, height });
+}
+
+float CCNode::getContentWidth() const {
+    return this->getContentSize().width;
+}
+
+float CCNode::getContentHeight() const {
+    return this->getContentSize().height;
+}
+
 CCArray* Layout::getNodesToPosition(CCNode* on) const {
     auto arr = CCArray::create();
     for (auto child : CCArrayExt<CCNode*>(on->getChildren())) {
