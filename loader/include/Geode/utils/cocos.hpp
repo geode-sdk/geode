@@ -747,31 +747,7 @@ namespace geode::cocos {
      * @returns Child with the given sprite frame name, or
      * nullptr if there is none
      */
-    template <class Type = cocos2d::CCNode*>
-    Type getChildBySpriteFrameName(cocos2d::CCNode* parent, const char* name) {
-        auto cache = cocos2d::CCSpriteFrameCache::sharedSpriteFrameCache()->spriteFrameByName(name);
-        if (!cache) return nullptr;
-
-        auto* texture = cache->getTexture();
-        auto rect = cache->getRect();
-
-        for (int i = 0; i < parent->getChildrenCount(); ++i) {
-            auto* child = parent->getChildren()->objectAtIndex(i);
-            if (auto* spr = typeinfo_cast<cocos2d::CCSprite*>(child)) {
-                if (spr->getTexture() == texture && spr->getTextureRect() == rect) {
-                    return static_cast<Type>(spr);
-                }
-            } else if (auto* btn = typeinfo_cast<cocos2d::CCMenuItemSprite*>(child)) {
-                auto* img = btn->getNormalImage();
-                if (auto* spr = typeinfo_cast<cocos2d::CCSprite*>(img)) {
-                    if (spr->getTexture() == texture && spr->getTextureRect() == rect) {
-                        return static_cast<Type>(btn);
-                    }
-                }
-            }
-        }
-        return nullptr;
-    }
+    cocos2d::CCNode* getChildBySpriteFrameName(cocos2d::CCNode* parent, const char* name);
 
     /**
      * Checks if a given file exists in CCFileUtils
