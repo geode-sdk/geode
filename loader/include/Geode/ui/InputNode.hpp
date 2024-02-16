@@ -5,7 +5,7 @@
 #include <cocos2d.h>
 
 namespace geode {
-    class GEODE_DLL InputNode : public cocos2d::CCMenuItem {
+    class GEODE_DLL [[deprecated("Use geode::TextInput from the ui/TextInput.hpp header instead")]] InputNode : public cocos2d::CCMenuItem {
     protected:
         cocos2d::extension::CCScale9Sprite* m_bgSprite;
         CCTextInputNode* m_input;

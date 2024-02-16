@@ -35,7 +35,7 @@ void CopySizeLayout::apply(CCNode* in) {
         // Prevent accidental infinite loop
         if (node == in) continue;
         node->ignoreAnchorPointForPosition(false);
-        node->setContentSize(in->getContentSize());
+        node->setContentSize(in->getContentSize() * ccp(1 / in->getScaleX(), 1 / in->getScaleY()));
         node->setPosition(in->getContentSize() / 2);
         node->updateLayout();
     }
