@@ -339,26 +339,32 @@ std::shared_ptr<WeakRefController> WeakRefPool::manage(CCObject* obj) {
     return m_pool.at(obj);
 }
 
-CCNode* geode::cocos::getChildBySpriteFrameName(CCNode* parent, const char* name) {
+bool geode::cocos::isSpriteFrameName(CCNode* node, const char* name) {
     auto cache = CCSpriteFrameCache::sharedSpriteFrameCache()->spriteFrameByName(name);
-    if (!cache) return nullptr;
+    if (!cache) return false;
 
     auto* texture = cache->getTexture();
     auto rect = cache->getRect();
 
-    for (int i = 0; i < parent->getChildrenCount(); ++i) {
-        auto* child = parent->getChildren()->objectAtIndex(i);
-        if (auto* spr = typeinfo_cast<CCSprite*>(child)) {
+    if (auto* spr = typeinfo_cast<CCSprite*>(node)) {
+        if (spr->getTexture() == texture && spr->getTextureRect() == rect) {
+            return true;
+        }
+    } else if (auto* btn = typeinfo_cast<CCMenuItemSprite*>(node)) {
+        auto* img = btn->getNormalImage();
+        if (auto* spr = typeinfo_cast<CCSprite*>(img)) {
             if (spr->getTexture() == texture && spr->getTextureRect() == rect) {
-                return spr;
+                return true;
             }
-        } else if (auto* btn = typeinfo_cast<CCMenuItemSprite*>(child)) {
-            auto* img = btn->getNormalImage();
-            if (auto* spr = typeinfo_cast<CCSprite*>(img)) {
-                if (spr->getTexture() == texture && spr->getTextureRect() == rect) {
-                    return btn;
-                }
-            }
+        }
+    }
+    return false;
+}
+
+CCNode* geode::cocos::getChildBySpriteFrameName(CCNode* parent, const char* name) {
+    for (auto child : CCArrayExt<CCNode*>(parent->getChildren())) {
+        if (::isSpriteFrameName(static_cast<CCNode*>(child), name)) {
+            return child;
         }
     }
     return nullptr;

@@ -738,6 +738,18 @@ namespace geode::cocos {
     }
 
     /**
+     * Checks if a node has the given sprite frame
+     * name either in the sprite or in the sprite inside
+     * the button.
+     * 
+     * @param node Node to check
+     * @param name Name of the sprite frame to search for
+     * @returns True if the node has the given sprite frame
+     * name
+     */
+    bool isSpriteFrameName(cocos2d::CCNode* node, const char* name);
+
+    /**
      * Get the first child that has the given sprite frame
      * name either in the sprite or in the sprite inside
      * the button.
