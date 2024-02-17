@@ -99,6 +99,10 @@ namespace geode {
          * the text input
          */
         void setCallback(std::function<void(std::string const&)> onInput);
+        /**
+         * Enable/disable the input
+         */
+        void setEnabled(bool enabled);
 
         /**
          * Hides the background of this input. Shorthand for 

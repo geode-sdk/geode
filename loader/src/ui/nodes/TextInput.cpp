@@ -1,8 +1,42 @@
 #include <Geode/binding/CCTextInputNode.hpp>
 #include <Geode/binding/TextInputDelegate.hpp>
+#include <Geode/modify/CCTextInputNode.hpp>
 #include <Geode/ui/TextInput.hpp>
 
 using namespace geode::prelude;
+
+struct TextInputNodeFix : Modify<TextInputNodeFix, CCTextInputNode> {
+    GEODE_FORWARD_COMPAT_DISABLE_HOOKS("TextInputNode fix")
+
+    bool ccTouchBegan(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) {
+        if (!this->template getAttribute<bool>("fix-text-input").value_or(false)) {
+            return CCTextInputNode::ccTouchBegan(touch, event);
+        }
+
+        if (!this->isVisible()) {
+            this->onClickTrackNode(false);
+            return false;
+        }
+
+        auto const touchPos = touch->getLocation();
+        auto const size = this->getContentSize();
+        auto const pos = this->convertToNodeSpace(touchPos) + m_textField->getAnchorPoint() * size;
+
+        if (pos.x < 0 || pos.x > size.width || pos.y < 0 || pos.y > size.height) {
+            this->onClickTrackNode(false);
+            return false;
+        }
+        if (m_delegate && !m_delegate->allowTextInput(this)) {
+            this->onClickTrackNode(false);
+            return false;
+        }
+
+        this->onClickTrackNode(true);
+        this->updateCursorPosition(touchPos, {{0, 0}, size});
+
+        return true;
+    }
+};
 
 const char* geode::getCommonFilterAllowedChars(CommonFilter filter) {
     switch (filter) {
@@ -35,13 +69,12 @@ bool TextInput::init(float width, std::string const& placeholder, std::string co
     m_bgSprite->setContentSize({ width * 2, HEIGHT * 2 });
     this->addChildAtPosition(m_bgSprite, cocos2d::Anchor::Center);
 
-    m_input = CCTextInputNode::create(width - 10.f, HEIGHT, placeholder.c_str(), "Thonburi", 24, font.c_str());
+    m_input = CCTextInputNode::create(width, HEIGHT, placeholder.c_str(), 24, font.c_str());
     m_input->setLabelPlaceholderColor({ 150, 150, 150 });
     m_input->setLabelPlaceholderScale(.6f);
     m_input->setMaxLabelScale(.6f);
+    m_input->setAttribute("fix-text-input", true);
     this->addChildAtPosition(m_input, cocos2d::Anchor::Center);
-
-    handleTouchPriority(this);
 
     return true;
 }
@@ -80,12 +113,12 @@ void TextInput::setPasswordMode(bool enable) {
     m_input->refreshLabel();
 }
 void TextInput::setWidth(float width) {
-    m_input->m_maxLabelWidth = width - 10;
+    m_input->m_maxLabelWidth = width;
     m_input->setContentWidth(width * 2);
     m_bgSprite->setContentWidth(width * 2);
 }
 void TextInput::setDelegate(TextInputDelegate* delegate, std::optional<int> tag) {
-    m_input->setDelegate(delegate);
+    m_input->m_delegate = delegate;
     m_onInput = nullptr;
     if (tag.has_value()) {
         m_input->setTag(tag.value());
@@ -94,6 +127,11 @@ void TextInput::setDelegate(TextInputDelegate* delegate, std::optional<int> tag)
 void TextInput::setCallback(std::function<void(std::string const&)> onInput) {
     this->setDelegate(this);
     m_onInput = onInput;
+}
+void TextInput::setEnabled(bool enabled) {
+    m_input->setMouseEnabled(enabled);
+    m_input->setTouchEnabled(enabled);
+    m_input->m_placeholderLabel->setOpacity(enabled ? 255 : 150);
 }
 
 void TextInput::hideBG() {
