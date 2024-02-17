@@ -1,5 +1,19 @@
 # Geode Changelog
 
+## v2.0.0-beta.20
+ * Enable PCH on Mac for better compile times (dd62eac)
+ * Add `numFromString` utility for safely parsing numbers (c4e9c17)
+ * Add `CCNode::setContentWidth` along with respective height setter and getters (e06b907)
+ * Add `getChildBySpriteFrameName` (85f8a20)
+ * Add `isSpriteFrameName` (eea3556)
+ * Add new more refined `TextInput` class, deprecating `InputNode` (28f393b)
+ * Fix `InputNode` and `TextInput` using tags on their internal input node for controlling behaviour (29f99c2)
+ * Remove `strfmt` and `cstrfmt` utilties for being outdated and unsafe (b69ac71)
+ * Make `clamp` utility use template magic for better type inference (4ba0b7d)
+ * Improve user errors (4b667cc)
+ * Deprecate invalidally formatted mod IDs (e80d228)
+ * Fix `pickFile` on Android (9051779)
+
 ## v2.0.0-beta.19
  * Fix Windows forward compatibility mode (eef949c5, 824efbf3, 456075a2)
    * This was caused by Clang not setting `/DELAYLOAD` properly, but also a mutex introduced in beta.7 causing Geode not to load at all
