@@ -12,6 +12,7 @@
  * Make `clamp` utility use template magic for better type inference (4ba0b7d)
  * Improve user errors (4b667cc)
  * Deprecate invalidally formatted mod IDs (e80d228)
+ * Add new `superseded` importance level to incompatabilities (e80d228)
  * Fix `pickFile` on Android (9051779)
 
 ## v2.0.0-beta.19
