@@ -377,8 +377,6 @@ bool ModListLayer::init() {
         bg->setVisible(false);
     }
 
-    // enable keyboard
-    this->setKeyboardEnabled(true);
     this->setKeypadEnabled(true);
 
     return true;
@@ -707,12 +705,6 @@ void ModListLayer::onTab(CCObject* pSender) {
     toggleTab(m_downloadTabBtn);
     toggleTab(m_installedTabBtn);
     toggleTab(m_featuredTabBtn);
-}
-
-void ModListLayer::keyDown(enumKeyCodes key) {
-    if (key == KEY_Escape) {
-        this->onExit(nullptr);
-    }
 }
 
 void ModListLayer::textChanged(CCTextInputNode* input) {

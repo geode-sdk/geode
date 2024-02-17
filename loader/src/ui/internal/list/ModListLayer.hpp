@@ -77,7 +77,6 @@ protected:
     void onExpand(CCObject*);
     void onTab(CCObject*);
     void onFilters(CCObject*);
-    void keyDown(enumKeyCodes) override;
     void textChanged(CCTextInputNode*) override;
     void createSearchControl();
     void onIndexUpdate(IndexUpdateEvent* event);
