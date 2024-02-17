@@ -105,7 +105,13 @@ namespace geode {
         template <class Num>
         Result<Num> numFromString(std::string_view const str, int base = 10) {
             Num result;
-            auto [_, ec] = std::from_chars(str.data(), str.data() + str.size(), result, base);
+            std::errc ec;
+            if constexpr (std::is_floating_point_v<Num>) {
+                ec = std::from_chars(str.data(), str.data() + str.size(), result).ec;
+            }
+            else {
+                ec = std::from_chars(str.data(), str.data() + str.size(), result, base).ec;
+            }
             switch (ec) {
                 case std::errc(): return Ok(result);
                 case std::errc::invalid_argument: return Err("String is not a number");
