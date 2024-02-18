@@ -105,8 +105,12 @@ namespace geode {
          */
         template <class Num>
         Result<Num> numFromString(std::string_view const str, int base = 10) {
-            if constexpr (std::is_floating_point_v<Num>) {
-                Num val = {};
+            if constexpr (std::is_floating_point_v<Num> 
+                #if defined(__cpp_lib_to_chars)
+                    && false
+                #endif
+            ) {
+                Num val;
                 char* strEnd;
                 errno = 0;
                 if (std::setlocale(LC_NUMERIC, "en_US.utf8")) {
@@ -121,13 +125,15 @@ namespace geode {
             }
             else {
                 Num result;
-                auto [_, ec] = std::from_chars(str.data(), str.data() + str.size(), result, base);
-                switch (ec) {
-                    case std::errc(): return Ok(result);
-                    case std::errc::invalid_argument: return Err("String is not a number");
-                    case std::errc::result_out_of_range: return Err("Number is too large to fit");
-                    default: return Err("Unknown error");
-                }
+                std::from_chars_result res;
+                if constexpr (std::is_floating_point_v<Num>) res = std::from_chars(str.data(), str.data() + str.size(), result);
+                else res = std::from_chars(str.data(), str.data() + str.size(), result, base);
+
+                auto [_, ec] = res;
+                if (ec == std::errc()) return Ok(result);
+                else if (ec == std::errc::invalid_argument) return Err("String is not a number");
+                else if (ec == std::errc::result_out_of_range) return Err("Number is too large to fit");
+                else return Err("Unknown error");
             }
         }
 
