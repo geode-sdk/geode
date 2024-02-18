@@ -11,6 +11,7 @@
 #include <ghc/fs_fwd.hpp>
 #include <matjson.hpp>
 #include <charconv>
+#include <clocale>
 
 // for some reason std::filesystem::path doesn't have std::hash defined in C++17 
 // and ghc seems to have inherited this limitation
@@ -104,13 +105,29 @@ namespace geode {
          */
         template <class Num>
         Result<Num> numFromString(std::string_view const str, int base = 10) {
-            Num result;
-            auto [_, ec] = std::from_chars(str.data(), str.data() + str.size(), result, base);
-            switch (ec) {
-                case std::errc(): return Ok(result);
-                case std::errc::invalid_argument: return Err("String is not a number");
-                case std::errc::result_out_of_range: return Err("Number is too large to fit");
-                default: return Err("Unknown error");
+            if constexpr (std::is_floating_point_v<Num>) {
+                Num val = {};
+                char* strEnd;
+                errno = 0;
+                if (std::setlocale(LC_NUMERIC, "en_US.utf8")) {
+                    if constexpr (std::is_same_v<Num, float>) val = std::strtof(str.data(), &strEnd);
+                    else if constexpr (std::is_same_v<Num, double>) val = std::strtod(str.data(), &strEnd);
+                    else if constexpr (std::is_same_v<Num, long double>) val = std::strtold(str.data(), &strEnd);
+                    if (errno == ERANGE) return Err("Number is too large to fit");
+                    else if (strEnd == str.data()) return Err("String is not a number");
+                    else return Ok(val);
+                }
+                else return Err("Failed to set locale");
+            }
+            else {
+                Num result;
+                auto [_, ec] = std::from_chars(str.data(), str.data() + str.size(), result, base);
+                switch (ec) {
+                    case std::errc(): return Ok(result);
+                    case std::errc::invalid_argument: return Err("String is not a number");
+                    case std::errc::result_out_of_range: return Err("Number is too large to fit");
+                    default: return Err("Unknown error");
+                }
             }
         }
 
