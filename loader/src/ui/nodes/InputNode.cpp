@@ -1,48 +1,10 @@
 #include <Geode/binding/CCTextInputNode.hpp>
 #include <Geode/binding/TextInputDelegate.hpp>
 #include <Geode/ui/InputNode.hpp>
+#include <Geode/ui/TextInput.hpp>
+#include <Geode/utils/cocos.hpp>
 
 using namespace geode::prelude;
-
-// rob only uses `CCTextInputNode`s in mostly-flat hierarchies, which still
-// happen to work with the weird vanilla code. this fix makes it work even in
-// deep hierarchies, because the vanilla code uses `getParent` and manually
-// calculates the child location in the world space based on that rather than
-// using `convertToNodeSpace`.
-static constexpr int INPUT_TAG = 0x80082;
-
-#include <Geode/modify/CCTextInputNode.hpp>
-
-struct TextInputNodeFix : Modify<TextInputNodeFix, CCTextInputNode> {
-    GEODE_FORWARD_COMPAT_DISABLE_HOOKS("TextInputNode fix")
-
-    bool ccTouchBegan(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) {
-        if (this->getTag() != INPUT_TAG) return CCTextInputNode::ccTouchBegan(touch, event);
-
-        if (!this->isVisible()) {
-            this->onClickTrackNode(false);
-            return false;
-        }
-
-        auto const touchPos = touch->getLocation();
-        auto const size = this->getContentSize();
-        auto const pos = this->convertToNodeSpace(touchPos) + m_textField->getAnchorPoint() * size;
-
-        if (pos.x < 0 || pos.x > size.width || pos.y < 0 || pos.y > size.height) {
-            this->onClickTrackNode(false);
-            return false;
-        }
-        if (m_delegate && !m_delegate->allowTextInput(this)) {
-            this->onClickTrackNode(false);
-            return false;
-        }
-
-        this->onClickTrackNode(true);
-        this->updateCursorPosition(touchPos, {{0, 0}, size});
-
-        return true;
-    }
-};
 
 std::string InputNode::getString() {
     return m_input->getString();
@@ -94,7 +56,7 @@ bool InputNode::init(
     m_input->setMaxLabelScale(.85f);
     m_input->setMaxLabelLength(maxCharCount);
     m_input->setPosition(width / 2, height / 2);
-    m_input->setTag(INPUT_TAG);
+    m_input->setAttribute("fix-text-input", true);
     if (filter.length()) {
         m_input->setAllowedChars(filter);
     }
