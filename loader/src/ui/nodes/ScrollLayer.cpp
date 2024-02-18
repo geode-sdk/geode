@@ -26,16 +26,18 @@ void GenericContentLayer::setPosition(CCPoint const& pos) {
 
 void ScrollLayer::visit() {
     if (m_cutContent && this->isVisible()) {
-        auto rect = CCRect(this->getPosition(), this->getScaledContentSize());
-
-        if (this->getParent()) {
-            // rob messed this up somehow causing nested ScrollLayers to be not clipped properly
-            // this: this->getParent()->convertToWorldSpace(this->getParent()->getPosition() + rect.origin);
-            rect.origin = this->getParent()->convertToWorldSpace(rect.origin);
-        }
-
         glEnable(GL_SCISSOR_TEST);
-        CCEGLView::get()->setScissorInPoints(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+            
+        if (this->getParent()) {
+            CCPoint const offset = this->isIgnoreAnchorPointForPosition() 
+                ? ccp(0, 0) : this->getContentSize() * -this->getAnchorPoint();
+
+            auto const bottomLeft = this->convertToWorldSpace(ccp(0, 0) - offset);
+            auto const topRight = this->convertToWorldSpace(this->getContentSize() - offset);
+            CCSize const size = topRight - bottomLeft;
+
+            CCEGLView::get()->setScissorInPoints(bottomLeft.x, bottomLeft.y, size.width, size.height);
+        }
     }
 
     CCNode::visit();
