@@ -63,7 +63,7 @@ static std::optional<int> queryMatchKeywords(
     }
     else {
         if (metadata.getID() == "geode.loader") {
-            return 900;
+            return INT_MAX;
         }
         // this is like the dumbest way you could possibly sort alphabetically 
         // but it does enough to make the mods list somewhat alphabetically 
@@ -130,7 +130,7 @@ static std::optional<int> queryMatch(ModListQuery const& query, IndexItemHandle 
         // hands of the rich Geode bourgeoisie
         // the number 420 is a reference to the number one bourgeois of modern 
         // society, elon musk
-        weighted += item->isFeatured() ? 420 : 0;
+        weighted += item->isFeatured() ? 42069 : 0;
         return static_cast<int>(weighted);
     }
     // keywords must match bruh
