@@ -30,7 +30,7 @@ void ScrollLayer::visit() {
             
         if (this->getParent()) {
             CCPoint const offset = this->isIgnoreAnchorPointForPosition() 
-                ? ccp(0, 0) : this->getContentSize() * -this->getAnchorPoint();
+                ? ccp(0, 0) : CCPoint(this->getContentSize() * -this->getAnchorPoint());
 
             auto const bottomLeft = this->convertToWorldSpace(ccp(0, 0) - offset);
             auto const topRight = this->convertToWorldSpace(this->getContentSize() - offset);
