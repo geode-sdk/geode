@@ -96,9 +96,15 @@ namespace gd {
 		bool operator==(char const* other) const {
 			return *this == std::string_view(other);
 		}
+		bool operator==(std::string const& other) const {
+			return *this == std::string_view(other);
+		}
 		std::strong_ordering operator<=>(string const& other) const;
 		std::strong_ordering operator<=>(std::string_view const other) const;
 		std::strong_ordering operator<=>(char const* other) const {
+			return *this <=> std::string_view(other);
+		}
+		std::strong_ordering operator<=>(std::string const& other) const {
 			return *this <=> std::string_view(other);
 		}
 
