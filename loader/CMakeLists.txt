@@ -313,23 +313,26 @@ endif()
 add_subdirectory(test)
 
 # Add install target on CLI >= 2.10.0 (which adds `geode profile path`)
-if (NOT GEODE_BUILDING_DOCS AND ${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "2.10.0")
-	execute_process(
-		COMMAND ${GEODE_CLI} profile path -d
-		OUTPUT_VARIABLE GEODE_PROFILE_GD_PATH
-		RESULT_VARIABLE GEODE_PROFILE_GD_PATH_RESULT
-	)
-	if (${GEODE_PROFILE_GD_PATH_RESULT} EQUAL 0)
-		string(STRIP ${GEODE_PROFILE_GD_PATH} GEODE_PROFILE_GD_PATH)
-		install(
-			TARGETS geode-loader ${LAUNCHER_TARGET}
-			RUNTIME
-			DESTINATION "${GEODE_PROFILE_GD_PATH}"
+if (NOT GEODE_BUILDING_DOCS)
+	# nest this because when building docs GEODE_CLI_VERSION is not defined
+	if (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "2.10.0")
+		execute_process(
+			COMMAND ${GEODE_CLI} profile path -d
+			OUTPUT_VARIABLE GEODE_PROFILE_GD_PATH
+			RESULT_VARIABLE GEODE_PROFILE_GD_PATH_RESULT
 		)
-		file(GLOB RESOURCE_FILES ${GEODE_BIN_PATH}/nightly/resources/*.*)
-		install(
-			FILES ${RESOURCE_FILES}
-			DESTINATION "${GEODE_PROFILE_GD_PATH}/geode/resources/geode.loader"
-		)
+		if (${GEODE_PROFILE_GD_PATH_RESULT} EQUAL 0)
+			string(STRIP ${GEODE_PROFILE_GD_PATH} GEODE_PROFILE_GD_PATH)
+			install(
+				TARGETS geode-loader ${LAUNCHER_TARGET}
+				RUNTIME
+				DESTINATION "${GEODE_PROFILE_GD_PATH}"
+			)
+			file(GLOB RESOURCE_FILES ${GEODE_BIN_PATH}/nightly/resources/*.*)
+			install(
+				FILES ${RESOURCE_FILES}
+				DESTINATION "${GEODE_PROFILE_GD_PATH}/geode/resources/geode.loader"
+			)
+		endif()
 	endif()
 endif()

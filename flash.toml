@@ -51,8 +51,6 @@ config-args = [
     "-DGEODE_BUILDING_DOCS=On",
     "-DGEODE_PLATFORM_NAME=Win32",
     "-DGEODE_CODEGEN_CMAKE_ARGS=-DCMAKE_CXX_COMPILER=Clang;-DCMAKE_C_COMPILER=Clang",
-    "-DCMAKE_C_FLAGS=-m32",
-    "-DCMAKE_CXX_FLAGS=-m32",
     "-DWIN32=On"
 ]
 build-dir = "build-docs"
