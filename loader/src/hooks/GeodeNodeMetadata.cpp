@@ -17,11 +17,10 @@ struct ProxyCCNode;
 class GeodeNodeMetadata final : public cocos2d::CCObject {
 private:
     FieldContainer* m_fieldContainer;
-    Ref<cocos2d::CCObject> m_userObject;
     std::string m_id = "";
     Ref<Layout> m_layout = nullptr;
     Ref<LayoutOptions> m_layoutOptions = nullptr;
-    std::unordered_map<std::string, matjson::Value> m_attributes;
+    std::unordered_map<std::string, Ref<CCObject>> m_userObjects;
     std::unordered_set<std::unique_ptr<EventListenerProtocol>> m_eventListeners;
     std::unordered_map<std::string, std::unique_ptr<EventListenerProtocol>> m_idEventListeners;
 
@@ -53,8 +52,8 @@ public:
         meta->retain();
 
         if (old) {
-            meta->m_userObject = old;
-            // the old user object has been retained by CCNode
+            meta->m_userObjects.insert({ "", old });
+            // the old user object is now managed by Ref
             old->release();
         }
         return meta;
@@ -69,18 +68,24 @@ public:
 #include <Geode/modify/CCNode.hpp>
 struct ProxyCCNode : Modify<ProxyCCNode, CCNode> {
     virtual CCObject* getUserObject() {
-        if (typeinfo_cast<CCNode*>(this)) {
-            return GeodeNodeMetadata::set(this)->m_userObject;
+        if (auto asNode = typeinfo_cast<CCNode*>(this)) {
+            return asNode->getUserObject("");
         }
-        // apparently this function is the same as 
-        // CCDirector::getNextScene so yeah
-        return m_pUserObject;
+        else {
+            // apparently this function is the same as 
+            // CCDirector::getNextScene so yeah
+            return m_pUserObject;
+        }
     }
     virtual void setUserObject(CCObject* obj) {
-        if (typeinfo_cast<CCNode*>(this)) {
-            GeodeNodeMetadata::set(this)->m_userObject = obj;
+        if (auto asNode = typeinfo_cast<CCNode*>(this)) {
+            asNode->setUserObject("", obj);
         }
-        m_pUserObject = obj;
+        else {
+            CC_SAFE_RELEASE(m_pUserObject);
+            m_pUserObject = obj;
+            CC_SAFE_RETAIN(m_pUserObject);
+        }
     }
 };
 
@@ -166,10 +171,10 @@ void CCNode::updateLayout(bool updateChildOrder) {
     }
 }
 
-AttributeSetEvent::AttributeSetEvent(CCNode* node, std::string const& id, matjson::Value& value)
+UserObjectSetEvent::UserObjectSetEvent(CCNode* node, std::string const& id, CCObject* value)
   : node(node), id(id), value(value) {}
 
-ListenerResult AttributeSetFilter::handle(MiniFunction<Callback> fn, AttributeSetEvent* event) {
+ListenerResult AttributeSetFilter::handle(MiniFunction<Callback> fn, UserObjectSetEvent* event) {
     if (event->id == m_targetID) {
         fn(event);
     }
@@ -178,18 +183,23 @@ ListenerResult AttributeSetFilter::handle(MiniFunction<Callback> fn, AttributeSe
 
 AttributeSetFilter::AttributeSetFilter(std::string const& id) : m_targetID(id) {}
 
-void CCNode::setAttribute(std::string const& attr, matjson::Value const& value) {
+void CCNode::setUserObject(std::string const& id, CCObject* value) {
     auto meta = GeodeNodeMetadata::set(this);
-    meta->m_attributes[attr] = value;
-    AttributeSetEvent(this, attr, meta->m_attributes.at(attr)).post();
+    if (value) {
+        meta->m_userObjects[id] = value;
+    }
+    else {
+        meta->m_userObjects.erase(id);
+    }
+    UserObjectSetEvent(this, id, value).post();
 }
 
-std::optional<matjson::Value> CCNode::getAttributeInternal(std::string const& attr) {
+CCObject* CCNode::getUserObject(std::string const& id) {
     auto meta = GeodeNodeMetadata::set(this);
-    if (meta->m_attributes.count(attr)) {
-        return meta->m_attributes.at(attr);
+    if (meta->m_userObjects.count(id)) {
+        return meta->m_userObjects.at(id);
     }
-    return std::nullopt;
+    return nullptr;
 }
 
 void CCNode::addEventListenerInternal(std::string const& id, EventListenerProtocol* listener) {
