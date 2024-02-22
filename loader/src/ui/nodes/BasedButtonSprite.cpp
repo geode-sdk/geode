@@ -190,7 +190,7 @@ bool BasedButtonSprite::init(CCNode* ontop, BaseType type, int size, int color) 
 
     if (ontop) {
         m_onTop = ontop;
-        m_onTop->setPosition(this->getContentSize() / 2 + this->getTopOffset());
+        m_onTop->setPosition(this->getContentSize() / 2 + m_topOffset);
         limitNodeSize(m_onTop, this->getMaxTopSize(), m_onTop->getScale(), .1f);
         this->addChild(m_onTop);
     }
@@ -202,8 +202,8 @@ CCSize BasedButtonSprite::getMaxTopSize() const {
     return m_obContentSize - CCSize(18.f, 18.f);
 }
 
-CCPoint BasedButtonSprite::getTopOffset() const {
-    return { 0, 0 };
+void BasedButtonSprite::setTopOffset(CCPoint const& offset) {
+    m_topOffset = offset;
 }
 
 bool BasedButtonSprite::initWithSprite(
