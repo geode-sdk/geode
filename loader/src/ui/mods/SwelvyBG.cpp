@@ -35,8 +35,8 @@ bool SwelvyBG::init() {
             sprite->setAnchorPoint({ (speed < 0 ? 0.f : 1.f), 1 });
             sprite->setPosition({ (i + 1) * (sprite->getContentWidth() - 1), y });
             sprite->schedule(schedule_selector(SwelvyBG::updateSpritePosition));
-            sprite->setUserData(std::bit_cast<void*>(speed));
-            sprite->setTag(repeatCount);
+            sprite->setUserObject("speed", CCFloat::create(speed));
+            sprite->setUserObject("repeat-count", CCInteger::create(repeatCount));
             this->addChild(sprite);
         }
         y -= m_obContentSize.height / 6;
@@ -46,13 +46,14 @@ bool SwelvyBG::init() {
 }
 
 void SwelvyBG::updateSpritePosition(float dt) {
-    auto speed = std::bit_cast<float>(this->getUserData());
+    auto speed = static_cast<CCFloat*>(this->getUserObject("speed"))->getValue();
+    auto repeatCount = static_cast<CCInteger*>(this->getUserObject("repeat-count"))->getValue();
     this->setPositionX(this->getPositionX() - speed);
     if (speed > 0 && this->getPositionX() < 0.f) {
-        this->setPositionX(this->getPositionX() + (this->getContentWidth() - 1) * this->getTag());
+        this->setPositionX(this->getPositionX() + (this->getContentWidth() - 1) * repeatCount);
     }
     else if (speed < 0 && this->getPositionX() > this->getParent()->getContentWidth()) {
-        this->setPositionX(this->getPositionX() - (this->getContentWidth() - 1) * this->getTag());
+        this->setPositionX(this->getPositionX() - (this->getContentWidth() - 1) * repeatCount);
     }
 }
 
