@@ -204,6 +204,9 @@ CCSize BasedButtonSprite::getMaxTopSize() const {
 
 void BasedButtonSprite::setTopOffset(CCPoint const& offset) {
     m_topOffset = offset;
+    if (m_onTop) {
+        m_onTop->setPosition(this->getContentSize() / 2 + offset);
+    }
 }
 
 bool BasedButtonSprite::initWithSprite(
