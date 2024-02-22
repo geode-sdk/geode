@@ -344,7 +344,7 @@ std::optional<ModMetadata> ModCell::getModMetadata() const {
 }
 
 CCNode* ModCell::createLogo(CCSize const& size) {
-    return geode::createModLogo(m_mod, size);
+    return geode::createModLogo(m_mod);
 }
 
 // IndexItemCell
@@ -434,7 +434,7 @@ std::optional<ModMetadata> IndexItemCell::getModMetadata() const {
 }
 
 CCNode* IndexItemCell::createLogo(CCSize const& size) {
-    return geode::createIndexItemLogo(m_item, size);
+    return geode::createIndexItemLogo(m_item);
 }
 
 // InvalidGeodeFileCell

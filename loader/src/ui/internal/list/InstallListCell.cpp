@@ -168,7 +168,7 @@ ModInstallListCell* ModInstallListCell::create(Mod* mod, InstallListPopup* list,
 }
 
 CCNode* ModInstallListCell::createLogo(CCSize const& size) {
-    return geode::createModLogo(m_mod, size);
+    return geode::createModLogo(m_mod);
 }
 std::string ModInstallListCell::getID() const {
     return m_mod->getID();
@@ -292,7 +292,7 @@ IndexItemInstallListCell* IndexItemInstallListCell::create(
 }
 
 CCNode* IndexItemInstallListCell::createLogo(CCSize const& size) {
-    return geode::createIndexItemLogo(m_item, size);
+    return geode::createIndexItemLogo(m_item);
 }
 std::string IndexItemInstallListCell::getID() const {
     return m_item->getMetadata().getID();
@@ -354,7 +354,7 @@ UnknownInstallListCell* UnknownInstallListCell::create(
 }
 
 CCNode* UnknownInstallListCell::createLogo(CCSize const& size) {
-    return geode::createDefaultLogo(size);
+    return geode::createDefaultLogo();
 }
 std::string UnknownInstallListCell::getID() const {
     return m_dependency.id;
@@ -401,7 +401,7 @@ SelectVersionCell* SelectVersionCell::create(IndexItemHandle item, SelectVersion
 }
 
 CCNode* SelectVersionCell::createLogo(CCSize const& size) {
-    return geode::createIndexItemLogo(m_item, size);
+    return geode::createIndexItemLogo(m_item);
 }
 std::string SelectVersionCell::getID() const {
     return m_item->getMetadata().getID();

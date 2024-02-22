@@ -1,5 +1,4 @@
-#include "../ui/internal/list/ModListLayer.hpp"
-
+#include "../ui/mods/ModsLayer.hpp"
 #include <Geode/loader/Index.hpp>
 #include <Geode/modify/MenuLayer.hpp>
 #include <Geode/modify/Modify.hpp>
@@ -334,6 +333,6 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
     }
 
     void onGeode(CCObject*) {
-        ModListLayer::scene();
+        ModsLayer::scene();
     }
 };

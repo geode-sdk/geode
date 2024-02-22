@@ -444,7 +444,7 @@ bool LocalModInfoPopup::init(Mod* mod, ModListLayer* list) {
 }
 
 CCNode* LocalModInfoPopup::createLogo(CCSize const& size) {
-    return geode::createModLogo(m_mod, size);
+    return geode::createModLogo(m_mod);
 }
 
 ModMetadata LocalModInfoPopup::getMetadata() const {
@@ -677,7 +677,7 @@ void IndexItemInfoPopup::onInstall(CCObject*) {
 }
 
 CCNode* IndexItemInfoPopup::createLogo(CCSize const& size) {
-    return geode::createIndexItemLogo(m_item, size);
+    return geode::createIndexItemLogo(m_item);
 }
 
 ModMetadata IndexItemInfoPopup::getMetadata() const {

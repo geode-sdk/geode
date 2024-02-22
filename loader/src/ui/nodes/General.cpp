@@ -18,6 +18,29 @@ CCSprite* geode::createLayerBG() {
     return bg;
 }
 
+void geode::addSideArt(CCNode* to, SideArt sides, bool useAnchorLayout) {
+    if (sides & SideArt::BottomLeft) {
+        auto spr = CCSprite::createWithSpriteFrameName("GJ_sideArt_001.png");
+        to->addChildAtPosition(spr, Anchor::BottomLeft, ccp(35, 35), useAnchorLayout);
+    }
+    if (sides & SideArt::BottomRight) {
+        auto spr = CCSprite::createWithSpriteFrameName("GJ_sideArt_001.png");
+        spr->setFlipX(true);
+        to->addChildAtPosition(spr, Anchor::BottomRight, ccp(-35, 35), useAnchorLayout);
+    }
+    if (sides & SideArt::TopLeft) {
+        auto spr = CCSprite::createWithSpriteFrameName("GJ_sideArt_001.png");
+        spr->setFlipY(true);
+        to->addChildAtPosition(spr, Anchor::TopLeft, ccp(35, -35), useAnchorLayout);
+    }
+    if (sides & SideArt::TopRight) {
+        auto spr = CCSprite::createWithSpriteFrameName("GJ_sideArt_001.png");
+        spr->setFlipX(true);
+        spr->setFlipY(true);
+        to->addChildAtPosition(spr, Anchor::TopRight, ccp(-35, -35), useAnchorLayout);
+    }
+}
+
 void geode::addListBorders(CCNode* to, CCPoint const& center, CCSize const& size) {
     // if the size is 346.f, the top aligns perfectly by default :3
     if (size.width == 346.f) {

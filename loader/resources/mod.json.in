@@ -50,6 +50,9 @@
             ],
             "BlankSheet": [
                 "blanks/*.png"
+            ],
+            "SwelveSheet": [
+                "swelve/*.png"
             ]
         }
     },

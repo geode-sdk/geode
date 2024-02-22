@@ -30,23 +30,14 @@ namespace geode {
     GEODE_DLL void openSettingsPopup(Mod* mod);
     /**
      * Create a default logo sprite
-     * @param size Size of the sprite
      */
-    GEODE_DLL cocos2d::CCNode* createDefaultLogo(
-        cocos2d::CCSize const& size
-    );
+    GEODE_DLL cocos2d::CCNode* createDefaultLogo();
     /**
      * Create a logo sprite for a mod
-     * @param size Size of the sprite
      */
-    GEODE_DLL cocos2d::CCNode* createModLogo(
-        Mod* mod, cocos2d::CCSize const& size
-    );
+    GEODE_DLL cocos2d::CCNode* createModLogo(Mod* mod);
     /**
      * Create a logo sprite for an index item
-     * @param size Size of the sprite
      */
-    GEODE_DLL cocos2d::CCNode* createIndexItemLogo(
-        IndexItemHandle item, cocos2d::CCSize const& size
-    );
+    GEODE_DLL cocos2d::CCNode* createIndexItemLogo(IndexItemHandle item);
 }
