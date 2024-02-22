@@ -9,7 +9,7 @@ struct TextInputNodeFix : Modify<TextInputNodeFix, CCTextInputNode> {
     GEODE_FORWARD_COMPAT_DISABLE_HOOKS("TextInputNode fix")
 
     bool ccTouchBegan(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) {
-        if (!this->template getAttribute<bool>("fix-text-input").value_or(false)) {
+        if (!this->getUserObject("fix-text-input")) {
             return CCTextInputNode::ccTouchBegan(touch, event);
         }
 
@@ -73,7 +73,7 @@ bool TextInput::init(float width, std::string const& placeholder, std::string co
     m_input->setLabelPlaceholderColor({ 150, 150, 150 });
     m_input->setLabelPlaceholderScale(.6f);
     m_input->setMaxLabelScale(.6f);
-    m_input->setAttribute("fix-text-input", true);
+    m_input->setUserObject("fix-text-input", CCBool::create(true));
     this->addChildAtPosition(m_input, cocos2d::Anchor::Center);
 
     return true;

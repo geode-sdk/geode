@@ -56,7 +56,7 @@ bool InputNode::init(
     m_input->setMaxLabelScale(.85f);
     m_input->setMaxLabelLength(maxCharCount);
     m_input->setPosition(width / 2, height / 2);
-    m_input->setAttribute("fix-text-input", true);
+    m_input->setUserObject("fix-text-input", CCBool::create(true));
     if (filter.length()) {
         m_input->setAllowedChars(filter);
     }

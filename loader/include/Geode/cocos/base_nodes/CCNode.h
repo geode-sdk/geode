@@ -837,10 +837,25 @@ public:
      * The UserObject will be retained once in this method,
      * and the previous UserObject (if existed) will be relese.
      * The UserObject will be released in CCNode's destructure.
+     * 
+     * @note In Geode, this actually sets the user object with the ID "" 
+     * (empty string)
      *
      * @param A user assigned CCObject
      */
     virtual void setUserObject(CCObject *pUserObject);
+
+    /**
+     * Set a user-assigned CCObject with a specific ID. This allows nodes to 
+     * have multiple user objects. Objects should be prefixed with the mod ID. 
+     * Assigning a null removes the user object with the ID
+     */
+    GEODE_DLL void setUserObject(std::string const& id, CCObject* object);
+
+    /**
+     * Get a user-assigned CCObject with the specific ID
+     */
+    GEODE_DLL CCObject* getUserObject(std::string const& id);
     
     /// @} end of Tag & User Data
     
@@ -848,9 +863,6 @@ private:
     friend class geode::modifier::FieldContainer;
 
     GEODE_DLL geode::modifier::FieldContainer* getFieldContainer();
-#ifndef GEODE_IS_MEMBER_TEST
-    GEODE_DLL std::optional<matjson::Value> getAttributeInternal(std::string const& attribute);
-#endif
     GEODE_DLL void addEventListenerInternal(
         std::string const& id,
         geode::EventListenerProtocol* protocol
@@ -927,38 +939,6 @@ public:
      * @note Geode addition
      */
     GEODE_DLL bool hasAncestor(CCNode* ancestor);
-
-#ifndef GEODE_IS_MEMBER_TEST
-    /**
-     * Set an attribute on a node. Attributes are a system added by Geode, 
-     * where a node may have any sort of extra data associated with it. Used 
-     * for mod intercommunication. For example, a mod that adds scrollbars to 
-     * layers might check if the layer has an attribute set for whether the 
-     * scrollbar should be disabled. The key of the attribute should be 
-     * prefixed with the mod ID, like hjfod.cool-scrollbars/enable. 
-     * @param attribute The attribute key. Should be prefixed with the mod ID, 
-     * like hjfod.cool-scrollbars/enable
-     * @param value The value of the attribute
-     * @note Geode addition
-     */
-    GEODE_DLL void setAttribute(std::string const& attribute, matjson::Value const& value);
-    /**
-     * Get an attribute from the node. Attributes may be anything
-     * @param attribute The attribute key
-     * @returns The value, or nullopt if the attribute doesn't exist or if the 
-     * type didn't match
-     * @note Geode addition
-     */
-    template<class T>
-    std::optional<T> getAttribute(std::string const& attribute) {
-        if (auto value = this->getAttributeInternal(attribute)) {
-            if (value.value().template is<T>()) {
-                return value.value().template as<T>();
-            }
-        }
-        return std::nullopt;
-    }
-#endif
 
     /**
      * Set the Layout for this node. Used to automatically position children, 
@@ -1792,23 +1772,23 @@ NS_CC_END
 
 #ifndef GEODE_IS_MEMBER_TEST
 namespace geode {
-    struct GEODE_DLL AttributeSetEvent : public Event {
+    struct GEODE_DLL UserObjectSetEvent : public Event {
         cocos2d::CCNode* node;
         const std::string id;
-        matjson::Value& value;
+        cocos2d::CCObject* value;
 
-        AttributeSetEvent(cocos2d::CCNode* node, std::string const& id, matjson::Value& value);
+        UserObjectSetEvent(cocos2d::CCNode* node, std::string const& id, cocos2d::CCObject* value);
     };
 
-    class GEODE_DLL AttributeSetFilter : public EventFilter<AttributeSetEvent> {
+    class GEODE_DLL AttributeSetFilter : public EventFilter<UserObjectSetEvent> {
 	public:
-		using Callback = void(AttributeSetEvent*);
+		using Callback = void(UserObjectSetEvent*);
     
     protected:
 		std::string m_targetID;
 	
 	public:
-        ListenerResult handle(utils::MiniFunction<Callback> fn, AttributeSetEvent* event);
+        ListenerResult handle(utils::MiniFunction<Callback> fn, UserObjectSetEvent* event);
 
 		AttributeSetFilter(std::string const& id);
     };
