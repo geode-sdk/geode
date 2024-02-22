@@ -5,10 +5,6 @@ bool BaseModItem::init() {
     if (!CCNode::init())
         return false;
     
-    return true;
-}
-
-void BaseModItem::setupCommonInfo() {
     auto meta = this->getMetadata();
 
     m_logo = this->createModLogo();
@@ -29,37 +25,69 @@ void BaseModItem::setupCommonInfo() {
     m_developers->addChildAtPosition(developersBtn, Anchor::Center);
     m_developers->setAnchorPoint({ .0f, .5f });
     this->addChild(m_developers);
+
+    m_viewMenu = CCMenu::create();
+    m_viewMenu->setAnchorPoint({ 1.f, .5f });
+    m_viewMenu->setLayout(
+        RowLayout::create()
+            ->setAxisReverse(true)
+            ->setAxisAlignment(AxisAlignment::End)
+    );
+    this->addChildAtPosition(m_viewMenu, Anchor::Right, ccp(-10, 0));
+
+    this->updateState();
+
+    return true;
+}
+
+void BaseModItem::updateState() {
+    m_viewMenu->removeAllChildren();
+    if (this->wantsRestart()) {
+        auto restartSpr = ButtonSprite::create("Restart", "bigFont.fnt", "GE_button_02.png"_spr, .8f);
+        restartSpr->setScale(.5f);
+        auto restartBtn = CCMenuItemSpriteExtra::create(
+            restartSpr, this, nullptr
+        );
+        m_viewMenu->addChild(restartBtn);
+    }
+    else {
+        auto viewSpr = ButtonSprite::create("View", "bigFont.fnt", "GE_button_05.png"_spr, .8f);
+        viewSpr->setScale(.5f);
+        auto viewBtn = CCMenuItemSpriteExtra::create(
+            viewSpr, this, nullptr
+        );
+        m_viewMenu->addChild(viewBtn);
+    }
+    m_viewMenu->updateLayout();
 }
 
 void BaseModItem::updateSize(float width, bool big) {
     this->setContentSize({ width, big ? 40.f : 25.f });
 
-    if (m_logo) {
-        auto logoSize = m_obContentSize.height - 5;
-        limitNodeSize(m_logo, { logoSize, logoSize }, 999, .1f);
-        m_logo->setPosition(m_obContentSize.height / 2 + 5, m_obContentSize.height / 2);
-    }
+    auto logoSize = m_obContentSize.height - 5;
+    limitNodeSize(m_logo, { logoSize, logoSize }, 999, .1f);
+    m_logo->setPosition(m_obContentSize.height / 2 + 5, m_obContentSize.height / 2);
+
     CCSize titleSpace {
         m_obContentSize.width / 2 - m_obContentSize.height,
         m_obContentSize.height / 2
     };
-    if (m_title) {
-        m_title->setPosition(m_obContentSize.height + 10, m_obContentSize.height * .7f);
-        limitNodeSize(m_title, titleSpace, 1.f, .1f);
-    }
-    if (m_developers) {
-        m_developers->setPosition(m_obContentSize.height + 10, m_obContentSize.height * .3f);
-        limitNodeSize(m_developers, titleSpace, .6f, .1f);
-    }
+    m_title->setPosition(m_obContentSize.height + 10, m_obContentSize.height * .7f);
+    limitNodeSize(m_title, titleSpace, 1.f, .1f);
+    m_developers->setPosition(m_obContentSize.height + 10, m_obContentSize.height * .3f);
+    limitNodeSize(m_developers, titleSpace, .4f, .1f);
+
+    m_viewMenu->setContentWidth(m_obContentSize.width / 2 - 20);
+    m_viewMenu->updateLayout();
+
+    this->updateLayout();
 }
 
 bool InstalledModItem::init(Mod* mod) {
+    m_mod = mod;
+
     if (!BaseModItem::init())
         return false;
-    
-    m_mod = mod;
-    
-    this->setupCommonInfo();
     
     return true;
 }
@@ -80,4 +108,8 @@ ModMetadata InstalledModItem::getMetadata() const {
 
 CCNode* InstalledModItem::createModLogo() const {
     return geode::createModLogo(m_mod);
+}
+
+bool InstalledModItem::wantsRestart() const {
+    return m_mod->getRequestedAction() != ModRequestedAction::None;
 }

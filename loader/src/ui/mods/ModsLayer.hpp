@@ -7,6 +7,7 @@
 using namespace geode::prelude;
 
 struct ListCache {
+    std::string id;
     std::vector<Ref<BaseModItem>> items;
     float scrollPosition;
 };
@@ -30,4 +31,5 @@ public:
     static ModsLayer* scene();
 
     void onBack(CCObject*);
+    void onRefreshList(CCObject*);
 };

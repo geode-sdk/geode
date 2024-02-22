@@ -1013,6 +1013,48 @@ public:
      * @note Geode addition
      */
     GEODE_DLL void addChildAtPosition(CCNode* child, Anchor anchor, CCPoint const& offset = CCPointZero, bool useAnchorLayout = true);
+    /**
+     * Adds a child at an anchored position with an offset. The node is placed 
+     * in its parent where the anchor specifies, and then the offset is used to 
+     * relatively adjust the node's position
+     * @param child The child to add
+     * @param anchor Where the place the child relative to this node
+     * @param offset Where to place the child relative to the anchor
+     * @param nodeAnchor The child's anchor position
+     * @param useAnchorLayout If true, sets this node's layout to `AnchorLayout` 
+     * if no other layout is already specified
+     * @note Geode addition
+     */
+    GEODE_DLL void addChildAtPosition(
+        CCNode* child,
+        Anchor anchor,
+        CCPoint const& nodeAnchor,
+        CCPoint const& offset,
+        bool useAnchorLayout = true
+    );
+    /**
+     * Updates the anchored position of a child. Requires the child to already 
+     * have a parent; if the child already has AnchorLayoutOptions set, those 
+     * are updated, otherwise nothing is done
+     * @param anchor Where the place the child relative to its parent
+     * @param offset Where to place the child relative to the anchor
+     * @note Geode addition
+     */
+    GEODE_DLL void updateAnchoredPosition(Anchor anchor, CCPoint const& offset = CCPointZero);
+    /**
+     * Updates the anchored position of a child. Requires the child to already 
+     * have a parent; if the child already has AnchorLayoutOptions set, those 
+     * are updated, otherwise nothing is done
+     * @param anchor Where the place the child relative to its parent
+     * @param offset Where to place the child relative to the anchor
+     * @param nodeAnchor The child's anchor position
+     * @note Geode addition
+     */
+    GEODE_DLL void updateAnchoredPosition(
+        Anchor anchor,
+        CCPoint const& offset,
+        CCPoint const& nodeAnchor = { .5f, .5f }
+    );
 
     /**
      * Swap two children

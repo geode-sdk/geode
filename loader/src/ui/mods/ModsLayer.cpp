@@ -20,12 +20,33 @@ bool ModsLayer::init() {
         backSpr, this, menu_selector(ModsLayer::onBack)
     );
     backMenu->addChild(backBtn);
+
     backMenu->setLayout(
         RowLayout::create()
             ->setAxisAlignment(AxisAlignment::Start)
     );
-
     this->addChildAtPosition(backMenu, Anchor::TopLeft, ccp(12, -25), false);
+
+    auto actionsMenu = CCMenu::create();
+    actionsMenu->setContentHeight(200.f);
+    actionsMenu->setAnchorPoint({ .5f, .0f });
+
+    auto reloadSpr = CircleButtonSprite::create(
+        CCSprite::createWithSpriteFrameName("reload.png"_spr),
+        CircleBaseColor::DarkPurple,
+        CircleBaseSize::Medium
+    );
+    reloadSpr->setScale(.8f);
+    auto reloadBtn = CCMenuItemSpriteExtra::create(
+        reloadSpr, this, menu_selector(ModsLayer::onRefreshList)
+    );
+    actionsMenu->addChild(reloadBtn);
+
+    actionsMenu->setLayout(
+        ColumnLayout::create()
+            ->setAxisAlignment(AxisAlignment::Start)
+    );
+    this->addChildAtPosition(actionsMenu, Anchor::BottomLeft, ccp(35, 12), false);
 
     auto frame = CCNode::create();
     frame->setAnchorPoint({ .5f, .5f });
@@ -97,12 +118,12 @@ bool ModsLayer::init() {
 
         auto icon = CCSprite::createWithSpriteFrameName(std::get<0>(item));
         limitNodeSize(icon, iconSize, 3.f, .1f);
-        spr->addChildAtPosition(icon, Anchor::Left, ccp(iconSize.width / 2 + 5, 0), false);
+        spr->addChildAtPosition(icon, Anchor::Left, ccp(itemSize.height / 2, 0), false);
 
         auto title = CCLabelBMFont::create(std::get<1>(item), "bigFont.fnt");
-        title->limitLabelWidth(spr->getContentWidth() - iconSize.width - 15, .55f, .1f);
+        title->limitLabelWidth(spr->getContentWidth() - itemSize.height - 10, .55f, .1f);
         title->setAnchorPoint({ .0f, .5f });
-        spr->addChildAtPosition(title, Anchor::Left, ccp((iconSize.width + 10), 0), false);
+        spr->addChildAtPosition(title, Anchor::Left, ccp(itemSize.height, 0), false);
 
         auto btn = CCMenuItemSpriteExtra::create(spr, this, menu_selector(ModsLayer::onTab));
         btn->setID(std::get<2>(item));
@@ -135,6 +156,7 @@ void ModsLayer::loadList(std::string const& id, bool update) {
                 }
             } break;
         }
+        cache.id = id;
         cache.scrollPosition = std::numeric_limits<float>::max();
         m_listItemsCache[id] = std::move(cache);
     }
@@ -168,6 +190,12 @@ void ModsLayer::onTab(CCObject* sender) {
 
 void ModsLayer::keyBackClicked() {
     this->onBack(nullptr);
+}
+
+void ModsLayer::onRefreshList(CCObject*) {
+    if (m_currentList) {
+        this->loadList(m_currentList->id, true);
+    }
 }
 
 void ModsLayer::onBack(CCObject*) {
