@@ -55,15 +55,19 @@ namespace geode {
         constexpr unsigned int hash(char const* str, int h = 0) {
             return !str[h] ? 5381 : (hash(str, h + 1) * 33) ^ str[h];
         }
-
+        constexpr unsigned int hash(std::string_view str, int h = 0) {
+            return h >= str.size() ? 5381 : (hash(str, h + 1) * 33) ^ str[h];
+        }
         constexpr unsigned int hash(wchar_t const* str, int h = 0) {
             return !str[h] ? 5381 : (hash(str, h + 1) * 33) ^ str[h];
+        }
+        constexpr unsigned int hash(std::wstring_view str, int h = 0) {
+            return h >= str.size() ? 5381 : (hash(str, h + 1) * 33) ^ str[h];
         }
 
         constexpr size_t operator"" _h(char const* txt, size_t) {
             return geode::utils::hash(txt);
         }
-
         constexpr size_t operator"" _h(wchar_t const* txt, size_t) {
             return geode::utils::hash(txt);
         }
