@@ -37,6 +37,7 @@ bool ModsLayer::init() {
         CircleBaseSize::Medium
     );
     reloadSpr->setScale(.8f);
+    reloadSpr->setTopOffset(ccp(1, 0));
     auto reloadBtn = CCMenuItemSpriteExtra::create(
         reloadSpr, this, menu_selector(ModsLayer::onRefreshList)
     );
@@ -97,33 +98,35 @@ bool ModsLayer::init() {
         { "gj_folderBtn_001.png", "Mod Packs", "mod-packs" },
         { "search.png"_spr, "Search", "search" },
     }) {
-        const CCSize itemSize { 100, 40 };
-        const CCSize iconSize { 20, 20 };
+        const CCSize itemSize { 100, 35 };
+        const CCSize iconSize { 18, 18 };
 
         auto spr = CCNode::create();
         spr->setContentSize(itemSize);
         spr->setAnchorPoint({ .5f, .5f });
 
         auto disabledBG = CCScale9Sprite::createWithSpriteFrameName("tab-bg.png"_spr);
-        disabledBG->setContentSize(itemSize);
+        disabledBG->setScale(.8f);
+        disabledBG->setContentSize(itemSize / .8f);
         disabledBG->setID("disabled-bg");
         disabledBG->setColor({ 26, 24, 29 });
         spr->addChildAtPosition(disabledBG, Anchor::Center);
 
         auto enabledBG = CCScale9Sprite::createWithSpriteFrameName("tab-bg.png"_spr);
-        enabledBG->setContentSize(itemSize);
+        enabledBG->setScale(.8f);
+        enabledBG->setContentSize(itemSize / .8f);
         enabledBG->setID("enabled-bg");
         enabledBG->setColor({ 168, 147, 185 });
         spr->addChildAtPosition(enabledBG, Anchor::Center);
 
         auto icon = CCSprite::createWithSpriteFrameName(std::get<0>(item));
         limitNodeSize(icon, iconSize, 3.f, .1f);
-        spr->addChildAtPosition(icon, Anchor::Left, ccp(itemSize.height / 2, 0), false);
+        spr->addChildAtPosition(icon, Anchor::Left, ccp(16, 0), false);
 
         auto title = CCLabelBMFont::create(std::get<1>(item), "bigFont.fnt");
-        title->limitLabelWidth(spr->getContentWidth() - itemSize.height - 10, .55f, .1f);
+        title->limitLabelWidth(spr->getContentWidth() - 34, .55f, .1f);
         title->setAnchorPoint({ .0f, .5f });
-        spr->addChildAtPosition(title, Anchor::Left, ccp(itemSize.height, 0), false);
+        spr->addChildAtPosition(title, Anchor::Left, ccp(28, 0), false);
 
         auto btn = CCMenuItemSpriteExtra::create(spr, this, menu_selector(ModsLayer::onTab));
         btn->setID(std::get<2>(item));
@@ -142,26 +145,41 @@ bool ModsLayer::init() {
     return true;
 }
 
-void ModsLayer::loadList(std::string const& id, bool update) {
-    if (m_currentList) {
-        m_currentList->scrollPosition = m_list->m_contentLayer->getPositionY();
+void ModsLayer::loadList(std::string const& id) {
+    if (!m_currentListID.empty()) {
+        m_listPosCaches[m_currentListID].scrollPosition = m_list->m_contentLayer->getPositionY();
+        m_listPosCaches[m_currentListID].page = m_currentPage;
     }
+    if (!m_listPosCaches.contains(id)) {
+        m_listPosCaches.insert_or_assign(id, ListPosCache {
+            .page = 0,
+            .scrollPosition = std::numeric_limits<float>::max(),
+        });
+    }
+    m_currentListID = id;
+    if (auto srcOpt = ModListSource::get(id)) {
+        auto& src = srcOpt.value().get();
+        src.loadTotalPageCount()
+            .then([this](size_t count) {
+                // todo: show count in UI
+                this->loadPage(m_listPosCaches.at(id).page);
+            });
+    }
+    else {
+
+    }
+}
+
+void ModsLayer::loadPage(size_t page, bool update) {
     m_list->m_contentLayer->removeAllChildren();
-    if (!m_listItemsCache.contains(id) || update) {
-        ListCache cache;
-        switch (hash(id.c_str())) {
-            case hash("installed"): {
-                for (auto mod : Loader::get()->getAllMods()) {
-                    cache.items.push_back(InstalledModItem::create(mod));
-                }
-            } break;
-        }
-        cache.id = id;
-        cache.scrollPosition = std::numeric_limits<float>::max();
-        m_listItemsCache[id] = std::move(cache);
+    if (auto srcOpt = ModListSource::get(m_currentListID)) {
+        auto& src = srcOpt.value().get();
+        src.loadNewPage();
     }
-    auto& cache = m_listItemsCache.at(id);
-    for (auto item : cache.items) {
+    else {
+
+    }
+    for (auto item : cache.source.loadNewPage(m_currentPage, update)) {
         m_list->m_contentLayer->addChild(item);
         item->updateSize(m_list->getContentWidth(), BIG_VIEW);
     }

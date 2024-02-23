@@ -44,7 +44,7 @@ void BaseModItem::updateState() {
     m_viewMenu->removeAllChildren();
     if (this->wantsRestart()) {
         auto restartSpr = ButtonSprite::create("Restart", "bigFont.fnt", "GE_button_02.png"_spr, .8f);
-        restartSpr->setScale(.5f);
+        restartSpr->setScale(.55f);
         auto restartBtn = CCMenuItemSpriteExtra::create(
             restartSpr, this, nullptr
         );
@@ -52,7 +52,7 @@ void BaseModItem::updateState() {
     }
     else {
         auto viewSpr = ButtonSprite::create("View", "bigFont.fnt", "GE_button_05.png"_spr, .8f);
-        viewSpr->setScale(.5f);
+        viewSpr->setScale(.55f);
         auto viewBtn = CCMenuItemSpriteExtra::create(
             viewSpr, this, nullptr
         );
