@@ -7,18 +7,36 @@
 using namespace geode::prelude;
 
 // Handles loading the entries for the mods list
-struct ModListSource {
+class ModListSource {
+public:
     using Page = std::vector<Ref<BaseModItem>>;
- 
-    // ID of the list source
-    virtual std::string_view getID() const = 0;
+    using PageLoadEventListener = EventListener<PromiseEventFilter<Page>>;
 
-    // Load a page. Use update to force a reload on existing page. Up to the 
-    // source impl to cache this
-    virtual Promise<Page> loadNewPage(size_t page, bool update = false) = 0;
+protected:
+    std::unordered_map<size_t, Page> m_cachedPages;
+    std::optional<size_t> m_cachedPageCount;
 
-    // Get the total number of available pages
-    virtual Promise<size_t> loadTotalPageCount() const = 0;
+    // Load/reload a page. This should also set/update the page count
+    virtual Promise<Page> reloadPage(size_t page) = 0;
 
-    static std::optional<std::reference_wrapper<ModListSource>> get(std::string_view id);
+public:
+    // Load page, uses cache if possible unless `update` is true
+    Promise<Page> loadPage(size_t page, bool update = false);
+    std::optional<size_t> getPageCount() const;
+};
+
+class InstalledModsList : public ModListSource {
+protected:
+    Promise<Page> reloadPage(size_t page) override;
+
+public:
+    static InstalledModsList* get();
+};
+
+class ModPacksModsList : public ModListSource {
+protected:
+    Promise<Page> reloadPage(size_t page) override;
+
+public:
+    static ModPacksModsList* get();
 };

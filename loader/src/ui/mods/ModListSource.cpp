@@ -2,43 +2,59 @@
 
 static size_t INSTALLED_MODS_PAGE_SIZE = 10;
 
-struct InstalledModsList : ModListSource {
-    std::string_view getID() const override {
-        return "installed";
+Promise<typename ModListSource::Page> ModListSource::loadPage(size_t page, bool update) {
+    if (!update && m_cachedPages.contains(page)) {
+        return Promise<Page>([this, page](auto resolve, auto) { resolve(m_cachedPages.at(page)); });
     }
+    m_cachedPages.erase(page);
+    return Promise<Page>([this, page](auto resolve, auto reject, auto progress, auto const&) {
+        this->reloadPage(page)
+            .then([page, this, resolve = std::move(resolve)](auto data) {
+                m_cachedPages.insert({ page, data });
+                resolve(data);
+            })
+            .expect([this, reject = std::move(reject)](auto error) {
+                reject(error);
+            })
+            .progress([this, progress = std::move(progress)](auto prog) {
+                progress(prog);
+            });
+    });
+}
 
-    Promise<Page> loadNewPage(size_t page, bool) {
-        // You can't load new mods at runtime so update does nothing
-        return Promise([](auto resolve, auto _reject, auto _progress) {
-            std::thread([res = std::move(resolve)] {
-                std::this_thread::sleep_for(std::chrono::seconds(3));
-                auto page = Page();
-                auto all = Loader::get()->getAllMods();
-                for (size_t i = page * INSTALLED_MODS_PAGE_SIZE; i < all.size(); i += 1) {
-                    page.push_back(InstalledModItem::create(all.at(i)));
-                }
-                res(page);
-            }).detach();
-        });
-    }
+std::optional<size_t> ModListSource::getPageCount() const {
+    return m_cachedPageCount;
+}
 
-    Promise<size_t> loadTotalPageCount() const {
-        return Promise([](auto resolve, auto _reject, auto _progress) {
-            resolve(Loader::get()->getAllMods().size() / INSTALLED_MODS_PAGE_SIZE + 1);
-        });
-    }
+Promise<typename ModListSource::Page> InstalledModsList::reloadPage(size_t page) {
+    m_cachedPageCount = Loader::get()->getAllMods().size() / INSTALLED_MODS_PAGE_SIZE + 1;
+    return Promise<Page>([page](auto resolve, auto, auto, auto const&) {
+        auto content = Page();
+        auto all = Loader::get()->getAllMods();
+        for (
+            size_t i = page * INSTALLED_MODS_PAGE_SIZE;
+            i < all.size() && i < (page + 1) * INSTALLED_MODS_PAGE_SIZE;
+            i += 1
+        ) {
+            content.push_back(InstalledModItem::create(all.at(i)));
+        }
+        resolve(content);
+    });
+}
 
-    static InstalledModsList& get() {
-        static auto inst = InstalledModsList();
-        return inst;
-    }
-};
+InstalledModsList* InstalledModsList::get() {
+    static auto inst = new InstalledModsList();
+    return inst;
+}
 
-std::optional<std::reference_wrapper<ModListSource>> ModListSource::get(std::string_view id) {
-    switch (hash(id)) {
-        case hash("installed"): {
-            return InstalledModsList::get();
-        } break;
-    }
-    return std::nullopt;
+Promise<typename ModListSource::Page> ModPacksModsList::reloadPage(size_t page) {
+    m_cachedPageCount = 0;
+    return Promise<Page>([](auto, auto reject) {
+        reject("Coming soon! ;)");
+    });
+}
+
+ModPacksModsList* ModPacksModsList::get() {
+    static auto inst = new ModPacksModsList();
+    return inst;
 }
