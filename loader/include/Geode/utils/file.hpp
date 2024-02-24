@@ -155,6 +155,16 @@ namespace geode::utils::file {
         static Result<Unzip> create(ByteVector const& data);
 
         /**
+         * Set a callback to be called with the progress of the unzip operation, first
+         * argument is the current entry, second argument is the total entries
+         * @note This is not thread-safe
+         * @param callback Callback to call with the progress of the unzip operation
+         */
+        void setProgressCallback(
+            utils::MiniFunction<void(uint32_t, uint32_t)> callback
+        );
+
+        /**
          * Path to the opened zip
          * @returns The path to the zip that is being read, or an empty path 
          * if the zip was opened in memory
@@ -196,6 +206,13 @@ namespace geode::utils::file {
          * @returns Succesful result on success, errorful result on error
          */
         static Result<> intoDir(
+            Path const& from,
+            Path const& to,
+            bool deleteZipAfter = false
+        );
+
+        static Result<> intoDir(
+            utils::MiniFunction<void(uint32_t, uint32_t)> progressCallback,
             Path const& from,
             Path const& to,
             bool deleteZipAfter = false
