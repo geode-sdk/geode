@@ -1033,7 +1033,7 @@ public:
     GEODE_DLL void updateAnchoredPosition(
         Anchor anchor,
         CCPoint const& offset,
-        CCPoint const& nodeAnchor = { .5f, .5f }
+        CCPoint const& nodeAnchor
     );
 
     /**
