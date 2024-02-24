@@ -109,8 +109,16 @@ namespace geode {
             logImpl(Severity::Error, getMod(), str, std::forward<Args>(args)...);
         }
 
-        GEODE_DLL void pushNest();
-        GEODE_DLL void popNest();
+        GEODE_DLL void pushNest(Mod* mod);
+        GEODE_DLL void popNest(Mod* mod);
+
+        inline void pushNest() {
+            pushNest(getMod());
+        }
+
+        inline void popNest() {
+            popNest(getMod());
+        }
 
         class Nest final {
         private:
