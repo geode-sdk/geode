@@ -172,7 +172,7 @@ namespace geode {
             if (m_data->cancelled) return *this;
             std::unique_lock<std::mutex> _(m_data->mutex);
             if (m_data->result.has_value()) {
-                Loader::get()->queueInMainThread([] {
+                Loader::get()->queueInMainThread([handler = std::move(handler)] {
                     handler();
                 });
             }
