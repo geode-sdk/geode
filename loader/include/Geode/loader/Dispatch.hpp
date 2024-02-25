@@ -33,11 +33,21 @@ namespace geode {
     protected:
         std::string m_id;
 
+        static auto& pools() {
+            static std::unordered_map<std::string, EventListenerPool*> s_pools;
+            return s_pools;
+        }
+
     public:
         using Ev = DispatchEvent<Args...>;
         using Callback = ListenerResult(Args...);
 
-        EventListenerPool* getPool() const override;
+        EventListenerPool* getPool() const override {
+            if (pools().count(m_id) == 0) {
+                pools()[m_id] = new DefaultEventListenerPool();
+            }
+            return pools()[m_id];
+        }
 
         ListenerResult handle(utils::MiniFunction<Callback> fn, Ev* event) {
             if (event->getID() == m_id) {
