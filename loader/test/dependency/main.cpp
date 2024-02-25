@@ -171,5 +171,5 @@ $on_mod(Loaded) {
     	label->setZOrder(99999);
     	gl->addChild(label);
         return ListenerResult::Propagate;
-    }, MyDispatchFilter("geode.testdep/test-garage-open"));
+    }, MyDispatchFilter("geode.test/test-garage-open"));
 }

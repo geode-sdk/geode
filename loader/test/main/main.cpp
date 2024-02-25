@@ -16,10 +16,13 @@ $on_mod(Loaded) {
     log::info("Loaded");
 }
 
+static std::string s_recievedEvent;
+
 // Events
 $execute {
     new EventListener<TestEventFilter>(+[](TestEvent* event) {
         log::info("Received event: {}", event->getData());
+        s_recievedEvent = event->getData();
     });
 }
 
@@ -99,7 +102,15 @@ struct GJGarageLayerTest : Modify<GJGarageLayerTest, GJGarageLayer> {
         addChild(label2);
 
         // Dispatch system pt. 1
-        MyDispatchEvent("test-garage-open"_spr, this).post();
+        MyDispatchEvent("geode.test/test-garage-open", this).post();
+
+        if (s_recievedEvent.size() > 0) {
+            auto label = CCLabelBMFont::create("Event works!", "bigFont.fnt");
+            label->setPosition(100, 70);
+            label->setScale(.4f);
+            label->setZOrder(99999);
+            addChild(label);
+        }
 
         return true;
     }
