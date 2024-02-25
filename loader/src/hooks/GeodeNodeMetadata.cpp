@@ -259,4 +259,13 @@ void CCNode::addChildAtPosition(CCNode* child, Anchor anchor, CCPoint const& off
     this->addChild(child);
 }
 
+#ifdef GEODE_EXPORTING
+
+void CCNode::setAttribute(std::string const& attr, matjson::Value const& value) {}
+std::optional<matjson::Value> CCNode::getAttributeInternal(std::string const& attr) {
+    return std::nullopt;
+}
+
+#endif
+
 #pragma warning(pop)
