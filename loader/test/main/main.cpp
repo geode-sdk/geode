@@ -1,5 +1,4 @@
 #include <Geode/Loader.hpp>
-#include <Geode/loader/ModJsonTest.hpp>
 #include <Geode/loader/ModEvent.hpp>
 #include <Geode/utils/cocos.hpp>
 #include "../dependency/main.hpp"

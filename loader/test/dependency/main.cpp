@@ -2,7 +2,6 @@
 #include <Geode/modify/MenuLayer.hpp>
 #include <Geode/loader/SettingNode.hpp>
 #include <Geode/loader/Dispatch.hpp>
-#include <Geode/loader/ModJsonTest.hpp>
 #include <Geode/Bindings.hpp>
 #include "main.hpp"
 
