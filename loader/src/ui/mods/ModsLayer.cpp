@@ -60,11 +60,14 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     this->addChildAtPosition(pageRightMenu, Anchor::Right, ccp(5, 0));
 
     auto pageLabelMenu = CCMenu::create();
-    pageLabelMenu->setContentWidth(30.f);
+    pageLabelMenu->setContentWidth(200.f);
     pageLabelMenu->setAnchorPoint({ .5f, 1.f });
 
-    m_pageLabel = CCLabelBMFont::create("", "bigFont.fnt");
+    // Default text is so that the button gets a proper hitbox, since it's 
+    // based on sprite content size
+    m_pageLabel = CCLabelBMFont::create("Page XX/XX", "bigFont.fnt");
     m_pageLabel->setAnchorPoint({ .5f, 1.f });
+    m_pageLabel->setScale(.45f);
 
     m_pageLabelBtn = CCMenuItemSpriteExtra::create(
         m_pageLabel, this, menu_selector(ModList::onGoToPage)
@@ -156,12 +159,6 @@ void ModList::onPage(CCObject* sender) {
 void ModList::updatePageUI(bool hide) {
     auto pageCount = m_source->getPageCount();
 
-    // Clamp page count in case the max amount has changed for some reason
-    if (pageCount && m_page >= pageCount.value()) {
-        auto count = pageCount.value();
-        m_page = count > 0 ? count - 1 : 0;
-    }
-
     // Hide if page count hasn't been loaded
     if (!pageCount) {
         hide = true;
@@ -172,14 +169,16 @@ void ModList::updatePageUI(bool hide) {
     if (pageCount > 0u) {
         auto fmt = fmt::format("Page {}/{}", m_page + 1, pageCount.value());
         m_pageLabel->setString(fmt.c_str());
-        m_pageLabel->limitLabelWidth(100.f, .35f, .1f);
     }
 }
 
 void ModList::setTextPopupClosed(SetTextPopup* popup, gd::string value) {
     if (popup->getID() == "go-to-page"_spr) {
-        if (auto num = numFromString<size_t>(value)) {
-            this->gotoPage(num.unwrap());
+        if (auto res = numFromString<size_t>(value)) {
+            size_t num = res.unwrap();
+            // The page indices are 0-based but people think in 1-based
+            if (num > 0) num -= 1;
+            this->gotoPage(num);
         }
     }
 }
