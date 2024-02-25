@@ -1,6 +1,6 @@
-#ifdef GEODE_IS_ANDROID
-
 #include <Geode/Geode.hpp>
+
+#ifdef GEODE_IS_ANDROID
 
 using namespace geode::prelude;
 
