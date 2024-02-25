@@ -479,6 +479,9 @@ void geode::cocos::reloadTextures(CreateLayerFunc returnTo) {
 }
 
 void GEODE_DLL geode::cocos::handleTouchPriorityWith(cocos2d::CCNode* node, int priority, bool force) {
+    if (node == nullptr) return;
+    if (node->getChildrenCount() == 0) return;
+    
     for (auto child : CCArrayExt<CCNode*>(node->getChildren())) {
         if (auto delegate = typeinfo_cast<CCTouchDelegate*>(child)) {
             if (auto handler = CCTouchDispatcher::get()->findHandler(delegate)) {
