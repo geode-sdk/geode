@@ -1,4 +1,4 @@
-#include <Geode/loader/Event.hpp>
+#include <Geode/loader/Dispatch.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <mutex>
 #include <unordered_map>
