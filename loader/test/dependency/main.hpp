@@ -1,6 +1,8 @@
 #pragma once
 
 #include <Geode/loader/Event.hpp>
+#include <Geode/loader/Dispatch.hpp>
+#include <Geode/binding/GJGarageLayer.hpp>
 
 using namespace geode::prelude;
 
@@ -31,3 +33,6 @@ public:
     TestEventFilter();
     TestEventFilter(TestEventFilter const&) = default;
 };
+
+using MyDispatchEvent = geode::DispatchEvent<GJGarageLayer*>;
+using MyDispatchFilter = geode::DispatchFilter<GJGarageLayer*>;

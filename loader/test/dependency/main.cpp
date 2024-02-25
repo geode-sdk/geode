@@ -1,9 +1,9 @@
 #include <Geode/Loader.hpp>
 #include <Geode/modify/MenuLayer.hpp>
 #include <Geode/loader/SettingNode.hpp>
+#include <Geode/loader/Dispatch.hpp>
 #include <Geode/loader/ModJsonTest.hpp>
-#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
-#include <Geode/binding/FLAlertLayer.hpp>
+#include <Geode/Bindings.hpp>
 #include "main.hpp"
 
 using namespace geode::prelude;
@@ -164,11 +164,12 @@ struct MyMenuLayer : Modify<MyMenuLayer, MenuLayer> {
 $on_mod(Loaded) {
     Mod::get()->addCustomSetting<MySettingValue>("overcast-skies", DEFAULT_ICON);
 
-    // Dispatcher::get()->addFunction<void(GJGarageLayer*)>("test-garage-open", [](GJGarageLayer*
-    // gl) { 	auto label = CCLabelBMFont::create("Dispatcher works!", "bigFont.fnt");
-    // 	label->setPosition(100, 80);
-    // 	label->setScale(.4f);
-    // 	label->setZOrder(99999);
-    // 	gl->addChild(label);
-    // });
+    (void)new EventListener(+[](GJGarageLayer* gl) {
+        auto label = CCLabelBMFont::create("Dispatcher works!", "bigFont.fnt");
+    	label->setPosition(100, 80);
+    	label->setScale(.4f);
+    	label->setZOrder(99999);
+    	gl->addChild(label);
+        return ListenerResult::Propagate;
+    }, MyDispatchFilter("geode.testdep/test-garage-open"));
 }

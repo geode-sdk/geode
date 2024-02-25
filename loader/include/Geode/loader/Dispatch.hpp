@@ -42,7 +42,7 @@ namespace geode {
         using Ev = DispatchEvent<Args...>;
         using Callback = ListenerResult(Args...);
 
-        EventListenerPool* getPool() const override {
+        EventListenerPool* getPool() const {
             if (pools().count(m_id) == 0) {
                 pools()[m_id] = new DefaultEventListenerPool();
             }
