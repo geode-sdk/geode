@@ -37,6 +37,8 @@ namespace geode {
         using Ev = DispatchEvent<Args...>;
         using Callback = ListenerResult(Args...);
 
+        EventListenerPool* getPool() const override;
+
         ListenerResult handle(utils::MiniFunction<Callback> fn, Ev* event) {
             if (event->getID() == m_id) {
                 return std::apply(fn, event->getArgs());
