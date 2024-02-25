@@ -9,7 +9,7 @@
 namespace geode {
     // Mod interoperability
 
-    std::unordered_map<std::string, EventListenerPool*>& dispatchPools();
+    GEODE_DLL std::unordered_map<std::string, EventListenerPool*>& dispatchPools();
 
     template <class... Args>
     class DispatchEvent : public Event {
