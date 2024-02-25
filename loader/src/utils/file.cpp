@@ -170,6 +170,7 @@ private:
     int32_t m_mode;
     std::variant<Path, ByteVector> m_srcDest;
     std::unordered_map<Path, ZipEntry> m_entries;
+    utils::MiniFunction<void(uint32_t, uint32_t)> m_progressCallback;
 
     Result<> init() {
         // open stream from file
@@ -281,6 +282,10 @@ public:
         return Ok(std::move(ret));
     }
 
+    void setProgressCallback(utils::MiniFunction<void(uint32_t, uint32_t)> callback) {
+        m_progressCallback = callback;
+    }
+
     Result<> extractAt(Path const& dir, Path const& name) {
         auto entry = m_entries.at(name);
 
@@ -318,12 +323,21 @@ public:
             .expect("Unable to navigate to first entry (code {error})")
         );
 
+        uint64_t numEntries;
+
+        GEODE_UNWRAP(
+            mzTry(mz_zip_get_number_entry(m_handle, &numEntries))
+            .expect("Unable to get number of entries (code {error})")
+        );
+
+        uint32_t currentEntry = 0;
         // while not at MZ_END_OF_LIST
         do {
             mz_zip_file* info = nullptr;
             if (mz_zip_entry_get_info(m_handle, &info) != MZ_OK) {
                 return Err("Unable to get entry info");
             }
+            currentEntry++;
 
             Path filePath;
             filePath.assign(info->filename, info->filename + info->filename_size);
@@ -341,6 +355,7 @@ public:
                 else {
                     GEODE_UNWRAP(this->extractAt(dir, filePath));
                 }
+                m_progressCallback(currentEntry, numEntries);
             }
             else {
                 log::error(
@@ -505,6 +520,12 @@ Unzip::Path Unzip::getPath() const {
     return m_impl->getPath();
 }
 
+void Unzip::setProgressCallback(
+    utils::MiniFunction<void(uint32_t, uint32_t)> callback
+) {
+    return m_impl->setProgressCallback(callback);
+}
+
 std::vector<Unzip::Path> Unzip::getEntries() const {
     return map::keys(m_impl->getEntries());
 }
@@ -543,6 +564,22 @@ Result<> Unzip::intoDir(
         // TODO: this is quite slow lol, takes 30 seconds to extract index..
         GEODE_UNWRAP(unzip.extractAllTo(to));
     }
+    if (deleteZipAfter) {
+        std::error_code ec;
+        ghc::filesystem::remove(from, ec);
+    }
+    return Ok();
+}
+
+Result<> Unzip::intoDir(
+    utils::MiniFunction<void(uint32_t, uint32_t)> progressCallback,
+    Path const& from,
+    Path const& to,
+    bool deleteZipAfter
+) {
+    GEODE_UNWRAP_INTO(auto unzip, Unzip::create(from));
+    unzip.setProgressCallback(progressCallback);
+    GEODE_UNWRAP(unzip.extractAllTo(to));
     if (deleteZipAfter) {
         std::error_code ec;
         ghc::filesystem::remove(from, ec);

@@ -8,7 +8,7 @@
 
 using namespace geode::prelude;
 
-class ModList : public CCNode {
+class ModList : public CCNode, public SetTextPopupDelegate {
 protected:
     ModListSource* m_source;
     size_t m_page = 0;
@@ -18,12 +18,16 @@ protected:
     ModListSource::PageLoadEventListener m_listener;
     CCMenuItemSpriteExtra* m_pagePrevBtn;
     CCMenuItemSpriteExtra* m_pageNextBtn;
+    CCMenuItemSpriteExtra* m_pageLabelBtn;
     CCLabelBMFont* m_pageLabel;
 
     bool init(ModListSource* src, CCSize const& size);
 
     void onPromise(PromiseEvent<ModListSource::Page>* event);
     void onPage(CCObject*);
+    void onGoToPage(CCObject*);
+
+    void setTextPopupClosed(SetTextPopup*, gd::string value) override;
 
     void updatePageUI(bool hide = false);
 

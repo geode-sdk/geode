@@ -337,9 +337,20 @@ void Index::Impl::downloadIndex(std::string commitHash) {
 
                 // unzip new index
                 log::debug("Unzipping index");
-                IndexUpdateEvent(UpdateProgress(100, "Unzipping index")).post();
-                auto unzip = file::Unzip::intoDir(targetFile, targetDir, true)
-                    .expect("Unable to unzip new index");
+                uint32_t nextPercent = 1;
+                auto unzip = file::Unzip::intoDir(
+                    [&](uint32_t current, uint32_t total) {
+                        if (total == 0) return;
+
+                        if (static_cast<float>(current) / total * 100 >= nextPercent) {
+                            Loader::get()->queueInMainThread([nextPercent]() {
+                                IndexUpdateEvent(UpdateProgress(nextPercent, "Extracting")).post();
+                            });
+                            nextPercent++;
+                        }
+                    },
+                    targetFile, targetDir, true
+                ).expect("Unable to unzip new index");
                 if (!unzip) {
                     auto const err = unzip.unwrapErr();
                     log::error("Failed to unzip latest index: {}", err);

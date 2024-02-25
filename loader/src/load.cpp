@@ -8,7 +8,6 @@
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/SettingEvent.hpp>
-#include <Geode/loader/ModJsonTest.hpp>
 #include <Geode/utils/JsonValidation.hpp>
 #include <loader/LogImpl.hpp>
 

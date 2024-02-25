@@ -1,5 +1,6 @@
 #include "ModsLayer.hpp"
 #include "SwelvyBG.hpp"
+#include <Geode/ui/TextInput.hpp>
 
 static bool BIG_VIEW = false;
 
@@ -58,9 +59,20 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     );
     this->addChildAtPosition(pageRightMenu, Anchor::Right, ccp(5, 0));
 
+    auto pageLabelMenu = CCMenu::create();
+    pageLabelMenu->setContentWidth(30.f);
+    pageLabelMenu->setAnchorPoint({ .5f, 1.f });
+
     m_pageLabel = CCLabelBMFont::create("", "bigFont.fnt");
     m_pageLabel->setAnchorPoint({ .5f, 1.f });
-    this->addChildAtPosition(m_pageLabel, Anchor::Bottom, ccp(0, -5));
+
+    m_pageLabelBtn = CCMenuItemSpriteExtra::create(
+        m_pageLabel, this, menu_selector(ModList::onGoToPage)
+    );
+    pageLabelMenu->addChild(m_pageLabelBtn);
+
+    pageLabelMenu->setLayout(RowLayout::create());
+    this->addChildAtPosition(pageLabelMenu, Anchor::Bottom, ccp(0, -5));
 
     m_statusText = SimpleTextArea::create("", "bigFont.fnt", .6f);
     m_statusText->setAlignment(kCCTextAlignmentCenter);
@@ -114,6 +126,14 @@ void ModList::onPromise(PromiseEvent<typename ModListSource::Page>* event) {
     }
 }
 
+void ModList::onGoToPage(CCObject*) {
+    auto popup = SetTextPopup::create("", "Page", 5, "Go to Page", "OK", true, 60.f);
+    popup->m_delegate = this;
+    popup->m_input->m_allowedChars = getCommonFilterAllowedChars(CommonFilter::Uint);
+    popup->setID("go-to-page"_spr);
+    popup->show();
+}
+
 void ModList::onPage(CCObject* sender) {
     // If no page count has been loaded yet, we can't do anything
     if (!m_source->getPageCount()) return;
@@ -148,11 +168,19 @@ void ModList::updatePageUI(bool hide) {
     }
     m_pagePrevBtn->setVisible(!hide && m_page > 0);
     m_pageNextBtn->setVisible(!hide && m_page < pageCount.value() - 1);
-    m_pageLabel->setVisible(!hide);
+    m_pageLabelBtn->setVisible(!hide);
     if (pageCount > 0u) {
         auto fmt = fmt::format("Page {}/{}", m_page + 1, pageCount.value());
         m_pageLabel->setString(fmt.c_str());
         m_pageLabel->limitLabelWidth(100.f, .35f, .1f);
+    }
+}
+
+void ModList::setTextPopupClosed(SetTextPopup* popup, gd::string value) {
+    if (popup->getID() == "go-to-page"_spr) {
+        if (auto num = numFromString<size_t>(value)) {
+            this->gotoPage(num.unwrap());
+        }
     }
 }
 

@@ -285,4 +285,13 @@ void CCNode::updateAnchoredPosition(Anchor anchor, CCPoint const& offset, CCPoin
     }
 }
 
+#ifdef GEODE_EXPORTING
+
+void CCNode::setAttribute(std::string const& attr, matjson::Value const& value) {}
+std::optional<matjson::Value> CCNode::getAttributeInternal(std::string const& attr) {
+    return std::nullopt;
+}
+
+#endif
+
 #pragma warning(pop)

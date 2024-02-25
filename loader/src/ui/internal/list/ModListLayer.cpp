@@ -628,7 +628,7 @@ void ModListLayer::onIndexUpdate(IndexUpdateEvent* event) {
         [&](UpdateProgress const& prog) {
             auto msg = prog.second;
             // amazing
-            if (prog.second == "Downloading") {
+            if (prog.second == "Downloading" || prog.second == "Extracting") {
                 msg += fmt::format(" {}%", prog.first);
             }
             m_listLabel->setString((msg + "...").c_str());

@@ -9,6 +9,8 @@
 namespace geode {
     // Mod interoperability
 
+    GEODE_DLL std::unordered_map<std::string, EventListenerPool*>& dispatchPools();
+
     template <class... Args>
     class DispatchEvent : public Event {
     protected:
@@ -26,6 +28,13 @@ namespace geode {
         std::string getID() const {
             return m_id;
         }
+
+        EventListenerPool* getPool() const override {
+            if (dispatchPools().count(m_id) == 0) {
+                dispatchPools()[m_id] = new DefaultEventListenerPool();
+            }
+            return dispatchPools()[m_id];
+        }
     };
 
     template <class... Args>
@@ -36,6 +45,13 @@ namespace geode {
     public:
         using Ev = DispatchEvent<Args...>;
         using Callback = ListenerResult(Args...);
+
+        EventListenerPool* getPool() const {
+            if (dispatchPools().count(m_id) == 0) {
+                dispatchPools()[m_id] = new DefaultEventListenerPool();
+            }
+            return dispatchPools()[m_id];
+        }
 
         ListenerResult handle(utils::MiniFunction<Callback> fn, Ev* event) {
             if (event->getID() == m_id) {

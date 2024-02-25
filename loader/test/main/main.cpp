@@ -1,5 +1,4 @@
 #include <Geode/Loader.hpp>
-#include <Geode/loader/ModJsonTest.hpp>
 #include <Geode/loader/ModEvent.hpp>
 #include <Geode/utils/cocos.hpp>
 #include "../dependency/main.hpp"
@@ -12,23 +11,17 @@ auto test = []() {
 };
 
 // Exported functions
-$on_mod(Enabled) {
-    log::info("Enabled");
-}
-$on_mod(Disabled) {
-    log::info("Disabled");
-}
 $on_mod(Loaded) {
     log::info("Loaded");
 }
-$on_mod(Unloaded) {
-    log::info("Unloaded");
-}
+
+static std::string s_recievedEvent;
 
 // Events
 $execute {
     new EventListener<TestEventFilter>(+[](TestEvent* event) {
         log::info("Received event: {}", event->getData());
+        s_recievedEvent = event->getData();
     });
 }
 
@@ -108,37 +101,16 @@ struct GJGarageLayerTest : Modify<GJGarageLayerTest, GJGarageLayer> {
         addChild(label2);
 
         // Dispatch system pt. 1
-        // auto fn = Dispatcher::get()->getFunction<void(GJGarageLayer*)>("test-garage-open");
-        // fn(this);
+        MyDispatchEvent("geode.test/test-garage-open", this).post();
+
+        if (s_recievedEvent.size() > 0) {
+            auto label = CCLabelBMFont::create("Event works!", "bigFont.fnt");
+            label->setPosition(100, 70);
+            label->setScale(.4f);
+            label->setZOrder(99999);
+            addChild(label);
+        }
 
         return true;
     }
 };
-
-/*// Event system pt. 2
-int a = (0, []() {
-
-        Dispatcher::get()->addSelector("test-garage-open", [](GJGarageLayer* gl) {
-                auto label = CCLabelBMFont::create("EventCenter works!", "bigFont.fnt");
-                label->setPosition(100, 80);
-                label->setScale(.4f);
-                label->setZOrder(99999);
-                gl->addChild(label);
-
-                TestDependency::depTest(gl);
-        });
-
-// Event system pt. 2
-// $observe("test-garage-open", GJGarageLayer*, evt) {
-// 	auto gl = evt.object();
-// 	auto label = CCLabelBMFont::create("EventCenter works!", "bigFont.fnt");
-// 	label->setPosition(100, 80);
-// 	label->setScale(.4f);
-// 	label->setZOrder(99999);
-// 	gl->addChild(label);
-
-// 	// API pt. 2
-// 	TestDependency::depTest(gl);
-// }
-        return 0;
-}());*/

@@ -868,7 +868,17 @@ private:
         geode::EventListenerProtocol* protocol
     );
 
+#ifdef GEODE_EXPORTING
+    [[deprecated("Will be removed, it's an ABI break")]]
+    GEODE_DLL std::optional<matjson::Value> getAttributeInternal(std::string const& attribute);
+#endif
+
 public:
+#ifdef GEODE_EXPORTING
+    [[deprecated("Will be removed, it's an ABI break")]]
+    GEODE_DLL void setAttribute(std::string const& attribute, matjson::Value const& value);
+#endif
+
     /**
      * Get the string ID of this node
      * @returns The ID, or an empty string if the node has no ID.

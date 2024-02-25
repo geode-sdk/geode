@@ -255,14 +255,16 @@ std::string geode::log::generateLogName() {
     return fmt::format("Geode {:%F %H.%M.%S}.log", convertTime(log_clock::now()));
 }
 
-void log::pushNest() {
+void log::pushNest(Mod* mod) {
     if (s_nestLevel == 0)
-        s_nestCountOffset = static_cast<int32_t>(Mod::get()->getName().size() + thread::getName().size());
+        s_nestCountOffset = static_cast<int32_t>(mod->getName().size() + thread::getName().size());
     s_nestLevel++;
 }
 
-void log::popNest() {
+void log::popNest(Mod* mod) {
     s_nestLevel--;
+    if (s_nestLevel == 0)
+        s_nestCountOffset = 0;
 }
 
 std::shared_ptr<Nest> log::saveNest() {

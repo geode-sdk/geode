@@ -1,5 +1,21 @@
 # Geode Changelog
 
+## v2.0.0-beta.21
+ * Fix `numFromString` for floating point numbers (6d91804)
+ * Fix `ScrollLayer` cropping (5c8ee29)
+ * Show featured mods on top (4e06c20)
+ * Don't require admin for installer (5f8dc3a)
+ * Add `char const*` and `std::string` overloads for `gd::string` (982e8ab, a19d26d)
+ * Remove dithering from some textures (b9a76b3, 76a615c)
+ * Replace node attributes with id based user objects (363a028)
+ * Add FMOD initialization check for Android (0623563)
+ * Remove deprecated values from `Permissions` (b082dd1)
+ * Add a progress percentage to index unzipping (baf3a6b)
+ * Fix `pushNest/popNest` not doing correct indent value (c7a1f76)
+ * Optimize `DispatchEvent` to use their own pools, greatly increasing performance (d8ac85b)
+ * Check for presence of children in `handleTouchPriority` (28bd757)
+ * Fix floating point returns for optcall/membercall functions (dba5b01)
+
 ## v2.0.0-beta.20
  * Enable PCH on Mac for better compile times (dd62eac)
  * Add `numFromString` utility for safely parsing numbers (c4e9c17)
