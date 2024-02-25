@@ -13,7 +13,7 @@
  * Add a progress percentage to index unzipping (baf3a6b)
  * Fix `pushNest/popNest` not doing correct indent value (c7a1f76)
  * Optimize `DispatchEvent` to use their own pools, greatly increasing performance (d8ac85b)
- * Check for prescence of children in `handleTouchPriority` (28bd757)
+ * Check for presence of children in `handleTouchPriority` (28bd757)
  * Fix floating point returns for optcall/membercall functions (dba5b01)
 
 ## v2.0.0-beta.20
