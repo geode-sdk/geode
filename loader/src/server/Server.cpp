@@ -9,6 +9,32 @@ using namespace server;
 #define GEODE_GD_VERSION_STRINGIFY_2(version) GEODE_GD_VERSION_STRINGIFY(version)
 #define GEODE_GD_VERSION_STR GEODE_GD_VERSION_STRINGIFY_2(GEODE_GD_VERSION)
 
+static void parseServerError(auto reject, auto error) {
+    // The server should return errors as `{ "error": "...", "payload": "" }`
+    if (auto json = error.json()) {
+        reject(ServerError(
+            "Error code: {}; details: {}",
+            error.code(), json.unwrap().template get<std::string>("error")
+        ));
+    }
+    // But if we get something else for some reason, return that
+    else {
+        reject(ServerError(
+            "Error code: {}; details: {}",
+            error.code(), error.string().unwrapOr("Unknown (not a valid string)")
+        ));
+    }
+}
+
+static void parseServerProgress(auto progress, auto prog, auto msg) {
+    if (auto per = prog.downloadProgress()) {
+        progress({ msg, static_cast<uint8_t>(*per) });
+    }
+    else {
+        progress({ msg });
+    }
+}
+
 const char* server::sortToString(ModsSort sorting) {
     switch (sorting) {
         default:
@@ -112,12 +138,14 @@ Result<ServerModMetadata> ServerModMetadata::parse(matjson::Value const& raw) {
     root.has("about").into(res.about);
     root.has("changelog").into(res.changelog);
 
+    std::vector<std::string> developerNames;
     for (auto item : root.needs("developers").iterate()) {
         auto obj = item.obj();
         auto dev = ServerDeveloper();
         obj.needs("username").into(dev.username);
         obj.needs("display_name").into(dev.displayName);
         res.developers.push_back(dev);
+        developerNames.push_back(dev.displayName);
     }
     for (auto item : root.needs("versions").iterate()) {
         auto versionRes = ServerModVersion::parse(item.json());
@@ -125,6 +153,7 @@ Result<ServerModMetadata> ServerModMetadata::parse(matjson::Value const& raw) {
             auto version = versionRes.unwrap();
             version.metadata.setDetails(res.about);
             version.metadata.setChangelog(res.changelog);
+            version.metadata.setDevelopers(developerNames);
             res.versions.push_back(version);
         }
         else {
@@ -197,7 +226,9 @@ ServerPromise<ServerModsList> server::getMods(ModsQuery query) {
     if (query.tags.size()) {
         req.param("tags", ranges::join(query.tags, ","));
     }
-    req.param("featured", query.featuredOnly ? "true" : "false");
+    if (query.featured) {
+        req.param("featured", query.featured.value() ? "true" : "false");
+    }
     req.param("sort", sortToString(query.sorting));
     if (query.developer) {
         req.param("developer", *query.developer);
@@ -228,28 +259,28 @@ ServerPromise<ServerModsList> server::getMods(ModsQuery query) {
                 if (error.code() == 404) {
                     return resolve(ServerModsList());
                 }
-                // The server should return errors as `{ "error": "...", "payload": "" }`
-                if (auto json = error.json()) {
-                    reject(ServerError(
-                        "Error code: {}; details: {}",
-                        error.code(), json.unwrap().template get<std::string>("error")
-                    ));
-                }
-                // But if we get something else for some reason, return that
-                else {
-                    reject(ServerError(
-                        "Error code: {}; details: {}",
-                        error.code(), error.string().unwrapOr("Unknown (not a valid string)")
-                    ));
-                }
+                parseServerError(reject, error);
             })
             .progress([progress](auto prog) {
-                if (auto per = prog.downloadProgress()) {
-                    progress({ "Downloading mods", static_cast<uint8_t>(*per) });
-                }
-                else {
-                    progress({ "Downloading mods" });
-                }
+                parseServerProgress(progress, prog, "Downloading mods");
+            })
+            .link(cancel);
+    });
+}
+
+ServerPromise<ByteVector> server::getModLogo(std::string const& id) {
+    auto req = web::WebRequest();
+    req.param("id", id);
+    return ServerPromise<ByteVector>([req = std::move(req), id](auto resolve, auto reject, auto progress, auto cancel) mutable {
+        req.get(getServerAPIBaseURL() + "/mods/" + id + "/logo")
+            .then([resolve](auto response) {
+                resolve(response.data());
+            })
+            .expect([reject](auto error) {
+                parseServerError(reject, error);
+            })
+            .progress([progress, id](auto prog) {
+                parseServerProgress(progress, prog, "Downloading logo for " + id);
             })
             .link(cancel);
     });

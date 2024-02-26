@@ -8,11 +8,57 @@ static size_t ceildiv(size_t a, size_t b) {
     return a / b + (a % b != 0);
 }
 
-#define GEODE_GD_VERSION_STRINGIFY(version) # version
-#define GEODE_GD_VERSION_STRINGIFY_2(version) GEODE_GD_VERSION_STRINGIFY(version)
-#define GEODE_GD_VERSION_STR GEODE_GD_VERSION_STRINGIFY_2(GEODE_GD_VERSION)
+static auto loadInstalledModsPage(size_t page) {
+    return ModListSource::ProviderPromise([page](auto resolve, auto, auto, auto const&) {
+        Loader::get()->queueInMainThread([page, resolve = std::move(resolve)] {
+            auto content = ModListSource::Page();
+            auto all = Loader::get()->getAllMods();
+            for (
+                size_t i = page * PAGE_SIZE;
+                i < all.size() && i < (page + 1) * PAGE_SIZE;
+                i += 1
+            ) {
+                content.push_back(InstalledModItem::create(all.at(i)));
+            }
+            resolve({ content, all.size() });
+        });
+    });
+}
+
+static auto loadServerModsPage(size_t page, bool featuredOnly) {
+    return ModListSource::ProviderPromise([page, featuredOnly](auto resolve, auto reject, auto progress, auto cancelled) {
+        server::getMods(server::ModsQuery {
+            .featured = featuredOnly ? std::optional(true) : std::nullopt,
+            .page = page,
+            .pageSize = PAGE_SIZE,
+        })
+        .then([resolve, reject](server::ServerModsList list) {
+            if (list.totalModCount == 0) {
+                return reject(ModListSource::LoadPageError("No mods found :("));
+            }
+            auto content = ModListSource::Page();
+            for (auto mod : list.mods) {
+                content.push_back(ServerModItem::create(mod));
+            }
+            resolve({ content, list.totalModCount });
+        })
+        .expect([reject](auto error) {
+            reject(ModListSource::LoadPageError("Error loading mods", error.details));
+        })
+        .progress([progress](auto prog) {
+            progress(prog.percentage);
+        })
+        .link(cancelled);
+    });
+}
 
 typename ModListSource::PagePromise ModListSource::loadPage(size_t page, bool update) {
+    // Return a generic "Coming soon" message if there's no provider set
+    if (!m_provider) {
+        return PagePromise([this, page](auto, auto reject) {
+            reject("Coming soon! ;)");
+        });
+    }
     if (!update && m_cachedPages.contains(page)) {
         return PagePromise([this, page](auto resolve, auto) {
             Loader::get()->queueInMainThread([this, page, resolve] {
@@ -22,10 +68,11 @@ typename ModListSource::PagePromise ModListSource::loadPage(size_t page, bool up
     }
     m_cachedPages.erase(page);
     return PagePromise([this, page](auto resolve, auto reject, auto progress, auto cancelled) {
-        this->reloadPage(page)
+        m_provider(page)
             .then([page, this, resolve = std::move(resolve)](auto data) {
-                m_cachedPages.insert({ page, data });
-                resolve(data);
+                m_cachedItemCount = data.second;
+                m_cachedPages.insert({ page, data.first });
+                resolve(data.first);
             })
             .expect([this, reject = std::move(reject)](auto error) {
                 reject(error);
@@ -45,69 +92,43 @@ std::optional<size_t> ModListSource::getItemCount() const {
     return m_cachedItemCount;
 }
 
-typename ModListSource::PagePromise InstalledModsList::reloadPage(size_t page) {
-    m_cachedItemCount = Loader::get()->getAllMods().size();
-    return PagePromise([page](auto resolve, auto, auto, auto const&) {
-        Loader::get()->queueInMainThread([page, resolve = std::move(resolve)] {
-            auto content = Page();
-            auto all = Loader::get()->getAllMods();
-            for (
-                size_t i = page * PAGE_SIZE;
-                i < all.size() && i < (page + 1) * PAGE_SIZE;
-                i += 1
-            ) {
-                content.push_back(InstalledModItem::create(all.at(i)));
-            }
-            resolve(content);
-        });
-    });
+ModListSource* ModListSource::create(Provider* provider) {
+    auto ret = new ModListSource();
+    ret->m_provider = provider;
+    ret->autorelease();
+    return ret;
 }
 
-InstalledModsList* InstalledModsList::get() {
-    static auto inst = new InstalledModsList();
-    return inst;
-}
+ModListSource* ModListSource::get(ModListSourceType type) {
+    switch (type) {
+        default:
+        case ModListSourceType::Installed: {
+            static auto inst = ModListSource::create(loadInstalledModsPage);
+            return inst;
+        } break;
 
-typename ModListSource::PagePromise FeaturedModsList::reloadPage(size_t page) {
-    return PagePromise([this, page](auto resolve, auto reject, auto progress, auto cancelled) {
-        server::getMods(server::ModsQuery {
-            .page = page,
-            .pageSize = PAGE_SIZE,
-        })
-        .then([this, resolve, reject](server::ServerModsList list) {
-            m_cachedItemCount = list.totalModCount;
-            if (list.totalModCount == 0) {
-                return reject(LoadPageError("No mods found :("));
-            }
-            auto content = Page();
-            for (auto mod : list.mods) {
-                content.push_back(ServerModItem::create(mod));
-            }
-            resolve(content);
-        })
-        .expect([reject](auto error) {
-            reject(LoadPageError("Error loading mods", error.details));
-        })
-        .progress([progress](auto prog) {
-            progress(prog.percentage);
-        })
-        .link(cancelled);
-    });
-}
+        case ModListSourceType::Featured: {
+            static auto inst = ModListSource::create(+[](size_t page) {
+                return loadServerModsPage(page, true);
+            });
+            return inst;
+        } break;
 
-FeaturedModsList* FeaturedModsList::get() {
-    static auto inst = new FeaturedModsList();
-    return inst;
-}
+        case ModListSourceType::Trending: {
+            static auto inst = ModListSource::create(nullptr);
+            return inst;
+        } break;
 
-typename ModListSource::PagePromise ModPacksModsList::reloadPage(size_t page) {
-    m_cachedItemCount = 0;
-    return PagePromise([](auto, auto reject) {
-        reject(LoadPageError("Coming soon! ;)"));
-    });
-}
+        case ModListSourceType::ModPacks: {
+            static auto inst = ModListSource::create(nullptr);
+            return inst;
+        } break;
 
-ModPacksModsList* ModPacksModsList::get() {
-    static auto inst = new ModPacksModsList();
-    return inst;
+        case ModListSourceType::All: {
+            static auto inst = ModListSource::create(+[](size_t page) {
+                return loadServerModsPage(page, false);
+            });
+            return inst;
+        } break;
+    }
 }

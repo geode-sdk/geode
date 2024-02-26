@@ -6,8 +6,16 @@
 
 using namespace geode::prelude;
 
+enum class ModListSourceType {
+    Installed,
+    Featured,
+    Trending,
+    ModPacks,
+    All,
+};
+
 // Handles loading the entries for the mods list
-class ModListSource {
+class ModListSource : public CCObject {
 public:
     struct LoadPageError {
         std::string message;
@@ -24,40 +32,23 @@ public:
     using PageLoadEventListener = EventListener<PageLoadEventFilter>;
     using PagePromise = Promise<Page, LoadPageError, std::optional<uint8_t>>;
 
+    using ProviderPromise = Promise<std::pair<Page, size_t>, LoadPageError, std::optional<uint8_t>>;
+    using Provider = ProviderPromise(size_t page);
+
 protected:
     std::unordered_map<size_t, Page> m_cachedPages;
     std::optional<size_t> m_cachedItemCount;
-
-    // Load/reload a page. This should also set/update the page count
-    virtual PagePromise reloadPage(size_t page) = 0;
+    Provider* m_provider = nullptr;
 
 public:
+    // Create a new source with an arbitary provider
+    static ModListSource* create(Provider* provider);
+
+    // Get a standard source (lazily created static instance)
+    static ModListSource* get(ModListSourceType type);
+
     // Load page, uses cache if possible unless `update` is true
     PagePromise loadPage(size_t page, bool update = false);
     std::optional<size_t> getPageCount() const;
     std::optional<size_t> getItemCount() const;
-};
-
-class InstalledModsList : public ModListSource {
-protected:
-    PagePromise reloadPage(size_t page) override;
-
-public:
-    static InstalledModsList* get();
-};
-
-class FeaturedModsList : public ModListSource {
-protected:
-    PagePromise reloadPage(size_t page) override;
-
-public:
-    static FeaturedModsList* get();
-};
-
-class ModPacksModsList : public ModListSource {
-protected:
-    PagePromise reloadPage(size_t page) override;
-
-public:
-    static ModPacksModsList* get();
 };

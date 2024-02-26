@@ -36,7 +36,9 @@ namespace geode {
      */
     GEODE_DLL cocos2d::CCNode* createModLogo(Mod* mod);
     /**
-     * Create a logo sprite for an index item
+     * Create a logo sprite for a mod downloaded from the Geode servers. The 
+     * logo is initially a loading circle, with the actual sprite downloaded 
+     * asynchronously
      */
-    // GEODE_DLL cocos2d::CCNode* createIndexItemLogo(IndexItemHandle item);
+    GEODE_DLL cocos2d::CCNode* createServerModLogo(std::string const& id);
 }

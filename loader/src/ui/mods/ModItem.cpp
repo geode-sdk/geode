@@ -138,7 +138,7 @@ ModMetadata ServerModItem::getMetadata() const {
 }
 
 CCNode* ServerModItem::createModLogo() const {
-    return CCSprite::create("loadingCircle.png");
+    return createServerModLogo(m_metadata.id);
 }
 
 bool ServerModItem::wantsRestart() const {

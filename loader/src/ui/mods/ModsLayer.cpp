@@ -365,12 +365,12 @@ bool ModsLayer::init() {
     mainTabs->setAnchorPoint({ .5f, .0f });
     mainTabs->setPosition(m_frame->convertToWorldSpace(tabsTop->getPosition() + ccp(0, 10)));
 
-    for (auto item : std::initializer_list<std::tuple<const char*, const char*, ModListSource*>> {
-        { "download.png"_spr, "Installed", InstalledModsList::get() },
-        { "GJ_bigStar_noShadow_001.png", "Featured", FeaturedModsList::get() },
-        { "GJ_sTrendingIcon_001.png", "Trending", nullptr },
-        { "gj_folderBtn_001.png", "Mod Packs", ModPacksModsList::get() },
-        { "search.png"_spr, "Search", nullptr },
+    for (auto item : std::initializer_list<std::tuple<const char*, const char*, ModListSourceType>> {
+        { "download.png"_spr, "Installed", ModListSourceType::Installed },
+        { "GJ_bigStar_noShadow_001.png", "Featured", ModListSourceType::Featured },
+        { "GJ_sTrendingIcon_001.png", "Trending", ModListSourceType::Trending },
+        { "gj_folderBtn_001.png", "Mod Packs", ModListSourceType::ModPacks },
+        { "globe.png"_spr, "All Mods", ModListSourceType::All },
     }) {
         const CCSize itemSize { 100, 35 };
         const CCSize iconSize { 18, 18 };
@@ -403,7 +403,7 @@ bool ModsLayer::init() {
         spr->addChildAtPosition(title, Anchor::Left, ccp(28, 0), false);
 
         auto btn = CCMenuItemSpriteExtra::create(spr, this, menu_selector(ModsLayer::onTab));
-        btn->setUserData(std::get<2>(item));
+        btn->setTag(static_cast<int>(std::get<2>(item)));
         mainTabs->addChild(btn);
         m_tabs.push_back(btn);
     }
@@ -411,7 +411,7 @@ bool ModsLayer::init() {
     mainTabs->setLayout(RowLayout::create());
     this->addChild(mainTabs);
 
-    this->gotoTab();
+    this->gotoTab(ModListSourceType::Installed);
 
     this->setKeypadEnabled(true);
     cocos::handleTouchPriority(this, true);
@@ -419,19 +419,17 @@ bool ModsLayer::init() {
     return true;
 }
 
-void ModsLayer::gotoTab(ModListSource* src) {
-    // Default to installed mods
-    if (!src) {
-        src = InstalledModsList::get();
-    }
-
+void ModsLayer::gotoTab(ModListSourceType type) {
     // Update selected tab
     for (auto tab : m_tabs) {
-        auto selected = tab->getUserData() == src;
+        auto selected = tab->getTag() == static_cast<int>(type);
         tab->getNormalImage()->getChildByID("disabled-bg")->setVisible(!selected);
         tab->getNormalImage()->getChildByID("enabled-bg")->setVisible(selected);
         tab->setEnabled(!selected);
     }
+
+    auto src = ModListSource::get(type);
+
     // Remove current list from UI (it's Ref'd so it stays in memory)
     if (m_currentSource) {
         m_lists.at(m_currentSource)->removeFromParent();
@@ -453,7 +451,7 @@ void ModsLayer::gotoTab(ModListSource* src) {
 }
 
 void ModsLayer::onTab(CCObject* sender) {
-    this->gotoTab(static_cast<ModListSource*>(static_cast<CCNode*>(sender)->getUserData()));
+    this->gotoTab(static_cast<ModListSourceType>(sender->getTag()));
 }
 
 void ModsLayer::keyBackClicked() {

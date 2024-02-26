@@ -17,7 +17,7 @@ using ModListStatus = std::variant<ModListErrorStatus, ModListUnkProgressStatus,
 
 class ModList : public CCNode, public SetTextPopupDelegate {
 protected:
-    ModListSource* m_source;
+    Ref<ModListSource> m_source;
     size_t m_page = 0;
     ScrollLayer* m_list;
     CCMenu* m_statusContainer;
@@ -70,5 +70,5 @@ public:
     void onBack(CCObject*);
     void onRefreshList(CCObject*);
 
-    void gotoTab(ModListSource* src = nullptr);
+    void gotoTab(ModListSourceType type);
 };

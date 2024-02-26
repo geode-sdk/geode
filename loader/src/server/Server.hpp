@@ -54,7 +54,7 @@ namespace server {
         std::optional<std::string> query;
         std::unordered_set<PlatformID> platforms = { GEODE_PLATFORM_TARGET };
         std::unordered_set<std::string> tags;
-        bool featuredOnly = false;
+        std::optional<bool> featured;
         ModsSort sorting = ModsSort::Downloads;
         std::optional<std::string> developer;
         size_t page = 0;
@@ -77,4 +77,5 @@ namespace server {
 
     std::string getServerAPIBaseURL();
     ServerPromise<ServerModsList> getMods(ModsQuery query);
+    ServerPromise<ByteVector> getModLogo(std::string const& id);
 }

@@ -1,10 +1,10 @@
 
 #include "mods/ModsLayer.hpp"
-
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/ui/MDPopup.hpp>
 #include <Geode/utils/web.hpp>
+#include <server/Server.hpp>
 
 void geode::openModsList() {
     ModsLayer::scene();
@@ -65,26 +65,95 @@ void geode::openSettingsPopup(Mod* mod) {
     }
 }
 
-CCNode* geode::createDefaultLogo() {
-    CCNode* spr = CCSprite::createWithSpriteFrameName("no-logo.png"_spr);
-    if (!spr) {
-        spr = CCLabelBMFont::create("OwO", "goldFont.fnt");
+class ModLogoSprite : public CCNode {
+protected:
+    std::string m_modID;
+    CCNode* m_sprite = nullptr;
+    EventListener<PromiseEventFilter<ByteVector, server::ServerError>> m_listener;
+
+    bool init(std::string const& id, bool fetch) {
+        if (!CCNode::init())
+            return false;
+        
+        this->setAnchorPoint({ .5f, .5f });
+        this->setContentSize({ 50, 50 });
+
+        m_modID = id;
+        m_listener.bind(this, &ModLogoSprite::onFetch);
+
+        // Load from Resources
+        if (!fetch) {
+            this->setSprite(id == "geode.loader" ? 
+                CCSprite::createWithSpriteFrameName("geode-logo.png"_spr) : 
+                CCSprite::create(fmt::format("{}/logo.png", id).c_str())
+            );
+        }
+        // Asynchronously fetch from server
+        else {
+            this->setSprite(CCSprite::create("loadingCircle.png"));
+            static_cast<CCSprite*>(m_sprite)->setBlendFunc({ GL_ONE, GL_ONE });
+            m_sprite->runAction(CCRepeatForever::create(CCRotateBy::create(1.f, 360.f)));
+            m_listener.setFilter(server::getModLogo(id).listen());
+        }
+        
+        return true;
     }
-    return spr;
+
+    void setSprite(CCNode* sprite) {
+        // Remove any existing sprite
+        if (m_sprite) {
+            m_sprite->removeFromParent();
+        }
+        // Fallback to default logo if the sprite is null
+        if (!sprite) {
+            sprite = CCSprite::createWithSpriteFrameName("no-logo.png"_spr);
+        }
+        // Fallback to lobotomy if Geode sprites are missing
+        if (!sprite) {
+            sprite = CCSprite::createWithSpriteFrameName("difficulty_02_btn_001.png");
+        }
+        // Set sprite and scale it to node size
+        m_sprite = sprite;
+        limitNodeSize(m_sprite, m_obContentSize, 99.f, .05f);
+        this->addChildAtPosition(m_sprite, Anchor::Center);
+    }
+
+    void onFetch(PromiseEvent<ByteVector, server::ServerError>* event) {
+        // Set default sprite on error
+        if (event->getReject()) {
+            this->setSprite(nullptr);
+        }
+        else if (auto data = event->getResolve()) {
+            auto image = Ref(new CCImage());
+            image->initWithImageData(const_cast<uint8_t*>(data->data()), data->size());
+
+            auto texture = CCTextureCache::get()->addUIImage(image, m_modID.c_str());
+            this->setSprite(CCSprite::createWithTexture(texture));
+        }
+    }
+
+public:
+    static ModLogoSprite* create(std::string const& id, bool fetch) {
+        auto ret = new ModLogoSprite();
+        if (ret && ret->init(id, fetch)) {
+            ret->autorelease();
+            return ret;
+        }
+        CC_SAFE_DELETE(ret);
+        return nullptr;
+    }
+};
+
+CCNode* geode::createDefaultLogo() {
+    return ModLogoSprite::create("", false);
 }
 
 CCNode* geode::createModLogo(Mod* mod) {
-    CCNode* ret = nullptr;
-    if (mod == Mod::get()) {
-        ret = CCSprite::createWithSpriteFrameName("geode-logo.png"_spr);
-    }
-    else {
-        ret = CCSprite::create(fmt::format("{}/logo.png", mod->getID()).c_str());
-    }
-    if (!ret) {
-        ret = createDefaultLogo();
-    }
-    return ret;
+    return ModLogoSprite::create(mod->getID(), false);
+}
+
+CCNode* geode::createServerModLogo(std::string const& id) {
+    return ModLogoSprite::create(id, true);
 }
 
 // CCNode* geode::createIndexItemLogo(IndexItemHandle item) {
