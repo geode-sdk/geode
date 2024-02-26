@@ -19,14 +19,14 @@ public:
     };
 
     using Page = std::vector<Ref<BaseModItem>>;
-    using PageLoadEvent = PromiseEvent<Page, LoadPageError, std::optional<float>>;
-    using PageLoadEventFilter = PromiseEventFilter<Page, LoadPageError, std::optional<float>>;
+    using PageLoadEvent = PromiseEvent<Page, LoadPageError, std::optional<uint8_t>>;
+    using PageLoadEventFilter = PromiseEventFilter<Page, LoadPageError, std::optional<uint8_t>>;
     using PageLoadEventListener = EventListener<PageLoadEventFilter>;
-    using PagePromise = Promise<Page, LoadPageError, std::optional<float>>;
+    using PagePromise = Promise<Page, LoadPageError, std::optional<uint8_t>>;
 
 protected:
     std::unordered_map<size_t, Page> m_cachedPages;
-    std::optional<size_t> m_cachedPageCount;
+    std::optional<size_t> m_cachedItemCount;
 
     // Load/reload a page. This should also set/update the page count
     virtual PagePromise reloadPage(size_t page) = 0;
@@ -35,6 +35,7 @@ public:
     // Load page, uses cache if possible unless `update` is true
     PagePromise loadPage(size_t page, bool update = false);
     std::optional<size_t> getPageCount() const;
+    std::optional<size_t> getItemCount() const;
 };
 
 class InstalledModsList : public ModListSource {
@@ -48,8 +49,6 @@ public:
 class FeaturedModsList : public ModListSource {
 protected:
     PagePromise reloadPage(size_t page) override;
-
-    static Result<Page> parseModsListResponse(matjson::Value const& json);
 
 public:
     static FeaturedModsList* get();

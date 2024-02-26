@@ -61,6 +61,7 @@ file(GLOB SOURCES CONFIGURE_DEPENDS
 	src/hooks/*.cpp
 	src/ids/*.cpp
 	src/internal/*.cpp
+	src/server/*.cpp
 	src/loader/*.cpp
 	src/load.cpp
 	src/utils/*.cpp

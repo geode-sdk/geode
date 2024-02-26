@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Geode/ui/General.hpp>
+#include <server/Server.hpp>
 
 using namespace geode::prelude;
 
@@ -37,6 +38,23 @@ public:
      * @note Make sure to call `updateSize` afterwards
      */
     static InstalledModItem* create(Mod* mod);
+
+    ModMetadata getMetadata() const override;
+    CCNode* createModLogo() const override;
+    bool wantsRestart() const override;
+};
+
+class ServerModItem : public BaseModItem {
+protected:
+    server::ServerModMetadata m_metadata;
+
+    bool init(server::ServerModMetadata const& metadata);
+
+public:
+    /**
+     * @note Make sure to call `updateSize` afterwards
+     */
+    static ServerModItem* create(server::ServerModMetadata const& metadata);
 
     ModMetadata getMetadata() const override;
     CCNode* createModLogo() const override;

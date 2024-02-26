@@ -113,3 +113,35 @@ CCNode* InstalledModItem::createModLogo() const {
 bool InstalledModItem::wantsRestart() const {
     return m_mod->getRequestedAction() != ModRequestedAction::None;
 }
+
+bool ServerModItem::init(server::ServerModMetadata const& metadata) {
+    m_metadata = metadata;
+
+    if (!BaseModItem::init())
+        return false;
+    
+    return true;
+}
+
+ServerModItem* ServerModItem::create(server::ServerModMetadata const& metadata) {
+    auto ret = new ServerModItem();
+    if (ret && ret->init(metadata)) {
+        ret->autorelease();
+        return ret;
+    }
+    CC_SAFE_DELETE(ret);
+    return nullptr;
+}
+
+ModMetadata ServerModItem::getMetadata() const {
+    return m_metadata.versions.front().metadata;
+}
+
+CCNode* ServerModItem::createModLogo() const {
+    return CCSprite::create("loadingCircle.png");
+}
+
+bool ServerModItem::wantsRestart() const {
+    // todo: request restart after install
+    return false;
+}

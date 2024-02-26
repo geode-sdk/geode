@@ -127,7 +127,7 @@ WebPromise WebRequest::send(std::string_view method, std::string_view url) {
         // Store downloaded response data into a byte vector
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &responseData);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, +[](char* data, size_t size, size_t nmemb, void* ptr) {
-            auto target = static_cast<ResponseData*>(ptr)->response.m_impl->m_data;
+            auto& target = static_cast<ResponseData*>(ptr)->response.m_impl->m_data;
             target.insert(target.end(), data, data + size * nmemb);
             return size * nmemb;
         });
@@ -148,8 +148,10 @@ WebPromise WebRequest::send(std::string_view method, std::string_view url) {
 
         // Add parameters to the URL and pass it to curl
         auto url = impl->m_url;
+        bool first = true;
         for (auto param : impl->m_urlParameters) {
-            url += "&" + param.first + "=" + param.second;
+            url += (first ? "?" : "&") + param.first + "=" + param.second;
+            first = false;
         }
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 

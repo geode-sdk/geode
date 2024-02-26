@@ -8,13 +8,24 @@
 
 using namespace geode::prelude;
 
+struct ModListErrorStatus {};
+struct ModListUnkProgressStatus {};
+struct ModListProgressStatus {
+    uint8_t percentage;
+};
+using ModListStatus = std::variant<ModListErrorStatus, ModListUnkProgressStatus, ModListProgressStatus>;
+
 class ModList : public CCNode, public SetTextPopupDelegate {
 protected:
     ModListSource* m_source;
     size_t m_page = 0;
     ScrollLayer* m_list;
-    SimpleTextArea* m_statusText;
+    CCMenu* m_statusContainer;
+    CCLabelBMFont* m_statusTitle;
+    SimpleTextArea* m_statusDetails;
+    CCMenuItemSpriteExtra* m_statusDetailsBtn;
     CCSprite* m_statusLoadingCircle;
+    Slider* m_statusLoadingBar;
     ModListSource::PageLoadEventListener m_listener;
     CCMenuItemSpriteExtra* m_pagePrevBtn;
     CCMenuItemSpriteExtra* m_pageNextBtn;
@@ -26,6 +37,7 @@ protected:
     void onPromise(ModListSource::PageLoadEvent* event);
     void onPage(CCObject*);
     void onGoToPage(CCObject*);
+    void onShowStatusDetails(CCObject*);
 
     void setTextPopupClosed(SetTextPopup*, gd::string value) override;
 
@@ -36,7 +48,7 @@ public:
 
     void reloadPage();
     void gotoPage(size_t page, bool update = false);
-    void showStatus(std::string const& status, bool loading);
+    void showStatus(ModListStatus status, std::string const& message, std::optional<std::string> const& details = std::nullopt);
 };
 
 class ModsLayer : public CCLayer {

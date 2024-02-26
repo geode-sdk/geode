@@ -77,14 +77,44 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     pageLabelMenu->setLayout(RowLayout::create());
     this->addChildAtPosition(pageLabelMenu, Anchor::Bottom, ccp(0, -5));
 
-    m_statusText = SimpleTextArea::create("", "bigFont.fnt", .6f);
-    m_statusText->setAlignment(kCCTextAlignmentCenter);
-    this->addChildAtPosition(m_statusText, Anchor::Center, ccp(0, 40));
+    m_statusContainer = CCMenu::create();
+    m_statusContainer->setScale(.5f);
+    m_statusContainer->setContentHeight(size.height / m_statusContainer->getScale());
+    m_statusContainer->setAnchorPoint({ .5f, .5f });
+    m_statusContainer->ignoreAnchorPointForPosition(false);
+
+    m_statusTitle = CCLabelBMFont::create("", "bigFont.fnt");
+    m_statusTitle->setAlignment(kCCTextAlignmentCenter);
+    m_statusContainer->addChild(m_statusTitle);
+
+    m_statusDetailsBtn = CCMenuItemSpriteExtra::create(
+        ButtonSprite::create("Details", "bigFont.fnt", "GJ_button_05.png", .75f),
+        this, menu_selector(ModList::onShowStatusDetails)
+    );
+    m_statusContainer->addChild(m_statusDetailsBtn);
+
+    m_statusDetails = SimpleTextArea::create("", "chatFont.fnt", .6f);
+    m_statusDetails->setAlignment(kCCTextAlignmentCenter);
+    m_statusContainer->addChild(m_statusDetails);
 
     m_statusLoadingCircle = CCSprite::create("loadingCircle.png");
-    m_statusLoadingCircle->runAction(CCRepeatForever::create(CCRotateBy::create(1.f, 360.f)));
+    m_statusLoadingCircle->setBlendFunc({ GL_ONE, GL_ONE });
     m_statusLoadingCircle->setScale(.6f);
-    this->addChildAtPosition(m_statusLoadingCircle, Anchor::Center, ccp(0, -40));
+    m_statusContainer->addChild(m_statusLoadingCircle);
+
+    m_statusLoadingBar = Slider::create(this, nullptr);
+    m_statusLoadingBar->m_touchLogic->m_thumb->setVisible(false);
+    m_statusLoadingBar->setValue(0);
+    m_statusLoadingBar->updateBar();
+    m_statusLoadingBar->setAnchorPoint({ 0, 0 });
+    m_statusContainer->addChild(m_statusLoadingBar);
+
+    m_statusContainer->setLayout(
+        ColumnLayout::create()
+            ->setAxisReverse(true)
+    );
+    m_statusContainer->getLayout()->ignoreInvisibleChildren(true);
+    this->addChildAtPosition(m_statusContainer, Anchor::Center);
 
     m_listener.bind(this, &ModList::onPromise);
 
@@ -96,8 +126,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
 void ModList::onPromise(typename ModListSource::PageLoadEvent* event) {
     if (auto resolved = event->getResolve()) {
         // Hide status
-        m_statusText->setVisible(false);
-        m_statusLoadingCircle->setVisible(false);
+        m_statusContainer->setVisible(false);
 
         // Create items
         for (auto item : *resolved) {
@@ -116,10 +145,17 @@ void ModList::onPromise(typename ModListSource::PageLoadEvent* event) {
     }
     else if (auto progress = event->getProgress()) {
         // todo: percentage in a loading bar
-        this->showStatus("Loading...", true);
+        if (progress->has_value()) {
+            this->showStatus(ModListProgressStatus {
+                .percentage = progress->value(),
+            }, "Loading...");
+        }
+        else {
+            this->showStatus(ModListUnkProgressStatus(), "Loading...");
+        }
     }
     else if (auto rejected = event->getReject()) {
-        this->showStatus(rejected->message, false);
+        this->showStatus(ModListErrorStatus(), rejected->message, rejected->details);
         // todo: details
         this->updatePageUI(true);
     }
@@ -157,6 +193,11 @@ void ModList::onPage(CCObject* sender) {
     this->gotoPage(m_page);
 }
 
+void ModList::onShowStatusDetails(CCObject*) {
+    m_statusDetails->setVisible(!m_statusDetails->isVisible());
+    m_statusContainer->updateLayout();
+}
+
 void ModList::updatePageUI(bool hide) {
     auto pageCount = m_source->getPageCount();
 
@@ -168,7 +209,10 @@ void ModList::updatePageUI(bool hide) {
     m_pageNextBtn->setVisible(!hide && m_page < pageCount.value() - 1);
     m_pageLabelBtn->setVisible(!hide);
     if (pageCount > 0u) {
-        auto fmt = fmt::format("Page {}/{}", m_page + 1, pageCount.value());
+        auto fmt = fmt::format(
+            "Page {}/{} (Total {})",
+            m_page + 1, pageCount.value(), m_source->getItemCount().value()
+        );
         m_pageLabel->setString(fmt.c_str());
     }
 }
@@ -195,7 +239,7 @@ void ModList::gotoPage(size_t page, bool update) {
     m_page = page;
     
     // Start loading new page with generic loading message
-    this->showStatus("Loading...", true);
+    this->showStatus(ModListUnkProgressStatus(), "Loading...");
     m_listener.setFilter(m_source->loadPage(page, update).listen());
 
     // Do initial eager update on page UI (to prevent user spamming arrows 
@@ -203,17 +247,33 @@ void ModList::gotoPage(size_t page, bool update) {
     this->updatePageUI();
 }
 
-void ModList::showStatus(std::string const& status, bool loading) {
+void ModList::showStatus(ModListStatus status, std::string const& message, std::optional<std::string> const& details) {
     // Clear list contents
     m_list->m_contentLayer->removeAllChildren();
 
     // Update status
-    m_statusText->setText(status);
-    m_statusText->updateAnchoredPosition(Anchor::Center, (loading ? ccp(0, 40) : ccp(0, 0)));
+    m_statusTitle->setString(message.c_str());
+    m_statusDetails->setText(details.value_or(""));
 
-    // Make status visible
-    m_statusText->setVisible(true);
-    m_statusLoadingCircle->setVisible(loading);
+    // Update status visibility
+    m_statusContainer->setVisible(true);
+    m_statusDetails->setVisible(false);
+    m_statusDetailsBtn->setVisible(details.has_value());
+    m_statusLoadingCircle->setVisible(std::holds_alternative<ModListUnkProgressStatus>(status));
+    m_statusLoadingBar->setVisible(std::holds_alternative<ModListProgressStatus>(status));
+
+    // The loading circle action gets stopped for some reason so just reactivate it
+    if (m_statusLoadingCircle->isVisible()) {
+        m_statusLoadingCircle->runAction(CCRepeatForever::create(CCRotateBy::create(1.f, 360.f)));
+    }
+    // Update progress bar
+    if (auto per = std::get_if<ModListProgressStatus>(&status)) {
+        m_statusLoadingBar->setValue(per->percentage / 100.f);
+        m_statusLoadingBar->updateBar();
+    }
+
+    // Update layout to automatically rearrange everything neatly in the status
+    m_statusContainer->updateLayout();
 }
 
 ModList* ModList::create(ModListSource* src, CCSize const& size) {
