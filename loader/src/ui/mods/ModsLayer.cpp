@@ -19,6 +19,8 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
             ->setAxisReverse(true)
             ->setAxisAlignment(AxisAlignment::End)
             ->setAutoGrowAxis(size.height)
+            // This is half the normal size for separators
+            ->setGap(2.5f)
     );
     this->addChildAtPosition(m_list, Anchor::Center, -m_list->getScaledContentSize() / 2);
 
@@ -129,7 +131,15 @@ void ModList::onPromise(typename ModListSource::PageLoadEvent* event) {
         m_statusContainer->setVisible(false);
 
         // Create items
+        bool first = true;
         for (auto item : *resolved) {
+            // Add separators between items after the first one
+            if (!first) {
+                auto separator = CCLayerColor::create({ 255, 255, 255, 45 });
+                separator->setContentSize({ m_obContentSize.width - 10, .5f });
+                m_list->m_contentLayer->addChild(separator);
+            }
+            first = false;
             m_list->m_contentLayer->addChild(item);
             item->updateSize(m_list->getContentWidth(), BIG_VIEW);
         }
