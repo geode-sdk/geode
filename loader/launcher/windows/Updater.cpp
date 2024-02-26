@@ -22,33 +22,39 @@ bool waitForFile(std::filesystem::path const& path) {
         if (GetLastError() == ERROR_SHARING_VIOLATION) {
             Sleep(delay);
             // the delay would raise and go up to about 5 seconds, after which it will fail
-            if (delay < 5120)
+            if (delay < 5120) {
                 delay *= 2;
-        }
-        else
+            } else {
+                // delay too long, just give up now
+                hFile = NULL;
+                break;
+            }
+        } else {
             break;
+        }
     }
-    if (hFile)
+    if (hFile) {
         CloseHandle(hFile);
-    else {
+    } else {
         showError("Unable to update Geode: " + path.filename().string() + " is open by another process.");
         return false;
     }
     return true;
 }
 
-void updateFile(std::string const& name) {
+bool updateFile(std::string const& name) {
     std::error_code error;
     if (!std::filesystem::exists(updatesDir / name, error) || error)
-        return;
+        return true;
     if (!waitForFile(workingDir / name))
-        return;
+        return false;
 
     std::filesystem::rename(updatesDir / name, workingDir / name, error);
     if (error) {
         showError("Unable to update Geode: Unable to move " + name + " - " + error.message());
-        return;
+        return false;
     }
+    return true;
 }
 
 void removePath(std::filesystem::path const& path) {
@@ -98,10 +104,14 @@ int main(int argc, char* argv[]) {
         removePath(workingDir / "GeodeBootstrapper.dll");
 
     if (std::filesystem::exists(geodeDir) && std::filesystem::exists(updatesDir)) {
-        updateFile("XInput9_1_0.dll");
-        updateFile("Geode.dll");
+        bool updateSuccess = true;
+        updateSuccess &= updateFile("XInput9_1_0.dll");
+        updateSuccess &= updateFile("Geode.dll");
+        updateSuccess &= updateFile("Geode.pdb");
         updateResources();
-        removePath(updatesDir);
+        // if couldnt update the files, dont delete the updates folder
+        if (updateSuccess)
+            removePath(updatesDir);
     }
 
     if (argc < 2)

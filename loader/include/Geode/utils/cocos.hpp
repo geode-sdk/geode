@@ -747,7 +747,7 @@ namespace geode::cocos {
      * @returns True if the node has the given sprite frame
      * name
      */
-    bool isSpriteFrameName(cocos2d::CCNode* node, const char* name);
+    GEODE_DLL bool isSpriteFrameName(cocos2d::CCNode* node, const char* name);
 
     /**
      * Get the first child that has the given sprite frame
@@ -759,7 +759,7 @@ namespace geode::cocos {
      * @returns Child with the given sprite frame name, or
      * nullptr if there is none
      */
-    cocos2d::CCNode* getChildBySpriteFrameName(cocos2d::CCNode* parent, const char* name);
+    GEODE_DLL cocos2d::CCNode* getChildBySpriteFrameName(cocos2d::CCNode* parent, const char* name);
 
     /**
      * Checks if a given file exists in CCFileUtils
