@@ -69,9 +69,10 @@ class ModLogoSprite : public CCNode {
 protected:
     std::string m_modID;
     CCNode* m_sprite = nullptr;
+    CCNode* m_featuredSprite = nullptr;
     EventListener<PromiseEventFilter<ByteVector, server::ServerError>> m_listener;
 
-    bool init(std::string const& id, bool fetch) {
+    bool init(std::string const& id, bool fetch, bool featured) {
         if (!CCNode::init())
             return false;
         
@@ -80,6 +81,13 @@ protected:
 
         m_modID = id;
         m_listener.bind(this, &ModLogoSprite::onFetch);
+
+        if (featured) {
+            m_featuredSprite = CCSprite::createWithSpriteFrameName("logo-glow.png"_spr);
+            limitNodeSize(m_featuredSprite, m_obContentSize * 1.15f, 99.f, .1f);
+            m_featuredSprite->setZOrder(-1);
+            this->addChildAtPosition(m_featuredSprite, Anchor::Center);
+        }
 
         // Load from Resources
         if (!fetch) {
@@ -94,6 +102,10 @@ protected:
             static_cast<CCSprite*>(m_sprite)->setBlendFunc({ GL_ONE, GL_ONE });
             m_sprite->runAction(CCRepeatForever::create(CCRotateBy::create(1.f, 360.f)));
             m_listener.setFilter(server::getModLogo(id).listen());
+        }
+
+        if (m_featuredSprite) {
+            m_featuredSprite->setVisible(!fetch);
         }
         
         return true;
@@ -116,6 +128,11 @@ protected:
         m_sprite = sprite;
         limitNodeSize(m_sprite, m_obContentSize, 99.f, .05f);
         this->addChildAtPosition(m_sprite, Anchor::Center);
+
+        // Featured sprite is initially invisible if fetched from server
+        if (m_featuredSprite) {
+            m_featuredSprite->setVisible(true);
+        }
     }
 
     void onFetch(PromiseEvent<ByteVector, server::ServerError>* event) {
@@ -123,6 +140,7 @@ protected:
         if (event->getReject()) {
             this->setSprite(nullptr);
         }
+        // Otherwise load downloaded sprite to memory
         else if (auto data = event->getResolve()) {
             auto image = Ref(new CCImage());
             image->initWithImageData(const_cast<uint8_t*>(data->data()), data->size());
@@ -133,9 +151,9 @@ protected:
     }
 
 public:
-    static ModLogoSprite* create(std::string const& id, bool fetch) {
+    static ModLogoSprite* create(std::string const& id, bool fetch = false, bool featured = false) {
         auto ret = new ModLogoSprite();
-        if (ret && ret->init(id, fetch)) {
+        if (ret && ret->init(id, fetch, featured)) {
             ret->autorelease();
             return ret;
         }
@@ -145,15 +163,15 @@ public:
 };
 
 CCNode* geode::createDefaultLogo() {
-    return ModLogoSprite::create("", false);
+    return ModLogoSprite::create("");
 }
 
 CCNode* geode::createModLogo(Mod* mod) {
-    return ModLogoSprite::create(mod->getID(), false);
+    return ModLogoSprite::create(mod->getID());
 }
 
-CCNode* geode::createServerModLogo(std::string const& id) {
-    return ModLogoSprite::create(id, true);
+CCNode* geode::createServerModLogo(std::string const& id, bool featured) {
+    return ModLogoSprite::create(id, true, featured);
 }
 
 // CCNode* geode::createIndexItemLogo(IndexItemHandle item) {

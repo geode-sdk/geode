@@ -138,7 +138,7 @@ ModMetadata ServerModItem::getMetadata() const {
 }
 
 CCNode* ServerModItem::createModLogo() const {
-    return createServerModLogo(m_metadata.id);
+    return createServerModLogo(m_metadata.id, m_metadata.featured);
 }
 
 bool ServerModItem::wantsRestart() const {

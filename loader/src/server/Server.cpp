@@ -132,7 +132,6 @@ Result<ServerModMetadata> ServerModMetadata::parse(matjson::Value const& raw) {
 
     auto res = ServerModMetadata();
     root.needs("id").into(res.id);
-    root.needs("latest_version").into(res.latestVersion);
     root.needs("featured").into(res.featured);
     root.needs("download_count").into(res.downloadCount);
     root.has("about").into(res.about);
@@ -186,8 +185,13 @@ Result<ServerModsList> ServerModsList::parse(matjson::Value const& raw) {
 
     auto list = ServerModsList();
     for (auto item : payload.needs("data").iterate()) {
-        GEODE_UNWRAP_INTO(auto mod, ServerModMetadata::parse(item.json()));
-        list.mods.push_back(mod);
+        auto mod = ServerModMetadata::parse(item.json());
+        if (mod) {
+            list.mods.push_back(mod.unwrap());
+        }
+        else {
+            log::error("Unable to parse mod from the server: {}", mod.unwrapErr());
+        }
     }
     payload.needs("count").into(list.totalModCount);
 

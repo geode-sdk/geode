@@ -23,7 +23,6 @@ namespace server {
 
     struct ServerModMetadata {
         std::string id;
-        VersionInfo latestVersion;
         bool featured;
         size_t downloadCount;
         std::vector<ServerDeveloper> developers;

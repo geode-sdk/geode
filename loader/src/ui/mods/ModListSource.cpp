@@ -33,9 +33,6 @@ static auto loadServerModsPage(size_t page, bool featuredOnly) {
             .pageSize = PAGE_SIZE,
         })
         .then([resolve, reject](server::ServerModsList list) {
-            if (list.totalModCount == 0) {
-                return reject(ModListSource::LoadPageError("No mods found :("));
-            }
             auto content = ModListSource::Page();
             for (auto mod : list.mods) {
                 content.push_back(ServerModItem::create(mod));
@@ -69,12 +66,15 @@ typename ModListSource::PagePromise ModListSource::loadPage(size_t page, bool up
     m_cachedPages.erase(page);
     return PagePromise([this, page](auto resolve, auto reject, auto progress, auto cancelled) {
         m_provider(page)
-            .then([page, this, resolve = std::move(resolve)](auto data) {
+            .then([page, this, resolve, reject](auto data) {
+                if (data.second == 0 || data.first.empty()) {
+                    return reject(ModListSource::LoadPageError("No mods found :("));
+                }
                 m_cachedItemCount = data.second;
                 m_cachedPages.insert({ page, data.first });
                 resolve(data.first);
             })
-            .expect([this, reject = std::move(reject)](auto error) {
+            .expect([this, reject = reject](auto error) {
                 reject(error);
             })
             .progress([this, progress = std::move(progress)](auto prog) {
@@ -103,31 +103,31 @@ ModListSource* ModListSource::get(ModListSourceType type) {
     switch (type) {
         default:
         case ModListSourceType::Installed: {
-            static auto inst = ModListSource::create(loadInstalledModsPage);
+            static auto inst = Ref(ModListSource::create(loadInstalledModsPage));
             return inst;
         } break;
 
         case ModListSourceType::Featured: {
-            static auto inst = ModListSource::create(+[](size_t page) {
+            static auto inst = Ref(ModListSource::create(+[](size_t page) {
                 return loadServerModsPage(page, true);
-            });
+            }));
             return inst;
         } break;
 
         case ModListSourceType::Trending: {
-            static auto inst = ModListSource::create(nullptr);
+            static auto inst = Ref(ModListSource::create(nullptr));
             return inst;
         } break;
 
         case ModListSourceType::ModPacks: {
-            static auto inst = ModListSource::create(nullptr);
+            static auto inst = Ref(ModListSource::create(nullptr));
             return inst;
         } break;
 
         case ModListSourceType::All: {
-            static auto inst = ModListSource::create(+[](size_t page) {
+            static auto inst = Ref(ModListSource::create(+[](size_t page) {
                 return loadServerModsPage(page, false);
-            });
+            }));
             return inst;
         } break;
     }
