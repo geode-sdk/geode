@@ -1,7 +1,7 @@
 #include "ModListSource.hpp"
 #include <server/Server.hpp>
 
-static size_t PAGE_SIZE = 10;
+static size_t PER_PAGE = 10;
 
 static size_t ceildiv(size_t a, size_t b) {
     // https://stackoverflow.com/questions/2745074/fast-ceiling-of-an-integer-division-in-c-c
@@ -14,8 +14,8 @@ static auto loadInstalledModsPage(size_t page) {
             auto content = ModListSource::Page();
             auto all = Loader::get()->getAllMods();
             for (
-                size_t i = page * PAGE_SIZE;
-                i < all.size() && i < (page + 1) * PAGE_SIZE;
+                size_t i = page * PER_PAGE;
+                i < all.size() && i < (page + 1) * PER_PAGE;
                 i += 1
             ) {
                 content.push_back(InstalledModItem::create(all.at(i)));
@@ -30,7 +30,7 @@ static auto loadServerModsPage(size_t page, bool featuredOnly) {
         server::getMods(server::ModsQuery {
             .featured = featuredOnly ? std::optional(true) : std::nullopt,
             .page = page,
-            .pageSize = PAGE_SIZE,
+            .pageSize = PER_PAGE,
         })
         .then([resolve, reject](server::ServerModsList list) {
             auto content = ModListSource::Page();
@@ -85,7 +85,7 @@ typename ModListSource::PagePromise ModListSource::loadPage(size_t page, bool up
 }
 
 std::optional<size_t> ModListSource::getPageCount() const {
-    return m_cachedItemCount ? std::optional(ceildiv(m_cachedItemCount.value(), PAGE_SIZE)) : std::nullopt;
+    return m_cachedItemCount ? std::optional(ceildiv(m_cachedItemCount.value(), PER_PAGE)) : std::nullopt;
 }
 
 std::optional<size_t> ModListSource::getItemCount() const {
