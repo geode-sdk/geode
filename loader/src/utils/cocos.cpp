@@ -340,6 +340,8 @@ std::shared_ptr<WeakRefController> WeakRefPool::manage(CCObject* obj) {
 }
 
 bool geode::cocos::isSpriteFrameName(CCNode* node, const char* name) {
+    if (!node) return false;
+
     auto cache = CCSpriteFrameCache::sharedSpriteFrameCache()->spriteFrameByName(name);
     if (!cache) return false;
 
