@@ -67,10 +67,7 @@ file(GLOB SOURCES CONFIGURE_DEPENDS
 	src/ui/*.cpp
 	src/ui/nodes/*.cpp
 	src/ui/mods/*.cpp
-	src/ui/internal/*.cpp
-	src/ui/internal/info/*.cpp
-	src/ui/internal/list/*.cpp
-	src/ui/internal/settings/*.cpp
+	src/ui/*.cpp
 	src/c++stl/*.cpp
 	hash/hash.cpp
 )

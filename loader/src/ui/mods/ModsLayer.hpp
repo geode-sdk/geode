@@ -23,7 +23,7 @@ protected:
 
     bool init(ModListSource* src, CCSize const& size);
 
-    void onPromise(PromiseEvent<ModListSource::Page>* event);
+    void onPromise(ModListSource::PageLoadEvent* event);
     void onPage(CCObject*);
     void onGoToPage(CCObject*);
 

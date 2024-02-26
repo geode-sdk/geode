@@ -1,16 +1,13 @@
 
-#include "info/ModInfoPopup.hpp"
-#include "list/ModListLayer.hpp"
-#include "settings/ModSettingsPopup.hpp"
+#include "mods/ModsLayer.hpp"
 
 #include <Geode/loader/Dirs.hpp>
-#include <Geode/loader/Index.hpp>
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/ui/MDPopup.hpp>
 #include <Geode/utils/web.hpp>
 
 void geode::openModsList() {
-    ModListLayer::scene();
+    ModsLayer::scene();
 }
 
 void geode::openIssueReportPopup(Mod* mod) {
@@ -37,8 +34,7 @@ void geode::openIssueReportPopup(Mod* mod) {
             "latest crash log(s) from `" +
                 dirs::getCrashlogsDir().string() + "`",
             "OK"
-        )
-            ->show();
+        )->show();
     }
 }
 
@@ -51,18 +47,21 @@ void geode::openSupportPopup(Mod* mod) {
 }
 
 void geode::openInfoPopup(Mod* mod) {
-    LocalModInfoPopup::create(mod, nullptr)->show();
+    #pragma message("todo")
+    // LocalModInfoPopup::create(mod, nullptr)->show();
 }
 
 void geode::openIndexPopup(Mod* mod) {
-    if (auto item = Index::get()->getItem(mod)) {
-        IndexItemInfoPopup::create(item, nullptr)->show();
-    }
+    #pragma message("todo")
+    // if (auto item = Index::get()->getItem(mod)) {
+    //     IndexItemInfoPopup::create(item, nullptr)->show();
+    // }
 }
 
 void geode::openSettingsPopup(Mod* mod) {
     if (mod->hasSettings()) {
-        ModSettingsPopup::create(mod)->show();
+        #pragma message("todo")
+        // ModSettingsPopup::create(mod)->show();
     }
 }
 
@@ -88,18 +87,18 @@ CCNode* geode::createModLogo(Mod* mod) {
     return ret;
 }
 
-CCNode* geode::createIndexItemLogo(IndexItemHandle item) {
-    auto logoPath = ghc::filesystem::absolute(item->getRootPath() / "logo.png");
-    CCNode* spr = CCSprite::create(logoPath.string().c_str());
-    if (!spr) {
-        spr = createDefaultLogo();
-    }
-    if (item->isFeatured()) {
-        auto logoGlow = CCSprite::createWithSpriteFrameName("logo-glow.png"_spr);
-        spr->setScaleX(logoGlow->getContentWidth() / spr->getContentWidth());
-        spr->setScaleY(logoGlow->getContentHeight() / spr->getContentHeight());
-        logoGlow->addChildAtPosition(spr, Anchor::Center);
-        spr = logoGlow;
-    }
-    return spr;
-}
+// CCNode* geode::createIndexItemLogo(IndexItemHandle item) {
+//     auto logoPath = ghc::filesystem::absolute(item->getRootPath() / "logo.png");
+//     CCNode* spr = CCSprite::create(logoPath.string().c_str());
+//     if (!spr) {
+//         spr = createDefaultLogo();
+//     }
+//     if (item->isFeatured()) {
+//         auto logoGlow = CCSprite::createWithSpriteFrameName("logo-glow.png"_spr);
+//         spr->setScaleX(logoGlow->getContentWidth() / spr->getContentWidth());
+//         spr->setScaleY(logoGlow->getContentHeight() / spr->getContentHeight());
+//         logoGlow->addChildAtPosition(spr, Anchor::Center);
+//         spr = logoGlow;
+//     }
+//     return spr;
+// }

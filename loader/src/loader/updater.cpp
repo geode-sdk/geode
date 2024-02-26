@@ -1,6 +1,5 @@
 ﻿#include "updater.hpp"
 #include <Geode/utils/web.hpp>
-#include <Geode/loader/Index.hpp>
 #include <resources.hpp>
 #include <hash.hpp>
 #include <utility>

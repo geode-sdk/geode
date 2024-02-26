@@ -93,7 +93,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     return true;
 }
 
-void ModList::onPromise(PromiseEvent<typename ModListSource::Page>* event) {
+void ModList::onPromise(typename ModListSource::PageLoadEvent* event) {
     if (auto resolved = event->getResolve()) {
         // Hide status
         m_statusText->setVisible(false);
@@ -116,16 +116,17 @@ void ModList::onPromise(PromiseEvent<typename ModListSource::Page>* event) {
     }
     else if (auto progress = event->getProgress()) {
         // todo: percentage in a loading bar
-        this->showStatus(progress->message, true);
+        this->showStatus("Loading...", true);
     }
     else if (auto rejected = event->getReject()) {
-        this->showStatus(*rejected, false);
+        this->showStatus(rejected->message, false);
+        // todo: details
         this->updatePageUI(true);
     }
 
     if (event->isFinally()) {
         // Clear listener
-        m_listener.setFilter(PromiseEventFilter<ModListSource::Page>());
+        m_listener.setFilter(ModListSource::PageLoadEventFilter());
     }
 }
 
@@ -306,7 +307,7 @@ bool ModsLayer::init() {
 
     for (auto item : std::initializer_list<std::tuple<const char*, const char*, ModListSource*>> {
         { "download.png"_spr, "Installed", InstalledModsList::get() },
-        { "GJ_bigStar_noShadow_001.png", "Featured", nullptr },
+        { "GJ_bigStar_noShadow_001.png", "Featured", FeaturedModsList::get() },
         { "GJ_sTrendingIcon_001.png", "Trending", nullptr },
         { "gj_folderBtn_001.png", "Mod Packs", ModPacksModsList::get() },
         { "search.png"_spr, "Search", nullptr },

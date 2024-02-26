@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../loader/Mod.hpp"
-#include "../loader/Index.hpp"
 
 namespace geode {
     /**
@@ -39,5 +38,5 @@ namespace geode {
     /**
      * Create a logo sprite for an index item
      */
-    GEODE_DLL cocos2d::CCNode* createIndexItemLogo(IndexItemHandle item);
+    // GEODE_DLL cocos2d::CCNode* createIndexItemLogo(IndexItemHandle item);
 }

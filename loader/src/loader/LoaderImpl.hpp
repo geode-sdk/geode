@@ -4,7 +4,6 @@
 
 #include <matjson.hpp>
 #include <Geode/loader/Dirs.hpp>
-#include <Geode/loader/Index.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>

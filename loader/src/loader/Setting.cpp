@@ -1,4 +1,4 @@
-#include "../ui/internal/settings/GeodeSettingNode.hpp"
+// #include "../ui/internal/settings/GeodeSettingNode.hpp"
 
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Setting.hpp>
@@ -266,7 +266,7 @@ void SettingValue::valueChanged() {
     SettingNode* GeodeSettingValue<                                     \
         type_##Setting                                                  \
     >::createNode(float width) {                                        \
-        return type_##SettingNode::create(this, width);                 \
+        return nullptr; /* todo */                                      \
     }                                                                   \
     template<>                                                          \
     void GeodeSettingValue<                                             \
