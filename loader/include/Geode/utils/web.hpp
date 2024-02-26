@@ -4,6 +4,7 @@
 #include "MiniFunction.hpp"
 #include <matjson.hpp>
 #include "Result.hpp"
+#include "Promise.hpp"
 #include "general.hpp"
 
 #include <ghc/fs_fwd.hpp>
@@ -19,6 +20,7 @@ namespace geode::utils::web {
      * @param url URL to fetch
      * @returns Returned data as bytes, or error on error
      */
+    [[deprecated("Use the WebRequest class from the web2.hpp header instead")]]
     GEODE_DLL Result<ByteVector> fetchBytes(std::string const& url);
 
     /**
@@ -26,6 +28,7 @@ namespace geode::utils::web {
      * @param url URL to fetch
      * @returns Returned data as string, or error on error
      */
+    [[deprecated("Use the WebRequest class from the web2.hpp header instead")]]
     GEODE_DLL Result<std::string> fetch(std::string const& url);
 
     /**
@@ -38,6 +41,7 @@ namespace geode::utils::web {
      * automatically remove the file that was being downloaded
      * @returns Returned data as JSON, or error on error
      */
+    [[deprecated("Use the WebRequest class from the web2.hpp header instead")]]
     GEODE_DLL Result<> fetchFile(
         std::string const& url, ghc::filesystem::path const& into, FileProgressCallback prog = nullptr
     );
@@ -47,6 +51,7 @@ namespace geode::utils::web {
      * @param url URL to fetch
      * @returns Returned data as JSON, or error on error
      */
+    [[deprecated("Use the WebRequest class from the web2.hpp header instead")]]
     GEODE_DLL Result<matjson::Value> fetchJSON(std::string const& url);
 
     class SentAsyncWebRequest;
@@ -65,7 +70,7 @@ namespace geode::utils::web {
      * A handle to an in-progress sent asynchronous web request. Use this to
      * cancel the request / query information about it
      */
-    class GEODE_DLL SentAsyncWebRequest {
+    class GEODE_DLL [[deprecated("Use the WebRequest class from the web2.hpp header instead")]] SentAsyncWebRequest {
     private:
         class Impl;
         std::shared_ptr<Impl> m_impl;
@@ -114,7 +119,7 @@ namespace geode::utils::web {
      * internet without slowing the main thread. All callbacks are run in the
      * GD thread, so interacting with the Cocos2d UI is perfectly safe
      */
-    class GEODE_DLL AsyncWebRequest {
+    class GEODE_DLL [[deprecated("Use the WebRequest class from the web2.hpp header instead")]] AsyncWebRequest {
     private:
         class Impl;
         std::unique_ptr<Impl> m_impl;
@@ -262,7 +267,7 @@ namespace geode::utils::web {
     };
 
     template <class T>
-    class AsyncWebResult {
+    class [[deprecated("Use the WebRequest class from the web2.hpp header instead")]] AsyncWebResult {
     private:
         AsyncWebRequest& m_request;
         DataConverter<T> m_converter;
@@ -291,7 +296,7 @@ namespace geode::utils::web {
         AsyncWebRequest& then(utils::MiniFunction<void(SentAsyncWebRequest&, T)> handle);
     };
 
-    class GEODE_DLL AsyncWebResponse {
+    class GEODE_DLL [[deprecated("Use the WebRequest class from the web2.hpp header instead")]] AsyncWebResponse {
     private:
         AsyncWebRequest& m_request;
 
