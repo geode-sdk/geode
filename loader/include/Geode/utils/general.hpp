@@ -113,7 +113,7 @@ namespace geode {
                 Num val;
                 char* strEnd;
                 errno = 0;
-                if (std::setlocale(LC_NUMERIC, "en_US.utf8")) {
+                if (std::setlocale(LC_NUMERIC, "C")) {
                     if constexpr (std::is_same_v<Num, float>) val = std::strtof(str.data(), &strEnd);
                     else if constexpr (std::is_same_v<Num, double>) val = std::strtod(str.data(), &strEnd);
                     else if constexpr (std::is_same_v<Num, long double>) val = std::strtold(str.data(), &strEnd);
