@@ -28,6 +28,11 @@ namespace geode {
 
     GEODE_DLL const char* getCommonFilterAllowedChars(CommonFilter filter);
 
+    enum class TextInputAlign {
+        Center,
+        Left,
+    };
+
     /**
      * A single-line text input node
      */
@@ -103,6 +108,10 @@ namespace geode {
          * Enable/disable the input
          */
         void setEnabled(bool enabled);
+        /**
+         * Align the button's content to the left. If false, aligns to the center
+         */
+        void setTextAlign(TextInputAlign align);
 
         /**
          * Hides the background of this input. Shorthand for 

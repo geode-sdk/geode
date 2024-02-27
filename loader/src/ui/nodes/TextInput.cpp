@@ -71,7 +71,7 @@ bool TextInput::init(float width, std::string const& placeholder, std::string co
 
     m_input = CCTextInputNode::create(width, HEIGHT, placeholder.c_str(), 24, font.c_str());
     m_input->setLabelPlaceholderColor({ 150, 150, 150 });
-    m_input->setLabelPlaceholderScale(.6f);
+    m_input->setLabelPlaceholderScale(.5f);
     m_input->setMaxLabelScale(.6f);
     m_input->setUserObject("fix-text-input", CCBool::create(true));
     this->addChildAtPosition(m_input, cocos2d::Anchor::Center);
@@ -132,6 +132,22 @@ void TextInput::setEnabled(bool enabled) {
     m_input->setMouseEnabled(enabled);
     m_input->setTouchEnabled(enabled);
     m_input->m_placeholderLabel->setOpacity(enabled ? 255 : 150);
+}
+void TextInput::setTextAlign(TextInputAlign align) {
+    switch (align) {
+        default:
+        case TextInputAlign::Center: {
+            m_input->m_textField->setAnchorPoint({ .5f, .5f });
+            m_input->m_placeholderLabel->setAnchorPoint({ .5f, .5f });
+            m_input->updateAnchoredPosition(Anchor::Center);
+        } break;
+
+        case TextInputAlign::Left: {
+            m_input->m_textField->setAnchorPoint({ .0f, .5f });
+            m_input->m_placeholderLabel->setAnchorPoint({ .0f, .5f });
+            m_input->updateAnchoredPosition(Anchor::Left, ccp(5, 0));
+        } break;
+    }
 }
 
 void TextInput::hideBG() {
