@@ -206,8 +206,17 @@ std::string server::getServerAPIBaseURL() {
     return "https://api.geode-sdk.org/v1";
 }
 
+std::string server::getServerUserAgent() {
+    // this may change in the future..
+    return fmt::format("Geode {}/{}",
+        Loader::get()->getVersion().toString(),
+        PlatformID::toShortString(GEODE_PLATFORM_TARGET)
+    );
+}
+
 ServerPromise<ServerModsList> server::getMods(ModsQuery query) {
     auto req = web::WebRequest();
+    req.userAgent(getServerUserAgent());
 
     // Always target current GD version and Loader version
     req.param("gd", GEODE_GD_VERSION_STR);
@@ -274,6 +283,8 @@ ServerPromise<ServerModsList> server::getMods(ModsQuery query) {
 
 ServerPromise<ByteVector> server::getModLogo(std::string const& id) {
     auto req = web::WebRequest();
+    req.userAgent(getServerUserAgent());
+
     req.param("id", id);
     return ServerPromise<ByteVector>([req = std::move(req), id](auto resolve, auto reject, auto progress, auto cancel) mutable {
         req.get(getServerAPIBaseURL() + "/mods/" + id + "/logo")
