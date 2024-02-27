@@ -1,6 +1,7 @@
 #include <Geode/cocos/platform/IncludeCurl.h>
 #include <Geode/utils/web2.hpp>
 #include <Geode/utils/map.hpp>
+#include <sstream>
 
 using namespace geode::prelude;
 using namespace geode::utils::web;
@@ -97,6 +98,20 @@ public:
 WebRequest::WebRequest() : m_impl(std::make_shared<Impl>()) {}
 WebRequest::~WebRequest() {}
 
+// Encodes a url param
+std::string urlParamEncode(std::string_view const input) {
+    std::ostringstream ss;
+    ss << std::hex << std::uppercase;
+    for (char c : input) {
+        if (std::isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
+            ss << c;
+        } else {
+            ss << '%' << static_cast<int>(c);
+        }
+    }
+    return ss.str();
+}
+
 WebPromise WebRequest::send(std::string_view method, std::string_view url) {
     m_impl->m_method = method;
     m_impl->m_url = url;
@@ -150,7 +165,7 @@ WebPromise WebRequest::send(std::string_view method, std::string_view url) {
         auto url = impl->m_url;
         bool first = true;
         for (auto param : impl->m_urlParameters) {
-            url += (first ? "?" : "&") + param.first + "=" + param.second;
+            url += (first ? "?" : "&") + urlParamEncode(param.first) + "=" + urlParamEncode(param.second);
             first = false;
         }
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
