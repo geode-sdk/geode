@@ -76,6 +76,6 @@ namespace server {
 
     std::string getServerAPIBaseURL();
     std::string getServerUserAgent();
-    ServerPromise<ServerModsList> getMods(ModsQuery query);
+    ServerPromise<ServerModsList> getMods(ModsQuery const& query);
     ServerPromise<ByteVector> getModLogo(std::string const& id);
 }

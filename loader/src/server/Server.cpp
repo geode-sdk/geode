@@ -211,7 +211,7 @@ std::string server::getServerUserAgent() {
     );
 }
 
-ServerPromise<ServerModsList> server::getMods(ModsQuery query) {
+ServerPromise<ServerModsList> server::getMods(ModsQuery const& query) {
     auto req = web::WebRequest();
     req.userAgent(getServerUserAgent());
 

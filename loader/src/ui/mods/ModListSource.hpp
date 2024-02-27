@@ -2,6 +2,7 @@
 
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/Promise.hpp>
+#include <server/Server.hpp>
 #include "ModItem.hpp"
 
 using namespace geode::prelude;
@@ -33,11 +34,12 @@ public:
     using PagePromise = Promise<Page, LoadPageError, std::optional<uint8_t>>;
 
     using ProviderPromise = Promise<std::pair<Page, size_t>, LoadPageError, std::optional<uint8_t>>;
-    using Provider = ProviderPromise(size_t page);
+    using Provider = ProviderPromise(server::ModsQuery&& query);
 
 protected:
     std::unordered_map<size_t, Page> m_cachedPages;
     std::optional<size_t> m_cachedItemCount;
+    std::string m_query;
     Provider* m_provider = nullptr;
 
 public:
@@ -46,6 +48,12 @@ public:
 
     // Get a standard source (lazily created static instance)
     static ModListSource* get(ModListSourceType type);
+
+    // Reset all filters & cache
+    void reset();
+
+    // Set a query; clears cache
+    void setQuery(std::string const& query);
 
     // Load page, uses cache if possible unless `update` is true
     PagePromise loadPage(size_t page, bool update = false);

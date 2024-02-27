@@ -1,37 +1,61 @@
 #include "ModListSource.hpp"
-#include <server/Server.hpp>
 
-static size_t PER_PAGE = 10;
+#define FTS_FUZZY_MATCH_IMPLEMENTATION
+#include <Geode/external/fts/fts_fuzzy_match.h>
+
+static constexpr size_t PER_PAGE = 10;
 
 static size_t ceildiv(size_t a, size_t b) {
     // https://stackoverflow.com/questions/2745074/fast-ceiling-of-an-integer-division-in-c-c
     return a / b + (a % b != 0);
 }
 
-static auto loadInstalledModsPage(size_t page) {
-    return ModListSource::ProviderPromise([page](auto resolve, auto, auto, auto const&) {
-        Loader::get()->queueInMainThread([page, resolve = std::move(resolve)] {
+static bool weightedFuzzyMatch(std::string const& str, std::string const& kw, double weight, double& out) {
+    int score;
+    if (fts::fuzzy_match(kw.c_str(), str.c_str(), score)) {
+        out = std::max(out, score * weight);
+        return true;
+    }
+    return false;
+}
+
+static auto loadInstalledModsPage(server::ModsQuery&& query) {
+    return ModListSource::ProviderPromise([query = std::move(query)](auto resolve, auto, auto, auto const&) {
+        Loader::get()->queueInMainThread([query = std::move(query), resolve = std::move(resolve)] {
             auto content = ModListSource::Page();
-            auto all = Loader::get()->getAllMods();
+            std::vector<std::pair<Mod*, double>> mods;
+
+            // todo: finish this
+            for (auto& mod : Loader::get()->getAllMods()) {
+                // bool someMatched = false;
+                double weighted = 0;
+                // if (query.query) {
+                    // someMatched += weightedFuzzyMatch(mod->getName(), *query.query, 2, weighted);
+                // }
+                // if (someMatched) {
+                    mods.push_back({ mod, weighted });
+                // }
+            }
+
+            // Sort list based on score
+            std::sort(mods.begin(), mods.end(), [](auto a, auto b) {
+                return a.second < b.second;
+            });
             for (
-                size_t i = page * PER_PAGE;
-                i < all.size() && i < (page + 1) * PER_PAGE;
+                size_t i = query.page * query.pageSize;
+                i < mods.size() && i < (query.page + 1) * query.pageSize;
                 i += 1
             ) {
-                content.push_back(InstalledModItem::create(all.at(i)));
+                content.push_back(InstalledModItem::create(mods.at(i).first));
             }
-            resolve({ content, all.size() });
+            resolve({ content, mods.size() });
         });
     });
 }
 
-static auto loadServerModsPage(size_t page, bool featuredOnly) {
-    return ModListSource::ProviderPromise([page, featuredOnly](auto resolve, auto reject, auto progress, auto cancelled) {
-        server::getMods(server::ModsQuery {
-            .featured = featuredOnly ? std::optional(true) : std::nullopt,
-            .page = page,
-            .pageSize = PER_PAGE,
-        })
+static auto loadServerModsPage(server::ModsQuery&& query) {
+    return ModListSource::ProviderPromise([query = std::move(query)](auto resolve, auto reject, auto progress, auto cancelled) {
+        server::getMods(query)
         .then([resolve, reject](server::ServerModsList list) {
             auto content = ModListSource::Page();
             for (auto mod : list.mods) {
@@ -65,7 +89,12 @@ typename ModListSource::PagePromise ModListSource::loadPage(size_t page, bool up
     }
     m_cachedPages.erase(page);
     return PagePromise([this, page](auto resolve, auto reject, auto progress, auto cancelled) {
-        m_provider(page)
+        m_provider(server::ModsQuery {
+            .query = m_query,
+            .page = page,
+            // todo: loader setting to change this
+            .pageSize = PER_PAGE,
+        })
             .then([page, this, resolve, reject](auto data) {
                 if (data.second == 0 || data.first.empty()) {
                     return reject(ModListSource::LoadPageError("No mods found :("));
@@ -92,6 +121,21 @@ std::optional<size_t> ModListSource::getItemCount() const {
     return m_cachedItemCount;
 }
 
+void ModListSource::reset() {
+    m_query.clear();
+    m_cachedPages.clear();
+    m_cachedItemCount = std::nullopt;
+}
+
+void ModListSource::setQuery(std::string const& query) {
+    // Set query & reset cache
+    if (m_query != query) {
+        m_query = query;
+        m_cachedPages.clear();
+        m_cachedItemCount = std::nullopt;
+    }
+}
+
 ModListSource* ModListSource::create(Provider* provider) {
     auto ret = new ModListSource();
     ret->m_provider = provider;
@@ -108,8 +152,9 @@ ModListSource* ModListSource::get(ModListSourceType type) {
         } break;
 
         case ModListSourceType::Featured: {
-            static auto inst = Ref(ModListSource::create(+[](size_t page) {
-                return loadServerModsPage(page, true);
+            static auto inst = Ref(ModListSource::create(+[](server::ModsQuery&& query) {
+                query.featured = true;
+                return loadServerModsPage(std::move(query));
             }));
             return inst;
         } break;
@@ -125,8 +170,8 @@ ModListSource* ModListSource::get(ModListSourceType type) {
         } break;
 
         case ModListSourceType::All: {
-            static auto inst = Ref(ModListSource::create(+[](size_t page) {
-                return loadServerModsPage(page, false);
+            static auto inst = Ref(ModListSource::create(+[](server::ModsQuery&& query) {
+                return loadServerModsPage(std::move(query));
             }));
             return inst;
         } break;

@@ -3,6 +3,7 @@
 #include <Geode/ui/General.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/ui/TextArea.hpp>
+#include <Geode/ui/TextInput.hpp>
 #include "ModItem.hpp"
 #include "ModListSource.hpp"
 
@@ -32,8 +33,10 @@ protected:
     CCMenuItemSpriteExtra* m_pagePrevBtn;
     CCMenuItemSpriteExtra* m_pageNextBtn;
     Ref<CCMenu> m_searchMenu;
+    TextInput* m_searchInput;
     ModListPageUpdated m_pageUpdated = nullptr;
     bool m_bigSize = false;
+    std::atomic<size_t> m_searchInputThreads = 0;
 
     bool init(ModListSource* src, CCSize const& size);
 

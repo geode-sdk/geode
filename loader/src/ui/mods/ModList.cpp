@@ -1,5 +1,4 @@
 #include "ModList.hpp"
-#include <Geode/ui/TextInput.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 
 bool ModList::init(ModListSource* src, CCSize const& size) {
@@ -10,6 +9,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     this->setAnchorPoint({ .5f, .5f });
 
     m_source = src;
+    src->reset();
     
     m_list = ScrollLayer::create(size);
     m_list->m_contentLayer->setLayout(
@@ -34,11 +34,26 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     searchBG->ignoreAnchorPointForPosition(false);
     m_searchMenu->addChildAtPosition(searchBG, Anchor::Center);
 
-    auto searchInput = TextInput::create(size.width, "Search Mods");
-    searchInput->setScale(.75f);
-    searchInput->setAnchorPoint({ 0, .5f });
-    searchInput->setTextAlign(TextInputAlign::Left);
-    m_searchMenu->addChildAtPosition(searchInput, Anchor::Left, ccp(10, 0));
+    m_searchInput = TextInput::create(size.width, "Search Mods");
+    m_searchInput->setScale(.75f);
+    m_searchInput->setAnchorPoint({ 0, .5f });
+    m_searchInput->setTextAlign(TextInputAlign::Left);
+    m_searchInput->setCallback([this](auto const&) {
+        // This avoids spamming servers for every character typed, 
+        // instead waiting for input to stop to actually do the search
+        std::thread([this] {
+            m_searchInputThreads += 1;
+            std::this_thread::sleep_for(std::chrono::milliseconds(300));
+            m_searchInputThreads -= 1;
+            if (m_searchInputThreads == 0) {
+                Loader::get()->queueInMainThread([this] {
+                    m_source->setQuery(m_searchInput->getString());
+                    this->gotoPage(0);
+                });
+            }
+        }).detach();
+    });
+    m_searchMenu->addChildAtPosition(m_searchInput, Anchor::Left, ccp(10, 0));
 
     // Do not add search menu; that's handled by onSearch
 
