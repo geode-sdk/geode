@@ -19,7 +19,27 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
             // This is half the normal size for separators
             ->setGap(2.5f)
     );
-    this->addChildAtPosition(m_list, Anchor::Center, -m_list->getScaledContentSize() / 2);
+    this->addChildAtPosition(m_list, Anchor::Bottom, ccp(-m_list->getScaledContentSize().width / 2, 0));
+
+    m_searchMenu = CCMenu::create();
+    m_searchMenu->ignoreAnchorPointForPosition(false);
+    m_searchMenu->setContentSize({ size.width, 30 });
+    m_searchMenu->setAnchorPoint({ .5f, 1.f });
+
+    auto searchBG = CCLayerColor::create({ 83, 65, 109, 255 });
+    searchBG->setContentSize(m_searchMenu->getContentSize());
+    searchBG->ignoreAnchorPointForPosition(false);
+    m_searchMenu->addChildAtPosition(searchBG, Anchor::Center);
+
+    auto searchInput = TextInput::create(size.width, "Search Mods");
+    searchInput->setScale(.75f);
+    searchInput->setAnchorPoint({ 0, .5f });
+    searchInput->setTextAlign(TextInputAlign::Left);
+    m_searchMenu->addChildAtPosition(searchInput, Anchor::Left, ccp(10, 0));
+
+    // Do not add search menu; that's handled by onSearch
+
+    // Paging
 
     auto pageLeftMenu = CCMenu::create();
     pageLeftMenu->setContentWidth(30.f);
@@ -58,23 +78,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     );
     this->addChildAtPosition(pageRightMenu, Anchor::Right, ccp(5, 0));
 
-    auto pageLabelMenu = CCMenu::create();
-    pageLabelMenu->setContentWidth(200.f);
-    pageLabelMenu->setAnchorPoint({ .5f, 1.f });
-
-    // Default text is so that the button gets a proper hitbox, since it's 
-    // based on sprite content size
-    m_pageLabel = CCLabelBMFont::create("Page XX/XX", "bigFont.fnt");
-    m_pageLabel->setAnchorPoint({ .5f, 1.f });
-    m_pageLabel->setScale(.45f);
-
-    m_pageLabelBtn = CCMenuItemSpriteExtra::create(
-        m_pageLabel, this, menu_selector(ModList::onGoToPage)
-    );
-    pageLabelMenu->addChild(m_pageLabelBtn);
-
-    pageLabelMenu->setLayout(RowLayout::create());
-    this->addChildAtPosition(pageLabelMenu, Anchor::Bottom, ccp(0, -5));
+    // Status
 
     m_statusContainer = CCMenu::create();
     m_statusContainer->setScale(.5f);
@@ -140,15 +144,13 @@ void ModList::onPromise(typename ModListSource::PageLoadEvent* event) {
             m_list->m_contentLayer->addChild(item);
         }
         this->updateSize(m_bigSize);
-        // Auto-grow the size of the list content
-        m_list->m_contentLayer->updateLayout();
 
         // Scroll list to top
         auto listTopScrollPos = -m_list->m_contentLayer->getContentHeight() + m_list->getContentHeight();
         m_list->m_contentLayer->setPositionY(listTopScrollPos);
 
         // Update page UI
-        this->updatePageUI();
+        this->updatePageNumber();
     }
     else if (auto progress = event->getProgress()) {
         // todo: percentage in a loading bar
@@ -163,31 +165,13 @@ void ModList::onPromise(typename ModListSource::PageLoadEvent* event) {
     }
     else if (auto rejected = event->getReject()) {
         this->showStatus(ModListErrorStatus(), rejected->message, rejected->details);
-        // todo: details
-        this->updatePageUI(true);
+        this->updatePageNumber();
     }
 
     if (event->isFinally()) {
         // Clear listener
         m_listener.setFilter(ModListSource::PageLoadEventFilter());
     }
-}
-
-void ModList::updateSize(bool big) {
-    m_bigSize = big;
-    for (auto& node : CCArrayExt<CCNode*>(m_list->m_contentLayer->getChildren())) {
-        if (auto item = typeinfo_cast<BaseModItem*>(node)) {
-            item->updateSize(m_list->getContentWidth(), big);
-        }
-    }
-}
-
-void ModList::onGoToPage(CCObject*) {
-    auto popup = SetTextPopup::create("", "Page", 5, "Go to Page", "OK", true, 60.f);
-    popup->m_delegate = this;
-    popup->m_input->m_allowedChars = getCommonFilterAllowedChars(CommonFilter::Uint);
-    popup->setID("go-to-page"_spr);
-    popup->show();
 }
 
 void ModList::onPage(CCObject* sender) {
@@ -214,33 +198,76 @@ void ModList::onShowStatusDetails(CCObject*) {
     m_statusContainer->updateLayout();
 }
 
-void ModList::updatePageUI(bool hide) {
+void ModList::activateSearch(bool activate) {
+    // Add the menu or remove it depending on new state
+    if (activate) {
+        if (!m_searchMenu->getParent()) {
+            this->addChildAtPosition(m_searchMenu, Anchor::Top);
+        }
+    }
+    else {
+        m_searchMenu->removeFromParent();
+    }
+
+    // Store old relative scroll position (ensuring no divide by zero happens)
+    auto oldPositionArea = m_list->m_contentLayer->getContentHeight() - m_list->getContentHeight();
+    auto oldPosition = oldPositionArea > 0.f ?
+        m_list->m_contentLayer->getPositionY() / oldPositionArea : 
+        -1.f;
+        
+    // Update list size to account for the search menu 
+    // (giving a little bit of extra padding for it, the same size as gap)
+    m_list->setContentHeight(
+        activate ?
+            this->getContentHeight() - m_searchMenu->getContentHeight() - 2.5f : 
+            this->getContentHeight()
+    );
+
+    // Preserve relative scroll position
+    m_list->m_contentLayer->setPositionY((
+        m_list->m_contentLayer->getContentHeight() - m_list->getContentHeight()
+    ) * oldPosition);
+
+    // ModList uses an anchor layout, so this puts the list in the right place
+    this->updateLayout();
+}
+
+void ModList::updateSize(bool big) {
+    m_bigSize = big;
+
+    // Update all BaseModItems that are children of the list
+    // There may be non-BaseModItems there (like separators) so gotta be type-safe
+    for (auto& node : CCArrayExt<CCNode*>(m_list->m_contentLayer->getChildren())) {
+        if (auto item = typeinfo_cast<BaseModItem*>(node)) {
+            item->updateSize(m_list->getContentWidth(), big);
+        }
+    }
+
+    // Store old relative scroll position (ensuring no divide by zero happens)
+    auto oldPositionArea = m_list->m_contentLayer->getContentHeight() - m_list->getContentHeight();
+    auto oldPosition = oldPositionArea > 0.f ?
+        m_list->m_contentLayer->getPositionY() / oldPositionArea : 
+        -1.f;
+
+    // Auto-grow the size of the list content
+    m_list->m_contentLayer->updateLayout();
+
+    // Preserve relative scroll position
+    m_list->m_contentLayer->setPositionY((
+        m_list->m_contentLayer->getContentHeight() - m_list->getContentHeight()
+    ) * oldPosition);
+}
+
+void ModList::updatePageNumber() {
     auto pageCount = m_source->getPageCount();
 
     // Hide if page count hasn't been loaded
-    if (!pageCount) {
-        hide = true;
-    }
-    m_pagePrevBtn->setVisible(!hide && m_page > 0);
-    m_pageNextBtn->setVisible(!hide && m_page < pageCount.value() - 1);
-    m_pageLabelBtn->setVisible(!hide);
-    if (pageCount > 0u) {
-        auto fmt = fmt::format(
-            "Page {}/{} (Total {})",
-            m_page + 1, pageCount.value(), m_source->getItemCount().value()
-        );
-        m_pageLabel->setString(fmt.c_str());
-    }
-}
+    m_pagePrevBtn->setVisible(pageCount && m_page > 0);
+    m_pageNextBtn->setVisible(pageCount && m_page < pageCount.value() - 1);
 
-void ModList::setTextPopupClosed(SetTextPopup* popup, gd::string value) {
-    if (popup->getID() == "go-to-page"_spr) {
-        if (auto res = numFromString<size_t>(value)) {
-            size_t num = res.unwrap();
-            // The page indices are 0-based but people think in 1-based
-            if (num > 0) num -= 1;
-            this->gotoPage(num);
-        }
+    // Notify container about page count update
+    if (m_pageUpdated) {
+        m_pageUpdated();
     }
 }
 
@@ -260,7 +287,7 @@ void ModList::gotoPage(size_t page, bool update) {
 
     // Do initial eager update on page UI (to prevent user spamming arrows 
     // to access invalid pages)
-    this->updatePageUI();
+    this->updatePageNumber();
 }
 
 void ModList::showStatus(ModListStatus status, std::string const& message, std::optional<std::string> const& details) {
@@ -290,6 +317,14 @@ void ModList::showStatus(ModListStatus status, std::string const& message, std::
 
     // Update layout to automatically rearrange everything neatly in the status
     m_statusContainer->updateLayout();
+}
+
+void ModList::onPageUpdated(ModListPageUpdated listener) {
+    m_pageUpdated = listener;
+}
+
+size_t ModList::getPage() const {
+    return m_page;
 }
 
 ModList* ModList::create(ModListSource* src, CCSize const& size) {

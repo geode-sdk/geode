@@ -129,6 +129,56 @@ bool ModsLayer::init() {
     mainTabs->setLayout(RowLayout::create());
     this->addChild(mainTabs);
 
+    // Actions
+
+    auto listActionsMenu = CCMenu::create();
+    listActionsMenu->setContentHeight(100);
+    listActionsMenu->setAnchorPoint({ 1, 0 });
+    listActionsMenu->setScale(.65f);
+
+    m_bigSizeBtnSpr = CCSprite::create("GE_button_05.png"_spr);
+    auto bigSizeBtnTop = CCSprite::createWithSpriteFrameName("GJ_smallModeIcon_001.png");
+    limitNodeSize(bigSizeBtnTop, m_bigSizeBtnSpr->getContentSize() * .65f, 2.f, .1f);
+    m_bigSizeBtnSpr->addChildAtPosition(bigSizeBtnTop, Anchor::Center);
+    auto bigSizeBtn = CCMenuItemSpriteExtra::create(
+        m_bigSizeBtnSpr, this, menu_selector(ModsLayer::onBigView)
+    );
+    listActionsMenu->addChild(bigSizeBtn);
+
+    m_searchBtnSpr = CCSprite::create("GE_button_05.png"_spr);
+    auto searchBtnTop = CCSprite::createWithSpriteFrameName("search.png"_spr);
+    limitNodeSize(searchBtnTop, m_searchBtnSpr->getContentSize() * .65f, 2.f, .1f);
+    m_searchBtnSpr->addChildAtPosition(searchBtnTop, Anchor::Center);
+    auto searchBtn = CCMenuItemSpriteExtra::create(
+        m_searchBtnSpr, this, menu_selector(ModsLayer::onSearch)
+    );
+    listActionsMenu->addChild(searchBtn);
+
+    listActionsMenu->setLayout(ColumnLayout::create());
+    m_frame->addChildAtPosition(listActionsMenu, Anchor::Left, ccp(-5, 25));
+
+    m_pageMenu = CCMenu::create();
+    m_pageMenu->setContentWidth(200.f);
+    m_pageMenu->setAnchorPoint({ 1.f, 1.f });
+    m_pageMenu->setScale(.65f);
+
+    m_pageLabel = CCLabelBMFont::create("", "goldFont.fnt");
+    m_pageLabel->setAnchorPoint({ .5f, 1.f });
+    m_pageMenu->addChild(m_pageLabel);
+
+    m_goToPageBtn = CCMenuItemSpriteExtra::create(
+        CCSprite::createWithSpriteFrameName("gj_navDotBtn_on_001.png"),
+        this, menu_selector(ModsLayer::onGoToPage)
+    );
+    m_pageMenu->addChild(m_goToPageBtn);
+
+    m_pageMenu->setLayout(
+        RowLayout::create()
+            ->setAxisReverse(true)
+            ->setAxisAlignment(AxisAlignment::End)
+    );
+    this->addChildAtPosition(m_pageMenu, Anchor::TopRight, ccp(-5, -5), false);
+
     this->gotoTab(ModListSourceType::Installed);
 
     this->setKeypadEnabled(true);
@@ -157,7 +207,8 @@ void ModsLayer::gotoTab(ModListSourceType type) {
 
     // Lazily create new list and add it to UI
     if (!m_lists.contains(src)) {
-        auto list = ModList::create(src, m_frame->getContentSize() - ccp(24, 0));
+        auto list = ModList::create(src, m_frame->getContentSize() - ccp(30, 0));
+        list->onPageUpdated(std::bind(&ModsLayer::updatePageNumber, this));
         list->setPosition(m_frame->getPosition());
         this->addChild(list);
         m_lists.emplace(src, list);
@@ -166,14 +217,53 @@ void ModsLayer::gotoTab(ModListSourceType type) {
     else {
         this->addChild(m_lists.at(src));
     }
-}
 
-void ModsLayer::onTab(CCObject* sender) {
-    this->gotoTab(static_cast<ModListSourceType>(sender->getTag()));
+    // Update the state of the current list
+    m_lists.at(m_currentSource)->updateSize(m_bigView);
+    m_lists.at(m_currentSource)->activateSearch(m_showSearch);
+    m_lists.at(m_currentSource)->updatePageNumber();
 }
 
 void ModsLayer::keyBackClicked() {
     this->onBack(nullptr);
+}
+
+void ModsLayer::setTextPopupClosed(SetTextPopup* popup, gd::string value) {
+    if (popup->getID() == "go-to-page"_spr) {
+        if (auto res = numFromString<size_t>(value)) {
+            size_t num = res.unwrap();
+            // The page indices are 0-based but people think in 1-based
+            if (num > 0) num -= 1;
+            if (m_currentSource) {
+                m_lists.at(m_currentSource)->gotoPage(num);
+            }
+        }
+    }
+}
+
+void ModsLayer::updatePageNumber() {
+    // Show current page number if the current source has total page count loaded
+    if (m_currentSource && m_currentSource->getPageCount()) {
+        auto page = m_lists.at(m_currentSource)->getPage() + 1;
+        auto count = m_currentSource->getPageCount().value();
+        auto total = m_currentSource->getItemCount().value();
+
+        // Set the page count string
+        auto fmt = fmt::format("Page {}/{} (Total {})", page, count, total);
+        m_pageLabel->setString(fmt.c_str());
+
+        // Make page menu visible
+        m_pageMenu->setVisible(true);
+        m_pageMenu->updateLayout();
+    }
+    // Hide page menu otherwise
+    else {
+        m_pageMenu->setVisible(false);
+    }
+}
+
+void ModsLayer::onTab(CCObject* sender) {
+    this->gotoTab(static_cast<ModListSourceType>(sender->getTag()));
 }
 
 void ModsLayer::onRefreshList(CCObject*) {
@@ -182,6 +272,41 @@ void ModsLayer::onRefreshList(CCObject*) {
 
 void ModsLayer::onBack(CCObject*) {
     CCDirector::get()->replaceScene(CCTransitionFade::create(.5f, MenuLayer::scene(false)));
+}
+
+void ModsLayer::onGoToPage(CCObject*) {
+    auto popup = SetTextPopup::create("", "Page", 5, "Go to Page", "OK", true, 60.f);
+    popup->m_delegate = this;
+    popup->m_input->m_allowedChars = getCommonFilterAllowedChars(CommonFilter::Uint);
+    popup->setID("go-to-page"_spr);
+    popup->show();
+}
+
+void ModsLayer::onBigView(CCObject*) {
+    m_bigView = !m_bigView;
+
+    // Make sure to avoid a crash
+    if (m_currentSource) {
+        m_lists.at(m_currentSource)->updateSize(m_bigView);
+    }
+
+    // Update the background on the size button
+    m_bigSizeBtnSpr->setTexture(CCTextureCache::get()->addImage(
+        (m_bigView ? "GJ_button_02.png" : "GE_button_05.png"_spr), true
+    ));
+}
+
+void ModsLayer::onSearch(CCObject*) {
+    m_showSearch = !m_showSearch;
+
+    // Make sure to avoid a crash
+    if (m_currentSource) {
+        m_lists.at(m_currentSource)->activateSearch(m_showSearch);
+    }
+    // Update the background on the search button
+    m_searchBtnSpr->setTexture(CCTextureCache::get()->addImage(
+        (m_showSearch ? "GJ_button_02.png" : "GE_button_05.png"_spr), true
+    ));
 }
 
 ModsLayer* ModsLayer::create() {
