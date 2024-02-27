@@ -62,7 +62,7 @@ Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
 
     // Verify target GD version
     auto gd = root.needs("gd").obj().needs(GEODE_PLATFORM_SHORT_IDENTIFIER).template get<std::string>();
-    if (gd != GEODE_GD_VERSION_STR) {
+    if (gd != GEODE_GD_VERSION_STR && gd != "*") {
         return Err(
             "Mod targets GD version {} but current is version {}",
             gd, GEODE_GD_VERSION_STR
