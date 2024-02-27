@@ -7,6 +7,7 @@ using namespace geode::prelude;
 #include <Geode/Utils.hpp>
 #include <Geode/binding/GameManager.hpp>
 #include <objc/runtime.h>
+#include <Geode/utils/web.hpp>
 
 bool utils::clipboard::write(std::string const& data) {
     [[NSPasteboard generalPasteboard] clearContents];
