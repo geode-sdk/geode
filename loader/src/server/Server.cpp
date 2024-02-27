@@ -4,10 +4,7 @@
 
 using namespace server;
 
-// Helpers for getting current GD version as a string for URL params
-#define GEODE_GD_VERSION_STRINGIFY(version) # version
-#define GEODE_GD_VERSION_STRINGIFY_2(version) GEODE_GD_VERSION_STRINGIFY(version)
-#define GEODE_GD_VERSION_STR GEODE_GD_VERSION_STRINGIFY_2(GEODE_GD_VERSION)
+#define GEODE_GD_VERSION_STR GEODE_STR(GEODE_GD_VERSION)
 
 static void parseServerError(auto reject, auto error) {
     // The server should return errors as `{ "error": "...", "payload": "" }`
