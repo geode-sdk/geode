@@ -55,7 +55,7 @@ void AnchorLayout::apply(CCNode* on) {
                 case Anchor::BottomLeft: pos += ccp(0, 0); break;
                 case Anchor::Left: pos += ccp(0, size.height / 2); break;
             }
-            node->ignoreAnchorPointForPosition(false);
+            // node->ignoreAnchorPointForPosition(false);
             node->setPosition(pos);
         }
     }
