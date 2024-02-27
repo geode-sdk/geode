@@ -1,8 +1,7 @@
 #include "ModsLayer.hpp"
 #include "SwelvyBG.hpp"
 #include <Geode/ui/TextInput.hpp>
-
-static bool BIG_VIEW = false;
+#include <Geode/utils/ColorProvider.hpp>
 
 bool ModsLayer::init() {
     if (!CCLayer::init())
@@ -54,7 +53,9 @@ bool ModsLayer::init() {
     m_frame->setAnchorPoint({ .5f, .5f });
     m_frame->setContentSize({ 380, 205 });
 
-    auto frameBG = CCLayerColor::create({ 25, 17, 37, 255 });
+    auto frameBG = CCLayerColor::create(
+        ColorProvider::get()->define("mod-list-bg"_spr, { 25, 17, 37, 255 })
+    );
     frameBG->setContentSize(m_frame->getContentSize());
     frameBG->ignoreAnchorPointForPosition(false);
     m_frame->addChildAtPosition(frameBG, Anchor::Center);

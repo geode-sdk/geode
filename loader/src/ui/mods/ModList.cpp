@@ -1,5 +1,6 @@
 #include "ModList.hpp"
 #include <Geode/ui/TextInput.hpp>
+#include <Geode/utils/ColorProvider.hpp>
 
 bool ModList::init(ModListSource* src, CCSize const& size) {
     if (!CCNode::init())
@@ -26,7 +27,9 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_searchMenu->setContentSize({ size.width, 30 });
     m_searchMenu->setAnchorPoint({ .5f, 1.f });
 
-    auto searchBG = CCLayerColor::create({ 83, 65, 109, 255 });
+    auto searchBG = CCLayerColor::create(
+        ColorProvider::get()->define("mod-list-search-bg"_spr, { 83, 65, 109, 255 })
+    );
     searchBG->setContentSize(m_searchMenu->getContentSize());
     searchBG->ignoreAnchorPointForPosition(false);
     m_searchMenu->addChildAtPosition(searchBG, Anchor::Center);
@@ -136,7 +139,9 @@ void ModList::onPromise(typename ModListSource::PageLoadEvent* event) {
         for (auto item : *resolved) {
             // Add separators between items after the first one
             if (!first) {
-                auto separator = CCLayerColor::create({ 255, 255, 255, 45 });
+                auto separator = CCLayerColor::create(
+                    ColorProvider::get()->define("mod-list-separator"_spr, { 255, 255, 255, 45 })
+                );
                 separator->setContentSize({ m_obContentSize.width - 10, .5f });
                 m_list->m_contentLayer->addChild(separator);
             }
