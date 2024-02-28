@@ -32,7 +32,8 @@ protected:
     ModListSource::PageLoadEventListener m_listener;
     CCMenuItemSpriteExtra* m_pagePrevBtn;
     CCMenuItemSpriteExtra* m_pageNextBtn;
-    Ref<CCMenu> m_searchMenu;
+    Ref<CCNode> m_searchMenu;
+    CCSprite* m_filterBtnSpr;
     TextInput* m_searchInput;
     ModListPageUpdated m_pageUpdated = nullptr;
     bool m_bigSize = false;
@@ -43,6 +44,8 @@ protected:
     void onPromise(ModListSource::PageLoadEvent* event);
     void onPage(CCObject*);
     void onShowStatusDetails(CCObject*);
+    void onFilters(CCObject*);
+    void onClearFilters(CCObject*);
 
 public:
     static ModList* create(ModListSource* src, CCSize const& size);

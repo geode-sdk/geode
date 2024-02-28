@@ -22,7 +22,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     );
     this->addChildAtPosition(m_list, Anchor::Bottom, ccp(-m_list->getScaledContentSize().width / 2, 0));
 
-    m_searchMenu = CCMenu::create();
+    m_searchMenu = CCNode::create();
     m_searchMenu->ignoreAnchorPointForPosition(false);
     m_searchMenu->setContentSize({ size.width, 30 });
     m_searchMenu->setAnchorPoint({ .5f, 1.f });
@@ -34,7 +34,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     searchBG->ignoreAnchorPointForPosition(false);
     m_searchMenu->addChildAtPosition(searchBG, Anchor::Center);
 
-    m_searchInput = TextInput::create(size.width, "Search Mods");
+    m_searchInput = TextInput::create(size.width + 25, "Search Mods");
     m_searchInput->setScale(.75f);
     m_searchInput->setAnchorPoint({ 0, .5f });
     m_searchInput->setTextAlign(TextInputAlign::Left);
@@ -61,7 +61,36 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
             }
         }).detach();
     });
-    m_searchMenu->addChildAtPosition(m_searchInput, Anchor::Left, ccp(10, 0));
+    m_searchMenu->addChildAtPosition(m_searchInput, Anchor::Left, ccp(7.5f, 0));
+
+    auto searchFiltersMenu = CCMenu::create();
+    searchFiltersMenu->setContentWidth(size.width - m_searchInput->getScaledContentSize().width - 10);
+    searchFiltersMenu->setAnchorPoint({ 1, .5f });
+    searchFiltersMenu->setScale(.75f);
+
+    m_filterBtnSpr = CCSprite::create("GE_button_05.png"_spr);
+    auto filterBtnTop = CCSprite::createWithSpriteFrameName("GJ_filterIcon_001.png");
+    limitNodeSize(filterBtnTop, m_filterBtnSpr->getContentSize() * .65f, 2.f, .1f);
+    m_filterBtnSpr->addChildAtPosition(filterBtnTop, Anchor::Center);
+    auto filterBtn = CCMenuItemSpriteExtra::create(
+        m_filterBtnSpr, this, menu_selector(ModList::onFilters)
+    );
+    searchFiltersMenu->addChild(filterBtn);
+
+    auto clearFiltersBtnSpr = CCSprite::create("GE_button_05.png"_spr);
+    auto clearFiltersBtnTop = CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png");
+    limitNodeSize(clearFiltersBtnTop, clearFiltersBtnSpr->getContentSize() * .65f, 2.f, .1f);
+    clearFiltersBtnSpr->addChildAtPosition(clearFiltersBtnTop, Anchor::Center);
+    auto clearFiltersBtn = CCMenuItemSpriteExtra::create(
+        clearFiltersBtnSpr, this, menu_selector(ModList::onClearFilters)
+    );
+    searchFiltersMenu->addChild(clearFiltersBtn);
+
+    searchFiltersMenu->setLayout(
+        RowLayout::create()
+            ->setAxisAlignment(AxisAlignment::End)
+    );
+    m_searchMenu->addChildAtPosition(searchFiltersMenu, Anchor::Right, ccp(-10, 0));
 
     // Do not add search menu; that's handled by onSearch
 
@@ -349,6 +378,12 @@ void ModList::showStatus(ModListStatus status, std::string const& message, std::
 
 void ModList::onPageUpdated(ModListPageUpdated listener) {
     m_pageUpdated = listener;
+}
+
+void ModList::onFilters(CCObject*) {}
+
+void ModList::onClearFilters(CCObject*) {
+    m_searchInput->setString("", true);
 }
 
 size_t ModList::getPage() const {
