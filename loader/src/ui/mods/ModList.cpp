@@ -1,5 +1,6 @@
 #include "ModList.hpp"
 #include <Geode/utils/ColorProvider.hpp>
+#include "TagsPopup.hpp"
 
 bool ModList::init(ModListSource* src, CCSize const& size) {
     if (!CCNode::init())
@@ -67,6 +68,8 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     searchFiltersMenu->setContentWidth(size.width - m_searchInput->getScaledContentSize().width - 10);
     searchFiltersMenu->setAnchorPoint({ 1, .5f });
     searchFiltersMenu->setScale(.75f);
+
+    // todo: sort button
 
     m_filterBtnSpr = CCSprite::create("GE_button_05.png"_spr);
     auto filterBtnTop = CCSprite::createWithSpriteFrameName("GJ_filterIcon_001.png");
@@ -380,7 +383,11 @@ void ModList::onPageUpdated(ModListPageUpdated listener) {
     m_pageUpdated = listener;
 }
 
-void ModList::onFilters(CCObject*) {}
+void ModList::onFilters(CCObject*) {
+    TagsPopup::create(m_source, [this]() {
+        this->gotoPage(0);
+    })->show();
+}
 
 void ModList::onClearFilters(CCObject*) {
     m_searchInput->setString("", true);
