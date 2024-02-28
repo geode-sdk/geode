@@ -39,12 +39,13 @@ public:
 protected:
     std::unordered_map<size_t, Page> m_cachedPages;
     std::optional<size_t> m_cachedItemCount;
-    std::string m_query;
+    std::optional<std::string> m_query;
     Provider* m_provider = nullptr;
+    bool m_inMemory;
 
 public:
     // Create a new source with an arbitary provider
-    static ModListSource* create(Provider* provider);
+    static ModListSource* create(Provider* provider, bool inMemory);
 
     // Get a standard source (lazily created static instance)
     static ModListSource* get(ModListSourceType type);
@@ -59,4 +60,13 @@ public:
     PagePromise loadPage(size_t page, bool update = false);
     std::optional<size_t> getPageCount() const;
     std::optional<size_t> getItemCount() const;
+
+    /**
+     * True if the source is already fully loaded in memory (doesn't fetch 
+     * from a server or filesystem)
+     * 
+     * Used to determine whether things like searching should update the query 
+     * instantaniously or buffer a bit to avoid spamming unnecessary requests
+     */
+    bool isInMemory() const;
 };

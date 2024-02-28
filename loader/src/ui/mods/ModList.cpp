@@ -39,6 +39,14 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_searchInput->setAnchorPoint({ 0, .5f });
     m_searchInput->setTextAlign(TextInputAlign::Left);
     m_searchInput->setCallback([this](auto const&) {
+        // If the source is already in memory, we can immediately update the 
+        // search query
+        if (m_source->isInMemory()) {
+            m_source->setQuery(m_searchInput->getString());
+            this->gotoPage(0);
+            return;
+        }
+        // Otherwise buffer inputs by a bit
         // This avoids spamming servers for every character typed, 
         // instead waiting for input to stop to actually do the search
         std::thread([this] {
