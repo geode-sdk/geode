@@ -51,7 +51,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         // instead waiting for input to stop to actually do the search
         std::thread([this] {
             m_searchInputThreads += 1;
-            std::this_thread::sleep_for(std::chrono::milliseconds(300));
+            std::this_thread::sleep_for(std::chrono::milliseconds(400));
             m_searchInputThreads -= 1;
             if (m_searchInputThreads == 0) {
                 Loader::get()->queueInMainThread([this] {
