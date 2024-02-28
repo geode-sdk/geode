@@ -47,6 +47,7 @@ public:
 class ServerModItem : public BaseModItem {
 protected:
     server::ServerModMetadata m_metadata;
+    CCScale9Sprite* m_checkmark = nullptr;
 
     bool init(server::ServerModMetadata const& metadata);
 
@@ -59,4 +60,6 @@ public:
     ModMetadata getMetadata() const override;
     CCNode* createModLogo() const override;
     bool wantsRestart() const override;
+
+    void updateSize(float width, bool big) override;
 };

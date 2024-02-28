@@ -120,7 +120,28 @@ bool ServerModItem::init(server::ServerModMetadata const& metadata) {
     if (!BaseModItem::init())
         return false;
     
+    if (metadata.featured) {
+        m_checkmark = CCScale9Sprite::createWithSpriteFrameName("GJ_colorBtn_001.png");
+        m_checkmark->setContentSize({ 50, 38 });
+        m_checkmark->setColor({ 255, 255, 120 });
+        m_checkmark->setOpacity(45);
+
+        auto tick = CCSprite::createWithSpriteFrameName("GJ_starsIcon_001.png");
+        m_checkmark->addChildAtPosition(tick, Anchor::Center);
+        this->addChild(m_checkmark);
+    }
+    
     return true;
+}
+
+void ServerModItem::updateSize(float width, bool big) {
+    BaseModItem::updateSize(width, big);
+
+    if (m_checkmark) {
+        auto size = m_title->getScaledContentSize();
+        limitNodeSize(m_checkmark, ccp(100, size.height), 1.f, .1f);
+        m_checkmark->setPosition(m_title->getPosition() + ccp(size.width + 10, 0));
+    }
 }
 
 ServerModItem* ServerModItem::create(server::ServerModMetadata const& metadata) {
@@ -138,7 +159,7 @@ ModMetadata ServerModItem::getMetadata() const {
 }
 
 CCNode* ServerModItem::createModLogo() const {
-    return createServerModLogo(m_metadata.id, m_metadata.featured);
+    return createServerModLogo(m_metadata.id);
 }
 
 bool ServerModItem::wantsRestart() const {

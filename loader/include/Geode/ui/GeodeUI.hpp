@@ -40,5 +40,5 @@ namespace geode {
      * logo is initially a loading circle, with the actual sprite downloaded 
      * asynchronously
      */
-    GEODE_DLL cocos2d::CCNode* createServerModLogo(std::string const& id, bool featured);
+    GEODE_DLL cocos2d::CCNode* createServerModLogo(std::string const& id);
 }
