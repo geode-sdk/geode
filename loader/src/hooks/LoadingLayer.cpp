@@ -73,7 +73,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
         m_fields->m_smallLabel2 = CCLabelBMFont::create("", "goldFont.fnt");
         m_fields->m_smallLabel2->setPosition(winSize.width / 2, 15.f);
         m_fields->m_smallLabel2->setScale(.45f);
-        m_fields->m_smallLabel2->setID("geode-small-label");
+        m_fields->m_smallLabel2->setID("geode-small-label-2");
         this->addChild(m_fields->m_smallLabel2);
 
         return true;
