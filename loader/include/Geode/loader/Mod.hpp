@@ -87,6 +87,7 @@ namespace geode {
         ghc::filesystem::path getPackagePath() const;
         VersionInfo getVersion() const;
         bool isEnabled() const;
+        bool isOrWillBeEnabled() const;
         bool isInternal() const;
         bool needsEarlyLoad() const;
         ModMetadata getMetadata() const;

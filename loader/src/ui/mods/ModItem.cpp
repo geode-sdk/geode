@@ -151,13 +151,13 @@ void InstalledModItem::updateState() {
 
     // Update enable toggle state
     if (m_enableToggle) {
-        m_enableToggle->toggle(m_mod->isEnabled());
+        m_enableToggle->toggle(m_mod->isOrWillBeEnabled());
     }
 }
 
 void InstalledModItem::onEnable(CCObject*) {
     // Toggle the mod state
-    auto res = m_mod->isEnabled() ? m_mod->disable() : m_mod->enable();
+    auto res = m_mod->isOrWillBeEnabled() ? m_mod->disable() : m_mod->enable();
     if (!res) {
         FLAlertLayer::create(
             "Error Toggling Mod",

@@ -21,6 +21,17 @@
 
 using namespace geode::prelude;
 
+static constexpr const char* humanReadableDescForAction(ModRequestedAction action) {
+    switch (action) {
+        default: return "(Unknown action)";
+        case ModRequestedAction::None: return "(No action has been taken)";
+        case ModRequestedAction::Enable: return "Mod has been enabled";
+        case ModRequestedAction::Disable: return "Mod has been disabled";
+        case ModRequestedAction::Uninstall: return "Mod has been uninstalled";
+        case ModRequestedAction::UninstallWithSaveData: return "Mod has been uninstalled";
+    }
+}
+
 Mod::Impl* ModImpl::get() {
     return Mod::get()->m_impl.get();
 }
@@ -404,30 +415,55 @@ Result<> Mod::Impl::loadBinary() {
 }
 
 Result<> Mod::Impl::enable() {
-    if (m_requestedAction != ModRequestedAction::None) {
-        return Err("Mod already has a requested action");
-    }
+    switch (m_requestedAction) {
+        // Allow reverting disabling
+        case ModRequestedAction::Disable: {
+            m_requestedAction = ModRequestedAction::None;
+        } break;
 
-    m_requestedAction = ModRequestedAction::Enable;
+        // Only possible to enable otherwise
+        case ModRequestedAction::None: {
+            m_requestedAction = ModRequestedAction::Enable;
+        } break;
+
+        default: {
+            return Err(humanReadableDescForAction(m_requestedAction));
+        } break;
+    }
     Mod::get()->setSavedValue("should-load-" + m_metadata.getID(), true);
 
     return Ok();
 }
 
 Result<> Mod::Impl::disable() {
-    if (m_requestedAction != ModRequestedAction::None) {
-        return Err("Mod already has a requested action");
-    }
+    switch (m_requestedAction) {
+        // Allow reverting enabling
+        case ModRequestedAction::Enable: {
+            m_requestedAction = ModRequestedAction::None;
+        } break;
 
-    m_requestedAction = ModRequestedAction::Disable;
+        // Only possible to enable otherwise
+        case ModRequestedAction::None: {
+            m_requestedAction = ModRequestedAction::Disable;
+        } break;
+
+        default: {
+            return Err(humanReadableDescForAction(m_requestedAction));
+        } break;
+    }
     Mod::get()->setSavedValue("should-load-" + m_metadata.getID(), false);
 
     return Ok();
 }
 
 Result<> Mod::Impl::uninstall(bool deleteSaveData) {
-    if (m_requestedAction != ModRequestedAction::None) {
-        return Err("Mod already has a requested action");
+    // Allow uninstalling if the mod has been disabled / enabled
+    if (
+        m_requestedAction != ModRequestedAction::None &&
+        m_requestedAction != ModRequestedAction::Enable &&
+        m_requestedAction != ModRequestedAction::Disable
+    ) {
+        return Err(humanReadableDescForAction(m_requestedAction));
     }
 
     if (this->isInternal()) {

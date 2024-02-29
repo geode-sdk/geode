@@ -51,6 +51,17 @@ bool Mod::isEnabled() const {
     return m_impl->isEnabled();
 }
 
+bool Mod::isOrWillBeEnabled() const {
+    bool enabled = m_impl->isEnabled();
+    if (m_impl->m_requestedAction == ModRequestedAction::Enable) {
+        enabled = true;
+    }
+    else if (m_impl->m_requestedAction == ModRequestedAction::Disable) {
+        enabled = false;
+    }
+    return enabled;
+}
+
 bool Mod::isInternal() const {
     return m_impl->isInternal();
 }
