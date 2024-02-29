@@ -2,6 +2,7 @@
 #include "SwelvyBG.hpp"
 #include <Geode/ui/TextInput.hpp>
 #include <Geode/utils/ColorProvider.hpp>
+#include "GeodeStyle.hpp"
 
 bool ModsLayer::init() {
     if (!CCLayer::init())
@@ -137,21 +138,15 @@ bool ModsLayer::init() {
     listActionsMenu->setAnchorPoint({ 1, 0 });
     listActionsMenu->setScale(.65f);
 
-    m_bigSizeBtnSpr = CCSprite::create("GE_button_05.png"_spr);
-    auto bigSizeBtnTop = CCSprite::createWithSpriteFrameName("GJ_smallModeIcon_001.png");
-    limitNodeSize(bigSizeBtnTop, m_bigSizeBtnSpr->getContentSize() * .65f, 2.f, .1f);
-    m_bigSizeBtnSpr->addChildAtPosition(bigSizeBtnTop, Anchor::Center);
     auto bigSizeBtn = CCMenuItemSpriteExtra::create(
-        m_bigSizeBtnSpr, this, menu_selector(ModsLayer::onBigView)
+        GeodeButtonSprite::createWithSpriteFrameName("GJ_smallModeIcon_001.png", &m_bigView),
+        this, menu_selector(ModsLayer::onBigView)
     );
     listActionsMenu->addChild(bigSizeBtn);
 
-    m_searchBtnSpr = CCSprite::create("GE_button_05.png"_spr);
-    auto searchBtnTop = CCSprite::createWithSpriteFrameName("search.png"_spr);
-    limitNodeSize(searchBtnTop, m_searchBtnSpr->getContentSize() * .65f, 2.f, .1f);
-    m_searchBtnSpr->addChildAtPosition(searchBtnTop, Anchor::Center);
     auto searchBtn = CCMenuItemSpriteExtra::create(
-        m_searchBtnSpr, this, menu_selector(ModsLayer::onSearch)
+        GeodeButtonSprite::createWithSpriteFrameName("search.png"_spr, &m_showSearch),
+        this, menu_selector(ModsLayer::onSearch)
     );
     listActionsMenu->addChild(searchBtn);
 
@@ -285,29 +280,18 @@ void ModsLayer::onGoToPage(CCObject*) {
 
 void ModsLayer::onBigView(CCObject*) {
     m_bigView = !m_bigView;
-
     // Make sure to avoid a crash
     if (m_currentSource) {
         m_lists.at(m_currentSource)->updateSize(m_bigView);
     }
-
-    // Update the background on the size button
-    m_bigSizeBtnSpr->setTexture(CCTextureCache::get()->addImage(
-        (m_bigView ? "GJ_button_02.png" : "GE_button_05.png"_spr), true
-    ));
 }
 
 void ModsLayer::onSearch(CCObject*) {
     m_showSearch = !m_showSearch;
-
     // Make sure to avoid a crash
     if (m_currentSource) {
         m_lists.at(m_currentSource)->activateSearch(m_showSearch);
     }
-    // Update the background on the search button
-    m_searchBtnSpr->setTexture(CCTextureCache::get()->addImage(
-        (m_showSearch ? "GJ_button_02.png" : "GE_button_05.png"_spr), true
-    ));
 }
 
 ModsLayer* ModsLayer::create() {

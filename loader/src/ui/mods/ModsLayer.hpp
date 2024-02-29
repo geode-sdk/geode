@@ -15,8 +15,6 @@ protected:
     std::vector<CCMenuItemSpriteExtra*> m_tabs;
     ModListSource* m_currentSource = nullptr;
     std::unordered_map<ModListSource*, Ref<ModList>> m_lists;
-    CCSprite* m_bigSizeBtnSpr;
-    CCSprite* m_searchBtnSpr;
     CCMenu* m_pageMenu;
     CCLabelBMFont* m_pageLabel;
     CCMenuItemSpriteExtra* m_goToPageBtn;

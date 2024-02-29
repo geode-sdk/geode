@@ -1,6 +1,7 @@
 #include "ModList.hpp"
 #include <Geode/utils/ColorProvider.hpp>
 #include "TagsPopup.hpp"
+#include "GeodeStyle.hpp"
 
 bool ModList::init(ModListSource* src, CCSize const& size) {
     if (!CCNode::init())
@@ -71,21 +72,15 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
 
     // todo: sort button
 
-    m_filterBtnSpr = CCSprite::create("GE_button_05.png"_spr);
-    auto filterBtnTop = CCSprite::createWithSpriteFrameName("GJ_filterIcon_001.png");
-    limitNodeSize(filterBtnTop, m_filterBtnSpr->getContentSize() * .65f, 2.f, .1f);
-    m_filterBtnSpr->addChildAtPosition(filterBtnTop, Anchor::Center);
     auto filterBtn = CCMenuItemSpriteExtra::create(
-        m_filterBtnSpr, this, menu_selector(ModList::onFilters)
+        GeodeButtonSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
+        this, menu_selector(ModList::onFilters)
     );
     searchFiltersMenu->addChild(filterBtn);
 
-    auto clearFiltersBtnSpr = CCSprite::create("GE_button_05.png"_spr);
-    auto clearFiltersBtnTop = CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png");
-    limitNodeSize(clearFiltersBtnTop, clearFiltersBtnSpr->getContentSize() * .65f, 2.f, .1f);
-    clearFiltersBtnSpr->addChildAtPosition(clearFiltersBtnTop, Anchor::Center);
     auto clearFiltersBtn = CCMenuItemSpriteExtra::create(
-        clearFiltersBtnSpr, this, menu_selector(ModList::onClearFilters)
+        GeodeButtonSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"),
+        this, menu_selector(ModList::onClearFilters)
     );
     searchFiltersMenu->addChild(clearFiltersBtn);
 

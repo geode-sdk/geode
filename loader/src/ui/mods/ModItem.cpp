@@ -14,20 +14,25 @@ bool BaseModItem::init() {
     m_title->setAnchorPoint({ .0f, .5f });
     this->addChild(m_title);
 
-    auto by = "By " + ModMetadata::formatDeveloperDisplayString(meta.getDevelopers());
-    auto developersBtn = CCMenuItemSpriteExtra::create(
-        CCLabelBMFont::create(by.c_str(), "goldFont.fnt"),
-        this, nullptr
-    );
     m_developers = CCMenu::create();
     m_developers->ignoreAnchorPointForPosition(false);
-    m_developers->setContentSize(developersBtn->getScaledContentSize());
-    m_developers->addChildAtPosition(developersBtn, Anchor::Center);
     m_developers->setAnchorPoint({ .0f, .5f });
+    m_developers->setLayout(
+        RowLayout::create()
+            ->setAxisAlignment(AxisAlignment::Start)
+    );
     this->addChild(m_developers);
 
     m_viewMenu = CCMenu::create();
     m_viewMenu->setAnchorPoint({ 1.f, .5f });
+    m_viewMenu->setScale(.55f);
+    
+    auto viewBtn = CCMenuItemSpriteExtra::create(
+        ButtonSprite::create("View", "bigFont.fnt", "GE_button_05.png"_spr, .8f),
+        this, nullptr
+    );
+    m_viewMenu->addChild(viewBtn);
+
     m_viewMenu->setLayout(
         RowLayout::create()
             ->setAxisReverse(true)
@@ -41,24 +46,19 @@ bool BaseModItem::init() {
 }
 
 void BaseModItem::updateState() {
-    m_viewMenu->removeAllChildren();
+    m_developers->removeAllChildren();
     if (this->wantsRestart()) {
-        auto restartSpr = ButtonSprite::create("Restart", "bigFont.fnt", "GE_button_02.png"_spr, .8f);
-        restartSpr->setScale(.55f);
-        auto restartBtn = CCMenuItemSpriteExtra::create(
-            restartSpr, this, nullptr
-        );
-        m_viewMenu->addChild(restartBtn);
+        m_developers->addChild(ButtonSprite::create("Restart Required", "goldFont.fnt", "black-square"_spr, .8f));
     }
     else {
-        auto viewSpr = ButtonSprite::create("View", "bigFont.fnt", "GE_button_05.png"_spr, .8f);
-        viewSpr->setScale(.55f);
-        auto viewBtn = CCMenuItemSpriteExtra::create(
-            viewSpr, this, nullptr
+        auto by = "By " + ModMetadata::formatDeveloperDisplayString(this->getMetadata().getDevelopers());
+        auto developersBtn = CCMenuItemSpriteExtra::create(
+            CCLabelBMFont::create(by.c_str(), "goldFont.fnt"),
+            this, nullptr
         );
-        m_viewMenu->addChild(viewBtn);
+        m_developers->addChild(developersBtn);
     }
-    m_viewMenu->updateLayout();
+    m_developers->updateLayout();
 }
 
 void BaseModItem::updateSize(float width, bool big) {
@@ -74,8 +74,12 @@ void BaseModItem::updateSize(float width, bool big) {
     };
     m_title->setPosition(m_obContentSize.height + 10, m_obContentSize.height * .7f);
     limitNodeSize(m_title, titleSpace, 1.f, .1f);
+
+    // Only limit developer size by height since we're setting the content width manually
+    limitNodeSize(m_developers, ccp(9999, titleSpace.height * .8f), 1.f, .1f);
     m_developers->setPosition(m_obContentSize.height + 10, m_obContentSize.height * .3f);
-    limitNodeSize(m_developers, titleSpace, .4f, .1f);
+    m_developers->setContentWidth(titleSpace.width / m_developers->getScale());
+    m_developers->updateLayout();
 
     m_viewMenu->setContentWidth(m_obContentSize.width / 2 - 20);
     m_viewMenu->updateLayout();
