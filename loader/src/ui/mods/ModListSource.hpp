@@ -9,6 +9,7 @@ using namespace geode::prelude;
 
 enum class ModListSourceType {
     Installed,
+    Updates,
     Featured,
     Trending,
     ModPacks,

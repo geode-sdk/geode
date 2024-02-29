@@ -87,10 +87,10 @@ bool ModsLayer::init() {
 
     for (auto item : std::initializer_list<std::tuple<const char*, const char*, ModListSourceType>> {
         { "download.png"_spr, "Installed", ModListSourceType::Installed },
-        { "GJ_bigStar_noShadow_001.png", "Featured", ModListSourceType::Featured },
+        { "GJ_timeIcon_001.png", "Updates", ModListSourceType::Updates },
+        { "globe.png"_spr, "Download", ModListSourceType::All },
         { "GJ_sTrendingIcon_001.png", "Trending", ModListSourceType::Trending },
         { "gj_folderBtn_001.png", "Mod Packs", ModListSourceType::ModPacks },
-        { "globe.png"_spr, "All Mods", ModListSourceType::All },
     }) {
         const CCSize itemSize { 100, 35 };
         const CCSize iconSize { 18, 18 };

@@ -204,6 +204,11 @@ ModListSource* ModListSource::get(ModListSourceType type) {
             return inst;
         } break;
 
+        case ModListSourceType::Updates: {
+            static auto inst = Ref(ModListSource::create({}));
+            return inst;
+        } break;
+
         case ModListSourceType::Featured: {
             static auto inst = Ref(ModListSource::create({
                 .get = +[](server::ModsQuery&& query) {
