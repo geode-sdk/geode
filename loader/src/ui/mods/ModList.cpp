@@ -19,7 +19,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
             ->setAxisReverse(true)
             ->setAxisAlignment(AxisAlignment::End)
             ->setAutoGrowAxis(size.height)
-            ->setGap(0)
+            ->setGap(2.5f)
     );
     this->addChildAtPosition(m_list, Anchor::Bottom, ccp(-m_list->getScaledContentSize().width / 2, 0));
 
@@ -188,11 +188,11 @@ void ModList::onPromise(typename ModListSource::PageLoadEvent* event) {
         for (auto item : *resolved) {
             // Add separators between items after the first one
             if (!first) {
-                auto separator = CCLayerColor::create(
-                    ColorProvider::get()->define("mod-list-separator"_spr, { 255, 255, 255, 45 })
-                );
-                separator->setContentSize({ m_obContentSize.width - 10, .5f });
-                m_list->m_contentLayer->addChild(separator);
+                // auto separator = CCLayerColor::create(
+                //     ColorProvider::get()->define("mod-list-separator"_spr, { 255, 255, 255, 45 })
+                // );
+                // separator->setContentSize({ m_obContentSize.width - 10, .5f });
+                // m_list->m_contentLayer->addChild(separator);
             }
             first = false;
             m_list->m_contentLayer->addChild(item);
@@ -274,7 +274,8 @@ void ModList::activateSearch(bool activate) {
     // (giving a little bit of extra padding for it, the same size as gap)
     m_list->setContentHeight(
         activate ?
-            this->getContentHeight() - m_searchMenu->getContentHeight() : 
+            this->getContentHeight() - m_searchMenu->getContentHeight() - 
+                static_cast<AxisLayout*>(m_list->m_contentLayer->getLayout())->getGap() : 
             this->getContentHeight()
     );
 

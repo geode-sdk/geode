@@ -7,10 +7,14 @@ using namespace geode::prelude;
 
 class BaseModItem : public CCNode {
 protected:
+    CCScale9Sprite* m_bg;
+    ccColor4B m_defaultBG = { 255, 255, 255, 25 };
     CCNode* m_logo;
     CCNode* m_infoContainer;
     CCNode* m_titleContainer;
+    CCLabelBMFont* m_titleLabel;
     CCNode* m_developers;
+    CCLabelBMFont* m_developerLabel;
     ButtonSprite* m_restartRequiredLabel = nullptr;
     CCMenu* m_viewMenu;
     MiniFunction<void()> m_updateParentState = nullptr;
@@ -63,6 +67,8 @@ protected:
     CCScale9Sprite* m_checkmark = nullptr;
 
     bool init(server::ServerModMetadata const& metadata);
+
+    void updateState() override;
 
 public:
     /**

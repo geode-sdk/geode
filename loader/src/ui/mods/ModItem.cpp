@@ -9,6 +9,13 @@ bool BaseModItem::init() {
     
     auto meta = this->getMetadata();
 
+    m_bg = CCScale9Sprite::create("square02b_small.png");
+    m_bg->setOpacity(0);
+    m_bg->ignoreAnchorPointForPosition(false);
+    m_bg->setAnchorPoint({ .5f, .5f });
+    m_bg->setScale(.7f);
+    this->addChild(m_bg);
+
     m_logo = this->createModLogo();
     this->addChild(m_logo);
 
@@ -31,13 +38,13 @@ bool BaseModItem::init() {
             ->setAxisAlignment(AxisAlignment::Start)
     );
 
-    auto title = CCLabelBMFont::create(meta.getName().c_str(), "bigFont.fnt");
-    title->setAnchorPoint({ .0f, .5f });
-    title->setLayoutOptions(
+    m_titleLabel = CCLabelBMFont::create(meta.getName().c_str(), "bigFont.fnt");
+    m_titleLabel->setAnchorPoint({ .0f, .5f });
+    m_titleLabel->setLayoutOptions(
         AxisLayoutOptions::create()
             ->setMinScale(.1f)
     );
-    m_titleContainer->addChild(title);
+    m_titleContainer->addChild(m_titleLabel);
     
     m_infoContainer->addChild(m_titleContainer);
     
@@ -46,9 +53,9 @@ bool BaseModItem::init() {
     m_developers->setAnchorPoint({ .0f, .5f });
 
     auto by = "By " + ModMetadata::formatDeveloperDisplayString(this->getMetadata().getDevelopers());
+    m_developerLabel = CCLabelBMFont::create(by.c_str(), "goldFont.fnt");
     auto developersBtn = CCMenuItemSpriteExtra::create(
-        CCLabelBMFont::create(by.c_str(), "goldFont.fnt"),
-        this, nullptr
+        m_developerLabel, this, nullptr
     );
     m_developers->addChild(developersBtn);
 
@@ -97,6 +104,17 @@ void BaseModItem::updateState() {
     m_developers->setVisible(!wantsRestart);
     m_infoContainer->updateLayout();
 
+    // Set default color to BG to start off with 
+    // (possibly overriding later based on state)
+    m_bg->setColor(to3B(m_defaultBG));
+    m_bg->setOpacity(m_defaultBG.a);
+
+    // Highlight item via BG if it wants to restart for extra UI attention
+    if (wantsRestart) {
+        m_bg->setColor({ 153, 245, 245 });
+        m_bg->setOpacity(40);
+    }
+
     // Propagate update up the chain
     if (m_updateParentState) {
         m_updateParentState();
@@ -105,6 +123,9 @@ void BaseModItem::updateState() {
 
 void BaseModItem::updateSize(float width, bool big) {
     this->setContentSize({ width, big ? 40.f : 30.f });
+
+    m_bg->setContentSize((m_obContentSize - ccp(6, 0)) / m_bg->getScale());
+    m_bg->setPosition(m_obContentSize / 2);
 
     auto logoSize = m_obContentSize.height - 10;
     limitNodeSize(m_logo, { logoSize, logoSize }, 999, .1f);
@@ -160,6 +181,10 @@ bool InstalledModItem::init(Mod* mod) {
 }
 
 void InstalledModItem::updateState() {
+    m_defaultBG.a = m_mod->isOrWillBeEnabled() ? 25 : 10;
+    m_titleLabel->setOpacity(m_mod->isOrWillBeEnabled() ? 255 : 155);
+    m_developerLabel->setOpacity(m_mod->isOrWillBeEnabled() ? 255 : 155);
+
     BaseModItem::updateState();
 
     // Update enable toggle state
@@ -226,6 +251,17 @@ bool ServerModItem::init(server::ServerModMetadata const& metadata) {
     this->updateState();
     
     return true;
+}
+
+void ServerModItem::updateState() {
+    BaseModItem::updateState();
+
+    // Update BG color unless we want to restart (more important color to show) 
+    // and if the mod is featured
+    if (!this->wantsRestart() && m_metadata.featured && m_checkmark) {
+        m_bg->setColor(m_checkmark->getColor());
+        m_bg->setOpacity(40);
+    }
 }
 
 ServerModItem* ServerModItem::create(server::ServerModMetadata const& metadata) {
