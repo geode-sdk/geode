@@ -65,6 +65,16 @@ namespace geode {
          */
         cocos2d::ccColor4B define(std::string const& id, cocos2d::ccColor4B const& color);
         /**
+         * Define a new color with an associated ID. The ID should be prefixed 
+         * with the mod ID. If the color has already been defined, nothing 
+         * happens
+         * @param id The ID of the color; should be prefixed with mod ID
+         * @param color The color. Alpha component is assumed to be 255
+         * @returns The current value of the color with the ID (same as the 
+         * `color` function, although with the value truncated to cc3b)
+         */
+        cocos2d::ccColor3B define(std::string const& id, cocos2d::ccColor3B const& color);
+        /**
          * Override the current value of a color with an associated ID
          * @param id The ID of the color
          * @param color The color to override with
@@ -72,6 +82,15 @@ namespace geode {
          * exist
          */
         cocos2d::ccColor4B override(std::string const& id, cocos2d::ccColor4B const& color);
+        /**
+         * Override the current value of a color with an associated ID
+         * @param id The ID of the color
+         * @param color The color to override with. Alpha component is assumed 
+         * to be 255
+         * @returns The new value of the color, or ccWHITE if the ID doesn't 
+         * exist (truncated to cc3b)
+         */
+        cocos2d::ccColor3B override(std::string const& id, cocos2d::ccColor3B const& color);
         /**
          * Reset the current value of a color to its original definition
          * @param id The ID of the color

@@ -139,19 +139,33 @@ bool ModsLayer::init() {
     listActionsMenu->setScale(.65f);
 
     auto bigSizeBtn = CCMenuItemSpriteExtra::create(
-        GeodeButtonSprite::createWithSpriteFrameName("GJ_smallModeIcon_001.png", &m_bigView),
+        GeodeSquareSprite::createWithSpriteFrameName("GJ_smallModeIcon_001.png", &m_bigView),
         this, menu_selector(ModsLayer::onBigView)
     );
     listActionsMenu->addChild(bigSizeBtn);
 
     auto searchBtn = CCMenuItemSpriteExtra::create(
-        GeodeButtonSprite::createWithSpriteFrameName("search.png"_spr, &m_showSearch),
+        GeodeSquareSprite::createWithSpriteFrameName("search.png"_spr, &m_showSearch),
         this, menu_selector(ModsLayer::onSearch)
     );
     listActionsMenu->addChild(searchBtn);
 
     listActionsMenu->setLayout(ColumnLayout::create());
     m_frame->addChildAtPosition(listActionsMenu, Anchor::Left, ccp(-5, 25));
+
+    auto restartMenu = CCMenu::create();
+    restartMenu->setContentWidth(200.f);
+    restartMenu->setAnchorPoint({ .5f, 1.f });
+    restartMenu->setScale(.7f);
+
+    m_restartBtn = CCMenuItemSpriteExtra::create(
+        createGeodeButton("Restart Now"),
+        this, menu_selector(ModsLayer::onRestart)
+    );
+    restartMenu->addChild(m_restartBtn);
+
+    restartMenu->setLayout(RowLayout::create());
+    m_frame->addChildAtPosition(restartMenu, Anchor::Bottom, ccp(0, 0));
 
     m_pageMenu = CCMenu::create();
     m_pageMenu->setContentWidth(200.f);
@@ -180,6 +194,8 @@ bool ModsLayer::init() {
     this->setKeypadEnabled(true);
     cocos::handleTouchPriority(this, true);
 
+    this->updateState();
+
     return true;
 }
 
@@ -204,7 +220,7 @@ void ModsLayer::gotoTab(ModListSourceType type) {
     // Lazily create new list and add it to UI
     if (!m_lists.contains(src)) {
         auto list = ModList::create(src, m_frame->getContentSize() - ccp(30, 0));
-        list->onPageUpdated(std::bind(&ModsLayer::updatePageNumber, this));
+        list->onUpdateParentState(std::bind(&ModsLayer::updateState, this));
         list->setPosition(m_frame->getPosition());
         this->addChild(list);
         m_lists.emplace(src, list);
@@ -237,7 +253,7 @@ void ModsLayer::setTextPopupClosed(SetTextPopup* popup, gd::string value) {
     }
 }
 
-void ModsLayer::updatePageNumber() {
+void ModsLayer::updateState() {
     // Show current page number if the current source has total page count loaded
     if (m_currentSource && m_currentSource->getPageCount()) {
         auto page = m_lists.at(m_currentSource)->getPage() + 1;
@@ -255,6 +271,14 @@ void ModsLayer::updatePageNumber() {
     // Hide page menu otherwise
     else {
         m_pageMenu->setVisible(false);
+    }
+
+    // Update visibility of the restart button
+    m_restartBtn->setVisible(false);
+    for (auto& [src, _] : m_lists) {
+        if (src->wantsRestart()) {
+            m_restartBtn->setVisible(true);
+        }
     }
 }
 
@@ -292,6 +316,15 @@ void ModsLayer::onSearch(CCObject*) {
     if (m_currentSource) {
         m_lists.at(m_currentSource)->activateSearch(m_showSearch);
     }
+}
+
+void ModsLayer::onRestart(CCObject*) {
+    // Update button state to let user know it's restarting but it might take a bit
+    m_restartBtn->setEnabled(false);
+    static_cast<ButtonSprite*>(m_restartBtn->getNormalImage())->setString("Restarting...");
+
+    // Actually restart
+    game::restart();
 }
 
 ModsLayer* ModsLayer::create() {

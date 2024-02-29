@@ -16,8 +16,6 @@ struct ModListProgressStatus {
 };
 using ModListStatus = std::variant<ModListErrorStatus, ModListUnkProgressStatus, ModListProgressStatus>;
 
-using ModListPageUpdated = MiniFunction<void()>;
-
 class ModList : public CCNode {
 protected:
     Ref<ModListSource> m_source;
@@ -34,7 +32,7 @@ protected:
     CCMenuItemSpriteExtra* m_pageNextBtn;
     Ref<CCNode> m_searchMenu;
     TextInput* m_searchInput;
-    ModListPageUpdated m_pageUpdated = nullptr;
+    MiniFunction<void()> m_updateParentState = nullptr;
     bool m_bigSize = false;
     std::atomic<size_t> m_searchInputThreads = 0;
 
@@ -50,7 +48,7 @@ public:
     static ModList* create(ModListSource* src, CCSize const& size);
 
     // poor man's delegate
-    void onPageUpdated(ModListPageUpdated listener);
+    void onUpdateParentState(MiniFunction<void()> listener);
     size_t getPage() const;
 
     void reloadPage();

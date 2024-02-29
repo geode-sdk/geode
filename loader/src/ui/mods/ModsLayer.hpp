@@ -18,6 +18,7 @@ protected:
     CCMenu* m_pageMenu;
     CCLabelBMFont* m_pageLabel;
     CCMenuItemSpriteExtra* m_goToPageBtn;
+    CCMenuItemSpriteExtra* m_restartBtn;
     bool m_showSearch = false;
     bool m_bigView = false;
 
@@ -32,8 +33,9 @@ protected:
     void onGoToPage(CCObject*);
     void onBack(CCObject*);
     void onRefreshList(CCObject*);
+    void onRestart(CCObject*);
 
-    void updatePageNumber();
+    void updateState();
 
 public:
     static ModsLayer* create();

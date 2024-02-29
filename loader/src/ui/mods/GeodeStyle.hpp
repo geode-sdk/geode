@@ -4,7 +4,7 @@
 
 using namespace geode::prelude;
 
-class GeodeButtonSprite : public CCSprite {
+class GeodeSquareSprite : public CCSprite {
 protected:
     bool* m_stateSrc = nullptr;
     bool m_state = false;
@@ -14,6 +14,16 @@ protected:
     void update(float dt) override;
 
 public:
-    static GeodeButtonSprite* create(const char* top, bool* state = nullptr);
-    static GeodeButtonSprite* createWithSpriteFrameName(const char* top, bool* state = nullptr);
+    static GeodeSquareSprite* create(const char* top, bool* state = nullptr);
+    static GeodeSquareSprite* createWithSpriteFrameName(const char* top, bool* state = nullptr);
+};
+
+ButtonSprite* createGeodeButton(std::string const& text);
+
+class GeodeButtonSprite : public ButtonSprite {
+protected:
+    bool init(std::string const& text);
+
+public:
+    static GeodeButtonSprite* create(std::string const& text);
 };

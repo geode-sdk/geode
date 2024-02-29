@@ -1,7 +1,7 @@
 #include "GeodeStyle.hpp"
 #include <Geode/utils/cocos.hpp>
 
-bool GeodeButtonSprite::init(CCSprite* top, bool* state) {
+bool GeodeSquareSprite::init(CCSprite* top, bool* state) {
     if (!CCSprite::initWithFile("GE_button_05.png"_spr))
         return false;
     
@@ -18,7 +18,7 @@ bool GeodeButtonSprite::init(CCSprite* top, bool* state) {
     return true;
 }
 
-void GeodeButtonSprite::update(float dt) {
+void GeodeSquareSprite::update(float dt) {
     CCSprite::update(dt);
     if (m_stateSrc && m_state != *m_stateSrc) {
         m_state = *m_stateSrc;
@@ -28,8 +28,8 @@ void GeodeButtonSprite::update(float dt) {
     }
 }
 
-GeodeButtonSprite* GeodeButtonSprite::create(const char* top, bool* state) {
-    auto ret = new GeodeButtonSprite();
+GeodeSquareSprite* GeodeSquareSprite::create(const char* top, bool* state) {
+    auto ret = new GeodeSquareSprite();
     if (ret && ret->init(CCSprite::create(top), state)) {
         ret->autorelease();
         return ret;
@@ -38,12 +38,16 @@ GeodeButtonSprite* GeodeButtonSprite::create(const char* top, bool* state) {
     return nullptr;
 }
 
-GeodeButtonSprite* GeodeButtonSprite::createWithSpriteFrameName(const char* top, bool* state) {
-    auto ret = new GeodeButtonSprite();
+GeodeSquareSprite* GeodeSquareSprite::createWithSpriteFrameName(const char* top, bool* state) {
+    auto ret = new GeodeSquareSprite();
     if (ret && ret->init(CCSprite::createWithSpriteFrameName(top), state)) {
         ret->autorelease();
         return ret;
     }
     CC_SAFE_DELETE(ret);
     return nullptr;
+}
+
+ButtonSprite* createGeodeButton(std::string const& text) {
+    return ButtonSprite::create(text.c_str(), "bigFont.fnt", "GE_button_05.png"_spr, .8f);
 }

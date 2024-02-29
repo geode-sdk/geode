@@ -72,13 +72,13 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     // todo: sort button
 
     auto filterBtn = CCMenuItemSpriteExtra::create(
-        GeodeButtonSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
+        GeodeSquareSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
         this, menu_selector(ModList::onFilters)
     );
     searchFiltersMenu->addChild(filterBtn);
 
     auto clearFiltersBtn = CCMenuItemSpriteExtra::create(
-        GeodeButtonSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"),
+        GeodeSquareSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"),
         this, menu_selector(ModList::onClearFilters)
     );
     searchFiltersMenu->addChild(clearFiltersBtn);
@@ -196,6 +196,7 @@ void ModList::onPromise(typename ModListSource::PageLoadEvent* event) {
             }
             first = false;
             m_list->m_contentLayer->addChild(item);
+            item->onUpdateParentState(m_updateParentState);
         }
         this->updateSize(m_bigSize);
 
@@ -320,8 +321,8 @@ void ModList::updatePageNumber() {
     m_pageNextBtn->setVisible(pageCount && m_page < pageCount.value() - 1);
 
     // Notify container about page count update
-    if (m_pageUpdated) {
-        m_pageUpdated();
+    if (m_updateParentState) {
+        m_updateParentState();
     }
 }
 
@@ -373,8 +374,8 @@ void ModList::showStatus(ModListStatus status, std::string const& message, std::
     m_statusContainer->updateLayout();
 }
 
-void ModList::onPageUpdated(ModListPageUpdated listener) {
-    m_pageUpdated = listener;
+void ModList::onUpdateParentState(MiniFunction<void()> listener) {
+    m_updateParentState = listener;
 }
 
 void ModList::onFilters(CCObject*) {

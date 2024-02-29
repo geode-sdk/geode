@@ -13,6 +13,7 @@ protected:
     CCNode* m_developers;
     ButtonSprite* m_restartRequiredLabel = nullptr;
     CCMenu* m_viewMenu;
+    MiniFunction<void()> m_updateParentState = nullptr;
 
     /**
      * @warning Make sure `getMetadata` and `createModLogo` are callable 
@@ -20,13 +21,18 @@ protected:
     */
     bool init();
 
+    // This should never be exposed outside, so the parent can't call this and 
+    // cause an infinite loop during state updating
+    virtual void updateState();
+
 public:
     virtual ModMetadata getMetadata() const = 0;
     virtual CCNode* createModLogo() const = 0;
     virtual bool wantsRestart() const = 0;
 
     virtual void updateSize(float width, bool big);
-    virtual void updateState();
+
+    void onUpdateParentState(MiniFunction<void()> listener);
 };
 
 class InstalledModItem : public BaseModItem {
@@ -38,6 +44,8 @@ protected:
 
     void onEnable(CCObject*);
 
+    void updateState() override;
+
 public:
     /**
      * @note Make sure to call `updateSize` afterwards
@@ -47,8 +55,6 @@ public:
     ModMetadata getMetadata() const override;
     CCNode* createModLogo() const override;
     bool wantsRestart() const override;
-
-    void updateState() override;
 };
 
 class ServerModItem : public BaseModItem {

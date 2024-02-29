@@ -1,5 +1,7 @@
 #include "ModItem.hpp"
 #include <Geode/ui/GeodeUI.hpp>
+#include <Geode/utils/ColorProvider.hpp>
+#include "GeodeStyle.hpp"
 
 bool BaseModItem::init() {
     if (!CCNode::init())
@@ -56,8 +58,11 @@ bool BaseModItem::init() {
     );
     m_infoContainer->addChild(m_developers);
 
-    m_restartRequiredLabel = ButtonSprite::create("Restart Required", "bigFont.fnt", "black-square.png"_spr, .8f);
-    m_restartRequiredLabel->m_label->setColor({ 55, 255, 155 });
+    m_restartRequiredLabel = ButtonSprite::create("Restart Required", "bigFont.fnt", "white-square.png"_spr, .8f);
+    m_restartRequiredLabel->m_label->setColor({ 153, 245, 245 });
+    m_restartRequiredLabel->m_BGSprite->setColor(
+        ColorProvider::get()->define("mod-list-label-bg"_spr, ccc3(123, 156, 163))
+    );
     m_restartRequiredLabel->setLayoutOptions(
         AxisLayoutOptions::create()
             ->setMaxScale(.75f)
@@ -71,8 +76,7 @@ bool BaseModItem::init() {
     m_viewMenu->setScale(.55f);
     
     auto viewBtn = CCMenuItemSpriteExtra::create(
-        ButtonSprite::create("View", "bigFont.fnt", "GE_button_05.png"_spr, .8f),
-        this, nullptr
+        createGeodeButton("View"), this, nullptr
     );
     m_viewMenu->addChild(viewBtn);
 
@@ -92,6 +96,11 @@ void BaseModItem::updateState() {
     m_restartRequiredLabel->setVisible(wantsRestart);
     m_developers->setVisible(!wantsRestart);
     m_infoContainer->updateLayout();
+
+    // Propagate update up the chain
+    if (m_updateParentState) {
+        m_updateParentState();
+    }
 }
 
 void BaseModItem::updateSize(float width, bool big) {
@@ -122,6 +131,10 @@ void BaseModItem::updateSize(float width, bool big) {
     m_viewMenu->updateLayout();
 
     this->updateLayout();
+}
+
+void BaseModItem::onUpdateParentState(MiniFunction<void()> listener) {
+    m_updateParentState = listener;
 }
 
 bool InstalledModItem::init(Mod* mod) {

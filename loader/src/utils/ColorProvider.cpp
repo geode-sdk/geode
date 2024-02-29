@@ -31,6 +31,9 @@ ccColor4B ColorProvider::define(std::string const& id, ccColor4B const& color) {
     m_impl->colors.insert({ id, std::pair(color, std::nullopt) });
     return this->color(id);
 }
+ccColor3B ColorProvider::define(std::string const& id, ccColor3B const& color) {
+    return to3B(this->define(id, to4B(color)));
+}
 ccColor4B ColorProvider::override(std::string const& id, ccColor4B const& color) {
     if (m_impl->colors.contains(id)) {
         m_impl->colors.at(id).second = color;
@@ -41,6 +44,9 @@ ccColor4B ColorProvider::override(std::string const& id, ccColor4B const& color)
         log::error("(ColorProvider) Attempted to override color \"{}\", which is not defined", id);
         return to4B(ccWHITE);
     }
+}
+ccColor3B ColorProvider::override(std::string const& id, ccColor3B const& color) {
+    return to3B(this->override(id, to4B(color)));
 }
 ccColor4B ColorProvider::reset(std::string const& id) {
     if (m_impl->colors.contains(id)) {

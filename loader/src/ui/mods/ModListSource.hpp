@@ -34,18 +34,22 @@ public:
     using PagePromise = Promise<Page, LoadPageError, std::optional<uint8_t>>;
 
     using ProviderPromise = Promise<std::pair<Page, size_t>, LoadPageError, std::optional<uint8_t>>;
-    using Provider = ProviderPromise(server::ModsQuery&& query);
+
+    struct Provider {
+        ProviderPromise(*get)(server::ModsQuery&& query) = nullptr;
+        bool(*wantsRestart)() = nullptr;
+        bool inMemory = false;
+    };
 
 protected:
     std::unordered_map<size_t, Page> m_cachedPages;
     std::optional<size_t> m_cachedItemCount;
     std::optional<std::string> m_query;
-    Provider* m_provider = nullptr;
-    bool m_inMemory;
+    Provider m_provider;
 
 public:
     // Create a new source with an arbitary provider
-    static ModListSource* create(Provider* provider, bool inMemory);
+    static ModListSource* create(Provider&& provider);
 
     // Get a standard source (lazily created static instance)
     static ModListSource* get(ModListSourceType type);
@@ -69,4 +73,5 @@ public:
      * instantaniously or buffer a bit to avoid spamming unnecessary requests
      */
     bool isInMemory() const;
+    bool wantsRestart() const;
 };
