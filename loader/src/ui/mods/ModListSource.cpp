@@ -42,6 +42,10 @@ static std::pair<std::vector<Mod*>, size_t> getModsWithQuery(server::ModsQuery c
                 addToList = false;
             }
         }
+        // Loader gets boost to ensure it's normally always top of the list
+        if (mod->getID() == "geode.loader") {
+            weighted += 5;
+        }
         if (addToList) {
             mods.push_back({ mod, weighted });
         }
