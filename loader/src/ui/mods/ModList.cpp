@@ -19,8 +19,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
             ->setAxisReverse(true)
             ->setAxisAlignment(AxisAlignment::End)
             ->setAutoGrowAxis(size.height)
-            // This is half the normal size for separators
-            ->setGap(2.5f)
+            ->setGap(0)
     );
     this->addChildAtPosition(m_list, Anchor::Bottom, ccp(-m_list->getScaledContentSize().width / 2, 0));
 
@@ -274,7 +273,7 @@ void ModList::activateSearch(bool activate) {
     // (giving a little bit of extra padding for it, the same size as gap)
     m_list->setContentHeight(
         activate ?
-            this->getContentHeight() - m_searchMenu->getContentHeight() - 2.5f : 
+            this->getContentHeight() - m_searchMenu->getContentHeight() : 
             this->getContentHeight()
     );
 

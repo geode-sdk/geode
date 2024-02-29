@@ -7,9 +7,11 @@ using namespace geode::prelude;
 
 class BaseModItem : public CCNode {
 protected:
-    CCNode* m_logo = nullptr;
-    CCNode* m_title = nullptr;
-    CCNode* m_developers = nullptr;
+    CCNode* m_logo;
+    CCNode* m_infoContainer;
+    CCNode* m_titleContainer;
+    CCNode* m_developers;
+    ButtonSprite* m_restartRequiredLabel = nullptr;
     CCMenu* m_viewMenu;
 
     /**
@@ -30,8 +32,11 @@ public:
 class InstalledModItem : public BaseModItem {
 protected:
     Mod* m_mod;
+    CCMenuItemToggler* m_enableToggle = nullptr;
 
     bool init(Mod* mod);
+
+    void onEnable(CCObject*);
 
 public:
     /**
@@ -42,6 +47,8 @@ public:
     ModMetadata getMetadata() const override;
     CCNode* createModLogo() const override;
     bool wantsRestart() const override;
+
+    void updateState() override;
 };
 
 class ServerModItem : public BaseModItem {
@@ -60,6 +67,4 @@ public:
     ModMetadata getMetadata() const override;
     CCNode* createModLogo() const override;
     bool wantsRestart() const override;
-
-    void updateSize(float width, bool big) override;
 };
