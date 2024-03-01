@@ -70,19 +70,20 @@ static std::pair<std::vector<Mod*>, size_t> getModsWithQuery(server::ModsQuery c
     ) {
         result.push_back(mods.at(i).first);
     }
-    // Return paged mods & total count of matching mods
+    // Return paged mods and total count of matches
     return { result, mods.size() };
 }
 
 static auto loadInstalledModsPage(server::ModsQuery&& query) {
     return ModListSource::ProviderPromise([query = std::move(query)](auto resolve, auto, auto, auto const&) {
         Loader::get()->queueInMainThread([query = std::move(query), resolve = std::move(resolve)] {
-            auto content = ModListSource::Page();
-            auto mods = getModsWithQuery(query);
-            for (auto& mod : mods.first) {
-                content.push_back(InstalledModItem::create(mod));
+            auto content = ModListSource::ProvidedMods();
+            auto paged = getModsWithQuery(query);
+            for (auto& mod : std::move(paged.first)) {
+                content.mods.push_back(ModSource(mod));
             }
-            resolve({ content, mods.second });
+            content.totalModCount = paged.second;
+            resolve(content);
         });
     });
 }
@@ -91,11 +92,12 @@ static auto loadServerModsPage(server::ModsQuery&& query) {
     return ModListSource::ProviderPromise([query = std::move(query)](auto resolve, auto reject, auto progress, auto cancelled) {
         server::getMods(query)
         .then([resolve, reject](server::ServerModsList list) {
-            auto content = ModListSource::Page();
-            for (auto& mod : list.mods) {
-                content.push_back(ServerModItem::create(mod));
+            auto content = ModListSource::ProvidedMods();
+            for (auto&& mod : std::move(list.mods)) {
+                content.mods.push_back(ModSource(std::move(mod)));
             }
-            resolve({ content, list.totalModCount });
+            content.totalModCount = list.totalModCount;
+            resolve(content);
         })
         .expect([reject](auto error) {
             reject(ModListSource::LoadPageError("Error loading mods", error.details));
@@ -130,12 +132,16 @@ typename ModListSource::PagePromise ModListSource::loadPage(size_t page, bool up
             .pageSize = PER_PAGE,
         })
             .then([page, this, resolve, reject](auto data) {
-                if (data.second == 0 || data.first.empty()) {
+                if (data.totalModCount == 0 || data.mods.empty()) {
                     return reject(ModListSource::LoadPageError("No mods found :("));
                 }
-                m_cachedItemCount = data.second;
-                m_cachedPages.insert({ page, data.first });
-                resolve(data.first);
+                auto pageData = Page();
+                for (auto mod : std::move(data.mods)) {
+                    pageData.push_back(ModItem::create(std::move(mod)));
+                }
+                m_cachedItemCount = data.totalModCount;
+                m_cachedPages.insert({ page, pageData });
+                resolve(pageData);
             })
             .expect([this, reject = reject](auto error) {
                 reject(error);

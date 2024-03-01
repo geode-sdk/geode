@@ -2,12 +2,13 @@
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 #include "GeodeStyle.hpp"
+#include "ModPopup.hpp"
 
-bool BaseModItem::init() {
+bool ModItem::init(ModSource&& source) {
     if (!CCNode::init())
         return false;
     
-    auto meta = this->getMetadata();
+    m_source = std::move(source);
 
     m_bg = CCScale9Sprite::create("square02b_small.png");
     m_bg->setOpacity(0);
@@ -16,7 +17,7 @@ bool BaseModItem::init() {
     m_bg->setScale(.7f);
     this->addChild(m_bg);
 
-    m_logo = this->createModLogo();
+    m_logo = m_source.createModLogo();
     this->addChild(m_logo);
 
     m_infoContainer = CCNode::create();
@@ -38,7 +39,7 @@ bool BaseModItem::init() {
             ->setAxisAlignment(AxisAlignment::Start)
     );
 
-    m_titleLabel = CCLabelBMFont::create(meta.getName().c_str(), "bigFont.fnt");
+    m_titleLabel = CCLabelBMFont::create(m_source.getMetadata().getName().c_str(), "bigFont.fnt");
     m_titleLabel->setAnchorPoint({ .0f, .5f });
     m_titleLabel->setLayoutOptions(
         AxisLayoutOptions::create()
@@ -52,7 +53,7 @@ bool BaseModItem::init() {
     m_developers->ignoreAnchorPointForPosition(false);
     m_developers->setAnchorPoint({ .0f, .5f });
 
-    auto by = "By " + ModMetadata::formatDeveloperDisplayString(this->getMetadata().getDevelopers());
+    auto by = "By " + ModMetadata::formatDeveloperDisplayString(m_source.getMetadata().getDevelopers());
     m_developerLabel = CCLabelBMFont::create(by.c_str(), "goldFont.fnt");
     auto developersBtn = CCMenuItemSpriteExtra::create(
         m_developerLabel, this, nullptr
@@ -83,7 +84,8 @@ bool BaseModItem::init() {
     m_viewMenu->setScale(.55f);
     
     auto viewBtn = CCMenuItemSpriteExtra::create(
-        createGeodeButton("View"), this, nullptr
+        createGeodeButton("View"),
+        this, menu_selector(ModItem::onView)
     );
     m_viewMenu->addChild(viewBtn);
 
@@ -95,19 +97,64 @@ bool BaseModItem::init() {
     );
     this->addChildAtPosition(m_viewMenu, Anchor::Right, ccp(-10, 0));
 
+    // Handle source-specific stuff
+    m_source.visit(makeVisitor {
+        [this](Mod* mod) {
+            // Add an enable button if the mod is enablable
+            if (!mod->isInternal()) {
+                m_enableToggle = CCMenuItemToggler::createWithStandardSprites(
+                    this, menu_selector(ModItem::onEnable), 1.f
+                );
+                // Manually handle toggle state
+                m_enableToggle->m_notClickable = true;
+                m_viewMenu->addChild(m_enableToggle);
+                m_viewMenu->updateLayout();
+            }
+        },
+        [this](server::ServerModMetadata const& metadata) {
+            if (metadata.featured) {
+                m_checkmark = CCScale9Sprite::createWithSpriteFrameName("GJ_colorBtn_001.png");
+                m_checkmark->setContentSize({ 50, 38 });
+                m_checkmark->setColor({ 255, 255, 120 });
+                m_checkmark->setOpacity(45);
+
+                auto tick = CCSprite::createWithSpriteFrameName("GJ_starsIcon_001.png");
+                m_checkmark->addChildAtPosition(tick, Anchor::Center);
+
+                m_titleContainer->addChild(m_checkmark);
+            }
+        },
+    });
+
+    this->updateState();
+
     return true;
 }
 
-void BaseModItem::updateState() {
-    auto wantsRestart = this->wantsRestart();
+void ModItem::updateState() {
+    auto wantsRestart = m_source.wantsRestart();
     m_restartRequiredLabel->setVisible(wantsRestart);
     m_developers->setVisible(!wantsRestart);
     m_infoContainer->updateLayout();
 
-    // Set default color to BG to start off with 
+    // Set default colors based on source to start off with 
     // (possibly overriding later based on state)
-    m_bg->setColor(to3B(m_defaultBG));
-    m_bg->setOpacity(m_defaultBG.a);
+    m_source.visit(makeVisitor {
+        [this](Mod* mod) {
+            m_bg->setColor({ 255, 255, 255 });
+            m_bg->setOpacity(mod->isOrWillBeEnabled() ? 25 : 10);
+            m_titleLabel->setOpacity(mod->isOrWillBeEnabled() ? 255 : 155);
+            m_developerLabel->setOpacity(mod->isOrWillBeEnabled() ? 255 : 155);
+        },
+        [this](server::ServerModMetadata const& metadata) {
+            m_bg->setColor({ 255, 255, 255 });
+            m_bg->setOpacity(25);
+            if (metadata.featured && m_checkmark) {
+                m_bg->setColor(m_checkmark->getColor());
+                m_bg->setOpacity(40);
+            }
+        },
+    });
 
     // Highlight item via BG if it wants to restart for extra UI attention
     if (wantsRestart) {
@@ -119,9 +166,14 @@ void BaseModItem::updateState() {
     if (m_updateParentState) {
         m_updateParentState();
     }
+
+    // Update enable toggle state
+    if (m_enableToggle && m_source.asMod()) {
+        m_enableToggle->toggle(m_source.asMod()->isOrWillBeEnabled());
+    }
 }
 
-void BaseModItem::updateSize(float width, bool big) {
+void ModItem::updateSize(float width, bool big) {
     this->setContentSize({ width, big ? 40.f : 30.f });
 
     m_bg->setContentSize((m_obContentSize - ccp(6, 0)) / m_bg->getScale());
@@ -154,135 +206,37 @@ void BaseModItem::updateSize(float width, bool big) {
     this->updateLayout();
 }
 
-void BaseModItem::onUpdateParentState(MiniFunction<void()> listener) {
+void ModItem::onUpdateParentState(MiniFunction<void()> listener) {
     m_updateParentState = listener;
 }
 
-bool InstalledModItem::init(Mod* mod) {
-    m_mod = mod;
-
-    if (!BaseModItem::init())
-        return false;
-    
-    // Add an enable button if the mod is enablable
-    if (!mod->isInternal()) {
-        m_enableToggle = CCMenuItemToggler::createWithStandardSprites(
-            this, menu_selector(InstalledModItem::onEnable), 1.f
-        );
-        // Manually handle toggle state
-        m_enableToggle->m_notClickable = true;
-        m_viewMenu->addChild(m_enableToggle);
-        m_viewMenu->updateLayout();
+ModItem* ModItem::create(ModSource&& source) {
+    auto ret = new ModItem();
+    if (ret && ret->init(std::move(source))) {
+        ret->autorelease();
+        return ret;
     }
-
-    this->updateState();
-    
-    return true;
+    CC_SAFE_DELETE(ret);
+    return nullptr;
 }
 
-void InstalledModItem::updateState() {
-    m_defaultBG.a = m_mod->isOrWillBeEnabled() ? 25 : 10;
-    m_titleLabel->setOpacity(m_mod->isOrWillBeEnabled() ? 255 : 155);
-    m_developerLabel->setOpacity(m_mod->isOrWillBeEnabled() ? 255 : 155);
-
-    BaseModItem::updateState();
-
-    // Update enable toggle state
-    if (m_enableToggle) {
-        m_enableToggle->toggle(m_mod->isOrWillBeEnabled());
-    }
+void ModItem::onView(CCObject*) {
+    ModPopup::create(ModSource(m_source))->show();
 }
 
-void InstalledModItem::onEnable(CCObject*) {
-    // Toggle the mod state
-    auto res = m_mod->isOrWillBeEnabled() ? m_mod->disable() : m_mod->enable();
-    if (!res) {
-        FLAlertLayer::create(
-            "Error Toggling Mod",
-            res.unwrapErr(),
-            "OK"
-        )->show();
+void ModItem::onEnable(CCObject*) {
+    if (auto mod = m_source.asMod()) {
+        // Toggle the mod state
+        auto res = mod->isOrWillBeEnabled() ? mod->disable() : mod->enable();
+        if (!res) {
+            FLAlertLayer::create(
+                "Error Toggling Mod",
+                res.unwrapErr(),
+                "OK"
+            )->show();
+        }
     }
 
     // Update whole state of the mod item
     this->updateState();
-}
-
-InstalledModItem* InstalledModItem::create(Mod* mod) {
-    auto ret = new InstalledModItem();
-    if (ret && ret->init(mod)) {
-        ret->autorelease();
-        return ret;
-    }
-    CC_SAFE_DELETE(ret);
-    return nullptr;
-}
-
-ModMetadata InstalledModItem::getMetadata() const {
-    return m_mod->getMetadata();
-}
-
-CCNode* InstalledModItem::createModLogo() const {
-    return geode::createModLogo(m_mod);
-}
-
-bool InstalledModItem::wantsRestart() const {
-    return m_mod->getRequestedAction() != ModRequestedAction::None;
-}
-
-bool ServerModItem::init(server::ServerModMetadata const& metadata) {
-    m_metadata = metadata;
-
-    if (!BaseModItem::init())
-        return false;
-    
-    if (metadata.featured) {
-        m_checkmark = CCScale9Sprite::createWithSpriteFrameName("GJ_colorBtn_001.png");
-        m_checkmark->setContentSize({ 50, 38 });
-        m_checkmark->setColor({ 255, 255, 120 });
-        m_checkmark->setOpacity(45);
-
-        auto tick = CCSprite::createWithSpriteFrameName("GJ_starsIcon_001.png");
-        m_checkmark->addChildAtPosition(tick, Anchor::Center);
-
-        m_titleContainer->addChild(m_checkmark);
-    }
-
-    this->updateState();
-    
-    return true;
-}
-
-void ServerModItem::updateState() {
-    BaseModItem::updateState();
-
-    // Update BG color unless we want to restart (more important color to show) 
-    // and if the mod is featured
-    if (!this->wantsRestart() && m_metadata.featured && m_checkmark) {
-        m_bg->setColor(m_checkmark->getColor());
-        m_bg->setOpacity(40);
-    }
-}
-
-ServerModItem* ServerModItem::create(server::ServerModMetadata const& metadata) {
-    auto ret = new ServerModItem();
-    if (ret && ret->init(metadata)) {
-        ret->autorelease();
-        return ret;
-    }
-    CC_SAFE_DELETE(ret);
-    return nullptr;
-}
-
-ModMetadata ServerModItem::getMetadata() const {
-    return m_metadata.versions.front().metadata;
-}
-
-CCNode* ServerModItem::createModLogo() const {
-    return createServerModLogo(m_metadata.id);
-}
-
-bool ServerModItem::wantsRestart() const {
-    // todo: request restart after install
-    return false;
 }

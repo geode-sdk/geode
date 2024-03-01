@@ -294,7 +294,7 @@ void ModList::updateSize(bool big) {
     // Update all BaseModItems that are children of the list
     // There may be non-BaseModItems there (like separators) so gotta be type-safe
     for (auto& node : CCArrayExt<CCNode*>(m_list->m_contentLayer->getChildren())) {
-        if (auto item = typeinfo_cast<BaseModItem*>(node)) {
+        if (auto item = typeinfo_cast<ModItem*>(node)) {
             item->updateSize(m_list->getContentWidth(), big);
         }
     }

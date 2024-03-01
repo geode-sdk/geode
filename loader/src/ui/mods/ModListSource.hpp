@@ -28,13 +28,17 @@ public:
         LoadPageError(auto msg, auto details) : message(msg), details(details) {}
     };
 
-    using Page = std::vector<Ref<BaseModItem>>;
+    using Page = std::vector<Ref<ModItem>>;
     using PageLoadEvent = PromiseEvent<Page, LoadPageError, std::optional<uint8_t>>;
     using PageLoadEventFilter = PromiseEventFilter<Page, LoadPageError, std::optional<uint8_t>>;
     using PageLoadEventListener = EventListener<PageLoadEventFilter>;
     using PagePromise = Promise<Page, LoadPageError, std::optional<uint8_t>>;
 
-    using ProviderPromise = Promise<std::pair<Page, size_t>, LoadPageError, std::optional<uint8_t>>;
+    struct ProvidedMods {
+        std::vector<ModSource> mods;
+        size_t totalModCount;
+    };
+    using ProviderPromise = Promise<ProvidedMods, LoadPageError, std::optional<uint8_t>>;
 
     struct Provider {
         ProviderPromise(*get)(server::ModsQuery&& query) = nullptr;
