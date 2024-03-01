@@ -92,37 +92,10 @@ bool ModsLayer::init() {
         { "GJ_sTrendingIcon_001.png", "Trending", ModListSourceType::Trending },
         { "gj_folderBtn_001.png", "Mod Packs", ModListSourceType::ModPacks },
     }) {
-        const CCSize itemSize { 100, 35 };
-        const CCSize iconSize { 18, 18 };
-
-        auto spr = CCNode::create();
-        spr->setContentSize(itemSize);
-        spr->setAnchorPoint({ .5f, .5f });
-
-        auto disabledBG = CCScale9Sprite::createWithSpriteFrameName("tab-bg.png"_spr);
-        disabledBG->setScale(.8f);
-        disabledBG->setContentSize(itemSize / .8f);
-        disabledBG->setID("disabled-bg");
-        disabledBG->setColor({ 26, 24, 29 });
-        spr->addChildAtPosition(disabledBG, Anchor::Center);
-
-        auto enabledBG = CCScale9Sprite::createWithSpriteFrameName("tab-bg.png"_spr);
-        enabledBG->setScale(.8f);
-        enabledBG->setContentSize(itemSize / .8f);
-        enabledBG->setID("enabled-bg");
-        enabledBG->setColor({ 168, 147, 185 });
-        spr->addChildAtPosition(enabledBG, Anchor::Center);
-
-        auto icon = CCSprite::createWithSpriteFrameName(std::get<0>(item));
-        limitNodeSize(icon, iconSize, 3.f, .1f);
-        spr->addChildAtPosition(icon, Anchor::Left, ccp(16, 0), false);
-
-        auto title = CCLabelBMFont::create(std::get<1>(item), "bigFont.fnt");
-        title->limitLabelWidth(spr->getContentWidth() - 34, .55f, .1f);
-        title->setAnchorPoint({ .0f, .5f });
-        spr->addChildAtPosition(title, Anchor::Left, ccp(28, 0), false);
-
-        auto btn = CCMenuItemSpriteExtra::create(spr, this, menu_selector(ModsLayer::onTab));
+        auto btn = CCMenuItemSpriteExtra::create(
+            GeodeTabSprite::create(std::get<0>(item), std::get<1>(item), 100),
+            this, menu_selector(ModsLayer::onTab)
+        );
         btn->setTag(static_cast<int>(std::get<2>(item)));
         mainTabs->addChild(btn);
         m_tabs.push_back(btn);
@@ -203,8 +176,7 @@ void ModsLayer::gotoTab(ModListSourceType type) {
     // Update selected tab
     for (auto tab : m_tabs) {
         auto selected = tab->getTag() == static_cast<int>(type);
-        tab->getNormalImage()->getChildByID("disabled-bg")->setVisible(!selected);
-        tab->getNormalImage()->getChildByID("enabled-bg")->setVisible(selected);
+        static_cast<GeodeTabSprite*>(tab->getNormalImage())->select(selected);
         tab->setEnabled(!selected);
     }
 

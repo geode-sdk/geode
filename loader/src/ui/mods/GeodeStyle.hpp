@@ -18,12 +18,20 @@ public:
     static GeodeSquareSprite* createWithSpriteFrameName(const char* top, bool* state = nullptr);
 };
 
-ButtonSprite* createGeodeButton(std::string const& text);
+ButtonSprite* createGeodeButton(std::string const& text, std::string const& bg = "GE_button_05.png"_spr);
 
-class GeodeButtonSprite : public ButtonSprite {
+class GeodeTabSprite : public CCNode {
 protected:
-    bool init(std::string const& text);
+    CCScale9Sprite* m_deselectedBG;
+    CCScale9Sprite* m_selectedBG;
+    CCSprite* m_icon;
+    CCLabelBMFont* m_label;
+
+    bool init(const char* iconFrame, const char* text, float width);
 
 public:
-    static GeodeButtonSprite* create(std::string const& text);
+    static GeodeTabSprite* create(const char* iconFrame, const char* text, float width);
+
+    void select(bool selected);
+    void disable(bool disabled);
 };
