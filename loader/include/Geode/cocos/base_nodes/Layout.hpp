@@ -95,23 +95,24 @@ constexpr int AXISLAYOUT_DEFAULT_PRIORITY = 0;
  */
 class GEODE_DLL AxisLayoutOptions : public LayoutOptions {
 protected:
-    std::optional<bool> m_autoScale = std::nullopt;
-    float m_maxScale = 1.f;
-    float m_minScale = AXISLAYOUT_DEFAULT_MIN_SCALE;
-    float m_relativeScale = 1.f;
-    std::optional<float> m_length = std::nullopt;
-    std::optional<float> m_nextGap = std::nullopt;
-    std::optional<float> m_prevGap = std::nullopt;
-    bool m_breakLine = false;
-    bool m_sameLine = false;
-    int m_scalePriority = AXISLAYOUT_DEFAULT_PRIORITY;
+    class Impl;
+
+    std::unique_ptr<Impl> m_impl;
+
+    AxisLayoutOptions();
 
 public:
     static AxisLayoutOptions* create();
 
+    virtual ~AxisLayoutOptions();
+
     std::optional<bool> getAutoScale() const;
+    // @note Use hasExplicitMaxScale to know if the default scale has been overwritten
     float getMaxScale() const;
+    // @note Use hasExplicitMinScale to know if the default scale has been overwritten
     float getMinScale() const;
+    bool hasExplicitMaxScale() const;
+    bool hasExplicitMinScale() const;
     float getRelativeScale() const;
     std::optional<float> getLength() const;
     std::optional<float> getPrevGap() const;
@@ -124,13 +125,21 @@ public:
      * Set the maximum scale this node can be if it's contained in an 
      * auto-scaled layout. Default is 1
      */
+    [[deprecated("Use AxisLayoutOptions::setScaleLimits")]]
     AxisLayoutOptions* setMaxScale(float scale);
 
     /**
      * Set the minimum scale this node can be if it's contained in an 
      * auto-scaled layout. Default is AXISLAYOUT_DEFAULT_MIN_SCALE
      */
+    [[deprecated("Use AxisLayoutOptions::setScaleLimits")]]
     AxisLayoutOptions* setMinScale(float scale);
+
+    /**
+     * Set the limits to what the node can be scaled to. Passing `std::nullopt` 
+     * uses the parent layout's default min / max scales
+     */
+    AxisLayoutOptions* setScaleLimits(std::optional<float> min, std::optional<float> max);
 
     /**
      * Set the relative scale of this node compared to other nodes if it's 
@@ -214,43 +223,9 @@ public:
  */
 class GEODE_DLL AxisLayout : public Layout {
 protected:
-    Axis m_axis;
-    AxisAlignment m_axisAlignment = AxisAlignment::Center;
-    AxisAlignment m_crossAlignment = AxisAlignment::Center;
-    AxisAlignment m_crossLineAlignment = AxisAlignment::Center;
-    float m_gap = 5.f;
-    bool m_autoScale = true;
-    bool m_axisReverse = false;
-    bool m_crossReverse = false;
-    bool m_allowCrossAxisOverflow = true;
-    bool m_growCrossAxis = false;
-    std::optional<float> m_autoGrowAxisMinLength;
+    class Impl;
 
-    struct Row;
-    
-    float minScaleForPrio(CCArray* nodes, int prio) const;
-    float maxScaleForPrio(CCArray* nodes, int prio) const;
-    bool shouldAutoScale(AxisLayoutOptions const* opts) const;
-    bool canTryScalingDown(
-        CCArray* nodes,
-        int& prio, float& scale,
-        float crossScaleDownFactor,
-        std::pair<int, int> const& minMaxPrios
-    ) const;
-    float nextGap(AxisLayoutOptions const* now, AxisLayoutOptions const* next) const;
-    Row* fitInRow(
-        CCNode* on, CCArray* nodes,
-        std::pair<int, int> const& minMaxPrios,
-        bool doAutoScale,
-        float scale, float squish, int prio
-    ) const;
-    void tryFitLayout(
-        CCNode* on, CCArray* nodes,
-        std::pair<int, int> const& minMaxPrios,
-        bool doAutoScale,
-        float scale, float squish, int prio,
-        size_t depth
-    ) const;
+    std::unique_ptr<Impl> m_impl;
 
     AxisLayout(Axis);
 
@@ -267,6 +242,8 @@ public:
      */
     static AxisLayout* create(Axis axis = Axis::Row);
 
+    virtual ~AxisLayout();
+
     void apply(CCNode* on) override;
     CCSize getSizeHint(CCNode* on) const override;
 
@@ -281,6 +258,8 @@ public:
     bool getGrowCrossAxis() const;
     bool getCrossAxisOverflow() const;
     std::optional<float> getAutoGrowAxis() const;
+    float getDefaultMinScale() const;
+    float getDefaultMaxScale() const;
 
     AxisLayout* setAxis(Axis axis);
     /**
@@ -333,6 +312,10 @@ public:
      * Useful for scrollable list layer contents
      */
     AxisLayout* setAutoGrowAxis(std::optional<float> allowAndMinLength);
+    /**
+     * Set the default minimum/maximum scales for nodes in the layout
+     */
+    AxisLayout* setDefaultScaleLimits(float min, float max);
 };
 
 /**
