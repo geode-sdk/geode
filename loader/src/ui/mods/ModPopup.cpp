@@ -66,10 +66,11 @@ bool ModPopup::setup(ModSource&& src) {
         { "GJ_downloadsIcon_001.png", "Downloads", "downloads", std::nullopt },
         { "GJ_timeIcon_001.png", "Released", "release-date", std::nullopt },
         { "GJ_timeIcon_001.png", "Updated", "update-date", std::nullopt },
-        { "version.png"_spr, "Version", "version", src.getMetadata().getVersion().toString() },
+        { "version.png"_spr, "Version", "version", m_source.getMetadata().getVersion().toString() },
     }) {
         auto container = CCNode::create();
         container->setContentSize({ m_stats->getContentWidth(), 10 });
+        container->setID(std::get<2>(stat));
 
         auto iconSize = container->getContentHeight();
         auto icon = CCSprite::createWithSpriteFrameName(std::get<0>(stat));
@@ -189,14 +190,22 @@ void ModPopup::setStatValue(CCNode* stat, std::string const& value) {
 
 void ModPopup::onLoadServerInfo(PromiseEvent<server::ServerModMetadata, server::ServerError>* event) {
     if (auto data = event->getResolve()) {
+        auto timeToString = [](auto const& time) {
+            if (time.has_value()) {
+                return time.value().toAgoString();
+            }
+            return std::string("N/A");
+        };
+
         for (auto id : std::initializer_list<std::pair<const char*, std::string>> {
             { "downloads", std::to_string(data->downloadCount) },
-            { "release-date", "todo" },
-            { "update-date", "todo" },
+            { "release-date", timeToString(data->createdAt) },
+            { "update-date", timeToString(data->updatedAt) },
         }) {
-            auto stat = m_stats->getChildByID(id.first);
-            stat->removeChildByID("loading-spinner");
-            this->setStatValue(stat, id.second);
+            if (auto stat = m_stats->getChildByID(id.first)) {
+                stat->removeChildByID("loading-spinner");
+                this->setStatValue(stat, id.second);
+            }
         }
     }
     else if (auto err = event->getReject()) {

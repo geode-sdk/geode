@@ -1,6 +1,7 @@
 #include "Server.hpp"
 #include <Geode/utils/JsonValidation.hpp>
 #include <loader/ModMetadataImpl.hpp>
+#include <fmt/chrono.h>
 
 using namespace server;
 
@@ -73,6 +74,41 @@ const char* server::sortToString(ModsSort sorting) {
         case ModsSort::RecentlyUpdated: return "recently_updated";
         case ModsSort::RecentlyPublished: return "recently_published";
     }
+}
+
+std::string ServerDateTime::toAgoString() const {
+    auto const fmtPlural = [](auto count, auto unit) {
+        if (count == 1) {
+            return fmt::format("{} {} ago", count, unit);
+        }
+        return fmt::format("{} {}s ago", count, unit);
+    };
+    auto now = Clock::now();
+    auto len = std::chrono::duration_cast<std::chrono::minutes>(now - value).count();
+    if (len < 60) {
+        return fmtPlural(len, "minute");
+    }
+    len = std::chrono::duration_cast<std::chrono::hours>(now - value).count();
+    if (len < 24) {
+        return fmtPlural(len, "hour");
+    }
+    len = std::chrono::duration_cast<std::chrono::days>(now - value).count();
+    if (len < 31) {
+        return fmtPlural(len, "day");
+    }
+    // todo: will our pissbaby american users beg us to add an option for their stupid ass incorrect date format    
+    return fmt::format("{:&d.%m.&Y}", value);
+}
+
+Result<ServerDateTime> ServerDateTime::parse(std::string const& str) {
+    std::stringstream ss(str);
+    Value value;
+    if (std::chrono::from_stream(ss, "%FT%TZ", value)) {
+        return Ok(ServerDateTime {
+            .value = value,
+        });
+    }
+    return Err("Invalid date time format '{}'", str);
 }
 
 Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
@@ -167,6 +203,12 @@ Result<ServerModMetadata> ServerModMetadata::parse(matjson::Value const& raw) {
     root.needs("download_count").into(res.downloadCount);
     root.has("about").into(res.about);
     root.has("changelog").into(res.changelog);
+    if (root.has("created_at")) {
+        GEODE_UNWRAP_INTO(res.createdAt, ServerDateTime::parse(root.has("created_at").template get<std::string>()));
+    }
+    if (root.has("updated_at")) {
+        GEODE_UNWRAP_INTO(res.updatedAt, ServerDateTime::parse(root.has("updated_at").template get<std::string>()));
+    }
 
     std::vector<std::string> developerNames;
     for (auto item : root.needs("developers").iterate()) {

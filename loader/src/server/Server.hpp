@@ -7,6 +7,17 @@
 using namespace geode::prelude;
 
 namespace server {
+    struct ServerDateTime final {
+        using Clock = std::chrono::system_clock;
+        using Value = std::chrono::time_point<Clock>;
+
+        Value value;
+
+        std::string toAgoString() const;
+
+        static Result<ServerDateTime> parse(std::string const& str);
+    };
+
     struct ServerDeveloper {
         std::string username;
         std::string displayName;
@@ -30,6 +41,8 @@ namespace server {
         std::unordered_set<std::string> tags;
         std::optional<std::string> about;
         std::optional<std::string> changelog;
+        std::optional<ServerDateTime> createdAt;
+        std::optional<ServerDateTime> updatedAt;
 
         static Result<ServerModMetadata> parse(matjson::Value const& json);
     };
