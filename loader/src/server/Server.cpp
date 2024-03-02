@@ -96,8 +96,7 @@ std::string ServerDateTime::toAgoString() const {
     if (len < 31) {
         return fmtPlural(len, "day");
     }
-    // todo: will our pissbaby american users beg us to add an option for their stupid ass incorrect date format    
-    return fmt::format("{:&d.%m.&Y}", value);
+    return fmt::format("{:%b %d %Y}", value);
 }
 
 Result<ServerDateTime> ServerDateTime::parse(std::string const& str) {
