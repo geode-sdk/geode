@@ -14,51 +14,139 @@ bool ModPopup::setup(ModSource&& src) {
     m_source = std::move(src);
     m_noElasticity = true;
 
-    const CCSize titleSize { 230, 50 };
-    const float titlePad = 10;
+    auto mainContainer = CCNode::create();
+    mainContainer->setContentSize(m_mainLayer->getContentSize() - ccp(20, 20));
+    mainContainer->setAnchorPoint({ .5f, .5f });
+    mainContainer->setLayout(
+        RowLayout::create()
+            ->setGap(7.5f)
+            ->setCrossAxisLineAlignment(AxisAlignment::Start)
+    );
+
+    auto leftColumn = CCNode::create();
+    leftColumn->setContentSize({ 125, mainContainer->getContentHeight() - 30 });
 
     auto titleContainer = CCNode::create();
-    titleContainer->setContentSize(titleSize);
-    titleContainer->setAnchorPoint({ 0, 1 });
-    titleContainer->setScale(.6f);
+    titleContainer->setContentSize({ leftColumn->getContentWidth(), 25 });
+    titleContainer->setAnchorPoint({ .5f, .5f });
 
     auto logo = m_source.createModLogo();
-    limitNodeSize(logo, { titleSize.height, titleSize.height }, 5.f, .1f);
-    titleContainer->addChildAtPosition(logo, Anchor::Left, ccp(titleSize.height / 2, 0));
+    limitNodeSize(
+        logo,
+        ccp(titleContainer->getContentHeight(), titleContainer->getContentHeight()),
+        5.f, .1f
+    );
+    titleContainer->addChildAtPosition(
+        logo, Anchor::Left, ccp(titleContainer->getContentHeight() / 2, 0)
+    );
+
+    // Lil padding
+    auto devAndTitlePos = titleContainer->getContentHeight() + 5;
 
     auto title = CCLabelBMFont::create(m_source.getMetadata().getName().c_str(), "bigFont.fnt");
-    title->limitLabelWidth(titleSize.width - titleSize.height - titlePad, 1.f, .1f);
+    title->limitLabelWidth(titleContainer->getContentWidth() - devAndTitlePos, .6f, .1f);
     title->setAnchorPoint({ .0f, .5f });
-    titleContainer->addChildAtPosition(title, Anchor::TopLeft, ccp(titleSize.height + titlePad, -titleSize.height * .25f));
+    titleContainer->addChildAtPosition(title, Anchor::TopLeft, ccp(devAndTitlePos, -titleContainer->getContentHeight() * .25f));
 
     auto by = "By " + ModMetadata::formatDeveloperDisplayString(m_source.getMetadata().getDevelopers());
     auto dev = CCLabelBMFont::create(by.c_str(), "goldFont.fnt");
-    dev->limitLabelWidth(titleSize.width - titleSize.height - titlePad, .75f, .1f);
+    dev->limitLabelWidth(titleContainer->getContentWidth() - devAndTitlePos, .45f, .05f);
     dev->setAnchorPoint({ .0f, .5f });
-    titleContainer->addChildAtPosition(dev, Anchor::BottomLeft, ccp(titleSize.height + titlePad, titleSize.height * .25f));
+    titleContainer->addChildAtPosition(dev, Anchor::BottomLeft, ccp(devAndTitlePos, titleContainer->getContentHeight() * .25f));
 
-    m_mainLayer->addChildAtPosition(titleContainer, Anchor::TopLeft, ccp(20, -35));
+    leftColumn->addChild(titleContainer);
+
+    auto statsContainer = CCNode::create();
+    statsContainer->setContentSize({ leftColumn->getContentWidth(), 70 });
+    statsContainer->setAnchorPoint({ .5f, .5f });
 
     auto statsBG = CCScale9Sprite::create("square02b_001.png");
     statsBG->setColor({ 0, 0, 0 });
     statsBG->setOpacity(90);
-    statsBG->setAnchorPoint({ 0, 0 });
-    statsBG->setContentSize({ 120, 130 });
-    m_mainLayer->addChildAtPosition(statsBG, Anchor::BottomLeft, ccp(30, 30));
+    statsBG->setScale(.6f);
+    statsBG->setContentSize(statsContainer->getContentSize() / statsBG->getScale());
+    statsContainer->addChildAtPosition(statsBG, Anchor::Center);
 
-    auto tabsSize = CCSize { 250, 250 };
+    auto statsLayout = CCNode::create();
+    statsLayout->setContentSize(statsContainer->getContentSize() - ccp(10, 10));
+    statsLayout->setAnchorPoint({ .5f, .5f });
+
+    for (auto stat : std::initializer_list<std::tuple<const char*, const char*, std::string>> {
+        { "GJ_downloadsIcon_001.png", "Downloads", "TODO" },
+        { "GJ_timeIcon_001.png", "Released", "TODO" },
+        { "GJ_timeIcon_001.png", "Updated", "TODO" },
+        { "version.png"_spr, "Version", src.getMetadata().getVersion().toString() },
+    }) {
+        auto container = CCNode::create();
+        container->setContentSize({ statsLayout->getContentWidth(), 10 });
+
+        auto iconSize = container->getContentHeight();
+        auto icon = CCSprite::createWithSpriteFrameName(std::get<0>(stat));
+        limitNodeSize(icon, { iconSize, iconSize }, 1.f, .1f);
+        container->addChildAtPosition(icon, Anchor::Left, ccp(container->getContentHeight() / 2, 0));
+
+        auto title = CCLabelBMFont::create(std::get<1>(stat), "bigFont.fnt");
+        title->setAnchorPoint({ .0f, .5f });
+        limitNodeSize(
+            title,
+            {
+                container->getContentWidth() / 2 - container->getContentHeight() - 5,
+                container->getContentHeight()
+            },
+            .3f, .1f
+        );
+        container->addChildAtPosition(title, Anchor::Left, ccp(container->getContentHeight() + 5, 0));
+
+        auto value = CCLabelBMFont::create(std::get<2>(stat).c_str(), "bigFont.fnt");
+        value->setAnchorPoint({ 1.f, .5f });
+        limitNodeSize(
+            value,
+            {
+                container->getContentWidth() / 2.5f,
+                container->getContentHeight()
+            },
+            .3f, .1f
+        );
+        container->addChildAtPosition(value, Anchor::Right);
+
+        statsLayout->addChild(container);
+    }
+
+    statsLayout->setLayout(
+        ColumnLayout::create()
+            ->setAxisReverse(true)
+            ->setDefaultScaleLimits(.1f, 1)
+    );
+    statsContainer->addChildAtPosition(statsLayout, Anchor::Center);
+
+    leftColumn->addChild(statsContainer);
+
+    leftColumn->addChild(SpacerNode::create());
+
+    leftColumn->setLayout(
+        ColumnLayout::create()
+            ->setAxisReverse(true)
+            ->setCrossAxisOverflow(false)
+            ->setDefaultScaleLimits(.1f, 1)
+    );
+    mainContainer->addChild(leftColumn);
+
     auto tabsContainer = CCNode::create();
-    tabsContainer->setContentSize(tabsSize);
-    tabsContainer->setAnchorPoint({ 1.f, .5f });
+    tabsContainer->setContentSize({
+        // The -5 is to give a little bit of padding
+        mainContainer->getContentWidth() - leftColumn->getContentWidth() - 
+            static_cast<AxisLayout*>(mainContainer->getLayout())->getGap(),
+        mainContainer->getContentHeight()
+    });
 
-    m_mdArea = MDTextArea::create("", (tabsSize - ccp(0, 30)));
+    m_mdArea = MDTextArea::create("", (tabsContainer->getContentSize() - ccp(0, 30)));
     m_mdArea->setAnchorPoint({ .5f, .0f });
     tabsContainer->addChildAtPosition(m_mdArea, Anchor::Bottom);
 
     m_tabsMenu = CCMenu::create();
     m_tabsMenu->ignoreAnchorPointForPosition(false);
     m_tabsMenu->setScale(.65f);
-    m_tabsMenu->setContentWidth(m_mdArea->getScaledContentSize().width / m_tabsMenu->getScale());
+    m_tabsMenu->setContentWidth(m_mdArea->getScaledContentWidth() / m_tabsMenu->getScale());
     m_tabsMenu->setAnchorPoint({ .5f, 1.f });
 
     for (auto mdTab : std::initializer_list<std::tuple<const char*, const char*, ModMarkdownData>> {
@@ -82,7 +170,10 @@ bool ModPopup::setup(ModSource&& src) {
     m_tabsMenu->setLayout(RowLayout::create());
     tabsContainer->addChildAtPosition(m_tabsMenu, Anchor::Top);
 
-    m_mainLayer->addChildAtPosition(tabsContainer, Anchor::Right, ccp(-20, 0));
+    mainContainer->addChildAtPosition(tabsContainer, Anchor::Right, ccp(-20, 0));
+
+    mainContainer->updateLayout();
+    m_mainLayer->addChildAtPosition(mainContainer, Anchor::Center);
 
     // Select details tab
     this->onMDTab(m_tabsMenu->getChildren()->firstObject());

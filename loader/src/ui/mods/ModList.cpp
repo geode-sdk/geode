@@ -21,7 +21,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
             ->setAutoGrowAxis(size.height)
             ->setGap(2.5f)
     );
-    this->addChildAtPosition(m_list, Anchor::Bottom, ccp(-m_list->getScaledContentSize().width / 2, 0));
+    this->addChildAtPosition(m_list, Anchor::Bottom, ccp(-m_list->getScaledContentWidth() / 2, 0));
 
     m_searchMenu = CCNode::create();
     m_searchMenu->ignoreAnchorPointForPosition(false);
@@ -65,7 +65,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_searchMenu->addChildAtPosition(m_searchInput, Anchor::Left, ccp(7.5f, 0));
 
     auto searchFiltersMenu = CCMenu::create();
-    searchFiltersMenu->setContentWidth(size.width - m_searchInput->getScaledContentSize().width - 10);
+    searchFiltersMenu->setContentWidth(size.width - m_searchInput->getScaledContentWidth() - 10);
     searchFiltersMenu->setAnchorPoint({ 1, .5f });
     searchFiltersMenu->setScale(.75f);
 
