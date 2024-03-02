@@ -179,7 +179,7 @@ void ModPopup::setStatValue(CCNode* stat, std::string const& value) {
     limitNodeSize(
         valueLabel,
         {
-            stat->getContentWidth() / 2.2f,
+            stat->getContentWidth() / 2.5f,
             stat->getContentHeight()
         },
         .3f, .1f
