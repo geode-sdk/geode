@@ -116,6 +116,7 @@ bool ModPopup::setup(ModSource&& src) {
         ColumnLayout::create()
             ->setAxisReverse(true)
             ->setDefaultScaleLimits(.1f, 1)
+            ->setAxisAlignment(AxisAlignment::Even)
     );
     statsContainer->addChildAtPosition(statsLayout, Anchor::Center);
 
