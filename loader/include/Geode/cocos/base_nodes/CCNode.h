@@ -1054,10 +1054,23 @@ public:
      */
     GEODE_DLL void swapChildIndices(CCNode* first, CCNode* second);
 
+    /**
+     * @note Make sure to set the scale first!
+     * @note Geode addition
+     */
+    GEODE_DLL void setScaledContentSize(CCSize const& size);
+    // @note Geode addition
     GEODE_DLL void setContentWidth(float width);
+    // @note Geode addition
     GEODE_DLL void setContentHeight(float width);
+    // @note Geode addition
     GEODE_DLL float getContentWidth() const;
+    // @note Geode addition
     GEODE_DLL float getContentHeight() const;
+    // @note Geode addition
+    GEODE_DLL float getScaledContentWidth() const;
+    // @note Geode addition
+    GEODE_DLL float getScaledContentHeight() const;
 
     template <class Filter, class... Args>
     geode::EventListenerProtocol* addEventListener(
