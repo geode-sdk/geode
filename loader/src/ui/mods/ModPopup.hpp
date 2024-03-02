@@ -3,25 +3,27 @@
 #include <Geode/ui/Popup.hpp>
 #include <Geode/ui/MDTextArea.hpp>
 #include "ModSource.hpp"
+#include "GeodeStyle.hpp"
 
 using namespace geode::prelude;
 
-enum class ModMarkdownData {
-    Details,
-    Changelog,
-};
-
-std::optional<std::string> getModMarkdownData(ModSource const& src, ModMarkdownData data);
-
 class ModPopup : public Popup<ModSource&&> {
 protected:
+    enum class Tab {
+        Details,
+        Changelog,
+        Versions,
+    };
+
     ModSource m_source;
-    MDTextArea* m_mdArea;
-    CCMenu* m_tabsMenu;
+    CCNode* m_rightColumn;
+    CCNode* m_currentTabPage = nullptr;
+    std::unordered_map<Tab, std::pair<GeodeTabSprite*, Ref<CCNode>>> m_tabs;
 
     bool setup(ModSource&& src) override;
 
-    void onMDTab(CCObject* sender);
+    void loadTab(Tab tab);
+    void onTab(CCObject* sender);
 
 public:
     static ModPopup* create(ModSource&& src);

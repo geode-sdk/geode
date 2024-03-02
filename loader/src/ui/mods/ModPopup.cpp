@@ -1,14 +1,5 @@
 #include "ModPopup.hpp"
 #include <Geode/ui/MDTextArea.hpp>
-#include "GeodeStyle.hpp"
-
-std::optional<std::string> getModMarkdownData(ModSource const& src, ModMarkdownData data) {
-    switch (data) {
-        default: return std::nullopt;
-        case ModMarkdownData::Details: return src.getMetadata().getDetails().value_or("No description provided");
-        case ModMarkdownData::Changelog: return src.getMetadata().getChangelog();
-    }
-}
 
 bool ModPopup::setup(ModSource&& src) {
     m_source = std::move(src);
@@ -24,7 +15,7 @@ bool ModPopup::setup(ModSource&& src) {
     );
 
     auto leftColumn = CCNode::create();
-    leftColumn->setContentSize({ 125, mainContainer->getContentHeight() - 30 });
+    leftColumn->setContentSize({ 145, mainContainer->getContentHeight() - 30 });
 
     auto titleContainer = CCNode::create();
     titleContainer->setContentSize({ leftColumn->getContentWidth(), 25 });
@@ -71,11 +62,11 @@ bool ModPopup::setup(ModSource&& src) {
     statsLayout->setContentSize(statsContainer->getContentSize() - ccp(10, 10));
     statsLayout->setAnchorPoint({ .5f, .5f });
 
-    for (auto stat : std::initializer_list<std::tuple<const char*, const char*, std::string>> {
-        { "GJ_downloadsIcon_001.png", "Downloads", "TODO" },
-        { "GJ_timeIcon_001.png", "Released", "TODO" },
-        { "GJ_timeIcon_001.png", "Updated", "TODO" },
-        { "version.png"_spr, "Version", src.getMetadata().getVersion().toString() },
+    for (auto stat : std::initializer_list<std::tuple<const char*, const char*, std::string, ccColor3B>> {
+        { "GJ_downloadsIcon_001.png", "Downloads", "TODO", { 255, 255, 255 } },
+        { "GJ_timeIcon_001.png", "Released", "TODO", { 105, 155, 255 } },
+        { "GJ_timeIcon_001.png", "Updated", "TODO", { 105, 155, 255 } },
+        { "version.png"_spr, "Version", src.getMetadata().getVersion().toString(), { 105, 255, 155 } },
     }) {
         auto container = CCNode::create();
         container->setContentSize({ statsLayout->getContentWidth(), 10 });
@@ -99,10 +90,11 @@ bool ModPopup::setup(ModSource&& src) {
 
         auto value = CCLabelBMFont::create(std::get<2>(stat).c_str(), "bigFont.fnt");
         value->setAnchorPoint({ 1.f, .5f });
+        value->setColor(std::get<3>(stat));
         limitNodeSize(
             value,
             {
-                container->getContentWidth() / 2.5f,
+                container->getContentWidth() / 2.2f,
                 container->getContentHeight()
             },
             .3f, .1f
@@ -132,65 +124,94 @@ bool ModPopup::setup(ModSource&& src) {
     );
     mainContainer->addChild(leftColumn);
 
-    auto tabsContainer = CCNode::create();
-    tabsContainer->setContentSize({
+    m_rightColumn = CCNode::create();
+    m_rightColumn->setContentSize({
         // The -5 is to give a little bit of padding
         mainContainer->getContentWidth() - leftColumn->getContentWidth() - 
             static_cast<AxisLayout*>(mainContainer->getLayout())->getGap(),
         mainContainer->getContentHeight()
     });
 
-    m_mdArea = MDTextArea::create("", (tabsContainer->getContentSize() - ccp(0, 30)));
-    m_mdArea->setAnchorPoint({ .5f, .0f });
-    tabsContainer->addChildAtPosition(m_mdArea, Anchor::Bottom);
+    auto tabsMenu = CCMenu::create();
+    tabsMenu->ignoreAnchorPointForPosition(false);
+    tabsMenu->setScale(.65f);
+    tabsMenu->setContentWidth(m_rightColumn->getContentWidth() / tabsMenu->getScale());
+    tabsMenu->setAnchorPoint({ .5f, 1.f });
 
-    m_tabsMenu = CCMenu::create();
-    m_tabsMenu->ignoreAnchorPointForPosition(false);
-    m_tabsMenu->setScale(.65f);
-    m_tabsMenu->setContentWidth(m_mdArea->getScaledContentWidth() / m_tabsMenu->getScale());
-    m_tabsMenu->setAnchorPoint({ .5f, 1.f });
-
-    for (auto mdTab : std::initializer_list<std::tuple<const char*, const char*, ModMarkdownData>> {
-        { "GJ_chatBtn_02_001.png", "Description", ModMarkdownData::Details },
-        { "changelog.png"_spr, "Changelog", ModMarkdownData::Changelog },
+    for (auto mdTab : std::initializer_list<std::tuple<const char*, const char*, Tab>> {
+        { "message.png"_spr,   "Description", Tab::Details },
+        { "changelog.png"_spr, "Changelog",   Tab::Changelog },
+        { "version.png"_spr,   "Versions",    Tab::Versions },
     }) {
-        auto btn = CCMenuItemSpriteExtra::create(
-            GeodeTabSprite::create(std::get<0>(mdTab), std::get<1>(mdTab), 140),
-            this, menu_selector(ModPopup::onMDTab)
-        );
-        if (auto data = getModMarkdownData(m_source, std::get<2>(mdTab))) {
-            btn->setTag(static_cast<int>(std::get<2>(mdTab)));
-        }
-        else {
-            btn->setEnabled(false);
-            static_cast<GeodeTabSprite*>(btn->getNormalImage())->disable(true);
-        }
-        m_tabsMenu->addChild(btn);
+        auto spr = GeodeTabSprite::create(std::get<0>(mdTab), std::get<1>(mdTab), 140);
+        auto btn = CCMenuItemSpriteExtra::create(spr, this, menu_selector(ModPopup::onTab));
+        btn->setTag(static_cast<int>(std::get<2>(mdTab)));
+        tabsMenu->addChild(btn);
+        m_tabs.insert({ std::get<2>(mdTab), { spr, nullptr } });
     }
 
-    m_tabsMenu->setLayout(RowLayout::create());
-    tabsContainer->addChildAtPosition(m_tabsMenu, Anchor::Top);
+    tabsMenu->setLayout(RowLayout::create());
+    m_rightColumn->addChildAtPosition(tabsMenu, Anchor::Top);
 
-    mainContainer->addChildAtPosition(tabsContainer, Anchor::Right, ccp(-20, 0));
+    mainContainer->addChildAtPosition(m_rightColumn, Anchor::Right, ccp(-20, 0));
 
     mainContainer->updateLayout();
     m_mainLayer->addChildAtPosition(mainContainer, Anchor::Center);
 
     // Select details tab
-    this->onMDTab(m_tabsMenu->getChildren()->firstObject());
+    this->loadTab(Tab::Details);
 
     return true;
 }
 
-void ModPopup::onMDTab(CCObject* sender) {
-    if (auto data = getModMarkdownData(m_source, static_cast<ModMarkdownData>(sender->getTag()))) {
-        m_mdArea->setString(data.value().c_str());
+void ModPopup::loadTab(ModPopup::Tab tab) {
+    // Remove current page
+    if (m_currentTabPage) {
+        m_currentTabPage->removeFromParent();
     }
 
     // Highlight selected tab
-    for (auto tab : CCArrayExt<CCMenuItemSpriteExtra*>(m_tabsMenu->getChildren())) {
-        static_cast<GeodeTabSprite*>(tab->getNormalImage())->select(tab->getTag() == sender->getTag());
+    for (auto [value, btn] : m_tabs) {
+        btn.first->select(value == tab);
     }
+
+    if (auto existing = m_tabs.at(tab).second) {
+        m_currentTabPage = existing;
+        m_rightColumn->addChildAtPosition(existing, Anchor::Bottom);
+    }
+    else {
+        const auto size = (m_rightColumn->getContentSize() - ccp(0, 30));
+        const float mdScale = .85f;
+        switch (tab) {
+            case Tab::Details: {
+                m_currentTabPage = MDTextArea::create(
+                    m_source.getMetadata().getDetails().value_or("No description provided"),
+                    size / mdScale
+                );
+                m_currentTabPage->setScale(mdScale);
+            } break;
+
+            case Tab::Changelog: {
+                m_currentTabPage = MDTextArea::create(
+                    m_source.getMetadata().getChangelog().value_or("No changelog provided"),
+                    size / mdScale
+                );
+                m_currentTabPage->setScale(mdScale);
+            } break;
+
+            case Tab::Versions: {
+                m_currentTabPage = CCNode::create();
+                m_currentTabPage->setContentSize(size);
+            } break;
+        }
+        m_currentTabPage->setAnchorPoint({ .5f, .0f });
+        m_rightColumn->addChildAtPosition(m_currentTabPage, Anchor::Bottom);
+        m_tabs.at(tab).second = m_currentTabPage;
+    }
+}
+
+void ModPopup::onTab(CCObject* sender) {
+    this->loadTab(static_cast<Tab>(sender->getTag()));
 }
 
 ModPopup* ModPopup::create(ModSource&& src) {
