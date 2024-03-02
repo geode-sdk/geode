@@ -58,18 +58,18 @@ bool ModPopup::setup(ModSource&& src) {
     statsBG->setContentSize(statsContainer->getContentSize() / statsBG->getScale());
     statsContainer->addChildAtPosition(statsBG, Anchor::Center);
 
-    auto statsLayout = CCNode::create();
-    statsLayout->setContentSize(statsContainer->getContentSize() - ccp(10, 10));
-    statsLayout->setAnchorPoint({ .5f, .5f });
+    m_stats = CCNode::create();
+    m_stats->setContentSize(statsContainer->getContentSize() - ccp(10, 10));
+    m_stats->setAnchorPoint({ .5f, .5f });
 
-    for (auto stat : std::initializer_list<std::tuple<const char*, const char*, std::string, ccColor3B>> {
-        { "GJ_downloadsIcon_001.png", "Downloads", "TODO", { 255, 255, 255 } },
-        { "GJ_timeIcon_001.png", "Released", "TODO", { 105, 155, 255 } },
-        { "GJ_timeIcon_001.png", "Updated", "TODO", { 105, 155, 255 } },
-        { "version.png"_spr, "Version", src.getMetadata().getVersion().toString(), { 105, 255, 155 } },
+    for (auto stat : std::initializer_list<std::tuple<const char*, const char*, const char*, std::optional<std::string>>> {
+        { "GJ_downloadsIcon_001.png", "Downloads", "downloads", std::nullopt },
+        { "GJ_timeIcon_001.png", "Released", "release-date", std::nullopt },
+        { "GJ_timeIcon_001.png", "Updated", "update-date", std::nullopt },
+        { "version.png"_spr, "Version", "version", src.getMetadata().getVersion().toString() },
     }) {
         auto container = CCNode::create();
-        container->setContentSize({ statsLayout->getContentWidth(), 10 });
+        container->setContentSize({ m_stats->getContentWidth(), 10 });
 
         auto iconSize = container->getContentHeight();
         auto icon = CCSprite::createWithSpriteFrameName(std::get<0>(stat));
@@ -88,29 +88,30 @@ bool ModPopup::setup(ModSource&& src) {
         );
         container->addChildAtPosition(title, Anchor::Left, ccp(container->getContentHeight() + 5, 0));
 
-        auto value = CCLabelBMFont::create(std::get<2>(stat).c_str(), "bigFont.fnt");
-        value->setAnchorPoint({ 1.f, .5f });
-        value->setColor(std::get<3>(stat));
-        limitNodeSize(
-            value,
-            {
-                container->getContentWidth() / 2.2f,
-                container->getContentHeight()
-            },
-            .3f, .1f
-        );
-        container->addChildAtPosition(value, Anchor::Right);
+        if (auto value = std::get<3>(stat)) {
+            this->setStatValue(container, value.value());
+        }
+        // Loading indicator for stats that need to be fetched from the server
+        else {
+            // todo: refactor these spinners into a reusable class that's not the ass LoadingCircle is
+            auto spinner = CCSprite::create("loadingCircle.png");
+            spinner->setBlendFunc({ GL_ONE, GL_ONE });
+            spinner->runAction(CCRepeatForever::create(CCRotateBy::create(1.f, 360.f)));
+            limitNodeSize(spinner, { iconSize, iconSize }, 1.f, .1f);
+            spinner->setID("loading-spinner");
+            container->addChildAtPosition(spinner, Anchor::Right, ccp(-iconSize / 2, 0));
+        }
 
-        statsLayout->addChild(container);
+        m_stats->addChild(container);
     }
 
-    statsLayout->setLayout(
+    m_stats->setLayout(
         ColumnLayout::create()
             ->setAxisReverse(true)
             ->setDefaultScaleLimits(.1f, 1)
             ->setAxisAlignment(AxisAlignment::Even)
     );
-    statsContainer->addChildAtPosition(statsLayout, Anchor::Center);
+    statsContainer->addChildAtPosition(m_stats, Anchor::Center);
 
     leftColumn->addChild(statsContainer);
 
@@ -161,7 +162,51 @@ bool ModPopup::setup(ModSource&& src) {
     // Select details tab
     this->loadTab(Tab::Details);
 
+    // Load stats from server (or just from the source if it already has them)
+    m_statsListener.bind(this, &ModPopup::onLoadServerInfo);
+    m_statsListener.setFilter(m_source.fetchServerInfo().listen());
+
     return true;
+}
+
+void ModPopup::setStatValue(CCNode* stat, std::string const& value) {
+    // Remove old value if it exists
+    stat->removeChildByID("value-label");
+    
+    auto valueLabel = CCLabelBMFont::create(value.c_str(), "bigFont.fnt");
+    valueLabel->setAnchorPoint({ 1.f, .5f });
+    limitNodeSize(
+        valueLabel,
+        {
+            stat->getContentWidth() / 2.2f,
+            stat->getContentHeight()
+        },
+        .3f, .1f
+    );
+    valueLabel->setID("value-label");
+    stat->addChildAtPosition(valueLabel, Anchor::Right);
+}
+
+void ModPopup::onLoadServerInfo(PromiseEvent<server::ServerModMetadata, server::ServerError>* event) {
+    if (auto data = event->getResolve()) {
+        for (auto id : std::initializer_list<std::pair<const char*, std::string>> {
+            { "downloads", std::to_string(data->downloadCount) },
+            { "release-date", "todo" },
+            { "update-date", "todo" },
+        }) {
+            auto stat = m_stats->getChildByID(id.first);
+            stat->removeChildByID("loading-spinner");
+            this->setStatValue(stat, id.second);
+        }
+    }
+    else if (auto err = event->getReject()) {
+        for (auto child : CCArrayExt<CCNode*>(m_stats->getChildren())) {
+            if (auto spinner = child->getChildByID("loading-spinner")) {
+                spinner->removeFromParent();
+                this->setStatValue(child, "N/A");
+            }
+        }
+    }
 }
 
 void ModPopup::loadTab(ModPopup::Tab tab) {

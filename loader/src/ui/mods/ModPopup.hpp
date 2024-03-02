@@ -16,12 +16,17 @@ protected:
     };
 
     ModSource m_source;
+    CCNode* m_stats;
     CCNode* m_rightColumn;
     CCNode* m_currentTabPage = nullptr;
     std::unordered_map<Tab, std::pair<GeodeTabSprite*, Ref<CCNode>>> m_tabs;
+    EventListener<PromiseEventFilter<server::ServerModMetadata, server::ServerError>> m_statsListener;
 
     bool setup(ModSource&& src) override;
 
+    void setStatValue(CCNode* stat, std::string const& value);
+
+    void onLoadServerInfo(PromiseEvent<server::ServerModMetadata, server::ServerError>* event);
     void loadTab(Tab tab);
     void onTab(CCObject* sender);
 

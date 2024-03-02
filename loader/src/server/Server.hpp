@@ -61,15 +61,17 @@ namespace server {
     };
 
     struct ServerError {
+        int code;
         std::string details;
 
         ServerError() = default;
 
         template <class... Args>
         ServerError(
+            int code,
             fmt::string_view format,
             Args&&... args
-        ) : details(fmt::vformat(format, fmt::make_format_args(args...))) {}
+        ) : code(code), details(fmt::vformat(format, fmt::make_format_args(args...))) {}
     };
     template <class T>
     using ServerPromise = Promise<T, ServerError>;
@@ -77,5 +79,6 @@ namespace server {
     std::string getServerAPIBaseURL();
     std::string getServerUserAgent();
     ServerPromise<ServerModsList> getMods(ModsQuery const& query);
+    ServerPromise<ServerModMetadata> getMod(std::string const& id);
     ServerPromise<ByteVector> getModLogo(std::string const& id);
 }

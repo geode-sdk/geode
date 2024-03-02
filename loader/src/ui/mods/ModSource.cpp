@@ -44,3 +44,17 @@ Mod* ModSource::asMod() const {
 server::ServerModMetadata const* ModSource::asServer() const {
     return std::get_if<server::ServerModMetadata>(&m_value);
 }
+
+server::ServerPromise<server::ServerModMetadata> ModSource::fetchServerInfo() const {
+    return std::visit(makeVisitor {
+        [](Mod* mod) {
+            // todo: cache
+            return server::getMod(mod->getID());
+        },
+        [](server::ServerModMetadata const& metadata) {
+            return server::ServerPromise<server::ServerModMetadata>([&metadata](auto resolve, auto) {
+                resolve(metadata);
+            });
+        }
+    }, m_value);
+}

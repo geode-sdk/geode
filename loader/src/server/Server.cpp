@@ -6,19 +6,53 @@ using namespace server;
 
 #define GEODE_GD_VERSION_STR GEODE_STR(GEODE_GD_VERSION)
 
+static const char* jsonTypeToString(matjson::Type const& type) {
+    switch (type) {
+        case matjson::Type::Object: return "object";
+        case matjson::Type::Array: return "array";
+        case matjson::Type::Bool: return "boolean";
+        case matjson::Type::Number: return "number";
+        case matjson::Type::String: return "string";
+        case matjson::Type::Null: return "null";
+        default: return "unknown";
+    }
+}
+
+static Result<matjson::Value, ServerError> parseServerPayload(web::WebResponse&& response) {
+    auto asJson = response.json();
+    if (!asJson) {
+        return Err(ServerError(response.code(), "Response was not valid JSON: {}", asJson.unwrapErr()));
+    }
+    auto json = std::move(asJson).unwrap();
+    if (!json.is_object()) {
+        return Err(ServerError(response.code(), "Expected object, got {}", jsonTypeToString(json.type())));
+    }
+    auto obj = json.as_object();
+    if (!obj.contains("payload")) {
+        return Err(ServerError(response.code(), "Object does not contain \"payload\" key - got {}", json.dump()));
+    }
+    return Ok(obj["payload"]);
+}
+
 static void parseServerError(auto reject, auto error) {
     // The server should return errors as `{ "error": "...", "payload": "" }`
-    if (auto json = error.json()) {
-        reject(ServerError(
-            "Error code: {}; details: {}",
-            error.code(), json.unwrap().template get<std::string>("error")
-        ));
+    if (auto asJson = error.json()) {
+        auto json = asJson.unwrap();
+        if (json.is_object() && json.contains("error")) {
+            reject(ServerError(
+                error.code(),
+                "{}", json.template get<std::string>("error")
+            ));
+        }
+        else {
+            reject(ServerError(error.code(), "Unknown (not valid JSON)"));
+        }
     }
     // But if we get something else for some reason, return that
     else {
         reject(ServerError(
-            "Error code: {}; details: {}",
-            error.code(), error.string().unwrapOr("Unknown (not a valid string)")
+            error.code(),
+            "{}", error.string().unwrapOr("Unknown (not a valid string)")
         ));
     }
 }
@@ -178,7 +212,7 @@ Result<ServerModMetadata> ServerModMetadata::parse(matjson::Value const& raw) {
 Result<ServerModsList> ServerModsList::parse(matjson::Value const& raw) {
     auto json = raw;
     JsonChecker checker(json);
-    auto payload = checker.root("ServerModsList").obj().needs("payload").obj();
+    auto payload = checker.root("ServerModsList").obj();
 
     auto list = ServerModsList();
     for (auto item : payload.needs("data").iterate()) {
@@ -251,16 +285,18 @@ ServerPromise<ServerModsList> server::getMods(ModsQuery const& query) {
     return ServerPromise<ServerModsList>([req = std::move(req)](auto resolve, auto reject, auto progress, auto cancel) mutable {
         req.get(getServerAPIBaseURL() + "/mods")
             .then([resolve, reject](auto value) {
-                // Validate that the response was JSON
-                auto asJson = value.json();
-                if (!asJson) {
-                    return reject(ServerError("Response was not valid JSON: {}", asJson.unwrapErr()));
-                }
+                // Store the code, since the value is moved afterwards
+                auto code = value.code();
 
+                // Parse payload
+                auto payload = parseServerPayload(std::move(value));
+                if (!payload) {
+                    return reject(payload.unwrapErr());
+                }
                 // Parse response
-                auto list = ServerModsList::parse(asJson.unwrap());
+                auto list = ServerModsList::parse(payload.unwrap());
                 if (!list) {
-                    return reject(ServerError("Unable to parse response: {}", list.unwrapErr()));
+                    return reject(ServerError(code, "Unable to parse response: {}", list.unwrapErr()));
                 }
                 resolve(list.unwrap());
             })
@@ -278,11 +314,40 @@ ServerPromise<ServerModsList> server::getMods(ModsQuery const& query) {
     });
 }
 
+ServerPromise<ServerModMetadata> server::getMod(std::string const& id) {
+    auto req = web::WebRequest();
+    req.userAgent(getServerUserAgent());
+    return ServerPromise<ServerModMetadata>([req = std::move(req), id](auto resolve, auto reject, auto progress, auto cancel) mutable {
+        req.get(getServerAPIBaseURL() + "/mods/" + id)
+            .then([resolve, reject](auto value) {
+                // Store the code, since the value is moved afterwards
+                auto code = value.code();
+
+                // Parse payload
+                auto payload = parseServerPayload(std::move(value));
+                if (!payload) {
+                    return reject(payload.unwrapErr());
+                }
+                // Parse response
+                auto list = ServerModMetadata::parse(payload.unwrap());
+                if (!list) {
+                    return reject(ServerError(code, "Unable to parse response: {}", list.unwrapErr()));
+                }
+                resolve(list.unwrap());
+            })
+            .expect([reject](auto error) {
+                parseServerError(reject, error);
+            })
+            .progress([progress, id](auto prog) {
+                parseServerProgress(progress, prog, "Downloading logo for " + id);
+            })
+            .link(cancel);
+    });
+}
+
 ServerPromise<ByteVector> server::getModLogo(std::string const& id) {
     auto req = web::WebRequest();
     req.userAgent(getServerUserAgent());
-
-    req.param("id", id);
     return ServerPromise<ByteVector>([req = std::move(req), id](auto resolve, auto reject, auto progress, auto cancel) mutable {
         req.get(getServerAPIBaseURL() + "/mods/" + id + "/logo")
             .then([resolve](auto response) {
