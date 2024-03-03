@@ -24,6 +24,9 @@ public:
     Result<> enable();
     Result<> disable();
 
+    ByteVector const& getBytes() const;
+    Result<> updateBytes(const ByteVector& bytes);
+
     uintptr_t getAddress() const;
     matjson::Value getRuntimeInfo() const;
 
