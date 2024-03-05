@@ -570,6 +570,45 @@ namespace geode {
             return nullptr;
         }
     };
+
+    /**
+     * A simple `CCObject` wrapper for a non-`CCObject` type
+     */
+    template <class T>
+        requires (!std::is_base_of_v<T, cocos2d::CCObject>)
+    class ObjWrapper : public cocos2d::CCObject {
+    protected:
+        T m_value;
+
+        ObjWrapper(T&& value) : m_value(std::forward<T>(value)) {
+            this->autorelease();
+        }
+        ObjWrapper(T const& value) : m_value(value) {
+            this->autorelease();
+        }
+
+    public:
+        /**
+         * Construct an object wrapper
+         */
+        static ObjWrapper* create(T&& value) {
+            return new ObjWrapper(std::forward<T>(value));
+        }
+        /**
+         * Construct an object wrapper
+         */
+        static ObjWrapper* create(T const& value) {
+            return new ObjWrapper(value);
+        }
+
+        // @note This returns a const& to allow move-only types to be returned!
+        T const& getValue() const& {
+            return m_value;
+        }
+        void setValue(T&& value) {
+            m_value = std::forward<T>(value);
+        }
+    };
 }
 
 // Cocos2d utils
