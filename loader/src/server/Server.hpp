@@ -45,6 +45,9 @@ namespace server {
         std::optional<ServerDateTime> updatedAt;
 
         static Result<ServerModMetadata> parse(matjson::Value const& json);
+
+        ModMetadata latestVersion() const;
+        bool hasUpdateForInstalledMod() const;
     };
 
     struct ServerModsList {

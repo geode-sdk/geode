@@ -274,6 +274,17 @@ Result<ServerModsList> ServerModsList::parse(matjson::Value const& raw) {
     return Ok(list);
 }
 
+ModMetadata ServerModMetadata::latestVersion() const {
+    return this->versions.front().metadata;
+}
+
+bool ServerModMetadata::hasUpdateForInstalledMod() const {
+    if (auto mod = Loader::get()->getLoadedMod(this->id)) {
+        return mod->getVersion() < this->latestVersion().getVersion();
+    }
+    return false;
+}
+
 std::string server::getServerAPIBaseURL() {
     return "https://api.geode-sdk.org/v1";
 }

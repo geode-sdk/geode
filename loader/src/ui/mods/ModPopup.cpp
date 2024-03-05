@@ -35,20 +35,20 @@ bool ModPopup::setup(ModSource&& src) {
     auto devAndTitlePos = titleContainer->getContentHeight() + 5;
 
     auto title = CCLabelBMFont::create(m_source.getMetadata().getName().c_str(), "bigFont.fnt");
-    title->limitLabelWidth(titleContainer->getContentWidth() - devAndTitlePos, .6f, .1f);
+    title->limitLabelWidth(titleContainer->getContentWidth() - devAndTitlePos, .45f, .1f);
     title->setAnchorPoint({ .0f, .5f });
     titleContainer->addChildAtPosition(title, Anchor::TopLeft, ccp(devAndTitlePos, -titleContainer->getContentHeight() * .25f));
 
     auto by = "By " + ModMetadata::formatDeveloperDisplayString(m_source.getMetadata().getDevelopers());
     auto dev = CCLabelBMFont::create(by.c_str(), "goldFont.fnt");
-    dev->limitLabelWidth(titleContainer->getContentWidth() - devAndTitlePos, .45f, .05f);
+    dev->limitLabelWidth(titleContainer->getContentWidth() - devAndTitlePos, .35f, .05f);
     dev->setAnchorPoint({ .0f, .5f });
     titleContainer->addChildAtPosition(dev, Anchor::BottomLeft, ccp(devAndTitlePos, titleContainer->getContentHeight() * .25f));
 
     leftColumn->addChild(titleContainer);
 
     auto statsContainer = CCNode::create();
-    statsContainer->setContentSize({ leftColumn->getContentWidth(), 70 });
+    statsContainer->setContentSize({ leftColumn->getContentWidth(), 80 });
     statsContainer->setAnchorPoint({ .5f, .5f });
 
     auto statsBG = CCScale9Sprite::create("square02b_001.png");
@@ -62,46 +62,63 @@ bool ModPopup::setup(ModSource&& src) {
     m_stats->setContentSize(statsContainer->getContentSize() - ccp(10, 10));
     m_stats->setAnchorPoint({ .5f, .5f });
 
-    for (auto stat : std::initializer_list<std::tuple<const char*, const char*, const char*, std::optional<std::string>>> {
+    for (auto stat : std::initializer_list<std::tuple<
+        const char*, const char*, const char*, std::optional<std::string>
+    >> {
         { "GJ_downloadsIcon_001.png", "Downloads", "downloads", std::nullopt },
         { "GJ_timeIcon_001.png", "Released", "release-date", std::nullopt },
         { "GJ_timeIcon_001.png", "Updated", "update-date", std::nullopt },
         { "version.png"_spr, "Version", "version", m_source.getMetadata().getVersion().toString() },
+        { nullptr, "Checking for updates", "update-check", std::nullopt },
     }) {
         auto container = CCNode::create();
         container->setContentSize({ m_stats->getContentWidth(), 10 });
         container->setID(std::get<2>(stat));
+        if (std::get<3>(stat).has_value()) {
+            container->setUserObject("client-side", CCBool::create(true));
+        }
 
-        auto iconSize = container->getContentHeight();
-        auto icon = CCSprite::createWithSpriteFrameName(std::get<0>(stat));
-        limitNodeSize(icon, { iconSize, iconSize }, 1.f, .1f);
-        container->addChildAtPosition(icon, Anchor::Left, ccp(container->getContentHeight() / 2, 0));
-
-        auto title = CCLabelBMFont::create(std::get<1>(stat), "bigFont.fnt");
-        title->setAnchorPoint({ .0f, .5f });
-        limitNodeSize(
-            title,
-            {
-                container->getContentWidth() / 2 - container->getContentHeight() - 5,
-                container->getContentHeight()
-            },
-            .3f, .1f
+        auto labelContainer = CCNode::create();
+        labelContainer->setID("labels");
+        labelContainer->setLayout(RowLayout::create());
+        labelContainer->getLayout()->ignoreInvisibleChildren(true);
+        labelContainer->setAnchorPoint({ 1.f, .5f });
+        labelContainer->setScale(.3f);
+        labelContainer->setContentWidth(
+            (container->getContentWidth() - container->getContentHeight() - 5) / 
+                labelContainer->getScale()
         );
-        container->addChildAtPosition(title, Anchor::Left, ccp(container->getContentHeight() + 5, 0));
+        container->addChildAtPosition(labelContainer, Anchor::Right);
 
-        if (auto value = std::get<3>(stat)) {
-            this->setStatValue(container, value.value());
-        }
-        // Loading indicator for stats that need to be fetched from the server
-        else {
-            // todo: refactor these spinners into a reusable class that's not the ass LoadingCircle is
-            auto spinner = CCSprite::create("loadingCircle.png");
-            spinner->setBlendFunc({ GL_ONE, GL_ONE });
-            spinner->runAction(CCRepeatForever::create(CCRotateBy::create(1.f, 360.f)));
-            limitNodeSize(spinner, { iconSize, iconSize }, 1.f, .1f);
-            spinner->setID("loading-spinner");
-            container->addChildAtPosition(spinner, Anchor::Right, ccp(-iconSize / 2, 0));
-        }
+        auto label = CCLabelBMFont::create("", "bigFont.fnt");
+        label->setID("label");
+        labelContainer->addChild(label);
+
+        labelContainer->addChild(SpacerNode::create());
+
+        auto valueLabel = CCLabelBMFont::create("", "bigFont.fnt");
+        valueLabel->setID("value-label");
+        labelContainer->addChild(valueLabel);
+
+        // todo: refactor these spinners into a reusable class that's not the ass LoadingCircle is
+        auto spinnerContainer = CCNode::create();
+        spinnerContainer->setContentSize({
+            container->getContentHeight() / labelContainer->getScale(),
+            container->getContentHeight() / labelContainer->getScale()
+        });
+        spinnerContainer->setID("loading-spinner");
+
+        auto spinner = CCSprite::create("loadingCircle.png");
+        spinner->setBlendFunc({ GL_ONE, GL_ONE });
+        spinner->runAction(CCRepeatForever::create(CCRotateBy::create(1.f, 360.f)));
+        limitNodeSize(spinner, spinnerContainer->getContentSize(), 1.f, .1f);
+        spinnerContainer->addChildAtPosition(spinner, Anchor::Center);
+
+        labelContainer->addChild(spinnerContainer);
+
+        this->setStatIcon(container, std::get<0>(stat));
+        this->setStatLabel(container, std::get<1>(stat));
+        this->setStatValue(container, std::get<3>(stat));
 
         m_stats->addChild(container);
     }
@@ -170,22 +187,53 @@ bool ModPopup::setup(ModSource&& src) {
     return true;
 }
 
-void ModPopup::setStatValue(CCNode* stat, std::string const& value) {
-    // Remove old value if it exists
-    stat->removeChildByID("value-label");
+void ModPopup::setStatIcon(CCNode* stat, const char* spr) {
+    // Remove old icon
+    stat->removeChildByID("icon");
     
-    auto valueLabel = CCLabelBMFont::create(value.c_str(), "bigFont.fnt");
-    valueLabel->setAnchorPoint({ 1.f, .5f });
-    limitNodeSize(
-        valueLabel,
-        {
-            stat->getContentWidth() / 2.5f,
-            stat->getContentHeight()
-        },
-        .3f, .1f
-    );
-    valueLabel->setID("value-label");
-    stat->addChildAtPosition(valueLabel, Anchor::Right);
+    // Create new icon
+    if (spr) {
+        auto iconSize = stat->getContentHeight();
+        auto icon = CCSprite::createWithSpriteFrameName(spr);
+        limitNodeSize(icon, { iconSize, iconSize }, 1.f, .1f);
+        icon->setID("icon");
+        stat->addChildAtPosition(icon, Anchor::Left, ccp(stat->getContentHeight() / 2, 0));
+    }
+}
+
+void ModPopup::setStatLabel(CCNode* stat, std::string const& value, bool noValue, ccColor3B color) {
+    auto container = stat->getChildByID("labels");
+
+    // Update label
+    auto label = static_cast<CCLabelBMFont*>(container->getChildByID("label"));
+    label->setString(value.c_str());
+    label->setColor(color);
+
+    // Remove value if requested
+    if (noValue) {
+        container->getChildByID("value-label")->setVisible(false);
+        container->getChildByID("loading-spinner")->setVisible(false);
+    }
+
+    container->updateLayout();
+}
+
+void ModPopup::setStatValue(CCNode* stat, std::optional<std::string> const& value) {
+    auto container = stat->getChildByID("labels");
+    auto valueLabel = static_cast<CCLabelBMFont*>(container->getChildByID("value-label"));
+    auto spinner = container->getChildByID("loading-spinner");
+
+    // Show loading if no value provided
+    valueLabel->setVisible(value.has_value());
+    spinner->setVisible(!value.has_value());
+    
+    // Update value
+    if (value) {
+        valueLabel->setString(value.value().c_str());
+    }
+
+    // Update layout
+    container->updateLayout();
 }
 
 void ModPopup::onLoadServerInfo(PromiseEvent<server::ServerModMetadata, server::ServerError>* event) {
@@ -197,24 +245,37 @@ void ModPopup::onLoadServerInfo(PromiseEvent<server::ServerModMetadata, server::
             return std::string("N/A");
         };
 
+        // Update server stats
         for (auto id : std::initializer_list<std::pair<const char*, std::string>> {
             { "downloads", std::to_string(data->downloadCount) },
             { "release-date", timeToString(data->createdAt) },
             { "update-date", timeToString(data->updatedAt) },
         }) {
             if (auto stat = m_stats->getChildByID(id.first)) {
-                stat->removeChildByID("loading-spinner");
                 this->setStatValue(stat, id.second);
             }
+        }
+
+        // Check if this has updates for an installed mod
+        auto updatesStat = m_stats->getChildByID("update-check");
+        if (data->hasUpdateForInstalledMod()) {
+            this->setStatIcon(updatesStat, "updates-available.png"_spr);
+            this->setStatLabel(updatesStat, "Update Found", false, { 99, 250, 255 });
+            this->setStatValue(updatesStat, data->latestVersion().getVersion().toString());
+        }
+        else {
+            this->setStatIcon(updatesStat, "GJ_completesIcon_001.png");
+            this->setStatLabel(updatesStat, "Up to Date!", true, { 78, 245, 0 });
         }
     }
     else if (auto err = event->getReject()) {
         for (auto child : CCArrayExt<CCNode*>(m_stats->getChildren())) {
-            if (auto spinner = child->getChildByID("loading-spinner")) {
-                spinner->removeFromParent();
+            if (!child->getUserObject("client-side")) {
                 this->setStatValue(child, "N/A");
             }
         }
+        auto updatesStat = m_stats->getChildByID("update-check");
+        this->setStatLabel(updatesStat, "No Updates Found", true, { 125, 125, 125 });
     }
 }
 
