@@ -39,6 +39,7 @@ static void patchCall(uintptr_t addr, uintptr_t newCall) {
 $execute {
 
     // BitmapDC::~BitmapDC
+    // TODO: make this work
     patchCall(0xC9A56, (uintptr_t)&test);
 
     // BitmapDC::setFont
