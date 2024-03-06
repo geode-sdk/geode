@@ -18,25 +18,32 @@ int RemoveFontResourceWHook(LPCWSTR p0) {
     return RemoveFontResourceExW(p0, FR_PRIVATE, 0);
 }
 
+int test(LPCWSTR p0) {
+    return RemoveFontResourceW(p0);
+}
+
+/*
+ * addr is relative to cocos base
+ * patches x86 CALL at addr to call function at newCall
+ */
+static void patchCall(uintptr_t addr, uintptr_t newCall) {
+    ByteVector patch = { 0xE8 }; // CALL near & relative
+    addr += (uintptr_t)geode::base::getCocos();
+    uintptr_t callAddr = newCall - (addr + 5);
+    for (auto i = 0; i < sizeof(int); ++i)
+        patch.push_back(callAddr >> (8 * i));
+    patch.push_back(0x90); // every overwritten instruction happens to be 6 bytes wide
+    (void)Mod::get()->patch(reinterpret_cast<void*>(addr), patch);
+}
+
 $execute {
 
-    // TODO: one more patch; and make this code look nicer
+    // BitmapDC::~BitmapDC
+    patchCall(0xC9A56, (uintptr_t)&test);
 
-    void* dst = reinterpret_cast<void*>(geode::base::getCocos() + 0xCB5BC);
-    ByteVector p = { 0xE8 };
-    unsigned int callAddr = (unsigned int)&RemoveFontResourceWHook - ((unsigned int)dst + 5);
-    for (unsigned char i = 0; i < sizeof(int); ++i)
-        p.push_back(callAddr >> (8 * i));
-    p.push_back(0x90);
-    Mod::get()->patch(dst, p);
-
-    dst = reinterpret_cast<void*>(geode::base::getCocos() + 0xCB642);
-    p = { 0xE8 };
-    callAddr = (unsigned int)&AddFontResourceWHook - ((unsigned int)dst + 5);
-    for (unsigned char i = 0; i < sizeof(int); ++i)
-        p.push_back(callAddr >> (8 * i));
-    p.push_back(0x90);
-    Mod::get()->patch(dst, p);
+    // BitmapDC::setFont
+    patchCall(0xCB5BC, (uintptr_t)&RemoveFontResourceWHook);
+    patchCall(0xCB642, (uintptr_t)&AddFontResourceWHook);
 
 };
 
