@@ -2,6 +2,8 @@
 
 #ifdef GEODE_IS_WINDOWS
 
+#include <wingdi.h> // Apparently Geode already includes Windows API but better safe than sorry?
+
 using namespace geode::prelude;
 
 // https://github.com/cocos2d/cocos2d-x/blob/5a25fe75cb8b26b61b14b070e757ec3b17ff7791/cocos2dx/platform/win32/CCImage.cpp#L96
