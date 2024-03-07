@@ -10,11 +10,11 @@ using namespace geode::prelude;
 // Fonts are supposed to be released in the BitmapDC::~BitmapDC() but this doesn't seem to work consistently?
 // Looks like there's a shared instance of BitmapDC, so presumably it's destructed when the app closes?
 
-int __stdcall AddFontResourceWHook(volatile LPCWSTR p0) {
+int __stdcall AddFontResourceWHook(LPCWSTR p0) {
     return AddFontResourceExW(p0, FR_PRIVATE, 0);
 }
 
-int __stdcall RemoveFontResourceWHook(volatile LPCWSTR p0) {
+int __stdcall RemoveFontResourceWHook(LPCWSTR p0) {
     return RemoveFontResourceExW(p0, FR_PRIVATE, 0);
 }
 
