@@ -260,12 +260,12 @@ void ModPopup::onLoadServerInfo(PromiseEvent<server::ServerModMetadata, server::
         auto updatesStat = m_stats->getChildByID("update-check");
         if (data->hasUpdateForInstalledMod()) {
             this->setStatIcon(updatesStat, "updates-available.png"_spr);
-            this->setStatLabel(updatesStat, "Update Found", false, { 99, 250, 255 });
+            this->setStatLabel(updatesStat, "Update Found", false, ccc3(99, 250, 255));
             this->setStatValue(updatesStat, data->latestVersion().getVersion().toString());
         }
         else {
             this->setStatIcon(updatesStat, "GJ_completesIcon_001.png");
-            this->setStatLabel(updatesStat, "Up to Date!", true, { 78, 245, 0 });
+            this->setStatLabel(updatesStat, "Up to Date!", true, ccc3(78, 245, 0));
         }
     }
     else if (auto err = event->getReject()) {
@@ -275,7 +275,7 @@ void ModPopup::onLoadServerInfo(PromiseEvent<server::ServerModMetadata, server::
             }
         }
         auto updatesStat = m_stats->getChildByID("update-check");
-        this->setStatLabel(updatesStat, "No Updates Found", true, { 125, 125, 125 });
+        this->setStatLabel(updatesStat, "No Updates Found", true, ccc3(125, 125, 125));
     }
 }
 
