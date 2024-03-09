@@ -15,6 +15,38 @@ namespace geode {
 
     class ModMetadataImpl;
 
+    class GEODE_DLL ModMetadataLinks final {
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
+
+        friend class ModMetadataImpl;
+    
+    public:
+        ModMetadataLinks();
+        ModMetadataLinks(ModMetadataLinks const& other);
+        ModMetadataLinks(ModMetadataLinks&& other) noexcept;
+        ModMetadataLinks& operator=(ModMetadataLinks const& other);
+        ModMetadataLinks& operator=(ModMetadataLinks&& other) noexcept;
+        ~ModMetadataLinks();
+
+        /**
+         * Get the URL for the home website for this mod
+         */
+        std::optional<std::string> getHomepageURL() const;
+        /**
+         * Get the URL for the source code repository for this mod
+         */
+        std::optional<std::string> getSourceURL() const;
+        /**
+         * Get the URL for the community page (Discord server etc.) for this mod
+         */
+        std::optional<std::string> getCommunityURL() const;
+
+#if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
+        Impl* getImpl();
+#endif
+    };
+
     /**
      * Represents all the data gather-able
      * from mod.json
@@ -126,7 +158,12 @@ namespace geode {
         /**
          * Git Repository of the mod
          */
-        [[nodiscard]] std::optional<std::string> getRepository() const;
+        [[nodiscard, deprecated("Use ModMetadata::getLinks instead")]]
+        std::optional<std::string> getRepository() const;
+        /**
+         * Get the links (related websites / servers / etc.) for this mod
+         */
+        ModMetadataLinks getLinks() const;
         /**
          * Info about where users should report issues and request help
          */
@@ -194,6 +231,7 @@ namespace geode {
         void setSettings(std::vector<std::pair<std::string, Setting>> const& value);
         void setNeedsEarlyLoad(bool const& value);
         void setIsAPI(bool const& value);
+        ModMetadataLinks& getLinksMut();
 #endif
 
         /**

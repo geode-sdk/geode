@@ -8,6 +8,13 @@
 using namespace geode::prelude;
 
 namespace geode {
+    class ModMetadataLinks::Impl final {
+    public:
+        std::optional<std::string> m_homepage;
+        std::optional<std::string> m_source;
+        std::optional<std::string> m_community;
+    };
+
     class ModMetadata::Impl {
     public:
         ghc::filesystem::path m_path;
@@ -22,7 +29,7 @@ namespace geode {
         std::optional<std::string> m_details;
         std::optional<std::string> m_changelog;
         std::optional<std::string> m_supportInfo;
-        std::optional<std::string> m_repository;
+        ModMetadataLinks m_links;
         std::optional<IssuesInfo> m_issues;
         std::vector<Dependency> m_dependencies;
         std::vector<Incompatibility> m_incompatibilities;

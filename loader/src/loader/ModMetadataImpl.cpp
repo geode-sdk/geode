@@ -13,6 +13,37 @@
 
 using namespace geode::prelude;
 
+std::optional<std::string> ModMetadataLinks::getHomepageURL() const {
+    return m_impl->m_homepage;
+}
+std::optional<std::string> ModMetadataLinks::getSourceURL() const {
+    return m_impl->m_source;
+}
+std::optional<std::string> ModMetadataLinks::getCommunityURL() const {
+    return m_impl->m_community;
+}
+
+#if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
+ModMetadataLinks::Impl* ModMetadataLinks::getImpl() {
+    return m_impl.get();
+}
+#endif
+
+ModMetadataLinks::ModMetadataLinks() : m_impl(std::make_unique<Impl>()) {}
+ModMetadataLinks::ModMetadataLinks(ModMetadataLinks const& other)
+  : m_impl(std::make_unique<Impl>(*other.m_impl)) {}
+ModMetadataLinks::ModMetadataLinks(ModMetadataLinks&& other) noexcept
+  : m_impl(std::move(other.m_impl)) {}
+ModMetadataLinks& ModMetadataLinks::operator=(ModMetadataLinks const& other) {
+    m_impl = std::make_unique<Impl>(*other.m_impl);
+    return *this;
+}
+ModMetadataLinks& ModMetadataLinks::operator=(ModMetadataLinks&& other) noexcept {
+    m_impl = std::move(other.m_impl);
+    return *this;
+}
+ModMetadataLinks::~ModMetadataLinks() = default;
+
 ModMetadata::Impl& ModMetadataImpl::getImpl(ModMetadata& info)  {
     return *info.m_impl;
 }
@@ -162,7 +193,7 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
         impl->m_developers = { dev };
     }
     root.has("description").into(impl->m_description);
-    root.has("repository").into(impl->m_repository);
+    root.has("repository").into(info.getLinksMut().getImpl()->m_source);
     root.has("early-load").into(impl->m_needsEarlyLoad);
     if (root.has("api")) {
         impl->m_isAPI = true;
@@ -250,6 +281,13 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
         issues.needs("info").into(issuesInfo.info);
         issues.has("url").intoAs<std::string>(issuesInfo.url);
         impl->m_issues = issuesInfo;
+    }
+
+    if (auto links = root.has("links").obj()) {
+        links.has("homepage").into(info.getLinksMut().getImpl()->m_homepage);
+        links.has("source").into(info.getLinksMut().getImpl()->m_source);
+        links.has("community").into(info.getLinksMut().getImpl()->m_community);
+        // do not check unknown for future compat
     }
 
     // with new cli, binary name is always mod id
@@ -460,64 +498,52 @@ std::string ModMetadata::formatDeveloperDisplayString(std::vector<std::string> c
 std::vector<std::string> ModMetadata::getDevelopers() const {
     return m_impl->m_developers;
 }
-
 std::optional<std::string> ModMetadata::getDescription() const {
     return m_impl->m_description;
 }
-
 std::optional<std::string> ModMetadata::getDetails() const {
     return m_impl->m_details;
 }
-
 std::optional<std::string> ModMetadata::getChangelog() const {
     return m_impl->m_changelog;
 }
-
 std::optional<std::string> ModMetadata::getSupportInfo() const {
     return m_impl->m_supportInfo;
 }
-
 std::optional<std::string> ModMetadata::getRepository() const {
-    return m_impl->m_repository;
+    return m_impl->m_links.getSourceURL();
 }
-
+ModMetadataLinks ModMetadata::getLinks() const {
+    return m_impl->m_links;
+}
 std::optional<ModMetadata::IssuesInfo> ModMetadata::getIssues() const {
     return m_impl->m_issues;
 }
-
 std::vector<ModMetadata::Dependency> ModMetadata::getDependencies() const {
     return m_impl->m_dependencies;
 }
-
 std::vector<ModMetadata::Incompatibility> ModMetadata::getIncompatibilities() const {
     return m_impl->m_incompatibilities;
 }
-
 std::vector<std::string> ModMetadata::getSpritesheets() const {
     return m_impl->m_spritesheets;
 }
-
 std::vector<std::pair<std::string, Setting>> ModMetadata::getSettings() const {
     return m_impl->m_settings;
 }
-
 bool ModMetadata::needsEarlyLoad() const {
     return m_impl->m_needsEarlyLoad;
 }
-
 bool ModMetadata::isAPI() const {
     return m_impl->m_isAPI;
 }
-
 std::optional<std::string> ModMetadata::getGameVersion() const {
     if (m_impl->m_gdVersion.empty()) return std::nullopt;
     return m_impl->m_gdVersion;
 }
-
 VersionInfo ModMetadata::getGeodeVersion() const {
     return m_impl->m_geodeVersion;
 }
-
 Result<> ModMetadata::checkGameVersion() const {
     if (!m_impl->m_gdVersion.empty()) {
         auto const ver = m_impl->m_gdVersion;
@@ -536,97 +562,78 @@ Result<> ModMetadata::checkGameVersion() const {
     return Ok();
 }
 
-
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
 void ModMetadata::setPath(ghc::filesystem::path const& value) {
     m_impl->m_path = value;
 }
-
 void ModMetadata::setBinaryName(std::string const& value) {
     m_impl->m_binaryName = value;
 }
-
 void ModMetadata::setVersion(VersionInfo const& value) {
     m_impl->m_version = value;
 }
-
 void ModMetadata::setID(std::string const& value) {
     m_impl->m_id = value;
 }
-
 void ModMetadata::setName(std::string const& value) {
     m_impl->m_name = value;
 }
-
 void ModMetadata::setDeveloper(std::string const& value) {
     m_impl->m_developers = { value };
 }
-
 void ModMetadata::setDevelopers(std::vector<std::string> const& value) {
     m_impl->m_developers = value;
 }
-
 void ModMetadata::setDescription(std::optional<std::string> const& value) {
     m_impl->m_description = value;
 }
-
 void ModMetadata::setDetails(std::optional<std::string> const& value) {
     m_impl->m_details = value;
 }
-
 void ModMetadata::setChangelog(std::optional<std::string> const& value) {
     m_impl->m_changelog = value;
 }
-
 void ModMetadata::setSupportInfo(std::optional<std::string> const& value) {
     m_impl->m_supportInfo = value;
 }
-
 void ModMetadata::setRepository(std::optional<std::string> const& value) {
-    m_impl->m_repository = value;
+    this->getLinksMut().getImpl()->m_source = value;
 }
-
 void ModMetadata::setIssues(std::optional<IssuesInfo> const& value) {
     m_impl->m_issues = value;
 }
-
 void ModMetadata::setDependencies(std::vector<Dependency> const& value) {
     m_impl->m_dependencies = value;
 }
-
 void ModMetadata::setIncompatibilities(std::vector<Incompatibility> const& value) {
     m_impl->m_incompatibilities = value;
 }
-
 void ModMetadata::setSpritesheets(std::vector<std::string> const& value) {
     m_impl->m_spritesheets = value;
 }
-
 void ModMetadata::setSettings(std::vector<std::pair<std::string, Setting>> const& value) {
     m_impl->m_settings = value;
 }
-
 void ModMetadata::setNeedsEarlyLoad(bool const& value) {
     m_impl->m_needsEarlyLoad = value;
 }
-
 void ModMetadata::setIsAPI(bool const& value) {
     m_impl->m_isAPI = value;
+}
+ModMetadataLinks& ModMetadata::getLinksMut() {
+    return m_impl->m_links;
 }
 #endif
 
 Result<ModMetadata> ModMetadata::createFromGeodeZip(utils::file::Unzip& zip) {
     return Impl::createFromGeodeZip(zip);
 }
-
 Result<ModMetadata> ModMetadata::createFromGeodeFile(ghc::filesystem::path const& path) {
     return Impl::createFromGeodeFile(path);
 }
-
 Result<ModMetadata> ModMetadata::createFromFile(ghc::filesystem::path const& path) {
     return Impl::createFromFile(path);
 }
-
 Result<ModMetadata> ModMetadata::create(ModJson const& json) {
     return Impl::create(json);
 }
@@ -634,7 +641,6 @@ Result<ModMetadata> ModMetadata::create(ModJson const& json) {
 ModJson ModMetadata::toJSON() const {
     return m_impl->toJSON();
 }
-
 ModJson ModMetadata::getRawJSON() const {
     return m_impl->getRawJSON();
 }
@@ -671,7 +677,6 @@ ModMetadata& ModMetadata::operator=(ModMetadata const& other) {
     m_impl = std::make_unique<Impl>(*other.m_impl);
     return *this;
 }
-
 ModMetadata& ModMetadata::operator=(ModMetadata&& other) noexcept {
     m_impl = std::move(other.m_impl);
     return *this;
