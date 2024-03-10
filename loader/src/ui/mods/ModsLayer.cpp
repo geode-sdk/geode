@@ -264,6 +264,7 @@ void ModsLayer::onRefreshList(CCObject*) {
 
 void ModsLayer::onBack(CCObject*) {
     CCDirector::get()->replaceScene(CCTransitionFade::create(.5f, MenuLayer::scene(false)));
+    server::ServerResultCache<&server::getModLogo>::shared().invalidateAll();
 }
 
 void ModsLayer::onGoToPage(CCObject*) {
