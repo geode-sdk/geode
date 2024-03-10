@@ -101,10 +101,11 @@ std::string ServerDateTime::toAgoString() const {
 
 Result<ServerDateTime> ServerDateTime::parse(std::string const& str) {
     std::stringstream ss(str);
-    Value value;
-    if (std::chrono::from_stream(ss, "%FT%TZ", value)) {
+    std::tm value;
+    if (ss >> std::get_time(&value, "%Y-%m-%dT%H:%M:%SZ")) {
+        auto time = std::mktime(&value);
         return Ok(ServerDateTime {
-            .value = value,
+            .value = Clock::from_time_t(time),
         });
     }
     return Err("Invalid date time format '{}'", str);
