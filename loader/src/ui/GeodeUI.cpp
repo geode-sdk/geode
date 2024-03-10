@@ -70,6 +70,8 @@ protected:
     std::string m_modID;
     CCNode* m_sprite = nullptr;
     EventListener<PromiseEventFilter<ByteVector, server::ServerError>> m_listener;
+    // todo: use shared cache once impl'd
+    static inline server::impl_cache::ServerMultiResultCache<&server::getModLogo> s_cache = {};
 
     bool init(std::string const& id, bool fetch) {
         if (!CCNode::init())
@@ -93,7 +95,7 @@ protected:
             this->setSprite(CCSprite::create("loadingCircle.png"));
             static_cast<CCSprite*>(m_sprite)->setBlendFunc({ GL_ONE, GL_ONE });
             m_sprite->runAction(CCRepeatForever::create(CCRotateBy::create(1.f, 360.f)));
-            m_listener.setFilter(server::getModLogo(id).listen());
+            m_listener.setFilter(s_cache.get(id).listen());
         }
 
         return true;
