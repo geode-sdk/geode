@@ -71,7 +71,7 @@ protected:
     CCNode* m_sprite = nullptr;
     EventListener<PromiseEventFilter<ByteVector, server::ServerError>> m_listener;
     // todo: use shared cache once impl'd
-    static inline server::impl_cache::ServerMultiResultCache<&server::getModLogo> s_cache = {};
+    static inline server::impl_cache::ServerResultCache<&server::getModLogo> s_cache = {};
 
     bool init(std::string const& id, bool fetch) {
         if (!CCNode::init())
