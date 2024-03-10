@@ -1,5 +1,16 @@
 # Geode Changelog
 
+## v2.0.0-beta.22
+ * Add `Patch::updateBytes` to update a patch (ba648340)
+ * (Possibly) fix random curl crashes (dd440433, 1fb12f2d, 6cd6e4d0, 8998041e, 2be58549)
+   * This was done by using a build with the thread resolver enabled, possibly fixing race conditions when initing curl
+ * Prevent `GeodeUpdater.exe` from hanging (d139049b)
+ * Fix a duplicated node ID in LoadingLayer (#574)
+ * Fix minor memory leak in AsyncWebRequest (52ea6ea5)
+ * Fix Wine crashing when launching via terminal (#501)
+ * Use C locale instead of US (#566)
+ * Impostor playlayer fix (#562)
+
 ## v2.0.0-beta.21
  * Fix `numFromString` for floating point numbers (6d91804)
  * Fix `ScrollLayer` cropping (5c8ee29)
