@@ -3,6 +3,7 @@
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/utils/Promise.hpp>
 #include <Geode/utils/web2.hpp>
+#include <Geode/loader/SettingEvent.hpp>
 
 using namespace geode::prelude;
 
@@ -142,6 +143,7 @@ namespace server {
             // comes from the lack of a web request - not how many extra 
             // milliseconds we can squeeze out of a map access
             std::vector<std::pair<Query, Result>> m_values;
+            size_t m_sizeLimit = 20;
 
         public:
             std::optional<Result> get(Query const& query) {
@@ -154,26 +156,34 @@ namespace server {
             }
             void add(Query&& query, Result&& result) {
                 std::unique_lock _(m_mutex);
-                m_values.emplace_back(std::make_pair(std::move(query), std::move(result)));
+                auto value = std::make_pair(std::move(query), std::move(result));
+                // Shift and replace last element if we're at cache size limit
+                if (m_values.size() >= m_sizeLimit) {
+                    std::shift_left(m_values.begin(), m_values.end(), 1);
+                    m_values.back() = std::move(value);
+                }
+                // Otherwise append at end
+                else {
+                    m_values.emplace_back(std::move(value));
+                }
             }
             void remove(Query const& query) {
                 std::unique_lock _(m_mutex);
                 ranges::remove(m_values, [&query](auto const& q) { return q.first == query; });
             }
-            void shrink(size_t size) {
-                std::unique_lock _(m_mutex);
-                size_t removeCount = size < m_values.size() ? m_values.size() - size : 0;
-                m_values.erase(m_values.begin(), m_values.begin() + removeCount);
-            }
             void clear() {
                 std::unique_lock _(m_mutex);
+                m_values.clear();
+            }
+            // @warning also clears the cache
+            void limit(size_t size) {
+                std::unique_lock _(m_mutex);
+                m_sizeLimit = size;
                 m_values.clear();
             }
         };
 
         Cache m_cache;
-        // todo: loader setting to customize this
-        static constexpr size_t CACHE_SIZE_LIMIT = 20;
     
         ServerPromise<Result> fetch(Query const& query) {
             return ServerPromise<Result>([this, query = Query(query)](auto resolve, auto reject, auto progress, auto cancelled) {
@@ -192,9 +202,16 @@ namespace server {
             });
         }
 
+        static ServerResultCache makeShared() {
+            listenForSettingChanges<int64_t>("server-cache-size-limit", +[](int64_t size) {
+                ServerResultCache::shared().setSizeLimit(size);
+            });
+            return ServerResultCache();
+        }
+
     public:
         static ServerResultCache<F>& shared() {
-            static auto inst = ServerResultCache<F>();
+            static auto inst = makeShared();
             return inst;
         }
     
@@ -205,11 +222,8 @@ namespace server {
                     resolve(std::move(cached));
                 });
             }
-            // Shrink to fit size limit + 1 new item
-            m_cache.shrink(CACHE_SIZE_LIMIT - 1);
             return this->fetch(std::move(query));
         }
-
         ServerPromise<Result> refetch(Query const& query) {
             // Clear cache for this query only
             m_cache.remove(query);
@@ -218,9 +232,14 @@ namespace server {
             return this->fetch(std::move(query));
         }
 
-        // Clear all caches
+        // Invalidate the whole cache
         void invalidateAll() {
             m_cache.clear();
+        }
+
+        // Limit the size of the cache
+        void setSizeLimit(size_t size) {
+            m_cache.limit(size);
         }
     };
 }
