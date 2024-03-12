@@ -5,8 +5,6 @@ using namespace geode::prelude;
 
 class $modify(CCMenuItem) {
     void activate() {
-        this->retain();
         CCMenuItem::activate();
-        this->release();
     }
 };
