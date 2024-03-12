@@ -16,6 +16,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     CCLabelBMFont* m_smallLabel2 = nullptr;
     int m_geodeLoadStep = 0;
     int m_totalMods = 0;
+    int m_totalSteps = 18;
 
     static void onModify(auto& self) {
         if (!self.setHookPriority("LoadingLayer::init", geode::node_ids::GEODE_ID_PRIORITY)) {
@@ -24,31 +25,37 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
         GEODE_FORWARD_COMPAT_DISABLE_HOOKS_INNER("Switching to fallback custom loading layer")
     }
 
+    void initLabels(const std::string& font) {
+        auto winSize = CCDirector::sharedDirector()->getWinSize();
+
+        m_smallLabel = CCLabelBMFont::create("", font.c_str());
+        m_smallLabel->setPosition(winSize.width / 2, 30.f);
+        m_smallLabel->setScale(0.45f);
+        addChild(m_smallLabel);
+
+        m_smallLabel2 = CCLabelBMFont::create("", font.c_str());
+        m_smallLabel2->setPosition(winSize.width / 2, 15.f);
+        m_smallLabel2->setScale(0.45f);
+        addChild(m_smallLabel2);
+    }
+
     void updateLoadedModsLabel() {
-        auto allMods = Loader::get()->getAllMods();
-        auto count = std::count_if(allMods.begin(), allMods.end(), [&](auto& item) {
+        auto count = std::count_if(Loader::get()->getAllMods().begin(), Loader::get()->getAllMods().end(), [](auto& item) {
             return item->isEnabled();
         });
-        auto str = fmt::format("Geode: Loaded {}/{} mods", count, m_fields->m_totalMods);
-        this->setSmallText(str);
+        auto str = fmt::format("Geode: Loaded {}/{} mods", count, m_totalMods);
+        setSmallText(str, m_smallLabel);
         auto currentMod = LoaderImpl::get()->m_currentlyLoadingMod;
         auto modName = currentMod ? currentMod->getName() : "Unknown";
-        this->setSmallText2(modName);
+        setSmallText(modName, m_smallLabel2);
     }
 
-    void setSmallText(std::string const& text) {
-        if (!m_fields->m_menuDisabled) {
-            m_fields->m_smallLabel->setString(text.c_str());
+    void setSmallText(const std::string& text, CCLabelBMFont* label) {
+        if (!m_menuDisabled && label) {
+            label->setString(text.c_str());
         }
     }
 
-    void setSmallText2(std::string const& text) {
-        if (!m_fields->m_menuDisabled) {
-            m_fields->m_smallLabel2->setString(text.c_str());
-        }
-    }
-
-    // hook
     bool init(bool fromReload) {
         CCFileUtils::get()->updatePaths();
 
@@ -56,57 +63,44 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
 
         NodeIDs::provideFor(this);
 
-        m_fields->m_totalMods = Loader::get()->getAllMods().size();
-        m_fields->m_menuDisabled = Loader::get()->getLaunchFlag("disable-custom-menu");
-        if (m_fields->m_menuDisabled) {
+        m_totalMods = Loader::get()->getAllMods().size();
+        m_menuDisabled = Loader::get()->getLaunchFlag("disable-custom-menu");
+        if (m_menuDisabled) {
             return true;
         }
 
-        auto winSize = CCDirector::sharedDirector()->getWinSize();
-
-        m_fields->m_smallLabel = CCLabelBMFont::create("", "goldFont.fnt");
-        m_fields->m_smallLabel->setPosition(winSize.width / 2, 30.f);
-        m_fields->m_smallLabel->setScale(.45f);
-        m_fields->m_smallLabel->setID("geode-small-label");
-        this->addChild(m_fields->m_smallLabel);
-
-        m_fields->m_smallLabel2 = CCLabelBMFont::create("", "goldFont.fnt");
-        m_fields->m_smallLabel2->setPosition(winSize.width / 2, 15.f);
-        m_fields->m_smallLabel2->setScale(.45f);
-        m_fields->m_smallLabel2->setID("geode-small-label-2");
-        this->addChild(m_fields->m_smallLabel2);
+        initLabels("goldFont.fnt");
 
         return true;
     }
 
     void setupLoadingMods() {
         if (Loader::get()->getLoadingState() != Loader::LoadingState::Done) {
-            this->updateLoadedModsLabel();
-            this->waitLoadAssets();
+            updateLoadedModsLabel();
+            waitLoadAssets();
         }
         else {
-            this->continueLoadAssets();
-            this->setSmallText2("");
+            continueLoadAssets();
+            setSmallText("", m_smallLabel2);
         }
     }
 
     void setupLoaderResources() {
         log::debug("Verifying Loader Resources");
-        this->setSmallText("Verifying Loader Resources");
-        // verify loader resources
-        Loader::get()->queueInMainThread([&]() {
+        setSmallText("Verifying Loader Resources", m_smallLabel);
+        Loader::get()->queueInMainThread([this]() {
             if (!updater::verifyLoaderResources()) {
                 log::debug("Downloading Loader Resources");
-                this->setSmallText("Downloading Loader Resources");
-                this->addChild(EventListenerNode<updater::ResourceDownloadFilter>::create(
+                setSmallText("Downloading Loader Resources", m_smallLabel);
+                addChild(EventListenerNode<updater::ResourceDownloadFilter>::create(
                     this, &CustomLoadingLayer::updateResourcesProgress
                 ));
             }
             else {
                 log::debug("Loading Loader Resources");
-                this->setSmallText("Loading Loader Resources");
+                setSmallText("Loading Loader Resources", m_smallLabel);
                 updater::updateSpecialFiles();
-                this->continueLoadAssets();
+                continueLoadAssets();
             }
         });
     }
@@ -114,14 +108,12 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     void updateResourcesProgress(updater::ResourceDownloadEvent* event) {
         std::visit(makeVisitor {
             [&](UpdateProgress const& progress) {
-                this->setSmallText(fmt::format(
-                    "Downloading Loader Resources: {}%", progress.first
-                ));
+                setSmallText(fmt::format("Downloading Loader Resources: {}%", progress.first), m_smallLabel);
             },
             [&](UpdateFinished) {
                 log::debug("Downloaded Loader Resources");
-                this->setSmallText("Downloaded Loader Resources");
-                this->continueLoadAssets();
+                setSmallText("Downloaded Loader Resources", m_smallLabel);
+                continueLoadAssets();
             },
             [&](UpdateFailed const& error) {
                 log::debug("Failed Loader Resources");
@@ -134,71 +126,70 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
                     "The game will be loaded as normal, but please be aware "
                     "that it is very likely to crash. "
                 );
-                this->setSmallText("Failed Loader Resources");
-                this->continueLoadAssets();
+                setSmallText("Failed Loader Resources", m_smallLabel);
+                continueLoadAssets();
             }
         }, event->status);
     }
 
     void setupModResources() {
         log::debug("Loading mod resources");
-        this->setSmallText("Loading mod resources");
+        setSmallText("Loading mod resources", m_smallLabel);
         LoaderImpl::get()->updateResources(true);
-        this->continueLoadAssets();
+        continueLoadAssets();
     }
     
     int getCurrentStep() {
-        return m_fields->m_geodeLoadStep + m_loadStep + 1 + LoaderImpl::get()->m_refreshedModCount;
+        return m_geodeLoadStep + m_loadStep + 1 + LoaderImpl::get()->m_refreshedModCount;
     }
 
     int getTotalStep() {
-        return 18 + m_fields->m_totalMods;
+        return m_totalSteps + m_totalMods;
     }
 
     void updateLoadingBar() {
-        auto length = m_sliderGrooveXPos * this->getCurrentStep() / this->getTotalStep();
+        auto length = m_sliderGrooveXPos * getCurrentStep() / getTotalStep();
         m_sliderBar->setTextureRect({0, 0, length, m_sliderGrooveHeight});
     }
 
     void waitLoadAssets() {
         Loader::get()->queueInMainThread([this]() {
-            this->loadAssets();
+            loadAssets();
         });
     }
 
     void continueLoadAssets() {
-        ++m_fields->m_geodeLoadStep;
+        ++m_geodeLoadStep;
         Loader::get()->queueInMainThread([this]() {
-            this->loadAssets();
+            loadAssets();
         });
     }
 
     bool skipOnRefresh() {
         if (m_fromRefresh) {
-            this->continueLoadAssets();
+            continueLoadAssets();
         }
         return !m_fromRefresh;
     }
 
-    // hook
     void loadAssets() {
-        switch (m_fields->m_geodeLoadStep) {
+        switch (m_geodeLoadStep) {
         case 0:
-            if (this->skipOnRefresh()) this->setupLoadingMods();
+            if (skipOnRefresh()) setupLoadingMods();
             break;
         case 1:
-            if (this->skipOnRefresh()) this->setupLoaderResources();
+            if (skipOnRefresh()) setupLoaderResources();
             break;
         case 2:
-            this->setupModResources();
+            setupModResources();
             break;
         case 3:
         default:
-            this->setSmallText("Loading game resources");
+            setSmallText("Loading game resources", m_smallLabel);
             LoadingLayer::loadAssets();
             break;
         }
-        this->updateLoadingBar();
+        updateLoadingBar();
     }
 };
 
@@ -225,17 +216,10 @@ struct FallbackCustomLoadingLayer : Modify<FallbackCustomLoadingLayer, CCLayer> 
             "Loading Geode without UI, see console for details.",
             "goldFont.fnt"
         );
-        // this code is weird but its to avoid any virtual calls,
-        // which can change between versions. so instead, we force
-        // it to use the symbol, so it would only break if the function signature
-        // were to change.
         label->CCNode::setPosition(winSize.width / 2, 30.f);
         label->CCLabelBMFont::setScale(.45f);
         label->CCNode::setZOrder(99);
         this->CCNode::addChild(label);
-        // label->setID("geode-small-label");
-
-        // TODO: verify loader resources on fallback?
 
         LoaderImpl::get()->updateResources(true);
 
