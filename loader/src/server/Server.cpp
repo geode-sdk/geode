@@ -35,35 +35,35 @@ static Result<matjson::Value, ServerError> parseServerPayload(web::WebResponse&&
     return Ok(obj["payload"]);
 }
 
-static void parseServerError(auto reject, auto error) {
+static ServerError parseServerError(auto error) {
     // The server should return errors as `{ "error": "...", "payload": "" }`
     if (auto asJson = error.json()) {
         auto json = asJson.unwrap();
         if (json.is_object() && json.contains("error")) {
-            reject(ServerError(
+            return ServerError(
                 error.code(),
                 "{}", json.template get<std::string>("error")
-            ));
+            );
         }
         else {
-            reject(ServerError(error.code(), "Unknown (not valid JSON)"));
+            return ServerError(error.code(), "Unknown (not valid JSON)");
         }
     }
     // But if we get something else for some reason, return that
     else {
-        reject(ServerError(
+        return ServerError(
             error.code(),
             "{}", error.string().unwrapOr("Unknown (not a valid string)")
-        ));
+        );
     }
 }
 
-static void parseServerProgress(auto progress, auto prog, auto msg) {
+static ServerProgress parseServerProgress(auto prog, auto msg) {
     if (auto per = prog.downloadProgress()) {
-        progress({ msg, static_cast<uint8_t>(*per) });
+        return ServerProgress(msg, static_cast<uint8_t>(*per));
     }
     else {
-        progress({ msg });
+        return ServerProgress(msg);
     }
 }
 
@@ -335,83 +335,83 @@ ServerPromise<ServerModsList> server::getMods(ModsQuery const& query) {
     req.param("page", std::to_string(query.page + 1));
     req.param("per_page", std::to_string(query.pageSize));
 
-    return ServerPromise<ServerModsList>([req = std::move(req)](auto resolve, auto reject, auto progress, auto cancel) mutable {
-        req.get(getServerAPIBaseURL() + "/mods")
-            .then([resolve, reject](auto value) {
+    return req.get(getServerAPIBaseURL() + "/mods")
+        .then<ServerModsList, ServerError>([](auto result) -> Result<ServerModsList, ServerError> {
+            if (result) {
+                auto value = std::move(result).unwrap();
+
                 // Store the code, since the value is moved afterwards
                 auto code = value.code();
 
                 // Parse payload
                 auto payload = parseServerPayload(std::move(value));
                 if (!payload) {
-                    return reject(payload.unwrapErr());
+                    return Err(payload.unwrapErr());
                 }
                 // Parse response
                 auto list = ServerModsList::parse(payload.unwrap());
                 if (!list) {
-                    return reject(ServerError(code, "Unable to parse response: {}", list.unwrapErr()));
+                    return Err(ServerError(code, "Unable to parse response: {}", list.unwrapErr()));
                 }
-                resolve(list.unwrap());
-            })
-            .expect([resolve, reject](auto error) {
+                return Ok(list.unwrap());
+            }
+            else {
+                auto error = std::move(result).unwrapErr();
                 // Treat a 404 as empty mods list
                 if (error.code() == 404) {
-                    return resolve(ServerModsList());
+                    return Ok(ServerModsList());
                 }
-                parseServerError(reject, error);
-            })
-            .progress([progress](auto prog) {
-                parseServerProgress(progress, prog, "Downloading mods");
-            })
-            .link(cancel);
-    });
+                return Err(parseServerError(error));
+            }
+        })
+        .progress<ServerProgress>([](auto prog) {
+            return parseServerProgress(prog, "Downloading mods");
+        });
 }
 
 ServerPromise<ServerModMetadata> server::getMod(std::string const& id) {
     auto req = web::WebRequest();
     req.userAgent(getServerUserAgent());
-    return ServerPromise<ServerModMetadata>([req = std::move(req), id](auto resolve, auto reject, auto progress, auto cancel) mutable {
-        req.get(getServerAPIBaseURL() + "/mods/" + id)
-            .then([resolve, reject](auto value) {
+    return req.get(getServerAPIBaseURL() + "/mods/" + id)
+        .then<ServerModMetadata, ServerError>([](auto result) -> Result<ServerModMetadata, ServerError> {
+            if (result) {
+                auto value = result.unwrap();
+
                 // Store the code, since the value is moved afterwards
                 auto code = value.code();
 
                 // Parse payload
                 auto payload = parseServerPayload(std::move(value));
                 if (!payload) {
-                    return reject(payload.unwrapErr());
+                    return Err(payload.unwrapErr());
                 }
                 // Parse response
                 auto list = ServerModMetadata::parse(payload.unwrap());
                 if (!list) {
-                    return reject(ServerError(code, "Unable to parse response: {}", list.unwrapErr()));
+                    return Err(ServerError(code, "Unable to parse response: {}", list.unwrapErr()));
                 }
-                resolve(list.unwrap());
-            })
-            .expect([reject](auto error) {
-                parseServerError(reject, error);
-            })
-            .progress([progress, id](auto prog) {
-                parseServerProgress(progress, prog, "Downloading logo for " + id);
-            })
-            .link(cancel);
-    });
+                return Ok(list.unwrap());
+            }
+            else {
+                return Err(parseServerError(result.unwrapErr()));
+            }
+        })
+        .progress<ServerProgress>([id](auto prog) {
+            return parseServerProgress(prog, "Downloading metadata for " + id);
+        });
 }
 
 ServerPromise<ByteVector> server::getModLogo(std::string const& id) {
     auto req = web::WebRequest();
     req.userAgent(getServerUserAgent());
-    return ServerPromise<ByteVector>([req = std::move(req), id](auto resolve, auto reject, auto progress, auto cancel) mutable {
-        req.get(getServerAPIBaseURL() + "/mods/" + id + "/logo")
-            .then([resolve](auto response) {
-                resolve(response.data());
-            })
-            .expect([reject](auto error) {
-                parseServerError(reject, error);
-            })
-            .progress([progress, id](auto prog) {
-                parseServerProgress(progress, prog, "Downloading logo for " + id);
-            })
-            .link(cancel);
-    });
+    return req.get(getServerAPIBaseURL() + "/mods/" + id + "/logo")
+        .then<ByteVector>([](auto response) {
+            return response.data();
+        })
+        .expect<ServerError>([](auto error) {
+            return parseServerError(error);
+        })
+        .progress<ServerProgress>([id](auto prog) {
+            return parseServerProgress(prog, "Downloading logo for " + id);
+        });
 }

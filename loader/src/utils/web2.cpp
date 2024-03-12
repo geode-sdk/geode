@@ -131,12 +131,10 @@ WebPromise WebRequest::send(std::string_view method, std::string_view url) {
             WebResponse response;
             Impl* impl;
             WebPromise::Progress progress;
-            PromiseCancellationToken cancelled;
         } responseData = {
             .response = WebResponse(),
             .impl = impl.get(),
             .progress = progress,
-            .cancelled = cancelled,
         };
 
         // Store downloaded response data into a byte vector

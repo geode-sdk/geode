@@ -90,8 +90,9 @@ namespace server {
             Args&&... args
         ) : code(code), details(fmt::vformat(format, fmt::make_format_args(args...))) {}
     };
+    using ServerProgress = Promise<>::Progress;
     template <class T>
-    using ServerPromise = Promise<T, ServerError>;
+    using ServerPromise = Promise<T, ServerError, ServerProgress>;
 
     std::string getServerAPIBaseURL();
     std::string getServerUserAgent();
@@ -115,10 +116,12 @@ namespace server {
         using Extract = decltype(detail::ExtractServerReqParams(F));
         using Result  = Extract::Result;
         using Query   = Extract::Query;
-        using Cached  = std::variant<ServerPromise<Result>, Result>;
 
     private:
         class Cache final {
+            using Pending = ServerPromise<Result>;
+            using CachedOrPending = std::variant<Pending, Result>;
+
             std::mutex m_mutex;
             // I know this looks like a goofy choice over just 
             // `std::unordered_map`, but hear me out:
@@ -142,17 +145,54 @@ namespace server {
             // lightning-fast (🚀), and besides the main performance benefit 
             // comes from the lack of a web request - not how many extra 
             // milliseconds we can squeeze out of a map access
-            std::vector<std::pair<Query, Result>> m_values;
+            std::vector<std::pair<Query, CachedOrPending>> m_values;
             size_t m_sizeLimit = 20;
+
+            template <class As>
+            As* find(Query const& query) {
+                auto it = std::find_if(m_values.begin(), m_values.end(), [](auto const& q) {
+                    return q.first == query;
+                });
+                if (it == m_values.end()) {
+                    return nullptr;
+                }
+                if (auto as = std::get_if<As>(&it->second)) {
+                    return as;
+                }
+                return nullptr;
+            }
 
         public:
             std::optional<Result> get(Query const& query) {
                 std::unique_lock _(m_mutex);
-                // mfw no std::optional::map
-                if (auto found = ranges::find(m_values, [&query](auto const& q) { return q.first == query; })) {
-                    return found->second;
+                if (auto v = this->template find<Result>(query)) {
+                    return *v;
                 }
                 return std::nullopt;
+            }
+            ServerPromise<Result> pend(Query&& query, auto func) {
+                std::unique_lock _(m_mutex);
+                ServerPromise<Result> ret;
+                if (auto prev = this->template find<Pending>(query)) {
+                    return prev;
+                }
+                else {
+                    ret = ServerPromise<Result>([this, func, query = Query(query)](auto resolve, auto reject, auto progress, auto cancelled) {
+                        func(Query(query))
+                        .then([this, resolve, query = std::move(query)](auto res) {
+                            this->add(Query(query), Result(res));
+                            resolve(res);
+                        })
+                        .expect([reject](auto err) {
+                            reject(err);
+                        })
+                        .progress([progress](auto prog) {
+                            progress(prog);
+                        })
+                        .link(cancelled);
+                    });
+                }
+                return ret;
             }
             void add(Query&& query, Result&& result) {
                 std::unique_lock _(m_mutex);
@@ -186,32 +226,15 @@ namespace server {
         Cache m_cache;
     
         ServerPromise<Result> fetch(Query const& query) {
-            return ServerPromise<Result>([this, query = Query(query)](auto resolve, auto reject, auto progress, auto cancelled) {
-                F(Query(query))
-                .then([this, resolve, query = std::move(query)](auto res) {
-                    m_cache.add(Query(query), Result(res));
-                    resolve(res);
-                })
-                .expect([reject](auto err) {
-                    reject(err);
-                })
-                .progress([progress](auto prog) {
-                    progress(prog);
-                })
-                .link(cancelled);
-            });
-        }
-
-        static ServerResultCache makeShared() {
-            listenForSettingChanges<int64_t>("server-cache-size-limit", +[](int64_t size) {
-                ServerResultCache::shared().setSizeLimit(size);
-            });
-            return ServerResultCache();
+            return m_cache.pend(Query(query));
         }
 
     public:
         static ServerResultCache<F>& shared() {
-            static auto inst = makeShared();
+            static auto inst = ServerResultCache();
+            static auto _ = listenForSettingChanges<int64_t>("server-cache-size-limit", +[](int64_t size) {
+                ServerResultCache::shared().setSizeLimit(size);
+            });
             return inst;
         }
     

@@ -89,24 +89,21 @@ static auto loadInstalledModsPage(server::ModsQuery&& query) {
 }
 
 static auto loadServerModsPage(server::ModsQuery&& query) {
-    return ModListSource::ProviderPromise([query = std::move(query)](auto resolve, auto reject, auto progress, auto cancelled) {
-        server::getMods(query)
-        .then([resolve, reject](server::ServerModsList list) {
+    return server::getMods(query)
+        .then<ModListSource::ProvidedMods>([](server::ServerModsList list) {
             auto content = ModListSource::ProvidedMods();
             for (auto&& mod : std::move(list.mods)) {
                 content.mods.push_back(ModSource(std::move(mod)));
             }
             content.totalModCount = list.totalModCount;
-            resolve(content);
+            return content;
         })
-        .expect([reject](auto error) {
-            reject(ModListSource::LoadPageError("Error loading mods", error.details));
+        .expect<ModListSource::LoadPageError>([](auto error) {
+            return ModListSource::LoadPageError("Error loading mods", error.details);
         })
-        .progress([progress](auto prog) {
-            progress(prog.percentage);
-        })
-        .link(cancelled);
-    });
+        .progress<std::optional<uint8_t>>([](auto prog) {
+            return prog.percentage;
+        });
 }
 
 typename ModListSource::PagePromise ModListSource::loadPage(size_t page, bool update) {
@@ -124,33 +121,30 @@ typename ModListSource::PagePromise ModListSource::loadPage(size_t page, bool up
         });
     }
     m_cachedPages.erase(page);
-    return PagePromise([this, page](auto resolve, auto reject, auto progress, auto cancelled) {
-        m_provider.get(server::ModsQuery {
-            .query = m_query,
-            .page = page,
-            // todo: loader setting to change this
-            .pageSize = PER_PAGE,
-        })
-            .then([page, this, resolve, reject](auto data) {
-                if (data.totalModCount == 0 || data.mods.empty()) {
-                    return reject(ModListSource::LoadPageError("No mods found :("));
-                }
-                auto pageData = Page();
-                for (auto mod : std::move(data.mods)) {
-                    pageData.push_back(ModItem::create(std::move(mod)));
-                }
-                m_cachedItemCount = data.totalModCount;
-                m_cachedPages.insert({ page, pageData });
-                resolve(pageData);
-            })
-            .expect([this, reject = reject](auto error) {
-                reject(error);
-            })
-            .progress([this, progress = std::move(progress)](auto prog) {
-                progress(prog);
-            })
-            .link(cancelled);
-    }, false);
+    return m_provider.get(server::ModsQuery {
+        .query = m_query,
+        .page = page,
+        // todo: loader setting to change this
+        .pageSize = PER_PAGE,
+    })
+    .then<Page, ModListSource::LoadPageError>([page, this](auto result) -> Result<Page, ModListSource::LoadPageError> {
+        if (result) {
+            auto data = result.unwrap();
+            if (data.totalModCount == 0 || data.mods.empty()) {
+                return Err(ModListSource::LoadPageError("No mods found :("));
+            }
+            auto pageData = Page();
+            for (auto mod : std::move(data.mods)) {
+                pageData.push_back(ModItem::create(std::move(mod)));
+            }
+            m_cachedItemCount = data.totalModCount;
+            m_cachedPages.insert({ page, pageData });
+            return Ok(pageData);
+        }
+        else {
+            return Err(result.unwrapErr());
+        }
+    });
 }
 
 std::optional<size_t> ModListSource::getPageCount() const {

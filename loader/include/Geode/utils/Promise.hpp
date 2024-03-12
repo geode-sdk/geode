@@ -16,190 +16,353 @@ namespace geode {
         };
     }
 
-    class PromiseCancellationToken final {
-    private:
-        std::shared_ptr<std::atomic_bool> token = std::make_shared<std::atomic_bool>(false);
-
-        template <class T, class E, class P>
-        friend class Promise;
-
-    public:
-        inline operator bool() {
-            return *token;
-        }
-    };
+    struct CancelledState final {};
     
     template <class T = impl::DefaultValue, class E = impl::DefaultError, class P = impl::DefaultProgress>
     class PromiseEventFilter;
 
-    /**
-     * Represents an asynchronous `Result`. Similar to `Future` in Rust, or 
-     * `Promise` in JavaScript. May have only one of each kind of callback. Can 
-     * also be used to monitor the progress of the upcoming value. All 
-     * callbacks are always run in the main thread, so interacting with UI is 
-     * safe
-     */
     template <class T = impl::DefaultValue, class E = impl::DefaultError, class P = impl::DefaultProgress>
-    class [[nodiscard]] Promise final {
+    class Promise final {
     public:
-        using Then = utils::MiniFunction<void(T)>;
-        using Expect = utils::MiniFunction<void(E)>;
-        using Progress = utils::MiniFunction<void(P)>;
-        using Finally = utils::MiniFunction<void()>;
-        using SimpleExecutor = utils::MiniFunction<void(
-            Then resolve,
-            Expect reject
-        )>;
-        using Executor = utils::MiniFunction<void(
-            Then resolve,
-            Expect reject,
-            Progress progress,
-            PromiseCancellationToken cancellationToken
-        )>;
+        using Value = T;
+        using Error = E;
+        using Progress = P;
 
-        /**
-         * Create a Promise. Call the provided callbacks to notify the 
-         * listener when the Promise is finished. Use the other constructor 
-         * overloads to specify progress and handle cancellation.
-         * 
-         * @param threaded Whether the Promise should start executing in a new 
-         * thread or not; if false, the Promise starts immediately executing in 
-         * the current thread
-         * 
-         * @note See the class description for general information about 
-         * Promises
-         */
-        Promise(SimpleExecutor&& executor, bool threaded = true)
-          : Promise([executor](auto resolve, auto reject, auto, auto) {
-                executor(resolve, reject);
-            }, threaded) {}
+        using OnResolved = utils::MiniFunction<void(Value)>;
+        using OnRejected = utils::MiniFunction<void(Error)>;
+        using OnProgress = utils::MiniFunction<void(Progress)>;
+        using OnFinished = utils::MiniFunction<void()>;
+        using OnCancelled = utils::MiniFunction<void()>;
+
+        using State = std::variant<Value, Error, Progress, CancelledState>;
+        using OnStateChange = utils::MiniFunction<void(State)>;
+
+        // These are needed if for example Value and Error are the same type
+        static constexpr size_t STATE_VALUE_INDEX     = 0;
+        static constexpr size_t STATE_ERROR_INDEX     = 1;
+        static constexpr size_t STATE_PROGRESS_INDEX  = 2;
+        static constexpr size_t STATE_CANCELLED_INDEX = 3;
+
+        Promise() : m_data(std::make_shared<Data>()) {}
+
+        Promise(utils::MiniFunction<void(OnResolved, OnRejected)> source, bool threaded = true) 
+          : Promise([source](auto resolve, auto reject, auto, auto) {
+                source(resolve, reject);
+            }) {}
         
-        /**
-         * Create a Promise. Call the provided callbacks to notify the 
-         * listener when the Promise is finished. If the user cancels the 
-         * Promise, this is reflected in the `cancelled` parameter; you can 
-         * read from it, and if it's true, you can stop whatever you were doing 
-         * and not call any of the other callbacks.
-         * 
-         * @param threaded Whether the Promise should start executing in a new 
-         * thread or not; if false, the Promise starts immediately executing in 
-         * the current thread
-         * 
-         * @note See the class description for general information about 
-         * Promises
-         */
-        Promise(Executor&& executor, bool threaded = true) : m_data(std::make_shared<Data>()) {
+        Promise(utils::MiniFunction<void(OnResolved, OnRejected, OnProgress, OnCancelled)> source, bool threaded = true)
+          : Promise([source](auto onStateChanged) {
+                source(
+                    [onStateChanged](auto&& value) {
+                        onStateChanged(State(std::in_place_index<STATE_VALUE_INDEX>, value));
+                    },
+                    [onStateChanged](auto&& error) {
+                        onStateChanged(State(std::in_place_index<STATE_ERROR_INDEX>, error));
+                    },
+                    [onStateChanged](auto&& progress) {
+                        onStateChanged(State(std::in_place_index<STATE_PROGRESS_INDEX>, progress));
+                    },
+                    [onStateChanged]() {
+                        onStateChanged(State(std::in_place_index<STATE_CANCELLED_INDEX>, CancelledState()));
+                    }
+                );
+            }) {}
+        
+        Promise(utils::MiniFunction<void(OnStateChange)> source, bool threaded = true) : m_data(std::make_shared<Data>()) {
             if (threaded) {
-                std::thread([executor = std::move(executor), data = m_data]() mutable {
-                    Promise::invoke_executor(std::move(executor), data);
+                std::thread([source = std::move(source), data = m_data]() mutable {
+                    Promise::invoke_source(std::move(source), data);
                 }).detach();
             }
             else {
-                Promise::invoke_executor(std::move(executor), m_data);
+                Promise::invoke_source(std::move(source), m_data);
             }
         }
 
-        /**
-         * Add a listener for when the Promise finishes. There may only be one 
-         * listener at a time. If the Promise has already been resolved, the 
-         * callback is immediately queued in the main thread
-         */
-        Promise& then(Then&& handler) {
-            if (m_data->cancellationToken) return *this;
+        Promise then(utils::MiniFunction<void(Value)>&& callback) {
+            return this->template then<Value>([callback](auto value) {
+                callback(value);
+                return std::move(value);
+            });
+        }
+        template <class T2>
+            requires (!std::is_void_v<T2>)
+        Promise<T2, E, P> then(utils::MiniFunction<T2(T)>&& callback) {
+            if (m_data->cancelled) return make_cancelled<T2, E, P>();
             std::unique_lock<std::mutex> _(m_data->mutex);
+
+            // Check if this Promise has already been resolved, and if so 
+            // immediately queue the callback with the value
             if (m_data->result.has_value()) {
-                auto v = std::move(m_data->result).value();
+                auto v = m_data->result.value();
                 if (v.index() == 0) {
-                    Loader::get()->queueInMainThread([handler = std::move(handler), ok = std::move(std::get<0>(v))] {
-                        handler(ok);
+                    Loader::get()->queueInMainThread([callback = std::move(callback), ok = std::move(std::get<0>(v))] {
+                        callback(ok);
                     });
                 }
+                return make_cancelled<T2, E, P>();
             }
-            else {
-                m_data->thenHandler = handler;
-            }
-            return *this;
+
+            return Promise<T2, E, P>([data = m_data, callback](auto fwdStateToNextPromise) {
+                data->callback = [fwdStateToNextPromise, callback](auto&& state) {
+                    // Can't use std::visit if Value and Error are the same >:(
+                    switch (state.index()) {
+                        case STATE_VALUE_INDEX: {
+                            auto mapped = callback(std::get<STATE_VALUE_INDEX>(state));
+                            fwdStateToNextPromise(Promise<T2, E, P>::State(
+                                std::in_place_index<STATE_VALUE_INDEX>,
+                                std::move(mapped)
+                            ));
+                        } break;
+
+                        case STATE_ERROR_INDEX: {
+                            fwdStateToNextPromise(Promise<T2, E, P>::State(
+                                std::in_place_index<STATE_ERROR_INDEX>,
+                                std::move(std::get<STATE_ERROR_INDEX>(state))
+                            ));
+                        } break;
+
+                        case STATE_PROGRESS_INDEX: {
+                            fwdStateToNextPromise(Promise<T2, E, P>::State(
+                                std::in_place_index<STATE_PROGRESS_INDEX>,
+                                std::move(std::get<STATE_PROGRESS_INDEX>(state))
+                            ));
+                        } break;
+
+                        case STATE_CANCELLED_INDEX: {
+                            fwdStateToNextPromise(Promise<T2, E, P>::State(
+                                std::in_place_index<STATE_CANCELLED_INDEX>,
+                                std::move(std::get<STATE_CANCELLED_INDEX>(state))
+                            ));
+                        } break;
+                    }
+                };
+            });
         }
-        /**
-         * Add a listener for when the Promise fails. There may only be one 
-         * listener at a time. If the Promise has already been resolved, the 
-         * callback is immediately queued in the main thread
-         */
-        Promise& expect(Expect&& handler) {
-            if (m_data->cancellationToken) return *this;
+
+        template <class T2, class E2>
+            requires (!std::is_void_v<T2>)
+        Promise<T2, E2, P> then(utils::MiniFunction<Result<T2, E2>(Result<T, E>)>&& callback) {
+            if (m_data->cancelled) return make_cancelled<T2, E2, P>();
             std::unique_lock<std::mutex> _(m_data->mutex);
+
+            // Check if this Promise has already been resolved, and if so 
+            // immediately queue the callback with the value
             if (m_data->result.has_value()) {
-                auto v = std::move(m_data->result).value();
+                auto v = m_data->result.value();
+                if (v.index() == 0) {
+                    Loader::get()->queueInMainThread([callback = std::move(callback), ok = std::move(std::get<0>(v))] {
+                        (void)callback(Ok(ok));
+                    });
+                }
+                else {
+                    Loader::get()->queueInMainThread([callback = std::move(callback), err = std::move(std::get<1>(v))] {
+                        (void)callback(Err(err));
+                    });
+                }
+                return make_cancelled<T2, E2, P>();
+            }
+
+            return Promise<T2, E2, P>([data = m_data, callback](auto fwdStateToNextPromise) {
+                data->callback = [fwdStateToNextPromise, callback](auto&& state) {
+                    // Can't use std::visit if Value and Error are the same >:(
+                    switch (state.index()) {
+                        case STATE_VALUE_INDEX: {
+                            auto mapped = callback(Ok(std::move(std::get<STATE_VALUE_INDEX>(state))));
+                            if (mapped) {
+                                fwdStateToNextPromise(Promise<T2, E2, P>::State(
+                                    std::in_place_index<STATE_VALUE_INDEX>,
+                                    std::move(mapped).unwrap()
+                                ));
+                            }
+                            else {
+                                fwdStateToNextPromise(Promise<T2, E2, P>::State(
+                                    std::in_place_index<STATE_ERROR_INDEX>,
+                                    std::move(mapped).unwrapErr()
+                                ));
+                            }
+                        } break;
+
+                        case STATE_ERROR_INDEX: {
+                            auto mapped = callback(Err(std::move(std::get<STATE_ERROR_INDEX>(state))));
+                            if (mapped) {
+                                fwdStateToNextPromise(Promise<T2, E2, P>::State(
+                                    std::in_place_index<STATE_VALUE_INDEX>,
+                                    std::move(mapped).unwrap()
+                                ));
+                            }
+                            else {
+                                fwdStateToNextPromise(Promise<T2, E2, P>::State(
+                                    std::in_place_index<STATE_ERROR_INDEX>,
+                                    std::move(mapped).unwrapErr()
+                                ));
+                            }
+                        } break;
+
+                        case STATE_PROGRESS_INDEX: {
+                            fwdStateToNextPromise(Promise<T2, E2, P>::State(
+                                std::in_place_index<STATE_PROGRESS_INDEX>,
+                                std::move(std::get<STATE_PROGRESS_INDEX>(state))
+                            ));
+                        } break;
+
+                        case STATE_CANCELLED_INDEX: {
+                            fwdStateToNextPromise(Promise<T2, E2, P>::State(
+                                std::in_place_index<STATE_CANCELLED_INDEX>,
+                                std::move(std::get<STATE_CANCELLED_INDEX>(state))
+                            ));
+                        } break;
+                    }
+                };
+            });
+        }
+
+        Promise expect(utils::MiniFunction<void(Error)>&& callback) {
+            return this->template expect<Error>([callback](auto error) {
+                callback(error);
+                return std::move(error);
+            });
+        }
+        template <class E2>
+            requires (!std::is_void_v<E2>)
+        Promise<T, E2, P> expect(utils::MiniFunction<E2(E)>&& callback) {
+            if (m_data->cancelled) return make_cancelled<T, E2, P>();
+            std::unique_lock<std::mutex> _(m_data->mutex);
+
+            // Check if this Promise has already been resolved, and if so 
+            // immediately queue the callback with the value
+            if (m_data->result.has_value()) {
+                auto v = m_data->result.value();
                 if (v.index() == 1) {
-                    Loader::get()->queueInMainThread([handler = std::move(handler), err = std::move(std::get<1>(v))] {
-                        handler(err);
+                    Loader::get()->queueInMainThread([callback = std::move(callback), err = std::move(std::get<1>(v))] {
+                        callback(err);
                     });
                 }
+                return make_cancelled<T, E2, P>();
             }
-            else {
-                m_data->expectHandler = handler;
-            }
-            return *this;
+
+            return Promise<T, E2, P>([data = m_data, callback](auto fwdStateToNextPromise) {
+                data->callback = [fwdStateToNextPromise, callback](auto&& state) {
+                    // Can't use std::visit if Value and Error are the same >:(
+                    switch (state.index()) {
+                        case STATE_VALUE_INDEX: {
+                            fwdStateToNextPromise(Promise<T, E2, P>::State(
+                                std::in_place_index<STATE_VALUE_INDEX>,
+                                std::move(std::get<STATE_VALUE_INDEX>(state))
+                            ));
+                        } break;
+
+                        case STATE_ERROR_INDEX: {
+                            auto mapped = callback(std::get<STATE_ERROR_INDEX>(state));
+                            fwdStateToNextPromise(Promise<T, E2, P>::State(
+                                std::in_place_index<STATE_ERROR_INDEX>,
+                                std::move(mapped)
+                            ));
+                        } break;
+
+                        case STATE_PROGRESS_INDEX: {
+                            fwdStateToNextPromise(Promise<T, E2, P>::State(
+                                std::in_place_index<STATE_PROGRESS_INDEX>,
+                                std::move(std::get<STATE_PROGRESS_INDEX>(state))
+                            ));
+                        } break;
+
+                        case STATE_CANCELLED_INDEX: {
+                            fwdStateToNextPromise(Promise<T, E2, P>::State(
+                                std::in_place_index<STATE_CANCELLED_INDEX>,
+                                std::move(std::get<STATE_CANCELLED_INDEX>(state))
+                            ));
+                        } break;
+                    }
+                };
+            });
         }
-        /**
-         * Add a listener for when the Promise's progress is updated. There may 
-         * only be one listener at a time. If the Promise has already been 
-         * resolved, nothing happens
-         */
-        Promise& progress(Progress&& handler) {
-            if (m_data->cancellationToken) return *this;
-            std::unique_lock<std::mutex> _(m_data->mutex);
-            if (!m_data->result.has_value()) {
-                m_data->progressHandler = handler;
-            }
-            return *this;
+
+        Promise progress(utils::MiniFunction<void(Progress)>&& callback) {
+            return this->template progress<Progress>([callback](auto prog) {
+                callback(prog);
+                return std::move(prog);
+            });
         }
-        /**
-         * Add a listener for when the Promise is finished, regardless of if 
-         * it was succesful or not. There may only be one listener at a time. 
-         * If the Promise has already been resolved, the callback is 
-         * immediately queued in the main thread
-         */
-        Promise& finally(Finally&& handler) {
-            if (m_data->cancellationToken) return *this;
+        template <class P2>
+            requires (!std::is_void_v<P2>)
+        Promise<T, E, P2> progress(utils::MiniFunction<P2(P)>&& callback) {
+            if (m_data->cancelled) return make_cancelled<T, E, P2>();
             std::unique_lock<std::mutex> _(m_data->mutex);
+
+            // Check if this Promise has already been resolved
             if (m_data->result.has_value()) {
-                Loader::get()->queueInMainThread([handler = std::move(handler)] {
-                    handler();
-                });
+                return make_cancelled<T, E, P2>();
             }
-            else {
-                m_data->finallyHandler = handler;
-            }
-            return *this;
+
+            return Promise<T, E, P2>([data = m_data, callback](auto fwdStateToNextPromise) {
+                data->callback = [fwdStateToNextPromise, callback](auto&& state) {
+                    if (state.index() == STATE_PROGRESS_INDEX) {
+                        auto mapped = callback(std::get<STATE_PROGRESS_INDEX>(state));
+                        fwdStateToNextPromise(Promise<T, E, P2>::State(std::in_place_index<STATE_PROGRESS_INDEX>, mapped));
+                    }
+                    else {
+                        fwdStateToNextPromise(state);
+                    }
+                };
+            });
         }
 
-        /**
-         * Cancel the Promise. Removes all listeners and sets the signal for 
-         * cancelling. Whether or not the promise actually can interrupt its 
-         * operation depends on the Promise; as such, this is not guaranteed to 
-         * actually stop the operation that created the Promise, but it is 
-         * guaranteed that the listener will not be notified after a call to 
-         * cancel
-         */
-        Promise& cancel() {
-            if (m_data->cancellationToken) return *this;
+        Promise finally(utils::MiniFunction<void()>&& callback) {
+            if (m_data->cancelled) return make_cancelled();
             std::unique_lock<std::mutex> _(m_data->mutex);
-            m_data->thenHandler = nullptr;
-            m_data->expectHandler = nullptr;
-            m_data->progressHandler = nullptr;
-            m_data->finallyHandler = nullptr;
-            m_data->cancellationToken.token = true;
-            return *this;
+
+            // Check if this Promise has already been resolved, and if so 
+            // immediately queue the callback with the value
+            if (m_data->result.has_value()) {
+                Loader::get()->queueInMainThread([callback = std::move(callback)] {
+                    callback();
+                });
+                return make_cancelled();
+            }
+
+            return Promise([data = m_data, callback](auto fwdStateToNextPromise) {
+                data->callback = [fwdStateToNextPromise, callback](auto&& state) {
+                    if (state.index() == STATE_VALUE_INDEX || state.index() == STATE_ERROR_INDEX) {
+                        callback();
+                    }
+                    fwdStateToNextPromise(state);
+                };
+            });
         }
 
-        /**
-         * Link this Promise to be cancelled alongside another Promise
-         */
-        Promise& link(PromiseCancellationToken otherCancellationToken) {
-            if (m_data->cancellationToken) return *this;
-            m_data->cancellationToken = otherCancellationToken;
-            return *this;
+        Promise cancelled(utils::MiniFunction<void()>&& callback) {
+            if (m_data->cancelled) {
+                Loader::get()->queueInMainThread([callback = std::move(callback)] {
+                    callback();
+                });
+                return make_cancelled();
+            }
+            std::unique_lock<std::mutex> _(m_data->mutex);
+
+            if (m_data->result.has_value()) {
+                return make_cancelled();
+            }
+
+            return Promise([data = m_data, callback](auto fwdStateToNextPromise) {
+                data->callback = [fwdStateToNextPromise, callback](auto&& state) {
+                    if (state.index() == STATE_CANCELLED_INDEX) {
+                        callback();
+                    }
+                    fwdStateToNextPromise(state);
+                };
+            });
+        }
+
+        void resolve(Value&& value) {
+            invoke_callback(State(std::in_place_index<STATE_VALUE_INDEX>, std::move(value)), m_data);
+        }
+        void reject(Error&& error) {
+            invoke_callback(State(std::in_place_index<STATE_ERROR_INDEX>, std::move(error)), m_data);
+        }
+        void cancel() {
+            m_data->cancelled = true;
+            invoke_callback(State(std::in_place_index<STATE_CANCELLED_INDEX>, CancelledState()), m_data);
         }
 
         /**
@@ -212,73 +375,45 @@ namespace geode {
         PromiseEventFilter<T, E, P> listen();
 
     private:
-        struct Data {
-            // Mutex for handlers & result
+        struct Data final {
             std::mutex mutex;
-            Then thenHandler;
-            Expect expectHandler;
-            Progress progressHandler;
-            Finally finallyHandler;
-            std::optional<std::variant<T, E>> result;
-            PromiseCancellationToken cancellationToken;
+            OnStateChange callback;
+            std::optional<std::variant<Value, Error>> result;
+            std::atomic_bool cancelled;
         };
-        // This has to be a shared_ptr so that the data can persist even after 
-        // the future is destroyed, as well as to share it between resolve, reject, and the likes
         std::shared_ptr<Data> m_data;
 
-        static void invoke_executor(Executor&& executor, std::shared_ptr<Data> data) {
-            executor(
-                [data](auto&& value) {
-                    if (data->cancellationToken) return;
-                    std::unique_lock<std::mutex> _(data->mutex);
-                    bool handled = false;
-                    if (data->thenHandler) {
-                        Loader::get()->queueInMainThread([fun = std::move(data->thenHandler), v = std::move(value)] {
-                            fun(v);
-                        });
-                        handled = true;
-                    }
-                    if (data->finallyHandler) {
-                        Loader::get()->queueInMainThread([fun = std::move(data->finallyHandler)] {
-                            fun();
-                        });
-                        handled = true;
-                    }
-                    if (!handled) {
-                        data->result = std::variant<T, E>(std::in_place_index<0>, std::move(value));
-                    }
-                },
-                [data](auto&& error) {
-                    if (data->cancellationToken) return;
-                    std::unique_lock<std::mutex> _(data->mutex);
-                    bool handled = false;
-                    if (data->expectHandler) {
-                        Loader::get()->queueInMainThread([fun = std::move(data->expectHandler), v = std::move(error)] {
-                            fun(v);
-                        });
-                        handled = true;
-                    }
-                    if (data->finallyHandler) {
-                        Loader::get()->queueInMainThread([fun = std::move(data->finallyHandler)] {
-                            fun();
-                        });
-                        handled = true;
-                    }
-                    if (!handled) {
-                        data->result = std::variant<T, E>(std::in_place_index<1>, std::move(error));
-                    }
-                },
-                [data](auto&& p) {
-                    if (data->cancellationToken) return;
-                    std::unique_lock<std::mutex> _(data->mutex);
-                    if (auto handler = data->progressHandler) {
-                        Loader::get()->queueInMainThread([p = std::move(p), handler]() mutable {
-                            handler(std::move(p));
-                        });
-                    }
-                },
-                data->cancellationToken
-            );
+        template <class T2 = Value, class E2 = Error, class P2 = Progress>
+        static Promise<T2, E2, P2> make_cancelled() {
+            auto ret = Promise<T2, E2, P2>();
+            ret.cancel();
+            return std::move(ret);
+        }
+
+        static void invoke_callback(State&& state, std::shared_ptr<Data> data) {
+            if (data->cancelled) return;
+            std::unique_lock<std::mutex> _(data->mutex);
+
+            if (data->callback) {
+                data->callback(State(state));
+            }
+
+            // Store the state to let future installed callbacks be immediately resolved
+            if (state.index() == STATE_VALUE_INDEX) {
+                data->result = std::variant<Value, Error>(std::in_place_index<0>, std::get<0>(std::move(state)));
+            }
+            else if (state.index() == STATE_ERROR_INDEX) {
+                data->result = std::variant<Value, Error>(std::in_place_index<1>, std::get<1>(std::move(state)));
+            }
+            else if (state.index() == STATE_CANCELLED_INDEX) {
+                data->cancelled = true;
+            }
+        }
+
+        static void invoke_source(utils::MiniFunction<void(OnStateChange)>&& source, std::shared_ptr<Data> data) {
+            source([data](auto&& state) {
+                invoke_callback(std::move(state), data);
+            });
         }
     };
 
