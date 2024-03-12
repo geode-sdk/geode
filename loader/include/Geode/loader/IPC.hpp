@@ -2,6 +2,7 @@
 
 #include "Event.hpp"
 #include "Loader.hpp"
+#include "Mod.hpp"
 #include <matjson.hpp>
 
 namespace geode::ipc {
@@ -64,5 +65,9 @@ namespace geode::ipc {
         IPCFilter(IPCFilter const&) = default;
     };
 
-    std::monostate listen(std::string const& messageID, matjson::Value(*callback)(IPCEvent*));
+    inline void listen(std::string const& messageID, matjson::Value(*callback)(IPCEvent*)) {
+        (void) new EventListener(
+            callback, IPCFilter(getMod()->getID(), messageID)
+        );
+    }
 }
