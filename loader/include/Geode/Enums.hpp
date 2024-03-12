@@ -428,6 +428,7 @@ enum class IconType {
     Jetpack = 8,
     DeathEffect = 98,
     Special = 99,
+    ShipFire = 101,
 };
 
 enum class GJChallengeType {
