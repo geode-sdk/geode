@@ -7,7 +7,7 @@ using cocos2d::CCScene;
 using cocos2d::CCTransitionScene;
 
 struct CustomLevelPage : geode::modify::Modify<CustomLevelPage, LevelPage> {
-    GEODE_FORWARD_COMPAT_DISABLE_HOOKS("Impostor PlayLayer fix")
+    GEODE_FORWARD_COMPAT_DISABLE_HOOKS("Impostor PlayLayer Fix")
 
     void onPlay(CCObject* sender) override {
         if (!dynamic_cast<CCTransitionScene*>(CCScene::get())) {
