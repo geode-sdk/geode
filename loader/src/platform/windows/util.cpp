@@ -77,22 +77,29 @@ std::string utils::clipboard::read() {
 }
 
 bool utils::file::openFolder(ghc::filesystem::path const& path) {
+    // mods can (and do) keep CoInitializeEx initialized on the main thread
+    // which results in this function just not doing anything
+    // which is why we're using a separate thread
+    // feel free to rework later, im just tired of reports of this not working
     auto success = false;
-    if (CoInitializeEx(nullptr, COINIT_MULTITHREADED) == S_OK) {
-        if (auto id = ILCreateFromPathW(path.wstring().c_str())) {
-            ghc::filesystem::path selectPath = path / ".";
-            std::error_code whatever;
-            if (!ghc::filesystem::is_directory(path, whatever)) {
-                selectPath = path;
+    auto thread = std::thread([](auto const& path, bool& success) {
+        if (CoInitializeEx(nullptr, COINIT_MULTITHREADED) == S_OK) {
+            if (auto id = ILCreateFromPathW(path.wstring().c_str())) {
+                ghc::filesystem::path selectPath = path / ".";
+                std::error_code whatever;
+                if (!ghc::filesystem::is_directory(path, whatever)) {
+                    selectPath = path;
+                }
+                auto selectEntry = ILCreateFromPathW(selectPath.wstring().c_str());
+                if (SHOpenFolderAndSelectItems(id, 1, (PCUITEMID_CHILD_ARRAY)(&selectEntry), 0) == S_OK) {
+                    success = true;
+                }
+                ILFree(id);
             }
-            auto selectEntry = ILCreateFromPathW(selectPath.wstring().c_str());
-            if (SHOpenFolderAndSelectItems(id, 1, (PCUITEMID_CHILD_ARRAY)(&selectEntry), 0) == S_OK) {
-                success = true;
-            }
-            ILFree(id);
+            CoUninitialize();
         }
-        CoUninitialize();
-    }
+    }, path, std::ref(success));
+    thread.join();
     return success;
 }
 

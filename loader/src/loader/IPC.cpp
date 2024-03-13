@@ -5,13 +5,6 @@
 
 using namespace geode::prelude;
 
-std::monostate ipc::listen(std::string const& messageID, matjson::Value(*callback)(IPCEvent*)) {
-    (void) new EventListener(
-        callback, IPCFilter(getMod()->getID(), messageID)
-    );
-    return std::monostate();
-}
-
 ipc::IPCEvent::IPCEvent(
     void* rawPipeHandle,
     std::string const& targetModID,
