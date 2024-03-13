@@ -115,7 +115,7 @@ std::string urlParamEncode(std::string_view const input) {
 WebPromise WebRequest::send(std::string_view method, std::string_view url) {
     m_impl->m_method = method;
     m_impl->m_url = url;
-    return WebPromise([impl = m_impl](auto resolve, auto reject, auto progress, auto cancelled) {
+    return WebPromise([impl = m_impl](auto resolve, auto reject, auto progress, auto const& cancelled) {
         // Init Curl
         auto curl = curl_easy_init();
         if (!curl) {
@@ -130,11 +130,13 @@ WebPromise WebRequest::send(std::string_view method, std::string_view url) {
         struct ResponseData {
             WebResponse response;
             Impl* impl;
-            WebPromise::Progress progress;
+            WebPromise::OnProgress progress;
+            std::atomic_bool const& cancelled;
         } responseData = {
             .response = WebResponse(),
             .impl = impl.get(),
             .progress = progress,
+            .cancelled = cancelled,
         };
 
         // Store downloaded response data into a byte vector

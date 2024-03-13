@@ -11,7 +11,7 @@ namespace geode {
             std::optional<uint8_t> percentage;
 
             DefaultProgress() = default;
-            DefaultProgress(auto msg) : message(msg) {}
+            DefaultProgress(std::string const& msg) : message(msg) {}
             DefaultProgress(auto msg, uint8_t percentage) : message(msg), percentage(percentage) {}
         };
     }
@@ -24,8 +24,8 @@ namespace geode {
     template <class T = impl::DefaultValue, class E = impl::DefaultError, class P = impl::DefaultProgress>
     class Promise final {
     public:
-        using Value = T;
-        using Error = E;
+        using Value    = T;
+        using Error    = E;
         using Progress = P;
 
         using OnResolved = utils::MiniFunction<void(Value)>;
@@ -46,12 +46,12 @@ namespace geode {
         Promise() : m_data(std::make_shared<Data>()) {}
 
         Promise(utils::MiniFunction<void(OnResolved, OnRejected)> source, bool threaded = true) 
-          : Promise([source](auto resolve, auto reject, auto, auto) {
+          : Promise([source](auto resolve, auto reject, auto, auto const&) {
                 source(resolve, reject);
-            }) {}
+            }, threaded) {}
         
-        Promise(utils::MiniFunction<void(OnResolved, OnRejected, OnProgress, OnCancelled)> source, bool threaded = true)
-          : Promise([source](auto onStateChanged) {
+        Promise(utils::MiniFunction<void(OnResolved, OnRejected, OnProgress, std::atomic_bool const&)> source, bool threaded = true)
+          : Promise([source](auto onStateChanged, auto const& cancelled) {
                 source(
                     [onStateChanged](auto&& value) {
                         onStateChanged(State(std::in_place_index<STATE_VALUE_INDEX>, value));
@@ -62,13 +62,12 @@ namespace geode {
                     [onStateChanged](auto&& progress) {
                         onStateChanged(State(std::in_place_index<STATE_PROGRESS_INDEX>, progress));
                     },
-                    [onStateChanged]() {
-                        onStateChanged(State(std::in_place_index<STATE_CANCELLED_INDEX>, CancelledState()));
-                    }
+                    cancelled
                 );
-            }) {}
+            }, threaded, std::monostate()) {}
         
-        Promise(utils::MiniFunction<void(OnStateChange)> source, bool threaded = true) : m_data(std::make_shared<Data>()) {
+        Promise(utils::MiniFunction<void(OnStateChange, std::atomic_bool const&)> source, bool threaded, std::monostate tag) : m_data(std::make_shared<Data>()) {
+            m_data->shouldStartThreaded = threaded;
             if (threaded) {
                 std::thread([source = std::move(source), data = m_data]() mutable {
                     Promise::invoke_source(std::move(source), data);
@@ -88,7 +87,10 @@ namespace geode {
         template <class T2>
             requires (!std::is_void_v<T2>)
         Promise<T2, E, P> then(utils::MiniFunction<T2(T)>&& callback) {
-            if (m_data->cancelled) return make_cancelled<T2, E, P>();
+            if (m_data->cancelled) {
+                return make_cancelled<T2, E, P>();
+            }
+            
             std::unique_lock<std::mutex> _(m_data->mutex);
 
             // Check if this Promise has already been resolved, and if so 
@@ -103,47 +105,16 @@ namespace geode {
                 return make_cancelled<T2, E, P>();
             }
 
-            return Promise<T2, E, P>([data = m_data, callback](auto fwdStateToNextPromise) {
-                data->callback = [fwdStateToNextPromise, callback](auto&& state) {
-                    // Can't use std::visit if Value and Error are the same >:(
-                    switch (state.index()) {
-                        case STATE_VALUE_INDEX: {
-                            auto mapped = callback(std::get<STATE_VALUE_INDEX>(state));
-                            fwdStateToNextPromise(Promise<T2, E, P>::State(
-                                std::in_place_index<STATE_VALUE_INDEX>,
-                                std::move(mapped)
-                            ));
-                        } break;
-
-                        case STATE_ERROR_INDEX: {
-                            fwdStateToNextPromise(Promise<T2, E, P>::State(
-                                std::in_place_index<STATE_ERROR_INDEX>,
-                                std::move(std::get<STATE_ERROR_INDEX>(state))
-                            ));
-                        } break;
-
-                        case STATE_PROGRESS_INDEX: {
-                            fwdStateToNextPromise(Promise<T2, E, P>::State(
-                                std::in_place_index<STATE_PROGRESS_INDEX>,
-                                std::move(std::get<STATE_PROGRESS_INDEX>(state))
-                            ));
-                        } break;
-
-                        case STATE_CANCELLED_INDEX: {
-                            fwdStateToNextPromise(Promise<T2, E, P>::State(
-                                std::in_place_index<STATE_CANCELLED_INDEX>,
-                                std::move(std::get<STATE_CANCELLED_INDEX>(state))
-                            ));
-                        } break;
-                    }
-                };
-            });
+            return make_fwd<STATE_VALUE_INDEX, T2, E, P>(callback, m_data);
         }
 
         template <class T2, class E2>
             requires (!std::is_void_v<T2>)
         Promise<T2, E2, P> then(utils::MiniFunction<Result<T2, E2>(Result<T, E>)>&& callback) {
-            if (m_data->cancelled) return make_cancelled<T2, E2, P>();
+            if (m_data->cancelled) {
+                return make_cancelled<T2, E2, P>();
+            }
+
             std::unique_lock<std::mutex> _(m_data->mutex);
 
             // Check if this Promise has already been resolved, and if so 
@@ -163,8 +134,8 @@ namespace geode {
                 return make_cancelled<T2, E2, P>();
             }
 
-            return Promise<T2, E2, P>([data = m_data, callback](auto fwdStateToNextPromise) {
-                data->callback = [fwdStateToNextPromise, callback](auto&& state) {
+            return Promise<T2, E2, P>([data = m_data, callback](auto fwdStateToNextPromise, auto const& nextPromiseCancelled) {
+                data->callback = [&nextPromiseCancelled, fwdStateToNextPromise, callback](auto&& state) {
                     // Can't use std::visit if Value and Error are the same >:(
                     switch (state.index()) {
                         case STATE_VALUE_INDEX: {
@@ -214,7 +185,7 @@ namespace geode {
                         } break;
                     }
                 };
-            });
+            }, m_data->shouldStartThreaded, std::monostate());
         }
 
         Promise expect(utils::MiniFunction<void(Error)>&& callback) {
@@ -226,7 +197,10 @@ namespace geode {
         template <class E2>
             requires (!std::is_void_v<E2>)
         Promise<T, E2, P> expect(utils::MiniFunction<E2(E)>&& callback) {
-            if (m_data->cancelled) return make_cancelled<T, E2, P>();
+            if (m_data->cancelled) {
+                return make_cancelled<T, E2, P>();
+            }
+
             std::unique_lock<std::mutex> _(m_data->mutex);
 
             // Check if this Promise has already been resolved, and if so 
@@ -241,41 +215,7 @@ namespace geode {
                 return make_cancelled<T, E2, P>();
             }
 
-            return Promise<T, E2, P>([data = m_data, callback](auto fwdStateToNextPromise) {
-                data->callback = [fwdStateToNextPromise, callback](auto&& state) {
-                    // Can't use std::visit if Value and Error are the same >:(
-                    switch (state.index()) {
-                        case STATE_VALUE_INDEX: {
-                            fwdStateToNextPromise(Promise<T, E2, P>::State(
-                                std::in_place_index<STATE_VALUE_INDEX>,
-                                std::move(std::get<STATE_VALUE_INDEX>(state))
-                            ));
-                        } break;
-
-                        case STATE_ERROR_INDEX: {
-                            auto mapped = callback(std::get<STATE_ERROR_INDEX>(state));
-                            fwdStateToNextPromise(Promise<T, E2, P>::State(
-                                std::in_place_index<STATE_ERROR_INDEX>,
-                                std::move(mapped)
-                            ));
-                        } break;
-
-                        case STATE_PROGRESS_INDEX: {
-                            fwdStateToNextPromise(Promise<T, E2, P>::State(
-                                std::in_place_index<STATE_PROGRESS_INDEX>,
-                                std::move(std::get<STATE_PROGRESS_INDEX>(state))
-                            ));
-                        } break;
-
-                        case STATE_CANCELLED_INDEX: {
-                            fwdStateToNextPromise(Promise<T, E2, P>::State(
-                                std::in_place_index<STATE_CANCELLED_INDEX>,
-                                std::move(std::get<STATE_CANCELLED_INDEX>(state))
-                            ));
-                        } break;
-                    }
-                };
-            });
+            return make_fwd<STATE_ERROR_INDEX, T, E2, P>(callback, m_data);
         }
 
         Promise progress(utils::MiniFunction<void(Progress)>&& callback) {
@@ -287,7 +227,10 @@ namespace geode {
         template <class P2>
             requires (!std::is_void_v<P2>)
         Promise<T, E, P2> progress(utils::MiniFunction<P2(P)>&& callback) {
-            if (m_data->cancelled) return make_cancelled<T, E, P2>();
+            if (m_data->cancelled) {
+                return make_cancelled<T, E, P2>();
+            }
+
             std::unique_lock<std::mutex> _(m_data->mutex);
 
             // Check if this Promise has already been resolved
@@ -295,21 +238,14 @@ namespace geode {
                 return make_cancelled<T, E, P2>();
             }
 
-            return Promise<T, E, P2>([data = m_data, callback](auto fwdStateToNextPromise) {
-                data->callback = [fwdStateToNextPromise, callback](auto&& state) {
-                    if (state.index() == STATE_PROGRESS_INDEX) {
-                        auto mapped = callback(std::get<STATE_PROGRESS_INDEX>(state));
-                        fwdStateToNextPromise(Promise<T, E, P2>::State(std::in_place_index<STATE_PROGRESS_INDEX>, mapped));
-                    }
-                    else {
-                        fwdStateToNextPromise(state);
-                    }
-                };
-            });
+            return make_fwd<STATE_PROGRESS_INDEX, T, E, P2>(callback, m_data);
         }
 
         Promise finally(utils::MiniFunction<void()>&& callback) {
-            if (m_data->cancelled) return make_cancelled();
+            if (m_data->cancelled) {
+                return make_cancelled();
+            }
+            
             std::unique_lock<std::mutex> _(m_data->mutex);
 
             // Check if this Promise has already been resolved, and if so 
@@ -380,6 +316,7 @@ namespace geode {
             OnStateChange callback;
             std::optional<std::variant<Value, Error>> result;
             std::atomic_bool cancelled;
+            bool shouldStartThreaded;
         };
         std::shared_ptr<Data> m_data;
 
@@ -390,12 +327,59 @@ namespace geode {
             return std::move(ret);
         }
 
+        template <size_t Ix, class T2, class E2, class P2>
+        static Promise<T2, E2, P2> make_fwd(auto mapper, std::shared_ptr<Data> data) {
+            return Promise<T2, E2, P2>([data, mapper](auto fwdStateToNextPromise, auto const&) {
+                data->callback = [fwdStateToNextPromise, mapper](auto&& state) {
+                    if (state.index() == Ix) {
+                        auto mapped = mapper(std::get<Ix>(state));
+                        fwdStateToNextPromise(Promise<T2, E2, P2>::State(
+                            std::in_place_index<Ix>,
+                            mapped
+                        ));
+                    }
+                    // Can't use std::visit if Value and Error are the same >:(
+                    else switch (state.index()) {
+                        case STATE_VALUE_INDEX: if constexpr (Ix != STATE_VALUE_INDEX) {
+                            fwdStateToNextPromise(Promise<T2, E2, P2>::State(
+                                std::in_place_index<STATE_VALUE_INDEX>,
+                                std::move(std::get<STATE_VALUE_INDEX>(state))
+                            ));
+                        } break;
+
+                        case STATE_ERROR_INDEX: if constexpr (Ix != STATE_ERROR_INDEX) {
+                            fwdStateToNextPromise(Promise<T2, E2, P2>::State(
+                                std::in_place_index<STATE_ERROR_INDEX>,
+                                std::move(std::get<STATE_ERROR_INDEX>(state))
+                            ));
+                        } break;
+
+                        case STATE_PROGRESS_INDEX: if constexpr (Ix != STATE_PROGRESS_INDEX) {
+                            fwdStateToNextPromise(Promise<T2, E2, P2>::State(
+                                std::in_place_index<STATE_PROGRESS_INDEX>,
+                                std::move(std::get<STATE_PROGRESS_INDEX>(state))
+                            ));
+                        } break;
+
+                        case STATE_CANCELLED_INDEX: if constexpr (Ix != STATE_CANCELLED_INDEX) {
+                            fwdStateToNextPromise(Promise<T2, E2, P2>::State(
+                                std::in_place_index<STATE_CANCELLED_INDEX>,
+                                std::move(std::get<STATE_CANCELLED_INDEX>(state))
+                            ));
+                        } break;
+                    }
+                };
+            }, data->shouldStartThreaded, std::monostate());
+        }
+
         static void invoke_callback(State&& state, std::shared_ptr<Data> data) {
             if (data->cancelled) return;
             std::unique_lock<std::mutex> _(data->mutex);
 
             if (data->callback) {
-                data->callback(State(state));
+                Loader::get()->queueInMainThread([callback = data->callback, state = State(state)]() {
+                    callback(state);
+                });
             }
 
             // Store the state to let future installed callbacks be immediately resolved
@@ -410,10 +394,13 @@ namespace geode {
             }
         }
 
-        static void invoke_source(utils::MiniFunction<void(OnStateChange)>&& source, std::shared_ptr<Data> data) {
-            source([data](auto&& state) {
-                invoke_callback(std::move(state), data);
-            });
+        static void invoke_source(utils::MiniFunction<void(OnStateChange, std::atomic_bool const&)>&& source, std::shared_ptr<Data> data) {
+            source(
+                [data](auto&& state) {
+                    invoke_callback(std::move(state), data);
+                },
+                data->cancelled
+            );
         }
     };
 
@@ -472,11 +459,12 @@ namespace geode {
         // the same IDs again, so technically if some promise takes 
         // literally forever then this could cause issues later on
         static size_t ID_COUNTER = 0;
+        ID_COUNTER += 1;
         // Reserve 0 for PromiseEventFilter not listening to anything
         if (ID_COUNTER == 0) {
             ID_COUNTER += 1;
         }
-        size_t id = ++ID_COUNTER;
+        size_t id = ID_COUNTER;
         this
             ->then([id](auto&& value) { 
                 PromiseEvent<T, E, P>(id, std::variant<T, E, P> { std::in_place_index<0>, std::forward<T>(value) }).post();

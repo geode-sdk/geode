@@ -110,7 +110,7 @@ typename ModListSource::PagePromise ModListSource::loadPage(size_t page, bool up
     // Return a generic "Coming soon" message if there's no provider set
     if (!m_provider.get) {
         return PagePromise([this, page](auto, auto reject) {
-            reject("Coming soon! ;)");
+            reject(LoadPageError("Coming soon! ;)"));
         });
     }
     if (!update && m_cachedPages.contains(page)) {

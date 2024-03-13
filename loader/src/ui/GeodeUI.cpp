@@ -93,7 +93,8 @@ protected:
             this->setSprite(CCSprite::create("loadingCircle.png"));
             static_cast<CCSprite*>(m_sprite)->setBlendFunc({ GL_ONE, GL_ONE });
             m_sprite->runAction(CCRepeatForever::create(CCRotateBy::create(1.f, 360.f)));
-            m_listener.setFilter(server::ServerResultCache<&server::getModLogo>::shared().get(id).listen());
+            m_listener.setFilter(server::getModLogo(id).listen());
+            // m_listener.setFilter(server::ServerResultCache<&server::getModLogo>::shared().get(id).listen());
         }
 
         return true;

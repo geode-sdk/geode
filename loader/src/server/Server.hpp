@@ -150,7 +150,7 @@ namespace server {
 
             template <class As>
             As* find(Query const& query) {
-                auto it = std::find_if(m_values.begin(), m_values.end(), [](auto const& q) {
+                auto it = std::find_if(m_values.begin(), m_values.end(), [query](auto const& q) {
                     return q.first == query;
                 });
                 if (it == m_values.end()) {
@@ -226,7 +226,11 @@ namespace server {
         Cache m_cache;
     
         ServerPromise<Result> fetch(Query const& query) {
-            return m_cache.pend(Query(query));
+            return F(Query(query))
+                .then([this, query = std::move(query)](auto res) {
+                    m_cache.add(Query(query), Result(res));
+                });
+            // return m_cache.pend(Query(query));
         }
 
     public:

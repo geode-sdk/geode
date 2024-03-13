@@ -24,7 +24,7 @@ public:
         std::optional<std::string> details;
 
         LoadPageError() = default;
-        LoadPageError(auto msg) : message(msg) {}
+        LoadPageError(std::string const& msg) : message(msg) {}
         LoadPageError(auto msg, auto details) : message(msg), details(details) {}
     };
 
