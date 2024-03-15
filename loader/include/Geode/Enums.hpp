@@ -187,6 +187,9 @@ enum class SavedObjectStateRef {};
 #ifdef GEODE_IS_MACOS
     #undef CommentType
 #endif
+#ifdef GEODE_IS_IOS
+    #undef CommentType
+#endif
 
 enum class CommentType {
     Level = 0,
