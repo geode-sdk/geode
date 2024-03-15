@@ -194,6 +194,24 @@ namespace gd {
             return (*__i).second;
         }
 
+        V& at(K const& __k) {
+            iterator __i = lower_bound(__k);
+            if (__i == end() || compare(__k, (*__i).first)) {
+                throw std::out_of_range("map::at");
+            }
+
+            return (*__i).second;
+        }
+
+        const V& at(K const& __k) const {
+            iterator __i = lower_bound(__k);
+            if (__i == end() || compare(__k, (*__i).first)) {
+                throw std::out_of_range("map::at");
+            }
+
+            return (*__i).second;
+        }
+
         iterator begin() noexcept {
             return iterator(m_header.m_left);
         }
@@ -247,6 +265,10 @@ namespace gd {
 
         size_t count(K const& __x) {
             return find(__x) != end() ? 1 : 0;
+        }
+
+        bool contains(K const& __x) {
+            return count() > 0;
         }
 
         map(map const& lol) : map(std::map<K, V>(lol)) {}
