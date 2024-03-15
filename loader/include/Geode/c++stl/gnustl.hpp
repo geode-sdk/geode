@@ -44,7 +44,7 @@ namespace gd {
 
         allocator() throw(): std::allocator<T>() { }
         allocator(const allocator &a) throw(): std::allocator<T>(a) { }
-        template <class U>                    
+        template <class U>
         allocator(const allocator<U> &a) throw(): std::allocator<T>(a) { }
         ~allocator() throw() { }
     };
@@ -211,7 +211,7 @@ namespace gd {
         }
 
         iterator lower_bound(K const& __x) {
-            _tree_node __j = static_cast<_tree_node>(m_header.m_left);
+            _tree_node __j = static_cast<_tree_node>(m_header.m_parent);
             _tree_node __k = static_cast<_tree_node>(&m_header);
             while (__j != nullptr) {
                 if (!compare(__j->m_value.first, __x)) {
@@ -226,7 +226,7 @@ namespace gd {
         }
 
         iterator upper_bound(K const& __x) {
-            _tree_node __j = static_cast<_tree_node>(m_header.m_left);
+            _tree_node __j = static_cast<_tree_node>(m_header.m_parent);
             _tree_node __k = static_cast<_tree_node>(&m_header);
             while (__j != nullptr) {
                 if (compare(__x, __j->m_value.first)) {
