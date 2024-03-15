@@ -7,6 +7,7 @@ using namespace geode::prelude;
 #include <iostream>
 #include <sstream>
 #include <Geode/utils/web.hpp>
+#include <Geode/utils/permission.hpp>
 
 bool utils::clipboard::write(std::string const& data) {
     [UIPasteboard generalPasteboard].string = [NSString stringWithUTF8String:data.c_str()];
@@ -32,7 +33,8 @@ ghc::filesystem::path dirs::getGameDir() {
 }
 
 ghc::filesystem::path dirs::getSaveDir() {
-    return weaklyCanonical(CCFileUtils::sharedFileUtils()->getWritablePath().c_str());
+    return ghc::filesystem::current_path();
+    //return weaklyCanonical(CCFileUtils::sharedFileUtils()->getWritablePath().c_str());
 }
 
 bool geode::utils::permission::getPermissionStatus(Permission permission) {
