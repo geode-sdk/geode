@@ -5,10 +5,43 @@ if (NOT ${PROJECT_NAME} STREQUAL ${CMAKE_PROJECT_NAME})
 endif()
 
 if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
+	# since geode does not set these, I will manually set them!
+	add_definitions(-DCC_TARGET_OS_IPHONE)
+ 	execute_process(COMMAND xcrun --show-sdk-path --sdk iphoneos
+  		OUTPUT_VARIABLE GEODE_IOS_SDK
+    		OUTPUT_STRIP_TRAILING_WHITESPACE
+      	)
+       	set(CMAKE_OSX_ARCHITECTURES arm64)
+	set(CMAKE_OSX_SYSROOT ${GEODE_IOS_SDK})
+	# camila, why did you not set GEODE_IOS_SDK anywhere
 	set_target_properties(${PROJECT_NAME} PROPERTIES
 		SYSTEM_NAME iOS
 		OSX_SYSROOT ${GEODE_IOS_SDK}
 		OSX_ARCHITECTURES arm64
+	)
+
+ 	find_package(CURL REQUIRED) 
+
+	target_include_directories(${PROJECT_NAME} INTERFACE
+		${CURL_INCLUDE_DIR}
+	)
+
+	target_link_libraries(${PROJECT_NAME} INTERFACE
+		"-framework OpenGLES"
+  		"-framework GLKit"
+    		"-framework UIKit"
+      		"-framework WebKit"
+		"-framework AVFoundation"
+  		"-framework CoreFoundation"
+    		"-framework Foundation"
+      		"-framework CoreGraphics"
+		#"-framework Cocoa"
+		${CURL_LIBRARIES}
+		#${GEODE_LOADER_PATH}/include/link/libfmod.dylib
+	)
+
+	target_compile_definitions(${PROJECT_NAME} INTERFACE
+		-DCommentType=CommentTypeDummy
 	)
 
 	set(GEODE_OUTPUT_NAME "GeodeIOS")
