@@ -11,8 +11,18 @@ if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
   		OUTPUT_VARIABLE GEODE_IOS_SDK
     		OUTPUT_STRIP_TRAILING_WHITESPACE
       	)
-       	set(CMAKE_OSX_ARCHITECTURES arm64)
-	set(CMAKE_OSX_SYSROOT ${GEODE_IOS_SDK})
+        #execute_process(COMMAND xcrun --sdk iphoneos --find cc
+    	#	OUTPUT_VARIABLE CMAKE_C_COMPILER
+    	#	OUTPUT_STRIP_TRAILING_WHITESPACE
+  	#)
+  	#execute_process(COMMAND xcrun --sdk iphoneos --find c++
+    	#	OUTPUT_VARIABLE CMAKE_CXX_COMPILER
+    	#	OUTPUT_STRIP_TRAILING_WHITESPACE
+  	#)
+  	set(CMAKE_OSX_ARCHITECTURES arm64)
+  	set(CMAKE_OSX_SYSROOT ${GEODE_IOS_SDK})
+  	set(CMAKE_SYSTEM_NAME "iOS")
+ 	
 	# camila, why did you not set GEODE_IOS_SDK anywhere
 	set_target_properties(${PROJECT_NAME} PROPERTIES
 		SYSTEM_NAME iOS
