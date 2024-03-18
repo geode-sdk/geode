@@ -1,7 +1,5 @@
 #include <Geode/Geode.hpp>
 
-#ifdef GEODE_IS_ANDROID
-
 using namespace geode::prelude;
 
 auto g_systemInitialized = false;
@@ -63,5 +61,3 @@ struct AndroidFMODFix : Modify<AndroidFMODFix, FMODAudioEngine> {
     }
 };
 */
-
-#endif
