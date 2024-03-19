@@ -189,6 +189,18 @@ namespace geode {
         void setAutoEnable(bool autoEnable);
 
         /**
+         * Get the bytes of the patch.
+         * @returns Bytes used to patch
+         */
+        ByteVector const& getBytes() const;
+
+        /**
+         * Updates the bytes of the patch, disabling and then re-enabling if needed.
+         * @param bytes Bytes used to patch
+         */
+        Result<> updateBytes(const ByteVector& bytes);
+
+        /**
          * Get the address of the patch.
          * @returns Address
          */

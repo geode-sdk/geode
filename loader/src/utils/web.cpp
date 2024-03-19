@@ -170,7 +170,7 @@ private:
     bool m_sent = false;
     std::variant<std::monostate, std::ostream*, ghc::filesystem::path> m_target;
     std::vector<std::string> m_httpHeaders;
-    
+
 
     template <class T>
     friend class AsyncWebResult;
@@ -358,8 +358,8 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
             +[](void* ptr, double total, double now, double, double) -> int {
                 auto data = static_cast<ProgressData*>(ptr);
                 auto lock = std::unique_lock(data->self->m_statusMutex);
-                data->self->m_statusCV.wait(lock, [data]() { 
-                    return !data->self->m_paused; 
+                data->self->m_statusCV.wait(lock, [data]() {
+                    return !data->self->m_paused;
                 });
                 if (data->self->m_cancelled) {
                     if (data->file) {
@@ -381,6 +381,10 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
         );
         curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &data);
         auto res = curl_easy_perform(curl);
+
+        // free the header list
+        curl_slist_free_all(headers);
+
         long code = 0;
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &code);
         if (res != CURLE_OK) {
@@ -396,7 +400,6 @@ SentAsyncWebRequest::Impl::Impl(SentAsyncWebRequest* self, AsyncWebRequest const
             curl_easy_cleanup(curl);
             return this->error(response_str, code);
         }
-        curl_slist_free_all(headers);
         curl_easy_cleanup(curl);
 
         AWAIT_RESUME();
@@ -469,8 +472,8 @@ bool SentAsyncWebRequest::Impl::finished() const {
 
 void SentAsyncWebRequest::Impl::error(std::string const& error, int code) {
     auto lock = std::unique_lock(m_statusMutex);
-    m_statusCV.wait(lock, [this]() { 
-        return !m_paused; 
+    m_statusCV.wait(lock, [this]() {
+        return !m_paused;
     });
     Loader::get()->queueInMainThread([this, error, code]() {
         {

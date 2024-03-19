@@ -34,6 +34,14 @@ void Patch::setAutoEnable(bool autoEnable) {
     return m_impl->setAutoEnable(autoEnable);
 }
 
+ByteVector const& Patch::getBytes() const {
+    return m_impl->getBytes();
+}
+
+Result<> Patch::updateBytes(const ByteVector& bytes) {
+    return m_impl->updateBytes(bytes);
+}
+
 uintptr_t Patch::getAddress() const {
     return m_impl->getAddress();
 }

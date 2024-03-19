@@ -44,7 +44,7 @@ namespace gd {
 
         allocator() throw(): std::allocator<T>() { }
         allocator(const allocator &a) throw(): std::allocator<T>(a) { }
-        template <class U>                    
+        template <class U>
         allocator(const allocator<U> &a) throw(): std::allocator<T>(a) { }
         ~allocator() throw() { }
     };
@@ -194,6 +194,24 @@ namespace gd {
             return (*__i).second;
         }
 
+        V& at(K const& __k) {
+            iterator __i = lower_bound(__k);
+            if (__i == end() || compare(__k, (*__i).first)) {
+                throw std::out_of_range("map::at");
+            }
+
+            return (*__i).second;
+        }
+
+        const V& at(K const& __k) const {
+            iterator __i = lower_bound(__k);
+            if (__i == end() || compare(__k, (*__i).first)) {
+                throw std::out_of_range("map::at");
+            }
+
+            return (*__i).second;
+        }
+
         iterator begin() noexcept {
             return iterator(m_header.m_left);
         }
@@ -211,7 +229,7 @@ namespace gd {
         }
 
         iterator lower_bound(K const& __x) {
-            _tree_node __j = static_cast<_tree_node>(m_header.m_left);
+            _tree_node __j = static_cast<_tree_node>(m_header.m_parent);
             _tree_node __k = static_cast<_tree_node>(&m_header);
             while (__j != nullptr) {
                 if (!compare(__j->m_value.first, __x)) {
@@ -226,7 +244,7 @@ namespace gd {
         }
 
         iterator upper_bound(K const& __x) {
-            _tree_node __j = static_cast<_tree_node>(m_header.m_left);
+            _tree_node __j = static_cast<_tree_node>(m_header.m_parent);
             _tree_node __k = static_cast<_tree_node>(&m_header);
             while (__j != nullptr) {
                 if (compare(__x, __j->m_value.first)) {
@@ -247,6 +265,10 @@ namespace gd {
 
         size_t count(K const& __x) {
             return find(__x) != end() ? 1 : 0;
+        }
+
+        bool contains(K const& __x) {
+            return count(__x) > 0;
         }
 
         map(map const& lol) : map(std::map<K, V>(lol)) {}

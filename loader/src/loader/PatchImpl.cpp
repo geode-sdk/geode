@@ -75,6 +75,23 @@ Result<> Patch::Impl::disable() {
     return Ok();
 }
 
+ByteVector const& Patch::Impl::getBytes() const {
+    return m_patch;
+}
+
+Result<> Patch::Impl::updateBytes(const ByteVector& bytes) {
+    m_patch = bytes;
+
+    if (m_enabled) {
+        auto res = this->disable();
+        if (!res) return Err("Failed to update patch: {}", res.unwrapErr());
+        res = this->enable();
+        if (!res) return Err("Failed to update patch: {}", res.unwrapErr());
+    }
+
+    return Ok();
+}
+
 uintptr_t Patch::Impl::getAddress() const {
     return reinterpret_cast<uintptr_t>(m_address);
 }

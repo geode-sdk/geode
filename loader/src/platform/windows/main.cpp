@@ -43,7 +43,7 @@ int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
             fmt::format(
                 "This version of Geode is made for Geometry Dash {} "
                 "but you're trying to play with GD {}.\n"
-                "Please, update your game or install an older version of Geode.",
+                "Please, update your game.",
                 GEODE_STR(GEODE_GD_VERSION),
                 LoaderImpl::get()->getGameVersion()
             )
