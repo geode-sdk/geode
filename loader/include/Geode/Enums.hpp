@@ -143,7 +143,6 @@ enum class PlayerCollisionDirection {};
 enum class ChestSpriteState {};
 enum class FormatterType {};
 enum class AudioModType {};
-enum class FMODQueuedMusic {};
 enum class GJAreaActionType {};
 enum class SFXTriggerState {};
 enum class SongTriggerState {};
