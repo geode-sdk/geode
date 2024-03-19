@@ -1,9 +1,11 @@
 #pragma once
 
+#include "msvc/allocator.hpp"
+#include "msvc/umap.hpp"
+#include "msvc/uset.hpp"
+
 #include <map>
 #include <vector>
-#include <unordered_map>
-#include <unordered_set>
 #include <set>
 
 namespace gd {
@@ -14,11 +16,11 @@ namespace gd {
     using map = std::map<K, V>;
 
     template <class K, class V>
-    using unordered_map = std::unordered_map<K, V>;
+    using unordered_map = geode::stl::unordered_map<K, V, std::hash<K>, std::equal_to<K>, geode::stl::allocator<std::pair<const K, V>>>;
 
     template <class K>
     using set = std::set<K>;
 
     template <class K>
-    using unordered_set = std::unordered_set<K>;
+    using unordered_set = geode::stl::unordered_set<K, std::hash<K>, std::equal_to<K>, geode::stl::allocator<K>>;
 }
