@@ -300,6 +300,10 @@ public:
     virtual float getRotatePerSecondVar();
     virtual void setRotatePerSecondVar(float degrees);
 
+    RT_ADD (
+        virtual void setVisible(bool visible);
+    )
+
     virtual void setScale(float s);
     virtual void setRotation(float newRotation);
     virtual void setScaleX(float newScaleX);
