@@ -34,14 +34,66 @@ namespace geode {
         using OnFinished = utils::MiniFunction<void()>;
         using OnCancelled = utils::MiniFunction<void()>;
 
-        using State = std::variant<Value, Error, Progress, CancelledState>;
-        using OnStateChange = utils::MiniFunction<void(State)>;
+        class State final {
+        private:
+            std::variant<Value, Error, Progress, CancelledState> m_value;
+        
+            template <size_t Ix, class T>
+            State(std::in_place_index_t<Ix> index, T&& value) : m_value(index, std::forward<T>(value)) {}
 
-        // These are needed if for example Value and Error are the same type
-        static constexpr size_t STATE_VALUE_INDEX     = 0;
-        static constexpr size_t STATE_ERROR_INDEX     = 1;
-        static constexpr size_t STATE_PROGRESS_INDEX  = 2;
-        static constexpr size_t STATE_CANCELLED_INDEX = 3;
+        public:
+            static State make_value(Value&& value) {
+                return State(std::in_place_index<0>, std::move(value));
+            }
+            static State make_error(Error&& error) {
+                return State(std::in_place_index<1>, std::move(error));
+            }
+            static State make_progress(Progress&& progress) {
+                return State(std::in_place_index<2>, std::move(progress));
+            }
+            static State make_cancelled() {
+                return State(std::in_place_index<3>, CancelledState());
+            }
+
+            template <class T2, class E2, class P2>
+            Promise<T2, E2, P2>::State convert() && {
+                if (this->has_value()) {
+                    if constexpr (std::is_same_v<T, T2>) {
+                        return Promise<T2, E2, P2>::State::make_value(std::move(std::move(*this).take_value()));
+                    }
+                    log::error("THIS CODE PATH SHOULD BE UNREACHABLE!!!!");
+                }
+                if (this->has_error()) {
+                    if constexpr (std::is_same_v<E, E2>) {
+                        return Promise<T2, E2, P2>::State::make_error(std::move(std::move(*this).take_error()));
+                    }
+                    log::error("THIS CODE PATH SHOULD BE UNREACHABLE!!!!");
+                }
+                if (this->has_progress()) {
+                    if constexpr (std::is_same_v<P, P2>) {
+                        return Promise<T2, E2, P2>::State::make_progress(std::move(std::move(*this).take_progress()));
+                    }
+                    log::error("THIS CODE PATH SHOULD BE UNREACHABLE!!!!");
+                }
+                return Promise<T2, E2, P2>::State::make_cancelled();
+            }
+
+            bool has_value() { return m_value.index() == 0; }
+            Value get_value() const { return std::get<0>(m_value); }
+            Value take_value() && { return std::get<0>(std::move(m_value)); }
+
+            bool has_error() { return m_value.index() == 1; }
+            Error get_error() const { return std::get<1>(m_value); }
+            Error take_error() && { return std::get<1>(std::move(m_value)); }
+
+            bool has_progress() { return m_value.index() == 2; }
+            Progress get_progress() const { return std::get<2>(m_value); }
+            Progress take_progress() && { return std::get<2>(std::move(m_value)); }
+
+            bool is_cancelled() { return m_value.index() == 3; }
+        };
+
+        using OnStateChange = utils::MiniFunction<void(State)>;
 
         Promise() : m_data(std::make_shared<Data>()) {}
 
@@ -54,13 +106,13 @@ namespace geode {
           : Promise([source](auto onStateChanged, auto const& cancelled) {
                 source(
                     [onStateChanged](auto&& value) {
-                        onStateChanged(State(std::in_place_index<STATE_VALUE_INDEX>, value));
+                        onStateChanged(State::make_value(std::move(value)));
                     },
                     [onStateChanged](auto&& error) {
-                        onStateChanged(State(std::in_place_index<STATE_ERROR_INDEX>, error));
+                        onStateChanged(State::make_error(std::move(error)));
                     },
                     [onStateChanged](auto&& progress) {
-                        onStateChanged(State(std::in_place_index<STATE_PROGRESS_INDEX>, progress));
+                        onStateChanged(State::make_progress(std::move(progress)));
                     },
                     cancelled
                 );
@@ -79,115 +131,138 @@ namespace geode {
         }
 
         Promise then(utils::MiniFunction<void(Value)>&& callback) {
-            return this->template then<Value>([callback](auto value) {
-                callback(value);
-                return std::move(value);
-            });
+            return make_fwd<T, E, P>(
+                [callback](typename Promise::State&& state) -> typename Promise::State {
+                    if (state.has_value()) {
+                        callback(state.get_value());
+                    }
+                    return std::move(state);
+                },
+                m_data
+            );
         }
         template <class T2>
             requires (!std::is_void_v<T2>)
         Promise<T2, E, P> then(utils::MiniFunction<T2(T)>&& callback) {
-            if (m_data->cancelled) {
-                return make_cancelled<T2, E, P>();
-            }
-            return make_fwd<STATE_VALUE_INDEX, T2, E, P>(callback, m_data);
+            return make_fwd<T2, E, P>(
+                [callback](typename Promise::State&& state) -> typename Promise<T2, E, P>::State {
+                    if (state.has_value()) {
+                        return Promise<T2, E, P>::State::make_value(callback(std::move(state).take_value()));
+                    }
+                    return std::move(state).template convert<T2, E, P>();
+                },
+                m_data
+            );
         }
 
         template <class T2, class E2>
             requires (!std::is_void_v<T2>)
         Promise<T2, E2, P> then(utils::MiniFunction<Result<T2, E2>(Result<T, E>)>&& callback) {
-            if (m_data->cancelled) {
-                return make_cancelled<T2, E2, P>();
-            }
-            return make_fwd_with_result<T2, E2, P>(callback, m_data);
+            return make_fwd<T2, E2, P>(
+                [callback](typename Promise::State&& state) -> typename Promise<T2, E2, P>::State {
+                    if (state.has_value() || state.has_error()) {
+                        auto current = state.has_value() ?
+                            Result<T, E>(Ok(std::move(state).take_value())) :
+                            Result<T, E>(Err(std::move(state).take_error()));
+                        
+                        auto result = callback(std::move(current));
+                        if (result.isOk()) {
+                            return Promise<T2, E2, P>::State::make_value(std::move(std::move(result).unwrap()));
+                        }
+                        else {
+                            return Promise<T2, E2, P>::State::make_error(std::move(std::move(result).unwrapErr()));
+                        }
+                    }
+                    return std::move(state).template convert<T2, E2, P>();
+                },
+                m_data
+            );
         }
 
         Promise expect(utils::MiniFunction<void(Error)>&& callback) {
-            return this->template expect<Error>([callback](auto error) {
-                callback(error);
-                return std::move(error);
-            });
+            return make_fwd<T, E, P>(
+                [callback](typename Promise::State&& state) -> typename Promise::State {
+                    if (state.has_error()) {
+                        callback(state.get_error());
+                    }
+                    return std::move(state);
+                },
+                m_data
+            );
         }
         template <class E2>
             requires (!std::is_void_v<E2>)
         Promise<T, E2, P> expect(utils::MiniFunction<E2(E)>&& callback) {
-            if (m_data->cancelled) {
-                return make_cancelled<T, E2, P>();
-            }
-            return make_fwd<STATE_ERROR_INDEX, T, E2, P>(callback, m_data);
+            return make_fwd<T, E2, P>(
+                [callback](typename Promise::State&& state) -> typename Promise<T, E2, P>::State {
+                    if (state.has_error()) {
+                        return Promise<T, E2, P>::State::make_error(callback(std::move(state).take_error()));
+                    }
+                    return std::move(state).template convert<T, E2, P>();
+                },
+                m_data
+            );
         }
 
         Promise progress(utils::MiniFunction<void(Progress)>&& callback) {
-            return this->template progress<Progress>([callback](auto prog) {
-                callback(prog);
-                return std::move(prog);
-            });
+            return make_fwd<T, E, P>(
+                [callback](typename Promise::State&& state) -> typename Promise::State {
+                    if (state.has_progress()) {
+                        callback(state.get_progress());
+                    }
+                    return std::move(state);
+                },
+                m_data
+            );
         }
+
         template <class P2>
             requires (!std::is_void_v<P2>)
         Promise<T, E, P2> progress(utils::MiniFunction<P2(P)>&& callback) {
-            if (m_data->cancelled) {
-                return make_cancelled<T, E, P2>();
-            }
-            return make_fwd<STATE_PROGRESS_INDEX, T, E, P2>(callback, m_data);
+            return make_fwd<T, E, P2>(
+                [callback](typename Promise::State&& state) -> typename Promise<T, E, P2>::State {
+                    if (state.has_progress()) {
+                        return Promise<T, E, P2>::State::make_progress(callback(std::move(state).take_progress()));
+                    }
+                    return std::move(state).template convert<T, E, P2>();
+                },
+                m_data
+            );
         }
 
         Promise finally(utils::MiniFunction<void()>&& callback) {
-            if (m_data->cancelled) {
-                return make_cancelled();
-            }
-
-            return Promise([data = m_data, callback](auto fwdStateToNextPromise) {
-                std::unique_lock lock(data->mutex);
-
-                // Check if this Promise has already been resolved, and if so 
-                // immediately queue the callback with the value
-                if (data->result.has_value()) {
-                    Loader::get()->queueInMainThread([callback = std::move(callback)] {
+            return make_fwd<T, E, P>(
+                [](typename Promise::State&& state) -> typename Promise::State {
+                    if (state.has_value() || state.has_error()) {
                         callback();
-                    });
-                }
-                else {
-                    data->callback = [fwdStateToNextPromise, callback](auto&& state) {
-                        if (state.index() == STATE_VALUE_INDEX || state.index() == STATE_ERROR_INDEX) {
-                            callback();
-                        }
-                        fwdStateToNextPromise(state);
-                    };
-                }
-            });
+                    }
+                    return std::move(state);
+                },
+                m_data
+            );
         }
 
         Promise cancelled(utils::MiniFunction<void()>&& callback) {
-            if (m_data->cancelled) {
-                Loader::get()->queueInMainThread([callback = std::move(callback)] {
-                    callback();
-                });
-                return make_cancelled();
-            }
-
-            return Promise([data = m_data, callback](auto fwdStateToNextPromise) {
-                std::unique_lock<std::mutex> lock(data->mutex);
-                if (!data->result.has_value()) {
-                    data->callback = [fwdStateToNextPromise, callback](auto&& state) {
-                        if (state.index() == STATE_CANCELLED_INDEX) {
-                            callback();
-                        }
-                        fwdStateToNextPromise(state);
-                    };
-                }
-            });
+            return make_fwd<T, E, P>(
+                [](typename Promise::State&& state) -> typename Promise::State {
+                    if (state.is_cancelled()) {
+                        callback();
+                    }
+                    return std::move(state);
+                },
+                m_data
+            );
         }
 
         void resolve(Value&& value) {
-            invoke_callback(State(std::in_place_index<STATE_VALUE_INDEX>, std::move(value)), m_data);
+            invoke_callback(State::make_value(std::move(value)), m_data);
         }
         void reject(Error&& error) {
-            invoke_callback(State(std::in_place_index<STATE_ERROR_INDEX>, std::move(error)), m_data);
+            invoke_callback(State::make_error(std::move(error)), m_data);
         }
         void cancel() {
             m_data->cancelled = true;
-            invoke_callback(State(std::in_place_index<STATE_CANCELLED_INDEX>, CancelledState()), m_data);
+            invoke_callback(State::make_cancelled(), m_data);
         }
 
         /**
@@ -205,159 +280,53 @@ namespace geode {
             OnStateChange callback;
             std::optional<std::variant<Value, Error>> result;
             std::atomic_bool cancelled;
-            bool shouldStartThreaded;
+            std::atomic_bool shouldStartThreaded;
         };
         std::shared_ptr<Data> m_data;
 
-        template <class T2 = Value, class E2 = Error, class P2 = Progress>
-        static Promise<T2, E2, P2> make_cancelled() {
-            auto ret = Promise<T2, E2, P2>();
-            ret.cancel();
-            return std::move(ret);
-        }
-
         template <class T2, class E2, class P2>
-        static Promise<T2, E2, P2> make_fwd_with_result(auto mapper, std::shared_ptr<Data> data) {
-            return Promise<T2, E2, P2>([data, mapper](auto fwdStateToNextPromise, auto const& cancelled) {
-                std::unique_lock lock(data->mutex);
-
-                // Check if this Promise has already been resolved, and if so 
-                // immediately queue the callback with the value
-                if (data->result.has_value()) {
-                    auto v = data->result.value();
-                    if (v.index() == 0) {
-                        Loader::get()->queueInMainThread([mapper = std::move(mapper), ok = std::move(std::get<0>(v))] {
-                            (void)mapper(Ok(std::move(ok)));
-                        });
-                    }
-                    else {
-                        Loader::get()->queueInMainThread([mapper = std::move(mapper), err = std::move(std::get<1>(v))] {
-                            (void)mapper(Err(std::move(err)));
-                        });
-                    }
-                    return;
-                }
-
-                data->callback = [fwdStateToNextPromise, &cancelled, mapper](auto&& state) {
-                    // Can't use std::visit if Value and Error are the same >:(
-                    switch (state.index()) {
-                        case STATE_VALUE_INDEX: {
-                            auto mapped = mapper(Ok(std::move(std::get<STATE_VALUE_INDEX>(state))));
-                            if (mapped) {
-                                fwdStateToNextPromise(Promise<T2, E2, P2>::State(
-                                    std::in_place_index<STATE_VALUE_INDEX>,
-                                    std::move(mapped).unwrap()
-                                ));
-                            }
-                            else {
-                                fwdStateToNextPromise(Promise<T2, E2, P2>::State(
-                                    std::in_place_index<STATE_ERROR_INDEX>,
-                                    std::move(mapped).unwrapErr()
-                                ));
-                            }
-                        } break;
-
-                        case STATE_ERROR_INDEX: {
-                            auto mapped = mapper(Err(std::move(std::get<STATE_ERROR_INDEX>(state))));
-                            if (mapped) {
-                                fwdStateToNextPromise(Promise<T2, E2, P2>::State(
-                                    std::in_place_index<STATE_VALUE_INDEX>,
-                                    std::move(mapped).unwrap()
-                                ));
-                            }
-                            else {
-                                fwdStateToNextPromise(Promise<T2, E2, P2>::State(
-                                    std::in_place_index<STATE_ERROR_INDEX>,
-                                    std::move(mapped).unwrapErr()
-                                ));
-                            }
-                        } break;
-
-                        case STATE_PROGRESS_INDEX: {
-                            fwdStateToNextPromise(Promise<T2, E2, P2>::State(
-                                std::in_place_index<STATE_PROGRESS_INDEX>,
-                                std::move(std::get<STATE_PROGRESS_INDEX>(state))
-                            ));
-                        } break;
-
-                        case STATE_CANCELLED_INDEX: {
-                            fwdStateToNextPromise(Promise<T2, E2, P2>::State(
-                                std::in_place_index<STATE_CANCELLED_INDEX>,
-                                std::move(std::get<STATE_CANCELLED_INDEX>(state))
-                            ));
-                        } break;
-                    }
-                };
+        static Promise<T2, E2, P2> make_fwd(
+            auto&& transformState,
+            std::shared_ptr<Data> data
+        ) {
+            return Promise<T2, E2, P2>([data, transformState](auto fwdStateToNextPromise, auto const&) {
+                Promise::set_callback(
+                    [fwdStateToNextPromise, transformState](auto&& state) { 
+                        // Map the state
+                        auto mapped = transformState(std::move(state));
+                        // Forward the value to the next Promise
+                        fwdStateToNextPromise(std::move(mapped));
+                    },
+                    data
+                );
             }, data->shouldStartThreaded, std::monostate());
         }
 
-        template <size_t Ix, class T2, class E2, class P2>
-        static Promise<T2, E2, P2> make_fwd(auto mapper, std::shared_ptr<Data> data) {
-            return Promise<T2, E2, P2>([data, mapper](auto fwdStateToNextPromise, auto const&) {
-                std::unique_lock lock(data->mutex);
+        static void set_callback(OnStateChange&& callback, std::shared_ptr<Data> data) {
+            std::unique_lock lock(data->mutex);
+            data->callback = std::move(callback);
 
-                // Check if the Promise has already been resolved
-                if (data->result.has_value()) {
-                    if constexpr (Ix == 0 || Ix == 1) {
-                        auto v = data->result.value();
-                        if (v.index() == Ix) {
-                            Loader::get()->queueInMainThread([mapper = std::move(mapper), val = std::move(std::get<Ix>(v))] {
-                                (void)mapper(val);
-                            });
-                        }
-                    }
-                    return;
+            // Check if the callback should be immediately fired because 
+            // the Promise is already resolved or cancelled
+            if (data->cancelled) {
+                invoke_callback_no_lock(State::make_cancelled(), data);
+            }
+            if (data->result) {
+                if (data->result->index() == 0) {
+                    invoke_callback_no_lock(State::make_value(Value(std::get<0>(*data->result))), data);
                 }
-                
-                data->callback = [fwdStateToNextPromise, mapper](auto&& state) {
-                    if (state.index() == Ix) {
-                        auto mapped = mapper(std::get<Ix>(state));
-                        fwdStateToNextPromise(Promise<T2, E2, P2>::State(
-                            std::in_place_index<Ix>,
-                            mapped
-                        ));
-                    }
-                    // Can't use std::visit if Value and Error are the same >:(
-                    else switch (state.index()) {
-                        case STATE_VALUE_INDEX: if constexpr (Ix != STATE_VALUE_INDEX) {
-                            fwdStateToNextPromise(Promise<T2, E2, P2>::State(
-                                std::in_place_index<STATE_VALUE_INDEX>,
-                                std::move(std::get<STATE_VALUE_INDEX>(state))
-                            ));
-                        } break;
-
-                        case STATE_ERROR_INDEX: if constexpr (Ix != STATE_ERROR_INDEX) {
-                            fwdStateToNextPromise(Promise<T2, E2, P2>::State(
-                                std::in_place_index<STATE_ERROR_INDEX>,
-                                std::move(std::get<STATE_ERROR_INDEX>(state))
-                            ));
-                        } break;
-
-                        case STATE_PROGRESS_INDEX: if constexpr (Ix != STATE_PROGRESS_INDEX) {
-                            fwdStateToNextPromise(Promise<T2, E2, P2>::State(
-                                std::in_place_index<STATE_PROGRESS_INDEX>,
-                                std::move(std::get<STATE_PROGRESS_INDEX>(state))
-                            ));
-                        } break;
-
-                        case STATE_CANCELLED_INDEX: if constexpr (Ix != STATE_CANCELLED_INDEX) {
-                            fwdStateToNextPromise(Promise<T2, E2, P2>::State(
-                                std::in_place_index<STATE_CANCELLED_INDEX>,
-                                std::move(std::get<STATE_CANCELLED_INDEX>(state))
-                            ));
-                        } break;
-                    }
-                };
-            }, data->shouldStartThreaded, std::monostate());
+                else {
+                    invoke_callback_no_lock(State::make_error(Error(std::get<1>(*data->result))), data);
+                }
+            }
         }
 
         static void invoke_callback(State&& state, std::shared_ptr<Data> data) {
-            if (data->cancelled) {
-                return;
-            }
-
             std::unique_lock lock(data->mutex);
+            invoke_callback_no_lock(std::move(state), data);
+        }
 
+        static void invoke_callback_no_lock(State&& state, std::shared_ptr<Data> data) {
             if (data->callback) {
                 Loader::get()->queueInMainThread([callback = data->callback, state = State(state)]() {
                     callback(state);
@@ -365,13 +334,13 @@ namespace geode {
             }
 
             // Store the state to let future installed callbacks be immediately resolved
-            if (state.index() == STATE_VALUE_INDEX) {
-                data->result = std::variant<Value, Error>(std::in_place_index<0>, std::get<0>(std::move(state)));
+            if (state.has_value()) {
+                data->result = std::variant<Value, Error>(std::in_place_index<0>, std::move(state).take_value());
             }
-            else if (state.index() == STATE_ERROR_INDEX) {
-                data->result = std::variant<Value, Error>(std::in_place_index<1>, std::get<1>(std::move(state)));
+            else if (state.has_error()) {
+                data->result = std::variant<Value, Error>(std::in_place_index<1>, std::move(state).take_error());
             }
-            else if (state.index() == STATE_CANCELLED_INDEX) {
+            else if (state.is_cancelled()) {
                 data->cancelled = true;
             }
         }
