@@ -14,6 +14,7 @@ protected:
     CCNode* m_infoContainer;
     CCNode* m_titleContainer;
     CCLabelBMFont* m_titleLabel;
+    CCLabelBMFont* m_versionLabel;
     CCNode* m_developers;
     CCLabelBMFont* m_developerLabel;
     ButtonSprite* m_restartRequiredLabel = nullptr;

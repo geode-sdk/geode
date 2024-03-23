@@ -36,16 +36,22 @@ bool ModItem::init(ModSource&& source) {
     m_titleContainer->setAnchorPoint({ .0f, .5f });
     m_titleContainer->setLayout(
         RowLayout::create()
+            ->setDefaultScaleLimits(.1f, 1.f)
             ->setAxisAlignment(AxisAlignment::Start)
     );
 
     m_titleLabel = CCLabelBMFont::create(m_source.getMetadata().getName().c_str(), "bigFont.fnt");
-    m_titleLabel->setAnchorPoint({ .0f, .5f });
-    m_titleLabel->setLayoutOptions(
-        AxisLayoutOptions::create()
-            ->setMinScale(.1f)
-    );
     m_titleContainer->addChild(m_titleLabel);
+
+    m_versionLabel = CCLabelBMFont::create(m_source.getMetadata().getVersion().toString().c_str(), "bigFont.fnt");
+    m_versionLabel->setColor(
+        ColorProvider::get()->define("mod-list-version-label"_spr, ccc3(86, 235, 41))
+    );
+    m_versionLabel->setLayoutOptions(
+        AxisLayoutOptions::create()
+            ->setMaxScale(.7f)
+    );
+    m_titleContainer->addChild(m_versionLabel);
     
     m_infoContainer->addChild(m_titleContainer);
     
@@ -67,9 +73,11 @@ bool ModItem::init(ModSource&& source) {
     m_infoContainer->addChild(m_developers);
 
     m_restartRequiredLabel = ButtonSprite::create("Restart Required", "bigFont.fnt", "white-square.png"_spr, .8f);
-    m_restartRequiredLabel->m_label->setColor({ 153, 245, 245 });
+    m_restartRequiredLabel->m_label->setColor(
+        ColorProvider::get()->define("mod-list-restart-required-label"_spr, ccc3(153, 245, 245))
+    );
     m_restartRequiredLabel->m_BGSprite->setColor(
-        ColorProvider::get()->define("mod-list-label-bg"_spr, ccc3(123, 156, 163))
+        ColorProvider::get()->define("mod-list-restart-required-label-bg"_spr, ccc3(123, 156, 163))
     );
     m_restartRequiredLabel->setLayoutOptions(
         AxisLayoutOptions::create()
@@ -144,6 +152,7 @@ void ModItem::updateState() {
             m_bg->setColor({ 255, 255, 255 });
             m_bg->setOpacity(mod->isOrWillBeEnabled() ? 25 : 10);
             m_titleLabel->setOpacity(mod->isOrWillBeEnabled() ? 255 : 155);
+            m_versionLabel->setOpacity(mod->isOrWillBeEnabled() ? 255 : 155);
             m_developerLabel->setOpacity(mod->isOrWillBeEnabled() ? 255 : 155);
         },
         [this](server::ServerModMetadata const& metadata) {
