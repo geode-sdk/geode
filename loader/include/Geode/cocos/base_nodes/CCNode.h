@@ -1018,8 +1018,8 @@ public:
     GEODE_DLL void addChildAtPosition(
         CCNode* child,
         Anchor anchor,
-        CCPoint const& nodeAnchor,
         CCPoint const& offset,
+        CCPoint const& nodeAnchor,
         bool useAnchorLayout = true
     );
     /**
