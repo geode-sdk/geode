@@ -275,9 +275,13 @@ namespace geode {
         PromiseEventFilter<T, E, P> listen();
 
     private:
+        // I'm not sure just how un-performant this is, although then again you 
+        // should not be using Promises in performance-sensitive code since the 
+        // whole point of them is to wait for stuff that happens in the 
+        // possibly distant future
         struct Data final {
             std::mutex mutex;
-            OnStateChange callback;
+            std::vector<OnStateChange> callbacks;
             std::optional<std::variant<Value, Error>> result;
             std::atomic_bool cancelled;
             std::atomic_bool shouldStartThreaded;
@@ -304,7 +308,7 @@ namespace geode {
 
         static void set_callback(OnStateChange&& callback, std::shared_ptr<Data> data) {
             std::unique_lock lock(data->mutex);
-            data->callback = std::move(callback);
+            data->callbacks.emplace_back(std::move(callback));
 
             // Check if the callback should be immediately fired because 
             // the Promise is already resolved or cancelled
@@ -327,11 +331,12 @@ namespace geode {
         }
 
         static void invoke_callback_no_lock(State&& state, std::shared_ptr<Data> data) {
-            if (data->callback) {
-                Loader::get()->queueInMainThread([callback = data->callback, state = State(state)]() {
+            // Run callbacks in the main thread
+            Loader::get()->queueInMainThread([callbacks = data->callbacks, state = State(state)]() {
+                for (auto&& callback : std::move(callbacks)) {
                     callback(state);
-                });
-            }
+                }
+            });
 
             // Store the state to let future installed callbacks be immediately resolved
             if (state.has_value()) {

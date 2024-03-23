@@ -119,9 +119,6 @@ namespace server {
 
     private:
         class Cache final {
-            using Pending = ServerPromise<Result>;
-            using CachedOrPending = std::variant<Pending, Result>;
-
             std::mutex m_mutex;
             // I know this looks like a goofy choice over just 
             // `std::unordered_map`, but hear me out:
@@ -145,58 +142,30 @@ namespace server {
             // lightning-fast (🚀), and besides the main performance benefit 
             // comes from the lack of a web request - not how many extra 
             // milliseconds we can squeeze out of a map access
-            std::vector<std::pair<Query, CachedOrPending>> m_values;
+            std::vector<std::pair<Query, ServerPromise<Result>>> m_values;
             size_t m_sizeLimit = 20;
 
-            template <class As>
-            As* find(Query const& query) {
+        public:
+            ServerPromise<Result> get(Query const& query) {
+                std::unique_lock _(m_mutex);
+
                 auto it = std::find_if(m_values.begin(), m_values.end(), [query](auto const& q) {
                     return q.first == query;
                 });
-                if (it == m_values.end()) {
-                    return nullptr;
-                }
-                if (auto as = std::get_if<As>(&it->second)) {
-                    return as;
-                }
-                return nullptr;
-            }
 
-        public:
-            std::optional<Result> get(Query const& query) {
-                std::unique_lock _(m_mutex);
-                if (auto v = this->template find<Result>(query)) {
-                    return *v;
+                // If there is already a Promise with this queue (pending or 
+                // resolved) just return a copy of that to the caller so they 
+                // can listen to it
+                if (it != m_values.end()) {
+                    return it->second;
                 }
-                return std::nullopt;
-            }
-            ServerPromise<Result> pend(Query&& query, auto func) {
-                std::unique_lock _(m_mutex);
-                ServerPromise<Result> ret;
-                if (auto prev = this->template find<Pending>(query)) {
-                    return prev;
-                }
-                else {
-                    ret = ServerPromise<Result>([this, func, query = Query(query)](auto resolve, auto reject, auto progress, auto cancelled) {
-                        func(Query(query))
-                        .then([this, resolve, query = std::move(query)](auto res) {
-                            this->add(Query(query), Result(res));
-                            resolve(res);
-                        })
-                        .expect([reject](auto err) {
-                            reject(err);
-                        })
-                        .progress([progress](auto prog) {
-                            progress(prog);
-                        })
-                        .link(cancelled);
-                    });
-                }
-                return ret;
-            }
-            void add(Query&& query, Result&& result) {
-                std::unique_lock _(m_mutex);
-                auto value = std::make_pair(std::move(query), std::move(result));
+                
+                // Create the Promise
+                auto promise = F(Query(query));
+
+                // Store the created Promise in the cache
+                auto value = std::make_pair(std::move(query), ServerPromise<Result>(promise));
+
                 // Shift and replace last element if we're at cache size limit
                 if (m_values.size() >= m_sizeLimit) {
                     std::shift_left(m_values.begin(), m_values.end(), 1);
@@ -206,8 +175,12 @@ namespace server {
                 else {
                     m_values.emplace_back(std::move(value));
                 }
+
+                // Give a copy of the created Promise to the caller so they 
+                // can listen to it
+                return promise;
             }
-            void remove(Query const& query) {
+            void clear(Query const& query) {
                 std::unique_lock _(m_mutex);
                 ranges::remove(m_values, [&query](auto const& q) { return q.first == query; });
             }
@@ -225,14 +198,6 @@ namespace server {
 
         Cache m_cache;
     
-        ServerPromise<Result> fetch(Query const& query) {
-            return F(Query(query))
-                .then([this, query = std::move(query)](auto res) {
-                    m_cache.add(Query(query), Result(res));
-                });
-            // return m_cache.pend(Query(query));
-        }
-
     public:
         static ServerResultCache<F>& shared() {
             static auto inst = ServerResultCache();
@@ -243,27 +208,18 @@ namespace server {
         }
     
         ServerPromise<Result> get(Query const& query) {
-            // Return cached value if there is one and the query matches
-            if (auto cached = m_cache.get(query)) {
-                return ServerPromise<Result>([cached = std::move(cached).value()](auto resolve, auto) {
-                    resolve(std::move(cached));
-                });
-            }
-            return this->fetch(std::move(query));
+            return m_cache.get(query);
         }
         ServerPromise<Result> refetch(Query const& query) {
             // Clear cache for this query only
-            m_cache.remove(query);
-
+            m_cache.clear(query);
             // Fetch new value
-            return this->fetch(std::move(query));
+            return m_cache.get(std::move(query));
         }
-
         // Invalidate the whole cache
         void invalidateAll() {
             m_cache.clear();
         }
-
         // Limit the size of the cache
         void setSizeLimit(size_t size) {
             m_cache.limit(size);
