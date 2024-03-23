@@ -2,7 +2,7 @@
 
 #include <Geode/ui/General.hpp>
 #include <server/Server.hpp>
-#include "ModSource.hpp"
+#include "../sources/ModSource.hpp"
 
 using namespace geode::prelude;
 

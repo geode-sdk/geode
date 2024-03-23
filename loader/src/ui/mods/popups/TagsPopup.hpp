@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Geode/ui/Popup.hpp>
-#include "ModListSource.hpp"
+#include "../sources/ModListSource.hpp"
 
 using namespace geode::prelude;
 

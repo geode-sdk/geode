@@ -5,7 +5,7 @@
 #include <Geode/ui/TextArea.hpp>
 #include <Geode/ui/TextInput.hpp>
 #include "ModItem.hpp"
-#include "ModListSource.hpp"
+#include "../sources/ModListSource.hpp"
 
 using namespace geode::prelude;
 

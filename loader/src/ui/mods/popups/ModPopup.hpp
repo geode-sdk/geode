@@ -2,8 +2,8 @@
 
 #include <Geode/ui/Popup.hpp>
 #include <Geode/ui/MDTextArea.hpp>
-#include "ModSource.hpp"
-#include "GeodeStyle.hpp"
+#include "../sources/ModSource.hpp"
+#include "../GeodeStyle.hpp"
 
 using namespace geode::prelude;
 

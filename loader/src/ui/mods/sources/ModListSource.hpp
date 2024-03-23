@@ -3,7 +3,7 @@
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/Promise.hpp>
 #include <server/Server.hpp>
-#include "ModItem.hpp"
+#include "../list/ModItem.hpp"
 
 using namespace geode::prelude;
 

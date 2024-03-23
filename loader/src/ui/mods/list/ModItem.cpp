@@ -1,8 +1,8 @@
 #include "ModItem.hpp"
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/utils/ColorProvider.hpp>
-#include "GeodeStyle.hpp"
-#include "ModPopup.hpp"
+#include "../GeodeStyle.hpp"
+#include "../popups/ModPopup.hpp"
 
 bool ModItem::init(ModSource&& source) {
     if (!CCNode::init())

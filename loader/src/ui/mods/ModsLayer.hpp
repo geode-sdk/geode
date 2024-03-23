@@ -3,9 +3,9 @@
 #include <Geode/ui/General.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/ui/TextArea.hpp>
-#include "ModItem.hpp"
-#include "ModListSource.hpp"
-#include "ModList.hpp"
+#include "list/ModItem.hpp"
+#include "list/ModList.hpp"
+#include "sources/ModListSource.hpp"
 
 using namespace geode::prelude;
 

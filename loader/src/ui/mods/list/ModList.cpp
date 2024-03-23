@@ -1,7 +1,7 @@
 #include "ModList.hpp"
 #include <Geode/utils/ColorProvider.hpp>
-#include "TagsPopup.hpp"
-#include "GeodeStyle.hpp"
+#include "../popups/TagsPopup.hpp"
+#include "../GeodeStyle.hpp"
 
 bool ModList::init(ModListSource* src, CCSize const& size) {
     if (!CCNode::init())
