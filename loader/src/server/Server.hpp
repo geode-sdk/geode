@@ -114,8 +114,8 @@ namespace server {
     class ServerResultCache final {
     public:
         using Extract = decltype(detail::ExtractServerReqParams(F));
-        using Result  = Extract::Result;
-        using Query   = Extract::Query;
+        using Result  = typename Extract::Result;
+        using Query   = typename Extract::Query;
 
     private:
         class Cache final {
