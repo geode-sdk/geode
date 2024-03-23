@@ -84,6 +84,13 @@ static float scaleByOpts(
     }
 }
 
+static AxisAlignment optsCrossAxisAlign(AxisLayoutOptions const* opts, AxisAlignment def) {
+    if (opts && opts->getCrossAxisAlignment()) {
+        return *opts->getCrossAxisAlignment();
+    }
+    return def;
+}
+
 struct AxisPosition {
     float axisLength;
     float axisAnchor;
@@ -671,7 +678,7 @@ public:
                         row->axisEndsLength * row->scale * (1.f - row->squish) * 1.f / nodes->count();
                 }
                 float crossOffset;
-                switch (m_crossLineAlignment) {
+                switch (optsCrossAxisAlign(opts, m_crossLineAlignment)) {
                     case AxisAlignment::Start: {
                         crossOffset = pos.crossLength * pos.crossAnchor;
                     } break;
@@ -931,6 +938,7 @@ public:
     bool m_breakLine = false;
     bool m_sameLine = false;
     int m_scalePriority = AXISLAYOUT_DEFAULT_PRIORITY;
+    std::optional<AxisAlignment> m_crossAxisAlignment;
 };
 
 AxisLayoutOptions* AxisLayoutOptions::create() {
@@ -978,6 +986,9 @@ bool AxisLayoutOptions::getSameLine() const {
 int AxisLayoutOptions::getScalePriority() const {
     return m_impl->m_scalePriority;
 }
+std::optional<AxisAlignment> AxisLayoutOptions::getCrossAxisAlignment() const {
+    return m_impl->m_crossAxisAlignment;
+}
 
 AxisLayoutOptions* AxisLayoutOptions::setMaxScale(float scale) {
     m_impl->m_scaleLimits.second = scale;
@@ -1021,5 +1032,9 @@ AxisLayoutOptions* AxisLayoutOptions::setSameLine(bool enable) {
 }
 AxisLayoutOptions* AxisLayoutOptions::setScalePriority(int priority) {
     m_impl->m_scalePriority = priority;
+    return this;
+}
+AxisLayoutOptions* AxisLayoutOptions::setCrossAxisAlignment(std::optional<AxisAlignment> alignment) {
+    m_impl->m_crossAxisAlignment = alignment;
     return this;
 }

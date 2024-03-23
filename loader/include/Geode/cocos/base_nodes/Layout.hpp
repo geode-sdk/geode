@@ -120,6 +120,7 @@ public:
     bool getBreakLine() const;
     bool getSameLine() const;
     int getScalePriority() const;
+    std::optional<AxisAlignment> getCrossAxisAlignment() const;
 
     /**
      * Set the maximum scale this node can be if it's contained in an 
@@ -192,6 +193,11 @@ public:
      * each other with no gaps
      */
     AxisLayoutOptions* setScalePriority(int priority);
+
+    /**
+     * Override the cross axis alignment for this node in the layout
+     */
+    AxisLayoutOptions* setCrossAxisAlignment(std::optional<AxisAlignment> alignment);
 };
 
 /**
