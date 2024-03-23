@@ -89,7 +89,7 @@ static auto loadInstalledModsPage(server::ModsQuery&& query) {
 }
 
 static auto loadServerModsPage(server::ModsQuery&& query) {
-    return server::getMods(query)
+    return server::ServerResultCache<&server::getMods>::shared().get(query)
         .then<ModListSource::ProvidedMods>([](server::ServerModsList list) {
             auto content = ModListSource::ProvidedMods();
             for (auto&& mod : std::move(list.mods)) {

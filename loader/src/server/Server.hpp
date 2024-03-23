@@ -75,6 +75,8 @@ namespace server {
         std::optional<std::string> developer;
         size_t page = 0;
         size_t pageSize = 10;
+        
+        bool operator==(ModsQuery const& other) const = default;
     };
 
     struct ServerError {
@@ -199,14 +201,14 @@ namespace server {
         Cache m_cache;
     
     public:
-        static ServerResultCache<F>& shared() {
+        static ServerResultCache& shared() {
             static auto inst = ServerResultCache();
             static auto _ = listenForSettingChanges<int64_t>("server-cache-size-limit", +[](int64_t size) {
                 ServerResultCache::shared().setSizeLimit(size);
             });
             return inst;
         }
-    
+        
         ServerPromise<Result> get(Query const& query) {
             return m_cache.get(query);
         }
@@ -225,4 +227,11 @@ namespace server {
             m_cache.limit(size);
         }
     };
+
+    // Clear all shared server endpoint caches
+    static void clearServerCaches() {
+        ServerResultCache<&getMods>::shared().invalidateAll();
+        ServerResultCache<&getMod>::shared().invalidateAll();
+        ServerResultCache<&getModLogo>::shared().invalidateAll();
+    }
 }
