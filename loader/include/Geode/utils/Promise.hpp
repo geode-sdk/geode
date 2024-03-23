@@ -38,8 +38,8 @@ namespace geode {
         private:
             std::variant<Value, Error, Progress, CancelledState> m_value;
         
-            template <size_t Ix, class T>
-            State(std::in_place_index_t<Ix> index, T&& value) : m_value(index, std::forward<T>(value)) {}
+            template <size_t Ix, class V>
+            State(std::in_place_index_t<Ix> index, V&& value) : m_value(index, std::forward<V>(value)) {}
 
         public:
             static State make_value(Value&& value) {
@@ -232,7 +232,7 @@ namespace geode {
 
         Promise finally(utils::MiniFunction<void()>&& callback) {
             return make_fwd<T, E, P>(
-                [](typename Promise::State&& state) -> typename Promise::State {
+                [callback](typename Promise::State&& state) -> typename Promise::State {
                     if (state.has_value() || state.has_error()) {
                         callback();
                     }
@@ -244,7 +244,7 @@ namespace geode {
 
         Promise cancelled(utils::MiniFunction<void()>&& callback) {
             return make_fwd<T, E, P>(
-                [](typename Promise::State&& state) -> typename Promise::State {
+                [callback](typename Promise::State&& state) -> typename Promise::State {
                     if (state.is_cancelled()) {
                         callback();
                     }
