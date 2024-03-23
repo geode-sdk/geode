@@ -19,6 +19,7 @@ namespace geode {
      * Open the support popup for a mod
      */
     GEODE_DLL void openSupportPopup(Mod* mod);
+    GEODE_DLL void openSupportPopup(ModMetadata const& metadata);
     /**
      * Open the store page for a mod (if it exists)
      */

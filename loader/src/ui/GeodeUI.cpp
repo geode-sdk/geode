@@ -39,9 +39,17 @@ void geode::openIssueReportPopup(Mod* mod) {
 }
 
 void geode::openSupportPopup(Mod* mod) {
+    openSupportPopup(mod->getMetadata());
+}
+
+void geode::openSupportPopup(ModMetadata const& metadata) {
     MDPopup::create(
-        "Support " + mod->getMetadata().getName(),
-        mod->getMetadata().getSupportInfo().value(),
+        "Support " + metadata.getName(),
+        metadata.getSupportInfo().value_or(
+            "Developing mods takes a lot of time and effort! "
+            "Consider <cy>supporting the developers</c> of your favorite mods "
+            "to show them thanks for all their hard work <3"
+        ),
         "OK"
     )->show();
 }
