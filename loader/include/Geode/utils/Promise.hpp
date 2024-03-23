@@ -56,7 +56,7 @@ namespace geode {
             }
 
             template <class T2, class E2, class P2>
-            Promise<T2, E2, P2>::State convert() && {
+            typename Promise<T2, E2, P2>::State convert() && {
                 if (this->has_value()) {
                     if constexpr (std::is_same_v<T, T2>) {
                         return Promise<T2, E2, P2>::State::make_value(std::move(std::move(*this).take_value()));
