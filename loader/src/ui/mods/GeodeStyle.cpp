@@ -48,8 +48,30 @@ GeodeSquareSprite* GeodeSquareSprite::createWithSpriteFrameName(const char* top,
     return nullptr;
 }
 
+IconButtonSprite* createGeodeButton(CCNode* icon, std::string const& text, std::string const& bg) {
+    return IconButtonSprite::create(bg.c_str(), icon, text.c_str(), "bigFont.fnt");
+}
+
+CCNode* createGeodeButton(CCNode* icon, float width, std::string const& text, std::string const& bgSpr) {
+    auto bg = CCScale9Sprite::create(bgSpr.c_str());
+    bg->setContentSize({ width, 35 });
+
+    limitNodeSize(icon, { 20, 20 }, 1.f, .1f);
+    bg->addChildAtPosition(icon, Anchor::Left, { 35.f / 2, 0 }, { .5f, .5f });
+
+    auto label = CCLabelBMFont::create(text.c_str(), "bigFont.fnt");
+    limitNodeSize(label, { width - 42.5f, 20 }, .6f, .1f);
+    bg->addChildAtPosition(label, Anchor::Left, { 35, 0 }, { 0, .5f });
+
+    return bg;
+}
+
 ButtonSprite* createGeodeButton(std::string const& text, std::string const& bg) {
     return ButtonSprite::create(text.c_str(), "bigFont.fnt", bg.c_str(), .8f);
+}
+
+CircleButtonSprite* createGeodeCircleButton(const char* topFrameName) {
+    return CircleButtonSprite::createWithSpriteFrameName(topFrameName, 1.f, CircleBaseColor::DarkPurple);
 }
 
 bool GeodeTabSprite::init(const char* iconFrame, const char* text, float width) {

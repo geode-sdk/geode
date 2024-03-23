@@ -7,7 +7,7 @@
 
 using namespace geode::prelude;
 
-class ModPopup : public Popup<ModSource&&> {
+class ModPopup : public GeodePopup<ModSource&&> {
 protected:
     enum class Tab {
         Details,
@@ -31,6 +31,9 @@ protected:
     void onLoadServerInfo(PromiseEvent<server::ServerModMetadata, server::ServerError>* event);
     void loadTab(Tab tab);
     void onTab(CCObject* sender);
+
+    void onLink(CCObject*);
+    void onSupport(CCObject*);
 
 public:
     static ModPopup* create(ModSource&& src);

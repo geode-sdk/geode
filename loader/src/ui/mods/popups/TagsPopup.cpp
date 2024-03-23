@@ -19,7 +19,7 @@ void TagsPopup::onClose(CCObject* sender) {
 
 TagsPopup* TagsPopup::create(ModListSource* src, MiniFunction<void()> onClose) {
     auto ret = new TagsPopup();
-    if (ret && ret->initAnchored(260, 200, src, onClose, "GJ_square02.png")) {
+    if (ret && ret->init(260, 200, src, onClose)) {
         ret->autorelease();
         return ret;
     }

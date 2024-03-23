@@ -2,10 +2,11 @@
 
 #include <Geode/ui/Popup.hpp>
 #include "../sources/ModListSource.hpp"
+#include "../GeodeStyle.hpp"
 
 using namespace geode::prelude;
 
-class TagsPopup : public Popup<ModListSource*, MiniFunction<void()>> {
+class TagsPopup : public GeodePopup<ModListSource*, MiniFunction<void()>> {
 protected:
     ModListSource* m_source;
     MiniFunction<void()> m_onClose;

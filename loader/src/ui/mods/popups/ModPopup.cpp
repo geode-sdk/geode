@@ -1,5 +1,7 @@
 #include "ModPopup.hpp"
 #include <Geode/ui/MDTextArea.hpp>
+#include <Geode/utils/web.hpp>
+#include <Geode/ui/GeodeUI.hpp>
 
 bool ModPopup::setup(ModSource&& src) {
     m_source = std::move(src);
@@ -15,7 +17,7 @@ bool ModPopup::setup(ModSource&& src) {
     );
 
     auto leftColumn = CCNode::create();
-    leftColumn->setContentSize({ 145, mainContainer->getContentHeight() - 30 });
+    leftColumn->setContentSize({ 145, mainContainer->getContentHeight() });
 
     auto titleContainer = CCNode::create();
     titleContainer->setContentSize({ leftColumn->getContentWidth(), 25 });
@@ -47,14 +49,25 @@ bool ModPopup::setup(ModSource&& src) {
 
     leftColumn->addChild(titleContainer);
 
+    auto idStr = "(ID: " + m_source.getMetadata().getID() + ")";
+    auto idLabel = CCLabelBMFont::create(idStr.c_str(), "bigFont.fnt");
+    idLabel->limitLabelWidth(leftColumn->getContentWidth(), .25f, .05f);
+    idLabel->setColor({ 150, 150, 150 });
+    idLabel->setOpacity(140);
+    leftColumn->addChild(idLabel);
+
+    auto gap = CCNode::create();
+    gap->setContentHeight(6);
+    leftColumn->addChild(gap);
+
     auto statsContainer = CCNode::create();
     statsContainer->setContentSize({ leftColumn->getContentWidth(), 80 });
     statsContainer->setAnchorPoint({ .5f, .5f });
 
     auto statsBG = CCScale9Sprite::create("square02b_001.png");
     statsBG->setColor({ 0, 0, 0 });
-    statsBG->setOpacity(90);
-    statsBG->setScale(.6f);
+    statsBG->setOpacity(75);
+    statsBG->setScale(.3f);
     statsBG->setContentSize(statsContainer->getContentSize() / statsBG->getScale());
     statsContainer->addChildAtPosition(statsBG, Anchor::Center);
 
@@ -133,13 +146,171 @@ bool ModPopup::setup(ModSource&& src) {
 
     leftColumn->addChild(statsContainer);
 
-    leftColumn->addChild(SpacerNode::create());
+    // Installing
+
+    auto installContainer = CCNode::create();
+    installContainer->setContentSize({ leftColumn->getContentWidth(), 25 });
+    installContainer->setAnchorPoint({ .5f, .5f });
+
+    auto installBG = CCScale9Sprite::create("square02b_001.png");
+    installBG->setColor({ 0, 0, 0 });
+    installBG->setOpacity(75);
+    installBG->setScale(.3f);
+    installBG->setContentSize(installContainer->getContentSize() / installBG->getScale());
+    installContainer->addChildAtPosition(installBG, Anchor::Center);
+
+    auto installMenu = CCMenu::create();
+    installMenu->ignoreAnchorPointForPosition(false);
+    installMenu->setContentSize(installContainer->getContentSize() - ccp(10, 10));
+    installMenu->setAnchorPoint({ .5f, .5f });
+
+    for (auto stat : std::initializer_list<std::tuple<
+        const char*, const char*, SEL_MenuHandler
+    >> {
+        { "GJ_deleteIcon_001.png", "Disable", nullptr },
+        { "edit_delBtn_001.png", "Uninstall", nullptr },
+    }) {
+        auto spr = createGeodeButton(
+            CCSprite::createWithSpriteFrameName(std::get<0>(stat)),
+            std::get<1>(stat)
+        );
+        spr->setScale(.5f);
+        auto btn = CCMenuItemSpriteExtra::create(
+            spr, this, std::get<2>(stat)
+        );
+        installMenu->addChild(btn);
+    }
+
+    installMenu->setLayout(
+        RowLayout::create()
+            ->setDefaultScaleLimits(.1f, 1)
+            ->setAxisAlignment(AxisAlignment::Center)
+    );
+    installContainer->addChildAtPosition(installMenu, Anchor::Center);
+
+    leftColumn->addChild(installContainer);
+
+    // Options
+
+    auto optionsContainer = CCNode::create();
+    optionsContainer->setContentSize({ leftColumn->getContentWidth(), 25 });
+    optionsContainer->setAnchorPoint({ .5f, .5f });
+
+    auto optionsBG = CCScale9Sprite::create("square02b_001.png");
+    optionsBG->setColor({ 0, 0, 0 });
+    optionsBG->setOpacity(75);
+    optionsBG->setScale(.3f);
+    optionsBG->setContentSize(optionsContainer->getContentSize() / optionsBG->getScale());
+    optionsContainer->addChildAtPosition(optionsBG, Anchor::Center);
+
+    auto optionsMenu = CCMenu::create();
+    optionsMenu->ignoreAnchorPointForPosition(false);
+    optionsMenu->setContentSize(optionsContainer->getContentSize() - ccp(10, 10));
+    optionsMenu->setAnchorPoint({ .5f, .5f });
+
+    for (auto stat : std::initializer_list<std::tuple<
+        const char*, const char*, SEL_MenuHandler
+    >> {
+        { "folderIcon_001.png", "Config", nullptr },
+        { "folderIcon_001.png", "Save Data", nullptr },
+    }) {
+        auto spr = createGeodeButton(
+            CCSprite::createWithSpriteFrameName(std::get<0>(stat)),
+            std::get<1>(stat)
+        );
+        spr->setScale(.5f);
+        auto btn = CCMenuItemSpriteExtra::create(
+            spr, this, std::get<2>(stat)
+        );
+        optionsMenu->addChild(btn);
+    }
+
+    optionsMenu->setLayout(
+        RowLayout::create()
+            ->setDefaultScaleLimits(.1f, 1)
+            ->setAxisAlignment(AxisAlignment::Center)
+    );
+    optionsContainer->addChildAtPosition(optionsMenu, Anchor::Center);
+
+    leftColumn->addChild(optionsContainer);
+
+    // Links
+
+    auto linksContainer = CCNode::create();
+    linksContainer->setContentSize({ leftColumn->getContentWidth() - 40, 30 });
+    linksContainer->setAnchorPoint({ .5f, .5f });
+    linksContainer->setLayoutOptions(
+        AxisLayoutOptions::create()
+            ->setCrossAxisAlignment(AxisAlignment::End)
+    );
+
+    auto linksBG = CCScale9Sprite::create("square02b_001.png");
+    linksBG->setColor({ 0, 0, 0 });
+    linksBG->setOpacity(75);
+    linksBG->setScale(.3f);
+    linksBG->setContentSize(linksContainer->getContentSize() / linksBG->getScale());
+    linksContainer->addChildAtPosition(linksBG, Anchor::Center);
+
+    auto linksMenu = CCMenu::create();
+    linksMenu->ignoreAnchorPointForPosition(false);
+    linksMenu->setContentSize(linksContainer->getContentSize() - ccp(10, 10));
+    linksMenu->setAnchorPoint({ .5f, .5f });
+
+    // auto linksLabel = CCLabelBMFont::create("Links", "bigFont.fnt");
+    // linksLabel->setLayoutOptions(
+    //     AxisLayoutOptions::create()
+    //         ->setRelativeScale(.35f)
+    // );
+    // linksMenu->addChild(linksLabel);
+
+    for (auto stat : std::initializer_list<std::tuple<
+        const char*, std::optional<std::string>, SEL_MenuHandler
+    >> {
+        { "homepage.png"_spr, m_source.getMetadata().getLinks().getHomepageURL(), nullptr },
+        { "github.png"_spr, m_source.getMetadata().getLinks().getSourceURL(), nullptr },
+        { "gj_discordIcon_001.png", m_source.getMetadata().getLinks().getCommunityURL(), nullptr },
+        { "gift.png"_spr, m_source.getMetadata().getSupportInfo(), menu_selector(ModPopup::onSupport) },
+    }) {
+        auto spr = CCSprite::createWithSpriteFrameName(std::get<0>(stat));
+        spr->setScale(.75f);
+        if (!std::get<1>(stat).has_value()) {
+            spr->setColor({ 155, 155, 155 });
+            spr->setOpacity(155);
+        }
+        auto btn = CCMenuItemSpriteExtra::create(
+            spr, this, (
+                std::get<1>(stat).has_value() ?
+                    (std::get<2>(stat) ? std::get<2>(stat) : menu_selector(ModPopup::onLink)) : 
+                    nullptr
+            )
+        );
+        if (!std::get<2>(stat) && std::get<1>(stat)) {
+            btn->setUserObject("url", CCString::create(*std::get<1>(stat)));
+        }
+        linksMenu->addChild(btn);
+    }
+
+    linksMenu->setLayout(
+        RowLayout::create()
+            ->setDefaultScaleLimits(.1f, 1)
+            ->setAxisAlignment(AxisAlignment::Center)
+    );
+    linksContainer->addChildAtPosition(linksMenu, Anchor::Center);
+
+    leftColumn->addChild(linksContainer);
+
+    // auto bottomPadding = CCNode::create();
+    // bottomPadding->setContentHeight(13);
+    // leftColumn->addChild(bottomPadding);
 
     leftColumn->setLayout(
         ColumnLayout::create()
             ->setAxisReverse(true)
             ->setCrossAxisOverflow(false)
-            ->setDefaultScaleLimits(.1f, 1)
+            ->setAutoScale(false)
+            ->setAxisAlignment(AxisAlignment::Start)
+            ->setCrossAxisLineAlignment(AxisAlignment::Start)
+            ->setGap(5)
     );
     mainContainer->addChild(leftColumn);
 
@@ -176,6 +347,13 @@ bool ModPopup::setup(ModSource&& src) {
 
     mainContainer->updateLayout();
     m_mainLayer->addChildAtPosition(mainContainer, Anchor::Center);
+
+    auto settingsSpr = createGeodeCircleButton("settings.png"_spr);
+    settingsSpr->setScale(.6f);
+    auto settingsBtn = CCMenuItemSpriteExtra::create(
+        settingsSpr, this, nullptr
+    );
+    m_buttonMenu->addChildAtPosition(settingsBtn, Anchor::BottomLeft, ccp(28, 25));
 
     // Select details tab
     this->loadTab(Tab::Details);
@@ -329,9 +507,18 @@ void ModPopup::onTab(CCObject* sender) {
     this->loadTab(static_cast<Tab>(sender->getTag()));
 }
 
+void ModPopup::onLink(CCObject* sender) {
+    auto url = static_cast<CCString*>(static_cast<CCNode*>(sender)->getUserObject("url"));
+    web::openLinkInBrowser(url->getCString());
+}
+
+void ModPopup::onSupport(CCObject*) {
+    openSupportPopup(m_source.getMetadata());
+}
+
 ModPopup* ModPopup::create(ModSource&& src) {
     auto ret = new ModPopup();
-    if (ret && ret->initAnchored(440, 280, std::move(src), "GE_square01.png"_spr)) {
+    if (ret && ret->init(440, 280, std::move(src))) {
         ret->autorelease();
         return ret;
     }
