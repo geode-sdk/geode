@@ -48,8 +48,7 @@ server::ServerModMetadata const* ModSource::asServer() const {
 server::ServerPromise<server::ServerModMetadata> ModSource::fetchServerInfo() const {
     return std::visit(makeVisitor {
         [](Mod* mod) {
-            // todo: cache
-            return server::getMod(mod->getID());
+            return server::ServerResultCache<&server::getMod>::shared().get(mod->getID());
         },
         [](server::ServerModMetadata const& metadata) {
             return server::ServerPromise<server::ServerModMetadata>([&metadata](auto resolve, auto) {
