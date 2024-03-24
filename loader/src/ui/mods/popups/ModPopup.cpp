@@ -203,8 +203,8 @@ bool ModPopup::setup(ModSource&& src) {
 
     m_restartRequiredLabel = createGeodeTagLabel(
         "Restart Required",
-        ColorProvider::get()->define("mod-list-restart-required-label"_spr, ccc3(153, 245, 245)),
-        ColorProvider::get()->define("mod-list-restart-required-label-bg"_spr, ccc3(123, 156, 163))
+        to3B(ColorProvider::get()->color("mod-list-restart-required-label"_spr)),
+        to3B(ColorProvider::get()->color("mod-list-restart-required-label-bg"_spr))
     );
     m_restartRequiredLabel->setLayoutOptions(AxisLayoutOptions::create()->setMaxScale(.75f));
     m_restartRequiredLabel->setScale(.3f);
@@ -421,7 +421,7 @@ void ModPopup::updateState() {
     }
 
     if (m_source.wantsRestart()) {
-        m_installBG->setColor(ColorProvider::get()->define("mod-list-restart-required-label"_spr, ccc3(153, 245, 245)));
+        m_installBG->setColor(to3B(ColorProvider::get()->color("mod-list-restart-required-label"_spr)));
         m_installBG->setOpacity(40);
         m_restartRequiredLabel->setVisible(true);
     }

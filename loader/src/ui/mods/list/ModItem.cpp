@@ -44,13 +44,8 @@ bool ModItem::init(ModSource&& source) {
     m_titleContainer->addChild(m_titleLabel);
 
     m_versionLabel = CCLabelBMFont::create(m_source.getMetadata().getVersion().toString().c_str(), "bigFont.fnt");
-    m_versionLabel->setColor(
-        ColorProvider::get()->define("mod-list-version-label"_spr, ccc3(86, 235, 41))
-    );
-    m_versionLabel->setLayoutOptions(
-        AxisLayoutOptions::create()
-            ->setMaxScale(.7f)
-    );
+    m_versionLabel->setColor(to3B(ColorProvider::get()->color("mod-list-version-label"_spr)));
+    m_versionLabel->setLayoutOptions(AxisLayoutOptions::create()->setMaxScale(.7f));
     m_titleContainer->addChild(m_versionLabel);
     
     m_infoContainer->addChild(m_titleContainer);
@@ -74,8 +69,8 @@ bool ModItem::init(ModSource&& source) {
 
     m_restartRequiredLabel = createGeodeTagLabel(
         "Restart Required",
-        ColorProvider::get()->define("mod-list-restart-required-label"_spr, ccc3(153, 245, 245)),
-        ColorProvider::get()->define("mod-list-restart-required-label-bg"_spr, ccc3(123, 156, 163))
+        to3B(ColorProvider::get()->color("mod-list-restart-required-label"_spr)),
+        to3B(ColorProvider::get()->color("mod-list-restart-required-label-bg"_spr))
     );
     m_restartRequiredLabel->setLayoutOptions(AxisLayoutOptions::create()->setMaxScale(.75f));
     m_infoContainer->addChild(m_restartRequiredLabel);
@@ -162,7 +157,7 @@ void ModItem::updateState() {
 
     // Highlight item via BG if it wants to restart for extra UI attention
     if (wantsRestart) {
-        m_bg->setColor(ColorProvider::get()->define("mod-list-restart-required-label"_spr, ccc3(153, 245, 245)));
+        m_bg->setColor(to3B(ColorProvider::get()->color("mod-list-restart-required-label"_spr)));
         m_bg->setOpacity(40);
     }
 

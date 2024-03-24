@@ -28,9 +28,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_searchMenu->setContentSize({ size.width, 30 });
     m_searchMenu->setAnchorPoint({ .5f, 1.f });
 
-    auto searchBG = CCLayerColor::create(
-        ColorProvider::get()->define("mod-list-search-bg"_spr, { 83, 65, 109, 255 })
-    );
+    auto searchBG = CCLayerColor::create(ColorProvider::get()->color("mod-list-search-bg"_spr));
     searchBG->setContentSize(m_searchMenu->getContentSize());
     searchBG->ignoreAnchorPointForPosition(false);
     m_searchMenu->addChildAtPosition(searchBG, Anchor::Center);

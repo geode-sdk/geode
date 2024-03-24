@@ -2,6 +2,14 @@
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 
+$execute {
+    ColorProvider::get()->define("mod-list-bg"_spr, { 25, 17, 37, 255 });
+    ColorProvider::get()->define("mod-list-version-label"_spr, ccc3(86, 235, 41));
+    ColorProvider::get()->define("mod-list-restart-required-label"_spr, ccc3(153, 245, 245));
+    ColorProvider::get()->define("mod-list-restart-required-label-bg"_spr, ccc3(123, 156, 163));
+    ColorProvider::get()->define("mod-list-search-bg"_spr, { 83, 65, 109, 255 });
+}
+
 bool GeodeSquareSprite::init(CCSprite* top, bool* state) {
     if (!CCSprite::initWithFile("GE_button_05.png"_spr))
         return false;
