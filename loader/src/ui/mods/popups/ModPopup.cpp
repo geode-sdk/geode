@@ -2,6 +2,7 @@
 #include <Geode/ui/MDTextArea.hpp>
 #include <Geode/utils/web.hpp>
 #include <Geode/ui/GeodeUI.hpp>
+#include <Geode/utils/ColorProvider.hpp>
 
 bool ModPopup::setup(ModSource&& src) {
     m_source = std::move(src);
@@ -55,10 +56,6 @@ bool ModPopup::setup(ModSource&& src) {
     idLabel->setColor({ 150, 150, 150 });
     idLabel->setOpacity(140);
     leftColumn->addChild(idLabel);
-
-    auto gap = CCNode::create();
-    gap->setContentHeight(6);
-    leftColumn->addChild(gap);
 
     auto statsContainer = CCNode::create();
     statsContainer->setContentSize({ leftColumn->getContentWidth(), 80 });
@@ -146,6 +143,49 @@ bool ModPopup::setup(ModSource&& src) {
 
     leftColumn->addChild(statsContainer);
 
+    // Tags
+
+    auto tagsContainer = CCNode::create();
+    tagsContainer->setContentSize({ leftColumn->getContentWidth(), 37.5f });
+    tagsContainer->setAnchorPoint({ .5f, .5f });
+
+    auto tagsBG = CCScale9Sprite::create("square02b_001.png");
+    tagsBG->setColor({ 0, 0, 0 });
+    tagsBG->setOpacity(75);
+    tagsBG->setScale(.3f);
+    tagsBG->setContentSize(tagsContainer->getContentSize() / tagsBG->getScale());
+    tagsContainer->addChildAtPosition(tagsBG, Anchor::Center);
+
+    m_tags = CCNode::create();
+    m_tags->ignoreAnchorPointForPosition(false);
+    m_tags->setContentSize(tagsContainer->getContentSize() - ccp(10, 10));
+    m_tags->setAnchorPoint({ .5f, .5f });
+
+    // todo: refactor these spinners into a reusable class that's not the ass LoadingCircle is
+    auto tagsSpinnerContainer = CCNode::create();
+    tagsSpinnerContainer->setContentSize({ 50, 50 });
+    tagsSpinnerContainer->setID("loading-spinner");
+
+    auto tagsSpinner = CCSprite::create("loadingCircle.png");
+    tagsSpinner->setBlendFunc({ GL_ONE, GL_ONE });
+    tagsSpinner->runAction(CCRepeatForever::create(CCRotateBy::create(1.f, 360.f)));
+    limitNodeSize(tagsSpinner, tagsSpinnerContainer->getContentSize(), 1.f, .1f);
+    tagsSpinnerContainer->addChildAtPosition(tagsSpinner, Anchor::Center);
+
+    m_tags->addChild(tagsSpinnerContainer);
+
+    m_tags->setLayout(
+        RowLayout::create()
+            ->setDefaultScaleLimits(.1f, .3f)
+            ->setGrowCrossAxis(true)
+            ->setCrossAxisOverflow(false)
+            ->setAxisAlignment(AxisAlignment::Start)
+            ->setGap(2)
+    );
+    tagsContainer->addChildAtPosition(m_tags, Anchor::Center);
+
+    leftColumn->addChild(tagsContainer);
+
     // Installing
 
     auto installContainer = CCNode::create();
@@ -189,50 +229,6 @@ bool ModPopup::setup(ModSource&& src) {
     installContainer->addChildAtPosition(installMenu, Anchor::Center);
 
     leftColumn->addChild(installContainer);
-
-    // Options
-
-    auto optionsContainer = CCNode::create();
-    optionsContainer->setContentSize({ leftColumn->getContentWidth(), 25 });
-    optionsContainer->setAnchorPoint({ .5f, .5f });
-
-    auto optionsBG = CCScale9Sprite::create("square02b_001.png");
-    optionsBG->setColor({ 0, 0, 0 });
-    optionsBG->setOpacity(75);
-    optionsBG->setScale(.3f);
-    optionsBG->setContentSize(optionsContainer->getContentSize() / optionsBG->getScale());
-    optionsContainer->addChildAtPosition(optionsBG, Anchor::Center);
-
-    auto optionsMenu = CCMenu::create();
-    optionsMenu->ignoreAnchorPointForPosition(false);
-    optionsMenu->setContentSize(optionsContainer->getContentSize() - ccp(10, 10));
-    optionsMenu->setAnchorPoint({ .5f, .5f });
-
-    for (auto stat : std::initializer_list<std::tuple<
-        const char*, const char*, SEL_MenuHandler
-    >> {
-        { "folderIcon_001.png", "Config", nullptr },
-        { "folderIcon_001.png", "Save Data", nullptr },
-    }) {
-        auto spr = createGeodeButton(
-            CCSprite::createWithSpriteFrameName(std::get<0>(stat)),
-            std::get<1>(stat)
-        );
-        spr->setScale(.5f);
-        auto btn = CCMenuItemSpriteExtra::create(
-            spr, this, std::get<2>(stat)
-        );
-        optionsMenu->addChild(btn);
-    }
-
-    optionsMenu->setLayout(
-        RowLayout::create()
-            ->setDefaultScaleLimits(.1f, 1)
-            ->setAxisAlignment(AxisAlignment::Center)
-    );
-    optionsContainer->addChildAtPosition(optionsMenu, Anchor::Center);
-
-    leftColumn->addChild(optionsContainer);
 
     // Links
 
@@ -361,6 +357,8 @@ bool ModPopup::setup(ModSource&& src) {
     // Load stats from server (or just from the source if it already has them)
     m_statsListener.bind(this, &ModPopup::onLoadServerInfo);
     m_statsListener.setFilter(m_source.fetchServerInfo().listen());
+    m_tagsListener.bind(this, &ModPopup::onLoadTags);
+    m_tagsListener.setFilter(m_source.fetchValidTags().listen());
 
     return true;
 }
@@ -454,6 +452,36 @@ void ModPopup::onLoadServerInfo(PromiseEvent<server::ServerModMetadata, server::
         }
         auto updatesStat = m_stats->getChildByID("update-check");
         this->setStatLabel(updatesStat, "No Updates Found", true, ccc3(125, 125, 125));
+    }
+}
+
+void ModPopup::onLoadTags(PromiseEvent<std::unordered_set<std::string>, server::ServerError>* event) {
+    if (auto data = event->getResolve()) {
+        m_tags->removeAllChildren();
+        
+        for (auto& tag : *data) {
+            auto readable = tag;
+            readable[0] = std::toupper(readable[0]);
+            auto colors = geodeTagColor(tag);
+            m_tags->addChild(createGeodeTagLabel(readable, colors.first, colors.second));
+        }
+        
+        if (data->empty()) {
+            auto label = CCLabelBMFont::create("No tags found", "bigFont.fnt");
+            label->setOpacity(120);
+            m_tags->addChild(label);
+        }
+
+        m_tags->updateLayout();
+    }
+    else if (auto err = event->getReject()) {
+        m_tags->removeAllChildren();
+
+        auto label = CCLabelBMFont::create("No tags found", "bigFont.fnt");
+        label->setOpacity(120);
+        m_tags->addChild(label);
+
+        m_tags->updateLayout();
     }
 }
 

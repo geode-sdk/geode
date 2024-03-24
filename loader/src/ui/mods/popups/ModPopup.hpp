@@ -17,10 +17,12 @@ protected:
 
     ModSource m_source;
     CCNode* m_stats;
+    CCNode* m_tags;
     CCNode* m_rightColumn;
     CCNode* m_currentTabPage = nullptr;
     std::unordered_map<Tab, std::pair<GeodeTabSprite*, Ref<CCNode>>> m_tabs;
     EventListener<PromiseEventFilter<server::ServerModMetadata, server::ServerError>> m_statsListener;
+    EventListener<PromiseEventFilter<std::unordered_set<std::string>, server::ServerError>> m_tagsListener;
 
     bool setup(ModSource&& src) override;
 
@@ -29,6 +31,7 @@ protected:
     void setStatValue(CCNode* stat, std::optional<std::string> const& value);
 
     void onLoadServerInfo(PromiseEvent<server::ServerModMetadata, server::ServerError>* event);
+    void onLoadTags(PromiseEvent<std::unordered_set<std::string>, server::ServerError>* event);
     void loadTab(Tab tab);
     void onTab(CCObject* sender);
 

@@ -57,3 +57,28 @@ server::ServerPromise<server::ServerModMetadata> ModSource::fetchServerInfo() co
         }
     }, m_value);
 }
+
+server::ServerPromise<std::unordered_set<std::string>> ModSource::fetchValidTags() const {
+    return std::visit(makeVisitor {
+        [](Mod* mod) {
+            return server::ServerResultCache<&server::getTags>::shared().get()
+                .then<std::unordered_set<std::string>>([mod](std::unordered_set<std::string> validTags) {
+                    // Filter out invalid tags
+                    auto modTags = mod->getMetadata().getTags();
+                    auto finalTags = std::unordered_set<std::string>();
+                    for (auto& tag : modTags) {
+                        if (validTags.contains(tag)) {
+                            finalTags.insert(tag);
+                        }
+                    }
+                    return finalTags;
+                });
+        },
+        [](server::ServerModMetadata const& metadata) {
+            // Server info tags are always certain to be valid since the server has already validated them
+            return server::ServerPromise<std::unordered_set<std::string>>([&metadata](auto resolve, auto) {
+                resolve(metadata.tags);
+            });
+        }
+    }, m_value);
+}

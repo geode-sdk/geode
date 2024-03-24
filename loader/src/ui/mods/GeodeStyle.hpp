@@ -47,6 +47,9 @@ ButtonSprite* createGeodeButton(std::string const& text, std::string const& bg =
 
 CircleButtonSprite* createGeodeCircleButton(const char* topFrameName);
 
+ButtonSprite* createGeodeTagLabel(std::string const& text, ccColor3B color, ccColor3B bg);
+std::pair<ccColor3B, ccColor3B> geodeTagColor(std::string_view const& text);
+
 class GeodeTabSprite : public CCNode {
 protected:
     CCScale9Sprite* m_deselectedBG;

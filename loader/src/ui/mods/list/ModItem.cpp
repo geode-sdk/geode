@@ -72,17 +72,12 @@ bool ModItem::init(ModSource&& source) {
     );
     m_infoContainer->addChild(m_developers);
 
-    m_restartRequiredLabel = ButtonSprite::create("Restart Required", "bigFont.fnt", "white-square.png"_spr, .8f);
-    m_restartRequiredLabel->m_label->setColor(
-        ColorProvider::get()->define("mod-list-restart-required-label"_spr, ccc3(153, 245, 245))
-    );
-    m_restartRequiredLabel->m_BGSprite->setColor(
+    m_restartRequiredLabel = createGeodeTagLabel(
+        "Restart Required",
+        ColorProvider::get()->define("mod-list-restart-required-label"_spr, ccc3(153, 245, 245)),
         ColorProvider::get()->define("mod-list-restart-required-label-bg"_spr, ccc3(123, 156, 163))
     );
-    m_restartRequiredLabel->setLayoutOptions(
-        AxisLayoutOptions::create()
-            ->setMaxScale(.75f)
-    );
+    m_restartRequiredLabel->setLayoutOptions(AxisLayoutOptions::create()->setMaxScale(.75f));
     m_infoContainer->addChild(m_restartRequiredLabel);
 
     this->addChild(m_infoContainer);

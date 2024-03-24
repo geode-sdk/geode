@@ -35,4 +35,5 @@ public:
      * for that
      */
     server::ServerPromise<server::ServerModMetadata> fetchServerInfo() const;
+    server::ServerPromise<std::unordered_set<std::string>> fetchValidTags() const;
 };

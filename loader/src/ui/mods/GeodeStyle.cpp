@@ -1,5 +1,6 @@
 #include "GeodeStyle.hpp"
 #include <Geode/utils/cocos.hpp>
+#include <Geode/utils/ColorProvider.hpp>
 
 bool GeodeSquareSprite::init(CCSprite* top, bool* state) {
     if (!CCSprite::initWithFile("GE_button_05.png"_spr))
@@ -72,6 +73,24 @@ ButtonSprite* createGeodeButton(std::string const& text, std::string const& bg) 
 
 CircleButtonSprite* createGeodeCircleButton(const char* topFrameName) {
     return CircleButtonSprite::createWithSpriteFrameName(topFrameName, 1.f, CircleBaseColor::DarkPurple);
+}
+
+ButtonSprite* createGeodeTagLabel(std::string const& text, ccColor3B color, ccColor3B bg) {
+    auto label = ButtonSprite::create(text.c_str(), "bigFont.fnt", "white-square.png"_spr, .8f);
+    label->m_label->setColor(color);
+    label->m_BGSprite->setColor(bg);
+    return label;
+}
+
+std::pair<ccColor3B, ccColor3B> geodeTagColor(std::string_view const& text) {
+    static std::array TAG_COLORS {
+        std::make_pair(ccc3(240, 233, 255), ccc3(130, 123, 163)),
+        std::make_pair(ccc3(234, 255, 245), ccc3(123, 163, 136)),
+        std::make_pair(ccc3(240, 252, 255), ccc3(123, 152, 163)),
+        std::make_pair(ccc3(255, 253, 240), ccc3(163, 157, 123)),
+        std::make_pair(ccc3(255, 242, 240), ccc3(163, 128, 123)),
+    };
+    return TAG_COLORS[hash(text) % 5932 % TAG_COLORS.size()];
 }
 
 bool GeodeTabSprite::init(const char* iconFrame, const char* text, float width) {
