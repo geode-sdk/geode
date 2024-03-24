@@ -105,9 +105,9 @@ static AxisPosition nodeAxis(CCNode* node, Axis axis, float scale) {
         axisLength = opts->getLength();
     }
     // CCMenuItemToggler is a common quirky class
-    if (auto toggle = typeinfo_cast<CCMenuItemToggler*>(node)) {
-        scaledSize = toggle->m_offButton->getScaledContentSize();
-    }
+    // if (auto toggle = typeinfo_cast<CCMenuItemToggler*>(node)) {
+    //     scaledSize = toggle->m_offButton->getScaledContentSize();
+    // }
     auto anchor = node->getAnchorPoint();
     if (axis == Axis::Row) {
         return AxisPosition {
