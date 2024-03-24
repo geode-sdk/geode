@@ -415,3 +415,42 @@ ServerPromise<ByteVector> server::getModLogo(std::string const& id) {
             return parseServerProgress(prog, "Downloading logo for " + id);
         });
 }
+
+ServerPromise<std::unordered_set<std::string>> server::getTags(std::monostate) {
+    auto req = web::WebRequest();
+    req.userAgent(getServerUserAgent());
+    return req.get(getServerAPIBaseURL() + "/tags")
+        .then<std::unordered_set<std::string>, ServerError>([](auto response) -> Result<std::unordered_set<std::string>, ServerError> {
+            if (response) {
+                auto value = response.unwrap();
+
+                // Store the code, since the value is moved afterwards
+                auto code = value.code();
+                
+                // Parse payload
+                auto payload = parseServerPayload(std::move(value));
+                if (!payload) {
+                    return Err(payload.unwrapErr());
+                }
+                matjson::Value json = payload.unwrap();
+                if (!json.is_array()) {
+                    return Err(ServerError(code, "Expected a string array"));
+                }
+
+                std::unordered_set<std::string> tags;
+                for (auto item : json.as_array()) {
+                    if (!item.is_string()) {
+                        return Err(ServerError(code, "Expected a string array"));
+                    }
+                    tags.insert(item.as_string());
+                }
+                return Ok(tags);
+            }
+            else {
+                return Err(parseServerError(response.unwrapErr()));
+            }
+        })
+        .progress<ServerProgress>([](auto prog) {
+            return parseServerProgress(prog, "Downloading valid tags");
+        });
+}
