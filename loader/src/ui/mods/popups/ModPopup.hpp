@@ -18,13 +18,20 @@ protected:
     ModSource m_source;
     CCNode* m_stats;
     CCNode* m_tags;
+    CCMenu* m_installMenu;
+    CCMenuItemToggler* m_enableBtn;
+    CCMenuItemToggler* m_installBtn;
+    CCScale9Sprite* m_installBG;
+    ButtonSprite* m_restartRequiredLabel;
     CCNode* m_rightColumn;
     CCNode* m_currentTabPage = nullptr;
     std::unordered_map<Tab, std::pair<GeodeTabSprite*, Ref<CCNode>>> m_tabs;
     EventListener<PromiseEventFilter<server::ServerModMetadata, server::ServerError>> m_statsListener;
     EventListener<PromiseEventFilter<std::unordered_set<std::string>, server::ServerError>> m_tagsListener;
+    MiniFunction<void()> m_updateParentState = nullptr;
 
     bool setup(ModSource&& src) override;
+    void updateState();
 
     void setStatIcon(CCNode* stat, const char* spr);
     void setStatLabel(CCNode* stat, std::string const& value, bool noValue = false, ccColor3B color = ccWHITE);
@@ -34,10 +41,13 @@ protected:
     void onLoadTags(PromiseEvent<std::unordered_set<std::string>, server::ServerError>* event);
     void loadTab(Tab tab);
     void onTab(CCObject* sender);
+    void onEnable(CCObject*);
 
     void onLink(CCObject*);
     void onSupport(CCObject*);
 
 public:
     static ModPopup* create(ModSource&& src);
+
+    void onUpdateParentState(MiniFunction<void()> listener);
 };

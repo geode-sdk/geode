@@ -162,7 +162,7 @@ void ModItem::updateState() {
 
     // Highlight item via BG if it wants to restart for extra UI attention
     if (wantsRestart) {
-        m_bg->setColor({ 153, 245, 245 });
+        m_bg->setColor(ColorProvider::get()->define("mod-list-restart-required-label"_spr, ccc3(153, 245, 245)));
         m_bg->setOpacity(40);
     }
 
@@ -225,7 +225,11 @@ ModItem* ModItem::create(ModSource&& source) {
 }
 
 void ModItem::onView(CCObject*) {
-    ModPopup::create(ModSource(m_source))->show();
+    auto popup = ModPopup::create(ModSource(m_source));
+    popup->onUpdateParentState([this]() {
+        this->updateState();
+    });
+    popup->show();
 }
 
 void ModItem::onEnable(CCObject*) {
