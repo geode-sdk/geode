@@ -39,5 +39,8 @@ namespace geode {
 
         void setString(char const* label) override;
         char const* getString() override;
+
+        void setColor(cocos2d::ccColor3B const& color) override;
+        void setOpacity(GLubyte opacity) override;
     };
 }

@@ -41,6 +41,13 @@ namespace geode {
         UninstallWithSaveData
     };
 
+    static constexpr bool modRequestedActionIsToggle(ModRequestedAction action) {
+        return action == ModRequestedAction::Enable || action == ModRequestedAction::Disable;
+    }
+    static constexpr bool modRequestedActionIsUninstall(ModRequestedAction action) {
+        return action == ModRequestedAction::Uninstall || action == ModRequestedAction::UninstallWithSaveData;
+    }
+
     GEODE_HIDDEN Mod* takeNextLoaderMod();
 
     class ModImpl;

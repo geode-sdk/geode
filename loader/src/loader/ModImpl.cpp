@@ -458,11 +458,7 @@ Result<> Mod::Impl::disable() {
 
 Result<> Mod::Impl::uninstall(bool deleteSaveData) {
     // Allow uninstalling if the mod has been disabled / enabled
-    if (
-        m_requestedAction != ModRequestedAction::None &&
-        m_requestedAction != ModRequestedAction::Enable &&
-        m_requestedAction != ModRequestedAction::Disable
-    ) {
+    if (modRequestedActionIsUninstall(m_requestedAction)) {
         return Err(humanReadableDescForAction(m_requestedAction));
     }
 
@@ -500,8 +496,7 @@ Result<> Mod::Impl::uninstall(bool deleteSaveData) {
 }
 
 bool Mod::Impl::isUninstalled() const {
-    return m_requestedAction == ModRequestedAction::Uninstall ||
-        m_requestedAction == ModRequestedAction::UninstallWithSaveData;
+    return modRequestedActionIsUninstall(m_requestedAction);
 }
 
 ModRequestedAction Mod::Impl::getRequestedAction() const {

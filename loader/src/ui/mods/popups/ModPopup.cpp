@@ -249,13 +249,13 @@ bool ModPopup::setup(ModSource&& src) {
             std::get<2>(stat),
             std::get<3>(stat)
         );
-        onSpr->setScale(.48f);
+        onSpr->setScale(.5f);
         auto offSpr = createGeodeButton(
             CCSprite::createWithSpriteFrameName(std::get<4>(stat)),
             std::get<5>(stat),
             std::get<6>(stat)
         );
-        offSpr->setScale(.48f);
+        offSpr->setScale(.5f);
         auto toggle = CCMenuItemToggler::create(offSpr, onSpr, this, std::get<7>(stat));
         toggle->m_notClickable = true;
         m_installMenu->addChild(toggle);
@@ -408,36 +408,38 @@ bool ModPopup::setup(ModSource&& src) {
 }
 
 void ModPopup::updateState() {
-    if (auto mod = m_source.asMod()) {
-        m_enableBtn->toggle(mod->isOrWillBeEnabled());
-        m_enableBtn->setEnabled(true);
-        m_enableBtn->m_offButton->setOpacity(255);
-        m_enableBtn->m_onButton->setOpacity(255);
-    }
-    else {
-        m_enableBtn->setEnabled(false);
-        m_enableBtn->m_offButton->setOpacity(150);
-        m_enableBtn->m_onButton->setOpacity(150);
-    }
+    auto shouldEnableEnableBtn = 
+        m_source.asMod() && 
+        !modRequestedActionIsUninstall(m_source.asMod()->getRequestedAction());
+    
+    auto shouldEnableInstallBtn = 
+        !modRequestedActionIsToggle(m_source.asMod()->getRequestedAction());
+    
+    auto wantsRestart = m_source.wantsRestart();
 
-    if (m_source.wantsRestart()) {
-        m_installBG->setColor(to3B(ColorProvider::get()->color("mod-list-restart-required-label"_spr)));
-        m_installBG->setOpacity(40);
-        m_restartRequiredLabel->setVisible(true);
-    }
-    else {
-        m_installBG->setColor({ 0, 0, 0 });
-        m_installBG->setOpacity(75);
-        m_restartRequiredLabel->setVisible(false);
-    }
+    auto enableBtnOff = static_cast<IconButtonSprite*>(m_enableBtn->m_offButton->getNormalImage());
+    auto enableBtnOn = static_cast<IconButtonSprite*>(m_enableBtn->m_onButton->getNormalImage());
+    auto installBtnOff = static_cast<IconButtonSprite*>(m_installBtn->m_offButton->getNormalImage());
+    auto installBtnOn = static_cast<IconButtonSprite*>(m_installBtn->m_onButton->getNormalImage());
+
+    m_enableBtn->toggle(m_source.asMod() && m_source.asMod()->isOrWillBeEnabled());
+    m_enableBtn->setEnabled(shouldEnableEnableBtn);
+    enableBtnOff->setOpacity(shouldEnableEnableBtn ? 255 : 105);
+    enableBtnOff->setColor(shouldEnableEnableBtn ? ccc3(255, 255, 255) : ccc3(155, 155, 155));
+    enableBtnOn->setOpacity(shouldEnableEnableBtn ? 255 : 105);
+    enableBtnOn->setColor(shouldEnableEnableBtn ? ccc3(255, 255, 255) : ccc3(155, 155, 155));
 
     // todo: uninstall just installed server mods
-    if (m_source.asMod() /* || m_source.asServer()->isInstalled() */) {
-        m_installBtn->toggle(
-            m_source.asMod()->getRequestedAction() == ModRequestedAction::Uninstall ||
-            m_source.asMod()->getRequestedAction() == ModRequestedAction::UninstallWithSaveData
-        );
-    }
+    m_installBtn->toggle(m_source.asMod() && modRequestedActionIsUninstall(m_source.asMod()->getRequestedAction()));
+    m_installBtn->setEnabled(shouldEnableInstallBtn);
+    installBtnOff->setOpacity(shouldEnableInstallBtn ? 255 : 105);
+    installBtnOff->setColor(shouldEnableInstallBtn ? ccc3(255, 255, 255) : ccc3(155, 155, 155));
+    installBtnOn->setOpacity(shouldEnableInstallBtn ? 255 : 105);
+    installBtnOn->setColor(shouldEnableInstallBtn ? ccc3(255, 255, 255) : ccc3(155, 155, 155));
+
+    m_installBG->setColor(wantsRestart ? to3B(ColorProvider::get()->color("mod-list-restart-required-label"_spr)) : ccc3(0, 0, 0));
+    m_installBG->setOpacity(wantsRestart ? 40 : 75);
+    m_restartRequiredLabel->setVisible(wantsRestart);
 
     // Propagate update up the chain
     if (m_updateParentState) {

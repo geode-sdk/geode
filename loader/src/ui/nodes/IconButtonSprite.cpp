@@ -125,3 +125,21 @@ void IconButtonSprite::setString(char const* label) {
 char const* IconButtonSprite::getString() {
     return m_label->getString();
 }
+
+void IconButtonSprite::setColor(cocos2d::ccColor3B const& color) {
+    CCSprite::setColor(color);
+    m_bg->setColor(color);
+    m_label->setColor(color);
+    if (auto icon = typeinfo_cast<CCRGBAProtocol*>(m_icon)) {
+        icon->setColor(color);
+    }
+}
+
+void IconButtonSprite::setOpacity(GLubyte opacity) {
+    CCSprite::setOpacity(opacity);
+    m_bg->setOpacity(opacity);
+    m_label->setOpacity(opacity);
+    if (auto icon = typeinfo_cast<CCRGBAProtocol*>(m_icon)) {
+        icon->setOpacity(opacity);
+    }
+}
