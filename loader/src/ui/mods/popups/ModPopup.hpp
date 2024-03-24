@@ -20,7 +20,10 @@ protected:
     CCNode* m_tags;
     CCMenu* m_installMenu;
     CCMenuItemToggler* m_enableBtn;
-    CCMenuItemToggler* m_installBtn;
+    CCMenuItemToggler* m_reenableBtn;
+    CCMenuItemSpriteExtra* m_uninstallBtn;
+    CCMenuItemSpriteExtra* m_installBtn;
+    CCLabelBMFont* m_installStatusLabel;
     CCScale9Sprite* m_installBG;
     ButtonSprite* m_restartRequiredLabel;
     CCNode* m_rightColumn;
@@ -42,6 +45,7 @@ protected:
     void loadTab(Tab tab);
     void onTab(CCObject* sender);
     void onEnable(CCObject*);
+    void onUninstall(CCObject*);
 
     void onLink(CCObject*);
     void onSupport(CCObject*);

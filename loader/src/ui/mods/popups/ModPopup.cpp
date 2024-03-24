@@ -3,6 +3,7 @@
 #include <Geode/utils/web.hpp>
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/utils/ColorProvider.hpp>
+#include "ConfirmUninstallPopup.hpp"
 
 bool ModPopup::setup(ModSource&& src) {
     m_source = std::move(src);
@@ -226,47 +227,76 @@ bool ModPopup::setup(ModSource&& src) {
     m_installMenu->setContentSize(installContainer->getContentSize() - ccp(10, 10));
     m_installMenu->setAnchorPoint({ .5f, .5f });
 
-    for (auto stat : std::initializer_list<std::tuple<
-        CCMenuItemToggler**,
-        const char*, const char*, const char*,
-        const char*, const char*, const char*, SEL_MenuHandler
-    >> {
-        {
-            &m_enableBtn,
-            "GJ_completesIcon_001.png", "Enable", "GJ_button_01.png",
-            "GJ_deleteIcon_001.png", "Disable", "GJ_button_06.png",
-            menu_selector(ModPopup::onEnable)
-        },
-        {
-            &m_installBtn,
-            "GJ_downloadsIcon_001.png", "Install", "GE_button_01.png"_spr,
-            "edit_delBtn_001.png", "Uninstall", "GE_button_05.png"_spr,
-            nullptr
-        },
-    }) {
-        auto onSpr = createGeodeButton(
-            CCSprite::createWithSpriteFrameName(std::get<1>(stat)),
-            std::get<2>(stat),
-            std::get<3>(stat)
-        );
-        onSpr->setScale(.5f);
-        auto offSpr = createGeodeButton(
-            CCSprite::createWithSpriteFrameName(std::get<4>(stat)),
-            std::get<5>(stat),
-            std::get<6>(stat)
-        );
-        offSpr->setScale(.5f);
-        auto toggle = CCMenuItemToggler::create(offSpr, onSpr, this, std::get<7>(stat));
-        toggle->m_notClickable = true;
-        m_installMenu->addChild(toggle);
-        *std::get<0>(stat) = toggle;
-    }
+    auto enableModOffSpr = createGeodeButton(
+        CCSprite::createWithSpriteFrameName("GJ_completesIcon_001.png"),
+        "Enable",
+        "GJ_button_01.png"
+    );
+    enableModOffSpr->setScale(.5f);
+    auto enableModOnSpr = createGeodeButton(
+        CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"),
+        "Disable",
+        "GJ_button_06.png"
+    );
+    enableModOnSpr->setScale(.5f);
+    m_enableBtn = CCMenuItemToggler::create(
+        enableModOffSpr, enableModOnSpr,
+        this, menu_selector(ModPopup::onEnable)
+    );
+    m_enableBtn->m_notClickable = true;
+    m_installMenu->addChild(m_enableBtn);
+
+    auto reenableModOffSpr = createGeodeButton(
+        CCSprite::createWithSpriteFrameName("reset.png"_spr),
+        "Re-Enable",
+        "GE_button_05.png"_spr
+    );
+    reenableModOffSpr->setScale(.5f);
+    auto reenableModOnSpr = createGeodeButton(
+        CCSprite::createWithSpriteFrameName("reset.png"_spr),
+        "Re-Disable",
+        "GE_button_05.png"_spr
+    );
+    reenableModOnSpr->setScale(.5f);
+    m_reenableBtn = CCMenuItemToggler::create(
+        reenableModOffSpr, reenableModOnSpr,
+        this, menu_selector(ModPopup::onEnable)
+    );
+    m_reenableBtn->m_notClickable = true;
+    m_installMenu->addChild(m_reenableBtn);
+
+    auto installModSpr = createGeodeButton(
+        CCSprite::createWithSpriteFrameName("GJ_downloadsIcon_001.png"),
+        "Install",
+        "GE_button_01.png"_spr
+    );
+    installModSpr->setScale(.5f);
+    m_installBtn = CCMenuItemSpriteExtra::create(
+        installModSpr, this, nullptr
+    );
+    m_installMenu->addChild(m_installBtn);
+
+    auto uninstallModSpr = createGeodeButton(
+        CCSprite::createWithSpriteFrameName("delete-white.png"_spr),
+        "Uninstall",
+        "GE_button_05.png"_spr
+    );
+    uninstallModSpr->setScale(.5f);
+    m_uninstallBtn = CCMenuItemSpriteExtra::create(
+        uninstallModSpr, this, menu_selector(ModPopup::onUninstall)
+    );
+    m_installMenu->addChild(m_uninstallBtn);
+
+    m_installStatusLabel = CCLabelBMFont::create("", "bigFont.fnt");
+    m_installStatusLabel->setOpacity(120);
+    m_installMenu->addChild(m_installStatusLabel);
 
     m_installMenu->setLayout(
         RowLayout::create()
             ->setDefaultScaleLimits(.1f, 1)
             ->setAxisAlignment(AxisAlignment::Center)
     );
+    m_installMenu->getLayout()->ignoreInvisibleChildren(true);
     installContainer->addChildAtPosition(m_installMenu, Anchor::Center);
 
     leftColumn->addChild(installContainer);
@@ -408,38 +438,31 @@ bool ModPopup::setup(ModSource&& src) {
 }
 
 void ModPopup::updateState() {
-    auto shouldEnableEnableBtn = 
-        m_source.asMod() && 
-        !modRequestedActionIsUninstall(m_source.asMod()->getRequestedAction());
-    
-    auto shouldEnableInstallBtn = 
-        !modRequestedActionIsToggle(m_source.asMod()->getRequestedAction());
-    
+    auto asMod = m_source.asMod();
+    auto asServer = m_source.asServer();
     auto wantsRestart = m_source.wantsRestart();
 
-    auto enableBtnOff = static_cast<IconButtonSprite*>(m_enableBtn->m_offButton->getNormalImage());
-    auto enableBtnOn = static_cast<IconButtonSprite*>(m_enableBtn->m_onButton->getNormalImage());
-    auto installBtnOff = static_cast<IconButtonSprite*>(m_installBtn->m_offButton->getNormalImage());
-    auto installBtnOn = static_cast<IconButtonSprite*>(m_installBtn->m_onButton->getNormalImage());
+    m_enableBtn->toggle(asMod && asMod->isOrWillBeEnabled());
+    m_enableBtn->setVisible(asMod && asMod->getRequestedAction() == ModRequestedAction::None);
 
-    m_enableBtn->toggle(m_source.asMod() && m_source.asMod()->isOrWillBeEnabled());
-    m_enableBtn->setEnabled(shouldEnableEnableBtn);
-    enableBtnOff->setOpacity(shouldEnableEnableBtn ? 255 : 105);
-    enableBtnOff->setColor(shouldEnableEnableBtn ? ccc3(255, 255, 255) : ccc3(155, 155, 155));
-    enableBtnOn->setOpacity(shouldEnableEnableBtn ? 255 : 105);
-    enableBtnOn->setColor(shouldEnableEnableBtn ? ccc3(255, 255, 255) : ccc3(155, 155, 155));
+    m_reenableBtn->toggle(m_enableBtn->isToggled());
+    m_reenableBtn->setVisible(asMod && modRequestedActionIsToggle(asMod->getRequestedAction()));
 
-    // todo: uninstall just installed server mods
-    m_installBtn->toggle(m_source.asMod() && modRequestedActionIsUninstall(m_source.asMod()->getRequestedAction()));
-    m_installBtn->setEnabled(shouldEnableInstallBtn);
-    installBtnOff->setOpacity(shouldEnableInstallBtn ? 255 : 105);
-    installBtnOff->setColor(shouldEnableInstallBtn ? ccc3(255, 255, 255) : ccc3(155, 155, 155));
-    installBtnOn->setOpacity(shouldEnableInstallBtn ? 255 : 105);
-    installBtnOn->setColor(shouldEnableInstallBtn ? ccc3(255, 255, 255) : ccc3(155, 155, 155));
+    m_installBtn->setVisible(asServer);
+    m_uninstallBtn->setVisible(asMod && asMod->getRequestedAction() == ModRequestedAction::None);
 
     m_installBG->setColor(wantsRestart ? to3B(ColorProvider::get()->color("mod-list-restart-required-label"_spr)) : ccc3(0, 0, 0));
     m_installBG->setOpacity(wantsRestart ? 40 : 75);
     m_restartRequiredLabel->setVisible(wantsRestart);
+
+    if (asMod && modRequestedActionIsUninstall(asMod->getRequestedAction())) {
+        m_installStatusLabel->setString("Mod has been uninstalled");
+    }
+    else {
+        m_installStatusLabel->setString("");
+    }
+
+    m_installMenu->updateLayout();
 
     // Propagate update up the chain
     if (m_updateParentState) {
@@ -631,6 +654,24 @@ void ModPopup::onEnable(CCObject*) {
         FLAlertLayer::create("Error Toggling Mod", "This mod can not be toggled!", "OK")->show();
     }
     this->updateState();
+}
+
+void ModPopup::onUninstall(CCObject*) {
+    if (auto mod = m_source.asMod()) {
+        auto popup = ConfirmUninstallPopup::create(mod);
+        popup->onUpdateParentState([this] {
+            this->updateState();
+            this->onClose(nullptr);
+        });
+        popup->show();
+    }
+    else {
+        FLAlertLayer::create(
+            "Error Uninstalling Mod",
+            "This mod can not be uninstalled! (It is not installed at all)", 
+            "OK"
+        )->show();
+    }
 }
 
 void ModPopup::onLink(CCObject* sender) {

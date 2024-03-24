@@ -169,6 +169,17 @@ void ModItem::updateState() {
     // Update enable toggle state
     if (m_enableToggle && m_source.asMod()) {
         m_enableToggle->toggle(m_source.asMod()->isOrWillBeEnabled());
+
+        // Disable the toggle if the mod has been uninstalled
+        if (modRequestedActionIsUninstall(m_source.asMod()->getRequestedAction())) {
+            m_enableToggle->setEnabled(false);
+            auto off = typeinfo_cast<CCRGBAProtocol*>(m_enableToggle->m_offButton->getNormalImage());
+            auto on = typeinfo_cast<CCRGBAProtocol*>(m_enableToggle->m_onButton->getNormalImage());
+            off->setColor(ccGRAY);
+            off->setOpacity(105);
+            on->setColor(ccGRAY);
+            on->setOpacity(105);
+        }
     }
 }
 
