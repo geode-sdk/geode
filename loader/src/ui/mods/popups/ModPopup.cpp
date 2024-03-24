@@ -145,8 +145,13 @@ bool ModPopup::setup(ModSource&& src) {
 
     // Tags
 
+    auto tagsTitle = CCLabelBMFont::create("Tags", "bigFont.fnt");
+    tagsTitle->limitLabelWidth(leftColumn->getContentWidth(), .25f, .05f);
+    tagsTitle->setOpacity(195);
+    leftColumn->addChild(tagsTitle);
+
     auto tagsContainer = CCNode::create();
-    tagsContainer->setContentSize({ leftColumn->getContentWidth(), 37.5f });
+    tagsContainer->setContentSize({ leftColumn->getContentWidth(), 35 });
     tagsContainer->setAnchorPoint({ .5f, .5f });
 
     auto tagsBG = CCScale9Sprite::create("square02b_001.png");
@@ -180,13 +185,18 @@ bool ModPopup::setup(ModSource&& src) {
             ->setGrowCrossAxis(true)
             ->setCrossAxisOverflow(false)
             ->setAxisAlignment(AxisAlignment::Start)
-            ->setGap(2)
+            ->setCrossAxisAlignment(AxisAlignment::End)
     );
     tagsContainer->addChildAtPosition(m_tags, Anchor::Center);
 
     leftColumn->addChild(tagsContainer);
 
     // Installing
+
+    auto manageTitle = CCLabelBMFont::create("Manage", "bigFont.fnt");
+    manageTitle->limitLabelWidth(leftColumn->getContentWidth(), .25f, .05f);
+    manageTitle->setOpacity(195);
+    leftColumn->addChild(manageTitle);
 
     auto installContainer = CCNode::create();
     installContainer->setContentSize({ leftColumn->getContentWidth(), 25 });
@@ -306,7 +316,7 @@ bool ModPopup::setup(ModSource&& src) {
             ->setAutoScale(false)
             ->setAxisAlignment(AxisAlignment::Start)
             ->setCrossAxisLineAlignment(AxisAlignment::Start)
-            ->setGap(5)
+            ->setGap(4)
     );
     mainContainer->addChild(leftColumn);
 
