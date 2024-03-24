@@ -186,6 +186,10 @@ namespace geode {
          */
         [[nodiscard]] std::vector<std::pair<std::string, Setting>> getSettings() const;
         /**
+         * Get the tags for this mod
+         */
+        [[nodiscard]] std::unordered_set<std::string> getTags() const;
+        /**
          * Whether this mod has to be loaded before the loading screen or not
          */
         [[nodiscard]] bool needsEarlyLoad() const;
@@ -229,6 +233,7 @@ namespace geode {
         void setIncompatibilities(std::vector<Incompatibility> const& value);
         void setSpritesheets(std::vector<std::string> const& value);
         void setSettings(std::vector<std::pair<std::string, Setting>> const& value);
+        void setTags(std::unordered_set<std::string> const& value);
         void setNeedsEarlyLoad(bool const& value);
         void setIsAPI(bool const& value);
         ModMetadataLinks& getLinksMut();

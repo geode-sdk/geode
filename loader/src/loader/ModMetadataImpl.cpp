@@ -161,9 +161,6 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
         return Err("[mod.json] is missing target GD version");
     }
 
-    // don't think its used locally yet
-    root.addKnownKey("tags"); 
-
     root.needs("id")
         // todo: make this use validateID in full 2.0.0 release
         .validate(MiniFunction<bool(std::string const&)>(&ModMetadata::Impl::validateOldID))
@@ -288,6 +285,11 @@ Result<ModMetadata> ModMetadata::Impl::createFromSchemaV010(ModJson const& rawJs
         links.has("source").into(info.getLinksMut().getImpl()->m_source);
         links.has("community").into(info.getLinksMut().getImpl()->m_community);
         // do not check unknown for future compat
+    }
+
+    // Tags. Actual validation is done when interacting with the server in the UI
+    for (auto& tag : root.has("tags").iterate()) {
+        impl->m_tags.insert(tag.template get<std::string>());
     }
 
     // with new cli, binary name is always mod id
@@ -531,6 +533,9 @@ std::vector<std::string> ModMetadata::getSpritesheets() const {
 std::vector<std::pair<std::string, Setting>> ModMetadata::getSettings() const {
     return m_impl->m_settings;
 }
+std::unordered_set<std::string> ModMetadata::getTags() const {
+    return m_impl->m_tags;
+}
 bool ModMetadata::needsEarlyLoad() const {
     return m_impl->m_needsEarlyLoad;
 }
@@ -613,6 +618,9 @@ void ModMetadata::setSpritesheets(std::vector<std::string> const& value) {
 }
 void ModMetadata::setSettings(std::vector<std::pair<std::string, Setting>> const& value) {
     m_impl->m_settings = value;
+}
+void ModMetadata::setTags(std::unordered_set<std::string> const& value) {
+    m_impl->m_tags = value;
 }
 void ModMetadata::setNeedsEarlyLoad(bool const& value) {
     m_impl->m_needsEarlyLoad = value;

@@ -35,6 +35,7 @@ namespace geode {
         std::vector<Incompatibility> m_incompatibilities;
         std::vector<std::string> m_spritesheets;
         std::vector<std::pair<std::string, Setting>> m_settings;
+        std::unordered_set<std::string> m_tags;
         bool m_needsEarlyLoad = false;
         bool m_isAPI = false;
 
