@@ -6,6 +6,8 @@
 
 #if defined(GEODE_IS_ANDROID)
 #include "gnustl.hpp"
-#else
+#elif defined(GEODE_IS_WINDOWS)
 #include "msvcstl.hpp"
+#else
+#include "aliastl.hpp"
 #endif
