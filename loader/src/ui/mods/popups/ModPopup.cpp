@@ -613,7 +613,7 @@ void ModPopup::loadTab(ModPopup::Tab tab) {
         switch (tab) {
             case Tab::Details: {
                 m_currentTabPage = MDTextArea::create(
-                    m_source.getMetadata().getDetails().value_or("No description provided"),
+                    m_source.getAbout().value_or("No description provided"),
                     size / mdScale
                 );
                 m_currentTabPage->setScale(mdScale);
@@ -621,7 +621,7 @@ void ModPopup::loadTab(ModPopup::Tab tab) {
 
             case Tab::Changelog: {
                 m_currentTabPage = MDTextArea::create(
-                    m_source.getMetadata().getChangelog().value_or("No changelog provided"),
+                    m_source.getChangelog().value_or("No changelog provided"),
                     size / mdScale
                 );
                 m_currentTabPage->setScale(mdScale);

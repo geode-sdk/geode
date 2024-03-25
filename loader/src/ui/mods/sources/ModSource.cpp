@@ -15,6 +15,28 @@ ModMetadata ModSource::getMetadata() const {
         }
     }, m_value);
 }
+std::optional<std::string> ModSource::getAbout() const {
+    return std::visit(makeVisitor {
+        [](Mod* mod) {
+            return mod->getMetadata().getDetails();
+        },
+        [](server::ServerModMetadata const& metadata) {
+            // Versions should be guaranteed to have at least one item
+            return metadata.about;
+        }
+    }, m_value);
+}
+std::optional<std::string> ModSource::getChangelog() const {
+    return std::visit(makeVisitor {
+        [](Mod* mod) {
+            return mod->getMetadata().getChangelog();
+        },
+        [](server::ServerModMetadata const& metadata) {
+            // Versions should be guaranteed to have at least one item
+            return metadata.changelog;
+        }
+    }, m_value);
+}
 CCNode* ModSource::createModLogo() const {
     return std::visit(makeVisitor {
         [](Mod* mod) {
