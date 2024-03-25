@@ -18,10 +18,12 @@ Geode's goal is to solve **mod incompatibility** - to ensure that mods work toge
 Here's a **Hello Mom** mod in Geode:
 
 ```rs
-use geode::bindings::*;
-use geode::modify::MenuLayer;
-use geode::prelude::*;
 use std::io::Result;
+use geode::{
+    bindings::*,
+    modify::MenuLayer,
+    prelude::*,
+};
 
 modify_layer! {
 	pub fn on_more_games(obj: CCObject) -> Result<()> {
