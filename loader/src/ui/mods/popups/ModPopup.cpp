@@ -400,7 +400,7 @@ bool ModPopup::setup(ModSource&& src) {
         { "changelog.png"_spr, "Changelog",   Tab::Changelog },
         { "version.png"_spr,   "Versions",    Tab::Versions },
     }) {
-        auto spr = GeodeTabSprite::create(std::get<0>(mdTab), std::get<1>(mdTab), 140);
+        auto spr = GeodeTabSprite::create(std::get<0>(mdTab), std::get<1>(mdTab), 140, m_source.asServer());
         auto btn = CCMenuItemSpriteExtra::create(spr, this, menu_selector(ModPopup::onTab));
         btn->setTag(static_cast<int>(std::get<2>(mdTab)));
         tabsMenu->addChild(btn);
@@ -685,7 +685,8 @@ void ModPopup::onSupport(CCObject*) {
 
 ModPopup* ModPopup::create(ModSource&& src) {
     auto ret = new ModPopup();
-    if (ret && ret->init(440, 280, std::move(src))) {
+    bool isServer = src.asServer();
+    if (ret && ret->init(440, 280, std::move(src), isServer)) {
         ret->autorelease();
         return ret;
     }

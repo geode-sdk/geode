@@ -9,15 +9,22 @@ using namespace geode::prelude;
 template <class... Args>
 class GeodePopup : public Popup<Args...> {
 protected:
-    bool init(float width, float height, Args... args) {
-        if (!Popup<Args...>::initAnchored(width, height, std::forward<Args>(args)..., "GE_square01.png"_spr))
+    bool init(float width, float height, Args... args, bool altBG = false) {
+        if (!Popup<Args...>::initAnchored(width, height, std::forward<Args>(args)..., (altBG ? "GE_square02.png"_spr : "GE_square01.png"_spr)))
             return false;
         
-        // Replace the close button with a Geode style one
+        // Store original attributes of the close button
         auto origSize = Popup<Args...>::m_closeBtn->getContentSize();
         auto orig = Ref(Popup<Args...>::m_closeBtn->getNormalImage());
-        auto spr = CircleButtonSprite::createWithSpriteFrameName("close.png"_spr, 1.f, CircleBaseColor::DarkPurple);
+        
+        // Replace the close button with a Geode style one
+        auto spr = CircleButtonSprite::createWithSpriteFrameName(
+            "close.png"_spr, 1.f,
+            (altBG ? CircleBaseColor::DarkAqua : CircleBaseColor::DarkPurple)
+        );
         Popup<Args...>::m_closeBtn->setNormalImage(spr);
+
+        // Restore size and position
         spr->setScale(orig->getScale());
         spr->setPosition(orig->getPosition());
         spr->setAnchorPoint(orig->getAnchorPoint());
@@ -57,10 +64,10 @@ protected:
     CCSprite* m_icon;
     CCLabelBMFont* m_label;
 
-    bool init(const char* iconFrame, const char* text, float width);
+    bool init(const char* iconFrame, const char* text, float width, bool altColor);
 
 public:
-    static GeodeTabSprite* create(const char* iconFrame, const char* text, float width);
+    static GeodeTabSprite* create(const char* iconFrame, const char* text, float width, bool altColor = false);
 
     void select(bool selected);
     void disable(bool disabled);

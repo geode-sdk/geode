@@ -26,6 +26,7 @@ const char* geode::baseEnumToString(CircleBaseColor value) {
         case CircleBaseColor::Blue: return "Blue";
         case CircleBaseColor::Cyan: return "Cyan";
         case CircleBaseColor::DarkPurple: return "DarkPurple";
+        case CircleBaseColor::DarkAqua: return "DarkAqua";
     }
     return "Unknown";
 }
