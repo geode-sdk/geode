@@ -195,52 +195,52 @@ public:
     }
 
 #if _HAS_CXX23 && defined(__cpp_lib_concepts) // TRANSITION, GH-395
-    template <_Container_compatible_range<value_type> _Rng>
-    unordered_map(from_range_t, _Rng&& _Range) : _Mybase(_Key_compare(), allocator_type()) {
+    template <_STD _Container_compatible_range<value_type> _Rng>
+    unordered_map(_STD from_range_t, _Rng&& _Range) : _Mybase(_Key_compare(), allocator_type()) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
-    template <_Container_compatible_range<value_type> _Rng>
-    unordered_map(from_range_t, _Rng&& _Range, const allocator_type& _Al) : _Mybase(_Key_compare(), _Al) {
+    template <_STD _Container_compatible_range<value_type> _Rng>
+    unordered_map(_STD from_range_t, _Rng&& _Range, const allocator_type& _Al) : _Mybase(_Key_compare(), _Al) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
-    template <_Container_compatible_range<value_type> _Rng>
-    unordered_map(from_range_t, _Rng&& _Range, size_type _Buckets) : _Mybase(_Key_compare(), allocator_type()) {
+    template <_STD _Container_compatible_range<value_type> _Rng>
+    unordered_map(_STD from_range_t, _Rng&& _Range, size_type _Buckets) : _Mybase(_Key_compare(), allocator_type()) {
         _Mybase::rehash(_Buckets);
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
-    template <_Container_compatible_range<value_type> _Rng>
-    unordered_map(from_range_t, _Rng&& _Range, size_type _Buckets, const allocator_type& _Al)
+    template <_STD _Container_compatible_range<value_type> _Rng>
+    unordered_map(_STD from_range_t, _Rng&& _Range, size_type _Buckets, const allocator_type& _Al)
         : _Mybase(_Key_compare(), _Al) {
         _Mybase::rehash(_Buckets);
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
-    template <_Container_compatible_range<value_type> _Rng>
-    unordered_map(from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg)
+    template <_STD _Container_compatible_range<value_type> _Rng>
+    unordered_map(_STD from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg)
         : _Mybase(_Key_compare(_Hasharg), allocator_type()) {
         _Mybase::rehash(_Buckets);
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
-    template <_Container_compatible_range<value_type> _Rng>
-    unordered_map(from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg, const allocator_type& _Al)
+    template <_STD _Container_compatible_range<value_type> _Rng>
+    unordered_map(_STD from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg, const allocator_type& _Al)
         : _Mybase(_Key_compare(_Hasharg), _Al) {
         _Mybase::rehash(_Buckets);
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
-    template <_Container_compatible_range<value_type> _Rng>
-    unordered_map(from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg)
+    template <_STD _Container_compatible_range<value_type> _Rng>
+    unordered_map(_STD from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg)
         : _Mybase(_Key_compare(_Hasharg, _Keyeqarg), allocator_type()) {
         _Mybase::rehash(_Buckets);
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
-    template <_Container_compatible_range<value_type> _Rng>
-    unordered_map(from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg,
+    template <_STD _Container_compatible_range<value_type> _Rng>
+    unordered_map(_STD from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg,
         const allocator_type& _Al)
         : _Mybase(_Key_compare(_Hasharg, _Keyeqarg), _Al) {
         _Mybase::rehash(_Buckets);
@@ -504,24 +504,24 @@ unordered_map(_STD initializer_list<_STD pair<_Kty, _Ty>>, _STD _Guide_size_type
     -> unordered_map<_Kty, _Ty, _Hasher, _STD equal_to<_Kty>, _Alloc>;
 
 #if _HAS_CXX23 && defined(__cpp_lib_concepts) // TRANSITION, GH-395
-template <_RANGES input_range _Rng, class _Hasher = _STD hash<_Range_key_type<_Rng>>,
-    class _Keyeq = _STD equal_to<_Range_key_type<_Rng>>, class _Alloc = _STD allocator<_Range_to_alloc_type<_Rng>>,
+template <_RANGES input_range _Rng, class _Hasher = _STD hash<_STD _Range_key_type<_Rng>>,
+    class _Keyeq = _STD equal_to<_STD _Range_key_type<_Rng>>, class _Alloc = _STD allocator<_STD _Range_to_alloc_type<_Rng>>,
     _STD enable_if_t<_STD conjunction_v<_Is_hasher<_Hasher>, _STD negation<_STD _Is_allocator<_Keyeq>>, _STD _Is_allocator<_Alloc>>, int> = 0>
-unordered_map(from_range_t, _Rng&&, _STD _Guide_size_type_t<_Alloc> = 0, _Hasher = _Hasher(), _Keyeq = _Keyeq(),
-    _Alloc = _Alloc()) -> unordered_map<_Range_key_type<_Rng>, _Range_mapped_type<_Rng>, _Hasher, _Keyeq, _Alloc>;
+unordered_map(_STD from_range_t, _Rng&&, _STD _Guide_size_type_t<_Alloc> = 0, _Hasher = _Hasher(), _Keyeq = _Keyeq(),
+    _Alloc = _Alloc()) -> unordered_map<_STD _Range_key_type<_Rng>, _STD _Range_mapped_type<_Rng>, _Hasher, _Keyeq, _Alloc>;
 
 template <_RANGES input_range _Rng, class _Alloc, _STD enable_if_t<_STD _Is_allocator<_Alloc>::value, int> = 0>
-unordered_map(from_range_t, _Rng&&, _STD _Guide_size_type_t<_Alloc>, _Alloc) -> unordered_map<_Range_key_type<_Rng>,
-    _Range_mapped_type<_Rng>, _STD hash<_Range_key_type<_Rng>>, _STD equal_to<_Range_key_type<_Rng>>, _Alloc>;
+unordered_map(_STD from_range_t, _Rng&&, _STD _Guide_size_type_t<_Alloc>, _Alloc) -> unordered_map<_STD _Range_key_type<_Rng>,
+    _STD _Range_mapped_type<_Rng>, _STD hash<_STD _Range_key_type<_Rng>>, _STD equal_to<_STD _Range_key_type<_Rng>>, _Alloc>;
 
 template <_RANGES input_range _Rng, class _Alloc, _STD enable_if_t<_STD _Is_allocator<_Alloc>::value, int> = 0>
-unordered_map(from_range_t, _Rng&&, _Alloc) -> unordered_map<_Range_key_type<_Rng>, _Range_mapped_type<_Rng>,
-    _STD hash<_Range_key_type<_Rng>>, _STD equal_to<_Range_key_type<_Rng>>, _Alloc>;
+unordered_map(_STD from_range_t, _Rng&&, _Alloc) -> unordered_map<_STD _Range_key_type<_Rng>, _STD _Range_mapped_type<_Rng>,
+    _STD hash<_STD _Range_key_type<_Rng>>, _STD equal_to<_STD _Range_key_type<_Rng>>, _Alloc>;
 
 template <_RANGES input_range _Rng, class _Hasher, class _Alloc,
     _STD enable_if_t<_STD conjunction_v<_Is_hasher<_Hasher>, _STD _Is_allocator<_Alloc>>, int> = 0>
-unordered_map(from_range_t, _Rng&&, _STD _Guide_size_type_t<_Alloc>, _Hasher, _Alloc)
-    -> unordered_map<_Range_key_type<_Rng>, _Range_mapped_type<_Rng>, _Hasher, _STD equal_to<_Range_key_type<_Rng>>, _Alloc>;
+unordered_map(_STD from_range_t, _Rng&&, _STD _Guide_size_type_t<_Alloc>, _Hasher, _Alloc)
+    -> unordered_map<_STD _Range_key_type<_Rng>, _STD _Range_mapped_type<_Rng>, _Hasher, _STD equal_to<_STD _Range_key_type<_Rng>>, _Alloc>;
 #endif // _HAS_CXX23 && defined(__cpp_lib_concepts)
 #endif // _HAS_CXX17
 

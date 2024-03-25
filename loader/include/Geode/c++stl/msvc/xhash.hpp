@@ -719,7 +719,7 @@ public:
     }
 
 #if _HAS_CXX23 && defined(__cpp_lib_concepts) // TRANSITION, GH-395
-    template <_Container_compatible_range<value_type> _Rng>
+    template <_STD _Container_compatible_range<value_type> _Rng>
     void insert_range(_Rng&& _Range) {
         _Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
