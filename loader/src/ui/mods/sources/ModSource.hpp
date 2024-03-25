@@ -24,6 +24,10 @@ public:
         return std::visit(func, m_value);
     }
 
+    // Returns a new ModSource that is either a copy of the current source or 
+    // an installed version of a server mod
+    ModSource tryConvertToMod() const;
+
     Mod* asMod() const;
     server::ServerModMetadata const* asServer() const;
 

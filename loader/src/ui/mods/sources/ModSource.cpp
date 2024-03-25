@@ -59,6 +59,20 @@ bool ModSource::wantsRestart() const {
     }, m_value);
 }
 
+ModSource ModSource::tryConvertToMod() const {
+    return std::visit(makeVisitor {
+        [](Mod* mod) {
+            return ModSource(mod);
+        },
+        [](server::ServerModMetadata const& metadata) {
+            if (auto mod = Loader::get()->getInstalledMod(metadata.id)) {
+                return ModSource(mod);
+            }
+            return ModSource(server::ServerModMetadata(metadata));
+        }
+    }, m_value);
+}
+
 Mod* ModSource::asMod() const {
     auto mod = std::get_if<Mod*>(&m_value);
     return mod ? *mod : nullptr;

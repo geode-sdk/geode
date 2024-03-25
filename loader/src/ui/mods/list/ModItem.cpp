@@ -231,7 +231,8 @@ ModItem* ModItem::create(ModSource&& source) {
 }
 
 void ModItem::onView(CCObject*) {
-    auto popup = ModPopup::create(ModSource(m_source));
+    // Always open up the popup for the installed mod page if that is possible
+    auto popup = ModPopup::create(m_source.tryConvertToMod());
     popup->onUpdateParentState([this]() {
         this->updateState();
     });
