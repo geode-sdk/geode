@@ -17,19 +17,23 @@ Geode's goal is to solve **mod incompatibility** - to ensure that mods work toge
 
 Here's a **Hello World** mod in Geode:
 
-```cpp
-#include <Geode/Bindings.hpp>
-#include <Geode/modify/MenuLayer.hpp>
+```rs
+use geode::bindings::*;
+use geode::modify::MenuLayer;
+use geode::prelude::*;
+use std::io::Result;
 
-using namespace geode::prelude;
-
-class $modify(MenuLayer) {
-	void onMoreGames(CCObject*) {
-		FLAlertLayer::create(
+modify_layer! {
+	pub fn on_more_games(obj: CCObject) -> Result<()> {
+		let mut alert: FLAlertLayer::create(
 			"Geode",
-			"Hello World from my Custom Mod!",
+			"Hello mom :D",
 			"OK"
-		)->show();
+		);
+
+		alert.show()?;
+
+		Ok(())
 	}
 };
 ```
