@@ -126,6 +126,10 @@ bool ModItem::init(ModSource&& source) {
 
     this->updateState();
 
+    // Only listen for updates on this mod specifically
+    m_updateStateListener.setFilter(UpdateModListStateFilter(UpdateModState(m_source.getID())));
+    m_updateStateListener.bind([this](auto) { this->updateState(); });
+
     return true;
 }
 
@@ -159,11 +163,6 @@ void ModItem::updateState() {
     if (wantsRestart) {
         m_bg->setColor(to3B(ColorProvider::get()->color("mod-list-restart-required-label"_spr)));
         m_bg->setOpacity(40);
-    }
-
-    // Propagate update up the chain
-    if (m_updateParentState) {
-        m_updateParentState();
     }
 
     // Update enable toggle state
@@ -216,10 +215,6 @@ void ModItem::updateSize(float width, bool big) {
     this->updateLayout();
 }
 
-void ModItem::onUpdateParentState(MiniFunction<void()> listener) {
-    m_updateParentState = listener;
-}
-
 ModItem* ModItem::create(ModSource&& source) {
     auto ret = new ModItem();
     if (ret && ret->init(std::move(source))) {
@@ -232,11 +227,7 @@ ModItem* ModItem::create(ModSource&& source) {
 
 void ModItem::onView(CCObject*) {
     // Always open up the popup for the installed mod page if that is possible
-    auto popup = ModPopup::create(m_source.tryConvertToMod());
-    popup->onUpdateParentState([this]() {
-        this->updateState();
-    });
-    popup->show();
+    ModPopup::create(m_source.tryConvertToMod())->show();
 }
 
 void ModItem::onEnable(CCObject*) {
@@ -252,6 +243,6 @@ void ModItem::onEnable(CCObject*) {
         }
     }
 
-    // Update whole state of the mod item
-    this->updateState();
+    // Update state of the mod item
+    UpdateModListStateEvent(UpdateModState(m_source.getID())).post();
 }

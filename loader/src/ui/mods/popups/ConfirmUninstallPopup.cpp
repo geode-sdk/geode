@@ -55,9 +55,7 @@ void ConfirmUninstallPopup::onUninstall(CCObject*) {
         )->show();
     }
 
-    if (m_updateParentState) {
-        m_updateParentState();
-    }
+    UpdateModListStateEvent(UpdateModState(m_mod->getID())).post();
 
     this->onClose(nullptr);
 }
@@ -70,8 +68,4 @@ ConfirmUninstallPopup* ConfirmUninstallPopup::create(Mod* mod) {
     }
     CC_SAFE_DELETE(ret);
     return nullptr;
-}
-
-void ConfirmUninstallPopup::onUpdateParentState(MiniFunction<void()> listener) {
-    m_updateParentState = listener;
 }

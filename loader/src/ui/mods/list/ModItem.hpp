@@ -3,6 +3,7 @@
 #include <Geode/ui/General.hpp>
 #include <server/Server.hpp>
 #include "../sources/ModSource.hpp"
+#include "../UpdateModListState.hpp"
 
 using namespace geode::prelude;
 
@@ -19,9 +20,9 @@ protected:
     CCLabelBMFont* m_developerLabel;
     ButtonSprite* m_restartRequiredLabel = nullptr;
     CCMenu* m_viewMenu;
-    MiniFunction<void()> m_updateParentState = nullptr;
     CCMenuItemToggler* m_enableToggle = nullptr;
     CCScale9Sprite* m_checkmark = nullptr;
+    EventListener<UpdateModListStateFilter> m_updateStateListener;
 
     /**
      * @warning Make sure `getMetadata` and `createModLogo` are callable 
@@ -29,8 +30,6 @@ protected:
     */
     bool init(ModSource&& source);
 
-    // This should never be exposed outside, so the parent can't call this and 
-    // cause an infinite loop during state updating
     void updateState();
 
     void onEnable(CCObject*);
@@ -40,6 +39,4 @@ public:
     static ModItem* create(ModSource&& source);
 
     void updateSize(float width, bool big);
-
-    void onUpdateParentState(MiniFunction<void()> listener);
 };

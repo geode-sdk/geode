@@ -167,6 +167,10 @@ bool ModsLayer::init() {
 
     this->updateState();
 
+    // The overall mods layer only cares about page number updates
+    m_updateStateListener.setFilter(UpdateModListStateFilter(UpdatePageNumberState()));
+    m_updateStateListener.bind([this](auto) { this->updateState(); });
+
     return true;
 }
 
@@ -190,7 +194,6 @@ void ModsLayer::gotoTab(ModListSourceType type) {
     // Lazily create new list and add it to UI
     if (!m_lists.contains(src)) {
         auto list = ModList::create(src, m_frame->getContentSize() - ccp(30, 0));
-        list->onUpdateParentState(std::bind(&ModsLayer::updateState, this));
         list->setPosition(m_frame->getPosition());
         this->addChild(list);
         m_lists.emplace(src, list);

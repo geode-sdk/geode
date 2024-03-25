@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Geode/ui/Popup.hpp>
+#include "../UpdateModListState.hpp"
 
 using namespace geode::prelude;
 
@@ -8,7 +9,7 @@ class ConfirmUninstallPopup : public Popup<Mod*> {
 protected:
     Mod* m_mod;
     CCMenuItemToggler* m_deleteDataToggle;
-    MiniFunction<void()> m_updateParentState = nullptr;
+    EventListener<UpdateModListStateFilter> m_updateStateListener;
 
     bool setup(Mod* mod) override;
 
@@ -16,7 +17,4 @@ protected:
 
 public:
     static ConfirmUninstallPopup* create(Mod* mod);
-
-    // todo: replace all of these with a single event
-    void onUpdateParentState(MiniFunction<void()> listener);
 };

@@ -4,6 +4,17 @@
 ModSource::ModSource(Mod* mod) : m_value(mod) {}
 ModSource::ModSource(server::ServerModMetadata&& metadata) : m_value(metadata) {}
 
+std::string ModSource::getID() const {
+    return std::visit(makeVisitor {
+        [](Mod* mod) {
+            return mod->getID();
+        },
+        [](server::ServerModMetadata const& metadata) {
+            // Versions should be guaranteed to have at least one item
+            return metadata.id;
+        }
+    }, m_value);
+}
 ModMetadata ModSource::getMetadata() const {
     return std::visit(makeVisitor {
         [](Mod* mod) {

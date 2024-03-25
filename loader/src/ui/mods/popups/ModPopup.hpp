@@ -4,6 +4,7 @@
 #include <Geode/ui/MDTextArea.hpp>
 #include "../sources/ModSource.hpp"
 #include "../GeodeStyle.hpp"
+#include "../UpdateModListState.hpp"
 
 using namespace geode::prelude;
 
@@ -31,7 +32,7 @@ protected:
     std::unordered_map<Tab, std::pair<GeodeTabSprite*, Ref<CCNode>>> m_tabs;
     EventListener<PromiseEventFilter<server::ServerModMetadata, server::ServerError>> m_statsListener;
     EventListener<PromiseEventFilter<std::unordered_set<std::string>, server::ServerError>> m_tagsListener;
-    MiniFunction<void()> m_updateParentState = nullptr;
+    EventListener<UpdateModListStateFilter> m_updateStateListener;
 
     bool setup(ModSource&& src) override;
     void updateState();
@@ -52,6 +53,4 @@ protected:
 
 public:
     static ModPopup* create(ModSource&& src);
-
-    void onUpdateParentState(MiniFunction<void()> listener);
 };

@@ -6,6 +6,7 @@
 #include "list/ModItem.hpp"
 #include "list/ModList.hpp"
 #include "sources/ModListSource.hpp"
+#include "UpdateModListState.hpp"
 
 using namespace geode::prelude;
 
@@ -19,6 +20,7 @@ protected:
     CCLabelBMFont* m_pageLabel;
     CCMenuItemSpriteExtra* m_goToPageBtn;
     CCMenuItemSpriteExtra* m_restartBtn;
+    EventListener<UpdateModListStateFilter> m_updateStateListener;
     bool m_showSearch = false;
     bool m_bigView = false;
 

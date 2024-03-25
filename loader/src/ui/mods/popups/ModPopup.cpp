@@ -434,6 +434,10 @@ bool ModPopup::setup(ModSource&& src) {
     m_tagsListener.bind(this, &ModPopup::onLoadTags);
     m_tagsListener.setFilter(m_source.fetchValidTags().listen());
 
+    // Only listen for updates on this mod specifically
+    m_updateStateListener.setFilter(UpdateModListStateFilter(UpdateModState(m_source.getID())));
+    m_updateStateListener.bind([this](auto) { this->updateState(); });
+
     return true;
 }
 
@@ -463,11 +467,6 @@ void ModPopup::updateState() {
     }
 
     m_installMenu->updateLayout();
-
-    // Propagate update up the chain
-    if (m_updateParentState) {
-        m_updateParentState();
-    }
 }
 
 void ModPopup::setStatIcon(CCNode* stat, const char* spr) {
@@ -653,17 +652,12 @@ void ModPopup::onEnable(CCObject*) {
     else {
         FLAlertLayer::create("Error Toggling Mod", "This mod can not be toggled!", "OK")->show();
     }
-    this->updateState();
+    UpdateModListStateEvent(UpdateModState(m_source.getID())).post();
 }
 
 void ModPopup::onUninstall(CCObject*) {
     if (auto mod = m_source.asMod()) {
-        auto popup = ConfirmUninstallPopup::create(mod);
-        popup->onUpdateParentState([this] {
-            this->updateState();
-            this->onClose(nullptr);
-        });
-        popup->show();
+        ConfirmUninstallPopup::create(mod)->show();
     }
     else {
         FLAlertLayer::create(
@@ -692,8 +686,4 @@ ModPopup* ModPopup::create(ModSource&& src) {
     }
     CC_SAFE_DELETE(ret);
     return nullptr;
-}
-
-void ModPopup::onUpdateParentState(MiniFunction<void()> listener) {
-    m_updateParentState = listener;
 }

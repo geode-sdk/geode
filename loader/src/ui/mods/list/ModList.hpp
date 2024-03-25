@@ -32,7 +32,7 @@ protected:
     CCMenuItemSpriteExtra* m_pageNextBtn;
     Ref<CCNode> m_searchMenu;
     TextInput* m_searchInput;
-    MiniFunction<void()> m_updateParentState = nullptr;
+    EventListener<UpdateModListStateFilter> m_updateStateListener;
     bool m_bigSize = false;
     std::atomic<size_t> m_searchInputThreads = 0;
 
@@ -47,8 +47,6 @@ protected:
 public:
     static ModList* create(ModListSource* src, CCSize const& size);
 
-    // poor man's delegate
-    void onUpdateParentState(MiniFunction<void()> listener);
     size_t getPage() const;
 
     void reloadPage();

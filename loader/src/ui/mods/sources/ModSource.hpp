@@ -14,6 +14,7 @@ public:
     ModSource(Mod* mod);
     ModSource(server::ServerModMetadata&& metadata);
 
+    std::string getID() const;
     ModMetadata getMetadata() const;
     std::optional<std::string> getAbout() const;
     std::optional<std::string> getChangelog() const;
