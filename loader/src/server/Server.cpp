@@ -203,6 +203,7 @@ Result<ServerModMetadata> ServerModMetadata::parse(matjson::Value const& raw) {
     root.needs("download_count").into(res.downloadCount);
     root.has("about").into(res.about);
     root.has("changelog").into(res.changelog);
+    root.has("repository").into(res.repository);
     if (root.has("created_at")) {
         GEODE_UNWRAP_INTO(res.createdAt, ServerDateTime::parse(root.has("created_at").template get<std::string>()));
     }
@@ -226,6 +227,7 @@ Result<ServerModMetadata> ServerModMetadata::parse(matjson::Value const& raw) {
             version.metadata.setDetails(res.about);
             version.metadata.setChangelog(res.changelog);
             version.metadata.setDevelopers(developerNames);
+            version.metadata.setRepository(res.repository);
             res.versions.push_back(version);
         }
         else {

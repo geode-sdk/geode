@@ -42,6 +42,7 @@ namespace server {
         std::unordered_set<std::string> tags;
         std::optional<std::string> about;
         std::optional<std::string> changelog;
+        std::optional<std::string> repository;
         std::optional<ServerDateTime> createdAt;
         std::optional<ServerDateTime> updatedAt;
 
