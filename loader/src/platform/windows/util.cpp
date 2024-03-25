@@ -249,7 +249,7 @@ void geode::utils::game::restart() {
 
     wchar_t buffer[MAX_PATH];
     GetModuleFileNameW(nullptr, buffer, MAX_PATH);
-    const auto gdName = ghc::filesystem::path(buffer).filename().string();
+    const auto gdName = fmt::format("\"{}\"", ghc::filesystem::path(buffer).filename().string());
 
     // launch updater
     const auto updaterPath = (workingDir / "GeodeUpdater.exe").string();
