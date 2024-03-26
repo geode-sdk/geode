@@ -46,7 +46,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         if (!m_fields->m_menuDisabled) {
             m_fields->m_geodeButton = CircleButtonSprite::createWithSpriteFrameName(
                 "geode-logo-outline-gold.png"_spr,
-                1.0f,
+                .95f,
                 CircleBaseColor::Green,
                 CircleBaseSize::MediumAlt
             );
