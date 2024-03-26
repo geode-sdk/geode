@@ -6,15 +6,15 @@
 using namespace geode::prelude;
 
 struct UpdatePageNumberState final {
-    constexpr bool operator==(UpdatePageNumberState const&) const = default;
+    bool operator==(UpdatePageNumberState const&) const = default;
 };
 struct UpdateWholeState final {
-    constexpr bool operator==(UpdateWholeState const&) const = default;
+    bool operator==(UpdateWholeState const&) const = default;
 };
 struct UpdateModState final {
     std::string modID;
     inline explicit UpdateModState(std::string const& modID) : modID(modID) {};
-    constexpr bool operator==(UpdateModState const&) const = default;
+    bool operator==(UpdateModState const&) const = default;
 };
 using UpdateState = std::variant<UpdatePageNumberState, UpdateWholeState, UpdateModState>;
 
