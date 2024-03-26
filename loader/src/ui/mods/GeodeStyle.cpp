@@ -3,13 +3,16 @@
 #include <Geode/utils/ColorProvider.hpp>
 
 $execute {
+    // todo: these names should probably be shorter so they fit in SSO...
     ColorProvider::get()->define("mod-list-bg"_spr, { 25, 17, 37, 255 });
     ColorProvider::get()->define("mod-list-version-label"_spr, ccc3(86, 235, 41));
+    ColorProvider::get()->define("mod-list-version-label-updates-available"_spr, ccc3(41, 235, 225));
     ColorProvider::get()->define("mod-list-restart-required-label"_spr, ccc3(153, 245, 245));
     ColorProvider::get()->define("mod-list-restart-required-label-bg"_spr, ccc3(123, 156, 163));
     ColorProvider::get()->define("mod-list-search-bg"_spr, { 83, 65, 109, 255 });
     ColorProvider::get()->define("mod-list-tab-selected-bg"_spr, { 168, 147, 185, 255 });
     ColorProvider::get()->define("mod-list-tab-selected-bg-alt"_spr, { 147, 163, 185, 255 });
+    ColorProvider::get()->define("mod-list-featured-color"_spr, { 255, 255, 120, 255 });
 }
 
 bool GeodeSquareSprite::init(CCSprite* top, bool* state) {

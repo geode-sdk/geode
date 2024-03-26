@@ -184,12 +184,60 @@ Result<ServerModVersion> ServerModVersion::parse(matjson::Value const& raw) {
 
         incompatibilities.push_back(incompatibility);
     }
+    res.metadata.setIncompatibilities(incompatibilities);
 
     // Check for errors and return result
     if (root.isError()) {
         return Err(root.getError());
     }
     return Ok(res);
+}
+
+Result<ServerModUpdate> ServerModUpdate::parse(matjson::Value const& raw) {
+    auto json = raw;
+    JsonChecker checker(json);
+    auto root = checker.root("ServerModUpdate").obj();
+
+    auto res = ServerModUpdate();
+
+    root.needs("id").into(res.id);
+    root.needs("version").into(res.version);
+
+    // Check for errors and return result
+    if (root.isError()) {
+        return Err(root.getError());
+    }
+    return Ok(res);
+}
+
+Result<std::vector<ServerModUpdate>> ServerModUpdate::parseList(matjson::Value const& raw) {
+    auto json = raw;
+    JsonChecker checker(json);
+    auto payload = checker.root("ServerModUpdatesList").array();
+
+    std::vector<ServerModUpdate> list {};
+    for (auto item : payload.iterate()) {
+        auto mod = ServerModUpdate::parse(item.json());
+        if (mod) {
+            list.push_back(mod.unwrap());
+        }
+        else {
+            log::error("Unable to parse mod update from the server: {}", mod.unwrapErr());
+        }
+    }
+
+    // Check for errors and return result
+    if (payload.isError()) {
+        return Err(payload.getError());
+    }
+    return Ok(list);
+}
+
+bool ServerModUpdate::hasUpdateForInstalledMod() const {
+    if (auto mod = Loader::get()->getLoadedMod(this->id)) {
+        return mod->getVersion() < this->version;
+    }
+    return false;
 }
 
 Result<ServerModMetadata> ServerModMetadata::parse(matjson::Value const& raw) {
@@ -454,5 +502,41 @@ ServerPromise<std::unordered_set<std::string>> server::getTags(std::monostate) {
         })
         .progress<ServerProgress>([](auto prog) {
             return parseServerProgress(prog, "Downloading valid tags");
+        });
+}
+
+ServerPromise<std::vector<ServerModUpdate>> server::checkUpdates(std::vector<std::string> const& modIDs) {
+    auto req = web::WebRequest();
+    req.userAgent(getServerUserAgent());
+    req.param("platform", GEODE_PLATFORM_SHORT_IDENTIFIER);
+    if (modIDs.size()) {
+        req.param("ids", ranges::join(modIDs, ";"));
+    }
+    return req.get(getServerAPIBaseURL() + "/mods/updates")
+        .then<std::vector<ServerModUpdate>, ServerError>([](auto result) -> Result<std::vector<ServerModUpdate>, ServerError> {
+            if (result) {
+                auto value = result.unwrap();
+
+                // Store the code, since the value is moved afterwards
+                auto code = value.code();
+
+                // Parse payload
+                auto payload = parseServerPayload(std::move(value));
+                if (!payload) {
+                    return Err(payload.unwrapErr());
+                }
+                // Parse response
+                auto list = ServerModUpdate::parseList(payload.unwrap());
+                if (!list) {
+                    return Err(ServerError(code, "Unable to parse response: {}", list.unwrapErr()));
+                }
+                return Ok(list.unwrap());
+            }
+            else {
+                return Err(parseServerError(result.unwrapErr()));
+            }
+        })
+        .progress<ServerProgress>([](auto prog) {
+            return parseServerProgress(prog, "Checking updates for mods");
         });
 }

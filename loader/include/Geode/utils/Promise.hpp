@@ -3,6 +3,7 @@
 #include "Result.hpp"
 #include "MiniFunction.hpp"
 #include "../loader/Event.hpp"
+#include "ranges.hpp"
 
 namespace geode {
     namespace impl {
@@ -254,6 +255,10 @@ namespace geode {
             );
         }
 
+        Promise forward() {
+            return make_fwd<T, E, P>([](auto state) { return std::move(state); }, m_data);
+        }
+
         void resolve(Value&& value) {
             invoke_callback(State::make_value(std::move(value)), m_data);
         }
@@ -273,6 +278,73 @@ namespace geode {
          * layer would then read undefined memory
          */
         PromiseEventFilter<T, E, P> listen();
+
+        // UNFINISHED!!
+        // I'm pretty sure this has a memory leak somewhere in it too
+        // static Promise<std::vector<T>, E, P> all(std::vector<Promise>&& promises, bool own = true, bool threaded = true) {
+        //     return Promise<std::vector<T>, E, P>([own, promises = std::move(promises)](auto resolve, auto reject, auto progress, auto const& cancelled) {
+        //         struct All final {
+        //             std::vector<T> results;
+        //             std::vector<Promise> promises;
+        //         };
+        //         auto all = std::make_shared<All>(All {
+        //             .results = {},
+        //             .promises = std::move(promises),
+        //         });
+        //         for (auto& promise : all->promises) {
+        //             // SAFETY: all of the accesses to `all` are safe since the Promise 
+        //             // callbacks are guaranteed to run in the same thread
+        //             promise
+        //                 // Wait for all of them to finish
+        //                 .then([all, resolve](auto result) {
+        //                     all->results.push_back(result);
+        //                     if (all->results.size() >= all->promises.size()) {
+        //                         resolve(all->results);
+        //                         all->promises.clear();
+        //                         all->results.clear();
+        //                     }
+        //                 })
+        //                 // If some Promise fails, the whole `all` fails
+        //                 .expect([own, all, reject](auto error) {
+        //                     // Only cancel contained Promises if the `all` is considered to be 
+        //                     // owning them, since cancelling shared Promises could have bad 
+        //                     // consequences
+        //                     if (own) {
+        //                         for (auto& promise : all->promises) {
+        //                             promise.cancel();
+        //                         }
+        //                     }
+        //                     all->promises.clear();
+        //                     all->results.clear();
+        //                     reject(error);
+        //                 })
+        //                 // Check if the `Promise::all` has been cancelled
+        //                 .progress([&cancelled, own, all, progress](auto prog) {
+        //                     if (cancelled) {
+        //                         // Only cancel contained Promises if the `all` is considered to be 
+        //                         // owning them, since cancelling shared Promises could have bad 
+        //                         // consequences
+        //                         if (own) {
+        //                             for (auto& promise : all->promises) {
+        //                                 promise.cancel();
+        //                             }
+        //                         }
+        //                         all->promises.clear();
+        //                         all->results.clear();
+        //                     }
+        //                     else {
+        //                         progress(prog);
+        //                     }
+        //                 })
+        //                 // Remove cancelled promises from the list
+        //                 .cancelled([promise, all] {
+        //                     utils::ranges::remove(all->promises, [promise](auto other) {
+        //                         return other.m_data == promise.m_data;
+        //                     });
+        //                 });
+        //         }
+        //     }, threaded);
+        // }
 
     private:
         // I'm not sure just how un-performant this is, although then again you 

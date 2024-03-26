@@ -320,3 +320,19 @@ ModsLayer* ModsLayer::scene() {
     CCDirector::sharedDirector()->replaceScene(CCTransitionFade::create(.5f, scene));
     return layer;
 }
+
+server::ServerPromise<std::vector<std::string>> ModsLayer::checkInstalledModsForUpdates() {
+    return server::ServerResultCache<&server::checkUpdates>::shared().get(ranges::map<std::vector<std::string>>(
+        Loader::get()->getAllMods(),
+        [](auto mod) { return mod->getID(); })
+    )
+        .then<std::vector<std::string>>([](std::vector<server::ServerModUpdate> list) {
+            std::vector<std::string> updatesFound;
+            for (auto& update : list) {
+                if (update.hasUpdateForInstalledMod()) {
+                    updatesFound.push_back(update.id);
+                }
+            }
+            return updatesFound;
+        });
+}

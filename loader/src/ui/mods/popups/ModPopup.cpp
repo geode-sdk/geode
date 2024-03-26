@@ -74,20 +74,18 @@ bool ModPopup::setup(ModSource&& src) {
     m_stats->setAnchorPoint({ .5f, .5f });
 
     for (auto stat : std::initializer_list<std::tuple<
-        const char*, const char*, const char*, std::optional<std::string>
+        const char*, const char*, const char*, std::optional<std::string>, const char*
     >> {
-        { "GJ_downloadsIcon_001.png", "Downloads", "downloads", std::nullopt },
-        { "GJ_timeIcon_001.png", "Released", "release-date", std::nullopt },
-        { "GJ_timeIcon_001.png", "Updated", "update-date", std::nullopt },
-        { "version.png"_spr, "Version", "version", m_source.getMetadata().getVersion().toString() },
-        { nullptr, "Checking for updates", "update-check", std::nullopt },
+        { "GJ_downloadsIcon_001.png", "Downloads", "downloads", std::nullopt, "stats" },
+        { "GJ_timeIcon_001.png", "Released", "release-date", std::nullopt, "stats" },
+        { "GJ_timeIcon_001.png", "Updated", "update-date", std::nullopt, "stats" },
+        { "version.png"_spr, "Version", "version", m_source.getMetadata().getVersion().toString(), "client" },
+        { nullptr, "Checking for updates", "update-check", std::nullopt, "updates" },
     }) {
         auto container = CCNode::create();
         container->setContentSize({ m_stats->getContentWidth(), 10 });
         container->setID(std::get<2>(stat));
-        if (std::get<3>(stat).has_value()) {
-            container->setUserObject("client-side", CCBool::create(true));
-        }
+        container->setUserObject(std::get<4>(stat), CCBool::create(true));
 
         auto labelContainer = CCNode::create();
         labelContainer->setID("labels");
@@ -434,6 +432,11 @@ bool ModPopup::setup(ModSource&& src) {
     m_tagsListener.bind(this, &ModPopup::onLoadTags);
     m_tagsListener.setFilter(m_source.fetchValidTags().listen());
 
+    if (m_source.asMod()) {
+        m_checkUpdateListener.bind(this, &ModPopup::onCheckUpdates);
+        m_checkUpdateListener.setFilter(m_source.checkUpdates().listen());
+    }
+
     // Only listen for updates on this mod specifically
     m_updateStateListener.setFilter(UpdateModListStateFilter(UpdateModState(m_source.getID())));
     m_updateStateListener.bind([this](auto) { this->updateState(); });
@@ -537,13 +540,24 @@ void ModPopup::onLoadServerInfo(PromiseEvent<server::ServerModMetadata, server::
                 this->setStatValue(stat, id.second);
             }
         }
+    }
+    else if (auto err = event->getReject()) {
+        for (auto child : CCArrayExt<CCNode*>(m_stats->getChildren())) {
+            if (child->getUserObject("stats")) {
+                this->setStatValue(child, "N/A");
+            }
+        }
+    }
+}
 
+void ModPopup::onCheckUpdates(PromiseEvent<std::optional<server::ServerModUpdate>, server::ServerError>* event) {
+    if (auto resolved = event->getResolve()) {
         // Check if this has updates for an installed mod
         auto updatesStat = m_stats->getChildByID("update-check");
-        if (data->hasUpdateForInstalledMod()) {
+        if (resolved->has_value()) {
             this->setStatIcon(updatesStat, "updates-available.png"_spr);
             this->setStatLabel(updatesStat, "Update Found", false, ccc3(99, 250, 255));
-            this->setStatValue(updatesStat, data->latestVersion().getVersion().toString());
+            this->setStatValue(updatesStat, resolved->value().version.toString());
         }
         else {
             this->setStatIcon(updatesStat, "GJ_completesIcon_001.png");
@@ -551,11 +565,6 @@ void ModPopup::onLoadServerInfo(PromiseEvent<server::ServerModMetadata, server::
         }
     }
     else if (auto err = event->getReject()) {
-        for (auto child : CCArrayExt<CCNode*>(m_stats->getChildren())) {
-            if (!child->getUserObject("client-side")) {
-                this->setStatValue(child, "N/A");
-            }
-        }
         auto updatesStat = m_stats->getChildByID("update-check");
         this->setStatLabel(updatesStat, "No Updates Found", true, ccc3(125, 125, 125));
     }

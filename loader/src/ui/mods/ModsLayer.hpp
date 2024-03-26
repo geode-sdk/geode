@@ -43,5 +43,7 @@ public:
     static ModsLayer* create();
     static ModsLayer* scene();
 
+    static server::ServerPromise<std::vector<std::string>> checkInstalledModsForUpdates();
+
     void gotoTab(ModListSourceType type);
 };

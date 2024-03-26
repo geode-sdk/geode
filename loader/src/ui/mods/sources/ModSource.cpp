@@ -69,6 +69,9 @@ bool ModSource::wantsRestart() const {
         }
     }, m_value);
 }
+std::optional<server::ServerModUpdate> ModSource::hasUpdates() const {
+    return m_availableUpdate;
+}
 
 ModSource ModSource::tryConvertToMod() const {
     return std::visit(makeVisitor {
@@ -104,7 +107,6 @@ server::ServerPromise<server::ServerModMetadata> ModSource::fetchServerInfo() co
         }
     }, m_value);
 }
-
 server::ServerPromise<std::unordered_set<std::string>> ModSource::fetchValidTags() const {
     return std::visit(makeVisitor {
         [](Mod* mod) {
@@ -128,4 +130,19 @@ server::ServerPromise<std::unordered_set<std::string>> ModSource::fetchValidTags
             });
         }
     }, m_value);
+}
+server::ServerPromise<std::optional<server::ServerModUpdate>> ModSource::checkUpdates() {
+    m_availableUpdate = std::nullopt;
+    return server::ServerResultCache<&server::checkUpdates>::shared()
+        .get({ this->getID() })
+        .then<std::optional<server::ServerModUpdate>>([this](auto updates) -> std::optional<server::ServerModUpdate> {
+            if (!updates.empty()) {
+                auto update = std::move(std::move(updates).at(0));
+                if (update.version > this->getMetadata().getVersion()) {
+                    m_availableUpdate = update;
+                    return m_availableUpdate;
+                }
+            }
+            return std::nullopt;
+        });
 }

@@ -151,7 +151,27 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             popup->show();
         }
 
-        this->addUpdateIndicator();
+        // Check for mod updates
+        ModsLayer::checkInstalledModsForUpdates()
+            .then([this](std::vector<std::string> updatesFound) {
+                if (updatesFound.size() && !m_fields->m_geodeButton->getChildByID("updates-available")) {
+                    log::info("Found updates for mods: {}!", updatesFound);
+                    auto icon = CCSprite::createWithSpriteFrameName("updates-available.png"_spr);
+                    icon->setPosition(
+                        m_fields->m_geodeButton->getContentSize() - CCSize { 10.f, 10.f }
+                    );
+                    icon->setID("updates-available");
+                    icon->setZOrder(99);
+                    icon->setScale(.5f);
+                    m_fields->m_geodeButton->addChild(icon);
+                }
+                else {
+                    log::error("No updates found :(");
+                }
+            })
+            .expect([](server::ServerError error) {
+                log::error("Unable to check for mod updates ({}): {}", error.code, error.details);
+            });
 
         for (auto mod : Loader::get()->getAllMods()) {
             if (mod->getMetadata().usesDeprecatedIDForm()) {
@@ -222,20 +242,6 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             float neededSize = neededContentSize * socialMenu->getScale() / socialMenu->getScaledContentSize().width;
             socialMenu->setScale(neededSize);
         }
-    }
-
-    void addUpdateIndicator() {
-        #pragma message("todo")
-        // todo: bring back
-        // if (!m_fields->m_menuDisabled && Index::get()->areUpdatesAvailable()) {
-        //     auto icon = CCSprite::createWithSpriteFrameName("updates-available.png"_spr);
-        //     icon->setPosition(
-        //         m_fields->m_geodeButton->getContentSize() - CCSize { 10.f, 10.f }
-        //     );
-        //     icon->setZOrder(99);
-        //     icon->setScale(.5f);
-        //     m_fields->m_geodeButton->addChild(icon);
-        // }
     }
 
     void onMissingTextures(CCObject*) {

@@ -192,7 +192,8 @@ bool BasedButtonSprite::init(CCNode* ontop, BaseType type, int size, int color) 
     if (ontop) {
         m_onTop = ontop;
         m_onTop->setPosition(this->getContentSize() / 2 + m_topOffset);
-        limitNodeSize(m_onTop, this->getMaxTopSize(), m_onTop->getScale(), .1f);
+        limitNodeSize(m_onTop, this->getMaxTopSize(), 999.f, .1f);
+        m_onTop->setScale(m_onTop->getScale() * m_onTopRelativeScale);
         this->addChild(m_onTop);
     }
 
@@ -215,7 +216,7 @@ bool BasedButtonSprite::initWithSprite(
 ) {
     auto spr = CCSprite::create(sprName);
     if (!spr) return false;
-    spr->setScale(sprScale);
+    m_onTopRelativeScale = sprScale;
     return this->init(spr, type, size, color);
 }
 
@@ -224,7 +225,7 @@ bool BasedButtonSprite::initWithSpriteFrameName(
 ) {
     auto spr = CCSprite::createWithSpriteFrameName(sprName);
     if (!spr) return false;
-    spr->setScale(sprScale);
+    m_onTopRelativeScale = sprScale;
     return this->init(spr, type, size, color);
 }
 

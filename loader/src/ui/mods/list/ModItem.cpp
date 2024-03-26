@@ -43,8 +43,7 @@ bool ModItem::init(ModSource&& source) {
     m_titleLabel = CCLabelBMFont::create(m_source.getMetadata().getName().c_str(), "bigFont.fnt");
     m_titleContainer->addChild(m_titleLabel);
 
-    m_versionLabel = CCLabelBMFont::create(m_source.getMetadata().getVersion().toString().c_str(), "bigFont.fnt");
-    m_versionLabel->setColor(to3B(ColorProvider::get()->color("mod-list-version-label"_spr)));
+    m_versionLabel = CCLabelBMFont::create("", "bigFont.fnt");
     m_versionLabel->setLayoutOptions(AxisLayoutOptions::create()->setMaxScale(.7f));
     m_titleContainer->addChild(m_versionLabel);
     
@@ -111,18 +110,32 @@ bool ModItem::init(ModSource&& source) {
         },
         [this](server::ServerModMetadata const& metadata) {
             if (metadata.featured) {
-                m_checkmark = CCScale9Sprite::createWithSpriteFrameName("GJ_colorBtn_001.png");
-                m_checkmark->setContentSize({ 50, 38 });
-                m_checkmark->setColor({ 255, 255, 120 });
-                m_checkmark->setOpacity(45);
+                auto starBG = CCScale9Sprite::createWithSpriteFrameName("GJ_colorBtn_001.png");
+                starBG->setContentSize({ 50, 38 });
+                starBG->setColor(to3B(ColorProvider::get()->color("mod-list-featured-color"_spr)));
+                starBG->setOpacity(45);
 
-                auto tick = CCSprite::createWithSpriteFrameName("GJ_starsIcon_001.png");
-                m_checkmark->addChildAtPosition(tick, Anchor::Center);
+                auto star = CCSprite::createWithSpriteFrameName("GJ_starsIcon_001.png");
+                starBG->addChildAtPosition(star, Anchor::Center);
 
-                m_titleContainer->addChild(m_checkmark);
+                m_titleContainer->addChild(starBG);
             }
         },
     });
+
+    auto updateSpr = CircleButtonSprite::createWithSpriteFrameName(
+        "update.png"_spr, 1.15f, CircleBaseColor::DarkAqua
+    );
+    m_updateBtn = CCMenuItemSpriteExtra::create(
+        updateSpr, this, menu_selector(ModItem::onInstall)
+    );
+    m_viewMenu->addChild(m_updateBtn);
+    m_updateBtn->setVisible(false);
+
+    if (m_source.asMod()) {
+        m_checkUpdateListener.bind(this, &ModItem::onCheckUpdates);
+        m_checkUpdateListener.setFilter(m_source.checkUpdates().listen());
+    }
 
     this->updateState();
 
@@ -152,12 +165,29 @@ void ModItem::updateState() {
         [this](server::ServerModMetadata const& metadata) {
             m_bg->setColor({ 255, 255, 255 });
             m_bg->setOpacity(25);
-            if (metadata.featured && m_checkmark) {
-                m_bg->setColor(m_checkmark->getColor());
+            if (metadata.featured) {
+                m_bg->setColor(to3B(ColorProvider::get()->color("mod-list-featured-color"_spr)));
                 m_bg->setOpacity(40);
             }
         },
     });
+
+    if (auto update = m_source.hasUpdates()) {
+        m_updateBtn->setVisible(true);
+        auto updateString = m_source.getMetadata().getVersion().toString() + " -> " + update->version.toString();
+        m_versionLabel->setString(updateString.c_str());
+        m_versionLabel->setColor(to3B(ColorProvider::get()->color("mod-list-version-label-updates-available"_spr)));
+
+        m_bg->setColor(to3B(ColorProvider::get()->color("mod-list-version-label-updates-available"_spr)));
+        m_bg->setOpacity(40);
+    }
+    else {
+        m_updateBtn->setVisible(false);
+        m_versionLabel->setString(m_source.getMetadata().getVersion().toString().c_str());
+        m_versionLabel->setColor(to3B(ColorProvider::get()->color("mod-list-version-label"_spr)));
+    }
+    m_viewMenu->updateLayout();
+    m_titleContainer->updateLayout();
 
     // Highlight item via BG if it wants to restart for extra UI attention
     if (wantsRestart) {
@@ -215,14 +245,10 @@ void ModItem::updateSize(float width, bool big) {
     this->updateLayout();
 }
 
-ModItem* ModItem::create(ModSource&& source) {
-    auto ret = new ModItem();
-    if (ret && ret->init(std::move(source))) {
-        ret->autorelease();
-        return ret;
+void ModItem::onCheckUpdates(PromiseEvent<std::optional<server::ServerModUpdate>, server::ServerError>* event) {
+    if (auto resolved = event->getResolve()) {
+        this->updateState();
     }
-    CC_SAFE_DELETE(ret);
-    return nullptr;
 }
 
 void ModItem::onView(CCObject*) {
@@ -245,4 +271,23 @@ void ModItem::onEnable(CCObject*) {
 
     // Update state of the mod item
     UpdateModListStateEvent(UpdateModState(m_source.getID())).post();
+}
+
+void ModItem::onInstall(CCObject*) {
+    if (auto data = m_source.asServer()) {
+        
+    }
+
+    // Update state of the mod item
+    UpdateModListStateEvent(UpdateModState(m_source.getID())).post();
+}
+
+ModItem* ModItem::create(ModSource&& source) {
+    auto ret = new ModItem();
+    if (ret && ret->init(std::move(source))) {
+        ret->autorelease();
+        return ret;
+    }
+    CC_SAFE_DELETE(ret);
+    return nullptr;
 }

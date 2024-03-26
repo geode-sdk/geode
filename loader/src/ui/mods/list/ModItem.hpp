@@ -18,11 +18,13 @@ protected:
     CCLabelBMFont* m_versionLabel;
     CCNode* m_developers;
     CCLabelBMFont* m_developerLabel;
-    ButtonSprite* m_restartRequiredLabel = nullptr;
+    ButtonSprite* m_restartRequiredLabel;
     CCMenu* m_viewMenu;
     CCMenuItemToggler* m_enableToggle = nullptr;
-    CCScale9Sprite* m_checkmark = nullptr;
+    CCMenuItemSpriteExtra* m_updateBtn = nullptr;
     EventListener<UpdateModListStateFilter> m_updateStateListener;
+    EventListener<PromiseEventFilter<std::optional<server::ServerModUpdate>, server::ServerError>> m_checkUpdateListener;
+    std::optional<server::ServerModUpdate> m_availableUpdate;
 
     /**
      * @warning Make sure `getMetadata` and `createModLogo` are callable 
@@ -31,9 +33,12 @@ protected:
     bool init(ModSource&& source);
 
     void updateState();
+    
+    void onCheckUpdates(PromiseEvent<std::optional<server::ServerModUpdate>, server::ServerError>* event);
 
     void onEnable(CCObject*);
     void onView(CCObject*);
+    void onInstall(CCObject*);
 
 public:
     static ModItem* create(ModSource&& source);
