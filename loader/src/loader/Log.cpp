@@ -222,18 +222,14 @@ std::mutex& getLogMutex() {
 
 void Logger::push(Severity sev, std::string&& thread, std::string&& source, int32_t nestCount,
     std::string&& content) {
-    Log* log;
-    {
-        std::lock_guard g(getLogMutex());
-        log = &m_logs.emplace_back(sev, std::move(thread), std::move(source), nestCount,
+    std::lock_guard g(getLogMutex());
+
+    Log& log = m_logs.emplace_back(sev, std::move(thread), std::move(source), nestCount,
             std::move(content));
-    }
-    auto const logStr = log->toString();
-    {
-        std::lock_guard g(getLogMutex());
-        console::log(logStr, log->getSeverity());
-        m_logStream << logStr << std::endl;
-    }
+
+    auto const logStr = log.toString();
+    console::log(logStr, log.getSeverity());
+    m_logStream << logStr << std::endl;
 }
 
 Nest::Nest(std::shared_ptr<Nest::Impl> impl) : m_impl(std::move(impl)) { }
