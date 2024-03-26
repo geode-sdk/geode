@@ -31,6 +31,7 @@ protected:
     CCMenuItemSpriteExtra* m_pagePrevBtn;
     CCMenuItemSpriteExtra* m_pageNextBtn;
     Ref<CCNode> m_searchMenu;
+    Ref<CCNode> m_viewUpdatesMenu;
     TextInput* m_searchInput;
     EventListener<UpdateModListStateFilter> m_updateStateListener;
     bool m_bigSize = false;

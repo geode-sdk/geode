@@ -40,7 +40,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_searchInput->setCallback([this](auto const&) {
         // If the source is already in memory, we can immediately update the 
         // search query
-        if (m_source->isInMemory()) {
+        if (m_source->isInstalledMods()) {
             m_source->setQuery(m_searchInput->getString());
             this->gotoPage(0);
             return;
@@ -88,6 +88,10 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_searchMenu->addChildAtPosition(searchFiltersMenu, Anchor::Right, ccp(-10, 0));
 
     // Do not add search menu; that's handled by onSearch
+
+    if (m_source->isInstalledMods()) {
+        // todo
+    }
 
     // Paging
 

@@ -170,10 +170,9 @@ void ModListSource::setQuery(std::string const& query) {
     }
 }
 
-bool ModListSource::isInMemory() const {
-    return m_provider.inMemory;
+bool ModListSource::isInstalledMods() const {
+    return m_provider.isInstalledMods;
 }
-
 bool ModListSource::wantsRestart() const {
     return m_provider.wantsRestart && m_provider.wantsRestart();
 }
@@ -199,7 +198,7 @@ ModListSource* ModListSource::get(ModListSourceType type) {
                     }
                     return false;
                 },
-                .inMemory = true,
+                .isInstalledMods = true,
             }));
             return inst;
         } break;

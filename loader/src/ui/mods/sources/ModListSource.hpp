@@ -43,7 +43,7 @@ public:
     struct Provider {
         ProviderPromise(*get)(server::ModsQuery&& query) = nullptr;
         bool(*wantsRestart)() = nullptr;
-        bool inMemory = false;
+        bool isInstalledMods = false;
     };
 
 protected:
@@ -71,12 +71,8 @@ public:
     std::optional<size_t> getItemCount() const;
 
     /**
-     * True if the source is already fully loaded in memory (doesn't fetch 
-     * from a server or filesystem)
-     * 
-     * Used to determine whether things like searching should update the query 
-     * instantaniously or buffer a bit to avoid spamming unnecessary requests
+     * True if the source consists only of installed mods
      */
-    bool isInMemory() const;
+    bool isInstalledMods() const;
     bool wantsRestart() const;
 };
