@@ -234,7 +234,7 @@ Result<std::vector<ServerModUpdate>> ServerModUpdate::parseList(matjson::Value c
 }
 
 bool ServerModUpdate::hasUpdateForInstalledMod() const {
-    if (auto mod = Loader::get()->getLoadedMod(this->id)) {
+    if (auto mod = Loader::get()->getInstalledMod(this->id)) {
         return mod->getVersion() < this->version;
     }
     return false;
@@ -330,7 +330,7 @@ ModMetadata ServerModMetadata::latestVersion() const {
 }
 
 bool ServerModMetadata::hasUpdateForInstalledMod() const {
-    if (auto mod = Loader::get()->getLoadedMod(this->id)) {
+    if (auto mod = Loader::get()->getInstalledMod(this->id)) {
         return mod->getVersion() < this->latestVersion().getVersion();
     }
     return false;
