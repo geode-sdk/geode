@@ -1,6 +1,8 @@
 #pragma once
 
-using TodoReturn = void;
+struct TodoReturnPlaceholder {};
+
+using TodoReturn = TodoReturnPlaceholder;
 
 // thanks pie
 enum class SearchType {
