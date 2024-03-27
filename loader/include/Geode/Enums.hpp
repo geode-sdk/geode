@@ -1,6 +1,6 @@
 #pragma once
 
-struct TodoReturnPlaceholder {};
+struct TodoReturnPlaceholder;
 
 using TodoReturn = TodoReturnPlaceholder;
 

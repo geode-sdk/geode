@@ -37,6 +37,17 @@ _STL_DISABLE_CLANG_WARNINGS
 
 namespace geode::stl {
 
+template <class _Value_type, class _Size_type, class _Difference_type, class _Pointer, class _Const_pointer,
+    class _Nodeptr_type>
+struct _ListIterTypes {
+    using value_type      = _Value_type;
+    using size_type       = _Size_type;
+    using difference_type = _Difference_type;
+    using pointer         = _Pointer;
+    using const_pointer   = _Const_pointer;
+    using _Nodeptr        = _Nodeptr_type;
+};
+
 using _STD _Fake_alloc;
 
 // The following types are not accessible from std::list.
@@ -51,7 +62,7 @@ struct _ListImpl {
     using _Nodeptr = typename _Alnode_traits::pointer;
 
      using _Val_types = _STD conditional_t<_STD _Is_simple_alloc_v<_Alnode>, _STD _List_simple_types<_Ty>,
-        _STD _List_iter_types<_Ty, typename _Alty_traits::size_type, typename _Alty_traits::difference_type,
+        _ListIterTypes<_Ty, typename _Alty_traits::size_type, typename _Alty_traits::difference_type,
             typename _Alty_traits::pointer, typename _Alty_traits::const_pointer, _Nodeptr>>;
 
     using _Scary_val = _STD _List_val<_Val_types>;
