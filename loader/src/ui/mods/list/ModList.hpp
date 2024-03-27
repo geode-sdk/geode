@@ -30,14 +30,20 @@ protected:
     ModListSource::PageLoadEventListener m_listener;
     CCMenuItemSpriteExtra* m_pagePrevBtn;
     CCMenuItemSpriteExtra* m_pageNextBtn;
-    Ref<CCNode> m_searchMenu;
-    Ref<CCNode> m_viewUpdatesMenu;
+    CCNode* m_topContainer;
+    CCNode* m_searchMenu;
+    CCNode* m_updateAllMenu = nullptr;
+    TextArea* m_updateCountLabel = nullptr;
     TextInput* m_searchInput;
     EventListener<UpdateModListStateFilter> m_updateStateListener;
+    EventListener<PromiseEventFilter<std::vector<std::string>, server::ServerError>> m_checkUpdatesListener;
     bool m_bigSize = false;
     std::atomic<size_t> m_searchInputThreads = 0;
 
     bool init(ModListSource* src, CCSize const& size);
+
+    void updateTopContainer();
+    void onCheckUpdates(PromiseEvent<std::vector<std::string>, server::ServerError>* event);
 
     void onPromise(ModListSource::PageLoadEvent* event);
     void onPage(CCObject*);

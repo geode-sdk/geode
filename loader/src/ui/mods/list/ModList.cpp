@@ -2,6 +2,7 @@
 #include <Geode/utils/ColorProvider.hpp>
 #include "../popups/TagsPopup.hpp"
 #include "../GeodeStyle.hpp"
+#include "../ModsLayer.hpp"
 
 bool ModList::init(ModListSource* src, CCSize const& size) {
     if (!CCNode::init())
@@ -23,10 +24,14 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     );
     this->addChildAtPosition(m_list, Anchor::Bottom, ccp(-m_list->getScaledContentWidth() / 2, 0));
 
+    m_topContainer = CCNode::create();
+    m_topContainer->ignoreAnchorPointForPosition(false);
+    m_topContainer->setContentWidth(size.width);
+    m_topContainer->setAnchorPoint({ .5f, 1.f });
+
     m_searchMenu = CCNode::create();
     m_searchMenu->ignoreAnchorPointForPosition(false);
     m_searchMenu->setContentSize({ size.width, 30 });
-    m_searchMenu->setAnchorPoint({ .5f, 1.f });
 
     auto searchBG = CCLayerColor::create(ColorProvider::get()->color("mod-list-search-bg"_spr));
     searchBG->setContentSize(m_searchMenu->getContentSize());
@@ -87,11 +92,71 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     );
     m_searchMenu->addChildAtPosition(searchFiltersMenu, Anchor::Right, ccp(-10, 0));
 
-    // Do not add search menu; that's handled by onSearch
+    m_topContainer->addChild(m_searchMenu);
 
+    // Check for updates on installed mods, and show an update all button if there are some
     if (m_source->isInstalledMods()) {
-        // todo
+        m_checkUpdatesListener.bind(this, &ModList::onCheckUpdates);
+        m_checkUpdatesListener.setFilter(ModsLayer::checkInstalledModsForUpdates().listen());
+
+        m_updateAllMenu = CCNode::create();
+        m_updateAllMenu->ignoreAnchorPointForPosition(false);
+        m_updateAllMenu->setContentSize({ size.width, 30 });
+        m_updateAllMenu->setVisible(false);
+
+        auto updateAllBG = CCLayerColor::create(ColorProvider::get()->color("mod-list-updates-available-bg"_spr));
+        updateAllBG->setContentSize(m_updateAllMenu->getContentSize());
+        updateAllBG->ignoreAnchorPointForPosition(false);
+        m_updateAllMenu->addChildAtPosition(updateAllBG, Anchor::Center);
+        
+        m_updateCountLabel = TextArea::create("", "bigFont.fnt", .35f, size.width / 2 - 30, ccp(0, 1), 12.f, false);
+        m_updateAllMenu->addChildAtPosition(m_updateCountLabel, Anchor::Left, ccp(10, 0), ccp(0, 0));
+        
+        auto updateAllMenu = CCMenu::create();
+        updateAllMenu->setContentWidth(size.width / 2);
+        updateAllMenu->setAnchorPoint({ 1, .5f });
+
+        auto showUpdatesSpr = createGeodeButton(
+            CCSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
+            "Show Updates", "GE_button_01.png"_spr
+        );
+        auto hideUpdatesSpr = createGeodeButton(
+            CCSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
+            "Hide Updates", "GE_button_05.png"_spr
+        );
+        auto viewUpdatesBtn = CCMenuItemToggler::create(
+            showUpdatesSpr, hideUpdatesSpr, this, nullptr
+        );
+        updateAllMenu->addChild(viewUpdatesBtn);
+
+        auto updateAllSpr = createGeodeButton(
+            CCSprite::createWithSpriteFrameName("update.png"_spr),
+            "Update All", "GE_button_01.png"_spr
+        );
+        auto updateAllBtn = CCMenuItemSpriteExtra::create(
+            updateAllSpr, this, nullptr
+        );
+        updateAllMenu->addChild(updateAllBtn);
+
+        updateAllMenu->setLayout(
+            RowLayout::create()
+                ->setAxisAlignment(AxisAlignment::End)
+                ->setDefaultScaleLimits(.1f, 1.f)
+        );
+        m_updateAllMenu->addChildAtPosition(updateAllMenu, Anchor::Right, ccp(-10, 0));
+
+        m_topContainer->addChild(m_updateAllMenu);
     }
+
+    m_topContainer->setLayout(
+        ColumnLayout::create()
+            ->setGap(0)
+            ->setAxisReverse(true)
+            ->setAutoGrowAxis(0.f)
+    );
+    m_topContainer->getLayout()->ignoreInvisibleChildren(true);
+
+    this->addChildAtPosition(m_topContainer, Anchor::Top);
 
     // Paging
 
@@ -176,6 +241,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_listener.bind(this, &ModList::onPromise);
 
     this->gotoPage(0);
+    this->updateTopContainer();
 
     return true;
 }
@@ -254,16 +320,28 @@ void ModList::onShowStatusDetails(CCObject*) {
     m_statusContainer->updateLayout();
 }
 
-void ModList::activateSearch(bool activate) {
-    // Add the menu or remove it depending on new state
-    if (activate) {
-        if (!m_searchMenu->getParent()) {
-            this->addChildAtPosition(m_searchMenu, Anchor::Top);
+void ModList::onCheckUpdates(PromiseEvent<std::vector<std::string>, server::ServerError>* event) {
+    if (auto mods = event->getResolve(); mods && mods->size() > 0) {
+        std::string fmt;
+        if (mods->size() == 1) {
+            fmt = fmt::format("There is <cg>{}</c> update available!", mods->size());
         }
+        else {
+            fmt = fmt::format("There are <cg>{}</c> updates available!", mods->size());
+        }
+        m_updateCountLabel->setString(fmt.c_str());
+        m_updateAllMenu->setVisible(true);
+        this->updateTopContainer();
     }
-    else {
-        m_searchMenu->removeFromParent();
-    }
+}
+
+void ModList::activateSearch(bool activate) {
+    m_searchMenu->setVisible(activate);
+    this->updateTopContainer();
+}
+
+void ModList::updateTopContainer() {
+    m_topContainer->updateLayout();
 
     // Store old relative scroll position (ensuring no divide by zero happens)
     auto oldPositionArea = m_list->m_contentLayer->getContentHeight() - m_list->getContentHeight();
@@ -271,11 +349,11 @@ void ModList::activateSearch(bool activate) {
         m_list->m_contentLayer->getPositionY() / oldPositionArea : 
         -1.f;
         
-    // Update list size to account for the search menu 
+    // Update list size to account for the top menu 
     // (giving a little bit of extra padding for it, the same size as gap)
     m_list->setContentHeight(
-        activate ?
-            this->getContentHeight() - m_searchMenu->getContentHeight() - 
+        m_topContainer->getContentHeight() > 0.f ?
+            this->getContentHeight() - m_topContainer->getContentHeight() - 
                 static_cast<AxisLayout*>(m_list->m_contentLayer->getLayout())->getGap() : 
             this->getContentHeight()
     );

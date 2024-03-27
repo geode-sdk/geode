@@ -10,6 +10,7 @@ $execute {
     ColorProvider::get()->define("mod-list-restart-required-label"_spr, ccc3(153, 245, 245));
     ColorProvider::get()->define("mod-list-restart-required-label-bg"_spr, ccc3(123, 156, 163));
     ColorProvider::get()->define("mod-list-search-bg"_spr, { 83, 65, 109, 255 });
+    ColorProvider::get()->define("mod-list-updates-available-bg"_spr, { 68, 61, 255, 255 });
     ColorProvider::get()->define("mod-list-tab-selected-bg"_spr, { 168, 147, 185, 255 });
     ColorProvider::get()->define("mod-list-tab-selected-bg-alt"_spr, { 147, 163, 185, 255 });
     ColorProvider::get()->define("mod-list-featured-color"_spr, { 255, 255, 120, 255 });
