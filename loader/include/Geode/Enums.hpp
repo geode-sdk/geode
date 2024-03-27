@@ -2,7 +2,13 @@
 
 struct TodoReturnPlaceholder;
 
-using TodoReturn = TodoReturnPlaceholder;
+#ifdef GEODE_REVERT_TODO_RETURN
+    using TodoReturn = void;
+    #warning "Reverting TodoReturn to void. This behavior is deprecated and will be removed in a later update."
+#else
+    #define GEODE_REVERT_TODO_RETURN 0
+    using TodoReturn = TodoReturnPlaceholder;
+#endif
 
 // thanks pie
 enum class SearchType {
