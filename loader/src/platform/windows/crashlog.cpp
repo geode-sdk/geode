@@ -90,6 +90,67 @@ static Mod* modFromAddress(PVOID exceptionAddress) {
     return nullptr;
 }
 
+static uintptr_t findMethodStart(void const* address, size_t maxSearch = 0x1000) {
+    // Backtrack until we hit a 0xCC (int3) instruction
+    uintptr_t start = reinterpret_cast<uintptr_t>(address);
+    while (start > reinterpret_cast<uintptr_t>(address) - maxSearch) {
+        if (*reinterpret_cast<uint8_t*>(start) == 0xCC) {
+            return start + 1;
+        }
+        start--;
+    }
+    return reinterpret_cast<uintptr_t>(address);
+}
+
+static std::string formatMethodName(std::string const& className, std::string const& line) {
+    // strip everything after first '=' sign to make sure we don't mess with text in the comments
+    auto eq = line.find('=');
+    if (eq != std::string::npos) {
+        return formatMethodName(className, line.substr(0, eq));
+    }
+
+    // Get only the method name (last word before '(')
+    auto end = line.find('(');
+    if (end == std::string::npos) {
+        return line; // this should never happen, but just in case
+    }
+    auto start = line.rfind(' ', end);
+    if (start == std::string::npos) {
+        return line;
+    }
+
+    return className + "::" + line.substr(start + 1, end - start - 1);
+}
+
+static bool findBromaMethod(uintptr_t methodOffset, std::string& output) {
+    auto bromaPath = dirs::getGeodeDir() / "GeometryDash.bro";
+    if (!ghc::filesystem::exists(bromaPath)) {
+        return false;
+    }
+    
+    std::ifstream file(bromaPath);
+    if (!file.is_open()) {
+        return false;
+    }
+
+    // Search for the method offset in the bindings file
+    std::string searchFilter = fmt::format("win 0x{:x}", methodOffset);
+    std::string line, className;
+    while (std::getline(file, line)) {
+        if (line.find("class") != std::string::npos) {
+            // Save the last class name to use it later
+            className = line.substr(6, line.find(' ', 6) - 6);
+        }
+        else if (line.find(searchFilter) != std::string::npos) {
+            // Found the method, format the output
+            output = formatMethodName(className, line);
+            return true;
+        }
+    }
+
+    return false;
+}
+
 static void printAddr(std::ostream& stream, void const* addr, bool fullPath = true) {
     HMODULE module = nullptr;
 
@@ -135,6 +196,21 @@ static void printAddr(std::ostream& stream, void const* addr, bool fullPath = tr
                 }
 
                 stream << ")";
+            } else if (module == GetModuleHandle(nullptr)) {
+                uintptr_t methodStart = findMethodStart(addr);
+                if (methodStart == reinterpret_cast<uintptr_t>(addr)) {
+                    return;
+                }
+
+                uintptr_t baseOffset = methodStart - reinterpret_cast<uintptr_t>(module); 
+                uintptr_t methodOffset = reinterpret_cast<uintptr_t>(addr) - methodStart;
+
+                std::string bromaOutput;
+                if (findBromaMethod(baseOffset, bromaOutput)) {
+                    stream << " (" << bromaOutput << " + " << std::hex << methodOffset << std::dec << ")";
+                } else {
+                    stream << " (<method " << std::hex << baseOffset << "> + " << methodOffset << std::dec << ")";
+                }
             }
         }
     }
