@@ -27,16 +27,16 @@ static std::pair<std::vector<Mod*>, size_t> getModsWithQuery(InstalledModsQuery 
         bool addToList = !query.query.has_value();
         double weighted = 0;
         if (query.query) {
-            addToList |= weightedFuzzyMatch(mod->getName(), *query.query, 2, weighted);
-            addToList |= weightedFuzzyMatch(mod->getID(),   *query.query, 1, weighted);
+            addToList |= weightedFuzzyMatch(mod->getName(), *query.query, 1, weighted);
+            addToList |= weightedFuzzyMatch(mod->getID(),   *query.query, 0.5, weighted);
             for (auto& dev : mod->getDevelopers()) {
-                addToList |= weightedFuzzyMatch(dev, *query.query, 0.75, weighted);
+                addToList |= weightedFuzzyMatch(dev, *query.query, 0.25, weighted);
             }
             if (auto details = mod->getDetails()) {
-                addToList |= weightedFuzzyMatch(*details, *query.query, 0.05, weighted);
+                addToList |= weightedFuzzyMatch(*details, *query.query, 0.005, weighted);
             }
             if (auto desc = mod->getDescription()) {
-                addToList |= weightedFuzzyMatch(*desc, *query.query, 0.2, weighted);
+                addToList |= weightedFuzzyMatch(*desc, *query.query, 0.02, weighted);
             }
             if (weighted < 2) {
                 addToList = false;
