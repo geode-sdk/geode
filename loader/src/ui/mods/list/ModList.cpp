@@ -12,7 +12,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     this->setAnchorPoint({ .5f, .5f });
 
     m_source = src;
-    src->reset();
+    m_source->reset();
     
     m_list = ScrollLayer::create(size);
     m_list->m_contentLayer->setLayout(
@@ -46,7 +46,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         // If the source is already in memory, we can immediately update the 
         // search query
         if (m_source->isInstalledMods()) {
-            m_source->setQuery(m_searchInput->getString());
+            m_source->search(m_searchInput->getString());
             this->gotoPage(0);
             return;
         }
@@ -59,7 +59,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
             m_searchInputThreads -= 1;
             if (m_searchInputThreads == 0) {
                 Loader::get()->queueInMainThread([this] {
-                    m_source->setQuery(m_searchInput->getString());
+                    m_source->search(m_searchInput->getString());
                     this->gotoPage(0);
                 });
             }
@@ -475,4 +475,3 @@ ModList* ModList::create(ModListSource* src, CCSize const& size) {
     CC_SAFE_DELETE(ret);
     return nullptr;
 }
-

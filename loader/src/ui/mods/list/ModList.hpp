@@ -18,7 +18,7 @@ using ModListStatus = std::variant<ModListErrorStatus, ModListUnkProgressStatus,
 
 class ModList : public CCNode {
 protected:
-    Ref<ModListSource> m_source;
+    ModListSource* m_source;
     size_t m_page = 0;
     ScrollLayer* m_list;
     CCMenu* m_statusContainer;

@@ -83,18 +83,18 @@ bool ModsLayer::init() {
     mainTabs->setAnchorPoint({ .5f, .0f });
     mainTabs->setPosition(m_frame->convertToWorldSpace(tabsTop->getPosition() + ccp(0, 10)));
 
-    for (auto item : std::initializer_list<std::tuple<const char*, const char*, ModListSourceType>> {
-        { "download.png"_spr, "Installed", ModListSourceType::Installed },
-        { "GJ_timeIcon_001.png", "Updates", ModListSourceType::Updates },
-        { "globe.png"_spr, "Download", ModListSourceType::All },
-        { "GJ_sTrendingIcon_001.png", "Trending", ModListSourceType::Trending },
-        { "gj_folderBtn_001.png", "Mod Packs", ModListSourceType::ModPacks },
+    for (auto item : std::initializer_list<std::tuple<const char*, const char*, ModListSource*>> {
+        { "download.png"_spr, "Installed", InstalledModListSource::get(false) },
+        { "GJ_timeIcon_001.png", "Updates", InstalledModListSource::get(true) },
+        { "globe.png"_spr, "Download", ServerModListSource::get(ServerModListType::Download) },
+        { "GJ_sTrendingIcon_001.png", "Trending", ServerModListSource::get(ServerModListType::Trending) },
+        { "gj_folderBtn_001.png", "Mod Packs", ModPackListSource::get() },
     }) {
         auto btn = CCMenuItemSpriteExtra::create(
             GeodeTabSprite::create(std::get<0>(item), std::get<1>(item), 100),
             this, menu_selector(ModsLayer::onTab)
         );
-        btn->setTag(static_cast<int>(std::get<2>(item)));
+        btn->setUserData(std::get<2>(item));
         mainTabs->addChild(btn);
         m_tabs.push_back(btn);
     }
@@ -160,7 +160,8 @@ bool ModsLayer::init() {
     );
     this->addChildAtPosition(m_pageMenu, Anchor::TopRight, ccp(-5, -5), false);
 
-    this->gotoTab(ModListSourceType::Installed);
+    // Go to installed mods list
+    this->gotoTab(InstalledModListSource::get(false));
 
     this->setKeypadEnabled(true);
     cocos::handleTouchPriority(this, true);
@@ -174,15 +175,13 @@ bool ModsLayer::init() {
     return true;
 }
 
-void ModsLayer::gotoTab(ModListSourceType type) {
+void ModsLayer::gotoTab(ModListSource* src) {
     // Update selected tab
     for (auto tab : m_tabs) {
-        auto selected = tab->getTag() == static_cast<int>(type);
+        auto selected = tab->getUserData() == static_cast<void*>(src);
         static_cast<GeodeTabSprite*>(tab->getNormalImage())->select(selected);
         tab->setEnabled(!selected);
     }
-
-    auto src = ModListSource::get(type);
 
     // Remove current list from UI (it's Ref'd so it stays in memory)
     if (m_currentSource) {
@@ -256,7 +255,7 @@ void ModsLayer::updateState() {
 }
 
 void ModsLayer::onTab(CCObject* sender) {
-    this->gotoTab(static_cast<ModListSourceType>(sender->getTag()));
+    this->gotoTab(static_cast<ModListSource*>(static_cast<CCNode*>(sender)->getUserData()));
 }
 
 void ModsLayer::onRefreshList(CCObject*) {

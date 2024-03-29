@@ -45,5 +45,5 @@ public:
 
     static server::ServerPromise<std::vector<std::string>> checkInstalledModsForUpdates();
 
-    void gotoTab(ModListSourceType type);
+    void gotoTab(ModListSource* src);
 };

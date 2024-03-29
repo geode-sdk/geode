@@ -7,17 +7,15 @@
 
 using namespace geode::prelude;
 
-enum class ModListSourceType {
-    Installed,
-    Updates,
-    Featured,
-    Trending,
-    ModPacks,
-    All,
+struct InstalledModsQuery final {
+    std::optional<std::string> query;
+    bool onlyUpdates = false;
+    size_t page = 0;
+    size_t pageSize = 10;
 };
 
 // Handles loading the entries for the mods list
-class ModListSource : public CCObject {
+class ModListSource {
 public:
     struct LoadPageError {
         std::string message;
@@ -40,30 +38,24 @@ public:
     };
     using ProviderPromise = Promise<ProvidedMods, LoadPageError, std::optional<uint8_t>>;
 
-    struct Provider {
-        ProviderPromise(*get)(server::ModsQuery&& query) = nullptr;
-        bool(*wantsRestart)() = nullptr;
-        bool isInstalledMods = false;
-    };
-
 protected:
     std::unordered_map<size_t, Page> m_cachedPages;
     std::optional<size_t> m_cachedItemCount;
-    std::optional<std::string> m_query;
-    Provider m_provider;
+
+    virtual void resetQuery() = 0;
+    virtual ProviderPromise fetchPage(size_t page, size_t pageSize) = 0;
+    virtual void setSearchQuery(std::string const& query) = 0;
+
+    ModListSource();
 
 public:
-    // Create a new source with an arbitary provider
-    static ModListSource* create(Provider&& provider);
-
-    // Get a standard source (lazily created static instance)
-    static ModListSource* get(ModListSourceType type);
+    ModListSource(ModListSource const&) = delete;
+    ModListSource(ModListSource&&) = delete;
 
     // Reset all filters & cache
     void reset();
-
-    // Set a query; clears cache
-    void setQuery(std::string const& query);
+    void clearCache();
+    void search(std::string const& query);
 
     // Load page, uses cache if possible unless `update` is true
     PagePromise loadPage(size_t page, bool update = false);
@@ -73,6 +65,75 @@ public:
     /**
      * True if the source consists only of installed mods
      */
-    bool isInstalledMods() const;
-    bool wantsRestart() const;
+    virtual bool isInstalledMods() const = 0;
+    virtual bool wantsRestart() const = 0;
+};
+
+class InstalledModListSource : public ModListSource {
+protected:
+    bool m_onlyUpdates;
+    InstalledModsQuery m_query;
+
+    void resetQuery() override;
+    ProviderPromise fetchPage(size_t page, size_t pageSize) override;
+
+    InstalledModListSource(bool onlyUpdates);
+
+public:
+    static InstalledModListSource* get(bool onlyUpdates);
+
+    void setSearchQuery(std::string const& query) override;
+
+    InstalledModsQuery const& getQuery() const;
+    // Get mutable access to the current query; this clears the cache
+    InstalledModsQuery& getQueryMut();
+
+    bool isInstalledMods() const override;
+    bool wantsRestart() const override;
+};
+
+enum class ServerModListType {
+    Download,
+    Featured,
+    Trending,
+    Recent,
+};
+
+class ServerModListSource : public ModListSource {
+protected:
+    ServerModListType m_type;
+    server::ModsQuery m_query;
+
+    void resetQuery() override;
+    ProviderPromise fetchPage(size_t page, size_t pageSize) override;
+
+    ServerModListSource(ServerModListType type);
+
+public:
+    static ServerModListSource* get(ServerModListType type);
+
+    void setSearchQuery(std::string const& query) override;
+
+    server::ModsQuery const& getQuery() const;
+    // Get mutable access to the current query; this clears the cache
+    server::ModsQuery& getQueryMut();
+
+    bool isInstalledMods() const override;
+    bool wantsRestart() const override;
+};
+
+class ModPackListSource : public ModListSource {
+protected:
+    void resetQuery() override;
+    ProviderPromise fetchPage(size_t page, size_t pageSize) override;
+
+    ModPackListSource();
+
+public:
+    static ModPackListSource* get();
+
+    void setSearchQuery(std::string const& query) override;
+
+    bool isInstalledMods() const override;
+    bool wantsRestart() const override;
 };

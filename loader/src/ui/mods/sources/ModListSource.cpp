@@ -19,7 +19,7 @@ static bool weightedFuzzyMatch(std::string const& str, std::string const& kw, do
     return false;
 }
 
-static std::pair<std::vector<Mod*>, size_t> getModsWithQuery(server::ModsQuery const& query) {
+static std::pair<std::vector<Mod*>, size_t> getModsWithQuery(InstalledModsQuery const& query) {
     std::vector<std::pair<Mod*, double>> mods;
 
     // Filter installed mods based on query
@@ -74,8 +74,86 @@ static std::pair<std::vector<Mod*>, size_t> getModsWithQuery(server::ModsQuery c
     return { result, mods.size() };
 }
 
-static auto loadInstalledModsPage(server::ModsQuery&& query) {
-    return ModListSource::ProviderPromise([query = std::move(query)](auto resolve, auto, auto, auto const&) {
+typename ModListSource::PagePromise ModListSource::loadPage(size_t page, bool update) {
+    if (!update && m_cachedPages.contains(page)) {
+        return PagePromise([this, page](auto resolve, auto) {
+            Loader::get()->queueInMainThread([this, page, resolve] {
+                resolve(m_cachedPages.at(page));
+            });
+        });
+    }
+    m_cachedPages.erase(page);
+    return this->fetchPage(page, PER_PAGE)
+        .then<Page, ModListSource::LoadPageError>([page, this](auto result) -> Result<Page, ModListSource::LoadPageError> {
+            if (result) {
+                auto data = result.unwrap();
+                if (data.totalModCount == 0 || data.mods.empty()) {
+                    return Err(ModListSource::LoadPageError("No mods found :("));
+                }
+                auto pageData = Page();
+                for (auto mod : std::move(data.mods)) {
+                    pageData.push_back(ModItem::create(std::move(mod)));
+                }
+                m_cachedItemCount = data.totalModCount;
+                m_cachedPages.insert({ page, pageData });
+                return Ok(pageData);
+            }
+            else {
+                return Err(result.unwrapErr());
+            }
+        });
+}
+
+std::optional<size_t> ModListSource::getPageCount() const {
+    return m_cachedItemCount ? std::optional(ceildiv(m_cachedItemCount.value(), PER_PAGE)) : std::nullopt;
+}
+
+std::optional<size_t> ModListSource::getItemCount() const {
+    return m_cachedItemCount;
+}
+
+void ModListSource::reset() {
+    this->clearCache();
+    this->resetQuery();
+}
+void ModListSource::clearCache() {
+    m_cachedPages.clear();
+    m_cachedItemCount = std::nullopt;
+}
+void ModListSource::search(std::string const& query) {
+    this->setSearchQuery(query);
+    this->clearCache();
+}
+
+ModListSource::ModListSource() {}
+
+InstalledModListSource::InstalledModListSource(bool onlyUpdates)
+  : m_onlyUpdates(onlyUpdates)
+{
+    this->resetQuery();
+}
+
+InstalledModListSource* InstalledModListSource::get(bool onlyUpdates) {
+    if (onlyUpdates) {
+        static auto inst = new InstalledModListSource(true);
+        return inst;
+    }
+    else {
+        static auto inst = new InstalledModListSource(false);
+        return inst;
+    }
+}
+
+void InstalledModListSource::resetQuery() {
+    m_query = InstalledModsQuery {
+        .onlyUpdates = m_onlyUpdates,
+    };
+}
+
+InstalledModListSource::ProviderPromise InstalledModListSource::fetchPage(size_t page, size_t pageSize) {
+    m_query.page = page;
+    m_query.pageSize = pageSize;
+    return ModListSource::ProviderPromise([query = m_query](auto resolve, auto, auto, auto const&) {
         Loader::get()->queueInMainThread([query = std::move(query), resolve = std::move(resolve)] {
             auto content = ModListSource::ProvidedMods();
             auto paged = getModsWithQuery(query);
@@ -88,8 +166,62 @@ static auto loadInstalledModsPage(server::ModsQuery&& query) {
     });
 }
 
-static auto loadServerModsPage(server::ModsQuery&& query) {
-    return server::ServerResultCache<&server::getMods>::shared().get(query)
+void InstalledModListSource::setSearchQuery(std::string const& query) {
+    m_query.query = query.size() ? std::optional(query) : std::nullopt;
+}
+
+InstalledModsQuery const& InstalledModListSource::getQuery() const {
+    return m_query;
+}
+
+InstalledModsQuery& InstalledModListSource::getQueryMut() {
+    this->clearCache();
+    return m_query;
+}
+
+bool InstalledModListSource::isInstalledMods() const {
+    return true;
+}
+
+bool InstalledModListSource::wantsRestart() const {
+    for (auto mod : Loader::get()->getAllMods()) {
+        if (mod->getRequestedAction() != ModRequestedAction::None) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void ServerModListSource::resetQuery() {
+    switch (m_type) {
+        case ServerModListType::Download: {
+            m_query = server::ModsQuery {};
+        } break;
+
+        case ServerModListType::Featured: {
+            m_query = server::ModsQuery {
+                .featured = true,
+            };
+        } break;
+
+        case ServerModListType::Trending: {
+            m_query = server::ModsQuery {
+                .sorting = server::ModsSort::RecentlyUpdated,
+            };
+        } break;
+
+        case ServerModListType::Recent: {
+            m_query = server::ModsQuery {
+                .sorting = server::ModsSort::RecentlyPublished,
+            };
+        } break;
+    }
+}
+
+ServerModListSource::ProviderPromise ServerModListSource::fetchPage(size_t page, size_t pageSize) {
+    m_query.page = page;
+    m_query.pageSize = pageSize;
+    return server::ServerResultCache<&server::getMods>::shared().get(m_query)
         .then<ModListSource::ProvidedMods>([](server::ServerModsList list) {
             auto content = ModListSource::ProvidedMods();
             for (auto&& mod : std::move(list.mods)) {
@@ -106,133 +238,77 @@ static auto loadServerModsPage(server::ModsQuery&& query) {
         });
 }
 
-typename ModListSource::PagePromise ModListSource::loadPage(size_t page, bool update) {
-    // Return a generic "Coming soon" message if there's no provider set
-    if (!m_provider.get) {
-        return PagePromise([this, page](auto, auto reject) {
-            reject(LoadPageError("Coming soon! ;)"));
-        });
+ServerModListSource::ServerModListSource(ServerModListType type)
+  : m_type(type)
+{
+    this->resetQuery();
+}
+
+ServerModListSource* ServerModListSource::get(ServerModListType type) {
+    switch (type) {
+        default:
+        case ServerModListType::Download: {
+            static auto inst = new ServerModListSource(ServerModListType::Download);
+            return inst;
+        } break;
+
+        case ServerModListType::Featured: {
+            static auto inst = new ServerModListSource(ServerModListType::Featured);
+            return inst;
+        } break;
+
+        case ServerModListType::Trending: {
+            static auto inst = new ServerModListSource(ServerModListType::Trending);
+            return inst;
+        } break;
+
+        case ServerModListType::Recent: {
+            static auto inst = new ServerModListSource(ServerModListType::Recent);
+            return inst;
+        } break;
     }
-    if (!update && m_cachedPages.contains(page)) {
-        return PagePromise([this, page](auto resolve, auto) {
-            Loader::get()->queueInMainThread([this, page, resolve] {
-                resolve(m_cachedPages.at(page));
-            });
-        });
-    }
-    m_cachedPages.erase(page);
-    return m_provider.get(server::ModsQuery {
-        .query = m_query,
-        .page = page,
-        // todo: loader setting to change this
-        .pageSize = PER_PAGE,
-    })
-    .then<Page, ModListSource::LoadPageError>([page, this](auto result) -> Result<Page, ModListSource::LoadPageError> {
-        if (result) {
-            auto data = result.unwrap();
-            if (data.totalModCount == 0 || data.mods.empty()) {
-                return Err(ModListSource::LoadPageError("No mods found :("));
-            }
-            auto pageData = Page();
-            for (auto mod : std::move(data.mods)) {
-                pageData.push_back(ModItem::create(std::move(mod)));
-            }
-            m_cachedItemCount = data.totalModCount;
-            m_cachedPages.insert({ page, pageData });
-            return Ok(pageData);
-        }
-        else {
-            return Err(result.unwrapErr());
-        }
+}
+
+void ServerModListSource::setSearchQuery(std::string const& query) {
+    m_query.query = query.size() ? std::optional(query) : std::nullopt;
+}
+
+server::ModsQuery const& ServerModListSource::getQuery() const {
+    return m_query;
+}
+server::ModsQuery& ServerModListSource::getQueryMut() {
+    this->clearCache();
+    return m_query;
+}
+
+bool ServerModListSource::isInstalledMods() const {
+    return false;
+}
+
+bool ServerModListSource::wantsRestart() const {
+    // todo
+    return false;
+}
+
+void ModPackListSource::resetQuery() {}
+ModPackListSource::ProviderPromise ModPackListSource::fetchPage(size_t page, size_t pageSize) {
+    return ProviderPromise([](auto, auto reject) {
+        reject(LoadPageError("Coming soon ;)"));
     });
 }
 
-std::optional<size_t> ModListSource::getPageCount() const {
-    return m_cachedItemCount ? std::optional(ceildiv(m_cachedItemCount.value(), PER_PAGE)) : std::nullopt;
+ModPackListSource::ModPackListSource() {}
+
+ModPackListSource* ModPackListSource::get() {
+    static auto inst = new ModPackListSource();
+    return inst;
 }
 
-std::optional<size_t> ModListSource::getItemCount() const {
-    return m_cachedItemCount;
+void ModPackListSource::setSearchQuery(std::string const& query) {}
+
+bool ModPackListSource::isInstalledMods() const {
+    return false;
 }
-
-void ModListSource::reset() {
-    m_query = std::nullopt;
-    m_cachedPages.clear();
-    m_cachedItemCount = std::nullopt;
-}
-
-void ModListSource::setQuery(std::string const& query) {
-    // Set query & reset cache
-    if (m_query != query) {
-        m_query = query.empty() ? std::nullopt : std::optional(query);
-        m_cachedPages.clear();
-        m_cachedItemCount = std::nullopt;
-    }
-}
-
-bool ModListSource::isInstalledMods() const {
-    return m_provider.isInstalledMods;
-}
-bool ModListSource::wantsRestart() const {
-    return m_provider.wantsRestart && m_provider.wantsRestart();
-}
-
-ModListSource* ModListSource::create(Provider&& provider) {
-    auto ret = new ModListSource();
-    ret->m_provider = std::move(provider);
-    ret->autorelease();
-    return ret;
-}
-
-ModListSource* ModListSource::get(ModListSourceType type) {
-    switch (type) {
-        default:
-        case ModListSourceType::Installed: {
-            static auto inst = Ref(ModListSource::create({
-                .get = loadInstalledModsPage,
-                .wantsRestart = +[] {
-                    for (auto mod : Loader::get()->getAllMods()) {
-                        if (mod->getRequestedAction() != ModRequestedAction::None) {
-                            return true;
-                        }
-                    }
-                    return false;
-                },
-                .isInstalledMods = true,
-            }));
-            return inst;
-        } break;
-
-        case ModListSourceType::Updates: {
-            static auto inst = Ref(ModListSource::create({}));
-            return inst;
-        } break;
-
-        case ModListSourceType::Featured: {
-            static auto inst = Ref(ModListSource::create({
-                .get = +[](server::ModsQuery&& query) {
-                    query.featured = true;
-                    return loadServerModsPage(std::move(query));
-                },
-            }));
-            return inst;
-        } break;
-
-        case ModListSourceType::Trending: {
-            static auto inst = Ref(ModListSource::create({}));
-            return inst;
-        } break;
-
-        case ModListSourceType::ModPacks: {
-            static auto inst = Ref(ModListSource::create({}));
-            return inst;
-        } break;
-
-        case ModListSourceType::All: {
-            static auto inst = Ref(ModListSource::create({
-                .get = loadServerModsPage,
-            }));
-            return inst;
-        } break;
-    }
+bool ModPackListSource::wantsRestart() const {
+    return false;
 }
