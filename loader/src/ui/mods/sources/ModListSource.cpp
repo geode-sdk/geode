@@ -19,14 +19,22 @@ static bool weightedFuzzyMatch(std::string const& str, std::string const& kw, do
     return false;
 }
 
-static std::pair<std::vector<Mod*>, size_t> getModsWithQuery(InstalledModsQuery const& query) {
-    std::vector<std::pair<Mod*, double>> mods;
+static void filterModsWithQuery(InstalledModListSource::ProvidedMods& mods, InstalledModsQuery const& query) {
+    std::vector<std::pair<Mod*, double>> filtered;
 
     // Filter installed mods based on query
-    for (auto& mod : Loader::get()->getAllMods()) {
+    for (auto& src : mods.mods) {
+        auto mod = src.asMod();
         bool addToList = !query.query.has_value();
         double weighted = 0;
-        if (query.query) {
+        // If we only want mods with updates, then only give mods with updates
+        // NOTE: The caller of filterModsWithQuery() should have ensured that 
+        // `src.checkUpdates()` has been called and has finished
+        if (auto updates = src.hasUpdates(); query.onlyUpdates && !(updates && updates->hasUpdateForInstalledMod())) {
+            addToList = false;
+        }
+        // Don't bother with unnecessary fuzzy match calculations if this mod isn't going to be added anyway
+        if (addToList && query.query) {
             addToList |= weightedFuzzyMatch(mod->getName(), *query.query, 1, weighted);
             addToList |= weightedFuzzyMatch(mod->getID(),   *query.query, 0.5, weighted);
             for (auto& dev : mod->getDevelopers()) {
@@ -43,16 +51,16 @@ static std::pair<std::vector<Mod*>, size_t> getModsWithQuery(InstalledModsQuery 
             }
         }
         // Loader gets boost to ensure it's normally always top of the list
-        if (mod->getID() == "geode.loader") {
+        if (addToList && mod->getID() == "geode.loader") {
             weighted += 5;
         }
         if (addToList) {
-            mods.push_back({ mod, weighted });
+            filtered.push_back({ mod, weighted });
         }
     }
 
     // Sort list based on score
-    std::sort(mods.begin(), mods.end(), [](auto a, auto b) {
+    std::sort(filtered.begin(), filtered.end(), [](auto a, auto b) {
         // Sort primarily by score
         if (a.second != b.second) {
             return a.second > b.second;
@@ -61,17 +69,17 @@ static std::pair<std::vector<Mod*>, size_t> getModsWithQuery(InstalledModsQuery 
         return a.first->getName() < b.first->getName();
     });
 
+    mods.mods.clear();
     // Pick out only the mods in the page and page size specified in the query
-    std::vector<Mod*> result {};
     for (
         size_t i = query.page * query.pageSize;
-        i < mods.size() && i < (query.page + 1) * query.pageSize;
+        i < filtered.size() && i < (query.page + 1) * query.pageSize;
         i += 1
     ) {
-        result.push_back(mods.at(i).first);
+        mods.mods.push_back(filtered.at(i).first);
     }
-    // Return paged mods and total count of matches
-    return { result, mods.size() };
+    
+    mods.totalModCount = filtered.size();
 }
 
 typename ModListSource::PagePromise ModListSource::loadPage(size_t page, bool update) {
@@ -156,12 +164,41 @@ InstalledModListSource::ProviderPromise InstalledModListSource::fetchPage(size_t
     return ModListSource::ProviderPromise([query = m_query](auto resolve, auto, auto, auto const&) {
         Loader::get()->queueInMainThread([query = std::move(query), resolve = std::move(resolve)] {
             auto content = ModListSource::ProvidedMods();
-            auto paged = getModsWithQuery(query);
-            for (auto& mod : std::move(paged.first)) {
+            for (auto& mod : Loader::get()->getAllMods()) {
                 content.mods.push_back(ModSource(mod));
             }
-            content.totalModCount = paged.second;
-            resolve(content);
+            // If we're only checking mods that have updates, we first have to run 
+            // update checks every mod...
+            if (query.onlyUpdates && content.mods.size()) {
+                struct Waiting final {
+                    ModListSource::ProvidedMods content;
+                    std::atomic_size_t waitingFor;
+                };
+                auto waiting = std::make_shared<Waiting>();
+                waiting->waitingFor = content.mods.size();
+                waiting->content = std::move(content);
+                for (auto& src : waiting->content.mods) {
+                    // todo: Promise::finallyOrCancelled
+                    src.checkUpdates().finally([resolve, query, waiting] {
+                        waiting->waitingFor -= 1;
+                        if (waiting->waitingFor == 0) {
+                            filterModsWithQuery(waiting->content, query);
+                            resolve(std::move(waiting->content));
+                        }
+                    }).cancelled([resolve, query, waiting] {
+                        waiting->waitingFor -= 1;
+                        if (waiting->waitingFor == 0) {
+                            filterModsWithQuery(waiting->content, query);
+                            resolve(std::move(waiting->content));
+                        }
+                    });
+                }
+            }
+            // Otherwise simply construct the result right away
+            else {
+                filterModsWithQuery(content, query);
+                resolve(content);
+            }
         });
     });
 }
