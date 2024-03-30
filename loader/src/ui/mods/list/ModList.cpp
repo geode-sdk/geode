@@ -47,7 +47,6 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
         // search query
         if (m_source->isInstalledMods()) {
             m_source->search(m_searchInput->getString());
-            this->gotoPage(0);
             return;
         }
         // Otherwise buffer inputs by a bit
@@ -60,7 +59,6 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
             if (m_searchInputThreads == 0) {
                 Loader::get()->queueInMainThread([this] {
                     m_source->search(m_searchInput->getString());
-                    this->gotoPage(0);
                 });
             }
         }).detach();
@@ -124,17 +122,18 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
             CCSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
             "Hide Updates", "GE_button_05.png"_spr
         );
-        auto viewUpdatesBtn = CCMenuItemToggler::create(
-            showUpdatesSpr, hideUpdatesSpr, this, nullptr
+        m_toggleUpdatesOnlyBtn = CCMenuItemToggler::create(
+            showUpdatesSpr, hideUpdatesSpr, this, menu_selector(ModList::onToggleUpdates)
         );
-        updateAllMenu->addChild(viewUpdatesBtn);
+        m_toggleUpdatesOnlyBtn->m_notClickable = true;
+        updateAllMenu->addChild(m_toggleUpdatesOnlyBtn);
 
         auto updateAllSpr = createGeodeButton(
             CCSprite::createWithSpriteFrameName("update.png"_spr),
             "Update All", "GE_button_01.png"_spr
         );
         auto updateAllBtn = CCMenuItemSpriteExtra::create(
-            updateAllSpr, this, nullptr
+            updateAllSpr, this, menu_selector(ModList::onUpdateAll)
         );
         updateAllMenu->addChild(updateAllBtn);
 
@@ -240,6 +239,9 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
 
     m_listener.bind(this, &ModList::onPromise);
 
+    m_invalidateCacheListener.bind(this, &ModList::onInvalidateCache);
+    m_invalidateCacheListener.setFilter(InvalidateCacheFilter(m_source));
+    
     this->gotoPage(0);
     this->updateTopContainer();
 
@@ -272,7 +274,7 @@ void ModList::onPromise(typename ModListSource::PageLoadEvent* event) {
         m_list->m_contentLayer->setPositionY(listTopScrollPos);
 
         // Update page UI
-        this->updatePageNumber();
+        this->updateState();
     }
     else if (auto progress = event->getProgress()) {
         // todo: percentage in a loading bar
@@ -287,7 +289,7 @@ void ModList::onPromise(typename ModListSource::PageLoadEvent* event) {
     }
     else if (auto rejected = event->getReject()) {
         this->showStatus(ModListErrorStatus(), rejected->message, rejected->details);
-        this->updatePageNumber();
+        this->updateState();
     }
 
     if (event->isFinally()) {
@@ -333,6 +335,10 @@ void ModList::onCheckUpdates(PromiseEvent<std::vector<std::string>, server::Serv
         m_updateAllMenu->setVisible(true);
         this->updateTopContainer();
     }
+}
+
+void ModList::onInvalidateCache(InvalidateCacheEvent* event) {
+    this->gotoPage(0);
 }
 
 void ModList::activateSearch(bool activate) {
@@ -393,7 +399,15 @@ void ModList::updateSize(bool big) {
     ) * oldPosition);
 }
 
-void ModList::updatePageNumber() {
+void ModList::updateState() {
+    // Update the "Show Updates" button on the updates available banner
+    if (m_toggleUpdatesOnlyBtn) {
+        auto src = typeinfo_cast<InstalledModListSource*>(m_source);
+        if (src) {
+            m_toggleUpdatesOnlyBtn->toggle(src->getQuery().onlyUpdates);
+        }
+    }
+
     auto pageCount = m_source->getPageCount();
 
     // Hide if page count hasn't been loaded
@@ -420,7 +434,7 @@ void ModList::gotoPage(size_t page, bool update) {
 
     // Do initial eager update on page UI (to prevent user spamming arrows 
     // to access invalid pages)
-    this->updatePageNumber();
+    this->updateState();
 }
 
 void ModList::showStatus(ModListStatus status, std::string const& message, std::optional<std::string> const& details) {
@@ -453,14 +467,20 @@ void ModList::showStatus(ModListStatus status, std::string const& message, std::
 }
 
 void ModList::onFilters(CCObject*) {
-    TagsPopup::create(m_source, [this]() {
-        this->gotoPage(0);
-    })->show();
+    TagsPopup::create(m_source)->show();
 }
 
 void ModList::onClearFilters(CCObject*) {
     m_searchInput->setString("", true);
 }
+
+void ModList::onToggleUpdates(CCObject*) {
+    if (auto src = typeinfo_cast<InstalledModListSource*>(m_source)) {
+        src->getQueryMut()->onlyUpdates = !src->getQuery().onlyUpdates;
+    }
+}
+
+void ModList::onUpdateAll(CCObject*) {}
 
 size_t ModList::getPage() const {
     return m_page;

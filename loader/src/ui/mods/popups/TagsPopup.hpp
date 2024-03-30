@@ -6,15 +6,14 @@
 
 using namespace geode::prelude;
 
-class TagsPopup : public GeodePopup<ModListSource*, MiniFunction<void()>> {
+class TagsPopup : public GeodePopup<ModListSource*> {
 protected:
     ModListSource* m_source;
-    MiniFunction<void()> m_onClose;
 
-    bool setup(ModListSource* src, MiniFunction<void()> onClose) override;
+    bool setup(ModListSource* src) override;
 
     void onClose(CCObject*) override;
 
 public:
-    static TagsPopup* create(ModListSource* src, MiniFunction<void()> onClose);
+    static TagsPopup* create(ModListSource* src);
 };

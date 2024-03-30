@@ -7,6 +7,26 @@
 
 using namespace geode::prelude;
 
+class ModListSource;
+
+struct InvalidateCacheEvent : public Event {
+    ModListSource* source;
+    InvalidateCacheEvent(ModListSource* src);
+};
+
+class InvalidateCacheFilter : public EventFilter<InvalidateCacheEvent> {
+protected:
+    ModListSource* m_source;
+
+public:
+    using Callback = void(InvalidateCacheEvent*);
+
+    ListenerResult handle(MiniFunction<Callback> fn, InvalidateCacheEvent* event);
+
+    InvalidateCacheFilter() = default;
+    InvalidateCacheFilter(ModListSource* src);
+};
+
 struct InstalledModsQuery final {
     std::optional<std::string> query;
     bool onlyUpdates = false;
@@ -69,6 +89,22 @@ public:
     virtual bool wantsRestart() const = 0;
 };
 
+template <class T>
+class InvalidateQueryAfter final {
+private:
+    ModListSource* m_source;
+    T& m_ref;
+
+public:
+    InvalidateQueryAfter(T& ref, ModListSource* source) : m_ref(ref), m_source(source) {}
+    ~InvalidateQueryAfter() {
+        m_source->clearCache();
+    }
+    T* operator->() const {
+        return &m_ref;
+    }
+};
+
 class InstalledModListSource : public ModListSource {
 protected:
     bool m_onlyUpdates;
@@ -85,8 +121,7 @@ public:
     void setSearchQuery(std::string const& query) override;
 
     InstalledModsQuery const& getQuery() const;
-    // Get mutable access to the current query; this clears the cache
-    InstalledModsQuery& getQueryMut();
+    InvalidateQueryAfter<InstalledModsQuery> getQueryMut();
 
     bool isInstalledMods() const override;
     bool wantsRestart() const override;
@@ -115,8 +150,7 @@ public:
     void setSearchQuery(std::string const& query) override;
 
     server::ModsQuery const& getQuery() const;
-    // Get mutable access to the current query; this clears the cache
-    server::ModsQuery& getQueryMut();
+    InvalidateQueryAfter<server::ModsQuery> getQueryMut();
 
     bool isInstalledMods() const override;
     bool wantsRestart() const override;

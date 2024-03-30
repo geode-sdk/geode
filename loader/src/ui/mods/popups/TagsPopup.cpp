@@ -1,9 +1,8 @@
 #include "TagsPopup.hpp"
 
-bool TagsPopup::setup(ModListSource* src, MiniFunction<void()> onClose) {
+bool TagsPopup::setup(ModListSource* src) {
     m_noElasticity = true;
     m_source = src;
-    m_onClose = onClose;
 
     this->setTitle("Select Tags");
 
@@ -13,13 +12,13 @@ bool TagsPopup::setup(ModListSource* src, MiniFunction<void()> onClose) {
 }
 
 void TagsPopup::onClose(CCObject* sender) {
-    if (m_onClose) m_onClose();
+    InvalidateCacheEvent(m_source).post();
     Popup::onClose(sender);
 }
 
-TagsPopup* TagsPopup::create(ModListSource* src, MiniFunction<void()> onClose) {
+TagsPopup* TagsPopup::create(ModListSource* src) {
     auto ret = new TagsPopup();
-    if (ret && ret->init(260, 200, src, onClose)) {
+    if (ret && ret->init(260, 200, src)) {
         ret->autorelease();
         return ret;
     }

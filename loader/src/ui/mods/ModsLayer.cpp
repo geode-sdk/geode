@@ -205,7 +205,7 @@ void ModsLayer::gotoTab(ModListSource* src) {
     // Update the state of the current list
     m_lists.at(m_currentSource)->updateSize(m_bigView);
     m_lists.at(m_currentSource)->activateSearch(m_showSearch);
-    m_lists.at(m_currentSource)->updatePageNumber();
+    m_lists.at(m_currentSource)->updateState();
 }
 
 void ModsLayer::keyBackClicked() {

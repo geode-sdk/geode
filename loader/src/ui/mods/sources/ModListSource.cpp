@@ -82,6 +82,17 @@ static void filterModsWithQuery(InstalledModListSource::ProvidedMods& mods, Inst
     mods.totalModCount = filtered.size();
 }
 
+InvalidateCacheEvent::InvalidateCacheEvent(ModListSource* src) : source(src) {}
+
+ListenerResult InvalidateCacheFilter::handle(MiniFunction<Callback> fn, InvalidateCacheEvent* event) {
+    if (event->source == m_source) {
+        fn(event);
+    }
+    return ListenerResult::Propagate;
+}
+
+InvalidateCacheFilter::InvalidateCacheFilter(ModListSource* src) : m_source(src) {}
+
 typename ModListSource::PagePromise ModListSource::loadPage(size_t page, bool update) {
     if (!update && m_cachedPages.contains(page)) {
         return PagePromise([this, page](auto resolve, auto) {
@@ -127,6 +138,7 @@ void ModListSource::reset() {
 void ModListSource::clearCache() {
     m_cachedPages.clear();
     m_cachedItemCount = std::nullopt;
+    InvalidateCacheEvent(this).post();
 }
 void ModListSource::search(std::string const& query) {
     this->setSearchQuery(query);
@@ -211,9 +223,8 @@ InstalledModsQuery const& InstalledModListSource::getQuery() const {
     return m_query;
 }
 
-InstalledModsQuery& InstalledModListSource::getQueryMut() {
-    this->clearCache();
-    return m_query;
+InvalidateQueryAfter<InstalledModsQuery> InstalledModListSource::getQueryMut() {
+    return InvalidateQueryAfter(m_query, this);
 }
 
 bool InstalledModListSource::isInstalledMods() const {
@@ -313,9 +324,8 @@ void ServerModListSource::setSearchQuery(std::string const& query) {
 server::ModsQuery const& ServerModListSource::getQuery() const {
     return m_query;
 }
-server::ModsQuery& ServerModListSource::getQueryMut() {
-    this->clearCache();
-    return m_query;
+InvalidateQueryAfter<server::ModsQuery> ServerModListSource::getQueryMut() {
+    return InvalidateQueryAfter(m_query, this);
 }
 
 bool ServerModListSource::isInstalledMods() const {
