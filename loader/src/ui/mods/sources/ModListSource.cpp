@@ -25,8 +25,8 @@ static void filterModsWithQuery(InstalledModListSource::ProvidedMods& mods, Inst
     // Filter installed mods based on query
     for (auto& src : mods.mods) {
         auto mod = src.asMod();
-        bool addToList = !query.query.has_value();
         double weighted = 0;
+        bool addToList = true;
         // If we only want mods with updates, then only give mods with updates
         // NOTE: The caller of filterModsWithQuery() should have ensured that 
         // `src.checkUpdates()` has been called and has finished
@@ -35,6 +35,8 @@ static void filterModsWithQuery(InstalledModListSource::ProvidedMods& mods, Inst
         }
         // Don't bother with unnecessary fuzzy match calculations if this mod isn't going to be added anyway
         if (addToList && query.query) {
+            // By default don't add anything
+            addToList = false;
             addToList |= weightedFuzzyMatch(mod->getName(), *query.query, 1, weighted);
             addToList |= weightedFuzzyMatch(mod->getID(),   *query.query, 0.5, weighted);
             for (auto& dev : mod->getDevelopers()) {
