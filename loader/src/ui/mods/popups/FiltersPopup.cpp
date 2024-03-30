@@ -5,10 +5,10 @@ bool FiltersPopup::setup(ModListSource* src) {
     m_source = src;
     m_selectedTags = src->getModTags();
 
-    this->setTitle("Select Filters");
+    this->setTitle("Search Filters");
 
     auto tagsContainer = CCNode::create();
-    tagsContainer->setContentSize(ccp(220, 80));
+    tagsContainer->setContentSize(ccp(310, 80));
     tagsContainer->setAnchorPoint({ .5f, .5f });
 
     auto tagsBG = CCScale9Sprite::create("square02b_001.png");
@@ -31,25 +31,35 @@ bool FiltersPopup::setup(ModListSource* src) {
     );
     tagsContainer->addChildAtPosition(m_tagsMenu, Anchor::Center);
 
-    auto tagsResetMenu = CCMenu::create();
-    tagsResetMenu->setAnchorPoint({ .5f, 1 });
-    tagsResetMenu->setContentWidth(tagsContainer->getContentWidth());
+    auto tagsTitleMenu = CCMenu::create();
+    tagsTitleMenu->setAnchorPoint({ .5f, 0 });
+    tagsTitleMenu->setContentWidth(tagsContainer->getContentWidth());
 
-    auto resetSpr = createGeodeButton("Reset Tags");
+    auto tagsTitle = CCLabelBMFont::create("Tags", "bigFont.fnt");
+    tagsTitleMenu->addChild(tagsTitle);
+
+    tagsTitleMenu->addChild(SpacerNode::create());
+
+    auto resetSpr = CCSprite::createWithSpriteFrameName("GJ_trashBtn_001.png");
     auto resetBtn = CCMenuItemSpriteExtra::create(
         resetSpr, this, menu_selector(FiltersPopup::onResetTags)
     );
-    tagsResetMenu->addChild(resetBtn);
+    tagsTitleMenu->addChild(resetBtn);
 
-    tagsResetMenu->setLayout(
+    tagsTitleMenu->setLayout(
         RowLayout::create()
-            ->setDefaultScaleLimits(.1f, .5f)
-            ->setAxisAlignment(AxisAlignment::End)
-            ->setAxisReverse(true)
+            ->setDefaultScaleLimits(.1f, .4f)
     );
-    tagsContainer->addChildAtPosition(tagsResetMenu, Anchor::Bottom, ccp(0, -2));
+    tagsContainer->addChildAtPosition(tagsTitleMenu, Anchor::Top, ccp(0, 4));
 
-    m_mainLayer->addChildAtPosition(tagsContainer, Anchor::Center);
+    m_mainLayer->addChildAtPosition(tagsContainer, Anchor::Center, ccp(0, 30));
+
+    auto okSpr = createGeodeButton("OK");
+    okSpr->setScale(.7f);
+    auto okBtn = CCMenuItemSpriteExtra::create(
+        okSpr, this, menu_selector(FiltersPopup::onClose)
+    );
+    m_buttonMenu->addChildAtPosition(okBtn, Anchor::Bottom, ccp(0, 20));
 
     m_tagsListener.bind(this, &FiltersPopup::onLoadTags);
     m_tagsListener.setFilter(server::ServerResultCache<&server::getTags>::shared().get().listen());
@@ -117,7 +127,7 @@ void FiltersPopup::onClose(CCObject* sender) {
 
 FiltersPopup* FiltersPopup::create(ModListSource* src) {
     auto ret = new FiltersPopup();
-    if (ret && ret->init(310, 250, src)) {
+    if (ret && ret->init(350, 250, src)) {
         ret->autorelease();
         return ret;
     }
