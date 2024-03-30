@@ -1,4 +1,26 @@
+#include "../../c++stl/msvc/allocator.hpp"
 #include "../../c++stl/string-impl.hpp"
+
+static auto constexpr NEW_SYM = "??2@YAPAXI@Z";
+static auto constexpr DELETE_SYM = "??3@YAXPAX@Z";
+
+static void* getFn(const char* sym) {
+    auto msvcr = GetModuleHandleW(L"MSVCR120.dll");
+    if (msvcr != NULL)
+        return reinterpret_cast<void*>(GetProcAddress(msvcr, sym));
+
+    return nullptr;
+}
+
+void* geode::stl::operatorNew(size_t size) {
+    static auto fnPtr = reinterpret_cast<void*(*)(size_t)>(getFn(NEW_SYM));
+    return fnPtr(size);
+}
+
+void geode::stl::operatorDelete(void* ptr) {
+    static auto fnPtr = reinterpret_cast<void(*)(void*)>(getFn(DELETE_SYM));
+    return fnPtr(ptr);
+}
 
 namespace geode::stl {
     void StringImpl::setEmpty() {

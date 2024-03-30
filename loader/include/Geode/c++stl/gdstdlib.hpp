@@ -6,7 +6,8 @@
 
 #if defined(GEODE_IS_ANDROID)
 #include "gnustl.hpp"
-#else
-// this is quite funny but msvcstl is just all aliases
+#elif defined(GEODE_IS_WINDOWS)
 #include "msvcstl.hpp"
+#else
+#include "aliastl.hpp"
 #endif

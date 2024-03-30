@@ -1,6 +1,14 @@
 #pragma once
 
-using TodoReturn = void;
+struct TodoReturnPlaceholder;
+
+#ifdef GEODE_REVERT_TODO_RETURN
+    using TodoReturn = void;
+    #warning "Reverting TodoReturn to void. This behavior is deprecated and will be removed in a later update."
+#else
+    #define GEODE_REVERT_TODO_RETURN 0
+    using TodoReturn = TodoReturnPlaceholder;
+#endif
 
 // thanks pie
 enum class SearchType {
@@ -89,6 +97,88 @@ enum class GameObjectType {
     AnimatedHazard = 47,
 };
 
+enum class GJGameEvent {
+    None = 0,
+    TinyLanding = 1,
+    FeatherLanding = 2,
+    SoftLanding = 3,
+    NormalLanding = 4,
+    HardLanding = 5,
+    HitHead = 6,
+    OrbTouched = 7,
+    OrbActivated = 8,
+    PadActivated = 9,
+    GravityInverted = 10,
+    GravityRestored = 11,
+    NormalJump = 12,
+    RobotBoostStart = 13,
+    RobotBoostStop = 14,
+    UFOJump = 15,
+    ShipBoostStart = 16,
+    ShipBoostEnd = 17,
+    SpiderTeleport = 18,
+    BallSwitch = 19,
+    SwingSwitch = 20,
+    WavePush = 21,
+    WaveRelease = 22,
+    DashStart = 23,
+    DashStop = 24,
+    Teleported = 25,
+    PortalNormal = 26,
+    PortalShip = 27,
+    PortalBall = 28,
+    PortalUFO = 29,
+    PortalWave = 30,
+    PortalRobot = 31,
+    PortalSpider = 32,
+    PortalSwing = 33,
+    YellowOrb = 34,
+    PinkOrb = 35,
+    RedOrb = 36,
+    GravityOrb = 37,
+    GreenOrb = 38,
+    DropOrb = 39,
+    CustomOrb = 40,
+    DashOrb = 41,
+    GravityDashOrb = 42,
+    SpiderOrb = 43,
+    TeleportOrb = 44,
+    YellowPad = 45,
+    PinkPad = 46,
+    RedPad = 47,
+    GravityPad = 48,
+    SpiderPad = 49,
+    PortalGravityFlip = 50,
+    PortalGravityNormal = 51,
+    PortalGravityInvert = 52,
+    PortalFlip = 53,
+    PortalUnFlip = 54,
+    PortalNormalScale = 55,
+    PortalMiniScale = 56,
+    PortalDualOn = 57,
+    PortalDualOff = 58,
+    PortalTeleport = 59,
+    Checkpoint = 60,
+    DestroyBlock = 61,
+    UserCoin = 62,
+    PickupItem = 63,
+    CheckpointRespawn = 64,
+    FallLow = 65,
+    FallMed = 66,
+    FallHigh = 67,
+    FallVHigh = 68,
+    JumpPush = 69,
+    JumpRelease = 70,
+    LeftPush = 71,
+    LeftRelease = 72,
+    RightPush = 73,
+    RightRelease = 74,
+    PlayerReversed = 75,
+    FallSpeedLow = 76,
+    FallSpeedMed = 77,
+    FallSpeedHigh = 78
+};
+
 enum class PulseEffectType {
 };
 enum class TouchTriggerType {
@@ -147,7 +237,6 @@ enum class FMODQueuedMusic {};
 enum class GJAreaActionType {};
 enum class SFXTriggerState {};
 enum class SongTriggerState {};
-enum class GJGameEvent {};
 enum class GJSmartDirection {};
 enum class SmartBlockType {};
 enum class TouchTriggerControl {};

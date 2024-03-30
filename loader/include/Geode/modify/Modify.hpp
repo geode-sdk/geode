@@ -1,6 +1,7 @@
 #pragma once
 #include "AsStaticFunction.hpp"
 #include "Field.hpp"
+#include <Geode/Enums.hpp>
 #include "IDManager.hpp"
 
 #include <Geode/loader/Loader.hpp>
@@ -8,28 +9,37 @@
 #include <iostream>
 #include <tulip/TulipHook.hpp>
 
-#define GEODE_APPLY_MODIFY_FOR_FUNCTION(AddressInline_, Convention_, ClassName_, FunctionName_, ...) \
-    do {                                                                                             \
-        if constexpr (Unique::different<                                                             \
-                          Resolve<__VA_ARGS__>::func(&Base::FunctionName_),                          \
-                          Resolve<__VA_ARGS__>::func(&Derived::FunctionName_)>()) {                  \
-            static auto address = AddressInline_;                                                    \
-            if (address == 0) {                                                                      \
-                log::error(                                                                          \
-                    "Address of {} returned nullptr, can't hook", #ClassName_ "::" #FunctionName_    \
-                );                                                                                   \
-                break;                                                                               \
-            }                                                                                        \
-            auto hook = Hook::create(                                                                \
-                reinterpret_cast<void*>(address),                                                    \
-                AsStaticFunction_##FunctionName_<                                                    \
-                    Derived,                                                                         \
-                    decltype(Resolve<__VA_ARGS__>::func(&Derived::FunctionName_))>::value,           \
-                #ClassName_ "::" #FunctionName_,                                                     \
-                tulip::hook::TulipConvention::Convention_                                            \
-            );                                                                                       \
-            this->m_hooks[#ClassName_ "::" #FunctionName_] = hook;                                   \
-        }                                                                                            \
+#define GEODE_APPLY_MODIFY_FOR_FUNCTION(AddressInline_, Convention_, ClassName_, FunctionName_, ...)          \
+    do {                                                                                                      \
+        static auto constexpr different = Unique::different<                                                  \
+            Resolve<__VA_ARGS__>::func(&Base::FunctionName_),                                                 \
+            Resolve<__VA_ARGS__>::func(&Derived::FunctionName_)                                               \
+        >();                                                                                                  \
+        using BaseFuncType = decltype(Resolve<__VA_ARGS__>::func(&Base::FunctionName_));                      \
+        using DerivedFuncType = decltype(Resolve<__VA_ARGS__>::func(&Derived::FunctionName_));                \
+        if constexpr (different) {                                                                            \
+            static auto address = AddressInline_;                                                             \
+            static_assert(GEODE_REVERT_TODO_RETURN ||                                                         \
+                !different || !std::is_same_v<typename ReturnType<BaseFuncType>::type, TodoReturn>,           \
+                "Function" #ClassName_ "::" #FunctionName_ " has a TodoReturn type, "                         \
+                "please fix it by editing the bindings."                                                      \
+            );                                                                                                \
+            if (address == 0) {                                                                               \
+                log::error(                                                                                   \
+                    "Address of {} returned nullptr, can't hook", #ClassName_ "::" #FunctionName_             \
+                );                                                                                            \
+                break;                                                                                        \
+            }                                                                                                 \
+            auto hook = Hook::create(                                                                         \
+                reinterpret_cast<void*>(address),                                                             \
+                AsStaticFunction_##FunctionName_<                                                             \
+                    Derived,                                                                                  \
+                    DerivedFuncType>::value,                                                                  \
+                #ClassName_ "::" #FunctionName_,                                                              \
+                tulip::hook::TulipConvention::Convention_                                                     \
+            );                                                                                                \
+            this->m_hooks[#ClassName_ "::" #FunctionName_] = hook;                                            \
+        }                                                                                                     \
     } while (0);
 
 #define GEODE_APPLY_MODIFY_FOR_CONSTRUCTOR(AddressInline_, Convention_, ClassName_, ...)  \
