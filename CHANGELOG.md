@@ -1,5 +1,23 @@
 # Geode Changelog
 
+## v2.0.0-beta.23
+ * Fix `CCMenuItem::activate` crashes (005d245, 7f9dcc6)
+ * Fix ProfilePage fix misaligning profiles (b44184c)
+ * Fix Impostor PlayLayer Fix being enabled in forward compatibility mode (96fee44)
+ * Fix IPC using an incorrect mod ID (c02dc7d)
+ * Fix opening folders not working with certain mods installed (43cf9fa)
+ * Update Android `gd::map` (d165616, e4ab881, ea6ac9f)
+ * Change outdated GD message on Windows (8ab3f56)
+ * Enable FMOD initialization check on all platforms (682144f, 1a67f9b)
+ * Re-implement `gd::unordered_map` and `gd::unordered_set` on Windows (#636, #644, 912aa23)
+ * Fix handleTouchPriority not retaining nodes and sometimes crashing (2d13d4f, c8d1e88)
+ * Fix restarting the game if executable filename includes spaces (223f168)
+ * Implement "Report Issue" button (#634)
+ * Fix a thread safety issue in logging (7155705)
+ * Operation Big Sister - disallow modifying TodoReturn functions (f3267b0, 55e1f6a, dd6e20b)
+ * Tuliphook: Fix parameters bigger than 4 bytes being passed through registers (f7bda30)
+ * Tuliphook: Double the size of the handler and the trampoline (1a67f9b)
+
 ## v2.0.0-beta.22
  * Add `Patch::updateBytes` to update a patch (ba648340)
  * (Possibly) fix random curl crashes (dd440433, 1fb12f2d, 6cd6e4d0, 8998041e, 2be58549)
