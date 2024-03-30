@@ -1,6 +1,6 @@
 #include "ModList.hpp"
 #include <Geode/utils/ColorProvider.hpp>
-#include "../popups/TagsPopup.hpp"
+#include "../popups/FiltersPopup.hpp"
 #include "../GeodeStyle.hpp"
 #include "../ModsLayer.hpp"
 
@@ -218,9 +218,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_statusDetails->setAlignment(kCCTextAlignmentCenter);
     m_statusContainer->addChild(m_statusDetails);
 
-    m_statusLoadingCircle = CCSprite::create("loadingCircle.png");
-    m_statusLoadingCircle->setBlendFunc({ GL_ONE, GL_ONE });
-    m_statusLoadingCircle->setScale(.6f);
+    m_statusLoadingCircle = createLoadingCircle(50);
     m_statusContainer->addChild(m_statusLoadingCircle);
 
     m_statusLoadingBar = Slider::create(this, nullptr);
@@ -452,10 +450,6 @@ void ModList::showStatus(ModListStatus status, std::string const& message, std::
     m_statusLoadingCircle->setVisible(std::holds_alternative<ModListUnkProgressStatus>(status));
     m_statusLoadingBar->setVisible(std::holds_alternative<ModListProgressStatus>(status));
 
-    // The loading circle action gets stopped for some reason so just reactivate it
-    if (m_statusLoadingCircle->isVisible()) {
-        m_statusLoadingCircle->runAction(CCRepeatForever::create(CCRotateBy::create(1.f, 360.f)));
-    }
     // Update progress bar
     if (auto per = std::get_if<ModListProgressStatus>(&status)) {
         m_statusLoadingBar->setValue(per->percentage / 100.f);
@@ -467,7 +461,7 @@ void ModList::showStatus(ModListStatus status, std::string const& message, std::
 }
 
 void ModList::onFilters(CCObject*) {
-    TagsPopup::create(m_source)->show();
+    FiltersPopup::create(m_source)->show();
 }
 
 void ModList::onClearFilters(CCObject*) {

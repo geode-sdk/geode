@@ -19,7 +19,7 @@ protected:
         
         // Replace the close button with a Geode style one
         auto spr = CircleButtonSprite::createWithSpriteFrameName(
-            "close.png"_spr, 1.f,
+            "close.png"_spr, .85f,
             (altBG ? CircleBaseColor::DarkAqua : CircleBaseColor::DarkPurple)
         );
         Popup<Args...>::m_closeBtn->setNormalImage(spr);
@@ -48,13 +48,15 @@ public:
     static GeodeSquareSprite* createWithSpriteFrameName(const char* top, bool* state = nullptr);
 };
 
+CCNode* createLoadingCircle(float sideLength, const char* id = "loading-spinner");
+
 IconButtonSprite* createGeodeButton(CCNode* icon, std::string const& text, std::string const& bg = "GE_button_05.png"_spr);
 CCNode* createGeodeButton(CCNode* icon, float width, std::string const& text, std::string const& bg = "GE_button_05.png"_spr);
 ButtonSprite* createGeodeButton(std::string const& text, std::string const& bg = "GE_button_05.png"_spr);
 
 CircleButtonSprite* createGeodeCircleButton(const char* topFrameName);
 
-ButtonSprite* createGeodeTagLabel(std::string const& text, ccColor3B color, ccColor3B bg);
+ButtonSprite* createGeodeTagLabel(std::string const& text, std::optional<std::pair<ccColor3B, ccColor3B>> const& color = std::nullopt);
 std::pair<ccColor3B, ccColor3B> geodeTagColor(std::string_view const& text);
 
 class GeodeTabSprite : public CCNode {

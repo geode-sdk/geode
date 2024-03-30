@@ -5,6 +5,7 @@
 #include <Geode/ui/MDPopup.hpp>
 #include <Geode/utils/web.hpp>
 #include <server/Server.hpp>
+#include "mods/GeodeStyle.hpp"
 
 void geode::openModsList() {
     ModsLayer::scene();
@@ -98,9 +99,7 @@ protected:
         }
         // Asynchronously fetch from server
         else {
-            this->setSprite(CCSprite::create("loadingCircle.png"));
-            static_cast<CCSprite*>(m_sprite)->setBlendFunc({ GL_ONE, GL_ONE });
-            m_sprite->runAction(CCRepeatForever::create(CCRotateBy::create(1.f, 360.f)));
+            this->setSprite(createLoadingCircle(25));
             m_listener.setFilter(server::ServerResultCache<&server::getModLogo>::shared().get(id).listen());
         }
 

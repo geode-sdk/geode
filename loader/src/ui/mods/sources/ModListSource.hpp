@@ -30,6 +30,7 @@ public:
 struct InstalledModsQuery final {
     std::optional<std::string> query;
     bool onlyUpdates = false;
+    std::unordered_set<std::string> tags = {};
     size_t page = 0;
     size_t pageSize = 10;
 };
@@ -77,6 +78,9 @@ public:
     void clearCache();
     void search(std::string const& query);
 
+    virtual std::unordered_set<std::string> getModTags() const = 0;
+    virtual void setModTags(std::unordered_set<std::string> const& tags) = 0;
+
     // Load page, uses cache if possible unless `update` is true
     PagePromise loadPage(size_t page, bool update = false);
     std::optional<size_t> getPageCount() const;
@@ -112,13 +116,15 @@ protected:
 
     void resetQuery() override;
     ProviderPromise fetchPage(size_t page, size_t pageSize) override;
+    void setSearchQuery(std::string const& query) override;
 
     InstalledModListSource(bool onlyUpdates);
 
 public:
     static InstalledModListSource* get(bool onlyUpdates);
 
-    void setSearchQuery(std::string const& query) override;
+    std::unordered_set<std::string> getModTags() const override;
+    void setModTags(std::unordered_set<std::string> const& tags) override;
 
     InstalledModsQuery const& getQuery() const;
     InvalidateQueryAfter<InstalledModsQuery> getQueryMut();
@@ -141,13 +147,15 @@ protected:
 
     void resetQuery() override;
     ProviderPromise fetchPage(size_t page, size_t pageSize) override;
+    void setSearchQuery(std::string const& query) override;
 
     ServerModListSource(ServerModListType type);
 
 public:
     static ServerModListSource* get(ServerModListType type);
 
-    void setSearchQuery(std::string const& query) override;
+    std::unordered_set<std::string> getModTags() const override;
+    void setModTags(std::unordered_set<std::string> const& tags) override;
 
     server::ModsQuery const& getQuery() const;
     InvalidateQueryAfter<server::ModsQuery> getQueryMut();
@@ -160,13 +168,15 @@ class ModPackListSource : public ModListSource {
 protected:
     void resetQuery() override;
     ProviderPromise fetchPage(size_t page, size_t pageSize) override;
+    void setSearchQuery(std::string const& query) override;
 
     ModPackListSource();
 
 public:
     static ModPackListSource* get();
 
-    void setSearchQuery(std::string const& query) override;
+    std::unordered_set<std::string> getModTags() const override;
+    void setModTags(std::unordered_set<std::string> const& tags) override;
 
     bool isInstalledMods() const override;
     bool wantsRestart() const override;

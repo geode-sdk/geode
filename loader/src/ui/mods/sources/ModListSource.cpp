@@ -33,6 +33,15 @@ static void filterModsWithQuery(InstalledModListSource::ProvidedMods& mods, Inst
         if (auto updates = src.hasUpdates(); query.onlyUpdates && !(updates && updates->hasUpdateForInstalledMod())) {
             addToList = false;
         }
+        // If some tags are provided, only return mods that match
+        if (addToList && query.tags.size()) {
+            auto compare = mod->getMetadata().getTags();
+            for (auto& tag : query.tags) {
+                if (!compare.contains(tag)) {
+                    addToList = false;
+                }
+            }
+        }
         // Don't bother with unnecessary fuzzy match calculations if this mod isn't going to be added anyway
         if (addToList && query.query) {
             // By default don't add anything
@@ -221,6 +230,14 @@ void InstalledModListSource::setSearchQuery(std::string const& query) {
     m_query.query = query.size() ? std::optional(query) : std::nullopt;
 }
 
+std::unordered_set<std::string> InstalledModListSource::getModTags() const {
+    return m_query.tags;
+}
+void InstalledModListSource::setModTags(std::unordered_set<std::string> const& tags) {
+    m_query.tags = tags;
+    this->clearCache();
+}
+
 InstalledModsQuery const& InstalledModListSource::getQuery() const {
     return m_query;
 }
@@ -323,6 +340,14 @@ void ServerModListSource::setSearchQuery(std::string const& query) {
     m_query.query = query.size() ? std::optional(query) : std::nullopt;
 }
 
+std::unordered_set<std::string> ServerModListSource::getModTags() const {
+    return m_query.tags;
+}
+void ServerModListSource::setModTags(std::unordered_set<std::string> const& tags) {
+    m_query.tags = tags;
+    this->clearCache();
+}
+
 server::ModsQuery const& ServerModListSource::getQuery() const {
     return m_query;
 }
@@ -354,6 +379,11 @@ ModPackListSource* ModPackListSource::get() {
 }
 
 void ModPackListSource::setSearchQuery(std::string const& query) {}
+
+std::unordered_set<std::string> ModPackListSource::getModTags() const {
+    return {};
+}
+void ModPackListSource::setModTags(std::unordered_set<std::string> const& set) {}
 
 bool ModPackListSource::isInstalledMods() const {
     return false;

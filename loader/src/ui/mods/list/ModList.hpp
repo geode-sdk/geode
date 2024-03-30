@@ -25,7 +25,7 @@ protected:
     CCLabelBMFont* m_statusTitle;
     SimpleTextArea* m_statusDetails;
     CCMenuItemSpriteExtra* m_statusDetailsBtn;
-    CCSprite* m_statusLoadingCircle;
+    CCNode* m_statusLoadingCircle;
     Slider* m_statusLoadingBar;
     ModListSource::PageLoadEventListener m_listener;
     CCMenuItemSpriteExtra* m_pagePrevBtn;

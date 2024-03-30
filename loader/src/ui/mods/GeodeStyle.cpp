@@ -63,6 +63,21 @@ GeodeSquareSprite* GeodeSquareSprite::createWithSpriteFrameName(const char* top,
     return nullptr;
 }
 
+CCNode* createLoadingCircle(float sideLength, const char* id) {
+    auto spinnerContainer = CCNode::create();
+    spinnerContainer->setContentSize({ sideLength, sideLength });
+    spinnerContainer->setID(id);
+    spinnerContainer->setAnchorPoint({ .5f, .5f });
+
+    auto spinner = CCSprite::create("loadingCircle.png");
+    spinner->setBlendFunc({ GL_ONE, GL_ONE });
+    spinner->runAction(CCRepeatForever::create(CCRotateBy::create(1.f, 360.f)));
+    limitNodeSize(spinner, spinnerContainer->getContentSize(), 1.f, .1f);
+    spinnerContainer->addChildAtPosition(spinner, Anchor::Center);
+
+    return spinnerContainer;
+}
+
 IconButtonSprite* createGeodeButton(CCNode* icon, std::string const& text, std::string const& bg) {
     return IconButtonSprite::create(bg.c_str(), icon, text.c_str(), "bigFont.fnt");
 }
@@ -89,10 +104,17 @@ CircleButtonSprite* createGeodeCircleButton(const char* topFrameName) {
     return CircleButtonSprite::createWithSpriteFrameName(topFrameName, 1.f, CircleBaseColor::DarkPurple);
 }
 
-ButtonSprite* createGeodeTagLabel(std::string const& text, ccColor3B color, ccColor3B bg) {
+ButtonSprite* createGeodeTagLabel(std::string const& text, std::optional<std::pair<ccColor3B, ccColor3B>> const& color) {
     auto label = ButtonSprite::create(text.c_str(), "bigFont.fnt", "white-square.png"_spr, .8f);
-    label->m_label->setColor(color);
-    label->m_BGSprite->setColor(bg);
+    if (color) {
+        label->m_label->setColor(color->first);
+        label->m_BGSprite->setColor(color->second);
+    }
+    else {
+        auto def = geodeTagColor(text);
+        label->m_label->setColor(def.first);
+        label->m_BGSprite->setColor(def.second);
+    }
     return label;
 }
 

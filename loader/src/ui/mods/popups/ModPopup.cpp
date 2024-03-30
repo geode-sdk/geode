@@ -109,21 +109,7 @@ bool ModPopup::setup(ModSource&& src) {
         valueLabel->setID("value-label");
         labelContainer->addChild(valueLabel);
 
-        // todo: refactor these spinners into a reusable class that's not the ass LoadingCircle is
-        auto spinnerContainer = CCNode::create();
-        spinnerContainer->setContentSize({
-            container->getContentHeight() / labelContainer->getScale(),
-            container->getContentHeight() / labelContainer->getScale()
-        });
-        spinnerContainer->setID("loading-spinner");
-
-        auto spinner = CCSprite::create("loadingCircle.png");
-        spinner->setBlendFunc({ GL_ONE, GL_ONE });
-        spinner->runAction(CCRepeatForever::create(CCRotateBy::create(1.f, 360.f)));
-        limitNodeSize(spinner, spinnerContainer->getContentSize(), 1.f, .1f);
-        spinnerContainer->addChildAtPosition(spinner, Anchor::Center);
-
-        labelContainer->addChild(spinnerContainer);
+        labelContainer->addChild(createLoadingCircle(container->getContentHeight() / labelContainer->getScale()));
 
         this->setStatIcon(container, std::get<0>(stat));
         this->setStatLabel(container, std::get<1>(stat));
@@ -165,18 +151,7 @@ bool ModPopup::setup(ModSource&& src) {
     m_tags->setContentSize(tagsContainer->getContentSize() - ccp(10, 10));
     m_tags->setAnchorPoint({ .5f, .5f });
 
-    // todo: refactor these spinners into a reusable class that's not the ass LoadingCircle is
-    auto tagsSpinnerContainer = CCNode::create();
-    tagsSpinnerContainer->setContentSize({ 50, 50 });
-    tagsSpinnerContainer->setID("loading-spinner");
-
-    auto tagsSpinner = CCSprite::create("loadingCircle.png");
-    tagsSpinner->setBlendFunc({ GL_ONE, GL_ONE });
-    tagsSpinner->runAction(CCRepeatForever::create(CCRotateBy::create(1.f, 360.f)));
-    limitNodeSize(tagsSpinner, tagsSpinnerContainer->getContentSize(), 1.f, .1f);
-    tagsSpinnerContainer->addChildAtPosition(tagsSpinner, Anchor::Center);
-
-    m_tags->addChild(tagsSpinnerContainer);
+    m_tags->addChild(createLoadingCircle(50));
 
     m_tags->setLayout(
         RowLayout::create()
@@ -202,8 +177,10 @@ bool ModPopup::setup(ModSource&& src) {
 
     m_restartRequiredLabel = createGeodeTagLabel(
         "Restart Required",
-        to3B(ColorProvider::get()->color("mod-list-restart-required-label"_spr)),
-        to3B(ColorProvider::get()->color("mod-list-restart-required-label-bg"_spr))
+        {{
+            to3B(ColorProvider::get()->color("mod-list-restart-required-label"_spr)),
+            to3B(ColorProvider::get()->color("mod-list-restart-required-label-bg"_spr))
+        }}
     );
     m_restartRequiredLabel->setLayoutOptions(AxisLayoutOptions::create()->setMaxScale(.75f));
     m_restartRequiredLabel->setScale(.3f);
@@ -578,7 +555,7 @@ void ModPopup::onLoadTags(PromiseEvent<std::unordered_set<std::string>, server::
             auto readable = tag;
             readable[0] = std::toupper(readable[0]);
             auto colors = geodeTagColor(tag);
-            m_tags->addChild(createGeodeTagLabel(readable, colors.first, colors.second));
+            m_tags->addChild(createGeodeTagLabel(readable));
         }
         
         if (data->empty()) {
