@@ -646,7 +646,8 @@ public:
             for (auto& node : CCArrayExt<CCNode*>(row->nodes)) {
                 auto opts = axisOpts(node);
                 // rescale node if overflowing
-                if (this->shouldAutoScale(opts)) {
+                // do not scale spacers since that screws up their content size
+                if (this->shouldAutoScale(opts) && !typeinfo_cast<SpacerNode*>(node)) {
                     auto nodeScale = scaleByOpts(opts, row->scale, row->prio, false, m_defaultScaleLimits.first, m_defaultScaleLimits.second);
                     // CCMenuItemSpriteExtra is quirky af
                     if (auto btn = typeinfo_cast<CCMenuItemSpriteExtra*>(node)) {
