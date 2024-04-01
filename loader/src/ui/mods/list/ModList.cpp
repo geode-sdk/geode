@@ -1,6 +1,7 @@
 #include "ModList.hpp"
 #include <Geode/utils/ColorProvider.hpp>
 #include "../popups/FiltersPopup.hpp"
+#include "../popups/SortPopup.hpp"
 #include "../GeodeStyle.hpp"
 #include "../ModsLayer.hpp"
 
@@ -38,14 +39,14 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     searchBG->ignoreAnchorPointForPosition(false);
     m_searchMenu->addChildAtPosition(searchBG, Anchor::Center);
 
-    m_searchInput = TextInput::create(size.width + 25, "Search Mods");
+    m_searchInput = TextInput::create(size.width - 5, "Search Mods");
     m_searchInput->setScale(.75f);
     m_searchInput->setAnchorPoint({ 0, .5f });
     m_searchInput->setTextAlign(TextInputAlign::Left);
     m_searchInput->setCallback([this](auto const&) {
         // If the source is already in memory, we can immediately update the 
         // search query
-        if (m_source->isInstalledMods()) {
+        if (typeinfo_cast<InstalledModListSource*>(m_source)) {
             m_source->search(m_searchInput->getString());
             return;
         }
@@ -66,11 +67,15 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_searchMenu->addChildAtPosition(m_searchInput, Anchor::Left, ccp(7.5f, 0));
 
     auto searchFiltersMenu = CCMenu::create();
-    searchFiltersMenu->setContentWidth(size.width - m_searchInput->getScaledContentWidth() - 10);
+    searchFiltersMenu->setContentWidth(size.width - m_searchInput->getScaledContentWidth() - 5);
     searchFiltersMenu->setAnchorPoint({ 1, .5f });
     searchFiltersMenu->setScale(.75f);
 
-    // todo: sort button
+    auto sortBtn = CCMenuItemSpriteExtra::create(
+        GeodeSquareSprite::createWithSpriteFrameName("GJ_sortIcon_001.png"),
+        this, menu_selector(ModList::onSort)
+    );
+    searchFiltersMenu->addChild(sortBtn);
 
     auto filterBtn = CCMenuItemSpriteExtra::create(
         GeodeSquareSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
@@ -93,7 +98,7 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     m_topContainer->addChild(m_searchMenu);
 
     // Check for updates on installed mods, and show an update all button if there are some
-    if (m_source->isInstalledMods()) {
+    if (typeinfo_cast<InstalledModListSource*>(m_source)) {
         m_checkUpdatesListener.bind(this, &ModList::onCheckUpdates);
         m_checkUpdatesListener.setFilter(ModsLayer::checkInstalledModsForUpdates().listen());
 
@@ -462,6 +467,10 @@ void ModList::showStatus(ModListStatus status, std::string const& message, std::
 
 void ModList::onFilters(CCObject*) {
     FiltersPopup::create(m_source)->show();
+}
+
+void ModList::onSort(CCObject*) {
+    SortPopup::create(m_source)->show();
 }
 
 void ModList::onClearFilters(CCObject*) {

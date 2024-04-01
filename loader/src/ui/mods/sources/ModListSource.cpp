@@ -246,10 +246,6 @@ InvalidateQueryAfter<InstalledModsQuery> InstalledModListSource::getQueryMut() {
     return InvalidateQueryAfter(m_query, this);
 }
 
-bool InstalledModListSource::isInstalledMods() const {
-    return true;
-}
-
 bool InstalledModListSource::wantsRestart() const {
     for (auto mod : Loader::get()->getAllMods()) {
         if (mod->getRequestedAction() != ModRequestedAction::None) {
@@ -355,10 +351,6 @@ InvalidateQueryAfter<server::ModsQuery> ServerModListSource::getQueryMut() {
     return InvalidateQueryAfter(m_query, this);
 }
 
-bool ServerModListSource::isInstalledMods() const {
-    return false;
-}
-
 bool ServerModListSource::wantsRestart() const {
     // todo
     return false;
@@ -385,9 +377,6 @@ std::unordered_set<std::string> ModPackListSource::getModTags() const {
 }
 void ModPackListSource::setModTags(std::unordered_set<std::string> const& set) {}
 
-bool ModPackListSource::isInstalledMods() const {
-    return false;
-}
 bool ModPackListSource::wantsRestart() const {
     return false;
 }

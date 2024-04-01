@@ -89,7 +89,6 @@ public:
     /**
      * True if the source consists only of installed mods
      */
-    virtual bool isInstalledMods() const = 0;
     virtual bool wantsRestart() const = 0;
 };
 
@@ -129,7 +128,6 @@ public:
     InstalledModsQuery const& getQuery() const;
     InvalidateQueryAfter<InstalledModsQuery> getQueryMut();
 
-    bool isInstalledMods() const override;
     bool wantsRestart() const override;
 };
 
@@ -160,7 +158,6 @@ public:
     server::ModsQuery const& getQuery() const;
     InvalidateQueryAfter<server::ModsQuery> getQueryMut();
 
-    bool isInstalledMods() const override;
     bool wantsRestart() const override;
 };
 
@@ -178,6 +175,5 @@ public:
     std::unordered_set<std::string> getModTags() const override;
     void setModTags(std::unordered_set<std::string> const& tags) override;
 
-    bool isInstalledMods() const override;
     bool wantsRestart() const override;
 };

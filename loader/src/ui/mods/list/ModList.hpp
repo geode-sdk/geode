@@ -51,6 +51,7 @@ protected:
     void onPage(CCObject*);
     void onShowStatusDetails(CCObject*);
     void onFilters(CCObject*);
+    void onSort(CCObject*);
     void onClearFilters(CCObject*);
     void onToggleUpdates(CCObject*);
     void onUpdateAll(CCObject*);
