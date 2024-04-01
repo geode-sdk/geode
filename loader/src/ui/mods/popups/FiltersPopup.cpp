@@ -52,7 +52,7 @@ bool FiltersPopup::setup(ModListSource* src) {
     );
     tagsContainer->addChildAtPosition(tagsTitleMenu, Anchor::Top, ccp(0, 4));
 
-    m_mainLayer->addChildAtPosition(tagsContainer, Anchor::Center, ccp(0, 30));
+    m_mainLayer->addChildAtPosition(tagsContainer, Anchor::Center, ccp(0, -5));
 
     auto okSpr = createGeodeButton("OK");
     okSpr->setScale(.7f);
@@ -127,7 +127,7 @@ void FiltersPopup::onClose(CCObject* sender) {
 
 FiltersPopup* FiltersPopup::create(ModListSource* src) {
     auto ret = new FiltersPopup();
-    if (ret && ret->init(350, 250, src)) {
+    if (ret && ret->init(350, 170, src)) {
         ret->autorelease();
         return ret;
     }
