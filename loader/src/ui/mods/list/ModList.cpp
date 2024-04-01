@@ -71,10 +71,17 @@ bool ModList::init(ModListSource* src, CCSize const& size) {
     searchFiltersMenu->setAnchorPoint({ 1, .5f });
     searchFiltersMenu->setScale(.75f);
 
+    auto sortSpr = GeodeSquareSprite::createWithSpriteFrameName("GJ_sortIcon_001.png");
     auto sortBtn = CCMenuItemSpriteExtra::create(
-        GeodeSquareSprite::createWithSpriteFrameName("GJ_sortIcon_001.png"),
-        this, menu_selector(ModList::onSort)
+        sortSpr, this, menu_selector(ModList::onSort)
     );
+    if (!typeinfo_cast<ServerModListSource*>(m_source)) {
+        sortBtn->setEnabled(false);
+        sortSpr->setColor({ 150, 150, 150 });
+        sortSpr->setOpacity(105);
+        sortSpr->getTopSprite()->setColor({ 150, 150, 150 });
+        sortSpr->getTopSprite()->setOpacity(105);
+    }
     searchFiltersMenu->addChild(sortBtn);
 
     auto filterBtn = CCMenuItemSpriteExtra::create(

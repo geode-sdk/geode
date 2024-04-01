@@ -21,6 +21,7 @@ bool GeodeSquareSprite::init(CCSprite* top, bool* state) {
         return false;
     
     m_stateSrc = state;
+    m_topSprite = top;
 
     limitNodeSize(top, m_obContentSize * .65f, 2.f, .1f);
     this->addChildAtPosition(top, Anchor::Center);
@@ -61,6 +62,10 @@ GeodeSquareSprite* GeodeSquareSprite::createWithSpriteFrameName(const char* top,
     }
     CC_SAFE_DELETE(ret);
     return nullptr;
+}
+
+CCSprite* GeodeSquareSprite::getTopSprite() const {
+    return m_topSprite;
 }
 
 CCNode* createLoadingCircle(float sideLength, const char* id) {

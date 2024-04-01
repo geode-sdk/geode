@@ -38,6 +38,7 @@ class GeodeSquareSprite : public CCSprite {
 protected:
     bool* m_stateSrc = nullptr;
     bool m_state = false;
+    CCSprite* m_topSprite;
 
     bool init(CCSprite* top, bool* state);
 
@@ -46,6 +47,8 @@ protected:
 public:
     static GeodeSquareSprite* create(const char* top, bool* state = nullptr);
     static GeodeSquareSprite* createWithSpriteFrameName(const char* top, bool* state = nullptr);
+
+    CCSprite* getTopSprite() const;
 };
 
 CCNode* createLoadingCircle(float sideLength, const char* id = "loading-spinner");
