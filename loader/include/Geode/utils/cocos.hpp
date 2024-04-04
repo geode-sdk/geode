@@ -611,6 +611,7 @@ namespace geode::cocos {
                     }
                     ++indexCounter;
                 }
+                if (i == 0) break;
             }
         }
         else {
