@@ -48,6 +48,8 @@ namespace geode {
 
         void onLink(CCObject*);
         void onGDProfile(CCObject*);
+        void onGDLevel(CCObject*);
+        void onGeodeMod(CCObject*);
         void FLAlert_Clicked(FLAlertLayer*, bool btn) override;
 
         friend struct ::MDParser;

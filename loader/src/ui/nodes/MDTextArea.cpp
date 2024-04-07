@@ -206,15 +206,15 @@ void MDTextArea::onGDProfile(CCObject* pSender) {
 }
 
 void MDTextArea::onGDLevel(CCObject* pSender) {
-    auto href = as<CCString*>(as<CCNode*>(pSender)->getUserObject);
+    auto href = as<CCString*>(as<CCNode*>(pSender)->getUserObject());
     auto level = std::string(href->getCString());
     level = level.substr(level.find(":") + 1);
     int id = 0;
-    auto res std::from_chars(level.data(), level.data() + level.size(), id)
+    auto res = std::from_chars(level.data(), level.data() + level.size(), id);
     if (res.ec != std::errc()) {
         FLAlertLayer::create(
             "Error",
-            "Invalid level ID: <cr>" + profile +
+            "Invalid level ID: <cr>" + level +
                 "</c>. This is "
                 "probably the mod developers's fault, report the bug to them.",
             "OK"
@@ -227,12 +227,12 @@ void MDTextArea::onGDLevel(CCObject* pSender) {
 }
 
 void MDTextArea::onGeodeMod(CCObject* pSender) {
-    auto href = as<CCString*>(as<CCNode*>(pSender)->getUserObject);
+    auto href = as<CCString*>(as<CCNode*>(pSender)->getUserObject());
     auto modString = std::string(href->getCString());
     modString = modString.substr(modString.find(":") + 1);
     auto loader = Loader::get();
     auto index = Index::get();
-    auto mod = false;
+    auto mod;
     bool isIndexMod = !loader->isModInstalled(modString);
 
     if (isIndexMod) {
@@ -241,19 +241,19 @@ void MDTextArea::onGeodeMod(CCObject* pSender) {
         auto indexSearch = index->getItemsByModID(modString);
         if (indexSearch.size() != 0) {
             auto modMetadata = indexSearch.back()->getMetadata();
-            Mod craftedMod = Mod(modMetatdata);
+            Mod craftedMod = Mod(modMetadata);
             mod = &craftedMod;
         }
     }
 
     if (mod) {
         isIndexMod
-        ? geode::openIndexPopup(mod)
-        : geode::openInfoPopup(mod);
+        ? openIndexPopup(mod)
+        : openInfoPopup(mod);
     } else {
         FLAlertLayer::create(
             "Error",
-            "Invalid mod ID: <cr>" + profile +
+            "Invalid mod ID: <cr>" + modString +
                 "</c>. This is "
                 "probably the mod developers's fault, report the bug to them.",
             "OK"
