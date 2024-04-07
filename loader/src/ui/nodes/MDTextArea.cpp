@@ -224,7 +224,8 @@ void MDTextArea::onGDLevel(CCObject* pSender) {
         return;
     }
     auto levelObject = LevelTools::getLevel(id, false);
-    LevelInfoLayer::create(levelObject, false);
+    auto scene = LevelInfoLayer::scene(levelObject, false);
+    CCDirector::sharedDirector()->pushScene(scene);
 }
 
 void MDTextArea::onGeodeMod(CCObject* pSender) {
@@ -239,14 +240,14 @@ void MDTextArea::onGeodeMod(CCObject* pSender) {
     bool isIndexMod = !loader->isModInstalled(modString);
 
     if (isIndexMod) {
-        mod = loader->getLoadedMod(modString);
-        success = true;
-    } else {
         auto indexSearch = index->getItemsByModID(modString);
         if (indexSearch.size() != 0) {
             success = true;
             indexItem = indexSearch.back();
         }
+    } else {
+        mod = loader->getLoadedMod(modString);
+        success = true;
     }
 
     if (success) {
