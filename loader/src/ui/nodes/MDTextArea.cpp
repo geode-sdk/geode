@@ -242,22 +242,20 @@ void MDTextArea::onGeodeMod(CCObject* pSender) {
     if (isIndexMod) {
         auto indexSearch = index->getItemsByModID(modString);
         if (indexSearch.size() != 0) {
-            success = true;
             indexItem = indexSearch.back();
             Mod mod2 = Mod(indexItem->getMetadata());
             mod = &mod2;
             auto item = Index::get()->getItem(mod);
+            IndexItemInfoPopup::create(item, nullptr)->show();
+            success = true;
         }
     } else {
         mod = loader->getLoadedMod(modString);
+        LocalModInfoPopup::create(mod, nullptr)->show();
         success = true;
     }
 
-    if (success) {
-        isIndexMod
-        ? LocalModInfoPopup::create(mod, nullptr)->show()
-        : IndexItemInfoPopup::create(item, nullptr)->show();
-    } else {
+    if (!success) {
         FLAlertLayer::create(
             "Error",
             "Invalid mod ID: <cr>" + modString +
