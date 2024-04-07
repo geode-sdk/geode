@@ -14,6 +14,7 @@
 #include <md4c.h>
 #include <charconv>
 #include <Geode/loader/Log.hpp>
+#include "../internal/list/ModListLayer.hpp"
 
 using namespace geode::prelude;
 
@@ -233,6 +234,7 @@ void MDTextArea::onGeodeMod(CCObject* pSender) {
     auto loader = Loader::get();
     auto index = Index::get();
     Mod* mod;
+    IndexItem* indexItem;
     bool isIndexMod = !loader->isModInstalled(modString);
 
     if (isIndexMod) {
@@ -240,16 +242,14 @@ void MDTextArea::onGeodeMod(CCObject* pSender) {
     } else {
         auto indexSearch = index->getItemsByModID(modString);
         if (indexSearch.size() != 0) {
-            auto modMetadata = indexSearch.back()->getMetadata();
-            Mod craftedMod = Mod(modMetadata);
-            mod = &craftedMod;
+            indexItem = indexSearch.back();
         }
     }
 
-    if (mod) {
+    if (mod || indexItem) {
         isIndexMod
-        ? openIndexPopup(mod)
-        : openInfoPopup(mod);
+        ? LocalModInfoPopup::create(mod, nullptr)->show()
+        : IndexModInfoPopup::create(indexItem, nullptr)->show();
     } else {
         FLAlertLayer::create(
             "Error",
