@@ -26,8 +26,8 @@ namespace geode {
      *  - Lists
      * 
      * Note that links also have some special protocols.
-     * Use `user:<id>` or `user:<name>` to link to a GD
-     * account; `level:<id>` to link to a GD level and
+     * Use `user:<accountID>` to link to a GD
+     * account; `level:<id>` or `level:<name>` to link to a GD level (or a GD level search if using `level:<name>`) and
      * `mod:<id>` to link to another Geode mod.
      */
     class GEODE_DLL MDTextArea :

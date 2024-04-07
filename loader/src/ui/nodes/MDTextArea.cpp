@@ -1,6 +1,10 @@
 #include <Geode/binding/ProfilePage.hpp>
+#include <Geode/binding/LevelTools.hpp>
+#include <Geode/binding/LevelInfoLayer.hpp>
 #include <Geode/binding/CCContentLayer.hpp>
 #include <Geode/loader/Mod.hpp>
+#include <Geode/loader/Loader.hpp>
+#include <Geode/loader/Index.hpp>
 #include <Geode/ui/MDTextArea.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/cocos.hpp>
@@ -192,13 +196,70 @@ void MDTextArea::onGDProfile(CCObject* pSender) {
             "Error",
             "Invalid profile ID: <cr>" + profile +
                 "</c>. This is "
-                "probably the modder's fault, report the bug to them.",
+                "probably the mod developer's fault, report the bug to them.",
             "OK"
         )
             ->show();
         return;
     }
     ProfilePage::create(id, false)->show();
+}
+
+void MDTextArea::onGDLevel(CCObject* pSender) {
+    auto href = as<CCString*>(as<CCNode*>(pSender)->getUserObject);
+    auto level = std::string(href->getCString());
+    level = level.substr(level.find(":") + 1);
+    int id = 0;
+    auto res std::from_chars(level.data(), level.data() + level.size(), id)
+    if (res.ec != std::errc()) {
+        FLAlertLayer::create(
+            "Error",
+            "Invalid level ID: <cr>" + profile +
+                "</c>. This is "
+                "probably the mod developers's fault, report the bug to them.",
+            "OK"
+        )
+            ->show();
+        return;
+    }
+    auto levelObject = LevelTools::getLevel(id, false);
+    LevelInfoLayer::create(levelObject, false);
+}
+
+void MDTextArea::onGeodeMod(CCObject* pSender) {
+    auto href = as<CCString*>(as<CCNode*>(pSender)->getUserObject);
+    auto modString = std::string(href->getCString());
+    modString = modString.substr(modString.find(":") + 1);
+    auto loader = Loader::get();
+    auto index = Index::get();
+    auto mod = false;
+    bool isIndexMod = !loader->isModInstalled(modString);
+
+    if (isIndexMod) {
+        mod = loader->getLoadedMod(modString);
+    } else {
+        auto indexSearch = index->getItemsByModID(modString);
+        if (indexSearch.size() != 0) {
+            auto modMetadata = indexSearch.back()->getMetadata();
+            Mod craftedMod = Mod(modMetatdata);
+            mod = &craftedMod;
+        }
+    }
+
+    if (mod) {
+        isIndexMod
+        ? geode::openIndexPopup(mod)
+        : geode::openInfoPopup(mod);
+    } else {
+        FLAlertLayer::create(
+            "Error",
+            "Invalid mod ID: <cr>" + profile +
+                "</c>. This is "
+                "probably the mod developers's fault, report the bug to them.",
+            "OK"
+        )
+            ->show();
+    }
 }
 
 void MDTextArea::FLAlert_Clicked(FLAlertLayer* layer, bool btn) {
@@ -256,7 +317,11 @@ struct MDParser {
                             text, textarea,
                             utils::string::startsWith(s_lastLink, "user:")
                                 ? menu_selector(MDTextArea::onGDProfile)
-                                : menu_selector(MDTextArea::onLink)
+                                : utils::string::startsWith(s_lastLink, "level:")
+                                    ? menu_selector(MDTextArea::onGDLevel)
+                                    : utils::string::startsWith(s_lastLink, "mod:")
+                                        ? menu_selector(MDTextArea::onGeodeMod)
+                                        : menu_selector(MDTextArea::onLink)
                         );
                         for (auto const& label : rendered) {
                             label.m_node->setUserObject(CCString::create(s_lastLink));
