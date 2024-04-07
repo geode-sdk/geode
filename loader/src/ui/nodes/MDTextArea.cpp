@@ -244,6 +244,8 @@ void MDTextArea::onGeodeMod(CCObject* pSender) {
         if (indexSearch.size() != 0) {
             success = true;
             indexItem = indexSearch.back();
+            Mod mod2 = Mod(indexItem->getMetadata());
+            mod = &mod2
         }
     } else {
         mod = loader->getLoadedMod(modString);
@@ -253,7 +255,7 @@ void MDTextArea::onGeodeMod(CCObject* pSender) {
     if (success) {
         isIndexMod
         ? LocalModInfoPopup::create(mod, nullptr)->show()
-        : IndexItemInfoPopup::create(indexItem, nullptr)->show();
+        : if (auto item = Index::get()->getItem(mod)) {IndexItemInfoPopup::create(item, nullptr)->show();}
     } else {
         FLAlertLayer::create(
             "Error",
