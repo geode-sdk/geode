@@ -225,7 +225,7 @@ void MDTextArea::onGDLevel(CCObject* pSender) {
     }
     auto levelObject = LevelTools::getLevel(id, false);
     auto scene = LevelInfoLayer::scene(levelObject, false);
-    CCDirector::sharedDirector()->pushScene(scene);
+    CCDirector::sharedDirector()->replaceScene(CCTransitionFade::create(0.5f, scene));
 }
 
 void MDTextArea::onGeodeMod(CCObject* pSender) {
