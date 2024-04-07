@@ -223,8 +223,8 @@ void MDTextArea::onGDLevel(CCObject* pSender) {
             ->show();
         return;
     }
-    auto levelObject = LevelTools::getLevel(id, false);
-    auto scene = LevelInfoLayer::scene(levelObject, false);
+    auto searchObject = GJSearchObject::create(SearchType::Type19, fmt::format("{}&gameVersion=22", id);
+    auto scene = LevelBrowserLayer::scene(searchObject);
     CCDirector::sharedDirector()->replaceScene(CCTransitionFade::create(0.5f, scene));
 }
 
