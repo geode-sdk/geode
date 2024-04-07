@@ -232,7 +232,7 @@ void MDTextArea::onGeodeMod(CCObject* pSender) {
     modString = modString.substr(modString.find(":") + 1);
     auto loader = Loader::get();
     auto index = Index::get();
-    auto mod;
+    Mod* mod;
     bool isIndexMod = !loader->isModInstalled(modString);
 
     if (isIndexMod) {
