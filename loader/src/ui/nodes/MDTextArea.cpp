@@ -14,7 +14,7 @@
 #include <md4c.h>
 #include <charconv>
 #include <Geode/loader/Log.hpp>
-#include "../internal/list/ModListLayer.hpp"
+#include "../internal/info/ModInfoPopup.hpp"
 
 using namespace geode::prelude;
 
@@ -234,7 +234,7 @@ void MDTextArea::onGeodeMod(CCObject* pSender) {
     auto loader = Loader::get();
     auto index = Index::get();
     Mod* mod;
-    IndexItem* indexItem;
+    IndexItem indexItem;
     bool isIndexMod = !loader->isModInstalled(modString);
 
     if (isIndexMod) {
