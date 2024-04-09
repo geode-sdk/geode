@@ -1,4 +1,4 @@
-!insertmacro LANGFILE_EXT Chinese (Traditional)
+!insertmacro LANGFILE_EXT TradChinese
 
 !pragma warning disable 6030
 ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Setup會幫您安裝$(^NameDA)。$\r$\n$\r$\n安裝Geode之前，請確認Geometry Dash已經關閉。$\r$\n$\r$\n$_CLICK"
