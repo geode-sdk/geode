@@ -19,7 +19,7 @@ endif()
 
 # I think CMake is trying to link zlib from the host system?
 # This prevents it from doing that.
-if (CMAKE_CROSSCOMPILING)
+if (WIN32 AND CMAKE_CROSSCOMPILING)
 	set(MZ_FORCE_FETCH_LIBS ON)
 endif()
 
