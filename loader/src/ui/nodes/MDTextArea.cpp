@@ -243,7 +243,7 @@ struct MDParser {
 
             case MD_TEXTTYPE::MD_TEXT_SOFTBR:
                 {
-                    renderer->breakLine();
+                    renderer->renderString(" ");
                 }
                 break;
 
