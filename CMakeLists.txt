@@ -199,6 +199,16 @@ if (WIN32)
 	endif()
 endif()
 
+# We do not support anything below SDK 23
+if (ANDROID)
+	string(REGEX MATCH "[0-9]+" ANDROID_PLATFORM_NUMBER "${ANDROID_PLATFORM}")
+	if (ANDROID_PLATFORM_NUMBER LESS 23)
+		message(FATAL_ERROR "Specified target Android SDK version is too low (${ANDROID_PLATFORM_NUMBER}), must be 23 or higher")
+	endif()
+endif()
+
+add_link_options("-Wl,--eh-frame-hdr")
+
 set(MAT_JSON_AS_INTERFACE ON)
 CPMAddPackage("gh:geode-sdk/json#96a9500")
 CPMAddPackage("gh:fmtlib/fmt#10.1.1")
