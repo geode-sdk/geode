@@ -2,7 +2,7 @@
 
 !pragma warning disable 6030
 ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Setup會幫您安裝$(^NameDA)。$\r$\n$\r$\n安裝Geode之前，請確認Geometry Dash已經關閉。$\r$\n$\r$\n$_CLICK"
-${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Setup會幫您卸載$(^NameDA)。$\r$\n$\r$\n卸載 Geode之前，請確認Geometry Dash已經關閉。$\r$\n$\r$\n$_CLICK"
+${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Setup會幫您卸載$(^NameDA)。$\r$\n$\r$\n卸載Geode之前，請確認Geometry Dash已經關閉。$\r$\n$\r$\n$_CLICK"
 !pragma warning default 6030
 
 ; installer
