@@ -199,6 +199,14 @@ if (WIN32)
 	endif()
 endif()
 
+# We do not support anything below SDK 23
+if (ANDROID)
+	string(REGEX MATCH "[0-9]+" ANDROID_PLATFORM_NUMBER "${ANDROID_PLATFORM}")
+	if (ANDROID_PLATFORM_NUMBER LESS 23)
+		message(FATAL_ERROR "Specified target Android SDK version is too low (${ANDROID_PLATFORM_NUMBER}), must be 23 or higher")
+	endif()
+endif()
+
 set(MAT_JSON_AS_INTERFACE ON)
 CPMAddPackage("gh:geode-sdk/json#96a9500")
 CPMAddPackage("gh:fmtlib/fmt#10.1.1")
@@ -231,7 +239,7 @@ if (DEFINED GEODE_TULIPHOOK_REPO_PATH)
 	message(STATUS "Using ${GEODE_TULIPHOOK_REPO_PATH} for TulipHook")
 	add_subdirectory(${GEODE_TULIPHOOK_REPO_PATH} ${GEODE_TULIPHOOK_REPO_PATH}/build)
 else()
-	CPMAddPackage("gh:geode-sdk/TulipHook#7fa328b")
+	CPMAddPackage("gh:geode-sdk/TulipHook#272cba9")
 endif()
 set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
 
