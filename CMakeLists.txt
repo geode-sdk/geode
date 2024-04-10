@@ -207,8 +207,6 @@ if (ANDROID)
 	endif()
 endif()
 
-add_link_options("-Wl,--eh-frame-hdr")
-
 set(MAT_JSON_AS_INTERFACE ON)
 CPMAddPackage("gh:geode-sdk/json#96a9500")
 CPMAddPackage("gh:fmtlib/fmt#10.1.1")
