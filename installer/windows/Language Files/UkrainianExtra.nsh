@@ -7,10 +7,10 @@ ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Ця програма допом
 
 ; installer
 
-${LangFileString} GEODE_TEXT_GD_MISSING "$\r$\n$\r$\nУ цій директорії не встановлено Geometry Dash!"
-${LangFileString} GEODE_TEXT_MH_ALREADY_INSTALLED "Ця директорія вже містить Mega Hack v6/v7!$\r$\nGeode не працює з MHv6/v7 (MHv8 буде сумісний з Geode).$\r$\nБудь ласка, видаліть його перед продовженням."
-${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "Ця директорія вже містить інший завантажувач модів!$\r$\nGeode не працює з іншими завантажувачами модів.$\r$\nБудь ласка, видаліть його перед продовженням. (the dll trademark)"
+${LangFileString} GEODE_TEXT_GD_MISSING "$\r$\n$\r$\nУ цій теці не встановлено Geometry Dash!"
+${LangFileString} GEODE_TEXT_MH_ALREADY_INSTALLED "Ця тека вже містить Mega Hack v6/v7!$\r$\nGeode не працює з MHv6/v7 (MHv8 буде сумісний з Geode).$\r$\nБудь ласка, видаліть його перед продовженням."
+${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "Ця тека вже містить інший завантажувач модів!$\r$\nGeode не працює з іншими завантажувачами модів.$\r$\nБудь ласка, видаліть його перед продовженням. (the dll trademark)"
 
 ; uninstaller
 
-${LangFileString} GEODE_UNTEXT_GEODE_MISSING "У цій директорії не встановлено Geode!"
+${LangFileString} GEODE_UNTEXT_GEODE_MISSING "У цій теці не встановлено Geode!"
