@@ -56,6 +56,8 @@
     !insertmacro GEODE_LANGUAGE "Czech"
     !insertmacro GEODE_LANGUAGE "Turkish"
     !insertmacro GEODE_LANGUAGE "Japanese"
+    !insertmacro GEODE_LANGUAGE "SimpChinese"
+    !insertmacro GEODE_LANGUAGE "TradChinese"
 
     !insertmacro MUI_RESERVEFILE_LANGDLL
 
