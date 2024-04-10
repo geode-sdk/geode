@@ -234,8 +234,6 @@ enum class ChestSpriteState {};
 enum class FormatterType {};
 enum class AudioModType {};
 enum class GJAreaActionType {};
-enum class SFXTriggerState {};
-enum class SongTriggerState {};
 enum class GJSmartDirection {};
 enum class SmartBlockType {};
 enum class TouchTriggerControl {};
