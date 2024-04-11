@@ -606,7 +606,8 @@ IndexItemInfoPopup::IndexItemInfoPopup()
 
 bool IndexItemInfoPopup::init(IndexItemHandle item, ModListLayer* list) {
     m_item = item;
-    m_installListener.setFilter(m_item->getMetadata().getID());
+    auto metadata = m_item->getMetadata();
+    m_installListener.setFilter(metadata.getID());
 
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
