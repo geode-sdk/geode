@@ -274,7 +274,7 @@ void ModCell::updateState() {
         m_enableToggle->m_onButton->setOpacity(!toggleable ? 100 : 255);
         m_enableToggle->m_onButton->setColor(!toggleable ? cc3x(155) : cc3x(255));
     }
-    bool hasProblems = ModImpl::getImpl(m_mod)->hasProblems();
+    bool hasProblems = m_mod->hasProblems();
     m_unresolvedExMark->setVisible(hasProblems);
 
     this->updateCellLayout();

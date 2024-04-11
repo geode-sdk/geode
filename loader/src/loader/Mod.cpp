@@ -230,6 +230,14 @@ bool Mod::hasSavedValue(std::string_view const key) {
     return this->getSaveContainer().contains(key);
 }
 
+bool Mod::hasProblems() const {
+    return m_impl->hasProblems();
+}
+
 bool Mod::shouldLoad() const {
     return m_impl->shouldLoad();
+}
+
+bool Mod::isCurrentlyLoading() const {
+    return m_impl->isCurrentlyLoading();
 }
