@@ -48,7 +48,8 @@ Result<> Mod::Impl::setup() {
     }
     if (!m_resourcesLoaded) {
         auto searchPathRoot = dirs::getModRuntimeDir() / m_metadata.getID() / "resources";
-        CCFileUtils::get()->addSearchPath(searchPathRoot.string().c_str());
+        // TODO: i think this crashes for some people
+        // CCFileUtils::get()->addSearchPath(searchPathRoot.string().c_str());
 
         const auto binariesDir = searchPathRoot / m_metadata.getID() / "binaries" / PlatformID::toShortString(GEODE_PLATFORM_TARGET);
         if (ghc::filesystem::exists(binariesDir))

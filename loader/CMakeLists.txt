@@ -17,6 +17,12 @@ else()
 	set(PROJECT_VERSION_SUFFIX "")
 endif()
 
+# I think CMake is trying to link zlib from the host system?
+# This prevents it from doing that.
+if (WIN32 AND CMAKE_CROSSCOMPILING)
+	set(MZ_FORCE_FETCH_LIBS ON)
+endif()
+
 # https://stackoverflow.com/a/63924044/9124836
 # https://stackoverflow.com/a/72396471
 execute_process(
