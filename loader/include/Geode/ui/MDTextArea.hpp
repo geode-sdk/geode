@@ -26,7 +26,7 @@ namespace geode {
      *  - Lists
      * 
      * Note that links also have some special protocols.
-     * Use `user:<id>` or `user:<name>` to link to a GD
+     * Use `user:<accountID>` to link to a GD
      * account; `level:<id>` to link to a GD level and
      * `mod:<id>` to link to another Geode mod.
      */
@@ -48,6 +48,8 @@ namespace geode {
 
         void onLink(CCObject*);
         void onGDProfile(CCObject*);
+        void onGDLevel(CCObject*);
+        void onGeodeMod(CCObject*);
         void FLAlert_Clicked(FLAlertLayer*, bool btn) override;
 
         friend struct ::MDParser;
