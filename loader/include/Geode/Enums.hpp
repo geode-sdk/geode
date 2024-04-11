@@ -337,7 +337,7 @@ enum class ShopType {
 
 // Geode Addition
 enum class ZLayer {
-    B5 = -4,
+    B5 = -5,
     B4 = -3,
     B3 = -1,
     B2 = 1,
@@ -346,7 +346,7 @@ enum class ZLayer {
     T1 = 5,
     T2 = 7,
     T3 = 9,
-    T4 = 10,
+    T4 = 11,
 };
 
 enum class UpdateResponse {
