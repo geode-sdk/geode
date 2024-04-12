@@ -24,20 +24,19 @@ namespace {
 // Without these, the game will very likely crash when the mod tries to free memory allocated by the game (or another non-debug mod).
 
 static inline void* relallocthrow(size_t size) {
-    // void* p;
-    // while ((p = HeapAlloc(GetProcessHeap(), 0, size)) == 0) {
-    //     if (_callnewh(size) == 0) {
-    //         static const std::bad_alloc exc;
-    //         throw exc;
-    //     }
-    // }
+    void* p;
+    while ((p = HeapAlloc(GetProcessHeap(), 0, size)) == 0) {
+        if (_callnewh(size) == 0) {
+            static const std::bad_alloc exc;
+            throw exc;
+        }
+    }
 
-    return geode::stl::operatorNew(size);
+    return p;
 }
 
 static inline void relfree(void* block) {
-    // HeapFree(GetProcessHeap(), 0, block);
-    geode::stl::operatorDelete(block);
+    HeapFree(GetProcessHeap(), 0, block);
 }
 
 void* operator new(size_t size) {
