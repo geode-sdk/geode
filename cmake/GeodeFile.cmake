@@ -94,8 +94,7 @@ function(setup_geode_mod proname)
         message(STATUS "Mod ${MOD_ID} is compiling for Geode version ${GEODE_VERSION}")
     else()
         message(FATAL_ERROR
-            "Mod ${MOD_ID} is not compatible with Geode version ${GEODE_VERSION} - "
-            "it was made for version ${TARGET_GEODE_VERSION}"
+            "Mod ${MOD_ID} is made for Geode version ${TARGET_GEODE_VERSION} but you have ${GEODE_VERSION} SDK installed. Please change the Geode version in your mod.json. "
         )
     endif()
 
