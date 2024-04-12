@@ -146,13 +146,27 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
         LoaderImpl::get()->updateResources(true);
         this->continueLoadAssets();
     }
+
+    int getLoadedMods() {
+        auto allMods = Loader::get()->getAllMods();
+        return std::count_if(allMods.begin(), allMods.end(), [&](auto& item) {
+            return item->isEnabled();
+        });
+    }
+
+    int getEnabledMods() {
+        auto allMods = Loader::get()->getAllMods();
+        return std::count_if(allMods.begin(), allMods.end(), [&](auto& item) {
+            return item->shouldLoad();
+        });
+    }
     
     int getCurrentStep() {
-        return m_fields->m_geodeLoadStep + m_loadStep + 1 + LoaderImpl::get()->m_refreshedModCount;
+        return m_fields->m_geodeLoadStep + m_loadStep + getLoadedMods();
     }
 
     int getTotalStep() {
-        return 18 + m_fields->m_totalMods;
+        return 3 + 14 + getEnabledMods();
     }
 
     void updateLoadingBar() {
