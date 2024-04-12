@@ -2,6 +2,8 @@
 #include <Geode/binding/LevelTools.hpp>
 #include <Geode/binding/LevelInfoLayer.hpp>
 #include <Geode/binding/CCContentLayer.hpp>
+#include <Geode/binding/GJSearchObject.hpp>
+#include <Geode/binding/LevelBrowserLayer.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Index.hpp>
