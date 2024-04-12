@@ -1,5 +1,5 @@
 {
-    "geode":        "2.0.0",
+    "geode":        "@GEODE_VERSION_FULL@",
     "gd": "*",
 	"version":      "1.0.0",
 	"id":           "geode.test",

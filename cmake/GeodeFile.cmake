@@ -90,11 +90,11 @@ function(setup_geode_mod proname)
     string(JSON MOD_HAS_API ERROR_VARIABLE MOD_DOESNT_HAVE_API GET "${MOD_JSON}" "api")
     string(JSON MOD_HAS_DEPS ERROR_VARIABLE MOD_DOESNT_HAVE_DEPS GET "${MOD_JSON}" "dependencies")
 
-    if ("${TARGET_GEODE_VERSION}" STREQUAL "${GEODE_VERSION}")
-        message(STATUS "Mod ${MOD_ID} is compiling for Geode version ${GEODE_VERSION}")
+    if ("${TARGET_GEODE_VERSION}" STREQUAL "${GEODE_VERSION_FULL}")
+        message(STATUS "Mod ${MOD_ID} is compiling for Geode version ${GEODE_VERSION_FULL}")
     else()
         message(FATAL_ERROR
-            "Mod ${MOD_ID} is made for Geode version ${TARGET_GEODE_VERSION} but you have ${GEODE_VERSION} SDK installed. Please change the Geode version in your mod.json. "
+            "Mod ${MOD_ID} is made for Geode version ${TARGET_GEODE_VERSION} but you have ${GEODE_VERSION_FULL} SDK installed. Please change the Geode version in your mod.json. "
         )
     endif()
 

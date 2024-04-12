@@ -12,9 +12,9 @@ else()
 endif()
 
 if (GEODE_VERSION_TAG)
-	set(PROJECT_VERSION_SUFFIX "-${GEODE_VERSION_TAG}")
+	set(PROJECT_VERSION_SUFFIX "-${GEODE_VERSION_TAG}" CACHE INTERNAL "" )
 else()
-	set(PROJECT_VERSION_SUFFIX "")
+	set(PROJECT_VERSION_SUFFIX "" CACHE INTERNAL "" )
 endif()
 
 # I think CMake is trying to link zlib from the host system?

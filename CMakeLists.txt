@@ -19,6 +19,7 @@ option(GEODE_USE_BREAKPAD "Enables the use of the Breakpad library for crash dum
 file(READ VERSION GEODE_VERSION)
 string(STRIP "${GEODE_VERSION}" GEODE_VERSION)
 set(GEODE_VERSION "${GEODE_VERSION}" CACHE INTERNAL "Geode version")
+set(GEODE_VERSION_FULL "${GEODE_VERSION}" CACHE INTERNAL "Geode version full")
 
 # Check if version has a tag like v1.0.0-alpha
 string(FIND ${GEODE_VERSION} "-" GEODE_VERSION_HAS_TAG)
