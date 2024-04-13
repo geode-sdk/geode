@@ -1,4 +1,3 @@
-
 #include "info/ModInfoPopup.hpp"
 #include "list/ModListLayer.hpp"
 #include "settings/ModSettingsPopup.hpp"

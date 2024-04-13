@@ -18,6 +18,8 @@ option(GEODE_USE_BREAKPAD "Enables the use of the Breakpad library for crash dum
 # Read version
 file(READ VERSION GEODE_VERSION)
 string(STRIP "${GEODE_VERSION}" GEODE_VERSION)
+set(GEODE_VERSION "${GEODE_VERSION}" CACHE INTERNAL "Geode version")
+set(GEODE_VERSION_FULL "${GEODE_VERSION}" CACHE INTERNAL "Geode version full")
 
 # Check if version has a tag like v1.0.0-alpha
 string(FIND ${GEODE_VERSION} "-" GEODE_VERSION_HAS_TAG)
@@ -208,7 +210,7 @@ if (ANDROID)
 endif()
 
 set(MAT_JSON_AS_INTERFACE ON)
-CPMAddPackage("gh:geode-sdk/json#96a9500")
+CPMAddPackage("gh:geode-sdk/json#28f157b")
 CPMAddPackage("gh:fmtlib/fmt#10.1.1")
 CPMAddPackage("gh:gulrak/filesystem#3e5b930")
 
@@ -239,7 +241,7 @@ if (DEFINED GEODE_TULIPHOOK_REPO_PATH)
 	message(STATUS "Using ${GEODE_TULIPHOOK_REPO_PATH} for TulipHook")
 	add_subdirectory(${GEODE_TULIPHOOK_REPO_PATH} ${GEODE_TULIPHOOK_REPO_PATH}/build)
 else()
-	CPMAddPackage("gh:geode-sdk/TulipHook#272cba9")
+	CPMAddPackage("gh:geode-sdk/TulipHook#3ec2e6e")
 endif()
 set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
 

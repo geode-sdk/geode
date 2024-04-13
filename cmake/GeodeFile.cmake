@@ -86,8 +86,17 @@ function(setup_geode_mod proname)
     file(READ "${CMAKE_CURRENT_SOURCE_DIR}/mod.json" MOD_JSON)
     string(JSON MOD_ID GET "${MOD_JSON}" "id")
     string(JSON MOD_VERSION GET "${MOD_JSON}" "version")
+    string(JSON TARGET_GEODE_VERSION GET "${MOD_JSON}" "geode")
     string(JSON MOD_HAS_API ERROR_VARIABLE MOD_DOESNT_HAVE_API GET "${MOD_JSON}" "api")
     string(JSON MOD_HAS_DEPS ERROR_VARIABLE MOD_DOESNT_HAVE_DEPS GET "${MOD_JSON}" "dependencies")
+
+    if ("${TARGET_GEODE_VERSION}" STREQUAL "${GEODE_VERSION_FULL}")
+        message(STATUS "Mod ${MOD_ID} is compiling for Geode version ${GEODE_VERSION_FULL}")
+    else()
+        message(FATAL_ERROR
+            "Mod ${MOD_ID} is made for Geode version ${TARGET_GEODE_VERSION} but you have ${GEODE_VERSION_FULL} SDK installed. Please change the Geode version in your mod.json. "
+        )
+    endif()
 
     # Add this mod to the list of known externals mods
     list(APPEND GEODE_MODS_BEING_BUILT "${MOD_ID}:${MOD_VERSION}")

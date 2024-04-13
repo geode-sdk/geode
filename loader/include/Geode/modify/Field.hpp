@@ -44,8 +44,8 @@ namespace geode::modifier {
             return m_containedFields.at(index);
         }
 
-        static FieldContainer* from(cocos2d::CCNode* node) {
-            return node->getFieldContainer();
+        static FieldContainer* from(cocos2d::CCNode* node, char const* forClass) {
+            return node->getFieldContainer(forClass);
         }
     };
 
@@ -97,7 +97,7 @@ namespace geode::modifier {
             static_assert(sizeof(Base) == offsetof(Parent, m_fields), "offsetof not correct");
 
             // generating the container if it doesn't exist
-            auto container = FieldContainer::from(node);
+            auto container = FieldContainer::from(node, typeid(Base).name());
 
             // the index is global across all mods, so the
             // function is defined in the loader source

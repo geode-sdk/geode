@@ -4,7 +4,7 @@ struct TodoReturnPlaceholder;
 
 #ifdef GEODE_REVERT_TODO_RETURN
     using TodoReturn = void;
-    #warning "Reverting TodoReturn to void. This behavior is deprecated and will be removed in a later update."
+    #pragma message("Reverting TodoReturn to void. This behavior is deprecated and will be removed in a later update.")
 #else
     #define GEODE_REVERT_TODO_RETURN 0
     using TodoReturn = TodoReturnPlaceholder;
@@ -334,6 +334,7 @@ enum class ShopType {
 
 // Geode Addition
 enum class ZLayer {
+    B5 = -5,
     B4 = -3,
     B3 = -1,
     B2 = 1,
@@ -342,6 +343,7 @@ enum class ZLayer {
     T1 = 5,
     T2 = 7,
     T3 = 9,
+    T4 = 11,
 };
 
 enum class UpdateResponse {
@@ -521,7 +523,8 @@ enum class GJChallengeType {
     Unknown = 0,
     Orbs = 1,
     UserCoins = 2,
-    Stars = 3
+    Stars = 3,
+    Moons = 4,
 };
 
 enum class GJScoreType {
