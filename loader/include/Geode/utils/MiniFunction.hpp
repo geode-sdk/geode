@@ -3,6 +3,7 @@
 #include <Geode/DefaultInclude.hpp>
 #include <memory>
 #include <concepts>
+#include "terminate.hpp"
 
 namespace geode::utils {
 
@@ -124,7 +125,9 @@ namespace geode::utils {
         }
 
         Ret operator()(Args... args) const {
-            if (!m_state) return Ret();
+            if (!m_state) {
+                utils::terminate("Attempted to call a MiniFunction that has already been moved");
+            }
             return m_state->call(args...);
         }
 
