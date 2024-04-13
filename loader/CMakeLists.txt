@@ -12,9 +12,15 @@ else()
 endif()
 
 if (GEODE_VERSION_TAG)
-	set(PROJECT_VERSION_SUFFIX "-${GEODE_VERSION_TAG}")
+	set(PROJECT_VERSION_SUFFIX "-${GEODE_VERSION_TAG}" CACHE INTERNAL "" )
 else()
-	set(PROJECT_VERSION_SUFFIX "")
+	set(PROJECT_VERSION_SUFFIX "" CACHE INTERNAL "" )
+endif()
+
+# I think CMake is trying to link zlib from the host system?
+# This prevents it from doing that.
+if (WIN32 AND CMAKE_CROSSCOMPILING)
+	set(MZ_FORCE_FETCH_LIBS ON)
 endif()
 
 # https://stackoverflow.com/a/63924044/9124836

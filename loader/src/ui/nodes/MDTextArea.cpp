@@ -1,6 +1,12 @@
 #include <Geode/binding/ProfilePage.hpp>
+#include <Geode/binding/LevelTools.hpp>
+#include <Geode/binding/LevelInfoLayer.hpp>
 #include <Geode/binding/CCContentLayer.hpp>
+#include <Geode/binding/GJSearchObject.hpp>
+#include <Geode/binding/LevelBrowserLayer.hpp>
 #include <Geode/loader/Mod.hpp>
+#include <Geode/loader/Loader.hpp>
+#include <Geode/loader/Index.hpp>
 #include <Geode/ui/MDTextArea.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/cocos.hpp>
@@ -10,6 +16,7 @@
 #include <md4c.h>
 #include <charconv>
 #include <Geode/loader/Log.hpp>
+#include "../internal/info/ModInfoPopup.hpp"
 
 using namespace geode::prelude;
 
@@ -192,13 +199,74 @@ void MDTextArea::onGDProfile(CCObject* pSender) {
             "Error",
             "Invalid profile ID: <cr>" + profile +
                 "</c>. This is "
-                "probably the modder's fault, report the bug to them.",
+                "probably the mod developer's fault, report the bug to them.",
             "OK"
         )
             ->show();
         return;
     }
     ProfilePage::create(id, false)->show();
+}
+
+void MDTextArea::onGDLevel(CCObject* pSender) {
+    auto href = as<CCString*>(as<CCNode*>(pSender)->getUserObject());
+    auto level = std::string(href->getCString());
+    level = level.substr(level.find(":") + 1);
+    int id = 0;
+    auto res = std::from_chars(level.data(), level.data() + level.size(), id);
+    if (res.ec != std::errc()) {
+        FLAlertLayer::create(
+            "Error",
+            "Invalid level ID: <cr>" + level +
+                "</c>. This is "
+                "probably the mod developers's fault, report the bug to them.",
+            "OK"
+        )
+            ->show();
+        return;
+    }
+    auto searchObject = GJSearchObject::create(SearchType::Type19, fmt::format("{}&gameVersion=22", id));
+    auto scene = LevelBrowserLayer::scene(searchObject);
+    CCDirector::sharedDirector()->replaceScene(CCTransitionFade::create(0.5f, scene));
+}
+
+void MDTextArea::onGeodeMod(CCObject* pSender) {
+    auto href = as<CCString*>(as<CCNode*>(pSender)->getUserObject());
+    auto modString = std::string(href->getCString());
+    modString = modString.substr(modString.find(":") + 1);
+    auto loader = Loader::get();
+    auto index = Index::get();
+    Mod* mod;
+    bool success = false;
+    IndexItemHandle indexItem;
+    bool isIndexMod = !loader->isModInstalled(modString);
+
+    if (isIndexMod) {
+        auto indexSearch = index->getItemsByModID(modString);
+        if (indexSearch.size() != 0) {
+            indexItem = indexSearch.back();
+            Mod mod2 = Mod(indexItem->getMetadata());
+            mod = &mod2;
+            auto item = Index::get()->getItem(mod);
+            IndexItemInfoPopup::create(item, nullptr)->show();
+            success = true;
+        }
+    } else {
+        mod = loader->getLoadedMod(modString);
+        LocalModInfoPopup::create(mod, nullptr)->show();
+        success = true;
+    }
+
+    if (!success) {
+        FLAlertLayer::create(
+            "Error",
+            "Invalid mod ID: <cr>" + modString +
+                "</c>. This is "
+                "probably the mod developers's fault, report the bug to them.",
+            "OK"
+        )
+            ->show();
+    }
 }
 
 void MDTextArea::FLAlert_Clicked(FLAlertLayer* layer, bool btn) {
@@ -243,7 +311,7 @@ struct MDParser {
 
             case MD_TEXTTYPE::MD_TEXT_SOFTBR:
                 {
-                    renderer->breakLine();
+                    renderer->renderString(" ");
                 }
                 break;
 
@@ -256,7 +324,11 @@ struct MDParser {
                             text, textarea,
                             utils::string::startsWith(s_lastLink, "user:")
                                 ? menu_selector(MDTextArea::onGDProfile)
-                                : menu_selector(MDTextArea::onLink)
+                                : utils::string::startsWith(s_lastLink, "level:")
+                                    ? menu_selector(MDTextArea::onGDLevel)
+                                    : utils::string::startsWith(s_lastLink, "mod:")
+                                        ? menu_selector(MDTextArea::onGeodeMod)
+                                        : menu_selector(MDTextArea::onLink)
                         );
                         for (auto const& label : rendered) {
                             label.m_node->setUserObject(CCString::create(s_lastLink));

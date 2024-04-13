@@ -862,7 +862,9 @@ public:
 private:
     friend class geode::modifier::FieldContainer;
 
+    [[deprecated("Will be removed, it's an ABI break")]]
     GEODE_DLL geode::modifier::FieldContainer* getFieldContainer();
+    GEODE_DLL geode::modifier::FieldContainer* getFieldContainer(char const* forClass);
     GEODE_DLL void addEventListenerInternal(
         std::string const& id,
         geode::EventListenerProtocol* protocol

@@ -18,6 +18,8 @@ option(GEODE_USE_BREAKPAD "Enables the use of the Breakpad library for crash dum
 # Read version
 file(READ VERSION GEODE_VERSION)
 string(STRIP "${GEODE_VERSION}" GEODE_VERSION)
+set(GEODE_VERSION "${GEODE_VERSION}" CACHE INTERNAL "Geode version")
+set(GEODE_VERSION_FULL "${GEODE_VERSION}" CACHE INTERNAL "Geode version full")
 
 # Check if version has a tag like v1.0.0-alpha
 string(FIND ${GEODE_VERSION} "-" GEODE_VERSION_HAS_TAG)
@@ -199,8 +201,16 @@ if (WIN32)
 	endif()
 endif()
 
+# We do not support anything below SDK 23
+if (ANDROID)
+	string(REGEX MATCH "[0-9]+" ANDROID_PLATFORM_NUMBER "${ANDROID_PLATFORM}")
+	if (ANDROID_PLATFORM_NUMBER LESS 23)
+		message(FATAL_ERROR "Specified target Android SDK version is too low (${ANDROID_PLATFORM_NUMBER}), must be 23 or higher")
+	endif()
+endif()
+
 set(MAT_JSON_AS_INTERFACE ON)
-CPMAddPackage("gh:geode-sdk/json#96a9500")
+CPMAddPackage("gh:geode-sdk/json#28f157b")
 CPMAddPackage("gh:fmtlib/fmt#10.1.1")
 CPMAddPackage("gh:gulrak/filesystem#3e5b930")
 
@@ -231,7 +241,7 @@ if (DEFINED GEODE_TULIPHOOK_REPO_PATH)
 	message(STATUS "Using ${GEODE_TULIPHOOK_REPO_PATH} for TulipHook")
 	add_subdirectory(${GEODE_TULIPHOOK_REPO_PATH} ${GEODE_TULIPHOOK_REPO_PATH}/build)
 else()
-	CPMAddPackage("gh:geode-sdk/TulipHook#7fa328b")
+	CPMAddPackage("gh:geode-sdk/TulipHook#3ec2e6e")
 endif()
 set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
 
