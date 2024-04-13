@@ -13,22 +13,12 @@ protected:
         if (!Popup<Args...>::initAnchored(width, height, std::forward<Args>(args)..., (altBG ? "GE_square02.png"_spr : "GE_square01.png"_spr)))
             return false;
         
-        // Store original attributes of the close button
-        auto origSize = Popup<Args...>::m_closeBtn->getContentSize();
-        auto orig = Ref(Popup<Args...>::m_closeBtn->getNormalImage());
-        
-        // Replace the close button with a Geode style one
-        auto spr = CircleButtonSprite::createWithSpriteFrameName(
-            "close.png"_spr, .85f,
-            (altBG ? CircleBaseColor::DarkAqua : CircleBaseColor::DarkPurple)
+        this->setCloseButtonSpr(
+            CircleButtonSprite::createWithSpriteFrameName(
+                "close.png"_spr, .85f,
+                (altBG ? CircleBaseColor::DarkAqua : CircleBaseColor::DarkPurple)
+            )
         );
-        Popup<Args...>::m_closeBtn->setNormalImage(spr);
-
-        // Restore size and position
-        spr->setScale(orig->getScale());
-        spr->setPosition(orig->getPosition());
-        spr->setAnchorPoint(orig->getAnchorPoint());
-        Popup<Args...>::m_closeBtn->setContentSize(origSize);
 
         return true;
     }
