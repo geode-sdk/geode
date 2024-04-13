@@ -600,15 +600,15 @@ Result<> Mod::Impl::disownPatch(Patch* patch) {
                    "A patch that was getting disowned had its owner set but the owner "
                    "didn't have the patch in m_patches.");
 
-    m_patches.erase(foundIt);
 
-    if (!this->isEnabled() || !patch->getAutoEnable())
-        return Ok();
-
-    auto res2 = patch->disable();
-    if (!res2) {
-        return Err("Cannot disable patch: {}", res2.unwrapErr());
+    if (this->isEnabled() && patch->getAutoEnable()) {
+        auto res2 = patch->disable();
+        if (!res2) {
+            return Err("Cannot disable patch: {}", res2.unwrapErr());
+        }
     }
+
+    m_patches.erase(foundIt);
 
     return Ok();
 }
