@@ -119,6 +119,10 @@ matjson::Value& Mod::Impl::getSaveContainer() {
     return m_saved;
 }
 
+matjson::Value& Mod::Impl::getSavedSettingsData() {
+    return m_savedSettingsData;
+}
+
 bool Mod::Impl::isEnabled() const {
     return m_enabled;
 }
