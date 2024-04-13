@@ -88,16 +88,20 @@ namespace geode {
         void setListener(EventListenerProtocol* listener) {
             m_listener = listener;
         }
-
         EventListenerProtocol* getListener() const {
             return m_listener;
         }
     };
 
     template <typename T>
-    concept is_filter = std::is_base_of_v<EventFilter<typename T::Event>, T> &&
-        requires(T a) {
-            a.handle(std::declval<typename T::Callback>(), std::declval<typename T::Event*>());
+    concept is_filter = // # no need to do this IMO - HJfod # std::is_base_of_v<EventFilter<typename T::Event>, T> &&
+        requires(T a, T const& ca) {
+            typename T::Callback;
+            typename T::Event;
+            { a.handle(std::declval<typename T::Callback>(), std::declval<typename T::Event*>()) } -> std::same_as<ListenerResult>;
+            { ca.getPool() } -> std::convertible_to<EventListenerPool*>;
+            { a.setListener(std::declval<EventListenerProtocol*>()) } -> std::same_as<void>;
+            { ca.getListener() } -> std::convertible_to<EventListenerProtocol*>;
         };
 
     template <is_filter T>
@@ -163,7 +167,10 @@ namespace geode {
             this->enable();
         }
 
-        void bind(utils::MiniFunction<Callback> fn) {
+        void bind(utils::MiniFunction<Callback> const& fn) {
+            m_callback = fn;
+        }
+        void bind(utils::MiniFunction<Callback>&& fn) {
             m_callback = fn;
         }
 
