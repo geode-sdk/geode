@@ -126,7 +126,10 @@ namespace geode::utils {
 
         Ret operator()(Args... args) const {
             if (!m_state) {
-                utils::terminate("Attempted to call a MiniFunction that has already been moved");
+                utils::terminate(
+                    "Attempted to call a MiniFunction that was never assigned "
+                    "any function, or one that has been moved"
+                );
             }
             return m_state->call(args...);
         }
