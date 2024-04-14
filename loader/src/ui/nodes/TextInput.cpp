@@ -13,7 +13,7 @@ struct TextInputNodeFix : Modify<TextInputNodeFix, CCTextInputNode> {
             return CCTextInputNode::ccTouchBegan(touch, event);
         }
 
-        if (!this->isVisible()) {
+        if (!nodeIsVisible(this)) {
             this->onClickTrackNode(false);
             return false;
         }
