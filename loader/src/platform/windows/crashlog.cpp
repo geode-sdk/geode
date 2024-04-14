@@ -9,6 +9,7 @@
 #include <DbgHelp.h>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/file.hpp>
+#include <Geode/utils/terminate.hpp>
 #include <Windows.h>
 #include <chrono>
 #include <ctime>
@@ -66,6 +67,8 @@ static char const* getExceptionCodeString(DWORD code) {
         EXP_STR(EXCEPTION_FLT_INVALID_OPERATION);
         EXP_STR(EXCEPTION_FLT_OVERFLOW);
         EXP_STR(EXCEPTION_INT_DIVIDE_BY_ZERO);
+        EXP_STR(GEODE_TERMINATE_EXCEPTION_CODE);
+        EXP_STR(GEODE_UNREACHABLE_EXCEPTION_CODE);
         default: return "<Unknown>";
     }
     #undef EXP_STR
@@ -267,7 +270,14 @@ static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod) {
         }
 
         stream << "Faulty Mod: " << (faultyMod ? faultyMod->getID() : "<Unknown>") << "\n";
-    } else {
+    }
+    else if (isGeodeExceptionCode(info->ExceptionRecord->ExceptionCode)) {
+        stream
+            << "A mod has deliberately asked the game to crash.\n"
+            << "Reason: " << reinterpret_cast<const char*>(info->ExceptionRecord->ExceptionInformation[0]) << "\n"
+            << "Faulty Mod: " << reinterpret_cast<Mod*>(info->ExceptionRecord->ExceptionInformation[1])->getID() << "\n";
+    }
+    else {
         stream << "Faulty Module: "
             << getModuleName(handleFromAddress(info->ExceptionRecord->ExceptionAddress), true)
             << "\n"
