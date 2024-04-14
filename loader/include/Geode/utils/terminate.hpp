@@ -2,7 +2,6 @@
 
 #include "../DefaultInclude.hpp"
 #include "../loader/Log.hpp"
-#include <source_location>
 
 namespace geode {
     class Mod;
@@ -27,19 +26,14 @@ namespace geode::utils {
 
     namespace detail {
         // This needs to do stuff with `Mod*` which is not included in the file
-        GEODE_DLL std::string fmtTerminateError(const char* reason, Mod* mod, std::source_location loc);
+        GEODE_DLL std::string fmtTerminateError(const char* reason, Mod* mod);
     }
 
     template <class = void>
     [[noreturn]]
-    void terminate(
-        std::string const& reason,
-        Mod* mod = getMod(),
-        std::source_location loc = std::source_location::current(),
-        size_t platformCode = GEODE_TERMINATE_EXCEPTION_CODE
-    ) {
+    void terminate(std::string const& reason, Mod* mod = getMod(), size_t platformCode = GEODE_TERMINATE_EXCEPTION_CODE) {
         // Add the error to the logfile
-        log::error("{}", detail::fmtTerminateError(reason.c_str(), mod, loc));
+        log::error("{}", detail::fmtTerminateError(reason.c_str(), mod));
 
     #ifdef GEODE_IS_WINDOWS
         // If a debugger is attached, start debugging
@@ -63,11 +57,7 @@ namespace geode::utils {
     
     template <class = void>
     [[noreturn]]
-    void unreachable(
-        std::string const& reason = "Unspecified",
-        Mod* mod = getMod(),
-        std::source_location loc = std::source_location::current()
-    ) {
-        terminate(reason, mod, loc, GEODE_UNREACHABLE_EXCEPTION_CODE);
+    void unreachable(std::string const& reason = "Unspecified", Mod* mod = getMod()) {
+        terminate(reason, mod, GEODE_UNREACHABLE_EXCEPTION_CODE);
     }
 }
