@@ -355,7 +355,9 @@ public:
                 else {
                     GEODE_UNWRAP(this->extractAt(dir, filePath));
                 }
-                m_progressCallback(currentEntry, numEntries);
+                if (m_progressCallback) {
+                    m_progressCallback(currentEntry, numEntries);
+                }
             }
             else {
                 log::error(
