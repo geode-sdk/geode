@@ -48,8 +48,8 @@ typedef struct _ccColor3B
 typedef struct _ccHSVValue
 {
     float h, s, v;
-    bool saturationChecked;
-    bool brightnessChecked;
+    bool absoluteSaturation;
+    bool absoluteBrightness;
     private: unsigned char __pad[2];
 } ccHSVValue;
 
