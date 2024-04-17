@@ -264,7 +264,11 @@ enum class ColorSelectType {};
 enum class AudioGuidelinesType {};
 enum class SmartBrowseFilter {};
 enum class GJUITouchEvent {};
-enum class ObjectScaleType {};
+enum class ObjectScaleType {
+    XY = 0,
+    X = 1,
+    Y = 2
+};
 enum class SavedActiveObjectState {};
 enum class SavedSpecialObjectState {};
 enum class SavedObjectStateRef {};
