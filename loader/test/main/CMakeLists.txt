@@ -11,4 +11,5 @@ set(GEODE_LINK_SOURCE ON)
 set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
 target_link_libraries(TestMod TestDependency)
 
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/mod.json.in ${CMAKE_CURRENT_SOURCE_DIR}/mod.json)
 setup_geode_mod(${PROJECT_NAME} DONT_INSTALL)

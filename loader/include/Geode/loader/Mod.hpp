@@ -203,6 +203,7 @@ namespace geode {
         }
 
         matjson::Value& getSaveContainer();
+        matjson::Value& getSavedSettingsData();
 
         template <class T>
         T getSettingValue(std::string_view const key) const {
@@ -425,7 +426,9 @@ namespace geode {
         bool isLoggingEnabled() const;
         void setLoggingEnabled(bool enabled);
 
+        bool hasProblems() const;
         bool shouldLoad() const;
+        bool isCurrentlyLoading() const;
 
         friend class ModImpl;
     };

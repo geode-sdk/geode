@@ -99,6 +99,7 @@ namespace geode {
         ghc::filesystem::path getBinaryPath() const;
 
         matjson::Value& getSaveContainer();
+        matjson::Value& getSavedSettingsData();
 
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
         void setMetadata(ModMetadata const& metadata);

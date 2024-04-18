@@ -70,8 +70,15 @@ Result<> Patch::Impl::enable() {
 Result<> Patch::Impl::disable() {
     auto res = tulip::hook::writeMemory(m_address, m_original.data(), m_original.size());
     if (!res) return Err("Failed to disable patch: {}", res.unwrapErr());
+
     m_enabled = false;
-    allEnabled().erase(std::find(allEnabled().begin(), allEnabled().end(), this));
+    auto it = std::find(allEnabled().begin(), allEnabled().end(), this);
+
+    if (it == allEnabled().end()) {
+        return Err("Failed to disable patch: patch is already disabled");
+    }
+
+    allEnabled().erase(it);
     return Ok();
 }
 

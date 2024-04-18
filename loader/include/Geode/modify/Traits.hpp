@@ -167,6 +167,29 @@ namespace geode::modifier {
     };
 
     /**
+     * Gets the return type of a given resolved function pointer.
+     */
+    template <class Func>
+    struct ReturnType {
+        using type = void;
+    };
+
+    template <class Return, class... Params>
+    struct ReturnType<Return(*)(Params...)> {
+        using type = Return;
+    };
+
+    template <class Return, class Class, class... Params>
+    struct ReturnType<Return(Class::*)(Params...)> {
+        using type = Return;
+    };
+
+    template <class Return, class Class, class... Params>
+    struct ReturnType<Return(Class::*)(Params...) const> {
+        using type = Return;
+    };
+
+    /**
      * A specialization for giving the variadic types as a single type with the 
      * function type. The return type is ignored.
      */

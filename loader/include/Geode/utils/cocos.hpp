@@ -599,7 +599,7 @@ namespace geode::cocos {
     template <class Type = cocos2d::CCNode>
     static Type* getChildOfType(cocos2d::CCNode* node, int index) {
         size_t indexCounter = 0;
-
+        if (node->getChildrenCount() == 0) return nullptr;
         // start from end for negative index
         if (index < 0) {
             index = -index - 1;
@@ -611,6 +611,7 @@ namespace geode::cocos {
                     }
                     ++indexCounter;
                 }
+                if (i == 0) break;
             }
         }
         else {

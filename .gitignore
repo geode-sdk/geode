@@ -55,6 +55,8 @@ docs
 loader/src/internal/about.cpp
 loader/src/internal/resources.hpp
 loader/resources/mod.json
+loader/test/dependency/mod.json
+loader/test/main/mod.json
 loader/resources/version
 loader/resources/blanks/rename.js
 loader/resources/about.md

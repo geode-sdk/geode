@@ -268,7 +268,7 @@ namespace gd {
         }
 
         bool contains(K const& __x) {
-            return count() > 0;
+            return count(__x) > 0;
         }
 
         map(map const& lol) : map(std::map<K, V>(lol)) {}

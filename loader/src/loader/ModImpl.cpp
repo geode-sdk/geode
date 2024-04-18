@@ -48,8 +48,7 @@ Result<> Mod::Impl::setup() {
     }
     if (!m_resourcesLoaded) {
         auto searchPathRoot = dirs::getModRuntimeDir() / m_metadata.getID() / "resources";
-        // TODO: why is this commented out
-        // CCFileUtils::get()->addSearchPath(searchPathRoot.string().c_str());
+        CCFileUtils::get()->addSearchPath(searchPathRoot.string().c_str());
 
         const auto binariesDir = searchPathRoot / m_metadata.getID() / "binaries" / PlatformID::toShortString(GEODE_PLATFORM_TARGET);
         if (ghc::filesystem::exists(binariesDir))
@@ -118,6 +117,10 @@ VersionInfo Mod::Impl::getVersion() const {
 
 matjson::Value& Mod::Impl::getSaveContainer() {
     return m_saved;
+}
+
+matjson::Value& Mod::Impl::getSavedSettingsData() {
+    return m_savedSettingsData;
 }
 
 bool Mod::Impl::isEnabled() const {
@@ -601,15 +604,15 @@ Result<> Mod::Impl::disownPatch(Patch* patch) {
                    "A patch that was getting disowned had its owner set but the owner "
                    "didn't have the patch in m_patches.");
 
-    m_patches.erase(foundIt);
 
-    if (!this->isEnabled() || !patch->getAutoEnable())
-        return Ok();
-
-    auto res2 = patch->disable();
-    if (!res2) {
-        return Err("Cannot disable patch: {}", res2.unwrapErr());
+    if (this->isEnabled() && patch->getAutoEnable()) {
+        auto res2 = patch->disable();
+        if (!res2) {
+            return Err("Cannot disable patch: {}", res2.unwrapErr());
+        }
     }
+
+    m_patches.erase(foundIt);
 
     return Ok();
 }

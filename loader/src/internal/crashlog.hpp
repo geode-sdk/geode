@@ -35,8 +35,8 @@ namespace crashlog {
 
     std::string getDateString(bool filesafe);
 
-    void printGeodeInfo(std::stringstream& stream);
-    void printMods(std::stringstream& stream);
+    void GEODE_DLL printGeodeInfo(std::stringstream& stream);
+    void GEODE_DLL printMods(std::stringstream& stream);
 
 
 }
