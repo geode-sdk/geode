@@ -141,11 +141,15 @@ int geodeEntry(void* platformData) {
 
     tryShowForwardCompat();
 
+#ifdef GEODE_IS_IOS
+    console::openIfClosed();
+#else
     // open console
     if (!LoaderImpl::get()->isForwardCompatMode() &&
         Mod::get()->getSettingValue<bool>("show-platform-console")) {
         console::openIfClosed();
     }
+#endif
 
     // set up loader, load mods, etc.
     log::info("Setting up loader");
