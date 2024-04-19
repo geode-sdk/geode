@@ -23,7 +23,7 @@ void console::messageBox(char const* title, std::string const& info, Severity) {
 }
 
 void console::log(std::string const& msg, Severity severity) {
-    NSLog(@"%s", msg);
+    NSLog(@"%s", msg.c_str());
 
     if (s_isOpen) {
         int colorcode = 0;
