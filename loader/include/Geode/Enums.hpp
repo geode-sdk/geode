@@ -258,15 +258,15 @@ enum class TextStyleType {};
 enum class InputValueType {};
 enum class GJInputStyle {};
 enum class GJDifficultyName {
-    Nondemon = 0,
-    Demon = 1
+    Normal = 0,
+    Alternate = 1
 };
 enum class GJFeatureState {
     None = 0,
-    Featured = 0,
-    Epic = 0,
-    Legendary = 0,
-    Mythic = 0
+    Featured = 1,
+    Epic = 2,
+    Legendary = 3,
+    Mythic = 4
 };
 enum class GJKeyGroup {};
 enum class GJKeyCommand {};
