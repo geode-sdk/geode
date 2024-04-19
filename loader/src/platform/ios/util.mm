@@ -11,6 +11,7 @@ using namespace geode::prelude;
 #include <Geode/utils/cocos.hpp>
 #include <Geode/binding/GameManager.hpp>
 #include <Geode/binding/AppDelegate.hpp>
+#include <Geode/binding/MenuLayer.hpp>
 
 bool utils::clipboard::write(std::string const& data) {
     [UIPasteboard generalPasteboard].string = [NSString stringWithUTF8String:data.c_str()];
@@ -62,34 +63,7 @@ void geode::utils::game::exit() {
 }
 
 void geode::utils::game::restart() {
-    // if (CCApplication::sharedApplication() &&
-    //     (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
-    //     log::error("Cannot restart in PlayLayer or LevelEditorLayer!");
-    //     return;
-    // }
-
-    class Exit : public CCObject {
-    public:
-        void restart() {
-            JniMethodInfo t;
-            if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "restartGame", "()V")) {
-                t.env->CallStaticVoidMethod(t.classID, t.methodID);
-
-                t.env->DeleteLocalRef(t.classID);
-            }
-        }
-    };
-    // Not implemented
-    // log::error("Restarting the game is not implemented on android");
-
-    AppDelegate::get()->trySaveGame(true);
-    // AppDelegate::get()->showLoadingCircle(false, true);
-
-    CCDirector::get()->getActionManager()->addAction(CCSequence::create(
-        CCDelayTime::create(0.5f),
-        CCCallFunc::create(nullptr, callfunc_selector(Exit::restart)),
-        nullptr
-    ), CCDirector::get()->getRunningScene(), false);
+    log::error("Restarting the game is not implemented on iOS");
 }
 
 void crashlog::setupPlatformHandlerPost() {}
