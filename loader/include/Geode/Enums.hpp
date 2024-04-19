@@ -258,8 +258,8 @@ enum class TextStyleType {};
 enum class InputValueType {};
 enum class GJInputStyle {};
 enum class GJDifficultyName {
-    Normal = 0,
-    Alternate = 1
+    Default = 0,
+    Demon = 1
 };
 enum class GJFeatureState {
     None = 0,
