@@ -257,8 +257,17 @@ enum class StatKey {};
 enum class TextStyleType {};
 enum class InputValueType {};
 enum class GJInputStyle {};
-enum class GJDifficultyName {};
-enum class GJFeatureState {};
+enum class GJDifficultyName {
+    Nondemon = 0,
+    Demon = 1
+};
+enum class GJFeatureState {
+    None = 0,
+    Featured = 0,
+    Epic = 0,
+    Legendary = 0,
+    Mythic = 0
+};
 enum class GJKeyGroup {};
 enum class GJKeyCommand {};
 enum class SelectSettingType {};
