@@ -85,8 +85,15 @@ ghc::filesystem::path dirs::getModRuntimeDir() {
 }
 
 ghc::filesystem::path dirs::getSaveDir() {
-    // return ghc::filesystem::weaklyCanonical(CCFileUtils::sharedFileUtils()->getWritablePath().c_str());
-    return ghc::filesystem::path("/var/mobile/geode-save"); // TODO: temp remove later
+    static auto path = [] {
+        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
+        NSString *applicationSupportDirectory = [paths firstObject];
+
+        ghc::filesystem::path supportPath = [applicationSupportDirectory UTF8String];
+        auto currentPath = supportPath / "GeometryDash";
+        return currentPath;
+    }();
+    return path;
 }
 
 bool geode::utils::permission::getPermissionStatus(Permission permission) {
