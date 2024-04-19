@@ -119,6 +119,7 @@ void geode::utils::permission::requestPermission(Permission permission, utils::M
     callback(true); // unimplemented
 }
 
+
 #include "../../utils/thread.hpp"
 
 std::string geode::utils::thread::getDefaultName() {
