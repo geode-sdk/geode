@@ -44,7 +44,7 @@ struct ModListQuery {
 class ModListLayer : public CCLayer, public TextInputDelegate {
 protected:
     GJListLayer* m_list = nullptr;
-    CCClippingNode* m_tabsGradientNode = nullptr;
+    CCNode* m_tabsGradientNode = nullptr;
     CCSprite* m_tabsGradientSprite = nullptr;
     CCSprite* m_tabsGradientStencil = nullptr;
     CCLabelBMFont* m_listLabel;
