@@ -14,7 +14,7 @@ using geode::stl::StringImpl;
 #define impl implFor((*this))
 
 namespace gd {
-#ifndef GEODE_IS_MACOS
+#if !defined(GEODE_IS_MACOS) && !defined(GEODE_IS_IOS)
     string::string() {
         impl.setEmpty();
     }
@@ -72,7 +72,7 @@ namespace gd {
         impl.free();
         impl.setEmpty();
     }
-    
+
     char& string::at(size_t pos) {
         if (pos >= this->size())
             throw std::out_of_range("gd::string::at");
