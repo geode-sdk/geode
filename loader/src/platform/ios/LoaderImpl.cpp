@@ -67,3 +67,16 @@ bool Loader::Impl::supportsLaunchArguments() const {
 std::string Loader::Impl::getLaunchCommand() const {
     return std::string(); // Empty
 }
+
+void Loader::Impl::addNativeBinariesPath(ghc::filesystem::path const& path) {
+    log::warn("LoaderImpl::addNativeBinariesPath not implement on this platform, not adding path {}", path.string());
+}
+
+std::string Loader::Impl::getGameVersion() {
+    NSBundle* mainBundle = [NSBundle mainBundle];
+    NSDictionary* infoDictionary = [mainBundle infoDictionary];
+
+    NSString *version = infoDictionary[@"CFBundleShortVersionString"];
+
+    return std::string([version UTF8String]);
+}
