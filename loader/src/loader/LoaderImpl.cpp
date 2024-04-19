@@ -260,7 +260,15 @@ void Loader::Impl::queueMods(std::vector<ModMetadata>& modQueue) {
     for (auto const& dir : m_modSearchDirectories) {
         log::debug("Searching {}", dir);
         log::pushNest();
-        for (auto const& entry : ghc::filesystem::directory_iterator(dir)) {
+        ghc::filesystem::directory_iterator iterator;
+        try {
+            iterator = dir;
+        } catch (const std::exception& e) {
+            log::warn("failed to iterate through folder: {} (folder: {})", e.what(), dir);
+            continue;
+        }
+
+        for (auto const& entry : iterator) {
             if (!ghc::filesystem::is_regular_file(entry) ||
                 entry.path().extension() != GEODE_MOD_EXTENSION)
                 continue;
