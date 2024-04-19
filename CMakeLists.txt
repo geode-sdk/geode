@@ -201,6 +201,12 @@ if (WIN32)
 	endif()
 endif()
 
+if (${CMAKE_SYSTEM_NAME} STREQUAL "iOS")
+	# force arm64
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch arm64")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64")
+endif()
+
 # We do not support anything below SDK 23
 if (ANDROID)
 	string(REGEX MATCH "[0-9]+" ANDROID_PLATFORM_NUMBER "${ANDROID_PLATFORM}")
@@ -241,7 +247,7 @@ if (DEFINED GEODE_TULIPHOOK_REPO_PATH)
 	message(STATUS "Using ${GEODE_TULIPHOOK_REPO_PATH} for TulipHook")
 	add_subdirectory(${GEODE_TULIPHOOK_REPO_PATH} ${GEODE_TULIPHOOK_REPO_PATH}/build)
 else()
-	CPMAddPackage("gh:geode-sdk/TulipHook#7fa328b")
+	CPMAddPackage("gh:geode-sdk/TulipHook#201e98061cc7c036bed489c343adc30a21c7f203")
 endif()
 set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
 

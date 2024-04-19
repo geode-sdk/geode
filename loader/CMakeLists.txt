@@ -92,7 +92,6 @@ if (WIN32)
 	add_definitions(-D_HAS_ITERATOR_DEBUGGING=0)
 endif()
 
-
 # Add platform sources
 if (WIN32)
 
@@ -101,8 +100,8 @@ if (WIN32)
 	)
 	list(APPEND SOURCES ${WIN_SOURCES})
 
-elseif(IOS)
-
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "iOS") # elseif(IOS) just doesn't work?
+	message(STATUS "!!! building for ios you got it!!")
 	file(GLOB IOS_SOURCES CONFIGURE_DEPENDS 
 		src/platform/ios/*.cpp
 	)
@@ -110,7 +109,7 @@ elseif(IOS)
 	list(APPEND SOURCES ${OBJC_SOURCES})
 
 elseif(APPLE)
-
+	message(STATUS "!!! building for mac you suck :(")
 	file(GLOB MAC_SOURCES CONFIGURE_DEPENDS 
 		src/platform/mac/*.cpp
 	)
