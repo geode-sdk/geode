@@ -45,5 +45,8 @@ std::length_error::~length_error() _NOEXCEPT {} // do not ask...
 // auto dynamicTriggerRef = &dynamicTrigger;
 
 __attribute__((constructor)) void _entry() {
-    geodeEntry(nullptr);
+    std::thread([] {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        geodeEntry(nullptr);
+    }).detach();
 }
