@@ -9,31 +9,45 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-void Loader::Impl::platformMessageBox(char const* title, std::string const& info) {
+bool s_isOpen = false;
+
+void console::messageBox(char const* title, std::string const& info, Severity) {
     std::cout << title << ": " << info << std::endl;
 }
 
-void Loader::Impl::logConsoleMessageWithSeverity(std::string const& msg, Severity severity) {
-    if (m_platformConsoleOpen) {
-        std::cout << msg << "\n" << std::flush;
+void console::log(std::string const& msg, Severity severity) {
+    if (s_isOpen) {
+        int colorcode = 0;
+        switch (severity) {
+            case Severity::Debug: colorcode = 36; break;
+            case Severity::Info: colorcode = 34; break;
+            case Severity::Warning: colorcode = 33; break;
+            case Severity::Error: colorcode = 31; break;
+            default: colorcode = 35; break;
+        }
+        auto newMsg = "\033[1;" + std::to_string(colorcode) + "m" + msg.substr(0, 8) + "\033[0m" + msg.substr(8);
+
+        std::cout << newMsg << "\n" << std::flush;
     }
 }
 
-void Loader::Impl::openPlatformConsole() {
+void console::openIfClosed() {
+    if (s_isOpen) return;
+
     ghc::filesystem::path(getpwuid(getuid())->pw_dir);
     freopen(ghc::filesystem::path(dirs::getGeodeDir() / "geode_log.txt").string().c_str(), "w", stdout);
-    m_platformConsoleOpen = true;
+    s_isOpen = true;
 }
 
-void Loader::Impl::closePlatformConsole() {}
+void console::setup() {}
 
-void Loader::Impl::postIPCReply(
-    void* rawPipeHandle, std::string const& replyID, matjson::Value const& data
-) {}
+// void Loader::Impl::postIPCReply(
+//     void* rawPipeHandle, std::string const& replyID, matjson::Value const& data
+// ) {}
 
-void Loader::Impl::setupIPC() {
+void geode::ipc::setup() {
     #warning "Set up pipes or smth for this platform"
-    log::warning("IPC is not supported on this platform");
+    log::warn("IPC is not supported on this platform");
 }
 
 bool Loader::Impl::userTriedToLoadDLLs() const {
