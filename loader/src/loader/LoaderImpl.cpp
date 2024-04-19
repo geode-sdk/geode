@@ -262,7 +262,7 @@ void Loader::Impl::queueMods(std::vector<ModMetadata>& modQueue) {
         log::pushNest();
         ghc::filesystem::directory_iterator iterator;
         try {
-            iterator = dir;
+            iterator = ghc::filesystem::directory_iterator(dir);
         } catch (const std::exception& e) {
             log::warn("failed to iterate through folder: {} (folder: {})", e.what(), dir);
             continue;
