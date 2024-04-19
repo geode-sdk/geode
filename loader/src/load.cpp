@@ -122,6 +122,8 @@ int geodeEntry(void* platformData) {
 
     tryLogForwardCompat();
 
+    log::debug("save dir: {}", dirs::getSaveDir());
+
     auto begin = std::chrono::high_resolution_clock::now();
 
     // set up internal mod, settings and data

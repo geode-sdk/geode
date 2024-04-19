@@ -85,8 +85,8 @@ ghc::filesystem::path dirs::getModRuntimeDir() {
 }
 
 ghc::filesystem::path dirs::getSaveDir() {
-    return ghc::filesystem::current_path();
-    //return weaklyCanonical(CCFileUtils::sharedFileUtils()->getWritablePath().c_str());
+    // return ghc::filesystem::weaklyCanonical(CCFileUtils::sharedFileUtils()->getWritablePath().c_str());
+    return ghc::filesystem::path("/var/mobile/geode-save"); // TODO: temp remove later
 }
 
 bool geode::utils::permission::getPermissionStatus(Permission permission) {
