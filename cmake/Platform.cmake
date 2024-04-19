@@ -22,7 +22,11 @@ if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
     message(STATUS "iOS c++ compiler: ${CMAKE_CXX_COMPILER}")
     set(CMAKE_OSX_ARCHITECTURES arm64)
     set(CMAKE_OSX_SYSROOT ${GEODE_IOS_SDK})
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "14.0")
     set(CMAKE_SYSTEM_NAME "iOS")
+
+    # this fails on ios builds
+    set(BUILD_MD2HTML_EXECUTABLE "OFF")
 
     # camila, why did you not set GEODE_IOS_SDK anywhere
     set_target_properties(${PROJECT_NAME} PROPERTIES
