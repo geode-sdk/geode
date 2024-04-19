@@ -13,6 +13,7 @@ using namespace geode::prelude;
 
 #elif defined(GEODE_IS_IOS)
 
+#include "ios/LoaderImpl.mm"
 #include "ios/FileWatcher.mm"
 #include "ios/util.mm"
 

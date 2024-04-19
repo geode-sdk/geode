@@ -10,6 +10,7 @@
 #include <pwd.h>
 #include <sys/types.h>
 #include <unistd.h>
+#import <Foundation/Foundation.h>
 
 #include <loader/LogImpl.hpp>
 
