@@ -90,6 +90,8 @@ void geode::utils::game::restart() {
     ), CCDirector::get()->getRunningScene(), false);
 }
 
+void crashlog::setupPlatformHandlerPost() {}
+
 void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
     log::error("Launching Geode uninstaller is not supported on android");
 }
