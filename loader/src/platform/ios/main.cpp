@@ -16,29 +16,34 @@ std::length_error::~length_error() _NOEXCEPT {} // do not ask...
 // from dynamic to static thats why she needs to define it
 // this is what old versions does to a silly girl
 
-void dynamicEntry() {
-    auto dylib = dlopen("GeodeBootstrapper.dylib", RTLD_NOLOAD);
-    dlclose(dylib);
+// void dynamicEntry() {
+//     auto dylib = dlopen("GeodeBootstrapper.dylib", RTLD_NOLOAD);
+//     dlclose(dylib);
 
-    auto workingDir = std::filesystem::path(dirs::getGameDir());
-    auto libDir = workingDir / "Frameworks";
-    auto updatesDir = workingDir / "geode" / "update";
+//     auto workingDir = std::filesystem::path(dirs::getGameDir());
+//     auto libDir = workingDir / "Frameworks";
+//     auto updatesDir = workingDir / "geode" / "update";
 
-    auto error = std::error_code();
+//     auto error = std::error_code();
 
-    if (std::filesystem::exists(updatesDir / "GeodeBootstrapper.dylib", error) && !error) {
-        std::filesystem::rename(
-            updatesDir / "GeodeBootstrapper.dylib", libDir / "GeodeBootstrapper.dylib", error
-        );
-        if (error) return;
-    }
+//     if (std::filesystem::exists(updatesDir / "GeodeBootstrapper.dylib", error) && !error) {
+//         std::filesystem::rename(
+//             updatesDir / "GeodeBootstrapper.dylib", libDir / "GeodeBootstrapper.dylib", error
+//         );
+//         if (error) return;
+//     }
 
-    geodeEntry(nullptr);
-}
+//     geodeEntry(nullptr);
+// }
 
-extern "C" __attribute__((visibility("default"))) void dynamicTrigger() {
-    std::thread(&dynamicEntry).detach();
-}
+// extern "C" __attribute__((visibility("default"))) void dynamicTrigger() {
+//     std::thread(&dynamicEntry).detach();
+// }
+
 
 // remove when we can figure out how to not remove it
-auto dynamicTriggerRef = &dynamicTrigger;
+// auto dynamicTriggerRef = &dynamicTrigger;
+
+__attribute__((constructor)) void _entry() {
+    geodeEntry(nullptr);
+}
