@@ -352,7 +352,7 @@ bool ModListLayer::init() {
 
     m_tabsGradientStencil = CCSprite::create("tab-gradient-mask.png"_spr);
     m_tabsGradientStencil->setAnchorPoint({0.f, 0.f});
-    m_tabsGradientNode->setStencil(m_tabsGradientStencil);
+    // m_tabsGradientNode->setStencil(m_tabsGradientStencil);
 
     // add menus
     m_menu->setZOrder(0);
