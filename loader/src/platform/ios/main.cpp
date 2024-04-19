@@ -20,7 +20,7 @@ void dynamicEntry() {
     auto dylib = dlopen("GeodeBootstrapper.dylib", RTLD_NOLOAD);
     dlclose(dylib);
 
-    auto workingDir = dirs::getGameDir();
+    auto workingDir = std::filesystem::path(dirs::getGameDir());
     auto libDir = workingDir / "Frameworks";
     auto updatesDir = workingDir / "geode" / "update";
 
