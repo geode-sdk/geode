@@ -1,5 +1,6 @@
 #include <Geode/DefaultInclude.hpp>
 
+#include <Geode/loader/Dirs.hpp>
 #include "../load.hpp"
 #include <dlfcn.h>
 #include <mach-o/dyld.h>
@@ -25,8 +26,8 @@ void dynamicEntry() {
 
     auto error = std::error_code();
 
-    if (ghc::filesystem::exists(updatesDir / "GeodeBootstrapper.dylib", error) && !error) {
-        ghc::filesystem::rename(
+    if (std::filesystem::exists(updatesDir / "GeodeBootstrapper.dylib", error) && !error) {
+        std::filesystem::rename(
             updatesDir / "GeodeBootstrapper.dylib", libDir / "GeodeBootstrapper.dylib", error
         );
         if (error) return;
