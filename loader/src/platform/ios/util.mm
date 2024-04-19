@@ -8,6 +8,9 @@ using namespace geode::prelude;
 #include <sstream>
 #include <Geode/utils/web.hpp>
 #include <Geode/utils/permission.hpp>
+#include <Geode/utils/cocos.hpp>
+#include <Geode/binding/GameManager.hpp>
+#include <Geode/binding/AppDelegate.hpp>
 
 bool utils::clipboard::write(std::string const& data) {
     [UIPasteboard generalPasteboard].string = [NSString stringWithUTF8String:data.c_str()];
@@ -34,7 +37,6 @@ void file::pickFile(
     MiniFunction<void()> failed
 ) {
     // TODO
-    return false;
 }
 
 void geode_nslog(uintptr_t x) {
@@ -96,7 +98,7 @@ void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
     log::error("Launching Geode uninstaller is not supported on android");
 }
 
-CCPoint cocos::getMousePos() {
+CCPoint geode::utils::cocos::getMousePos() {
     return CCPoint(0, 0);
 }
 
