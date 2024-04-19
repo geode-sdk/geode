@@ -4,10 +4,16 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
 #include <loader/ModImpl.hpp>
+#include <loader/IPC.hpp>
+#include <loader/console.hpp>
 #include <iostream>
 #include <pwd.h>
 #include <sys/types.h>
 #include <unistd.h>
+
+#include <loader/LogImpl.hpp>
+
+using namespace geode::prelude;
 
 bool s_isOpen = false;
 
@@ -34,8 +40,8 @@ void console::log(std::string const& msg, Severity severity) {
 void console::openIfClosed() {
     if (s_isOpen) return;
 
-    ghc::filesystem::path(getpwuid(getuid())->pw_dir);
-    freopen(ghc::filesystem::path(dirs::getGeodeDir() / "geode_log.txt").string().c_str(), "w", stdout);
+    std::filesystem::path(getpwuid(getuid())->pw_dir);
+    freopen(std::filesystem::path(dirs::getGeodeDir() / "geode_log.txt").string().c_str(), "w", stdout);
     s_isOpen = true;
 }
 
