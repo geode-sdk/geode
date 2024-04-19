@@ -98,7 +98,7 @@ void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
     log::error("Launching Geode uninstaller is not supported on android");
 }
 
-CCPoint geode::utils::cocos::getMousePos() {
+CCPoint cocos::getMousePos() {
     return CCPoint(0, 0);
 }
 
