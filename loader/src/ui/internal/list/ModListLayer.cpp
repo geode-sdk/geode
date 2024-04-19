@@ -65,10 +65,10 @@ static std::optional<int> queryMatchKeywords(
         if (metadata.getID() == "geode.loader") {
             return INT_MAX;
         }
-        // this is like the dumbest way you could possibly sort alphabetically 
-        // but it does enough to make the mods list somewhat alphabetically 
-        // sorted, at least enough so that if you're scrolling it based on 
-        // alphabetical order you will find the part you're looking for easily 
+        // this is like the dumbest way you could possibly sort alphabetically
+        // but it does enough to make the mods list somewhat alphabetically
+        // sorted, at least enough so that if you're scrolling it based on
+        // alphabetical order you will find the part you're looking for easily
         // so it's fine
         return (static_cast<int>(-tolower(metadata.getName()[0])) * 256)
             + (metadata.getName().size() > 1 ? static_cast<int>(-tolower(metadata.getName()[1])) : 0);
@@ -84,8 +84,8 @@ static std::optional<int> queryMatchKeywords(
 }
 
 static std::optional<int> queryMatch(ModListQuery const& query, Mod* mod) {
-    // Only checking keywords makes sense for mods since their 
-    // platform always matches, they are always visible and they don't 
+    // Only checking keywords makes sense for mods since their
+    // platform always matches, they are always visible and they don't
     // currently list their tags
     return queryMatchKeywords(query, mod->getMetadata());
 }
@@ -123,12 +123,12 @@ static std::optional<int> queryMatch(ModListQuery const& query, IndexItemHandle 
         // add extra weight on tag matches
         if (query.keywords) {
             if (auto match = fuzzyMatch(query.keywords.value(), ranges::join(item->getTags(), " "))) {
-                weighted += match.value() * 1.4;                    
+                weighted += match.value() * 1.4;
             }
         }
-        // add extra weight to featured items to keep power consolidated in the 
+        // add extra weight to featured items to keep power consolidated in the
         // hands of the rich Geode bourgeoisie
-        // the number 420 is a reference to the number one bourgeois of modern 
+        // the number 420 is a reference to the number one bourgeois of modern
         // society, elon musk
         weighted += item->isFeatured() ? 42069 : 0;
         return static_cast<int>(weighted);
@@ -190,7 +190,7 @@ CCArray* ModListLayer::createModCells(ModListType type, ModListQuery const& quer
         } break;
 
         case ModListType::Download: {
-            // sort the mods by match score 
+            // sort the mods by match score
             std::multimap<int, IndexItemHandle> sorted;
 
             auto index = Index::get();
@@ -209,7 +209,7 @@ CCArray* ModListLayer::createModCells(ModListType type, ModListQuery const& quer
         } break;
 
         case ModListType::Featured: {
-            // sort the mods by match score 
+            // sort the mods by match score
             std::multimap<int, IndexItemHandle> sorted;
 
             for (auto const& item : Index::get()->getFeaturedItems()) {
@@ -339,13 +339,13 @@ bool ModListLayer::init() {
     m_menu->addChild(m_featuredTabBtn);
 
     // tabs gradient
-    m_tabsGradientNode = CCClippingNode::create();
+    m_tabsGradientNode = CCNode::create(); // TODO: ccclippingnode does not exist on ios.
     m_tabsGradientNode->setContentSize(this->getContentSize());
     m_tabsGradientNode->setAnchorPoint({0.5f, 0.5f});
     m_tabsGradientNode->ignoreAnchorPointForPosition(true);
     m_tabsGradientNode->setZOrder(9);
-    m_tabsGradientNode->setInverted(false);
-    m_tabsGradientNode->setAlphaThreshold(0.7f);
+    // m_tabsGradientNode->setInverted(false);
+    // m_tabsGradientNode->setAlphaThreshold(0.7f);
 
     m_tabsGradientSprite = CCSprite::create("tab-gradient.png"_spr);
     m_tabsGradientNode->addChild(m_tabsGradientSprite);
@@ -463,9 +463,9 @@ void ModListLayer::reloadList(bool keepScroll, std::optional<ModListQuery> const
 
     // set search query
     m_query.keywords =
-        m_searchInput && 
-        m_searchInput->getString().size() ? 
-            std::optional<std::string>(m_searchInput->getString()) : 
+        m_searchInput &&
+        m_searchInput->getString().size() ?
+            std::optional<std::string>(m_searchInput->getString()) :
             std::nullopt;
 
     // remove old list
@@ -564,7 +564,7 @@ void ModListLayer::reloadList(bool keepScroll, std::optional<ModListQuery> const
     if (
 		// only show it on the install tab
 		g_tab == ModListType::Installed &&
-		// check if index is updated, and if not 
+		// check if index is updated, and if not
 		// add button if it doesn't exist yet
 		!Index::get()->isUpToDate()
 	) {
