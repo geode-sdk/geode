@@ -84,7 +84,6 @@ void tryShowForwardCompat() {
 }
 
 int geodeEntry(void* platformData) {
-    *(volatile int*)nullptr = 0;
     thread::setName("Main");
 
     log::Logger::get()->setup();
