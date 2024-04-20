@@ -217,7 +217,11 @@ enum class BackupAccountError {
 enum class GJMusicAction {};
 enum class CellAction {};
 enum class GJActionCommand {};
-enum class DifficultyIconType {};
+enum class DifficultyIconType {
+    ShortText = 0,
+    DefaultText = 1,
+    NoText = 2
+};
 enum class GauntletType {
     Fire = 0,
     Ice = 2,
