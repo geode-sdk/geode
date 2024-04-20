@@ -1,3 +1,5 @@
+#ifdef GEODE_IS_DESKTOP
+
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/cocos/robtop/glfw/glfw3.h>
 #include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDispatcher.h>
@@ -8,7 +10,6 @@
 #include <Geode/modify/CCKeyboardDispatcher.hpp>
 
 using namespace geode::prelude;
-
 
 class $modify(GeodeCCEGLView, CCEGLView) {
     void onGLFWKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -202,3 +203,5 @@ class $modify(CCKeyboardDispatcher) {
         }
     }
 };
+
+#endif
