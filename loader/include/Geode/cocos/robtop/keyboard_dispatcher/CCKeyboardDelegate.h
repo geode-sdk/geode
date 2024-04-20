@@ -200,13 +200,15 @@ NS_CC_BEGIN
 
         // Geode additions
         KEY_GraveAccent = 0x1000,
-        KEY_Equal = 0x1001,
+        KEY_OEMEqual = 0x1001,
         KEY_LeftBracket = 0x1002,
         KEY_RightBracket = 0x1003,
         KEY_Backslash = 0x1004,
         KEY_Semicolon = 0x1005,
         KEY_Apostrophe = 0x1006,
         KEY_Slash = 0x1007,
+        KEY_Equal = 0x1008,
+        KEY_NumEnter = 0x1009,
         MOUSE_4 = 0x1100,
         MOUSE_5 = 0x1101,
         MOUSE_6 = 0x1102,
