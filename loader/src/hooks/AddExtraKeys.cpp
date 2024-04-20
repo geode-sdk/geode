@@ -67,21 +67,15 @@ class $modify(GeodeCCEGLView, CCEGLView) {
 
     bool isExtraKey(int code) {
         switch (code) {
-            // ;
+            case GLFW_KEY_WORLD_1:
+            case GLFW_KEY_WORLD_2:
             case GLFW_KEY_SEMICOLON:
-            // '
             case GLFW_KEY_APOSTROPHE:
-            // /
             case GLFW_KEY_SLASH:
-            // =
             case GLFW_KEY_EQUAL:
-            // [
             case GLFW_KEY_LEFT_BRACKET:
-            // backslash
             case GLFW_KEY_BACKSLASH:
-            // ]
             case GLFW_KEY_RIGHT_BRACKET:
-            // ~
             case GLFW_KEY_GRAVE_ACCENT:
                 return true;
             default:
@@ -91,30 +85,26 @@ class $modify(GeodeCCEGLView, CCEGLView) {
 
     enumKeyCodes extraKeyToKeyCode(int key) {
         switch (key) {
-            // ;
             case GLFW_KEY_SEMICOLON:
                 return enumKeyCodes::KEY_Semicolon;
-            // '
             case GLFW_KEY_APOSTROPHE:
                 return enumKeyCodes::KEY_Apostrophe;
-            // /
             case GLFW_KEY_SLASH:
                 return enumKeyCodes::KEY_Slash;
-            // =
             case GLFW_KEY_EQUAL:
                 return enumKeyCodes::KEY_OEMEqual;
-            // [
             case GLFW_KEY_LEFT_BRACKET:
                 return enumKeyCodes::KEY_LeftBracket;
-            // backslash
             case GLFW_KEY_BACKSLASH:
                 return enumKeyCodes::KEY_Backslash;
-            // ]
             case GLFW_KEY_RIGHT_BRACKET:
                 return enumKeyCodes::KEY_RightBracket;
-            // ~
             case GLFW_KEY_GRAVE_ACCENT:
                 return enumKeyCodes::KEY_GraveAccent;
+            case GLFW_KEY_WORLD_1:
+                return enumKeyCodes::KEY_World1;
+            case GLFW_KEY_WORLD_2:
+                return enumKeyCodes::KEY_World2;
             default:
                 return enumKeyCodes::KEY_Unknown;
         }
@@ -193,6 +183,10 @@ class $modify(CCKeyboardDispatcher) {
                 return "/";
             case KEY_NumEnter:
                 return "NumEnter";
+            case KEY_World1:
+                return "INTL-1";
+            case KEY_World2:
+                return "INTL-2";
             case MOUSE_4:
                 return "Mouse 4";
             case MOUSE_5:

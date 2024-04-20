@@ -209,6 +209,11 @@ NS_CC_BEGIN
         KEY_Slash = 0x1007,
         KEY_Equal = 0x1008,
         KEY_NumEnter = 0x1009,
+        // Keys used by some non-US keyboard layouts
+        KEY_World1 = 0x100A,
+        KEY_World2 = 0x100B,
+
+        // Mouse buttons (excluding clicks)
         MOUSE_4 = 0x1100,
         MOUSE_5 = 0x1101,
         MOUSE_6 = 0x1102,
