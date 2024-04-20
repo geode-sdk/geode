@@ -283,7 +283,13 @@ enum class GJTimedLevelType {
 enum class SongSelectType {};
 enum class AudioTargetType {};
 enum class FMODReverbPreset {};
-enum class DemonDifficultyType {};
+enum class DemonDifficultyType {
+    HardDemon = 0,
+    EasyDemon = 3,
+    MediumDemon = 4,
+    InsaneDemon = 5,
+    ExtremeDemon = 6
+};
 enum class PlayerCollisionDirection {};
 enum class ChestSpriteState {};
 enum class FormatterType {};
