@@ -14,7 +14,6 @@ RT_ADD(
 	*/
     typedef enum
     {
-        // this one might not actually exist in gd itself
         KEY_Unknown = -0x01,
         KEY_None = 0x00,
         KEY_Backspace = 0x08,
@@ -198,6 +197,21 @@ RT_ADD(
         CONTROLLER_RTHUMBSTICK_DOWN = 0x40F,
         CONTROLLER_RTHUMBSTICK_LEFT = 0x411,
         CONTROLLER_RTHUMBSTICK_RIGHT = 0x413,
+
+        // Geode additions
+        KEY_GraveAccent = 0x1000,
+        KEY_Equal = 0x1001,
+        KEY_LeftBracket = 0x1002,
+        KEY_RightBracket = 0x1003,
+        KEY_Backslash = 0x1004,
+        KEY_Semicolon = 0x1005,
+        KEY_Apostrophe = 0x1006,
+        KEY_Slash = 0x1007,
+        MOUSE_4 = 0x1100,
+        MOUSE_5 = 0x1101,
+        MOUSE_6 = 0x1102,
+        MOUSE_7 = 0x1103,
+        MOUSE_8 = 0x1104
     } enumKeyCodes;
 
 	class CC_DLL CCKeyboardDelegate
