@@ -16,14 +16,16 @@ namespace geode {
 
 namespace geode::base {
     GEODE_NOINLINE inline uintptr_t get() {
-        for(uint32_t gdii = 0; gdii < _dyld_image_count(); gdii++) {
-            if (strcmp(_dyld_get_image_name(gdii), "GeometryJump")) {
-                static uintptr_t base = _dyld_get_image_vmaddr_slide(gdii) + 0x100000000;
-                return base;
+        static uintptr_t base = []() -> uintptr_t {
+            for(uint32_t gdii = 0; gdii < _dyld_image_count(); gdii++) {
+                if (strstr(_dyld_get_image_name(gdii), "GeometryJump") != 0) {
+                    return _dyld_get_image_vmaddr_slide(gdii) + 0x100000000;
+                }
             }
-        }
+            return 0;
+        }();
 
-        return 0;
+        return base;
     }
 }
 
