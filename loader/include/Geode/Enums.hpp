@@ -214,7 +214,11 @@ enum class CommentError {
 };
 enum class BackupAccountError {
 };
-enum class GJMusicAction {};
+enum class GJMusicAction {
+    DownloadOrUpdate = 2,
+    UpdateSFXLibrary = 4,
+    UpdateMusicLibrary = 6
+};
 enum class CellAction {};
 enum class GJActionCommand {};
 enum class DifficultyIconType {
