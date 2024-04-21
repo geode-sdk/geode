@@ -12,6 +12,8 @@ using namespace geode::prelude;
 #include <Geode/binding/GameManager.hpp>
 #include <Geode/binding/AppDelegate.hpp>
 #include <Geode/binding/MenuLayer.hpp>
+#include <Geode/Utils.hpp>
+#include <objc/runtime.h>
 
 bool utils::clipboard::write(std::string const& data) {
     [UIPasteboard generalPasteboard].string = [NSString stringWithUTF8String:data.c_str()];

@@ -1,6 +1,7 @@
 #include <Geode/DefaultInclude.hpp>
 
 #include <Geode/loader/Dirs.hpp>
+#include <Geode/Utils.hpp>
 #include "../load.hpp"
 #include <dlfcn.h>
 #include <mach-o/dyld.h>
@@ -39,9 +40,9 @@ using namespace geode::prelude;
 // auto dynamicTriggerRef = &dynamicTrigger;
 
 
-static void(*s_applicationDidFinishLaunchingOrig)(void*, SEL, void*, void*);
+static bool(*s_applicationDidFinishLaunchingOrig)(void*, SEL, void*, void*);
 
-void applicationDidFinishLaunchingHook(void* self, SEL sel, void* p1, void* p2) {
+bool applicationDidFinishLaunchingHook(void* self, SEL sel, void* p1, void* p2) {
     // updateGeode();
 
     int exitCode = geodeEntry(nullptr);
@@ -57,7 +58,7 @@ bool loadGeode() {
     if (!orig)
         return false;
 
-    s_applicationDidFinishLaunchingOrig = reinterpret_cast<void(*)(void*, SEL, void*, void*)>(orig.unwrap());
+    s_applicationDidFinishLaunchingOrig = reinterpret_cast<bool(*)(void*, SEL, void*, void*)>(orig.unwrap());
     return true;
 }
 
