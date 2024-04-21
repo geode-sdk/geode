@@ -10,20 +10,12 @@
 #include <ghc/fs_fwd.hpp>
 #include <Geode/Loader.hpp>
 #include "../../loader/LoaderImpl.hpp"
+#include <Geode/Utils.hpp>
 #include <thread>
 #include <variant>
 #include <loader/updater.hpp>
 
 using namespace geode::prelude;
-
-// address of applicationDidFinishLaunching:
-constexpr static uintptr_t ENTRY_ADDRESS = 0xb030;
-
-std::length_error::~length_error() _NOEXCEPT {} // do not ask...
-
-// camila has an old ass macos and this function turned
-// from dynamic to static thats why she needs to define it
-// this is what old versions does to a silly girl
 
 void updateFiles() {
     auto frameworkDir = dirs::getGameDir() / "Frameworks";
@@ -114,39 +106,25 @@ void updateGeode() {
 
 extern "C" void fake() {}
 
+static void(*s_applicationDidFinishLaunchingOrig)(void*, SEL, NSNotification*);
+
 void applicationDidFinishLaunchingHook(void* self, SEL sel, NSNotification* notification) {
     updateGeode();
-
-    std::array<uint8_t, 6> patchBytes = {
-        0x55,
-        0x48, 0x89, 0xe5,
-        0x41, 0x57
-    };
-
-    auto res = tulip::hook::writeMemory((void*)(base::get() + ENTRY_ADDRESS), patchBytes.data(), 6);
-    if (!res)
-        return;
 
     int exitCode = geodeEntry(nullptr);
     if (exitCode != 0)
         return;
 
-    return reinterpret_cast<void(*)(void*, SEL, NSNotification*)>(geode::base::get() + ENTRY_ADDRESS)(self, sel, notification);
+    return s_applicationDidFinishLaunchingOrig(self, sel, notification);
 }
 
 
 bool loadGeode() {
-    auto detourAddr = reinterpret_cast<uintptr_t>(&applicationDidFinishLaunchingHook) - geode::base::get() - ENTRY_ADDRESS - 5;
-    auto detourAddrPtr = reinterpret_cast<uint8_t*>(&detourAddr);
-
-    std::array<uint8_t, 5> patchBytes = {
-        0xe9, detourAddrPtr[0], detourAddrPtr[1], detourAddrPtr[2], detourAddrPtr[3]
-    };
-
-    auto res = tulip::hook::writeMemory((void*)(base::get() + ENTRY_ADDRESS), patchBytes.data(), 5);
-    if (!res)
+    auto orig = geode::hook::replaceObjcMethod("AppController", "applicationDidFinishLaunching:", (void*)applicationDidFinishLaunchingHook);
+    if (!orig)
         return false;
 
+    s_applicationDidFinishLaunchingOrig = reinterpret_cast<void(*)(void*, SEL, NSNotification*)>(orig.unwrap());
     return true;
 }
 

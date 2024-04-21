@@ -23,6 +23,15 @@ namespace geode {
          * @returns The implementation of the method, or an error.
          */
         Result<void*> getObjcMethodImp(std::string const& className, std::string const& selectorName);
+
+        /**
+         * Replace an Objective-C method with a new implementation. 
+         * @param className The name of the class whose method to replace
+         * @param selectorName The name of the method to replace
+         * @param imp The new implementation of the method
+         * @returns Ok() if the method was replaced successfully, or an error.
+         */
+        Result<void*> replaceObjcMethod(std::string const& className, std::string const& selectorName, void* imp);
     }
 
     class ObjcHook {

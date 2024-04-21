@@ -145,7 +145,7 @@ int geodeEntry(void* platformData) {
     tryShowForwardCompat();
 
     // IOS TODO: remove this
-    Mod::get()->setSettingValue<bool>("show-platform-console", true)
+    Mod::get()->setSettingValue<bool>("show-platform-console", true);
     // open console
     if (!LoaderImpl::get()->isForwardCompatMode() && Mod::get()->getSettingValue<bool>("show-platform-console")) {
         console::openIfClosed();
