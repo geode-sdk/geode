@@ -402,7 +402,21 @@ enum class BoomListType {
 };
 
 enum class CurrencySpriteType {
-    // todo
+    Orb = 1,
+    Star = 2,
+    Diamond = 3,
+    FireShard = 4,
+    IceShard = 5,
+    PoisonShard = 6,
+    ShadowShard = 7,
+    LavaShard = 8,
+    DemonKey = 9,
+    EarthShard = 10,
+    BloodShard = 11,
+    MetalShard = 12,
+    LightShard = 13,
+    SoulShard = 14,
+    Moon = 15
 };
 
 enum class CurrencyRewardType {
