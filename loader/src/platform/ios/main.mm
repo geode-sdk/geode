@@ -10,12 +10,6 @@
 
 using namespace geode::prelude;
 
-std::length_error::~length_error() _NOEXCEPT {} // do not ask...
-
-// camila has an old ass macos and this function turned
-// from dynamic to static thats why she needs to define it
-// this is what old versions does to a silly girl
-
 // void dynamicEntry() {
 //     auto dylib = dlopen("GeodeBootstrapper.dylib", RTLD_NOLOAD);
 //     dlclose(dylib);
@@ -44,11 +38,30 @@ std::length_error::~length_error() _NOEXCEPT {} // do not ask...
 // remove when we can figure out how to not remove it
 // auto dynamicTriggerRef = &dynamicTrigger;
 
-__attribute__((constructor)) void _entry() {
-    std::thread([] {
-        geodeEntry(nullptr);
-    }).detach();
 
-    // make sure entry has enough time
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+static void(*s_applicationDidFinishLaunchingOrig)(void*, SEL, void*, void*);
+
+void applicationDidFinishLaunchingHook(void* self, SEL sel, void* p1, void* p2) {
+    // updateGeode();
+
+    int exitCode = geodeEntry(nullptr);
+    if (exitCode != 0)
+        return;
+
+    return s_applicationDidFinishLaunchingOrig(self, sel, p1, p2);
+}
+
+
+bool loadGeode() {
+    auto orig = geode::hook::replaceObjcMethod("AppController", "application:didFinishLaunchingWithOptions:", (void*)applicationDidFinishLaunchingHook);
+    if (!orig)
+        return false;
+
+    s_applicationDidFinishLaunchingOrig = reinterpret_cast<void(*)(void*, SEL, void*, void*)>(orig.unwrap());
+    return true;
+}
+
+__attribute__((constructor)) void _entry() {
+    if (!loadGeode())
+        return;
 }
