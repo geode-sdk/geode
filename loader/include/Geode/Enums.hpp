@@ -342,7 +342,7 @@ enum class LevelLeaderboardMode {
 enum class StatKey {};
 enum class TextStyleType {
     Colored = 1,
-    Instant = 2
+    Instant = 2,
     Shake = 3,
     Delayed = 4
 };
