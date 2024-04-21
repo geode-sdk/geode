@@ -302,7 +302,10 @@ enum class GJTimedLevelType {
     Weekly = 1,
     Event = 2
 };
-enum class SongSelectType {};
+enum class SongSelectType {
+    Default = 0,
+    Custom = 1
+};
 enum class AudioTargetType {};
 enum class FMODReverbPreset {};
 enum class DemonDifficultyType {
