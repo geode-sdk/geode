@@ -340,7 +340,12 @@ enum class LevelLeaderboardMode {
     Points = 1
 };
 enum class StatKey {};
-enum class TextStyleType {};
+enum class TextStyleType {
+    Colored = 1,
+    Instant = 2
+    Shake = 3,
+    Delayed = 4
+};
 enum class InputValueType {};
 enum class GJInputStyle {};
 enum class GJDifficultyName {};
