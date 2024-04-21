@@ -10,7 +10,7 @@
  * Fix loading bar going out of bounds (e50c3ab)
  * Fix field containers for modified classes that have an inheritance relationship sharing the container (00e971a)
  * Error if mod target geode version doesn't match installed SDK version (2c559f8)
- * Fix dangling pointer in `disownPatch` (4c492c1)
+ * Fix dangling pointer in `disownPatch` (4c492c1)
  * Add a way to access internal setting container (798cacc)
  * Add the crashed thread to Windows crashlog (f84e866)
  * Add Greek, Ukranian, Simplified and Traditional Chinese, French translations for the installer (8002ca0, bd5db26, 33fcd52, c02cc6d)
@@ -752,4 +752,3 @@ Note that from here on, changes to the framework were not tracked by versions as
 
 ## 2021/01/25
  - CacaoSDK started by Camila, based on CappuccinoSDK
-
