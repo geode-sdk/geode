@@ -277,10 +277,7 @@ enum class SavedSpecialObjectState {};
 enum class SavedObjectStateRef {};
 
 // Thanks cocoa!
-#ifdef GEODE_IS_MACOS
-    #undef CommentType
-#endif
-#ifdef GEODE_IS_IOS
+#if defined(GEODE_IS_MACOS) || defined(GEODE_IS_IOS)
     #undef CommentType
 #endif
 

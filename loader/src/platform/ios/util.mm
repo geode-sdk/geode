@@ -40,10 +40,6 @@ void file::pickFile(
     // TODO
 }
 
-void geode_nslog(uintptr_t x) {
-    NSLog(@"geode %lx", x);
-}
-
 // TODO: copied those two from android but idk maybe shouldve copied from mac
 void geode::utils::game::exit() {
     // TODO: yeah
@@ -76,8 +72,27 @@ CCPoint cocos::getMousePos() {
     return CCPoint(0, 0);
 }
 
+namespace {
+    std::string s_savedBaseDir = "";
+
+    ghc::filesystem::path getBaseDir() {
+        if (!s_savedBaseDir.empty()) {
+            return ghc::filesystem::path(s_savedBaseDir);
+        }
+
+        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
+        NSString *applicationSupportDirectory = [paths firstObject];
+
+        ghc::filesystem::path supportPath = [applicationSupportDirectory UTF8String];
+        auto currentPath = supportPath / "GeometryDash";
+
+        s_savedBaseDir = currentPath;
+        return ghc::filesystem::path(currentPath);
+    }
+}
+
 ghc::filesystem::path dirs::getGameDir() {
-    return ghc::filesystem::current_path();
+    return getBaseDir() / "game";
 }
 
 ghc::filesystem::path dirs::getModRuntimeDir() {
@@ -85,15 +100,7 @@ ghc::filesystem::path dirs::getModRuntimeDir() {
 }
 
 ghc::filesystem::path dirs::getSaveDir() {
-    static auto path = [] {
-        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
-        NSString *applicationSupportDirectory = [paths firstObject];
-
-        ghc::filesystem::path supportPath = [applicationSupportDirectory UTF8String];
-        auto currentPath = supportPath / "GeometryDash";
-        return currentPath;
-    }();
-    return path;
+    return getBaseDir() / "save";
 }
 
 bool geode::utils::permission::getPermissionStatus(Permission permission) {

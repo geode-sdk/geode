@@ -101,6 +101,7 @@ if (WIN32)
 	list(APPEND SOURCES ${WIN_SOURCES})
 
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "iOS") # elseif(IOS) just doesn't work?
+	# IOS TODO: remove the message
 	message(STATUS "!!! building for ios you got it!!")
 	file(GLOB IOS_SOURCES CONFIGURE_DEPENDS
 		src/platform/ios/*.cpp
@@ -109,6 +110,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "iOS") # elseif(IOS) just doesn't work?
 	list(APPEND SOURCES ${OBJC_SOURCES})
 
 elseif(APPLE)
+	# IOS TODO: remove the message
 	message(STATUS "!!! building for mac you suck :(")
 	file(GLOB MAC_SOURCES CONFIGURE_DEPENDS
 		src/platform/mac/*.cpp

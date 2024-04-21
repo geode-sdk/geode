@@ -79,10 +79,7 @@ namespace geode {
                 return false;
             }
 
-            // TODO: crashes the game.
-#ifndef GEODE_IS_IOS
             this->setKeypadEnabled(true);
-#endif
             this->setTouchEnabled(true);
 
             return true;

@@ -6,7 +6,6 @@ endif()
 
 if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
     # since geode does not set these, I will manually set them!
-    add_definitions(-DCC_TARGET_OS_IPHONE)
     execute_process(COMMAND xcrun --show-sdk-path --sdk iphoneos
     OUTPUT_VARIABLE GEODE_IOS_SDK
         OUTPUT_STRIP_TRAILING_WHITESPACE

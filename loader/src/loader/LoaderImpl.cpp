@@ -260,11 +260,11 @@ void Loader::Impl::queueMods(std::vector<ModMetadata>& modQueue) {
     for (auto const& dir : m_modSearchDirectories) {
         log::debug("Searching {}", dir);
         log::pushNest();
-        ghc::filesystem::directory_iterator iterator;
-        try {
-            iterator = ghc::filesystem::directory_iterator(dir);
-        } catch (const std::exception& e) {
-            log::warn("failed to iterate through folder: {} (folder: {})", e.what(), dir);
+        std::error_code error;
+        auto iterator = ghc::filesystem::directory_iterator(dir, error);
+        if (error) {
+            log::warn("Failed to open folder \"{}\": {}", dir, error.message());
+            log::popNest();
             continue;
         }
 

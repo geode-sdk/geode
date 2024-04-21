@@ -122,6 +122,7 @@ int geodeEntry(void* platformData) {
 
     tryLogForwardCompat();
 
+    // IOS TODO: remove this
     log::debug("save dir: {}", dirs::getSaveDir());
 
     auto begin = std::chrono::high_resolution_clock::now();
@@ -143,15 +144,12 @@ int geodeEntry(void* platformData) {
 
     tryShowForwardCompat();
 
-#ifdef GEODE_IS_IOS
-    console::openIfClosed();
-#else
+    // IOS TODO: remove this
+    Mod::get()->setSettingValue<bool>("show-platform-console", true)
     // open console
-    if (!LoaderImpl::get()->isForwardCompatMode() &&
-        Mod::get()->getSettingValue<bool>("show-platform-console")) {
+    if (!LoaderImpl::get()->isForwardCompatMode() && Mod::get()->getSettingValue<bool>("show-platform-console")) {
         console::openIfClosed();
     }
-#endif
 
     // set up loader, load mods, etc.
     log::info("Setting up loader");
