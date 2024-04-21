@@ -377,7 +377,10 @@ bool ModListLayer::init() {
         bg->setVisible(false);
     }
 
+    // TODO: figure out why this crashes
+#ifndef GEODE_IS_IOS
     this->setKeypadEnabled(true);
+#endif
 
     return true;
 }
