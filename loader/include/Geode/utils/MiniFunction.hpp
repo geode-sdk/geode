@@ -93,7 +93,7 @@ namespace geode::utils {
         }
 
         ~MiniFunction() {
-            delete m_state;
+            if (m_state) delete m_state;
         }
 
         template <class Callable>
@@ -112,13 +112,13 @@ namespace geode::utils {
             m_state(new MiniFunctionStateMemberPointer<MemberFunctionPointer, Ret, Args...>(func)) {}
 
         MiniFunction& operator=(MiniFunction const& other) {
-            delete m_state;
+            if (m_state) delete m_state;
             m_state = other.m_state ? other.m_state->clone() : nullptr;
             return *this;
         }
 
         MiniFunction& operator=(MiniFunction&& other) {
-            delete m_state;
+            if (m_state) delete m_state;
             m_state = other.m_state;
             other.m_state = nullptr;
             return *this;
