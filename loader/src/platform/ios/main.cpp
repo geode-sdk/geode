@@ -46,7 +46,9 @@ std::length_error::~length_error() _NOEXCEPT {} // do not ask...
 
 __attribute__((constructor)) void _entry() {
     std::thread([] {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
         geodeEntry(nullptr);
     }).detach();
+
+    // make sure entry has enough time
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 }
