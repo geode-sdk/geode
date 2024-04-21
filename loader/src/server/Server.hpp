@@ -107,8 +107,12 @@ namespace server {
     template <class T>
     using ServerPromise = Promise<T, ServerError, ServerProgress>;
 
+    template <class T>
+    using ServerRequest = Task<Result<T, ServerError>, ServerProgress>;
+
     std::string getServerAPIBaseURL();
     std::string getServerUserAgent();
+    ServerRequest<ServerModsList> getMods2(ModsQuery const& query, bool useCache = true);
     ServerPromise<ServerModsList> getMods(ModsQuery const& query);
     ServerPromise<ServerModMetadata> getMod(std::string const& id);
     ServerPromise<ByteVector> getModLogo(std::string const& id);
@@ -401,4 +405,6 @@ namespace server {
             ServerResultCache<&checkUpdates>::shared().invalidateAll();
         }
     }
+
+    void clearServerCaches2(bool clearGlobalCaches = false);
 }

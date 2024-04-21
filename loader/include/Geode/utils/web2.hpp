@@ -3,6 +3,7 @@
 #include <matjson.hpp>
 #include "Result.hpp"
 #include "Promise.hpp"
+#include "Task.hpp"
 #include <chrono>
 
 namespace geode::utils::web {
@@ -20,6 +21,7 @@ namespace geode::utils::web {
         // Must be default-constructible for use in Promise
         WebResponse();
 
+        bool ok() const;
         int code() const;
 
         Result<std::string> string() const;
@@ -53,6 +55,7 @@ namespace geode::utils::web {
         std::optional<float> uploadProgress() const;
     };
 
+    using WebTask = Task<WebResponse, WebProgress>;
     using WebPromise = Promise<WebResponse, WebError, WebProgress>;
 
     class GEODE_DLL WebRequest final {
@@ -64,6 +67,8 @@ namespace geode::utils::web {
     public:
         WebRequest();
         ~WebRequest();
+
+        WebTask send2(std::string_view method, std::string_view url);
 
         WebPromise send(std::string_view method, std::string_view url);
         WebPromise post(std::string_view url);

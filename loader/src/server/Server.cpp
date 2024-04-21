@@ -7,6 +7,135 @@ using namespace server;
 
 #define GEODE_GD_VERSION_STR GEODE_STR(GEODE_GD_VERSION)
 
+template <class K, class V> 
+class CacheMap final {
+private:
+    // I know this looks like a goofy choice over just 
+    // `std::unordered_map`, but hear me out:
+    // 
+    // This needs preserved insertion order (so shrinking the cache 
+    // to match size limits doesn't just have to erase random 
+    // elements) 
+    // 
+    // If this used a map for values and another vector for storing 
+    // insertion order, it would have a pretty big memory footprint 
+    // (two copies of Query, one for order, one for map + two heap 
+    // allocations on top of that)
+    // 
+    // In addition, it would be a bad idea to have a cache of 1000s 
+    // of items in any case (since that would likely take up a ton 
+    // of memory, which we want to avoid since it's likely many 
+    // crashes with the old index were due to too much memory 
+    // usage)
+    // 
+    // Linear searching a vector of at most a couple dozen items is 
+    // lightning-fast (🚀), and besides the main performance benefit 
+    // comes from the lack of a web request - not how many extra 
+    // milliseconds we can squeeze out of a map access
+    std::vector<std::pair<K, V>> m_values;
+    size_t m_sizeLimit = 20;
+
+public:
+    std::optional<V> get(K const& key) {
+        auto it = std::find_if(m_values.begin(), m_values.end(), [key](auto const& q) {
+            return q.first == key;
+        });
+        if (it != m_values.end()) {
+            return it->second;
+        }
+        return std::nullopt;
+    }
+    void add(K&& key, V&& value) {
+        auto pair = std::make_pair(std::move(key), std::move(value));
+
+        // Shift and replace last element if we're at cache size limit
+        if (m_values.size() >= m_sizeLimit) {
+            std::shift_left(m_values.begin(), m_values.end(), 1);
+            m_values.back() = std::move(pair);
+        }
+        // Otherwise append at end
+        else {
+            m_values.emplace_back(std::move(pair));
+        }
+    }
+    void remove(K const& key) {
+        ranges::remove(m_values, [&key](auto const& q) { return q.first == key; });
+    }
+    void clear() {
+        m_values.clear();
+    }
+    void limit(size_t size) {
+        m_sizeLimit = size;
+        m_values.clear();
+    }
+    size_t size() const {
+        return m_values.size();
+    }
+    size_t limit() const {
+        return m_sizeLimit;
+    }
+};
+
+template <class Q, class V>
+using ServerFuncQ  = V(*)(Q const&, bool);
+template <class V>
+using ServerFuncNQ = V(*)(bool);
+
+template <class F>
+struct ExtractFun;
+
+template <class Q, class V>
+struct ExtractFun<ServerRequest<V>(*)(Q const&, bool)> {
+    using Query = Q;
+    using Value = V;
+    static ServerRequest<V> invoke(auto&& func, Query const& query) {
+        return func(query, false);
+    }
+};
+
+template <class V>
+struct ExtractFun<ServerRequest<V>(*)(bool)> {
+    using Query = std::monostate;
+    using Value = V;
+    static ServerRequest<V> invoke(auto&& func, Query const&) {
+        return func(false);
+    }
+};
+
+template <auto F>
+class FunCache final {
+public:
+    using Extract = ExtractFun<decltype(F)>;
+    using Query   = typename Extract::Query;
+    using Value   = typename Extract::Value;
+
+private:
+    CacheMap<Query, ServerRequest<Value>> m_cache;
+
+public:
+    FunCache() = default;
+    FunCache(FunCache const&) = delete;
+    FunCache(FunCache&&) = delete;
+
+    ServerRequest<Value> get(Query const& query = Query()) {
+        if (auto v = m_cache.get(query)) {
+            return *v;
+        }
+        auto f = Extract::invoke(F, query);
+        m_cache.add(Query(query), ServerRequest<Value>(f));
+        return f;
+    }
+    void clear() {
+        m_cache.clear();
+    }
+};
+
+template <auto F>
+FunCache<F>& getCache() {
+    static auto inst = FunCache<F>();
+    return inst;
+}
+
 static const char* jsonTypeToString(matjson::Type const& type) {
     switch (type) {
         case matjson::Type::Object: return "object";
@@ -19,7 +148,7 @@ static const char* jsonTypeToString(matjson::Type const& type) {
     }
 }
 
-static Result<matjson::Value, ServerError> parseServerPayload(web::WebResponse&& response) {
+static Result<matjson::Value, ServerError> parseServerPayload(web::WebResponse const& response) {
     auto asJson = response.json();
     if (!asJson) {
         return Err(ServerError(response.code(), "Response was not valid JSON: {}", asJson.unwrapErr()));
@@ -35,7 +164,7 @@ static Result<matjson::Value, ServerError> parseServerPayload(web::WebResponse&&
     return Ok(obj["payload"]);
 }
 
-static ServerError parseServerError(auto error) {
+static ServerError parseServerError(web::WebResponse const& error) {
     // The server should return errors as `{ "error": "...", "payload": "" }`
     if (auto asJson = error.json()) {
         auto json = asJson.unwrap();
@@ -58,7 +187,7 @@ static ServerError parseServerError(auto error) {
     }
 }
 
-static ServerProgress parseServerProgress(auto prog, auto msg) {
+static ServerProgress parseServerProgress(web::WebProgress const& prog, auto msg) {
     if (auto per = prog.downloadProgress()) {
         return ServerProgress(msg, static_cast<uint8_t>(*per));
     }
@@ -348,6 +477,76 @@ std::string server::getServerUserAgent() {
     );
 }
 
+ServerRequest<ServerModsList> server::getMods2(ModsQuery const& query, bool useCache) {
+    if (useCache) {
+        return getCache<getMods2>().get(query);
+    }
+
+    auto req = web::WebRequest();
+    req.userAgent(getServerUserAgent());
+
+    // Always target current GD version and Loader version
+    req.param("gd", GEODE_GD_VERSION_STR);
+    req.param("geode", Loader::get()->getVersion().toString());
+
+    // Add search params
+    if (query.query) {
+        req.param("query", *query.query);
+    }
+    if (query.platforms.size()) {
+        std::string plats = "";
+        bool first = true;
+        for (auto plat : query.platforms) {
+            if (!first) plats += ",";
+            plats += PlatformID::toShortString(plat.m_value);
+            first = false;
+        }
+        req.param("platforms", plats);
+    }
+    if (query.tags.size()) {
+        req.param("tags", ranges::join(query.tags, ","));
+    }
+    if (query.featured) {
+        req.param("featured", query.featured.value() ? "true" : "false");
+    }
+    req.param("sort", sortToString(query.sorting));
+    if (query.developer) {
+        req.param("developer", *query.developer);
+    }
+
+    // Paging (1-based on server, 0-based locally)
+    req.param("page", std::to_string(query.page + 1));
+    req.param("per_page", std::to_string(query.pageSize));
+
+    return req.send2("GET", getServerAPIBaseURL() + "/mods").map(
+        [](web::WebResponse* response) -> Result<ServerModsList, ServerError> {
+            if (response->ok()) {
+                // Parse payload
+                auto payload = parseServerPayload(*response);
+                if (!payload) {
+                    return Err(payload.unwrapErr());
+                }
+                // Parse response
+                auto list = ServerModsList::parse(payload.unwrap());
+                if (!list) {
+                    return Err(ServerError(response->code(), "Unable to parse response: {}", list.unwrapErr()));
+                }
+                return Ok(list.unwrap());
+            }
+            else {
+                // Treat a 404 as empty mods list
+                if (response->code() == 404) {
+                    return Ok(ServerModsList());
+                }
+                return Err(parseServerError(*response));
+            }
+        },
+        [](web::WebProgress* progress) {
+            return parseServerProgress(*progress, "Downloading mods");
+        }
+    );
+}
+
 ServerPromise<ServerModsList> server::getMods(ModsQuery const& query) {
     auto req = web::WebRequest();
     req.userAgent(getServerUserAgent());
@@ -539,4 +738,16 @@ ServerPromise<std::vector<ServerModUpdate>> server::checkUpdates(std::vector<std
         .progress<ServerProgress>([](auto prog) {
             return parseServerProgress(prog, "Checking updates for mods");
         });
+}
+
+void server::clearServerCaches2(bool clearGlobalCaches) {
+    getCache<&getMods2>().clear();
+    // getCache<&getMod>().clear();
+    // getCache<&getModLogo>().clear();
+
+    // Only clear global caches if explicitly requested
+    if (clearGlobalCaches) {
+        // getCache<&getTags>().clear();
+        // getCache<&checkUpdates>().clear();
+    }
 }

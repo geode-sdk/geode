@@ -6,23 +6,52 @@
 #include "ranges.hpp"
 
 namespace geode {
-    namespace impl {
-        struct DefaultProgress {
-            std::string message;
-            std::optional<uint8_t> percentage;
+    struct DefaultProgress {
+        std::string message;
+        std::optional<uint8_t> percentage;
 
-            DefaultProgress() = default;
-            DefaultProgress(std::string const& msg) : message(msg) {}
-            DefaultProgress(auto msg, uint8_t percentage) : message(msg), percentage(percentage) {}
+        DefaultProgress() = default;
+        DefaultProgress(std::string const& msg) : message(msg) {}
+        DefaultProgress(auto msg, uint8_t percentage) : message(msg), percentage(percentage) {}
+    };
+    
+    namespace impl {
+        template <size_t Ty>
+        struct LogBug {
+            static inline size_t COUNT = 0;
+            static const char* ty() {
+                return Ty ? "Promise" : "Data";
+            }
+
+            LogBug() {
+                // log::info("created {} that holds {}, {}", ty(), fmt::ptr(this), ++COUNT);
+            }
+            LogBug& operator=(LogBug&&) {
+                // log::info("moved {} that holds {}, {}", ty(), fmt::ptr(this), ++COUNT);
+                return *this;
+            }
+            LogBug& operator=(LogBug const&) {
+                // log::info("copied {} that holds {}, {}", ty(), fmt::ptr(this), ++COUNT);
+                return *this;
+            }
+            LogBug(LogBug&&) {
+                // log::info("moved {} that holds {}, {}", ty(), fmt::ptr(this), ++COUNT);
+            }
+            LogBug(LogBug const&) {
+                // log::info("copied {} that holds {}, {}", ty(), fmt::ptr(this), ++COUNT);
+            }
+            ~LogBug() {
+                // log::info("destroyed {} that holds {}, {}", ty(), fmt::ptr(this), --COUNT);
+            }
         };
     }
 
     struct CancelledState final {};
     
-    template <class T = impl::DefaultValue, class E = impl::DefaultError, class P = impl::DefaultProgress>
+    template <class T = impl::DefaultValue, class E = impl::DefaultError, class P = DefaultProgress>
     class PromiseEventFilter;
 
-    template <class T = impl::DefaultValue, class E = impl::DefaultError, class P = impl::DefaultProgress>
+    template <class T = impl::DefaultValue, class E = impl::DefaultError, class P = DefaultProgress>
     class Promise final {
     public:
         using Value    = T;
@@ -62,21 +91,25 @@ namespace geode {
                     if constexpr (std::is_same_v<T, T2>) {
                         return Promise<T2, E2, P2>::State::make_value(std::move(std::move(*this).take_value()));
                     }
-                    log::error("THIS CODE PATH SHOULD BE UNREACHABLE!!!!");
                 }
                 if (this->has_error()) {
                     if constexpr (std::is_same_v<E, E2>) {
                         return Promise<T2, E2, P2>::State::make_error(std::move(std::move(*this).take_error()));
                     }
-                    log::error("THIS CODE PATH SHOULD BE UNREACHABLE!!!!");
                 }
                 if (this->has_progress()) {
                     if constexpr (std::is_same_v<P, P2>) {
                         return Promise<T2, E2, P2>::State::make_progress(std::move(std::move(*this).take_progress()));
                     }
-                    log::error("THIS CODE PATH SHOULD BE UNREACHABLE!!!!");
                 }
-                return Promise<T2, E2, P2>::State::make_cancelled();
+                if (this->is_cancelled()) {
+                    return Promise<T2, E2, P2>::State::make_cancelled();
+                }
+                geode::utils::unreachable(
+                    "Promise::State::convert called on a State that isn't in a convertible state! "
+                    "All code should verify before calling convert() that the State holds a value "
+                    "which is trivially convertible (holds the same type)"
+                );
             }
 
             bool has_value() { return m_value.index() == 0; }
@@ -96,14 +129,14 @@ namespace geode {
 
         using OnStateChange = utils::MiniFunction<void(State)>;
 
-        Promise() : m_data(std::make_shared<Data>()) {}
+        Promise() : m_data(nullptr) {}
 
-        Promise(utils::MiniFunction<void(OnResolved, OnRejected)> source, bool threaded = true) 
+        Promise(utils::MiniFunction<void(OnResolved, OnRejected)> source) 
           : Promise([source](auto resolve, auto reject, auto, auto const&) {
                 source(resolve, reject);
-            }, threaded) {}
+            }) {}
         
-        Promise(utils::MiniFunction<void(OnResolved, OnRejected, OnProgress, std::atomic_bool const&)> source, bool threaded = true)
+        Promise(utils::MiniFunction<void(OnResolved, OnRejected, OnProgress, std::atomic_bool const&)> source)
           : Promise([source](auto onStateChanged, auto const& cancelled) {
                 source(
                     [onStateChanged](auto&& value) {
@@ -117,18 +150,27 @@ namespace geode {
                     },
                     cancelled
                 );
-            }, threaded, std::monostate()) {}
+            }, std::monostate()) {}
         
-        Promise(utils::MiniFunction<void(OnStateChange, std::atomic_bool const&)> source, bool threaded, std::monostate tag) : m_data(std::make_shared<Data>()) {
-            m_data->shouldStartThreaded = threaded;
-            if (threaded) {
-                std::thread([source = std::move(source), data = m_data]() mutable {
-                    Promise::invoke_source(std::move(source), data);
-                }).detach();
-            }
-            else {
-                Promise::invoke_source(std::move(source), m_data);
-            }
+        Promise(utils::MiniFunction<void(OnStateChange, std::atomic_bool const&)> source, std::monostate tag)
+          : m_data(std::make_shared<Data>())
+        {
+            std::thread([source = std::move(source), data = m_data]() mutable {
+                log::info("start invoke_source");
+                source(
+                    [data = std::weak_ptr(data)](auto&& state) {
+                        if (auto d = data.lock()) {
+                            log::info("callback from invoke_source");
+                            invoke_callback(std::move(state), d.get());
+                        }
+                        else {
+                            log::info("tried to callback from invoke_source but deleted");
+                        }
+                    },
+                    data->cancelled
+                );
+                log::info("end invoke_source");
+            }).detach();
         }
 
         Promise then(utils::MiniFunction<void(Value)>&& callback) {
@@ -260,14 +302,17 @@ namespace geode {
         }
 
         void resolve(Value&& value) {
-            invoke_callback(State::make_value(std::move(value)), m_data);
+            if (!m_data) return;
+            invoke_callback(State::make_value(std::move(value)), m_data.get());
         }
         void reject(Error&& error) {
-            invoke_callback(State::make_error(std::move(error)), m_data);
+            if (!m_data) return;
+            invoke_callback(State::make_error(std::move(error)), m_data.get());
         }
         void cancel() {
+            if (!m_data) return;
             m_data->cancelled = true;
-            invoke_callback(State::make_cancelled(), m_data);
+            invoke_callback(State::make_cancelled(), m_data.get());
         }
 
         /**
@@ -356,16 +401,15 @@ namespace geode {
             std::vector<OnStateChange> callbacks;
             std::optional<std::variant<Value, Error>> result;
             std::atomic_bool cancelled;
-            std::atomic_bool shouldStartThreaded;
+            impl::LogBug<0> log;
         };
         std::shared_ptr<Data> m_data;
+        impl::LogBug<1> log;
 
         template <class T2, class E2, class P2>
-        static Promise<T2, E2, P2> make_fwd(
-            auto&& transformState,
-            std::shared_ptr<Data> data
-        ) {
+        static Promise<T2, E2, P2> make_fwd(auto&& transformState, std::shared_ptr<Data> data) {
             return Promise<T2, E2, P2>([data, transformState](auto fwdStateToNextPromise, auto const&) {
+                if (!data) return;
                 Promise::set_callback(
                     [fwdStateToNextPromise, transformState](auto&& state) { 
                         // Map the state
@@ -373,12 +417,12 @@ namespace geode {
                         // Forward the value to the next Promise
                         fwdStateToNextPromise(std::move(mapped));
                     },
-                    data
+                    data.get()
                 );
-            }, data->shouldStartThreaded, std::monostate());
+            }, std::monostate());
         }
 
-        static void set_callback(OnStateChange&& callback, std::shared_ptr<Data> data) {
+        static void set_callback(OnStateChange&& callback, Data* data) {
             std::unique_lock lock(data->mutex);
             data->callbacks.emplace_back(std::move(callback));
 
@@ -397,12 +441,12 @@ namespace geode {
             }
         }
 
-        static void invoke_callback(State&& state, std::shared_ptr<Data> data) {
+        static void invoke_callback(State&& state, Data* data) {
             std::unique_lock lock(data->mutex);
             invoke_callback_no_lock(std::move(state), data);
         }
 
-        static void invoke_callback_no_lock(State&& state, std::shared_ptr<Data> data) {
+        static void invoke_callback_no_lock(State&& state, Data* data) {
             // Run callbacks in the main thread
             Loader::get()->queueInMainThread([callbacks = data->callbacks, state = State(state)]() {
                 for (auto&& callback : std::move(callbacks)) {
@@ -421,15 +465,6 @@ namespace geode {
                 data->cancelled = true;
             }
         }
-
-        static void invoke_source(utils::MiniFunction<void(OnStateChange, std::atomic_bool const&)>&& source, std::shared_ptr<Data> data) {
-            source(
-                [data](auto&& state) {
-                    invoke_callback(std::move(state), data);
-                },
-                data->cancelled
-            );
-        }
     };
 
     /**
@@ -439,13 +474,14 @@ namespace geode {
      * whereas with event listeners being RAII, they are automatically 
      * removed from layers, avoiding use-after-free errors
      */
-    template <class T = impl::DefaultValue, class E = impl::DefaultError, class P = impl::DefaultProgress>
+    template <class T = impl::DefaultValue, class E = impl::DefaultError, class P = DefaultProgress>
     class PromiseEvent : public Event {
     protected:
-        size_t m_id;
+        std::shared_ptr<void> m_handle;
         std::variant<T, E, P> m_value;
 
-        PromiseEvent(size_t id, std::variant<T, E, P>&& value) : m_id(id), m_value(value) {}
+        PromiseEvent(std::shared_ptr<void> handle, std::variant<T, E, P>&& value)
+          : m_handle(handle), m_value(value) {}
 
         friend class Promise<T, E, P>;
         friend class PromiseEventFilter<T, E, P>;
@@ -463,18 +499,18 @@ namespace geode {
         using Callback = void(PromiseEvent<T, E, P>*);
 
     protected:
-        size_t m_id;
+        std::shared_ptr<void> m_handle;
 
         friend class Promise<T, E, P>;
 
-        PromiseEventFilter(size_t id) : m_id(id) {}
+        PromiseEventFilter(std::shared_ptr<void> handle) : m_handle(handle) {}
 
     public:
-        PromiseEventFilter() : m_id(0) {}
+        PromiseEventFilter() : m_handle(nullptr) {}
 
         ListenerResult handle(utils::MiniFunction<Callback> fn, PromiseEvent<T, E, P>* event) {
             // log::debug("Event mod filter: {}, {}, {}, {}", m_mod, static_cast<int>(m_type), event->getMod(), static_cast<int>(event->getType()));
-            if (m_id == event->m_id) {
+            if (m_handle == event->m_handle) {
                 fn(event);
             }
             return ListenerResult::Propagate;
@@ -483,26 +519,22 @@ namespace geode {
 
     template <class T, class E, class P>
     PromiseEventFilter<T, E, P> Promise<T, E, P>::listen() {
-        // After 4 billion promises this will overflow and start producing 
-        // the same IDs again, so technically if some promise takes 
-        // literally forever then this could cause issues later on
-        static size_t ID_COUNTER = 0;
-        ID_COUNTER += 1;
-        // Reserve 0 for PromiseEventFilter not listening to anything
-        if (ID_COUNTER == 0) {
-            ID_COUNTER += 1;
-        }
-        size_t id = ID_COUNTER;
         this
-            ->then([id](auto&& value) { 
-                PromiseEvent<T, E, P>(id, std::variant<T, E, P> { std::in_place_index<0>, std::forward<T>(value) }).post();
+            ->then([data = std::weak_ptr(m_data)](auto&& value) {
+                if (auto d = std::static_pointer_cast<void>(data.lock())) {
+                    PromiseEvent<T, E, P>(d, std::variant<T, E, P> { std::in_place_index<0>, std::forward<T>(value) }).post();
+                }
             })
-            .expect([id](auto&& error) {
-                PromiseEvent<T, E, P>(id, std::variant<T, E, P> { std::in_place_index<1>, std::forward<E>(error) }).post();
+            .expect([data = std::weak_ptr(m_data)](auto&& error) {
+                if (auto d = std::static_pointer_cast<void>(data.lock())) {
+                    PromiseEvent<T, E, P>(d, std::variant<T, E, P> { std::in_place_index<1>, std::forward<E>(error) }).post();
+                }
             })
-            .progress([id](auto&& prog) {
-                PromiseEvent<T, E, P>(id, std::variant<T, E, P> { std::in_place_index<2>, std::forward<P>(prog) }).post();
+            .progress([data = std::weak_ptr(m_data)](auto&& prog) {
+                if (auto d = std::static_pointer_cast<void>(data.lock())) {
+                    PromiseEvent<T, E, P>(d, std::variant<T, E, P> { std::in_place_index<2>, std::forward<P>(prog) }).post();
+                }
             });
-        return PromiseEventFilter<T, E, P>(id);
+        return PromiseEventFilter<T, E, P>(m_data);
     }
 }
