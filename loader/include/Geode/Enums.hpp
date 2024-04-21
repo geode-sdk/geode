@@ -307,7 +307,31 @@ enum class SongSelectType {
     Custom = 1
 };
 enum class AudioTargetType {};
-enum class FMODReverbPreset {};
+enum class FMODReverbPreset {
+    GENERIC = 0,
+    PADDEDCELL = 1,
+    ROOM = 2,
+    BATHROOM = 3,
+    LIVINGROOM = 4,
+    STONEROOM = 5,
+    AUDITORIUM = 6,
+    CONCERTHALL = 7,
+    CAVE = 8,
+    ARENA = 9,
+    HANGAR = 0xA,
+    CARPETTEDHALLWAY = 0xB,
+    HALLWAY = 0xC,
+    STONECORRIDOR = 0xD,
+    ALLEY = 0xE,
+    FOREST = 0xF,
+    CITY = 0x10,
+    MOUNTAINS = 0x11,
+    QUARRY = 0x12,
+    PLAIN = 0x13,
+    PARKINGLOT = 0x14,
+    SEWERPIPE = 0x15,
+    UNDERWATER = 0x16
+};
 enum class DemonDifficultyType {
     HardDemon = 0,
     EasyDemon = 3,
