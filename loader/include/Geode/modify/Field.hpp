@@ -144,11 +144,11 @@ namespace geode::modifier {
         }
 
         static void fieldConstructor(void* offsetField) requires (HasFields<Parent>) {
-            (void) new (offsetField) Parent::Fields();
+            (void) new (offsetField) typename Parent::Fields();
         }
 
         static void fieldDestructor(void* offsetField) requires (HasFields<Parent>) {
-            static_cast<Parent::Fields*>(offsetField)->~Fields();
+            static_cast<typename Parent::Fields*>(offsetField)->~Fields();
         }
 
         auto self() requires (HasFields<Parent>) {
@@ -188,7 +188,7 @@ namespace geode::modifier {
             // undefining and re-defining offsetof caused another error further down
             // so we're doing this now
 #ifdef __CLION_IDE__
-            return reinterpret_cast<Parent::Fields*>(69420);
+            return reinterpret_cast<typename Parent::Fields*>(69420);
 #else
             return this->self();
 #endif
