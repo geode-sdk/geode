@@ -310,7 +310,12 @@ enum class DemonDifficultyType {
     InsaneDemon = 5,
     ExtremeDemon = 6
 };
-enum class PlayerCollisionDirection {};
+enum class PlayerCollisionDirection {
+    Top = 0,
+    Bottom = 1,
+    Left = 2,
+    Right = 3
+};
 enum class ChestSpriteState {};
 enum class FormatterType {};
 enum class AudioModType {};
