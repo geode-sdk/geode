@@ -47,7 +47,7 @@ bool applicationDidFinishLaunchingHook(void* self, SEL sel, void* p1, void* p2) 
 
     int exitCode = geodeEntry(nullptr);
     if (exitCode != 0)
-        return;
+        return false;
 
     return s_applicationDidFinishLaunchingOrig(self, sel, p1, p2);
 }
