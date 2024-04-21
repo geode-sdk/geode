@@ -211,6 +211,7 @@ namespace geode {
         }
 
         matjson::Value& getSaveContainer();
+        matjson::Value& getSavedSettingsData();
 
         template <class T>
         T getSettingValue(std::string_view const key) const {

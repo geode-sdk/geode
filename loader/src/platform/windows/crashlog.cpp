@@ -292,6 +292,10 @@ static std::string getInfo(LPEXCEPTION_POINTERS info, Mod* faultyMod) {
             << "\n"
             << "Number Parameters: " << info->ExceptionRecord->NumberParameters << "\n";
     }
+
+    // show the thread that crashed
+    stream << "Crashed thread: " << utils::thread::getName() << "\n";
+    
     return stream.str();
 }
 

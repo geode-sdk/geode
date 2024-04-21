@@ -50,12 +50,17 @@ void updater::fetchLatestGithubRelease(
         return then(s_latestGithubRelease.value());
     }
 
+    auto version = VersionInfo::parse(
+        Mod::get()->getSavedValue("latest-version-auto-update-check", std::string("0.0.0"))
+    );
+
+    log::debug("Last update check result: {}", version.unwrap().toString());
+
     std::string modifiedSince;
-    if (!force) {
+    if (!force && version && version.unwrap() <= Mod::get()->getVersion() && version.unwrap() != VersionInfo(0, 0, 0)) {
         modifiedSince = Mod::get()->getSavedValue("last-modified-auto-update-check", std::string());
     }
 
-    // TODO: add header to not get rate limited
     web::AsyncWebRequest()
         .join("loader-auto-update-check")
         .header("If-Modified-Since", modifiedSince)
@@ -279,6 +284,8 @@ void updater::downloadLoaderUpdate(std::string const& url) {
                 LoaderUpdateEvent(
                     UpdateFailed("Unable to unzip update: " + unzip.unwrapErr())
                 ).post();
+                
+                Mod::get()->setSavedValue("last-modified-auto-update-check", std::string());
                 return;
             }
             s_isNewUpdateDownloaded = true;
@@ -289,6 +296,8 @@ void updater::downloadLoaderUpdate(std::string const& url) {
             LoaderUpdateEvent(
                 UpdateFailed("Unable to download update: " + info)
             ).post();
+
+            Mod::get()->setSavedValue("last-modified-auto-update-check", std::string());
         })
         .progress([](auto&, double now, double total) {
             LoaderUpdateEvent(
@@ -311,8 +320,16 @@ void updater::checkForLoaderUpdates() {
             VersionInfo ver { 0, 0, 0 };
             root.needs("tag_name").into(ver);
 
+            log::info("Latest version is {}", ver.toString());
+            Mod::get()->setSavedValue("latest-version-auto-update-check", ver.toString());
+
             // make sure release is newer
             if (ver <= Loader::get()->getVersion()) {
+                if(ver <= VersionInfo(2, 0, 0, VersionTag(VersionTag::Beta, 1))) {
+                    log::warn("Invalid loader version detected, resetting update check time");
+
+                    Mod::get()->setSavedValue("last-modified-auto-update-check", std::string());
+                }
                 return;
             }
 
@@ -335,9 +352,12 @@ void updater::checkForLoaderUpdates() {
                 }
             }
 
+            log::error("Failed to find release asset for " GEODE_PLATFORM_NAME);
             LoaderUpdateEvent(
                 UpdateFailed("Unable to find release asset for " GEODE_PLATFORM_NAME)
             ).post();
+            
+            Mod::get()->setSavedValue("last-modified-auto-update-check", std::string());
         },
         [](std::string const& info) {
             log::error("Failed to fetch updates {}", info);
