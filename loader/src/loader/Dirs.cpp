@@ -8,11 +8,12 @@
 using namespace geode::prelude;
 
 ghc::filesystem::path dirs::getGeodeDir() {
-    return ghc::filesystem::path("/var/mobile/geode"); // TODO: temp remove later
+    // TODO: putting the geode folder in the save folder might not be the best idea?
+    return dirs::getSaveDir() / "geode";
 }
 
 ghc::filesystem::path dirs::getGeodeSaveDir() {
-    return dirs::getSaveDir() / "geode";
+    return dirs::getSaveDir() / "geode-save";
 }
 
 ghc::filesystem::path dirs::getGeodeResourcesDir() {
