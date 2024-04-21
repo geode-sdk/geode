@@ -11,11 +11,13 @@
 using namespace geode::prelude;
 
 struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
-    bool m_menuDisabled;
-    CCLabelBMFont* m_smallLabel = nullptr;
-    CCLabelBMFont* m_smallLabel2 = nullptr;
-    int m_geodeLoadStep = 0;
-    int m_totalMods = 0;
+    struct Fields {
+        bool m_menuDisabled = false;
+        CCLabelBMFont* m_smallLabel = nullptr;
+        CCLabelBMFont* m_smallLabel2 = nullptr;
+        int m_geodeLoadStep = 0;
+        int m_totalMods = 0;
+    };
 
     static void onModify(auto& self) {
         if (!self.setHookPriority("LoadingLayer::init", geode::node_ids::GEODE_ID_PRIORITY)) {
