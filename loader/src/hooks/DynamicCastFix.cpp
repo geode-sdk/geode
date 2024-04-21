@@ -20,6 +20,6 @@ $execute {
         dlclose(handle);
     #elif defined(GEODE_IS_IOS)
         void* addr = reinterpret_cast<void*>(base::get() + 0x76c6e0);
-        (void) Mod::get()->patch(addr, geode::toByteArray(&cast::typeinfoCastInternal), "__dynamic_cast");
+        (void) Mod::get()->patch(addr, geode::toByteArray(&cast::typeinfoCastInternal));
     #endif
 }
