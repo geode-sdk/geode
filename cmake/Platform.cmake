@@ -59,7 +59,7 @@ if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
         -DCommentType=CommentTypeDummy
     )
 
-    set(GEODE_OUTPUT_NAME "Geode")
+    set(GEODE_OUTPUT_NAME "Geode.ios")
     set(GEODE_PLATFORM_BINARY "Geode.ios.dylib")
     set(GEODE_MOD_BINARY_SUFFIX ".ios.dylib" CACHE STRING "" FORCE)
 elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
