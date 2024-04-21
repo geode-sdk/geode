@@ -79,7 +79,10 @@ namespace geode {
                 return false;
             }
 
+            // TODO: crashes the game.
+#ifndef GEODE_IS_IOS
             this->setKeypadEnabled(true);
+#endif
             this->setTouchEnabled(true);
 
             return true;
@@ -95,8 +98,8 @@ namespace geode {
         }
 
         /**
-         * Init with AnchorLayout and the content size of `m_buttonMenu` and 
-         * `m_bgSprite` being tied to the size of `m_mainLayer` (rather than 
+         * Init with AnchorLayout and the content size of `m_buttonMenu` and
+         * `m_bgSprite` being tied to the size of `m_mainLayer` (rather than
          * being the size of the window)
          */
         bool initAnchored(

@@ -340,6 +340,7 @@ bool ModListLayer::init() {
 
     // tabs gradient
     m_tabsGradientNode = CCNode::create(); // TODO: ccclippingnode does not exist on ios.
+    m_tabsGradientNode->setVisible(false); // TODO: remove this too
     m_tabsGradientNode->setContentSize(this->getContentSize());
     m_tabsGradientNode->setAnchorPoint({0.5f, 0.5f});
     m_tabsGradientNode->ignoreAnchorPointForPosition(true);
