@@ -215,6 +215,8 @@ enum class AccountError {
     AlreadyUsedUsername = -2
 };
 enum class GJSongError {
+    DownloadSongFailed = 1,
+    DownloadSFXFailed = 2
 };
 enum class LikeItemType {
     Unknown = 0,
