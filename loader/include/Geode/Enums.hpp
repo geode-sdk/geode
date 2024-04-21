@@ -410,7 +410,10 @@ enum class gjParticleValue {
     PlusMinus26 = 0x48
 };
 enum class ColorSelectType {};
-enum class AudioGuidelinesType {};
+enum class AudioGuidelinesType {
+    GuidelineCreator = 0,
+    BPMFinder = 1
+};
 enum class SmartBrowseFilter {};
 enum class GJUITouchEvent {};
 enum class ObjectScaleType {
