@@ -15,16 +15,6 @@ namespace geode {
         private:
             std::variant<T, Cancel> m_value;
 
-        public:
-            Result(Result const&) = delete;
-            Result(T&& value) : m_value(std::in_place_index<0>, std::forward<T>(value)) {}
-            Result(Cancel const&) : m_value(std::in_place_index<1>, Cancel()) {}
-
-            template <class V>
-            Result(V&& value) requires std::is_constructible_v<T, V&&>
-              : m_value(std::in_place_index<0>, std::forward<V>(value))
-            {}
-
             std::optional<T> getValue() && {
                 if (m_value.index() == 0) {
                     return std::optional(std::move(std::get<0>(std::move(m_value))));
@@ -34,6 +24,19 @@ namespace geode {
             bool isCancelled() const {
                 return m_value.index() == 1;
             }
+
+            friend class Task;
+
+        public:
+            Result(Result&&) = default;
+            Result(Result const&) = delete;
+            Result(T&& value) : m_value(std::in_place_index<0>, std::forward<T>(value)) {}
+            Result(Cancel const&) : m_value(std::in_place_index<1>, Cancel()) {}
+
+            template <class V>
+            Result(V&& value) requires std::is_constructible_v<T, V&&>
+              : m_value(std::in_place_index<0>, std::forward<V>(value))
+            {}
         };
     
     public:
@@ -110,9 +113,13 @@ namespace geode {
             }
         };
 
+        using Value            = T;
+        using Progress         = P;
+        using PostResult       = utils::MiniFunction<void(Result)>;
         using PostProgress     = utils::MiniFunction<void(P)>;
         using HasBeenCancelled = utils::MiniFunction<bool()>;
         using Run              = utils::MiniFunction<Result(PostProgress, HasBeenCancelled)>;
+        using RunWithCallback  = utils::MiniFunction<void(PostResult, PostProgress, HasBeenCancelled)>;
 
         using Callback = void(Event*);
 
@@ -127,7 +134,7 @@ namespace geode {
             std::unique_lock<std::recursive_mutex> lock(handle->m_mutex);
             if (handle->m_status == Status::Pending) {
                 handle->m_status = Status::Finished;
-                handle->m_resultValue = std::move(value);
+                handle->m_resultValue.emplace(std::move(value));
                 Loader::get()->queueInMainThread([handle, value = &*handle->m_resultValue]() mutable {
                     Event::createFinished(handle, value).post();
                     std::unique_lock<std::recursive_mutex> lock(handle->m_mutex);
@@ -174,6 +181,25 @@ namespace geode {
             return *this;
         }
 
+        bool operator==(Task const& other) const {
+            return m_handle == other.m_handle;
+        }
+        bool operator!=(Task const& other) const {
+            return m_handle != other.m_handle;
+        }
+        bool operator<(Task const& other) const {
+            return m_handle < other.m_handle;
+        }
+        bool operator<=(Task const& other) const {
+            return m_handle <= other.m_handle;
+        }
+        bool operator>(Task const& other) const {
+            return m_handle > other.m_handle;
+        }
+        bool operator>=(Task const& other) const {
+            return m_handle >= other.m_handle;
+        }
+
         T* getFinishedValue() {
             if (m_handle && m_handle->m_resultValue) {
                 return &*m_handle->m_resultValue;
@@ -193,7 +219,7 @@ namespace geode {
             return m_handle && m_handle->is(Status::Cancelled);
         }
         
-        static Task immediate(T&& value) {
+        static Task immediate(T value) {
             auto task = Task(Handle::create());
             Task::finish(task.m_handle, std::move(value));
             return task;
@@ -222,6 +248,32 @@ namespace geode {
             }).detach();
             return task;
         }
+        static Task runWithCallback(RunWithCallback&& body) {
+            auto task = Task(Handle::create());
+            std::thread([handle = std::weak_ptr(task.m_handle), body = std::move(body)] {
+                utils::thread::setName(fmt::format("Task (w/ callback) @{}", fmt::ptr(handle.lock())));
+                body(
+                    [handle](Result result) {
+                        if (result.isCancelled()) {
+                            Task::cancel(handle.lock());
+                        }
+                        else {
+                            Task::finish(handle.lock(), std::move(*std::move(result).getValue()));
+                        }
+                    },
+                    [handle](P progress) {
+                        Task::progress(handle.lock(), std::move(progress));
+                    },
+                    [handle]() -> bool {
+                        // The task has been cancelled if the user has explicitly cancelled it, 
+                        // or if there is no one listening anymore
+                        auto lock = handle.lock();
+                        return !(lock && lock->is(Status::Pending));
+                    }
+                );
+            }).detach();
+            return task;
+        }
 
         template <class ResultMapper, class ProgressMapper>
         auto map(ResultMapper&& resultMapper, ProgressMapper&& progressMapper) {
@@ -239,7 +291,7 @@ namespace geode {
             }
             // If the current task is finished, immediately map the value and post that
             else if (m_handle->m_status == Status::Finished) {
-                Task<T2, P2>::finish(task.m_handle, resultMapper(&*m_handle->m_resultValue));
+                Task<T2, P2>::finish(task.m_handle, std::move(resultMapper(&*m_handle->m_resultValue)));
             }
             // Otherwise start listening and waiting for the current task to finish
             else {
@@ -251,10 +303,10 @@ namespace geode {
                             progressMapper = std::move(progressMapper)
                         ](Event* event) {
                             if (auto v = event->getValue()) {
-                                Task<T2, P2>::finish(handle.lock(), resultMapper(v));
+                                Task<T2, P2>::finish(handle.lock(), std::move(resultMapper(v)));
                             }
                             else if (auto p = event->getProgress()) {
-                                Task<T2, P2>::progress(handle.lock(), progressMapper(p));
+                                Task<T2, P2>::progress(handle.lock(), std::move(progressMapper(p)));
                             }
                             else if (event->isCancelled()) {
                                 Task<T2, P2>::cancel(handle.lock());
@@ -268,6 +320,12 @@ namespace geode {
                 );
             }
             return task;
+        }
+
+        template <class ResultMapper>
+            requires std::copy_constructible<P>
+        auto map(ResultMapper&& resultMapper) {
+            return this->map(std::move(resultMapper), +[](P* p) -> P { return *p; });
         }
 
         ListenerResult handle(utils::MiniFunction<Callback> fn, Event* e) {
