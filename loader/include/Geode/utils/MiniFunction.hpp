@@ -26,7 +26,7 @@ namespace geode::utils {
         explicit MiniFunctionState(Type func) : m_func(func) {}
 
         Ret call(Args... args) const override {
-            return const_cast<Type&>(m_func)(args...);
+            return const_cast<Type&>(m_func)(std::forward<Args>(args)...);
         }
 
         MiniFunctionStateBase<Ret, Args...>* clone() const override {
@@ -42,7 +42,7 @@ namespace geode::utils {
         explicit MiniFunctionStatePointer(Type func) : m_func(func) {}
 
         Ret call(Args... args) const override {
-            return const_cast<Type&>(*m_func)(args...);
+            return const_cast<Type&>(*m_func)(std::forward<Args>(args)...);
         }
 
         MiniFunctionStateBase<Ret, Args...>* clone() const override {
@@ -58,7 +58,7 @@ namespace geode::utils {
         explicit MiniFunctionStateMemberPointer(Type func) : m_func(func) {}
 
         Ret call(Class self, Args... args) const override {
-            return const_cast<Type&>(self->*m_func)(args...);
+            return const_cast<Type&>(self->*m_func)(std::forward<Args>(args)...);
         }
 
         MiniFunctionStateBase<Ret, Class, Args...>* clone() const override {
@@ -68,7 +68,7 @@ namespace geode::utils {
     
     template <class Callable, class Ret, class... Args>
     concept MiniFunctionCallable = requires(Callable&& func, Args... args) {
-        { func(args...) } -> std::same_as<Ret>;
+        { func(std::forward<Args>(args)...) } -> std::same_as<Ret>;
     };
 
     template <class Ret, class... Args>
@@ -131,7 +131,7 @@ namespace geode::utils {
                     "any function, or one that has been moved"
                 );
             }
-            return m_state->call(args...);
+            return m_state->call(std::forward<Args>(args)...);
         }
 
         explicit operator bool() const {
