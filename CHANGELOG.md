@@ -1,5 +1,11 @@
 # Geode Changelog
 
+## v2.0.0-beta.25
+ * Fix updater sometimes skipping releases (18dd0b7)
+ * Fix resources getting downloaded every time (5f571d9)
+ * Modify fields are now done using an explicit `Fields` struct to avoid forgetting `m_fields` (4505b0d)
+ * Fix memory leak on new field containers (db32732)
+
 ## v2.0.0-beta.24
  * CMake error when compiling with Android SDK below 23 (ea34e12)
  * Fix rendering of soft line breaks in MDTextArea (c7f8b5f)

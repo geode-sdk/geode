@@ -66,35 +66,46 @@ namespace geode::modifier {
     public:
         // the constructor that constructs the fields.
         // we construct the Parent first,
-        static void fieldConstructor(void* offsetField) requires (!HasFields<Parent>) {
-            std::array<std::byte, sizeof(Parent)> parentContainer;
+        static void fieldConstructor(void* offsetField) {
+            if constexpr (HasFields<Parent>) {
+                (void) new (offsetField) typename Parent::Fields();
+            }
+            else {
+                std::array<std::byte, sizeof(Parent)> parentContainer;
 
-            auto parent = new (parentContainer.data()) Parent();
+                auto parent = new (parentContainer.data()) Parent();
 
-            parent->Intermediate::~Intermediate();
+                parent->Intermediate::~Intermediate();
 
-            std::memcpy(
-                offsetField,
-                std::launder(&parentContainer[sizeof(Intermediate)]),
-                sizeof(Parent) - sizeof(Intermediate)
-            );
+                std::memcpy(
+                    offsetField,
+                    std::launder(&parentContainer[sizeof(Intermediate)]),
+                    sizeof(Parent) - sizeof(Intermediate)
+                );   
+            }
         }
 
-        static void fieldDestructor(void* offsetField) requires (!HasFields<Parent>) {
-            std::array<std::byte, sizeof(Parent)> parentContainer;
+        static void fieldDestructor(void* offsetField) {
+            if constexpr (HasFields<Parent>) {
+                static_cast<typename Parent::Fields*>(offsetField)->~Fields();
+            }
+            else {
+                std::array<std::byte, sizeof(Parent)> parentContainer;
 
-            auto parent = new (parentContainer.data()) Intermediate();
+                auto parent = new (parentContainer.data()) Intermediate();
 
-            std::memcpy(
-                std::launder(&parentContainer[sizeof(Intermediate)]),
-                offsetField,
-                sizeof(Parent) - sizeof(Intermediate)
-            );
+                std::memcpy(
+                    std::launder(&parentContainer[sizeof(Intermediate)]),
+                    offsetField,
+                    sizeof(Parent) - sizeof(Intermediate)
+                );
 
-            static_cast<Parent*>(parent)->Parent::~Parent();
+                static_cast<Parent*>(parent)->Parent::~Parent();
+            }
         }
 
-        operator Parent*() requires (!HasFields<Parent>) {
+        [[deprecated("Fields are now done using an explicit `Fields` struct. Please refer to https://docs.geode-sdk.org/tutorials/fields/ for more information.")]]
+        auto deprecatedSelf() {
             // get the this pointer of the base
             // field intermediate is the first member of Modify
             // meaning we canget the base from ourself
@@ -124,62 +135,40 @@ namespace geode::modifier {
             );
         }
 
-        Parent* self() requires (!HasFields<Parent>) {
-            return this->operator Parent*();
-        }
+        auto self() {
+            if constexpr (HasFields<Parent>) {
+                // get the this pointer of the base
+                // field intermediate is the first member of Modify
+                // meaning we canget the base from ourself
+                auto node = reinterpret_cast<Parent*>(reinterpret_cast<std::byte*>(this) - sizeof(Base));
+                static_assert(sizeof(Base) == offsetof(Parent, m_fields), "offsetof not correct");
 
-        Parent* operator->() requires (!HasFields<Parent>) {
-            // workaround for "static assertion is not an integral constant expression" in CLion
-            // while the solution in https://github.com/microsoft/STL/issues/3311 works, you can't provide
-            // cli args to clang-tidy in clion, so we use this workaround instead
-            // https://youtrack.jetbrains.com/issue/CPP-27446/spurious-offsetof-in-staticassert-error-from-clangd#focus=Comments-27-8172811.0-0
-            // update: that workaround didn't work,
-            // undefining and re-defining offsetof caused another error further down
-            // so we're doing this now
-#ifdef __CLION_IDE__
-            return reinterpret_cast<Parent*>(69420);
-#else
-            return this->operator Parent*();
-#endif
-        }
+                // generating the container if it doesn't exist
+                auto container = FieldContainer::from(node, typeid(Base).name());
 
-        static void fieldConstructor(void* offsetField) requires (HasFields<Parent>) {
-            (void) new (offsetField) typename Parent::Fields();
-        }
+                // the index is global across all mods, so the
+                // function is defined in the loader source
+                static size_t index = getFieldIndexForClass(typeid(Base).name());
 
-        static void fieldDestructor(void* offsetField) requires (HasFields<Parent>) {
-            static_cast<typename Parent::Fields*>(offsetField)->~Fields();
-        }
+                // the fields are actually offset from their original
+                // offset, this is done to save on allocation and space
+                auto offsetField = container->getField(index);
+                if (!offsetField) {
+                    offsetField = container->setField(
+                        index, sizeof(typename Parent::Fields), &FieldIntermediate::fieldDestructor
+                    );
 
-        auto self() requires (HasFields<Parent>) {
-            // get the this pointer of the base
-            // field intermediate is the first member of Modify
-            // meaning we canget the base from ourself
-            auto node = reinterpret_cast<Parent*>(reinterpret_cast<std::byte*>(this) - sizeof(Base));
-            static_assert(sizeof(Base) == offsetof(Parent, m_fields), "offsetof not correct");
+                    FieldIntermediate::fieldConstructor(offsetField);
+                }
 
-            // generating the container if it doesn't exist
-            auto container = FieldContainer::from(node, typeid(Base).name());
-
-            // the index is global across all mods, so the
-            // function is defined in the loader source
-            static size_t index = getFieldIndexForClass(typeid(Base).name());
-
-            // the fields are actually offset from their original
-            // offset, this is done to save on allocation and space
-            auto offsetField = container->getField(index);
-            if (!offsetField) {
-                offsetField = container->setField(
-                    index, sizeof(typename Parent::Fields), &FieldIntermediate::fieldDestructor
-                );
-
-                FieldIntermediate::fieldConstructor(offsetField);
+                return reinterpret_cast<typename Parent::Fields*>(offsetField);
             }
-
-            return reinterpret_cast<typename Parent::Fields*>(offsetField);
+            else {
+                return this->deprecatedSelf();
+            }
         }
 
-        auto operator->() requires (HasFields<Parent>) {
+        auto operator->() {
             // workaround for "static assertion is not an integral constant expression" in CLion
             // while the solution in https://github.com/microsoft/STL/issues/3311 works, you can't provide
             // cli args to clang-tidy in clion, so we use this workaround instead
