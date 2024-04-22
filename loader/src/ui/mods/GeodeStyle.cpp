@@ -68,19 +68,52 @@ CCSprite* GeodeSquareSprite::getTopSprite() const {
     return m_topSprite;
 }
 
+class LoadingSpinner : public CCNode {
+protected:
+    CCSprite* m_spinner;
+
+    bool init(float sideLength) {
+        if (!CCNode::init())
+            return false;
+        
+        this->setContentSize({ sideLength, sideLength });
+        this->setAnchorPoint({ .5f, .5f });
+        
+        m_spinner = CCSprite::create("loadingCircle.png");
+        m_spinner->setBlendFunc({ GL_ONE, GL_ONE });
+        limitNodeSize(m_spinner, m_obContentSize, 1.f, .1f);
+        this->addChildAtPosition(m_spinner, Anchor::Center);
+
+        this->spin();
+
+        return true;
+    }
+
+    void spin() {
+        m_spinner->runAction(CCRepeatForever::create(CCRotateBy::create(1.f, 360.f)));
+    }
+
+public:
+    static LoadingSpinner* create(float sideLength) {
+        auto ret = new LoadingSpinner();
+        if (ret && ret->init(sideLength)) {
+            ret->autorelease();
+            return ret;
+        }
+        CC_SAFE_DELETE(ret);
+        return nullptr;
+    }
+
+    void setVisible(bool visible) override {
+        CCNode::setVisible(visible);
+        this->spin();
+    }
+};
+
 CCNode* createLoadingCircle(float sideLength, const char* id) {
-    auto spinnerContainer = CCNode::create();
-    spinnerContainer->setContentSize({ sideLength, sideLength });
-    spinnerContainer->setID(id);
-    spinnerContainer->setAnchorPoint({ .5f, .5f });
-
-    auto spinner = CCSprite::create("loadingCircle.png");
-    spinner->setBlendFunc({ GL_ONE, GL_ONE });
-    spinner->runAction(CCRepeatForever::create(CCRotateBy::create(1.f, 360.f)));
-    limitNodeSize(spinner, spinnerContainer->getContentSize(), 1.f, .1f);
-    spinnerContainer->addChildAtPosition(spinner, Anchor::Center);
-
-    return spinnerContainer;
+    auto spinner = LoadingSpinner::create(sideLength);
+    spinner->setID(id);
+    return spinner;
 }
 
 IconButtonSprite* createGeodeButton(CCNode* icon, std::string const& text, std::string const& bg) {
