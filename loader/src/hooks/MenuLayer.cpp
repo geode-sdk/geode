@@ -28,9 +28,11 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         GEODE_FORWARD_COMPAT_DISABLE_HOOKS_INNER("MenuLayer stuff disabled")
     }
 
-    bool m_menuDisabled;
-    CCSprite* m_geodeButton;
-    Task<std::monostate> m_updateCheckTask;
+    struct Fields {
+        bool m_menuDisabled = false;
+        CCSprite* m_geodeButton = nullptr;
+        Task<std::monostate> m_updateCheckTask;
+    };
 
     bool init() {
         if (!MenuLayer::init()) return false;
