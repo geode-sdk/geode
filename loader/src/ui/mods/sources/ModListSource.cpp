@@ -104,12 +104,12 @@ ListenerResult InvalidateCacheFilter::handle(MiniFunction<Callback> fn, Invalida
 
 InvalidateCacheFilter::InvalidateCacheFilter(ModListSource* src) : m_source(src) {}
 
-typename ModListSource::PageLoadTask ModListSource::loadPage(size_t page, bool update) {
-    if (!update && m_cachedPages.contains(page)) {
+typename ModListSource::PageLoadTask ModListSource::loadPage(size_t page, bool forceUpdate) {
+    if (!forceUpdate && m_cachedPages.contains(page)) {
         return PageLoadTask::immediate(Ok(m_cachedPages.at(page)));
     }
     m_cachedPages.erase(page);
-    return this->fetchPage(page, PER_PAGE).map(
+    return this->fetchPage(page, PER_PAGE, forceUpdate).map(
         [this, page](Result<ProvidedMods, LoadPageError>* result) -> Result<Page, LoadPageError> {
             if (result->isOk()) {
                 auto data = result->unwrap();
@@ -178,7 +178,7 @@ void InstalledModListSource::resetQuery() {
     };
 }
 
-InstalledModListSource::ProviderTask InstalledModListSource::fetchPage(size_t page, size_t pageSize) {
+InstalledModListSource::ProviderTask InstalledModListSource::fetchPage(size_t page, size_t pageSize, bool forceUpdate) {
     m_query.page = page;
     m_query.pageSize = pageSize;
 
@@ -277,10 +277,10 @@ void ServerModListSource::resetQuery() {
     }
 }
 
-ServerModListSource::ProviderTask ServerModListSource::fetchPage(size_t page, size_t pageSize) {
+ServerModListSource::ProviderTask ServerModListSource::fetchPage(size_t page, size_t pageSize, bool forceUpdate) {
     m_query.page = page;
     m_query.pageSize = pageSize;
-    return server::getMods(m_query).map(
+    return server::getMods(m_query, !forceUpdate).map(
         [](Result<server::ServerModsList, server::ServerError>* result) -> ProviderTask::Value {
             if (result->isOk()) {
                 auto list = result->unwrap();
@@ -355,7 +355,7 @@ bool ServerModListSource::wantsRestart() const {
 }
 
 void ModPackListSource::resetQuery() {}
-ModPackListSource::ProviderTask ModPackListSource::fetchPage(size_t page, size_t pageSize) {
+ModPackListSource::ProviderTask ModPackListSource::fetchPage(size_t page, size_t pageSize, bool forceUpdate) {
     return ProviderTask::immediate(Err(LoadPageError("Coming soon ;)")));
 }
 
